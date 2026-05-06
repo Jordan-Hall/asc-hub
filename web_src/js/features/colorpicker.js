@@ -49,6 +49,7 @@ function initPicker(el) {
     content: picker,
     placement: 'bottom-start',
     interactive: true,
+    appendTo: input.closest('dialog') ?? document.body,
     onShow() {
       updatePicker(picker, input.value);
     },
