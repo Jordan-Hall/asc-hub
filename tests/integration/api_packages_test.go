@@ -527,6 +527,42 @@ func TestPackageCleanup(t *testing.T) {
 
 	duration, _ := time.ParseDuration("-1h")
 
+	t.Run("Debian", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		// Debian does a repository rebuild.
+
+		distribution := "forgejo"
+		component := "main"
+		architecture := "amd64"
+		packageName := "runner"
+		packageDescription := "Forgejo Runner"
+
+		rootURL := fmt.Sprintf("/api/packages/%s/debian", user.Name)
+		uploadURL := fmt.Sprintf("%s/pool/%s/%s/upload", rootURL, distribution, component)
+
+		req := NewRequestWithBody(t, "PUT", uploadURL,
+			createDebianArchive(packageName, "1.0.0", architecture, packageDescription)).
+			AddBasicAuth(user.Name)
+		MakeRequest(t, req, http.StatusCreated)
+
+		resp := MakeRequest(t, NewRequestf(t, "GET", "%s/dists/%s/%s/binary-%s/Packages", rootURL, distribution, component, architecture), http.StatusOK)
+		assert.Contains(t, resp.Body.String(), "pool/forgejo/main/runner_1.0.0_amd64.deb")
+
+		pcr, err := packages_model.InsertCleanupRule(t.Context(), &packages_model.PackageCleanupRule{
+			Enabled:       true,
+			RemovePattern: `.+`,
+			OwnerID:       user.ID,
+			Type:          packages_model.TypeDebian,
+		})
+		require.NoError(t, err)
+
+		require.NoError(t, packages_cleanup_service.CleanupTask(t.Context(), duration))
+
+		MakeRequest(t, NewRequestf(t, "GET", "%s/dists/%s/%s/binary-%s/Packages", rootURL, distribution, component, architecture), http.StatusNotFound)
+
+		require.NoError(t, packages_model.DeleteCleanupRuleByID(t.Context(), pcr.ID))
+	})
+
 	t.Run("Common", func(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
