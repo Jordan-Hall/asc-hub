@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"forgejo.org/routers"
 	"forgejo.org/services/contexttest"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -93,4 +95,55 @@ func TestFederationHttpSigValidation(t *testing.T) {
 			MakeRequest(t, req, http.StatusOK)
 		})
 	})
+}
+
+func TestFederationAllRoutesCovered(t *testing.T) {
+	defer test.MockVariableValue(&setting.Federation.Enabled, true)()
+	defer test.MockVariableValue(&testWebRoutes, routers.NormalRoutes())()
+
+	routes := routers.NormalRoutes().R.Routes()
+
+	var r *chi.Route
+	for _, route := range routes {
+		if route.Pattern == "/api/v1/*" {
+			r = &route
+			break
+		}
+	}
+
+	require.NotNil(t, r)
+
+	ranOne := false
+	for _, route := range r.SubRoutes.Routes() {
+		if !strings.HasPrefix(route.Pattern, "/activitypub/") {
+			continue
+		}
+
+		ranOne = true
+		if route.Pattern == "/activitypub/actor" {
+			// unsigned request to the actor should always succed
+			req := NewRequest(t, "GET", fmt.Sprintf("%sapi/v1/activitypub/actor", setting.AppURL))
+			MakeRequest(t, req, http.StatusOK)
+		} else {
+			// this just puts in something for the replacements to be able to make a request
+			url := fmt.Sprintf("%sapi/v1%s", setting.AppURL, route.Pattern)
+			for strings.Contains(url, "{") {
+				before, after, _ := strings.Cut(url, "/{")
+				_, after, _ = strings.Cut(after, "}/")
+				url = fmt.Sprintf("%s/1/%s", before, after)
+			}
+
+			var req *RequestWrapper
+			if strings.Contains(route.Pattern, "inbox") {
+				req = NewRequestWithJSON(t, "POST", url, "{}")
+			} else {
+				req = NewRequest(t, "GET", url)
+			}
+
+			resp := MakeRequest(t, req, http.StatusBadRequest)
+			assert.Contains(t, resp.Body.String(), "request signature verification failed")
+		}
+	}
+
+	require.True(t, ranOne)
 }

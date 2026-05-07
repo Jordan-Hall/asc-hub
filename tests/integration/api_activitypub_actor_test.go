@@ -49,6 +49,9 @@ func TestActivityPubActor(t *testing.T) {
 	assert.Regexp(t, "^-----BEGIN PUBLIC KEY-----", pubKeyPem)
 
 	t.Run("ActorOutboxEmpty", func(t *testing.T) {
+		// /inbox and /outbox routes also require signature checks
+		defer test.MockVariableValue(&setting.Federation.SignatureEnforced, false)()
+
 		req := NewRequest(t, "GET", actor.Outbox.GetID().String())
 		resp := MakeRequest(t, req, http.StatusOK)
 

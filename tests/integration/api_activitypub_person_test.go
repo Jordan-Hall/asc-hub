@@ -80,6 +80,7 @@ func TestActivityPubPerson(t *testing.T) {
 func TestActivityPubMissingPerson(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 	defer test.MockVariableValue(&setting.Federation.Enabled, true)()
+	defer test.MockVariableValue(&setting.Federation.SignatureEnforced, false)()
 	defer test.MockVariableValue(&testWebRoutes, routers.NormalRoutes())()
 
 	req := NewRequest(t, "GET", "/api/v1/activitypub/user-id/999999999")

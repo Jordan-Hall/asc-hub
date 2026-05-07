@@ -873,31 +873,28 @@ func Routes() *web.Route {
 		if setting.Federation.Enabled {
 			m.Get("/nodeinfo", misc.NodeInfo)
 			m.Group("/activitypub", func() {
-				m.Group("/user-id/{user-id}", func() {
-					m.Get("", activitypub.ReqHTTPSignature(), activitypub.Person)
-					m.Post("/inbox",
-						activitypub.ReqHTTPSignature(),
-						bind(ap.Activity{}),
-						activitypub.PersonInbox)
-					m.Group("/activities/{activity-id}", func() {
-						m.Get("", activitypub.PersonActivityNote)
-						m.Get("/activity", activitypub.PersonActivity)
+				// The instance actor must always be fetchable without signatures
+				m.Get("/actor", activitypub.Actor)
+				m.Group("", func() {
+					m.Group("/actor", func() {
+						m.Post("/inbox", activitypub.ActorInbox)
+						m.Get("/outbox", activitypub.ActorOutbox)
 					})
-					m.Get("/outbox", activitypub.ReqHTTPSignature(), activitypub.PersonFeed)
-				}, context.UserIDAssignmentAPI(), checkTokenPublicOnly())
-				m.Group("/actor", func() {
-					m.Get("", activitypub.Actor)
-					m.Post("/inbox", activitypub.ReqHTTPSignature(), activitypub.ActorInbox)
-					m.Get("/outbox", activitypub.ActorOutbox)
-				})
-				m.Group("/repository-id/{repository-id}", func() {
-					m.Get("", activitypub.ReqHTTPSignature(), activitypub.Repository)
-					m.Post("/inbox",
-						bind(ap.Activity{}),
-						activitypub.ReqHTTPSignature(),
-						activitypub.RepositoryInbox)
-					m.Get("/outbox", activitypub.ReqHTTPSignature(), activitypub.RepositoryOutbox)
-				}, context.RepositoryIDAssignmentAPI())
+					m.Group("/user-id/{user-id}", func() {
+						m.Get("", activitypub.Person)
+						m.Post("/inbox", bind(ap.Activity{}), activitypub.PersonInbox)
+						m.Get("/outbox", activitypub.PersonFeed)
+						m.Group("/activities/{activity-id}", func() {
+							m.Get("", activitypub.PersonActivityNote)
+							m.Get("/activity", activitypub.PersonActivity)
+						})
+					}, context.UserIDAssignmentAPI(), checkTokenPublicOnly())
+					m.Group("/repository-id/{repository-id}", func() {
+						m.Get("", activitypub.Repository)
+						m.Post("/inbox", bind(ap.Activity{}), activitypub.RepositoryInbox)
+						m.Get("/outbox", activitypub.RepositoryOutbox)
+					}, context.RepositoryIDAssignmentAPI())
+				}, activitypub.ReqHTTPSignature())
 			}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryActivityPub))
 		}
 
