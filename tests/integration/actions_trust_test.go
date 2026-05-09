@@ -471,3 +471,65 @@ func TestActionsPullRequestTrustCancelOnClose(t *testing.T) {
 		}
 	})
 }
+
+func TestActionsPullRequestTrustPushCancel(t *testing.T) {
+	onApplicationRun(t, func(t *testing.T, u *url.URL) {
+		ownerUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+		ownerSession := loginUser(t, ownerUser.Name)
+
+		regularUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
+
+		baseRepo, f := actionsTrustTestCreateBaseRepo(t, ownerUser)
+		defer f()
+
+		forkedRepo, pullRequest, addFileToForkedResp := actionsTrustTestCreatePullRequestFromForkedRepo(t, ownerUser, baseRepo, regularUser)
+		pullRequestLink := pullRequest.Issue.Link()
+
+		// there is one commit in the pull request and it is blocked from running actions pending approval
+		{
+			actionRun := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{RepoID: baseRepo.ID, CommitSHA: addFileToForkedResp.Commit.SHA})
+			assert.True(t, actionRun.NeedApproval)
+			assert.Equal(t, actions_model.StatusWaiting, actionRun.Status)
+			actionRunJob := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{RunID: actionRun.ID, RepoID: baseRepo.ID})
+			assert.Equal(t, actions_model.StatusBlocked, actionRunJob.Status)
+		}
+
+		// another commit is pushed to the head branch of the pull request
+		otherFileInForkResp := actionsTrustTestRepoModify(t, regularUser, baseRepo, forkedRepo, "add_file_one.txt")
+
+		// there are two commits
+		// - the oldest one switched from Blocked to Cancelled and no longer needs approval
+		// - the newest one is Blocked and pending approval
+		{
+			actionRun := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{RepoID: baseRepo.ID, CommitSHA: addFileToForkedResp.Commit.SHA})
+			assert.False(t, actionRun.NeedApproval)
+			assert.Equal(t, actions_model.StatusCancelled, actionRun.Status)
+			actionRunJob := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{RunID: actionRun.ID, RepoID: baseRepo.ID})
+			assert.Equal(t, actions_model.StatusCancelled, actionRunJob.Status)
+
+			otherActionRun := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{RepoID: baseRepo.ID, CommitSHA: otherFileInForkResp.Commit.SHA})
+			assert.True(t, otherActionRun.NeedApproval)
+			assert.Equal(t, actions_model.StatusWaiting, otherActionRun.Status)
+			otherActionRunJob := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{RunID: otherActionRun.ID, RepoID: baseRepo.ID})
+			assert.Equal(t, actions_model.StatusBlocked, otherActionRunJob.Status)
+		}
+
+		actionsTrustTestAssertTrustPanel(t, ownerSession, pullRequestLink)
+		actionsTrustTestClickTrustPanel(t, ownerSession, pullRequestLink, string(actions_service.UserTrustDenied))
+
+		// there are two commits, both are Cancelled and not pending approval
+		{
+			actionRun := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{RepoID: baseRepo.ID, CommitSHA: addFileToForkedResp.Commit.SHA})
+			assert.False(t, actionRun.NeedApproval)
+			assert.Equal(t, actions_model.StatusCancelled, actionRun.Status)
+			actionRunJob := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{RunID: actionRun.ID, RepoID: baseRepo.ID})
+			assert.Equal(t, actions_model.StatusCancelled, actionRunJob.Status)
+
+			otherActionRun := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{RepoID: baseRepo.ID, CommitSHA: otherFileInForkResp.Commit.SHA})
+			assert.False(t, otherActionRun.NeedApproval)
+			assert.Equal(t, actions_model.StatusCancelled, otherActionRun.Status)
+			otherActionRunJob := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{RunID: otherActionRun.ID, RepoID: baseRepo.ID})
+			assert.Equal(t, actions_model.StatusCancelled, otherActionRunJob.Status)
+		}
+	})
+}
