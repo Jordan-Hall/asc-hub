@@ -25,5 +25,6 @@ pkgs.mkShell {
 
     # tests
     openssh
+    gnupg
   ];
 }
