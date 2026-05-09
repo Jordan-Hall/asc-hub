@@ -23,6 +23,7 @@ import (
 	"forgejo.org/services/federation"
 	"forgejo.org/tests"
 
+	ap "github.com/go-ap/activitypub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -159,15 +160,22 @@ func TestActivityPubPersonInboxNoteToDistant(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		// distant request activity & activity note
-		localUser2ActivityNote := fmt.Sprintf("%v/activities/1", localUser2URL)
-		localUser2Activity := fmt.Sprintf("%v/activities/1/activity", localUser2URL)
+		// ID of create activity and note delivered to distant
+		activity, err := ap.UnmarshalJSON([]byte(mock.LastPost))
+		require.NoError(t, err)
 
-		resp, err = c.Get(localUser2ActivityNote)
+		createNote := activity.(*ap.Create)
+		localUser2ActivityNote, err := createNote.Object.GetID().URL()
+		require.NoError(t, err)
+
+		localUser2Activity, err := createNote.GetID().URL()
+		require.NoError(t, err)
+
+		resp, err = c.Get(localUser2ActivityNote.String())
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		resp, err = c.Get(localUser2Activity)
+		resp, err = c.Get(localUser2Activity.String())
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
