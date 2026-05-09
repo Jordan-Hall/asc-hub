@@ -52,6 +52,7 @@ func TestActionsAPISearchActionJobs_RepoRunner(t *testing.T) {
 
 	job393 := api.ActionRunJob{
 		ID:      393,
+		RunID:   891,
 		Attempt: 1,
 		Handle:  "18e9cf40-c2f6-409f-b832-b945ea7dc79b",
 		RepoID:  1,
@@ -713,6 +714,7 @@ func TestActionsAPIListActionRunJobs(t *testing.T) {
 				if expected.ID == 195 {
 					assert.Equal(t, &api.ActionRunJob{
 						ID:      195,
+						RunID:   793,
 						Attempt: 1,
 						Handle:  "",
 						RepoID:  4,
@@ -726,6 +728,7 @@ func TestActionsAPIListActionRunJobs(t *testing.T) {
 				} else if expected.ID == 197 {
 					assert.Equal(t, &api.ActionRunJob{
 						ID:      197,
+						RunID:   895,
 						Attempt: 0,
 						Handle:  "",
 						RepoID:  4,

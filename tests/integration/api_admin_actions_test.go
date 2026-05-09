@@ -46,6 +46,7 @@ func TestAPIAdminActionsGetJobs(t *testing.T) {
 
 		expected := api.ActionRunJob{
 			ID:      393,
+			RunID:   891,
 			Attempt: 1,
 			Handle:  "18e9cf40-c2f6-409f-b832-b945ea7dc79b",
 			RepoID:  1,

@@ -38,6 +38,7 @@ func TestActionsAPISearchActionJobs_UserRunner(t *testing.T) {
 
 	job394 := api.ActionRunJob{
 		ID:      394,
+		RunID:   891,
 		Attempt: 2,
 		Handle:  "a723d3e3-49a1-4e6b-947f-e987e60bfbd6",
 		RepoID:  1,

@@ -12,6 +12,8 @@ import (
 type ActionRunJob struct {
 	// Identifier of this job.
 	ID int64 `json:"id"`
+	// Identifier of the workflow run this job belongs to.
+	RunID int64 `json:"run_id"`
 	// How many times the job has been attempted including the current attempt.
 	Attempt int64 `json:"attempt"`
 	// Opaque identifier that uniquely identifies a single attempt of a job.

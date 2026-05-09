@@ -71,6 +71,7 @@ func ToActionRunJob(job *actions_model.ActionRunJob) *api.ActionRunJob {
 
 	return &api.ActionRunJob{
 		ID:      job.ID,
+		RunID:   job.RunID,
 		Attempt: job.Attempt,
 		Handle:  job.Handle,
 		RepoID:  job.RepoID,
