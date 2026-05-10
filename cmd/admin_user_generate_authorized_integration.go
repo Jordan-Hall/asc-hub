@@ -31,6 +31,12 @@ user-defined rules, and grant access to Forgejo's API on behalf of a user.
 The issuer may be set to "urn:forgejo:authorized-integrations:actions"
 to support JWTs from the local instance's Forgejo Actions, utilizing the
 enable-openid-connect flag in a workflow.`,
+
+		// `--claim-in sub=v1,v2,v3` needs to be parsed as a single parameter so that we can comma-split the value into
+		// an array.  To accomplish this, we disable urfave 's slice flag separator, which would cause this to be
+		// treated as "sub=v1", "v2=?", and "v3=?", resulting in an error of missing values.
+		DisableSliceFlagSeparator: true,
+
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "username",
@@ -60,9 +66,19 @@ enable-openid-connect flag in a workflow.`,
 				Usage: `Zero-or-more claim equality checks, formatted as claim=value, example: "actor=someuser"`,
 			},
 			&cli.StringMapFlag{
+				Name:  "claim-in",
+				Value: map[string]string{},
+				Usage: `Zero-or-more claim equality in list checks, formatted as claim=value1,value2,... example: "actor=user1,user2"`,
+			},
+			&cli.StringMapFlag{
 				Name:  "claim-glob",
 				Value: map[string]string{},
 				Usage: `Zero-or-more claim glob checks, formatted as claim=value, example: "sub=repo:forgejo/*:pull_request"`,
+			},
+			&cli.StringMapFlag{
+				Name:  "claim-glob-in",
+				Value: map[string]string{},
+				Usage: `Zero-or-more claim glob in list checks, formatted as claim=va*ue1,va*ue2,... example: "sub=repo:*/*:pull_request,repo:*/*:refs:*"`,
 			},
 			// nested claim support omitted for now -- pretty complex for a CLI
 
@@ -115,11 +131,33 @@ func runCreateAuthorizedIntegration(ctx context.Context, c *cli.Command) error {
 			Value:      value,
 		})
 	}
+	for claim, value := range c.StringMap("claim-in") {
+		values := []string{}
+		for s := range strings.SplitSeq(value, ",") {
+			values = append(values, strings.TrimSpace(s))
+		}
+		rules = append(rules, auth_model.ClaimRule{
+			Claim:      claim,
+			Comparison: auth_model.ClaimIn,
+			Values:     values,
+		})
+	}
 	for claim, value := range c.StringMap("claim-glob") {
 		rules = append(rules, auth_model.ClaimRule{
 			Claim:      claim,
 			Comparison: auth_model.ClaimGlob,
 			Value:      value,
+		})
+	}
+	for claim, value := range c.StringMap("claim-glob-in") {
+		values := []string{}
+		for s := range strings.SplitSeq(value, ",") {
+			values = append(values, strings.TrimSpace(s))
+		}
+		rules = append(rules, auth_model.ClaimRule{
+			Claim:      claim,
+			Comparison: auth_model.ClaimGlobIn,
+			Values:     values,
 		})
 	}
 	ai.ClaimRules = &auth_model.ClaimRules{Rules: rules}
@@ -179,7 +217,8 @@ func runCreateAuthorizedIntegration(ctx context.Context, c *cli.Command) error {
 		Description string                     `json:"description"`
 		Claim       string                     `json:"claim"`
 		Comparison  auth_model.ClaimComparison `json:"compare"`
-		Value       string                     `json:"value"`
+		Value       string                     `json:"value,omitempty"`
+		Values      []string                   `json:"values,omitempty"`
 	}
 	output := struct {
 		Message     string                 `json:"message"`
@@ -200,14 +239,19 @@ func runCreateAuthorizedIntegration(ctx context.Context, c *cli.Command) error {
 		switch cr.Comparison {
 		case auth_model.ClaimEqual:
 			description = fmt.Sprintf("%q = %q", cr.Claim, cr.Value)
+		case auth_model.ClaimIn:
+			description = fmt.Sprintf("%q in %q", cr.Claim, cr.Values)
 		case auth_model.ClaimGlob:
 			description = fmt.Sprintf("%q matches %q", cr.Claim, cr.Value)
+		case auth_model.ClaimGlobIn:
+			description = fmt.Sprintf("%q matches in %q", cr.Claim, cr.Values)
 		}
 		output.ClaimRules = append(output.ClaimRules, ClaimRuleDescription{
 			Description: description,
 			Claim:       cr.Claim,
 			Comparison:  cr.Comparison,
 			Value:       cr.Value,
+			Values:      cr.Values,
 		})
 	}
 

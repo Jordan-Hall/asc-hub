@@ -42,11 +42,25 @@ func TestCheckClaims(t *testing.T) {
 			Value:      value,
 		}
 	}
+	in := func(claim string, values []string) auth_model.ClaimRule {
+		return auth_model.ClaimRule{
+			Claim:      claim,
+			Comparison: auth_model.ClaimIn,
+			Values:     values,
+		}
+	}
 	glob := func(claim, value string) auth_model.ClaimRule {
 		return auth_model.ClaimRule{
 			Claim:      claim,
 			Comparison: auth_model.ClaimGlob,
 			Value:      value,
+		}
+	}
+	globIn := func(claim string, values []string) auth_model.ClaimRule {
+		return auth_model.ClaimRule{
+			Claim:      claim,
+			Comparison: auth_model.ClaimGlobIn,
+			Values:     values,
 		}
 	}
 	nest := func(claim string, inner ...auth_model.ClaimRule) auth_model.ClaimRule {
@@ -161,6 +175,32 @@ func TestCheckClaims(t *testing.T) {
 		require.ErrorContains(t, ai.checkClaims(c, rules), "claim \"arbitrary\" must be a string, but was int")
 	})
 
+	t.Run("comparison ClaimIn", func(t *testing.T) {
+		c := map[string]any{}
+		rules := rules(in("arbitrary", []string{"abc", "def"}))
+
+		c["arbitrary"] = "abc"
+		require.NoError(t, ai.checkClaims(c, rules))
+		c["arbitrary"] = "def"
+		require.NoError(t, ai.checkClaims(c, rules))
+
+		c["arbitrary"] = "123"
+		require.ErrorContains(t, ai.checkClaims(c, rules), "claim \"arbitrary\" must be one of [\"abc\" \"def\"], but was \"123\"")
+
+		c["arbitrary"] = 123
+		require.ErrorContains(t, ai.checkClaims(c, rules), "claim \"arbitrary\" must be a string, but was int")
+	})
+
+	t.Run("comparison ClaimIn empty", func(t *testing.T) {
+		c := map[string]any{}
+		rules := rules(in("arbitrary", []string{}))
+
+		require.ErrorContains(t, ai.checkClaims(c, rules), "claim rule on \"arbitrary\" couldn't be satisfied: claim not found")
+
+		c["arbitrary"] = "abc"
+		require.ErrorContains(t, ai.checkClaims(c, rules), "claim \"arbitrary\" must be one of [], but was \"abc\"")
+	})
+
 	t.Run("comparison ClaimGlob", func(t *testing.T) {
 		c := map[string]any{}
 		r := rules(glob("arbitrary", "*c"))
@@ -180,6 +220,39 @@ func TestCheckClaims(t *testing.T) {
 		r = rules(glob("arbitrary", "[abc"))
 		c["arbitrary"] = "abc"
 		require.ErrorContains(t, ai.checkClaims(c, r), "unable to parse glob for claim rule on \"arbitrary\"; glob = \"[abc\", err = unexpected end of input")
+	})
+
+	t.Run("comparison ClaimGlobIn", func(t *testing.T) {
+		c := map[string]any{}
+		r := rules(globIn("arbitrary", []string{"*c", "*def*"}))
+
+		c["arbitrary"] = "abc"
+		require.NoError(t, ai.checkClaims(c, r))
+		c["arbitrary"] = "abcdef"
+		require.NoError(t, ai.checkClaims(c, r))
+
+		c["arbitrary"] = "123"
+		require.ErrorContains(t, ai.checkClaims(c, r), "claim \"arbitrary\" must glob match one of [\"*c\" \"*def*\"], but value \"123\" did not match")
+
+		c["arbitrary"] = "this string contains a c or two but doesn't end with one" // ensure glob isn't OK w/ a partial match
+		require.ErrorContains(t, ai.checkClaims(c, r), "claim \"arbitrary\" must glob match one of [\"*c\" \"*def*\"], but value \"this string contains a c or two but doesn't end with one\" did not match")
+
+		c["arbitrary"] = 123
+		require.ErrorContains(t, ai.checkClaims(c, r), "claim \"arbitrary\" must be a string, but was int")
+
+		r = rules(globIn("arbitrary", []string{"[abc"}))
+		c["arbitrary"] = "abc"
+		require.ErrorContains(t, ai.checkClaims(c, r), "unable to parse glob for claim rule on \"arbitrary\"; glob = \"[abc\", err = unexpected end of input")
+	})
+
+	t.Run("comparison ClaimGlobIn empty", func(t *testing.T) {
+		c := map[string]any{}
+		rules := rules(globIn("arbitrary", []string{}))
+
+		require.ErrorContains(t, ai.checkClaims(c, rules), "claim rule on \"arbitrary\" couldn't be satisfied: claim not found")
+
+		c["arbitrary"] = "abc"
+		require.ErrorContains(t, ai.checkClaims(c, rules), "claim \"arbitrary\" must glob match one of [], but value \"abc\" did not match")
 	})
 
 	t.Run("comparison ClaimNested", func(t *testing.T) {

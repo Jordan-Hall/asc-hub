@@ -460,6 +460,13 @@ func (a *AuthorizedIntegration) checkClaims(incomingClaims any, stored *auth_mod
 			} else if lhsStr != rule.Value {
 				return fmt.Errorf("claim %q must be %q, but was %q", rule.Claim, rule.Value, lhsStr)
 			}
+		case auth_model.ClaimIn:
+			lhsStr, ok := lhs.(string)
+			if !ok {
+				return fmt.Errorf("claim %q must be a string, but was %T", rule.Claim, lhs)
+			} else if !slices.Contains(rule.Values, lhsStr) {
+				return fmt.Errorf("claim %q must be one of %q, but was %q", rule.Claim, rule.Values, lhsStr)
+			}
 		case auth_model.ClaimGlob:
 			lhsStr, ok := lhs.(string)
 			if !ok {
@@ -471,6 +478,25 @@ func (a *AuthorizedIntegration) checkClaims(incomingClaims any, stored *auth_mod
 			}
 			if !r.Match(lhsStr) {
 				return fmt.Errorf("claim %q must match glob %q, but value %q did not match", rule.Claim, rule.Value, lhsStr)
+			}
+		case auth_model.ClaimGlobIn:
+			lhsStr, ok := lhs.(string)
+			if !ok {
+				return fmt.Errorf("claim %q must be a string, but was %T", rule.Claim, lhs)
+			}
+			matched := false
+			for _, g := range rule.Values {
+				r, err := glob.Compile(g)
+				if err != nil {
+					return fmt.Errorf("unable to parse glob for claim rule on %q; glob = %q, err = %w", rule.Claim, g, err)
+				}
+				if r.Match(lhsStr) {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				return fmt.Errorf("claim %q must glob match one of %q, but value %q did not match", rule.Claim, rule.Values, lhsStr)
 			}
 		case auth_model.ClaimNested:
 			lhsMap, ok := lhs.(map[string]any)

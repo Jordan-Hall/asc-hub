@@ -111,6 +111,9 @@ type ClaimRule struct {
 	// For Comparison of ClaimEqual or ClaimGlob, the specific value or glob to match against
 	Value string `json:"value,omitempty"`
 
+	// For Comparison of ClaimIn or ClaimGlobIn, an array of values to match against
+	Values []string `json:"values,omitempty"`
+
 	// For ClaimNested, the rules to apply to the nested object
 	Nested *ClaimRules `json:"nested,omitempty"`
 }
@@ -118,9 +121,11 @@ type ClaimRule struct {
 type ClaimComparison string
 
 const (
-	ClaimEqual  ClaimComparison = "eq"   // exactly equal claim
-	ClaimGlob   ClaimComparison = "glob" // glob match complete claim string
-	ClaimNested ClaimComparison = "nest" // recurse into a claim that is an map[string]any with it's own data fields
+	ClaimEqual  ClaimComparison = "eq"      // exactly equal claim
+	ClaimIn     ClaimComparison = "in"      // exactly equal any of the options in a list
+	ClaimGlob   ClaimComparison = "glob"    // glob match complete claim string
+	ClaimGlobIn ClaimComparison = "glob-in" // glob match any of the options in a list
+	ClaimNested ClaimComparison = "nest"    // recurse into a claim that is an map[string]any with it's own data fields
 )
 
 func GetAuthorizedIntegration(ctx context.Context, issuer, audience string) (*AuthorizedIntegration, error) {
