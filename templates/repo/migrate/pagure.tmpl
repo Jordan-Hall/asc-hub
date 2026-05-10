@@ -22,7 +22,7 @@
 					</div>
 					<div class="inline required field {{if .Err_RepoName}}error{{end}}">
 						<label for="repo_name">{{ctx.Locale.Tr "repo.repo_name"}}</label>
-						<input id="repo_name" name="repo_name" value="{{.repo_name}}" required maxlength="100">
+						<input id="repo_name" name="repo_name" value="{{.repo_name}}" required maxlength="100" autocorrect="off" autocapitalize="none" spellcheck="false">
 					</div>
 					{{template "repo/migrate/options" .}}
 					<div id="migrate_items">

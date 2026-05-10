@@ -9,7 +9,7 @@
 				<input type="hidden" name="action" value="update">
 				<div class="required field {{if .Err_RepoName}}error{{end}}">
 					<label>{{ctx.Locale.Tr "repo.repo_name"}}</label>
-					<input name="repo_name" value="{{.Repository.Name}}" data-repo-name="{{.Repository.Name}}" autofocus required>
+					<input name="repo_name" value="{{.Repository.Name}}" data-repo-name="{{.Repository.Name}}" autofocus required autocorrect="off" autocapitalize="none" spellcheck="false">
 				</div>
 				<div class="inline field">
 					<label>{{ctx.Locale.Tr "repo.repo_size"}}</label>
@@ -578,7 +578,7 @@
 						</div>
 						<div class="required field">
 							<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-							<input name="repo_name" required maxlength="100">
+							<input name="repo_name" required maxlength="100" autocorrect="off" autocapitalize="none" spellcheck="false">
 						</div>
 					</div>
 					<div class="actions">
@@ -609,7 +609,7 @@
 						</div>
 						<div class="required field">
 							<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-							<input name="repo_name" required>
+							<input name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
 						</div>
 					</div>
 					<div class="actions">
@@ -641,7 +641,7 @@
 					</div>
 					<div class="required field">
 						<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-						<input name="repo_name" required>
+						<input name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
 					</div>
 					<div class="required field">
 						<label for="new_owner_name">{{ctx.Locale.Tr "repo.settings.transfer_owner"}}</label>
@@ -679,7 +679,7 @@
 					</div>
 					<div class="required field">
 						<label for="repo_name_to_delete">{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-						<input id="repo_name_to_delete" name="repo_name" required>
+						<input id="repo_name_to_delete" name="repo_name" autocorrect="off" autocapitalize="none" spellcheck="false" required>
 					</div>
 				</div>
 				<div class="actions">
@@ -711,7 +711,7 @@
 					</div>
 					<div class="required field">
 						<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-						<input name="repo_name" required>
+						<input name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
 					</div>
 				</div>
 				<div class="actions">
@@ -744,7 +744,7 @@
 						</div>
 						<div class="required field">
 							<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-							<input name="repo_name" required>
+							<input name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
 						</div>
 					</div>
 					<div class="actions">
