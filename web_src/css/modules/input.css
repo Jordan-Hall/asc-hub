@@ -49,7 +49,7 @@
   position: absolute;
   text-align: center;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   margin: 0;
   height: 100%;
   width: 2.67142857em;
@@ -71,29 +71,26 @@
 
 .ui.ui.ui.ui.icon.input > textarea,
 .ui.ui.ui.ui.icon.input > input {
-  padding-right: 2.67142857em;
+  padding-inline-end: 2.67142857em;
 }
 .ui.icon.input > i.link.icon {
   cursor: pointer;
 }
 .ui.icon.input > i.circular.icon {
   top: 0.35em;
-  right: 0.5em;
+  inset-inline-end: 0.5em;
 }
 
 .ui[class*="left icon"].input > i.icon {
-  right: auto;
-  left: 1px;
+  inset-inline: 1px auto;
   border-radius: 0.28571429rem 0 0 0.28571429rem;
 }
 .ui[class*="left icon"].input > i.circular.icon {
-  right: auto;
-  left: 0.5em;
+  inset-inline: 0.5em auto;
 }
 .ui.ui.ui.ui[class*="left icon"].input > textarea,
 .ui.ui.ui.ui[class*="left icon"].input > input {
-  padding-left: 2.67142857em;
-  padding-right: 1em;
+  padding-inline: 2.67142857em 1em;
 }
 
 .ui.icon.input > textarea:focus ~ .icon,
@@ -125,9 +122,9 @@
 }
 
 .ui.action.input:not([class*="left action"]) > input {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right-color: transparent;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+  border-inline-end-color: transparent;
 }
 
 .ui.action.input > .dropdown:first-child,
@@ -171,18 +168,18 @@
   min-width: 10em;
 }
 .ui.action.input:not([class*="left action"]) > .ui.dropdown.selection:not(:focus) {
-  border-right: none;
+  border-inline-end: none;
 }
 .ui.action.input:not([class*="left action"]) > .ui.dropdown.selection:not(.active):hover {
   border-color: var(--color-input-border);
 }
 .ui.action.input:not([class*="left action"]) .ui.dropdown.selection.upward.visible {
-  border-bottom-left-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important; /* stylelint-disable-line logical-css/require-logical-properties */
+  border-bottom-right-radius: 0 !important; /* stylelint-disable-line logical-css/require-logical-properties */
 }
 .ui.action.input:not([class*="left action"]) > input,
 .ui.action.input:not([class*="left action"]) > input:hover {
-  border-right: none;
+  border-inline-end: none;
 }
 .ui.action.input:not([class*="left action"]) > input:focus + .ui.dropdown.selection,
 .ui.action.input:not([class*="left action"]) > input:focus + .ui.dropdown.selection:hover,
@@ -190,8 +187,8 @@
 .ui.action.input:not([class*="left action"]) > input:focus + .button:hover,
 .ui.action.input:not([class*="left action"]) > input:focus + .icon + .button,
 .ui.action.input:not([class*="left action"]) > input:focus + .icon + .button:hover {
-  border-left-color: var(--color-primary);
+  border-inline-start-color: var(--color-primary);
 }
 .ui.action.input:not([class*="left action"]) > input:focus {
-  border-right-color: var(--color-primary);
+  border-inline-end-color: var(--color-primary);
 }

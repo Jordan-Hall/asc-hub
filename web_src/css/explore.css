@@ -5,7 +5,7 @@
 .explore .secondary-nav .svg {
   width: 16px;
   text-align: center;
-  margin-right: 5px;
+  margin-inline-end: 5px;
 }
 
 .ui.repository.branches .info {
@@ -27,5 +27,5 @@
 
 /* fix alignment of PR popup in branches table */
 .ui.repository.branches table .ui.popup {
-  text-align: left;
+  text-align: start;
 }

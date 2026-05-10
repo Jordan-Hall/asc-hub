@@ -140,25 +140,25 @@
 }
 
 .tippy-box[data-placement^="left"] > .tippy-svg-arrow {
-  right: 0;
+  inset-inline-end: 0;
 }
 
 .tippy-box[data-placement^="left"] > .tippy-svg-arrow::after,
 .tippy-box[data-placement^="left"] > .tippy-svg-arrow > svg {
   transform: rotate(90deg);
   top: calc(50% - 3px);
-  left: 11px;
+  inset-inline-start: 11px;
 }
 
 .tippy-box[data-placement^="right"] > .tippy-svg-arrow {
-  left: 0;
+  inset-inline-start: 0;
 }
 
 .tippy-box[data-placement^="right"] > .tippy-svg-arrow::after,
 .tippy-box[data-placement^="right"] > .tippy-svg-arrow > svg {
   transform: rotate(-90deg);
   top: calc(50% - 3px);
-  right: 11px;
+  inset-inline-end: 11px;
 }
 
 .tippy-svg-arrow {

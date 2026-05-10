@@ -6,14 +6,14 @@
 .js-color-picker-input input {
   padding-top: 8px !important;
   padding-bottom: 8px !important;
-  padding-left: 32px !important;
+  padding-inline-start: 32px !important;
 }
 
 .js-color-picker-input .preview-square {
   position: absolute;
   aspect-ratio: 1;
   height: 16px;
-  left: 10px;
+  inset-inline-start: 10px;
   top: 50%;
   transform: translateY(-50%);
   border-radius: 2px;

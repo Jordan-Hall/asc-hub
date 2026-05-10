@@ -61,12 +61,12 @@ a, a:hover {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  margin-left: 13px;
-  border-left: 1px solid var(--color-secondary);
+  margin-inline-start: 13px;
+  border-inline-start: 1px solid var(--color-secondary);
 }
 
 .sub-items .item-file {
-  padding-left: 18px;
+  padding-inline-start: 18px;
 }
 
 .item-file.selected {

@@ -44,11 +44,11 @@
 }
 
 .toastify-right {
-  right: 15px;
+  inset-inline-end: 15px;
 }
 
 .toastify-left {
-  left: 15px;
+  inset-inline-start: 15px;
 }
 
 .toastify-top {
@@ -60,18 +60,14 @@
 }
 
 .toastify-center {
-  margin-left: auto;
-  margin-right: auto;
-  left: 0;
-  right: 0;
+  margin-inline: auto;
+  inset-inline: 0;
 }
 
 @media (max-width: 360px) {
   .toastify-right, .toastify-left {
-    margin-left: auto;
-    margin-right: auto;
-    left: 0;
-    right: 0;
+    margin-inline: auto;
+    inset-inline: 0;
     max-width: fit-content;
   }
 }

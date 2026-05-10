@@ -17,7 +17,7 @@
 .tribute-container li span.fullname {
   font-weight: var(--font-weight-normal);
   font-size: 0.8rem;
-  margin-left: 3px;
+  margin-inline-start: 3px;
 }
 
 .tribute-container li.highlight,
@@ -33,7 +33,7 @@
 
 .tribute-item .emoji,
 .tribute-item img[src*="/avatar/"] {
-  margin-right: 0.5rem;
+  margin-inline-end: 0.5rem;
 }
 
 .tribute-container img {

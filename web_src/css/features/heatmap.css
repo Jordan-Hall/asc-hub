@@ -40,19 +40,19 @@
   font-size: 11px;
   position: absolute;
   bottom: 0;
-  left: 25px;
+  inset-inline-start: 25px;
 }
 
 @media (max-width: 1200px) {
   #user-heatmap .total-contributions {
-    left: 21px;
+    inset-inline-start: 21px;
   }
 }
 
 @media (max-width: 1000px) {
   #user-heatmap .total-contributions {
     font-size: 10px;
-    left: 17px;
+    inset-inline-start: 17px;
     bottom: -4px;
   }
 }

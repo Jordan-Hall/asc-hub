@@ -18,7 +18,7 @@
 }
 
 .issue-list-new.button {
-  margin-right: 0;
+  margin-inline-end: 0;
 }
 
 .list-header-issues {
@@ -31,7 +31,7 @@
   }
   .issue-list-new {
     order: 1;
-    margin-left: auto !important;
+    margin-inline-start: auto !important;
   }
   .issue-list-search {
     order: 2 !important;
@@ -44,8 +44,8 @@
    **/
   .issue-list-toolbar-right .filter.menu {
     flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow-inline: auto;
+    overflow-block: hidden;
   }
 
   /* The following few CSS was created with care and built with the information
@@ -89,7 +89,7 @@
 }
 
 #issue-list .issue-meta .checklist progress {
-  margin-left: 2px;
+  margin-inline-start: 2px;
   width: 80px;
   height: 6px;
   display: inline-block;
@@ -104,7 +104,7 @@
 }
 
 .archived-label-filter {
-  margin-left: 10px;
+  margin-inline-start: 10px;
   font-size: 12px;
   display: flex !important;
   margin-bottom: 8px;

@@ -68,14 +68,14 @@
 }
 
 .page-footer .right-links > a {
-  border-left: 1px solid var(--color-secondary-dark-1);
-  padding-left: 8px;
-  margin-left: 8px;
+  border-inline-start: 1px solid var(--color-secondary-dark-1);
+  padding-inline-start: 8px;
+  margin-inline-start: 8px;
 }
 
 .page-footer .ui.dropdown.language .menu {
   max-height: min(500px, calc(100vh - 60px));
-  overflow-y: auto;
+  overflow-block: auto;
   margin-bottom: 10px;
 }
 

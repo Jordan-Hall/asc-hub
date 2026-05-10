@@ -6,7 +6,7 @@
 .markup .code-copy {
   position: absolute;
   top: 8px;
-  right: 6px;
+  inset-inline-end: 6px;
   padding: 9px;
   visibility: hidden;
   animation: fadeout 0.2s both;
@@ -14,7 +14,7 @@
 
 /* adjustments for comment content having only 14px font size */
 .repository.view.issue .comment-list .comment .markup .code-copy {
-  right: 5px;
+  inset-inline-end: 5px;
   padding: 8px;
 }
 

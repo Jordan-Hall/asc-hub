@@ -11,6 +11,7 @@ export default {
   plugins: [
     'stylelint-declaration-strict-value',
     'stylelint-declaration-block-no-ignored-properties',
+    'stylelint-plugin-logical-css',
     'stylelint-value-no-unknown-custom-properties',
     '@stylistic/stylelint-plugin',
   ],
@@ -173,6 +174,16 @@ export default {
     'keyframe-selector-notation': null,
     'keyframes-name-pattern': null,
     'length-zero-no-unit': [true, {ignore: ['custom-properties']}, {ignoreFunctions: ['var']}],
+    'logical-css/require-logical-keywords': true,
+    'logical-css/require-logical-properties': [true, {
+      fix: true,
+      ignore: [ // ignore properties not related to RTL support
+        'height', 'min-height', 'max-height', 'width', 'min-width', 'max-width', 'top', 'bottom',
+        'margin-bottom', 'margin-top', 'padding-bottom', 'padding-top',
+        'border-top', 'border-top-style', 'border-top-width', 'border-bottom', 'border-bottom-style', 'border-bottom-width',
+        'scroll-margin-top', 'scroll-margin-bottom', 'scroll-padding-top', 'scroll-padding-bottom'],
+      severity: 'error',
+    }],
     'max-nesting-depth': null,
     'media-feature-name-allowed-list': null,
     'media-feature-name-disallowed-list': null,

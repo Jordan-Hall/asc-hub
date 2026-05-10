@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow-inline: auto;
   margin: 0 0.5em;
 }
 
@@ -15,7 +15,7 @@
   width: 320px;
   height: calc(100vh - 450px);
   min-height: 60vh;
-  overflow-y: scroll;
+  overflow-block: scroll;
   flex: 0 0 auto;
   overflow: visible;
   display: flex;
@@ -57,7 +57,7 @@
   padding: 0 !important;
   flex-wrap: nowrap !important;
   flex-direction: column;
-  overflow-x: auto;
+  overflow-inline: auto;
   gap: .25rem;
 }
 
@@ -68,11 +68,11 @@
 }
 
 .project-column:first-child {
-  margin-left: auto !important;
+  margin-inline-start: auto !important;
 }
 
 .project-column:last-child {
-  margin-right: auto !important;
+  margin-inline-end: auto !important;
 }
 
 .card-attachment-images {
@@ -87,8 +87,8 @@
   display: inline-block;
   max-height: 50px;
   border-radius: var(--border-radius);
-  text-align: left;
-  margin-right: 2px;
+  text-align: start;
+  margin-inline-end: 2px;
   aspect-ratio: 1;
 }
 

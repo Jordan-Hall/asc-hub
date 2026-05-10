@@ -41,7 +41,7 @@
 .user-cards .card .avatar {
   width: 48px;
   height: 48px;
-  margin-right: 14px;
+  margin-inline-end: 14px;
 }
 
 .user-cards .card .name {

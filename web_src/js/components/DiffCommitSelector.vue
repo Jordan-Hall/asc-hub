@@ -275,7 +275,7 @@ export default {
   }
 
   #diff-commit-selector-menu {
-    overflow-x: hidden;
+    overflow-inline: hidden;
     max-height: 450px;
   }
 

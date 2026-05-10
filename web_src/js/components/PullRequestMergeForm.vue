@@ -203,8 +203,7 @@ export default {
   position: static;
 }
 .ui.merge-button > .ui.dropdown:last-child > .menu:not(.left) {
-  left: 0;
-  right: auto;
+  inset-inline: 0 auto;
 }
 .ui.merge-button .ui.dropdown .menu > .item {
   display: flex;
@@ -227,7 +226,7 @@ export default {
 }
 .auto-merge-small .auto-merge-tip {
   display: none;
-  left: 38px;
+  inset-inline-start: 38px;
   top: -0.5px;
   bottom: -1px;
   position: absolute;
@@ -235,8 +234,8 @@ export default {
   color: var(--color-info-text);
   background-color: var(--color-info-bg);
   border: 1px solid var(--color-info-border);
-  border-left: none;
-  padding-right: 1rem;
+  border-inline-start: none;
+  padding-inline-end: 1rem;
 }
 
 .menu .item:has(.auto-merge-small:hover) {

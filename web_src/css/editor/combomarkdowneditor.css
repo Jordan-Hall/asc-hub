@@ -47,7 +47,7 @@
   display: block;
   width: 100%;
   max-height: calc(100vh - var(--min-height-textarea));
-  resize: vertical;
+  resize: block;
 }
 
 .combo-markdown-editor .CodeMirror-scroll {
@@ -127,7 +127,7 @@ text-expander .suggestions li:hover {
 
 text-expander .suggestions .fullname {
   font-weight: var(--font-weight-normal);
-  margin-left: 4px;
+  margin-inline-start: 4px;
   color: var(--color-text-light-1);
 }
 
@@ -140,5 +140,5 @@ text-expander .suggestions li[aria-selected="true"] span {
 text-expander .suggestions img {
   width: 24px;
   height: 24px;
-  margin-right: 8px;
+  margin-inline-end: 8px;
 }

@@ -336,7 +336,7 @@ i.grey.icon.icon.icon.icon {
 #review-box .review-comments-counter {
   background-color: var(--color-shadow) !important;
   color: var(--color-white) !important;
-  margin-left: 0.5em;
+  margin-inline-start: 0.5em;
 }
 .ui.basic.labels .primary.label,
 .ui.ui.ui.basic.primary.label {

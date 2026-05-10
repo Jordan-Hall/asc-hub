@@ -9,7 +9,7 @@
 .menu .item:has(> .label-filter-item) .label-exclude-item-btn {
   opacity: 0;
   position: absolute;
-  right: 0;
+  inset-inline-end: 0;
   height: 100%;
   width: 40px;
   background: none;
@@ -34,13 +34,13 @@
   max-width: 288px;
 
   @media (any-hover: none) {
-    padding-right: 50px !important;
+    padding-inline-end: 50px !important;
   }
 
   &:hover,
   &.selected,
   &:has(.label-exclude-item-btn.active) {
-    padding-right: 50px !important;
+    padding-inline-end: 50px !important;
 
     .label-exclude-item-btn {
       opacity: 1;
@@ -51,7 +51,7 @@
 .menu:has(> .item[data-selected])
 .item:not([data-selected])
 > .label-filter-item {
-  padding-left: 27px;
+  padding-inline-start: 27px;
 }
 
 .menu .item .label-filter-item {

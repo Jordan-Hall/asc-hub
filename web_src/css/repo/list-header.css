@@ -8,8 +8,7 @@
 .list-header-sort {
   display: flex;
   align-items: center;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-inline: 1rem;
 }
 
 .list-header-search {
@@ -35,6 +34,6 @@
   }
   .list-header-sort {
     order: 2;
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 }

@@ -47,7 +47,7 @@ fieldset label + .ui.dropdown {
 
 fieldset label > input[type="checkbox"],
 fieldset label > input[type="radio"] {
-  margin-right: 0.75em;
+  margin-inline-end: 0.75em;
   margin-top: 0 !important;
   vertical-align: initial !important; /* overrides a semantic.css rule, remove when obsolete */
 }
@@ -298,7 +298,7 @@ input:-webkit-autofill:active,
   .h-captcha-style {
     margin: 0 auto !important;
     width: 304px;
-    padding-left: 30px;
+    padding-inline-start: 30px;
   }
   .g-recaptcha-style iframe,
   .h-captcha-style iframe {
@@ -351,10 +351,10 @@ input:-webkit-autofill:active,
   .user.link-account form .header,
   .user.signin form .header,
   .user.signup form .header {
-    padding-left: 280px !important;
+    padding-inline-start: 280px !important;
   }
   .user.activate form .inline.field > label {
-    text-align: right;
+    text-align: end;
     width: 250px !important;
     word-wrap: break-word;
   }
@@ -364,7 +364,7 @@ input:-webkit-autofill:active,
   .user.link-account form .help,
   .user.signin form .help,
   .user.signup form .help {
-    margin-left: 265px !important;
+    margin-inline-start: 265px !important;
   }
   .user.activate form .optional .title,
   .user.forgot.password form .optional .title,
@@ -372,7 +372,7 @@ input:-webkit-autofill:active,
   .user.link-account form .optional .title,
   .user.signin form .optional .title,
   .user.signup form .optional .title {
-    margin-left: 250px !important;
+    margin-inline-start: 250px !important;
   }
 }
 
@@ -383,7 +383,7 @@ input:-webkit-autofill:active,
   .user.link-account form .optional .title,
   .user.signin form .optional .title,
   .user.signup form .optional .title {
-    margin-left: 15px;
+    margin-inline-start: 15px;
   }
   .user.activate form .inline.field > label,
   .user.forgot.password form .inline.field > label,
@@ -401,7 +401,7 @@ input:-webkit-autofill:active,
 .user.link-account form .header,
 .user.signin form .header,
 .user.signup form .header {
-  padding-left: 0 !important;
+  padding-inline-start: 0 !important;
   text-align: center;
 }
 
@@ -474,22 +474,22 @@ input:-webkit-autofill:active,
   .repository.new.repo form .header,
   .repository.new.migrate form .header,
   .repository.new.fork form .header {
-    padding-left: 280px !important;
+    padding-inline-start: 280px !important;
   }
   .repository.new.migrate form .inline.field > label,
   .repository.new.fork form .inline.field > label {
-    text-align: right;
+    text-align: end;
     width: 250px !important;
     word-wrap: break-word;
   }
   .repository.new.migrate form .help,
   .repository.new.fork form .help {
-    margin-left: 265px !important;
+    margin-inline-start: 265px !important;
   }
   .repository.new.repo form .optional .title,
   .repository.new.migrate form .optional .title,
   .repository.new.fork form .optional .title {
-    margin-left: 250px !important;
+    margin-inline-start: 250px !important;
   }
   .repository.new.migrate form .inline.field > input,
   .repository.new.fork form .inline.field > input,
@@ -503,7 +503,7 @@ input:-webkit-autofill:active,
   .repository.new.repo form .optional .title,
   .repository.new.migrate form .optional .title,
   .repository.new.fork form .optional .title {
-    margin-left: 15px;
+    margin-inline-start: 15px;
   }
   .repository.new.repo form .inline.field > label,
   .repository.new.migrate form .inline.field > label,
@@ -514,14 +514,14 @@ input:-webkit-autofill:active,
 
 .repository.new.migrate form .dropdown .text,
 .repository.new.fork form .dropdown .text {
-  margin-right: 0 !important;
+  margin-inline-end: 0 !important;
 }
 
 .moderation.new-report form .header,
 .repository.new.repo form .header,
 .repository.new.migrate form .header,
 .repository.new.fork form .header {
-  padding-left: 0 !important;
+  padding-inline-start: 0 !important;
   text-align: center;
 }
 
@@ -557,7 +557,7 @@ input:-webkit-autofill:active,
 
 @media (min-width: 768px) {
   .repository.new.repo .ui.form #auto-init {
-    margin-left: 265px !important;
+    margin-inline-start: 265px !important;
   }
 }
 

@@ -15,7 +15,7 @@
 .ui.button.add-code-comment {
   padding: 2px;
   position: absolute;
-  margin-left: -22px;
+  margin-inline-start: -22px;
   z-index: 5;
   opacity: 0;
   transition: transform 0.1s ease-in-out;
@@ -36,7 +36,7 @@
 }
 
 .repository .diff-file-box .code-diff td.lines-escape {
-  padding-left: 0 !important;
+  padding-inline-start: 0 !important;
 }
 
 .diff-file-box .lines-code:hover .ui.button.add-code-comment {
@@ -52,8 +52,7 @@
 .repository .diff-file-box .code-diff .add-code-comment .add-comment-left,
 .repository .diff-file-box .code-diff .add-code-comment .add-comment-right,
 .repository .diff-file-box .code-diff .add-code-comment .lines-type-marker {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  padding-inline: 0 !important;
 }
 
 .add-comment-left.add-comment-right .ui.attached.header {
@@ -86,7 +85,7 @@
 }
 
 .add-comment .comment-code-cloud form {
-  margin-left: 42px;
+  margin-inline-start: 42px;
 }
 
 @media (max-width: 767.98px) {
@@ -109,13 +108,13 @@
     flex-shrink: 0;
   }
   .comment-code-cloud .comments .comment .avatar ~ .content {
-    margin-left: 1em;
+    margin-inline-start: 1em;
   }
   .comment-code-cloud .comments .comment img.avatar {
     margin: 0 !important;
   }
   .comment-code-cloud .comments .comment .comment-content {
-    margin-left: 0 !important;
+    margin-inline-start: 0 !important;
   }
   .comment-code-cloud .comments .comment.code-comment {
     padding: 0 0 0.5rem !important;
@@ -180,7 +179,7 @@
 }
 
 .diff-file-body .comment-form {
-  margin-left: 3em;
+  margin-inline-start: 3em;
 }
 
 .diff-file-body.binary {
@@ -271,7 +270,7 @@
 }
 
 .viewed-file-form input {
-  margin-right: 4px;
+  margin-inline-end: 4px;
 }
 
 .viewed-file-checked-form {

@@ -20,8 +20,8 @@
   color: var(--color-text-dark);
   background: var(--color-body);
   border-color: var(--color-secondary);
-  border-top-left-radius: var(--border-radius);
-  border-top-right-radius: var(--border-radius);
+  border-top-left-radius: var(--border-radius); /* stylelint-disable-line logical-css/require-logical-properties */
+  border-top-right-radius: var(--border-radius); /* stylelint-disable-line logical-css/require-logical-properties */
   vertical-align: middle;
 }
 
@@ -58,12 +58,12 @@ These inconsistent layouts should be refactored to simple ones.
   background: var(--color-secondary-bg);
   border-color: var(--color-secondary);
   padding: 1rem;
-  text-align: right;
+  text-align: end;
 }
 
 .ui.modal .content > .actions {
   padding-top: 1em; /* if the "actions" is in the "content", some paddings are already added by the "content" */
-  text-align: right;
+  text-align: end;
 }
 
 /* positive/negative action buttons */
@@ -71,7 +71,7 @@ These inconsistent layouts should be refactored to simple ones.
   display: inline-flex;
   align-items: center;
   padding: 10px 12px 10px 10px;
-  margin-right: 0;
+  margin-inline-end: 0;
 }
 
 .ui.modal .actions > .ui.button.danger {
@@ -82,5 +82,5 @@ These inconsistent layouts should be refactored to simple ones.
 }
 
 .ui.modal .actions > .ui.button .svg {
-  margin-right: 5px;
+  margin-inline-end: 5px;
 }

@@ -30,11 +30,11 @@ h4.divider {
 }
 
 .divider.divider-text::before {
-  margin-right: .75em;
+  margin-inline-end: .75em;
 }
 
 .divider.divider-text::after {
-  margin-left: .75em;
+  margin-inline-start: .75em;
 }
 
 .ui.dropdown .menu > .divider {

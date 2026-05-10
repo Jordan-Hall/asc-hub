@@ -15,7 +15,7 @@
 }
 
 .EasyMDEContainer .CodeMirror.CodeMirror-fullscreen.CodeMirror-focused {
-  border-right: 1px solid var(--color-primary) !important;
+  border-inline-end: 1px solid var(--color-primary) !important;
 }
 
 .CodeMirror-cursor {

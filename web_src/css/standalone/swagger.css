@@ -14,7 +14,7 @@ body {
   text-decoration: none;
   position: absolute;
   top: 1rem;
-  right: 1.5rem;
+  inset-inline-end: 1.5rem;
   display: flex;
   align-items: center;
 }
@@ -26,7 +26,7 @@ body {
 .swagger-back-link svg {
   color: inherit;
   fill: currentcolor;
-  margin-right: 0.5rem;
+  margin-inline-end: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -3,7 +3,7 @@
 }
 
 .repository.wiki .wiki-pages-list .wiki-git-entry {
-  margin-left: 10px;
+  margin-inline-start: 10px;
   display: none;
 }
 
@@ -33,13 +33,13 @@
 }
 
 .repository.wiki .wiki-content-main.with-sidebar {
-  float: left;
+  float: inline-start;
   width: 80%;
   max-width: calc(100% - 150px - 1em); /* match the min-width of .wiki-content-sidebar */
 }
 
 .repository.wiki .wiki-content-sidebar {
-  float: right;
+  float: inline-end;
   width: calc(20% - 1em);
   min-width: 150px;
 }
@@ -59,8 +59,8 @@
 }
 
 .repository.wiki .wiki-content-toc ul ul {
-  border-left:  1px var(--color-secondary);
-  border-left-style: dashed;
+  border-inline-start:  1px var(--color-secondary);
+  border-inline-start-style: dashed;
 }
 
 @media (max-width: 767.98px) {

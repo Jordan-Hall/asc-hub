@@ -22,12 +22,10 @@
 }
 
 .ui.relaxed.grid {
-  margin-left: -1.5rem;
-  margin-right: -1.5rem;
+  margin-inline: -1.5rem;
 }
 .ui[class*="very relaxed"].grid {
-  margin-left: -2.5rem;
-  margin-right: -2.5rem;
+  margin-inline: -2.5rem;
 }
 
 .ui.grid + .grid {
@@ -39,13 +37,11 @@
   position: relative;
   display: inline-block;
   width: 6.25%;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-inline: 1rem;
   vertical-align: top;
 }
 .ui.grid > * {
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-inline: 1rem;
 }
 
 .ui.grid > .row {
@@ -103,46 +99,36 @@
 @media only screen and (max-width: 767.98px) {
   .ui.page.grid {
     width: auto;
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: 0;
-    margin-right: 0;
+    padding-inline: 0;
+    margin-inline: 0;
   }
 }
 @media only screen and (min-width: 768px) and (max-width: 991.98px) {
   .ui.page.grid {
     width: auto;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 2em;
-    padding-right: 2em;
+    margin-inline: 0;
+    padding-inline: 2em;
   }
 }
 @media only screen and (min-width: 992px) and (max-width: 1199.98px) {
   .ui.page.grid {
     width: auto;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 3%;
-    padding-right: 3%;
+    margin-inline: 0;
+    padding-inline: 3%;
   }
 }
 @media only screen and (min-width: 1200px) and (max-width: 1919.98px) {
   .ui.page.grid {
     width: auto;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 15%;
-    padding-right: 15%;
+    margin-inline: 0;
+    padding-inline: 15%;
   }
 }
 @media only screen and (min-width: 1920px) {
   .ui.page.grid {
     width: auto;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 23%;
-    padding-right: 23%;
+    margin-inline: 0;
+    padding-inline: 23%;
   }
 }
 
@@ -371,37 +357,32 @@
 .ui.centered.grid > .column:not(.aligned):not(.justified):not(.row),
 .ui.centered.grid > .row > .column:not(.aligned):not(.justified),
 .ui.grid .centered.row > .column:not(.aligned):not(.justified) {
-  text-align: left;
+  text-align: start;
 }
 .ui.grid > .centered.column,
 .ui.grid > .row > .centered.column {
   display: block;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
 }
 
 .ui.relaxed.grid > .column:not(.row),
 .ui.relaxed.grid > .row > .column,
 .ui.grid > .relaxed.row > .column {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  padding-inline: 1.5rem;
 }
 .ui[class*="very relaxed"].grid > .column:not(.row),
 .ui[class*="very relaxed"].grid > .row > .column,
 .ui.grid > [class*="very relaxed"].row > .column {
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
+  padding-inline: 2.5rem;
 }
 
 .ui.relaxed.grid .row + .ui.divider,
 .ui.grid .relaxed.row + .ui.divider {
-  margin-left: 1.5rem;
-  margin-right: 1.5rem;
+  margin-inline: 1.5rem;
 }
 .ui[class*="very relaxed"].grid .row + .ui.divider,
 .ui.grid [class*="very relaxed"].row + .ui.divider {
-  margin-left: 2.5rem;
-  margin-right: 2.5rem;
+  margin-inline: 2.5rem;
 }
 
 .ui[class*="middle aligned"].grid > .column:not(.row),
@@ -419,7 +400,7 @@
 .ui.grid > [class*="left aligned"].row > .column,
 .ui.grid > [class*="left aligned"].column.column,
 .ui.grid > .row > [class*="left aligned"].column.column {
-  text-align: left;
+  text-align: start;
   align-self: inherit;
 }
 
@@ -440,7 +421,7 @@
 .ui.grid > [class*="right aligned"].row > .column,
 .ui.grid > [class*="right aligned"].column.column,
 .ui.grid > .row > [class*="right aligned"].column.column {
-  text-align: right;
+  text-align: end;
   align-self: inherit;
 }
 
@@ -470,8 +451,7 @@
 @media only screen and (max-width: 767.98px) {
   .ui.stackable.grid {
     width: auto;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin-inline: 0 !important;
   }
   .ui.stackable.grid > .row > .wide.column,
   .ui.stackable.grid > .wide.column,
@@ -492,25 +472,21 @@
 
   .ui.container > .ui.stackable.grid > .column,
   .ui.container > .ui.stackable.grid > .row > .column {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding-inline: 0 !important;
   }
 
   .ui.grid .ui.stackable.grid,
   .ui.segment:not(.vertical) .ui.stackable.page.grid {
-    margin-left: -1rem !important;
-    margin-right: -1rem !important;
+    margin-inline: -1rem !important;
   }
 }
 
 .ui.ui.ui.compact.grid > .column:not(.row),
 .ui.ui.ui.compact.grid > .row > .column {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  padding-inline: 0.5rem;
 }
 .ui.ui.ui.compact.grid > * {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  padding-inline: 0.5rem;
 }
 
 .ui.ui.ui.compact.grid > .row {

@@ -466,7 +466,7 @@ export default {
 ul {
   list-style: none;
   margin: 0;
-  padding-left: 0;
+  padding-inline-start: 0;
 }
 
 ul li {
@@ -487,8 +487,7 @@ ul li:not(:last-child) {
 }
 
 .repos-filter .item {
-  padding-left: 6px !important;
-  padding-right: 6px !important;
+  padding-inline: 6px !important;
 }
 
 .repo-list-link {
@@ -505,15 +504,14 @@ ul li:not(:last-child) {
 
 .repo-list-icon {
   min-width: 16px;
-  margin-right: 2px;
+  margin-inline-end: 2px;
 }
 
 /* octicon-mirror has no padding inside the SVG */
 .repo-list-icon.octicon-mirror {
   width: 14px;
   min-width: 14px;
-  margin-left: 1px;
-  margin-right: 3px;
+  margin-inline: 1px 3px;
 }
 
 .repo-owner-name-list li.active {

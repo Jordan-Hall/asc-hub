@@ -6,7 +6,7 @@ dialog {
   align-items: center;
   justify-content: center;
   position: fixed;
-  text-align: left;
+  text-align: start;
   border: none;
   background: var(--color-body);
   box-shadow:
@@ -57,8 +57,8 @@ dialog header {
   margin: 0;
   padding: 1.25rem 1.5rem;
   box-shadow: none;
-  border-top-left-radius: var(--border-radius);
-  border-top-right-radius: var(--border-radius);
+  border-top-left-radius: var(--border-radius); /* stylelint-disable-line logical-css/require-logical-properties */
+  border-top-right-radius: var(--border-radius); /* stylelint-disable-line logical-css/require-logical-properties */
   border-bottom: 1px solid var(--color-secondary);
 }
 
@@ -89,8 +89,8 @@ dialog .actions {
 }
 
 dialog footer {
-  border-bottom-left-radius: var(--border-radius);
-  border-bottom-right-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius); /* stylelint-disable-line logical-css/require-logical-properties */
+  border-bottom-right-radius: var(--border-radius); /* stylelint-disable-line logical-css/require-logical-properties */
 }
 
 /* positive/negative action buttons */
@@ -98,7 +98,7 @@ dialog .actions .ui.button {
   display: inline-flex;
   align-items: center;
   padding: 10px 12px;
-  margin-right: 0;
+  margin-inline-end: 0;
 }
 
 dialog .actions .ui.button.danger {
@@ -109,5 +109,5 @@ dialog .actions .ui.button.danger {
 }
 
 dialog .actions .ui.button .svg {
-  margin-right: 5px;
+  margin-inline-end: 5px;
 }

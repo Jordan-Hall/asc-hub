@@ -638,7 +638,7 @@ export default {
   display: flex;
   align-items: center;
   gap: var(--button-spacing);
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .action-info-summary-actions > button {
@@ -656,12 +656,12 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  margin-left: 28px;
+  margin-inline-start: 28px;
 }
 
 @media (max-width: 767.98px) {
   .action-commit-summary {
-    margin-left: 0;
+    margin-inline-start: 0;
     margin-top: 8px;
   }
 }
@@ -675,7 +675,7 @@ export default {
   position: sticky;
   top: 12px;
   max-height: 100vh;
-  overflow-y: auto;
+  overflow-block: auto;
   background: var(--color-body);
   z-index: 2; /* above .job-info-header */
 }
@@ -701,12 +701,12 @@ export default {
 }
 
 .job-artifacts-list {
-  padding-left: 12px;
+  padding-inline-start: 12px;
   list-style: none;
 }
 
 .job-artifacts-icon {
-  padding-right: 3px;
+  padding-inline-end: 3px;
 }
 
 .job-brief-list {
@@ -827,7 +827,7 @@ export default {
 }
 
 .action-view-right .ui.dropdown.dark-dropdown .menu > .divider {
-  border-top-color: var(--color-console-menu-border);
+  border-block-start-color: var(--color-console-menu-border);
 }
 
 .action-view-right .ui.pointing.dropdown.dark-dropdown > .menu:not(.hidden)::after {

@@ -287,8 +287,8 @@ export default {
 .branch-tag-item.active {
   border-color: var(--color-secondary);
   background: var(--color-menu);
-  border-top-left-radius: var(--border-radius);
-  border-top-right-radius: var(--border-radius);
+  border-start-start-radius: var(--border-radius);
+  border-start-end-radius: var(--border-radius);
 }
 
 .branch-tag-divider {

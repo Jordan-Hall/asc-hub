@@ -28,7 +28,7 @@ lazy-webc::after,
   content: "";
   position: absolute;
   display: block;
-  left: 50%;
+  inset-inline-start: 50%;
   top: 50%;
   height: min(4em, 66.6%);
   width: fit-content; /* compat: safari - https://bugs.webkit.org/show_bug.cgi?id=267625 */

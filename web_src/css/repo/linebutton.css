@@ -9,7 +9,7 @@
   padding: 1px 4px !important;
   position: absolute;
   font-family: var(--fonts-regular);
-  left: 0;
+  inset-inline-start: 0;
   transform: translateX(calc(-50% + 6px));
   cursor: pointer;
 }

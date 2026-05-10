@@ -51,7 +51,7 @@
   min-width: 1.55em;
   padding-top: 0;
   transition: color 0.1s ease;
-  padding-right: 0.28571429em;
+  padding-inline-end: 0.28571429em;
   vertical-align: top;
 }
 .ui.list .list > .item > i.icon:only-child,
@@ -69,7 +69,7 @@
 }
 .ui.list .list > .item > .image:not(:only-child):not(img),
 .ui.list > .item > .image:not(:only-child):not(img) {
-  padding-right: 0.5em;
+  padding-inline-end: 0.5em;
 }
 .ui.list .list > .item > .image img,
 .ui.list > .item > .image img {
@@ -102,8 +102,8 @@
 }
 .ui.list .list > .item > .content > .list,
 .ui.list > .item > .content > .list {
-  margin-left: 0;
-  padding-left: 0;
+  margin-inline-start: 0;
+  padding-inline-start: 0;
 }
 
 .ui.list .list > .item .header,
@@ -128,7 +128,7 @@
 
 .ui.list .list > .item [class*="right floated"],
 .ui.list > .item [class*="right floated"] {
-  float: right;
+  float: inline-end;
   margin: 0 0 0 1em;
 }
 

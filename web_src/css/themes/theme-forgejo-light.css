@@ -307,7 +307,7 @@
 }
 #review-box .review-comments-counter {
   background-color: var(--color-label-bg) !important;
-  margin-left: 0.5em;
+  margin-inline-start: 0.5em;
 }
 .ui.basic.labels .primary.label,
 .ui.ui.ui.basic.primary.label {

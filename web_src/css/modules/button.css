@@ -100,7 +100,7 @@
 /* Fomantic buttons have annoying margins to set distance between elements. In
  * the button-row/sequence helpers this is set by flex+gap */
 .button-row .ui.button {
-  margin-right: 0;
+  margin-inline-end: 0;
 }
 .button-sequence .ui.button {
   margin: 0 !important;

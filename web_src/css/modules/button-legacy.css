@@ -60,7 +60,7 @@ And the default buttons always have borders now (not the same as Fomantic UI's d
 It needs some tricks to tweak the left/right borders with active state */
 
 .ui.buttons .button {
-  border-right: none;
+  border-inline-end: none;
 }
 
 .ui.buttons .button:hover {
@@ -68,27 +68,27 @@ It needs some tricks to tweak the left/right borders with active state */
 }
 
 .ui.buttons .button:hover + .button {
-  border-left: 1px solid var(--color-secondary-dark-2);
+  border-inline-start: 1px solid var(--color-secondary-dark-2);
 }
 
 /* TODO: these "tw-hidden" selectors are only used by "blame.tmpl" buttons: Raw/Normal View/History/Unescape, need to be refactored to a clear solution later */
 .ui.buttons .button:first-child,
 .ui.buttons .button.tw-hidden:first-child + .button {
-  border-left: 1px solid var(--color-light-border);
+  border-inline-start: 1px solid var(--color-light-border);
 }
 
 .ui.buttons .button:last-child,
 .ui.buttons .button:nth-last-child(2):has(+ .button.tw-hidden) {
-  border-right: 1px solid var(--color-light-border);
+  border-inline-end: 1px solid var(--color-light-border);
 }
 
 .ui.buttons .button.active {
-  border-left: 1px solid var(--color-light-border);
-  border-right: 1px solid var(--color-light-border);
+  border-inline-start: 1px solid var(--color-light-border);
+  border-inline-end: 1px solid var(--color-light-border);
 }
 
 .ui.buttons .button.active + .button {
-  border-left: none;
+  border-inline-start: none;
 }
 
 .ui.basic.buttons .button,

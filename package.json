@@ -115,6 +115,7 @@
     "stylelint": "16.26.1",
     "stylelint-declaration-block-no-ignored-properties": "2.8.0",
     "stylelint-declaration-strict-value": "1.11.1",
+    "stylelint-plugin-logical-css": "2.1.0",
     "stylelint-value-no-unknown-custom-properties": "6.1.1",
     "svgo": "4.0.1",
     "typescript": "5.9.3",

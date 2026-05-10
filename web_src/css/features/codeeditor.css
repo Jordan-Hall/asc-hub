@@ -16,7 +16,7 @@
   #editor-bar {
     gap: var(--button-spacing);
     .switch {
-      overflow-x: scroll;
+      overflow-inline: scroll;
     }
   }
 }
@@ -24,7 +24,7 @@
 .cm-panel.fj-search {
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   background-color: var(--color-body);
   box-shadow: 0 6px 18px var(--color-shadow);
   border-radius: 0.3rem;

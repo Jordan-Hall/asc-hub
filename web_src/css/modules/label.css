@@ -19,10 +19,10 @@
 }
 
 .ui.label:first-child {
-  margin-left: 0;
+  margin-inline-start: 0;
 }
 .ui.label:last-child {
-  margin-right: 0;
+  margin-inline-end: 0;
 }
 
 a.ui.label {
@@ -45,7 +45,7 @@ a.ui.label {
 }
 
 .ui.label > .color-icon {
-  margin-left: 0;
+  margin-inline-start: 0;
 }
 
 .ui.label > .icon {
@@ -57,7 +57,7 @@ a.ui.label {
   display: inline-block;
   vertical-align: top;
   font-weight: var(--font-weight-medium);
-  margin-left: 1em;
+  margin-inline-start: 1em;
   opacity: 0.8;
 }
 .ui.label > .detail .icon {

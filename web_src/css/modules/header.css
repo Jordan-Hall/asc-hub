@@ -20,7 +20,7 @@
 }
 
 .ui.header .ui.label {
-  margin-left: 0.25rem;
+  margin-inline-start: 0.25rem;
   vertical-align: middle;
 }
 
@@ -49,7 +49,7 @@
 .ui.header > i.icon:only-child {
   display: inline-block;
   padding: 0;
-  margin-right: 0.75rem;
+  margin-inline-end: 0.75rem;
 }
 
 .ui.header + p {
@@ -120,7 +120,7 @@ h4.ui.header .sub.header {
 /* fix misaligned right buttons on box headers */
 .ui.attached.header > .ui.right {
   position: absolute;
-  right: 0.78571429rem;
+  inset-inline-end: 0.78571429rem;
   top: 0;
   bottom: 0;
   display: flex;
@@ -136,8 +136,7 @@ h4.ui.header .sub.header {
 
 /* open dropdown menus to the left in right-attached headers */
 .ui.attached.header > .ui.right .ui.dropdown .menu {
-  right: 0;
-  left: auto;
+  inset-inline: auto 0;
 }
 
 /* if a .top.attached.header is followed by a .segment, add some margin */
@@ -147,7 +146,7 @@ h4.ui.header .sub.header {
 }
 
 .ui.dividing.header {
-  border-bottom-color: var(--color-secondary);
+  border-block-end-color: var(--color-secondary);
 }
 
 .ui.dividing.header .sub.header {

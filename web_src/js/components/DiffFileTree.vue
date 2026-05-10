@@ -139,6 +139,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  margin-right: .5rem;
+  margin-inline-end: .5rem;
 }
 </style>

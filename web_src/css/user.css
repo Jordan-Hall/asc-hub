@@ -75,7 +75,7 @@
 }
 
 .user.settings .iconFloat {
-  float: left;
+  float: inline-start;
 }
 
 .user-orgs {

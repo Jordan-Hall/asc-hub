@@ -235,7 +235,7 @@ export default {
 }
 
 .job-step-summary .step-summary-duration {
-  margin-left: 16px;
+  margin-inline-start: 16px;
 }
 
 .job-step-summary.selected {
@@ -263,7 +263,7 @@ export default {
   flex: 1;
   word-break: break-all;
   white-space: break-spaces;
-  margin-left: 10px;
+  margin-inline-start: 10px;
   overflow-wrap: anywhere;
   color: var(--color-console-fg);
 }
@@ -281,7 +281,7 @@ export default {
 .job-log-line .line-num, .log-time-seconds {
   width: 48px;
   color: var(--color-text-light-3);
-  text-align: right;
+  text-align: end;
   user-select: none;
 }
 
@@ -291,13 +291,13 @@ export default {
 }
 
 .log-time-seconds {
-  padding-right: 2px;
+  padding-inline-end: 2px;
 }
 
 .job-log-line .log-time,
 .log-time-stamp {
   color: var(--color-text-light-3);
-  margin-left: 10px;
+  margin-inline-start: 10px;
   white-space: nowrap;
 }
 

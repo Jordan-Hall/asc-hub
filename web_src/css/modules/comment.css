@@ -36,7 +36,7 @@
 .ui.comments .comment > .comments::before {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
 }
 
 .ui.comments .comment > .comments .comment {
@@ -46,7 +46,7 @@
 }
 
 .ui.comments .comment .avatar {
-  float: left;
+  float: inline-start;
   width: 2.5em;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .ui.comments .comment > .avatar ~ .content {
-  margin-left: 3.5em;
+  margin-inline-start: 3.5em;
 }
 
 .ui.comments .comment .author {
@@ -69,7 +69,7 @@
 
 .ui.comments .comment .metadata {
   display: inline-block;
-  margin-left: 0.5em;
+  margin-inline-start: 0.5em;
   font-size: 0.875em;
 }
 
@@ -79,7 +79,7 @@
 }
 
 .ui.comments .comment .metadata > :last-child {
-  margin-right: 0;
+  margin-inline-end: 0;
 }
 
 .ui.comments .comment .text {
