@@ -117,7 +117,7 @@ body:
 			}),
 		}, []FileChanges{}, func(user *user_model.User, repo *repo_model.Repository) {
 			postIssue(repo, user, 500, "first issue here", "an issue created earlier")
-			postIssue(repo, user, 400, "second issue here (not 1)", "not the right issue, but in the right repo")
+			postIssue(repo, user, 400, "second issue here", "not the right issue, but in the right repo")
 			postIssue(repo, user, 300, "third issue here", "depends on things")
 			postIssue(repo, user, 200, "unrelated issue", "shrug emoji")
 			postIssue(repo, user, 100, "newest issue", "very new")
