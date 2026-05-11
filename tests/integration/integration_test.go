@@ -851,6 +851,7 @@ func newAITester(t *testing.T, setupAI ...func(*auth.AuthorizedIntegration)) *Au
 			},
 		},
 		ResourceAllRepos: true,
+		Name:             fmt.Sprintf("AI %s", t.Name()),
 	}
 	for _, setup := range setupAI {
 		setup(ait.authorizedIntegration)

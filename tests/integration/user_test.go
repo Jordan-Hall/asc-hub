@@ -1301,3 +1301,31 @@ func TestExportUserSSHKeys(t *testing.T) {
 		assert.Equal(t, "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDN7KuFUnlztx/UM6PUTyiBAq5SeIqr+qSVFC6JzLQAh\n", resp.Body.String())
 	})
 }
+
+func TestAuthorizedIntegrationList(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	locale := translation.NewLocale("en-US")
+	topDescription := locale.TrString("settings.authorized_integration.desc")
+	noAI := locale.TrString("settings.authorized_integration.none")
+
+	session := loginUser(t, "user2")
+
+	// Load page with no authorized integrations:
+	req := NewRequest(t, "GET", "/user/settings/authorized-integrations")
+	resp := session.MakeRequest(t, req, http.StatusOK)
+	htmlDoc := NewHTMLParser(t, resp.Body)
+	htmlDoc.AssertSelection(t, htmlDoc.FindByTextTrim("div.flex-item", topDescription), true)
+	htmlDoc.AssertSelection(t, htmlDoc.FindByTextTrim("div.flex-item-body p", noAI), true)
+
+	ait := newAITester(t)
+	defer ait.close()
+
+	// Load page which should now have a generic authorized integration:
+	req = NewRequest(t, "GET", "/user/settings/authorized-integrations")
+	resp = session.MakeRequest(t, req, http.StatusOK)
+	htmlDoc = NewHTMLParser(t, resp.Body)
+	htmlDoc.AssertSelection(t, htmlDoc.FindByTextTrim("div.flex-item", topDescription), true)
+	htmlDoc.AssertSelection(t, htmlDoc.FindByTextTrim("div.flex-item-body p", noAI), false) // "no ... configured" no longer present
+	htmlDoc.AssertSelection(t, htmlDoc.FindByTextTrim("div.flex-item span.flex-item-title", "AI TestAuthorizedIntegrationList"), true)
+}

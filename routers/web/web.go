@@ -670,6 +670,10 @@ func registerRoutes(m *web.Route) {
 			m.Get("", user_setting.Applications)
 		})
 
+		m.Group("/authorized-integrations", func() {
+			m.Get("", user_setting.ListAuthorizedIntegrations)
+		})
+
 		m.Combo("/keys").Get(user_setting.Keys).
 			Post(web.Bind(forms.AddKeyForm{}), user_setting.KeysPost)
 		m.Post("/keys/delete", user_setting.DeleteKey)

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"forgejo.org/models/db"
+	"forgejo.org/modules/optional"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
 
@@ -209,4 +210,29 @@ func (ai *AuthorizedIntegration) generateAudience() error {
 	}
 	ai.Audience = fmt.Sprintf("u:%d:%s", ai.UserID, gouuid.New().String())
 	return nil
+}
+
+func (ai *AuthorizedIntegration) HasRecentActivity() bool {
+	return ai.HasBeenUsed() && ai.UpdatedUnix.AddDuration(7*24*time.Hour) > timeutil.TimeStampNow()
+}
+
+func (ai *AuthorizedIntegration) HasBeenUsed() bool {
+	return ai.UpdatedUnix > ai.CreatedUnix
+}
+
+type ListAuthorizedIntegrationOptions struct {
+	db.ListOptions
+	UserID optional.Option[int64]
+}
+
+func (opts ListAuthorizedIntegrationOptions) ToConds() builder.Cond {
+	cond := builder.NewCond()
+	if has, userID := opts.UserID.Get(); has {
+		cond = cond.And(builder.Eq{"user_id": userID})
+	}
+	return cond
+}
+
+func (opts ListAuthorizedIntegrationOptions) ToOrders() string {
+	return "created_unix DESC"
 }

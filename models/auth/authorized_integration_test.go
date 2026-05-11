@@ -10,6 +10,7 @@ import (
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/db"
 	"forgejo.org/models/unittest"
+	"forgejo.org/modules/optional"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
 
@@ -103,4 +104,52 @@ func TestNewAuthorizedIntegration(t *testing.T) {
 		ClaimRules:       &auth_model.ClaimRules{},
 	}
 	require.ErrorContains(t, auth_model.InsertAuthorizedIntegration(t.Context(), ai), "UserID must be initialized")
+}
+
+func TestAuthorizedIntegrationCalculatedValues(t *testing.T) {
+	t.Run("HasRecentActivity", func(t *testing.T) {
+		timeutil.MockSet(time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC))
+		ai := &auth_model.AuthorizedIntegration{
+			UpdatedUnix: 1609459200,
+			CreatedUnix: 1609459200,
+		}
+		assert.False(t, ai.HasRecentActivity())
+		ai.UpdatedUnix = 1609459201
+		assert.True(t, ai.HasRecentActivity())
+		ai.CreatedUnix = 1577836800
+		ai.UpdatedUnix = 1577836801
+		assert.False(t, ai.HasRecentActivity())
+	})
+
+	t.Run("HasBeenUsed", func(t *testing.T) {
+		ai := &auth_model.AuthorizedIntegration{
+			UpdatedUnix: 1,
+			CreatedUnix: 1,
+		}
+		assert.False(t, ai.HasBeenUsed())
+		ai.UpdatedUnix = 2
+		assert.True(t, ai.HasBeenUsed())
+	})
+}
+
+func TestListAuthorizedIntegrationOptions(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	makeAuthorizedIntegration(t)
+	makeAuthorizedIntegration(t)
+
+	ais, err := db.Find[auth_model.AuthorizedIntegration](t.Context(),
+		auth_model.ListAuthorizedIntegrationOptions{UserID: optional.None[int64]()})
+	require.NoError(t, err)
+	assert.Len(t, ais, 2)
+
+	ais, err = db.Find[auth_model.AuthorizedIntegration](t.Context(),
+		auth_model.ListAuthorizedIntegrationOptions{UserID: optional.Some(int64(2))})
+	require.NoError(t, err)
+	assert.Len(t, ais, 2)
+
+	ais, err = db.Find[auth_model.AuthorizedIntegration](t.Context(),
+		auth_model.ListAuthorizedIntegrationOptions{UserID: optional.Some(int64(22))})
+	require.NoError(t, err)
+	assert.Empty(t, ais)
 }
