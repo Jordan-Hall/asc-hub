@@ -1697,6 +1697,11 @@ func Routes() *web.Route {
 					m.Combo("/emails").
 						Get(admin.ListUserEmails).
 						Delete(bind(api.DeleteEmailOption{}), admin.DeleteUserEmails)
+					m.Group("/tokens", func() {
+						m.Combo("").Get(admin.ListUserAccessTokens).
+							Post(bind(api.CreateAccessTokenOption{}), admin.CreateUserAccessToken)
+						m.Combo("/{id}").Delete(admin.DeleteUserAccessToken)
+					})
 					if setting.Quota.Enabled {
 						m.Group("/quota", func() {
 							m.Get("", admin.GetUserQuota)
