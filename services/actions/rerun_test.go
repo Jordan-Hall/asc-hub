@@ -59,6 +59,11 @@ func TestRerun_RerunAllJobs(t *testing.T) {
 
 		run := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{ID: 455620})
 
+		unittest.AssertCount(t, &actions_model.ActionArtifact{RunID: run.ID}, 1)
+		unittest.AssertCount(t, &actions_model.ActionArtifact{
+			RunID: run.ID, Status: int64(actions_model.ArtifactStatusPendingDeletion),
+		}, 0)
+
 		rerunJobs, err := RerunAllJobs(t.Context(), run)
 		require.NoError(t, err)
 
@@ -81,6 +86,10 @@ func TestRerun_RerunAllJobs(t *testing.T) {
 		assert.Equal(t, actions_model.StatusWaiting, rerunJobs[1].Status)
 		assert.Equal(t, timeutil.TimeStamp(0), rerunJobs[1].Started)
 		assert.Equal(t, timeutil.TimeStamp(0), rerunJobs[1].Stopped)
+
+		unittest.AssertCount(t, &actions_model.ActionArtifact{
+			RunID: run.ID, Status: int64(actions_model.ArtifactStatusPendingDeletion),
+		}, 1)
 	})
 
 	t.Run("Error if workflow running", func(t *testing.T) {
@@ -88,6 +97,11 @@ func TestRerun_RerunAllJobs(t *testing.T) {
 		require.NoError(t, unittest.PrepareTestDatabase())
 
 		run := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{ID: 455630})
+
+		unittest.AssertCount(t, &actions_model.ActionArtifact{RunID: run.ID}, 1)
+		unittest.AssertCount(t, &actions_model.ActionArtifact{
+			RunID: run.ID, Status: int64(actions_model.ArtifactStatusPendingDeletion),
+		}, 0)
 
 		rerunJobs, err := RerunAllJobs(t.Context(), run)
 		require.ErrorContains(t, err, "workflow is still running")
@@ -100,6 +114,11 @@ func TestRerun_RerunAllJobs(t *testing.T) {
 		assert.Equal(t, time.Duration(0), run.PreviousDuration)
 
 		assert.Empty(t, rerunJobs)
+
+		unittest.AssertCount(t, &actions_model.ActionArtifact{RunID: run.ID}, 1)
+		unittest.AssertCount(t, &actions_model.ActionArtifact{
+			RunID: run.ID, Status: int64(actions_model.ArtifactStatusPendingDeletion),
+		}, 0)
 	})
 
 	t.Run("Error if workflow invalid", func(t *testing.T) {
@@ -153,6 +172,11 @@ func TestRerun_RerunJob(t *testing.T) {
 
 		job := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{ID: 683910})
 
+		unittest.AssertCount(t, &actions_model.ActionArtifact{RunID: job.RunID}, 1)
+		unittest.AssertCount(t, &actions_model.ActionArtifact{
+			RunID: job.RunID, Status: int64(actions_model.ArtifactStatusPendingDeletion),
+		}, 0)
+
 		rerunJobs, err := RerunJob(t.Context(), job)
 
 		require.NoError(t, err)
@@ -166,6 +190,10 @@ func TestRerun_RerunJob(t *testing.T) {
 		assert.Equal(t, actions_model.StatusWaiting, job.Status)
 		assert.Equal(t, timeutil.TimeStamp(0), job.Started)
 		assert.Equal(t, timeutil.TimeStamp(0), job.Stopped)
+
+		unittest.AssertCount(t, &actions_model.ActionArtifact{
+			RunID: job.RunID, Status: int64(actions_model.ArtifactStatusPendingDeletion),
+		}, 1)
 	})
 
 	t.Run("Rerun job needed by others", func(t *testing.T) {
@@ -225,6 +253,11 @@ func TestRerun_RerunJob(t *testing.T) {
 
 		job := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{ID: 683900})
 
+		unittest.AssertCount(t, &actions_model.ActionArtifact{RunID: job.RunID}, 1)
+		unittest.AssertCount(t, &actions_model.ActionArtifact{
+			RunID: job.RunID, Status: int64(actions_model.ArtifactStatusPendingDeletion),
+		}, 0)
+
 		rerunJobs, err := RerunJob(t.Context(), job)
 
 		require.ErrorContains(t, err, "workflow is invalid")
@@ -236,6 +269,11 @@ func TestRerun_RerunJob(t *testing.T) {
 		assert.Equal(t, actions_model.StatusFailure, job.Status)
 		assert.Equal(t, timeutil.TimeStamp(0), job.Started)
 		assert.Equal(t, timeutil.TimeStamp(0), job.Stopped)
+
+		unittest.AssertCount(t, &actions_model.ActionArtifact{RunID: job.RunID}, 1)
+		unittest.AssertCount(t, &actions_model.ActionArtifact{
+			RunID: job.RunID, Status: int64(actions_model.ArtifactStatusPendingDeletion),
+		}, 0)
 	})
 
 	t.Run("Error if workflow disabled", func(t *testing.T) {

@@ -74,6 +74,12 @@ func RerunAllJobs(ctx context.Context, run *actions_model.ActionRun) ([]*actions
 			return fmt.Errorf("cannot prepare next attempt because run %d is active: %s", run.ID, run.Status.String())
 		}
 
+		// Wipe all artifacts before a rerun to prevent stale artifacts from polluting artifacts collected during the
+		// rerun.
+		if err := actions_model.SetArtifactsOfRunDeleted(ctx, run.ID); err != nil {
+			return fmt.Errorf("cannot remove artifacts of previous run of run %d: %w", run.ID, err)
+		}
+
 		run.PreviousDuration = run.Duration()
 
 		run.Status = actions_model.StatusWaiting
@@ -136,6 +142,14 @@ func RerunJob(ctx context.Context, job *actions_model.ActionRunJob) ([]*actions_
 		jobs, err := actions_model.GetRunJobsByRunID(ctx, job.RunID)
 		if err != nil {
 			return fmt.Errorf("could not load jobs of run %d: %w", job.RunID, err)
+		}
+
+		// Wipe all artifacts before a rerun to prevent stale artifacts from polluting the artifacts collected during
+		// the rerun. Because artifacts are bound to a run and not to a job, it is not possible to only remove the
+		// artifacts of the jobs that are going to be rerun. That means that artifacts created by jobs that are not
+		// rerun will be lost. That matches GitHub Actions' behaviour as of May 2026.
+		if err := actions_model.SetArtifactsOfRunDeleted(ctx, job.RunID); err != nil {
+			return fmt.Errorf("cannot remove artifacts of previous run of run %d: %w", job.RunID, err)
 		}
 
 		for _, jobToRerun := range GetAllRerunJobs(job, jobs) {
