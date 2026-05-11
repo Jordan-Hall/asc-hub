@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"strconv"
 	"strings"
 
 	"forgejo.org/modules/highlight"
@@ -159,6 +160,16 @@ func (r *Writer) resolveLink(node org.Node) string {
 		switch l.Kind() {
 		case "image", "video":
 			base = r.Ctx.Links.ResolveMediaLink(r.Ctx.IsWiki)
+		case "regular":
+			// Convert line search syntax to line links
+			target, search, found := strings.Cut(link, "::")
+			if found {
+				if _, err := strconv.Atoi(search); err == nil {
+					link = target + "#L" + search
+				} else {
+					link = target
+				}
+			}
 		}
 
 		link = util.URLJoin(base, link)

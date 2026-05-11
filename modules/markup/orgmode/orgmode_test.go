@@ -89,6 +89,43 @@ func TestRender_BaseLinks(t *testing.T) {
 		`<p><a href="http://localhost:3000/gogits/gogs/src/branch/main/deep/nested/folder/src">./src/</a></p>`)
 }
 
+func TestRender_SearchSuffix(t *testing.T) {
+	setting.AppURL = AppURL
+	setting.AppSubURL = AppSubURL
+
+	test := func(input, expected string) {
+		buffer, err := RenderString(&markup.RenderContext{
+			Ctx: git.DefaultContext,
+			Links: markup.Links{
+				Base:       setting.AppSubURL,
+				BranchPath: "branch/main",
+			},
+		}, input)
+		require.NoError(t, err)
+		assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(buffer))
+	}
+
+	// `::N` line search becomes an `#L<n>` anchor.
+	test("[[./file.el::35][line 35]]",
+		`<p><a href="http://localhost:3000/gogits/gogs/src/branch/main/file.el#L35">line 35</a></p>`)
+	test("[[file:./file.el::35][line 35]]",
+		`<p><a href="http://localhost:3000/gogits/gogs/src/branch/main/file.el#L35">line 35</a></p>`)
+
+	// Other search types are ignored.
+	test("[[./file.org::*Heading][heading]]",
+		`<p><a href="http://localhost:3000/gogits/gogs/src/branch/main/file.org">heading</a></p>`)
+	test("[[./file.org::#custom-id][heading]]",
+		`<p><a href="http://localhost:3000/gogits/gogs/src/branch/main/file.org">heading</a></p>`)
+	test("[[./file.el::/regex/][regex]]",
+		`<p><a href="http://localhost:3000/gogits/gogs/src/branch/main/file.el">regex</a></p>`)
+	test("[[file:./file.el::][no search]]",
+		`<p><a href="http://localhost:3000/gogits/gogs/src/branch/main/file.el">no search</a></p>`)
+
+	// Absolute URLs that happen to contain `::` are unchanged.
+	test("[[https://example.com/foo::35][ext]]",
+		`<p><a href="https://example.com/foo::35">ext</a></p>`)
+}
+
 func TestRender_Media(t *testing.T) {
 	setting.AppURL = AppURL
 	setting.AppSubURL = AppSubURL
