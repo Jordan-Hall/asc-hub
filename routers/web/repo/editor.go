@@ -30,6 +30,8 @@ import (
 	"forgejo.org/services/context/upload"
 	"forgejo.org/services/forms"
 	files_service "forgejo.org/services/repository/files"
+
+	"github.com/editorconfig/editorconfig-core-go/v2"
 )
 
 const (
@@ -223,13 +225,22 @@ func editFile(ctx *context.Context, isNewFile bool) {
 	ctx.Data["last_commit"] = ctx.Repo.CommitID
 	ctx.Data["PreviewableExtensions"] = strings.Join(markup.PreviewableExtensions(), ",")
 	ctx.Data["LineWrapExtensions"] = strings.Join(setting.Repository.Editor.LineWrapExtensions, ",")
-	ctx.Data["EditorconfigJson"] = GetEditorConfig(ctx, treePath)
+	ctx.Data["EditorconfigJson"] = GetEditorConfigJSON(ctx, treePath)
 
 	ctx.HTML(http.StatusOK, tplEditFile)
 }
 
-// GetEditorConfig returns a editorconfig JSON string for given treePath or "null"
-func GetEditorConfig(ctx *context.Context, treePath string) string {
+// GetEditorConfig returns a editorconfig object for given treePath or nil
+func GetEditorConfig(ctx *context.Context, treePath string) (ec *editorconfig.Editorconfig) {
+	ec, _, err := ctx.Repo.GetEditorconfig()
+	if err == nil {
+		return ec
+	}
+	return nil
+}
+
+// GetEditorConfigJSON returns a editorconfig JSON string for given treePath or "null"
+func GetEditorConfigJSON(ctx *context.Context, treePath string) string {
 	ec, _, err := ctx.Repo.GetEditorconfig()
 	if err == nil {
 		def, err := ec.GetDefinitionForFilename(treePath)
@@ -274,7 +285,7 @@ func editFilePost(ctx *context.Context, form forms.EditRepoFileForm, isNewFile b
 	ctx.Data["last_commit"] = ctx.Repo.CommitID
 	ctx.Data["PreviewableExtensions"] = strings.Join(markup.PreviewableExtensions(), ",")
 	ctx.Data["LineWrapExtensions"] = strings.Join(setting.Repository.Editor.LineWrapExtensions, ",")
-	ctx.Data["EditorconfigJson"] = GetEditorConfig(ctx, form.TreePath)
+	ctx.Data["EditorconfigJson"] = GetEditorConfigJSON(ctx, form.TreePath)
 
 	if ctx.HasError() {
 		ctx.HTML(http.StatusOK, tplEditFile)
@@ -458,6 +469,7 @@ func DiffPreviewPost(ctx *context.Context) {
 		return
 	}
 	ctx.Data["File"] = diff.Files[0]
+	ctx.Data["Editorconfig"] = GetEditorConfig(ctx, treePath)
 
 	ctx.HTML(http.StatusOK, tplEditDiffPreview)
 }

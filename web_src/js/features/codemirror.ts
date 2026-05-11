@@ -188,7 +188,7 @@ export async function createCodemirror(
       codemirrorAutocomplete.autocompletion(),
       codemirrorCommands.history(),
       tabSize.of(
-        codemirrorState.EditorState.tabSize.of(editorOpts.tabSize || 4),
+        codemirrorState.EditorState.tabSize.of(editorOpts.indentSize || 4),
       ),
       wordWrap.of(
         editorOpts.wordWrap ? codemirrorView.EditorView.lineWrapping : [],
