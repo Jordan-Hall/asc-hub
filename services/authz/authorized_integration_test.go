@@ -51,6 +51,7 @@ func TestValidateAuthorizedIntegration(t *testing.T) {
 		ai := &auth.AuthorizedIntegration{
 			ResourceAllRepos: true,
 			Scope:            auth.AccessTokenScopeReadRepository,
+			UI:               auth.AuthorizedIntegrationUIGeneric,
 		}
 		err := ValidateAuthorizedIntegration(ai, nil)
 		require.NoError(t, err)
@@ -60,6 +61,7 @@ func TestValidateAuthorizedIntegration(t *testing.T) {
 		ai := &auth.AuthorizedIntegration{
 			ResourceAllRepos: false,
 			Scope:            auth.AccessTokenScopeReadRepository,
+			UI:               auth.AuthorizedIntegrationUIGeneric,
 		}
 		resources := []*auth.AuthorizedIntegResourceRepo{{RepoID: 12}}
 		err := ValidateAuthorizedIntegration(ai, resources)
@@ -70,6 +72,7 @@ func TestValidateAuthorizedIntegration(t *testing.T) {
 		ai := &auth.AuthorizedIntegration{
 			ResourceAllRepos: false,
 			Scope:            auth.AccessTokenScopeReadRepository,
+			UI:               auth.AuthorizedIntegrationUIGeneric,
 		}
 		resources := []*auth.AuthorizedIntegResourceRepo{}
 		err := ValidateAuthorizedIntegration(ai, resources)
@@ -80,6 +83,7 @@ func TestValidateAuthorizedIntegration(t *testing.T) {
 		ai := &auth.AuthorizedIntegration{
 			ResourceAllRepos: false,
 			Scope:            auth.AccessTokenScope(strings.Join([]string{string(auth.AccessTokenScopePublicOnly), string(auth.AccessTokenScopeReadRepository)}, ",")),
+			UI:               auth.AuthorizedIntegrationUIGeneric,
 		}
 		resources := []*auth.AuthorizedIntegResourceRepo{{RepoID: 12}}
 		err := ValidateAuthorizedIntegration(ai, resources)
@@ -90,10 +94,22 @@ func TestValidateAuthorizedIntegration(t *testing.T) {
 		ai := &auth.AuthorizedIntegration{
 			ResourceAllRepos: false,
 			Scope:            auth.AccessTokenScopeReadAdmin,
+			UI:               auth.AuthorizedIntegrationUIGeneric,
 		}
 		resources := []*auth.AuthorizedIntegResourceRepo{{RepoID: 12}}
 		err := ValidateAuthorizedIntegration(ai, resources)
 		require.ErrorIs(t, err, ErrSpecifiedReposInvalidScope)
 		require.ErrorContains(t, err, string(auth.AccessTokenScopeReadAdmin))
+	})
+
+	t.Run("invalid - missing UI", func(t *testing.T) {
+		ai := &auth.AuthorizedIntegration{
+			ResourceAllRepos: false,
+			Scope:            auth.AccessTokenScopeReadAdmin,
+		}
+		resources := []*auth.AuthorizedIntegResourceRepo{{RepoID: 12}}
+		err := ValidateAuthorizedIntegration(ai, resources)
+		require.ErrorIs(t, err, ErrAuthorizedIntegrationBadUI)
+		require.ErrorContains(t, err, "invalid UI: \"\"")
 	})
 }

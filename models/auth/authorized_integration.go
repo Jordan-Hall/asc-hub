@@ -33,6 +33,18 @@ type AuthorizedIntegration struct {
 	Name        string // short name for lists of authorized integrations
 	Description string `xorm:"LONGTEXT"` // long description, optional to document relevant details of the integration
 
+	// Which UI to use for view/edit of this Authorized Integration.  Authorized Integrations' functional behaviour is
+	// defined by other fields, such as the Issuer, Audience, ClaimRules.  The UI field only defines how this record can
+	// be interacted with by the user in order to provide user-friendly access for specific systems -- like Forgejo
+	// Actions.  Within the potential scope of the UI is any user interaction with the Authorized Integration -- web
+	// create, read, update, API, CLI.
+	//
+	// The UI field must never be used to make functional decisions about evaluating JWTs.  It must always be possible
+	// to convert an Authorized Integration to a "generic" UI (for customization that the UI doesn't support).  The
+	// intent of this design is that, the Authorized Integration system is complicated in its claim rules, but they
+	// always fully define the behaviour in a transparent manner.
+	UI AuthorizedIntegrationUI `xorm:"NOT NULL default('generic')"`
+
 	// Exact-match `iss` claim of the JWT
 	Issuer string `xorm:"NOT NULL UNIQUE(s)"`
 	// Exact-match `aud` claim of the JWT
@@ -126,6 +138,17 @@ const (
 	ClaimGlob   ClaimComparison = "glob"    // glob match complete claim string
 	ClaimGlobIn ClaimComparison = "glob-in" // glob match any of the options in a list
 	ClaimNested ClaimComparison = "nest"    // recurse into a claim that is an map[string]any with it's own data fields
+)
+
+type AuthorizedIntegrationUI string
+
+const (
+	// Generic UI which allows the user to view and edit claim rules directly to support integrations that Forgejo
+	// doesn't have a user-friendly UI to support.
+	AuthorizedIntegrationUIGeneric AuthorizedIntegrationUI = "generic"
+
+	// UI specific to Actions that are running on this local Forgejo instance accessing itself.
+	AuthorizedIntegrationUIForgejoActionsLocal AuthorizedIntegrationUI = "forgejo-actions-local"
 )
 
 func GetAuthorizedIntegration(ctx context.Context, issuer, audience string) (*AuthorizedIntegration, error) {

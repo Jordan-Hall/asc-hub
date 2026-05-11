@@ -120,6 +120,7 @@ func runCreateAuthorizedIntegration(ctx context.Context, c *cli.Command) error {
 		UserID:      user.ID,
 		Name:        c.String("name"),
 		Description: c.String("description"),
+		UI:          auth_model.AuthorizedIntegrationUIGeneric,
 	}
 
 	var rules []auth_model.ClaimRule
