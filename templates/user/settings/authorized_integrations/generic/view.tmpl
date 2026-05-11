@@ -1,0 +1,20 @@
+{{template "user/settings/authorized_integrations/view_head" .}}
+
+<h4 class="ui top attached header">
+	{{ctx.Locale.Tr "settings.authorized_integration.claims.generic"}}
+</h4>
+<div class="ui attached bottom segment">
+	<div class="field">
+		<label for="issuer">{{ctx.Locale.Tr "settings.authorized_integration.field.issuer"}}</label>
+		<input id="issuer" name="issuer" value="{{.Form.Issuer}}" readonly>
+	</div>
+
+	<div class="field">
+		<label for="content">{{ctx.Locale.Tr "settings.authorized_integration.field.claim_rules"}}</label>
+		<textarea id="content" name="content" class="tw-hidden">{{.Form.ClaimRules}}</textarea>
+		{{template "shared/codemirror_container" .}}
+	</div>
+
+</div>
+
+{{template "user/settings/authorized_integrations/view_footer" .}}

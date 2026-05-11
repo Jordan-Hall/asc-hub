@@ -671,6 +671,7 @@ func registerRoutes(m *web.Route) {
 		})
 
 		m.Group("/authorized-integrations", func() {
+			m.Get("/{ui}/{id}", user_setting.ViewAuthorizedIntegration)
 			m.Get("", user_setting.ListAuthorizedIntegrations)
 		})
 

@@ -35,6 +35,28 @@ func (doc *HTMLDoc) AssertElementPredicate(t testing.TB, selector string, predic
 	predicate(selection)
 }
 
+// Verify that a single element exists with the given selector, and it has the attribute `checked`.
+func (doc *HTMLDoc) AssertElementChecked(t testing.TB, selector string) {
+	doc.AssertElementPredicate(t, selector, func(element *goquery.Selection) {
+		if assert.Equal(t, 1, element.Length(), 1) {
+			val, exists := element.Attr("checked")
+			assert.True(t, exists)
+			assert.Empty(t, val)
+		}
+	})
+}
+
+// Verify that a single element exists with the given selector, and it has the attribute `selected`.
+func (doc *HTMLDoc) AssertElementSelected(t testing.TB, selector string) {
+	doc.AssertElementPredicate(t, selector, func(element *goquery.Selection) {
+		if assert.Equal(t, 1, element.Length(), 1) {
+			val, exists := element.Attr("selected")
+			assert.True(t, exists)
+			assert.Empty(t, val)
+		}
+	})
+}
+
 // Fetch attr from selector, which must exist, and pass it into the provided function which should perform test
 // assert/require checks on the attribute value.
 func (doc *HTMLDoc) AssertAttrPredicate(t testing.TB, selector, attr string, predicate func(attrValue string)) {

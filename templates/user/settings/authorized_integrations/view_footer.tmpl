@@ -1,0 +1,76 @@
+
+		<h4 class="ui top attached header">
+			{{ctx.Locale.Tr "settings.authorized_integration.perms.title"}}
+		</h4>
+		<div class="ui attached bottom segment">
+
+			<div class="field">
+				<fieldset>
+					<label>{{ctx.Locale.Tr "settings.repo_and_org_access"}}</label>
+					<div class="field">
+						<div class="field ui radio checkbox">
+							<input id="resource-all" class="enable-system" type="radio" name="resource" value="all" {{if eq .Form.Resource "all"}}checked{{end}} disabled>
+							<label for="resource-all">{{ctx.Locale.Tr "settings.permissions_access_all"}}</label>
+							<p class="help">{{ctx.Locale.Tr "settings.access_token.resource_all_help"}}</p>
+						</div>
+					</div>
+					<div class="field">
+						<div class="field ui radio checkbox">
+							<input id="resource-public-only" class="enable-system" type="radio" name="resource" value="public-only" {{if eq .Form.Resource "public-only"}}checked{{end}} disabled>
+							<label for="resource-public-only">{{ctx.Locale.Tr "settings.permissions_public_only"}}</label>
+							<p class="help">
+								{{ctx.Locale.Tr "settings.access_token.resource_public_only_help"}}
+								{{if $.IsAdmin}}{{ctx.Locale.Tr "settings.access_token.admin_disabled"}}{{end}}
+							</p>
+						</div>
+					</div>
+					<div class="field">
+						<div class="field ui radio checkbox">
+							<input id="resource-repo-specific" class="enable-system" type="radio" name="resource" value="repo-specific" {{if eq .Form.Resource "repo-specific"}}checked{{end}} disabled>
+							<label for="resource-repo-specific">{{ctx.Locale.Tr "settings.permissions_access_specific_repositories"}}</label>
+							<p class="help">
+								{{ctx.Locale.Tr "settings.access_token.resource_specific_repo_help"}}
+								{{if $.IsAdmin}}{{ctx.Locale.Tr "settings.access_token.admin_disabled"}}{{end}}
+							</p>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+
+
+			<div class="field">
+				<label>
+					{{ctx.Locale.Tr "settings.select_permissions"}}
+				</label>
+				<p class="activity meta">
+					<p>{{ctx.Locale.Tr "settings.access_token_desc" (printf "%s/api/swagger" AppSubUrl) "https://forgejo.org/docs/latest/user/token-scope/"}}</p>
+				</p>
+
+				{{range .Categories}}
+					<div class="field tw-pl-1 tw-pb-1">
+						<label for="scope-{{.}}">
+							{{.}}
+						</label>
+						<div class="gitea-select">
+							<select class="ui selection" name="scope" id="scope-{{.}}" disabled>
+								<option value="">
+									{{ctx.Locale.Tr "settings.permission_no_access"}}
+								</option>
+								<option value="read:{{.}}" {{if (SliceUtils.Contains $.Form.Scope (printf "read:%s" .))}} selected {{end}}>
+									{{ctx.Locale.Tr "settings.permission_read"}}
+								</option>
+								<option value="write:{{.}}" {{if or $.Form.ScopeAll (SliceUtils.Contains $.Form.Scope (printf "write:%s" .))}} selected {{end}}>
+									{{ctx.Locale.Tr "settings.permission_write"}}
+								</option>
+							</select>
+						</div>
+					</div>
+				{{end}}
+			</div>
+
+		</div>
+
+	</form>
+</div>
+
+{{template "user/settings/layout_footer" .}}

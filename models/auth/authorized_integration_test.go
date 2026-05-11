@@ -45,6 +45,28 @@ func TestGetAuthorizedIntegration(t *testing.T) {
 	assert.Equal(t, ai.ID, get.ID)
 }
 
+func TestGetAuthorizedIntegrationByUI(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ai := makeAuthorizedIntegration(t)
+
+	get, err := auth_model.GetAuthorizedIntegrationByUI(t.Context(), 3, ai.UI, ai.ID)
+	require.ErrorIs(t, err, util.ErrNotExist)
+	assert.Nil(t, get)
+
+	get, err = auth_model.GetAuthorizedIntegrationByUI(t.Context(), ai.UserID, auth_model.AuthorizedIntegrationUI("incorrect"), ai.ID)
+	require.ErrorIs(t, err, util.ErrNotExist)
+	assert.Nil(t, get)
+
+	get, err = auth_model.GetAuthorizedIntegrationByUI(t.Context(), ai.UserID, ai.UI, -1)
+	require.ErrorIs(t, err, util.ErrNotExist)
+	assert.Nil(t, get)
+
+	get, err = auth_model.GetAuthorizedIntegrationByUI(t.Context(), ai.UserID, ai.UI, ai.ID)
+	require.NoError(t, err)
+	require.NotNil(t, get)
+	assert.Equal(t, ai.ID, get.ID)
+}
+
 func TestAuthorizedIntegrationUpdateLastUsed(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 
