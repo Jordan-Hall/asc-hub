@@ -102,7 +102,7 @@ require (
 	gitlab.com/gitlab-org/api/client-go v0.143.2
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/crypto v0.51.0
-	golang.org/x/image v0.39.0
+	golang.org/x/image v0.40.0
 	golang.org/x/net v0.53.0
 	golang.org/x/oauth2 v0.36.0
 	golang.org/x/sync v0.20.0
