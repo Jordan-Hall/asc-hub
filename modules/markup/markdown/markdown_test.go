@@ -1489,14 +1489,14 @@ func TestCallout(t *testing.T) {
 </blockquote>`)
 }
 
-func TestCodeblockLanguageStripping(t *testing.T) {
+func TestCodeblockLanguageTransformation(t *testing.T) {
 	test := func(input, expected string) {
 		buffer, err := markdown.RenderString(&markup.RenderContext{Ctx: git.DefaultContext}, input)
 		require.NoError(t, err)
 		assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(string(buffer)))
 	}
 
-	// Unstripped
+	// No transformation
 	test(
 		"```rust\n"+
 			"fn main() {}\n"+
@@ -1504,13 +1504,39 @@ func TestCodeblockLanguageStripping(t *testing.T) {
 		`<pre class="code-block"><code class="chroma language-rust display"><span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span><span class="w">
 </span></code></pre>`)
 
-	// Stripped
+	// Comma stripped
 	test(
 		"```rust,ignore\n"+
 			"fn main() {}\n"+
 			"```",
 		`<pre class="code-block"><code class="chroma language-rust display"><span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span><span class="w">
 </span></code></pre>`)
+
+	// Pandoc stripping
+	// https://pandoc.org/MANUAL.html#extension-fenced_code_attributes
+	test(
+		"```haskell {.numberLines}\n"+
+			"qsort []     = []\n"+
+			"qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++\n"+
+			"               qsort (filter (>= x) xs)\n"+
+			"```",
+		`<pre class="code-block"><code class="chroma language-haskell display"><span class="nf">qsort</span> <span class="kt">[]</span>     <span class="ow">=</span> <span class="kt">[]</span>
+<span class="nf">qsort</span> <span class="p">(</span><span class="n">x</span><span class="kt">:</span><span class="n">xs</span><span class="p">)</span> <span class="ow">=</span> <span class="n">qsort</span> <span class="p">(</span><span class="n">filter</span> <span class="p">(</span><span class="o">&lt;</span> <span class="n">x</span><span class="p">)</span> <span class="n">xs</span><span class="p">)</span> <span class="o">++</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">++</span>
+               <span class="n">qsort</span> <span class="p">(</span><span class="n">filter</span> <span class="p">(</span><span class="o">&gt;=</span> <span class="n">x</span><span class="p">)</span> <span class="n">xs</span><span class="p">)</span>
+</code></pre>`)
+
+	// Pandoc language extracting
+	// https://pandoc.org/MANUAL.html#extension-fenced_code_attributes
+	test(
+		"```   { #mycode .numberLines .haskell startFrom=\"100\" }   \n"+
+			"qsort []     = []\n"+
+			"qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++\n"+
+			"               qsort (filter (>= x) xs)\n"+
+			"```",
+		`<pre class="code-block"><code class="chroma language-haskell display"><span class="nf">qsort</span> <span class="kt">[]</span>     <span class="ow">=</span> <span class="kt">[]</span>
+<span class="nf">qsort</span> <span class="p">(</span><span class="n">x</span><span class="kt">:</span><span class="n">xs</span><span class="p">)</span> <span class="ow">=</span> <span class="n">qsort</span> <span class="p">(</span><span class="n">filter</span> <span class="p">(</span><span class="o">&lt;</span> <span class="n">x</span><span class="p">)</span> <span class="n">xs</span><span class="p">)</span> <span class="o">++</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">++</span>
+               <span class="n">qsort</span> <span class="p">(</span><span class="n">filter</span> <span class="p">(</span><span class="o">&gt;=</span> <span class="n">x</span><span class="p">)</span> <span class="n">xs</span><span class="p">)</span>
+</code></pre>`)
 
 	// No language identifier
 	test(
