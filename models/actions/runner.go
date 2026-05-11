@@ -396,6 +396,13 @@ func FixRunnersWithoutBelongingRepo(ctx context.Context) (int64, error) {
 	return res.RowsAffected()
 }
 
+// DeleteEphemeralRunner removes the ephemeral runner with the given ID. If the runner with the given ID is not an
+// ephemeral runner, nothing happens.
+func DeleteEphemeralRunner(ctx context.Context, id int64) error {
+	_, err := db.GetEngine(ctx).Where(builder.Eq{"id": id, "ephemeral": true}).Delete(&ActionRunner{})
+	return err
+}
+
 func DeleteOfflineRunners(ctx context.Context, olderThan timeutil.TimeStamp, globalOnly bool) error {
 	log.Info("Doing: DeleteOfflineRunners")
 

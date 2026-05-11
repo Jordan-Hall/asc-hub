@@ -1,0 +1,16 @@
+- id: 87601
+  log_filename: somebody/somerepo/15631/87601.log.zst
+  log_in_storage: false
+  status: 1 # StatusSuccess
+  runner_id: 41601
+
+- id: 87602
+  log_filename: somebody/somerepo/15632/87602.log.zst
+  log_in_storage: false
+  status: 6 # StatusRunning
+
+- id: 87603
+  log_filename: somebody/somerepo/15631/87603.log.zst
+  log_in_storage: false
+  status: 2 # StatusFailure
+  runner_id: 41602

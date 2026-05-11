@@ -365,3 +365,10 @@ func (job *ActionRunJob) AllNeedsExist(allExistingJobIDs container.Set[string]) 
 
 	return unknownJobIDs, len(unknownJobIDs) == 0
 }
+
+// DeleteJob removes the given job. Removing all associated tasks is up to the caller. If the given job does not exist,
+// nothing happens.
+func DeleteJob(ctx context.Context, jobID int64) error {
+	_, err := db.GetEngine(ctx).Delete(&ActionRunJob{ID: jobID})
+	return err
+}

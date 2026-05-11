@@ -168,6 +168,7 @@ type ViewRunInfo struct {
 	CanApprove        bool          `json:"canApprove"` // the run needs an approval and the doer has permission to approve
 	CanRerun          bool          `json:"canRerun"`
 	CanDeleteArtifact bool          `json:"canDeleteArtifact"`
+	CanDelete         bool          `json:"canDelete"`
 	Done              bool          `json:"done"`
 	Jobs              []*ViewJob    `json:"jobs"`
 	Commit            ViewCommit    `json:"commit"`
@@ -288,6 +289,7 @@ func getViewResponse(ctx *app_context.Context, req *ViewRequest, runIndex, jobIn
 	resp.State.Run.CanApprove = run.NeedApproval && ctx.Repo.CanWrite(unit.TypeActions)
 	resp.State.Run.CanRerun = run.CanBeRerun() && ctx.Repo.CanWrite(unit.TypeActions)
 	resp.State.Run.CanDeleteArtifact = run.Status.IsDone() && ctx.Repo.CanWrite(unit.TypeActions)
+	resp.State.Run.CanDelete = run.Status.IsDone() && ctx.IsUserRepoAdmin()
 	resp.State.Run.Jobs = make([]*ViewJob, 0, len(jobs)) // marshal to '[]' instead of 'null' in json
 	resp.State.Run.Status = run.Status.String()
 	resp.State.Run.PreExecutionError = actions_model.TranslatePreExecutionError(ctx.Locale, run)
@@ -598,6 +600,32 @@ func Cancel(ctx *app_context.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, struct{}{})
+}
+
+func DeleteRun(ctx *app_context.Context) {
+	runIndex := ctx.ParamsInt64("run")
+
+	run, err := actions_model.GetRunByIndex(ctx, ctx.Repo.Repository.ID, runIndex)
+	if err != nil {
+		if errors.Is(err, util.ErrNotExist) {
+			log.Debug("Run at index %d in repository %d does not exist", runIndex, ctx.Repo.Repository.ID)
+			ctx.JSONOK()
+			return
+		}
+
+		log.Debug("Could not load run at index %d in repository %d: %s", runIndex, ctx.Repo.Repository.ID, err)
+		errorMessage := ctx.Locale.Tr("actions.runs.delete.error_could_not_load_run")
+		ctx.JSON(http.StatusInternalServerError, map[string]any{"message": errorMessage})
+		return
+	}
+	if err = actions_service.DeleteRun(ctx, run.ID); err != nil {
+		log.Debug("Could not delete run %d: %s", run.ID, err)
+		errorMessage := ctx.Locale.Tr("actions.runs.delete.error_could_not_delete_run")
+		ctx.JSON(http.StatusInternalServerError, map[string]any{"message": errorMessage})
+		return
+	}
+
+	ctx.JSONOK()
 }
 
 // getRunJobs gets the jobs of runIndex, and returns jobs[jobIndex], jobs.

@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	actions_model "forgejo.org/models/actions"
+	repo_model "forgejo.org/models/repo"
 	unit_model "forgejo.org/models/unit"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
@@ -147,7 +148,7 @@ func TestActionViewsView(t *testing.T) {
 			runIndex:          187,
 			jobIndex:          0,
 			attempt:           1,
-			expectedJSON:      "{\"state\":{\"run\":{\"preExecutionError\":\"\",\"link\":\"/user5/repo4/actions/runs/187\",\"title\":\"update actions\",\"titleHTML\":\"update actions\",\"status\":\"success\",\"canCancel\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"description\":\"Commit <a href=\\\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\\\">c2d72f5484</a> pushed by <a href=\\\"/user1\\\">user1</a>\",\"done\":true,\"jobs\":[{\"id\":192,\"name\":\"job_2\",\"status\":\"success\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"c2d72f5484\",\"link\":\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\",\"pusher\":{\"displayName\":\"user1\",\"link\":\"/user1\"},\"branch\":{\"name\":\"master\",\"link\":\"/user5/repo4/src/branch/master\",\"isDeleted\":false}}},\"currentJob\":{\"title\":\"job_2\",\"details\":[\"Success\"],\"steps\":[{\"summary\":\"Set up job\",\"duration\":\"_duration_\",\"status\":\"success\"},{\"summary\":\"Complete job\",\"duration\":\"_duration_\",\"status\":\"success\"}],\"allAttempts\":[{\"number\":3,\"time_since_started_html\":\"_time_\",\"status\":\"running\",\"status_diagnostics\":[\"Running\"]},{\"number\":2,\"time_since_started_html\":\"_time_\",\"status\":\"success\",\"status_diagnostics\":[\"Success\"]},{\"number\":1,\"time_since_started_html\":\"_time_\",\"status\":\"success\",\"status_diagnostics\":[\"Success\"]}]}},\"logs\":{\"stepsLog\":[]}}\n",
+			expectedJSON:      "{\"state\":{\"run\":{\"preExecutionError\":\"\",\"link\":\"/user5/repo4/actions/runs/187\",\"title\":\"update actions\",\"titleHTML\":\"update actions\",\"status\":\"success\",\"canCancel\":false,\"canDelete\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"description\":\"Commit <a href=\\\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\\\">c2d72f5484</a> pushed by <a href=\\\"/user1\\\">user1</a>\",\"done\":true,\"jobs\":[{\"id\":192,\"name\":\"job_2\",\"status\":\"success\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"c2d72f5484\",\"link\":\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\",\"pusher\":{\"displayName\":\"user1\",\"link\":\"/user1\"},\"branch\":{\"name\":\"master\",\"link\":\"/user5/repo4/src/branch/master\",\"isDeleted\":false}}},\"currentJob\":{\"title\":\"job_2\",\"details\":[\"Success\"],\"steps\":[{\"summary\":\"Set up job\",\"duration\":\"_duration_\",\"status\":\"success\"},{\"summary\":\"Complete job\",\"duration\":\"_duration_\",\"status\":\"success\"}],\"allAttempts\":[{\"number\":3,\"time_since_started_html\":\"_time_\",\"status\":\"running\",\"status_diagnostics\":[\"Running\"]},{\"number\":2,\"time_since_started_html\":\"_time_\",\"status\":\"success\",\"status_diagnostics\":[\"Success\"]},{\"number\":1,\"time_since_started_html\":\"_time_\",\"status\":\"success\",\"status_diagnostics\":[\"Success\"]}]}},\"logs\":{\"stepsLog\":[]}}\n",
 			expectedArtifacts: "{\"artifacts\":[{\"name\":\"multi-file-download\",\"size\":2048,\"status\":\"completed\"}]}\n",
 		},
 		{
@@ -156,7 +157,7 @@ func TestActionViewsView(t *testing.T) {
 			runIndex:          209,
 			jobIndex:          0,
 			attempt:           1,
-			expectedJSON:      "{\"state\":{\"run\":{\"link\":\"/user5/repo4/actions/runs/209\",\"title\":\"A scheduled workflow\",\"titleHTML\":\"A scheduled workflow\",\"status\":\"waiting\",\"description\":\"Scheduled run of commit \\u003ca href=\\\"/user5/repo4/commit/64357baca84bfff631e7dfae5a3433b26d005646\\\"\\u003e64357baca8\\u003c/a\\u003e\",\"canCancel\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"done\":false,\"jobs\":[{\"id\":2153,\"name\":\"job_2\",\"status\":\"waiting\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"64357baca8\",\"link\":\"/user5/repo4/commit/64357baca84bfff631e7dfae5a3433b26d005646\",\"pusher\":{\"displayName\":\"forgejo-actions\",\"link\":\"/forgejo-actions\"},\"branch\":{\"name\":\"master\",\"link\":\"/user5/repo4/src/branch/master\",\"isDeleted\":false}},\"preExecutionError\":\"\"},\"currentJob\":{\"title\":\"job_2\",\"details\":[\"Waiting for a runner with the following labels: debian, gpu\"],\"steps\":[{\"summary\":\"Set up job\",\"duration\":\"_duration_\",\"status\":\"success\"},{\"summary\":\"Complete job\",\"duration\":\"_duration_\",\"status\":\"success\"}],\"allAttempts\":[{\"number\":1,\"time_since_started_html\":\"-\",\"status\":\"success\",\"status_diagnostics\":[\"Success\"]}]}},\"logs\":{\"stepsLog\":[]}}\n",
+			expectedJSON:      "{\"state\":{\"run\":{\"link\":\"/user5/repo4/actions/runs/209\",\"title\":\"A scheduled workflow\",\"titleHTML\":\"A scheduled workflow\",\"status\":\"waiting\",\"description\":\"Scheduled run of commit \\u003ca href=\\\"/user5/repo4/commit/64357baca84bfff631e7dfae5a3433b26d005646\\\"\\u003e64357baca8\\u003c/a\\u003e\",\"canCancel\":false,\"canDelete\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"done\":false,\"jobs\":[{\"id\":2153,\"name\":\"job_2\",\"status\":\"waiting\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"64357baca8\",\"link\":\"/user5/repo4/commit/64357baca84bfff631e7dfae5a3433b26d005646\",\"pusher\":{\"displayName\":\"forgejo-actions\",\"link\":\"/forgejo-actions\"},\"branch\":{\"name\":\"master\",\"link\":\"/user5/repo4/src/branch/master\",\"isDeleted\":false}},\"preExecutionError\":\"\"},\"currentJob\":{\"title\":\"job_2\",\"details\":[\"Waiting for a runner with the following labels: debian, gpu\"],\"steps\":[{\"summary\":\"Set up job\",\"duration\":\"_duration_\",\"status\":\"success\"},{\"summary\":\"Complete job\",\"duration\":\"_duration_\",\"status\":\"success\"}],\"allAttempts\":[{\"number\":1,\"time_since_started_html\":\"-\",\"status\":\"success\",\"status_diagnostics\":[\"Success\"]}]}},\"logs\":{\"stepsLog\":[]}}\n",
 			expectedArtifacts: "{\"artifacts\":[]}\n",
 		},
 		{
@@ -165,7 +166,7 @@ func TestActionViewsView(t *testing.T) {
 			runIndex:          210,
 			jobIndex:          0,
 			attempt:           1,
-			expectedJSON:      "{\"state\":{\"run\":{\"link\":\"/user5/repo4/actions/runs/210\",\"title\":\"A triggered run\",\"titleHTML\":\"A triggered run\",\"status\":\"waiting\",\"description\":\"Run of commit \\u003ca href=\\\"/user5/repo4/commit/f4100ac14112a3740490afb22b07b69b0b5d4e8b\\\"\\u003ef4100ac141\\u003c/a\\u003e triggered by \\u003ca href=\\\"/user29\\\"\\u003euser29\\u003c/a\\u003e\",\"canCancel\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"done\":false,\"jobs\":[{\"id\":2154,\"name\":\"mirror\",\"status\":\"waiting\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"f4100ac141\",\"link\":\"/user5/repo4/commit/f4100ac14112a3740490afb22b07b69b0b5d4e8b\",\"pusher\":{\"displayName\":\"user29\",\"link\":\"/user29\"},\"branch\":{\"name\":\"master\",\"link\":\"/user5/repo4/src/branch/master\",\"isDeleted\":false}},\"preExecutionError\":\"\"},\"currentJob\":{\"title\":\"mirror\",\"details\":[\"Waiting for a runner with the following label: windows\"],\"steps\":[{\"summary\":\"Set up job\",\"duration\":\"_duration_\",\"status\":\"running\"},{\"summary\":\"Complete job\",\"duration\":\"_duration_\",\"status\":\"waiting\"}],\"allAttempts\":[{\"number\":1,\"time_since_started_html\":\"-\",\"status\":\"waiting\",\"status_diagnostics\":[\"Waiting for a runner with the following label: windows\"]}]}},\"logs\":{\"stepsLog\":[]}}\n",
+			expectedJSON:      "{\"state\":{\"run\":{\"link\":\"/user5/repo4/actions/runs/210\",\"title\":\"A triggered run\",\"titleHTML\":\"A triggered run\",\"status\":\"waiting\",\"description\":\"Run of commit \\u003ca href=\\\"/user5/repo4/commit/f4100ac14112a3740490afb22b07b69b0b5d4e8b\\\"\\u003ef4100ac141\\u003c/a\\u003e triggered by \\u003ca href=\\\"/user29\\\"\\u003euser29\\u003c/a\\u003e\",\"canCancel\":false,\"canDelete\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"done\":false,\"jobs\":[{\"id\":2154,\"name\":\"mirror\",\"status\":\"waiting\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"f4100ac141\",\"link\":\"/user5/repo4/commit/f4100ac14112a3740490afb22b07b69b0b5d4e8b\",\"pusher\":{\"displayName\":\"user29\",\"link\":\"/user29\"},\"branch\":{\"name\":\"master\",\"link\":\"/user5/repo4/src/branch/master\",\"isDeleted\":false}},\"preExecutionError\":\"\"},\"currentJob\":{\"title\":\"mirror\",\"details\":[\"Waiting for a runner with the following label: windows\"],\"steps\":[{\"summary\":\"Set up job\",\"duration\":\"_duration_\",\"status\":\"running\"},{\"summary\":\"Complete job\",\"duration\":\"_duration_\",\"status\":\"waiting\"}],\"allAttempts\":[{\"number\":1,\"time_since_started_html\":\"-\",\"status\":\"waiting\",\"status_diagnostics\":[\"Waiting for a runner with the following label: windows\"]}]}},\"logs\":{\"stepsLog\":[]}}\n",
 			expectedArtifacts: "{\"artifacts\":[]}\n",
 		},
 	}
@@ -229,7 +230,7 @@ func TestActionViewsViewAttemptOutOfRange(t *testing.T) {
 		re = regexp.MustCompile(pattern)
 		actualClean = re.ReplaceAllString(actualClean, `"time_since_started_html":"_time_"`)
 
-		return assert.JSONEq(t, "{\"state\":{\"run\":{\"preExecutionError\":\"\",\"link\":\"/user5/repo4/actions/runs/190\",\"title\":\"job output\",\"titleHTML\":\"job output\",\"status\":\"success\",\"canCancel\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"description\":\"Commit <a href=\\\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\\\">c2d72f5484</a> pushed by <a href=\\\"/user1\\\">user1</a>\",\"done\":false,\"jobs\":[{\"id\":396,\"name\":\"job_2\",\"status\":\"waiting\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"c2d72f5484\",\"link\":\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\",\"pusher\":{\"displayName\":\"user1\",\"link\":\"/user1\"},\"branch\":{\"name\":\"test\",\"link\":\"/user5/repo4/src/branch/test\",\"isDeleted\":true}}},\"currentJob\":{\"title\":\"job_2\",\"details\":[\"Waiting for a runner with the following label: fedora\"],\"steps\":[],\"allAttempts\":null}},\"logs\":{\"stepsLog\":[]}}\n", actualClean)
+		return assert.JSONEq(t, "{\"state\":{\"run\":{\"preExecutionError\":\"\",\"link\":\"/user5/repo4/actions/runs/190\",\"title\":\"job output\",\"titleHTML\":\"job output\",\"status\":\"success\",\"canCancel\":false,\"canDelete\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"description\":\"Commit <a href=\\\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\\\">c2d72f5484</a> pushed by <a href=\\\"/user1\\\">user1</a>\",\"done\":false,\"jobs\":[{\"id\":396,\"name\":\"job_2\",\"status\":\"waiting\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"c2d72f5484\",\"link\":\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\",\"pusher\":{\"displayName\":\"user1\",\"link\":\"/user1\"},\"branch\":{\"name\":\"test\",\"link\":\"/user5/repo4/src/branch/test\",\"isDeleted\":true}}},\"currentJob\":{\"title\":\"job_2\",\"details\":[\"Waiting for a runner with the following label: fedora\"],\"steps\":[],\"allAttempts\":null}},\"logs\":{\"stepsLog\":[]}}\n", actualClean)
 	})
 	htmlDoc.AssertAttrEqual(t, selector, "data-initial-artifacts-response", "{\"artifacts\":[]}\n")
 }
@@ -257,4 +258,63 @@ func TestActionTabAccessibleFromRepo(t *testing.T) {
 		assert.Contains(t, text, "1") // This repo has one running action run
 		return true
 	})
+}
+
+func TestActionViewRunDeletion(t *testing.T) {
+	defer unittest.OverrideFixtures("tests/integration/fixtures/TestActionViewRunDeletion")()
+	defer tests.PrepareTestEnv(t)()
+
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	user5 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
+	repo1 := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1, OwnerID: user2.ID})
+
+	sessionUser2 := loginUser(t, user2.Name)
+	sessionUser5 := loginUser(t, user5.Name)
+
+	isCollaborator, err := repo_model.IsCollaborator(t.Context(), repo1.ID, user5.ID)
+	require.NoError(t, err)
+	require.True(t, isCollaborator)
+
+	testCases := []struct {
+		name       string
+		sess       *TestSession
+		requestURL string
+		canDelete  bool
+	}{
+		{
+			name:       "Repo owner can delete completed run",
+			sess:       sessionUser2,
+			requestURL: fmt.Sprintf("/%s/actions/runs/3161/jobs/0/attempt/1", repo1.FullName()),
+			canDelete:  true,
+		},
+		{
+			name:       "Collaborator cannot delete completed run",
+			sess:       sessionUser5,
+			requestURL: fmt.Sprintf("/%s/actions/runs/3161/jobs/0/attempt/1", repo1.FullName()),
+			canDelete:  false,
+		},
+		{
+			name:       "Repo owner cannot delete running run",
+			sess:       sessionUser2,
+			requestURL: fmt.Sprintf("/%s/actions/runs/3162/jobs/0/attempt/1", repo1.FullName()),
+			canDelete:  false,
+		},
+		{
+			name:       "Collaborator cannot delete running run",
+			sess:       sessionUser5,
+			requestURL: fmt.Sprintf("/%s/actions/runs/3162/jobs/0/attempt/1", repo1.FullName()),
+			canDelete:  false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			req := NewRequest(t, "GET", testCase.requestURL)
+			resp := testCase.sess.MakeRequest(t, req, http.StatusOK)
+			htmlDoc := NewHTMLParser(t, resp.Body)
+			htmlDoc.AssertAttrPredicate(t, "#repo-action-view", "data-initial-post-response", func(actual string) bool {
+				return assert.Contains(t, actual, fmt.Sprintf(`"canDelete":%t`, testCase.canDelete))
+			})
+		})
+	}
 }

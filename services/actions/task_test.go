@@ -6,8 +6,12 @@ import (
 
 	actions_model "forgejo.org/models/actions"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unittest"
 	"forgejo.org/models/user"
+	"forgejo.org/modules/actions"
 
+	runnerv1 "code.forgejo.org/forgejo/actions-proto/runner/v1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -95,5 +99,92 @@ jobs:
 		require.Empty(t, taskContext.Fields["forgejo_actions_id_token_request_token"].GetStringValue())
 		require.Empty(t, taskContext.Fields["forgejo_actions_id_token_request_url"].GetStringValue())
 		require.NotEmpty(t, taskContext.Fields["gitea_runtime_token"].GetStringValue())
+	})
+}
+
+func TestDeleteTask(t *testing.T) {
+	t.Run("Task removed with logs and ephemeral runner", func(t *testing.T) {
+		defer unittest.OverrideFixtures("services/actions/TestDeleteTask")()
+		require.NoError(t, unittest.PrepareTestDatabase())
+
+		task := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionTask{ID: 87601})
+		runner := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunner{ID: 41601})
+		unittest.AssertCount(t, &actions_model.ActionTaskOutput{TaskID: task.ID}, 2)
+		unittest.AssertCount(t, &actions_model.ActionTaskStep{TaskID: task.ID}, 1)
+
+		_, err := actions.WriteLogs(t.Context(), task.LogFilename, 0, []*runnerv1.LogRow{{Content: "OK"}})
+		require.NoError(t, err)
+
+		logExists, err := actions.ExistsLogs(t.Context(), task.LogFilename)
+		require.NoError(t, err)
+		assert.True(t, logExists)
+
+		require.NoError(t, deleteTask(t.Context(), task.ID))
+
+		logExists, err = actions.ExistsLogs(t.Context(), task.LogFilename)
+		require.NoError(t, err)
+		assert.False(t, logExists)
+
+		unittest.AssertNotExistsBean(t, &actions_model.ActionTask{ID: task.ID})
+		unittest.AssertCount(t, &actions_model.ActionTaskOutput{TaskID: task.ID}, 0)
+		unittest.AssertCount(t, &actions_model.ActionTaskStep{TaskID: task.ID}, 0)
+		unittest.AssertNotExistsBean(t, &actions_model.ActionRunner{ID: runner.ID})
+
+		// Verify that other tasks have been left alone.
+		otherTask := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionTask{ID: 87602})
+		unittest.AssertCount(t, &actions_model.ActionTaskOutput{TaskID: otherTask.ID}, 1)
+		unittest.AssertCount(t, &actions_model.ActionTaskStep{TaskID: otherTask.ID}, 1)
+	})
+
+	t.Run("Task removed and persistent runner kept", func(t *testing.T) {
+		defer unittest.OverrideFixtures("services/actions/TestDeleteTask")()
+		require.NoError(t, unittest.PrepareTestDatabase())
+
+		task := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionTask{ID: 87603})
+		runner := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunner{ID: 41602})
+		unittest.AssertCount(t, &actions_model.ActionTaskOutput{TaskID: task.ID}, 0)
+		unittest.AssertCount(t, &actions_model.ActionTaskStep{TaskID: task.ID}, 1)
+
+		_, err := actions.WriteLogs(t.Context(), task.LogFilename, 0, []*runnerv1.LogRow{{Content: "OK"}})
+		require.NoError(t, err)
+
+		logExists, err := actions.ExistsLogs(t.Context(), task.LogFilename)
+		require.NoError(t, err)
+		assert.True(t, logExists)
+
+		require.NoError(t, deleteTask(t.Context(), task.ID))
+
+		logExists, err = actions.ExistsLogs(t.Context(), task.LogFilename)
+		require.NoError(t, err)
+		assert.False(t, logExists)
+
+		unittest.AssertNotExistsBean(t, &actions_model.ActionTask{ID: task.ID})
+		unittest.AssertCount(t, &actions_model.ActionTaskOutput{TaskID: task.ID}, 0)
+		unittest.AssertCount(t, &actions_model.ActionTaskStep{TaskID: task.ID}, 0)
+		unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunner{ID: runner.ID})
+	})
+
+	t.Run("No error if task does not exist", func(t *testing.T) {
+		require.NoError(t, unittest.PrepareTestDatabase())
+
+		unittest.AssertNotExistsBean(t, &actions_model.ActionTask{ID: 87601})
+		require.NoError(t, deleteTask(t.Context(), 87601))
+	})
+
+	t.Run("Error if task is not done", func(t *testing.T) {
+		defer unittest.OverrideFixtures("services/actions/TestDeleteTask")()
+		require.NoError(t, unittest.PrepareTestDatabase())
+
+		task := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionTask{ID: 87602})
+		unittest.AssertCount(t, &actions_model.ActionTaskOutput{TaskID: task.ID}, 1)
+		unittest.AssertCount(t, &actions_model.ActionTaskStep{TaskID: task.ID}, 1)
+
+		err := deleteTask(t.Context(), task.ID)
+		require.ErrorContains(t, err, "unable to remove task 87602 because it has not completed yet")
+
+		// Verify nothing has been deleted.
+		unittest.AssertExistsAndLoadBean(t, &actions_model.ActionTask{ID: task.ID})
+		unittest.AssertCount(t, &actions_model.ActionTaskOutput{TaskID: task.ID}, 1)
+		unittest.AssertCount(t, &actions_model.ActionTaskStep{TaskID: task.ID}, 1)
 	})
 }

@@ -1032,6 +1032,68 @@ func GetActionRun(ctx *context.APIContext) {
 	ctx.JSON(http.StatusOK, convert.ToActionRun(ctx, run, ctx.Doer))
 }
 
+// DeleteActionRun removes a completed workflow run.
+func DeleteActionRun(ctx *context.APIContext) {
+	// swagger:operation DELETE /repos/{owner}/{repo}/actions/runs/{run_id} repository DeleteActionRun
+	// ---
+	// summary: Delete a completed workflow run.
+	// description: >
+	//   Remove a particular workflow run. The workflow run must have completed (succeeded, failed, cancelled) for the
+	//   operation to succeed. Otherwise, an error is returned.
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: owner
+	//   in: path
+	//   description: owner of the repo
+	//   type: string
+	//   required: true
+	// - name: repo
+	//   in: path
+	//   description: name of the repo
+	//   type: string
+	//   required: true
+	// - name: run_id
+	//   in: path
+	//   description: id of the action run
+	//   type: integer
+	//   format: int64
+	//   required: true
+	// responses:
+	//   "204":
+	//     description: Workflow run has been removed
+	//   "400":
+	//     "$ref": "#/responses/error"
+	//   "403":
+	//     "$ref": "#/responses/forbidden"
+	//   "404":
+	//     "$ref": "#/responses/notFound"
+
+	run, err := actions_model.GetRunByID(ctx, ctx.ParamsInt64(":run_id"))
+	if err != nil {
+		if errors.Is(err, util.ErrNotExist) {
+			ctx.Error(http.StatusNotFound, "GetRunById", err)
+			return
+		}
+
+		ctx.Error(http.StatusInternalServerError, "GetRunByID", err)
+		return
+	}
+
+	if ctx.Repo.Repository.ID != run.RepoID {
+		ctx.Error(http.StatusNotFound, "GetRunById", util.ErrNotExist)
+		return
+	}
+
+	err = actions_service.DeleteRun(ctx, run.ID)
+	if err != nil {
+		ctx.Error(http.StatusInternalServerError, "DeleteRun", err)
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+}
+
 // ListActionRunJobs return a filtered list of jobs that belong to a single workflow run
 func ListActionRunJobs(ctx *context.APIContext) {
 	// swagger:operation GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs repository ListActionRunJobs

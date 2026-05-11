@@ -6,6 +6,8 @@ const testLocale = {
   approve: 'Locale Approve',
   cancel: 'Locale Cancel',
   rerun: 'Locale Re-run',
+  delete: 'Locale Delete',
+  confirmDelete: '',
   artifactsTitle: 'artifactTitleHere',
   areYouSure: '',
   confirmDeleteArtifact: '',
@@ -168,6 +170,7 @@ function configureForMultipleAttemptTests({viewHistorical}) {
       canApprove: true,
       canCancel: true,
       canRerun: true,
+      canDelete: false,
       status: 'success',
       commit: {
         pusher: {},

@@ -192,6 +192,15 @@ func HasTaskForRunner(ctx context.Context, runnerID int64) (bool, error) {
 	return db.GetEngine(ctx).Where("runner_id = ?", runnerID).Exist(&ActionTask{})
 }
 
+func GetTasksOfJob(ctx context.Context, jobID int64) ([]*ActionTask, error) {
+	var tasks []*ActionTask
+	err := db.GetEngine(ctx).Where("job_id=?", jobID).Find(&tasks)
+	if err != nil {
+		return nil, fmt.Errorf("cannot fetch tasks of job %d: %w", jobID, err)
+	}
+	return tasks, nil
+}
+
 func GetTaskByJobAttempt(ctx context.Context, jobID, attempt int64) (*ActionTask, error) {
 	var task ActionTask
 	has, err := db.GetEngine(ctx).Where("job_id=?", jobID).Where("attempt=?", attempt).Get(&task)
@@ -495,6 +504,27 @@ func UpdateTask(ctx context.Context, task *ActionTask, cols ...string) error {
 	}
 	_, err := sess.Update(task)
 	return err
+}
+
+// DeleteTask removes the given task including all its steps and outputs. Removing logs and ephemeral runners is the
+// caller's responsibility.
+func DeleteTask(ctx context.Context, taskID int64) error {
+	return db.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		_, err = db.GetEngine(ctx).Delete(&ActionTaskStep{TaskID: taskID})
+		if err != nil {
+			return fmt.Errorf("unable to delete steps of task %d: %w", taskID, err)
+		}
+		_, err = db.GetEngine(ctx).Delete(&ActionTaskOutput{TaskID: taskID})
+		if err != nil {
+			return fmt.Errorf("unable to delete outputs of task %d: %w", taskID, err)
+		}
+		_, err = db.GetEngine(ctx).Delete(&ActionTask{ID: taskID})
+		if err != nil {
+			return fmt.Errorf("unable to delete task %d: %w", taskID, err)
+		}
+		return nil
+	})
 }
 
 func FindOldTasksToExpire(ctx context.Context, olderThan timeutil.TimeStamp, limit int) ([]*ActionTask, error) {

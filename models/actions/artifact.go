@@ -222,6 +222,15 @@ func SetArtifactDeleted(ctx context.Context, artifactID int64) error {
 	return err
 }
 
+// SetArtifactsOfRunDeleted marks all artifacts of the given run as deleted.
+func SetArtifactsOfRunDeleted(ctx context.Context, runID int64) error {
+	_, err := db.GetEngine(ctx).
+		Where("run_id=?", runID).
+		Cols("status").
+		Update(&ActionArtifact{Status: int64(ArtifactStatusPendingDeletion)})
+	return err
+}
+
 // aggregatedArtifactConds returns the common WHERE clause used by aggregated
 // artifact queries: restrict to visible statuses and apply the caller's filters.
 // The Status field on opts is ignored — visibility is fixed to UploadConfirmed/Expired.

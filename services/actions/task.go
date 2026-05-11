@@ -367,3 +367,40 @@ func convertTimestamp(timestamp *timestamppb.Timestamp) timeutil.TimeStamp {
 	}
 	return timeutil.TimeStamp(timestamp.AsTime().Unix())
 }
+
+// deleteTask removes the given task with all associated steps, outputs, logs, and ephemeral runners, if any. For
+// deleteTask to succeed, it must have completed. If it has not, an error is returned. If the given task does not exist,
+// nothing happens.
+func deleteTask(ctx context.Context, taskID int64) error {
+	return db.WithTx(ctx, func(ctx context.Context) error {
+		task, err := actions_model.GetTaskByID(ctx, taskID)
+		if err != nil {
+			if errors.Is(err, util.ErrNotExist) {
+				return nil
+			}
+			return fmt.Errorf("unable to load task %d: %w", taskID, err)
+		}
+
+		if !task.Status.IsDone() {
+			return fmt.Errorf("unable to remove task %d because it has not completed yet", taskID)
+		}
+
+		err = actions_module.RemoveLogs(ctx, task.LogInStorage, task.LogFilename)
+		if err != nil {
+			return fmt.Errorf("unable to remove logs of task %d: %w", taskID, err)
+		}
+
+		// Whether an ephemeral runner has been used is determined based on whether it is assigned to a task.
+		// Consequently, ephemeral runners have to be cleaned up before any task can be removed.
+		err = actions_model.DeleteEphemeralRunner(ctx, task.RunnerID)
+		if err != nil {
+			return fmt.Errorf("unable to cleanup ephemeral runners before removing task %d: %w", taskID, err)
+		}
+		err = actions_model.DeleteTask(ctx, task.ID)
+		if err != nil {
+			return fmt.Errorf("unable to remove task %d: %w", task.ID, err)
+		}
+
+		return nil
+	})
+}

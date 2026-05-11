@@ -612,4 +612,11 @@ func ComputeRunStatus(ctx context.Context, runID int64) (run *ActionRun, columns
 	return run, columns, nil
 }
 
+// DeleteRun removes the given run. It is the caller's responsibility to handle the run's dependencies like artifacts or
+// jobs. Nothing happens if the run does not exist.
+func DeleteRun(ctx context.Context, runID int64) error {
+	_, err := db.GetEngine(ctx).Delete(&ActionRun{ID: runID})
+	return err
+}
+
 type ActionRunIndex db.ResourceIndex
