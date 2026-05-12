@@ -12,7 +12,7 @@ import {test} from './utils_e2e.ts';
 test.use({user: 'user2'});
 
 test('Toggle visibility', async ({page}) => {
-  page.goto('/org/org3/members');
+  await page.goto('/org/org3/members');
 
   // Button "Make hidden" for user2's row
   const hideUser2 = page.locator('.link-action[data-url="/org/org3/members/action/private?uid=2"]');
@@ -34,7 +34,7 @@ test('Toggle visibility', async ({page}) => {
 });
 
 test('Leave org', async ({page}) => {
-  page.goto('/org/org3/members');
+  await page.goto('/org/org3/members');
 
   // Button "Leave" for user2's row
   const leaveButton = page.locator('.delete-button[data-url="/org/org3/members/action/leave"]');
@@ -53,7 +53,7 @@ test('Leave org', async ({page}) => {
 });
 
 test('Add and remove a new member to the org', async ({page}) => {
-  page.goto('/org/org3/members');
+  await page.goto('/org/org3/members');
 
   // Click the "Add member" button
   const newMemberButton = page.locator('#add-org-member-button');
