@@ -184,8 +184,10 @@ func httpBase(ctx *context.Context) *serviceHandler {
 		}
 
 		if repoExist {
-			// Because of special ref "refs/for" .. , need delay write permission check
-			accessMode = perm.AccessModeRead
+			if !isWiki {
+				// Because of special ref "refs/for" .. , need delay write permission check
+				accessMode = perm.AccessModeRead
+			}
 
 			if hasTaskID, taskID := ctx.Authentication.ActionsTaskID().Get(); hasTaskID {
 				task, err := actions_model.GetTaskByID(ctx, taskID)

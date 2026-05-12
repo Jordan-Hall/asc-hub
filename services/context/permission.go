@@ -4,6 +4,7 @@
 package context
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 
@@ -57,6 +58,23 @@ func RequireRepoWriterOr(unitTypes ...unit.Type) func(ctx *Context) {
 // RequireRepoReader returns a middleware for requiring repository read to the specify unitType
 func RequireRepoReader(unitType unit.Type) func(ctx *Context) {
 	return func(ctx *Context) {
+		// Typically checks for authentication scopes won't be relevant for non-API requests where this middleware is
+		// used; but, some paths like `/user/repo/raw/...` can be accessed with API authentication mechanisms.  In those
+		// edge cases, check that `read:repository` scope is present if the authentication method indicates a limited
+		// scope.
+		hasScope, scope := ctx.Authentication.Scope().Get()
+		if hasScope {
+			allow, err := scope.HasScope(auth_model.AccessTokenScopeReadRepository)
+			if err != nil {
+				ctx.ServerError("checking scope failed", err)
+				return
+			}
+			if !allow {
+				ctx.Error(http.StatusForbidden, "scopedAccessCheck", fmt.Sprintf("token does not have at least one of required scope(s): %v", auth_model.AccessTokenScopeReadRepository))
+				return
+			}
+		}
+
 		if !ctx.Repo.CanRead(unitType) {
 			if log.IsTrace() {
 				if ctx.IsSigned {

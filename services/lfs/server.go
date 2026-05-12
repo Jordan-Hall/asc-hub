@@ -607,6 +607,20 @@ func handleLFSToken(ctx stdCtx.Context, tokenSHA string, target *repo_model.Repo
 		log.Error("Unable to GetUserById[%d]: Error: %v", claims.UserID, err)
 		return nil, err
 	}
+
+	if !u.IsAccessAllowed(ctx) {
+		return nil, errors.New("user access is blocked")
+	}
+
+	repoPerm, err := access_model.GetUserRepoPermission(ctx, target, u)
+	if err != nil {
+		log.Error("Unable to GetUserRepoPermission[%d]: Error: %v", claims.UserID, err)
+		return nil, err
+	}
+	if !repoPerm.CanAccess(mode, unit.TypeCode) {
+		return nil, errors.New("user does not have access to the repository")
+	}
+
 	return u, nil
 }
 
