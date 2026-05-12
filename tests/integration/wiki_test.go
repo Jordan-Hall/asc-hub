@@ -20,10 +20,10 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
-	"forgejo.org/modules/optional"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/util"
 	"forgejo.org/tests"
+	"forgejo.org/tests/forgery"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/google/uuid"
@@ -95,11 +95,10 @@ func doRepoWikiGitOperation(t *testing.T, serverURL *url.URL, method RepoWikiMet
 	repo := "repo1"
 	if target == RepoWikiPrivate {
 		user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
-		privateRepo, _, reset := tests.CreateDeclarativeRepoWithOptions(t, user2, tests.DeclarativeRepoOptions{
-			IsPrivate:    optional.Some(true),
-			EnabledUnits: optional.Some([]unit_model.Type{unit_model.TypeWiki}),
+		privateRepo := forgery.CreateRepository(t, user2, &forgery.CreateRepositoryOptions{
+			IsPrivate: true,
 		})
-		defer reset()
+		forgery.EnableRepoUnit(t, privateRepo, unit_model.TypeWiki, nil)
 
 		session := loginUser(t, user2.LoginName)
 		token := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeWriteRepository)

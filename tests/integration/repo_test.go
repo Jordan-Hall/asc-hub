@@ -24,7 +24,6 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
-	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/test"
@@ -32,6 +31,7 @@ import (
 	repo_service "forgejo.org/services/repository"
 	files_service "forgejo.org/services/repository/files"
 	"forgejo.org/tests"
+	"forgejo.org/tests/forgery"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
@@ -1369,21 +1369,17 @@ func TestInitInstructions(t *testing.T) {
 
 	forEachObjectFormat(t, func(t *testing.T, objectFormat git.ObjectFormat) {
 		defer tests.PrintCurrentTest(t)()
-		name := objectFormat.Name()
+
 		var init string
-		if name == "sha1" {
+		if objectFormat == git.Sha1ObjectFormat {
 			init = "git init"
 		} else {
-			init = fmt.Sprintf("git init --object-format=%s", name)
+			init = fmt.Sprintf("git init --object-format=%s", objectFormat.Name())
 		}
 
-		repo, _, f := tests.CreateDeclarativeRepoWithOptions(t, user, tests.DeclarativeRepoOptions{
-			Name:         optional.Some(name + "-instruction"),
-			AutoInit:     optional.Some(false),
-			EnabledUnits: optional.Some([]unit_model.Type{unit_model.TypeCode}),
-			ObjectFormat: optional.Some(name),
+		repo := forgery.CreateRepository(t, user, &forgery.CreateRepositoryOptions{
+			ObjectFormat: objectFormat,
 		})
-		defer f()
 
 		portMatcher := regexp.MustCompile(`localhost:\d+`)
 		resp := session.MakeRequest(t, NewRequest(t, "GET", "/"+repo.FullName()), http.StatusOK)
@@ -1394,7 +1390,7 @@ func TestInitInstructions(t *testing.T) {
 git switch -c main
 git add README.md
 git commit -m "first commit"
-git remote add origin http://localhost/user2/%s-instruction.git
-git push -u origin main`, init, name), portMatcher.ReplaceAllString(htmlDoc.Find(".empty-repo-guide code").First().Text(), "localhost"))
+git remote add origin http://localhost/user2/%s.git
+git push -u origin main`, init, repo.Name), portMatcher.ReplaceAllString(htmlDoc.Find(".empty-repo-guide code").First().Text(), "localhost"))
 	})
 }
