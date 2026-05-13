@@ -186,7 +186,7 @@ func TestActionViewsView(t *testing.T) {
 			htmlDoc.AssertAttrEqual(t, selector, "data-run-index", strconv.FormatInt(testCase.runIndex, 10))
 			htmlDoc.AssertAttrEqual(t, selector, "data-job-index", strconv.FormatInt(testCase.jobIndex, 10))
 			htmlDoc.AssertAttrEqual(t, selector, "data-attempt-number", strconv.FormatInt(testCase.attempt, 10))
-			htmlDoc.AssertAttrPredicate(t, selector, "data-initial-post-response", func(actual string) bool {
+			htmlDoc.AssertAttrPredicate(t, selector, "data-initial-post-response", func(actual string) {
 				// Remove dynamic "duration" fields for comparison.
 				pattern := `"duration":"[^"]*"`
 				re := regexp.MustCompile(pattern)
@@ -196,7 +196,7 @@ func TestActionViewsView(t *testing.T) {
 				re = regexp.MustCompile(pattern)
 				actualClean = re.ReplaceAllString(actualClean, `"time_since_started_html":"_time_"`)
 
-				return assert.JSONEq(t, testCase.expectedJSON, actualClean)
+				assert.JSONEq(t, testCase.expectedJSON, actualClean)
 			})
 			htmlDoc.AssertAttrEqual(t, selector, "data-initial-artifacts-response", testCase.expectedArtifacts)
 		})
@@ -220,7 +220,7 @@ func TestActionViewsViewAttemptOutOfRange(t *testing.T) {
 	htmlDoc.AssertAttrEqual(t, selector, "data-run-index", "190")
 	htmlDoc.AssertAttrEqual(t, selector, "data-job-index", "0")
 	htmlDoc.AssertAttrEqual(t, selector, "data-attempt-number", "100")
-	htmlDoc.AssertAttrPredicate(t, selector, "data-initial-post-response", func(actual string) bool {
+	htmlDoc.AssertAttrPredicate(t, selector, "data-initial-post-response", func(actual string) {
 		// Remove dynamic "duration" fields for comparison.
 		pattern := `"duration":"[^"]*"`
 		re := regexp.MustCompile(pattern)
@@ -230,7 +230,7 @@ func TestActionViewsViewAttemptOutOfRange(t *testing.T) {
 		re = regexp.MustCompile(pattern)
 		actualClean = re.ReplaceAllString(actualClean, `"time_since_started_html":"_time_"`)
 
-		return assert.JSONEq(t, "{\"state\":{\"run\":{\"preExecutionError\":\"\",\"link\":\"/user5/repo4/actions/runs/190\",\"title\":\"job output\",\"titleHTML\":\"job output\",\"status\":\"success\",\"canCancel\":false,\"canDelete\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"description\":\"Commit <a href=\\\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\\\">c2d72f5484</a> pushed by <a href=\\\"/user1\\\">user1</a>\",\"done\":false,\"jobs\":[{\"id\":396,\"name\":\"job_2\",\"status\":\"waiting\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"c2d72f5484\",\"link\":\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\",\"pusher\":{\"displayName\":\"user1\",\"link\":\"/user1\"},\"branch\":{\"name\":\"test\",\"link\":\"/user5/repo4/src/branch/test\",\"isDeleted\":true}}},\"currentJob\":{\"title\":\"job_2\",\"details\":[\"Waiting for a runner with the following label: fedora\"],\"steps\":[],\"allAttempts\":null}},\"logs\":{\"stepsLog\":[]}}\n", actualClean)
+		assert.JSONEq(t, "{\"state\":{\"run\":{\"preExecutionError\":\"\",\"link\":\"/user5/repo4/actions/runs/190\",\"title\":\"job output\",\"titleHTML\":\"job output\",\"status\":\"success\",\"canCancel\":false,\"canDelete\":false,\"canApprove\":false,\"canRerun\":false,\"canDeleteArtifact\":false,\"description\":\"Commit <a href=\\\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\\\">c2d72f5484</a> pushed by <a href=\\\"/user1\\\">user1</a>\",\"done\":false,\"jobs\":[{\"id\":396,\"name\":\"job_2\",\"status\":\"waiting\",\"canRerun\":false,\"duration\":\"_duration_\"}],\"commit\":{\"localeWorkflow\":\"Workflow\",\"localeAllRuns\":\"all runs\",\"shortSHA\":\"c2d72f5484\",\"link\":\"/user5/repo4/commit/c2d72f548424103f01ee1dc02889c1e2bff816b0\",\"pusher\":{\"displayName\":\"user1\",\"link\":\"/user1\"},\"branch\":{\"name\":\"test\",\"link\":\"/user5/repo4/src/branch/test\",\"isDeleted\":true}}},\"currentJob\":{\"title\":\"job_2\",\"details\":[\"Waiting for a runner with the following label: fedora\"],\"steps\":[],\"allAttempts\":null}},\"logs\":{\"stepsLog\":[]}}\n", actualClean)
 	})
 	htmlDoc.AssertAttrEqual(t, selector, "data-initial-artifacts-response", "{\"artifacts\":[]}\n")
 }
@@ -241,10 +241,9 @@ func TestActionTabAccessibleFromRepo(t *testing.T) {
 	req := NewRequest(t, "GET", "/user2/repo1")
 	resp := MakeRequest(t, req, http.StatusOK)
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElementPredicate(t, "a[href='/user2/repo1/actions']", func(selection *goquery.Selection) bool {
+	htmlDoc.AssertElementPredicate(t, "a[href='/user2/repo1/actions']", func(selection *goquery.Selection) {
 		text := strings.TrimSpace(selection.Text())
 		assert.Contains(t, text, "Actions")
-		return true
 	})
 
 	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
@@ -252,11 +251,10 @@ func TestActionTabAccessibleFromRepo(t *testing.T) {
 	req = NewRequest(t, "GET", "/user2/test_action_run_search/actions")
 	resp = session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElementPredicate(t, "a[href='/user2/test_action_run_search/actions']", func(selection *goquery.Selection) bool {
+	htmlDoc.AssertElementPredicate(t, "a[href='/user2/test_action_run_search/actions']", func(selection *goquery.Selection) {
 		text := strings.TrimSpace(selection.Text())
 		assert.Contains(t, text, "Actions")
 		assert.Contains(t, text, "1") // This repo has one running action run
-		return true
 	})
 }
 
@@ -312,8 +310,8 @@ func TestActionViewRunDeletion(t *testing.T) {
 			req := NewRequest(t, "GET", testCase.requestURL)
 			resp := testCase.sess.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			htmlDoc.AssertAttrPredicate(t, "#repo-action-view", "data-initial-post-response", func(actual string) bool {
-				return assert.Contains(t, actual, fmt.Sprintf(`"canDelete":%t`, testCase.canDelete))
+			htmlDoc.AssertAttrPredicate(t, "#repo-action-view", "data-initial-post-response", func(actual string) {
+				assert.Contains(t, actual, fmt.Sprintf(`"canDelete":%t`, testCase.canDelete))
 			})
 		})
 	}

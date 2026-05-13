@@ -403,11 +403,10 @@ func verifyPullMirrorViaWeb(t *testing.T, sourceRepo *repo_model.Repository, mir
 		NewRequestf(t, "GET", "/user2/%s", mirrorName),
 		http.StatusOK)
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElementPredicate(t, ".fork-flag", func(selection *goquery.Selection) bool {
+	htmlDoc.AssertElementPredicate(t, ".fork-flag", func(selection *goquery.Selection) {
 		text := strings.TrimSpace(selection.Text())
 		assert.Contains(t, text, "mirror of")
 		assert.Contains(t, text, sourceRepo.CloneLink().HTTPS)
-		return true
 	})
 }
 
