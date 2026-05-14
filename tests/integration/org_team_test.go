@@ -46,3 +46,29 @@ func TestPaginatedMembers(t *testing.T) {
 	doc := NewHTMLParser(t, newVar)
 	assert.Contains(t, strings.TrimSpace(doc.Find("a.item.navigation:contains('Next')").AttrOr("href", "")), fmt.Sprintf("%s?page=2", teamURL))
 }
+
+func TestPaginatedRepos(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	// To make sure that pagination kicks in even though the test team has few repos
+	defer test.MockVariableValue(&setting.UI.User.RepoPagingNum, 2)()
+
+	org := unittest.AssertExistsAndLoadBean(t, &organization.Organization{ID: 3})
+	team := unittest.AssertExistsAndLoadBean(t, &organization.Team{ID: 1})
+	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+
+	assert.GreaterOrEqual(t, team.NumRepos, 3)
+	isOrgMember, err := organization.IsOrganizationMember(db.DefaultContext, org.ID, user.ID)
+	require.NoError(t, err)
+	assert.True(t, isOrgMember)
+	isTeamMember, err := organization.IsTeamMember(db.DefaultContext, team.OrgID, team.ID, user.ID)
+	require.NoError(t, err)
+	assert.True(t, isTeamMember)
+	assert.Equal(t, org.ID, team.OrgID)
+
+	session := loginUser(t, user.Name)
+
+	teamURL := fmt.Sprintf("/org/%s/teams/%s/repositories", org.Name, team.LowerName)
+	body := session.MakeRequest(t, NewRequest(t, "GET", teamURL), http.StatusOK).Body
+	doc := NewHTMLParser(t, body)
+	assert.Contains(t, strings.TrimSpace(doc.Find("a.item.navigation:contains('Next')").AttrOr("href", "")), fmt.Sprintf("%s?page=2", teamURL))
+}

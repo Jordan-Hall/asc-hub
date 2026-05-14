@@ -150,13 +150,19 @@ func (t *Team) IsMember(ctx context.Context, userID int64) bool {
 	return isMember
 }
 
-// LoadRepositories returns paginated repositories in team of organization.
+// LoadRepositories returns the repositories of the team in t.Repos.
 func (t *Team) LoadRepositories(ctx context.Context) (err error) {
+	return t.LoadPaginatedRepositories(ctx, db.ListOptionsAll)
+}
+
+// LoadPaginatedRepositories loads paginated repositories of the team in t.Repos.
+func (t *Team) LoadPaginatedRepositories(ctx context.Context, listOptions db.ListOptions) (err error) {
 	if t.Repos != nil {
 		return nil
 	}
 	t.Repos, err = GetTeamRepositories(ctx, &SearchTeamRepoOptions{
-		TeamID: t.ID,
+		ListOptions: listOptions,
+		TeamID:      t.ID,
 	})
 	return err
 }

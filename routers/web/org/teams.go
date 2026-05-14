@@ -413,10 +413,18 @@ func TeamRepositories(ctx *context.Context) {
 		return
 	}
 
-	if err := ctx.Org.Team.LoadRepositories(ctx); err != nil {
+	page := max(ctx.FormInt("page"), 1)
+	total := ctx.Org.Team.NumRepos
+	pager := context.NewPagination(total, setting.UI.User.RepoPagingNum, page, 5)
+	opts := db.ListOptions{}
+	opts.Page = page
+	opts.PageSize = setting.UI.User.RepoPagingNum
+
+	if err := ctx.Org.Team.LoadPaginatedRepositories(ctx, opts); err != nil {
 		ctx.ServerError("GetRepositories", err)
 		return
 	}
+	ctx.Data["Page"] = pager
 	ctx.Data["Units"] = unit_model.Units
 	ctx.HTML(http.StatusOK, tplTeamRepositories)
 }
