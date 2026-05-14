@@ -242,13 +242,13 @@ func TestLinguistSupport(t *testing.T) {
 			t.Run("file source view", func(t *testing.T) {
 				defer tests.PrintCurrentTest(t)()
 
-				assertFileLanguage(t, "/src/branch/main/foo.c?display=source", "Bash")
+				assertFileLanguage(t, "/src/branch/main/foo.c?display=source", "Shell")
 			})
 
 			t.Run("file blame view", func(t *testing.T) {
 				defer tests.PrintCurrentTest(t)()
 
-				assertFileLanguage(t, "/blame/branch/main/foo.c", "Bash")
+				assertFileLanguage(t, "/blame/branch/main/foo.c", "Shell")
 			})
 		})
 

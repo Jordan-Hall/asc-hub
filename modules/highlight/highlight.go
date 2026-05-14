@@ -103,7 +103,12 @@ func Code(fileName, language, code string) (output template.HTML, lexerName stri
 		cache.Add(fileName, lexer)
 	}
 
-	return CodeFromLexer(lexer, code), formatLexerName(lexer.Config().Name)
+	lexerName = formatLexerName(lexer.Config().Name)
+	if lexerName == "Bash" {
+		lexerName = "Shell"
+	}
+
+	return CodeFromLexer(lexer, code), lexerName
 }
 
 // CodeFromLexer returns a HTML version of code string with chroma syntax highlighting classes
@@ -183,6 +188,9 @@ func File(fileName, language string, code []byte) ([]template.HTML, string, erro
 	}
 
 	lexerName := formatLexerName(lexer.Config().Name)
+	if lexerName == "Bash" {
+		lexerName = "Shell"
+	}
 
 	iterator, err := lexer.Tokenise(nil, string(code))
 	if err != nil {
