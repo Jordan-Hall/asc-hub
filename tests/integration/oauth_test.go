@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,6 +23,7 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/json"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/test"
@@ -30,6 +32,7 @@ import (
 	"forgejo.org/tests"
 
 	"github.com/markbates/goth"
+	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	go_oauth2 "golang.org/x/oauth2"
@@ -621,6 +624,195 @@ func TestSignInOAuthCallbackSignIn(t *testing.T) {
 	assert.Equal(t, "/", test.RedirectURL(resp))
 	userAfterLogin := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: userGitLab.ID})
 	assert.Greater(t, userAfterLogin.LastLoginUnix, userGitLab.LastLoginUnix)
+}
+
+func findLTACookie(resp *httptest.ResponseRecorder) *http.Cookie {
+	for _, c := range resp.Result().Cookies() {
+		if c.Name == setting.CookieRememberName && c.Value != "" {
+			return c
+		}
+	}
+	return nil
+}
+
+func loadLTAAuthToken(t *testing.T, cookieValue string) auth_model.AuthorizationToken {
+	t.Helper()
+	decoded, err := url.QueryUnescape(cookieValue)
+	require.NoError(t, err)
+	lookup, _, ok := strings.Cut(decoded, ":")
+	require.True(t, ok)
+	var token auth_model.AuthorizationToken
+	has, err := db.GetEngine(t.Context()).Where("lookup_key = ?", lookup).Get(&token)
+	require.NoError(t, err)
+	require.True(t, has)
+	return token
+}
+
+func TestSignInOAuthSSOLTACookie(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	gitlabName := "gitlab"
+	gitlab := addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+
+	userGitLabUserID := "5678"
+	userGitLab := &user_model.User{
+		Name:        "gitlabuser",
+		Email:       "gitlabuser@example.com",
+		Passwd:      "gitlabuserpassword",
+		Type:        user_model.UserTypeIndividual,
+		LoginType:   auth_model.OAuth2,
+		LoginSource: gitlab.ID,
+		LoginName:   userGitLabUserID,
+	}
+	defer createUser(t.Context(), t, userGitLab)()
+
+	mockUser := func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+		return goth.User{
+			Provider: gitlabName,
+			UserID:   userGitLabUserID,
+			Email:    userGitLab.Email,
+		}, nil
+	}
+
+	t.Run("OAuth sign-in issues an SSO LTA cookie bound to the source", func(t *testing.T) {
+		defer mockCompleteUserAuth(mockUser)()
+
+		session := emptyTestSession(t)
+		req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s", gitlabName))
+		resp := session.MakeRequest(t, req, http.StatusSeeOther)
+		c := findLTACookie(resp)
+		require.NotNil(t, c)
+		token := loadLTAAuthToken(t, c.Value)
+		assert.Equal(t, auth_model.LongTermAuthorizationSSO, token.Purpose)
+		assert.Equal(t, optional.Some(gitlab.ID), token.LoginSourceID)
+	})
+
+	t.Run("SSO LTA cookie alone bounces user to IdP with prompt=none", func(t *testing.T) {
+		defer mockCompleteUserAuth(mockUser)()
+		session := emptyTestSession(t)
+		req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s", gitlabName))
+		session.MakeRequest(t, req, http.StatusSeeOther)
+		require.NotNil(t, session.GetCookie(setting.CookieRememberName))
+
+		session.SetCookie(&http.Cookie{Name: setting.SessionConfig.CookieName, MaxAge: -1})
+
+		resp := session.MakeRequest(t, NewRequest(t, "GET", "/user/login"), http.StatusSeeOther)
+		loc, err := resp.Result().Location()
+		require.NoError(t, err)
+		assert.Equal(t, setting.AppSubURL+"/user/oauth2/"+gitlabName, loc.Path)
+		assert.Equal(t, "none", loc.Query().Get("prompt"))
+	})
+
+	t.Run("silent re-auth failure falls back to interactive", func(t *testing.T) {
+		defer mockCompleteUserAuth(func(http.ResponseWriter, *http.Request) (goth.User, error) {
+			return goth.User{}, errors.New("not authenticated")
+		})()
+		session := emptyTestSession(t)
+		req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s?prompt=none", gitlabName))
+		session.MakeRequest(t, req, http.StatusTemporaryRedirect)
+
+		req = NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s/callback?error=login_required", gitlabName))
+		resp := session.MakeRequest(t, req, http.StatusSeeOther)
+		loc, err := resp.Result().Location()
+		require.NoError(t, err)
+		assert.Equal(t, setting.AppSubURL+"/user/oauth2/"+gitlabName, loc.Path)
+		assert.Empty(t, loc.Query().Get("prompt"))
+	})
+}
+
+func TestSignInOAuthSSOLTACookie_MultipleLinkedSources(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	gitlabName := "gitlab-multi"
+	gitlab := addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+
+	externalID := "9999"
+	user := &user_model.User{
+		Name:      "internal-then-linked",
+		Email:     "internal-then-linked@example.com",
+		Passwd:    "passwd",
+		Type:      user_model.UserTypeIndividual,
+		LoginType: auth_model.Plain,
+	}
+	defer createUser(t.Context(), t, user)()
+
+	require.NoError(t, user_model.LinkExternalToUser(db.DefaultContext, user, &user_model.ExternalLoginUser{
+		ExternalID:    externalID,
+		UserID:        user.ID,
+		LoginSourceID: gitlab.ID,
+	}))
+
+	mockUser := func(http.ResponseWriter, *http.Request) (goth.User, error) {
+		return goth.User{Provider: gitlabName, UserID: externalID, Email: user.Email}, nil
+	}
+
+	t.Run("LTA bound to the OAuth source", func(t *testing.T) {
+		defer mockCompleteUserAuth(mockUser)()
+
+		session := emptyTestSession(t)
+		req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s", gitlabName))
+		resp := session.MakeRequest(t, req, http.StatusSeeOther)
+
+		c := findLTACookie(resp)
+		require.NotNil(t, c)
+		token := loadLTAAuthToken(t, c.Value)
+		assert.Equal(t, auth_model.LongTermAuthorizationSSO, token.Purpose)
+		assert.Equal(t, optional.Some(gitlab.ID), token.LoginSourceID)
+
+		session.SetCookie(&http.Cookie{Name: setting.SessionConfig.CookieName, MaxAge: -1})
+
+		resp = session.MakeRequest(t, NewRequest(t, "GET", "/user/login"), http.StatusSeeOther)
+		loc, err := resp.Result().Location()
+		require.NoError(t, err)
+		assert.Equal(t, setting.AppSubURL+"/user/oauth2/"+gitlabName, loc.Path)
+		assert.Equal(t, "none", loc.Query().Get("prompt"))
+	})
+}
+
+func TestSignInOAuthSSOLTACookie_With2FA(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	gitlabName := "gitlab-2fa"
+	gitlab := addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+
+	gitlabUserID := "2fa-user"
+	user := &user_model.User{
+		Name:        "oauth-2fa-user",
+		Email:       "oauth-2fa-user@example.com",
+		Passwd:      "passwd",
+		Type:        user_model.UserTypeIndividual,
+		LoginType:   auth_model.OAuth2,
+		LoginSource: gitlab.ID,
+		LoginName:   gitlabUserID,
+	}
+	defer createUser(t.Context(), t, user)()
+
+	otpKey, err := totp.Generate(totp.GenerateOpts{SecretSize: 40, Issuer: "forgejo-test", AccountName: user.Name})
+	require.NoError(t, err)
+	require.NoError(t, auth_model.NewTwoFactor(db.DefaultContext, &auth_model.TwoFactor{UID: user.ID}, otpKey.Secret()))
+	defer unittest.AssertSuccessfulDelete(t, &auth_model.TwoFactor{UID: user.ID})
+
+	defer mockCompleteUserAuth(func(http.ResponseWriter, *http.Request) (goth.User, error) {
+		return goth.User{Provider: gitlabName, UserID: gitlabUserID, Email: user.Email}, nil
+	})()
+
+	session := emptyTestSession(t)
+	resp := session.MakeRequest(t, NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s", gitlabName)), http.StatusSeeOther)
+	loc, err := resp.Result().Location()
+	require.NoError(t, err)
+	assert.Equal(t, setting.AppSubURL+"/user/two_factor", loc.Path)
+	require.Nil(t, session.GetCookie(setting.CookieRememberName))
+
+	passcode, err := totp.GenerateCode(otpKey.Secret(), time.Now())
+	require.NoError(t, err)
+	session.MakeRequest(t, NewRequestWithValues(t, "POST", "/user/two_factor", map[string]string{"passcode": passcode}), http.StatusSeeOther)
+
+	c := session.GetCookie(setting.CookieRememberName)
+	require.NotNil(t, c)
+	require.NotEmpty(t, c.Value)
+	token := loadLTAAuthToken(t, c.Value)
+	assert.Equal(t, auth_model.LongTermAuthorizationSSO, token.Purpose)
+	assert.Equal(t, optional.Some(gitlab.ID), token.LoginSourceID)
 }
 
 func TestSignInOAuthCallbackWithoutPKCEWhenUnsupported(t *testing.T) {

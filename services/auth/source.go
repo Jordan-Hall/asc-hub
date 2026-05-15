@@ -37,6 +37,10 @@ func DeleteSource(ctx context.Context, source *auth.Source) error {
 		}
 	}
 
+	if _, err := db.GetEngine(ctx).Where("login_source_id = ?", source.ID).Delete(new(auth.AuthorizationToken)); err != nil {
+		return err
+	}
+
 	_, err = db.GetEngine(ctx).ID(source.ID).Delete(new(auth.Source))
 	return err
 }

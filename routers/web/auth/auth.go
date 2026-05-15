@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -49,7 +50,6 @@ const (
 	TplActivate base.TplName = "user/auth/activate"
 )
 
-// autoSignIn reads cookie and try to auto-login.
 func autoSignIn(ctx *context.Context) (bool, error) {
 	isSucceed := false
 	defer func() {
@@ -63,27 +63,51 @@ func autoSignIn(ctx *context.Context) (bool, error) {
 		return false, nil
 	}
 
-	u, _, err := user_model.VerifyUserAuthorizationToken(ctx, authCookie, auth.LongTermAuthorization)
+	u, _, _, err := user_model.VerifyUserAuthorizationToken(ctx, authCookie, auth.LongTermAuthorization)
 	if err != nil {
 		return false, fmt.Errorf("VerifyUserAuthorizationToken: %w", err)
+	}
+	if u != nil {
+		isSucceed = true
+
+		if err := updateSession(ctx, nil, map[string]any{"uid": u.ID}); err != nil {
+			return false, fmt.Errorf("unable to updateSession: %w", err)
+		}
+
+		if err := resetLocale(ctx, u); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	u, authToken, deleteToken, err := user_model.VerifyUserAuthorizationToken(ctx, authCookie, auth.LongTermAuthorizationSSO)
+	if err != nil {
+		return false, fmt.Errorf("VerifyUserAuthorizationToken (SSO): %w", err)
 	}
 	if u == nil {
 		return false, nil
 	}
 
+	hasLoginSource, loginSourceID := authToken.LoginSourceID.Get()
+	if !hasLoginSource {
+		return false, nil
+	}
+
+	source, err := auth.GetSourceByID(ctx, loginSourceID)
+	if err != nil {
+		return false, fmt.Errorf("GetSourceByID: %w", err)
+	}
+	if !source.IsActive || !source.IsOAuth2() {
+		return false, nil
+	}
+
+	if err := deleteToken(); err != nil {
+		return false, fmt.Errorf("deleteToken: %w", err)
+	}
 	isSucceed = true
 
-	if err := updateSession(ctx, nil, map[string]any{
-		// Set session IDs
-		"uid": u.ID,
-	}); err != nil {
-		return false, fmt.Errorf("unable to updateSession: %w", err)
-	}
-
-	if err := resetLocale(ctx, u); err != nil {
-		return false, err
-	}
-
+	ctx.Redirect(fmt.Sprintf("%s/user/oauth2/%s?prompt=none", setting.AppSubURL, url.PathEscape(source.Name)))
 	return true, nil
 }
 
@@ -122,15 +146,20 @@ func RedirectAfterLogin(ctx *context.Context) {
 }
 
 func CheckAutoLogin(ctx *context.Context) bool {
-	isSucceed, err := autoSignIn(ctx) // try to auto-login
+	// redirect_to must be set before autoSignIn so it survives the SSO IdP round-trip.
+	redirectTo := ctx.FormString("redirect_to")
+	if len(redirectTo) > 0 {
+		middleware.SetRedirectToCookie(ctx.Resp, redirectTo)
+	}
+
+	isSucceed, err := autoSignIn(ctx)
 	if err != nil {
 		ctx.ServerError("autoSignIn", err)
 		return true
 	}
 
-	redirectTo := ctx.FormString("redirect_to")
-	if len(redirectTo) > 0 {
-		middleware.SetRedirectToCookie(ctx.Resp, redirectTo)
+	if ctx.Written() {
+		return true
 	}
 
 	if isSucceed {
@@ -296,7 +325,19 @@ func handleSignIn(ctx *context.Context, u *user_model.User, remember bool) {
 
 func handleSignInFull(ctx *context.Context, u *user_model.User, remember, obeyRedirect bool) string {
 	if remember {
-		if err := ctx.SetLTACookie(u); err != nil {
+		var err error
+		if ssoLTA, _ := ctx.Session.Get("twofaSSOLTA").(bool); ssoLTA {
+			sourceID, _ := ctx.Session.Get("twofaSSOLTASourceID").(int64)
+			if sourceID == 0 {
+				// twofaSSOLTASourceID must have been set alongside twofaSSOLTA in handleOAuth2SignIn.
+				log.Warn("2FA SSO LTA requested for user %d without a source ID; skipping remember-me cookie", u.ID)
+			} else {
+				err = ctx.SetSSOLTACookie(u, sourceID)
+			}
+		} else {
+			err = ctx.SetLTACookie(u)
+		}
+		if err != nil {
 			ctx.ServerError("GenerateAuthToken", err)
 			return setting.AppSubURL + "/"
 		}
@@ -310,6 +351,8 @@ func handleSignInFull(ctx *context.Context, u *user_model.User, remember, obeyRe
 		"openid_determined_username",
 		"twofaUid",
 		"twofaRemember",
+		"twofaSSOLTA",
+		"twofaSSOLTASourceID",
 		"twofaOpenID",
 		"linkAccount",
 	}, map[string]any{
@@ -676,7 +719,7 @@ func Activate(ctx *context.Context) {
 		return
 	}
 
-	user, deleteToken, err := user_model.VerifyUserAuthorizationToken(ctx, code, auth.UserActivation)
+	user, _, deleteToken, err := user_model.VerifyUserAuthorizationToken(ctx, code, auth.UserActivation)
 	if err != nil {
 		ctx.ServerError("VerifyUserAuthorizationToken", err)
 		return
@@ -750,7 +793,7 @@ func ActivatePost(ctx *context.Context) {
 		return
 	}
 
-	user, deleteToken, err := user_model.VerifyUserAuthorizationToken(ctx, code, auth.UserActivation)
+	user, _, deleteToken, err := user_model.VerifyUserAuthorizationToken(ctx, code, auth.UserActivation)
 	if err != nil {
 		ctx.ServerError("VerifyUserAuthorizationToken", err)
 		return
@@ -840,7 +883,7 @@ func ActivateEmail(ctx *context.Context) {
 	code := ctx.FormString("code")
 	emailStr := ctx.FormString("email")
 
-	u, deleteToken, err := user_model.VerifyUserAuthorizationToken(ctx, code, auth.EmailActivation(emailStr))
+	u, _, deleteToken, err := user_model.VerifyUserAuthorizationToken(ctx, code, auth.EmailActivation(emailStr))
 	if err != nil {
 		ctx.ServerError("VerifyUserAuthorizationToken", err)
 		return

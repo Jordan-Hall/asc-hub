@@ -9,6 +9,7 @@ import (
 
 	auth_model "forgejo.org/models/auth"
 	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/web/middleware"
@@ -47,7 +48,18 @@ func (ctx *Context) GetSiteCookie(name string) string {
 // SetLTACookie will generate a LTA token and add it as an cookie.
 func (ctx *Context) SetLTACookie(u *user_model.User) error {
 	days := 86400 * setting.LogInRememberDays
-	lookup, validator, err := auth_model.GenerateAuthToken(ctx, u.ID, timeutil.TimeStampNow().Add(int64(days)), auth_model.LongTermAuthorization)
+	lookup, validator, err := auth_model.GenerateAuthToken(ctx, u.ID, optional.None[int64](), timeutil.TimeStampNow().Add(int64(days)), auth_model.LongTermAuthorization)
+	if err != nil {
+		return err
+	}
+	ctx.SetSiteCookie(setting.CookieRememberName, lookup+":"+validator, days)
+	return nil
+}
+
+// SetSSOLTACookie sets a long-term-auth cookie bound to the given OAuth2/OIDC source.
+func (ctx *Context) SetSSOLTACookie(u *user_model.User, loginSourceID int64) error {
+	days := 86400 * setting.LogInRememberDays
+	lookup, validator, err := auth_model.GenerateAuthToken(ctx, u.ID, optional.Some(loginSourceID), timeutil.TimeStampNow().Add(int64(days)), auth_model.LongTermAuthorizationSSO)
 	if err != nil {
 		return err
 	}

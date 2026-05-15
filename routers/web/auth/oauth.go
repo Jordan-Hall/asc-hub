@@ -128,6 +128,15 @@ func (err errCallback) Error() string {
 	return err.Description
 }
 
+func isOIDCSilentAuthFailure(code string) bool {
+	switch code {
+	// access_denied is non-standard for prompt=none but emitted by Keycloak and some Azure AD configurations.
+	case "login_required", "interaction_required", "account_selection_required", "consent_required", "access_denied":
+		return true
+	}
+	return false
+}
+
 // TokenType specifies the kind of token
 type TokenType string
 
@@ -955,6 +964,17 @@ func SignInOAuth(ctx *context.Context) {
 		middleware.SetRedirectToCookie(ctx.Resp, redirectTo)
 	}
 
+	// Overwrite to avoid leaking the value from a prior attempt.
+	promptParam := ctx.FormString("prompt")
+	if err := ctx.Session.Set("oauth_signin_silent", promptParam == "none"); err != nil {
+		ctx.ServerError("Session.Set", err)
+		return
+	}
+	if err := ctx.Session.Release(); err != nil {
+		ctx.ServerError("Session.Release", err)
+		return
+	}
+
 	// try to do a direct callback flow, so we don't authenticate the user again but use the valid accesstoken to get the user
 	user, gothUser, err := oAuth2UserLoginCallback(ctx, authSource, ctx.Req, ctx.Resp)
 	if err == nil && user != nil {
@@ -969,13 +989,13 @@ func SignInOAuth(ctx *context.Context) {
 		return
 	}
 
-	if err = authSource.Cfg.(*oauth2.Source).Callout(ctx.Req, ctx.Resp, codeChallenge); err != nil {
+	if err = authSource.Cfg.(*oauth2.Source).Callout(ctx.Req, ctx.Resp, codeChallenge, promptParam); err != nil {
 		if strings.Contains(err.Error(), "no provider for ") {
 			if err = oauth2.ResetOAuth2(ctx); err != nil {
 				ctx.ServerError("SignIn", err)
 				return
 			}
-			if err = authSource.Cfg.(*oauth2.Source).Callout(ctx.Req, ctx.Resp, codeChallenge); err != nil {
+			if err = authSource.Cfg.(*oauth2.Source).Callout(ctx.Req, ctx.Resp, codeChallenge, promptParam); err != nil {
 				ctx.ServerError("SignIn", err)
 			}
 			return
@@ -988,6 +1008,22 @@ func SignInOAuth(ctx *context.Context) {
 // SignInOAuthCallback handles the callback from the given provider
 func SignInOAuthCallback(ctx *context.Context) {
 	provider := ctx.Params(":provider")
+
+	// If the IdP refused our prompt=none silent re-auth, retry interactively rather than surfacing the error.
+	if isOIDCSilentAuthFailure(ctx.Req.FormValue("error")) {
+		if silent, _ := ctx.Session.Get("oauth_signin_silent").(bool); silent {
+			if err := ctx.Session.Delete("oauth_signin_silent"); err != nil {
+				ctx.ServerError("Session.Delete", err)
+				return
+			}
+			if err := ctx.Session.Release(); err != nil {
+				ctx.ServerError("Session.Release", err)
+				return
+			}
+			ctx.Redirect(fmt.Sprintf("%s/user/oauth2/%s", setting.AppSubURL, url.PathEscape(provider)))
+			return
+		}
+	}
 
 	if ctx.Req.FormValue("error") != "" {
 		var errorKeyValues []string
@@ -1331,9 +1367,16 @@ func handleOAuth2SignIn(ctx *context.Context, source *auth.Source, u *user_model
 	// If this user is enrolled in 2FA and this source doesn't override it,
 	// we can't sign the user in just yet. Instead, redirect them to the 2FA authentication page.
 	if !needs2FA {
-		if err := updateSession(ctx, nil, map[string]any{
-			"uid": u.ID,
-		}); err != nil {
+		if err := ctx.SetSSOLTACookie(u, source.ID); err != nil {
+			ctx.ServerError("SetSSOLTACookie", err)
+			return
+		}
+
+		if err := updateSession(ctx,
+			[]string{"oauth_signin_silent"},
+			map[string]any{
+				"uid": u.ID,
+			}); err != nil {
 			ctx.ServerError("updateSession", err)
 			return
 		}
@@ -1406,11 +1449,14 @@ func handleOAuth2SignIn(ctx *context.Context, source *auth.Source, u *user_model
 		}
 	}
 
-	if err := updateSession(ctx, nil, map[string]any{
-		// User needs to use 2FA, save data and redirect to 2FA page.
-		"twofaUid":      u.ID,
-		"twofaRemember": false,
-	}); err != nil {
+	if err := updateSession(ctx,
+		[]string{"oauth_signin_silent"},
+		map[string]any{
+			"twofaUid":            u.ID,
+			"twofaRemember":       true, // OAuth implies remember
+			"twofaSSOLTA":         true, // honored by handleSignInFull to issue the SSO variant
+			"twofaSSOLTASourceID": source.ID,
+		}); err != nil {
 		ctx.ServerError("updateSession", err)
 		return
 	}

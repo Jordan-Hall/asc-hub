@@ -982,23 +982,25 @@ func TestVerifyUserAuthorizationToken(t *testing.T) {
 	assert.True(t, ok)
 
 	t.Run("Wrong purpose", func(t *testing.T) {
-		u, _, err := user_model.VerifyUserAuthorizationToken(db.DefaultContext, code, auth.PasswordReset)
+		u, _, _, err := user_model.VerifyUserAuthorizationToken(db.DefaultContext, code, auth.PasswordReset)
 		require.NoError(t, err)
 		assert.Nil(t, u)
 	})
 
 	t.Run("No delete", func(t *testing.T) {
-		u, _, err := user_model.VerifyUserAuthorizationToken(db.DefaultContext, code, auth.UserActivation)
+		u, authToken, _, err := user_model.VerifyUserAuthorizationToken(db.DefaultContext, code, auth.UserActivation)
 		require.NoError(t, err)
 		assert.Equal(t, user.ID, u.ID)
+		require.NotNil(t, authToken)
+		assert.False(t, authToken.LoginSourceID.Has())
 
-		authToken, err := auth.FindAuthToken(db.DefaultContext, lookupKey, auth.UserActivation)
+		stored, err := auth.FindAuthToken(db.DefaultContext, lookupKey, auth.UserActivation)
 		require.NoError(t, err)
-		assert.NotNil(t, authToken)
+		assert.NotNil(t, stored)
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		u, deleteToken, err := user_model.VerifyUserAuthorizationToken(db.DefaultContext, code, auth.UserActivation)
+		u, _, deleteToken, err := user_model.VerifyUserAuthorizationToken(db.DefaultContext, code, auth.UserActivation)
 		require.NoError(t, err)
 		assert.Equal(t, user.ID, u.ID)
 		require.NoError(t, deleteToken())

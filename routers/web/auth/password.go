@@ -116,7 +116,7 @@ func commonResetPassword(ctx *context.Context, shouldDeleteToken bool) (*user_mo
 	}
 
 	// Fail early, don't frustrate the user
-	u, deleteToken, err := user_model.VerifyUserAuthorizationToken(ctx, code, auth.PasswordReset)
+	u, _, deleteToken, err := user_model.VerifyUserAuthorizationToken(ctx, code, auth.PasswordReset)
 	if err != nil {
 		ctx.ServerError("VerifyUserAuthorizationToken", err)
 		return nil, nil

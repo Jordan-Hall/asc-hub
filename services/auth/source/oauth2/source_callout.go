@@ -11,17 +11,23 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
-// Callout redirects request/response pair to authenticate against the provider
-func (source *Source) Callout(request *http.Request, response http.ResponseWriter, codeChallengeS256 string) error {
+// Callout redirects request/response pair to authenticate against the provider.
+// prompt, if non-empty, is appended as the OIDC `prompt` parameter.
+func (source *Source) Callout(request *http.Request, response http.ResponseWriter, codeChallengeS256, prompt string) error {
 	// not sure if goth is thread safe (?) when using multiple providers
 	request.Header.Set(ProviderHeaderKey, source.authSource.Name)
 
-	var querySuffix string
+	extras := url.Values{}
 	if codeChallengeS256 != "" {
-		querySuffix = "&" + url.Values{
-			"code_challenge_method": []string{"S256"},
-			"code_challenge":        []string{codeChallengeS256},
-		}.Encode()
+		extras.Set("code_challenge_method", "S256")
+		extras.Set("code_challenge", codeChallengeS256)
+	}
+	if prompt != "" {
+		extras.Set("prompt", prompt)
+	}
+	var querySuffix string
+	if len(extras) > 0 {
+		querySuffix = "&" + extras.Encode()
 	}
 
 	// don't use the default gothic begin handler to prevent issues when some error occurs
