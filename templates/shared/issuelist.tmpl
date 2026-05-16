@@ -55,11 +55,11 @@
 				<div class="flex-item-body issue-meta">
 					<span>
 						<a class="index" href="{{if .Link}}{{.Link}}{{else}}{{$.Link}}/{{.Index}}{{end}}">
-							{{if eq $.listType "dashboard"}}
+							{{- if eq $.listType "dashboard" -}}
 								{{.Repo.FullName}}#{{.Index}}
-							{{else}}
+							{{- else -}}
 								#{{.Index}}
-							{{end}}
+							{{- end -}}
 						</a>
 						{{$timeStr := DateUtils.TimeSince .GetLastEventTimestamp}}
 						{{if .OriginalAuthor}}
