@@ -20,6 +20,7 @@ import (
 	migrate_base "forgejo.org/models/gitea_migrations/base"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/avatarstore"
 	"forgejo.org/modules/container"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -28,6 +29,7 @@ import (
 
 	exif_terminator "code.superseriousbusiness.org/exif-terminator"
 	"github.com/urfave/cli/v3"
+	"xorm.io/builder"
 )
 
 // CmdDoctor represents the available doctor sub-command.
@@ -43,6 +45,7 @@ func cmdDoctor() *cli.Command {
 			cmdDoctorConvert(),
 			cmdAvatarStripExif(),
 			cmdCleanupCommitStatuses(),
+			cmdResizeAvatars(),
 		},
 	}
 }
@@ -114,6 +117,30 @@ func cmdAvatarStripExif() *cli.Command {
 		Usage:  "Strip EXIF metadata from all images in the avatar storage",
 		Before: noDanglingArgs,
 		Action: runAvatarStripExif,
+	}
+}
+
+func cmdResizeAvatars() *cli.Command {
+	return &cli.Command{
+		Name:  "avatar-resize",
+		Usage: "Generate resized versions of user or repository avatars",
+		Description: `Forgejo serves small versions of avatars for inclusion in the web UI.
+		
+Those rescaled versions are computed on-demand and cached in the avatar storage.
+
+This command pre-computes rescaled versions of avatars ahead of time.`,
+		Before: noDanglingArgs,
+		Action: runAvatarResize,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "user",
+				Usage: "Resize the user avatars",
+			},
+			&cli.BoolFlag{
+				Name:  "repository",
+				Usage: "Resize the repository avatars",
+			},
+		},
 	}
 }
 
@@ -368,6 +395,79 @@ func runAvatarStripExif(ctx context.Context, c *cli.Command) error {
 	})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func precomputeResizedAvatars(imgStorage storage.ObjectStorage, imgPath string, maxOriginSize int64) error {
+	// Load the avatar
+	avatarBytes, err := imgStorage.Open(imgPath)
+	if err != nil {
+		return err
+	}
+	meta, err := avatarBytes.Stat()
+	if err != nil {
+		return err
+	}
+	// If the avatar is small enough, don't compute resized versions for it.
+	// This makes it possible to preserve animated avatars when they are small enough.
+	if meta.Size() < maxOriginSize {
+		return nil
+	}
+	img, _, err := image.Decode(avatarBytes)
+	if err != nil {
+		return err
+	}
+	return avatarstore.PrecomputeResizedAvatars(imgStorage, img, imgPath)
+}
+
+func runAvatarResize(ctx context.Context, c *cli.Command) error {
+	ctx, cancel := installSignals(ctx)
+	defer cancel()
+
+	if err := initDB(ctx); err != nil {
+		return err
+	}
+
+	if err := storage.Init(); err != nil {
+		return err
+	}
+
+	runUser := c.Bool("user")
+	runRepo := c.Bool("repository")
+	return RunAvatarResize(ctx, runUser, runRepo)
+}
+
+func RunAvatarResize(ctx context.Context, runUser, runRepo bool) error {
+	if !runUser && !runRepo {
+		return fmt.Errorf("at least one of --user or --repository should be provided")
+	}
+
+	if runUser {
+		log.Info("Resizing user avatars")
+		if err := db.Iterate(
+			ctx,
+			builder.Neq{"avatar": ""},
+			func(ctx context.Context, user *user_model.User) error {
+				return precomputeResizedAvatars(storage.Avatars, user.Avatar, setting.Avatar.MaxOriginSize)
+			},
+		); err != nil {
+			return err
+		}
+	}
+
+	if runRepo {
+		log.Info("Resizing repository avatars")
+		if err := db.Iterate(
+			ctx,
+			builder.Neq{"avatar": ""},
+			func(ctx context.Context, repo *repo_model.Repository) error {
+				return precomputeResizedAvatars(storage.RepoAvatars, repo.Avatar, setting.Avatar.MaxOriginSize)
+			},
+		); err != nil {
+			return err
+		}
 	}
 
 	return nil

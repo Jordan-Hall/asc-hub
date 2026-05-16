@@ -5,21 +5,19 @@ package user
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
-	"os"
 
 	"forgejo.org/models/db"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/avatar"
+	"forgejo.org/modules/avatarstore"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/storage"
 )
 
 // UploadAvatar saves custom avatar for user.
 func UploadAvatar(ctx context.Context, u *user_model.User, data []byte) error {
-	avatarData, err := avatar.ProcessAvatarImage(data)
+	avatarData, img, err := avatar.ProcessAvatarImage(data)
 	if err != nil {
 		return err
 	}
@@ -31,16 +29,20 @@ func UploadAvatar(ctx context.Context, u *user_model.User, data []byte) error {
 	defer committer.Close()
 
 	u.UseCustomAvatar = true
+	previousAvatar := u.Avatar
 	u.Avatar = avatar.HashAvatar(u.ID, data)
 	if err = user_model.UpdateUserCols(ctx, u, "use_custom_avatar", "avatar"); err != nil {
 		return fmt.Errorf("updateUser: %w", err)
 	}
 
-	if err := storage.SaveFrom(storage.Avatars, u.CustomAvatarRelativePath(), func(w io.Writer) error {
-		_, err := w.Write(avatarData)
-		return err
-	}); err != nil {
-		return fmt.Errorf("Failed to create dir %s: %w", u.CustomAvatarRelativePath(), err)
+	if err := avatarstore.StoreAvatar(u.CustomAvatarRelativePath(), avatarData, img, storage.Avatars); err != nil {
+		return fmt.Errorf("Failed to store avatar at %s: %w", u.CustomAvatarRelativePath(), err)
+	}
+	if len(previousAvatar) > 0 {
+		err := avatarstore.DeleteAvatar(previousAvatar, storage.Avatars)
+		if err != nil {
+			return err
+		}
 	}
 
 	return committer.Commit()
@@ -60,14 +62,8 @@ func DeleteAvatar(ctx context.Context, u *user_model.User) error {
 		}
 
 		if hasAvatar {
-			if err := storage.Avatars.Delete(aPath); err != nil {
-				if !errors.Is(err, os.ErrNotExist) {
-					return fmt.Errorf("failed to remove %s: %w", aPath, err)
-				}
-				log.Warn("Deleting avatar %s but it doesn't exist", aPath)
-			}
+			return avatarstore.DeleteAvatar(aPath, storage.Avatars)
 		}
-
 		return nil
 	})
 }

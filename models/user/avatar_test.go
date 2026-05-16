@@ -32,6 +32,14 @@ func TestUserAvatarLink(t *testing.T) {
 	assert.Equal(t, "https://localhost/sub-path/avatars/avatar.png", link)
 }
 
+func TestUserAvatarLinkWithSize(t *testing.T) {
+	u := &User{ID: 1, Avatar: "avatar.png"}
+	link := u.AvatarLinkWithSize(db.DefaultContext, 12)
+	assert.Equal(t, "/avatars/avatar.png?size=64", link)
+	link = u.AvatarLinkWithSize(db.DefaultContext, 2048)
+	assert.Equal(t, "/avatars/avatar.png", link)
+}
+
 func TestUserAvatarGenerate(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 	var err error

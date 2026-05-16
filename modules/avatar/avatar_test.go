@@ -39,8 +39,9 @@ func Test_ProcessAvatarPNG(t *testing.T) {
 	data, err := os.ReadFile("testdata/avatar.png")
 	require.NoError(t, err)
 
-	_, err = processAvatarImage(data, 262144)
+	_, img, err := processAvatarImage(data, 262144)
 	require.NoError(t, err)
+	require.Nil(t, img)
 }
 
 func Test_ProcessAvatarJPEG(t *testing.T) {
@@ -50,8 +51,9 @@ func Test_ProcessAvatarJPEG(t *testing.T) {
 	data, err := os.ReadFile("testdata/avatar.jpeg")
 	require.NoError(t, err)
 
-	_, err = processAvatarImage(data, 262144)
+	_, img, err := processAvatarImage(data, 262144)
 	require.NoError(t, err)
+	require.Nil(t, img)
 }
 
 func Test_ProcessAvatarGIF(t *testing.T) {
@@ -61,15 +63,16 @@ func Test_ProcessAvatarGIF(t *testing.T) {
 	data, err := os.ReadFile("testdata/avatar.gif")
 	require.NoError(t, err)
 
-	_, err = processAvatarImage(data, 262144)
+	_, img, err := processAvatarImage(data, 262144)
 	require.NoError(t, err)
+	require.Nil(t, img)
 }
 
 func Test_ProcessAvatarInvalidData(t *testing.T) {
 	defer test.MockVariableValue(&setting.Avatar.MaxWidth, 5)()
 	defer test.MockVariableValue(&setting.Avatar.MaxHeight, 5)()
 
-	_, err := processAvatarImage([]byte{}, 12800)
+	_, _, err := processAvatarImage([]byte{}, 12800)
 	assert.EqualError(t, err, "image.DecodeConfig: image: unknown format")
 }
 
@@ -80,7 +83,7 @@ func Test_ProcessAvatarInvalidImageSize(t *testing.T) {
 	data, err := os.ReadFile("testdata/avatar.png")
 	require.NoError(t, err)
 
-	_, err = processAvatarImage(data, 12800)
+	_, _, err = processAvatarImage(data, 12800)
 	assert.EqualError(t, err, "image width is too large: 10 > 5")
 }
 
@@ -104,49 +107,53 @@ func Test_ProcessAvatarImage(t *testing.T) {
 
 	// if origin image canvas is too large, crop and resize it
 	origin := newImgData(500, 600)
-	result, err := processAvatarImage(origin, 0)
+	result, img, err := processAvatarImage(origin, 0)
 	require.NoError(t, err)
 	assert.NotEqual(t, origin, result)
 	decoded, err := png.Decode(bytes.NewReader(result))
 	require.NoError(t, err)
 	assert.Equal(t, scaledSize, decoded.Bounds().Max.X)
 	assert.Equal(t, scaledSize, decoded.Bounds().Max.Y)
+	assert.Equal(t, scaledSize, img.Bounds().Max.X)
+	assert.Equal(t, scaledSize, img.Bounds().Max.Y)
 
 	// if origin image is smaller than the default size, use the origin image
 	origin = newImgData(1)
-	result, err = processAvatarImage(origin, 0)
+	result, _, err = processAvatarImage(origin, 0)
 	require.NoError(t, err)
 	assert.Equal(t, origin, result)
 
 	// use the origin image if the origin is smaller
 	origin = newImgData(scaledSize + 100)
-	result, err = processAvatarImage(origin, 0)
+	result, _, err = processAvatarImage(origin, 0)
 	require.NoError(t, err)
 	assert.Less(t, len(result), len(origin))
 
 	// still use the origin image if the origin doesn't exceed the max-origin-size
 	origin = newImgData(scaledSize + 100)
-	result, err = processAvatarImage(origin, 262144)
+	result, img, err = processAvatarImage(origin, 262144)
 	require.NoError(t, err)
+	require.Nil(t, img)
 	assert.Equal(t, origin, result)
 
 	// allow to use known image format (eg: webp) if it is small enough
 	origin, err = os.ReadFile("testdata/animated.webp")
 	require.NoError(t, err)
-	result, err = processAvatarImage(origin, 262144)
+	result, img, err = processAvatarImage(origin, 262144)
 	require.NoError(t, err)
+	require.Nil(t, img)
 	assert.Equal(t, origin, result)
 
 	// do not support unknown image formats, eg: SVG may contain embedded JS
 	origin = []byte("<svg></svg>")
-	_, err = processAvatarImage(origin, 262144)
+	_, _, err = processAvatarImage(origin, 262144)
 	require.ErrorContains(t, err, "image: unknown format")
 
 	// make sure the canvas size limit works
 	setting.Avatar.MaxWidth = 5
 	setting.Avatar.MaxHeight = 5
 	origin = newImgData(10)
-	_, err = processAvatarImage(origin, 262144)
+	_, _, err = processAvatarImage(origin, 262144)
 	require.ErrorContains(t, err, "image width is too large: 10 > 5")
 }
 
@@ -173,7 +180,7 @@ func Test_ProcessAvatarExif(t *testing.T) {
 		data, err := os.ReadFile("testdata/exif.jpg")
 		require.NoError(t, err)
 
-		processedData, err := processAvatarImage(data, 12800)
+		processedData, _, err := processAvatarImage(data, 12800)
 		require.NoError(t, err)
 		safeExifJpeg(t, processedData)
 	})
@@ -181,7 +188,7 @@ func Test_ProcessAvatarExif(t *testing.T) {
 		data, err := os.ReadFile("testdata/exif.jpg")
 		require.NoError(t, err)
 
-		processedData, err := processAvatarImage(data, 128000)
+		processedData, _, err := processAvatarImage(data, 128000)
 		require.NoError(t, err)
 		safeExifJpeg(t, processedData)
 	})

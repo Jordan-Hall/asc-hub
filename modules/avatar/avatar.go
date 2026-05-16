@@ -30,6 +30,9 @@ import (
 // than the size after resizing.
 const DefaultAvatarSize = 256
 
+// Sizes to which we allow resizing an avatar down to. They must be specified in increasing order.
+var AllowedResizedAvatarSizes = []int{64, 128}
+
 // RandomImageSize generates and returns a random avatar image unique to input data
 // in custom size (height and width).
 func RandomImageSize(size int, data []byte) (image.Image, error) {
@@ -49,34 +52,34 @@ func RandomImage(data []byte) (image.Image, error) {
 
 // processAvatarImage process the avatar image data, crop and resize it if necessary.
 // the returned data could be the original image if no processing is needed.
-func processAvatarImage(data []byte, maxOriginSize int64) ([]byte, error) {
+func processAvatarImage(data []byte, maxOriginSize int64) ([]byte, image.Image, error) {
 	imgCfg, imgType, err := image.DecodeConfig(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("image.DecodeConfig: %w", err)
+		return nil, nil, fmt.Errorf("image.DecodeConfig: %w", err)
 	}
 
 	// for safety, only accept known types explicitly
 	if imgType != "png" && imgType != "jpeg" && imgType != "gif" && imgType != "webp" {
-		return nil, errors.New("unsupported avatar image type")
+		return nil, nil, errors.New("unsupported avatar image type")
 	}
 
 	// do not process image which is too large, it would consume too much memory
 	if imgCfg.Width > setting.Avatar.MaxWidth {
-		return nil, fmt.Errorf("image width is too large: %d > %d", imgCfg.Width, setting.Avatar.MaxWidth)
+		return nil, nil, fmt.Errorf("image width is too large: %d > %d", imgCfg.Width, setting.Avatar.MaxWidth)
 	}
 	if imgCfg.Height > setting.Avatar.MaxHeight {
-		return nil, fmt.Errorf("image height is too large: %d > %d", imgCfg.Height, setting.Avatar.MaxHeight)
+		return nil, nil, fmt.Errorf("image height is too large: %d > %d", imgCfg.Height, setting.Avatar.MaxHeight)
 	}
 
 	var cleanedBytes []byte
 	if imgType != "gif" { // "gif" is the only imgType supported above, but not supported by exif_terminator
 		cleanedData, err := exif_terminator.Terminate(bytes.NewReader(data), imgType)
 		if err != nil {
-			return nil, fmt.Errorf("error cleaning exif data: %w", err)
+			return nil, nil, fmt.Errorf("error cleaning exif data: %w", err)
 		}
 		cleanedBytes, err = io.ReadAll(cleanedData)
 		if err != nil {
-			return nil, fmt.Errorf("error reading cleaned data: %w", err)
+			return nil, nil, fmt.Errorf("error reading cleaned data: %w", err)
 		}
 	} else { // gif
 		cleanedBytes = data
@@ -87,43 +90,44 @@ func processAvatarImage(data []byte, maxOriginSize int64) ([]byte, error) {
 	// And one more thing, webp is not fully supported, for animated webp, image.DecodeConfig works but Decode fails.
 	// So for animated webp, if the uploaded file is smaller than maxOriginSize, it will be used, if it's larger, there will be an error.
 	if len(data) < int(maxOriginSize) {
-		return cleanedBytes, nil
+		//nolint:nilnil
+		return cleanedBytes, nil, nil
 	}
 
 	img, _, err := image.Decode(bytes.NewReader(cleanedBytes))
 	if err != nil {
-		return nil, fmt.Errorf("image.Decode: %w", err)
+		return nil, nil, fmt.Errorf("image.Decode: %w", err)
 	}
 
 	// try to crop and resize the origin image if necessary
 	img = cropSquare(img)
 
 	targetSize := DefaultAvatarSize * setting.Avatar.RenderedSizeFactor
-	img = scale(img, targetSize, targetSize, draw.BiLinear)
+	img = Scale(img, targetSize, targetSize, draw.BiLinear)
 
 	// try to encode the cropped/resized image to png
 	bs := bytes.Buffer{}
 	if err = png.Encode(&bs, img); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	resized := bs.Bytes()
 
 	// usually the png compression is not good enough, use the original image (no cropping/resizing) if the origin is smaller
 	if len(data) <= len(resized) {
-		return cleanedBytes, nil
+		return cleanedBytes, img, nil
 	}
 
-	return resized, nil
+	return resized, img, nil
 }
 
 // ProcessAvatarImage process the avatar image data, crop and resize it if necessary.
 // the returned data could be the original image if no processing is needed.
-func ProcessAvatarImage(data []byte) ([]byte, error) {
+func ProcessAvatarImage(data []byte) ([]byte, image.Image, error) {
 	return processAvatarImage(data, setting.Avatar.MaxOriginSize)
 }
 
-// scale resizes the image to width x height using the given scaler.
-func scale(src image.Image, width, height int, scale draw.Scaler) image.Image {
+// Scale resizes the image to width x height using the given scaler.
+func Scale(src image.Image, width, height int, scale draw.Scaler) image.Image {
 	rect := image.Rect(0, 0, width, height)
 	dst := image.NewRGBA(rect)
 	scale.Scale(dst, rect, src, src.Bounds(), draw.Over, nil)
@@ -152,4 +156,18 @@ func cropSquare(src image.Image) image.Image {
 	dst := image.NewRGBA(rect)
 	draw.Draw(dst, rect, src, rect.Min, draw.Src)
 	return dst
+}
+
+// BestAvatarCachedSize computes the size at which the avatar should be downloaded, to display it at the desired size.
+// When it returns 0, it means that the original should be downloaded.
+func BestAvatarCachedSize(size int) int {
+	if size == 0 {
+		return 0
+	}
+	for i := 0; i < len(AllowedResizedAvatarSizes); i++ {
+		if AllowedResizedAvatarSizes[i] >= size {
+			return AllowedResizedAvatarSizes[i]
+		}
+	}
+	return 0
 }

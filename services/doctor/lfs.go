@@ -48,5 +48,5 @@ func garbageCollectLFSCheck(ctx context.Context, logger log.Logger, autofix bool
 		return err
 	}
 
-	return checkStorage(&checkStorageOptions{LFS: true})(ctx, logger, autofix)
+	return CheckStorage(&CheckStorageOptions{LFS: true})(ctx, logger, autofix)
 }

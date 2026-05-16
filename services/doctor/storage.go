@@ -79,7 +79,7 @@ func commonCheckStorage(logger log.Logger, autofix bool, opts *commonStorageChec
 	return nil
 }
 
-type checkStorageOptions struct {
+type CheckStorageOptions struct {
 	All          bool
 	Attachments  bool
 	LFS          bool
@@ -89,8 +89,8 @@ type checkStorageOptions struct {
 	Packages     bool
 }
 
-// checkStorage will return a doctor check function to check the requested storage types for "orphaned" stored object/files and optionally delete them
-func checkStorage(opts *checkStorageOptions) func(ctx context.Context, logger log.Logger, autofix bool) error {
+// CheckStorage will return a doctor check function to check the requested storage types for "orphaned" stored object/files and optionally delete them
+func CheckStorage(opts *CheckStorageOptions) func(ctx context.Context, logger log.Logger, autofix bool) error {
 	return func(ctx context.Context, logger log.Logger, autofix bool) error {
 		if err := storage.Init(); err != nil {
 			logger.Error("storage.Init failed: %v", err)
@@ -136,7 +136,13 @@ func checkStorage(opts *checkStorageOptions) func(ctx context.Context, logger lo
 				&commonStorageCheckOptions{
 					storer: storage.Avatars,
 					isOrphaned: func(path string, obj storage.Object, stat fs.FileInfo) (bool, error) {
-						exists, err := user.ExistsWithAvatarAtStoragePath(ctx, path)
+						// The path is either just a hash, if the file is an original avatar uploaded by the user,
+						// or of the form "resized/<size>/<hash>" if it is a resized version of the avatar.
+						// In both cases, we retain the file if and only if the hash corresponds to an avatar
+						// of an existing user.
+						pathParts := strings.Split(path, "/")
+						hash := pathParts[len(pathParts)-1]
+						exists, err := user.ExistsWithAvatarAtStoragePath(ctx, hash)
 						return !exists, err
 					},
 					name: "avatar",
@@ -150,7 +156,10 @@ func checkStorage(opts *checkStorageOptions) func(ctx context.Context, logger lo
 				&commonStorageCheckOptions{
 					storer: storage.RepoAvatars,
 					isOrphaned: func(path string, obj storage.Object, stat fs.FileInfo) (bool, error) {
-						exists, err := repo.ExistsWithAvatarAtStoragePath(ctx, path)
+						// See the comment above to explain the handling of original and resized avatars.
+						pathParts := strings.Split(path, "/")
+						hash := pathParts[len(pathParts)-1]
+						exists, err := repo.ExistsWithAvatarAtStoragePath(ctx, hash)
 						return !exists, err
 					},
 					name: "repo avatar",
@@ -212,7 +221,7 @@ func init() {
 		Title:                      "Check if there are orphaned storage files",
 		Name:                       "storages",
 		IsDefault:                  false,
-		Run:                        checkStorage(&checkStorageOptions{All: true}),
+		Run:                        CheckStorage(&CheckStorageOptions{All: true}),
 		AbortIfFailed:              false,
 		SkipDatabaseInitialization: false,
 		Priority:                   1,
@@ -222,7 +231,7 @@ func init() {
 		Title:                      "Check if there are orphaned attachments in storage",
 		Name:                       "storage-attachments",
 		IsDefault:                  false,
-		Run:                        checkStorage(&checkStorageOptions{Attachments: true}),
+		Run:                        CheckStorage(&CheckStorageOptions{Attachments: true}),
 		AbortIfFailed:              false,
 		SkipDatabaseInitialization: false,
 		Priority:                   1,
@@ -232,7 +241,7 @@ func init() {
 		Title:                      "Check if there are orphaned lfs files in storage",
 		Name:                       "storage-lfs",
 		IsDefault:                  false,
-		Run:                        checkStorage(&checkStorageOptions{LFS: true}),
+		Run:                        CheckStorage(&CheckStorageOptions{LFS: true}),
 		AbortIfFailed:              false,
 		SkipDatabaseInitialization: false,
 		Priority:                   1,
@@ -242,7 +251,7 @@ func init() {
 		Title:                      "Check if there are orphaned avatars in storage",
 		Name:                       "storage-avatars",
 		IsDefault:                  false,
-		Run:                        checkStorage(&checkStorageOptions{Avatars: true, RepoAvatars: true}),
+		Run:                        CheckStorage(&CheckStorageOptions{Avatars: true, RepoAvatars: true}),
 		AbortIfFailed:              false,
 		SkipDatabaseInitialization: false,
 		Priority:                   1,
@@ -252,7 +261,7 @@ func init() {
 		Title:                      "Check if there are orphaned archives in storage",
 		Name:                       "storage-archives",
 		IsDefault:                  false,
-		Run:                        checkStorage(&checkStorageOptions{RepoArchives: true}),
+		Run:                        CheckStorage(&CheckStorageOptions{RepoArchives: true}),
 		AbortIfFailed:              false,
 		SkipDatabaseInitialization: false,
 		Priority:                   1,
@@ -262,7 +271,7 @@ func init() {
 		Title:                      "Check if there are orphaned package blobs in storage",
 		Name:                       "storage-packages",
 		IsDefault:                  false,
-		Run:                        checkStorage(&checkStorageOptions{Packages: true}),
+		Run:                        CheckStorage(&CheckStorageOptions{Packages: true}),
 		AbortIfFailed:              false,
 		SkipDatabaseInitialization: false,
 		Priority:                   1,

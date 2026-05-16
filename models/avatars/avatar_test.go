@@ -9,6 +9,7 @@ import (
 	avatars_model "forgejo.org/models/avatars"
 	"forgejo.org/models/db"
 	system_model "forgejo.org/models/system"
+	"forgejo.org/modules/avatar"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/setting/config"
 
@@ -56,4 +57,11 @@ func TestSizedAvatarLink(t *testing.T) {
 		"https://secure.gravatar.com/avatar/353cbad9b58e69c96154ad99f92bedc7?d=identicon&s=100",
 		avatars_model.GenerateEmailAvatarFastLink(db.DefaultContext, "gitea@example.com", 100),
 	)
+}
+
+func TestBestAvatarCachedSize(t *testing.T) {
+	assert.Equal(t, 64, avatar.BestAvatarCachedSize(2))
+	assert.Equal(t, 64, avatar.BestAvatarCachedSize(64))
+	assert.Equal(t, 128, avatar.BestAvatarCachedSize(65))
+	assert.Equal(t, 0, avatar.BestAvatarCachedSize(1000))
 }

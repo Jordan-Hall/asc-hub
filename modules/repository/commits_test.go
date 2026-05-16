@@ -124,7 +124,7 @@ func TestPushCommits_AvatarLink(t *testing.T) {
 	}
 
 	assert.Equal(t,
-		"/avatars/ab53a2911ddf9b4817ac01ddcd3d975f",
+		"/avatars/ab53a2911ddf9b4817ac01ddcd3d975f?size=64",
 		pushCommits.AvatarLink(db.DefaultContext, "user2@example.com"))
 
 	assert.Equal(t,

@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 
 	"forgejo.org/models/db"
+	"forgejo.org/modules/avatar"
 	"forgejo.org/modules/cache"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -167,6 +168,15 @@ func GenerateUserAvatarFastLink(userName string, size int) string {
 // GenerateUserAvatarImageLink returns a link for `User.Avatar` image file: "/avatars/${User.Avatar}"
 func GenerateUserAvatarImageLink(userAvatar string) string {
 	return setting.AppSubURL + "/avatars/" + url.PathEscape(userAvatar)
+}
+
+// GenerateUserResizedAvatarLink returns the URL to the smallest resized version of the avatar bigger than the supplied size
+func GenerateUserResizedAvatarLink(userAvatar string, requestedSize int) string {
+	cachedSize := avatar.BestAvatarCachedSize(requestedSize)
+	if cachedSize == 0 {
+		return GenerateUserAvatarImageLink(userAvatar)
+	}
+	return fmt.Sprintf("%s/avatars/%s?size=%d", setting.AppSubURL, url.PathEscape(userAvatar), cachedSize)
 }
 
 // generateRecognizedAvatarURL generate a recognized avatar (Gravatar/Libravatar) URL, it modifies the URL so the parameter is passed by a copy

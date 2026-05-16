@@ -12,6 +12,7 @@ import (
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/avatar"
+	"forgejo.org/modules/avatarstore"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/storage"
 )
@@ -19,7 +20,7 @@ import (
 // UploadAvatar saves custom avatar for repository.
 // FIXME: split uploads to different subdirs in case we have massive number of repos.
 func UploadAvatar(ctx context.Context, repo *repo_model.Repository, data []byte) error {
-	avatarData, err := avatar.ProcessAvatarImage(data)
+	avatarData, img, err := avatar.ProcessAvatarImage(data)
 	if err != nil {
 		return err
 	}
@@ -44,15 +45,12 @@ func UploadAvatar(ctx context.Context, repo *repo_model.Repository, data []byte)
 		return fmt.Errorf("UploadAvatar: Update repository avatar: %w", err)
 	}
 
-	if err := storage.SaveFrom(storage.RepoAvatars, repo.CustomAvatarRelativePath(), func(w io.Writer) error {
-		_, err := w.Write(avatarData)
-		return err
-	}); err != nil {
-		return fmt.Errorf("UploadAvatar %s failed: Failed to remove old repo avatar %s: %w", repo.RepoPath(), newAvatar, err)
+	if err := avatarstore.StoreAvatar(repo.CustomAvatarRelativePath(), avatarData, img, storage.RepoAvatars); err != nil {
+		return fmt.Errorf("UploadAvatar %s failed: Failed to store repo avatar %s: %w", repo.RepoPath(), newAvatar, err)
 	}
 
 	if len(oldAvatarPath) > 0 {
-		if err := storage.RepoAvatars.Delete(oldAvatarPath); err != nil {
+		if err := avatarstore.DeleteAvatar(oldAvatarPath, storage.RepoAvatars); err != nil {
 			return fmt.Errorf("UploadAvatar: Failed to remove old repo avatar %s: %w", oldAvatarPath, err)
 		}
 	}
@@ -81,7 +79,7 @@ func DeleteAvatar(ctx context.Context, repo *repo_model.Repository) error {
 		return fmt.Errorf("DeleteAvatar: Update repository avatar: %w", err)
 	}
 
-	if err := storage.RepoAvatars.Delete(avatarPath); err != nil {
+	if err := avatarstore.DeleteAvatar(avatarPath, storage.RepoAvatars); err != nil {
 		return fmt.Errorf("DeleteAvatar: Failed to remove %s: %w", avatarPath, err)
 	}
 

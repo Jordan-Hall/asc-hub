@@ -32,7 +32,7 @@ func ExistsWithAvatarAtStoragePath(ctx context.Context, storagePath string) (boo
 
 // RelAvatarLink returns a relative link to the repository's avatar.
 func (repo *Repository) RelAvatarLink(ctx context.Context) string {
-	return repo.relAvatarLink(ctx)
+	return repo.relAvatarLink(ctx, 0)
 }
 
 // generateRandomAvatar generates a random avatar for repository.
@@ -65,7 +65,7 @@ func generateRandomAvatar(ctx context.Context, repo *Repository) error {
 	return nil
 }
 
-func (repo *Repository) relAvatarLink(ctx context.Context) string {
+func (repo *Repository) relAvatarLink(ctx context.Context, size int) string {
 	// If no avatar - path is empty
 	avatarPath := repo.CustomAvatarRelativePath()
 	if len(avatarPath) == 0 {
@@ -81,12 +81,21 @@ func (repo *Repository) relAvatarLink(ctx context.Context) string {
 			return ""
 		}
 	}
-	return setting.AppSubURL + "/repo-avatars/" + url.PathEscape(repo.Avatar)
+	cachedSize := avatar.BestAvatarCachedSize(size)
+	if cachedSize == 0 {
+		return setting.AppSubURL + "/repo-avatars/" + url.PathEscape(repo.Avatar)
+	}
+	return fmt.Sprintf("%s/repo-avatars/%s?size=%d", setting.AppSubURL, url.PathEscape(repo.Avatar), cachedSize)
 }
 
 // AvatarLink returns a link to the repository's avatar.
 func (repo *Repository) AvatarLink(ctx context.Context) string {
-	link := repo.relAvatarLink(ctx)
+	return repo.AvatarLinkWithSize(ctx, 0)
+}
+
+// Returns URL to the smallest resized version of the avatar bigger than the supplied size
+func (repo *Repository) AvatarLinkWithSize(ctx context.Context, size int) string {
+	link := repo.relAvatarLink(ctx, size)
 	// we only prepend our AppURL to our known (relative, internal) avatar link to get an absolute URL
 	if strings.HasPrefix(link, "/") && !strings.HasPrefix(link, "//") {
 		return setting.AppURL + strings.TrimPrefix(link, setting.AppSubURL)[1:]
