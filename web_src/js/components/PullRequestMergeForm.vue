@@ -149,6 +149,16 @@ export default {
             </template>
           </span>
         </button>
+        <button
+          v-if="mergeStyleAllowedCount === 1 && !mergeStyleDetail.hideAutoMerge && mergeForm.canMergeNow"
+          class="ui icon button single-merge-strategy-auto-merge-btn"
+          @click.stop="autoMergeWhenSucceed = !autoMergeWhenSucceed"
+        >
+          <svg-icon name="octicon-clock"/>
+          <span class="single-merge-strategy-auto-merge-tooltip">
+            {{ autoMergeWhenSucceed ? mergeForm.textAutoMergeCancelSchedule : mergeForm.textAutoMergeWhenSucceed }}
+          </span>
+        </button>
         <div class="ui dropdown icon button" @click.stop="showMergeStyleMenu = !showMergeStyleMenu" v-if="mergeStyleAllowedCount > 1">
           <svg-icon name="octicon-triangle-down" :size="14"/>
           <div class="menu" :class="{'show':showMergeStyleMenu}">
@@ -246,6 +256,20 @@ export default {
   color: var(--color-info-text);
   background-color: var(--color-info-bg);
   border: 1px solid var(--color-info-border);
+}
+
+.ui.buttons .button.single-merge-strategy-auto-merge-btn {
+  color: var(--color-info-text);
+  background-color: var(--color-info-bg);
+  border: 1px solid var(--color-info-border);
+}
+
+.ui.buttons .button.single-merge-strategy-auto-merge-btn .single-merge-strategy-auto-merge-tooltip {
+  display: none;
+}
+
+.ui.buttons .button.single-merge-strategy-auto-merge-btn:hover .single-merge-strategy-auto-merge-tooltip {
+  display: flex;
 }
 
 .auto-merge-small:hover .auto-merge-tip {
