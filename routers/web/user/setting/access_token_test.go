@@ -143,7 +143,7 @@ func TestAccessTokenCreatePost(t *testing.T) {
 			SelectedRepo: []string{"org17/big_test_private_4000000_does_not_exist"},
 		})
 		assert.Equal(t, http.StatusBadRequest, resp.Result().StatusCode)
-		assert.Equal(t, "GetRepositoryByOwnerAndName\n", resp.Body.String())
+		assert.Equal(t, "getSelectedRepos\n", resp.Body.String())
 	})
 
 	t.Run("non-visible repo selected via IDOR", func(t *testing.T) {
@@ -154,6 +154,6 @@ func TestAccessTokenCreatePost(t *testing.T) {
 			SelectedRepo: []string{"user30/empty"}, // private repo, user2 has no visibility
 		})
 		assert.Equal(t, http.StatusBadRequest, resp.Result().StatusCode)
-		assert.Equal(t, "GetRepositoryByOwnerAndName\n", resp.Body.String()) // should be exact same response as "invalid repo selected" case
+		assert.Equal(t, "getSelectedRepos\n", resp.Body.String()) // should be exact same response as "invalid repo selected" case
 	})
 }

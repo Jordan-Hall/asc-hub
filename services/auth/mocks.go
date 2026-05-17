@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package method
+package auth
 
 import (
 	"forgejo.org/modules/jwtx"

@@ -21,6 +21,7 @@ type Encoder interface {
 // Decoder represents a decoder for json
 type Decoder interface {
 	Decode(v any) error
+	DisallowUnknownFields()
 }
 
 // Interface represents an interface to handle json data

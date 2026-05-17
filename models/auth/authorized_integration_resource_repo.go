@@ -54,3 +54,12 @@ func InsertAuthorizedIntegrationResourceRepos(ctx context.Context, aiID int64, r
 		return nil
 	})
 }
+
+func UpdateAuthorizedIntegrationResourceRepos(ctx context.Context, aiID int64, resources []*AuthorizedIntegResourceRepo) error {
+	return db.WithTx(ctx, func(ctx context.Context) error {
+		if _, err := db.GetEngine(ctx).Delete(&AuthorizedIntegResourceRepo{IntegID: aiID}); err != nil {
+			return err
+		}
+		return InsertAuthorizedIntegrationResourceRepos(ctx, aiID, resources)
+	})
+}

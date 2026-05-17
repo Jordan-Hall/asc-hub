@@ -34,13 +34,12 @@ const (
 	tplAccessTokenEdit base.TplName = "user/settings/access_token_edit"
 )
 
-func getSelectedRepos(ctx *context.Context, selectedReposRaw []string) []*repo_model.Repository {
+func getSelectedRepos(ctx *context.Context, selectedReposRaw []string) ([]*repo_model.Repository, error) {
 	ownerAndName := make([][2]string, len(selectedReposRaw))
 	for i, selected := range selectedReposRaw {
 		split := strings.SplitN(selected, "/", 2) // ownername/reponame
 		if len(split) != 2 {
-			ctx.Error(http.StatusBadRequest, fmt.Sprintf("invalid selected_repo: %s", selected))
-			return nil
+			return nil, fmt.Errorf("invalid selected_repo: %s", selected)
 		}
 		ownerAndName[i] = [2]string{split[0], split[1]}
 	}
@@ -54,29 +53,26 @@ func getSelectedRepos(ctx *context.Context, selectedReposRaw []string) []*repo_m
 	cond := repo_model.SearchRepositoryCondition(repoSearch)
 	repos, _, err := repo_model.SearchRepositoryByCondition(ctx, repoSearch, cond, false)
 	if err != nil {
-		ctx.ServerError("SearchRepositoryByCondition", err)
-		return nil
+		return nil, err
 	} else if len(repos) != len(selectedReposRaw) {
 		// One or more of the repositories couldn't be found by search by owner & name.
-		ctx.Error(http.StatusBadRequest, "GetRepositoryByOwnerAndName") // keep in sync w/ !permission.HasAccess below
-		return nil
+		// Keep error in sync w/ ~permission.HasAccess below to avoid data existence probing.
+		return nil, fmt.Errorf("one or more of the repositories couldn't be found by owner & name")
 	}
 
 	selectedRepos := make([]*repo_model.Repository, len(selectedReposRaw))
 	for i, repo := range repos {
 		permission, err := access_model.GetUserRepoPermission(ctx, repo, ctx.Doer)
 		if err != nil {
-			ctx.ServerError("GetUserRepoPermission", err)
-			return nil
+			return nil, err
 		} else if !permission.HasAccess() {
 			// Prevent data existence probing -- ensure this error is the exact same as the (len(repos) !=
 			// len(selectedReposRaw)) case above
-			ctx.Error(http.StatusBadRequest, "GetRepositoryByOwnerAndName")
-			return nil
+			return nil, fmt.Errorf("one or more of the repositories couldn't be found by owner & name")
 		}
 		selectedRepos[i] = repo
 	}
-	return selectedRepos
+	return selectedRepos, nil
 }
 
 func loadAccessTokenCreateData(ctx *context.Context) {
@@ -136,8 +132,9 @@ func loadAccessTokenCreateData(ctx *context.Context) {
 	} else if isPost {
 		selectedReposRaw = postForm.SelectedRepo
 	}
-	selectedRepos := getSelectedRepos(ctx, selectedReposRaw)
-	if ctx.Written() {
+	selectedRepos, err := getSelectedRepos(ctx, selectedReposRaw)
+	if err != nil {
+		ctx.Error(http.StatusBadRequest, "getSelectedRepos")
 		return
 	}
 	ctx.Data["SelectedRepos"] = selectedRepos
@@ -273,8 +270,9 @@ func AccessTokenCreatePost(ctx *context.Context) {
 		t.Scope = newScope
 	case "repo-specific":
 		t.ResourceAllRepos = false
-		selectedRepos := getSelectedRepos(ctx, form.SelectedRepo)
-		if ctx.Written() {
+		selectedRepos, err := getSelectedRepos(ctx, form.SelectedRepo)
+		if err != nil {
+			ctx.Error(http.StatusBadRequest, "getSelectedRepos")
 			return
 		}
 		for _, repo := range selectedRepos {

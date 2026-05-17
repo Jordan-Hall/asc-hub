@@ -175,3 +175,21 @@ func TestListAuthorizedIntegrationOptions(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, ais)
 }
+
+func TestUpdateAuthorizedIntegration(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	ai := makeAuthorizedIntegration(t)
+	ai.Name = "Hello, world!"
+	ai.ResourceAllRepos = false
+	createdUnix := ai.CreatedUnix
+	updatedUnix := ai.UpdatedUnix
+
+	require.NoError(t, auth_model.UpdateAuthorizedIntegration(t.Context(), ai))
+
+	fromDB := unittest.AssertExistsAndLoadBean(t, &auth_model.AuthorizedIntegration{ID: ai.ID})
+	assert.Equal(t, "Hello, world!", fromDB.Name)
+	assert.False(t, fromDB.ResourceAllRepos)
+	assert.Equal(t, createdUnix, fromDB.CreatedUnix)
+	assert.Equal(t, updatedUnix, fromDB.UpdatedUnix) // not changed -- used to track usage for authentication
+}

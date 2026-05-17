@@ -4,31 +4,23 @@
 package method
 
 import (
-	"bufio"
-	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	auth_model "forgejo.org/models/auth"
 	user_model "forgejo.org/models/user"
-	"forgejo.org/modules/cache"
-	"forgejo.org/modules/hostmatcher"
-	"forgejo.org/modules/json"
 	"forgejo.org/modules/jwtx"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
-	"forgejo.org/modules/proxy"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
-	"forgejo.org/services/auth"
+	auth_service "forgejo.org/services/auth"
 	"forgejo.org/services/authz"
 
 	"github.com/gobwas/glob"
@@ -36,58 +28,10 @@ import (
 )
 
 var (
-	_ auth.Method = &AuthorizedIntegration{}
-
-	aiHTTPClient   *http.Client
-	initHTTPClient sync.Once
+	_ auth_service.Method = &AuthorizedIntegration{}
 
 	errParseInternalServer = errors.New("internal server error")
-
-	// Allow mocking / overridding during tests:
-	GetAuthorizedIntegrationHTTPClient = func() *http.Client {
-		initHTTPClient.Do(initAuthorizedIntegrationHTTPClient)
-		return aiHTTPClient
-	}
-	getCache = cache.GetCache
-
-	internalIssuers = make(map[string]InternalIssuer)
 )
-
-// Authorized Integrations can verify the signature of JWTs that the application itself generated without requiring
-// remote access, and in a manner that is flexible to changes in [setting.AppURL].
-//
-// For example, Forgejo Actions is often used to access Forgejo with a JWT, by setting `enable-openid-connect: true` in
-// a workflow.  Without any special support for this internal access situation, problems would occur:
-//
-// 1. Forgejo would need to make an HTTP request to itself to get the valid public key for the JWT, in order to validate
-// its signature.  This is a waste of resources, and introduces a self-DoS risk.
-//
-// 2. Forgejo would need to be available via TLS in order for Actions to make service calls to Forgejo with that JWT
-// (due to the TLS requirement for public key fetching).
-//
-// 3. Authorized Integrations would need to be saved with the `issuer` URL of Forgejo.  If Forgejo's own
-// [setting.AppURL] changed, all the persisted records in the database would become incorrect.
-//
-// Internal Issuers work by registering a URL suffix like "/api/actions".  When a JWT is received with an issuer
-// matching [setting.AppURL] and the registered URL suffix, then the [InternalIssuer] interface is used to access the
-// JWT public key, and the value to be saved in the Authorized Integrations table as the issuer.
-func RegisterInternalIssuer(urlSuffix string, internalIssuer InternalIssuer) {
-	internalIssuers[urlSuffix] = internalIssuer
-}
-
-//mockery:generate: true
-type InternalIssuer interface {
-	// Signing key used to validate a JWT from this internal issuer.
-	SigningKey() jwtx.SigningKey
-	// Value to store in [auth_model.AuthorizedIntegration]'s Issuer field to reflect the use of this internal issuer.
-	IssuerPlaceholder() string
-}
-
-// Restrict document size to prevent resource exhaustion attack with a malicious authorized integration; largest
-// real-world openid-configuration observed is about 1kB, largest JWKS is 6kB, so for both cases 16kB should be
-// sufficient. If this needs to change in the future, it could be moved to a config setting -- but until a reason comes
-// up it seems reasonable to keep microscopic settings out-of-sight.
-const authorizedIntegrationRequestBodyLimit = int64(16 * 1024)
 
 // Authenticates incoming requests by JWTs that are issued by an authorized integration.  Authorized integrations are
 // stored in the database in the [auth_model.AuthorizedIntegration] table.  Once authenticated, the request can perform
@@ -105,15 +49,15 @@ type AuthorizedIntegration struct {
 	fixedTime *time.Time
 }
 
-func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter, _ auth.SessionStore) auth.MethodOutput {
+func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter, _ auth_service.SessionStore) auth_service.MethodOutput {
 	hasToken, token := tokenFromAuthorizationBearer(req).Get()
 	if !hasToken {
 		if !a.PermitBasic {
-			return &auth.AuthenticationNotAttempted{}
+			return &auth_service.AuthenticationNotAttempted{}
 		}
 		hasBasic, basicToken := tokenFromAuthorizationBasic(req).Get()
 		if !hasBasic {
-			return &auth.AuthenticationNotAttempted{}
+			return &auth_service.AuthenticationNotAttempted{}
 		}
 		token = basicToken
 	}
@@ -147,10 +91,10 @@ func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter,
 			// Check if there's an internal issuer that matches the JWT's issuer, and if so, change `queryIssuer` to the
 			// internal issuer's placeholder, and store `internalIssuer` for later:
 			queryIssuer := issuer
-			var internalIssuer InternalIssuer
+			var internalIssuer auth_service.InternalIssuer
 			issuerSuffix := strings.TrimPrefix(issuer, setting.AppURL)
 			if issuer != issuerSuffix { // TrimPrefix will return a different string when the prefix was present
-				if ii, ok := internalIssuers[issuerSuffix]; ok {
+				if ii, ok := auth_service.GetInternalIssuerByURLSuffix(issuerSuffix); ok {
 					internalIssuer = ii
 					queryIssuer = internalIssuer.IssuerPlaceholder()
 				}
@@ -183,9 +127,13 @@ func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter,
 				return nil, fmt.Errorf("failed parsing issuer: %w", err)
 			}
 
+			// Checks implemented here a variation of validateExternalIssuer used when creating an authorized
+			// integration.  Where possible, if validation changes are made on either implementation, they should be
+			// kept in sync with each other.
+
 			issuerOIDCURL := issuerURL.JoinPath(".well-known/openid-configuration")
-			var oidcConfig openIDConfiguration
-			if err := authorizedIntegrationFetchJSON(issuerOIDCURL.String(), &oidcConfig); err != nil {
+			var oidcConfig auth_service.AuthorizedIntegrationOpenIDConfiguration
+			if err := auth_service.AuthorizedIntegrationFetchJSON(issuerOIDCURL.String(), &oidcConfig); err != nil {
 				return nil, fmt.Errorf("error when fetching .well-known/openid-configuration from %s: %w", issuerOIDCURL, err)
 			}
 
@@ -206,8 +154,8 @@ func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter,
 				// but until a real-world case comes up where that is needed, this is a safety-first restriction.
 				return nil, fmt.Errorf("jwks_uri host mismatch: must be the same as issuer host %q, but was %q", issuerURL.Host, jwksURI.Host)
 			}
-			var keys openIDKeys
-			if err := authorizedIntegrationFetchJSON(oidcConfig.JwksURI, &keys); err != nil {
+			var keys auth_service.AuthorizedIntegrationOpenIDKeys
+			if err := auth_service.AuthorizedIntegrationFetchJSON(oidcConfig.JwksURI, &keys); err != nil {
 				return nil, fmt.Errorf("error when fetching JWKS from %s: %w", oidcConfig.JwksURI, err)
 			}
 
@@ -244,18 +192,18 @@ func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter,
 	)
 	if err != nil && errors.Is(err, errParseInternalServer) {
 		// Errors from parsing marked errParseInternalServer are AuthenticationError, not incorrect creds:
-		return &auth.AuthenticationError{Error: err}
+		return &auth_service.AuthenticationError{Error: err}
 	} else if err != nil {
-		return &auth.AuthenticationAttemptedIncorrectCredential{Error: fmt.Errorf("authorized integration: parse JWT error: %w", err)}
+		return &auth_service.AuthenticationAttemptedIncorrectCredential{Error: fmt.Errorf("authorized integration: parse JWT error: %w", err)}
 	} else if !parsedToken.Valid {
-		return &auth.AuthenticationAttemptedIncorrectCredential{Error: errors.New("authorized integration: JWT not valid")}
+		return &auth_service.AuthenticationAttemptedIncorrectCredential{Error: errors.New("authorized integration: JWT not valid")}
 	} else if authorizedIntegration == nil { // shouldn't be possible, but overly safe
-		return &auth.AuthenticationError{Error: errors.New("authorized integration: nil authorized integration")}
+		return &auth_service.AuthenticationError{Error: errors.New("authorized integration: nil authorized integration")}
 	}
 
 	u, err := user_model.GetUserByID(req.Context(), authorizedIntegration.UserID)
 	if err != nil {
-		return &auth.AuthenticationError{Error: fmt.Errorf("authorized integration: GetUserByID: %w", err)}
+		return &auth_service.AuthenticationError{Error: fmt.Errorf("authorized integration: GetUserByID: %w", err)}
 	}
 
 	if err = authorizedIntegration.UpdateLastUsed(req.Context()); err != nil {
@@ -264,17 +212,17 @@ func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter,
 
 	reducer, err := authz.GetAuthorizationReducerForAuthorizedIntegration(req.Context(), authorizedIntegration)
 	if err != nil {
-		return &auth.AuthenticationError{Error: fmt.Errorf("authorized integration GetAuthorizationReducerForAuthorizedIntegration: %w", err)}
+		return &auth_service.AuthenticationError{Error: fmt.Errorf("authorized integration GetAuthorizationReducerForAuthorizedIntegration: %w", err)}
 	}
 
 	var optionalExp optional.Option[timeutil.TimeStamp]
 	if exp, err := parsedToken.Claims.GetExpirationTime(); err != nil {
-		return &auth.AuthenticationError{Error: fmt.Errorf("authorized integration GetExpirationTime: %w", err)}
+		return &auth_service.AuthenticationError{Error: fmt.Errorf("authorized integration GetExpirationTime: %w", err)}
 	} else if exp != nil {
 		optionalExp = optional.Some(timeutil.TimeStamp(exp.Unix()))
 	}
 
-	return &auth.AuthenticationSuccess{
+	return &auth_service.AuthenticationSuccess{
 		Result: &authorizedIntegrationAuthenticationResult{
 			user:      u,
 			scope:     authorizedIntegration.Scope,
@@ -282,131 +230,6 @@ func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter,
 			expiresAt: optionalExp,
 		},
 	}
-}
-
-func initAuthorizedIntegrationHTTPClient() {
-	blockList := hostmatcher.ParseSimpleMatchList("authorized_integration.BLOCKED_DOMAINS", setting.AuthorizedIntegration.BlockedDomains)
-
-	allowList := hostmatcher.ParseSimpleMatchList("authorized_integration.ALLOWED_DOMAINS", setting.AuthorizedIntegration.AllowedDomains)
-	if allowList.IsEmpty() {
-		// the default policy is that authorized integrations can access external hosts
-		allowList.AppendBuiltin(hostmatcher.MatchBuiltinExternal)
-	}
-	if setting.AuthorizedIntegration.AllowLocalNetworks {
-		allowList.AppendBuiltin(hostmatcher.MatchBuiltinPrivate)
-		allowList.AppendBuiltin(hostmatcher.MatchBuiltinLoopback)
-	}
-
-	aiHTTPClient = &http.Client{
-		Timeout: setting.AuthorizedIntegration.RequestTimeout,
-		Transport: &http.Transport{
-			Proxy:       proxy.Proxy(),
-			DialContext: hostmatcher.NewDialContext("authorized_integration", allowList, blockList, setting.Proxy.ProxyURLFixed),
-		},
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			// It might be possible to come up with some reasonable capability to support redirects -- such as
-			// keeping them within the same issuer host? -- but there are risks that this can be used for SSRF
-			// attacks.  In the face of those risks, and with a lack of real-world use-cases, disable redirects.
-			return errors.New("authorized integration: HTTP redirects are disabled")
-		},
-	}
-}
-
-func authorizedIntegrationCacheKey(urlString string) string {
-	return fmt.Sprintf("auth-int-remote:%s", urlString)
-}
-
-func authorizedIntegrationCacheGetJSON[K any](urlString string, v *K) bool {
-	conn := getCache()
-	if conn == nil {
-		return false
-	}
-
-	cachedAny := conn.Get(authorizedIntegrationCacheKey(urlString))
-	if cachedAny == nil {
-		return false
-	}
-	cachedBytes, ok := cachedAny.([]byte)
-	if !ok {
-		cachedString, ok := cachedAny.(string)
-		if !ok {
-			log.Error("cached content was not []byte or string, but was %T", cachedAny)
-			return false
-		}
-		cachedBytes = []byte(cachedString)
-	}
-
-	err := json.Unmarshal(cachedBytes, &v)
-	if err != nil {
-		// This error case shouldn't occur, as we only store data in the cache once we're sure we could unmarshal it.
-		// If it does occur, log and fallback to treating as uncached.
-		log.Error("failed to Unmarshal cached content: %s", err)
-		// Caller may reuse `v` in a future unmarshal/decode call, and failure here may have polluted it.
-		var zeroValue K
-		*v = zeroValue
-		return false
-	}
-
-	return true
-}
-
-func authorizedIntegrationCacheSetJSON(urlString string, buf []byte) {
-	conn := getCache()
-	if conn == nil {
-		return
-	}
-	err := conn.Put(authorizedIntegrationCacheKey(urlString), buf, int64(setting.AuthorizedIntegration.CacheTTL.Seconds()))
-	if err != nil {
-		log.Error("failed to put cache: %s", err)
-	}
-}
-
-func authorizedIntegrationFetchJSON[K any](urlString string, v *K) error {
-	parsedURL, err := url.Parse(urlString)
-	if err != nil {
-		return fmt.Errorf("failed parsing URL %q: %w", urlString, err)
-	}
-	// Fetching openid-connect or JWKS needs to come from a source that is authentic, and therefore only `https` is
-	// supported.  This also protects against a trusted issuer being configured maliciously  as `file://` or a JKWS URI
-	// being `file://` -- the HTTP client won't permit that, but, extra safety doesn't hurt.
-	if parsedURL.Scheme != "https" {
-		return fmt.Errorf("unsupported URL scheme: %q", parsedURL.String())
-	}
-
-	// Check our cache, save a remote HTTP interaction.
-	if authorizedIntegrationCacheGetJSON(urlString, v) {
-		return nil
-	}
-
-	resp, err := GetAuthorizedIntegrationHTTPClient().Get(parsedURL.String())
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("non-OK response code: %s", resp.Status)
-	}
-
-	bodyReader := io.LimitReader(resp.Body, authorizedIntegrationRequestBodyLimit)
-	var buf bytes.Buffer
-	_, err = io.Copy(bufio.NewWriter(&buf), bodyReader)
-	if err != nil {
-		return fmt.Errorf("read from remote error: %w", err)
-	}
-
-	err = json.Unmarshal(buf.Bytes(), &v)
-	if err != nil {
-		// If a decoding error is hit, decorate with information about the limited body size so that it doesn't look
-		// like the remote server provided an incomplete response. err should be something like `io.UnexpectedEOF` in
-		// this case, but it actually isn't, so don't bother trying to detect precisely.
-		return fmt.Errorf("failed to decode (response body restricted to %d bytes): %w", authorizedIntegrationRequestBodyLimit, err)
-	}
-
-	// Successfully decoded the response -- cache the raw bytes for later access.
-	authorizedIntegrationCacheSetJSON(urlString, buf.Bytes())
-
-	return nil
 }
 
 // Compare a map[string]any of incoming claims against an array of claim rules.  All rules must match successfully or

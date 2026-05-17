@@ -37,7 +37,7 @@ func GetAuthorizationReducerForAccessToken(ctx context.Context, token *auth_mode
 // resources (public-only and specific repositories), and other similar checks.
 func ValidateAccessToken(token *auth_model.AccessToken, repoResources []*auth_model.AccessTokenResourceRepo) error {
 	// Other validations may be added here in the future.
-	return validateRepositoryResource(token.ResourceAllRepos, token.Scope, len(repoResources))
+	return ValidateRepositoryResource(token.ResourceAllRepos, token.Scope, len(repoResources))
 }
 
 var (
@@ -46,7 +46,7 @@ var (
 	ErrSpecifiedReposInvalidScope = errors.New("specified repository access token: invalid scope")
 )
 
-func validateRepositoryResource(resourceAllRepos bool, scope auth_model.AccessTokenScope, numRepoResources int) error {
+func ValidateRepositoryResource(resourceAllRepos bool, scope auth_model.AccessTokenScope, numRepoResources int) error {
 	// Access tokens with broad access to all resources don't have any relevant validation rules to apply.
 	if resourceAllRepos {
 		return nil

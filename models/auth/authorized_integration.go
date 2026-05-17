@@ -184,6 +184,18 @@ func InsertAuthorizedIntegration(ctx context.Context, ai *AuthorizedIntegration)
 	return err
 }
 
+func UpdateAuthorizedIntegration(ctx context.Context, ai *AuthorizedIntegration) error {
+	// NoAutoTime -- UpdatedUnix is used to track the last used time, don't update it when editing
+	// AllCols -- ensure ResourceAllRepo can be set to false
+	rowsImpacted, err := db.GetEngine(ctx).ID(ai.ID).NoAutoTime().AllCols().Update(ai)
+	if rowsImpacted == 0 {
+		return fmt.Errorf("authorized integration update affected 0 records: %w", util.ErrNotExist)
+	} else if rowsImpacted != 1 {
+		return fmt.Errorf("authorized integration update affected %d records", rowsImpacted)
+	}
+	return err
+}
+
 // Bump the UpdatedUnix field of this authorized integration to now, tracking when it was last used for authentication.
 // To reduce database write workload, this is only tracked by one-minute intervals -- the UPDATE statement conditionally
 // avoids writes.

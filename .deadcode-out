@@ -222,6 +222,9 @@ forgejo.org/modules/zstd
 forgejo.org/routers/web/org
 	MustEnableProjects
 
+forgejo.org/services/auth
+	RegisterInternalIssuerForTesting
+
 forgejo.org/services/context
 	GetPrivateContext
 

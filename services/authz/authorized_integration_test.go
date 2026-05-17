@@ -4,7 +4,6 @@
 package authz
 
 import (
-	"strings"
 	"testing"
 
 	"forgejo.org/models/auth"
@@ -43,73 +42,5 @@ func TestGetAuthorizationReducerForAuthorizedIntegration(t *testing.T) {
 
 		require.Len(t, specific.resourceRepos, 1)
 		assert.EqualValues(t, 1, specific.resourceRepos[0].GetTargetRepoID())
-	})
-}
-
-func TestValidateAuthorizedIntegration(t *testing.T) {
-	t.Run("valid - all access", func(t *testing.T) {
-		ai := &auth.AuthorizedIntegration{
-			ResourceAllRepos: true,
-			Scope:            auth.AccessTokenScopeReadRepository,
-			UI:               auth.AuthorizedIntegrationUIGeneric,
-		}
-		err := ValidateAuthorizedIntegration(ai, nil)
-		require.NoError(t, err)
-	})
-
-	t.Run("valid - specified repos", func(t *testing.T) {
-		ai := &auth.AuthorizedIntegration{
-			ResourceAllRepos: false,
-			Scope:            auth.AccessTokenScopeReadRepository,
-			UI:               auth.AuthorizedIntegrationUIGeneric,
-		}
-		resources := []*auth.AuthorizedIntegResourceRepo{{RepoID: 12}}
-		err := ValidateAuthorizedIntegration(ai, resources)
-		require.NoError(t, err)
-	})
-
-	t.Run("invalid - no specified repos", func(t *testing.T) {
-		ai := &auth.AuthorizedIntegration{
-			ResourceAllRepos: false,
-			Scope:            auth.AccessTokenScopeReadRepository,
-			UI:               auth.AuthorizedIntegrationUIGeneric,
-		}
-		resources := []*auth.AuthorizedIntegResourceRepo{}
-		err := ValidateAuthorizedIntegration(ai, resources)
-		require.ErrorIs(t, err, ErrSpecifiedReposNone)
-	})
-
-	t.Run("invalid - specified repos & public-only", func(t *testing.T) {
-		ai := &auth.AuthorizedIntegration{
-			ResourceAllRepos: false,
-			Scope:            auth.AccessTokenScope(strings.Join([]string{string(auth.AccessTokenScopePublicOnly), string(auth.AccessTokenScopeReadRepository)}, ",")),
-			UI:               auth.AuthorizedIntegrationUIGeneric,
-		}
-		resources := []*auth.AuthorizedIntegResourceRepo{{RepoID: 12}}
-		err := ValidateAuthorizedIntegration(ai, resources)
-		require.ErrorIs(t, err, ErrSpecifiedReposNoPublicOnly)
-	})
-
-	t.Run("invalid - specified repos unsupported scopes", func(t *testing.T) {
-		ai := &auth.AuthorizedIntegration{
-			ResourceAllRepos: false,
-			Scope:            auth.AccessTokenScopeReadAdmin,
-			UI:               auth.AuthorizedIntegrationUIGeneric,
-		}
-		resources := []*auth.AuthorizedIntegResourceRepo{{RepoID: 12}}
-		err := ValidateAuthorizedIntegration(ai, resources)
-		require.ErrorIs(t, err, ErrSpecifiedReposInvalidScope)
-		require.ErrorContains(t, err, string(auth.AccessTokenScopeReadAdmin))
-	})
-
-	t.Run("invalid - missing UI", func(t *testing.T) {
-		ai := &auth.AuthorizedIntegration{
-			ResourceAllRepos: false,
-			Scope:            auth.AccessTokenScopeReadAdmin,
-		}
-		resources := []*auth.AuthorizedIntegResourceRepo{{RepoID: 12}}
-		err := ValidateAuthorizedIntegration(ai, resources)
-		require.ErrorIs(t, err, ErrAuthorizedIntegrationBadUI)
-		require.ErrorContains(t, err, "invalid UI: \"\"")
 	})
 }

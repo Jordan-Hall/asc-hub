@@ -4,17 +4,17 @@
 	<form id="scoped-access-form" class="ui form" action="{{.Link}}" method="post">
 
 		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "settings.authorized_integration.view_page_title" .Form.Name}}
+			{{ctx.Locale.Tr "settings.authorized_integration.edit_page_title" .Form.Name}}
 		</h4>
 		<div class="ui attached bottom segment">
-			<div class="field">
+			<div class="required field {{if .Err_Name}}error{{end}}">
 				<label for="name">{{ctx.Locale.Tr "settings.authorized_integration.field.name"}}</label>
-				<input id="name" name="name" value="{{.Form.Name}}" maxlength="255" readonly>
+				<input id="name" name="name" value="{{.Form.Name}}" required maxlength="255">
 			</div>
 
 			<div class="field">
 				<label for="description">{{ctx.Locale.Tr "settings.authorized_integration.field.description"}}</label>
-				<textarea name="description" rows="5" placeholder="{{ctx.Locale.Tr "settings.authorized_integration.field.description.placeholder"}}" readonly>{{.Form.Description}}</textarea>
+				<textarea id="description" name="description" rows="5" placeholder="{{ctx.Locale.Tr "settings.authorized_integration.field.description.placeholder"}}">{{.Form.Description}}</textarea>
 			</div>
 
 			<div class="field">

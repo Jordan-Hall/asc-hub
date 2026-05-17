@@ -14,7 +14,7 @@ import (
 	"forgejo.org/modules/web"
 	web_types "forgejo.org/modules/web/types"
 	actions_service "forgejo.org/services/actions"
-	auth_method "forgejo.org/services/auth/method"
+	"forgejo.org/services/auth"
 	"forgejo.org/services/context"
 )
 
@@ -67,7 +67,7 @@ func init() {
 	web.RegisterResponseStatusProvider[*OIDCContext](func(req *http.Request) web_types.ResponseStatusProvider {
 		return req.Context().Value(oidcContextKey).(*OIDCContext)
 	})
-	auth_method.RegisterInternalIssuer("api/actions", internalIssuer{})
+	auth.RegisterInternalIssuer("api/actions", internalIssuer{})
 }
 
 func OIDCContexter() func(next http.Handler) http.Handler {

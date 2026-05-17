@@ -3,7 +3,7 @@
 // web_src/css/{form,user}.css
 // @watch end
 
-import {expect} from '@playwright/test';
+import {expect, type Page} from '@playwright/test';
 import {test, login_user, login} from './utils_e2e.ts';
 import {screenshot} from './shared/screenshots.ts';
 import {validate_form} from './shared/forms.ts';
@@ -236,4 +236,192 @@ test('User: Add specific repo access token error', async ({browser}, workerInfo)
   await expect(page.getByRole('radio', {name: 'Specific repositories'})).toBeChecked();
   await expect(page.getByRole('combobox', {name: 'repository'})).toHaveValue('read:repository');
   await expect(page.getByRole('button', {name: 'Remove org17/big_test_private_4'})).toBeVisible();
+});
+
+test('User: List authorized integrations', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await expect(page.locator('.flex-item-title')).toContainText('Example AI');
+  await expect(page.locator('.flex-item-body')).toContainText('Added on 2026-05-16');
+  await expect(page.locator('.flex-item-body')).toContainText('No recent activity');
+});
+
+async function validateClaimRules(page: Page, expected: string) {
+  await expect(async () => {
+    const internal = await page.evaluate(() => Array.from(window.codeEditors)[0].state.doc.toString());
+    expect(internal).toStrictEqual(expected);
+  }).toPass({timeout: 3000});
+  await expect(page.locator('#claim_rules')).toHaveValue(expected);
+}
+
+test('User: View authorized integration', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('link', {name: 'Edit'}).click();
+
+  await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('Example AI');
+  await expect(page.getByRole('textbox', {name: 'Description'})).toHaveValue('This is an authorized integration.\nThis example is just for viewing and editing.');
+  await expect(page.getByRole('textbox', {name: 'Audience (aud Claim)'})).toHaveValue('u:2:7a6a47fb-6252-48b2-b0bb-e39158b11a36');
+  await expect(page.getByRole('textbox', {name: 'Issuer (iss Claim)'})).toHaveValue('urn:forgejo:authorized-integrations:actions');
+
+  // Claim rules JSON codemirror editor:
+  const editor = page.locator('.cm-content');
+  await expect(editor).toHaveAttribute('data-language', 'json', {timeout: 3000});
+  await validateClaimRules(page, '{\n  "rules": null\n}');
+
+  await expect(page.getByRole('radio', {name: 'All (public, private, and limited)'})).toBeChecked();
+  await expect(page.getByRole('radio', {name: 'Public only'})).not.toBeChecked();
+  await expect(page.getByRole('radio', {name: 'Specific repositories'})).not.toBeChecked();
+
+  await expect(page.getByRole('combobox', {name: 'issue'})).toHaveValue('read:issue');
+  await expect(page.getByRole('combobox', {name: 'repository'})).toHaveValue('write:repository');
+  await expect(page.getByRole('combobox', {name: 'user'})).toHaveValue('');
+  await expect(page.getByRole('combobox', {name: 'admin'})).toBeHidden(); // not an admin user
+});
+
+test('User: Edit authorized integration basic fields', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('link', {name: 'Edit'}).click();
+
+  await page.getByRole('textbox', {name: 'Name'}).fill('Example AI (Updated!)');
+  await page.getByRole('textbox', {name: 'Description'}).fill('Updated by Edit authorized integration basic field test');
+
+  await page.getByRole('button', {name: 'Save authorized integration'}).click();
+
+  // Returns to the list page; validate the updated name is present, and that it isn't marked
+  // as "used" just because it was edited:
+  await expect(page.locator('.flex-item-title')).toContainText('Example AI (Updated!)');
+  await expect(page.locator('.flex-item-body')).toContainText('Added on 2026-05-16');
+  await expect(page.locator('.flex-item-body')).toContainText('No recent activity');
+
+  // Reopen to check description:
+  await page.getByRole('link', {name: 'Edit'}).click();
+  await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('Example AI (Updated!)');
+  await expect(page.getByRole('textbox', {name: 'Description'})).toHaveValue('Updated by Edit authorized integration basic field test');
+
+  // Restore values to avoid affecting other tests and other platforms:
+  await page.getByRole('textbox', {name: 'Name'}).fill('Example AI');
+  await page.getByRole('textbox', {name: 'Description'}).fill('This is an authorized integration.\nThis example is just for viewing and editing.');
+  await page.getByRole('button', {name: 'Save authorized integration'}).click();
+  await expect(page.locator('.flex-item-title')).toContainText('Example AI'); // ensure save completes and we land on list page
+});
+
+test('User: Edit authorized integration basic fields validation error', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('link', {name: 'Edit'}).click();
+  await page.getByRole('textbox', {name: 'Name'}).fill('\t'); // trims to empty
+  await page.getByRole('button', {name: 'Save authorized integration'}).click();
+
+  await expect(page.locator('.flash-error')).toContainText('Authorized integration name is required.');
+  await expect(page.getByRole('textbox', {name: 'Name'}).locator('..')).toHaveClass('required field error');
+});
+
+test('User: Edit authorized integration issuer validation error', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('link', {name: 'Edit'}).click();
+  await page.getByRole('textbox', {name: 'Issuer (iss Claim)'}).fill('ftp://example.org'); // designed to hit "unsupported URL scheme" error, no external traffic involved
+  await page.getByRole('button', {name: 'Save authorized integration'}).click();
+
+  await expect(page.locator('.flash-error')).toContainText(/Issuer validation failed:/);
+  await expect(page.getByRole('textbox', {name: 'Issuer (iss Claim)'}).locator('..')).toHaveClass('required field error');
+});
+
+test('User: Edit authorized integration claim rules', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('link', {name: 'Edit'}).click();
+
+  const editor = page.locator('.cm-content');
+  await editor.click(); // Focus codemirror editor
+  await page.keyboard.press('ControlOrMeta+A'); // select all
+  await page.keyboard.press('Backspace'); // delete
+  await page.keyboard.type('{"rules": [{"claim": "sub", "compare": "eq", "value": "a subject"}]}', {delay: 10});
+
+  await page.getByRole('button', {name: 'Save authorized integration'}).click();
+
+  // Reopen to check claim rules saved:
+  await page.getByRole('link', {name: 'Edit'}).click();
+  await validateClaimRules(page, '{\n  "rules": [\n    {\n      "claim": "sub",\n      "compare": "eq",\n      "value": "a subject"\n    }\n  ]\n}');
+
+  // Restore values to avoid affecting other tests and other platforms:
+  await editor.click(); // Focus codemirror editor
+  await page.keyboard.press('ControlOrMeta+A'); // select all
+  await page.keyboard.press('Backspace'); // delete
+  await page.keyboard.type('{"rules": null}', {delay: 10});
+  await page.getByRole('button', {name: 'Save authorized integration'}).click();
+  await expect(page.locator('.flex-item-title')).toContainText('Example AI'); // ensure save completes and we land on list page
+});
+
+test('User: Edit authorized integration claim rules validation error', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('link', {name: 'Edit'}).click();
+
+  const editor = page.locator('.cm-content');
+  await editor.click(); // Focus codemirror editor
+  await page.keyboard.type('{{{{{{', {delay: 10}); // type some incomplete garbage at the end
+  await page.getByRole('button', {name: 'Save authorized integration'}).click();
+
+  await expect(page.locator('.flash-error')).toContainText(/Claim Rules validation failed:/);
+});
+
+test('User: Edit authorized integration specific repo', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('link', {name: 'Edit'}).click();
+
+  // clicking specific repositories will display currently available repositories:
+  await expect(page.getByText('org17/big_test_private_4')).toBeHidden();
+  await page.getByRole('radio', {name: 'Specific repositories'}).click();
+  await expect(page.getByText('org17/big_test_private_4')).toBeVisible();
+  await expect(page.getByText('user2/commits_search_test')).toBeVisible(); // another repo, will be used to verify search worked
+
+  await page.getByPlaceholder('Search repos…').fill('big_test_private_4');
+  await page.getByRole('button', {name: 'Search…'}).click();
+
+  // verify search results visible:
+  await expect(page.getByText('org17/big_test_private_4')).toBeVisible();
+  await expect(page.getByText('user2/commits_search_test')).toBeHidden();
+
+  // after performing a search, verify that the name, 'selected repositories', and selected permissions are maintained
+  await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue(/^Example AI/);
+  await expect(page.getByRole('radio', {name: 'Specific repositories'})).toBeChecked();
+  await expect(page.getByRole('combobox', {name: 'repository'})).toHaveValue('write:repository');
+
+  // Add the big_test_private_4 repo.
+  await page.getByRole('button', {name: 'Add org17/big_test_private_4'}).click();
+  await expect(page.getByText('Selected repository (1)')).toBeVisible();
+  await expect(page.getByText('org17/big_test_private_4')).toBeVisible();
+
+  // Remove it to test remove, and then re-add
+  await page.getByRole('button', {name: 'Remove org17/big_test_private_4'}).click();
+  await expect(page.getByText('Selected repositories (0)')).toBeVisible();
+  await expect(page.getByText('org17/big_test_private_4')).toBeVisible();
+  await page.getByRole('button', {name: 'Add org17/big_test_private_4'}).click();
+
+  // Save authorized integration
+  await page.getByRole('button', {name: 'Save authorized integration'}).click();
+
+  // Reopen to check change to repo-specific was saved:
+  await page.getByRole('link', {name: 'Edit'}).click();
+  await expect(page.getByRole('radio', {name: 'All (public, private, and limited)'})).not.toBeChecked();
+  await expect(page.getByRole('radio', {name: 'Public only'})).not.toBeChecked();
+  await expect(page.getByRole('radio', {name: 'Specific repositories'})).toBeChecked();
+  await expect(page.getByRole('button', {name: 'Remove org17/big_test_private_4'})).toBeVisible();
+
+  // Restore values to avoid affecting other tests and other platforms:
+  await page.getByRole('radio', {name: 'All (public, private, and limited)'}).click();
+  await page.getByRole('button', {name: 'Save authorized integration'}).click();
+  await expect(page.locator('.flex-item-title')).toContainText('Example AI'); // ensure save completes and we land on list page
 });

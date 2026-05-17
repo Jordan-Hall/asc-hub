@@ -1,7 +1,7 @@
 // Copyright 2026 The Forgejo Authors. All rights reserved.
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package method
+package auth
 
 import (
 	"testing"
@@ -232,19 +232,19 @@ const awsJWKS = `
 
 func TestParseOpenIDConfiguration(t *testing.T) {
 	t.Run("Forgejo", func(t *testing.T) {
-		var retval openIDConfiguration
+		var retval AuthorizedIntegrationOpenIDConfiguration
 		data := []byte(forgejoOIDC)
 		require.NoError(t, json.Unmarshal(data, &retval))
 		assert.Equal(t, "https://example.org/api/actions/.well-known/keys", retval.JwksURI)
 	})
 	t.Run("GitHub", func(t *testing.T) {
-		var retval openIDConfiguration
+		var retval AuthorizedIntegrationOpenIDConfiguration
 		data := []byte(githubOIDC)
 		require.NoError(t, json.Unmarshal(data, &retval))
 		assert.Equal(t, "https://token.actions.githubusercontent.com/.well-known/jwks", retval.JwksURI)
 	})
 	t.Run("AWS", func(t *testing.T) {
-		var retval openIDConfiguration
+		var retval AuthorizedIntegrationOpenIDConfiguration
 		data := []byte(awsOIDC)
 		require.NoError(t, json.Unmarshal(data, &retval))
 		assert.Equal(t, "https://a103a2cc-b461-473d-84fe-6c4f6d45af88.tokens.sts.global.api.aws/.well-known/jwks.json", retval.JwksURI)
@@ -253,19 +253,19 @@ func TestParseOpenIDConfiguration(t *testing.T) {
 
 func TestParseJSONWebKeySet(t *testing.T) {
 	t.Run("Forgejo", func(t *testing.T) {
-		var retval openIDKeys
+		var retval AuthorizedIntegrationOpenIDKeys
 		data := []byte(forgejoJWKS)
 		require.NoError(t, json.Unmarshal(data, &retval))
 		assert.Len(t, retval.Keys, 1)
 	})
 	t.Run("GitHub", func(t *testing.T) {
-		var retval openIDKeys
+		var retval AuthorizedIntegrationOpenIDKeys
 		data := []byte(githubJWKS)
 		require.NoError(t, json.Unmarshal(data, &retval))
 		assert.Len(t, retval.Keys, 4)
 	})
 	t.Run("AWS", func(t *testing.T) {
-		var retval openIDKeys
+		var retval AuthorizedIntegrationOpenIDKeys
 		data := []byte(awsJWKS)
 		require.NoError(t, json.Unmarshal(data, &retval))
 		assert.Len(t, retval.Keys, 2)
