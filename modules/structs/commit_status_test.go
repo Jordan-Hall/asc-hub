@@ -19,6 +19,46 @@ func TestNoBetterThan(t *testing.T) {
 		want bool
 	}{
 		{
+			name: "skipped is not better than skipped",
+			args: args{
+				css:  CommitStatusSkipped,
+				css2: CommitStatusSkipped,
+			},
+			want: true,
+		},
+		{
+			name: "skipped is not better than success",
+			args: args{
+				css:  CommitStatusSkipped,
+				css2: CommitStatusSuccess,
+			},
+			want: false,
+		},
+		{
+			name: "skipped is not better than pending",
+			args: args{
+				css:  CommitStatusSkipped,
+				css2: CommitStatusPending,
+			},
+			want: false,
+		},
+		{
+			name: "skipped is not better than failure",
+			args: args{
+				css:  CommitStatusSkipped,
+				css2: CommitStatusFailure,
+			},
+			want: false,
+		},
+		{
+			name: "skipped is not better than error",
+			args: args{
+				css:  CommitStatusSkipped,
+				css2: CommitStatusError,
+			},
+			want: false,
+		},
+		{
 			name: "success is no better than success",
 			args: args{
 				css:  CommitStatusSuccess,

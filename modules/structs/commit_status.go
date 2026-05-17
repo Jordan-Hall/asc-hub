@@ -4,7 +4,7 @@
 package structs
 
 // CommitStatusState holds the state of a CommitStatus
-// It can be "pending", "success", "error", "failure" and "warning"
+// It can be "pending", "success", "error", "failure", "warning", or "skipped"
 type CommitStatusState string
 
 const (
@@ -18,6 +18,8 @@ const (
 	CommitStatusFailure CommitStatusState = "failure"
 	// CommitStatusWarning is for when the CommitStatus is Warning
 	CommitStatusWarning CommitStatusState = "warning"
+	// CommitStatusSkipped is for when the CommitStatus is Skipped
+	CommitStatusSkipped CommitStatusState = "skipped"
 )
 
 var commitStatusPriorities = map[CommitStatusState]int{
@@ -26,6 +28,7 @@ var commitStatusPriorities = map[CommitStatusState]int{
 	CommitStatusWarning: 2,
 	CommitStatusPending: 3,
 	CommitStatusSuccess: 4,
+	CommitStatusSkipped: 5,
 }
 
 func (css CommitStatusState) String() string {
@@ -35,7 +38,7 @@ func (css CommitStatusState) String() string {
 // NoBetterThan returns true if this State is no better than the given State
 // This function only handles the states defined in CommitStatusPriorities
 func (css CommitStatusState) NoBetterThan(css2 CommitStatusState) bool {
-	// NoBetterThan only handles the 5 states above
+	// NoBetterThan only handles the states above
 	if _, exist := commitStatusPriorities[css]; !exist {
 		return false
 	}
@@ -70,4 +73,9 @@ func (css CommitStatusState) IsFailure() bool {
 // IsWarning represents if commit status state is warning
 func (css CommitStatusState) IsWarning() bool {
 	return css == CommitStatusWarning
+}
+
+// IsSkipped returns true if a commit has been skipped.
+func (css CommitStatusState) IsSkipped() bool {
+	return css == CommitStatusSkipped
 }

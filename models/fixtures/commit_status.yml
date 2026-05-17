@@ -93,3 +93,15 @@
   context: deploy/awesomeness
   context_hash: ae9547713a6665fc4261d0756904932085a41cf2
   creator_id: 2
+
+-
+  id: 9
+  index: 7
+  repo_id: 1
+  state: "skipped"
+  sha: "1234123412341234123412341234123412341234"
+  target_url: https://example.com/builds/
+  description: Publish awesomeness
+  context: publish/awesomeness
+  context_hash: 701785a796917a4942f2ab1337d95225270026b5
+  creator_id: 2

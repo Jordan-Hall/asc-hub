@@ -5,6 +5,9 @@
 {{if eq .State "success"}}
 	{{svg "octicon-check" 18 "commit-status icon text green"}}
 {{end}}
+{{if eq .State "skipped"}}
+	{{svg "octicon-skip" 18 "commit-status icon text grey"}}
+{{end}}
 {{if eq .State "error"}}
 	{{svg "gitea-exclamation" 18 "commit-status icon text red"}}
 {{end}}

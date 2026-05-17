@@ -34,6 +34,18 @@ func TestGetLatestCommitStatusForPairs(t *testing.T) {
 		assert.Equal(t, map[int64][]*git_model.CommitStatus{
 			1: {
 				{
+					ID:          9,
+					Index:       7,
+					RepoID:      1,
+					State:       structs.CommitStatusSkipped,
+					SHA:         "1234123412341234123412341234123412341234",
+					TargetURL:   "https://example.com/builds/",
+					Description: "Publish awesomeness",
+					ContextHash: "701785a796917a4942f2ab1337d95225270026b5",
+					Context:     "publish/awesomeness",
+					CreatorID:   2,
+				},
+				{
 					ID:          7,
 					Index:       6,
 					RepoID:      1,
@@ -162,6 +174,18 @@ func TestGetLatestCommitStatusForRepoCommitIDs(t *testing.T) {
 					Description: "My awesome deploy service",
 					ContextHash: "ae9547713a6665fc4261d0756904932085a41cf2",
 					Context:     "deploy/awesomeness",
+					CreatorID:   2,
+				},
+				{
+					ID:          9,
+					Index:       7,
+					RepoID:      1,
+					State:       structs.CommitStatusSkipped,
+					SHA:         "1234123412341234123412341234123412341234",
+					TargetURL:   "https://example.com/builds/",
+					Description: "Publish awesomeness",
+					ContextHash: "701785a796917a4942f2ab1337d95225270026b5",
+					Context:     "publish/awesomeness",
 					CreatorID:   2,
 				},
 			},

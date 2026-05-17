@@ -9,6 +9,7 @@ const {appSubUrl, assetUrlPrefix, pageData} = window.config;
 const commitStatus = {
   pending: {name: 'octicon-dot-fill', color: 'yellow'},
   success: {name: 'octicon-check', color: 'green'},
+  skipped: {name: 'octicon-skip', color: 'grey'},
   error: {name: 'gitea-exclamation', color: 'red'},
   failure: {name: 'octicon-x', color: 'red'},
   warning: {name: 'gitea-exclamation', color: 'yellow'},

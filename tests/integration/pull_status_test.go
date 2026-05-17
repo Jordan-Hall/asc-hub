@@ -55,12 +55,14 @@ func TestPullCreate_CommitStatus(t *testing.T) {
 			api.CommitStatusError,
 			api.CommitStatusFailure,
 			api.CommitStatusSuccess,
+			api.CommitStatusSkipped,
 			api.CommitStatusWarning,
 		}
 
 		statesIcons := map[api.CommitStatusState]string{
 			api.CommitStatusPending: "octicon-dot-fill",
 			api.CommitStatusSuccess: "octicon-check",
+			api.CommitStatusSkipped: "octicon-skip",
 			api.CommitStatusError:   "gitea-exclamation",
 			api.CommitStatusFailure: "octicon-x",
 			api.CommitStatusWarning: "gitea-exclamation",

@@ -90,6 +90,7 @@
 	},
 	"repo.pulls.maintainers_can_edit": "Maintainers can edit this pull request.",
 	"repo.pulls.maintainers_cannot_edit": "Maintainers cannot edit this pull request.",
+	"repo.pulls.status_checks_skipped": "Skipped",
 	"repo.form.cannot_create": "All spaces in which you can create repositories have reached the limit of repositories.",
 	"repo.view.gitmodules_too_large": "The .gitmodules file is too large and will be ignored (on API calls for instance)",
 	"migrate.select.title": "Migrate repository",
