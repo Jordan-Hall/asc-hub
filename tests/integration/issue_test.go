@@ -1462,6 +1462,40 @@ func TestIssueOrgDashboard(t *testing.T) {
 	}
 }
 
+func TestIssueDashboardProjects(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	org := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 3, Type: user_model.UserTypeOrganization})
+	session := loginUser(t, user.Name)
+
+	testFn := func(t *testing.T, req *RequestWrapper, projectID int64) {
+		resp := session.MakeRequest(t, req, http.StatusOK)
+		htmlDoc := NewHTMLParser(t, resp.Body)
+
+		projectFilterHref, ok := htmlDoc.Find("[data-test-tag=filter-project] a.active").Attr("href")
+		assert.True(t, ok)
+		assert.Contains(t, projectFilterHref, fmt.Sprintf("project=%d", projectID))
+
+		issues := htmlDoc.Find("#issue-list .issue-meta")
+		assert.NotZero(t, issues.Length())
+
+		issues.Each(func(i int, s *goquery.Selection) {
+			issueProjectHref, ok := s.Find("a.project").Attr("href")
+			assert.True(t, ok)
+			assert.Contains(t, issueProjectHref, fmt.Sprintf("projects/%d", projectID))
+		})
+	}
+
+	t.Run("User", func(t *testing.T) {
+		testFn(t, NewRequest(t, "GET", "/issues?project=4"), 4)
+	})
+
+	t.Run("Org", func(t *testing.T) {
+		testFn(t, NewRequestf(t, "GET", "/org/%s/issues?project=7", org.Name), 7)
+	})
+}
+
 func TestIssueCount(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 

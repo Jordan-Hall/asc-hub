@@ -78,6 +78,6 @@
   is_closed: false
   creator_id: 2
   board_type: 1
-  type: 1
+  type: 3
   created_unix: 1688973000
   updated_unix: 1688973000
