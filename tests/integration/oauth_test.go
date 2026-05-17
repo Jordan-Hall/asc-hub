@@ -2127,3 +2127,205 @@ func TestSignInOAuthCallbackSignInRetrieveError(t *testing.T) {
 	assert.NotNil(t, flashCookie)
 	assert.Equal(t, "error%3DOAuth2%2BRetrieveError%253A%2Boauth2%253A%2Bcannot%2Bfetch%2Btoken%253A%2B404%2BNot%2BFound%250AResponse%253A%2Bcooked", flashCookie.Value)
 }
+
+func TestSignUpViaOAuthWithMissingNickname(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	// enable auto-creation of accounts via OAuth2 with "nickname" username
+	defer test.MockVariableValue(&setting.OAuth2Client.EnableAutoRegistration, true)()
+	defer test.MockVariableValue(&setting.OAuth2Client.Username, "nickname")()
+
+	// OAuth2 authentication source GitLab
+	gitlabName := "gitlab"
+	addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+	userGitLabUserID := "5678"
+
+	// The Goth User doesn't contain a nickname, redirected to link account
+	defer mockCompleteUserAuth(func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+		return goth.User{
+			Provider: gitlabName,
+			UserID:   userGitLabUserID,
+			Email:    "gitlabuser@example.com",
+			RawData: map[string]any{
+				"preferred_username": "preferred_username",
+			},
+		}, nil
+	})()
+	req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s/callback?code=XYZ&state=XYZ", gitlabName))
+	resp := MakeRequest(t, req, http.StatusSeeOther)
+	assert.Equal(t, "/user/link_account", test.RedirectURL(resp))
+}
+
+func TestSignUpViaOAuthWithMissingUsername(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	// enable auto-creation of accounts via OAuth2 with "preferred_username" username
+	defer test.MockVariableValue(&setting.OAuth2Client.EnableAutoRegistration, true)()
+	defer test.MockVariableValue(&setting.OAuth2Client.Username, "preferred_username")()
+
+	// OAuth2 authentication source GitLab
+	gitlabName := "gitlab"
+	addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+	userGitLabUserID := "5678"
+
+	// The Goth User doesn't contain preferred_username, redirected to link account
+	defer mockCompleteUserAuth(func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+		return goth.User{
+			Provider: gitlabName,
+			UserID:   userGitLabUserID,
+			Email:    "gitlabuser@example.com",
+			NickName: "nickname",
+		}, nil
+	})()
+	req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s/callback?code=XYZ&state=XYZ", gitlabName))
+	resp := MakeRequest(t, req, http.StatusSeeOther)
+	assert.Equal(t, "/user/link_account", test.RedirectURL(resp))
+}
+
+func TestSignUpViaOAuthWithNicknameAsUsername(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	// enable auto-creation of accounts via OAuth2 with "nickname" username
+	defer test.MockVariableValue(&setting.OAuth2Client.EnableAutoRegistration, true)()
+	defer test.MockVariableValue(&setting.OAuth2Client.Username, "nickname")()
+
+	// OAuth2 authentication source GitLab
+	gitlabName := "gitlab"
+	addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+	userGitLabUserID := "5678"
+
+	// The Goth User contains the nickname that'll be used as the Forgejo user's username
+	defer mockCompleteUserAuth(func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+		return goth.User{
+			Provider: gitlabName,
+			UserID:   userGitLabUserID,
+			Email:    "gitlabuser@example.com",
+			NickName: "nickname",
+			RawData: map[string]any{
+				"preferred_username": "preferred_username",
+			},
+		}, nil
+	})()
+	req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s/callback?code=XYZ&state=XYZ", gitlabName))
+	resp := MakeRequest(t, req, http.StatusSeeOther)
+	assert.Equal(t, "/", test.RedirectURL(resp))
+	userAfterLogin := unittest.AssertExistsAndLoadBean(t, &user_model.User{LoginName: userGitLabUserID})
+	assert.Equal(t, "nickname", userAfterLogin.Name)
+}
+
+func TestSignUpViaOAuthWithUserIdAsUsername(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	// enable auto-creation of accounts via OAuth2 with "userid" username
+	defer test.MockVariableValue(&setting.OAuth2Client.EnableAutoRegistration, true)()
+	defer test.MockVariableValue(&setting.OAuth2Client.Username, "userid")()
+
+	// OAuth2 authentication source GitLab
+	gitlabName := "gitlab"
+	addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+	userGitLabUserID := "5678"
+
+	// The Goth User's UserID will be used as the Forgejo user's username
+	defer mockCompleteUserAuth(func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+		return goth.User{
+			Provider: gitlabName,
+			UserID:   userGitLabUserID,
+			Email:    "gitlabuser@example.com",
+			NickName: "nickname",
+			RawData: map[string]any{
+				"preferred_username": "preferred_username",
+			},
+		}, nil
+	})()
+	req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s/callback?code=XYZ&state=XYZ", gitlabName))
+	resp := MakeRequest(t, req, http.StatusSeeOther)
+	assert.Equal(t, "/", test.RedirectURL(resp))
+	userAfterLogin := unittest.AssertExistsAndLoadBean(t, &user_model.User{LoginName: userGitLabUserID})
+	assert.Equal(t, userGitLabUserID, userAfterLogin.Name)
+}
+
+func TestSignUpViaOAuthWithEmailAsUsername(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	// enable auto-creation of accounts via OAuth2 with "email" username
+	defer test.MockVariableValue(&setting.OAuth2Client.EnableAutoRegistration, true)()
+	defer test.MockVariableValue(&setting.OAuth2Client.Username, "email")()
+
+	// OAuth2 authentication source GitLab
+	gitlabName := "gitlab"
+	addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+	userGitLabUserID := "5678"
+
+	// The Goth User's email local part will be used as the Forgejo user's username
+	defer mockCompleteUserAuth(func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+		return goth.User{
+			Provider: gitlabName,
+			UserID:   userGitLabUserID,
+			Email:    "gitlabuser@example.com",
+			NickName: "nickname",
+			RawData: map[string]any{
+				"preferred_username": "preferred_username",
+			},
+		}, nil
+	})()
+	req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s/callback?code=XYZ&state=XYZ", gitlabName))
+	resp := MakeRequest(t, req, http.StatusSeeOther)
+	assert.Equal(t, "/", test.RedirectURL(resp))
+	userAfterLogin := unittest.AssertExistsAndLoadBean(t, &user_model.User{LoginName: userGitLabUserID})
+	assert.Equal(t, "gitlabuser", userAfterLogin.Name)
+}
+
+func TestSignUpViaOAuthWithPreferredUsernameAsUsername(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	// enable auto-creation of accounts via OAuth2 with "preferred_username" username
+	defer test.MockVariableValue(&setting.OAuth2Client.EnableAutoRegistration, true)()
+	defer test.MockVariableValue(&setting.OAuth2Client.Username, "preferred_username")()
+
+	// OAuth2 authentication source GitLab
+	gitlabName := "gitlab"
+	addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+	userGitLabUserID := "5678"
+
+	// The Goth User's preferred_username claim will be used as the Forgejo user's username
+	defer mockCompleteUserAuth(func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+		return goth.User{
+			Provider: gitlabName,
+			UserID:   userGitLabUserID,
+			Email:    "gitlabuser@example.com",
+			NickName: "nickname",
+			RawData: map[string]any{
+				"preferred_username": "preferred_username",
+			},
+		}, nil
+	})()
+	req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s/callback?code=XYZ&state=XYZ", gitlabName))
+	resp := MakeRequest(t, req, http.StatusSeeOther)
+	assert.Equal(t, "/", test.RedirectURL(resp))
+	userAfterLogin := unittest.AssertExistsAndLoadBean(t, &user_model.User{LoginName: userGitLabUserID})
+	assert.Equal(t, "preferred_username", userAfterLogin.Name)
+}
+
+func TestSignUpViaOAuthWithPreferredUsernameProcessesEmail(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	// enable auto-creation of accounts via OAuth2 with "preferred_username" username
+	defer test.MockVariableValue(&setting.OAuth2Client.EnableAutoRegistration, true)()
+	defer test.MockVariableValue(&setting.OAuth2Client.Username, "preferred_username")()
+
+	// OAuth2 authentication source GitLab
+	gitlabName := "gitlab"
+	addAuthSource(t, authSourcePayloadGitLabCustom(gitlabName))
+	userGitLabUserID := "5678"
+
+	// The Goth User's preferred_username claim contains an "@" suffix that will be stripped
+	defer mockCompleteUserAuth(func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+		return goth.User{
+			Provider: gitlabName,
+			UserID:   userGitLabUserID,
+			Email:    "gitlabuser@example.com",
+			NickName: "nickname",
+			RawData: map[string]any{
+				"preferred_username": "someotheremail@gmail.com",
+			},
+		}, nil
+	})()
+	req := NewRequest(t, "GET", fmt.Sprintf("/user/oauth2/%s/callback?code=XYZ&state=XYZ", gitlabName))
+	resp := MakeRequest(t, req, http.StatusSeeOther)
+	assert.Equal(t, "/", test.RedirectURL(resp))
+	userAfterLogin := unittest.AssertExistsAndLoadBean(t, &user_model.User{LoginName: userGitLabUserID})
+	assert.Equal(t, "someotheremail", userAfterLogin.Name)
+}
