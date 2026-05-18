@@ -170,7 +170,13 @@
 		</div>
 
 		<div class="ui segment">
-			<button class="ui primary button">{{ctx.Locale.Tr "settings.authorized_integration.save"}}</button>
+			<button class="ui primary button">
+				{{if .IsNew}}
+					{{ctx.Locale.Tr "settings.authorized_integration.create"}}
+				{{else}}
+					{{ctx.Locale.Tr "settings.authorized_integration.save"}}
+				{{end}}
+			</button>
 		</div>
 
 

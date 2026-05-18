@@ -242,9 +242,11 @@ test('User: List authorized integrations', async ({browser}, workerInfo) => {
   const page = await login({browser}, workerInfo);
   await page.goto('/user/settings/authorized-integrations');
 
-  await expect(page.locator('.flex-item-title')).toContainText('Example AI');
-  await expect(page.locator('.flex-item-body')).toContainText('Added on 2026-05-16');
-  await expect(page.locator('.flex-item-body')).toContainText('No recent activity');
+  // Check for fixture data; check has to be safe for the presence of other authorized integrations
+  // created by previous test runs.
+  await expect(page.locator('.flex-item-title').filter({hasText: 'Example AI'})).not.toHaveCount(0);
+  await expect(page.locator('.flex-item-body').filter({hasText: 'Added on 2026-05-16'})).not.toHaveCount(0);
+  await expect(page.locator('.flex-item-body').filter({hasText: 'No recent activity'})).not.toHaveCount(0);
 });
 
 async function validateClaimRules(page: Page, expected: string) {
@@ -255,11 +257,20 @@ async function validateClaimRules(page: Page, expected: string) {
   await expect(page.locator('#claim_rules')).toHaveValue(expected);
 }
 
+async function editFixtureAuthorizedIntegration(page: Page) {
+  // When tests are run on multiple platforms, more than one authorized integration will be present from the "Add"
+  // tests that don't have a way to cleanup after themselves (no delete capability yet); find the right target
+  // to edit:
+  await page.locator('.flex-item')
+    .filter({has: page.locator('.flex-item-title', {hasText: 'Example AI'})})
+    .getByRole('link', {name: 'Edit'}).click();
+}
+
 test('User: View authorized integration', async ({browser}, workerInfo) => {
   const page = await login({browser}, workerInfo);
   await page.goto('/user/settings/authorized-integrations');
 
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
 
   await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('Example AI');
   await expect(page.getByRole('textbox', {name: 'Description'})).toHaveValue('This is an authorized integration.\nThis example is just for viewing and editing.');
@@ -285,7 +296,7 @@ test('User: Edit authorized integration basic fields', async ({browser}, workerI
   const page = await login({browser}, workerInfo);
   await page.goto('/user/settings/authorized-integrations');
 
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
 
   await page.getByRole('textbox', {name: 'Name'}).fill('Example AI (Updated!)');
   await page.getByRole('textbox', {name: 'Description'}).fill('Updated by Edit authorized integration basic field test');
@@ -294,12 +305,12 @@ test('User: Edit authorized integration basic fields', async ({browser}, workerI
 
   // Returns to the list page; validate the updated name is present, and that it isn't marked
   // as "used" just because it was edited:
-  await expect(page.locator('.flex-item-title')).toContainText('Example AI (Updated!)');
-  await expect(page.locator('.flex-item-body')).toContainText('Added on 2026-05-16');
-  await expect(page.locator('.flex-item-body')).toContainText('No recent activity');
+  await expect(page.locator('.flex-item-title').filter({hasText: 'Example AI (Updated!)'})).not.toHaveCount(0);
+  await expect(page.locator('.flex-item-body').filter({hasText: 'Added on 2026-05-16'})).not.toHaveCount(0);
+  await expect(page.locator('.flex-item-body').filter({hasText: 'No recent activity'})).not.toHaveCount(0);
 
   // Reopen to check description:
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
   await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('Example AI (Updated!)');
   await expect(page.getByRole('textbox', {name: 'Description'})).toHaveValue('Updated by Edit authorized integration basic field test');
 
@@ -307,14 +318,14 @@ test('User: Edit authorized integration basic fields', async ({browser}, workerI
   await page.getByRole('textbox', {name: 'Name'}).fill('Example AI');
   await page.getByRole('textbox', {name: 'Description'}).fill('This is an authorized integration.\nThis example is just for viewing and editing.');
   await page.getByRole('button', {name: 'Save authorized integration'}).click();
-  await expect(page.locator('.flex-item-title')).toContainText('Example AI'); // ensure save completes and we land on list page
+  await expect(page.locator('.flex-item-title').filter({hasText: 'Example AI'})).not.toHaveCount(0); // ensure save completes and we land on list page
 });
 
 test('User: Edit authorized integration basic fields validation error', async ({browser}, workerInfo) => {
   const page = await login({browser}, workerInfo);
   await page.goto('/user/settings/authorized-integrations');
 
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
   await page.getByRole('textbox', {name: 'Name'}).fill('\t'); // trims to empty
   await page.getByRole('button', {name: 'Save authorized integration'}).click();
 
@@ -326,7 +337,7 @@ test('User: Edit authorized integration issuer validation error', async ({browse
   const page = await login({browser}, workerInfo);
   await page.goto('/user/settings/authorized-integrations');
 
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
   await page.getByRole('textbox', {name: 'Issuer (iss Claim)'}).fill('ftp://example.org'); // designed to hit "unsupported URL scheme" error, no external traffic involved
   await page.getByRole('button', {name: 'Save authorized integration'}).click();
 
@@ -338,7 +349,7 @@ test('User: Edit authorized integration claim rules', async ({browser}, workerIn
   const page = await login({browser}, workerInfo);
   await page.goto('/user/settings/authorized-integrations');
 
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
 
   const editor = page.locator('.cm-content');
   await editor.click(); // Focus codemirror editor
@@ -349,7 +360,7 @@ test('User: Edit authorized integration claim rules', async ({browser}, workerIn
   await page.getByRole('button', {name: 'Save authorized integration'}).click();
 
   // Reopen to check claim rules saved:
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
   await validateClaimRules(page, '{\n  "rules": [\n    {\n      "claim": "sub",\n      "compare": "eq",\n      "value": "a subject"\n    }\n  ]\n}');
 
   // Restore values to avoid affecting other tests and other platforms:
@@ -358,14 +369,14 @@ test('User: Edit authorized integration claim rules', async ({browser}, workerIn
   await page.keyboard.press('Backspace'); // delete
   await page.keyboard.type('{"rules": null}', {delay: 10});
   await page.getByRole('button', {name: 'Save authorized integration'}).click();
-  await expect(page.locator('.flex-item-title')).toContainText('Example AI'); // ensure save completes and we land on list page
+  await expect(page.locator('.flex-item-title').filter({hasText: 'Example AI'})).not.toHaveCount(0); // ensure save completes and we land on list page
 });
 
 test('User: Edit authorized integration claim rules validation error', async ({browser}, workerInfo) => {
   const page = await login({browser}, workerInfo);
   await page.goto('/user/settings/authorized-integrations');
 
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
 
   const editor = page.locator('.cm-content');
   await editor.click(); // Focus codemirror editor
@@ -379,7 +390,7 @@ test('User: Edit authorized integration specific repo', async ({browser}, worker
   const page = await login({browser}, workerInfo);
   await page.goto('/user/settings/authorized-integrations');
 
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
 
   // clicking specific repositories will display currently available repositories:
   await expect(page.getByText('org17/big_test_private_4')).toBeHidden();
@@ -414,7 +425,7 @@ test('User: Edit authorized integration specific repo', async ({browser}, worker
   await page.getByRole('button', {name: 'Save authorized integration'}).click();
 
   // Reopen to check change to repo-specific was saved:
-  await page.getByRole('link', {name: 'Edit'}).click();
+  await editFixtureAuthorizedIntegration(page);
   await expect(page.getByRole('radio', {name: 'All (public, private, and limited)'})).not.toBeChecked();
   await expect(page.getByRole('radio', {name: 'Public only'})).not.toBeChecked();
   await expect(page.getByRole('radio', {name: 'Specific repositories'})).toBeChecked();
@@ -423,5 +434,60 @@ test('User: Edit authorized integration specific repo', async ({browser}, worker
   // Restore values to avoid affecting other tests and other platforms:
   await page.getByRole('radio', {name: 'All (public, private, and limited)'}).click();
   await page.getByRole('button', {name: 'Save authorized integration'}).click();
-  await expect(page.locator('.flex-item-title')).toContainText('Example AI'); // ensure save completes and we land on list page
+  await expect(page.locator('.flex-item-title').filter({hasText: 'Example AI'})).not.toHaveCount(0); // ensure save completes and we land on list page
+});
+
+test('User: Add authorized integration', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('menu').filter({hasText: 'Add authorized integration'}).click();
+  await page.getByRole('menuitem', {name: 'Generic JWT Source'}).click();
+
+  await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('');
+  await expect(page.getByRole('textbox', {name: 'Description'})).toHaveValue('');
+  await expect(page.getByRole('textbox', {name: 'Audience (aud Claim)'})).toBeHidden();
+  await expect(page.getByRole('textbox', {name: 'Issuer (iss Claim)'})).toHaveValue('');
+
+  await page.getByRole('textbox', {name: 'Name'}).fill('New Authorized Integration!');
+  await page.getByRole('textbox', {name: 'Description'}).fill('Description that carefully describes things.');
+  await page.getByRole('textbox', {name: 'Issuer (iss Claim)'}).fill('urn:forgejo:authorized-integrations:actions');
+  await page.getByRole('combobox', {name: 'repository'}).selectOption('read:repository');
+  await page.getByRole('button', {name: 'Create authorized integration'}).click();
+
+  // Create will reload the page with a success banner, and the audience now populated:
+  await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('New Authorized Integration!');
+  await expect(page.getByRole('textbox', {name: 'Description'})).toHaveValue('Description that carefully describes things.');
+  await expect(page.getByRole('textbox', {name: 'Audience (aud Claim)'})).toHaveValue(/^u:[0-9]+/);
+  await expect(page.getByRole('textbox', {name: 'Issuer (iss Claim)'})).toHaveValue('urn:forgejo:authorized-integrations:actions');
+
+  // Flash banner:
+  await expect(page.locator('.ui.message.flash-success')).toBeVisible();
+  const flashText = await page.locator('.ui.message.flash-success').textContent();
+  expect(flashText?.trim()).toBe('Created authorized integration: New Authorized Integration!');
+});
+
+test('User: Add authorized integration validation error', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('menu').filter({hasText: 'Add authorized integration'}).click();
+  await page.getByRole('menuitem', {name: 'Generic JWT Source'}).click();
+
+  await page.getByRole('textbox', {name: 'Name'}).fill('\t\t');
+  await page.getByRole('textbox', {name: 'Issuer (iss Claim)'}).fill('urn:forgejo:authorized-integrations:actions');
+  await page.getByRole('button', {name: 'Create authorized integration'}).click();
+
+  // Should have errors from having just whitespace in the Name field:
+  await expect(page.locator('.flash-error')).toContainText('Authorized integration name is required.');
+  await expect(page.getByRole('textbox', {name: 'Name'}).locator('..')).toHaveClass('required field error');
+
+  // Fill out missing field and resubmit:
+  await page.getByRole('textbox', {name: 'Name'}).fill('Forgot to fill this out!');
+  await page.getByRole('button', {name: 'Create authorized integration'}).click();
+
+  // Flash banner:
+  await expect(page.locator('.ui.message.flash-success')).toBeVisible();
+  const flashText = await page.locator('.ui.message.flash-success').textContent();
+  expect(flashText?.trim()).toBe('Created authorized integration: Forgot to fill this out!');
 });

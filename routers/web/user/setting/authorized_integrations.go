@@ -74,6 +74,11 @@ type AuthorizedIntegrationForm struct {
 	SetPage            int    // repo search buttons
 }
 
+func (f *AuthorizedIntegrationForm) isEmpty() bool {
+	return f.Name == "" && f.Description == "" && f.Audience == "" && f.Issuer == "" &&
+		f.ClaimRules == "" && f.Resource == "" && f.SelectedRepo == nil && f.Scope == nil
+}
+
 func getAuthorizedIntegration(ctx *context.Context) *auth_model.AuthorizedIntegration {
 	aiUIString := ctx.Params("ui")
 	aiUI, err := auth_model.ParseAuthorizedIntegrationUI(aiUIString)
@@ -102,7 +107,7 @@ func EditAuthorizedIntegration(ctx *context.Context) {
 	}
 
 	form := web.GetForm(ctx).(*AuthorizedIntegrationForm)
-	if form.Audience == "" { // empty GET; first load of the page
+	if form.isEmpty() {
 		repos, err := auth_model.GetRepositoriesAccessibleWithIntegration(ctx, ai.ID)
 		if err != nil {
 			ctx.ServerError("GetRepositoriesAccessibleWithIntegration", err)
@@ -141,6 +146,42 @@ func EditAuthorizedIntegrationPost(ctx *context.Context) {
 	}
 
 	ctx.Redirect(setting.AppSubURL + "/user/settings/authorized-integrations")
+}
+
+func NewAuthorizedIntegration(ctx *context.Context) {
+	form := web.GetForm(ctx).(*AuthorizedIntegrationForm)
+	if form.isEmpty() {
+		form.Resource = "all"
+		form.ClaimRules = string("{\n  \"rules\":[]\n}")
+	}
+	ctx.Data["Form"] = form
+	ctx.Data["IsNew"] = true
+
+	EditAuthorizedIntegrationRenderCommon(ctx)
+}
+
+func NewAuthorizedIntegrationPost(ctx *context.Context) {
+	form := web.GetForm(ctx).(*AuthorizedIntegrationForm)
+	ctx.Data["Form"] = form // make form available for template render on any error
+	ctx.Data["IsNew"] = true
+
+	ai := &auth_model.AuthorizedIntegration{
+		UserID: ctx.Doer.ID,
+		UI:     auth_model.AuthorizedIntegrationUIGeneric,
+	}
+	rr, err := copyFormToAuthorizedIntegration(ctx, form, ai)
+	if err != nil {
+		editAuthorizedIntegrationErrorHandler(ctx, err)
+		return
+	}
+
+	if err := auth_service.InsertAuthorizedIntegration(ctx, ai, rr); err != nil {
+		editAuthorizedIntegrationErrorHandler(ctx, err)
+		return
+	}
+
+	ctx.Flash.Success(ctx.Tr("settings.authorized_integration.create_success", ai.Name))
+	ctx.Redirect(setting.AppSubURL + fmt.Sprintf("/user/settings/authorized-integrations/generic/%d", ai.ID))
 }
 
 func editAuthorizedIntegrationErrorHandler(ctx *context.Context, err error) {

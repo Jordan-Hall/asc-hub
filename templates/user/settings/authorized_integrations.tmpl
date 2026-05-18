@@ -3,6 +3,12 @@
 <div class="user-setting-content">
 	<h4 class="ui top attached header">
 		{{ctx.Locale.Tr "settings.manage_authorized_integrations"}}
+		<div class="ui right">
+			<div class="ui jump dropdown">
+				<div class="ui primary tiny button">{{ctx.Locale.Tr "settings.authorized_integration.add"}}</div>
+				{{template "user/settings/authorized_integrations/link_menu" .}}
+			</div>
+		</div>
 	</h4>
 	<div class="ui attached segment">
 		<div class="flex-list">
