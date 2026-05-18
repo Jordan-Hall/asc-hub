@@ -19,4 +19,7 @@ type PublicKey struct {
 	Owner    *User     `json:"user,omitempty"`
 	ReadOnly bool      `json:"read_only,omitempty"`
 	KeyType  string    `json:"key_type,omitempty"`
+	// swagger:strfmt date-time
+	Updated  time.Time `json:"updated_at,omitzero"`
+	Verified bool      `json:"verified"`
 }

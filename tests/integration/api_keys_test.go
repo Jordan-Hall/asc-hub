@@ -144,11 +144,11 @@ func TestCreateUserKey(t *testing.T) {
 	})
 
 	// Search by fingerprint
+	var fingerprintPublicKeys []api.PublicKey
 	req = NewRequest(t, "GET", fmt.Sprintf("/api/v1/user/keys?fingerprint=%s", newPublicKey.Fingerprint)).
 		AddTokenAuth(token)
 	resp = MakeRequest(t, req, http.StatusOK)
 
-	var fingerprintPublicKeys []api.PublicKey
 	DecodeJSON(t, resp, &fingerprintPublicKeys)
 	assert.Equal(t, newPublicKey.Fingerprint, fingerprintPublicKeys[0].Fingerprint)
 	assert.Equal(t, newPublicKey.ID, fingerprintPublicKeys[0].ID)
@@ -210,4 +210,21 @@ func TestCreateUserKey(t *testing.T) {
 
 	DecodeJSON(t, resp, &fingerprintPublicKeys)
 	assert.Empty(t, fingerprintPublicKeys)
+
+	// -------------
+
+	// Key is initially unverified
+	var respPublicKeys []api.PublicKey
+	req = NewRequestWithJSON(t, "GET", "/api/v1/user/keys", rawKeyBody).
+		AddTokenAuth(token)
+	resp = MakeRequest(t, req, http.StatusOK)
+	DecodeJSON(t, resp, &respPublicKeys)
+	assert.False(t, respPublicKeys[0].Verified)
+	assert.Equal(t, respPublicKeys[0].Created, newPublicKey.Updated)
+
+	// Ideally we would flip the verified bit here, but this currently would require:
+	// a) (i) having the private key to hand to generate a signature AND (ii) hitting the web UI (no API to verify)
+	// OR
+	// b) or adding code to flip the bool in the db. This requires bypassing the current
+	// cryptographic validation guarding that update), which weakens the codebase doesn't add much value.
 }

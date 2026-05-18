@@ -28498,12 +28498,21 @@
           "type": "string",
           "x-go-name": "Title"
         },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Updated"
+        },
         "url": {
           "type": "string",
           "x-go-name": "URL"
         },
         "user": {
           "$ref": "#/definitions/User"
+        },
+        "verified": {
+          "type": "boolean",
+          "x-go-name": "Verified"
         }
       },
       "x-go-package": "forgejo.org/modules/structs"
