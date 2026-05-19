@@ -39,6 +39,10 @@
 							{{svg "octicon-pencil" 16 "tw-mr-1"}}
 							{{ctx.Locale.Tr "settings.authorized_integration.edit"}}
 						</a>
+						<button class="ui red tiny button delete-button" data-modal-id="delete-authorized-integration" data-url="{{$.Link}}/delete" data-id="{{.ID}}">
+							{{svg "octicon-trash" 16 "tw-mr-1"}}
+							{{ctx.Locale.Tr "settings.delete_token"}}
+						</button>
 					</div>
 				</div>
 			{{else}}
@@ -52,6 +56,17 @@
 			{{end}}
 		</div>
 	</div>
+</div>
+
+<div class="ui g-modal-confirm delete modal" id="delete-authorized-integration">
+	<div class="header">
+		{{svg "octicon-trash"}}
+		{{ctx.Locale.Tr "settings.authorized_integration.delete.header"}}
+	</div>
+	<div class="content">
+		<p>{{ctx.Locale.Tr "settings.authorized_integration.delete.body"}}</p>
+	</div>
+	{{template "base/modal_actions_confirm"}}
 </div>
 
 {{template "user/settings/layout_footer" .}}

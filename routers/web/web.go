@@ -680,6 +680,7 @@ func registerRoutes(m *web.Route) {
 					Get(web.Bind(user_setting.AuthorizedIntegrationForm{}), user_setting.EditAuthorizedIntegration).
 					Post(web.Bind(user_setting.AuthorizedIntegrationForm{}), user_setting.EditAuthorizedIntegrationPost)
 			})
+			m.Post("/delete", user_setting.DeleteAuthorizedIntegration)
 			m.Get("", user_setting.ListAuthorizedIntegrations)
 		})
 

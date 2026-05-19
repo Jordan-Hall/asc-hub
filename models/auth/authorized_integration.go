@@ -269,3 +269,29 @@ func ParseAuthorizedIntegrationUI(ui string) (AuthorizedIntegrationUI, error) {
 	}
 	return AuthorizedIntegrationUI(""), fmt.Errorf("invalid authorized integration UI: %q", ui)
 }
+
+// Delete an authorized integration by ID.  Must only succeed if the authorized integration identified is owned by the
+// user provided.
+func DeleteAuthorizedIntegrationByID(ctx context.Context, id, userID int64) error {
+	return db.WithTx(ctx, func(ctx context.Context) error {
+		// Delete doesn't take into account userID, but will be rolled back by the transaction if the user ID isn't
+		// correct.  Needs to occur first due to foreign key.
+		if err := db.DeleteBeans(ctx,
+			&AuthorizedIntegResourceRepo{IntegID: id},
+		); err != nil {
+			return fmt.Errorf("DeleteBeans: %w", err)
+		}
+
+		cnt, err := db.GetEngine(ctx).
+			ID(id).
+			Delete(&AuthorizedIntegration{
+				UserID: userID,
+			})
+		if err != nil {
+			return err
+		} else if cnt != 1 {
+			return fmt.Errorf("authorized integration %d does not exist: %w", id, util.ErrNotExist)
+		}
+		return nil
+	})
+}

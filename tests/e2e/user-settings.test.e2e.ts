@@ -465,6 +465,16 @@ test('User: Add authorized integration', async ({browser}, workerInfo) => {
   await expect(page.locator('.ui.message.flash-success')).toBeVisible();
   const flashText = await page.locator('.ui.message.flash-success').textContent();
   expect(flashText?.trim()).toBe('Created authorized integration: New Authorized Integration!');
+
+  // Delete the added integration, minimizing left-over test data and also validating the delete UI:
+  await page.goto('/user/settings/authorized-integrations');
+  await page.locator('.flex-item')
+    .filter({has: page.locator('.flex-item-title', {hasText: 'New Authorized Integration!'})})
+    .getByRole('button', {name: 'Delete'}).click();
+  await page.getByRole('button', {name: 'Yes'}).click();
+  await expect(page.locator('.ui.message.flash-success')).toBeVisible();
+  const deleteFlashText = await page.locator('.ui.message.flash-success').textContent();
+  expect(deleteFlashText?.trim()).toBe('Authorized integration has been deleted successfully.');
 });
 
 test('User: Add authorized integration validation error', async ({browser}, workerInfo) => {
@@ -490,4 +500,14 @@ test('User: Add authorized integration validation error', async ({browser}, work
   await expect(page.locator('.ui.message.flash-success')).toBeVisible();
   const flashText = await page.locator('.ui.message.flash-success').textContent();
   expect(flashText?.trim()).toBe('Created authorized integration: Forgot to fill this out!');
+
+  // Delete the added integration, minimizing left-over test data and also validating the delete UI:
+  await page.goto('/user/settings/authorized-integrations');
+  await page.locator('.flex-item')
+    .filter({has: page.locator('.flex-item-title', {hasText: 'Forgot to fill this out!'})})
+    .getByRole('button', {name: 'Delete'}).click();
+  await page.getByRole('button', {name: 'Yes'}).click();
+  await expect(page.locator('.ui.message.flash-success')).toBeVisible();
+  const deleteFlashText = await page.locator('.ui.message.flash-success').textContent();
+  expect(deleteFlashText?.trim()).toBe('Authorized integration has been deleted successfully.');
 });

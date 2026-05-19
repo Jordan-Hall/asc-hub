@@ -193,3 +193,37 @@ func TestUpdateAuthorizedIntegration(t *testing.T) {
 	assert.Equal(t, createdUnix, fromDB.CreatedUnix)
 	assert.Equal(t, updatedUnix, fromDB.UpdatedUnix) // not changed -- used to track usage for authentication
 }
+
+func TestDeleteAuthorizedIntegrationByID(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	t.Run("simple delete", func(t *testing.T) {
+		ai := makeAuthorizedIntegration(t)
+		err := auth_model.DeleteAuthorizedIntegrationByID(t.Context(), ai.ID, ai.UserID)
+		require.NoError(t, err)
+		unittest.AssertNotExistsBean(t, &auth_model.AuthorizedIntegration{ID: ai.ID})
+	})
+
+	t.Run("delete repo-specific", func(t *testing.T) {
+		ai := makeAuthorizedIntegration(t)
+		resRepo1 := &auth_model.AuthorizedIntegResourceRepo{
+			IntegID: ai.ID,
+			RepoID:  1,
+		}
+		err := auth_model.InsertAuthorizedIntegrationResourceRepos(t.Context(), ai.ID,
+			[]*auth_model.AuthorizedIntegResourceRepo{resRepo1})
+		require.NoError(t, err)
+		unittest.AssertCount(t, &auth_model.AuthorizedIntegResourceRepo{IntegID: ai.ID}, 1)
+
+		err = auth_model.DeleteAuthorizedIntegrationByID(t.Context(), ai.ID, ai.UserID)
+		require.NoError(t, err)
+
+		unittest.AssertNotExistsBean(t, &auth_model.AuthorizedIntegration{ID: ai.ID})
+		unittest.AssertCount(t, &auth_model.AuthorizedIntegResourceRepo{IntegID: ai.ID}, 0)
+	})
+
+	t.Run("delete fails on wrong user", func(t *testing.T) {
+		ai := makeAuthorizedIntegration(t)
+		err := auth_model.DeleteAuthorizedIntegrationByID(t.Context(), ai.ID, 300)
+		require.ErrorIs(t, err, util.ErrNotExist)
+	})
+}

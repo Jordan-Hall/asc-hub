@@ -442,3 +442,12 @@ func repoMultiSelect(ctx *context.Context) {
 	pager.SetDefaultParams(ctx)
 	ctx.Data["Page"] = pager
 }
+
+func DeleteAuthorizedIntegration(ctx *context.Context) {
+	if err := auth_model.DeleteAuthorizedIntegrationByID(ctx, ctx.FormInt64("id"), ctx.Doer.ID); err != nil {
+		ctx.Flash.Error("DeleteAuthorizedIntegrationByID: " + err.Error())
+	} else {
+		ctx.Flash.Success(ctx.Tr("settings.authorized_integration.deleted"))
+	}
+	ctx.JSONRedirect(setting.AppSubURL + "/user/settings/authorized-integrations")
+}
