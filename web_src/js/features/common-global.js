@@ -94,13 +94,19 @@ async function fetchActionDoRequest(actionElem, url, opt) {
       }
       return;
     } else if (resp.status >= 400 && resp.status < 500) {
-      const data = await resp.json();
-      // the code was quite messy, sometimes the backend uses "err", sometimes it uses "error", and even "user_error"
-      // but at the moment, as a new approach, we only use "errorMessage" here, backend can use JSONError() to respond.
-      if (data.errorMessage) {
-        showErrorToast(data.errorMessage, {useHtmlBody: data.renderFormat === 'html'});
-      } else {
-        showErrorToast(`server error: ${resp.status}`);
+      const text = await resp.text();
+      try {
+        const data = JSON.parse(text);
+        // the code was quite messy, sometimes the backend uses "err", sometimes it uses "error", and even "user_error"
+        // but at the moment, as a new approach, we only use "errorMessage" here, backend can use JSONError() to respond.
+        if (data.errorMessage) {
+          showErrorToast(data.errorMessage, {useHtmlBody: data.renderFormat === 'html'});
+        } else {
+          showErrorToast(`server error: ${resp.status}`);
+        }
+      } catch {
+        // if the response is not valid JSON (e.g. plain text "Quota exceeded."), show it directly
+        showErrorToast(text.trim() || `server error: ${resp.status}`);
       }
     } else {
       showErrorToast(`server error: ${resp.status}`);
