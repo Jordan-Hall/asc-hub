@@ -57,8 +57,17 @@ func TestOrgTeamEmailInvite(t *testing.T) {
 
 	session = loginUser(t, user.Name)
 
-	// join the team
+	// get the invite page
 	inviteURL := fmt.Sprintf("/org/invite/%s", invites[0].Token)
+	req = NewRequest(t, "GET", inviteURL)
+	resp = session.MakeRequest(t, req, http.StatusOK)
+	doc := NewHTMLParser(t, resp.Body)
+
+	// check the button exists
+	submitButton := doc.Find(`button:contains('Join')`).Length()
+	assert.Equal(t, 1, submitButton)
+
+	// join the team
 	req = NewRequest(t, "POST", inviteURL)
 	resp = session.MakeRequest(t, req, http.StatusSeeOther)
 	req = NewRequest(t, "GET", test.RedirectURL(resp))
