@@ -11,11 +11,12 @@ import (
 // AccessToken represents an API access token.
 // swagger:response AccessToken
 type AccessToken struct {
-	ID             int64    `json:"id"`
-	Name           string   `json:"name"`
-	Token          string   `json:"sha1"`
-	TokenLastEight string   `json:"token_last_eight"`
-	Scopes         []string `json:"scopes"`
+	ID             int64     `json:"id"`
+	Name           string    `json:"name"`
+	Token          string    `json:"sha1"`
+	TokenLastEight string    `json:"token_last_eight"`
+	Scopes         []string  `json:"scopes"`
+	Created        time.Time `json:"created_at"`
 	// Indicates that an access token only has access to the specified repositories.  Will be null if the access token
 	// is not limited to a set of specified repositories.
 	Repositories []*RepositoryMeta `json:"repositories"`

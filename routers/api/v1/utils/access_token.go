@@ -117,6 +117,7 @@ func ListAccessTokens(ctx *context.APIContext) {
 			Name:           tokens[i].Name,
 			TokenLastEight: tokens[i].TokenLastEight,
 			Scopes:         tokens[i].Scope.StringSlice(),
+			Created:        tokens[i].CreatedUnix.AsTime(),
 			Repositories:   reposByTokenID[tokens[i].ID],
 		}
 		// Provide a consistent sort order on repositories, helpful for test consistency.  Hard to do any earlier
@@ -229,6 +230,7 @@ func CreateAccessToken(ctx *context.APIContext) {
 		ID:             t.ID,
 		TokenLastEight: t.TokenLastEight,
 		Scopes:         t.Scope.StringSlice(),
+		Created:        t.CreatedUnix.AsTime(),
 		Repositories:   tokenRepositories,
 	})
 }

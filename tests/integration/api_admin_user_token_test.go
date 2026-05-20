@@ -43,6 +43,7 @@ func TestAPIAdminCreateUserAccessToken(t *testing.T) {
 		assert.NotEmpty(t, newToken.Token)
 		assert.NotEmpty(t, newToken.TokenLastEight)
 		assert.Contains(t, newToken.Scopes, "all")
+		assert.NotZero(t, newToken.Created)
 
 		// Verify the token exists in DB
 		unittest.AssertExistsAndLoadBean(t, &auth_model.AccessToken{
@@ -143,6 +144,7 @@ func TestAPIAdminListUserAccessTokens(t *testing.T) {
 			if tk.Name == "list-test-token" {
 				found = true
 				assert.NotEmpty(t, tk.TokenLastEight)
+				assert.NotZero(t, tk.Created)
 				break
 			}
 		}
