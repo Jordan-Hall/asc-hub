@@ -16,6 +16,7 @@ require (
 	code.forgejo.org/go-chi/cache v1.0.1
 	code.forgejo.org/go-chi/captcha v1.0.2
 	code.forgejo.org/go-chi/session v1.0.4
+	code.forgejo.org/xorm/xorm v1.4.0
 	code.gitea.io/sdk/gitea v0.21.0
 	code.superseriousbusiness.org/exif-terminator v0.11.2
 	code.superseriousbusiness.org/go-jpeg-image-structure/v2 v2.3.0
@@ -113,7 +114,6 @@ require (
 	gopkg.in/ini.v1 v1.67.0
 	mvdan.cc/xurls/v2 v2.6.0
 	xorm.io/builder v0.3.13
-	xorm.io/xorm v1.3.9
 )
 
 require (
@@ -185,7 +185,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-webauthn/x v0.2.3 // indirect
 	github.com/go-xmlfmt/xmlfmt v0.0.0-20191208150333-d5b6f63a941b // indirect
-	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
@@ -268,5 +267,3 @@ replace github.com/mholt/archiver/v3 => code.forgejo.org/forgejo/archiver/v3 v3.
 replace github.com/gliderlabs/ssh => code.forgejo.org/forgejo/ssh v0.0.0-20241211213324-5fc306ca0616
 
 replace git.sr.ht/~mariusor/go-xsd-duration => code.forgejo.org/forgejo/go-xsd-duration v0.0.0-20220703122237-02e73435a078
-
-replace xorm.io/xorm v1.3.9 => code.forgejo.org/xorm/xorm v1.3.9-forgejo.12
