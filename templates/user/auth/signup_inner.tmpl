@@ -14,6 +14,7 @@
 			{{if .DisableRegistration}}
 				<p>{{.DisableRegistrationReason}}</p>
 			{{else}}
+				{{template "custom/signup_top"}}
 				<div class="required field {{if and (.Err_UserName) (or (not .LinkAccountMode) (and .LinkAccountMode .LinkAccountModeRegister))}}error{{end}}">
 					<label for="user_name">{{ctx.Locale.Tr "username"}}</label>
 					<input id="user_name" type="text" name="user_name" value="{{.user_name}}" autofocus required autocorrect="off" autocapitalize="none">

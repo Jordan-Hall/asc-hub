@@ -11,7 +11,7 @@
 	</h4>
 	<div class="ui attached segment">
 		{{if .EnableInternalSignIn}}
-		<form class="ui form" action="{{.SignInLink}}" method="post">
+		<form class="ui form tw-mb-4" action="{{.SignInLink}}" method="post">
 			<div class="required field {{if and (.Err_UserName) (or (not .LinkAccountMode) (and .LinkAccountMode .LinkAccountModeSignIn))}}error{{end}}">
 				<label for="user_name">{{ctx.Locale.Tr "home.uname_holder"}}</label>
 				<input id="user_name" type="text" name="user_name" value="{{.user_name}}" autofocus required autocorrect="off" autocapitalize="none">
@@ -44,6 +44,8 @@
 			</div>
 		</form>
 		{{end}}
+
+		{{template "custom/signin_mid"}}
 
 		{{template "user/auth/oauth_container" .}}
 	</div>
