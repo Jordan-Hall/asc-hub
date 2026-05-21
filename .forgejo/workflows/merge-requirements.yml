@@ -11,6 +11,9 @@ on:
       - opened
       - synchronize
 
+concurrency:
+  cancel-in-progress: true
+
 jobs:
   merge-conditions:
     if: >
