@@ -26,8 +26,8 @@ code.forgejo.org/forgejo/go-rpmutils v1.0.0 h1:RZGGeKt70p/WaIEL97pyT6uiiEIoN8/aL
 code.forgejo.org/forgejo/go-rpmutils v1.0.0/go.mod h1:cg+VbgLXfrDPza9T+kBsMb3TVmmzPN4XseT6gDGLSUk=
 code.forgejo.org/forgejo/go-xsd-duration v0.0.0-20220703122237-02e73435a078 h1:RArF5AsF9LH4nEoJxqRxcP5r8hhRfWcId84G82YbqzA=
 code.forgejo.org/forgejo/go-xsd-duration v0.0.0-20220703122237-02e73435a078/go.mod h1:g/V2Hjas6Z1UHUp4yIx6bATpNzJ7DYtD0FG3+xARWxs=
-code.forgejo.org/forgejo/levelqueue v1.0.0 h1:9krYpU6BM+j/1Ntj6m+VCAIu0UNnne1/UfU/XgPpLuE=
-code.forgejo.org/forgejo/levelqueue v1.0.0/go.mod h1:fmG6zhVuqim2rxSFOoasgXO8V2W/k9U31VVYqLIRLhQ=
+code.forgejo.org/forgejo/levelqueue v1.1.0 h1:IgDbeZBdzJhbI8M0hXCQ1qyJIk83cGnBS39D9SRaCAg=
+code.forgejo.org/forgejo/levelqueue v1.1.0/go.mod h1:flCo3rqxrybUXQR2I8TFyiDSsLkOjb71CZOEdAuJmgc=
 code.forgejo.org/forgejo/reply v1.0.2 h1:dMhQCHV6/O3L5CLWNTol+dNzDAuyCK88z4J/lCdgFuQ=
 code.forgejo.org/forgejo/reply v1.0.2/go.mod h1:RyZUfzQLc+fuLIGjTSQWDAJWPiL4WtKXB/FifT5fM7U=
 code.forgejo.org/forgejo/runner/v12 v12.10.1 h1:qRKjWItVDc2lEMl3jGlKyFpqgX4xHeOdEyl/irO/Nk8=
