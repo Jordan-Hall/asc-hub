@@ -1428,6 +1428,31 @@ func TestIssueLabelList(t *testing.T) {
 	})
 }
 
+func TestIssueNoLabel(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	session := loginUser(t, user.Name)
+	testFn := func(t *testing.T, route string) {
+		req := NewRequest(t, "GET", route)
+		resp := session.MakeRequest(t, req, http.StatusOK)
+		htmlDoc := NewHTMLParser(t, resp.Body)
+		htmlDoc.AssertElement(t, "#issue-list .labels-list .label", false)
+	}
+
+	for pathTitle, path := range map[string]string{
+		"User Issues": "/issues",
+		"Repo Issues": "/user2/repo1/issues",
+		"Repo Pulls":  "/user2/repo1/pulls",
+	} {
+		for _, issuesQuery := range []string{"0", "0,1", "1,0"} {
+			t.Run(fmt.Sprintf("%s (%s)", pathTitle, issuesQuery), func(t *testing.T) {
+				testFn(t, path+"?labels="+issuesQuery)
+			})
+		}
+	}
+}
+
 func TestIssueUserDashboard(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 

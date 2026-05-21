@@ -573,12 +573,19 @@ func buildIssueOverview(ctx *context.Context, unitType unit.Type) {
 	// Get IDs for labels (a filter option for issues/pulls).
 	// Required for IssuesOptions.
 	selectedLabels := ctx.FormString("labels")
-	if len(selectedLabels) > 0 && selectedLabels != "0" {
+	if len(selectedLabels) > 0 {
 		var err error
 		opts.LabelIDs, err = base.StringsToInt64s(strings.Split(selectedLabels, ","))
 		if err != nil {
 			ctx.Flash.Error(ctx.Tr("invalid_data", selectedLabels), true)
 		}
+		if slices.Contains(opts.LabelIDs, 0) {
+			opts.LabelIDs = []int64{0}
+			ctx.Data["NoLabel"] = true
+		}
+	}
+	if len(opts.LabelIDs) == 0 {
+		ctx.Data["AllLabels"] = true
 	}
 
 	if org != nil {

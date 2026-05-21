@@ -1,4 +1,5 @@
 // Copyright 2019 The Gitea Authors. All rights reserved.
+// Copyright 2026 The Forgejo Authors. All rights reserved.
 // SPDX-License-Identifier: MIT
 
 package user
@@ -9,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 
 	activities_model "forgejo.org/models/activities"
@@ -260,11 +262,14 @@ func NotificationSubscriptions(ctx *context.Context) {
 	var labelIDs []int64
 	selectedLabels := ctx.FormString("labels")
 	ctx.Data["Labels"] = selectedLabels
-	if len(selectedLabels) > 0 && selectedLabels != "0" {
+	if len(selectedLabels) > 0 {
 		var err error
 		labelIDs, err = base.StringsToInt64s(strings.Split(selectedLabels, ","))
 		if err != nil {
 			ctx.Flash.Error(ctx.Tr("invalid_data", selectedLabels), true)
+		}
+		if slices.Contains(labelIDs, 0) {
+			labelIDs = []int64{0}
 		}
 	}
 
