@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"forgejo.org/modules/optional"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v3"
@@ -21,7 +23,7 @@ func TestActions_getLabels(t *testing.T) {
 		labels    []string
 	}
 	type resultType struct {
-		labels *[]string
+		labels optional.Option[*[]string]
 		err    error
 	}
 
@@ -71,11 +73,12 @@ func TestActions_getLabels(t *testing.T) {
 
 			// Test the results
 			require.NotNil(t, result)
+			has, labels := result.labels.Get()
 			if c.hasLabels {
-				assert.NotNil(t, result.labels)
-				assert.Equal(t, c.labels, *result.labels)
+				assert.True(t, has)
+				assert.Equal(t, c.labels, *labels)
 			} else {
-				assert.Nil(t, result.labels)
+				assert.False(t, has)
 			}
 			if c.hasError {
 				require.Error(t, result.err)

@@ -154,6 +154,7 @@ linters:
           - gosec
           - staticcheck
           - unparam
+          - nilnil
         path: _test\.go
       - linters:
           - dupl
@@ -188,21 +189,6 @@ linters:
         text: "(ST1005|ST1003|QF1001):"
 
       # TODO: eventually remove this section entirely
-      - path: cmd/admin_auth_ldap_test.go
-        linters:
-          - nilnil
-      - path: cmd/admin_auth_oauth_test.go
-        linters:
-          - nilnil
-      - path: cmd/admin_auth_pam_test.go
-        linters:
-          - nilnil
-      - path: cmd/cmd.go
-        linters:
-          - nilnil
-      - path: cmd/forgejo/actions.go
-        linters:
-          - nilnil
       - path: models/actions/run.go
         linters:
           - nilnil
@@ -225,9 +211,6 @@ linters:
         linters:
           - nilnil
       - path: models/forgejo_migrations_legacy/v32.go
-        linters:
-          - nilnil
-      - path: models/forgejo_migrations_legacy/v32_test.go
         linters:
           - nilnil
       - path: models/db/context.go

@@ -52,6 +52,10 @@ func noDanglingArgs(ctx context.Context, c *cli.Command) (context.Context, error
 		}
 		return nil, fmt.Errorf("unexpected arguments: %s", strings.Join(c.Args().Slice(), ", "))
 	}
+
+	// The CLI library doesn't require a new context here, so this has to be a
+	// nil, nil
+	//nolint:nilnil
 	return nil, nil
 }
 

@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	actions_model "forgejo.org/models/actions"
+	"forgejo.org/modules/optional"
 	"forgejo.org/modules/private"
 	"forgejo.org/modules/setting"
 	private_routers "forgejo.org/routers/private"
@@ -144,15 +145,15 @@ func validateSecret(secret string) error {
 	return nil
 }
 
-func getLabels(cli *cli.Command) (*[]string, error) {
+func getLabels(cli *cli.Command) (optional.Option[*[]string], error) {
 	if !cli.Bool("keep-labels") {
 		lblValue := strings.Split(cli.String("labels"), ",")
-		return &lblValue, nil
+		return optional.Some(&lblValue), nil
 	}
 	if cli.String("labels") != "" {
 		return nil, errors.New("--labels and --keep-labels should not be used together")
 	}
-	return nil, nil
+	return optional.None[*[]string](), nil
 }
 
 func RunRegister(ctx context.Context, cli *cli.Command) error {
@@ -205,7 +206,12 @@ func RunRegister(ctx context.Context, cli *cli.Command) error {
 		return err
 	}
 
-	runner, err := actions_model.RegisterRunner(ctx, owner, repo, secret, labels, name, version, ephemeral)
+	var runnerLabels *[]string
+	if labels.Has() {
+		_, runnerLabels = labels.Get()
+	}
+
+	runner, err := actions_model.RegisterRunner(ctx, owner, repo, secret, runnerLabels, name, version, ephemeral)
 	if err != nil {
 		return fmt.Errorf("error while registering runner: %v", err)
 	}
