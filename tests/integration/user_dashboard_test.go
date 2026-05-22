@@ -61,8 +61,8 @@ func TestDashboardTitleRendering(t *testing.T) {
 		)
 		defer f()
 
-		issue := createIssue(t, user4, repo, "`:exclamation:` not rendered", "Hi there!")
-		pr := createPullRequest(t, user4, repo, "testing", "`:exclamation:` not rendered")
+		issue := createIssue(t, user4, repo, "`:exclamation:` not rendered #1", "Hi there!")
+		pr := createPullRequest(t, user4, repo, "testing", "`:exclamation:` not rendered #1")
 
 		_, err := issue_service.CreateIssueComment(t.Context(), user4, repo, issue, "hi", nil)
 		require.NoError(t, err)
@@ -80,9 +80,11 @@ func TestDashboardTitleRendering(t *testing.T) {
 		htmlDoc.doc.Find("#activity-feed .flex-item-main .title").Each(func(i int, s *goquery.Selection) {
 			count++
 			if s.IsMatcher(goquery.Single("a")) {
-				assert.Equal(t, "❗ not rendered", s.Text())
+				assert.Equal(t, ":exclamation: not rendered #1", s.Text())
+				assert.Equal(t, 0, s.Find("a").Length())
 			} else {
-				assert.Equal(t, ":exclamation: not rendered", s.Text())
+				assert.Equal(t, ":exclamation: not rendered #1", s.Text())
+				assert.Equal(t, 1, s.Find("a").Length())
 			}
 		})
 

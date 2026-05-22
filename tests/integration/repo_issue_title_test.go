@@ -33,27 +33,34 @@ func TestIssueTitles(t *testing.T) {
 
 		session := loginUser(t, user.LoginName)
 
-		title := "Title :+1: `code`"
+		title := "Title :+1: `code :+1:`"
 		issue1 := createIssue(t, user, repo, title, "Test issue")
 		issue2 := createIssue(t, user, repo, title, "Ref #1")
 
 		titleHTML := []string{
 			"Title",
 			`<span class="emoji" aria-label="thumbs up" data-alias="+1">👍</span>`,
-			`<code class="inline-code-block">code</code>`,
+			`<code class="inline-code-block">code :+1:</code>`,
 		}
+
+		t.Run("Repository issue list title", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+
+			html := extractIssueListHTML(t, session, repo, "#issue-list a.issue-title:nth-child(1)")
+			assertContainsAll(t, titleHTML, html)
+		})
 
 		t.Run("Main issue title", func(t *testing.T) {
 			defer tests.PrintCurrentTest(t)()
 
-			html := extractHTML(t, session, issue1, "div.issue-title-header > * > h1")
+			html := extractIssueHTML(t, session, issue1, "div.issue-title-header > * > h1")
 			assertContainsAll(t, titleHTML, html)
 		})
 
 		t.Run("Referenced issue comment", func(t *testing.T) {
 			defer tests.PrintCurrentTest(t)()
 
-			html := extractHTML(t, session, issue1, "div.timeline > div.timeline-item:nth-child(3) > div.detail > * > a")
+			html := extractIssueHTML(t, session, issue1, "div.timeline > div.timeline-item:nth-child(3) > div.detail > * > a")
 			assertContainsAll(t, titleHTML, html)
 		})
 
@@ -63,14 +70,14 @@ func TestIssueTitles(t *testing.T) {
 			err := issues_model.CreateIssueDependency(db.DefaultContext, user, issue1, issue2)
 			require.NoError(t, err)
 
-			html := extractHTML(t, session, issue1, "div.timeline > div:nth-child(3) > div.detail > * > a")
+			html := extractIssueHTML(t, session, issue1, "div.timeline > div:nth-child(3) > div.detail > * > a")
 			assertContainsAll(t, titleHTML, html)
 		})
 
 		t.Run("Dependent issue sidebar", func(t *testing.T) {
 			defer tests.PrintCurrentTest(t)()
 
-			html := extractHTML(t, session, issue1, "div.item.dependency > * > a.title")
+			html := extractIssueHTML(t, session, issue1, "div.item.dependency > * > a.title")
 			assertContainsAll(t, titleHTML, html)
 		})
 
@@ -124,7 +131,7 @@ func TestIssueTitles(t *testing.T) {
 			err = pull_service.NewPullRequest(git.DefaultContext, repo, pullIssue, nil, nil, pullRequest, nil)
 			require.NoError(t, err)
 
-			html := extractHTML(t, session, issue1, "div.timeline > div:nth-child(4) > div.detail > * > a")
+			html := extractIssueHTML(t, session, issue1, "div.timeline > div:nth-child(4) > div.detail > * > a")
 			assertContainsAll(t, titleHTML, html)
 		})
 	})
@@ -145,8 +152,18 @@ func createIssue(t *testing.T, user *user_model.User, repo *repo_model.Repositor
 	return issue
 }
 
-func extractHTML(t *testing.T, session *TestSession, issue *issues_model.Issue, query string) string {
+func extractIssueHTML(t *testing.T, session *TestSession, issue *issues_model.Issue, query string) string {
 	req := NewRequest(t, "GET", issue.HTMLURL())
+	resp := session.MakeRequest(t, req, http.StatusOK)
+	doc := NewHTMLParser(t, resp.Body)
+	res, err := doc.doc.Find(query).Html()
+	require.NoError(t, err)
+
+	return res
+}
+
+func extractIssueListHTML(t *testing.T, session *TestSession, repo *repo_model.Repository, query string) string {
+	req := NewRequest(t, "GET", repo.HTMLURL()+"/issues")
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	doc := NewHTMLParser(t, resp.Body)
 	res, err := doc.doc.Find(query).Html()

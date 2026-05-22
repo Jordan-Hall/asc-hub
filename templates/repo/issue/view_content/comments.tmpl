@@ -148,7 +148,7 @@
 				{{if eq .RefAction 3}}</del>{{end}}
 
 				<div class="detail flex-text-block">
-					<span class="text grey muted-links"><a href="{{.RefIssueLink ctx}}"><b>{{.RefIssueTitle ctx | RenderEmoji $.Context | RenderCodeBlock}}</b> {{.RefIssueIdent ctx}}</a></span>
+					<span class="text grey muted-links"><a href="{{.RefIssueLink ctx}}"><b>{{RenderRefIssueTitle $.Context (.RefIssueTitle ctx)}}</b> {{.RefIssueIdent ctx}}</a></span>
 				</div>
 			</div>
 		{{else if eq .Type 4}}

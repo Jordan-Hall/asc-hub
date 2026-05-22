@@ -111,7 +111,7 @@
 				{{else if .GetOpType.InActions "create_pull_request"}}
 					<span class="text truncate issue title">{{RenderIssueTitle ctx (index .GetIssueInfos 1) (.Repo.ComposeMetas ctx)}}</span>
 				{{else if .GetOpType.InActions "comment_issue" "approve_pull_request" "reject_pull_request" "comment_pull"}}
-					<a href="{{.GetCommentLink ctx}}" class="text truncate issue title">{{(.GetIssueTitle ctx) | RenderEmoji $.Context | RenderCodeBlock}}</a>
+					<a href="{{.GetCommentLink ctx}}" class="text truncate issue title">{{RenderRefIssueTitle $.Context (.GetIssueTitle ctx)}}</a>
 					{{$comment := index .GetIssueInfos 1}}
 					{{if $comment}}
 						<div class="markup tw-text-14">{{RenderMarkdownToHtml ctx $comment}}</div>
