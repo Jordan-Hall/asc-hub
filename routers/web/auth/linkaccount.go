@@ -17,7 +17,6 @@ import (
 	"forgejo.org/modules/util"
 	"forgejo.org/modules/web"
 	auth_method "forgejo.org/services/auth/method"
-	"forgejo.org/services/auth/source/oauth2"
 	"forgejo.org/services/context"
 	"forgejo.org/services/externalaccount"
 	"forgejo.org/services/forms"
@@ -274,8 +273,7 @@ func LinkAccountPostRegister(ctx *context.Context) {
 		return
 	}
 
-	source := authSource.Cfg.(*oauth2.Source)
-	if err := syncGroupsToTeams(ctx, source, &gothUser, u); err != nil {
+	if err := syncGroupsToTeams(ctx, authSource, &gothUser, u); err != nil {
 		ctx.ServerError("SyncGroupsToTeams", err)
 		return
 	}

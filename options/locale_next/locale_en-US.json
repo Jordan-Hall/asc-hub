@@ -773,6 +773,8 @@
 	"pulls.manual_merge.commit.title": "Merge commit title",
 	"pulls.manual_merge.commit.body": "Merge commit body",
 	"pulls.manual_merge.copy.button": "Copy merge commit message",
+	"admin.auths.oauth2_dyn_group_maps": "Dynamically add users to teams based on dynamic group mappings. (Optional)",
+	"admin.auths.oauth2_dyn_group_maps_removal": "Dynamically remove users from all teams the user is not added to based on group mappings.",
 	"admin.auths.oauth2_quota_group_claim_name": "Claim name providing group names for this source to be used for quota management. (Optional)",
 	"admin.auths.oauth2_quota_group_map": "Map claimed groups to quota groups. (Optional - requires claim name above)",
 	"admin.auths.oauth2_quota_group_map_removal": "Remove users from synchronized quota groups if user does not belong to corresponding group.",

@@ -5,16 +5,20 @@ package oauth2
 
 import (
 	"fmt"
+
+	source_service "forgejo.org/services/auth/source"
 )
 
 // RegisterSource causes an OAuth2 configuration to be registered
 func (source *Source) RegisterSource() error {
+	source_service.RemoveDynGroupMaps(source.authSource.ID)
 	err := RegisterProviderWithGothic(source.authSource.Name, source)
 	return wrapOpenIDConnectInitializeError(err, source.authSource.Name, source)
 }
 
 // UnregisterSource causes an OAuth2 configuration to be unregistered
 func (source *Source) UnregisterSource() error {
+	source_service.RemoveDynGroupMaps(source.authSource.ID)
 	RemoveProviderFromGothic(source.authSource.Name)
 	return nil
 }

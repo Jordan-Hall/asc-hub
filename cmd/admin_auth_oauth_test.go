@@ -55,6 +55,8 @@ func TestAddOauth(t *testing.T) {
 				"--restricted-group", "restricted",
 				"--group-team-map", `{"org_a_team_1": {"organization-a": ["Team 1"]}, "org_a_all_teams": {"organization-a": ["Team 1", "Team 2", "Team 3"]}}`,
 				"--group-team-map-removal",
+				"--dyn-group-maps", `["dyn-{org}-{team}", "other-{org}-{team}"]`,
+				"--dyn-group-maps-removal",
 				"--allow-username-change",
 				"--quota-group-claim-name", "quota_groups",
 				"--quota-group-map", `{"oauth_group_1": ["quota_group_1"], "oauth_group_2": ["quota_group_2"]}`,
@@ -85,6 +87,8 @@ func TestAddOauth(t *testing.T) {
 					AdminGroup:            "admin",
 					GroupTeamMap:          `{"org_a_team_1": {"organization-a": ["Team 1"]}, "org_a_all_teams": {"organization-a": ["Team 1", "Team 2", "Team 3"]}}`,
 					GroupTeamMapRemoval:   true,
+					DynGroupMaps:          `["dyn-{org}-{team}", "other-{org}-{team}"]`,
+					DynGroupMapsRemoval:   true,
 					QuotaGroupClaimName:   "quota_groups",
 					QuotaGroupMap:         `{"oauth_group_1": ["quota_group_1"], "oauth_group_2": ["quota_group_2"]}`,
 					QuotaGroupMapRemoval:  true,
@@ -364,6 +368,8 @@ func TestUpdateOauth(t *testing.T) {
 				"--restricted-group", "restricted",
 				"--group-team-map", `{"org_a_team_1": {"organization-a": ["Team 1"]}, "org_a_all_teams": {"organization-a": ["Team 1", "Team 2", "Team 3"]}}`,
 				"--group-team-map-removal",
+				"--dyn-group-maps", `["dyn-{org}-{team}", "other-{org}-{team}"]`,
+				"--dyn-group-maps-removal",
 			},
 			id: 23,
 			existingAuthSource: &auth.Source{
@@ -394,6 +400,8 @@ func TestUpdateOauth(t *testing.T) {
 					AdminGroup:            "admin",
 					GroupTeamMap:          `{"org_a_team_1": {"organization-a": ["Team 1"]}, "org_a_all_teams": {"organization-a": ["Team 1", "Team 2", "Team 3"]}}`,
 					GroupTeamMapRemoval:   true,
+					DynGroupMaps:          `["dyn-{org}-{team}", "other-{org}-{team}"]`,
+					DynGroupMapsRemoval:   true,
 					RestrictedGroup:       "restricted",
 					// `--skip-local-2fa` is currently ignored.
 					// SkipLocalTwoFA:        true,
@@ -835,6 +843,58 @@ func TestUpdateOauth(t *testing.T) {
 					QuotaGroupClaimName:  "quota_groups",
 					QuotaGroupMap:        `{"developers": ["dev_quota"], "admins": ["admin_quota"]}`,
 					QuotaGroupMapRemoval: true,
+				},
+			},
+		},
+		// case 28
+		{
+			args: []string{
+				"oauth-test",
+				"--id", "1",
+				"--dyn-group-maps", `["dyn-{org}-{team}", "other-{org}-{team}"]`,
+			},
+			authSource: &auth.Source{
+				Type: auth.OAuth2,
+				Cfg: &oauth2.Source{
+					CustomURLMapping: &oauth2.CustomURLMapping{},
+					DynGroupMaps:     `["dyn-{org}-{team}", "other-{org}-{team}"]`,
+				},
+			},
+		},
+		// case 29
+		{
+			args: []string{
+				"oauth-test",
+				"--id", "1",
+				"--dyn-group-maps-removal",
+			},
+			authSource: &auth.Source{
+				Type: auth.OAuth2,
+				Cfg: &oauth2.Source{
+					CustomURLMapping:    &oauth2.CustomURLMapping{},
+					DynGroupMapsRemoval: true,
+				},
+			},
+		},
+		// case 30
+		{
+			args: []string{
+				"oauth-test",
+				"--id", "23",
+				"--dyn-group-maps-removal=false",
+			},
+			id: 23,
+			existingAuthSource: &auth.Source{
+				Type: auth.OAuth2,
+				Cfg: &oauth2.Source{
+					DynGroupMapsRemoval: true,
+				},
+			},
+			authSource: &auth.Source{
+				Type: auth.OAuth2,
+				Cfg: &oauth2.Source{
+					CustomURLMapping:    &oauth2.CustomURLMapping{},
+					DynGroupMapsRemoval: false,
 				},
 			},
 		},

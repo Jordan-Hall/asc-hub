@@ -1156,7 +1156,7 @@ func SignInOAuthCallback(ctx *context.Context) {
 				return
 			}
 
-			if err := syncGroupsToTeams(ctx, source, &gothUser, u); err != nil {
+			if err := syncGroupsToTeams(ctx, authSource, &gothUser, u); err != nil {
 				ctx.ServerError("SyncGroupsToTeams", err)
 				return
 			}
@@ -1192,16 +1192,27 @@ func claimValueToStringSet(claimValue any) container.Set[string] {
 	return container.SetOf(groups...)
 }
 
-func syncGroupsToTeams(ctx *context.Context, source *oauth2.Source, gothUser *goth.User, u *user_model.User) error {
-	if source.GroupTeamMap != "" || source.GroupTeamMapRemoval {
+func syncGroupsToTeams(ctx *context.Context, authSource *auth.Source, gothUser *goth.User, u *user_model.User) error {
+	source := authSource.Cfg.(*oauth2.Source)
+	if source.GroupTeamMap != "" || source.GroupTeamMapRemoval ||
+		source.DynGroupMaps != "" || source.DynGroupMapsRemoval {
 		groupTeamMapping, err := auth_module.UnmarshalGroupTeamMapping(source.GroupTeamMap)
 		if err != nil {
 			return err
 		}
 
+		dynGroupMappings, err := auth_module.UnmarshalDynGroupMappings(source.DynGroupMaps)
+		if err != nil {
+			return err
+		}
+		dynGroupMaps := source_service.GetDynGroupMaps(authSource.ID, dynGroupMappings)
+
 		groups := getClaimedGroups(source, gothUser)
 
-		if err := source_service.SyncGroupsToTeams(ctx, u, groups, groupTeamMapping, source.GroupTeamMapRemoval); err != nil {
+		if err := source_service.SyncGroupsToTeams(ctx,
+			u, groups, groupTeamMapping, source.GroupTeamMapRemoval,
+			dynGroupMaps, source.DynGroupMapsRemoval,
+		); err != nil {
 			return err
 		}
 	}
@@ -1363,6 +1374,13 @@ func handleOAuth2SignIn(ctx *context.Context, source *auth.Source, u *user_model
 		return
 	}
 
+	dynGroupMappings, err := auth_module.UnmarshalDynGroupMappings(oauth2Source.DynGroupMaps)
+	if err != nil {
+		ctx.ServerError("UnmarshalDynGroupMappings", err)
+		return
+	}
+	dynGroupMaps := source_service.NewDynGroupMaps(dynGroupMappings)
+
 	groups := getClaimedGroups(oauth2Source, &gothUser)
 	quotaGroups := getClaimedQuotaGroups(oauth2Source, &gothUser)
 
@@ -1392,8 +1410,12 @@ func handleOAuth2SignIn(ctx *context.Context, source *auth.Source, u *user_model
 			return
 		}
 
-		if oauth2Source.GroupTeamMap != "" || oauth2Source.GroupTeamMapRemoval {
-			if err := source_service.SyncGroupsToTeams(ctx, u, groups, groupTeamMapping, oauth2Source.GroupTeamMapRemoval); err != nil {
+		if oauth2Source.GroupTeamMap != "" || oauth2Source.GroupTeamMapRemoval ||
+			oauth2Source.DynGroupMaps != "" || oauth2Source.DynGroupMapsRemoval {
+			if err := source_service.SyncGroupsToTeams(ctx,
+				u, groups, groupTeamMapping, oauth2Source.GroupTeamMapRemoval,
+				dynGroupMaps, oauth2Source.DynGroupMapsRemoval,
+			); err != nil {
 				ctx.ServerError("SyncGroupsToTeams", err)
 				return
 			}
@@ -1437,8 +1459,12 @@ func handleOAuth2SignIn(ctx *context.Context, source *auth.Source, u *user_model
 		}
 	}
 
-	if oauth2Source.GroupTeamMap != "" || oauth2Source.GroupTeamMapRemoval {
-		if err := source_service.SyncGroupsToTeams(ctx, u, groups, groupTeamMapping, oauth2Source.GroupTeamMapRemoval); err != nil {
+	if oauth2Source.GroupTeamMap != "" || oauth2Source.GroupTeamMapRemoval ||
+		oauth2Source.DynGroupMaps != "" || oauth2Source.DynGroupMapsRemoval {
+		if err := source_service.SyncGroupsToTeams(ctx,
+			u, groups, groupTeamMapping, oauth2Source.GroupTeamMapRemoval,
+			dynGroupMaps, oauth2Source.DynGroupMapsRemoval,
+		); err != nil {
 			ctx.ServerError("SyncGroupsToTeams", err)
 			return
 		}

@@ -22,6 +22,19 @@ func UnmarshalGroupTeamMapping(raw string) (map[string]map[string][]string, erro
 	return groupTeamMapping, nil
 }
 
+func UnmarshalDynGroupMappings(raw string) ([]string, error) {
+	var dynGroupMappings []string
+	if raw == "" {
+		return dynGroupMappings, nil
+	}
+	err := json.Unmarshal([]byte(raw), &dynGroupMappings)
+	if err != nil {
+		log.Error("Failed to unmarshal dynamic group mappings: %v", err)
+		return nil, err
+	}
+	return dynGroupMappings, nil
+}
+
 func UnmarshalQuotaGroupMapping(raw string) (map[string]container.Set[string], error) {
 	quotaGroupMapping := make(map[string]container.Set[string])
 	if raw == "" {

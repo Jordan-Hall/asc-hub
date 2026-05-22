@@ -190,6 +190,8 @@ func parseOAuth2Config(form forms.AuthenticationForm) *oauth2.Source {
 		AdminGroup:                    form.Oauth2AdminGroup,
 		GroupTeamMap:                  form.Oauth2GroupTeamMap,
 		GroupTeamMapRemoval:           form.Oauth2GroupTeamMapRemoval,
+		DynGroupMaps:                  form.Oauth2DynGroupMaps,
+		DynGroupMapsRemoval:           form.Oauth2DynGroupMapsRemoval,
 		AllowUsernameChange:           form.AllowUsernameChange,
 		QuotaGroupClaimName:           form.Oauth2QuotaGroupClaimName,
 		QuotaGroupMap:                 form.Oauth2QuotaGroupMap,

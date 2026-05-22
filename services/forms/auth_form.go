@@ -75,6 +75,8 @@ type AuthenticationForm struct {
 	Oauth2RestrictedGroup         string
 	Oauth2GroupTeamMap            string `binding:"ValidGroupTeamMap"`
 	Oauth2GroupTeamMapRemoval     bool
+	Oauth2DynGroupMaps            string `binding:"ValidDynGroupMaps"`
+	Oauth2DynGroupMapsRemoval     bool
 	Oauth2QuotaGroupClaimName     string
 	Oauth2QuotaGroupMap           string `binding:"ValidQuotaGroupMap"`
 	Oauth2QuotaGroupMapRemoval    bool

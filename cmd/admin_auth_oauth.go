@@ -125,6 +125,15 @@ func oauthCLIFlags() []cli.Flag {
 			Name:  "group-team-map-removal",
 			Usage: "Activate automatic team membership removal depending on groups",
 		},
+		&cli.StringFlag{
+			Name:  "dyn-group-maps",
+			Value: "",
+			Usage: "Dynamic mappings between groups and org teams",
+		},
+		&cli.BoolFlag{
+			Name:  "dyn-group-maps-removal",
+			Usage: "Activate automatic team membership removal of org teams not automatically added",
+		},
 		&cli.BoolFlag{
 			Name:  "allow-username-change",
 			Usage: "Allow users to change their username",
@@ -196,6 +205,8 @@ func parseOAuth2Config(_ context.Context, c *cli.Command) *oauth2.Source {
 		RestrictedGroup:               c.String("restricted-group"),
 		GroupTeamMap:                  c.String("group-team-map"),
 		GroupTeamMapRemoval:           c.Bool("group-team-map-removal"),
+		DynGroupMaps:                  c.String("dyn-group-maps"),
+		DynGroupMapsRemoval:           c.Bool("dyn-group-maps-removal"),
 		AllowUsernameChange:           c.Bool("allow-username-change"),
 		QuotaGroupClaimName:           c.String("quota-group-claim-name"),
 		QuotaGroupMap:                 c.String("quota-group-map"),
@@ -299,6 +310,12 @@ func (a *authService) updateOauth(ctx context.Context, c *cli.Command) error {
 	}
 	if c.IsSet("group-team-map-removal") {
 		oAuth2Config.GroupTeamMapRemoval = c.Bool("group-team-map-removal")
+	}
+	if c.IsSet("dyn-group-maps") {
+		oAuth2Config.DynGroupMaps = c.String("dyn-group-maps")
+	}
+	if c.IsSet("dyn-group-maps-removal") {
+		oAuth2Config.DynGroupMapsRemoval = c.Bool("dyn-group-maps-removal")
 	}
 	if c.IsSet("quota-group-claim-name") {
 		oAuth2Config.QuotaGroupClaimName = c.String("quota-group-claim-name")

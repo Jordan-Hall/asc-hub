@@ -385,6 +385,14 @@
 						<input name="oauth2_group_team_map_removal" type="checkbox" {{if $cfg.GroupTeamMapRemoval}}checked{{end}}>
 					</div>
 					<div class="field">
+						<label>{{ctx.Locale.Tr "admin.auths.oauth2_dyn_group_maps"}}</label>
+						<textarea name="oauth2_dyn_group_maps" rows="5" placeholder='["group-{org}-{team}", "other-{org}-{team}"]'>{{$cfg.DynGroupMaps}}</textarea>
+					</div>
+					<div class="ui checkbox">
+						<label>{{ctx.Locale.Tr "admin.auths.oauth2_dyn_group_maps_removal"}}</label>
+						<input name="oauth2_dyn_group_maps_removal" type="checkbox" {{if $cfg.DynGroupMapsRemoval}}checked{{end}}>
+					</div>
+					<div class="field">
 						<label for="oauth2_quota_group_claim_name">{{ctx.Locale.Tr "admin.auths.oauth2_quota_group_claim_name"}}</label>
 						<input id="oauth2_quota_group_claim_name" name="oauth2_quota_group_claim_name" value="{{$cfg.QuotaGroupClaimName}}">
 					</div>

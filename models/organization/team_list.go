@@ -107,6 +107,14 @@ func GetRepoTeams(ctx context.Context, repo *repo_model.Repository) (teams TeamL
 		Find(&teams)
 }
 
+// GetUserTeams returns all teams that user belongs to.
+func GetUserTeams(ctx context.Context, userID int64) (teams TeamList, err error) {
+	return teams, db.GetEngine(ctx).
+		Join("INNER", "team_user", "team_user.team_id = team.id").
+		Where("team_user.uid=?", userID).
+		Find(&teams)
+}
+
 // GetUserOrgTeams returns all teams that user belongs to in given organization.
 func GetUserOrgTeams(ctx context.Context, orgID, userID int64) (teams TeamList, err error) {
 	return teams, db.GetEngine(ctx).

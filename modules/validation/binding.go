@@ -27,6 +27,8 @@ const (
 	ErrUsername = "UsernameError"
 	// ErrInvalidGroupTeamMap is returned when a group team mapping is invalid
 	ErrInvalidGroupTeamMap = "InvalidGroupTeamMap"
+	// ErrInvalidDynGroupMaps is returned when dynamic group team mappings are invalid
+	ErrInvalidDynGroupMaps = "InvalidDynGroupMaps"
 	// ErrInvalidQuotaGroupMap is returned when a quota group mapping is invalid
 	ErrInvalidQuotaGroupMap = "InvalidQuotaGroupMap"
 	// ErrEmail is returned when an email address is invalid
@@ -35,6 +37,7 @@ const (
 
 // AddBindingRules adds additional binding rules
 func AddBindingRules() {
+	addValidDynGroupMapsRule()
 	addGitRefNameBindingRule()
 	addValidURLListBindingRule()
 	addValidURLBindingRule()
@@ -212,6 +215,23 @@ func addValidGroupTeamMapRule() {
 			_, err := auth.UnmarshalGroupTeamMapping(fmt.Sprintf("%v", val))
 			if err != nil {
 				errs.Add([]string{name}, ErrInvalidGroupTeamMap, err.Error())
+				return false, errs
+			}
+
+			return true, errs
+		},
+	})
+}
+
+func addValidDynGroupMapsRule() {
+	binding.AddRule(&binding.Rule{
+		IsMatch: func(rule string) bool {
+			return rule == "ValidDynGroupMaps"
+		},
+		IsValid: func(errs binding.Errors, name string, val any) (bool, binding.Errors) {
+			_, err := auth.UnmarshalDynGroupMappings(fmt.Sprintf("%v", val))
+			if err != nil {
+				errs.Add([]string{name}, ErrInvalidDynGroupMaps, err.Error())
 				return false, errs
 			}
 
