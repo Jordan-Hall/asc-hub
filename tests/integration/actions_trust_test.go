@@ -113,7 +113,7 @@ func actionsTrustTestCreateBaseRepo(t *testing.T, owner *user_model.User) (*repo
 				ContentReader: strings.NewReader(`
 on:
   pull_request:
-
+    types: [edited, opened, synchronize, reopened]
 jobs:
   test:
     runs-on: docker
@@ -269,6 +269,19 @@ func actionsTrustTestSetPullRequestWIP(t *testing.T, pullRequest *issues_model.P
 
 	pullRequest.Issue = nil
 	require.NoError(t, pullRequest.LoadIssue(t.Context()))
+}
+
+func actionsTrustTestModifyTitlePullRequest(t *testing.T, token string, pullRequest *issues_model.PullRequest, sha string) {
+	t.Helper()
+
+	prAPILink := pullRequest.Issue.APIURL(t.Context())
+	req := NewRequestWithJSON(t, "PATCH", prAPILink, map[string]string{"title": "modified title"}).AddTokenAuth(token)
+	MakeRequest(t, req, http.StatusCreated)
+
+	actionRun := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{RepoID: pullRequest.BaseRepoID, CommitSHA: sha}, "need_approval = true")
+	assert.True(t, actionRun.NeedApproval)
+	actionRunJob := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{RunID: actionRun.ID, RepoID: pullRequest.BaseRepoID})
+	assert.Equal(t, actions_model.StatusBlocked, actionRunJob.Status)
 }
 
 func TestActionsPullRequestTrustPanel(t *testing.T) {
@@ -433,6 +446,83 @@ func TestActionsPullRequestTrustPanelWIPConflicts(t *testing.T) {
 		actionsTrustTestAssertPRConflicted(t, adminSession, pullRequestLink)
 
 		t.Run("Regular user sees pending approval even though PR is conflicted", func(t *testing.T) {
+			actionsTrustTestAssertTrustPanel(t, regularSession, pullRequestLink)
+		})
+	})
+}
+
+func actionsTrustTestMergePullRequest(t *testing.T, token string, pullRequest *issues_model.PullRequest) {
+	t.Helper()
+
+	mergeURL := fmt.Sprintf("%s/pulls/%d/merge", pullRequest.Issue.Repo.APIURL(), pullRequest.Issue.Index)
+	req := NewRequestWithJSON(t, "POST", mergeURL, map[string]string{"do": "merge"}).AddTokenAuth(token)
+	MakeRequest(t, req, http.StatusOK)
+
+	pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: pullRequest.ID})
+	assert.True(t, pr.HasMerged)
+}
+
+func TestActionsPullRequestTrustPanelMergedOrClosed(t *testing.T) {
+	onApplicationRun(t, func(t *testing.T, u *url.URL) {
+		ownerUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2}) // owner of the repo
+
+		regularUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5}) // a regular user with no specific permission
+		regularSession := loginUser(t, regularUser.Name)
+		regularToken := getTokenForLoggedInUser(t, regularSession, auth_model.AccessTokenScopeAll)
+
+		userAdmin := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1}) // the instance admin
+		adminSession := loginUser(t, userAdmin.Name)
+		adminToken := getTokenForLoggedInUser(t, adminSession, auth_model.AccessTokenScopeAll)
+
+		baseRepo, f := actionsTrustTestCreateBaseRepo(t, ownerUser)
+		defer f()
+
+		_, pullRequest, addFileToForkedResp := actionsTrustTestCreatePullRequestFromForkedRepo(t, ownerUser, baseRepo, regularUser)
+		pullRequestLink := pullRequest.Issue.Link()
+
+		actionsTrustTestMergePullRequest(t, adminToken, pullRequest)
+		actionsTrustTestModifyTitlePullRequest(t, regularToken, pullRequest, addFileToForkedResp.Commit.SHA)
+
+		t.Run("Regular user sees pending approval even though PR is a merged PR", func(t *testing.T) {
+			actionsTrustTestAssertTrustPanel(t, regularSession, pullRequestLink)
+		})
+	})
+}
+
+func actionsTrustTestClosePullRequest(t *testing.T, token string, pullRequest *issues_model.PullRequest) {
+	t.Helper()
+
+	prAPILink := pullRequest.Issue.APIURL(t.Context())
+	req := NewRequestWithJSON(t, "PATCH", prAPILink, map[string]string{"state": "closed"}).AddTokenAuth(token)
+	MakeRequest(t, req, http.StatusCreated)
+
+	pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: pullRequest.ID})
+	require.NoError(t, pr.LoadIssue(t.Context()))
+	assert.True(t, pr.Issue.IsClosed)
+}
+
+func TestActionsPullRequestTrustPanelClosed(t *testing.T) {
+	onApplicationRun(t, func(t *testing.T, u *url.URL) {
+		ownerUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2}) // owner of the repo
+
+		regularUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5}) // a regular user with no specific permission
+		regularSession := loginUser(t, regularUser.Name)
+		regularToken := getTokenForLoggedInUser(t, regularSession, auth_model.AccessTokenScopeAll)
+
+		userAdmin := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1}) // the instance admin
+		adminSession := loginUser(t, userAdmin.Name)
+		adminToken := getTokenForLoggedInUser(t, adminSession, auth_model.AccessTokenScopeAll)
+
+		baseRepo, f := actionsTrustTestCreateBaseRepo(t, ownerUser)
+		defer f()
+
+		_, pullRequest, addFileToForkedResp := actionsTrustTestCreatePullRequestFromForkedRepo(t, ownerUser, baseRepo, regularUser)
+		pullRequestLink := pullRequest.Issue.Link()
+
+		actionsTrustTestClosePullRequest(t, adminToken, pullRequest)
+		actionsTrustTestModifyTitlePullRequest(t, regularToken, pullRequest, addFileToForkedResp.Commit.SHA)
+
+		t.Run("Regular user sees pending approval even though PR is a closed PR", func(t *testing.T) {
 			actionsTrustTestAssertTrustPanel(t, regularSession, pullRequestLink)
 		})
 	})

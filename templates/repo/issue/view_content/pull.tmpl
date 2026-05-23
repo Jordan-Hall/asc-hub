@@ -55,6 +55,7 @@
 						</div>
 					</div>
 				{{end}}
+				{{template "repo/pulls/trust" .}}
 			{{else if .Issue.IsClosed}}
 				<div class="item item-section text tw-flex-1">
 					<div>
@@ -73,6 +74,7 @@
 						</div>
 					{{end}}
 				</div>
+				{{template "repo/pulls/trust" .}}
 			{{else if .IsPullFilesConflicted}}
 				<div class="item">
 					{{svg "octicon-x"}}
