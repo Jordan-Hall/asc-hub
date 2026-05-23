@@ -769,7 +769,7 @@ func TestAPIInternalAndExternalIssueTracker(t *testing.T) {
 
 	externalIssueRepo := forgery.CreateRepository(t, user, repoOptions)
 	forgery.DisableRepoUnits(t, externalIssueRepo, unit.TypeIssues)
-	forgery.EnableRepoUnit(t, internalIssueRepo, unit.TypeExternalTracker, nil)
+	forgery.EnableRepoUnit(t, externalIssueRepo, unit.TypeExternalTracker, nil)
 
 	disabledIssueRepo := forgery.CreateRepository(t, user, repoOptions)
 	forgery.DisableRepoUnits(t, disabledIssueRepo, unit.TypeIssues, unit.TypeExternalTracker)
