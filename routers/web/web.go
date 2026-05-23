@@ -674,12 +674,12 @@ func registerRoutes(m *web.Route) {
 		m.Group("/authorized-integrations", func() {
 			m.Group("/{ui}", func() {
 				m.Combo("/new").
-					Get(web.Bind(user_setting.AuthorizedIntegrationForm{}), user_setting.NewAuthorizedIntegration).
-					Post(web.Bind(user_setting.AuthorizedIntegrationForm{}), user_setting.NewAuthorizedIntegrationPost)
+					Get(user_setting.NewAuthorizedIntegration).
+					Post(user_setting.NewAuthorizedIntegrationPost)
 				m.Combo("/{id}").
-					Get(web.Bind(user_setting.AuthorizedIntegrationForm{}), user_setting.EditAuthorizedIntegration).
-					Post(web.Bind(user_setting.AuthorizedIntegrationForm{}), user_setting.EditAuthorizedIntegrationPost)
-			})
+					Get(user_setting.EditAuthorizedIntegration).
+					Post(user_setting.EditAuthorizedIntegrationPost)
+			}, user_setting.BindAuthorizedIntegrationUI, user_setting.DynamicBindAuthorizedIntegrationForm)
 			m.Post("/delete", user_setting.DeleteAuthorizedIntegration)
 			m.Get("", user_setting.ListAuthorizedIntegrations)
 		})

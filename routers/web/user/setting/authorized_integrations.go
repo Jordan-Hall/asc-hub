@@ -4,36 +4,113 @@
 package setting
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"io"
+	"html/template"
 	"net/http"
 	"slices"
-	"strings"
 
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/db"
-	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/base"
-	"forgejo.org/modules/json"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/templates"
 	"forgejo.org/modules/util"
 	"forgejo.org/modules/web"
+	"forgejo.org/modules/web/middleware"
 	auth_service "forgejo.org/services/auth"
 	"forgejo.org/services/authz"
 	"forgejo.org/services/context"
 
+	"code.forgejo.org/go-chi/binding"
 	"xorm.io/builder"
 )
 
 const (
-	tplAuthorizedIntegrationList        base.TplName = "user/settings/authorized_integrations"
-	tplAuthorizedIntegrationViewGeneric base.TplName = "user/settings/authorized_integrations/generic/view"
+	tplAuthorizedIntegrationList base.TplName = "user/settings/authorized_integrations"
 )
+
+var authorizedIntegrationUIs = []authorizedIntegrationUIImpl{
+	actionsLocalUI{},
+	genericUI{},
+}
+
+// Encapsulates the implementation of each authorized integration's UI.
+type authorizedIntegrationUIImpl interface {
+	// The URL path, and value of the UI field in the authorized integration.
+	UIIdentifier() auth_model.AuthorizedIntegrationUI
+	// When rendered in the "Add authorized integration" list, the Icon to use.
+	Icon(size int) template.HTML
+	// When rendered in the "Add authorized integration" list, the Label to use.
+	Label(ctx *templates.Context) template.HTML
+	// HTML template used when rendering this UI.
+	editTemplate() base.TplName
+	// When rendering editTemplate, populateTemplateContext will be invoked to allow the UI to perform backend data
+	// fetches as needed to populate `ctx.Data`.  The current form will be available as `ctx.Data["Form"]`.
+	populateTemplateContext(ctx *context.Context)
+	// Form object used when rendering and processing this UI.
+	form() authorizedIntegrationUIForm
+	// If an error occurs, typically in [convertForm] when evaluating if the inputs provided by the user are sufficient
+	// to create claim rules, populateError will be invoked.  If it returns [true] then the [editTemplate] will
+	// re-render with the updated context, allowing each UI to handle form errors and display validation results to the
+	// user.  If it returns false this indicates the error isn't recognized by the UI, and the error will be inspected
+	// by the base form processing and may result in a form error or a server error.
+	populateError(ctx *context.Context, err error) (handled bool)
+}
+
+// Contains all the form data going to the browser when loading an authorized integration, and returning to the server
+// when validating and saving an authorized integration.
+//
+// Every UI-specific form must embed a [baseAuthorizedIntegrationForm] which contains information common to every
+// authorized integration -- identifying information and permission information.  Forms must not conflict on field name
+// binding with the fields in [baseAuthorizedIntegrationForm].
+type authorizedIntegrationUIForm interface {
+	// Check whether the form is empty.  When loading the new & edit pages, this is used to identify if the form data
+	// needs to be loaded from the database objects or initialized for a new create.
+	isEmpty() bool
+	// Access the embedded baseAuthorizedIntegrationForm
+	baseForm() *baseAuthorizedIntegrationForm
+	// Populate the form from a persisted state, given the stored authorized integration's issuer & claim rules.
+	populateForm(ctx *context.Context, issuer string, claimRules *auth_model.ClaimRules) error
+	// Convert the form into the issuer and claim rules that will be saved with the authorized integration.
+	convertForm(ctx *context.Context) (issuer string, claimRules *auth_model.ClaimRules, err error)
+	// Initialize the form with values appropriate for a new authorized integration.
+	initNew()
+}
+
+// Middleware that resolves the "ui" parameter into ctx.Data.  Access the resolved UI interface via [authorizedIntegrationUI].
+func BindAuthorizedIntegrationUI(ctx *context.Context) {
+	var ui authorizedIntegrationUIImpl
+	uiString := ctx.Params(":ui")
+	for _, check := range authorizedIntegrationUIs {
+		if auth_model.AuthorizedIntegrationUI(uiString) == check.UIIdentifier() {
+			ui = check
+			break
+		}
+	}
+	if ui == nil {
+		ctx.NotFound("invalid UI", fmt.Errorf("invalid UI: %q is not a supported Authorized Integration UI", uiString))
+		return
+	}
+	ctx.Data["AuthorizedIntegrationUI"] = ui
+}
+
+func authorizedIntegrationUI(ctx *context.Context) authorizedIntegrationUIImpl {
+	return ctx.Data["AuthorizedIntegrationUI"].(authorizedIntegrationUIImpl)
+}
+
+// Middleware that acts like `web.Bind`, but uses the authorized integration UI's to work with a specific form type
+// defined by the [AuthorizedIntegrationUI].
+func DynamicBindAuthorizedIntegrationForm(ctx *context.Context) {
+	ui := authorizedIntegrationUI(ctx)
+	formObj := ui.form()
+	data := middleware.GetContextData(ctx)
+	binding.Bind(ctx.Req, formObj)
+	web.SetForm(data, formObj)
+}
 
 func ListAuthorizedIntegrations(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings.authorized_integrations")
@@ -46,37 +123,9 @@ func ListAuthorizedIntegrations(ctx *context.Context) {
 		return
 	}
 	ctx.Data["AuthorizedIntegrations"] = ais
+	ctx.Data["UIs"] = authorizedIntegrationUIs
 
 	ctx.HTML(http.StatusOK, tplAuthorizedIntegrationList)
-}
-
-type AuthorizedIntegrationForm struct {
-	// Top data in UI, descriptive information about the Authorized Integration:
-	Name        string
-	Description string
-	Audience    string
-
-	// Middle data in UI, how JWTs are validated by this Authorized Integration:
-	Issuer     string // Future: Issuer is likely to be replaced with more-specific fields on non-generic UIs
-	ClaimRules string // Future: ClaimRules is only required when aiUI == "generic"
-
-	// Bottom data in the UI, what authorization is permitted by this Authorized Integration:
-	Resource     string   // all, public-only, repo-specific
-	SelectedRepo []string // slice of ownername/reponame for repo-specific
-	ScopeAll     bool
-	Scope        []string
-
-	// Values used for repo-specific repository multi-select UI, not stored in Authorized Integration:
-	RepoSearch         string
-	AddSelectedRepo    string // add a repo to SelectedRepo
-	RemoveSelectedRepo string // remove a repo from SelectedRepo
-	Page               int    // repo search page
-	SetPage            int    // repo search buttons
-}
-
-func (f *AuthorizedIntegrationForm) isEmpty() bool {
-	return f.Name == "" && f.Description == "" && f.Audience == "" && f.Issuer == "" &&
-		f.ClaimRules == "" && f.Resource == "" && f.SelectedRepo == nil && f.Scope == nil
 }
 
 func getAuthorizedIntegration(ctx *context.Context) *auth_model.AuthorizedIntegration {
@@ -106,7 +155,7 @@ func EditAuthorizedIntegration(ctx *context.Context) {
 		return
 	}
 
-	form := web.GetForm(ctx).(*AuthorizedIntegrationForm)
+	form := web.GetForm(ctx).(authorizedIntegrationUIForm)
 	if form.isEmpty() {
 		repos, err := auth_model.GetRepositoriesAccessibleWithIntegration(ctx, ai.ID)
 		if err != nil {
@@ -114,9 +163,14 @@ func EditAuthorizedIntegration(ctx *context.Context) {
 			return
 		}
 
-		form, err = copyAuthorizedIntegrationToForm(ctx, ai, repos)
+		err = form.populateForm(ctx, ai.Issuer, ai.ClaimRules)
 		if err != nil {
 			ctx.ServerError("copyAuthorizedIntegrationToForm", err)
+			return
+		}
+		err = form.baseForm().copyAuthorizedIntegrationToForm(ctx, ai, repos)
+		if err != nil {
+			ctx.ServerError("BaseForm().copyAuthorizedIntegrationToForm", err)
 			return
 		}
 	}
@@ -126,7 +180,7 @@ func EditAuthorizedIntegration(ctx *context.Context) {
 }
 
 func EditAuthorizedIntegrationPost(ctx *context.Context) {
-	form := web.GetForm(ctx).(*AuthorizedIntegrationForm)
+	form := web.GetForm(ctx).(authorizedIntegrationUIForm)
 	ctx.Data["Form"] = form // make form available for template render on any error
 
 	ai := getAuthorizedIntegration(ctx)
@@ -134,7 +188,15 @@ func EditAuthorizedIntegrationPost(ctx *context.Context) {
 		return
 	}
 
-	rr, err := copyFormToAuthorizedIntegration(ctx, form, ai)
+	issuer, claimRules, err := form.convertForm(ctx)
+	if err != nil {
+		editAuthorizedIntegrationErrorHandler(ctx, err)
+		return
+	}
+	ai.Issuer = issuer
+	ai.ClaimRules = claimRules
+
+	rr, err := form.baseForm().copyFormToAuthorizedIntegration(ctx, ai)
 	if err != nil {
 		editAuthorizedIntegrationErrorHandler(ctx, err)
 		return
@@ -149,10 +211,10 @@ func EditAuthorizedIntegrationPost(ctx *context.Context) {
 }
 
 func NewAuthorizedIntegration(ctx *context.Context) {
-	form := web.GetForm(ctx).(*AuthorizedIntegrationForm)
+	form := web.GetForm(ctx).(authorizedIntegrationUIForm)
 	if form.isEmpty() {
-		form.Resource = "all"
-		form.ClaimRules = string("{\n  \"rules\":[]\n}")
+		form.initNew()
+		form.baseForm().InitNew()
 	}
 	ctx.Data["Form"] = form
 	ctx.Data["IsNew"] = true
@@ -161,15 +223,24 @@ func NewAuthorizedIntegration(ctx *context.Context) {
 }
 
 func NewAuthorizedIntegrationPost(ctx *context.Context) {
-	form := web.GetForm(ctx).(*AuthorizedIntegrationForm)
+	form := web.GetForm(ctx).(authorizedIntegrationUIForm)
 	ctx.Data["Form"] = form // make form available for template render on any error
 	ctx.Data["IsNew"] = true
 
 	ai := &auth_model.AuthorizedIntegration{
 		UserID: ctx.Doer.ID,
-		UI:     auth_model.AuthorizedIntegrationUIGeneric,
+		UI:     authorizedIntegrationUI(ctx).UIIdentifier(),
 	}
-	rr, err := copyFormToAuthorizedIntegration(ctx, form, ai)
+
+	issuer, claimRules, err := form.convertForm(ctx)
+	if err != nil {
+		editAuthorizedIntegrationErrorHandler(ctx, err)
+		return
+	}
+	ai.Issuer = issuer
+	ai.ClaimRules = claimRules
+
+	rr, err := form.baseForm().copyFormToAuthorizedIntegration(ctx, ai)
 	if err != nil {
 		editAuthorizedIntegrationErrorHandler(ctx, err)
 		return
@@ -181,10 +252,19 @@ func NewAuthorizedIntegrationPost(ctx *context.Context) {
 	}
 
 	ctx.Flash.Success(ctx.Tr("settings.authorized_integration.create_success", ai.Name))
-	ctx.Redirect(setting.AppSubURL + fmt.Sprintf("/user/settings/authorized-integrations/generic/%d", ai.ID))
+	ctx.Redirect(setting.AppSubURL + fmt.Sprintf("/user/settings/authorized-integrations/%s/%d", authorizedIntegrationUI(ctx).UIIdentifier(), ai.ID))
 }
 
 func editAuthorizedIntegrationErrorHandler(ctx *context.Context, err error) {
+	if authorizedIntegrationUI(ctx).populateError(ctx, err) {
+		EditAuthorizedIntegrationRenderCommon(ctx)
+		return
+	}
+
+	// Note: auth_service.ErrInvalidClaimRules is not handled here.  If a UI created claim rules that the auth service
+	// identified as invalid, it indicates a logic bug or unhandled case in the UI implementation, and will be treated
+	// as a server error because the base implementation here doesn't know what UI fields would be responsible for these
+	// invalid claim rules.  (Excepting the Generic UI, which handles this case itself.)
 	var errMissingField *auth_service.MissingFieldError
 	switch {
 	case errors.As(err, &errMissingField):
@@ -200,7 +280,11 @@ func editAuthorizedIntegrationErrorHandler(ctx *context.Context, err error) {
 		EditAuthorizedIntegrationRenderCommon(ctx)
 		return
 	case errors.Is(err, auth_service.ErrInvalidIssuer):
-		ctx.Data["Err_Issuer"] = true
+		// ErrInvalidIssuer is a little awkward if it reaches here.  Most UIs should prevent the user from entering
+		// something that would cause auth service to find the OIDC issuer to be invalid, but if we've reached here that
+		// hasn't happened.  Validating the issuer performs remote HTTP calls so it's possible that this is a transient
+		// error, or the state of the remote has changed (used to be valid, isn't currently).  We'll flash the error
+		// here as it might be useful to the user but we don't know how to highlight the relevant fields for the error.
 		ctx.Flash.Error(ctx.Tr("settings.authorized_integration.issuer.invalid", err.Error()), true)
 		EditAuthorizedIntegrationRenderCommon(ctx)
 		return
@@ -230,125 +314,6 @@ func editAuthorizedIntegrationErrorHandler(ctx *context.Context, err error) {
 	ctx.ServerError("UpdateAuthorizedIntegration", err)
 }
 
-func copyAuthorizedIntegrationToForm(ctx *context.Context, ai *auth_model.AuthorizedIntegration, rr []*auth_model.AuthorizedIntegResourceRepo) (*AuthorizedIntegrationForm, error) {
-	form := &AuthorizedIntegrationForm{
-		Name:        ai.Name,
-		Description: ai.Description,
-		Audience:    ai.Audience,
-		Issuer:      ai.Issuer, // Future: Issuer is only required when ai.UI == "generic"
-	}
-
-	if ai.ResourceAllRepos {
-		publicOnly, err := ai.Scope.PublicOnly()
-		if err != nil {
-			return nil, err
-		}
-		if publicOnly {
-			form.Resource = "public-only"
-		} else {
-			form.Resource = "all"
-		}
-	} else {
-		form.Resource = "repo-specific"
-	}
-
-	form.Scope = ai.Scope.StringSlice()
-	scopeAll, err := ai.Scope.HasScope(auth_model.AccessTokenScopeAll)
-	if err != nil {
-		return nil, err
-	}
-	form.ScopeAll = scopeAll
-
-	// Future: ClaimRules is only required when aiUI == "generic"
-	claimRulesJSON, err := json.MarshalIndent(ai.ClaimRules, "", "  ")
-	if err != nil {
-		return nil, err
-	}
-	form.ClaimRules = string(claimRulesJSON)
-
-	form.SelectedRepo = []string{}
-	if len(rr) != 0 {
-		repoIDs := make([]int64, len(rr))
-		for _, r := range rr {
-			repoIDs = append(repoIDs, r.RepoID)
-		}
-		repos, err := db.GetByIDs(ctx, "id", repoIDs, &repo_model.Repository{})
-		if err != nil {
-			return nil, err
-		}
-		for _, r := range rr {
-			repo := repos[r.RepoID]
-			// Repos associated with an authorized integration should already be visible to the owner, but it's possible
-			// that access has changed, such as a removed collaborator on a repo -- don't provide info on that repo if
-			// so.
-			permission, err := access_model.GetUserRepoPermission(ctx, repo, ctx.Doer)
-			if err != nil {
-				return nil, err
-			}
-			if permission.HasAccess() {
-				form.SelectedRepo = append(form.SelectedRepo, fmt.Sprintf("%s/%s", repo.OwnerName, repo.Name))
-			}
-		}
-	}
-
-	return form, nil
-}
-
-func copyFormToAuthorizedIntegration(ctx *context.Context, form *AuthorizedIntegrationForm, ai *auth_model.AuthorizedIntegration) ([]*auth_model.AuthorizedIntegResourceRepo, error) {
-	ai.Name = form.Name
-	ai.Description = form.Description
-
-	// ui=Generic, to be refactored later
-	ai.Issuer = form.Issuer
-	var claimRules *auth_model.ClaimRules
-
-	reader := bytes.NewReader([]byte(form.ClaimRules))
-	decoder := json.NewDecoder(reader)
-	decoder.DisallowUnknownFields() // prevent typo fields from being ignored to make errors easier to identify
-	if err := decoder.Decode(&claimRules); err != nil {
-		return nil, fmt.Errorf("%w: %w", auth_service.ErrInvalidClaimRules, err)
-	}
-	// json.Decoder doesn't guarantee that all of the reader is consumed, which can lead to weird situations
-	// where the UI appears to work correctly if extra content is in the form field, but it won't be parsed,
-	// misleading users.  Detect if anything other than io.EOF comes out of further decodings:
-	var extra any
-	if err := decoder.Decode(&extra); err != io.EOF {
-		if err == nil {
-			return nil, fmt.Errorf("%w: unexpected trailing content: %s", auth_service.ErrInvalidClaimRules, extra)
-		}
-		return nil, fmt.Errorf("%w: error after JSON value: %w", auth_service.ErrInvalidClaimRules, err)
-	}
-	ai.ClaimRules = claimRules
-
-	scopeRaw := strings.Join(form.Scope, ",")
-
-	var resourceRepos []*auth_model.AuthorizedIntegResourceRepo
-	switch form.Resource {
-	case "all":
-		ai.ResourceAllRepos = true
-	case "public-only":
-		ai.ResourceAllRepos = true
-		scopeRaw = fmt.Sprintf("%s,%s", scopeRaw, auth_model.AccessTokenScopePublicOnly)
-	case "repo-specific":
-		ai.ResourceAllRepos = false
-		selectedRepos, err := getSelectedRepos(ctx, form.SelectedRepo)
-		if err != nil {
-			return nil, err
-		}
-		for _, repo := range selectedRepos {
-			resourceRepos = append(resourceRepos, &auth_model.AuthorizedIntegResourceRepo{RepoID: repo.ID})
-		}
-	}
-
-	scope, err := auth_model.AccessTokenScope(scopeRaw).Normalize()
-	if err != nil {
-		return nil, err
-	}
-	ai.Scope = scope
-
-	return resourceRepos, nil
-}
-
 func EditAuthorizedIntegrationRenderCommon(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings.authorized_integrations")
 	ctx.Data["PageIsSettingsAuthorizedIntegrations"] = true
@@ -370,12 +335,19 @@ func EditAuthorizedIntegrationRenderCommon(ctx *context.Context) {
 	ctx.Data["Categories"] = categories
 
 	repoMultiSelect(ctx)
+	if ctx.Written() {
+		return
+	}
+	authorizedIntegrationUI(ctx).populateTemplateContext(ctx)
+	if ctx.Written() {
+		return
+	}
 
-	ctx.HTML(http.StatusOK, tplAuthorizedIntegrationViewGeneric)
+	ctx.HTML(http.StatusOK, authorizedIntegrationUI(ctx).editTemplate())
 }
 
 func repoMultiSelect(ctx *context.Context) {
-	form := ctx.Data["Form"].(*AuthorizedIntegrationForm)
+	form := ctx.Data["Form"].(authorizedIntegrationUIForm).baseForm()
 
 	if form.AddSelectedRepo != "" {
 		form.SelectedRepo = append(form.SelectedRepo, form.AddSelectedRepo)

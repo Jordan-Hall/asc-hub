@@ -196,6 +196,7 @@ test('User: Add specific repo access token', async ({browser}, workerInfo) => {
   await expect(page.getByRole('textbox', {name: /^Token name/})).toHaveValue(tokenName);
   await expect(page.getByRole('radio', {name: 'Specific repositories'})).toBeChecked();
   await expect(page.getByRole('combobox', {name: 'repository'})).toHaveValue('read:repository');
+  await expect(page.getByPlaceholder('Search repos…')).toHaveValue('big_test_private_4'); // search box still populated after reload
 
   // Add the big_test_private_4 repo.
   await page.getByRole('button', {name: 'Add org17/big_test_private_4'}).click();
@@ -409,6 +410,7 @@ test('User: Edit authorized integration specific repo', async ({browser}, worker
   await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue(/^Example AI/);
   await expect(page.getByRole('radio', {name: 'Specific repositories'})).toBeChecked();
   await expect(page.getByRole('combobox', {name: 'repository'})).toHaveValue('write:repository');
+  await expect(page.getByPlaceholder('Search repos…')).toHaveValue('big_test_private_4'); // search box still populated after reload
 
   // Add the big_test_private_4 repo.
   await page.getByRole('button', {name: 'Add org17/big_test_private_4'}).click();
@@ -442,7 +444,7 @@ test('User: Add authorized integration', async ({browser}, workerInfo) => {
   await page.goto('/user/settings/authorized-integrations');
 
   await page.getByRole('menu').filter({hasText: 'Add authorized integration'}).click();
-  await page.getByRole('menuitem', {name: 'Generic JWT Source'}).click();
+  await page.getByRole('menuitem', {name: 'Generic JWT'}).click();
 
   await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('');
   await expect(page.getByRole('textbox', {name: 'Description'})).toHaveValue('');
@@ -482,7 +484,7 @@ test('User: Add authorized integration validation error', async ({browser}, work
   await page.goto('/user/settings/authorized-integrations');
 
   await page.getByRole('menu').filter({hasText: 'Add authorized integration'}).click();
-  await page.getByRole('menuitem', {name: 'Generic JWT Source'}).click();
+  await page.getByRole('menuitem', {name: 'Generic JWT'}).click();
 
   await page.getByRole('textbox', {name: 'Name'}).fill('\t\t');
   await page.getByRole('textbox', {name: 'Issuer (iss Claim)'}).fill('urn:forgejo:authorized-integrations:actions');
@@ -505,6 +507,73 @@ test('User: Add authorized integration validation error', async ({browser}, work
   await page.goto('/user/settings/authorized-integrations');
   await page.locator('.flex-item')
     .filter({has: page.locator('.flex-item-title', {hasText: 'Forgot to fill this out!'})})
+    .getByRole('button', {name: 'Delete'}).click();
+  await page.getByRole('button', {name: 'Yes'}).click();
+  await expect(page.locator('.ui.message.flash-success')).toBeVisible();
+  const deleteFlashText = await page.locator('.ui.message.flash-success').textContent();
+  expect(deleteFlashText?.trim()).toBe('Authorized integration has been deleted successfully.');
+});
+
+test('User: Add authorized integration (actions local)', async ({browser}, workerInfo) => {
+  const page = await login({browser}, workerInfo);
+  await page.goto('/user/settings/authorized-integrations');
+
+  await page.getByRole('menu').filter({hasText: 'Add authorized integration'}).click();
+  await page.getByRole('menuitem', {name: 'Forgejo Actions (Local)'}).click();
+
+  await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('');
+  await expect(page.getByRole('textbox', {name: 'Description'})).toHaveValue('');
+
+  await page.getByRole('textbox', {name: 'Name'}).fill('New Forgejo Actions (Local) Integration!');
+  await page.getByRole('textbox', {name: 'Description'}).fill('Description that carefully describes things.');
+  await page.getByRole('combobox', {name: 'repository'}).selectOption('read:repository');
+  await page.getByRole('button', {name: 'Create authorized integration'}).click();
+
+  // Didn't select a repository as the source, so an error is expected:
+  await expect(page.locator('.flash-error')).toContainText('Forgejo Actions source repository must be selected.');
+
+  // Verify that initial search results for the "Select repository:" section are visible
+  const actionsLocalSectionGetter = async () => await page.locator('.ui.attached.segment').filter({has: page.locator('p', {hasText: 'Forgejo Actions will be able to access Forgejo'})});
+  let actionsLocalSection = await actionsLocalSectionGetter();
+  await expect(actionsLocalSection.getByText('user2/diff-test')).toBeVisible();
+  await expect(actionsLocalSection.getByText('user2/huge-diff-test')).toBeVisible(); // another repo, will be used to verify search worked
+  await actionsLocalSection.getByPlaceholder('Search repos…').fill('huge-diff');
+  await actionsLocalSection.getByRole('button', {name: 'Search…'}).click();
+
+  // verify search results visible:
+  actionsLocalSection = await actionsLocalSectionGetter();
+  await expect(actionsLocalSection.getByText('user2/huge-diff-test')).toBeVisible();
+  await expect(actionsLocalSection.getByText('user2/diff-test')).toBeHidden();
+
+  // after performing a search, verify that other fields haven't lost their form values:
+  await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('New Forgejo Actions (Local) Integration!');
+  await expect(page.getByRole('combobox', {name: 'repository'})).toHaveValue('read:repository');
+  await expect(actionsLocalSection.getByPlaceholder('Search repos…')).toHaveValue('huge-diff'); // search box still populated after reload
+
+  // Add the big_test_private_4 repo.
+  await actionsLocalSection.getByRole('button', {name: 'Add user2/huge-diff-test'}).click();
+  actionsLocalSection = await actionsLocalSectionGetter();
+  await expect(actionsLocalSection.getByText('Source repository:')).toBeVisible();
+  await expect(actionsLocalSection.getByText('user2/huge-diff-test')).toBeVisible();
+
+  await page.getByRole('button', {name: 'Create authorized integration'}).click();
+
+  // Create will reload the page with a success banner, and the audience now populated; re-verify the Forgejo Actions repo selection as well:
+  await expect(page.getByRole('textbox', {name: 'Name'})).toHaveValue('New Forgejo Actions (Local) Integration!');
+  await expect(page.getByRole('textbox', {name: 'Audience (aud Claim)'})).toHaveValue(/^u:[0-9]+/);
+  actionsLocalSection = await actionsLocalSectionGetter();
+  await expect(actionsLocalSection.getByText('Source repository:')).toBeVisible();
+  await expect(actionsLocalSection.getByText('user2/huge-diff-test')).toBeVisible();
+
+  // Flash banner:
+  await expect(page.locator('.ui.message.flash-success')).toBeVisible();
+  const flashText = await page.locator('.ui.message.flash-success').textContent();
+  expect(flashText?.trim()).toBe('Created authorized integration: New Forgejo Actions (Local) Integration!');
+
+  // Delete the added integration, minimizing left-over test data and also validating the delete UI:
+  await page.goto('/user/settings/authorized-integrations');
+  await page.locator('.flex-item')
+    .filter({has: page.locator('.flex-item-title', {hasText: 'New Forgejo Actions (Local) Integration!'})})
     .getByRole('button', {name: 'Delete'}).click();
   await page.getByRole('button', {name: 'Yes'}).click();
   await expect(page.locator('.ui.message.flash-success')).toBeVisible();

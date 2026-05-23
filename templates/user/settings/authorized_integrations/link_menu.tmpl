@@ -1,6 +1,8 @@
 <div class="menu">
-	<a class="item" href="./authorized-integrations/generic/new">
-		{{svg "octicon-cloud" 20}}
-		{{ctx.Locale.Tr "settings.authorized_integration.generic"}}
-	</a>
+	{{range .UIs}}
+		<a class="item" href="./authorized-integrations/{{.UIIdentifier}}/new">
+			{{.Icon 20}}
+			{{.Label ctx}}
+		</a>
+	{{end}}
 </div>

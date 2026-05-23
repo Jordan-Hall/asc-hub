@@ -10,6 +10,7 @@ import (
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
 	"forgejo.org/models/unittest"
 	"forgejo.org/models/user"
 	"forgejo.org/modules/optional"
@@ -198,6 +199,11 @@ func getTestCases() []struct {
 			name:  "OwnerAndName Empty",
 			opts:  &repo_model.SearchRepoOptions{ListOptions: db.ListOptions{Page: 1, PageSize: 10}, OwnerAndName: [][2]string{}},
 			count: 0,
+		},
+		{
+			name:  "ActionsEnabled",
+			opts:  &repo_model.SearchRepoOptions{ListOptions: db.ListOptions{Page: 1, PageSize: 10}, EnabledUnit: optional.Some(unit.TypeActions)},
+			count: 3,
 		},
 	}
 

@@ -191,6 +191,8 @@ type SearchRepoOptions struct {
 	// Retrieve multiple repositories by their owner name & repository name, similar to [GetRepositoryByOwnerAndName]
 	// but in bulk.
 	OwnerAndName [][2]string
+	// Filter to repositories with this unit enabled.
+	EnabledUnit optional.Option[unit.Type]
 }
 
 // UserOwnedRepoCond returns user ownered repositories
@@ -516,6 +518,10 @@ func SearchRepositoryCondition(opts *SearchRepoOptions) builder.Cond {
 			// build the `Eq` conditions wouldn't occur, so we would have no filtering if this wasn't special-case'd.
 			cond = cond.And(builder.Eq{"1": "2"})
 		}
+	}
+
+	if has, unit := opts.EnabledUnit.Get(); has {
+		cond = cond.And(builder.In("`repository`.id", builder.Select("`repo_unit`.repo_id").From("repo_unit").Where(builder.Eq{"`repo_unit`.type": unit})))
 	}
 
 	return cond

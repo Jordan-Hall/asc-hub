@@ -46,7 +46,7 @@
 						</h5>
 
 						<div class="ui small fluid action left icon input tw-mb-3">
-							<input type="search" name="repo_search" spellcheck="false" {{if eq .Autofocus "search"}}autofocus{{end}} placeholder="{{ctx.Locale.Tr "search.repo_kind"}}" value="{{.repo_search}}">
+							<input type="search" name="repo_search" spellcheck="false" {{if eq .Autofocus "search"}}autofocus{{end}} placeholder="{{ctx.Locale.Tr "search.repo_kind"}}" value="{{.Form.RepoSearch}}">
 							<i class="icon">{{svg "octicon-search" 16}}</i>
 							<button class="ui small icon button" aria-label="{{ctx.Locale.Tr "search.search"}}" type="submit" name="set_page" value="1" formnovalidate="true" formmethod="get" formaction="#resource-repo-specific">
 								{{svg "octicon-search" 16}}
