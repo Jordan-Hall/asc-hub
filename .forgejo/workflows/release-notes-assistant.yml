@@ -15,7 +15,7 @@ jobs:
     if: ( vars.ROLE == 'forgejo-coding' ) && contains(github.event.pull_request.labels.*.name, 'worth a release-note')
     runs-on: docker
     container:
-      image: 'data.forgejo.org/oci/ci:1'
+      image: 'data.forgejo.org/oci/ci:2'
     steps:
       - uses: https://data.forgejo.org/actions/checkout@v6
 
