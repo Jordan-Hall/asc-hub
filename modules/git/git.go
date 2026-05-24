@@ -111,15 +111,7 @@ func VersionInfo() string {
 	if GitVersion == nil {
 		return "(git not found)"
 	}
-	format := "%s"
-	args := []any{GitVersion.Original()}
-	// Since git wire protocol has been released from git v2.18
-	if setting.Git.EnableAutoGitWireProtocol {
-		format += ", Wire Protocol %s Enabled"
-		args = append(args, "Version 2") // for focus color
-	}
-
-	return fmt.Sprintf(format, args...)
+	return GitVersion.Original()
 }
 
 func checkInit() error {
@@ -171,10 +163,6 @@ func InitFull(ctx context.Context) (err error) {
 	// when git works with gnupg (commit signing), there should be a stable home for gnupg commands
 	if _, ok := os.LookupEnv("GNUPGHOME"); !ok {
 		_ = os.Setenv("GNUPGHOME", filepath.Join(HomeDir(), ".gnupg"))
-	}
-
-	if setting.Git.EnableAutoGitWireProtocol {
-		globalCommandArgs = append(globalCommandArgs, "-c", "protocol.version=2")
 	}
 
 	// Explicitly disable credential helper, otherwise Git credentials might leak

@@ -38,23 +38,11 @@ func TestGitReflog(t *testing.T) {
 	defer test.MockProtect(&Git)()
 	defer test.MockProtect(&GitConfig)()
 
-	// default reflog config without legacy options
+	// default reflog config.
 	cfg, err := NewConfigProviderFromData(``)
 	require.NoError(t, err)
 	loadGitFrom(cfg)
 
 	assert.Equal(t, "true", GitConfig.GetOption("core.logAllRefUpdates"))
 	assert.Equal(t, "90", GitConfig.GetOption("gc.reflogExpire"))
-
-	// custom reflog config by legacy options
-	cfg, err = NewConfigProviderFromData(`
-[git.reflog]
-ENABLED = false
-EXPIRATION = 123
-`)
-	require.NoError(t, err)
-	loadGitFrom(cfg)
-
-	assert.Equal(t, "false", GitConfig.GetOption("core.logAllRefUpdates"))
-	assert.Equal(t, "123", GitConfig.GetOption("gc.reflogExpire"))
 }
