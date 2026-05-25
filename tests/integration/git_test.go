@@ -121,6 +121,7 @@ func testGit(t *testing.T, u *url.URL) {
 			t.Run("PushForkRemoteMessages", doTestForkPushMessages(httpContext, dstPath))
 			t.Run("CreateAgitFlowPull", doCreateAgitFlowPull(dstPath, &httpContext, "test/head"))
 			t.Run("InternalReferences", doInternalReferences(&httpContext, dstPath))
+			t.Run("FsckConsistencyChecks", doFsckConsistencyChecks(dstPath))
 			t.Run("BranchProtect", doBranchProtect(&httpContext, dstPath))
 			t.Run("AutoMerge", doAutoPRMerge(&httpContext, dstPath))
 			t.Run("CreatePRAndSetManuallyMerged", doCreatePRAndSetManuallyMerged(httpContext, httpContext, dstPath, "master", "test-manually-merge"))
@@ -170,6 +171,7 @@ func testGit(t *testing.T, u *url.URL) {
 				t.Run("PushForkRemoteMessages", doTestForkPushMessages(sshContext, dstPath))
 				t.Run("CreateAgitFlowPull", doCreateAgitFlowPull(dstPath, &sshContext, "test/head2"))
 				t.Run("InternalReferences", doInternalReferences(&sshContext, dstPath))
+				t.Run("FsckConsistencyChecks", doFsckConsistencyChecks(dstPath))
 				t.Run("BranchProtect", doBranchProtect(&sshContext, dstPath))
 				t.Run("MergeFork", func(t *testing.T) {
 					defer tests.PrintCurrentTest(t)()
@@ -1336,4 +1338,79 @@ func TestCloneAccessTokenResources(t *testing.T) {
 			})
 		})
 	})
+}
+
+func doFsckConsistencyChecks(dstPath string) func(t *testing.T) {
+	return func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		tree, _, err := git.NewCommand(git.DefaultContext, "rev-parse", "HEAD^{tree}").RunStdString(&git.RunOpts{Dir: dstPath})
+		require.NoError(t, err)
+		head, _, err := git.NewCommand(git.DefaultContext, "rev-parse", "HEAD^{commit}").RunStdString(&git.RunOpts{Dir: dstPath})
+		require.NoError(t, err)
+
+		// Is checked for and should error.
+		t.Run("badName", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+
+			var buf bytes.Buffer
+			buf.WriteString("tree ")
+			buf.WriteString(tree)
+			buf.WriteString("parent ")
+			buf.WriteString(head)
+			buf.WriteString("author  @>\n")
+			buf.WriteString("committer  @>\n")
+			buf.WriteString("\n")
+
+			commitID, _, err := git.NewCommand(git.DefaultContext, "hash-object", "-t", "commit", "--literally", "--stdin", "-w").RunStdString(&git.RunOpts{Dir: dstPath, Stdin: &buf})
+			require.NoError(t, err)
+			commitID = strings.TrimSpace(commitID)
+
+			_, stdErr, gitErr := git.NewCommand(git.DefaultContext, "push", "origin").AddDynamicArguments(commitID + ":refs/heads/consistency-check").RunStdString(&git.RunOpts{Dir: dstPath})
+			require.Error(t, gitErr)
+			assert.Contains(t, stdErr, "badName: invalid author/committer line - bad name")
+		})
+
+		t.Run("missingSpaceBeforeEmail", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+
+			var buf bytes.Buffer
+			buf.WriteString("tree ")
+			buf.WriteString(tree)
+			buf.WriteString("parent ")
+			buf.WriteString(head)
+			buf.WriteString(`author Gusted<script class="evil">alert('Oh no!');</script> <valid@example.org> 1706659200 +0000`)
+			buf.WriteRune('\n')
+			buf.WriteString(`committer Gusted<script class="evil">alert('Oh no!');</script> <valid@example.org> 1706659200 +0000`)
+			buf.WriteString("\n\n")
+
+			commitID, _, err := git.NewCommand(git.DefaultContext, "hash-object", "-t", "commit", "--literally", "--stdin", "-w").RunStdString(&git.RunOpts{Dir: dstPath, Stdin: &buf})
+			require.NoError(t, err)
+			commitID = strings.TrimSpace(commitID)
+
+			_, stdErr, gitErr := git.NewCommand(git.DefaultContext, "push", "origin").AddDynamicArguments(commitID + ":refs/heads/consistency-check").RunStdString(&git.RunOpts{Dir: dstPath})
+			require.Error(t, gitErr)
+			assert.Contains(t, stdErr, "missingSpaceBeforeEmail: invalid author/committer line - missing space before email")
+		})
+
+		// Is set to be ignored.
+		t.Run("badTimezone", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+
+			var buf bytes.Buffer
+			buf.WriteString("tree ")
+			buf.WriteString(tree)
+			buf.WriteString("parent ")
+			buf.WriteString(head)
+			buf.WriteString("author name <email> 1234 +\n")
+			buf.WriteString("committer name <email> 1234 +\n")
+			buf.WriteString("\n")
+
+			commitID, _, err := git.NewCommand(git.DefaultContext, "hash-object", "-t", "commit", "--literally", "--stdin", "-w").RunStdString(&git.RunOpts{Dir: dstPath, Stdin: &buf})
+			require.NoError(t, err)
+			commitID = strings.TrimSpace(commitID)
+
+			require.NoError(t, git.NewCommand(git.DefaultContext, "push", "origin").AddDynamicArguments(commitID+":refs/heads/consistency-check").Run(&git.RunOpts{Dir: dstPath}))
+		})
+	}
 }

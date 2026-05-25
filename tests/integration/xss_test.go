@@ -39,33 +39,6 @@ func TestXSSUserFullName(t *testing.T) {
 	)
 }
 
-func TestXSSWikiLastCommitInfo(t *testing.T) {
-	defer tests.PrepareTestEnv(t)()
-	// Check on page view.
-	t.Run("Page view", func(t *testing.T) {
-		defer tests.PrintCurrentTest(t)()
-
-		req := NewRequest(t, http.MethodGet, "/user2/repo1/wiki/XSS")
-		resp := MakeRequest(t, req, http.StatusOK)
-		htmlDoc := NewHTMLParser(t, resp.Body)
-
-		htmlDoc.AssertElement(t, "script.evil", false)
-		assert.Contains(t, htmlDoc.Find(".ui.sub.header").Text(), `Gusted<script class="evil">alert('Oh no!');</script> edited this page 2024-01-31`)
-	})
-
-	// Check on revisions page.
-	t.Run("Revision page", func(t *testing.T) {
-		defer tests.PrintCurrentTest(t)()
-
-		req := NewRequest(t, http.MethodGet, "/user2/repo1/wiki/XSS?action=_revision")
-		resp := MakeRequest(t, req, http.StatusOK)
-		htmlDoc := NewHTMLParser(t, resp.Body)
-
-		htmlDoc.AssertElement(t, "script.evil", false)
-		assert.Contains(t, htmlDoc.Find(".ui.sub.header").Text(), `Gusted<script class="evil">alert('Oh no!');</script> edited this page 2024-01-31`)
-	})
-}
-
 func TestXSSReviewDismissed(t *testing.T) {
 	defer unittest.OverrideFixtures("tests/integration/fixtures/TestXSSReviewDismissed")()
 	defer tests.PrepareTestEnv(t)()

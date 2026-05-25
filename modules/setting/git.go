@@ -95,6 +95,17 @@ func loadGitFrom(rootCfg ConfigProvider) {
 	GitConfig.SetOption("core.logAllRefUpdates", "true")
 	GitConfig.SetOption("gc.reflogExpire", "90")
 
+	GitConfig.SetOption("transfer.fsckObjects", "true")
+	// To ignore specific warnings they have to be set for all of the three
+	// scenarios. Per git-config(1): "To uniformly configure the same fsck
+	// settings in different circumstances, all three of them must be set to the
+	// same values."
+	for _, prefix := range []string{"fsck.", "fetch.fsck.", "receive.fsck."} {
+		GitConfig.SetOption(prefix+"badTimezone", "ignore")
+		GitConfig.SetOption(prefix+"missingSpaceBeforeDate", "ignore")
+		GitConfig.SetOption(prefix+"zeroPaddedFilemode", "ignore")
+	}
+
 	for _, key := range secGitConfig.Keys() {
 		GitConfig.SetOption(key.Name(), key.String())
 	}
