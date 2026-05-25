@@ -104,5 +104,6 @@
 	"repo.pulls.poster_trust_once": "Luba üks kord",
 	"repo.pulls.poster_trust_always": "Luba alati",
 	"repo.pulls.poster_trust_revoke": "Tühista",
-	"migrate.select.title": "Migreeri hoidla"
+	"migrate.select.title": "Migreeri hoidla",
+	"repo.files.filename": "Failinimi"
 }

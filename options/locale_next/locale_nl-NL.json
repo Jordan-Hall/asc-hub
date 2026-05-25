@@ -747,5 +747,9 @@
 	"actions.runners.uuid": "UUID",
 	"actions.runners.list_runners.edit_column": "Aanpassen",
 	"actions.runners.version": "Versie",
-	"actions.runners.list_runners.delete_button": "Verwijderen"
+	"actions.runners.list_runners.delete_button": "Verwijderen",
+	"repo.files.caption": "Bestanden in de repository (nieuwste commit bovenaan)",
+	"repo.files.filename": "Bestandsnaam",
+	"repo.files.last_commit_message": "Laatste commitbericht",
+	"repo.files.last_commit_date": "Datum van de laatste commit"
 }
