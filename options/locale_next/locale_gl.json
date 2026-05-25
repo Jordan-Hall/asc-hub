@@ -44,5 +44,32 @@
 		"one": "hai %d ano",
 		"other": "hai %d anos"
 	},
-	"meta.last_line": " "
+	"meta.last_line": " ",
+	"home.welcome.no_activity": "Sen actividade",
+	"home.welcome.activity_hint": "Aínda non hai nada no teu feed. Tanto as túas accións como a actividade dos repositorios seguidos aparecerán aqui.",
+	"home.explore_repos": "Explorar repositorios",
+	"home.explore_users": "Explorar usuarios",
+	"home.explore_orgs": "Explorar organizacións",
+	"fork.n_forks": {
+		"one": "%s fork",
+		"other": "%s forks"
+	},
+	"stars.list.none": "Ninguén lle dou unha estrela a este repo.",
+	"stars.n_stars": {
+		"one": "%s estrela",
+		"other": "%s estrelas"
+	},
+	"watch.list.none": "Ninguén está seguindo este repo.",
+	"watch.n_watchers": {
+		"one": "%s seguidor",
+		"other": "%s seguidores"
+	},
+	"followers.incoming.list.self.none": "Ninguén está seguindo o teu perfil.",
+	"followers.incoming.list.none": "Ninguén está seguindo este usuario.",
+	"repo.files.caption": "Arquivos do repositorio (os últimos commits primeiro)",
+	"repo.files.filename": "Nome do arquivo",
+	"repo.files.last_commit_message": "Mensaxe do último commit",
+	"repo.files.last_commit_date": "Data do último commit",
+	"repo.issues.filter_poster.hint": "Filtrar por autor",
+	"repo.issues.filter_assignee.hint": "Filtrar por usuario asignado"
 }

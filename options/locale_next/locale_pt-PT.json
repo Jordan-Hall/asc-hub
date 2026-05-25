@@ -767,5 +767,9 @@
 	"actions.runners.version": "Versão",
 	"actions.workflow.unknown_job_in_needs": "O trabalho com o ID %[1]s faz referência a trabalhos desconhecidos em `needs`: %[2]s.",
 	"actions.workflow.rerun_impossible": "A sequência de trabalho não pode ser executada novamente.",
-	"actions.workflow.job_rerun_impossible": "O trabalho não pode ser executado novamente."
+	"actions.workflow.job_rerun_impossible": "O trabalho não pode ser executado novamente.",
+	"repo.files.caption": "Ficheiros do repositório (o cometimento mais recente em primeiro lugar)",
+	"repo.files.filename": "Nome do ficheiro",
+	"repo.files.last_commit_message": "Mensagem do último cometimento",
+	"repo.files.last_commit_date": "Data do último cometimento"
 }

@@ -90,19 +90,23 @@
 	"webauthn.insert_key": "Podłącz swój klucz bezpieczeństwa",
 	"counters.n_commits": {
 		"one": "%s commit",
-		"many": "%s commity"
+		"few": "%s commity",
+		"many": ""
 	},
 	"counters.n_branches": {
 		"one": "%s gałąź",
-		"many": "%s gałęzie"
+		"few": "%s gałęzie",
+		"many": ""
 	},
 	"counters.n_tags": {
 		"one": "%s tag",
-		"many": "%s tagi"
+		"few": "%s tagi",
+		"many": ""
 	},
 	"counters.n_releases": {
 		"one": "%s wydanie",
-		"many": "%s wydań"
+		"few": "%s wydań",
+		"many": ""
 	},
 	"gpg.default_key": "Podpisano domyślnym kluczem",
 	"gpg.error.extract_sign": "Nie udało się wyłuskać podpisu",
@@ -593,5 +597,7 @@
 		"one": "Wybrane (%d) repozytorium",
 		"few": "Wybrane (%d) repozytoria",
 		"many": "Wybrane (%d) repozytoriów"
-	}
+	},
+	"repo.files.filename": "Nazwa pliku",
+	"migrate.select.title": "Migruj repozytorium"
 }
