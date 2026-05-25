@@ -386,7 +386,14 @@ func (issue *Issue) APIURL(ctx context.Context) string {
 			return ""
 		}
 	}
-	return fmt.Sprintf("%s/issues/%d", issue.Repo.APIURL(), issue.Index)
+
+	var path string
+	if issue.IsPull {
+		path = "pulls"
+	} else {
+		path = "issues"
+	}
+	return fmt.Sprintf("%s/%s/%d", issue.Repo.APIURL(), path, issue.Index)
 }
 
 // HTMLURL returns the absolute URL to this issue.

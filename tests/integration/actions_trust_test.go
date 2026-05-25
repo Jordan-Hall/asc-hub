@@ -534,7 +534,7 @@ func TestActionsPullRequestTrustCancelOnClose(t *testing.T) {
 
 		regularUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
 		regularSession := loginUser(t, regularUser.Name)
-		token := getTokenForLoggedInUser(t, regularSession, auth_model.AccessTokenScopeWriteIssue)
+		token := getTokenForLoggedInUser(t, regularSession, auth_model.AccessTokenScopeWriteRepository)
 
 		baseRepo, f := actionsTrustTestCreateBaseRepo(t, ownerUser)
 		defer f()

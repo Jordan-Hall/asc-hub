@@ -299,6 +299,7 @@ func TestAPICreatePullSuccess(t *testing.T) {
 	DecodeJSON(t, res, pull)
 
 	assert.Equal(t, "65f1bf27bc3bf70f64657658635e66094edbcb4d", pull.MergeBase)
+	assert.Contains(t, pull.URL, fmt.Sprintf("/api/v1/repos/%s/%s/pulls/%d", owner10.Name, repo10.Name, pull.Index))
 }
 
 func TestAPICreatePullSameRepoSuccess(t *testing.T) {
