@@ -1,4 +1,11 @@
 {
+	"admin.config.mailer.enable_helo": "Povolené HELO",
+	"admin.config.mailer.enabled": "Povolené",
+	"admin.config.ssh.enabled": "Povolené",
+	"admin.packages.repository": "Repozitár",
+	"admin.packages.owner": "Vlastník",
+	"admin.repos.owner": "Vlastník",
+	"admin.dashboard.delete_generated_repository_avatars": "Odstrániť vygenerované avatary repozitárov",
 	"webauthn.error.timeout": "Vypršal čas na čítanie vašeho kľúča. Znova načítajte túto stránku a skúste to opäť.",
 	"webauthn.error.empty": "Musíte nastaviť meno pre tento kľúč.",
 	"webauthn.error.duplicated": "Bezpečnostný kľúč nie je pre túto požiadavku povolený. Uistite sa, že kľúč ešte nie je zaregistrovaný.",

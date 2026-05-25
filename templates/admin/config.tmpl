@@ -31,7 +31,7 @@
 
 				<div class="divider"></div>
 
-				<dt>{{ctx.Locale.Tr "admin.config.git_version"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.version"}}</dt>
 				<dd>{{.GitVersion}}</dd>
 
 				<div class="divider"></div>
@@ -62,33 +62,33 @@
 		</div>
 
 		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.config.ssh_config"}}
+			{{ctx.Locale.Tr "admin.config.ssh.header"}}
 		</h4>
 		<div class="ui attached table segment">
 			<dl class="admin-dl-horizontal">
-				<dt>{{ctx.Locale.Tr "admin.config.ssh_enabled"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.ssh.enabled"}}</dt>
 				<dd>{{if not .SSH.Disabled}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</dd>
 				{{if not .SSH.Disabled}}
-					<dt>{{ctx.Locale.Tr "admin.config.ssh_start_builtin_server"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.ssh.use_builtin_server"}}</dt>
 					<dd>{{if .SSH.StartBuiltinServer}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</dd>
-					<dt>{{ctx.Locale.Tr "admin.config.ssh_domain"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.ssh.domain"}}</dt>
 					<dd>{{.SSH.Domain}}</dd>
-					<dt>{{ctx.Locale.Tr "admin.config.ssh_port"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.ssh.port"}}</dt>
 					<dd>{{.SSH.Port}}</dd>
-					<dt>{{ctx.Locale.Tr "admin.config.ssh_listen_port"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.ssh.listen_port"}}</dt>
 					<dd>{{.SSH.ListenPort}}</dd>
 
 					{{if not .SSH.StartBuiltinServer}}
-						<dt>{{ctx.Locale.Tr "admin.config.ssh_root_path"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.ssh.root_path"}}</dt>
 						<dd>{{.SSH.RootPath}}</dd>
-						<dt>{{ctx.Locale.Tr "admin.config.ssh_key_test_path"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.ssh.key_test_path"}}</dt>
 						<dd>{{.SSH.KeyTestPath}}</dd>
-						<dt>{{ctx.Locale.Tr "admin.config.ssh_keygen_path"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.ssh.keygen_path"}}</dt>
 						<dd>{{.SSH.KeygenPath}}</dd>
-						<dt>{{ctx.Locale.Tr "admin.config.ssh_minimum_key_size_check"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.ssh.minimum_key_size_check"}}</dt>
 						<dd>{{if .SSH.MinimumKeySizeCheck}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</dd>
 						{{if .SSH.MinimumKeySizeCheck}}
-							<dt>{{ctx.Locale.Tr "admin.config.ssh_minimum_key_sizes"}}</dt>
+							<dt>{{ctx.Locale.Tr "admin.config.ssh.minimum_key_sizes"}}</dt>
 							<dd>{{.SSH.MinimumKeySizes}}</dd>
 						{{end}}
 					{{end}}
@@ -113,28 +113,28 @@
 		</div>
 
 		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.config.db_config"}}
+			{{ctx.Locale.Tr "admin.config.db.header"}}
 		</h4>
 		<div class="ui attached table segment">
 			<dl class="admin-dl-horizontal">
-				<dt>{{ctx.Locale.Tr "admin.config.db_type"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.db.type"}}</dt>
 				<dd>{{.DbCfg.Type}}</dd>
 				{{if not (eq .DbCfg.Type "sqlite3")}}
-					<dt>{{ctx.Locale.Tr "admin.config.db_host"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.db.host"}}</dt>
 					<dd>{{if .DbCfg.Host}}{{.DbCfg.Host}}{{else}}-{{end}}</dd>
-					<dt>{{ctx.Locale.Tr "admin.config.db_name"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.db.name"}}</dt>
 					<dd>{{if .DbCfg.Name}}{{.DbCfg.Name}}{{else}}-{{end}}</dd>
-					<dt>{{ctx.Locale.Tr "admin.config.db_user"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.db.user"}}</dt>
 					<dd>{{if .DbCfg.User}}{{.DbCfg.User}}{{else}}-{{end}}</dd>
 				{{end}}
 				{{if eq .DbCfg.Type "postgres"}}
-					<dt>{{ctx.Locale.Tr "admin.config.db_schema"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.db.schema"}}</dt>
 					<dd>{{if .DbCfg.Schema}}{{.DbCfg.Schema}}{{else}}-{{end}}</dd>
-					<dt>{{ctx.Locale.Tr "admin.config.db_ssl_mode"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.db.ssl_mode"}}</dt>
 					<dd>{{if .DbCfg.SSLMode}}{{.DbCfg.SSLMode}}{{else}}-{{end}}</dd>
 				{{end}}
 				{{if eq .DbCfg.Type "sqlite3"}}
-					<dt>{{ctx.Locale.Tr "admin.config.db_path"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.db.path"}}</dt>
 					<dd>{{if .DbCfg.Path}}{{.DbCfg.Path}}{{else}}-{{end}}</dd>
 				{{end}}
 			</dl>
@@ -209,38 +209,38 @@
 		</div>
 
 		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.config.mailer_config"}}
+			{{ctx.Locale.Tr "admin.config.mailer.header"}}
 		</h4>
 		<div class="ui attached table segment">
 			<dl class="admin-dl-horizontal">
-				<dt>{{ctx.Locale.Tr "admin.config.mailer_enabled"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.mailer.enabled"}}</dt>
 				<dd>{{if .MailerEnabled}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</dd>
 				{{if .MailerEnabled}}
-					<dt>{{ctx.Locale.Tr "admin.config.mailer_name"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.mailer.name"}}</dt>
 					<dd>{{.Mailer.Name}}</dd>
 					{{if eq .Mailer.Protocol "sendmail"}}
-						<dt>{{ctx.Locale.Tr "admin.config.mailer_use_sendmail"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.mailer.sendmail.use"}}</dt>
 						<dd>{{svg "octicon-check"}}</dd>
-						<dt>{{ctx.Locale.Tr "admin.config.mailer_sendmail_path"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.mailer.sendmail.path"}}</dt>
 						<dd>{{.Mailer.SendmailPath}}</dd>
-						<dt>{{ctx.Locale.Tr "admin.config.mailer_sendmail_args"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.mailer.sendmail.args"}}</dt>
 						<dd>{{.Mailer.SendmailArgs}}</dd>
-						<dt>{{ctx.Locale.Tr "admin.config.mailer_sendmail_timeout"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.mailer.sendmail.timeout"}}</dt>
 						<dd>{{.Mailer.SendmailTimeout}} {{ctx.Locale.Tr "tool.raw_seconds"}}</dd>
 					{{else if eq .Mailer.Protocol "dummy"}}
-						<dt>{{ctx.Locale.Tr "admin.config.mailer_use_dummy"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.mailer.use_dummy"}}</dt>
 						<dd>{{svg "octicon-check"}}</dd>
 					{{else}}{{/* SMTP family */}}
-						<dt>{{ctx.Locale.Tr "admin.config.mailer_protocol"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.mailer.protocol"}}</dt>
 						<dd>{{.Mailer.Protocol}}</dd>
-						<dt>{{ctx.Locale.Tr "admin.config.mailer_enable_helo"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.mailer.enable_helo"}}</dt>
 						<dd>{{if .Mailer.EnableHelo}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</dd>
-						<dt>{{ctx.Locale.Tr "admin.config.mailer_smtp_addr"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.mailer.smtp.addr"}}</dt>
 						<dd>{{.Mailer.SMTPAddr}}</dd>
-						<dt>{{ctx.Locale.Tr "admin.config.mailer_smtp_port"}}</dt>
+						<dt>{{ctx.Locale.Tr "admin.config.mailer.smtp.port"}}</dt>
 						<dd>{{.Mailer.SMTPPort}}</dd>
 					{{end}}
-					<dt>{{ctx.Locale.Tr "admin.config.mailer_user"}}</dt>
+					<dt>{{ctx.Locale.Tr "admin.config.mailer.user"}}</dt>
 					<dd>{{if .Mailer.User}}{{.Mailer.User}}{{else}}(empty){{end}}</dd>
 					<div class="divider"></div>
 					<dt class="tw-py-1 tw-flex tw-items-center">{{ctx.Locale.Tr "admin.config.send_test_mail"}}</dt>
@@ -314,32 +314,32 @@
 		</div>
 
 		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.config.git_config"}}
+			{{ctx.Locale.Tr "admin.config.git.header"}}
 		</h4>
 		<div class="ui attached table segment">
 			<dl class="admin-dl-horizontal">
-				<dt>{{ctx.Locale.Tr "admin.config.git_disable_diff_highlight"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.disable_diff_highlight"}}</dt>
 				<dd>{{if .Git.DisableDiffHighlight}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.config.git_max_diff_lines"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.diff.max_lines"}}</dt>
 				<dd>{{.Git.MaxGitDiffLines}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.config.git_max_diff_line_characters"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.diff.max_line_characters"}}</dt>
 				<dd>{{.Git.MaxGitDiffLineCharacters}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.config.git_max_diff_files"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.diff.max_files"}}</dt>
 				<dd>{{.Git.MaxGitDiffFiles}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.config.git_gc_args"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.gc_args"}}</dt>
 				<dd><code>{{.Git.GCArgs}}</code></dd>
 
 				<div class="divider"></div>
 
-				<dt>{{ctx.Locale.Tr "admin.config.git_migrate_timeout"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.migrate_timeout"}}</dt>
 				<dd>{{.Git.Timeout.Migrate}} {{ctx.Locale.Tr "tool.raw_seconds"}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.config.git_mirror_timeout"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.mirror_timeout"}}</dt>
 				<dd>{{.Git.Timeout.Mirror}} {{ctx.Locale.Tr "tool.raw_seconds"}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.config.git_clone_timeout"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.clone_timeout"}}</dt>
 				<dd>{{.Git.Timeout.Clone}} {{ctx.Locale.Tr "tool.raw_seconds"}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.config.git_pull_timeout"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.pull_timeout"}}</dt>
 				<dd>{{.Git.Timeout.Pull}} {{ctx.Locale.Tr "tool.raw_seconds"}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.config.git_gc_timeout"}}</dt>
+				<dt>{{ctx.Locale.Tr "admin.config.git.gc_timeout"}}</dt>
 				<dd>{{.Git.Timeout.GC}} {{ctx.Locale.Tr "tool.raw_seconds"}}</dd>
 			</dl>
 		</div>

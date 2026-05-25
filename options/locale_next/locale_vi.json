@@ -1,4 +1,7 @@
 {
+	"admin.config.git.clone_timeout": "Thời gian tối đa Thao tác Nhân bản",
+	"admin.dashboard.sync_repo_tags": "Đồng bộ hoá các nhãn từ dữ liệu Git đến cơ sở dữ liệu",
+	"admin.dashboard.sync_tag.started": "Đã bắt đầu đồng bộ hoá nhãn",
 	"webauthn.error.timeout": "Hết thời gian đọc khóa mất rồi. Hãy tải lại trang và thử lại.",
 	"webauthn.error.empty": "Bạn phải đặt tên cho khóa này.",
 	"webauthn.error.duplicated": "Khóa bảo mật không được phép cho yêu cầu này. Vui lòng đảm bảo rằng khóa chưa được đăng ký trước đó.",
