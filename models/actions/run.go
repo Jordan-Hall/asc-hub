@@ -477,7 +477,7 @@ func GetLatestRun(ctx context.Context, repoID int64) (*ActionRun, error) {
 func GetRunBefore(ctx context.Context, _ *ActionRun) (*ActionRun, error) {
 	// TODO return the most recent run related to the run given in argument
 	// see https://codeberg.org/forgejo/user-research/issues/63 for context
-	return nil, nil
+	return nil, util.ErrNotExist
 }
 
 func GetLatestRunForBranchAndWorkflow(ctx context.Context, repoID int64, branch, workflowFile, event string) (*ActionRun, error) {
@@ -499,26 +499,16 @@ func GetLatestRunForBranchAndWorkflow(ctx context.Context, repoID int64, branch,
 }
 
 func GetRunByID(ctx context.Context, id int64) (*ActionRun, error) {
-	run, has, err := GetRunByIDWithHas(ctx, id)
-	if err != nil {
-		return nil, err
-	} else if !has {
-		return nil, fmt.Errorf("run with id %d: %w", id, util.ErrNotExist)
-	}
-
-	return run, nil
-}
-
-func GetRunByIDWithHas(ctx context.Context, id int64) (*ActionRun, bool, error) {
 	var run ActionRun
 	has, err := db.GetEngine(ctx).Where("id=?", id).Get(&run)
 	if err != nil {
-		return nil, false, err
-	} else if !has {
-		return nil, false, nil
+		return nil, err
+	}
+	if !has {
+		return nil, fmt.Errorf("run with id %d: %w", id, util.ErrNotExist)
 	}
 
-	return &run, true, nil
+	return &run, nil
 }
 
 func GetRunByIndex(ctx context.Context, repoID, index int64) (*ActionRun, error) {

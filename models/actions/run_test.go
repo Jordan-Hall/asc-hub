@@ -13,6 +13,7 @@ import (
 	"forgejo.org/modules/cache"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/test"
+	"forgejo.org/modules/util"
 
 	"code.forgejo.org/forgejo/runner/v12/act/jobparser"
 	"github.com/stretchr/testify/assert"
@@ -691,4 +692,30 @@ func TestActionRunLoadAttributes(t *testing.T) {
 	}
 	require.NoError(t, run.LoadAttributes(t.Context()))
 	assert.Equal(t, "ghost", run.TriggerUser.LowerName)
+}
+
+func TestGetRunByID(t *testing.T) {
+	const (
+		existingRunID    = 0xdeadbeef
+		nonexistingRunID = 0xffffffff
+	)
+
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	_, err := db.GetEngine(t.Context()).Insert(ActionRun{
+		ID: existingRunID,
+	})
+	require.NoError(t, err)
+
+	// ActionRun exists
+
+	run, err := GetRunByID(t.Context(), existingRunID)
+	require.NoError(t, err)
+	assert.NotNil(t, run)
+
+	// ActionRun does not exist
+
+	run, err = GetRunByID(t.Context(), nonexistingRunID)
+	require.ErrorIs(t, err, util.ErrNotExist)
+	assert.Nil(t, run)
 }

@@ -739,12 +739,13 @@ func getRunByID(ctx *app_context.Context, runID int64) *actions_model.ActionRun 
 		return nil
 	}
 
-	run, has, err := actions_model.GetRunByIDWithHas(ctx, runID)
-	if err != nil {
+	run, err := actions_model.GetRunByID(ctx, runID)
+	if err != nil && !errors.Is(err, util.ErrNotExist) {
 		ctx.Error(http.StatusInternalServerError, err.Error())
 		return nil
 	}
-	if !has {
+
+	if errors.Is(err, util.ErrNotExist) {
 		log.Debug("Requested runID[%d] not found.", runID)
 		ctx.Error(http.StatusNotFound, fmt.Sprintf("no such run %d", runID))
 		return nil

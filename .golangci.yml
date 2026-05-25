@@ -189,9 +189,6 @@ linters:
         text: "(ST1005|ST1003|QF1001):"
 
       # TODO: eventually remove this section entirely
-      - path: models/actions/run.go
-        linters:
-          - nilnil
       - path: models/actions/task.go
         linters:
           - nilnil
