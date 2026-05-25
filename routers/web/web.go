@@ -101,12 +101,8 @@ func optionsCorsHandler() func(next http.Handler) http.Handler {
 	}
 }
 
-// The OAuth2 plugin is expected to be executed first, as it must ignore the user id stored
-// in the session (if there is a user id stored in session other plugins might return the user
-// object for that id).
-//
-// The Session plugin is expected to be executed second, in order to skip authentication
-// for users that have already signed in.
+// Authentication methods that are applied to all the web URL routes.  They are processed in the order defined; an
+// earlier authentication success would prevent later authentication methods from being attempted.
 func buildAuthGroup() *auth_method.Group {
 	group := auth_method.NewGroup()
 	group.Add(&auth_method.OAuth2{}) // FIXME: this should be removed and only applied in download and oauth related routers
@@ -123,6 +119,23 @@ func buildAuthGroup() *auth_method.Group {
 	}
 	group.Add(&auth_method.Session{})
 
+	return group
+}
+
+// Authentication methods that are applied to Git HTTP & Git LFS HTTP routes.  They are processed in the order defined;
+// an earlier authentication success would prevent later authentication methods from being attempted.
+func buildGitAuthGroup() *auth_method.Group {
+	group := auth_method.NewGroup()
+	group.Add(&auth_method.OAuth2{})
+	group.Add(&auth_method.Basic{})
+	group.Add(&auth_method.AccessToken{})
+	group.Add(&auth_method.ActionRuntimeToken{})
+	group.Add(&auth_method.ActionTaskToken{})
+	group.Add(&auth_method.AuthorizedIntegration{
+		// "Authorization: Basic ..." is easier to use for git operations, and already supported for other tokens, so it
+		// is enabled for Authorized Integrations as well:
+		PermitBasic: true,
+	})
 	return group
 }
 
@@ -275,6 +288,8 @@ func ctxDataSet(args ...any) func(ctx *context.Context) {
 func Routes() *web.Route {
 	routes := web.NewRoute()
 
+	routes.Use(chi_middleware.GetHead)
+
 	routes.Head("/", misc.DummyOK) // for health check - doesn't need to be passed through gzip handler
 	routes.Methods("GET, HEAD, OPTIONS", "/assets/*", optionsCorsHandler(), public.FileHandlerFunc())
 	routes.Methods("GET, HEAD", "/avatars/*", resizingHandler("avatars", storage.Avatars, avatar.AllowedResizedAvatarSizes))
@@ -285,54 +300,82 @@ func Routes() *web.Route {
 
 	_ = templates.HTMLRenderer()
 
-	var mid []any
-
+	var gzipMid any
 	if setting.EnableGzip {
 		wrapper, err := gzhttp.NewWrapper(gzhttp.RandomJitter(32, 0, false), gzhttp.MinSize(GzipMinSize))
 		if err != nil {
 			log.Fatal("gzhttp.NewWrapper failed: %v", err)
 		}
-		mid = append(mid, wrapper)
+		gzipMid = wrapper
 	}
 
 	if setting.Service.EnableCaptcha {
 		// The captcha http.Handler should only fire on /captcha/* so we can just mount this on that url
-		routes.Methods("GET,HEAD", "/captcha/*", append(mid, captcha.Server(captcha.StdWidth, captcha.StdHeight).ServeHTTP)...)
+		routes.Methods("GET,HEAD", "/captcha/*", gzipMid, captcha.Server(captcha.StdWidth, captcha.StdHeight).ServeHTTP)
 	}
 
 	if setting.Metrics.Enabled {
 		prometheus.MustRegister(metrics.NewCollector())
-		routes.Get("/metrics", append(mid, Metrics)...)
+		routes.Get("/metrics", gzipMid, Metrics)
 	}
 
-	routes.Methods("GET,HEAD", "/robots.txt", append(mid, misc.RobotsTxt)...)
-	routes.Methods("GET,HEAD", "/manifest.json", append(mid, misc.ManifestJSON)...)
+	routes.Methods("GET,HEAD", "/robots.txt", gzipMid, misc.RobotsTxt)
+	routes.Methods("GET,HEAD", "/manifest.json", gzipMid, misc.ManifestJSON)
 	routes.Get("/ssh_info", misc.SSHInfo)
 	routes.Get("/api/healthz", healthcheck.Check)
 
-	mid = append(mid, common.Sessioner(), context.Contexter())
-
-	// Get user from session if logged in.
-	mid = append(mid, webAuth(buildAuthGroup()))
-
-	// GetHead allows a HEAD request redirect to GET if HEAD method is not defined for that route
-	mid = append(mid, chi_middleware.GetHead)
-
 	if setting.API.EnableSwagger {
-		// Note: The route is here but no in API routes because it renders a web page
-		routes.Get("/api/swagger", append(mid, misc.Swagger)...) // Render V1 by default
-		routes.Get("/api/forgejo/swagger", append(mid, misc.SwaggerForgejo)...)
+		routes.Group("", func() {
+			// Note: The route is here but no in API routes because it renders a web page
+			routes.Get("/api/swagger", misc.Swagger) // Render V1 by default
+			routes.Get("/api/forgejo/swagger", misc.SwaggerForgejo)
+		}, gzipMid, context.Contexter())
 	}
 
-	// TODO: These really seem like things that could be folded into Contexter or as helper functions
-	mid = append(mid, user.GetNotificationCount)
-	mid = append(mid, repo.GetActiveStopwatch)
-	mid = append(mid, goGet)
+	routes.Group("",
+		func() {
+			registerRoutes(routes)
+		},
+		gzipMid, common.Sessioner(), context.Contexter(), webAuth(buildAuthGroup()),
+		// TODO: GetNotificationCount & GetActiveStopwatch really seem like things that could be folded into Contexter or as helper functions
+		user.GetNotificationCount, repo.GetActiveStopwatch,
+		goGet)
 
-	others := web.NewRoute()
-	others.Use(mid...)
-	registerRoutes(others)
-	routes.Mount("", others)
+	// /{username}/{repo}/info/lfs routes currently need to use buildAuthGroup(), not buildGitAuthGroup(), because:
+	//
+	// a) there are tests that use session auth to access the LFS endpoints (TestAPILFSLocksLogged), which may be a test
+	// error, and
+	//
+	// b) if AuthorizedIntegration is included then JWTs generated by the LFS system with `setting.LFS.SigningKey` will
+	// return AuthenticationAttemptedIncorrectCredential from AuthorizedIntegration, and cause the requests to 401
+	// before reaching the LFS handlers.
+	//
+	// (a) is probably an error that can be fixed, and (b) should be fixed by changing LFS's JWT handling to be an
+	// `auth_service.Method` implementation which would be incorporated into the auth group, so that LFS isn't doing
+	// it's own "after the authentication" authentication.  In the interm, it's split out from the `registerRoutes` call
+	// above because at least fewer middlewares can be safely applied.
+	routes.Group("",
+		func() {
+			registerGitLFSRoutes(routes)
+		}, gzipMid, common.Sessioner(), context.Contexter(), webAuth(buildAuthGroup()), goGet)
+	routes.Group("",
+		func() {
+			registerGitRoutes(routes)
+		}, gzipMid, common.Sessioner(), context.Contexter(), webAuth(buildGitAuthGroup()), goGet)
+
+	routes.NotFound(
+		gzipMid, common.Sessioner(), context.Contexter(), webAuth(buildAuthGroup()),
+		// TODO: GetNotificationCount & GetActiveStopwatch really seem like things that could be folded into Contexter or as helper functions
+		user.GetNotificationCount, repo.GetActiveStopwatch,
+		goGet,
+		func(w http.ResponseWriter, req *http.Request) {
+			ctx := context.GetWebContext(req)
+			if ctx == nil {
+				panic("missing middleware context.Contexter()")
+			}
+			ctx.NotFound("", nil)
+		})
+
 	return routes
 }
 
@@ -401,13 +444,6 @@ func registerRoutes(m *web.Route) {
 	webhooksEnabled := func(ctx *context.Context) {
 		if setting.DisableWebhooks {
 			ctx.Error(http.StatusForbidden)
-			return
-		}
-	}
-
-	lfsServerEnabled := func(ctx *context.Context) {
-		if !setting.LFS.StartServer {
-			ctx.Error(http.StatusNotFound)
 			return
 		}
 	}
@@ -1763,27 +1799,6 @@ func registerRoutes(m *web.Route) {
 		m.Group("/{reponame}", func() {
 			m.Get("", repo.SetEditorconfigIfExists, repo.Home)
 		}, ignSignIn, context.RepoAssignment, context.RepoRef(), context.UnitTypes())
-
-		m.Group("/{reponame}", func() {
-			m.Group("/info/lfs", func() {
-				m.Post("/objects/batch", lfs.CheckAcceptMediaType, lfs.BatchHandler)
-				m.Put("/objects/{oid}/{size}", lfs.UploadHandler)
-				m.Get("/objects/{oid}/{filename}", lfs.DownloadHandler)
-				m.Get("/objects/{oid}", lfs.DownloadHandler)
-				m.Post("/verify", lfs.CheckAcceptMediaType, lfs.VerifyHandler)
-				m.Group("/locks", func() {
-					m.Get("/", lfs.GetListLockHandler)
-					m.Post("/", lfs.PostLockHandler)
-					m.Post("/verify", lfs.VerifyLockHandler)
-					m.Post("/{lid}/unlock", lfs.UnLockHandler)
-				}, lfs.CheckAcceptMediaType)
-				m.Any("/*", func(ctx *context.Context) {
-					ctx.NotFound("", nil)
-				})
-			}, ignoreCSRF, lfsServerEnabled)
-
-			gitHTTPRouters(m)
-		})
 	})
 
 	if setting.Repository.EnableFlags {
@@ -1815,10 +1830,37 @@ func registerRoutes(m *web.Route) {
 			m.Get("/demo/error/{errcode}", demo.ErrorPage)
 		}, ignSignIn)
 	}
+}
 
-	m.NotFound(func(w http.ResponseWriter, req *http.Request) {
-		ctx := context.GetWebContext(req)
-		ctx.NotFound("", nil)
+// Registers HTTP Git related routes, which have different top-level middleware than [registerRoutes].
+func registerGitLFSRoutes(m *web.Route) {
+	lfsServerEnabled := func(ctx *context.Context) {
+		if !setting.LFS.StartServer {
+			ctx.Error(http.StatusNotFound)
+			return
+		}
+	}
+	m.Group("/{username}/{reponame}/info/lfs", func() {
+		m.Post("/objects/batch", lfs.CheckAcceptMediaType, lfs.BatchHandler)
+		m.Put("/objects/{oid}/{size}", lfs.UploadHandler)
+		m.Get("/objects/{oid}/{filename}", lfs.DownloadHandler)
+		m.Get("/objects/{oid}", lfs.DownloadHandler)
+		m.Post("/verify", lfs.CheckAcceptMediaType, lfs.VerifyHandler)
+		m.Group("/locks", func() {
+			m.Get("/", lfs.GetListLockHandler)
+			m.Post("/", lfs.PostLockHandler)
+			m.Post("/verify", lfs.VerifyLockHandler)
+			m.Post("/{lid}/unlock", lfs.UnLockHandler)
+		}, lfs.CheckAcceptMediaType)
+		m.Any("/*", func(ctx *context.Context) {
+			ctx.NotFound("", nil)
+		})
+	}, ignoreCSRF, lfsServerEnabled)
+}
+
+func registerGitRoutes(m *web.Route) {
+	m.Group("/{username}/{reponame}", func() {
+		gitHTTPRouters(m)
 	})
 }
 

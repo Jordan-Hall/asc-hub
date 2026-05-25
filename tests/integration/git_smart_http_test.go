@@ -178,10 +178,6 @@ func TestGitHTTPSameStatusCodeForGetAndHeadRequests(t *testing.T) {
 	for _, c := range cases {
 		t.Run(caseToTestName(c), func(t *testing.T) {
 			defer tests.PrintCurrentTest(t)()
-			session := emptyTestSession(t)
-			if c.User != nil {
-				session = loginUser(t, c.User.Name)
-			}
 			if c.IsCollaborator {
 				testCtx := NewAPITestContext(t, owner.Name, repo.Name, auth_model.AccessTokenScopeWriteRepository)
 				doAPIAddCollaborator(testCtx, c.User.Name, perm.AccessModeRead)(t)
@@ -194,9 +190,15 @@ func TestGitHTTPSameStatusCodeForGetAndHeadRequests(t *testing.T) {
 			// code for both GET and HEAD, which needs to equal the test cases expected
 			// status code
 			getReq := NewRequestf(t, "GET", "%s/%s", repo.Link(), c.Endpoint)
-			getResp := session.MakeRequest(t, getReq, NoExpectedStatus)
+			if c.User != nil {
+				getReq.AddBasicAuth(c.User.Name)
+			}
+			getResp := MakeRequest(t, getReq, NoExpectedStatus)
 			headReq := NewRequestf(t, "HEAD", "%s/%s", repo.Link(), c.Endpoint)
-			headResp := session.MakeRequest(t, headReq, NoExpectedStatus)
+			if c.User != nil {
+				headReq.AddBasicAuth(c.User.Name)
+			}
+			headResp := MakeRequest(t, headReq, NoExpectedStatus)
 			require.Equal(t, getResp.Result().StatusCode, headResp.Result().StatusCode)
 			require.Equal(t, c.ExpectedStatusCode, headResp.Result().StatusCode)
 		})

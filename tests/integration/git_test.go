@@ -1414,3 +1414,24 @@ func doFsckConsistencyChecks(dstPath string) func(t *testing.T) {
 		})
 	}
 }
+
+func TestGitAuthorizedIntegration(t *testing.T) {
+	onApplicationRun(t, func(t *testing.T, u *url.URL) {
+		ait := newAITester(t)
+		defer ait.close()
+		token := ait.signedJWT()
+		u.User = url.UserPassword("token", token)
+
+		t.Run("clone private repo of user", func(t *testing.T) {
+			repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 3})
+			u.Path = fmt.Sprintf("/%s/%s.git", repo.OwnerName, repo.Name)
+			doGitClone(t.TempDir(), u)(t)
+		})
+
+		t.Run("cannot clone private repo of another user", func(t *testing.T) {
+			repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 52})
+			u.Path = fmt.Sprintf("/%s/%s.git", repo.OwnerName, repo.Name)
+			doGitCloneFail(u)(t)
+		})
+	})
+}

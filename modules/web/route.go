@@ -164,8 +164,9 @@ func (r *Route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 // NotFound defines a handler to respond whenever a route could not be found.
-func (r *Route) NotFound(h http.HandlerFunc) {
-	r.R.NotFound(h)
+func (r *Route) NotFound(h ...any) {
+	middlewares, handlerFunc := r.wrapMiddlewareAndHandler(h)
+	r.R.With(middlewares...).NotFound(handlerFunc)
 }
 
 // Combo delegates requests to Combo

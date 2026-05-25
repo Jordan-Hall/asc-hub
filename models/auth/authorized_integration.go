@@ -83,7 +83,7 @@ func init() {
 //	{
 //	  "rules": [{
 //	     "claim": "sub",
-//	     "comparison": "eq",
+//	     "compare": "eq",
 //	     "value": "repo:forgejo/website:pull_request"
 //	  }]
 //	}
