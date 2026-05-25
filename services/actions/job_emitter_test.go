@@ -68,8 +68,9 @@ func Test_jobStatusResolver_Resolve(t *testing.T) {
 				{ID: 3, JobID: "3", Status: actions_model.StatusBlocked, Needs: []string{"2"}},
 			},
 			want: map[int64]actions_model.Status{
+				// Resolve() does only one update pass and does not update jobs recursively. Therefore, job 3, which
+				// depends on 2, is not marked as skipped. It would only be marked as skipped if it depended on job 1.
 				2: actions_model.StatusSkipped,
-				3: actions_model.StatusSkipped,
 			},
 		},
 		{
@@ -874,6 +875,61 @@ func Test_tryHandleWorkflowCallOuterJob(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_checkJobsOfRun(t *testing.T) {
+	defer unittest.OverrideFixtures("services/actions/Test_checkJobsOfRun")()
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	reusableWorkflow := `
+on:
+  workflow_call:
+    inputs:
+      argument:
+        type: string
+        
+jobs:
+  reusable:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Argument: ${{ inputs.argument }}"
+`
+
+	defer test.MockVariableValue(&lazyRepoExpandLocalReusableWorkflow,
+		func(ctx context.Context, repoID int64, commitSHA string) (jobparser.LocalWorkflowFetcher, CleanupFunc) {
+			fetcher := func(job *jobparser.Job, path string) ([]byte, error) {
+				return []byte(reusableWorkflow), nil
+			}
+			cleanup := func() {
+			}
+			return fetcher, cleanup
+		})()
+
+	jobs, err := actions_model.GetRunJobsByRunID(t.Context(), 901)
+	require.NoError(t, err)
+	require.Len(t, jobs, 4)
+
+	require.NoError(t, checkJobsOfRun(t.Context(), 901, 0))
+
+	jobs, err = actions_model.GetRunJobsByRunID(t.Context(), 901)
+	require.NoError(t, err)
+	assert.Len(t, jobs, 5)
+
+	assert.Equal(t, "a", jobs[0].JobID)
+	assert.Equal(t, actions_model.StatusSuccess, jobs[0].Status)
+
+	assert.Equal(t, "b", jobs[1].JobID)
+	assert.Equal(t, actions_model.StatusSuccess, jobs[1].Status)
+
+	assert.Equal(t, "b.reusable", jobs[2].JobID)
+	assert.Equal(t, actions_model.StatusSuccess, jobs[2].Status)
+
+	assert.Equal(t, "c", jobs[3].JobID)
+	assert.Equal(t, actions_model.StatusBlocked, jobs[3].Status)
+
+	assert.Equal(t, "c.reusable", jobs[4].JobID)
+	assert.Equal(t, actions_model.StatusWaiting, jobs[4].Status)
 }
 
 func Test_checkJobsOfRun_ExpandsMatrixWithCorrectOutputJobStatuses(t *testing.T) {
