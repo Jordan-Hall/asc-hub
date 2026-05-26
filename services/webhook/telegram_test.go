@@ -148,19 +148,19 @@ good job`, pl.Message)
 		pl, err := tc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, `[test/repo] New wiki page &#39;<a href="http://localhost:3000/test/repo/wiki/index" rel="nofollow">index</a>&#39; (Wiki change comment) by user1`, pl.Message)
+		assert.Equal(t, `[test/repo] New wiki page &#34;<a href="http://localhost:3000/test/repo/wiki/index" rel="nofollow">index</a>&#34; (Wiki change comment) by user1`, pl.Message)
 
 		p.Action = api.HookWikiEdited
 		pl, err = tc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, `[test/repo] Wiki page &#39;<a href="http://localhost:3000/test/repo/wiki/index" rel="nofollow">index</a>&#39; edited (Wiki change comment) by user1`, pl.Message)
+		assert.Equal(t, `[test/repo] Wiki page &#34;<a href="http://localhost:3000/test/repo/wiki/index" rel="nofollow">index</a>&#34; edited (Wiki change comment) by user1`, pl.Message)
 
 		p.Action = api.HookWikiDeleted
 		pl, err = tc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, `[test/repo] Wiki page &#39;<a href="http://localhost:3000/test/repo/wiki/index" rel="nofollow">index</a>&#39; deleted by user1`, pl.Message)
+		assert.Equal(t, `[test/repo] Wiki page &#34;<a href="http://localhost:3000/test/repo/wiki/index" rel="nofollow">index</a>&#34; deleted by user1`, pl.Message)
 	})
 
 	t.Run("Release", func(t *testing.T) {

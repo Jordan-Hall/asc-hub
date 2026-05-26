@@ -279,7 +279,7 @@ func TestDiscordPayload(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Len(t, pl.Embeds, 1)
-		assert.Equal(t, "[test/repo] New wiki page 'index' (Wiki change comment)", pl.Embeds[0].Title)
+		assert.Equal(t, "[test/repo] New wiki page \"index\" (Wiki change comment)", pl.Embeds[0].Title)
 		assert.Equal(t, "Wiki change comment", pl.Embeds[0].Description)
 		assert.Equal(t, "http://localhost:3000/test/repo/wiki/index", pl.Embeds[0].URL)
 		assert.Equal(t, p.Sender.UserName, pl.Embeds[0].Author.Name)
@@ -291,7 +291,7 @@ func TestDiscordPayload(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Len(t, pl.Embeds, 1)
-		assert.Equal(t, "[test/repo] Wiki page 'index' edited (Wiki change comment)", pl.Embeds[0].Title)
+		assert.Equal(t, "[test/repo] Wiki page \"index\" edited (Wiki change comment)", pl.Embeds[0].Title)
 		assert.Equal(t, "Wiki change comment", pl.Embeds[0].Description)
 		assert.Equal(t, "http://localhost:3000/test/repo/wiki/index", pl.Embeds[0].URL)
 		assert.Equal(t, p.Sender.UserName, pl.Embeds[0].Author.Name)
@@ -303,7 +303,7 @@ func TestDiscordPayload(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Len(t, pl.Embeds, 1)
-		assert.Equal(t, "[test/repo] Wiki page 'index' deleted", pl.Embeds[0].Title)
+		assert.Equal(t, "[test/repo] Wiki page \"index\" deleted", pl.Embeds[0].Title)
 		assert.Empty(t, pl.Embeds[0].Description)
 		assert.Equal(t, "http://localhost:3000/test/repo/wiki/index", pl.Embeds[0].URL)
 		assert.Equal(t, p.Sender.UserName, pl.Embeds[0].Author.Name)

@@ -18,6 +18,9 @@ import (
 	webhook_module "forgejo.org/modules/webhook"
 	"forgejo.org/services/forms"
 	"forgejo.org/services/webhook/shared"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type msteamsHandler struct{}
@@ -44,60 +47,274 @@ func (msteamsHandler) UnmarshalForm(bind func(any)) forms.WebhookForm {
 }
 
 type (
-	// MSTeamsFact for Fact Structure
+	// MSTeamsAction defines an action for an Adaptive Card, for example, opening a URL.
+	MSTeamsAction struct {
+		Type           string   `json:"type"`                     // e.g. "Action.OpenUrl" or "Action.ToggleVisibility"
+		Title          string   `json:"title,omitempty"`          // The button title
+		URL            string   `json:"url,omitempty"`            // The URL to open
+		TargetElements []string `json:"targetElements,omitempty"` // For Action.ToggleVisibility
+	}
+
+	// MSTeamsTextBlock defines the Adaptive Card TextBlock element.
+	MSTeamsTextBlock struct {
+		Type         string         `json:"type"`                          // Must be "TextBlock"
+		Text         string         `json:"text"`                          // The text content
+		Size         string         `json:"size,omitempty"`                // e.g., "Small", "Default", "Medium", "Large", "ExtraLarge"
+		Weight       string         `json:"weight,omitempty"`              // e.g., "Lighter", "Default", "Bolder"
+		Color        string         `json:"color,omitempty"`               // text color, e.g., "Default", "Dark", "Light", "Accent", "Good", "Warning", "Attention"
+		IsSubtle     *bool          `json:"isSubtle,omitempty"`            // Optional: makes text less prominent (nil->omitted)
+		Wrap         *bool          `json:"wrap,omitempty"`                // Optional: enables text wrapping (nil->omitted)
+		MaxLines     int            `json:"maxLines,omitempty"`            // Optional: maximum number of lines to display
+		HorizAlign   string         `json:"horizontalAlignment,omitempty"` // e.g., "Left", "Center", "Right"
+		Spacing      string         `json:"spacing,omitempty"`             // e.g., "None", "Small", "Default", "Medium", "Large", "ExtraLarge", "Padding"
+		FontType     string         `json:"fontType,omitempty"`            // e.g., "Default", "Monospace"
+		Style        string         `json:"style,omitempty"`               // e.g., "default","columnHeader","heading"
+		SelectAction *MSTeamsAction `json:"selectAction,omitempty"`        // Optional: action when the TextBlock is clicked
+		IsVisible    *bool          `json:"isVisible,omitempty"`           // Optional: is visible or not, default is true (nil->omitted)
+	}
+
+	MSTeamsBadge struct {
+		Type         string         `json:"type"`                   // Must be "Badge"
+		Text         string         `json:"text,omitempty"`         // The text content. Either this or Icon should be present
+		Icon         string         `json:"icon,omitempty"`         // Icon to display. Either this or Text should be present
+		Appearance   string         `json:"appearance,omitempty"`   // e.g., "Filled", "Tint"
+		IconPosition string         `json:"iconPosition,omitempty"` // e.g., "Before", "After"
+		Shape        string         `json:"shape,omitempty"`        // e.g., "Square", "Rounded", "Circular"
+		Size         string         `json:"size,omitempty"`         // e.g., "Medium", "Large", "ExtraLarge"
+		Style        string         `json:"style,omitempty"`        // e.g., "Default", "Subtle", "Informative", "Accent", "Good", "Attention", "Warning"
+		Spacing      string         `json:"spacing,omitempty"`      // e.g., "None", "Small", "Default", "Medium", "Large", "ExtraLarge", "Padding"
+		SelectAction *MSTeamsAction `json:"selectAction,omitempty"` // Optional: action when the IconRun is clicked
+		ID           string         `json:"id,omitempty"`
+	}
+
+	// MSTeamsRickTextBlock defines the Adaptive Card RichTextBlock element, along with its contents (TextRun, IconRun, ImageRun)
+	MSTeamsRichTextBlock struct {
+		Type       string `json:"type"`                          // Must be "RichTextBlock"
+		Inlines    []any  `json:"inlines"`                       // Content, should be array of either TextRun, IconRun, ImageRun
+		LabelFor   string `json:"labelFor,omitempty"`            // Optional: label for the RichTextBlock
+		HorizAlign string `json:"horizontalAlignment,omitempty"` // e.g., "Left", "Center", "Right"
+		Spacing    string `json:"spacing,omitempty"`             // e.g., "None", "Small", "Default", "Medium", "Large", "ExtraLarge", "Padding"
+		ID         string `json:"id,omitempty"`                  // ID
+		IsVisible  *bool  `json:"isVisible,omitempty"`           // Optional: is visible or not, default is true (nil->omitted)
+	}
+
+	MSTeamsRichTextTextRun struct {
+		Type          string         `json:"type"` // Must be "TextRun"
+		Text          string         `json:"text"` // The text content
+		Highlight     *bool          `json:"highlight,omitempty"`
+		Italic        *bool          `json:"italic,omitempty"`
+		Strikethrough *bool          `json:"strikethrough,omitempty"`
+		Underline     *bool          `json:"underline,omitempty"`
+		Color         string         `json:"color,omitempty"`        // text color, e.g., "Default", "Dark", "Light", "Accent", "Good", "Warning", "Attention"
+		FontType      string         `json:"fontType,omitempty"`     // e.g., "Default", "Monospace"
+		IsSubtle      *bool          `json:"isSubtle,omitempty"`     // Optional: makes text less prominent (nil->omitted)
+		Size          string         `json:"size,omitempty"`         // e.g., "Small", "Default", "Medium", "Large", "ExtraLarge"
+		Weight        string         `json:"weight,omitempty"`       // e.g., "Lighter", "Default", "Bolder"
+		SelectAction  *MSTeamsAction `json:"selectAction,omitempty"` // Optional: action when the TextRun is clicked
+		ID            string         `json:"id,omitempty"`
+	}
+
+	MSTeamsIcon struct {
+		Type         string         `json:"type"`                   // Must be "Icon"
+		Name         string         `json:"name"`                   // The icon name to display
+		Color        string         `json:"color,omitempty"`        // text color, e.g., "Default", "Dark", "Light", "Accent", "Good", "Warning", "Attention"
+		Size         string         `json:"size,omitempty"`         // e.g., "xxSmall", "xSmall", "Small", "Standard", "Medium", "Large", "xLarge", "xxLarge"
+		Style        string         `json:"style,omitempty"`        // e.g., "Regular", "Filled"
+		SelectAction *MSTeamsAction `json:"selectAction,omitempty"` // Optional: action when the IconRun is clicked
+		ID           string         `json:"id,omitempty"`
+	}
+
+	// MSTeamsImage defines the Adaptive Card Image element.
+	MSTeamsImage struct {
+		Type         string         `json:"type"`                   // Must be "Image"
+		URL          string         `json:"url"`                    // URL of the image
+		Alt          string         `json:"altText"`                // Alt text for the image
+		Size         string         `json:"size,omitempty"`         // e.g., "Auto", "Stretch", "Small", "Medium", "Large"
+		Style        string         `json:"style,omitempty"`        // e.g., "Default", "Person", "RoundedCorners"
+		SelectAction *MSTeamsAction `json:"selectAction,omitempty"` // Optional: action when the columnset is clicked
+	}
+
+	// MSTeamsColumn defines a column in an Adaptive Card ColumnSet.
+	MSTeamsColumn struct {
+		Type          string         `json:"type"`                               // Must be "Column"
+		Items         []any          `json:"items,omitempty"`                    // Array of card elements (TextBlock, Image, etc.)
+		Width         any            `json:"width,omitempty"`                    // "auto", "stretch", or number/string for fixed width
+		Style         string         `json:"style,omitempty"`                    // e.g., "default", "emphasis"
+		VerticalAlign string         `json:"verticalContentAlignment,omitempty"` // "Top", "Center", "Bottom"
+		Bleed         *bool          `json:"bleed,omitempty"`                    // Optional: allow content to bleed outside padding (nil->omitted)
+		Separator     *bool          `json:"separator,omitempty"`                // Optional: draw a separating line (nil->omitted)
+		Spacing       string         `json:"spacing,omitempty"`                  // e.g., "none", "small", "default", "medium", "large", "extraLarge", "padding"
+		SelectAction  *MSTeamsAction `json:"selectAction,omitempty"`             // Optional: action when column is clicked
+		IsVisible     *bool          `json:"isVisible,omitempty"`                // Optional: is visible or not, default is true (nil->omitted)
+	}
+
+	// MSTeamsColumnSet defines a row of columns in an Adaptive Card.
+	MSTeamsColumnSet struct {
+		Type         string          `json:"type"`                   // Must be "ColumnSet"
+		Columns      []MSTeamsColumn `json:"columns"`                // Array of columns
+		Spacing      string          `json:"spacing,omitempty"`      // e.g., "none", "small", "default", "medium", "large", "extraLarge", "padding"
+		Separator    *bool           `json:"separator,omitempty"`    // Optional: draw a separating line (nil->omitted)
+		Bleed        *bool           `json:"bleed,omitempty"`        // Optional: allow content to bleed outside padding (nil->omitted)
+		SelectAction *MSTeamsAction  `json:"selectAction,omitempty"` // Optional: action when columnset is clicked
+		IsVisible    *bool           `json:"isVisible,omitempty"`    // Optional: is visible or not, default is true (nil->omitted)
+	}
+
+	// MSTeamsFact represents a fact in an Adaptive Card FactSet.
 	MSTeamsFact struct {
-		Name  string `json:"name"`
+		Title string `json:"title"`
 		Value string `json:"value"`
 	}
 
-	// MSTeamsSection is a MessageCard section
-	MSTeamsSection struct {
-		ActivityTitle    string        `json:"activityTitle"`
-		ActivitySubtitle string        `json:"activitySubtitle"`
-		ActivityImage    string        `json:"activityImage"`
-		Facts            []MSTeamsFact `json:"facts"`
-		Text             string        `json:"text"`
+	// MSTeamsFactSet represents the Adaptive Card FactSet element.
+	MSTeamsFactSet struct {
+		Type      string        `json:"type"`                // Must be "FactSet"
+		Facts     []MSTeamsFact `json:"facts"`               // List of facts
+		Separator *bool         `json:"separator,omitempty"` // Optional: draw a separating line (nil->omitted)
+		Spacing   string        `json:"spacing,omitempty"`   // e.g., "None", "ExtraSmall", "Small", "Default", "Medium", "Large", "ExtraLarge", "Padding"
 	}
 
-	// MSTeamsAction is an action (creates buttons, links etc)
-	MSTeamsAction struct {
-		Type    string                `json:"@type"`
-		Name    string                `json:"name"`
-		Targets []MSTeamsActionTarget `json:"targets,omitempty"`
+	// MSTeamsContainer corresponds to an Adaptive Card container.
+	MSTeamsContainer struct {
+		Type           string `json:"type"`                               // Must be "Container"
+		Items          []any  `json:"items,omitempty"`                    // Array of card elements (TextBlock, Image, FactSet, etc.)
+		ShowBorder     *bool  `json:"showBorder,omitempty"`               // Optional: draw a border around the container (nil->omitted)
+		RoundedCorners *bool  `json:"roundedCorners,omitempty"`           // Optional: round the corners of the container (nil->omitted)
+		Spacing        string `json:"spacing,omitempty"`                  // e.g., "None", "ExtraSmall", "Small", "Default", "Medium", "Large", "ExtraLarge", "Padding"
+		Bleed          *bool  `json:"bleed,omitempty"`                    // Optional: allow content to bleed outside padding (nil->omitted)
+		Style          string `json:"style,omitempty"`                    // color theme of the container, e.g. "default", "emphasis", "accent", "good", "attention", "warning"
+		ID             string `json:"id,omitempty"`                       // ID
+		IsVisible      *bool  `json:"isVisible,omitempty"`                // Optional: is visible or not, default is true (nil->omitted)
+		VerticalAlign  string `json:"verticalContentAlignment,omitempty"` // "Top", "Center", "Bottom"
 	}
 
-	// MSTeamsActionTarget is the actual link to follow, etc
-	MSTeamsActionTarget struct {
-		Os  string `json:"os"`
-		URI string `json:"uri"`
+	MSTeamsOptions struct {
+		Width string `json:"width"` // use "Full" to make card full width
 	}
 
-	// MSTeamsPayload is the parent object
+	// MSTeamsPayload represents the Adaptive Card payload.
+	// Adaptive Cards use "body" for visual elements and "actions" for interactive buttons.
 	MSTeamsPayload struct {
-		Type            string           `json:"@type"`
-		Context         string           `json:"@context"`
-		ThemeColor      string           `json:"themeColor"`
-		Title           string           `json:"title"`
-		Summary         string           `json:"summary"`
-		Sections        []MSTeamsSection `json:"sections"`
-		PotentialAction []MSTeamsAction  `json:"potentialAction"`
+		Type    string             `json:"type"`              // Must be "AdaptiveCard"
+		Schema  string             `json:"$schema"`           // e.g., "http://adaptivecards.io/schemas/adaptive-card.json"
+		Version string             `json:"version"`           // e.g., "1.5"
+		MsTeams MSTeamsOptions     `json:"msteams"`           // Optional: settings for Microsoft Teams
+		Body    []MSTeamsContainer `json:"body"`              // Array of containers (sections)
+		Actions []MSTeamsAction    `json:"actions,omitempty"` // Optional array of actions
+		Style   string             `json:"style,omitempty"`   // color theme of the card, e.g. "default", "emphasis", "accent", "good", "attention", "warning"
 	}
 )
+
+var (
+	defaultStyle   = "default"   // default colour
+	emphasisStyle  = "emphasis"  // darker
+	accentStyle    = "accent"    // blue-purple
+	goodStyle      = "good"      // green
+	attentionStyle = "attention" // red
+	warningStyle   = "warning"   // yellow
+	// informativeStyle = "informative" // gray with white text
+	// subtleStyle      = "subtle"      // gray with dark text
+)
+
+func capitalise(s string) string {
+	caser := cases.Title(language.English)
+	return caser.String(strings.ToLower(s))
+}
+
+func markdownLinkFormatter(url, text string) string {
+	if url == "" {
+		return text
+	}
+	return fmt.Sprintf(`[%s](%s)`, text, url)
+}
+
+var msTeamsPayloadFormatter = webhookPayloadFormatter{
+	nameFormatter: noneNameFormatter,
+	linkFormatter: noneLinkFormatter,
+	withSender:    false,
+	withRepoName:  false,
+}
+
+func makeBadgeRow(badgeText, badgeIcon, badgeStyle string, refInfo ...string) MSTeamsContainer {
+	extraRefInfoText := []any{}
+	for _, info := range refInfo {
+		extraRefInfoText = append(extraRefInfoText, MSTeamsTextBlock{
+			Type:     "TextBlock",
+			Text:     info,
+			Size:     "Small",
+			IsSubtle: new(true),
+			Spacing:  "None",
+		})
+	}
+
+	return MSTeamsContainer{
+		Type:          "Container",
+		VerticalAlign: "Center",
+		Items: []any{
+			MSTeamsColumnSet{
+				Type: "ColumnSet",
+				Columns: []MSTeamsColumn{
+					{
+						Type:  "Column",
+						Width: "auto",
+						Items: []any{
+							MSTeamsBadge{
+								Type:  "Badge",
+								Size:  "Large",
+								Icon:  badgeIcon,
+								Text:  badgeText,
+								Style: badgeStyle,
+							},
+						},
+					},
+					{
+						Type:  "Column",
+						Width: "stretch",
+						Items: extraRefInfoText,
+					},
+				},
+			},
+		},
+	}
+}
+
+func pullRequestBranchInfo(p *api.PullRequestPayload) string {
+	if p == nil || p.PullRequest == nil {
+		return ""
+	}
+
+	headRef, baseRef := "", ""
+	if p.PullRequest.Head != nil {
+		headRef = p.PullRequest.Head.Ref
+	}
+	if p.PullRequest.Base != nil {
+		baseRef = p.PullRequest.Base.Ref
+	}
+
+	switch {
+	case headRef == "" && baseRef == "":
+		return ""
+	case headRef == "":
+		return baseRef
+	case baseRef == "":
+		return headRef
+	default:
+		return fmt.Sprintf("%s → %s", headRef, baseRef)
+	}
+}
 
 // Create implements PayloadConvertor Create method
 func (m msteamsConvertor) Create(p *api.CreatePayload) (MSTeamsPayload, error) {
 	// created tag/branch
 	refName := git.RefName(p.Ref).ShortName()
-	title := fmt.Sprintf("[%s] %s %s created", p.Repo.FullName, p.RefType, refName)
+	actionTitle := fmt.Sprintf("%s created: %s", capitalise(p.RefType), refName)
 
 	return createMSTeamsPayload(
 		p.Repo,
 		p.Sender,
-		title,
-		"",
+		actionTitle,
+		nil,
 		p.Repo.HTMLURL+"/src/"+util.PathEscapeSegments(refName),
-		greenColor,
-		&MSTeamsFact{fmt.Sprintf("%s:", p.RefType), refName},
+		goodStyle,
 	), nil
 }
 
@@ -105,283 +322,764 @@ func (m msteamsConvertor) Create(p *api.CreatePayload) (MSTeamsPayload, error) {
 func (m msteamsConvertor) Delete(p *api.DeletePayload) (MSTeamsPayload, error) {
 	// deleted tag/branch
 	refName := git.RefName(p.Ref).ShortName()
-	title := fmt.Sprintf("[%s] %s %s deleted", p.Repo.FullName, p.RefType, refName)
+	actionTitle := fmt.Sprintf("%s deleted: %s", capitalise(p.RefType), refName)
 
 	return createMSTeamsPayload(
 		p.Repo,
 		p.Sender,
-		title,
-		"",
-		p.Repo.HTMLURL+"/src/"+util.PathEscapeSegments(refName),
-		yellowColor,
-		&MSTeamsFact{fmt.Sprintf("%s:", p.RefType), refName},
+		actionTitle,
+		nil,
+		p.Repo.HTMLURL,
+		attentionStyle,
 	), nil
 }
 
 // Fork implements PayloadConvertor Fork method
 func (m msteamsConvertor) Fork(p *api.ForkPayload) (MSTeamsPayload, error) {
-	title := fmt.Sprintf("%s is forked to %s", p.Forkee.FullName, p.Repo.FullName)
+	actionTitle := fmt.Sprintf("%s is forked to %s", markdownLinkFormatter(p.Forkee.HTMLURL, p.Forkee.FullName), p.Repo.FullName)
 
 	return createMSTeamsPayload(
 		p.Repo,
 		p.Sender,
-		title,
-		"",
+		actionTitle,
+		nil,
 		p.Repo.HTMLURL,
-		greenColor,
-		&MSTeamsFact{"Forkee:", p.Forkee.FullName},
+		accentStyle,
 	), nil
 }
 
 // Push implements PayloadConvertor Push method
 func (m msteamsConvertor) Push(p *api.PushPayload) (MSTeamsPayload, error) {
 	var (
-		branchName = git.RefName(p.Ref).ShortName()
-		commitDesc string
+		branchName  = git.RefName(p.Ref).ShortName()
+		actionTitle string
 	)
 
-	var titleLink string
+	var diffLink string
 	if p.TotalCommits == 1 {
-		commitDesc = "1 new commit"
-		titleLink = p.Commits[0].URL
+		actionTitle = fmt.Sprintf("[%s] 1 new commit", branchName)
+		diffLink = p.Commits[0].URL
 	} else {
-		commitDesc = fmt.Sprintf("%d new commits", p.TotalCommits)
-		titleLink = p.CompareURL
+		actionTitle = fmt.Sprintf("[%s] %d new commits", branchName, p.TotalCommits)
+		diffLink = p.CompareURL
 	}
-	if titleLink == "" {
-		titleLink = p.Repo.HTMLURL + "/src/" + util.PathEscapeSegments(branchName)
+	if diffLink == "" {
+		diffLink = p.Repo.HTMLURL + "/src/" + util.PathEscapeSegments(branchName)
 	}
 
-	title := fmt.Sprintf("[%s:%s] %s", p.Repo.FullName, branchName, commitDesc)
+	var shownCommits []any
+	var hiddenCommits []any
+	const limit = 5
 
-	var text strings.Builder
-	// for each commit, generate attachment text
 	for i, commit := range p.Commits {
-		fmt.Fprintf(&text, "[%s](%s) %s - %s", commit.ID[:7], commit.URL,
-			strings.TrimRight(commit.Message, "\r\n"), commit.Author.Name)
-		// add linebreak to each commit but the last
-		if i < len(p.Commits)-1 {
-			text.WriteString("\n\n")
+		currentCommitTextBlock := MSTeamsColumnSet{
+			Type: "ColumnSet",
+			Columns: []MSTeamsColumn{
+				{
+					Type:  "Column",
+					Width: "auto",
+					Items: []any{
+						MSTeamsTextBlock{
+							Type:     "TextBlock",
+							Text:     markdownLinkFormatter(commit.URL, commit.ID[:8]),
+							Size:     "Small",
+							FontType: "Monospace",
+						},
+					},
+				},
+				{
+					Type:  "Column",
+					Width: "stretch",
+					Items: []any{
+						MSTeamsTextBlock{
+							Type:     "TextBlock",
+							Text:     strings.TrimRight(commit.Message, "\r\n"),
+							Size:     "Small",
+							MaxLines: 3,
+						},
+					},
+				},
+			},
 		}
+		if i < limit {
+			shownCommits = append(shownCommits, currentCommitTextBlock)
+		} else {
+			hiddenCommits = append(hiddenCommits, currentCommitTextBlock)
+		}
+	}
+
+	bodyContainer := MSTeamsContainer{
+		Type:       "Container",
+		Style:      emphasisStyle,
+		ShowBorder: new(true),
+		Items:      shownCommits,
+	}
+
+	if len(hiddenCommits) > 0 {
+		var extraCommitText string
+		remaining := len(hiddenCommits)
+		if remaining == 1 {
+			extraCommitText = "*and 1 more commit*"
+		} else {
+			extraCommitText = fmt.Sprintf("*and %d more commits*", remaining)
+		}
+
+		// Expand control
+		showMore := MSTeamsContainer{
+			Type: "Container",
+			ID:   "showMore",
+			Items: []any{
+				MSTeamsColumnSet{
+					Type: "ColumnSet",
+					SelectAction: &MSTeamsAction{
+						Type:           "Action.ToggleVisibility",
+						TargetElements: []string{"showMore", "showLess", "hiddenCommits"},
+					},
+					Columns: []MSTeamsColumn{
+						{
+							Type: "Column",
+							Items: []any{
+								MSTeamsTextBlock{
+									Type: "TextBlock",
+									Text: extraCommitText,
+									Size: "Small",
+								},
+							},
+							Width: "auto",
+						},
+						{
+							Type: "Column",
+							Items: []any{
+								MSTeamsIcon{
+									Type: "Icon",
+									Name: "ChevronDown",
+									Size: "xxSmall",
+								},
+							},
+							Width: "auto",
+						},
+					},
+				},
+			},
+		}
+
+		// Hidden commit messages
+		hiddenBlock := MSTeamsContainer{
+			Type:      "Container",
+			ID:        "hiddenCommits",
+			Items:     hiddenCommits,
+			IsVisible: new(false),
+		}
+
+		// Collapse control
+		showLess := MSTeamsContainer{
+			Type:      "Container",
+			ID:        "showLess",
+			IsVisible: new(false),
+			Items: []any{
+				MSTeamsColumnSet{
+					Type: "ColumnSet",
+					SelectAction: &MSTeamsAction{
+						Type:           "Action.ToggleVisibility",
+						TargetElements: []string{"showMore", "showLess", "hiddenCommits"},
+					},
+					Columns: []MSTeamsColumn{
+						{
+							Type: "Column",
+							Items: []any{
+								MSTeamsTextBlock{
+									Type: "TextBlock",
+									Text: "Collapse",
+									Size: "Small",
+								},
+							},
+							Width: "auto",
+						},
+						{
+							Type: "Column",
+							Items: []any{
+								MSTeamsIcon{
+									Type: "Icon",
+									Name: "ChevronUp",
+									Size: "xxSmall",
+								},
+							},
+							Width: "auto",
+						},
+					},
+				},
+			},
+		}
+
+		bodyContainer.Items = append(bodyContainer.Items, showMore, hiddenBlock, showLess)
 	}
 
 	return createMSTeamsPayload(
 		p.Repo,
 		p.Sender,
-		title,
-		text.String(),
-		titleLink,
-		greenColor,
-		&MSTeamsFact{"Commit count:", fmt.Sprintf("%d", p.TotalCommits)},
+		actionTitle,
+		[]MSTeamsContainer{bodyContainer},
+		diffLink,
+		defaultStyle,
 	), nil
 }
 
 // Issue implements PayloadConvertor Issue method
 func (m msteamsConvertor) Issue(p *api.IssuePayload) (MSTeamsPayload, error) {
-	title, _, attachmentText, color := getIssuesPayloadInfo(p, noneLinkFormatter, noneNameFormatter, false)
+	actionTitle, _, attachmentText, _ := msTeamsPayloadFormatter.getIssuesPayloadInfo(p)
+
+	badgeStyle := attentionStyle
+	if p.Action == api.HookIssueReOpened {
+		badgeStyle = warningStyle
+	} else if p.Issue.State == api.StateOpen {
+		badgeStyle = goodStyle
+	}
+
+	bodySections := []MSTeamsContainer{
+		makeBadgeRow(capitalise(string(p.Issue.State)), "Target", badgeStyle, fmt.Sprintf("%s#%d", p.Repository.FullName, p.Issue.Index)),
+	}
+
+	if attachmentText != "" {
+		bodySections = append(bodySections, MSTeamsContainer{
+			Type:       "Container",
+			Style:      emphasisStyle,
+			ShowBorder: new(true),
+			Items: []any{
+				MSTeamsTextBlock{
+					Type: "TextBlock",
+					Text: attachmentText,
+					Wrap: new(true),
+				},
+			},
+		})
+	}
+
+	factSet := MSTeamsFactSet{
+		Type:      "FactSet",
+		Facts:     []MSTeamsFact{},
+		Separator: new(true),
+	}
+
+	if p.Issue.Ref != "" && (p.Action == api.HookIssueOpened || p.Action == api.HookIssueReOpened) {
+		factSet.Facts = append(factSet.Facts, MSTeamsFact{
+			Title: "Ref",
+			Value: p.Issue.Ref,
+		})
+	}
+
+	if len(p.Issue.Labels) > 0 &&
+		(p.Action == api.HookIssueLabelUpdated || p.Action == api.HookIssueLabelCleared || p.Action == api.HookIssueOpened || p.Action == api.HookIssueReOpened) {
+		list := make([]string, len(p.Issue.Labels))
+		for i, label := range p.Issue.Labels {
+			list[i] = label.Name
+		}
+		if len(list) > 0 {
+			factSet.Facts = append(factSet.Facts, MSTeamsFact{
+				Title: "Labels",
+				Value: strings.Join(list, ", "),
+			})
+		}
+	}
+
+	if len(p.Issue.Assignees) > 0 &&
+		(p.Action == api.HookIssueAssigned || p.Action == api.HookIssueUnassigned || p.Action == api.HookIssueOpened || p.Action == api.HookIssueReOpened) {
+		list := make([]string, len(p.Issue.Assignees))
+		for i, user := range p.Issue.Assignees {
+			list[i] = "@" + user.UserName
+		}
+		if len(list) > 0 {
+			factSet.Facts = append(factSet.Facts, MSTeamsFact{
+				Title: "Assignee",
+				Value: strings.Join(list, ", "),
+			})
+		}
+	}
+
+	if p.Issue.Milestone != nil &&
+		(p.Action == api.HookIssueMilestoned || p.Action == api.HookIssueOpened || p.Action == api.HookIssueReOpened) {
+		factSet.Facts = append(factSet.Facts, MSTeamsFact{
+			Title: "Milestone",
+			Value: p.Issue.Milestone.Title,
+		})
+	}
+
+	if len(factSet.Facts) > 0 {
+		bodySections = append(bodySections, MSTeamsContainer{
+			Type: "Container",
+			Items: []any{
+				factSet,
+			},
+		})
+	}
 
 	return createMSTeamsPayload(
 		p.Repository,
 		p.Sender,
-		title,
-		attachmentText,
+		actionTitle,
+		bodySections,
 		p.Issue.HTMLURL,
-		color,
-		&MSTeamsFact{"Issue #:", fmt.Sprintf("%d", p.Issue.ID)},
+		defaultStyle,
 	), nil
 }
 
 // IssueComment implements PayloadConvertor IssueComment method
 func (m msteamsConvertor) IssueComment(p *api.IssueCommentPayload) (MSTeamsPayload, error) {
-	title, _, color := getIssueCommentPayloadInfo(p, noneLinkFormatter, noneNameFormatter, false)
+	actionTitle, _, _ := msTeamsPayloadFormatter.getIssueCommentPayloadInfo(p)
+
+	var style string
+	switch p.Action {
+	case api.HookIssueCommentCreated:
+		style = goodStyle
+	case api.HookIssueCommentDeleted:
+		style = attentionStyle
+	default:
+		style = emphasisStyle
+	}
+
+	bodySections := []MSTeamsContainer{
+		{
+			Type:       "Container",
+			Style:      style,
+			ShowBorder: new(true),
+			Items: []any{
+				MSTeamsTextBlock{
+					Type:   "TextBlock",
+					Text:   "Comment",
+					Size:   "Small",
+					Weight: "Bolder",
+				},
+				MSTeamsTextBlock{
+					Type: "TextBlock",
+					Text: p.Comment.Body,
+					Wrap: new(true),
+				},
+			},
+		},
+	}
 
 	return createMSTeamsPayload(
 		p.Repository,
 		p.Sender,
-		title,
-		p.Comment.Body,
+		actionTitle,
+		bodySections,
 		p.Comment.HTMLURL,
-		color,
-		&MSTeamsFact{"Issue #:", fmt.Sprintf("%d", p.Issue.ID)},
+		defaultStyle,
 	), nil
 }
 
 // PullRequest implements PayloadConvertor PullRequest method
 func (m msteamsConvertor) PullRequest(p *api.PullRequestPayload) (MSTeamsPayload, error) {
-	title, _, attachmentText, color := getPullRequestPayloadInfo(p, noneLinkFormatter, noneNameFormatter, false)
+	actionTitle, _, attachmentText, _ := msTeamsPayloadFormatter.getPullRequestPayloadInfo(p)
+
+	badgeStyle := attentionStyle
+	badgeState := "Closed"
+	badgeIcon := "BranchRequest"
+	if p.Action == api.HookIssueReOpened {
+		badgeStyle = warningStyle
+		badgeState = "Open"
+	} else if p.PullRequest.State == api.StateOpen {
+		badgeStyle = goodStyle
+		badgeState = "Open"
+	} else if p.PullRequest.HasMerged {
+		badgeStyle = accentStyle
+		badgeState = "Merged"
+		badgeIcon = "Branch"
+	}
+
+	bodySections := []MSTeamsContainer{
+		makeBadgeRow(
+			badgeState,
+			badgeIcon,
+			badgeStyle,
+			pullRequestBranchInfo(p),
+			fmt.Sprintf("%s#%d", p.Repository.FullName, p.PullRequest.Index),
+		),
+	}
+
+	if attachmentText != "" {
+		bodySections = append(bodySections, MSTeamsContainer{
+			Type:       "Container",
+			Style:      emphasisStyle,
+			ShowBorder: new(true),
+			Items: []any{
+				MSTeamsTextBlock{
+					Type: "TextBlock",
+					Text: attachmentText,
+					Wrap: new(true),
+				},
+			},
+		})
+	}
+
+	factSet := MSTeamsFactSet{
+		Type:      "FactSet",
+		Facts:     []MSTeamsFact{},
+		Separator: new(true),
+	}
+
+	if len(p.PullRequest.Labels) > 0 &&
+		(p.Action == api.HookIssueLabelUpdated || p.Action == api.HookIssueLabelCleared || p.Action == api.HookIssueOpened || p.Action == api.HookIssueReOpened) {
+		list := make([]string, len(p.PullRequest.Labels))
+		for i, label := range p.PullRequest.Labels {
+			list[i] = label.Name
+		}
+		if len(list) > 0 {
+			factSet.Facts = append(factSet.Facts, MSTeamsFact{
+				Title: "Labels",
+				Value: strings.Join(list, ", "),
+			})
+		}
+	}
+
+	if len(p.PullRequest.Assignees) > 0 &&
+		(p.Action == api.HookIssueAssigned || p.Action == api.HookIssueUnassigned || p.Action == api.HookIssueOpened || p.Action == api.HookIssueReOpened) {
+		list := make([]string, len(p.PullRequest.Assignees))
+		for i, user := range p.PullRequest.Assignees {
+			list[i] = "@" + user.UserName
+		}
+		if len(list) > 0 {
+			factSet.Facts = append(factSet.Facts, MSTeamsFact{
+				Title: "Assignee",
+				Value: strings.Join(list, ", "),
+			})
+		}
+	}
+
+	if p.PullRequest.Milestone != nil &&
+		(p.Action == api.HookIssueMilestoned || p.Action == api.HookIssueOpened || p.Action == api.HookIssueReOpened) {
+		factSet.Facts = append(factSet.Facts, MSTeamsFact{
+			Title: "Milestone",
+			Value: p.PullRequest.Milestone.Title,
+		})
+	}
+
+	if (p.PullRequest.RequestedReviewers != nil || p.PullRequest.RequestedReviewersTeams != nil) &&
+		(p.Action == api.HookIssueReviewRequested || p.Action == api.HookIssueReviewRequestRemoved || p.Action == api.HookIssueOpened || p.Action == api.HookIssueReOpened) {
+		list := make([]string, 0,
+			len(p.PullRequest.RequestedReviewers)+
+				len(p.PullRequest.RequestedReviewersTeams),
+		)
+		for _, u := range p.PullRequest.RequestedReviewers {
+			list = append(list, u.UserName)
+		}
+		for _, t := range p.PullRequest.RequestedReviewersTeams {
+			list = append(list, t.Name)
+		}
+		if len(list) > 0 {
+			factSet.Facts = append(factSet.Facts, MSTeamsFact{
+				Title: "Reviewers",
+				Value: strings.Join(list, ", "),
+			})
+		}
+	}
+
+	bodySections = append(bodySections, MSTeamsContainer{
+		Type:  "Container",
+		Items: []any{factSet},
+	})
 
 	return createMSTeamsPayload(
 		p.Repository,
 		p.Sender,
-		title,
-		attachmentText,
+		actionTitle,
+		bodySections,
 		p.PullRequest.HTMLURL,
-		color,
-		&MSTeamsFact{"Pull request #:", fmt.Sprintf("%d", p.PullRequest.ID)},
+		defaultStyle,
 	), nil
 }
 
 // Review implements PayloadConvertor Review method
 func (m msteamsConvertor) Review(p *api.PullRequestPayload, event webhook_module.HookEventType) (MSTeamsPayload, error) {
-	var text, title string
-	var color int
+	badgeStyle := attentionStyle
+	badgeState := "Closed"
+	badgeIcon := "BranchRequest"
+	if p.Action == api.HookIssueReOpened {
+		badgeStyle = warningStyle
+		badgeState = "Re-opened"
+	} else if p.PullRequest.State == api.StateOpen {
+		badgeStyle = goodStyle
+		badgeState = "Open"
+	} else if p.PullRequest.HasMerged {
+		badgeStyle = accentStyle
+		badgeState = "Merged"
+		badgeIcon = "Branch"
+	}
+
+	bodySections := []MSTeamsContainer{
+		makeBadgeRow(
+			badgeState,
+			badgeIcon,
+			badgeStyle,
+			pullRequestBranchInfo(p),
+			fmt.Sprintf("%s#%d", p.Repository.FullName, p.PullRequest.Index),
+		),
+	}
+
+	var actionTitle, bodyStyle string
 	if p.Action == api.HookIssueReviewed {
 		action, err := parseHookPullRequestEventType(event)
 		if err != nil {
 			return MSTeamsPayload{}, err
 		}
 
-		title = fmt.Sprintf("[%s] Pull request review %s: #%d %s", p.Repository.FullName, action, p.Index, p.PullRequest.Title)
-		text = p.Review.Content
+		actionTitle = fmt.Sprintf("Pull request review %s: #%d %s", action, p.Index, p.PullRequest.Title)
 
 		switch event {
 		case webhook_module.HookEventPullRequestReviewApproved:
-			color = greenColor
+			bodyStyle = goodStyle
 		case webhook_module.HookEventPullRequestReviewRejected:
-			color = redColor
-		case webhook_module.HookEventPullRequestReviewComment:
-			color = greyColor
-		default:
-			color = yellowColor
+			bodyStyle = attentionStyle
 		}
+
+		bodySections = append(bodySections, MSTeamsContainer{
+			Type:       "Container",
+			Style:      bodyStyle,
+			ShowBorder: new(true),
+			Items: []any{
+				MSTeamsTextBlock{
+					Type: "TextBlock",
+					Text: p.Review.Content,
+					Wrap: new(true),
+				},
+			},
+		})
 	}
 
 	return createMSTeamsPayload(
 		p.Repository,
 		p.Sender,
-		title,
-		text,
+		actionTitle,
+		bodySections,
 		p.PullRequest.HTMLURL,
-		color,
-		&MSTeamsFact{"Pull request #:", fmt.Sprintf("%d", p.PullRequest.ID)},
+		defaultStyle,
 	), nil
 }
 
 // Repository implements PayloadConvertor Repository method
 func (m msteamsConvertor) Repository(p *api.RepositoryPayload) (MSTeamsPayload, error) {
-	var title, url string
-	var color int
+	var actionTitle, url string
+	style := emphasisStyle
 	switch p.Action {
 	case api.HookRepoCreated:
-		title = fmt.Sprintf("[%s] Repository created", p.Repository.FullName)
+		actionTitle = fmt.Sprintf("Repository created: %s", p.Repository.FullName)
 		url = p.Repository.HTMLURL
-		color = greenColor
+		style = goodStyle
 	case api.HookRepoDeleted:
-		title = fmt.Sprintf("[%s] Repository deleted", p.Repository.FullName)
-		color = yellowColor
+		actionTitle = fmt.Sprintf("Repository deleted: %s", p.Repository.FullName)
+		style = attentionStyle
 	}
 
 	return createMSTeamsPayload(
 		p.Repository,
 		p.Sender,
-		title,
-		"",
-		url,
-		color,
+		actionTitle,
 		nil,
+		url,
+		style,
 	), nil
 }
 
 // Wiki implements PayloadConvertor Wiki method
 func (m msteamsConvertor) Wiki(p *api.WikiPayload) (MSTeamsPayload, error) {
-	title, color, _ := getWikiPayloadInfo(p, noneLinkFormatter, noneNameFormatter, false)
+	actionTitle, _, _ := msTeamsPayloadFormatter.getWikiPayloadInfo(p, false)
+
+	var style string
+
+	switch p.Action {
+	case api.HookWikiCreated:
+		style = goodStyle
+	case api.HookWikiEdited:
+		style = warningStyle
+	case api.HookWikiDeleted:
+		style = attentionStyle
+	}
+
+	var bodySections []MSTeamsContainer
+	if p.Action != api.HookWikiDeleted {
+		bodySections = append(bodySections, MSTeamsContainer{
+			Type:       "Container",
+			Style:      defaultStyle,
+			ShowBorder: new(true),
+			Items: []any{
+				MSTeamsFactSet{
+					Type: "FactSet",
+					Facts: []MSTeamsFact{
+						{
+							Title: "Comment",
+							Value: p.Comment,
+						},
+					},
+				},
+			},
+		})
+	}
 
 	return createMSTeamsPayload(
 		p.Repository,
 		p.Sender,
-		title,
-		"",
+		actionTitle,
+		bodySections,
 		p.Repository.HTMLURL+"/wiki/"+url.PathEscape(p.Page),
-		color,
-		&MSTeamsFact{"Repository:", p.Repository.FullName},
+		style,
 	), nil
 }
 
 // Release implements PayloadConvertor Release method
 func (m msteamsConvertor) Release(p *api.ReleasePayload) (MSTeamsPayload, error) {
-	title, color := getReleasePayloadInfo(p, noneLinkFormatter, noneNameFormatter, false)
+	actionTitle, color := msTeamsPayloadFormatter.getReleasePayloadInfo(p)
+	var style string
+
+	switch color {
+	case greenColor:
+		style = goodStyle
+	case yellowColor:
+		style = warningStyle
+	case redColor:
+		style = attentionStyle
+	}
 
 	return createMSTeamsPayload(
 		p.Repository,
 		p.Sender,
-		title,
-		"",
+		actionTitle,
+		nil,
 		p.Release.HTMLURL,
-		color,
-		&MSTeamsFact{"Tag:", p.Release.TagName},
+		style,
 	), nil
 }
 
 func (m msteamsConvertor) Package(p *api.PackagePayload) (MSTeamsPayload, error) {
-	title, color := getPackagePayloadInfo(p, noneLinkFormatter, noneNameFormatter, false)
+	actionTitle, color := msTeamsPayloadFormatter.getPackagePayloadInfo(p)
+	var style string
+
+	switch color {
+	case greenColor:
+		style = goodStyle
+	case yellowColor:
+		style = warningStyle
+	case redColor:
+		style = attentionStyle
+	}
 
 	return createMSTeamsPayload(
 		p.Repository,
 		p.Sender,
-		title,
-		"",
+		actionTitle,
+		nil,
 		p.Package.HTMLURL,
-		color,
-		&MSTeamsFact{"Package:", p.Package.Name},
+		style,
 	), nil
 }
 
 func (m msteamsConvertor) Action(p *api.ActionPayload) (MSTeamsPayload, error) {
-	title, color := getActionPayloadInfo(p, noneLinkFormatter)
+	var actionTitle string
+
+	var badgeStyle, badgeState string
+
+	switch p.Action {
+	case api.HookActionFailure:
+		actionTitle = fmt.Sprintf("Action run #%d failed: %s", p.Run.ID, p.Run.Title)
+		badgeStyle = attentionStyle
+		badgeState = "Failed"
+	case api.HookActionRecover:
+		actionTitle = fmt.Sprintf("Action run #%d recovered: %s", p.Run.ID, p.Run.Title)
+		badgeStyle = goodStyle
+		badgeState = "Success"
+	case api.HookActionSuccess:
+		actionTitle = fmt.Sprintf("Action run #%d succeeded: %s", p.Run.ID, p.Run.Title)
+		badgeStyle = goodStyle
+		badgeState = "Success"
+	}
+
+	bodySections := []MSTeamsContainer{
+		makeBadgeRow(
+			badgeState,
+			"PlayCircle",
+			badgeStyle,
+			fmt.Sprintf("On %s", p.Run.PrettyRef),
+			fmt.Sprintf("%s Run #%d", p.Run.Repo.FullName, p.Run.ID),
+		),
+	}
 
 	// TODO: is TriggerUser correct here?
 	// if you'd like to test these proprietary services, see the discussion on: https://codeberg.org/forgejo/forgejo/pulls/7508
 	return createMSTeamsPayload(
 		p.Run.Repo,
 		p.Run.TriggerUser,
-		title,
-		"",
+		actionTitle,
+		bodySections,
 		p.Run.HTMLURL,
-		color,
-		// TODO: does this make any sense?
-		&MSTeamsFact{"Action:", p.Run.Title},
+		defaultStyle,
 	), nil
 }
 
-func createMSTeamsPayload(r *api.Repository, s *api.User, title, text, actionTarget string, color int, fact *MSTeamsFact) MSTeamsPayload {
-	facts := make([]MSTeamsFact, 0, 2)
+func createMSTeamsPayload(r *api.Repository, s *api.User, actionTitle string, bodySections []MSTeamsContainer, actionTarget, style string) MSTeamsPayload {
+	// Update header adding the repository name and link
+	var updatedRepo string
 	if r != nil {
-		facts = append(facts, MSTeamsFact{
-			Name:  "Repository:",
-			Value: r.FullName,
-		})
+		updatedRepo = fmt.Sprintf(" | [%s](%s)", r.FullName, r.HTMLURL)
 	}
-	if fact != nil {
-		facts = append(facts, *fact)
+	if style == "" {
+		style = defaultStyle
+	}
+
+	repoHeaderSection := MSTeamsContainer{
+		Type: "Container",
+		Items: []any{
+			MSTeamsTextBlock{
+				Type:     "TextBlock",
+				Text:     "💬 Update" + updatedRepo,
+				Weight:   "Bolder",
+				Size:     "Small",
+				IsSubtle: new(true),
+			},
+		},
+	}
+
+	if s != nil {
+		// get display name
+		username := "@" + s.UserName
+		if s.FullName != "" {
+			username = s.FullName + " (@" + s.UserName + ")"
+		}
+
+		actionTitle = fmt.Sprintf("%s by %s", actionTitle, markdownLinkFormatter(s.HTMLURL, username))
+	}
+
+	// Sender info section
+	actionTitleSection := MSTeamsContainer{
+		Type:  "Container",
+		Style: style,
+		Items: []any{
+			MSTeamsTextBlock{
+				Type:  "TextBlock",
+				Style: "heading",
+				Text:  actionTitle,
+			},
+		},
+	}
+
+	// Combine sections in order
+	body := []MSTeamsContainer{repoHeaderSection, actionTitleSection}
+	body = append(body, bodySections...)
+
+	// Create action button for navigation
+	actionButton := MSTeamsAction{
+		Type:  "Action.OpenUrl",
+		Title: "View in Forgejo",
+		URL:   actionTarget,
 	}
 
 	return MSTeamsPayload{
-		Type:       "MessageCard",
-		Context:    "https://schema.org/extensions",
-		ThemeColor: fmt.Sprintf("%x", color),
-		Title:      title,
-		Summary:    title,
-		Sections: []MSTeamsSection{
-			{
-				ActivityTitle:    s.FullName,
-				ActivitySubtitle: s.UserName,
-				ActivityImage:    s.AvatarURL,
-				Text:             text,
-				Facts:            facts,
-			},
+		Type:    "AdaptiveCard",
+		Schema:  "http://adaptivecards.io/schemas/adaptive-card.json",
+		Version: "1.5",
+		MsTeams: MSTeamsOptions{
+			Width: "Full",
 		},
-		PotentialAction: []MSTeamsAction{
-			{
-				Type: "OpenUri",
-				Name: "View in Forgejo",
-				Targets: []MSTeamsActionTarget{
-					{
-						Os:  "default",
-						URI: actionTarget,
-					},
-				},
-			},
-		},
+		Body:    body,
+		Actions: []MSTeamsAction{actionButton},
+		Style:   defaultStyle,
 	}
 }
 

@@ -63,6 +63,13 @@ func newFeishuTextPayload(text string) FeishuPayload {
 	}
 }
 
+var feishuPayloadFormatter = webhookPayloadFormatter{
+	linkFormatter: noneLinkFormatter,
+	nameFormatter: noneNameFormatter,
+	withSender:    true,
+	withRepoName:  true,
+}
+
 // Create implements PayloadConvertor Create method
 func (fc feishuConvertor) Create(p *api.CreatePayload) (FeishuPayload, error) {
 	// created tag/branch
@@ -174,26 +181,26 @@ func (fc feishuConvertor) Repository(p *api.RepositoryPayload) (FeishuPayload, e
 
 // Wiki implements PayloadConvertor Wiki method
 func (fc feishuConvertor) Wiki(p *api.WikiPayload) (FeishuPayload, error) {
-	text, _, _ := getWikiPayloadInfo(p, noneLinkFormatter, noneNameFormatter, true)
+	text, _, _ := feishuPayloadFormatter.getWikiPayloadInfo(p, true)
 
 	return newFeishuTextPayload(text), nil
 }
 
 // Release implements PayloadConvertor Release method
 func (fc feishuConvertor) Release(p *api.ReleasePayload) (FeishuPayload, error) {
-	text, _ := getReleasePayloadInfo(p, noneLinkFormatter, noneNameFormatter, true)
+	text, _ := feishuPayloadFormatter.getReleasePayloadInfo(p)
 
 	return newFeishuTextPayload(text), nil
 }
 
 func (fc feishuConvertor) Package(p *api.PackagePayload) (FeishuPayload, error) {
-	text, _ := getPackagePayloadInfo(p, noneLinkFormatter, noneNameFormatter, true)
+	text, _ := feishuPayloadFormatter.getPackagePayloadInfo(p)
 
 	return newFeishuTextPayload(text), nil
 }
 
 func (fc feishuConvertor) Action(p *api.ActionPayload) (FeishuPayload, error) {
-	text, _ := getActionPayloadInfo(p, noneLinkFormatter)
+	text, _ := feishuPayloadFormatter.getActionPayloadInfo(p)
 
 	return newFeishuTextPayload(text), nil
 }

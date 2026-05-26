@@ -132,19 +132,19 @@ func TestSlackPayload(t *testing.T) {
 		pl, err := sc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[test/repo] New wiki page '<http://localhost:3000/test/repo/wiki/index|index>' (Wiki change comment) by `user1`", pl.Text)
+		assert.Equal(t, "[test/repo] New wiki page \"<http://localhost:3000/test/repo/wiki/index|index>\" (Wiki change comment) by `user1`", pl.Text)
 
 		p.Action = api.HookWikiEdited
 		pl, err = sc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[test/repo] Wiki page '<http://localhost:3000/test/repo/wiki/index|index>' edited (Wiki change comment) by `user1`", pl.Text)
+		assert.Equal(t, "[test/repo] Wiki page \"<http://localhost:3000/test/repo/wiki/index|index>\" edited (Wiki change comment) by `user1`", pl.Text)
 
 		p.Action = api.HookWikiDeleted
 		pl, err = sc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[test/repo] Wiki page '<http://localhost:3000/test/repo/wiki/index|index>' deleted by `user1`", pl.Text)
+		assert.Equal(t, "[test/repo] Wiki page \"<http://localhost:3000/test/repo/wiki/index|index>\" deleted by `user1`", pl.Text)
 	})
 
 	t.Run("Release", func(t *testing.T) {

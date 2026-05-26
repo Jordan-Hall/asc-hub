@@ -131,19 +131,19 @@ func TestFeishuPayload(t *testing.T) {
 		pl, err := fc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[test/repo] New wiki page 'index' (Wiki change comment) by user1", pl.Content.Text)
+		assert.Equal(t, "[test/repo] New wiki page \"index\" (Wiki change comment) by user1", pl.Content.Text)
 
 		p.Action = api.HookWikiEdited
 		pl, err = fc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[test/repo] Wiki page 'index' edited (Wiki change comment) by user1", pl.Content.Text)
+		assert.Equal(t, "[test/repo] Wiki page \"index\" edited (Wiki change comment) by user1", pl.Content.Text)
 
 		p.Action = api.HookWikiDeleted
 		pl, err = fc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[test/repo] Wiki page 'index' deleted by user1", pl.Content.Text)
+		assert.Equal(t, "[test/repo] Wiki page \"index\" deleted by user1", pl.Content.Text)
 	})
 
 	t.Run("Release", func(t *testing.T) {

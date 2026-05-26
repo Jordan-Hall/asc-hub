@@ -17,8 +17,8 @@ import (
 )
 
 type (
-	linkFormatter = func(string, string) string
-	nameFormatter = func(string) string
+	linkFormatter = func(url, text string) string
+	nameFormatter = func(name string) string
 )
 
 // noneLinkFormatter does not create a link but just returns the text
@@ -101,48 +101,56 @@ func getIssuesCommentInfo(p *api.IssueCommentPayload, nameFormatter nameFormatte
 	return title, link, by, operator
 }
 
-func getIssuesPayloadInfo(p *api.IssuePayload, linkFormatter linkFormatter, nameFormatter nameFormatter, withSender bool) (string, string, string, int) {
-	issueTitle := fmt.Sprintf("#%d %s", p.Index, p.Issue.Title)
-	titleLink := linkFormatter(fmt.Sprintf("%s/issues/%d", p.Repository.HTMLURL, p.Index), issueTitle)
-	var text string
-	color := yellowColor
+type webhookPayloadFormatter struct {
+	linkFormatter            linkFormatter
+	nameFormatter            nameFormatter
+	withSender, withRepoName bool
+}
+
+func (wpf webhookPayloadFormatter) getIssuesPayloadInfo(p *api.IssuePayload) (text, issueTitle, attachmentText string, color int) {
+	issueTitle = fmt.Sprintf("#%d %s", p.Index, p.Issue.Title)
+	titleLink := wpf.linkFormatter(fmt.Sprintf("%s/issues/%d", p.Repository.HTMLURL, p.Index), issueTitle)
+	color = yellowColor
 
 	switch p.Action {
 	case api.HookIssueOpened:
-		text = fmt.Sprintf("[%s] Issue opened: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Issue opened: %s", titleLink)
 		color = orangeColor
 	case api.HookIssueClosed:
-		text = fmt.Sprintf("[%s] Issue closed: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Issue closed: %s", titleLink)
 		color = redColor
 	case api.HookIssueReOpened:
-		text = fmt.Sprintf("[%s] Issue re-opened: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Issue re-opened: %s", titleLink)
 	case api.HookIssueEdited:
-		text = fmt.Sprintf("[%s] Issue edited: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Issue edited: %s", titleLink)
 	case api.HookIssueAssigned:
 		list := make([]string, len(p.Issue.Assignees))
 		for i, user := range p.Issue.Assignees {
-			list[i] = linkFormatter(setting.AppURL+url.PathEscape(user.UserName), user.UserName)
+			list[i] = wpf.linkFormatter(setting.AppURL+url.PathEscape(user.UserName), user.UserName)
 		}
-		text = fmt.Sprintf("[%s] Issue assigned to %s: %s", p.Repository.FullName, strings.Join(list, ", "), titleLink)
+		text = fmt.Sprintf("Issue assigned to %s: %s", strings.Join(list, ", "), titleLink)
 		color = greenColor
 	case api.HookIssueUnassigned:
-		text = fmt.Sprintf("[%s] Issue unassigned: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Issue unassigned: %s", titleLink)
 	case api.HookIssueLabelUpdated:
-		text = fmt.Sprintf("[%s] Issue labels updated: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Issue labels updated: %s", titleLink)
 	case api.HookIssueLabelCleared:
-		text = fmt.Sprintf("[%s] Issue labels cleared: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Issue labels cleared: %s", titleLink)
 	case api.HookIssueSynchronized:
-		text = fmt.Sprintf("[%s] Issue synchronized: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Issue synchronized: %s", titleLink)
 	case api.HookIssueMilestoned:
-		text = fmt.Sprintf("[%s] Issue milestoned to %s: %s", p.Repository.FullName, p.Issue.Milestone.Title, titleLink)
+		text = fmt.Sprintf("Issue milestoned to %s: %s", p.Issue.Milestone.Title, titleLink)
 	case api.HookIssueDemilestoned:
-		text = fmt.Sprintf("[%s] Issue milestone cleared: %s", p.Repository.FullName, titleLink)
-	}
-	if withSender {
-		text += fmt.Sprintf(" by %s", nameFormatter(p.Sender.UserName))
+		text = fmt.Sprintf("Issue milestone cleared: %s", titleLink)
 	}
 
-	var attachmentText string
+	if wpf.withRepoName {
+		text = fmt.Sprintf("[%s] %s", p.Repository.FullName, text)
+	}
+	if wpf.withSender {
+		text += fmt.Sprintf(" by %s", wpf.nameFormatter(p.Sender.UserName))
+	}
+
 	if p.Action == api.HookIssueOpened || p.Action == api.HookIssueEdited {
 		attachmentText = p.Issue.Body
 	}
@@ -150,152 +158,160 @@ func getIssuesPayloadInfo(p *api.IssuePayload, linkFormatter linkFormatter, name
 	return text, issueTitle, attachmentText, color
 }
 
-func getPullRequestPayloadInfo(p *api.PullRequestPayload, linkFormatter linkFormatter, nameFormatter nameFormatter, withSender bool) (string, string, string, int) {
-	issueTitle := fmt.Sprintf("#%d %s", p.Index, p.PullRequest.Title)
-	titleLink := linkFormatter(p.PullRequest.URL, issueTitle)
-	var text string
-	var attachmentText string
-	color := yellowColor
+func (wpf webhookPayloadFormatter) getPullRequestPayloadInfo(p *api.PullRequestPayload) (text, issueTitle, attachmentText string, color int) {
+	issueTitle = fmt.Sprintf("#%d %s", p.Index, p.PullRequest.Title)
+	titleLink := wpf.linkFormatter(p.PullRequest.URL, issueTitle)
+	color = yellowColor
 
 	switch p.Action {
 	case api.HookIssueOpened:
-		text = fmt.Sprintf("[%s] Pull request opened: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request opened: %s", titleLink)
 		attachmentText = p.PullRequest.Body
 		color = greenColor
 	case api.HookIssueClosed:
 		if p.PullRequest.HasMerged {
-			text = fmt.Sprintf("[%s] Pull request merged: %s", p.Repository.FullName, titleLink)
+			text = fmt.Sprintf("Pull request merged: %s", titleLink)
 			color = purpleColor
 		} else {
-			text = fmt.Sprintf("[%s] Pull request closed: %s", p.Repository.FullName, titleLink)
+			text = fmt.Sprintf("Pull request closed: %s", titleLink)
 			color = redColor
 		}
 	case api.HookIssueReOpened:
-		text = fmt.Sprintf("[%s] Pull request re-opened: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request re-opened: %s", titleLink)
 	case api.HookIssueEdited:
-		text = fmt.Sprintf("[%s] Pull request edited: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request edited: %s", titleLink)
 		attachmentText = p.PullRequest.Body
 	case api.HookIssueAssigned:
 		list := make([]string, len(p.PullRequest.Assignees))
 		for i, user := range p.PullRequest.Assignees {
-			list[i] = linkFormatter(setting.AppURL+user.UserName, user.UserName)
+			list[i] = wpf.linkFormatter(setting.AppURL+user.UserName, user.UserName)
 		}
-		text = fmt.Sprintf("[%s] Pull request assigned to %s: %s", p.Repository.FullName,
-			strings.Join(list, ", "), titleLink)
+		text = fmt.Sprintf("Pull request assigned to %s: %s", strings.Join(list, ", "), titleLink)
 		color = greenColor
 	case api.HookIssueUnassigned:
-		text = fmt.Sprintf("[%s] Pull request unassigned: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request unassigned: %s", titleLink)
 	case api.HookIssueLabelUpdated:
-		text = fmt.Sprintf("[%s] Pull request labels updated: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request labels updated: %s", titleLink)
 	case api.HookIssueLabelCleared:
-		text = fmt.Sprintf("[%s] Pull request labels cleared: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request labels cleared: %s", titleLink)
 	case api.HookIssueSynchronized:
-		text = fmt.Sprintf("[%s] Pull request synchronized: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request synchronized: %s", titleLink)
 	case api.HookIssueMilestoned:
-		text = fmt.Sprintf("[%s] Pull request milestoned to %s: %s", p.Repository.FullName, p.PullRequest.Milestone.Title, titleLink)
+		text = fmt.Sprintf("Pull request milestoned to %s: %s", p.PullRequest.Milestone.Title, titleLink)
 	case api.HookIssueDemilestoned:
-		text = fmt.Sprintf("[%s] Pull request milestone cleared: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request milestone cleared: %s", titleLink)
 	case api.HookIssueReviewed:
-		text = fmt.Sprintf("[%s] Pull request reviewed: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request reviewed: %s", titleLink)
 		attachmentText = p.Review.Content
 	case api.HookIssueReviewRequested:
-		text = fmt.Sprintf("[%s] Pull request review requested: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request review requested: %s", titleLink)
 	case api.HookIssueReviewRequestRemoved:
-		text = fmt.Sprintf("[%s] Pull request review request removed: %s", p.Repository.FullName, titleLink)
+		text = fmt.Sprintf("Pull request review request removed: %s", titleLink)
 	}
-	if withSender {
-		text += fmt.Sprintf(" by %s", nameFormatter(p.Sender.UserName))
+	if wpf.withRepoName {
+		text = fmt.Sprintf("[%s] %s", p.Repository.FullName, text)
+	}
+	if wpf.withSender {
+		text += fmt.Sprintf(" by %s", wpf.nameFormatter(p.Sender.UserName))
 	}
 
 	return text, issueTitle, attachmentText, color
 }
 
-func getReleasePayloadInfo(p *api.ReleasePayload, linkFormatter linkFormatter, nameFormatter nameFormatter, withSender bool) (text string, color int) {
-	refLink := linkFormatter(p.Repository.HTMLURL+"/releases/tag/"+util.PathEscapeSegments(p.Release.TagName), p.Release.TagName)
+func (wpf webhookPayloadFormatter) getReleasePayloadInfo(p *api.ReleasePayload) (text string, color int) {
+	refLink := wpf.linkFormatter(p.Repository.HTMLURL+"/releases/tag/"+util.PathEscapeSegments(p.Release.TagName), p.Release.TagName)
 
 	switch p.Action {
 	case api.HookReleasePublished:
-		text = fmt.Sprintf("[%s] Release created: %s", p.Repository.FullName, refLink)
+		text = fmt.Sprintf("Release created: %s", refLink)
 		color = greenColor
 	case api.HookReleaseUpdated:
-		text = fmt.Sprintf("[%s] Release updated: %s", p.Repository.FullName, refLink)
+		text = fmt.Sprintf("Release updated: %s", refLink)
 		color = yellowColor
 	case api.HookReleaseDeleted:
-		text = fmt.Sprintf("[%s] Release deleted: %s", p.Repository.FullName, refLink)
+		text = fmt.Sprintf("Release deleted: %s", refLink)
 		color = redColor
 	}
-	if withSender {
-		text += fmt.Sprintf(" by %s", nameFormatter(p.Sender.UserName))
+	if wpf.withRepoName {
+		text = fmt.Sprintf("[%s] %s", p.Repository.FullName, text)
+	}
+	if wpf.withSender {
+		text += fmt.Sprintf(" by %s", wpf.nameFormatter(p.Sender.UserName))
 	}
 
 	return text, color
 }
 
-func getWikiPayloadInfo(p *api.WikiPayload, linkFormatter linkFormatter, nameFormatter nameFormatter, withSender bool) (string, int, string) {
-	pageLink := linkFormatter(p.Repository.HTMLURL+"/wiki/"+url.PathEscape(p.Page), p.Page)
+func (wpf webhookPayloadFormatter) getWikiPayloadInfo(p *api.WikiPayload, withCommitMessage bool) (text string, color int, pageLink string) {
+	pageLink = wpf.linkFormatter(p.Repository.HTMLURL+"/wiki/"+url.PathEscape(p.Page), p.Page)
 
-	var text string
-	color := greenColor
+	color = greenColor
 
 	switch p.Action {
 	case api.HookWikiCreated:
-		text = fmt.Sprintf("[%s] New wiki page '%s'", p.Repository.FullName, pageLink)
+		text = fmt.Sprintf("New wiki page \"%s\"", pageLink)
 	case api.HookWikiEdited:
-		text = fmt.Sprintf("[%s] Wiki page '%s' edited", p.Repository.FullName, pageLink)
+		text = fmt.Sprintf("Wiki page \"%s\" edited", pageLink)
 		color = yellowColor
 	case api.HookWikiDeleted:
-		text = fmt.Sprintf("[%s] Wiki page '%s' deleted", p.Repository.FullName, pageLink)
+		text = fmt.Sprintf("Wiki page \"%s\" deleted", pageLink)
 		color = redColor
 	}
 
-	if p.Action != api.HookWikiDeleted && p.Comment != "" {
+	if p.Action != api.HookWikiDeleted && p.Comment != "" && withCommitMessage {
 		text += fmt.Sprintf(" (%s)", p.Comment)
 	}
 
-	if withSender {
-		text += fmt.Sprintf(" by %s", nameFormatter(p.Sender.UserName))
+	if wpf.withRepoName {
+		text = fmt.Sprintf("[%s] %s", p.Repository.FullName, text)
+	}
+	if wpf.withSender {
+		text += fmt.Sprintf(" by %s", wpf.nameFormatter(p.Sender.UserName))
 	}
 
 	return text, color, pageLink
 }
 
-func getIssueCommentPayloadInfo(p *api.IssueCommentPayload, linkFormatter linkFormatter, nameFormatter nameFormatter, withSender bool) (string, string, int) {
-	issueTitle := fmt.Sprintf("#%d %s", p.Issue.Index, p.Issue.Title)
+func (wpf webhookPayloadFormatter) getIssueCommentPayloadInfo(p *api.IssueCommentPayload) (text, issueTitle string, color int) {
+	issueTitle = fmt.Sprintf("#%d %s", p.Issue.Index, p.Issue.Title)
 
-	var text, typ, titleLink string
-	color := yellowColor
+	var typ, titleLink string
+	color = yellowColor
 
 	if p.IsPull {
 		typ = "pull request"
-		titleLink = linkFormatter(p.Comment.PRURL, issueTitle)
+		titleLink = wpf.linkFormatter(p.Comment.PRURL, issueTitle)
 	} else {
 		typ = "issue"
-		titleLink = linkFormatter(p.Comment.IssueURL, issueTitle)
+		titleLink = wpf.linkFormatter(p.Comment.IssueURL, issueTitle)
 	}
 
 	switch p.Action {
 	case api.HookIssueCommentCreated:
-		text = fmt.Sprintf("[%s] New comment on %s %s", p.Repository.FullName, typ, titleLink)
+		text = fmt.Sprintf("New comment on %s %s", typ, titleLink)
 		if p.IsPull {
 			color = greenColorLight
 		} else {
 			color = orangeColorLight
 		}
 	case api.HookIssueCommentEdited:
-		text = fmt.Sprintf("[%s] Comment edited on %s %s", p.Repository.FullName, typ, titleLink)
+		text = fmt.Sprintf("Comment edited on %s %s", typ, titleLink)
 	case api.HookIssueCommentDeleted:
-		text = fmt.Sprintf("[%s] Comment deleted on %s %s", p.Repository.FullName, typ, titleLink)
+		text = fmt.Sprintf("Comment deleted on %s %s", typ, titleLink)
 		color = redColor
 	}
-	if withSender {
-		text += fmt.Sprintf(" by %s", nameFormatter(p.Sender.UserName))
+	if wpf.withRepoName {
+		text = fmt.Sprintf("[%s] %s", p.Repository.FullName, text)
+	}
+	if wpf.withSender {
+		text += fmt.Sprintf(" by %s", wpf.nameFormatter(p.Sender.UserName))
 	}
 
 	return text, issueTitle, color
 }
 
-func getPackagePayloadInfo(p *api.PackagePayload, linkFormatter linkFormatter, nameFormatter nameFormatter, withSender bool) (text string, color int) {
-	refLink := linkFormatter(p.Package.HTMLURL, p.Package.Name+":"+p.Package.Version)
+func (wpf webhookPayloadFormatter) getPackagePayloadInfo(p *api.PackagePayload) (text string, color int) {
+	refLink := wpf.linkFormatter(p.Package.HTMLURL, p.Package.Name+":"+p.Package.Version)
 
 	switch p.Action {
 	case api.HookPackageCreated:
@@ -305,16 +321,16 @@ func getPackagePayloadInfo(p *api.PackagePayload, linkFormatter linkFormatter, n
 		text = fmt.Sprintf("Package deleted: %s", refLink)
 		color = redColor
 	}
-	if withSender {
-		text += fmt.Sprintf(" by %s", nameFormatter(p.Sender.UserName))
+	if wpf.withSender {
+		text += fmt.Sprintf(" by %s", wpf.nameFormatter(p.Sender.UserName))
 	}
 
 	return text, color
 }
 
-func getActionPayloadInfo(p *api.ActionPayload, linkFormatter linkFormatter) (text string, color int) {
-	runLink := linkFormatter(p.Run.HTMLURL, p.Run.Title)
-	repoLink := linkFormatter(p.Run.Repo.HTMLURL, p.Run.Repo.FullName)
+func (wpf webhookPayloadFormatter) getActionPayloadInfo(p *api.ActionPayload) (text string, color int) {
+	runLink := wpf.linkFormatter(p.Run.HTMLURL, p.Run.Title)
+	repoLink := wpf.linkFormatter(p.Run.Repo.HTMLURL, p.Run.Repo.FullName)
 
 	switch p.Action {
 	case api.HookActionFailure:

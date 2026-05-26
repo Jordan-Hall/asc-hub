@@ -178,8 +178,8 @@ func TestDingTalkPayload(t *testing.T) {
 		pl, err := dc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[test/repo] New wiki page 'index' (Wiki change comment) by user1", pl.ActionCard.Text)
-		assert.Equal(t, "[test/repo] New wiki page 'index' (Wiki change comment) by user1", pl.ActionCard.Title)
+		assert.Equal(t, "[test/repo] New wiki page \"index\" (Wiki change comment) by user1", pl.ActionCard.Text)
+		assert.Equal(t, "[test/repo] New wiki page \"index\" (Wiki change comment) by user1", pl.ActionCard.Title)
 		assert.Equal(t, "view wiki", pl.ActionCard.SingleTitle)
 		assert.Equal(t, "http://localhost:3000/test/repo/wiki/index", parseRealSingleURL(pl.ActionCard.SingleURL))
 
@@ -187,8 +187,8 @@ func TestDingTalkPayload(t *testing.T) {
 		pl, err = dc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[test/repo] Wiki page 'index' edited (Wiki change comment) by user1", pl.ActionCard.Text)
-		assert.Equal(t, "[test/repo] Wiki page 'index' edited (Wiki change comment) by user1", pl.ActionCard.Title)
+		assert.Equal(t, "[test/repo] Wiki page \"index\" edited (Wiki change comment) by user1", pl.ActionCard.Text)
+		assert.Equal(t, "[test/repo] Wiki page \"index\" edited (Wiki change comment) by user1", pl.ActionCard.Title)
 		assert.Equal(t, "view wiki", pl.ActionCard.SingleTitle)
 		assert.Equal(t, "http://localhost:3000/test/repo/wiki/index", parseRealSingleURL(pl.ActionCard.SingleURL))
 
@@ -196,8 +196,8 @@ func TestDingTalkPayload(t *testing.T) {
 		pl, err = dc.Wiki(p)
 		require.NoError(t, err)
 
-		assert.Equal(t, "[test/repo] Wiki page 'index' deleted by user1", pl.ActionCard.Text)
-		assert.Equal(t, "[test/repo] Wiki page 'index' deleted by user1", pl.ActionCard.Title)
+		assert.Equal(t, "[test/repo] Wiki page \"index\" deleted by user1", pl.ActionCard.Text)
+		assert.Equal(t, "[test/repo] Wiki page \"index\" deleted by user1", pl.ActionCard.Title)
 		assert.Equal(t, "view wiki", pl.ActionCard.SingleTitle)
 		assert.Equal(t, "http://localhost:3000/test/repo/wiki/index", parseRealSingleURL(pl.ActionCard.SingleURL))
 	})

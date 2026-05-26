@@ -127,6 +127,13 @@ type MatrixPayload struct {
 
 var _ shared.PayloadConvertor[MatrixPayload] = matrixConvertor{}
 
+var matrixPayloadFormatter = webhookPayloadFormatter{
+	linkFormatter: htmlLinkFormatter,
+	nameFormatter: noneNameFormatter,
+	withSender:    true,
+	withRepoName:  true,
+}
+
 type matrixConvertor struct {
 	MsgType string
 }
@@ -169,28 +176,28 @@ func (m matrixConvertor) Fork(p *api.ForkPayload) (MatrixPayload, error) {
 
 // Issue implements payloadConvertor Issue method
 func (m matrixConvertor) Issue(p *api.IssuePayload) (MatrixPayload, error) {
-	text, _, _, _ := getIssuesPayloadInfo(p, htmlLinkFormatter, noneNameFormatter, true)
+	text, _, _, _ := matrixPayloadFormatter.getIssuesPayloadInfo(p)
 
 	return m.newPayload(text)
 }
 
 // IssueComment implements payloadConvertor IssueComment method
 func (m matrixConvertor) IssueComment(p *api.IssueCommentPayload) (MatrixPayload, error) {
-	text, _, _ := getIssueCommentPayloadInfo(p, htmlLinkFormatter, noneNameFormatter, true)
+	text, _, _ := matrixPayloadFormatter.getIssueCommentPayloadInfo(p)
 
 	return m.newPayload(text)
 }
 
 // Wiki implements payloadConvertor Wiki method
 func (m matrixConvertor) Wiki(p *api.WikiPayload) (MatrixPayload, error) {
-	text, _, _ := getWikiPayloadInfo(p, htmlLinkFormatter, noneNameFormatter, true)
+	text, _, _ := matrixPayloadFormatter.getWikiPayloadInfo(p, true)
 
 	return m.newPayload(text)
 }
 
 // Release implements payloadConvertor Release method
 func (m matrixConvertor) Release(p *api.ReleasePayload) (MatrixPayload, error) {
-	text, _ := getReleasePayloadInfo(p, htmlLinkFormatter, noneNameFormatter, true)
+	text, _ := matrixPayloadFormatter.getReleasePayloadInfo(p)
 
 	return m.newPayload(text)
 }
@@ -223,7 +230,7 @@ func (m matrixConvertor) Push(p *api.PushPayload) (MatrixPayload, error) {
 
 // PullRequest implements payloadConvertor PullRequest method
 func (m matrixConvertor) PullRequest(p *api.PullRequestPayload) (MatrixPayload, error) {
-	text, _, _, _ := getPullRequestPayloadInfo(p, htmlLinkFormatter, noneNameFormatter, true)
+	text, _, _, _ := matrixPayloadFormatter.getPullRequestPayloadInfo(p)
 
 	return m.newPayload(text)
 }
@@ -275,7 +282,7 @@ func (m matrixConvertor) Package(p *api.PackagePayload) (MatrixPayload, error) {
 }
 
 func (m matrixConvertor) Action(p *api.ActionPayload) (MatrixPayload, error) {
-	text, _ := getActionPayloadInfo(p, htmlLinkFormatter)
+	text, _ := matrixPayloadFormatter.getActionPayloadInfo(p)
 
 	return m.newPayload(text)
 }

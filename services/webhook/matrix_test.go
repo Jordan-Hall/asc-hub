@@ -159,24 +159,24 @@ func TestMatrixPayload(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, pl)
 
-		assert.Equal(t, "[test/repo] New wiki page '[index](http://localhost:3000/test/repo/wiki/index)' (Wiki change comment) by user1", pl.Body)
-		assert.Equal(t, `[test/repo] New wiki page '<a href="http://localhost:3000/test/repo/wiki/index">index</a>' (Wiki change comment) by user1`, pl.FormattedBody)
+		assert.Equal(t, "[test/repo] New wiki page \"[index](http://localhost:3000/test/repo/wiki/index)\" (Wiki change comment) by user1", pl.Body)
+		assert.Equal(t, `[test/repo] New wiki page "<a href="http://localhost:3000/test/repo/wiki/index">index</a>" (Wiki change comment) by user1`, pl.FormattedBody)
 
 		p.Action = api.HookWikiEdited
 		pl, err = mc.Wiki(p)
 		require.NoError(t, err)
 		require.NotNil(t, pl)
 
-		assert.Equal(t, "[test/repo] Wiki page '[index](http://localhost:3000/test/repo/wiki/index)' edited (Wiki change comment) by user1", pl.Body)
-		assert.Equal(t, `[test/repo] Wiki page '<a href="http://localhost:3000/test/repo/wiki/index">index</a>' edited (Wiki change comment) by user1`, pl.FormattedBody)
+		assert.Equal(t, "[test/repo] Wiki page \"[index](http://localhost:3000/test/repo/wiki/index)\" edited (Wiki change comment) by user1", pl.Body)
+		assert.Equal(t, `[test/repo] Wiki page "<a href="http://localhost:3000/test/repo/wiki/index">index</a>" edited (Wiki change comment) by user1`, pl.FormattedBody)
 
 		p.Action = api.HookWikiDeleted
 		pl, err = mc.Wiki(p)
 		require.NoError(t, err)
 		require.NotNil(t, pl)
 
-		assert.Equal(t, "[test/repo] Wiki page '[index](http://localhost:3000/test/repo/wiki/index)' deleted by user1", pl.Body)
-		assert.Equal(t, `[test/repo] Wiki page '<a href="http://localhost:3000/test/repo/wiki/index">index</a>' deleted by user1`, pl.FormattedBody)
+		assert.Equal(t, "[test/repo] Wiki page \"[index](http://localhost:3000/test/repo/wiki/index)\" deleted by user1", pl.Body)
+		assert.Equal(t, `[test/repo] Wiki page "<a href="http://localhost:3000/test/repo/wiki/index">index</a>" deleted by user1`, pl.FormattedBody)
 	})
 
 	t.Run("Release", func(t *testing.T) {
