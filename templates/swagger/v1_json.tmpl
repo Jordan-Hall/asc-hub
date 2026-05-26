@@ -23,6 +23,24 @@
   },
   "basePath": "{{AppSubUrl | JSEscape}}/api/v1",
   "paths": {
+    "/actions/run": {
+      "get": {
+        "description": "The automatic actions token must be used as the authentication mechanism (\u003ccode\u003eAuthorization: Bearer $\u0026#x7b;\u0026#x7b; forgejo.token \u0026#x7d;\u0026#x7d;\u003c/code\u003e); other types of tokens cannot be used. The token is associated with the job, which must be still running for the request to this endpoint to succeed.\n",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "miscellaneous"
+        ],
+        "summary": "Get a workflow run associated with a token",
+        "operationId": "getActionsRun",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ActionRun"
+          }
+        }
+      }
+    },
     "/activitypub/actor": {
       "get": {
         "produces": [

@@ -926,6 +926,8 @@ func Routes() *web.Route {
 				m.Get("/attachment", settings.GetGeneralAttachmentSettings)
 				m.Get("/repository", settings.GetGeneralRepoSettings)
 			})
+
+			m.Get("/actions/run", misc.GetActionsRun)
 		})
 
 		// Notifications (requires 'notifications' scope)
