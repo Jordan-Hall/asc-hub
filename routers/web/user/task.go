@@ -39,6 +39,14 @@ func TaskStatus(ctx *context.Context) {
 				Args:   []any{task.Message},
 			}
 		}
+
+		// Convert float64 to integers. Currently no usage of floats.
+		for i := range translatableMessage.Args {
+			if arg, ok := translatableMessage.Args[i].(float64); ok {
+				translatableMessage.Args[i] = int64(arg)
+			}
+		}
+
 		message = ctx.Locale.TrString(translatableMessage.Format, translatableMessage.Args...)
 	}
 

@@ -35,8 +35,8 @@ func HandleMessengerInFunc(handler llu.Handler, fset *token.FileSet, n2 *ast.Fun
 		if ret, ok := call.Fun.(*ast.Ident); !(ok && messenger.Contains(ret.Name)) {
 			return true
 		}
-		if len(call.Args) != 1 {
-			handler.OnWarning(fset, call.Lparen, "unexpected invocation of base.Messenger (expected exactly 1 argument)")
+		if len(call.Args) == 0 {
+			handler.OnWarning(fset, call.Lparen, "unexpected invocation of base.Messenger (expected at least one argument)")
 			return true
 		}
 		handler.HandleGoTrArgument(fset, call.Args[0], "")

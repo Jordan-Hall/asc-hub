@@ -344,6 +344,7 @@ func migrateRepository(_ context.Context, doer *user_model.User, downloader base
 		log.Trace("migrating issues and comments")
 		messenger("migrate.in_progress.issues")
 		issueBatchSize := uploader.MaxBatchInsertSize("issue")
+		var processedIssuesLen int
 
 		for i := 1; ; i++ {
 			issues, isEnd, err := downloader.GetIssues(i, issueBatchSize)
@@ -389,6 +390,8 @@ func migrateRepository(_ context.Context, doer *user_model.User, downloader base
 				}
 			}
 
+			processedIssuesLen += len(issues)
+			messenger("migrate.in_progress.issues.progress", processedIssuesLen)
 			if isEnd {
 				break
 			}
@@ -399,6 +402,8 @@ func migrateRepository(_ context.Context, doer *user_model.User, downloader base
 		log.Trace("migrating pull requests and comments")
 		messenger("migrate.in_progress.pulls")
 		prBatchSize := uploader.MaxBatchInsertSize("pullrequest")
+		var processedPrsLen int
+
 		for i := 1; ; i++ {
 			prs, isEnd, err := downloader.GetPullRequests(i, prBatchSize)
 			if err != nil {
@@ -471,6 +476,8 @@ func migrateRepository(_ context.Context, doer *user_model.User, downloader base
 				}
 			}
 
+			processedPrsLen += len(prs)
+			messenger("migrate.in_progress.pulls.progress", processedPrsLen)
 			if isEnd {
 				break
 			}

@@ -119,7 +119,15 @@
 	"migrate.in_progress.labels": "Migrating labels",
 	"migrate.in_progress.releases": "Migrating releases",
 	"migrate.in_progress.issues": "Migrating issues",
+	"migrate.in_progress.issues.progress": {
+		"one": "Migrated %[1]d issue",
+		"other": "Migrated %[1]d issues"
+	},
 	"migrate.in_progress.pulls": "Migrating pull requests",
+	"migrate.in_progress.pulls.progress": {
+		"one": "Migrated %[1]d pull request",
+		"other": "Migrated %[1]d pull requests"
+	},
 	"migrate.cancel.title": "Cancel migration",
 	"migrate.cancel.confirmation": "Do you want to cancel this migration?",
 	"repo.issue_indexer.title": "Issue Indexer",
