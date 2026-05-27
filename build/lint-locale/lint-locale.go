@@ -191,5 +191,24 @@ func main() {
 		}
 	}
 
+	if exitCode != 0 {
+		fmt.Println(dmp.DiffPrettyText([]diffmatchpatch.Diff{{
+			Type: diffmatchpatch.DiffEqual,
+			Text: "Please adjust the locale files as suggested above (",
+		}, {
+			Type: diffmatchpatch.DiffDelete,
+			Text: "red",
+		}, {
+			Type: diffmatchpatch.DiffEqual,
+			Text: ": removal, ",
+		}, {
+			Type: diffmatchpatch.DiffInsert,
+			Text: "green",
+		}, {
+			Type: diffmatchpatch.DiffEqual,
+			Text: ": insertion)",
+		}}))
+	}
+
 	os.Exit(exitCode)
 }
