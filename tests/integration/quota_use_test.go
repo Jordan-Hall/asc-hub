@@ -16,11 +16,13 @@ import (
 	"testing"
 
 	"forgejo.org/models/db"
+	git_model "forgejo.org/models/git"
 	org_model "forgejo.org/models/organization"
 	quota_model "forgejo.org/models/quota"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/lfs"
 	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/test"
@@ -365,7 +367,7 @@ func TestWebQuotaEnforcementRepoTransfer(t *testing.T) {
 	})
 }
 
-func TestGitQuotaEnforcement(t *testing.T) {
+func TestQuotaGitEnforcement(t *testing.T) {
 	onApplicationRun(t, func(t *testing.T, u *url.URL) {
 		env := createQuotaWebEnv(t)
 		defer env.Cleanup()
@@ -544,6 +546,55 @@ func TestGitQuotaEnforcement(t *testing.T) {
 					require.NoError(t, err)
 				})
 			})
+		})
+	})
+}
+
+func TestQuotaGitLfsEnforcement(t *testing.T) {
+	defer test.MockVariableValue(&setting.LFS.StartServer, true)()
+
+	onApplicationRun(t, func(t *testing.T, u *url.URL) {
+		env := createQuotaWebEnv(t)
+		defer env.Cleanup()
+
+		t.Run("UploadHandler", func(t *testing.T) {
+			// Uploading to our repo => 413
+			env.As(t, env.Users.Limited).
+				With(Context{Repo: env.Users.Limited.Repo}).
+				PushLFSObject().
+				ExpectStatus(http.StatusRequestEntityTooLarge)
+
+			// Uploading to the limited org repo => 413
+			env.As(t, env.Users.Limited).
+				With(Context{Repo: env.Orgs.Limited.Repo}).
+				PushLFSObject().
+				ExpectStatus(http.StatusRequestEntityTooLarge)
+
+			// Uploading to the unlimited org repo => 200
+			env.As(t, env.Users.Limited).
+				With(Context{Repo: env.Orgs.Unlimited.Repo}).
+				PushLFSObject().
+				ExpectStatus(http.StatusOK)
+		})
+
+		t.Run("BatchHandler", func(t *testing.T) {
+			// Uploading to our repo => 413
+			env.As(t, env.Users.Limited).
+				With(Context{Repo: env.Users.Limited.Repo}).
+				BatchPushLFSObject().
+				ExpectStatus(http.StatusRequestEntityTooLarge)
+
+			// Uploading to the limited org repo => 413
+			env.As(t, env.Users.Limited).
+				With(Context{Repo: env.Orgs.Limited.Repo}).
+				BatchPushLFSObject().
+				ExpectStatus(http.StatusRequestEntityTooLarge)
+
+			// Uploading to the unlimited org repo => 200
+			env.As(t, env.Users.Limited).
+				With(Context{Repo: env.Orgs.Unlimited.Repo}).
+				BatchPushLFSObject().
+				ExpectStatus(http.StatusOK)
 		})
 	})
 }
@@ -791,6 +842,42 @@ func (ctx *quotaWebEnvAsContext) CreateReleaseAttachment(filename string) *quota
 	ctx.t.Helper()
 
 	return ctx.CreateAttachment(filename, "releases")
+}
+
+func (ctx *quotaWebEnvAsContext) PushLFSObject() *quotaWebEnvAsContext {
+	ctx.t.Helper()
+
+	p := lfs.Pointer{Oid: "6ccce4863b70f258d691f59609d31b4502e1ba5199942d3bc5d35d17a4ce771d", Size: 5}
+	ctx.request = NewRequestWithBody(ctx.t, "PUT",
+		fmt.Sprintf("%s.git/info/lfs/objects/%s/%d",
+			ctx.Repo.Link(), p.Oid, p.Size), strings.NewReader("gitea"))
+
+	ctx.t.Cleanup(func() {
+		git_model.RemoveLFSMetaObjectByOid(db.DefaultContext, ctx.Repo.ID, p.Oid)
+	})
+
+	return ctx
+}
+
+func (ctx *quotaWebEnvAsContext) BatchPushLFSObject() *quotaWebEnvAsContext {
+	ctx.t.Helper()
+
+	batch := &lfs.BatchRequest{
+		Operation: "upload",
+		Objects: []lfs.Pointer{
+			{Oid: "d6f175817f886ec6fbbc1515326465fa96c3bfd54a4ea06cfd6dbbd8340e0153", Size: 1},
+		},
+	}
+	ctx.request = NewRequestWithJSON(ctx.t, "POST",
+		fmt.Sprintf("%s.git/info/lfs/objects/batch", ctx.Repo.Link()), batch).
+		SetHeader("Accept", lfs.AcceptHeader).
+		SetHeader("Content-Type", lfs.MediaType)
+
+	ctx.t.Cleanup(func() {
+		git_model.RemoveLFSMetaObjectByOid(db.DefaultContext, ctx.Repo.ID, batch.Objects[0].Oid)
+	})
+
+	return ctx
 }
 
 func (ctx *quotaWebEnvAsContext) WithoutQuota(task func(ctx *quotaWebEnvAsContext)) *quotaWebEnvAsContext {

@@ -183,7 +183,7 @@ func BatchHandler(ctx *context.Context) {
 	}
 
 	if isUpload {
-		ok, err := quota_model.EvaluateForUser(ctx, ctx.Doer.ID, quota_model.LimitSubjectSizeGitLFS)
+		ok, err := quota_model.EvaluateForUser(ctx, repository.OwnerID, quota_model.LimitSubjectSizeGitLFS)
 		if err != nil {
 			log.Error("quota_model.EvaluateForUser: %v", err)
 			writeStatus(ctx, http.StatusInternalServerError)
@@ -191,6 +191,7 @@ func BatchHandler(ctx *context.Context) {
 		}
 		if !ok {
 			writeStatusMessage(ctx, http.StatusRequestEntityTooLarge, "quota exceeded")
+			return
 		}
 	}
 
@@ -317,8 +318,8 @@ func UploadHandler(ctx *context.Context) {
 		return
 	}
 
-	if exists {
-		ok, err := quota_model.EvaluateForUser(ctx, ctx.Doer.ID, quota_model.LimitSubjectSizeGitLFS)
+	if !exists {
+		ok, err := quota_model.EvaluateForUser(ctx, repository.OwnerID, quota_model.LimitSubjectSizeGitLFS)
 		if err != nil {
 			log.Error("quota_model.EvaluateForUser: %v", err)
 			writeStatus(ctx, http.StatusInternalServerError)
@@ -326,6 +327,7 @@ func UploadHandler(ctx *context.Context) {
 		}
 		if !ok {
 			writeStatusMessage(ctx, http.StatusRequestEntityTooLarge, "quota exceeded")
+			return
 		}
 	}
 
