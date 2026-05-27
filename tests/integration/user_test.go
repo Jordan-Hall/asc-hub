@@ -502,11 +502,19 @@ func TestUserHints(t *testing.T) {
 		assertAddMore := func(t *testing.T, present bool) {
 			t.Helper()
 
+			// check if the tab is present
 			req := NewRequest(t, "GET", repo.Link())
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
 			htmlDoc.AssertElement(t, fmt.Sprintf("a[href='%s/settings/units']", repo.Link()), present)
+
+			// check if the user settings hint is present
+			req = NewRequest(t, "GET", repo.Link()+"/settings/units")
+			resp = session.MakeRequest(t, req, http.StatusOK)
+			htmlDoc = NewHTMLParser(t, resp.Body)
+
+			htmlDoc.AssertElement(t, ".user-main-content a[href='/user/settings/appearance#hints']", present)
 		}
 
 		t.Run("hints enabled", func(t *testing.T) {
