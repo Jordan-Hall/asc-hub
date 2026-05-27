@@ -36,6 +36,10 @@ func TestSignup(t *testing.T) {
 	// should be able to view new user's page
 	req = NewRequest(t, "GET", "/exampleUser")
 	MakeRequest(t, req, http.StatusOK)
+
+	// check default values
+	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{Name: "exampleUser"})
+	assert.True(t, user.EnableRepoUnitHints)
 }
 
 func TestSignupAsRestricted(t *testing.T) {
