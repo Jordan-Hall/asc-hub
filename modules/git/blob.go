@@ -83,13 +83,14 @@ func (b *Blob) DataAsync() (io.ReadCloser, error) {
 	}
 
 	if size < 4096 {
-		bs, err := io.ReadAll(io.LimitReader(rd, size))
+		buf := make([]byte, size)
+		_, err := io.ReadFull(rd, buf)
 		defer cancel()
 		if err != nil {
 			return nil, err
 		}
 		_, err = rd.Discard(1)
-		return io.NopCloser(bytes.NewReader(bs)), err
+		return io.NopCloser(bytes.NewReader(buf)), err
 	}
 
 	return &blobReader{
