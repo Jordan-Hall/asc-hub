@@ -3,18 +3,21 @@
 
 package structs
 
+import "time"
+
 // Organization represents an organization
 type Organization struct {
-	ID                        int64  `json:"id"`
-	Name                      string `json:"name"`
-	FullName                  string `json:"full_name"`
-	Email                     string `json:"email"`
-	AvatarURL                 string `json:"avatar_url"`
-	Description               string `json:"description"`
-	Website                   string `json:"website"`
-	Location                  string `json:"location"`
-	Visibility                string `json:"visibility"`
-	RepoAdminChangeTeamAccess bool   `json:"repo_admin_change_team_access"`
+	ID                        int64     `json:"id"`
+	Name                      string    `json:"name"`
+	FullName                  string    `json:"full_name"`
+	Email                     string    `json:"email"`
+	AvatarURL                 string    `json:"avatar_url"`
+	Description               string    `json:"description"`
+	Website                   string    `json:"website"`
+	Location                  string    `json:"location"`
+	Visibility                string    `json:"visibility"`
+	RepoAdminChangeTeamAccess bool      `json:"repo_admin_change_team_access"`
+	Created                   time.Time `json:"created"`
 	// deprecated
 	UserName string `json:"username"`
 }

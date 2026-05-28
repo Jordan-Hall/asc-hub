@@ -26,7 +26,9 @@ func TestUserOrgs(t *testing.T) {
 	unrelatedUsername := "user5"
 
 	orgs := getUserOrgs(t, adminUsername, normalUsername)
-
+	for _, org := range orgs {
+		org.Created = org.Created.Local()
+	}
 	org3 := unittest.AssertExistsAndLoadBean(t, &user_model.User{Name: "org3"})
 	org17 := unittest.AssertExistsAndLoadBean(t, &user_model.User{Name: "org17"})
 
@@ -42,6 +44,7 @@ func TestUserOrgs(t *testing.T) {
 			Website:     "",
 			Location:    "",
 			Visibility:  "public",
+			Created:     org17.CreatedUnix.AsTime().Local(),
 		},
 		{
 			ID:          3,
@@ -54,6 +57,7 @@ func TestUserOrgs(t *testing.T) {
 			Website:     "",
 			Location:    "",
 			Visibility:  "public",
+			Created:     org3.CreatedUnix.AsTime().Local(),
 		},
 	}, orgs)
 
@@ -100,6 +104,10 @@ func TestMyOrgs(t *testing.T) {
 	resp := MakeRequest(t, req, http.StatusOK)
 	var orgs []*api.Organization
 	DecodeJSON(t, resp, &orgs)
+	for _, org := range orgs {
+		org.Created = org.Created.Local()
+	}
+
 	org3 := unittest.AssertExistsAndLoadBean(t, &user_model.User{Name: "org3"})
 	org17 := unittest.AssertExistsAndLoadBean(t, &user_model.User{Name: "org17"})
 
@@ -115,6 +123,7 @@ func TestMyOrgs(t *testing.T) {
 			Website:     "",
 			Location:    "",
 			Visibility:  "public",
+			Created:     org17.CreatedUnix.AsTime().Local(),
 		},
 		{
 			ID:          3,
@@ -127,6 +136,7 @@ func TestMyOrgs(t *testing.T) {
 			Website:     "",
 			Location:    "",
 			Visibility:  "public",
+			Created:     org3.CreatedUnix.AsTime().Local(),
 		},
 	}, orgs)
 }

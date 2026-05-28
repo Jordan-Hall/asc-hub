@@ -43,7 +43,18 @@ func TestAPITeam(t *testing.T) {
 	DecodeJSON(t, resp, &apiTeam)
 	assert.Equal(t, team.ID, apiTeam.ID)
 	assert.Equal(t, team.Name, apiTeam.Name)
-	assert.Equal(t, convert.ToOrganization(db.DefaultContext, org), apiTeam.Organization)
+
+	toOrg := convert.ToOrganization(db.DefaultContext, org)
+	assert.Equal(t, toOrg.ID, apiTeam.Organization.ID)
+	assert.Equal(t, toOrg.AvatarURL, apiTeam.Organization.AvatarURL)
+	assert.Equal(t, toOrg.Name, apiTeam.Organization.Name)
+	assert.Equal(t, toOrg.FullName, apiTeam.Organization.FullName)
+	assert.Equal(t, toOrg.Description, apiTeam.Organization.Description)
+	assert.Equal(t, toOrg.Website, apiTeam.Organization.Website)
+	assert.Equal(t, toOrg.Location, apiTeam.Organization.Location)
+	assert.Equal(t, toOrg.Visibility, apiTeam.Organization.Visibility)
+	assert.Equal(t, toOrg.RepoAdminChangeTeamAccess, apiTeam.Organization.RepoAdminChangeTeamAccess)
+	assert.Equal(t, toOrg.Created.Local(), apiTeam.Organization.Created.Local())
 
 	// non team member user will not access the teams details
 	teamUser2 := unittest.AssertExistsAndLoadBean(t, &organization.TeamUser{ID: 3})
