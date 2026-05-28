@@ -5,6 +5,7 @@ package integration
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"path"
 	"strconv"
@@ -83,8 +84,6 @@ func TestAPILFSBatch(t *testing.T) {
 	oid := storeObjectInRepo(t, repo.ID, &content)
 	defer git_model.RemoveLFSMetaObjectByOid(db.DefaultContext, repo.ID, oid)
 
-	session := loginUser(t, "user2")
-
 	newRequest := func(t testing.TB, br *lfs.BatchRequest) *RequestWrapper {
 		return NewRequestWithJSON(t, "POST", "/user2/lfs-batch-repo.git/info/lfs/objects/batch", br).
 			SetHeader("Accept", lfs.AcceptHeader).
@@ -101,8 +100,9 @@ func TestAPILFSBatch(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		req := newRequest(t, nil)
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusBadRequest)
+		MakeRequest(t, req, http.StatusBadRequest)
 	})
 
 	t.Run("InvalidOperation", func(t *testing.T) {
@@ -111,8 +111,9 @@ func TestAPILFSBatch(t *testing.T) {
 		req := newRequest(t, &lfs.BatchRequest{
 			Operation: "dummy",
 		})
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusBadRequest)
+		MakeRequest(t, req, http.StatusBadRequest)
 	})
 
 	t.Run("InvalidPointer", func(t *testing.T) {
@@ -125,8 +126,9 @@ func TestAPILFSBatch(t *testing.T) {
 				{Oid: oid, Size: -1},
 			},
 		})
+		req.AddBasicAuth("user2")
 
-		resp := session.MakeRequest(t, req, http.StatusOK)
+		resp := MakeRequest(t, req, http.StatusOK)
 		br := decodeResponse(t, resp.Body)
 		assert.Len(t, br.Objects, 2)
 		assert.Equal(t, "dummy", br.Objects[0].Oid)
@@ -150,8 +152,9 @@ func TestAPILFSBatch(t *testing.T) {
 				{Oid: oid, Size: 1},
 			},
 		})
+		req.AddBasicAuth("user2")
 
-		resp := session.MakeRequest(t, req, http.StatusOK)
+		resp := MakeRequest(t, req, http.StatusOK)
 		br := decodeResponse(t, resp.Body)
 		assert.Len(t, br.Objects, 1)
 		assert.NotNil(t, br.Objects[0].Error)
@@ -171,8 +174,9 @@ func TestAPILFSBatch(t *testing.T) {
 					{Oid: "fb8f7d8435968c4f82a726a92395be4d16f2f63116caf36c8ad35c60831ab042", Size: 6},
 				},
 			})
+			req.AddBasicAuth("user2")
 
-			resp := session.MakeRequest(t, req, http.StatusOK)
+			resp := MakeRequest(t, req, http.StatusOK)
 			br := decodeResponse(t, resp.Body)
 			assert.Len(t, br.Objects, 1)
 			assert.NotNil(t, br.Objects[0].Error)
@@ -195,8 +199,9 @@ func TestAPILFSBatch(t *testing.T) {
 				Operation: "download",
 				Objects:   []lfs.Pointer{p},
 			})
+			req.AddBasicAuth("user2")
 
-			resp := session.MakeRequest(t, req, http.StatusOK)
+			resp := MakeRequest(t, req, http.StatusOK)
 			br := decodeResponse(t, resp.Body)
 			assert.Len(t, br.Objects, 1)
 			assert.NotNil(t, br.Objects[0].Error)
@@ -212,8 +217,9 @@ func TestAPILFSBatch(t *testing.T) {
 					{Oid: oid, Size: 6},
 				},
 			})
+			req.AddBasicAuth("user2")
 
-			resp := session.MakeRequest(t, req, http.StatusOK)
+			resp := MakeRequest(t, req, http.StatusOK)
 			br := decodeResponse(t, resp.Body)
 			assert.Len(t, br.Objects, 1)
 			assert.Nil(t, br.Objects[0].Error)
@@ -237,8 +243,9 @@ func TestAPILFSBatch(t *testing.T) {
 					{Oid: "fb8f7d8435968c4f82a726a92395be4d16f2f63116caf36c8ad35c60831ab042", Size: 6},
 				},
 			})
+			req.AddBasicAuth("user2")
 
-			resp := session.MakeRequest(t, req, http.StatusOK)
+			resp := MakeRequest(t, req, http.StatusOK)
 			br := decodeResponse(t, resp.Body)
 			assert.Len(t, br.Objects, 1)
 			assert.NotNil(t, br.Objects[0].Error)
@@ -268,8 +275,9 @@ func TestAPILFSBatch(t *testing.T) {
 				Operation: "upload",
 				Objects:   []lfs.Pointer{p},
 			})
+			req.AddBasicAuth("user2")
 
-			resp := session.MakeRequest(t, req, http.StatusOK)
+			resp := MakeRequest(t, req, http.StatusOK)
 			br := decodeResponse(t, resp.Body)
 			assert.Len(t, br.Objects, 1)
 			assert.Nil(t, br.Objects[0].Error)
@@ -293,8 +301,9 @@ func TestAPILFSBatch(t *testing.T) {
 					{Oid: oid, Size: 6},
 				},
 			})
+			req.AddBasicAuth("user2")
 
-			resp := session.MakeRequest(t, req, http.StatusOK)
+			resp := MakeRequest(t, req, http.StatusOK)
 			br := decodeResponse(t, resp.Body)
 			assert.Len(t, br.Objects, 1)
 			assert.Nil(t, br.Objects[0].Error)
@@ -310,8 +319,9 @@ func TestAPILFSBatch(t *testing.T) {
 					{Oid: "d6f175817f886ec6fbbc1515326465fa96c3bfd54a4ea06cfd6dbbd8340e0153", Size: 1},
 				},
 			})
+			req.AddBasicAuth("user2")
 
-			resp := session.MakeRequest(t, req, http.StatusOK)
+			resp := MakeRequest(t, req, http.StatusOK)
 			br := decodeResponse(t, resp.Body)
 			assert.Len(t, br.Objects, 1)
 			assert.Nil(t, br.Objects[0].Error)
@@ -338,8 +348,6 @@ func TestAPILFSUpload(t *testing.T) {
 	oid := storeObjectInRepo(t, repo.ID, &content)
 	defer git_model.RemoveLFSMetaObjectByOid(db.DefaultContext, repo.ID, oid)
 
-	session := loginUser(t, "user2")
-
 	newRequest := func(t testing.TB, p lfs.Pointer, content string) *RequestWrapper {
 		return NewRequestWithBody(t, "PUT", path.Join("/user2/lfs-upload-repo.git/info/lfs/objects/", p.Oid, strconv.FormatInt(p.Size, 10)), strings.NewReader(content))
 	}
@@ -348,8 +356,9 @@ func TestAPILFSUpload(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		req := newRequest(t, lfs.Pointer{Oid: "dummy"}, "")
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusUnprocessableEntity)
+		MakeRequest(t, req, http.StatusUnprocessableEntity)
 	})
 
 	t.Run("AlreadyExistsInStore", func(t *testing.T) {
@@ -370,13 +379,15 @@ func TestAPILFSUpload(t *testing.T) {
 
 		t.Run("InvalidAccess", func(t *testing.T) {
 			req := newRequest(t, p, "invalid")
-			session.MakeRequest(t, req, http.StatusUnprocessableEntity)
+			req.AddBasicAuth("user2")
+			MakeRequest(t, req, http.StatusUnprocessableEntity)
 		})
 
 		t.Run("ValidAccess", func(t *testing.T) {
 			req := newRequest(t, p, "dummy5")
+			req.AddBasicAuth("user2")
 
-			session.MakeRequest(t, req, http.StatusOK)
+			MakeRequest(t, req, http.StatusOK)
 			meta, err = git_model.GetLFSMetaObjectByOid(db.DefaultContext, repo.ID, p.Oid)
 			require.NoError(t, err)
 			assert.NotNil(t, meta)
@@ -391,24 +402,27 @@ func TestAPILFSUpload(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		req := newRequest(t, lfs.Pointer{Oid: oid, Size: 6}, "")
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusOK)
+		MakeRequest(t, req, http.StatusOK)
 	})
 
 	t.Run("HashMismatch", func(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		req := newRequest(t, lfs.Pointer{Oid: "2581dd7bbc1fe44726de4b7dd806a087a978b9c5aec0a60481259e34be09b06a", Size: 1}, "a")
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusUnprocessableEntity)
+		MakeRequest(t, req, http.StatusUnprocessableEntity)
 	})
 
 	t.Run("SizeMismatch", func(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		req := newRequest(t, lfs.Pointer{Oid: "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb", Size: 2}, "a")
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusUnprocessableEntity)
+		MakeRequest(t, req, http.StatusUnprocessableEntity)
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -417,8 +431,9 @@ func TestAPILFSUpload(t *testing.T) {
 		p := lfs.Pointer{Oid: "6ccce4863b70f258d691f59609d31b4502e1ba5199942d3bc5d35d17a4ce771d", Size: 5}
 
 		req := newRequest(t, p, "gitea")
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusOK)
+		MakeRequest(t, req, http.StatusOK)
 
 		contentStore := lfs.NewContentStore()
 		exist, err := contentStore.Exists(p)
@@ -442,8 +457,6 @@ func TestAPILFSVerify(t *testing.T) {
 	oid := storeObjectInRepo(t, repo.ID, &content)
 	defer git_model.RemoveLFSMetaObjectByOid(db.DefaultContext, repo.ID, oid)
 
-	session := loginUser(t, "user2")
-
 	newRequest := func(t testing.TB, p *lfs.Pointer) *RequestWrapper {
 		return NewRequestWithJSON(t, "POST", "/user2/lfs-verify-repo.git/info/lfs/verify", p).
 			SetHeader("Accept", lfs.AcceptHeader).
@@ -454,31 +467,140 @@ func TestAPILFSVerify(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		req := newRequest(t, nil)
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusUnprocessableEntity)
+		MakeRequest(t, req, http.StatusUnprocessableEntity)
 	})
 
 	t.Run("InvalidPointer", func(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		req := newRequest(t, &lfs.Pointer{})
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusUnprocessableEntity)
+		MakeRequest(t, req, http.StatusUnprocessableEntity)
 	})
 
 	t.Run("PointerNotExisting", func(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		req := newRequest(t, &lfs.Pointer{Oid: "fb8f7d8435968c4f82a726a92395be4d16f2f63116caf36c8ad35c60831ab042", Size: 6})
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusNotFound)
+		MakeRequest(t, req, http.StatusNotFound)
 	})
 
 	t.Run("Success", func(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		req := newRequest(t, &lfs.Pointer{Oid: oid, Size: 6})
+		req.AddBasicAuth("user2")
 
-		session.MakeRequest(t, req, http.StatusOK)
+		MakeRequest(t, req, http.StatusOK)
+	})
+}
+
+// Accessing git LFS resources uses CheckRepoScopedToken to validate a PAT; here we run that through all variations of
+// access token resource access to ensure it is accurately applied for LFS access.
+func TestAPILFSScopeAndResources(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	writeOperation := func(t *testing.T, repoFullName, token string, expectedStatus int) {
+		oid := "83de2e488b89a0aa1c97496b888120a28b0c1e15463a4adb8405578c540f36d4"
+		batch := &lfs.BatchRequest{
+			Operation: "upload",
+			Objects: []lfs.Pointer{
+				{Oid: oid, Size: 6},
+			},
+		}
+		req := NewRequestWithJSON(t, "POST", fmt.Sprintf("/%s.git/info/lfs/objects/batch", repoFullName), batch).
+			SetHeader("Accept", lfs.AcceptHeader).
+			SetHeader("Content-Type", lfs.MediaType)
+		req.Request.SetBasicAuth("any", token)
+		MakeRequest(t, req, expectedStatus)
+	}
+	readOperation := func(t *testing.T, repoFullName, token string, expectedStatus int) {
+		oid := "83de2e488b89a0aa1c97496b888120a28b0c1e15463a4adb8405578c540f36d4"
+		batch := &lfs.BatchRequest{
+			Operation: "download",
+			Objects: []lfs.Pointer{
+				{Oid: oid, Size: 6},
+			},
+		}
+		req := NewRequestWithJSON(t, "POST", fmt.Sprintf("/%s.git/info/lfs/objects/batch", repoFullName), batch).
+			SetHeader("Accept", lfs.AcceptHeader).
+			SetHeader("Content-Type", lfs.MediaType)
+		req.Request.SetBasicAuth("any", token)
+		MakeRequest(t, req, expectedStatus)
+	}
+
+	t.Run("read-write access token", func(t *testing.T) {
+		session := loginUser(t, "user2")
+		allToken := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeWriteRepository)
+
+		t.Run("allowed public repo1", func(t *testing.T) {
+			readOperation(t, "user2/repo1", allToken, http.StatusOK)
+			writeOperation(t, "user2/repo1", allToken, http.StatusOK)
+		})
+		t.Run("allowed private repo2", func(t *testing.T) {
+			readOperation(t, "user2/repo2", allToken, http.StatusOK)
+			writeOperation(t, "user2/repo2", allToken, http.StatusOK)
+		})
+		// repo16 is a second repo used in fine-grain testing below, so we include it in other tests as a baseline
+		t.Run("allowed private repo16", func(t *testing.T) {
+			readOperation(t, "user2/repo16", allToken, http.StatusOK)
+			writeOperation(t, "user2/repo16", allToken, http.StatusOK)
+		})
+	})
+
+	t.Run("read-only access token", func(t *testing.T) {
+		session := loginUser(t, "user2")
+		allToken := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeReadRepository)
+
+		t.Run("allowed public repo1", func(t *testing.T) {
+			readOperation(t, "user2/repo1", allToken, http.StatusOK)
+			writeOperation(t, "user2/repo1", allToken, http.StatusForbidden)
+		})
+		t.Run("allowed private repo2", func(t *testing.T) {
+			readOperation(t, "user2/repo2", allToken, http.StatusOK)
+			writeOperation(t, "user2/repo2", allToken, http.StatusForbidden)
+		})
+		// repo16 is a second repo used in fine-grain testing below, so we include it in other tests as a baseline
+		t.Run("allowed private repo16", func(t *testing.T) {
+			readOperation(t, "user2/repo16", allToken, http.StatusOK)
+			writeOperation(t, "user2/repo16", allToken, http.StatusForbidden)
+		})
+	})
+
+	t.Run("public-only access token", func(t *testing.T) {
+		session := loginUser(t, "user2")
+		publicOnlyToken := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopePublicOnly, auth_model.AccessTokenScopeReadRepository)
+
+		t.Run("allowed public repo1", func(t *testing.T) {
+			readOperation(t, "user2/repo1", publicOnlyToken, http.StatusOK)
+		})
+		t.Run("denied private repo2", func(t *testing.T) {
+			readOperation(t, "user2/repo2", publicOnlyToken, http.StatusForbidden)
+		})
+		t.Run("denied private repo16", func(t *testing.T) {
+			readOperation(t, "user2/repo16", publicOnlyToken, http.StatusForbidden)
+		})
+	})
+
+	t.Run("specific repo access token", func(t *testing.T) {
+		repo2OnlyToken := createFineGrainedRepoAccessToken(t, "user2",
+			[]auth_model.AccessTokenScope{auth_model.AccessTokenScopeReadRepository},
+			[]int64{2},
+		)
+
+		t.Run("allowed public repo1", func(t *testing.T) {
+			readOperation(t, "user2/repo1", repo2OnlyToken, http.StatusOK)
+		})
+		t.Run("allowed inside fine-grain repo2", func(t *testing.T) {
+			readOperation(t, "user2/repo2", repo2OnlyToken, http.StatusOK)
+		})
+		t.Run("denied private outside fine-grain repo16", func(t *testing.T) {
+			readOperation(t, "user2/repo16", repo2OnlyToken, http.StatusForbidden)
+		})
 	})
 }

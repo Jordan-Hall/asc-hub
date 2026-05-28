@@ -30,7 +30,7 @@ func GetAuthorizationReducerForAccessToken(ctx context.Context, token *auth_mode
 	for i, r := range repos {
 		iface[i] = r
 	}
-	return &SpecificReposAuthorizationReducer{resourceRepos: iface}, nil
+	return &SpecificReposAuthorizationReducer{ResourceRepos: iface}, nil
 }
 
 // Validate that an access token's state is valid for creation.  For example, that it doesn't have a conflicting set of

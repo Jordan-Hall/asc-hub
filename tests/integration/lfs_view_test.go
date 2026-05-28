@@ -138,9 +138,10 @@ func TestLFSLockView(t *testing.T) {
 	lockID := ""
 	{
 		req := NewRequestWithJSON(t, "POST", fmt.Sprintf("/%s.git/info/lfs/locks", repo3.FullName()), map[string]string{"path": lockPath})
+		req.AddBasicAuth(user2.Name)
 		req.Header.Set("Accept", lfs.AcceptHeader)
 		req.Header.Set("Content-Type", lfs.MediaType)
-		resp := session.MakeRequest(t, req, http.StatusCreated)
+		resp := MakeRequest(t, req, http.StatusCreated)
 		lockResp := &api.LFSLockResponse{}
 		DecodeJSON(t, resp, lockResp)
 		lockID = lockResp.Lock.ID
@@ -148,9 +149,10 @@ func TestLFSLockView(t *testing.T) {
 	defer func() {
 		// release the lock
 		req := NewRequestWithJSON(t, "POST", fmt.Sprintf("/%s.git/info/lfs/locks/%s/unlock", repo3.FullName(), lockID), map[string]string{})
+		req.AddBasicAuth(user2.Name)
 		req.Header.Set("Accept", lfs.AcceptHeader)
 		req.Header.Set("Content-Type", lfs.MediaType)
-		session.MakeRequest(t, req, http.StatusOK)
+		MakeRequest(t, req, http.StatusOK)
 	}()
 
 	t.Run("owner name", func(t *testing.T) {
@@ -161,6 +163,7 @@ func TestLFSLockView(t *testing.T) {
 		require.NotEqual(t, user2.DisplayName(), repo3.Owner.DisplayName())
 
 		req := NewRequest(t, "GET", fmt.Sprintf("/%s/settings/lfs/locks", repo3.FullName()))
+		req.AddBasicAuth(user2.Name)
 		resp := session.MakeRequest(t, req, http.StatusOK)
 
 		doc := NewHTMLParser(t, resp.Body).doc

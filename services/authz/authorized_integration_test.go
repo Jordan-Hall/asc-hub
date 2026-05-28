@@ -40,7 +40,7 @@ func TestGetAuthorizationReducerForAuthorizedIntegration(t *testing.T) {
 		require.True(t, ok)
 		require.NotNil(t, specific)
 
-		require.Len(t, specific.resourceRepos, 1)
-		assert.EqualValues(t, 1, specific.resourceRepos[0].GetTargetRepoID())
+		require.Len(t, specific.ResourceRepos, 1)
+		assert.EqualValues(t, 1, specific.ResourceRepos[0].GetTargetRepoID())
 	})
 }

@@ -18,7 +18,7 @@ import (
 // repositories that aren't listed among the specific repos, read-only access is permitted.  For all other repos, no
 // access is permitted.
 type SpecificReposAuthorizationReducer struct {
-	resourceRepos []RepoGetter
+	ResourceRepos []RepoGetter
 }
 
 type RepoGetter interface {
@@ -26,7 +26,7 @@ type RepoGetter interface {
 }
 
 func (r *SpecificReposAuthorizationReducer) ReduceRepoAccess(ctx context.Context, repo *repo_model.Repository, accessMode perm.AccessMode) (perm.AccessMode, error) {
-	for _, tokenRepo := range r.resourceRepos {
+	for _, tokenRepo := range r.ResourceRepos {
 		if tokenRepo.GetTargetRepoID() == repo.ID {
 			// No restrictions as this repo is within the scope of the access token.
 			return accessMode, nil
@@ -48,8 +48,8 @@ func (r *SpecificReposAuthorizationReducer) ReduceRepoAccess(ctx context.Context
 }
 
 func (r *SpecificReposAuthorizationReducer) RepoReadAccessFilter() builder.Cond {
-	repoIDs := make([]int64, len(r.resourceRepos))
-	for i, tokenRepo := range r.resourceRepos {
+	repoIDs := make([]int64, len(r.ResourceRepos))
+	for i, tokenRepo := range r.ResourceRepos {
 		repoIDs[i] = tokenRepo.GetTargetRepoID()
 	}
 	targetRepos := builder.In("repository.id", repoIDs)

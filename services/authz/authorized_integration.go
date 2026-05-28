@@ -29,5 +29,5 @@ func GetAuthorizationReducerForAuthorizedIntegration(ctx context.Context, ai *au
 	for i, r := range repos {
 		iface[i] = r
 	}
-	return &SpecificReposAuthorizationReducer{resourceRepos: iface}, nil
+	return &SpecificReposAuthorizationReducer{ResourceRepos: iface}, nil
 }

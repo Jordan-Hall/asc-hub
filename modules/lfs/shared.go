@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"forgejo.org/modules/util"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -116,4 +118,12 @@ type ErrorResponse struct {
 	Message          string
 	DocumentationURL string `json:"documentation_url,omitempty"`
 	RequestID        string `json:"request_id,omitempty"`
+}
+
+// Claims is a JWT Token Claims
+type Claims struct {
+	RepoID int64
+	Op     string
+	UserID int64
+	jwt.RegisteredClaims
 }

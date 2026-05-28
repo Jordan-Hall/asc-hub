@@ -20,7 +20,7 @@ func TestSpecificReposAuthorizationReducer(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 
 	reducer := &SpecificReposAuthorizationReducer{
-		resourceRepos: []RepoGetter{
+		ResourceRepos: []RepoGetter{
 			&auth.AccessTokenResourceRepo{
 				RepoID: 1,
 			},
