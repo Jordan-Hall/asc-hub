@@ -18,6 +18,7 @@ type Indexer interface {
 	Index(ctx context.Context, repo *repo_model.Repository, sha string, changes *RepoChanges) error
 	Delete(ctx context.Context, repoID int64) error
 	Search(ctx context.Context, opts *SearchOptions) (int64, []*SearchResult, []*SearchResultLanguages, error)
+	Formatter() ResultFormatter
 }
 
 type CodeSearchMode int
@@ -71,4 +72,8 @@ func (d *dummyIndexer) Delete(ctx context.Context, repoID int64) error {
 
 func (d *dummyIndexer) Search(ctx context.Context, opts *SearchOptions) (int64, []*SearchResult, []*SearchResultLanguages, error) {
 	return 0, nil, nil, errors.New("indexer is not ready")
+}
+
+func (d *dummyIndexer) Formatter() ResultFormatter {
+	return nil
 }

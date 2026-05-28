@@ -3,7 +3,11 @@
 
 package internal
 
-import "forgejo.org/modules/timeutil"
+import (
+	"html/template"
+
+	"forgejo.org/modules/timeutil"
+)
 
 type FileUpdate struct {
 	Filename string
@@ -23,6 +27,13 @@ type IndexerData struct {
 	RepoID int64
 }
 
+// Matches found in code with zoekt indexer
+type Match struct {
+	Start      int
+	End        int
+	LineNumber int
+}
+
 // SearchResult result of performing a search in a repo
 type SearchResult struct {
 	RepoID      int64
@@ -34,6 +45,9 @@ type SearchResult struct {
 	UpdatedUnix timeutil.TimeStamp
 	Language    string
 	Color       string
+	Matches     []Match
+	LineNumbers []int
+	LineOffsets []int
 }
 
 // SearchResultLanguages result of top languages count in search results
@@ -41,4 +55,23 @@ type SearchResultLanguages struct {
 	Language string
 	Color    string
 	Count    int
+}
+
+type Result struct {
+	RepoID      int64
+	Filename    string
+	CommitID    string
+	UpdatedUnix timeutil.TimeStamp
+	Language    string
+	Color       string
+	Lines       []ResultLine
+}
+
+type ResultLine struct {
+	Num              int
+	FormattedContent template.HTML
+}
+
+type ResultFormatter interface {
+	Format(*SearchResult) (*Result, error)
 }

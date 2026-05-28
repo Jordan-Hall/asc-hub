@@ -384,3 +384,7 @@ func (b *Indexer) Search(ctx context.Context, opts *internal.SearchOptions) (int
 	}
 	return total, searchResults, searchResultLanguages, nil
 }
+
+func (b *Indexer) Formatter() internal.ResultFormatter {
+	return nil
+}

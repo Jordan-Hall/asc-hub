@@ -6,31 +6,15 @@ package code
 import (
 	"bytes"
 	"context"
-	"html/template"
 	"slices"
 	"strings"
 
-	"forgejo.org/modules/highlight"
 	"forgejo.org/modules/indexer/code/internal"
-	"forgejo.org/modules/timeutil"
-	"forgejo.org/services/gitdiff"
 )
 
-// Result a search result to display
-type Result struct {
-	RepoID      int64
-	Filename    string
-	CommitID    string
-	UpdatedUnix timeutil.TimeStamp
-	Language    string
-	Color       string
-	Lines       []ResultLine
-}
+type Result = internal.Result
 
-type ResultLine struct {
-	Num              int
-	FormattedContent template.HTML
-}
+type ResultLine = internal.ResultLine
 
 type SearchResultLanguages = internal.SearchResultLanguages
 
@@ -86,108 +70,15 @@ func indices(content string, selectionStartIndex, selectionEndIndex int) (int, i
 	return startIndex, endIndex
 }
 
-func writeStrings(buf *bytes.Buffer, strs ...string) error {
-	for _, s := range strs {
-		_, err := buf.WriteString(s)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-const (
-	highlightTagStart = "<span class=\"search-highlight\">"
-	highlightTagEnd   = "</span>"
-)
-
-func HighlightSearchResultCode(filename string, lineNums []int, highlightRanges [][3]int, code string) []ResultLine {
-	hcd := gitdiff.NewHighlightCodeDiff()
-	hcd.CollectUsedRunes(code)
-	startTag, endTag := hcd.NextPlaceholder(), hcd.NextPlaceholder()
-	hcd.PlaceholderTokenMap[startTag] = highlightTagStart
-	hcd.PlaceholderTokenMap[endTag] = highlightTagEnd
-
-	// we should highlight the whole code block first, otherwise it doesn't work well with multiple line highlighting
-	hl, _ := highlight.Code(filename, "", code)
-	conv := hcd.ConvertToPlaceholders(string(hl))
-	convLines := strings.Split(conv, "\n")
-
-	// each highlightRange is of the form [line number, start byte offset, end byte offset]
-	for _, highlightRange := range highlightRanges {
-		ln, start, end := highlightRange[0], highlightRange[1], highlightRange[2]
-		line := convLines[ln]
-		if line == "" || len(line) <= start || len(line) < end {
-			continue
-		}
-
-		sr := strings.NewReader(line)
-		sb := strings.Builder{}
-		count := -1
-		isOpen := false
-		for r, size, err := sr.ReadRune(); err == nil; r, size, err = sr.ReadRune() {
-			if token, ok := hcd.PlaceholderTokenMap[r];
-			// token was not found
-			!ok {
-				count += size
-			} else if
-			// token was marked as used
-			token == "" ||
-				// the token is not an valid html tag emitted by chroma
-				!(len(token) > 6 && (token[0:5] == "<span" || token[0:6] == "</span")) {
-				count++
-			} else if !isOpen {
-				// open the tag only after all other placeholders
-				sb.WriteRune(r)
-				continue
-			} else if isOpen && count < end {
-				// if the tag is open, but a placeholder exists in between
-				// close the tag
-				sb.WriteRune(endTag)
-				// write the placeholder
-				sb.WriteRune(r)
-				// reopen the tag
-				sb.WriteRune(startTag)
-				continue
-			}
-
-			switch {
-			case count >= end:
-				// if tag is not open, no need to close
-				if !isOpen {
-					break
-				}
-				sb.WriteRune(endTag)
-				isOpen = false
-			case count >= start:
-				// if tag is open, do not open again
-				if isOpen {
-					break
-				}
-				isOpen = true
-				sb.WriteRune(startTag)
-			}
-
-			sb.WriteRune(r)
-		}
-		if isOpen {
-			sb.WriteRune(endTag)
-		}
-		convLines[ln] = sb.String()
-	}
-	conv = strings.Join(convLines, "\n")
-
-	highlightedLines := strings.Split(hcd.Recover(conv), "\n")
-	// The lineNums outputted by highlight.Code might not match the original lineNums, because "highlight" removes the last `\n`
-	lines := make([]ResultLine, min(len(highlightedLines), len(lineNums)))
-	for i := range len(lines) {
-		lines[i].Num = lineNums[i]
-		lines[i].FormattedContent = template.HTML(highlightedLines[i])
-	}
-	return lines
-}
-
 func searchResult(result *internal.SearchResult, startIndex, endIndex int) (*Result, error) {
+	formatter := (*globalIndexer.Load()).Formatter()
+	if formatter != nil {
+		return formatter.Format(result)
+	}
+	return searchResultCommon(result, startIndex, endIndex)
+}
+
+func searchResultCommon(result *internal.SearchResult, startIndex, endIndex int) (*Result, error) {
 	startLineNum := 1 + strings.Count(result.Content[:startIndex], "\n")
 
 	var formattedLinesBuffer bytes.Buffer
@@ -204,13 +95,13 @@ func searchResult(result *internal.SearchResult, startIndex, endIndex int) (*Res
 			openActiveIndex := max(result.StartIndex-index, 0)
 			closeActiveIndex := min(result.EndIndex-index, len(line))
 			highlightRanges = append(highlightRanges, [3]int{i, openActiveIndex, closeActiveIndex})
-			err = writeStrings(&formattedLinesBuffer,
+			err = internal.WriteStrings(&formattedLinesBuffer,
 				line[:openActiveIndex],
 				line[openActiveIndex:closeActiveIndex],
 				line[closeActiveIndex:],
 			)
 		} else {
-			err = writeStrings(&formattedLinesBuffer, line)
+			err = internal.WriteStrings(&formattedLinesBuffer, line)
 		}
 		if err != nil {
 			return nil, err
@@ -227,7 +118,7 @@ func searchResult(result *internal.SearchResult, startIndex, endIndex int) (*Res
 		UpdatedUnix: result.UpdatedUnix,
 		Language:    result.Language,
 		Color:       result.Color,
-		Lines:       HighlightSearchResultCode(result.Filename, lineNums, highlightRanges, formattedLinesBuffer.String()),
+		Lines:       internal.HighlightSearchResultCode(result.Filename, lineNums, highlightRanges, formattedLinesBuffer.String()),
 	}, nil
 }
 

@@ -418,3 +418,7 @@ func (b *Indexer) Search(ctx context.Context, opts *internal.SearchOptions) (int
 
 	return total, hits, extractAggs(countResult), err
 }
+
+func (b *Indexer) Formatter() internal.ResultFormatter {
+	return nil
+}

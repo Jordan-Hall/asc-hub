@@ -91,7 +91,7 @@ func loadIndexerFrom(rootCfg ConfigProvider) {
 	Indexer.RepoIndexerRepoTypes = strings.Split(sec.Key("REPO_INDEXER_REPO_TYPES").MustString("sources,forks,mirrors,templates"), ",")
 	Indexer.RepoIndexerEnableFuzzy = sec.Key("REPO_INDEXER_FUZZY_ENABLED").MustBool(false)
 	Indexer.RepoType = sec.Key("REPO_INDEXER_TYPE").MustString("bleve")
-	Indexer.RepoPath = filepath.ToSlash(sec.Key("REPO_INDEXER_PATH").MustString(filepath.ToSlash(filepath.Join(AppDataPath, "indexers/repos.bleve"))))
+	Indexer.RepoPath = filepath.ToSlash(sec.Key("REPO_INDEXER_PATH").MustString(filepath.ToSlash(filepath.Join(AppDataPath, "indexers", "repos."+Indexer.RepoType))))
 	if !filepath.IsAbs(Indexer.RepoPath) {
 		Indexer.RepoPath = filepath.ToSlash(filepath.Join(AppWorkPath, Indexer.RepoPath))
 	}
