@@ -45,7 +45,7 @@ func TestActionRunJob_HTMLURL(t *testing.T) {
 	}{
 		{
 			id:       192,
-			expected: "https://try.gitea.io/user5/repo4/actions/runs/187/jobs/0/attempt/1",
+			expected: "https://try.gitea.io/user5/repo4/actions/runs/187/jobs/0/attempt/3",
 		},
 		{
 			id:       393,
@@ -501,4 +501,23 @@ func TestActionRunJob_CanBeRerun(t *testing.T) {
 			assert.Equal(t, testCase.canBeRerun, result)
 		})
 	}
+}
+
+func TestActionTask_GetAllAttempts(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	job2 := unittest.AssertExistsAndLoadBean(t, &ActionRunJob{ID: 192})
+
+	allAttempts, err := job2.GetAllAttempts(t.Context())
+	require.NoError(t, err)
+
+	require.Len(t, allAttempts, 3)
+	assert.EqualValues(t, 47, allAttempts[0].ID, "ordered by attempt, 1")
+	assert.EqualValues(t, 53, allAttempts[1].ID, "ordered by attempt, 2")
+	assert.EqualValues(t, 52, allAttempts[2].ID, "ordered by attempt, 3")
+
+	// GetAllAttempts doesn't populate all fields; so check expected fields from one of the records
+	assert.EqualValues(t, 3, allAttempts[0].Attempt, "read Attempt field")
+	assert.Equal(t, StatusRunning, allAttempts[0].Status, "read Status field")
+	assert.Equal(t, timeutil.TimeStamp(1683636528), allAttempts[0].Started, "read Started field")
 }
