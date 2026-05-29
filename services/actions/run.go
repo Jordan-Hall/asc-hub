@@ -11,7 +11,6 @@ import (
 
 	actions_model "forgejo.org/models/actions"
 	"forgejo.org/models/db"
-	"forgejo.org/modules/timeutil"
 )
 
 func killRun(ctx context.Context, run *actions_model.ActionRun, newStatus actions_model.Status) error {
@@ -21,20 +20,7 @@ func killRun(ctx context.Context, run *actions_model.ActionRun, newStatus action
 			return err
 		}
 		for _, job := range jobs {
-			oldStatus := job.Status
-			if oldStatus.IsDone() {
-				continue
-			}
-			if job.TaskID == 0 {
-				job.Status = newStatus
-				job.Stopped = timeutil.TimeStampNow()
-				_, err := UpdateRunJob(ctx, job, nil, "status", "stopped")
-				if err != nil {
-					return err
-				}
-				continue
-			}
-			if err := StopTask(ctx, job.TaskID, newStatus); err != nil {
+			if err := cancelSingleJob(ctx, job, newStatus); err != nil {
 				return err
 			}
 		}

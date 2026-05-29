@@ -225,6 +225,58 @@ func TestRerun_RerunJob(t *testing.T) {
 		assert.Equal(t, timeutil.TimeStamp(0), dependentJob.Stopped)
 	})
 
+	t.Run("Rerun job needed by others with cancellation", func(t *testing.T) {
+		defer unittest.OverrideFixtures("services/actions/TestRerun_RerunJob")()
+		require.NoError(t, unittest.PrepareTestDatabase())
+
+		job := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{ID: 683911})
+
+		rerunJobs, err := RerunJob(t.Context(), job)
+		require.NoError(t, err)
+
+		assert.Equal(t, int64(683911), rerunJobs[0].ID)
+		assert.Equal(t, int64(683912), rerunJobs[1].ID)
+
+		// Cancel the first job so that we can rerun it.
+		require.NoError(t, cancelSingleJob(t.Context(), job, actions_model.StatusFailure))
+
+		job = unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{ID: 683911})
+
+		assert.Equal(t, int64(2), job.Attempt)
+		assert.Equal(t, actions_model.StatusFailure, job.Status)
+		assert.Equal(t, timeutil.TimeStamp(0), job.Started)
+		assert.NotZero(t, job.Stopped)
+
+		dependentJob := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{ID: 683912})
+
+		assert.Equal(t, int64(2), dependentJob.Attempt)
+		assert.Equal(t, actions_model.StatusBlocked, dependentJob.Status)
+		assert.Equal(t, timeutil.TimeStamp(0), dependentJob.Started)
+		assert.Equal(t, timeutil.TimeStamp(0), dependentJob.Stopped)
+
+		// Rerun again. The dependent job should be cancelled first.
+		rerunJobs, err = RerunJob(t.Context(), job)
+		require.NoError(t, err)
+
+		assert.Len(t, rerunJobs, 2)
+		assert.Equal(t, int64(683911), rerunJobs[0].ID)
+		assert.Equal(t, int64(683912), rerunJobs[1].ID)
+
+		job = unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{ID: 683911})
+
+		assert.Equal(t, int64(3), job.Attempt)
+		assert.Equal(t, actions_model.StatusWaiting, job.Status)
+		assert.Equal(t, timeutil.TimeStamp(0), job.Started)
+		assert.Equal(t, timeutil.TimeStamp(0), job.Stopped)
+
+		dependentJob = unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{ID: 683912})
+
+		assert.Equal(t, int64(3), dependentJob.Attempt)
+		assert.Equal(t, actions_model.StatusBlocked, dependentJob.Status)
+		assert.Equal(t, timeutil.TimeStamp(0), dependentJob.Started)
+		assert.Equal(t, timeutil.TimeStamp(0), dependentJob.Stopped)
+	})
+
 	t.Run("Rerun job with needs", func(t *testing.T) {
 		defer unittest.OverrideFixtures("services/actions/TestRerun_RerunJob")()
 		require.NoError(t, unittest.PrepareTestDatabase())

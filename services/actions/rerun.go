@@ -13,6 +13,8 @@ import (
 	"forgejo.org/models/db"
 	"forgejo.org/models/unit"
 	"forgejo.org/modules/container"
+	"forgejo.org/modules/timeutil"
+	"forgejo.org/modules/util"
 
 	"xorm.io/builder"
 )
@@ -153,16 +155,28 @@ func RerunJob(ctx context.Context, job *actions_model.ActionRunJob) ([]*actions_
 		}
 
 		for _, jobToRerun := range GetAllRerunJobs(job, jobs) {
+			// If the dependent job is still running, cancel it so that it can be rerun, too. Its results are obsolete
+			// when the job it depends on is rerun.
+			if !jobToRerun.Status.IsDone() {
+				if err := cancelSingleJob(ctx, jobToRerun, actions_model.StatusCancelled); err != nil {
+					return fmt.Errorf("cannot cancel dependent job %d with status %s: %w",
+						jobToRerun.ID, jobToRerun.Status, err)
+				}
+
+				// Refresh the job after cancellation.
+				if jobToRerun, err = actions_model.GetRunJobByID(ctx, jobToRerun.ID); err != nil {
+					return fmt.Errorf("cannot refresh cancelled dependent job %d: %w", jobToRerun.ID, err)
+				}
+			}
+
 			canBeRerun, err := jobToRerun.CanBeRerun(ctx)
 			if err != nil {
 				return fmt.Errorf("cannot determine whether job %d can be rerun: %w", jobToRerun.ID, err)
 			}
 
-			// Skipping jobs that cannot be rerun is wrong. They should be cancelled and rerun, instead, because they
-			// are dependent jobs and the old results might be worthless, anyway. But we keep that behaviour for now,
-			// because changing it requires more rework.
+			// This should never happen because the run was validated and the job cancelled if it was running.
 			if !canBeRerun {
-				continue
+				return fmt.Errorf("cannot rerun dependent job %d", jobToRerun.ID)
 			}
 
 			// The job that should be rerun cannot be blocked, even if it has needs.
@@ -200,4 +214,36 @@ func rerunSingleJob(ctx context.Context, job *actions_model.ActionRunJob, initia
 	CreateCommitStatus(ctx, job)
 
 	return nil
+}
+
+// cancelSingleJob cancels the given job and its associated task, if any. outcomeStatus defines the status that should
+// be assigned to the cancelled job and its associated task after cancellation; a non-terminal status will result in an
+// error. Nothing happens if the job has already been completed.
+func cancelSingleJob(ctx context.Context, job *actions_model.ActionRunJob, outcomeStatus actions_model.Status) error {
+	if !outcomeStatus.IsDone() {
+		return fmt.Errorf("outcomeStatus must be a terminal status, but is: %s", outcomeStatus)
+	}
+	if job.Status.IsDone() {
+		return nil
+	}
+
+	return db.WithTx(ctx, func(ctx context.Context) error {
+		if job.TaskID == 0 {
+			job.Status = outcomeStatus
+			job.Stopped = timeutil.TimeStampNow()
+			_, err := UpdateRunJob(ctx, job, nil, "status", "stopped")
+			if err != nil {
+				return fmt.Errorf("could not cancel job %d: %w", job.ID, err)
+			}
+		}
+
+		// A task might have been created while we're trying to cancel the job. Therefore, always try to stop the task.
+		if err := StopTask(ctx, job.TaskID, outcomeStatus); err != nil {
+			if errors.Is(err, util.ErrNotExist) {
+				return nil
+			}
+			return err
+		}
+		return nil
+	})
 }
