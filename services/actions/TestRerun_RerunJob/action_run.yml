@@ -73,6 +73,26 @@
   commit_sha: ae36c1d75cc82cb9f9e54a86c8137ed05c3bd66e
   event: push
   event_payload: "{}"
+  status: 1 # success
+  version: 2
+  started: 1776331635
+  stopped: 1776331721
+  previous_duration: 0
+  created: 1776331495
+  updated: 1776331721
+
+- id: 455660
+  title: Workflow with independent jobs
+  repo_id: 62 # test_workflows
+  owner_id: 2 # user2
+  workflow_id: independent.yaml
+  workflow_directory: .forgejo/workflows
+  index: 114
+  trigger_user_id: 2
+  ref: refs/heads/main
+  commit_sha: 68136fea3670c4e8abffe0d565732cee3ec34938
+  event: push
+  event_payload: "{}"
   status: 6 # running
   version: 2
   started: 1776331635
@@ -80,3 +100,4 @@
   previous_duration: 0
   created: 1776331495
   updated: 1776331721
+

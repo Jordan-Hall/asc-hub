@@ -141,6 +141,17 @@ func RerunJob(ctx context.Context, job *actions_model.ActionRunJob) ([]*actions_
 
 	var rerunJobs []*actions_model.ActionRunJob
 	if err := db.WithTx(ctx, func(ctx context.Context) error {
+		if job.Run.Status.IsUnknown() || job.Run.Status.IsDone() {
+			job.Run.PreviousDuration = job.Run.Duration()
+			job.Run.Status = actions_model.StatusWaiting
+			job.Run.Started = 0
+			job.Run.Stopped = 0
+
+			if err := UpdateRun(ctx, job.Run, "previous_duration", "status", "started", "stopped"); err != nil {
+				return fmt.Errorf("unable to update run %d of job %d: %w", job.RunID, job.ID, err)
+			}
+		}
+
 		jobs, err := actions_model.GetRunJobsByRunID(ctx, job.RunID)
 		if err != nil {
 			return fmt.Errorf("could not load jobs of run %d: %w", job.RunID, err)

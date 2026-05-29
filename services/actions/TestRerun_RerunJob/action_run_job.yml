@@ -242,3 +242,57 @@
   stopped: 1776331693
   created: 1776331495
   updated: 1776331693
+
+# Jobs of workflow with independent jobs
+- id: 683920
+  run_id: 455660
+  repo_id: 62
+  owner_id: 2
+  commit_sha: 68136fea3670c4e8abffe0d565732cee3ec34938
+  name: build
+  attempt: 1
+  handle: 51f4e33e-289c-44e7-8c73-bfc80724dfdc
+  workflow_payload: |
+    "on":
+      push:
+    jobs:
+      build-amd64:
+        name: build
+        runs-on: ubuntu-latest
+        steps:
+          - run: echo "Building"
+  job_id: build-amd64
+  needs: []
+  runs_on: ["ubuntu-latest"]
+  task_id: 0
+  status: 1 # success
+  started: 1776331635
+  stopped: 1776331721
+  created: 1776331635
+  updated: 1776331721
+- id: 683921
+  run_id: 455660
+  repo_id: 62
+  owner_id: 2
+  commit_sha: 68136fea3670c4e8abffe0d565732cee3ec34938
+  name: build
+  attempt: 1
+  handle: 04572855-c14e-491e-9c06-8b5612e478d4
+  workflow_payload: |
+    "on":
+      push:
+    jobs:
+      build-arm64:
+        name: build
+        runs-on: ubuntu-latest
+        steps:
+          - run: echo "Building"
+  job_id: build-arm64
+  needs: []
+  runs_on: ["ubuntu-latest"]
+  task_id: 0
+  status: 6 # running
+  started: 1776331635
+  stopped: 0
+  created: 1776331495
+  updated: 1776331693
