@@ -211,6 +211,10 @@ type mockTaskOutcome struct {
 	result  runnerv1.Result
 	outputs map[string]string
 	logRows []*runnerv1.LogRow
+	// stepStates, when non-nil, is included in the final UpdateTask's
+	// TaskState.Steps. Lets tests exercise per-step LogIndex/LogLength
+	// (and other StepState fields) without reaching into the DB directly.
+	stepStates []*runnerv1.StepState
 }
 
 func (r *mockRunner) execTask(t *testing.T, task *runnerv1.Task, outcome *mockTaskOutcome) {
@@ -242,6 +246,7 @@ func (r *mockRunner) execTask(t *testing.T, task *runnerv1.Task, outcome *mockTa
 			Id:        task.Id,
 			Result:    outcome.result,
 			StoppedAt: timestamppb.Now(),
+			Steps:     outcome.stepStates,
 		},
 	}))
 	require.NoError(t, err)
