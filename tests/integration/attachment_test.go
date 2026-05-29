@@ -358,3 +358,76 @@ func TestGetAttachmentViaAPITokens(t *testing.T) {
 		})
 	})
 }
+
+func TestGetAttachmentViaAuthorizedIntegration(t *testing.T) {
+	defer unittest.OverrideFixtures("tests/integration/fixtures/TestGetAttachmentViaAPITokens")()
+	defer tests.PrepareTestEnv(t)()
+
+	// Create attachment data for an attachment added by this test's fixture.
+	_, err := storage.Attachments.Save(repo_model.AttachmentRelativePath("d962b49e-e32a-4b72-922d-33b551b629e2"), strings.NewReader("hello universe"), -1)
+	require.NoError(t, err)
+
+	// Enable Issues unit on repo 16, one of our test targets.
+	repo_service.UpdateRepositoryUnits(t.Context(),
+		unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 16}),
+		[]repo_model.RepoUnit{{
+			RepoID: 16,
+			Type:   unit_model.TypeIssues,
+		}}, nil)
+
+	// Clone of the "all access token" tests from TestGetAttachmentViaAPITokens -- not all test conditions are repeated
+	// as there's no unique code in attachment code paths for authorized integrations other than the authentication
+	// method. Scopes and repo-specific reducers are common to both implementations.
+
+	ait := newAITester(t, func(ai *auth_model.AuthorizedIntegration) {
+		ai.Scope = auth_model.AccessTokenScopeReadIssue
+	})
+	defer ait.close()
+	token := ait.signedJWT()
+
+	t.Run("attachments", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		t.Run("allowed public repo1", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/attachments/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11").AddTokenAuth(token)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.Equal(t, "hello world", resp.Body.String())
+		})
+		t.Run("allowed private repo2", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/attachments/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12").AddTokenAuth(token)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.Equal(t, "hello world", resp.Body.String())
+		})
+		t.Run("allowed private repo16", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/attachments/d962b49e-e32a-4b72-922d-33b551b629e2").AddTokenAuth(token)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.Equal(t, "hello universe", resp.Body.String())
+		})
+	})
+
+	t.Run("user-repo-attachments", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		t.Run("allowed public repo1", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo1/attachments/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11").AddTokenAuth(token)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.Equal(t, "hello world", resp.Body.String())
+		})
+		t.Run("allowed private repo2", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo2/attachments/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12").AddTokenAuth(token)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.Equal(t, "hello world", resp.Body.String())
+		})
+		t.Run("allowed private repo16", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo16/attachments/d962b49e-e32a-4b72-922d-33b551b629e2").AddTokenAuth(token)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.Equal(t, "hello universe", resp.Body.String())
+		})
+	})
+}

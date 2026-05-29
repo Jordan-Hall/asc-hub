@@ -17,7 +17,6 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
-	"forgejo.org/modules/web/middleware"
 	"forgejo.org/services/auth"
 	"forgejo.org/services/auth/source/oauth2"
 )
@@ -72,11 +71,6 @@ type OAuth2 struct{}
 
 func (o *OAuth2) Verify(req *http.Request, w http.ResponseWriter, _ auth.SessionStore) auth.MethodOutput {
 	if !setting.OAuth2.Enabled {
-		return &auth.AuthenticationNotAttempted{}
-	}
-	// These paths are not API paths, but we still want to check for tokens because they maybe in the API returned URLs
-	if !middleware.IsAPIPath(req) && !isAttachmentDownload(req) && !isAuthenticatedTokenRequest(req) &&
-		!isGitRawOrAttachPath(req) && !isArchivePath(req) {
 		return &auth.AuthenticationNotAttempted{}
 	}
 
@@ -144,8 +138,4 @@ func (*OAuth2) getTokenFromRequest(req *http.Request) optional.Option[string] {
 		return optional.Some(token)
 	}
 	return optional.None[string]()
-}
-
-func isAuthenticatedTokenRequest(req *http.Request) bool {
-	return req.URL.Path == "/login/oauth/userinfo"
 }

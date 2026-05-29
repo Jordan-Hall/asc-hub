@@ -6,6 +6,7 @@ package integration
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"net/url"
 	"testing"
 
+	auth_model "forgejo.org/models/auth"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
@@ -87,5 +89,142 @@ func TestRepoDownloadArchiveSubdir(t *testing.T) {
 			_, err = tarReader.Next()
 			assert.Equal(t, io.EOF, err)
 		})
+	})
+}
+
+// Access under `/{username}/{repo}/archive/*` is permitted for API tokens.  Those API tokens then need to have the
+// read:repository and the correct resource scopes to permit access, though.
+func TestRepoDownloadArchiveViaAPITokens(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	t.Run("no read:repository scope", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		session := loginUser(t, "user2")
+		allToken := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeReadMisc)
+
+		t.Run("denied public repo1", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo1/archive/master.zip").AddTokenAuth(allToken)
+			MakeRequest(t, req, http.StatusForbidden)
+		})
+		t.Run("denied private repo2", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo2/archive/master.zip").AddTokenAuth(allToken)
+			MakeRequest(t, req, http.StatusForbidden)
+		})
+		// repo16 is a second repo used in fine-grain testing below, so we include it in other tests as a baseline
+		t.Run("denied private repo16", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo16/archive/master.zip").AddTokenAuth(allToken)
+			MakeRequest(t, req, http.StatusForbidden)
+		})
+	})
+
+	t.Run("all access token", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		session := loginUser(t, "user2")
+		allToken := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeReadRepository)
+
+		t.Run("allowed public repo1", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo1/archive/master.zip").AddTokenAuth(allToken)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.True(t, bytes.HasPrefix(resp.Body.Bytes(), []byte("PK")), "response body missing prefix PK")
+		})
+		t.Run("allowed private repo2", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo2/archive/master.zip").AddTokenAuth(allToken)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.True(t, bytes.HasPrefix(resp.Body.Bytes(), []byte("PK")), "response body missing prefix PK")
+		})
+		// repo16 is a second repo used in fine-grain testing below, so we include it in other tests as a baseline
+		t.Run("allowed private repo16", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo16/archive/master.zip").AddTokenAuth(allToken)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.True(t, bytes.HasPrefix(resp.Body.Bytes(), []byte("PK")), "response body missing prefix PK")
+		})
+	})
+
+	t.Run("public-only access token", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		session := loginUser(t, "user2")
+		publicOnlyToken := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopePublicOnly, auth_model.AccessTokenScopeReadRepository)
+
+		t.Run("allowed public repo1", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo1/archive/master.zip").AddTokenAuth(publicOnlyToken)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.True(t, bytes.HasPrefix(resp.Body.Bytes(), []byte("PK")), "response body missing prefix PK")
+		})
+		t.Run("denied private repo2", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo2/archive/master.zip").AddTokenAuth(publicOnlyToken)
+			MakeRequest(t, req, http.StatusNotFound)
+		})
+		t.Run("denied private repo16", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo16/archive/master.zip").AddTokenAuth(publicOnlyToken)
+			MakeRequest(t, req, http.StatusNotFound)
+		})
+	})
+
+	t.Run("specific repo access token", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		repo2OnlyToken := createFineGrainedRepoAccessToken(t, "user2",
+			[]auth_model.AccessTokenScope{auth_model.AccessTokenScopeReadRepository},
+			[]int64{2},
+		)
+
+		t.Run("allowed public repo1", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo1/archive/master.zip").AddTokenAuth(repo2OnlyToken)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.True(t, bytes.HasPrefix(resp.Body.Bytes(), []byte("PK")), "response body missing prefix PK")
+		})
+		t.Run("allowed inside fine-grain repo2", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo2/archive/master.zip").AddTokenAuth(repo2OnlyToken)
+			resp := MakeRequest(t, req, http.StatusOK)
+			assert.True(t, bytes.HasPrefix(resp.Body.Bytes(), []byte("PK")), "response body missing prefix PK")
+		})
+		t.Run("denied private outside fine-grain repo16", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			req := NewRequest(t, "GET", "/user2/repo16/archive/master.zip").AddTokenAuth(repo2OnlyToken)
+			MakeRequest(t, req, http.StatusNotFound)
+		})
+	})
+}
+
+func TestRepoDownloadArchiveViaAuthorizedIntegration(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	ait := newAITester(t, func(ai *auth_model.AuthorizedIntegration) {
+		ai.Scope = auth_model.AccessTokenScopeReadRepository
+	})
+	defer ait.close()
+	token := ait.signedJWT()
+
+	// Clone of the "all access token" tests from TestRepoDownloadArchiveViaAPITokens -- not all test conditions are
+	// repeated as there's no unique code in archive code paths for authorized integrations other than the
+	// authentication method. Scopes and repo-specific reducers are common to both implementations.
+	t.Run("allowed public repo1", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		req := NewRequest(t, "GET", "/user2/repo1/archive/master.zip").AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusOK)
+		assert.True(t, bytes.HasPrefix(resp.Body.Bytes(), []byte("PK")), "response body missing prefix PK")
+	})
+	t.Run("allowed private repo2", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		req := NewRequest(t, "GET", "/user2/repo2/archive/master.zip").AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusOK)
+		assert.True(t, bytes.HasPrefix(resp.Body.Bytes(), []byte("PK")), "response body missing prefix PK")
+	})
+	t.Run("allowed private repo16", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		req := NewRequest(t, "GET", "/user2/repo16/archive/master.zip").AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusOK)
+		assert.True(t, bytes.HasPrefix(resp.Body.Bytes(), []byte("PK")), "response body missing prefix PK")
 	})
 }

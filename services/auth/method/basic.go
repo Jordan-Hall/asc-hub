@@ -16,7 +16,6 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
-	"forgejo.org/modules/web/middleware"
 	"forgejo.org/services/auth"
 	"forgejo.org/services/auth/source/db"
 )
@@ -34,11 +33,6 @@ type Basic struct{}
 // Verify extracts and validates Basic data (username and password/token) from the "Authorization" header of the request
 // and returns the corresponding user object for that name/token on successful validation.
 func (b *Basic) Verify(req *http.Request, w http.ResponseWriter, _ auth.SessionStore) auth.MethodOutput {
-	// Basic authentication should only fire on API, Download or on Git or LFSPaths
-	if !middleware.IsAPIPath(req) && !isContainerPath(req) && !isAttachmentDownload(req) && !isGitRawOrAttachOrLFSPath(req) {
-		return &auth.AuthenticationNotAttempted{}
-	}
-
 	baHead := req.Header.Get("Authorization")
 	if len(baHead) == 0 {
 		return &auth.AuthenticationNotAttempted{}

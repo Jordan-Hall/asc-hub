@@ -561,18 +561,21 @@ func TestQuotaGitLfsEnforcement(t *testing.T) {
 			// Uploading to our repo => 413
 			env.As(t, env.Users.Limited).
 				With(Context{Repo: env.Users.Limited.Repo}).
+				AuthBasic().
 				PushLFSObject().
 				ExpectStatus(http.StatusRequestEntityTooLarge)
 
 			// Uploading to the limited org repo => 413
 			env.As(t, env.Users.Limited).
 				With(Context{Repo: env.Orgs.Limited.Repo}).
+				AuthBasic().
 				PushLFSObject().
 				ExpectStatus(http.StatusRequestEntityTooLarge)
 
 			// Uploading to the unlimited org repo => 200
 			env.As(t, env.Users.Limited).
 				With(Context{Repo: env.Orgs.Unlimited.Repo}).
+				AuthBasic().
 				PushLFSObject().
 				ExpectStatus(http.StatusOK)
 		})
@@ -581,18 +584,21 @@ func TestQuotaGitLfsEnforcement(t *testing.T) {
 			// Uploading to our repo => 413
 			env.As(t, env.Users.Limited).
 				With(Context{Repo: env.Users.Limited.Repo}).
+				AuthBasic().
 				BatchPushLFSObject().
 				ExpectStatus(http.StatusRequestEntityTooLarge)
 
 			// Uploading to the limited org repo => 413
 			env.As(t, env.Users.Limited).
 				With(Context{Repo: env.Orgs.Limited.Repo}).
+				AuthBasic().
 				BatchPushLFSObject().
 				ExpectStatus(http.StatusRequestEntityTooLarge)
 
 			// Uploading to the unlimited org repo => 200
 			env.As(t, env.Users.Limited).
 				With(Context{Repo: env.Orgs.Unlimited.Repo}).
+				AuthBasic().
 				BatchPushLFSObject().
 				ExpectStatus(http.StatusOK)
 		})
@@ -693,8 +699,9 @@ type quotaWebEnvAsContext struct {
 
 	gitPath string
 
-	request  *RequestWrapper
-	response *httptest.ResponseRecorder
+	request   *RequestWrapper
+	response  *httptest.ResponseRecorder
+	authBasic bool
 }
 
 type Context struct {
@@ -726,10 +733,20 @@ func (ctx *quotaWebEnvAsContext) VisitRepoPage(page string) *quotaWebEnvAsContex
 	return ctx.VisitPage(ctx.Repo.Link() + page)
 }
 
+func (ctx *quotaWebEnvAsContext) AuthBasic() *quotaWebEnvAsContext {
+	ctx.t.Helper()
+	ctx.authBasic = true
+	return ctx
+}
+
 func (ctx *quotaWebEnvAsContext) ExpectStatus(status int) *quotaWebEnvAsContext {
 	ctx.t.Helper()
 
-	ctx.response = ctx.Doer.Session.MakeRequest(ctx.t, ctx.request, status)
+	if ctx.authBasic {
+		ctx.response = MakeRequest(ctx.t, ctx.request.AddBasicAuth(ctx.Doer.User.Name), status)
+	} else {
+		ctx.response = ctx.Doer.Session.MakeRequest(ctx.t, ctx.request, status)
+	}
 
 	return ctx
 }
