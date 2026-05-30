@@ -528,6 +528,10 @@ func TestActionsPullRequestTrustPanelMergedOrClosed(t *testing.T) {
 		t.Run("Regular user sees pending approval even though PR is a merged PR", func(t *testing.T) {
 			actionsTrustTestAssertTrustPanel(t, regularSession, pullRequestLink)
 		})
+		t.Run("Owner user sees pending approval even though PR is a merged PR", func(t *testing.T) {
+			ownerSession := loginUser(t, ownerUser.Name)
+			actionsTrustTestAssertTrustPanel(t, ownerSession, pullRequestLink)
+		})
 	})
 }
 
