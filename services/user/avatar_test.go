@@ -136,4 +136,26 @@ func TestUserReplaceAvatar(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, fi)
 	})
+
+	t.Run("ReplaceAvatarByItself", func(t *testing.T) {
+		require.NoError(t, unittest.PrepareTestDatabase())
+		user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
+
+		err := UploadAvatar(db.DefaultContext, user, firstBuff.Bytes())
+		require.NoError(t, err)
+		user = unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
+		firstImageHash := user.Avatar
+		assert.NotEmpty(t, firstImageHash)
+
+		err = UploadAvatar(db.DefaultContext, user, firstBuff.Bytes())
+		require.NoError(t, err)
+		user = unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
+		secondImageHash := user.Avatar
+		assert.Equal(t, firstImageHash, secondImageHash)
+
+		// The avatar is still available in storage
+		fi, err := storage.Avatars.Stat(firstImageHash)
+		require.NoError(t, err)
+		assert.NotNil(t, fi)
+	})
 }

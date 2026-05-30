@@ -35,14 +35,14 @@ func UploadAvatar(ctx context.Context, u *user_model.User, data []byte) error {
 		return fmt.Errorf("updateUser: %w", err)
 	}
 
-	if err := avatarstore.StoreAvatar(u.CustomAvatarRelativePath(), avatarData, img, storage.Avatars); err != nil {
-		return fmt.Errorf("Failed to store avatar at %s: %w", u.CustomAvatarRelativePath(), err)
-	}
 	if len(previousAvatar) > 0 {
 		err := avatarstore.DeleteAvatar(previousAvatar, storage.Avatars)
 		if err != nil {
 			return err
 		}
+	}
+	if err := avatarstore.StoreAvatar(u.CustomAvatarRelativePath(), avatarData, img, storage.Avatars); err != nil {
+		return fmt.Errorf("Failed to store avatar at %s: %w", u.CustomAvatarRelativePath(), err)
 	}
 
 	return committer.Commit()
