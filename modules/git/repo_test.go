@@ -117,3 +117,50 @@ func TestCloneCredentials(t *testing.T) {
 	_, err = os.Stat(credentialsFile)
 	require.ErrorIs(t, err, fs.ErrNotExist)
 }
+
+func TestInitRepositoryWithNoTemplates(t *testing.T) {
+	tests := []struct {
+		name string // description of this test case
+		// Named input parameters for target function.
+		bare             bool
+		objectFormatName string
+	}{
+		{
+			name:             "Bare sha1 repo",
+			bare:             true,
+			objectFormatName: Sha1ObjectFormat.Name(),
+		},
+		{
+			name:             "Non-bare sha1 repo",
+			bare:             false,
+			objectFormatName: Sha1ObjectFormat.Name(),
+		},
+		{
+			name:             "Bare sha256 repo",
+			bare:             true,
+			objectFormatName: Sha256ObjectFormat.Name(),
+		},
+		{
+			name:             "Non-bare sha256 repo",
+			bare:             false,
+			objectFormatName: Sha256ObjectFormat.Name(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repoPath := t.TempDir()
+
+			err := InitRepository(t.Context(), repoPath, tt.bare, tt.objectFormatName)
+			require.NoError(t, err, "couldn't init repository")
+
+			_, err = os.Stat(repoPath + "/hooks")
+			require.ErrorIs(t, err, os.ErrNotExist, "hooks directory shouldn't exist")
+
+			_, err = os.Stat(repoPath + "/description")
+			require.ErrorIs(t, err, os.ErrNotExist, "description file shouldn't exist")
+
+			_, err = os.Stat(repoPath + "/info")
+			require.ErrorIs(t, err, os.ErrNotExist, "info directory shouldn't exist")
+		})
+	}
+}
