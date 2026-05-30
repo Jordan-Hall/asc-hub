@@ -254,6 +254,14 @@ func actionsTrustTestCreatePullRequestFromForkedRepo(t *testing.T, baseUser *use
 	return forkedRepo, pullRequest, addFileToForkedResp
 }
 
+func actionsTrustSetCollaborator(t *testing.T, token string, repo *repo_model.Repository, user *user_model.User, permission string) {
+	t.Helper()
+
+	repoAPILink := repo.APIURL()
+	req := NewRequestWithJSON(t, "PUT", fmt.Sprintf("%s/collaborators/%s", repoAPILink, user.Name), map[string]string{"permission": permission}).AddTokenAuth(token)
+	MakeRequest(t, req, http.StatusNoContent)
+}
+
 // Mark the PR as a work-in-progress PR
 func actionsTrustTestSetPullRequestWIP(t *testing.T, pullRequest *issues_model.PullRequest, wip bool) {
 	t.Helper()
@@ -284,7 +292,41 @@ func actionsTrustTestModifyTitlePullRequest(t *testing.T, token string, pullRequ
 	assert.Equal(t, actions_model.StatusBlocked, actionRunJob.Status)
 }
 
-func TestActionsPullRequestTrustPanel(t *testing.T) {
+func TestActionsPullRequestTrustPanelImplicit(t *testing.T) {
+	onApplicationRun(t, func(t *testing.T, u *url.URL) {
+		ownerUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2}) // owner of the repo
+		ownerSession := loginUser(t, ownerUser.Name)
+		ownerToken := getTokenForLoggedInUser(t, ownerSession, auth_model.AccessTokenScopeAll)
+
+		regularUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5}) // a regular user with no specific permission
+		regularSession := loginUser(t, regularUser.Name)
+
+		baseRepo, f := actionsTrustTestCreateBaseRepo(t, ownerUser)
+		defer f()
+
+		_, pullRequest, _ := actionsTrustTestCreatePullRequestFromForkedRepo(t, ownerUser, baseRepo, regularUser)
+		pullRequestLink := pullRequest.Issue.Link()
+
+		t.Run("All users see a pending approval on a newly created pull request from a fork", func(t *testing.T) {
+			actionsTrustTestAssertTrustPanel(t, regularSession, pullRequestLink)
+			actionsTrustTestAssertTrustPanel(t, ownerSession, pullRequestLink)
+		})
+
+		t.Run("The regular user becomes implicitly trusted and the pending approval are still displayed because they were created when the user was not trusted", func(t *testing.T) {
+			actionsTrustSetCollaborator(t, ownerToken, baseRepo, regularUser, "admin")
+			actionsTrustTestAssertTrustPanel(t, regularSession, pullRequestLink)
+			actionsTrustTestAssertTrustPanel(t, ownerSession, pullRequestLink)
+		})
+
+		t.Run("The newly implicitly trusted user can approve its own runs", func(t *testing.T) {
+			actionsTrustTestClickTrustPanel(t, regularSession, pullRequestLink, string(actions_service.UserTrustedOnce))
+			actionsTrustTestAssertNoTrustPanel(t, regularSession, pullRequestLink)
+			actionsTrustTestAssertNoTrustPanel(t, ownerSession, pullRequestLink)
+		})
+	})
+}
+
+func TestActionsPullRequestTrustPanelExplicit(t *testing.T) {
 	onApplicationRun(t, func(t *testing.T, u *url.URL) {
 		ownerUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2}) // owner of the repo
 
