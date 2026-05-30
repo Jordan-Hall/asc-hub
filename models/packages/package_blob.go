@@ -30,11 +30,11 @@ func init() {
 type PackageBlob struct {
 	ID          int64              `xorm:"pk autoincr"`
 	Size        int64              `xorm:"NOT NULL DEFAULT 0"`
-	HashMD5     string             `xorm:"hash_md5 char(32) UNIQUE(md5) INDEX NOT NULL"`
-	HashSHA1    string             `xorm:"hash_sha1 char(40) UNIQUE(sha1) INDEX NOT NULL"`
-	HashSHA256  string             `xorm:"hash_sha256 char(64) UNIQUE(sha256) INDEX NOT NULL"`
-	HashSHA512  string             `xorm:"hash_sha512 char(128) UNIQUE(sha512) INDEX NOT NULL"`
-	HashBlake2b string             `xorm:"hash_blake2b char(128) UNIQUE(blake2b) INDEX"`
+	HashMD5     string             `xorm:"hash_md5 char(32) UNIQUE(md5) NOT NULL"`
+	HashSHA1    string             `xorm:"hash_sha1 char(40) UNIQUE(sha1) NOT NULL"`
+	HashSHA256  string             `xorm:"hash_sha256 char(64) UNIQUE(sha256) NOT NULL"`
+	HashSHA512  string             `xorm:"hash_sha512 char(128) UNIQUE(sha512) NOT NULL"`
+	HashBlake2b string             `xorm:"hash_blake2b char(128) UNIQUE(blake2b)"`
 	CreatedUnix timeutil.TimeStamp `xorm:"created INDEX NOT NULL"`
 }
 
