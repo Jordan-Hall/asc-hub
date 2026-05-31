@@ -42,5 +42,5 @@ func TestGetDirectorySize(t *testing.T) {
 
 	size, err := getDirectorySize(repo.RepoPath())
 	require.NoError(t, err)
-	assert.Equal(t, size, repo.Size)
+	assert.Equal(t, repo.Size, size, "expected size comes from models/fixtures/repository.yml:25")
 }

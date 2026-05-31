@@ -38,7 +38,7 @@ func TestCustomGitHooks(t *testing.T) {
 
 		for _, hookName := range hookNames {
 			customPath := path.Join(customHooksDir, hookName+".d")
-			err := os.MkdirAll(customPath, 0x755)
+			err := os.MkdirAll(customPath, 0o755)
 			require.NoError(t, err)
 
 			err = os.WriteFile(path.Join(customPath, "append-proof"), customGitHookTpl(hookName), 0x755)
