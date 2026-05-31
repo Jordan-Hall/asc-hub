@@ -1,4 +1,4 @@
-<div class="ui reference">
+<div class="ui form reference">
 	{{$issueReferenceLink := ""}}
 	{{if .Issue.IsPull}}
 		{{$issueReferenceLink = printf "%s!%d" .Issue.Repo.FullName .Issue.Index}}
@@ -10,6 +10,7 @@
 			{{ctx.Locale.Tr "discussion.sidebar.reference"}}
 		</strong>
 	</span>
+	<p></p>
 	<div class="ui equal width compact grid">
 		<div class="row tw-items-center" data-tooltip-content="{{$issueReferenceLink}}">
 			<span class="text column truncate">{{$issueReferenceLink}}</span>
