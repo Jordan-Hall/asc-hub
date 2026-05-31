@@ -71,9 +71,10 @@ func InitRepository(ctx context.Context, repoPath string, bare bool, objectForma
 		return err
 	}
 
-	cmd := NewCommand(ctx, "init")
-	// Set template to an empty string so that example hooks, and other info files are not created
-	cmd.AddArguments("--template", "")
+	cmd := NewCommand(ctx, "init",
+		// Set template to an empty string so that example hooks, and other info files are not created
+		"--template", "",
+	)
 
 	if !IsValidObjectFormat(objectFormatName) {
 		return fmt.Errorf("invalid object format: %s", objectFormatName)
