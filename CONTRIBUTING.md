@@ -1,7 +1,15 @@
-# Forgejo Contributor Guide
+# Contributing to Forgejo
 
-The Forgejo project is run by a community of people who are expected to follow this guide when cooperating on a simple bug fix as well as when changing the governance. For more information about the project, take a look at [the documentation explaining what Forgejo provides](README.md).
+Thank you for improving Forgejo! This project is developed and maintained by a diverse and inclusive community of people from around the world. Please review our [Code of Conduct](https://codeberg.org/forgejo/code-of-conduct).
 
-Sensitive security-related issues should be reported to [security@forgejo.org](mailto:security@forgejo.org) using [encryption](https://keyoxide.org/security@forgejo.org).
+#### About the Use of Coding Agents
 
-You can find links to the different aspects of Developer documentation on this page: [Forgejo Contributor Guide](https://forgejo.org/docs/next/contributor/).
+Forgejo does not accept any works (code, documentation, ...) that are partially or fully authored by coding agents or similar software based on large language models (LLM), diffusion models, or similar technology (often called "AI"). See the [AI Agreement](https://codeberg.org/forgejo/governance/src/branch/main/AIAgreement.md) for details.
+
+#### Reporting Security Vulnerabilities
+
+Please report all security related issues by sending an [encrypted](https://keyoxide.org/security@forgejo.org) email to [security@forgejo.org](mailto:security@forgejo.org). Please review our [Security Policy](https://codeberg.org/forgejo/governance/src/branch/main/SECURITY-POLICY.md) for details.
+
+#### Before Sending a PR
+
+Please read the relevant sections of the [Forgejo Contributor Guide](https://forgejo.org/docs/latest/contributor/) and the [AI Agreement](https://codeberg.org/forgejo/governance/src/branch/main/AIAgreement.md) before submitting a pull request.
