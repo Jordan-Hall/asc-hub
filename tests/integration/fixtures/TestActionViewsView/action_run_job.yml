@@ -26,3 +26,17 @@
   status: 5 # StatusWaiting
   started: 0
   stopped: 0
+- id: 2155
+  run_id: 1002
+  repo_id: 4
+  owner_id: 5
+  runs_on: ["macos"]
+  commit_sha: f4100ac14112a3740490afb22b07b69b0b5d4e8b
+  is_fork_pull_request: false
+  name: target_job
+  attempt: 1
+  job_id: target_job
+  task_id: 8755
+  status: 5 # StatusWaiting
+  started: 0
+  stopped: 0

@@ -32,3 +32,22 @@
   updated: 0
   need_approval: false
   approved_by: 0
+- id: 1002
+  title: "A pull_request_target run"
+  repo_id: 4
+  owner_id: 5
+  workflow_id: "pull_request_target.yaml"
+  index: 211
+  trigger_user_id: 29
+  ref: "refs/heads/master"
+  commit_sha: "f4100ac14112a3740490afb22b07b69b0b5d4e8b"
+  event: "pull_request"
+  trigger_event: "pull_request_target"
+  event_payload: "{\"pull_request\":{\"id\":1,\"base\":{\"sha\":\"deadbeef\"}}}"
+  is_fork_pull_request: false
+  status: 5 # waiting
+  started: 0
+  created: 1683636108
+  updated: 0
+  need_approval: false
+  approved_by: 0
