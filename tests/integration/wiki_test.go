@@ -98,7 +98,7 @@ func doRepoWikiGitOperation(t *testing.T, serverURL *url.URL, method RepoWikiMet
 		privateRepo := forgery.CreateRepository(t, user2, &forgery.CreateRepositoryOptions{
 			IsPrivate: true,
 		})
-		forgery.EnableRepoUnit(t, privateRepo, unit_model.TypeWiki, nil)
+		forgery.EnableRepoUnits(t, privateRepo, unit_model.TypeWiki)
 
 		session := loginUser(t, user2.LoginName)
 		token := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeWriteRepository)

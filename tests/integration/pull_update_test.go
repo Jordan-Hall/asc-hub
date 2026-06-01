@@ -24,7 +24,7 @@ import (
 	pull_service "forgejo.org/services/pull"
 	repo_service "forgejo.org/services/repository"
 	files_service "forgejo.org/services/repository/files"
-	"forgejo.org/tests"
+	"forgejo.org/tests/forgery"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -133,10 +133,9 @@ func TestAPIPullUpdateBranchProtection(t *testing.T) {
 
 func TestAPIPullAllowMaintainerEditRestrictedHead(t *testing.T) {
 	onApplicationRun(t, func(t *testing.T, giteaURL *url.URL) {
-		baseRepoOwner := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
-
-		realBaseRepo, _, cleanup := tests.CreateDeclarativeRepo(t, baseRepoOwner, "base-repo", nil, nil, nil)
-		defer cleanup()
+		realBaseRepo := forgery.CreateRepository(t, nil, &forgery.CreateRepositoryOptions{
+			Files: forgery.FilesInit{}, // ensure an initial commit is present
+		})
 
 		forkUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 		forkRepo, err := repo_service.ForkRepositoryAndUpdates(t.Context(), forkUser, forkUser, repo_service.ForkRepoOptions{
@@ -332,7 +331,9 @@ func createOutdatedPR(t *testing.T, actor, forkOrg *user_model.User, baseRepoOwn
 		baseRepoOwner = baseRepoOwnerOption[0]
 	}
 
-	baseRepo, _, _ := tests.CreateDeclarativeRepo(t, baseRepoOwner, "repo-pr-update", nil, nil, nil)
+	baseRepo := forgery.CreateRepository(t, baseRepoOwner, &forgery.CreateRepositoryOptions{
+		Files: forgery.FilesInit{}, // ensure an initial commit is present
+	})
 
 	headRepo, err := repo_service.ForkRepositoryAndUpdates(git.DefaultContext, actor, forkOrg, repo_service.ForkRepoOptions{
 		BaseRepo:    baseRepo,

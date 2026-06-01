@@ -7,6 +7,7 @@ import (
 	"math/rand/v2"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	org_model "forgejo.org/models/organization"
@@ -19,7 +20,7 @@ var nameCleaner = regexp.MustCompile(`[^a-zA-Z0-9-]+`) // exclude "_", to preven
 
 // uniqueSafeName replaces specials chars with _ and appends a random hex suffix
 func uniqueSafeName(testName string) string {
-	return nameCleaner.ReplaceAllLiteralString(testName, "_") + "-" + strconv.FormatUint(uint64(rand.Uint32()), 16)
+	return strings.Trim(nameCleaner.ReplaceAllLiteralString(testName, "_"), "-_") + "-" + strconv.FormatUint(uint64(rand.Uint32()), 16)
 }
 
 type CreateUserOptions struct {

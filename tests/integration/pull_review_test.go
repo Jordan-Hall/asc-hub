@@ -105,14 +105,12 @@ func TestPullView_SelfReviewNotification(t *testing.T) {
 		user1 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
 		user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 
-		repo, _, f := tests.CreateDeclarativeRepo(t, user2, "test_reviewer", nil, nil, []*files_service.ChangeRepoFile{
-			{
-				Operation:     "create",
-				TreePath:      "CODEOWNERS",
-				ContentReader: strings.NewReader("README.md @user5\n"),
+		repo := forgery.CreateRepository(t, user2, &forgery.CreateRepositoryOptions{
+			Files: forgery.MapFS{
+				"README.md":  forgery.MapFile("# Hello Reviewer\n"),
+				"CODEOWNERS": forgery.MapFile("README.md @user5\n"),
 			},
 		})
-		defer f()
 
 		// we need to add user1 as collaborator so it can be added as reviewer
 		err := repo_module.AddCollaborator(db.DefaultContext, repo, user1)
@@ -125,7 +123,7 @@ func TestPullView_SelfReviewNotification(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a pull request.
-		resp := testPullCreate(t, user2Session, "user2", "test_reviewer", false, repo.DefaultBranch, "codeowner-basebranch", "Test Pull Request")
+		resp := testPullCreate(t, user2Session, "user2", repo.Name, false, repo.DefaultBranch, "codeowner-basebranch", "Test Pull Request")
 		prURL := test.RedirectURL(resp)
 		elem := strings.Split(prURL, "/")
 		assert.Equal(t, "pulls", elem[3])
@@ -361,14 +359,12 @@ func TestPullView_CodeOwner(t *testing.T) {
 	onApplicationRun(t, func(t *testing.T, u *url.URL) {
 		user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 
-		repo, _, f := tests.CreateDeclarativeRepo(t, user2, "test_codeowner", nil, nil, []*files_service.ChangeRepoFile{
-			{
-				Operation:     "create",
-				TreePath:      "CODEOWNERS",
-				ContentReader: strings.NewReader("README.md @user5\n"),
+		repo := forgery.CreateRepository(t, user2, &forgery.CreateRepositoryOptions{
+			Files: forgery.MapFS{
+				"README.md":  forgery.MapFile("# Hello CodeOwner\n"),
+				"CODEOWNERS": forgery.MapFile("README.md @user5\n"),
 			},
 		})
-		defer f()
 
 		t.Run("First Pull Request", func(t *testing.T) {
 			defer tests.PrintCurrentTest(t)()
@@ -381,7 +377,7 @@ func TestPullView_CodeOwner(t *testing.T) {
 
 			// Create a pull request.
 			session := loginUser(t, "user2")
-			testPullCreate(t, session, "user2", "test_codeowner", false, repo.DefaultBranch, "codeowner-basebranch", "Test Pull Request")
+			testPullCreate(t, session, "user2", repo.Name, false, repo.DefaultBranch, "codeowner-basebranch", "Test Pull Request")
 
 			pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{BaseRepoID: repo.ID, HeadRepoID: repo.ID, HeadBranch: "codeowner-basebranch"})
 			unittest.AssertExistsIf(t, true, &issues_model.Review{IssueID: pr.IssueID, Type: issues_model.ReviewTypeRequest, ReviewerID: 5})
@@ -417,7 +413,7 @@ func TestPullView_CodeOwner(t *testing.T) {
 
 			// Create a pull request.
 			session := loginUser(t, "user2")
-			testPullCreate(t, session, "user2", "test_codeowner", false, repo.DefaultBranch, "codeowner-basebranch2", "Test Pull Request2")
+			testPullCreate(t, session, "user2", repo.Name, false, repo.DefaultBranch, "codeowner-basebranch2", "Test Pull Request2")
 
 			pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{BaseRepoID: repo.ID, HeadBranch: "codeowner-basebranch2"})
 			unittest.AssertExistsIf(t, true, &issues_model.Review{IssueID: pr.IssueID, Type: issues_model.ReviewTypeRequest, ReviewerID: 8})
@@ -819,17 +815,12 @@ func TestPullRequestStaleReview(t *testing.T) {
 		session := loginUser(t, user2.Name)
 
 		// Create temporary repository.
-		repo, _, f := tests.CreateDeclarativeRepo(t, user2, "",
-			[]unit_model.Type{unit_model.TypePullRequests}, nil,
-			[]*files_service.ChangeRepoFile{
-				{
-					Operation:     "create",
-					TreePath:      "FUNFACT",
-					ContentReader: strings.NewReader("Smithy was the runner up to be Forgejo's name"),
-				},
+		repo := forgery.CreateRepository(t, user2, &forgery.CreateRepositoryOptions{
+			Files: forgery.MapFS{
+				"FUNFACT": forgery.MapFile("Smithy was the runner up to be Forgejo's name"),
 			},
-		)
-		defer f()
+		})
+		forgery.EnableRepoUnits(t, repo, unit_model.TypePullRequests)
 
 		clone := func(t *testing.T, clone string) string {
 			t.Helper()

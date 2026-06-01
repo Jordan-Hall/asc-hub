@@ -48,7 +48,7 @@ func TestActionGetTokenMetadata(t *testing.T) {
 				),
 			},
 		})
-		forgery.EnableRepoUnit(t, repo, unit_model.TypeActions, nil)
+		forgery.EnableRepoUnits(t, repo, unit_model.TypeActions)
 
 		gitRepo, err := gitrepo.OpenRepository(db.DefaultContext, repo)
 		require.NoError(t, err)

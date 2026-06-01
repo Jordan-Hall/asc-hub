@@ -187,8 +187,10 @@ func newRepo(t *testing.T, userID int64, repoName string, enabledUnits map[unit_
 		Files: forgery.FilesInit{},
 	})
 	if len(enabledUnits) == 0 {
-		forgery.EnableRepoUnit(t, somerepo, unit_model.TypeCode, nil)
-		forgery.EnableRepoUnit(t, somerepo, unit_model.TypeIssues, nil)
+		forgery.EnableRepoUnits(t, somerepo,
+			unit_model.TypeCode,
+			unit_model.TypeIssues,
+		)
 	}
 	for unit, config := range enabledUnits {
 		forgery.EnableRepoUnit(t, somerepo, unit, config)
