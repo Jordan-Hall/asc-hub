@@ -90,7 +90,7 @@
     "@vitejs/plugin-vue": "6.0.7",
     "@vitest/coverage-v8": "4.1.2",
     "@vitest/eslint-plugin": "1.6.18",
-    "@vue/test-utils": "2.4.9",
+    "@vue/test-utils": "2.4.10",
     "eslint": "9.39.4",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-array-func": "5.1.1",
