@@ -108,7 +108,7 @@ func TestActions_CmdForgejo_Actions(t *testing.T) {
 			},
 		} {
 			t.Run(testCase.testName, func(t *testing.T) {
-				uuid, err := runMainAppWithStdin(testCase.stdin, "forgejo-cli", "actions", "register", testCase.secretOption(), "--scope=org26")
+				uuid, err := tests.RunMainAppWithStdin(testCase.stdin, "forgejo-cli", "actions", "register", testCase.secretOption(), "--scope=org26")
 				require.NoError(t, err)
 				assert.Equal(t, expecteduuid, uuid)
 			})

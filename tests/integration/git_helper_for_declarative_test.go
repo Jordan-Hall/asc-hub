@@ -182,12 +182,11 @@ func doGitPushTestRepository(dstPath string, args ...string) func(*testing.T) {
 	}
 }
 
-func doGitPushTestRepositoryFail(dstPath string, args ...string) func(*testing.T) {
-	return func(t *testing.T) {
-		t.Helper()
-		_, _, err := git.NewCommand(git.DefaultContext, "push").AddArguments(git.ToTrustedCmdArgs(args)...).RunStdString(&git.RunOpts{Dir: dstPath})
-		require.Error(t, err)
-	}
+func doGitPushTestRepositoryFail(t *testing.T, dstPath string, args ...string) (stderr string) {
+	t.Helper()
+	_, stderr, err := git.NewCommand(git.DefaultContext, "push").AddArguments(git.ToTrustedCmdArgs(args)...).RunStdString(&git.RunOpts{Dir: dstPath})
+	require.Error(t, err)
+	return stderr
 }
 
 func doGitAddSomeCommits(dstPath, branch string) func(*testing.T) {

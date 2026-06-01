@@ -31,13 +31,15 @@ import (
 var testE2eWebRoutes *web.Route
 
 func TestMain(m *testing.M) {
+	tests.DelegateToMainApp()
+
 	defer log.GetManager().Close()
 
 	managerCtx, cancel := context.WithCancel(context.Background())
 	graceful.InitManager(managerCtx)
 	defer cancel()
 
-	tests.InitTest(true)
+	tests.InitTest()
 	initChangedFiles()
 	testE2eWebRoutes = routers.NormalRoutes()
 

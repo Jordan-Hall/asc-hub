@@ -124,12 +124,7 @@ func MainTest(m *testing.M) {
 		fmt.Println("Environment variable $GITEA_ROOT not set")
 		os.Exit(1)
 	}
-	giteaBinary := "gitea"
-	setting.AppPath = path.Join(giteaRoot, giteaBinary)
-	if _, err := os.Stat(setting.AppPath); err != nil {
-		fmt.Printf("Could not find gitea binary at %s\n", setting.AppPath)
-		os.Exit(1)
-	}
+	setting.AppPath = path.Join(giteaRoot, "gitea_migrations-should-not-need-a-binary") // use WrapMainAppPath if a binary is needed
 
 	giteaConf := os.Getenv("GITEA_CONF")
 	if giteaConf == "" {

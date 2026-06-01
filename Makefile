@@ -75,6 +75,10 @@ MAKE_EVIDENCE_DIR := .make_evidence
 ifeq ($(RACE_ENABLED),true)
 	GOFLAGS += -race
 	GOTESTFLAGS += -race
+	# The test binary calls itself on each git hook
+	# When the race detector is enabled, don't wait 1s before exiting.
+	# https://go.dev/doc/articles/race_detector
+	GOTESTCOMPILEDRUNPREFIX += GORACE="atexit_sleep_ms=0"
 endif
 
 STORED_VERSION_FILE := VERSION

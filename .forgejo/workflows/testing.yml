@@ -92,7 +92,6 @@ jobs:
         run: |
           apt-get -q install -qq -y jq
           ./release-notes-assistant.sh test_main
-      - uses: ./.forgejo/workflows-composite/build-backend
       - run: |
           su forgejo -c 'make test-backend test-check'
         timeout-minutes: 120
@@ -123,7 +122,6 @@ jobs:
         if: steps.cache-frontend.outputs.cache-hit != 'true'
         run: |
           su forgejo -c 'make deps-frontend frontend'
-      - uses: ./.forgejo/workflows-composite/build-backend
       - name: Decide to run all tests
         id: run-all
         if: contains(github.event.pull_request.labels.*.name, 'run-all-playwright-tests') || contains(github.event.pull_request.title, 'playwright')
@@ -181,7 +179,6 @@ jobs:
     steps:
       - uses: https://data.forgejo.org/actions/checkout@v6
       - uses: ./.forgejo/workflows-composite/setup-env
-      - uses: ./.forgejo/workflows-composite/build-backend
       - run: |
           su forgejo -c 'make test-remote-cacher test-check'
         timeout-minutes: 120
@@ -214,7 +211,6 @@ jobs:
         run: apt-get update -qq && apt-get -q install -qq -y git-lfs
         env:
           DEBIAN_FRONTEND: noninteractive
-      - uses: ./.forgejo/workflows-composite/build-backend
       - run: |
           su forgejo -c 'make test-mysql-migration test-mysql'
         timeout-minutes: 120
@@ -252,7 +248,6 @@ jobs:
         run: apt-get update -qq && apt-get -q install -qq -y git-lfs
         env:
           DEBIAN_FRONTEND: noninteractive
-      - uses: ./.forgejo/workflows-composite/build-backend
       - run: |
           su forgejo -c 'make test-pgsql-migration test-pgsql'
         timeout-minutes: 120
@@ -274,7 +269,6 @@ jobs:
         run: apt-get update -qq && apt-get -q install -qq -y git-lfs
         env:
           DEBIAN_FRONTEND: noninteractive
-      - uses: ./.forgejo/workflows-composite/build-backend
       - run: |
           su forgejo -c 'make test-sqlite-migration test-sqlite'
         timeout-minutes: 120

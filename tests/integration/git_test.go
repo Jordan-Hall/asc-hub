@@ -409,7 +409,7 @@ func doBranchProtect(baseCtx *APITestContext, dstPath string) func(t *testing.T)
 				"apply_to_admins":         "on",
 			}))
 
-			doGitPushTestRepositoryFail(dstPath, "origin", "HEAD:before-create-2")(t)
+			doGitPushTestRepositoryFail(t, dstPath, "origin", "HEAD:before-create-2")
 		})
 
 		t.Run("FailToPushToProtectedBranch", func(t *testing.T) {
@@ -420,7 +420,7 @@ func doBranchProtect(baseCtx *APITestContext, dstPath string) func(t *testing.T)
 				generateCommitWithNewData(t, littleSize, dstPath, "user2@example.com", "User Two", "branch-data-file-")
 			})
 
-			doGitPushTestRepositoryFail(dstPath, "origin", "modified-protected-branch:protected")(t)
+			doGitPushTestRepositoryFail(t, dstPath, "origin", "modified-protected-branch:protected")
 		})
 
 		t.Run("PushToUnprotectedBranch", doGitPushTestRepository(dstPath, "origin", "modified-protected-branch:unprotected"))
@@ -433,7 +433,7 @@ func doBranchProtect(baseCtx *APITestContext, dstPath string) func(t *testing.T)
 			})
 
 			t.Run("ProtectedFilePathsApplyToAdmins", doProtectBranch(ctx, "protected"))
-			doGitPushTestRepositoryFail(dstPath, "origin", "modified-protected-file-protected-branch:protected")(t)
+			doGitPushTestRepositoryFail(t, dstPath, "origin", "modified-protected-file-protected-branch:protected")
 
 			doGitCheckoutBranch(dstPath, "protected")(t)
 			doGitPull(dstPath, "origin", "protected")(t)
@@ -467,7 +467,7 @@ func doBranchProtect(baseCtx *APITestContext, dstPath string) func(t *testing.T)
 			t.Run("GenerateCommit", func(t *testing.T) {
 				generateCommitWithNewData(t, littleSize, dstPath, "user2@example.com", "User Two", "branch-data-file-")
 			})
-			doGitPushTestRepositoryFail(dstPath, "-f", "origin", "toforce:protected")(t)
+			doGitPushTestRepositoryFail(t, dstPath, "-f", "origin", "toforce:protected")
 		})
 
 		t.Run("WhitelistedUserPushToProtectedBranch", func(t *testing.T) {
@@ -660,7 +660,9 @@ func doPushCreate(ctx APITestContext, u *url.URL, objectFormat git.ObjectFormat)
 
 		// Disable "Push To Create" and attempt to push
 		setting.Repository.EnablePushCreateUser = false
-		t.Run("FailToPushAndCreateTestRepository", doGitPushTestRepositoryFail(tmpDir, "origin", "master"))
+		t.Run("FailToPushAndCreateTestRepository", func(t *testing.T) {
+			doGitPushTestRepositoryFail(t, tmpDir, "origin", "master")
+		})
 
 		// Enable "Push To Create"
 		setting.Repository.EnablePushCreateUser = true
@@ -684,7 +686,9 @@ func doPushCreate(ctx APITestContext, u *url.URL, objectFormat git.ObjectFormat)
 		t.Run("AddInvalidRemote", doGitAddRemote(tmpDir, "invalid", u))
 
 		// Fail to "Push To Create" the invalid
-		t.Run("FailToPushAndCreateInvalidTestRepository", doGitPushTestRepositoryFail(tmpDir, "invalid", "master"))
+		t.Run("FailToPushAndCreateInvalidTestRepository", func(t *testing.T) {
+			doGitPushTestRepositoryFail(t, tmpDir, "invalid", "master")
+		})
 	}
 }
 

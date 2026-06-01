@@ -55,7 +55,6 @@ func InitCustomSettings(confFileName string) {
 	if root == "" {
 		fatalTestError("Environment variable $GITEA_ROOT not set")
 	}
-	setting.AppPath = filepath.Join(root, "gitea")
 	if setting.CustomConf == "" {
 		templateFile := confFileName + ".tmpl"
 		content, err := os.ReadFile(filepath.Join(root, "tests", templateFile))
@@ -100,6 +99,15 @@ type TestOptions struct {
 // MainTest a reusable TestMain(..) function for unit tests that need to use a
 // test database. Creates the test database, and sets necessary settings.
 func MainTest(m *testing.M, testOpts ...*TestOptions) {
+	if _, ok := os.LookupEnv("GIT_DIR"); ok {
+		// The wiki tests require perform git operations.
+		// It worked before dropping the need for the gitea binary because in case of wiki push,
+		// the git hooks do not perform http requests (access permission is checked before git invocation).
+		log.Println("Fake git hook which accepts everything (GIT_DIR is set).")
+		log.Println("Forgejo with proper http hooks is available in integration tests.")
+		os.Exit(0)
+	}
+
 	searchDir, _ := os.Getwd()
 	for searchDir != "" {
 		if _, err := os.Stat(filepath.Join(searchDir, "go.mod")); err == nil {

@@ -154,7 +154,9 @@ func testKeyOnlyOneType(t *testing.T, u *url.URL) {
 
 			t.Run("AddChanges", doAddChangesToCheckout(dstPath, "CHANGES2.md"))
 
-			t.Run("FailToPush", doGitPushTestRepositoryFail(dstPath, "origin", "master"))
+			t.Run("FailToPush", func(t *testing.T) {
+				doGitPushTestRepositoryFail(t, dstPath, "origin", "master")
+			})
 
 			otherSSHURL := createSSHUrl(otherCtx.GitPath(), u)
 			dstOtherPath := t.TempDir()
