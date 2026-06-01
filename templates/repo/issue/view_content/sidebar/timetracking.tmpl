@@ -53,8 +53,7 @@
 	{{end}}
 	<div class="ui comments">
 		<span class="text"><strong>{{ctx.Locale.Tr "repo.issues.time_spent_from_all_authors" ($.Issue.TotalTrackedTime | Sec2Time)}}</strong></span>
-		<p></p>
-		<div>
+		<div class="tw-mt-4">
 			{{range $user, $trackedtime := .WorkingUsers}}
 				<div class="comment tw-mt-2">
 					<a class="avatar">

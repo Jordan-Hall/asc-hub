@@ -5,8 +5,7 @@
 		{{ctx.Locale.Tr "repo.issues.due_date_invalid"}}
 	</div>
 	{{if ne .Issue.DeadlineUnix 0}}
-		<p></p>
-		<div class="tw-flex tw-justify-between tw-items-center">
+		<div class="tw-flex tw-justify-between tw-items-center tw-mt-4">
 			<div class="due-date {{if .Issue.IsOverdue}}text red{{end}}" {{if .Issue.IsOverdue}}data-tooltip-content="{{ctx.Locale.Tr "repo.issues.due_date_overdue"}}"{{end}}>
 				{{svg "octicon-calendar" 16 "tw-mr-2"}}
 				{{DateUtils.AbsoluteLong .Issue.DeadlineUnix}}
