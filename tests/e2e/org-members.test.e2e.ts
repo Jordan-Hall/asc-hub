@@ -19,18 +19,20 @@ test('Toggle visibility', async ({page}) => {
   // Button "Make visible" for user2's row
   const showUser2 = page.locator('.link-action[data-url="/org/org3/members/action/public?uid=2"]');
 
-  await expect(hideUser2).toBeVisible();
-  await expect(showUser2).toBeHidden();
-  await hideUser2.click();
+  if (await hideUser2.isHidden()) {
+    // Bring page to a consistent state before testing
+    await showUser2.click();
+    await expect(hideUser2).toBeVisible();
+    await expect(showUser2).toBeHidden();
+  }
 
-  // Button action was flipped
+  // Click button to make user2 hidden
+  await hideUser2.click();
+  await page.waitForLoadState();
+
+  // Verify that button action was flipped
   await expect(hideUser2).toBeHidden();
   await expect(showUser2).toBeVisible();
-
-  // Revert for repeatability
-  await showUser2.click();
-  await expect(hideUser2).toBeVisible();
-  await expect(showUser2).toBeHidden();
 });
 
 test('Leave org', async ({page}) => {
