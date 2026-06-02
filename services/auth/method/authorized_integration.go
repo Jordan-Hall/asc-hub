@@ -159,6 +159,7 @@ func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter,
 				return nil, fmt.Errorf("error when fetching JWKS from %s: %w", oidcConfig.JwksURI, err)
 			}
 
+			availableKeyIDs := make([]string, 0, len(keys.Keys))
 			for _, key := range keys.Keys {
 				if key["kid"] == keyID {
 					alg, algPresent := key["alg"] // "alg" is an optional field
@@ -177,9 +178,10 @@ func (a *AuthorizedIntegration) Verify(req *http.Request, w http.ResponseWriter,
 					}
 					return pub, nil
 				}
+				availableKeyIDs = append(availableKeyIDs, fmt.Sprintf("%s", key["kid"]))
 			}
 
-			return nil, errors.New("no key identified")
+			return nil, fmt.Errorf("no key identified; JWT was signed with key %q, but JWKS only provided keys with IDs: %s", keyID, strings.Join(availableKeyIDs, ", "))
 		},
 		jwt.WithValidMethods(jwtx.ValidAsymmetricAlgorithms), // only asymetric algorithms, as JWKS must have a public key only
 		jwt.WithIssuedAt(),
