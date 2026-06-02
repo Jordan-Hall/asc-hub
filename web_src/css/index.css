@@ -63,6 +63,7 @@
 @import "./form.css";
 
 @import "./repo.css";
+@import "./repo/commit-list.css";
 @import "./repo/file-view.css";
 @import "./repo/release-tag.css";
 @import "./repo/issue-card.css";

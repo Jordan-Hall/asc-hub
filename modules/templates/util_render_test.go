@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const testInput = `  space @mention-user  
+const testInput = `  space @mention-user
 /just/a/path.bin
 https://example.com/file.bin
 [local link](file.bin)
@@ -113,7 +113,7 @@ func TestRenderCommitBody(t *testing.T) {
 [[remote link|<a href="https://example.com/image.jpg" class="link">https://example.com/image.jpg</a>]]
 <a href="https://example.com/user/repo/compare/88fc37a3c0a4dda553bdcfc80c178a58247f42fb...12fc37a3c0a4dda553bdcfc80c178a58247f42fb#hash" class="compare"><code class="nohighlight">88fc37a3c0...12fc37a3c0 (hash)</code></a>
 com 88fc37a3c0a4dda553bdcfc80c178a58247f42fb...12fc37a3c0a4dda553bdcfc80c178a58247f42fb pare
-<a href="https://example.com/user/repo/commit/88fc37a3c0a4dda553bdcfc80c178a58247f42fb" class="commit"><code class="nohighlight">88fc37a3c0</code></a>
+<a href="https://example.com/user/repo/commit/88fc37a3c0a4dda553bdcfc80c178a58247f42fb"><code class="nohighlight">88fc37a3c0</code></a>
 com 88fc37a3c0a4dda553bdcfc80c178a58247f42fb mit
 <span class="emoji" aria-label="thumbs up" data-alias="+1">👍</span>
 <a href="mailto:mail@domain.com" class="mailto">mail@domain.com</a>
@@ -125,7 +125,7 @@ com 88fc37a3c0a4dda553bdcfc80c178a58247f42fb mit
 }
 
 func TestRenderCommitMessage(t *testing.T) {
-	expected := `space <a href="/mention-user" class="mention">@mention-user</a>  `
+	expected := `space <a href="/mention-user" class="mention">@mention-user</a>`
 
 	assert.EqualValues(t, expected, RenderCommitMessage(t.Context(), testInput, testMetas))
 }
@@ -137,7 +137,7 @@ func TestRenderCommitMessageLinkSubject(t *testing.T) {
 }
 
 func TestRenderIssueTitle(t *testing.T) {
-	expected := `  space @mention-user  
+	expected := `  space @mention-user
 /just/a/path.bin
 https://example.com/file.bin
 [local link](file.bin)
@@ -163,7 +163,7 @@ mail@domain.com
 }
 
 func TestRenderRefIssueTitle(t *testing.T) {
-	expected := `  space @mention-user  
+	expected := `  space @mention-user
 /just/a/path.bin
 https://example.com/file.bin
 [local link](file.bin)
@@ -189,7 +189,7 @@ mail@domain.com
 }
 
 func TestRenderMarkdownToHtml(t *testing.T) {
-	expected := `<p>space <a href="/mention-user" class="mention" rel="nofollow">@mention-user</a><br/>
+	expected := `<p>space <a href="/mention-user" class="mention" rel="nofollow">@mention-user</a>
 /just/a/path.bin
 <a href="https://example.com/file.bin" rel="nofollow">https://example.com/file.bin</a>
 <a href="/file.bin" rel="nofollow">local link</a>

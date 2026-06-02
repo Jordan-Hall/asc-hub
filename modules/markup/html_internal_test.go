@@ -340,52 +340,52 @@ func TestRender_AutoLink(t *testing.T) {
 	t.Run("Commit", func(t *testing.T) {
 		// render valid commit URLs
 		tmp := util.URLJoin(TestRepoURL, "commit", "d8a994ef243349f321568f9e36d5c3f444b99cae")
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">d8a994ef24</code></a>", TestRepoURLWithoutSlash)
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">"+TestOrgRepo+"@d8a994ef24</code></a>", "/forgejo/forgejo")
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">d8a994ef24</code></a>", TestRepoURLWithoutSlash)
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">"+TestOrgRepo+"@d8a994ef24</code></a>", "/forgejo/forgejo")
 		assert(
 			tmp+"#diff-2",
-			"<a href=\""+tmp+"#diff-2\" class=\"commit\"><code class=\"nohighlight\">d8a994ef24 (diff-2)</code></a>",
+			"<a href=\""+tmp+"#diff-2\"><code class=\"nohighlight\">d8a994ef24 (diff-2)</code></a>",
 			TestRepoURL,
 		)
 		assert(
 			tmp+"#diff-953bb4f01b7c77fa18f0cd54211255051e647dbc",
-			"<a href=\""+tmp+"#diff-953bb4f01b7c77fa18f0cd54211255051e647dbc\" class=\"commit\"><code class=\"nohighlight\">d8a994ef24 (diff-953bb4f01b)</code></a>",
+			"<a href=\""+tmp+"#diff-953bb4f01b7c77fa18f0cd54211255051e647dbc\"><code class=\"nohighlight\">d8a994ef24 (diff-953bb4f01b)</code></a>",
 			TestRepoURLWithoutSlash,
 		)
 
 		// render other commit URLs
 		tmp = "https://external-link.gitea.io/go-gitea/gitea/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2"
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">external-link.gitea.io/go-gitea/gitea@d8a994ef24 (diff-2)</code></a>", TestOrgRepo)
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">external-link.gitea.io/go-gitea/gitea@d8a994ef24 (diff-2)</code></a>", TestOrgRepo)
 		defer test.MockVariableValue(&setting.AppURL, "https://external-link.gitea.io/")()
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">d8a994ef24 (diff-2)</code></a>", "https://external-link.gitea.io/go-gitea/gitea")
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">d8a994ef24 (diff-2)</code></a>", "https://external-link.gitea.io/go-gitea/gitea")
 
 		tmp = TestAppURL + "gogits/gogs/src/commit/190d9492934af498c3f669d6a2431dc5459e5b20"
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">localhost:3000/gogits/gogs@190d949293</code></a>", "https://external-link.gitea.io/go-gitea/gitea")
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">localhost:3000/gogits/gogs@190d949293</code></a>", "https://external-link.gitea.io/go-gitea/gitea")
 		defer test.MockVariableValue(&setting.AppURL, TestAppURL)()
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">190d949293</code></a>", "http://localhost:3000/gogits/gogs")
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">190d949293</code></a>", "http://localhost:3000/gogits/gogs")
 
 		tmp = "http://localhost:3000/sub/gogits/gogs/src/commit/190d9492934af498c3f669d6a2431dc5459e5b20"
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">localhost:3000/sub/gogits/gogs@190d949293</code></a>", TestRepoURLWithoutSlash)
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">localhost:3000/sub/gogits/gogs@190d949293</code></a>", "https://external-link.gitea.io/go-gitea/gitea")
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">localhost:3000/sub/gogits/gogs@190d949293</code></a>", TestRepoURLWithoutSlash)
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">localhost:3000/sub/gogits/gogs@190d949293</code></a>", "https://external-link.gitea.io/go-gitea/gitea")
 		defer test.MockVariableValue(&setting.AppURL, TestAppURL+"sub/")()
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">190d949293</code></a>", "http://localhost:3000/sub/gogits/gogs")
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">190d949293</code></a>", "http://localhost:3000/sub/gogits/gogs")
 
 		tmp = "http://localhost:3000/sub1/sub2/sub3/gogits/gogs/src/commit/190d9492934af498c3f669d6a2431dc5459e5b20"
 		defer test.MockVariableValue(&setting.AppURL, TestAppURL+"sub1/sub2/sub3/")()
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">190d949293</code></a>", "http://localhost:3000/sub1/sub2/sub3/gogits/gogs")
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">190d949293</code></a>", "http://localhost:3000/sub1/sub2/sub3/gogits/gogs")
 		defer test.MockVariableValue(&setting.AppURL, TestAppURL)()
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">localhost:3000/sub1/sub2/sub3/gogits/gogs@190d949293</code></a>", "http://localhost:3000/sub1/gogits/gogs")
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">localhost:3000/sub1/sub2/sub3/gogits/gogs@190d949293</code></a>", "https://external-link.gitea.io/go-gitea/gitea")
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">localhost:3000/sub1/sub2/sub3/gogits/gogs@190d949293</code></a>", "http://localhost:3000/sub1/gogits/gogs")
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">localhost:3000/sub1/sub2/sub3/gogits/gogs@190d949293</code></a>", "https://external-link.gitea.io/go-gitea/gitea")
 
 		// if the repository happens to be named like one of the known app routes (e.g. `src`),
 		// we can parse the URL correctly, if there is no sub path
 		tmp = "http://localhost:3000/gogits/src/commit/190d9492934af498c3f669d6a2431dc5459e5b20"
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">gogits/src@190d949293</code></a>", TestRepoURL)
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">gogits/src@190d949293</code></a>", TestRepoURL)
 		tmp = "http://localhost:3000/gogits/src/src/commit/190d9492934af498c3f669d6a2431dc5459e5b20"
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">gogits/src@190d949293</code></a>", TestRepoURL)
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">gogits/src@190d949293</code></a>", TestRepoURL)
 		// but if there is a sub path, we cannot reliably distinguish the repo name from the app route
 		tmp = "http://localhost:3000/sub/gogits/src/commit/190d9492934af498c3f669d6a2431dc5459e5b20"
-		assert(tmp, "<a href=\""+tmp+"\" class=\"commit\"><code class=\"nohighlight\">sub/gogits@190d949293</code></a>", TestRepoURL)
+		assert(tmp, "<a href=\""+tmp+"\"><code class=\"nohighlight\">sub/gogits@190d949293</code></a>", TestRepoURL)
 	})
 
 	t.Run("Compare", func(t *testing.T) {

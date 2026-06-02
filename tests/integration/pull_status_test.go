@@ -44,7 +44,7 @@ func TestPullCreate_CommitStatus(t *testing.T) {
 		doc := NewHTMLParser(t, resp.Body)
 
 		// Get first commit URL
-		commitURL, exists := doc.doc.Find("#commits-table tbody tr td.sha a").Last().Attr("href")
+		commitURL, exists := doc.doc.Find(".commits .commit .sha.label").Last().Attr("href")
 		assert.True(t, exists)
 		assert.NotEmpty(t, commitURL)
 
@@ -84,12 +84,12 @@ func TestPullCreate_CommitStatus(t *testing.T) {
 			resp = session.MakeRequest(t, req, http.StatusOK)
 			doc = NewHTMLParser(t, resp.Body)
 
-			commitURL, exists = doc.doc.Find("#commits-table tbody tr td.sha a").Last().Attr("href")
+			commitURL, exists = doc.doc.Find(".commits .commit .sha.label").Last().Attr("href")
 			assert.True(t, exists)
 			assert.NotEmpty(t, commitURL)
 			assert.Equal(t, commitID, path.Base(commitURL))
 
-			cls, ok := doc.doc.Find("#commits-table tbody tr td.message .commit-status").Last().Attr("class")
+			cls, ok := doc.doc.Find(".commits .commit .message-wrapper .commit-status").Last().Attr("class")
 			assert.True(t, ok)
 			assert.Contains(t, cls, statesIcons[status])
 		}

@@ -115,7 +115,7 @@ test('PR: Navigate by single commit', async ({page}) => {
   const response = await page.goto('/user2/repo1/pulls/3/commits');
   expect(response?.status()).toBe(200);
 
-  await page.locator('tbody.commit-list td.message a').nth(1).click();
+  await page.locator('.commit .message-wrapper a').nth(1).click();
   await page.waitForURL(/.*\/user2\/repo1\/pulls\/3\/commits\/4a357436d925b5c974181ff12a994538ddc5a269/);
   await screenshot(page);
 

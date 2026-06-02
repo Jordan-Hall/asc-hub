@@ -1125,7 +1125,7 @@ func fullHashPatternProcessor(ctx *RenderContext, node *html.Node) {
 		if hash != "" {
 			text += " (" + hash + ")"
 		}
-		replaceContent(node, start, end, createCodeLink(urlFull, text, "commit"))
+		replaceContent(node, start, end, createCodeLink(urlFull, text, ""))
 		node = node.NextSibling.NextSibling
 	}
 }
@@ -1409,7 +1409,7 @@ func hashCurrentPatternProcessor(ctx *RenderContext, node *html.Node) {
 		}
 
 		link := util.URLJoin(ctx.Links.Prefix(), ctx.Metas["user"], ctx.Metas["repo"], "commit", hash)
-		replaceContent(node, m[2], m[3], createCodeLink(link, base.ShortSha(hash), "commit"))
+		replaceContent(node, m[2], m[3], createCodeLink(link, base.ShortSha(hash), ""))
 		start = 0
 		node = node.NextSibling.NextSibling
 	}
