@@ -12,7 +12,10 @@
 				</span>
 			{{end}}
 		</div>
-		<div>
+		<div class="tw-flex tw-items-center tw-gap-2">
+			{{if gt (index .comments 0).ExtraLinesCount 0}}
+				<span class="ui label">Lines {{(index .comments 0).UnsignedLine}}-{{(index .comments 0).UnsignedDisplayLine}}</span>
+			{{end}}
 			{{if or $invalid $resolved}}
 				<button id="show-outdated-{{(index .comments 0).ID}}" data-comment="{{(index .comments 0).ID}}" class="{{if not $resolved}}tw-hidden {{end}}show-outdated">
 					{{svg "octicon-unfold" 16 "tw-mr-2"}}

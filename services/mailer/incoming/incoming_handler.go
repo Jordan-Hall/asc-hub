@@ -148,6 +148,7 @@ func (h *ReplyHandler) Handle(ctx context.Context, content *MailContent, doer *u
 				nil,
 				issue,
 				comment.Line,
+				0, // extraLinesCount: a reply to a comment inherit single line
 				content.Content,
 				comment.TreePath,
 				false, // not pending review but a single review

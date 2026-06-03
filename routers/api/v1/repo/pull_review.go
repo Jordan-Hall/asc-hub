@@ -331,6 +331,11 @@ func CreatePullReviewComment(ctx *context.APIContext) {
 		line = opts.OldLineNum * -1
 	}
 
+	if err := pull_service.ValidateCodeCommentLineRange(opts.ExtraLinesCount); err != nil {
+		ctx.Error(http.StatusUnprocessableEntity, "invalid extra_lines_count", err)
+		return
+	}
+
 	comment, err := pull_service.CreateCodeCommentKnownReviewID(ctx,
 		ctx.Doer,
 		pr.Issue.Repo,
@@ -340,6 +345,7 @@ func CreatePullReviewComment(ctx *context.APIContext) {
 		pr.MergeBase,
 		review.CommitID,
 		line,
+		opts.ExtraLinesCount,
 		review.ID,
 		nil,
 	)
@@ -496,6 +502,11 @@ func CreatePullReview(ctx *context.APIContext) {
 
 	// create review comments
 	for _, c := range opts.Comments {
+		if err := pull_service.ValidateCodeCommentLineRange(c.ExtraLinesCount); err != nil {
+			ctx.Error(http.StatusUnprocessableEntity, "invalid extra_lines_count", err)
+			return
+		}
+
 		line := c.NewLineNum
 		if c.OldLineNum > 0 {
 			line = c.OldLineNum * -1
@@ -506,6 +517,7 @@ func CreatePullReview(ctx *context.APIContext) {
 			ctx.Repo.GitRepo,
 			pr.Issue,
 			line,
+			c.ExtraLinesCount,
 			c.Body,
 			c.Path,
 			true, // pending review

@@ -151,3 +151,59 @@ func Test_UpdateIssueNumComments(t *testing.T) {
 	issue2 = unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 2})
 	assert.Equal(t, 1, issue2.NumComments)
 }
+
+func TestDisplayLine(t *testing.T) {
+	tests := []struct {
+		name     string
+		line     int64
+		count    int64
+		expected int64
+	}{
+		{"positive single line", 10, 0, 10},
+		{"positive multi-line", 7, 2, 9},
+		{"positive large range", 1, 49, 50},
+		{"negative single line", -10, 0, -10},
+		{"negative multi-line", -7, 2, -9},
+		{"negative large range", -1, 49, -50},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &issues_model.Comment{Line: tc.line, ExtraLinesCount: tc.count}
+			assert.Equal(t, tc.expected, c.DisplayLine())
+		})
+	}
+}
+
+func TestUnsignedDisplayLine(t *testing.T) {
+	tests := []struct {
+		name     string
+		line     int64
+		count    int64
+		expected uint64
+	}{
+		{"positive single line", 10, 0, 10},
+		{"positive multi-line", 7, 2, 9},
+		{"negative single line", -10, 0, 10},
+		{"negative multi-line", -7, 2, 9},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &issues_model.Comment{Line: tc.line, ExtraLinesCount: tc.count}
+			assert.Equal(t, tc.expected, c.UnsignedDisplayLine())
+		})
+	}
+}
+
+func TestCheckLineRangeValid_SingleLine(t *testing.T) {
+	// ExtraLinesCount=0 should return true immediately without any git operations
+	c := &issues_model.Comment{Line: 10, ExtraLinesCount: 0}
+	valid, err := c.CheckLineRangeValid(t.Context(), nil, "any-commit-id")
+	require.NoError(t, err)
+	assert.True(t, valid)
+
+	// Negative line, ExtraLinesCount=0
+	c2 := &issues_model.Comment{Line: -5, ExtraLinesCount: 0}
+	valid2, err := c2.CheckLineRangeValid(t.Context(), nil, "any-commit-id")
+	require.NoError(t, err)
+	assert.True(t, valid2)
+}

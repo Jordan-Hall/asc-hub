@@ -5,6 +5,7 @@
 		<input type="hidden" name="latest_commit_id" value="{{$.root.AfterCommitID}}">
 		<input type="hidden" name="side" value="{{if $.Side}}{{$.Side}}{{end}}">
 		<input type="hidden" name="line" value="{{if $.Line}}{{$.Line}}{{end}}">
+		<input type="hidden" name="extra_lines_count" value="{{if $.ExtraLinesCount}}{{$.ExtraLinesCount}}{{else}}0{{end}}">
 		<input type="hidden" name="path" value="{{if $.File}}{{$.File}}{{end}}">
 		<input type="hidden" name="diff_start_cid">
 		<input type="hidden" name="diff_end_cid">

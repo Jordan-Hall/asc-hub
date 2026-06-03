@@ -319,6 +319,14 @@ func FindAdjustedLineNumber(cutDiff string, originalLine int64, fullDiff io.Read
 			rightLine = beginRight
 			inHunk = true
 		} else if inHunk {
+			// Added ('+') lines exist only on the right side of the diff and have no left-side line
+			// number. Skip them before testing the target, otherwise a target line that immediately
+			// follows a removed line would be matched against the inserted line's text and wrongly
+			// reported as changed.
+			if len(lineText) > 0 && lineText[0] == '+' {
+				rightLine++
+				continue
+			}
 			if leftLine == originalLine {
 				if lineText != endOfCutDiff {
 					return LinePlacement{}, fmt.Errorf(
@@ -328,8 +336,6 @@ func FindAdjustedLineNumber(cutDiff string, originalLine int64, fullDiff io.Read
 				return LinePlacement{Left: leftLine, Right: rightLine}, nil
 			}
 			switch lineText[0] {
-			case '+':
-				rightLine++
 			case '-':
 				leftLine++
 			case '\\':

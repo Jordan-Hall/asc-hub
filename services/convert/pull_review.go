@@ -81,19 +81,20 @@ func ToPullReviewList(ctx context.Context, rl []*issues_model.Review, doer *user
 // ToPullReviewCommentList convert the CodeComments of an review to it's api format
 func ToPullReviewComment(ctx context.Context, review *issues_model.Review, comment *issues_model.Comment, doer *user_model.User) (*api.PullReviewComment, error) {
 	apiComment := &api.PullReviewComment{
-		ID:           comment.ID,
-		Body:         comment.Content,
-		Poster:       ToUser(ctx, comment.Poster, doer),
-		Resolver:     ToUser(ctx, comment.ResolveDoer, doer),
-		ReviewID:     review.ID,
-		Created:      comment.CreatedUnix.AsTime(),
-		Updated:      comment.UpdatedUnix.AsTime(),
-		Path:         comment.TreePath,
-		CommitID:     comment.CommitSHA,
-		OrigCommitID: comment.OldRef,
-		DiffHunk:     patch2diff(comment.Patch),
-		HTMLURL:      comment.HTMLURL(ctx),
-		HTMLPullURL:  review.Issue.HTMLURL(),
+		ID:              comment.ID,
+		Body:            comment.Content,
+		Poster:          ToUser(ctx, comment.Poster, doer),
+		Resolver:        ToUser(ctx, comment.ResolveDoer, doer),
+		ReviewID:        review.ID,
+		Created:         comment.CreatedUnix.AsTime(),
+		Updated:         comment.UpdatedUnix.AsTime(),
+		Path:            comment.TreePath,
+		CommitID:        comment.CommitSHA,
+		OrigCommitID:    comment.OldRef,
+		DiffHunk:        patch2diff(comment.Patch),
+		ExtraLinesCount: comment.ExtraLinesCount,
+		HTMLURL:         comment.HTMLURL(ctx),
+		HTMLPullURL:     review.Issue.HTMLURL(),
 	}
 
 	if comment.Line < 0 {

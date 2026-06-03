@@ -89,6 +89,11 @@ func CreateCodeComment(ctx *context.Context) {
 		signedLine *= -1
 	}
 
+	if err := pull_service.ValidateCodeCommentLineRange(form.ExtraLinesCount); err != nil {
+		ctx.Error(http.StatusBadRequest, err.Error())
+		return
+	}
+
 	var attachments []string
 	if setting.Attachment.Enabled {
 		attachments = form.Files
@@ -117,6 +122,7 @@ func CreateCodeComment(ctx *context.Context) {
 		ctx.Repo.GitRepo,
 		issue,
 		signedLine,
+		form.ExtraLinesCount,
 		form.Content,
 		form.TreePath,
 		pendingReview,

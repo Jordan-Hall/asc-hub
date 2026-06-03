@@ -65,6 +65,8 @@ type PullReviewComment struct {
 	DiffHunk     string `json:"diff_hunk"`
 	LineNum      uint64 `json:"position"`
 	OldLineNum   uint64 `json:"original_position"`
+	// number of additional lines after the commented line (0 = single line comment)
+	ExtraLinesCount int64 `json:"extra_lines_count"`
 
 	HTMLURL     string `json:"html_url"`
 	HTMLPullURL string `json:"pull_request_url"`
@@ -87,6 +89,8 @@ type CreatePullReviewComment struct {
 	OldLineNum int64 `json:"old_position"`
 	// if comment to new file line or 0
 	NewLineNum int64 `json:"new_position"`
+	// number of additional lines after the commented line (0 = single line comment)
+	ExtraLinesCount int64 `json:"extra_lines_count"`
 }
 
 type CreatePullReviewCommentOptions CreatePullReviewComment

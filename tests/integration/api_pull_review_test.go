@@ -16,6 +16,7 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/json"
+	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	issue_service "forgejo.org/services/issue"
 	"forgejo.org/tests"
@@ -149,6 +150,109 @@ func TestAPIPullReviewCreateDeleteComment(t *testing.T) {
 			requireReviewCount(1)
 		})
 	}
+}
+
+func TestAPIPullReviewMultiLineComment(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	pullIssue := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 3})
+	require.NoError(t, pullIssue.LoadAttributes(db.DefaultContext))
+	repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: pullIssue.RepoID})
+
+	session := loginUser(t, "user2")
+	token := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeWriteRepository)
+
+	// Create a review with a multi-line comment (extra_lines_count > 0)
+	var review api.PullReview
+	req := NewRequestWithJSON(t, http.MethodPost, fmt.Sprintf("/api/v1/repos/%s/%s/pulls/%d/reviews", repo.OwnerName, repo.Name, pullIssue.Index), &api.CreatePullReviewOptions{
+		Body:  "multi-line review",
+		Event: "COMMENT",
+		Comments: []api.CreatePullReviewComment{
+			{
+				Path:            "README.md",
+				Body:            "multi-line comment on lines 1-3",
+				NewLineNum:      1,
+				ExtraLinesCount: 2,
+			},
+		},
+	}).AddTokenAuth(token)
+	resp := MakeRequest(t, req, http.StatusOK)
+	DecodeJSON(t, resp, &review)
+	assert.EqualValues(t, "COMMENT", review.State)
+	assert.Equal(t, 1, review.CodeCommentsCount)
+
+	// Get the review comments and verify extra_lines_count is returned
+	req = NewRequestf(t, http.MethodGet, "/api/v1/repos/%s/%s/pulls/%d/reviews/%d/comments", repo.OwnerName, repo.Name, pullIssue.Index, review.ID).
+		AddTokenAuth(token)
+	resp = MakeRequest(t, req, http.StatusOK)
+	var reviewComments []*api.PullReviewComment
+	DecodeJSON(t, resp, &reviewComments)
+	require.Len(t, reviewComments, 1)
+	assert.EqualValues(t, 2, reviewComments[0].ExtraLinesCount)
+	assert.EqualValues(t, 1, reviewComments[0].LineNum)
+	assert.Equal(t, "multi-line comment on lines 1-3", reviewComments[0].Body)
+
+	// Create a review with a single-line comment (extra_lines_count = 0, backward compat)
+	var review2 api.PullReview
+	req = NewRequestWithJSON(t, http.MethodPost, fmt.Sprintf("/api/v1/repos/%s/%s/pulls/%d/reviews", repo.OwnerName, repo.Name, pullIssue.Index), &api.CreatePullReviewOptions{
+		Body:  "single-line review",
+		Event: "COMMENT",
+		Comments: []api.CreatePullReviewComment{
+			{
+				Path:       "README.md",
+				Body:       "single-line comment",
+				NewLineNum: 1,
+			},
+		},
+	}).AddTokenAuth(token)
+	resp = MakeRequest(t, req, http.StatusOK)
+	DecodeJSON(t, resp, &review2)
+
+	// Get the review comments and verify extra_lines_count is 0
+	req = NewRequestf(t, http.MethodGet, "/api/v1/repos/%s/%s/pulls/%d/reviews/%d/comments", repo.OwnerName, repo.Name, pullIssue.Index, review2.ID).
+		AddTokenAuth(token)
+	resp = MakeRequest(t, req, http.StatusOK)
+	var singleComments []*api.PullReviewComment
+	DecodeJSON(t, resp, &singleComments)
+	require.Len(t, singleComments, 1)
+	assert.EqualValues(t, 0, singleComments[0].ExtraLinesCount)
+
+	// Create a review with negative extra_lines_count → should be rejected
+	req = NewRequestWithJSON(t, http.MethodPost, fmt.Sprintf("/api/v1/repos/%s/%s/pulls/%d/reviews", repo.OwnerName, repo.Name, pullIssue.Index), &api.CreatePullReviewOptions{
+		Body:  "negative review",
+		Event: "COMMENT",
+		Comments: []api.CreatePullReviewComment{
+			{
+				Path:            "README.md",
+				Body:            "negative extra_lines_count",
+				NewLineNum:      1,
+				ExtraLinesCount: -1,
+			},
+		},
+	}).AddTokenAuth(token)
+	MakeRequest(t, req, http.StatusUnprocessableEntity)
+
+	// Create a review with a range exceeding setting.UI.MaxCodeCommentLines → should be rejected
+	req = NewRequestWithJSON(t, http.MethodPost, fmt.Sprintf("/api/v1/repos/%s/%s/pulls/%d/reviews", repo.OwnerName, repo.Name, pullIssue.Index), &api.CreatePullReviewOptions{
+		Body:  "too long review",
+		Event: "COMMENT",
+		Comments: []api.CreatePullReviewComment{
+			{
+				Path:            "README.md",
+				Body:            "extra_lines_count over the limit",
+				NewLineNum:      1,
+				ExtraLinesCount: int64(setting.UI.MaxCodeCommentLines), // range spans MaxCodeCommentLines+1 lines
+			},
+		},
+	}).AddTokenAuth(token)
+	MakeRequest(t, req, http.StatusUnprocessableEntity)
+
+	// Cleanup
+	req = NewRequestf(t, http.MethodDelete, "/api/v1/repos/%s/%s/pulls/%d/reviews/%d", repo.OwnerName, repo.Name, pullIssue.Index, review.ID).
+		AddTokenAuth(token)
+	MakeRequest(t, req, http.StatusNoContent)
+	req = NewRequestf(t, http.MethodDelete, "/api/v1/repos/%s/%s/pulls/%d/reviews/%d", repo.OwnerName, repo.Name, pullIssue.Index, review2.ID).
+		AddTokenAuth(token)
+	MakeRequest(t, req, http.StatusNoContent)
 }
 
 func TestAPIPullReview(t *testing.T) {

@@ -21,6 +21,7 @@ var UI = struct {
 	PackagesPagingNum     int
 	GraphMaxCommitNum     int
 	CodeCommentLines      int
+	MaxCodeCommentLines   int
 	ReactionMaxUserNum    int
 	MaxDisplayFileSize    int64
 	ShowUserEmail         bool
@@ -81,6 +82,7 @@ var UI = struct {
 	PackagesPagingNum:   20,
 	GraphMaxCommitNum:   100,
 	CodeCommentLines:    4,
+	MaxCodeCommentLines: 50,
 	ReactionMaxUserNum:  10,
 	MaxDisplayFileSize:  8388608,
 	DefaultTheme:        `forgejo-auto`,

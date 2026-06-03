@@ -46,6 +46,19 @@ func newCodeConversationsAtLineAndTreePath(ctx context.Context, comments []*Comm
 			// when the user views a different commit in the PR, and it will always appear on the "Conversations" tab.
 			continue
 		}
+
+		// For multi-line comments, verify that the full line range is still valid and contiguous at head.
+		// If lines were inserted/removed/reordered within the range, the comment would be displayed
+		// at wrong lines — skip it in this view (it remains visible on the "Conversations" tab).
+		if comment.ExtraLinesCount > 0 && blame != nil {
+			valid, err := comment.CheckLineRangeValid(ctx, repo, headCommitID)
+			if err != nil {
+				log.Warn("CheckLineRangeValid failed for comment %d: %s", comment.ID, err.Error())
+			} else if !valid {
+				continue
+			}
+		}
+
 		tree.insertComment(comment, blame)
 	}
 	return tree, nil
@@ -53,12 +66,17 @@ func newCodeConversationsAtLineAndTreePath(ctx context.Context, comments []*Comm
 
 func (tree CodeConversationsAtLineAndTreePath) insertComment(comment *Comment, blame *git.ReverseLineBlame) {
 	treePath := comment.TreePath
-	line := comment.Line
+	line := comment.DisplayLine()
 	if blame != nil {
 		treePath = blame.FilePath
-		line = int64(blame.LineNumber)
 		if comment.Line < 0 {
-			line *= -1
+			// On the previous side, ResolveCurrentLine resolves the last line of the range (the display
+			// line) directly, so blame.LineNumber already is the signed display line.
+			line = int64(blame.LineNumber) * -1
+		} else {
+			// On the proposed side, blame resolves the first line; the display line is that line shifted
+			// down by the number of extra lines.
+			line = int64(blame.LineNumber) + comment.ExtraLinesCount
 		}
 	}
 
@@ -117,7 +135,8 @@ func fetchCodeCommentsByReview(ctx context.Context, issue *Issue, doer *user_mod
 		if pathToLineToComment[comment.TreePath] == nil {
 			pathToLineToComment[comment.TreePath] = make(map[int64][]*Comment)
 		}
-		pathToLineToComment[comment.TreePath][comment.Line] = append(pathToLineToComment[comment.TreePath][comment.Line], comment)
+		displayLine := comment.DisplayLine()
+		pathToLineToComment[comment.TreePath][displayLine] = append(pathToLineToComment[comment.TreePath][displayLine], comment)
 	}
 	return pathToLineToComment, nil
 }

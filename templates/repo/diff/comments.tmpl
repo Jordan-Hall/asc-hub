@@ -31,6 +31,9 @@
 				{{end}}
 			</div>
 			<div class="comment-header-right actions tw-flex tw-items-center">
+				{{if gt .ExtraLinesCount 0}}
+					<span class="ui label">Lines {{.UnsignedLine}}-{{.UnsignedDisplayLine}}</span>
+				{{end}}
 				{{if .Invalidated}}
 					{{$referenceUrl := printf "%s#%s" $.root.Issue.Link .HashTag}}
 					<a href="{{AppSubUrl}}{{$referenceUrl}}" class="ui label" data-tooltip-content="{{ctx.Locale.Tr "repo.issues.review.outdated_description"}}">

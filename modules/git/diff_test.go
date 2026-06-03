@@ -154,6 +154,34 @@ func TestCutDiffAroundLine(t *testing.T) {
 	assert.Equal(t, expected, minusDiff)
 }
 
+func TestCutDiffAroundLineMultiRange(t *testing.T) {
+	// Simulate multi-line comment: lines 2-4 on new side (
+	// 	displayLine=4 -> last line of the comment
+	// context=3+2=5 -> 3 lines of context + 2 lines of the comment that are above the display line
+	// )
+	// This mirrors how services/pull/review.go computes the patch for multi-line comments:
+	//   displayLine = UnsignedDisplayLine() (last line of range)
+	//   contextLines = setting.UI.CodeCommentLines + extraLinesCount
+	result, err := CutDiffAroundLine(strings.NewReader(breakingDiff), 4, false, 5)
+	require.NoError(t, err)
+
+	// Should include lines 1-4 of the new side (--some comment, --some comment 2, -- some comment 3, create or replace...)
+	assert.Contains(t, result, "--some comment 2")
+	assert.Contains(t, result, "-- some comment 3")
+	assert.Contains(t, result, "create or replace procedure")
+
+	// Simulate single line (extraLinesCount=0): displayLine=2, context=3
+	singleResult, err := CutDiffAroundLine(strings.NewReader(breakingDiff), 2, false, 3)
+	require.NoError(t, err)
+	assert.Contains(t, singleResult, "--some comment 2")
+
+	// Multi-line on exampleDiff: lines 3-5 new side (displayLine=5, context=3+2=5)
+	multiResult, err := CutDiffAroundLine(strings.NewReader(exampleDiff), 5, false, 5)
+	require.NoError(t, err)
+	assert.Contains(t, multiResult, "Build Status")
+	assert.Contains(t, multiResult, "Docker Pulls")
+}
+
 func BenchmarkCutDiffAroundLine(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		CutDiffAroundLine(strings.NewReader(exampleDiff), 3, true, 3)
@@ -289,6 +317,35 @@ index 2d203fb..d0cb63f 100644
 		lineNumber, err := FindAdjustedLineNumber(commentCutDiff, 50, strings.NewReader(diff))
 		require.NoError(t, err)
 		assert.Equal(t, LinePlacement{Left: 50, Right: 52}, lineNumber)
+	})
+
+	t.Run("target line is an unchanged line right after a modification", func(t *testing.T) {
+		// The commented line (49) is a context line immediately following a modified line (48).
+		// The added ('+') line for the modification must be skipped while locating the old-side line,
+		// otherwise it would be matched against line 49 and wrongly reported as changed.
+		cutDiff := `diff --git a/file1.md b/file1.md
+--- a/file1.md
++++ b/file1.md
+@@ -46,4 +46,4 @@ Line 45
+ Line 46
+ Line 47
+-Line 48
++Line 48--modified
+ Line 49`
+		diff := `diff --git a/file1.md b/file1.md
+index 2d203fb..b21df3f 100644
+--- a/file1.md
++++ b/file1.md
+@@ -46,4 +46,4 @@ Line 45
+ Line 46
+ Line 47
+-Line 48
++Line 48--modified
+ Line 49
+ Line 50`
+		lineNumber, err := FindAdjustedLineNumber(cutDiff, 49, strings.NewReader(diff))
+		require.NoError(t, err)
+		assert.Equal(t, LinePlacement{Left: 49, Right: 49}, lineNumber)
 	})
 
 	t.Run("changes above in the same hunk", func(t *testing.T) {

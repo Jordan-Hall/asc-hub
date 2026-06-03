@@ -153,6 +153,9 @@ export function initRepoIssueCommentDelete() {
           conversationHolder.remove();
         }
 
+        // Recompute multi-line comment highlights so a removed comment no longer leaves a stale range highlight.
+        refreshMultiLineCommentHighlights();
+
         // Check if there is no review content, move the time avatar upward to avoid overlapping the content below.
         if (!parentTimelineGroup?.querySelector('.timeline-item.comment') && !parentTimelineItem?.querySelector('.conversation-holder')) {
           const timelineAvatar = parentTimelineGroup?.querySelector('.timeline-avatar');
@@ -187,6 +190,8 @@ export function initRepoIssueCodeCommentCancel() {
   // Cancel inline code comment
   document.addEventListener('click', (e) => {
     if (!e.target.matches('.cancel-code-comment')) return;
+
+    clearMultiLineSelection();
 
     const form = e.target.closest('form');
     if (form?.classList.contains('comment-form')) {
@@ -376,7 +381,84 @@ export async function handleReply($el) {
   return editor;
 }
 
+// Multi-line comment selection helpers
+
+export function clearMultiLineSelection() {
+  for (const el of document.querySelectorAll('.diff-line-selected')) {
+    el.classList.remove('diff-line-selected');
+  }
+}
+
+function findDiffLineRow(path, side, lineNum) {
+  const fileBox = document.querySelector(`[data-path="${path}"]`);
+  if (!fileBox) return null;
+
+  const numClass = side === 'left' ? 'lines-num-old' : 'lines-num-new';
+  const cells = fileBox.querySelectorAll(`.${numClass}[data-line-num="${lineNum}"]`);
+  for (const cell of cells) {
+    const row = cell.closest('tr');
+    if (row) return row;
+  }
+  return null;
+}
+
+// addLineHighlight applies a highlight class to a single diff line.
+// In split view a row holds both sides, so only the cells of `side` are highlighted to avoid
+// lighting up the opposite column. In unified view there is a single code column, so the whole
+// row is highlighted.
+function addLineHighlight(row, side, className) {
+  if (!row.closest('.code-diff-split')) {
+    row.classList.add(className);
+    return;
+  }
+  const suffix = side === 'left' ? 'old' : 'new';
+  for (const cell of row.querySelectorAll(`.lines-num-${suffix}, .lines-escape-${suffix}, .lines-type-marker-${suffix}, .lines-code-${suffix}`)) {
+    cell.classList.add(className);
+  }
+}
+
+function highlightLineRange(path, side, startLine, endLine) {
+  for (let i = startLine; i <= endLine; i++) {
+    const row = findDiffLineRow(path, side, i);
+    if (row) {
+      addLineHighlight(row, side, 'diff-line-selected');
+    }
+  }
+}
+
+// refreshMultiLineCommentHighlights recomputes the highlight of every existing multi-line
+// comment range from the current DOM. It is idempotent: it first clears all previous range
+// highlights so that comments removed since the last call no longer leave stale highlighting,
+// then re-applies the highlight for every conversation holder still present.
+// Call it on page load and after any dynamic create/delete of a code comment.
+export function refreshMultiLineCommentHighlights() {
+  for (const el of document.querySelectorAll('.diff-line-commented-range')) {
+    el.classList.remove('diff-line-commented-range');
+  }
+
+  for (const holder of document.querySelectorAll('.conversation-holder[data-extra-lines-count]')) {
+    const extraLinesCount = parseInt(holder.getAttribute('data-extra-lines-count'));
+    if (!extraLinesCount) continue;
+
+    const side = holder.getAttribute('data-side');
+    const idx = parseInt(holder.getAttribute('data-idx'));
+    const path = holder.getAttribute('data-path');
+
+    // idx is UnsignedLine (first line), the comment displays at idx + extraLinesCount (last line)
+    // Highlight from idx to idx + extraLinesCount
+    for (let i = idx; i <= idx + extraLinesCount; i++) {
+      const row = findDiffLineRow(path, side, i);
+      if (row) {
+        addLineHighlight(row, side, 'diff-line-commented-range');
+      }
+    }
+  }
+}
+
 export function initRepoPullRequestReview() {
+  // Highlight existing multi-line comment ranges
+  refreshMultiLineCommentHighlights();
+
   if (window.location.hash && window.location.hash.startsWith('#issuecomment-')) {
     // set scrollRestoration to 'manual' when there is a hash in url, so that the scroll position will not be remembered after refreshing
     if (window.history.scrollRestoration !== 'manual') {
@@ -467,8 +549,124 @@ export function initRepoPullRequestReview() {
     });
   }
 
+  // Multi-line comment selection state (drag-based like GitHub)
+  let multiLineDrag = null; // {side, startIdx, path, isSplit, newCommentUrl}
+
+  // Mousedown on + button with Shift held: start multi-line drag
+  $(document).on('mousedown', '.add-code-comment', function (e) {
+    if (e.target.classList.contains('btn-add-single')) return;
+    if (!e.shiftKey) return;
+    if (e.button !== 0) return; // left click only
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const isSplit = this.closest('.code-diff')?.classList.contains('code-diff-split');
+    const side = this.getAttribute('data-side');
+    const idx = parseInt(this.getAttribute('data-idx'));
+    const path = this.closest('[data-path]')?.getAttribute('data-path');
+    const newCommentUrl = this.closest('[data-new-comment-url]')?.getAttribute('data-new-comment-url');
+
+    clearMultiLineSelection();
+    multiLineDrag = {side, startIdx: idx, currentIdx: idx, path, isSplit, newCommentUrl};
+
+    // Highlight the initial line
+    const row = findDiffLineRow(path, side, idx);
+    if (row) addLineHighlight(row, side, 'diff-line-selected');
+
+    // Prevent text selection during drag
+    document.body.style.userSelect = 'none';
+  });
+
+  // Mouseover on diff table rows during drag: extend selection
+  $(document).on('mouseover', 'tr[data-line-type]', function () {
+    if (!multiLineDrag) return;
+
+    // Find the line number from the appropriate side's cell
+    const numClass = multiLineDrag.side === 'left' ? 'lines-num-old' : 'lines-num-new';
+    const numCell = this.querySelector(`.${numClass}[data-line-num]`);
+    if (!numCell) return;
+
+    const lineNum = parseInt(numCell.getAttribute('data-line-num'));
+    if (!lineNum || Number.isNaN(lineNum)) return;
+
+    // Check same file
+    const filePath = this.closest('[data-path]')?.getAttribute('data-path');
+    if (filePath !== multiLineDrag.path) return;
+
+    // Only extend downward (end >= start)
+    if (lineNum < multiLineDrag.startIdx) return;
+
+    multiLineDrag.currentIdx = lineNum;
+
+    // Update highlight
+    clearMultiLineSelection();
+    highlightLineRange(multiLineDrag.path, multiLineDrag.side, multiLineDrag.startIdx, multiLineDrag.currentIdx);
+  });
+
+  // Mouseup: finalize multi-line selection
+  $(document).on('mouseup', async () => {
+    if (!multiLineDrag) return;
+
+    document.body.style.userSelect = '';
+
+    const {side, startIdx, currentIdx, path, isSplit, newCommentUrl} = multiLineDrag;
+    const lineStart = Math.min(startIdx, currentIdx);
+    const lineEnd = Math.max(startIdx, currentIdx);
+    const extraLinesCount = lineEnd - lineStart;
+    multiLineDrag = null;
+
+    if (extraLinesCount === 0) {
+      // Single line: clear highlight, no multi-line form
+      clearMultiLineSelection();
+      return;
+    }
+
+    // Open comment form below the last line of the range
+    const endTr = findDiffLineRow(path, side, lineEnd);
+    if (!endTr) return;
+
+    const lineType = endTr.getAttribute('data-line-type') || 'same';
+    const ntr = endTr.nextElementSibling;
+    let $ntr = $(ntr);
+    if (!ntr?.classList.contains('add-comment')) {
+      $ntr = $(`
+        <tr class="add-comment" data-line-type="${lineType}">
+          ${isSplit ? `
+            <td class="add-comment-left" colspan="4"></td>
+            <td class="add-comment-right" colspan="4"></td>
+          ` : `
+            <td class="add-comment-left add-comment-right" colspan="5"></td>
+          `}
+        </tr>`);
+      $(endTr).after($ntr);
+    }
+
+    const $td = $ntr.find(`.add-comment-${side}`);
+    const $commentCloud = $td.find('.comment-code-cloud');
+    if (!$commentCloud.length && !$ntr.find('button[name="pending_review"]').length) {
+      try {
+        const response = await GET(newCommentUrl);
+        const html = await response.text();
+        $td.html(html);
+        $td.find("input[name='line']").val(lineStart);
+        $td.find("input[name='side']").val(side === 'left' ? 'previous' : 'proposed');
+        $td.find("input[name='path']").val(path);
+        $td.find("input[name='extra_lines_count']").val(extraLinesCount);
+
+        await initDropzone($td.find('.dropzone')[0]);
+        const editor = await initComboMarkdownEditor($td.find('.combo-markdown-editor'));
+        editor.focus();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  });
+
+  // Normal click (no shift): single-line comment (existing behavior)
   $(document).on('click', '.add-code-comment', async function (e) {
     if (e.target.classList.contains('btn-add-single')) return; // https://github.com/go-gitea/gitea/issues/4745
+    if (e.shiftKey) return; // handled by mousedown/mouseup above
     e.preventDefault();
 
     const isSplit = this.closest('.code-diff')?.classList.contains('code-diff-split');
@@ -510,6 +708,19 @@ export function initRepoPullRequestReview() {
       } catch (error) {
         console.error(error);
       }
+    }
+  });
+
+  // Clear multi-line selection when pressing Escape or cancelling
+  $(document).on('click', '.cancel-code-comment', () => {
+    clearMultiLineSelection();
+    multiLineDrag = null;
+  });
+  $(document).on('keydown', (e) => {
+    if (e.key === 'Escape' && multiLineDrag) {
+      document.body.style.userSelect = '';
+      clearMultiLineSelection();
+      multiLineDrag = null;
     }
   });
 }
