@@ -293,7 +293,7 @@ func APIContexter() func(http.Handler) http.Handler {
 			ctx.AppendContextValue(apiContextKey, ctx)
 			ctx.AppendContextValueFunc(gitrepo.RepositoryContextKey, func() any { return ctx.Repo.GitRepo })
 
-			httpcache.SetCacheControlInHeader(ctx.Resp.Header(), 0, "no-transform")
+			httpcache.SetCacheControlInHeader(ctx.Resp.Header(), 0)
 			ctx.Resp.Header().Set(`X-Frame-Options`, setting.CORSConfig.XFrameOptions)
 
 			next.ServeHTTP(ctx.Resp, ctx.Req)

@@ -14,8 +14,8 @@ import (
 )
 
 // SetCacheControlInHeader sets suitable cache-control headers in the response
-func SetCacheControlInHeader(h http.Header, maxAge time.Duration, additionalDirectives ...string) {
-	directives := make([]string, 0, 2+len(additionalDirectives))
+func SetCacheControlInHeader(h http.Header, maxAge time.Duration) {
+	directives := make([]string, 0, 2)
 
 	// "max-age=0 + must-revalidate" (aka "no-cache") is preferred instead of "no-store"
 	// because browsers may restore some input fields after navigate-back / reload a page.
@@ -33,7 +33,7 @@ func SetCacheControlInHeader(h http.Header, maxAge time.Duration, additionalDire
 		h.Set("X-Forgejo-Debug", "RUN_MODE="+setting.RunMode)
 	}
 
-	h.Set("Cache-Control", strings.Join(append(directives, additionalDirectives...), ", "))
+	h.Set("Cache-Control", strings.Join(directives, ", "))
 }
 
 func ServeContentWithCacheControl(w http.ResponseWriter, req *http.Request, name string, modTime time.Time, content io.ReadSeeker) {
