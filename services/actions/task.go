@@ -42,12 +42,14 @@ func PickTask(ctx context.Context, runner *actions_model.ActionRunner, requestKe
 	}
 
 	if err := db.WithTx(ctx, func(ctx context.Context) error {
-		t, ok, err := actions_model.CreateTaskForRunner(ctx, runner, requestKey, handle)
+		t, err := actions_model.CreateTaskForRunner(ctx, runner, requestKey, handle)
 		if err != nil {
+			if errors.Is(err, actions_model.ErrNoMatchingJobFound) ||
+				errors.Is(err, actions_model.ErrNoJobUpdated) {
+				return nil
+			}
+
 			return fmt.Errorf("CreateTaskForRunner: %w", err)
-		}
-		if !ok {
-			return nil
 		}
 
 		if err := t.LoadAttributes(ctx); err != nil {
