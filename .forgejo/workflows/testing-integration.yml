@@ -16,7 +16,7 @@
 name: testing-integration
 
 on:
-#  pull_request:
+  #  pull_request:
   push:
     tags: 'v[0-9]+.[0-9]+.*'
     branches:
@@ -27,12 +27,12 @@ enable-email-notifications: true
 
 jobs:
   test-unit:
-#    if: vars.ROLE == 'forgejo-coding'
+    #    if: vars.ROLE == 'forgejo-coding'
     if: vars.ROLE == 'forgejo-integration'
     runs-on: docker
     container:
       image: 'data.forgejo.org/oci/node:24-trixie'
-      options: --tmpfs /tmp:exec,noatime
+      # options: --tmpfs /tmp:exec,noatime # Too much memory usage
     steps:
       - uses: https://data.forgejo.org/actions/checkout@v6
       - uses: ./.forgejo/workflows-composite/setup-env
@@ -46,12 +46,12 @@ jobs:
           RACE_ENABLED: 'true'
           TAGS: bindata
   test-sqlite:
-#    if: vars.ROLE == 'forgejo-coding'
+    #    if: vars.ROLE == 'forgejo-coding'
     if: vars.ROLE == 'forgejo-integration'
     runs-on: docker
     container:
       image: 'data.forgejo.org/oci/node:24-trixie'
-      options: --tmpfs /tmp:exec,noatime
+      # options: --tmpfs /tmp:exec,noatime # Too much memory usage
     steps:
       - uses: https://data.forgejo.org/actions/checkout@v6
       - uses: ./.forgejo/workflows-composite/setup-env
@@ -67,7 +67,7 @@ jobs:
           TEST_TAGS: sqlite sqlite_unlock_notify
           USE_REPO_TEST_DIR: 1
   test-mariadb:
-#    if: vars.ROLE == 'forgejo-coding'
+    #    if: vars.ROLE == 'forgejo-coding'
     if: vars.ROLE == 'forgejo-integration'
     runs-on: docker
     name: ${{ format('test-mariadb (v{0})', matrix.version) }}
@@ -76,7 +76,7 @@ jobs:
         version: ['10.6', '11.8']
     container:
       image: 'data.forgejo.org/oci/node:24-trixie'
-      options: --tmpfs /tmp:exec,noatime
+      # options: --tmpfs /tmp:exec,noatime # Too much memory usage
     services:
       mysql:
         image: ${{ format('data.forgejo.org/oci/mariadb:{0}', matrix.version) }}

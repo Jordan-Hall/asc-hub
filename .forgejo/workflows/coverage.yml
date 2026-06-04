@@ -21,14 +21,14 @@ jobs:
     runs-on: docker
     container:
       image: 'data.forgejo.org/oci/ci:2'
-      options: --tmpfs /tmp:exec,noatime
+      # options: --tmpfs /tmp:exec,noatime # Too much memory usage
     services:
       elasticsearch:
         image: data.forgejo.org/oci/bitnami/elasticsearch:7
         options: --tmpfs /bitnami/elasticsearch/data
         env:
           discovery.type: single-node
-          ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+          ES_JAVA_OPTS: '-Xms512m -Xmx512m'
       minio:
         image: data.forgejo.org/oci/bitnami/minio:2024.8.17
         options: >-
