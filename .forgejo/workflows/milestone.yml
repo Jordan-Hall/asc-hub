@@ -15,7 +15,7 @@ jobs:
     container:
       image: 'data.forgejo.org/oci/ci:2'
     steps:
-      - uses: https://data.forgejo.org/forgejo/set-milestone@v1.0.0
+      - uses: https://data.forgejo.org/forgejo/set-milestone@4010c1a99aa87eed8acd94064b4fa93f675ba561 # v1.0.0
         with:
           forgejo: https://codeberg.org
           repository: forgejo/forgejo

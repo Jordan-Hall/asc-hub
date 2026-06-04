@@ -33,7 +33,7 @@ jobs:
     # root is used for testing, allow it
     if: vars.ROLE == 'forgejo-integration' || github.repository_owner == 'root'
     steps:
-      - uses: https://data.forgejo.org/actions/checkout@v6
+      - uses: https://data.forgejo.org/actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
 
@@ -43,11 +43,11 @@ jobs:
           repository="${{ github.repository }}"
           echo "value=${repository##*/}" >> "$GITHUB_OUTPUT"
 
-      - uses: https://data.forgejo.org/actions/setup-node@v6
+      - uses: https://data.forgejo.org/actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 22
 
-      - uses: https://data.forgejo.org/actions/setup-go@v6
+      - uses: https://data.forgejo.org/actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
           go-version-file: "go.mod"
 
@@ -93,7 +93,7 @@ jobs:
 
       - name: cache node_modules
         id: node
-        uses: https://data.forgejo.org/actions/cache@v5
+        uses: https://data.forgejo.org/actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
@@ -164,7 +164,7 @@ jobs:
 
       - name: build container & release
         if: ${{ secrets.TOKEN != '' }}
-        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.7.0
+        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@970e852f5ce41d5821b62b9137c4ff4966c9a3d1 # v5.7.0
         with:
           forgejo: "${{ env.GITHUB_SERVER_URL }}"
           owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
@@ -183,7 +183,7 @@ jobs:
 
       - name: build rootless container
         if: ${{ secrets.TOKEN != '' }}
-        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.7.0
+        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@970e852f5ce41d5821b62b9137c4ff4966c9a3d1 # v5.7.0
         with:
           forgejo: "${{ env.GITHUB_SERVER_URL }}"
           owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
@@ -201,7 +201,7 @@ jobs:
 
       - name: end-to-end tests
         if: ${{ secrets.TOKEN != '' && vars.ROLE == 'forgejo-integration' && vars.SKIP_END_TO_END != 'true' }}
-        uses: https://data.forgejo.org/actions/cascading-pr@v2.3.2
+        uses: https://data.forgejo.org/actions/cascading-pr@b52d5b1f4f7bc3dd8b9f6ceca3a05aea6e9920be # v2.3.2
         with:
           origin-url: ${{ env.GITHUB_SERVER_URL }}
           origin-repo: ${{ github.repository }}

@@ -41,10 +41,10 @@ jobs:
     runs-on: lxc-bookworm
     if: vars.DOER != '' && vars.FORGEJO != '' && vars.TO_OWNER != '' && vars.FROM_OWNER != '' && secrets.TOKEN != ''
     steps:
-      - uses: https://data.forgejo.org/actions/checkout@v6
+      - uses: https://data.forgejo.org/actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: copy & sign
-        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/publish@v5.7.0
+        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/publish@970e852f5ce41d5821b62b9137c4ff4966c9a3d1 # v5.7.0
         with:
           from-forgejo: ${{ vars.FORGEJO }}
           to-forgejo: ${{ vars.FORGEJO }}
@@ -63,14 +63,14 @@ jobs:
 
       - name: get trigger mirror issue
         id: mirror
-        uses: https://data.forgejo.org/infrastructure/issue-action/get@v1.5.0
+        uses: https://data.forgejo.org/infrastructure/issue-action/get@c66839063e70625ad4306aeb038c2a5e899af840 # v1.5.0
         with:
           forgejo: https://code.forgejo.org
           repository: forgejo/forgejo
           labels: mirror-trigger
 
       - name: trigger the mirror
-        uses: https://data.forgejo.org/infrastructure/issue-action/set@v1.5.0
+        uses: https://data.forgejo.org/infrastructure/issue-action/set@c66839063e70625ad4306aeb038c2a5e899af840 # v1.5.0
         with:
           forgejo: https://code.forgejo.org
           repository: forgejo/forgejo
@@ -80,7 +80,7 @@ jobs:
           label: trigger
 
       - name: upgrade v*.next.forgejo.org
-        uses: https://data.forgejo.org/infrastructure/next-digest@v1.2.2
+        uses: https://data.forgejo.org/infrastructure/next-digest@e22026170bac6fd38c3034dbc33e66b52fe069d1 # v1.2.2
         with:
           url: https://placeholder:${{ secrets.TOKEN_NEXT_DIGEST }}@invisible.forgejo.org/infrastructure/next-digest
           ref_name: '${{ github.ref_name }}'
