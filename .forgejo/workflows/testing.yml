@@ -142,7 +142,7 @@ jobs:
           RUN_ALL: ${{steps.run-all.all}}
       - name: Upload test artifacts on failure
         if: failure()
-        uses: https://data.forgejo.org/forgejo/upload-artifact@v5
+        uses: https://data.forgejo.org/forgejo/upload-artifact@cb8afe72b42edc798abfb8fcb556cf660d894245 # v5
         with:
           name: test-artifacts.zip
           path: tests/e2e/test-artifacts/
