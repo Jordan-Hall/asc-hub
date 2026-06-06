@@ -20,6 +20,8 @@ type FileOptions struct {
 	Dates     CommitDateOptions `json:"dates"`
 	// Add a Signed-off-by trailer by the committer at the end of the commit log message.
 	Signoff bool `json:"signoff"`
+	// (optional) will do a force-push if the new branch already exists
+	ForceOverwriteNewBranch bool `json:"force_overwrite_new_branch"`
 }
 
 // CreateFileOptions options for creating files

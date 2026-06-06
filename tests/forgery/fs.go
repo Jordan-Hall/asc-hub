@@ -108,5 +108,5 @@ func initRepo(doer *user_model.User, repo *repo_model.Repository, format git.Obj
 		return "", err
 	}
 
-	return commitHash, t.Push(doer, commitHash, repo.DefaultBranch)
+	return commitHash, t.Push(doer, commitHash, repo.DefaultBranch, false)
 }

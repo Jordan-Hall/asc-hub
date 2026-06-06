@@ -158,7 +158,7 @@ func UploadRepoFiles(ctx context.Context, repo *repo_model.Repository, doer *use
 	}
 
 	// Then push this tree to NewBranch
-	if err := t.Push(doer, commitHash, opts.NewBranch); err != nil {
+	if err := t.Push(doer, commitHash, opts.NewBranch, false); err != nil {
 		return err
 	}
 

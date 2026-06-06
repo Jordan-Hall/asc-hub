@@ -533,7 +533,8 @@ func ChangeFiles(ctx *context.APIContext) {
 			Author:    apiOpts.Dates.Author,
 			Committer: apiOpts.Dates.Committer,
 		},
-		Signoff: apiOpts.Signoff,
+		Signoff:                 apiOpts.Signoff,
+		ForceOverwriteNewBranch: apiOpts.ForceOverwriteNewBranch,
 	}
 	if opts.Dates.Author.IsZero() {
 		opts.Dates.Author = time.Now()
@@ -634,7 +635,8 @@ func CreateFile(ctx *context.APIContext) {
 			Author:    apiOpts.Dates.Author,
 			Committer: apiOpts.Dates.Committer,
 		},
-		Signoff: apiOpts.Signoff,
+		Signoff:                 apiOpts.Signoff,
+		ForceOverwriteNewBranch: apiOpts.ForceOverwriteNewBranch,
 	}
 	if opts.Dates.Author.IsZero() {
 		opts.Dates.Author = time.Now()
@@ -741,7 +743,8 @@ func UpdateFile(ctx *context.APIContext) {
 			Author:    apiOpts.Dates.Author,
 			Committer: apiOpts.Dates.Committer,
 		},
-		Signoff: apiOpts.Signoff,
+		Signoff:                 apiOpts.Signoff,
+		ForceOverwriteNewBranch: apiOpts.ForceOverwriteNewBranch,
 	}
 	if opts.Dates.Author.IsZero() {
 		opts.Dates.Author = time.Now()
@@ -765,6 +768,12 @@ func UpdateFile(ctx *context.APIContext) {
 func handleCreateOrUpdateFileError(ctx *context.APIContext, err error) {
 	if models.IsErrUserCannotCommit(err) || models.IsErrFilePathProtected(err) {
 		ctx.Error(http.StatusForbidden, "Access", err)
+		return
+	}
+	if git.IsErrPushRejected(err) {
+		rejectErr := err.(*git.ErrPushRejected)
+		rejectErr.GenerateMessage()
+		ctx.Error(http.StatusForbidden, "PushRejected", rejectErr)
 		return
 	}
 	if git_model.IsErrBranchAlreadyExists(err) ||
@@ -910,7 +919,8 @@ func DeleteFile(ctx *context.APIContext) {
 			Author:    apiOpts.Dates.Author,
 			Committer: apiOpts.Dates.Committer,
 		},
-		Signoff: apiOpts.Signoff,
+		Signoff:                 apiOpts.Signoff,
+		ForceOverwriteNewBranch: apiOpts.ForceOverwriteNewBranch,
 	}
 	if opts.Dates.Author.IsZero() {
 		opts.Dates.Author = time.Now()

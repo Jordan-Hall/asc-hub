@@ -135,3 +135,6 @@ prime/
 # Manpage
 /man
 tests/integration/api_activitypub_person_inbox_useractivity_test.go
+
+# Mise version management
+mise.toml

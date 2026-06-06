@@ -48,15 +48,16 @@ type ChangeRepoFile struct {
 
 // ChangeRepoFilesOptions holds the repository files update options
 type ChangeRepoFilesOptions struct {
-	LastCommitID string
-	OldBranch    string
-	NewBranch    string
-	Message      string
-	Files        []*ChangeRepoFile
-	Author       *IdentityOptions
-	Committer    *IdentityOptions
-	Dates        *CommitDateOptions
-	Signoff      bool
+	LastCommitID            string
+	OldBranch               string
+	NewBranch               string
+	Message                 string
+	Files                   []*ChangeRepoFile
+	Author                  *IdentityOptions
+	Committer               *IdentityOptions
+	Dates                   *CommitDateOptions
+	Signoff                 bool
+	ForceOverwriteNewBranch bool
 }
 
 type RepoFileOptions struct {
@@ -136,7 +137,7 @@ func ChangeRepoFiles(ctx context.Context, repo *repo_model.Repository, doer *use
 	// If we aren't branching to a new branch, make sure user can commit to the given branch
 	if opts.NewBranch != opts.OldBranch {
 		existingBranch, err := gitRepo.GetBranch(opts.NewBranch)
-		if existingBranch != nil {
+		if existingBranch != nil && !opts.ForceOverwriteNewBranch {
 			return nil, git_model.ErrBranchAlreadyExists{
 				BranchName: opts.NewBranch,
 			}
@@ -263,7 +264,7 @@ func ChangeRepoFiles(ctx context.Context, repo *repo_model.Repository, doer *use
 	}
 
 	// Then push this tree to NewBranch
-	if err := t.Push(doer, commitHash, opts.NewBranch); err != nil {
+	if err := t.Push(doer, commitHash, opts.NewBranch, opts.ForceOverwriteNewBranch); err != nil {
 		log.Error("%T %v", err, err)
 		return nil, err
 	}
