@@ -430,7 +430,7 @@ func LFSFileFind(ctx *context.Context) {
 // LFSPointerFiles will search the repository for pointer files and report which are missing LFS files in the content store
 func LFSPointerFiles(ctx *context.Context) {
 	if !setting.LFS.StartServer {
-		ctx.NotFound("LFSFileGet", nil)
+		ctx.NotFound("LFSPointerFiles", nil)
 		return
 	}
 	ctx.Data["PageIsSettingsLFS"] = true
