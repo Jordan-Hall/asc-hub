@@ -6,6 +6,7 @@ package integration
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"forgejo.org/models/db"
@@ -16,6 +17,7 @@ import (
 	"forgejo.org/models/unittest"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/test"
 	app_context "forgejo.org/services/context"
 	repo_service "forgejo.org/services/repository"
 	user_service "forgejo.org/services/user"
@@ -34,6 +36,56 @@ func TestRepoSettingsUnits(t *testing.T) {
 
 	req := NewRequest(t, "GET", fmt.Sprintf("%s/settings/units", repo.Link()))
 	session.MakeRequest(t, req, http.StatusOK)
+}
+
+func TestRepoSettingsUpdateWebsite(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	repo := forgery.CreateRepository(t, nil, nil)
+	session := loginUser(t, repo.Owner.Name)
+	urlStr := fmt.Sprintf("%s/settings", repo.Link())
+
+	t.Run("an HTTPS website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should work
+		req := NewRequestWithValues(t, "POST", urlStr, map[string]string{
+			"action":    "update",
+			"repo_name": repo.Name,
+			"website":   "https://codeberg.org",
+		})
+		resp := session.MakeRequest(t, req, http.StatusSeeOther)
+		assertHasFlashMessages(t, resp, "success")
+	})
+
+	t.Run("an H3 website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should not work
+		req := NewRequestWithValues(t, "POST", urlStr, map[string]string{
+			"action":    "update",
+			"repo_name": repo.Name,
+			"website":   "h3://codeberg.org",
+		})
+		resp := session.MakeRequest(t, req, http.StatusOK)
+		doc := NewHTMLParser(t, resp.Body)
+		flash := doc.Find("#flash-message").Text()
+		assert.Equal(t, `Website"Url" is not a valid URL.`, strings.TrimSpace(flash))
+	})
+
+	t.Run("an H3 website under custom schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		defer test.MockProtect(&setting.Service.ValidSiteURLSchemes)()
+		setting.Service.ValidSiteURLSchemes = append(setting.Service.ValidSiteURLSchemes, "h3")
+
+		// changing website should work
+		req := NewRequestWithValues(t, "POST", urlStr, map[string]string{
+			"action":    "update",
+			"repo_name": repo.Name,
+			"website":   "h3://codeberg.org",
+		})
+		resp := session.MakeRequest(t, req, http.StatusSeeOther)
+		assertHasFlashMessages(t, resp, "success")
+	})
 }
 
 func TestRepoSettingsAdminOptions(t *testing.T) {

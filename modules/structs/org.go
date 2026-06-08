@@ -38,7 +38,7 @@ type CreateOrgOption struct {
 	FullName    string `json:"full_name" binding:"MaxSize(100)"`
 	Email       string `json:"email" binding:"MaxSize(255)"`
 	Description string `json:"description" binding:"MaxSize(255)"`
-	Website     string `json:"website" binding:"ValidUrl;MaxSize(255)"`
+	Website     string `json:"website" binding:"ValidSiteUrl;MaxSize(255)"`
 	Location    string `json:"location" binding:"MaxSize(50)"`
 	// possible values are `public` (default), `limited` or `private`
 	// enum: ["public", "limited", "private"]
@@ -53,7 +53,7 @@ type EditOrgOption struct {
 	FullName    string  `json:"full_name" binding:"MaxSize(100)"`
 	Email       *string `json:"email" binding:"MaxSize(255)"`
 	Description string  `json:"description" binding:"MaxSize(255)"`
-	Website     string  `json:"website" binding:"ValidUrl;MaxSize(255)"`
+	Website     string  `json:"website" binding:"ValidSiteUrl;MaxSize(255)"`
 	Location    string  `json:"location" binding:"MaxSize(50)"`
 	// possible values are `public`, `limited` or `private`
 	// enum: ["public", "limited", "private"]

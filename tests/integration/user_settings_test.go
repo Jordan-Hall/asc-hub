@@ -5,6 +5,7 @@ package integration
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 
 	"forgejo.org/models/auth"
@@ -130,6 +131,48 @@ func TestUserSettingsDelete(t *testing.T) {
 		session := loginUser(t, "user2")
 		req := NewRequest(t, "POST", "/user/settings/account/delete")
 		session.MakeRequest(t, req, http.StatusNotFound)
+	})
+}
+
+func TestUserSettingsUpdateWebsite(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	session := loginUser(t, "user2")
+
+	t.Run("an HTTPS website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should work
+		req := NewRequestWithValues(t, "POST", "/user/settings", map[string]string{
+			"website": "https://codeberg.org",
+		})
+		resp := session.MakeRequest(t, req, http.StatusSeeOther)
+		assertHasFlashMessages(t, resp, "success")
+	})
+
+	t.Run("an H3 website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should not work
+		req := NewRequestWithValues(t, "POST", "/user/settings", map[string]string{
+			"website": "h3://codeberg.org",
+		})
+		resp := session.MakeRequest(t, req, http.StatusOK)
+		doc := NewHTMLParser(t, resp.Body)
+		flash := doc.Find("#flash-message").Text()
+		assert.Equal(t, `Website"Url" is not a valid URL.`, strings.TrimSpace(flash))
+	})
+
+	t.Run("an H3 website under custom schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		defer test.MockProtect(&setting.Service.ValidSiteURLSchemes)()
+		setting.Service.ValidSiteURLSchemes = append(setting.Service.ValidSiteURLSchemes, "h3")
+
+		// changing website should work
+		req := NewRequestWithValues(t, "POST", "/user/settings", map[string]string{
+			"website": "h3://codeberg.org",
+		})
+		resp := session.MakeRequest(t, req, http.StatusSeeOther)
+		assertHasFlashMessages(t, resp, "success")
 	})
 }
 

@@ -100,6 +100,67 @@ func TestAPIOrgCreate(t *testing.T) {
 	assert.Equal(t, "user1", users[0].UserName)
 }
 
+func TestAPIOrgCreateWithWebsite(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	token := getUserToken(t, "user1", auth_model.AccessTokenScopeWriteOrganization)
+
+	t.Run("an HTTPS website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// setting website should work
+		org := api.CreateOrgOption{
+			UserName: "user1_org",
+			FullName: "User1's organization",
+			Website:  "https://codeberg.org",
+		}
+		req := NewRequestWithJSON(t, "POST", "/api/v1/orgs", &org).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusCreated)
+
+		var apiOrg api.Organization
+		DecodeJSON(t, resp, &apiOrg)
+
+		assert.Equal(t, org.Website, apiOrg.Website)
+	})
+
+	t.Run("an H3 website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// setting website should not work
+		org := api.CreateOrgOption{
+			UserName: "user1_org_2",
+			FullName: "User1's second organization",
+			Website:  "h3://codeberg.org",
+		}
+		req := NewRequestWithJSON(t, "POST", "/api/v1/orgs", &org).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusUnprocessableEntity)
+
+		var apiErr api.APIError
+		DecodeJSON(t, resp, &apiErr)
+
+		assert.Equal(t, "[Website]: Url", apiErr.Message)
+	})
+
+	t.Run("an H3 website under custom schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		defer test.MockProtect(&setting.Service.ValidSiteURLSchemes)()
+		setting.Service.ValidSiteURLSchemes = append(setting.Service.ValidSiteURLSchemes, "h3")
+
+		// setting website should work
+		org := api.CreateOrgOption{
+			UserName: "user1_org_2",
+			FullName: "User1's second organization",
+			Website:  "h3://codeberg.org",
+		}
+		req := NewRequestWithJSON(t, "POST", "/api/v1/orgs", &org).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusCreated)
+
+		var apiOrg api.Organization
+		DecodeJSON(t, resp, &apiOrg)
+
+		assert.Equal(t, org.Website, apiOrg.Website)
+	})
+}
+
 func TestAPIOrgRename(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 	token := getUserToken(t, "user1", auth_model.AccessTokenScopeWriteOrganization)
@@ -148,6 +209,64 @@ func TestAPIOrgEdit(t *testing.T) {
 	assert.Equal(t, org.Website, apiOrg.Website)
 	assert.Equal(t, org.Location, apiOrg.Location)
 	assert.Equal(t, org.Visibility, apiOrg.Visibility)
+}
+
+func TestAPIOrgEditWebsite(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	const orgName = "org3"
+	urlStr := fmt.Sprintf("/api/v1/orgs/%s", orgName)
+	session := loginUser(t, "user1")
+	token := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeWriteOrganization)
+
+	t.Run("an HTTPS website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should work
+		org := api.EditOrgOption{
+			Website: "https://codeberg.org",
+		}
+		req := NewRequestWithJSON(t, "PATCH", urlStr, &org).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusOK)
+
+		var apiOrg api.Organization
+		DecodeJSON(t, resp, &apiOrg)
+
+		assert.Equal(t, org.Website, apiOrg.Website)
+	})
+
+	t.Run("an H3 website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should not work
+		org := api.EditOrgOption{
+			Website: "h3://codeberg.org",
+		}
+		req := NewRequestWithJSON(t, "PATCH", urlStr, &org).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusUnprocessableEntity)
+
+		var apiErr api.APIError
+		DecodeJSON(t, resp, &apiErr)
+
+		assert.Equal(t, "[Website]: Url", apiErr.Message)
+	})
+
+	t.Run("an H3 website under custom schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		defer test.MockProtect(&setting.Service.ValidSiteURLSchemes)()
+		setting.Service.ValidSiteURLSchemes = append(setting.Service.ValidSiteURLSchemes, "h3")
+
+		// changing website should work
+		org := api.EditOrgOption{
+			Website: "h3://codeberg.org",
+		}
+		req := NewRequestWithJSON(t, "PATCH", urlStr, &org).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusOK)
+
+		var apiOrg api.Organization
+		DecodeJSON(t, resp, &apiOrg)
+
+		assert.Equal(t, org.Website, apiOrg.Website)
+	})
 }
 
 func TestAPIOrgEditBadVisibility(t *testing.T) {

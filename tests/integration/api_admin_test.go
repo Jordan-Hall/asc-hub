@@ -16,7 +16,9 @@ import (
 	"forgejo.org/modules/json"
 	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
+	"forgejo.org/modules/test"
 	"forgejo.org/tests"
+	"forgejo.org/tests/forgery"
 
 	"github.com/gobwas/glob"
 	"github.com/stretchr/testify/assert"
@@ -510,6 +512,65 @@ func TestAPIEditUser_NotAllowedEmailDomain(t *testing.T) {
 		Email: &originalEmail,
 	}).AddTokenAuth(token)
 	MakeRequest(t, req, http.StatusOK)
+}
+
+func TestAPIUser_Website(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	session := loginUser(t, "user1")
+	token := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeWriteAdmin)
+	user := forgery.CreateUser(t, nil)
+	urlStr := fmt.Sprintf("/api/v1/admin/users/%s", user.Name)
+
+	t.Run("an HTTPS website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should work
+		website := "https://codeberg.org"
+		req := NewRequestWithJSON(t, "PATCH", urlStr, &api.EditUserOption{
+			Website: &website,
+		}).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusOK)
+
+		var apiUser api.User
+		DecodeJSON(t, resp, &apiUser)
+
+		assert.Equal(t, website, apiUser.Website)
+	})
+
+	t.Run("an H3 website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should not work
+		website := "h3://codeberg.org"
+		req := NewRequestWithJSON(t, "PATCH", urlStr, &api.EditUserOption{
+			Website: &website,
+		}).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusUnprocessableEntity)
+
+		var apiErr api.APIError
+		DecodeJSON(t, resp, &apiErr)
+
+		assert.Equal(t, "[Website]: Url", apiErr.Message)
+	})
+
+	t.Run("an H3 website under custom schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		defer test.MockProtect(&setting.Service.ValidSiteURLSchemes)()
+		setting.Service.ValidSiteURLSchemes = append(setting.Service.ValidSiteURLSchemes, "h3")
+
+		// changing website should work
+		website := "h3://codeberg.org"
+		req := NewRequestWithJSON(t, "PATCH", urlStr, &api.EditUserOption{
+			Website: &website,
+		}).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusOK)
+
+		var apiUser api.User
+		DecodeJSON(t, resp, &apiUser)
+
+		assert.Equal(t, website, apiUser.Website)
+	})
 }
 
 func TestAPIAdminListUserEmails(t *testing.T) {

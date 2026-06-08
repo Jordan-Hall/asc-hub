@@ -130,7 +130,7 @@ func ParseRemoteAddr(remoteAddr, authUsername, authPassword string) (string, err
 type RepoSettingForm struct {
 	RepoName               string `binding:"Required;AlphaDashDot;MaxSize(100)"`
 	Description            string `binding:"MaxSize(2048)"`
-	Website                string `binding:"ValidUrl;MaxSize(1024)"`
+	Website                string `binding:"ValidSiteUrl;MaxSize(1024)"`
 	FollowingRepos         string
 	Interval               string
 	MirrorAddress          string

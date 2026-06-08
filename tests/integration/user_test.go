@@ -742,6 +742,65 @@ func TestUserPronouns(t *testing.T) {
 	})
 }
 
+func TestUserEditWebsite(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	user := forgery.CreateUser(t, nil)
+	urlStr := "/api/v1/user/settings"
+	session := loginUser(t, user.Name)
+	token := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeWriteUser)
+
+	t.Run("an HTTPS website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should work
+		website := "https://codeberg.org"
+		req := NewRequestWithJSON(t, "PATCH", urlStr, &api.UserSettingsOptions{
+			Website: &website,
+		}).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusOK)
+
+		var apiUser api.UserSettings
+		DecodeJSON(t, resp, &apiUser)
+
+		assert.Equal(t, website, apiUser.Website)
+	})
+
+	t.Run("an H3 website under default schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+
+		// changing website should not work
+		website := "h3://codeberg.org"
+		req := NewRequestWithJSON(t, "PATCH", urlStr, &api.UserSettingsOptions{
+			Website: &website,
+		}).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusUnprocessableEntity)
+
+		var apiErr api.APIError
+		DecodeJSON(t, resp, &apiErr)
+
+		assert.Equal(t, "[Website]: Url", apiErr.Message)
+	})
+
+	t.Run("an H3 website under custom schemes", func(t *testing.T) {
+		defer tests.PrintCurrentTest(t)()
+		defer test.MockProtect(&setting.Service.ValidSiteURLSchemes)()
+		setting.Service.ValidSiteURLSchemes = append(setting.Service.ValidSiteURLSchemes, "h3")
+
+		// changing website should work
+		website := "h3://codeberg.org"
+		req := NewRequestWithJSON(t, "PATCH", urlStr, &api.UserSettingsOptions{
+			Website: &website,
+		}).AddTokenAuth(token)
+		resp := MakeRequest(t, req, http.StatusOK)
+
+		var apiUser api.UserSettings
+		DecodeJSON(t, resp, &apiUser)
+
+		assert.Equal(t, website, apiUser.Website)
+	})
+}
+
 func TestUserTOTPMail(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 
