@@ -42,7 +42,8 @@
 				</div>
 				<div class="field {{if .Err_Website}}error{{end}}">
 					<label for="website">{{ctx.Locale.Tr "repo.settings.site"}}</label>
-					<input id="website" name="website" type="url" maxlength="1024" value="{{.Repository.Website}}">
+					<input id="website" name="website" type="url" maxlength="1024" pattern="{{.ValidSiteURLPattern}}" value="{{.Repository.Website}}">
+					<span class="help">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</span>
 				</div>
 				<div class="field">
 					<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>

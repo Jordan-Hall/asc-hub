@@ -31,7 +31,8 @@
 						</div>
 						<div class="field {{if .Err_Website}}error{{end}}">
 							<label for="website">{{ctx.Locale.Tr "org.settings.website"}}</label>
-							<input id="website" name="website" type="url" value="{{.Org.Website}}" maxlength="255">
+							<input id="website" name="website" type="url" value="{{.Org.Website}}" maxlength="255" pattern="{{.ValidSiteURLPattern}}">
+							<span class="help">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</span>
 						</div>
 						<div class="field">
 							<label for="location">{{ctx.Locale.Tr "org.settings.location"}}</label>

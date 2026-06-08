@@ -97,7 +97,8 @@
 
 				<div class="field {{if .Err_Website}}error{{end}}">
 					<label for="website">{{ctx.Locale.Tr "settings.website"}}</label>
-					<input id="website" name="website" type="url" value="{{.User.Website}}" placeholder="http://mydomain.com or https://mydomain.com" maxlength="255">
+					<input id="website" name="website" type="url" value="{{.User.Website}}" maxlength="255" pattern="{{.ValidSiteURLPattern}}">
+					<span class="help">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</span>
 				</div>
 				<div class="field {{if .Err_Location}}error{{end}}">
 					<label for="location">{{ctx.Locale.Tr "settings.location"}}</label>

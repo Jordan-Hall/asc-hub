@@ -937,6 +937,7 @@
 	"markup.filepreview.lines": "Lines %[1]d to %[2]d in %[3]s",
 	"markup.filepreview.truncated": "Preview has been truncated",
 	"form.RunnerName": "Name",
+	"form.website.valid_url_schemes": "Allowed URL schemes include: %s",
 	"graphs.recent_commits.title": "Number of commits in the past year",
 	"graphs.code_frequency.title": "Code frequency over the history of {0}",
 	"meta.last_line": "Thank you for translating Forgejo! This line isn't seen by the users but it serves other purposes in the translation management. You can place a fun fact in the translation instead of translating it."
