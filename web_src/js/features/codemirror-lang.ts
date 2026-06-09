@@ -98,6 +98,14 @@ export function languages(codemirrorLanguage: CodeMirrorLanguage): LanguageDescr
       },
     }),
     codemirrorLanguage.LanguageDescription.of({
+      name: 'Nix',
+      alias: ['nix'],
+      extensions: ['nix'],
+      async load() {
+        return (await import('@replit/codemirror-lang-nix')).nix();
+      },
+    }),
+    codemirrorLanguage.LanguageDescription.of({
       name: 'PHP',
       extensions: ['php', 'php3', 'php4', 'php5', 'php7', 'phtml'],
       async load() {
