@@ -436,3 +436,47 @@ index 2d203fb..d0cb63f 100644
 		require.ErrorIs(t, err, ErrLineNotFound)
 	})
 }
+
+func TestPatchRightSideContent(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		assert.Empty(t, PatchRightSideContent(""))
+	})
+
+	t.Run("single hunk with a replacement", func(t *testing.T) {
+		patch := "diff --git a/file1.md b/file1.md\n" +
+			"--- a/file1.md\n" +
+			"+++ b/file1.md\n" +
+			"@@ -48,3 +48,3 @@\n" +
+			" Line 48\n" +
+			" Line 49\n" +
+			"-Line 50\n" +
+			"+Line 50--modified"
+		assert.Equal(t, map[int64]string{
+			48: "Line 48",
+			49: "Line 49",
+			50: "Line 50--modified",
+		}, PatchRightSideContent(patch))
+	})
+
+	t.Run("added lines shift the right side", func(t *testing.T) {
+		patch := "@@ -10,2 +10,4 @@\n" +
+			" ctx\n" +
+			"+added a\n" +
+			"+added b\n" +
+			" after"
+		assert.Equal(t, map[int64]string{
+			10: "ctx",
+			11: "added a",
+			12: "added b",
+			13: "after",
+		}, PatchRightSideContent(patch))
+	})
+
+	t.Run("removed lines do not consume right-side numbers", func(t *testing.T) {
+		patch := "@@ -5,3 +5,1 @@\n" +
+			"-gone 1\n" +
+			"-gone 2\n" +
+			" kept"
+		assert.Equal(t, map[int64]string{5: "kept"}, PatchRightSideContent(patch))
+	})
+}

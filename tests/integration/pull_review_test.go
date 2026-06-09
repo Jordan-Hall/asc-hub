@@ -35,6 +35,7 @@ import (
 	"forgejo.org/modules/test"
 	issue_service "forgejo.org/services/issue"
 	"forgejo.org/services/mailer"
+	pull_service "forgejo.org/services/pull"
 	repo_service "forgejo.org/services/repository"
 	files_service "forgejo.org/services/repository/files"
 	"forgejo.org/tests"
@@ -2016,10 +2017,15 @@ func TestPullRequestCommentPlacement(t *testing.T) {
 			// Push a second commit that changes lines BEFORE the range (removing lines 1-10),
 			// which shifts the range but keeps it contiguous.
 			content = strings.Replace(content, "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9\nLine 10\n", "", 1)
-			tester.changeFile("file1.md", content)
+			newSHA := tester.changeFile("file1.md", content)
 
-			// Wait a bit for async invalidation to run, then check the comment is still valid.
-			time.Sleep(2 * time.Second)
+			// Run the invalidation pass synchronously instead of waiting for the async
+			// goroutine, then check the comment is still valid.
+			pr, err := issues_model.GetPullRequestByIndex(t.Context(), tester.repo.ID, tester.pr.Index)
+			require.NoError(t, err)
+			require.NoError(t, pull_service.InvalidateCodeComments(t.Context(),
+				issues_model.PullRequestList{pr}, tester.user, tester.repo, newSHA))
+
 			commentReloaded := unittest.AssertExistsAndLoadBean(t, &issues_model.Comment{ID: comment.ID})
 			assert.False(t, commentReloaded.Invalidated)
 
@@ -2037,6 +2043,92 @@ func TestPullRequestCommentPlacement(t *testing.T) {
 				{rowType: RowHasCode, code: "Line 51"},
 			}
 			tester.assertFilesChangedDiff(diff)
+		})
+
+		// Helper: comment on lines 48-50 (anchor 48, middle 49, last 50, all modified by the PR), then a
+		// later commit applies `secondCommit` to the file and we check the resulting invalidation state.
+		runRangeInvalidation := func(t *testing.T, secondCommit func(content string) string, wantInvalidated bool) {
+			tester := newPullRequestCommentPlacementTester(t)
+
+			content := tester.fileContent
+			content = strings.Replace(content, "Line 48\n", "Line 48--modified\n", 1)
+			content = strings.Replace(content, "Line 49\n", "Line 49--modified\n", 1)
+			content = strings.Replace(content, "Line 50\n", "Line 50--modified\n", 1)
+			tester.changeFile("file1.md", content)
+			tester.createPR()
+
+			comment := tester.multiLineCommentFromFilesChanged("file1.md", 48, 2)
+			assert.EqualValues(t, 48, comment.Line)
+			assert.EqualValues(t, 2, comment.ExtraLinesCount)
+			assert.False(t, comment.Invalidated)
+
+			newSHA := tester.changeFile("file1.md", secondCommit(content))
+
+			if wantInvalidated {
+				assert.EventuallyWithT(t, func(t *assert.CollectT) {
+					commentReloaded := unittest.AssertExistsAndLoadBean(t, &issues_model.Comment{ID: comment.ID})
+					assert.True(t, commentReloaded.Invalidated)
+				}, 5*time.Second, 50*time.Millisecond)
+			} else {
+				// Run the invalidation pass synchronously instead of waiting for the async
+				// goroutine, then assert the comment stayed valid.
+				pr, err := issues_model.GetPullRequestByIndex(t.Context(), tester.repo.ID, tester.pr.Index)
+				require.NoError(t, err)
+				require.NoError(t, pull_service.InvalidateCodeComments(t.Context(),
+					issues_model.PullRequestList{pr}, tester.user, tester.repo, newSHA))
+
+				commentReloaded := unittest.AssertExistsAndLoadBean(t, &issues_model.Comment{ID: comment.ID})
+				assert.False(t, commentReloaded.Invalidated)
+			}
+		}
+
+		t.Run("multi-line comment invalidated when a middle line is deleted by a later commit", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			runRangeInvalidation(t, func(content string) string {
+				return strings.Replace(content, "Line 49--modified\n", "", 1)
+			}, true)
+		})
+
+		t.Run("multi-line comment invalidated when a middle line content changes in a later commit", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			runRangeInvalidation(t, func(content string) string {
+				return strings.Replace(content, "Line 49--modified\n", "Line 49--changed-again\n", 1)
+			}, true)
+		})
+
+		t.Run("multi-line comment invalidated when the last line content changes in a later commit", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			runRangeInvalidation(t, func(content string) string {
+				return strings.Replace(content, "Line 50--modified\n", "Line 50--changed-again\n", 1)
+			}, true)
+		})
+
+		t.Run("multi-line comment not invalidated when a line outside the range changes", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			runRangeInvalidation(t, func(content string) string {
+				return strings.Replace(content, "Line 60\n", "Line 60--modified\n", 1)
+			}, false)
+		})
+
+		t.Run("multi-line comment invalidated when the last line is deleted by a later commit", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			runRangeInvalidation(t, func(content string) string {
+				return strings.Replace(content, "Line 50--modified\n", "", 1)
+			}, true)
+		})
+
+		t.Run("multi-line comment invalidated when the first (anchor) line content changes in a later commit", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			runRangeInvalidation(t, func(content string) string {
+				return strings.Replace(content, "Line 48--modified\n", "Line 48--changed-again\n", 1)
+			}, true)
+		})
+
+		t.Run("multi-line comment invalidated when the first (anchor) line is deleted by a later commit", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+			runRangeInvalidation(t, func(content string) string {
+				return strings.Replace(content, "Line 48--modified\n", "", 1)
+			}, true)
 		})
 	})
 }

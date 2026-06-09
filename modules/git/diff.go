@@ -278,6 +278,53 @@ func CutDiffAroundLine(originalDiff io.Reader, line int64, old bool, numbersOfLi
 	return strings.Join(newHunk, "\n"), nil
 }
 
+// PatchRightSideContent parses a unified diff patch (such as a stored code-comment
+// Patch) and returns the content of each line on the right (new) side, keyed by its
+// new line number. Added ('+') and context (' ') lines are included; removed ('-')
+// lines and the "\ No newline at end of file" marker are skipped. It lets callers
+// recover the file content captured when a comment was created, to detect whether
+// the commented lines were changed afterwards.
+func PatchRightSideContent(patch string) map[int64]string {
+	result := make(map[int64]string)
+	scanner := bufio.NewScanner(strings.NewReader(patch))
+	scanner.Buffer(make([]byte, 0, 64*1024), 4*1024*1024)
+
+	var rightLine int64
+	inHunk := false
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "@@") {
+			submatches := hunkRegex.FindStringSubmatch(line)
+			if submatches == nil {
+				inHunk = false
+				continue
+			}
+			for i, name := range hunkRegex.SubexpNames() {
+				if name == "beginNew" {
+					rightLine, _ = strconv.ParseInt(submatches[i], 10, 64)
+				}
+			}
+			inHunk = rightLine > 0
+			continue
+		}
+		if !inHunk || len(line) == 0 {
+			continue
+		}
+		switch line[0] {
+		case '+', ' ':
+			result[rightLine] = line[1:]
+			rightLine++
+		case '-', '\\':
+			// '-' is left-only; '\' is the "no newline at end of file" marker
+			break
+		default:
+			// a non-hunk line (e.g. the next "diff --git" header); stop this hunk
+			inHunk = false
+		}
+	}
+	return result
+}
+
 var ErrLineNotFound = errors.New("line not found in diff")
 
 type LinePlacement struct {

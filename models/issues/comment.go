@@ -897,8 +897,43 @@ func (c *Comment) CheckLineRangeValid(ctx context.Context, repo *repo_model.Repo
 		}
 		anchorResolvedLine := anchorBlame.LineNumber
 
-		// A line that no longer resolves is treated as "modified but present" and tolerated; only a
-		// resolved line landing at an unexpected offset (lines inserted/removed inside the range) is a break.
+		// Catch a line changed by a later commit by comparing each range line's current content
+		// to the comment's Patch (its content at creation; lines the PR itself changed already match it).
+		// The Patch uses the comment's line coordinates, so trust it only
+		// when the anchor's recorded content equals its current content — otherwise fall back below.
+		if expected := git.PatchRightSideContent(c.Patch); len(expected) > 0 {
+			if headLines, ok := c.headFileLines(gitRepo, currentHead, anchorBlame.FilePath); ok {
+				lineAt := func(n uint64) (string, bool) {
+					if n >= 1 && n <= uint64(len(headLines)) {
+						return headLines[n-1], true
+					}
+					return "", false
+				}
+				anchorExpected, hasAnchor := expected[int64(c.UnsignedLine())]
+				anchorCurrent, hasCurrent := lineAt(anchorResolvedLine)
+				if hasAnchor && hasCurrent && anchorExpected == anchorCurrent {
+					trusted := true
+					for i := int64(1); i <= c.ExtraLinesCount; i++ {
+						exp, okExp := expected[int64(c.UnsignedLine())+i]
+						cur, okCur := lineAt(anchorResolvedLine + uint64(i))
+						if !okExp || !okCur {
+							trusted = false // mapping incomplete -> fall back to the offset-only check
+							break
+						}
+						if exp != cur {
+							return "invalid", nil // a range line was changed after the comment was made
+						}
+					}
+					if trusted {
+						return "valid", nil
+					}
+				}
+			}
+		}
+
+		// Fallback (offset-only): a line that no longer resolves is treated as "modified but present"
+		// and tolerated; only a resolved line landing at an unexpected offset (lines inserted/removed
+		// inside the range) is a break.
 		startLine := c.UnsignedLine()
 		for i := int64(1); i <= c.ExtraLinesCount; i++ {
 			blame, err := c.resolveLineAtHead(gitRepo, startLine+uint64(i), currentHead)
@@ -917,6 +952,25 @@ func (c *Comment) CheckLineRangeValid(ctx context.Context, repo *repo_model.Repo
 	}
 
 	return resultJSON == "valid", nil
+}
+
+// headFileLines reads the content of treePath at the given commit and returns its lines
+// (dropping the trailing empty element produced by a final newline). ok is false when the
+// file can't be read at head.
+func (c *Comment) headFileLines(gitRepo *git.Repository, head, treePath string) (lines []string, ok bool) {
+	commit, err := gitRepo.GetCommit(head)
+	if err != nil {
+		return nil, false
+	}
+	content, err := commit.GetFileContent(treePath, -1)
+	if err != nil {
+		return nil, false
+	}
+	lines = strings.Split(content, "\n")
+	if n := len(lines); n > 0 && lines[n-1] == "" {
+		lines = lines[:n-1]
+	}
+	return lines, true
 }
 
 // CodeCommentLink returns the url to a comment in code
