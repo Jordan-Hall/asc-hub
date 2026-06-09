@@ -1256,6 +1256,7 @@ func Routes() *web.Route {
 						m.Get("", repo.ListActionRuns)
 						m.Get("/{run_id}", repo.GetActionRun)
 						m.Delete("/{run_id}", reqToken(), reqAdmin(unit.TypeActions), repo.DeleteActionRun)
+						m.Post("/{run_id}/cancel", reqToken(), reqRepoWriter(unit.TypeActions), repo.CancelActionRun)
 						m.Get("/{run_id}/jobs", repo.ListActionRunJobs)
 						m.Get("/{run_id}/logs", repo.GetActionRunLogs)
 						m.Get("/{run_id}/artifacts", repo.ListActionRunArtifacts)
