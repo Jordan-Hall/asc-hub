@@ -98,14 +98,14 @@ test.describe('Runners of user2', () => {
     await expect(rows.nth(1)).toHaveAccessibleName('88932 Waiting 49f55ab99b -');
   });
 
-  test('create new runner', async ({page}) => {
+  test('Create new runner', async ({page}) => {
     await page.goto('/user/settings/actions/runners');
 
     await expect(page.getByRole('heading', {name: 'Manage runners'})).toBeVisible();
 
     await page.getByRole('link', {name: 'Create new runner'}).click();
 
-    await expect(page).toHaveTitle(/^Create new runner .*/);
+    await expect(page).toHaveTitle(/^New runner .*/);
 
     // Submit an invalid form to test validation.
     await page.getByRole('button', {name: 'Create'}).click();
@@ -218,7 +218,7 @@ test.describe('Runners of user2', () => {
     `);
   });
 
-  test('regenerate runner token', async ({page}) => {
+  test('Regenerate runner token', async ({page}) => {
     await page.goto('/user/settings/actions/runners');
 
     await page.getByRole('link', {name: 'Edit runner-2', exact: true}).click();
@@ -420,7 +420,7 @@ test.describe('Global runners', () => {
 
     await page.getByRole('link', {name: 'Create new runner'}).click();
 
-    await expect(page).toHaveTitle(/^Create new runner .*/);
+    await expect(page).toHaveTitle(/^New runner .*/);
 
     // Submit an invalid form to test validation.
     await page.getByRole('button', {name: 'Create'}).click();
