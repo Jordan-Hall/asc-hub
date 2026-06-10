@@ -98,7 +98,7 @@ func createSessions(t testing.TB) {
 		"user40",
 	}
 
-	authState := filepath.Join(filepath.Dir(setting.AppPath), "tests", "e2e", ".auth")
+	authState := filepath.Join(setting.AppWorkPath, "tests", "e2e", ".auth")
 	err := os.RemoveAll(authState)
 	require.NoError(t, err)
 

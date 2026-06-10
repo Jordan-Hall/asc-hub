@@ -139,7 +139,7 @@ func TestMain(m *testing.M) {
 
 	err := unittest.InitFixtures(
 		unittest.FixturesOptions{
-			Dir: filepath.Join(filepath.Dir(setting.AppPath), "models/fixtures/"),
+			Dir: filepath.Join(setting.AppWorkPath, "models/fixtures/"),
 		},
 	)
 	if err != nil {
@@ -708,7 +708,7 @@ func DecodeJSON(t testing.TB, resp *httptest.ResponseRecorder, v any) {
 func VerifyJSONSchema(t testing.TB, resp *httptest.ResponseRecorder, schemaFile string) {
 	t.Helper()
 
-	schemaFilePath := filepath.Join(filepath.Dir(setting.AppPath), "tests", "integration", "schemas", schemaFile)
+	schemaFilePath := filepath.Join(setting.AppWorkPath, "tests", "integration", "schemas", schemaFile)
 	_, schemaFileErr := os.Stat(schemaFilePath)
 	require.NoError(t, schemaFileErr)
 

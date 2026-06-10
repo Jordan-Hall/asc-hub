@@ -40,7 +40,7 @@ func PrepareTestEnv(t *testing.T, skip int, syncModels ...any) (*xorm.Engine, fu
 	ourSkip += skip
 	deferFn := testlogger.PrintCurrentTest(t, ourSkip)
 	require.NoError(t, os.RemoveAll(setting.RepoRootPath))
-	require.NoError(t, unittest.CopyDir(path.Join(filepath.Dir(setting.AppPath), "tests/gitea-repositories-meta"), setting.RepoRootPath))
+	require.NoError(t, unittest.CopyDir(path.Join(setting.AppWorkPath, "tests/gitea-repositories-meta"), setting.RepoRootPath))
 	ownerDirs, err := os.ReadDir(setting.RepoRootPath)
 	if err != nil {
 		require.NoError(t, err, "unable to read the new repo root: %v\n", err)
@@ -91,7 +91,7 @@ func PrepareTestEnv(t *testing.T, skip int, syncModels ...any) (*xorm.Engine, fu
 		}
 	}
 
-	fixturesDir := filepath.Join(filepath.Dir(setting.AppPath), "models", "gitea_migrations", "fixtures", t.Name())
+	fixturesDir := filepath.Join(setting.AppWorkPath, "models", "gitea_migrations", "fixtures", t.Name())
 
 	if _, err := os.Stat(fixturesDir); err == nil {
 		t.Logf("initializing fixtures from: %s", fixturesDir)
@@ -124,11 +124,12 @@ func MainTest(m *testing.M) {
 		fmt.Println("Environment variable $GITEA_ROOT not set")
 		os.Exit(1)
 	}
+	setting.AppWorkPath = giteaRoot
 	setting.AppPath = path.Join(giteaRoot, "gitea_migrations-should-not-need-a-binary") // use WrapMainAppPath if a binary is needed
 
 	giteaConf := os.Getenv("GITEA_CONF")
 	if giteaConf == "" {
-		giteaConf = path.Join(filepath.Dir(setting.AppPath), "tests/sqlite.ini")
+		giteaConf = path.Join(setting.AppWorkPath, "tests/sqlite.ini")
 		fmt.Printf("Environment variable $GITEA_CONF not set - defaulting to %s\n", giteaConf)
 	}
 

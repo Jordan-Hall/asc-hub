@@ -232,8 +232,8 @@ func InitTest() {
 		log.Fatal("os.MkdirTemp: %v", err)
 	}
 
-	if err := unittest.CopyDir(path.Join(filepath.Dir(setting.AppPath), "tests/gitea-repositories-meta"), dir); err != nil {
-		log.Fatal("os.RemoveAll: %v", err)
+	if err := unittest.CopyDir(path.Join(setting.AppWorkPath, "tests/gitea-repositories-meta"), dir); err != nil {
+		log.Fatal("os.CopyDir: %v", err)
 	}
 	ownerDirs, err := os.ReadDir(dir)
 	if err != nil {
@@ -265,7 +265,7 @@ func PrepareAttachmentsStorage(t testing.TB) {
 	require.NoError(t, storage.Clean(storage.Attachments))
 
 	s, err := storage.NewStorage(setting.LocalStorageType, &setting.Storage{
-		Path: filepath.Join(filepath.Dir(setting.AppPath), "tests", "testdata", "data", "attachments"),
+		Path: filepath.Join(setting.AppWorkPath, "tests", "testdata", "data", "attachments"),
 	})
 	require.NoError(t, err)
 	require.NoError(t, s.IterateObjects("", func(p string, obj storage.Object) error {
@@ -331,7 +331,7 @@ func PrepareArtifactsStorage(t testing.TB) {
 	require.NoError(t, storage.Clean(storage.ActionsArtifacts))
 
 	s, err := storage.NewStorage(setting.LocalStorageType, &setting.Storage{
-		Path: filepath.Join(filepath.Dir(setting.AppPath), "tests", "testdata", "data", "artifacts"),
+		Path: filepath.Join(setting.AppWorkPath, "tests", "testdata", "data", "artifacts"),
 	})
 	require.NoError(t, err)
 	require.NoError(t, s.IterateObjects("", func(p string, obj storage.Object) error {
@@ -344,7 +344,7 @@ func PrepareLFSStorage(t testing.TB) {
 	// load LFS object fixtures
 	// (LFS storage can be on any of several backends, including remote servers, so init it with the storage API)
 	lfsFixtures, err := storage.NewStorage(setting.LocalStorageType, &setting.Storage{
-		Path: filepath.Join(filepath.Dir(setting.AppPath), "tests/gitea-lfs-meta"),
+		Path: filepath.Join(setting.AppWorkPath, "tests/gitea-lfs-meta"),
 	})
 	require.NoError(t, err)
 	require.NoError(t, storage.Clean(storage.LFS))

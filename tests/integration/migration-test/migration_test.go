@@ -67,7 +67,7 @@ func initMigrationTest(t *testing.T) func() {
 
 	assert.NotEmpty(t, setting.RepoRootPath)
 	require.NoError(t, util.RemoveAll(setting.RepoRootPath))
-	require.NoError(t, unittest.CopyDir(path.Join(filepath.Dir(setting.AppPath), "tests/gitea-repositories-meta"), setting.RepoRootPath))
+	require.NoError(t, unittest.CopyDir(path.Join(setting.AppWorkPath, "tests/gitea-repositories-meta"), setting.RepoRootPath))
 	ownerDirs, err := os.ReadDir(setting.RepoRootPath)
 	if err != nil {
 		require.NoError(t, err, "unable to read the new repo root: %v\n", err)
