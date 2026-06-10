@@ -1,7 +1,65 @@
-/* based on Fomantic UI checkbox module, with just the parts extracted that we use. If you find any
-   unused rules here after refactoring, please remove them. */
+:is(form, .markup) input[type="checkbox"] {
+  appearance: none;
+  position: relative;
+  border: 1px solid var(--color-secondary-dark-4);
+  border-radius: var(--border-radius);
+  background: var(--color-input-background);
+  height: var(--checkbox-size);
+  width: var(--checkbox-size);
+  opacity: 1 !important; /* override fomantic on edit preview */
+  pointer-events: auto !important; /* override fomantic on edit preview */
+  print-color-adjust: exact;
+  margin-block-start: 0 !important; /* override form.css rule applying to all inputs */
+  margin-inline-end: 0.5rem;
 
-input[type="checkbox"],
+  &:not([disabled]):hover,
+  &:not([disabled]):active {
+    border-color: var(--color-primary);
+  }
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mask-size: cover;
+  }
+
+  &:checked::after {
+    content: "";
+    mask-image: var(--checkbox-mask-checked);
+    print-color-adjust: exact;
+  }
+
+  &:indeterminate::after {
+    content: "";
+    mask-image: var(--checkbox-mask-indeterminate);
+  }
+}
+
+form input[type="checkbox"] {
+  vertical-align: center !important; /* override fomantic */
+
+  &:checked {
+    background: var(--color-accent);
+    border: none;
+
+    &::after {
+      background: var(--color-white);
+    }
+  }
+}
+
+.markup input[type="checkbox"] {
+  vertical-align: middle !important; /* override fomantic on edit preview */
+
+  &:checked::after {
+    background: var(--color-text);
+  }
+}
+
+/* Legacy part based on Fomantic UI checkbox module, with just the parts extracted that we use.
+   If you find any unused rules here after refactoring, please remove them. */
+
 input[type="radio"] {
   width: var(--checkbox-size);
   height: var(--checkbox-size);

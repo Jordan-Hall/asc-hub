@@ -45,10 +45,9 @@ fieldset label + .ui.dropdown {
   margin-top: 0.28rem !important;
 }
 
-fieldset label > input[type="checkbox"],
 fieldset label > input[type="radio"] {
-  margin-inline-end: 0.75em;
   margin-top: 0 !important;
+  margin-inline-end: 0.75em;
   vertical-align: initial !important; /* overrides a semantic.css rule, remove when obsolete */
 }
 
