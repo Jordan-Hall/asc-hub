@@ -15,13 +15,15 @@
 							"review:<username>" (ctx.Locale.TrString "repo.issues.filter_reviewers.hint")
 							"mentions:<username>" (ctx.Locale.TrString "repo.issues.filter_mention.hint")
 							"sort:<by>:[asc|desc]" (ctx.Locale.Tr "repo.issues.filter_sort.hint_with_placeholder" (HTMLFormat "<code>created|comments|updated|deadline</code>"))
-							"modified:[>|<]<date>" (ctx.Locale.TrString "repo.issues.filter_modified.hint")}}
+							"modified:[>|<]<date>" (ctx.Locale.TrString "repo.issues.filter_modified.hint")
+							"\"forgejo\"" (ctx.Locale.TrString "search.match_inside_quotes")}}
 						<tr>
 							<th class="tw-p-2"><code>{{$filter}}</code></th>
 							<td class="tw-p-2">{{$tr}}</td>
 						</tr>
 					{{end}}
 				</tbody>
+				{{ctx.Locale.Tr "search.docs" "https://forgejo.org/docs/latest/user/issue-search/"}}
 			</table>
 		</div>
 		<footer class="actions">
