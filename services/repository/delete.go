@@ -392,6 +392,10 @@ func DeleteRepositoryDirectly(ctx context.Context, repoID int64, opts DeleteRepo
 
 	// Finally, delete action logs after the actions have already been deleted to avoid new log files
 	for _, task := range tasks {
+		if !task.HasLogs() {
+			continue
+		}
+
 		err := actions_module.RemoveLogs(ctx, task.LogInStorage, task.LogFilename)
 		if err != nil {
 			log.Error("remove log file %q: %v", task.LogFilename, err)

@@ -387,9 +387,11 @@ func deleteTask(ctx context.Context, taskID int64) error {
 			return fmt.Errorf("unable to remove task %d because it has not completed yet", taskID)
 		}
 
-		err = actions_module.RemoveLogs(ctx, task.LogInStorage, task.LogFilename)
-		if err != nil {
-			return fmt.Errorf("unable to remove logs of task %d: %w", taskID, err)
+		if task.HasLogs() {
+			err = actions_module.RemoveLogs(ctx, task.LogInStorage, task.LogFilename)
+			if err != nil {
+				return fmt.Errorf("unable to remove logs of task %d: %w", taskID, err)
+			}
 		}
 
 		// Whether an ephemeral runner has been used is determined based on whether it is assigned to a task.

@@ -162,6 +162,10 @@ func (task *ActionTask) UpdateToken(ctx context.Context) error {
 	return UpdateTask(ctx, task, "token_hash", "token_salt", "token_last_eight")
 }
 
+func (task *ActionTask) HasLogs() bool {
+	return task.LogFilename != ""
+}
+
 func GetTaskByID(ctx context.Context, id int64) (*ActionTask, error) {
 	var task ActionTask
 	has, err := db.GetEngine(ctx).Where("id=?", id).Get(&task)

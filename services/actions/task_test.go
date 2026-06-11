@@ -164,6 +164,18 @@ func TestDeleteTask(t *testing.T) {
 		unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunner{ID: runner.ID})
 	})
 
+	t.Run("Task without logs removed", func(t *testing.T) {
+		defer unittest.OverrideFixtures("services/actions/TestDeleteTask")()
+		require.NoError(t, unittest.PrepareTestDatabase())
+
+		task := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionTask{ID: 87604})
+		assert.Empty(t, task.LogFilename)
+
+		require.NoError(t, deleteTask(t.Context(), task.ID))
+
+		unittest.AssertNotExistsBean(t, &actions_model.ActionTask{ID: task.ID})
+	})
+
 	t.Run("No error if task does not exist", func(t *testing.T) {
 		require.NoError(t, unittest.PrepareTestDatabase())
 
