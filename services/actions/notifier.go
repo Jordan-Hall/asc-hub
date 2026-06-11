@@ -13,6 +13,7 @@ import (
 	perm_model "forgejo.org/models/perm"
 	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/log"
@@ -579,6 +580,16 @@ func (n *actionsNotifier) PushCommits(ctx context.Context, pusher *user_model.Us
 			Sender:     apiPusher,
 		}).
 		Notify(ctx)
+}
+
+func (n *actionsNotifier) ChangeDefaultBranch(ctx context.Context, repo *repo_model.Repository) {
+	// Re-detect scheduled workflows when the default branch changes,
+	// since schedules are registered from workflows in the default branch.
+	if repo.UnitEnabled(ctx, unit.TypeActions) {
+		if err := DetectAndHandleSchedules(ctx, repo); err != nil {
+			log.Error("DetectAndHandleSchedules failed for change default branch repo %s/%s: %v", repo.Owner.Name, repo.Name, err)
+		}
+	}
 }
 
 func (n *actionsNotifier) CreateRef(ctx context.Context, pusher *user_model.User, repo *repo_model.Repository, refFullName git.RefName, refID string) {
