@@ -51,7 +51,7 @@ func initMigrationTest(t *testing.T) func() {
 
 	deferFn := tests.PrintCurrentTest(t, 2)
 	root := getRoot(t)
-	setting.AppPath = path.Join(root, "migration-test-should-not-need-a-binary") // use WrapMainAppPath if a binary is needed
+	setting.AppPath = path.Join(root, "migration-test-should-not-need-a-binary") // use RunMainAppWithStdin if a binary is needed
 
 	giteaConf := os.Getenv("GITEA_CONF")
 	if giteaConf == "" {
