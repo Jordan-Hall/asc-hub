@@ -90,7 +90,7 @@ func Search(ctx *context.APIContext) {
 	//   type: boolean
 	// - name: template
 	//   in: query
-	//   description: include template repositories this user has access to (defaults to true)
+	//   description: show only template, non-template or all repositories (defaults to all)
 	//   type: boolean
 	// - name: archived
 	//   in: query
