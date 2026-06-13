@@ -652,7 +652,9 @@ $(GO_LICENSE_FILE): go.mod go.sum
 	@rm -rf $(GO_LICENSE_TMP_DIR)
 
 generate-ini-sqlite:
-	sed -e 's|{{REPO_TEST_DIR}}|${REPO_TEST_DIR}|g' \
+	sed \
+		-e 's|{{REPO_TEST_DIR}}|$(or $(REPO_TEST_DIR),$(CURDIR)/)|g' \
+		-e 's|{{PROJECT_ROOT}}|$(CURDIR)|g' \
 		-e 's|{{TEST_LOGGER}}|$(or $(TEST_LOGGER),test$(COMMA)file)|g' \
 		-e 's|{{TEST_TYPE}}|$(or $(TEST_TYPE),integration)|g' \
 			tests/sqlite.ini.tmpl > tests/sqlite.ini
@@ -669,11 +671,13 @@ test-sqlite\#%: integrations.sqlite.test generate-ini-sqlite
 test-sqlite-migration:  migrations.sqlite.test migrations.individual.sqlite.test
 
 generate-ini-mysql:
-	sed -e 's|{{TEST_MYSQL_HOST}}|${TEST_MYSQL_HOST}|g' \
+	sed \
+		-e 's|{{TEST_MYSQL_HOST}}|${TEST_MYSQL_HOST}|g' \
 		-e 's|{{TEST_MYSQL_DBNAME}}|${TEST_MYSQL_DBNAME}|g' \
 		-e 's|{{TEST_MYSQL_USERNAME}}|${TEST_MYSQL_USERNAME}|g' \
 		-e 's|{{TEST_MYSQL_PASSWORD}}|${TEST_MYSQL_PASSWORD}|g' \
-		-e 's|{{REPO_TEST_DIR}}|${REPO_TEST_DIR}|g' \
+		-e 's|{{REPO_TEST_DIR}}|$(or $(REPO_TEST_DIR),$(CURDIR)/)|g' \
+		-e 's|{{PROJECT_ROOT}}|$(CURDIR)|g' \
 		-e 's|{{TEST_LOGGER}}|$(or $(TEST_LOGGER),test$(COMMA)file)|g' \
 		-e 's|{{TEST_TYPE}}|$(or $(TEST_TYPE),integration)|g' \
 			tests/mysql.ini.tmpl > tests/mysql.ini
@@ -690,12 +694,14 @@ test-mysql\#%: integrations.mysql.test generate-ini-mysql
 test-mysql-migration: migrations.mysql.test migrations.individual.mysql.test
 
 generate-ini-pgsql:
-	sed -e 's|{{TEST_PGSQL_HOST}}|${TEST_PGSQL_HOST}|g' \
+	sed \
+		-e 's|{{TEST_PGSQL_HOST}}|${TEST_PGSQL_HOST}|g' \
 		-e 's|{{TEST_PGSQL_DBNAME}}|${TEST_PGSQL_DBNAME}|g' \
 		-e 's|{{TEST_PGSQL_USERNAME}}|${TEST_PGSQL_USERNAME}|g' \
 		-e 's|{{TEST_PGSQL_PASSWORD}}|${TEST_PGSQL_PASSWORD}|g' \
 		-e 's|{{TEST_PGSQL_SCHEMA}}|${TEST_PGSQL_SCHEMA}|g' \
-		-e 's|{{REPO_TEST_DIR}}|${REPO_TEST_DIR}|g' \
+		-e 's|{{REPO_TEST_DIR}}|$(or $(REPO_TEST_DIR),$(CURDIR)/)|g' \
+		-e 's|{{PROJECT_ROOT}}|$(CURDIR)|g' \
 		-e 's|{{TEST_LOGGER}}|$(or $(TEST_LOGGER),test$(COMMA)file)|g' \
 		-e 's|{{TEST_TYPE}}|$(or $(TEST_TYPE),integration)|g' \
 		-e 's|{{TEST_STORAGE_TYPE}}|$(or $(TEST_STORAGE_TYPE),minio)|g' \
