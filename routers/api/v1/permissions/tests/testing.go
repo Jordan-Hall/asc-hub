@@ -3,6 +3,8 @@
 
 package tests
 
+// See README.md for a documentation of the test logic
+
 import (
 	"cmp"
 	"fmt"
