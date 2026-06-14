@@ -11,10 +11,11 @@ import (
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	apiv1_permissions "forgejo.org/routers/api/v1/permissions"
+	apiv1_permissions_tests "forgejo.org/routers/api/v1/permissions/tests"
 	"forgejo.org/routers/common"
 	"forgejo.org/services/auth"
 	auth_method "forgejo.org/services/auth/method"
-	"forgejo.org/services/authz"
 	"forgejo.org/services/context"
 
 	"github.com/go-chi/cors"
@@ -38,7 +39,7 @@ func Middlewares() (stack []any) {
 		checkDeprecatedAuthMethods,
 		// Get user from session if logged in.
 		apiAuthentication(buildAuthGroup()),
-		apiAuthorization,
+		apiAuthorization(),
 		verifyAuthWithOptions(&common.VerifyOptions{
 			SignInRequired: setting.Service.RequireSignInView,
 		}),
@@ -97,28 +98,10 @@ func apiAuthentication(authMethod auth.Method) func(*context.APIContext) {
 	}
 }
 
-func apiAuthorization(ctx *context.APIContext) {
-	if hasScope, scope := ctx.Authentication.Scope().Get(); hasScope {
-		publicOnly, err := scope.PublicOnly()
-		if err != nil {
-			ctx.Error(http.StatusForbidden, "tokenRequiresScope", "parsing public resource scope failed: "+err.Error())
-			return
-		}
-		ctx.PublicOnly = publicOnly
-	}
-
-	reducer := ctx.Authentication.Reducer()
-	if reducer != nil {
-		ctx.Reducer = reducer
-	} else {
-		// No Reducer will be populated if the auth method wasn't an PAT.  In this case, we populate `ctx.Reducer` so no
-		// nil checks are needed, and we respect the scope `PublicOnly()` so that it it's safe to just rely on
-		// `ctx.Reducer` to account for public-only access:
-		if ctx.PublicOnly {
-			ctx.Reducer = &authz.PublicReposAuthorizationReducer{}
-		} else {
-			ctx.Reducer = &authz.AllAccessAuthorizationReducer{}
-		}
+func apiAuthorization() func(ctx *context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.APIAuthorization)
+	return func(ctx *context.APIContext) {
+		apiv1_permissions.APIAuthorization(ctx)
 	}
 }
 

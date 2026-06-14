@@ -191,15 +191,13 @@ func checkPermission(check func(ctx apiv1_permissions.Context)) func(*context.AP
 }
 
 // must be used within a group with a call to commentAssignment() to set ctx.Comment
-func ReqValidCommentID(ctx Context, comment *issues_model.Comment) {
-	if comment.Issue == nil || comment.Issue.RepoID != ctx.GetRepository().ID {
-		ctx.NotFound()
-		return
-	}
-
-	if !ctx.GetPermission().CanReadIssuesOrPulls(comment.Issue.IsPull) {
-		ctx.NotFound()
-		return
+func reqValidCommentID() func(*context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqValidCommentID)
+	return func(ctx *context.APIContext) {
+		if ctx.Comment == nil {
+			panic("reqValidCommentID requires commentAssignment to be called first")
+		}
+		apiv1_permissions.ReqValidCommentID(ctx, ctx.Comment)
 	}
 }
 
@@ -228,64 +226,25 @@ func commentAssignment(idParam string) func(ctx *context.APIContext) {
 	}
 }
 
-func ReqPackageAccess(ctx Context, accessMode perm.AccessMode) {
-	if ctx.GetPackageAccessMode() < accessMode && !IsUserSiteAdmin(ctx) {
-		ctx.Error(http.StatusForbidden, "reqPackageAccess", "user should have specific permission or be a site admin")
-		return
+func reqPackageAccess(accessMode perm.AccessMode) func(ctx *context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqPackageAccess, accessMode)
+	return func(ctx *context.APIContext) {
+		apiv1_permissions.ReqPackageAccess(ctx, accessMode)
 	}
 }
 
-func CheckTokenPublicOnly(ctx Context, user, org, packageOwner *user_model.User) {
-	if !ctx.GetPublicOnly() {
-		return
-	}
-
-	requiredScopeCategories := ctx.GetRequiredScopeCategories()
-	if len(requiredScopeCategories) == 0 {
-		return
-	}
-
-	// public Only permission check
-	switch {
-	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryRepository):
-		if ctx.GetRepository() != nil && ctx.GetRepository().IsPrivate {
-			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public repos")
-			return
+func checkTokenPublicOnly() func(*context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.CheckTokenPublicOnly)
+	return func(ctx *context.APIContext) {
+		var packageOwner *user_model.User
+		if ctx.Package != nil {
+			packageOwner = ctx.Package.Owner
 		}
-	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryIssue):
-		if ctx.GetRepository() != nil && ctx.GetRepository().IsPrivate {
-			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public issues")
-			return
+		var org *user_model.User
+		if ctx.Org != nil && ctx.Org.Organization != nil {
+			org = ctx.Org.Organization.AsUser()
 		}
-	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryOrganization):
-		if org != nil && org.Visibility != api.VisibleTypePublic {
-			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public orgs")
-			return
-		}
-		if user != nil && user.IsOrganization() && user.Visibility != api.VisibleTypePublic {
-			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public orgs")
-			return
-		}
-	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryUser):
-		if user != nil && user.IsUser() && user.Visibility != api.VisibleTypePublic {
-			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public users")
-			return
-		}
-	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryActivityPub):
-		if user != nil && user.IsUser() && user.Visibility != api.VisibleTypePublic {
-			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public activitypub")
-			return
-		}
-	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryNotification):
-		if ctx.GetRepository() != nil && ctx.GetRepository().IsPrivate {
-			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public notifications")
-			return
-		}
-	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryPackage):
-		if packageOwner != nil && packageOwner.Visibility.IsPrivate() {
-			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public packages")
-			return
-		}
+		apiv1_permissions.CheckTokenPublicOnly(ctx, ctx.ContextUser, org, packageOwner)
 	}
 }
 
@@ -300,285 +259,123 @@ func requiredScopeLevel(ctx *context.APIContext) auth_model.AccessTokenScopeLeve
 	return requiredScopeLevel
 }
 
-func TokenRequiresScopes(ctx Context, requiredScopeCategories []auth_model.AccessTokenScopeCategory, requiredScopeLevel auth_model.AccessTokenScopeLevel) {
-	// no scope required
-	if len(requiredScopeCategories) == 0 {
-		return
+func tokenRequiresScopes(requiredScopeCategories ...auth_model.AccessTokenScopeCategory) func(*context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.TokenRequiresScopes, requiredScopeCategories)
+	return func(ctx *context.APIContext) {
+		apiv1_permissions.TokenRequiresScopes(ctx, requiredScopeCategories, requiredScopeLevel(ctx))
 	}
-
-	// Need OAuth2 token to be present.
-	hasScope, scope := ctx.GetAuthentication().Scope().Get()
-	if !hasScope {
-		return
-	}
-
-	// get the required scope for the given access level and category
-	requiredScopes := auth_model.GetRequiredScopes(requiredScopeLevel, requiredScopeCategories...)
-	allow, err := scope.HasScope(requiredScopes...)
-	if err != nil {
-		ctx.Error(http.StatusForbidden, "tokenRequiresScope", "checking scope failed: "+err.Error())
-		return
-	}
-
-	if !allow {
-		ctx.Error(http.StatusForbidden, "tokenRequiresScope", fmt.Sprintf("token does not have at least one of required scope(s): %v", requiredScopes))
-		return
-	}
-
-	ctx.SetRequiredScopeCategories(requiredScopeCategories)
 }
 
 // Middleware that dynamically checks either the organization or user scope, depending on the owner type of the
 // repository (requires `repoAssignment()` middleware to be used before this).
-func TokenRequiresRepoOwnerScope(ctx Context, owner *user_model.User, requiredScopeLevel auth_model.AccessTokenScopeLevel) {
-	var category auth_model.AccessTokenScopeCategory
-	if owner.IsOrganization() {
-		category = auth_model.AccessTokenScopeCategoryOrganization
-	} else {
-		category = auth_model.AccessTokenScopeCategoryUser
+func tokenRequiresRepoOwnerScope() func(*context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.TokenRequiresRepoOwnerScope)
+	return func(ctx *context.APIContext) {
+		apiv1_permissions.TokenRequiresRepoOwnerScope(ctx, ctx.Repo.Owner, requiredScopeLevel(ctx))
 	}
-	TokenRequiresScopes(ctx, []auth_model.AccessTokenScopeCategory{category}, requiredScopeLevel)
 }
 
 // Contexter middleware already checks token for user sign in process.
-func ReqToken(ctx Context) {
-	// If actions token is present
-	if ctx.GetAuthentication().ActionsTaskID().Has() {
-		return
-	}
-
-	if ctx.GetIsSigned() {
-		return
-	}
-	ctx.Error(http.StatusUnauthorized, "reqToken", "token is required")
+func reqToken() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqToken)
 }
 
-func ReqExploreSignIn(ctx Context) {
-	if (setting.Service.RequireSignInView || setting.Service.Explore.RequireSigninView) && !ctx.GetIsSigned() {
-		ctx.Error(http.StatusUnauthorized, "reqExploreSignIn", "you must be signed in to search for users")
-	}
+func reqExploreSignIn() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqExploreSignIn)
 }
 
-func ReqUsersExploreEnabled(ctx Context) {
-	if setting.Service.Explore.DisableUsersPage {
-		ctx.NotFound()
-	}
+func reqUsersExploreEnabled() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqUsersExploreEnabled)
 }
 
-func ReqBasicOrRevProxyAuth(ctx Context) {
-	if ctx.GetIsSigned() && setting.Service.EnableReverseProxyAuthAPI && ctx.GetAuthentication().IsReverseProxyAuthentication() {
-		return
-	}
-
-	// Require basic authorization method to be used and that basic
-	// authorization used password login to verify the user.
-	if !ctx.GetAuthentication().IsPasswordAuthentication() {
-		ctx.Error(http.StatusUnauthorized, "reqBasicAuth", "auth method not allowed")
-		return
-	}
+func reqBasicOrRevProxyAuth() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqBasicOrRevProxyAuth)
 }
 
-func ReqSiteAdmin(ctx Context) {
-	if !IsUserSiteAdmin(ctx) {
-		ctx.Error(http.StatusForbidden, "reqSiteAdmin", "user should be the site admin")
-		return
-	}
+func reqSiteAdmin() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqSiteAdmin)
 }
 
 // reqOwner requires that the current user is either the owner of the repository or an administrator. If one or more
 // unitTypes are given, it also requires that at least one the respective unitTypes is enabled.
-func ReqOwner(ctx Context, unitTypes []unit.Type) {
-	if len(unitTypes) > 0 && !slices.ContainsFunc(unitTypes, func(unitType unit.Type) bool {
-		return ctx.GetRepository().UnitEnabled(ctx.GetContext(), unitType)
-	}) {
-		ctx.NotFound()
-		return
-	}
-	if !ctx.GetPermission().IsOwner() && !IsUserSiteAdmin(ctx) {
-		ctx.Error(http.StatusForbidden, "reqOwner", "user should be the owner of the repo")
-		return
+func reqOwner(unitTypes ...unit.Type) func(ctx *context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqOwner, unitTypes)
+	return func(ctx *context.APIContext) {
+		apiv1_permissions.ReqOwner(ctx, unitTypes)
 	}
 }
 
 // reqSelfOrAdmin doer should be the same as the contextUser or site admin
-func ReqSelfOrAdmin(ctx Context) {
-	getName := func(user *user_model.User) string {
-		if user == nil {
-			return ""
-		}
-		return user.Name
-	}
-
-	if !IsUserSiteAdmin(ctx) && getName(ctx.GetUser()) != getName(ctx.GetDoer()) {
-		ctx.Error(http.StatusForbidden, "reqSelfOrAdmin", "doer should be the site admin or be same as the contextUser")
-		return
-	}
+func reqSelfOrAdmin() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqSelfOrAdmin)
 }
 
 // reqAdmin user should be an owner or a collaborator with admin write of a repository, or site admin. If one or more
 // unitTypes are given, it also requires that at least one the respective unitTypes is enabled.
-func ReqAdmin(ctx Context, unitTypes []unit.Type) {
-	if len(unitTypes) > 0 && !slices.ContainsFunc(unitTypes, func(unitType unit.Type) bool {
-		return ctx.GetRepository().UnitEnabled(ctx.GetContext(), unitType)
-	}) {
-		ctx.NotFound()
-		return
-	}
-	if !IsUserRepoAdmin(ctx) && !IsUserSiteAdmin(ctx) {
-		ctx.Error(http.StatusForbidden, "reqAdmin", "user should be an owner or a collaborator with admin write of a repository")
-		return
+func reqAdmin(unitTypes ...unit.Type) func(ctx *context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqAdmin, unitTypes)
+	return func(ctx *context.APIContext) {
+		apiv1_permissions.ReqAdmin(ctx, unitTypes)
 	}
 }
 
 // reqRepoWriter requires that the current user has permission to write to a repository or that it is an administrator.
 // One or more unitTypes have to be specified, and at least one of them has to be enabled.
-func ReqRepoWriter(ctx Context, unitTypes []unit.Type) {
-	if !slices.ContainsFunc(unitTypes, func(unitType unit.Type) bool {
-		return ctx.GetRepository().UnitEnabled(ctx.GetContext(), unitType)
-	}) {
-		ctx.NotFound()
-		return
-	}
-	if !IsUserRepoWriter(ctx, unitTypes) && !IsUserRepoAdmin(ctx) && !IsUserSiteAdmin(ctx) {
-		ctx.Error(http.StatusForbidden, "reqRepoWriter", "user should have a permission to write to a repo")
-		return
+func reqRepoWriter(unitTypes ...unit.Type) func(ctx *context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqRepoWriter, unitTypes)
+	return func(ctx *context.APIContext) {
+		apiv1_permissions.ReqRepoWriter(ctx, unitTypes)
 	}
 }
 
 // reqRepoBranchWriter user should have a permission to write to a branch, or be a site admin
-func ReqRepoBranchWriter(ctx Context, branch string) {
-	if !issues_model.CanMaintainerWriteToBranch(ctx.GetContext(), *ctx.GetPermission(), branch, ctx.GetDoer()) && !IsUserSiteAdmin(ctx) {
-		ctx.Error(http.StatusForbidden, "reqRepoBranchWriter", "user should have a permission to write to this branch")
+func reqRepoBranchWriter() func(*context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqRepoBranchWriter)
+	return func(ctx *context.APIContext) {
+		options, ok := web.GetForm(ctx).(api.FileOptionInterface)
+		if !ok {
+			ctx.Error(http.StatusForbidden, "reqRepoBranchWriter", "user should have a permission to write to this branch")
+			return
+		}
+		apiv1_permissions.ReqRepoBranchWriter(ctx, options.Branch())
 	}
 }
 
 // reqRepoReader user should have specific read permission or be a repo admin or a site admin
-func ReqRepoReader(ctx Context, unitType unit.Type) {
-	if !ctx.GetRepository().UnitEnabled(ctx.GetContext(), unitType) {
-		ctx.NotFound()
-		return
-	}
-	if !ctx.GetPermission().CanRead(unitType) && !IsUserRepoAdmin(ctx) && !IsUserSiteAdmin(ctx) {
-		ctx.Error(http.StatusForbidden, "reqRepoReader", "user should have specific read permission or be a repo admin or a site admin")
-		return
+func reqRepoReader(unitType unit.Type) func(*context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqRepoReader, unitType)
+	return func(ctx *context.APIContext) {
+		apiv1_permissions.ReqRepoReader(ctx, unitType)
 	}
 }
 
 // reqAnyRepoReader user should have any permission to read repository or permissions of site admin
-func ReqAnyRepoReader(ctx Context) {
-	if !ctx.GetPermission().HasAccess() && !IsUserSiteAdmin(ctx) {
-		ctx.Error(http.StatusForbidden, "reqAnyRepoReader", "user should have any permission to read repository or permissions of site admin")
-		return
-	}
+func reqAnyRepoReader() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqAnyRepoReader)
 }
 
 // reqOrgOwnership user should be an organization owner, or a site admin
-func ReqOrgOwnership(ctx Context) {
-	if IsUserSiteAdmin(ctx) {
-		return
-	}
-
-	var orgID int64
-	if ctx.GetOrg() != nil {
-		orgID = ctx.GetOrg().ID
-	} else if ctx.GetTeam() != nil {
-		orgID = ctx.GetTeam().OrgID
-	} else {
-		ctx.Error(http.StatusInternalServerError, "", "reqOrgOwnership: unprepared context")
-		return
-	}
-
-	isOwner, err := organization.IsOrganizationOwner(ctx.GetContext(), orgID, ctx.GetDoer().ID)
-	if err != nil {
-		ctx.Error(http.StatusInternalServerError, "IsOrganizationOwner", err)
-		return
-	} else if !isOwner {
-		if ctx.GetOrg() != nil {
-			ctx.Error(http.StatusForbidden, "", "Must be an organization owner")
-		} else {
-			ctx.NotFound()
-		}
-		return
-	}
+func reqOrgOwnership() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqOrgOwnership)
 }
 
 // reqTeamMembership user should be an team member, or a site admin
-func ReqTeamMembership(ctx Context) {
-	if IsUserSiteAdmin(ctx) {
-		return
-	}
-	if ctx.GetTeam() == nil {
-		ctx.Error(http.StatusInternalServerError, "", "reqTeamMembership: unprepared context")
-		return
-	}
-
-	orgID := ctx.GetTeam().OrgID
-	isOwner, err := organization.IsOrganizationOwner(ctx.GetContext(), orgID, ctx.GetDoer().ID)
-	if err != nil {
-		ctx.Error(http.StatusInternalServerError, "IsOrganizationOwner", err)
-		return
-	} else if isOwner {
-		return
-	}
-
-	if isTeamMember, err := organization.IsTeamMember(ctx.GetContext(), orgID, ctx.GetTeam().ID, ctx.GetDoer().ID); err != nil {
-		ctx.Error(http.StatusInternalServerError, "IsTeamMember", err)
-		return
-	} else if !isTeamMember {
-		isOrgMember, err := organization.IsOrganizationMember(ctx.GetContext(), orgID, ctx.GetDoer().ID)
-		if err != nil {
-			ctx.Error(http.StatusInternalServerError, "IsOrganizationMember", err)
-		} else if isOrgMember {
-			ctx.Error(http.StatusForbidden, "", "Must be a team member")
-		} else {
-			ctx.NotFound()
-		}
-		return
-	}
+func reqTeamMembership() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqTeamMembership)
 }
 
 // reqOrgMembership user should be an organization member, or a site admin
-func ReqOrgMembership(ctx Context) {
-	if IsUserSiteAdmin(ctx) {
-		return
-	}
-
-	var orgID int64
-	if ctx.GetOrg() != nil {
-		orgID = ctx.GetOrg().ID
-	} else if ctx.GetTeam() != nil {
-		orgID = ctx.GetTeam().OrgID
-	} else {
-		ctx.Error(http.StatusInternalServerError, "", "reqOrgMembership: unprepared context")
-		return
-	}
-
-	if isMember, err := organization.IsOrganizationMember(ctx.GetContext(), orgID, ctx.GetDoer().ID); err != nil {
-		ctx.Error(http.StatusInternalServerError, "IsOrganizationMember", err)
-		return
-	} else if !isMember {
-		if ctx.GetOrg() != nil {
-			ctx.Error(http.StatusForbidden, "", "Must be an organization member")
-		} else {
-			ctx.NotFound()
-		}
-		return
-	}
+func reqOrgMembership() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqOrgMembership)
 }
 
-func ReqGitHook(ctx Context) {
-	if !ctx.GetDoer().CanEditGitHook() {
-		ctx.Error(http.StatusForbidden, "", "must be allowed to edit Git hooks")
-		return
-	}
+func reqGitHook() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqGitHook)
 }
 
 // reqWebhooksEnabled requires webhooks to be enabled by admin.
-func ReqWebhooksEnabled(ctx Context) {
-	if setting.DisableWebhooks {
-		ctx.Error(http.StatusForbidden, "", "webhooks disabled by administrator")
-		return
-	}
+func reqWebhooksEnabled() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.ReqWebhooksEnabled)
 }
 
 func orgAssignment(args ...bool) func(ctx *context.APIContext) {
@@ -630,115 +427,35 @@ func orgAssignment(args ...bool) func(ctx *context.APIContext) {
 	}
 }
 
-func MustEnableIssues(ctx Context) {
-	if !ctx.GetPermission().CanRead(unit.TypeIssues) {
-		if log.IsTrace() {
-			if ctx.GetIsSigned() {
-				log.Trace("Permission Denied: User %-v cannot read %-v in Repo %-v\n"+
-					"User in Repo has Permissions: %-+v",
-					ctx.GetDoer(),
-					unit.TypeIssues,
-					ctx.GetRepository(),
-					ctx.GetPermission())
-			} else {
-				log.Trace("Permission Denied: Anonymous user cannot read %-v in Repo %-v\n"+
-					"Anonymous user in Repo has Permissions: %-+v",
-					unit.TypeIssues,
-					ctx.GetRepository(),
-					ctx.GetPermission())
-			}
-		}
-		ctx.NotFound()
-		return
+func mustEnableIssues() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.MustEnableIssues)
+}
+
+func mustEnableIssuesOrPulls() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.MustEnableIssuesOrPulls)
+}
+
+func mustAllowPulls() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.MustAllowPulls)
+}
+
+func mustEnableLocalIssuesIfIsIssue() func(*context.APIContext) {
+	apiv1_permissions_tests.RecordSignature(apiv1_permissions.MustEnableLocalIssuesIfIsIssue)
+	return func(ctx *context.APIContext) {
+		apiv1_permissions.MustEnableLocalIssuesIfIsIssue(ctx, ctx.ParamsInt64(":index"))
 	}
 }
 
-func MustAllowPulls(ctx Context) {
-	if !ctx.GetRepository().CanEnablePulls() || !ctx.GetPermission().CanRead(unit.TypePullRequests) {
-		if ctx.GetRepository().CanEnablePulls() && log.IsTrace() {
-			if ctx.GetIsSigned() {
-				log.Trace("Permission Denied: User %-v cannot read %-v in Repo %-v\n"+
-					"User in Repo has Permissions: %-+v",
-					ctx.GetDoer(),
-					unit.TypePullRequests,
-					ctx.GetRepository(),
-					ctx.GetPermission())
-			} else {
-				log.Trace("Permission Denied: Anonymous user cannot read %-v in Repo %-v\n"+
-					"Anonymous user in Repo has Permissions: %-+v",
-					unit.TypePullRequests,
-					ctx.GetRepository(),
-					ctx.GetPermission())
-			}
-		}
-		ctx.NotFound()
-		return
-	}
+func mustEnableWiki() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.MustEnableWiki)
 }
 
-func MustEnableIssuesOrPulls(ctx Context) {
-	if !ctx.GetPermission().CanRead(unit.TypeIssues) &&
-		(!ctx.GetRepository().CanEnablePulls() || !ctx.GetPermission().CanRead(unit.TypePullRequests)) {
-		if ctx.GetRepository().CanEnablePulls() && log.IsTrace() {
-			if ctx.GetIsSigned() {
-				log.Trace("Permission Denied: User %-v cannot read %-v and %-v in Repo %-v\n"+
-					"User in Repo has Permissions: %-+v",
-					ctx.GetDoer(),
-					unit.TypeIssues,
-					unit.TypePullRequests,
-					ctx.GetRepository(),
-					ctx.GetPermission())
-			} else {
-				log.Trace("Permission Denied: Anonymous user cannot read %-v and %-v in Repo %-v\n"+
-					"Anonymous user in Repo has Permissions: %-+v",
-					unit.TypeIssues,
-					unit.TypePullRequests,
-					ctx.GetRepository(),
-					ctx.GetPermission())
-			}
-		}
-		ctx.NotFound()
-	}
+func mustNotBeArchived() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.MustNotBeArchived)
 }
 
-func MustEnableLocalIssuesIfIsIssue(ctx Context, index int64) {
-	if ctx.GetRepository().UnitEnabled(ctx.GetContext(), unit.TypeIssues) {
-		return
-	}
-
-	issue, err := issues_model.GetIssueByIndex(ctx.GetContext(), ctx.GetRepository().ID, index)
-	if err != nil {
-		if issues_model.IsErrIssueNotExist(err) {
-			ctx.NotFound()
-		} else {
-			ctx.Error(http.StatusInternalServerError, "GetIssueByIndex", err)
-		}
-		return
-	}
-	if !issue.IsPull {
-		ctx.NotFound()
-		return
-	}
-}
-
-func MustEnableWiki(ctx Context) {
-	if !(ctx.GetPermission().CanRead(unit.TypeWiki)) {
-		ctx.NotFound()
-		return
-	}
-}
-
-func MustNotBeArchived(ctx Context) {
-	if ctx.GetRepository().IsArchived {
-		ctx.Error(http.StatusLocked, "RepoArchived", fmt.Errorf("%s is archived", ctx.GetRepository().LogString()))
-	}
-}
-
-func MustEnableAttachments(ctx Context) {
-	if !setting.Attachment.Enabled {
-		ctx.NotFound()
-		return
-	}
+func mustEnableAttachments() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.MustEnableAttachments)
 }
 
 // bind binding an obj to a func(ctx *context.APIContext)
@@ -754,22 +471,8 @@ func bind[T any](_ T) any {
 	}
 }
 
-func IndividualPermsChecker(ctx Context) {
-	// org permissions have been checked in context.OrgAssignment(), but individual permissions haven't been checked.
-	if ctx.GetUser().IsIndividual() {
-		switch ctx.GetUser().Visibility {
-		case api.VisibleTypePrivate:
-			if ctx.GetDoer() == nil || (ctx.GetUser().ID != ctx.GetDoer().ID && !IsUserSiteAdmin(ctx)) {
-				ctx.NotFound("Visit Project", nil)
-				return
-			}
-		case api.VisibleTypeLimited:
-			if ctx.GetDoer() == nil {
-				ctx.NotFound("Visit Project", nil)
-				return
-			}
-		}
-	}
+func individualPermsChecker() func(ctx *context.APIContext) {
+	return checkPermission(apiv1_permissions.IndividualPermsChecker)
 }
 
 // Routes registers all v1 APIs routes to web application.
