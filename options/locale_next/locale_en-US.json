@@ -908,6 +908,8 @@
 	"teams.add_all_repos.modal.header": "Add all repositories",
 	"teams.remove_all_repos.modal.header": "Remove all repositories",
 	"members.add_member": "Add member",
+	"members.invite_member": "Invite member",
+	"members.invite_team_member": "Invite to team",
 	"members.user": "User",
 	"members.user_already_member": "This user is already a member of the organization.",
 	"members.no_team_selected": "Organization members must belong to at least one team.",

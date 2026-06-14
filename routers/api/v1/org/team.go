@@ -498,8 +498,8 @@ func AddTeamMember(ctx *context.APIContext) {
 	if ctx.Written() {
 		return
 	}
-	if err := models.AddTeamMember(ctx, ctx.Org.Team, u.ID); err != nil {
-		ctx.Error(http.StatusInternalServerError, "AddMember", err)
+	if err := org_service.InviteOrAddTeamMember(ctx, ctx.Doer, u, ctx.Org.Team); err != nil {
+		ctx.Error(http.StatusInternalServerError, "InviteOrAddTeamMember", err)
 		return
 	}
 	ctx.Status(http.StatusNoContent)
