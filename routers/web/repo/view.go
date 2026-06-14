@@ -1065,6 +1065,7 @@ func renderHomeCode(ctx *context.Context) {
 			return
 		}
 		ctx.Redirect(submodule.ResolveUpstreamURL(ctx.Repo.Repository.HTMLURL()))
+		return // technically ctx.Written() check below is fine, but this passes lint-single-response
 	} else if entry.IsDir() {
 		renderDirectory(ctx)
 	} else {

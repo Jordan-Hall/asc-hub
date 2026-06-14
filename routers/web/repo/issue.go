@@ -2459,6 +2459,7 @@ func UpdateIssueMilestone(ctx *context.Context) {
 		has, err := db.GetEngine(ctx).Where("issue_id = ? AND type = ?", issue.ID, issues_model.CommentTypeMilestone).OrderBy("id DESC").Limit(1).Get(comment)
 		if !has || err != nil {
 			ctx.ServerError("GetLatestMilestoneComment", err)
+			return
 		}
 		if err := comment.LoadMilestone(ctx); err != nil {
 			ctx.ServerError("LoadMilestone", err)
@@ -2942,6 +2943,7 @@ func ListIssues(ctx *context.Context) {
 				continue
 			}
 			ctx.Error(http.StatusInternalServerError, err.Error())
+			return
 		}
 	}
 

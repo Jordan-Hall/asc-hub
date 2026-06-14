@@ -396,8 +396,8 @@ func SettingsPost(ctx *context.Context) {
 
 	case "federation":
 		if !setting.Federation.Enabled {
-			ctx.NotFound("", nil)
 			ctx.Flash.Info(ctx.Tr("repo.settings.federation_not_enabled"))
+			ctx.NotFound("", nil)
 			return
 		}
 		followingRepos := strings.TrimSpace(form.FollowingRepos)

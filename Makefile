@@ -443,7 +443,7 @@ lint-frontend: lint-js tsc lint-css
 lint-frontend-fix: lint-js-fix lint-css-fix
 
 .PHONY: lint-backend
-lint-backend: lint-go lint-go-vet lint-editorconfig lint-renovate lint-locale lint-locale-usage lint-disposable-emails
+lint-backend: lint-go lint-go-vet lint-editorconfig lint-renovate lint-locale lint-locale-usage lint-disposable-emails lint-single-response
 
 .PHONY: lint-backend-fix
 lint-backend-fix: lint-go-fix lint-go-vet lint-editorconfig lint-disposable-emails-fix
@@ -529,6 +529,10 @@ lint-disposable-emails:
 .PHONY: lint-disposable-emails-fix
 lint-disposable-emails-fix:
 	$(GO) run build/generate-disposable-email.go -r $(DISPOSABLE_EMAILS_SHA)
+
+.PHONY: lint-single-response
+lint-single-response:
+	$(GO) run ./build/lint-single-response/cmd ./...
 
 .PHONY: security-check
 security-check:

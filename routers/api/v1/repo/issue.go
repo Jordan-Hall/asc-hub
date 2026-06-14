@@ -488,6 +488,7 @@ func ListIssues(ctx *context.APIContext) {
 				continue
 			}
 			ctx.Error(http.StatusInternalServerError, "GetMilestoneByRepoID", err)
+			return
 		}
 	}
 

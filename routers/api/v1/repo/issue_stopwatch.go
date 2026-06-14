@@ -4,7 +4,6 @@
 package repo
 
 import (
-	"errors"
 	"net/http"
 
 	issues_model "forgejo.org/models/issues"
@@ -49,8 +48,8 @@ func StartIssueStopwatch(ctx *context.APIContext) {
 	//   "409":
 	//     description: Cannot start a stopwatch again if it already exists
 
-	issue, err := prepareIssueStopwatch(ctx, false)
-	if err != nil {
+	issue := prepareIssueStopwatch(ctx, false)
+	if ctx.Written() {
 		return
 	}
 
@@ -98,8 +97,8 @@ func StopIssueStopwatch(ctx *context.APIContext) {
 	//   "409":
 	//     description:  Cannot stop a non existent stopwatch
 
-	issue, err := prepareIssueStopwatch(ctx, true)
-	if err != nil {
+	issue := prepareIssueStopwatch(ctx, true)
+	if ctx.Written() {
 		return
 	}
 
@@ -147,8 +146,8 @@ func DeleteIssueStopwatch(ctx *context.APIContext) {
 	//   "409":
 	//     description:  Cannot cancel a non existent stopwatch
 
-	issue, err := prepareIssueStopwatch(ctx, true)
-	if err != nil {
+	issue := prepareIssueStopwatch(ctx, true)
+	if ctx.Written() {
 		return
 	}
 
@@ -160,7 +159,7 @@ func DeleteIssueStopwatch(ctx *context.APIContext) {
 	ctx.Status(http.StatusNoContent)
 }
 
-func prepareIssueStopwatch(ctx *context.APIContext, shouldExist bool) (*issues_model.Issue, error) {
+func prepareIssueStopwatch(ctx *context.APIContext, shouldExist bool) *issues_model.Issue {
 	issue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.ParamsInt64(":index"))
 	if err != nil {
 		if issues_model.IsErrIssueNotExist(err) {
@@ -169,31 +168,29 @@ func prepareIssueStopwatch(ctx *context.APIContext, shouldExist bool) (*issues_m
 			ctx.Error(http.StatusInternalServerError, "GetIssueByIndex", err)
 		}
 
-		return nil, err
+		return nil
 	}
 
 	if !ctx.Repo.CanWriteIssuesOrPulls(issue.IsPull) {
 		ctx.Status(http.StatusForbidden)
-		return nil, errors.New("Unable to write to PRs")
+		return nil
 	}
 
 	if !ctx.Repo.CanUseTimetracker(ctx, issue, ctx.Doer) {
 		ctx.Status(http.StatusForbidden)
-		return nil, errors.New("Cannot use time tracker")
+		return nil
 	}
 
 	if issues_model.StopwatchExists(ctx, ctx.Doer.ID, issue.ID) != shouldExist {
 		if shouldExist {
 			ctx.Error(http.StatusConflict, "StopwatchExists", "cannot stop/cancel a non existent stopwatch")
-			err = errors.New("cannot stop/cancel a non existent stopwatch")
 		} else {
 			ctx.Error(http.StatusConflict, "StopwatchExists", "cannot start a stopwatch again if it already exists")
-			err = errors.New("cannot start a stopwatch again if it already exists")
 		}
-		return nil, err
+		return nil
 	}
 
-	return issue, nil
+	return issue
 }
 
 // GetStopwatches get all stopwatches

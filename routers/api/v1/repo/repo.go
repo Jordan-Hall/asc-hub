@@ -296,6 +296,7 @@ func CreateUserRepo(ctx *context.APIContext, owner *user_model.User, opt api.Cre
 	repo, err = repo_model.GetRepositoryByID(ctx, repo.ID)
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "GetRepositoryByID", err)
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, convert.ToRepo(ctx, repo, access_model.Permission{AccessMode: perm.AccessModeOwner}))

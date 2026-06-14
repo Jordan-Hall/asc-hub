@@ -417,6 +417,7 @@ func editFilePost(ctx *context.Context, form forms.EditRepoFileForm, isNewFile b
 			}
 			ctx.RenderWithErr(flashError, tplEditFile, &form)
 		}
+		return
 	}
 
 	if ctx.Repo.Repository.IsEmpty {

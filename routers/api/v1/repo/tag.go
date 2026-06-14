@@ -120,6 +120,7 @@ func GetAnnotatedTag(ctx *context.APIContext) {
 		commit, err := tag.Commit(ctx.Repo.GitRepo)
 		if err != nil {
 			ctx.Error(http.StatusBadRequest, "GetAnnotatedTag", err)
+			return
 		}
 
 		convertedAnnotatedTag, err := convert.ToAnnotatedTag(ctx, ctx.Repo.GitRepo, ctx.Repo.Repository, tag, commit)

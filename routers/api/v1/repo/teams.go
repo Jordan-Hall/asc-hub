@@ -189,6 +189,7 @@ func DeleteTeam(ctx *context.APIContext) {
 func changeRepoTeam(ctx *context.APIContext, add bool) {
 	if !ctx.Repo.Owner.IsOrganization() {
 		ctx.Error(http.StatusMethodNotAllowed, "noOrg", "repo is not owned by an organization")
+		return
 	}
 	if !ctx.Repo.Owner.RepoAdminChangeTeamAccess && !ctx.Repo.IsOwner() {
 		ctx.Error(http.StatusForbidden, "noAdmin", "user is nor repo admin nor owner")

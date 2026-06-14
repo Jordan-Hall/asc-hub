@@ -58,6 +58,7 @@ func MirrorSync(ctx *context.APIContext) {
 
 	if !ctx.Repo.CanWrite(unit.TypeCode) {
 		ctx.Error(http.StatusForbidden, "MirrorSync", "Must have write access")
+		return
 	}
 
 	if !setting.Mirror.Enabled {

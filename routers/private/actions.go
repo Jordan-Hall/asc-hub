@@ -41,6 +41,7 @@ func GenerateActionsRunnerToken(ctx *context.PrivateContext) {
 		ctx.JSON(http.StatusInternalServerError, private.Response{
 			Err: err.Error(),
 		})
+		return
 	}
 
 	ownerID := optional.None[int64]()

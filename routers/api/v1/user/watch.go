@@ -69,6 +69,7 @@ func GetWatchedRepos(ctx *context.APIContext) {
 	repos, total, err := getWatchedRepos(ctx, ctx.ContextUser, private, utils.GetListOptions(ctx))
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "getWatchedRepos", err)
+		return
 	}
 
 	ctx.SetTotalCountHeader(total)
@@ -102,6 +103,7 @@ func GetMyWatchedRepos(ctx *context.APIContext) {
 	repos, total, err := getWatchedRepos(ctx, ctx.Doer, true, utils.GetListOptions(ctx))
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "getWatchedRepos", err)
+		return
 	}
 
 	ctx.SetTotalCountHeader(total)

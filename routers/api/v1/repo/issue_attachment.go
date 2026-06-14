@@ -289,6 +289,7 @@ func EditIssueAttachment(ctx *context.APIContext) {
 
 	if err := repo_model.UpdateAttachment(ctx, attachment); err != nil {
 		ctx.Error(http.StatusInternalServerError, "UpdateAttachment", err)
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, convert.ToAPIAttachment(ctx.Repo.Repository, attachment))

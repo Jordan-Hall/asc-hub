@@ -237,6 +237,7 @@ func VerifyUserGPGKey(ctx *context.APIContext) {
 			return
 		}
 		ctx.Error(http.StatusInternalServerError, "VerifyUserGPGKey", err)
+		return
 	}
 
 	keys, err := db.Find[asymkey_model.GPGKey](ctx, asymkey_model.FindGPGKeyOptions{
