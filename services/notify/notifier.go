@@ -16,6 +16,8 @@ import (
 )
 
 // Notifier defines an interface to notify receiver
+//
+//mockery:generate: true
 type Notifier interface {
 	Run()
 

@@ -6,8 +6,10 @@ package actions
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	actions_model "forgejo.org/models/actions"
+	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
 	packages_model "forgejo.org/models/packages"
 	perm_model "forgejo.org/models/perm"
@@ -25,6 +27,7 @@ import (
 	"forgejo.org/services/convert"
 	notify_service "forgejo.org/services/notify"
 
+	"code.forgejo.org/forgejo/runner/v12/act/jobparser"
 	"xorm.io/builder"
 )
 
@@ -824,6 +827,42 @@ func sendActionRunNowDoneNotificationIfNeeded(ctx context.Context, priorRun, upd
 		notify_service.ActionRunNowDone(ctx, updatedRun, priorRun.Status, lastRun)
 	}
 	return nil
+}
+
+// Insert a new run, and all its jobs, into the database.  In the event that all the `if` clauses of the jobs are
+// evaluated at this stage and are `false`,
+func InsertRun(ctx context.Context, run *actions_model.ActionRun, jobs []*jobparser.SingleWorkflow) error {
+	return db.WithTx(ctx, func(ctx context.Context) error {
+		if err := actions_model.InsertRunWithoutNotification(ctx, run, jobs); err != nil {
+			return fmt.Errorf("InsertRunWithoutNotification: %w", err)
+		}
+
+		// Normally the status of a job is input to InsertRun as Waiting, and remains that way.  But InsertRunJobs can
+		// evaluate the 'if' clauses of each job, and if every job is skipped then the job status needs to be updated.
+		// ComputeRunStatus queries for the runs that we already have in-memory, so first do a quick check, then rely on
+		// that reusable code if needed.
+		columns, err := actions_model.ComputeExistingRunStatus(ctx, run)
+		if err != nil {
+			return fmt.Errorf("compute run status: %w", err)
+		}
+		if len(columns) != 0 {
+			if err := UpdateRun(ctx, run, columns...); err != nil {
+				return fmt.Errorf("update run: %w", err)
+			}
+		}
+
+		// Some jobs might have been been immediately set to Skipped when they were inserted.  Other jobs may be
+		// dependent on those skipped jobs.  While we're still in this transaction and before these jobs are visible,
+		// run the job emitter which can recursively evaluate this state and update dependent runs status to either
+		// skipped or waiting, depending on their 'if':
+		if !run.NeedApproval { // don't unblock jobs if the run needs approval
+			if err := checkJobsOfRun(ctx, run.ID, 0); err != nil {
+				return fmt.Errorf("check jobs of run: %w", err)
+			}
+		}
+
+		return nil
+	})
 }
 
 // wrapper of UpdateRunWithoutNotification with a call to the ActionRunNowDone notification channel

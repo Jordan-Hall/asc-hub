@@ -362,42 +362,33 @@ func GetRunsNotDoneByRepoIDAndPullRequestID(ctx context.Context, repoID, pullReq
 	return runs, nil
 }
 
-// InsertRun inserts a run
+// Inserts a run and its jobs.
 // The title will be cut off at 255 characters if it's longer than 255 characters.
-// We don't have to send the ActionRunNowDone notification here because there are no runs that start in a not done status.
-func InsertRun(ctx context.Context, run *ActionRun, jobs []*jobparser.SingleWorkflow) error {
-	ctx, committer, err := db.TxContext(ctx)
-	if err != nil {
-		return err
-	}
-	defer committer.Close()
-
-	index, err := db.GetNextResourceIndex(ctx, "action_run_index", run.RepoID)
-	if err != nil {
-		return err
-	}
-	run.Index = index
-	run.Title, _ = util.SplitStringAtByteN(run.Title, 255)
-
-	if err := db.Insert(ctx, run); err != nil {
-		return err
-	}
-
-	if run.Repo == nil {
-		repo, err := repo_model.GetRepositoryByID(ctx, run.RepoID)
+func InsertRunWithoutNotification(ctx context.Context, run *ActionRun, jobs []*jobparser.SingleWorkflow) error {
+	return db.WithTx(ctx, func(ctx context.Context) error {
+		index, err := db.GetNextResourceIndex(ctx, "action_run_index", run.RepoID)
 		if err != nil {
 			return err
 		}
-		run.Repo = repo
-	}
+		run.Index = index
+		run.Title, _ = util.SplitStringAtByteN(run.Title, 255)
 
-	clearRepoRunCountCache(ctx, run.Repo)
+		if err := db.Insert(ctx, run); err != nil {
+			return err
+		}
 
-	if err := InsertRunJobs(ctx, run, jobs); err != nil {
-		return err
-	}
+		if run.Repo == nil {
+			repo, err := repo_model.GetRepositoryByID(ctx, run.RepoID)
+			if err != nil {
+				return err
+			}
+			run.Repo = repo
+		}
 
-	return committer.Commit()
+		clearRepoRunCountCache(ctx, run.Repo)
+
+		return InsertRunJobs(ctx, run, jobs)
+	})
 }
 
 // Adds `ActionRunJob` instances from `SingleWorkflows` to an existing ActionRun.
@@ -420,10 +411,17 @@ func InsertRunJobs(ctx context.Context, run *ActionRun, jobs []*jobparser.Single
 
 			if len(needs) > 0 || run.NeedApproval || v.IncompleteMatrix || v.IncompleteRunsOn || v.IncompleteWith {
 				status = StatusBlocked
+			} else if ifPassed, err := job.EvaluateIf(); err == nil && !ifPassed {
+				log.Trace("job %q skipped by server-side 'if' evaluation", id)
+				status = StatusSkipped
 			} else {
+				if err != nil && !errors.Is(err, jobparser.ErrCannotEvaluateInJobParser) {
+					return fmt.Errorf("unable to evaluate job 'if' on server-side with unexpected error: %w", err)
+				}
 				status = StatusWaiting
 				hasWaiting = true
 			}
+
 			name, _ = util.SplitStringAtByteN(job.Name, 255)
 			runsOn = job.RunsOn()
 		}
@@ -571,18 +569,26 @@ func UpdateRunWithoutNotification(ctx context.Context, run *ActionRun, cols ...s
 	return nil
 }
 
-// Compute the Status, Started, and Stopped fields of an ActionRun based upon the current job state within the run.
-// Returned is the [ActionRun] with modifications if necessary, a slice of column names that have been updated, or an
-// error if the calculation failed. The caller is responsible for then invoking [actions_service.UpdateRun] for an
-// update with notifications, or [actions_model.UpdateRunWithoutNotification] if notifications are already handled.
+// Performs the same computation as [ComputeExistingRunStatus] from a run ID, and returning the run. The caller is
+// responsible for then invoking [actions_service.UpdateRun] for an update with notifications, or
+// [actions_model.UpdateRunWithoutNotification] if notifications are already handled.
 func ComputeRunStatus(ctx context.Context, runID int64) (run *ActionRun, columns []string, err error) {
 	run, err = GetRunByID(ctx, runID)
 	if err != nil {
 		return nil, nil, err
 	}
-	jobs, err := GetRunJobsByRunID(ctx, runID)
+	columns, err = ComputeExistingRunStatus(ctx, run)
+	return run, columns, err
+}
+
+// Compute the Status, Started, and Stopped fields of an ActionRun based upon the current job state within the run. The
+// provided [ActionRun] is modified in-memory, but not in the database. The caller is responsible for then invoking
+// [actions_service.UpdateRun] for an update with notifications, or [actions_model.UpdateRunWithoutNotification] if
+// notifications are already handled.
+func ComputeExistingRunStatus(ctx context.Context, run *ActionRun) (columns []string, err error) {
+	jobs, err := GetRunJobsByRunID(ctx, run.ID)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	newStatus := AggregateJobStatus(jobs)
@@ -599,7 +605,7 @@ func ComputeRunStatus(ctx context.Context, runID int64) (run *ActionRun, columns
 		columns = append(columns, "stopped")
 	}
 
-	return run, columns, nil
+	return columns, nil
 }
 
 // DeleteRun removes the given run. It is the caller's responsibility to handle the run's dependencies like artifacts or

@@ -191,12 +191,13 @@ func (entry *Workflow) Dispatch(ctx context.Context, inputGetter InputValueGette
 		jobparser.SupportIncompleteRunsOn(),
 		jobparser.ExpandLocalReusableWorkflows(expandLocalReusableWorkflows(entry.Commit)),
 		jobparser.ExpandInstanceReusableWorkflows(expandInstanceReusableWorkflows(ctx)),
+		jobparser.WithGitContext(generateGiteaContextForRun(run)),
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if err := actions_model.InsertRun(ctx, run, jobs); err != nil {
+	if err := InsertRun(ctx, run, jobs); err != nil {
 		return run, jobNames, err
 	}
 

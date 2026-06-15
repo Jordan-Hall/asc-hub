@@ -142,7 +142,7 @@ jobs:
 			Status:              actions_model.StatusWaiting,
 			PullRequestPosterID: pullRequestPosterID,
 		}
-		require.NoError(t, actions_model.InsertRun(t.Context(), runWaiting, singleWorkflows))
+		require.NoError(t, actions_model.InsertRunWithoutNotification(t.Context(), runWaiting, singleWorkflows))
 
 		run := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{ID: runWaiting.ID})
 		require.Equal(t, actions_model.StatusWaiting.String(), run.Status.String())
