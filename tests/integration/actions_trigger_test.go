@@ -1289,6 +1289,7 @@ jobs:
 				assert.Equal(t, repo.OwnerID, schedules[0].OwnerID)
 				assert.Equal(t, testCase.workflowID, schedules[0].WorkflowID)
 				assert.Equal(t, testCase.workflowDirectory, schedules[0].WorkflowDirectory)
+				assert.Equal(t, "refs/heads/main", schedules[0].Ref)
 				assert.Equal(t, int64(-2), schedules[0].TriggerUserID)
 				assert.Equal(t, sha, schedules[0].CommitSHA)
 				assert.Equal(t, webhook_module.HookEventPush, schedules[0].Event)

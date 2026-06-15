@@ -167,12 +167,12 @@ jobs:
 		err = repo_service.SetRepoDefaultBranch(t.Context(), repo, gitRepo, "test")
 		require.NoError(t, err)
 
-		assertSchedule(t, "test", testWorkflow.updatedWorkflowContent, expectedTestSpec)
+		assertSchedule(t, "refs/heads/test", testWorkflow.updatedWorkflowContent, expectedTestSpec)
 
 		// change default branch to main
 		err = repo_service.SetRepoDefaultBranch(t.Context(), repo, gitRepo, "main")
 		require.NoError(t, err)
 
-		assertSchedule(t, "main", testWorkflow.workflowContent, expectedMainSpec)
+		assertSchedule(t, "refs/heads/main", testWorkflow.workflowContent, expectedMainSpec)
 	})
 }

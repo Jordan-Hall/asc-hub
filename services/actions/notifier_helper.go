@@ -598,7 +598,7 @@ func handleSchedules(
 			WorkflowID:        dwf.EntryName,
 			WorkflowDirectory: dwf.EntryDirectory,
 			TriggerUserID:     user_model.ActionsUserID,
-			Ref:               input.Repo.DefaultBranch,
+			Ref:               input.Ref.String(),
 			CommitSHA:         commit.ID.String(),
 			Event:             input.Event,
 			EventPayload:      string(p),
@@ -639,7 +639,8 @@ func DetectAndHandleSchedules(ctx context.Context, repo *repo_model.Repository) 
 	// We need a notifyInput to call handleSchedules
 	// if repo is a mirror, commit author maybe an external user,
 	// so we use action user as the Doer of the notifyInput
-	notifyInput := newNotifyInputForSchedules(repo)
+	notifyInput := newNotifyInputForSchedules(repo).
+		WithRef(git.RefNameFromBranch(repo.DefaultBranch).String())
 
 	return handleSchedules(ctx, scheduleWorkflows, commit, notifyInput, repo.DefaultBranch)
 }
