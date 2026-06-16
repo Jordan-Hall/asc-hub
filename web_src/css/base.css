@@ -255,7 +255,8 @@ h1.error-code {
 }
 
 ::selection,
-relative-time::part(relative-time)::selection {
+relative-time::part(relative-time)::selection,
+absolute-date::part(absolute-date)::selection {
   background: var(--color-selection-bg);
   color: var(--color-selection-fg);
 }
