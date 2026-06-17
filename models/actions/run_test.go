@@ -719,3 +719,30 @@ func TestGetRunByID(t *testing.T) {
 	require.ErrorIs(t, err, util.ErrNotExist)
 	assert.Nil(t, run)
 }
+
+func TestGetQueuedRunsByRepoID(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	fixtures := []*ActionRun{
+		{ID: 535681, Index: 1, RepoID: 62, OwnerID: 2, Status: StatusSuccess},
+		{ID: 535682, Index: 2, RepoID: 62, OwnerID: 2, Status: StatusRunning},
+		{ID: 535683, Index: 3, RepoID: 62, OwnerID: 2, Status: StatusWaiting},
+		{ID: 535684, Index: 4, RepoID: 62, OwnerID: 2, Status: StatusBlocked},
+		{ID: 535685, Index: 1, RepoID: 1, OwnerID: 2, Status: StatusBlocked},
+		{ID: 535686, Index: 2, RepoID: 1, OwnerID: 2, Status: StatusCancelled},
+	}
+	unittest.AssertSuccessfulInsert(t, fixtures)
+
+	runs, err := GetQueuedRunsByRepoID(t.Context(), 62)
+	require.NoError(t, err)
+
+	assert.Len(t, runs, 2)
+	assert.Equal(t, int64(535683), runs[0].ID)
+	assert.Equal(t, int64(535684), runs[1].ID)
+
+	runs, err = GetQueuedRunsByRepoID(t.Context(), 1)
+	require.NoError(t, err)
+
+	assert.Len(t, runs, 1)
+	assert.Equal(t, int64(535685), runs[0].ID)
+}

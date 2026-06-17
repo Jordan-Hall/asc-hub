@@ -340,7 +340,12 @@ func GetAvailableJobsForRunner(e db.Engine, runner *ActionRunner) ([]*ActionRunJ
 	}
 
 	var jobs []*ActionRunJob
-	if err := e.Where("task_id=? AND status=?", 0, StatusWaiting).And(jobCond).Asc("updated", "id").Find(&jobs); err != nil {
+	if err := e.
+		Join("INNER", "action_run", "action_run_job.run_id=action_run.id").
+		Where("task_id=? AND action_run_job.status=?", 0, StatusWaiting).And(jobCond).
+		Desc("action_run.priority").
+		Asc("action_run_job.updated", "action_run_job.id").
+		Find(&jobs); err != nil {
 		return nil, err
 	}
 	return jobs, nil

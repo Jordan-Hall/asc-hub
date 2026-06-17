@@ -908,3 +908,61 @@ func statusDiagnostics(status actions_model.Status, job *actions_model.ActionRun
 
 	return diagnostics
 }
+
+func PrioritizeRun(ctx *app_context.Context) { //nolint:dupl
+	run, err := actions_model.GetRunByIndex(ctx, ctx.Repo.Repository.ID, ctx.ParamsInt64("run"))
+	if err != nil {
+		if errors.Is(err, util.ErrNotExist) {
+			ctx.Error(http.StatusNotFound, err.Error())
+			return
+		}
+
+		ctx.Error(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if err = actions_service.PrioritizeRun(ctx, run); err != nil {
+		ctx.Error(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	actor := ctx.FormInt64("actor")
+	page := ctx.FormInt("page")
+	status := ctx.FormInt("status")
+	selectedWorkflow := url.QueryEscape(ctx.FormString("workflow"))
+
+	redirectURL := fmt.Sprintf("%s/actions?actor=%d&page=%d&status=%d&workflow=%s",
+		ctx.Repo.RepoLink, actor, page, status, selectedWorkflow)
+
+	ctx.Flash.Success(ctx.Locale.Tr("actions.runs.prioritization_success", run.Index))
+	ctx.Redirect(redirectURL)
+}
+
+func DeprioritizeRun(ctx *app_context.Context) { //nolint:dupl
+	run, err := actions_model.GetRunByIndex(ctx, ctx.Repo.Repository.ID, ctx.ParamsInt64("run"))
+	if err != nil {
+		if errors.Is(err, util.ErrNotExist) {
+			ctx.Error(http.StatusNotFound, err.Error())
+			return
+		}
+
+		ctx.Error(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if err = actions_service.DeprioritizeRun(ctx, run); err != nil {
+		ctx.Error(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	actor := ctx.FormInt64("actor")
+	page := ctx.FormInt("page")
+	status := ctx.FormInt("status")
+	selectedWorkflow := url.QueryEscape(ctx.FormString("workflow"))
+
+	redirectURL := fmt.Sprintf("%s/actions?actor=%d&page=%d&status=%d&workflow=%s",
+		ctx.Repo.RepoLink, actor, page, status, selectedWorkflow)
+
+	ctx.Flash.Success(ctx.Locale.Tr("actions.runs.deprioritization_success", run.Index))
+	ctx.Redirect(redirectURL)
+}

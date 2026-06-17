@@ -1623,6 +1623,8 @@ func registerRoutes(m *web.Route) {
 					m.Get("/artifacts/{artifact_name_or_id}", actions.ArtifactsDownloadView)
 					m.Delete("/artifacts/{artifact_name}", reqRepoActionsWriter, actions.ArtifactsDeleteView)
 					m.Post("/rerun", reqRepoActionsWriter, actions.Rerun)
+					m.Post("/prioritize", reqRepoActionsWriter, actions.PrioritizeRun)
+					m.Post("/deprioritize", reqRepoActionsWriter, actions.DeprioritizeRun)
 				})
 			})
 

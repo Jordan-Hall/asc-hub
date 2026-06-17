@@ -83,6 +83,13 @@ type ActionRun struct {
 	PreExecutionError        string `xorm:"LONGTEXT"` // deprecated: replaced with PreExecutionErrorCode and PreExecutionErrorDetails for better i18n
 	PreExecutionErrorCode    PreExecutionError
 	PreExecutionErrorDetails []any `xorm:"JSON LONGTEXT"`
+
+	// Priority defines the numerical order in which tasks should be processed (best effort). Tasks with the highest
+	// numbers are processed first. The value range is between -128 and +127; 0 is the default value.
+	Priority int8 `xorm:"NOT NULL DEFAULT 0"`
+	// Prioritize signals whether a user has requested that this run should be prioritized (`true`). It is a separate
+	// value so that it does not get lost when prioritization algorithms change the ActionRun's Priority.
+	Prioritize bool `xorm:"NOT NULL DEFAULT false"`
 }
 
 func init() {
@@ -280,6 +287,8 @@ func (run *ActionRun) PrepareNextAttempt() error {
 	run.Status = StatusWaiting
 	run.Started = 0
 	run.Stopped = 0
+	run.Priority = DefaultRunPriority
+	run.Prioritize = false
 
 	return nil
 }
@@ -522,6 +531,21 @@ func GetRunByIndex(ctx context.Context, repoID, index int64) (*ActionRun, error)
 	}
 
 	return run, nil
+}
+
+// GetQueuedRunsByRepoID returns all workflow runs that belong to the given repository and whose status is either
+// StatusWaiting or StatusBlocked.
+func GetQueuedRunsByRepoID(ctx context.Context, repoID int64) ([]*ActionRun, error) {
+	query := db.GetEngine(ctx).
+		Where("repo_id=?", repoID).
+		In("status", []Status{StatusWaiting, StatusBlocked}).
+		Asc("id")
+
+	var runs []*ActionRun
+	if err := query.Find(&runs); err != nil {
+		return nil, fmt.Errorf("cannot get queued workflow runs of repository %d: %w", repoID, err)
+	}
+	return runs, nil
 }
 
 // Error returned when ActionRun's optimistic concurrency control has indicated that the record has been updated in the
