@@ -173,7 +173,7 @@ func NewFuncMap() template.FuncMap {
 			return !setting.ImportLocalPaths
 		},
 		"ThemeName": func(user *user_model.User) string {
-			if user == nil || user.Theme == "" {
+			if user == nil {
 				return setting.UI.DefaultTheme
 			}
 			return user.Theme

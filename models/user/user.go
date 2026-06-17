@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime/trace"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -201,9 +202,13 @@ func (u *User) BeforeUpdate() {
 
 // AfterLoad is invoked from XORM after filling all the fields of this object.
 func (u *User) AfterLoad() {
-	if u.Theme == "" {
+	if !IsThemeValid(u.Theme) {
 		u.Theme = setting.UI.DefaultTheme
 	}
+}
+
+func IsThemeValid(theme string) bool {
+	return slices.Contains(setting.UI.Themes, theme)
 }
 
 // SetLastLogin set time to last login
