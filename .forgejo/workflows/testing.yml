@@ -161,9 +161,6 @@ jobs:
           - name: redis
             image: data.forgejo.org/oci/bitnami/redis:7.2
             options: --tmpfs /bitnami/redis/data:noatime
-          - name: redict
-            image: registry.redict.io/redict:7.3.0-scratch
-            options: --tmpfs /data:noatime
           - name: valkey
             image: data.forgejo.org/oci/bitnami/valkey:7.2
             options: --tmpfs /bitnami/redis/data:noatime
