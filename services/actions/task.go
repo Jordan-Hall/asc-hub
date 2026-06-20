@@ -22,7 +22,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func PickTask(ctx context.Context, runner *actions_model.ActionRunner, requestKey, handle *string) (*runnerv1.Task, bool, error) {
+var ErrEphemeralRunnerHasAssignedTask = errors.New("ephemeral runner already has an assigned task")
+
+func PickTask(ctx context.Context, runner *actions_model.ActionRunner, requestKey, handle *string) (*runnerv1.Task, error) {
 	var (
 		task *runnerv1.Task
 		job  *actions_model.ActionRunJob
@@ -32,23 +34,18 @@ func PickTask(ctx context.Context, runner *actions_model.ActionRunner, requestKe
 		hasRunnerAssignedTask, err := actions_model.HasTaskForRunner(ctx, runner.ID)
 		// Let the runner retry the request, do not allow to proceed
 		if err != nil {
-			return nil, false, err
+			return nil, err
 		}
 
 		// if runner has task, dont assign new task
 		if hasRunnerAssignedTask {
-			return nil, false, nil
+			return nil, ErrEphemeralRunnerHasAssignedTask
 		}
 	}
 
 	if err := db.WithTx(ctx, func(ctx context.Context) error {
 		t, err := actions_model.CreateTaskForRunner(ctx, runner, requestKey, handle)
 		if err != nil {
-			if errors.Is(err, actions_model.ErrNoMatchingJobFound) ||
-				errors.Is(err, actions_model.ErrNoJobUpdated) {
-				return nil
-			}
-
 			return fmt.Errorf("CreateTaskForRunner: %w", err)
 		}
 
@@ -93,16 +90,18 @@ func PickTask(ctx context.Context, runner *actions_model.ActionRunner, requestKe
 
 		return nil
 	}); err != nil {
-		return nil, false, err
-	}
-
-	if task == nil {
-		return nil, false, nil
+		return nil, err
 	}
 
 	CreateCommitStatus(ctx, job)
 
-	return task, true, nil
+	return task, nil
+}
+
+func IsNoTaskAvailable(err error) bool {
+	return errors.Is(err, ErrEphemeralRunnerHasAssignedTask) ||
+		errors.Is(err, actions_model.ErrNoMatchingJobFound) ||
+		errors.Is(err, actions_model.ErrNoJobUpdated)
 }
 
 func RecoverTasks(ctx context.Context, tasks []*actions_model.ActionTask) ([]*runnerv1.Task, error) {
