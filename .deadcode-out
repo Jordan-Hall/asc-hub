@@ -219,6 +219,54 @@ forgejo.org/modules/zstd
 	Writer.Write
 	Writer.Close
 
+forgejo.org/routers/api/v1/permissions
+	Permissions.GetContext
+	Permissions.SetContext
+	Permissions.GetToken
+	Permissions.SetToken
+	Permissions.GetRepository
+	Permissions.SetRepository
+	Permissions.GetDoer
+	Permissions.SetDoer
+	Permissions.GetUser
+	Permissions.SetUser
+	Permissions.GetOrg
+	Permissions.SetOrg
+	Permissions.GetTeam
+	Permissions.SetTeam
+	Permissions.GetPackageOwner
+	Permissions.SetPackageOwner
+	Permissions.GetPackageAccessMode
+	Permissions.SetPackageAccessMode
+	Permissions.GetPermission
+	Permissions.SetPermission
+	Permissions.GetIsSigned
+	Permissions.SetIsSigned
+	Permissions.GetPublicOnly
+	Permissions.SetPublicOnly
+	Permissions.GetReducer
+	Permissions.SetReducer
+	Permissions.GetAuthentication
+	Permissions.SetAuthentication
+	Permissions.GetRequiredScopeCategories
+	Permissions.SetRequiredScopeCategories
+	Permissions.GetStatus
+	Permissions.SetStatus
+	Permissions.GetMessage
+	Permissions.SetMessage
+	Permissions.GetError
+	Permissions.Error
+	Permissions.NotFound
+	Permissions.InternalServerError
+	Permissions.WrittenStatus
+	Permissions.String
+	Permissions.Strings
+
+forgejo.org/routers/api/v1/permissions/tests
+	GetSignatureStringToSignature
+	GetUniquePermissionsSequences
+	GetShortestPermissionSequenceForEachSignature
+
 forgejo.org/routers/web/org
 	MustEnableProjects
 

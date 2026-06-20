@@ -10,11 +10,15 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 
+	auth_model "forgejo.org/models/auth"
 	issues_model "forgejo.org/models/issues"
+	org_model "forgejo.org/models/organization"
+	"forgejo.org/models/perm"
+	access_model "forgejo.org/models/perm/access"
 	quota_model "forgejo.org/models/quota"
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 	mc "forgejo.org/modules/cache"
@@ -25,6 +29,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/web"
 	web_types "forgejo.org/modules/web/types"
+	apiv1_permissions "forgejo.org/routers/api/v1/permissions"
 	"forgejo.org/services/auth"
 	"forgejo.org/services/authz"
 
@@ -178,6 +183,88 @@ func (ctx *APIContext) ServerError(title string, err error) {
 	ctx.Error(http.StatusInternalServerError, title, err)
 }
 
+func (ctx *APIContext) GetContext() context.Context {
+	return ctx.originCtx
+}
+
+func (ctx *APIContext) GetRepository() *repo_model.Repository {
+	return ctx.Repo.Repository
+}
+
+func (ctx *APIContext) GetDoer() *user_model.User {
+	return ctx.Doer
+}
+
+func (ctx *APIContext) GetUser() *user_model.User {
+	return ctx.ContextUser
+}
+
+func (ctx *APIContext) GetOrg() *org_model.Organization {
+	return ctx.Org.Organization
+}
+
+func (ctx *APIContext) GetTeam() *org_model.Team {
+	return ctx.Org.Team
+}
+
+func (ctx *APIContext) GetPackageOwner() *user_model.User {
+	if ctx.Package == nil {
+		return nil
+	}
+	return ctx.Package.Owner
+}
+
+func (ctx *APIContext) GetPackageAccessMode() perm.AccessMode {
+	if ctx.Package == nil {
+		return perm.AccessModeNone
+	}
+	return ctx.Package.AccessMode
+}
+
+func (ctx *APIContext) GetPermission() *access_model.Permission {
+	return &ctx.Repo.Permission
+}
+
+func (ctx *APIContext) SetPermission(permission *access_model.Permission) {
+	ctx.Repo.Permission = *permission
+}
+
+func (ctx *APIContext) GetIsSigned() bool {
+	return ctx.IsSigned
+}
+
+func (ctx *APIContext) GetPublicOnly() bool {
+	return ctx.PublicOnly
+}
+
+func (ctx *APIContext) SetPublicOnly(publicOnly bool) {
+	ctx.PublicOnly = publicOnly
+}
+
+func (ctx *APIContext) GetReducer() authz.AuthorizationReducer {
+	return ctx.Reducer
+}
+
+func (ctx *APIContext) SetReducer(reducer authz.AuthorizationReducer) {
+	ctx.Reducer = reducer
+}
+
+func (ctx *APIContext) GetAuthentication() auth.AuthenticationResult {
+	return ctx.Authentication
+}
+
+func (ctx *APIContext) GetRequiredScopeCategories() []auth_model.AccessTokenScopeCategory {
+	requiredScopeCategories, ok := ctx.Data["requiredScopeCategories"].([]auth_model.AccessTokenScopeCategory)
+	if !ok || len(requiredScopeCategories) == 0 {
+		return nil
+	}
+	return requiredScopeCategories
+}
+
+func (ctx *APIContext) SetRequiredScopeCategories(requiredScopeCategories []auth_model.AccessTokenScopeCategory) {
+	ctx.Data["requiredScopeCategories"] = requiredScopeCategories
+}
+
 // Error responds with an error message to client with given obj as the message.
 // If status is 500, also it prints error to log.
 func (ctx *APIContext) Error(status int, title string, obj any) {
@@ -216,6 +303,10 @@ func (ctx *APIContext) InternalServerError(err error) {
 		Message: message,
 		URL:     setting.API.SwaggerURL,
 	})
+}
+
+func (ctx *APIContext) GetError() error {
+	return errors.New("unexpected call to APIContext.GetError")
 }
 
 type apiContextKeyType struct{}
@@ -452,23 +543,17 @@ func (ctx *APIContext) NotFoundOrServerError(logMsg string, errCheck func(error)
 
 // IsUserSiteAdmin returns true if current user is a site admin
 func (ctx *APIContext) IsUserSiteAdmin() bool {
-	if !ctx.Reducer.AllowAdminOverride() {
-		return false
-	}
-	return ctx.IsSigned && ctx.Doer.IsAdmin
+	return apiv1_permissions.IsUserSiteAdmin(ctx)
 }
 
 // IsUserRepoAdmin returns true if current user is admin in current repo
 func (ctx *APIContext) IsUserRepoAdmin() bool {
-	if !ctx.Reducer.AllowAdminOverride() {
-		return false
-	}
-	return ctx.Repo.IsAdmin()
+	return apiv1_permissions.IsUserRepoAdmin(ctx)
 }
 
 // IsUserRepoWriter returns true if current user has write privilege in current repo
 func (ctx *APIContext) IsUserRepoWriter(unitTypes []unit.Type) bool {
-	return slices.ContainsFunc(unitTypes, ctx.Repo.CanWrite)
+	return apiv1_permissions.IsUserRepoWriter(ctx, unitTypes)
 }
 
 // Returns true when the requests indicates that it accepts a Github response.
