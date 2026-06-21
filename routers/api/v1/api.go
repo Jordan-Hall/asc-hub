@@ -79,7 +79,7 @@ import (
 	"forgejo.org/routers/api/v1/org"
 	"forgejo.org/routers/api/v1/packages"
 	apiv1_permissions "forgejo.org/routers/api/v1/permissions"
-	apiv1_permissions_tests "forgejo.org/routers/api/v1/permissions/tests"
+	apiv1_permissions_testhelpers "forgejo.org/routers/api/v1/permissions/testhelpers"
 	"forgejo.org/routers/api/v1/repo"
 	"forgejo.org/routers/api/v1/settings"
 	"forgejo.org/routers/api/v1/user"
@@ -125,7 +125,7 @@ func sudo() func(ctx *context.APIContext) {
 }
 
 func repoAssignment(ctx *context.APIContext) {
-	apiv1_permissions_tests.FollowedBy(repoAssignment, apiv1_permissions.RepoAccess)
+	apiv1_permissions_testhelpers.FollowedBy(repoAssignment, apiv1_permissions.RepoAccess)
 	userName := ctx.Params("username")
 	repoName := ctx.Params("reponame")
 
@@ -184,7 +184,7 @@ func repoAccess() func(ctx *context.APIContext) {
 }
 
 func checkPermission(check func(ctx apiv1_permissions.Context)) func(*context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(check)
+	apiv1_permissions_testhelpers.RecordSignature(check)
 	return func(ctx *context.APIContext) {
 		check(ctx)
 	}
@@ -192,7 +192,7 @@ func checkPermission(check func(ctx apiv1_permissions.Context)) func(*context.AP
 
 // must be used within a group with a call to commentAssignment() to set ctx.Comment
 func reqValidCommentID() func(*context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqValidCommentID)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.ReqValidCommentID)
 	return func(ctx *context.APIContext) {
 		if ctx.Comment == nil {
 			panic("reqValidCommentID requires commentAssignment to be called first")
@@ -203,7 +203,7 @@ func reqValidCommentID() func(*context.APIContext) {
 
 // must be used within a group with a call to repoAssignment() to set ctx.Repo
 func commentAssignment(idParam string) func(ctx *context.APIContext) {
-	apiv1_permissions_tests.FollowedBy(commentAssignment, apiv1_permissions.ReqValidCommentID)
+	apiv1_permissions_testhelpers.FollowedBy(commentAssignment, apiv1_permissions.ReqValidCommentID)
 	return func(ctx *context.APIContext) {
 		comment, err := issues_model.GetCommentByID(ctx, ctx.ParamsInt64(idParam))
 		if err != nil {
@@ -227,14 +227,14 @@ func commentAssignment(idParam string) func(ctx *context.APIContext) {
 }
 
 func reqPackageAccess(accessMode perm.AccessMode) func(ctx *context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqPackageAccess, accessMode)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.ReqPackageAccess, accessMode)
 	return func(ctx *context.APIContext) {
 		apiv1_permissions.ReqPackageAccess(ctx, accessMode)
 	}
 }
 
 func checkTokenPublicOnly() func(*context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.CheckTokenPublicOnly)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.CheckTokenPublicOnly)
 	return func(ctx *context.APIContext) {
 		var packageOwner *user_model.User
 		if ctx.Package != nil {
@@ -260,7 +260,7 @@ func requiredScopeLevel(ctx *context.APIContext) auth_model.AccessTokenScopeLeve
 }
 
 func tokenRequiresScopes(requiredScopeCategories ...auth_model.AccessTokenScopeCategory) func(*context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.TokenRequiresScopes, requiredScopeCategories)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.TokenRequiresScopes, requiredScopeCategories)
 	return func(ctx *context.APIContext) {
 		apiv1_permissions.TokenRequiresScopes(ctx, requiredScopeCategories, requiredScopeLevel(ctx))
 	}
@@ -269,7 +269,7 @@ func tokenRequiresScopes(requiredScopeCategories ...auth_model.AccessTokenScopeC
 // Middleware that dynamically checks either the organization or user scope, depending on the owner type of the
 // repository (requires `repoAssignment()` middleware to be used before this).
 func tokenRequiresRepoOwnerScope() func(*context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.TokenRequiresRepoOwnerScope)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.TokenRequiresRepoOwnerScope)
 	return func(ctx *context.APIContext) {
 		apiv1_permissions.TokenRequiresRepoOwnerScope(ctx, ctx.Repo.Owner, requiredScopeLevel(ctx))
 	}
@@ -299,7 +299,7 @@ func reqSiteAdmin() func(ctx *context.APIContext) {
 // reqOwner requires that the current user is either the owner of the repository or an administrator. If one or more
 // unitTypes are given, it also requires that at least one the respective unitTypes is enabled.
 func reqOwner(unitTypes ...unit.Type) func(ctx *context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqOwner, unitTypes)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.ReqOwner, unitTypes)
 	return func(ctx *context.APIContext) {
 		apiv1_permissions.ReqOwner(ctx, unitTypes)
 	}
@@ -313,7 +313,7 @@ func reqSelfOrAdmin() func(ctx *context.APIContext) {
 // reqAdmin user should be an owner or a collaborator with admin write of a repository, or site admin. If one or more
 // unitTypes are given, it also requires that at least one the respective unitTypes is enabled.
 func reqAdmin(unitTypes ...unit.Type) func(ctx *context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqAdmin, unitTypes)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.ReqAdmin, unitTypes)
 	return func(ctx *context.APIContext) {
 		apiv1_permissions.ReqAdmin(ctx, unitTypes)
 	}
@@ -322,7 +322,7 @@ func reqAdmin(unitTypes ...unit.Type) func(ctx *context.APIContext) {
 // reqRepoWriter requires that the current user has permission to write to a repository or that it is an administrator.
 // One or more unitTypes have to be specified, and at least one of them has to be enabled.
 func reqRepoWriter(unitTypes ...unit.Type) func(ctx *context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqRepoWriter, unitTypes)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.ReqRepoWriter, unitTypes)
 	return func(ctx *context.APIContext) {
 		apiv1_permissions.ReqRepoWriter(ctx, unitTypes)
 	}
@@ -330,7 +330,7 @@ func reqRepoWriter(unitTypes ...unit.Type) func(ctx *context.APIContext) {
 
 // reqRepoBranchWriter user should have a permission to write to a branch, or be a site admin
 func reqRepoBranchWriter() func(*context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqRepoBranchWriter)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.ReqRepoBranchWriter)
 	return func(ctx *context.APIContext) {
 		options, ok := web.GetForm(ctx).(api.FileOptionInterface)
 		if !ok {
@@ -343,7 +343,7 @@ func reqRepoBranchWriter() func(*context.APIContext) {
 
 // reqRepoReader user should have specific read permission or be a repo admin or a site admin
 func reqRepoReader(unitType unit.Type) func(*context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.ReqRepoReader, unitType)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.ReqRepoReader, unitType)
 	return func(ctx *context.APIContext) {
 		apiv1_permissions.ReqRepoReader(ctx, unitType)
 	}
@@ -431,7 +431,7 @@ func mustAllowPulls() func(ctx *context.APIContext) {
 }
 
 func mustEnableLocalIssuesIfIsIssue() func(*context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.MustEnableLocalIssuesIfIsIssue)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.MustEnableLocalIssuesIfIsIssue)
 	return func(ctx *context.APIContext) {
 		apiv1_permissions.MustEnableLocalIssuesIfIsIssue(ctx, ctx.ParamsInt64(":index"))
 	}

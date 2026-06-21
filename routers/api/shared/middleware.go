@@ -12,7 +12,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	apiv1_permissions "forgejo.org/routers/api/v1/permissions"
-	apiv1_permissions_tests "forgejo.org/routers/api/v1/permissions/tests"
+	apiv1_permissions_testhelpers "forgejo.org/routers/api/v1/permissions/testhelpers"
 	"forgejo.org/routers/common"
 	"forgejo.org/services/auth"
 	auth_method "forgejo.org/services/auth/method"
@@ -99,7 +99,7 @@ func apiAuthentication(authMethod auth.Method) func(*context.APIContext) {
 }
 
 func apiAuthorization() func(ctx *context.APIContext) {
-	apiv1_permissions_tests.RecordSignature(apiv1_permissions.APIAuthorization)
+	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.APIAuthorization)
 	return func(ctx *context.APIContext) {
 		apiv1_permissions.APIAuthorization(ctx)
 	}

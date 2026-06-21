@@ -1,42 +1,67 @@
-// Copyright 2026 The Forgejo Authors. All rights reserved.
-// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright 2026 The Forgejo Authors.
+// SPDX-License-Identifier: GPLv3-or-later
 
 package tests
 
 import (
 	"fmt"
-	"slices"
 	"strings"
 
 	auth_model "forgejo.org/models/auth"
+	unit_model "forgejo.org/models/unit"
 )
 
-func requiredScopesToString(scopeCategories ...auth_model.AccessTokenScopeCategory) string {
-	var categories []string
-	for _, category := range scopeCategories {
-		switch category {
-		case auth_model.AccessTokenScopeCategoryActivityPub:
-			categories = append(categories, "ActivityPub")
-		case auth_model.AccessTokenScopeCategoryAdmin:
-			categories = append(categories, "Admin")
-		case auth_model.AccessTokenScopeCategoryMisc:
-			categories = append(categories, "Misc")
-		case auth_model.AccessTokenScopeCategoryNotification:
-			categories = append(categories, "Notification")
-		case auth_model.AccessTokenScopeCategoryOrganization:
-			categories = append(categories, "Organization")
-		case auth_model.AccessTokenScopeCategoryPackage:
-			categories = append(categories, "Package")
-		case auth_model.AccessTokenScopeCategoryIssue:
-			categories = append(categories, "Issue")
-		case auth_model.AccessTokenScopeCategoryRepository:
-			categories = append(categories, "Repository")
-		case auth_model.AccessTokenScopeCategoryUser:
-			categories = append(categories, "User")
+func levelStringToLevel(levelString string) auth_model.AccessTokenScopeLevel {
+	level := auth_model.Read
+	if levelString != "" {
+		switch levelString {
+		case "read":
+			level = auth_model.Read
+		case "write":
+			level = auth_model.Write
+		case "noaccess":
+			level = auth_model.NoAccess
 		default:
-			panic(fmt.Errorf("unkwnon scope category %v", category))
+			panic(fmt.Sprintf("unexpected level '%s'", levelString))
 		}
 	}
-	slices.Sort(categories)
-	return strings.Join(categories, "")
+	return level
+}
+
+func unitsTypeToString(unitTypes ...unit_model.Type) string {
+	var unitStrings []string
+	for _, unitType := range unitTypes {
+		var unit *unit_model.Unit
+		for _, u := range unit_model.Units {
+			if u.Type == unitType {
+				unit = &u
+				break
+			}
+		}
+		if unit == nil {
+			panic(fmt.Errorf("unable to find a unit with type %v", unitType))
+		}
+		unitStrings = append(unitStrings, unit.NameKey)
+	}
+	return strings.Join(unitStrings, ",")
+}
+
+func unitsToScopes(unitTypes []unit_model.Type, levelString string) string {
+	var scopeStrings []string
+	for _, unitType := range unitTypes {
+		unit := strings.TrimPrefix(unitsTypeToString(unitType), "repo.")
+		var scope string
+		switch unit {
+		case "issues":
+			scope = "issue"
+		case "code", "pulls", "wiki", "project", "actions", "releases":
+			scope = "repository"
+		case "packages":
+			scope = "package"
+		default:
+			panic(fmt.Errorf("unexpected unit type %v", unitType))
+		}
+		scopeStrings = append(scopeStrings, fmt.Sprintf("%s:%s", levelString, scope))
+	}
+	return strings.Join(scopeStrings, ",")
 }

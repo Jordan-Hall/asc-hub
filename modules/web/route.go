@@ -9,7 +9,7 @@ import (
 
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/web/middleware"
-	apiv1_permissions_tests "forgejo.org/routers/api/v1/permissions/tests"
+	apiv1_permissions_testhelpers "forgejo.org/routers/api/v1/permissions/testhelpers"
 
 	"code.forgejo.org/go-chi/binding"
 	"github.com/go-chi/chi/v5"
@@ -46,7 +46,7 @@ type Route struct {
 // NewRoute creates a new route
 func NewRoute() *Route {
 	if setting.IsInTesting {
-		apiv1_permissions_tests.Reset()
+		apiv1_permissions_testhelpers.Reset()
 	}
 	r := chi.NewRouter()
 	return &Route{R: r}
@@ -68,7 +68,7 @@ func (r *Route) Group(pattern string, fn func(), middlewares ...any) {
 	r.curGroupPrefix += pattern
 	r.curMiddlewares = append(r.curMiddlewares, middlewares...)
 	if setting.IsInTesting {
-		defer apiv1_permissions_tests.RestorePermissionsSequence()()
+		defer apiv1_permissions_testhelpers.RestorePermissionsSequence()()
 	}
 
 	fn()
@@ -114,8 +114,8 @@ func (r *Route) wrapMiddlewareAndHandler(h []any) ([]func(http.Handler) http.Han
 func (r *Route) Methods(methods, pattern string, h ...any) {
 	middlewares, handlerFunc := r.wrapMiddlewareAndHandler(h)
 	if setting.IsInTesting {
-		apiv1_permissions_tests.CollectPermissionsMiddlewares(h[len(h)-1], methods, r.getPattern(pattern))
-		apiv1_permissions_tests.RestoreLastPermissionsSequence()
+		apiv1_permissions_testhelpers.CollectPermissionsMiddlewares(h[len(h)-1], methods, r.getPattern(pattern))
+		apiv1_permissions_testhelpers.RestoreLastPermissionsSequence()
 	}
 	fullPattern := r.getPattern(pattern)
 	if strings.Contains(methods, ",") {
@@ -183,7 +183,7 @@ func (r *Route) NotFound(h ...any) {
 
 // Combo delegates requests to Combo
 func (r *Route) Combo(pattern string, h ...any) *Combo {
-	return &Combo{r, pattern, h, apiv1_permissions_tests.GetSignatures()}
+	return &Combo{r, pattern, h, apiv1_permissions_testhelpers.GetSignatures()}
 }
 
 // Combo represents a tiny group routes with same pattern
@@ -192,40 +192,40 @@ type Combo struct {
 	pattern string
 	h       []any
 
-	permissionsSequence apiv1_permissions_tests.Sequence
+	permissionsSequence apiv1_permissions_testhelpers.Sequence
 }
 
 // Get delegates Get method
 func (c *Combo) Get(h ...any) *Combo {
 	c.r.Get(c.pattern, append(c.h, h...)...)
-	apiv1_permissions_tests.SetSignatures(c.permissionsSequence)
+	apiv1_permissions_testhelpers.SetSignatures(c.permissionsSequence)
 	return c
 }
 
 // Post delegates Post method
 func (c *Combo) Post(h ...any) *Combo {
 	c.r.Post(c.pattern, append(c.h, h...)...)
-	apiv1_permissions_tests.SetSignatures(c.permissionsSequence)
+	apiv1_permissions_testhelpers.SetSignatures(c.permissionsSequence)
 	return c
 }
 
 // Delete delegates Delete method
 func (c *Combo) Delete(h ...any) *Combo {
 	c.r.Delete(c.pattern, append(c.h, h...)...)
-	apiv1_permissions_tests.SetSignatures(c.permissionsSequence)
+	apiv1_permissions_testhelpers.SetSignatures(c.permissionsSequence)
 	return c
 }
 
 // Put delegates Put method
 func (c *Combo) Put(h ...any) *Combo {
 	c.r.Put(c.pattern, append(c.h, h...)...)
-	apiv1_permissions_tests.SetSignatures(c.permissionsSequence)
+	apiv1_permissions_testhelpers.SetSignatures(c.permissionsSequence)
 	return c
 }
 
 // Patch delegates Patch method
 func (c *Combo) Patch(h ...any) *Combo {
 	c.r.Patch(c.pattern, append(c.h, h...)...)
-	apiv1_permissions_tests.SetSignatures(c.permissionsSequence)
+	apiv1_permissions_testhelpers.SetSignatures(c.permissionsSequence)
 	return c
 }

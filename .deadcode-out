@@ -262,7 +262,7 @@ forgejo.org/routers/api/v1/permissions
 	Permissions.String
 	Permissions.Strings
 
-forgejo.org/routers/api/v1/permissions/tests
+forgejo.org/routers/api/v1/permissions/testhelpers
 	GetSignatureStringToSignature
 	GetUniquePermissionsSequences
 	GetShortestPermissionSequenceForEachSignature

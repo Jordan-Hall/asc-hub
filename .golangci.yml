@@ -161,6 +161,14 @@ linters:
           - errcheck
           - gocyclo
           - gosec
+          - staticcheck
+          - unparam
+        path: routers/api/v1/permissions/tests
+      - linters:
+          - dupl
+          - errcheck
+          - gocyclo
+          - gosec
         path: models/gitea_migrations/v
       - linters:
           - forbidigo
