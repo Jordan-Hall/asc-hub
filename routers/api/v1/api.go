@@ -378,52 +378,43 @@ func reqWebhooksEnabled() func(ctx *context.APIContext) {
 	return checkPermission(apiv1_permissions.ReqWebhooksEnabled)
 }
 
-func orgAssignment(args ...bool) func(ctx *context.APIContext) {
-	var (
-		assignOrg  bool
-		assignTeam bool
-	)
-	if len(args) > 0 {
-		assignOrg = args[0]
-	}
-	if len(args) > 1 {
-		assignTeam = args[1]
-	}
-	return func(ctx *context.APIContext) {
+func orgAssignment(ctx *context.APIContext) {
+	if ctx.Org == nil {
 		ctx.Org = new(context.APIOrganization)
+	}
 
-		var err error
-		if assignOrg {
-			ctx.Org.Organization, err = organization.GetOrgByName(ctx, ctx.Params(":org"))
-			if err != nil {
-				if organization.IsErrOrgNotExist(err) {
-					redirectUserID, err := redirect_service.LookupUserRedirect(ctx, ctx.Doer, ctx.Params(":org"))
-					if err == nil {
-						context.RedirectToUser(ctx.Base, ctx.Params(":org"), redirectUserID)
-					} else if user_model.IsErrUserRedirectNotExist(err) {
-						ctx.NotFound("GetOrgByName", err)
-					} else {
-						ctx.Error(http.StatusInternalServerError, "LookupRedirect", err)
-					}
-				} else {
-					ctx.Error(http.StatusInternalServerError, "GetOrgByName", err)
-				}
-				return
+	if org, err := organization.GetOrgByName(ctx, ctx.Params(":org")); err != nil {
+		if organization.IsErrOrgNotExist(err) {
+			redirectUserID, err := redirect_service.LookupUserRedirect(ctx, ctx.Doer, ctx.Params(":org"))
+			if err == nil {
+				context.RedirectToUser(ctx.Base, ctx.Params(":org"), redirectUserID)
+			} else if user_model.IsErrUserRedirectNotExist(err) {
+				ctx.NotFound("GetOrgByName", err)
+			} else {
+				ctx.Error(http.StatusInternalServerError, "LookupRedirect", err)
 			}
-			ctx.ContextUser = ctx.Org.Organization.AsUser()
+		} else {
+			ctx.Error(http.StatusInternalServerError, "GetOrgByName", err)
 		}
+	} else {
+		ctx.Org.Organization = org
+		ctx.ContextUser = ctx.Org.Organization.AsUser()
+	}
+}
 
-		if assignTeam {
-			ctx.Org.Team, err = organization.GetTeamByID(ctx, ctx.ParamsInt64(":teamid"))
-			if err != nil {
-				if organization.IsErrTeamNotExist(err) {
-					ctx.NotFound()
-				} else {
-					ctx.Error(http.StatusInternalServerError, "GetTeamById", err)
-				}
-				return
-			}
+func orgTeamAssignment(ctx *context.APIContext) {
+	if ctx.Org == nil {
+		ctx.Org = new(context.APIOrganization)
+	}
+
+	if team, err := organization.GetTeamByID(ctx, ctx.ParamsInt64(":teamid")); err != nil {
+		if organization.IsErrTeamNotExist(err) {
+			ctx.NotFound()
+		} else {
+			ctx.Error(http.StatusInternalServerError, "GetTeamById", err)
 		}
+	} else {
+		ctx.Org.Team = team
 	}
 }
 
@@ -1303,7 +1294,7 @@ func Routes() *web.Route {
 					m.Put("/unblock/{username}", org.UnblockUser)
 				}, context.UserAssignmentAPI())
 			}, reqToken(), reqOrgOwnership())
-		}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryOrganization), orgAssignment(true), checkTokenPublicOnly())
+		}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryOrganization), orgAssignment, checkTokenPublicOnly())
 		m.Group("/teams/{teamid}", func() {
 			m.Combo("").Get(reqToken(), org.GetTeam).
 				Patch(reqToken(), reqOrgOwnership(), bind(api.EditTeamOption{}), org.EditTeam).
@@ -1323,7 +1314,7 @@ func Routes() *web.Route {
 					Get(reqToken(), org.GetTeamRepo)
 			})
 			m.Get("/activities/feeds", org.ListTeamActivityFeeds)
-		}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryOrganization), orgAssignment(false, true), reqToken(), reqTeamMembership(), checkTokenPublicOnly())
+		}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryOrganization), orgTeamAssignment, reqToken(), reqTeamMembership(), checkTokenPublicOnly())
 
 		m.Group("/admin", func() {
 			m.Group("/cron", func() {
