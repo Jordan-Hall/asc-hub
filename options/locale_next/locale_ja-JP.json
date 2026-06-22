@@ -215,19 +215,15 @@
 	"webauthn.sign_in": "セキュリティキーのボタンを押してください。セキュリティキーにボタンが無い場合は、挿入しなおしてください。",
 	"webauthn.insert_key": "セキュリティキーを挿入",
 	"counters.n_commits": {
-		"one": "%s のコミット",
 		"other": "%s のコミット"
 	},
 	"counters.n_branches": {
-		"one": "%s のブランチ",
 		"other": "%s のブランチ"
 	},
 	"counters.n_tags": {
-		"one": "%s のタグ",
 		"other": "%s のタグ"
 	},
 	"counters.n_releases": {
-		"one": "%s リリース",
 		"other": "%s リリース"
 	},
 	"actions.actions": "Actions",

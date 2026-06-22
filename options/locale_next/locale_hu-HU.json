@@ -155,5 +155,68 @@
 		"one": "%s Aktív Egyesítési Kérés",
 		"other": "%s Aktív Egyesítési Kérések"
 	},
-	"meta.last_line": " "
+	"meta.last_line": " ",
+	"home.welcome.no_activity": "Nincs tevékenység",
+	"home.welcome.activity_hint": "Még nincs semmi a hírcsatornájában. A tevékenységei, illetve a megfigyelt tárolók tevékenységei itt fognak megjelenni.",
+	"home.explore_repos": "Tárolók felfedezése",
+	"home.explore_users": "Felhasználók felfedezése",
+	"home.explore_orgs": "Szervezetek felfedezése",
+	"fork.n_forks": {
+		"one": "%s elágazás",
+		"other": "%s elágazás"
+	},
+	"stars.list.none": "Még senki nem csillagozta ezt a tárat.",
+	"stars.n_stars": {
+		"one": "%s csillag",
+		"other": "%s csillag"
+	},
+	"watch.list.none": "Még senki nem figyeli meg a tárat.",
+	"watch.n_watchers": {
+		"one": "%s megfigyelő",
+		"other": "%s megfigyelő"
+	},
+	"followers.incoming.list.self.none": "Még nem követi senki a profilját.",
+	"followers.incoming.list.none": "Még nem követi senki ezt a felhasználót.",
+	"followers.outgoing.list.self.none": "Még nem követ senkit.",
+	"followers.outgoing.list.none": "%s nem követ senkit.",
+	"relativetime.now": "most",
+	"relativetime.future": "a jövőben",
+	"relativetime.mins": {
+		"one": "%s perccel ezelőtt",
+		"other": "%s perccel ezelőtt"
+	},
+	"relativetime.hours": {
+		"one": "%d órával ezelőtt",
+		"other": "%d órával ezelőtt"
+	},
+	"relativetime.days": {
+		"one": "%d nappal ezelőtt",
+		"other": "%d nappal ezelőtt"
+	},
+	"relativetime.weeks": {
+		"one": "%d héttel ezelőtt",
+		"other": "%d héttel ezelőtt"
+	},
+	"relativetime.months": {
+		"one": "%d hónappal ezelőtt",
+		"other": "%d hónappal ezelőtt"
+	},
+	"relativetime.years": {
+		"one": "%d évvel ezelőtt",
+		"other": "%d évvel ezelőtt"
+	},
+	"relativetime.1day": "tegnap",
+	"relativetime.1week": "előző héten",
+	"relativetime.1month": "előző hónapban",
+	"relativetime.1year": "előző évben",
+	"repo.files.caption": "Fájlok a tárolóban (utolsó commit elöl)",
+	"repo.files.filename": "Fájlnév",
+	"repo.files.last_commit_message": "Legutóbbi commit üzenet",
+	"repo.files.last_commit_date": "Legutóbbi commit ideje",
+	"repo.issues.filter_poster.hint": "Szűrés szerző szerint",
+	"repo.issues.filter_assignee.hint": "Szűrés hozzárendelt felhasználó szerint",
+	"repo.issues.filter_reviewers.hint": "Szűrés felülvizsgáló szerint",
+	"repo.issues.filter_mention.hint": "Szűrés megemlített felhasználó szerint",
+	"repo.issues.filter_modified.hint": "Szűrés utolsó módosítás ideje szerint",
+	"repo.issues.filter_sort.hint_with_placeholder": "Rendezés %s szerint"
 }

@@ -725,5 +725,13 @@
 		"many": "Wybrane (%d) repozytoriów"
 	},
 	"repo.files.filename": "Nazwa pliku",
-	"migrate.select.title": "Migruj repozytorium"
+	"migrate.select.title": "Migruj repozytorium",
+	"repo.files.caption": "Pliki repozytorium (najnowszy commit pierwszy)",
+	"repo.files.last_commit_message": "Wiadomość najnowszego commita",
+	"repo.files.last_commit_date": "Data najnowszego commita",
+	"members.invite_team_member": "Zaproś do zespołu",
+	"members.user": "Użytkownik",
+	"members.user_already_member": "Ten użytkownik jest już członkiem tej organizacji.",
+	"members.no_team_selected": "Członkowie organizacji muszą należeć do przynajmniej jednego zespołu.",
+	"repo.view.gitmodules_too_large": "Plik .gitmodules jest za duży i będzie ignorowany (np. w wywołaniach API)"
 }
