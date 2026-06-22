@@ -214,18 +214,10 @@
 	"webauthn.press_button": "請按下您安全金鑰上的按鈕…",
 	"webauthn.sign_in": "按下您安全金鑰上的按鈕。如果您的安全金鑰沒有按鈕，請重新插入。",
 	"webauthn.insert_key": "插入您的安全金鑰",
-	"counters.n_commits": {
-		"other": "%s 個提交"
-	},
-	"counters.n_branches": {
-		"other": "%s 條分支"
-	},
-	"counters.n_tags": {
-		"other": "%s 個標籤"
-	},
-	"counters.n_releases": {
-		"other": "%s 發行"
-	},
+	"counters.n_commits": "%s 個提交",
+	"counters.n_branches": "%s 條分支",
+	"counters.n_tags": "%s 個標籤",
+	"counters.n_releases": "%s 發行",
 	"actions.actions": "Actions",
 	"actions.status.unknown": "未知的",
 	"actions.status.waiting": "等待中",
@@ -677,7 +669,6 @@
 	"actions.workflow.incomplete_with_missing_matrix_dimension": "無法評估任務 %[1]s 的 `with`：矩陣維度 %[2]s 不存在。",
 	"actions.workflow.incomplete_with_unknown_cause": "無法評估任務 %[1]s 的 `with`：未知錯誤。",
 	"actions.workflow.pre_execution_error": "由於錯誤阻止了執行嘗試，工作流程未被執行。",
-	"actions.secrets.creation.name_description": "秘密名稱只能包含字母、數字和底線，且不能以 FORGEJO_、GITEA_、GITHUB_ 或數字開頭。Forgejo 會自動將其轉換為大寫。",
 	"actions.secrets.creation.value_description": "秘密值可以是任意文字。特殊字元會被保留。CRLF（Windows 風格的換行符）會自動轉換為 LF。若要保留換行符，請使用 Base64 編碼值。",
 	"actions.variables.mutation.name_description": "變數名稱只能包含字母、數字和底線，且不能命名為 CI 或以 FORGEJO_、GITEA_、GITHUB_ 或數字開頭。Forgejo 會自動將其轉換為大寫。",
 	"actions.variables.mutation.value_description": "變數值可以是任意文字。特殊字元會被保留。CRLF（Windows 風格的換行符）會自動轉換為 LF。若要保留換行符，請使用 Base64 編碼值。",
