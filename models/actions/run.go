@@ -80,9 +80,11 @@ type ActionRun struct {
 	ConcurrencyType  ConcurrencyMode
 
 	// used to report errors that blocked execution of a workflow
-	PreExecutionError        string `xorm:"LONGTEXT"` // deprecated: replaced with PreExecutionErrorCode and PreExecutionErrorDetails for better i18n
-	PreExecutionErrorCode    PreExecutionError
-	PreExecutionErrorDetails []any `xorm:"JSON LONGTEXT"`
+	PreExecutionError          string `xorm:"LONGTEXT"` // deprecated: replaced with PreExecutionErrorCode and PreExecutionErrorDetails for better i18n
+	PreExecutionErrorCode      PreExecutionError
+	PreExecutionErrorDetails   []any `xorm:"JSON LONGTEXT"`
+	PreExecutionWarningCodes   []PreExecutionWarning
+	PreExecutionWarningDetails [][]any `xorm:"JSON LONGTEXT"`
 
 	// Priority defines the numerical order in which tasks should be processed (best effort). Tasks with the highest
 	// numbers are processed first. The value range is between -128 and +127; 0 is the default value.

@@ -829,10 +829,29 @@ func sendActionRunNowDoneNotificationIfNeeded(ctx context.Context, priorRun, upd
 	return nil
 }
 
+func calculateWarnings(run *actions_model.ActionRun, swfs []*jobparser.SingleWorkflow) {
+	warnings := []actions_model.PreExecutionWarning{}
+	warningDetails := [][]any{}
+	for _, swf := range swfs {
+		id, j := swf.Job()
+		// j != nil is a workaround for a jobparser bug -- swf.HasPermissions() doesn't nil-check the job from Job(),
+		// which occurs in an invalid workflow with no job. We need to do `.Job()` here for the job name anyway, so no
+		// harm in handling it here. (https://code.forgejo.org/forgejo/runner/issues/1579)
+		if j != nil && swf.HasPermissions() {
+			warnings = append(warnings, actions_model.WarningCodePermissions)
+			warningDetails = append(warningDetails, []any{id, "https://forgejo.org/docs/latest/user/authorized-integrations/"})
+		}
+	}
+	run.PreExecutionWarningCodes = warnings
+	run.PreExecutionWarningDetails = warningDetails
+}
+
 // Insert a new run, and all its jobs, into the database.  In the event that all the `if` clauses of the jobs are
 // evaluated at this stage and are `false`,
 func InsertRun(ctx context.Context, run *actions_model.ActionRun, jobs []*jobparser.SingleWorkflow) error {
 	return db.WithTx(ctx, func(ctx context.Context) error {
+		calculateWarnings(run, jobs)
+
 		if err := actions_model.InsertRunWithoutNotification(ctx, run, jobs); err != nil {
 			return fmt.Errorf("InsertRunWithoutNotification: %w", err)
 		}

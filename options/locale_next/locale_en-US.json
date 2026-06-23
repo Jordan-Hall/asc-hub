@@ -879,6 +879,8 @@
 	"actions.workflow.pre_execution_error": "Workflow was not executed due to an error that blocked the execution attempt.",
 	"actions.workflow.rerun_impossible": "The workflow cannot be rerun.",
 	"actions.workflow.job_rerun_impossible": "The job cannot be rerun.",
+	"actions.workflow.pre_execution_warning": "Workflow warnings:",
+	"actions.workflow.permissions_warning": "Job <code>%[1]s</code> or its workflow has a <code>permissions</code> field, which is not supported in Forgejo and will be ignored. Use <a href=\"%[2]s\">Authorized Integrations</a> to grant capabilities to this job instead.",
 	"actions.secrets.creation.value_description": "The value of a secret can be any text. Special characters are retained. CRLF (Windows-style line breaks) is automatically converted to LF. Encode the value with Base64 if linebreaks should be retained.",
 	"actions.variables.mutation.name_description": "The name of a variable can only contain letters, numbers, and underscores. It cannot be named CI or start with FORGEJO_, GITEA_, GITHUB_, or a number. Forgejo will automatically convert it to uppercase.",
 	"actions.variables.mutation.value_description": "A variable's value can be any text. Special characters are retained. CRLF (Windows-style line breaks) is automatically converted to LF. Encode the value with Base64 if linebreaks should be retained.",
