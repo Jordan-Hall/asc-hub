@@ -1168,6 +1168,73 @@ func TestActionsRunsEvaluateIf(t *testing.T) {
 			run = unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{ID: runID})
 			assert.Equal(t, actions_model.StatusSuccess.String(), run.Status.String())
 		})
+
+		t.Run("matrix requires skipped job", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+
+			arif := newActionsRunIfTester(t)
+			runID := arif.dispatchIncompleteMatrix().ID
+
+			run := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{ID: runID})
+			assert.Equal(t, actions_model.StatusSkipped.String(), run.Status.String())
+		})
+
+		t.Run("runs-on requires skipped job", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+
+			arif := newActionsRunIfTester(t)
+			runID := arif.dispatchIncompleteRunsOn().ID
+
+			run := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{ID: runID})
+			assert.Equal(t, actions_model.StatusSkipped.String(), run.Status.String())
+		})
+
+		t.Run("with requires skipped job", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+
+			arif := newActionsRunIfTester(t)
+			runID := arif.dispatchIncompleteWith().ID
+
+			run := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{ID: runID})
+			assert.Equal(t, actions_model.StatusSkipped.String(), run.Status.String())
+		})
+
+		// If a `strategy.matrix` is used to expand a dependant job into multiple jobs, and, that expansion also
+		// requires an input from another job, and, that other job has a server-side evaluated `if` that returns
+		// false...
+		t.Run("matrix expansion and incomplete job simultaneously job", func(t *testing.T) {
+			defer tests.PrintCurrentTest(t)()
+
+			arif := newActionsRunIfTester(t)
+			runID := arif.dispatchIncompleteRunsOnWithMatrix().ID
+
+			// Provide three values to the 'dim1' output which will become a matrix dimension.
+			task := arif.mockRunTaskWithOutputs(map[string]string{"dim1": "[\"abc\",\"def\",\"ghj\"]"})
+			dbTask := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionTask{ID: task.Id})
+			require.NoError(t, dbTask.LoadJob(t.Context()))
+			assert.Equal(t, "matrix-output", dbTask.Job.Name)
+
+			// runs-on-output will be server-side skipped, and dependent-job will have a cascade skip because the
+			// 'runs-on' value refers to a skipped job.
+			arif.assertNoRunnableJobs()
+
+			run := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRun{ID: runID})
+			assert.Equal(t, actions_model.StatusSuccess.String(), run.Status.String())
+
+			jobs, err := actions_model.GetRunJobsByRunID(t.Context(), run.ID)
+			require.NoError(t, err)
+			// Currently this behaviour doesn't expand the jobs, it goes straight to skipping them.  That's reasonable
+			// behaviour at the moment.  In the future, it would also be reasonable for it to expand-then-skip -- both
+			// choices have the same functional outputs.  The expand-then-skip option may become the behaviour if we add
+			// `matrix` context access to the `if` block in the future, since the evaluation order would have to change
+			// a bit.
+			expected := []string{"matrix-output", "runs-on-output", "dependent-job (incomplete matrix)"}
+			for _, j := range jobs {
+				if assert.Contains(t, expected, j.Name) {
+					expected = slices.DeleteFunc(expected, func(s string) bool { return s == j.Name })
+				}
+			}
+		})
 	})
 }
 
@@ -1206,11 +1273,14 @@ func newActionsRunIfTester(t *testing.T) *ActionsRunIfTester {
 	}
 }
 
+func (tester *ActionsRunIfTester) addWorkflowFile(filename, workflow string) *api.FileResponse {
+	options := getWorkflowCreateFileOptions(tester.user, tester.apiRepo.DefaultBranch, fmt.Sprintf("create %s", filename), workflow)
+	return createWorkflowFile(tester.t, tester.apiToken, tester.user.Name, tester.apiRepo.Name, filename, options)
+}
+
 func (tester *ActionsRunIfTester) dispatch(workflow string) *api.DispatchWorkflowRun {
 	workflowPath := ".forgejo/workflows/serverside_if.yml"
-
-	options := getWorkflowCreateFileOptions(tester.user, tester.apiRepo.DefaultBranch, fmt.Sprintf("create %s", workflowPath), workflow)
-	createWorkflowFile(tester.t, tester.apiToken, tester.user.Name, tester.apiRepo.Name, workflowPath, options)
+	tester.addWorkflowFile(workflowPath, workflow)
 
 	dispatchRequest := NewRequestWithJSON(tester.t, "POST",
 		fmt.Sprintf("/api/v1/repos/%s/%s/actions/workflows/serverside_if.yml/dispatches", tester.user.Name, tester.apiRepo.Name),
@@ -1230,15 +1300,13 @@ func (tester *ActionsRunIfTester) dispatch(workflow string) *api.DispatchWorkflo
 
 func (tester *ActionsRunIfTester) pushEvent(workflow string) *actions_model.ActionRun {
 	workflowPath := ".forgejo/workflows/serverside_if.yml"
-	options := getWorkflowCreateFileOptions(tester.user, tester.apiRepo.DefaultBranch, fmt.Sprintf("create %s", workflowPath), workflow)
-	resp := createWorkflowFile(tester.t, tester.apiToken, tester.user.Name, tester.apiRepo.Name, workflowPath, options)
+	resp := tester.addWorkflowFile(workflowPath, workflow)
 	return unittest.AssertExistsAndLoadBean(tester.t, &actions_model.ActionRun{CommitSHA: resp.Commit.SHA})
 }
 
 func (tester *ActionsRunIfTester) forceSchedule(workflow string) *actions_model.ActionRun {
 	workflowPath := ".forgejo/workflows/serverside_if.yml"
-	options := getWorkflowCreateFileOptions(tester.user, tester.apiRepo.DefaultBranch, fmt.Sprintf("create %s", workflowPath), workflow)
-	resp := createWorkflowFile(tester.t, tester.apiToken, tester.user.Name, tester.apiRepo.Name, workflowPath, options)
+	resp := tester.addWorkflowFile(workflowPath, workflow)
 	payload := &api.SchedulePayload{
 		Action: api.HookScheduleCreated,
 	}
@@ -1545,14 +1613,116 @@ jobs:
 `)
 }
 
+func (tester *ActionsRunIfTester) dispatchIncompleteMatrix() *api.DispatchWorkflowRun {
+	return tester.dispatch(`
+on:
+  workflow_dispatch:
+jobs:
+  test-1:
+    if: ${{ '123' == 'abc' }}
+    runs-on: ubuntu
+    steps:
+      - run: echo "Job contents go here."
+  test-2:
+    needs: [test-1]
+    strategy:
+      matrix:
+        dim1: ${{ needs.test-1.outputs.output-not-existing }}
+    runs-on: ubuntu
+    steps:
+      - run: echo "Job contents go here."
+`)
+}
+
+func (tester *ActionsRunIfTester) dispatchIncompleteRunsOn() *api.DispatchWorkflowRun {
+	return tester.dispatch(`
+on:
+  workflow_dispatch:
+jobs:
+  test-1:
+    if: ${{ '123' == 'abc' }}
+    runs-on: ubuntu
+    steps:
+      - run: echo "Job contents go here."
+  test-2:
+    needs: [test-1]
+    runs-on: ${{ needs.test-1.outputs.output-not-existing }}
+    steps:
+      - run: echo "Job contents go here."
+`)
+}
+
+func (tester *ActionsRunIfTester) dispatchIncompleteRunsOnWithMatrix() *api.DispatchWorkflowRun {
+	return tester.dispatch(`
+on:
+  workflow_dispatch:
+jobs:
+  # This job will provide an output...
+  matrix-output:
+    runs-on: ubuntu
+    steps:
+      - run: echo "Job contents go here." # (output would be here, but runner will be mocked)
+  # This job will be relied upon for an output, but will be skipped.
+  runs-on-output:
+    if: ${{ '123' == 'abc' }}
+    runs-on: ubuntu
+    steps:
+      - run: echo "Job contents go here." # (output would be here, but runner will be mocked)
+  dependent-job:
+    needs: [matrix-output, runs-on-output]
+    strategy:
+      matrix:
+        dim1: ${{ fromJSON(needs.matrix-output.outputs.dim1) }}
+    runs-on: ${{ needs.runs-on-output.outputs.output-not-existing }}
+    steps:
+      - run: echo "Job contents go here."
+`)
+}
+
+func (tester *ActionsRunIfTester) dispatchIncompleteWith() *api.DispatchWorkflowRun {
+	tester.addWorkflowFile(".forgejo/workflows/reusable.yml", `
+on:
+  workflow_call:
+    inputs:
+      my_input:
+        type: string
+jobs:
+  inner-job:
+    runs-on: ubuntu
+    steps:
+      - run: echo "Job contents go here."
+`)
+
+	return tester.dispatch(`
+on:
+  workflow_dispatch:
+jobs:
+  test-1:
+    if: ${{ '123' == 'abc' }}
+    runs-on: ubuntu
+    steps:
+      - run: echo "Job contents go here."
+  test-2:
+    needs: [test-1]
+    uses: ./.forgejo/workflows/reusable.yml
+    with:
+      my_input: ${{ needs.test-1.outputs.output-not-existing }}
+`)
+}
+
 func (tester *ActionsRunIfTester) assertNoRunnableJobs() {
 	assert.Nil(tester.t, tester.runner.maybeFetchTask(tester.t))
 }
 
 func (tester *ActionsRunIfTester) mockRunTask() *runnerv1.Task {
+	return tester.mockRunTaskWithOutputs(nil)
+}
+
+func (tester *ActionsRunIfTester) mockRunTaskWithOutputs(outputs map[string]string) *runnerv1.Task {
 	task := tester.runner.fetchTask(tester.t)
 	tester.runner.execTask(tester.t, task, &mockTaskOutcome{
-		result: runnerv1.Result_RESULT_SUCCESS,
+		result:  runnerv1.Result_RESULT_SUCCESS,
+		outputs: outputs,
 	})
 	return task
 }

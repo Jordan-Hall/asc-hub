@@ -377,6 +377,14 @@ func prepareJobForEmitting(ctx context.Context, blockedJob *actions_model.Action
 		jobID, job := swf.Job()
 		if jobID == blockedJob.JobID {
 			if swf.IncompleteMatrix {
+				if cascadeSkip(swf.IncompleteMatrixNeeds, jobResults) {
+					// This job has an incomplete matrix.  It is incomplete because it has `${{ needs.x... }}` where x
+					// is a skipped job.  Skip this job as well.
+					//
+					// Theoretically this job could have `if: always()` and expect to be executed... but that's
+					// contradictory with having a matrix that relies on a needed job that was skipped.
+					return behaviorSkipJob, nil
+				}
 				errorCode, errorDetails := persistentIncompleteMatrixError(blockedJob, swf.IncompleteMatrixNeeds)
 				if err := FailRunPreExecutionError(ctx, blockedJob.Run, errorCode, errorDetails); err != nil {
 					return behaviourError, fmt.Errorf("setting run into PreExecutionError state failed: %w", err)
@@ -384,6 +392,11 @@ func prepareJobForEmitting(ctx context.Context, blockedJob *actions_model.Action
 				// `FailRunPreExecutionError` will mark all the pending runs in the job failed; ignore all of them.
 				return behaviourIgnoreAllJobsInRun, nil
 			} else if swf.IncompleteRunsOn {
+				if cascadeSkip(swf.IncompleteRunsOnNeeds, jobResults) {
+					// This job has an incomplete runs-on.  It is incomplete because it has `${{ needs.x... }}` where x
+					// is a skipped job.  Skip this job as well.
+					return behaviorSkipJob, nil
+				}
 				errorCode, errorDetails := persistentIncompleteRunsOnError(blockedJob, swf.IncompleteRunsOnNeeds, swf.IncompleteRunsOnMatrix)
 				if err := FailRunPreExecutionError(ctx, blockedJob.Run, errorCode, errorDetails); err != nil {
 					return behaviourError, fmt.Errorf("setting run into PreExecutionError state failed: %w", err)
@@ -391,6 +404,11 @@ func prepareJobForEmitting(ctx context.Context, blockedJob *actions_model.Action
 				// `FailRunPreExecutionError` will mark all the pending runs in the job failed; ignore all of them.
 				return behaviourIgnoreAllJobsInRun, nil
 			} else if swf.IncompleteWith {
+				if cascadeSkip(swf.IncompleteWithNeeds, jobResults) {
+					// This job has an incomplete with.  It is incomplete because it has `${{ needs.x... }}` where x is
+					// a skipped job.  Skip this job as well.
+					return behaviorSkipJob, nil
+				}
 				errorCode, errorDetails := persistentIncompleteWithError(blockedJob, swf.IncompleteWithNeeds, swf.IncompleteWithMatrix)
 				if err := FailRunPreExecutionError(ctx, blockedJob.Run, errorCode, errorDetails); err != nil {
 					return behaviourError, fmt.Errorf("setting run into PreExecutionError state failed: %w", err)
@@ -448,6 +466,23 @@ func prepareJobForEmitting(ctx context.Context, blockedJob *actions_model.Action
 	}
 	// job was deleted after it was replaced with one-or-more new jobs, so ignore it.
 	return behaviourIgnoreJob, nil
+}
+
+func cascadeSkip(incompleteNeeds *jobparser.IncompleteNeeds, jobResults map[string]string) bool {
+	if incompleteNeeds == nil {
+		return false
+	}
+	requiredJob := incompleteNeeds.Job
+	requiredJobResult, present := jobResults[requiredJob]
+	if !present {
+		// Can't find the status of the needed job.
+		return false
+	}
+	if requiredJobResult != actions_model.StatusSkipped.String() {
+		// The needed job wasn't skipped, so don't cascade the skip to the dependent job.
+		return false
+	}
+	return true
 }
 
 func persistentIncompleteMatrixError(job *actions_model.ActionRunJob, incompleteNeeds *jobparser.IncompleteNeeds) (actions_model.PreExecutionError, []any) {
