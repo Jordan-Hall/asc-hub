@@ -493,8 +493,13 @@ func GetIssueComment(ctx *context.APIContext) {
 	}
 
 	if err := comment.LoadPoster(ctx); err != nil {
-		ctx.Error(http.StatusInternalServerError, "comment.LoadPoster", err)
-		return
+		if user_model.IsErrUserNotExist(err) {
+			comment.Poster = user_model.NewGhostUser()
+			comment.PosterID = comment.Poster.ID
+		} else {
+			ctx.Error(http.StatusInternalServerError, "comment.LoadPoster", err)
+			return
+		}
 	}
 
 	if err := comment.LoadAttachments(ctx); err != nil {
