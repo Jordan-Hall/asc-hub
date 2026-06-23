@@ -19,6 +19,7 @@ import (
 	base "forgejo.org/modules/migration"
 	"forgejo.org/modules/proxy"
 	"forgejo.org/modules/structs"
+	"forgejo.org/services/migrations/allowlist"
 
 	"github.com/google/go-github/v81/github"
 	"golang.org/x/oauth2"
@@ -116,7 +117,7 @@ func NewGithubDownloaderV3(ctx context.Context, baseURL string, getPullRequests,
 			)
 			client := &http.Client{
 				Transport: &oauth2.Transport{
-					Base:   NewMigrationHTTPTransport(),
+					Base:   allowlist.NewMigrationHTTPTransport(),
 					Source: oauth2.ReuseTokenSource(nil, ts),
 				},
 			}
@@ -124,7 +125,7 @@ func NewGithubDownloaderV3(ctx context.Context, baseURL string, getPullRequests,
 			downloader.addClient(client, baseURL)
 		}
 	} else {
-		transport := NewMigrationHTTPTransport()
+		transport := allowlist.NewMigrationHTTPTransport()
 		transport.Proxy = func(req *http.Request) (*url.URL, error) {
 			req.SetBasicAuth(userName, password)
 			return proxy.Proxy()(req)
@@ -346,7 +347,7 @@ func (g *GithubDownloaderV3) convertGithubRelease(rel *github.RepositoryRelease)
 		r.Published = rel.PublishedAt.Time
 	}
 
-	httpClient := NewMigrationHTTPClient()
+	httpClient := allowlist.NewMigrationHTTPClient()
 
 	for _, asset := range rel.Assets {
 		assetID := *asset.ID // Don't optimize this, for closure we need a local variable

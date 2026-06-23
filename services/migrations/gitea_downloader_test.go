@@ -12,6 +12,7 @@ import (
 
 	"forgejo.org/models/unittest"
 	base "forgejo.org/modules/migration"
+	"forgejo.org/services/migrations/allowlist"
 
 	gitea_sdk "code.gitea.io/sdk/gitea"
 	"github.com/stretchr/testify/assert"
@@ -30,7 +31,7 @@ func TestGiteaDownloadRepo(t *testing.T) {
 		gitea_sdk.SetToken(giteaToken),
 		gitea_sdk.SetBasicAuth("", ""),
 		gitea_sdk.SetContext(t.Context()),
-		gitea_sdk.SetHTTPClient(NewMigrationHTTPClient()),
+		gitea_sdk.SetHTTPClient(allowlist.NewMigrationHTTPClient()),
 	)
 	require.NoError(t, err, "Clould not create Client")
 	downloader, err := NewGiteaDownloader(t.Context(), giteaClient, server.URL, "gitea/test_repo")
@@ -330,7 +331,7 @@ func TestForgejoDownloadRepo(t *testing.T) {
 		gitea_sdk.SetToken(token),
 		gitea_sdk.SetBasicAuth("", ""),
 		gitea_sdk.SetContext(t.Context()),
-		gitea_sdk.SetHTTPClient(NewMigrationHTTPClient()),
+		gitea_sdk.SetHTTPClient(allowlist.NewMigrationHTTPClient()),
 	)
 	require.NoError(t, err, "Clould not create Client")
 	downloader, err := NewGiteaDownloader(t.Context(), giteaClient, server.URL, "Gusted/agit-test")
@@ -419,7 +420,7 @@ func TestBreakConditions(t *testing.T) {
 		gitea_sdk.SetToken(""),
 		gitea_sdk.SetBasicAuth("", ""),
 		gitea_sdk.SetContext(t.Context()),
-		gitea_sdk.SetHTTPClient(NewMigrationHTTPClient()),
+		gitea_sdk.SetHTTPClient(allowlist.NewMigrationHTTPClient()),
 	)
 	require.NoError(t, err, "Clould not create Client")
 

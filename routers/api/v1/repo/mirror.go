@@ -22,7 +22,7 @@ import (
 	"forgejo.org/services/context"
 	"forgejo.org/services/convert"
 	"forgejo.org/services/forms"
-	"forgejo.org/services/migrations"
+	migrations_allowlist "forgejo.org/services/migrations/allowlist"
 	mirror_service "forgejo.org/services/mirror"
 )
 
@@ -364,7 +364,7 @@ func CreatePushMirror(ctx *context.APIContext, mirrorOption *api.CreatePushMirro
 
 	address, err := forms.ParseRemoteAddr(mirrorOption.RemoteAddress, mirrorOption.RemoteUsername, mirrorOption.RemotePassword)
 	if err == nil {
-		err = migrations.IsPushMirrorURLAllowed(address, ctx.ContextUser)
+		err = migrations_allowlist.IsPushMirrorURLAllowed(address, ctx.ContextUser)
 	}
 	if err != nil {
 		HandleRemoteAddressError(ctx, err)

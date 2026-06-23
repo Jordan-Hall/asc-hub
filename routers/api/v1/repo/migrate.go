@@ -29,6 +29,7 @@ import (
 	"forgejo.org/services/convert"
 	"forgejo.org/services/forms"
 	"forgejo.org/services/migrations"
+	migrations_allowlist "forgejo.org/services/migrations/allowlist"
 	notify_service "forgejo.org/services/notify"
 	repo_service "forgejo.org/services/repository"
 )
@@ -112,7 +113,7 @@ func Migrate(ctx *context.APIContext) {
 
 	remoteAddr, err := forms.ParseRemoteAddr(form.CloneAddr, form.AuthUsername, form.AuthPassword)
 	if err == nil {
-		err = migrations.IsMigrateURLAllowed(remoteAddr, ctx.Doer)
+		err = migrations_allowlist.IsMigrateURLAllowed(remoteAddr, ctx.Doer)
 	}
 	if err != nil {
 		handleRemoteAddrError(ctx, err)
@@ -139,7 +140,7 @@ func Migrate(ctx *context.APIContext) {
 			ctx.Error(http.StatusInternalServerError, "", ctx.Tr("repo.migrate.invalid_lfs_endpoint"))
 			return
 		}
-		err = migrations.IsMigrateURLAllowed(ep.String(), ctx.Doer)
+		err = migrations_allowlist.IsMigrateURLAllowed(ep.String(), ctx.Doer)
 		if err != nil {
 			handleRemoteAddrError(ctx, err)
 			return
