@@ -56,6 +56,8 @@ type APIContext struct {
 	QuotaRule  *quota_model.Rule
 	PublicOnly bool // Whether the request is for a public endpoint
 	Reducer    authz.AuthorizationReducer
+
+	requiredScopeCategories []auth_model.AccessTokenScopeCategory
 }
 
 func init() {
@@ -253,16 +255,12 @@ func (ctx *APIContext) GetAuthentication() auth.AuthenticationResult {
 	return ctx.Authentication
 }
 
-func (ctx *APIContext) GetRequiredScopeCategories() []auth_model.AccessTokenScopeCategory {
-	requiredScopeCategories, ok := ctx.Data["requiredScopeCategories"].([]auth_model.AccessTokenScopeCategory)
-	if !ok || len(requiredScopeCategories) == 0 {
-		return nil
-	}
-	return requiredScopeCategories
+func (ctx *APIContext) RequiredScopeCategories() []auth_model.AccessTokenScopeCategory {
+	return ctx.requiredScopeCategories
 }
 
 func (ctx *APIContext) SetRequiredScopeCategories(requiredScopeCategories []auth_model.AccessTokenScopeCategory) {
-	ctx.Data["requiredScopeCategories"] = requiredScopeCategories
+	ctx.requiredScopeCategories = requiredScopeCategories
 }
 
 // Error responds with an error message to client with given obj as the message.

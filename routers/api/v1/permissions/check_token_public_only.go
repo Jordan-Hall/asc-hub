@@ -16,7 +16,7 @@ func CheckTokenPublicOnly(ctx Context, user, org, packageOwner *user_model.User)
 		return
 	}
 
-	requiredScopeCategories := ctx.GetRequiredScopeCategories()
+	requiredScopeCategories := ctx.RequiredScopeCategories()
 	if len(requiredScopeCategories) == 0 {
 		return
 	}

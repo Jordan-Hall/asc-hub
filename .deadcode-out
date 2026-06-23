@@ -248,7 +248,7 @@ forgejo.org/routers/api/v1/permissions
 	Permissions.SetReducer
 	Permissions.GetAuthentication
 	Permissions.SetAuthentication
-	Permissions.GetRequiredScopeCategories
+	Permissions.RequiredScopeCategories
 	Permissions.SetRequiredScopeCategories
 	Permissions.GetStatus
 	Permissions.SetStatus

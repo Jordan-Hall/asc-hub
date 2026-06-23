@@ -45,7 +45,7 @@ type Context interface {
 
 	GetAuthentication() auth.AuthenticationResult
 
-	GetRequiredScopeCategories() []auth_model.AccessTokenScopeCategory
+	RequiredScopeCategories() []auth_model.AccessTokenScopeCategory
 	SetRequiredScopeCategories([]auth_model.AccessTokenScopeCategory)
 
 	Error(status int, title string, obj any)

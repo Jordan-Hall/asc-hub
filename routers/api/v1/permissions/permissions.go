@@ -153,7 +153,7 @@ func (o *Permissions) SetAuthentication(authentication auth.AuthenticationResult
 	o.authentication = authentication
 }
 
-func (o *Permissions) GetRequiredScopeCategories() []auth_model.AccessTokenScopeCategory {
+func (o *Permissions) RequiredScopeCategories() []auth_model.AccessTokenScopeCategory {
 	return o.requiredScopeCategories
 }
 
