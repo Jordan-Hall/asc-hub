@@ -12,6 +12,8 @@ import (
 
 	"forgejo.org/models/unittest"
 	base "forgejo.org/modules/migration"
+	"forgejo.org/modules/setting"
+	"forgejo.org/modules/test"
 	"forgejo.org/services/migrations/allowlist"
 
 	gitea_sdk "code.gitea.io/sdk/gitea"
@@ -20,6 +22,8 @@ import (
 )
 
 func TestGiteaDownloadRepo(t *testing.T) {
+	defer test.MockVariableValueWithReset(&setting.Migrations.AllowLocalNetworks, true, func() { require.NoError(t, allowlist.Init()) })()
+
 	giteaToken := os.Getenv("GITEA_TOKEN")
 
 	fixturePath := "./testdata/gitea/full_download"
@@ -320,6 +324,7 @@ func TestGiteaDownloadRepo(t *testing.T) {
 }
 
 func TestForgejoDownloadRepo(t *testing.T) {
+	defer test.MockVariableValueWithReset(&setting.Migrations.AllowLocalNetworks, true, func() { require.NoError(t, allowlist.Init()) })()
 	token := os.Getenv("CODE_FORGEJO_TOKEN")
 
 	fixturePath := "./testdata/code-forgejo-org/full_download"
@@ -408,6 +413,7 @@ func createForgejoIssueComments(comments []*gitea_sdk.Comment) []*base.Comment {
 }
 
 func TestBreakConditions(t *testing.T) {
+	defer test.MockVariableValueWithReset(&setting.Migrations.AllowLocalNetworks, true, func() { require.NoError(t, allowlist.Init()) })()
 	giteaToken := os.Getenv("GITEA_TOKEN")
 
 	fixturePath := "./testdata/gitea/breaking_conditions"
