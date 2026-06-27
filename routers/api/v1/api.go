@@ -102,7 +102,7 @@ func sudo() func(ctx *context.APIContext) {
 		}
 
 		if len(sudo) > 0 {
-			if ctx.IsSigned && ctx.IsUserSiteAdmin() {
+			if ctx.IsSigned() && ctx.IsUserSiteAdmin() {
 				user, err := user_model.GetUserByName(ctx, sudo)
 				if err != nil {
 					if user_model.IsErrUserNotExist(err) {
@@ -112,8 +112,8 @@ func sudo() func(ctx *context.APIContext) {
 					}
 					return
 				}
-				log.Trace("Sudo from (%s) to: %s", ctx.Doer.Name, user.Name)
-				ctx.Doer = user
+				log.Trace("Sudo from (%s) to: %s", ctx.Doer().Name, user.Name)
+				ctx.SetDoer(user)
 			} else {
 				ctx.JSON(http.StatusForbidden, map[string]string{
 					"message": "Only administrators allowed to sudo.",
@@ -135,13 +135,13 @@ func repoAssignment(ctx *context.APIContext) {
 	)
 
 	// Check if the user is the same as the repository owner.
-	if ctx.IsSigned && ctx.Doer.LowerName == strings.ToLower(userName) {
-		owner = ctx.Doer
+	if ctx.IsSigned() && ctx.Doer().LowerName == strings.ToLower(userName) {
+		owner = ctx.Doer()
 	} else {
 		owner, err = user_model.GetUserByName(ctx, userName)
 		if err != nil {
 			if user_model.IsErrUserNotExist(err) {
-				if redirectUserID, err := redirect_service.LookupUserRedirect(ctx, ctx.Doer, userName); err == nil {
+				if redirectUserID, err := redirect_service.LookupUserRedirect(ctx, ctx.Doer(), userName); err == nil {
 					context.RedirectToUser(ctx.Base, userName, redirectUserID)
 				} else if user_model.IsErrUserRedirectNotExist(err) {
 					ctx.NotFound("GetUserByName", err)
@@ -154,14 +154,14 @@ func repoAssignment(ctx *context.APIContext) {
 			return
 		}
 	}
-	ctx.Repo.Owner = owner
-	ctx.ContextUser = owner
+	ctx.Repo().Owner = owner
+	ctx.SetUser(owner)
 
 	// Get repository.
 	repo, err := repo_model.GetRepositoryByName(ctx, owner.ID, repoName)
 	if err != nil {
 		if repo_model.IsErrRepoNotExist(err) {
-			redirectRepoID, err := redirect_service.LookupRepoRedirect(ctx, ctx.Doer, owner.ID, repoName)
+			redirectRepoID, err := redirect_service.LookupRepoRedirect(ctx, ctx.Doer(), owner.ID, repoName)
 			if err == nil {
 				context.RedirectToRepo(ctx.Base, redirectRepoID)
 			} else if repo_model.IsErrRedirectNotExist(err) {
@@ -176,7 +176,7 @@ func repoAssignment(ctx *context.APIContext) {
 	}
 
 	repo.Owner = owner
-	ctx.Repo.Repository = repo
+	ctx.Repo().Repository = repo
 }
 
 func repoAccess() func(ctx *context.APIContext) {
@@ -194,10 +194,10 @@ func checkPermission(check func(ctx apiv1_permissions.Context)) func(*context.AP
 func reqValidCommentID() func(*context.APIContext) {
 	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.ReqValidCommentID)
 	return func(ctx *context.APIContext) {
-		if ctx.Comment == nil {
+		if ctx.Comment() == nil {
 			panic("reqValidCommentID requires commentAssignment to be called first")
 		}
-		apiv1_permissions.ReqValidCommentID(ctx, ctx.Comment)
+		apiv1_permissions.ReqValidCommentID(ctx, ctx.Comment())
 	}
 }
 
@@ -220,9 +220,9 @@ func commentAssignment(idParam string) func(ctx *context.APIContext) {
 			return
 		}
 
-		comment.Issue.Repo = ctx.Repo.Repository
+		comment.Issue.Repo = ctx.Repo().Repository
 
-		ctx.Comment = comment
+		ctx.SetComment(comment)
 	}
 }
 
@@ -237,14 +237,14 @@ func checkTokenPublicOnly() func(*context.APIContext) {
 	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.CheckTokenPublicOnly)
 	return func(ctx *context.APIContext) {
 		var packageOwner *user_model.User
-		if ctx.Package != nil {
-			packageOwner = ctx.Package.Owner
+		if ctx.Package() != nil {
+			packageOwner = ctx.Package().Owner
 		}
 		var org *user_model.User
-		if ctx.Org != nil && ctx.Org.Organization != nil {
-			org = ctx.Org.Organization.AsUser()
+		if ctx.Org() != nil && ctx.Org().Organization != nil {
+			org = ctx.Org().Organization.AsUser()
 		}
-		apiv1_permissions.CheckTokenPublicOnly(ctx, ctx.ContextUser, org, packageOwner)
+		apiv1_permissions.CheckTokenPublicOnly(ctx, ctx.User(), org, packageOwner)
 	}
 }
 
@@ -271,7 +271,7 @@ func tokenRequiresScopes(requiredScopeCategories ...auth_model.AccessTokenScopeC
 func tokenRequiresRepoOwnerScope() func(*context.APIContext) {
 	apiv1_permissions_testhelpers.RecordSignature(apiv1_permissions.TokenRequiresRepoOwnerScope)
 	return func(ctx *context.APIContext) {
-		apiv1_permissions.TokenRequiresRepoOwnerScope(ctx, ctx.Repo.Owner, requiredScopeLevel(ctx))
+		apiv1_permissions.TokenRequiresRepoOwnerScope(ctx, ctx.Repo().Owner, requiredScopeLevel(ctx))
 	}
 }
 
@@ -379,13 +379,13 @@ func reqWebhooksEnabled() func(ctx *context.APIContext) {
 }
 
 func orgAssignment(ctx *context.APIContext) {
-	if ctx.Org == nil {
-		ctx.Org = new(context.APIOrganization)
+	if ctx.Org() == nil {
+		ctx.SetOrg(new(context.APIOrganization))
 	}
 
 	if org, err := organization.GetOrgByName(ctx, ctx.Params(":org")); err != nil {
 		if organization.IsErrOrgNotExist(err) {
-			redirectUserID, err := redirect_service.LookupUserRedirect(ctx, ctx.Doer, ctx.Params(":org"))
+			redirectUserID, err := redirect_service.LookupUserRedirect(ctx, ctx.Doer(), ctx.Params(":org"))
 			if err == nil {
 				context.RedirectToUser(ctx.Base, ctx.Params(":org"), redirectUserID)
 			} else if user_model.IsErrUserRedirectNotExist(err) {
@@ -397,14 +397,14 @@ func orgAssignment(ctx *context.APIContext) {
 			ctx.Error(http.StatusInternalServerError, "GetOrgByName", err)
 		}
 	} else {
-		ctx.Org.Organization = org
-		ctx.ContextUser = ctx.Org.Organization.AsUser()
+		ctx.Org().Organization = org
+		ctx.SetUser(ctx.Org().Organization.AsUser())
 	}
 }
 
 func orgTeamAssignment(ctx *context.APIContext) {
-	if ctx.Org == nil {
-		ctx.Org = new(context.APIOrganization)
+	if ctx.Org() == nil {
+		ctx.SetOrg(new(context.APIOrganization))
 	}
 
 	if team, err := organization.GetTeamByID(ctx, ctx.ParamsInt64(":teamid")); err != nil {
@@ -414,7 +414,7 @@ func orgTeamAssignment(ctx *context.APIContext) {
 			ctx.Error(http.StatusInternalServerError, "GetTeamById", err)
 		}
 	} else {
-		ctx.Org.Team = team
+		ctx.Org().Team = team
 	}
 }
 

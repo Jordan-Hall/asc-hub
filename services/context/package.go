@@ -49,8 +49,8 @@ func PackageAssignment() func(ctx *Context) {
 // PackageAssignmentAPI returns a middleware to handle Context.Package assignment
 func PackageAssignmentAPI() func(ctx *APIContext) {
 	return func(ctx *APIContext) {
-		paCtx := &packageAssignmentCtx{Base: ctx.Base, Doer: ctx.Doer, ContextUser: ctx.ContextUser}
-		ctx.Package = packageAssignment(paCtx, ctx.Error)
+		paCtx := &packageAssignmentCtx{Base: ctx.Base, Doer: ctx.Doer(), ContextUser: ctx.User()}
+		ctx.pkg = packageAssignment(paCtx, ctx.Error)
 	}
 }
 

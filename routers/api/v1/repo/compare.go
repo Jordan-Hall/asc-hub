@@ -43,23 +43,23 @@ func CompareDiff(ctx *context.APIContext) {
 	//   "404":
 	//     "$ref": "#/responses/notFound"
 
-	if ctx.Repo.GitRepo == nil {
-		gitRepo, err := gitrepo.OpenRepository(ctx, ctx.Repo.Repository)
+	if ctx.Repo().GitRepo == nil {
+		gitRepo, err := gitrepo.OpenRepository(ctx, ctx.Repo().Repository)
 		if err != nil {
 			ctx.Error(http.StatusInternalServerError, "OpenRepository", err)
 			return
 		}
-		ctx.Repo.GitRepo = gitRepo
+		ctx.Repo().GitRepo = gitRepo
 		defer gitRepo.Close()
 	}
 
 	infoPath := ctx.Params("*")
-	infos := []string{ctx.Repo.Repository.DefaultBranch, ctx.Repo.Repository.DefaultBranch}
+	infos := []string{ctx.Repo().Repository.DefaultBranch, ctx.Repo().Repository.DefaultBranch}
 	if infoPath != "" {
 		infos = strings.SplitN(infoPath, "...", 2)
 		if len(infos) != 2 {
 			if infos = strings.SplitN(infoPath, "..", 2); len(infos) != 2 {
-				infos = []string{ctx.Repo.Repository.DefaultBranch, infoPath}
+				infos = []string{ctx.Repo().Repository.DefaultBranch, infoPath}
 			}
 		}
 	}

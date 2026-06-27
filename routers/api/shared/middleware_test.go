@@ -53,17 +53,17 @@ func TestReducer(t *testing.T) {
 
 	r.Get("/api/test", func(ctx *context.APIContext) {
 		retval := ReducerInfo{
-			IsSigned: ctx.IsSigned,
-			IsNil:    ctx.Reducer == nil,
+			IsSigned: ctx.IsSigned(),
+			IsNil:    ctx.Reducer() == nil,
 		}
 
-		_, isAllAccess := ctx.Reducer.(*authz.AllAccessAuthorizationReducer)
+		_, isAllAccess := ctx.Reducer().(*authz.AllAccessAuthorizationReducer)
 		retval.IsAllAccess = isAllAccess
 
-		_, isPublicAccess := ctx.Reducer.(*authz.PublicReposAuthorizationReducer)
+		_, isPublicAccess := ctx.Reducer().(*authz.PublicReposAuthorizationReducer)
 		retval.IsPublicAccess = isPublicAccess
 
-		_, isSpecificAccess := ctx.Reducer.(*authz.SpecificReposAuthorizationReducer)
+		_, isSpecificAccess := ctx.Reducer().(*authz.SpecificReposAuthorizationReducer)
 		retval.IsSpecificAccess = isSpecificAccess
 
 		ctx.JSON(http.StatusOK, retval)
