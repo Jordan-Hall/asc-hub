@@ -18,7 +18,7 @@ var _ = registerFunctionTest(apiv1_permissions.ReqSelfOrAdmin, functionTest{
 	interpret: func(t *testing.T, permissions *apiv1_permissions.Permissions, data *fixtureData) {
 		if data.Has("user") && data.Get("user") != "anonymous" {
 			name := data.Get("user")
-			user := permissions.GetUser()
+			user := permissions.User()
 			if user == nil {
 				fixtureCreateUser(t, &user_model.User{Name: name})
 				permissions.SetUser(fixtureGetUser(t, name))

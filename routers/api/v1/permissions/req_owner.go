@@ -12,12 +12,12 @@ import (
 
 func ReqOwner(ctx Context, unitTypes []unit.Type) {
 	if len(unitTypes) > 0 && !slices.ContainsFunc(unitTypes, func(unitType unit.Type) bool {
-		return ctx.GetRepository().UnitEnabled(ctx.GetContext(), unitType)
+		return ctx.Repository().UnitEnabled(ctx.Context(), unitType)
 	}) {
 		ctx.NotFound()
 		return
 	}
-	if !ctx.GetPermission().IsOwner() && !IsUserSiteAdmin(ctx) {
+	if !ctx.Permission().IsOwner() && !IsUserSiteAdmin(ctx) {
 		ctx.Error(http.StatusForbidden, "reqOwner", "user should be the owner of the repo")
 		return
 	}

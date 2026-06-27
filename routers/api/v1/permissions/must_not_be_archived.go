@@ -9,7 +9,7 @@ import (
 )
 
 func MustNotBeArchived(ctx Context) {
-	if ctx.GetRepository().IsArchived {
-		ctx.Error(http.StatusLocked, "RepoArchived", fmt.Errorf("%s is archived", ctx.GetRepository().LogString()))
+	if ctx.Repository().IsArchived {
+		ctx.Error(http.StatusLocked, "RepoArchived", fmt.Errorf("%s is archived", ctx.Repository().LogString()))
 	}
 }

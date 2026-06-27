@@ -8,7 +8,7 @@ import (
 )
 
 func ReqGitHook(ctx Context) {
-	if !ctx.GetDoer().CanEditGitHook() {
+	if !ctx.Doer().CanEditGitHook() {
 		ctx.Error(http.StatusForbidden, "", "must be allowed to edit Git hooks")
 		return
 	}

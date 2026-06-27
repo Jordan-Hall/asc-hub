@@ -9,21 +9,21 @@ import (
 )
 
 func MustEnableIssues(ctx Context) {
-	if !ctx.GetPermission().CanRead(unit.TypeIssues) {
+	if !ctx.Permission().CanRead(unit.TypeIssues) {
 		if log.IsTrace() {
-			if ctx.GetIsSigned() {
+			if ctx.IsSigned() {
 				log.Trace("Permission Denied: User %-v cannot read %-v in Repo %-v\n"+
 					"User in Repo has Permissions: %-+v",
-					ctx.GetDoer(),
+					ctx.Doer(),
 					unit.TypeIssues,
-					ctx.GetRepository(),
-					ctx.GetPermission())
+					ctx.Repository(),
+					ctx.Permission())
 			} else {
 				log.Trace("Permission Denied: Anonymous user cannot read %-v in Repo %-v\n"+
 					"Anonymous user in Repo has Permissions: %-+v",
 					unit.TypeIssues,
-					ctx.GetRepository(),
-					ctx.GetPermission())
+					ctx.Repository(),
+					ctx.Permission())
 			}
 		}
 		ctx.NotFound()

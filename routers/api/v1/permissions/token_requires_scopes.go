@@ -17,7 +17,7 @@ func TokenRequiresScopes(ctx Context, requiredScopeCategories []auth_model.Acces
 	}
 
 	// Need OAuth2 token to be present.
-	hasScope, scope := ctx.GetAuthentication().Scope().Get()
+	hasScope, scope := ctx.Authentication().Scope().Get()
 	if !hasScope {
 		return
 	}

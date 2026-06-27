@@ -15,21 +15,21 @@ func ReqOrgOwnership(ctx Context) {
 	}
 
 	var orgID int64
-	if ctx.GetOrg() != nil {
-		orgID = ctx.GetOrg().ID
-	} else if ctx.GetTeam() != nil {
-		orgID = ctx.GetTeam().OrgID
+	if ctx.Organization() != nil {
+		orgID = ctx.Organization().ID
+	} else if ctx.Team() != nil {
+		orgID = ctx.Team().OrgID
 	} else {
 		ctx.Error(http.StatusInternalServerError, "", "reqOrgOwnership: unprepared context")
 		return
 	}
 
-	isOwner, err := organization.IsOrganizationOwner(ctx.GetContext(), orgID, ctx.GetDoer().ID)
+	isOwner, err := organization.IsOrganizationOwner(ctx.Context(), orgID, ctx.Doer().ID)
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "IsOrganizationOwner", err)
 		return
 	} else if !isOwner {
-		if ctx.GetOrg() != nil {
+		if ctx.Organization() != nil {
 			ctx.Error(http.StatusForbidden, "", "Must be an organization owner")
 		} else {
 			ctx.NotFound()

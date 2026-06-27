@@ -17,33 +17,33 @@ import (
 )
 
 type Context interface {
-	GetContext() context.Context
+	Context() context.Context
 
-	GetRepository() *repo_model.Repository
+	Repository() *repo_model.Repository
 
-	GetDoer() *user_model.User
+	Doer() *user_model.User
 
-	GetUser() *user_model.User
+	User() *user_model.User
 
-	GetOrg() *org_model.Organization
+	Organization() *org_model.Organization
 
-	GetTeam() *org_model.Team
+	Team() *org_model.Team
 
-	GetPackageOwner() *user_model.User
-	GetPackageAccessMode() perm.AccessMode
+	PackageOwner() *user_model.User
+	PackageAccessMode() perm.AccessMode
 
-	GetPermission() *access_model.Permission
+	Permission() *access_model.Permission
 	SetPermission(*access_model.Permission)
 
-	GetIsSigned() bool
+	IsSigned() bool
 
-	GetPublicOnly() bool
+	PublicOnly() bool
 	SetPublicOnly(bool)
 
-	GetReducer() authz.AuthorizationReducer
+	Reducer() authz.AuthorizationReducer
 	SetReducer(authz.AuthorizationReducer)
 
-	GetAuthentication() auth.AuthenticationResult
+	Authentication() auth.AuthenticationResult
 
 	RequiredScopeCategories() []auth_model.AccessTokenScopeCategory
 	SetRequiredScopeCategories([]auth_model.AccessTokenScopeCategory)

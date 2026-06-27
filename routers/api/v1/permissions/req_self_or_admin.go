@@ -17,7 +17,7 @@ func ReqSelfOrAdmin(ctx Context) {
 		return user.ID
 	}
 
-	if !IsUserSiteAdmin(ctx) && getID(ctx.GetUser()) != getID(ctx.GetDoer()) {
+	if !IsUserSiteAdmin(ctx) && getID(ctx.User()) != getID(ctx.Doer()) {
 		ctx.Error(http.StatusForbidden, "reqSelfOrAdmin", "doer should be the site admin or be same as the contextUser")
 		return
 	}

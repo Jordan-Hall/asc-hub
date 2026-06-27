@@ -158,7 +158,7 @@ func fixtureSetPackageOwner(t *testing.T, permissions *apiv1_permissions.Permiss
 	}
 	owner := fixtureCreateUser(t, &user_model.User{Name: fixtureData.Get("packageOwner")})
 	permissions.SetPackageOwner(owner)
-	mode, err := packages_service.DeterminePackageAccessMode(permissions.GetContext(), permissions.GetPackageOwner(), permissions.GetDoer())
+	mode, err := packages_service.DeterminePackageAccessMode(permissions.Context(), permissions.PackageOwner(), permissions.Doer())
 	require.NoError(t, err)
 	permissions.SetPackageAccessMode(mode)
 }
@@ -168,7 +168,7 @@ func fixtureSetDoer(t *testing.T, permissions *apiv1_permissions.Permissions, fi
 	if !fixtureData.Has("doer") {
 		return
 	}
-	if doer := permissions.GetDoer(); doer != nil {
+	if doer := permissions.Doer(); doer != nil {
 		if doer.Name != fixtureData.Get("doer") {
 			panic(fmt.Sprintf("attempting to override already doer %s with %s", doer.Name, fixtureData.Get("doer")))
 		}
@@ -204,7 +204,7 @@ func (r *actionsTaskTokenAuthenticationResult) ActionsTaskID() optional.Option[i
 
 func fixtureSetDoerActionsUser(t *testing.T, permissions *apiv1_permissions.Permissions, fixtureData *fixtureData) {
 	permissions.SetDoer(user_model.NewActionsUser())
-	repository := permissions.GetRepository()
+	repository := permissions.Repository()
 	require.NotNil(t, repository)
 	repositoryID := repository.ID
 	if fixtureData.Get("task.RepoID") == "unrelated" {
@@ -223,9 +223,9 @@ func fixtureSetDoerActionsUser(t *testing.T, permissions *apiv1_permissions.Perm
 		require.NotZero(t, task.ID)
 	}
 
-	permissions.SetAuthentication(&actionsTaskTokenAuthenticationResult{user: permissions.GetDoer(), taskID: task.ID})
+	permissions.SetAuthentication(&actionsTaskTokenAuthenticationResult{user: permissions.Doer(), taskID: task.ID})
 	permissions.SetReducer(&authz.AllAccessAuthorizationReducer{})
-	permission, err := access_model.GetUserRepoPermissionWithReducer(permissions.GetContext(), permissions.GetRepository(), permissions.GetDoer(), permissions.GetReducer())
+	permission, err := access_model.GetUserRepoPermissionWithReducer(permissions.Context(), permissions.Repository(), permissions.Doer(), permissions.Reducer())
 	require.NoError(t, err)
 	permissions.SetPermission(&permission)
 }
@@ -303,29 +303,29 @@ func fixtureSetDoerRegularUser(t *testing.T, permissions *apiv1_permissions.Perm
 		panic(fmt.Errorf("attempting to set doer with no name"))
 	}
 
-	if permissions.GetDoer() == nil {
+	if permissions.Doer() == nil {
 		permissions.SetAuthentication(&auth.UnauthenticatedResult{})
 	} else {
-		token, err := fixtureCreateToken(t, permissions.GetDoer(), scope)
+		token, err := fixtureCreateToken(t, permissions.Doer(), scope)
 		require.NoError(t, err)
 		tokenReducer, err := authz.GetAuthorizationReducerForAccessToken(t.Context(), token)
 		require.NoError(t, err)
 		permissions.SetIsSigned(true)
 		switch fixtureData.Get("authentication") {
 		case "basic":
-			permissions.SetAuthentication(&basicPasswordAuthenticationResult{user: permissions.GetDoer()})
+			permissions.SetAuthentication(&basicPasswordAuthenticationResult{user: permissions.Doer()})
 		case "proxy":
-			permissions.SetAuthentication(&reverseProxyAuthenticationResult{user: permissions.GetDoer()})
+			permissions.SetAuthentication(&reverseProxyAuthenticationResult{user: permissions.Doer()})
 		default:
 			permissions.SetToken(token)
-			permissions.SetAuthentication(&accessTokenAuthenticationResult{user: permissions.GetDoer(), scope: token.Scope, reducer: tokenReducer})
+			permissions.SetAuthentication(&accessTokenAuthenticationResult{user: permissions.Doer(), scope: token.Scope, reducer: tokenReducer})
 		}
 	}
 }
 
 func fixtureCreateBranch(t *testing.T, permissions *apiv1_permissions.Permissions, branch string) {
 	t.Helper()
-	repository := permissions.GetRepository()
+	repository := permissions.Repository()
 	require.NotNil(t, repository)
 
 	gitRepo, err := git.OpenRepository(t.Context(), repository.RepoPath())
@@ -341,7 +341,7 @@ func fixtureCreatePullRequest(t *testing.T, permissions *apiv1_permissions.Permi
 		return
 	}
 
-	repository := permissions.GetRepository()
+	repository := permissions.Repository()
 	require.NotNil(t, repository)
 
 	poster := fixtureGetUser(t, fixtureData.Get("pullRequestAuthor"))
@@ -390,7 +390,7 @@ func fixtureSetRepository(t *testing.T, permissions *apiv1_permissions.Permissio
 	if !fixtureData.Has("repository") {
 		return
 	}
-	if repository := permissions.GetRepository(); repository != nil {
+	if repository := permissions.Repository(); repository != nil {
 		if repository.FullName() != fixtureData.Get("repository") {
 			panic(fmt.Sprintf("attempting to override already repository %s with %s", repository.FullName(), fixtureData.Get("repository")))
 		}
@@ -440,7 +440,7 @@ func fixtureSetIssue(t *testing.T, permissions *apiv1_permissions.Permissions, f
 	if fixtureGetIssue(t, fixtureData) == nil {
 		authorName := fixtureData.Get("issueAuthor")
 		author := fixtureCreateUser(t, &user_model.User{Name: authorName})
-		_ = fixtureCreateIssue(t, author, permissions.GetRepository(), dataToString(t, fixtureData, "issue"), "issue description")
+		_ = fixtureCreateIssue(t, author, permissions.Repository(), dataToString(t, fixtureData, "issue"), "issue description")
 	}
 }
 
@@ -464,7 +464,7 @@ func fixtureCreateComment(t *testing.T, permissions *apiv1_permissions.Permissio
 			Type:    issues_model.CommentTypeComment,
 			Doer:    author,
 			Issue:   fixtureGetIssue(t, fixtureData),
-			Repo:    permissions.GetRepository(),
+			Repo:    permissions.Repository(),
 			Content: dataToString(t, fixtureData, "comment"),
 		})
 		require.NoError(t, err)
@@ -473,7 +473,7 @@ func fixtureCreateComment(t *testing.T, permissions *apiv1_permissions.Permissio
 
 func fixtureDisableRepoUnit(t *testing.T, permissions *apiv1_permissions.Permissions, unitType unit_model.Type) {
 	t.Helper()
-	repo := permissions.GetRepository()
+	repo := permissions.Repository()
 	require.NotNil(t, repo)
 	forgery.DisableRepoUnits(t, repo, unitType)
 }

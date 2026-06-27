@@ -12,7 +12,7 @@ import (
 )
 
 func CheckTokenPublicOnly(ctx Context, user, org, packageOwner *user_model.User) {
-	if !ctx.GetPublicOnly() {
+	if !ctx.PublicOnly() {
 		return
 	}
 
@@ -24,12 +24,12 @@ func CheckTokenPublicOnly(ctx Context, user, org, packageOwner *user_model.User)
 	// public Only permission check
 	switch {
 	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryRepository):
-		if ctx.GetRepository() != nil && ctx.GetRepository().IsPrivate {
+		if ctx.Repository() != nil && ctx.Repository().IsPrivate {
 			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public repos")
 			return
 		}
 	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryIssue):
-		if ctx.GetRepository() != nil && ctx.GetRepository().IsPrivate {
+		if ctx.Repository() != nil && ctx.Repository().IsPrivate {
 			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public issues")
 			return
 		}
@@ -53,7 +53,7 @@ func CheckTokenPublicOnly(ctx Context, user, org, packageOwner *user_model.User)
 			return
 		}
 	case auth_model.ContainsCategory(requiredScopeCategories, auth_model.AccessTokenScopeCategoryNotification):
-		if ctx.GetRepository() != nil && ctx.GetRepository().IsPrivate {
+		if ctx.Repository() != nil && ctx.Repository().IsPrivate {
 			ctx.Error(http.StatusForbidden, "reqToken", "token scope is limited to public notifications")
 			return
 		}

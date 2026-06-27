@@ -9,11 +9,11 @@ import (
 
 func ReqToken(ctx Context) {
 	// If actions token is present
-	if ctx.GetAuthentication().ActionsTaskID().Has() {
+	if ctx.Authentication().ActionsTaskID().Has() {
 		return
 	}
 
-	if ctx.GetIsSigned() {
+	if ctx.IsSigned() {
 		return
 	}
 	ctx.Error(http.StatusUnauthorized, "reqToken", "token is required")

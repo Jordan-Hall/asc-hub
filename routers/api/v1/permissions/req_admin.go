@@ -12,7 +12,7 @@ import (
 
 func ReqAdmin(ctx Context, unitTypes []unit.Type) {
 	if len(unitTypes) > 0 && !slices.ContainsFunc(unitTypes, func(unitType unit.Type) bool {
-		return ctx.GetRepository().UnitEnabled(ctx.GetContext(), unitType)
+		return ctx.Repository().UnitEnabled(ctx.Context(), unitType)
 	}) {
 		ctx.NotFound()
 		return

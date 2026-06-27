@@ -8,7 +8,7 @@ import (
 )
 
 func ReqAnyRepoReader(ctx Context) {
-	if !ctx.GetPermission().HasAccess() && !IsUserSiteAdmin(ctx) {
+	if !ctx.Permission().HasAccess() && !IsUserSiteAdmin(ctx) {
 		ctx.Error(http.StatusForbidden, "reqAnyRepoReader", "user should have any permission to read repository or permissions of site admin")
 		return
 	}

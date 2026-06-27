@@ -41,7 +41,7 @@ type Permissions struct {
 	message string
 }
 
-func (o *Permissions) GetContext() context.Context {
+func (o *Permissions) Context() context.Context {
 	return o.ctx
 }
 
@@ -57,7 +57,7 @@ func (o *Permissions) SetToken(token *auth_model.AccessToken) {
 	o.token = token
 }
 
-func (o *Permissions) GetRepository() *repo_model.Repository {
+func (o *Permissions) Repository() *repo_model.Repository {
 	return o.repository
 }
 
@@ -65,7 +65,7 @@ func (o *Permissions) SetRepository(repository *repo_model.Repository) {
 	o.repository = repository
 }
 
-func (o *Permissions) GetDoer() *user_model.User {
+func (o *Permissions) Doer() *user_model.User {
 	return o.doer
 }
 
@@ -73,7 +73,7 @@ func (o *Permissions) SetDoer(doer *user_model.User) {
 	o.doer = doer
 }
 
-func (o *Permissions) GetUser() *user_model.User {
+func (o *Permissions) User() *user_model.User {
 	return o.user
 }
 
@@ -81,15 +81,15 @@ func (o *Permissions) SetUser(user *user_model.User) {
 	o.user = user
 }
 
-func (o *Permissions) GetOrg() *org_model.Organization {
+func (o *Permissions) Organization() *org_model.Organization {
 	return o.org
 }
 
-func (o *Permissions) SetOrg(org *org_model.Organization) {
+func (o *Permissions) SetOrganization(org *org_model.Organization) {
 	o.org = org
 }
 
-func (o *Permissions) GetTeam() *org_model.Team {
+func (o *Permissions) Team() *org_model.Team {
 	return o.team
 }
 
@@ -97,7 +97,7 @@ func (o *Permissions) SetTeam(team *org_model.Team) {
 	o.team = team
 }
 
-func (o *Permissions) GetPackageOwner() *user_model.User {
+func (o *Permissions) PackageOwner() *user_model.User {
 	return o.packageOwner
 }
 
@@ -105,7 +105,7 @@ func (o *Permissions) SetPackageOwner(packageOwner *user_model.User) {
 	o.packageOwner = packageOwner
 }
 
-func (o *Permissions) GetPackageAccessMode() perm.AccessMode {
+func (o *Permissions) PackageAccessMode() perm.AccessMode {
 	return o.packageAccessMode
 }
 
@@ -113,7 +113,7 @@ func (o *Permissions) SetPackageAccessMode(packageAccessMode perm.AccessMode) {
 	o.packageAccessMode = packageAccessMode
 }
 
-func (o *Permissions) GetPermission() *access_model.Permission {
+func (o *Permissions) Permission() *access_model.Permission {
 	return o.permission
 }
 
@@ -121,7 +121,7 @@ func (o *Permissions) SetPermission(permission *access_model.Permission) {
 	o.permission = permission
 }
 
-func (o *Permissions) GetIsSigned() bool {
+func (o *Permissions) IsSigned() bool {
 	return o.isSigned
 }
 
@@ -129,7 +129,7 @@ func (o *Permissions) SetIsSigned(isSigned bool) {
 	o.isSigned = isSigned
 }
 
-func (o *Permissions) GetPublicOnly() bool {
+func (o *Permissions) PublicOnly() bool {
 	return o.publicOnly
 }
 
@@ -137,7 +137,7 @@ func (o *Permissions) SetPublicOnly(publicOnly bool) {
 	o.publicOnly = publicOnly
 }
 
-func (o *Permissions) GetReducer() authz.AuthorizationReducer {
+func (o *Permissions) Reducer() authz.AuthorizationReducer {
 	return o.reducer
 }
 
@@ -145,7 +145,7 @@ func (o *Permissions) SetReducer(reducer authz.AuthorizationReducer) {
 	o.reducer = reducer
 }
 
-func (o *Permissions) GetAuthentication() auth.AuthenticationResult {
+func (o *Permissions) Authentication() auth.AuthenticationResult {
 	return o.authentication
 }
 

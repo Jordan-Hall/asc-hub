@@ -9,21 +9,21 @@ import (
 )
 
 func MustAllowPulls(ctx Context) {
-	if !ctx.GetRepository().CanEnablePulls() || !ctx.GetPermission().CanRead(unit.TypePullRequests) {
-		if ctx.GetRepository().CanEnablePulls() && log.IsTrace() {
-			if ctx.GetIsSigned() {
+	if !ctx.Repository().CanEnablePulls() || !ctx.Permission().CanRead(unit.TypePullRequests) {
+		if ctx.Repository().CanEnablePulls() && log.IsTrace() {
+			if ctx.IsSigned() {
 				log.Trace("Permission Denied: User %-v cannot read %-v in Repo %-v\n"+
 					"User in Repo has Permissions: %-+v",
-					ctx.GetDoer(),
+					ctx.Doer(),
 					unit.TypePullRequests,
-					ctx.GetRepository(),
-					ctx.GetPermission())
+					ctx.Repository(),
+					ctx.Permission())
 			} else {
 				log.Trace("Permission Denied: Anonymous user cannot read %-v in Repo %-v\n"+
 					"Anonymous user in Repo has Permissions: %-+v",
 					unit.TypePullRequests,
-					ctx.GetRepository(),
-					ctx.GetPermission())
+					ctx.Repository(),
+					ctx.Permission())
 			}
 		}
 		ctx.NotFound()

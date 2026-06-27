@@ -220,33 +220,33 @@ forgejo.org/modules/zstd
 	Writer.Close
 
 forgejo.org/routers/api/v1/permissions
-	Permissions.GetContext
+	Permissions.Context
 	Permissions.SetContext
 	Permissions.GetToken
 	Permissions.SetToken
-	Permissions.GetRepository
+	Permissions.Repository
 	Permissions.SetRepository
-	Permissions.GetDoer
+	Permissions.Doer
 	Permissions.SetDoer
-	Permissions.GetUser
+	Permissions.User
 	Permissions.SetUser
-	Permissions.GetOrg
-	Permissions.SetOrg
-	Permissions.GetTeam
+	Permissions.Organization
+	Permissions.SetOrganization
+	Permissions.Team
 	Permissions.SetTeam
-	Permissions.GetPackageOwner
+	Permissions.PackageOwner
 	Permissions.SetPackageOwner
-	Permissions.GetPackageAccessMode
+	Permissions.PackageAccessMode
 	Permissions.SetPackageAccessMode
-	Permissions.GetPermission
+	Permissions.Permission
 	Permissions.SetPermission
-	Permissions.GetIsSigned
+	Permissions.IsSigned
 	Permissions.SetIsSigned
-	Permissions.GetPublicOnly
+	Permissions.PublicOnly
 	Permissions.SetPublicOnly
-	Permissions.GetReducer
+	Permissions.Reducer
 	Permissions.SetReducer
-	Permissions.GetAuthentication
+	Permissions.Authentication
 	Permissions.SetAuthentication
 	Permissions.RequiredScopeCategories
 	Permissions.SetRequiredScopeCategories

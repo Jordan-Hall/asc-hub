@@ -36,7 +36,7 @@ var _ = registerFunctionTest(apiv1_permissions.ReqOrgMembership, functionTest{
 		}
 
 		if data.Get("setOrg") == "true" {
-			permissions.SetOrg(org)
+			permissions.SetOrganization(org)
 		}
 
 		if data.Get("setTeam") == "true" {

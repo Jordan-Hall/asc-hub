@@ -10,7 +10,7 @@ import (
 )
 
 func ReqPackageAccess(ctx Context, accessMode perm.AccessMode) {
-	if ctx.GetPackageAccessMode() < accessMode && !IsUserSiteAdmin(ctx) {
+	if ctx.PackageAccessMode() < accessMode && !IsUserSiteAdmin(ctx) {
 		ctx.Error(http.StatusForbidden, "reqPackageAccess", "user should have specific permission or be a site admin")
 		return
 	}

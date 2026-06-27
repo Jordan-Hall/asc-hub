@@ -15,20 +15,20 @@ func ReqOrgMembership(ctx Context) {
 	}
 
 	var orgID int64
-	if ctx.GetOrg() != nil {
-		orgID = ctx.GetOrg().ID
-	} else if ctx.GetTeam() != nil {
-		orgID = ctx.GetTeam().OrgID
+	if ctx.Organization() != nil {
+		orgID = ctx.Organization().ID
+	} else if ctx.Team() != nil {
+		orgID = ctx.Team().OrgID
 	} else {
 		ctx.Error(http.StatusInternalServerError, "", "reqOrgMembership: unprepared context")
 		return
 	}
 
-	if isMember, err := organization.IsOrganizationMember(ctx.GetContext(), orgID, ctx.GetDoer().ID); err != nil {
+	if isMember, err := organization.IsOrganizationMember(ctx.Context(), orgID, ctx.Doer().ID); err != nil {
 		ctx.Error(http.StatusInternalServerError, "IsOrganizationMember", err)
 		return
 	} else if !isMember {
-		if ctx.GetOrg() != nil {
+		if ctx.Organization() != nil {
 			ctx.Error(http.StatusForbidden, "", "Must be an organization member")
 		} else {
 			ctx.NotFound()

@@ -185,16 +185,12 @@ func (ctx *APIContext) ServerError(title string, err error) {
 	ctx.Error(http.StatusInternalServerError, title, err)
 }
 
-func (ctx *APIContext) GetContext() context.Context {
+func (ctx *APIContext) Context() context.Context {
 	return ctx.originCtx
 }
 
 func (ctx *APIContext) Cache() cache.Cache {
 	return ctx.cache
-}
-
-func (ctx *APIContext) GetDoer() *user_model.User {
-	return ctx.Doer()
 }
 
 func (ctx *APIContext) Doer() *user_model.User {
@@ -213,24 +209,12 @@ func (ctx *APIContext) SetIsSigned(isSigned bool) {
 	ctx.isSigned = isSigned
 }
 
-func (ctx *APIContext) GetIsSigned() bool {
-	return ctx.IsSigned()
-}
-
 func (ctx *APIContext) Authentication() auth.AuthenticationResult {
 	return ctx.authentication
 }
 
 func (ctx *APIContext) SetAuthentication(authentication auth.AuthenticationResult) {
 	ctx.authentication = authentication
-}
-
-func (ctx *APIContext) GetAuthentication() auth.AuthenticationResult {
-	return ctx.Authentication()
-}
-
-func (ctx *APIContext) GetUser() *user_model.User {
-	return ctx.User()
 }
 
 func (ctx *APIContext) User() *user_model.User {
@@ -249,11 +233,11 @@ func (ctx *APIContext) SetRepo(repo *Repository) {
 	ctx.repo = repo
 }
 
-func (ctx *APIContext) GetRepository() *repo_model.Repository {
+func (ctx *APIContext) Repository() *repo_model.Repository {
 	return ctx.Repo().Repository
 }
 
-func (ctx *APIContext) GetPermission() *access_model.Permission {
+func (ctx *APIContext) Permission() *access_model.Permission {
 	return &ctx.Repo().Permission
 }
 
@@ -269,7 +253,7 @@ func (ctx *APIContext) SetComment(comment *issues_model.Comment) {
 	ctx.comment = comment
 }
 
-func (ctx *APIContext) GetOrg() *org_model.Organization {
+func (ctx *APIContext) Organization() *org_model.Organization {
 	return ctx.Org().Organization
 }
 
@@ -281,7 +265,7 @@ func (ctx *APIContext) SetOrg(org *APIOrganization) {
 	ctx.org = org
 }
 
-func (ctx *APIContext) GetTeam() *org_model.Team {
+func (ctx *APIContext) Team() *org_model.Team {
 	return ctx.Org().Team
 }
 
@@ -289,14 +273,14 @@ func (ctx *APIContext) Package() *Package {
 	return ctx.pkg
 }
 
-func (ctx *APIContext) GetPackageOwner() *user_model.User {
+func (ctx *APIContext) PackageOwner() *user_model.User {
 	if ctx.Package() == nil {
 		return nil
 	}
 	return ctx.Package().Owner
 }
 
-func (ctx *APIContext) GetPackageAccessMode() perm.AccessMode {
+func (ctx *APIContext) PackageAccessMode() perm.AccessMode {
 	if ctx.Package() == nil {
 		return perm.AccessModeNone
 	}
@@ -319,20 +303,12 @@ func (ctx *APIContext) SetPublicOnly(publicOnly bool) {
 	ctx.publicOnly = publicOnly
 }
 
-func (ctx *APIContext) GetPublicOnly() bool {
-	return ctx.PublicOnly()
-}
-
 func (ctx *APIContext) Reducer() authz.AuthorizationReducer {
 	return ctx.reducer
 }
 
 func (ctx *APIContext) SetReducer(reducer authz.AuthorizationReducer) {
 	ctx.reducer = reducer
-}
-
-func (ctx *APIContext) GetReducer() authz.AuthorizationReducer {
-	return ctx.Reducer()
 }
 
 func (ctx *APIContext) RequiredScopeCategories() []auth_model.AccessTokenScopeCategory {

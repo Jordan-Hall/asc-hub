@@ -10,7 +10,7 @@ import (
 )
 
 func ReqExploreSignIn(ctx Context) {
-	if (setting.Service.RequireSignInView || setting.Service.Explore.RequireSigninView) && !ctx.GetIsSigned() {
+	if (setting.Service.RequireSignInView || setting.Service.Explore.RequireSigninView) && !ctx.IsSigned() {
 		ctx.Error(http.StatusUnauthorized, "reqExploreSignIn", "you must be signed in to search for users")
 	}
 }

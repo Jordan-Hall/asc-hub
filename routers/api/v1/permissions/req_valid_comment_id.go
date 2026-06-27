@@ -8,12 +8,12 @@ import (
 )
 
 func ReqValidCommentID(ctx Context, comment *issues_model.Comment) {
-	if comment.Issue == nil || comment.Issue.RepoID != ctx.GetRepository().ID {
+	if comment.Issue == nil || comment.Issue.RepoID != ctx.Repository().ID {
 		ctx.NotFound()
 		return
 	}
 
-	if !ctx.GetPermission().CanReadIssuesOrPulls(comment.Issue.IsPull) {
+	if !ctx.Permission().CanReadIssuesOrPulls(comment.Issue.IsPull) {
 		ctx.NotFound()
 		return
 	}

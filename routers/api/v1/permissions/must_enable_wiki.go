@@ -8,7 +8,7 @@ import (
 )
 
 func MustEnableWiki(ctx Context) {
-	if !(ctx.GetPermission().CanRead(unit.TypeWiki)) {
+	if !(ctx.Permission().CanRead(unit.TypeWiki)) {
 		ctx.NotFound()
 		return
 	}
