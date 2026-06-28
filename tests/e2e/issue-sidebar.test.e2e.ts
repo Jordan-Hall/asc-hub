@@ -379,3 +379,16 @@ test('Issue: Reference', async ({page}) => {
     expect(reference).toBe('user2/repo1#1');
   }).toPass();
 });
+
+test('Issue: Watch URL Retention', async ({page}) => {
+  const response = await page.goto('/user2/repo1/pulls/5');
+  expect(response?.status()).toBe(200);
+
+  const button = page.locator('.ui.watching button');
+
+  await button.click();
+  expect(page.url()).not.toContain('/watch');
+
+  await button.click();
+  expect(page.url()).not.toContain('/watch');
+});
