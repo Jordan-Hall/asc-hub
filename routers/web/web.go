@@ -638,6 +638,7 @@ func registerRoutes(m *web.Route) {
 	m.Get("/sitemap.xml", sitemapEnabled, ignExploreSignIn, HomeSitemap)
 	m.Group("/.well-known", func() {
 		m.Get("/openid-configuration", auth.OIDCWellKnown)
+		m.Get("/asc", AscWellKnown)
 		m.Group("", func() {
 			m.Get("/nodeinfo", NodeInfoLinks)
 			m.Get("/webfinger", WebfingerQuery)

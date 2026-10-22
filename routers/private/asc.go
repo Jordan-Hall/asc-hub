@@ -1,0 +1,394 @@
+// Copyright 2026 The Forgejo Authors. All rights reserved.
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+package private
+
+import (
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
+	actions_model "forgejo.org/models/actions"
+	asymkey_model "forgejo.org/models/asymkey"
+	auth_model "forgejo.org/models/auth"
+	git_model "forgejo.org/models/git"
+	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/perm"
+	access_model "forgejo.org/models/perm/access"
+	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
+	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/json"
+	"forgejo.org/modules/log"
+	"forgejo.org/modules/private"
+	"forgejo.org/modules/setting"
+	auth_service "forgejo.org/services/auth"
+	auth_method "forgejo.org/services/auth/method"
+	"forgejo.org/services/authz"
+	"forgejo.org/services/context"
+)
+
+// ascAuthGroup authenticates the bearer token that a client presented to asc
+// serve. Only bearer credentials are accepted: no password, no session and no
+// Basic header.
+var ascAuthGroup = auth_method.NewGroup(
+	&auth_method.OAuth2{},
+	&auth_method.AccessToken{PermitBearer: true},
+	&auth_method.ActionTaskToken{PermitBearer: true},
+)
+
+// AscAuthz answers `POST /api/internal/asc/authz`: may this principal read or
+// write this repository through asc serve? A denial is always a 200 with
+// `allowed: false` and nothing else, so a missing repository, an unreadable
+// one and a bad credential look the same to the caller.
+func AscAuthz(ctx *context.PrivateContext) {
+	if !setting.Asc.Enabled {
+		ctx.Error(http.StatusNotFound)
+		return
+	}
+
+	authzReq, err := decodeAscAuthzRequest(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, private.Response{UserMsg: err.Error()})
+		return
+	}
+
+	resp, err := ascAuthorize(ctx, authzReq)
+	if err != nil {
+		log.Error("asc authz: %v", err)
+		ctx.JSON(http.StatusInternalServerError, private.Response{Err: "internal error"})
+		return
+	}
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func decodeAscAuthzRequest(ctx *context.PrivateContext) (*private.AscAuthzRequest, error) {
+	body := http.MaxBytesReader(ctx.Resp, ctx.Req.Body, private.AscAuthzMaxBodySize)
+	dec := json.NewDecoder(body)
+	dec.DisallowUnknownFields()
+	req := &private.AscAuthzRequest{}
+	if err := dec.Decode(req); err != nil {
+		return nil, errors.New("invalid request body")
+	}
+	// Nothing but whitespace may follow the object.
+	if err := dec.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return nil, errors.New("invalid request body")
+	}
+	if err := validateAscAuthzRequest(req); err != nil {
+		return nil, err
+	}
+	return req, nil
+}
+
+func validateAscAuthzRequest(req *private.AscAuthzRequest) error {
+	if req.Mode != private.AscAuthzModeRead && req.Mode != private.AscAuthzModeWrite {
+		return errors.New("mode must be read or write")
+	}
+	if req.Owner == "" || req.Repo == "" || len(req.Owner) > private.AscAuthzMaxName || len(req.Repo) > private.AscAuthzMaxName {
+		return errors.New("invalid owner or repo")
+	}
+	if len(req.Ref) > private.AscAuthzMaxRef {
+		return errors.New("ref is too long")
+	}
+	if req.Token != "" && req.KeyID != 0 {
+		return errors.New("token and key_id are mutually exclusive")
+	}
+	if req.KeyID < 0 {
+		return errors.New("invalid key_id")
+	}
+	if len(req.Token) > private.AscAuthzMaxToken {
+		return errors.New("token is too long")
+	}
+	for i := 0; i < len(req.Token); i++ {
+		if c := req.Token[i]; c <= ' ' || c >= 0x7f {
+			return errors.New("invalid token")
+		}
+	}
+	return nil
+}
+
+// ascPrincipal is the asker after authentication.
+type ascPrincipal struct {
+	user      *user_model.User // nil for an anonymous asker and for a deploy key
+	deployKey *asymkey_model.DeployKey
+	task      *actions_model.ActionTask
+	reducer   authz.AuthorizationReducer
+	userID    int64
+	username  string
+}
+
+func ascDenied() *private.AscAuthzResponse { return &private.AscAuthzResponse{} }
+
+func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*private.AscAuthzResponse, error) {
+	mode := perm.AccessModeRead
+	if req.Mode == private.AscAuthzModeWrite {
+		mode = perm.AccessModeWrite
+	}
+
+	repo, err := ascLoadRepo(ctx, req.Owner, req.Repo)
+	if err != nil || repo == nil {
+		return ascDenied(), err
+	}
+	// A repository that is being created or is broken cannot be used, and a
+	// mirror or an archive is read-only.
+	if repo.IsBeingCreated() || repo.IsBroken() {
+		return ascDenied(), nil
+	}
+	if mode > perm.AccessModeRead && (repo.IsMirror || repo.IsArchived) {
+		return ascDenied(), nil
+	}
+
+	var (
+		principal *ascPrincipal
+		ok        bool
+	)
+	switch {
+	case req.KeyID != 0:
+		principal, ok, err = ascPrincipalFromKey(ctx, repo, req.KeyID, mode)
+	case req.Token != "":
+		principal, ok, err = ascPrincipalFromToken(ctx, repo, req.Token, mode)
+	default:
+		// Anonymous: only read access to a public repository can follow.
+		principal, ok = &ascPrincipal{}, mode == perm.AccessModeRead && !setting.Service.RequireSignInView
+	}
+	if err != nil || !ok {
+		return ascDenied(), err
+	}
+
+	access, err := ascPermission(ctx, repo, principal)
+	if err != nil {
+		return ascDenied(), err
+	}
+	if !access.CanAccess(mode, unit.TypeCode) {
+		return ascDenied(), nil
+	}
+
+	resp := &private.AscAuthzResponse{
+		Allowed:  true,
+		UserID:   principal.userID,
+		Username: principal.username,
+		Perm:     access.UnitAccessMode(unit.TypeCode).String(),
+	}
+	if principal.deployKey != nil {
+		resp.DeployKeyID = principal.deployKey.ID
+	}
+	if principal.task != nil {
+		resp.IsActionsTask = true
+		if resp.Task, err = ascTaskInfo(ctx, principal.task); err != nil {
+			return ascDenied(), err
+		}
+	}
+	if resp.BranchRules.RequireSigned, err = ascRequireSigned(ctx, repo, req.Ref); err != nil {
+		return ascDenied(), err
+	}
+	return resp, nil
+}
+
+// ascLoadRepo returns nil, nil when the repository cannot be used.
+func ascLoadRepo(ctx *context.PrivateContext, ownerName, repoName string) (*repo_model.Repository, error) {
+	owner, err := user_model.GetUserByName(ctx, ownerName)
+	if err != nil {
+		if user_model.IsErrUserNotExist(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("GetUserByName: %w", err)
+	}
+	if !owner.IsOrganization() && !owner.IsActive {
+		return nil, nil
+	}
+	repo, err := repo_model.GetRepositoryByName(ctx, owner.ID, repoName)
+	if err != nil {
+		if repo_model.IsErrRepoNotExist(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("GetRepositoryByName: %w", err)
+	}
+	repo.Owner = owner
+	repo.OwnerName = owner.Name
+	return repo, nil
+}
+
+// ascUserUsable reports whether a user may sign in, with the same checks as the
+// API middleware and /serv/command.
+func ascUserUsable(ctx *context.PrivateContext, user *user_model.User) (bool, error) {
+	if !user.IsActive || user.ProhibitLogin || user.MustChangePassword {
+		return false, nil
+	}
+	if user.MustHaveTwoFactor() {
+		has, err := auth_model.HasTwoFactorByUID(ctx, user.ID)
+		if err != nil {
+			return false, fmt.Errorf("HasTwoFactorByUID: %w", err)
+		}
+		return has, nil
+	}
+	return true, nil
+}
+
+func ascPrincipalFromKey(ctx *context.PrivateContext, repo *repo_model.Repository, keyID int64, mode perm.AccessMode) (*ascPrincipal, bool, error) {
+	key, err := asymkey_model.GetPublicKeyByID(ctx, keyID)
+	if err != nil {
+		if asymkey_model.IsErrKeyNotExist(err) {
+			return nil, false, nil
+		}
+		return nil, false, fmt.Errorf("GetPublicKeyByID: %w", err)
+	}
+
+	if key.Type == asymkey_model.KeyTypeDeploy {
+		deployKey, err := asymkey_model.GetDeployKeyByRepo(ctx, key.ID, repo.ID)
+		if err != nil {
+			if asymkey_model.IsErrDeployKeyNotExist(err) {
+				return nil, false, nil
+			}
+			return nil, false, fmt.Errorf("GetDeployKeyByRepo: %w", err)
+		}
+		if deployKey.Mode < mode {
+			return nil, false, nil
+		}
+		// As in /serv/command, a deploy key acts as the repository owner.
+		return &ascPrincipal{deployKey: deployKey, userID: repo.OwnerID, username: repo.OwnerName}, true, nil
+	}
+
+	user, err := user_model.GetUserByID(ctx, key.OwnerID)
+	if err != nil {
+		if user_model.IsErrUserNotExist(err) {
+			return nil, false, nil
+		}
+		return nil, false, fmt.Errorf("GetUserByID: %w", err)
+	}
+	if usable, err := ascUserUsable(ctx, user); err != nil || !usable {
+		return nil, false, err
+	}
+	return &ascPrincipal{user: user, userID: user.ID, username: user.Name}, true, nil
+}
+
+func ascPrincipalFromToken(ctx *context.PrivateContext, repo *repo_model.Repository, token string, mode perm.AccessMode) (*ascPrincipal, bool, error) {
+	// The auth methods read the credential from a request, so build a minimal
+	// one that carries only the bearer header.
+	authReq, err := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
+	if err != nil {
+		return nil, false, err
+	}
+	authReq.Header.Set("Authorization", "Bearer "+token)
+
+	switch out := ascAuthGroup.Verify(authReq, nil, nil).(type) {
+	case *auth_service.AuthenticationSuccess:
+		return ascPrincipalFromAuthResult(ctx, repo, out.Result, mode)
+	case *auth_service.AuthenticationAttemptedIncorrectCredential, *auth_service.AuthenticationNotAttempted:
+		return nil, false, nil
+	case *auth_service.AuthenticationError:
+		return nil, false, fmt.Errorf("authentication: %w", out.Error)
+	default:
+		return nil, false, errors.New("unexpected authentication output")
+	}
+}
+
+func ascPrincipalFromAuthResult(ctx *context.PrivateContext, repo *repo_model.Repository, ar auth_service.AuthenticationResult, mode perm.AccessMode) (*ascPrincipal, bool, error) {
+	user := ar.User()
+	if user == nil {
+		return nil, false, nil
+	}
+	p := &ascPrincipal{user: user, userID: user.ID, username: user.Name}
+
+	if hasTask, taskID := ar.ActionsTaskID().Get(); hasTask {
+		task, err := actions_model.GetTaskByID(ctx, taskID)
+		if err != nil {
+			return nil, false, fmt.Errorf("GetTaskByID: %w", err)
+		}
+		p.task = task
+		return p, true, nil
+	}
+
+	if usable, err := ascUserUsable(ctx, user); err != nil || !usable {
+		return nil, false, err
+	}
+
+	// The same rules as services/context.CheckRepoScopedToken: a public-only
+	// token never reaches a private repository, and the token needs the
+	// repository scope of the level it asks for.
+	if has, scope := ar.Scope().Get(); has {
+		publicOnly, err := scope.PublicOnly()
+		if err != nil {
+			return nil, false, fmt.Errorf("PublicOnly: %w", err)
+		}
+		if publicOnly && repo.IsPrivate {
+			return nil, false, nil
+		}
+		level := auth_model.Read
+		if mode > perm.AccessModeRead {
+			level = auth_model.Write
+		}
+		required := auth_model.GetRequiredScopes(level, auth_model.AccessTokenScopeCategoryRepository)
+		matched, err := scope.HasScope(required...)
+		if err != nil {
+			return nil, false, fmt.Errorf("HasScope: %w", err)
+		}
+		if !matched {
+			return nil, false, nil
+		}
+	}
+	p.reducer = ar.Reducer()
+	return p, true, nil
+}
+
+// ascPermission computes what the principal may do in the repository.
+func ascPermission(ctx *context.PrivateContext, repo *repo_model.Repository, p *ascPrincipal) (access_model.Permission, error) {
+	switch {
+	case p.deployKey != nil:
+		// A deploy key has no user, and its own mode was checked already.
+		if err := repo.LoadUnits(ctx); err != nil {
+			return access_model.Permission{}, err
+		}
+		mode := perm.AccessModeRead
+		if p.deployKey.Mode >= perm.AccessModeWrite {
+			mode = perm.AccessModeWrite
+		}
+		return access_model.Permission{AccessMode: mode, Units: repo.Units}, nil
+	case p.task != nil:
+		return access_model.GetActionRepoPermission(ctx, repo, p.task)
+	case p.reducer != nil:
+		return access_model.GetUserRepoPermissionWithReducer(ctx, repo, p.user, p.reducer)
+	default:
+		return access_model.GetUserRepoPermission(ctx, repo, p.user)
+	}
+}
+
+func ascTaskInfo(ctx *context.PrivateContext, task *actions_model.ActionTask) (*private.AscAuthzTask, error) {
+	if err := task.LoadAttributes(ctx); err != nil {
+		return nil, fmt.Errorf("task LoadAttributes: %w", err)
+	}
+	run := task.Job.Run
+	info := &private.AscAuthzTask{
+		RunID:    run.ID,
+		Event:    string(run.Event),
+		Ref:      run.Ref,
+		IsForkPR: run.IsForkPullRequest || task.IsForkPullRequest,
+	}
+	if run.PullRequestID > 0 {
+		pr, err := issues_model.GetPullRequestByID(ctx, run.PullRequestID)
+		if err != nil {
+			if issues_model.IsErrPullRequestNotExist(err) {
+				return info, nil
+			}
+			return nil, fmt.Errorf("GetPullRequestByID: %w", err)
+		}
+		if err := pr.LoadIssue(ctx); err != nil {
+			return nil, fmt.Errorf("pr LoadIssue: %w", err)
+		}
+		info.PRIndex = pr.Issue.Index
+	}
+	return info, nil
+}
+
+func ascRequireSigned(ctx *context.PrivateContext, repo *repo_model.Repository, ref string) (bool, error) {
+	branch := strings.TrimPrefix(ref, "refs/heads/")
+	if branch == "" {
+		return false, nil
+	}
+	rule, err := git_model.GetFirstMatchProtectedBranchRule(ctx, repo.ID, branch)
+	if err != nil {
+		return false, fmt.Errorf("GetFirstMatchProtectedBranchRule: %w", err)
+	}
+	return rule != nil && rule.RequireSignedCommits, nil
+}
