@@ -12,7 +12,7 @@ import (
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
 	"forgejo.org/models/unittest"
-	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
 	"forgejo.org/modules/test"
@@ -35,7 +35,7 @@ func TestRenderConversation(t *testing.T) {
 	_ = pr.Issue.LoadRepo(db.DefaultContext)
 
 	require.NoError(t, pr.LoadHeadRepo(t.Context()))
-	repo, err := git.OpenRepository(t.Context(), pr.HeadRepo.RepoPath())
+	repo, err := gitrepo.OpenRepository(t.Context(), pr.HeadRepo)
 	defer repo.Close()
 	require.NoError(t, err)
 	prHeadCommitID, err := repo.GetBranchCommitID(pr.HeadBranch)

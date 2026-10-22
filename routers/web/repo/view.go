@@ -1122,7 +1122,7 @@ func renderHomeCode(ctx *context.Context) {
 			if err != nil {
 				continue
 			}
-			gitRepo, err := git.OpenRepository(ctx, repo.RepoPath())
+			gitRepo, err := gitrepo.OpenRepository(ctx, repo)
 			if err != nil {
 				continue
 			}

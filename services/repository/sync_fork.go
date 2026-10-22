@@ -12,6 +12,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	repo_module "forgejo.org/modules/repository"
 	api "forgejo.org/modules/structs"
 )
@@ -78,7 +79,7 @@ func GetSyncForkInfo(ctx context.Context, repo *repo_model.Repository, branch st
 	}
 
 	// Check if the latest commit of the fork is also in the base
-	gitRepo, err := git.OpenRepository(ctx, repo.BaseRepo.RepoPath())
+	gitRepo, err := gitrepo.OpenRepository(ctx, repo.BaseRepo)
 	if err != nil {
 		return nil, err
 	}

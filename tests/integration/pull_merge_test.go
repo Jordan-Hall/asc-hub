@@ -512,7 +512,7 @@ func TestFastForwardOnlyMerge(t *testing.T) {
 			BaseBranch: "master",
 		})
 
-		gitRepo, err := git.OpenRepository(git.DefaultContext, repo_model.RepoPath(user1.Name, repo1.Name))
+		gitRepo, err := gitrepo.OpenRepository(git.DefaultContext, repo1)
 		require.NoError(t, err)
 
 		err = pull.Merge(t.Context(), pr, user1, gitRepo, repo_model.MergeStyleFastForwardOnly, "", "FAST-FORWARD-ONLY", false)
@@ -554,7 +554,7 @@ func TestCantFastForwardOnlyMergeDiverging(t *testing.T) {
 			BaseBranch: "master",
 		})
 
-		gitRepo, err := git.OpenRepository(git.DefaultContext, repo_model.RepoPath(user1.Name, repo1.Name))
+		gitRepo, err := gitrepo.OpenRepository(git.DefaultContext, repo1)
 		require.NoError(t, err)
 
 		err = pull.Merge(t.Context(), pr, user1, gitRepo, repo_model.MergeStyleFastForwardOnly, "", "DIVERGING", false)

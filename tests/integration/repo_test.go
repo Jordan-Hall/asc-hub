@@ -24,6 +24,7 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/test"
@@ -400,7 +401,7 @@ func TestBlameFileInRepo(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
-		gitRepo, err := git.OpenRepository(git.DefaultContext, repo.RepoPath())
+		gitRepo, err := gitrepo.OpenRepository(git.DefaultContext, repo)
 		require.NoError(t, err)
 		defer gitRepo.Close()
 

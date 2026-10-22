@@ -88,7 +88,7 @@ func (t *testPatchContext) LoadHeadRevision(ctx context.Context, pr *issues_mode
 	// We are in Github flow, head and base repository are different.
 	// Resolve the head branch to a commitID and return a Git alternate
 	// environment for the head repository.
-	gitRepo, err := git.OpenRepository(ctx, pr.HeadRepo.RepoPath())
+	gitRepo, err := gitrepo.OpenRepository(ctx, pr.HeadRepo)
 	if err != nil {
 		return err
 	}
@@ -126,7 +126,7 @@ func getTestPatchCtx(ctx context.Context, pr *issues_model.PullRequest, onBare b
 			return testPatchCtx, fmt.Errorf("LoadHeadRevision: %w", err)
 		}
 
-		gitRepo, err := git.OpenRepository(ctx, pr.BaseRepo.RepoPath())
+		gitRepo, err := gitrepo.OpenRepository(ctx, pr.BaseRepo)
 		if err != nil {
 			return testPatchCtx, fmt.Errorf("OpenRepository: %w", err)
 		}

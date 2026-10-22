@@ -21,6 +21,7 @@ import (
 	unit_model "forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/structs"
 	"forgejo.org/modules/util"
@@ -324,7 +325,7 @@ func fixtureCreateBranch(t *testing.T, permissions *apiv1_permissions.Permission
 	repository := permissions.Repository()
 	require.NotNil(t, repository)
 
-	gitRepo, err := git.OpenRepository(t.Context(), repository.RepoPath())
+	gitRepo, err := gitrepo.OpenRepository(t.Context(), repository)
 	require.NoError(t, err)
 	defaultBranch, err := git.GetDefaultBranch(t.Context(), repository.RepoPath())
 	require.NoError(t, err)

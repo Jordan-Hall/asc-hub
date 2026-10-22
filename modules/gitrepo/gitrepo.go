@@ -26,6 +26,15 @@ func wikiPath(repo Repository) string {
 	return filepath.Join(setting.RepoRootPath, strings.ToLower(repo.GetOwnerName()), strings.ToLower(repo.GetName())+".wiki.git")
 }
 
+// NamedRepository identifies a repository by owner and name, for callers that
+// do not have a loaded repository model (migration, F3).
+type NamedRepository struct {
+	Owner, Name string
+}
+
+func (r NamedRepository) GetName() string      { return r.Name }
+func (r NamedRepository) GetOwnerName() string { return r.Owner }
+
 // OpenRepository opens the repository at the given relative path with the provided context.
 func OpenRepository(ctx context.Context, repo Repository) (*git.Repository, error) {
 	return git.OpenRepository(ctx, repoPath(repo))
