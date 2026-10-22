@@ -78,6 +78,7 @@ func Routes() *web.Route {
 	r.Post("/manager/remove-logger/{logger}/{writer}", RemoveLogger)
 	r.Get("/manager/processes", Processes)
 	r.Post("/mail/send", SendEmail)
+	r.Post("/asc/authz", AscAuthz)
 	r.Post("/restore_repo", RestoreRepo)
 	r.Post("/actions/generate_actions_runner_token", GenerateActionsRunnerToken)
 
