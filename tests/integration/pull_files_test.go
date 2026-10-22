@@ -12,6 +12,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/tests"
 
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ func TestPullFilesCommitHeader(t *testing.T) {
 
 	t.Run("Verify commit info", func(t *testing.T) {
 		repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
-		gitRepo, err := git.OpenRepository(git.DefaultContext, repo.RepoPath())
+		gitRepo, err := gitrepo.OpenRepository(git.DefaultContext, repo)
 		require.NoError(t, err)
 		defer gitRepo.Close()
 

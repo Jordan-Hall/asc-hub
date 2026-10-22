@@ -13,7 +13,7 @@ import (
 	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
-	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/timeutil"
 	issue_service "forgejo.org/services/issue"
 
@@ -91,7 +91,7 @@ func (o *pullRequest) ToFormat() f3.Interface {
 	}
 
 	makePullRequestBranch := func(repo *repo_model.Repository, branch string) f3.PullRequestBranch {
-		r, err := git.OpenRepository(context.Background(), repo.RepoPath())
+		r, err := gitrepo.OpenRepository(context.Background(), repo)
 		if err != nil {
 			panic(err)
 		}
@@ -300,8 +300,7 @@ func (o *pullRequest) Delete(ctx context.Context) {
 
 	owner := f3_tree.GetOwnerName(o.GetNode())
 	project := f3_tree.GetProjectName(o.GetNode())
-	repoPath := repo_model.RepoPath(owner, project)
-	gitRepo, err := git.OpenRepository(ctx, repoPath)
+	gitRepo, err := gitrepo.OpenRepository(ctx, gitrepo.NamedRepository{Owner: owner, Name: project})
 	if err != nil {
 		panic(err)
 	}

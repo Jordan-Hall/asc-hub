@@ -15,6 +15,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/lfs"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/migration"
@@ -92,7 +93,7 @@ func MigrateRepositoryGitData(ctx context.Context, u *user_model.User,
 				// Figure out the branch of the wiki we just cloned. We assume
 				// that the default branch is to be used, and we'll use the same
 				// name as the source.
-				gitRepo, err := git.OpenRepository(ctx, wikiPath)
+				gitRepo, err := gitrepo.OpenWikiRepository(ctx, gitrepo.NamedRepository{Owner: u.Name, Name: opts.RepoName})
 				if err != nil {
 					log.Warn("Failed to open wiki repository during migration: %v", err)
 					if err := util.RemoveAll(wikiPath); err != nil {
@@ -135,7 +136,7 @@ func MigrateRepositoryGitData(ctx context.Context, u *user_model.User,
 		return repo, fmt.Errorf("error in MigrateRepositoryGitData(git update-server-info): %w", err)
 	}
 
-	gitRepo, err := git.OpenRepository(ctx, repoPath)
+	gitRepo, err := gitrepo.OpenRepository(ctx, gitrepo.NamedRepository{Owner: u.Name, Name: opts.RepoName})
 	if err != nil {
 		return repo, fmt.Errorf("OpenRepository: %w", err)
 	}

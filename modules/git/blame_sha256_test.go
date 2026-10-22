@@ -42,7 +42,7 @@ func TestReadingBlameOutputSha256(t *testing.T) {
 		}
 
 		for _, bypass := range []bool{false, true} {
-			blameReader, err := CreateBlameReader(ctx, Sha256ObjectFormat, "./tests/repos/repo5_pulls_sha256", commit, "README.md", bypass)
+			blameReader, err := CreateBlameReader(ctx, Sha256ObjectFormat, repo, commit, "README.md", bypass)
 			require.NoError(t, err)
 			assert.NotNil(t, blameReader)
 			defer blameReader.Close()
@@ -126,7 +126,7 @@ func TestReadingBlameOutputSha256(t *testing.T) {
 		for _, c := range cases {
 			commit, err := repo.GetCommit(c.CommitID)
 			require.NoError(t, err)
-			blameReader, err := CreateBlameReader(ctx, objectFormat, "./tests/repos/repo6_blame_sha256", commit, "blame.txt", c.Bypass)
+			blameReader, err := CreateBlameReader(ctx, objectFormat, repo, commit, "blame.txt", c.Bypass)
 			require.NoError(t, err)
 			assert.NotNil(t, blameReader)
 			defer blameReader.Close()

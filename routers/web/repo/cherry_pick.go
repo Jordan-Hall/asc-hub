@@ -146,7 +146,7 @@ func CherryPickPost(ctx *context.Context) {
 
 		buf := &bytes.Buffer{}
 		if form.Revert {
-			if err := git.GetReverseRawDiff(ctx, ctx.Repo.Repository.RepoPath(), sha, buf); err != nil {
+			if err := git.GetReverseRawDiff(ctx, ctx.Repo.GitRepo, sha, buf); err != nil {
 				if git.IsErrNotExist(err) {
 					ctx.NotFound("GetRawDiff", errors.New("commit "+ctx.Params(":sha")+" does not exist."))
 					return

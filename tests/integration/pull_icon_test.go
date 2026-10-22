@@ -18,6 +18,7 @@ import (
 	unit_model "forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	issue_service "forgejo.org/services/issue"
 	pull_service "forgejo.org/services/pull"
 	files_service "forgejo.org/services/repository/files"
@@ -189,7 +190,7 @@ func createClosedWipPullRequest(ctx context.Context, t *testing.T, user *user_mo
 func createMergedPullRequest(ctx context.Context, t *testing.T, user *user_model.User, repo *repo_model.Repository) *issues_model.PullRequest {
 	pull := createPullRequest(t, user, repo, "branch-merged", "merged")
 
-	gitRepo, err := git.OpenRepository(ctx, repo.RepoPath())
+	gitRepo, err := gitrepo.OpenRepository(ctx, repo)
 	defer gitRepo.Close()
 
 	require.NoError(t, err)

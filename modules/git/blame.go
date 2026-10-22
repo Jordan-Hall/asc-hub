@@ -130,7 +130,7 @@ func (r *BlameReader) Close() error {
 }
 
 // CreateBlameReader creates reader for given repository, commit and file
-func CreateBlameReader(ctx context.Context, objectFormat ObjectFormat, repoPath string, commit *Commit, file string, bypassBlameIgnore bool) (*BlameReader, error) {
+func CreateBlameReader(ctx context.Context, objectFormat ObjectFormat, repo *Repository, commit *Commit, file string, bypassBlameIgnore bool) (*BlameReader, error) {
 	var ignoreRevsFile *string
 	if !bypassBlameIgnore {
 		ignoreRevsFile = tryCreateBlameIgnoreRevsFile(commit)
@@ -144,7 +144,7 @@ func CreateBlameReader(ctx context.Context, objectFormat ObjectFormat, repoPath 
 	}
 	cmd.AddDynamicArguments(commit.ID.String()).
 		AddDashesAndList(file).
-		SetDescription(fmt.Sprintf("GetBlame [repo_path: %s]", repoPath))
+		SetDescription(fmt.Sprintf("GetBlame [repo_path: %s]", repo.Path))
 	reader, stdout, err := os.Pipe()
 	if err != nil {
 		if ignoreRevsFile != nil {
@@ -160,14 +160,14 @@ func CreateBlameReader(ctx context.Context, objectFormat ObjectFormat, repoPath 
 		// TODO: it doesn't work for directories (the directories shouldn't be "blamed"), and the "err" should be returned by "Read" but not by "Close"
 		err := cmd.Run(&RunOpts{
 			UseContextTimeout: true,
-			Dir:               repoPath,
+			Dir:               repo.Path,
 			Stdout:            stdout,
 			Stderr:            &stderr,
 		})
 		done <- err
 		_ = stdout.Close()
 		if err != nil {
-			log.Error("Error running git blame (dir: %v): %v, stderr: %v", repoPath, err, stderr.String())
+			log.Error("Error running git blame (dir: %v): %v, stderr: %v", repo.Path, err, stderr.String())
 		}
 	}()
 

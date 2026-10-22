@@ -12,7 +12,7 @@ import (
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
-	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/timeutil"
 	release_service "forgejo.org/services/release"
 
@@ -124,8 +124,7 @@ func (o *release) Put(ctx context.Context) f3_id.NodeID {
 
 	owner := f3_tree.GetOwnerName(o.GetNode())
 	project := f3_tree.GetProjectName(o.GetNode())
-	repoPath := repo_model.RepoPath(owner, project)
-	gitRepo, err := git.OpenRepository(ctx, repoPath)
+	gitRepo, err := gitrepo.OpenRepository(ctx, gitrepo.NamedRepository{Owner: owner, Name: project})
 	if err != nil {
 		panic(err)
 	}

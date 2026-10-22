@@ -69,7 +69,7 @@ func NormalizeWikiBranch(ctx context.Context, repo *repo_model.Repository, to st
 		return nil
 	}
 
-	gitRepo, err := git.OpenRepository(ctx, repo.WikiPath())
+	gitRepo, err := gitrepo.OpenWikiRepository(ctx, repo)
 	if err != nil {
 		return err
 	}
@@ -412,7 +412,7 @@ type SearchContentsResult struct {
 }
 
 func SearchWikiContents(ctx context.Context, repo *repo_model.Repository, keyword string) ([]SearchContentsResult, error) {
-	gitRepo, err := git.OpenRepository(ctx, repo.WikiPath())
+	gitRepo, err := gitrepo.OpenWikiRepository(ctx, repo)
 	if err != nil {
 		return nil, err
 	}

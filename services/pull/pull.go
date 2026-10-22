@@ -438,9 +438,7 @@ func PushToBaseRepo(ctx context.Context, pr *issues_model.PullRequest) (err erro
 		log.Error("Unable to load base repository for PR[%d] Error: %v", pr.ID, err)
 		return err
 	}
-	baseRepoPath := pr.BaseRepo.RepoPath()
-
-	baseRepo, err := git.OpenRepository(ctx, baseRepoPath)
+	baseRepo, err := gitrepo.OpenRepository(ctx, pr.BaseRepo)
 	if err != nil {
 		return err
 	}

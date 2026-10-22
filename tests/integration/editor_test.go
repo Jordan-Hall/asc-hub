@@ -20,6 +20,7 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/json"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/translation"
@@ -196,7 +197,7 @@ func TestCommitMail(t *testing.T) {
 		primaryEmail := unittest.AssertExistsAndLoadBean(t, &user_model.EmailAddress{ID: 3, UID: user.ID, IsActivated: true})
 
 		repo1 := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
-		gitRepo, _ := git.OpenRepository(git.DefaultContext, repo1.RepoPath())
+		gitRepo, _ := gitrepo.OpenRepository(git.DefaultContext, repo1)
 		defer gitRepo.Close()
 
 		session := loginUser(t, user.Name)
@@ -527,7 +528,7 @@ index 0000000000000000000000000000000000000000..be399c4b817c2fd9e1e6781ed6af75ef
 			MakeRequest(t, req, http.StatusCreated)
 		}
 
-		gitRepo, err := git.OpenRepository(t.Context(), repo.RepoPath())
+		gitRepo, err := gitrepo.OpenRepository(t.Context(), repo)
 		require.NoError(t, err)
 		defer gitRepo.Close()
 	})
