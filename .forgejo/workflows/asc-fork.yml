@@ -1,0 +1,87 @@
+name: asc-fork
+enable-email-notifications: true
+
+# CI for the ASC fork (patch stack on the upstream release tag).
+# Runs the backend unit tests and the sqlite and pgsql integration suites, and
+# records the passing test list as an artifact (see docs/asc/BASELINE.md).
+
+on:
+  pull_request:
+    branches:
+      - 'asc/**'
+  push:
+    branches:
+      - 'asc/**'
+  workflow_dispatch:
+
+jobs:
+  test-backend:
+    runs-on: docker
+    container:
+      image: 'data.forgejo.org/oci/node:24-trixie'
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: ./.forgejo/workflows-composite/setup-env
+      - run: su forgejo -c 'go build ./...'
+      - name: make test-backend
+        run: |
+          su forgejo -c 'make test-backend GOTESTFLAGS="-v" 2>&1 | tee test-backend.log'
+        timeout-minutes: 120
+      - name: record passing tests
+        run: |
+          grep -E '^(\s*)--- PASS: ' test-backend.log | sed -E 's/^\s*--- PASS: ([^ ]+).*/\1/' | sort -u > baseline-pass.txt
+          wc -l baseline-pass.txt
+      - uses: https://data.forgejo.org/forgejo/upload-artifact@cb8afe72b42edc798abfb8fcb556cf660d894245 # v5
+        with:
+          name: baseline-pass
+          path: baseline-pass.txt
+
+  test-sqlite:
+    runs-on: docker
+    needs: [test-backend]
+    container:
+      image: 'data.forgejo.org/oci/node:24-trixie'
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: ./.forgejo/workflows-composite/setup-env
+      - name: install dependencies
+        run: apt-get update -qq && apt-get -q install -qq -y git-lfs
+        env:
+          DEBIAN_FRONTEND: noninteractive
+      - run: su forgejo -c 'make test-sqlite-migration test-sqlite'
+        timeout-minutes: 120
+        env:
+          TAGS: sqlite sqlite_unlock_notify
+          USE_REPO_TEST_DIR: 1
+
+  test-pgsql:
+    runs-on: docker
+    needs: [test-backend]
+    container:
+      image: 'data.forgejo.org/oci/node:24-trixie'
+    services:
+      minio:
+        image: data.forgejo.org/oci/bitnami/minio:2024.8.17
+        env:
+          MINIO_ROOT_USER: 123456
+          MINIO_ROOT_PASSWORD: 12345678
+        options: --tmpfs /bitnami/minio/data
+      pgsql:
+        image: data.forgejo.org/oci/bitnami/postgresql:16
+        env:
+          POSTGRESQL_DATABASE: test
+          POSTGRESQL_PASSWORD: postgres
+          POSTGRESQL_FSYNC: off
+          POSTGRESQL_EXTRA_FLAGS: -c full_page_writes=off
+        options: --tmpfs /bitnami/postgresql
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: ./.forgejo/workflows-composite/setup-env
+      - name: install dependencies
+        run: apt-get update -qq && apt-get -q install -qq -y git-lfs
+        env:
+          DEBIAN_FRONTEND: noninteractive
+      - run: su forgejo -c 'make test-pgsql-migration test-pgsql'
+        timeout-minutes: 120
+        env:
+          USE_REPO_TEST_DIR: 1
