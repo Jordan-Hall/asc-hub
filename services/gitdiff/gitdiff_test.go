@@ -14,6 +14,7 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	_ "forgejo.org/modules/git/gitcli" // registers the default git backend that git.OpenRepository binds
 	"forgejo.org/modules/json"
 	"forgejo.org/modules/setting"
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"forgejo.org/modules/git"
+	_ "forgejo.org/modules/git/gitcli" // registers the default git backend that git.OpenRepository binds
 	"forgejo.org/modules/setting"
 
 	"code.forgejo.org/xorm/xorm"

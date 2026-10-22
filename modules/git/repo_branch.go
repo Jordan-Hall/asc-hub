@@ -37,11 +37,15 @@ func (repo *Repository) GetHEADBranch() (*Branch, error) {
 	if repo == nil {
 		return nil, errors.New("nil repo")
 	}
-	stdout, _, err := NewCommand(repo.Ctx, "symbolic-ref", "HEAD").RunStdString(&RunOpts{Dir: repo.Path})
+	be, err := repo.Backend()
 	if err != nil {
 		return nil, err
 	}
-	stdout = strings.TrimSpace(stdout)
+	head, err := be.Head(repo.Ctx)
+	if err != nil {
+		return nil, err
+	}
+	stdout := head.String()
 
 	if !strings.HasPrefix(stdout, BranchPrefix) {
 		return nil, fmt.Errorf("invalid HEAD branch: %v", stdout)

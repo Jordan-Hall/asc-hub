@@ -44,23 +44,19 @@ func (te *TreeEntry) Size() int64 {
 		return te.size
 	}
 
-	wr, rd, cancel, err := te.ptree.repo.CatFileBatchCheck(te.ptree.repo.Ctx)
+	repo := te.ptree.repo
+	be, err := repo.Backend()
 	if err != nil {
-		log.Debug("error whilst reading size for %s in %s. Error: %v", te.ID.String(), te.ptree.repo.Path, err)
+		log.Debug("error whilst reading size for %s in %s. Error: %v", te.ID.String(), repo.Path, err)
 		return 0
 	}
-	defer cancel()
-	_, err = wr.Write([]byte(te.ID.String() + "\n"))
-	if err != nil {
-		log.Debug("error whilst reading size for %s in %s. Error: %v", te.ID.String(), te.ptree.repo.Path, err)
-		return 0
-	}
-	_, _, te.size, err = ReadBatchLine(rd)
-	if err != nil {
-		log.Debug("error whilst reading size for %s in %s. Error: %v", te.ID.String(), te.ptree.repo.Path, err)
+	infos, err := be.StatObjects(repo.Ctx, []ObjectID{te.ID})
+	if err != nil || len(infos) != 1 || infos[0].Missing {
+		log.Debug("error whilst reading size for %s in %s. Error: %v", te.ID.String(), repo.Path, err)
 		return 0
 	}
 
+	te.size = infos[0].Size
 	te.sized = true
 	return te.size
 }

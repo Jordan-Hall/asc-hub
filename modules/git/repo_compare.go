@@ -320,28 +320,27 @@ func (repo *Repository) GetPatch(base, head string, w io.Writer) error {
 // If base is undefined empty SHA (zeros), it only returns the files changed in the head commit
 // If base is the SHA of an empty tree (EmptyTreeSHA), it returns the files changes from the initial commit to the head commit
 func (repo *Repository) GetFilesChangedBetween(base, head string) ([]string, error) {
-	objectFormat, err := repo.GetObjectFormat()
+	be, err := repo.Backend()
 	if err != nil {
 		return nil, err
 	}
-	cmd := NewCommand(repo.Ctx, "diff-tree", "--name-only", "--root", "--no-commit-id", "-r", "-z")
-	if base == objectFormat.EmptyObjectID().String() {
-		cmd.AddDynamicArguments(head)
-	} else {
-		cmd.AddDynamicArguments(base, head)
-	}
-	stdout, _, err := cmd.RunStdString(&RunOpts{Dir: repo.Path})
+	baseID, err := repo.revToID(repo.Ctx, be, base)
 	if err != nil {
 		return nil, err
 	}
-	split := strings.Split(stdout, "\000")
-
-	// Because Git will always emit filenames with a terminal NUL ignore the last entry in the split - which will always be empty.
-	if len(split) > 0 {
-		split = split[:len(split)-1]
+	headID, err := repo.revToID(repo.Ctx, be, head)
+	if err != nil {
+		return nil, err
 	}
-
-	return split, err
+	changes, err := be.ChangedPaths(repo.Ctx, baseID, headID, DiffOpts{})
+	if err != nil {
+		return nil, err
+	}
+	paths := make([]string, len(changes))
+	for i, c := range changes {
+		paths[i] = c.Path
+	}
+	return paths, nil
 }
 
 // GetDiffFromMergeBase generates and return patch data from merge base to head

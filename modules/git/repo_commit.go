@@ -5,9 +5,7 @@
 package git
 
 import (
-	"bufio"
 	"bytes"
-	"errors"
 	"io"
 	"strconv"
 	"strings"
@@ -577,94 +575,46 @@ func (repo *Repository) IsCommitExist(name string) bool {
 }
 
 func (repo *Repository) getCommit(id ObjectID) (*Commit, error) {
-	wr, rd, cancel, err := repo.CatFileBatch(repo.Ctx)
+	be, err := repo.Backend()
 	if err != nil {
 		return nil, err
 	}
-	defer cancel()
-
-	_, _ = wr.Write([]byte(id.String() + "\n"))
-
-	return repo.getCommitFromBatchReader(rd, id)
+	data, err := be.ReadCommit(repo.Ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return repo.commitFromData(data), nil
 }
 
-func (repo *Repository) getCommitFromBatchReader(rd *bufio.Reader, id ObjectID) (*Commit, error) {
-	_, typ, size, err := ReadBatchLine(rd)
-	if err != nil {
-		if errors.Is(err, io.EOF) || IsErrNotExist(err) {
-			return nil, ErrNotExist{ID: id.String()}
-		}
-		return nil, err
+// commitFromData builds a Commit from the content a Backend read.
+func (repo *Repository) commitFromData(data *CommitData) *Commit {
+	commit := &Commit{
+		Tree:          *NewTree(repo, data.Tree),
+		ID:            data.ID,
+		Author:        data.Author,
+		Committer:     data.Committer,
+		CommitMessage: data.Message,
+		Signature:     data.Signature,
+		Parents:       data.Parents,
 	}
-
-	switch typ {
-	case "missing":
-		return nil, ErrNotExist{ID: id.String()}
-	case "tag":
-		// then we need to parse the tag
-		// and load the commit
-		data, err := io.ReadAll(io.LimitReader(rd, size))
-		if err != nil {
-			return nil, err
-		}
-		_, err = rd.Discard(1)
-		if err != nil {
-			return nil, err
-		}
-		tag, err := parseTagData(id.Type(), data)
-		if err != nil {
-			return nil, err
-		}
-
-		commit, err := tag.Commit(repo)
-		if err != nil {
-			return nil, err
-		}
-
-		return commit, nil
-	case "commit":
-		commit, err := CommitFromReader(repo, id, io.LimitReader(rd, size))
-		if err != nil {
-			return nil, err
-		}
-		_, err = rd.Discard(1)
-		if err != nil {
-			return nil, err
-		}
-
-		return commit, nil
-	default:
-		log.Debug("Unknown typ: %s", typ)
-		if err := DiscardFull(rd, size+1); err != nil {
-			return nil, err
-		}
-		return nil, ErrNotExist{
-			ID: id.String(),
-		}
+	if commit.Author == nil {
+		commit.Author = &Signature{}
 	}
+	if commit.Committer == nil {
+		commit.Committer = &Signature{}
+	}
+	return commit
 }
 
 // ConvertToGitID returns a ObjectID object from a potential ID string
 // The resulting ObjectID is guaranteed to exist.
 func (repo *Repository) ConvertToGitID(commitID string) (ObjectID, error) {
-	wr, rd, cancel, err := repo.CatFileBatchCheck(repo.Ctx)
+	be, err := repo.Backend()
 	if err != nil {
 		return nil, err
 	}
-	defer cancel()
-	_, err = wr.Write([]byte(commitID + "\n"))
-	if err != nil {
-		return nil, err
-	}
-	sha, _, _, err := ReadBatchLine(rd)
-	if err != nil {
-		if IsErrNotExist(err) {
-			return nil, ErrNotExist{commitID, ""}
-		}
-		return nil, err
-	}
-
-	return MustIDFromString(string(sha)), nil
+	id, _, err := be.Resolve(repo.Ctx, commitID)
+	return id, err
 }
 
 // GetLatestCommitTime returns time for latest commit in repository (across all branches)

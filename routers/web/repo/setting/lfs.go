@@ -19,6 +19,7 @@ import (
 	"forgejo.org/modules/charset"
 	"forgejo.org/modules/container"
 	"forgejo.org/modules/git"
+	_ "forgejo.org/modules/git/gitcli" // registers the default git backend that git.OpenRepository binds
 	"forgejo.org/modules/git/pipeline"
 	"forgejo.org/modules/lfs"
 	"forgejo.org/modules/log"
