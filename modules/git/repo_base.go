@@ -31,6 +31,9 @@ type Repository struct {
 	LastCommitCache *LastCommitCache
 
 	objectFormat ObjectFormat
+
+	// backend serves the object, ref, history, diff and bulk reads (Seam A, see backend.go).
+	backend Backend
 }
 
 // openRepositoryWithDefaultContext opens the repository at the given path with DefaultContext.
@@ -38,8 +41,14 @@ func openRepositoryWithDefaultContext(repoPath string) (*Repository, error) {
 	return OpenRepository(DefaultContext, repoPath)
 }
 
-// OpenRepository opens the repository at the given path with the provided context.
+// OpenRepository opens the repository at the given path with the provided context,
+// bound to the default backend (see DefaultBackendName).
 func OpenRepository(ctx context.Context, repoPath string) (*Repository, error) {
+	return OpenRepositoryWithBackend(ctx, repoPath, DefaultBackendName)
+}
+
+// openRepository opens the repository at the given path, without a backend.
+func openRepository(ctx context.Context, repoPath string) (*Repository, error) {
 	repoPath, err := filepath.Abs(repoPath)
 	if err != nil {
 		return nil, err
@@ -120,5 +129,10 @@ func (repo *Repository) Close() error {
 	}
 	repo.LastCommitCache = nil
 	repo.tagCache = nil
+	if repo.backend != nil {
+		be := repo.backend
+		repo.backend = nil
+		return be.Close()
+	}
 	return nil
 }

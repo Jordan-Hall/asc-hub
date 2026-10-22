@@ -186,10 +186,11 @@ func CommitsCount(ctx context.Context, opts CommitsCountOptions) (int64, error) 
 
 // CommitsCount returns number of total commits of until current revision.
 func (c *Commit) CommitsCount() (int64, error) {
-	return CommitsCount(c.repo.Ctx, CommitsCountOptions{
-		RepoPath: c.repo.Path,
-		Revision: []string{c.ID.String()},
-	})
+	be, err := c.repo.Backend()
+	if err != nil {
+		return 0, err
+	}
+	return be.Count(c.repo.Ctx, LogQuery{From: []ObjectID{c.ID}})
 }
 
 // CommitsByRange returns the specific page commits before current revision, every page's number default by CommitsRangeSize

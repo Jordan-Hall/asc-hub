@@ -18,6 +18,7 @@ import (
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/emoji"
 	"forgejo.org/modules/git"
+	_ "forgejo.org/modules/git/gitcli" // registers the default git backend that git.OpenRepository binds
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/markup/common"
 	"forgejo.org/modules/references"

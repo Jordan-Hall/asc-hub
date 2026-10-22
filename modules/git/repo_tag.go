@@ -5,7 +5,6 @@
 package git
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -254,20 +253,18 @@ func (repo *Repository) GetTags(skip, limit int) (tags []string, err error) {
 
 // GetTagType gets the type of the tag, either commit (simple) or tag (annotated)
 func (repo *Repository) GetTagType(id ObjectID) (string, error) {
-	wr, rd, cancel, err := repo.CatFileBatchCheck(repo.Ctx)
+	be, err := repo.Backend()
 	if err != nil {
 		return "", err
 	}
-	defer cancel()
-	_, err = wr.Write([]byte(id.String() + "\n"))
+	infos, err := be.StatObjects(repo.Ctx, []ObjectID{id})
 	if err != nil {
 		return "", err
 	}
-	_, typ, _, err := ReadBatchLine(rd)
-	if IsErrNotExist(err) {
+	if len(infos) != 1 || infos[0].Missing {
 		return "", ErrNotExist{ID: id.String()}
 	}
-	return typ, nil
+	return string(infos[0].Type), nil
 }
 
 func (repo *Repository) getTag(tagID ObjectID, name string) (*Tag, error) {
@@ -315,43 +312,20 @@ func (repo *Repository) getTag(tagID ObjectID, name string) (*Tag, error) {
 	}
 
 	// The tag is an annotated tag with a message.
-	wr, rd, cancel, err := repo.CatFileBatch(repo.Ctx)
+	be, err := repo.Backend()
 	if err != nil {
 		return nil, err
 	}
-	defer cancel()
-
-	if _, err := wr.Write([]byte(tagID.String() + "\n")); err != nil {
-		return nil, err
-	}
-	_, typ, size, err := ReadBatchLine(rd)
-	if err != nil {
-		if errors.Is(err, io.EOF) || IsErrNotExist(err) {
-			return nil, ErrNotExist{ID: tagID.String()}
-		}
-		return nil, err
-	}
-	if typ != "tag" {
-		if err := DiscardFull(rd, size+1); err != nil {
-			return nil, err
-		}
-		return nil, ErrNotExist{ID: tagID.String()}
-	}
-
-	// then we need to parse the tag
-	// and load the commit
-	data, err := io.ReadAll(io.LimitReader(rd, size))
+	data, err := be.ReadTag(repo.Ctx, tagID)
 	if err != nil {
 		return nil, err
 	}
-	_, err = rd.Discard(1)
-	if err != nil {
-		return nil, err
-	}
-
-	tag, err := parseTagData(tagID.Type(), data)
-	if err != nil {
-		return nil, err
+	tag := &Tag{
+		Object:    data.Object,
+		Type:      data.Type,
+		Tagger:    data.Tagger,
+		Message:   data.Message,
+		Signature: data.Signature,
 	}
 
 	tag.Name = name
