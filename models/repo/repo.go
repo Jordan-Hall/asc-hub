@@ -23,6 +23,7 @@ import (
 	"forgejo.org/modules/cache"
 	"forgejo.org/modules/container"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/markup"
 	"forgejo.org/modules/optional"
@@ -180,6 +181,7 @@ type Repository struct {
 	CloseIssuesViaCommitInAnyBranch bool               `xorm:"NOT NULL DEFAULT false"`
 	Topics                          []string           `xorm:"TEXT JSON NOT NULL"`
 	ObjectFormatName                string             `xorm:"VARCHAR(6) NOT NULL DEFAULT 'sha1'"`
+	StorageBackend                  string             `xorm:"VARCHAR(8) NOT NULL DEFAULT 'git'"`
 
 	TrustModel TrustModelType
 
@@ -196,6 +198,9 @@ func (repo *Repository) BeforeInsert() {
 	if repo.Topics == nil {
 		repo.Topics = []string{}
 	}
+	if repo.StorageBackend == "" {
+		repo.StorageBackend = string(gitrepo.StorageBackendGit)
+	}
 }
 
 func init() {
@@ -208,6 +213,16 @@ func (repo *Repository) GetName() string {
 
 func (repo *Repository) GetOwnerName() string {
 	return repo.OwnerName
+}
+
+// GetStorageBackend returns the storage_backend value (git, dual or asc). A repository that was
+// built in memory without one is a git repository. Any other value is returned as stored, and
+// gitrepo.OpenRepository refuses to open a repository whose value it does not know.
+func (repo *Repository) GetStorageBackend() string {
+	if repo.StorageBackend == "" {
+		return string(gitrepo.StorageBackendGit)
+	}
+	return repo.StorageBackend
 }
 
 func (repo *Repository) GetWikiBranchName() string {
