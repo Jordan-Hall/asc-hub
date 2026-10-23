@@ -4,6 +4,7 @@
 package private
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -37,6 +38,18 @@ var ascAuthGroup = auth_method.NewGroup(
 	&auth_method.OAuth2{},
 	&auth_method.AccessToken{PermitBearer: true},
 	&auth_method.ActionTaskToken{PermitBearer: true},
+)
+
+// ascBasicAuthGroup authenticates a user:token pair that a client presented to
+// asc serve as an HTTP Basic login, with the methods of Forgejo's git routes: a
+// token as the password first, then the account password last because it costs
+// a password hash. There is no session and no reverse-proxy login, and the
+// bearer forms are not read.
+var ascBasicAuthGroup = auth_method.NewGroup(
+	&auth_method.OAuth2{},
+	&auth_method.AccessToken{PermitBasic: true},
+	&auth_method.ActionTaskToken{PermitBasic: true},
+	&auth_method.Basic{},
 )
 
 // AscAuthz answers `POST /api/internal/asc/authz`: may this principal read or
@@ -101,12 +114,46 @@ func validateAscAuthzRequest(req *private.AscAuthzRequest) error {
 	if len(req.Token) > private.AscAuthzMaxToken {
 		return errors.New("token is too long")
 	}
+	if req.User != "" {
+		return validateAscAuthzBasic(req)
+	}
 	for i := 0; i < len(req.Token); i++ {
 		if c := req.Token[i]; c <= ' ' || c >= 0x7f {
 			return errors.New("invalid token")
 		}
 	}
 	return nil
+}
+
+// validateAscAuthzBasic checks the user:token pair of a Basic login. A password
+// may hold spaces and non-ASCII text, so only control characters are refused;
+// the user name must not hold the ':' that separates the two.
+func validateAscAuthzBasic(req *private.AscAuthzRequest) error {
+	if req.Token == "" {
+		return errors.New("user needs a token")
+	}
+	if req.KeyID != 0 {
+		return errors.New("user and key_id are mutually exclusive")
+	}
+	if len(req.User) > private.AscAuthzMaxName {
+		return errors.New("user is too long")
+	}
+	if strings.ContainsRune(req.User, ':') || hasControlByte(req.User) {
+		return errors.New("invalid user")
+	}
+	if hasControlByte(req.Token) {
+		return errors.New("invalid token")
+	}
+	return nil
+}
+
+func hasControlByte(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if c := s[i]; c < ' ' || c == 0x7f {
+			return true
+		}
+	}
+	return false
 }
 
 // ascPrincipal is the asker after authentication.
@@ -148,7 +195,7 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 	case req.KeyID != 0:
 		principal, ok, err = ascPrincipalFromKey(ctx, repo, req.KeyID, mode)
 	case req.Token != "":
-		principal, ok, err = ascPrincipalFromToken(ctx, repo, req.Token, mode)
+		principal, ok, err = ascPrincipalFromToken(ctx, repo, req, mode)
 	default:
 		// Anonymous: only read access to a public repository can follow.
 		principal, ok = &ascPrincipal{}, mode == perm.AccessModeRead && !setting.Service.RequireSignInView
@@ -263,16 +310,24 @@ func ascPrincipalFromKey(ctx *context.PrivateContext, repo *repo_model.Repositor
 	return &ascPrincipal{user: user, userID: user.ID, username: user.Name}, true, nil
 }
 
-func ascPrincipalFromToken(ctx *context.PrivateContext, repo *repo_model.Repository, token string, mode perm.AccessMode) (*ascPrincipal, bool, error) {
+func ascPrincipalFromToken(ctx *context.PrivateContext, repo *repo_model.Repository, req *private.AscAuthzRequest, mode perm.AccessMode) (*ascPrincipal, bool, error) {
 	// The auth methods read the credential from a request, so build a minimal
-	// one that carries only the bearer header.
+	// one that carries only the Authorization header. It has no one-time
+	// password header, so an account password never passes for a user who has
+	// two-factor authentication.
 	authReq, err := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 	if err != nil {
 		return nil, false, err
 	}
-	authReq.Header.Set("Authorization", "Bearer "+token)
+	group := ascAuthGroup
+	if req.User != "" {
+		group = ascBasicAuthGroup
+		authReq.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(req.User+":"+req.Token)))
+	} else {
+		authReq.Header.Set("Authorization", "Bearer "+req.Token)
+	}
 
-	switch out := ascAuthGroup.Verify(authReq, nil, nil).(type) {
+	switch out := group.Verify(authReq, nil, nil).(type) {
 	case *auth_service.AuthenticationSuccess:
 		return ascPrincipalFromAuthResult(ctx, repo, out.Result, mode)
 	case *auth_service.AuthenticationAttemptedIncorrectCredential, *auth_service.AuthenticationNotAttempted:
