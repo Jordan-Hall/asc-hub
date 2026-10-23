@@ -7,9 +7,7 @@ import (
 	"net/http"
 
 	actions_model "forgejo.org/models/actions"
-	"forgejo.org/models/perm"
 	access_model "forgejo.org/models/perm/access"
-	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 )
 
@@ -26,21 +24,13 @@ func RepoAccess(ctx Context) {
 			return
 		}
 
-		if task.IsForkPullRequest {
-			ctx.Permission().AccessMode = perm.AccessModeRead
-		} else {
-			ctx.Permission().AccessMode = perm.AccessModeWrite
-		}
-
-		if err := ctx.Repository().LoadUnits(ctx.Context()); err != nil {
-			ctx.Error(http.StatusInternalServerError, "LoadUnits", err)
+		// The default capability of the task, narrowed by the `permissions:` of its workflow.
+		taskPerm, err := access_model.GetActionRepoPermission(ctx.Context(), ctx.Repository(), task)
+		if err != nil {
+			ctx.Error(http.StatusInternalServerError, "GetActionRepoPermission", err)
 			return
 		}
-		ctx.Permission().Units = ctx.Repository().Units
-		ctx.Permission().UnitsMode = make(map[unit.Type]perm.AccessMode)
-		for _, u := range ctx.Repository().Units {
-			ctx.Permission().UnitsMode[u.Type] = ctx.Permission().AccessMode
-		}
+		ctx.SetPermission(&taskPerm)
 	} else {
 		permission, err := access_model.GetUserRepoPermissionWithReducer(ctx.Context(), ctx.Repository(), ctx.Doer(), ctx.Reducer())
 		if err != nil {

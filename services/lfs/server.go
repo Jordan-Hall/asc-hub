@@ -539,10 +539,17 @@ func authenticate(ctx *context.Context, repository *repo_model.Repository, requi
 			return false
 		}
 
-		if task.IsForkPullRequest {
-			return accessMode <= perm.AccessModeRead
+		// Downloading from its own repository is part of what `actions/checkout` does with the job token, so it stays
+		// possible when the `permissions:` of the workflow give no `contents` access.
+		if !requireWrite {
+			return true
 		}
-		return accessMode <= perm.AccessModeWrite
+		taskPerm, err := access_model.GetActionRepoPermission(ctx, repository, task)
+		if err != nil {
+			log.Error("Unable to GetActionRepoPermission for task[%d] Error: %v", taskID, err)
+			return false
+		}
+		return taskPerm.CanAccess(accessMode, unit.TypeCode)
 	}
 
 	// ctx.IsSigned is unnecessary here, this will be checked in perm.CanAccess. Usage of ctx.Authentication.Reducer()
