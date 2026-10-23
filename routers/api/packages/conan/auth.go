@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	actions_model "forgejo.org/models/actions"
 	auth_model "forgejo.org/models/auth"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
@@ -22,8 +23,14 @@ var (
 
 type conanAuthenticationResult struct {
 	*auth.BaseAuthenticationResult
-	user  *user_model.User
-	scope optional.Option[auth_model.AccessTokenScope]
+	user   *user_model.User
+	scope  optional.Option[auth_model.AccessTokenScope]
+	taskID optional.Option[int64]
+}
+
+// ActionsTaskID is the Actions task the Conan token was issued for, so that the permissions of its workflow apply.
+func (r *conanAuthenticationResult) ActionsTaskID() optional.Option[int64] {
+	return r.taskID
 }
 
 func (r *conanAuthenticationResult) Scope() optional.Option[auth_model.AccessTokenScope] {
@@ -42,7 +49,7 @@ func (a *Auth) Name() string {
 
 // Verify extracts the user from the Bearer token
 func (a *Auth) Verify(req *http.Request, w http.ResponseWriter, sess auth.SessionStore) auth.MethodOutput {
-	uid, scope, err := packages.ParseAuthorizationToken(req)
+	uid, scope, taskID, err := packages.ParseTaskAuthorizationToken(req)
 	if err != nil {
 		log.Trace("ParseAuthorizationToken: %v", err)
 		// Errors from ParseAuthorizationToken are almost all from malformed incoming input, which we'll consider an
@@ -67,5 +74,15 @@ func (a *Auth) Verify(req *http.Request, w http.ResponseWriter, sess auth.Sessio
 		return &auth.AuthenticationError{Error: fmt.Errorf("conan auth GetUserByID failed: %w", err)}
 	}
 
-	return &auth.AuthenticationSuccess{Result: &conanAuthenticationResult{user: u, scope: authScope}}
+	// A Conan token issued for a job token is only valid while that job runs.
+	authTaskID := optional.None[int64]()
+	if taskID != 0 {
+		task, err := actions_model.GetTaskByID(req.Context(), taskID)
+		if err != nil || !u.IsActions() || task.Status != actions_model.StatusRunning {
+			return &auth.AuthenticationAttemptedIncorrectCredential{Error: fmt.Errorf("conan auth: task %d is not running", taskID)}
+		}
+		authTaskID = optional.Some(taskID)
+	}
+
+	return &auth.AuthenticationSuccess{Result: &conanAuthenticationResult{user: u, scope: authScope, taskID: authTaskID}}
 }
