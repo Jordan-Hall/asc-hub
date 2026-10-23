@@ -27,6 +27,7 @@ import (
 	"forgejo.org/modules/process"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/sync"
+	"forgejo.org/services/ascsync"
 	app_context "forgejo.org/services/context"
 	issue_service "forgejo.org/services/issue"
 	notify_service "forgejo.org/services/notify"
@@ -126,7 +127,12 @@ func NewPullRequest(ctx context.Context, repo *repo_model.Repository, issue *iss
 		return nil
 	}); err != nil {
 		// cleanup: this will only remove the reference, the real commit will be clean up when next GC
-		if err1 := baseGitRepo.RemoveReference(pr.GetGitRefName()); err1 != nil {
+		if isAsc, _ := ascsync.BackedBy(pr.BaseRepo); isAsc {
+			// storage_backend=asc: the reference lives in asc; the bridge follows through bridge_promote (SPEC 13.5)
+			if err1 := ascsync.DeletePullHead(ctx, pr.BaseRepo, pr.GetGitRefName()); err1 != nil {
+				log.Error("DeletePullHead: %v", err1)
+			}
+		} else if err1 := baseGitRepo.RemoveReference(pr.GetGitRefName()); err1 != nil {
 			log.Error("RemoveReference: %v", err1)
 		}
 		return err
@@ -443,6 +449,12 @@ func PushToBaseRepo(ctx context.Context, pr *issues_model.PullRequest) (err erro
 		return err
 	}
 
+	if isAsc, err := ascsync.BackedBy(pr.BaseRepo); err != nil {
+		return err
+	} else if isAsc {
+		// storage_backend=asc: asc moves the reference, and the bridge only through bridge_promote (SPEC 13.5)
+		return ascsync.SetPullHead(ctx, pr.BaseRepo, pr.GetGitRefName(), fetchedCommitID)
+	}
 	return baseRepo.SetReference(pr.GetGitRefName(), fetchedCommitID)
 }
 
@@ -452,6 +464,13 @@ func UpdateRef(ctx context.Context, pr *issues_model.PullRequest) (err error) {
 	if err := pr.LoadBaseRepo(ctx); err != nil {
 		log.Error("Unable to load base repository for PR[%d] Error: %v", pr.ID, err)
 		return err
+	}
+
+	if isAsc, err := ascsync.BackedBy(pr.BaseRepo); err != nil {
+		return err
+	} else if isAsc {
+		// storage_backend=asc: asc moves the reference, and the bridge only through bridge_promote (SPEC 13.5)
+		return ascsync.SetPullHead(ctx, pr.BaseRepo, pr.GetGitRefName(), pr.HeadCommitID)
 	}
 
 	gitRepo, err := gitrepo.OpenRepository(ctx, pr.BaseRepo)
