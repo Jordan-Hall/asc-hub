@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/git/ascbackend"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/test"
 
@@ -76,16 +77,10 @@ func TestSelectBackend(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, git.DefaultBackendName, name)
 	})
-	t.Run("asc reads the git bridge until an asc backend is linked in", func(t *testing.T) {
-		require.NotContains(t, git.Backends(), ascBackendName)
-		name, err := sel("asc")
-		require.NoError(t, err)
-		assert.Equal(t, git.DefaultBackendName, name)
-	})
-
-	// Keep this last: a backend registration cannot be undone.
-	git.RegisterBackend(ascBackendName, func(*git.Repository) (git.Backend, error) { return nil, os.ErrInvalid })
-	t.Run("asc uses the asc backend once registered, dual and git do not", func(t *testing.T) {
+	// gitrepo links in the asc backend (modules/git/ascbackend), so an asc repository never reads the git directory.
+	require.Contains(t, git.Backends(), ascBackendName)
+	require.Equal(t, ascbackend.Name, ascBackendName)
+	t.Run("asc uses the asc backend, dual and git do not", func(t *testing.T) {
 		name, err := sel("asc")
 		require.NoError(t, err)
 		assert.Equal(t, ascBackendName, name)
@@ -95,12 +90,13 @@ func TestSelectBackend(t *testing.T) {
 			assert.Equal(t, git.DefaultBackendName, name, b)
 		}
 	})
-	t.Run("a failing asc backend is an error, not a git read", func(t *testing.T) {
+	t.Run("an asc backend with no client is an error, not a git read", func(t *testing.T) {
+		ascbackend.Reset()
 		defer test.MockVariableValue(&setting.RepoRootPath, t.TempDir())()
 		r := backendRepo{NamedRepository{"o", "n"}, "asc"}
 		require.NoError(t, os.MkdirAll(repoPath(r), 0o755))
 		repo, err := OpenRepository(context.Background(), r)
-		require.ErrorIs(t, err, os.ErrInvalid)
+		require.ErrorIs(t, err, ascbackend.ErrNotConfigured)
 		assert.Nil(t, repo)
 	})
 }
