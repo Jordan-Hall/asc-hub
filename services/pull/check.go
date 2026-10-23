@@ -213,31 +213,37 @@ func getMergeCommit(ctx context.Context, pr *issues_model.PullRequest) (*git.Com
 
 	prHeadRef := pr.GetGitRefName()
 
-	// Check if the pull request is merged into BaseBranch
-	if _, _, err := git.NewCommand(ctx, "merge-base", "--is-ancestor").
-		AddDynamicArguments(prHeadRef, pr.BaseBranch).
-		RunStdString(&git.RunOpts{Dir: pr.BaseRepo.RepoPath()}); err != nil {
-		if strings.Contains(err.Error(), "exit status 1") {
-			// prHeadRef is not an ancestor of the base branch
-			return nil, nil
-		}
-		// Errors are signaled by a non-zero status that is not 1
-		return nil, fmt.Errorf("%-v git merge-base --is-ancestor: %w", pr, err)
-	}
-
-	// If merge-base successfully exits then prHeadRef is an ancestor of pr.BaseBranch
-
-	// Find the head commit id
-	prHeadCommitID, err := git.GetFullCommitID(ctx, pr.BaseRepo.RepoPath(), prHeadRef)
-	if err != nil {
-		return nil, fmt.Errorf("GetFullCommitID(%s) in %s: %w", prHeadRef, pr.BaseRepo.FullName(), err)
-	}
-
 	gitRepo, err := gitrepo.OpenRepository(ctx, pr.BaseRepo)
 	if err != nil {
 		return nil, fmt.Errorf("%-v OpenRepository: %w", pr.BaseRepo, err)
 	}
 	defer gitRepo.Close()
+
+	be, err := gitRepo.Backend()
+	if err != nil {
+		return nil, fmt.Errorf("%-v Backend: %w", pr.BaseRepo, err)
+	}
+
+	// Find the head commit id
+	headID, _, err := be.Resolve(ctx, prHeadRef)
+	if err != nil {
+		return nil, fmt.Errorf("Resolve(%s) in %s: %w", prHeadRef, pr.BaseRepo.FullName(), err)
+	}
+	prHeadCommitID := headID.String()
+
+	// Check if the pull request is merged into BaseBranch
+	baseID, _, err := be.Resolve(ctx, pr.BaseBranch)
+	if err != nil {
+		return nil, fmt.Errorf("Resolve(%s) in %s: %w", pr.BaseBranch, pr.BaseRepo.FullName(), err)
+	}
+	isMerged, err := be.IsAncestor(ctx, headID, baseID)
+	if err != nil {
+		return nil, fmt.Errorf("%-v IsAncestor: %w", pr, err)
+	}
+	if !isMerged {
+		// prHeadRef is not an ancestor of the base branch
+		return nil, nil
+	}
 
 	objectFormat := git.ObjectFormatFromName(pr.BaseRepo.ObjectFormatName)
 

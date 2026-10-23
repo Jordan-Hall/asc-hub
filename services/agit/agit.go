@@ -6,7 +6,7 @@ package agit
 import (
 	"context"
 	"fmt"
-	"os"
+	"iter"
 	"strings"
 
 	issues_model "forgejo.org/models/issues"
@@ -100,11 +100,11 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 			}
 
 			// Check if the changes are already in the target branch.
-			stdout, _, gitErr := git.NewCommand(ctx, "branch", "--contains").AddDynamicArguments(opts.NewCommitIDs[i], baseBranchName).RunStdString(&git.RunOpts{Dir: repo.RepoPath()})
+			alreadyMerged, gitErr := gitRepo.IsCommitInBranch(opts.NewCommitIDs[i], baseBranchName)
 			if gitErr != nil {
-				return nil, fmt.Errorf("failed to check if the target branch already contains the new commit in repository %q: %w", repo.FullName(), err)
+				return nil, fmt.Errorf("failed to check if the target branch already contains the new commit in repository %q: %w", repo.FullName(), gitErr)
 			}
-			if len(stdout) > 0 {
+			if alreadyMerged {
 				results = append(results, private.HookProcReceiveRefResult{
 					OriginalRef: opts.RefFullNames[i],
 					OldOID:      opts.OldCommitIDs[i],
@@ -191,10 +191,10 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 
 		// If the force push option was not set, ensure that this change isn't a force push.
 		if !forcePush {
-			output, _, err := git.NewCommand(ctx, "rev-list", "--max-count=1").AddDynamicArguments(oldCommitID, "^"+opts.NewCommitIDs[i]).RunStdString(&git.RunOpts{Dir: repo.RepoPath(), Env: os.Environ()})
+			diverged, err := hasCommitsNotIn(ctx, gitRepo, oldCommitID, opts.NewCommitIDs[i])
 			if err != nil {
 				return nil, fmt.Errorf("failed to detect a force push: %w", err)
-			} else if len(output) > 0 {
+			} else if diverged {
 				results = append(results, private.HookProcReceiveRefResult{
 					OriginalRef: opts.RefFullNames[i],
 					OldOID:      opts.OldCommitIDs[i],
@@ -265,4 +265,27 @@ func UserNameChanged(ctx context.Context, user *user_model.User, newName string)
 	}
 
 	return nil
+}
+
+// hasCommitsNotIn reports whether oldCommitID has history that newCommitID lacks, which is what a force push does.
+func hasCommitsNotIn(ctx context.Context, gitRepo *git.Repository, oldCommitID, newCommitID string) (bool, error) {
+	be, err := gitRepo.Backend()
+	if err != nil {
+		return false, err
+	}
+	oldID, err := git.NewIDFromString(oldCommitID)
+	if err != nil {
+		return false, err
+	}
+	newID, err := git.NewIDFromString(newCommitID)
+	if err != nil {
+		return false, err
+	}
+	next, stop := iter.Pull2(be.Log(ctx, git.LogQuery{From: []git.ObjectID{oldID}, Not: []git.ObjectID{newID}, Limit: 1}))
+	defer stop()
+	commit, err, ok := next()
+	if !ok {
+		return false, nil
+	}
+	return commit != nil, err
 }
