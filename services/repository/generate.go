@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -130,18 +129,7 @@ func (gt *GiteaTemplate) Globs() []glob.Glob {
 }
 
 func generateGitContent(ctx context.Context, repo, templateRepo, generateRepo *repo_model.Repository) (err error) {
-	tmpDir, err := os.MkdirTemp(os.TempDir(), "gitea-"+repo.Name)
-	if err != nil {
-		return fmt.Errorf("Failed to create temp dir for repository %s: %w", repo.RepoPath(), err)
-	}
-
-	defer func() {
-		if err := util.RemoveAll(tmpDir); err != nil {
-			log.Error("RemoveAll: %v", err)
-		}
-	}()
-
-	if err = generateRepoCommit(ctx, repo, templateRepo, generateRepo, tmpDir); err != nil {
+	if err = generateRepoCommit(ctx, repo, templateRepo, generateRepo); err != nil {
 		return fmt.Errorf("generateRepoCommit: %w", err)
 	}
 

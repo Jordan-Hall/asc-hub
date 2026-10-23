@@ -15,6 +15,7 @@ import (
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/log"
 	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/util"
 
 	"xorm.io/builder"
@@ -183,6 +184,11 @@ func ReinitMissingRepositories(ctx context.Context) error {
 		return nil
 	}
 
+	writer, err := repostore.Default()
+	if err != nil {
+		return err
+	}
+
 	for _, repo := range repos {
 		select {
 		case <-ctx.Done():
@@ -190,7 +196,7 @@ func ReinitMissingRepositories(ctx context.Context) error {
 		default:
 		}
 		log.Trace("Initializing %d/%d...", repo.OwnerID, repo.ID)
-		if err := git.InitRepository(ctx, repo.RepoPath(), true, repo.ObjectFormatName); err != nil {
+		if err := writer.Init(ctx, repostore.InitRequest{Repo: repo.StoreRef()}); err != nil {
 			log.Error("Unable (re)initialize repository %d at %s. Error: %v", repo.ID, repo.RepoPath(), err)
 			if err2 := system_model.CreateRepositoryNotice("InitRepository [%d]: %v", repo.ID, err); err2 != nil {
 				log.Error("CreateRepositoryNotice: %v", err2)

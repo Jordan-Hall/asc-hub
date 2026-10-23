@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"forgejo.org/models/db"
 	git_model "forgejo.org/models/git"
@@ -17,6 +16,7 @@ import (
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/structs"
 	"forgejo.org/modules/util"
 	notify_service "forgejo.org/services/notify"
@@ -91,23 +91,19 @@ func ForkRepositoryIfNotExists(ctx context.Context, doer, owner *user_model.User
 		ObjectFormatName: opts.BaseRepo.ObjectFormatName,
 	}
 
-	oldRepoPath := opts.BaseRepo.RepoPath()
-
 	needsRollback := false
 	rollbackFn := func() {
 		if !needsRollback {
 			return
 		}
 
-		repoPath := repo_model.RepoPath(owner.Name, repo.Name)
-
-		if exists, _ := util.IsExist(repoPath); !exists {
-			return
-		}
-
 		// As the transaction will be failed and hence database changes will be destroyed we only need
-		// to delete the related repository on the filesystem
-		if errDelete := util.RemoveAll(repoPath); errDelete != nil {
+		// to delete the related repository storage
+		writer, err := repostore.Default()
+		if err == nil {
+			err = writer.Delete(ctx, repo.StoreRef())
+		}
+		if err != nil {
 			log.Error("Failed to remove fork repo")
 		}
 	}
@@ -141,16 +137,18 @@ func ForkRepositoryIfNotExists(ctx context.Context, doer, owner *user_model.User
 
 		needsRollback = true
 
-		cloneCmd := git.NewCommand(txCtx, "clone", "--bare")
-		if opts.SingleBranch != "" {
-			cloneCmd.AddArguments("--single-branch", "--branch").AddDynamicArguments(opts.SingleBranch)
+		writer, err := repostore.Default()
+		if err != nil {
+			return err
 		}
 		repoPath := repo_model.RepoPath(owner.Name, repo.Name)
-		if stdout, _, err := cloneCmd.AddDynamicArguments(oldRepoPath, repoPath).
-			SetDescription(fmt.Sprintf("ForkRepositoryIfNotExists(git clone): %s to %s", opts.BaseRepo.FullName(), repo.FullName())).
-			RunStdBytes(&git.RunOpts{Timeout: 10 * time.Minute}); err != nil {
-			log.Error("Fork Repository (git clone) Failed for %v (from %v):\nStdout: %s\nError: %v", repo, opts.BaseRepo, stdout, err)
-			return fmt.Errorf("git clone: %w", err)
+		if err := writer.Fork(txCtx, repostore.ForkRequest{
+			Repo:         repo.StoreRef(),
+			From:         opts.BaseRepo.StoreRef(),
+			SingleBranch: opts.SingleBranch,
+		}); err != nil {
+			log.Error("Fork Repository (git clone) Failed for %v (from %v): %v", repo, opts.BaseRepo, err)
+			return err
 		}
 
 		if err := repo_module.CheckDaemonExportOK(txCtx, repo); err != nil {

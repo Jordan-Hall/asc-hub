@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"forgejo.org/models"
@@ -25,6 +24,8 @@ import (
 	"forgejo.org/models/webhook"
 	issue_indexer "forgejo.org/modules/indexer/issues"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/repostore"
+	_ "forgejo.org/modules/repostore/gitcli" // registers the default writer that repostore.Default returns
 	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/util"
@@ -165,37 +166,13 @@ func CreateRepositoryByExample(ctx context.Context, doer, u *user_model.User, re
 	return nil
 }
 
-const notRegularFileMode = os.ModeSymlink | os.ModeNamedPipe | os.ModeSocket | os.ModeDevice | os.ModeCharDevice | os.ModeIrregular
-
-// getDirectorySize returns the disk consumption for a given path
-func getDirectorySize(path string) (int64, error) {
-	var size int64
-	err := filepath.WalkDir(path, func(_ string, entry os.DirEntry, err error) error {
-		if os.IsNotExist(err) { // ignore the error because some files (like temp/lock file) may be deleted during traversing.
-			return nil
-		} else if err != nil {
-			return err
-		}
-		if entry.IsDir() {
-			return nil
-		}
-		info, err := entry.Info()
-		if os.IsNotExist(err) { // ignore the error as above
-			return nil
-		} else if err != nil {
-			return err
-		}
-		if (info.Mode() & notRegularFileMode) == 0 {
-			size += info.Size()
-		}
-		return nil
-	})
-	return size, err
-}
-
-// UpdateRepoSize updates the repository size, calculating it using getDirectorySize
+// UpdateRepoSize updates the repository size, as reported by the repository writer
 func UpdateRepoSize(ctx context.Context, repo *repo_model.Repository) error {
-	size, err := getDirectorySize(repo.RepoPath())
+	writer, err := repostore.Default()
+	if err != nil {
+		return fmt.Errorf("updateSize: %w", err)
+	}
+	size, err := writer.Size(ctx, repo.StoreRef())
 	if err != nil {
 		return fmt.Errorf("updateSize: %w", err)
 	}
@@ -205,7 +182,7 @@ func UpdateRepoSize(ctx context.Context, repo *repo_model.Repository) error {
 		return fmt.Errorf("updateSize: GetLFSMetaObjects: %w", err)
 	}
 
-	return repo_model.UpdateRepoSize(ctx, repo.ID, size, lfsSize)
+	return repo_model.UpdateRepoSize(ctx, repo.ID, size.Logical, lfsSize)
 }
 
 // CheckDaemonExportOK creates/removes git-daemon-export-ok for git-daemon...

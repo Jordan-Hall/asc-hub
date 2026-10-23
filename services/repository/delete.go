@@ -351,12 +351,11 @@ func DeleteRepositoryDirectly(ctx context.Context, repoID int64, opts DeleteRepo
 	// we delete the file but the database rollback, the repository will be broken.
 
 	// Remove repository files.
-	repoPath := repo.RepoPath()
-	system_model.RemoveAllWithNotice(ctx, "Delete repository files", repoPath)
+	RemoveFilesWithNotice(ctx, "Delete repository files", repo.StoreRef())
 
 	// Remove wiki files
 	if repo.HasWiki() {
-		system_model.RemoveAllWithNotice(ctx, "Delete repository wiki", repo.WikiPath())
+		RemoveFilesWithNotice(ctx, "Delete repository wiki", repo.WikiStoreRef())
 	}
 
 	// Remove archives

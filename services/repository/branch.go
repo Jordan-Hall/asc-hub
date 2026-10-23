@@ -26,6 +26,7 @@ import (
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/queue"
 	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
 	webhook_module "forgejo.org/modules/webhook"
@@ -351,10 +352,14 @@ func CreateNewBranchFromCommit(ctx context.Context, doer *user_model.User, repo 
 		return err
 	}
 
-	if err := git.Push(ctx, repo.RepoPath(), git.PushOptions{
-		Remote: repo.RepoPath(),
-		Branch: fmt.Sprintf("%s:%s%s", commitID, git.BranchPrefix, branchName),
-		Env:    repo_module.PushingEnvironment(doer, repo),
+	writer, err := repostore.Default()
+	if err != nil {
+		return err
+	}
+	if _, err := writer.UpdateRefs(ctx, repostore.UpdateRefsRequest{
+		Repo:    repo.StoreRef(),
+		Updates: []repostore.RefUpdateSpec{{Name: git.BranchPrefix + branchName, NewRev: commitID}},
+		HookEnv: repo_module.PushingEnvironment(doer, repo),
 	}); err != nil {
 		if git.IsErrPushOutOfDate(err) || git.IsErrPushRejected(err) {
 			return err

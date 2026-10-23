@@ -5,6 +5,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -12,10 +13,9 @@ import (
 
 	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
-	"forgejo.org/modules/git"
 	"forgejo.org/modules/label"
-	"forgejo.org/modules/log"
 	"forgejo.org/modules/options"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
 )
@@ -121,22 +121,23 @@ func LoadRepoConfig() error {
 }
 
 func CheckInitRepository(ctx context.Context, owner, name, objectFormatName string) (err error) {
-	// Somehow the directory could exist.
-	repoPath := repo_model.RepoPath(owner, name)
-	isExist, err := util.IsExist(repoPath)
+	writer, err := repostore.Default()
 	if err != nil {
-		log.Error("Unable to check if %s exists. Error: %v", repoPath, err)
 		return err
 	}
-	if isExist {
+
+	// Somehow the directory could exist: Init refuses to use it.
+	repoPath := repo_model.RepoPath(owner, name)
+	err = writer.Init(ctx, repostore.InitRequest{
+		Repo: repostore.RepoRef{Owner: owner, Name: name, ObjectFormat: objectFormatName, Path: repoPath},
+	})
+	if errors.Is(err, repostore.ErrExists) {
 		return repo_model.ErrRepoFilesAlreadyExist{
 			Uname: owner,
 			Name:  name,
 		}
 	}
-
-	// Init git bare new repository.
-	if err = git.InitRepository(ctx, repoPath, true, objectFormatName); err != nil {
+	if err != nil {
 		return fmt.Errorf("git.InitRepository: %w", err)
 	}
 	return nil
