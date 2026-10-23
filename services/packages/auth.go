@@ -24,9 +24,18 @@ type packageClaims struct {
 	jwt.RegisteredClaims
 	UserID int64
 	Scope  auth_model.AccessTokenScope
+	// TaskID is the Actions task whose job token this registry token was issued for, so that the registry can apply the
+	// permissions of the task. Zero for every other token.
+	TaskID int64 `json:",omitempty"`
 }
 
 func CreateAuthorizationToken(u *user_model.User, scope auth_model.AccessTokenScope, maxExpiry optional.Option[timeutil.TimeStamp]) (string, error) {
+	return CreateTaskAuthorizationToken(u, scope, maxExpiry, 0)
+}
+
+// CreateTaskAuthorizationToken is [CreateAuthorizationToken] for a token that is exchanged for the job token of an
+// Actions task.
+func CreateTaskAuthorizationToken(u *user_model.User, scope auth_model.AccessTokenScope, maxExpiry optional.Option[timeutil.TimeStamp], taskID int64) (string, error) {
 	now := time.Now()
 
 	// Don't allow package registry authentication to create a credential that exceeds the lifetime of whatever
@@ -43,6 +52,7 @@ func CreateAuthorizationToken(u *user_model.User, scope auth_model.AccessTokenSc
 		},
 		UserID: u.ID,
 		Scope:  scope,
+		TaskID: taskID,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -55,15 +65,21 @@ func CreateAuthorizationToken(u *user_model.User, scope auth_model.AccessTokenSc
 }
 
 func ParseAuthorizationToken(req *http.Request) (int64, auth_model.AccessTokenScope, error) {
+	uid, scope, _, err := ParseTaskAuthorizationToken(req)
+	return uid, scope, err
+}
+
+// ParseTaskAuthorizationToken is [ParseAuthorizationToken] that also returns the Actions task the token was issued for.
+func ParseTaskAuthorizationToken(req *http.Request) (int64, auth_model.AccessTokenScope, int64, error) {
 	h := req.Header.Get("Authorization")
 	if h == "" {
-		return 0, "", nil
+		return 0, "", 0, nil
 	}
 
 	parts := strings.SplitN(h, " ", 2)
 	if len(parts) != 2 {
 		log.Error("split token failed: %s", h)
-		return 0, "", errors.New("split token failed")
+		return 0, "", 0, errors.New("split token failed")
 	}
 
 	token, err := jwt.ParseWithClaims(parts[1], &packageClaims{}, func(t *jwt.Token) (any, error) {
@@ -73,13 +89,13 @@ func ParseAuthorizationToken(req *http.Request) (int64, auth_model.AccessTokenSc
 		return setting.GetGeneralTokenSigningSecret(), nil
 	})
 	if err != nil {
-		return 0, "", err
+		return 0, "", 0, err
 	}
 
 	c, ok := token.Claims.(*packageClaims)
 	if !token.Valid || !ok {
-		return 0, "", errors.New("invalid token claim")
+		return 0, "", 0, errors.New("invalid token claim")
 	}
 
-	return c.UserID, c.Scope, nil
+	return c.UserID, c.Scope, c.TaskID, nil
 }

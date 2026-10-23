@@ -7,8 +7,10 @@ package packages
 import (
 	"context"
 
+	actions_model "forgejo.org/models/actions"
 	"forgejo.org/models/organization"
 	"forgejo.org/models/perm"
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/setting"
@@ -69,4 +71,41 @@ func DeterminePackageAccessMode(ctx context.Context, owner, doer *user_model.Use
 	}
 
 	return accessMode, nil
+}
+
+// DeterminePackageAccessModeForTask is [DeterminePackageAccessMode] for the job token of an Actions task. The token
+// has the access of the Actions user, which it keeps whatever its workflow says, plus one grant: write access to the
+// packages of the owner of its own repository, when the workflow's `permissions:` has `packages: write` and the
+// repository's Actions setting allows it. A fork pull request never has the grant.
+func DeterminePackageAccessModeForTask(ctx context.Context, owner, doer *user_model.User, taskID int64) (perm.AccessMode, error) {
+	accessMode, err := DeterminePackageAccessMode(ctx, owner, doer)
+	if err != nil {
+		return accessMode, err
+	}
+
+	task, err := actions_model.GetTaskByID(ctx, taskID)
+	if err != nil {
+		return perm.AccessModeNone, err
+	}
+	if task.IsForkPullRequest || task.OwnerID != owner.ID {
+		return accessMode, nil
+	}
+	tokenPerms, err := task.TokenPermissions()
+	if err != nil {
+		return perm.AccessModeNone, err
+	}
+	if tokenPerms == nil || tokenPerms.Level(actions_model.TokenScopePackages) != actions_model.TokenPermissionWrite {
+		return accessMode, nil
+	}
+
+	// The setting is read again so that turning it off ends the grant of a job that is running.
+	repo, err := repo_model.GetRepositoryByID(ctx, task.RepoID)
+	if err != nil {
+		return perm.AccessModeNone, err
+	}
+	cfgUnit, err := repo.GetUnit(ctx, unit.TypeActions)
+	if err != nil || !cfgUnit.ActionsConfig().AllowPackagesWrite {
+		return accessMode, nil
+	}
+	return max(accessMode, perm.AccessModeWrite), nil
 }
