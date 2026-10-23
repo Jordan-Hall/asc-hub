@@ -16,6 +16,7 @@ import (
 	"forgejo.org/modules/git/pushoptions"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/private"
+	"forgejo.org/services/ascsync"
 	notify_service "forgejo.org/services/notify"
 	pull_service "forgejo.org/services/pull"
 )
@@ -35,6 +36,12 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user[%d]: %w", opts.UserID, err)
 	}
+
+	pushed, closePushed, err := pushedCommitsRepo(ctx, repo, gitRepo)
+	if err != nil {
+		return nil, err
+	}
+	defer closePushed()
 
 	for i := range opts.OldCommitIDs {
 		// Avoid processing this change if the new commit is empty.
@@ -119,7 +126,7 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 
 			var commit *git.Commit
 			if shouldGetCommit {
-				commit, err = gitRepo.GetCommit(opts.NewCommitIDs[i])
+				commit, err = pushed.GetCommit(opts.NewCommitIDs[i])
 				if err != nil {
 					return nil, fmt.Errorf("failed to get commit %s in repository %q: %w", opts.NewCommitIDs[i], repo.FullName(), err)
 				}
@@ -191,7 +198,7 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 
 		// If the force push option was not set, ensure that this change isn't a force push.
 		if !forcePush {
-			diverged, err := hasCommitsNotIn(ctx, gitRepo, oldCommitID, opts.NewCommitIDs[i])
+			diverged, err := hasCommitsNotIn(ctx, pushed, oldCommitID, opts.NewCommitIDs[i])
 			if err != nil {
 				return nil, fmt.Errorf("failed to detect a force push: %w", err)
 			} else if diverged {
@@ -265,6 +272,25 @@ func UserNameChanged(ctx context.Context, user *user_model.User, newName string)
 	}
 
 	return nil
+}
+
+// pushedCommitsRepo returns the repository to read the commits of this push from. For storage_backend=asc the
+// pushed commits are in the git bridge (git migrates them there before it runs proc-receive) but asc only takes
+// them when the pull request head ref is set (ascsync.SetPullHead), so the bridge is read directly. Any other
+// repository is read as usual.
+func pushedCommitsRepo(ctx context.Context, repo *repo_model.Repository, gitRepo *git.Repository) (*git.Repository, func(), error) {
+	isAsc, err := ascsync.BackedBy(repo)
+	if err != nil {
+		return nil, nil, fmt.Errorf("storage backend of repository %q: %w", repo.FullName(), err)
+	}
+	if !isAsc {
+		return gitRepo, func() {}, nil
+	}
+	bridge, err := git.OpenRepositoryWithBackend(ctx, repo.RepoPath(), git.DefaultBackendName)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to open the git bridge of repository %q: %w", repo.FullName(), err)
+	}
+	return bridge, func() { _ = bridge.Close() }, nil
 }
 
 // hasCommitsNotIn reports whether oldCommitID has history that newCommitID lacks, which is what a force push does.
