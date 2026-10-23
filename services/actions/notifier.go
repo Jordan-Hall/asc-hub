@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	actions_model "forgejo.org/models/actions"
 	"forgejo.org/models/db"
@@ -857,6 +858,20 @@ func sendActionRunNowDoneNotificationIfNeeded(ctx context.Context, priorRun, upd
 	return nil
 }
 
+// validateJobsTokenPermissions returns the first error in the `permissions:` of the workflow or a job.
+func validateJobsTokenPermissions(swfs []*jobparser.SingleWorkflow) error {
+	for _, swf := range swfs {
+		id, j := swf.Job()
+		if j == nil {
+			continue
+		}
+		if err := actions_model.ValidateTokenPermissions(&swf.Permissions, &j.Permissions); err != nil {
+			return fmt.Errorf("job %s: %w", id, err)
+		}
+	}
+	return nil
+}
+
 func calculateWarnings(run *actions_model.ActionRun, swfs []*jobparser.SingleWorkflow) {
 	warnings := []actions_model.PreExecutionWarning{}
 	warningDetails := [][]any{}
@@ -866,8 +881,15 @@ func calculateWarnings(run *actions_model.ActionRun, swfs []*jobparser.SingleWor
 		// which occurs in an invalid workflow with no job. We need to do `.Job()` here for the job name anyway, so no
 		// harm in handling it here. (https://code.forgejo.org/forgejo/runner/issues/1579)
 		if j != nil && swf.HasPermissions() {
-			warnings = append(warnings, actions_model.WarningCodePermissions)
-			warningDetails = append(warningDetails, []any{id, "https://forgejo.org/docs/latest/user/authorized-integrations/"})
+			// The scopes Forgejo enforces are honoured and need no warning; the others are ignored and never grant.
+			node := &j.Permissions
+			if node.Kind == 0 {
+				node = &swf.Permissions
+			}
+			if ignored := actions_model.UnenforcedTokenScopes(node); len(ignored) > 0 {
+				warnings = append(warnings, actions_model.WarningCodePermissionsIgnoredScopes)
+				warningDetails = append(warningDetails, []any{id, strings.Join(ignored, ", ")})
+			}
 		}
 	}
 	run.PreExecutionWarningCodes = warnings

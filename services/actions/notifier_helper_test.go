@@ -419,7 +419,7 @@ func TestActionsNotifier_PermissionsWarning(t *testing.T) {
 	pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 3})
 
 	dw := &actions_module.DetectedWorkflow{
-		Content: []byte("{ on: pull_request, permissions: { contents: read }, jobs: { j1: { steps: [] } } }"),
+		Content: []byte("{ on: pull_request, permissions: { contents: read, checks: write }, jobs: { j1: { steps: [] } } }"),
 	}
 	testActionsNotifierPullRequest(t, repo, pr, dw, webhook_module.HookEventPullRequestSync)
 
@@ -431,6 +431,53 @@ func TestActionsNotifier_PermissionsWarning(t *testing.T) {
 	run := runs[0]
 	assert.EqualValues(t, 0, run.PreExecutionErrorCode, "pre execution error details: %#v", run.PreExecutionErrorDetails)
 
-	assert.Equal(t, []actions_model.PreExecutionWarning{1}, run.PreExecutionWarningCodes)
-	assert.Equal(t, [][]any{{"j1", "https://forgejo.org/docs/latest/user/authorized-integrations/"}}, run.PreExecutionWarningDetails)
+	// contents is enforced and needs no warning, checks is ignored and does
+	assert.Equal(t, []actions_model.PreExecutionWarning{actions_model.WarningCodePermissionsIgnoredScopes}, run.PreExecutionWarningCodes)
+	assert.Equal(t, [][]any{{"j1", "checks"}}, run.PreExecutionWarningDetails)
+}
+
+// The scopes Forgejo enforces are honoured, so a workflow that only uses them gets no warning.
+func TestActionsPermissionsNoWarningForEnforcedScopes(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 10})
+	pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 3})
+
+	dw := &actions_module.DetectedWorkflow{
+		Content: []byte("{ on: pull_request, permissions: { contents: read }, jobs: { j1: { permissions: write-all, steps: [] } } }"),
+	}
+	testActionsNotifierPullRequest(t, repo, pr, dw, webhook_module.HookEventPullRequestSync)
+
+	runs, err := db.Find[actions_model.ActionRun](db.DefaultContext, actions_model.FindRunOptions{RepoID: repo.ID})
+	require.NoError(t, err)
+	require.Len(t, runs, 1)
+	assert.EqualValues(t, 0, runs[0].PreExecutionErrorCode, "pre execution error details: %#v", runs[0].PreExecutionErrorDetails)
+	assert.Empty(t, runs[0].PreExecutionWarningCodes)
+}
+
+// A permissions value that cannot be understood fails the run with a message, before any job can start.
+func TestActionsPermissionsUnknownValueFailsRun(t *testing.T) {
+	for _, permissions := range []string{
+		"permissions: { contents: admin }, jobs: { j1: { steps: [] } }",
+		"jobs: { j1: { permissions: { packages: all }, steps: [] } }",
+		"permissions: { contens: read }, jobs: { j1: { steps: [] } }",
+	} {
+		t.Run(permissions, func(t *testing.T) {
+			require.NoError(t, unittest.PrepareTestDatabase())
+
+			repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 10})
+			pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 3})
+
+			dw := &actions_module.DetectedWorkflow{Content: []byte("{ on: pull_request, " + permissions + " }")}
+			testActionsNotifierPullRequest(t, repo, pr, dw, webhook_module.HookEventPullRequestSync)
+
+			runs, err := db.Find[actions_model.ActionRun](db.DefaultContext, actions_model.FindRunOptions{RepoID: repo.ID})
+			require.NoError(t, err)
+			require.Len(t, runs, 1)
+			assert.Equal(t, actions_model.StatusFailure, runs[0].Status)
+			assert.Equal(t, actions_model.ErrorCodeJobParsingError, runs[0].PreExecutionErrorCode)
+			require.Len(t, runs[0].PreExecutionErrorDetails, 1)
+			assert.Contains(t, runs[0].PreExecutionErrorDetails[0], "permissions: unknown")
+		})
+	}
 }
