@@ -96,6 +96,7 @@ func SettingsProtectedBranch(c *context.Context) {
 		c.Data["approvals_whitelist_teams"] = strings.Join(base.Int64sToStrings(rule.ApprovalsWhitelistTeamIDs), ",")
 	}
 
+	prepareAscRelaxation(c)
 	c.Data["Rule"] = rule
 	c.HTML(http.StatusOK, tplProtectedBranch)
 }
@@ -238,6 +239,9 @@ func SettingsProtectedBranchPost(ctx *context.Context) {
 	protectBranch.UnprotectedFilePatterns = f.UnprotectedFilePatterns
 	protectBranch.BlockOnOutdatedBranch = f.BlockOnOutdatedBranch
 	protectBranch.ApplyToAdmins = f.ApplyToAdmins
+	if !applyAscRelaxation(ctx, f, protectBranch) {
+		return
+	}
 
 	err = git_model.UpdateProtectBranch(ctx, ctx.Repo.Repository, protectBranch, git_model.WhitelistOptions{
 		UserIDs:          whitelistUsers,

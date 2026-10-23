@@ -1065,6 +1065,7 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 		endCommitID = headCommitID
 		startCommitID = prInfo.MergeBase
 		ctx.Data["IsShowingAllCommits"] = true
+		ctx.Data["AscFileClassBadges"] = pull_service.AscFileClassBadges(ctx, ctx.Locale, pull)
 	}
 
 	ctx.Data["AfterCommitID"] = endCommitID

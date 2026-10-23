@@ -1981,7 +1981,7 @@ func ViewIssue(ctx *context.Context) {
 				showMergeInstructions = pb.CanUserPush(ctx, ctx.Doer)
 			}
 			ctx.Data["ProtectedBranch"] = pb
-			ctx.Data["IsBlockedByApprovals"] = !issues_model.HasEnoughApprovals(ctx, pb, pull)
+			ctx.Data["IsBlockedByApprovals"] = !pull_service.HasEnoughApprovals(ctx, pb, pull)
 			ctx.Data["IsBlockedByRejection"] = issues_model.MergeBlockedByRejectedReview(ctx, pb, pull)
 			ctx.Data["IsBlockedByOfficialReviewRequests"] = issues_model.MergeBlockedByOfficialReviewRequests(ctx, pb, pull)
 			ctx.Data["IsBlockedByOutdatedBranch"] = issues_model.MergeBlockedByOutdatedBranch(pb, pull)
