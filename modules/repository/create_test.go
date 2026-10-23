@@ -10,6 +10,7 @@ import (
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
+	"forgejo.org/modules/repostore/gitcli"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,12 +36,12 @@ func TestUpdateRepositoryVisibilityChanged(t *testing.T) {
 	assert.True(t, act.IsPrivate)
 }
 
-func TestGetDirectorySize(t *testing.T) {
+func TestRepositorySize(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 	repo, err := repo_model.GetRepositoryByID(db.DefaultContext, 1)
 	require.NoError(t, err)
 
-	size, err := getDirectorySize(repo.RepoPath())
+	size, err := gitcli.New().Size(t.Context(), repo.StoreRef())
 	require.NoError(t, err)
-	assert.Equal(t, repo.Size, size, "expected size comes from models/fixtures/repository.yml:25")
+	assert.Equal(t, repo.Size, size.Logical, "expected size comes from models/fixtures/repository.yml:25")
 }

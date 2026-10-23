@@ -7,8 +7,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,6 +18,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/options"
 	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/templates/vars"
@@ -48,32 +47,15 @@ type CreateRepoOptions struct {
 	Website          string
 }
 
-func prepareRepoCommit(ctx context.Context, repo *repo_model.Repository, tmpDir, repoPath string, opts CreateRepoOptions) error {
-	commitTimeStr := time.Now().Format(time.RFC3339)
+// repoInitFiles returns the files of the first commit of a repository: the README, the .gitignore and the license.
+func repoInitFiles(repo *repo_model.Repository, opts CreateRepoOptions) ([]repostore.FileOp, error) {
 	authorSig := repo.Owner.NewGitSig()
-
-	// Because this may call hooks we should pass in the environment
-	env := append(os.Environ(),
-		"GIT_AUTHOR_NAME="+authorSig.Name,
-		"GIT_AUTHOR_EMAIL="+authorSig.Email,
-		"GIT_AUTHOR_DATE="+commitTimeStr,
-		"GIT_COMMITTER_NAME="+authorSig.Name,
-		"GIT_COMMITTER_EMAIL="+authorSig.Email,
-		"GIT_COMMITTER_DATE="+commitTimeStr,
-	)
-
-	// Clone to temporary path and do the init commit.
-	if stdout, _, err := git.NewCommand(ctx, "clone").AddDynamicArguments(repoPath, tmpDir).
-		SetDescription(fmt.Sprintf("prepareRepoCommit (git clone): %s to %s", repoPath, tmpDir)).
-		RunStdString(&git.RunOpts{Dir: "", Env: env}); err != nil {
-		log.Error("Failed to clone from %v into %s: stdout: %s\nError: %v", repo, tmpDir, stdout, err)
-		return fmt.Errorf("git clone: %w", err)
-	}
+	var ops []repostore.FileOp
 
 	// README
 	data, err := options.Readme(opts.Readme)
 	if err != nil {
-		return fmt.Errorf("GetRepoInitFile[%s]: %w", opts.Readme, err)
+		return nil, fmt.Errorf("GetRepoInitFile[%s]: %w", opts.Readme, err)
 	}
 
 	cloneLink := repo.CloneLink()
@@ -89,10 +71,7 @@ func prepareRepoCommit(ctx context.Context, repo *repo_model.Repository, tmpDir,
 		// here we could just log the error and continue the rendering
 		log.Error("unable to expand template vars for repo README: %s, err: %v", opts.Readme, err)
 	}
-	if err = os.WriteFile(filepath.Join(tmpDir, "README.md"),
-		[]byte(res), 0o644); err != nil {
-		return fmt.Errorf("write README.md: %w", err)
-	}
+	ops = append(ops, repostore.FileOp{Kind: repostore.OpPut, Path: "README.md", Content: strings.NewReader(res)})
 
 	// .gitignore
 	if len(opts.Gitignores) > 0 {
@@ -101,7 +80,7 @@ func prepareRepoCommit(ctx context.Context, repo *repo_model.Repository, tmpDir,
 		for name := range names {
 			data, err = options.Gitignore(name)
 			if err != nil {
-				return fmt.Errorf("GetRepoInitFile[%s]: %w", name, err)
+				return nil, fmt.Errorf("GetRepoInitFile[%s]: %w", name, err)
 			}
 			buf.WriteString("# ---> " + name + "\n")
 			buf.Write(data)
@@ -109,9 +88,7 @@ func prepareRepoCommit(ctx context.Context, repo *repo_model.Repository, tmpDir,
 		}
 
 		if buf.Len() > 0 {
-			if err = os.WriteFile(filepath.Join(tmpDir, ".gitignore"), buf.Bytes(), 0o644); err != nil {
-				return fmt.Errorf("write .gitignore: %w", err)
-			}
+			ops = append(ops, repostore.FileOp{Kind: repostore.OpPut, Path: ".gitignore", Content: &buf})
 		}
 	}
 
@@ -124,15 +101,13 @@ func prepareRepoCommit(ctx context.Context, repo *repo_model.Repository, tmpDir,
 			Year:  time.Now().Format("2006"),
 		})
 		if err != nil {
-			return fmt.Errorf("getLicense[%s]: %w", opts.License, err)
+			return nil, fmt.Errorf("getLicense[%s]: %w", opts.License, err)
 		}
 
-		if err = os.WriteFile(filepath.Join(tmpDir, "LICENSE"), data, 0o644); err != nil {
-			return fmt.Errorf("write LICENSE: %w", err)
-		}
+		ops = append(ops, repostore.FileOp{Kind: repostore.OpPut, Path: "LICENSE", Content: bytes.NewReader(data)})
 	}
 
-	return nil
+	return ops, nil
 }
 
 // InitRepository initializes README and .gitignore if needed.
@@ -143,22 +118,13 @@ func initRepository(ctx context.Context, repoPath string, u *user_model.User, re
 
 	// Initialize repository according to user's choice.
 	if opts.AutoInit {
-		tmpDir, err := os.MkdirTemp(os.TempDir(), "gitea-"+repo.Name)
+		ops, err := repoInitFiles(repo, opts)
 		if err != nil {
-			return fmt.Errorf("Failed to create temp dir for repository %s: %w", repo.RepoPath(), err)
-		}
-		defer func() {
-			if err := util.RemoveAll(tmpDir); err != nil {
-				log.Warn("Unable to remove temporary directory: %s: Error: %v", tmpDir, err)
-			}
-		}()
-
-		if err = prepareRepoCommit(ctx, repo, tmpDir, repoPath, opts); err != nil {
 			return fmt.Errorf("prepareRepoCommit: %w", err)
 		}
 
 		// Apply changes and commit.
-		if err = initRepoCommit(ctx, tmpDir, repo, u, opts.DefaultBranch); err != nil {
+		if err = initRepoCommit(ctx, repo, u, opts.DefaultBranch, ops); err != nil {
 			return fmt.Errorf("initRepoCommit: %w", err)
 		}
 	}

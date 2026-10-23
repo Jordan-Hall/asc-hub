@@ -5,7 +5,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"slices"
 
 	git_model "forgejo.org/models/git"
@@ -14,6 +13,7 @@ import (
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/gitrepo"
 	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	api "forgejo.org/modules/structs"
 )
 
@@ -29,10 +29,16 @@ func SyncFork(ctx context.Context, doer *user_model.User, repo *repo_model.Repos
 		return err
 	}
 
-	err = git.Push(ctx, repo.BaseRepo.RepoPath(), git.PushOptions{
-		Remote: repo.RepoPath(),
-		Branch: fmt.Sprintf("%s:%s", branch, branch),
-		Env:    repo_module.PushingEnvironment(doer, repo),
+	writer, err := repostore.Default()
+	if err != nil {
+		return err
+	}
+	from := repo.BaseRepo.StoreRef()
+	_, err = writer.UpdateRefs(ctx, repostore.UpdateRefsRequest{
+		Repo:    repo.StoreRef(),
+		From:    &from,
+		Updates: []repostore.RefUpdateSpec{{Name: git.BranchPrefix + branch, NewRev: git.BranchPrefix + branch}},
+		HookEnv: repo_module.PushingEnvironment(doer, repo),
 	})
 
 	return err
