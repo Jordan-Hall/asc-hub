@@ -231,6 +231,7 @@ func TestAscAuthzActionsTask(t *testing.T) {
 	assert.True(t, resp.IsActionsTask)
 	require.NotNil(t, resp.Task)
 	assert.EqualValues(t, 791, resp.Task.RunID)
+	assert.Equal(t, "user5/repo4", resp.Task.Repo)
 	assert.Equal(t, "push", resp.Task.Event)
 	assert.Equal(t, "refs/heads/master", resp.Task.Ref)
 	assert.Zero(t, resp.Task.PRIndex)
@@ -438,5 +439,74 @@ func TestAscAuthzBasic(t *testing.T) {
 		// A password is not a bearer token, and neither is user:password.
 		assert.False(t, ascAuthzDo(t, private.AscAuthzRequest{Token: "password", Owner: "user2", Repo: "repo2", Mode: "read"}).Allowed)
 		assert.False(t, ascAuthzDo(t, private.AscAuthzRequest{Token: "user2:password", Owner: "user2", Repo: "repo2", Mode: "read"}).Allowed)
+	})
+}
+
+// A refusal after authentication carries the user's own identity; a credential
+// that did not authenticate gives the all-zero denial. asc maps the first to 403
+// and the second to 401 with a challenge.
+func TestAscAuthzRefusalIdentity(t *testing.T) {
+	ascAuthzSetup(t)
+	t.Cleanup(test.MockVariableValue(&setting.Service.EnableBasicAuth, true))
+
+	// user4 may not see user2/repo2.
+	other := ascNewToken(t, 4, auth_model.AccessTokenScopeAll)
+	noPerm := ascAuthzDo(t, private.AscAuthzRequest{Token: other, Owner: "user2", Repo: "repo2", Mode: "read"})
+	assert.Equal(t, private.AscAuthzResponse{UserID: 4, Username: "user4"}, noPerm)
+
+	t.Run("a missing repo looks like a missing permission", func(t *testing.T) {
+		assert.Equal(t, noPerm, ascAuthzDo(t, private.AscAuthzRequest{Token: other, Owner: "user2", Repo: "does-not-exist", Mode: "read"}))
+		assert.Equal(t, noPerm, ascAuthzDo(t, private.AscAuthzRequest{Token: other, Owner: "nobody-here", Repo: "repo2", Mode: "read"}))
+	})
+
+	t.Run("write on a public repo without permission", func(t *testing.T) {
+		resp := ascAuthzDo(t, private.AscAuthzRequest{Token: other, Owner: "user2", Repo: "repo1", Mode: "write"})
+		assert.Equal(t, noPerm, resp)
+	})
+
+	t.Run("a token scope refusal", func(t *testing.T) {
+		readOnly := ascNewToken(t, 2, auth_model.AccessTokenScopeReadRepository)
+		resp := ascAuthzDo(t, private.AscAuthzRequest{Token: readOnly, Owner: "user2", Repo: "repo2", Mode: "write"})
+		assert.Equal(t, private.AscAuthzResponse{UserID: 2, Username: "user2"}, resp)
+	})
+
+	t.Run("basic login with a good password and no permission", func(t *testing.T) {
+		resp := ascAuthzDo(t, private.AscAuthzRequest{User: "user4", Token: "password", Owner: "user2", Repo: "repo2", Mode: "read"})
+		assert.Equal(t, private.AscAuthzResponse{UserID: 4, Username: "user4"}, resp)
+	})
+
+	t.Run("a task token for another repo", func(t *testing.T) {
+		resp := ascAuthzDo(t, private.AscAuthzRequest{Token: ascTaskToken, Owner: "user2", Repo: "repo2", Mode: "read"})
+		assert.False(t, resp.Allowed)
+		assert.NotZero(t, resp.UserID)
+	})
+
+	t.Run("a credential that did not authenticate gives all zero", func(t *testing.T) {
+		zero := private.AscAuthzResponse{}
+		for name, req := range map[string]private.AscAuthzRequest{
+			"wrong password":       {User: "user2", Token: "not-the-password"},
+			"unknown user":         {User: "nobody-here", Token: "password"},
+			"bad token as basic":   {User: "user2", Token: strings.Repeat("0", 40)},
+			"bad bearer token":     {Token: strings.Repeat("0", 40)},
+			"two-factor password":  {User: "user24", Token: "password"},
+			"password sign-in off": {User: "user4", Token: "password"},
+			"anonymous":            {},
+		} {
+			t.Run(name, func(t *testing.T) {
+				defer test.MockVariableValue(&setting.Service.EnableBasicAuth, name != "password sign-in off")()
+				for _, repo := range []string{"repo2", "does-not-exist"} {
+					req.Owner, req.Repo, req.Mode = "user2", repo, "read"
+					assert.Equal(t, zero, ascAuthzDo(t, req), repo)
+				}
+			})
+		}
+
+		t.Run("prohibited user", func(t *testing.T) {
+			tok := ascNewToken(t, 2, auth_model.AccessTokenScopeAll)
+			_, err := db.GetEngine(db.DefaultContext).Exec("UPDATE `user` SET prohibit_login = ? WHERE id = ?", true, 2)
+			require.NoError(t, err)
+			assert.Equal(t, zero, ascAuthzDo(t, private.AscAuthzRequest{Token: tok, Owner: "user2", Repo: "repo2", Mode: "read"}))
+			assert.Equal(t, zero, ascAuthzDo(t, private.AscAuthzRequest{User: "user2", Token: "password", Owner: "user2", Repo: "repo2", Mode: "read"}))
+		})
 	})
 }
