@@ -11,6 +11,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	"forgejo.org/models/unittest"
+	user_model "forgejo.org/models/user"
 
 	"github.com/stretchr/testify/require"
 	"go.yaml.in/yaml/v3"
@@ -28,6 +29,42 @@ func setActionsPackagesWrite(t *testing.T, repoID int64, allow bool) {
 	require.NoError(t, err)
 	cfgUnit.ActionsConfig().AllowPackagesWrite = allow
 	require.NoError(t, repo_model.UpdateRepoUnit(t.Context(), cfgUnit))
+}
+
+// setOrgPackagesWrite sets the organization's ceiling for the `packages: write` grant of its repositories: it is an
+// owner setting, and no value is the default, which is no.
+func setOrgPackagesWrite(t *testing.T, orgID int64, allow bool) {
+	t.Helper()
+	const key = "actions.allow_packages_write"
+	if allow {
+		require.NoError(t, user_model.SetUserSetting(t.Context(), orgID, key, "true"))
+	} else {
+		require.NoError(t, user_model.DeleteUserSetting(t.Context(), orgID, key))
+	}
+}
+
+// orgPackagesWrite reads the organization's ceiling.
+func orgPackagesWrite(t *testing.T, orgID int64) bool {
+	t.Helper()
+	value, err := user_model.GetUserSetting(t.Context(), orgID, "actions.allow_packages_write")
+	require.NoError(t, err)
+	return value == "true"
+}
+
+// packagesWriteOfRepo is the repository's own Actions setting.
+func packagesWriteOfRepo(t *testing.T, repoID int64) bool {
+	t.Helper()
+	repo, err := repo_model.GetRepositoryByID(t.Context(), repoID)
+	require.NoError(t, err)
+	cfgUnit, err := repo.GetUnit(t.Context(), unit.TypeActions)
+	require.NoError(t, err)
+	return cfgUnit.ActionsConfig().AllowPackagesWrite
+}
+
+// addActionsUnit gives a repository the Actions unit, which the fixtures of most repositories lack.
+func addActionsUnit(t *testing.T, repoID int64) {
+	t.Helper()
+	require.NoError(t, db.Insert(t.Context(), &repo_model.RepoUnit{RepoID: repoID, Type: unit.TypeActions, Config: &repo_model.ActionsConfig{}}))
 }
 
 type permissionsTask struct {
