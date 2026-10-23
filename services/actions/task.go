@@ -74,7 +74,7 @@ func PickTask(ctx context.Context, runner *actions_model.ActionRunner, requestKe
 			return fmt.Errorf("GetUnit: %w", err)
 		}
 
-		taskContext, err := generateTaskContext(t, unit.ActionsConfig())
+		taskContext, err := generateTaskContextWithAsc(ctx, t, unit.ActionsConfig())
 		if err != nil {
 			return fmt.Errorf("generateTaskContext: %w", err)
 		}
@@ -141,7 +141,7 @@ func RecoverTasks(ctx context.Context, tasks []*actions_model.ActionTask) ([]*ru
 				return fmt.Errorf("GetUnit: %w", err)
 			}
 
-			taskContext, err := generateTaskContext(t, unit.ActionsConfig())
+			taskContext, err := generateTaskContextWithAsc(ctx, t, unit.ActionsConfig())
 			if err != nil {
 				return fmt.Errorf("generateTaskContext: %w", err)
 			}
