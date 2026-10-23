@@ -79,7 +79,17 @@ func initRepo(doer *user_model.User, repo *repo_model.Repository, format git.Obj
 			mode = git.EntryModeSymlink
 		case modeSubmodule:
 			mode = git.EntryModeCommit
-			fallthrough
+			data, err := fs.ReadFile(fsys, path)
+			if err != nil {
+				return err
+			}
+			// The store takes a full commit id, and the commit need not exist. A shorter value, such as an
+			// abbreviated id, stands for an id made from it.
+			id := strings.TrimSpace(string(data))
+			if !format.IsValid(id) {
+				id = git.ComputeBlobHash(format, data).String()
+			}
+			content = strings.NewReader(id)
 		case 0:
 			f, err := fsys.Open(path)
 			if err != nil {
