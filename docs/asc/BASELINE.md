@@ -40,3 +40,12 @@ from the new run, then `comm -23 baseline-pass.txt new-pass.txt` must be empty.
 `tests/{sqlite,pgsql}.ini.tmpl` set `[repository] DEFAULT_BRANCH = master`
 (ASC never uses `main`). Integration tests that assume `main` surface here as
 baseline differences; they are fixed in the test, not by reverting the setting.
+
+## Known failures on the unmodified tag
+
+These fail on `~/fj-base` (`32a533d11`, K01 only) as well, so they are not caused by an ASC unit.
+Run them with `TZ=UTC` to separate a real failure from the timezone one.
+
+| Test | Package | Cause |
+|---|---|---|
+| `TestFlexibleClaimsUnmarshal` | `services/auth/method` | The upstream test builds its expected times with `time.Local` and `time.Date`, which only matches when the host timezone is UTC. It passes with `TZ=UTC` and fails with a local zone such as `Europe/London` in summer. |
