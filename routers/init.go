@@ -28,6 +28,7 @@ import (
 	"forgejo.org/modules/web"
 	actions_router "forgejo.org/routers/api/actions"
 	forgejo "forgejo.org/routers/api/forgejo/v1"
+	"forgejo.org/routers/api/mcp"
 	packages_router "forgejo.org/routers/api/packages"
 	apiv1 "forgejo.org/routers/api/v1"
 	"forgejo.org/routers/common"
@@ -182,6 +183,8 @@ func NormalRoutes() *web.Route {
 	r.Mount("/api/v1", apiv1.Routes())
 	r.Mount("/api/forgejo/v1", forgejo.Routes())
 	r.Mount("/api/internal", private.Routes())
+	r.Mount("/api/mcp", mcp.Routes())
+	r.Get(mcp.ProtectedResourcePath, mcp.ProtectedResource)
 
 	r.Post("/-/fetch-redirect", common.FetchRedirectDelegate)
 
