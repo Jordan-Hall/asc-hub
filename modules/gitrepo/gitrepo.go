@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"forgejo.org/modules/git"
+	_ "forgejo.org/modules/git/ascbackend"   // registers the asc backend that storage_backend=asc selects (configured by ascbackend.Init)
 	_ "forgejo.org/modules/git/gitcli"       // registers the default git backend that git.OpenRepository binds
 	_ "forgejo.org/modules/repostore/gitcli" // registers the default writer that repostore.Default returns
 	"forgejo.org/modules/setting"

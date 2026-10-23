@@ -13,6 +13,7 @@ import (
 	"forgejo.org/modules/cache"
 	"forgejo.org/modules/eventsource"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/git/ascbackend"
 	"forgejo.org/modules/highlight"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/markup"
@@ -107,6 +108,7 @@ func InitWebInstallPage(ctx context.Context) {
 func InitWebInstalled(ctx context.Context) {
 	mustInitCtx(ctx, git.InitFull)
 	log.Info("Git version: %s (home: %s)", git.VersionInfo(), git.HomeDir())
+	mustInitCtx(ctx, ascbackend.Init)
 
 	// Setup i18n
 	translation.InitLocales(ctx)
