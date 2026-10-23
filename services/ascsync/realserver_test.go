@@ -97,6 +97,9 @@ func TestRealAscServeRefusesEverythingByDefault(t *testing.T) {
 	})
 	require.Error(t, err)
 	assert.NotContains(t, err.Error(), token)
+	t.Logf("ImportPush against the real server: %v", err)
+	_, answered := RejectMessage(err)
+	assert.True(t, answered, "the server answered over the wire (permission denied), it was not a transport failure")
 
 	err = SetPullHead(t.Context(), fx.repo, "refs/pull/1/head", c)
 	require.Error(t, err)
