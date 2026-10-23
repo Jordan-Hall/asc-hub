@@ -115,6 +115,7 @@ func loadCommonSettingsFrom(cfg ConfigProvider) error {
 	loadLogGlobalFrom(cfg)
 	loadPWAFrom(cfg)
 	loadAscFrom(cfg)
+	loadMCPFrom(cfg)
 	loadServerFrom(cfg)
 	loadSSHFrom(cfg)
 
