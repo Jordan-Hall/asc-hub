@@ -15,6 +15,19 @@ const (
 	AscAuthzMaxToken    = 4096
 	AscAuthzMaxName     = 255
 	AscAuthzMaxRef      = 1024
+
+	// Limits on the fields of an AscSSHKeyRequest. Key is base64, so
+	// AscSSHKeyMaxKey allows a wire blob of 6 KiB, above any key type that
+	// Forgejo accepts (a 16384-bit RSA key is about 2 KiB).
+	AscSSHKeyMaxType        = 64
+	AscSSHKeyMaxKey         = 8192
+	AscSSHKeyMaxFingerprint = 128
+)
+
+// Kinds of an SSH key that AscSSHKeyResponse reports.
+const (
+	AscSSHKeyKindUser   = "user"
+	AscSSHKeyKindDeploy = "deploy"
 )
 
 // Modes of an AscAuthzRequest.
@@ -36,9 +49,14 @@ type AscAuthzRequest struct {
 	// two-factor respected) and not as a bearer token.
 	User string `json:"user,omitempty"`
 	// KeyID is the ID of an SSH public key or deploy key that asc already verified.
-	KeyID int64  `json:"key_id,omitempty"`
-	Owner string `json:"owner"`
-	Repo  string `json:"repo"`
+	KeyID int64 `json:"key_id,omitempty"`
+	// SSHKey is a public key that asc's SSH listener verified the client holds.
+	// The endpoint finds the key in Forgejo's own tables and decides with the
+	// rights of its owner, or with the one repository of a deploy key. It
+	// excludes Token, User and KeyID.
+	SSHKey *AscSSHKeyRequest `json:"ssh_key,omitempty"`
+	Owner  string            `json:"owner"`
+	Repo   string            `json:"repo"`
 	// Mode is "read" or "write".
 	Mode string `json:"mode"`
 	// Ref is an optional branch name; it selects the protected-branch rule
@@ -79,4 +97,35 @@ func AscAuthz(ctx context.Context, authzReq *AscAuthzRequest) (*AscAuthzResponse
 	reqURL := setting.LocalURL + "api/internal/asc/authz"
 	req := newInternalRequest(ctx, reqURL, "POST", authzReq)
 	return requestJSONResp(req, &AscAuthzResponse{})
+}
+
+// AscSSHKeyRequest names an SSH public key by its algorithm and wire blob, as
+// `asc serve` has them after the SSH library checked the client's signature.
+type AscSSHKeyRequest struct {
+	// Type is the algorithm name: the key type ("ssh-ed25519") or, for an RSA
+	// key, a signature algorithm of it ("rsa-sha2-256", "rsa-sha2-512").
+	Type string `json:"type"`
+	// Key is the standard base64 of the wire blob.
+	Key string `json:"key"`
+	// Fingerprint is optional, "SHA256:<base64>". When set it must match Key.
+	Fingerprint string `json:"fingerprint,omitempty"`
+}
+
+// AscSSHKeyResponse is the answer of the internal SSH key lookup. A key that
+// is unknown, or whose owner may not sign in, gives the zero value: the two
+// look the same to the caller. UserID and Username are those of the owner of a
+// user key and are zero for a deploy key, which belongs to repositories.
+type AscSSHKeyResponse struct {
+	Known    bool   `json:"known"`
+	KeyID    int64  `json:"key_id"`
+	Kind     string `json:"kind"`
+	UserID   int64  `json:"user_id"`
+	Username string `json:"username"`
+}
+
+// AscSSHKey calls the internal SSH key lookup endpoint.
+func AscSSHKey(ctx context.Context, keyReq *AscSSHKeyRequest) (*AscSSHKeyResponse, ResponseExtra) {
+	reqURL := setting.LocalURL + "api/internal/asc/ssh-key"
+	req := newInternalRequest(ctx, reqURL, "POST", keyReq)
+	return requestJSONResp(req, &AscSSHKeyResponse{})
 }
