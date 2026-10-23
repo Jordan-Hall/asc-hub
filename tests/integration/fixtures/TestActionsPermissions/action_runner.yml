@@ -1,0 +1,28 @@
+-
+  id: 1011
+  name: perm-job-packages
+  owner_id: 0
+  repo_id: 0
+  agent_labels: '["perm-job-packages"]'
+
+-
+  id: 1012
+  name: perm-workflow-empty
+  owner_id: 0
+  repo_id: 0
+  agent_labels: '["perm-workflow-empty"]'
+
+-
+  id: 1013
+  name: perm-none
+  owner_id: 0
+  repo_id: 0
+  agent_labels: '["perm-none"]'
+
+-
+  id: 1014
+  name: perm-fork
+  owner_id: 0
+  repo_id: 0
+  agent_labels: '["perm-fork"]'
+
