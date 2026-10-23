@@ -39,6 +39,28 @@ SERVER_URL = https://asc.example.com/
 	loadAscFrom(cfg)
 	assert.True(t, Asc.Enabled)
 	assert.Equal(t, "https://asc.example.com", Asc.ServerURL)
+	assert.Equal(t, DefaultAscShadowSamplePercent, Asc.ShadowSamplePercent)
+	assert.Equal(t, 10, Asc.ShadowSamplePercent)
+
+	cfg, err = NewConfigProviderFromData(`
+[asc]
+ENABLED = true
+SERVER_URL = https://asc.example.com/
+SHADOW_SAMPLE_PERCENT = 25
+`)
+	require.NoError(t, err)
+	loadAscFrom(cfg)
+	assert.Equal(t, 25, Asc.ShadowSamplePercent)
+
+	cfg, err = NewConfigProviderFromData(`
+[asc]
+ENABLED = true
+SERVER_URL = https://asc.example.com/
+SHADOW_SAMPLE_PERCENT = 0
+`)
+	require.NoError(t, err)
+	loadAscFrom(cfg)
+	assert.Zero(t, Asc.ShadowSamplePercent, "zero turns the shadow off")
 
 	cfg, err = NewConfigProviderFromData(`[asc]`)
 	require.NoError(t, err)
