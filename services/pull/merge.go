@@ -10,7 +10,6 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -24,9 +23,11 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/cache"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/references"
 	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/setting"
 	issue_service "forgejo.org/services/issue"
 	notify_service "forgejo.org/services/notify"
@@ -316,55 +317,51 @@ func handleCloseCrossReferences(ctx context.Context, pr *issues_model.PullReques
 
 // doMergeAndPush performs the merge operation without changing any pull information in database and pushes it up to the base repository
 func doMergeAndPush(ctx context.Context, pr *issues_model.PullRequest, doer *user_model.User, mergeStyle repo_model.MergeStyle, expectedHeadCommitID, message string, pushTrigger repo_module.PushTrigger) (string, error) { //nolint:unparam
-	// Clone base repo.
-	mergeCtx, cancel, err := createTemporaryRepoForMerge(ctx, pr, doer, expectedHeadCommitID)
+	writer, err := repostore.Default()
 	if err != nil {
 		return "", err
 	}
-	defer cancel()
+	req, err := newMergeRequest(ctx, pr)
+	if err != nil {
+		return "", err
+	}
 
-	// Merge commits.
 	switch mergeStyle {
-	case repo_model.MergeStyleMerge:
-		if err := doMergeStyleMerge(mergeCtx, message); err != nil {
-			return "", err
-		}
-	case repo_model.MergeStyleRebase, repo_model.MergeStyleRebaseMerge:
-		if err := doMergeStyleRebase(mergeCtx, mergeStyle, message); err != nil {
-			return "", err
-		}
-	case repo_model.MergeStyleSquash:
-		if err := doMergeStyleSquash(mergeCtx, message); err != nil {
-			return "", err
-		}
-	case repo_model.MergeStyleFastForwardOnly:
-		if err := doMergeStyleFastForwardOnly(mergeCtx); err != nil {
-			return "", err
-		}
+	case repo_model.MergeStyleMerge, repo_model.MergeStyleRebase, repo_model.MergeStyleRebaseMerge, repo_model.MergeStyleSquash, repo_model.MergeStyleFastForwardOnly:
+		req.Style = repostore.MergeStyle(mergeStyle)
 	default:
 		return "", models.ErrInvalidMergeStyle{ID: pr.BaseRepo.ID, Style: mergeStyle}
 	}
 
-	// OK we should cache our current head and origin/headbranch
-	mergeHeadSHA, err := git.GetFullCommitID(ctx, mergeCtx.tmpBasePath, "HEAD")
-	if err != nil {
-		return "", fmt.Errorf("Failed to get full commit id for HEAD: %w", err)
+	if expectedHeadCommitID != "" {
+		if req.ExpectHead, err = git.NewIDFromString(expectedHeadCommitID); err != nil {
+			return "", models.ErrSHADoesNotMatch{GivenSHA: expectedHeadCommitID}
+		}
 	}
-	mergeBaseSHA, err := git.GetFullCommitID(ctx, mergeCtx.tmpBasePath, "original_"+baseBranch)
-	if err != nil {
-		return "", fmt.Errorf("Failed to get full commit id for origin/%s: %w", pr.BaseBranch, err)
+
+	sig := doer.NewGitSig()
+	req.Meta = repostore.CommitMeta{Author: sig, Committer: sig, Message: message, Sign: mergeSigner(pr, doer)}
+
+	req.SquashAuthor = func(ctx context.Context, authors []*git.Signature) (*git.Signature, error) {
+		return getAuthorSignatureSquash(ctx, pr, authors)
 	}
-	mergeCommitID, err := git.GetFullCommitID(ctx, mergeCtx.tmpBasePath, baseBranch)
-	if err != nil {
-		return "", fmt.Errorf("Failed to get full commit id for the new merge: %w", err)
+	req.AmendMessage = func(ctx context.Context, last string) (string, error) {
+		// Original repo to read template from.
+		baseGitRepo, err := gitrepo.OpenRepository(ctx, pr.BaseRepo)
+		if err != nil {
+			log.Error("Unable to get Git repo for rebase: %v", err)
+			return "", err
+		}
+		defer baseGitRepo.Close()
+		return getRebaseAmendMessage(ctx, baseGitRepo, pr, last)
 	}
 
 	// Now it's questionable about where this should go - either after or before the push
 	// I think in the interests of data safety - failures to push to the lfs should prevent
 	// the merge as you can always remerge.
 	if setting.LFS.StartServer {
-		if err := LFSPush(ctx, mergeCtx.tmpBasePath, mergeHeadSHA, mergeBaseSHA, pr); err != nil {
-			return "", err
+		req.BeforePublish = func(ctx context.Context, in repostore.PublishInput) error {
+			return LFSPush(ctx, in.GitDir, in.Commit.String(), in.Base.String(), pr)
 		}
 	}
 
@@ -381,96 +378,44 @@ func doMergeAndPush(ctx context.Context, pr *issues_model.PullRequest, doer *use
 		headUser = pr.HeadRepo.Owner
 	}
 
-	mergeCtx.env = repo_module.FullPushingEnvironment(
+	req.HookEnv = append(repo_module.FullPushingEnvironment(
 		headUser,
 		doer,
 		pr.BaseRepo,
 		pr.BaseRepo.Name,
 		pr.ID,
-	)
+	), repo_module.EnvPushTrigger+"="+string(pushTrigger))
+	req.Publish = &repostore.RefUpdate{Repo: req.Base, Ref: req.BaseRef}
 
-	mergeCtx.env = append(mergeCtx.env, repo_module.EnvPushTrigger+"="+string(pushTrigger))
-	pushCmd := git.NewCommand(ctx, "push", "origin").AddDynamicArguments(baseBranch + ":" + git.BranchPrefix + pr.BaseBranch)
-
-	// Push back to upstream.
+	// Merge, and push back to upstream.
 	// This cause an api call to "/api/internal/hook/post-receive/...",
 	// If it's merge, all db transaction and operations should be there but not here to prevent deadlock.
-	if err := pushCmd.Run(mergeCtx.RunOpts()); err != nil {
-		if strings.Contains(mergeCtx.errbuf.String(), "non-fast-forward") {
-			return "", &git.ErrPushOutOfDate{
-				StdOut: mergeCtx.outbuf.String(),
-				StdErr: mergeCtx.errbuf.String(),
-				Err:    err,
-			}
-		} else if strings.Contains(mergeCtx.errbuf.String(), "! [remote rejected]") {
-			err := &git.ErrPushRejected{
-				StdOut: mergeCtx.outbuf.String(),
-				StdErr: mergeCtx.errbuf.String(),
-				Err:    err,
-			}
-			err.GenerateMessage()
-			return "", err
+	result, err := writer.Merge(ctx, *req)
+	if err != nil {
+		return "", mapMergeError(err, pr)
+	}
+	return result.Commit.String(), nil
+}
+
+// getAuthorSignatureSquash gets a commit author signature for squash commits
+func getAuthorSignatureSquash(ctx context.Context, pr *issues_model.PullRequest, authors []*git.Signature) (*git.Signature, error) {
+	if err := pr.Issue.LoadPoster(ctx); err != nil {
+		log.Error("%-v Issue[%d].LoadPoster: %v", pr, pr.Issue.ID, err)
+		return nil, err
+	}
+
+	// Try to get an signature from the same user in one of the commits, as the
+	// poster email might be private or commits might have a different signature
+	// than the primary email address of the poster.
+	for _, author := range authors {
+		commitUser, _ := user_model.GetUserByEmail(ctx, author.Email)
+		if commitUser != nil && commitUser.ID == pr.Issue.Poster.ID {
+			return author, nil
 		}
-		return "", fmt.Errorf("git push: %s", mergeCtx.errbuf.String())
 	}
-	mergeCtx.outbuf.Reset()
-	mergeCtx.errbuf.Reset()
 
-	return mergeCommitID, nil
+	return pr.Issue.Poster.NewGitSig(), nil
 }
-
-func commitAndSignNoAuthor(ctx *mergeContext, message string) error {
-	cmdCommit := git.NewCommand(ctx, "commit").AddOptionFormat("--message=%s", message)
-	if ctx.signKeyID == "" {
-		cmdCommit.AddArguments("--no-gpg-sign")
-	} else {
-		cmdCommit.AddOptionFormat("-S%s", ctx.signKeyID)
-	}
-	if err := cmdCommit.Run(ctx.RunOpts()); err != nil {
-		log.Error("git commit %-v: %v\n%s\n%s", ctx.pr, err, ctx.outbuf.String(), ctx.errbuf.String())
-		return fmt.Errorf("git commit %v: %w\n%s\n%s", ctx.pr, err, ctx.outbuf.String(), ctx.errbuf.String())
-	}
-	return nil
-}
-
-func runMergeCommand(ctx *mergeContext, mergeStyle repo_model.MergeStyle, cmd *git.Command) error {
-	if err := cmd.Run(ctx.RunOpts()); err != nil {
-		// Merge will leave a MERGE_HEAD file in the .git folder if there is a conflict
-		if _, statErr := os.Stat(filepath.Join(ctx.tmpBasePath, ".git", "MERGE_HEAD")); statErr == nil {
-			// We have a merge conflict error
-			log.Debug("MergeConflict %-v: %v\n%s\n%s", ctx.pr, err, ctx.outbuf.String(), ctx.errbuf.String())
-			return models.ErrMergeConflicts{
-				Style:  mergeStyle,
-				StdOut: ctx.outbuf.String(),
-				StdErr: ctx.errbuf.String(),
-				Err:    err,
-			}
-		} else if strings.Contains(ctx.errbuf.String(), "refusing to merge unrelated histories") {
-			log.Debug("MergeUnrelatedHistories %-v: %v\n%s\n%s", ctx.pr, err, ctx.outbuf.String(), ctx.errbuf.String())
-			return models.ErrMergeUnrelatedHistories{
-				Style:  mergeStyle,
-				StdOut: ctx.outbuf.String(),
-				StdErr: ctx.errbuf.String(),
-				Err:    err,
-			}
-		} else if mergeStyle == repo_model.MergeStyleFastForwardOnly && strings.Contains(ctx.errbuf.String(), "Not possible to fast-forward, aborting") {
-			log.Debug("MergeDivergingFastForwardOnly %-v: %v\n%s\n%s", ctx.pr, err, ctx.outbuf.String(), ctx.errbuf.String())
-			return models.ErrMergeDivergingFastForwardOnly{
-				StdOut: ctx.outbuf.String(),
-				StdErr: ctx.errbuf.String(),
-				Err:    err,
-			}
-		}
-		log.Error("git merge %-v: %v\n%s\n%s", ctx.pr, err, ctx.outbuf.String(), ctx.errbuf.String())
-		return fmt.Errorf("git merge %v: %w\n%s\n%s", ctx.pr, err, ctx.outbuf.String(), ctx.errbuf.String())
-	}
-	ctx.outbuf.Reset()
-	ctx.errbuf.Reset()
-
-	return nil
-}
-
-var escapedSymbols = regexp.MustCompile(`([*[?! \\])`)
 
 // IsUserAllowedToMerge check if user is allowed to merge PR with given permissions and branch protections
 func IsUserAllowedToMerge(ctx context.Context, pr *issues_model.PullRequest, p access_model.Permission, user *user_model.User) (bool, error) {

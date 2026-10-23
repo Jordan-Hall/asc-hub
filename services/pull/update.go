@@ -17,6 +17,7 @@ import (
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 )
 
 var ErrPullRequestIsUpdateToDate = errors.New("update failed: already up-to-date")
@@ -157,15 +158,24 @@ func IsUserAllowedToUpdate(ctx context.Context, pull *issues_model.PullRequest, 
 // GetDiverging determines how many commits a PR is ahead or behind the PR base branch
 func GetDiverging(ctx context.Context, pr *issues_model.PullRequest) (*git.DivergeObject, error) {
 	log.Trace("GetDiverging[%-v]: compare commits", pr)
-	prCtx, cancel, err := createTemporaryRepoForPR(ctx, pr)
+	writer, err := repostore.Default()
 	if err != nil {
+		return nil, err
+	}
+	req, err := newMergeRequest(ctx, pr)
+	if err != nil {
+		log.Error("newMergeRequest %-v: %v", pr, err)
+		return nil, err
+	}
+	req.DryRun, req.DivergenceOnly = true, true
+
+	result, err := writer.Merge(ctx, *req)
+	if err != nil {
+		err = mapMergeError(err, pr)
 		if !git_model.IsErrBranchNotExist(err) {
-			log.Error("CreateTemporaryRepoForPR %-v: %v", pr, err)
+			log.Error("GetDiverging %-v: %v", pr, err)
 		}
 		return nil, err
 	}
-	defer cancel()
-
-	diff, err := git.GetDivergingCommits(ctx, prCtx.tmpBasePath, baseBranch, trackingBranch, nil)
-	return &diff, err
+	return &git.DivergeObject{Ahead: result.Ahead, Behind: result.Behind}, nil
 }
