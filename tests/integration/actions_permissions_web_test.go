@@ -100,7 +100,7 @@ func TestActionsPermissionsOrgDefault(t *testing.T) {
 
 	addActionsUnit(t, permsRepoOrg)
 	repoPage := "/org3/repo3/settings/actions/permissions"
-	orgPage := "/org3/settings/actions/permissions"
+	orgPage := "/org/org3/settings/actions/permissions"
 	checkbox := "input[name=allow_packages_write]"
 	owner := loginUser(t, "user2")
 

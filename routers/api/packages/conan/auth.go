@@ -4,6 +4,7 @@
 package conan
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -68,14 +69,17 @@ func (a *Auth) Verify(req *http.Request, w http.ResponseWriter, sess auth.Sessio
 		authScope = optional.Some(scope)
 	}
 
-	u, err := user_model.GetUserByID(req.Context(), uid)
+	u, err := user_model.GetPossibleUserByID(req.Context(), uid)
 	if err != nil {
-		log.Error("GetUserByID:  %v", err)
-		return &auth.AuthenticationError{Error: fmt.Errorf("conan auth GetUserByID failed: %w", err)}
+		log.Error("GetPossibleUserByID: %v", err)
+		return &auth.AuthenticationError{Error: fmt.Errorf("conan auth GetPossibleUserByID failed: %w", err)}
 	}
 
-	// A Conan token issued for a job token is only valid while that job runs.
+	// A Conan token issued for a job token is only valid while that job runs, and the Actions user has no other.
 	authTaskID := optional.None[int64]()
+	if u.IsActions() && taskID == 0 {
+		return &auth.AuthenticationAttemptedIncorrectCredential{Error: errors.New("conan auth: token of the Actions user without a task")}
+	}
 	if taskID != 0 {
 		task, err := actions_model.GetTaskByID(req.Context(), taskID)
 		if err != nil || !u.IsActions() || task.Status != actions_model.StatusRunning {
