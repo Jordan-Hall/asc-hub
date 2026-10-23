@@ -60,6 +60,14 @@ type ProtectedBranch struct {
 	UnprotectedFilePatterns       string   `xorm:"TEXT"`
 	ApplyToAdmins                 bool     `xorm:"NOT NULL DEFAULT false"`
 
+	// AscRelaxedClasses names the asc change classes (SPEC 8.10) that a pull request may consist of
+	// entirely to need AscRelaxedApprovals approvals instead of RequiredApprovals. Empty (the default)
+	// turns the relaxation off. See AscRelaxableClasses for the names; logic is never relaxable.
+	AscRelaxedClasses []string `xorm:"JSON TEXT"`
+	// AscRelaxedApprovals is the approval count for a pull request made only of AscRelaxedClasses.
+	// It can lower the requirement, never raise it.
+	AscRelaxedApprovals int64 `xorm:"NOT NULL DEFAULT 0"`
+
 	CreatedUnix timeutil.TimeStamp `xorm:"created"`
 	UpdatedUnix timeutil.TimeStamp `xorm:"updated"`
 }
@@ -514,4 +522,79 @@ func RemoveTeamIDFromProtectedBranch(ctx context.Context, p *ProtectedBranch, te
 		}
 	}
 	return nil
+}
+
+// Names of the asc change classes (SPEC 8.10) a rule may relax, in asc's order. The class "logic"
+// (everything else, and every file asc cannot prove otherwise) is deliberately absent: it can never
+// be relaxed.
+const (
+	AscClassRenameOnly     = "rename_only"
+	AscClassModeOnly       = "mode_only"
+	AscClassWhitespaceOnly = "whitespace_only"
+	AscClassCommentOnly    = "comment_only"
+	AscClassDocs           = "docs"
+	AscClassGenerated      = "generated"
+	AscClassLockfile       = "lockfile"
+	AscClassTest           = "test"
+)
+
+// maxAscRelaxedApprovals bounds AscRelaxedApprovals as typed in the settings form.
+const maxAscRelaxedApprovals = 1000
+
+var ascRelaxableClasses = []string{
+	AscClassRenameOnly, AscClassModeOnly, AscClassWhitespaceOnly, AscClassCommentOnly,
+	AscClassDocs, AscClassGenerated, AscClassLockfile, AscClassTest,
+}
+
+// AscRelaxableClasses returns the class names a rule may list in AscRelaxedClasses.
+func AscRelaxableClasses() []string { return slices.Clone(ascRelaxableClasses) }
+
+// ErrAscInvalidRelaxation is returned for a relaxation setting that is not accepted.
+var ErrAscInvalidRelaxation = errors.New("invalid asc relaxed approvals setting")
+
+// NormalizeAscRelaxedClasses lower-cases, de-duplicates and orders the given class names. A name that
+// is not relaxable (an unknown name, or "logic") is an error: nothing is silently dropped.
+func NormalizeAscRelaxedClasses(names []string) ([]string, error) {
+	want := make(map[string]bool, len(names))
+	for _, n := range names {
+		n = strings.ToLower(strings.TrimSpace(n))
+		if n == "" {
+			continue
+		}
+		if !slices.Contains(ascRelaxableClasses, n) {
+			return nil, fmt.Errorf("%w: class is not relaxable", ErrAscInvalidRelaxation)
+		}
+		want[n] = true
+	}
+	var out []string
+	for _, n := range ascRelaxableClasses {
+		if want[n] {
+			out = append(out, n)
+		}
+	}
+	return out, nil
+}
+
+// ValidateAscRelaxedApprovals checks the approval count typed for a relaxation.
+func ValidateAscRelaxedApprovals(n int64) error {
+	if n < 0 || n > maxAscRelaxedApprovals {
+		return fmt.Errorf("%w: approvals must be between 0 and %d", ErrAscInvalidRelaxation, maxAscRelaxedApprovals)
+	}
+	return nil
+}
+
+// AscRelaxedClassSet returns the classes this rule relaxes as a set, or nil when the relaxation is
+// off. A stored name that is not relaxable is ignored, so a bad row can only make the rule stricter.
+func (protectBranch *ProtectedBranch) AscRelaxedClassSet() map[string]struct{} {
+	var set map[string]struct{}
+	for _, n := range protectBranch.AscRelaxedClasses {
+		if !slices.Contains(ascRelaxableClasses, n) {
+			continue
+		}
+		if set == nil {
+			set = make(map[string]struct{}, len(ascRelaxableClasses))
+		}
+		set[n] = struct{}{}
+	}
+	return set
 }
