@@ -984,5 +984,13 @@
 	"form.website.valid_url_schemes": "Allowed URL schemes include: %s",
 	"graphs.recent_commits.title": "Number of commits in the past year",
 	"graphs.code_frequency.title": "Code frequency over the history of {0}",
+	"actions.permissions.title": "Job token permissions",
+	"actions.permissions.packages_write.title": "Packages write",
+	"actions.permissions.packages_write.repo_desc": "A workflow with `permissions: packages: write` can give its job token write access to the packages and container images of the owner of this repository. Without this setting the job token never has that access.",
+	"actions.permissions.packages_write.repo_label": "Let job tokens of this repository have write access to the packages of its owner",
+	"actions.permissions.packages_write.org_desc": "The most the repositories of this organization can allow. A repository can turn the setting off for itself, but cannot turn it on while this is off.",
+	"actions.permissions.packages_write.org_label": "Let repositories of this organization allow job tokens write access to the organization's packages",
+	"actions.permissions.packages_write.org_off": "The organization that owns this repository does not allow job tokens write access to its packages. An owner of the organization must allow it first.",
+	"actions.permissions.packages_write.saved": "The job token permissions were saved.",
 	"meta.last_line": "Thank you for translating Forgejo! This line isn't seen by the users but it serves other purposes in the translation management. You can place a fun fact in the translation instead of translating it."
 }

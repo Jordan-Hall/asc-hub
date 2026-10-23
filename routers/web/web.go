@@ -1145,6 +1145,7 @@ func registerRoutes(m *web.Route) {
 
 				m.Group("/actions", func() {
 					m.Get("", org_setting.RedirectToDefaultSetting)
+					m.Combo("/permissions").Get(shared_actions.OrgPermissions).Post(shared_actions.OrgPermissionsPost)
 					addSettingsRunnersRoutes()
 					addSettingsSecretsRoutes()
 					addSettingsVariablesRoutes()
@@ -1333,6 +1334,7 @@ func registerRoutes(m *web.Route) {
 			})
 			m.Group("/actions", func() {
 				m.Get("", shared_actions.RedirectToDefaultSetting)
+				m.Combo("/permissions").Get(shared_actions.RepoPermissions).Post(shared_actions.RepoPermissionsPost)
 				addSettingsRunnersRoutes()
 				addSettingsSecretsRoutes()
 				addSettingsVariablesRoutes()

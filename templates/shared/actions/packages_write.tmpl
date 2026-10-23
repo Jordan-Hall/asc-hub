@@ -1,0 +1,30 @@
+<h4 class="ui top attached header">
+	{{ctx.Locale.Tr "actions.permissions.packages_write.title"}}
+</h4>
+<div class="ui attached segment">
+	<p>
+		{{if .PackagesWriteForOrg}}
+			{{ctx.Locale.Tr "actions.permissions.packages_write.org_desc"}}
+		{{else}}
+			{{ctx.Locale.Tr "actions.permissions.packages_write.repo_desc"}}
+		{{end}}
+	</p>
+	{{if .PackagesWriteOrgOff}}
+		<div class="ui warning message">{{ctx.Locale.Tr "actions.permissions.packages_write.org_off"}}</div>
+	{{end}}
+	<form class="ui form" action="{{.Link}}" method="post">
+		<div class="field">
+			<div class="ui checkbox">
+				<input name="allow_packages_write" type="checkbox" {{if .PackagesWriteOn}}checked{{end}} {{if .PackagesWriteOrgOff}}disabled{{end}}>
+				<label>
+					{{if .PackagesWriteForOrg}}
+						{{ctx.Locale.Tr "actions.permissions.packages_write.org_label"}}
+					{{else}}
+						{{ctx.Locale.Tr "actions.permissions.packages_write.repo_label"}}
+					{{end}}
+				</label>
+			</div>
+		</div>
+		<button class="ui primary button">{{ctx.Locale.Tr "save"}}</button>
+	</form>
+</div>
