@@ -256,6 +256,10 @@ type ActionsConfig struct {
 
 	// Format of the OIDC 'sub' claim that will be used when `enable-openid-connect` is true in an Action.
 	OIDCSubjectFormat OIDCSubjectFormat `json:",omitempty"`
+
+	// AllowPackagesWrite lets a workflow's `permissions: packages: write` give the job token write access to the
+	// package and container registry of the repository's owner. Off by default so the token fails closed.
+	AllowPackagesWrite bool `json:",omitempty"`
 }
 
 func (cfg *ActionsConfig) EnableWorkflow(file string) {

@@ -41,6 +41,10 @@ type ActionTask struct {
 	CommitSHA         string `xorm:"index"`
 	IsForkPullRequest bool
 
+	// Permissions is the effective `permissions:` of the job token, see [TokenPermissions]. Empty when the workflow
+	// has no `permissions:` block.
+	Permissions string `xorm:"TEXT"`
+
 	Token          string `xorm:"-"`
 	TokenHash      string `xorm:"UNIQUE"` // sha256 of token
 	TokenSalt      string
@@ -81,6 +85,11 @@ func init() {
 		}
 		return nil
 	})
+}
+
+// TokenPermissions returns the effective `permissions:` of the job token, nil when the workflow had none.
+func (task *ActionTask) TokenPermissions() (*TokenPermissions, error) {
+	return ParseTokenPermissions(task.Permissions)
 }
 
 func (task *ActionTask) Duration() time.Duration {
@@ -416,6 +425,16 @@ func CreateTaskForRunner(ctx context.Context, runner *ActionRunner, requestKey, 
 		return nil, fmt.Errorf("workflow of job %d: not single workflow", job.ID)
 	} else { //nolint:revive
 		_, workflowJob = gots[0].Job()
+		ceiling := TokenCeiling{IsForkPullRequest: job.IsForkPullRequest}
+		if cfgUnit, err := job.Run.Repo.GetUnit(ctx, unit.TypeActions); err == nil {
+			ceiling.AllowPackagesWrite = cfgUnit.ActionsConfig().AllowPackagesWrite
+		}
+		// Validated when the run was created, so an error here is a corrupt payload and must not start the job.
+		permissions, err := ResolveTokenPermissions(&gots[0].Permissions, &workflowJob.Permissions, ceiling)
+		if err != nil {
+			return nil, fmt.Errorf("permissions of job %d: %w", job.ID, err)
+		}
+		task.Permissions = permissions.String()
 	}
 
 	if _, err := e.Insert(task); err != nil {
