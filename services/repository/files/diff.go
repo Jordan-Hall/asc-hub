@@ -5,9 +5,14 @@ package files
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"strings"
 
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/modules/git"
+	"forgejo.org/modules/repostore"
+	"forgejo.org/modules/setting"
 	"forgejo.org/services/gitdiff"
 )
 
@@ -16,27 +21,53 @@ func GetDiffPreview(ctx context.Context, repo *repo_model.Repository, branch, tr
 	if branch == "" {
 		branch = repo.DefaultBranch
 	}
-	t, err := NewTemporaryUploadRepository(ctx, repo)
+	writer, err := repostore.Default()
 	if err != nil {
 		return nil, err
 	}
-	defer t.Close()
-	if err := t.Clone(branch, true); err != nil {
-		return nil, err
+	_, closeRepo, commit, err := openBranch(ctx, repo, branch)
+	if closeRepo != nil {
+		defer closeRepo()
 	}
-	if err := t.SetDefaultIndex(); err != nil {
-		return nil, err
-	}
-
-	// Add the object to the database
-	objectHash, err := t.HashObject(strings.NewReader(content))
 	if err != nil {
 		return nil, err
 	}
 
-	// Add the object to the index
-	if err := t.AddObjectToIndex("100644", objectHash, treePath); err != nil {
-		return nil, err
+	// The writer streams the diff of the change into the pipe while the parser reads it. The parser may
+	// stop early when the diff is over its limits, and then the writer stops quietly.
+	reader, writerEnd := io.Pipe()
+	type parsed struct {
+		diff *gitdiff.Diff
+		err  error
 	}
-	return t.DiffIndex()
+	done := make(chan parsed, 1)
+	go func() {
+		diff, err := gitdiff.ParsePatch(ctx, setting.Git.MaxGitDiffLines, setting.Git.MaxGitDiffLineCharacters, setting.Git.MaxGitDiffFiles, reader, "")
+		_ = reader.CloseWithError(io.ErrClosedPipe)
+		done <- parsed{diff, err}
+	}()
+
+	result, err := writer.CreateCommit(ctx, repostore.CommitRequest{
+		Repo:   repo.StoreRef(),
+		Parent: commit.ID,
+		Ops: []repostore.FileOp{{
+			Kind:    repostore.OpPut,
+			Path:    treePath,
+			Mode:    git.EntryModeBlob,
+			Content: strings.NewReader(content),
+		}},
+		Preview: writerEnd,
+	})
+	_ = writerEnd.Close()
+	parsedDiff := <-done
+	if err != nil {
+		return nil, convertStoreError(err)
+	}
+	if parsedDiff.err != nil {
+		return nil, fmt.Errorf("ParsePatch: %w", parsedDiff.err)
+	}
+
+	diff := parsedDiff.diff
+	diff.NumFiles, diff.TotalAddition, diff.TotalDeletion = result.Stat.NumFiles, result.Stat.Additions, result.Stat.Deletions
+	return diff, nil
 }

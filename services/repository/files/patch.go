@@ -6,7 +6,6 @@ package files
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"forgejo.org/models"
@@ -15,7 +14,8 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/gitrepo"
-	"forgejo.org/modules/log"
+	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/structs"
 	asymkey_service "forgejo.org/services/asymkey"
 )
@@ -110,20 +110,16 @@ func ApplyDiffPatch(ctx context.Context, repo *repo_model.Repository, doer *user
 
 	author, committer := GetAuthorAndCommitterUsers(opts.Author, opts.Committer, doer)
 
-	t, err := NewTemporaryUploadRepository(ctx, repo)
+	writer, err := repostore.Default()
 	if err != nil {
-		log.Error("NewTemporaryUploadRepository failed: %v", err)
-	}
-	defer t.Close()
-	if err := t.Clone(opts.OldBranch, true); err != nil {
-		return nil, err
-	}
-	if err := t.SetDefaultIndex(); err != nil {
 		return nil, err
 	}
 
 	// Get the commit of the original branch
-	commit, err := t.GetBranchCommit(opts.OldBranch)
+	gitRepo, closeRepo, commit, err := openBranch(ctx, repo, opts.OldBranch)
+	if closeRepo != nil {
+		defer closeRepo()
+	}
 	if err != nil {
 		return nil, err // Couldn't get a commit for the branch
 	}
@@ -132,7 +128,7 @@ func ApplyDiffPatch(ctx context.Context, repo *repo_model.Repository, doer *user
 	if opts.LastCommitID == "" {
 		opts.LastCommitID = commit.ID.String()
 	} else {
-		lastCommitID, err := t.gitRepo.ConvertToGitID(opts.LastCommitID)
+		lastCommitID, err := gitRepo.ConvertToGitID(opts.LastCommitID)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyPatch: Invalid last commit ID: %w", err)
 		}
@@ -145,57 +141,19 @@ func ApplyDiffPatch(ctx context.Context, repo *repo_model.Repository, doer *user
 		}
 	}
 
-	stdout := &strings.Builder{}
-	stderr := &strings.Builder{}
-
-	// `git apply --index` has strange behaviour when running on a bare repo.  As there is no working tree, it shouldn't
-	// attempt to change files in a working tree, and typically doesn't.  But when a conflict occurs between the patch
-	// and the index, `git apply --index` will drop conflicting files into the current working directory as if it were
-	// the working tree.  This creates security risks where the files are actually being dropped into the bare repo.  To
-	// avoid this, we create a temporary working directory for the command where those junk files can be dropped and
-	// then deleted:
-	applyWorkingDir, err := os.MkdirTemp("", "forgejo-applydiffpatch-*")
+	result, err := writer.ApplyPatch(ctx, repostore.PatchRequest{
+		Repo:    repo.StoreRef(),
+		Parent:  commit.ID,
+		Patch:   opts.Content,
+		Meta:    CommitMeta(author, committer, message, opts.Signoff, opts.Dates, CRUDSigner(repo, author)),
+		Update:  branchRef(repo, opts.NewBranch, false),
+		HookEnv: repo_module.PushingEnvironment(doer, repo),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create temp directory: %w", err)
-	}
-	defer os.RemoveAll(applyWorkingDir)
-
-	cmdApply := git.NewCommand(ctx)
-	cmdApply.AddArguments("--git-dir") // sets the path to the repo, like env GIT_DIR; does not change working dir, like `-C` does
-	cmdApply.AddDynamicArguments(t.basePath)
-	cmdApply.AddArguments("apply", "--index", "--recount", "--cached", "--ignore-whitespace", "--whitespace=fix", "--binary", "-3")
-	if err := cmdApply.Run(&git.RunOpts{
-		Dir:    applyWorkingDir, // see note about applyWorkingDir above
-		Stdout: stdout,
-		Stderr: stderr,
-		Stdin:  strings.NewReader(opts.Content),
-	}); err != nil {
-		return nil, fmt.Errorf("Error: Stdout: %s\nStderr: %s\nErr: %w", stdout.String(), stderr.String(), err)
+		return nil, convertStoreError(err)
 	}
 
-	// Now write the tree
-	treeHash, err := t.WriteTree()
-	if err != nil {
-		return nil, err
-	}
-
-	// Now commit the tree
-	var commitHash string
-	if opts.Dates != nil {
-		commitHash, err = t.CommitTreeWithDate("HEAD", author, committer, treeHash, message, opts.Signoff, opts.Dates.Author, opts.Dates.Committer)
-	} else {
-		commitHash, err = t.CommitTree("HEAD", author, committer, treeHash, message, opts.Signoff)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	// Then push this tree to NewBranch
-	if err := t.Push(doer, commitHash, opts.NewBranch, false); err != nil {
-		return nil, err
-	}
-
-	commit, err = t.GetCommit(commitHash)
+	commit, err = gitRepo.GetCommit(result.Commit.String())
 	if err != nil {
 		return nil, err
 	}

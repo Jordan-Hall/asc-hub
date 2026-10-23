@@ -14,6 +14,8 @@ import (
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	files_service "forgejo.org/services/repository/files"
 )
 
@@ -47,14 +49,18 @@ func MapSubmodule(sha string) *fstest.MapFile {
 }
 
 func initRepo(doer *user_model.User, repo *repo_model.Repository, format git.ObjectFormat, fsys fs.FS, commitMessage string) (string, error) {
-	t, err := files_service.NewTemporaryUploadRepository(git.DefaultContext, repo)
+	writer, err := repostore.Default()
 	if err != nil {
 		return "", err
 	}
-	defer t.Close()
-	if err := t.Init(format.Name()); err != nil {
-		return "", err
-	}
+
+	var ops []repostore.FileOp
+	var open []io.Closer
+	defer func() {
+		for _, c := range open {
+			_ = c.Close()
+		}
+	}()
 
 	if err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
@@ -79,34 +85,34 @@ func initRepo(doer *user_model.User, repo *repo_model.Repository, format git.Obj
 			if err != nil {
 				return err
 			}
-			defer f.Close()
+			open = append(open, f)
 
 			content = f
 		default:
 			return fmt.Errorf("unexpected file type in forgery.CreateRepository %s: %s", path, d.Type())
 		}
 
-		// add object to the database
-		objectHash, err := t.HashObject(content)
-		if err != nil {
-			return err
-		}
-		// Add the object to the index
-		return t.AddObjectToIndex(mode.String(), objectHash, path)
+		ops = append(ops, repostore.FileOp{Kind: repostore.OpPut, Path: path, Mode: mode, Content: content})
+		return nil
 	}); err != nil {
 		return "", err
 	}
 
-	treeHash, err := t.WriteTree()
-	if err != nil {
-		return "", err
-	}
-
+	storeRef := repo.StoreRef()
+	storeRef.ObjectFormat = format.Name()
 	now := time.Now()
-	commitHash, err := t.CommitTreeWithDate("", doer, doer, treeHash, commitMessage, false, now, now)
+	result, err := writer.CreateCommit(git.DefaultContext, repostore.CommitRequest{
+		Repo: storeRef,
+		Ops:  ops,
+		Meta: files_service.CommitMeta(doer, doer, commitMessage, false, &files_service.CommitDateOptions{Author: now, Committer: now}, files_service.CRUDSigner(repo, doer)),
+		Update: &repostore.RefUpdate{
+			Repo: storeRef,
+			Ref:  git.BranchPrefix + repo.DefaultBranch,
+		},
+		HookEnv: repo_module.PushingEnvironment(doer, repo),
+	})
 	if err != nil {
 		return "", err
 	}
-
-	return commitHash, t.Push(doer, commitHash, repo.DefaultBranch, false)
+	return result.Commit.String(), nil
 }
