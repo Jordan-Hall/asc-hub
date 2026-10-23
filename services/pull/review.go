@@ -399,7 +399,7 @@ func SubmitReview(ctx context.Context, doer *user_model.User, gitRepo *git.Repos
 		if headCommitID == commitID {
 			stale = false
 		} else {
-			testPatchCtx, err := getTestPatchCtx(ctx, pr, true)
+			testPatchCtx, err := getTestPatchCtx(ctx, pr)
 			defer testPatchCtx.close()
 			if err != nil {
 				return nil, nil, err

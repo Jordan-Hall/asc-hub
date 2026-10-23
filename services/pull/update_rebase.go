@@ -5,47 +5,48 @@ package pull
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	issues_model "forgejo.org/models/issues"
-	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
-	"forgejo.org/modules/git"
 	"forgejo.org/modules/log"
 	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/setting"
 )
 
 // updateHeadByRebaseOnToBase handles updating a PR's head branch by rebasing it on the PR current base branch
 func updateHeadByRebaseOnToBase(ctx context.Context, pr *issues_model.PullRequest, doer *user_model.User) error {
-	// "Clone" base repo and add the cache headers for the head repo and branch
-	mergeCtx, cancel, err := createTemporaryRepoForMerge(ctx, pr, doer, "")
+	writer, err := repostore.Default()
 	if err != nil {
 		return err
 	}
-	defer cancel()
-
-	// Determine the old merge-base before the rebase - we use this for LFS push later on
-	oldMergeBase, _, _ := git.NewCommand(ctx, "merge-base").AddDashesAndList(baseBranch, trackingBranch).RunStdString(&git.RunOpts{Dir: mergeCtx.tmpBasePath})
-	oldMergeBase = strings.TrimSpace(oldMergeBase)
-
-	// Rebase the tracking branch on to the base as the staging branch
-	if err := rebaseTrackingOnToBase(mergeCtx, repo_model.MergeStyleRebaseUpdate); err != nil {
+	req, err := newMergeRequest(ctx, pr)
+	if err != nil {
 		return err
 	}
+	req.Style = repostore.MergeStyleRebaseUpdate
+
+	sig := doer.NewGitSig()
+	req.Meta = repostore.CommitMeta{Author: sig, Committer: sig, Sign: mergeSigner(pr, doer)}
 
 	if setting.LFS.StartServer {
 		// Now we need to ensure that the head repository contains any LFS objects between the new base and the old mergebase
 		// It's questionable about where this should go - either after or before the push
 		// I think in the interests of data safety - failures to push to the lfs should prevent
 		// the push as you can always re-rebase.
-		if err := LFSPush(ctx, mergeCtx.tmpBasePath, baseBranch, oldMergeBase, &issues_model.PullRequest{
-			HeadRepoID: pr.BaseRepoID,
-			BaseRepoID: pr.HeadRepoID,
-		}); err != nil {
-			log.Error("Unable to push lfs objects between %s and %s up to head branch in %-v: %v", baseBranch, oldMergeBase, pr, err)
-			return err
+		req.BeforePublish = func(ctx context.Context, in repostore.PublishInput) error {
+			oldMergeBase := ""
+			if in.MergeBase != nil {
+				oldMergeBase = in.MergeBase.String()
+			}
+			if err := LFSPush(ctx, in.GitDir, in.Base.String(), oldMergeBase, &issues_model.PullRequest{
+				HeadRepoID: pr.BaseRepoID,
+				BaseRepoID: pr.HeadRepoID,
+			}); err != nil {
+				log.Error("Unable to push lfs objects between %s and %s up to head branch in %-v: %v", in.Base, oldMergeBase, pr, err)
+				return err
+			}
+			return nil
 		}
 	}
 
@@ -62,46 +63,20 @@ func updateHeadByRebaseOnToBase(ctx context.Context, pr *issues_model.PullReques
 		headUser = pr.HeadRepo.Owner
 	}
 
-	pushCmd := git.NewCommand(ctx, "push", "-f", "head_repo").
-		AddDynamicArguments(stagingBranch + ":" + git.BranchPrefix + pr.HeadBranch)
-
 	// Push back to the head repository.
 	// TODO: this cause an api call to "/api/internal/hook/post-receive/...",
 	//       that prevents us from doint the whole merge in one db transaction
-	mergeCtx.outbuf.Reset()
-	mergeCtx.errbuf.Reset()
+	req.HookEnv = repo_module.FullPushingEnvironment(
+		headUser,
+		doer,
+		pr.HeadRepo,
+		pr.HeadRepo.Name,
+		pr.ID,
+	)
+	req.Publish = &repostore.RefUpdate{Repo: req.Head, Ref: pr.GetGitHeadBranchRefName(), Force: true}
 
-	if err := pushCmd.Run(&git.RunOpts{
-		Env: repo_module.FullPushingEnvironment(
-			headUser,
-			doer,
-			pr.HeadRepo,
-			pr.HeadRepo.Name,
-			pr.ID,
-		),
-		Dir:    mergeCtx.tmpBasePath,
-		Stdout: mergeCtx.outbuf,
-		Stderr: mergeCtx.errbuf,
-	}); err != nil {
-		if strings.Contains(mergeCtx.errbuf.String(), "non-fast-forward") {
-			return &git.ErrPushOutOfDate{
-				StdOut: mergeCtx.outbuf.String(),
-				StdErr: mergeCtx.errbuf.String(),
-				Err:    err,
-			}
-		} else if strings.Contains(mergeCtx.errbuf.String(), "! [remote rejected]") {
-			err := &git.ErrPushRejected{
-				StdOut: mergeCtx.outbuf.String(),
-				StdErr: mergeCtx.errbuf.String(),
-				Err:    err,
-			}
-			err.GenerateMessage()
-			return err
-		}
-		return fmt.Errorf("git push: %s", mergeCtx.errbuf.String())
+	if _, err := writer.Merge(ctx, *req); err != nil {
+		return mapMergeError(err, pr)
 	}
-	mergeCtx.outbuf.Reset()
-	mergeCtx.errbuf.Reset()
-
 	return nil
 }

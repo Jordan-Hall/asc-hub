@@ -42,18 +42,12 @@ func NewPullRequest(ctx context.Context, repo *repo_model.Repository, issue *iss
 		return user_model.ErrBlockedByUser
 	}
 
-	testPatchCtx, err := testPatch(ctx, pr)
-	defer testPatchCtx.close()
+	result, err := testPatch(ctx, pr, true)
 	if err != nil {
 		return fmt.Errorf("testPatch: %w", err)
 	}
-
-	divergence, err := git.GetDivergingCommits(ctx, testPatchCtx.gitRepo.Path, testPatchCtx.baseRev, testPatchCtx.headRev, testPatchCtx.env)
-	if err != nil {
-		return fmt.Errorf("GetDivergingCommits: %w", err)
-	}
-	pr.CommitsAhead = divergence.Ahead
-	pr.CommitsBehind = divergence.Behind
+	pr.CommitsAhead = result.Ahead
+	pr.CommitsBehind = result.Behind
 
 	assigneeCommentMap := make(map[int64]*issues_model.Comment)
 
@@ -381,7 +375,7 @@ func ValidatePullRequest(ctx context.Context, pr *issues_model.PullRequest, newC
 		return
 	}
 
-	testPatchCtx, err := getTestPatchCtx(ctx, pr, true)
+	testPatchCtx, err := getTestPatchCtx(ctx, pr)
 	defer testPatchCtx.close()
 	if err != nil {
 		log.Error("testPatchCtx: %v", err)
