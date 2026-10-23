@@ -442,6 +442,11 @@ func handleWorkflows(
 				jobparser.ExpandInstanceReusableWorkflows(expandInstanceReusableWorkflows(ctx)),
 				jobparser.WithGitContext(generateGiteaContextForRun(run)),
 			)
+			if err == nil {
+				// A `permissions:` that cannot be understood fails the run, rather than the job getting more or less than
+				// the workflow's author meant.
+				err = validateJobsTokenPermissions(jobs)
+			}
 			if err != nil {
 				log.Info("jobparser.Parse: invalid workflow, setting job status to failed: %v", err)
 				errorCode = actions_model.ErrorCodeJobParsingError

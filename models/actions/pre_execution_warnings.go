@@ -18,7 +18,8 @@ type PreExecutionWarning int64
 // PreExecutionWarningDetails, and so they can't be changed or reordered without creating a migration or a new error
 // code to represent the new argument details.
 const (
-	WarningCodePermissions PreExecutionWarning = iota + 1
+	WarningCodePermissions              PreExecutionWarning = iota + 1 // obsolete: Forgejo ignored every `permissions:`
+	WarningCodePermissionsIgnoredScopes                                // some scopes of `permissions:` are not enforced by Forgejo
 )
 
 func TranslatePreExecutionWarning(lang translation.Locale, run *ActionRun) []template.HTML {
@@ -27,6 +28,8 @@ func TranslatePreExecutionWarning(lang translation.Locale, run *ActionRun) []tem
 		switch code {
 		case WarningCodePermissions:
 			warnings[i] = lang.Tr("actions.workflow.permissions_warning", run.PreExecutionWarningDetails[i]...)
+		case WarningCodePermissionsIgnoredScopes:
+			warnings[i] = lang.Tr("actions.workflow.permissions_ignored_scopes_warning", run.PreExecutionWarningDetails[i]...)
 		default:
 			warnings[i] = template.HTML(html.EscapeString(fmt.Sprintf("unsupported warning: code=%v details=%#v", code, run.PreExecutionWarningDetails[i])))
 		}
