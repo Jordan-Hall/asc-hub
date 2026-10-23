@@ -18,7 +18,7 @@ type StorageBackend string
 const (
 	// StorageBackendGit serves the repository from its bare git directory (the default).
 	StorageBackendGit StorageBackend = "git"
-	// StorageBackendDual serves from the bare git directory; K11 adds a sampled shadow read against asc.
+	// StorageBackendDual serves from the bare git directory and repeats a sample of reads against asc.
 	StorageBackendDual StorageBackend = "dual"
 	// StorageBackendAsc is a repository whose truth is an asc server.
 	StorageBackendAsc StorageBackend = "asc"
@@ -26,6 +26,9 @@ const (
 
 // ascBackendName is the name under which K10 registers the asc-backed git.Backend.
 const ascBackendName = "asc"
+
+// dualBackendName is the name under which K11 registers the shadow-comparing git.Backend.
+const dualBackendName = "dual"
 
 var (
 	// ErrUnknownStorageBackend is returned for a storage_backend value that is not git, dual or asc.
@@ -70,7 +73,9 @@ func StorageBackendOf(repo Repository) (StorageBackend, error) {
 // selectBackend returns the name of the git.Backend that serves repo. This is the one place
 // that maps storage_backend to a backend; everything opens repositories through OpenRepository.
 //
-//   - git, dual: gitcli on the repository directory. dual's shadow comparison (K11) wraps this.
+//   - git: gitcli on the repository directory.
+//   - dual: the "dual" backend (K11): gitcli on the repository directory answers every call and a sample
+//     of reads is repeated against asc and compared. Without it, plain gitcli.
 //   - asc: the "asc" backend (K10) when it is linked in. Until then the repository directory is
 //     the git bridge (Stage 2, "forgejo_reads=git") and gitcli reads it. Once "asc" is linked in,
 //     an asc repository never falls back to git: an asc failure is an error, not a stale read.
@@ -90,6 +95,9 @@ func selectBackend(repo Repository) (string, error) {
 		}
 		if sb == StorageBackendAsc && slices.Contains(git.Backends(), ascBackendName) {
 			return ascBackendName, nil
+		}
+		if sb == StorageBackendDual && slices.Contains(git.Backends(), dualBackendName) {
+			return dualBackendName, nil
 		}
 		return git.DefaultBackendName, nil
 	}
