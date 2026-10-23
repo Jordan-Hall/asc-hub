@@ -121,7 +121,9 @@ func Authenticate(ctx *context.Context) {
 	scope := ctx.Authentication.Scope().ValueOrZeroValue()
 	exp := ctx.Authentication.ExpiresAt()
 
-	token, err := packages_service.CreateAuthorizationToken(ctx.Doer, scope, exp)
+	// The Conan token of a job token carries its task, so that the permissions of the task apply to every request.
+	_, taskID := ctx.Authentication.ActionsTaskID().Get()
+	token, err := packages_service.CreateTaskAuthorizationToken(ctx.Doer, scope, exp, taskID)
 	if err != nil {
 		apiError(ctx, http.StatusInternalServerError, err)
 		return
