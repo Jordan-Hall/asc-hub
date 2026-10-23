@@ -30,8 +30,22 @@ message (`permissions: unknown ...`) before any job starts.
 
 ## The setting
 
-`AllowPackagesWrite` in the config of the repository's Actions unit (JSON, default `false`). It is read again on every
-package request, so turning it off ends the grant of a job that is running. There is no web form for it yet.
+The grant of `packages: write` needs two settings, and both are off by default.
+
+- The repository: `AllowPackagesWrite` in the config of the repository's Actions unit (JSON). A repository admin sets it
+  in Settings -> Actions -> Job token permissions.
+- The owner. A user's repository is not limited by its owner. For an organization, the owner setting
+  `actions.allow_packages_write` (an organization owner sets it in Settings -> Actions -> Job token permissions) is the
+  most its repositories can allow, and the default is no. A repository can only narrow it: it cannot turn the setting on
+  while the organization says no, and the page of the repository shows the box disabled.
+
+`models/actions.PackagesWriteAllowed` is the one decision, for task creation and for every package request. Both
+settings are read again on every package request, so turning either off ends the grant of a job that is running. An
+error while reading either one is no. The pages are admin-only routes (repository admin, organization owner), and the
+POST is refused when it is cross-origin.
+
+An organization repository that had `AllowPackagesWrite` set before the owner setting existed loses the grant until an
+owner of the organization allows it.
 
 ## What a token with `contents: none` can still do
 
@@ -45,5 +59,5 @@ and every other repository are refused.
   (`models/actions/token_permissions.go`, `CreateTaskForRunner`). Empty means no block.
 - `access_model.GetActionRepoPermission` narrows the unit modes of the task: API (`RepoAccess`), git over HTTP, LFS
   and `asc`. The git push check passes the `contents` mode to the pre-receive hook.
-- `packages_service.DeterminePackageAccessModeForTask` gives the package grant. A container registry token made from a
-  job token carries the task (`TaskID` claim) and stops working when the task is no longer running.
+- `packages_service.DeterminePackageAccessModeForTask` gives the package grant. A container registry token and a Conan token made
+  from a job token carry the task (`TaskID` claim) and stop working when the task is no longer running.
