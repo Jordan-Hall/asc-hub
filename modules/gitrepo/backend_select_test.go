@@ -12,6 +12,7 @@ import (
 
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/git/ascbackend"
+	"forgejo.org/modules/git/dual"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/test"
 
@@ -72,23 +73,24 @@ func TestSelectBackend(t *testing.T) {
 	})
 
 	setting.Asc.Enabled = true
-	t.Run("dual reads the git directory", func(t *testing.T) {
+	// gitrepo links in the dual backend (modules/git/dual): git answers and a sample of reads is compared with asc.
+	require.Contains(t, git.Backends(), dualBackendName)
+	require.Equal(t, dual.Name, dualBackendName)
+	t.Run("dual is served from git with a shadow", func(t *testing.T) {
 		name, err := sel("dual")
 		require.NoError(t, err)
-		assert.Equal(t, git.DefaultBackendName, name)
+		assert.Equal(t, dualBackendName, name)
 	})
 	// gitrepo links in the asc backend (modules/git/ascbackend), so an asc repository never reads the git directory.
 	require.Contains(t, git.Backends(), ascBackendName)
 	require.Equal(t, ascbackend.Name, ascBackendName)
-	t.Run("asc uses the asc backend, dual and git do not", func(t *testing.T) {
+	t.Run("asc uses the asc backend, git does not", func(t *testing.T) {
 		name, err := sel("asc")
 		require.NoError(t, err)
 		assert.Equal(t, ascBackendName, name)
-		for _, b := range []string{"git", "dual"} {
-			name, err = sel(b)
-			require.NoError(t, err)
-			assert.Equal(t, git.DefaultBackendName, name, b)
-		}
+		name, err = sel("git")
+		require.NoError(t, err)
+		assert.Equal(t, git.DefaultBackendName, name)
 	})
 	t.Run("an asc backend with no client is an error, not a git read", func(t *testing.T) {
 		ascbackend.Reset()
