@@ -33,6 +33,7 @@ import (
 	"forgejo.org/routers/common"
 	"forgejo.org/routers/private"
 	web_routers "forgejo.org/routers/web"
+	web_auth "forgejo.org/routers/web/auth"
 	actions_service "forgejo.org/services/actions"
 	auth_method "forgejo.org/services/auth/method"
 	"forgejo.org/services/auth/source/oauth2"
@@ -142,6 +143,7 @@ func InitWebInstalled(ctx context.Context) {
 
 	mustInitCtx(ctx, models.Init)
 	mustInitCtx(ctx, auth_model.Init)
+	mustInitCtx(ctx, web_auth.EnsureAscIdeClient)
 	mustInitCtx(ctx, repo_service.Init)
 
 	// Booting long running goroutines.
