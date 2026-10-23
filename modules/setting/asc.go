@@ -17,17 +17,27 @@ var Asc = struct {
 	Enabled bool `ini:"ENABLED"`
 	// ServerURL is the public base URL of `asc serve`, announced by /.well-known/asc.
 	ServerURL string `ini:"SERVER_URL"`
+	// ShadowSamplePercent is the share (0 to 100) of read calls of a storage_backend=dual repository that
+	// are repeated against asc and compared (modules/git/dual). Zero turns the shadow off.
+	ShadowSamplePercent int `ini:"SHADOW_SAMPLE_PERCENT"`
 }{}
+
+// DefaultAscShadowSamplePercent is the default of [asc] SHADOW_SAMPLE_PERCENT.
+const DefaultAscShadowSamplePercent = 10
 
 func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.Enabled = false
 	Asc.ServerURL = ""
+	Asc.ShadowSamplePercent = DefaultAscShadowSamplePercent
 	sec := rootCfg.Section("asc")
 	if err := sec.MapTo(&Asc); err != nil {
 		log.Fatal("Failed to map [asc] settings: %v", err)
 	}
 	if !Asc.Enabled {
 		return
+	}
+	if Asc.ShadowSamplePercent < 0 || Asc.ShadowSamplePercent > 100 {
+		log.Fatal("Invalid [asc] SHADOW_SAMPLE_PERCENT: must be between 0 and 100")
 	}
 	serverURL, err := validateAscServerURL(Asc.ServerURL)
 	if err != nil {
