@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"path"
-	"slices"
 	"strings"
 	"time"
 
@@ -20,6 +19,8 @@ import (
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/lfs"
 	"forgejo.org/modules/log"
+	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/structs"
 	asymkey_service "forgejo.org/services/asymkey"
@@ -153,123 +154,106 @@ func ChangeRepoFiles(ctx context.Context, repo *repo_model.Repository, doer *use
 
 	author, committer := GetAuthorAndCommitterUsers(opts.Author, opts.Committer, doer)
 
-	t, err := NewTemporaryUploadRepository(ctx, repo)
+	writer, err := repostore.Default()
 	if err != nil {
-		log.Error("NewTemporaryUploadRepository failed: %v", err)
+		return nil, err
 	}
-	defer t.Close()
+
+	// The commit the change builds on. A repository without commits has none.
+	var base *git.Commit
 	hasOldBranch := true
-	if err := t.Clone(opts.OldBranch, true); err != nil {
+	if gitRepo.IsBranchExist(opts.OldBranch) {
+		if base, err = gitRepo.GetBranchCommit(opts.OldBranch); err != nil {
+			return nil, err
+		}
+	} else {
+		missing := git.ErrBranchNotExist{Name: opts.OldBranch}
 		for _, file := range opts.Files {
 			if file.Operation == "delete" {
-				return nil, err
+				return nil, missing
 			}
 		}
-		if !git.IsErrBranchNotExist(err) || !repo.IsEmpty {
-			return nil, err
-		}
-		if err := t.Init(repo.ObjectFormatName); err != nil {
-			return nil, err
+		if !repo.IsEmpty {
+			return nil, missing
 		}
 		hasOldBranch = false
 		opts.LastCommitID = ""
 	}
-	if hasOldBranch {
-		if err := t.SetDefaultIndex(); err != nil {
-			return nil, err
-		}
-	}
 
 	for _, file := range opts.Files {
 		if file.Operation == "delete" {
-			// Get the files in the index
-			filesInIndex, err := t.LsFiles(file.TreePath)
+			// Find the file we want to delete in the tree
+			entry, err := base.GetTreeEntryByPath(file.Options.treePath)
 			if err != nil {
+				if git.IsErrNotExist(err) {
+					return nil, models.ErrRepoFileDoesNotExist{Path: file.TreePath}
+				}
 				return nil, fmt.Errorf("DeleteRepoFile: %w", err)
 			}
-
-			// Find the file we want to delete in the index
-			inFilelist := slices.Contains(filesInIndex, file.TreePath)
-			if !inFilelist {
-				return nil, models.ErrRepoFileDoesNotExist{
-					Path: file.TreePath,
-				}
+			if entry.IsDir() {
+				return nil, models.ErrRepoFileDoesNotExist{Path: file.TreePath}
 			}
 		}
 	}
 
 	if hasOldBranch {
-		// Get the current commit of the original branch
-		actualBaseCommit, err := t.GetBranchCommit(opts.OldBranch)
-		if err != nil {
-			return nil, err // Couldn't get a commit for the branch
-		}
-
 		var lastKnownCommit git.ObjectID // when nil, the sha provided in the opts.Files must match the current blob-sha
 		if opts.OldBranch != opts.NewBranch {
 			// when creating a new branch, ignore if a file has been changed in the meantime
 			// (such changes will visible when doing the merge)
-			lastKnownCommit = actualBaseCommit.ID
+			lastKnownCommit = base.ID
 		} else if opts.LastCommitID != "" {
-			lastKnownCommit, err = t.gitRepo.ConvertToGitID(opts.LastCommitID)
+			lastKnownCommit, err = gitRepo.ConvertToGitID(opts.LastCommitID)
 			if err != nil {
 				return nil, fmt.Errorf("ConvertToSHA1: Invalid last commit ID: %w", err)
 			}
 		}
 
 		for _, file := range opts.Files {
-			if err := handleCheckErrors(file, actualBaseCommit, lastKnownCommit); err != nil {
+			if err := handleCheckErrors(file, base, lastKnownCommit); err != nil {
 				return nil, err
 			}
 		}
 
-		if opts.LastCommitID == "" {
-			// needed for t.CommitTree
-			opts.LastCommitID = actualBaseCommit.ID.String()
+		if err := checkLastCommit(gitRepo, base, opts.LastCommitID, opts.OldBranch == opts.NewBranch); err != nil {
+			return nil, err
 		}
 	}
 
-	contentStore := lfs.NewContentStore()
+	changes := &fileChanges{gitRepo: gitRepo, base: base}
 	for _, file := range opts.Files {
 		switch file.Operation {
 		case "create", "update":
-			if err := CreateOrUpdateFile(ctx, t, file, contentStore, repo.ID, hasOldBranch); err != nil {
+			if err := changes.createOrUpdate(file, repo.ID, hasOldBranch); err != nil {
 				return nil, err
 			}
 		case "delete":
-			// Remove the file from the index
-			if err := t.RemoveFilesFromIndex(file.TreePath); err != nil {
-				return nil, err
-			}
+			changes.remove(file.Options.treePath)
 		default:
 			return nil, fmt.Errorf("invalid file operation: %s %s, supported operations are create, update, delete", file.Operation, file.Options.treePath)
 		}
 	}
 
-	// Now write the tree
-	treeHash, err := t.WriteTree()
+	// Build the commit and push it to NewBranch
+	var parent git.ObjectID
+	if base != nil {
+		parent = base.ID
+	}
+	result, err := writer.CreateCommit(ctx, repostore.CommitRequest{
+		Repo:          repo.StoreRef(),
+		Parent:        parent,
+		Ops:           changes.ops,
+		Meta:          CommitMeta(author, committer, message, opts.Signoff, opts.Dates, CRUDSigner(repo, author)),
+		Update:        branchRef(repo, opts.NewBranch, opts.ForceOverwriteNewBranch),
+		BeforePublish: changes.storeLFSObjects(ctx),
+		HookEnv:       repo_module.PushingEnvironment(doer, repo),
+	})
 	if err != nil {
-		return nil, err
-	}
-
-	// Now commit the tree
-	var commitHash string
-	if opts.Dates != nil {
-		commitHash, err = t.CommitTreeWithDate(opts.LastCommitID, author, committer, treeHash, message, opts.Signoff, opts.Dates.Author, opts.Dates.Committer)
-	} else {
-		commitHash, err = t.CommitTree(opts.LastCommitID, author, committer, treeHash, message, opts.Signoff)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	// Then push this tree to NewBranch
-	if err := t.Push(doer, commitHash, opts.NewBranch, opts.ForceOverwriteNewBranch); err != nil {
 		log.Error("%T %v", err, err)
-		return nil, err
+		return nil, convertStoreError(err)
 	}
 
-	commit, err := t.GetCommit(commitHash)
+	commit, err := gitRepo.GetCommit(result.Commit.String())
 	if err != nil {
 		return nil, err
 	}
@@ -377,89 +361,137 @@ func handleCheckErrors(file *ChangeRepoFile, actualBaseCommit *git.Commit, lastK
 	return nil
 }
 
-// CreateOrUpdateFile handles creating or updating a file for ChangeRepoFiles
-func CreateOrUpdateFile(ctx context.Context, t *TemporaryUploadRepository, file *ChangeRepoFile, contentStore *lfs.ContentStore, repoID int64, hasOldBranch bool) error {
-	// Get the two paths (might be the same if not moving) from the index if they exist
-	filesInIndex, err := t.LsFiles(file.TreePath, file.FromTreePath)
-	if err != nil {
-		return fmt.Errorf("UpdateRepoFile: %w", err)
+// lfsObject is a file whose content goes to the LFS store instead of the tree.
+type lfsObject struct {
+	meta    *git_model.LFSMetaObject
+	content io.ReadSeeker
+}
+
+// fileChanges collects the file operations of a request. It tracks which paths the request has changed
+// so that a later operation sees the effect of an earlier one, as it would in an index.
+type fileChanges struct {
+	gitRepo *git.Repository
+	base    *git.Commit // nil for a repository without commits
+	ops     []repostore.FileOp
+	state   map[string]bool // path -> whether a file is present, for the paths this request changed
+	lfs     []lfsObject
+}
+
+// present reports whether a file is at the path, counting the changes made so far.
+func (c *fileChanges) present(treePath string) (bool, error) {
+	if v, ok := c.state[treePath]; ok {
+		return v, nil
 	}
+	if c.base == nil {
+		return false, nil
+	}
+	entry, err := c.base.GetTreeEntryByPath(treePath)
+	if err != nil {
+		if git.IsErrNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return !entry.IsDir(), nil
+}
+
+func (c *fileChanges) set(treePath string, present bool) {
+	if c.state == nil {
+		c.state = map[string]bool{}
+	}
+	c.state[treePath] = present
+}
+
+// remove deletes a file.
+func (c *fileChanges) remove(treePath string) {
+	c.ops = append(c.ops, repostore.FileOp{Kind: repostore.OpDelete, Path: treePath})
+	c.set(treePath, false)
+}
+
+// createOrUpdate handles creating or updating a file for ChangeRepoFiles
+func (c *fileChanges) createOrUpdate(file *ChangeRepoFile, repoID int64, hasOldBranch bool) error {
+	treePath, fromTreePath := file.Options.treePath, file.Options.fromTreePath
+
 	// If is a new file (not updating) then the given path shouldn't exist
 	if file.Operation == "create" {
-		if slices.Contains(filesInIndex, file.TreePath) {
-			return models.ErrRepoFileAlreadyExists{
-				Path: file.TreePath,
-			}
+		exists, err := c.present(treePath)
+		if err != nil {
+			return fmt.Errorf("UpdateRepoFile: %w", err)
+		}
+		if exists {
+			return models.ErrRepoFileAlreadyExists{Path: file.TreePath}
 		}
 	}
 
 	// Remove the old path from the tree
-	if file.Options.fromTreePath != file.Options.treePath && len(filesInIndex) > 0 {
-		for _, indexFile := range filesInIndex {
-			if indexFile == file.Options.fromTreePath {
-				if err := t.RemoveFilesFromIndex(file.FromTreePath); err != nil {
-					return err
-				}
-			}
+	if fromTreePath != treePath {
+		exists, err := c.present(fromTreePath)
+		if err != nil {
+			return fmt.Errorf("UpdateRepoFile: %w", err)
+		}
+		if exists {
+			c.remove(fromTreePath)
 		}
 	}
 
-	treeObjectContentReader := file.ContentReader
-	var lfsMetaObject *git_model.LFSMetaObject
+	treeObjectContentReader := io.Reader(file.ContentReader)
 	if setting.LFS.StartServer && hasOldBranch {
 		// Check there is no way this can return multiple infos
-		filterAttribute, err := t.gitRepo.GitAttributeFirst("", file.Options.treePath, "filter")
+		filterAttribute, err := c.gitRepo.GitAttributeFirst(c.base.ID.String(), treePath, "filter")
 		if err != nil {
 			return err
 		}
 
 		if filterAttribute == "lfs" {
 			// OK so we are supposed to LFS this data!
-			pointer, err := lfs.GeneratePointer(treeObjectContentReader)
+			pointer, err := lfs.GeneratePointer(file.ContentReader)
 			if err != nil {
 				return err
 			}
-			lfsMetaObject = &git_model.LFSMetaObject{Pointer: pointer, RepositoryID: repoID}
+			c.lfs = append(c.lfs, lfsObject{
+				meta:    &git_model.LFSMetaObject{Pointer: pointer, RepositoryID: repoID},
+				content: file.ContentReader,
+			})
 			treeObjectContentReader = strings.NewReader(pointer.StringContent())
 		}
 	}
 
-	// Add the object to the database
-	objectHash, err := t.HashObject(treeObjectContentReader)
-	if err != nil {
-		return err
-	}
+	c.ops = append(c.ops, repostore.FileOp{Kind: repostore.OpPut, Path: treePath, Mode: file.Options.entryMode, Content: treeObjectContentReader})
+	c.set(treePath, true)
+	return nil
+}
 
-	// Add the object to the index
-	if err := t.AddObjectToIndex(file.Options.entryMode.String(), objectHash, file.Options.treePath); err != nil {
-		return err
+// storeLFSObjects returns the step that runs once the commit exists and before it is published:
+// it records the LFS objects the commit refers to and puts their content in the store.
+func (c *fileChanges) storeLFSObjects(ctx context.Context) repostore.BeforePublish {
+	if len(c.lfs) == 0 {
+		return nil
 	}
-
-	if lfsMetaObject != nil {
-		// We have an LFS object - create it
-		lfsMetaObject, err = git_model.NewLFSMetaObject(ctx, lfsMetaObject.RepositoryID, lfsMetaObject.Pointer)
-		if err != nil {
-			return err
-		}
-		exist, err := contentStore.Exists(lfsMetaObject.Pointer)
-		if err != nil {
-			return err
-		}
-		if !exist {
-			_, err := file.ContentReader.Seek(0, io.SeekStart)
+	contentStore := lfs.NewContentStore()
+	return func(context.Context, repostore.PublishInput) error {
+		for _, object := range c.lfs {
+			meta, err := git_model.NewLFSMetaObject(ctx, object.meta.RepositoryID, object.meta.Pointer)
 			if err != nil {
 				return err
 			}
-			if err := contentStore.Put(lfsMetaObject.Pointer, file.ContentReader); err != nil {
-				if _, err2 := git_model.RemoveLFSMetaObjectByOid(ctx, repoID, lfsMetaObject.Oid); err2 != nil {
-					return fmt.Errorf("unable to remove failed inserted LFS object %s: %v (Prev Error: %w)", lfsMetaObject.Oid, err2, err)
-				}
+			exist, err := contentStore.Exists(meta.Pointer)
+			if err != nil {
 				return err
 			}
+			if !exist {
+				if _, err := object.content.Seek(0, io.SeekStart); err != nil {
+					return err
+				}
+				if err := contentStore.Put(meta.Pointer, object.content); err != nil {
+					if _, err2 := git_model.RemoveLFSMetaObjectByOid(ctx, object.meta.RepositoryID, meta.Oid); err2 != nil {
+						return fmt.Errorf("unable to remove failed inserted LFS object %s: %v (Prev Error: %w)", meta.Oid, err2, err)
+					}
+					return err
+				}
+			}
 		}
+		return nil
 	}
-
-	return nil
 }
 
 // VerifyBranchProtection verify the branch protection for modifying the given treePath on the given branch
