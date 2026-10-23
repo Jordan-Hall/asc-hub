@@ -271,6 +271,16 @@ func (repo *Repository) Backend() (Backend, error) {
 	return repo.backend, nil
 }
 
+// NewBackend creates the backend registered under name for repo without binding it to repo. A backend that
+// wraps others (modules/git/dual) uses it to build the backends it combines.
+func NewBackend(name string, repo *Repository) (Backend, error) {
+	factory, err := backendFactory(name)
+	if err != nil {
+		return nil, err
+	}
+	return factory(repo)
+}
+
 // OpenRepositoryWithBackend opens the repository at repoPath like OpenRepository, bound to the named backend.
 func OpenRepositoryWithBackend(ctx context.Context, repoPath, backend string) (*Repository, error) {
 	repo, err := openRepository(ctx, repoPath)
