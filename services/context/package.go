@@ -11,6 +11,7 @@ import (
 	"forgejo.org/models/perm"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/templates"
+	"forgejo.org/services/auth"
 	packages_service "forgejo.org/services/packages"
 )
 
@@ -25,6 +26,8 @@ type packageAssignmentCtx struct {
 	*Base
 	Doer        *user_model.User
 	ContextUser *user_model.User
+	// Authentication tells whether the request is made with the token of an Actions task.
+	Authentication auth.AuthenticationResult
 }
 
 // PackageAssignment returns a middleware to handle Context.Package assignment
@@ -41,7 +44,7 @@ func PackageAssignment() func(ctx *Context) {
 				ctx.ServerError(title, err)
 			}
 		}
-		paCtx := &packageAssignmentCtx{Base: ctx.Base, Doer: ctx.Doer, ContextUser: ctx.ContextUser}
+		paCtx := &packageAssignmentCtx{Base: ctx.Base, Doer: ctx.Doer, ContextUser: ctx.ContextUser, Authentication: ctx.Authentication}
 		ctx.Package = packageAssignment(paCtx, errorFn)
 	}
 }
@@ -49,9 +52,16 @@ func PackageAssignment() func(ctx *Context) {
 // PackageAssignmentAPI returns a middleware to handle Context.Package assignment
 func PackageAssignmentAPI() func(ctx *APIContext) {
 	return func(ctx *APIContext) {
-		paCtx := &packageAssignmentCtx{Base: ctx.Base, Doer: ctx.Doer(), ContextUser: ctx.User()}
+		paCtx := &packageAssignmentCtx{Base: ctx.Base, Doer: ctx.Doer(), ContextUser: ctx.User(), Authentication: ctx.Authentication()}
 		ctx.pkg = packageAssignment(paCtx, ctx.Error)
 	}
+}
+
+func (ctx *packageAssignmentCtx) taskID() (bool, int64) {
+	if ctx.Authentication == nil || ctx.Doer == nil || !ctx.Doer.IsActions() {
+		return false, 0
+	}
+	return ctx.Authentication.ActionsTaskID().Get()
 }
 
 func packageAssignment(ctx *packageAssignmentCtx, errCb func(int, string, any)) *Package {
@@ -59,7 +69,11 @@ func packageAssignment(ctx *packageAssignmentCtx, errCb func(int, string, any)) 
 		Owner: ctx.ContextUser,
 	}
 	var err error
-	pkg.AccessMode, err = packages_service.DeterminePackageAccessMode(ctx.Base, pkg.Owner, ctx.Doer)
+	if hasTask, taskID := ctx.taskID(); hasTask {
+		pkg.AccessMode, err = packages_service.DeterminePackageAccessModeForTask(ctx.Base, pkg.Owner, ctx.Doer, taskID)
+	} else {
+		pkg.AccessMode, err = packages_service.DeterminePackageAccessMode(ctx.Base, pkg.Owner, ctx.Doer)
+	}
 	if err != nil {
 		errCb(http.StatusInternalServerError, "determineAccessMode", err)
 		return pkg

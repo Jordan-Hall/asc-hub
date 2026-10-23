@@ -160,7 +160,9 @@ func Authenticate(ctx *context.Context) {
 	scope := ctx.Authentication.Scope().ValueOrZeroValue()
 	exp := ctx.Authentication.ExpiresAt()
 
-	token, err := packages_service.CreateAuthorizationToken(u, scope, exp)
+	// The registry token of a job token carries its task, so that the permissions of the task apply to every request.
+	_, taskID := ctx.Authentication.ActionsTaskID().Get()
+	token, err := packages_service.CreateTaskAuthorizationToken(u, scope, exp, taskID)
 	if err != nil {
 		apiError(ctx, http.StatusInternalServerError, err)
 		return
