@@ -24,6 +24,7 @@ import (
 	"forgejo.org/modules/private"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/web"
+	"forgejo.org/services/ascsync"
 	app_context "forgejo.org/services/context"
 	pull_service "forgejo.org/services/pull"
 )
@@ -243,7 +244,59 @@ func HookPreReceive(ctx *app_context.PrivateContext) {
 		}
 	}
 
+	if !ourCtx.importIntoAsc() {
+		return
+	}
+
 	ctx.PlainText(http.StatusOK, "ok")
+}
+
+// importIntoAsc is the Stage 2 step of a git-origin push to a storage_backend=asc repository (SPEC 13.3 K09):
+// after every policy check above has passed, asc reads the push's quarantine and takes the commits and
+// ref commands, and an asc refusal rejects the push. It returns false when it has written the response.
+// A push asc made itself (PushTrigger "asc") already is in asc, and a wiki is plain git.
+func (ctx *preReceiveContext) importIntoAsc() bool {
+	if ctx.opts.IsWiki || ctx.opts.PushTrigger == ascsync.PushTriggerAsc {
+		return true
+	}
+	repo := ctx.Repo.Repository
+	isAsc, err := ascsync.BackedBy(repo)
+	if err != nil {
+		log.Error("Unable to read the storage backend of %-v: %v", repo, err)
+		ctx.JSON(http.StatusInternalServerError, private.Response{
+			UserMsg: "The storage backend of this repository is not usable; the push was refused.",
+			Err:     "unusable storage backend",
+		})
+		return false
+	}
+	if !isAsc {
+		return true
+	}
+
+	refs := make([]ascsync.PushRef, len(ctx.opts.RefFullNames))
+	for i, name := range ctx.opts.RefFullNames {
+		refs[i] = ascsync.PushRef{Name: string(name), Old: ctx.opts.OldCommitIDs[i], New: ctx.opts.NewCommitIDs[i]}
+	}
+	err = ascsync.ImportPush(ctx, ascsync.ImportRequest{
+		Repo:     repo,
+		PusherID: ctx.opts.UserID,
+		Dirs:     ascsync.DirsFromHook(ctx.opts.GitObjectDirectory, ctx.opts.GitQuarantinePath, ctx.opts.GitAlternativeObjectDirectories),
+		Refs:     refs,
+	})
+	if err == nil {
+		return true
+	}
+	if msg, ok := ascsync.RejectMessage(err); ok {
+		log.Warn("asc refused a push to %-v: %s", repo, msg)
+		ctx.JSON(http.StatusForbidden, private.Response{UserMsg: msg})
+		return false
+	}
+	log.Error("asc could not import a push to %-v: %v", repo, err)
+	ctx.JSON(http.StatusServiceUnavailable, private.Response{
+		UserMsg: "The asc server could not take this push; it was refused. Try again later.",
+		Err:     "asc import failed",
+	})
+	return false
 }
 
 func preReceiveBranch(ctx *preReceiveContext, oldCommitID, newCommitID string, refFullName git.RefName) {

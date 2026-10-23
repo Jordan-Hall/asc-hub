@@ -28,6 +28,7 @@ import (
 	timeutil "forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
 	"forgejo.org/modules/web"
+	"forgejo.org/services/ascsync"
 	app_context "forgejo.org/services/context"
 	repo_service "forgejo.org/services/repository"
 )
@@ -49,6 +50,10 @@ func HookPostReceive(ctx *app_context.PrivateContext) {
 
 	ownerName := ctx.Params(":owner")
 	repoName := ctx.Params(":repo")
+
+	if ascOwnsFanOut(ctx, opts, ownerName, repoName) {
+		return
+	}
 
 	// defer getting the repository at this point - as we should only retrieve it if we're going to call update
 	var repo *repo_model.Repository
@@ -342,6 +347,49 @@ func HookPostReceive(ctx *app_context.PrivateContext) {
 		Results:      results,
 		RepoWasEmpty: wasEmpty,
 	})
+}
+
+// ascOwnsFanOut answers a git-origin post-receive call to a storage_backend=asc repository and reports whether it
+// did (SPEC 13.3 K09). For such a repository asc's outbox is the single fan-out: it calls post-receive with
+// PushTrigger "asc" for every ref change it holds, and that call is processed as always. A git-origin call
+// (the push itself, or a temp-repo push of Forgejo) does nothing and returns OK, apart from marking the pull
+// request merged, which only the call that carries PullRequestID can do. Wikis stay plain git.
+func ascOwnsFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions, ownerName, repoName string) bool {
+	if !setting.Asc.Enabled || opts.IsWiki || opts.PushTrigger == ascsync.PushTriggerAsc {
+		return false
+	}
+	repo, err := repo_model.GetRepositoryByOwnerAndName(ctx, ownerName, repoName)
+	if err != nil {
+		if repo_model.IsErrRepoNotExist(err) {
+			return false // the ordinary path reports it
+		}
+		log.Error("Unable to load %s/%s: %v", ownerName, repoName, err)
+		ctx.JSON(http.StatusInternalServerError, private.HookPostReceiveResult{Err: "Failed to load the repository"})
+		return true
+	}
+	isAsc, err := ascsync.BackedBy(repo)
+	if err != nil {
+		log.Error("Unable to read the storage backend of %-v: %v", repo, err)
+		ctx.JSON(http.StatusInternalServerError, private.HookPostReceiveResult{Err: "Failed to read the storage backend"})
+		return true
+	}
+	if !isAsc {
+		return false
+	}
+	if opts.PushTrigger == repo_module.PushTriggerPRMergeToBase {
+		var merged []*repo_module.PushUpdateOptions // the last branch or tag update, as the ordinary path uses
+		for i, name := range opts.RefFullNames {
+			if name.IsBranch() || name.IsTag() {
+				merged = []*repo_module.PushUpdateOptions{{NewCommitID: opts.NewCommitIDs[i]}}
+			}
+		}
+		handlePullRequestMerging(ctx, opts, ownerName, repoName, merged)
+		if ctx.Written() {
+			return true
+		}
+	}
+	ctx.JSON(http.StatusOK, private.HookPostReceiveResult{})
+	return true
 }
 
 func loadContextCacheUser(ctx context.Context, id int64) (*user_model.User, error) {
