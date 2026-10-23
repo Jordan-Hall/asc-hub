@@ -1,0 +1,81 @@
+-
+  id: 1001
+  run_id: 920
+  repo_id: 1
+  owner_id: 2
+  name: perm-job-packages
+  job_id: j
+  task_id: 0
+  status: 5 # StatusWaiting
+  is_fork_pull_request: false
+  runs_on: '["perm-job-packages"]'
+  workflow_payload: |
+    name: test
+    on: push
+    jobs:
+      j:
+        runs-on: perm-job-packages
+        permissions:
+          packages: write
+          contents: read
+        steps:
+          - run: echo hello
+-
+  id: 1002
+  run_id: 920
+  repo_id: 1
+  owner_id: 2
+  name: perm-workflow-empty
+  job_id: j
+  task_id: 0
+  status: 5 # StatusWaiting
+  is_fork_pull_request: false
+  runs_on: '["perm-workflow-empty"]'
+  workflow_payload: |
+    name: test
+    on: push
+    permissions: {}
+    jobs:
+      j:
+        runs-on: perm-workflow-empty
+        steps:
+          - run: echo hello
+-
+  id: 1003
+  run_id: 920
+  repo_id: 1
+  owner_id: 2
+  name: perm-none
+  job_id: j
+  task_id: 0
+  status: 5 # StatusWaiting
+  is_fork_pull_request: false
+  runs_on: '["perm-none"]'
+  workflow_payload: |
+    name: test
+    on: push
+    jobs:
+      j:
+        runs-on: perm-none
+        steps:
+          - run: echo hello
+-
+  id: 1004
+  run_id: 920
+  repo_id: 1
+  owner_id: 2
+  name: perm-fork
+  job_id: j
+  task_id: 0
+  status: 5 # StatusWaiting
+  is_fork_pull_request: true
+  runs_on: '["perm-fork"]'
+  workflow_payload: |
+    name: test
+    on: push
+    permissions: write-all
+    jobs:
+      j:
+        runs-on: perm-fork
+        steps:
+          - run: echo hello
