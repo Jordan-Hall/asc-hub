@@ -649,6 +649,8 @@ func registerRoutes(m *web.Route) {
 		m.Methods("GET, HEAD", "/*", public.FileHandlerFunc())
 	}, optionsCorsHandler())
 
+	m.Post("/-/asc/rpc/{service}/{method}", ignSignIn, repo.AscRPCProxy)
+
 	m.Group("/explore", func() {
 		m.Get("", func(ctx *context.Context) {
 			ctx.Redirect(setting.AppSubURL + "/explore/repos")
