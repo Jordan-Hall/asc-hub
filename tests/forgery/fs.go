@@ -86,7 +86,7 @@ func initRepo(doer *user_model.User, repo *repo_model.Repository, format git.Obj
 			// The store takes a full commit id, and the commit need not exist. A shorter value, such as an
 			// abbreviated id, stands for an id made from it.
 			id := strings.TrimSpace(string(data))
-			if !format.IsValid(id) {
+			if len(id) != format.FullLength() || !format.IsValid(id) {
 				id = git.ComputeBlobHash(format, data).String()
 			}
 			content = strings.NewReader(id)

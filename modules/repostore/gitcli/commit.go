@@ -127,13 +127,13 @@ func (s *scratch) applyOps(ops []repostore.FileOp) error {
 
 // readCommitID reads the hexadecimal id of a commit, for a submodule entry. The commit need not exist here.
 func (s *scratch) readCommitID(content io.Reader) (string, error) {
-	// An id is at most 64 characters; the limit leaves room for white space and detects a longer value.
+	// An id is 40 or 64 characters, by the object format; the limit leaves room for white space and detects a longer value.
 	raw, err := io.ReadAll(io.LimitReader(content, 129))
 	if err != nil {
 		return "", fmt.Errorf("read the submodule commit id: %w", err)
 	}
 	id := strings.TrimSpace(string(raw))
-	if !s.format.IsValid(id) {
+	if len(id) != s.format.FullLength() || !s.format.IsValid(id) {
 		return "", fmt.Errorf("%w: a submodule needs a full commit id", repostore.ErrInvalidRequest)
 	}
 	return id, nil

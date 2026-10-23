@@ -32,7 +32,7 @@ func TestCreateCommitSpecialEntries(t *testing.T) {
 	assert.Equal(t, "comma", fileAt(t, repo, "main", "with,comma.txt"))
 
 	t.Run("a submodule needs a full commit id", func(t *testing.T) {
-		for _, content := range []string{"", "abc", sub + "00", "not a commit id", strings.Repeat("a", 500)} {
+		for _, content := range []string{"", "abc", "abcd", sub[:len(sub)-1], sub + "00", "not a commit id", strings.Repeat("a", 500)} {
 			_, err := w.CreateCommit(t.Context(), repostore.CommitRequest{
 				Repo: repo, Parent: root, Meta: meta("x"),
 				Ops: []repostore.FileOp{{Kind: repostore.OpPut, Path: "bad", Mode: git.EntryModeCommit, Content: strings.NewReader(content)}},
