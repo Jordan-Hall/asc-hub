@@ -1,0 +1,83 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository commits">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		<div id="asc-graph-container" class="ui segment">
+			<h2>{{ctx.Locale.Tr "repo.asc_graph"}}</h2>
+			<form class="ui form tw-mb-4" method="get" action="{{.RepoLink}}/asc/graph">
+				<div class="tw-flex tw-flex-wrap tw-gap-3 tw-items-end">
+					<div class="field">
+						<label for="asc-graph-preset">{{ctx.Locale.Tr "repo.asc_graph.preset"}}</label>
+						<select id="asc-graph-preset" name="preset">
+							{{range $p := .AscGraphPresets}}
+								<option value="{{$p}}"{{if eq $p $.AscGraphPreset}} selected{{end}}>{{ctx.Locale.Tr (printf "repo.asc_graph.preset.%s" $p)}}</option>
+							{{end}}
+						</select>
+					</div>
+					<div class="field">
+						<label for="asc-graph-refs">{{ctx.Locale.Tr "repo.asc_graph.refs"}}</label>
+						<input id="asc-graph-refs" name="refs" type="text" maxlength="4096" value="{{.AscGraphInclude}}" placeholder="{{ctx.Locale.Tr "repo.asc_graph.refs_placeholder"}}">
+					</div>
+					<div class="field">
+						<label for="asc-graph-exclude">{{ctx.Locale.Tr "repo.asc_graph.exclude"}}</label>
+						<input id="asc-graph-exclude" name="exclude" type="text" maxlength="4096" value="{{.AscGraphExclude}}">
+					</div>
+					<div class="field">
+						<div class="ui checkbox">
+							<input id="asc-graph-stats" name="stats" type="checkbox" value="1"{{if .AscGraphStats}} checked{{end}}>
+							<label for="asc-graph-stats">{{ctx.Locale.Tr "repo.asc_graph.stats"}}</label>
+						</div>
+					</div>
+					<div class="field">
+						<button class="ui primary button" type="submit">{{ctx.Locale.Tr "repo.asc_graph.apply"}}</button>
+					</div>
+				</div>
+			</form>
+
+			{{if .AscGraphError}}
+				<div class="ui warning message" role="alert">
+					<p>{{ctx.Locale.Tr .AscGraphError}}</p>
+					<p><a href="{{.AscGraphFirstURL}}">{{ctx.Locale.Tr "repo.asc_graph.restart"}}</a></p>
+				</div>
+			{{else if not .AscGraphRows}}
+				<div class="ui info message">{{ctx.Locale.Tr "repo.asc_graph.empty"}}</div>
+			{{else}}
+				<ol id="asc-graph-rows" class="tw-list-none tw-p-0 tw-m-0">
+					{{range $row := .AscGraphRows}}
+						<li class="asc-graph-row tw-flex tw-items-center tw-gap-2 tw-h-7" id="asc-commit-{{$row.ID}}">
+							<svg class="tw-shrink-0" width="{{$.AscGraphLaneWidth}}" height="{{$.AscGraphRowHeight}}" viewBox="0 0 {{$.AscGraphLaneWidth}} {{$.AscGraphRowHeight}}" aria-hidden="true" focusable="false">
+								{{range $row.Segments}}<line x1="{{.X1}}" y1="{{.Y1}}" x2="{{.X2}}" y2="{{.Y2}}" stroke="{{.Color}}" stroke-width="2" stroke-linecap="round"/>{{end}}
+								<circle cx="{{$row.NodeX}}" cy="14" r="{{if $row.Overflow}}3{{else}}4.5{{end}}" fill="{{$row.NodeColor}}"/>
+							</svg>
+							<a class="tw-font-mono tw-shrink-0" href="{{$.RepoLink}}/commit/{{$row.ID}}" title="{{$row.ID}}">{{$row.ShortID}}</a>
+							<span class="gt-ellipsis tw-min-w-0 tw-flex-1" title="{{$row.Subject}}">{{$row.Subject}}</span>
+							<span class="tw-flex tw-gap-1 tw-shrink-0">
+								{{range $row.Refs}}
+									{{if .IsTag}}
+										<a class="ui basic mini label" href="{{$.RepoLink}}/src/tag/{{.Name|PathEscapeSegments}}">{{svg "octicon-tag" 12}} {{.Name}}</a>
+									{{else}}
+										<a class="ui basic mini label" href="{{$.RepoLink}}/src/branch/{{.Name|PathEscapeSegments}}">{{svg "octicon-git-branch" 12}} {{.Name}}</a>
+									{{end}}
+								{{end}}
+								{{if $row.MoreRefs}}<span class="ui basic mini label">+{{$row.MoreRefs}}</span>{{end}}
+								{{with $row.Review}}
+									<span class="ui mini label">{{svg "octicon-git-pull-request" 12}} #{{.Number}}{{if .Draft}} {{ctx.Locale.Tr "repo.asc_graph.draft"}}{{else if .State}} {{.State}}{{end}}</span>
+								{{end}}
+							</span>
+							{{if $row.HasStats}}
+								<span class="tw-shrink-0 tw-font-mono" title="{{ctx.Locale.TrN $row.Files "repo.asc_graph.files_one" "repo.asc_graph.files_other" $row.Files}}"><span class="text green">+{{$row.Added}}</span> <span class="text red">-{{$row.Removed}}</span></span>
+							{{end}}
+							<span class="tw-shrink-0 text grey">{{$row.Author}}</span>
+							{{if not $row.When.IsZero}}<span class="tw-shrink-0 text grey">{{DateUtils.TimeSince $row.When}}</span>{{end}}
+						</li>
+					{{end}}
+				</ol>
+				<div class="tw-flex tw-justify-between tw-mt-4">
+					{{if .AscGraphIsFirst}}<span></span>{{else}}<a class="ui basic button" href="{{.AscGraphFirstURL}}">{{ctx.Locale.Tr "repo.asc_graph.first"}}</a>{{end}}
+					{{if .AscGraphNextURL}}<a class="ui basic button" rel="next" href="{{.AscGraphNextURL}}">{{ctx.Locale.Tr "repo.asc_graph.older"}}</a>{{end}}
+				</div>
+			{{end}}
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}
