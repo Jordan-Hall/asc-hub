@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 
 	repo_model "forgejo.org/models/repo"
@@ -116,17 +115,12 @@ func (b *Indexer) addUpdate(ctx context.Context, batchWriter git.WriteCloserErro
 	}
 
 	size := update.Size
-	var err error
+	// Every update comes from getRepoChanges with its size; an update without one is a bug, not a reason to guess.
 	if !update.Sized {
-		var stdout string
-		stdout, _, err = git.NewCommand(ctx, "cat-file", "-s").AddDynamicArguments(update.BlobSha).RunStdString(&git.RunOpts{Dir: repo.RepoPath()})
-		if err != nil {
-			return nil, err
-		}
-		if size, err = strconv.ParseInt(strings.TrimSpace(stdout), 10, 64); err != nil {
-			return nil, fmt.Errorf("misformatted git cat-file output: %w", err)
-		}
+		return nil, fmt.Errorf("code indexer: file update %q has no size", update.Filename)
 	}
+
+	var err error
 
 	if size > setting.Indexer.MaxIndexerFileSize {
 		return []elastic.BulkableRequest{b.addDelete(update.Filename, repo)}, nil
