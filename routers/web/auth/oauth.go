@@ -455,7 +455,7 @@ func AuthorizeOAuth(ctx *context.Context) {
 		}
 	}
 
-	if !app.ContainsRedirectURI(form.RedirectURI) {
+	if !redirectURIAllowed(app, form.RedirectURI) {
 		handleAuthorizeError(ctx, AuthorizeError{
 			ErrorCode:        ErrorCodeInvalidRequest,
 			ErrorDescription: "Unregistered Redirect URI",
@@ -470,6 +470,11 @@ func AuthorizeOAuth(ctx *context.Context) {
 			ErrorDescription: "Only code response type is supported.",
 			State:            form.State,
 		}, form.RedirectURI)
+		return
+	}
+
+	if authErr := ascIdeCheckAuthorize(app, form); authErr != nil {
+		handleAuthorizeError(ctx, *authErr, form.RedirectURI)
 		return
 	}
 
@@ -822,6 +827,14 @@ func handleRefreshToken(ctx *context.Context, form forms.AccessTokenForm, server
 		return
 	}
 
+	if !ascIdeGrantAllowed(app, grant) {
+		handleAccessTokenError(ctx, AccessTokenErrorResponse{
+			ErrorCode:        AccessTokenErrorCodeInvalidScope,
+			ErrorDescription: "grant is not allowed for this client",
+		})
+		return
+	}
+
 	// check if token got already used
 	if setting.OAuth2.InvalidateRefreshTokens && (grant.Counter != token.Counter || token.Counter == 0) {
 		handleAccessTokenError(ctx, AccessTokenErrorResponse{
@@ -859,7 +872,7 @@ func handleAuthorizationCode(ctx *context.Context, form forms.AccessTokenForm, s
 		})
 		return
 	}
-	if form.RedirectURI != "" && !app.ContainsRedirectURI(form.RedirectURI) {
+	if form.RedirectURI != "" && !redirectURIAllowed(app, form.RedirectURI) {
 		handleAccessTokenError(ctx, AccessTokenErrorResponse{
 			ErrorCode:        AccessTokenErrorCodeUnauthorizedClient,
 			ErrorDescription: "unexpected redirect URI",
@@ -875,7 +888,7 @@ func handleAuthorizationCode(ctx *context.Context, form forms.AccessTokenForm, s
 		return
 	}
 	// check if code verifier authorizes the client, PKCE support
-	if !authorizationCode.ValidateCodeChallenge(form.CodeVerifier) {
+	if !ascIdeCodeAllowed(app, authorizationCode) || !authorizationCode.ValidateCodeChallenge(form.CodeVerifier) {
 		handleAccessTokenError(ctx, AccessTokenErrorResponse{
 			ErrorCode:        AccessTokenErrorCodeUnauthorizedClient,
 			ErrorDescription: "failed PKCE code challenge",
