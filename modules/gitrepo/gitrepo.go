@@ -37,11 +37,17 @@ type NamedRepository struct {
 func (r NamedRepository) GetName() string      { return r.Name }
 func (r NamedRepository) GetOwnerName() string { return r.Owner }
 
-// OpenRepository opens the repository at the given relative path with the provided context.
+// OpenRepository opens the repository with the git backend that its storage_backend selects (backend_select.go).
 func OpenRepository(ctx context.Context, repo Repository) (*git.Repository, error) {
-	return git.OpenRepository(ctx, repoPath(repo))
+	name, err := selectBackend(repo)
+	if err != nil {
+		return nil, err
+	}
+	return git.OpenRepositoryWithBackend(ctx, repoPath(repo), name)
 }
 
+// OpenWikiRepository opens the wiki repository. A wiki is a separate bare git directory that the
+// storage_backend column does not cover, so it always uses the default backend.
 func OpenWikiRepository(ctx context.Context, repo Repository) (*git.Repository, error) {
 	return git.OpenRepository(ctx, wikiPath(repo))
 }
