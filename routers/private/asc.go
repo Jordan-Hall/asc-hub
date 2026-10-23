@@ -226,7 +226,10 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 	if err != nil {
 		return ascDenied(), err
 	}
-	if !access.CanAccess(mode, unit.TypeCode) {
+	// A job token can always read the code of its own repository, which is what checking it out does, even when the
+	// `permissions:` of its workflow give no `contents` access.
+	readsOwnCode := principal.task != nil && principal.task.RepoID == repo.ID && mode == perm.AccessModeRead
+	if !access.CanAccess(mode, unit.TypeCode) && !readsOwnCode {
 		return ascDeniedFor(principal), nil
 	}
 
@@ -234,7 +237,7 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 		Allowed:  true,
 		UserID:   principal.userID,
 		Username: principal.username,
-		Perm:     access.UnitAccessMode(unit.TypeCode).String(),
+		Perm:     max(access.UnitAccessMode(unit.TypeCode), mode).String(),
 	}
 	if principal.deployKey != nil {
 		resp.DeployKeyID = principal.deployKey.ID

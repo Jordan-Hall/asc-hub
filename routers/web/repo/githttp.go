@@ -202,12 +202,21 @@ func httpBase(ctx *context.Context) *serviceHandler {
 					return nil
 				}
 
-				if !p.CanAccess(accessMode, unitType) {
+				// Reading the code of its own repository is what `actions/checkout` does with the job token, so it stays
+				// possible when the `permissions:` of the workflow give no `contents` access; writing never is.
+				readsOwnCode := task.RepoID == repo.ID && accessMode == perm.AccessModeRead && unitType == unit.TypeCode
+				if !p.CanAccess(accessMode, unitType) && !readsOwnCode {
 					ctx.PlainText(http.StatusForbidden, "User permission denied")
 					return nil
 				}
 
-				environ = append(environ, fmt.Sprintf("%s=%d", repo_module.EnvActionPerm, p.AccessMode))
+				// The pre-receive hook checks the write access with this, so it is the mode the workflow gives to the
+				// unit that is pushed to.
+				actionPerm := p.AccessMode
+				if p.UnitsMode != nil {
+					actionPerm = p.UnitAccessMode(unitType)
+				}
+				environ = append(environ, fmt.Sprintf("%s=%d", repo_module.EnvActionPerm, actionPerm))
 			} else {
 				p, err := access_model.GetUserRepoPermission(ctx, repo, ctx.Doer)
 				if err != nil {

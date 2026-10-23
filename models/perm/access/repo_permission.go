@@ -161,10 +161,53 @@ func GetActionRepoPermission(ctx context.Context, repo *repo_model.Repository, t
 			Units:      repo.Units,
 		}
 
+		// A `permissions:` block of the workflow only narrows the default.
+		tokenPerms, err := task.TokenPermissions()
+		if err != nil {
+			return Permission{}, err
+		}
+		if tokenPerms != nil {
+			perm.UnitsMode = make(map[unit.Type]perm_model.AccessMode, len(repo.Units))
+			for _, u := range repo.Units {
+				if m := min(mode, tokenUnitAccessMode(tokenPerms, u.Type)); m > perm_model.AccessModeNone {
+					perm.UnitsMode[u.Type] = m
+				}
+			}
+			// The mode of the whole repository is the one of its code.
+			perm.AccessMode = perm.UnitsMode[unit.TypeCode] // none when `contents` is none
+		}
+
 		return perm, nil
 	}
 
 	return GetUserRepoPermission(ctx, repo, user_model.NewActionsUser())
+}
+
+// tokenUnitAccessMode maps the scopes of a job token's `permissions:` to the units they enforce. A unit that no scope
+// names is none, as a `permissions:` block gives nothing it does not list.
+func tokenUnitAccessMode(p *actions_model.TokenPermissions, t unit.Type) perm_model.AccessMode {
+	var scope string
+	switch t {
+	case unit.TypeCode, unit.TypeReleases, unit.TypeWiki:
+		scope = actions_model.TokenScopeContents
+	case unit.TypeIssues:
+		scope = actions_model.TokenScopeIssues
+	case unit.TypePullRequests:
+		scope = actions_model.TokenScopePullRequests
+	case unit.TypeActions:
+		scope = actions_model.TokenScopeActions
+	case unit.TypeProjects:
+		scope = actions_model.TokenScopeProjects
+	default:
+		return perm_model.AccessModeNone
+	}
+	switch p.Level(scope) {
+	case actions_model.TokenPermissionWrite:
+		return perm_model.AccessModeWrite
+	case actions_model.TokenPermissionRead:
+		return perm_model.AccessModeRead
+	}
+	return perm_model.AccessModeNone
 }
 
 // GetUserRepoPermission returns the user permissions to the repository, where the user's permissions may be
