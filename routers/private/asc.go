@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 
@@ -21,7 +20,6 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
-	"forgejo.org/modules/json"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/private"
 	"forgejo.org/modules/setting"
@@ -78,16 +76,9 @@ func AscAuthz(ctx *context.PrivateContext) {
 }
 
 func decodeAscAuthzRequest(ctx *context.PrivateContext) (*private.AscAuthzRequest, error) {
-	body := http.MaxBytesReader(ctx.Resp, ctx.Req.Body, private.AscAuthzMaxBodySize)
-	dec := json.NewDecoder(body)
-	dec.DisallowUnknownFields()
 	req := &private.AscAuthzRequest{}
-	if err := dec.Decode(req); err != nil {
-		return nil, errors.New("invalid request body")
-	}
-	// Nothing but whitespace may follow the object.
-	if err := dec.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
-		return nil, errors.New("invalid request body")
+	if err := decodeAscStrict(ctx, req); err != nil {
+		return nil, err
 	}
 	if err := validateAscAuthzRequest(req); err != nil {
 		return nil, err
@@ -104,6 +95,13 @@ func validateAscAuthzRequest(req *private.AscAuthzRequest) error {
 	}
 	if len(req.Ref) > private.AscAuthzMaxRef {
 		return errors.New("ref is too long")
+	}
+	if req.SSHKey != nil {
+		if req.Token != "" || req.User != "" || req.KeyID != 0 {
+			return errors.New("ssh_key excludes token, user and key_id")
+		}
+		_, _, err := parseAscSSHKey(req.SSHKey)
+		return err
 	}
 	if req.Token != "" && req.KeyID != 0 {
 		return errors.New("token and key_id are mutually exclusive")
@@ -192,6 +190,8 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 		ok        bool
 	)
 	switch {
+	case req.SSHKey != nil:
+		principal, ok, err = ascPrincipalFromSSHKey(ctx, repo, req.SSHKey, mode)
 	case req.KeyID != 0:
 		principal, ok, err = ascPrincipalFromKey(ctx, repo, req.KeyID, mode)
 	case req.Token != "":
@@ -281,7 +281,11 @@ func ascPrincipalFromKey(ctx *context.PrivateContext, repo *repo_model.Repositor
 		}
 		return nil, false, fmt.Errorf("GetPublicKeyByID: %w", err)
 	}
+	return ascPrincipalFromPublicKey(ctx, repo, key, mode)
+}
 
+// ascPrincipalFromPublicKey is the asker behind a stored user key or deploy key.
+func ascPrincipalFromPublicKey(ctx *context.PrivateContext, repo *repo_model.Repository, key *asymkey_model.PublicKey, mode perm.AccessMode) (*ascPrincipal, bool, error) {
 	if key.Type == asymkey_model.KeyTypeDeploy {
 		deployKey, err := asymkey_model.GetDeployKeyByRepo(ctx, key.ID, repo.ID)
 		if err != nil {

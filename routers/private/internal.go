@@ -79,6 +79,7 @@ func Routes() *web.Route {
 	r.Get("/manager/processes", Processes)
 	r.Post("/mail/send", SendEmail)
 	r.Post("/asc/authz", AscAuthz)
+	r.Post("/asc/ssh-key", AscSSHKey)
 	r.Post("/restore_repo", RestoreRepo)
 	r.Post("/actions/generate_actions_runner_token", GenerateActionsRunnerToken)
 
