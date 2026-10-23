@@ -139,6 +139,7 @@
 									{{if $file.IsGenerated}}
 										<span class="ui label">{{ctx.Locale.Tr "repo.diff.generated"}}</span>
 									{{end}}
+									{{template "repo/diff/asc_class_badge" dict "classes" $.AscFileClassBadges "name" $file.Name}}
 									{{if $file.IsVendored}}
 										<span class="ui label">{{ctx.Locale.Tr "repo.diff.vendored"}}</span>
 									{{end}}

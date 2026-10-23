@@ -94,6 +94,22 @@
 					<input name="required_approvals" type="number" value="{{.Rule.RequiredApprovals}}">
 					<span class="help tw-ml-0">{{ctx.Locale.Tr "repo.settings.protect_required_approvals_desc"}}</span>
 				</label>
+				{{if .AscRelaxableClasses}}
+				<fieldset>
+					<legend>{{ctx.Locale.Tr "repo.settings.protect_asc_relaxed"}}</legend>
+					<span class="help tw-ml-0">{{ctx.Locale.Tr "repo.settings.protect_asc_relaxed_desc"}}</span>
+					{{range .AscRelaxableClasses}}
+					<label>
+						<input name="asc_relaxed_classes" type="checkbox" value="{{.}}" {{if SliceUtils.Contains $.Rule.AscRelaxedClasses .}}checked{{end}}>
+						{{.}}
+					</label>
+					{{end}}
+					<label>
+						{{ctx.Locale.Tr "repo.settings.protect_asc_relaxed_approvals"}}
+						<input name="asc_relaxed_approvals" type="number" min="0" value="{{.Rule.AscRelaxedApprovals}}">
+					</label>
+				</fieldset>
+				{{end}}
 				<fieldset>
 					<label>
 						<input name="enable_approvals_whitelist" type="checkbox" class="toggle-target-enabled" data-target="#approvals_whitelist_box" {{if .Rule.EnableApprovalsWhitelist}}checked{{end}}>

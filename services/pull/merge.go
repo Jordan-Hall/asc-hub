@@ -460,7 +460,7 @@ func CheckPullBranchProtections(ctx context.Context, pr *issues_model.PullReques
 		}
 	}
 
-	if !issues_model.HasEnoughApprovals(ctx, pb, pr) {
+	if !HasEnoughApprovals(ctx, pb, pr) {
 		return pb, models.ErrDisallowedToMerge{
 			Reason: "Does not have enough approvals",
 		}

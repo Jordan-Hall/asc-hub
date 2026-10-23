@@ -243,6 +243,8 @@ type ProtectBranchForm struct {
 	ProtectedFilePatterns         string
 	UnprotectedFilePatterns       string
 	ApplyToAdmins                 bool
+	AscRelaxedClasses             []string
+	AscRelaxedApprovals           int64
 }
 
 // Validate validates the fields
