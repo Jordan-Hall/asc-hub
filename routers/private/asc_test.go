@@ -16,6 +16,7 @@ import (
 	git_model "forgejo.org/models/git"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/json"
 	"forgejo.org/modules/private"
 	"forgejo.org/modules/setting"
@@ -95,7 +96,14 @@ func TestAscAuthzBadRequest(t *testing.T) {
 		"long token":       `{"owner":"user2","repo":"repo1","mode":"read","token":"` + strings.Repeat("a", 4097) + `"}`,
 		"token with space": `{"owner":"user2","repo":"repo1","mode":"read","token":"a b"}`,
 		"token with ctl":   `{"owner":"user2","repo":"repo1","mode":"read","token":"a\r\nb"}`,
-		"oversize body":    `{"owner":"user2","repo":"repo1","mode":"read","ref":"` + strings.Repeat("a", private.AscAuthzMaxBodySize) + `"}`,
+		"user no token":    `{"owner":"user2","repo":"repo1","mode":"read","user":"user2"}`,
+		"user colon":       `{"owner":"user2","repo":"repo1","mode":"read","user":"a:b","token":"abc"}`,
+		"user ctl": `{"owner":"user2","repo":"repo1","mode":"read","user":"a
+b","token":"abc"}`,
+		"user long":     `{"owner":"user2","repo":"repo1","mode":"read","user":"` + strings.Repeat("a", 256) + `","token":"abc"}`,
+		"user and key":  `{"owner":"user2","repo":"repo1","mode":"read","user":"user2","key_id":1}`,
+		"password ctl":  `{"owner":"user2","repo":"repo1","mode":"read","user":"user2","token":"a\u0000b"}`,
+		"oversize body": `{"owner":"user2","repo":"repo1","mode":"read","ref":"` + strings.Repeat("a", private.AscAuthzMaxBodySize) + `"}`,
 	} {
 		t.Run(name, func(t *testing.T) {
 			code, _ := ascAuthzCall(t, body)
@@ -312,4 +320,123 @@ func TestAscAuthzRoundTripShape(t *testing.T) {
 		assert.Contains(t, generic, key)
 	}
 	assert.Equal(t, map[string]any{"require_signed": false}, generic["branch_rules"])
+}
+
+func TestAscAuthzBasic(t *testing.T) {
+	ascAuthzSetup(t)
+	// Each case starts from the fixtures, as several of them edit users.
+	run := func(name string, f func(t *testing.T)) {
+		t.Run(name, func(t *testing.T) {
+			ascAuthzSetup(t)
+			// Password sign-in is a setting; the unit-test configuration leaves it off.
+			t.Cleanup(test.MockVariableValue(&setting.Service.EnableBasicAuth, true))
+			f(t)
+		})
+	}
+	basic := func(user, token, owner, repo, mode string) private.AscAuthzResponse {
+		return ascAuthzDo(t, private.AscAuthzRequest{User: user, Token: token, Owner: owner, Repo: repo, Mode: mode})
+	}
+
+	run("personal access token as the password", func(t *testing.T) {
+		tok := ascNewToken(t, 2, auth_model.AccessTokenScopeAll)
+		// The user name is a hint only, as for git.
+		for _, user := range []string{"user2", "x-access-token", "someone-else"} {
+			for _, mode := range []string{"read", "write"} {
+				resp := basic(user, tok, "user2", "repo2", mode)
+				assert.True(t, resp.Allowed, user+" "+mode)
+				assert.EqualValues(t, 2, resp.UserID)
+				assert.Equal(t, "user2", resp.Username)
+				assert.Equal(t, "owner", resp.Perm)
+			}
+		}
+	})
+
+	run("token scopes still apply", func(t *testing.T) {
+		readOnly := ascNewToken(t, 2, auth_model.AccessTokenScopeReadRepository)
+		assert.True(t, basic("user2", readOnly, "user2", "repo2", "read").Allowed)
+		assert.False(t, basic("user2", readOnly, "user2", "repo2", "write").Allowed)
+		other := ascNewToken(t, 4, auth_model.AccessTokenScopeAll)
+		assert.False(t, basic("user4", other, "user2", "repo2", "read").Allowed)
+	})
+
+	run("account password", func(t *testing.T) {
+		for _, mode := range []string{"read", "write"} {
+			resp := basic("user2", "password", "user2", "repo2", mode)
+			assert.True(t, resp.Allowed, mode)
+			assert.EqualValues(t, 2, resp.UserID)
+			assert.Equal(t, "user2", resp.Username)
+			assert.Equal(t, "owner", resp.Perm)
+			assert.False(t, resp.IsActionsTask)
+		}
+		// By e-mail address, as on the web sign-in.
+		assert.True(t, basic("user2@example.com", "password", "user2", "repo2", "read").Allowed)
+		// The password of one user gives no access to another user's repository.
+		assert.False(t, basic("user4", "password", "user2", "repo2", "read").Allowed)
+	})
+
+	run("password with spaces and non-ASCII text", func(t *testing.T) {
+		user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+		const password = "pa ss \u00fc\u4e16 word"
+		require.NoError(t, user.SetPassword(password))
+		require.NoError(t, user_model.UpdateUserCols(db.DefaultContext, user, "passwd", "passwd_hash_algo", "salt"))
+		assert.True(t, basic("user2", password, "user2", "repo2", "write").Allowed)
+		// The same text is refused as a bearer token: no user, no password.
+		code, _ := ascAuthzCall(t, `{"owner":"user2","repo":"repo2","mode":"read","token":"pa ss"}`)
+		assert.Equal(t, http.StatusBadRequest, code)
+	})
+
+	run("wrong password and unknown user look alike", func(t *testing.T) {
+		call := func(user, token string) string {
+			body, err := json.Marshal(private.AscAuthzRequest{User: user, Token: token, Owner: "user2", Repo: "repo1", Mode: "read"})
+			require.NoError(t, err)
+			code, out := ascAuthzCall(t, string(body))
+			require.Equal(t, http.StatusOK, code)
+			return out
+		}
+		denied := call("user2", "not-the-password")
+		assert.Contains(t, denied, `"allowed":false`)
+		assert.Equal(t, denied, call("nobody-here", "password"))
+		assert.Equal(t, denied, call("user2", strings.Repeat("0", 40)))
+		assert.NotContains(t, denied, "password")
+		// A public repository stays closed to a failed login: it is not an anonymous read.
+		assert.False(t, basic("user2", "not-the-password", "user2", "repo1", "read").Allowed)
+	})
+
+	run("two-factor account is refused for a password", func(t *testing.T) {
+		// user24 has two-factor authentication and no one-time password can be sent.
+		assert.False(t, basic("user24", "password", "user2", "repo1", "read").Allowed)
+		// Its personal access token is not a password login.
+		tok := ascNewToken(t, 24, auth_model.AccessTokenScopeAll)
+		assert.True(t, basic("user24", tok, "user2", "repo1", "read").Allowed)
+	})
+
+	run("prohibited user", func(t *testing.T) {
+		tok := ascNewToken(t, 2, auth_model.AccessTokenScopeAll)
+		_, err := db.GetEngine(db.DefaultContext).Exec("UPDATE `user` SET prohibit_login = ? WHERE id = ?", true, 2)
+		require.NoError(t, err)
+		assert.False(t, basic("user2", "password", "user2", "repo1", "read").Allowed)
+		assert.False(t, basic("user2", tok, "user2", "repo1", "read").Allowed)
+	})
+
+	run("password sign-in off", func(t *testing.T) {
+		defer test.MockVariableValue(&setting.Service.EnableBasicAuth, false)()
+		assert.False(t, basic("user4", "password", "user2", "repo1", "read").Allowed)
+		tok := ascNewToken(t, 4, auth_model.AccessTokenScopeAll)
+		assert.True(t, basic("user4", tok, "user2", "repo1", "read").Allowed)
+	})
+
+	run("actions task token as the password", func(t *testing.T) {
+		resp := basic("gitea-actions", ascTaskToken, "user5", "repo4", "write")
+		require.True(t, resp.Allowed)
+		assert.True(t, resp.IsActionsTask)
+		assert.False(t, basic("gitea-actions", ascTaskToken, "user2", "repo2", "read").Allowed)
+	})
+
+	run("user absent keeps bearer behaviour", func(t *testing.T) {
+		tok := ascNewToken(t, 2, auth_model.AccessTokenScopeAll)
+		assert.True(t, ascAuthzDo(t, private.AscAuthzRequest{Token: tok, Owner: "user2", Repo: "repo2", Mode: "write"}).Allowed)
+		// A password is not a bearer token, and neither is user:password.
+		assert.False(t, ascAuthzDo(t, private.AscAuthzRequest{Token: "password", Owner: "user2", Repo: "repo2", Mode: "read"}).Allowed)
+		assert.False(t, ascAuthzDo(t, private.AscAuthzRequest{Token: "user2:password", Owner: "user2", Repo: "repo2", Mode: "read"}).Allowed)
+	})
 }

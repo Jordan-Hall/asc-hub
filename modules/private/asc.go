@@ -28,8 +28,13 @@ const (
 // and only read access to a public repository can be allowed.
 type AscAuthzRequest struct {
 	// Token is the bearer credential the client presented to asc: a personal
-	// access token, an OAuth2 access token or an Actions task token.
+	// access token, an OAuth2 access token or an Actions task token. With User
+	// set it is the Basic password instead.
 	Token string `json:"token,omitempty"`
+	// User is the Basic user name. When it is set, Token is verified together
+	// with it as an HTTP Basic login (an account password or an access token,
+	// two-factor respected) and not as a bearer token.
+	User string `json:"user,omitempty"`
 	// KeyID is the ID of an SSH public key or deploy key that asc already verified.
 	KeyID int64  `json:"key_id,omitempty"`
 	Owner string `json:"owner"`
