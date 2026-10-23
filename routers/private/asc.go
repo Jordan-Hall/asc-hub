@@ -52,8 +52,10 @@ var ascBasicAuthGroup = auth_method.NewGroup(
 
 // AscAuthz answers `POST /api/internal/asc/authz`: may this principal read or
 // write this repository through asc serve? A denial is always a 200 with
-// `allowed: false` and nothing else, so a missing repository, an unreadable
-// one and a bad credential look the same to the caller.
+// `allowed: false`. When the credential did not authenticate, nothing else is
+// set, so asc answers 401 as Forgejo's git routes do. When it did, only the
+// user id and name are set, so asc answers 403, and a missing repository, an
+// unreadable one and a missing permission look the same.
 func AscAuthz(ctx *context.PrivateContext) {
 	if !setting.Asc.Enabled {
 		ctx.Error(http.StatusNotFound)
@@ -164,25 +166,30 @@ type ascPrincipal struct {
 	username  string
 }
 
+// ascDenied is the answer for a credential that did not authenticate.
 func ascDenied() *private.AscAuthzResponse { return &private.AscAuthzResponse{} }
 
+// ascDeniedFor is the answer for a refusal. An asker who authenticated as a user
+// learns that user's own identity, which tells asc the credential was good.
+func ascDeniedFor(p *ascPrincipal) *private.AscAuthzResponse {
+	if p == nil || p.user == nil {
+		return ascDenied()
+	}
+	return &private.AscAuthzResponse{UserID: p.userID, Username: p.username}
+}
+
+// ascAuthorize authenticates before it looks at the repository. A principal
+// that is returned with ok false authenticated but may not use the repository.
 func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*private.AscAuthzResponse, error) {
 	mode := perm.AccessModeRead
 	if req.Mode == private.AscAuthzModeWrite {
 		mode = perm.AccessModeWrite
 	}
 
+	// repo is nil when the repository does not exist.
 	repo, err := ascLoadRepo(ctx, req.Owner, req.Repo)
-	if err != nil || repo == nil {
+	if err != nil {
 		return ascDenied(), err
-	}
-	// A repository that is being created or is broken cannot be used, and a
-	// mirror or an archive is read-only.
-	if repo.IsBeingCreated() || repo.IsBroken() {
-		return ascDenied(), nil
-	}
-	if mode > perm.AccessModeRead && (repo.IsMirror || repo.IsArchived) {
-		return ascDenied(), nil
 	}
 
 	var (
@@ -200,8 +207,19 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 		// Anonymous: only read access to a public repository can follow.
 		principal, ok = &ascPrincipal{}, mode == perm.AccessModeRead && !setting.Service.RequireSignInView
 	}
-	if err != nil || !ok {
+	if err != nil {
 		return ascDenied(), err
+	}
+	if principal == nil || !ok || repo == nil {
+		return ascDeniedFor(principal), nil
+	}
+	// A repository that is being created or is broken cannot be used, and a
+	// mirror or an archive is read-only.
+	if repo.IsBeingCreated() || repo.IsBroken() {
+		return ascDeniedFor(principal), nil
+	}
+	if mode > perm.AccessModeRead && (repo.IsMirror || repo.IsArchived) {
+		return ascDeniedFor(principal), nil
 	}
 
 	access, err := ascPermission(ctx, repo, principal)
@@ -209,7 +227,7 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 		return ascDenied(), err
 	}
 	if !access.CanAccess(mode, unit.TypeCode) {
-		return ascDenied(), nil
+		return ascDeniedFor(principal), nil
 	}
 
 	resp := &private.AscAuthzResponse{
@@ -285,8 +303,12 @@ func ascPrincipalFromKey(ctx *context.PrivateContext, repo *repo_model.Repositor
 }
 
 // ascPrincipalFromPublicKey is the asker behind a stored user key or deploy key.
+// repo is nil when the repository does not exist.
 func ascPrincipalFromPublicKey(ctx *context.PrivateContext, repo *repo_model.Repository, key *asymkey_model.PublicKey, mode perm.AccessMode) (*ascPrincipal, bool, error) {
 	if key.Type == asymkey_model.KeyTypeDeploy {
+		if repo == nil {
+			return nil, false, nil
+		}
 		deployKey, err := asymkey_model.GetDeployKeyByRepo(ctx, key.ID, repo.ID)
 		if err != nil {
 			if asymkey_model.IsErrDeployKeyNotExist(err) {
@@ -371,8 +393,8 @@ func ascPrincipalFromAuthResult(ctx *context.PrivateContext, repo *repo_model.Re
 		if err != nil {
 			return nil, false, fmt.Errorf("PublicOnly: %w", err)
 		}
-		if publicOnly && repo.IsPrivate {
-			return nil, false, nil
+		if publicOnly && repo != nil && repo.IsPrivate {
+			return p, false, nil
 		}
 		level := auth_model.Read
 		if mode > perm.AccessModeRead {
@@ -384,7 +406,7 @@ func ascPrincipalFromAuthResult(ctx *context.PrivateContext, repo *repo_model.Re
 			return nil, false, fmt.Errorf("HasScope: %w", err)
 		}
 		if !matched {
-			return nil, false, nil
+			return p, false, nil
 		}
 	}
 	p.reducer = ar.Reducer()
@@ -420,6 +442,7 @@ func ascTaskInfo(ctx *context.PrivateContext, task *actions_model.ActionTask) (*
 	run := task.Job.Run
 	info := &private.AscAuthzTask{
 		RunID:    run.ID,
+		Repo:     run.Repo.FullName(),
 		Event:    string(run.Event),
 		Ref:      run.Ref,
 		IsForkPR: run.IsForkPullRequest || task.IsForkPullRequest,

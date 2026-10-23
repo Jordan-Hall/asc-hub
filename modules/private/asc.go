@@ -66,7 +66,10 @@ type AscAuthzRequest struct {
 
 // AscAuthzTask describes the Actions run behind a task token.
 type AscAuthzTask struct {
-	RunID    int64  `json:"run_id"`
+	RunID int64 `json:"run_id"`
+	// Repo is "owner/name" of the repository the run belongs to, which is the
+	// only repository the task token is for.
+	Repo     string `json:"repo"`
 	Event    string `json:"event"`
 	Ref      string `json:"ref"`
 	PRIndex  int64  `json:"pr_index"`
@@ -79,8 +82,11 @@ type AscAuthzBranchRules struct {
 }
 
 // AscAuthzResponse is the answer of the internal authz endpoint. When Allowed is
-// false every other field is zero: a repository the principal cannot read looks
-// the same as a missing one.
+// false every field is zero except UserID and Username, which are set when the
+// credential authenticated as a user: UserID 0 means the credential is bad or
+// missing (asc answers 401), UserID other than 0 means a missing permission
+// (asc answers 403). A repository the principal cannot read looks the same as a
+// missing one.
 type AscAuthzResponse struct {
 	Allowed       bool                `json:"allowed"`
 	UserID        int64               `json:"user_id"`
