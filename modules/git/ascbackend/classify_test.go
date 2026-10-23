@@ -15,18 +15,21 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 type classifyServer struct {
 	ascv1.UnimplementedRepoServer
 	resp *ascv1.ClassifyResponse
+	err  error
 	req  *ascv1.ClassifyRequest
 }
 
 func (s *classifyServer) Classify(_ context.Context, req *ascv1.ClassifyRequest) (*ascv1.ClassifyResponse, error) {
 	s.req = req
-	return s.resp, nil
+	return s.resp, s.err
 }
 
 func newClassifyBackend(t *testing.T, srv *classifyServer) *ascbackend.Backend {
@@ -103,7 +106,7 @@ func TestClassify(t *testing.T) {
 	})
 
 	t.Run("a server error is an error", func(t *testing.T) {
-		b := newClassifyBackend(t, &classifyServer{}) // Classify answers nothing: the handler returns a nil response
+		b := newClassifyBackend(t, &classifyServer{err: status.Error(codes.Internal, "boom")})
 		_, err := b.Classify(t.Context(), "a", "b", false)
 		require.Error(t, err)
 	})
