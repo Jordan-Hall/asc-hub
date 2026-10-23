@@ -426,9 +426,7 @@ func CreateTaskForRunner(ctx context.Context, runner *ActionRunner, requestKey, 
 	} else { //nolint:revive
 		_, workflowJob = gots[0].Job()
 		ceiling := TokenCeiling{IsForkPullRequest: job.IsForkPullRequest}
-		if cfgUnit, err := job.Run.Repo.GetUnit(ctx, unit.TypeActions); err == nil {
-			ceiling.AllowPackagesWrite = cfgUnit.ActionsConfig().AllowPackagesWrite
-		}
+		ceiling.AllowPackagesWrite = PackagesWriteAllowed(ctx, job.Run.Repo)
 		// Validated when the run was created, so an error here is a corrupt payload and must not start the job.
 		permissions, err := ResolveTokenPermissions(&gots[0].Permissions, &workflowJob.Permissions, ceiling)
 		if err != nil {

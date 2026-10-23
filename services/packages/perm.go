@@ -103,8 +103,7 @@ func DeterminePackageAccessModeForTask(ctx context.Context, owner, doer *user_mo
 	if err != nil {
 		return perm.AccessModeNone, err
 	}
-	cfgUnit, err := repo.GetUnit(ctx, unit.TypeActions)
-	if err != nil || !cfgUnit.ActionsConfig().AllowPackagesWrite {
+	if !actions_model.PackagesWriteAllowed(ctx, repo) {
 		return accessMode, nil
 	}
 	return max(accessMode, perm.AccessModeWrite), nil
