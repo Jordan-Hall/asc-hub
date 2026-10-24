@@ -168,6 +168,9 @@ func testPatch(ctx context.Context, pr *issues_model.PullRequest, wantDivergence
 
 	pr.MergeBase = result.MergeBase.String()
 	pr.HeadCommitID = result.Head.String()
+	if err := applyAscStackBase(ctx, pr); err != nil {
+		return nil, fmt.Errorf("testPatch: %w", err)
+	}
 
 	// If the head commit is equal to the merge base it roughly means that the
 	// head commit is a parent of the base commit.
