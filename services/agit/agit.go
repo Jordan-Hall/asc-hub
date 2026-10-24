@@ -100,7 +100,8 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 		}
 
 		// Check if a AGit pull request already exist for this branch.
-		pr, err := issues_model.GetUnmergedPullRequest(ctx, repo.ID, repo.ID, headBranch, baseBranchName, issues_model.PullRequestFlowAGit)
+		ascChange, _ := ascIsStacked(repo, currentTopicBranch)
+		pr, err := findAgitPullRequest(ctx, repo, ascChange, headBranch, baseBranchName)
 		if err != nil {
 			if !issues_model.IsErrPullRequestNotExist(err) {
 				return nil, fmt.Errorf("failed to get unmerged AGit flow pull request in repository %q: %w", repo.FullName(), err)
@@ -164,6 +165,13 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 				return nil, fmt.Errorf("unable to create new pull request: %w", err)
 			}
 
+			if ascChange != "" {
+				if err := recordAscStack(ctx, repo, pr, ascChange); err != nil {
+					logAscStack(err, ascChange)
+					return nil, fmt.Errorf("failed to record the stack of change %s: %w", shortChange(ascChange), err)
+				}
+			}
+
 			log.Trace("Pull request created: %d/%d", repo.ID, prIssue.ID)
 
 			results = append(results, private.HookProcReceiveRefResult{
@@ -176,6 +184,27 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 		}
 
 		// Update an existing pull request.
+		if ascChange != "" {
+			// A pull request found by change may belong to anyone: only its author, an admin or owner,
+			// or a writer when it allows maintainer edits may replace its head.
+			allowed, err := ascMayUpdate(ctx, repo, pr, pusher)
+			if err != nil {
+				return nil, fmt.Errorf("failed to check the update permission for PR[%d]: %w", pr.ID, err)
+			}
+			if !allowed || pr.BaseBranch != baseBranchName {
+				msg := ascDeniedMessage(ascChange)
+				if allowed {
+					msg = "change " + shortChange(ascChange) + " has a pull request for another target branch"
+				}
+				results = append(results, private.HookProcReceiveRefResult{
+					OriginalRef: opts.RefFullNames[i],
+					OldOID:      opts.OldCommitIDs[i],
+					NewOID:      opts.NewCommitIDs[i],
+					Err:         msg,
+				})
+				continue
+			}
+		}
 		if err := pr.LoadBaseRepo(ctx); err != nil {
 			return nil, fmt.Errorf("unable to load base repository for PR[%d]: %w", pr.ID, err)
 		}
@@ -197,7 +226,8 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 		}
 
 		// If the force push option was not set, ensure that this change isn't a force push.
-		if !forcePush {
+		// A stacked change was leased by asc (its preds closure); git ancestry does not apply to a new version.
+		if !forcePush && ascChange == "" {
 			diverged, err := hasCommitsNotIn(ctx, pushed, oldCommitID, opts.NewCommitIDs[i])
 			if err != nil {
 				return nil, fmt.Errorf("failed to detect a force push: %w", err)
@@ -216,6 +246,13 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 		pr.HeadCommitID = opts.NewCommitIDs[i]
 		if err = pull_service.UpdateRef(ctx, pr); err != nil {
 			return nil, fmt.Errorf("failed to update the reference of the pull request: %w", err)
+		}
+		if ascChange != "" {
+			// A new version may have a new parent (a restack): refresh the link and the merge base.
+			if err := recordAscStack(ctx, repo, pr, ascChange); err != nil {
+				logAscStack(err, ascChange)
+				return nil, fmt.Errorf("failed to record the stack of change %s: %w", shortChange(ascChange), err)
+			}
 		}
 
 		// TODO: refactor to unify with `pull_service.AddTestPullRequestTask`
