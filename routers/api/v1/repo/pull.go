@@ -924,6 +924,10 @@ func MergePullRequest(ctx *context.APIContext) {
 	}
 	pr.Issue.Repo = ctx.Repo().Repository
 
+	if ascMergeGuard(ctx, pr) {
+		return
+	}
+
 	if ctx.IsSigned() {
 		// Update issue-user.
 		if err = activities_model.SetIssueReadBy(ctx, pr.Issue.ID, ctx.Doer().ID); err != nil {
