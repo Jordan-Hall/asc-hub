@@ -4,6 +4,7 @@
 {{$manualMergeStyleAllowed := $prConfig.AllowManualMerge}}
 {{$hasUnsignedMergeStyle := or $fastForwardStyleAllowed $manualMergeStyleAllowed}}
 {{$signingBlocksAllMergeStyles := and .AllowMerge .RequireSigned (not .WillSign) (not $hasUnsignedMergeStyle)}}
+{{template "repo/pulls/asc_stack" .}}
 {{if or (not .Issue.PullRequest.HasMerged) .IsPullBranchDeletable .SomePullRequestRunsNeedApproval}}
 <div class="timeline-item comment merge box">
 	<div class="timeline-avatar text {{if .Issue.PullRequest.HasMerged}}purple

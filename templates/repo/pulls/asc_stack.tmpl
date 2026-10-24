@@ -1,0 +1,28 @@
+{{/* Stack panel and needs-restack banner of a stacked pull request (C36). Parameter: the page context (uses .AscStackPanel). */}}
+{{with .AscStackPanel}}
+<div class="ui segments asc-stack-panel tw-mb-4" data-asc-stack>
+	<div class="ui segment">
+		<h4 class="ui header tw-mb-0">{{ctx.Locale.Tr "repo.pulls.asc_stack"}}</h4>
+	</div>
+	{{if .NeedsRestack}}
+	<div class="ui warning segment asc-needs-restack">{{ctx.Locale.Tr "repo.pulls.asc_needs_restack"}}</div>
+	{{end}}
+	{{if .MergeBlocked}}
+	<div class="ui warning segment asc-stack-merge-blocked">
+		{{ctx.Locale.Tr "repo.pulls.asc_stack_parent_unmerged"}}
+		{{with .Parent}}<a href="{{.Link}}">#{{.Index}}</a>{{end}}
+	</div>
+	{{end}}
+	<div class="ui segment">
+		<ol class="tw-list-none tw-m-0 tw-p-0">
+			{{range .Entries}}
+			<li class="tw-flex tw-gap-2 {{if .Current}}tw-font-bold{{end}}" {{if .Current}}aria-current="true"{{end}}>
+				<span>{{.Position}}.</span>
+				<a href="{{.Link}}">#{{.Index}} {{.Title}}</a>
+				<span class="ui small label">{{ctx.Locale.Tr (printf "repo.pulls.asc_stack_state_%s" .State)}}</span>
+			</li>
+			{{end}}
+		</ol>
+	</div>
+</div>
+{{end}}
