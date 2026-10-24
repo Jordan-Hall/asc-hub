@@ -559,6 +559,10 @@ func PrepareViewPullInfo(ctx *context.Context, issue *issues_model.Issue) *git.C
 
 	setMergeTarget(ctx, pull)
 
+	if !prepareAscStackPanel(ctx, pull) {
+		return nil
+	}
+
 	pb, err := git_model.GetFirstMatchProtectedBranchRule(ctx, repo.ID, pull.BaseBranch)
 	if err != nil {
 		ctx.ServerError("LoadProtectedBranch", err)
@@ -1349,6 +1353,10 @@ func MergePullRequest(ctx *context.Context) {
 	pr := issue.PullRequest
 	pr.Issue = issue
 	pr.Issue.Repo = ctx.Repo.Repository
+
+	if ascStackMergeBlocked(ctx, pr) {
+		return
+	}
 
 	mergeStyle := repo_model.MergeStyle(form.Do)
 	manuallyMerged := mergeStyle == repo_model.MergeStyleManuallyMerged
