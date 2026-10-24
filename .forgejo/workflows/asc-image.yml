@@ -33,7 +33,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ vars.REGISTRY_USER || github.actor }}
-          password: ${{ secrets.REGISTRY_TOKEN || secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
 
       # The Dockerfile builds the frontend (node) and the binary (go) inside the build.
       - name: Build
@@ -48,7 +48,9 @@ jobs:
         run: |
           set -euo pipefail
           sha="${GITHUB_SHA::12}"
-          for tag in "$sha" asc-v16; do
+          # The moving tag is published only from the branch; a v* tag publishes under its own name.
+          if [ "${GITHUB_REF_TYPE}" = tag ]; then name="${GITHUB_REF_NAME#v}"; else name=asc-v16; fi
+          for tag in "$sha" "$name"; do
             docker tag asc-forgejo:build "${IMAGE}:${tag}"
             docker push "${IMAGE}:${tag}"
             echo "published ${IMAGE}:${tag}"
