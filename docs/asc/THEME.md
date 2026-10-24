@@ -1,6 +1,6 @@
-# ASC theme
+# ASC theme (ASC Hub)
 
-The fork ships three themes that follow the monorepo design system
+ASC Hub ships three themes that follow the monorepo design system
 (`packages/ui/src/theme.css`): `asc-auto`, `asc-light` and `asc-dark`.
 They sit in `web_src/css/themes/` and are built on the Forgejo themes with the
 `--color-*` variables overridden (cyan primary, slate neutrals, emerald accent,

@@ -1,4 +1,4 @@
-# ASC fork baseline
+# ASC Hub (ASC fork) baseline
 
 Fork base: upstream tag `v16.0.6` (`1aa139441`). Patch-stack branch: `asc/v16`.
 
