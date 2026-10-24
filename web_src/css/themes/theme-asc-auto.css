@@ -1,0 +1,2 @@
+@import "theme-asc-light.css";
+@import "theme-asc-dark.css" (prefers-color-scheme: dark);
