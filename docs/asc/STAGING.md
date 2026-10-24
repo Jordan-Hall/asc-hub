@@ -1,16 +1,16 @@
-# ASC Forgejo staging
+# ASC Hub staging
 
-A staging instance of the ASC fork at `https://asc-staging.example.org`.
+A staging instance of ASC Hub (the ASC fork of Forgejo, see [README.md](README.md)) at `https://asc-staging.example.org`.
 It has its own SQLite database in its own volume. It shares nothing with production Forgejo or its Postgres.
 
 ## Deploy
 
-1. Push `asc/v16`. The `asc-image` workflow publishes `hub.example.org/asc/forgejo:<sha12>` and `:asc-v16`.
+1. Push `asc/v16`. The `asc-image` workflow publishes `hub.example.org/asc/asc-hub:<sha12>` and `:asc-v16`.
 2. In Coolify, create a Docker Compose resource from `deploy/coolify/forgejo-staging.compose.yml` (source-control repository).
-3. Set `FORGEJO_IMAGE_TAG` to the `<sha12>` tag to run. The compose file refuses to start without it. Pin the sha, not `asc-v16`.
+3. Set `ASC_HUB_IMAGE_TAG` to the `<sha12>` tag to run. The compose file refuses to start without it. Pin the sha, not `asc-v16`.
 4. Deploy. Coolify routes the domain to port 3000 (`SERVICE_FQDN_FORGEJO_3000`).
 
-Settings come from `FORGEJO__section__KEY` environment variables. The install is locked, registration is off, Actions are on, and the default theme is `asc-auto`.
+Settings come from `FORGEJO__section__KEY` environment variables. The application name is `ASC Hub` (`FORGEJO__DEFAULT__APP_NAME`). The install is locked, registration is off, Actions are on, and the default theme is `asc-auto`.
 
 ## Create the admin user
 
@@ -26,7 +26,7 @@ The `forgejo admin user create` command accepts a password only as the `--passwo
 
 ## Update
 
-Build a new image, set `FORGEJO_IMAGE_TAG` to the new `<sha12>`, redeploy. The volume keeps the data. To roll back, set the previous tag. The database schema may have migrated forward, so restore a volume backup if the older image refuses to start.
+Build a new image, set `ASC_HUB_IMAGE_TAG` to the new `<sha12>`, redeploy. The volume keeps the data. To roll back, set the previous tag. The database schema may have migrated forward, so restore a volume backup if the older image refuses to start.
 
 ## Limits
 

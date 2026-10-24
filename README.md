@@ -1,3 +1,11 @@
+# ASC Hub
+
+ASC Hub is the server for ASC (Agent Source Control): `asc` changesets and stacks, review, the inbox, and Actions.
+It is a fork of Forgejo v16, kept rebased on upstream, and it is licensed GPL-3.0-or-later like Forgejo.
+See [docs/asc/README.md](docs/asc/README.md). The upstream Forgejo text follows unchanged.
+
+---
+
 <div align="center">
     <img src="./assets/logo.svg" alt="" width="192" align="center" />
     <h1 align="center">Welcome to Forgejo</h1>
