@@ -384,10 +384,12 @@ func TestAscSSHKeyAuthz(t *testing.T) {
 	})
 
 	t.Run("private repo without access", func(t *testing.T) {
-		assert.Equal(t, private.AscAuthzResponse{}, ascSSHAuthz(t, user8Key, "repo2", "read"))
-		assert.Equal(t, private.AscAuthzResponse{}, ascSSHAuthz(t, user8Key, "repo2", "write"))
+		// An authenticated but refused caller is named (so asc can answer 403) but not allowed.
+		refused := private.AscAuthzResponse{UserID: 8, Username: "user8"}
+		assert.Equal(t, refused, ascSSHAuthz(t, user8Key, "repo2", "read"))
+		assert.Equal(t, refused, ascSSHAuthz(t, user8Key, "repo2", "write"))
 		// A missing repository looks the same.
-		assert.Equal(t, private.AscAuthzResponse{}, ascSSHAuthz(t, user8Key, "no-such-repo", "read"))
+		assert.Equal(t, refused, ascSSHAuthz(t, user8Key, "no-such-repo", "read"))
 	})
 
 	t.Run("public repo is read only for another user", func(t *testing.T) {
