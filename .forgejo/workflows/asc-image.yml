@@ -1,6 +1,6 @@
 name: asc-image
-# The ASC Forgejo fork as a container image in the Forgejo registry (Dockerfile.rootless):
-#   push to asc/v16  ->  hub.example.org/asc/forgejo:<sha12> and :asc-v16
+# ASC Hub (the ASC fork of Forgejo) as a container image in the Forgejo registry (Dockerfile.rootless):
+#   push to asc/v16  ->  hub.example.org/asc/asc-hub:<sha12> and :asc-v16
 # Needs the repository secret REGISTRY_TOKEN (a token with write:package) and the
 # repository variable REGISTRY_USER (the user the token belongs to).
 # Trust rules: only a push (or manual run) on asc/v16 or a v* tag reaches the trusted runner and
@@ -17,7 +17,7 @@ concurrency:
 
 env:
   REGISTRY: hub.example.org
-  IMAGE: hub.example.org/asc/forgejo
+  IMAGE: hub.example.org/asc/asc-hub
 
 jobs:
   image:
@@ -41,7 +41,7 @@ jobs:
           DOCKER_BUILDKIT: 1
         run: |
           set -euo pipefail
-          docker build --file Dockerfile.rootless --tag asc-forgejo:build .
+          docker build --file Dockerfile.rootless --tag asc-hub:build .
 
       - name: Tag and push
         if: ${{ github.ref == 'refs/heads/asc/v16' || startsWith(github.ref, 'refs/tags/v') }}
@@ -51,7 +51,7 @@ jobs:
           # The moving tag is published only from the branch; a v* tag publishes under its own name.
           if [ "${GITHUB_REF_TYPE}" = tag ]; then name="${GITHUB_REF_NAME#v}"; else name=asc-v16; fi
           for tag in "$sha" "$name"; do
-            docker tag asc-forgejo:build "${IMAGE}:${tag}"
+            docker tag asc-hub:build "${IMAGE}:${tag}"
             docker push "${IMAGE}:${tag}"
             echo "published ${IMAGE}:${tag}"
           done
