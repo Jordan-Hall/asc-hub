@@ -284,6 +284,11 @@ func Merge(ctx context.Context, pr *issues_model.PullRequest, doer *user_model.U
 	// Reset cached commit count
 	cache.Remove(pr.Issue.Repo.GetCommitsCountCacheKey(pr.BaseBranch, true))
 
+	// Branch-chain pull requests based on this one move to its base branch (SPEC 20.5 flow 6, C46).
+	if _, err := RetargetAscBranchChain(ctx, pr, doer); err != nil {
+		log.Error("RetargetAscBranchChain %-v: %v", pr, err)
+	}
+
 	return handleCloseCrossReferences(ctx, pr, doer)
 }
 
