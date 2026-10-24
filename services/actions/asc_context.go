@@ -106,7 +106,7 @@ func addAscContext(ctx context.Context, taskContext *structpb.Struct, run *actio
 	if withMergeBase {
 		fields[ascContextBaseMergeBase] = structpb.NewStringValue(changesets[1])
 	}
-	return nil
+	return addAscStackContext(ctx, taskContext, run)
 }
 
 // parseSha1ID reads one full SHA-1 commit id. Anything else is refused: an abbreviated or empty id would
