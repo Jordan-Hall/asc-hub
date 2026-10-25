@@ -36,6 +36,7 @@ import (
 	web_routers "forgejo.org/routers/web"
 	web_auth "forgejo.org/routers/web/auth"
 	actions_service "forgejo.org/services/actions"
+	"forgejo.org/services/ascbridge"
 	auth_method "forgejo.org/services/auth/method"
 	"forgejo.org/services/auth/source/oauth2"
 	"forgejo.org/services/automerge"
@@ -112,6 +113,7 @@ func InitWebInstalled(ctx context.Context) {
 	log.Info("Git version: %s (home: %s)", git.VersionInfo(), git.HomeDir())
 	mustInitCtx(ctx, ascbackend.Init)
 	mustInitCtx(ctx, ascwriter.Init)
+	mustInitCtx(ctx, ascbridge.Init)
 
 	// Setup i18n
 	translation.InitLocales(ctx)
