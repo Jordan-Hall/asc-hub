@@ -24,6 +24,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascbridge"
 	migrations_allowlist "forgejo.org/services/migrations/allowlist"
 	notify_service "forgejo.org/services/notify"
 )
@@ -420,13 +421,23 @@ func runSync(ctx context.Context, m *repo_model.Mirror) ([]*mirrorSyncResult, bo
 		log.Error("SyncMirrors [repo: %-v]: %v", m.Repo, err)
 	}
 
+	// A repository stored in asc took the fetch into its git bridge. asc is the truth, so its refs follow now (K13).
+	if err := ascbridge.SyncFromBridge(ctx, m.Repo, m.EnablePrune); err != nil {
+		log.Error("SyncMirrors [repo: %-v]: failed to import the fetched refs into asc: %v", m.Repo, err)
+		desc := fmt.Sprintf("Failed to import the mirror of '%s' into asc: %v", repoPath, err)
+		if err = system_model.CreateRepositoryNotice(desc); err != nil {
+			log.Error("CreateRepositoryNotice: %v", err)
+		}
+		return nil, false
+	}
+
 	gitRepo, err := gitrepo.OpenRepository(ctx, m.Repo)
 	if err != nil {
 		log.Error("SyncMirrors [repo: %-v]: failed to OpenRepository: %v", m.Repo, err)
 		return nil, false
 	}
 
-	if m.LFS && setting.LFS.StartServer {
+	if m.LFS && m.Repo.LFSAllowed() {
 		log.Trace("SyncMirrors [repo: %-v]: syncing LFS objects...", m.Repo)
 		endpoint := lfs.DetermineEndpoint(remoteURL.String(), m.LFSEndpoint)
 		lfsClient := lfs.NewClient(endpoint, migrations_allowlist.NewMigrationHTTPTransport())

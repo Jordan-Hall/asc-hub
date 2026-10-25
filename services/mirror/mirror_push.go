@@ -25,6 +25,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascbridge"
 	migrations_allowlist "forgejo.org/services/migrations/allowlist"
 )
 
@@ -191,9 +192,11 @@ func runPushSync(ctx context.Context, m *repo_model.PushMirror) error {
 	timeout := time.Duration(setting.Git.Timeout.Mirror) * time.Second
 
 	performPush := func(repo *repo_model.Repository, isWiki bool) error {
-		path := repo.RepoPath()
-		if isWiki {
-			path = repo.WikiPath()
+		// A repository stored in asc is pushed from its bridge, which is made or brought up to date first (K13).
+		path, err := ascbridge.Ensure(ctx, repo, isWiki)
+		if err != nil {
+			log.Error("SyncPushMirror [repo: %-v]: the git bridge is not ready: %v", repo, err)
+			return errors.New("Unexpected error")
 		}
 		// We used to erronously configure repos with `--mirror`, which would set both push and fetch refspecs into the
 		// git config.  We need to remove any `fetch` configurations that were leftover from that error, as they caused
@@ -220,7 +223,7 @@ func runPushSync(ctx context.Context, m *repo_model.PushMirror) error {
 			return util.SanitizeErrorCredentialURLs(err)
 		}
 
-		if setting.LFS.StartServer && !useSSHAuthentication {
+		if repo.LFSAllowed() && !useSSHAuthentication {
 			log.Trace("SyncMirrors [repo: %-v]: syncing LFS objects...", m.Repo)
 
 			var gitRepo *git.Repository
