@@ -18,7 +18,6 @@ import (
 	"forgejo.org/modules/lfs"
 	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/modules/repostore"
-	"forgejo.org/modules/setting"
 )
 
 // UploadRepoFileOptions contains the uploaded repository file options
@@ -117,7 +116,7 @@ func UploadRepoFiles(ctx context.Context, repo *repo_model.Repository, doer *use
 	}
 
 	// Copy uploaded files into repository.
-	ops, closeFiles, err := uploadedFileOps(gitRepo, base, infos, repo.ID, opts.TreePath)
+	ops, closeFiles, err := uploadedFileOps(gitRepo, base, infos, repo.ID, opts.TreePath, repo.LFSAllowed())
 	defer closeFiles()
 	if err != nil {
 		return err
@@ -169,7 +168,7 @@ func UploadRepoFiles(ctx context.Context, repo *repo_model.Repository, doer *use
 
 // uploadedFileOps opens the uploaded files and returns the operations that put them in the tree. The
 // files stay open until the returned function is called.
-func uploadedFileOps(gitRepo *git.Repository, base *git.Commit, infos []uploadInfo, repoID int64, treePath string) ([]repostore.FileOp, func(), error) {
+func uploadedFileOps(gitRepo *git.Repository, base *git.Commit, infos []uploadInfo, repoID int64, treePath string, lfsAllowed bool) ([]repostore.FileOp, func(), error) {
 	var open []*os.File
 	closeFiles := func() {
 		for _, f := range open {
@@ -178,7 +177,7 @@ func uploadedFileOps(gitRepo *git.Repository, base *git.Commit, infos []uploadIn
 	}
 
 	var storeInLFSFunc func(string) (bool, error)
-	if setting.LFS.StartServer && base != nil {
+	if lfsAllowed && base != nil {
 		checker, err := gitRepo.GitAttributeChecker(base.ID.String(), "filter")
 		if err != nil {
 			return nil, closeFiles, err

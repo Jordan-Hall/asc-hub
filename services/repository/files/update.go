@@ -21,7 +21,6 @@ import (
 	"forgejo.org/modules/log"
 	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/modules/repostore"
-	"forgejo.org/modules/setting"
 	"forgejo.org/modules/structs"
 	asymkey_service "forgejo.org/services/asymkey"
 )
@@ -220,7 +219,7 @@ func ChangeRepoFiles(ctx context.Context, repo *repo_model.Repository, doer *use
 		}
 	}
 
-	changes := &fileChanges{gitRepo: gitRepo, base: base}
+	changes := &fileChanges{gitRepo: gitRepo, base: base, lfsAllowed: repo.LFSAllowed()}
 	for _, file := range opts.Files {
 		switch file.Operation {
 		case "create", "update":
@@ -375,6 +374,8 @@ type fileChanges struct {
 	ops     []repostore.FileOp
 	state   map[string]bool // path -> whether a file is present, for the paths this request changed
 	lfs     []lfsObject
+	// lfsAllowed is false for a repository stored in asc, which has no LFS: a file is stored as it is.
+	lfsAllowed bool
 }
 
 // present reports whether a file is at the path, counting the changes made so far.
@@ -435,7 +436,7 @@ func (c *fileChanges) createOrUpdate(file *ChangeRepoFile, repoID int64, hasOldB
 	}
 
 	treeObjectContentReader := io.Reader(file.ContentReader)
-	if setting.LFS.StartServer && hasOldBranch {
+	if c.lfsAllowed && hasOldBranch {
 		// Check there is no way this can return multiple infos
 		filterAttribute, err := c.gitRepo.GitAttributeFirst(c.base.ID.String(), treePath, "filter")
 		if err != nil {

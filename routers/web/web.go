@@ -1902,7 +1902,7 @@ func registerGitLFSRoutes(m *web.Route) {
 		m.Any("/*", func(ctx *context.Context) {
 			ctx.NotFound("", nil)
 		})
-	}, ignoreCSRF, lfsServerEnabled)
+	}, ignoreCSRF, lfsServerEnabled, lfs.RefuseAscRepository)
 }
 
 func registerGitRoutes(m *web.Route) {
