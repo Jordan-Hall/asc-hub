@@ -1,0 +1,59 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository commits">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		<div id="asc-compare-container" class="ui segment">
+			<h2>{{ctx.Locale.Tr "repo.asc_compare"}}</h2>
+			<form class="ui form tw-mb-4" method="get" action="{{.RepoLink}}/asc/compare">
+				<div class="tw-flex tw-flex-wrap tw-gap-3 tw-items-end">
+					<div class="field">
+						<label for="asc-compare-a">{{ctx.Locale.Tr "repo.asc_compare.a"}}</label>
+						<input id="asc-compare-a" name="a" type="text" maxlength="255" value="{{.AscCompareA}}">
+					</div>
+					<div class="field">
+						<label for="asc-compare-b">{{ctx.Locale.Tr "repo.asc_compare.b"}}</label>
+						<input id="asc-compare-b" name="b" type="text" maxlength="255" value="{{.AscCompareB}}">
+					</div>
+					<div class="field">
+						<div class="ui checkbox">
+							<input id="asc-compare-three" name="three_dot" type="checkbox" value="1"{{if .AscCompareThreeDot}} checked{{end}}>
+							<label for="asc-compare-three">{{ctx.Locale.Tr "repo.asc_compare.three_dot"}}</label>
+						</div>
+					</div>
+					<button class="ui primary button" type="submit">{{ctx.Locale.Tr "repo.asc_compare.show"}}</button>
+				</div>
+			</form>
+			{{if .AscCompareError}}
+				<div class="ui negative message" data-testid="asc-compare-error">{{ctx.Locale.Tr .AscCompareError}}</div>
+			{{else}}
+				{{with .AscCompare}}
+				<p data-testid="asc-compare-summary">
+					{{ctx.Locale.Tr "repo.asc_compare.summary" .Ahead .Behind}}
+					{{if .MergeBase}}<code>{{.MergeBase}}</code>{{end}}
+				</p>
+				<div class="ui two column stackable grid">
+					<div class="column">
+						<h4>{{ctx.Locale.Tr "repo.asc_compare.ahead"}}</h4>
+						<ul class="tw-list-none tw-p-0">
+							{{range .AheadList}}<li><a href="{{$.RepoLink}}/commit/{{.SHA}}"><code>{{slice .SHA 0 10}}</code></a> {{.Subject}} <span class="tw-text-sm">{{.Author}}</span></li>{{end}}
+							{{if .AheadMore}}<li>{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
+						</ul>
+					</div>
+					<div class="column">
+						<h4>{{ctx.Locale.Tr "repo.asc_compare.behind"}}</h4>
+						<ul class="tw-list-none tw-p-0">
+							{{range .BehindList}}<li><a href="{{$.RepoLink}}/commit/{{.SHA}}"><code>{{slice .SHA 0 10}}</code></a> {{.Subject}} <span class="tw-text-sm">{{.Author}}</span></li>{{end}}
+							{{if .BehindMore}}<li>{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
+						</ul>
+					</div>
+				</div>
+				<h4>{{ctx.Locale.Tr "repo.asc_compare.files"}}</h4>
+				<ul class="tw-list-none tw-p-0">
+					{{range .Files}}<li><span class="ui mini label">{{.Status}}</span> <code>{{.Path}}</code></li>{{end}}
+				</ul>
+				{{end}}
+			{{end}}
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}
