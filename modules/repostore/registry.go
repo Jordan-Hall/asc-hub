@@ -55,6 +55,15 @@ func Get(name string) (Writer, error) {
 }
 
 // Default returns the Writer the services use. It fails closed when none is linked in.
+//
+// The Writer it returns routes each request by RepoRef.StorageBackend: a repository stored in asc goes to
+// the Writer registered as AscName, and every other repository to the one registered as DefaultName.
+// An asc repository is never written by the git Writer, and never by a missing asc Writer: the request fails
+// with ErrNoWriter instead.
 func Default() (Writer, error) {
-	return Get(DefaultName)
+	git, err := Get(DefaultName)
+	if err != nil {
+		return nil, err
+	}
+	return &router{git: git}, nil
 }

@@ -96,8 +96,12 @@ type RepoRef struct {
 	Name  string
 	// ObjectFormat is the object format name ("sha1" or "sha256").
 	ObjectFormat string
-	// Path is the absolute path of the bare git directory. Git stores only.
+	// Path is the absolute path of the bare git directory. Git stores only. For a repository stored in asc
+	// it is the git bridge (SPEC section 13.1).
 	Path string
+	// StorageBackend is the repository's storage_backend ("git", "dual" or "asc"; empty means git). It
+	// selects the Writer that Default returns: only "asc" is served by the asc writer.
+	StorageBackend string
 }
 
 // Signature is a person and a time. A zero When means the time of the request.
