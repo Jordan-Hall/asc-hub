@@ -16,6 +16,8 @@ func (repo *Repository) StoreRef() repostore.RepoRef {
 		Name:         repo.Name,
 		ObjectFormat: objectFormatName(repo.ObjectFormatName),
 		Path:         repo.RepoPath(),
+
+		StorageBackend: repo.GetStorageBackend(),
 	}
 }
 
@@ -27,6 +29,8 @@ func (repo *Repository) WikiStoreRef() repostore.RepoRef {
 		Name:         repo.Name + ".wiki",
 		ObjectFormat: objectFormatName(repo.ObjectFormatName),
 		Path:         repo.WikiPath(),
+
+		StorageBackend: repo.GetStorageBackend(),
 	}
 }
 
