@@ -112,7 +112,7 @@ func repoInitFiles(repo *repo_model.Repository, opts CreateRepoOptions) ([]repos
 
 // InitRepository initializes README and .gitignore if needed.
 func initRepository(ctx context.Context, repoPath string, u *user_model.User, repo *repo_model.Repository, opts CreateRepoOptions) (err error) {
-	if err = repo_module.CheckInitRepository(ctx, repo.OwnerName, repo.Name, opts.ObjectFormatName); err != nil {
+	if err = repo_module.CheckInitRepositoryFor(ctx, repo, opts.ObjectFormatName); err != nil {
 		return err
 	}
 
@@ -162,6 +162,17 @@ func initRepository(ctx context.Context, repoPath string, u *user_model.User, re
 	return nil
 }
 
+// newRepoStorageBackend gives the storage backend of a new repository: asc when the instance writes through asc and
+// creates new repositories there ([asc] WRITER and NEW_REPOSITORIES), git otherwise. A mirror and a repository
+// that is not sha1 stay on git: both are filled by git.
+func newRepoStorageBackend(opts CreateRepoOptions) string {
+	if setting.Asc.Enabled && setting.Asc.Writer == setting.AscWriterAsc && setting.Asc.NewRepositories == setting.AscWriterAsc &&
+		!opts.IsMirror && opts.ObjectFormatName == git.Sha1ObjectFormat.Name() {
+		return string(gitrepo.StorageBackendAsc)
+	}
+	return ""
+}
+
 // CreateRepositoryDirectly creates a repository for the user/organization.
 func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opts CreateRepoOptions) (*repo_model.Repository, error) {
 	if !doer.IsAdmin && !u.CanCreateRepo() {
@@ -206,6 +217,7 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 		WikiBranch:                      setting.Repository.DefaultBranch,
 		ObjectFormatName:                opts.ObjectFormatName,
 		Website:                         opts.Website,
+		StorageBackend:                  newRepoStorageBackend(opts),
 	}
 
 	var rollbackRepo *repo_model.Repository
@@ -242,6 +254,12 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 		}
 
 		if err = initRepository(ctx, repoPath, doer, repo, opts); err != nil {
+			if repo.GetStorageBackend() == string(gitrepo.StorageBackendAsc) {
+				// The repository may exist in asc already; Delete drops it and its bridge, and a missing one is no error.
+				if writer, werr := repostore.Default(); werr == nil {
+					_ = writer.Delete(ctx, repo.StoreRef())
+				}
+			}
 			if err2 := util.RemoveAll(repoPath); err2 != nil {
 				log.Error("initRepository: %v", err)
 				return fmt.Errorf(

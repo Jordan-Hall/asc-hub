@@ -121,16 +121,30 @@ func LoadRepoConfig() error {
 }
 
 func CheckInitRepository(ctx context.Context, owner, name, objectFormatName string) (err error) {
+	return checkInitRepository(ctx, repostore.RepoRef{Owner: owner, Name: name, ObjectFormat: objectFormatName, Path: repo_model.RepoPath(owner, name)}, "")
+}
+
+// CheckInitRepositoryFor is CheckInitRepository for a repository record: a repository stored in asc is created in
+// asc (RepoAdmin.init) with the default branch of the record, and its bridge directory is made with it.
+func CheckInitRepositoryFor(ctx context.Context, repo *repo_model.Repository, objectFormatName string) error {
+	ref := repo.StoreRef()
+	ref.ObjectFormat = objectFormatName
+	defaultBranch := ""
+	if ref.StorageBackend == repostore.StorageBackendAsc {
+		defaultBranch = repo.DefaultBranch
+	}
+	return checkInitRepository(ctx, ref, defaultBranch)
+}
+
+func checkInitRepository(ctx context.Context, ref repostore.RepoRef, defaultBranch string) (err error) {
 	writer, err := repostore.Default()
 	if err != nil {
 		return err
 	}
+	owner, name := ref.Owner, ref.Name
 
 	// Somehow the directory could exist: Init refuses to use it.
-	repoPath := repo_model.RepoPath(owner, name)
-	err = writer.Init(ctx, repostore.InitRequest{
-		Repo: repostore.RepoRef{Owner: owner, Name: name, ObjectFormat: objectFormatName, Path: repoPath},
-	})
+	err = writer.Init(ctx, repostore.InitRequest{Repo: ref, DefaultBranch: defaultBranch})
 	if errors.Is(err, repostore.ErrExists) {
 		return repo_model.ErrRepoFilesAlreadyExist{
 			Uname: owner,
