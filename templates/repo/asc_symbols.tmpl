@@ -1,0 +1,47 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		<div id="asc-symbols-container" class="ui segment">
+			{{if .AscSymbolsError}}
+				<div class="ui warning message" role="alert">
+					<p>Symbols are not available right now.</p>
+				</div>
+			{{else}}
+				<h2>
+					{{if eq .AscSymbolsOp "outline"}}Outline of <span class="tw-font-mono">{{.AscSymbolsPath}}</span>
+					{{else if eq .AscSymbolsOp "usages"}}Usages in the base of #{{.AscSymbolsPull}}
+					{{else}}Symbol <span class="tw-font-mono">{{.AscSymbolsName}}</span>{{end}}
+				</h2>
+				<p class="text grey">at <span class="tw-font-mono">{{.AscSymbolsRev}}</span></p>
+				{{range $sec := .AscSymbolsSections}}
+					<h3 class="asc-symbols-title">
+						{{if eq $sec.Title "outline"}}Outline
+						{{else if eq $sec.Title "def"}}Definition
+						{{else if eq $sec.Title "refs"}}References
+						{{else}}Usages of <span class="tw-font-mono">{{$sec.Name}}</span>{{end}}
+					</h3>
+					{{if not $sec.Rows}}
+						<div class="ui info message">Nothing found.</div>
+					{{else}}
+						<ul class="asc-symbols-list tw-list-none tw-p-0">
+							{{range $r := $sec.Rows}}
+								<li class="asc-symbol tw-flex tw-flex-wrap tw-gap-2 tw-items-baseline">
+									<span class="ui basic mini label">{{$r.Kind}}</span>
+									<a class="tw-font-mono" href="{{$r.Link}}">{{$r.Path}}{{if $r.Line}}:{{$r.Line}}{{end}}</a>
+									<span class="tw-font-mono">{{$r.Name}}</span>
+									{{if $r.Signature}}<code class="gt-ellipsis">{{$r.Signature}}</code>{{end}}
+									{{if $r.Container}}<span class="text grey">in {{$r.Container}}</span>{{end}}
+									<span class="ui mini label asc-confidence-{{$r.Confidence}}" title="How this match was found">{{$r.Confidence}}</span>
+									{{if $r.Doc}}<span class="text grey">{{$r.Doc}}</span>{{end}}
+								</li>
+							{{end}}
+						</ul>
+						{{if $sec.Truncated}}<div class="ui info message">More results exist than are shown.</div>{{end}}
+					{{end}}
+				{{end}}
+			{{end}}
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}
