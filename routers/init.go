@@ -18,6 +18,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/markup"
 	"forgejo.org/modules/markup/external"
+	ascwriter "forgejo.org/modules/repostore/asc"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/ssh"
 	"forgejo.org/modules/storage"
@@ -110,6 +111,7 @@ func InitWebInstalled(ctx context.Context) {
 	mustInitCtx(ctx, git.InitFull)
 	log.Info("Git version: %s (home: %s)", git.VersionInfo(), git.HomeDir())
 	mustInitCtx(ctx, ascbackend.Init)
+	mustInitCtx(ctx, ascwriter.Init)
 
 	// Setup i18n
 	translation.InitLocales(ctx)
