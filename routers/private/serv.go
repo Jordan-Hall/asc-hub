@@ -4,6 +4,7 @@
 package private
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -19,6 +20,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/private"
 	"forgejo.org/modules/setting"
+	"forgejo.org/services/ascbridge"
 	"forgejo.org/services/context"
 	repo_service "forgejo.org/services/repository"
 	wiki_service "forgejo.org/services/wiki"
@@ -420,6 +422,28 @@ func ServCommand(ctx *context.PrivateContext) {
 			})
 			return
 		}
+	}
+	// A repository stored in asc has no LFS (SPEC 2.5).
+	if !repo.LFSAllowedByBackend() && slices.Contains(ctx.FormStrings("verb"), "git-lfs-authenticate") {
+		ctx.JSON(http.StatusForbidden, private.Response{
+			UserMsg: fmt.Sprintf("Git LFS is not available for %s/%s", results.OwnerName, results.RepoName),
+		})
+		return
+	}
+	// A repository stored in asc is served to git over SSH from its bridge (SPEC 13.1, K13): the bridge is made or
+	// brought up to date before the client's git process opens it.
+	if _, err := ascbridge.Ensure(ctx, repo, results.IsWiki); err != nil {
+		sshLogger.Error("Unable to prepare the git bridge of %-v: %v", repo, err)
+		if errors.Is(err, ascbridge.ErrOff) || errors.Is(err, ascbridge.ErrDisabled) {
+			ctx.JSON(http.StatusForbidden, private.Response{
+				UserMsg: fmt.Sprintf("Git access to %s/%s is not available", results.OwnerName, results.RepoName),
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, private.Response{
+			Err: fmt.Sprintf("Unable to prepare the git bridge of %s/%s", results.OwnerName, results.RepoName),
+		})
+		return
 	}
 	sshLogger.Info("Serv Results:\n\tIsWiki: %t\n\tDeployKeyID: %d\n\tKeyID: %d\tKeyName: %s\n\tUserName: %s\n\tUserID: %d\n\tOwnerName: %s\n\tRepoName: %s\n\tRepoID: %d",
 		results.IsWiki,

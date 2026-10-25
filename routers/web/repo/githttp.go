@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	gocontext "context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -31,6 +32,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/structs"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascbridge"
 	"forgejo.org/services/context"
 	redirect_service "forgejo.org/services/redirect"
 	repo_service "forgejo.org/services/repository"
@@ -298,7 +300,19 @@ func httpBase(ctx *context.Context) *serviceHandler {
 
 	ctx.Req.URL.Path = strings.ToLower(ctx.Req.URL.Path) // blue: In case some repo name has upper case name
 
-	return &serviceHandler{repo, isWiki, environ}
+	// A repository stored in asc is served from its bridge, which is made or brought up to date first (K13).
+	dir, err := ascbridge.Ensure(ctx, repo, isWiki)
+	if err != nil {
+		if errors.Is(err, ascbridge.ErrOff) || errors.Is(err, ascbridge.ErrDisabled) {
+			ctx.PlainText(http.StatusForbidden, "git access to this repository is not available")
+			return nil
+		}
+		log.Error("Failed to prepare the git bridge of %-v Error: %v", repo, err)
+		ctx.ServerError("ascbridge.Ensure for "+repo.FullName(), err)
+		return nil
+	}
+
+	return &serviceHandler{repo, isWiki, environ, dir}
 }
 
 var (
@@ -347,9 +361,14 @@ type serviceHandler struct {
 	repo    *repo_model.Repository
 	isWiki  bool
 	environ []string
+	// dir is the git directory the repository is served from: bridgePath(repo) (services/ascbridge).
+	dir string
 }
 
 func (h *serviceHandler) getRepoDir() string {
+	if h.dir != "" {
+		return h.dir
+	}
 	if h.isWiki {
 		return h.repo.WikiPath()
 	}
