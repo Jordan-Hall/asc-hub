@@ -1,0 +1,27 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content dashboard asc-inbox">
+	{{template "user/dashboard/navbar" .}}
+	<div class="ui container">
+		<h2>{{ctx.Locale.Tr "user.asc_inbox"}}</h2>
+		{{range .AscInboxGroups}}
+			<div class="ui segment asc-inbox-section" data-section="{{.Section}}">
+				<h3>{{ctx.Locale.Tr (printf "user.asc_inbox.section.%s" .Section)}} <span class="ui small label">{{len .Entries}}</span></h3>
+				<div class="flex-list">
+					{{range .Entries}}
+						<div class="flex-item asc-inbox-entry">
+							<div class="flex-item-main">
+								<a class="flex-item-title" href="{{.Link}}">{{.Title}}</a>
+								<div class="flex-item-body">{{.RepoFullName}}#{{.Index}}{{if not .Updated.IsZero}} &middot; {{DateUtils.AbsoluteShort .Updated}}{{end}}</div>
+							</div>
+							{{if .Pinned}}<span class="ui label">{{ctx.Locale.Tr "user.asc_inbox.pinned"}}</span>{{end}}
+						</div>
+					{{end}}
+				</div>
+			</div>
+		{{else}}
+			<p>{{ctx.Locale.Tr "user.asc_inbox.none"}}</p>
+		{{end}}
+		{{if .AscInboxSnoozed}}<p class="tw-text-text-light">{{ctx.Locale.Tr "user.asc_inbox.snoozed" .AscInboxSnoozed}}</p>{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}
