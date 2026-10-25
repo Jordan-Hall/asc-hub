@@ -89,6 +89,8 @@ func ForkRepositoryIfNotExists(ctx context.Context, doer, owner *user_model.User
 		IsFork:           true,
 		ForkID:           opts.BaseRepo.ID,
 		ObjectFormatName: opts.BaseRepo.ObjectFormatName,
+		// A fork of a repository stored in asc is stored there too: asc copies the namespace (SPEC 13.4).
+		StorageBackend: forkStorageBackend(opts.BaseRepo),
 	}
 
 	needsRollback := false
@@ -239,4 +241,13 @@ func ConvertForkToNormalRepository(ctx context.Context, repo *repo_model.Reposit
 	})
 
 	return err
+}
+
+// forkStorageBackend gives a fork the storage backend of its base when that is asc and the instance writes through
+// asc, and git otherwise (before Stage 4 a fork is a git clone of the bridge).
+func forkStorageBackend(base *repo_model.Repository) string {
+	if repostore.AscWriterEnabled() && base.GetStorageBackend() == string(gitrepo.StorageBackendAsc) {
+		return string(gitrepo.StorageBackendAsc)
+	}
+	return ""
 }

@@ -13,6 +13,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	system_model "forgejo.org/models/system"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/modules/repostore"
@@ -48,6 +49,10 @@ func GitFsckRepos(ctx context.Context, timeout time.Duration, args git.TrustedCm
 // GitFsckRepo calls 'git fsck' to check an individual repository's health.
 func GitFsckRepo(ctx context.Context, repo *repo_model.Repository, timeout time.Duration, args git.TrustedCmdArgs) error {
 	log.Trace("Running health check on repository %-v", repo)
+	if repo.GetStorageBackend() == string(gitrepo.StorageBackendAsc) {
+		// The truth of an asc repository is in asc; its git directory is only the bridge. The doctor is asc's (SPEC 13.4).
+		return ascRepoDoctor(ctx, repo)
+	}
 	repoPath := repo.RepoPath()
 	if err := git.Fsck(ctx, repoPath, timeout, args); err != nil {
 		log.Warn("Failed to health check repository (%-v): %v", repo, err)
@@ -86,6 +91,10 @@ func GitGcRepos(ctx context.Context, timeout time.Duration, args git.TrustedCmdA
 // GitGcRepo calls 'git gc' to remove unnecessary files and optimize the local repository
 func GitGcRepo(ctx context.Context, repo *repo_model.Repository, timeout time.Duration, args git.TrustedCmdArgs) error {
 	log.Trace("Running git gc on %-v", repo)
+	if repo.GetStorageBackend() == string(gitrepo.StorageBackendAsc) {
+		// asc collects its own garbage (SPEC 3.6); only the size is kept up to date here.
+		return repo_module.UpdateRepoSize(ctx, repo)
+	}
 	command := git.NewCommand(ctx, "gc").AddArguments(args...).
 		SetDescription(fmt.Sprintf("Repository Garbage Collection: %s", repo.FullName()))
 	var stdout string
@@ -123,6 +132,10 @@ func gatherMissingRepoRecords(ctx context.Context) (repo_model.RepositoryList, e
 			case <-ctx.Done():
 				return db.ErrCancelledf("during gathering missing repo records before checking %s", repo.FullName())
 			default:
+			}
+			if repo.GetStorageBackend() == string(gitrepo.StorageBackendAsc) {
+				// An asc repository lives in asc: a missing bridge directory is not a lost repository.
+				return nil
 			}
 			isDir, err := util.IsDir(repo.RepoPath())
 			if err != nil {
