@@ -68,3 +68,35 @@ SHADOW_SAMPLE_PERCENT = 0
 	assert.False(t, Asc.Enabled)
 	assert.Empty(t, Asc.ServerURL)
 }
+
+func TestLoadAscFromWriterAndBridge(t *testing.T) {
+	cfg, err := NewConfigProviderFromData(`
+[asc]
+ENABLED = true
+SERVER_URL = https://asc.example.com/
+`)
+	require.NoError(t, err)
+	loadAscFrom(cfg)
+	assert.Equal(t, AscWriterGit, Asc.Writer, "writes stay on git until Stage 4 is chosen")
+	assert.Equal(t, AscBridgeEager, Asc.Bridge)
+	assert.Equal(t, "asc", Asc.AscBinary)
+	assert.Equal(t, AscWriterGit, Asc.NewRepositories)
+
+	cfg, err = NewConfigProviderFromData(`
+[asc]
+ENABLED = true
+SERVER_URL = https://asc.example.com/
+WRITER = ASC
+BRIDGE = Lazy
+ASC_BINARY = /usr/local/bin/asc
+BRIDGE_WORKSPACES = /var/lib/forgejo/asc-bridge
+NEW_REPOSITORIES = asc
+`)
+	require.NoError(t, err)
+	loadAscFrom(cfg)
+	assert.Equal(t, AscWriterAsc, Asc.Writer)
+	assert.Equal(t, AscBridgeLazy, Asc.Bridge)
+	assert.Equal(t, "/usr/local/bin/asc", Asc.AscBinary)
+	assert.Equal(t, "/var/lib/forgejo/asc-bridge", Asc.BridgeWorkspaces)
+	assert.Equal(t, AscWriterAsc, Asc.NewRepositories)
+}
