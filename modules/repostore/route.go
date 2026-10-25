@@ -6,6 +6,7 @@ package repostore
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
 )
 
 // AscName names the Writer that serves repositories with storage_backend=asc (modules/repostore/asc, K12).
@@ -13,6 +14,16 @@ const AscName = "asc"
 
 // StorageBackendAsc is the RepoRef.StorageBackend of a repository stored in asc.
 const StorageBackendAsc = "asc"
+
+var ascWriterOn atomic.Bool
+
+// UseAscWriter turns the routing of storage_backend=asc repositories to the asc Writer on or off ([asc] WRITER = asc,
+// Stage 4 of SPEC 13.1). While it is off, an asc repository is written like a git one: by temp-repository pushes
+// into its git bridge, which asc imports (Stage 2 and 3, K09).
+func UseAscWriter(on bool) { ascWriterOn.Store(on) }
+
+// AscWriterEnabled reports whether storage_backend=asc repositories are written through the asc Writer.
+func AscWriterEnabled() bool { return ascWriterOn.Load() }
 
 // router sends each request to the Writer of the repository's storage backend.
 type router struct {
@@ -24,9 +35,9 @@ var _ Writer = (*router)(nil)
 // pick returns the Writer for refs. Refs of different kinds in one request are refused: no Writer can make
 // a change that spans a git directory and an asc repository.
 func (r *router) pick(refs ...RepoRef) (Writer, error) {
-	asc := refs[0].StorageBackend == StorageBackendAsc
+	asc := AscWriterEnabled() && refs[0].StorageBackend == StorageBackendAsc
 	for _, ref := range refs[1:] {
-		if (ref.StorageBackend == StorageBackendAsc) != asc {
+		if (AscWriterEnabled() && ref.StorageBackend == StorageBackendAsc) != asc {
 			return nil, fmt.Errorf("%w: a request cannot span an asc repository and another storage backend", ErrUnsupported)
 		}
 	}

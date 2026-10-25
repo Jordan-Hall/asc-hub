@@ -41,7 +41,16 @@ func registerStubs() {
 
 func TestDefaultRoutesByStorageBackend(t *testing.T) {
 	registerStubs()
+	repostore.UseAscWriter(false)
 	w, err := repostore.Default()
+	require.NoError(t, err)
+	size, err := w.Size(t.Context(), repostore.RepoRef{Owner: "o", Name: "r", StorageBackend: "asc"})
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, size.Logical, "with the asc writer off, an asc repository is written like a git one")
+
+	repostore.UseAscWriter(true)
+	t.Cleanup(func() { repostore.UseAscWriter(false) })
+	w, err = repostore.Default()
 	require.NoError(t, err)
 
 	for backend, want := range map[string]int64{"": 1, "git": 1, "dual": 1, "asc": 2} {
@@ -53,6 +62,8 @@ func TestDefaultRoutesByStorageBackend(t *testing.T) {
 
 func TestDefaultRefusesARequestThatSpansBackends(t *testing.T) {
 	registerStubs()
+	repostore.UseAscWriter(true)
+	t.Cleanup(func() { repostore.UseAscWriter(false) })
 	w, err := repostore.Default()
 	require.NoError(t, err)
 

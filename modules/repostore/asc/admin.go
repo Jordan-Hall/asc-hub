@@ -43,7 +43,13 @@ func (w *Writer) Init(ctx context.Context, req repostore.InitRequest) error {
 	_, err := w.admin(ctx, "RepoAdmin.init", req.Repo, func(r *ascv1.RepoAdminRequest) {
 		r.Op = &ascv1.RepoAdminRequest_Init{Init: &ascv1.InitOp{DefaultBranch: req.DefaultBranch, Mode: "primary"}}
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if b := w.bridgeHandler(); b != nil {
+		return b.Prepare(ctx, req.Repo, req.DefaultBranch)
+	}
+	return nil
 }
 
 // Fork creates a repository that holds a copy of another: a namespace copy, not a clone. It fails with
@@ -62,7 +68,13 @@ func (w *Writer) Fork(ctx context.Context, req repostore.ForkRequest) error {
 	_, err = w.admin(ctx, "RepoAdmin.fork", req.Repo, func(r *ascv1.RepoAdminRequest) {
 		r.Op = &ascv1.RepoAdminRequest_Fork{Fork: &ascv1.ForkOp{From: from.ascRef()}}
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if b := w.bridgeHandler(); b != nil {
+		return b.Prepare(ctx, req.Repo, "")
+	}
+	return nil
 }
 
 // Delete removes a repository: asc drops its refs now and its namespace after 30 days. Deleting a repository
@@ -72,10 +84,14 @@ func (w *Writer) Delete(ctx context.Context, repo repostore.RepoRef) error {
 		r.Op = &ascv1.RepoAdminRequest_Delete{Delete: true}
 	})
 	var ce *Error
-	if errors.As(err, &ce) && ce.Code == codes.NotFound {
-		return nil // the repository does not exist
+	if err != nil && !(errors.As(err, &ce) && ce.Code == codes.NotFound) {
+		return err
 	}
-	return err
+	// Cleaning up after a repository that is already gone still removes its directory.
+	if b := w.bridgeHandler(); b != nil {
+		return b.Remove(ctx, repo)
+	}
+	return nil
 }
 
 // Size reports the logical size (bytes reachable from refs, what counts against a quota) and the unique size
@@ -102,6 +118,11 @@ func (w *Writer) Verify(ctx context.Context, repo repostore.RepoRef) (string, er
 	return resp.GetReport(), nil
 }
 
+// Verify runs the repository doctor of the registered Writer (see Writer.Verify).
+func Verify(ctx context.Context, repo repostore.RepoRef) (string, error) {
+	return shared.Verify(ctx, repo)
+}
+
 // Rename renames a repository in asc's registry (owner and name; RepoAdmin.rename). to is the new repository.
 func (w *Writer) Rename(ctx context.Context, repo, to repostore.RepoRef) error {
 	target, err := handle(to)
@@ -111,7 +132,13 @@ func (w *Writer) Rename(ctx context.Context, repo, to repostore.RepoRef) error {
 	_, err = w.admin(ctx, "RepoAdmin.rename", repo, func(r *ascv1.RepoAdminRequest) {
 		r.Op = &ascv1.RepoAdminRequest_RenameTo{RenameTo: target.name}
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if b := w.bridgeHandler(); b != nil {
+		return b.Rename(ctx, repo, to)
+	}
+	return nil
 }
 
 func clampInt64(v uint64) int64 {

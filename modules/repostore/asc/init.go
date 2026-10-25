@@ -9,6 +9,7 @@ import (
 
 	"forgejo.org/modules/ascclient"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/setting"
 )
 
@@ -29,8 +30,10 @@ func Init(ctx context.Context) error {
 		return err
 	}
 	Configure(client.Repo(), Options{})
+	repostore.UseAscWriter(setting.Asc.Writer == setting.AscWriterAsc)
 	go func() {
 		<-ctx.Done()
+		repostore.UseAscWriter(false)
 		Reset()
 		if err := client.Close(); err != nil {
 			log.Debug("repostore/asc: closing the asc client: %v", err)

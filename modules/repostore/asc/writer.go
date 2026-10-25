@@ -115,11 +115,23 @@ func (o Options) withDefaults() Options {
 	return o
 }
 
+// Bridge is what the Writer asks of the git bridge directory of a repository (RepoRef.Path). The directory is
+// where legacy git clients read the repository; services/ascbridge implements this.
+type Bridge interface {
+	// Prepare makes sure the directory exists after Init or Fork. defaultBranch may be empty.
+	Prepare(ctx context.Context, repo repostore.RepoRef, defaultBranch string) error
+	// Remove deletes the directory after Delete.
+	Remove(ctx context.Context, repo repostore.RepoRef) error
+	// Rename moves the directory after Rename.
+	Rename(ctx context.Context, from, to repostore.RepoRef) error
+}
+
 // Writer is the asc repostore.Writer. It is safe for concurrent use.
 type Writer struct {
-	mu   sync.RWMutex
-	api  ascv1.RepoClient
-	opts Options
+	mu     sync.RWMutex
+	api    ascv1.RepoClient
+	opts   Options
+	bridge Bridge
 }
 
 var _ repostore.Writer = (*Writer)(nil)
@@ -134,6 +146,27 @@ func init() {
 // Configure sets the client the registered Writer uses. Calling it again replaces it.
 func Configure(api ascv1.RepoClient, opts Options) {
 	shared.configure(api, opts)
+}
+
+// SetBridge sets the bridge directory handler of the registered Writer. Nil removes it, and then the
+// Writer leaves the directory alone.
+func SetBridge(b Bridge) {
+	shared.mu.Lock()
+	defer shared.mu.Unlock()
+	shared.bridge = b
+}
+
+// SetBridge sets the bridge directory handler of this Writer.
+func (w *Writer) SetBridge(b Bridge) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.bridge = b
+}
+
+func (w *Writer) bridgeHandler() Bridge {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.bridge
 }
 
 // Reset removes the configuration: the registered Writer then fails with ErrNotConfigured.
