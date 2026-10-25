@@ -65,6 +65,21 @@ func buildMeta(ctx context.Context, repo repostore.RepoRef, m repostore.CommitMe
 	}, nil
 }
 
+// hookMode says which of asc's hooks run for a change of refs. The pull request refs belong to Forgejo
+// itself (PR head sync and AGit, SPEC 13.5): its pre-receive hook refuses them from users, so they are written
+// with HOOK_MODE_SKIP_PRE, which asc accepts from the internal token only. Everything else runs the full pipeline.
+func hookMode(refs ...string) ascv1.HookMode {
+	if len(refs) == 0 {
+		return ascv1.HookMode_HOOK_MODE_RUN
+	}
+	for _, r := range refs {
+		if !strings.HasPrefix(r, "refs/pull/") {
+			return ascv1.HookMode_HOOK_MODE_RUN
+		}
+	}
+	return ascv1.HookMode_HOOK_MODE_SKIP_PRE
+}
+
 // publish moves one ref to a changeset with the repository's hooks: a fast-forward check, or a forced
 // update when u.Force is set. Objects come from the repository the change was built in.
 func (s *session) publish(from *repoHandle, u *repostore.RefUpdate, asc []byte) error {
@@ -87,7 +102,7 @@ func (s *session) publish(from *repoHandle, u *repostore.RefUpdate, asc []byte) 
 			New:    &ascv1.RefTarget{T: &ascv1.RefTarget_Changeset{Changeset: asc}},
 		}},
 		Mode:  mode,
-		Hooks: ascv1.HookMode_HOOK_MODE_RUN,
+		Hooks: hookMode(u.Ref),
 	})
 	if err != nil {
 		return publishErr("UpdateRefs", err)

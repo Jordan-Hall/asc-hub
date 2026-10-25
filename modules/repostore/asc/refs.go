@@ -78,8 +78,12 @@ func (w *Writer) UpdateRefs(ctx context.Context, req repostore.UpdateRefsRequest
 	if err := s.copyClosure(from, to, copies...); err != nil {
 		return nil, err
 	}
+	names := make([]string, len(req.Updates))
+	for i, u := range req.Updates {
+		names[i] = u.Name
+	}
 	resp, err := s.api.UpdateRefs(s.ctx, &ascv1.UpdateRefsRequest{
-		Repo: to.ascRef(), Updates: updates, Mode: mode, Hooks: ascv1.HookMode_HOOK_MODE_RUN,
+		Repo: to.ascRef(), Updates: updates, Mode: mode, Hooks: hookMode(names...),
 	})
 	if err != nil {
 		return nil, publishErr("UpdateRefs", err)

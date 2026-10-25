@@ -373,6 +373,16 @@ func TestUpdateRefs(t *testing.T) {
 		assert.Equal(t, "o/fork", cc.GetFrom().GetName())
 		assert.Equal(t, "o/r", cc.GetTo().GetName())
 		assert.Equal(t, [][]byte{ascid(0x44)}, cc.GetChangesets())
+		assert.Equal(t, ascv1.HookMode_HOOK_MODE_SKIP_PRE, f.last("UpdateRefs").(*ascv1.UpdateRefsRequest).GetHooks(),
+			"pull request refs skip pre-receive (SPEC 13.5)")
+	})
+	t.Run("branches run every hook", func(t *testing.T) {
+		f := newFake()
+		_, err := newWriter(t, f).UpdateRefs(t.Context(), repostore.UpdateRefsRequest{
+			Repo: repo, Updates: []repostore.RefUpdateSpec{{Name: "refs/heads/x", NewRev: gid(0x44).String()}, {Name: "refs/pull/1/head", NewRev: gid(0x44).String()}},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, ascv1.HookMode_HOOK_MODE_RUN, f.last("UpdateRefs").(*ascv1.UpdateRefsRequest).GetHooks())
 	})
 	t.Run("a revision that names nothing", func(t *testing.T) {
 		f := newFake()
@@ -458,6 +468,51 @@ func TestAdmin(t *testing.T) {
 			require.Error(t, err, bad.Owner+"/"+bad.Name)
 		}
 		assert.Empty(t, f.calls)
+	})
+}
+
+// recorder is a Bridge that records the directory calls the Writer makes.
+type recorder struct{ calls []string }
+
+func (r *recorder) Prepare(_ context.Context, repo repostore.RepoRef, branch string) error {
+	r.calls = append(r.calls, "prepare "+repo.Name+" "+branch)
+	return nil
+}
+
+func (r *recorder) Remove(_ context.Context, repo repostore.RepoRef) error {
+	r.calls = append(r.calls, "remove "+repo.Name)
+	return nil
+}
+
+func (r *recorder) Rename(_ context.Context, from, to repostore.RepoRef) error {
+	r.calls = append(r.calls, "rename "+from.Name+" "+to.Name)
+	return nil
+}
+
+func TestBridgeDirectoryFollowsTheRepository(t *testing.T) {
+	f := newFake()
+	w := newWriter(t, f)
+	rec := &recorder{}
+	w.SetBridge(rec)
+
+	require.NoError(t, w.Init(t.Context(), repostore.InitRequest{Repo: ref("o", "r"), DefaultBranch: "main"}))
+	require.NoError(t, w.Fork(t.Context(), repostore.ForkRequest{Repo: ref("u", "f"), From: ref("o", "r")}))
+	require.NoError(t, w.Rename(t.Context(), ref("o", "r"), ref("o", "s")))
+	require.NoError(t, w.Delete(t.Context(), ref("o", "s")))
+	assert.Equal(t, []string{"prepare r main", "prepare f ", "rename r s", "remove s"}, rec.calls)
+
+	t.Run("a refused call leaves the directory alone", func(t *testing.T) {
+		rec.calls = nil
+		f.adminErr = failure(codes.AlreadyExists, "", "exists")
+		require.ErrorIs(t, w.Init(t.Context(), repostore.InitRequest{Repo: ref("o", "r")}), repostore.ErrExists)
+		f.adminErr = failure(codes.PermissionDenied, "", "denied")
+		require.Error(t, w.Delete(t.Context(), ref("o", "r")))
+		assert.Empty(t, rec.calls)
+	})
+	t.Run("a repository that is already gone still loses its directory", func(t *testing.T) {
+		f.adminErr = failure(codes.NotFound, "", "no such repository")
+		require.NoError(t, w.Delete(t.Context(), ref("o", "r")))
+		assert.Equal(t, []string{"remove r"}, rec.calls)
 	})
 }
 
