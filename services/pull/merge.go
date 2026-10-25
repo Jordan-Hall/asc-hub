@@ -364,7 +364,7 @@ func doMergeAndPush(ctx context.Context, pr *issues_model.PullRequest, doer *use
 	// Now it's questionable about where this should go - either after or before the push
 	// I think in the interests of data safety - failures to push to the lfs should prevent
 	// the merge as you can always remerge.
-	if setting.LFS.StartServer {
+	if pr.BaseRepo.LFSAllowed() && pr.HeadRepo.LFSAllowed() {
 		req.BeforePublish = func(ctx context.Context, in repostore.PublishInput) error {
 			return LFSPush(ctx, in.GitDir, in.Commit.String(), in.Base.String(), pr)
 		}
@@ -398,6 +398,12 @@ func doMergeAndPush(ctx context.Context, pr *issues_model.PullRequest, doer *use
 	result, err := writer.Merge(ctx, *req)
 	if err != nil {
 		return "", mapMergeError(err, pr)
+	}
+	if writtenThroughAsc(pr.BaseRepo) {
+		// No git hook ran, and asc's own post-receive call does not carry the pull request: mark it merged here.
+		if err := markMergedThroughAsc(ctx, pr, doer, result.Commit.String()); err != nil {
+			return "", err
+		}
 	}
 	return result.Commit.String(), nil
 }
