@@ -438,6 +438,10 @@ func PushToBaseRepo(ctx context.Context, pr *issues_model.PullRequest) (err erro
 		log.Error("Unable to load base repository for PR[%d] Error: %v", pr.ID, err)
 		return err
 	}
+	if writtenThroughAsc(pr.BaseRepo) {
+		// Stage 4: asc copies the closure from the head repository and moves the ref (K12).
+		return setPullHeadThroughAsc(ctx, pr, pr.HeadRepo, git.BranchPrefix+pr.HeadBranch)
+	}
 	baseRepo, err := gitrepo.OpenRepository(ctx, pr.BaseRepo)
 	if err != nil {
 		return err
@@ -466,6 +470,9 @@ func UpdateRef(ctx context.Context, pr *issues_model.PullRequest) (err error) {
 		return err
 	}
 
+	if writtenThroughAsc(pr.BaseRepo) {
+		return setPullHeadThroughAsc(ctx, pr, nil, pr.HeadCommitID)
+	}
 	if isAsc, err := ascsync.BackedBy(pr.BaseRepo); err != nil {
 		return err
 	} else if isAsc {
