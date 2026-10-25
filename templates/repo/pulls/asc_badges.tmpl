@@ -1,0 +1,40 @@
+{{/*
+Overlap and mergeability badges of a stacked pull request (SPEC 20.5, PLAN C43). They are advice and never gate a merge.
+Template Attributes:
+* AscBadges: *repo.AscBadges (nil: nothing is shown)
+Every text below comes from the checked answer of asc and is escaped by the Go template. No link comes from asc.
+*/}}
+{{with .AscBadges}}
+<div class="ui segments asc-badges tw-mb-4" data-testid="asc-badges">
+	{{with .Merge}}
+	<div class="ui segment asc-mergeability" data-state="{{.State}}">
+		<span class="ui small label {{if eq .State "conflicts"}}red{{else if eq .State "needs_restack"}}yellow{{else}}green{{end}}">
+			{{ctx.Locale.Tr (printf "repo.pulls.asc_merge.%s" .State)}}
+		</span>
+		{{if .Conflicts}}
+		<ul class="tw-m-0 tw-mt-2">
+			{{range .Conflicts}}<li><code>{{.}}</code></li>{{end}}
+			{{if .MoreConflicts}}<li>{{ctx.Locale.Tr "repo.pulls.asc_badge.more" .MoreConflicts}}</li>{{end}}
+		</ul>
+		{{end}}
+	</div>
+	{{end}}
+	{{if .Overlaps}}
+	<div class="ui segment asc-overlaps">
+		<h5 class="ui header tw-mb-2">{{ctx.Locale.Tr "repo.pulls.asc_overlaps"}}</h5>
+		<ul class="tw-list-none tw-m-0 tw-p-0">
+			{{range .Overlaps}}
+			<li class="tw-mb-2">
+				{{if .PullLink}}<a href="{{.PullLink}}">#{{.PullIndex}}</a>{{else}}<code>{{.Change}}</code>{{end}}
+				{{if .ReviewState}}<span class="ui mini label">{{.ReviewState}}{{if .Approvals}} · {{ctx.Locale.Tr "repo.pulls.asc_badge.approvals" .Approvals}}{{end}}</span>{{end}}
+				<div class="tw-text-sm">
+					{{range $i, $p := .Paths}}{{if $i}}, {{end}}<code>{{$p}}</code>{{end}}{{if .MorePaths}}, {{ctx.Locale.Tr "repo.pulls.asc_badge.more" .MorePaths}}{{end}}
+				</div>
+			</li>
+			{{end}}
+			{{if .MoreOverlaps}}<li>{{ctx.Locale.Tr "repo.pulls.asc_badge.more" .MoreOverlaps}}</li>{{end}}
+		</ul>
+	</div>
+	{{end}}
+</div>
+{{end}}
