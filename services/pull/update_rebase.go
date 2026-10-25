@@ -11,7 +11,6 @@ import (
 	"forgejo.org/modules/log"
 	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/modules/repostore"
-	"forgejo.org/modules/setting"
 )
 
 // updateHeadByRebaseOnToBase handles updating a PR's head branch by rebasing it on the PR current base branch
@@ -29,7 +28,7 @@ func updateHeadByRebaseOnToBase(ctx context.Context, pr *issues_model.PullReques
 	sig := doer.NewGitSig()
 	req.Meta = repostore.CommitMeta{Author: sig, Committer: sig, Sign: mergeSigner(pr, doer)}
 
-	if setting.LFS.StartServer {
+	if pr.BaseRepo.LFSAllowed() && pr.HeadRepo.LFSAllowed() {
 		// Now we need to ensure that the head repository contains any LFS objects between the new base and the old mergebase
 		// It's questionable about where this should go - either after or before the push
 		// I think in the interests of data safety - failures to push to the lfs should prevent

@@ -225,6 +225,18 @@ func (repo *Repository) GetStorageBackend() string {
 	return repo.StorageBackend
 }
 
+// LFSAllowed reports whether Git LFS serves this repository: the LFS server is on and the repository is not stored
+// in asc. An asc repository has no LFS (SPEC 2.5): a pointer file is an ordinary blob, `filter=lfs` is ignored, and
+// the LFS endpoints refuse the repository.
+func (repo *Repository) LFSAllowed() bool {
+	return setting.LFS.StartServer && repo.LFSAllowedByBackend()
+}
+
+// LFSAllowedByBackend is LFSAllowed without the server setting: false for a repository stored in asc.
+func (repo *Repository) LFSAllowedByBackend() bool {
+	return repo.GetStorageBackend() != string(gitrepo.StorageBackendAsc)
+}
+
 func (repo *Repository) GetWikiBranchName() string {
 	if repo.WikiBranch == "" {
 		return setting.Repository.DefaultBranch
