@@ -13,6 +13,7 @@ import (
 	_ "forgejo.org/modules/git/ascbackend"   // registers the asc backend that storage_backend=asc selects (configured by ascbackend.Init)
 	_ "forgejo.org/modules/git/dual"         // registers the shadow-comparing backend that storage_backend=dual selects
 	_ "forgejo.org/modules/git/gitcli"       // registers the default git backend that git.OpenRepository binds
+	_ "forgejo.org/modules/repostore/asc"    // registers the writer for storage_backend=asc repositories
 	_ "forgejo.org/modules/repostore/gitcli" // registers the default writer that repostore.Default returns
 	"forgejo.org/modules/setting"
 )
