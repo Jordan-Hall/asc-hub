@@ -1,0 +1,45 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content dashboard asc-drafts">
+	{{template "user/dashboard/navbar" .}}
+	<div class="ui container">
+		<h2>{{ctx.Locale.Tr "user.asc_drafts"}}</h2>
+		{{if .AscDraftsError}}
+			<div class="ui warning message" role="alert">{{ctx.Locale.Tr .AscDraftsError}}</div>
+		{{else}}
+			{{if .AscDraftsAnyFailed}}
+				<div class="ui warning message" role="alert">{{ctx.Locale.Tr "user.asc_drafts.error.partial"}}</div>
+			{{end}}
+			{{range .AscDraftsRepos}}
+				<div class="ui segment asc-drafts-repo">
+					<h3><a href="{{.Repo.Link}}">{{.Repo.FullName}}</a></h3>
+					{{if .Failed}}
+						<p>{{ctx.Locale.Tr "user.asc_drafts.error.repo"}}</p>
+					{{else}}
+						<table class="ui very basic table">
+							<thead>
+								<tr>
+									<th>{{ctx.Locale.Tr "user.asc_drafts.change"}}</th>
+									<th>{{ctx.Locale.Tr "user.asc_drafts.labels"}}</th>
+									<th>{{ctx.Locale.Tr "user.asc_drafts.added"}}</th>
+								</tr>
+							</thead>
+							<tbody>
+								{{range .Drafts}}
+									<tr>
+										<td><code>{{if .Change}}{{.Change}}{{else}}{{.Commit}}{{end}}</code></td>
+										<td>{{range .Labels}}<span class="ui label">{{.}}</span> {{end}}</td>
+										<td>{{if not .Added.IsZero}}{{DateUtils.AbsoluteShort .Added}}{{end}}</td>
+									</tr>
+								{{end}}
+							</tbody>
+						</table>
+						{{if .Omitted}}<p class="tw-text-text-light">{{ctx.Locale.Tr "user.asc_drafts.omitted" .Omitted}}</p>{{end}}
+					{{end}}
+				</div>
+			{{else}}
+				<p>{{ctx.Locale.Tr "user.asc_drafts.none"}}</p>
+			{{end}}
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

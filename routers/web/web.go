@@ -680,6 +680,7 @@ func registerRoutes(m *web.Route) {
 
 	m.Get("/pulls", reqSignIn, user.Pulls)
 	m.Get("/milestones", reqSignIn, reqMilestonesDashboardPageEnabled, user.Milestones)
+	m.Get("/-/asc/drafts", reqSignIn, user.AscDrafts)
 
 	// ***** START: User *****
 	// "user/login" doesn't need signOut, then logged-in users can still access this route for redirection purposes by "/user/login?redirec_to=..."
