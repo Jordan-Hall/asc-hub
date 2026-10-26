@@ -32,12 +32,17 @@ Defaults in code: `modules/setting/server.go` defaults `APP_NAME` to "ASC Hub" a
 "ASC Hub" and the slogan "Source control for people and their agents".
 `tests/integration/footer_test.go` and `opengraph_test.go` expect the ASC Hub text.
 
-Not changed (they are upstream container and CLI files): the container's first-start
-template (`docker/rootless/usr/local/bin/docker-setup.sh`, `docker/root/etc/s6/gitea/setup`)
-still falls back to `Forgejo: Beyond coding. We forge.` for `APP_NAME` when the plain
-`APP_NAME` environment variable is not set on the first start, so set `APP_NAME=ASC Hub`
-(or `FORGEJO____APP_NAME` later). `cmd/main.go` still has the CLI usage line
-"Beyond coding. We forge.", and the OCI labels in the Dockerfiles still name Forgejo.
+The container's first-start template (`docker/rootless/usr/local/bin/docker-setup.sh`,
+`docker/root/etc/s6/gitea/setup`) falls back to `ASC Hub` for `APP_NAME`, the
+`custom/conf/app.example.ini` page-meta examples say ASC Hub, `cmd/main.go` has the usage line
+"ASC Hub: source control for people and their agents", and the OCI labels in `Dockerfile` and
+`Dockerfile.rootless` name ASC Hub (vendor ASC, source `https://github.com/Jordan-Hall/asc-hub`).
+The test configurations (`tests/*.ini.tmpl`) use `APP_NAME = ASC Hub`.
+
+Still reading Forgejo on purpose: the "Based on Forgejo" footer link, the Forgejo Runner and
+webhook type names, the Forgejo and Gitea themes and migration sources, the admin
+update-checker messages (they are about Forgejo releases, the upstream), the `forgejo`
+command name, and the other languages' locale files.
 
 ## Regenerating images
 

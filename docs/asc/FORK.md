@@ -37,9 +37,10 @@ Kept on purpose so that upstream changes still apply:
 - The Go module path `forgejo.org`, the binary `gitea` and its `forgejo` link, the `forgejo` command line, `forgejo doctor`.
 - The `FORGEJO__<section>__<KEY>` environment prefix (the code also accepts `GITEA__`), cookie names, the work directory layout (`/var/lib/gitea` in the image), and the `models/forgejo_migrations` package.
 - The "Forgejo" webhook type, the Forgejo and Gitea themes (still selectable), the Forgejo and Gitea migration sources, and the Forgejo Runner for Actions.
-- The OCI labels in `Dockerfile` and `Dockerfile.rootless`, the first-start default of `APP_NAME` in the container templates (`docker/root/etc/s6/gitea/setup` and `docker/rootless/usr/local/bin/docker-setup.sh`), `cmd/main.go`'s usage line, `CONTRIBUTING.md`, `RELEASE-NOTES.md`, `release-notes*`, and the upstream workflows under `.forgejo/workflows`.
+- `CONTRIBUTING.md`, `RELEASE-NOTES.md`, `release-notes*`, and the upstream workflows under `.forgejo/workflows`.
+- The `forgejo` command name and the `FORGEJO_` / `FORGEJO__` prefixes in command line help and messages, upstream test data, and the translations other than English.
 
-These are known leftovers, not claims: a person who reads the image labels or the command line help still sees Forgejo.
+Changed from upstream, so that nothing user-visible reads like Forgejo: the OCI labels in `Dockerfile` and `Dockerfile.rootless`, the first-start default of `APP_NAME` in the container templates (`docker/root/etc/s6/gitea/setup`, `docker/rootless/usr/local/bin/docker-setup.sh`), `custom/conf/app.example.ini`, the usage line and working-path help in `cmd/main.go`, `contrib/systemd/forgejo.service`, the `APP_NAME` and `APP_SLOGAN` of the test configurations in `tests/*.ini.tmpl`, and the title assertions in the integration and end-to-end tests.
 
 ## String and template overrides
 

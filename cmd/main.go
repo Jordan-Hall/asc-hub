@@ -72,7 +72,7 @@ func appGlobalFlags() []cli.Flag {
 		&cli.StringFlag{
 			Name:    "work-path",
 			Aliases: []string{"w"},
-			Usage:   "Set Forgejo's working path (defaults to the directory of the Forgejo binary)",
+			Usage:   "Set ASC Hub's working path (defaults to the directory of the ASC Hub binary)",
 		},
 	}
 }
@@ -159,7 +159,7 @@ func NewMainApp(version, versionExtra string) *cli.Command {
 func innerNewMainApp(version, versionExtra string, subCmdsStandaloneArgs, subCmdWithConfigArgs []*cli.Command, globalFlagsArgs func() []cli.Flag) *cli.Command {
 	app := &cli.Command{}
 	app.Name = "forgejo"
-	app.Usage = "Beyond coding. We forge."
+	app.Usage = "ASC Hub: source control for people and their agents"
 	app.Description = `By default, forgejo will start serving using the web-server with no argument, which can alternatively be run by running the subcommand "web".`
 	app.Version = version + versionExtra
 	app.EnableShellCompletion = true

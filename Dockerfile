@@ -54,15 +54,15 @@ RUN chmod 644 /go/src/forgejo.org/contrib/autocompletion/bash_autocomplete
 FROM data.forgejo.org/oci/alpine:3.23
 ARG RELEASE_VERSION
 LABEL maintainer="contact@forgejo.org" \
-      org.opencontainers.image.authors="Forgejo" \
-      org.opencontainers.image.url="https://forgejo.org" \
-      org.opencontainers.image.documentation="https://forgejo.org/download/#container-image" \
-      org.opencontainers.image.source="https://codeberg.org/forgejo/forgejo" \
+      org.opencontainers.image.authors="The ASC Authors, based on Forgejo" \
+      org.opencontainers.image.url="https://github.com/Jordan-Hall/asc-hub" \
+      org.opencontainers.image.documentation="https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/OPERATIONS.md" \
+      org.opencontainers.image.source="https://github.com/Jordan-Hall/asc-hub" \
       org.opencontainers.image.version="${RELEASE_VERSION}" \
-      org.opencontainers.image.vendor="Forgejo" \
+      org.opencontainers.image.vendor="ASC" \
       org.opencontainers.image.licenses="GPL-3.0-or-later" \
-      org.opencontainers.image.title="Forgejo. Beyond coding. We forge." \
-      org.opencontainers.image.description="Forgejo is a self-hosted lightweight software forge. Easy to install and low maintenance, it just does the job."
+      org.opencontainers.image.title="ASC Hub" \
+      org.opencontainers.image.description="ASC Hub: source control for people and their agents. A fork of Forgejo whose repositories are stored by asc serve."
 
 EXPOSE 22 3000
 
