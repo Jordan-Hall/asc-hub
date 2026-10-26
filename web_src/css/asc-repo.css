@@ -85,7 +85,7 @@
   margin-top: 10px;
 }
 
-.repository .secondary-nav overflow-menu .item {
+.page-content.repository .secondary-nav overflow-menu.ui.menu .overflow-menu-items > .item {
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text-light-1);
@@ -98,7 +98,7 @@
   display: none;
 }
 
-.repository .secondary-nav overflow-menu .item.active {
+.page-content.repository .secondary-nav overflow-menu.ui.menu .overflow-menu-items > .item.active {
   color: var(--color-text);
   border-bottom-color: var(--color-primary);
   background: transparent;
@@ -254,7 +254,7 @@
   height: 100%;
 }
 
-.asc-lang-legend {
+#language-stats .asc-lang-legend {
   justify-content: flex-start;
   list-style: none;
   margin: 8px 0 0;
@@ -280,7 +280,11 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  margin: 0;
+  margin: 0 0 16px;
+}
+
+.asc-repo-main > .repo-button-row {
+  margin-bottom: 0;
 }
 
 .asc-repo-page .repo-button-row > .button-sequence {
@@ -560,7 +564,7 @@
     gap: 8px;
     padding-bottom: 12px;
   }
-  .repository .secondary-nav overflow-menu .item {
+  .page-content.repository .secondary-nav overflow-menu.ui.menu .overflow-menu-items > .item {
     border: 1px solid var(--color-secondary-dark-2, var(--color-secondary));
     border-radius: 999px;
     padding: 0 16px;
@@ -569,7 +573,7 @@
     align-items: center;
     background: var(--color-box-body);
   }
-  .repository .secondary-nav overflow-menu .item.active {
+  .page-content.repository .secondary-nav overflow-menu.ui.menu .overflow-menu-items > .item.active {
     background: var(--color-primary);
     border-color: var(--color-primary);
     color: var(--color-primary-contrast);
@@ -577,4 +581,71 @@
   .repository .secondary-nav .ui.tabs.divider {
     display: none;
   }
+}
+
+/* ---- file view: one card with the commit row, the file bar and the code ---- */
+.asc-repo-page .non-diff-file-content .ui.segment,
+.asc-repo-page .non-diff-file-content .ui.attached.header,
+.asc-repo-page .non-diff-file-content .ui.attached.segment {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0 !important;
+}
+
+.asc-repo-page .non-diff-file-content #repo-file-commit-box {
+  background: var(--color-box-header);
+  border-bottom: 1px solid var(--color-secondary);
+  padding: 12px 16px;
+  align-items: center;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+}
+
+.asc-repo-page .non-diff-file-content > .file-header {
+  background: var(--color-box-body);
+  border-bottom: 1px solid var(--color-secondary);
+  padding: 8px 16px;
+  min-height: 48px;
+}
+
+.asc-repo-page .non-diff-file-content .file-info {
+  font-size: 12.5px;
+  color: var(--color-text-light-2);
+}
+
+.asc-repo-page .non-diff-file-content .file-header .ui.buttons {
+  gap: 0;
+}
+
+.asc-repo-page .non-diff-file-content .file-header .ui.buttons .ui.mini.button,
+.asc-repo-page .non-diff-file-content .file-header .btn-octicon {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 767.98px) {
+  .asc-repo-page .non-diff-file-content .file-header .ui.buttons .ui.mini.button,
+  .asc-repo-page .non-diff-file-content .file-header .btn-octicon {
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+  }
+}
+
+.asc-repo-page .non-diff-file-content .code-view,
+.asc-repo-page .non-diff-file-content .code-inner {
+  font-family: var(--fonts-monospace);
+  font-size: 13px;
+}
+
+.asc-repo-page .non-diff-file-content .lines-num {
+  color: var(--color-text-light-3);
+}
+
+.asc-repo-page .non-diff-file-content .view-raw {
+  padding: 16px;
 }
