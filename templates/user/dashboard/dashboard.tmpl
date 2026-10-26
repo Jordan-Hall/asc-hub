@@ -1,4 +1,7 @@
 {{template "base/head" .}}
+{{if .AscDash}}
+	{{template "user/dashboard/asc_home" .}}
+{{else}}
 <div role="main" aria-label="{{.Title}}" class="page-content dashboard feeds">
 	{{template "user/dashboard/navbar" .}}
 	<div class="ui container flex-container">
@@ -14,4 +17,5 @@
 		{{template "user/dashboard/repolist" .}}
 	</div>
 </div>
+{{end}}
 {{template "base/footer" .}}

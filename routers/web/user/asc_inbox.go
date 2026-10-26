@@ -5,7 +5,6 @@ package user
 
 import (
 	gocontext "context"
-	"net/http"
 	"sort"
 	"time"
 
@@ -19,10 +18,8 @@ import (
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
-	"forgejo.org/modules/setting"
 	"forgejo.org/services/automerge"
 
-	"forgejo.org/services/context"
 	pull_service "forgejo.org/services/pull"
 )
 
@@ -65,6 +62,13 @@ type AscInboxEntry struct {
 	Pinned       bool
 	SnoozedUntil time.Time // zero when not snoozed
 	Updated      time.Time
+
+	// What the section was derived from, kept to draw the row without asking again.
+	Author        string // login of the author
+	Draft         bool
+	Conflicted    bool
+	ChecksFailing bool
+	Approved      bool
 }
 
 // AscInboxGroup is one section as shown.
@@ -150,7 +154,26 @@ func ascInboxEntryFor(ctx gocontext.Context, doer *user_model.User, issue *issue
 		Index:        pr.Index,
 		Section:      section,
 		Updated:      issue.UpdatedUnix.AsTime(),
+
+		Author:        ascInboxAuthor(ctx, issue),
+		Draft:         facts.Draft,
+		Conflicted:    facts.Conflicted,
+		ChecksFailing: facts.ChecksFailing,
+		Approved:      facts.Approved,
 	}, nil
+}
+
+// ascInboxAuthor returns the login of the author of the issue, or "" when it cannot be read.
+func ascInboxAuthor(ctx gocontext.Context, issue *issues_model.Issue) string {
+	if issue.Poster == nil {
+		if err := issue.LoadPoster(ctx); err != nil {
+			return ""
+		}
+	}
+	if issue.Poster == nil {
+		return ""
+	}
+	return issue.Poster.Name
 }
 
 // ascInboxCanSee reports whether doer may read the pull requests of repo.
@@ -225,34 +248,4 @@ func ascInboxGroup(entries []*AscInboxEntry, states map[int64]*issues_model.AscI
 		out = append(out, AscInboxGroup{Section: s, Entries: es})
 	}
 	return out, snoozed
-}
-
-// AscInbox serves `GET /-/asc/inbox`.
-func AscInbox(ctx *context.Context) {
-	if !setting.Asc.Enabled || ctx.Doer == nil {
-		ctx.NotFound("AscInbox", nil)
-		return
-	}
-	ctx.Data["Title"] = ctx.Tr("user.asc_inbox")
-	ctx.Data["PageIsAscInbox"] = true
-
-	now := time.Now()
-	entries, err := ascInboxLoad(ctx, ctx.Doer, now)
-	if err != nil {
-		ctx.ServerError("ascInboxLoad", err)
-		return
-	}
-	ids := make([]int64, 0, len(entries))
-	for _, e := range entries {
-		ids = append(ids, e.PullID)
-	}
-	states, err := issues_model.ListAscInboxStates(ctx, ctx.Doer.ID, ids)
-	if err != nil {
-		ctx.ServerError("ListAscInboxStates", err)
-		return
-	}
-	groups, snoozed := ascInboxGroup(entries, states, now)
-	ctx.Data["AscInboxGroups"] = groups
-	ctx.Data["AscInboxSnoozed"] = snoozed
-	ctx.HTML(http.StatusOK, tplAscInbox)
 }
