@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
@@ -26,6 +27,10 @@ const (
 	rsNewTop    = "4040404040404040404040404040404040404040"
 	rsOnto      = "5050505050505050505050505050505050505050"
 	rsOtherChg  = "oooooooooooooooooooooooooooooooo"
+
+	// the asc ids (hex) of the old heads, as the bridge keeps them for the pin
+	rsIDBottom = "1111111111111111111111111111111111111111111111111111111111111111"
+	rsIDTop    = "2222222222222222222222222222222222222222222222222222222222222222"
 )
 
 type restackMove struct {
@@ -70,8 +75,8 @@ func newRestackFixture(t *testing.T) *restackFixture {
 	f.heads = &restackHeads{heads: map[int64]string{bottom.ID: rsOldBottom, top.ID: rsOldTop}, moveErr: map[int64]error{}}
 	rewritten := func(head bool) *ascbridge.RestackStackResult {
 		r := &ascbridge.RestackStackResult{Onto: rsOnto, Items: []ascbridge.RestackItem{
-			{Change: ascMergeBottom, State: ascbridge.RestackRewritten, OldHead: rsOldBottom, NewVersion: 2},
-			{Change: ascMergeTop, State: ascbridge.RestackRewritten, OldHead: rsOldTop, NewVersion: 2},
+			{Change: ascMergeBottom, State: ascbridge.RestackRewritten, OldHead: rsOldBottom, OldHeadID: rsIDBottom, NewVersion: 2},
+			{Change: ascMergeTop, State: ascbridge.RestackRewritten, OldHead: rsOldTop, OldHeadID: rsIDTop, NewVersion: 2},
 		}}
 		if head {
 			r.Applied = true
@@ -191,7 +196,10 @@ func TestAscRestackStackAuthorisation(t *testing.T) {
 	reader, _ := ascMergePerm(t, f.top, 5)
 	_, err := RestackAscStack(t.Context(), reader, f.top, AscRestackOptions{})
 	require.ErrorIs(t, err, ErrAscRestackNotAllowed)
-	assert.Len(t, f.ops.restackReqs, 1, "only the dry run reached asc")
+	assert.Empty(t, f.ops.restackReqs, "the doer may not rewrite the pull request itself: asc is not asked, not even for a dry run")
+	_, err = RestackAscStack(t.Context(), reader, f.top, AscRestackOptions{DryRun: true})
+	require.ErrorIs(t, err, ErrAscRestackNotAllowed)
+	assert.Empty(t, f.ops.restackReqs)
 	assert.Empty(t, f.heads.moves)
 
 	doer, _ := ascMergePerm(t, f.top, 2)
@@ -199,7 +207,7 @@ func TestAscRestackStackAuthorisation(t *testing.T) {
 		_, err = RestackAscStack(t.Context(), bad, f.top, AscRestackOptions{})
 		require.ErrorIs(t, err, ErrAscRestackNotAllowed)
 	}
-	assert.Len(t, f.ops.restackReqs, 1)
+	assert.Empty(t, f.ops.restackReqs)
 
 	// A rewritten change without an open pull request in this repository is refused, whoever asks.
 	f.ops.restackDry = &ascbridge.RestackStackResult{Items: []ascbridge.RestackItem{
@@ -209,18 +217,248 @@ func TestAscRestackStackAuthorisation(t *testing.T) {
 	}}
 	_, err = RestackAscStack(t.Context(), doer, f.top, AscRestackOptions{})
 	require.ErrorIs(t, err, ErrAscRestackNoPull)
-	assert.Len(t, f.ops.restackReqs, 2)
+	assert.Len(t, f.ops.restackReqs, 1, "only the dry run reached asc")
 
-	// ...but an unchanged one without a pull request is only reported.
-	f.ops.restackDry.Items[2].State = ascbridge.RestackUnchanged
+	// ...but an unchanged one without a pull request is only reported, as long as asc leaves it alone.
+	f.ops.restackDry = &ascbridge.RestackStackResult{Items: []ascbridge.RestackItem{
+		{Change: ascMergeBottom, State: ascbridge.RestackRewritten, OldHead: rsOldBottom, OldHeadID: rsIDBottom},
+		{Change: ascMergeTop, State: ascbridge.RestackRewritten, OldHead: rsOldTop, OldHeadID: rsIDTop},
+		{Change: rsOtherChg, State: ascbridge.RestackUnchanged},
+	}}
 	f.ops.restackRun = &ascbridge.RestackStackResult{Applied: true, Items: []ascbridge.RestackItem{
-		{Change: ascMergeBottom, State: ascbridge.RestackRewritten, NewHead: rsNewBottom},
-		{Change: ascMergeTop, State: ascbridge.RestackRewritten, NewHead: rsNewTop},
-		{Change: rsOtherChg, State: ascbridge.RestackRewritten, NewHead: rsOnto},
+		{Change: ascMergeBottom, State: ascbridge.RestackRewritten, OldHead: rsOldBottom, OldHeadID: rsIDBottom, NewHead: rsNewBottom},
+		{Change: ascMergeTop, State: ascbridge.RestackRewritten, OldHead: rsOldTop, OldHeadID: rsIDTop, NewHead: rsNewTop},
+		{Change: rsOtherChg, State: ascbridge.RestackUnchanged},
 	}}
 	res, err := RestackAscStack(t.Context(), doer, f.top, AscRestackOptions{})
 	require.NoError(t, err)
 	assert.Len(t, res.Moved, 2, "a head is moved only for a pull request that was checked")
+}
+
+// Security: the apply is pinned to the preview that was authorised.
+func TestAscRestackStackPinsTheApplyToThePreview(t *testing.T) {
+	f := newRestackFixture(t)
+	doer, _ := ascMergePerm(t, f.top, 2)
+
+	_, err := RestackAscStack(t.Context(), doer, f.top, AscRestackOptions{})
+	require.NoError(t, err)
+	require.Len(t, f.ops.restackReqs, 2)
+	assert.Empty(t, f.ops.restackReqs[0].ExpectedHeads, "the preview is not pinned")
+	assert.Equal(t, []ascbridge.ExpectedHead{
+		{Change: ascMergeBottom, OldHeadID: rsIDBottom},
+		{Change: ascMergeTop, OldHeadID: rsIDTop},
+	}, f.ops.restackReqs[1].ExpectedHeads, "the apply carries the head the preview showed for each change it may rewrite")
+}
+
+func TestAscRestackStackPinsPatchIdenticalChanges(t *testing.T) {
+	f := newRestackFixture(t)
+	doer, _ := ascMergePerm(t, f.top, 2)
+	// asc may report a dry run as unchanged and still write a new commit on the apply: the pin lists it too.
+	f.ops.restackDry.Items[1].State = ascbridge.RestackUnchanged
+	f.ops.restackRun.Items[1].State = ascbridge.RestackUnchanged
+	_, err := RestackAscStack(t.Context(), doer, f.top, AscRestackOptions{})
+	require.NoError(t, err)
+	assert.Len(t, f.ops.restackReqs[1].ExpectedHeads, 2)
+}
+
+func TestAscRestackStackRefusesAChangeWithoutAHeadToPin(t *testing.T) {
+	f := newRestackFixture(t)
+	doer, _ := ascMergePerm(t, f.top, 2)
+	f.ops.restackDry.Items[1].OldHeadID = ""
+	_, err := RestackAscStack(t.Context(), doer, f.top, AscRestackOptions{})
+	require.ErrorIs(t, err, ErrAscRestackNoPin)
+	assert.Len(t, f.ops.restackReqs, 1, "an unpinned apply is never sent")
+	assert.Empty(t, f.heads.moves)
+}
+
+// Security: whatever asc answers, a head moves only for a change the authorised preview listed, with the head
+// the preview showed. Otherwise the call fails loudly and nothing moves.
+func TestAscRestackStackVerifiesWhatAscRewrote(t *testing.T) {
+	doerFor := func(t *testing.T, f *restackFixture) *user_model.User {
+		t.Helper()
+		d, _ := ascMergePerm(t, f.top, 2)
+		return d
+	}
+	t.Run("a change that was not in the preview", func(t *testing.T) {
+		f := newRestackFixture(t)
+		f.ops.restackRun.Items = append(f.ops.restackRun.Items,
+			ascbridge.RestackItem{Change: rsOtherChg, State: ascbridge.RestackRewritten, OldHead: rsOldTop, NewHead: rsOnto})
+		res, err := RestackAscStack(t.Context(), doerFor(t, f), f.top, AscRestackOptions{})
+		require.ErrorIs(t, err, ErrAscRestackNotPreviewed)
+		assert.Contains(t, err.Error(), "no pull request head was moved")
+		require.NotNil(t, res)
+		assert.Empty(t, f.heads.moves, "not even the authorised changes move")
+		assert.Empty(t, f.followUps)
+		assert.Empty(t, res.Moved)
+	})
+	t.Run("a change without an open pull request that the preview called unchanged", func(t *testing.T) {
+		f := newRestackFixture(t)
+		f.ops.restackDry.Items = append(f.ops.restackDry.Items, ascbridge.RestackItem{Change: rsOtherChg, State: ascbridge.RestackUnchanged})
+		f.ops.restackRun.Items = append(f.ops.restackRun.Items,
+			ascbridge.RestackItem{Change: rsOtherChg, State: ascbridge.RestackRewritten, NewHead: rsOnto})
+		_, err := RestackAscStack(t.Context(), doerFor(t, f), f.top, AscRestackOptions{})
+		require.ErrorIs(t, err, ErrAscRestackNotPreviewed)
+		assert.Empty(t, f.heads.moves)
+	})
+	t.Run("an unchanged change that carries a new head but has no checked pull request", func(t *testing.T) {
+		f := newRestackFixture(t)
+		f.ops.restackDry.Items = append(f.ops.restackDry.Items, ascbridge.RestackItem{Change: rsOtherChg, State: ascbridge.RestackUnchanged})
+		f.ops.restackRun.Items = append(f.ops.restackRun.Items,
+			ascbridge.RestackItem{Change: rsOtherChg, State: ascbridge.RestackUnchanged, OldHead: rsOldTop, NewHead: rsOnto})
+		_, err := RestackAscStack(t.Context(), doerFor(t, f), f.top, AscRestackOptions{})
+		require.ErrorIs(t, err, ErrAscRestackNotPreviewed)
+		assert.Empty(t, f.heads.moves)
+	})
+	t.Run("another old head than the preview showed", func(t *testing.T) {
+		f := newRestackFixture(t)
+		f.ops.restackRun.Items[1].OldHeadID = "3333333333333333333333333333333333333333333333333333333333333333"
+		_, err := RestackAscStack(t.Context(), doerFor(t, f), f.top, AscRestackOptions{})
+		require.ErrorIs(t, err, ErrAscRestackNotPreviewed)
+		assert.Empty(t, f.heads.moves)
+
+		f = newRestackFixture(t)
+		f.ops.restackRun.Items[0].OldHead = rsOnto
+		_, err = RestackAscStack(t.Context(), doerFor(t, f), f.top, AscRestackOptions{})
+		require.ErrorIs(t, err, ErrAscRestackNotPreviewed)
+		assert.Empty(t, f.heads.moves)
+	})
+	t.Run("a change the preview called landed", func(t *testing.T) {
+		f := newRestackFixture(t)
+		f.ops.restackRun.Items = append(f.ops.restackRun.Items,
+			ascbridge.RestackItem{Change: ascMergeBottom, State: ascbridge.RestackRewritten, OldHead: rsOldBottom, NewHead: rsOnto})
+		f.ops.restackDry.Items[0].State = ascbridge.RestackSkippedLanded
+		_, err := RestackAscStack(t.Context(), doerFor(t, f), f.top, AscRestackOptions{})
+		require.ErrorIs(t, err, ErrAscRestackNotPreviewed)
+		assert.Empty(t, f.heads.moves)
+	})
+	t.Run("the authorised answer passes", func(t *testing.T) {
+		f := newRestackFixture(t)
+		_, err := RestackAscStack(t.Context(), doerFor(t, f), f.top, AscRestackOptions{})
+		require.NoError(t, err)
+		assert.Len(t, f.heads.moves, 2)
+	})
+}
+
+// A pull request that was pushed to after asc read it keeps its head.
+func TestAscRestackStackDoesNotMoveAHeadThatChanged(t *testing.T) {
+	f := newRestackFixture(t)
+	doer, _ := ascMergePerm(t, f.top, 2)
+	f.heads.heads[f.top.ID] = rsOnto // pushed since
+	res, err := RestackAscStack(t.Context(), doer, f.top, AscRestackOptions{})
+	require.Error(t, err)
+	assert.Len(t, res.Moved, 1)
+	require.Len(t, res.Failed, 1)
+	assert.Equal(t, rsOnto, f.heads.heads[f.top.ID])
+}
+
+// Restacks of one stack run one at a time.
+func TestAscRestackLocksPerStack(t *testing.T) {
+	ctx := t.Context()
+	unlock, err := lockAscRestack(ctx, "1/10")
+	require.NoError(t, err)
+
+	got := make(chan func(), 1)
+	go func() {
+		u, err := lockAscRestack(ctx, "1/10")
+		if err == nil {
+			got <- u
+		}
+	}()
+	select {
+	case <-got:
+		t.Fatal("a second restack of the same stack ran at the same time")
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	// another stack is not held up
+	other, err := lockAscRestack(ctx, "1/11")
+	require.NoError(t, err)
+	other()
+
+	// a waiter gives up with its context
+	short, cancel := context.WithTimeout(ctx, 20*time.Millisecond)
+	defer cancel()
+	_, err = lockAscRestack(short, "1/10")
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+
+	unlock()
+	select {
+	case u := <-got:
+		u()
+	case <-time.After(2 * time.Second):
+		t.Fatal("the waiter did not get the lock")
+	}
+	ascRestackLocks.Lock()
+	defer ascRestackLocks.Unlock()
+	assert.Empty(t, ascRestackLocks.m, "locks nobody holds or waits for are dropped")
+}
+
+func TestAscRestackStackWaitsForTheStack(t *testing.T) {
+	f := newRestackFixture(t)
+	doer, _ := ascMergePerm(t, f.top, 2)
+	row, err := issues_model.GetPullRequestAscStack(t.Context(), f.top.ID)
+	require.NoError(t, err)
+	key, err := ascRestackKey(t.Context(), f.top, row)
+	require.NoError(t, err)
+	bottomRow, err := issues_model.GetPullRequestAscStack(t.Context(), f.bottom.ID)
+	require.NoError(t, err)
+	bottomKey, err := ascRestackKey(t.Context(), f.bottom, bottomRow)
+	require.NoError(t, err)
+	assert.Equal(t, bottomKey, key, "every pull request of a stack has the key of its bottom")
+
+	unlock, err := lockAscRestack(t.Context(), key)
+	require.NoError(t, err)
+	defer unlock()
+	short, cancel := context.WithTimeout(t.Context(), 300*time.Millisecond)
+	defer cancel()
+	_, err = RestackAscStack(short, doer, f.bottom, AscRestackOptions{})
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	assert.Empty(t, f.ops.restackReqs, "asc was not asked while the stack was being restacked")
+
+	// a dry run writes nothing and does not wait
+	_, err = RestackAscStack(t.Context(), doer, f.bottom, AscRestackOptions{DryRun: true})
+	require.NoError(t, err)
+}
+
+// Only an approval that is for exactly the old head, live and not dismissed, moves to the new head.
+func TestKeepAscApprovalsMovesOnlyTheExactLiveOnes(t *testing.T) {
+	f := newRestackFixture(t)
+	e := db.GetEngine(t.Context())
+	add := func(rev issues_model.Review) *issues_model.Review {
+		rev.IssueID, rev.ReviewerID = f.top.IssueID, 1
+		_, err := e.Insert(&rev)
+		require.NoError(t, err)
+		return &rev
+	}
+	live := add(issues_model.Review{Type: issues_model.ReviewTypeApprove, CommitID: rsOldTop})
+	stale := add(issues_model.Review{Type: issues_model.ReviewTypeApprove, CommitID: rsOldTop, Stale: true})
+	dismissed := add(issues_model.Review{Type: issues_model.ReviewTypeApprove, CommitID: rsOldTop, Dismissed: true})
+	older := add(issues_model.Review{Type: issues_model.ReviewTypeApprove, CommitID: rsOldBottom})
+	reject := add(issues_model.Review{Type: issues_model.ReviewTypeReject, CommitID: rsOldTop})
+	otherIssue := add(issues_model.Review{Type: issues_model.ReviewTypeApprove, CommitID: rsOldTop})
+	_, err := e.Exec("UPDATE `review` SET issue_id=? WHERE id=?", f.bottom.IssueID, otherIssue.ID)
+	require.NoError(t, err)
+
+	require.NoError(t, keepAscApprovals(t.Context(), f.top, rsOldTop, rsNewTop))
+
+	get := func(r *issues_model.Review) *issues_model.Review {
+		return unittest.AssertExistsAndLoadBean(t, &issues_model.Review{ID: r.ID})
+	}
+	assert.Equal(t, rsNewTop, get(live).CommitID)
+	assert.False(t, get(live).Stale)
+	assert.Equal(t, rsOldTop, get(stale).CommitID, "a stale approval does not come back")
+	assert.True(t, get(stale).Stale, "and is never reset")
+	assert.Equal(t, rsOldTop, get(dismissed).CommitID)
+	assert.True(t, get(dismissed).Dismissed)
+	assert.Equal(t, rsOldBottom, get(older).CommitID, "an approval of another commit is not carried")
+	assert.Equal(t, rsOldTop, get(reject).CommitID, "only approvals move")
+	assert.Equal(t, rsOldTop, get(otherIssue).CommitID, "only the pull request's own reviews move")
+
+	// nothing to carry without both heads
+	require.NoError(t, keepAscApprovals(t.Context(), f.top, "", rsNewTop))
+	require.NoError(t, keepAscApprovals(t.Context(), f.top, rsOldTop, ""))
+	assert.Equal(t, rsOldTop, get(stale).CommitID)
+	assert.Equal(t, rsNewTop, get(live).CommitID)
 }
 
 func TestAscRestackStackRefusals(t *testing.T) {

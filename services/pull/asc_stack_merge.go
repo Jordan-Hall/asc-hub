@@ -345,9 +345,11 @@ func MergeAscStackWith(ctx context.Context, doer *user_model.User, perm access_m
 		CommitterName: doer.DisplayName(), CommitterEmail: doer.GetEmail(), CommitterTime: ascStackNow().Unix(),
 	}
 	byChange := map[string]*issues_model.PullRequest{}
+	oldHeads := map[string]string{}
 	for _, c := range children {
 		req.Items = append(req.Items, AscRestackItem{Change: c.change, UpdateRef: c.pr.GetGitRefName(), ExpectHead: c.head})
 		byChange[c.change] = c.pr
+		oldHeads[c.change] = c.head
 	}
 	out, err := backend.Restack(ctx, req)
 	if err != nil {
@@ -360,7 +362,7 @@ func MergeAscStackWith(ctx context.Context, doer *user_model.User, perm access_m
 		if child == nil || o.NewHead == "" || !o.PatchUnchanged {
 			continue
 		}
-		if err := keepAscApprovals(ctx, child, o.NewHead); err != nil {
+		if err := keepAscApprovals(ctx, child, oldHeads[o.Change], o.NewHead); err != nil {
 			log.Error("asc stack merge: keeping approvals of pull request %d: %v", child.ID, err)
 		}
 	}
@@ -421,15 +423,18 @@ func openAscStackChildren(ctx context.Context, items []*AscStackItem, merged map
 	return out, nil
 }
 
-// keepAscApprovals moves the live approvals of pr to its new head, so the stale-review pass of the push does not
-// drop them. Only approvals that are not dismissed move.
-func keepAscApprovals(ctx context.Context, pr *issues_model.PullRequest, newHead string) error {
-	if strings.TrimSpace(newHead) == "" {
+// keepAscApprovals moves the approvals of pr that stand for exactly oldHead to newHead, so the stale-review pass
+// of the push does not drop them. An approval moves only when it is for the old head, is not stale and is not
+// dismissed; a stale approval stays stale and an approval of another commit is not touched. It never resets
+// the stale flag. Without an old head or a new head there is nothing to carry.
+func keepAscApprovals(ctx context.Context, pr *issues_model.PullRequest, oldHead, newHead string) error {
+	oldHead, newHead = strings.TrimSpace(oldHead), strings.TrimSpace(newHead)
+	if oldHead == "" || newHead == "" || oldHead == newHead {
 		return nil
 	}
 	_, err := db.GetEngine(ctx).Exec(
-		"UPDATE `review` SET commit_id=?, stale=? WHERE issue_id=? AND type=? AND dismissed=?",
-		newHead, false, pr.IssueID, issues_model.ReviewTypeApprove, false)
+		"UPDATE `review` SET commit_id=? WHERE issue_id=? AND type=? AND dismissed=? AND stale=? AND commit_id=?",
+		newHead, pr.IssueID, issues_model.ReviewTypeApprove, false, false, oldHead)
 	return err
 }
 

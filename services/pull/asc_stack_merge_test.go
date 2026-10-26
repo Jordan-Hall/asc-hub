@@ -132,8 +132,12 @@ func TestAscStackMergePartialRestacksChildren(t *testing.T) {
 	fake.outcome = []AscRestackOutcome{{Change: ascMergeTop, NewHead: restackedHead, PatchUnchanged: true}}
 
 	// An approval of the top on its old head.
-	rev := &issues_model.Review{IssueID: top.IssueID, ReviewerID: 1, Type: issues_model.ReviewTypeApprove, CommitID: headTop, Stale: true}
+	rev := &issues_model.Review{IssueID: top.IssueID, ReviewerID: 1, Type: issues_model.ReviewTypeApprove, CommitID: headTop}
 	_, err := db.GetEngine(t.Context()).Insert(rev)
+	require.NoError(t, err)
+	// A stale approval of the same head is not carried forward and stays stale.
+	staleRev := &issues_model.Review{IssueID: top.IssueID, ReviewerID: 2, Type: issues_model.ReviewTypeApprove, CommitID: headTop, Stale: true}
+	_, err = db.GetEngine(t.Context()).Insert(staleRev)
 	require.NoError(t, err)
 
 	res, err := MergeAscStack(t.Context(), doer, perm, bottom)
@@ -152,10 +156,13 @@ func TestAscStackMergePartialRestacksChildren(t *testing.T) {
 	assert.Equal(t, top.GetGitRefName(), rs.Items[0].UpdateRef)
 	assert.Equal(t, headTop, rs.Items[0].ExpectHead)
 
-	// patch_unchanged: the approval follows the new head and is no longer stale.
+	// patch_unchanged: the live approval of the old head follows the new head.
 	got := unittest.AssertExistsAndLoadBean(t, &issues_model.Review{ID: rev.ID})
 	assert.Equal(t, restackedHead, got.CommitID)
 	assert.False(t, got.Stale)
+	gotStale := unittest.AssertExistsAndLoadBean(t, &issues_model.Review{ID: staleRev.ID})
+	assert.Equal(t, headTop, gotStale.CommitID, "a stale approval does not follow")
+	assert.True(t, gotStale.Stale, "and is not made live again")
 }
 
 func TestAscStackMergeApprovalDroppedWhenPatchChanged(t *testing.T) {
