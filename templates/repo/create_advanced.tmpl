@@ -13,8 +13,10 @@
 </label>
 
 {{$supportedFormatsLength := len .SupportedObjectFormats}}
-{{/* Only offer object format selection if there is an actual choice */}}
-{{if ge $supportedFormatsLength 2}}
+{{/* An asc repository has no object format to choose: the default (sha1) is sent and kept. Only offer the choice for git storage. */}}
+{{if .NewRepoIsAsc}}
+	<input type="hidden" name="object_format_name" value="{{.DefaultObjectFormat.Name}}" required>
+{{else if ge $supportedFormatsLength 2}}
 	<label>
 		{{ctx.Locale.Tr "repo.object_format"}}
 		<div class="ui selection dropdown">
@@ -33,9 +35,9 @@
 {{end}}
 
 <label>
-	{{ctx.Locale.Tr "repo.default_branch"}}
+	{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.trunk"}}{{else}}{{ctx.Locale.Tr "repo.default_branch"}}{{end}}
 	<input name="default_branch" value="{{.default_branch}}" placeholder="{{.default_branch}}">
-	<span class="help">{{ctx.Locale.Tr "repo.default_branch_helper"}}</span>
+	<span class="help">{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.trunk_helper"}}{{else}}{{ctx.Locale.Tr "repo.default_branch_helper"}}{{end}}</span>
 </label>
 
 <label>

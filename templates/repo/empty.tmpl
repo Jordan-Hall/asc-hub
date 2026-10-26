@@ -1,4 +1,5 @@
 {{template "base/head" .}}
+{{$isAsc := eq .Repository.GetStorageBackend "asc"}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository quickstart">
 	{{template "repo/header" .}}
 	<div class="ui container">
@@ -16,7 +17,7 @@
 				{{end}}
 				{{if .Repository.IsBroken}}
 						<div class="ui segment center">
-							{{ctx.Locale.Tr "repo.broken_message"}}
+							{{if $isAsc}}{{ctx.Locale.Tr "repo.broken_message_asc"}}{{else}}{{ctx.Locale.Tr "repo.broken_message"}}{{end}}
 						</div>
 				{{else if .CanWriteCode}}
 					<h4 class="ui top attached header">
@@ -24,7 +25,7 @@
 					</h4>
 					<div class="ui attached guide table segment empty-repo-guide">
 						<div class="item">
-							<h3>{{ctx.Locale.Tr "repo.clone_this_repo"}} <small>{{ctx.Locale.Tr "repo.clone_helper" "http://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository"}}</small></h3>
+							<h3>{{ctx.Locale.Tr "repo.clone_this_repo"}}{{if not $isAsc}} <small>{{ctx.Locale.Tr "repo.clone_helper" "http://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository"}}</small>{{end}}</h3>
 
 							<div class="repo-button-row">
 								{{if and .CanWriteCode (not .Repository.IsArchived)}}
@@ -41,6 +42,11 @@
 									{{template "repo/clone_buttons" .}}
 								</div>
 							</div>
+							{{if $isAsc}}
+								<div class="tw-mt-2">
+									{{template "repo/clone_asc_tabs" .}}
+								</div>
+							{{end}}
 						</div>
 
 						{{if not .Repository.IsArchived}}
@@ -49,6 +55,14 @@
 							<div class="item">
 								<h3>{{ctx.Locale.Tr "repo.create_new_repo_command"}}</h3>
 								<div class="markup">
+									{{if $isAsc}}
+									<pre><code>touch README.md
+asc init{{if ne .Repository.DefaultBranch "master"}} -b {{.Repository.DefaultBranch}}{{end}}
+asc add README.md
+asc commit -m "first commit"
+asc remote add origin <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span>
+asc push -u origin {{.Repository.DefaultBranch}}</code></pre>
+									{{else}}
 									<pre><code>touch README.md
 git init{{if eq .Repository.ObjectFormatName "sha256"}} --object-format=sha256{{end}}
 {{if ne .Repository.DefaultBranch "master"}}git switch -c {{.Repository.DefaultBranch}}{{end}}
@@ -56,6 +70,7 @@ git add README.md
 git commit -m "first commit"
 git remote add origin <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span>
 git push -u origin {{.Repository.DefaultBranch}}</code></pre>
+									{{end}}
 								</div>
 							</div>
 							<div class="divider"></div>
@@ -63,8 +78,13 @@ git push -u origin {{.Repository.DefaultBranch}}</code></pre>
 							<div class="item">
 								<h3>{{ctx.Locale.Tr "repo.push_exist_repo"}}</h3>
 								<div class="markup">
+									{{if $isAsc}}
+									<pre><code>asc remote add origin <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span>
+asc push -u origin {{.Repository.DefaultBranch}}</code></pre>
+									{{else}}
 									<pre><code>git remote add origin <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span>
 git push -u origin {{.Repository.DefaultBranch}}</code></pre>
+									{{end}}
 								</div>
 							</div>
 						{{end}}

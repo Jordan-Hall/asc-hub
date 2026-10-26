@@ -41,7 +41,8 @@
 		const link = toOriginUrl(btn.getAttribute('data-link'));
 
 		for (const el of document.getElementsByClassName('js-clone-url')) {
-			el[el.nodeName === 'INPUT' ? 'value' : 'textContent'] = link;
+			// data-clone-prefix puts a command (for example "asc clone ") before the URL
+			el[el.nodeName === 'INPUT' ? 'value' : 'textContent'] = (el.getAttribute('data-clone-prefix') || '') + link;
 		}
 		for (const el of document.getElementsByClassName('js-clone-url-editor')) {
 			el.href = el.getAttribute('data-href-template').replace('{url}', encodeURIComponent(link));
