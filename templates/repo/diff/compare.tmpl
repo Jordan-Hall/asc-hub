@@ -3,8 +3,8 @@
 	{{template "repo/header" .}}
 	{{$showDiffBox := false}}
 	{{$canReadPullRequests := .Permission.CanRead $.UnitTypePullRequests}}
-	<div class="ui container fluid padded">
-	<h2 class="ui header">
+	<div class="ui container">
+	<h2 class="ui header asc-compare-title">
 		{{if and $.PageIsComparePull $.IsSigned (not .Repository.IsArchived)}}
 			{{if $canReadPullRequests}}
 				{{ctx.Locale.Tr "repo.pulls.compare_changes"}}
@@ -193,7 +193,7 @@
 			</div>
 		{{else}}
 			{{if and $.IsSigned (not .Repository.IsArchived)}}
-				<div class="ui info message show-form-container {{if .Flash}}tw-hidden{{end}}">
+				<div class="ui info message show-form-container tw-hidden">
 					<button class="ui button primary show-form">{{ctx.Locale.Tr "repo.pulls.new"}}</button>
 				</div>
 			{{else if .Repository.IsArchived}}
@@ -210,7 +210,7 @@
 				</div>
 			{{end}}
 			{{if $.IsSigned}}
-				<div class="pullrequest-form {{if not .Flash}}tw-hidden{{end}}">
+				<div class="pullrequest-form">
 					{{template "repo/issue/new_form" .}}
 				</div>
 			{{end}}
