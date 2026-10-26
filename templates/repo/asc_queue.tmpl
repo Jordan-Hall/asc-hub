@@ -1,0 +1,131 @@
+{{/*
+The merge queue of one branch (asc_queue.go).
+Template Attributes:
+* AscQueue: *automerge.AscQueueView (Branch, Paused, Landing, Active, Recent)
+* AscQueueUsers: map of user id to user, for "queued by"
+* AscQueueCanAdmin: the viewer may pause and resume
+* AscQueueRevalidate: bool, lands carry no_content_merge
+Entry reasons are written by the queue worker from fixed texts and pull request numbers; the template engine escapes them.
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-queue-page">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+		<div class="ui segment" data-testid="asc-queue">
+			<div class="asc-queue-head">
+				<h2 class="ui header tw-mb-0">{{ctx.Locale.Tr "repo.asc_queue.title"}}
+					<span class="ui basic label tw-font-mono">{{.AscQueue.Branch}}</span>
+				</h2>
+				<span class="asc-state {{if .AscQueue.Paused}}asc-state-blocked{{else}}asc-state-ready{{end}}" data-testid="asc-queue-status">
+					{{if .AscQueue.Paused}}{{ctx.Locale.Tr "repo.asc_queue.status_paused"}}{{else if .AscQueue.Landing}}{{ctx.Locale.Tr "repo.asc_queue.status_landing"}}{{else}}{{ctx.Locale.Tr "repo.asc_queue.status_running"}}{{end}}
+				</span>
+			</div>
+			<p class="text grey">{{ctx.Locale.Tr "repo.asc_queue.desc"}}</p>
+			<p class="text grey">
+				{{if .AscQueueRevalidate}}{{ctx.Locale.Tr "repo.asc_queue.revalidate_on"}}{{else}}{{ctx.Locale.Tr "repo.asc_queue.revalidate_off"}}{{end}}
+			</p>
+
+			{{if .AscQueueCanAdmin}}
+			<div class="asc-queue-admin">
+				{{if .AscQueue.Paused}}
+					<button class="ui basic button show-modal" data-modal="#asc-queue-resume-modal">{{ctx.Locale.Tr "repo.asc_queue.resume"}}</button>
+				{{else}}
+					<button class="ui basic button show-modal" data-modal="#asc-queue-pause-modal">{{ctx.Locale.Tr "repo.asc_queue.pause"}}</button>
+				{{end}}
+			</div>
+			{{end}}
+
+			<h3 class="ui header">{{ctx.Locale.Tr "repo.asc_queue.waiting"}}</h3>
+			{{if .AscQueue.Active}}
+			<table class="ui table asc-stack" data-testid="asc-queue-active">
+				<thead>
+					<tr>
+						<th scope="col">{{ctx.Locale.Tr "repo.asc_queue.col_position"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "repo.asc_queue.col_by"}}</th>
+						<th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "repo.asc_queue.col_actions"}}</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range .AscQueue.Active}}
+					<tr>
+						<td data-label="{{ctx.Locale.Tr "repo.asc_queue.col_position"}}">{{.Position}}</td>
+						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}">
+							{{if .PR}}<a href="{{.PR.Issue.Link}}">#{{.PR.Issue.Index}} {{.PR.Issue.Title}}</a>{{else}}<span class="text grey">{{ctx.Locale.Tr "repo.asc_queue.gone"}}</span>{{end}}
+						</td>
+						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}">
+							<span class="asc-state asc-state-queued_{{.Entry.State}}">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.queued_%s" .Entry.State)}}</span>
+							{{if .Entry.Reason}}<div class="text grey tw-text-sm">{{.Entry.Reason}}</div>{{end}}
+						</td>
+						<td data-label="{{ctx.Locale.Tr "repo.asc_queue.col_by"}}">{{with index $.AscQueueUsers .Entry.DoerID}}{{.GetDisplayName}}{{end}}</td>
+						<td>
+							{{if and .CanCancel .PR}}<a class="ui basic mini button" href="{{.PR.Issue.Link}}/asc/confirm?op=unqueue">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a>{{end}}
+						</td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+			{{else}}
+			<div class="ui info message" data-testid="asc-queue-empty">{{ctx.Locale.Tr "repo.asc_queue.empty"}}</div>
+			{{end}}
+
+			{{if .AscQueue.Recent}}
+			<h3 class="ui header">{{ctx.Locale.Tr "repo.asc_queue.recent"}}</h3>
+			<table class="ui table asc-stack" data-testid="asc-queue-recent">
+				<tbody>
+					{{range .AscQueue.Recent}}
+					<tr>
+						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}">
+							{{if .PR}}<a href="{{.PR.Issue.Link}}">#{{.PR.Issue.Index}} {{.PR.Issue.Title}}</a>{{else}}<span class="text grey">{{ctx.Locale.Tr "repo.asc_queue.gone"}}</span>{{end}}
+						</td>
+						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}">
+							<span class="asc-state asc-state-{{.Entry.State}}">{{ctx.Locale.Tr (printf "repo.asc_queue.finished_%s" .Entry.State)}}</span>
+							{{if .Entry.Reason}}<div class="text grey tw-text-sm">{{.Entry.Reason}}</div>{{end}}
+						</td>
+						<td data-label="{{ctx.Locale.Tr "repo.asc_queue.col_when"}}">{{DateUtils.TimeSince .Entry.UpdatedUnix}}</td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+			{{end}}
+		</div>
+	</div>
+</div>
+
+{{if .AscQueueCanAdmin}}
+<dialog id="asc-queue-pause-modal">
+	<article>
+		<header>{{ctx.Locale.Tr "repo.asc_queue.pause"}}</header>
+		<div class="content">
+			<div class="ui warning message">{{ctx.Locale.Tr "repo.asc_queue.pause_confirm"}}</div>
+		</div>
+		<form method="post" action="{{.RepoLink}}/asc/queue/pause">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="branch" value="{{.AscQueue.Branch}}">
+			<div class="actions">
+				<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
+				<button type="submit" class="ui primary button">{{ctx.Locale.Tr "repo.asc_queue.pause"}}</button>
+			</div>
+		</form>
+	</article>
+</dialog>
+<dialog id="asc-queue-resume-modal">
+	<article>
+		<header>{{ctx.Locale.Tr "repo.asc_queue.resume"}}</header>
+		<div class="content">
+			<div class="ui info message">{{ctx.Locale.Tr "repo.asc_queue.resume_confirm"}}</div>
+		</div>
+		<form method="post" action="{{.RepoLink}}/asc/queue/resume">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="branch" value="{{.AscQueue.Branch}}">
+			<div class="actions">
+				<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
+				<button type="submit" class="ui primary button">{{ctx.Locale.Tr "repo.asc_queue.resume"}}</button>
+			</div>
+		</form>
+	</article>
+</dialog>
+{{end}}
+{{template "base/footer" .}}

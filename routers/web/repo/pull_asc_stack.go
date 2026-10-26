@@ -22,6 +22,7 @@ func prepareAscStackPanel(ctx *context.Context, pull *issues_model.PullRequest) 
 	}
 	if panel != nil {
 		ctx.Data["AscStackPanel"] = panel
+		prepareAscStackActions(ctx, pull)
 	}
 	return true
 }
