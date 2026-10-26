@@ -729,3 +729,70 @@
   border-radius: 8px;
   font-weight: 600;
 }
+
+/* ---- repository settings: the same 1280 px frame, rounded cards, a quiet side menu ---- */
+.asc-settings-page .ui.container.flex-container {
+  gap: 24px;
+}
+
+.asc-settings-page .flex-container-nav .ui.vertical.menu {
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+  box-shadow: none;
+  overflow: hidden;
+  background: var(--color-box-body);
+}
+
+.asc-settings-page .flex-container-nav .ui.vertical.menu > .header.item {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-light-2);
+}
+
+.asc-settings-page .flex-container-nav .ui.vertical.menu > .item,
+.asc-settings-page .flex-container-nav .ui.vertical.menu summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.asc-settings-page .flex-container-nav .ui.vertical.menu > .item.active {
+  background: var(--color-primary-light-7, var(--color-active));
+  color: var(--color-primary);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.asc-settings-page .ui.attached.segment,
+.asc-settings-page .ui.attached.header {
+  border-color: var(--color-secondary);
+}
+
+.asc-settings-page .ui.top.attached.header {
+  border-radius: 10px 10px 0 0;
+  background: var(--color-box-header);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.asc-settings-page .ui.bottom.attached.segment {
+  border-radius: 0 0 10px 10px;
+  background: var(--color-box-body);
+}
+
+.asc-settings-page .ui.form .ui.button,
+.asc-settings-page .flex-container-main .ui.button {
+  min-height: 44px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.asc-settings-page .ui.form input:not([type="checkbox"], [type="radio"], [type="file"]),
+.asc-settings-page .ui.form textarea,
+.asc-settings-page .ui.form select {
+  border-radius: 8px;
+  min-height: 44px;
+}
