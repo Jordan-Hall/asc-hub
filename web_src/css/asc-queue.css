@@ -1,0 +1,110 @@
+/* Merge queue, stack actions and the confirmation page of a stack operation (ASC Hub).
+   Mobile first: the base rules are for 320px and up, min-width queries add room. Colours come from the
+   theme variables, so every theme keeps working; state is shown by a word and a left border as well as
+   by colour. */
+
+.asc-state {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--color-secondary);
+  border-inline-start-width: 4px;
+  background: var(--color-box-body);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.asc-state-ready,
+.asc-state-merged,
+.asc-state-rewritten,
+.asc-state-revert {
+  border-color: var(--color-green);
+}
+
+.asc-state-queued_queued,
+.asc-state-queued_landing,
+.asc-state-unchanged,
+.asc-state-skipped_landed {
+  border-color: var(--color-primary);
+}
+
+.asc-state-not_ready,
+.asc-state-queued_blocked,
+.asc-state-skipped_frozen {
+  border-color: var(--color-yellow);
+}
+
+.asc-state-conflict,
+.asc-state-blocked,
+.asc-state-cancelled {
+  border-color: var(--color-red);
+}
+
+.asc-stack-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.asc-stack-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.asc-stack-actions .ui.button {
+  margin: 0;
+  flex: 1 1 100%;
+  text-align: center;
+}
+
+.asc-queue-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.asc-queue-admin {
+  margin-block: 12px;
+}
+
+.asc-op-message {
+  display: block;
+}
+
+.asc-op-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.asc-op-buttons .ui.button {
+  margin: 0;
+  flex: 1 1 100%;
+}
+
+.asc-confirm-box .asc-op-table {
+  margin-block: 16px;
+}
+
+.asc-revert-options {
+  margin-block: 12px;
+}
+
+@media (min-width: 640px) {
+  .asc-stack-actions .ui.button,
+  .asc-op-buttons .ui.button {
+    flex: 0 0 auto;
+  }
+
+  .asc-confirm-box {
+    max-width: 52rem;
+  }
+}

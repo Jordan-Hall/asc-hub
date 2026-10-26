@@ -1,0 +1,101 @@
+{{/*
+Confirmation page of a stack operation: the dry run, then a form that posts to the operation (asc_confirm.go).
+Template Attributes:
+* AscOp: queue, unqueue, merge, restack or revert (checked by the handler before the page renders)
+* AscRows: []AscConfirmRow, the pull requests or changes the operation meets
+* AscCanConfirm: bool, false disables the button (a blocker, or nothing to do)
+* AscFailure: string, why it cannot go on (already translated)
+* AscPreviewNote: string, an informational line (already translated)
+* AscPaused, AscNeedsContentMerge, AscNoContentMerge, AscReady: merge and queue only
+* AscScopeThis, AscSquash: revert only
+* AscAction: the URL the form posts to; AscBack: the pull request page
+Every text comes from the locale or from the handler; pull request titles are escaped by the template engine.
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-confirm">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		<div class="ui segment asc-confirm-box" data-testid="asc-confirm" data-asc-op="{{.AscOp}}">
+			<h2 class="ui header">{{.Title}}</h2>
+			<p>{{ctx.Locale.Tr (printf "repo.pulls.asc_op.desc.%s" .AscOp)}}</p>
+
+			{{if eq .AscOp "revert"}}
+			<form class="ui form asc-revert-options" method="get" action="{{.AscBack}}/asc/confirm">
+				<input type="hidden" name="op" value="revert">
+				<div class="grouped fields">
+					<div class="field">
+						<div class="ui radio checkbox">
+							<input id="asc-scope-stack" type="radio" name="scope" value="stack"{{if not .AscScopeThis}} checked{{end}}>
+							<label for="asc-scope-stack">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_scope_stack"}}</label>
+						</div>
+					</div>
+					<div class="field">
+						<div class="ui radio checkbox">
+							<input id="asc-scope-this" type="radio" name="scope" value="this"{{if .AscScopeThis}} checked{{end}}>
+							<label for="asc-scope-this">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_scope_this"}}</label>
+						</div>
+					</div>
+					<div class="field">
+						<div class="ui checkbox">
+							<input id="asc-squash" type="checkbox" name="squash" value="1"{{if .AscSquash}} checked{{end}}>
+							<label for="asc-squash">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_squash"}}</label>
+						</div>
+					</div>
+				</div>
+				<button class="ui basic button" type="submit">{{ctx.Locale.Tr "repo.pulls.asc_op.preview"}}</button>
+			</form>
+			{{end}}
+
+			{{if .AscFailure}}
+			<div class="ui negative message asc-op-message" role="alert" data-testid="asc-failure">{{svg "octicon-x-circle" 16}} {{.AscFailure}}</div>
+			{{end}}
+			{{if .AscPreviewNote}}
+			<div class="ui info message asc-op-message" role="status">{{.AscPreviewNote}}</div>
+			{{end}}
+			{{if .AscPaused}}
+			<div class="ui warning message asc-op-message" role="status">{{svg "octicon-alert" 16}} {{ctx.Locale.Tr "repo.pulls.asc_op.paused_note"}}</div>
+			{{end}}
+			{{if and .AscNeedsContentMerge .AscNoContentMerge}}
+			<div class="ui warning message asc-op-message" role="status" data-testid="asc-content-merge">{{svg "octicon-alert" 16}} {{ctx.Locale.Tr "repo.pulls.asc_op.content_merge_note"}}</div>
+			{{end}}
+
+			{{if .AscRows}}
+			<table class="ui table asc-stack asc-op-table" data-testid="asc-rows">
+				<thead>
+					<tr>
+						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_detail"}}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range .AscRows}}
+					<tr>
+						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}">
+							{{if .Link}}<a href="{{.Link}}">#{{.Index}} {{.Title}}</a>{{else}}<span class="tw-font-mono">{{.Change}}</span>{{end}}
+						</td>
+						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}">
+							<span class="asc-state asc-state-{{.Status}}">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.%s" .Status)}}</span>
+						</td>
+						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_detail"}}">{{.Detail}}</td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+			{{end}}
+
+			<form class="ui form asc-op-form" method="post" action="{{.AscAction}}">
+				{{.CsrfTokenHtml}}
+				{{if eq .AscOp "revert"}}
+					<input type="hidden" name="scope" value="{{if .AscScopeThis}}this{{else}}stack{{end}}">
+					{{if .AscSquash}}<input type="hidden" name="squash" value="1">{{end}}
+				{{end}}
+				<div class="asc-op-buttons">
+					<button class="ui primary button" type="submit" data-testid="asc-confirm-button"{{if not .AscCanConfirm}} disabled aria-disabled="true"{{end}}>{{ctx.Locale.Tr (printf "repo.pulls.asc_op.confirm.%s" .AscOp)}}</button>
+					<a class="ui basic button" href="{{.AscBack}}">{{ctx.Locale.Tr "repo.pulls.asc_op.cancel"}}</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}

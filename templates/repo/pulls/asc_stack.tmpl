@@ -1,11 +1,22 @@
-{{/* Stack panel and needs-restack banner of a stacked pull request (C36). Parameter: the page context (uses .AscStackPanel). */}}
+{{/*
+Stack panel, needs-restack banner and stack actions of a stacked pull request (C36, H1).
+Template Attributes:
+* AscStackPanel: *pull.AscStackPanel
+* AscActions: *repo.AscStackActions (set for a signed-in viewer of a stack in an asc repository); every button is a link to the
+  confirmation page, which runs the dry run
+* AscQueueStates: map of pull request index to queue state, for the labels
+*/}}
 {{with .AscStackPanel}}
 <div class="ui segments asc-stack-panel tw-mb-4" data-asc-stack>
-	<div class="ui segment">
+	<div class="ui segment asc-stack-head">
 		<h4 class="ui header tw-mb-0">{{ctx.Locale.Tr "repo.pulls.asc_stack"}}</h4>
+		{{with $.AscActions}}<a class="asc-stack-queue-link" href="{{.QueueURL}}">{{ctx.Locale.Tr "repo.asc_queue.title"}}</a>{{end}}
 	</div>
 	{{if .NeedsRestack}}
-	<div class="ui warning segment asc-needs-restack">{{ctx.Locale.Tr "repo.pulls.asc_needs_restack"}}</div>
+	<div class="ui warning segment asc-needs-restack">
+		{{ctx.Locale.Tr "repo.pulls.asc_needs_restack"}}
+		{{with $.AscActions}}{{if .CanRestack}}<a class="ui mini primary button tw-ml-2" href="{{.ConfirmURL}}?op=restack" data-testid="asc-restack-link">{{ctx.Locale.Tr "repo.pulls.asc_op.restack"}}</a>{{end}}{{end}}
+	</div>
 	{{end}}
 	{{if .MergeBlocked}}
 	<div class="ui warning segment asc-stack-merge-blocked">
@@ -20,9 +31,26 @@
 				<span>{{.Position}}.</span>
 				<a href="{{.Link}}">#{{.Index}} {{.Title}}</a>
 				<span class="ui small label">{{ctx.Locale.Tr (printf "repo.pulls.asc_stack_state_%s" .State)}}</span>
+				{{if $.AscQueueStates}}{{with index $.AscQueueStates .Index}}
+				<span class="asc-state asc-state-queued_{{.}}" data-testid="asc-queue-state">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.queued_%s" .)}}</span>
+				{{end}}{{end}}
 			</li>
 			{{end}}
 		</ol>
 	</div>
+	{{with $.AscActions}}
+	{{if or .CanQueue .CanUnqueue .CanMerge .CanRestack .CanRevert}}
+	<div class="ui segment asc-stack-actions" data-testid="asc-stack-actions">
+		{{if .CanQueue}}<a class="ui primary button" href="{{.ConfirmURL}}?op=queue" data-testid="asc-queue-link">{{ctx.Locale.Tr "repo.pulls.asc_op.queue"}}</a>{{end}}
+		{{if .CanUnqueue}}<a class="ui basic button" href="{{.ConfirmURL}}?op=unqueue" data-testid="asc-unqueue-link">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a>{{end}}
+		{{if .CanMerge}}<a class="ui basic button" href="{{.ConfirmURL}}?op=merge" data-testid="asc-merge-link">{{ctx.Locale.Tr "repo.pulls.asc_op.merge_stack"}}</a>{{end}}
+		{{if .CanRestack}}<a class="ui basic button" href="{{.ConfirmURL}}?op=restack">{{ctx.Locale.Tr "repo.pulls.asc_op.restack"}}</a>{{end}}
+		{{if .CanRevert}}
+			<a class="ui basic button" href="{{.ConfirmURL}}?op=revert&scope=this" data-testid="asc-revert-link">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_this"}}</a>
+			{{if gt (len $.AscStackPanel.Entries) 1}}<a class="ui basic button" href="{{.ConfirmURL}}?op=revert&scope=stack">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_stack"}}</a>{{end}}
+		{{end}}
+	</div>
+	{{end}}
+	{{end}}
 </div>
 {{end}}

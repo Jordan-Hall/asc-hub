@@ -1728,6 +1728,11 @@ func registerRoutes(m *web.Route) {
 			return cancel
 		})
 
+		m.Group("/asc/queue", func() {
+			m.Get("", repo.AscQueuePage)
+			m.Post("/pause", reqSignIn, context.RepoMustNotBeArchived(), repo.AscQueuePause)
+			m.Post("/resume", reqSignIn, context.RepoMustNotBeArchived(), repo.AscQueueResume)
+		}, repo.MustAllowPulls, repo.MustBeNotEmpty, context.RepoRef(), reqRepoPullsReader)
 		m.Get("/pulls/posters", repo.PullPosters)
 		m.Group("/pulls/{index}", func() {
 			m.Get("", repo.SetWhitespaceBehavior, repo.GetPullDiffStats, context.EnsureOrg(), repo.ViewIssue)
@@ -1749,6 +1754,14 @@ func registerRoutes(m *web.Route) {
 			m.Post("/cancel_auto_merge", context.RepoMustNotBeArchived(), repo.CancelAutoMergePullRequest)
 			m.Post("/update", repo.UpdatePullRequest)
 			m.Post("/asc/restore_version", reqSignIn, context.RepoMustNotBeArchived(), repo.AscRestoreVersion)
+			m.Group("/asc", func() {
+				m.Get("/confirm", repo.AscConfirm)
+				m.Post("/enqueue", context.RepoMustNotBeArchived(), repo.AscQueueEnqueue)
+				m.Post("/dequeue", context.RepoMustNotBeArchived(), repo.AscQueueDequeue)
+				m.Post("/merge", context.RepoMustNotBeArchived(), repo.AscQueueMergeNow)
+				m.Post("/restack", context.RepoMustNotBeArchived(), repo.AscStackRestack)
+				m.Post("/revert", context.RepoMustNotBeArchived(), repo.AscStackRevert)
+			}, reqSignIn)
 			m.Post("/set_allow_maintainer_edit", web.Bind(forms.UpdateAllowEditsForm{}), repo.SetAllowEdits)
 			m.Post("/cleanup", context.RepoMustNotBeArchived(), context.RepoRef(), repo.CleanUpPullRequest)
 			m.Group("/files", func() {
