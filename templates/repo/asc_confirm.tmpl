@@ -12,7 +12,7 @@ Template Attributes:
 Every text comes from the locale or from the handler; pull request titles are escaped by the template engine.
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-confirm">
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-confirm asc-repo-page">
 	{{template "repo/header" .}}
 	<div class="ui container">
 		<div class="ui segment asc-confirm-box" data-testid="asc-confirm" data-asc-op="{{.AscOp}}">

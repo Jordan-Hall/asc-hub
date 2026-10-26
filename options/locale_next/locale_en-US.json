@@ -600,6 +600,14 @@
 	"munits.data.tib": "TiB",
 	"munits.data.pib": "PiB",
 	"munits.data.eib": "EiB",
+	"repo.asc_home.open_pulls": {
+		"one": "%s open pull request",
+		"other": "%s open pull requests"
+	},
+	"repo.pulls.asc_stack_changes": {
+		"one": "%s change",
+		"other": "%s changes"
+	},
 	"counters.n_commits": {
 		"one": "%s commit",
 		"other": "%s commits"

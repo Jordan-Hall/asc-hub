@@ -7,8 +7,8 @@
 					{{template "repo/icon" .}}
 				</div>
 				<div class="flex-item-main">
-					<div class="flex-item-title tw-font-normal">
-						<a class="muted" href="{{.Owner.HomeLink}}">{{.Owner.Name}}</a>/<a class="muted tw-font-semibold" href="{{$.RepoLink}}">{{.Name}}</a>
+					<div class="flex-item-title asc-repo-title">
+						<a class="muted asc-repo-owner" href="{{.Owner.HomeLink}}">{{.Owner.Name}}</a><span class="asc-repo-sep" aria-hidden="true">/</span><h1 class="asc-repo-name"><a class="muted" href="{{$.RepoLink}}">{{.Name}}</a></h1>
 					</div>
 				</div>
 				<div class="flex-item-trailing">
@@ -95,6 +95,12 @@
 					<a class="{{if .PageIsViewCode}}active {{end}}item" href="{{.RepoLink}}{{if and (ne .BranchName .Repository.DefaultBranch) (not $.PageIsWiki)}}/src/{{.BranchNameSubURL}}{{end}}">
 						{{svg "octicon-code"}} {{ctx.Locale.Tr "repo.code"}}
 					</a>
+				{{end}}
+
+				{{if and (eq .Repository.GetStorageBackend "asc") (.Permission.CanRead $.UnitTypeCode) (not .Repository.IsEmpty)}}
+					<a class="{{if .PageIsAscSearch}}active {{end}}item" href="{{.RepoLink}}/asc/search">{{ctx.Locale.Tr "repo.asc_tab.search"}}</a>
+					<a class="{{if .PageIsAscQueue}}active {{end}}item" href="{{.RepoLink}}/asc/queue">{{ctx.Locale.Tr "repo.asc_tab.queue"}}</a>
+					<a class="{{if .PageIsAscGraph}}active {{end}}item" href="{{.RepoLink}}/asc/graph">{{ctx.Locale.Tr "repo.asc_tab.graph"}}</a>
 				{{end}}
 
 				{{if .Permission.CanRead $.UnitTypeIssues}}
