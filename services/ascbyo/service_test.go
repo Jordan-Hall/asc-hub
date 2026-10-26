@@ -12,6 +12,7 @@ import (
 	"forgejo.org/services/ascbyo"
 	"forgejo.org/services/ascbyo/ascbyotest"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -55,7 +56,9 @@ func TestStorageCreateAndList(t *testing.T) {
 	calls := f.CallsTo("CreateTarget")
 	require.Len(t, calls, 1)
 	assert.Equal(t, "Bearer "+ascbyotest.InternalToken, calls[0].Auth, "a system call with the internal token")
-	assert.Equal(t, op, calls[0].OpID, "the form's op id is the call's op id")
+	assert.NotEqual(t, op, calls[0].OpID, "the form's op id is never sent as it is")
+	_, perr := uuid.Parse(calls[0].OpID)
+	require.NoError(t, perr, "the derived op id is a uuid")
 	req := calls[0].Req.(*ascv1.CreateStorageTargetRequest)
 	assert.Equal(t, "alice", req.GetOwner().GetName(), "the owner is the scope, lower case")
 	assert.Equal(t, ascv1.OwnerKind_OWNER_KIND_USER, req.GetOwner().GetKind())
@@ -186,23 +189,25 @@ func TestStorageUpdateSendsOnlyChanges(t *testing.T) {
 	assert.Empty(t, f.CallsTo("UpdateTarget"))
 
 	edit := *same
-	edit.Bucket = "new-bucket"
+	edit.Name = "renamed"
 	_, changed, _, err = s.UpdateTarget(t.Context(), alice, tg.GetId(), &edit, "")
 	require.NoError(t, err)
 	assert.True(t, changed)
 	req := f.CallsTo("UpdateTarget")[0].Req.(*ascv1.UpdateStorageTargetRequest)
-	assert.Equal(t, "new-bucket", req.GetBucket())
-	assert.Nil(t, req.Name)
+	assert.Equal(t, "renamed", req.GetName())
+	assert.Nil(t, req.Bucket)
 	assert.Nil(t, req.Endpoint)
 	assert.Nil(t, req.Credentials, "credentials stay when none were typed")
 
 	creds := edit
+	creds.Bucket = "new-bucket"
 	creds.AccessKeyID, creds.SecretAccessKey = "AKIANEWKEYNEWKEY1234", "brand-new-secret-value"
 	got, changed, _, err := s.UpdateTarget(t.Context(), alice, tg.GetId(), &creds, "")
 	require.NoError(t, err)
 	assert.True(t, changed)
 	req = f.CallsTo("UpdateTarget")[1].Req.(*ascv1.UpdateStorageTargetRequest)
 	assert.Equal(t, "brand-new-secret-value", req.GetCredentials().GetSecretAccessKey())
+	assert.Equal(t, "new-bucket", req.GetBucket())
 	assert.Equal(t, ascv1.StorageTargetState_STORAGE_TARGET_STATE_PENDING, got.GetState(), "a change moves the target back to pending")
 	assert.NotContains(t, fmt.Sprintf("%+v", ascbyo.TargetViewOf(got)), "brand-new-secret-value")
 

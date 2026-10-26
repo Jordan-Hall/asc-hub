@@ -298,7 +298,11 @@ func (in *AIKeyInput) Validate(create bool) FieldErrors {
 		}
 	}
 	in.BaseURL = strings.TrimSpace(in.BaseURL)
-	if in.BaseURL != "" {
+	if in.BaseURL != "" && Provider(in.Provider) != ProviderOpenAICompatible {
+		// Only a self-hosted, OpenAI-compatible service has an address of its own; the other providers have
+		// fixed ones, and a key sent elsewhere would be given to whoever runs that place.
+		fe.Add("base_url", "ascbyo.ai.err.base_url")
+	} else if in.BaseURL != "" {
 		if u, ok := NormalizeEndpoint(in.BaseURL); ok {
 			in.BaseURL = u
 		} else {
