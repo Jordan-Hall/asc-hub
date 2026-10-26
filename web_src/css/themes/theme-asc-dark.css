@@ -376,7 +376,9 @@ strong.attention-caution, svg.attention-caution {
   --asc-ink: #f1f5f9;
   --asc-accent: #22d3ee;
   --asc-muted: #94a3b8;
-  --asc-radius: 12px;
+  --border-radius: 6px;
+  --border-radius-medium: 8px;
+  --border-radius-card: 12px;
   --color-body: #0e1626;
   --color-box-header: #111a2c;
   --color-box-body: #151f33;
@@ -408,6 +410,9 @@ strong.attention-caution, svg.attention-caution {
   --color-nav-text-muted: #94a3b8;
   --color-nav-border: #243049;
   --color-nav-hover-bg: #1a2438;
+  --color-nav-brand: #ffffff;
+  --color-nav-badge-bg: #22d3ee;
+  --color-nav-badge-text: #0b1220;
   --color-secondary-nav-bg: #151f33;
   --color-accent: #22d3ee;
   --color-focus: #22d3ee;
