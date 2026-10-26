@@ -1,10 +1,27 @@
 name: asc-hub-image
-# ASC Hub (the ASC fork of Forgejo) on GitHub Container Registry (private package):
+# ASC Hub, one image with the hub and asc serve (Dockerfile.allinone), on GitHub Container Registry
+# (private package):
 #   push to asc/v16 -> ghcr.io/<owner>/asc-hub:<sha12> and :asc-v16
+#
+# The asc binary is copied from the published asc-serve image. Which one is decided by, in order:
+#   1. the workflow_dispatch input asc_image,
+#   2. the repository variable ASC_SERVE_IMAGE (a full reference with a tag, for example
+#      ghcr.io/jordan-hall/asc-serve:<sha12>),
+#   3. the newest tagged version of the asc-serve package of this owner.
+# Pin the repository variable to the asc-serve tag you tested; option 3 is a convenience.
+#
+# One-time setup: the build job signs in with the workflow token, which can read the asc-serve
+# package only after the package grants this repository access: open the asc-serve package on GitHub,
+# Package settings > Manage Actions access > Add Repository > this repository, role Read.
 on:
   push:
     branches: [asc/v16]
   workflow_dispatch:
+    inputs:
+      asc_image:
+        description: "asc-serve image to copy asc from (full reference with tag). Empty: the ASC_SERVE_IMAGE variable, then the newest tag."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -27,17 +44,49 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Choose the asc-serve image
+        id: asc
+        env:
+          INPUT_IMAGE: ${{ inputs.asc_image }}
+          VAR_IMAGE: ${{ vars.ASC_SERVE_IMAGE }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          ref="${INPUT_IMAGE:-${VAR_IMAGE:-}}"
+          if [ -z "$ref" ]; then
+            # Newest version of the package that has a tag. The workflow token may be refused here.
+            tag="$(gh api "/users/${owner}/packages/container/asc-serve/versions" --jq '[.[] | select(.metadata.container.tags | length > 0)][0].metadata.container.tags[0]' 2>/dev/null || true)"
+            if [ -z "$tag" ] || [ "$tag" = null ]; then
+              echo "::error::No asc-serve image is chosen. Set the repository variable ASC_SERVE_IMAGE (for example ghcr.io/${owner}/asc-serve:<sha12>) or run the workflow with the asc_image input."
+              exit 1
+            fi
+            ref="ghcr.io/${owner}/asc-serve:${tag}"
+          fi
+          case "$ref" in
+            *:*) ;;
+            *) echo "::error::The asc-serve image '$ref' has no tag. Use a full reference such as ghcr.io/${owner}/asc-serve:<sha12>."; exit 1 ;;
+          esac
+          echo "asc-serve image: $ref"
+          if ! docker buildx imagetools inspect "$ref" >/dev/null 2>&1; then
+            echo "::error::Cannot read $ref. If the image exists, the asc-serve package must grant this repository access: open the package on GitHub, Package settings > Manage Actions access > Add Repository > this repository (role Read). Then run the workflow again."
+            exit 1
+          fi
+          echo "image=$ref" >> "$GITHUB_OUTPUT"
       - name: Tags
         id: tags
         run: |
           set -euo pipefail
           image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/asc-hub"
           printf 'list=%s:%s,%s:asc-v16\n' "$image" "${GITHUB_SHA::12}" "$image" >> "$GITHUB_OUTPUT"
-      # The Dockerfile builds the frontend (node) and the binary (go) inside the build.
+      # The Dockerfile builds the frontend (node) and the binary (go) inside the build and copies
+      # asc from the asc-serve image.
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
-          file: Dockerfile.rootless
+          file: Dockerfile.allinone
+          build-args: |
+            ASC_IMAGE=${{ steps.asc.outputs.image }}
           push: true
           tags: ${{ steps.tags.outputs.list }}
           cache-from: type=gha

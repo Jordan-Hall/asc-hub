@@ -1,0 +1,6 @@
+#!/bin/sh
+# Healthy only when the hub and asc serve both answer.
+set -eu
+port="${FORGEJO__server__HTTP_PORT:-${HTTP_PORT:-3000}}"
+curl -fsS --max-time 4 -o /dev/null "http://127.0.0.1:${port}/api/healthz"
+curl -fsS --max-time 4 -o /dev/null "http://127.0.0.1:7890/readyz"
