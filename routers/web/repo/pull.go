@@ -971,6 +971,9 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 
 	ctx.Data["IsShowingOnlySingleCommit"] = willShowSpecifiedCommit
 
+	ascVersions := prepareAscVersions(ctx, pull)
+	var ascView *ascVersionView
+
 	if willShowSpecifiedCommit {
 		commitID := specifiedEndCommit
 
@@ -1070,7 +1073,19 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 		endCommitID = headCommitID
 		startCommitID = prInfo.MergeBase
 		ctx.Data["IsShowingAllCommits"] = true
-		ctx.Data["AscFileClassBadges"] = pull_service.AscFileClassBadges(ctx, ctx.Locale, pull)
+
+		// A version of the stacked change, or the interdiff of two, instead of the whole pull request.
+		var ok bool
+		if ascView, ok = ascVersionViewOf(ctx, pull, ascVersions, gitRepo, startCommitID); !ok {
+			return
+		}
+		if ascView != nil {
+			startCommitID, endCommitID = ascView.start, ascView.end
+			ctx.Data["IsShowingAllCommits"] = false
+			ctx.Data["AscVersionFrom"], ctx.Data["AscVersionTo"] = ascView.from, ascView.to
+		} else {
+			ctx.Data["AscFileClassBadges"] = pull_service.AscFileClassBadges(ctx, ctx.Locale, pull)
+		}
 	}
 
 	ctx.Data["AfterCommitID"] = endCommitID
@@ -1107,10 +1122,14 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 	// have to load only the diff and not get the viewed information
 	// as the viewed information is designed to be loaded only on latest PR
 	// diff and if you're signed in.
-	if !ctx.IsSigned || willShowSpecifiedCommit || willShowSpecifiedCommitRange {
+	switch {
+	case ascView != nil && ascView.interdiff != nil:
+		diff, err = parseAscInterDiff(ctx, ascView.interdiff, maxLines, maxFiles, diffOptions.SkipTo)
+		methodWithError = "parseAscInterDiff"
+	case !ctx.IsSigned || willShowSpecifiedCommit || willShowSpecifiedCommitRange || ascView != nil:
 		diff, err = gitdiff.GetDiffFull(ctx, gitRepo, diffOptions, files...)
 		methodWithError = "GetDiff"
-	} else {
+	default:
 		diff, err = gitdiff.SyncAndGetUserSpecificDiff(ctx, ctx.Doer.ID, pull, gitRepo, diffOptions, files...)
 		methodWithError = "SyncAndGetUserSpecificDiff"
 	}
@@ -1124,9 +1143,12 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 		"numberOfViewedFiles": diff.NumViewedFiles,
 	}
 
-	if err = diff.LoadComments(ctx, issue, ctx.Doer, ctx.Data["ShowOutdatedComments"].(bool), endCommitID); err != nil {
-		ctx.ServerError("LoadComments", err)
-		return
+	// Review comments sit on lines of the pull request's own diff, so the interdiff of two versions shows none.
+	if ascView == nil || ascView.interdiff == nil {
+		if err = diff.LoadComments(ctx, issue, ctx.Doer, ctx.Data["ShowOutdatedComments"].(bool), endCommitID); err != nil {
+			ctx.ServerError("LoadComments", err)
+			return
+		}
 	}
 
 	pb, err := git_model.GetFirstMatchProtectedBranchRule(ctx, pull.BaseRepoID, pull.BaseBranch)
