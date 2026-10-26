@@ -1,0 +1,232 @@
+/* ASC Hub layer. Loaded last. Mobile first: base rules target 320px and up,
+   min-width queries add room. Colours come from the theme variables, so the
+   forgejo and gitea themes keep working. */
+
+/* page never scrolls sideways; wide content scrolls inside its own block */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: clip;
+}
+
+.page-content {
+  min-width: 0;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+/* the logo that matches the page: light tile on light themes, dark tile on dark themes */
+.logo-on-dark {
+  display: none;
+}
+
+:root[data-theme*="dark"] .logo-on-light {
+  display: none;
+}
+
+:root[data-theme*="dark"] .logo-on-dark {
+  display: inline-block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme*="auto"] .logo-on-light {
+    display: none;
+  }
+  :root[data-theme*="auto"] .logo-on-dark {
+    display: inline-block;
+  }
+}
+
+/* focus ring */
+:where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* cards */
+.ui.card,
+.ui.cards > .card {
+  border-radius: var(--border-radius-card, var(--border-radius));
+}
+
+/* sign in, sign up: one column, card centred from 600px */
+.page-content.user.signin .ui.middle.page.grid {
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+.page-content.user.signin .column {
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+}
+
+.auth-brand {
+  display: inline-flex;
+  margin-top: 8px;
+}
+
+.page-content.user.signin .ui.form .ui.button {
+  width: 100%;
+}
+
+.page-content.user.signin .ui.form input:not([type="checkbox"], [type="radio"]) {
+  min-height: 44px;
+}
+
+@media (min-width: 600px) {
+  .page-content.user.signin .column {
+    max-width: 480px;
+  }
+  .page-content.user.signin .ui.form .ui.button {
+    width: auto;
+  }
+}
+
+/* readable code: blocks scroll inside, the page does not */
+.markup pre,
+.markup pre > code,
+pre.code-block {
+  max-width: 100%;
+}
+
+.markup pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.markup pre code {
+  white-space: pre;
+}
+
+.code-view,
+.diff-file-box .code-diff,
+.file-view {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* tables scroll inside their own box on phones */
+.ui.table:not(.asc-stack) {
+  max-width: 100%;
+}
+
+@media (max-width: 767.98px) {
+  .ui.table:not(.asc-stack) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* opt-in: a table with class asc-stack and data-label on each cell turns into stacked cards */
+  .ui.table.asc-stack,
+  .ui.table.asc-stack tbody,
+  .ui.table.asc-stack tr,
+  .ui.table.asc-stack td {
+    display: block;
+    width: auto;
+  }
+  .ui.table.asc-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .ui.table.asc-stack tr {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: var(--color-box-body);
+    border: 1px solid var(--color-secondary);
+    border-radius: var(--border-radius-card, var(--border-radius));
+  }
+  .ui.table.asc-stack td {
+    border: 0;
+    padding: 6px 0;
+  }
+  .ui.table.asc-stack td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--color-text-light-2);
+    font-size: 0.85rem;
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+/* repository: clone panel and the empty repository guide */
+.repository .clone-panel #repo-clone-url,
+.repository.quickstart .guide #repo-clone-url {
+  min-width: 0;
+  font-family: var(--fonts-monospace);
+  text-overflow: ellipsis;
+}
+
+.repository.quickstart .guide .repo-button-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.repository.quickstart .guide .repo-button-row > .ui.button {
+  width: 100%;
+}
+
+.repository.quickstart .guide .clone-panel {
+  width: 100%;
+}
+
+.repository.quickstart .guide .clone-panel #repo-clone-url {
+  width: 0;
+  flex: 1;
+}
+
+.asc-clone-tabs .ui.tabular.menu {
+  overflow-x: auto;
+}
+
+.asc-clone-tabs .ui.tabular.menu .item {
+  min-height: 44px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .repository.quickstart .guide .repo-button-row {
+    flex-direction: row;
+    align-items: center;
+  }
+  .repository.quickstart .guide .repo-button-row > .ui.button {
+    width: auto;
+  }
+  .repository.quickstart .guide .clone-panel {
+    width: auto;
+  }
+}
+
+/* repository tabs: touch sized, scrolls inside the menu */
+.repository overflow-menu .item {
+  min-height: 44px;
+}
+
+/* explore, repository lists: cards */
+.flex-list > .flex-item {
+  padding-inline: 4px;
+}
+
+/* motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0.01ms !important;
+  }
+}
