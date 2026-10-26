@@ -1,14 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 212 212">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="256" height="256" role="img" aria-label="ASC Hub">
   <style>
-    @keyframes draw-orange{0%{stroke-dashoffset:200}25%{stroke-dashoffset:200}50%{stroke-dashoffset:0}to{stroke-dashoffset:0}}@keyframes draw-red{0%{stroke-dashoffset:130}25%{stroke-dashoffset:0}50%,to{stroke-dashoffset:0}}@keyframes red-circle{0%{opacity:0}20%{opacity:0;stroke-width:0}25%{opacity:1;stroke-width:15}to{opacity:1}}@keyframes orange-circle{0%{opacity:0}45%{opacity:0;stroke-width:0}50%{opacity:1;stroke-width:15}to{opacity:1}}@keyframes fade{0%,90%{opacity:1}to{opacity:0}}circle,path{fill:none;stroke:#000;stroke-width:15}path{stroke-width:25}.orange{stroke:#f60}.red{stroke:#d40000}
+    .fig{fill:#125469;opacity:.15;transform-box:fill-box;transform-origin:50% 100%;animation:asc-rise 1500ms ease-in-out infinite}
+    @keyframes asc-rise{0%,100%{opacity:.15;transform:scaleY(.85)}35%{opacity:1;transform:scaleY(1)}70%{opacity:.15;transform:scaleY(.85)}}
+    @media (prefers-color-scheme:dark){.fig{fill:#22d3ee}}
+    @media (prefers-reduced-motion:reduce){.fig{animation:none;opacity:1}}
   </style>
-  <g transform="translate(6 6)">
-    <g style="animation:fade 2000ms ease-in-out 5ms infinite">
-      <path d="M58 168V70a50 50 0 0 1 50-50h20" class="orange" style="stroke-dasharray:200;stroke-dashoffset:200;animation:draw-orange 2000ms ease-out 5ms infinite"/>
-      <path d="M58 168v-30a50 50 0 0 1 50-50h20" class="red" style="stroke-dasharray:130;stroke-dashoffset:130;animation:draw-red 2000ms ease-out 5ms infinite"/>
-      <circle cx="142" cy="20" r="18" class="orange" style="opacity:0;animation:orange-circle 2000ms ease-out 5ms infinite"/>
-      <circle cx="142" cy="88" r="18" class="red" style="opacity:0;animation:red-circle 2000ms ease-out 5ms infinite"/>
-    </g>
-    <circle cx="58" cy="180" r="18" class="red"/>
+  <g>
+    <g class="fig" style="animation-delay:0ms"><circle cx="24" cy="82" r="13"/><rect x="12" y="104" width="24" height="68" rx="12"/></g>
+    <g class="fig" style="animation-delay:150ms"><circle cx="62" cy="58" r="13"/><rect x="50" y="80" width="24" height="92" rx="12"/></g>
+    <g class="fig" style="animation-delay:300ms"><circle cx="100" cy="34" r="13"/><rect x="88" y="56" width="24" height="116" rx="12"/></g>
+    <g class="fig" style="animation-delay:450ms"><circle cx="138" cy="58" r="13"/><rect x="126" y="80" width="24" height="92" rx="12"/></g>
+    <g class="fig" style="animation-delay:600ms"><circle cx="176" cy="82" r="13"/><rect x="164" y="104" width="24" height="68" rx="12"/></g>
   </g>
 </svg>
