@@ -97,5 +97,5 @@ Grouped by who gains. For each one we name the mechanism and whether it is avail
 | SQLite or Postgres | The hub supports both (`DB_TYPE`); `asc serve` takes its own database setting. SQLite for staging, Postgres for production. | available |
 | Coolify-ready | The staging notes describe a Coolify Docker Compose deployment ([STAGING.md](STAGING.md), [OPERATIONS.md](OPERATIONS.md)). | available |
 | Git clients keep working | The bridge and the pre-receive import (see above). | available, with the stated limits |
-| Bring your own S3 storage | The object store of `asc serve` can be a local path or an S3-compatible bucket, chosen by the operator in the asc configuration. A store chosen per user or per organization is not built. | operator-level available; per user planned |
-| Bring your own AI keys | Not built in the hub. | planned |
+| Bring your own S3 storage | The object store of `asc serve` can be a local path or an S3-compatible bucket, chosen by the operator in the asc configuration. A store chosen per user, organization or repository has hub pages (add, verify, enable, migrate) that need `asc serve` support, which is not built yet. | operator-level available; per user partial |
+| Bring your own AI keys | Hub pages to add, test, cap and remove a provider key per user, organization or repository; they need `asc serve` support, which is not built yet. | partial |

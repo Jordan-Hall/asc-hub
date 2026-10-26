@@ -24,7 +24,7 @@ Each line names the mechanism. "Planned" means it is not built. [docs/asc/WHY.md
 - **Developers.** Undo with `asc undo` and `asc redo` (local operations; a push or land is not undone), restore an earlier version of a change from the web, small stacked changes with one review each, review from a phone (mobile-first pages). No speed claim: we have no measured numbers for the hub.
 - **Teams.** Approvals tied to a version, with the diff between versions and "changes since your last review"; fewer approvals for docs-only style changes by rules that the change cannot edit; an ordered merge queue with a web button, a restack button and the revert of a landed stack. Planned: policy file in the repository, signed changes, failure and flaky-test grouping, an audit page.
 - **People using agents.** Scoped access tokens, MCP tools in `asc` with writes enabled only by the user's configuration, pushes to non-shared names stored as the pusher's own refs in a branchless repository, everything reversible through kept versions, search by meaning on the repository search page. Planned: agent budgets.
-- **Operators.** One container with the hub and `asc serve` inside (`Dockerfile.allinone`), SQLite or Postgres, a Coolify deployment, git clients keep working through the bridge. Bring your own S3 storage is an operator setting of `asc serve` today and planned per user; bring your own AI keys is planned.
+- **Operators.** One container with the hub and `asc serve` inside (`Dockerfile.allinone`), SQLite or Postgres, a Coolify deployment, git clients keep working through the bridge. Bring your own S3 storage and bring your own AI keys have settings pages for a person, an organization and a repository (partial: they need an `asc serve` that implements them).
 
 ## Feature highlights
 
@@ -42,8 +42,8 @@ Status is what the code in this repository does today. Items marked "partial" ar
 | Actions | available | Workflow runs get `asc_server_url`, `asc_changeset`, `asc_base_merge_base`, `asc_change`, `asc_stack_position`, `asc_stack_size` and `asc_stack_parent_sha` in their context, and a job token honours `permissions:` ([docs/asc/actions-token-permissions.md](docs/asc/actions-token-permissions.md)). |
 | IDE sign-in | available | A pre-registered OAuth2 public client, `asc-ide`, with PKCE (S256 only) for the ASC IDE plugins. |
 | Mobile-first UI | available | The ASC themes (`asc-auto`, `asc-light`, `asc-dark`) and the landing, header, repository and sign-in pages are written mobile first, from 320 px up ([docs/asc/THEME.md](docs/asc/THEME.md)). |
-| Bring your own S3 storage | planned | Not in this repository. Where `asc serve` keeps its objects is an operator setting of `asc serve`, not a per-user hub feature. |
-| Bring your own AI keys | planned | Not in this repository. |
+| Bring your own S3 storage | partial | Settings pages for a person (`/user/settings/asc/storage`), an organization and a repository: add an S3-compatible target, verify it with a probe object, enable it, move the objects of a repository with progress, remove it. Credentials are write-only and never shown again. The pages need an `asc serve` that implements the Storage service (`storage.v1`), which `asc serve` does not do yet, so they are tested against a stand-in. See [docs/asc/STORAGE-AND-KEYS.md](docs/asc/STORAGE-AND-KEYS.md). Where `asc serve` keeps its objects without a target stays an operator setting. |
+| Bring your own AI keys | partial | Settings pages for a person (`/user/settings/asc/ai`), an organization and a repository: add a provider key with an optional monthly cap, test it, see the models and this month's usage, disable or remove it. Keys are write-only and shown as their last four characters. The pages need an `asc serve` that implements the AiProviders service (`ai-keys.v1`), which `asc serve` does not do yet, so they are tested against a stand-in. See [docs/asc/STORAGE-AND-KEYS.md](docs/asc/STORAGE-AND-KEYS.md). |
 
 ## Quick start
 

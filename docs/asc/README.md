@@ -44,6 +44,7 @@ ASC Hub is built on the work of the Forgejo and Gitea contributors. The top-leve
 - [ARCHITECTURE.md](ARCHITECTURE.md): components, data ownership, request flows.
 - [OPERATIONS.md](OPERATIONS.md): deploy, volumes, ports, backup, upgrade.
 - [STACK-OPERATIONS.md](STACK-OPERATIONS.md): merge queue, merge now, restack and revert of a stack on the web.
+- [STORAGE-AND-KEYS.md](STORAGE-AND-KEYS.md): bring your own storage and AI keys: pages, protections, tests.
 - [FORK.md](FORK.md): the difference from Forgejo and the merge procedure.
 
 ## Run it
