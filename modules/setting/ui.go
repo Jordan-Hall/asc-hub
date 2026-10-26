@@ -143,7 +143,7 @@ var UI = struct {
 		Keywords    string
 	}{
 		Author:      "ASC Hub",
-		Description: "ASC Hub: source hosting for asc, with changesets, stacks, review and an inbox.",
+		Description: "ASC Hub: source control for people and their agents, with changesets, stacks, review and an inbox.",
 		Keywords:    "asc,git,source control,changesets,stacks,review",
 	},
 }

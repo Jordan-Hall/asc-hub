@@ -114,7 +114,7 @@ func Install(ctx *context.Context) {
 
 	// Application general settings
 	form.AppName = "ASC Hub"
-	form.AppSlogan = "Source hosting for asc"
+	form.AppSlogan = "Source control for people and their agents"
 	form.RepoRootPath = setting.RepoRootPath
 	form.LFSRootPath = setting.LFS.Storage.Path
 	form.RunUser = setting.RunUser
