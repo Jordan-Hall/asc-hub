@@ -55,7 +55,7 @@ import {initSshKeyFormParser} from './features/sshkey-helper.js';
 import {initRepoArchiveLinks} from './features/repo-common.js';
 import {initRepoMigrationStatusChecker} from './features/repo-migrate.js';
 import {initAscByoMigration} from './features/asc-byo.js';
-import {initAscKeys} from './features/asc-keys.js';
+import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {
   initRepoSettingGitHook,
   initRepoSettingsCollaboration,
@@ -170,6 +170,7 @@ onDomReady(() => {
   initRepoMigrationStatusChecker();
   initAscByoMigration();
   initAscKeys();
+  initAscInboxBadge();
   initRepoProject();
   initRepoPullRequestAllowMaintainerEdit();
   initRepoPullRequestReview();

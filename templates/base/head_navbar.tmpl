@@ -3,7 +3,7 @@
 	{{$notificationUnreadCount = call .NotificationUnreadCount}}
 {{end}}
 
-<nav id="navbar" aria-label="{{ctx.Locale.Tr "aria.navbar"}}">
+<nav id="navbar"{{if and .IsSigned .AscEnabled}} class="ap-nav"{{end}} aria-label="{{ctx.Locale.Tr "aria.navbar"}}">
 	<div class="navbar-left ui secondary menu">
 		<!-- the logo -->
 		<a class="item" id="navbar-logo" href="{{AppSubUrl}}/" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}">
@@ -28,18 +28,26 @@
 		{{if and .IsSigned .HideNavbarLinks}}
 			{{/* No links */}}
 		{{else if .IsSigned}}
+			{{if .AscEnabled}}
+				<form class="item ap-navsearch" role="search" action="{{AppSubUrl}}/explore/code" method="get">
+					<label class="ap-sr" for="ap-navsearch-q">{{ctx.Locale.Tr "user.asc_nav.search_label"}}</label>
+					<span aria-hidden="true">{{svg "octicon-search" 14}}</span>
+					<input id="ap-navsearch-q" name="q" type="search" maxlength="200" placeholder="{{ctx.Locale.Tr "user.asc_nav.search_placeholder"}}" autocomplete="off" data-asc-search>
+					<kbd class="ap-kbd ap-hide-touch" aria-hidden="true">/</kbd>
+				</form>
+			{{end}}
 			{{if not .UnitIssuesGlobalDisabled}}
-				<a class="item{{if .PageIsIssues}} active{{end}}" {{if .PageIsIssues}}aria-current="page" {{end}}href="{{AppSubUrl}}/issues">{{ctx.Locale.Tr "issues"}}</a>
+				<a class="item ap-navlink{{if .PageIsIssues}} active{{end}}" {{if .PageIsIssues}}aria-current="page" {{end}}href="{{AppSubUrl}}/issues">{{ctx.Locale.Tr "issues"}}</a>
 			{{end}}
 			{{if not .UnitPullsGlobalDisabled}}
-				<a class="item{{if .PageIsPulls}} active{{end}}" {{if .PageIsPulls}}aria-current="page" {{end}}href="{{AppSubUrl}}/pulls">{{ctx.Locale.Tr "pull_requests"}}</a>
+				<a class="item ap-navlink{{if .PageIsPulls}} active{{end}}" {{if .PageIsPulls}}aria-current="page" {{end}}href="{{AppSubUrl}}/pulls">{{ctx.Locale.Tr "pull_requests"}}</a>
 			{{end}}
 			{{if not (and .UnitIssuesGlobalDisabled .UnitPullsGlobalDisabled)}}
 				{{if .ShowMilestonesDashboardPage}}
-					<a class="item{{if .PageIsMilestonesDashboard}} active{{end}}" {{if .PageIsMilestonesDashboard}}aria-current="page" {{end}}href="{{AppSubUrl}}/milestones">{{ctx.Locale.Tr "milestones"}}</a>
+					<a class="item ap-navlink{{if .PageIsMilestonesDashboard}} active{{end}}" {{if .PageIsMilestonesDashboard}}aria-current="page" {{end}}href="{{AppSubUrl}}/milestones">{{ctx.Locale.Tr "milestones"}}</a>
 				{{end}}
 			{{end}}
-			<a class="item{{if .PageIsExplore}} active{{end}}" {{if .PageIsExplore}}aria-current="page" {{end}}href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a>
+			<a class="item ap-navlink{{if .PageIsExplore}} active{{end}}" {{if .PageIsExplore}}aria-current="page" {{end}}href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a>
 		{{else if .IsLandingPageOrganizations}}
 			<a class="item{{if .PageIsExplore}} active{{end}}" {{if .PageIsExplore}}aria-current="page" {{end}}href="{{AppSubUrl}}/explore/organizations">{{ctx.Locale.Tr "explore"}}</a>
 		{{else}}
@@ -113,6 +121,13 @@
 			</div>
 			{{end}}
 
+			{{if .AscEnabled}}
+				<a class="item ap-navinbox{{if .PageIsAscInbox}} active{{end}}" {{if .PageIsAscInbox}}aria-current="page" {{end}}href="{{AppSubUrl}}/-/asc/inbox" data-asc-inbox-link data-asc-count-url="{{AppSubUrl}}/-/asc/inbox/count">
+					<span>{{ctx.Locale.Tr "user.asc_inbox"}}</span>
+					<span class="ap-navbadge tw-hidden" data-asc-count></span>
+				</a>
+			{{end}}
+
 			<a class="item not-mobile tw-mx-0" href="{{AppSubUrl}}/notifications" data-tooltip-content="{{ctx.Locale.Tr "notifications"}}" aria-label="{{ctx.Locale.Tr "notifications"}}">
 				<div class="notification-icon-relative">
 					{{svg "octicon-bell"}}
@@ -163,6 +178,11 @@
 					</span>
 					<hr>
 					<ul>
+						{{if .AscEnabled}}
+							{{if not .UnitIssuesGlobalDisabled}}<li class="ap-narrow-only"><a href="{{AppSubUrl}}/issues">{{svg "octicon-issue-opened"}} {{ctx.Locale.Tr "issues"}}</a></li>{{end}}
+							{{if not .UnitPullsGlobalDisabled}}<li class="ap-narrow-only"><a href="{{AppSubUrl}}/pulls">{{svg "octicon-git-pull-request"}} {{ctx.Locale.Tr "pull_requests"}}</a></li>{{end}}
+							<li class="ap-narrow-only"><a href="{{AppSubUrl}}/explore/repos">{{svg "octicon-telescope"}} {{ctx.Locale.Tr "explore"}}</a></li>
+						{{end}}
 						<li>
 							<a href="{{.SignedUser.HomeLink}}">
 								{{svg "octicon-person"}}

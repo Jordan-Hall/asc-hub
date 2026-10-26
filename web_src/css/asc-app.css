@@ -30,6 +30,7 @@
   --ap-dot-grey: #94a3b8;
   --ap-seg-todo: #cbd5e1;
   --ap-violet-btn: #5b21b6;
+  --ap-btn-primary: #125469;
   --ap-heat-0: #e2e8f0;
   --ap-heat-1: #bfe3ee;
   --ap-heat-2: #7cc4d8;
@@ -71,6 +72,7 @@
     --ap-dot-grey: #8aa0bb;
     --ap-seg-todo: #34425d;
     --ap-violet-btn: #7c3aed;
+    --ap-btn-primary: #1a6e87;
     --ap-heat-0: #26324a;
     --ap-heat-1: #17414f;
     --ap-heat-2: #1f6a80;
@@ -111,6 +113,7 @@
   --ap-dot-grey: #8aa0bb;
   --ap-seg-todo: #34425d;
   --ap-violet-btn: #7c3aed;
+  --ap-btn-primary: #1a6e87;
   --ap-heat-0: #26324a;
   --ap-heat-1: #17414f;
   --ap-heat-2: #1f6a80;
@@ -557,13 +560,14 @@ a.ap-row:hover {
 }
 
 .ap-btn.primary {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
+  border-color: var(--ap-btn-primary);
+  background: var(--ap-btn-primary);
   color: #fff;
 }
 
 .ap-btn.primary:hover {
-  background: var(--color-primary-dark-1, var(--color-primary));
+  filter: brightness(1.12);
+  background: var(--ap-btn-primary);
   color: #fff;
 }
 

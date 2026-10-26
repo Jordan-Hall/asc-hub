@@ -465,3 +465,52 @@ func AscInboxStatePost(ctx *context.Context) {
 	}
 	ctx.Redirect(ascInboxURL(ascInboxTabOf(ctx.FormString("tab")), "", 0))
 }
+
+// ascInboxCountTTL is how long the header badge reuses a count, in seconds. The count costs a walk over the
+// person's pull requests, and every page of the app asks for it once.
+const ascInboxCountTTL = 60
+
+// AscInboxCount serves `GET /-/asc/inbox/count`: how many items need the signed-in person, for the badge in
+// the header. Only the number is returned. It is cached for a short time per person.
+func AscInboxCount(ctx *context.Context) {
+	if !setting.Asc.Enabled || ctx.Doer == nil {
+		ctx.NotFound("AscInboxCount", nil)
+		return
+	}
+	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
+	key := "AscInboxCount_" + strconv.FormatInt(ctx.Doer.ID, 10)
+	if ctx.Cache != nil {
+		if v, ok := ctx.Cache.Get(key).(int); ok {
+			ctx.JSON(http.StatusOK, map[string]int{"count": v})
+			return
+		}
+	}
+	now := time.Now()
+	entries, err := ascInboxLoad(ctx, ctx.Doer, now)
+	if err != nil {
+		ctx.ServerError("ascInboxLoad", err)
+		return
+	}
+	ids := make([]int64, 0, len(entries))
+	for _, e := range entries {
+		ids = append(ids, e.PullID)
+	}
+	states, err := issues_model.ListAscInboxStates(ctx, ctx.Doer.ID, ids)
+	if err != nil {
+		ctx.ServerError("ListAscInboxStates", err)
+		return
+	}
+	groups, _ := ascInboxGroup(entries, states, now)
+	count := 0
+	for _, g := range groups {
+		if ascDashActionable(g.Section) {
+			count += len(g.Entries)
+		}
+	}
+	if ctx.Cache != nil {
+		if err := ctx.Cache.Put(key, count, ascInboxCountTTL); err != nil {
+			log.Warn("asc inbox: caching the count of user %d: %v", ctx.Doer.ID, err)
+		}
+	}
+	ctx.JSON(http.StatusOK, map[string]int{"count": count})
+}

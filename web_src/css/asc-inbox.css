@@ -89,8 +89,8 @@
 }
 
 .ap-itabs a.active {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
+  border-color: var(--ap-btn-primary);
+  background: var(--ap-btn-primary);
   color: #fff;
 }
 
