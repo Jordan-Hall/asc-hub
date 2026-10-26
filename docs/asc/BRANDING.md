@@ -7,11 +7,14 @@ attribution to Forgejo stays in the footer and in `/assets/licenses.txt`.
 
 | Area | Change |
 | --- | --- |
-| `assets/logo.svg`, `assets/favicon.svg` | ASC mark: five figures, `#125469` on light, `#22d3ee` on dark (`prefers-color-scheme` inside the SVG). Source for `make generate-images`. |
-| `public/assets/img/{logo,favicon}.svg` | Same mark, ready to serve. |
-| `public/assets/img/{favicon,apple-touch-icon,logo,avatar_default}.png` | Rendered from the same geometry (favicon transparent, the others on slate `#0f172a`). `logo.png` is the `og:image` and PWA icon. |
-| `public/assets/img/forgejo-loading.svg` | ASC spinner. The file name is kept so that `install.tmpl`, `post-install.tmpl` and `repo/migrate/migrating.tmpl` need no edit. |
-| `templates/home.tmpl` | Landing page for asc: changesets, stacks, review, inbox, plus sign-in and register buttons. `home_forgejo.tmpl` is removed. |
+| `assets/logo.svg`, `assets/favicon.svg` | ASC mark from the brand kit (tile `#125469`, white legs, cyan `#22d3ee` node). Source for `make generate-images`. |
+| `public/assets/img/{logo,favicon}.svg` | Same marks, served as is. `logo-dark.svg` is the dark-surface variant (tile `#2394b2`, legs `#0b1220`); the header and dark pages use it. |
+| `public/assets/img/{favicon,favicon-16,apple-touch-icon,logo,og-image,avatar_default}.png` | Copied from the brand kit: 32 px and 16 px favicons, 180 px apple touch icon, 512 px `logo.png` (PWA icon) and default avatar, 1200x630 `og-image.png` (the `og:image` fallback). |
+| `public/assets/img/wordmark*.svg`, `logo-mark-mono.svg` | Kit wordmarks (ASC, ASC Hub; light and dark) and the one-colour mark. The landing page uses `wordmark-hub-dark.svg`. |
+| `public/assets/img/forgejo-loading.svg` | Spinner drawn from the new mark. The file name is kept so that `install.tmpl`, `post-install.tmpl` and `repo/migrate/migrating.tmpl` need no edit. |
+| `templates/base/head_navbar.tmpl`, `templates/status/500.tmpl` | Dark-surface mark plus the app name. |
+| `templates/base/brand_mark.tmpl` | Theme-aware mark (light or dark tile) used above the sign-in and sign-up forms. |
+| `templates/home.tmpl` | Landing page for asc: dark hero (tagline, `asc clone` example, register and sign-in buttons) and four cards for changesets, stacks, review and inbox. `home_forgejo.tmpl` is removed. |
 | `templates/base/head.tmpl` | Title suffix, author, description and keywords use `APP_NAME` and the `startpage.meta_*` locale keys. `[ui.meta]` is no longer read by the page head. |
 | `templates/base/head_opengraph.tmpl` | `og:title` fallback and `og:site_name` use `APP_NAME` (no slogan). |
 | `templates/base/footer_content.tmpl` | "Powered by ASC Hub" and a small "Based on Forgejo" link (shown while `[other] SHOW_FOOTER_POWERED_BY` is true, the default). Licenses, API and version links are unchanged. |
@@ -24,7 +27,6 @@ the "Forgejo" webhook type (`settings.web_hook_name_forgejo`), links to
 carry the removed `startpage` keys; they are unused and harmless).
 
 Not changed here (Go code or tests, outside the branding patch):
-`modules/setting/ui.go` still has Forgejo defaults for `[ui.meta]`,
 `modules/setting/server.go` defaults `APP_NAME` to "Forgejo: Beyond coding. We
 Forge.", `routers/install/install.go` pre-fills the slogan, `cmd/main.go` has
 the CLI usage line. Set `APP_NAME = ASC Hub` in `app.ini` (the page head then
@@ -33,10 +35,11 @@ Forgejo" and needs the new text.
 
 ## Regenerating images
 
-`make generate-images` (needs `node_modules`) rebuilds the SVG and PNG files
-from `assets/*.svg` with sharp. Sharp renders the light colour only, so the PNGs
-committed here were drawn with the same geometry on a slate background for
-contrast. Re-run the generator only if you also accept that.
+The PNG files and the og image come straight from the brand kit and are not
+regenerated. `make generate-images` (needs `node_modules`) would overwrite
+`logo.png`, `favicon.png`, `avatar_default.png` and `apple-touch-icon.png` with
+sharp renders of `assets/*.svg`; run it only if you want that, and copy the kit
+files back otherwise. `og-image.png` and `favicon-16.png` are not touched.
 
 ## Overriding with the `custom/` directory
 
