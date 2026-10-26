@@ -3,12 +3,17 @@ Versions dropdown of a stacked pull request (SPEC 20.5 flow 2, PLAN C37).
 Template Attributes:
 * AscVersions: *pull.AscVersionList (nil or empty: nothing is shown)
 * AscVersionFrom, AscVersionTo: uint32, the versions being shown (both 0: the ordinary diff; only To: that version)
+* AscHeadVersion: uint32, the version the head of the pull request is at (0: the newest, or none)
+* AscCanRestore: bool, the viewer may restore a version of this open pull request
+* CsrfTokenHtml: the CSRF field of the restore form
 * AscSinceVersion: uint32, the version of the viewer's last review (0 when there is none or it is the latest)
 * Issue.Link: the pull request link
 Numbers are inserted as they are; the actor name comes from asc and is escaped by the template engine.
 */}}
 {{if and .AscVersions .AscVersions.Versions}}
 {{$current := .AscVersions.Latest}}
+{{$head := $current}}
+{{if .AscHeadVersion}}{{$head = .AscHeadVersion}}{{$current = .AscHeadVersion}}{{end}}
 {{if .AscVersionTo}}{{$current = .AscVersionTo}}{{end}}
 <div class="ui small compact menu asc-versions tw-mb-4" data-testid="asc-versions">
 	<div class="ui dropdown item">
@@ -33,6 +38,23 @@ Numbers are inserted as they are; the actor name comes from asc and is escaped b
 				<a class="item {{if and (eq $.AscVersionTo .To) (eq $.AscVersionFrom .From)}}active{{end}}" href="{{$.Issue.Link}}/files?asc_from={{.From}}&asc_to={{.To}}">
 					{{ctx.Locale.Tr "repo.pulls.asc_versions.interdiff_step" .From .To}}
 				</a>
+			{{end}}
+		</div>
+	</div>
+	{{end}}
+	{{if .AscCanRestore}}
+	<div class="ui dropdown item" data-testid="asc-restore-version">
+		<span class="text">{{ctx.Locale.Tr "repo.pulls.asc_versions.restore"}}</span>
+		{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+		<div class="menu">
+			{{range .AscVersions.Versions}}
+				{{if ne .N $head}}
+				<form class="item" method="post" action="{{$.Issue.Link}}/asc/restore_version">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="version" value="{{.N}}">
+					<button class="ui basic tiny button" type="submit">{{ctx.Locale.Tr "repo.pulls.asc_versions.restore_version" .N}}</button>
+				</form>
+				{{end}}
 			{{end}}
 		</div>
 	</div>

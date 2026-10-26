@@ -27,6 +27,8 @@ import (
 func prepareAscVersions(ctx *context.Context, pull *issues_model.PullRequest) *pull_service.AscVersionList {
 	ctx.Data["AscVersionFrom"] = uint32(0)
 	ctx.Data["AscVersionTo"] = uint32(0)
+	ctx.Data["AscHeadVersion"] = uint32(0)
+	ctx.Data["AscCanRestore"] = false
 	if pull == nil || !setting.Asc.Enabled {
 		return nil
 	}
@@ -41,6 +43,7 @@ func prepareAscVersions(ctx *context.Context, pull *issues_model.PullRequest) *p
 		return nil
 	}
 	ctx.Data["AscVersions"] = versions
+	prepareAscRestore(ctx, pull, versions)
 	if ctx.Doer != nil {
 		seen, err := pull_service.AscSeenVersion(ctx, pull, ctx.Doer.ID, versions)
 		if err != nil {
@@ -135,4 +138,31 @@ func parseAscInterDiff(ctx *context.Context, d *pull_service.AscInterDiff, maxLi
 		diff.IsIncomplete = true
 	}
 	return diff, nil
+}
+
+// prepareAscRestore sets AscHeadVersion (the version the head of the pull request is at, 0 when it is at none) and
+// AscCanRestore (the viewer may restore a version now) for the versions dropdown. Neither failure fails the page.
+func prepareAscRestore(ctx *context.Context, pull *issues_model.PullRequest, versions *pull_service.AscVersionList) {
+	head, err := pull_service.AscHeadVersion(ctx, pull, versions)
+	if err != nil {
+		log.Warn("asc head version of pull request %d: %v", pull.ID, err)
+	} else {
+		ctx.Data["AscHeadVersion"] = head
+	}
+	if ctx.Doer == nil || len(versions.Versions) < 2 {
+		return
+	}
+	open, err := pull_service.AscPullIsOpen(ctx, pull)
+	if err != nil || !open {
+		if err != nil {
+			log.Warn("asc restore: state of pull request %d: %v", pull.ID, err)
+		}
+		return
+	}
+	may, err := pull_service.AscMayRestoreVersion(ctx, pull, ctx.Doer)
+	if err != nil {
+		log.Warn("asc restore: permission on pull request %d: %v", pull.ID, err)
+		return
+	}
+	ctx.Data["AscCanRestore"] = may
 }
