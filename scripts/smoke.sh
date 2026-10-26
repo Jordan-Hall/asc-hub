@@ -91,7 +91,7 @@ if [ "${ASC_SMOKE_SKIP_SSH:-}" != 1 ]; then
 	command -v ssh-keygen >/dev/null 2>&1 || die "ssh-keygen is needed for the ssh checks (or set ASC_SMOKE_SKIP_SSH=1)"
 fi
 
-TMP="$(mktemp -d "${TMPDIR:-/tmp}/asc-smoke.XXXXXX")"
+TMP="$(mktemp -d -p "${TMPDIR:-/tmp}")"
 RUN_ID="$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 8 || true)"
 [ "${#RUN_ID}" -eq 8 ] || die "could not make a run id"
 REPO_NAME="asc-smoke-$RUN_ID"

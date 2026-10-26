@@ -44,7 +44,7 @@ free_port() { python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",
 new_case() {
 	CASE_NAME="$1"
 	shift
-	T="$(mktemp -d /tmp/asc-smoke-t.XXXXXX)"
+	T="$(mktemp -d -p /tmp)"
 	mkdir -p "$T/state"
 	PORT="$(free_port)"
 	printf '%s\n' "$TOKEN" >"$T/token"
@@ -97,7 +97,7 @@ t_success() {
 	hasnt "the token is never printed" "$T/smoke.out" "$TOKEN"
 	check "ssh was used" test -s "$T/ssh.log"
 	hasnt "the token never reached ssh" "$T/ssh.log" "$TOKEN"
-	check_not "no temporary files left" bash -c "ls '$T' | grep -q '^asc-smoke\\.'"
+	check_not "no temporary files left" bash -c "ls '$T' | grep -q '^tmp\\.'"
 	end_case
 }
 

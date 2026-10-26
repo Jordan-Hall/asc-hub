@@ -62,7 +62,7 @@ free_port() { python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",
 # new_case NAME: a fresh volume, fake programs and ports.
 new_case() {
 	CASE_NAME="$1"
-	T="$(mktemp -d /tmp/asc-hub-ep.XXXXXX)"
+	T="$(mktemp -d -p /tmp)"
 	mkdir -p "$T/work" "$T/fake" "$T/bin" "$T/home"
 	cp "$HERE"/fake/* "$T/bin/"
 	cp "$ENTRY_SRC" "$HEALTH_SRC" "$T/bin/"

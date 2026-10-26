@@ -45,7 +45,7 @@ own() { if [ "$(id -u)" = 0 ]; then chown -R 1000:1000 "$T"; fi; }
 
 new_case() {
 	CASE_NAME="$1"
-	T="$(mktemp -d /tmp/asc-hub-bk.XXXXXX)"
+	T="$(mktemp -d -p /tmp)"
 	mkdir -p "$T/bin" "$T/out"
 	cp "$TOOL_SRC" "$T/bin/asc-hub-backup"
 	chmod 755 "$T/bin/asc-hub-backup"
