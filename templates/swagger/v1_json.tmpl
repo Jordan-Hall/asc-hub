@@ -20551,7 +20551,7 @@
     },
     "/user/asc/inbox": {
       "get": {
-        "description": "The most recently updated 200 pull requests the user wrote or was asked to review are examined. Entries are ordered by section, then pinned first, then most recently updated first. Pull requests the user snoozed are left out unless include_snoozed is set.",
+        "description": "The most recently updated 200 pull requests the user wrote or was asked to review are examined. Entries are ordered by section, then pinned first, then most recently updated first. Pull requests the user snoozed are left out unless include_snoozed is set. The response carries an ETag; a request with a matching If-None-Match gets 304 without a body.",
         "produces": [
           "application/json"
         ],
@@ -20584,11 +20584,73 @@
             "description": "page size of results",
             "name": "limit",
             "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "an ETag from an earlier response; the answer is 304 when the page and the total are unchanged",
+            "name": "If-None-Match",
+            "in": "header"
           }
         ],
         "responses": {
           "200": {
             "$ref": "#/responses/AscInboxEntryList"
+          },
+          "304": {
+            "description": "the page and the total are the same as the ETag in If-None-Match"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          }
+        }
+      }
+    },
+    "/user/asc/inbox/count": {
+      "get": {
+        "description": "Counts the same pull requests as the inbox list, with the same section and include_snoozed filters; page and limit are ignored. The total is also sent in X-Total-Count. The response carries an ETag; a request with a matching If-None-Match gets 304 without a body, so a client can poll cheaply.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "Count the pull requests in the inbox of the authenticated user, in total and by section",
+        "operationId": "userCurrentCountAscInbox",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "only these sections (needs_review, returned, ready, blocked, waiting, drafts, queued, merged); repeat the parameter or separate the values with commas",
+            "name": "section",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "also count the pull requests the user snoozed",
+            "name": "include_snoozed",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "an ETag from an earlier response; the answer is 304 when the counts are unchanged",
+            "name": "If-None-Match",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscInboxCount"
+          },
+          "304": {
+            "description": "the counts are the same as the ETag in If-None-Match"
           },
           "401": {
             "$ref": "#/responses/unauthorized"
@@ -23957,6 +24019,28 @@
           "type": "string",
           "format": "date-time",
           "x-go-name": "Updated"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscInboxCount": {
+      "description": "AscInboxCount is the number of pull requests in the inbox of the authenticated user.",
+      "type": "object",
+      "properties": {
+        "sections": {
+          "description": "the number counted in each section asked for (every section when none was asked for), zero included",
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "x-go-name": "Sections"
+        },
+        "total": {
+          "description": "the number of pull requests counted",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Total"
         }
       },
       "x-go-package": "forgejo.org/modules/structs"
@@ -31458,6 +31542,19 @@
         "type": "array",
         "items": {
           "$ref": "#/definitions/BranchProtection"
+        }
+      }
+    },
+    "AscInboxCount": {
+      "description": "AscInboxCount",
+      "schema": {
+        "$ref": "#/definitions/AscInboxCount"
+      },
+      "headers": {
+        "X-Total-Count": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of entries counted"
         }
       }
     },

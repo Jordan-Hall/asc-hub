@@ -731,6 +731,7 @@ func Routes() *web.Route {
 			// (repo scope) the pull requests of the repositories the token can read; the token's
 			// authorization reducer is applied to each one inside the handler
 			m.Get("/asc/inbox", tokenRequiresScopes(auth_model.AccessTokenScopeCategoryRepository), user.ListAscInbox)
+			m.Get("/asc/inbox/count", tokenRequiresScopes(auth_model.AccessTokenScopeCategoryRepository), user.CountAscInbox)
 			m.Get("/times", repo.ListMyTrackedTimes)
 			m.Get("/stopwatches", repo.GetStopwatches)
 			m.Get("/subscriptions", user.GetMyWatchedRepos)

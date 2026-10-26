@@ -58,3 +58,13 @@ type swaggerResponseAscInboxEntryList struct {
 	// The total number of entries
 	TotalCount int64 `json:"X-Total-Count"`
 }
+
+// AscInboxCount
+// swagger:response AscInboxCount
+type swaggerResponseAscInboxCount struct {
+	// in:body
+	Body api.AscInboxCount `json:"body"`
+
+	// The total number of entries counted
+	TotalCount int64 `json:"X-Total-Count"`
+}
