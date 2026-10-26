@@ -1,0 +1,138 @@
+/* The signed-in header of the design boards: logo, search, inbox with its count, create and the person.
+   It is only drawn when the ASC integration is on (templates/base/head_navbar.tmpl adds .ap-nav). */
+
+#navbar.ap-nav .ap-navsearch {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  #navbar.ap-nav {
+    padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right));
+  }
+
+  #navbar.ap-nav .navbar-left,
+  #navbar.ap-nav .navbar-right {
+    min-height: 60px;
+  }
+
+  #navbar.ap-nav .navbar-left {
+    flex: 1;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  #navbar.ap-nav .navbar-right {
+    gap: 6px;
+  }
+
+  #navbar.ap-nav .ap-navsearch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 320px;
+    max-width: 560px;
+    box-sizing: border-box;
+    height: 36px;
+    min-height: 36px;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 1px solid var(--color-nav-border);
+    border-radius: 8px;
+    background: rgb(255 255 255 / 4%);
+    color: var(--color-nav-text-muted);
+    font-size: 14px;
+  }
+
+  #navbar.ap-nav .ap-navsearch:focus-within {
+    outline: 2px solid var(--color-focus, var(--color-primary));
+    outline-offset: 1px;
+  }
+
+  #navbar.ap-nav .ap-navsearch input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-nav-text);
+    font: inherit;
+    outline: 0;
+  }
+
+  #navbar.ap-nav .ap-navsearch input::placeholder {
+    color: var(--color-nav-text-muted);
+    opacity: 1;
+  }
+
+  #navbar.ap-nav .ap-navsearch .ap-kbd {
+    border-color: var(--color-nav-border);
+    background: transparent;
+    color: var(--color-nav-text-muted);
+  }
+
+  #navbar.ap-nav .ap-navlink {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  #navbar.ap-nav .ap-navinbox {
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  #navbar.ap-nav .ap-navinbox .ap-navbadge {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: #1c1100;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.5;
+  }
+
+  /* the create button and the person: 36px, a square outline and a circle */
+  #navbar.ap-nav details.dropdown > summary {
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 8px;
+  }
+
+  #navbar.ap-nav details.dropdown:nth-last-of-type(2) > summary {
+    border: 1px solid var(--color-nav-border);
+    justify-content: center;
+  }
+
+  #navbar.ap-nav details.dropdown:nth-last-of-type(2) > summary .dropdown-icon {
+    display: none;
+  }
+
+  #navbar.ap-nav details.dropdown:last-of-type > summary {
+    border-radius: 50%;
+  }
+
+  #navbar.ap-nav details.dropdown:last-of-type > summary .dropdown-icon {
+    display: none;
+  }
+}
+
+/* the links the header has no room for under 1100px are in the person's menu */
+@media (max-width: 1099.98px) {
+  #navbar.ap-nav .ap-navlink {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1100px) {
+  .ap-narrow-only {
+    display: none;
+  }
+}
+
+/* wide screens: the header content follows the page width of the boards */
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  #navbar.ap-nav .ap-navsearch {
+    flex-basis: 200px;
+  }
+}

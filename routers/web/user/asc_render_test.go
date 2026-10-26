@@ -18,6 +18,7 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/svg"
 	"forgejo.org/modules/templates"
 	"forgejo.org/modules/test"
 	"forgejo.org/modules/translation"
@@ -37,6 +38,7 @@ func ascRenderContext(t *testing.T, path string, userID int64) (*context.Context
 	defer test.MockVariableValue(&setting.Langs, []string{"en-US"})()
 	defer test.MockVariableValue(&setting.Names, []string{"English"})()
 	translation.InitLocales(t.Context())
+	require.NoError(t, svg.Init())
 	ctx, resp := contexttest.MockContext(t, path)
 	ctx.Render = templates.HTMLRenderer()
 	ctx.Locale = translation.NewLocale("en-US")

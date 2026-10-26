@@ -42,7 +42,17 @@ export function initAscKeys() {
   let chord = 0; // time of the last "g"
   if (keyHandler) document.removeEventListener('keydown', keyHandler);
   keyHandler = (e) => {
-    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    if (e.defaultPrevented || e.altKey) return;
+    // Ctrl K and "/" go to the search box of the header
+    const search = document.querySelector('input[data-asc-search]');
+    const isCtrlK = (e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'k';
+    if (search && (isCtrlK || (e.key === '/' && !e.ctrlKey && !e.metaKey && !isTypingTarget(e.target)))) {
+      e.preventDefault();
+      search.focus();
+      search.select();
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
     if (isTypingTarget(e.target)) return;
     const now = Date.now();
     switch (e.key) {
@@ -77,4 +87,45 @@ export function initAscKeys() {
     chord = 0;
   };
   document.addEventListener('keydown', keyHandler);
+}
+
+const countKey = 'asc-inbox-count';
+const countMaxAgeMs = 60 * 1000;
+
+// Shows how many items need the person on the inbox link of the header. The answer is kept for a minute in
+// the session storage, so moving between pages asks once; storage that is blocked only costs a request.
+export async function initAscInboxBadge() {
+  const link = document.querySelector('a[data-asc-count-url]');
+  const badge = link?.querySelector('[data-asc-count]');
+  if (!badge) return;
+  const show = (n) => {
+    if (!Number.isInteger(n) || n <= 0) {
+      badge.classList.add('tw-hidden');
+      return;
+    }
+    badge.textContent = String(n);
+    badge.classList.remove('tw-hidden');
+  };
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(countKey) || 'null');
+    if (cached && Date.now() - cached.at < countMaxAgeMs) {
+      show(cached.n);
+      return;
+    }
+  } catch {
+    // no storage: ask the server
+  }
+  try {
+    const res = await fetch(link.getAttribute('data-asc-count-url'), {credentials: 'same-origin', cache: 'no-store'});
+    if (!res.ok) return;
+    const data = await res.json();
+    show(data.count);
+    try {
+      sessionStorage.setItem(countKey, JSON.stringify({at: Date.now(), n: data.count}));
+    } catch {
+      // storage is full or blocked
+    }
+  } catch {
+    // the badge is a convenience: stay quiet when the request fails
+  }
 }

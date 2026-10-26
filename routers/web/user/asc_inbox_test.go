@@ -306,3 +306,37 @@ func TestAscInboxSnoozeUntil(t *testing.T) {
 	assert.Equal(t, "ab…", ascInboxClip("abcdef", 2))
 	assert.Equal(t, "é…", ascInboxClip("ééé", 3), "never cuts a character")
 }
+
+func TestAscInboxCount(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	now := time.Now()
+	useAscInboxEntries(t,
+		&AscInboxEntry{PullID: 41, Section: issues_model.AscInboxNeedsReview, Updated: now},
+		&AscInboxEntry{PullID: 42, Section: issues_model.AscInboxBlocked, Updated: now},
+		&AscInboxEntry{PullID: 43, Section: issues_model.AscInboxWaiting, Updated: now},
+		&AscInboxEntry{PullID: 44, Section: issues_model.AscInboxMerged, Updated: now},
+	)
+	get := func(u *user_model.User) (int, string, string) {
+		ctx, resp := contexttest.MockContext(t, "/-/asc/inbox/count")
+		ctx.Doer = u
+		AscInboxCount(ctx)
+		return resp.Code, resp.Body.String(), resp.Header().Get("Cache-Control")
+	}
+	code, body, cc := get(user2)
+	assert.Equal(t, http.StatusOK, code)
+	assert.JSONEq(t, `{"count":2}`, body, "only what needs the person is counted")
+	assert.Contains(t, cc, "no-store")
+	assert.Contains(t, cc, "private")
+
+	// a snoozed item does not count
+	until := now.Add(time.Hour)
+	_, err := issues_model.SetAscInboxState(db.DefaultContext, user2.ID, 42, nil, &until, now)
+	require.NoError(t, err)
+	_, body, _ = get(user2)
+	assert.JSONEq(t, `{"count":1}`, body)
+
+	code, _, _ = get(nil)
+	assert.Equal(t, http.StatusNotFound, code)
+}

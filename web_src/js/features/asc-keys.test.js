@@ -1,4 +1,4 @@
-import {isTypingTarget, nextRowIndex, initAscKeys} from './asc-keys.js';
+import {isTypingTarget, nextRowIndex, initAscKeys, initAscInboxBadge} from './asc-keys.js';
 
 test('nextRowIndex moves one row and never wraps', () => {
   expect(nextRowIndex(-1, 1, 3)).toBe(0);
@@ -50,4 +50,40 @@ test('s opens the snooze menu and p pins', () => {
   expect(document.querySelector('details').open).toBe(false);
   press('p');
   expect(pinned).toBe(1);
+});
+
+test('slash and Ctrl K focus the search box, but slash is a letter inside a field', () => {
+  document.body.innerHTML = '<input data-asc-search id="q"><input id="other">';
+  initAscKeys();
+  press('/');
+  expect(document.activeElement.id).toBe('q');
+  document.querySelector('#other').focus();
+  document.querySelector('#other').dispatchEvent(new KeyboardEvent('keydown', {key: '/', bubbles: true}));
+  expect(document.activeElement.id).toBe('other');
+  press('k', {ctrlKey: true});
+  expect(document.activeElement.id).toBe('q');
+});
+
+test('the inbox badge shows the count and hides at zero', async () => {
+  sessionStorage.clear();
+  document.body.innerHTML = '<a href="/-/asc/inbox" data-asc-count-url="/-/asc/inbox/count">Inbox <span class="tw-hidden" data-asc-count></span></a>';
+  globalThis.fetch = vi.fn().mockResolvedValue({ok: true, json: async () => ({count: 7})});
+  await initAscInboxBadge();
+  const badge = document.querySelector('[data-asc-count]');
+  expect(badge.textContent).toBe('7');
+  expect(badge.classList.contains('tw-hidden')).toBe(false);
+  // the second page view in the same minute asks nobody
+  document.body.innerHTML = '<a href="/-/asc/inbox" data-asc-count-url="/-/asc/inbox/count">Inbox <span class="tw-hidden" data-asc-count></span></a>';
+  globalThis.fetch = vi.fn();
+  await initAscInboxBadge();
+  expect(globalThis.fetch).not.toHaveBeenCalled();
+  expect(document.querySelector('[data-asc-count]').textContent).toBe('7');
+  sessionStorage.clear();
+  globalThis.fetch = vi.fn().mockResolvedValue({ok: true, json: async () => ({count: 0})});
+  document.body.innerHTML = '<a href="/-/asc/inbox" data-asc-count-url="/-/asc/inbox/count">Inbox <span data-asc-count>5</span></a>';
+  await initAscInboxBadge();
+  expect(document.querySelector('[data-asc-count]').classList.contains('tw-hidden')).toBe(true);
+  globalThis.fetch = vi.fn().mockResolvedValue({ok: false});
+  sessionStorage.clear();
+  await initAscInboxBadge();
 });
