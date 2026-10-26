@@ -868,7 +868,8 @@ func registerRoutes(m *web.Route) {
 			m.Post("/unblock", user_setting.UnblockUser)
 		})
 		m.Get("/storage_overview", user_setting.StorageOverview)
-	}, reqSignIn, ctxDataSet("PageIsUserSettings", true, "EnablePackages", setting.Packages.Enabled, "EnableQuota", setting.Quota.Enabled))
+		user_setting.AscRoutes(m)
+	}, reqSignIn, ctxDataSet("PageIsUserSettings", true, "EnablePackages", setting.Packages.Enabled, "EnableQuota", setting.Quota.Enabled, "AscEnabled", setting.Asc.Enabled))
 
 	m.Group("/user", func() {
 		m.Get("/activate", auth.Activate)
@@ -1161,6 +1162,7 @@ func registerRoutes(m *web.Route) {
 					m.Post("/unblock", org_setting.BlockedUsersUnblock)
 				})
 				m.Get("/storage_overview", org_setting.StorageOverview)
+				org_setting.AscRoutes(m)
 
 				m.Group("/packages", func() {
 					m.Get("", org.Packages)
@@ -1180,7 +1182,7 @@ func registerRoutes(m *web.Route) {
 						m.Post("/rebuild", org.RebuildCargoIndex)
 					})
 				}, packagesEnabled)
-			}, ctxDataSet("EnableOAuth2", setting.OAuth2.Enabled, "EnablePackages", setting.Packages.Enabled, "EnableQuota", setting.Quota.Enabled, "PageIsOrgSettings", true))
+			}, ctxDataSet("EnableOAuth2", setting.OAuth2.Enabled, "EnablePackages", setting.Packages.Enabled, "EnableQuota", setting.Quota.Enabled, "PageIsOrgSettings", true, "AscEnabled", setting.Asc.Enabled))
 		}, context.OrgAssignment(true, true))
 	}, reqSignIn)
 	// ***** END: Organization *****
@@ -1346,7 +1348,8 @@ func registerRoutes(m *web.Route) {
 				m.Post("/retry", repo.MigrateRetryPost)
 				m.Post("/cancel", repo.MigrateCancelPost)
 			})
-		}, ctxDataSet("PageIsRepoSettings", true, "LFSStartServer", setting.LFS.StartServer))
+			repo_setting.AscRoutes(m)
+		}, ctxDataSet("PageIsRepoSettings", true, "LFSStartServer", setting.LFS.StartServer, "AscEnabled", setting.Asc.Enabled))
 	}, reqSignIn, context.RepoAssignment, context.UnitTypes(), reqRepoAdmin, context.RepoRef())
 
 	m.Group("/{username}/{reponame}/action", func() {
