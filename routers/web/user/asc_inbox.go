@@ -65,6 +65,13 @@ type AscInboxEntry struct {
 	Pinned       bool
 	SnoozedUntil time.Time // zero when not snoozed
 	Updated      time.Time
+
+	// What the section was derived from, kept to draw the row without asking again.
+	Author        string // login of the author
+	Draft         bool
+	Conflicted    bool
+	ChecksFailing bool
+	Approved      bool
 }
 
 // AscInboxGroup is one section as shown.
@@ -150,7 +157,26 @@ func ascInboxEntryFor(ctx gocontext.Context, doer *user_model.User, issue *issue
 		Index:        pr.Index,
 		Section:      section,
 		Updated:      issue.UpdatedUnix.AsTime(),
+
+		Author:        ascInboxAuthor(ctx, issue),
+		Draft:         facts.Draft,
+		Conflicted:    facts.Conflicted,
+		ChecksFailing: facts.ChecksFailing,
+		Approved:      facts.Approved,
 	}, nil
+}
+
+// ascInboxAuthor returns the login of the author of the issue, or "" when it cannot be read.
+func ascInboxAuthor(ctx gocontext.Context, issue *issues_model.Issue) string {
+	if issue.Poster == nil {
+		if err := issue.LoadPoster(ctx); err != nil {
+			return ""
+		}
+	}
+	if issue.Poster == nil {
+		return ""
+	}
+	return issue.Poster.Name
 }
 
 // ascInboxCanSee reports whether doer may read the pull requests of repo.
