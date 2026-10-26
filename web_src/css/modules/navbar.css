@@ -71,7 +71,6 @@
   color: var(--color-nav-text, var(--color-text));
   padding-top: 3px;
   padding-bottom: 3px;
-  display: flex;
 }
 
 #navbar .dropdown .item {
@@ -96,33 +95,50 @@
   display: flex;
 }
 
-@media (max-width: 767.98px) {
-  #navbar {
-    align-items: stretch;
-  }
-  /* hide all items */
-  #navbar .item {
-    display: none;
-  }
-  #navbar #navbar-logo {
-    display: flex;
-  }
-  /* show the first navbar item (logo and its mobile right items) */
-  #navbar .navbar-left {
-    flex: 1;
-    display: flex;
-    justify-content: space-between;
-  }
-  #navbar .navbar-mobile-right {
-    display: flex;
-    margin-inline-start: auto !important;
-    width: auto !important;
-  }
-  #navbar .navbar-mobile-right > .item {
-    display: flex;
-    width: auto !important;
-  }
-  /* show items if the navbar is open */
+/* Mobile first: the base is the collapsed menu (logo, notification icon and the 44px
+   menu button); the items show from 768px, or when the menu button opened the menu. */
+#navbar {
+  align-items: stretch;
+}
+
+/* hide all items */
+#navbar .item {
+  display: none;
+}
+
+#navbar #navbar-logo {
+  display: flex;
+}
+
+/* the first navbar item holds the logo and its mobile right items */
+#navbar .navbar-left {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+}
+
+#navbar .navbar-mobile-right {
+  display: flex;
+  margin-inline-start: auto !important;
+  width: auto !important;
+}
+
+#navbar .navbar-mobile-right > .item {
+  display: flex;
+  width: auto !important;
+  justify-content: center;
+}
+
+#navbar details.dropdown {
+  display: none;
+}
+
+#navbar #mobile-notifications-icon {
+  margin-inline-end: 6px !important;
+}
+
+/* the opened menu; ignored on wide screens even if the class is still set */
+@media not all and (min-width: 768px) {
   #navbar.navbar-menu-open {
     padding-bottom: 8px;
     gap: .35714286em;
@@ -139,9 +155,6 @@
     display: flex;
     width: 100%;
     margin: 0;
-  }
-  #navbar details.dropdown {
-    display: none;
   }
   #navbar.navbar-menu-open details.dropdown {
     display: block;
@@ -164,8 +177,21 @@
     width: 50%;
     min-height: 48px;
   }
-  #navbar #mobile-notifications-icon {
-    margin-inline-end: 6px !important;
+}
+
+@media (min-width: 768px) {
+  #navbar {
+    align-items: center;
+  }
+  #navbar .item {
+    display: flex;
+  }
+  #navbar .navbar-left {
+    flex: initial;
+    justify-content: normal;
+  }
+  #navbar details.dropdown {
+    display: block;
   }
 }
 

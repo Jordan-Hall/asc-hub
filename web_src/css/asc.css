@@ -16,6 +16,12 @@ body {
   min-width: 0;
 }
 
+/* the stock grid pulls 1rem outside its container, but the container gutter is only 8px on a
+   phone: that was a 6px sideways overflow at 320px */
+.page-content .ui.container > .ui.grid {
+  margin-inline: calc(-1 * min(1rem, var(--page-margin-x)));
+}
+
 img,
 video {
   max-width: 100%;
