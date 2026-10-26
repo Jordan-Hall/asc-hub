@@ -2190,6 +2190,352 @@
         }
       }
     },
+    "/asc/search": {
+      "get": {
+        "description": "Searches the default branch of the repositories the caller can read that are stored in asc, in one call of the search service for up to 64 of them. Name repositories with repo, or limit the search to the repositories of one user or organisation with owner; with neither, every readable repository is searched (at most 200, the most recently updated first, and repos_truncated says when there are more). A repository the caller cannot read is left out without a trace. Runs with the token of the caller. A hit the server marked redacted (it may hold a secret) lists line numbers only. A pattern shorter than 3 bytes is refused.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "miscellaneous"
+        ],
+        "summary": "Search the text of the code of several repositories",
+        "operationId": "ascCrossSearch",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the text to find, 3 to 512 bytes",
+            "name": "q",
+            "in": "query",
+            "required": true
+          },
+          {
+            "enum": [
+              "literal",
+              "regex",
+              "word"
+            ],
+            "type": "string",
+            "description": "how to match q",
+            "name": "mode",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "name": "case_sensitive",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "a repository, \"owner/name\"; repeat for up to 200",
+            "name": "repo",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "only the repositories of this user or organisation",
+            "name": "owner",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these paths or directories; repeat for up to 16",
+            "name": "path",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "leave out these paths or directories; repeat for up to 16",
+            "name": "exclude",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these languages; repeat for up to 8",
+            "name": "lang",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "lines of context around a match (0 to 5, default 1)",
+            "name": "context",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "most files to return over all repositories (default 50, at most 200)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the next_page_token of an earlier answer; only for a search of at most 64 repositories",
+            "name": "page_token",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscCrossSearchResult"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "429": {
+            "description": "too many requests"
+          },
+          "501": {
+            "description": "code intelligence is not enabled"
+          },
+          "502": {
+            "description": "code intelligence failed"
+          },
+          "503": {
+            "description": "code intelligence is unavailable"
+          },
+          "504": {
+            "description": "the search took too long"
+          }
+        }
+      }
+    },
+    "/asc/semantic": {
+      "get": {
+        "description": "Finds the pieces of code that best answer a question in words, in the default branch of the repositories the caller can read that are stored in asc. Every repository costs one query embedding, so a search covers at most 16 repositories, the most recently updated first, and repos_truncated says when there are more; name them with repo, or pick an owner. A repository the caller cannot read is left out without a trace. Runs with the token of the caller. A chunk the server marked redacted (it may hold a secret) has no text.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "miscellaneous"
+        ],
+        "summary": "Search the code of several repositories by meaning",
+        "operationId": "ascCrossSemantic",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the question, at most 1000 bytes",
+            "name": "q",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "how many chunks to return (default 10, at most 50)",
+            "name": "k",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "rerank the chunks with the reranking model, when the server has one",
+            "name": "rerank",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "a repository, \"owner/name\"; repeat for up to 16",
+            "name": "repo",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "only the repositories of this user or organisation",
+            "name": "owner",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these paths or directories; repeat for up to 16",
+            "name": "path",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these languages; repeat for up to 8",
+            "name": "lang",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscCrossSemanticResult"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "429": {
+            "description": "too many requests"
+          },
+          "501": {
+            "description": "code intelligence is not enabled"
+          },
+          "502": {
+            "description": "code intelligence failed"
+          },
+          "503": {
+            "description": "code intelligence is unavailable"
+          },
+          "504": {
+            "description": "the search took too long"
+          }
+        }
+      }
+    },
+    "/asc/symbols": {
+      "get": {
+        "description": "Lists the declared symbols whose name matches, in the default branch of the repositories the caller can read that are stored in asc. Name repositories with repo, or limit the lookup to the repositories of one user or organisation with owner; with neither, every readable repository is asked (at most 200, the most recently updated first). A repository the caller cannot read is left out without a trace. Runs with the token of the caller. Every symbol says how it was found in the confidence field (precise, import_match or name_match).",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "miscellaneous"
+        ],
+        "summary": "Look a symbol up by name in several repositories",
+        "operationId": "ascCrossSymbols",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the symbol, 1 to 256 bytes",
+            "name": "name",
+            "in": "query",
+            "required": true
+          },
+          {
+            "enum": [
+              "exact",
+              "prefix",
+              "fuzzy"
+            ],
+            "type": "string",
+            "description": "how the name must match (default exact)",
+            "name": "match",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these kinds of symbol; repeat for up to 8",
+            "name": "kind",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these languages; repeat for up to 8",
+            "name": "lang",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "leave out the uses of the symbol",
+            "name": "definitions_only",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "a repository, \"owner/name\"; repeat for up to 200",
+            "name": "repo",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "only the repositories of this user or organisation",
+            "name": "owner",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "most symbols to return (default 50, at most 200)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the next_page_token of an earlier answer; only for a lookup in at most 64 repositories",
+            "name": "page_token",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscCrossSymbolsResult"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "429": {
+            "description": "too many requests"
+          },
+          "501": {
+            "description": "code intelligence is not enabled"
+          },
+          "502": {
+            "description": "code intelligence failed"
+          },
+          "503": {
+            "description": "code intelligence is unavailable"
+          },
+          "504": {
+            "description": "the lookup took too long"
+          }
+        }
+      }
+    },
     "/gitignore/templates": {
       "get": {
         "produces": [
@@ -7208,6 +7554,603 @@
           },
           "404": {
             "$ref": "#/responses/notFound"
+          }
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/asc/index": {
+      "get": {
+        "description": "Says, for the index that text and symbol search read and for the one that the search by meaning reads, how much of the repository at the revision is indexed and how far the index lags behind. Results of a search are incomplete while the coverage is below 100 percent.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "repository"
+        ],
+        "summary": "Get how much of a repository the code index covers",
+        "operationId": "repoAscIndexStatus",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "owner of the repository",
+            "name": "owner",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "name of the repository",
+            "name": "repo",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "the revision; the default branch when empty",
+            "name": "rev",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscIndexStatusResult"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "501": {
+            "description": "code intelligence is not enabled"
+          },
+          "502": {
+            "description": "code intelligence failed"
+          },
+          "503": {
+            "description": "code intelligence is unavailable"
+          }
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/asc/search": {
+      "get": {
+        "description": "Runs the search with the token of the caller, so the server decides what the caller may read. A hit the server marked redacted (it may hold a secret) lists line numbers only. The answer is capped by limit; page_token continues it.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "repository"
+        ],
+        "summary": "Search the text of the code of a repository",
+        "operationId": "repoAscSearch",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "owner of the repository",
+            "name": "owner",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "name of the repository",
+            "name": "repo",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "the revision to read (a branch, a tag or a commit id); the default branch when empty",
+            "name": "rev",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "read a change at its current head instead of a revision (32 letters from k to z)",
+            "name": "change",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "read the top of the stack that ends in this change (32 letters from k to z)",
+            "name": "stack",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "with stack, read only the files the stack changes",
+            "name": "stack_diff_only",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these paths or directories; repeat for up to 16",
+            "name": "path",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these languages; repeat for up to 8",
+            "name": "lang",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the text to find, at most 4096 bytes",
+            "name": "q",
+            "in": "query",
+            "required": true
+          },
+          {
+            "enum": [
+              "literal",
+              "regex",
+              "word"
+            ],
+            "type": "string",
+            "description": "how to match q",
+            "name": "mode",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "name": "case_sensitive",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "leave out these paths or directories; repeat for up to 16",
+            "name": "exclude",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "lines of context around a match (0 to 5, default 1)",
+            "name": "context",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "most files to return (default 50, at most 200)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the next_page_token of an earlier answer",
+            "name": "page_token",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscRepoSearchResult"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "429": {
+            "description": "too many requests"
+          },
+          "501": {
+            "description": "code intelligence is not enabled"
+          },
+          "502": {
+            "description": "code intelligence failed"
+          },
+          "503": {
+            "description": "code intelligence is unavailable"
+          },
+          "504": {
+            "description": "the search took too long"
+          }
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/asc/semantic": {
+      "get": {
+        "description": "Finds the pieces of code that best answer a question in words. A chunk the server marked redacted (it may hold a secret) has no text.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "repository"
+        ],
+        "summary": "Search the code of a repository by meaning",
+        "operationId": "repoAscSemantic",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "owner of the repository",
+            "name": "owner",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "name of the repository",
+            "name": "repo",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "the question, at most 4096 bytes",
+            "name": "q",
+            "in": "query",
+            "required": true
+          },
+          {
+            "enum": [
+              "hybrid",
+              "vector"
+            ],
+            "type": "string",
+            "description": "hybrid mixes text and vectors, vector uses vectors only",
+            "name": "mode",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "how many chunks to return (default 10, at most 50)",
+            "name": "k",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "rerank the chunks with the reranking model, when the server has one",
+            "name": "rerank",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the revision to read; the default branch when empty",
+            "name": "rev",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "read a change at its current head instead of a revision (32 letters from k to z)",
+            "name": "change",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "read the top of the stack that ends in this change (32 letters from k to z)",
+            "name": "stack",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "with stack, read only the files the stack changes",
+            "name": "stack_diff_only",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these paths or directories; repeat for up to 16",
+            "name": "path",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these languages; repeat for up to 8",
+            "name": "lang",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscRepoSemanticResult"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "429": {
+            "description": "too many requests"
+          },
+          "501": {
+            "description": "code intelligence is not enabled"
+          },
+          "502": {
+            "description": "code intelligence failed"
+          },
+          "503": {
+            "description": "code intelligence is unavailable"
+          },
+          "504": {
+            "description": "the search took too long"
+          }
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/asc/symbol-panel": {
+      "get": {
+        "description": "The panel of the file view. It holds the definition of the symbol (more than one when the name is ambiguous; name, or path and line, picks one), its references and callers in the repository grouped by file, and with cross_repo its references in other repositories that the caller can read. Runs with the token of the caller. Every occurrence says how it was found in the confidence field (precise, import_match or name_match).",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "repository"
+        ],
+        "summary": "Get the definition, references and callers of a symbol",
+        "operationId": "repoAscSymbolPanel",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "owner of the repository",
+            "name": "owner",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "name of the repository",
+            "name": "repo",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "the symbol, at most 256 bytes; required unless path and line are given",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the file of the definition, to pick one of several",
+            "name": "path",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "the line of the definition, to pick one of several",
+            "name": "line",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the revision to read; the default branch when empty",
+            "name": "rev",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "also list references in other repositories the caller can read",
+            "name": "cross_repo",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "scales how many occurrences to list (default 50, at most 200; each list is 5 times that)",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscSymbolPanel"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "429": {
+            "description": "too many requests"
+          },
+          "501": {
+            "description": "code intelligence is not enabled"
+          },
+          "502": {
+            "description": "code intelligence failed"
+          },
+          "503": {
+            "description": "code intelligence is unavailable"
+          },
+          "504": {
+            "description": "the call took too long"
+          }
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/asc/symbols": {
+      "get": {
+        "description": "With op=find (the default) lists the declared symbols whose name matches name. With op=def, refs and callers it answers for the symbol name (def_path and def_line pick one definition when the name is ambiguous), and with op=outline it lists the symbols declared in the file file. Every symbol says how it was found in its confidence field (precise, import_match or name_match).",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "repository"
+        ],
+        "summary": "Look up symbols in a repository",
+        "operationId": "repoAscSymbols",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "owner of the repository",
+            "name": "owner",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "name of the repository",
+            "name": "repo",
+            "in": "path",
+            "required": true
+          },
+          {
+            "enum": [
+              "find",
+              "def",
+              "refs",
+              "callers",
+              "outline"
+            ],
+            "type": "string",
+            "description": "what to ask",
+            "name": "op",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the symbol, at most 512 bytes; required except for outline",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the file for outline",
+            "name": "file",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the file of the definition, to pick one of several",
+            "name": "def_path",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "the line of the definition, to pick one of several",
+            "name": "def_line",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these kinds of symbol; repeat for up to 8",
+            "name": "kind",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the revision to read; the default branch when empty",
+            "name": "rev",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "read a change at its current head instead of a revision (32 letters from k to z)",
+            "name": "change",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "read the top of the stack that ends in this change (32 letters from k to z)",
+            "name": "stack",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "with stack, read only the files the stack changes",
+            "name": "stack_diff_only",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these paths or directories; repeat for up to 16",
+            "name": "path",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "only these languages; repeat for up to 8",
+            "name": "lang",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "most symbols to return (default 50, at most 200)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the next_page_token of an earlier answer",
+            "name": "page_token",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscRepoSymbolsResult"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          },
+          "429": {
+            "description": "too many requests"
+          },
+          "501": {
+            "description": "code intelligence is not enabled"
+          },
+          "502": {
+            "description": "code intelligence failed"
+          },
+          "503": {
+            "description": "code intelligence is unavailable"
+          },
+          "504": {
+            "description": "the call took too long"
           }
         }
       }
@@ -23773,6 +24716,736 @@
       },
       "x-go-package": "forgejo.org/modules/structs"
     },
+    "AscChunk": {
+      "type": "object",
+      "title": "AscChunk is one ranked piece of code of the search by meaning.",
+      "properties": {
+        "end_line": {
+          "description": "the last line",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "EndLine"
+        },
+        "file_id": {
+          "description": "the id of the file content, as hex",
+          "type": "string",
+          "x-go-name": "FileID"
+        },
+        "path": {
+          "description": "the path in the repository",
+          "type": "string",
+          "x-go-name": "Path"
+        },
+        "redacted": {
+          "description": "whether the code is hidden because it may hold secrets",
+          "type": "boolean",
+          "x-go-name": "Redacted"
+        },
+        "repo": {
+          "description": "the repository, \"owner/name\"; left out by calls that search one repository",
+          "type": "string",
+          "x-go-name": "Repo"
+        },
+        "score": {
+          "description": "the relevance",
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Score"
+        },
+        "sources": {
+          "description": "where the chunk came from, such as vector or lexical",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Sources"
+        },
+        "start_line": {
+          "description": "the first line",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "StartLine"
+        },
+        "symbol": {
+          "description": "the symbol the chunk belongs to",
+          "type": "string",
+          "x-go-name": "Symbol"
+        },
+        "text": {
+          "description": "the code; empty for a redacted chunk",
+          "type": "string",
+          "x-go-name": "Text"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscCoverage": {
+      "type": "object",
+      "title": "AscCoverage says how much of the searched scope the server has indexed.",
+      "properties": {
+        "asked": {
+          "description": "the repositories asked about their index",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Asked"
+        },
+        "complete": {
+          "description": "whether every repository was asked, answered, and is fully indexed",
+          "type": "boolean",
+          "x-go-name": "Complete"
+        },
+        "known": {
+          "description": "the repositories that answered",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Known"
+        },
+        "lag_seconds": {
+          "description": "the largest lag of the index behind the repository, in seconds",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "LagSeconds"
+        },
+        "percent": {
+          "description": "the mean coverage in percent over the repositories that answered",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Percent"
+        },
+        "revision": {
+          "description": "the revision the index covers, for one repository",
+          "type": "string",
+          "x-go-name": "Revision"
+        },
+        "sampled": {
+          "description": "whether there were more repositories than were asked",
+          "type": "boolean",
+          "x-go-name": "Sampled"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscCrossSearchResult": {
+      "type": "object",
+      "title": "AscCrossSearchResult is the answer to a search over several repositories.",
+      "properties": {
+        "directories": {
+          "description": "files per top-level directory, most first",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscFacet"
+          },
+          "x-go-name": "Directories"
+        },
+        "est_tokens": {
+          "description": "an estimate of the tokens the answer costs an agent",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "EstTokens"
+        },
+        "failed_repos": {
+          "description": "the repositories whose search failed",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "FailedRepos"
+        },
+        "files": {
+          "description": "the number of file hits",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Files"
+        },
+        "languages": {
+          "description": "files per language, most first",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscFacet"
+          },
+          "x-go-name": "Languages"
+        },
+        "next_page_token": {
+          "description": "continues the search; only given when the search was one call of at most 64 repositories",
+          "type": "string",
+          "x-go-name": "NextPageToken"
+        },
+        "repos": {
+          "description": "the repositories that have hits, newest first",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscRepoHits"
+          },
+          "x-go-name": "Repos"
+        },
+        "repos_total": {
+          "description": "the repositories the caller can read and that were in the search",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ReposTotal"
+        },
+        "repos_truncated": {
+          "description": "whether the caller can read more repositories than were searched",
+          "type": "boolean",
+          "x-go-name": "ReposTruncated"
+        },
+        "searched_repos": {
+          "description": "the repositories searched",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "SearchedRepos"
+        },
+        "truncated": {
+          "description": "whether more hits exist than are listed",
+          "type": "boolean",
+          "x-go-name": "Truncated"
+        },
+        "unindexed_repos": {
+          "description": "the repositories searched without an index, which is slower",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "UnindexedRepos"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscCrossSemanticResult": {
+      "type": "object",
+      "title": "AscCrossSemanticResult is the answer to a search by meaning over several repositories.",
+      "properties": {
+        "ann_exhausted": {
+          "description": "whether the nearest-neighbour search ran out of candidates",
+          "type": "boolean",
+          "x-go-name": "AnnExhausted"
+        },
+        "chunks": {
+          "description": "the chunks, best first",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscChunk"
+          },
+          "x-go-name": "Chunks"
+        },
+        "est_tokens": {
+          "description": "an estimate of the tokens the answer costs an agent",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "EstTokens"
+        },
+        "failed_repos": {
+          "description": "the repositories whose search failed",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "FailedRepos"
+        },
+        "model": {
+          "description": "the embedding model",
+          "type": "string",
+          "x-go-name": "Model"
+        },
+        "repos_total": {
+          "description": "the repositories the caller can read and that were in the search",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ReposTotal"
+        },
+        "repos_truncated": {
+          "description": "whether the caller can read more repositories than were searched (a meaning search covers at most 16)",
+          "type": "boolean",
+          "x-go-name": "ReposTruncated"
+        },
+        "searched_repos": {
+          "description": "the repositories that answered",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "SearchedRepos"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscCrossSymbolsResult": {
+      "type": "object",
+      "title": "AscCrossSymbolsResult is the answer to a symbol lookup over several repositories.",
+      "properties": {
+        "failed_repos": {
+          "description": "the repositories whose lookup failed",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "FailedRepos"
+        },
+        "next_page_token": {
+          "description": "continues the lookup; only given when the lookup was one call of at most 64 repositories",
+          "type": "string",
+          "x-go-name": "NextPageToken"
+        },
+        "repos_total": {
+          "description": "the repositories the caller can read and that were in the lookup",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ReposTotal"
+        },
+        "repos_truncated": {
+          "description": "whether the caller can read more repositories than were looked in",
+          "type": "boolean",
+          "x-go-name": "ReposTruncated"
+        },
+        "symbols": {
+          "description": "the symbols, best match first",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscSymbolHit"
+          },
+          "x-go-name": "Symbols"
+        },
+        "truncated": {
+          "description": "whether more exist than are listed",
+          "type": "boolean",
+          "x-go-name": "Truncated"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscFacet": {
+      "type": "object",
+      "title": "AscFacet is a value with the number of files that have it.",
+      "properties": {
+        "count": {
+          "description": "the number of files",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Count"
+        },
+        "name": {
+          "description": "the language or the top-level directory",
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscFileHit": {
+      "description": "AscFileHit is a file with matches. A redacted hit carries line numbers only, because the server found a\nsecret in the file.",
+      "type": "object",
+      "properties": {
+        "also_at": {
+          "description": "up to 5 other paths of the same file",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "AlsoAt"
+        },
+        "file_id": {
+          "description": "the id of the file content, as hex",
+          "type": "string",
+          "x-go-name": "FileID"
+        },
+        "lang": {
+          "description": "the language of the file",
+          "type": "string",
+          "x-go-name": "Lang"
+        },
+        "matches": {
+          "description": "the matching lines",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscLineMatch"
+          },
+          "x-go-name": "Matches"
+        },
+        "path": {
+          "description": "the path in the repository",
+          "type": "string",
+          "x-go-name": "Path"
+        },
+        "redacted": {
+          "description": "whether the lines are hidden because they may hold secrets",
+          "type": "boolean",
+          "x-go-name": "Redacted"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscFileRefs": {
+      "type": "object",
+      "title": "AscFileRefs groups occurrences of a symbol by file.",
+      "properties": {
+        "path": {
+          "description": "the path in the repository",
+          "type": "string",
+          "x-go-name": "Path"
+        },
+        "repo": {
+          "description": "the repository, \"owner/name\"",
+          "type": "string",
+          "x-go-name": "Repo"
+        },
+        "symbols": {
+          "description": "the occurrences",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscSymbol"
+          },
+          "x-go-name": "Symbols"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscIndexStatusResult": {
+      "type": "object",
+      "title": "AscIndexStatusResult is how much of a repository the index covers.",
+      "properties": {
+        "files": {
+          "$ref": "#/definitions/AscCoverage"
+        },
+        "repo": {
+          "description": "the repository, \"owner/name\"",
+          "type": "string",
+          "x-go-name": "Repo"
+        },
+        "rev": {
+          "description": "the revision",
+          "type": "string",
+          "x-go-name": "Rev"
+        },
+        "vectors": {
+          "$ref": "#/definitions/AscCoverage"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscLineMatch": {
+      "description": "AscLineMatch is one matching line of a file with its context. The text is already made safe to show; it is\nempty for a redacted hit.",
+      "type": "object",
+      "properties": {
+        "after": {
+          "description": "the lines after the match",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "After"
+        },
+        "before": {
+          "description": "the lines before the match",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Before"
+        },
+        "cols": {
+          "description": "the byte columns of the matches in the line",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "x-go-name": "Cols"
+        },
+        "line": {
+          "description": "the 1-based line number",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "Line"
+        },
+        "text": {
+          "description": "the line",
+          "type": "string",
+          "x-go-name": "Text"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscRepoHits": {
+      "type": "object",
+      "title": "AscRepoHits is the hits of one repository.",
+      "properties": {
+        "files": {
+          "description": "the files with hits",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscFileHit"
+          },
+          "x-go-name": "Files"
+        },
+        "repo": {
+          "description": "the repository, \"owner/name\"",
+          "type": "string",
+          "x-go-name": "Repo"
+        },
+        "rev": {
+          "description": "the revision that was searched",
+          "type": "string",
+          "x-go-name": "Rev"
+        },
+        "scope": {
+          "$ref": "#/definitions/AscScope"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscRepoSearchResult": {
+      "type": "object",
+      "title": "AscRepoSearchResult is the answer to a text search in one repository.",
+      "properties": {
+        "est_tokens": {
+          "description": "an estimate of the tokens the answer costs an agent",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "EstTokens"
+        },
+        "files": {
+          "description": "the files with hits",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscFileHit"
+          },
+          "x-go-name": "Files"
+        },
+        "next_page_token": {
+          "description": "continues the search",
+          "type": "string",
+          "x-go-name": "NextPageToken"
+        },
+        "scope": {
+          "$ref": "#/definitions/AscScope"
+        },
+        "truncated": {
+          "description": "whether more hits exist than are listed",
+          "type": "boolean",
+          "x-go-name": "Truncated"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscRepoSemanticResult": {
+      "type": "object",
+      "title": "AscRepoSemanticResult is the answer to a search by meaning in one repository.",
+      "properties": {
+        "ann_exhausted": {
+          "description": "whether the nearest-neighbour search ran out of candidates",
+          "type": "boolean",
+          "x-go-name": "AnnExhausted"
+        },
+        "chunks": {
+          "description": "the chunks, best first",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscChunk"
+          },
+          "x-go-name": "Chunks"
+        },
+        "est_tokens": {
+          "description": "an estimate of the tokens the answer costs an agent",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "EstTokens"
+        },
+        "model": {
+          "description": "the embedding model",
+          "type": "string",
+          "x-go-name": "Model"
+        },
+        "scope": {
+          "$ref": "#/definitions/AscScope"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscRepoSymbolsResult": {
+      "type": "object",
+      "title": "AscRepoSymbolsResult is the answer to a symbol call in one repository.",
+      "properties": {
+        "est_tokens": {
+          "description": "an estimate of the tokens the answer costs an agent",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "EstTokens"
+        },
+        "next_page_token": {
+          "description": "continues the call",
+          "type": "string",
+          "x-go-name": "NextPageToken"
+        },
+        "scope": {
+          "$ref": "#/definitions/AscScope"
+        },
+        "symbols": {
+          "description": "the symbols",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscSymbol"
+          },
+          "x-go-name": "Symbols"
+        },
+        "truncated": {
+          "description": "whether more exist than are listed",
+          "type": "boolean",
+          "x-go-name": "Truncated"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscScope": {
+      "type": "object",
+      "title": "AscScope says what an answer was computed against.",
+      "properties": {
+        "changeset": {
+          "description": "the changeset the answer was computed at, as hex",
+          "type": "string",
+          "x-go-name": "Changeset"
+        },
+        "coverage": {
+          "description": "the share (0 to 1) of the scope the index covers",
+          "type": "number",
+          "format": "float",
+          "x-go-name": "Coverage"
+        },
+        "generation": {
+          "description": "the generation of the index the answer used",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "Generation"
+        },
+        "root": {
+          "description": "the root tree of that changeset, as hex",
+          "type": "string",
+          "x-go-name": "Root"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscSymbol": {
+      "type": "object",
+      "title": "AscSymbol is one occurrence of a symbol.",
+      "properties": {
+        "confidence": {
+          "description": "how the match was found: precise (uploaded compiler index), import_match or name_match",
+          "type": "string",
+          "x-go-name": "Confidence"
+        },
+        "container": {
+          "description": "the name of the enclosing symbol",
+          "type": "string",
+          "x-go-name": "Container"
+        },
+        "doc": {
+          "description": "the documentation comment on one line",
+          "type": "string",
+          "x-go-name": "Doc"
+        },
+        "end_line": {
+          "description": "the last line",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "EndLine"
+        },
+        "is_def": {
+          "description": "whether this is the definition",
+          "type": "boolean",
+          "x-go-name": "IsDef"
+        },
+        "kind": {
+          "description": "the kind, such as fn, struct or const",
+          "type": "string",
+          "x-go-name": "Kind"
+        },
+        "line": {
+          "description": "the first line",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "Line"
+        },
+        "name": {
+          "description": "the name",
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "path": {
+          "description": "the path in the repository",
+          "type": "string",
+          "x-go-name": "Path"
+        },
+        "signature": {
+          "description": "the declaration",
+          "type": "string",
+          "x-go-name": "Signature"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscSymbolHit": {
+      "type": "object",
+      "title": "AscSymbolHit is a symbol in a repository.",
+      "properties": {
+        "repo": {
+          "description": "the repository, \"owner/name\"",
+          "type": "string",
+          "x-go-name": "Repo"
+        },
+        "rev": {
+          "description": "the revision",
+          "type": "string",
+          "x-go-name": "Rev"
+        },
+        "score": {
+          "description": "how well the name matches, 0 to 1",
+          "type": "number",
+          "format": "float",
+          "x-go-name": "Score"
+        },
+        "symbol": {
+          "$ref": "#/definitions/AscSymbol"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscSymbolPanel": {
+      "type": "object",
+      "title": "AscSymbolPanel is the definition of a symbol with its references and callers.",
+      "properties": {
+        "callers": {
+          "description": "callers in the repository, by file",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscFileRefs"
+          },
+          "x-go-name": "Callers"
+        },
+        "cross_repo": {
+          "description": "references in other repositories the caller can read, by file",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscFileRefs"
+          },
+          "x-go-name": "CrossRepo"
+        },
+        "definitions": {
+          "description": "the definitions; more than one when the name is ambiguous",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscSymbolHit"
+          },
+          "x-go-name": "Definitions"
+        },
+        "references": {
+          "description": "references in the repository, by file",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscFileRefs"
+          },
+          "x-go-name": "References"
+        },
+        "scope": {
+          "$ref": "#/definitions/AscScope"
+        },
+        "truncated": {
+          "description": "whether more exist than are listed",
+          "type": "boolean",
+          "x-go-name": "Truncated"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
     "Attachment": {
       "description": "Attachment a generic attachment",
       "type": "object",
@@ -31482,6 +33155,54 @@
       "description": "AnnotatedTag",
       "schema": {
         "$ref": "#/definitions/AnnotatedTag"
+      }
+    },
+    "AscCrossSearchResult": {
+      "description": "AscCrossSearchResult",
+      "schema": {
+        "$ref": "#/definitions/AscCrossSearchResult"
+      }
+    },
+    "AscCrossSemanticResult": {
+      "description": "AscCrossSemanticResult",
+      "schema": {
+        "$ref": "#/definitions/AscCrossSemanticResult"
+      }
+    },
+    "AscCrossSymbolsResult": {
+      "description": "AscCrossSymbolsResult",
+      "schema": {
+        "$ref": "#/definitions/AscCrossSymbolsResult"
+      }
+    },
+    "AscIndexStatusResult": {
+      "description": "AscIndexStatusResult",
+      "schema": {
+        "$ref": "#/definitions/AscIndexStatusResult"
+      }
+    },
+    "AscRepoSearchResult": {
+      "description": "AscRepoSearchResult",
+      "schema": {
+        "$ref": "#/definitions/AscRepoSearchResult"
+      }
+    },
+    "AscRepoSemanticResult": {
+      "description": "AscRepoSemanticResult",
+      "schema": {
+        "$ref": "#/definitions/AscRepoSemanticResult"
+      }
+    },
+    "AscRepoSymbolsResult": {
+      "description": "AscRepoSymbolsResult",
+      "schema": {
+        "$ref": "#/definitions/AscRepoSymbolsResult"
+      }
+    },
+    "AscSymbolPanel": {
+      "description": "AscSymbolPanel",
+      "schema": {
+        "$ref": "#/definitions/AscSymbolPanel"
       }
     },
     "Attachment": {

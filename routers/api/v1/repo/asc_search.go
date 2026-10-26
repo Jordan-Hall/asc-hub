@@ -269,7 +269,7 @@ func AscCrossSymbols(ctx *context.APIContext) {
 	//   repositories of one user or organisation with owner; with neither, every readable repository is
 	//   asked (at most 200, the most recently updated first). A repository the caller cannot read is left out
 	//   without a trace. Runs with the token of the caller. Every symbol says how it was found in
-	//   confidence: precise, import_match or name_match.
+	//   the confidence field (precise, import_match or name_match).
 	// produces:
 	// - application/json
 	// parameters:
@@ -495,7 +495,7 @@ func AscSymbolPanel(ctx *context.APIContext) {
 	//   the name is ambiguous; name, or path and line, picks one), its references and callers in the
 	//   repository grouped by file, and with cross_repo its references in other repositories that the
 	//   caller can read. Runs with the token of the caller. Every occurrence says how it was found in
-	//   confidence: precise, import_match or name_match.
+	//   the confidence field (precise, import_match or name_match).
 	// produces:
 	// - application/json
 	// parameters:
