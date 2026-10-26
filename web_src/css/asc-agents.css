@@ -1,0 +1,641 @@
+/* Agents and workflows (PLAN unit H5). Mobile first: the rules below target 320px and up, min-width queries add room.
+   Colours come from the theme variables, so the light and dark ASC themes (AA contrast) and the stock themes work.
+   The state of a run is always written in words; the tone only backs the word up. */
+
+/* sub-navigation: a row that scrolls inside itself on a phone */
+.asc-ag-nav {
+  margin: 8px 0 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.asc-ag-nav-list {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: max-content;
+}
+
+.asc-ag-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+  border-bottom: 3px solid transparent;
+}
+
+.asc-ag-nav-link:hover {
+  color: var(--color-primary);
+}
+
+.asc-ag-nav-link.is-active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.asc-ag-head,
+.asc-run-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 8px 0;
+}
+
+.asc-ag-head > .ui.button {
+  margin-left: auto;
+}
+
+.asc-ag-title {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.asc-run-head .asc-inline-form {
+  margin-left: auto;
+}
+
+.asc-inline-form {
+  display: inline-block;
+  margin: 0;
+}
+
+.asc-muted {
+  color: var(--color-text-light-2);
+}
+
+.asc-section {
+  margin-top: 20px;
+}
+
+/* state pills and tones */
+.asc-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.asc-tone-ok {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border-color: var(--color-success-border);
+}
+
+.asc-tone-bad {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border-color: var(--color-error-border);
+}
+
+.asc-tone-run {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border-color: var(--color-info-border);
+}
+
+.asc-tone-wait,
+.asc-tone-warn {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border-color: var(--color-warning-border);
+}
+
+.asc-tone-idle {
+  background: var(--color-secondary-bg);
+  color: var(--color-text);
+  border-color: var(--color-secondary);
+}
+
+/* filter bar */
+.asc-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 12px;
+  margin: 12px 0;
+}
+
+.asc-filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 160px;
+  min-width: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-filter-item input,
+.asc-filter-item select {
+  min-height: 44px;
+  width: 100%;
+  font-weight: normal;
+}
+
+.asc-filter-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+/* lists of runs, tokens, definitions: cards on a phone, the same on a laptop */
+.asc-runs,
+.asc-tokens,
+.asc-steps,
+.asc-plain,
+.asc-stack-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.asc-run,
+.asc-token,
+.asc-step {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 12px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-card, var(--border-radius));
+  min-width: 0;
+}
+
+.asc-card .asc-step,
+.asc-card .asc-token {
+  background: transparent;
+}
+
+.asc-run-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.asc-run-title {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+  min-height: 24px;
+}
+
+.asc-run-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  color: var(--color-text-light-2);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.asc-run-desc,
+.asc-run-fail {
+  overflow-wrap: anywhere;
+}
+
+.asc-run-fail {
+  color: var(--color-error-text);
+  background: var(--color-error-bg);
+  border-radius: var(--border-radius);
+  padding: 4px 8px;
+}
+
+.asc-empty {
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--color-text-light-2);
+  border: 1px dashed var(--color-secondary);
+  border-radius: var(--border-radius-card, var(--border-radius));
+}
+
+/* a page: one column on a phone, main and a side column from 900px */
+.asc-split {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.asc-main,
+.asc-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.asc-card {
+  padding: 14px 16px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-card, var(--border-radius));
+  min-width: 0;
+}
+
+.asc-card-title {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.asc-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.asc-card-head .asc-card-title {
+  margin: 0;
+}
+
+.asc-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--color-text-light-2);
+}
+
+/* forms */
+.asc-form .field,
+.asc-card .ui.form .field {
+  margin-bottom: 14px;
+}
+
+.asc-form input:not([type="checkbox"], [type="radio"]),
+.asc-form select,
+.asc-form textarea,
+.asc-card .ui.form input:not([type="checkbox"], [type="radio"]) {
+  min-height: 44px;
+}
+
+.asc-grid-2,
+.asc-grid-3 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 12px;
+}
+
+.asc-fieldset {
+  margin: 0 0 14px;
+  padding: 10px 12px 0;
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius);
+  min-width: 0;
+}
+
+.asc-fieldset > legend {
+  padding: 0 6px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-field-error {
+  margin-top: 4px;
+  color: var(--color-error-text);
+  font-size: 0.9rem;
+}
+
+.asc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.asc-actions .ui.button,
+.asc-run-head .ui.button,
+.asc-ag-head .ui.button {
+  min-height: 44px;
+}
+
+/* meters: a native progress element */
+.asc-meter + .asc-meter {
+  margin-top: 12px;
+}
+
+.asc-meter-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.asc-meter-bar {
+  display: block;
+  width: 100%;
+  height: 8px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  appearance: none;
+  background: var(--color-secondary);
+  accent-color: var(--color-primary);
+}
+
+.asc-meter-bar::-webkit-progress-bar {
+  background: var(--color-secondary);
+}
+
+.asc-meter-bar::-webkit-progress-value {
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+
+.asc-meter-bar::-moz-progress-bar {
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+
+.asc-meter-bar.is-warn::-webkit-progress-value {
+  background: var(--color-orange);
+}
+
+.asc-meter-bar.is-warn::-moz-progress-bar {
+  background: var(--color-orange);
+}
+
+.asc-meter-bar.is-over::-webkit-progress-value {
+  background: var(--color-red);
+}
+
+.asc-meter-bar.is-over::-moz-progress-bar {
+  background: var(--color-red);
+}
+
+/* access list */
+.asc-access {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  line-height: 1.7;
+}
+
+.asc-can,
+.asc-cannot,
+.asc-limit {
+  display: inline-block;
+  min-width: 3.6em;
+  margin-right: 4px;
+  font-weight: var(--font-weight-bold);
+}
+
+.asc-can {
+  color: var(--color-success-text);
+}
+
+.asc-cannot {
+  color: var(--color-error-text);
+}
+
+.asc-limit {
+  color: var(--color-warning-text);
+}
+
+/* the result stack */
+.asc-stack-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  min-height: 44px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.asc-stack-item:last-child {
+  border-bottom: 0;
+}
+
+.asc-stack-pos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-secondary-bg);
+  border: 1px solid var(--color-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* the activity log */
+.asc-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius);
+}
+
+.asc-log:empty {
+  display: none;
+}
+
+.asc-log-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-secondary);
+  font-size: 0.92rem;
+  align-items: baseline;
+}
+
+.asc-log-row:last-child {
+  border-bottom: 0;
+}
+
+.asc-log-time {
+  grid-column: 1;
+  color: var(--color-text-light-2);
+  font-family: var(--fonts-monospace);
+  font-size: 0.8rem;
+}
+
+.asc-log-kind {
+  grid-column: 2;
+  justify-self: start;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.asc-log-body {
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+
+.asc-log-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.asc-log-tool,
+.asc-log-change {
+  font-family: var(--fonts-monospace);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+/* "Show everything" is off: the agent's own words and bookkeeping stay out of sight */
+.asc-run-page:not(.is-everything) .asc-log-row.is-quiet {
+  display: none;
+}
+
+/* tokens */
+.asc-token-meters {
+  margin-top: 6px;
+}
+
+.asc-token-manage {
+  margin-top: 6px;
+}
+
+.asc-token-manage > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-token-manage form {
+  margin-top: 8px;
+}
+
+.asc-secret {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.asc-secret-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.asc-secret-value {
+  flex: 1 1 260px;
+  min-width: 0;
+  min-height: 44px;
+  font-family: var(--fonts-monospace);
+}
+
+/* workflow bits */
+.asc-pre {
+  max-width: 100%;
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--fonts-monospace);
+  font-size: 0.85rem;
+  background: var(--color-code-bg);
+  border-radius: var(--border-radius);
+}
+
+.asc-step details > summary,
+.asc-card details > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.asc-step-log .asc-log {
+  margin-top: 6px;
+}
+
+.asc-approval {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-secondary);
+}
+
+.asc-dl {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.asc-dl dd {
+  margin: 0 0 8px;
+}
+
+.asc-plain li {
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 600px) {
+  .asc-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .asc-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .asc-log-row {
+    grid-template-columns: 72px 84px 1fr;
+  }
+
+  .asc-log-time {
+    grid-column: 1;
+  }
+
+  .asc-log-kind {
+    grid-column: 2;
+  }
+
+  .asc-log-body {
+    grid-column: 3;
+  }
+}
+
+@media (min-width: 900px) {
+  .asc-split {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .asc-main {
+    flex: 1 1 0;
+  }
+
+  .asc-side {
+    flex: 0 0 320px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asc-meter-bar,
+  .asc-meter-bar::-webkit-progress-value {
+    transition: none;
+  }
+}
