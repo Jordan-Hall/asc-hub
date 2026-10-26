@@ -3,9 +3,10 @@
   align-items: center;
   justify-content: space-between;
   background: var(--color-nav-bg);
-  border-bottom: 1px solid var(--color-secondary);
+  color: var(--color-nav-text, var(--color-text));
+  border-bottom: 1px solid var(--color-nav-border, var(--color-secondary));
   margin: 0 !important;
-  padding: 0 10px;
+  padding: 0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
 }
 
 #navbar .navbar-left,
@@ -18,11 +19,56 @@
 
 #navbar-logo {
   margin: 0;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+#navbar-logo .navbar-brand-name {
+  color: var(--color-nav-brand, inherit);
+  font-size: 1.15rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+#navbar .ui.menu {
+  background: transparent;
+}
+
+#navbar .active.item {
+  background: var(--color-nav-hover-bg);
+}
+
+#navbar button.item {
+  background: transparent;
+  justify-content: center;
+}
+
+#navbar details.dropdown > summary {
+  color: var(--color-nav-text, var(--color-text));
+}
+
+#navbar details.dropdown > .content {
+  color: var(--color-text);
+}
+
+#navbar a.item.active,
+#navbar a.item[aria-current="page"] {
+  color: var(--color-nav-brand, var(--color-text));
+  box-shadow: inset 0 -2px 0 var(--color-focus, transparent);
+}
+
+#navbar a.item:focus-visible,
+#navbar button.item:focus-visible,
+#navbar details.dropdown > summary:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-primary));
+  outline-offset: -2px;
 }
 
 #navbar .item {
-  min-height: 36px;
-  min-width: 36px;
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--color-nav-text, var(--color-text));
   padding-top: 3px;
   padding-bottom: 3px;
   display: flex;
@@ -126,7 +172,7 @@
 #navbar details.dropdown summary {
   padding-inline-start: 0.75rem;
   /* The min height is dictated by the largest dropdown, which is the one that has an avatar in the opener */
-  min-height: 38px;
+  min-height: 44px;
 }
 
 #navbar details.dropdown .dropdown-icon {
@@ -134,7 +180,7 @@
 }
 
 #navbar a.item .notification_count {
-  color: var(--color-nav-bg);
+  color: var(--color-nav-badge-text, var(--color-nav-bg));
   padding: 0 3.75px;
   font-size: 12px;
   line-height: 12px;
@@ -148,7 +194,7 @@
 
 #navbar a.item .notification_count,
 #navbar a.item .header-stopwatch-dot {
-  background: var(--color-primary);
+  background: var(--color-nav-badge-bg, var(--color-primary));
   border: 2px solid var(--color-nav-bg);
   position: absolute;
   inset-inline-start: 6px;
