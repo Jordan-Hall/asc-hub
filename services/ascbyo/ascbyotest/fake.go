@@ -29,6 +29,9 @@ import (
 // InternalToken is the token the test client sends; the fake refuses any other bearer.
 const InternalToken = "test-internal-token"
 
+// OpIDForTest is a valid op id for forms in tests.
+const OpIDForTest = "0193f2a0-7b3c-7000-8000-000000000001"
+
 // Call is one request the fake received.
 type Call struct {
 	Method string
@@ -249,6 +252,40 @@ func (f *Fake) AddMigration(m *ascv1.StorageMigration) *ascv1.StorageMigration {
 	}
 	f.migrations[m.Id] = m
 	return m
+}
+
+// SetTargetFields changes a stored target in place.
+func (f *Fake) SetTargetFields(id string, fn func(*ascv1.StorageTarget)) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	fn(f.targets[id].pub)
+}
+
+// SetKeyFields changes a stored key in place.
+func (f *Fake) SetKeyFields(id string, fn func(*ascv1.AiKey)) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	fn(f.keys[id].pub)
+}
+
+// UpdateMigration changes a stored migration in place.
+func (f *Fake) UpdateMigration(id string, fn func(*ascv1.StorageMigration)) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	fn(f.migrations[id])
+}
+
+// MigrationsOf returns the migrations of a repository.
+func (f *Fake) MigrationsOf(repo string) []*ascv1.StorageMigration {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	var out []*ascv1.StorageMigration
+	for _, m := range f.migrations {
+		if strings.EqualFold(m.GetRepo().GetName(), repo) {
+			out = append(out, m)
+		}
+	}
+	return out
 }
 
 // SetTargetState changes the state of a stored target.

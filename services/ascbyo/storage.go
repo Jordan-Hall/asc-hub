@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/timeutil"
 )
 
 // ListTargets returns the storage targets of the scope, oldest first.
@@ -297,6 +298,7 @@ type Migration struct {
 	FromTarget  string
 	ToTarget    string
 	State       ascv1.StorageMigrationState
+	StateName   string // slug, stable for scripts
 	StateKey    string
 	Active      bool
 	Total       uint64
@@ -304,8 +306,8 @@ type Migration struct {
 	Bytes       uint64
 	Percent     int
 	DeleteSrc   bool
-	Created     int64
-	Updated     int64
+	Created     timeutil.TimeStamp
+	Updated     timeutil.TimeStamp
 	Error       string
 	Cancellable bool
 }
@@ -318,7 +320,7 @@ func MigrationFrom(repo Scope, m *ascv1.StorageMigration) *Migration {
 	out := &Migration{
 		ID: m.GetId(), FromTarget: m.GetFromTargetId(), ToTarget: m.GetToTargetId(), State: m.GetState(),
 		Total: m.GetObjectsTotal(), Copied: m.GetObjectsCopied(), Bytes: m.GetBytesCopied(), DeleteSrc: m.GetDeleteSource(),
-		Created: m.GetCreated(), Updated: m.GetUpdated(), Error: CleanText(m.GetError(), 300),
+		Created: timeutil.TimeStamp(m.GetCreated()), Updated: timeutil.TimeStamp(m.GetUpdated()), Error: CleanText(m.GetError(), 300),
 	}
 	if out.FromTarget != "" && !ValidTargetID(out.FromTarget) {
 		out.FromTarget = ""
@@ -328,22 +330,22 @@ func MigrationFrom(repo Scope, m *ascv1.StorageMigration) *Migration {
 	}
 	switch m.GetState() {
 	case ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_QUEUED:
-		out.StateKey, out.Active, out.Cancellable = "ascbyo.migration.state.queued", true, true
+		out.StateName, out.StateKey, out.Active, out.Cancellable = "queued", "ascbyo.migration.state.queued", true, true
 	case ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_COPYING:
-		out.StateKey, out.Active, out.Cancellable = "ascbyo.migration.state.copying", true, true
+		out.StateName, out.StateKey, out.Active, out.Cancellable = "copying", "ascbyo.migration.state.copying", true, true
 	case ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_VERIFYING:
-		out.StateKey, out.Active, out.Cancellable = "ascbyo.migration.state.verifying", true, true
+		out.StateName, out.StateKey, out.Active, out.Cancellable = "verifying", "ascbyo.migration.state.verifying", true, true
 	case ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_SWITCHING:
 		// The switch is one transaction; cancelling now has nothing to stop.
-		out.StateKey, out.Active = "ascbyo.migration.state.switching", true
+		out.StateName, out.StateKey, out.Active = "switching", "ascbyo.migration.state.switching", true
 	case ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_DONE:
-		out.StateKey = "ascbyo.migration.state.done"
+		out.StateName, out.StateKey = "done", "ascbyo.migration.state.done"
 	case ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_FAILED:
-		out.StateKey = "ascbyo.migration.state.failed"
+		out.StateName, out.StateKey = "failed", "ascbyo.migration.state.failed"
 	case ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_CANCELLED:
-		out.StateKey = "ascbyo.migration.state.cancelled"
+		out.StateName, out.StateKey = "cancelled", "ascbyo.migration.state.cancelled"
 	default:
-		out.StateKey = "ascbyo.migration.state.unknown"
+		out.StateName, out.StateKey = "unknown", "ascbyo.migration.state.unknown"
 	}
 	switch {
 	case out.State == ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_DONE:
