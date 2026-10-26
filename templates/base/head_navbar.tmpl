@@ -66,7 +66,7 @@
 		<form class="navbar-search not-mobile" role="search" action="{{AppSubUrl}}/explore/repos" method="get">
 			<label class="tw-sr-only" for="navbar-search-input">{{ctx.Locale.Tr "asc_shell.search_label"}}</label>
 			{{svg "octicon-search" 16 "navbar-search-icon"}}
-			<input id="navbar-search-input" type="search" name="q" autocomplete="off" placeholder="{{ctx.Locale.Tr "asc_shell.search_placeholder"}}" enterkeyhint="search">
+			<input id="navbar-search-input" type="search" name="q" data-asc-search autocomplete="off" placeholder="{{ctx.Locale.Tr "asc_shell.search_placeholder"}}" enterkeyhint="search">
 			<kbd class="navbar-search-key" aria-hidden="true">/</kbd>
 		</form>
 	{{end}}
@@ -132,9 +132,9 @@
 			{{end}}
 
 			{{if AscEnabled}}
-			<a class="item not-mobile asc-nav-inbox{{if .PageIsAscInbox}} active{{end}}" {{if .PageIsAscInbox}}aria-current="page" {{end}}href="{{AppSubUrl}}/-/asc/inbox" data-asc-inbox-count-url="{{AppSubUrl}}/api/v1/user/asc/inbox/count?section=needs_review">
+			<a class="item not-mobile asc-nav-inbox{{if .PageIsAscInbox}} active{{end}}" {{if .PageIsAscInbox}}aria-current="page" {{end}}href="{{AppSubUrl}}/-/asc/inbox" data-asc-inbox-link data-asc-count-url="{{AppSubUrl}}/-/asc/inbox/count">
 				<span>{{ctx.Locale.Tr "user.asc_inbox"}}</span>
-				<span class="asc-nav-count tw-hidden" data-asc-inbox-count></span>
+				<span class="asc-nav-count tw-hidden" data-asc-count></span>
 			</a>
 			{{end}}
 

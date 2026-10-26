@@ -1,7 +1,5 @@
-import {GET} from '../modules/fetch.js';
-
-// The small behaviours of the ASC Hub shell: the "/" key that focuses the header search, the count of what
-// needs you on the inbox link, and the download page (system tabs, the processor of the visitor).
+// The download page of the ASC Hub shell: system tabs and the processor of the visitor. The "/" key of the
+// header search and the count on the inbox link live in asc-keys.js.
 
 // The processor of a visitor from the browser's client hints. Only the two builds asc ships are named; any
 // other answer is null and the page keeps the server's guess.
@@ -21,42 +19,6 @@ export function osFromPlatform(platform) {
   if (p === 'macos') return 'macos';
   if (p === 'linux') return 'linux';
   return null;
-}
-
-function isTypingTarget(el) {
-  if (!(el instanceof HTMLElement)) return false;
-  return el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName);
-}
-
-function initSearchShortcut() {
-  const input = document.getElementById('navbar-search-input');
-  if (!input) return;
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
-    if (isTypingTarget(e.target) || input.offsetParent === null) return;
-    e.preventDefault();
-    input.focus();
-    input.select();
-  });
-}
-
-async function initInboxCount() {
-  const link = document.querySelector('[data-asc-inbox-count-url]');
-  if (!link) return;
-  const badge = link.querySelector('[data-asc-inbox-count]');
-  if (!badge) return;
-  try {
-    const res = await GET(link.getAttribute('data-asc-inbox-count-url'), {credentials: 'same-origin', headers: {Accept: 'application/json'}});
-    if (!res.ok) return;
-    const data = await res.json();
-    const n = Number(data?.sections?.needs_review);
-    if (Number.isFinite(n) && n > 0) {
-      badge.textContent = n > 99 ? '99+' : String(n);
-      badge.classList.remove('tw-hidden');
-    }
-  } catch {
-    // The count is an extra: the link works without it.
-  }
 }
 
 function selectOS(root, os) {
@@ -131,7 +93,5 @@ function initDownload() {
 }
 
 export function initAscUi() {
-  initSearchShortcut();
-  initInboxCount();
   initDownload();
 }
