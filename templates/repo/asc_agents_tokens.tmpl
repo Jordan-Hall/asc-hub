@@ -1,0 +1,154 @@
+{{/*
+The agent tokens of a repository (routers/web/repo/asc_agents_tokens.go). Repository admins only.
+Template Attributes:
+* AscAgentTokens: []ascAgentTokenRow
+* AscAgentTokenMade / AscAgentTokenSecret: only in the answer to the POST that made a token. The secret is shown once.
+* AscAgentTokenForm: *ascAgentTokenForm, AscAgentTokenTTLs, AscBudgetFields, AscAgentPolicy
+* CsrfTokenHtml
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+		{{template "repo/asc_agents_nav" .}}
+		<h2 class="asc-ag-title">Agent tokens</h2>
+		<p class="asc-muted">A token lets an agent that runs elsewhere (your own machine, CI) work in this repository. It writes only the paths you give it, only into a stack of its own, and it stops at its budget and its expiry. You can revoke it at any time.</p>
+		{{template "repo/asc_agents_notice" .}}
+
+		{{if .AscAgentTokenSecret}}
+			<section class="asc-card asc-secret" aria-labelledby="asc-secret-title" data-testid="asc-agent-secret">
+				<h3 id="asc-secret-title" class="asc-card-title">Copy the token now</h3>
+				<p>This is the only time it is shown. The hub keeps no copy, so a lost token is replaced, not recovered.</p>
+				<div class="asc-secret-row">
+					<input id="asc-secret-value" class="asc-secret-value" type="text" readonly value="{{.AscAgentTokenSecret}}" aria-label="Agent token for {{.AscAgentTokenMade.Name}}" autocomplete="off" spellcheck="false" data-asc-select>
+					<button class="ui basic button" type="button" data-clipboard-target="#asc-secret-value">Copy</button>
+				</div>
+				<p class="asc-muted">Set it as <code>ASC_TOKEN</code> for the agent. It expires {{if not .AscAgentTokenMade.Expires.IsZero}}{{DateUtils.AbsoluteShort .AscAgentTokenMade.Expires}}{{else}}soon{{end}}.</p>
+			</section>
+		{{end}}
+
+		<div class="asc-split">
+			<div class="asc-main">
+				<section class="asc-card" aria-labelledby="asc-tokens-title">
+					<h3 id="asc-tokens-title" class="asc-card-title">Tokens</h3>
+					{{if .AscAgentTokens}}
+						<ul class="asc-tokens" data-testid="asc-agent-tokens">
+							{{range .AscAgentTokens}}
+								<li class="asc-token">
+									<div class="asc-run-main">
+										<strong>{{.Name}}</strong>
+										{{template "repo/asc_agents_pill" .State}}
+									</div>
+									<div class="asc-run-meta">
+										<code>{{.ID}}</code>
+										{{if .Hint}}<span>ends in <code>{{.Hint}}</code></span>{{end}}
+										{{if .Agent}}<span>agent <code>{{.Agent}}</code></span>{{end}}
+										{{if .CreatedBy}}<span>made by {{.CreatedBy}}</span>{{end}}
+									</div>
+									<div class="asc-run-meta">
+										<span>writes {{range $i, $p := .Paths}}{{if $i}}, {{end}}<code>{{$p}}</code>{{else}}the policy's default scope{{end}}</span>
+										{{if .MaxChanges}}<span>{{.MaxChanges}} changes per run</span>{{end}}
+									</div>
+									<div class="asc-run-meta">
+										{{if not .Expires.IsZero}}<span>{{if .CanRevoke}}expires{{else}}expired{{end}} {{DateUtils.AbsoluteShort .Expires}}</span>{{end}}
+										{{if not .LastUsed.IsZero}}<span>last used {{DateUtils.TimeSince .LastUsed}}</span>{{else}}<span>never used</span>{{end}}
+										{{if not .Revoked.IsZero}}<span>revoked {{DateUtils.AbsoluteShort .Revoked}}</span>{{end}}
+									</div>
+									{{if .Meters}}<div class="asc-token-meters">{{template "repo/asc_agents_meters" .Meters}}</div>{{end}}
+									{{if .CanRevoke}}
+										<details class="asc-token-manage">
+											<summary>Budget and revoke</summary>
+											<form class="ui form" method="post" action="{{$.AscAgentsBase}}/tokens/{{.ID}}/budget">
+												{{$.CsrfTokenHtml}}
+												<p class="asc-muted">Set the limits of this token. Empty means the policy default.</p>
+												<div class="asc-grid-3">
+													<div class="field"><label>Changes<input name="{{$.AscBudgetFields.Changes}}" type="text" inputmode="numeric" maxlength="6" autocomplete="off"></label></div>
+													<div class="field"><label>Model tokens<input name="{{$.AscBudgetFields.Tokens}}" type="text" inputmode="numeric" maxlength="15" autocomplete="off"></label></div>
+													<div class="field"><label>Cost cap (USD)<input name="{{$.AscBudgetFields.CostUSD}}" type="text" inputmode="decimal" maxlength="14" autocomplete="off"></label></div>
+												</div>
+												<button class="ui basic button" type="submit">Set budget</button>
+											</form>
+											<form class="ui form asc-revoke" method="post" action="{{$.AscAgentsBase}}/tokens/{{.ID}}/revoke">
+												{{$.CsrfTokenHtml}}
+												<div class="field"><label>Reason <span class="asc-muted">(optional)</span><input name="reason" type="text" maxlength="256" autocomplete="off"></label></div>
+												<button class="ui basic red button" type="submit">Revoke</button>
+											</form>
+										</details>
+									{{end}}
+								</li>
+							{{end}}
+						</ul>
+					{{else if not .AscAgentsFailure}}
+						<p class="asc-muted" data-testid="asc-agent-tokens-empty">No tokens yet.</p>
+					{{end}}
+				</section>
+
+				<section class="asc-card" aria-labelledby="asc-newtoken-title">
+					<h3 id="asc-newtoken-title" class="asc-card-title">Make a token</h3>
+					<form class="ui form asc-form" method="post" action="{{.AscAgentsBase}}/tokens" data-testid="asc-agent-token-form">
+						{{.CsrfTokenHtml}}
+						<input type="hidden" name="op" value="{{.AscAgentTokenForm.OpID}}">
+						{{if .AscAgentTokenForm.Summary}}<div class="ui negative message" role="alert">{{.AscAgentTokenForm.Summary}}</div>{{end}}
+						<div class="asc-grid-2">
+							<div class="field{{if index .AscAgentTokenForm.Errors "name"}} error{{end}}">
+								<label for="asc-tk-name">Name</label>
+								<input id="asc-tk-name" name="name" type="text" maxlength="64" required value="{{.AscAgentTokenForm.Name}}" autocomplete="off">
+								{{with index .AscAgentTokenForm.Errors "name"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+							</div>
+							<div class="field{{if index .AscAgentTokenForm.Errors "agent"}} error{{end}}">
+								<label for="asc-tk-agent">Agent name</label>
+								<input id="asc-tk-agent" name="agent" type="text" maxlength="40" required value="{{.AscAgentTokenForm.Agent}}" autocomplete="off" autocapitalize="none" spellcheck="false">
+								{{with index .AscAgentTokenForm.Errors "agent"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+							</div>
+						</div>
+						<div class="field{{if index .AscAgentTokenForm.Errors "paths"}} error{{end}}">
+							<label for="asc-tk-paths">Paths it may write <span class="asc-muted">(one pattern per line; empty means the policy's default scope)</span></label>
+							<textarea id="asc-tk-paths" name="paths" rows="3" maxlength="4500" spellcheck="false" placeholder="src/**&#10;tests/**">{{.AscAgentTokenForm.Paths}}</textarea>
+							{{with index .AscAgentTokenForm.Errors "paths"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+						</div>
+						<div class="asc-grid-2">
+							<div class="field{{if index .AscAgentTokenForm.Errors "ttl"}} error{{end}}">
+								<label for="asc-tk-ttl">Lasts</label>
+								<select id="asc-tk-ttl" name="ttl">
+									{{range .AscAgentTokenTTLs}}<option value="{{.Seconds}}"{{if eq $.AscAgentTokenForm.TTL .Seconds}} selected{{end}}>{{.Label}}</option>{{end}}
+								</select>
+								{{with index .AscAgentTokenForm.Errors "ttl"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+							</div>
+							<div class="field{{if index .AscAgentTokenForm.Errors "max_changes_per_run"}} error{{end}}">
+								<label for="asc-tk-mcpr">Changes per run</label>
+								<input id="asc-tk-mcpr" name="max_changes_per_run" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentTokenForm.MaxChanges}}" autocomplete="off">
+								{{with index .AscAgentTokenForm.Errors "max_changes_per_run"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+							</div>
+						</div>
+						<fieldset class="asc-fieldset">
+							<legend>Budget <span class="asc-muted">(empty means the policy default)</span></legend>
+							<div class="asc-grid-3">
+								<div class="field{{if index .AscAgentTokenForm.Errors .AscBudgetFields.Changes}} error{{end}}">
+									<label for="asc-tk-changes">Changes</label>
+									<input id="asc-tk-changes" name="{{.AscBudgetFields.Changes}}" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentTokenForm.Budget.Changes}}" autocomplete="off">
+									{{with index .AscAgentTokenForm.Errors .AscBudgetFields.Changes}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+								</div>
+								<div class="field{{if index .AscAgentTokenForm.Errors .AscBudgetFields.Tokens}} error{{end}}">
+									<label for="asc-tk-tokens">Model tokens</label>
+									<input id="asc-tk-tokens" name="{{.AscBudgetFields.Tokens}}" type="text" inputmode="numeric" maxlength="15" value="{{.AscAgentTokenForm.Budget.Tokens}}" autocomplete="off">
+									{{with index .AscAgentTokenForm.Errors .AscBudgetFields.Tokens}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+								</div>
+								<div class="field{{if index .AscAgentTokenForm.Errors .AscBudgetFields.CostUSD}} error{{end}}">
+									<label for="asc-tk-cost">Cost cap (USD)</label>
+									<input id="asc-tk-cost" name="{{.AscBudgetFields.CostUSD}}" type="text" inputmode="decimal" maxlength="14" value="{{.AscAgentTokenForm.Budget.CostUSD}}" placeholder="2.50" autocomplete="off">
+									{{with index .AscAgentTokenForm.Errors .AscBudgetFields.CostUSD}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+								</div>
+							</div>
+						</fieldset>
+						<button class="ui primary button" type="submit">Make the token</button>
+					</form>
+				</section>
+			</div>
+			<div class="asc-side">
+				{{template "repo/asc_agents_policy" .}}
+			</div>
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}

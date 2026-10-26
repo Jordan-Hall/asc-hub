@@ -1,0 +1,16 @@
+{{/*
+The rows of the activity log. Dot: []ascAgentEvent. Every text was cleaned on the server and is escaped here; the live
+page builds the same rows with textContent. Quiet rows (the agent's own words, state and usage) are hidden until
+"show everything" is on.
+*/}}
+{{range .}}
+	<li class="asc-log-row{{if .Quiet}} is-quiet{{end}}" data-seq="{{.Seq}}" data-kind="{{.Kind}}">
+		<span class="asc-log-time">{{if .ISO}}<time datetime="{{.ISO}}">{{.Clock}}</time>{{end}}</span>
+		<span class="asc-log-kind asc-tone-{{.Tone}}">{{.Word}}</span>
+		<span class="asc-log-body">
+			{{if .Tool}}<code class="asc-log-tool">{{.Tool}}</code>{{end}}
+			{{if .Change}}{{if .ChangeURL}}<a class="asc-log-change" href="{{.ChangeURL}}">change {{.Change}}</a>{{else}}<code class="asc-log-change">change {{.Change}}</code>{{end}}{{end}}
+			{{if .Text}}<span class="asc-log-text">{{.Text}}</span>{{end}}
+		</span>
+	</li>
+{{end}}

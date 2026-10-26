@@ -1,0 +1,26 @@
+{{/*
+What agents may do in this repository, from the repository policy ([agents] in .asc/policy.toml). Dot: the page data.
+Template Attributes:
+* AscAgentPolicy: ascAgentPolicy (Known, Scope, Denied, MaxChanges, MaxPaths)
+The server enforces all of this on every update; the page only shows it.
+*/}}
+{{with .AscAgentPolicy}}
+	<section class="asc-card" aria-labelledby="asc-policy-title" data-testid="asc-agent-policy">
+		<h2 id="asc-policy-title" class="asc-card-title">Access for agents</h2>
+		{{if .Known}}
+			<ul class="asc-access">
+				<li><span class="asc-can">Can</span> read the repository</li>
+				<li><span class="asc-can">Can</span> write
+					{{range $i, $g := .Scope}}{{if $i}}, {{end}}<code>{{$g}}</code>{{else}}the paths the policy allows{{end}}
+				</li>
+				<li><span class="asc-can">Can</span> open changes in a stack of their own, under review</li>
+				<li><span class="asc-cannot">Cannot</span> push or merge to trunk</li>
+				{{if .Denied}}<li><span class="asc-cannot">Cannot</span> touch {{range $i, $g := .Denied}}{{if $i}}, {{end}}<code>{{$g}}</code>{{end}}</li>{{end}}
+				{{if .MaxChanges}}<li><span class="asc-limit">Limit</span> {{.MaxChanges}} changes per run</li>{{end}}
+				{{if .MaxPaths}}<li><span class="asc-limit">Limit</span> {{.MaxPaths}} paths per run</li>{{end}}
+			</ul>
+		{{else}}
+			<p class="asc-muted">The repository has no readable policy, so the server defaults apply: agents write their own stack of changes, never trunk.</p>
+		{{end}}
+	</section>
+{{end}}

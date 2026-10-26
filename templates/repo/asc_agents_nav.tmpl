@@ -1,0 +1,23 @@
+{{/*
+The sub-navigation of the agents and workflows pages.
+Template Attributes:
+* AscAgentsTab: runs, new, tokens or workflows
+* AscAgentFeatures: the person's agent features switch
+* AscAgentsCanStart, AscAgentsCanAdmin: what the person may do (both imply the switch)
+* AscAgentsBase, AscWorkflowsBase: the two link prefixes
+*/}}
+<nav class="asc-ag-nav" aria-label="Agents and workflows" data-testid="asc-agents-nav">
+	<ul class="asc-ag-nav-list">
+		{{if .AscAgentFeatures}}
+			<li><a class="asc-ag-nav-link{{if eq .AscAgentsTab "runs"}} is-active{{end}}" href="{{.AscAgentsBase}}"{{if eq .AscAgentsTab "runs"}} aria-current="page"{{end}}>Runs</a></li>
+			{{if .AscAgentsCanStart}}<li><a class="asc-ag-nav-link{{if eq .AscAgentsTab "new"}} is-active{{end}}" href="{{.AscAgentsBase}}/new"{{if eq .AscAgentsTab "new"}} aria-current="page"{{end}}>New task</a></li>{{end}}
+			{{if .AscAgentsCanAdmin}}<li><a class="asc-ag-nav-link{{if eq .AscAgentsTab "tokens"}} is-active{{end}}" href="{{.AscAgentsBase}}/tokens"{{if eq .AscAgentsTab "tokens"}} aria-current="page"{{end}}>Tokens</a></li>{{end}}
+		{{end}}
+		<li><a class="asc-ag-nav-link{{if eq .AscAgentsTab "workflows"}} is-active{{end}}" href="{{.AscWorkflowsBase}}"{{if eq .AscAgentsTab "workflows"}} aria-current="page"{{end}}>Workflows</a></li>
+	</ul>
+</nav>
+{{if not .AscAgentFeatures}}
+	<div class="ui info message" role="note" data-testid="asc-agents-off">
+		Agent features are off for you, so runs, tokens and tasks are hidden. <a href="{{AppSubUrl}}/-/asc/agents">Turn them on</a> when you want them.
+	</div>
+{{end}}
