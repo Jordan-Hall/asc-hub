@@ -1,5 +1,5 @@
 [Unit]
-Description=Forgejo (Beyond coding. We forge.)
+Description=ASC Hub (based on Forgejo)
 After=syslog.target
 After=network.target
 ###
