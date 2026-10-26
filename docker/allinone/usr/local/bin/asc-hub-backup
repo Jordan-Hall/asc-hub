@@ -1,0 +1,248 @@
+#!/bin/bash
+# asc-hub-backup: back up and restore the data volume of ASC Hub (the all-in-one image).
+#
+#   asc-hub-backup create  --data DIR --out FILE|-    write a .tar.gz of the volume
+#   asc-hub-backup verify  --in FILE|-                check an archive without touching a volume
+#   asc-hub-backup restore --data DIR --in FILE|-     unpack an archive onto an EMPTY volume
+#
+# The volume must be at rest: create and restore take the lock that the running container holds, and
+# stop with an error while a hub still uses the volume. FILE `-` is standard output or input.
+#
+# The archive holds the hub's files (app.ini, the SQLite database, repositories, attachments), the
+# shared secrets and the state of asc serve (its SQLite database and object files). It leaves out
+# asc/cache, which is rebuilt. Databases and object stores outside the volume (Postgres, S3) are not
+# in it: the script says so, and the operator backs them up at the same moment.
+#
+# Run in the image as the container user (uid 1000):
+#   docker run --rm -v hub-data:/var/lib/gitea --entrypoint asc-hub-backup IMAGE \
+#       create --data /var/lib/gitea --out - > hub-backup.tar.gz
+
+set -euo pipefail
+umask 077
+
+FORMAT="asc-hub-backup/1"
+MANIFEST="ASC-HUB-BACKUP"
+SPOOL=".restore-archive.tmp"
+LOCK_NAME=".asc-hub.lock"
+
+log() { printf 'asc-hub-backup: %s\n' "$*" >&2; }
+die() {
+	log "error: $*"
+	exit 1
+}
+usage() {
+	cat >&2 <<'EOF'
+usage: asc-hub-backup create  --data DIR --out FILE|-
+       asc-hub-backup verify  --in FILE|-
+       asc-hub-backup restore --data DIR --in FILE|-
+EOF
+	exit 2
+}
+
+[ "$#" -ge 1 ] || usage
+cmd="$1"
+shift
+data=""
+arc=""
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+	--data) [ "$#" -ge 2 ] || usage; data="$2"; shift 2 ;;
+	--out | --in) [ "$#" -ge 2 ] || usage; arc="$2"; shift 2 ;;
+	*) usage ;;
+	esac
+done
+
+work=""
+cleanup() {
+	[ -z "$work" ] || rm -rf "$work"
+}
+trap cleanup EXIT
+work="$(mktemp -d "${TMPDIR:-/tmp}/asc-hub-backup.XXXXXX" 2>/dev/null || mktemp -d /tmp/asc-hub-backup.XXXXXX)"
+
+# lock DIR: the hub holds an exclusive lock on DIR/.asc-hub.lock for as long as it runs.
+lock() {
+	{ exec 9>>"$1/$LOCK_NAME"; } 2>/dev/null || die "cannot open $1/$LOCK_NAME: is the directory writable by this user?"
+	flock -n 9 || die "a hub is running on $1 (its lock is held): stop it first, for example 'docker compose stop hub'"
+}
+
+canon_dir() {
+	[ -d "$1" ] || die "$1 is not a directory"
+	(cd "$1" && pwd -P)
+}
+
+# manifest_value FILE KEY
+manifest_value() { sed -n "s/^$2=//p" "$1" | head -n 1; }
+
+# ini_value FILE SECTION KEY: a value from an ini file, or nothing.
+ini_value() {
+	awk -v sec="$2" -v key="$3" '
+		/^[ \t]*\[/ { s = $0; gsub(/[][ \t]/, "", s); cur = tolower(s); next }
+		cur == tolower(sec) {
+			line = $0
+			if (match(line, /^[[:space:]]*[A-Za-z_]+[[:space:]]*=/)) {
+				k = line; sub(/[[:space:]]*=.*/, "", k); gsub(/[[:space:]]/, "", k)
+				if (toupper(k) == toupper(key)) { v = line; sub(/^[^=]*=[[:space:]]*/, "", v); print v; exit }
+			}
+		}' "$1" 2>/dev/null || true
+}
+
+# describe_external MANIFEST: tell the operator what the archive does not hold.
+describe_external() {
+	local m="$1" hub asc store
+	hub="$(manifest_value "$m" hub_db)"
+	asc="$(manifest_value "$m" asc_db)"
+	store="$(manifest_value "$m" asc_store)"
+	if [ "$hub" != "sqlite" ]; then
+		log "note: the hub database ($hub) is outside the volume and is NOT in this archive; back it up (for example pg_dump) at the same moment"
+	fi
+	if [ "$asc" != "sqlite" ]; then
+		log "note: the asc serve database is outside the volume and is NOT in this archive; back it up at the same moment"
+	fi
+	if [ "$store" != "file" ]; then
+		log "note: the asc serve objects are in an S3 bucket and are NOT in this archive; snapshot the bucket at the same moment"
+	fi
+}
+
+# archive_check FILE: the archive is a gzip tar, has the manifest first, and holds only regular files
+# and directories with safe names. Prints the manifest to stdout on success.
+archive_check() {
+	local f="$1" first body
+	gzip -t "$f" 2>/dev/null || die "$f is not a complete gzip file"
+	if [ -f "$f.sha256" ]; then
+		local want got
+		want="$(awk '{print $1; exit}' "$f.sha256")" || die "cannot read $f.sha256"
+		got="$(sha256sum "$f" | awk '{print $1}')" || die "cannot read $f"
+		[ -n "$want" ] && [ "$want" = "$got" ] || die "checksum mismatch: $f.sha256 says '$want' but the file is '$got'"
+	fi
+	first="$(tar -tzf "$f" 2>/dev/null | sed -n 1p)"
+	[ "$first" = "$MANIFEST" ] || die "$f is not an ASC Hub backup (the first entry is '$first', expected $MANIFEST)"
+	body="$work/manifest.check"
+	tar -xzOf "$f" "$MANIFEST" >"$body" 2>/dev/null || die "cannot read the manifest of $f"
+	[ "$(manifest_value "$body" format)" = "$FORMAT" ] || die "unsupported backup format '$(manifest_value "$body" format)' (this tool reads $FORMAT)"
+
+	# One line per entry: type character, a space, the name. Types other than file and directory
+	# (links, devices, pipes) are refused, as are absolute names, '..' parts and backslashes.
+	local problems
+	problems="$(tar -tvzf "$f" --numeric-owner --quoting-style=escape 2>/dev/null |
+		sed -E 's/^(.)[^[:space:]]*[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+/\1 /' |
+		awk '
+			{ t = substr($0, 1, 1); n = substr($0, 3) }
+			t != "-" && t != "d" { print "entry type \"" t "\": " n; bad++; next }
+			n == "" || n ~ /^\// || n ~ /(^|\/)\.\.(\/|$)/ || n ~ /\\/ { print "unsafe name: " n; bad++ }
+			END { exit bad > 0 }' | head -n 5)" || true
+	if [ -n "$problems" ]; then
+		printf '%s\n' "$problems" >&2
+		die "$f holds entries that restore refuses (listed above)"
+	fi
+	cat "$body"
+}
+
+# stage_input: put the archive in a regular file and print its path.
+stage_input() {
+	local dir="$1"
+	if [ "$arc" = "-" ]; then
+		cat >"$dir/$SPOOL"
+		printf '%s' "$dir/$SPOOL"
+	else
+		[ -f "$arc" ] || die "$arc does not exist"
+		printf '%s' "$arc"
+	fi
+}
+
+do_create() {
+	[ -n "$data" ] && [ -n "$arc" ] || usage
+	data="$(canon_dir "$data")"
+	[ -f "$data/custom/conf/app.ini" ] || [ -d "$data/bootstrap" ] ||
+		die "$data does not look like an ASC Hub volume (no custom/conf/app.ini and no bootstrap/)"
+	lock "$data"
+
+	if [ "$arc" != "-" ]; then
+		[ ! -e "$arc" ] || die "$arc exists; the tool does not overwrite a backup"
+		local outdir
+		outdir="$(canon_dir "$(dirname "$arc")")"
+		case "$outdir/" in "$data"/*) die "the archive may not be inside the volume it backs up" ;; esac
+	fi
+
+	local odd
+	odd="$(find "$data" -path "$data/asc/cache" -prune -o \( -type l -o \( ! -type f ! -type d \) \) -print -quit)"
+	[ -z "$odd" ] || die "$odd is a link or special file; the backup holds regular files and directories only"
+
+	# What is outside the volume.
+	local hub_db asc_db asc_store
+	hub_db="$(ini_value "$data/custom/conf/app.ini" database DB_TYPE)"
+	case "${hub_db:-sqlite3}" in sqlite3 | sqlite) hub_db=sqlite ;; *) ;; esac
+	asc_db=sqlite
+	asc_store=file
+	if [ -f "$data/asc/asc-serve.toml" ]; then
+		grep -q "^db = 'sqlite://" "$data/asc/asc-serve.toml" || asc_db=external
+		grep -q "^store = 'file://" "$data/asc/asc-serve.toml" || asc_store=s3
+	fi
+	{
+		printf 'format=%s\n' "$FORMAT"
+		printf 'created=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+		printf 'hub_db=%s\n' "${hub_db:-sqlite}"
+		printf 'asc_db=%s\n' "$asc_db"
+		printf 'asc_store=%s\n' "$asc_store"
+	} >"$work/$MANIFEST"
+	describe_external "$work/$MANIFEST"
+
+	local -a tar_args=(--create --gzip --numeric-owner --sort=name
+		--exclude=./asc/cache --exclude="./$LOCK_NAME" --exclude="./$SPOOL"
+		-C "$work" "$MANIFEST" -C "$data" .)
+	if [ "$arc" = "-" ]; then
+		tar "${tar_args[@]}" || die "tar failed"
+		log "archive written to standard output (check it with: asc-hub-backup verify --in <file>)"
+		return 0
+	fi
+	local part="$outdir/.$(basename "$arc").part"
+	rm -f "$part"
+	tar "${tar_args[@]}" --file "$part" || { rm -f "$part"; die "tar failed"; }
+	if ! archive_check "$part" >/dev/null; then
+		rm -f "$part"
+		die "the archive just written does not pass its own check"
+	fi
+	mv "$part" "$arc"
+	(cd "$outdir" && sha256sum "$(basename "$arc")" >"$(basename "$arc").sha256")
+	log "wrote $arc ($(du -h "$arc" | cut -f1)) and $arc.sha256"
+}
+
+do_verify() {
+	[ -n "$arc" ] || usage
+	local f
+	f="$(stage_input "$work")"
+	archive_check "$f"
+	log "archive is complete and holds only regular files and directories"
+}
+
+do_restore() {
+	[ -n "$data" ] && [ -n "$arc" ] || usage
+	data="$(canon_dir "$data")"
+	lock "$data"
+
+	# The target must be empty: a restore never merges into, or deletes from, a live volume.
+	local other
+	other="$(find "$data" -mindepth 1 -maxdepth 1 ! -name "$LOCK_NAME" ! -name lost+found ! -name "$SPOOL" -print -quit)"
+	[ -z "$other" ] || die "$data is not empty ($other): restore onto an empty volume"
+
+	local f
+	f="$(stage_input "$data")"
+	trap 'rm -f "$data/$SPOOL"; cleanup' EXIT
+	archive_check "$f" >"$work/manifest"
+	tar --extract --gzip --preserve-permissions --no-same-owner --no-overwrite-dir \
+		--anchored --exclude="$MANIFEST" --file "$f" -C "$data" || die "extracting failed: the volume is incomplete, empty it before you try again"
+	rm -f "$data/$SPOOL"
+	if [ "$(id -u)" = 0 ]; then
+		chown -R "${ASC_HUB_UID:-1000}:${ASC_HUB_GID:-1000}" "$data"
+	fi
+	[ -d "$data/asc/cache" ] || (mkdir -p "$data/asc/cache")
+	[ -s "$data/bootstrap/secret-key" ] || log "warning: the archive has no bootstrap/secret-key; the hub generates a new one and cannot read secrets stored with the old key"
+	describe_external "$work/manifest"
+	log "restored into $data (created $(manifest_value "$work/manifest" created)). Start the container; then run the repository health check from the admin monitor."
+}
+
+case "$cmd" in
+create) do_create ;;
+verify) do_verify ;;
+restore) do_restore ;;
+*) usage ;;
+esac
