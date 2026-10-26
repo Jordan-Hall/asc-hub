@@ -179,7 +179,7 @@ SWAGGER_SPEC_S_TMPL := s|"basePath": *"/api/v1"|"basePath": "{{AppSubUrl \| JSEs
 SWAGGER_SPEC_S_JSON := s|"basePath": *"{{AppSubUrl \| JSEscape}}/api/v1"|"basePath": "/api/v1"|g
 SWAGGER_EXCLUDE := code.gitea.io/sdk
 SWAGGER_NEWLINE_COMMAND := -e '$$a\'
-SWAGGER_SPEC_BRANDING := s|Gitea API|Forgejo API|g
+SWAGGER_SPEC_BRANDING := s|Gitea API|ASC Hub API|g
 SWAGGER_SPEC_LICENSE := s|"name": "MIT"|"name": "This file is distributed under the MIT license for the purpose of interoperability"|
 
 TEST_MYSQL_HOST ?= mysql:3306
