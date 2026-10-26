@@ -10,7 +10,7 @@
 					{{range .Entries}}
 						<div class="flex-item asc-inbox-entry">
 							<div class="flex-item-main">
-								<a class="flex-item-title" href="{{.Link}}">{{.Title}}</a>
+								<a class="flex-item-title" href="{{.HTMLURL}}">{{.Title}}</a>
 								<div class="flex-item-body">{{.RepoFullName}}#{{.Index}}{{if not .Updated.IsZero}} &middot; {{DateUtils.AbsoluteShort .Updated}}{{end}}</div>
 							</div>
 							{{if .Pinned}}<span class="ui label">{{ctx.Locale.Tr "user.asc_inbox.pinned"}}</span>{{end}}
