@@ -26,12 +26,28 @@ import (
 
 func getAscInbox(t *testing.T, doer *user_model.User, query string) (int, string) {
 	t.Helper()
+	oldInfo := ascInboxInfoLoad
+	ascInboxInfoLoad = func(gocontext.Context, *AscInboxEntry) *AscInboxInfo { return &AscInboxInfo{} }
+	t.Cleanup(func() { ascInboxInfoLoad = oldInfo })
 	ctx, resp := contexttest.MockContext(t, "/-/asc/inbox"+query)
 	ctx.Render = templates.HTMLRenderer()
 	ctx.Doer = doer
 	ctx.IsSigned = doer != nil
 	AscInbox(ctx)
 	return resp.Code, resp.Body.String()
+}
+
+func postAscInboxState(t *testing.T, doer *user_model.User, form map[string]string) (int, string) {
+	t.Helper()
+	ctx, resp := contexttest.MockContext(t, "POST /-/asc/inbox/state")
+	ctx.Render = templates.HTMLRenderer()
+	ctx.Doer = doer
+	ctx.IsSigned = doer != nil
+	for k, v := range form {
+		ctx.Req.Form.Set(k, v)
+	}
+	AscInboxStatePost(ctx)
+	return resp.Code, resp.Header().Get("Location")
 }
 
 func useAscInboxEntries(t *testing.T, es ...*AscInboxEntry) {
@@ -93,7 +109,7 @@ func TestAscInboxPage(t *testing.T) {
 		useAscInboxEntries(t,
 			&AscInboxEntry{PullID: 7001, Title: "other-pinned", Section: issues_model.AscInboxWaiting},
 			&AscInboxEntry{PullID: 7002, Title: "mine-snoozed", Section: issues_model.AscInboxWaiting})
-		_, body := getAscInbox(t, user2, "")
+		_, body := getAscInbox(t, user2, "?tab=waiting")
 		assert.Contains(t, body, "other-pinned")
 		states, err := issues_model.ListAscInboxStates(db.DefaultContext, user2.ID, []int64{7001, 7002})
 		require.NoError(t, err)
@@ -153,4 +169,140 @@ func TestAscInboxLoad(t *testing.T) {
 	for _, e := range es {
 		assert.NotEqual(t, int64(2), e.PullID, "an uninvolved user does not see it")
 	}
+}
+
+func TestAscInboxTabsAndDetail(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	now := time.Now()
+	useAscInboxEntries(t,
+		&AscInboxEntry{PullID: 11, Title: "review me", Link: "/o/r/pulls/1", RepoFullName: "o/r", Index: 1, Section: issues_model.AscInboxNeedsReview, Updated: now, Author: "alice"},
+		&AscInboxEntry{PullID: 12, Title: "mine ready", Link: "/o/s/pulls/2", RepoFullName: "o/s", Index: 2, Section: issues_model.AscInboxReady, Updated: now.Add(-time.Hour), Author: "user2"},
+		&AscInboxEntry{PullID: 13, Title: "waiting one", Link: "/o/r/pulls/3", RepoFullName: "o/r", Index: 3, Section: issues_model.AscInboxWaiting, Updated: now},
+		&AscInboxEntry{PullID: 14, Title: "merged one", Link: "/o/r/pulls/4", RepoFullName: "o/r", Index: 4, Section: issues_model.AscInboxMerged, Updated: now},
+	)
+	oldComments := ascInboxCommentsLoad
+	ascInboxCommentsLoad = func(_ gocontext.Context, id int64) []AscInboxComment {
+		return []AscInboxComment{{Poster: user2, Body: "<b>hello</b>", Created: now}}
+	}
+	t.Cleanup(func() { ascInboxCommentsLoad = oldComments })
+
+	t.Run("tabs count the sections and the first item is selected", func(t *testing.T) {
+		code, body := getAscInbox(t, user2, "")
+		assert.Equal(t, http.StatusOK, code)
+		assert.Contains(t, body, "review me")
+		assert.Contains(t, body, "mine ready")
+		assert.NotContains(t, body, "waiting one")
+		assert.NotContains(t, body, "merged one")
+		assert.Contains(t, body, `aria-current="true"`)
+		// the thread is escaped
+		assert.NotContains(t, body, "<b>hello</b>")
+		assert.Contains(t, body, "&lt;b&gt;hello&lt;/b&gt;")
+		// a reviewer who is not the author may approve and request changes
+		assert.Contains(t, body, `name="type" value="approve"`)
+		assert.Contains(t, body, `name="type" value="reject"`)
+	})
+
+	t.Run("the author cannot approve their own pull request", func(t *testing.T) {
+		_, body := getAscInbox(t, user2, "?pull=12")
+		assert.Contains(t, body, "mine ready")
+		assert.NotContains(t, body, `name="type" value="approve"`)
+		assert.Contains(t, body, `name="type" value="comment"`)
+	})
+
+	t.Run("an unknown tab is the first tab and an unknown repository filters nothing", func(t *testing.T) {
+		_, body := getAscInbox(t, user2, "?tab=nonsense&repo=evil/repo")
+		assert.Contains(t, body, "review me")
+		assert.Contains(t, body, "mine ready")
+	})
+
+	t.Run("the repository filter narrows", func(t *testing.T) {
+		_, body := getAscInbox(t, user2, "?repo=o/s")
+		assert.NotContains(t, body, "review me")
+		assert.Contains(t, body, "mine ready")
+	})
+
+	t.Run("done and waiting tabs", func(t *testing.T) {
+		_, body := getAscInbox(t, user2, "?tab=done")
+		assert.Contains(t, body, "merged one")
+		assert.NotContains(t, body, "waiting one")
+		_, body = getAscInbox(t, user2, "?tab=waiting")
+		assert.Contains(t, body, "waiting one")
+	})
+
+	t.Run("a pull request id outside the tab selects the first item", func(t *testing.T) {
+		_, body := getAscInbox(t, user2, "?pull=14")
+		assert.Contains(t, body, "review me")
+	})
+}
+
+func TestAscInboxStatePost(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	user4 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	useAscInboxEntries(t, &AscInboxEntry{PullID: 31, Title: "t", Section: issues_model.AscInboxNeedsReview})
+
+	mark := func(u *user_model.User) *issues_model.AscInboxState {
+		st, err := issues_model.GetAscInboxState(db.DefaultContext, u.ID, 31)
+		require.NoError(t, err)
+		return st
+	}
+
+	code, loc := postAscInboxState(t, user2, map[string]string{"pull": "31", "do": "pin", "tab": "waiting"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.Equal(t, "/-/asc/inbox?tab=waiting", loc)
+	require.NotNil(t, mark(user2))
+	assert.True(t, mark(user2).Pinned)
+	assert.Nil(t, mark(user4), "only the signed-in person's mark is written")
+
+	code, _ = postAscInboxState(t, user2, map[string]string{"pull": "31", "do": "snooze", "for": "1h"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.True(t, mark(user2).IsSnoozed(time.Now()))
+	code, _ = postAscInboxState(t, user2, map[string]string{"pull": "31", "do": "wake"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.False(t, mark(user2).IsSnoozed(time.Now()))
+	code, _ = postAscInboxState(t, user2, map[string]string{"pull": "31", "do": "unpin"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.Nil(t, mark(user2), "no mark left, no row")
+
+	for name, form := range map[string]map[string]string{
+		"unknown action":   {"pull": "31", "do": "delete"},
+		"bad snooze":       {"pull": "31", "do": "snooze", "for": "forever"},
+		"no pull":          {"do": "pin"},
+		"negative pull":    {"pull": "-3", "do": "pin"},
+		"not a number":     {"pull": "abc", "do": "pin"},
+		"pull of no inbox": {"pull": "999", "do": "pin"},
+	} {
+		code, _ := postAscInboxState(t, user2, form)
+		assert.NotEqual(t, http.StatusSeeOther, code, name)
+		assert.Contains(t, []int{http.StatusBadRequest, http.StatusNotFound}, code, name)
+	}
+	assert.Nil(t, mark(user2))
+
+	code, _ = postAscInboxState(t, nil, map[string]string{"pull": "31", "do": "pin"})
+	assert.Equal(t, http.StatusNotFound, code)
+	defer test.MockVariableValue(&setting.Asc.Enabled, false)()
+	code, _ = postAscInboxState(t, user2, map[string]string{"pull": "31", "do": "pin"})
+	assert.Equal(t, http.StatusNotFound, code)
+}
+
+func TestAscInboxSnoozeUntil(t *testing.T) {
+	now := time.Date(2026, 10, 26, 22, 0, 0, 0, time.UTC)
+	got, ok := ascInboxSnoozeUntil("1h", now)
+	assert.True(t, ok)
+	assert.Equal(t, now.Add(time.Hour), got)
+	got, ok = ascInboxSnoozeUntil("week", now)
+	assert.True(t, ok)
+	assert.Equal(t, now.AddDate(0, 0, 7), got)
+	got, ok = ascInboxSnoozeUntil("tomorrow", now)
+	assert.True(t, ok)
+	assert.True(t, got.After(now))
+	assert.Equal(t, 9, got.Hour())
+	_, ok = ascInboxSnoozeUntil("", now)
+	assert.False(t, ok)
+	assert.Equal(t, "short", ascInboxClip("short", 100))
+	assert.Equal(t, "ab…", ascInboxClip("abcdef", 2))
+	assert.Equal(t, "é…", ascInboxClip("ééé", 3), "never cuts a character")
 }
