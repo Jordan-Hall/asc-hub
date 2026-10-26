@@ -1,0 +1,57 @@
+{{$a := .Asc}}
+<div class="asc-byo" data-testid="asc-byo-storage">
+	<h2 class="asc-byo-title">{{ctx.Locale.Tr "ascbyo.storage.title"}}</h2>
+	<p class="asc-byo-lead">{{ctx.Locale.Tr "ascbyo.storage.lead"}}</p>
+	{{template "shared/asc/byo_head" (dict "Root" . "Active" "storage")}}
+	{{if not (or $a.Unavailable $a.Unsupported)}}
+		<details class="asc-byo-card asc-byo-explain"{{if not $a.Targets}} open{{end}}>
+			<summary>{{svg "octicon-info" 16}} {{ctx.Locale.Tr "ascbyo.storage.how_title"}}</summary>
+			<ol>
+				<li>{{ctx.Locale.Tr "ascbyo.storage.how_1"}}</li>
+				<li>{{ctx.Locale.Tr "ascbyo.storage.how_2"}}</li>
+				<li>{{ctx.Locale.Tr "ascbyo.storage.how_3"}}</li>
+				<li>{{ctx.Locale.Tr "ascbyo.storage.how_4"}}</li>
+			</ol>
+			<h3 class="asc-byo-subhead">{{svg "octicon-shield-lock" 16}} {{ctx.Locale.Tr "ascbyo.storage.security_title"}}</h3>
+			<ul>
+				<li>{{ctx.Locale.Tr "ascbyo.storage.security_1"}}</li>
+				<li>{{ctx.Locale.Tr "ascbyo.storage.security_2"}}</li>
+				<li>{{ctx.Locale.Tr "ascbyo.storage.security_3"}}</li>
+			</ul>
+		</details>
+
+		<section class="asc-byo-section" aria-labelledby="asc-targets-h">
+			<h3 id="asc-targets-h">{{ctx.Locale.Tr "ascbyo.storage.title"}}</h3>
+			{{if $a.Groups}}
+				{{range $a.Groups}}
+					<h4 class="asc-byo-group">{{.Title}}</h4>
+					{{if .Targets}}
+						{{template "shared/asc/byo_storage_cards" (dict "Root" $ "Targets" .Targets "Manage" .Manage)}}
+					{{else}}
+						<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.empty"}}</p>
+					{{end}}
+					{{if and (not .Manage) .URL}}<p><a href="{{.URL}}">{{ctx.Locale.Tr "ascbyo.storage.owner_manage"}}</a></p>{{end}}
+				{{end}}
+			{{else if $a.Targets}}
+				{{template "shared/asc/byo_storage_cards" (dict "Root" . "Targets" $a.Targets "Manage" true)}}
+			{{else}}
+				<p class="asc-byo-empty" data-testid="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.empty"}}</p>
+			{{end}}
+		</section>
+
+		<section class="asc-byo-card" aria-labelledby="asc-add-h">
+			<h3 id="asc-add-h">{{ctx.Locale.Tr "ascbyo.storage.add_title"}}</h3>
+			<p>{{ctx.Locale.Tr "ascbyo.storage.add_help"}}</p>
+			<form class="asc-byo-form" method="post" action="{{$a.StorageURL}}/targets" autocomplete="off" data-testid="asc-add-target">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="op_id" value="{{$a.Op "create"}}">
+				{{template "shared/asc/byo_storage_fields" (dict "Root" . "Edit" false "Pfx" "asc-new")}}
+				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.add_button"}}</button>
+			</form>
+		</section>
+
+		{{if eq $a.Kind "repo"}}
+			{{template "shared/asc/byo_storage_repo" .}}
+		{{end}}
+	{{end}}
+</div>

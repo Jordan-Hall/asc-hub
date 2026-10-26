@@ -1,0 +1,88 @@
+{{$a := .Asc}}
+<div class="asc-byo" data-testid="asc-byo-ai">
+	<h2 class="asc-byo-title">{{ctx.Locale.Tr "ascbyo.ai.title"}}</h2>
+	<p class="asc-byo-lead">{{ctx.Locale.Tr "ascbyo.ai.lead"}}</p>
+	{{template "shared/asc/byo_head" (dict "Root" . "Active" "ai")}}
+	{{if not (or $a.Unavailable $a.Unsupported)}}
+		<details class="asc-byo-card asc-byo-explain"{{if not $a.Keys}} open{{end}}>
+			<summary>{{svg "octicon-info" 16}} {{ctx.Locale.Tr "ascbyo.ai.how_title"}}</summary>
+			<ol>
+				<li>{{ctx.Locale.Tr "ascbyo.ai.how_1"}}</li>
+				<li>{{ctx.Locale.Tr "ascbyo.ai.how_2"}}</li>
+				<li>{{ctx.Locale.Tr "ascbyo.ai.how_3"}}</li>
+			</ol>
+			<h3 class="asc-byo-subhead">{{svg "octicon-shield-lock" 16}} {{ctx.Locale.Tr "ascbyo.ai.security_title"}}</h3>
+			<ul>
+				<li>{{ctx.Locale.Tr "ascbyo.ai.security_1"}}</li>
+				<li>{{ctx.Locale.Tr "ascbyo.ai.security_2"}}</li>
+				<li>{{ctx.Locale.Tr "ascbyo.ai.security_3"}}</li>
+			</ul>
+		</details>
+
+		<section class="asc-byo-section" aria-labelledby="asc-keys-h">
+			<h3 id="asc-keys-h">{{ctx.Locale.Tr "ascbyo.ai.title"}}</h3>
+			{{if $a.Keys}}
+				<div class="asc-byo-list">
+					{{range $a.Keys}}
+						<article class="asc-byo-item" aria-labelledby="asc-k-{{.ID}}" data-testid="asc-key" data-state="{{.StateName}}">
+							<header class="asc-byo-item-head">
+								<h4 id="asc-k-{{.ID}}"><a href="{{$a.AIURL}}/keys/{{.ID}}">{{.Label}}</a></h4>
+								{{template "shared/asc/byo_badge" (dict "tone" .Tone "text" (ctx.Locale.Tr .StateKey))}}
+							</header>
+							<dl class="asc-byo-meta">
+								<div><dt>{{ctx.Locale.Tr "ascbyo.ai.card.provider"}}</dt><dd>{{ctx.Locale.Tr .ProviderKey}}</dd></div>
+								<div><dt>{{ctx.Locale.Tr "ascbyo.ai.card.key"}}</dt><dd>{{if .HasKey}}{{svg "octicon-lock" 14}} {{ctx.Locale.Tr "ascbyo.ai.card.key_hint" .KeyHint}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.card.none"}}{{end}}</dd></div>
+								{{if .DefaultModel}}<div><dt>{{ctx.Locale.Tr "ascbyo.ai.card.model"}}</dt><dd class="asc-byo-mono">{{.DefaultModel}}</dd></div>{{end}}
+								<div>
+									<dt>{{ctx.Locale.Tr "ascbyo.ai.card.spend"}}</dt>
+									<dd>
+										{{if .HasCap}}
+											{{ctx.Locale.Tr "ascbyo.ai.card.spend_of" .Spent .Cap}}
+											<progress class="asc-meter{{if ge .Percent 100}} asc-meter-bad{{else if ge .Percent 80}} asc-meter-warn{{end}}" max="100" value="{{.Percent}}" aria-label="{{ctx.Locale.Tr "ascbyo.ai.card.spend_of" .Spent .Cap}}">{{.Percent}}%</progress>
+										{{else}}
+											{{ctx.Locale.Tr "ascbyo.ai.card.spend_nocap" .Spent}}
+										{{end}}
+									</dd>
+								</div>
+							</dl>
+							{{if .LastError}}<p class="asc-byo-error-line">{{svg "octicon-alert" 14}} {{.LastError}}</p>{{end}}
+							<div class="asc-byo-actions">
+								<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/test">
+									{{$.CsrfTokenHtml}}
+									<button class="ui {{if .NeedsTest}}primary{{else}}basic{{end}} button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.test"}}</button>
+								</form>
+								{{if .CanEnable}}
+									<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/enable">
+										{{$.CsrfTokenHtml}}
+										<input type="hidden" name="return" value="list">
+										<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.enable"}}</button>
+									</form>
+								{{end}}
+								{{if .CanDisable}}
+									<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/disable">
+										{{$.CsrfTokenHtml}}
+										<input type="hidden" name="return" value="list">
+										<button class="ui basic button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.disable"}}</button>
+									</form>
+								{{end}}
+								<a class="ui basic button" href="{{$a.AIURL}}/keys/{{.ID}}">{{ctx.Locale.Tr "ascbyo.ai.card.details"}}</a>
+							</div>
+						</article>
+					{{end}}
+				</div>
+			{{else}}
+				<p class="asc-byo-empty" data-testid="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.ai.empty"}}</p>
+			{{end}}
+		</section>
+
+		<section class="asc-byo-card" aria-labelledby="asc-add-h">
+			<h3 id="asc-add-h">{{ctx.Locale.Tr "ascbyo.ai.add_title"}}</h3>
+			<form class="asc-byo-form" method="post" action="{{$a.AIURL}}/keys" autocomplete="off" data-testid="asc-add-key">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="op_id" value="{{$a.Op "create"}}">
+				{{template "shared/asc/byo_ai_fields" (dict "Root" . "Edit" false "Pfx" "asc-new")}}
+				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.add_button"}}</button>
+			</form>
+		</section>
+	{{end}}
+</div>

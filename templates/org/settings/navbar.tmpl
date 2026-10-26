@@ -41,6 +41,14 @@
 			</div>
 		</details>
 		{{end}}
+		{{if .AscEnabled}}
+		<a class="{{if .PageIsSettingsAscStorage}}active {{end}}item" href="{{.OrgLink}}/settings/asc/storage">
+			{{ctx.Locale.Tr "ascbyo.nav_storage"}}
+		</a>
+		<a class="{{if .PageIsSettingsAscAI}}active {{end}}item" href="{{.OrgLink}}/settings/asc/ai">
+			{{ctx.Locale.Tr "ascbyo.nav_ai"}}
+		</a>
+		{{end}}
 		<a class="{{if .PageIsSettingsBlockedUsers}}active {{end}}item" href="{{.OrgLink}}/settings/blocked_users">
 			{{ctx.Locale.Tr "settings.blocked_users"}}
 		</a>

@@ -1,0 +1,89 @@
+{{$a := .Asc}}
+<div class="asc-byo" data-testid="asc-byo-storage-target">
+	<p class="asc-byo-back"><a href="{{$a.StorageURL}}">{{svg "octicon-chevron-left" 14}} {{ctx.Locale.Tr "ascbyo.back"}}</a></p>
+	{{template "shared/asc/byo_head" (dict "Root" . "Active" "storage")}}
+	{{with $a.Target}}
+		{{$t := .}}
+		<h2 class="asc-byo-title">{{.Name}}</h2>
+		<p>
+			{{template "shared/asc/byo_badge" (dict "tone" .Tone "text" (ctx.Locale.Tr .StateKey))}}
+			<span class="asc-byo-hint">{{ctx.Locale.Tr (print "ascbyo.storage.state_help." .StateName)}}</span>
+		</p>
+		<dl class="asc-byo-meta asc-byo-card">
+			<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.endpoint"}}</dt><dd class="asc-byo-mono">{{.Endpoint}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.bucket"}}</dt><dd class="asc-byo-mono">{{.Bucket}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.prefix"}}</dt><dd class="asc-byo-mono">{{if .Prefix}}{{.Prefix}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.card.root"}}{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.region"}}</dt><dd>{{if .Region}}{{.Region}}{{else}}-{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.credentials"}}</dt><dd>{{if .HasSecret}}{{svg "octicon-lock" 14}} {{ctx.Locale.Tr "ascbyo.storage.card.credentials_stored" .KeyHint}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.card.credentials_missing"}}{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.repos"}}</dt><dd>{{.Repos}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.verified_at"}}</dt><dd>{{if .VerifiedAt}}{{DateUtils.AbsoluteShort .VerifiedAt}}{{else}}{{ctx.Locale.Tr "ascbyo.never"}}{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.updated"}}</dt><dd>{{if .Updated}}{{DateUtils.AbsoluteShort .Updated}}{{end}}</dd></div>
+			{{if .LastError}}<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.last_error"}}</dt><dd class="asc-byo-error-line">{{.LastError}}</dd></div>{{end}}
+		</dl>
+
+		<section class="asc-byo-card" aria-labelledby="asc-verify-h">
+			<h3 id="asc-verify-h">{{ctx.Locale.Tr "ascbyo.storage.detail.verify_title"}}</h3>
+			<p>{{ctx.Locale.Tr "ascbyo.storage.detail.verify_help"}}</p>
+			{{with $a.Verify}}
+				<div class="ui {{if .OK}}positive{{else}}negative{{end}} message" role="status" data-testid="asc-verify-result">
+					<p>{{if .OK}}{{ctx.Locale.Tr "ascbyo.storage.detail.verify_ok"}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.detail.verify_failed"}}{{end}}</p>
+				</div>
+				{{if .Checks}}
+					<ol class="asc-byo-steps">
+						{{range .Checks}}
+							<li class="{{if .OK}}ok{{else}}fail{{end}}">
+								{{if .OK}}{{svg "octicon-check-circle-fill" 14}}{{else}}{{svg "octicon-x-circle-fill" 14}}{{end}}
+								<span>{{.Name}}: {{if .OK}}{{ctx.Locale.Tr "ascbyo.storage.detail.step_ok"}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.detail.step_failed"}}{{end}}{{if .Latency}} ({{ctx.Locale.Tr "ascbyo.storage.detail.latency" .Latency}}){{end}}</span>
+								{{if .Message}}<span class="asc-byo-detail">{{.Message}}</span>{{end}}
+							</li>
+						{{end}}
+					</ol>
+				{{end}}
+			{{end}}
+			<div class="asc-byo-actions">
+				<form method="post" action="{{$a.StorageURL}}/targets/{{$t.ID}}/verify">
+					{{$.CsrfTokenHtml}}
+					<button class="ui {{if $t.NeedsVerify}}primary{{else}}basic{{end}} button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.verify"}}</button>
+				</form>
+				{{if $t.CanEnable}}
+					<form method="post" action="{{$a.StorageURL}}/targets/{{$t.ID}}/enable">
+						{{$.CsrfTokenHtml}}
+						<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.enable"}}</button>
+					</form>
+				{{end}}
+				{{if $t.CanDisable}}
+					<form method="post" action="{{$a.StorageURL}}/targets/{{$t.ID}}/disable">
+						{{$.CsrfTokenHtml}}
+						<button class="ui basic button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.disable"}}</button>
+					</form>
+				{{end}}
+			</div>
+		</section>
+
+		<section class="asc-byo-card" aria-labelledby="asc-edit-h">
+			<h3 id="asc-edit-h">{{ctx.Locale.Tr "ascbyo.storage.detail.edit_title"}}</h3>
+			<p>{{ctx.Locale.Tr "ascbyo.storage.detail.edit_help"}}</p>
+			<form class="asc-byo-form" method="post" action="{{$a.StorageURL}}/targets/{{$t.ID}}" autocomplete="off" data-testid="asc-edit-target">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="op_id" value="{{$a.Op "update"}}">
+				{{template "shared/asc/byo_storage_fields" (dict "Root" $ "Edit" true "Pfx" "asc-edit")}}
+				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.save"}}</button>
+			</form>
+		</section>
+
+		<section class="asc-byo-card asc-byo-danger" aria-labelledby="asc-delete-h">
+			<h3 id="asc-delete-h">{{ctx.Locale.Tr "ascbyo.storage.detail.delete_title"}}</h3>
+			<p>{{ctx.Locale.Tr "ascbyo.storage.detail.delete_help"}}</p>
+			<details>
+				<summary>{{ctx.Locale.Tr "ascbyo.storage.detail.delete_summary"}}</summary>
+				<form class="asc-byo-form" method="post" action="{{$a.StorageURL}}/targets/{{$t.ID}}/delete">
+					{{$.CsrfTokenHtml}}
+					<div class="asc-field asc-field-check">
+						<label><input type="checkbox" name="confirm" value="on" required> {{ctx.Locale.Tr "ascbyo.storage.detail.delete_confirm"}}</label>
+					</div>
+					<button class="ui red button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.detail.delete_button"}}</button>
+				</form>
+			</details>
+		</section>
+	{{end}}
+</div>

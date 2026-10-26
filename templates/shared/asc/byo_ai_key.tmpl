@@ -1,0 +1,120 @@
+{{$a := .Asc}}
+<div class="asc-byo" data-testid="asc-byo-ai-key">
+	<p class="asc-byo-back"><a href="{{$a.AIURL}}">{{svg "octicon-chevron-left" 14}} {{ctx.Locale.Tr "ascbyo.back"}}</a></p>
+	{{template "shared/asc/byo_head" (dict "Root" . "Active" "ai")}}
+	{{with $a.Key}}
+		{{$k := .}}
+		<h2 class="asc-byo-title">{{.Label}}</h2>
+		<p>
+			{{template "shared/asc/byo_badge" (dict "tone" .Tone "text" (ctx.Locale.Tr .StateKey))}}
+			<span class="asc-byo-hint">{{ctx.Locale.Tr (print "ascbyo.ai.state_help." .StateName)}}</span>
+		</p>
+		<dl class="asc-byo-meta asc-byo-card">
+			<div><dt>{{ctx.Locale.Tr "ascbyo.ai.card.provider"}}</dt><dd>{{ctx.Locale.Tr .ProviderKey}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.ai.card.key"}}</dt><dd>{{if .HasKey}}{{svg "octicon-lock" 14}} {{ctx.Locale.Tr "ascbyo.ai.card.key_hint" .KeyHint}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.card.none"}}{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.ai.card.base_url"}}</dt><dd class="asc-byo-mono">{{if .BaseURL}}{{.BaseURL}}{{else}}-{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.ai.card.model"}}</dt><dd class="asc-byo-mono">{{if .DefaultModel}}{{.DefaultModel}}{{else}}-{{end}}</dd></div>
+			<div>
+				<dt>{{ctx.Locale.Tr "ascbyo.ai.card.spend"}}</dt>
+				<dd>
+					{{if .HasCap}}
+						{{ctx.Locale.Tr "ascbyo.ai.card.spend_of" .Spent .Cap}}
+						<progress class="asc-meter{{if ge .Percent 100}} asc-meter-bad{{else if ge .Percent 80}} asc-meter-warn{{end}}" max="100" value="{{.Percent}}" aria-label="{{ctx.Locale.Tr "ascbyo.ai.card.spend_of" .Spent .Cap}}">{{.Percent}}%</progress>
+					{{else}}
+						{{ctx.Locale.Tr "ascbyo.ai.card.spend_nocap" .Spent}}
+					{{end}}
+				</dd>
+			</div>
+			<div><dt>{{ctx.Locale.Tr "ascbyo.ai.card.tested_at"}}</dt><dd>{{if .TestedAt}}{{DateUtils.AbsoluteShort .TestedAt}}{{else}}{{ctx.Locale.Tr "ascbyo.never"}}{{end}}</dd></div>
+			{{if .LastError}}<div><dt>{{ctx.Locale.Tr "ascbyo.ai.card.last_error"}}</dt><dd class="asc-byo-error-line">{{.LastError}}</dd></div>{{end}}
+		</dl>
+
+		<section class="asc-byo-card" aria-labelledby="asc-test-h">
+			<h3 id="asc-test-h">{{ctx.Locale.Tr "ascbyo.ai.detail.test_title"}}</h3>
+			<p>{{ctx.Locale.Tr "ascbyo.ai.detail.test_help"}}</p>
+			{{with $a.Test}}
+				<div class="ui {{if .OK}}positive{{else}}negative{{end}} message" role="status" data-testid="asc-test-result">
+					<p>{{if .OK}}{{ctx.Locale.Tr "ascbyo.ai.detail.test_ok" .Latency}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.detail.test_failed" (ctx.Locale.Tr (print "ascbyo.ai.test_status." .Status))}}{{end}}</p>
+					{{if .Message}}<p class="asc-byo-detail">{{.Message}}</p>{{end}}
+				</div>
+			{{end}}
+			<div class="asc-byo-actions">
+				<form method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/test">
+					{{$.CsrfTokenHtml}}
+					<button class="ui {{if $k.NeedsTest}}primary{{else}}basic{{end}} button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.test"}}</button>
+				</form>
+				{{if $k.CanEnable}}
+					<form method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/enable">
+						{{$.CsrfTokenHtml}}
+						<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.enable"}}</button>
+					</form>
+				{{end}}
+				{{if $k.CanDisable}}
+					<form method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/disable">
+						{{$.CsrfTokenHtml}}
+						<button class="ui basic button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.disable"}}</button>
+					</form>
+				{{end}}
+			</div>
+		</section>
+
+		<section class="asc-byo-card" aria-labelledby="asc-usage-h">
+			<h3 id="asc-usage-h">{{ctx.Locale.Tr "ascbyo.ai.detail.usage_title"}}</h3>
+			{{if $a.UsageLoaded}}
+				<p><strong>{{ctx.Locale.Tr "ascbyo.ai.detail.usage_total"}}:</strong> {{$a.UsageTotal.Requests}} / {{$a.UsageTotal.Cost}}</p>
+				{{if $a.UsageByModel}}
+					<h4>{{ctx.Locale.Tr "ascbyo.ai.detail.usage_by_model"}}</h4>
+					{{template "shared/asc/byo_usage_table" (dict "Rows" $a.UsageByModel)}}
+					{{if $a.UsageByDay}}
+						<h4>{{ctx.Locale.Tr "ascbyo.ai.detail.usage_by_day"}}</h4>
+						{{template "shared/asc/byo_usage_table" (dict "Rows" $a.UsageByDay)}}
+					{{end}}
+				{{else}}
+					<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.ai.detail.usage_empty"}}</p>
+				{{end}}
+			{{else}}
+				<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.ai.detail.usage_none"}}</p>
+			{{end}}
+		</section>
+
+		<section class="asc-byo-card" aria-labelledby="asc-models-h">
+			<h3 id="asc-models-h">{{ctx.Locale.Tr "ascbyo.ai.detail.models_title"}}</h3>
+			{{if $a.Models}}
+				<ul class="asc-byo-models">
+					{{range $a.Models}}<li><code>{{.ID}}</code>{{if .DisplayName}} {{.DisplayName}}{{end}}</li>{{end}}
+				</ul>
+			{{else}}
+				<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.ai.detail.models_none"}}</p>
+			{{end}}
+		</section>
+
+		<section class="asc-byo-card" aria-labelledby="asc-edit-h">
+			<h3 id="asc-edit-h">{{ctx.Locale.Tr "ascbyo.ai.detail.edit_title"}}</h3>
+			<p>{{ctx.Locale.Tr "ascbyo.ai.detail.edit_help"}}</p>
+			<form class="asc-byo-form" method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}" autocomplete="off" data-testid="asc-edit-key">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="op_id" value="{{$a.Op "update"}}">
+				{{template "shared/asc/byo_ai_fields" (dict "Root" $ "Edit" true "Pfx" "asc-edit")}}
+				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.save"}}</button>
+			</form>
+			{{if $a.Models}}
+				<datalist id="asc-models">{{range $a.Models}}<option value="{{.ID}}">{{end}}</datalist>
+			{{end}}
+		</section>
+
+		<section class="asc-byo-card asc-byo-danger" aria-labelledby="asc-delete-h">
+			<h3 id="asc-delete-h">{{ctx.Locale.Tr "ascbyo.ai.detail.delete_title"}}</h3>
+			<p>{{ctx.Locale.Tr "ascbyo.ai.detail.delete_help"}}</p>
+			<details>
+				<summary>{{ctx.Locale.Tr "ascbyo.ai.detail.delete_summary"}}</summary>
+				<form class="asc-byo-form" method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/delete">
+					{{$.CsrfTokenHtml}}
+					<div class="asc-field asc-field-check">
+						<label><input type="checkbox" name="confirm" value="on" required> {{ctx.Locale.Tr "ascbyo.ai.detail.delete_confirm"}}</label>
+					</div>
+					<button class="ui red button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.detail.delete_button"}}</button>
+				</form>
+			</details>
+		</section>
+	{{end}}
+</div>

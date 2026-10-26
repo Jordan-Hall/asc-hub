@@ -54,6 +54,7 @@ import {initRepoCodeView} from './features/repo-code.ts';
 import {initSshKeyFormParser} from './features/sshkey-helper.js';
 import {initRepoArchiveLinks} from './features/repo-common.js';
 import {initRepoMigrationStatusChecker} from './features/repo-migrate.js';
+import {initAscByoMigration} from './features/asc-byo.js';
 import {
   initRepoSettingGitHook,
   initRepoSettingsCollaboration,
@@ -166,6 +167,7 @@ onDomReady(() => {
   initRepoIssueWipTitle();
   initRepoMigration();
   initRepoMigrationStatusChecker();
+  initAscByoMigration();
   initRepoProject();
   initRepoPullRequestAllowMaintainerEdit();
   initRepoPullRequestReview();

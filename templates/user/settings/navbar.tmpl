@@ -23,6 +23,14 @@
 		<a class="{{if .PageIsSettingsKeys}}active {{end}}item" href="{{AppSubUrl}}/user/settings/keys">
 			{{ctx.Locale.Tr "settings.ssh_gpg_keys"}}
 		</a>
+		{{if .AscEnabled}}
+		<a class="{{if .PageIsSettingsAscStorage}}active {{end}}item" href="{{AppSubUrl}}/user/settings/asc/storage">
+			{{ctx.Locale.Tr "ascbyo.nav_storage"}}
+		</a>
+		<a class="{{if .PageIsSettingsAscAI}}active {{end}}item" href="{{AppSubUrl}}/user/settings/asc/ai">
+			{{ctx.Locale.Tr "ascbyo.nav_ai"}}
+		</a>
+		{{end}}
 		{{if .EnableActions}}
 		<details class="item toggleable-item" {{if or .PageIsSharedSettingsRunners .PageIsSharedSettingsSecrets .PageIsSharedSettingsVariables}}open{{end}}>
 			<summary>{{ctx.Locale.Tr "actions.actions"}}</summary>
