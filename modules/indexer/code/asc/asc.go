@@ -13,8 +13,8 @@
 // package never rebuilds a line from anything else; it only drops invalid UTF-8 and control characters
 // again as a second layer, caps what it reads, and lets the highlighter escape the HTML.
 //
-// TODO(I23-wire): modules/indexer/code/indexer.go must accept REPO_INDEXER_TYPE = asc and build
-// NewIndexer(ascclient.CodeIntel(), nil); that file belongs to another unit.
+// modules/indexer/code/indexer.go builds this backend for REPO_INDEXER_TYPE = asc. The explore code page makes
+// the calls as the hub, over the repositories the viewer may read (routers/web/explore/code.go).
 package asc
 
 import (
