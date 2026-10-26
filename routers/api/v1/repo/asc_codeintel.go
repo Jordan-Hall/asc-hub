@@ -598,7 +598,7 @@ func AscSymbols(ctx *context.APIContext) {
 	// description: With op=find (the default) lists the declared symbols whose name matches name. With
 	//   op=def, refs and callers it answers for the symbol name (def_path and def_line pick one definition
 	//   when the name is ambiguous), and with op=outline it lists the symbols declared in the file file.
-	//   Every symbol says how it was found in confidence: precise, import_match or name_match.
+	//   Every symbol says how it was found in its confidence field (precise, import_match or name_match).
 	// produces:
 	// - application/json
 	// parameters:
