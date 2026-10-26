@@ -5,12 +5,55 @@
 			<img class="logo" width="220" height="220" src="{{AssetUrlPrefix}}/img/logo.svg" alt="{{ctx.Locale.Tr "logo"}}">
 			<div class="hero">
 				<h1 class="ui icon header title">
-					{{AppDisplayName}}
+					{{ctx.Locale.Tr "startpage.title"}}
 				</h1>
 				<h2>{{ctx.Locale.Tr "startpage.app_desc"}}</h2>
 			</div>
+			{{if not .IsSigned}}
+				<div class="tw-mt-6 tw-flex tw-justify-center tw-gap-3">
+					<a class="ui primary button" rel="nofollow" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>
+					{{if .ShowRegistrationButton}}
+						<a class="ui basic button" href="{{AppSubUrl}}/user/sign_up">{{ctx.Locale.Tr "register"}}</a>
+					{{end}}
+				</div>
+			{{end}}
 		</div>
 	</div>
-	{{template "home_forgejo" .}}
+	<div class="ui stackable middle very relaxed page grid">
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-git-commit"}} {{ctx.Locale.Tr "startpage.changesets"}}
+			</h1>
+			<p class="large">
+				{{ctx.Locale.Tr "startpage.changesets_desc"}}
+			</p>
+		</div>
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-stack"}} {{ctx.Locale.Tr "startpage.stacks"}}
+			</h1>
+			<p class="large">
+				{{ctx.Locale.Tr "startpage.stacks_desc"}}
+			</p>
+		</div>
+	</div>
+	<div class="ui stackable middle very relaxed page grid">
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-code-review"}} {{ctx.Locale.Tr "startpage.review"}}
+			</h1>
+			<p class="large">
+				{{ctx.Locale.Tr "startpage.review_desc"}}
+			</p>
+		</div>
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-inbox"}} {{ctx.Locale.Tr "startpage.inbox"}}
+			</h1>
+			<p class="large">
+				{{ctx.Locale.Tr "startpage.inbox_desc"}}
+			</p>
+		</div>
+	</div>
 </div>
 {{template "base/footer" .}}
