@@ -57,7 +57,7 @@ cleanup() {
 	[ -z "$work" ] || rm -rf "$work"
 }
 trap cleanup EXIT
-work="$(mktemp -d "${TMPDIR:-/tmp}/asc-hub-backup.XXXXXX" 2>/dev/null || mktemp -d /tmp/asc-hub-backup.XXXXXX)"
+work="$(mktemp -d -p "${TMPDIR:-/tmp}" 2>/dev/null || mktemp -d -p /tmp)"
 
 # lock DIR: the hub holds an exclusive lock on DIR/.asc-hub.lock for as long as it runs.
 lock() {
