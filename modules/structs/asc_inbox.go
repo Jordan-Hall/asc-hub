@@ -29,3 +29,12 @@ type AscInboxEntry struct {
 	// swagger:strfmt date-time
 	Updated time.Time `json:"updated_at"`
 }
+
+// AscInboxCount is the number of pull requests in the inbox of the authenticated user.
+// swagger:model
+type AscInboxCount struct {
+	// the number of pull requests counted
+	Total int64 `json:"total"`
+	// the number counted in each section asked for (every section when none was asked for), zero included
+	Sections map[string]int64 `json:"sections"`
+}

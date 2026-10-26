@@ -21,6 +21,7 @@ import (
 	"forgejo.org/modules/test"
 	"forgejo.org/services/ascinbox"
 	"forgejo.org/services/authz"
+	"forgejo.org/services/context"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -71,15 +72,31 @@ func TestAscInboxPage(t *testing.T) {
 	assert.Empty(t, ascInboxPage(es, int(^uint(0)>>1), 50), "no overflow")
 }
 
-// getAscInbox calls the handler as doer (nil: not signed in) with the reducer given.
-func getAscInbox(t *testing.T, doer *user_model.User, reducer authz.AuthorizationReducer, query string) *httptest.ResponseRecorder {
+// callAscInbox calls the handler as doer (nil: not signed in) with the reducer given; ifNoneMatch, when not
+// empty, is sent as If-None-Match.
+func callAscInbox(t *testing.T, handler func(*context.APIContext), path string, doer *user_model.User, reducer authz.AuthorizationReducer, query, ifNoneMatch string) *httptest.ResponseRecorder {
 	t.Helper()
-	ctx, resp := contexttest.MockAPIContext(t, "/api/v1/user/asc/inbox"+query)
+	ctx, resp := contexttest.MockAPIContext(t, path+query)
+	if ifNoneMatch != "" {
+		ctx.Req.Header.Set("If-None-Match", ifNoneMatch)
+	}
 	ctx.SetDoer(doer)
 	ctx.SetIsSigned(doer != nil)
 	ctx.SetReducer(reducer)
-	ListAscInbox(ctx)
+	handler(ctx)
 	return resp
+}
+
+// getAscInbox calls the list handler as doer (nil: not signed in) with the reducer given.
+func getAscInbox(t *testing.T, doer *user_model.User, reducer authz.AuthorizationReducer, query string) *httptest.ResponseRecorder {
+	t.Helper()
+	return callAscInbox(t, ListAscInbox, "/api/v1/user/asc/inbox", doer, reducer, query, "")
+}
+
+// getAscInboxCount calls the count handler as doer (nil: not signed in) with the reducer given.
+func getAscInboxCount(t *testing.T, doer *user_model.User, reducer authz.AuthorizationReducer, query string) *httptest.ResponseRecorder {
+	t.Helper()
+	return callAscInbox(t, CountAscInbox, "/api/v1/user/asc/inbox/count", doer, reducer, query, "")
 }
 
 func decodeAscInbox(t *testing.T, resp *httptest.ResponseRecorder) []*api.AscInboxEntry {
@@ -166,6 +183,54 @@ func TestListAscInbox(t *testing.T) {
 		assert.Empty(t, decodeAscInbox(t, getAscInbox(t, author, public, "")), "a public-only token does not list a private repository")
 	})
 
+	t.Run("ETag and If-None-Match", func(t *testing.T) {
+		const path = "/api/v1/user/asc/inbox"
+		resp := getAscInbox(t, reviewer, all, "")
+		etag := resp.Header().Get("ETag")
+		require.Regexp(t, `^"[0-9a-f]{32}"$`, etag)
+		assert.Contains(t, resp.Header().Get("Vary"), "Authorization")
+		assert.Contains(t, resp.Header().Get("Access-Control-Expose-Headers"), "ETag")
+		assert.Equal(t, etag, getAscInbox(t, reviewer, all, "").Header().Get("ETag"), "the same inbox has the same ETag")
+
+		for _, inm := range []string{etag, "W/" + etag, `"nope", ` + etag, "*"} {
+			resp := callAscInbox(t, ListAscInbox, path, reviewer, all, "", inm)
+			assert.Equal(t, http.StatusNotModified, resp.Code, inm)
+			assert.Empty(t, resp.Body.String(), inm)
+			assert.Equal(t, etag, resp.Header().Get("ETag"), inm)
+			assert.Equal(t, "1", resp.Header().Get("X-Total-Count"), inm)
+			assert.Empty(t, resp.Header().Get("Content-Type"), inm)
+		}
+
+		resp = callAscInbox(t, ListAscInbox, path, reviewer, all, "", `"stale"`)
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, etag, resp.Header().Get("ETag"))
+		assert.NotEmpty(t, resp.Body.String())
+
+		// a validator of another query or another user never matches
+		assert.Equal(t, http.StatusOK, callAscInbox(t, ListAscInbox, path, reviewer, all, "?section=merged", etag).Code)
+		authorETag := getAscInbox(t, author, all, "").Header().Get("ETag")
+		assert.NotEqual(t, etag, authorETag)
+		assert.Equal(t, http.StatusOK, callAscInbox(t, ListAscInbox, path, reviewer, all, "", authorETag).Code)
+
+		// the validator follows the content: a pin changes it, an unpin brings it back
+		pinned := true
+		_, err := issues_model.SetAscInboxState(db.DefaultContext, reviewerID, 2, &pinned, nil, time.Now())
+		require.NoError(t, err)
+		resp = callAscInbox(t, ListAscInbox, path, reviewer, all, "", etag)
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.NotEqual(t, etag, resp.Header().Get("ETag"))
+		pinned = false
+		_, err = issues_model.SetAscInboxState(db.DefaultContext, reviewerID, 2, &pinned, nil, time.Now())
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusNotModified, callAscInbox(t, ListAscInbox, path, reviewer, all, "", etag).Code)
+
+		// errors carry no validator and are never 304
+		resp = callAscInbox(t, ListAscInbox, path, nil, all, "", "*")
+		assert.Equal(t, http.StatusUnauthorized, resp.Code)
+		assert.Empty(t, resp.Header().Get("ETag"))
+		assert.Equal(t, http.StatusUnprocessableEntity, callAscInbox(t, ListAscInbox, path, reviewer, all, "?section=nope", "*").Code)
+	})
+
 	t.Run("marks are the doer's own", func(t *testing.T) {
 		now := time.Now()
 		pinned := true
@@ -210,5 +275,163 @@ func TestListAscInbox(t *testing.T) {
 			want = append(want, e.PullRequestID)
 		}
 		assert.Equal(t, want, walked)
+	})
+}
+
+func TestAscInboxETagMatches(t *testing.T) {
+	const etag = `"abc"`
+	for _, tc := range []struct {
+		values []string
+		want   bool
+	}{
+		{nil, false},
+		{[]string{""}, false},
+		{[]string{etag}, true},
+		{[]string{"W/" + etag}, true},
+		{[]string{`"x", "abc"`}, true},
+		{[]string{` "x" , W/"abc" `}, true},
+		{[]string{`"x"`, etag}, true},
+		{[]string{"*"}, true},
+		{[]string{`"x", *`}, true},
+		{[]string{`"abcd"`}, false},
+		{[]string{`abc`}, false},
+		{[]string{`"ab"`}, false},
+		{[]string{`w/"abc"`}, false},
+	} {
+		assert.Equal(t, tc.want, ascInboxETagMatches(tc.values, etag), "%q", tc.values)
+	}
+}
+
+func TestAscInboxETagCoversTotal(t *testing.T) {
+	// the same page body with another total must not be answered 304
+	body := []byte("[]\n")
+	assert.Equal(t, ascInboxETag(body, 3), ascInboxETag(body, 3))
+	assert.NotEqual(t, ascInboxETag(body, 0), ascInboxETag(body, 1))
+	assert.NotEqual(t, ascInboxETag(body, 0), ascInboxETag([]byte("[{}]\n"), 0))
+}
+
+func decodeAscInboxCount(t *testing.T, resp *httptest.ResponseRecorder) *api.AscInboxCount {
+	t.Helper()
+	require.Equal(t, http.StatusOK, resp.Code, resp.Body.String())
+	assert.Contains(t, resp.Header().Get("Content-Type"), "application/json")
+	out := &api.AscInboxCount{}
+	contexttest.DecodeJSON(t, resp, out)
+	return out
+}
+
+func TestCountAscInbox(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	all := &authz.AllAccessAuthorizationReducer{}
+	public := &authz.PublicReposAuthorizationReducer{}
+
+	const reviewerID = 4
+	reviewer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: reviewerID})
+	author := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
+	issue := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 3})
+	require.True(t, issue.IsPull)
+	require.NoError(t, db.Insert(db.DefaultContext, &issues_model.Review{
+		Type: issues_model.ReviewTypeRequest, IssueID: issue.ID, ReviewerID: reviewerID,
+	}))
+	setPrivate := func(p bool) {
+		_, err := db.GetEngine(db.DefaultContext).ID(issue.RepoID).Cols("is_private").Update(&repo_model.Repository{IsPrivate: p})
+		require.NoError(t, err)
+	}
+	t.Cleanup(func() { setPrivate(false) })
+	setPrivate(false)
+
+	t.Run("counts in total and by section", func(t *testing.T) {
+		resp := getAscInboxCount(t, reviewer, all, "")
+		out := decodeAscInboxCount(t, resp)
+		assert.Equal(t, int64(1), out.Total)
+		assert.Equal(t, "1", resp.Header().Get("X-Total-Count"))
+		require.Len(t, out.Sections, len(ascinbox.SectionOrder), "every section is listed, zero included")
+		var sum int64
+		for _, s := range ascinbox.SectionOrder {
+			want := int64(0)
+			if s == issues_model.AscInboxNeedsReview {
+				want = 1
+			}
+			assert.Equal(t, want, out.Sections[string(s)], s)
+			sum += out.Sections[string(s)]
+		}
+		assert.Equal(t, out.Total, sum)
+	})
+
+	t.Run("agrees with the list", func(t *testing.T) {
+		for _, u := range []*user_model.User{reviewer, author} {
+			for _, q := range []string{"", "?include_snoozed=true", "?section=needs_review", "?section=merged"} {
+				list := getAscInbox(t, u, all, q)
+				count := getAscInboxCount(t, u, all, q)
+				assert.Equal(t, list.Header().Get("X-Total-Count"), count.Header().Get("X-Total-Count"), "%d %s", u.ID, q)
+				assert.Equal(t, int64(len(decodeAscInbox(t, list))), decodeAscInboxCount(t, count).Total, "%d %s", u.ID, q)
+			}
+		}
+	})
+
+	t.Run("section filter, page and limit", func(t *testing.T) {
+		out := decodeAscInboxCount(t, getAscInboxCount(t, reviewer, all, "?section=needs_review,merged"))
+		assert.Equal(t, int64(1), out.Total)
+		assert.Equal(t, map[string]int64{"needs_review": 1, "merged": 0}, out.Sections)
+
+		out = decodeAscInboxCount(t, getAscInboxCount(t, reviewer, all, "?section=merged"))
+		assert.Equal(t, int64(0), out.Total)
+		assert.Equal(t, map[string]int64{"merged": 0}, out.Sections)
+
+		out = decodeAscInboxCount(t, getAscInboxCount(t, reviewer, all, "?page=9&limit=1"))
+		assert.Equal(t, int64(1), out.Total, "page and limit do not change the count")
+
+		assert.Equal(t, http.StatusUnprocessableEntity, getAscInboxCount(t, reviewer, all, "?section=nope").Code)
+	})
+
+	t.Run("anonymous, no reducer and disabled", func(t *testing.T) {
+		assert.Equal(t, http.StatusUnauthorized, getAscInboxCount(t, nil, all, "").Code)
+		assert.Equal(t, http.StatusInternalServerError, getAscInboxCount(t, reviewer, nil, "").Code)
+		defer test.MockVariableValue(&setting.Asc.Enabled, false)()
+		assert.Equal(t, http.StatusNotFound, getAscInboxCount(t, reviewer, all, "").Code)
+	})
+
+	t.Run("read access is rechecked, including the reducer of the token", func(t *testing.T) {
+		setPrivate(true)
+		defer setPrivate(false)
+		assert.Equal(t, int64(0), decodeAscInboxCount(t, getAscInboxCount(t, reviewer, all, "")).Total, "a reviewer without access counts nothing")
+		assert.Positive(t, decodeAscInboxCount(t, getAscInboxCount(t, author, all, "")).Total)
+		resp := getAscInboxCount(t, author, public, "")
+		assert.Equal(t, int64(0), decodeAscInboxCount(t, resp).Total, "a public-only token does not count a private repository")
+		assert.Equal(t, "0", resp.Header().Get("X-Total-Count"))
+	})
+
+	t.Run("ETag and If-None-Match", func(t *testing.T) {
+		const path = "/api/v1/user/asc/inbox/count"
+		now := time.Now()
+
+		resp := getAscInboxCount(t, reviewer, all, "")
+		etag := resp.Header().Get("ETag")
+		require.Regexp(t, `^"[0-9a-f]{32}"$`, etag)
+		assert.Equal(t, etag, getAscInboxCount(t, reviewer, all, "").Header().Get("ETag"))
+
+		for _, inm := range []string{etag, "W/" + etag, "*"} {
+			resp := callAscInbox(t, CountAscInbox, path, reviewer, all, "", inm)
+			assert.Equal(t, http.StatusNotModified, resp.Code, inm)
+			assert.Empty(t, resp.Body.String(), inm)
+			assert.Equal(t, etag, resp.Header().Get("ETag"), inm)
+			assert.Equal(t, "1", resp.Header().Get("X-Total-Count"), inm)
+		}
+		assert.Equal(t, http.StatusOK, callAscInbox(t, CountAscInbox, path, reviewer, all, "", `"stale"`).Code)
+		assert.Equal(t, http.StatusOK, callAscInbox(t, CountAscInbox, path, reviewer, all, "?section=merged", etag).Code)
+
+		// a snooze takes the pull request out of the count, which changes the validator
+		snooze := now.Add(time.Hour).Truncate(time.Second)
+		_, err := issues_model.SetAscInboxState(db.DefaultContext, reviewerID, 2, nil, &snooze, now)
+		require.NoError(t, err)
+		resp = callAscInbox(t, CountAscInbox, path, reviewer, all, "", etag)
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.NotEqual(t, etag, resp.Header().Get("ETag"))
+		assert.Equal(t, int64(0), decodeAscInboxCount(t, resp).Total, "snoozed pull requests are not counted")
+		assert.Equal(t, int64(1), decodeAscInboxCount(t, getAscInboxCount(t, reviewer, all, "?include_snoozed=true")).Total, "unless asked for")
+
+		resp = callAscInbox(t, CountAscInbox, path, nil, all, "", "*")
+		assert.Equal(t, http.StatusUnauthorized, resp.Code)
+		assert.Empty(t, resp.Header().Get("ETag"))
 	})
 }
