@@ -73,6 +73,9 @@
 			{{else}}
 				<p class="asc-byo-empty" data-testid="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.ai.empty"}}</p>
 			{{end}}
+			{{if eq $a.Kind "repo"}}
+				<p class="asc-byo-hint">{{ctx.Locale.Tr "ascbyo.ai.owner_note"}}{{if $a.OwnerAIURL}} <a href="{{$a.OwnerAIURL}}">{{ctx.Locale.Tr "ascbyo.ai.owner_manage"}}</a>{{end}}</p>
+			{{end}}
 		</section>
 
 		<section class="asc-byo-card" aria-labelledby="asc-add-h">
