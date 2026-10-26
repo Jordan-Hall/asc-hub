@@ -41,8 +41,8 @@ Status is what the code in this repository does today. Items marked "partial" ar
 | Actions | available | Workflow runs get `asc_server_url`, `asc_changeset`, `asc_base_merge_base`, `asc_change`, `asc_stack_position`, `asc_stack_size` and `asc_stack_parent_sha` in their context, and a job token honours `permissions:` ([docs/asc/actions-token-permissions.md](docs/asc/actions-token-permissions.md)). |
 | IDE sign-in | available | A pre-registered OAuth2 public client, `asc-ide`, with PKCE (S256 only) for the ASC IDE plugins. |
 | Mobile-first UI | available | The ASC themes (`asc-auto`, `asc-light`, `asc-dark`) and the landing, header, repository and sign-in pages are written mobile first, from 320 px up ([docs/asc/THEME.md](docs/asc/THEME.md)). |
-| Bring your own S3 storage | planned | Not in this repository. Where `asc serve` keeps its objects is an operator setting of `asc serve`, not a per-user hub feature. |
-| Bring your own AI keys | planned | Not in this repository. |
+| Bring your own S3 storage | partial | Settings pages for a person (`/user/settings/asc/storage`), an organization and a repository: add an S3-compatible target, verify it with a probe object, enable it, move the objects of a repository with progress, remove it. Credentials are write-only and never shown again. The pages need an `asc serve` that implements the Storage service (`storage.v1`), which `asc serve` does not do yet, so they are tested against a stand-in. See [docs/asc/STORAGE-AND-KEYS.md](docs/asc/STORAGE-AND-KEYS.md). Where `asc serve` keeps its objects without a target stays an operator setting. |
+| Bring your own AI keys | partial | Settings pages for a person (`/user/settings/asc/ai`), an organization and a repository: add a provider key with an optional monthly cap, test it, see the models and this month's usage, disable or remove it. Keys are write-only and shown as their last four characters. The pages need an `asc serve` that implements the AiProviders service (`ai-keys.v1`), which `asc serve` does not do yet, so they are tested against a stand-in. See [docs/asc/STORAGE-AND-KEYS.md](docs/asc/STORAGE-AND-KEYS.md). |
 
 ## Quick start
 
