@@ -82,9 +82,67 @@ func (RestackItemState) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{0}
 }
 
+// A change and the head the caller saw for it, to pin an apply to a reviewed plan (RestackStackRequest.expected_heads).
+type ExpectedHead struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Change        []byte                 `protobuf:"bytes,1,opt,name=change,proto3" json:"change,omitempty"`
+	OldHead       []byte                 `protobuf:"bytes,2,opt,name=old_head,json=oldHead,proto3" json:"old_head,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExpectedHead) Reset() {
+	*x = ExpectedHead{}
+	mi := &file_asc_v1_stacks_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExpectedHead) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExpectedHead) ProtoMessage() {}
+
+func (x *ExpectedHead) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_stacks_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExpectedHead.ProtoReflect.Descriptor instead.
+func (*ExpectedHead) Descriptor() ([]byte, []int) {
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ExpectedHead) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *ExpectedHead) GetOldHead() []byte {
+	if x != nil {
+		return x.OldHead
+	}
+	return nil
+}
+
 // `change` is any change of the stack: the whole stack it belongs to is restacked, the changes above it included. `onto`
 // empty means the stack's trunk tip. With `dry_run` nothing is stored. Without `allow_partial` one conflict or frozen change
 // makes the whole call fail with LAND_CONFLICT or CHANGE_FROZEN and nothing moves.
+//
+// `expected_heads` pins an apply to the plan the caller reviewed (a dry run): one entry per change the call is expected to
+// rewrite, with the head the caller saw. The apply is refused with ABORTED and REF_CONFLICT (`paths` the change ids at
+// fault) when a listed change has another head now, a change the call would rewrite is not listed, or a listed change
+// is no longer in the stack. Empty means no pin; a dry run ignores it. Restacks of one stack run one at a time.
 type RestackStackRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
@@ -93,13 +151,14 @@ type RestackStackRequest struct {
 	Resolutions   []*Resolution          `protobuf:"bytes,4,rep,name=resolutions,proto3" json:"resolutions,omitempty"`
 	DryRun        bool                   `protobuf:"varint,5,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
 	AllowPartial  bool                   `protobuf:"varint,6,opt,name=allow_partial,json=allowPartial,proto3" json:"allow_partial,omitempty"`
+	ExpectedHeads []*ExpectedHead        `protobuf:"bytes,7,rep,name=expected_heads,json=expectedHeads,proto3" json:"expected_heads,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RestackStackRequest) Reset() {
 	*x = RestackStackRequest{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[0]
+	mi := &file_asc_v1_stacks_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -111,7 +170,7 @@ func (x *RestackStackRequest) String() string {
 func (*RestackStackRequest) ProtoMessage() {}
 
 func (x *RestackStackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[0]
+	mi := &file_asc_v1_stacks_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -124,7 +183,7 @@ func (x *RestackStackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestackStackRequest.ProtoReflect.Descriptor instead.
 func (*RestackStackRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{0}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RestackStackRequest) GetRepo() *RepoRef {
@@ -169,6 +228,13 @@ func (x *RestackStackRequest) GetAllowPartial() bool {
 	return false
 }
 
+func (x *RestackStackRequest) GetExpectedHeads() []*ExpectedHead {
+	if x != nil {
+		return x.ExpectedHeads
+	}
+	return nil
+}
+
 type RestackItemResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Change        []byte                 `protobuf:"bytes,1,opt,name=change,proto3" json:"change,omitempty"`
@@ -183,7 +249,7 @@ type RestackItemResult struct {
 
 func (x *RestackItemResult) Reset() {
 	*x = RestackItemResult{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[1]
+	mi := &file_asc_v1_stacks_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -195,7 +261,7 @@ func (x *RestackItemResult) String() string {
 func (*RestackItemResult) ProtoMessage() {}
 
 func (x *RestackItemResult) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[1]
+	mi := &file_asc_v1_stacks_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -208,7 +274,7 @@ func (x *RestackItemResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestackItemResult.ProtoReflect.Descriptor instead.
 func (*RestackItemResult) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{1}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *RestackItemResult) GetChange() []byte {
@@ -265,7 +331,7 @@ type RestackStackResponse struct {
 
 func (x *RestackStackResponse) Reset() {
 	*x = RestackStackResponse{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[2]
+	mi := &file_asc_v1_stacks_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -277,7 +343,7 @@ func (x *RestackStackResponse) String() string {
 func (*RestackStackResponse) ProtoMessage() {}
 
 func (x *RestackStackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[2]
+	mi := &file_asc_v1_stacks_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -290,7 +356,7 @@ func (x *RestackStackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestackStackResponse.ProtoReflect.Descriptor instead.
 func (*RestackStackResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{2}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *RestackStackResponse) GetOnto() []byte {
@@ -343,7 +409,7 @@ type RevertLandedRequest struct {
 
 func (x *RevertLandedRequest) Reset() {
 	*x = RevertLandedRequest{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[3]
+	mi := &file_asc_v1_stacks_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -355,7 +421,7 @@ func (x *RevertLandedRequest) String() string {
 func (*RevertLandedRequest) ProtoMessage() {}
 
 func (x *RevertLandedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[3]
+	mi := &file_asc_v1_stacks_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -368,7 +434,7 @@ func (x *RevertLandedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevertLandedRequest.ProtoReflect.Descriptor instead.
 func (*RevertLandedRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{3}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RevertLandedRequest) GetRepo() *RepoRef {
@@ -467,7 +533,7 @@ type RevertedChange struct {
 
 func (x *RevertedChange) Reset() {
 	*x = RevertedChange{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[4]
+	mi := &file_asc_v1_stacks_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -479,7 +545,7 @@ func (x *RevertedChange) String() string {
 func (*RevertedChange) ProtoMessage() {}
 
 func (x *RevertedChange) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[4]
+	mi := &file_asc_v1_stacks_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -492,7 +558,7 @@ func (x *RevertedChange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevertedChange.ProtoReflect.Descriptor instead.
 func (*RevertedChange) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{4}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RevertedChange) GetOriginal() []byte {
@@ -542,7 +608,7 @@ type RevertLandedResponse struct {
 
 func (x *RevertLandedResponse) Reset() {
 	*x = RevertLandedResponse{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[5]
+	mi := &file_asc_v1_stacks_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -554,7 +620,7 @@ func (x *RevertLandedResponse) String() string {
 func (*RevertLandedResponse) ProtoMessage() {}
 
 func (x *RevertLandedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[5]
+	mi := &file_asc_v1_stacks_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -567,7 +633,7 @@ func (x *RevertLandedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevertLandedResponse.ProtoReflect.Descriptor instead.
 func (*RevertLandedResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{5}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *RevertLandedResponse) GetReverts() []*RevertedChange {
@@ -614,7 +680,7 @@ type ListRefLogRequest struct {
 
 func (x *ListRefLogRequest) Reset() {
 	*x = ListRefLogRequest{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[6]
+	mi := &file_asc_v1_stacks_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -626,7 +692,7 @@ func (x *ListRefLogRequest) String() string {
 func (*ListRefLogRequest) ProtoMessage() {}
 
 func (x *ListRefLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[6]
+	mi := &file_asc_v1_stacks_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -639,7 +705,7 @@ func (x *ListRefLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRefLogRequest.ProtoReflect.Descriptor instead.
 func (*ListRefLogRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{6}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListRefLogRequest) GetRepo() *RepoRef {
@@ -709,7 +775,7 @@ type RefLogEntry struct {
 
 func (x *RefLogEntry) Reset() {
 	*x = RefLogEntry{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[7]
+	mi := &file_asc_v1_stacks_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -721,7 +787,7 @@ func (x *RefLogEntry) String() string {
 func (*RefLogEntry) ProtoMessage() {}
 
 func (x *RefLogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[7]
+	mi := &file_asc_v1_stacks_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -734,7 +800,7 @@ func (x *RefLogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefLogEntry.ProtoReflect.Descriptor instead.
 func (*RefLogEntry) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{7}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RefLogEntry) GetSeq() uint64 {
@@ -817,7 +883,7 @@ type ListRefLogResponse struct {
 
 func (x *ListRefLogResponse) Reset() {
 	*x = ListRefLogResponse{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[8]
+	mi := &file_asc_v1_stacks_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -829,7 +895,7 @@ func (x *ListRefLogResponse) String() string {
 func (*ListRefLogResponse) ProtoMessage() {}
 
 func (x *ListRefLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[8]
+	mi := &file_asc_v1_stacks_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -842,7 +908,7 @@ func (x *ListRefLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRefLogResponse.ProtoReflect.Descriptor instead.
 func (*ListRefLogResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{8}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListRefLogResponse) GetEntries() []*RefLogEntry {
@@ -875,7 +941,7 @@ type UndoRefRequest struct {
 
 func (x *UndoRefRequest) Reset() {
 	*x = UndoRefRequest{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[9]
+	mi := &file_asc_v1_stacks_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -887,7 +953,7 @@ func (x *UndoRefRequest) String() string {
 func (*UndoRefRequest) ProtoMessage() {}
 
 func (x *UndoRefRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[9]
+	mi := &file_asc_v1_stacks_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -900,7 +966,7 @@ func (x *UndoRefRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UndoRefRequest.ProtoReflect.Descriptor instead.
 func (*UndoRefRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{9}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UndoRefRequest) GetRepo() *RepoRef {
@@ -949,7 +1015,7 @@ type UndoRefResponse struct {
 
 func (x *UndoRefResponse) Reset() {
 	*x = UndoRefResponse{}
-	mi := &file_asc_v1_stacks_proto_msgTypes[10]
+	mi := &file_asc_v1_stacks_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -961,7 +1027,7 @@ func (x *UndoRefResponse) String() string {
 func (*UndoRefResponse) ProtoMessage() {}
 
 func (x *UndoRefResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_stacks_proto_msgTypes[10]
+	mi := &file_asc_v1_stacks_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -974,7 +1040,7 @@ func (x *UndoRefResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UndoRefResponse.ProtoReflect.Descriptor instead.
 func (*UndoRefResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{10}
+	return file_asc_v1_stacks_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UndoRefResponse) GetResult() *RefResult {
@@ -1002,14 +1068,18 @@ var File_asc_v1_stacks_proto protoreflect.FileDescriptor
 
 const file_asc_v1_stacks_proto_rawDesc = "" +
 	"\n" +
-	"\x13asc/v1/stacks.proto\x12\x06asc.v1\x1a\x14asc/v1/options.proto\x1a\x11asc/v1/repo.proto\"\xe0\x01\n" +
+	"\x13asc/v1/stacks.proto\x12\x06asc.v1\x1a\x14asc/v1/options.proto\x1a\x11asc/v1/repo.proto\"M\n" +
+	"\fExpectedHead\x12\x1c\n" +
+	"\x06change\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x1f\n" +
+	"\bold_head\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\aoldHead\"\x9d\x02\n" +
 	"\x13RestackStackRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x12\n" +
 	"\x04onto\x18\x03 \x01(\tR\x04onto\x124\n" +
 	"\vresolutions\x18\x04 \x03(\v2\x12.asc.v1.ResolutionR\vresolutions\x12\x17\n" +
 	"\adry_run\x18\x05 \x01(\bR\x06dryRun\x12#\n" +
-	"\rallow_partial\x18\x06 \x01(\bR\fallowPartial\"\xf4\x01\n" +
+	"\rallow_partial\x18\x06 \x01(\bR\fallowPartial\x12;\n" +
+	"\x0eexpected_heads\x18\a \x03(\v2\x14.asc.v1.ExpectedHeadR\rexpectedHeads\"\xf4\x01\n" +
 	"\x11RestackItemResult\x12\x1c\n" +
 	"\x06change\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12.\n" +
 	"\x05state\x18\x02 \x01(\x0e2\x18.asc.v1.RestackItemStateR\x05state\x12\x1f\n" +
@@ -1108,56 +1178,58 @@ func file_asc_v1_stacks_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_stacks_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_asc_v1_stacks_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_asc_v1_stacks_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_asc_v1_stacks_proto_goTypes = []any{
 	(RestackItemState)(0),        // 0: asc.v1.RestackItemState
-	(*RestackStackRequest)(nil),  // 1: asc.v1.RestackStackRequest
-	(*RestackItemResult)(nil),    // 2: asc.v1.RestackItemResult
-	(*RestackStackResponse)(nil), // 3: asc.v1.RestackStackResponse
-	(*RevertLandedRequest)(nil),  // 4: asc.v1.RevertLandedRequest
-	(*RevertedChange)(nil),       // 5: asc.v1.RevertedChange
-	(*RevertLandedResponse)(nil), // 6: asc.v1.RevertLandedResponse
-	(*ListRefLogRequest)(nil),    // 7: asc.v1.ListRefLogRequest
-	(*RefLogEntry)(nil),          // 8: asc.v1.RefLogEntry
-	(*ListRefLogResponse)(nil),   // 9: asc.v1.ListRefLogResponse
-	(*UndoRefRequest)(nil),       // 10: asc.v1.UndoRefRequest
-	(*UndoRefResponse)(nil),      // 11: asc.v1.UndoRefResponse
-	(*RepoRef)(nil),              // 12: asc.v1.RepoRef
-	(*Resolution)(nil),           // 13: asc.v1.Resolution
-	(*Conflict)(nil),             // 14: asc.v1.Conflict
-	(*Rewrite)(nil),              // 15: asc.v1.Rewrite
-	(*RefTarget)(nil),            // 16: asc.v1.RefTarget
-	(*RefResult)(nil),            // 17: asc.v1.RefResult
+	(*ExpectedHead)(nil),         // 1: asc.v1.ExpectedHead
+	(*RestackStackRequest)(nil),  // 2: asc.v1.RestackStackRequest
+	(*RestackItemResult)(nil),    // 3: asc.v1.RestackItemResult
+	(*RestackStackResponse)(nil), // 4: asc.v1.RestackStackResponse
+	(*RevertLandedRequest)(nil),  // 5: asc.v1.RevertLandedRequest
+	(*RevertedChange)(nil),       // 6: asc.v1.RevertedChange
+	(*RevertLandedResponse)(nil), // 7: asc.v1.RevertLandedResponse
+	(*ListRefLogRequest)(nil),    // 8: asc.v1.ListRefLogRequest
+	(*RefLogEntry)(nil),          // 9: asc.v1.RefLogEntry
+	(*ListRefLogResponse)(nil),   // 10: asc.v1.ListRefLogResponse
+	(*UndoRefRequest)(nil),       // 11: asc.v1.UndoRefRequest
+	(*UndoRefResponse)(nil),      // 12: asc.v1.UndoRefResponse
+	(*RepoRef)(nil),              // 13: asc.v1.RepoRef
+	(*Resolution)(nil),           // 14: asc.v1.Resolution
+	(*Conflict)(nil),             // 15: asc.v1.Conflict
+	(*Rewrite)(nil),              // 16: asc.v1.Rewrite
+	(*RefTarget)(nil),            // 17: asc.v1.RefTarget
+	(*RefResult)(nil),            // 18: asc.v1.RefResult
 }
 var file_asc_v1_stacks_proto_depIdxs = []int32{
-	12, // 0: asc.v1.RestackStackRequest.repo:type_name -> asc.v1.RepoRef
-	13, // 1: asc.v1.RestackStackRequest.resolutions:type_name -> asc.v1.Resolution
-	0,  // 2: asc.v1.RestackItemResult.state:type_name -> asc.v1.RestackItemState
-	14, // 3: asc.v1.RestackItemResult.conflicts:type_name -> asc.v1.Conflict
-	2,  // 4: asc.v1.RestackStackResponse.items:type_name -> asc.v1.RestackItemResult
-	15, // 5: asc.v1.RestackStackResponse.rewritten:type_name -> asc.v1.Rewrite
-	12, // 6: asc.v1.RevertLandedRequest.repo:type_name -> asc.v1.RepoRef
-	14, // 7: asc.v1.RevertedChange.conflicts:type_name -> asc.v1.Conflict
-	5,  // 8: asc.v1.RevertLandedResponse.reverts:type_name -> asc.v1.RevertedChange
-	12, // 9: asc.v1.ListRefLogRequest.repo:type_name -> asc.v1.RepoRef
-	16, // 10: asc.v1.RefLogEntry.old:type_name -> asc.v1.RefTarget
-	16, // 11: asc.v1.RefLogEntry.new:type_name -> asc.v1.RefTarget
-	8,  // 12: asc.v1.ListRefLogResponse.entries:type_name -> asc.v1.RefLogEntry
-	12, // 13: asc.v1.UndoRefRequest.repo:type_name -> asc.v1.RepoRef
-	17, // 14: asc.v1.UndoRefResponse.result:type_name -> asc.v1.RefResult
-	1,  // 15: asc.v1.Stacks.Restack:input_type -> asc.v1.RestackStackRequest
-	4,  // 16: asc.v1.Stacks.RevertLanded:input_type -> asc.v1.RevertLandedRequest
-	7,  // 17: asc.v1.Stacks.ListRefLog:input_type -> asc.v1.ListRefLogRequest
-	10, // 18: asc.v1.Stacks.UndoRef:input_type -> asc.v1.UndoRefRequest
-	3,  // 19: asc.v1.Stacks.Restack:output_type -> asc.v1.RestackStackResponse
-	6,  // 20: asc.v1.Stacks.RevertLanded:output_type -> asc.v1.RevertLandedResponse
-	9,  // 21: asc.v1.Stacks.ListRefLog:output_type -> asc.v1.ListRefLogResponse
-	11, // 22: asc.v1.Stacks.UndoRef:output_type -> asc.v1.UndoRefResponse
-	19, // [19:23] is the sub-list for method output_type
-	15, // [15:19] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	13, // 0: asc.v1.RestackStackRequest.repo:type_name -> asc.v1.RepoRef
+	14, // 1: asc.v1.RestackStackRequest.resolutions:type_name -> asc.v1.Resolution
+	1,  // 2: asc.v1.RestackStackRequest.expected_heads:type_name -> asc.v1.ExpectedHead
+	0,  // 3: asc.v1.RestackItemResult.state:type_name -> asc.v1.RestackItemState
+	15, // 4: asc.v1.RestackItemResult.conflicts:type_name -> asc.v1.Conflict
+	3,  // 5: asc.v1.RestackStackResponse.items:type_name -> asc.v1.RestackItemResult
+	16, // 6: asc.v1.RestackStackResponse.rewritten:type_name -> asc.v1.Rewrite
+	13, // 7: asc.v1.RevertLandedRequest.repo:type_name -> asc.v1.RepoRef
+	15, // 8: asc.v1.RevertedChange.conflicts:type_name -> asc.v1.Conflict
+	6,  // 9: asc.v1.RevertLandedResponse.reverts:type_name -> asc.v1.RevertedChange
+	13, // 10: asc.v1.ListRefLogRequest.repo:type_name -> asc.v1.RepoRef
+	17, // 11: asc.v1.RefLogEntry.old:type_name -> asc.v1.RefTarget
+	17, // 12: asc.v1.RefLogEntry.new:type_name -> asc.v1.RefTarget
+	9,  // 13: asc.v1.ListRefLogResponse.entries:type_name -> asc.v1.RefLogEntry
+	13, // 14: asc.v1.UndoRefRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 15: asc.v1.UndoRefResponse.result:type_name -> asc.v1.RefResult
+	2,  // 16: asc.v1.Stacks.Restack:input_type -> asc.v1.RestackStackRequest
+	5,  // 17: asc.v1.Stacks.RevertLanded:input_type -> asc.v1.RevertLandedRequest
+	8,  // 18: asc.v1.Stacks.ListRefLog:input_type -> asc.v1.ListRefLogRequest
+	11, // 19: asc.v1.Stacks.UndoRef:input_type -> asc.v1.UndoRefRequest
+	4,  // 20: asc.v1.Stacks.Restack:output_type -> asc.v1.RestackStackResponse
+	7,  // 21: asc.v1.Stacks.RevertLanded:output_type -> asc.v1.RevertLandedResponse
+	10, // 22: asc.v1.Stacks.ListRefLog:output_type -> asc.v1.ListRefLogResponse
+	12, // 23: asc.v1.Stacks.UndoRef:output_type -> asc.v1.UndoRefResponse
+	20, // [20:24] is the sub-list for method output_type
+	16, // [16:20] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_stacks_proto_init() }
@@ -1167,7 +1239,7 @@ func file_asc_v1_stacks_proto_init() {
 	}
 	file_asc_v1_options_proto_init()
 	file_asc_v1_repo_proto_init()
-	file_asc_v1_stacks_proto_msgTypes[3].OneofWrappers = []any{
+	file_asc_v1_stacks_proto_msgTypes[4].OneofWrappers = []any{
 		(*RevertLandedRequest_Change)(nil),
 		(*RevertLandedRequest_LandedAs)(nil),
 	}
@@ -1177,7 +1249,7 @@ func file_asc_v1_stacks_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_stacks_proto_rawDesc), len(file_asc_v1_stacks_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
