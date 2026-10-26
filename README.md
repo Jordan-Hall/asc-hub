@@ -1,54 +1,214 @@
-# ASC Hub
-
-ASC Hub is the server for ASC (Agent Source Control): `asc` changesets and stacks, review, the inbox, and Actions.
-It is a fork of Forgejo v16, kept rebased on upstream, and it is licensed GPL-3.0-or-later like Forgejo.
-See [docs/asc/README.md](docs/asc/README.md). The upstream Forgejo text follows unchanged.
-
----
-
 <div align="center">
-    <img src="./assets/logo.svg" alt="" width="192" align="center" />
-    <h1 align="center">Welcome to Forgejo</h1>
+    <img src="./assets/logo.svg" alt="ASC" width="96" height="96" />
+    <h1>ASC Hub</h1>
+    <p><strong>Source control for people and their agents.</strong></p>
 </div>
 
-Hi there! Tired of big platforms playing monopoly?
-Providing Git hosting for your project, friends, company or community?
-**Forgejo** (/for'd&#865;ʒe.jo/ inspired by forĝejo – the Esperanto word for *forge*) has you covered with its intuitive interface,
-light and easy hosting and a lot of built-in functionality.
+ASC Hub is the hosting product for ASC (Agent Source Control): a web server where people review and land stacks of changesets that they made with the `asc` command line or an IDE plugin.
+It is a fork of [Forgejo](https://forgejo.org) v16 that keeps Forgejo's web foundation (accounts, organizations, teams, issues, sign-in, administration, Actions) and replaces the repository layer: repositories are stored by `asc serve` and the hub talks to it over the `asc.v1` RPC protocol.
+ASC Hub is **not Forgejo** and **not a git forge**. Git clients can still clone and push through a compatibility layer, but the repository of record is an ASC repository, not a bare git directory.
 
-Forgejo was [created in 2022](https://forgejo.org/2022-12-15-hello-forgejo/)
-because we think that the project should be owned by an independent community.
-If you second that, then Forgejo is for you!
-Our promise: **Independent Free/Libre Software forever!**
+## Who it is for
 
-## What does Forgejo offer?
+People first. The web UI, the review flow, the inbox and the sign-in are built for developers and reviewers working in a browser, on a laptop or on a phone.
+Agents are optional: a coding agent that drives `asc` works against the same hub, the same permissions and the same review rules as a person does. Nothing in the hub requires an agent.
 
-If you like any of the following, Forgejo is literally meant for you:
+## Why ASC Hub
 
-- Lightweight: Forgejo can easily be hosted on nearly **every machine**.
-  Running on a Raspberry? Small cloud instance? No problem!
-- Project management: Besides Git hosting, Forgejo offers issues,
-  pull requests, wikis, kanban boards and much more to **coordinate with your team**.
-- Publishing: Have something to share? Use **releases** to host your software for download,
-  or use the **package registry** to publish it for docker, npm and many other package managers.
-- Customizable: Want to change your look? Change some settings?
-  There are many **config switches** to make Forgejo work exactly like you want.
-- Powerful: Organizations & team permissions, CI integration, Code Search, LDAP, OAuth and much more.
-  If you have **advanced needs**, Forgejo has you covered.
-- Privacy: From update checker to default settings: Forgejo is built to be **privacy first** for you and your crew.
-- Federation: (WIP) We are actively working to connect software forges with each other through **ActivityPub**,
-  and create a collaborative network of personal instances.
+We kept running into the same problems with branches and pull requests: long branches that are hard to review, stacked work that has to be rebased by hand, force-pushes that people are afraid of, approvals that go stale when the author pushes again, and agents that can make a dozen changes an hour. So ASC stores work as changesets in stacks, keeps every version of each change, and lets reviewers approve an exact version. We forked Forgejo instead of starting from zero because accounts, organizations, sign-in, issues and administration are already solved there, and we replace only the repository layer. We kept git compatibility so that nobody has to move all their tools on one day. [docs/asc/WHY.md](docs/asc/WHY.md) has the longer argument, what ASC Hub will not do, and the benefits with their status.
 
-## Learn more
+## Benefits
 
-Dive into the [documentation](https://forgejo.org/docs/latest/), subscribe to releases and blog post on [our website](https://forgejo.org), <a href="https://floss.social/@forgejo" rel="me">find us on the Fediverse</a> or hop into [our Matrix room](https://matrix.to/#/#forgejo-chat:matrix.org) if you have any questions or want to get involved.
+Each line names the mechanism. "Planned" means it is not built. [docs/asc/WHY.md](docs/asc/WHY.md#benefits) has the full tables.
 
-## License
+- **Developers.** Undo with `asc undo` and `asc redo` (local operations; a push or land is not undone), restore an earlier version of a change from the web, small stacked changes with one review each, review from a phone (mobile-first pages). No speed claim: we have no measured numbers for the hub.
+- **Teams.** Approvals tied to a version, with the diff between versions and "changes since your last review"; fewer approvals for docs-only style changes by rules that the change cannot edit; an ordered merge queue (partial). Planned: policy file in the repository, signed changes, failure and flaky-test grouping, an audit page.
+- **People using agents.** Scoped access tokens, MCP tools in `asc` with writes enabled only by the user's configuration, pushes to non-shared names stored as the pusher's own refs in a branchless repository, everything reversible through kept versions, search by meaning on the repository search page. Planned: agent budgets.
+- **Operators.** Two services in one compose project, SQLite or Postgres, a Coolify deployment, git clients keep working through the bridge. Bring your own S3 storage is an operator setting of `asc serve` today and planned per user; bring your own AI keys is planned.
 
-Forgejo is distributed under the terms of the [GPL version 3.0](LICENSE) or any later version.
+## Feature highlights
 
-The agreement for this license [was documented in June 2023](https://codeberg.org/forgejo/governance/pulls/24) and implemented during the development of Forgejo v9.0. All Forgejo versions before v9.0 are distributed under the MIT license.
+Status is what the code in this repository does today. Items marked "partial" are implemented in the hub but not yet reachable from every surface. Items marked "planned" do not exist in this repository.
 
-## Get involved
+| Area | Status | What there is |
+| --- | --- | --- |
+| Stacks | available | A stacked pull request is the review object of one `asc` change. The pull request page shows the stack panel, overlap and mergeability badges, and blocks a merge of a mid-stack change until its parent has merged. A stack compare page (`/<owner>/<repo>/asc/compare`) and a commit graph (`/<owner>/<repo>/asc/graph`) are routed. Landing a stack bottom to top through asc, and restacking the open children, is done by the merge queue below. |
+| Reviews | available | Every version of a change is kept. The pull request page has a versions dropdown, the diff between any two versions, and "changes since your last review". Branch protection can relax the approval count for changes that only touch chosen change classes (docs, lockfiles, ...), and the file list shows a class badge. |
+| Inbox and drafts | available | `/-/asc/inbox` sorts review work by whose turn it is, with per-user pin and snooze; `GET /api/v1/user/asc/inbox` and `/api/v1/user/asc/inbox/count` serve the same data. `/-/asc/drafts` lists your drafts. |
+| Merge queue | partial | An ordered queue lands the largest ready prefix of a stack, can be paused per branch, and re-checks permission at every land. A client enters it through asc, which calls the hub's `POST /api/internal/asc/request-merge`. There is no web button yet, and revalidation after a content merge refuses to land until the asc backend carries the needed flag (see `TODO(C52)` in `services/automerge/asc_stack_queue.go`). |
+| Undo | partial | "Restore version" moves a stacked pull request back to an earlier version (`POST .../asc/restore_version`). Reverting a whole landed stack is implemented in `services/pull/asc_revert_stack.go` but has no route or button yet. |
+| Code search | partial | `/<owner>/<repo>/asc/search` searches one repository in lexical, symbol and semantic modes, using asc's code index, after the hub's own code-read check for the signed-in user. The cross-repository search on the explore page, the symbol panel and the JSON search API exist as handlers but are not routed yet. |
+| Policy and audit | partial | Path policy is decided in asc, and the hub shows its refusal to the pusher. Relaxed approvals by change class are enforced by the hub. Restoring a version writes an `asc audit:` line to the log. There is no audit page. |
+| Actions | available | Workflow runs get `asc_server_url`, `asc_changeset`, `asc_base_merge_base`, `asc_change`, `asc_stack_position`, `asc_stack_size` and `asc_stack_parent_sha` in their context, and a job token honours `permissions:` ([docs/asc/actions-token-permissions.md](docs/asc/actions-token-permissions.md)). |
+| IDE sign-in | available | A pre-registered OAuth2 public client, `asc-ide`, with PKCE (S256 only) for the ASC IDE plugins. |
+| Mobile-first UI | available | The ASC themes (`asc-auto`, `asc-light`, `asc-dark`) and the landing, header, repository and sign-in pages are written mobile first, from 320 px up ([docs/asc/THEME.md](docs/asc/THEME.md)). |
+| Bring your own S3 storage | planned | Not in this repository. Where `asc serve` keeps its objects is an operator setting of `asc serve`, not a per-user hub feature. |
+| Bring your own AI keys | planned | Not in this repository. |
 
-If you are interested in making Forgejo better, either by reporting a bug or by changing the governance, please [take a look at the contribution guide](CONTRIBUTING.md).
+## Quick start
+
+You need Docker with Compose, a DNS name for the hub (`hub.example.org` below) and a TLS-terminating reverse proxy in front of port 3000. The image is built from `Dockerfile.rootless` by CI and published as `ghcr.io/<owner>/asc-hub`, tagged with the 12-character commit id and with `asc-v16`. Pin the commit id.
+
+The hub talks to `asc serve`, which runs next to it. The hub image does not contain `asc serve`; use the `asc` image or binary from the ASC distribution and its documentation for the `asc serve` configuration. The hub needs four things from it: the address in `[asc] SERVER_URL`, the same internal token as the hub (`[security] INTERNAL_TOKEN_URI`), the hub's authorization endpoint (`/api/internal/asc/authz`) as its authentication provider, and read access to the hub's repository directory for the git bridge. [docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md) has the full contract.
+
+```yaml
+# compose.yml (hub side; hub.example.org and the placeholders are yours to set)
+services:
+  hub:
+    image: ghcr.io/<owner>/asc-hub:<sha12>
+    restart: unless-stopped
+    environment:
+      # APP_NAME to DISABLE_REGISTRATION below fill app.ini on the first start only
+      APP_NAME: "ASC Hub"
+      ROOT_URL: "https://hub.example.org/"
+      SSH_DOMAIN: "hub.example.org"
+      SSH_PORT: "2222"                          # the port clients use
+      INSTALL_LOCK: "true"
+      SECRET_KEY: "<random string, 64 characters>"
+      DISABLE_REGISTRATION: "true"
+      FORGEJO__security__INTERNAL_TOKEN_URI: "file:///run/secrets/asc-internal-token"
+      FORGEJO__asc__ENABLED: "true"
+      FORGEJO__asc__SERVER_URL: "http://127.0.0.1:7890"
+      FORGEJO__asc__PUBLIC_URL: "https://hub.example.org"
+      FORGEJO__asc__WRITER: "asc"
+      FORGEJO__asc__NEW_REPOSITORIES: "asc"
+    volumes:
+      - hub-data:/var/lib/gitea
+      - ./secrets/asc-internal-token:/run/secrets/asc-internal-token:ro
+    ports:
+      - "3000:3000"   # web: put your TLS proxy in front
+      - "2222:2222"   # git over SSH (built-in server)
+
+  # asc: the `asc serve` service. Image, command and configuration file come from the ASC
+  # distribution. It must share the hub's network namespace (network_mode: "service:hub")
+  # so that the hub reaches it on 127.0.0.1:7890 without TLS.
+
+volumes:
+  hub-data:
+```
+
+Start it with `docker compose up -d`, then create the first administrator. Run the command once, as the `git` user, after the first healthy start:
+
+```sh
+docker compose exec hub forgejo admin user create --admin \
+  --username asc-admin --email admin@example.org \
+  --random-password --must-change-password=true
+```
+
+The command prints a generated password once. Sign in at `https://hub.example.org/`, set a new password, then create a repository. With `NEW_REPOSITORIES = asc` it is stored in ASC.
+
+On your machine, with the `asc` CLI installed:
+
+```sh
+# make a token in the hub: Settings > Applications > Generate New Token
+printf '%s' "$TOKEN" | asc auth login --host https://hub.example.org --token-stdin
+asc clone https://hub.example.org/<owner>/<repo>
+```
+
+`asc auth login` stores the token with your git credential helper, and `asc clone` reads `https://hub.example.org/.well-known/asc` to find the ASC server. A git client can still use `git clone https://hub.example.org/<owner>/<repo>.git` against the same repository; see [Git compatibility](#git-compatibility).
+
+## Configuration
+
+Settings are read from `app.ini` (`custom/conf/app.ini`, `/var/lib/gitea/custom/conf/app.ini` in the image). In the image, `environment-to-ini` also copies every `FORGEJO__<section>__<KEY>` environment variable into `app.ini` at start (the section name is case-insensitive, so `FORGEJO__asc__KEY` and `FORGEJO__ASC__KEY` are the same). The hub reads no environment variable named `ASC_*` itself; the only `ASC_BINARY` is the `[asc]` key below, set as `FORGEJO__asc__ASC_BINARY`.
+
+The `[asc]` section (`modules/setting/asc.go`). Every key other than `ENABLED` is checked only when `ENABLED = true`, and an invalid value stops the start.
+
+| Key | Environment variable | Default | Meaning |
+| --- | --- | --- | --- |
+| `ENABLED` | `FORGEJO__asc__ENABLED` | `false` | Turns on the ASC integration: the internal authz endpoint, `/.well-known/asc` and the asc client. Needs the internal token. |
+| `SERVER_URL` | `FORGEJO__asc__SERVER_URL` | none, required | Where the hub dials `asc serve`. Absolute `http` or `https` URL without credentials, query or fragment. The client refuses plain `http` to a host that is not loopback. A bare `host:port` is not accepted here; the default asc port is 7890. |
+| `PUBLIC_URL` | `FORGEJO__asc__PUBLIC_URL` | `SERVER_URL` | The address announced to asc clients by `/.well-known/asc` and to Actions runners. Must be `https` unless the host is loopback. |
+| `WRITER` | `FORGEJO__asc__WRITER` | `git` | `asc` sends every write to an ASC repository through `asc.v1`. `git` keeps the older flow that pushes into the git bridge and lets asc import it. |
+| `NEW_REPOSITORIES` | `FORGEJO__asc__NEW_REPOSITORIES` | `git` | Storage backend of a repository created from now on: `git` or `asc`. Takes effect only with `WRITER = asc`. Migrations and mirrors stay git. |
+| `BRIDGE` | `FORGEJO__asc__BRIDGE` | `eager` | How the git directory that serves legacy git clients is kept: `eager` (asc keeps it current), `lazy` (the hub builds it with `asc export --git` on the first git request) or `off` (git access to ASC repositories is refused). |
+| `ASC_BINARY` | `FORGEJO__asc__ASC_BINARY` | `asc` | The `asc` executable a `lazy` bridge runs. It must exist in the hub container. |
+| `BRIDGE_WORKSPACES` | `FORGEJO__asc__BRIDGE_WORKSPACES` | `<APP_DATA_PATH>/asc-bridge` | Directory of the asc workspaces a `lazy` bridge is built from. |
+| `SHADOW_SAMPLE_PERCENT` | `FORGEJO__asc__SHADOW_SAMPLE_PERCENT` | `10` | For repositories with storage backend `dual`: the share (0 to 100) of reads repeated against asc and compared. `0` turns it off. |
+
+Related settings:
+
+| Setting | Environment variable | Meaning |
+| --- | --- | --- |
+| `[security] INTERNAL_TOKEN` or `INTERNAL_TOKEN_URI` | `FORGEJO__security__INTERNAL_TOKEN_URI` | The secret shared with `asc serve`. Required when `[asc] ENABLED` is true. Use the `file://` form so the token stays out of `app.ini`. |
+| `[asc_stack_queue] REVALIDATE` | `FORGEJO__asc_stack_queue__REVALIDATE` | `on_content_merge` (default; any value but `off` means this) or `off`. See [Merge queue](#feature-highlights). |
+| `[ui] DEFAULT_THEME` | `FORGEJO__ui__DEFAULT_THEME` | `asc-auto` by default. |
+| `APP_NAME` | `FORGEJO____APP_NAME` (four underscores for a key outside a section) | `ASC Hub` by default in the code. The container's first-start template writes `Forgejo: Beyond coding. We forge.` unless you set the plain `APP_NAME` variable, as the example above does. |
+
+## Git compatibility
+
+An ASC repository can be cloned and pushed to with `git` over HTTPS and SSH. The hub keeps a git directory per repository, the bridge, at the path Forgejo always used, and serves git requests from it. A git push is imported into ASC by the pre-receive hook before it is accepted; a refusal from asc is returned to the pusher. Limits: ASC repositories have no LFS (the LFS routes answer 404), and a git signing decision cannot be honoured by the asc writer. Details are in [docs/asc/ARCHITECTURE.md](docs/asc/ARCHITECTURE.md).
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph clients
+        B[browser]
+        A["asc CLI / IDE / agent"]
+        G[git client]
+    end
+    subgraph deployment
+        subgraph hub["ASC Hub (Forgejo v16 fork)"]
+            W[web UI and API]
+            S[SSH server]
+            P[pull requests as the stack review object]
+            BR[git bridge directory]
+        end
+        subgraph asc["asc serve"]
+            R[repositories, changesets, stacks, code index]
+        end
+        DB[(hub database)]
+    end
+    B -->|HTTPS| W
+    G -->|HTTPS, SSH| W
+    G --> S
+    A -->|"/.well-known/asc, then asc.v1"| R
+    W -->|"asc.v1 over gRPC"| R
+    R -->|"/api/internal/asc/authz, request-merge"| W
+    W --- DB
+    W --- BR
+    R -.->|bridge_promote| BR
+```
+
+[docs/asc/ARCHITECTURE.md](docs/asc/ARCHITECTURE.md) explains each box and names the packages.
+
+## Documentation
+
+- [docs/asc/WHY.md](docs/asc/WHY.md): why ASC Hub exists, why a fork, what it will not do, the benefits.
+- [docs/asc/ARCHITECTURE.md](docs/asc/ARCHITECTURE.md): components, data ownership, request flows, trust.
+- [docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md): deploy, volumes, ports, backup and restore, upgrade, SQLite and Postgres.
+- [docs/asc/FORK.md](docs/asc/FORK.md): how the fork differs from Forgejo and how upstream is merged.
+- [docs/asc/BRANDING.md](docs/asc/BRANDING.md), [docs/asc/THEME.md](docs/asc/THEME.md): brand assets and themes.
+- [docs/asc/README.md](docs/asc/README.md): index of the remaining notes.
+
+## Development
+
+Requirements: Go 1.26 (`go.mod` pins the toolchain), Node.js 20 or newer, `make`, and a C compiler for the SQLite build. The tests need Linux; on Windows use WSL or CI.
+
+```sh
+make deps            # frontend, backend and tool dependencies
+make build           # frontend and backend; produces ./gitea
+make watch           # rebuild on change while developing
+go build -tags 'sqlite sqlite_unlock_notify' ./...
+make test-backend    # unit tests
+make test-sqlite     # integration tests on SQLite
+make lint
+```
+
+The CI for this fork is in `.github/workflows/asc-hub-test.yml` (build, vet and test the ASC packages) and `.github/workflows/asc-hub-image.yml` (the image). The generated Go stubs for `asc.v1` are committed under `modules/ascproto`; [modules/ascproto/README.md](modules/ascproto/README.md) says how to regenerate them.
+
+## Security
+
+Report a vulnerability in the ASC-specific code (the packages listed in [docs/asc/ARCHITECTURE.md](docs/asc/ARCHITECTURE.md)) privately through [GitHub private vulnerability reporting](https://github.com/Jordan-Hall/asc-hub/security/advisories/new) for this repository, not in a public issue. A vulnerability in code that comes unchanged from Forgejo should also go to the Forgejo project, as described in [CONTRIBUTING.md](CONTRIBUTING.md) (`security@forgejo.org`). The hub's internal API accepts only the shared internal token, `[asc] PUBLIC_URL` must be `https` unless its host is loopback, and the authz endpoint answers a denied repository the same way as a missing one.
+
+## Fork and attribution
+
+ASC Hub is a fork of [Forgejo](https://forgejo.org), the community-owned software forge, which is itself a continuation of Gitea. The fork is based on the Forgejo **v16.0.6** release (commit `1aa13944143b3bc4312607239a68da23512d5ce3`, "2026-10-12 security patches", on the `v16.0/forgejo` branch) and lives on the `asc/v16` branch as a stack of changes on top of that release. Upstream releases and security fixes are merged into `asc/v16`; [docs/asc/FORK.md](docs/asc/FORK.md) describes the procedure and lists exactly what differs.
+
+What ASC Hub changes: the repository layer (storage, writes, merges, pull request heads, search), the review model for stacks, the branding and the theme. What it keeps: Forgejo's accounts, organizations, teams, issues, authentication, administration, package registry and Actions, plus the internal names (Go module path `forgejo.org`, the `forgejo` binary, `FORGEJO__` environment variables), so that upstream changes still apply.
+
+ASC Hub is not an official Forgejo release. The footer keeps a "Based on Forgejo" link and the licenses page, as the attribution.
+
+## Licence
+
+ASC Hub is distributed under the terms of the [GNU General Public License, version 3](LICENSE) or any later version, like Forgejo since its v9.0. Forgejo versions before v9.0 were distributed under the MIT license. All upstream copyright notices and SPDX headers stay in the files; files that Forgejo took from Gitea keep their MIT headers; files added by this fork carry their own header with the same SPDX tag convention. The licenses of third-party dependencies are listed at `/assets/licenses.txt` on a running hub.
