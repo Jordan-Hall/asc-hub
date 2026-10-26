@@ -665,7 +665,7 @@ func registerRoutes(m *web.Route) {
 				ctx.NotFound(unit.TypeCode.String(), nil)
 				return
 			}
-		}, explore.Code)
+		}, explore.CodeSearch)
 		m.Get("/topics/search", explore.TopicSearch)
 	}, ignExploreSignIn)
 	m.Group("/issues", func() {
