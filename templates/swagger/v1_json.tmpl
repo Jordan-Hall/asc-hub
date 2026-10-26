@@ -20549,6 +20549,62 @@
         }
       }
     },
+    "/user/asc/inbox": {
+      "get": {
+        "description": "The most recently updated 200 pull requests the user wrote or was asked to review are examined. Entries are ordered by section, then pinned first, then most recently updated first. Pull requests the user snoozed are left out unless include_snoozed is set.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "List the pull requests that need the attention of the authenticated user, by whose turn it is",
+        "operationId": "userCurrentListAscInbox",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "only these sections (needs_review, returned, ready, blocked, waiting, drafts, queued, merged); repeat the parameter or separate the values with commas",
+            "name": "section",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "also list the pull requests the user snoozed",
+            "name": "include_snoozed",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "page number of results to return (1-based)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "page size of results",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AscInboxEntryList"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          }
+        }
+      }
+    },
     "/user/emails": {
       "get": {
         "produces": [
@@ -23898,6 +23954,62 @@
           "x-go-name": "UnprotectedFilePatterns"
         },
         "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Updated"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscInboxEntry": {
+      "description": "AscInboxEntry is one pull request in the inbox of the authenticated user.",
+      "type": "object",
+      "properties": {
+        "html_url": {
+          "description": "the web address of the pull request",
+          "type": "string",
+          "x-go-name": "HTMLURL"
+        },
+        "number": {
+          "description": "the number of the pull request in its repository",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Number"
+        },
+        "pinned": {
+          "description": "whether the authenticated user pinned the pull request",
+          "type": "boolean",
+          "x-go-name": "Pinned"
+        },
+        "pull_request_id": {
+          "description": "the id of the pull request",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "PullRequestID"
+        },
+        "repository": {
+          "description": "the full name (owner/name) of the repository the pull request is made against",
+          "type": "string",
+          "x-go-name": "Repository"
+        },
+        "section": {
+          "description": "whose turn it is: needs_review, returned, ready, blocked, waiting, drafts, queued or merged",
+          "type": "string",
+          "x-go-name": "Section"
+        },
+        "snoozed_until": {
+          "description": "until when the authenticated user snoozed the pull request; null when not snoozed",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "SnoozedUntil"
+        },
+        "title": {
+          "description": "the title of the pull request",
+          "type": "string",
+          "x-go-name": "Title"
+        },
+        "updated_at": {
+          "description": "when the pull request was last updated",
           "type": "string",
           "format": "date-time",
           "x-go-name": "Updated"
@@ -31346,6 +31458,22 @@
         "type": "array",
         "items": {
           "$ref": "#/definitions/BranchProtection"
+        }
+      }
+    },
+    "AscInboxEntryList": {
+      "description": "AscInboxEntryList",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/AscInboxEntry"
+        }
+      },
+      "headers": {
+        "X-Total-Count": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of entries"
         }
       }
     },
