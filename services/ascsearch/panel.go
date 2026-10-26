@@ -9,6 +9,7 @@ import (
 
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	api "forgejo.org/modules/structs"
 )
 
 // PanelQuery asks for the symbol panel of the file view: the definition of a symbol, its references and
@@ -32,23 +33,10 @@ type PanelQuery struct {
 }
 
 // FileRefs groups symbol occurrences by file.
-type FileRefs struct {
-	Repo    string   `json:"repo"`
-	Path    string   `json:"path"`
-	Symbols []Symbol `json:"symbols"`
-}
+type FileRefs = api.AscFileRefs
 
 // Panel is the answer.
-type Panel struct {
-	Scope       *Scope      `json:"scope,omitempty"`
-	Definitions []SymbolHit `json:"definitions"`
-	References  []FileRefs  `json:"references"`
-	Callers     []FileRefs  `json:"callers"`
-	CrossRepo   []FileRefs  `json:"cross_repo"`
-	Truncated   bool        `json:"truncated"`
-	// Fallback says asc lacks the panel service and the panel was built from symbol calls.
-	Fallback bool `json:"-"`
-}
+type Panel = api.AscSymbolPanel
 
 const (
 	maxPanelFiles   = 100

@@ -7,15 +7,11 @@ import (
 	"math"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	api "forgejo.org/modules/structs"
 )
 
 // Scope says what an answer was computed against.
-type Scope struct {
-	Changeset  string  `json:"changeset,omitempty"`
-	Root       string  `json:"root,omitempty"`
-	Generation uint64  `json:"generation"`
-	Coverage   float32 `json:"coverage"`
-}
+type Scope = api.AscScope
 
 // ScopeOf checks and converts a resolved scope; a coverage outside 0..1 is reported as zero.
 func ScopeOf(s *ascv1.ResolvedScope) *Scope {
@@ -30,23 +26,10 @@ func ScopeOf(s *ascv1.ResolvedScope) *Scope {
 }
 
 // LineMatch is one matching line of a file with its context.
-type LineMatch struct {
-	Line   uint32   `json:"line"`
-	Cols   []uint32 `json:"cols,omitempty"`
-	Text   string   `json:"text"`
-	Before []string `json:"before,omitempty"`
-	After  []string `json:"after,omitempty"`
-}
+type LineMatch = api.AscLineMatch
 
 // FileHit is one file with matches. A redacted hit carries line numbers only.
-type FileHit struct {
-	Path     string      `json:"path"`
-	FileID   string      `json:"file_id,omitempty"`
-	Lang     string      `json:"lang,omitempty"`
-	AlsoAt   []string    `json:"also_at,omitempty"`
-	Matches  []LineMatch `json:"matches"`
-	Redacted bool        `json:"redacted"`
-}
+type FileHit = api.AscFileHit
 
 const (
 	maxMatchesPerFile = 50
@@ -102,28 +85,10 @@ func FileHitOf(h *ascv1.FileHit) (FileHit, bool) {
 }
 
 // RepoResult is the hits of one repository.
-type RepoResult struct {
-	// Repo is the asc name, "owner/repo".
-	Repo string `json:"repo"`
-	Rev  string `json:"rev,omitempty"`
-	// Scope is what the hits were computed against, when asc said.
-	Scope *Scope    `json:"scope,omitempty"`
-	Files []FileHit `json:"files"`
-}
+type RepoResult = api.AscRepoHits
 
 // Symbol is one symbol occurrence.
-type Symbol struct {
-	Name       string `json:"name"`
-	Kind       string `json:"kind"`
-	IsDef      bool   `json:"is_def"`
-	Path       string `json:"path"`
-	Line       uint32 `json:"line"`
-	EndLine    uint32 `json:"end_line"`
-	Signature  string `json:"signature,omitempty"`
-	Container  string `json:"container,omitempty"`
-	Doc        string `json:"doc,omitempty"`
-	Confidence string `json:"confidence,omitempty"`
-}
+type Symbol = api.AscSymbol
 
 const maxLine = 1 << 24
 
@@ -152,26 +117,10 @@ func SymbolOf(s *ascv1.Symbol) (Symbol, bool) {
 }
 
 // SymbolHit is a symbol in a repository.
-type SymbolHit struct {
-	Repo   string  `json:"repo"`
-	Rev    string  `json:"rev,omitempty"`
-	Symbol Symbol  `json:"symbol"`
-	Score  float32 `json:"score"`
-}
+type SymbolHit = api.AscSymbolHit
 
 // Chunk is one ranked piece of code of the meaning search.
-type Chunk struct {
-	Repo      string   `json:"repo"`
-	Path      string   `json:"path"`
-	FileID    string   `json:"file_id,omitempty"`
-	StartLine uint32   `json:"start_line"`
-	EndLine   uint32   `json:"end_line"`
-	Symbol    string   `json:"symbol,omitempty"`
-	Score     float64  `json:"score"`
-	Sources   []string `json:"sources,omitempty"`
-	Text      string   `json:"text"`
-	Redacted  bool     `json:"redacted"`
-}
+type Chunk = api.AscChunk
 
 const maxSources = 8
 
