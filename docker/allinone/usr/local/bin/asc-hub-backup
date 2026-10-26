@@ -172,7 +172,7 @@ do_create() {
 	hub_db="$(ini_value "$data/custom/conf/app.ini" database DB_TYPE)"
 	case "${hub_db:-sqlite3}" in sqlite3 | sqlite) hub_db=sqlite ;; *) ;; esac
 	asc_db=sqlite
-	asc_store=file
+	asc_store="file"
 	if [ -f "$data/asc/asc-serve.toml" ]; then
 		grep -q "^db = 'sqlite://" "$data/asc/asc-serve.toml" || asc_db=external
 		grep -q "^store = 'file://" "$data/asc/asc-serve.toml" || asc_store=s3
@@ -194,7 +194,8 @@ do_create() {
 		log "archive written to standard output (check it with: asc-hub-backup verify --in <file>)"
 		return 0
 	fi
-	local part="$outdir/.$(basename "$arc").part"
+	local part
+	part="$outdir/.$(basename "$arc").part"
 	rm -f "$part"
 	tar "${tar_args[@]}" --file "$part" || { rm -f "$part"; die "tar failed"; }
 	if ! archive_check "$part" >/dev/null; then

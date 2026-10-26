@@ -1,0 +1,15 @@
+#!/bin/bash
+# Fake of docker-entrypoint.sh (the hub). Records how it was started, then serves /api/healthz.
+set -u
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "$$" >>"$FAKE_DIR/hub.pids"
+echo "hub-start" >>"$FAKE_DIR/events.log"
+echo "args=$*" >>"$FAKE_DIR/hub.log"
+env | sort >"$FAKE_DIR/hub.env"
+if [ -e "$FAKE_DIR/hub.exit-immediately" ]; then
+	exit 3
+fi
+if [ "$#" -gt 0 ]; then
+	exit 0
+fi
+exec python3 "$here/fakeserve.py" "${HTTP_PORT:-3000}" "$(cat "$FAKE_DIR/hub.delay" 2>/dev/null || echo 0)"

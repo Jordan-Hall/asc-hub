@@ -185,6 +185,7 @@ set_default FORGEJO__asc__SHADOW_SAMPLE_PERCENT "0"
 
 # Clients send credentials to the public address, so it is https unless it is a loopback host. The
 # hub checks this too; saying it here names the variable to change.
+# shellcheck disable=SC2154 # set by set_default above
 case "$FORGEJO__asc__PUBLIC_URL" in
 https://*) ;;
 http://*)
@@ -200,6 +201,7 @@ HUB_URL="http://127.0.0.1:${HTTP_PORT_EFFECTIVE}"
 
 # --- asc serve configuration ----------------------------------------------------------------
 
+# shellcheck disable=SC2154 # set by set_default above
 BRIDGE="$(printf '%s' "$FORGEJO__asc__BRIDGE" | tr '[:upper:]' '[:lower:]')"
 case "$BRIDGE" in
 eager)

@@ -1,0 +1,31 @@
+#!/bin/bash
+# Fake of the forgejo command: `admin user list` and `admin user create`.
+set -u
+echo "$*" >>"$FAKE_DIR/forgejo.log"
+env | sort >"$FAKE_DIR/forgejo.env"
+case "$1 $2 $3" in
+"admin user list")
+	echo "ID Username Email IsActive IsAdmin 2FA"
+	n=1
+	while read -r u; do
+		if [ -n "$u" ]; then
+			echo "$n $u $u@example.org true true false"
+			n=$((n + 1))
+		fi
+	done <"$FAKE_DIR/users" 2>/dev/null
+	exit 0
+	;;
+"admin user create")
+	[ ! -e "$FAKE_DIR/forgejo.fail" ] || exit 1
+	user=""
+	while [ "$#" -gt 0 ]; do
+		if [ "$1" = "--username" ]; then user="$2"; fi
+		shift
+	done
+	echo "$user" >>"$FAKE_DIR/users"
+	echo "New user '$user' has been successfully created!"
+	echo "generated random password is 'Pw-0123456789'"
+	exit 0
+	;;
+esac
+exit 64

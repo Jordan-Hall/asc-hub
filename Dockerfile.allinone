@@ -61,6 +61,7 @@ RUN chmod 755 /tmp/local/usr/local/bin/docker-entrypoint.sh \
               /tmp/local/usr/local/bin/gitea \
               /tmp/allinone/usr/local/bin/asc-hub-entrypoint \
               /tmp/allinone/usr/local/bin/asc-hub-healthcheck \
+              /tmp/allinone/usr/local/bin/asc-hub-backup \
               /go/src/forgejo.org/gitea \
               /go/src/forgejo.org/environment-to-ini
 RUN chmod 644 /go/src/forgejo.org/contrib/autocompletion/bash_autocomplete
@@ -90,10 +91,14 @@ RUN apt-get update \
       ca-certificates \
       curl \
       dumb-init \
+      findutils \
       gettext-base \
       git \
       gnupg \
+      gzip \
       openssh-client \
+      tar \
+      util-linux \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --system --gid 1000 git \
  && useradd --system --uid 1000 --gid 1000 --home-dir /var/lib/gitea/git --no-create-home --shell /bin/bash git \
