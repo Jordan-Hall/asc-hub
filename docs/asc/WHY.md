@@ -93,7 +93,7 @@ Grouped by who gains. For each one we name the mechanism and whether it is avail
 
 | Benefit | Mechanism | Status |
 | --- | --- | --- |
-| One container | The image built from `Dockerfile.allinone` holds the hub and `asc serve`; its entrypoint generates the shared secrets and the `asc serve` configuration, starts both on loopback, and stops the container if either dies ([OPERATIONS.md](OPERATIONS.md)). This image has not been run by us yet: see the note in OPERATIONS.md. | available in the repository; unverified at runtime |
+| One container | The image built from `Dockerfile.allinone` holds the hub and `asc serve`; its entrypoint generates the shared secrets and the `asc serve` configuration, starts both on loopback, and stops the container if either dies ([OPERATIONS.md](OPERATIONS.md)). Its scripts (entrypoint, health check, backup tool) are tested against fake programs, and `scripts/smoke.sh` checks a deployed hub end to end; we have not yet run the built image ourselves ([OPERATIONS.md](OPERATIONS.md#what-is-tested)). | available; the built image is not yet verified at runtime |
 | SQLite or Postgres | The hub supports both (`DB_TYPE`); `asc serve` takes its own database setting. SQLite for staging, Postgres for production. | available |
 | Git clients keep working | The bridge and the pre-receive import (see above). | available, with the stated limits |
 | Bring your own S3 storage | The object store of `asc serve` can be a local path or an S3-compatible bucket, chosen by the operator in the asc configuration. A store chosen per user, organization or repository has hub pages (add, verify, enable, migrate) that need `asc serve` support, which is not built yet. | operator-level available; per user partial |
