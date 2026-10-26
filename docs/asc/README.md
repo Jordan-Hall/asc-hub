@@ -1,7 +1,7 @@
 # ASC Hub
 
 ASC Hub is the server for ASC (Agent Source Control). It hosts `asc` changesets and stacks, review, the inbox, and CI (Actions).
-It is a fork of [Forgejo](https://forgejo.org) v16, kept rebased on upstream. The repository is `ASC/asc-hub`.
+It is a fork of [Forgejo](https://forgejo.org) v16 and is not Forgejo or a git forge; [FORK.md](FORK.md) says how it differs and how upstream is merged. The repository is `ASC/asc-hub`.
 The image is `<REGISTRY>/asc/asc-hub`, with the registry host taken from the `REGISTRY` repository variable.
 
 ## How it relates to asc
@@ -36,7 +36,14 @@ Git-compatible clients (`git`, git over SSH and HTTPS) still work.
 ## Licence and credit
 
 Forgejo is GPL-3.0-or-later, and so is ASC Hub. The `LICENSE` file stays, and all upstream copyright notices stay.
-ASC Hub is built on the work of the Forgejo and Gitea contributors. The top-level `README.md` keeps the upstream text.
+ASC Hub is built on the work of the Forgejo and Gitea contributors. The top-level `README.md` is ASC Hub's own; the Forgejo attribution is in its "Fork and attribution" section and in [FORK.md](FORK.md).
+
+## Read first
+
+- [WHY.md](WHY.md): why ASC Hub exists, and the benefits with their status.
+- [ARCHITECTURE.md](ARCHITECTURE.md): components, data ownership, request flows.
+- [OPERATIONS.md](OPERATIONS.md): deploy, volumes, ports, backup, upgrade.
+- [FORK.md](FORK.md): the difference from Forgejo and the merge procedure.
 
 ## Run it
 
@@ -45,7 +52,7 @@ ASC Hub is built on the work of the Forgejo and Gitea contributors. The top-leve
 
 ## Upstream policy and names
 
-- `asc/v16` is rebased on upstream Forgejo v16 releases. Security fixes from upstream are merged first.
+- `asc/v16` takes in upstream Forgejo v16 releases; the procedure is in [FORK.md](FORK.md). Security fixes from upstream come first.
 - User-facing name: ASC Hub. This covers the UI, docs, the image and the repository.
 - Internal names stay as upstream: Go packages, the module path, the `forgejo` binary, API paths and `FORGEJO__` environment variables.
   Renaming them would break merges of upstream fixes.

@@ -17,8 +17,9 @@ attribution to Forgejo stays in the footer and in `/assets/licenses.txt`.
 | `templates/home.tmpl` | Landing page for asc: dark hero (tagline, `asc clone` example, register and sign-in buttons) and four cards for changesets, stacks, review and inbox. `home_forgejo.tmpl` is removed. |
 | `templates/base/head.tmpl` | Title suffix, author, description and keywords use `APP_NAME` and the `startpage.meta_*` locale keys. `[ui.meta]` is no longer read by the page head. |
 | `templates/base/head_opengraph.tmpl` | `og:title` fallback and `og:site_name` use `APP_NAME` (no slogan). |
-| `templates/base/footer_content.tmpl` | "Powered by ASC Hub" and a small "Based on Forgejo" link (shown while `[other] SHOW_FOOTER_POWERED_BY` is true, the default). Licenses, API and version links are unchanged. |
-| `options/locale/locale_en-US.ini` | `[startpage]` rewritten (new keys `title`, `meta_*`, `changesets*`, `stacks*`, `review*`, `inbox*`; old Forgejo marketing keys removed), new key `based_on`, and "Forgejo" replaced by "ASC Hub" in user-facing strings. |
+| `templates/base/footer_content.tmpl` | "Powered by ASC Hub" and a small "Based on Forgejo" link (shown while `[other] SHOW_FOOTER_POWERED_BY` is true, the default), a "Why ASC Hub" link to [WHY.md](WHY.md) on the `asc/v16` branch, then the licenses, API and version links. |
+| `options/locale/locale_en-US.ini`, `options/locale_next/locale_en-US.json` | `[startpage]` rewritten (new keys `title`, `meta_*`, `changesets*`, `stacks*`, `review*`, `inbox*`; old Forgejo marketing keys removed), new keys `based_on` and `why_asc_hub`, and "Forgejo" replaced by "ASC Hub" in user-facing sentences about the product (install, two-factor, authorized integrations, Actions). Names of other software stay (Forgejo Runner, the Forgejo webhook type, the Forgejo and Gitea themes and migration sources). Other languages are not edited; see [FORK.md](FORK.md#string-and-template-overrides). |
+| `templates/swagger/ui.tmpl`, `templates/swagger/v1_json.tmpl`, `Makefile` | The API documentation is titled "ASC Hub API" (`SWAGGER_SPEC_BRANDING` and the committed spec change together). |
 
 Kept as is: Go module path `forgejo.org`, `FORGEJO__` environment prefix,
 cookie names, the `forgejo` CLI binary name and the `forgejo doctor` command,
@@ -26,12 +27,17 @@ the "Forgejo" webhook type (`settings.web_hook_name_forgejo`), links to
 `forgejo.org/docs`, and every i18n key that existed before (other locales still
 carry the removed `startpage` keys; they are unused and harmless).
 
-Not changed here (Go code or tests, outside the branding patch):
-`modules/setting/server.go` defaults `APP_NAME` to "Forgejo: Beyond coding. We
-Forge.", `routers/install/install.go` pre-fills the slogan, `cmd/main.go` has
-the CLI usage line. Set `APP_NAME = ASC Hub` in `app.ini` (the page head then
-needs nothing else). `tests/integration/footer_test.go` expects "Powered by
-Forgejo" and needs the new text.
+Defaults in code: `modules/setting/server.go` defaults `APP_NAME` to "ASC Hub" and
+`APP_SLOGAN` to empty, and `routers/install/install.go` pre-fills the install form with
+"ASC Hub" and the slogan "Source control for people and their agents".
+`tests/integration/footer_test.go` and `opengraph_test.go` expect the ASC Hub text.
+
+Not changed (they are upstream container and CLI files): the container's first-start
+template (`docker/rootless/usr/local/bin/docker-setup.sh`, `docker/root/etc/s6/gitea/setup`)
+still falls back to `Forgejo: Beyond coding. We forge.` for `APP_NAME` when the plain
+`APP_NAME` environment variable is not set on the first start, so set `APP_NAME=ASC Hub`
+(or `FORGEJO____APP_NAME` later). `cmd/main.go` still has the CLI usage line
+"Beyond coding. We forge.", and the OCI labels in the Dockerfiles still name Forgejo.
 
 ## Regenerating images
 
