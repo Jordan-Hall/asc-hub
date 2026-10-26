@@ -1,22 +1,35 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-repo-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-repo-page asc-search">
 	{{template "repo/header" .}}
 	<div class="ui container">
-		<div id="asc-search-container" class="ui segment">
-			<h2>Search this repository</h2>
-			<form id="asc-search-form" class="ui form tw-mb-4" method="get" action="{{.RepoLink}}/asc/search">
-				<div class="tw-flex tw-flex-wrap tw-gap-3 tw-items-end">
+		<h1 class="tw-sr-only">{{.Title}}</h1>
+		<form id="asc-search-form" class="asc-search-form" method="get" action="{{.RepoLink}}/asc/search" role="search">
+			<div class="asc-search-bar">
+				<label class="tw-sr-only" for="asc-search-q">Search this repository</label>
+				<input id="asc-search-q" name="q" type="search" maxlength="4096" value="{{.AscSearchText}}" autocomplete="off" placeholder="Search code, symbols or ideas" required>
+				<button class="ui primary button" type="submit">Search</button>
+			</div>
+			<div class="asc-search-modes" role="radiogroup" aria-label="Kind of search" id="asc-search-mode">
+				<label class="asc-mode"><input type="radio" name="mode" value="lexical"{{if eq .AscSearchMode "lexical"}} checked{{end}}><span>Text</span></label>
+				<label class="asc-mode"><input type="radio" name="mode" value="symbol"{{if eq .AscSearchMode "symbol"}} checked{{end}}><span>Symbol</span></label>
+				<label class="asc-mode"><input type="radio" name="mode" value="semantic"{{if eq .AscSearchMode "semantic"}} checked{{end}}><span>Meaning</span></label>
+			</div>
+			<details class="asc-search-options" id="asc-search-scope"{{if or .AscSearchRefInput .AscSearchPathInput .AscSearchLangInput}} open{{end}}>
+				<summary>
+					In: <span class="tw-font-mono">{{.Repository.FullName}}</span> @ <span class="tw-font-mono">{{if .AscSearchRefInput}}{{.AscSearchRefInput}}{{else}}{{.AscSearchDefaultBranch}}{{end}}</span>
+				</summary>
+				<div class="asc-search-fields">
 					<div class="field">
-						<label for="asc-search-mode">Mode</label>
-						<select id="asc-search-mode" name="mode">
-							<option value="lexical"{{if eq .AscSearchMode "lexical"}} selected{{end}}>Text (lexical)</option>
-							<option value="symbol"{{if eq .AscSearchMode "symbol"}} selected{{end}}>Symbol</option>
-							<option value="semantic"{{if eq .AscSearchMode "semantic"}} selected{{end}}>Semantic</option>
-						</select>
+						<label for="asc-search-ref">Branch or commit</label>
+						<input id="asc-search-ref" name="ref" type="text" maxlength="255" value="{{.AscSearchRefInput}}" placeholder="{{.AscSearchDefaultBranch}}">
 					</div>
-					<div class="field tw-flex-1">
-						<label for="asc-search-q">Query</label>
-						<input id="asc-search-q" name="q" type="search" maxlength="4096" value="{{.AscSearchText}}" autocomplete="off" required>
+					<div class="field">
+						<label for="asc-search-path">Path prefix</label>
+						<input id="asc-search-path" name="path" type="text" maxlength="4096" value="{{.AscSearchPathInput}}" placeholder="the whole repository">
+					</div>
+					<div class="field">
+						<label for="asc-search-lang">Language</label>
+						<input id="asc-search-lang" name="lang" type="text" maxlength="40" value="{{.AscSearchLangInput}}" placeholder="any">
 					</div>
 					<div class="field">
 						<label for="asc-search-match">Text match</label>
@@ -26,50 +39,108 @@
 							<option value="regex"{{if eq .AscSearchMatch "regex"}} selected{{end}}>Regular expression</option>
 						</select>
 					</div>
-					<div class="field">
+					<div class="field asc-search-case">
 						<div class="ui checkbox">
 							<input id="asc-search-case" name="case" type="checkbox" value="1"{{if .AscSearchCase}} checked{{end}}>
 							<label for="asc-search-case">Match case</label>
 						</div>
 					</div>
 				</div>
-				<fieldset id="asc-search-scope" class="tw-mt-3 tw-border-0 tw-p-0">
-					<legend class="text grey">Scope</legend>
-					<div class="tw-flex tw-flex-wrap tw-gap-3 tw-items-end">
-						<div class="field">
-							<label for="asc-search-ref">Branch or commit</label>
-							<input id="asc-search-ref" name="ref" type="text" maxlength="255" value="{{.AscSearchRefInput}}" placeholder="{{.AscSearchDefaultBranch}}">
-						</div>
-						<div class="field">
-							<label for="asc-search-path">Path prefix</label>
-							<input id="asc-search-path" name="path" type="text" maxlength="4096" value="{{.AscSearchPathInput}}" placeholder="the whole repository">
-						</div>
-						<div class="field">
-							<label for="asc-search-lang">Language</label>
-							<input id="asc-search-lang" name="lang" type="text" maxlength="40" value="{{.AscSearchLangInput}}" placeholder="any">
-						</div>
-						<div class="field">
-							<button class="ui primary button" type="submit">Search</button>
-						</div>
-					</div>
-				</fieldset>
-			</form>
+			</details>
+		</form>
 
-			{{if .AscSearchError}}
-				<div class="ui warning message" role="alert">
-					{{if eq .AscSearchError 400}}<p>This search is not valid. Check the query, the path, the language and the branch.</p>
-					{{else if eq .AscSearchError 404}}<p>The branch, or the repository in the code index, was not found.</p>
-					{{else if eq .AscSearchError 429}}<p>Too many searches right now. Try again in a moment.</p>
-					{{else if eq .AscSearchError 503}}<p>This kind of search is not available for this repository yet.</p>
-					{{else if eq .AscSearchError 504}}<p>The search took too long.</p>
-					{{else}}<p>Search is not available right now.</p>{{end}}
+		{{if .AscSearchError}}
+			<div class="ui warning message" role="alert">
+				{{if eq .AscSearchError 400}}<p>This search is not valid. Check the query, the path, the language and the branch.</p>
+				{{else if eq .AscSearchError 404}}<p>The branch, or the repository in the code index, was not found.</p>
+				{{else if eq .AscSearchError 429}}<p>Too many searches right now. Try again in a moment.</p>
+				{{else if eq .AscSearchError 503}}<p>This kind of search is not available for this repository yet.</p>
+				{{else if eq .AscSearchError 504}}<p>The search took too long.</p>
+				{{else}}<p>Search is not available right now.</p>{{end}}
+			</div>
+		{{else if .AscSearchDone}}
+			<div class="asc-search-layout">
+				<div class="asc-search-facets" role="group" aria-label="Filters">
+					<section>
+						<h2 class="asc-facet-title">Scope</h2>
+						<ul class="asc-facet-list">
+							<li><a class="asc-chip active" href="#asc-search-form" aria-current="true">This version ({{.AscSearchRev}})</a></li>
+							<li><a class="asc-chip" href="{{AppSubUrl}}/explore/code?q={{.AscSearchText}}">All repositories</a></li>
+						</ul>
+					</section>
 				</div>
-			{{else if .AscSearchDone}}
-				<p class="text grey" id="asc-search-where">
-					{{.AscSearchCount}} result{{if ne .AscSearchCount 1}}s{{end}} at <span class="tw-font-mono">{{.AscSearchRev}}</span>
-					{{if eq .AscSearchMode "semantic"}}{{if .AscSearchModel}} using model <span class="tw-font-mono">{{.AscSearchModel}}</span>{{end}}{{end}}
-				</p>
-				<div id="asc-search-coverage" class="ui small {{if .AscSearchComplete}}info{{else}}warning{{end}} message" role="status">
+				<div class="asc-search-results" id="asc-search-results">
+					<p class="asc-search-summary" id="asc-search-where" role="status">
+						<b>{{.AscSearchCount}} result{{if ne .AscSearchCount 1}}s{{end}}</b> at <span class="tw-font-mono">{{.AscSearchRev}}</span>
+						{{if eq .AscSearchMode "semantic"}}{{if .AscSearchModel}}using model <span class="tw-font-mono">{{.AscSearchModel}}</span>{{end}}{{end}}
+					</p>
+
+					{{if eq .AscSearchCount 0}}
+						<div class="ui info message" role="status">Nothing found.</div>
+					{{end}}
+
+					{{range $f := .AscSearchFiles}}
+						<article class="asc-card asc-search-file">
+							<div class="asc-card-head">
+								<a class="asc-path" href="{{$f.Link}}">{{$f.Path}}</a>
+								{{if $f.Lang}}<span class="asc-pill asc-pill-lang">{{$f.Lang}}</span>{{end}}
+							</div>
+							{{if $f.Redacted}}
+								<p class="asc-redacted">The content of this file is hidden because it may hold secrets.</p>
+							{{else}}
+								<div class="asc-lines">
+									{{range $l := $f.Lines}}
+										<div class="asc-line{{if $l.IsMatch}} match{{end}}"><a class="n" href="{{$l.Link}}">{{$l.Number}}</a><span class="c">{{range $s := $l.Segments}}{{if $s.Hit}}<mark>{{$s.Text}}</mark>{{else}}{{$s.Text}}{{end}}{{end}}</span></div>
+									{{end}}
+								</div>
+							{{end}}
+							{{if $f.Also}}
+								<p class="asc-also">Same file also at {{range $a := $f.Also}}<a class="tw-font-mono" href="{{$a.Link}}">{{$a.Path}}</a> {{end}}</p>
+							{{end}}
+						</article>
+					{{end}}
+
+					{{if .AscSearchSymbols}}
+						<ul class="asc-symbols asc-search-symbols">
+							{{range $r := .AscSearchSymbols}}
+								<li class="asc-card asc-symbol">
+									<div class="asc-card-head">
+										<span class="asc-pill asc-pill-lang">{{$r.Kind}}</span>
+										<span class="tw-font-mono">{{$r.Name}}</span>
+										<span class="asc-pill asc-confidence asc-confidence-{{$r.Confidence}}" title="How this match was found">{{$r.Confidence}}</span>
+									</div>
+									<p class="asc-symbol-body">
+										<a class="asc-path" href="{{$r.Link}}">{{$r.Path}}{{if $r.Line}}:{{$r.Line}}{{end}}</a>
+										{{if $r.Container}}<span class="asc-muted">in {{$r.Container}}</span>{{end}}
+										{{if $r.Signature}}<code class="asc-signature">{{$r.Signature}}</code>{{end}}
+										{{if $r.Doc}}<span class="asc-muted">{{$r.Doc}}</span>{{end}}
+									</p>
+								</li>
+							{{end}}
+						</ul>
+					{{end}}
+
+					{{range $c := .AscSearchChunks}}
+						<article class="asc-card asc-chunk">
+							<div class="asc-card-head">
+								<a class="asc-path" href="{{$c.Link}}">{{$c.Path}}{{if $c.StartLine}}:{{$c.StartLine}}{{if gt $c.EndLine $c.StartLine}}-{{$c.EndLine}}{{end}}{{end}}</a>
+								{{if $c.Symbol}}<span class="tw-font-mono">{{$c.Symbol}}</span>{{end}}
+								<span class="asc-pill asc-pill-lang" title="Relevance score">{{$c.Score}}</span>
+								{{range $s := $c.Sources}}<span class="asc-pill asc-pill-lang">{{$s}}</span>{{end}}
+							</div>
+							{{if $c.Redacted}}
+								<p class="asc-redacted">The content of this chunk is hidden because it may hold secrets.</p>
+							{{else if $c.Text}}
+								<pre class="asc-chunk-text">{{$c.Text}}</pre>
+							{{end}}
+						</article>
+					{{end}}
+
+					{{if .AscSearchTruncated}}<div class="ui info message" role="status">More results exist than are shown. Narrow the scope or the query.</div>{{end}}
+				</div>
+
+				<section class="asc-search-coverage" id="asc-search-coverage" aria-label="Coverage">
+					<b>Coverage.</b>
 					{{if not .AscSearchCoverageKnown}}
 						How much of this scope is indexed is not known, so the results may be incomplete.
 					{{else if .AscSearchComplete}}
@@ -78,81 +149,15 @@
 						The index does not cover all of this scope yet, so the results may be incomplete.
 					{{end}}
 					{{range $c := .AscSearchCoverage}}
-						<span class="ui basic mini label asc-search-index">{{$c.Index}} {{$c.Percent}}%{{if $c.Lag}}, {{$c.Lag}} s behind{{end}}</span>
+						<span class="asc-pill asc-pill-info asc-search-index">{{$c.Index}} {{$c.Percent}}%{{if $c.Lag}}, {{$c.Lag}} s behind{{end}}</span>
 					{{end}}
-				</div>
-
-				{{if eq .AscSearchCount 0}}
-					<div class="ui info message">Nothing found.</div>
-				{{end}}
-
-				{{if .AscSearchFiles}}
-					<ul class="asc-search-files tw-list-none tw-p-0">
-						{{range $f := .AscSearchFiles}}
-							<li class="asc-search-file tw-mb-4">
-								<div class="tw-flex tw-flex-wrap tw-gap-2 tw-items-baseline">
-									<a class="tw-font-mono" href="{{$f.Link}}">{{$f.Path}}</a>
-									{{if $f.Lang}}<span class="ui basic mini label">{{$f.Lang}}</span>{{end}}
-									{{range $a := $f.Also}}<span class="text grey">also at <a class="tw-font-mono" href="{{$a.Link}}">{{$a.Path}}</a></span>{{end}}
-								</div>
-								{{if $f.Redacted}}
-									<div class="ui tiny message">The content of this file is hidden because it may hold secrets.</div>
-								{{else}}
-									<table class="asc-search-lines tw-font-mono tw-text-13">
-										<tbody>
-											{{range $l := $f.Lines}}
-												<tr{{if $l.IsMatch}} class="asc-search-match"{{end}}>
-													<td class="tw-text-right tw-pr-3 text grey"><a href="{{$l.Link}}">{{$l.Number}}</a></td>
-													<td class="tw-whitespace-pre-wrap tw-break-all">{{range $s := $l.Segments}}{{if $s.Hit}}<mark>{{$s.Text}}</mark>{{else}}{{$s.Text}}{{end}}{{end}}</td>
-												</tr>
-											{{end}}
-										</tbody>
-									</table>
-								{{end}}
-							</li>
-						{{end}}
-					</ul>
-				{{end}}
-
-				{{if .AscSearchSymbols}}
-					<ul class="asc-search-symbols tw-list-none tw-p-0">
-						{{range $r := .AscSearchSymbols}}
-							<li class="asc-symbol tw-flex tw-flex-wrap tw-gap-2 tw-items-baseline">
-								<span class="ui basic mini label">{{$r.Kind}}</span>
-								<a class="tw-font-mono" href="{{$r.Link}}">{{$r.Path}}{{if $r.Line}}:{{$r.Line}}{{end}}</a>
-								<span class="tw-font-mono">{{$r.Name}}</span>
-								{{if $r.Signature}}<code class="gt-ellipsis">{{$r.Signature}}</code>{{end}}
-								{{if $r.Container}}<span class="text grey">in {{$r.Container}}</span>{{end}}
-								<span class="ui mini label asc-confidence-{{$r.Confidence}}" title="How this match was found">{{$r.Confidence}}</span>
-								{{if $r.Doc}}<span class="text grey">{{$r.Doc}}</span>{{end}}
-							</li>
-						{{end}}
-					</ul>
-				{{end}}
-
-				{{if .AscSearchChunks}}
-					<ul class="asc-search-chunks tw-list-none tw-p-0">
-						{{range $c := .AscSearchChunks}}
-							<li class="asc-search-chunk tw-mb-4">
-								<div class="tw-flex tw-flex-wrap tw-gap-2 tw-items-baseline">
-									<a class="tw-font-mono" href="{{$c.Link}}">{{$c.Path}}{{if $c.StartLine}}:{{$c.StartLine}}{{if gt $c.EndLine $c.StartLine}}-{{$c.EndLine}}{{end}}{{end}}</a>
-									{{if $c.Symbol}}<span class="tw-font-mono">{{$c.Symbol}}</span>{{end}}
-									<span class="ui basic mini label" title="Relevance score">{{$c.Score}}</span>
-									{{range $s := $c.Sources}}<span class="ui basic mini label">{{$s}}</span>{{end}}
-								</div>
-								{{if $c.Redacted}}
-									<div class="ui tiny message">The content of this chunk is hidden because it may hold secrets.</div>
-								{{else if $c.Text}}
-									<pre class="tw-font-mono tw-text-13 tw-overflow-x-auto">{{$c.Text}}</pre>
-								{{end}}
-							</li>
-						{{end}}
-					</ul>
-				{{end}}
-
-				{{if .AscSearchTruncated}}<div class="ui info message">More results exist than are shown. Narrow the scope or the query.</div>{{end}}
-			{{end}}
-		</div>
+				</section>
+			</div>
+		{{else}}
+			<div class="asc-search-empty">
+				<p class="asc-muted">Search this repository. Use Text for exact words, Symbol for the name of a function or type, and Meaning for a question in words.</p>
+			</div>
+		{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}
