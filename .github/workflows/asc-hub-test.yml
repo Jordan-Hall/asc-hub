@@ -1,0 +1,32 @@
+name: asc-hub-test
+# Go build and the ASC Hub (asc) package tests on Linux, because the fork's Go tests cannot run on
+# the Windows development machine.
+on:
+  push:
+    branches: [asc/v16]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: asc-hub-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build
+        run: go build -tags 'sqlite sqlite_unlock_notify' ./...
+      - name: Vet the asc packages
+        run: go vet -tags 'sqlite sqlite_unlock_notify' ./modules/repostore/... ./services/ascbridge/... ./services/lfs/... ./services/pull/... ./modules/setting/...
+      - name: Test the asc packages
+        run: go test -tags 'sqlite sqlite_unlock_notify' -count=1 ./modules/repostore/... ./services/ascbridge/... ./services/lfs/... ./modules/setting/...
