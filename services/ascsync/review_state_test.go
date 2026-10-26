@@ -68,7 +68,7 @@ func TestAscReviewStateBuild(t *testing.T) {
 	change, st, err := BuildReviewState(f, now)
 	require.NoError(t, err)
 	assert.Equal(t, append(bytes.Repeat([]byte{0xff}, 15), 0xf0), change)
-	assert.Equal(t, &ascv1.ReviewState{Forge: "forgejo", Number: 7, Url: f.URL, State: "open", Approvals: 2, Checks: "success", Queue: "none", Updated: 1700000000}, st)
+	assert.Equal(t, &ascv1.ReviewState{Host: "forgejo", Number: 7, Url: f.URL, State: "open", Approvals: 2, Checks: "success", Queue: "none", Updated: 1700000000}, st)
 
 	f.Draft = true
 	_, st, _ = BuildReviewState(f, now)
