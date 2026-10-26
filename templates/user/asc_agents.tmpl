@@ -1,0 +1,75 @@
+{{/*
+"Your agents" (routers/web/user/asc_agent_tokens.go).
+Template Attributes:
+* AscAgentFeatures: the person's switch
+* AscAgentsRuns: []AscAgentsHomeRun, AscAgentsRepos: []AscAgentsHomeRepo, AscAgentsAnyFailed, AscAgentsError
+* CsrfTokenHtml
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content dashboard asc-agents">
+	{{template "user/dashboard/navbar" .}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+		<h2 class="asc-ag-title">Your agents</h2>
+		<section class="asc-card" aria-labelledby="asc-feat-title" data-testid="asc-agent-features">
+			<h3 id="asc-feat-title" class="asc-card-title">Agent features</h3>
+			<p>Agents are optional. ASC Hub works for people on its own, and with this off you see no agent pages and no agent buttons. It is a setting of your account, not of any repository.</p>
+			<p><strong>Right now: {{if .AscAgentFeatures}}on{{else}}off{{end}}.</strong></p>
+			<form method="post" action="{{AppSubUrl}}/-/asc/agents/features">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="enabled" value="{{if .AscAgentFeatures}}0{{else}}1{{end}}">
+				<button class="ui {{if .AscAgentFeatures}}basic{{else}}primary{{end}} button" type="submit">{{if .AscAgentFeatures}}Turn agent features off{{else}}Turn agent features on{{end}}</button>
+			</form>
+		</section>
+
+		{{if .AscAgentFeatures}}
+			{{if .AscAgentsError}}<div class="ui warning message" role="alert">{{.AscAgentsError}}</div>{{end}}
+			{{if .AscAgentsAnyFailed}}<div class="ui warning message" role="alert">Some repositories could not be read.</div>{{end}}
+
+			<section class="asc-card" aria-labelledby="asc-myruns-title">
+				<h3 id="asc-myruns-title" class="asc-card-title">Your recent runs</h3>
+				{{if .AscAgentsRuns}}
+					<ul class="asc-runs" data-testid="asc-my-agent-runs">
+						{{range .AscAgentsRuns}}
+							<li class="asc-run">
+								<div class="asc-run-main">
+									<a class="asc-run-title" href="{{.Link}}">{{.Title}}</a>
+									{{template "repo/asc_agents_pill" .State}}
+								</div>
+								<div class="asc-run-meta">
+									<a href="{{.Repo.Link}}">{{.Repo.FullName}}</a>
+									<span>run {{.ID}}</span>
+									{{if .Agent}}<span>agent <code>{{.Agent}}</code></span>{{end}}
+									{{if not .Created.IsZero}}<span>{{DateUtils.TimeSince .Created}}</span>{{end}}
+								</div>
+							</li>
+						{{end}}
+					</ul>
+				{{else}}
+					<p class="asc-muted">You have not started a run. Open a repository and choose Agents, then New task.</p>
+				{{end}}
+			</section>
+
+			<section class="asc-card" aria-labelledby="asc-myrepos-title">
+				<h3 id="asc-myrepos-title" class="asc-card-title">Your repositories</h3>
+				{{if .AscAgentsRepos}}
+					<ul class="asc-runs" data-testid="asc-my-agent-repos">
+						{{range .AscAgentsRepos}}
+							<li class="asc-run">
+								<div class="asc-run-main"><a class="asc-run-title" href="{{.Repo.Link}}">{{.Repo.FullName}}</a></div>
+								<div class="asc-run-meta">
+									<a href="{{.RunsURL}}">Agent runs</a>
+									{{if .IsAdmin}}<a href="{{.TokensURL}}">Agent tokens</a>{{end}}
+									<a href="{{.Repo.Link}}/asc/workflows">Workflows</a>
+								</div>
+							</li>
+						{{end}}
+					</ul>
+				{{else}}
+					<p class="asc-muted">No repository of yours lives in asc.</p>
+				{{end}}
+			</section>
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}
