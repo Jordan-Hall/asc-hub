@@ -5,24 +5,24 @@
 		<div id="asc-symbols-container" class="ui segment">
 			{{if .AscSymbolsError}}
 				<div class="ui warning message" role="alert">
-					<p>Symbols are not available right now.</p>
+					<p>{{ctx.Locale.Tr "repo.asc_symbols.error.unavailable"}}</p>
 				</div>
 			{{else}}
 				<h2>
-					{{if eq .AscSymbolsOp "outline"}}Outline of <span class="tw-font-mono">{{.AscSymbolsPath}}</span>
-					{{else if eq .AscSymbolsOp "usages"}}Usages in the base of #{{.AscSymbolsPull}}
-					{{else}}Symbol <span class="tw-font-mono">{{.AscSymbolsName}}</span>{{end}}
+					{{if eq .AscSymbolsOp "outline"}}{{ctx.Locale.Tr "repo.asc_symbols.title.outline" .AscSymbolsPath}}
+					{{else if eq .AscSymbolsOp "usages"}}{{ctx.Locale.Tr "repo.asc_symbols.title.usages" .AscSymbolsPull}}
+					{{else}}{{ctx.Locale.Tr "repo.asc_symbols.title.def" .AscSymbolsName}}{{end}}
 				</h2>
-				<p class="text grey">at <span class="tw-font-mono">{{.AscSymbolsRev}}</span></p>
+				<p class="text grey">{{ctx.Locale.Tr "repo.asc_symbols.at" .AscSymbolsRev}}</p>
 				{{range $sec := .AscSymbolsSections}}
 					<h3 class="asc-symbols-title">
-						{{if eq $sec.Title "outline"}}Outline
-						{{else if eq $sec.Title "def"}}Definition
-						{{else if eq $sec.Title "refs"}}References
-						{{else}}Usages of <span class="tw-font-mono">{{$sec.Name}}</span>{{end}}
+						{{if eq $sec.Title "outline"}}{{ctx.Locale.Tr "repo.asc_symbols.section.outline"}}
+						{{else if eq $sec.Title "def"}}{{ctx.Locale.Tr "repo.asc_symbols.section.def"}}
+						{{else if eq $sec.Title "refs"}}{{ctx.Locale.Tr "repo.asc_symbols.section.refs"}}
+						{{else}}{{ctx.Locale.Tr "repo.asc_symbols.section.usages" $sec.Name}}{{end}}
 					</h3>
 					{{if not $sec.Rows}}
-						<div class="ui info message">Nothing found.</div>
+						<div class="ui info message">{{ctx.Locale.Tr "repo.asc_symbols.none"}}</div>
 					{{else}}
 						<ul class="asc-symbols-list tw-list-none tw-p-0">
 							{{range $r := $sec.Rows}}
@@ -31,13 +31,13 @@
 									<a class="tw-font-mono" href="{{$r.Link}}">{{$r.Path}}{{if $r.Line}}:{{$r.Line}}{{end}}</a>
 									<span class="tw-font-mono">{{$r.Name}}</span>
 									{{if $r.Signature}}<code class="gt-ellipsis">{{$r.Signature}}</code>{{end}}
-									{{if $r.Container}}<span class="text grey">in {{$r.Container}}</span>{{end}}
-									<span class="ui mini label asc-confidence-{{$r.Confidence}}" title="How this match was found">{{$r.Confidence}}</span>
+									{{if $r.Container}}<span class="text grey">{{ctx.Locale.Tr "repo.asc_symbols.in" $r.Container}}</span>{{end}}
+									<span class="ui mini label asc-confidence-{{$r.Confidence}}" title="{{ctx.Locale.Tr "repo.asc_symbols.confidence"}}">{{$r.Confidence}}</span>
 									{{if $r.Doc}}<span class="text grey">{{$r.Doc}}</span>{{end}}
 								</li>
 							{{end}}
 						</ul>
-						{{if $sec.Truncated}}<div class="ui info message">More results exist than are shown.</div>{{end}}
+						{{if $sec.Truncated}}<div class="ui info message">{{ctx.Locale.Tr "repo.asc_symbols.truncated"}}</div>{{end}}
 					{{end}}
 				{{end}}
 			{{end}}
