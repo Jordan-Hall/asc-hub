@@ -18,6 +18,7 @@ import (
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
 	access_model "forgejo.org/models/perm/access"
+	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
@@ -45,7 +46,12 @@ import (
 //   - Approvals survive a restack only for a change whose patch is unchanged (patch_unchanged). Every other
 //     rewritten child keeps the ordinary stale-review behaviour.
 //
-// TODO(C22): RestackChanges is coded to its SPEC contract; AscStackBackend is the seam a real client fills.
+//   - With NoContentMerge the land carries UpdateRefsRequest.no_content_merge. When the target moved so that
+//     the land would have to merge file contents, asc refuses with LAND_NEEDS_CONTENT_MERGE and lands nothing
+//     (ErrAscLandNeedsContentMerge). The caller then restacks the stack (RestackAscStack) so that the content
+//     that lands is a version that was reviewed and checked.
+//
+// InitAscStack registers the asc backends at start; until it has, every call fails closed ("no backend").
 
 // Errors of the stack merge. The first group is the caller's mistake and maps to 4xx.
 var (
@@ -54,6 +60,10 @@ var (
 	ErrAscStackNotAllowed  = errors.New("not allowed to merge a pull request of the stack")
 	ErrAscStackHeadMoved   = errors.New("a pull request head moved while the stack merge was prepared")
 	ErrAscStackDisabled    = errors.New("the repository is not stored in asc")
+
+	// ErrAscLandNeedsContentMerge is what Land returns when asc answered LAND_NEEDS_CONTENT_MERGE: the land
+	// would have to merge file contents, so what would land is not what was reviewed. Nothing landed.
+	ErrAscLandNeedsContentMerge = errors.New("LAND_NEEDS_CONTENT_MERGE: the land needs a content merge")
 )
 
 // AscStackItem is one pull request of the prefix, bottom first.
@@ -68,6 +78,9 @@ type AscLandRequest struct {
 	Repo   string // owner/name
 	Target string // full ref name, refs/heads/<base>
 	Heads  []string
+	// NoContentMerge sets UpdateRefsRequest.no_content_merge: a land that would need a content merge is refused
+	// with ErrAscLandNeedsContentMerge instead of merging.
+	NoContentMerge bool
 }
 
 // AscLandResult says what asc landed. Landed[i] is the git id the change of Heads[i] has on the target.
@@ -126,6 +139,22 @@ func UseAscStackBackend(b AscStackBackend) (restore func()) {
 	prev := ascStackBackend
 	ascStackBackend = b
 	return func() { ascStackBackend = prev }
+}
+
+// UseAscStackHead replaces the resolver of the head of a pull request until the returned function is called.
+// It is for tests of the callers of CheckAscStack and MergeAscStack, which have no git directory to read.
+func UseAscStackHead(f func(ctx context.Context, pr *issues_model.PullRequest) (string, error)) (restore func()) {
+	prev := ascStackHead
+	ascStackHead = f
+	return func() { ascStackHead = prev }
+}
+
+// UseAscStackBacked replaces the test that a repository is stored in asc until the returned function is called.
+// It is for tests of the callers of RestackAscStack and RevertAscStack.
+func UseAscStackBacked(f func(*repo_model.Repository) (bool, error)) (restore func()) {
+	prev := ascStackBacked
+	ascStackBacked = f
+	return func() { ascStackBacked = prev }
 }
 
 // AscStackPrefix returns the unmerged pull requests from the bottom of pr's stack up to and including pr,
@@ -211,6 +240,30 @@ func checkAscStackItem(ctx context.Context, doer *user_model.User, perm access_m
 	return nil
 }
 
+// AscStackCheck is the readiness of one pull request of a prefix: Err is nil when MergeAscStack would accept
+// it. Any other error, a database error included, means not ready.
+type AscStackCheck struct {
+	Item *AscStackItem
+	Err  error
+}
+
+// CheckAscStack checks every pull request of the prefix bottom..pr the way MergeAscStack does, without
+// stopping at the first failure and without calling asc or writing anything. It is the dry run of a merge.
+func CheckAscStack(ctx context.Context, doer *user_model.User, perm access_model.Permission, pr *issues_model.PullRequest) ([]AscStackCheck, error) {
+	if doer == nil {
+		return nil, ErrAscStackNotAllowed
+	}
+	items, err := AscStackPrefix(ctx, pr)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]AscStackCheck, len(items))
+	for i, it := range items {
+		out[i] = AscStackCheck{Item: it, Err: checkAscStackItem(ctx, doer, perm, items[0].PR, it)}
+	}
+	return out, nil
+}
+
 // AscStackMergeResult reports a stack merge.
 type AscStackMergeResult struct {
 	Merged   []*issues_model.PullRequest // bottom first
@@ -218,9 +271,20 @@ type AscStackMergeResult struct {
 	Restacks error // set when the land succeeded and the restack call failed; the merge stands
 }
 
+// AscMergeOptions are the options of MergeAscStackWith.
+type AscMergeOptions struct {
+	// NoContentMerge refuses a land that needs a content merge (ErrAscLandNeedsContentMerge).
+	NoContentMerge bool
+}
+
 // MergeAscStack merges the prefix bottom..pr of a stack and restacks the open children. perm is the doer's
 // permission on the base repository.
 func MergeAscStack(ctx context.Context, doer *user_model.User, perm access_model.Permission, pr *issues_model.PullRequest) (*AscStackMergeResult, error) {
+	return MergeAscStackWith(ctx, doer, perm, pr, AscMergeOptions{})
+}
+
+// MergeAscStackWith is MergeAscStack with options.
+func MergeAscStackWith(ctx context.Context, doer *user_model.User, perm access_model.Permission, pr *issues_model.PullRequest, opt AscMergeOptions) (*AscStackMergeResult, error) {
 	if doer == nil {
 		return nil, ErrAscStackNotAllowed
 	}
@@ -244,7 +308,7 @@ func MergeAscStack(ctx context.Context, doer *user_model.User, perm access_model
 	for i, it := range items {
 		heads[i] = it.Head
 	}
-	landed, err := backend.Land(ctx, AscLandRequest{Repo: name, Target: git.BranchPrefix + items[0].PR.BaseBranch, Heads: heads})
+	landed, err := backend.Land(ctx, AscLandRequest{Repo: name, Target: git.BranchPrefix + items[0].PR.BaseBranch, Heads: heads, NoContentMerge: opt.NoContentMerge})
 	if err != nil {
 		return nil, err
 	}
@@ -382,6 +446,25 @@ func AscStackMergeReady(pr *issues_model.PullRequest) bool {
 // ascStackTimeout bounds one asc call of the stack merge.
 const ascStackTimeout = 60 * time.Second
 
+// ascCodeNeedsContentMerge is the ErrorDetail.code of a land that needs a content merge.
+const ascCodeNeedsContentMerge = "LAND_NEEDS_CONTENT_MERGE"
+
+// InitAscStack registers the asc backends of the stack merge, the stack restack and the stack revert. With asc
+// disabled it does nothing. A missing internal token or an unusable address is logged and leaves the backends
+// unset, so every stack operation answers that asc is not available instead of the hub failing to start.
+func InitAscStack() error {
+	if !setting.Asc.Enabled {
+		return nil
+	}
+	b, err := NewAscStackBackend()
+	if err != nil {
+		log.Error("asc stack backend: %v", err)
+		return nil
+	}
+	ascStackBackend = b
+	return nil
+}
+
 type ascClientBackend struct {
 	repo ascv1.RepoClient
 	chg  ascv1.ChangesClient
@@ -453,7 +536,7 @@ func (b *ascClientBackend) ascToGit(ctx context.Context, repo string, ids ...[]b
 }
 
 func (b *ascClientBackend) Land(ctx context.Context, req AscLandRequest) (*AscLandResult, error) {
-	op := opID("land", req.Repo, req.Target, strings.Join(req.Heads, ","))
+	op := opID("land", req.Repo, req.Target, strings.Join(req.Heads, ","), fmt.Sprint(req.NoContentMerge))
 	ctx, cancel := b.system(ctx, op)
 	defer cancel()
 	asc, err := b.gitToAsc(ctx, req.Repo, req.Heads...)
@@ -478,8 +561,12 @@ func (b *ascClientBackend) Land(ctx context.Context, req AscLandRequest) (*AscLa
 			Name: req.Target, Expect: &ascv1.RefUpdate_Any{Any: true},
 			New: &ascv1.RefTarget{T: &ascv1.RefTarget_Changeset{Changeset: asc[len(asc)-1]}},
 		}},
+		NoContentMerge: req.NoContentMerge,
 	})
 	if err != nil {
+		if ascclient.ErrorCode(err) == ascCodeNeedsContentMerge {
+			return nil, ErrAscLandNeedsContentMerge
+		}
 		return nil, fmt.Errorf("UpdateRefs LAND: %w", err)
 	}
 	rewritten := map[string][]byte{}
