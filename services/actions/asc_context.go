@@ -101,7 +101,7 @@ func addAscContext(ctx context.Context, taskContext *structpb.Struct, run *actio
 	}
 
 	fields := taskContext.GetFields()
-	fields[ascContextServerURL] = structpb.NewStringValue(setting.Asc.ServerURL)
+	fields[ascContextServerURL] = structpb.NewStringValue(setting.AscPublicURL())
 	fields[ascContextChangeset] = structpb.NewStringValue(changesets[0])
 	if withMergeBase {
 		fields[ascContextBaseMergeBase] = structpb.NewStringValue(changesets[1])
