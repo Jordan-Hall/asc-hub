@@ -8,7 +8,7 @@ Template Attributes:
 Entry reasons are written by the queue worker from fixed texts and pull request numbers; the template engine escapes them.
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-queue-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-queue-page asc-repo-page">
 	{{template "repo/header" .}}
 	<div class="ui container">
 		{{template "base/alert" .}}

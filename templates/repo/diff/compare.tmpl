@@ -1,5 +1,5 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository diff {{if .PageIsComparePull}}compare pull{{end}}">
+<div role="main" aria-label="{{.Title}}" class="page-content repository diff asc-repo-page asc-review-page {{if .PageIsComparePull}}compare pull{{end}}">
 	{{template "repo/header" .}}
 	{{$showDiffBox := false}}
 	{{$canReadPullRequests := .Permission.CanRead $.UnitTypePullRequests}}
