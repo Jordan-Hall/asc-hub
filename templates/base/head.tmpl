@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ctx.Locale.Lang}}" data-theme="{{ThemeName .SignedUser}}">
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 	{{/* Display `- .Repository.FullName` only if `.Title` does not already start with that. */}}
 	<title>{{if .Title}}{{.Title}} - {{end}}{{if and (.Repository.Name) (not (StringUtils.HasPrefix .Title .Repository.FullName))}}{{.Repository.FullName}} - {{else}}{{if and (.ContextUser.IsOrganization) (.ContextUser.Name) (not (StringUtils.HasPrefix .Title .ContextUser.Name)) (not (StringUtils.HasPrefix .Title .ContextUser.FullName))}}{{.ContextUser.Name}} - {{end}}{{end}}{{AppName}}</title>
 	<link rel="manifest" href="{{AppSubUrl}}/manifest.json">
