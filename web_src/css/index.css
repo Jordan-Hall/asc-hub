@@ -92,5 +92,6 @@
 
 @import "./asc.css";
 @import "./asc-search.css";
+@import "./asc-repo.css";
 @import "./asc-queue.css";
 @import "./asc-settings.css";

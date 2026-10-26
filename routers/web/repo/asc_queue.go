@@ -273,7 +273,7 @@ func AscQueuePage(ctx *context.Context) {
 		users[u.ID] = u
 	}
 	ctx.Data["Title"] = ctx.Locale.TrString("repo.asc_queue.title")
-	ctx.Data["PageIsPullList"] = true
+	ctx.Data["PageIsAscQueue"] = true
 	ctx.Data["AscQueue"] = view
 	ctx.Data["AscQueueUsers"] = users
 	ctx.Data["AscQueueCanAdmin"] = canAdmin
