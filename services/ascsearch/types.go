@@ -66,8 +66,7 @@ func FileHitOf(h *ascv1.FileHit) (FileHit, bool) {
 		lm := LineMatch{Line: m.GetLine()}
 		// A redacted hit shows its line numbers only, whatever text the message carried.
 		if !h.GetRedacted() {
-			lm.Cols = m.GetCols()
-			lm.Text = Line(m.GetText())
+			lm.Text, lm.Cols = CleanAt(m.GetText(), maxLineBytes, m.GetCols())
 			for _, b := range m.GetBefore() {
 				if len(lm.Before) < MaxContext {
 					lm.Before = append(lm.Before, Line(b))

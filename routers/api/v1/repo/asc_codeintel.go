@@ -18,6 +18,8 @@ import (
 	"forgejo.org/models/unit"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/log"
+	"forgejo.org/services/ascsearch"
 	"forgejo.org/services/context"
 
 	"google.golang.org/grpc/codes"
@@ -36,8 +38,8 @@ import (
 // every text field here even if the message carried one, and all text is made valid UTF-8 without
 // control or bidirectional characters. The status text of an error never reaches the client.
 //
-// TODO(I26-wire): routers/api/v1/api.go must register the three routes under reqRepoReader(unit.TypeCode)
-// and call SetAscCodeIntel(ascclient.CodeIntel()) at start; both belong to other units.
+// The routes are registered in api.go under reqRepoReader(unit.TypeCode). The client is the process's
+// connection to asc serve (ascsearch.Default) unless SetAscCodeIntel sets another one.
 
 // Bounds on one request and on what is read back.
 const (
@@ -158,19 +160,46 @@ func ascCIScope(s *ascv1.ResolvedScope) *ascCIScopeJSON {
 }
 
 type ascCIQuery struct {
-	api    ascv1.CodeIntelClient
+	api ascv1.CodeIntelClient
+	// svc has the CodeIntel client above and, when asc serve is connected, the CrossSearch client.
+	svc    *ascsearch.Service
 	ctx    gocontext.Context
 	cancel gocontext.CancelFunc
 	scope  *ascv1.Scope
 	limit  int
 }
 
-// ascCIStart runs the checks every route shares and builds the scope. It writes the error and returns nil
-// when a check fails.
-func ascCIStart(ctx *context.APIContext) *ascCIQuery {
-	h := ascCIClient.Load()
-	if h == nil {
+// ascCIService is the client of this request: the one SetAscCodeIntel set, else the connection to asc serve.
+func ascCIService() (*ascsearch.Service, error) {
+	def, err := ascsearch.Default()
+	if h := ascCIClient.Load(); h != nil {
+		svc := &ascsearch.Service{Intel: h.api}
+		if err == nil {
+			svc.Cross = def.Cross
+		}
+		return svc, nil
+	}
+	return def, err
+}
+
+// ascCIFailStart answers a missing service: 501 while the integration is off, 502 when it cannot connect.
+func ascCIFailStart(ctx *context.APIContext, err error) {
+	if errors.Is(err, ascsearch.ErrDisabled) {
 		ctx.Error(http.StatusNotImplemented, "", "code intelligence is not enabled")
+		return
+	}
+	log.Error("asc code intelligence: no connection to asc serve: %v", err)
+	ctx.Error(http.StatusBadGateway, "", "code intelligence is unavailable")
+}
+
+// ascCIStart runs the checks every route shares and builds the scope. It writes the error and returns nil
+// when a check fails. The scope is a revision (rev, the default branch when empty) or, when atChange is
+// true, a change (change) or the top of a stack (stack, with stack_diff_only to search only what the stack
+// changes); only one of the three may be given.
+func ascCIStart(ctx *context.APIContext, atChange bool) *ascCIQuery {
+	svc, err := ascCIService()
+	if err != nil {
+		ascCIFailStart(ctx, err)
 		return nil
 	}
 	repo := ctx.Repository()
@@ -183,17 +212,41 @@ func ascCIStart(ctx *context.APIContext) *ascCIQuery {
 		ctx.Error(http.StatusUnauthorized, "", "a token is required for code intelligence")
 		return nil
 	}
-	rev := ctx.FormString("rev")
-	if rev == "" {
-		rev = repo.DefaultBranch
-	}
-	if rev == "" || strings.HasPrefix(rev, "-") || !ascCIPlain(rev, ascCIMaxRevBytes) {
-		ctx.Error(http.StatusUnprocessableEntity, "", "bad rev")
+	name, err := ascsearch.NameOf(repo)
+	if err != nil {
+		ctx.NotFound()
 		return nil
 	}
-	scope := &ascv1.Scope{
-		Repo: &ascv1.RepoRef{Name: repo.FullName(), IdMode: ascv1.IdMode_ID_MODE_GIT},
-		At:   &ascv1.Scope_Rev{Rev: rev},
+	var scope *ascv1.Scope
+	change, stack := ctx.FormString("change"), ctx.FormString("stack")
+	switch {
+	case change != "" || stack != "":
+		if !atChange || (change != "" && (stack != "" || ctx.FormString("rev") != "")) || (stack != "" && ctx.FormString("rev") != "") {
+			ctx.Error(http.StatusUnprocessableEntity, "", "give one of rev, change and stack")
+			return nil
+		}
+		id := change
+		if stack != "" {
+			id = stack
+		}
+		scope, err = ascsearch.AtChange(name, id, stack != "", ctx.FormBool("stack_diff_only"))
+		if err != nil {
+			ctx.Error(http.StatusUnprocessableEntity, "", "bad change id")
+			return nil
+		}
+	default:
+		rev := ctx.FormString("rev")
+		if rev == "" {
+			rev = repo.DefaultBranch
+		}
+		if rev == "" || strings.HasPrefix(rev, "-") || !ascCIPlain(rev, ascCIMaxRevBytes) {
+			ctx.Error(http.StatusUnprocessableEntity, "", "bad rev")
+			return nil
+		}
+		scope = &ascv1.Scope{
+			Repo: &ascv1.RepoRef{Name: name, IdMode: ascv1.IdMode_ID_MODE_GIT},
+			At:   &ascv1.Scope_Rev{Rev: rev},
+		}
 	}
 	for _, f := range []struct {
 		key  string
@@ -226,7 +279,7 @@ func ascCIStart(ctx *context.APIContext) *ascCIQuery {
 		limit = ascCIMaxLimit
 	}
 	c, cancel := gocontext.WithTimeout(callCtx, ascCITimeout)
-	return &ascCIQuery{api: h.api, ctx: c, cancel: cancel, scope: scope, limit: limit}
+	return &ascCIQuery{api: svc.Intel, svc: svc, ctx: c, cancel: cancel, scope: scope, limit: limit}
 }
 
 func ascCIPageToken(ctx *context.APIContext) (string, bool) {
@@ -332,7 +385,108 @@ func ascCIHit(h *ascv1.FileHit) ascCIFileHit {
 
 // AscSearch serves GET /repos/{owner}/{repo}/asc/search.
 func AscSearch(ctx *context.APIContext) {
-	q := ascCIStart(ctx)
+	// swagger:operation GET /repos/{owner}/{repo}/asc/search repository repoAscSearch
+	// ---
+	// summary: Search the text of the code of a repository
+	// description: Runs the search with the token of the caller, so the server decides what the caller may
+	//   read. A hit the server marked redacted (it may hold a secret) lists line numbers only. The answer
+	//   is capped by limit; page_token continues it.
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: owner
+	//   in: path
+	//   description: owner of the repository
+	//   type: string
+	//   required: true
+	// - name: repo
+	//   in: path
+	//   description: name of the repository
+	//   type: string
+	//   required: true
+	// - name: rev
+	//   in: query
+	//   description: the revision to read (a branch, a tag or a commit id); the default branch when empty
+	//   type: string
+	// - name: change
+	//   in: query
+	//   description: read a change at its current head instead of a revision (32 letters from k to z)
+	//   type: string
+	// - name: stack
+	//   in: query
+	//   description: read the top of the stack that ends in this change (32 letters from k to z)
+	//   type: string
+	// - name: stack_diff_only
+	//   in: query
+	//   description: with stack, read only the files the stack changes
+	//   type: boolean
+	// - name: path
+	//   in: query
+	//   description: only these paths or directories; repeat for up to 16
+	//   type: array
+	//   items:
+	//     type: string
+	//   collectionFormat: multi
+	// - name: lang
+	//   in: query
+	//   description: only these languages; repeat for up to 8
+	//   type: array
+	//   items:
+	//     type: string
+	//   collectionFormat: multi
+	// - name: q
+	//   in: query
+	//   description: the text to find, at most 4096 bytes
+	//   type: string
+	//   required: true
+	// - name: mode
+	//   in: query
+	//   description: how to match q
+	//   type: string
+	//   enum: [literal, regex, word]
+	// - name: case_sensitive
+	//   in: query
+	//   type: boolean
+	// - name: exclude
+	//   in: query
+	//   description: leave out these paths or directories; repeat for up to 16
+	//   type: array
+	//   items:
+	//     type: string
+	//   collectionFormat: multi
+	// - name: context
+	//   in: query
+	//   description: lines of context around a match (0 to 5, default 1)
+	//   type: integer
+	// - name: limit
+	//   in: query
+	//   description: most files to return (default 50, at most 200)
+	//   type: integer
+	// - name: page_token
+	//   in: query
+	//   description: the next_page_token of an earlier answer
+	//   type: string
+	// responses:
+	//   "200":
+	//     "$ref": "#/responses/AscRepoSearchResult"
+	//   "401":
+	//     "$ref": "#/responses/unauthorized"
+	//   "404":
+	//     "$ref": "#/responses/notFound"
+	//   "422":
+	//     "$ref": "#/responses/validationError"
+	//   "429":
+	//     description: too many requests
+	//   "501":
+	//     description: code intelligence is not enabled
+	//   "502":
+	//     description: code intelligence failed
+	//   "503":
+	//     description: code intelligence is unavailable
+	//   "504":
+	//     description: the search took too long
+
+	q := ascCIStart(ctx, true)
 	if q == nil {
 		return
 	}
@@ -438,7 +592,113 @@ var ascCISymbolOps = map[string]ascv1.SymbolOp{
 // AscSymbols serves GET /repos/{owner}/{repo}/asc/symbols. The query names the operation (op), the symbol
 // (name) or, for outline, the file (file).
 func AscSymbols(ctx *context.APIContext) {
-	q := ascCIStart(ctx)
+	// swagger:operation GET /repos/{owner}/{repo}/asc/symbols repository repoAscSymbols
+	// ---
+	// summary: Look up symbols in a repository
+	// description: With op=find (the default) lists the declared symbols whose name matches name. With
+	//   op=def, refs and callers it answers for the symbol name (def_path and def_line pick one definition
+	//   when the name is ambiguous), and with op=outline it lists the symbols declared in the file file.
+	//   Every symbol says how it was found in confidence: precise, import_match or name_match.
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: owner
+	//   in: path
+	//   description: owner of the repository
+	//   type: string
+	//   required: true
+	// - name: repo
+	//   in: path
+	//   description: name of the repository
+	//   type: string
+	//   required: true
+	// - name: op
+	//   in: query
+	//   description: what to ask
+	//   type: string
+	//   enum: [find, def, refs, callers, outline]
+	// - name: name
+	//   in: query
+	//   description: the symbol, at most 512 bytes; required except for outline
+	//   type: string
+	// - name: file
+	//   in: query
+	//   description: the file for outline
+	//   type: string
+	// - name: def_path
+	//   in: query
+	//   description: the file of the definition, to pick one of several
+	//   type: string
+	// - name: def_line
+	//   in: query
+	//   description: the line of the definition, to pick one of several
+	//   type: integer
+	// - name: kind
+	//   in: query
+	//   description: only these kinds of symbol; repeat for up to 8
+	//   type: array
+	//   items:
+	//     type: string
+	//   collectionFormat: multi
+	// - name: rev
+	//   in: query
+	//   description: the revision to read; the default branch when empty
+	//   type: string
+	// - name: change
+	//   in: query
+	//   description: read a change at its current head instead of a revision (32 letters from k to z)
+	//   type: string
+	// - name: stack
+	//   in: query
+	//   description: read the top of the stack that ends in this change (32 letters from k to z)
+	//   type: string
+	// - name: stack_diff_only
+	//   in: query
+	//   description: with stack, read only the files the stack changes
+	//   type: boolean
+	// - name: path
+	//   in: query
+	//   description: only these paths or directories; repeat for up to 16
+	//   type: array
+	//   items:
+	//     type: string
+	//   collectionFormat: multi
+	// - name: lang
+	//   in: query
+	//   description: only these languages; repeat for up to 8
+	//   type: array
+	//   items:
+	//     type: string
+	//   collectionFormat: multi
+	// - name: limit
+	//   in: query
+	//   description: most symbols to return (default 50, at most 200)
+	//   type: integer
+	// - name: page_token
+	//   in: query
+	//   description: the next_page_token of an earlier answer
+	//   type: string
+	// responses:
+	//   "200":
+	//     "$ref": "#/responses/AscRepoSymbolsResult"
+	//   "401":
+	//     "$ref": "#/responses/unauthorized"
+	//   "404":
+	//     "$ref": "#/responses/notFound"
+	//   "422":
+	//     "$ref": "#/responses/validationError"
+	//   "429":
+	//     description: too many requests
+	//   "501":
+	//     description: code intelligence is not enabled
+	//   "502":
+	//     description: code intelligence failed
+	//   "503":
+	//     description: code intelligence is unavailable
+	//   "504":
+	//     description: the call took too long
+
+	q := ascCIStart(ctx, true)
 	if q == nil {
 		return
 	}
@@ -537,7 +797,93 @@ type ascCISemanticJSON struct {
 
 // AscSemantic serves GET /repos/{owner}/{repo}/asc/semantic.
 func AscSemantic(ctx *context.APIContext) {
-	q := ascCIStart(ctx)
+	// swagger:operation GET /repos/{owner}/{repo}/asc/semantic repository repoAscSemantic
+	// ---
+	// summary: Search the code of a repository by meaning
+	// description: Finds the pieces of code that best answer a question in words. A chunk the server marked
+	//   redacted (it may hold a secret) has no text.
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: owner
+	//   in: path
+	//   description: owner of the repository
+	//   type: string
+	//   required: true
+	// - name: repo
+	//   in: path
+	//   description: name of the repository
+	//   type: string
+	//   required: true
+	// - name: q
+	//   in: query
+	//   description: the question, at most 4096 bytes
+	//   type: string
+	//   required: true
+	// - name: mode
+	//   in: query
+	//   description: hybrid mixes text and vectors, vector uses vectors only
+	//   type: string
+	//   enum: [hybrid, vector]
+	// - name: k
+	//   in: query
+	//   description: how many chunks to return (default 10, at most 50)
+	//   type: integer
+	// - name: rerank
+	//   in: query
+	//   description: rerank the chunks with the reranking model, when the server has one
+	//   type: boolean
+	// - name: rev
+	//   in: query
+	//   description: the revision to read; the default branch when empty
+	//   type: string
+	// - name: change
+	//   in: query
+	//   description: read a change at its current head instead of a revision (32 letters from k to z)
+	//   type: string
+	// - name: stack
+	//   in: query
+	//   description: read the top of the stack that ends in this change (32 letters from k to z)
+	//   type: string
+	// - name: stack_diff_only
+	//   in: query
+	//   description: with stack, read only the files the stack changes
+	//   type: boolean
+	// - name: path
+	//   in: query
+	//   description: only these paths or directories; repeat for up to 16
+	//   type: array
+	//   items:
+	//     type: string
+	//   collectionFormat: multi
+	// - name: lang
+	//   in: query
+	//   description: only these languages; repeat for up to 8
+	//   type: array
+	//   items:
+	//     type: string
+	//   collectionFormat: multi
+	// responses:
+	//   "200":
+	//     "$ref": "#/responses/AscRepoSemanticResult"
+	//   "401":
+	//     "$ref": "#/responses/unauthorized"
+	//   "404":
+	//     "$ref": "#/responses/notFound"
+	//   "422":
+	//     "$ref": "#/responses/validationError"
+	//   "429":
+	//     description: too many requests
+	//   "501":
+	//     description: code intelligence is not enabled
+	//   "502":
+	//     description: code intelligence failed
+	//   "503":
+	//     description: code intelligence is unavailable
+	//   "504":
+	//     description: the search took too long
+
+	q := ascCIStart(ctx, true)
 	if q == nil {
 		return
 	}

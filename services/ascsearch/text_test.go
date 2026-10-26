@@ -10,6 +10,7 @@ import (
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClean(t *testing.T) {
@@ -150,4 +151,68 @@ func TestRRF(t *testing.T) {
 	assert.Equal(t, got, RRF([][]string{{"a1", "a2", "a3"}, {"b1", "b2"}}), "deterministic")
 	assert.Empty(t, RRF[string](nil))
 	assert.Equal(t, []string{"x"}, RRF([][]string{nil, {"x"}}))
+}
+
+func TestCleanAt(t *testing.T) {
+	// The match "needle" is at byte 9 of the raw line; the escape and the bidi mark before it are dropped, the
+	// invalid byte becomes a 3-byte replacement character, so the column moves.
+	raw := []byte("a\x1b[1mb\xff‮needle end")
+	text, cols := CleanAt(raw, 0, []uint32{uint32(strings.Index(string(raw), "needle"))})
+	assert.Equal(t, "a[1mb�needle end", text)
+	require.Len(t, cols, 1)
+	assert.Equal(t, "needle", text[cols[0]:cols[0]+6], "the column follows the text it points into")
+
+	// Columns inside a character, past the end, or in huge numbers are dropped.
+	text, cols = CleanAt([]byte("é-x"), 0, []uint32{1, 2, 3, 99})
+	assert.Equal(t, "é-x", text)
+	assert.Equal(t, []uint32{2, 3}, cols, "byte 1 is the middle of é and 99 is past the end")
+
+	many := make([]uint32, 500)
+	_, cols = CleanAt([]byte(strings.Repeat("x", 600)), 0, many)
+	assert.Len(t, cols, maxCols)
+
+	_, cols = CleanAt([]byte("abc"), 0, nil)
+	assert.Nil(t, cols)
+	text, _ = CleanAt([]byte("abcdef"), 4, nil)
+	assert.Equal(t, "abcd", text)
+}
+
+func TestHighlight(t *testing.T) {
+	join := func(segs []Segment) string {
+		var sb strings.Builder
+		for _, s := range segs {
+			sb.WriteString(s.Text)
+		}
+		return sb.String()
+	}
+	hits := func(segs []Segment) []string {
+		var out []string
+		for _, s := range segs {
+			if s.Hit {
+				out = append(out, s.Text)
+			}
+		}
+		return out
+	}
+	line := "let Needle = needle(1) + NEEDLE"
+	segs := Highlight(line, []uint32{4, 13, 25}, "needle")
+	assert.Equal(t, line, join(segs))
+	assert.Equal(t, []string{"Needle", "needle", "NEEDLE"}, hits(segs), "the width of the pattern, whatever the case")
+
+	// A regular expression has no known width: one character.
+	segs = Highlight("abc123", []uint32{3}, "")
+	assert.Equal(t, []string{"1"}, hits(segs))
+	assert.Equal(t, "abc123", join(segs))
+
+	// A column that is not the pattern there marks one character; overlapping and mid-character columns are skipped.
+	segs = Highlight("xyzzy needle", []uint32{0, 0, 1}, "needle")
+	assert.Equal(t, []string{"x", "y"}, hits(segs))
+	segs = Highlight("é-é", []uint32{1, 5, 99}, "")
+	assert.Empty(t, hits(segs))
+	assert.Equal(t, "é-é", join(segs))
+
+	segs = Highlight("", []uint32{0}, "x")
+	assert.Equal(t, "", join(segs))
+	assert.Len(t, segs, 1)
+	assert.Equal(t, []Segment{{Text: "plain"}}, Highlight("plain", nil, "p"))
 }
