@@ -102,15 +102,17 @@ var File_asc_v1_options_proto protoreflect.FileDescriptor
 
 const file_asc_v1_options_proto_rawDesc = "" +
 	"\n" +
-	"\x13asc/v1/options.proto\x12\x05asc.v1\x1a google/protobuf/descriptor.proto*\x8a\x01\n" +
+	"\x14asc/v1/options.proto\x12\x06asc.v1\x1a google/protobuf/descriptor.proto*\x8a\x01\n" +
 	"\bJsonKind\x12\x19\n" +
 	"\x15JSON_KIND_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rJSON_KIND_HEX\x10\x01\x12\x14\n" +
 	"\x10JSON_KIND_CHANGE\x10\x02\x12\x12\n" +
 	"\x0eJSON_KIND_PATH\x10\x03\x12\x12\n" +
 	"\x0eJSON_KIND_TEXT\x10\x04\x12\x12\n" +
-	"\x0eJSON_KIND_DATA\x10\x05:D\n" +
-	"\x04json\x12\x1d.google.protobuf.FieldOptions\x18\xb5\x87\x03 \x01(\x0e2\x0f.asc.v1.JsonKindR\x04jsonB\"Z forgejo.org/modules/ascproto/ascv1b\x06proto3"
+	"\x0eJSON_KIND_DATA\x10\x05:E\n" +
+	"\x04json\x12\x1d.google.protobuf.FieldOptions\x18\xb5\x87\x03 \x01(\x0e2\x10.asc.v1.JsonKindR\x04jsonBw\n" +
+	"\n" +
+	"com.asc.v1B\fOptionsProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
 var (
 	file_asc_v1_options_proto_rawDescOnce sync.Once

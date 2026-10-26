@@ -911,7 +911,7 @@ type Symbol struct {
 	Signature     []byte                 `protobuf:"bytes,7,opt,name=signature,proto3" json:"signature,omitempty"`
 	Container     string                 `protobuf:"bytes,8,opt,name=container,proto3" json:"container,omitempty"`
 	Doc           []byte                 `protobuf:"bytes,9,opt,name=doc,proto3" json:"doc,omitempty"`
-	Confidence    string                 `protobuf:"bytes,10,opt,name=confidence,proto3" json:"confidence,omitempty"` // import_match or name_match
+	Confidence    string                 `protobuf:"bytes,10,opt,name=confidence,proto3" json:"confidence,omitempty"` // precise (uploaded SCIP), import_match or name_match
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1532,13 +1532,251 @@ func (x *IndexStatusResponse) GetIndexes() []*IndexStatus {
 	return nil
 }
 
+// SCIP upload (SPEC §23.6 CI-D3, PLAN I31): compiler-grade definitions and references built by a language
+// indexer and keyed by FileId. The index is a SCIP `Index` message, sent as raw bytes in order: one header,
+// then data parts of at most 4 MiB, 64 MiB in all. The server keeps a document only when its path exists in the
+// revision and its embedded text (if any) matches that file.
+type UploadScipHeader struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Rev           string                 `protobuf:"bytes,2,opt,name=rev,proto3" json:"rev,omitempty"`    // the revision the index was built at; empty means the repository default
+	Root          string                 `protobuf:"bytes,3,opt,name=root,proto3" json:"root,omitempty"`  // directory the indexer ran in, relative to the repository root; empty means the root
+	Size          uint64                 `protobuf:"varint,4,opt,name=size,proto3" json:"size,omitempty"` // total index bytes that follow; at most 64 MiB
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadScipHeader) Reset() {
+	*x = UploadScipHeader{}
+	mi := &file_asc_v1_codeintel_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadScipHeader) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadScipHeader) ProtoMessage() {}
+
+func (x *UploadScipHeader) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_codeintel_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadScipHeader.ProtoReflect.Descriptor instead.
+func (*UploadScipHeader) Descriptor() ([]byte, []int) {
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UploadScipHeader) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *UploadScipHeader) GetRev() string {
+	if x != nil {
+		return x.Rev
+	}
+	return ""
+}
+
+func (x *UploadScipHeader) GetRoot() string {
+	if x != nil {
+		return x.Root
+	}
+	return ""
+}
+
+func (x *UploadScipHeader) GetSize() uint64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+type UploadScipRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Part:
+	//
+	//	*UploadScipRequest_Header
+	//	*UploadScipRequest_Data
+	Part          isUploadScipRequest_Part `protobuf_oneof:"part"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadScipRequest) Reset() {
+	*x = UploadScipRequest{}
+	mi := &file_asc_v1_codeintel_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadScipRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadScipRequest) ProtoMessage() {}
+
+func (x *UploadScipRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_codeintel_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadScipRequest.ProtoReflect.Descriptor instead.
+func (*UploadScipRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UploadScipRequest) GetPart() isUploadScipRequest_Part {
+	if x != nil {
+		return x.Part
+	}
+	return nil
+}
+
+func (x *UploadScipRequest) GetHeader() *UploadScipHeader {
+	if x != nil {
+		if x, ok := x.Part.(*UploadScipRequest_Header); ok {
+			return x.Header
+		}
+	}
+	return nil
+}
+
+func (x *UploadScipRequest) GetData() []byte {
+	if x != nil {
+		if x, ok := x.Part.(*UploadScipRequest_Data); ok {
+			return x.Data
+		}
+	}
+	return nil
+}
+
+type isUploadScipRequest_Part interface {
+	isUploadScipRequest_Part()
+}
+
+type UploadScipRequest_Header struct {
+	Header *UploadScipHeader `protobuf:"bytes,1,opt,name=header,proto3,oneof"` // first message only
+}
+
+type UploadScipRequest_Data struct {
+	Data []byte `protobuf:"bytes,2,opt,name=data,proto3,oneof"`
+}
+
+func (*UploadScipRequest_Header) isUploadScipRequest_Part() {}
+
+func (*UploadScipRequest_Data) isUploadScipRequest_Part() {}
+
+type UploadScipResponse struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Changeset          []byte                 `protobuf:"bytes,1,opt,name=changeset,proto3" json:"changeset,omitempty"`                                              // the revision the documents were matched against
+	Documents          uint32                 `protobuf:"varint,2,opt,name=documents,proto3" json:"documents,omitempty"`                                             // documents stored
+	Occurrences        uint32                 `protobuf:"varint,3,opt,name=occurrences,proto3" json:"occurrences,omitempty"`                                         // occurrences stored
+	UnknownPath        uint32                 `protobuf:"varint,4,opt,name=unknown_path,json=unknownPath,proto3" json:"unknown_path,omitempty"`                      // documents dropped: path not in the revision
+	Stale              uint32                 `protobuf:"varint,5,opt,name=stale,proto3" json:"stale,omitempty"`                                                     // documents dropped: embedded text differs from the revision's file
+	SkippedOccurrences uint32                 `protobuf:"varint,6,opt,name=skipped_occurrences,json=skippedOccurrences,proto3" json:"skipped_occurrences,omitempty"` // occurrences dropped: malformed range, local or oversize symbol
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *UploadScipResponse) Reset() {
+	*x = UploadScipResponse{}
+	mi := &file_asc_v1_codeintel_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadScipResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadScipResponse) ProtoMessage() {}
+
+func (x *UploadScipResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_codeintel_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadScipResponse.ProtoReflect.Descriptor instead.
+func (*UploadScipResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *UploadScipResponse) GetChangeset() []byte {
+	if x != nil {
+		return x.Changeset
+	}
+	return nil
+}
+
+func (x *UploadScipResponse) GetDocuments() uint32 {
+	if x != nil {
+		return x.Documents
+	}
+	return 0
+}
+
+func (x *UploadScipResponse) GetOccurrences() uint32 {
+	if x != nil {
+		return x.Occurrences
+	}
+	return 0
+}
+
+func (x *UploadScipResponse) GetUnknownPath() uint32 {
+	if x != nil {
+		return x.UnknownPath
+	}
+	return 0
+}
+
+func (x *UploadScipResponse) GetStale() uint32 {
+	if x != nil {
+		return x.Stale
+	}
+	return 0
+}
+
+func (x *UploadScipResponse) GetSkippedOccurrences() uint32 {
+	if x != nil {
+		return x.SkippedOccurrences
+	}
+	return 0
+}
+
 var File_asc_v1_codeintel_proto protoreflect.FileDescriptor
 
 const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"\n" +
-	"\x15asc/v1/codeintel.proto\x12\x05asc.v1\x1a\x13asc/v1/options.proto\x1a\x10asc/v1/repo.proto\"\xce\x02\n" +
-	"\x05Scope\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x16asc/v1/codeintel.proto\x12\x06asc.v1\x1a\x14asc/v1/options.proto\x1a\x11asc/v1/repo.proto\"\xcf\x02\n" +
+	"\x05Scope\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
 	"\x03rev\x18\x02 \x01(\tH\x00R\x03rev\x12\x1e\n" +
 	"\x06change\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x02H\x00R\x06change\x12#\n" +
 	"\tstack_top\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x02H\x00R\bstackTop\x12\x1e\n" +
@@ -1562,14 +1800,14 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"maxResults\x12\x1b\n" +
 	"\tmax_bytes\x18\x02 \x01(\rR\bmaxBytes\x12\x1d\n" +
 	"\n" +
-	"max_tokens\x18\x03 \x01(\rR\tmaxTokens\"\x86\x02\n" +
-	"\rSearchRequest\x12\"\n" +
-	"\x05scope\x18\x01 \x01(\v2\f.asc.v1.ScopeR\x05scope\x12\x18\n" +
-	"\apattern\x18\x02 \x01(\tR\apattern\x12%\n" +
-	"\x04mode\x18\x03 \x01(\x0e2\x11.asc.v1.SearchModeR\x04mode\x12%\n" +
+	"max_tokens\x18\x03 \x01(\rR\tmaxTokens\"\x89\x02\n" +
+	"\rSearchRequest\x12#\n" +
+	"\x05scope\x18\x01 \x01(\v2\r.asc.v1.ScopeR\x05scope\x12\x18\n" +
+	"\apattern\x18\x02 \x01(\tR\apattern\x12&\n" +
+	"\x04mode\x18\x03 \x01(\x0e2\x12.asc.v1.SearchModeR\x04mode\x12%\n" +
 	"\x0ecase_sensitive\x18\x04 \x01(\bR\rcaseSensitive\x12#\n" +
-	"\rcontext_lines\x18\x05 \x01(\rR\fcontextLines\x12%\n" +
-	"\x06budget\x18\x06 \x01(\v2\r.asc.v1.BudgetR\x06budget\x12\x1d\n" +
+	"\rcontext_lines\x18\x05 \x01(\rR\fcontextLines\x12&\n" +
+	"\x06budget\x18\x06 \x01(\v2\x0e.asc.v1.BudgetR\x06budget\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\a \x01(\tR\tpageToken\"\x87\x01\n" +
 	"\tLineMatch\x12\x12\n" +
@@ -1577,30 +1815,30 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"\x04cols\x18\x02 \x03(\rR\x04cols\x12\x18\n" +
 	"\x04text\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x04R\x04text\x12\x1c\n" +
 	"\x06before\x18\x04 \x03(\fB\x04\xa8\xbb\x18\x04R\x06before\x12\x1a\n" +
-	"\x05after\x18\x05 \x03(\fB\x04\xa8\xbb\x18\x04R\x05after\"\xbd\x01\n" +
+	"\x05after\x18\x05 \x03(\fB\x04\xa8\xbb\x18\x04R\x05after\"\xbe\x01\n" +
 	"\aFileHit\x12\x18\n" +
 	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1d\n" +
 	"\afile_id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x06fileId\x12\x12\n" +
 	"\x04lang\x18\x03 \x01(\tR\x04lang\x12\x1d\n" +
-	"\aalso_at\x18\x04 \x03(\fB\x04\xa8\xbb\x18\x03R\x06alsoAt\x12*\n" +
-	"\amatches\x18\x05 \x03(\v2\x10.asc.v1.LineMatchR\amatches\x12\x1a\n" +
-	"\bredacted\x18\x06 \x01(\bR\bredacted\"\xc7\x01\n" +
-	"\x0eSearchResponse\x12*\n" +
-	"\x05scope\x18\x01 \x01(\v2\x14.asc.v1.ResolvedScopeR\x05scope\x12$\n" +
-	"\x05files\x18\x02 \x03(\v2\x0e.asc.v1.FileHitR\x05files\x12\x1c\n" +
+	"\aalso_at\x18\x04 \x03(\fB\x04\xa8\xbb\x18\x03R\x06alsoAt\x12+\n" +
+	"\amatches\x18\x05 \x03(\v2\x11.asc.v1.LineMatchR\amatches\x12\x1a\n" +
+	"\bredacted\x18\x06 \x01(\bR\bredacted\"\xc9\x01\n" +
+	"\x0eSearchResponse\x12+\n" +
+	"\x05scope\x18\x01 \x01(\v2\x15.asc.v1.ResolvedScopeR\x05scope\x12%\n" +
+	"\x05files\x18\x02 \x03(\v2\x0f.asc.v1.FileHitR\x05files\x12\x1c\n" +
 	"\ttruncated\x18\x03 \x01(\bR\ttruncated\x12&\n" +
 	"\x0fnext_page_token\x18\x04 \x01(\tR\rnextPageToken\x12\x1d\n" +
 	"\n" +
-	"est_tokens\x18\x05 \x01(\rR\testTokens\"\x9b\x02\n" +
-	"\x0eSymbolsRequest\x12\"\n" +
-	"\x05scope\x18\x01 \x01(\v2\f.asc.v1.ScopeR\x05scope\x12\x1f\n" +
-	"\x02op\x18\x02 \x01(\x0e2\x0f.asc.v1.SymbolOpR\x02op\x12\x12\n" +
+	"est_tokens\x18\x05 \x01(\rR\testTokens\"\x9e\x02\n" +
+	"\x0eSymbolsRequest\x12#\n" +
+	"\x05scope\x18\x01 \x01(\v2\r.asc.v1.ScopeR\x05scope\x12 \n" +
+	"\x02op\x18\x02 \x01(\x0e2\x10.asc.v1.SymbolOpR\x02op\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x18\n" +
 	"\x04path\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x14\n" +
 	"\x05kinds\x18\x05 \x03(\tR\x05kinds\x12\x1f\n" +
 	"\bdef_path\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x03R\adefPath\x12\x19\n" +
-	"\bdef_line\x18\a \x01(\rR\adefLine\x12%\n" +
-	"\x06budget\x18\b \x01(\v2\r.asc.v1.BudgetR\x06budget\x12\x1d\n" +
+	"\bdef_line\x18\a \x01(\rR\adefLine\x12&\n" +
+	"\x06budget\x18\b \x01(\v2\x0e.asc.v1.BudgetR\x06budget\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\t \x01(\tR\tpageToken\"\x8a\x02\n" +
 	"\x06Symbol\x12\x12\n" +
@@ -1616,20 +1854,20 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"\n" +
 	"confidence\x18\n" +
 	" \x01(\tR\n" +
-	"confidence\"\xcb\x01\n" +
-	"\x0fSymbolsResponse\x12*\n" +
-	"\x05scope\x18\x01 \x01(\v2\x14.asc.v1.ResolvedScopeR\x05scope\x12'\n" +
-	"\asymbols\x18\x02 \x03(\v2\r.asc.v1.SymbolR\asymbols\x12\x1c\n" +
+	"confidence\"\xcd\x01\n" +
+	"\x0fSymbolsResponse\x12+\n" +
+	"\x05scope\x18\x01 \x01(\v2\x15.asc.v1.ResolvedScopeR\x05scope\x12(\n" +
+	"\asymbols\x18\x02 \x03(\v2\x0e.asc.v1.SymbolR\asymbols\x12\x1c\n" +
 	"\ttruncated\x18\x03 \x01(\bR\ttruncated\x12&\n" +
 	"\x0fnext_page_token\x18\x04 \x01(\tR\rnextPageToken\x12\x1d\n" +
 	"\n" +
-	"est_tokens\x18\x05 \x01(\rR\testTokens\"\xc1\x01\n" +
-	"\x0fSemanticRequest\x12\"\n" +
-	"\x05scope\x18\x01 \x01(\v2\f.asc.v1.ScopeR\x05scope\x12\x14\n" +
-	"\x05query\x18\x02 \x01(\tR\x05query\x12'\n" +
-	"\x04mode\x18\x03 \x01(\x0e2\x13.asc.v1.SemanticModeR\x04mode\x12\f\n" +
-	"\x01k\x18\x04 \x01(\rR\x01k\x12%\n" +
-	"\x06budget\x18\x05 \x01(\v2\r.asc.v1.BudgetR\x06budget\x12\x16\n" +
+	"est_tokens\x18\x05 \x01(\rR\testTokens\"\xc4\x01\n" +
+	"\x0fSemanticRequest\x12#\n" +
+	"\x05scope\x18\x01 \x01(\v2\r.asc.v1.ScopeR\x05scope\x12\x14\n" +
+	"\x05query\x18\x02 \x01(\tR\x05query\x12(\n" +
+	"\x04mode\x18\x03 \x01(\x0e2\x14.asc.v1.SemanticModeR\x04mode\x12\f\n" +
+	"\x01k\x18\x04 \x01(\rR\x01k\x12&\n" +
+	"\x06budget\x18\x05 \x01(\v2\x0e.asc.v1.BudgetR\x06budget\x12\x16\n" +
 	"\x06rerank\x18\x06 \x01(\bR\x06rerank\"\xf8\x01\n" +
 	"\x05Chunk\x12\x18\n" +
 	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1d\n" +
@@ -1641,16 +1879,16 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"\x05score\x18\x06 \x01(\x01R\x05score\x12\x18\n" +
 	"\asources\x18\a \x03(\tR\asources\x12\x18\n" +
 	"\x04text\x18\b \x01(\fB\x04\xa8\xbb\x18\x04R\x04text\x12\x1a\n" +
-	"\bredacted\x18\t \x01(\bR\bredacted\"\xbe\x01\n" +
-	"\x10SemanticResponse\x12*\n" +
-	"\x05scope\x18\x01 \x01(\v2\x14.asc.v1.ResolvedScopeR\x05scope\x12$\n" +
-	"\x06chunks\x18\x02 \x03(\v2\f.asc.v1.ChunkR\x06chunks\x12\x14\n" +
+	"\bredacted\x18\t \x01(\bR\bredacted\"\xc0\x01\n" +
+	"\x10SemanticResponse\x12+\n" +
+	"\x05scope\x18\x01 \x01(\v2\x15.asc.v1.ResolvedScopeR\x05scope\x12%\n" +
+	"\x06chunks\x18\x02 \x03(\v2\r.asc.v1.ChunkR\x06chunks\x12\x14\n" +
 	"\x05model\x18\x03 \x01(\tR\x05model\x12\x1d\n" +
 	"\n" +
 	"est_tokens\x18\x04 \x01(\rR\testTokens\x12#\n" +
-	"\rann_exhausted\x18\x05 \x01(\bR\fannExhausted\"8\n" +
-	"\x12IndexStatusRequest\x12\"\n" +
-	"\x05scope\x18\x01 \x01(\v2\f.asc.v1.ScopeR\x05scope\"\x9a\x01\n" +
+	"\rann_exhausted\x18\x05 \x01(\bR\fannExhausted\"9\n" +
+	"\x12IndexStatusRequest\x12#\n" +
+	"\x05scope\x18\x01 \x01(\v2\r.asc.v1.ScopeR\x05scope\"\x9a\x01\n" +
 	"\vIndexStatus\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\tR\x05index\x12\x1a\n" +
 	"\bcoverage\x18\x02 \x01(\x02R\bcoverage\x12\x1f\n" +
@@ -1659,10 +1897,26 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"\n" +
 	"generation\x18\x04 \x01(\x04R\n" +
 	"generation\x12\x18\n" +
-	"\aversion\x18\x05 \x01(\tR\aversion\"o\n" +
-	"\x13IndexStatusResponse\x12*\n" +
-	"\x05scope\x18\x01 \x01(\v2\x14.asc.v1.ResolvedScopeR\x05scope\x12,\n" +
-	"\aindexes\x18\x02 \x03(\v2\x12.asc.v1.IndexStatusR\aindexes*R\n" +
+	"\aversion\x18\x05 \x01(\tR\aversion\"q\n" +
+	"\x13IndexStatusResponse\x12+\n" +
+	"\x05scope\x18\x01 \x01(\v2\x15.asc.v1.ResolvedScopeR\x05scope\x12-\n" +
+	"\aindexes\x18\x02 \x03(\v2\x13.asc.v1.IndexStatusR\aindexes\"q\n" +
+	"\x10UploadScipHeader\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x12\n" +
+	"\x04root\x18\x03 \x01(\tR\x04root\x12\x12\n" +
+	"\x04size\x18\x04 \x01(\x04R\x04size\"k\n" +
+	"\x11UploadScipRequest\x122\n" +
+	"\x06header\x18\x01 \x01(\v2\x18.asc.v1.UploadScipHeaderH\x00R\x06header\x12\x1a\n" +
+	"\x04data\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x05H\x00R\x04dataB\x06\n" +
+	"\x04part\"\xe2\x01\n" +
+	"\x12UploadScipResponse\x12\"\n" +
+	"\tchangeset\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\tchangeset\x12\x1c\n" +
+	"\tdocuments\x18\x02 \x01(\rR\tdocuments\x12 \n" +
+	"\voccurrences\x18\x03 \x01(\rR\voccurrences\x12!\n" +
+	"\funknown_path\x18\x04 \x01(\rR\vunknownPath\x12\x14\n" +
+	"\x05stale\x18\x05 \x01(\rR\x05stale\x12/\n" +
+	"\x13skipped_occurrences\x18\x06 \x01(\rR\x12skippedOccurrences*R\n" +
 	"\n" +
 	"SearchMode\x12\x17\n" +
 	"\x13SEARCH_MODE_LITERAL\x10\x00\x12\x15\n" +
@@ -1676,12 +1930,16 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"\x0eSYMBOL_OP_FIND\x10\x04*B\n" +
 	"\fSemanticMode\x12\x18\n" +
 	"\x14SEMANTIC_MODE_HYBRID\x10\x00\x12\x18\n" +
-	"\x14SEMANTIC_MODE_VECTOR\x10\x012\x81\x02\n" +
-	"\tCodeIntel\x127\n" +
-	"\x06Search\x12\x14.asc.v1.SearchRequest\x1a\x15.asc.v1.SearchResponse0\x01\x128\n" +
-	"\aSymbols\x12\x15.asc.v1.SymbolsRequest\x1a\x16.asc.v1.SymbolsResponse\x12;\n" +
-	"\bSemantic\x12\x16.asc.v1.SemanticRequest\x1a\x17.asc.v1.SemanticResponse\x12D\n" +
-	"\vIndexStatus\x12\x19.asc.v1.IndexStatusRequest\x1a\x1a.asc.v1.IndexStatusResponseB\"Z forgejo.org/modules/ascproto/ascv1b\x06proto3"
+	"\x14SEMANTIC_MODE_VECTOR\x10\x012\xd0\x02\n" +
+	"\tCodeIntel\x129\n" +
+	"\x06Search\x12\x15.asc.v1.SearchRequest\x1a\x16.asc.v1.SearchResponse0\x01\x12:\n" +
+	"\aSymbols\x12\x16.asc.v1.SymbolsRequest\x1a\x17.asc.v1.SymbolsResponse\x12=\n" +
+	"\bSemantic\x12\x17.asc.v1.SemanticRequest\x1a\x18.asc.v1.SemanticResponse\x12F\n" +
+	"\vIndexStatus\x12\x1a.asc.v1.IndexStatusRequest\x1a\x1b.asc.v1.IndexStatusResponse\x12E\n" +
+	"\n" +
+	"UploadScip\x12\x19.asc.v1.UploadScipRequest\x1a\x1a.asc.v1.UploadScipResponse(\x01By\n" +
+	"\n" +
+	"com.asc.v1B\x0eCodeintelProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
 var (
 	file_asc_v1_codeintel_proto_rawDescOnce sync.Once
@@ -1696,7 +1954,7 @@ func file_asc_v1_codeintel_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_codeintel_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_asc_v1_codeintel_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_asc_v1_codeintel_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_asc_v1_codeintel_proto_goTypes = []any{
 	(SearchMode)(0),             // 0: asc.v1.SearchMode
 	(SymbolOp)(0),               // 1: asc.v1.SymbolOp
@@ -1717,10 +1975,13 @@ var file_asc_v1_codeintel_proto_goTypes = []any{
 	(*IndexStatusRequest)(nil),  // 16: asc.v1.IndexStatusRequest
 	(*IndexStatus)(nil),         // 17: asc.v1.IndexStatus
 	(*IndexStatusResponse)(nil), // 18: asc.v1.IndexStatusResponse
-	(*RepoRef)(nil),             // 19: asc.v1.RepoRef
+	(*UploadScipHeader)(nil),    // 19: asc.v1.UploadScipHeader
+	(*UploadScipRequest)(nil),   // 20: asc.v1.UploadScipRequest
+	(*UploadScipResponse)(nil),  // 21: asc.v1.UploadScipResponse
+	(*RepoRef)(nil),             // 22: asc.v1.RepoRef
 }
 var file_asc_v1_codeintel_proto_depIdxs = []int32{
-	19, // 0: asc.v1.Scope.repo:type_name -> asc.v1.RepoRef
+	22, // 0: asc.v1.Scope.repo:type_name -> asc.v1.RepoRef
 	3,  // 1: asc.v1.SearchRequest.scope:type_name -> asc.v1.Scope
 	0,  // 2: asc.v1.SearchRequest.mode:type_name -> asc.v1.SearchMode
 	5,  // 3: asc.v1.SearchRequest.budget:type_name -> asc.v1.Budget
@@ -1740,19 +2001,23 @@ var file_asc_v1_codeintel_proto_depIdxs = []int32{
 	3,  // 17: asc.v1.IndexStatusRequest.scope:type_name -> asc.v1.Scope
 	4,  // 18: asc.v1.IndexStatusResponse.scope:type_name -> asc.v1.ResolvedScope
 	17, // 19: asc.v1.IndexStatusResponse.indexes:type_name -> asc.v1.IndexStatus
-	6,  // 20: asc.v1.CodeIntel.Search:input_type -> asc.v1.SearchRequest
-	10, // 21: asc.v1.CodeIntel.Symbols:input_type -> asc.v1.SymbolsRequest
-	13, // 22: asc.v1.CodeIntel.Semantic:input_type -> asc.v1.SemanticRequest
-	16, // 23: asc.v1.CodeIntel.IndexStatus:input_type -> asc.v1.IndexStatusRequest
-	9,  // 24: asc.v1.CodeIntel.Search:output_type -> asc.v1.SearchResponse
-	12, // 25: asc.v1.CodeIntel.Symbols:output_type -> asc.v1.SymbolsResponse
-	15, // 26: asc.v1.CodeIntel.Semantic:output_type -> asc.v1.SemanticResponse
-	18, // 27: asc.v1.CodeIntel.IndexStatus:output_type -> asc.v1.IndexStatusResponse
-	24, // [24:28] is the sub-list for method output_type
-	20, // [20:24] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	22, // 20: asc.v1.UploadScipHeader.repo:type_name -> asc.v1.RepoRef
+	19, // 21: asc.v1.UploadScipRequest.header:type_name -> asc.v1.UploadScipHeader
+	6,  // 22: asc.v1.CodeIntel.Search:input_type -> asc.v1.SearchRequest
+	10, // 23: asc.v1.CodeIntel.Symbols:input_type -> asc.v1.SymbolsRequest
+	13, // 24: asc.v1.CodeIntel.Semantic:input_type -> asc.v1.SemanticRequest
+	16, // 25: asc.v1.CodeIntel.IndexStatus:input_type -> asc.v1.IndexStatusRequest
+	20, // 26: asc.v1.CodeIntel.UploadScip:input_type -> asc.v1.UploadScipRequest
+	9,  // 27: asc.v1.CodeIntel.Search:output_type -> asc.v1.SearchResponse
+	12, // 28: asc.v1.CodeIntel.Symbols:output_type -> asc.v1.SymbolsResponse
+	15, // 29: asc.v1.CodeIntel.Semantic:output_type -> asc.v1.SemanticResponse
+	18, // 30: asc.v1.CodeIntel.IndexStatus:output_type -> asc.v1.IndexStatusResponse
+	21, // 31: asc.v1.CodeIntel.UploadScip:output_type -> asc.v1.UploadScipResponse
+	27, // [27:32] is the sub-list for method output_type
+	22, // [22:27] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_codeintel_proto_init() }
@@ -1768,13 +2033,17 @@ func file_asc_v1_codeintel_proto_init() {
 		(*Scope_StackTop)(nil),
 		(*Scope_Workspace)(nil),
 	}
+	file_asc_v1_codeintel_proto_msgTypes[17].OneofWrappers = []any{
+		(*UploadScipRequest_Header)(nil),
+		(*UploadScipRequest_Data)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_codeintel_proto_rawDesc), len(file_asc_v1_codeintel_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   16,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

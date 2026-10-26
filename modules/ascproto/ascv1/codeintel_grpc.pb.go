@@ -23,18 +23,20 @@ const (
 	CodeIntel_Symbols_FullMethodName     = "/asc.v1.CodeIntel/Symbols"
 	CodeIntel_Semantic_FullMethodName    = "/asc.v1.CodeIntel/Semantic"
 	CodeIntel_IndexStatus_FullMethodName = "/asc.v1.CodeIntel/IndexStatus"
+	CodeIntel_UploadScip_FullMethodName  = "/asc.v1.CodeIntel/UploadScip"
 )
 
 // CodeIntelClient is the client API for CodeIntel service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// Read permission on every namespace searched. Rate class `codeintel` (SPEC §23.4.1).
+// Read permission on every namespace searched (`UploadScip`: write permission on the repository). Rate class `codeintel` (SPEC §23.4.1).
 type CodeIntelClient interface {
 	Search(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SearchResponse], error)
 	Symbols(ctx context.Context, in *SymbolsRequest, opts ...grpc.CallOption) (*SymbolsResponse, error)
 	Semantic(ctx context.Context, in *SemanticRequest, opts ...grpc.CallOption) (*SemanticResponse, error)
 	IndexStatus(ctx context.Context, in *IndexStatusRequest, opts ...grpc.CallOption) (*IndexStatusResponse, error)
+	UploadScip(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadScipRequest, UploadScipResponse], error)
 }
 
 type codeIntelClient struct {
@@ -94,16 +96,30 @@ func (c *codeIntelClient) IndexStatus(ctx context.Context, in *IndexStatusReques
 	return out, nil
 }
 
+func (c *codeIntelClient) UploadScip(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadScipRequest, UploadScipResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &CodeIntel_ServiceDesc.Streams[1], CodeIntel_UploadScip_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[UploadScipRequest, UploadScipResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type CodeIntel_UploadScipClient = grpc.ClientStreamingClient[UploadScipRequest, UploadScipResponse]
+
 // CodeIntelServer is the server API for CodeIntel service.
 // All implementations should embed UnimplementedCodeIntelServer
 // for forward compatibility.
 //
-// Read permission on every namespace searched. Rate class `codeintel` (SPEC §23.4.1).
+// Read permission on every namespace searched (`UploadScip`: write permission on the repository). Rate class `codeintel` (SPEC §23.4.1).
 type CodeIntelServer interface {
 	Search(*SearchRequest, grpc.ServerStreamingServer[SearchResponse]) error
 	Symbols(context.Context, *SymbolsRequest) (*SymbolsResponse, error)
 	Semantic(context.Context, *SemanticRequest) (*SemanticResponse, error)
 	IndexStatus(context.Context, *IndexStatusRequest) (*IndexStatusResponse, error)
+	UploadScip(grpc.ClientStreamingServer[UploadScipRequest, UploadScipResponse]) error
 }
 
 // UnimplementedCodeIntelServer should be embedded to have
@@ -124,6 +140,9 @@ func (UnimplementedCodeIntelServer) Semantic(context.Context, *SemanticRequest) 
 }
 func (UnimplementedCodeIntelServer) IndexStatus(context.Context, *IndexStatusRequest) (*IndexStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IndexStatus not implemented")
+}
+func (UnimplementedCodeIntelServer) UploadScip(grpc.ClientStreamingServer[UploadScipRequest, UploadScipResponse]) error {
+	return status.Error(codes.Unimplemented, "method UploadScip not implemented")
 }
 func (UnimplementedCodeIntelServer) testEmbeddedByValue() {}
 
@@ -210,6 +229,13 @@ func _CodeIntel_IndexStatus_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CodeIntel_UploadScip_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CodeIntelServer).UploadScip(&grpc.GenericServerStream[UploadScipRequest, UploadScipResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type CodeIntel_UploadScipServer = grpc.ClientStreamingServer[UploadScipRequest, UploadScipResponse]
+
 // CodeIntel_ServiceDesc is the grpc.ServiceDesc for CodeIntel service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -235,6 +261,11 @@ var CodeIntel_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "Search",
 			Handler:       _CodeIntel_Search_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "UploadScip",
+			Handler:       _CodeIntel_UploadScip_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "asc/v1/codeintel.proto",

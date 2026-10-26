@@ -1564,128 +1564,130 @@ var File_asc_v1_changes_proto protoreflect.FileDescriptor
 
 const file_asc_v1_changes_proto_rawDesc = "" +
 	"\n" +
-	"\x13asc/v1/changes.proto\x12\x05asc.v1\x1a\x10asc/v1/repo.proto\"\x93\x02\n" +
+	"\x14asc/v1/changes.proto\x12\x06asc.v1\x1a\x14asc/v1/options.proto\x1a\x11asc/v1/repo.proto\"\xb8\x02\n" +
 	"\n" +
-	"ChangeInfo\x12\x16\n" +
-	"\x06change\x18\x01 \x01(\fR\x06change\x12\x12\n" +
-	"\x04head\x18\x02 \x01(\fR\x04head\x12\x10\n" +
-	"\x03git\x18\x03 \x01(\fR\x03git\x12\x18\n" +
-	"\aversion\x18\x04 \x01(\rR\aversion\x12#\n" +
-	"\rparent_change\x18\x05 \x01(\fR\fparentChange\x12%\n" +
-	"\x0eparent_current\x18\x06 \x01(\bR\rparentCurrent\x12\x1b\n" +
-	"\tlanded_as\x18\a \x01(\fR\blandedAs\x12*\n" +
-	"\x06review\x18\b \x01(\v2\x12.asc.v1.ReviewStateR\x06review\x12\x18\n" +
-	"\avisible\x18\t \x03(\fR\avisible\"i\n" +
-	"\x15ResolveChangesRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x18\n" +
-	"\achanges\x18\x02 \x03(\fR\achanges\x12\x12\n" +
-	"\x04revs\x18\x03 \x03(\tR\x04revs\"E\n" +
-	"\x16ResolveChangesResponse\x12+\n" +
-	"\achanges\x18\x01 \x03(\v2\x11.asc.v1.ChangeInfoR\achanges\"\x98\x01\n" +
-	"\fStackRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x16\n" +
-	"\x06target\x18\x02 \x01(\tR\x06target\x12\x18\n" +
-	"\x06change\x18\x03 \x01(\fH\x00R\x06change\x12\x12\n" +
+	"ChangeInfo\x12\x1c\n" +
+	"\x06change\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x18\n" +
+	"\x04head\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x04head\x12\x16\n" +
+	"\x03git\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x03git\x12\x18\n" +
+	"\aversion\x18\x04 \x01(\rR\aversion\x12)\n" +
+	"\rparent_change\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x02R\fparentChange\x12%\n" +
+	"\x0eparent_current\x18\x06 \x01(\bR\rparentCurrent\x12!\n" +
+	"\tlanded_as\x18\a \x01(\fB\x04\xa8\xbb\x18\x01R\blandedAs\x12+\n" +
+	"\x06review\x18\b \x01(\v2\x13.asc.v1.ReviewStateR\x06review\x12\x1e\n" +
+	"\avisible\x18\t \x03(\fB\x04\xa8\xbb\x18\x02R\avisible\"p\n" +
+	"\x15ResolveChangesRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1e\n" +
+	"\achanges\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x02R\achanges\x12\x12\n" +
+	"\x04revs\x18\x03 \x03(\tR\x04revs\"F\n" +
+	"\x16ResolveChangesResponse\x12,\n" +
+	"\achanges\x18\x01 \x03(\v2\x12.asc.v1.ChangeInfoR\achanges\"\x9f\x01\n" +
+	"\fStackRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x16\n" +
+	"\x06target\x18\x02 \x01(\tR\x06target\x12\x1e\n" +
+	"\x06change\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x02H\x00R\x06change\x12\x12\n" +
 	"\x03rev\x18\x04 \x01(\tH\x00R\x03rev\x12\x18\n" +
 	"\x06review\x18\x05 \x01(\x04H\x00R\x06reviewB\x04\n" +
-	"\x02at\"f\n" +
+	"\x02at\"m\n" +
 	"\rStackResponse\x12\x14\n" +
-	"\x05trunk\x18\x01 \x01(\tR\x05trunk\x12\x12\n" +
-	"\x04base\x18\x02 \x01(\fR\x04base\x12+\n" +
-	"\achanges\x18\x03 \x03(\v2\x11.asc.v1.ChangeInfoR\achanges\"l\n" +
-	"\x0fVersionsRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x16\n" +
-	"\x06change\x18\x02 \x01(\fR\x06change\x12\x1d\n" +
+	"\x05trunk\x18\x01 \x01(\tR\x05trunk\x12\x18\n" +
+	"\x04base\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x04base\x12,\n" +
+	"\achanges\x18\x03 \x03(\v2\x12.asc.v1.ChangeInfoR\achanges\"s\n" +
+	"\x0fVersionsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x03 \x01(\tR\tpageToken\"\x84\x01\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"\x96\x01\n" +
 	"\aVersion\x12\f\n" +
-	"\x01v\x18\x01 \x01(\rR\x01v\x12\x0e\n" +
-	"\x02cs\x18\x02 \x01(\fR\x02cs\x12\x10\n" +
-	"\x03git\x18\x03 \x01(\fR\x03git\x12#\n" +
-	"\rparent_change\x18\x04 \x01(\fR\fparentChange\x12\x0e\n" +
+	"\x01v\x18\x01 \x01(\rR\x01v\x12\x14\n" +
+	"\x02cs\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x02cs\x12\x16\n" +
+	"\x03git\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x03git\x12)\n" +
+	"\rparent_change\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x02R\fparentChange\x12\x0e\n" +
 	"\x02at\x18\x05 \x01(\x03R\x02at\x12\x14\n" +
-	"\x05actor\x18\x06 \x01(\tR\x05actor\"f\n" +
-	"\x10VersionsResponse\x12*\n" +
-	"\bversions\x18\x01 \x03(\v2\x0e.asc.v1.VersionR\bversions\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xb9\x01\n" +
-	"\x10InterDiffRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x16\n" +
-	"\x06change\x18\x02 \x01(\fR\x06change\x12\x15\n" +
+	"\x05actor\x18\x06 \x01(\tR\x05actor\"g\n" +
+	"\x10VersionsResponse\x12+\n" +
+	"\bversions\x18\x01 \x03(\v2\x0f.asc.v1.VersionR\bversions\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xc1\x01\n" +
+	"\x10InterDiffRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x15\n" +
 	"\x06from_v\x18\x03 \x01(\rR\x05fromV\x12\x11\n" +
-	"\x04to_v\x18\x04 \x01(\rR\x03toV\x12)\n" +
-	"\x06format\x18\x05 \x01(\x0e2\x11.asc.v1.DiffFormatR\x06format\x12\x14\n" +
-	"\x05paths\x18\x06 \x03(\tR\x05paths\"k\n" +
-	"\x13MergeabilityRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x16\n" +
-	"\x06target\x18\x02 \x01(\tR\x06target\x12\x18\n" +
-	"\achanges\x18\x03 \x03(\fR\achanges\"\xe2\x01\n" +
-	"\tMergeable\x12\x16\n" +
-	"\x06change\x18\x01 \x01(\fR\x06change\x12,\n" +
-	"\x05state\x18\x02 \x01(\x0e2\x16.asc.v1.Mergeable.StateR\x05state\x12-\n" +
-	"\tconflicts\x18\x03 \x03(\v2\x0f.asc.v1.ConflictR\tconflicts\"`\n" +
+	"\x04to_v\x18\x04 \x01(\rR\x03toV\x12*\n" +
+	"\x06format\x18\x05 \x01(\x0e2\x12.asc.v1.DiffFormatR\x06format\x12\x14\n" +
+	"\x05paths\x18\x06 \x03(\tR\x05paths\"r\n" +
+	"\x13MergeabilityRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x16\n" +
+	"\x06target\x18\x02 \x01(\tR\x06target\x12\x1e\n" +
+	"\achanges\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x02R\achanges\"\xea\x01\n" +
+	"\tMergeable\x12\x1c\n" +
+	"\x06change\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12-\n" +
+	"\x05state\x18\x02 \x01(\x0e2\x17.asc.v1.Mergeable.StateR\x05state\x12.\n" +
+	"\tconflicts\x18\x03 \x03(\v2\x10.asc.v1.ConflictR\tconflicts\"`\n" +
 	"\x05State\x12\x12\n" +
 	"\x0eSTATE_DISJOINT\x10\x00\x12\x15\n" +
 	"\x11STATE_CLEAN_MERGE\x10\x01\x12\x13\n" +
 	"\x0fSTATE_CONFLICTS\x10\x02\x12\x17\n" +
-	"\x13STATE_NEEDS_RESTACK\x10\x03\"B\n" +
-	"\x14MergeabilityResponse\x12*\n" +
-	"\aresults\x18\x01 \x03(\v2\x10.asc.v1.MergeableR\aresults\"{\n" +
-	"\x0fOverlapsRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x16\n" +
-	"\x06target\x18\x02 \x01(\tR\x06target\x12\x16\n" +
-	"\x06change\x18\x03 \x01(\fR\x06change\x12\x14\n" +
-	"\x05paths\x18\x04 \x03(\fR\x05paths\"c\n" +
-	"\aOverlap\x12\x16\n" +
-	"\x06change\x18\x01 \x01(\fR\x06change\x12*\n" +
-	"\x06review\x18\x02 \x01(\v2\x12.asc.v1.ReviewStateR\x06review\x12\x14\n" +
-	"\x05paths\x18\x03 \x03(\fR\x05paths\">\n" +
-	"\x10OverlapsResponse\x12*\n" +
-	"\boverlaps\x18\x01 \x03(\v2\x0e.asc.v1.OverlapR\boverlaps\"n\n" +
-	"\vRestackItem\x12\x16\n" +
-	"\x06change\x18\x01 \x01(\fR\x06change\x12\x1d\n" +
+	"\x13STATE_NEEDS_RESTACK\x10\x03\"C\n" +
+	"\x14MergeabilityResponse\x12+\n" +
+	"\aresults\x18\x01 \x03(\v2\x11.asc.v1.MergeableR\aresults\"\x88\x01\n" +
+	"\x0fOverlapsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x16\n" +
+	"\x06target\x18\x02 \x01(\tR\x06target\x12\x1c\n" +
+	"\x06change\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x1a\n" +
+	"\x05paths\x18\x04 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\"p\n" +
+	"\aOverlap\x12\x1c\n" +
+	"\x06change\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12+\n" +
+	"\x06review\x18\x02 \x01(\v2\x13.asc.v1.ReviewStateR\x06review\x12\x1a\n" +
+	"\x05paths\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\"?\n" +
+	"\x10OverlapsResponse\x12+\n" +
+	"\boverlaps\x18\x01 \x03(\v2\x0f.asc.v1.OverlapR\boverlaps\"u\n" +
+	"\vRestackItem\x12\x1c\n" +
+	"\x06change\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x1d\n" +
 	"\n" +
-	"update_ref\x18\x02 \x01(\tR\tupdateRef\x12(\n" +
-	"\x06expect\x18\x03 \x01(\v2\x10.asc.v1.RefTargetR\x06expect\"\xa1\x02\n" +
-	"\x15RestackChangesRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x12\n" +
-	"\x04onto\x18\x02 \x01(\tR\x04onto\x12(\n" +
-	"\x05items\x18\x03 \x03(\v2\x12.asc.v1.RestackItemR\x05items\x12\x16\n" +
+	"update_ref\x18\x02 \x01(\tR\tupdateRef\x12)\n" +
+	"\x06expect\x18\x03 \x01(\v2\x11.asc.v1.RefTargetR\x06expect\"\xa3\x02\n" +
+	"\x15RestackChangesRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x04onto\x18\x02 \x01(\tR\x04onto\x12)\n" +
+	"\x05items\x18\x03 \x03(\v2\x13.asc.v1.RestackItemR\x05items\x12\x16\n" +
 	"\x06atomic\x18\x04 \x01(\bR\x06atomic\x12\x17\n" +
 	"\adry_run\x18\x05 \x01(\bR\x06dryRun\x12%\n" +
 	"\x0ecommitter_name\x18\x06 \x01(\tR\rcommitterName\x12'\n" +
 	"\x0fcommitter_email\x18\a \x01(\tR\x0ecommitterEmail\x12%\n" +
-	"\x0ecommitter_time\x18\b \x01(\x03R\rcommitterTime\"\x9e\x01\n" +
-	"\x16RestackChangesResponse\x12,\n" +
-	"\trewritten\x18\x01 \x03(\v2\x0e.asc.v1.RewriteR\trewritten\x12-\n" +
-	"\tconflicts\x18\x02 \x03(\v2\x0f.asc.v1.ConflictR\tconflicts\x12'\n" +
-	"\x0fpatch_unchanged\x18\x03 \x03(\fR\x0epatchUnchanged\"\x81\x01\n" +
-	"\x15SetReviewStateRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x18\n" +
-	"\achanges\x18\x02 \x03(\fR\achanges\x12*\n" +
-	"\x06states\x18\x03 \x03(\v2\x12.asc.v1.ReviewStateR\x06states\"\x18\n" +
-	"\x16SetReviewStateResponse\"c\n" +
-	"\x13RequestMergeRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x16\n" +
-	"\x06change\x18\x02 \x01(\fR\x06change\x12\x10\n" +
-	"\x03now\x18\x03 \x01(\bR\x03now\"\xc1\x01\n" +
-	"\x14RequestMergeResponse\x127\n" +
-	"\x05state\x18\x01 \x01(\x0e2!.asc.v1.RequestMergeResponse.StateR\x05state\x12\x18\n" +
-	"\apending\x18\x02 \x03(\fR\apending\x12\x16\n" +
+	"\x0ecommitter_time\x18\b \x01(\x03R\rcommitterTime\"\xa6\x01\n" +
+	"\x16RestackChangesResponse\x12-\n" +
+	"\trewritten\x18\x01 \x03(\v2\x0f.asc.v1.RewriteR\trewritten\x12.\n" +
+	"\tconflicts\x18\x02 \x03(\v2\x10.asc.v1.ConflictR\tconflicts\x12-\n" +
+	"\x0fpatch_unchanged\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x02R\x0epatchUnchanged\"\x89\x01\n" +
+	"\x15SetReviewStateRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1e\n" +
+	"\achanges\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x02R\achanges\x12+\n" +
+	"\x06states\x18\x03 \x03(\v2\x13.asc.v1.ReviewStateR\x06states\"\x18\n" +
+	"\x16SetReviewStateResponse\"j\n" +
+	"\x13RequestMergeRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x10\n" +
+	"\x03now\x18\x03 \x01(\bR\x03now\"\xc8\x01\n" +
+	"\x14RequestMergeResponse\x128\n" +
+	"\x05state\x18\x01 \x01(\x0e2\".asc.v1.RequestMergeResponse.StateR\x05state\x12\x1e\n" +
+	"\apending\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x02R\apending\x12\x16\n" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\">\n" +
 	"\x05State\x12\x10\n" +
 	"\fSTATE_QUEUED\x10\x00\x12\x10\n" +
 	"\fSTATE_LANDED\x10\x01\x12\x11\n" +
-	"\rSTATE_REFUSED\x10\x022\xf3\x04\n" +
-	"\aChanges\x12M\n" +
-	"\x0eResolveChanges\x12\x1c.asc.v1.ResolveChangesRequest\x1a\x1d.asc.v1.ResolveChangesResponse\x122\n" +
-	"\x05Stack\x12\x13.asc.v1.StackRequest\x1a\x14.asc.v1.StackResponse\x12;\n" +
-	"\bVersions\x12\x16.asc.v1.VersionsRequest\x1a\x17.asc.v1.VersionsResponse\x12;\n" +
-	"\tInterDiff\x12\x17.asc.v1.InterDiffRequest\x1a\x13.asc.v1.DiffResponse0\x01\x12G\n" +
-	"\fMergeability\x12\x1a.asc.v1.MergeabilityRequest\x1a\x1b.asc.v1.MergeabilityResponse\x12;\n" +
-	"\bOverlaps\x12\x16.asc.v1.OverlapsRequest\x1a\x17.asc.v1.OverlapsResponse\x12M\n" +
-	"\x0eRestackChanges\x12\x1c.asc.v1.RestackChangesRequest\x1a\x1d.asc.v1.RestackChangesResponse\x12M\n" +
-	"\x0eSetReviewState\x12\x1c.asc.v1.SetReviewStateRequest\x1a\x1d.asc.v1.SetReviewStateResponse\x12G\n" +
-	"\fRequestMerge\x12\x1a.asc.v1.RequestMergeRequest\x1a\x1b.asc.v1.RequestMergeResponseB\"Z forgejo.org/modules/ascproto/ascv1b\x06proto3"
+	"\rSTATE_REFUSED\x10\x022\x85\x05\n" +
+	"\aChanges\x12O\n" +
+	"\x0eResolveChanges\x12\x1d.asc.v1.ResolveChangesRequest\x1a\x1e.asc.v1.ResolveChangesResponse\x124\n" +
+	"\x05Stack\x12\x14.asc.v1.StackRequest\x1a\x15.asc.v1.StackResponse\x12=\n" +
+	"\bVersions\x12\x17.asc.v1.VersionsRequest\x1a\x18.asc.v1.VersionsResponse\x12=\n" +
+	"\tInterDiff\x12\x18.asc.v1.InterDiffRequest\x1a\x14.asc.v1.DiffResponse0\x01\x12I\n" +
+	"\fMergeability\x12\x1b.asc.v1.MergeabilityRequest\x1a\x1c.asc.v1.MergeabilityResponse\x12=\n" +
+	"\bOverlaps\x12\x17.asc.v1.OverlapsRequest\x1a\x18.asc.v1.OverlapsResponse\x12O\n" +
+	"\x0eRestackChanges\x12\x1d.asc.v1.RestackChangesRequest\x1a\x1e.asc.v1.RestackChangesResponse\x12O\n" +
+	"\x0eSetReviewState\x12\x1d.asc.v1.SetReviewStateRequest\x1a\x1e.asc.v1.SetReviewStateResponse\x12I\n" +
+	"\fRequestMerge\x12\x1b.asc.v1.RequestMergeRequest\x1a\x1c.asc.v1.RequestMergeResponseBw\n" +
+	"\n" +
+	"com.asc.v1B\fChangesProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
 var (
 	file_asc_v1_changes_proto_rawDescOnce sync.Once
@@ -1790,6 +1792,7 @@ func file_asc_v1_changes_proto_init() {
 	if File_asc_v1_changes_proto != nil {
 		return
 	}
+	file_asc_v1_options_proto_init()
 	file_asc_v1_repo_proto_init()
 	file_asc_v1_changes_proto_msgTypes[3].OneofWrappers = []any{
 		(*StackRequest_Change)(nil),

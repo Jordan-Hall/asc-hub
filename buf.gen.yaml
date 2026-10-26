@@ -1,16 +1,22 @@
 # Go stubs for the asc wire protocol (SPEC section 7, PLAN unit K06).
 #
-# The proto source of truth is the sibling source-control repository. Regenerate with
+# The proto source of truth is the sibling asc repository. Regenerate with
 #
-#   buf generate                      # from the Forgejo root, source-control checked out next to it
+#   buf generate                      # from the hub root, asc checked out next to it
 #   buf generate <path-to>/proto      # any other checkout
 #
 # The output is committed under modules/ascproto/ascv1 so a build needs neither buf nor protoc.
 # Plugin versions are pinned in modules/ascproto/README.md and the generated headers.
+# The Go import path belongs to the consuming hub, not to the schema: it is set here.
 version: v2
 clean: false
 inputs:
-  - directory: ../source-control/proto
+  - directory: ../asc/proto
+managed:
+  enabled: true
+  override:
+    - file_option: go_package
+      value: forgejo.org/modules/ascproto/ascv1
 plugins:
   - local: protoc-gen-go
     out: .

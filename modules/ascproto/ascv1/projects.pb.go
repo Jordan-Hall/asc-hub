@@ -584,19 +584,66 @@ func (x *AffectedRequest) GetWithHashes() bool {
 	return false
 }
 
+// A command an IDE may run for a target; from `argv = { <target> = [...] }` of a [[project]] (SPEC §24.8.2, A4).
+// asc stores and serves it and never runs it.
+type TargetCmd struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Argv          []string               `protobuf:"bytes,1,rep,name=argv,proto3" json:"argv,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TargetCmd) Reset() {
+	*x = TargetCmd{}
+	mi := &file_asc_v1_projects_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TargetCmd) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TargetCmd) ProtoMessage() {}
+
+func (x *TargetCmd) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_projects_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TargetCmd.ProtoReflect.Descriptor instead.
+func (*TargetCmd) Descriptor() ([]byte, []int) {
+	return file_asc_v1_projects_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *TargetCmd) GetArgv() []string {
+	if x != nil {
+		return x.Argv
+	}
+	return nil
+}
+
 type AffectedProject struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Project       *ProjectInfo           `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`
 	Direct        bool                   `protobuf:"varint,2,opt,name=direct,proto3" json:"direct,omitempty"`
 	Reasons       []string               `protobuf:"bytes,3,rep,name=reasons,proto3" json:"reasons,omitempty"`
 	InputHash     []byte                 `protobuf:"bytes,4,opt,name=input_hash,json=inputHash,proto3" json:"input_hash,omitempty"`
+	Targets       map[string]*TargetCmd  `protobuf:"bytes,5,rep,name=targets,proto3" json:"targets,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AffectedProject) Reset() {
 	*x = AffectedProject{}
-	mi := &file_asc_v1_projects_proto_msgTypes[6]
+	mi := &file_asc_v1_projects_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -608,7 +655,7 @@ func (x *AffectedProject) String() string {
 func (*AffectedProject) ProtoMessage() {}
 
 func (x *AffectedProject) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_projects_proto_msgTypes[6]
+	mi := &file_asc_v1_projects_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -621,7 +668,7 @@ func (x *AffectedProject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AffectedProject.ProtoReflect.Descriptor instead.
 func (*AffectedProject) Descriptor() ([]byte, []int) {
-	return file_asc_v1_projects_proto_rawDescGZIP(), []int{6}
+	return file_asc_v1_projects_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *AffectedProject) GetProject() *ProjectInfo {
@@ -652,6 +699,13 @@ func (x *AffectedProject) GetInputHash() []byte {
 	return nil
 }
 
+func (x *AffectedProject) GetTargets() map[string]*TargetCmd {
+	if x != nil {
+		return x.Targets
+	}
+	return nil
+}
+
 type AffectedResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Base          []byte                 `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
@@ -669,7 +723,7 @@ type AffectedResponse struct {
 
 func (x *AffectedResponse) Reset() {
 	*x = AffectedResponse{}
-	mi := &file_asc_v1_projects_proto_msgTypes[7]
+	mi := &file_asc_v1_projects_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -681,7 +735,7 @@ func (x *AffectedResponse) String() string {
 func (*AffectedResponse) ProtoMessage() {}
 
 func (x *AffectedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_projects_proto_msgTypes[7]
+	mi := &file_asc_v1_projects_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -694,7 +748,7 @@ func (x *AffectedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AffectedResponse.ProtoReflect.Descriptor instead.
 func (*AffectedResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_projects_proto_rawDescGZIP(), []int{7}
+	return file_asc_v1_projects_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *AffectedResponse) GetBase() []byte {
@@ -772,7 +826,7 @@ type ProjectHashesRequest struct {
 
 func (x *ProjectHashesRequest) Reset() {
 	*x = ProjectHashesRequest{}
-	mi := &file_asc_v1_projects_proto_msgTypes[8]
+	mi := &file_asc_v1_projects_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -784,7 +838,7 @@ func (x *ProjectHashesRequest) String() string {
 func (*ProjectHashesRequest) ProtoMessage() {}
 
 func (x *ProjectHashesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_projects_proto_msgTypes[8]
+	mi := &file_asc_v1_projects_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -797,7 +851,7 @@ func (x *ProjectHashesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProjectHashesRequest.ProtoReflect.Descriptor instead.
 func (*ProjectHashesRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_projects_proto_rawDescGZIP(), []int{8}
+	return file_asc_v1_projects_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ProjectHashesRequest) GetRepo() *RepoRef {
@@ -838,7 +892,7 @@ type ProjectHashesResponse struct {
 
 func (x *ProjectHashesResponse) Reset() {
 	*x = ProjectHashesResponse{}
-	mi := &file_asc_v1_projects_proto_msgTypes[9]
+	mi := &file_asc_v1_projects_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -850,7 +904,7 @@ func (x *ProjectHashesResponse) String() string {
 func (*ProjectHashesResponse) ProtoMessage() {}
 
 func (x *ProjectHashesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_projects_proto_msgTypes[9]
+	mi := &file_asc_v1_projects_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -863,7 +917,7 @@ func (x *ProjectHashesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProjectHashesResponse.ProtoReflect.Descriptor instead.
 func (*ProjectHashesResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_projects_proto_rawDescGZIP(), []int{9}
+	return file_asc_v1_projects_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ProjectHashesResponse) GetGraphId() []byte {
@@ -884,72 +938,78 @@ var File_asc_v1_projects_proto protoreflect.FileDescriptor
 
 const file_asc_v1_projects_proto_rawDesc = "" +
 	"\n" +
-	"\x14asc/v1/projects.proto\x12\x05asc.v1\x1a\x10asc/v1/repo.proto\"0\n" +
+	"\x15asc/v1/projects.proto\x12\x06asc.v1\x1a\x14asc/v1/options.proto\x1a\x11asc/v1/repo.proto\"0\n" +
 	"\n" +
 	"ProjectDep\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04kind\x18\x02 \x01(\tR\x04kind\"\xa6\x02\n" +
+	"\x04kind\x18\x02 \x01(\tR\x04kind\"\xc1\x02\n" +
 	"\vProjectInfo\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12.\n" +
-	"\tecosystem\x18\x02 \x01(\x0e2\x10.asc.v1.EcosystemR\tecosystem\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\fR\x04name\x12\x12\n" +
-	"\x04root\x18\x04 \x01(\fR\x04root\x12\x1a\n" +
-	"\bmanifest\x18\x05 \x01(\fR\bmanifest\x12&\n" +
-	"\x04kind\x18\x06 \x01(\x0e2\x12.asc.v1.ProjectKindR\x04kind\x12%\n" +
-	"\x04deps\x18\a \x03(\v2\x11.asc.v1.ProjectDepR\x04deps\x12\x12\n" +
-	"\x04tags\x18\b \x03(\tR\x04tags\x12\x18\n" +
-	"\agitlink\x18\t \x01(\fR\agitlink\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12/\n" +
+	"\tecosystem\x18\x02 \x01(\x0e2\x11.asc.v1.EcosystemR\tecosystem\x12\x18\n" +
+	"\x04name\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x04R\x04name\x12\x18\n" +
+	"\x04root\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x03R\x04root\x12 \n" +
+	"\bmanifest\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x03R\bmanifest\x12'\n" +
+	"\x04kind\x18\x06 \x01(\x0e2\x13.asc.v1.ProjectKindR\x04kind\x12&\n" +
+	"\x04deps\x18\a \x03(\v2\x12.asc.v1.ProjectDepR\x04deps\x12\x12\n" +
+	"\x04tags\x18\b \x03(\tR\x04tags\x12\x1e\n" +
+	"\agitlink\x18\t \x01(\fB\x04\xa8\xbb\x18\x01R\agitlink\x12\x16\n" +
 	"\x06opaque\x18\n" +
-	" \x01(\bR\x06opaque\";\n" +
-	"\vDetectIssue\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\fR\x04path\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\x8b\x01\n" +
-	"\x13ProjectGraphRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\x12&\n" +
-	"\x05types\x18\x03 \x03(\x0e2\x10.asc.v1.EcosystemR\x05types\x12\x16\n" +
-	"\x06select\x18\x04 \x03(\tR\x06select\"\xab\x01\n" +
-	"\x14ProjectGraphResponse\x12\x1c\n" +
-	"\tchangeset\x18\x01 \x01(\fR\tchangeset\x12\x19\n" +
-	"\bgraph_id\x18\x02 \x01(\fR\agraphId\x12.\n" +
-	"\bprojects\x18\x03 \x03(\v2\x12.asc.v1.ProjectInfoR\bprojects\x12*\n" +
-	"\x06issues\x18\x04 \x03(\v2\x12.asc.v1.DetectIssueR\x06issues\"\xfa\x01\n" +
-	"\x0fAffectedRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	" \x01(\bR\x06opaque\"A\n" +
+	"\vDetectIssue\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x8d\x01\n" +
+	"\x13ProjectGraphRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\x12'\n" +
+	"\x05types\x18\x03 \x03(\x0e2\x11.asc.v1.EcosystemR\x05types\x12\x16\n" +
+	"\x06select\x18\x04 \x03(\tR\x06select\"\xb9\x01\n" +
+	"\x14ProjectGraphResponse\x12\"\n" +
+	"\tchangeset\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\tchangeset\x12\x1f\n" +
+	"\bgraph_id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\agraphId\x12/\n" +
+	"\bprojects\x18\x03 \x03(\v2\x13.asc.v1.ProjectInfoR\bprojects\x12+\n" +
+	"\x06issues\x18\x04 \x03(\v2\x13.asc.v1.DetectIssueR\x06issues\"\xfc\x01\n" +
+	"\x0fAffectedRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
 	"\x04base\x18\x02 \x01(\tR\x04base\x12\x12\n" +
 	"\x04head\x18\x03 \x01(\tR\x04head\x12\"\n" +
-	"\rno_merge_base\x18\x04 \x01(\bR\vnoMergeBase\x12&\n" +
-	"\x05types\x18\x05 \x03(\x0e2\x10.asc.v1.EcosystemR\x05types\x12\x16\n" +
+	"\rno_merge_base\x18\x04 \x01(\bR\vnoMergeBase\x12'\n" +
+	"\x05types\x18\x05 \x03(\x0e2\x11.asc.v1.EcosystemR\x05types\x12\x16\n" +
 	"\x06target\x18\x06 \x01(\tR\x06target\x12\x16\n" +
 	"\x06select\x18\a \x03(\tR\x06select\x12\x1f\n" +
 	"\vwith_hashes\x18\b \x01(\bR\n" +
-	"withHashes\"\x90\x01\n" +
-	"\x0fAffectedProject\x12,\n" +
-	"\aproject\x18\x01 \x01(\v2\x12.asc.v1.ProjectInfoR\aproject\x12\x16\n" +
+	"withHashes\"\x1f\n" +
+	"\tTargetCmd\x12\x12\n" +
+	"\x04argv\x18\x01 \x03(\tR\x04argv\"\xa6\x02\n" +
+	"\x0fAffectedProject\x12-\n" +
+	"\aproject\x18\x01 \x01(\v2\x13.asc.v1.ProjectInfoR\aproject\x12\x16\n" +
 	"\x06direct\x18\x02 \x01(\bR\x06direct\x12\x18\n" +
-	"\areasons\x18\x03 \x03(\tR\areasons\x12\x1d\n" +
+	"\areasons\x18\x03 \x03(\tR\areasons\x12#\n" +
 	"\n" +
-	"input_hash\x18\x04 \x01(\fR\tinputHash\"\xa4\x02\n" +
-	"\x10AffectedResponse\x12\x12\n" +
-	"\x04base\x18\x01 \x01(\fR\x04base\x12\x12\n" +
-	"\x04head\x18\x02 \x01(\fR\x04head\x12\x1d\n" +
+	"input_hash\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\tinputHash\x12>\n" +
+	"\atargets\x18\x05 \x03(\v2$.asc.v1.AffectedProject.TargetsEntryR\atargets\x1aM\n" +
+	"\fTargetsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12'\n" +
+	"\x05value\x18\x02 \x01(\v2\x11.asc.v1.TargetCmdR\x05value:\x028\x01\"\xbe\x02\n" +
+	"\x10AffectedResponse\x12\x18\n" +
+	"\x04base\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x04base\x12\x18\n" +
+	"\x04head\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x04head\x12#\n" +
 	"\n" +
-	"merge_base\x18\x03 \x01(\fR\tmergeBase\x12\x10\n" +
-	"\x03all\x18\x04 \x01(\bR\x03all\x122\n" +
-	"\bprojects\x18\x05 \x03(\v2\x16.asc.v1.AffectedProjectR\bprojects\x12\x18\n" +
-	"\aremoved\x18\x06 \x03(\tR\aremoved\x12\x18\n" +
-	"\aunowned\x18\a \x03(\fR\aunowned\x12*\n" +
-	"\x06issues\x18\b \x03(\v2\x12.asc.v1.DetectIssueR\x06issues\x12#\n" +
-	"\rchanged_paths\x18\t \x01(\rR\fchangedPaths\"|\n" +
-	"\x14ProjectHashesRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"merge_base\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\tmergeBase\x12\x10\n" +
+	"\x03all\x18\x04 \x01(\bR\x03all\x123\n" +
+	"\bprojects\x18\x05 \x03(\v2\x17.asc.v1.AffectedProjectR\bprojects\x12\x18\n" +
+	"\aremoved\x18\x06 \x03(\tR\aremoved\x12\x1e\n" +
+	"\aunowned\x18\a \x03(\fB\x04\xa8\xbb\x18\x03R\aunowned\x12+\n" +
+	"\x06issues\x18\b \x03(\v2\x13.asc.v1.DetectIssueR\x06issues\x12#\n" +
+	"\rchanged_paths\x18\t \x01(\rR\fchangedPaths\"}\n" +
+	"\x14ProjectHashesRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
 	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x16\n" +
 	"\x06target\x18\x03 \x01(\tR\x06target\x12\x16\n" +
-	"\x06select\x18\x04 \x03(\tR\x06select\"\xbc\x01\n" +
-	"\x15ProjectHashesResponse\x12\x19\n" +
-	"\bgraph_id\x18\x01 \x01(\fR\agraphId\x12J\n" +
+	"\x06select\x18\x04 \x03(\tR\x06select\"\xc9\x01\n" +
+	"\x15ProjectHashesResponse\x12\x1f\n" +
+	"\bgraph_id\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\agraphId\x12Q\n" +
 	"\n" +
-	"by_project\x18\x02 \x03(\v2+.asc.v1.ProjectHashesResponse.ByProjectEntryR\tbyProject\x1a<\n" +
+	"by_project\x18\x02 \x03(\v2,.asc.v1.ProjectHashesResponse.ByProjectEntryB\x04\xa8\xbb\x18\x01R\tbyProject\x1a<\n" +
 	"\x0eByProjectEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value:\x028\x01*\x92\x01\n" +
@@ -963,11 +1023,13 @@ const file_asc_v1_projects_proto_rawDesc = "" +
 	"\vProjectKind\x12\x18\n" +
 	"\x14PROJECT_KIND_PACKAGE\x10\x00\x12\x1a\n" +
 	"\x16PROJECT_KIND_WORKSPACE\x10\x01\x12\x19\n" +
-	"\x15PROJECT_KIND_SOLUTION\x10\x022\xdc\x01\n" +
-	"\bProjects\x12G\n" +
-	"\fProjectGraph\x12\x1a.asc.v1.ProjectGraphRequest\x1a\x1b.asc.v1.ProjectGraphResponse\x12;\n" +
-	"\bAffected\x12\x16.asc.v1.AffectedRequest\x1a\x17.asc.v1.AffectedResponse\x12J\n" +
-	"\rProjectHashes\x12\x1b.asc.v1.ProjectHashesRequest\x1a\x1c.asc.v1.ProjectHashesResponseB\"Z forgejo.org/modules/ascproto/ascv1b\x06proto3"
+	"\x15PROJECT_KIND_SOLUTION\x10\x022\xe2\x01\n" +
+	"\bProjects\x12I\n" +
+	"\fProjectGraph\x12\x1b.asc.v1.ProjectGraphRequest\x1a\x1c.asc.v1.ProjectGraphResponse\x12=\n" +
+	"\bAffected\x12\x17.asc.v1.AffectedRequest\x1a\x18.asc.v1.AffectedResponse\x12L\n" +
+	"\rProjectHashes\x12\x1c.asc.v1.ProjectHashesRequest\x1a\x1d.asc.v1.ProjectHashesResponseBx\n" +
+	"\n" +
+	"com.asc.v1B\rProjectsProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
 var (
 	file_asc_v1_projects_proto_rawDescOnce sync.Once
@@ -982,7 +1044,7 @@ func file_asc_v1_projects_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_projects_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_asc_v1_projects_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_asc_v1_projects_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_asc_v1_projects_proto_goTypes = []any{
 	(Ecosystem)(0),                // 0: asc.v1.Ecosystem
 	(ProjectKind)(0),              // 1: asc.v1.ProjectKind
@@ -992,39 +1054,43 @@ var file_asc_v1_projects_proto_goTypes = []any{
 	(*ProjectGraphRequest)(nil),   // 5: asc.v1.ProjectGraphRequest
 	(*ProjectGraphResponse)(nil),  // 6: asc.v1.ProjectGraphResponse
 	(*AffectedRequest)(nil),       // 7: asc.v1.AffectedRequest
-	(*AffectedProject)(nil),       // 8: asc.v1.AffectedProject
-	(*AffectedResponse)(nil),      // 9: asc.v1.AffectedResponse
-	(*ProjectHashesRequest)(nil),  // 10: asc.v1.ProjectHashesRequest
-	(*ProjectHashesResponse)(nil), // 11: asc.v1.ProjectHashesResponse
-	nil,                           // 12: asc.v1.ProjectHashesResponse.ByProjectEntry
-	(*RepoRef)(nil),               // 13: asc.v1.RepoRef
+	(*TargetCmd)(nil),             // 8: asc.v1.TargetCmd
+	(*AffectedProject)(nil),       // 9: asc.v1.AffectedProject
+	(*AffectedResponse)(nil),      // 10: asc.v1.AffectedResponse
+	(*ProjectHashesRequest)(nil),  // 11: asc.v1.ProjectHashesRequest
+	(*ProjectHashesResponse)(nil), // 12: asc.v1.ProjectHashesResponse
+	nil,                           // 13: asc.v1.AffectedProject.TargetsEntry
+	nil,                           // 14: asc.v1.ProjectHashesResponse.ByProjectEntry
+	(*RepoRef)(nil),               // 15: asc.v1.RepoRef
 }
 var file_asc_v1_projects_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.ProjectInfo.ecosystem:type_name -> asc.v1.Ecosystem
 	1,  // 1: asc.v1.ProjectInfo.kind:type_name -> asc.v1.ProjectKind
 	2,  // 2: asc.v1.ProjectInfo.deps:type_name -> asc.v1.ProjectDep
-	13, // 3: asc.v1.ProjectGraphRequest.repo:type_name -> asc.v1.RepoRef
+	15, // 3: asc.v1.ProjectGraphRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 4: asc.v1.ProjectGraphRequest.types:type_name -> asc.v1.Ecosystem
 	3,  // 5: asc.v1.ProjectGraphResponse.projects:type_name -> asc.v1.ProjectInfo
 	4,  // 6: asc.v1.ProjectGraphResponse.issues:type_name -> asc.v1.DetectIssue
-	13, // 7: asc.v1.AffectedRequest.repo:type_name -> asc.v1.RepoRef
+	15, // 7: asc.v1.AffectedRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 8: asc.v1.AffectedRequest.types:type_name -> asc.v1.Ecosystem
 	3,  // 9: asc.v1.AffectedProject.project:type_name -> asc.v1.ProjectInfo
-	8,  // 10: asc.v1.AffectedResponse.projects:type_name -> asc.v1.AffectedProject
-	4,  // 11: asc.v1.AffectedResponse.issues:type_name -> asc.v1.DetectIssue
-	13, // 12: asc.v1.ProjectHashesRequest.repo:type_name -> asc.v1.RepoRef
-	12, // 13: asc.v1.ProjectHashesResponse.by_project:type_name -> asc.v1.ProjectHashesResponse.ByProjectEntry
-	5,  // 14: asc.v1.Projects.ProjectGraph:input_type -> asc.v1.ProjectGraphRequest
-	7,  // 15: asc.v1.Projects.Affected:input_type -> asc.v1.AffectedRequest
-	10, // 16: asc.v1.Projects.ProjectHashes:input_type -> asc.v1.ProjectHashesRequest
-	6,  // 17: asc.v1.Projects.ProjectGraph:output_type -> asc.v1.ProjectGraphResponse
-	9,  // 18: asc.v1.Projects.Affected:output_type -> asc.v1.AffectedResponse
-	11, // 19: asc.v1.Projects.ProjectHashes:output_type -> asc.v1.ProjectHashesResponse
-	17, // [17:20] is the sub-list for method output_type
-	14, // [14:17] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	13, // 10: asc.v1.AffectedProject.targets:type_name -> asc.v1.AffectedProject.TargetsEntry
+	9,  // 11: asc.v1.AffectedResponse.projects:type_name -> asc.v1.AffectedProject
+	4,  // 12: asc.v1.AffectedResponse.issues:type_name -> asc.v1.DetectIssue
+	15, // 13: asc.v1.ProjectHashesRequest.repo:type_name -> asc.v1.RepoRef
+	14, // 14: asc.v1.ProjectHashesResponse.by_project:type_name -> asc.v1.ProjectHashesResponse.ByProjectEntry
+	8,  // 15: asc.v1.AffectedProject.TargetsEntry.value:type_name -> asc.v1.TargetCmd
+	5,  // 16: asc.v1.Projects.ProjectGraph:input_type -> asc.v1.ProjectGraphRequest
+	7,  // 17: asc.v1.Projects.Affected:input_type -> asc.v1.AffectedRequest
+	11, // 18: asc.v1.Projects.ProjectHashes:input_type -> asc.v1.ProjectHashesRequest
+	6,  // 19: asc.v1.Projects.ProjectGraph:output_type -> asc.v1.ProjectGraphResponse
+	10, // 20: asc.v1.Projects.Affected:output_type -> asc.v1.AffectedResponse
+	12, // 21: asc.v1.Projects.ProjectHashes:output_type -> asc.v1.ProjectHashesResponse
+	19, // [19:22] is the sub-list for method output_type
+	16, // [16:19] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_projects_proto_init() }
@@ -1032,6 +1098,7 @@ func file_asc_v1_projects_proto_init() {
 	if File_asc_v1_projects_proto != nil {
 		return
 	}
+	file_asc_v1_options_proto_init()
 	file_asc_v1_repo_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1039,7 +1106,7 @@ func file_asc_v1_projects_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_projects_proto_rawDesc), len(file_asc_v1_projects_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
