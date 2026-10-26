@@ -1,15 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="256" height="256" role="img" aria-label="ASC Hub">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="256" height="256" role="img" aria-label="ASC Hub">
   <style>
-    .fig{fill:#125469;opacity:.15;transform-box:fill-box;transform-origin:50% 100%;animation:asc-rise 1500ms ease-in-out infinite}
-    @keyframes asc-rise{0%,100%{opacity:.15;transform:scaleY(.85)}35%{opacity:1;transform:scaleY(1)}70%{opacity:.15;transform:scaleY(.85)}}
-    @media (prefers-color-scheme:dark){.fig{fill:#22d3ee}}
-    @media (prefers-reduced-motion:reduce){.fig{animation:none;opacity:1}}
+    .tile{fill:#125469}
+    .leg{stroke:#ffffff}
+    .acc{stroke:#22d3ee;fill:none}
+    .dot{fill:#22d3ee;transform-box:fill-box;transform-origin:50% 50%;animation:asc-pulse 1400ms ease-in-out infinite}
+    .path{stroke-dasharray:30;animation:asc-draw 1400ms ease-in-out infinite}
+    @keyframes asc-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+    @keyframes asc-draw{0%{stroke-dashoffset:30}60%,100%{stroke-dashoffset:0}}
+    @media (prefers-color-scheme:dark){.tile{fill:#2394b2}.leg{stroke:#0b1220}.acc{stroke:#ffffff}.dot{fill:#ffffff}}
+    @media (prefers-reduced-motion:reduce){.dot,.path{animation:none}.path{stroke-dasharray:none}}
   </style>
-  <g>
-    <g class="fig" style="animation-delay:0ms"><circle cx="24" cy="82" r="13"/><rect x="12" y="104" width="24" height="68" rx="12"/></g>
-    <g class="fig" style="animation-delay:150ms"><circle cx="62" cy="58" r="13"/><rect x="50" y="80" width="24" height="92" rx="12"/></g>
-    <g class="fig" style="animation-delay:300ms"><circle cx="100" cy="34" r="13"/><rect x="88" y="56" width="24" height="116" rx="12"/></g>
-    <g class="fig" style="animation-delay:450ms"><circle cx="138" cy="58" r="13"/><rect x="126" y="80" width="24" height="92" rx="12"/></g>
-    <g class="fig" style="animation-delay:600ms"><circle cx="176" cy="82" r="13"/><rect x="164" y="104" width="24" height="68" rx="12"/></g>
-  </g>
+  <rect class="tile" width="28" height="28" rx="7"/>
+  <path class="leg path" d="M7.5 22.2 14 6.6l6.5 15.6" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="acc" d="M10.4 17.3h7.2" stroke-width="2.4" stroke-linecap="round"/>
+  <circle class="dot" cx="14" cy="6.6" r="2.7"/>
 </svg>
