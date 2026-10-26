@@ -5,12 +5,15 @@
 package explore
 
 import (
+	gocontext "context"
 	"net/http"
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/modules/ascclient"
 	"forgejo.org/modules/base"
 	code_indexer "forgejo.org/modules/indexer/code"
+	asc_indexer "forgejo.org/modules/indexer/code/asc"
 	"forgejo.org/modules/setting"
 	"forgejo.org/routers/common"
 	"forgejo.org/services/context"
@@ -58,8 +61,21 @@ func Code(ctx *context.Context) {
 		isAdmin = ctx.Doer.IsAdmin
 	}
 
-	// guest user or non-admin user
-	if ctx.Doer == nil || !isAdmin {
+	searchCtx := gocontext.Context(ctx)
+	if setting.Indexer.RepoType == "asc" {
+		// The asc backend searches named repositories and asks for a credential on every call. Forgejo has
+		// decided who may read what here, so the repository list is built from the viewer's own access
+		// (an administrator included, and only repositories stored in asc), bounded to what one search
+		// accepts, and the call is made as the hub.
+		repoIDs, err = repo_model.FindUserCodeAccessibleAscRepoIDs(ctx, ctx.Doer, asc_indexer.MaxRepos)
+		if err != nil {
+			ctx.ServerError("FindUserCodeAccessibleAscRepoIDs", err)
+			return
+		}
+		isAdmin = false
+		searchCtx = ascclient.WithSystem(ctx)
+	} else if ctx.Doer == nil || !isAdmin {
+		// guest user or non-admin user
 		repoIDs, err = repo_model.FindUserCodeAccessibleRepoIDs(ctx, ctx.Doer)
 		if err != nil {
 			ctx.ServerError("FindUserCodeAccessibleRepoIDs", err)
@@ -74,7 +90,7 @@ func Code(ctx *context.Context) {
 	)
 
 	if (len(repoIDs) > 0) || isAdmin {
-		total, searchResults, searchResultLanguages, err = code_indexer.PerformSearch(ctx, &code_indexer.SearchOptions{
+		total, searchResults, searchResultLanguages, err = code_indexer.PerformSearch(searchCtx, &code_indexer.SearchOptions{
 			RepoIDs:  repoIDs,
 			Keyword:  opts.Keyword,
 			Mode:     mode,
