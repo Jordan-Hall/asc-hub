@@ -16,6 +16,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
+	"forgejo.org/services/ascbridge"
 	pull_service "forgejo.org/services/pull"
 
 	"github.com/stretchr/testify/assert"
@@ -177,7 +178,8 @@ func TestAscStackQueueLandsLargestReadyPrefix(t *testing.T) {
 	n, err := RunAscStackQueue(t.Context(), f.top.BaseRepoID, "master")
 	require.NoError(t, err)
 	assert.Equal(t, 1, n)
-	assert.Equal(t, []int64{f.top.ID, f.bottom.ID}, f.lander.lands, "the largest prefix is tried first")
+	assert.Equal(t, []int64{f.top.ID, f.bottom.ID, f.top.ID}, f.lander.lands,
+		"the largest prefix is tried first, then the bottom lands, then the top is tried alone and stays queued")
 	assert.Equal(t, map[int64]string{f.bottom.ID: AscQueueMerged, f.top.ID: AscQueueQueued}, qStates(t, f))
 
 	// Ready now: the top lands. One run, one land of the remaining prefix.
@@ -296,9 +298,40 @@ func TestAscStackQueueRevalidateSetting(t *testing.T) {
 	assert.Equal(t, []bool{false}, f.lander.flags)
 }
 
-func TestAscStackQueueDefaultLanderFailsClosedWithoutFlagSupport(t *testing.T) {
-	_, err := ascPullLander{}.Land(t.Context(), nil, access_model.Permission{}, nil, true)
-	require.ErrorIs(t, err, ErrAscQueueUnsupported)
+// The default lander lands through pull_service.MergeAscStackWith and restacks through RestackAscStack. With no
+// backend, or a repository that is not stored in asc, both fail closed.
+func TestAscStackQueueDefaultLanderFailsClosed(t *testing.T) {
+	f := newQFixture(t)
+	doer := qUser(t, 2)
+	require.NoError(t, f.top.LoadBaseRepo(t.Context()))
+	perm, err := access_model.GetUserRepoPermission(t.Context(), f.top.BaseRepo, doer)
+	require.NoError(t, err)
+
+	t.Cleanup(pull_service.UseAscStackBackend(nil))
+	for _, noCM := range []bool{true, false} {
+		_, err = ascPullLander{}.Land(t.Context(), doer, perm, f.top, noCM)
+		require.ErrorIs(t, err, pull_service.ErrAscStackDisabled, "no backend")
+	}
+
+	t.Cleanup(pull_service.UseAscStackBacked(func(*repo_model.Repository) (bool, error) { return false, nil }))
+	require.ErrorIs(t, ascPullLander{}.Restack(t.Context(), doer, f.top), pull_service.ErrAscStackDisabled)
+	require.ErrorIs(t, ascPullLander{}.Restack(t.Context(), nil, f.top), pull_service.ErrAscRestackNotAllowed)
+}
+
+// A restack that leaves the stack as it is cannot make the next land succeed, so the default lander reports it
+// and the entries wait for a new head instead of looping.
+func TestAscStackQueueDefaultLanderRestackNeedsWork(t *testing.T) {
+	f := newQFixture(t)
+	doer := qUser(t, 2)
+	ops := &fakeQStackOps{dry: &ascbridge.RestackStackResult{Items: []ascbridge.RestackItem{
+		{Change: qBottomChange, State: ascbridge.RestackUnchanged}, {Change: qTopChange, State: ascbridge.RestackUnchanged},
+	}}}
+	t.Cleanup(ascbridge.UseStackOps(ops))
+	t.Cleanup(pull_service.UseAscStackBacked(func(*repo_model.Repository) (bool, error) { return true, nil }))
+
+	err := ascPullLander{}.Restack(t.Context(), doer, f.top)
+	require.Error(t, err)
+	assert.Equal(t, 1, ops.calls, "only the dry run: nothing needed rewriting")
 }
 
 func TestAscStackQueueOneLandInFlightPerBranch(t *testing.T) {
@@ -414,11 +447,16 @@ func TestAscStackQueueManyStacksLandOnceEach(t *testing.T) {
 	for i := range stacks {
 		var bottomID int64
 		for j := range 2 {
+			issue := &issues_model.Issue{
+				RepoID: f.top.BaseRepoID, Index: int64(1000 + i*2 + j), PosterID: 2, Title: fmt.Sprintf("stack %d-%d", i, j), IsPull: true,
+			}
+			_, err := e.Insert(issue)
+			require.NoError(t, err)
 			pr := &issues_model.PullRequest{
-				Type: issues_model.PullRequestGitea, Index: int64(1000 + i*2 + j), BaseRepoID: f.top.BaseRepoID,
+				Type: issues_model.PullRequestGitea, Index: issue.Index, IssueID: issue.ID, BaseRepoID: f.top.BaseRepoID,
 				HeadRepoID: f.top.BaseRepoID, BaseBranch: "master", HeadBranch: fmt.Sprintf("s%d-%d", i, j),
 			}
-			_, err := e.Insert(pr)
+			_, err = e.Insert(pr)
 			require.NoError(t, err)
 			require.NoError(t, issues_model.SetPullRequestAscStack(ctx, pr, changeID(i, j), bottomID))
 			if j == 0 {

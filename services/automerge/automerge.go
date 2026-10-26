@@ -20,6 +20,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/process"
 	"forgejo.org/modules/queue"
+	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
 	notify_service "forgejo.org/services/notify"
 	pull_service "forgejo.org/services/pull"
@@ -36,6 +37,9 @@ func Init() error {
 		return errors.New("unable to create pr_auto_merge queue")
 	}
 	go graceful.GetManager().RunWithCancel(shared_automerge.PRAutoMergeQueue)
+	if setting.Asc.Enabled {
+		InitAscStackQueue()
+	}
 	return nil
 }
 

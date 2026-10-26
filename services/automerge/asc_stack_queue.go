@@ -45,12 +45,10 @@ import (
 //     content that was approved is no longer the content that would land. REVALIDATE = off omits the flag.
 //   - A crash between claiming and finishing leaves entries in "landing". The next run marks the ones whose
 //     pull request is merged as merged and puts the others back to queued; the land is idempotent.
-//
-// TODO(C52): the no_content_merge flag and the LAND_NEEDS_CONTENT_MERGE answer live in the asc side of
-// pull_service (C38's ascClientBackend does not send the flag yet). ascPullLander fails closed (it refuses the
-// land) when revalidation is on and the backend cannot carry the flag, rather than landing without it.
-// TODO(C22): restack of a blocked stack is the same: the default lander reports it unsupported and the
-// entries stay blocked.
+//   - Revalidation is real: with the flag on, the content that would land is the content that was reviewed or
+//     the land does not happen. The restack (pull_service.RestackAscStack, asc Stacks.Restack) writes the
+//     rebased heads as new versions; the readiness check of the next try then asks for the checks and the
+//     approvals of those exact heads (an approval survives where the patch is unchanged).
 
 // Entry states.
 const (
@@ -77,9 +75,7 @@ var (
 	ErrAscQueueNoPermission = errors.New("only an administrator may do this")
 
 	// ErrAscLandNeedsContentMerge is what a lander returns when asc answered LAND_NEEDS_CONTENT_MERGE.
-	ErrAscLandNeedsContentMerge = errors.New("LAND_NEEDS_CONTENT_MERGE: the land needs a content merge")
-	// ErrAscQueueUnsupported is returned by the default lander for what the asc side cannot do yet.
-	ErrAscQueueUnsupported = errors.New("the asc backend does not support this yet")
+	ErrAscLandNeedsContentMerge = pull_service.ErrAscLandNeedsContentMerge
 )
 
 // AscStackQueueEntry is one queued pull request.
@@ -132,16 +128,21 @@ type AscQueueLander interface {
 type ascPullLander struct{}
 
 func (ascPullLander) Land(ctx context.Context, doer *user_model.User, perm access_model.Permission, pr *issues_model.PullRequest, noContentMerge bool) (*pull_service.AscStackMergeResult, error) {
-	if noContentMerge {
-		// TODO(C52): send the flag once pull_service's backend carries it. Until then fail closed.
-		return nil, fmt.Errorf("%w: no_content_merge", ErrAscQueueUnsupported)
-	}
-	return pull_service.MergeAscStack(ctx, doer, perm, pr)
+	return pull_service.MergeAscStackWith(ctx, doer, perm, pr, pull_service.AscMergeOptions{NoContentMerge: noContentMerge})
 }
 
-func (ascPullLander) Restack(context.Context, *user_model.User, *issues_model.PullRequest) error {
-	// TODO(C22): RestackChanges of a whole stack on the new target.
-	return fmt.Errorf("%w: restack", ErrAscQueueUnsupported)
+// Restack rewrites the whole stack of pr onto the target through asc Stacks.Restack, as doer. A stack that
+// needs nothing is an error here: the land asked for a restack, so a restack that changes nothing cannot
+// make the next try succeed, and the entries must wait for a new head instead of looping.
+func (ascPullLander) Restack(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest) error {
+	res, err := pull_service.RestackAscStack(ctx, doer, pr, pull_service.AscRestackOptions{})
+	if err != nil {
+		return err
+	}
+	if !res.Applied {
+		return errors.New("the stack needs no restack")
+	}
+	return nil
 }
 
 var (
@@ -180,6 +181,10 @@ func UseAscQueueLander(l AscQueueLander) (restore func()) {
 func ascQueueNoContentMerge() bool {
 	return strings.TrimSpace(strings.ToLower(ascQueueRevalidateSetting())) != AscRevalidateOff
 }
+
+// AscQueueNoContentMerge reports whether lands carry no_content_merge: [asc_stack_queue] REVALIDATE is anything
+// but "off".
+func AscQueueNoContentMerge() bool { return ascQueueNoContentMerge() }
 
 func isAscNeedsContentMerge(err error) bool {
 	return err != nil && (errors.Is(err, ErrAscLandNeedsContentMerge) || strings.Contains(err.Error(), "LAND_NEEDS_CONTENT_MERGE"))
@@ -254,6 +259,9 @@ func AscQueueSetPaused(ctx context.Context, doer *user_model.User, repo *repo_mo
 	}
 	_, err = db.GetEngine(ctx).Where("repo_id = ? AND branch = ?", repo.ID, branch).Cols("paused", "paused_by_id").
 		Update(&AscStackQueueBranch{Paused: paused, PausedByID: by})
+	if err == nil {
+		log.Info("asc audit: merge queue: repository %d, branch %q: user %d set paused=%v", repo.ID, branch, doer.ID, paused)
+	}
 	return err
 }
 
@@ -367,6 +375,8 @@ func AscQueueEnqueue(ctx context.Context, doer *user_model.User, pr *issues_mode
 	if err != nil {
 		return nil, err
 	}
+	log.Info("asc audit: merge queue: repository %d, branch %q: user %d queued %d pull requests up to pull request %d",
+		first.BaseRepoID, first.BaseBranch, doer.ID, len(res.Queued), pr.ID)
 	AscQueueKick(first.BaseRepoID, first.BaseBranch)
 	return res, nil
 }
@@ -374,6 +384,14 @@ func AscQueueEnqueue(ctx context.Context, doer *user_model.User, pr *issues_mode
 // ascQueueBacked reports whether the repository is stored in asc. Tests replace it.
 var ascQueueBacked = func(repo *repo_model.Repository) (bool, error) {
 	return ascsync.BackedBy(repo)
+}
+
+// UseAscQueueBacked replaces the test that a repository is stored in asc until the returned function is
+// called. It is for tests of the callers of the queue.
+func UseAscQueueBacked(f func(*repo_model.Repository) (bool, error)) (restore func()) {
+	prev := ascQueueBacked
+	ascQueueBacked = f
+	return func() { ascQueueBacked = prev }
 }
 
 // AscQueueBackedBy reports whether the repository is stored in asc, so the queue applies to it.
@@ -426,6 +444,10 @@ func AscQueueCancel(ctx context.Context, doer *user_model.User, pr *issues_model
 		}
 		_, err = db.GetEngine(ctx).In("id", ids).Cols("state", "reason").
 			Update(&AscStackQueueEntry{State: AscQueueCancelled, Reason: "cancelled by " + doer.Name})
+		if err == nil {
+			log.Info("asc audit: merge queue: repository %d, branch %q: user %d removed %d entries from pull request %d up",
+				ent.RepoID, ent.Branch, doer.ID, len(ids), pr.ID)
+		}
 		return err
 	})
 }
@@ -731,6 +753,8 @@ func AscQueueLandNow(ctx context.Context, doer *user_model.User, pr *issues_mode
 	for _, p := range res.Merged {
 		ids = append(ids, p.ID)
 	}
+	log.Info("asc audit: merge queue: repository %d, branch %q: user %d landed %d pull requests up to pull request %d now",
+		pr.BaseRepoID, pr.BaseBranch, doer.ID, len(ids), pr.ID)
 	if err := ascQueueSetState(ctx, AscQueueMerged, "", "", ids); err != nil {
 		return res.Merged, err
 	}
@@ -782,8 +806,7 @@ func startAscQueueRun(repoID int64, branch string) {
 }
 
 // InitAscStackQueue starts the poller that re-runs every branch with queued or blocked entries, so a check
-// that turned green or a new push moves the queue. The first enqueue starts it too.
-// TODO(C39): call this from automerge.Init (services/automerge/automerge.go is not part of this unit).
+// that turned green or a new push moves the queue. automerge.Init calls it; the first enqueue starts it too.
 func InitAscStackQueue() { ascQueueStarted.Do(func() { go startAscQueuePoller() }) }
 
 const ascQueuePollEvery = 20 * time.Second
