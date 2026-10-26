@@ -91,5 +91,6 @@
 @import "./helpers.css";
 
 @import "./asc.css";
+@import "./asc-search.css";
 @import "./asc-queue.css";
 @import "./asc-settings.css";

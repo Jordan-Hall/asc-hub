@@ -1,0 +1,225 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content explore asc-search">
+	{{template "explore/navbar" .}}
+	<div class="ui container">
+		<h1 class="tw-sr-only">{{.Title}}</h1>
+		<form id="asc-search-form" class="asc-search-form" method="get" action="{{AppSubUrl}}/explore/code" role="search">
+			<div class="asc-search-bar">
+				<label class="tw-sr-only" for="asc-search-q">Search the code of every repository you can read</label>
+				<input id="asc-search-q" name="q" type="search" value="{{.AscText}}" maxlength="4096" autocomplete="off" placeholder="Search code, symbols or ideas" required>
+				<button class="ui primary button" type="submit">Search</button>
+			</div>
+			<div class="asc-search-modes" role="radiogroup" aria-label="Kind of search">
+				<label class="asc-mode"><input type="radio" name="mode" value="text"{{if eq .AscMode "text"}} checked{{end}}><span>Text</span></label>
+				<label class="asc-mode"><input type="radio" name="mode" value="symbol"{{if eq .AscMode "symbol"}} checked{{end}}><span>Symbol</span></label>
+				<label class="asc-mode"><input type="radio" name="mode" value="meaning"{{if eq .AscMode "meaning"}} checked{{end}}><span>Meaning</span></label>
+			</div>
+			<details class="asc-search-options"{{if or .AscOwner .AscLang .AscPath}} open{{end}}>
+				<summary>
+					In: {{if .AscOwner}}repositories of <span class="tw-font-mono">{{.AscOwner}}</span>{{else}}all repositories{{end}}
+				</summary>
+				<div class="asc-search-fields">
+					<div class="field">
+						<label for="asc-search-owner">Owner</label>
+						<input id="asc-search-owner" name="owner" type="text" value="{{.AscOwner}}" maxlength="255" placeholder="every owner">
+					</div>
+					<div class="field">
+						<label for="asc-search-lang">Language</label>
+						<input id="asc-search-lang" name="lang" type="text" value="{{.AscLang}}" maxlength="40" placeholder="any">
+					</div>
+					<div class="field">
+						<label for="asc-search-path">Path</label>
+						<input id="asc-search-path" name="path" type="text" value="{{.AscPath}}" maxlength="1024" placeholder="the whole repository">
+					</div>
+					<div class="field">
+						<label for="asc-search-match">Text match</label>
+						<select id="asc-search-match" name="match">
+							<option value="literal"{{if eq .AscMatch "literal"}} selected{{end}}>Literal</option>
+							<option value="word"{{if eq .AscMatch "word"}} selected{{end}}>Whole word</option>
+							<option value="regex"{{if eq .AscMatch "regex"}} selected{{end}}>Regular expression</option>
+						</select>
+					</div>
+					<div class="field asc-search-case">
+						<div class="ui checkbox">
+							<input id="asc-search-case" name="case" type="checkbox" value="1"{{if .AscCase}} checked{{end}}>
+							<label for="asc-search-case">Match case</label>
+						</div>
+					</div>
+				</div>
+				<p class="asc-search-hint">To search one version, a change or a stack, or all the branches of a repository, open the repository and use its search.</p>
+			</details>
+		</form>
+
+		{{if .AscError}}
+			<div class="ui {{if eq .AscError 400}}warning{{else}}error{{end}} message" role="alert" id="asc-search-error">
+				<p>{{.AscErrorText}}</p>
+			</div>
+		{{else if .AscDone}}
+			<div class="asc-search-layout">
+				<div class="asc-search-facets" role="group" aria-label="Filters">
+					<section>
+						<h2 class="asc-facet-title">Scope</h2>
+						<ul class="asc-facet-list">
+							<li><a class="asc-chip{{if not .AscOwner}} active{{end}}" href="{{if .AscClearOwner}}{{.AscClearOwner}}{{else}}#asc-search-form{{end}}"{{if not .AscOwner}} aria-current="true"{{end}}>All repositories</a></li>
+							{{if .AscOwner}}<li><a class="asc-chip active" href="#asc-search-form" aria-current="true">Owner {{.AscOwner}}</a></li>{{end}}
+						</ul>
+					</section>
+					{{if .AscLangFacets}}
+						<section>
+							<h2 class="asc-facet-title">Language</h2>
+							<ul class="asc-facet-list">
+								{{range .AscLangFacets}}
+									<li><a class="asc-chip{{if .Active}} active{{end}}" href="{{.URL}}"{{if .Active}} aria-current="true"{{end}}><span>{{.Name}}</span><span class="asc-count">{{.Count}}</span></a></li>
+								{{end}}
+								{{if .AscClearLang}}<li><a class="asc-chip" href="{{.AscClearLang}}">Any language</a></li>{{end}}
+							</ul>
+						</section>
+					{{end}}
+					{{if .AscDirFacets}}
+						<section>
+							<h2 class="asc-facet-title">Path</h2>
+							<ul class="asc-facet-list">
+								{{range .AscDirFacets}}
+									<li><a class="asc-chip tw-font-mono{{if .Active}} active{{end}}" href="{{.URL}}"{{if .Active}} aria-current="true"{{end}}><span>{{.Name}}</span><span class="asc-count">{{.Count}}</span></a></li>
+								{{end}}
+								{{if .AscClearPath}}<li><a class="asc-chip" href="{{.AscClearPath}}">Whole repository</a></li>{{end}}
+							</ul>
+						</section>
+					{{end}}
+				</div>
+
+				<div class="asc-search-results" id="asc-search-results">
+					{{if eq .AscReposTotal 0}}
+						<div class="ui info message" role="status">No repository you can read is stored in asc, so there is no code to search yet.</div>
+					{{else}}
+						<p class="asc-search-summary" role="status">
+							{{if eq .AscMode "symbol"}}
+								<b>{{.AscCount}} symbol{{if ne .AscCount 1}}s{{end}}</b> in {{.AscRepoCount}} repositor{{if eq .AscRepoCount 1}}y{{else}}ies{{end}}
+							{{else if eq .AscMode "meaning"}}
+								<b>{{.AscCount}} passage{{if ne .AscCount 1}}s{{end}}</b> in {{.AscRepoCount}} repositor{{if eq .AscRepoCount 1}}y{{else}}ies{{end}}
+								{{if .AscModel}}using <span class="tw-font-mono">{{.AscModel}}</span>{{end}}
+							{{else}}
+								<b>{{.AscCount}} result{{if ne .AscCount 1}}s{{end}}</b> in {{.AscFileCount}} file{{if ne .AscFileCount 1}}s{{end}} in {{.AscRepoCount}} repositor{{if eq .AscRepoCount 1}}y{{else}}ies{{end}}
+							{{end}}
+							<span class="asc-muted">in {{.AscElapsedMS}} ms</span>
+							{{if .AscMatched}}<span class="asc-pill asc-pill-info">Symbols matched: {{range $i, $m := .AscMatched}}{{if $i}}, {{end}}{{$m}}{{end}}</span>{{end}}
+						</p>
+
+						{{if .AscReposTruncated}}
+							<div class="ui info message" role="status">
+								{{if eq .AscMode "meaning"}}A search by meaning covers the {{.AscReposSearched}} most recently updated of the {{.AscReposTotal}} repositories you can read, because each one costs a model call. Set an owner to search others.
+								{{else}}Searched the {{.AscReposSearched}} most recently updated of the {{.AscReposTotal}} repositories you can read. Set an owner to search the others.{{end}}
+							</div>
+						{{end}}
+						{{if .AscFailed}}
+							<div class="ui warning message" role="status">{{.AscFailed}} repositor{{if eq .AscFailed 1}}y{{else}}ies{{end}} could not be searched, so the results may be incomplete.</div>
+						{{end}}
+
+						{{if eq .AscCount 0}}
+							<div class="ui info message" role="status">Nothing found.</div>
+						{{end}}
+
+						{{range $g := .AscGroups}}
+							<section class="asc-group">
+								<h2 class="asc-repo"><a href="{{$g.Link}}">{{$g.Name}}</a></h2>
+								{{range $f := $g.Files}}
+									<article class="asc-card">
+										<div class="asc-card-head">
+											<a class="asc-path" href="{{$f.Link}}">{{$f.Path}}</a>
+											{{if $f.Definition}}<a class="asc-pill asc-pill-def" href="{{$f.SymbolLink}}" title="Show the definition and where it is used">Definition</a>{{end}}
+											{{if $f.Lang}}<span class="asc-pill asc-pill-lang">{{$f.Lang}}</span>{{end}}
+										</div>
+										{{if $f.Redacted}}
+											<p class="asc-redacted">The content of this file is hidden because it may hold secrets.</p>
+										{{else}}
+											<div class="asc-lines">
+												{{range $l := $f.Lines}}
+													<div class="asc-line{{if $l.IsMatch}} match{{end}}"><a class="n" href="{{$l.Link}}">{{$l.Number}}</a><span class="c">{{range $s := $l.Segments}}{{if $s.Hit}}<mark>{{$s.Text}}</mark>{{else}}{{$s.Text}}{{end}}{{end}}</span></div>
+												{{end}}
+											</div>
+										{{end}}
+										{{if $f.Also}}
+											<p class="asc-also">Same file also at {{range $a := $f.Also}}<a class="tw-font-mono" href="{{$a.Link}}">{{$a.Path}}</a> {{end}}</p>
+										{{end}}
+									</article>
+								{{end}}
+
+								{{if $g.Symbols}}
+									<ul class="asc-symbols">
+										{{range $s := $g.Symbols}}
+											<li class="asc-card asc-symbol">
+												<div class="asc-card-head">
+													<span class="asc-pill asc-pill-lang">{{$s.Kind}}</span>
+													<a class="tw-font-mono" href="{{$s.PanelLink}}">{{$s.Name}}</a>
+													{{if $s.IsDef}}<span class="asc-pill asc-pill-def">Definition</span>{{else}}<span class="asc-pill asc-pill-lang">Reference</span>{{end}}
+													<span class="asc-pill asc-confidence" title="How this match was found">{{$s.Confidence}}</span>
+												</div>
+												<p class="asc-symbol-body">
+													<a class="asc-path" href="{{$s.Link}}">{{$s.Path}}{{if $s.Line}}:{{$s.Line}}{{end}}</a>
+													{{if $s.Container}}<span class="asc-muted">in {{$s.Container}}</span>{{end}}
+													{{if $s.Signature}}<code class="asc-signature">{{$s.Signature}}</code>{{end}}
+													{{if $s.Doc}}<span class="asc-muted">{{$s.Doc}}</span>{{end}}
+												</p>
+											</li>
+										{{end}}
+									</ul>
+								{{end}}
+
+								{{range $c := $g.Chunks}}
+									<article class="asc-card asc-chunk">
+										<div class="asc-card-head">
+											<a class="asc-path" href="{{$c.Link}}">{{$c.Path}}{{if $c.StartLine}}:{{$c.StartLine}}{{if gt $c.EndLine $c.StartLine}}-{{$c.EndLine}}{{end}}{{end}}</a>
+											{{if $c.Symbol}}<span class="tw-font-mono">{{$c.Symbol}}</span>{{end}}
+											<span class="asc-pill asc-pill-lang" title="Relevance">{{$c.Score}}</span>
+											{{range $s := $c.Sources}}<span class="asc-pill asc-pill-lang">{{$s}}</span>{{end}}
+										</div>
+										{{if $c.Redacted}}
+											<p class="asc-redacted">The content of this passage is hidden because it may hold secrets.</p>
+										{{else if $c.Text}}
+											<pre class="asc-chunk-text">{{$c.Text}}</pre>
+										{{end}}
+									</article>
+								{{end}}
+							</section>
+						{{end}}
+
+						{{if .AscMore}}
+							<p><a class="ui basic button" id="asc-search-more" href="{{.AscMore}}">More results</a></p>
+						{{else if .AscTruncated}}
+							<div class="ui info message" role="status">More results exist than are shown. Narrow the search with an owner, a language or a path.</div>
+						{{end}}
+
+						{{if and (eq .AscMode "text") .AscGroups}}
+							<div class="asc-tip">
+								<b>Try meaning search.</b> A question in words, such as <span class="tw-font-mono">where do we stop retrying a refund?</span>, finds the code that answers it even when it never uses those words.
+								<a class="asc-tip-link" href="{{AppSubUrl}}/explore/code?mode=meaning&amp;q={{.AscText}}">Switch to Meaning</a>
+							</div>
+						{{end}}
+					{{end}}
+				</div>
+
+				<section class="asc-search-coverage" id="asc-search-coverage" aria-label="Coverage">
+					<b>Coverage.</b>
+					{{with .AscCoverage}}
+						{{if not .Known}}
+							How much of this code the server has indexed is not known, so the results may be incomplete.
+						{{else if eq .Asked 1}}
+							Indexed{{if .Revision}} at <span class="tw-font-mono">{{.Revision}}</span>{{end}}, {{.Percent}}% of {{if eq $.AscMode "meaning"}}the code{{else}}files{{end}}.
+							{{if .Lag}}The index is {{.Lag}} s behind.{{end}}
+							{{if not .Complete}}Results may be incomplete.{{end}}
+						{{else if .Complete}}
+							The index covers all {{.Asked}} repositories searched.
+						{{else}}
+							The index covers {{.Percent}}% of {{if eq $.AscMode "meaning"}}the code{{else}}files{{end}} on average in {{.Reporting}} of {{.Asked}} repositories{{if .Sampled}} (a sample of those searched){{end}}. Results may be incomplete.
+						{{end}}
+					{{end}}
+				</section>
+			</div>
+		{{else}}
+			<div class="asc-search-empty">
+				<p class="asc-muted">Search the code of every repository you can read. Use Text for exact words, Symbol for the name of a function or type, and Meaning for a question in words.</p>
+			</div>
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}
