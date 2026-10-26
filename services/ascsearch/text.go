@@ -66,21 +66,63 @@ func Plain(s string, limit int) bool {
 	return !strings.ContainsFunc(s, func(r rune) bool { return unicode.IsControl(r) || IsBidi(r) })
 }
 
-// Clean makes an untrusted text safe to show on one line: it is cut at limit bytes, made valid UTF-8, and
-// loses control characters (a tab stays) and bidirectional characters.
+// Clean makes an untrusted text safe to show on one line: it is cut at limit bytes, made valid UTF-8 (each
+// invalid byte becomes U+FFFD), and loses control characters (a tab stays) and bidirectional characters.
 func Clean(b []byte, limit int) string {
+	s, _ := CleanAt(b, limit, nil)
+	return s
+}
+
+// maxCols bounds the match columns kept for one line.
+const maxCols = 200
+
+// CleanAt is Clean for a line with match columns. The columns are byte offsets into b and come back as byte
+// offsets into the cleaned text, so cleaning never moves a match. A column inside a character, or past the
+// end, is dropped.
+func CleanAt(b []byte, limit int, cols []uint32) (string, []uint32) {
 	if limit > 0 && len(b) > limit {
 		b = b[:limit]
 	}
-	return strings.Map(func(r rune) rune {
-		switch {
-		case r == '\t':
-			return r
-		case unicode.IsControl(r), IsBidi(r):
-			return -1
+	var sb strings.Builder
+	sb.Grow(len(b))
+	var off []int
+	if len(cols) > 0 {
+		off = make([]int, len(b)+1)
+	}
+	for i := 0; i < len(b); {
+		r, size := utf8.DecodeRune(b[i:])
+		if off != nil {
+			off[i] = sb.Len()
+			for k := 1; k < size; k++ {
+				off[i+k] = -1 // inside a character
+			}
 		}
-		return r
-	}, strings.ToValidUTF8(string(b), "�"))
+		switch {
+		case r == utf8.RuneError && size == 1:
+			sb.WriteString("\uFFFD")
+		case r == '\t':
+			sb.WriteRune(r)
+		case unicode.IsControl(r), IsBidi(r):
+		default:
+			sb.WriteRune(r)
+		}
+		i += size
+	}
+	if off == nil {
+		return sb.String(), nil
+	}
+	off[len(b)] = sb.Len()
+	var out []uint32
+	for _, c := range cols {
+		if len(out) >= maxCols {
+			break
+		}
+		if int(c) >= len(b) || off[c] < 0 {
+			continue
+		}
+		out = append(out, uint32(off[c]))
+	}
+	return sb.String(), out
 }
 
 // Line is Clean for a matching line.

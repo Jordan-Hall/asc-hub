@@ -774,6 +774,14 @@ func Routes() *web.Route {
 		// `AccessTokenScopeCategoryRepository`; it's protected by either the User or Organization scope.
 		m.Delete("/repos/{username}/{reponame}", repoAssignment, repoAccess(), tokenRequiresRepoOwnerScope(), reqOwner(), repo.Delete)
 
+		// Code search over several repositories (requires repo scope); the repositories are the ones the
+		// signed-in user can read, and the token of the caller is the credential towards asc
+		m.Group("/asc", func() {
+			m.Get("/search", repo.AscCrossSearch)
+			m.Get("/symbols", repo.AscCrossSymbols)
+			m.Get("/semantic", repo.AscCrossSemantic)
+		}, reqToken(), tokenRequiresScopes(auth_model.AccessTokenScopeCategoryRepository))
+
 		// Repos (requires repo scope)
 		m.Group("/repos", func() {
 			m.Get("/search", repo.Search)
@@ -783,6 +791,13 @@ func Routes() *web.Route {
 
 			m.Group("/{username}/{reponame}", func() {
 				m.Get("/compare/*", reqRepoReader(unit.TypeCode), repo.CompareDiff)
+				m.Group("/asc", func() {
+					m.Get("/search", repo.AscSearch)
+					m.Get("/symbols", repo.AscSymbols)
+					m.Get("/semantic", repo.AscSemantic)
+					m.Get("/symbol-panel", repo.AscSymbolPanel)
+					m.Get("/index", repo.AscIndexStatus)
+				}, reqToken(), reqRepoReader(unit.TypeCode))
 
 				m.Combo("").Get(reqAnyRepoReader(), repo.Get).
 					Patch(reqToken(), reqAdmin(), bind(api.EditRepoOption{}), repo.Edit)
