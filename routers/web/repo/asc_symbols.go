@@ -52,9 +52,8 @@ import (
 //     that fails a check fails the page. The server redacts secrets (SPEC 23.7); nothing is rebuilt from raw
 //     lines here. Only the status code of an asc error is used.
 //
-// TODO(I25-route): routers/web/web.go must register `m.Get("/asc/symbols", repo.AscSymbols)` next to the graph
-// route; that file belongs to another unit. TODO(I25-i18n): texts in the template are English until the locale
-// file is open for this unit.
+// The route is registered next to the graph route in routers/web/web.go; the texts are locale keys
+// (repo.asc_symbols.*).
 const (
 	tplAscSymbols base.TplName = "repo/asc_symbols"
 
@@ -128,7 +127,7 @@ func AscSymbols(ctx *context.Context) {
 		ctx.NotFound("AscSymbols", nil)
 		return
 	}
-	ctx.Data["Title"] = "Symbols"
+	ctx.Data["Title"] = ctx.Tr("repo.asc_symbols")
 	ctx.Data["PageIsViewCode"] = true
 
 	q, code, ok := ascSymbolsParse(ctx)
