@@ -220,9 +220,34 @@ pre.code-block {
   min-height: 44px;
 }
 
-/* explore, repository lists: cards */
-.flex-list > .flex-item {
-  padding-inline: 4px;
+/* explore and dashboard lists: one card per item, stacked on phones, trailing info wraps below */
+:is(.explore, .dashboard) .flex-list:not(.ui.segment > .flex-list) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+:is(.explore, .dashboard) .flex-list:not(.ui.segment > .flex-list) > .flex-item {
+  flex-wrap: wrap;
+  padding: 14px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-card, var(--border-radius));
+}
+
+:is(.explore, .dashboard) .flex-list:not(.ui.segment > .flex-list) > .flex-item .flex-item-trailing {
+  flex-basis: 100%;
+  justify-content: start;
+}
+
+@media (min-width: 768px) {
+  :is(.explore, .dashboard) .flex-list:not(.ui.segment > .flex-list) > .flex-item {
+    flex-wrap: nowrap;
+  }
+  :is(.explore, .dashboard) .flex-list:not(.ui.segment > .flex-list) > .flex-item .flex-item-trailing {
+    flex-basis: auto;
+    justify-content: end;
+  }
 }
 
 /* motion */
