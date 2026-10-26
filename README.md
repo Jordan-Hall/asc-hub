@@ -71,7 +71,7 @@ volumes:
   hub-data:
 ```
 
-The all-in-one image is new and has not been built or started by its authors yet; the first CI build and first start are its test.
+The entrypoint, the health check and the backup tool of the image are tested against fake programs (`tests/allinone`); the image itself is built by CI. After your first deployment run `scripts/smoke.sh`, which signs in, creates a repository, pushes and clones it over https and ssh, and deletes it again ([docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md#checks-after-a-deploy)). The volume must belong to uid 1000; backups and restores use `asc-hub-backup` ([docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md#backup-and-restore)).
 
 On first start the container generates the secrets it shares with `asc serve`, writes the `asc serve` configuration, runs its migrations, starts the hub with `[asc] WRITER = asc` and `NEW_REPOSITORIES = asc` already set, then starts `asc serve` on `127.0.0.1:7890` inside the container. You edit no `[asc]` setting for this. [docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md) lists every variable, the volume layout and the other deployment shapes.
 
