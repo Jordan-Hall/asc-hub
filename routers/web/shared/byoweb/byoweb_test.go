@@ -741,3 +741,32 @@ func TestFormLimit(t *testing.T) {
 	assert.Equal(t, "", f.str("missing", 10))
 	assert.False(t, f.on("b"))
 }
+
+func TestRepoAIKeysPage(t *testing.T) {
+	f := setup(t)
+	repo := repoLevel(t, true)
+	repo.OwnerAIURL = "/user/settings/asc/ai"
+	own := f.AddKey(repo.Scope.Owner(), "repo key", ascv1.AiProvider_AI_PROVIDER_GOOGLE, ascv1.AiKeyState_AI_KEY_STATE_ACTIVE)
+	f.AddKey(mustScope(t, svc.KindUser, "alice").Owner(), "owner key", ascv1.AiProvider_AI_PROVIDER_OPENAI, ascv1.AiKeyState_AI_KEY_STATE_ACTIVE)
+
+	r := run(t, AIIndex, repo, http.MethodGet, nil, "")
+	require.Equal(t, http.StatusOK, r.resp.Code)
+	body := r.body()
+	assert.Contains(t, body, "repo key")
+	assert.NotContains(t, body, "owner key", "the owner's keys are managed on the owner's page")
+	assert.Contains(t, body, tr(t, "ascbyo.ai.owner_note"))
+	assert.Contains(t, body, `href="/user/settings/asc/ai"`)
+	assert.Contains(t, body, "/alice/widgets/settings/asc/ai/keys/"+own.GetId())
+
+	// a key is created for the repository, from the repository route
+	r = run(t, AICreate, repo, http.MethodPost, url.Values{"label": {"new"}, "provider": {"openai"}, "api_key": {"sk-openai-0123456789abcdef"}}, "")
+	require.Equal(t, http.StatusSeeOther, r.resp.Code, r.body())
+	req := f.CallsTo("CreateKey")[0].Req.(*ascv1.CreateAiKeyRequest)
+	assert.Equal(t, ascv1.OwnerKind_OWNER_KIND_REPO, req.GetOwner().GetKind())
+	assert.Equal(t, "alice/widgets", req.GetOwner().GetName())
+
+	// the repository page cannot reach the owner's key
+	ownerKey := f.AddKey(mustScope(t, svc.KindUser, "alice").Owner(), "owner key 2", ascv1.AiProvider_AI_PROVIDER_OPENAI, ascv1.AiKeyState_AI_KEY_STATE_ACTIVE)
+	r = run(t, AIKey, repo, http.MethodGet, nil, ownerKey.GetId())
+	assert.Equal(t, http.StatusNotFound, r.resp.Code)
+}

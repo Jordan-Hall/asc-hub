@@ -16,9 +16,9 @@ One labelled text input with its hint and error.
 <div class="asc-field{{if .error}} has-error{{end}}">
 	<label for="{{.id}}">{{.label}}{{if .required}} <span class="asc-field-req" title="{{ctx.Locale.Tr "ascbyo.required"}}" aria-hidden="true">*</span>{{end}}</label>
 	{{if .secret}}
-		<input id="{{.id}}" name="{{.name}}" type="password" value="" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"{{if .required}} required{{end}}{{if .maxlength}} maxlength="{{.maxlength}}"{{end}}{{if .error}} aria-invalid="true"{{end}} aria-describedby="{{if .hint}}{{.id}}-hint {{end}}{{if .error}}{{.id}}-err{{end}}">
+		<input id="{{.id}}" name="{{.name}}" type="password" value="" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"{{if .required}} required{{end}}{{if .maxlength}} maxlength="{{.maxlength}}"{{end}}{{if .error}} aria-invalid="true"{{end}} {{if or .hint .error}} aria-describedby="{{if .hint}}{{.id}}-hint{{end}}{{if and .hint .error}} {{end}}{{if .error}}{{.id}}-err{{end}}"{{end}}>
 	{{else}}
-		<input id="{{.id}}" name="{{.name}}" type="{{if .type}}{{.type}}{{else}}text{{end}}" value="{{.value}}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"{{if .required}} required{{end}}{{if .maxlength}} maxlength="{{.maxlength}}"{{end}}{{if .list}} list="{{.list}}"{{end}}{{if .inputmode}} inputmode="{{.inputmode}}"{{end}}{{if .error}} aria-invalid="true"{{end}} aria-describedby="{{if .hint}}{{.id}}-hint {{end}}{{if .error}}{{.id}}-err{{end}}">
+		<input id="{{.id}}" name="{{.name}}" type="{{if .type}}{{.type}}{{else}}text{{end}}" value="{{.value}}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"{{if .required}} required{{end}}{{if .maxlength}} maxlength="{{.maxlength}}"{{end}}{{if .list}} list="{{.list}}"{{end}}{{if .inputmode}} inputmode="{{.inputmode}}"{{end}}{{if .error}} aria-invalid="true"{{end}} {{if or .hint .error}} aria-describedby="{{if .hint}}{{.id}}-hint{{end}}{{if and .hint .error}} {{end}}{{if .error}}{{.id}}-err{{end}}"{{end}}>
 	{{end}}
 	{{if .hint}}<p class="asc-field-hint" id="{{.id}}-hint">{{.hint}}</p>{{end}}
 	{{if .error}}<p class="asc-field-error" id="{{.id}}-err" role="alert">{{ctx.Locale.Tr .error}}</p>{{end}}
