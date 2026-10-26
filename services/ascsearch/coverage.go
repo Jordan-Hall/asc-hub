@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	api "forgejo.org/modules/structs"
 )
 
 // The index a mode reads (CodeIntel.IndexStatus): text and symbol searches read the files index and a
@@ -23,21 +24,7 @@ const (
 const maxCoverageRepos = 32
 
 // Coverage says how much of the searched scope the server has indexed.
-type Coverage struct {
-	// Asked counts the repositories asked, Known those that answered.
-	Asked int `json:"asked"`
-	Known int `json:"known"`
-	// Sampled says there were more repositories than were asked.
-	Sampled bool `json:"sampled"`
-	// Percent is the mean coverage over the known repositories, rounded down.
-	Percent int `json:"percent"`
-	// Complete says every repository was asked, answered, and is fully indexed.
-	Complete bool `json:"complete"`
-	// LagSeconds is the largest lag of the index behind the repository.
-	LagSeconds int64 `json:"lag_seconds"`
-	// Revision is the revision the index covers, for a single repository.
-	Revision string `json:"revision,omitempty"`
-}
+type Coverage = api.AscCoverage
 
 func percentOf(c float32) (int, bool) {
 	if math.IsNaN(float64(c)) || c < 0 || c > 1 {
@@ -128,10 +115,7 @@ func (s *Service) Coverage(ctx context.Context, repos []Repo, index string) Cove
 }
 
 // Facet is a value with the number of files that have it.
-type Facet struct {
-	Name  string `json:"name"`
-	Count int    `json:"count"`
-}
+type Facet = api.AscFacet
 
 // maxFacets bounds a facet list.
 const maxFacets = 8
@@ -154,7 +138,7 @@ func Facets(repos []RepoResult) (langs, dirs []Facet) {
 	top := func(m map[string]int) []Facet {
 		out := make([]Facet, 0, len(m))
 		for name, n := range m {
-			out = append(out, Facet{name, n})
+			out = append(out, Facet{Name: name, Count: n})
 		}
 		slices.SortFunc(out, func(a, b Facet) int {
 			if a.Count != b.Count {

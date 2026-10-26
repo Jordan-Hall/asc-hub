@@ -19,7 +19,13 @@ import (
 // ErrInput marks a request that fails a check made here, before anything is sent to asc.
 var ErrInput = errors.New("ascsearch: bad request")
 
-func input(msg string) error { return errors.Join(ErrInput, errors.New(msg)) }
+// inputError is the error of a failed check; its text is ours and may be shown.
+type inputError struct{ msg string }
+
+func (e *inputError) Error() string        { return "ascsearch: bad request: " + e.msg }
+func (e *inputError) Is(target error) bool { return target == ErrInput }
+
+func input(msg string) error { return &inputError{msg} }
 
 const (
 	// reposPerCall is the most repositories one CrossSearch call takes (CrossSearchTarget.repos).

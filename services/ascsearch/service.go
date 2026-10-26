@@ -176,6 +176,35 @@ func PageStatus(err error) int {
 	return HTTPStatus(err)
 }
 
+// PublicMessage is the text an API client or a page may show for err. It is fixed text, or the text of a
+// check made here; the text of an asc error is never used.
+func PublicMessage(err error) string {
+	var in *inputError
+	if errors.As(err, &in) {
+		return in.msg
+	}
+	if errors.Is(err, ErrBadSelector) {
+		return "bad repository or owner name"
+	}
+	switch KindOf(err) {
+	case KindNoCredential:
+		return "a token is required for code search"
+	case KindNotFound:
+		return "not found"
+	case KindBadRequest:
+		return "the request was refused"
+	case KindTooBroad:
+		return "the search pattern is too broad"
+	case KindLimited:
+		return "too many requests"
+	case KindTimeout:
+		return "the search took too long"
+	case KindUnavailable:
+		return "code search is unavailable"
+	}
+	return "code search failed"
+}
+
 // unimplemented reports that asc lacks the cross-repository service, so the caller falls back to
 // one CodeIntel call per repository.
 func unimplemented(err error) bool { return status.Code(err) == codes.Unimplemented }

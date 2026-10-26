@@ -137,8 +137,8 @@ func TestFacets(t *testing.T) {
 		{Files: []FileHit{{Path: "src/a.rs", Lang: "Rust"}, {Path: "src/b.rs", Lang: "Rust"}, {Path: "README.md", Lang: "Markdown"}}},
 		{Files: []FileHit{{Path: "docs/x.md", Lang: "Markdown"}, {Path: "src/c.ts", Lang: "TypeScript"}, {Path: "n.txt"}}},
 	})
-	assert.Equal(t, []Facet{{"Markdown", 2}, {"Rust", 2}, {"TypeScript", 1}}, langs)
-	assert.Equal(t, []Facet{{"src/", 3}, {"(root)", 2}, {"docs/", 1}}, dirs)
+	assert.Equal(t, []Facet{{Name: "Markdown", Count: 2}, {Name: "Rust", Count: 2}, {Name: "TypeScript", Count: 1}}, langs)
+	assert.Equal(t, []Facet{{Name: "src/", Count: 3}, {Name: "(root)", Count: 2}, {Name: "docs/", Count: 1}}, dirs)
 	l, d := Facets(nil)
 	assert.Empty(t, l)
 	assert.Empty(t, d)
