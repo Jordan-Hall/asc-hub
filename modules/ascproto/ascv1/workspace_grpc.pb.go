@@ -26,6 +26,10 @@ const (
 	Workspace_Affected_FullMethodName     = "/asc.v1.Workspace/Affected"
 	Workspace_Watch_FullMethodName        = "/asc.v1.Workspace/Watch"
 	Workspace_Stage_FullMethodName        = "/asc.v1.Workspace/Stage"
+	Workspace_Search_FullMethodName       = "/asc.v1.Workspace/Search"
+	Workspace_Symbols_FullMethodName      = "/asc.v1.Workspace/Symbols"
+	Workspace_Semantic_FullMethodName     = "/asc.v1.Workspace/Semantic"
+	Workspace_IndexStatus_FullMethodName  = "/asc.v1.Workspace/IndexStatus"
 	Workspace_Ping_FullMethodName         = "/asc.v1.Workspace/Ping"
 	Workspace_Mount_FullMethodName        = "/asc.v1.Workspace/Mount"
 	Workspace_Unmount_FullMethodName      = "/asc.v1.Workspace/Unmount"
@@ -36,6 +40,11 @@ const (
 	Workspace_Prefetch_FullMethodName     = "/asc.v1.Workspace/Prefetch"
 	Workspace_Stats_FullMethodName        = "/asc.v1.Workspace/Stats"
 	Workspace_Shutdown_FullMethodName     = "/asc.v1.Workspace/Shutdown"
+	Workspace_Stacks_FullMethodName       = "/asc.v1.Workspace/Stacks"
+	Workspace_Worktrees_FullMethodName    = "/asc.v1.Workspace/Worktrees"
+	Workspace_Conflicts_FullMethodName    = "/asc.v1.Workspace/Conflicts"
+	Workspace_CommitGraph_FullMethodName  = "/asc.v1.Workspace/CommitGraph"
+	Workspace_ReadFile_FullMethodName     = "/asc.v1.Workspace/ReadFile"
 )
 
 // WorkspaceClient is the client API for Workspace service.
@@ -52,6 +61,10 @@ type WorkspaceClient interface {
 	Affected(ctx context.Context, in *WsAffectedRequest, opts ...grpc.CallOption) (*WsAffectedResponse, error)
 	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WatchEvent], error)
 	Stage(ctx context.Context, in *WsStageRequest, opts ...grpc.CallOption) (*WsStageResponse, error)
+	Search(ctx context.Context, in *WsSearchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SearchResponse], error)
+	Symbols(ctx context.Context, in *WsSymbolsRequest, opts ...grpc.CallOption) (*SymbolsResponse, error)
+	Semantic(ctx context.Context, in *WsSemanticRequest, opts ...grpc.CallOption) (*SemanticResponse, error)
+	IndexStatus(ctx context.Context, in *WsIndexStatusRequest, opts ...grpc.CallOption) (*IndexStatusResponse, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 	Mount(ctx context.Context, in *MountRequest, opts ...grpc.CallOption) (*MountResponse, error)
 	Unmount(ctx context.Context, in *UnmountRequest, opts ...grpc.CallOption) (*UnmountResponse, error)
@@ -62,6 +75,11 @@ type WorkspaceClient interface {
 	Prefetch(ctx context.Context, in *PrefetchRequest, opts ...grpc.CallOption) (*PrefetchResponse, error)
 	Stats(ctx context.Context, in *StatsRequest, opts ...grpc.CallOption) (*StatsResponse, error)
 	Shutdown(ctx context.Context, in *ShutdownRequest, opts ...grpc.CallOption) (*ShutdownResponse, error)
+	Stacks(ctx context.Context, in *WsStacksRequest, opts ...grpc.CallOption) (*WsStacksResponse, error)
+	Worktrees(ctx context.Context, in *WsWorktreesRequest, opts ...grpc.CallOption) (*WsWorktreesResponse, error)
+	Conflicts(ctx context.Context, in *WsConflictsRequest, opts ...grpc.CallOption) (*WsConflictsResponse, error)
+	CommitGraph(ctx context.Context, in *WsCommitGraphRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CommitGraphResponse], error)
+	ReadFile(ctx context.Context, in *WsReadFileRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ReadFileResponse], error)
 }
 
 type workspaceClient struct {
@@ -178,6 +196,55 @@ func (c *workspaceClient) Stage(ctx context.Context, in *WsStageRequest, opts ..
 	return out, nil
 }
 
+func (c *workspaceClient) Search(ctx context.Context, in *WsSearchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SearchResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Workspace_ServiceDesc.Streams[4], Workspace_Search_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WsSearchRequest, SearchResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Workspace_SearchClient = grpc.ServerStreamingClient[SearchResponse]
+
+func (c *workspaceClient) Symbols(ctx context.Context, in *WsSymbolsRequest, opts ...grpc.CallOption) (*SymbolsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SymbolsResponse)
+	err := c.cc.Invoke(ctx, Workspace_Symbols_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceClient) Semantic(ctx context.Context, in *WsSemanticRequest, opts ...grpc.CallOption) (*SemanticResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SemanticResponse)
+	err := c.cc.Invoke(ctx, Workspace_Semantic_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceClient) IndexStatus(ctx context.Context, in *WsIndexStatusRequest, opts ...grpc.CallOption) (*IndexStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IndexStatusResponse)
+	err := c.cc.Invoke(ctx, Workspace_IndexStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *workspaceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PingResponse)
@@ -278,6 +345,74 @@ func (c *workspaceClient) Shutdown(ctx context.Context, in *ShutdownRequest, opt
 	return out, nil
 }
 
+func (c *workspaceClient) Stacks(ctx context.Context, in *WsStacksRequest, opts ...grpc.CallOption) (*WsStacksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WsStacksResponse)
+	err := c.cc.Invoke(ctx, Workspace_Stacks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceClient) Worktrees(ctx context.Context, in *WsWorktreesRequest, opts ...grpc.CallOption) (*WsWorktreesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WsWorktreesResponse)
+	err := c.cc.Invoke(ctx, Workspace_Worktrees_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceClient) Conflicts(ctx context.Context, in *WsConflictsRequest, opts ...grpc.CallOption) (*WsConflictsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WsConflictsResponse)
+	err := c.cc.Invoke(ctx, Workspace_Conflicts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceClient) CommitGraph(ctx context.Context, in *WsCommitGraphRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CommitGraphResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Workspace_ServiceDesc.Streams[5], Workspace_CommitGraph_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WsCommitGraphRequest, CommitGraphResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Workspace_CommitGraphClient = grpc.ServerStreamingClient[CommitGraphResponse]
+
+func (c *workspaceClient) ReadFile(ctx context.Context, in *WsReadFileRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ReadFileResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Workspace_ServiceDesc.Streams[6], Workspace_ReadFile_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WsReadFileRequest, ReadFileResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Workspace_ReadFileClient = grpc.ServerStreamingClient[ReadFileResponse]
+
 // WorkspaceServer is the server API for Workspace service.
 // All implementations should embed UnimplementedWorkspaceServer
 // for forward compatibility.
@@ -292,6 +427,10 @@ type WorkspaceServer interface {
 	Affected(context.Context, *WsAffectedRequest) (*WsAffectedResponse, error)
 	Watch(*WatchRequest, grpc.ServerStreamingServer[WatchEvent]) error
 	Stage(context.Context, *WsStageRequest) (*WsStageResponse, error)
+	Search(*WsSearchRequest, grpc.ServerStreamingServer[SearchResponse]) error
+	Symbols(context.Context, *WsSymbolsRequest) (*SymbolsResponse, error)
+	Semantic(context.Context, *WsSemanticRequest) (*SemanticResponse, error)
+	IndexStatus(context.Context, *WsIndexStatusRequest) (*IndexStatusResponse, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	Mount(context.Context, *MountRequest) (*MountResponse, error)
 	Unmount(context.Context, *UnmountRequest) (*UnmountResponse, error)
@@ -302,6 +441,11 @@ type WorkspaceServer interface {
 	Prefetch(context.Context, *PrefetchRequest) (*PrefetchResponse, error)
 	Stats(context.Context, *StatsRequest) (*StatsResponse, error)
 	Shutdown(context.Context, *ShutdownRequest) (*ShutdownResponse, error)
+	Stacks(context.Context, *WsStacksRequest) (*WsStacksResponse, error)
+	Worktrees(context.Context, *WsWorktreesRequest) (*WsWorktreesResponse, error)
+	Conflicts(context.Context, *WsConflictsRequest) (*WsConflictsResponse, error)
+	CommitGraph(*WsCommitGraphRequest, grpc.ServerStreamingServer[CommitGraphResponse]) error
+	ReadFile(*WsReadFileRequest, grpc.ServerStreamingServer[ReadFileResponse]) error
 }
 
 // UnimplementedWorkspaceServer should be embedded to have
@@ -332,6 +476,18 @@ func (UnimplementedWorkspaceServer) Watch(*WatchRequest, grpc.ServerStreamingSer
 func (UnimplementedWorkspaceServer) Stage(context.Context, *WsStageRequest) (*WsStageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Stage not implemented")
 }
+func (UnimplementedWorkspaceServer) Search(*WsSearchRequest, grpc.ServerStreamingServer[SearchResponse]) error {
+	return status.Error(codes.Unimplemented, "method Search not implemented")
+}
+func (UnimplementedWorkspaceServer) Symbols(context.Context, *WsSymbolsRequest) (*SymbolsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Symbols not implemented")
+}
+func (UnimplementedWorkspaceServer) Semantic(context.Context, *WsSemanticRequest) (*SemanticResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Semantic not implemented")
+}
+func (UnimplementedWorkspaceServer) IndexStatus(context.Context, *WsIndexStatusRequest) (*IndexStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IndexStatus not implemented")
+}
 func (UnimplementedWorkspaceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
 }
@@ -361,6 +517,21 @@ func (UnimplementedWorkspaceServer) Stats(context.Context, *StatsRequest) (*Stat
 }
 func (UnimplementedWorkspaceServer) Shutdown(context.Context, *ShutdownRequest) (*ShutdownResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Shutdown not implemented")
+}
+func (UnimplementedWorkspaceServer) Stacks(context.Context, *WsStacksRequest) (*WsStacksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Stacks not implemented")
+}
+func (UnimplementedWorkspaceServer) Worktrees(context.Context, *WsWorktreesRequest) (*WsWorktreesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Worktrees not implemented")
+}
+func (UnimplementedWorkspaceServer) Conflicts(context.Context, *WsConflictsRequest) (*WsConflictsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Conflicts not implemented")
+}
+func (UnimplementedWorkspaceServer) CommitGraph(*WsCommitGraphRequest, grpc.ServerStreamingServer[CommitGraphResponse]) error {
+	return status.Error(codes.Unimplemented, "method CommitGraph not implemented")
+}
+func (UnimplementedWorkspaceServer) ReadFile(*WsReadFileRequest, grpc.ServerStreamingServer[ReadFileResponse]) error {
+	return status.Error(codes.Unimplemented, "method ReadFile not implemented")
 }
 func (UnimplementedWorkspaceServer) testEmbeddedByValue() {}
 
@@ -476,6 +647,71 @@ func _Workspace_Stage_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(WorkspaceServer).Stage(ctx, req.(*WsStageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Workspace_Search_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WsSearchRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceServer).Search(m, &grpc.GenericServerStream[WsSearchRequest, SearchResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Workspace_SearchServer = grpc.ServerStreamingServer[SearchResponse]
+
+func _Workspace_Symbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WsSymbolsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceServer).Symbols(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workspace_Symbols_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceServer).Symbols(ctx, req.(*WsSymbolsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Workspace_Semantic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WsSemanticRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceServer).Semantic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workspace_Semantic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceServer).Semantic(ctx, req.(*WsSemanticRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Workspace_IndexStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WsIndexStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceServer).IndexStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workspace_IndexStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceServer).IndexStatus(ctx, req.(*WsIndexStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -660,6 +896,82 @@ func _Workspace_Shutdown_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Workspace_Stacks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WsStacksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceServer).Stacks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workspace_Stacks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceServer).Stacks(ctx, req.(*WsStacksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Workspace_Worktrees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WsWorktreesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceServer).Worktrees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workspace_Worktrees_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceServer).Worktrees(ctx, req.(*WsWorktreesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Workspace_Conflicts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WsConflictsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceServer).Conflicts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workspace_Conflicts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceServer).Conflicts(ctx, req.(*WsConflictsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Workspace_CommitGraph_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WsCommitGraphRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceServer).CommitGraph(m, &grpc.GenericServerStream[WsCommitGraphRequest, CommitGraphResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Workspace_CommitGraphServer = grpc.ServerStreamingServer[CommitGraphResponse]
+
+func _Workspace_ReadFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WsReadFileRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceServer).ReadFile(m, &grpc.GenericServerStream[WsReadFileRequest, ReadFileResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Workspace_ReadFileServer = grpc.ServerStreamingServer[ReadFileResponse]
+
 // Workspace_ServiceDesc is the grpc.ServiceDesc for Workspace service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -678,6 +990,18 @@ var Workspace_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Stage",
 			Handler:    _Workspace_Stage_Handler,
+		},
+		{
+			MethodName: "Symbols",
+			Handler:    _Workspace_Symbols_Handler,
+		},
+		{
+			MethodName: "Semantic",
+			Handler:    _Workspace_Semantic_Handler,
+		},
+		{
+			MethodName: "IndexStatus",
+			Handler:    _Workspace_IndexStatus_Handler,
 		},
 		{
 			MethodName: "Ping",
@@ -719,6 +1043,18 @@ var Workspace_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Shutdown",
 			Handler:    _Workspace_Shutdown_Handler,
 		},
+		{
+			MethodName: "Stacks",
+			Handler:    _Workspace_Stacks_Handler,
+		},
+		{
+			MethodName: "Worktrees",
+			Handler:    _Workspace_Worktrees_Handler,
+		},
+		{
+			MethodName: "Conflicts",
+			Handler:    _Workspace_Conflicts_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -739,6 +1075,21 @@ var Workspace_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Watch",
 			Handler:       _Workspace_Watch_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Search",
+			Handler:       _Workspace_Search_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "CommitGraph",
+			Handler:       _Workspace_CommitGraph_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ReadFile",
+			Handler:       _Workspace_ReadFile_Handler,
 			ServerStreams: true,
 		},
 	},

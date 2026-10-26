@@ -1749,6 +1749,7 @@ type RefResult struct {
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Old           *RefTarget             `protobuf:"bytes,2,opt,name=old,proto3" json:"old,omitempty"`
 	New           *RefTarget             `protobuf:"bytes,3,opt,name=new,proto3" json:"new,omitempty"`
+	User          bool                   `protobuf:"varint,4,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1802,6 +1803,13 @@ func (x *RefResult) GetNew() *RefTarget {
 		return x.New
 	}
 	return nil
+}
+
+func (x *RefResult) GetUser() bool {
+	if x != nil {
+		return x.User
+	}
+	return false
 }
 
 type UpdateRefsResponse struct {
@@ -6544,7 +6552,7 @@ func (x *ErrorDetail) GetConflicts() []*Conflict {
 // ErrorDetail.code also carries CHANGE_DIVERGED, CHANGE_FROZEN, LAND_NEEDS_CONTENT_MERGE and CHANGE_NOT_ALLOWED.
 type ReviewState struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	Forge           string                 `protobuf:"bytes,1,opt,name=forge,proto3" json:"forge,omitempty"`
+	Host            string                 `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
 	Number          uint64                 `protobuf:"varint,2,opt,name=number,proto3" json:"number,omitempty"`
 	Url             string                 `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
 	State           string                 `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
@@ -6588,9 +6596,9 @@ func (*ReviewState) Descriptor() ([]byte, []int) {
 	return file_asc_v1_repo_proto_rawDescGZIP(), []int{85}
 }
 
-func (x *ReviewState) GetForge() string {
+func (x *ReviewState) GetHost() string {
 	if x != nil {
-		return x.Forge
+		return x.Host
 	}
 	return ""
 }
@@ -7022,17 +7030,74 @@ func (x *GraphRow) GetWsId() string {
 	return ""
 }
 
+// A ref and the row it labels in the first page (SPEC §24.8.2, A2).
+type RefMarker struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Row           uint64                 `protobuf:"varint,2,opt,name=row,proto3" json:"row,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefMarker) Reset() {
+	*x = RefMarker{}
+	mi := &file_asc_v1_repo_proto_msgTypes[91]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefMarker) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefMarker) ProtoMessage() {}
+
+func (x *RefMarker) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[91]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefMarker.ProtoReflect.Descriptor instead.
+func (*RefMarker) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{91}
+}
+
+func (x *RefMarker) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *RefMarker) GetRow() uint64 {
+	if x != nil {
+		return x.Row
+	}
+	return 0
+}
+
+// total and ref_markers are set on the first page only and only when cheap: total is the row count of the whole
+// result, row is the zero-based index of the labelled row in the first page. 0 and [] mean "not known".
 type CommitGraphResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Rows          []*GraphRow            `protobuf:"bytes,1,rep,name=rows,proto3" json:"rows,omitempty"`
 	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	Total         uint64                 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	RefMarkers    []*RefMarker           `protobuf:"bytes,4,rep,name=ref_markers,json=refMarkers,proto3" json:"ref_markers,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CommitGraphResponse) Reset() {
 	*x = CommitGraphResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[91]
+	mi := &file_asc_v1_repo_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7044,7 +7109,7 @@ func (x *CommitGraphResponse) String() string {
 func (*CommitGraphResponse) ProtoMessage() {}
 
 func (x *CommitGraphResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[91]
+	mi := &file_asc_v1_repo_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7057,7 +7122,7 @@ func (x *CommitGraphResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitGraphResponse.ProtoReflect.Descriptor instead.
 func (*CommitGraphResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{91}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *CommitGraphResponse) GetRows() []*GraphRow {
@@ -7072,6 +7137,20 @@ func (x *CommitGraphResponse) GetNextPageToken() string {
 		return x.NextPageToken
 	}
 	return ""
+}
+
+func (x *CommitGraphResponse) GetTotal() uint64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *CommitGraphResponse) GetRefMarkers() []*RefMarker {
+	if x != nil {
+		return x.RefMarkers
+	}
+	return nil
 }
 
 type LineHistoryRequest struct {
@@ -7090,7 +7169,7 @@ type LineHistoryRequest struct {
 
 func (x *LineHistoryRequest) Reset() {
 	*x = LineHistoryRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[92]
+	mi := &file_asc_v1_repo_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7102,7 +7181,7 @@ func (x *LineHistoryRequest) String() string {
 func (*LineHistoryRequest) ProtoMessage() {}
 
 func (x *LineHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[92]
+	mi := &file_asc_v1_repo_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7115,7 +7194,7 @@ func (x *LineHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LineHistoryRequest.ProtoReflect.Descriptor instead.
 func (*LineHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{92}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *LineHistoryRequest) GetRepo() *RepoRef {
@@ -7189,7 +7268,7 @@ type CompareRequest struct {
 
 func (x *CompareRequest) Reset() {
 	*x = CompareRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[93]
+	mi := &file_asc_v1_repo_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7201,7 +7280,7 @@ func (x *CompareRequest) String() string {
 func (*CompareRequest) ProtoMessage() {}
 
 func (x *CompareRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[93]
+	mi := &file_asc_v1_repo_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7214,7 +7293,7 @@ func (x *CompareRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompareRequest.ProtoReflect.Descriptor instead.
 func (*CompareRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{93}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *CompareRequest) GetRepo() *RepoRef {
@@ -7282,7 +7361,7 @@ type CompareResponse struct {
 
 func (x *CompareResponse) Reset() {
 	*x = CompareResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[94]
+	mi := &file_asc_v1_repo_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7294,7 +7373,7 @@ func (x *CompareResponse) String() string {
 func (*CompareResponse) ProtoMessage() {}
 
 func (x *CompareResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[94]
+	mi := &file_asc_v1_repo_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7307,7 +7386,7 @@ func (x *CompareResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompareResponse.ProtoReflect.Descriptor instead.
 func (*CompareResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{94}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *CompareResponse) GetMergeBase() []byte {
@@ -7376,7 +7455,7 @@ type Autolink struct {
 
 func (x *Autolink) Reset() {
 	*x = Autolink{}
-	mi := &file_asc_v1_repo_proto_msgTypes[95]
+	mi := &file_asc_v1_repo_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7388,7 +7467,7 @@ func (x *Autolink) String() string {
 func (*Autolink) ProtoMessage() {}
 
 func (x *Autolink) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[95]
+	mi := &file_asc_v1_repo_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7401,7 +7480,7 @@ func (x *Autolink) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Autolink.ProtoReflect.Descriptor instead.
 func (*Autolink) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{95}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *Autolink) GetPrefix() string {
@@ -7428,7 +7507,7 @@ type RepoConfigRequest struct {
 
 func (x *RepoConfigRequest) Reset() {
 	*x = RepoConfigRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[96]
+	mi := &file_asc_v1_repo_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7440,7 +7519,7 @@ func (x *RepoConfigRequest) String() string {
 func (*RepoConfigRequest) ProtoMessage() {}
 
 func (x *RepoConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[96]
+	mi := &file_asc_v1_repo_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7453,7 +7532,7 @@ func (x *RepoConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepoConfigRequest.ProtoReflect.Descriptor instead.
 func (*RepoConfigRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{96}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *RepoConfigRequest) GetRepo() *RepoRef {
@@ -7486,7 +7565,7 @@ type RepoConfigResponse struct {
 
 func (x *RepoConfigResponse) Reset() {
 	*x = RepoConfigResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[97]
+	mi := &file_asc_v1_repo_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7498,7 +7577,7 @@ func (x *RepoConfigResponse) String() string {
 func (*RepoConfigResponse) ProtoMessage() {}
 
 func (x *RepoConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[97]
+	mi := &file_asc_v1_repo_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7511,7 +7590,7 @@ func (x *RepoConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepoConfigResponse.ProtoReflect.Descriptor instead.
 func (*RepoConfigResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{97}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *RepoConfigResponse) GetAutolinks() []*Autolink {
@@ -7549,33 +7628,654 @@ func (x *RepoConfigResponse) GetVisibility() string {
 	return ""
 }
 
+// Ref-update stream (SPEC §21.3.8, U76). patterns: at most 8 globs of at most 128 bytes, `*` matches any run; a name without the
+// refs/ prefix means refs/heads/<name>; empty means master and release/*. resume: an opaque cursor from an earlier RefEvent; empty
+// starts at the newest update. The server sends only refs the caller may read; another user's draft refs never appear.
+type WatchRefsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Patterns      []string               `protobuf:"bytes,2,rep,name=patterns,proto3" json:"patterns,omitempty"`
+	Resume        []byte                 `protobuf:"bytes,3,opt,name=resume,proto3" json:"resume,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WatchRefsRequest) Reset() {
+	*x = WatchRefsRequest{}
+	mi := &file_asc_v1_repo_proto_msgTypes[99]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchRefsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchRefsRequest) ProtoMessage() {}
+
+func (x *WatchRefsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[99]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchRefsRequest.ProtoReflect.Descriptor instead.
+func (*WatchRefsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{99}
+}
+
+func (x *WatchRefsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *WatchRefsRequest) GetPatterns() []string {
+	if x != nil {
+		return x.Patterns
+	}
+	return nil
+}
+
+func (x *WatchRefsRequest) GetResume() []byte {
+	if x != nil {
+		return x.Resume
+	}
+	return nil
+}
+
+type RefEvent struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Old           *RefTarget             `protobuf:"bytes,2,opt,name=old,proto3" json:"old,omitempty"`
+	New           *RefTarget             `protobuf:"bytes,3,opt,name=new,proto3" json:"new,omitempty"`
+	Resume        []byte                 `protobuf:"bytes,4,opt,name=resume,proto3" json:"resume,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefEvent) Reset() {
+	*x = RefEvent{}
+	mi := &file_asc_v1_repo_proto_msgTypes[100]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefEvent) ProtoMessage() {}
+
+func (x *RefEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[100]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefEvent.ProtoReflect.Descriptor instead.
+func (*RefEvent) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{100}
+}
+
+func (x *RefEvent) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *RefEvent) GetOld() *RefTarget {
+	if x != nil {
+		return x.Old
+	}
+	return nil
+}
+
+func (x *RefEvent) GetNew() *RefTarget {
+	if x != nil {
+		return x.New
+	}
+	return nil
+}
+
+func (x *RefEvent) GetResume() []byte {
+	if x != nil {
+		return x.Resume
+	}
+	return nil
+}
+
+// Repository policy as code (`.asc/policy.toml` on the trunk tip). `GetPolicy` is read-only: it shows the
+// policy the server enforces, so a UI can say who can write where. Only a maintainer named by the policy can change the file, and
+// only through an ordinary land. Advertised as Version.features "policy.v1". Subjects are `*`, `<kind>:<glob>` (kinds user, agent,
+// deploy, ci, host) or `role:<name>`. `paths` (at most 64) are repository paths to evaluate for the caller: the answer says whether
+// the caller's write to each would pass the path rules, agent scope and denied paths (not approvals or checks). ErrorDetail.code
+// also carries POLICY_DENIED (PERMISSION_DENIED): the update broke the policy; `paths[0]` is the reason.
+type GetPolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Paths         [][]byte               `protobuf:"bytes,2,rep,name=paths,proto3" json:"paths,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPolicyRequest) Reset() {
+	*x = GetPolicyRequest{}
+	mi := &file_asc_v1_repo_proto_msgTypes[101]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPolicyRequest) ProtoMessage() {}
+
+func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[101]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPolicyRequest.ProtoReflect.Descriptor instead.
+func (*GetPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{101}
+}
+
+func (x *GetPolicyRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GetPolicyRequest) GetPaths() [][]byte {
+	if x != nil {
+		return x.Paths
+	}
+	return nil
+}
+
+type PolicyRole struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Members       []string               `protobuf:"bytes,2,rep,name=members,proto3" json:"members,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PolicyRole) Reset() {
+	*x = PolicyRole{}
+	mi := &file_asc_v1_repo_proto_msgTypes[102]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyRole) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyRole) ProtoMessage() {}
+
+func (x *PolicyRole) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[102]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyRole.ProtoReflect.Descriptor instead.
+func (*PolicyRole) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{102}
+}
+
+func (x *PolicyRole) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PolicyRole) GetMembers() []string {
+	if x != nil {
+		return x.Members
+	}
+	return nil
+}
+
+type PolicyPathRule struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Glob          string                 `protobuf:"bytes,1,opt,name=glob,proto3" json:"glob,omitempty"`
+	Write         []string               `protobuf:"bytes,2,rep,name=write,proto3" json:"write,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PolicyPathRule) Reset() {
+	*x = PolicyPathRule{}
+	mi := &file_asc_v1_repo_proto_msgTypes[103]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyPathRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyPathRule) ProtoMessage() {}
+
+func (x *PolicyPathRule) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[103]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyPathRule.ProtoReflect.Descriptor instead.
+func (*PolicyPathRule) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{103}
+}
+
+func (x *PolicyPathRule) GetGlob() string {
+	if x != nil {
+		return x.Glob
+	}
+	return ""
+}
+
+func (x *PolicyPathRule) GetWrite() []string {
+	if x != nil {
+		return x.Write
+	}
+	return nil
+}
+
+type PolicyTrunk struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Branch           string                 `protobuf:"bytes,1,opt,name=branch,proto3" json:"branch,omitempty"`
+	RequireApprovals uint32                 `protobuf:"varint,2,opt,name=require_approvals,json=requireApprovals,proto3" json:"require_approvals,omitempty"`
+	RequireChecks    []string               `protobuf:"bytes,3,rep,name=require_checks,json=requireChecks,proto3" json:"require_checks,omitempty"`
+	AllowForce       bool                   `protobuf:"varint,4,opt,name=allow_force,json=allowForce,proto3" json:"allow_force,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *PolicyTrunk) Reset() {
+	*x = PolicyTrunk{}
+	mi := &file_asc_v1_repo_proto_msgTypes[104]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyTrunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyTrunk) ProtoMessage() {}
+
+func (x *PolicyTrunk) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[104]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyTrunk.ProtoReflect.Descriptor instead.
+func (*PolicyTrunk) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{104}
+}
+
+func (x *PolicyTrunk) GetBranch() string {
+	if x != nil {
+		return x.Branch
+	}
+	return ""
+}
+
+func (x *PolicyTrunk) GetRequireApprovals() uint32 {
+	if x != nil {
+		return x.RequireApprovals
+	}
+	return 0
+}
+
+func (x *PolicyTrunk) GetRequireChecks() []string {
+	if x != nil {
+		return x.RequireChecks
+	}
+	return nil
+}
+
+func (x *PolicyTrunk) GetAllowForce() bool {
+	if x != nil {
+		return x.AllowForce
+	}
+	return false
+}
+
+type PolicyAgents struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	DefaultScope     []string               `protobuf:"bytes,1,rep,name=default_scope,json=defaultScope,proto3" json:"default_scope,omitempty"`
+	DeniedPaths      []string               `protobuf:"bytes,2,rep,name=denied_paths,json=deniedPaths,proto3" json:"denied_paths,omitempty"`
+	MaxChangesPerRun uint32                 `protobuf:"varint,3,opt,name=max_changes_per_run,json=maxChangesPerRun,proto3" json:"max_changes_per_run,omitempty"`
+	MaxPathsPerRun   uint32                 `protobuf:"varint,4,opt,name=max_paths_per_run,json=maxPathsPerRun,proto3" json:"max_paths_per_run,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *PolicyAgents) Reset() {
+	*x = PolicyAgents{}
+	mi := &file_asc_v1_repo_proto_msgTypes[105]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyAgents) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyAgents) ProtoMessage() {}
+
+func (x *PolicyAgents) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[105]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyAgents.ProtoReflect.Descriptor instead.
+func (*PolicyAgents) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{105}
+}
+
+func (x *PolicyAgents) GetDefaultScope() []string {
+	if x != nil {
+		return x.DefaultScope
+	}
+	return nil
+}
+
+func (x *PolicyAgents) GetDeniedPaths() []string {
+	if x != nil {
+		return x.DeniedPaths
+	}
+	return nil
+}
+
+func (x *PolicyAgents) GetMaxChangesPerRun() uint32 {
+	if x != nil {
+		return x.MaxChangesPerRun
+	}
+	return 0
+}
+
+func (x *PolicyAgents) GetMaxPathsPerRun() uint32 {
+	if x != nil {
+		return x.MaxPathsPerRun
+	}
+	return 0
+}
+
+type PolicyDecision struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Allowed       bool                   `protobuf:"varint,2,opt,name=allowed,proto3" json:"allowed,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PolicyDecision) Reset() {
+	*x = PolicyDecision{}
+	mi := &file_asc_v1_repo_proto_msgTypes[106]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyDecision) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyDecision) ProtoMessage() {}
+
+func (x *PolicyDecision) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[106]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyDecision.ProtoReflect.Descriptor instead.
+func (*PolicyDecision) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{106}
+}
+
+func (x *PolicyDecision) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *PolicyDecision) GetAllowed() bool {
+	if x != nil {
+		return x.Allowed
+	}
+	return false
+}
+
+func (x *PolicyDecision) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type GetPolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Present       bool                   `protobuf:"varint,1,opt,name=present,proto3" json:"present,omitempty"` // trunk carries a policy file
+	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`      // present but unusable: the server then refuses every update of trunk except one that repairs the file
+	Version       uint32                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	Source        []byte                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`                                    // the trunk changeset the policy was read from
+	PrincipalKind string                 `protobuf:"bytes,5,opt,name=principal_kind,json=principalKind,proto3" json:"principal_kind,omitempty"` // how the policy classifies the caller: user, agent, deploy, ci, host or ""
+	Maintainer    bool                   `protobuf:"varint,6,opt,name=maintainer,proto3" json:"maintainer,omitempty"`                           // the caller is a maintainer
+	Roles         []*PolicyRole          `protobuf:"bytes,7,rep,name=roles,proto3" json:"roles,omitempty"`
+	Trunk         *PolicyTrunk           `protobuf:"bytes,8,opt,name=trunk,proto3" json:"trunk,omitempty"`
+	Paths         []*PolicyPathRule      `protobuf:"bytes,9,rep,name=paths,proto3" json:"paths,omitempty"`
+	Agents        *PolicyAgents          `protobuf:"bytes,10,opt,name=agents,proto3" json:"agents,omitempty"`
+	MergeStrategy string                 `protobuf:"bytes,11,opt,name=merge_strategy,json=mergeStrategy,proto3" json:"merge_strategy,omitempty"` // rebase, rebase-disjoint or fast-forward
+	Decisions     []*PolicyDecision      `protobuf:"bytes,12,rep,name=decisions,proto3" json:"decisions,omitempty"`                              // one per requested path, in order
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPolicyResponse) Reset() {
+	*x = GetPolicyResponse{}
+	mi := &file_asc_v1_repo_proto_msgTypes[107]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPolicyResponse) ProtoMessage() {}
+
+func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[107]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPolicyResponse.ProtoReflect.Descriptor instead.
+func (*GetPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{107}
+}
+
+func (x *GetPolicyResponse) GetPresent() bool {
+	if x != nil {
+		return x.Present
+	}
+	return false
+}
+
+func (x *GetPolicyResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *GetPolicyResponse) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *GetPolicyResponse) GetSource() []byte {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *GetPolicyResponse) GetPrincipalKind() string {
+	if x != nil {
+		return x.PrincipalKind
+	}
+	return ""
+}
+
+func (x *GetPolicyResponse) GetMaintainer() bool {
+	if x != nil {
+		return x.Maintainer
+	}
+	return false
+}
+
+func (x *GetPolicyResponse) GetRoles() []*PolicyRole {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *GetPolicyResponse) GetTrunk() *PolicyTrunk {
+	if x != nil {
+		return x.Trunk
+	}
+	return nil
+}
+
+func (x *GetPolicyResponse) GetPaths() []*PolicyPathRule {
+	if x != nil {
+		return x.Paths
+	}
+	return nil
+}
+
+func (x *GetPolicyResponse) GetAgents() *PolicyAgents {
+	if x != nil {
+		return x.Agents
+	}
+	return nil
+}
+
+func (x *GetPolicyResponse) GetMergeStrategy() string {
+	if x != nil {
+		return x.MergeStrategy
+	}
+	return ""
+}
+
+func (x *GetPolicyResponse) GetDecisions() []*PolicyDecision {
+	if x != nil {
+		return x.Decisions
+	}
+	return nil
+}
+
 var File_asc_v1_repo_proto protoreflect.FileDescriptor
 
 const file_asc_v1_repo_proto_rawDesc = "" +
 	"\n" +
-	"\x10asc/v1/repo.proto\x12\x05asc.v1\"E\n" +
+	"\x11asc/v1/repo.proto\x12\x06asc.v1\x1a\x14asc/v1/options.proto\"F\n" +
 	"\aRepoRef\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12&\n" +
-	"\aid_mode\x18\x02 \x01(\x0e2\r.asc.v1.IdModeR\x06idMode\"<\n" +
-	"\x06ObjKey\x12\"\n" +
-	"\x04kind\x18\x01 \x01(\x0e2\x0e.asc.v1.ObjKindR\x04kind\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\fR\x02id\"=\n" +
-	"\x06Object\x12\x1f\n" +
-	"\x03key\x18\x01 \x01(\v2\r.asc.v1.ObjKeyR\x03key\x12\x12\n" +
-	"\x04data\x18\x02 \x01(\fR\x04data\"D\n" +
-	"\tRefTarget\x12\x1e\n" +
-	"\tchangeset\x18\x01 \x01(\fH\x00R\tchangeset\x12\x12\n" +
-	"\x03tag\x18\x02 \x01(\fH\x00R\x03tagB\x03\n" +
-	"\x01t\"|\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12'\n" +
+	"\aid_mode\x18\x02 \x01(\x0e2\x0e.asc.v1.IdModeR\x06idMode\"C\n" +
+	"\x06ObjKey\x12#\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x0f.asc.v1.ObjKindR\x04kind\x12\x14\n" +
+	"\x02id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x02id\"D\n" +
+	"\x06Object\x12 \n" +
+	"\x03key\x18\x01 \x01(\v2\x0e.asc.v1.ObjKeyR\x03key\x12\x18\n" +
+	"\x04data\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x05R\x04data\"P\n" +
+	"\tRefTarget\x12$\n" +
+	"\tchangeset\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01H\x00R\tchangeset\x12\x18\n" +
+	"\x03tag\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01H\x00R\x03tagB\x03\n" +
+	"\x01t\"}\n" +
 	"\x03Ref\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12(\n" +
-	"\x06target\x18\x02 \x01(\v2\x10.asc.v1.RefTargetR\x06target\x12\x18\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12)\n" +
+	"\x06target\x18\x02 \x01(\v2\x11.asc.v1.RefTargetR\x06target\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\x04R\aversion\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x04 \x01(\x03R\texpiresAt\"`\n" +
-	"\tSignature\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\fR\x04name\x12\x14\n" +
-	"\x05email\x18\x02 \x01(\fR\x05email\x12\x12\n" +
+	"expires_at\x18\x04 \x01(\x03R\texpiresAt\"l\n" +
+	"\tSignature\x12\x18\n" +
+	"\x04name\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x04R\x04name\x12\x1a\n" +
+	"\x05email\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x04R\x05email\x12\x12\n" +
 	"\x04time\x18\x03 \x01(\x03R\x04time\x12\x15\n" +
 	"\x06tz_min\x18\x04 \x01(\x05R\x05tzMin\"\x10\n" +
 	"\x0eVersionRequest\"s\n" +
@@ -7583,78 +8283,80 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x0eserver_version\x18\x01 \x01(\tR\rserverVersion\x12\x1d\n" +
 	"\n" +
 	"min_client\x18\x02 \x01(\tR\tminClient\x12\x1a\n" +
-	"\bfeatures\x18\x03 \x03(\tR\bfeatures\"Z\n" +
-	"\x11HasObjectsRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12!\n" +
-	"\x04keys\x18\x02 \x03(\v2\r.asc.v1.ObjKeyR\x04keys\".\n" +
-	"\x12HasObjectsResponse\x12\x18\n" +
-	"\apresent\x18\x01 \x01(\fR\apresent\"Z\n" +
-	"\x11GetObjectsRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12!\n" +
-	"\x04keys\x18\x02 \x03(\v2\r.asc.v1.ObjKeyR\x04keys\"f\n" +
-	"\x12GetObjectsResponse\x12'\n" +
-	"\aobjects\x18\x01 \x03(\v2\r.asc.v1.ObjectR\aobjects\x12'\n" +
-	"\amissing\x18\x02 \x03(\v2\r.asc.v1.ObjKeyR\amissing\"`\n" +
-	"\x11PutObjectsRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12'\n" +
-	"\aobjects\x18\x02 \x03(\v2\r.asc.v1.ObjectR\aobjects\"U\n" +
+	"\bfeatures\x18\x03 \x03(\tR\bfeatures\"\\\n" +
+	"\x11HasObjectsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\"\n" +
+	"\x04keys\x18\x02 \x03(\v2\x0e.asc.v1.ObjKeyR\x04keys\"4\n" +
+	"\x12HasObjectsResponse\x12\x1e\n" +
+	"\apresent\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x00R\apresent\"\\\n" +
+	"\x11GetObjectsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\"\n" +
+	"\x04keys\x18\x02 \x03(\v2\x0e.asc.v1.ObjKeyR\x04keys\"h\n" +
+	"\x12GetObjectsResponse\x12(\n" +
+	"\aobjects\x18\x01 \x03(\v2\x0e.asc.v1.ObjectR\aobjects\x12(\n" +
+	"\amissing\x18\x02 \x03(\v2\x0e.asc.v1.ObjKeyR\amissing\"b\n" +
+	"\x11PutObjectsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12(\n" +
+	"\aobjects\x18\x02 \x03(\v2\x0e.asc.v1.ObjectR\aobjects\"U\n" +
 	"\x12PutObjectsResponse\x12\x16\n" +
 	"\x06stored\x18\x01 \x01(\x04R\x06stored\x12'\n" +
-	"\x0falready_present\x18\x02 \x01(\x04R\x0ealreadyPresent\"\x95\x01\n" +
-	"\x0fListRefsRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x16\n" +
-	"\x06prefix\x18\x02 \x01(\tR\x06prefix\x12\x1a\n" +
-	"\bcontains\x18\x03 \x01(\fR\bcontains\x12\x14\n" +
+	"\x0falready_present\x18\x02 \x01(\x04R\x0ealreadyPresent\"\x9c\x01\n" +
+	"\x0fListRefsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x16\n" +
+	"\x06prefix\x18\x02 \x01(\tR\x06prefix\x12 \n" +
+	"\bcontains\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\bcontains\x12\x14\n" +
 	"\x05after\x18\x04 \x01(\tR\x05after\x12\x14\n" +
-	"\x05limit\x18\x05 \x01(\rR\x05limit\"Z\n" +
-	"\x10ListRefsResponse\x12\x1e\n" +
-	"\x04refs\x18\x01 \x03(\v2\n" +
-	".asc.v1.RefR\x04refs\x12\x12\n" +
+	"\x05limit\x18\x05 \x01(\rR\x05limit\"[\n" +
+	"\x10ListRefsResponse\x12\x1f\n" +
+	"\x04refs\x18\x01 \x03(\v2\v.asc.v1.RefR\x04refs\x12\x12\n" +
 	"\x04next\x18\x02 \x01(\tR\x04next\x12\x12\n" +
-	"\x04head\x18\x03 \x01(\tR\x04head\"\xbd\x01\n" +
+	"\x04head\x18\x03 \x01(\tR\x04head\"\xbf\x01\n" +
 	"\tRefUpdate\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x03any\x18\x02 \x01(\bH\x00R\x03any\x12\x18\n" +
-	"\x06absent\x18\x03 \x01(\bH\x00R\x06absent\x12(\n" +
-	"\x05value\x18\x04 \x01(\v2\x10.asc.v1.RefTargetH\x00R\x05value\x12\"\n" +
-	"\x03new\x18\x05 \x01(\v2\x10.asc.v1.RefTargetR\x03new\x12\x16\n" +
+	"\x06absent\x18\x03 \x01(\bH\x00R\x06absent\x12)\n" +
+	"\x05value\x18\x04 \x01(\v2\x11.asc.v1.RefTargetH\x00R\x05value\x12#\n" +
+	"\x03new\x18\x05 \x01(\v2\x11.asc.v1.RefTargetR\x03new\x12\x16\n" +
 	"\x06delete\x18\x06 \x01(\bR\x06deleteB\b\n" +
-	"\x06expect\"\x9f\x02\n" +
-	"\x11UpdateRefsRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12*\n" +
-	"\aupdates\x18\x02 \x03(\v2\x10.asc.v1.RefUpdateR\aupdates\x12%\n" +
-	"\x04mode\x18\x03 \x01(\x0e2\x11.asc.v1.UpdateModeR\x04mode\x12!\n" +
-	"\fpush_options\x18\x04 \x03(\tR\vpushOptions\x12%\n" +
-	"\x05hooks\x18\x05 \x01(\x0e2\x0f.asc.v1.HookModeR\x05hooks\x12\x1f\n" +
+	"\x06expect\"\xa3\x02\n" +
+	"\x11UpdateRefsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12+\n" +
+	"\aupdates\x18\x02 \x03(\v2\x11.asc.v1.RefUpdateR\aupdates\x12&\n" +
+	"\x04mode\x18\x03 \x01(\x0e2\x12.asc.v1.UpdateModeR\x04mode\x12!\n" +
+	"\fpush_options\x18\x04 \x03(\tR\vpushOptions\x12&\n" +
+	"\x05hooks\x18\x05 \x01(\x0e2\x10.asc.v1.HookModeR\x05hooks\x12\x1f\n" +
 	"\vttl_seconds\x18\x06 \x01(\x03R\n" +
 	"ttlSeconds\x12(\n" +
-	"\x10no_content_merge\x18\a \x01(\bR\x0enoContentMerge\"-\n" +
-	"\aRewrite\x12\x10\n" +
-	"\x03old\x18\x01 \x01(\fR\x03old\x12\x10\n" +
-	"\x03new\x18\x02 \x01(\fR\x03new\"g\n" +
+	"\x10no_content_merge\x18\a \x01(\bR\x0enoContentMerge\"9\n" +
+	"\aRewrite\x12\x16\n" +
+	"\x03old\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x03old\x12\x16\n" +
+	"\x03new\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x03new\"}\n" +
 	"\tRefResult\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\"\n" +
-	"\x03old\x18\x02 \x01(\v2\x10.asc.v1.RefTargetR\x03old\x12\"\n" +
-	"\x03new\x18\x03 \x01(\v2\x10.asc.v1.RefTargetR\x03new\"\x88\x01\n" +
-	"\x12UpdateRefsResponse\x12*\n" +
-	"\aresults\x18\x01 \x03(\v2\x10.asc.v1.RefResultR\aresults\x12,\n" +
-	"\trewritten\x18\x02 \x03(\v2\x0e.asc.v1.RewriteR\trewritten\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\"P\n" +
-	"\x0eResolveRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x1a\n" +
-	"\brevspecs\x18\x02 \x03(\tR\brevspecs\"#\n" +
-	"\x0fResolveResponse\x12\x10\n" +
-	"\x03ids\x18\x01 \x03(\fR\x03ids\"U\n" +
-	"\rGitMapRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
-	"\x02asc\x18\x02 \x03(\fR\x02asc\x12\x10\n" +
-	"\x03git\x18\x03 \x03(\fR\x03git\"H\n" +
-	"\x0eGitMapResponse\x12\x1a\n" +
-	"\tasc_to_git\x18\x01 \x03(\fR\aascToGit\x12\x1a\n" +
-	"\tgit_to_asc\x18\x02 \x03(\fR\agitToAsc\"\x97\x04\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
+	"\x03old\x18\x02 \x01(\v2\x11.asc.v1.RefTargetR\x03old\x12#\n" +
+	"\x03new\x18\x03 \x01(\v2\x11.asc.v1.RefTargetR\x03new\x12\x12\n" +
+	"\x04user\x18\x04 \x01(\bR\x04user\"\x8a\x01\n" +
+	"\x12UpdateRefsResponse\x12+\n" +
+	"\aresults\x18\x01 \x03(\v2\x11.asc.v1.RefResultR\aresults\x12-\n" +
+	"\trewritten\x18\x02 \x03(\v2\x0f.asc.v1.RewriteR\trewritten\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"Q\n" +
+	"\x0eResolveRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1a\n" +
+	"\brevspecs\x18\x02 \x03(\tR\brevspecs\")\n" +
+	"\x0fResolveResponse\x12\x16\n" +
+	"\x03ids\x18\x01 \x03(\fB\x04\xa8\xbb\x18\x01R\x03ids\"d\n" +
+	"\rGitMapRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x16\n" +
+	"\x03asc\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x01R\x03asc\x12\x16\n" +
+	"\x03git\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x01R\x03git\"X\n" +
+	"\x0eGitMapResponse\x12\"\n" +
 	"\n" +
-	"LogRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x18\n" +
+	"asc_to_git\x18\x01 \x03(\fB\x04\xa8\xbb\x18\x01R\bascToGit\x12\"\n" +
+	"\n" +
+	"git_to_asc\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x01R\bgitToAsc\"\x9e\x04\n" +
+	"\n" +
+	"LogRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x18\n" +
 	"\ainclude\x18\x02 \x03(\tR\ainclude\x12\x18\n" +
 	"\aexclude\x18\x03 \x03(\tR\aexclude\x12\x14\n" +
 	"\x05paths\x18\x04 \x03(\tR\x05paths\x12!\n" +
@@ -7670,177 +8372,177 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\n" +
 	"count_only\x18\r \x01(\bR\tcountOnly\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x0e \x01(\tR\tpageToken\x12\x18\n" +
-	"\apickaxe\x18\x0f \x01(\fR\apickaxe\x12#\n" +
+	"page_token\x18\x0e \x01(\tR\tpageToken\x12\x1e\n" +
+	"\apickaxe\x18\x0f \x01(\fB\x04\xa8\xbb\x18\x04R\apickaxe\x12#\n" +
 	"\rpickaxe_regex\x18\x10 \x01(\bR\fpickaxeRegex\x12\x1d\n" +
 	"\n" +
 	"with_stats\x18\x11 \x01(\bR\twithStats\x12\x1f\n" +
 	"\vscan_budget\x18\x12 \x01(\rR\n" +
 	"scanBudget\x12!\n" +
-	"\fresume_token\x18\x13 \x01(\tR\vresumeToken\"\x9f\x02\n" +
-	"\bLogEntry\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\fR\x02id\x12\x10\n" +
-	"\x03git\x18\x02 \x01(\fR\x03git\x12\x18\n" +
-	"\aparents\x18\x03 \x03(\fR\aparents\x12(\n" +
-	"\x06author\x18\x04 \x01(\v2\x10.asc.v1.SignatureR\x06author\x12.\n" +
-	"\tcommitter\x18\x05 \x01(\v2\x10.asc.v1.SignatureR\tcommitter\x12\x18\n" +
-	"\amessage\x18\x06 \x01(\fR\amessage\x12\x10\n" +
-	"\x03gen\x18\a \x01(\rR\x03gen\x12\x16\n" +
-	"\x06change\x18\b \x01(\fR\x06change\x12%\n" +
-	"\x05stats\x18\t \x01(\v2\x0f.asc.v1.DiffStatR\x05stats\x12\x12\n" +
+	"\fresume_token\x18\x13 \x01(\tR\vresumeToken\"\xc6\x02\n" +
+	"\bLogEntry\x12\x14\n" +
+	"\x02id\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x02id\x12\x16\n" +
+	"\x03git\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x03git\x12\x1e\n" +
+	"\aparents\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x01R\aparents\x12)\n" +
+	"\x06author\x18\x04 \x01(\v2\x11.asc.v1.SignatureR\x06author\x12/\n" +
+	"\tcommitter\x18\x05 \x01(\v2\x11.asc.v1.SignatureR\tcommitter\x12\x1e\n" +
+	"\amessage\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x04R\amessage\x12\x10\n" +
+	"\x03gen\x18\a \x01(\rR\x03gen\x12\x1c\n" +
+	"\x06change\x18\b \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12&\n" +
+	"\x05stats\x18\t \x01(\v2\x10.asc.v1.DiffStatR\x05stats\x12\x18\n" +
 	"\x04meta\x18\n" +
-	" \x01(\fR\x04meta\"\xb7\x01\n" +
-	"\vLogResponse\x12)\n" +
-	"\aentries\x18\x01 \x03(\v2\x0f.asc.v1.LogEntryR\aentries\x12\x14\n" +
+	" \x01(\fB\x04\xa8\xbb\x18\x05R\x04meta\"\xb8\x01\n" +
+	"\vLogResponse\x12*\n" +
+	"\aentries\x18\x01 \x03(\v2\x10.asc.v1.LogEntryR\aentries\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x04R\x05count\x12&\n" +
 	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageToken\x12\x1c\n" +
 	"\ttruncated\x18\x04 \x01(\bR\ttruncated\x12!\n" +
-	"\fresume_token\x18\x05 \x01(\tR\vresumeToken\"d\n" +
-	"\x10MergeBaseRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\f\n" +
-	"\x01a\x18\x02 \x01(\fR\x01a\x12\f\n" +
-	"\x01b\x18\x03 \x03(\fR\x01b\x12\x10\n" +
-	"\x03all\x18\x04 \x01(\bR\x03all\")\n" +
-	"\x11MergeBaseResponse\x12\x14\n" +
-	"\x05bases\x18\x01 \x03(\fR\x05bases\"s\n" +
-	"\x11IsAncestorRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x1a\n" +
-	"\bancestor\x18\x02 \x01(\fR\bancestor\x12\x1e\n" +
+	"\fresume_token\x18\x05 \x01(\tR\vresumeToken\"q\n" +
+	"\x10MergeBaseRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x01a\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x01a\x12\x12\n" +
+	"\x01b\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x01R\x01b\x12\x10\n" +
+	"\x03all\x18\x04 \x01(\bR\x03all\"/\n" +
+	"\x11MergeBaseResponse\x12\x1a\n" +
+	"\x05bases\x18\x01 \x03(\fB\x04\xa8\xbb\x18\x01R\x05bases\"\x80\x01\n" +
+	"\x11IsAncestorRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12 \n" +
+	"\bancestor\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\bancestor\x12$\n" +
 	"\n" +
-	"descendant\x18\x03 \x01(\fR\n" +
+	"descendant\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\n" +
 	"descendant\",\n" +
 	"\x12IsAncestorResponse\x12\x16\n" +
-	"\x06result\x18\x01 \x01(\bR\x06result\"\xcb\x02\n" +
-	"\vDiffRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x06result\x18\x01 \x01(\bR\x06result\"\xcd\x02\n" +
+	"\vDiffRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
 	"\x04base\x18\x02 \x01(\tR\x04base\x12\x12\n" +
 	"\x04head\x18\x03 \x01(\tR\x04head\x12\x1d\n" +
 	"\n" +
 	"merge_base\x18\x04 \x01(\bR\tmergeBase\x12\x14\n" +
-	"\x05paths\x18\x05 \x03(\tR\x05paths\x12)\n" +
-	"\x06format\x18\x06 \x01(\x0e2\x11.asc.v1.DiffFormatR\x06format\x12\x18\n" +
+	"\x05paths\x18\x05 \x03(\tR\x05paths\x12*\n" +
+	"\x06format\x18\x06 \x01(\x0e2\x12.asc.v1.DiffFormatR\x06format\x12\x18\n" +
 	"\arenames\x18\a \x01(\bR\arenames\x12\x18\n" +
 	"\acontext\x18\b \x01(\rR\acontext\x12\x16\n" +
 	"\x06binary\x18\t \x01(\bR\x06binary\x12'\n" +
 	"\x0fnull_terminated\x18\n" +
 	" \x01(\bR\x0enullTerminated\x12\x1b\n" +
-	"\tmax_files\x18\v \x01(\rR\bmaxFiles\"\xbf\x02\n" +
+	"\tmax_files\x18\v \x01(\rR\bmaxFiles\"\xe3\x02\n" +
 	"\n" +
-	"PathChange\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\fR\x04path\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\x12\x19\n" +
-	"\bold_path\x18\x03 \x01(\fR\aoldPath\x12\x19\n" +
+	"PathChange\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12\x1f\n" +
+	"\bold_path\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x03R\aoldPath\x12\x19\n" +
 	"\bold_mode\x18\x04 \x01(\rR\aoldMode\x12\x19\n" +
-	"\bnew_mode\x18\x05 \x01(\rR\anewMode\x12\x17\n" +
-	"\aold_git\x18\x06 \x01(\fR\x06oldGit\x12\x17\n" +
-	"\anew_git\x18\a \x01(\fR\x06newGit\x12\x15\n" +
-	"\x06old_id\x18\b \x01(\fR\x05oldId\x12\x15\n" +
-	"\x06new_id\x18\t \x01(\fR\x05newId\x12\x19\n" +
+	"\bnew_mode\x18\x05 \x01(\rR\anewMode\x12\x1d\n" +
+	"\aold_git\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x01R\x06oldGit\x12\x1d\n" +
+	"\anew_git\x18\a \x01(\fB\x04\xa8\xbb\x18\x01R\x06newGit\x12\x1b\n" +
+	"\x06old_id\x18\b \x01(\fB\x04\xa8\xbb\x18\x01R\x05oldId\x12\x1b\n" +
+	"\x06new_id\x18\t \x01(\fB\x04\xa8\xbb\x18\x01R\x05newId\x12\x19\n" +
 	"\bold_size\x18\n" +
 	" \x01(\x04R\aoldSize\x12\x19\n" +
 	"\bnew_size\x18\v \x01(\x04R\anewSize\x12\x1e\n" +
 	"\n" +
 	"similarity\x18\f \x01(\rR\n" +
-	"similarity\"m\n" +
-	"\fDiffResponse\x12+\n" +
-	"\achanges\x18\x01 \x03(\v2\x11.asc.v1.PathChangeR\achanges\x12\x12\n" +
-	"\x04text\x18\x02 \x01(\fR\x04text\x12\x1c\n" +
-	"\ttruncated\x18\x03 \x01(\bR\ttruncated\"\xac\x01\n" +
-	"\fBlameRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x12\n" +
-	"\x04path\x18\x03 \x01(\fR\x04path\x12\x1d\n" +
+	"similarity\"t\n" +
+	"\fDiffResponse\x12,\n" +
+	"\achanges\x18\x01 \x03(\v2\x12.asc.v1.PathChangeR\achanges\x12\x18\n" +
+	"\x04text\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x04R\x04text\x12\x1c\n" +
+	"\ttruncated\x18\x03 \x01(\bR\ttruncated\"\xb3\x01\n" +
+	"\fBlameRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x18\n" +
+	"\x04path\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1d\n" +
 	"\n" +
 	"start_line\x18\x04 \x01(\rR\tstartLine\x12\x19\n" +
 	"\bend_line\x18\x05 \x01(\rR\aendLine\x12\x18\n" +
-	"\areverse\x18\x06 \x01(\bR\areverse\"\x87\x01\n" +
-	"\tBlameHunk\x12\x16\n" +
-	"\x06origin\x18\x01 \x01(\fR\x06origin\x12\x1b\n" +
-	"\torig_path\x18\x02 \x01(\fR\borigPath\x12\x1d\n" +
+	"\areverse\x18\x06 \x01(\bR\areverse\"\x93\x01\n" +
+	"\tBlameHunk\x12\x1c\n" +
+	"\x06origin\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x06origin\x12!\n" +
+	"\torig_path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\borigPath\x12\x1d\n" +
 	"\n" +
 	"orig_start\x18\x03 \x01(\rR\torigStart\x12\x14\n" +
 	"\x05start\x18\x04 \x01(\rR\x05start\x12\x10\n" +
-	"\x03len\x18\x05 \x01(\rR\x03len\"\x90\x01\n" +
-	"\rBlameResponse\x12&\n" +
-	"\x05hunks\x18\x01 \x03(\v2\x10.asc.v1.BlameHunkR\x05hunks\x12)\n" +
-	"\acommits\x18\x02 \x03(\v2\x0f.asc.v1.LogEntryR\acommits\x12,\n" +
-	"\areviews\x18\x03 \x03(\v2\x12.asc.v1.ReviewStateR\areviews\"r\n" +
-	"\x12LastCommitsRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x10\n" +
-	"\x03dir\x18\x03 \x01(\fR\x03dir\x12\x14\n" +
-	"\x05names\x18\x04 \x03(\fR\x05names\"\xa2\x01\n" +
-	"\x13LastCommitsResponse\x12?\n" +
-	"\aby_name\x18\x01 \x03(\v2&.asc.v1.LastCommitsResponse.ByNameEntryR\x06byName\x1aJ\n" +
+	"\x03len\x18\x05 \x01(\rR\x03len\"\x93\x01\n" +
+	"\rBlameResponse\x12'\n" +
+	"\x05hunks\x18\x01 \x03(\v2\x11.asc.v1.BlameHunkR\x05hunks\x12*\n" +
+	"\acommits\x18\x02 \x03(\v2\x10.asc.v1.LogEntryR\acommits\x12-\n" +
+	"\areviews\x18\x03 \x03(\v2\x13.asc.v1.ReviewStateR\areviews\"\x7f\n" +
+	"\x12LastCommitsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x16\n" +
+	"\x03dir\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x03R\x03dir\x12\x1a\n" +
+	"\x05names\x18\x04 \x03(\fB\x04\xa8\xbb\x18\x03R\x05names\"\xa4\x01\n" +
+	"\x13LastCommitsResponse\x12@\n" +
+	"\aby_name\x18\x01 \x03(\v2'.asc.v1.LastCommitsResponse.ByNameEntryR\x06byName\x1aK\n" +
 	"\vByNameEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12%\n" +
-	"\x05value\x18\x02 \x01(\v2\x0f.asc.v1.LogEntryR\x05value:\x028\x01\"L\n" +
-	"\x14ReadChangesetRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\"\xc4\x02\n" +
-	"\x15ReadChangesetResponse\x12'\n" +
-	"\x06header\x18\x01 \x01(\v2\x0f.asc.v1.LogEntryR\x06header\x12\x1b\n" +
-	"\troot_tree\x18\x02 \x01(\fR\brootTree\x12\x19\n" +
-	"\broot_git\x18\x03 \x01(\fR\arootGit\x12+\n" +
-	"\achanges\x18\x04 \x03(\v2\x11.asc.v1.PathChangeR\achanges\x12=\n" +
-	"\x05extra\x18\x05 \x03(\v2'.asc.v1.ReadChangesetResponse.ExtraEntryR\x05extra\x12$\n" +
-	"\x0eraw_git_commit\x18\x06 \x01(\fR\frawGitCommit\x1a8\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12&\n" +
+	"\x05value\x18\x02 \x01(\v2\x10.asc.v1.LogEntryR\x05value:\x028\x01\"M\n" +
+	"\x14ReadChangesetRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\"\xdf\x02\n" +
+	"\x15ReadChangesetResponse\x12(\n" +
+	"\x06header\x18\x01 \x01(\v2\x10.asc.v1.LogEntryR\x06header\x12!\n" +
+	"\troot_tree\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\brootTree\x12\x1f\n" +
+	"\broot_git\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\arootGit\x12,\n" +
+	"\achanges\x18\x04 \x03(\v2\x12.asc.v1.PathChangeR\achanges\x12D\n" +
+	"\x05extra\x18\x05 \x03(\v2(.asc.v1.ReadChangesetResponse.ExtraEntryB\x04\xa8\xbb\x18\x05R\x05extra\x12*\n" +
+	"\x0eraw_git_commit\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x05R\frawGitCommit\x1a8\n" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\fR\x05value:\x028\x01\"\xa5\x01\n" +
-	"\x0fReadTreeRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x12\n" +
-	"\x04path\x18\x03 \x01(\fR\x04path\x12\x1c\n" +
+	"\x05value\x18\x02 \x01(\fR\x05value:\x028\x01\"\xb2\x01\n" +
+	"\x0fReadTreeRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x18\n" +
+	"\x04path\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1c\n" +
 	"\trecursive\x18\x04 \x01(\bR\trecursive\x12\x14\n" +
-	"\x05limit\x18\x05 \x01(\rR\x05limit\x12\x14\n" +
-	"\x05after\x18\x06 \x01(\fR\x05after\"\x8d\x01\n" +
-	"\rTreeEntryInfo\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\fR\x04name\x12\x12\n" +
-	"\x04path\x18\x02 \x01(\fR\x04path\x12\x12\n" +
-	"\x04mode\x18\x03 \x01(\rR\x04mode\x12\x0e\n" +
-	"\x02id\x18\x04 \x01(\fR\x02id\x12\x10\n" +
-	"\x03git\x18\x05 \x01(\fR\x03git\x12\x12\n" +
-	"\x04size\x18\x06 \x01(\x04R\x04sizeJ\x04\b\a\x10\bJ\x04\b\b\x10\t\"v\n" +
-	"\x10ReadTreeResponse\x12.\n" +
-	"\aentries\x18\x01 \x03(\v2\x14.asc.v1.TreeEntryInfoR\aentries\x12\x17\n" +
-	"\atree_id\x18\x02 \x01(\fR\x06treeId\x12\x19\n" +
-	"\btree_git\x18\x03 \x01(\fR\atreeGit\"\xa9\x01\n" +
-	"\x0fReadFileRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x1b\n" +
-	"\brev_path\x18\x02 \x01(\tH\x00R\arevPath\x12\x19\n" +
-	"\afile_id\x18\x03 \x01(\fH\x00R\x06fileId\x12\x16\n" +
+	"\x05limit\x18\x05 \x01(\rR\x05limit\x12\x1a\n" +
+	"\x05after\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x03R\x05after\"\xa5\x01\n" +
+	"\rTreeEntryInfo\x12\x18\n" +
+	"\x04name\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04name\x12\x18\n" +
+	"\x04path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x12\n" +
+	"\x04mode\x18\x03 \x01(\rR\x04mode\x12\x14\n" +
+	"\x02id\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\x02id\x12\x16\n" +
+	"\x03git\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\x03git\x12\x12\n" +
+	"\x04size\x18\x06 \x01(\x04R\x04sizeJ\x04\b\a\x10\bJ\x04\b\b\x10\t\"\x83\x01\n" +
+	"\x10ReadTreeResponse\x12/\n" +
+	"\aentries\x18\x01 \x03(\v2\x15.asc.v1.TreeEntryInfoR\aentries\x12\x1d\n" +
+	"\atree_id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x06treeId\x12\x1f\n" +
+	"\btree_git\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\atreeGit\"\xb0\x01\n" +
+	"\x0fReadFileRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1b\n" +
+	"\brev_path\x18\x02 \x01(\tH\x00R\arevPath\x12\x1f\n" +
+	"\afile_id\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01H\x00R\x06fileId\x12\x16\n" +
 	"\x06offset\x18\x04 \x01(\x04R\x06offset\x12\x16\n" +
 	"\x06length\x18\x05 \x01(\x04R\x06lengthB\x04\n" +
-	"\x02atJ\x04\b\x06\x10\a\"E\n" +
-	"\x10ReadFileResponse\x12\x12\n" +
-	"\x04data\x18\x01 \x01(\fR\x04data\x12\x1d\n" +
+	"\x02atJ\x04\b\x06\x10\a\"K\n" +
+	"\x10ReadFileResponse\x12\x18\n" +
+	"\x04data\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x05R\x04data\x12\x1d\n" +
 	"\n" +
-	"total_size\x18\x02 \x01(\x04R\ttotalSize\"\x82\x01\n" +
-	"\vStatRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x14\n" +
-	"\x05paths\x18\x03 \x03(\fR\x05paths\x12'\n" +
-	"\aobjects\x18\x04 \x03(\v2\r.asc.v1.ObjKeyR\aobjects\"V\n" +
-	"\fStatResponse\x12.\n" +
-	"\aentries\x18\x01 \x03(\v2\x14.asc.v1.TreeEntryInfoR\aentries\x12\x16\n" +
-	"\x06exists\x18\x02 \x03(\bR\x06exists\"t\n" +
-	"\x10CheckAttrRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x14\n" +
-	"\x05paths\x18\x03 \x03(\fR\x05paths\x12\x14\n" +
-	"\x05names\x18\x04 \x03(\tR\x05names\"~\n" +
+	"total_size\x18\x02 \x01(\x04R\ttotalSize\"\x8a\x01\n" +
+	"\vStatRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x1a\n" +
+	"\x05paths\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\x12(\n" +
+	"\aobjects\x18\x04 \x03(\v2\x0e.asc.v1.ObjKeyR\aobjects\"W\n" +
+	"\fStatResponse\x12/\n" +
+	"\aentries\x18\x01 \x03(\v2\x15.asc.v1.TreeEntryInfoR\aentries\x12\x16\n" +
+	"\x06exists\x18\x02 \x03(\bR\x06exists\"{\n" +
+	"\x10CheckAttrRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x1a\n" +
+	"\x05paths\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\x12\x14\n" +
+	"\x05names\x18\x04 \x03(\tR\x05names\"\x7f\n" +
 	"\n" +
-	"AttrValues\x125\n" +
-	"\x06values\x18\x01 \x03(\v2\x1d.asc.v1.AttrValues.ValuesEntryR\x06values\x1a9\n" +
+	"AttrValues\x126\n" +
+	"\x06values\x18\x01 \x03(\v2\x1e.asc.v1.AttrValues.ValuesEntryR\x06values\x1a9\n" +
 	"\vValuesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"A\n" +
-	"\x11CheckAttrResponse\x12,\n" +
-	"\bper_path\x18\x01 \x03(\v2\x11.asc.v1.AttrValuesR\aperPath\"\xcb\x01\n" +
-	"\vGrepRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"B\n" +
+	"\x11CheckAttrResponse\x12-\n" +
+	"\bper_path\x18\x01 \x03(\v2\x12.asc.v1.AttrValuesR\aperPath\"\xcc\x01\n" +
+	"\vGrepRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
 	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x18\n" +
 	"\apattern\x18\x03 \x01(\tR\apattern\x12\x14\n" +
 	"\x05fixed\x18\x04 \x01(\bR\x05fixed\x12\x1f\n" +
@@ -7848,101 +8550,101 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"ignoreCase\x12\x14\n" +
 	"\x05paths\x18\x06 \x03(\tR\x05paths\x12\x1f\n" +
 	"\vmax_results\x18\a \x01(\rR\n" +
-	"maxResults\"G\n" +
-	"\tGrepMatch\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\fR\x04path\x12\x12\n" +
-	"\x04line\x18\x02 \x01(\rR\x04line\x12\x12\n" +
-	"\x04text\x18\x03 \x01(\fR\x04text\":\n" +
-	"\fGrepResponse\x12*\n" +
-	"\amatches\x18\x01 \x03(\v2\x10.asc.v1.GrepMatchR\amatches\"\x8c\x01\n" +
-	"\x0eArchiveRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"maxResults\"S\n" +
+	"\tGrepMatch\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x12\n" +
+	"\x04line\x18\x02 \x01(\rR\x04line\x12\x18\n" +
+	"\x04text\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x04R\x04text\";\n" +
+	"\fGrepResponse\x12+\n" +
+	"\amatches\x18\x01 \x03(\v2\x11.asc.v1.GrepMatchR\amatches\"\x8d\x01\n" +
+	"\x0eArchiveRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
 	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x16\n" +
 	"\x06format\x18\x03 \x01(\tR\x06format\x12\x16\n" +
 	"\x06prefix\x18\x04 \x01(\tR\x06prefix\x12\x14\n" +
-	"\x05paths\x18\x05 \x03(\tR\x05paths\"%\n" +
-	"\x0fArchiveResponse\x12\x12\n" +
-	"\x04data\x18\x01 \x01(\fR\x04data\"\xb4\x01\n" +
-	"\x06FileOp\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\fR\x04path\x12!\n" +
-	"\vput_content\x18\x02 \x01(\fH\x00R\n" +
-	"putContent\x12 \n" +
-	"\vput_file_id\x18\x03 \x01(\fH\x00R\tputFileId\x12\x18\n" +
-	"\x06delete\x18\x04 \x01(\bH\x00R\x06delete\x12\x1d\n" +
-	"\tmove_from\x18\x05 \x01(\fH\x00R\bmoveFrom\x12\x12\n" +
+	"\x05paths\x18\x05 \x03(\tR\x05paths\"+\n" +
+	"\x0fArchiveResponse\x12\x18\n" +
+	"\x04data\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x05R\x04data\"\xcc\x01\n" +
+	"\x06FileOp\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12'\n" +
+	"\vput_content\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x05H\x00R\n" +
+	"putContent\x12&\n" +
+	"\vput_file_id\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01H\x00R\tputFileId\x12\x18\n" +
+	"\x06delete\x18\x04 \x01(\bH\x00R\x06delete\x12#\n" +
+	"\tmove_from\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x03H\x00R\bmoveFrom\x12\x12\n" +
 	"\x04mode\x18\x06 \x01(\rR\x04modeB\x04\n" +
-	"\x02op\"\xbd\x02\n" +
-	"\rCommitRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x16\n" +
-	"\x06parent\x18\x02 \x01(\tR\x06parent\x12\x1f\n" +
-	"\x03ops\x18\x03 \x03(\v2\r.asc.v1.FileOpR\x03ops\x12\x18\n" +
-	"\amessage\x18\x04 \x01(\fR\amessage\x12(\n" +
-	"\x06author\x18\x05 \x01(\v2\x10.asc.v1.SignatureR\x06author\x12.\n" +
-	"\tcommitter\x18\x06 \x01(\v2\x10.asc.v1.SignatureR\tcommitter\x12\x1d\n" +
+	"\x02op\"\xc8\x02\n" +
+	"\rCommitRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x16\n" +
+	"\x06parent\x18\x02 \x01(\tR\x06parent\x12 \n" +
+	"\x03ops\x18\x03 \x03(\v2\x0e.asc.v1.FileOpR\x03ops\x12\x1e\n" +
+	"\amessage\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x04R\amessage\x12)\n" +
+	"\x06author\x18\x05 \x01(\v2\x11.asc.v1.SignatureR\x06author\x12/\n" +
+	"\tcommitter\x18\x06 \x01(\v2\x11.asc.v1.SignatureR\tcommitter\x12\x1d\n" +
 	"\n" +
-	"update_ref\x18\a \x01(\tR\tupdateRef\x12(\n" +
-	"\x06expect\x18\b \x01(\v2\x10.asc.v1.RefTargetR\x06expect\x12\x12\n" +
-	"\x04sign\x18\t \x01(\bR\x04sign\"2\n" +
-	"\x0eCommitResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\fR\x02id\x12\x10\n" +
-	"\x03git\x18\x02 \x01(\fR\x03git\"\x99\x03\n" +
-	"\fMergeRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"update_ref\x18\a \x01(\tR\tupdateRef\x12)\n" +
+	"\x06expect\x18\b \x01(\v2\x11.asc.v1.RefTargetR\x06expect\x12\x12\n" +
+	"\x04sign\x18\t \x01(\bR\x04sign\">\n" +
+	"\x0eCommitResponse\x12\x14\n" +
+	"\x02id\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x02id\x12\x16\n" +
+	"\x03git\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x03git\"\xa4\x03\n" +
+	"\fMergeRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
 	"\x04base\x18\x02 \x01(\tR\x04base\x12\x12\n" +
-	"\x04head\x18\x03 \x01(\tR\x04head\x12+\n" +
-	"\thead_repo\x18\x04 \x01(\v2\x0e.asc.v1.RepoRefR\bheadRepo\x12'\n" +
-	"\x05style\x18\x05 \x01(\x0e2\x11.asc.v1.MergeStyleR\x05style\x12\x18\n" +
-	"\amessage\x18\x06 \x01(\fR\amessage\x12(\n" +
-	"\x06author\x18\a \x01(\v2\x10.asc.v1.SignatureR\x06author\x12.\n" +
-	"\tcommitter\x18\b \x01(\v2\x10.asc.v1.SignatureR\tcommitter\x12\x17\n" +
+	"\x04head\x18\x03 \x01(\tR\x04head\x12,\n" +
+	"\thead_repo\x18\x04 \x01(\v2\x0f.asc.v1.RepoRefR\bheadRepo\x12(\n" +
+	"\x05style\x18\x05 \x01(\x0e2\x12.asc.v1.MergeStyleR\x05style\x12\x1e\n" +
+	"\amessage\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x04R\amessage\x12)\n" +
+	"\x06author\x18\a \x01(\v2\x11.asc.v1.SignatureR\x06author\x12/\n" +
+	"\tcommitter\x18\b \x01(\v2\x11.asc.v1.SignatureR\tcommitter\x12\x17\n" +
 	"\adry_run\x18\t \x01(\bR\x06dryRun\x12\x1d\n" +
 	"\n" +
 	"update_ref\x18\n" +
 	" \x01(\tR\tupdateRef\x12'\n" +
 	"\x0fprotected_globs\x18\v \x03(\tR\x0eprotectedGlobs\x12\x12\n" +
-	"\x04sign\x18\f \x01(\bR\x04sign\"\xd1\x01\n" +
-	"\bConflict\x12\x1c\n" +
-	"\tchangeset\x18\x01 \x01(\fR\tchangeset\x12\x12\n" +
-	"\x04path\x18\x02 \x01(\fR\x04path\x12'\n" +
-	"\x04kind\x18\x03 \x01(\x0e2\x13.asc.v1.ConflictKindR\x04kind\x12\x17\n" +
-	"\abase_id\x18\x04 \x01(\fR\x06baseId\x12\x17\n" +
-	"\aours_id\x18\x05 \x01(\fR\x06oursId\x12\x1b\n" +
-	"\ttheirs_id\x18\x06 \x01(\fR\btheirsId\x12\x1b\n" +
-	"\tmarked_id\x18\a \x01(\fR\bmarkedId\"\xf7\x01\n" +
-	"\rMergeResponse\x12\x16\n" +
-	"\x06result\x18\x01 \x01(\fR\x06result\x12\x1c\n" +
-	"\tconflicts\x18\x02 \x03(\fR\tconflicts\x12+\n" +
-	"\x11changed_protected\x18\x03 \x03(\fR\x10changedProtected\x12\x19\n" +
-	"\bis_empty\x18\x04 \x01(\bR\aisEmpty\x12,\n" +
-	"\trewritten\x18\x05 \x03(\v2\x0e.asc.v1.RewriteR\trewritten\x12:\n" +
-	"\x10conflict_details\x18\x06 \x03(\v2\x0f.asc.v1.ConflictR\x0fconflictDetails\"\xb3\x02\n" +
-	"\fApplyRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x04sign\x18\f \x01(\bR\x04sign\"\xf6\x01\n" +
+	"\bConflict\x12\"\n" +
+	"\tchangeset\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\tchangeset\x12\x18\n" +
+	"\x04path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12(\n" +
+	"\x04kind\x18\x03 \x01(\x0e2\x14.asc.v1.ConflictKindR\x04kind\x12\x1d\n" +
+	"\abase_id\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\x06baseId\x12\x1d\n" +
+	"\aours_id\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\x06oursId\x12!\n" +
+	"\ttheirs_id\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x01R\btheirsId\x12!\n" +
+	"\tmarked_id\x18\a \x01(\fB\x04\xa8\xbb\x18\x01R\bmarkedId\"\x8b\x02\n" +
+	"\rMergeResponse\x12\x1c\n" +
+	"\x06result\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x06result\x12\"\n" +
+	"\tconflicts\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x03R\tconflicts\x121\n" +
+	"\x11changed_protected\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x03R\x10changedProtected\x12\x19\n" +
+	"\bis_empty\x18\x04 \x01(\bR\aisEmpty\x12-\n" +
+	"\trewritten\x18\x05 \x03(\v2\x0f.asc.v1.RewriteR\trewritten\x12;\n" +
+	"\x10conflict_details\x18\x06 \x03(\v2\x10.asc.v1.ConflictR\x0fconflictDetails\"\xc3\x02\n" +
+	"\fApplyRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
 	"\x04onto\x18\x02 \x01(\tR\x04onto\x12\x1c\n" +
-	"\tchangeset\x18\x03 \x01(\tR\tchangeset\x12\x14\n" +
-	"\x05patch\x18\x04 \x01(\fR\x05patch\x12$\n" +
-	"\x04mode\x18\x05 \x01(\x0e2\x10.asc.v1.ApplyModeR\x04mode\x12\x18\n" +
-	"\amessage\x18\x06 \x01(\fR\amessage\x12(\n" +
-	"\x06author\x18\a \x01(\v2\x10.asc.v1.SignatureR\x06author\x12.\n" +
-	"\tcommitter\x18\b \x01(\v2\x10.asc.v1.SignatureR\tcommitter\x12\x1d\n" +
+	"\tchangeset\x18\x03 \x01(\tR\tchangeset\x12\x1a\n" +
+	"\x05patch\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x04R\x05patch\x12%\n" +
+	"\x04mode\x18\x05 \x01(\x0e2\x11.asc.v1.ApplyModeR\x04mode\x12\x1e\n" +
+	"\amessage\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x04R\amessage\x12)\n" +
+	"\x06author\x18\a \x01(\v2\x11.asc.v1.SignatureR\x06author\x12/\n" +
+	"\tcommitter\x18\b \x01(\v2\x11.asc.v1.SignatureR\tcommitter\x12\x1d\n" +
 	"\n" +
-	"update_ref\x18\t \x01(\tR\tupdateRef\"\x81\x01\n" +
-	"\rApplyResponse\x12\x16\n" +
-	"\x06result\x18\x01 \x01(\fR\x06result\x12\x1c\n" +
-	"\tconflicts\x18\x02 \x03(\fR\tconflicts\x12:\n" +
-	"\x10conflict_details\x18\x03 \x03(\v2\x0f.asc.v1.ConflictR\x0fconflictDetails\"x\n" +
-	"\x12CopyClosureRequest\x12\"\n" +
-	"\x04from\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04from\x12\x1e\n" +
-	"\x02to\x18\x02 \x01(\v2\x0e.asc.v1.RepoRefR\x02to\x12\x1e\n" +
+	"update_ref\x18\t \x01(\tR\tupdateRef\"\x8e\x01\n" +
+	"\rApplyResponse\x12\x1c\n" +
+	"\x06result\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x06result\x12\"\n" +
+	"\tconflicts\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x03R\tconflicts\x12;\n" +
+	"\x10conflict_details\x18\x03 \x03(\v2\x10.asc.v1.ConflictR\x0fconflictDetails\"\x80\x01\n" +
+	"\x12CopyClosureRequest\x12#\n" +
+	"\x04from\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04from\x12\x1f\n" +
+	"\x02to\x18\x02 \x01(\v2\x0f.asc.v1.RepoRefR\x02to\x12$\n" +
 	"\n" +
-	"changesets\x18\x03 \x03(\fR\n" +
+	"changesets\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x01R\n" +
 	"changesets\"-\n" +
 	"\x13CopyClosureResponse\x12\x16\n" +
-	"\x06copied\x18\x01 \x01(\x04R\x06copied\"\xef\x01\n" +
-	"\x10RepoAdminRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12#\n" +
-	"\x04init\x18\x02 \x01(\v2\r.asc.v1.InitOpH\x00R\x04init\x12#\n" +
-	"\x04fork\x18\x03 \x01(\v2\r.asc.v1.ForkOpH\x00R\x04fork\x12\x18\n" +
+	"\x06copied\x18\x01 \x01(\x04R\x06copied\"\xf2\x01\n" +
+	"\x10RepoAdminRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12$\n" +
+	"\x04init\x18\x02 \x01(\v2\x0e.asc.v1.InitOpH\x00R\x04init\x12$\n" +
+	"\x04fork\x18\x03 \x01(\v2\x0e.asc.v1.ForkOpH\x00R\x04fork\x12\x18\n" +
 	"\x06delete\x18\x04 \x01(\bH\x00R\x06delete\x12\x1d\n" +
 	"\trename_to\x18\x05 \x01(\tH\x00R\brenameTo\x12\x14\n" +
 	"\x04size\x18\x06 \x01(\bH\x00R\x04size\x12\x18\n" +
@@ -7954,87 +8656,87 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x04mode\x18\x03 \x01(\tR\x04mode\x12\x1d\n" +
 	"\n" +
 	"mirror_url\x18\x04 \x01(\tR\tmirrorUrl\x12#\n" +
-	"\rland_branches\x18\x05 \x03(\tR\flandBranches\",\n" +
-	"\x06ForkOp\x12\"\n" +
-	"\x04from\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04from\"o\n" +
+	"\rland_branches\x18\x05 \x03(\tR\flandBranches\"-\n" +
+	"\x06ForkOp\x12#\n" +
+	"\x04from\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04from\"o\n" +
 	"\x11RepoAdminResponse\x12!\n" +
 	"\flogical_size\x18\x01 \x01(\x04R\vlogicalSize\x12\x1f\n" +
 	"\vunique_size\x18\x02 \x01(\x04R\n" +
 	"uniqueSize\x12\x16\n" +
-	"\x06report\x18\x03 \x01(\tR\x06report\"T\n" +
+	"\x06report\x18\x03 \x01(\tR\x06report\"`\n" +
 	"\fGitRefUpdate\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x17\n" +
-	"\aold_git\x18\x02 \x01(\fR\x06oldGit\x12\x17\n" +
-	"\anew_git\x18\x03 \x01(\fR\x06newGit\"\xe5\x01\n" +
-	"\x14ImportGitPushRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
+	"\aold_git\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x06oldGit\x12\x1d\n" +
+	"\anew_git\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x06newGit\"\xe7\x01\n" +
+	"\x14ImportGitPushRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x17\n" +
 	"\agit_dir\x18\x02 \x01(\tR\x06gitDir\x12\x1d\n" +
 	"\n" +
 	"object_dir\x18\x03 \x01(\tR\tobjectDir\x12%\n" +
-	"\x0ealternate_dirs\x18\x04 \x03(\tR\ralternateDirs\x12-\n" +
-	"\aupdates\x18\x05 \x03(\v2\x13.asc.v1.GitRefUpdateR\aupdates\x12\x1b\n" +
-	"\tpusher_id\x18\x06 \x01(\x03R\bpusherId\"C\n" +
-	"\x15ImportGitPushResponse\x12*\n" +
-	"\aresults\x18\x01 \x03(\v2\x10.asc.v1.RefResultR\aresults\"S\n" +
-	"\rIngestRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x1e\n" +
+	"\x0ealternate_dirs\x18\x04 \x03(\tR\ralternateDirs\x12.\n" +
+	"\aupdates\x18\x05 \x03(\v2\x14.asc.v1.GitRefUpdateR\aupdates\x12\x1b\n" +
+	"\tpusher_id\x18\x06 \x01(\x03R\bpusherId\"D\n" +
+	"\x15ImportGitPushResponse\x12+\n" +
+	"\aresults\x18\x01 \x03(\v2\x11.asc.v1.RefResultR\aresults\"Z\n" +
+	"\rIngestRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12$\n" +
 	"\n" +
-	"changesets\x18\x02 \x03(\fR\n" +
-	"changesets\",\n" +
-	"\x0eIngestResponse\x12\x1a\n" +
-	"\bingested\x18\x01 \x03(\fR\bingested\"h\n" +
-	"\x12FindLandingRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
-	"\tchangeset\x18\x02 \x01(\fR\tchangeset\x12\x10\n" +
-	"\x03ref\x18\x03 \x01(\tR\x03ref\"\xa0\x01\n" +
+	"changesets\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x01R\n" +
+	"changesets\"2\n" +
+	"\x0eIngestResponse\x12 \n" +
+	"\bingested\x18\x01 \x03(\fB\x04\xa8\xbb\x18\x01R\bingested\"o\n" +
+	"\x12FindLandingRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\"\n" +
+	"\tchangeset\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\tchangeset\x12\x10\n" +
+	"\x03ref\x18\x03 \x01(\tR\x03ref\"\xa6\x01\n" +
 	"\x13FindLandingResponse\x12\x14\n" +
-	"\x05found\x18\x01 \x01(\bR\x05found\x12\x1b\n" +
-	"\tlanded_as\x18\x02 \x01(\fR\blandedAs\x12\x1e\n" +
+	"\x05found\x18\x01 \x01(\bR\x05found\x12!\n" +
+	"\tlanded_as\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\blandedAs\x12\x1e\n" +
 	"\vref_log_seq\x18\x03 \x01(\x04R\trefLogSeq\x12\x0e\n" +
 	"\x02at\x18\x04 \x01(\x03R\x02at\x12\x14\n" +
 	"\x05actor\x18\x05 \x01(\tR\x05actor\x12\x10\n" +
-	"\x03via\x18\x06 \x01(\tR\x03via\"|\n" +
-	"\x0fClassifyRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x03via\x18\x06 \x01(\tR\x03via\"}\n" +
+	"\x0fClassifyRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
 	"\x04base\x18\x02 \x01(\tR\x04base\x12\x12\n" +
 	"\x04head\x18\x03 \x01(\tR\x04head\x12\x1d\n" +
 	"\n" +
-	"merge_base\x18\x04 \x01(\bR\tmergeBase\"I\n" +
-	"\tFileClass\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\fR\x04path\x12(\n" +
-	"\x05class\x18\x02 \x01(\x0e2\x12.asc.v1.ChangeClassR\x05class\"h\n" +
-	"\x10ClassifyResponse\x12&\n" +
-	"\x05files\x18\x01 \x03(\v2\x10.asc.v1.FileClassR\x05files\x12,\n" +
-	"\aoverall\x18\x02 \x01(\x0e2\x12.asc.v1.ChangeClassR\aoverall\"]\n" +
+	"merge_base\x18\x04 \x01(\bR\tmergeBase\"P\n" +
+	"\tFileClass\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12)\n" +
+	"\x05class\x18\x02 \x01(\x0e2\x13.asc.v1.ChangeClassR\x05class\"j\n" +
+	"\x10ClassifyResponse\x12'\n" +
+	"\x05files\x18\x01 \x03(\v2\x11.asc.v1.FileClassR\x05files\x12-\n" +
+	"\aoverall\x18\x02 \x01(\x0e2\x13.asc.v1.ChangeClassR\aoverall\"j\n" +
 	"\n" +
-	"Resolution\x12\x1c\n" +
-	"\tchangeset\x18\x01 \x01(\fR\tchangeset\x12\x12\n" +
-	"\x04path\x18\x02 \x01(\fR\x04path\x12\x1d\n" +
-	"\x02op\x18\x03 \x01(\v2\r.asc.v1.FileOpR\x02op\"\xda\x02\n" +
-	"\rRebaseRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12+\n" +
-	"\thead_repo\x18\x02 \x01(\v2\x0e.asc.v1.RepoRefR\bheadRepo\x12\x12\n" +
+	"Resolution\x12\"\n" +
+	"\tchangeset\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\tchangeset\x12\x18\n" +
+	"\x04path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1e\n" +
+	"\x02op\x18\x03 \x01(\v2\x0e.asc.v1.FileOpR\x02op\"\xdf\x02\n" +
+	"\rRebaseRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12,\n" +
+	"\thead_repo\x18\x02 \x01(\v2\x0f.asc.v1.RepoRefR\bheadRepo\x12\x12\n" +
 	"\x04base\x18\x03 \x01(\tR\x04base\x12\x12\n" +
 	"\x04head\x18\x04 \x01(\tR\x04head\x12\x12\n" +
-	"\x04onto\x18\x05 \x01(\tR\x04onto\x123\n" +
-	"\vresolutions\x18\x06 \x03(\v2\x11.asc.v1.ResolutionR\vresolutions\x12\x17\n" +
+	"\x04onto\x18\x05 \x01(\tR\x04onto\x124\n" +
+	"\vresolutions\x18\x06 \x03(\v2\x12.asc.v1.ResolutionR\vresolutions\x12\x17\n" +
 	"\adry_run\x18\a \x01(\bR\x06dryRun\x12\x1d\n" +
 	"\n" +
-	"update_ref\x18\b \x01(\tR\tupdateRef\x12(\n" +
-	"\x06expect\x18\t \x01(\v2\x10.asc.v1.RefTargetR\x06expect\x12%\n" +
+	"update_ref\x18\b \x01(\tR\tupdateRef\x12)\n" +
+	"\x06expect\x18\t \x01(\v2\x11.asc.v1.RefTargetR\x06expect\x12&\n" +
 	"\x04mode\x18\n" +
-	" \x01(\x0e2\x11.asc.v1.UpdateModeR\x04mode\"\x85\x01\n" +
-	"\x0eRebaseResponse\x12\x16\n" +
-	"\x06result\x18\x01 \x01(\fR\x06result\x12,\n" +
-	"\trewritten\x18\x02 \x03(\v2\x0e.asc.v1.RewriteR\trewritten\x12-\n" +
-	"\tconflicts\x18\x03 \x03(\v2\x0f.asc.v1.ConflictR\tconflicts\"~\n" +
+	" \x01(\x0e2\x12.asc.v1.UpdateModeR\x04mode\"\x8d\x01\n" +
+	"\x0eRebaseResponse\x12\x1c\n" +
+	"\x06result\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x06result\x12-\n" +
+	"\trewritten\x18\x02 \x03(\v2\x0f.asc.v1.RewriteR\trewritten\x12.\n" +
+	"\tconflicts\x18\x03 \x03(\v2\x10.asc.v1.ConflictR\tconflicts\"\x85\x01\n" +
 	"\vErrorDetail\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x14\n" +
-	"\x05paths\x18\x02 \x03(\tR\x05paths\x12\x16\n" +
-	"\x06actual\x18\x03 \x01(\fR\x06actual\x12-\n" +
-	"\tconflicts\x18\x04 \x03(\v2\x0f.asc.v1.ConflictR\tconflicts\"\x8a\x02\n" +
-	"\vReviewState\x12\x14\n" +
-	"\x05forge\x18\x01 \x01(\tR\x05forge\x12\x16\n" +
+	"\x05paths\x18\x02 \x03(\tR\x05paths\x12\x1c\n" +
+	"\x06actual\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x06actual\x12.\n" +
+	"\tconflicts\x18\x04 \x03(\v2\x10.asc.v1.ConflictR\tconflicts\"\x88\x02\n" +
+	"\vReviewState\x12\x12\n" +
+	"\x04host\x18\x01 \x01(\tR\x04host\x12\x16\n" +
 	"\x06number\x18\x02 \x01(\x04R\x06number\x12\x10\n" +
 	"\x03url\x18\x03 \x01(\tR\x03url\x12\x14\n" +
 	"\x05state\x18\x04 \x01(\tR\x05state\x12\x14\n" +
@@ -8044,78 +8746,84 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x05queue\x18\b \x01(\tR\x05queue\x12)\n" +
 	"\x10reviewed_version\x18\t \x01(\rR\x0freviewedVersion\x12\x18\n" +
 	"\aupdated\x18\n" +
-	" \x01(\x03R\aupdated\"f\n" +
-	"\bFileStat\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\fR\x04path\x12\x14\n" +
+	" \x01(\x03R\aupdated\"l\n" +
+	"\bFileStat\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x14\n" +
 	"\x05added\x18\x02 \x01(\rR\x05added\x12\x18\n" +
 	"\aremoved\x18\x03 \x01(\rR\aremoved\x12\x16\n" +
-	"\x06binary\x18\x04 \x01(\bR\x06binary\"1\n" +
-	"\bDiffStat\x12%\n" +
-	"\x05files\x18\x01 \x03(\v2\x0f.asc.v1.FileStatR\x05files\"\xf9\x01\n" +
-	"\x12CommitGraphRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x18\n" +
+	"\x06binary\x18\x04 \x01(\bR\x06binary\"2\n" +
+	"\bDiffStat\x12&\n" +
+	"\x05files\x18\x01 \x03(\v2\x10.asc.v1.FileStatR\x05files\"\xfb\x01\n" +
+	"\x12CommitGraphRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x18\n" +
 	"\ainclude\x18\x02 \x03(\tR\ainclude\x12\x18\n" +
-	"\aexclude\x18\x03 \x03(\tR\aexclude\x12*\n" +
-	"\x06preset\x18\x04 \x01(\x0e2\x12.asc.v1.GraphPresetR\x06preset\x12\x14\n" +
+	"\aexclude\x18\x03 \x03(\tR\aexclude\x12+\n" +
+	"\x06preset\x18\x04 \x01(\x0e2\x13.asc.v1.GraphPresetR\x06preset\x12\x14\n" +
 	"\x05lanes\x18\x05 \x01(\bR\x05lanes\x12\x14\n" +
 	"\x05stats\x18\x06 \x01(\bR\x05stats\x12\x14\n" +
 	"\x05limit\x18\a \x01(\rR\x05limit\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\b \x01(\tR\tpageToken\"@\n" +
+	"page_token\x18\b \x01(\tR\tpageToken\"F\n" +
 	"\tGraphEdge\x12\x1b\n" +
-	"\tto_column\x18\x01 \x01(\rR\btoColumn\x12\x16\n" +
-	"\x06parent\x18\x02 \x01(\fR\x06parent\"\xf4\x01\n" +
-	"\bGraphRow\x12%\n" +
-	"\x05entry\x18\x01 \x01(\v2\x0f.asc.v1.LogEntryR\x05entry\x12\x12\n" +
+	"\tto_column\x18\x01 \x01(\rR\btoColumn\x12\x1c\n" +
+	"\x06parent\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x06parent\"\xf7\x01\n" +
+	"\bGraphRow\x12&\n" +
+	"\x05entry\x18\x01 \x01(\v2\x10.asc.v1.LogEntryR\x05entry\x12\x12\n" +
 	"\x04refs\x18\x02 \x03(\tR\x04refs\x12\x16\n" +
-	"\x06column\x18\x03 \x01(\rR\x06column\x12&\n" +
-	"\x05edges\x18\x04 \x03(\v2\x10.asc.v1.GraphEdgeR\x05edges\x12\x1a\n" +
-	"\boverflow\x18\x05 \x01(\bR\boverflow\x12*\n" +
-	"\x06review\x18\x06 \x01(\v2\x12.asc.v1.ReviewStateR\x06review\x12\x10\n" +
+	"\x06column\x18\x03 \x01(\rR\x06column\x12'\n" +
+	"\x05edges\x18\x04 \x03(\v2\x11.asc.v1.GraphEdgeR\x05edges\x12\x1a\n" +
+	"\boverflow\x18\x05 \x01(\bR\boverflow\x12+\n" +
+	"\x06review\x18\x06 \x01(\v2\x13.asc.v1.ReviewStateR\x06review\x12\x10\n" +
 	"\x03wip\x18\a \x01(\bR\x03wip\x12\x13\n" +
-	"\x05ws_id\x18\b \x01(\tR\x04wsId\"b\n" +
-	"\x13CommitGraphResponse\x12#\n" +
-	"\x04rows\x18\x01 \x03(\v2\x0f.asc.v1.GraphRowR\x04rows\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xf2\x01\n" +
-	"\x12LineHistoryRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x12\n" +
-	"\x04path\x18\x03 \x01(\fR\x04path\x12\x1d\n" +
+	"\x05ws_id\x18\b \x01(\tR\x04wsId\"1\n" +
+	"\tRefMarker\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x10\n" +
+	"\x03row\x18\x02 \x01(\x04R\x03row\"\xad\x01\n" +
+	"\x13CommitGraphResponse\x12$\n" +
+	"\x04rows\x18\x01 \x03(\v2\x10.asc.v1.GraphRowR\x04rows\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x14\n" +
+	"\x05total\x18\x03 \x01(\x04R\x05total\x122\n" +
+	"\vref_markers\x18\x04 \x03(\v2\x11.asc.v1.RefMarkerR\n" +
+	"refMarkers\"\xf9\x01\n" +
+	"\x12LineHistoryRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x18\n" +
+	"\x04path\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1d\n" +
 	"\n" +
 	"start_line\x18\x04 \x01(\rR\tstartLine\x12\x19\n" +
 	"\bend_line\x18\x05 \x01(\rR\aendLine\x12\x14\n" +
 	"\x05limit\x18\x06 \x01(\rR\x05limit\x12\x1f\n" +
 	"\vscan_budget\x18\a \x01(\rR\n" +
 	"scanBudget\x12!\n" +
-	"\fresume_token\x18\b \x01(\tR\vresumeToken\"\xd9\x01\n" +
-	"\x0eCompareRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\f\n" +
+	"\fresume_token\x18\b \x01(\tR\vresumeToken\"\xda\x01\n" +
+	"\x0eCompareRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\f\n" +
 	"\x01a\x18\x02 \x01(\tR\x01a\x12\f\n" +
 	"\x01b\x18\x03 \x01(\tR\x01b\x12\x1b\n" +
 	"\tthree_dot\x18\x04 \x01(\bR\bthreeDot\x12\x14\n" +
 	"\x05limit\x18\x05 \x01(\rR\x05limit\x12(\n" +
 	"\x10ahead_page_token\x18\x06 \x01(\tR\x0eaheadPageToken\x12*\n" +
-	"\x11behind_page_token\x18\a \x01(\tR\x0fbehindPageToken\"\xb5\x02\n" +
-	"\x0fCompareResponse\x12\x1d\n" +
+	"\x11behind_page_token\x18\a \x01(\tR\x0fbehindPageToken\"\xbe\x02\n" +
+	"\x0fCompareResponse\x12#\n" +
 	"\n" +
-	"merge_base\x18\x01 \x01(\fR\tmergeBase\x12\x14\n" +
+	"merge_base\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\tmergeBase\x12\x14\n" +
 	"\x05ahead\x18\x02 \x01(\x04R\x05ahead\x12\x16\n" +
-	"\x06behind\x18\x03 \x01(\x04R\x06behind\x124\n" +
-	"\rahead_entries\x18\x04 \x03(\v2\x0f.asc.v1.LogEntryR\faheadEntries\x126\n" +
-	"\x0ebehind_entries\x18\x05 \x03(\v2\x0f.asc.v1.LogEntryR\rbehindEntries\x12\x1d\n" +
+	"\x06behind\x18\x03 \x01(\x04R\x06behind\x125\n" +
+	"\rahead_entries\x18\x04 \x03(\v2\x10.asc.v1.LogEntryR\faheadEntries\x127\n" +
+	"\x0ebehind_entries\x18\x05 \x03(\v2\x10.asc.v1.LogEntryR\rbehindEntries\x12\x1d\n" +
 	"\n" +
 	"ahead_next\x18\x06 \x01(\tR\taheadNext\x12\x1f\n" +
 	"\vbehind_next\x18\a \x01(\tR\n" +
-	"behindNext\x12'\n" +
-	"\x05files\x18\b \x03(\v2\x11.asc.v1.PathChangeR\x05files\"4\n" +
+	"behindNext\x12(\n" +
+	"\x05files\x18\b \x03(\v2\x12.asc.v1.PathChangeR\x05files\"4\n" +
 	"\bAutolink\x12\x16\n" +
 	"\x06prefix\x18\x01 \x01(\tR\x06prefix\x12\x10\n" +
-	"\x03url\x18\x02 \x01(\tR\x03url\"I\n" +
-	"\x11RepoConfigRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\"\xba\x01\n" +
-	"\x12RepoConfigResponse\x12-\n" +
-	"\tautolinks\x18\x01 \x03(\v2\x0f.asc.v1.AutolinkR\tautolinks\x12\x1e\n" +
+	"\x03url\x18\x02 \x01(\tR\x03url\"J\n" +
+	"\x11RepoConfigRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\"\xbb\x01\n" +
+	"\x12RepoConfigResponse\x12.\n" +
+	"\tautolinks\x18\x01 \x03(\v2\x10.asc.v1.AutolinkR\tautolinks\x12\x1e\n" +
 	"\n" +
 	"branchless\x18\x02 \x01(\bR\n" +
 	"branchless\x12\x14\n" +
@@ -8124,10 +8832,59 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"sharedRefs\x12\x1e\n" +
 	"\n" +
 	"visibility\x18\x05 \x01(\tR\n" +
-	"visibility*)\n" +
-	"\x06IdMode\x12\x0e\n" +
+	"visibility\"q\n" +
+	"\x10WatchRefsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1a\n" +
+	"\bpatterns\x18\x02 \x03(\tR\bpatterns\x12\x1c\n" +
+	"\x06resume\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x06resume\"\x86\x01\n" +
+	"\bRefEvent\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
+	"\x03old\x18\x02 \x01(\v2\x11.asc.v1.RefTargetR\x03old\x12#\n" +
+	"\x03new\x18\x03 \x01(\v2\x11.asc.v1.RefTargetR\x03new\x12\x1c\n" +
+	"\x06resume\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\x06resume\"S\n" +
+	"\x10GetPolicyRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1a\n" +
+	"\x05paths\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\":\n" +
 	"\n" +
-	"ID_MODE_ASC\x10\x00\x12\x0f\n" +
+	"PolicyRole\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\amembers\x18\x02 \x03(\tR\amembers\":\n" +
+	"\x0ePolicyPathRule\x12\x12\n" +
+	"\x04glob\x18\x01 \x01(\tR\x04glob\x12\x14\n" +
+	"\x05write\x18\x02 \x03(\tR\x05write\"\x9a\x01\n" +
+	"\vPolicyTrunk\x12\x16\n" +
+	"\x06branch\x18\x01 \x01(\tR\x06branch\x12+\n" +
+	"\x11require_approvals\x18\x02 \x01(\rR\x10requireApprovals\x12%\n" +
+	"\x0erequire_checks\x18\x03 \x03(\tR\rrequireChecks\x12\x1f\n" +
+	"\vallow_force\x18\x04 \x01(\bR\n" +
+	"allowForce\"\xb0\x01\n" +
+	"\fPolicyAgents\x12#\n" +
+	"\rdefault_scope\x18\x01 \x03(\tR\fdefaultScope\x12!\n" +
+	"\fdenied_paths\x18\x02 \x03(\tR\vdeniedPaths\x12-\n" +
+	"\x13max_changes_per_run\x18\x03 \x01(\rR\x10maxChangesPerRun\x12)\n" +
+	"\x11max_paths_per_run\x18\x04 \x01(\rR\x0emaxPathsPerRun\"\\\n" +
+	"\x0ePolicyDecision\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x18\n" +
+	"\aallowed\x18\x02 \x01(\bR\aallowed\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"\xd0\x03\n" +
+	"\x11GetPolicyResponse\x12\x18\n" +
+	"\apresent\x18\x01 \x01(\bR\apresent\x12\x14\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\rR\aversion\x12\x1c\n" +
+	"\x06source\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\x06source\x12%\n" +
+	"\x0eprincipal_kind\x18\x05 \x01(\tR\rprincipalKind\x12\x1e\n" +
+	"\n" +
+	"maintainer\x18\x06 \x01(\bR\n" +
+	"maintainer\x12(\n" +
+	"\x05roles\x18\a \x03(\v2\x12.asc.v1.PolicyRoleR\x05roles\x12)\n" +
+	"\x05trunk\x18\b \x01(\v2\x13.asc.v1.PolicyTrunkR\x05trunk\x12,\n" +
+	"\x05paths\x18\t \x03(\v2\x16.asc.v1.PolicyPathRuleR\x05paths\x12,\n" +
+	"\x06agents\x18\n" +
+	" \x01(\v2\x14.asc.v1.PolicyAgentsR\x06agents\x12%\n" +
+	"\x0emerge_strategy\x18\v \x01(\tR\rmergeStrategy\x124\n" +
+	"\tdecisions\x18\f \x03(\v2\x16.asc.v1.PolicyDecisionR\tdecisions**\n" +
+	"\x06IdMode\x12\x0f\n" +
+	"\vID_MODE_ASC\x10\x00\x12\x0f\n" +
 	"\vID_MODE_GIT\x10\x01*\xe0\x01\n" +
 	"\aObjKind\x12\x18\n" +
 	"\x14OBJ_KIND_UNSPECIFIED\x10\x00\x12\x11\n" +
@@ -8187,49 +8944,53 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x10GRAPH_PRESET_ALL\x10\x00\x12\x18\n" +
 	"\x14GRAPH_PRESET_CURRENT\x10\x01\x12\x16\n" +
 	"\x12GRAPH_PRESET_SMART\x10\x02\x12\x16\n" +
-	"\x12GRAPH_PRESET_STACK\x10\x032\xf3\x10\n" +
-	"\x04Repo\x128\n" +
-	"\aVersion\x12\x15.asc.v1.VersionRequest\x1a\x16.asc.v1.VersionResponse\x12A\n" +
+	"\x12GRAPH_PRESET_STACK\x10\x032\xb6\x12\n" +
+	"\x04Repo\x12:\n" +
+	"\aVersion\x12\x16.asc.v1.VersionRequest\x1a\x17.asc.v1.VersionResponse\x12C\n" +
 	"\n" +
-	"HasObjects\x12\x18.asc.v1.HasObjectsRequest\x1a\x19.asc.v1.HasObjectsResponse\x12E\n" +
+	"HasObjects\x12\x19.asc.v1.HasObjectsRequest\x1a\x1a.asc.v1.HasObjectsResponse\x12G\n" +
 	"\n" +
-	"GetObjects\x12\x18.asc.v1.GetObjectsRequest\x1a\x19.asc.v1.GetObjectsResponse(\x010\x01\x12C\n" +
+	"GetObjects\x12\x19.asc.v1.GetObjectsRequest\x1a\x1a.asc.v1.GetObjectsResponse(\x010\x01\x12E\n" +
 	"\n" +
-	"PutObjects\x12\x18.asc.v1.PutObjectsRequest\x1a\x19.asc.v1.PutObjectsResponse(\x01\x12;\n" +
-	"\bListRefs\x12\x16.asc.v1.ListRefsRequest\x1a\x17.asc.v1.ListRefsResponse\x12A\n" +
+	"PutObjects\x12\x19.asc.v1.PutObjectsRequest\x1a\x1a.asc.v1.PutObjectsResponse(\x01\x12=\n" +
+	"\bListRefs\x12\x17.asc.v1.ListRefsRequest\x1a\x18.asc.v1.ListRefsResponse\x12C\n" +
 	"\n" +
-	"UpdateRefs\x12\x18.asc.v1.UpdateRefsRequest\x1a\x19.asc.v1.UpdateRefsResponse\x128\n" +
-	"\aResolve\x12\x15.asc.v1.ResolveRequest\x1a\x16.asc.v1.ResolveResponse\x125\n" +
-	"\x06GitMap\x12\x14.asc.v1.GitMapRequest\x1a\x15.asc.v1.GitMapResponse\x12.\n" +
-	"\x03Log\x12\x11.asc.v1.LogRequest\x1a\x12.asc.v1.LogResponse0\x01\x12>\n" +
-	"\tMergeBase\x12\x17.asc.v1.MergeBaseRequest\x1a\x18.asc.v1.MergeBaseResponse\x12A\n" +
+	"UpdateRefs\x12\x19.asc.v1.UpdateRefsRequest\x1a\x1a.asc.v1.UpdateRefsResponse\x12:\n" +
+	"\aResolve\x12\x16.asc.v1.ResolveRequest\x1a\x17.asc.v1.ResolveResponse\x127\n" +
+	"\x06GitMap\x12\x15.asc.v1.GitMapRequest\x1a\x16.asc.v1.GitMapResponse\x120\n" +
+	"\x03Log\x12\x12.asc.v1.LogRequest\x1a\x13.asc.v1.LogResponse0\x01\x12@\n" +
+	"\tMergeBase\x12\x18.asc.v1.MergeBaseRequest\x1a\x19.asc.v1.MergeBaseResponse\x12C\n" +
 	"\n" +
-	"IsAncestor\x12\x18.asc.v1.IsAncestorRequest\x1a\x19.asc.v1.IsAncestorResponse\x121\n" +
-	"\x04Diff\x12\x12.asc.v1.DiffRequest\x1a\x13.asc.v1.DiffResponse0\x01\x124\n" +
-	"\x05Blame\x12\x13.asc.v1.BlameRequest\x1a\x14.asc.v1.BlameResponse0\x01\x12D\n" +
-	"\vLastCommits\x12\x19.asc.v1.LastCommitsRequest\x1a\x1a.asc.v1.LastCommitsResponse\x12J\n" +
-	"\rReadChangeset\x12\x1b.asc.v1.ReadChangesetRequest\x1a\x1c.asc.v1.ReadChangesetResponse\x12=\n" +
-	"\bReadTree\x12\x16.asc.v1.ReadTreeRequest\x1a\x17.asc.v1.ReadTreeResponse0\x01\x12=\n" +
-	"\bReadFile\x12\x16.asc.v1.ReadFileRequest\x1a\x17.asc.v1.ReadFileResponse0\x01\x12/\n" +
-	"\x04Stat\x12\x12.asc.v1.StatRequest\x1a\x13.asc.v1.StatResponse\x12>\n" +
-	"\tCheckAttr\x12\x17.asc.v1.CheckAttrRequest\x1a\x18.asc.v1.CheckAttrResponse\x121\n" +
-	"\x04Grep\x12\x12.asc.v1.GrepRequest\x1a\x13.asc.v1.GrepResponse0\x01\x12:\n" +
-	"\aArchive\x12\x15.asc.v1.ArchiveRequest\x1a\x16.asc.v1.ArchiveResponse0\x01\x125\n" +
-	"\x06Commit\x12\x14.asc.v1.CommitRequest\x1a\x15.asc.v1.CommitResponse\x122\n" +
-	"\x05Merge\x12\x13.asc.v1.MergeRequest\x1a\x14.asc.v1.MergeResponse\x122\n" +
-	"\x05Apply\x12\x13.asc.v1.ApplyRequest\x1a\x14.asc.v1.ApplyResponse\x12D\n" +
-	"\vCopyClosure\x12\x19.asc.v1.CopyClosureRequest\x1a\x1a.asc.v1.CopyClosureResponse\x12>\n" +
-	"\tRepoAdmin\x12\x17.asc.v1.RepoAdminRequest\x1a\x18.asc.v1.RepoAdminResponse\x12J\n" +
-	"\rImportGitPush\x12\x1b.asc.v1.ImportGitPushRequest\x1a\x1c.asc.v1.ImportGitPushResponse\x125\n" +
-	"\x06Ingest\x12\x14.asc.v1.IngestRequest\x1a\x15.asc.v1.IngestResponse\x12D\n" +
-	"\vFindLanding\x12\x19.asc.v1.FindLandingRequest\x1a\x1a.asc.v1.FindLandingResponse\x12;\n" +
-	"\bClassify\x12\x16.asc.v1.ClassifyRequest\x1a\x17.asc.v1.ClassifyResponse\x125\n" +
-	"\x06Rebase\x12\x14.asc.v1.RebaseRequest\x1a\x15.asc.v1.RebaseResponse\x12F\n" +
-	"\vCommitGraph\x12\x19.asc.v1.CommitGraphRequest\x1a\x1a.asc.v1.CommitGraphResponse0\x01\x12>\n" +
-	"\vLineHistory\x12\x19.asc.v1.LineHistoryRequest\x1a\x12.asc.v1.LogResponse0\x01\x128\n" +
-	"\aCompare\x12\x15.asc.v1.CompareRequest\x1a\x16.asc.v1.CompareResponse\x12A\n" +
+	"IsAncestor\x12\x19.asc.v1.IsAncestorRequest\x1a\x1a.asc.v1.IsAncestorResponse\x123\n" +
+	"\x04Diff\x12\x13.asc.v1.DiffRequest\x1a\x14.asc.v1.DiffResponse0\x01\x126\n" +
+	"\x05Blame\x12\x14.asc.v1.BlameRequest\x1a\x15.asc.v1.BlameResponse0\x01\x12F\n" +
+	"\vLastCommits\x12\x1a.asc.v1.LastCommitsRequest\x1a\x1b.asc.v1.LastCommitsResponse\x12L\n" +
+	"\rReadChangeset\x12\x1c.asc.v1.ReadChangesetRequest\x1a\x1d.asc.v1.ReadChangesetResponse\x12?\n" +
+	"\bReadTree\x12\x17.asc.v1.ReadTreeRequest\x1a\x18.asc.v1.ReadTreeResponse0\x01\x12?\n" +
+	"\bReadFile\x12\x17.asc.v1.ReadFileRequest\x1a\x18.asc.v1.ReadFileResponse0\x01\x121\n" +
+	"\x04Stat\x12\x13.asc.v1.StatRequest\x1a\x14.asc.v1.StatResponse\x12@\n" +
+	"\tCheckAttr\x12\x18.asc.v1.CheckAttrRequest\x1a\x19.asc.v1.CheckAttrResponse\x123\n" +
+	"\x04Grep\x12\x13.asc.v1.GrepRequest\x1a\x14.asc.v1.GrepResponse0\x01\x12<\n" +
+	"\aArchive\x12\x16.asc.v1.ArchiveRequest\x1a\x17.asc.v1.ArchiveResponse0\x01\x127\n" +
+	"\x06Commit\x12\x15.asc.v1.CommitRequest\x1a\x16.asc.v1.CommitResponse\x124\n" +
+	"\x05Merge\x12\x14.asc.v1.MergeRequest\x1a\x15.asc.v1.MergeResponse\x124\n" +
+	"\x05Apply\x12\x14.asc.v1.ApplyRequest\x1a\x15.asc.v1.ApplyResponse\x12F\n" +
+	"\vCopyClosure\x12\x1a.asc.v1.CopyClosureRequest\x1a\x1b.asc.v1.CopyClosureResponse\x12@\n" +
+	"\tRepoAdmin\x12\x18.asc.v1.RepoAdminRequest\x1a\x19.asc.v1.RepoAdminResponse\x12L\n" +
+	"\rImportGitPush\x12\x1c.asc.v1.ImportGitPushRequest\x1a\x1d.asc.v1.ImportGitPushResponse\x127\n" +
+	"\x06Ingest\x12\x15.asc.v1.IngestRequest\x1a\x16.asc.v1.IngestResponse\x12F\n" +
+	"\vFindLanding\x12\x1a.asc.v1.FindLandingRequest\x1a\x1b.asc.v1.FindLandingResponse\x12=\n" +
+	"\bClassify\x12\x17.asc.v1.ClassifyRequest\x1a\x18.asc.v1.ClassifyResponse\x127\n" +
+	"\x06Rebase\x12\x15.asc.v1.RebaseRequest\x1a\x16.asc.v1.RebaseResponse\x12H\n" +
+	"\vCommitGraph\x12\x1a.asc.v1.CommitGraphRequest\x1a\x1b.asc.v1.CommitGraphResponse0\x01\x12@\n" +
+	"\vLineHistory\x12\x1a.asc.v1.LineHistoryRequest\x1a\x13.asc.v1.LogResponse0\x01\x12:\n" +
+	"\aCompare\x12\x16.asc.v1.CompareRequest\x1a\x17.asc.v1.CompareResponse\x12C\n" +
 	"\n" +
-	"RepoConfig\x12\x18.asc.v1.RepoConfigRequest\x1a\x19.asc.v1.RepoConfigResponseB\"Z forgejo.org/modules/ascproto/ascv1b\x06proto3"
+	"RepoConfig\x12\x19.asc.v1.RepoConfigRequest\x1a\x1a.asc.v1.RepoConfigResponse\x12@\n" +
+	"\tGetPolicy\x12\x18.asc.v1.GetPolicyRequest\x1a\x19.asc.v1.GetPolicyResponse\x129\n" +
+	"\tWatchRefs\x12\x18.asc.v1.WatchRefsRequest\x1a\x10.asc.v1.RefEvent0\x01Bt\n" +
+	"\n" +
+	"com.asc.v1B\tRepoProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
 var (
 	file_asc_v1_repo_proto_rawDescOnce sync.Once
@@ -8244,7 +9005,7 @@ func file_asc_v1_repo_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_repo_proto_enumTypes = make([]protoimpl.EnumInfo, 10)
-var file_asc_v1_repo_proto_msgTypes = make([]protoimpl.MessageInfo, 101)
+var file_asc_v1_repo_proto_msgTypes = make([]protoimpl.MessageInfo, 111)
 var file_asc_v1_repo_proto_goTypes = []any{
 	(IdMode)(0),                   // 0: asc.v1.IdMode
 	(ObjKind)(0),                  // 1: asc.v1.ObjKind
@@ -8347,16 +9108,26 @@ var file_asc_v1_repo_proto_goTypes = []any{
 	(*CommitGraphRequest)(nil),    // 98: asc.v1.CommitGraphRequest
 	(*GraphEdge)(nil),             // 99: asc.v1.GraphEdge
 	(*GraphRow)(nil),              // 100: asc.v1.GraphRow
-	(*CommitGraphResponse)(nil),   // 101: asc.v1.CommitGraphResponse
-	(*LineHistoryRequest)(nil),    // 102: asc.v1.LineHistoryRequest
-	(*CompareRequest)(nil),        // 103: asc.v1.CompareRequest
-	(*CompareResponse)(nil),       // 104: asc.v1.CompareResponse
-	(*Autolink)(nil),              // 105: asc.v1.Autolink
-	(*RepoConfigRequest)(nil),     // 106: asc.v1.RepoConfigRequest
-	(*RepoConfigResponse)(nil),    // 107: asc.v1.RepoConfigResponse
-	nil,                           // 108: asc.v1.LastCommitsResponse.ByNameEntry
-	nil,                           // 109: asc.v1.ReadChangesetResponse.ExtraEntry
-	nil,                           // 110: asc.v1.AttrValues.ValuesEntry
+	(*RefMarker)(nil),             // 101: asc.v1.RefMarker
+	(*CommitGraphResponse)(nil),   // 102: asc.v1.CommitGraphResponse
+	(*LineHistoryRequest)(nil),    // 103: asc.v1.LineHistoryRequest
+	(*CompareRequest)(nil),        // 104: asc.v1.CompareRequest
+	(*CompareResponse)(nil),       // 105: asc.v1.CompareResponse
+	(*Autolink)(nil),              // 106: asc.v1.Autolink
+	(*RepoConfigRequest)(nil),     // 107: asc.v1.RepoConfigRequest
+	(*RepoConfigResponse)(nil),    // 108: asc.v1.RepoConfigResponse
+	(*WatchRefsRequest)(nil),      // 109: asc.v1.WatchRefsRequest
+	(*RefEvent)(nil),              // 110: asc.v1.RefEvent
+	(*GetPolicyRequest)(nil),      // 111: asc.v1.GetPolicyRequest
+	(*PolicyRole)(nil),            // 112: asc.v1.PolicyRole
+	(*PolicyPathRule)(nil),        // 113: asc.v1.PolicyPathRule
+	(*PolicyTrunk)(nil),           // 114: asc.v1.PolicyTrunk
+	(*PolicyAgents)(nil),          // 115: asc.v1.PolicyAgents
+	(*PolicyDecision)(nil),        // 116: asc.v1.PolicyDecision
+	(*GetPolicyResponse)(nil),     // 117: asc.v1.GetPolicyResponse
+	nil,                           // 118: asc.v1.LastCommitsResponse.ByNameEntry
+	nil,                           // 119: asc.v1.ReadChangesetResponse.ExtraEntry
+	nil,                           // 120: asc.v1.AttrValues.ValuesEntry
 }
 var file_asc_v1_repo_proto_depIdxs = []int32{
 	0,   // 0: asc.v1.RepoRef.id_mode:type_name -> asc.v1.IdMode
@@ -8400,11 +9171,11 @@ var file_asc_v1_repo_proto_depIdxs = []int32{
 	36,  // 38: asc.v1.BlameResponse.commits:type_name -> asc.v1.LogEntry
 	95,  // 39: asc.v1.BlameResponse.reviews:type_name -> asc.v1.ReviewState
 	10,  // 40: asc.v1.LastCommitsRequest.repo:type_name -> asc.v1.RepoRef
-	108, // 41: asc.v1.LastCommitsResponse.by_name:type_name -> asc.v1.LastCommitsResponse.ByNameEntry
+	118, // 41: asc.v1.LastCommitsResponse.by_name:type_name -> asc.v1.LastCommitsResponse.ByNameEntry
 	10,  // 42: asc.v1.ReadChangesetRequest.repo:type_name -> asc.v1.RepoRef
 	36,  // 43: asc.v1.ReadChangesetResponse.header:type_name -> asc.v1.LogEntry
 	43,  // 44: asc.v1.ReadChangesetResponse.changes:type_name -> asc.v1.PathChange
-	109, // 45: asc.v1.ReadChangesetResponse.extra:type_name -> asc.v1.ReadChangesetResponse.ExtraEntry
+	119, // 45: asc.v1.ReadChangesetResponse.extra:type_name -> asc.v1.ReadChangesetResponse.ExtraEntry
 	10,  // 46: asc.v1.ReadTreeRequest.repo:type_name -> asc.v1.RepoRef
 	53,  // 47: asc.v1.ReadTreeResponse.entries:type_name -> asc.v1.TreeEntryInfo
 	10,  // 48: asc.v1.ReadFileRequest.repo:type_name -> asc.v1.RepoRef
@@ -8412,7 +9183,7 @@ var file_asc_v1_repo_proto_depIdxs = []int32{
 	11,  // 50: asc.v1.StatRequest.objects:type_name -> asc.v1.ObjKey
 	53,  // 51: asc.v1.StatResponse.entries:type_name -> asc.v1.TreeEntryInfo
 	10,  // 52: asc.v1.CheckAttrRequest.repo:type_name -> asc.v1.RepoRef
-	110, // 53: asc.v1.AttrValues.values:type_name -> asc.v1.AttrValues.ValuesEntry
+	120, // 53: asc.v1.AttrValues.values:type_name -> asc.v1.AttrValues.ValuesEntry
 	60,  // 54: asc.v1.CheckAttrResponse.per_path:type_name -> asc.v1.AttrValues
 	10,  // 55: asc.v1.GrepRequest.repo:type_name -> asc.v1.RepoRef
 	63,  // 56: asc.v1.GrepResponse.matches:type_name -> asc.v1.GrepMatch
@@ -8466,89 +9237,103 @@ var file_asc_v1_repo_proto_depIdxs = []int32{
 	99,  // 104: asc.v1.GraphRow.edges:type_name -> asc.v1.GraphEdge
 	95,  // 105: asc.v1.GraphRow.review:type_name -> asc.v1.ReviewState
 	100, // 106: asc.v1.CommitGraphResponse.rows:type_name -> asc.v1.GraphRow
-	10,  // 107: asc.v1.LineHistoryRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 108: asc.v1.CompareRequest.repo:type_name -> asc.v1.RepoRef
-	36,  // 109: asc.v1.CompareResponse.ahead_entries:type_name -> asc.v1.LogEntry
-	36,  // 110: asc.v1.CompareResponse.behind_entries:type_name -> asc.v1.LogEntry
-	43,  // 111: asc.v1.CompareResponse.files:type_name -> asc.v1.PathChange
-	10,  // 112: asc.v1.RepoConfigRequest.repo:type_name -> asc.v1.RepoRef
-	105, // 113: asc.v1.RepoConfigResponse.autolinks:type_name -> asc.v1.Autolink
-	36,  // 114: asc.v1.LastCommitsResponse.ByNameEntry.value:type_name -> asc.v1.LogEntry
-	16,  // 115: asc.v1.Repo.Version:input_type -> asc.v1.VersionRequest
-	18,  // 116: asc.v1.Repo.HasObjects:input_type -> asc.v1.HasObjectsRequest
-	20,  // 117: asc.v1.Repo.GetObjects:input_type -> asc.v1.GetObjectsRequest
-	22,  // 118: asc.v1.Repo.PutObjects:input_type -> asc.v1.PutObjectsRequest
-	24,  // 119: asc.v1.Repo.ListRefs:input_type -> asc.v1.ListRefsRequest
-	27,  // 120: asc.v1.Repo.UpdateRefs:input_type -> asc.v1.UpdateRefsRequest
-	31,  // 121: asc.v1.Repo.Resolve:input_type -> asc.v1.ResolveRequest
-	33,  // 122: asc.v1.Repo.GitMap:input_type -> asc.v1.GitMapRequest
-	35,  // 123: asc.v1.Repo.Log:input_type -> asc.v1.LogRequest
-	38,  // 124: asc.v1.Repo.MergeBase:input_type -> asc.v1.MergeBaseRequest
-	40,  // 125: asc.v1.Repo.IsAncestor:input_type -> asc.v1.IsAncestorRequest
-	42,  // 126: asc.v1.Repo.Diff:input_type -> asc.v1.DiffRequest
-	45,  // 127: asc.v1.Repo.Blame:input_type -> asc.v1.BlameRequest
-	48,  // 128: asc.v1.Repo.LastCommits:input_type -> asc.v1.LastCommitsRequest
-	50,  // 129: asc.v1.Repo.ReadChangeset:input_type -> asc.v1.ReadChangesetRequest
-	52,  // 130: asc.v1.Repo.ReadTree:input_type -> asc.v1.ReadTreeRequest
-	55,  // 131: asc.v1.Repo.ReadFile:input_type -> asc.v1.ReadFileRequest
-	57,  // 132: asc.v1.Repo.Stat:input_type -> asc.v1.StatRequest
-	59,  // 133: asc.v1.Repo.CheckAttr:input_type -> asc.v1.CheckAttrRequest
-	62,  // 134: asc.v1.Repo.Grep:input_type -> asc.v1.GrepRequest
-	65,  // 135: asc.v1.Repo.Archive:input_type -> asc.v1.ArchiveRequest
-	68,  // 136: asc.v1.Repo.Commit:input_type -> asc.v1.CommitRequest
-	70,  // 137: asc.v1.Repo.Merge:input_type -> asc.v1.MergeRequest
-	73,  // 138: asc.v1.Repo.Apply:input_type -> asc.v1.ApplyRequest
-	75,  // 139: asc.v1.Repo.CopyClosure:input_type -> asc.v1.CopyClosureRequest
-	77,  // 140: asc.v1.Repo.RepoAdmin:input_type -> asc.v1.RepoAdminRequest
-	82,  // 141: asc.v1.Repo.ImportGitPush:input_type -> asc.v1.ImportGitPushRequest
-	84,  // 142: asc.v1.Repo.Ingest:input_type -> asc.v1.IngestRequest
-	86,  // 143: asc.v1.Repo.FindLanding:input_type -> asc.v1.FindLandingRequest
-	88,  // 144: asc.v1.Repo.Classify:input_type -> asc.v1.ClassifyRequest
-	92,  // 145: asc.v1.Repo.Rebase:input_type -> asc.v1.RebaseRequest
-	98,  // 146: asc.v1.Repo.CommitGraph:input_type -> asc.v1.CommitGraphRequest
-	102, // 147: asc.v1.Repo.LineHistory:input_type -> asc.v1.LineHistoryRequest
-	103, // 148: asc.v1.Repo.Compare:input_type -> asc.v1.CompareRequest
-	106, // 149: asc.v1.Repo.RepoConfig:input_type -> asc.v1.RepoConfigRequest
-	17,  // 150: asc.v1.Repo.Version:output_type -> asc.v1.VersionResponse
-	19,  // 151: asc.v1.Repo.HasObjects:output_type -> asc.v1.HasObjectsResponse
-	21,  // 152: asc.v1.Repo.GetObjects:output_type -> asc.v1.GetObjectsResponse
-	23,  // 153: asc.v1.Repo.PutObjects:output_type -> asc.v1.PutObjectsResponse
-	25,  // 154: asc.v1.Repo.ListRefs:output_type -> asc.v1.ListRefsResponse
-	30,  // 155: asc.v1.Repo.UpdateRefs:output_type -> asc.v1.UpdateRefsResponse
-	32,  // 156: asc.v1.Repo.Resolve:output_type -> asc.v1.ResolveResponse
-	34,  // 157: asc.v1.Repo.GitMap:output_type -> asc.v1.GitMapResponse
-	37,  // 158: asc.v1.Repo.Log:output_type -> asc.v1.LogResponse
-	39,  // 159: asc.v1.Repo.MergeBase:output_type -> asc.v1.MergeBaseResponse
-	41,  // 160: asc.v1.Repo.IsAncestor:output_type -> asc.v1.IsAncestorResponse
-	44,  // 161: asc.v1.Repo.Diff:output_type -> asc.v1.DiffResponse
-	47,  // 162: asc.v1.Repo.Blame:output_type -> asc.v1.BlameResponse
-	49,  // 163: asc.v1.Repo.LastCommits:output_type -> asc.v1.LastCommitsResponse
-	51,  // 164: asc.v1.Repo.ReadChangeset:output_type -> asc.v1.ReadChangesetResponse
-	54,  // 165: asc.v1.Repo.ReadTree:output_type -> asc.v1.ReadTreeResponse
-	56,  // 166: asc.v1.Repo.ReadFile:output_type -> asc.v1.ReadFileResponse
-	58,  // 167: asc.v1.Repo.Stat:output_type -> asc.v1.StatResponse
-	61,  // 168: asc.v1.Repo.CheckAttr:output_type -> asc.v1.CheckAttrResponse
-	64,  // 169: asc.v1.Repo.Grep:output_type -> asc.v1.GrepResponse
-	66,  // 170: asc.v1.Repo.Archive:output_type -> asc.v1.ArchiveResponse
-	69,  // 171: asc.v1.Repo.Commit:output_type -> asc.v1.CommitResponse
-	72,  // 172: asc.v1.Repo.Merge:output_type -> asc.v1.MergeResponse
-	74,  // 173: asc.v1.Repo.Apply:output_type -> asc.v1.ApplyResponse
-	76,  // 174: asc.v1.Repo.CopyClosure:output_type -> asc.v1.CopyClosureResponse
-	80,  // 175: asc.v1.Repo.RepoAdmin:output_type -> asc.v1.RepoAdminResponse
-	83,  // 176: asc.v1.Repo.ImportGitPush:output_type -> asc.v1.ImportGitPushResponse
-	85,  // 177: asc.v1.Repo.Ingest:output_type -> asc.v1.IngestResponse
-	87,  // 178: asc.v1.Repo.FindLanding:output_type -> asc.v1.FindLandingResponse
-	90,  // 179: asc.v1.Repo.Classify:output_type -> asc.v1.ClassifyResponse
-	93,  // 180: asc.v1.Repo.Rebase:output_type -> asc.v1.RebaseResponse
-	101, // 181: asc.v1.Repo.CommitGraph:output_type -> asc.v1.CommitGraphResponse
-	37,  // 182: asc.v1.Repo.LineHistory:output_type -> asc.v1.LogResponse
-	104, // 183: asc.v1.Repo.Compare:output_type -> asc.v1.CompareResponse
-	107, // 184: asc.v1.Repo.RepoConfig:output_type -> asc.v1.RepoConfigResponse
-	150, // [150:185] is the sub-list for method output_type
-	115, // [115:150] is the sub-list for method input_type
-	115, // [115:115] is the sub-list for extension type_name
-	115, // [115:115] is the sub-list for extension extendee
-	0,   // [0:115] is the sub-list for field type_name
+	101, // 107: asc.v1.CommitGraphResponse.ref_markers:type_name -> asc.v1.RefMarker
+	10,  // 108: asc.v1.LineHistoryRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 109: asc.v1.CompareRequest.repo:type_name -> asc.v1.RepoRef
+	36,  // 110: asc.v1.CompareResponse.ahead_entries:type_name -> asc.v1.LogEntry
+	36,  // 111: asc.v1.CompareResponse.behind_entries:type_name -> asc.v1.LogEntry
+	43,  // 112: asc.v1.CompareResponse.files:type_name -> asc.v1.PathChange
+	10,  // 113: asc.v1.RepoConfigRequest.repo:type_name -> asc.v1.RepoRef
+	106, // 114: asc.v1.RepoConfigResponse.autolinks:type_name -> asc.v1.Autolink
+	10,  // 115: asc.v1.WatchRefsRequest.repo:type_name -> asc.v1.RepoRef
+	13,  // 116: asc.v1.RefEvent.old:type_name -> asc.v1.RefTarget
+	13,  // 117: asc.v1.RefEvent.new:type_name -> asc.v1.RefTarget
+	10,  // 118: asc.v1.GetPolicyRequest.repo:type_name -> asc.v1.RepoRef
+	112, // 119: asc.v1.GetPolicyResponse.roles:type_name -> asc.v1.PolicyRole
+	114, // 120: asc.v1.GetPolicyResponse.trunk:type_name -> asc.v1.PolicyTrunk
+	113, // 121: asc.v1.GetPolicyResponse.paths:type_name -> asc.v1.PolicyPathRule
+	115, // 122: asc.v1.GetPolicyResponse.agents:type_name -> asc.v1.PolicyAgents
+	116, // 123: asc.v1.GetPolicyResponse.decisions:type_name -> asc.v1.PolicyDecision
+	36,  // 124: asc.v1.LastCommitsResponse.ByNameEntry.value:type_name -> asc.v1.LogEntry
+	16,  // 125: asc.v1.Repo.Version:input_type -> asc.v1.VersionRequest
+	18,  // 126: asc.v1.Repo.HasObjects:input_type -> asc.v1.HasObjectsRequest
+	20,  // 127: asc.v1.Repo.GetObjects:input_type -> asc.v1.GetObjectsRequest
+	22,  // 128: asc.v1.Repo.PutObjects:input_type -> asc.v1.PutObjectsRequest
+	24,  // 129: asc.v1.Repo.ListRefs:input_type -> asc.v1.ListRefsRequest
+	27,  // 130: asc.v1.Repo.UpdateRefs:input_type -> asc.v1.UpdateRefsRequest
+	31,  // 131: asc.v1.Repo.Resolve:input_type -> asc.v1.ResolveRequest
+	33,  // 132: asc.v1.Repo.GitMap:input_type -> asc.v1.GitMapRequest
+	35,  // 133: asc.v1.Repo.Log:input_type -> asc.v1.LogRequest
+	38,  // 134: asc.v1.Repo.MergeBase:input_type -> asc.v1.MergeBaseRequest
+	40,  // 135: asc.v1.Repo.IsAncestor:input_type -> asc.v1.IsAncestorRequest
+	42,  // 136: asc.v1.Repo.Diff:input_type -> asc.v1.DiffRequest
+	45,  // 137: asc.v1.Repo.Blame:input_type -> asc.v1.BlameRequest
+	48,  // 138: asc.v1.Repo.LastCommits:input_type -> asc.v1.LastCommitsRequest
+	50,  // 139: asc.v1.Repo.ReadChangeset:input_type -> asc.v1.ReadChangesetRequest
+	52,  // 140: asc.v1.Repo.ReadTree:input_type -> asc.v1.ReadTreeRequest
+	55,  // 141: asc.v1.Repo.ReadFile:input_type -> asc.v1.ReadFileRequest
+	57,  // 142: asc.v1.Repo.Stat:input_type -> asc.v1.StatRequest
+	59,  // 143: asc.v1.Repo.CheckAttr:input_type -> asc.v1.CheckAttrRequest
+	62,  // 144: asc.v1.Repo.Grep:input_type -> asc.v1.GrepRequest
+	65,  // 145: asc.v1.Repo.Archive:input_type -> asc.v1.ArchiveRequest
+	68,  // 146: asc.v1.Repo.Commit:input_type -> asc.v1.CommitRequest
+	70,  // 147: asc.v1.Repo.Merge:input_type -> asc.v1.MergeRequest
+	73,  // 148: asc.v1.Repo.Apply:input_type -> asc.v1.ApplyRequest
+	75,  // 149: asc.v1.Repo.CopyClosure:input_type -> asc.v1.CopyClosureRequest
+	77,  // 150: asc.v1.Repo.RepoAdmin:input_type -> asc.v1.RepoAdminRequest
+	82,  // 151: asc.v1.Repo.ImportGitPush:input_type -> asc.v1.ImportGitPushRequest
+	84,  // 152: asc.v1.Repo.Ingest:input_type -> asc.v1.IngestRequest
+	86,  // 153: asc.v1.Repo.FindLanding:input_type -> asc.v1.FindLandingRequest
+	88,  // 154: asc.v1.Repo.Classify:input_type -> asc.v1.ClassifyRequest
+	92,  // 155: asc.v1.Repo.Rebase:input_type -> asc.v1.RebaseRequest
+	98,  // 156: asc.v1.Repo.CommitGraph:input_type -> asc.v1.CommitGraphRequest
+	103, // 157: asc.v1.Repo.LineHistory:input_type -> asc.v1.LineHistoryRequest
+	104, // 158: asc.v1.Repo.Compare:input_type -> asc.v1.CompareRequest
+	107, // 159: asc.v1.Repo.RepoConfig:input_type -> asc.v1.RepoConfigRequest
+	111, // 160: asc.v1.Repo.GetPolicy:input_type -> asc.v1.GetPolicyRequest
+	109, // 161: asc.v1.Repo.WatchRefs:input_type -> asc.v1.WatchRefsRequest
+	17,  // 162: asc.v1.Repo.Version:output_type -> asc.v1.VersionResponse
+	19,  // 163: asc.v1.Repo.HasObjects:output_type -> asc.v1.HasObjectsResponse
+	21,  // 164: asc.v1.Repo.GetObjects:output_type -> asc.v1.GetObjectsResponse
+	23,  // 165: asc.v1.Repo.PutObjects:output_type -> asc.v1.PutObjectsResponse
+	25,  // 166: asc.v1.Repo.ListRefs:output_type -> asc.v1.ListRefsResponse
+	30,  // 167: asc.v1.Repo.UpdateRefs:output_type -> asc.v1.UpdateRefsResponse
+	32,  // 168: asc.v1.Repo.Resolve:output_type -> asc.v1.ResolveResponse
+	34,  // 169: asc.v1.Repo.GitMap:output_type -> asc.v1.GitMapResponse
+	37,  // 170: asc.v1.Repo.Log:output_type -> asc.v1.LogResponse
+	39,  // 171: asc.v1.Repo.MergeBase:output_type -> asc.v1.MergeBaseResponse
+	41,  // 172: asc.v1.Repo.IsAncestor:output_type -> asc.v1.IsAncestorResponse
+	44,  // 173: asc.v1.Repo.Diff:output_type -> asc.v1.DiffResponse
+	47,  // 174: asc.v1.Repo.Blame:output_type -> asc.v1.BlameResponse
+	49,  // 175: asc.v1.Repo.LastCommits:output_type -> asc.v1.LastCommitsResponse
+	51,  // 176: asc.v1.Repo.ReadChangeset:output_type -> asc.v1.ReadChangesetResponse
+	54,  // 177: asc.v1.Repo.ReadTree:output_type -> asc.v1.ReadTreeResponse
+	56,  // 178: asc.v1.Repo.ReadFile:output_type -> asc.v1.ReadFileResponse
+	58,  // 179: asc.v1.Repo.Stat:output_type -> asc.v1.StatResponse
+	61,  // 180: asc.v1.Repo.CheckAttr:output_type -> asc.v1.CheckAttrResponse
+	64,  // 181: asc.v1.Repo.Grep:output_type -> asc.v1.GrepResponse
+	66,  // 182: asc.v1.Repo.Archive:output_type -> asc.v1.ArchiveResponse
+	69,  // 183: asc.v1.Repo.Commit:output_type -> asc.v1.CommitResponse
+	72,  // 184: asc.v1.Repo.Merge:output_type -> asc.v1.MergeResponse
+	74,  // 185: asc.v1.Repo.Apply:output_type -> asc.v1.ApplyResponse
+	76,  // 186: asc.v1.Repo.CopyClosure:output_type -> asc.v1.CopyClosureResponse
+	80,  // 187: asc.v1.Repo.RepoAdmin:output_type -> asc.v1.RepoAdminResponse
+	83,  // 188: asc.v1.Repo.ImportGitPush:output_type -> asc.v1.ImportGitPushResponse
+	85,  // 189: asc.v1.Repo.Ingest:output_type -> asc.v1.IngestResponse
+	87,  // 190: asc.v1.Repo.FindLanding:output_type -> asc.v1.FindLandingResponse
+	90,  // 191: asc.v1.Repo.Classify:output_type -> asc.v1.ClassifyResponse
+	93,  // 192: asc.v1.Repo.Rebase:output_type -> asc.v1.RebaseResponse
+	102, // 193: asc.v1.Repo.CommitGraph:output_type -> asc.v1.CommitGraphResponse
+	37,  // 194: asc.v1.Repo.LineHistory:output_type -> asc.v1.LogResponse
+	105, // 195: asc.v1.Repo.Compare:output_type -> asc.v1.CompareResponse
+	108, // 196: asc.v1.Repo.RepoConfig:output_type -> asc.v1.RepoConfigResponse
+	117, // 197: asc.v1.Repo.GetPolicy:output_type -> asc.v1.GetPolicyResponse
+	110, // 198: asc.v1.Repo.WatchRefs:output_type -> asc.v1.RefEvent
+	162, // [162:199] is the sub-list for method output_type
+	125, // [125:162] is the sub-list for method input_type
+	125, // [125:125] is the sub-list for extension type_name
+	125, // [125:125] is the sub-list for extension extendee
+	0,   // [0:125] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_repo_proto_init() }
@@ -8556,6 +9341,7 @@ func file_asc_v1_repo_proto_init() {
 	if File_asc_v1_repo_proto != nil {
 		return
 	}
+	file_asc_v1_options_proto_init()
 	file_asc_v1_repo_proto_msgTypes[3].OneofWrappers = []any{
 		(*RefTarget_Changeset)(nil),
 		(*RefTarget_Tag)(nil),
@@ -8589,7 +9375,7 @@ func file_asc_v1_repo_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_repo_proto_rawDesc), len(file_asc_v1_repo_proto_rawDesc)),
 			NumEnums:      10,
-			NumMessages:   101,
+			NumMessages:   111,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

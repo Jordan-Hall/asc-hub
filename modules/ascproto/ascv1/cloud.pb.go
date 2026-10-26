@@ -719,33 +719,33 @@ var File_asc_v1_cloud_proto protoreflect.FileDescriptor
 
 const file_asc_v1_cloud_proto_rawDesc = "" +
 	"\n" +
-	"\x11asc/v1/cloud.proto\x12\x05asc.v1\x1a\x10asc/v1/repo.proto\"~\n" +
+	"\x12asc/v1/cloud.proto\x12\x06asc.v1\x1a\x11asc/v1/repo.proto\"~\n" +
 	"\tCloudHead\x12\x0e\n" +
 	"\x02cs\x18\x01 \x01(\fR\x02cs\x12\x16\n" +
 	"\x06change\x18\x02 \x01(\fR\x06change\x12\x16\n" +
 	"\x06labels\x18\x03 \x03(\tR\x06labels\x12\x14\n" +
 	"\x05added\x18\x04 \x01(\x03R\x05added\x12\x1b\n" +
-	"\thidden_at\x18\x05 \x01(\x03R\bhiddenAt\"\xea\x01\n" +
-	"\x13GetWorkspaceRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x14\n" +
+	"\thidden_at\x18\x05 \x01(\x03R\bhiddenAt\"\xeb\x01\n" +
+	"\x13GetWorkspaceRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
 	"\x05owner\x18\x02 \x01(\tR\x05owner\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12#\n" +
 	"\rsince_version\x18\x04 \x01(\x04R\fsinceVersion\x12\x1a\n" +
 	"\tmax_age_s\x18\x05 \x01(\x03R\amaxAgeS\x12%\n" +
 	"\x0einclude_hidden\x18\x06 \x01(\bR\rincludeHidden\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\a \x01(\tR\tpageToken\"\xb4\x01\n" +
+	"page_token\x18\a \x01(\tR\tpageToken\"\xb5\x01\n" +
 	"\x14GetWorkspaceResponse\x12\x18\n" +
-	"\aversion\x18\x01 \x01(\x04R\aversion\x12&\n" +
-	"\x05heads\x18\x02 \x03(\v2\x10.asc.v1.CloudHeadR\x05heads\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\x04R\aversion\x12'\n" +
+	"\x05heads\x18\x02 \x03(\v2\x11.asc.v1.CloudHeadR\x05heads\x12\x18\n" +
 	"\aremoved\x18\x03 \x03(\fR\aremoved\x12\x18\n" +
 	"\aomitted\x18\x04 \x01(\rR\aomitted\x12&\n" +
-	"\x0fnext_page_token\x18\x05 \x01(\tR\rnextPageToken\"\xdb\x01\n" +
-	"\x16UpdateWorkspaceRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x0fnext_page_token\x18\x05 \x01(\tR\rnextPageToken\"\xdd\x01\n" +
+	"\x16UpdateWorkspaceRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
-	"\fbase_version\x18\x03 \x01(\x04R\vbaseVersion\x12\"\n" +
-	"\x03add\x18\x04 \x03(\v2\x10.asc.v1.CloudHeadR\x03add\x12\x16\n" +
+	"\fbase_version\x18\x03 \x01(\x04R\vbaseVersion\x12#\n" +
+	"\x03add\x18\x04 \x03(\v2\x11.asc.v1.CloudHeadR\x03add\x12\x16\n" +
 	"\x06remove\x18\x05 \x03(\fR\x06remove\x12\x12\n" +
 	"\x04hide\x18\x06 \x03(\fR\x04hide\x12\x16\n" +
 	"\x06unhide\x18\a \x03(\fR\x06unhide\"3\n" +
@@ -756,30 +756,33 @@ const file_asc_v1_cloud_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\x04R\aversion\x12\x14\n" +
 	"\x05heads\x18\x04 \x01(\rR\x05heads\x12\x18\n" +
-	"\aupdated\x18\x05 \x01(\x03R\aupdated\"\x86\x01\n" +
-	"\x15ListWorkspacesRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x14\n" +
+	"\aupdated\x18\x05 \x01(\x03R\aupdated\"\x87\x01\n" +
+	"\x15ListWorkspacesRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
 	"\x05owner\x18\x02 \x01(\tR\x05owner\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\rR\x05limit\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x04 \x01(\tR\tpageToken\"v\n" +
-	"\x16ListWorkspacesResponse\x124\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"w\n" +
+	"\x16ListWorkspacesResponse\x125\n" +
 	"\n" +
-	"workspaces\x18\x01 \x03(\v2\x14.asc.v1.WorkspaceInfoR\n" +
+	"workspaces\x18\x01 \x03(\v2\x15.asc.v1.WorkspaceInfoR\n" +
 	"workspaces\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"B\n" +
-	"\fPurgeRequest\x12\"\n" +
-	"\x04repo\x18\x01 \x01(\v2\x0e.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"C\n" +
+	"\fPurgeRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
 	"\x02cs\x18\x02 \x03(\fR\x02cs\"f\n" +
 	"\rPurgeResponse\x12\x16\n" +
 	"\x06purged\x18\x01 \x01(\rR\x06purged\x12\x18\n" +
 	"\arefused\x18\x02 \x03(\fR\arefused\x12#\n" +
-	"\runacked_tiers\x18\x03 \x03(\tR\funackedTiers2\xa5\x02\n" +
-	"\x05Cloud\x12G\n" +
-	"\fGetWorkspace\x12\x1a.asc.v1.GetWorkspaceRequest\x1a\x1b.asc.v1.GetWorkspaceResponse\x12P\n" +
-	"\x0fUpdateWorkspace\x12\x1d.asc.v1.UpdateWorkspaceRequest\x1a\x1e.asc.v1.UpdateWorkspaceResponse\x12M\n" +
-	"\x0eListWorkspaces\x12\x1c.asc.v1.ListWorkspacesRequest\x1a\x1d.asc.v1.ListWorkspacesResponse\x122\n" +
-	"\x05Purge\x12\x13.asc.v1.PurgeRequest\x1a\x14.asc.v1.PurgeResponseB\"Z forgejo.org/modules/ascproto/ascv1b\x06proto3"
+	"\runacked_tiers\x18\x03 \x03(\tR\funackedTiers2\xad\x02\n" +
+	"\x05Cloud\x12I\n" +
+	"\fGetWorkspace\x12\x1b.asc.v1.GetWorkspaceRequest\x1a\x1c.asc.v1.GetWorkspaceResponse\x12R\n" +
+	"\x0fUpdateWorkspace\x12\x1e.asc.v1.UpdateWorkspaceRequest\x1a\x1f.asc.v1.UpdateWorkspaceResponse\x12O\n" +
+	"\x0eListWorkspaces\x12\x1d.asc.v1.ListWorkspacesRequest\x1a\x1e.asc.v1.ListWorkspacesResponse\x124\n" +
+	"\x05Purge\x12\x14.asc.v1.PurgeRequest\x1a\x15.asc.v1.PurgeResponseBu\n" +
+	"\n" +
+	"com.asc.v1B\n" +
+	"CloudProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
 var (
 	file_asc_v1_cloud_proto_rawDescOnce sync.Once

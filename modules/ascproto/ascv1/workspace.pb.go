@@ -81,7 +81,9 @@ const (
 	WatchEvent_KIND_OP_FINISHED WatchEvent_Kind = 5
 	WatchEvent_KIND_SWITCH_DONE WatchEvent_Kind = 6
 	WatchEvent_KIND_RESYNC      WatchEvent_Kind = 7
-	WatchEvent_KIND_CLOUD       WatchEvent_Kind = 9 // 8 is KIND_STACK (C31); cloud events go to the workspace owner only (§21.3.7)
+	WatchEvent_KIND_STACK       WatchEvent_Kind = 8
+	// C31; emitted by C49
+	WatchEvent_KIND_CLOUD WatchEvent_Kind = 9 // cloud events go to the workspace owner only (§21.3.7)
 )
 
 // Enum value maps for WatchEvent_Kind.
@@ -95,6 +97,7 @@ var (
 		5: "KIND_OP_FINISHED",
 		6: "KIND_SWITCH_DONE",
 		7: "KIND_RESYNC",
+		8: "KIND_STACK",
 		9: "KIND_CLOUD",
 	}
 	WatchEvent_Kind_value = map[string]int32{
@@ -106,6 +109,7 @@ var (
 		"KIND_OP_FINISHED": 5,
 		"KIND_SWITCH_DONE": 6,
 		"KIND_RESYNC":      7,
+		"KIND_STACK":       8,
 		"KIND_CLOUD":       9,
 	}
 )
@@ -546,14 +550,16 @@ func (x *WsLogRequest) GetQuery() *LogRequest {
 }
 
 type WsBlameRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
-	Rev           string                 `protobuf:"bytes,2,opt,name=rev,proto3" json:"rev,omitempty"`
-	Path          []byte                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	StartLine     uint32                 `protobuf:"varint,4,opt,name=start_line,json=startLine,proto3" json:"start_line,omitempty"`
-	EndLine       uint32                 `protobuf:"varint,5,opt,name=end_line,json=endLine,proto3" json:"end_line,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	WsId             string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	Rev              string                 `protobuf:"bytes,2,opt,name=rev,proto3" json:"rev,omitempty"`
+	Path             []byte                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
+	StartLine        uint32                 `protobuf:"varint,4,opt,name=start_line,json=startLine,proto3" json:"start_line,omitempty"`
+	EndLine          uint32                 `protobuf:"varint,5,opt,name=end_line,json=endLine,proto3" json:"end_line,omitempty"`
+	Buffer           []byte                 `protobuf:"bytes,6,opt,name=buffer,proto3" json:"buffer,omitempty"`
+	IgnoreWhitespace bool                   `protobuf:"varint,7,opt,name=ignore_whitespace,json=ignoreWhitespace,proto3" json:"ignore_whitespace,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *WsBlameRequest) Reset() {
@@ -619,6 +625,20 @@ func (x *WsBlameRequest) GetEndLine() uint32 {
 		return x.EndLine
 	}
 	return 0
+}
+
+func (x *WsBlameRequest) GetBuffer() []byte {
+	if x != nil {
+		return x.Buffer
+	}
+	return nil
+}
+
+func (x *WsBlameRequest) GetIgnoreWhitespace() bool {
+	if x != nil {
+		return x.IgnoreWhitespace
+	}
+	return false
 }
 
 type WsAffectedRequest struct {
@@ -786,6 +806,7 @@ type WatchEvent struct {
 	New           []byte                 `protobuf:"bytes,5,opt,name=new,proto3" json:"new,omitempty"`
 	Op            string                 `protobuf:"bytes,6,opt,name=op,proto3" json:"op,omitempty"`
 	Token         string                 `protobuf:"bytes,7,opt,name=token,proto3" json:"token,omitempty"`
+	Change        []byte                 `protobuf:"bytes,8,opt,name=change,proto3" json:"change,omitempty"` // KIND_STACK: the change id (C31)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -867,6 +888,13 @@ func (x *WatchEvent) GetToken() string {
 		return x.Token
 	}
 	return ""
+}
+
+func (x *WatchEvent) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
 }
 
 type WsStageRequest struct {
@@ -982,6 +1010,215 @@ func (x *WsStageResponse) GetStatus() *WsStatusResponse {
 }
 
 // Internal daemon RPC messages (not part of the stable plugin API).
+// The four CodeIntel RPCs over the daemon IPC (codeintel.proto messages). `scope.workspace` is accepted only here.
+type WsSearchRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	Query         *SearchRequest         `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsSearchRequest) Reset() {
+	*x = WsSearchRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsSearchRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsSearchRequest) ProtoMessage() {}
+
+func (x *WsSearchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsSearchRequest.ProtoReflect.Descriptor instead.
+func (*WsSearchRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *WsSearchRequest) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+func (x *WsSearchRequest) GetQuery() *SearchRequest {
+	if x != nil {
+		return x.Query
+	}
+	return nil
+}
+
+type WsSymbolsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	Query         *SymbolsRequest        `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsSymbolsRequest) Reset() {
+	*x = WsSymbolsRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsSymbolsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsSymbolsRequest) ProtoMessage() {}
+
+func (x *WsSymbolsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsSymbolsRequest.ProtoReflect.Descriptor instead.
+func (*WsSymbolsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *WsSymbolsRequest) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+func (x *WsSymbolsRequest) GetQuery() *SymbolsRequest {
+	if x != nil {
+		return x.Query
+	}
+	return nil
+}
+
+type WsSemanticRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	Query         *SemanticRequest       `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsSemanticRequest) Reset() {
+	*x = WsSemanticRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsSemanticRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsSemanticRequest) ProtoMessage() {}
+
+func (x *WsSemanticRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsSemanticRequest.ProtoReflect.Descriptor instead.
+func (*WsSemanticRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *WsSemanticRequest) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+func (x *WsSemanticRequest) GetQuery() *SemanticRequest {
+	if x != nil {
+		return x.Query
+	}
+	return nil
+}
+
+type WsIndexStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	Query         *IndexStatusRequest    `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsIndexStatusRequest) Reset() {
+	*x = WsIndexStatusRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsIndexStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsIndexStatusRequest) ProtoMessage() {}
+
+func (x *WsIndexStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsIndexStatusRequest.ProtoReflect.Descriptor instead.
+func (*WsIndexStatusRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *WsIndexStatusRequest) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+func (x *WsIndexStatusRequest) GetQuery() *IndexStatusRequest {
+	if x != nil {
+		return x.Query
+	}
+	return nil
+}
+
 type PingRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -990,7 +1227,7 @@ type PingRequest struct {
 
 func (x *PingRequest) Reset() {
 	*x = PingRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[12]
+	mi := &file_asc_v1_workspace_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1002,7 +1239,7 @@ func (x *PingRequest) String() string {
 func (*PingRequest) ProtoMessage() {}
 
 func (x *PingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[12]
+	mi := &file_asc_v1_workspace_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1015,7 +1252,7 @@ func (x *PingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingRequest.ProtoReflect.Descriptor instead.
 func (*PingRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{12}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{16}
 }
 
 type PingResponse struct {
@@ -1029,7 +1266,7 @@ type PingResponse struct {
 
 func (x *PingResponse) Reset() {
 	*x = PingResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[13]
+	mi := &file_asc_v1_workspace_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1041,7 +1278,7 @@ func (x *PingResponse) String() string {
 func (*PingResponse) ProtoMessage() {}
 
 func (x *PingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[13]
+	mi := &file_asc_v1_workspace_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1054,7 +1291,7 @@ func (x *PingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingResponse.ProtoReflect.Descriptor instead.
 func (*PingResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{13}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *PingResponse) GetVersion() string {
@@ -1087,7 +1324,7 @@ type MountRequest struct {
 
 func (x *MountRequest) Reset() {
 	*x = MountRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[14]
+	mi := &file_asc_v1_workspace_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1099,7 +1336,7 @@ func (x *MountRequest) String() string {
 func (*MountRequest) ProtoMessage() {}
 
 func (x *MountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[14]
+	mi := &file_asc_v1_workspace_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1112,7 +1349,7 @@ func (x *MountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MountRequest.ProtoReflect.Descriptor instead.
 func (*MountRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{14}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *MountRequest) GetWsId() string {
@@ -1130,7 +1367,7 @@ type MountResponse struct {
 
 func (x *MountResponse) Reset() {
 	*x = MountResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[15]
+	mi := &file_asc_v1_workspace_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1142,7 +1379,7 @@ func (x *MountResponse) String() string {
 func (*MountResponse) ProtoMessage() {}
 
 func (x *MountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[15]
+	mi := &file_asc_v1_workspace_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1155,7 +1392,7 @@ func (x *MountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MountResponse.ProtoReflect.Descriptor instead.
 func (*MountResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{15}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{19}
 }
 
 type UnmountRequest struct {
@@ -1167,7 +1404,7 @@ type UnmountRequest struct {
 
 func (x *UnmountRequest) Reset() {
 	*x = UnmountRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[16]
+	mi := &file_asc_v1_workspace_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1179,7 +1416,7 @@ func (x *UnmountRequest) String() string {
 func (*UnmountRequest) ProtoMessage() {}
 
 func (x *UnmountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[16]
+	mi := &file_asc_v1_workspace_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1192,7 +1429,7 @@ func (x *UnmountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnmountRequest.ProtoReflect.Descriptor instead.
 func (*UnmountRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{16}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *UnmountRequest) GetWsId() string {
@@ -1210,7 +1447,7 @@ type UnmountResponse struct {
 
 func (x *UnmountResponse) Reset() {
 	*x = UnmountResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[17]
+	mi := &file_asc_v1_workspace_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1222,7 +1459,7 @@ func (x *UnmountResponse) String() string {
 func (*UnmountResponse) ProtoMessage() {}
 
 func (x *UnmountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[17]
+	mi := &file_asc_v1_workspace_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1235,7 +1472,7 @@ func (x *UnmountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnmountResponse.ProtoReflect.Descriptor instead.
 func (*UnmountResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{17}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{21}
 }
 
 type SwitchRequest struct {
@@ -1250,7 +1487,7 @@ type SwitchRequest struct {
 
 func (x *SwitchRequest) Reset() {
 	*x = SwitchRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[18]
+	mi := &file_asc_v1_workspace_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1262,7 +1499,7 @@ func (x *SwitchRequest) String() string {
 func (*SwitchRequest) ProtoMessage() {}
 
 func (x *SwitchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[18]
+	mi := &file_asc_v1_workspace_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1275,7 +1512,7 @@ func (x *SwitchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SwitchRequest.ProtoReflect.Descriptor instead.
 func (*SwitchRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{18}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SwitchRequest) GetWsId() string {
@@ -1315,7 +1552,7 @@ type SwitchResponse struct {
 
 func (x *SwitchResponse) Reset() {
 	*x = SwitchResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[19]
+	mi := &file_asc_v1_workspace_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1327,7 +1564,7 @@ func (x *SwitchResponse) String() string {
 func (*SwitchResponse) ProtoMessage() {}
 
 func (x *SwitchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[19]
+	mi := &file_asc_v1_workspace_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1340,7 +1577,7 @@ func (x *SwitchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SwitchResponse.ProtoReflect.Descriptor instead.
 func (*SwitchResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{19}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *SwitchResponse) GetConflicts() [][]byte {
@@ -1360,7 +1597,7 @@ type JournalRequest struct {
 
 func (x *JournalRequest) Reset() {
 	*x = JournalRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[20]
+	mi := &file_asc_v1_workspace_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1372,7 +1609,7 @@ func (x *JournalRequest) String() string {
 func (*JournalRequest) ProtoMessage() {}
 
 func (x *JournalRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[20]
+	mi := &file_asc_v1_workspace_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1385,7 +1622,7 @@ func (x *JournalRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JournalRequest.ProtoReflect.Descriptor instead.
 func (*JournalRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{20}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *JournalRequest) GetWsId() string {
@@ -1413,7 +1650,7 @@ type JournalResponse struct {
 
 func (x *JournalResponse) Reset() {
 	*x = JournalResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[21]
+	mi := &file_asc_v1_workspace_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1425,7 +1662,7 @@ func (x *JournalResponse) String() string {
 func (*JournalResponse) ProtoMessage() {}
 
 func (x *JournalResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[21]
+	mi := &file_asc_v1_workspace_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1438,7 +1675,7 @@ func (x *JournalResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JournalResponse.ProtoReflect.Descriptor instead.
 func (*JournalResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{21}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *JournalResponse) GetPaths() [][]byte {
@@ -1472,7 +1709,7 @@ type ClearJournalRequest struct {
 
 func (x *ClearJournalRequest) Reset() {
 	*x = ClearJournalRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[22]
+	mi := &file_asc_v1_workspace_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1484,7 +1721,7 @@ func (x *ClearJournalRequest) String() string {
 func (*ClearJournalRequest) ProtoMessage() {}
 
 func (x *ClearJournalRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[22]
+	mi := &file_asc_v1_workspace_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1497,7 +1734,7 @@ func (x *ClearJournalRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearJournalRequest.ProtoReflect.Descriptor instead.
 func (*ClearJournalRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{22}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ClearJournalRequest) GetWsId() string {
@@ -1522,7 +1759,7 @@ type ClearJournalResponse struct {
 
 func (x *ClearJournalResponse) Reset() {
 	*x = ClearJournalResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[23]
+	mi := &file_asc_v1_workspace_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1534,7 +1771,7 @@ func (x *ClearJournalResponse) String() string {
 func (*ClearJournalResponse) ProtoMessage() {}
 
 func (x *ClearJournalResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[23]
+	mi := &file_asc_v1_workspace_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1547,7 +1784,7 @@ func (x *ClearJournalResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearJournalResponse.ProtoReflect.Descriptor instead.
 func (*ClearJournalResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{23}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{27}
 }
 
 type DehydrateRequest struct {
@@ -1560,7 +1797,7 @@ type DehydrateRequest struct {
 
 func (x *DehydrateRequest) Reset() {
 	*x = DehydrateRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[24]
+	mi := &file_asc_v1_workspace_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1572,7 +1809,7 @@ func (x *DehydrateRequest) String() string {
 func (*DehydrateRequest) ProtoMessage() {}
 
 func (x *DehydrateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[24]
+	mi := &file_asc_v1_workspace_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1585,7 +1822,7 @@ func (x *DehydrateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DehydrateRequest.ProtoReflect.Descriptor instead.
 func (*DehydrateRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{24}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *DehydrateRequest) GetWsId() string {
@@ -1612,7 +1849,7 @@ type DehydrateResponse struct {
 
 func (x *DehydrateResponse) Reset() {
 	*x = DehydrateResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[25]
+	mi := &file_asc_v1_workspace_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1624,7 +1861,7 @@ func (x *DehydrateResponse) String() string {
 func (*DehydrateResponse) ProtoMessage() {}
 
 func (x *DehydrateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[25]
+	mi := &file_asc_v1_workspace_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1637,7 +1874,7 @@ func (x *DehydrateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DehydrateResponse.ProtoReflect.Descriptor instead.
 func (*DehydrateResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{25}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DehydrateResponse) GetFiles() uint64 {
@@ -1664,7 +1901,7 @@ type PrefetchRequest struct {
 
 func (x *PrefetchRequest) Reset() {
 	*x = PrefetchRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[26]
+	mi := &file_asc_v1_workspace_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1676,7 +1913,7 @@ func (x *PrefetchRequest) String() string {
 func (*PrefetchRequest) ProtoMessage() {}
 
 func (x *PrefetchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[26]
+	mi := &file_asc_v1_workspace_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1689,7 +1926,7 @@ func (x *PrefetchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrefetchRequest.ProtoReflect.Descriptor instead.
 func (*PrefetchRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{26}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *PrefetchRequest) GetWsId() string {
@@ -1716,7 +1953,7 @@ type PrefetchResponse struct {
 
 func (x *PrefetchResponse) Reset() {
 	*x = PrefetchResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[27]
+	mi := &file_asc_v1_workspace_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1728,7 +1965,7 @@ func (x *PrefetchResponse) String() string {
 func (*PrefetchResponse) ProtoMessage() {}
 
 func (x *PrefetchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[27]
+	mi := &file_asc_v1_workspace_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1741,7 +1978,7 @@ func (x *PrefetchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrefetchResponse.ProtoReflect.Descriptor instead.
 func (*PrefetchResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{27}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *PrefetchResponse) GetFiles() uint64 {
@@ -1767,7 +2004,7 @@ type StatsRequest struct {
 
 func (x *StatsRequest) Reset() {
 	*x = StatsRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[28]
+	mi := &file_asc_v1_workspace_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1779,7 +2016,7 @@ func (x *StatsRequest) String() string {
 func (*StatsRequest) ProtoMessage() {}
 
 func (x *StatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[28]
+	mi := &file_asc_v1_workspace_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1792,7 +2029,7 @@ func (x *StatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatsRequest.ProtoReflect.Descriptor instead.
 func (*StatsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{28}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *StatsRequest) GetWsId() string {
@@ -1813,7 +2050,7 @@ type HydrationCount struct {
 
 func (x *HydrationCount) Reset() {
 	*x = HydrationCount{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[29]
+	mi := &file_asc_v1_workspace_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1825,7 +2062,7 @@ func (x *HydrationCount) String() string {
 func (*HydrationCount) ProtoMessage() {}
 
 func (x *HydrationCount) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[29]
+	mi := &file_asc_v1_workspace_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1838,7 +2075,7 @@ func (x *HydrationCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HydrationCount.ProtoReflect.Descriptor instead.
 func (*HydrationCount) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{29}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *HydrationCount) GetKey() string {
@@ -1874,7 +2111,7 @@ type StatsResponse struct {
 
 func (x *StatsResponse) Reset() {
 	*x = StatsResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[30]
+	mi := &file_asc_v1_workspace_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1886,7 +2123,7 @@ func (x *StatsResponse) String() string {
 func (*StatsResponse) ProtoMessage() {}
 
 func (x *StatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[30]
+	mi := &file_asc_v1_workspace_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1899,7 +2136,7 @@ func (x *StatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatsResponse.ProtoReflect.Descriptor instead.
 func (*StatsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{30}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *StatsResponse) GetByPath() []*HydrationCount {
@@ -1938,7 +2175,7 @@ type ShutdownRequest struct {
 
 func (x *ShutdownRequest) Reset() {
 	*x = ShutdownRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[31]
+	mi := &file_asc_v1_workspace_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1950,7 +2187,7 @@ func (x *ShutdownRequest) String() string {
 func (*ShutdownRequest) ProtoMessage() {}
 
 func (x *ShutdownRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[31]
+	mi := &file_asc_v1_workspace_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1963,7 +2200,7 @@ func (x *ShutdownRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShutdownRequest.ProtoReflect.Descriptor instead.
 func (*ShutdownRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{31}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{35}
 }
 
 type ShutdownResponse struct {
@@ -1974,7 +2211,7 @@ type ShutdownResponse struct {
 
 func (x *ShutdownResponse) Reset() {
 	*x = ShutdownResponse{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[32]
+	mi := &file_asc_v1_workspace_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1986,7 +2223,7 @@ func (x *ShutdownResponse) String() string {
 func (*ShutdownResponse) ProtoMessage() {}
 
 func (x *ShutdownResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[32]
+	mi := &file_asc_v1_workspace_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1999,75 +2236,1170 @@ func (x *ShutdownResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShutdownResponse.ProtoReflect.Descriptor instead.
 func (*ShutdownResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{32}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{36}
+}
+
+// Plugin additions (SPEC 20.5, 20.6, C31). Ids are 20-byte git SHA-1s; `change` is a change id.
+type WsStacksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	All           bool                   `protobuf:"varint,2,opt,name=all,proto3" json:"all,omitempty"`
+	Remote        bool                   `protobuf:"varint,3,opt,name=remote,proto3" json:"remote,omitempty"`
+	Revset        string                 `protobuf:"bytes,4,opt,name=revset,proto3" json:"revset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsStacksRequest) Reset() {
+	*x = WsStacksRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsStacksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsStacksRequest) ProtoMessage() {}
+
+func (x *WsStacksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsStacksRequest.ProtoReflect.Descriptor instead.
+func (*WsStacksRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *WsStacksRequest) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+func (x *WsStacksRequest) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
+}
+
+func (x *WsStacksRequest) GetRemote() bool {
+	if x != nil {
+		return x.Remote
+	}
+	return false
+}
+
+func (x *WsStacksRequest) GetRevset() string {
+	if x != nil {
+		return x.Revset
+	}
+	return ""
+}
+
+type StackTrunk struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Tip           []byte                 `protobuf:"bytes,2,opt,name=tip,proto3" json:"tip,omitempty"`
+	Remote        string                 `protobuf:"bytes,3,opt,name=remote,proto3" json:"remote,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StackTrunk) Reset() {
+	*x = StackTrunk{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StackTrunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StackTrunk) ProtoMessage() {}
+
+func (x *StackTrunk) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StackTrunk.ProtoReflect.Descriptor instead.
+func (*StackTrunk) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *StackTrunk) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *StackTrunk) GetTip() []byte {
+	if x != nil {
+		return x.Tip
+	}
+	return nil
+}
+
+func (x *StackTrunk) GetRemote() string {
+	if x != nil {
+		return x.Remote
+	}
+	return ""
+}
+
+type StackEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Change        []byte                 `protobuf:"bytes,1,opt,name=change,proto3" json:"change,omitempty"`
+	Commit        []byte                 `protobuf:"bytes,2,opt,name=commit,proto3" json:"commit,omitempty"`
+	Asc           []byte                 `protobuf:"bytes,3,opt,name=asc,proto3" json:"asc,omitempty"`
+	ParentChange  []byte                 `protobuf:"bytes,4,opt,name=parent_change,json=parentChange,proto3" json:"parent_change,omitempty"`
+	Branches      []string               `protobuf:"bytes,5,rep,name=branches,proto3" json:"branches,omitempty"`
+	Subject       []byte                 `protobuf:"bytes,6,opt,name=subject,proto3" json:"subject,omitempty"`
+	Author        *Signature             `protobuf:"bytes,7,opt,name=author,proto3" json:"author,omitempty"`
+	State         string                 `protobuf:"bytes,8,opt,name=state,proto3" json:"state,omitempty"`
+	NeedsRestack  bool                   `protobuf:"varint,9,opt,name=needs_restack,json=needsRestack,proto3" json:"needs_restack,omitempty"`
+	Frozen        bool                   `protobuf:"varint,10,opt,name=frozen,proto3" json:"frozen,omitempty"`
+	Empty         bool                   `protobuf:"varint,11,opt,name=empty,proto3" json:"empty,omitempty"`
+	Current       bool                   `protobuf:"varint,12,opt,name=current,proto3" json:"current,omitempty"`
+	Worktree      string                 `protobuf:"bytes,13,opt,name=worktree,proto3" json:"worktree,omitempty"`
+	Review        *ReviewState           `protobuf:"bytes,14,opt,name=review,proto3" json:"review,omitempty"`
+	Short         string                 `protobuf:"bytes,15,opt,name=short,proto3" json:"short,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StackEntry) Reset() {
+	*x = StackEntry{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StackEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StackEntry) ProtoMessage() {}
+
+func (x *StackEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StackEntry.ProtoReflect.Descriptor instead.
+func (*StackEntry) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *StackEntry) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *StackEntry) GetCommit() []byte {
+	if x != nil {
+		return x.Commit
+	}
+	return nil
+}
+
+func (x *StackEntry) GetAsc() []byte {
+	if x != nil {
+		return x.Asc
+	}
+	return nil
+}
+
+func (x *StackEntry) GetParentChange() []byte {
+	if x != nil {
+		return x.ParentChange
+	}
+	return nil
+}
+
+func (x *StackEntry) GetBranches() []string {
+	if x != nil {
+		return x.Branches
+	}
+	return nil
+}
+
+func (x *StackEntry) GetSubject() []byte {
+	if x != nil {
+		return x.Subject
+	}
+	return nil
+}
+
+func (x *StackEntry) GetAuthor() *Signature {
+	if x != nil {
+		return x.Author
+	}
+	return nil
+}
+
+func (x *StackEntry) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *StackEntry) GetNeedsRestack() bool {
+	if x != nil {
+		return x.NeedsRestack
+	}
+	return false
+}
+
+func (x *StackEntry) GetFrozen() bool {
+	if x != nil {
+		return x.Frozen
+	}
+	return false
+}
+
+func (x *StackEntry) GetEmpty() bool {
+	if x != nil {
+		return x.Empty
+	}
+	return false
+}
+
+func (x *StackEntry) GetCurrent() bool {
+	if x != nil {
+		return x.Current
+	}
+	return false
+}
+
+func (x *StackEntry) GetWorktree() string {
+	if x != nil {
+		return x.Worktree
+	}
+	return ""
+}
+
+func (x *StackEntry) GetReview() *ReviewState {
+	if x != nil {
+		return x.Review
+	}
+	return nil
+}
+
+func (x *StackEntry) GetShort() string {
+	if x != nil {
+		return x.Short
+	}
+	return ""
+}
+
+type WsStack struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Trunk         string                 `protobuf:"bytes,1,opt,name=trunk,proto3" json:"trunk,omitempty"`
+	Base          []byte                 `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty"`
+	Behind        uint32                 `protobuf:"varint,3,opt,name=behind,proto3" json:"behind,omitempty"`
+	Changes       []*StackEntry          `protobuf:"bytes,4,rep,name=changes,proto3" json:"changes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsStack) Reset() {
+	*x = WsStack{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsStack) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsStack) ProtoMessage() {}
+
+func (x *WsStack) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsStack.ProtoReflect.Descriptor instead.
+func (*WsStack) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *WsStack) GetTrunk() string {
+	if x != nil {
+		return x.Trunk
+	}
+	return ""
+}
+
+func (x *WsStack) GetBase() []byte {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *WsStack) GetBehind() uint32 {
+	if x != nil {
+		return x.Behind
+	}
+	return 0
+}
+
+func (x *WsStack) GetChanges() []*StackEntry {
+	if x != nil {
+		return x.Changes
+	}
+	return nil
+}
+
+type WsStacksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Version       uint32                 `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
+	Trunks        []*StackTrunk          `protobuf:"bytes,2,rep,name=trunks,proto3" json:"trunks,omitempty"`
+	Stacks        []*WsStack             `protobuf:"bytes,3,rep,name=stacks,proto3" json:"stacks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsStacksResponse) Reset() {
+	*x = WsStacksResponse{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsStacksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsStacksResponse) ProtoMessage() {}
+
+func (x *WsStacksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsStacksResponse.ProtoReflect.Descriptor instead.
+func (*WsStacksResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *WsStacksResponse) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *WsStacksResponse) GetTrunks() []*StackTrunk {
+	if x != nil {
+		return x.Trunks
+	}
+	return nil
+}
+
+func (x *WsStacksResponse) GetStacks() []*WsStack {
+	if x != nil {
+		return x.Stacks
+	}
+	return nil
+}
+
+type WsWorktreesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsWorktreesRequest) Reset() {
+	*x = WsWorktreesRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsWorktreesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsWorktreesRequest) ProtoMessage() {}
+
+func (x *WsWorktreesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsWorktreesRequest.ProtoReflect.Descriptor instead.
+func (*WsWorktreesRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{42}
+}
+
+type WsWorktree struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	WsId           string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	Path           string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	Mount          string                 `protobuf:"bytes,3,opt,name=mount,proto3" json:"mount,omitempty"`
+	Mode           string                 `protobuf:"bytes,4,opt,name=mode,proto3" json:"mode,omitempty"`
+	HeadRef        string                 `protobuf:"bytes,5,opt,name=head_ref,json=headRef,proto3" json:"head_ref,omitempty"`
+	Head           []byte                 `protobuf:"bytes,6,opt,name=head,proto3" json:"head,omitempty"`
+	Dirty          uint32                 `protobuf:"varint,7,opt,name=dirty,proto3" json:"dirty,omitempty"`
+	Staged         uint32                 `protobuf:"varint,8,opt,name=staged,proto3" json:"staged,omitempty"`
+	Ahead          uint32                 `protobuf:"varint,9,opt,name=ahead,proto3" json:"ahead,omitempty"`
+	Behind         uint32                 `protobuf:"varint,10,opt,name=behind,proto3" json:"behind,omitempty"`
+	EphemeralUntil int64                  `protobuf:"varint,11,opt,name=ephemeral_until,json=ephemeralUntil,proto3" json:"ephemeral_until,omitempty"`
+	Locked         string                 `protobuf:"bytes,12,opt,name=locked,proto3" json:"locked,omitempty"`
+	InProgress     string                 `protobuf:"bytes,13,opt,name=in_progress,json=inProgress,proto3" json:"in_progress,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *WsWorktree) Reset() {
+	*x = WsWorktree{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsWorktree) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsWorktree) ProtoMessage() {}
+
+func (x *WsWorktree) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsWorktree.ProtoReflect.Descriptor instead.
+func (*WsWorktree) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *WsWorktree) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+func (x *WsWorktree) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *WsWorktree) GetMount() string {
+	if x != nil {
+		return x.Mount
+	}
+	return ""
+}
+
+func (x *WsWorktree) GetMode() string {
+	if x != nil {
+		return x.Mode
+	}
+	return ""
+}
+
+func (x *WsWorktree) GetHeadRef() string {
+	if x != nil {
+		return x.HeadRef
+	}
+	return ""
+}
+
+func (x *WsWorktree) GetHead() []byte {
+	if x != nil {
+		return x.Head
+	}
+	return nil
+}
+
+func (x *WsWorktree) GetDirty() uint32 {
+	if x != nil {
+		return x.Dirty
+	}
+	return 0
+}
+
+func (x *WsWorktree) GetStaged() uint32 {
+	if x != nil {
+		return x.Staged
+	}
+	return 0
+}
+
+func (x *WsWorktree) GetAhead() uint32 {
+	if x != nil {
+		return x.Ahead
+	}
+	return 0
+}
+
+func (x *WsWorktree) GetBehind() uint32 {
+	if x != nil {
+		return x.Behind
+	}
+	return 0
+}
+
+func (x *WsWorktree) GetEphemeralUntil() int64 {
+	if x != nil {
+		return x.EphemeralUntil
+	}
+	return 0
+}
+
+func (x *WsWorktree) GetLocked() string {
+	if x != nil {
+		return x.Locked
+	}
+	return ""
+}
+
+func (x *WsWorktree) GetInProgress() string {
+	if x != nil {
+		return x.InProgress
+	}
+	return ""
+}
+
+type WsWorktreesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Worktrees     []*WsWorktree          `protobuf:"bytes,1,rep,name=worktrees,proto3" json:"worktrees,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsWorktreesResponse) Reset() {
+	*x = WsWorktreesResponse{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsWorktreesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsWorktreesResponse) ProtoMessage() {}
+
+func (x *WsWorktreesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsWorktreesResponse.ProtoReflect.Descriptor instead.
+func (*WsWorktreesResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *WsWorktreesResponse) GetWorktrees() []*WsWorktree {
+	if x != nil {
+		return x.Worktrees
+	}
+	return nil
+}
+
+type WsConflictsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsConflictsRequest) Reset() {
+	*x = WsConflictsRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsConflictsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsConflictsRequest) ProtoMessage() {}
+
+func (x *WsConflictsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsConflictsRequest.ProtoReflect.Descriptor instead.
+func (*WsConflictsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *WsConflictsRequest) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+type WsConflict struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Kind          ConflictKind           `protobuf:"varint,2,opt,name=kind,proto3,enum=asc.v1.ConflictKind" json:"kind,omitempty"`
+	Base          []byte                 `protobuf:"bytes,3,opt,name=base,proto3" json:"base,omitempty"`
+	Ours          []byte                 `protobuf:"bytes,4,opt,name=ours,proto3" json:"ours,omitempty"`
+	Theirs        []byte                 `protobuf:"bytes,5,opt,name=theirs,proto3" json:"theirs,omitempty"`
+	Marked        []byte                 `protobuf:"bytes,6,opt,name=marked,proto3" json:"marked,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsConflict) Reset() {
+	*x = WsConflict{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsConflict) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsConflict) ProtoMessage() {}
+
+func (x *WsConflict) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsConflict.ProtoReflect.Descriptor instead.
+func (*WsConflict) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *WsConflict) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *WsConflict) GetKind() ConflictKind {
+	if x != nil {
+		return x.Kind
+	}
+	return ConflictKind_CONFLICT_KIND_CONTENT
+}
+
+func (x *WsConflict) GetBase() []byte {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *WsConflict) GetOurs() []byte {
+	if x != nil {
+		return x.Ours
+	}
+	return nil
+}
+
+func (x *WsConflict) GetTheirs() []byte {
+	if x != nil {
+		return x.Theirs
+	}
+	return nil
+}
+
+func (x *WsConflict) GetMarked() []byte {
+	if x != nil {
+		return x.Marked
+	}
+	return nil
+}
+
+type WsConflictsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Conflicts     []*WsConflict          `protobuf:"bytes,1,rep,name=conflicts,proto3" json:"conflicts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsConflictsResponse) Reset() {
+	*x = WsConflictsResponse{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsConflictsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsConflictsResponse) ProtoMessage() {}
+
+func (x *WsConflictsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsConflictsResponse.ProtoReflect.Descriptor instead.
+func (*WsConflictsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *WsConflictsResponse) GetConflicts() []*WsConflict {
+	if x != nil {
+		return x.Conflicts
+	}
+	return nil
+}
+
+type WsReadFileRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	WsId  string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	// Types that are valid to be assigned to At:
+	//
+	//	*WsReadFileRequest_RevPath
+	//	*WsReadFileRequest_FileId
+	//	*WsReadFileRequest_Stage
+	At            isWsReadFileRequest_At `protobuf_oneof:"at"`
+	Offset        uint64                 `protobuf:"varint,5,opt,name=offset,proto3" json:"offset,omitempty"`
+	Length        uint64                 `protobuf:"varint,6,opt,name=length,proto3" json:"length,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsReadFileRequest) Reset() {
+	*x = WsReadFileRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsReadFileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsReadFileRequest) ProtoMessage() {}
+
+func (x *WsReadFileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsReadFileRequest.ProtoReflect.Descriptor instead.
+func (*WsReadFileRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *WsReadFileRequest) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+func (x *WsReadFileRequest) GetAt() isWsReadFileRequest_At {
+	if x != nil {
+		return x.At
+	}
+	return nil
+}
+
+func (x *WsReadFileRequest) GetRevPath() *WsRevPath {
+	if x != nil {
+		if x, ok := x.At.(*WsReadFileRequest_RevPath); ok {
+			return x.RevPath
+		}
+	}
+	return nil
+}
+
+func (x *WsReadFileRequest) GetFileId() []byte {
+	if x != nil {
+		if x, ok := x.At.(*WsReadFileRequest_FileId); ok {
+			return x.FileId
+		}
+	}
+	return nil
+}
+
+func (x *WsReadFileRequest) GetStage() *WsStagePath {
+	if x != nil {
+		if x, ok := x.At.(*WsReadFileRequest_Stage); ok {
+			return x.Stage
+		}
+	}
+	return nil
+}
+
+func (x *WsReadFileRequest) GetOffset() uint64 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *WsReadFileRequest) GetLength() uint64 {
+	if x != nil {
+		return x.Length
+	}
+	return 0
+}
+
+type isWsReadFileRequest_At interface {
+	isWsReadFileRequest_At()
+}
+
+type WsReadFileRequest_RevPath struct {
+	RevPath *WsRevPath `protobuf:"bytes,2,opt,name=rev_path,json=revPath,proto3,oneof"`
+}
+
+type WsReadFileRequest_FileId struct {
+	FileId []byte `protobuf:"bytes,3,opt,name=file_id,json=fileId,proto3,oneof"`
+}
+
+type WsReadFileRequest_Stage struct {
+	Stage *WsStagePath `protobuf:"bytes,4,opt,name=stage,proto3,oneof"`
+}
+
+func (*WsReadFileRequest_RevPath) isWsReadFileRequest_At() {}
+
+func (*WsReadFileRequest_FileId) isWsReadFileRequest_At() {}
+
+func (*WsReadFileRequest_Stage) isWsReadFileRequest_At() {}
+
+type WsRevPath struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rev           string                 `protobuf:"bytes,1,opt,name=rev,proto3" json:"rev,omitempty"`
+	Path          []byte                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsRevPath) Reset() {
+	*x = WsRevPath{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsRevPath) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsRevPath) ProtoMessage() {}
+
+func (x *WsRevPath) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsRevPath.ProtoReflect.Descriptor instead.
+func (*WsRevPath) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *WsRevPath) GetRev() string {
+	if x != nil {
+		return x.Rev
+	}
+	return ""
+}
+
+func (x *WsRevPath) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+type WsStagePath struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Stage         uint32                 `protobuf:"varint,1,opt,name=stage,proto3" json:"stage,omitempty"`
+	Path          []byte                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsStagePath) Reset() {
+	*x = WsStagePath{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsStagePath) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsStagePath) ProtoMessage() {}
+
+func (x *WsStagePath) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsStagePath.ProtoReflect.Descriptor instead.
+func (*WsStagePath) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *WsStagePath) GetStage() uint32 {
+	if x != nil {
+		return x.Stage
+	}
+	return 0
+}
+
+func (x *WsStagePath) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+// ReadFileResponse is repo.proto's; the stream chunks the content (total_size is the whole file). A missing object is hydrated through the tiers; the work tree is never read.
+type WsCommitGraphRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	Query         *CommitGraphRequest    `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	WipRows       bool                   `protobuf:"varint,3,opt,name=wip_rows,json=wipRows,proto3" json:"wip_rows,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsCommitGraphRequest) Reset() {
+	*x = WsCommitGraphRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsCommitGraphRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsCommitGraphRequest) ProtoMessage() {}
+
+func (x *WsCommitGraphRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsCommitGraphRequest.ProtoReflect.Descriptor instead.
+func (*WsCommitGraphRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *WsCommitGraphRequest) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+func (x *WsCommitGraphRequest) GetQuery() *CommitGraphRequest {
+	if x != nil {
+		return x.Query
+	}
+	return nil
+}
+
+func (x *WsCommitGraphRequest) GetWipRows() bool {
+	if x != nil {
+		return x.WipRows
+	}
+	return false
 }
 
 var File_asc_v1_workspace_proto protoreflect.FileDescriptor
 
 const file_asc_v1_workspace_proto_rawDesc = "" +
 	"\n" +
-	"\x15asc/v1/workspace.proto\x12\x05asc.v1\x1a\x10asc/v1/repo.proto\x1a\x14asc/v1/projects.proto\"t\n" +
+	"\x16asc/v1/workspace.proto\x12\x06asc.v1\x1a\x14asc/v1/options.proto\x1a\x11asc/v1/repo.proto\x1a\x15asc/v1/projects.proto\x1a\x16asc/v1/codeintel.proto\"z\n" +
 	"\x0fWsStatusRequest\x12\x13\n" +
-	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x14\n" +
-	"\x05paths\x18\x02 \x03(\fR\x05paths\x12\x1c\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x1a\n" +
+	"\x05paths\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\x12\x1c\n" +
 	"\tuntracked\x18\x03 \x01(\bR\tuntracked\x12\x18\n" +
-	"\aignored\x18\x04 \x01(\bR\aignored\"\xe8\x01\n" +
-	"\fWsFileStatus\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\fR\x04path\x12\x0e\n" +
-	"\x02xy\x18\x02 \x01(\tR\x02xy\x12\x1b\n" +
-	"\torig_path\x18\x03 \x01(\fR\borigPath\x12\x1b\n" +
+	"\aignored\x18\x04 \x01(\bR\aignored\"\x80\x02\n" +
+	"\fWsFileStatus\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x0e\n" +
+	"\x02xy\x18\x02 \x01(\tR\x02xy\x12!\n" +
+	"\torig_path\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x03R\borigPath\x12\x1b\n" +
 	"\tmode_head\x18\x04 \x01(\rR\bmodeHead\x12\x1d\n" +
 	"\n" +
 	"mode_index\x18\x05 \x01(\rR\tmodeIndex\x12#\n" +
-	"\rmode_worktree\x18\x06 \x01(\rR\fmodeWorktree\x12\x19\n" +
-	"\bgit_head\x18\a \x01(\fR\agitHead\x12\x1b\n" +
-	"\tgit_index\x18\b \x01(\fR\bgitIndex\"\xed\x01\n" +
+	"\rmode_worktree\x18\x06 \x01(\rR\fmodeWorktree\x12\x1f\n" +
+	"\bgit_head\x18\a \x01(\fB\x04\xa8\xbb\x18\x01R\agitHead\x12!\n" +
+	"\tgit_index\x18\b \x01(\fB\x04\xa8\xbb\x18\x01R\bgitIndex\"\xf4\x01\n" +
 	"\x10WsStatusResponse\x12\x19\n" +
-	"\bhead_ref\x18\x01 \x01(\tR\aheadRef\x12\x12\n" +
-	"\x04head\x18\x02 \x01(\fR\x04head\x12\x1a\n" +
+	"\bhead_ref\x18\x01 \x01(\tR\aheadRef\x12\x18\n" +
+	"\x04head\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x04head\x12\x1a\n" +
 	"\bupstream\x18\x03 \x01(\tR\bupstream\x12\x14\n" +
 	"\x05ahead\x18\x04 \x01(\rR\x05ahead\x12\x16\n" +
-	"\x06behind\x18\x05 \x01(\rR\x06behind\x12)\n" +
-	"\x05files\x18\x06 \x03(\v2\x13.asc.v1.WsFileStatusR\x05files\x12\x1f\n" +
+	"\x06behind\x18\x05 \x01(\rR\x06behind\x12*\n" +
+	"\x05files\x18\x06 \x03(\v2\x14.asc.v1.WsFileStatusR\x05files\x12\x1f\n" +
 	"\vin_progress\x18\a \x01(\tR\n" +
 	"inProgress\x12\x14\n" +
-	"\x05token\x18\b \x01(\tR\x05token\"\xa3\x01\n" +
+	"\x05token\x18\b \x01(\tR\x05token\"\xaa\x01\n" +
 	"\rWsDiffRequest\x12\x13\n" +
 	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\tR\x04from\x12\x0e\n" +
-	"\x02to\x18\x03 \x01(\tR\x02to\x12\x14\n" +
-	"\x05paths\x18\x04 \x03(\fR\x05paths\x12)\n" +
-	"\x06format\x18\x05 \x01(\x0e2\x11.asc.v1.DiffFormatR\x06format\x12\x18\n" +
-	"\acontext\x18\x06 \x01(\rR\acontext\"L\n" +
+	"\x02to\x18\x03 \x01(\tR\x02to\x12\x1a\n" +
+	"\x05paths\x18\x04 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\x12*\n" +
+	"\x06format\x18\x05 \x01(\x0e2\x12.asc.v1.DiffFormatR\x06format\x12\x18\n" +
+	"\acontext\x18\x06 \x01(\rR\acontext\"M\n" +
 	"\fWsLogRequest\x12\x13\n" +
-	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12'\n" +
-	"\x05query\x18\x02 \x01(\v2\x11.asc.v1.LogRequestR\x05query\"\x85\x01\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12(\n" +
+	"\x05query\x18\x02 \x01(\v2\x12.asc.v1.LogRequestR\x05query\"\xd6\x01\n" +
 	"\x0eWsBlameRequest\x12\x13\n" +
 	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x10\n" +
-	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x12\n" +
-	"\x04path\x18\x03 \x01(\fR\x04path\x12\x1d\n" +
+	"\x03rev\x18\x02 \x01(\tR\x03rev\x12\x18\n" +
+	"\x04path\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1d\n" +
 	"\n" +
 	"start_line\x18\x04 \x01(\rR\tstartLine\x12\x19\n" +
-	"\bend_line\x18\x05 \x01(\rR\aendLine\"x\n" +
+	"\bend_line\x18\x05 \x01(\rR\aendLine\x12\x1c\n" +
+	"\x06buffer\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x05R\x06buffer\x12+\n" +
+	"\x11ignore_whitespace\x18\a \x01(\bR\x10ignoreWhitespace\"y\n" +
 	"\x11WsAffectedRequest\x12\x13\n" +
-	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12,\n" +
-	"\x05query\x18\x02 \x01(\v2\x16.asc.v1.AffectedRequestR\x05query\x12 \n" +
-	"\vuncommitted\x18\x03 \x01(\bR\vuncommitted\"E\n" +
-	"\x12WsAffectedResponse\x12/\n" +
-	"\x06result\x18\x01 \x01(\v2\x17.asc.v1.AffectedResponseR\x06result\"D\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12-\n" +
+	"\x05query\x18\x02 \x01(\v2\x17.asc.v1.AffectedRequestR\x05query\x12 \n" +
+	"\vuncommitted\x18\x03 \x01(\bR\vuncommitted\"F\n" +
+	"\x12WsAffectedResponse\x120\n" +
+	"\x06result\x18\x01 \x01(\v2\x18.asc.v1.AffectedResponseR\x06result\"D\n" +
 	"\fWatchRequest\x12\x13\n" +
 	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x1f\n" +
 	"\vsince_token\x18\x02 \x01(\tR\n" +
-	"sinceToken\"\xd2\x02\n" +
+	"sinceToken\"\x93\x03\n" +
 	"\n" +
-	"WatchEvent\x12*\n" +
-	"\x04kind\x18\x01 \x01(\x0e2\x16.asc.v1.WatchEvent.KindR\x04kind\x12\x14\n" +
-	"\x05paths\x18\x02 \x03(\fR\x05paths\x12\x10\n" +
-	"\x03ref\x18\x03 \x01(\tR\x03ref\x12\x10\n" +
-	"\x03old\x18\x04 \x01(\fR\x03old\x12\x10\n" +
-	"\x03new\x18\x05 \x01(\fR\x03new\x12\x0e\n" +
+	"WatchEvent\x12+\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x17.asc.v1.WatchEvent.KindR\x04kind\x12\x1a\n" +
+	"\x05paths\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\x12\x10\n" +
+	"\x03ref\x18\x03 \x01(\tR\x03ref\x12\x16\n" +
+	"\x03old\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\x03old\x12\x16\n" +
+	"\x03new\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\x03new\x12\x0e\n" +
 	"\x02op\x18\x06 \x01(\tR\x02op\x12\x14\n" +
-	"\x05token\x18\a \x01(\tR\x05token\"\xa5\x01\n" +
+	"\x05token\x18\a \x01(\tR\x05token\x12\x1c\n" +
+	"\x06change\x18\b \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\"\xb5\x01\n" +
 	"\x04Kind\x12\x0e\n" +
 	"\n" +
 	"KIND_PATHS\x10\x00\x12\r\n" +
@@ -2080,14 +3412,28 @@ const file_asc_v1_workspace_proto_rawDesc = "" +
 	"\x10KIND_SWITCH_DONE\x10\x06\x12\x0f\n" +
 	"\vKIND_RESYNC\x10\a\x12\x0e\n" +
 	"\n" +
-	"KIND_CLOUD\x10\t\"e\n" +
+	"KIND_STACK\x10\b\x12\x0e\n" +
+	"\n" +
+	"KIND_CLOUD\x10\t\"w\n" +
 	"\x0eWsStageRequest\x12\x13\n" +
-	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x10\n" +
-	"\x03add\x18\x02 \x03(\fR\x03add\x12\x16\n" +
-	"\x06remove\x18\x03 \x03(\fR\x06remove\x12\x14\n" +
-	"\x05patch\x18\x04 \x01(\fR\x05patch\"B\n" +
-	"\x0fWsStageResponse\x12/\n" +
-	"\x06status\x18\x01 \x01(\v2\x17.asc.v1.WsStatusResponseR\x06status\"\r\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x16\n" +
+	"\x03add\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x03R\x03add\x12\x1c\n" +
+	"\x06remove\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x03R\x06remove\x12\x1a\n" +
+	"\x05patch\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x04R\x05patch\"C\n" +
+	"\x0fWsStageResponse\x120\n" +
+	"\x06status\x18\x01 \x01(\v2\x18.asc.v1.WsStatusResponseR\x06status\"S\n" +
+	"\x0fWsSearchRequest\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12+\n" +
+	"\x05query\x18\x02 \x01(\v2\x15.asc.v1.SearchRequestR\x05query\"U\n" +
+	"\x10WsSymbolsRequest\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12,\n" +
+	"\x05query\x18\x02 \x01(\v2\x16.asc.v1.SymbolsRequestR\x05query\"W\n" +
+	"\x11WsSemanticRequest\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12-\n" +
+	"\x05query\x18\x02 \x01(\v2\x17.asc.v1.SemanticRequestR\x05query\"]\n" +
+	"\x14WsIndexStatusRequest\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x120\n" +
+	"\x05query\x18\x02 \x01(\v2\x1a.asc.v1.IndexStatusRequestR\x05query\"\r\n" +
 	"\vPingRequest\"W\n" +
 	"\fPingResponse\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\tR\aversion\x12\x10\n" +
@@ -2098,36 +3444,36 @@ const file_asc_v1_workspace_proto_rawDesc = "" +
 	"\rMountResponse\"%\n" +
 	"\x0eUnmountRequest\x12\x13\n" +
 	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\"\x11\n" +
-	"\x0fUnmountResponse\"\x81\x01\n" +
+	"\x0fUnmountResponse\"\x8e\x01\n" +
 	"\rSwitchRequest\x12\x13\n" +
-	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x1b\n" +
-	"\tfrom_root\x18\x02 \x01(\fR\bfromRoot\x12\x17\n" +
-	"\ato_root\x18\x03 \x01(\fR\x06toRoot\x12%\n" +
-	"\x04mode\x18\x04 \x01(\x0e2\x11.asc.v1.SwitchModeR\x04mode\".\n" +
-	"\x0eSwitchResponse\x12\x1c\n" +
-	"\tconflicts\x18\x01 \x03(\fR\tconflicts\"F\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12!\n" +
+	"\tfrom_root\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\bfromRoot\x12\x1d\n" +
+	"\ato_root\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x06toRoot\x12&\n" +
+	"\x04mode\x18\x04 \x01(\x0e2\x12.asc.v1.SwitchModeR\x04mode\"4\n" +
+	"\x0eSwitchResponse\x12\"\n" +
+	"\tconflicts\x18\x01 \x03(\fB\x04\xa8\xbb\x18\x03R\tconflicts\"F\n" +
 	"\x0eJournalRequest\x12\x13\n" +
 	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x1f\n" +
 	"\vsince_token\x18\x02 \x01(\tR\n" +
-	"sinceToken\"S\n" +
-	"\x0fJournalResponse\x12\x14\n" +
-	"\x05paths\x18\x01 \x03(\fR\x05paths\x12\x14\n" +
+	"sinceToken\"Y\n" +
+	"\x0fJournalResponse\x12\x1a\n" +
+	"\x05paths\x18\x01 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\tR\x05token\x12\x14\n" +
 	"\x05fresh\x18\x03 \x01(\bR\x05fresh\"@\n" +
 	"\x13ClearJournalRequest\x12\x13\n" +
 	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\tR\x05token\"\x16\n" +
-	"\x14ClearJournalResponse\"C\n" +
+	"\x14ClearJournalResponse\"I\n" +
 	"\x10DehydrateRequest\x12\x13\n" +
-	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x1a\n" +
-	"\bpathspec\x18\x02 \x03(\fR\bpathspec\"J\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12 \n" +
+	"\bpathspec\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x03R\bpathspec\"J\n" +
 	"\x11DehydrateResponse\x12\x14\n" +
 	"\x05files\x18\x01 \x01(\x04R\x05files\x12\x1f\n" +
 	"\vbytes_freed\x18\x02 \x01(\x04R\n" +
-	"bytesFreed\"B\n" +
+	"bytesFreed\"H\n" +
 	"\x0fPrefetchRequest\x12\x13\n" +
-	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x1a\n" +
-	"\bpathspec\x18\x02 \x03(\fR\bpathspec\"M\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12 \n" +
+	"\bpathspec\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x03R\bpathspec\"M\n" +
 	"\x10PrefetchResponse\x12\x14\n" +
 	"\x05files\x18\x01 \x01(\x04R\x05files\x12#\n" +
 	"\rbytes_fetched\x18\x02 \x01(\x04R\fbytesFetched\"#\n" +
@@ -2136,38 +3482,136 @@ const file_asc_v1_workspace_proto_rawDesc = "" +
 	"\x0eHydrationCount\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x04R\x05count\x12\x14\n" +
-	"\x05bytes\x18\x03 \x01(\x04R\x05bytes\"\xbf\x01\n" +
-	"\rStatsResponse\x12.\n" +
-	"\aby_path\x18\x01 \x03(\v2\x15.asc.v1.HydrationCountR\x06byPath\x124\n" +
+	"\x05bytes\x18\x03 \x01(\x04R\x05bytes\"\xc1\x01\n" +
+	"\rStatsResponse\x12/\n" +
+	"\aby_path\x18\x01 \x03(\v2\x16.asc.v1.HydrationCountR\x06byPath\x125\n" +
 	"\n" +
-	"by_process\x18\x02 \x03(\v2\x15.asc.v1.HydrationCountR\tbyProcess\x12%\n" +
+	"by_process\x18\x02 \x03(\v2\x16.asc.v1.HydrationCountR\tbyProcess\x12%\n" +
 	"\x0ebytes_hydrated\x18\x03 \x01(\x04R\rbytesHydrated\x12!\n" +
 	"\fjournal_size\x18\x04 \x01(\x04R\vjournalSize\"\x11\n" +
 	"\x0fShutdownRequest\"\x12\n" +
-	"\x10ShutdownResponse*P\n" +
+	"\x10ShutdownResponse\"h\n" +
+	"\x0fWsStacksRequest\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x10\n" +
+	"\x03all\x18\x02 \x01(\bR\x03all\x12\x16\n" +
+	"\x06remote\x18\x03 \x01(\bR\x06remote\x12\x16\n" +
+	"\x06revset\x18\x04 \x01(\tR\x06revset\"P\n" +
+	"\n" +
+	"StackTrunk\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
+	"\x03tip\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x03tip\x12\x16\n" +
+	"\x06remote\x18\x03 \x01(\tR\x06remote\"\xd4\x03\n" +
+	"\n" +
+	"StackEntry\x12\x1c\n" +
+	"\x06change\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x1c\n" +
+	"\x06commit\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x06commit\x12\x16\n" +
+	"\x03asc\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x03asc\x12)\n" +
+	"\rparent_change\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x02R\fparentChange\x12\x1a\n" +
+	"\bbranches\x18\x05 \x03(\tR\bbranches\x12\x1e\n" +
+	"\asubject\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x04R\asubject\x12)\n" +
+	"\x06author\x18\a \x01(\v2\x11.asc.v1.SignatureR\x06author\x12\x14\n" +
+	"\x05state\x18\b \x01(\tR\x05state\x12#\n" +
+	"\rneeds_restack\x18\t \x01(\bR\fneedsRestack\x12\x16\n" +
+	"\x06frozen\x18\n" +
+	" \x01(\bR\x06frozen\x12\x14\n" +
+	"\x05empty\x18\v \x01(\bR\x05empty\x12\x18\n" +
+	"\acurrent\x18\f \x01(\bR\acurrent\x12\x1a\n" +
+	"\bworktree\x18\r \x01(\tR\bworktree\x12+\n" +
+	"\x06review\x18\x0e \x01(\v2\x13.asc.v1.ReviewStateR\x06review\x12\x14\n" +
+	"\x05short\x18\x0f \x01(\tR\x05short\"\x7f\n" +
+	"\aWsStack\x12\x14\n" +
+	"\x05trunk\x18\x01 \x01(\tR\x05trunk\x12\x18\n" +
+	"\x04base\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x04base\x12\x16\n" +
+	"\x06behind\x18\x03 \x01(\rR\x06behind\x12,\n" +
+	"\achanges\x18\x04 \x03(\v2\x12.asc.v1.StackEntryR\achanges\"\x81\x01\n" +
+	"\x10WsStacksResponse\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\rR\aversion\x12*\n" +
+	"\x06trunks\x18\x02 \x03(\v2\x12.asc.v1.StackTrunkR\x06trunks\x12'\n" +
+	"\x06stacks\x18\x03 \x03(\v2\x0f.asc.v1.WsStackR\x06stacks\"\x14\n" +
+	"\x12WsWorktreesRequest\"\xd2\x02\n" +
+	"\n" +
+	"WsWorktree\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\x12\x14\n" +
+	"\x05mount\x18\x03 \x01(\tR\x05mount\x12\x12\n" +
+	"\x04mode\x18\x04 \x01(\tR\x04mode\x12\x19\n" +
+	"\bhead_ref\x18\x05 \x01(\tR\aheadRef\x12\x18\n" +
+	"\x04head\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x01R\x04head\x12\x14\n" +
+	"\x05dirty\x18\a \x01(\rR\x05dirty\x12\x16\n" +
+	"\x06staged\x18\b \x01(\rR\x06staged\x12\x14\n" +
+	"\x05ahead\x18\t \x01(\rR\x05ahead\x12\x16\n" +
+	"\x06behind\x18\n" +
+	" \x01(\rR\x06behind\x12'\n" +
+	"\x0fephemeral_until\x18\v \x01(\x03R\x0eephemeralUntil\x12\x16\n" +
+	"\x06locked\x18\f \x01(\tR\x06locked\x12\x1f\n" +
+	"\vin_progress\x18\r \x01(\tR\n" +
+	"inProgress\"G\n" +
+	"\x13WsWorktreesResponse\x120\n" +
+	"\tworktrees\x18\x01 \x03(\v2\x12.asc.v1.WsWorktreeR\tworktrees\")\n" +
+	"\x12WsConflictsRequest\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\"\xc0\x01\n" +
+	"\n" +
+	"WsConflict\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12(\n" +
+	"\x04kind\x18\x02 \x01(\x0e2\x14.asc.v1.ConflictKindR\x04kind\x12\x18\n" +
+	"\x04base\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x04base\x12\x18\n" +
+	"\x04ours\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\x04ours\x12\x1c\n" +
+	"\x06theirs\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\x06theirs\x12\x1c\n" +
+	"\x06marked\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x05R\x06marked\"G\n" +
+	"\x13WsConflictsResponse\x120\n" +
+	"\tconflicts\x18\x01 \x03(\v2\x12.asc.v1.WsConflictR\tconflicts\"\xdc\x01\n" +
+	"\x11WsReadFileRequest\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12.\n" +
+	"\brev_path\x18\x02 \x01(\v2\x11.asc.v1.WsRevPathH\x00R\arevPath\x12\x1f\n" +
+	"\afile_id\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01H\x00R\x06fileId\x12+\n" +
+	"\x05stage\x18\x04 \x01(\v2\x13.asc.v1.WsStagePathH\x00R\x05stage\x12\x16\n" +
+	"\x06offset\x18\x05 \x01(\x04R\x06offset\x12\x16\n" +
+	"\x06length\x18\x06 \x01(\x04R\x06lengthB\x04\n" +
+	"\x02at\"7\n" +
+	"\tWsRevPath\x12\x10\n" +
+	"\x03rev\x18\x01 \x01(\tR\x03rev\x12\x18\n" +
+	"\x04path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\"=\n" +
+	"\vWsStagePath\x12\x14\n" +
+	"\x05stage\x18\x01 \x01(\rR\x05stage\x12\x18\n" +
+	"\x04path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\"x\n" +
+	"\x14WsCommitGraphRequest\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x120\n" +
+	"\x05query\x18\x02 \x01(\v2\x1a.asc.v1.CommitGraphRequestR\x05query\x12\x19\n" +
+	"\bwip_rows\x18\x03 \x01(\bR\awipRows*P\n" +
 	"\n" +
 	"SwitchMode\x12\x14\n" +
 	"\x10SWITCH_MODE_SAFE\x10\x00\x12\x15\n" +
 	"\x11SWITCH_MODE_MERGE\x10\x01\x12\x15\n" +
-	"\x11SWITCH_MODE_FORCE\x10\x022\xd8\a\n" +
-	"\tWorkspace\x129\n" +
-	"\x06Status\x12\x16.asc.v1.WsStatusRequest\x1a\x17.asc.v1.WsStatusResponse\x123\n" +
-	"\x04Diff\x12\x14.asc.v1.WsDiffRequest\x1a\x13.asc.v1.DiffResponse0\x01\x120\n" +
-	"\x03Log\x12\x13.asc.v1.WsLogRequest\x1a\x12.asc.v1.LogResponse0\x01\x126\n" +
-	"\x05Blame\x12\x15.asc.v1.WsBlameRequest\x1a\x14.asc.v1.BlameResponse0\x01\x12?\n" +
-	"\bAffected\x12\x18.asc.v1.WsAffectedRequest\x1a\x19.asc.v1.WsAffectedResponse\x121\n" +
-	"\x05Watch\x12\x13.asc.v1.WatchRequest\x1a\x11.asc.v1.WatchEvent0\x01\x126\n" +
-	"\x05Stage\x12\x15.asc.v1.WsStageRequest\x1a\x16.asc.v1.WsStageResponse\x12/\n" +
-	"\x04Ping\x12\x12.asc.v1.PingRequest\x1a\x13.asc.v1.PingResponse\x122\n" +
-	"\x05Mount\x12\x13.asc.v1.MountRequest\x1a\x14.asc.v1.MountResponse\x128\n" +
-	"\aUnmount\x12\x15.asc.v1.UnmountRequest\x1a\x16.asc.v1.UnmountResponse\x125\n" +
-	"\x06Switch\x12\x14.asc.v1.SwitchRequest\x1a\x15.asc.v1.SwitchResponse\x128\n" +
-	"\aJournal\x12\x15.asc.v1.JournalRequest\x1a\x16.asc.v1.JournalResponse\x12G\n" +
-	"\fClearJournal\x12\x1a.asc.v1.ClearJournalRequest\x1a\x1b.asc.v1.ClearJournalResponse\x12>\n" +
-	"\tDehydrate\x12\x17.asc.v1.DehydrateRequest\x1a\x18.asc.v1.DehydrateResponse\x12;\n" +
-	"\bPrefetch\x12\x16.asc.v1.PrefetchRequest\x1a\x17.asc.v1.PrefetchResponse\x122\n" +
-	"\x05Stats\x12\x13.asc.v1.StatsRequest\x1a\x14.asc.v1.StatsResponse\x12;\n" +
-	"\bShutdown\x12\x16.asc.v1.ShutdownRequest\x1a\x17.asc.v1.ShutdownResponseB\"Z forgejo.org/modules/ascproto/ascv1b\x06proto3"
+	"\x11SWITCH_MODE_FORCE\x10\x022\xd8\f\n" +
+	"\tWorkspace\x12;\n" +
+	"\x06Status\x12\x17.asc.v1.WsStatusRequest\x1a\x18.asc.v1.WsStatusResponse\x125\n" +
+	"\x04Diff\x12\x15.asc.v1.WsDiffRequest\x1a\x14.asc.v1.DiffResponse0\x01\x122\n" +
+	"\x03Log\x12\x14.asc.v1.WsLogRequest\x1a\x13.asc.v1.LogResponse0\x01\x128\n" +
+	"\x05Blame\x12\x16.asc.v1.WsBlameRequest\x1a\x15.asc.v1.BlameResponse0\x01\x12A\n" +
+	"\bAffected\x12\x19.asc.v1.WsAffectedRequest\x1a\x1a.asc.v1.WsAffectedResponse\x123\n" +
+	"\x05Watch\x12\x14.asc.v1.WatchRequest\x1a\x12.asc.v1.WatchEvent0\x01\x128\n" +
+	"\x05Stage\x12\x16.asc.v1.WsStageRequest\x1a\x17.asc.v1.WsStageResponse\x12;\n" +
+	"\x06Search\x12\x17.asc.v1.WsSearchRequest\x1a\x16.asc.v1.SearchResponse0\x01\x12<\n" +
+	"\aSymbols\x12\x18.asc.v1.WsSymbolsRequest\x1a\x17.asc.v1.SymbolsResponse\x12?\n" +
+	"\bSemantic\x12\x19.asc.v1.WsSemanticRequest\x1a\x18.asc.v1.SemanticResponse\x12H\n" +
+	"\vIndexStatus\x12\x1c.asc.v1.WsIndexStatusRequest\x1a\x1b.asc.v1.IndexStatusResponse\x121\n" +
+	"\x04Ping\x12\x13.asc.v1.PingRequest\x1a\x14.asc.v1.PingResponse\x124\n" +
+	"\x05Mount\x12\x14.asc.v1.MountRequest\x1a\x15.asc.v1.MountResponse\x12:\n" +
+	"\aUnmount\x12\x16.asc.v1.UnmountRequest\x1a\x17.asc.v1.UnmountResponse\x127\n" +
+	"\x06Switch\x12\x15.asc.v1.SwitchRequest\x1a\x16.asc.v1.SwitchResponse\x12:\n" +
+	"\aJournal\x12\x16.asc.v1.JournalRequest\x1a\x17.asc.v1.JournalResponse\x12I\n" +
+	"\fClearJournal\x12\x1b.asc.v1.ClearJournalRequest\x1a\x1c.asc.v1.ClearJournalResponse\x12@\n" +
+	"\tDehydrate\x12\x18.asc.v1.DehydrateRequest\x1a\x19.asc.v1.DehydrateResponse\x12=\n" +
+	"\bPrefetch\x12\x17.asc.v1.PrefetchRequest\x1a\x18.asc.v1.PrefetchResponse\x124\n" +
+	"\x05Stats\x12\x14.asc.v1.StatsRequest\x1a\x15.asc.v1.StatsResponse\x12=\n" +
+	"\bShutdown\x12\x17.asc.v1.ShutdownRequest\x1a\x18.asc.v1.ShutdownResponse\x12;\n" +
+	"\x06Stacks\x12\x17.asc.v1.WsStacksRequest\x1a\x18.asc.v1.WsStacksResponse\x12D\n" +
+	"\tWorktrees\x12\x1a.asc.v1.WsWorktreesRequest\x1a\x1b.asc.v1.WsWorktreesResponse\x12D\n" +
+	"\tConflicts\x12\x1a.asc.v1.WsConflictsRequest\x1a\x1b.asc.v1.WsConflictsResponse\x12J\n" +
+	"\vCommitGraph\x12\x1c.asc.v1.WsCommitGraphRequest\x1a\x1b.asc.v1.CommitGraphResponse0\x01\x12A\n" +
+	"\bReadFile\x12\x19.asc.v1.WsReadFileRequest\x1a\x18.asc.v1.ReadFileResponse0\x01By\n" +
+	"\n" +
+	"com.asc.v1B\x0eWorkspaceProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
 var (
 	file_asc_v1_workspace_proto_rawDescOnce sync.Once
@@ -2182,7 +3626,7 @@ func file_asc_v1_workspace_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_workspace_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_asc_v1_workspace_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_asc_v1_workspace_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
 var file_asc_v1_workspace_proto_goTypes = []any{
 	(SwitchMode)(0),              // 0: asc.v1.SwitchMode
 	(WatchEvent_Kind)(0),         // 1: asc.v1.WatchEvent.Kind
@@ -2198,85 +3642,151 @@ var file_asc_v1_workspace_proto_goTypes = []any{
 	(*WatchEvent)(nil),           // 11: asc.v1.WatchEvent
 	(*WsStageRequest)(nil),       // 12: asc.v1.WsStageRequest
 	(*WsStageResponse)(nil),      // 13: asc.v1.WsStageResponse
-	(*PingRequest)(nil),          // 14: asc.v1.PingRequest
-	(*PingResponse)(nil),         // 15: asc.v1.PingResponse
-	(*MountRequest)(nil),         // 16: asc.v1.MountRequest
-	(*MountResponse)(nil),        // 17: asc.v1.MountResponse
-	(*UnmountRequest)(nil),       // 18: asc.v1.UnmountRequest
-	(*UnmountResponse)(nil),      // 19: asc.v1.UnmountResponse
-	(*SwitchRequest)(nil),        // 20: asc.v1.SwitchRequest
-	(*SwitchResponse)(nil),       // 21: asc.v1.SwitchResponse
-	(*JournalRequest)(nil),       // 22: asc.v1.JournalRequest
-	(*JournalResponse)(nil),      // 23: asc.v1.JournalResponse
-	(*ClearJournalRequest)(nil),  // 24: asc.v1.ClearJournalRequest
-	(*ClearJournalResponse)(nil), // 25: asc.v1.ClearJournalResponse
-	(*DehydrateRequest)(nil),     // 26: asc.v1.DehydrateRequest
-	(*DehydrateResponse)(nil),    // 27: asc.v1.DehydrateResponse
-	(*PrefetchRequest)(nil),      // 28: asc.v1.PrefetchRequest
-	(*PrefetchResponse)(nil),     // 29: asc.v1.PrefetchResponse
-	(*StatsRequest)(nil),         // 30: asc.v1.StatsRequest
-	(*HydrationCount)(nil),       // 31: asc.v1.HydrationCount
-	(*StatsResponse)(nil),        // 32: asc.v1.StatsResponse
-	(*ShutdownRequest)(nil),      // 33: asc.v1.ShutdownRequest
-	(*ShutdownResponse)(nil),     // 34: asc.v1.ShutdownResponse
-	(DiffFormat)(0),              // 35: asc.v1.DiffFormat
-	(*LogRequest)(nil),           // 36: asc.v1.LogRequest
-	(*AffectedRequest)(nil),      // 37: asc.v1.AffectedRequest
-	(*AffectedResponse)(nil),     // 38: asc.v1.AffectedResponse
-	(*DiffResponse)(nil),         // 39: asc.v1.DiffResponse
-	(*LogResponse)(nil),          // 40: asc.v1.LogResponse
-	(*BlameResponse)(nil),        // 41: asc.v1.BlameResponse
+	(*WsSearchRequest)(nil),      // 14: asc.v1.WsSearchRequest
+	(*WsSymbolsRequest)(nil),     // 15: asc.v1.WsSymbolsRequest
+	(*WsSemanticRequest)(nil),    // 16: asc.v1.WsSemanticRequest
+	(*WsIndexStatusRequest)(nil), // 17: asc.v1.WsIndexStatusRequest
+	(*PingRequest)(nil),          // 18: asc.v1.PingRequest
+	(*PingResponse)(nil),         // 19: asc.v1.PingResponse
+	(*MountRequest)(nil),         // 20: asc.v1.MountRequest
+	(*MountResponse)(nil),        // 21: asc.v1.MountResponse
+	(*UnmountRequest)(nil),       // 22: asc.v1.UnmountRequest
+	(*UnmountResponse)(nil),      // 23: asc.v1.UnmountResponse
+	(*SwitchRequest)(nil),        // 24: asc.v1.SwitchRequest
+	(*SwitchResponse)(nil),       // 25: asc.v1.SwitchResponse
+	(*JournalRequest)(nil),       // 26: asc.v1.JournalRequest
+	(*JournalResponse)(nil),      // 27: asc.v1.JournalResponse
+	(*ClearJournalRequest)(nil),  // 28: asc.v1.ClearJournalRequest
+	(*ClearJournalResponse)(nil), // 29: asc.v1.ClearJournalResponse
+	(*DehydrateRequest)(nil),     // 30: asc.v1.DehydrateRequest
+	(*DehydrateResponse)(nil),    // 31: asc.v1.DehydrateResponse
+	(*PrefetchRequest)(nil),      // 32: asc.v1.PrefetchRequest
+	(*PrefetchResponse)(nil),     // 33: asc.v1.PrefetchResponse
+	(*StatsRequest)(nil),         // 34: asc.v1.StatsRequest
+	(*HydrationCount)(nil),       // 35: asc.v1.HydrationCount
+	(*StatsResponse)(nil),        // 36: asc.v1.StatsResponse
+	(*ShutdownRequest)(nil),      // 37: asc.v1.ShutdownRequest
+	(*ShutdownResponse)(nil),     // 38: asc.v1.ShutdownResponse
+	(*WsStacksRequest)(nil),      // 39: asc.v1.WsStacksRequest
+	(*StackTrunk)(nil),           // 40: asc.v1.StackTrunk
+	(*StackEntry)(nil),           // 41: asc.v1.StackEntry
+	(*WsStack)(nil),              // 42: asc.v1.WsStack
+	(*WsStacksResponse)(nil),     // 43: asc.v1.WsStacksResponse
+	(*WsWorktreesRequest)(nil),   // 44: asc.v1.WsWorktreesRequest
+	(*WsWorktree)(nil),           // 45: asc.v1.WsWorktree
+	(*WsWorktreesResponse)(nil),  // 46: asc.v1.WsWorktreesResponse
+	(*WsConflictsRequest)(nil),   // 47: asc.v1.WsConflictsRequest
+	(*WsConflict)(nil),           // 48: asc.v1.WsConflict
+	(*WsConflictsResponse)(nil),  // 49: asc.v1.WsConflictsResponse
+	(*WsReadFileRequest)(nil),    // 50: asc.v1.WsReadFileRequest
+	(*WsRevPath)(nil),            // 51: asc.v1.WsRevPath
+	(*WsStagePath)(nil),          // 52: asc.v1.WsStagePath
+	(*WsCommitGraphRequest)(nil), // 53: asc.v1.WsCommitGraphRequest
+	(DiffFormat)(0),              // 54: asc.v1.DiffFormat
+	(*LogRequest)(nil),           // 55: asc.v1.LogRequest
+	(*AffectedRequest)(nil),      // 56: asc.v1.AffectedRequest
+	(*AffectedResponse)(nil),     // 57: asc.v1.AffectedResponse
+	(*SearchRequest)(nil),        // 58: asc.v1.SearchRequest
+	(*SymbolsRequest)(nil),       // 59: asc.v1.SymbolsRequest
+	(*SemanticRequest)(nil),      // 60: asc.v1.SemanticRequest
+	(*IndexStatusRequest)(nil),   // 61: asc.v1.IndexStatusRequest
+	(*Signature)(nil),            // 62: asc.v1.Signature
+	(*ReviewState)(nil),          // 63: asc.v1.ReviewState
+	(ConflictKind)(0),            // 64: asc.v1.ConflictKind
+	(*CommitGraphRequest)(nil),   // 65: asc.v1.CommitGraphRequest
+	(*DiffResponse)(nil),         // 66: asc.v1.DiffResponse
+	(*LogResponse)(nil),          // 67: asc.v1.LogResponse
+	(*BlameResponse)(nil),        // 68: asc.v1.BlameResponse
+	(*SearchResponse)(nil),       // 69: asc.v1.SearchResponse
+	(*SymbolsResponse)(nil),      // 70: asc.v1.SymbolsResponse
+	(*SemanticResponse)(nil),     // 71: asc.v1.SemanticResponse
+	(*IndexStatusResponse)(nil),  // 72: asc.v1.IndexStatusResponse
+	(*CommitGraphResponse)(nil),  // 73: asc.v1.CommitGraphResponse
+	(*ReadFileResponse)(nil),     // 74: asc.v1.ReadFileResponse
 }
 var file_asc_v1_workspace_proto_depIdxs = []int32{
 	3,  // 0: asc.v1.WsStatusResponse.files:type_name -> asc.v1.WsFileStatus
-	35, // 1: asc.v1.WsDiffRequest.format:type_name -> asc.v1.DiffFormat
-	36, // 2: asc.v1.WsLogRequest.query:type_name -> asc.v1.LogRequest
-	37, // 3: asc.v1.WsAffectedRequest.query:type_name -> asc.v1.AffectedRequest
-	38, // 4: asc.v1.WsAffectedResponse.result:type_name -> asc.v1.AffectedResponse
+	54, // 1: asc.v1.WsDiffRequest.format:type_name -> asc.v1.DiffFormat
+	55, // 2: asc.v1.WsLogRequest.query:type_name -> asc.v1.LogRequest
+	56, // 3: asc.v1.WsAffectedRequest.query:type_name -> asc.v1.AffectedRequest
+	57, // 4: asc.v1.WsAffectedResponse.result:type_name -> asc.v1.AffectedResponse
 	1,  // 5: asc.v1.WatchEvent.kind:type_name -> asc.v1.WatchEvent.Kind
 	4,  // 6: asc.v1.WsStageResponse.status:type_name -> asc.v1.WsStatusResponse
-	0,  // 7: asc.v1.SwitchRequest.mode:type_name -> asc.v1.SwitchMode
-	31, // 8: asc.v1.StatsResponse.by_path:type_name -> asc.v1.HydrationCount
-	31, // 9: asc.v1.StatsResponse.by_process:type_name -> asc.v1.HydrationCount
-	2,  // 10: asc.v1.Workspace.Status:input_type -> asc.v1.WsStatusRequest
-	5,  // 11: asc.v1.Workspace.Diff:input_type -> asc.v1.WsDiffRequest
-	6,  // 12: asc.v1.Workspace.Log:input_type -> asc.v1.WsLogRequest
-	7,  // 13: asc.v1.Workspace.Blame:input_type -> asc.v1.WsBlameRequest
-	8,  // 14: asc.v1.Workspace.Affected:input_type -> asc.v1.WsAffectedRequest
-	10, // 15: asc.v1.Workspace.Watch:input_type -> asc.v1.WatchRequest
-	12, // 16: asc.v1.Workspace.Stage:input_type -> asc.v1.WsStageRequest
-	14, // 17: asc.v1.Workspace.Ping:input_type -> asc.v1.PingRequest
-	16, // 18: asc.v1.Workspace.Mount:input_type -> asc.v1.MountRequest
-	18, // 19: asc.v1.Workspace.Unmount:input_type -> asc.v1.UnmountRequest
-	20, // 20: asc.v1.Workspace.Switch:input_type -> asc.v1.SwitchRequest
-	22, // 21: asc.v1.Workspace.Journal:input_type -> asc.v1.JournalRequest
-	24, // 22: asc.v1.Workspace.ClearJournal:input_type -> asc.v1.ClearJournalRequest
-	26, // 23: asc.v1.Workspace.Dehydrate:input_type -> asc.v1.DehydrateRequest
-	28, // 24: asc.v1.Workspace.Prefetch:input_type -> asc.v1.PrefetchRequest
-	30, // 25: asc.v1.Workspace.Stats:input_type -> asc.v1.StatsRequest
-	33, // 26: asc.v1.Workspace.Shutdown:input_type -> asc.v1.ShutdownRequest
-	4,  // 27: asc.v1.Workspace.Status:output_type -> asc.v1.WsStatusResponse
-	39, // 28: asc.v1.Workspace.Diff:output_type -> asc.v1.DiffResponse
-	40, // 29: asc.v1.Workspace.Log:output_type -> asc.v1.LogResponse
-	41, // 30: asc.v1.Workspace.Blame:output_type -> asc.v1.BlameResponse
-	9,  // 31: asc.v1.Workspace.Affected:output_type -> asc.v1.WsAffectedResponse
-	11, // 32: asc.v1.Workspace.Watch:output_type -> asc.v1.WatchEvent
-	13, // 33: asc.v1.Workspace.Stage:output_type -> asc.v1.WsStageResponse
-	15, // 34: asc.v1.Workspace.Ping:output_type -> asc.v1.PingResponse
-	17, // 35: asc.v1.Workspace.Mount:output_type -> asc.v1.MountResponse
-	19, // 36: asc.v1.Workspace.Unmount:output_type -> asc.v1.UnmountResponse
-	21, // 37: asc.v1.Workspace.Switch:output_type -> asc.v1.SwitchResponse
-	23, // 38: asc.v1.Workspace.Journal:output_type -> asc.v1.JournalResponse
-	25, // 39: asc.v1.Workspace.ClearJournal:output_type -> asc.v1.ClearJournalResponse
-	27, // 40: asc.v1.Workspace.Dehydrate:output_type -> asc.v1.DehydrateResponse
-	29, // 41: asc.v1.Workspace.Prefetch:output_type -> asc.v1.PrefetchResponse
-	32, // 42: asc.v1.Workspace.Stats:output_type -> asc.v1.StatsResponse
-	34, // 43: asc.v1.Workspace.Shutdown:output_type -> asc.v1.ShutdownResponse
-	27, // [27:44] is the sub-list for method output_type
-	10, // [10:27] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	58, // 7: asc.v1.WsSearchRequest.query:type_name -> asc.v1.SearchRequest
+	59, // 8: asc.v1.WsSymbolsRequest.query:type_name -> asc.v1.SymbolsRequest
+	60, // 9: asc.v1.WsSemanticRequest.query:type_name -> asc.v1.SemanticRequest
+	61, // 10: asc.v1.WsIndexStatusRequest.query:type_name -> asc.v1.IndexStatusRequest
+	0,  // 11: asc.v1.SwitchRequest.mode:type_name -> asc.v1.SwitchMode
+	35, // 12: asc.v1.StatsResponse.by_path:type_name -> asc.v1.HydrationCount
+	35, // 13: asc.v1.StatsResponse.by_process:type_name -> asc.v1.HydrationCount
+	62, // 14: asc.v1.StackEntry.author:type_name -> asc.v1.Signature
+	63, // 15: asc.v1.StackEntry.review:type_name -> asc.v1.ReviewState
+	41, // 16: asc.v1.WsStack.changes:type_name -> asc.v1.StackEntry
+	40, // 17: asc.v1.WsStacksResponse.trunks:type_name -> asc.v1.StackTrunk
+	42, // 18: asc.v1.WsStacksResponse.stacks:type_name -> asc.v1.WsStack
+	45, // 19: asc.v1.WsWorktreesResponse.worktrees:type_name -> asc.v1.WsWorktree
+	64, // 20: asc.v1.WsConflict.kind:type_name -> asc.v1.ConflictKind
+	48, // 21: asc.v1.WsConflictsResponse.conflicts:type_name -> asc.v1.WsConflict
+	51, // 22: asc.v1.WsReadFileRequest.rev_path:type_name -> asc.v1.WsRevPath
+	52, // 23: asc.v1.WsReadFileRequest.stage:type_name -> asc.v1.WsStagePath
+	65, // 24: asc.v1.WsCommitGraphRequest.query:type_name -> asc.v1.CommitGraphRequest
+	2,  // 25: asc.v1.Workspace.Status:input_type -> asc.v1.WsStatusRequest
+	5,  // 26: asc.v1.Workspace.Diff:input_type -> asc.v1.WsDiffRequest
+	6,  // 27: asc.v1.Workspace.Log:input_type -> asc.v1.WsLogRequest
+	7,  // 28: asc.v1.Workspace.Blame:input_type -> asc.v1.WsBlameRequest
+	8,  // 29: asc.v1.Workspace.Affected:input_type -> asc.v1.WsAffectedRequest
+	10, // 30: asc.v1.Workspace.Watch:input_type -> asc.v1.WatchRequest
+	12, // 31: asc.v1.Workspace.Stage:input_type -> asc.v1.WsStageRequest
+	14, // 32: asc.v1.Workspace.Search:input_type -> asc.v1.WsSearchRequest
+	15, // 33: asc.v1.Workspace.Symbols:input_type -> asc.v1.WsSymbolsRequest
+	16, // 34: asc.v1.Workspace.Semantic:input_type -> asc.v1.WsSemanticRequest
+	17, // 35: asc.v1.Workspace.IndexStatus:input_type -> asc.v1.WsIndexStatusRequest
+	18, // 36: asc.v1.Workspace.Ping:input_type -> asc.v1.PingRequest
+	20, // 37: asc.v1.Workspace.Mount:input_type -> asc.v1.MountRequest
+	22, // 38: asc.v1.Workspace.Unmount:input_type -> asc.v1.UnmountRequest
+	24, // 39: asc.v1.Workspace.Switch:input_type -> asc.v1.SwitchRequest
+	26, // 40: asc.v1.Workspace.Journal:input_type -> asc.v1.JournalRequest
+	28, // 41: asc.v1.Workspace.ClearJournal:input_type -> asc.v1.ClearJournalRequest
+	30, // 42: asc.v1.Workspace.Dehydrate:input_type -> asc.v1.DehydrateRequest
+	32, // 43: asc.v1.Workspace.Prefetch:input_type -> asc.v1.PrefetchRequest
+	34, // 44: asc.v1.Workspace.Stats:input_type -> asc.v1.StatsRequest
+	37, // 45: asc.v1.Workspace.Shutdown:input_type -> asc.v1.ShutdownRequest
+	39, // 46: asc.v1.Workspace.Stacks:input_type -> asc.v1.WsStacksRequest
+	44, // 47: asc.v1.Workspace.Worktrees:input_type -> asc.v1.WsWorktreesRequest
+	47, // 48: asc.v1.Workspace.Conflicts:input_type -> asc.v1.WsConflictsRequest
+	53, // 49: asc.v1.Workspace.CommitGraph:input_type -> asc.v1.WsCommitGraphRequest
+	50, // 50: asc.v1.Workspace.ReadFile:input_type -> asc.v1.WsReadFileRequest
+	4,  // 51: asc.v1.Workspace.Status:output_type -> asc.v1.WsStatusResponse
+	66, // 52: asc.v1.Workspace.Diff:output_type -> asc.v1.DiffResponse
+	67, // 53: asc.v1.Workspace.Log:output_type -> asc.v1.LogResponse
+	68, // 54: asc.v1.Workspace.Blame:output_type -> asc.v1.BlameResponse
+	9,  // 55: asc.v1.Workspace.Affected:output_type -> asc.v1.WsAffectedResponse
+	11, // 56: asc.v1.Workspace.Watch:output_type -> asc.v1.WatchEvent
+	13, // 57: asc.v1.Workspace.Stage:output_type -> asc.v1.WsStageResponse
+	69, // 58: asc.v1.Workspace.Search:output_type -> asc.v1.SearchResponse
+	70, // 59: asc.v1.Workspace.Symbols:output_type -> asc.v1.SymbolsResponse
+	71, // 60: asc.v1.Workspace.Semantic:output_type -> asc.v1.SemanticResponse
+	72, // 61: asc.v1.Workspace.IndexStatus:output_type -> asc.v1.IndexStatusResponse
+	19, // 62: asc.v1.Workspace.Ping:output_type -> asc.v1.PingResponse
+	21, // 63: asc.v1.Workspace.Mount:output_type -> asc.v1.MountResponse
+	23, // 64: asc.v1.Workspace.Unmount:output_type -> asc.v1.UnmountResponse
+	25, // 65: asc.v1.Workspace.Switch:output_type -> asc.v1.SwitchResponse
+	27, // 66: asc.v1.Workspace.Journal:output_type -> asc.v1.JournalResponse
+	29, // 67: asc.v1.Workspace.ClearJournal:output_type -> asc.v1.ClearJournalResponse
+	31, // 68: asc.v1.Workspace.Dehydrate:output_type -> asc.v1.DehydrateResponse
+	33, // 69: asc.v1.Workspace.Prefetch:output_type -> asc.v1.PrefetchResponse
+	36, // 70: asc.v1.Workspace.Stats:output_type -> asc.v1.StatsResponse
+	38, // 71: asc.v1.Workspace.Shutdown:output_type -> asc.v1.ShutdownResponse
+	43, // 72: asc.v1.Workspace.Stacks:output_type -> asc.v1.WsStacksResponse
+	46, // 73: asc.v1.Workspace.Worktrees:output_type -> asc.v1.WsWorktreesResponse
+	49, // 74: asc.v1.Workspace.Conflicts:output_type -> asc.v1.WsConflictsResponse
+	73, // 75: asc.v1.Workspace.CommitGraph:output_type -> asc.v1.CommitGraphResponse
+	74, // 76: asc.v1.Workspace.ReadFile:output_type -> asc.v1.ReadFileResponse
+	51, // [51:77] is the sub-list for method output_type
+	25, // [25:51] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_workspace_proto_init() }
@@ -2284,15 +3794,22 @@ func file_asc_v1_workspace_proto_init() {
 	if File_asc_v1_workspace_proto != nil {
 		return
 	}
+	file_asc_v1_options_proto_init()
 	file_asc_v1_repo_proto_init()
 	file_asc_v1_projects_proto_init()
+	file_asc_v1_codeintel_proto_init()
+	file_asc_v1_workspace_proto_msgTypes[48].OneofWrappers = []any{
+		(*WsReadFileRequest_RevPath)(nil),
+		(*WsReadFileRequest_FileId)(nil),
+		(*WsReadFileRequest_Stage)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_workspace_proto_rawDesc), len(file_asc_v1_workspace_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   33,
+			NumMessages:   52,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

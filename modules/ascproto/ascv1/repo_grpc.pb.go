@@ -54,6 +54,8 @@ const (
 	Repo_LineHistory_FullMethodName   = "/asc.v1.Repo/LineHistory"
 	Repo_Compare_FullMethodName       = "/asc.v1.Repo/Compare"
 	Repo_RepoConfig_FullMethodName    = "/asc.v1.Repo/RepoConfig"
+	Repo_GetPolicy_FullMethodName     = "/asc.v1.Repo/GetPolicy"
+	Repo_WatchRefs_FullMethodName     = "/asc.v1.Repo/WatchRefs"
 )
 
 // RepoClient is the client API for Repo service.
@@ -95,6 +97,8 @@ type RepoClient interface {
 	LineHistory(ctx context.Context, in *LineHistoryRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LogResponse], error)
 	Compare(ctx context.Context, in *CompareRequest, opts ...grpc.CallOption) (*CompareResponse, error)
 	RepoConfig(ctx context.Context, in *RepoConfigRequest, opts ...grpc.CallOption) (*RepoConfigResponse, error)
+	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
+	WatchRefs(ctx context.Context, in *WatchRefsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RefEvent], error)
 }
 
 type repoClient struct {
@@ -542,6 +546,35 @@ func (c *repoClient) RepoConfig(ctx context.Context, in *RepoConfigRequest, opts
 	return out, nil
 }
 
+func (c *repoClient) GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPolicyResponse)
+	err := c.cc.Invoke(ctx, Repo_GetPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *repoClient) WatchRefs(ctx context.Context, in *WatchRefsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RefEvent], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Repo_ServiceDesc.Streams[11], Repo_WatchRefs_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WatchRefsRequest, RefEvent]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Repo_WatchRefsClient = grpc.ServerStreamingClient[RefEvent]
+
 // RepoServer is the server API for Repo service.
 // All implementations should embed UnimplementedRepoServer
 // for forward compatibility.
@@ -581,6 +614,8 @@ type RepoServer interface {
 	LineHistory(*LineHistoryRequest, grpc.ServerStreamingServer[LogResponse]) error
 	Compare(context.Context, *CompareRequest) (*CompareResponse, error)
 	RepoConfig(context.Context, *RepoConfigRequest) (*RepoConfigResponse, error)
+	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
+	WatchRefs(*WatchRefsRequest, grpc.ServerStreamingServer[RefEvent]) error
 }
 
 // UnimplementedRepoServer should be embedded to have
@@ -694,6 +729,12 @@ func (UnimplementedRepoServer) Compare(context.Context, *CompareRequest) (*Compa
 }
 func (UnimplementedRepoServer) RepoConfig(context.Context, *RepoConfigRequest) (*RepoConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RepoConfig not implemented")
+}
+func (UnimplementedRepoServer) GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPolicy not implemented")
+}
+func (UnimplementedRepoServer) WatchRefs(*WatchRefsRequest, grpc.ServerStreamingServer[RefEvent]) error {
+	return status.Error(codes.Unimplemented, "method WatchRefs not implemented")
 }
 func (UnimplementedRepoServer) testEmbeddedByValue() {}
 
@@ -1260,6 +1301,35 @@ func _Repo_RepoConfig_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Repo_GetPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RepoServer).GetPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Repo_GetPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RepoServer).GetPolicy(ctx, req.(*GetPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Repo_WatchRefs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchRefsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(RepoServer).WatchRefs(m, &grpc.GenericServerStream[WatchRefsRequest, RefEvent]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Repo_WatchRefsServer = grpc.ServerStreamingServer[RefEvent]
+
 // Repo_ServiceDesc is the grpc.ServiceDesc for Repo service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1363,6 +1433,10 @@ var Repo_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "RepoConfig",
 			Handler:    _Repo_RepoConfig_Handler,
 		},
+		{
+			MethodName: "GetPolicy",
+			Handler:    _Repo_GetPolicy_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -1419,6 +1493,11 @@ var Repo_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "LineHistory",
 			Handler:       _Repo_LineHistory_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "WatchRefs",
+			Handler:       _Repo_WatchRefs_Handler,
 			ServerStreams: true,
 		},
 	},

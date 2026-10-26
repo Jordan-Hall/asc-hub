@@ -46,8 +46,8 @@ import (
 //     the next event repairs it.
 //   - The call runs off the request path, bounded by CallTimeout.
 
-// ReviewStateForge is the ReviewState.forge value Forgejo sends.
-const ReviewStateForge = "forgejo"
+// ReviewStateHost is the ReviewState.host value Forgejo sends.
+const ReviewStateHost = "forgejo"
 
 // maxApprovals clamps the approvals count.
 const maxApprovals = 1 << 16
@@ -164,7 +164,7 @@ func BuildReviewState(f *PullFacts, now time.Time) (change []byte, st *ascv1.Rev
 	}
 	approvals := min(max(f.Approvals, 0), maxApprovals)
 	return change, &ascv1.ReviewState{
-		Forge:     ReviewStateForge,
+		Host:      ReviewStateHost,
 		Number:    uint64(f.Index),
 		Url:       clean(f.URL, 2048),
 		State:     state,
