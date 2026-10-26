@@ -18,8 +18,8 @@ import (
 // parent change has not merged: the parent must land first ("Merge stack (N)" is C38). The block fails
 // closed: a database error is an error, never a permission to merge.
 //
-// TODO(C38): the server-restack button posts to the restack endpoint of C38 (RestackChanges). Until it
-// exists the banner only says that the change needs a restack.
+// The "Restack" button of the needs-restack banner is shown by the router (routers/web/repo/asc_stack_actions.go) and
+// runs pull_service.RestackAscStack (asc_restack.go).
 
 // ascStackMaxDepth bounds the walk along a chain of stacked pull requests, so a corrupt cycle ends.
 const ascStackMaxDepth = 64

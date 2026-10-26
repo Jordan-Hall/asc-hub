@@ -4,7 +4,9 @@
 package pull
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"errors"
 	"testing"
 
@@ -14,9 +16,14 @@ import (
 	"forgejo.org/models/unit"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
+	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/setting"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -230,4 +237,118 @@ func TestAscChangeBytes(t *testing.T) {
 	assert.Equal(t, byte(0xff), b[0])
 	_, err = ascChangeBytes("abc")
 	require.Error(t, err)
+}
+
+func TestAscStackMergeCarriesNoContentMerge(t *testing.T) {
+	_, top, fake := ascMergeFixture(t)
+	doer, perm := ascMergePerm(t, top, 2)
+	_, err := MergeAscStackWith(t.Context(), doer, perm, top, AscMergeOptions{NoContentMerge: true})
+	require.NoError(t, err)
+	require.Len(t, fake.lands, 1)
+	assert.True(t, fake.lands[0].NoContentMerge)
+}
+
+func TestAscStackMergePlainEntryDoesNotSetTheFlag(t *testing.T) {
+	_, top, fake := ascMergeFixture(t)
+	doer, perm := ascMergePerm(t, top, 2)
+	_, err := MergeAscStack(t.Context(), doer, perm, top)
+	require.NoError(t, err)
+	require.Len(t, fake.lands, 1)
+	assert.False(t, fake.lands[0].NoContentMerge)
+}
+
+// A land that needs a content merge lands nothing and is reported as such; no pull request is marked merged.
+func TestAscStackMergeNeedsContentMerge(t *testing.T) {
+	bottom, top, fake := ascMergeFixture(t)
+	doer, perm := ascMergePerm(t, top, 2)
+	fake.landErr = ErrAscLandNeedsContentMerge
+	_, err := MergeAscStackWith(t.Context(), doer, perm, top, AscMergeOptions{NoContentMerge: true})
+	require.ErrorIs(t, err, ErrAscLandNeedsContentMerge)
+	for _, id := range []int64{bottom.ID, top.ID} {
+		assert.False(t, unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: id}).HasMerged)
+	}
+}
+
+// fakeRepoAPI answers what a land of a chain of heads asks of asc.Repo.
+type fakeRepoAPI struct {
+	ascv1.RepoClient // nil: any other call panics
+
+	updateErr error
+	updates   []*ascv1.UpdateRefsRequest
+}
+
+func ascOfGit(g []byte) []byte { return append(bytes.Clone(g), make([]byte, 12)...) }
+
+func (f *fakeRepoAPI) GitMap(_ context.Context, in *ascv1.GitMapRequest, _ ...grpc.CallOption) (*ascv1.GitMapResponse, error) {
+	resp := &ascv1.GitMapResponse{}
+	for _, g := range in.GetGit() {
+		resp.GitToAsc = append(resp.GitToAsc, ascOfGit(g))
+	}
+	for _, a := range in.GetAsc() {
+		resp.AscToGit = append(resp.AscToGit, bytes.Clone(a[:20]))
+	}
+	return resp, nil
+}
+
+func (f *fakeRepoAPI) MergeBase(_ context.Context, in *ascv1.MergeBaseRequest, _ ...grpc.CallOption) (*ascv1.MergeBaseResponse, error) {
+	return &ascv1.MergeBaseResponse{Bases: [][]byte{in.GetA()}}, nil
+}
+
+func (f *fakeRepoAPI) UpdateRefs(_ context.Context, in *ascv1.UpdateRefsRequest, _ ...grpc.CallOption) (*ascv1.UpdateRefsResponse, error) {
+	f.updates = append(f.updates, in)
+	return &ascv1.UpdateRefsResponse{}, f.updateErr
+}
+
+func TestAscClientBackendLandSendsTheFlagAndMapsTheAnswer(t *testing.T) {
+	api := &fakeRepoAPI{}
+	b := &ascClientBackend{repo: api}
+	req := AscLandRequest{Repo: "o/r", Target: "refs/heads/master", Heads: []string{headBottom, headTop}, NoContentMerge: true}
+
+	res, err := b.Land(t.Context(), req)
+	require.NoError(t, err)
+	require.Len(t, api.updates, 1)
+	u := api.updates[0]
+	assert.True(t, u.GetNoContentMerge())
+	assert.Equal(t, ascv1.UpdateMode_UPDATE_MODE_LAND, u.GetMode())
+	assert.Equal(t, "refs/heads/master", u.GetUpdates()[0].GetName())
+	topAsc, err := hex.DecodeString(headTop)
+	require.NoError(t, err)
+	assert.Equal(t, ascOfGit(topAsc), u.GetUpdates()[0].GetNew().GetChangeset())
+	assert.Equal(t, []string{headBottom, headTop}, res.Landed)
+
+	req.NoContentMerge = false
+	_, err = b.Land(t.Context(), req)
+	require.NoError(t, err)
+	assert.False(t, api.updates[1].GetNoContentMerge())
+
+	// LAND_NEEDS_CONTENT_MERGE is its own error; any other failure is not mistaken for it.
+	st, err := status.New(codes.FailedPrecondition, "secret").WithDetails(&ascv1.ErrorDetail{Code: "LAND_NEEDS_CONTENT_MERGE"})
+	require.NoError(t, err)
+	api.updateErr = st.Err()
+	req.NoContentMerge = true
+	_, err = b.Land(t.Context(), req)
+	require.ErrorIs(t, err, ErrAscLandNeedsContentMerge)
+
+	api.updateErr = status.Error(codes.Aborted, "something else")
+	_, err = b.Land(t.Context(), req)
+	require.Error(t, err)
+	assert.NotErrorIs(t, err, ErrAscLandNeedsContentMerge)
+}
+
+func TestInitAscStackFailsClosed(t *testing.T) {
+	// With asc off, nothing is registered.
+	prev := ascStackBackend
+	t.Cleanup(func() { ascStackBackend = prev })
+	ascStackBackend = nil
+	require.NoError(t, InitAscStack())
+	assert.Nil(t, ascStackBackend)
+
+	// With asc on but no internal token the backend stays unset (every stack operation then fails closed)
+	// and the hub still starts.
+	oldEnabled, oldToken := setting.Asc.Enabled, setting.InternalToken
+	t.Cleanup(func() { setting.Asc.Enabled, setting.InternalToken = oldEnabled, oldToken })
+	setting.Asc.Enabled, setting.InternalToken = true, ""
+	require.NoError(t, InitAscStack())
+	assert.Nil(t, ascStackBackend)
+	assert.False(t, AscStackMergeReady(&issues_model.PullRequest{}))
 }
