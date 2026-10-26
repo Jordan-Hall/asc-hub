@@ -142,9 +142,9 @@ var UI = struct {
 		Description string
 		Keywords    string
 	}{
-		Author:      "Forgejo – Beyond coding. We forge.",
-		Description: "Forgejo is a self-hosted lightweight software forge. Easy to install and low maintenance, it just does the job.",
-		Keywords:    "git,forge,forgejo",
+		Author:      "ASC Hub",
+		Description: "ASC Hub: source hosting for asc, with changesets, stacks, review and an inbox.",
+		Keywords:    "asc,git,source control,changesets,stacks,review",
 	},
 }
 
