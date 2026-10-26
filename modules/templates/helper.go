@@ -17,6 +17,7 @@ import (
 	"time"
 
 	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/ascdownload"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/markup"
 	"forgejo.org/modules/setting"
@@ -129,6 +130,13 @@ func NewFuncMap() template.FuncMap {
 		},
 		"AppDomain": func() string { // documented in mail-templates.md
 			return setting.Domain
+		},
+		"AscEnabled": func() bool { // the asc integration is on: the inbox, stacks and the cross repository search exist
+			return setting.Asc.Enabled
+		},
+		"AscDownloadAvailable": func() bool { // a valid asc release is published on this hub
+			_, err := ascdownload.Cached(setting.Asc.DownloadDir, setting.Asc.DownloadBaseURL == "")
+			return err == nil
 		},
 		"RepoFlagsEnabled": func() bool {
 			return setting.Repository.EnableFlags
