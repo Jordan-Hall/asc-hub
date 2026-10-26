@@ -1,0 +1,49 @@
+{{/*
+The cards of a list of storage targets.
+  .Root     the page data (.)
+  .Targets  []TargetView
+  .Manage   true when the actions apply to this page's scope
+*/}}
+{{$a := .Root.Asc}}
+{{$root := .Root}}
+{{$manage := .Manage}}
+<div class="asc-byo-list">
+	{{range .Targets}}
+		<article class="asc-byo-item" aria-labelledby="asc-t-{{.ID}}" data-testid="asc-target" data-state="{{.StateName}}">
+			<header class="asc-byo-item-head">
+				<h4 id="asc-t-{{.ID}}">{{if $manage}}<a href="{{$a.StorageURL}}/targets/{{.ID}}">{{.Name}}</a>{{else}}{{.Name}}{{end}}</h4>
+				{{template "shared/asc/byo_badge" (dict "tone" .Tone "text" (ctx.Locale.Tr .StateKey))}}
+			</header>
+			<dl class="asc-byo-meta">
+				<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.endpoint"}}</dt><dd class="asc-byo-mono">{{.Endpoint}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.bucket"}}</dt><dd class="asc-byo-mono">{{.Bucket}}{{if .Prefix}}/{{.Prefix}}{{end}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.credentials"}}</dt><dd>{{if .HasSecret}}{{svg "octicon-lock" 14}} {{ctx.Locale.Tr "ascbyo.storage.card.credentials_stored" .KeyHint}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.card.credentials_missing"}}{{end}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.repos"}}</dt><dd>{{.Repos}}</dd></div>
+			</dl>
+			{{if .LastError}}<p class="asc-byo-error-line">{{svg "octicon-alert" 14}} {{.LastError}}</p>{{end}}
+			{{if $manage}}
+				<div class="asc-byo-actions">
+					<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/verify">
+						{{$root.CsrfTokenHtml}}
+						<button class="ui {{if .NeedsVerify}}primary{{else}}basic{{end}} button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.verify"}}</button>
+					</form>
+					{{if .CanEnable}}
+						<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/enable">
+							{{$root.CsrfTokenHtml}}
+							<input type="hidden" name="return" value="list">
+							<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.enable"}}</button>
+						</form>
+					{{end}}
+					{{if .CanDisable}}
+						<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/disable">
+							{{$root.CsrfTokenHtml}}
+							<input type="hidden" name="return" value="list">
+							<button class="ui basic button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.disable"}}</button>
+						</form>
+					{{end}}
+					<a class="ui basic button" href="{{$a.StorageURL}}/targets/{{.ID}}">{{ctx.Locale.Tr "ascbyo.storage.card.details"}}</a>
+				</div>
+			{{end}}
+		</article>
+	{{end}}
+</div>

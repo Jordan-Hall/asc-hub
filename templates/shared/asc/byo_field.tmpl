@@ -1,0 +1,25 @@
+{{/*
+One labelled text input with its hint and error.
+  .id            element id (unique on the page)
+  .name          form field name
+  .label         label text
+  .type          input type (default "text")
+  .value         current value; never set it for a secret
+  .hint          help text (optional)
+  .error         translation key of the error (optional)
+  .required      true to mark it required
+  .maxlength     number (optional)
+  .secret        true for a write-only field: password input, never prefilled, no autofill, no spellcheck
+  .list          id of a datalist (optional)
+  .inputmode     inputmode attribute (optional)
+*/}}
+<div class="asc-field{{if .error}} has-error{{end}}">
+	<label for="{{.id}}">{{.label}}{{if .required}} <span class="asc-field-req" title="{{ctx.Locale.Tr "ascbyo.required"}}" aria-hidden="true">*</span>{{end}}</label>
+	{{if .secret}}
+		<input id="{{.id}}" name="{{.name}}" type="password" value="" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"{{if .required}} required{{end}}{{if .maxlength}} maxlength="{{.maxlength}}"{{end}}{{if .error}} aria-invalid="true"{{end}} aria-describedby="{{if .hint}}{{.id}}-hint {{end}}{{if .error}}{{.id}}-err{{end}}">
+	{{else}}
+		<input id="{{.id}}" name="{{.name}}" type="{{if .type}}{{.type}}{{else}}text{{end}}" value="{{.value}}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"{{if .required}} required{{end}}{{if .maxlength}} maxlength="{{.maxlength}}"{{end}}{{if .list}} list="{{.list}}"{{end}}{{if .inputmode}} inputmode="{{.inputmode}}"{{end}}{{if .error}} aria-invalid="true"{{end}} aria-describedby="{{if .hint}}{{.id}}-hint {{end}}{{if .error}}{{.id}}-err{{end}}">
+	{{end}}
+	{{if .hint}}<p class="asc-field-hint" id="{{.id}}-hint">{{.hint}}</p>{{end}}
+	{{if .error}}<p class="asc-field-error" id="{{.id}}-err" role="alert">{{ctx.Locale.Tr .error}}</p>{{end}}
+</div>

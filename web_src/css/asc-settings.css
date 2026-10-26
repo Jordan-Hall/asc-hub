@@ -1,0 +1,434 @@
+/* Storage and AI keys settings (user, organization, repository). Mobile first: the base rules are for
+   320px and up, min-width queries add columns. Colours come from the theme variables, so the asc,
+   forgejo and gitea themes all work; every state badge also carries a word and an icon. */
+
+.asc-byo {
+  min-width: 0;
+  max-width: 56rem;
+}
+
+.asc-byo-title {
+  margin: 0 0 4px;
+}
+
+.asc-byo-lead,
+.asc-byo-scope {
+  margin: 0 0 12px;
+  color: var(--color-text-light-1);
+}
+
+.asc-byo-back {
+  margin: 0 0 8px;
+}
+
+.asc-byo-back a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+}
+
+/* the two pages side by side as tabs; scrolls inside itself when it does not fit */
+.asc-byo-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 12px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.asc-byo-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.asc-byo-tab:hover {
+  background: var(--color-hover);
+}
+
+.asc-byo-tab.active {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* cards and sections */
+.asc-byo-card {
+  margin: 0 0 16px;
+  padding: 14px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-card, var(--border-radius));
+}
+
+.asc-byo-card h3,
+.asc-byo-section h3 {
+  margin-top: 0;
+}
+
+.asc-byo-section {
+  margin: 0 0 16px;
+}
+
+.asc-byo-subhead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 4px;
+  font-size: 1rem;
+}
+
+.asc-byo-group {
+  margin: 16px 0 8px;
+  color: var(--color-text-light-1);
+}
+
+.asc-byo-explain summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-byo-explain ol,
+.asc-byo-explain ul {
+  margin: 4px 0 8px;
+  padding-inline-start: 1.4em;
+}
+
+.asc-byo-danger {
+  border-color: var(--color-error-border);
+}
+
+.asc-byo-danger summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--color-error-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-byo-empty {
+  margin: 8px 0 16px;
+  color: var(--color-text-light-1);
+}
+
+.asc-byo-hint {
+  color: var(--color-text-light-1);
+  font-size: 0.9rem;
+}
+
+.asc-byo-mono {
+  font-family: var(--fonts-monospace);
+  overflow-wrap: anywhere;
+}
+
+.asc-byo-detail {
+  color: var(--color-text-light-1);
+  overflow-wrap: anywhere;
+}
+
+.asc-byo-error-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 8px 0 0;
+  color: var(--color-error-text);
+  overflow-wrap: anywhere;
+}
+
+.asc-byo-problem p {
+  overflow-wrap: anywhere;
+}
+
+/* list of targets or keys: one card per item */
+.asc-byo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.asc-byo-item {
+  padding: 14px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-card, var(--border-radius));
+}
+
+.asc-byo-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.asc-byo-item-head h4 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* label and value pairs: stacked on a phone, side by side from 640px */
+.asc-byo-meta {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.asc-byo-meta > div {
+  min-width: 0;
+}
+
+.asc-byo-meta dt {
+  color: var(--color-text-light-2);
+  font-size: 0.85rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-byo-meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.asc-byo-card.asc-byo-meta {
+  padding: 14px;
+}
+
+/* actions: full-width touch targets on a phone */
+.asc-byo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.asc-byo-actions form {
+  margin: 0;
+}
+
+.asc-byo-actions .ui.button,
+.asc-byo-form .ui.button {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+}
+
+/* state badge */
+.asc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 999px;
+  background: var(--color-box-body);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.asc-badge-good {
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
+}
+
+.asc-badge-warn {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-text);
+}
+
+.asc-badge-bad {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error-text);
+}
+
+/* forms */
+.asc-byo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.asc-form-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.asc-field {
+  min-width: 0;
+}
+
+.asc-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-field input:not([type="checkbox"], [type="radio"]),
+.asc-field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  background: var(--color-input-background);
+  color: var(--color-input-text);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--border-radius);
+}
+
+.asc-field input:not([type="checkbox"], [type="radio"]):focus-visible,
+.asc-field select:focus-visible {
+  border-color: var(--color-primary);
+}
+
+.asc-field.has-error input:not([type="checkbox"], [type="radio"]),
+.asc-field.has-error select {
+  border-color: var(--color-error-text);
+}
+
+.asc-field-check label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  font-weight: normal;
+}
+
+.asc-field-check input[type="checkbox"] {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+}
+
+.asc-field-req {
+  color: var(--color-error-text);
+}
+
+.asc-field-hint {
+  margin: 4px 0 0;
+  color: var(--color-text-light-1);
+  font-size: 0.9rem;
+}
+
+.asc-field-error {
+  display: block;
+  margin: 4px 0 0;
+  color: var(--color-error-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-byo-secrets {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-card, var(--border-radius));
+}
+
+.asc-byo-secrets legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-byo-more summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* verification steps and models */
+.asc-byo-steps {
+  margin: 8px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.asc-byo-steps li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.asc-byo-steps li.ok svg {
+  color: var(--color-success-text);
+}
+
+.asc-byo-steps li.fail svg {
+  color: var(--color-error-text);
+}
+
+.asc-byo-models {
+  margin: 0;
+  padding-inline-start: 1.2em;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+/* progress of a migration and spend meters */
+.asc-byo-progress {
+  margin: 0 0 12px;
+}
+
+.asc-migration-bar,
+.asc-meter {
+  display: block;
+  width: 100%;
+  height: 12px;
+  margin-top: 4px;
+  accent-color: var(--color-primary);
+}
+
+.asc-meter-warn {
+  accent-color: var(--color-warning-text);
+}
+
+.asc-meter-bad {
+  accent-color: var(--color-error-text);
+}
+
+@media (min-width: 640px) {
+  .asc-byo-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .asc-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .asc-byo-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .asc-byo-actions .ui.button,
+  .asc-byo-form .ui.button {
+    width: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .asc-byo-card,
+  .asc-byo-item {
+    padding: 18px;
+  }
+}

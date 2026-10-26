@@ -71,5 +71,13 @@
 			</div>
 		</details>
 		{{end}}
+		{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
+		<a class="{{if .PageIsSettingsAscStorage}}active {{end}}item" href="{{.RepoLink}}/settings/asc/storage">
+			{{ctx.Locale.Tr "ascbyo.nav_storage"}}
+		</a>
+		<a class="{{if .PageIsSettingsAscAI}}active {{end}}item" href="{{.RepoLink}}/settings/asc/ai">
+			{{ctx.Locale.Tr "ascbyo.nav_ai"}}
+		</a>
+		{{end}}
 	</div>
 </div>

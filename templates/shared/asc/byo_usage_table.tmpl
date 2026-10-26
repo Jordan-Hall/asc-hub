@@ -1,0 +1,23 @@
+{{/* A usage table. .Rows is []UsageRowView. */}}
+<table class="ui table asc-stack">
+	<thead>
+		<tr>
+			<th>{{ctx.Locale.Tr "ascbyo.ai.detail.col_group"}}</th>
+			<th>{{ctx.Locale.Tr "ascbyo.ai.detail.col_requests"}}</th>
+			<th>{{ctx.Locale.Tr "ascbyo.ai.detail.col_input"}}</th>
+			<th>{{ctx.Locale.Tr "ascbyo.ai.detail.col_output"}}</th>
+			<th>{{ctx.Locale.Tr "ascbyo.ai.detail.col_cost"}}</th>
+		</tr>
+	</thead>
+	<tbody>
+		{{range .Rows}}
+			<tr>
+				<td data-label="{{ctx.Locale.Tr "ascbyo.ai.detail.col_group"}}" class="asc-byo-mono">{{.Group}}</td>
+				<td data-label="{{ctx.Locale.Tr "ascbyo.ai.detail.col_requests"}}">{{.Requests}}</td>
+				<td data-label="{{ctx.Locale.Tr "ascbyo.ai.detail.col_input"}}">{{.InputTokens}}</td>
+				<td data-label="{{ctx.Locale.Tr "ascbyo.ai.detail.col_output"}}">{{.OutputTokens}}</td>
+				<td data-label="{{ctx.Locale.Tr "ascbyo.ai.detail.col_cost"}}">{{.Cost}}</td>
+			</tr>
+		{{end}}
+	</tbody>
+</table>

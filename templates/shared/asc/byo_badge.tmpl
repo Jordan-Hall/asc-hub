@@ -1,0 +1,12 @@
+{{/*
+A state badge. The text is always shown, so colour is never the only signal.
+  .tone  neutral, good, warn or bad
+  .text  the state name
+*/}}
+<span class="asc-badge asc-badge-{{.tone}}">
+	{{if eq .tone "good"}}{{svg "octicon-check-circle-fill" 14}}
+	{{else if eq .tone "bad"}}{{svg "octicon-x-circle-fill" 14}}
+	{{else if eq .tone "warn"}}{{svg "octicon-alert" 14}}
+	{{else}}{{svg "octicon-dot-fill" 14}}{{end}}
+	<span>{{.text}}</span>
+</span>

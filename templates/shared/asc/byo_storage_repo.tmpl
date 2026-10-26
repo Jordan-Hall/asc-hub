@@ -1,0 +1,95 @@
+{{/* Repository only: where new objects go, migration, progress and history. */}}
+{{$a := .Asc}}
+<section class="asc-byo-card" aria-labelledby="asc-assign-h">
+	<h3 id="asc-assign-h">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_title"}}</h3>
+	<p>{{ctx.Locale.Tr "ascbyo.storage.repo.assign_help"}}</p>
+	{{if $a.Usable}}
+		<form class="asc-byo-form" method="post" action="{{$a.StorageURL}}/assign" data-testid="asc-assign">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="op_id" value="{{$a.Op "assign"}}">
+			<div class="asc-field">
+				<label for="asc-assign-target">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_field"}}</label>
+				<select id="asc-assign-target" name="target_id">
+					<option value="">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_default"}}</option>
+					{{range $a.Usable}}<option value="{{.ID}}">{{.Label}}</option>{{end}}
+				</select>
+			</div>
+			<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_button"}}</button>
+		</form>
+	{{else}}
+		<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.repo.no_usable"}}</p>
+	{{end}}
+</section>
+
+<section class="asc-byo-card" aria-labelledby="asc-migrate-h">
+	<h3 id="asc-migrate-h">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_title"}}</h3>
+	<p>{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_help"}}</p>
+	{{with $a.ActiveMigration}}
+		<div class="asc-byo-progress" role="status" data-testid="asc-migration-active" data-asc-migration-status-url="{{$a.StorageURL}}/migrations/{{.ID}}/status">
+			<p><strong class="asc-migration-label">{{ctx.Locale.Tr .StateKey}}</strong></p>
+			<progress class="asc-migration-bar" max="100" value="{{.Percent}}" aria-label="{{ctx.Locale.Tr .StateKey}}">{{.Percent}}%</progress>
+			<p class="asc-byo-hint"><span class="asc-migration-count">{{ctx.Locale.Tr "ascbyo.storage.repo.progress" .Copied .Total}}</span></p>
+			{{if .Cancellable}}
+				<form method="post" action="{{$a.StorageURL}}/migrations/{{.ID}}/cancel">
+					{{$.CsrfTokenHtml}}
+					<button class="ui basic red button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.cancel"}}</button>
+				</form>
+			{{end}}
+		</div>
+		<p class="asc-byo-hint">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_running"}}</p>
+	{{else}}
+		{{if $a.Usable}}
+			<form class="asc-byo-form" method="post" action="{{$a.StorageURL}}/migrations" data-testid="asc-migrate">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="op_id" value="{{$a.Op "migrate"}}">
+				<div class="asc-field">
+					<label for="asc-migrate-target">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_field"}}</label>
+					<select id="asc-migrate-target" name="target_id">
+						<option value="">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_default"}}</option>
+						{{range $a.Usable}}<option value="{{.ID}}">{{.Label}}</option>{{end}}
+					</select>
+				</div>
+				<div class="asc-field asc-field-check">
+					<label><input type="checkbox" name="delete_source" value="on"> {{ctx.Locale.Tr "ascbyo.storage.repo.migrate_delete_source"}}</label>
+					<p class="asc-field-hint">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_delete_help"}}</p>
+				</div>
+				<div class="asc-field asc-field-check{{if $a.Errors.confirm_delete_source}} has-error{{end}}">
+					<label><input type="checkbox" name="confirm_delete_source" value="on"{{if $a.Errors.confirm_delete_source}} aria-invalid="true" aria-describedby="asc-confirm-err"{{end}}> {{ctx.Locale.Tr "ascbyo.storage.repo.migrate_confirm_delete"}}</label>
+					{{if $a.Errors.confirm_delete_source}}<p class="asc-field-error" id="asc-confirm-err" role="alert">{{ctx.Locale.Tr $a.Errors.confirm_delete_source}}</p>{{end}}
+				</div>
+				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_button"}}</button>
+			</form>
+		{{else}}
+			<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.repo.no_usable"}}</p>
+		{{end}}
+	{{end}}
+</section>
+
+<section class="asc-byo-section" aria-labelledby="asc-history-h">
+	<h3 id="asc-history-h">{{ctx.Locale.Tr "ascbyo.storage.repo.history_title"}}</h3>
+	{{if $a.Migrations}}
+		<table class="ui table asc-stack" data-testid="asc-migration-history">
+			<thead>
+				<tr>
+					<th>{{ctx.Locale.Tr "ascbyo.storage.repo.history_state"}}</th>
+					<th>{{ctx.Locale.Tr "ascbyo.storage.repo.history_to"}}</th>
+					<th>{{ctx.Locale.Tr "ascbyo.storage.repo.history_started"}}</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{range $a.Migrations}}
+					<tr>
+						<td data-label="{{ctx.Locale.Tr "ascbyo.storage.repo.history_state"}}">
+							{{ctx.Locale.Tr .StateKey}}{{if .Active}} ({{.Percent}}%){{end}}
+							{{if .Error}}<br><span class="asc-byo-error-line">{{.Error}}</span>{{end}}
+						</td>
+						<td data-label="{{ctx.Locale.Tr "ascbyo.storage.repo.history_to"}}" class="asc-byo-mono">{{if .ToTarget}}{{.ToTarget}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.repo.history_default"}}{{end}}</td>
+						<td data-label="{{ctx.Locale.Tr "ascbyo.storage.repo.history_started"}}">{{if .Created}}{{DateUtils.AbsoluteShort .Created}}{{end}}</td>
+					</tr>
+				{{end}}
+			</tbody>
+		</table>
+	{{else}}
+		<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.repo.history_none"}}</p>
+	{{end}}
+</section>

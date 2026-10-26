@@ -1,0 +1,37 @@
+{{/*
+The fields of the add and edit forms of a storage target.
+  .Root  the page data (.)
+  .Edit  true on the edit form: the credentials are optional and keep their stored value when left empty
+  .Pfx   id prefix, unique per form on the page
+*/}}
+{{$a := .Root.Asc}}
+{{$f := $a.StorageForm}}
+{{$pfx := .Pfx}}
+<div class="asc-form-grid">
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-name") "name" "name" "label" (ctx.Locale.Tr "ascbyo.storage.field.name") "hint" (ctx.Locale.Tr "ascbyo.storage.field.name_hint") "value" $f.Name "error" $a.Errors.name "required" true "maxlength" 40)}}
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-endpoint") "name" "endpoint" "label" (ctx.Locale.Tr "ascbyo.storage.field.endpoint") "hint" (ctx.Locale.Tr "ascbyo.storage.field.endpoint_hint") "value" $f.Endpoint "error" $a.Errors.endpoint "required" true "maxlength" 2048 "type" "url" "inputmode" "url")}}
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-bucket") "name" "bucket" "label" (ctx.Locale.Tr "ascbyo.storage.field.bucket") "hint" (ctx.Locale.Tr "ascbyo.storage.field.bucket_hint") "value" $f.Bucket "error" $a.Errors.bucket "required" true "maxlength" 63)}}
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-prefix") "name" "prefix" "label" (ctx.Locale.Tr "ascbyo.storage.field.prefix") "hint" (ctx.Locale.Tr "ascbyo.storage.field.prefix_hint") "value" $f.Prefix "error" $a.Errors.prefix "maxlength" 512)}}
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-region") "name" "region" "label" (ctx.Locale.Tr "ascbyo.storage.field.region") "hint" (ctx.Locale.Tr "ascbyo.storage.field.region_hint") "value" $f.Region "error" $a.Errors.region "maxlength" 64)}}
+	<div class="asc-field{{if $a.Errors.addressing}} has-error{{end}}">
+		<label for="{{$pfx}}-addressing">{{ctx.Locale.Tr "ascbyo.storage.field.addressing"}}</label>
+		<select id="{{$pfx}}-addressing" name="addressing"{{if $a.Errors.addressing}} aria-invalid="true" aria-describedby="{{$pfx}}-addressing-err"{{end}}>
+			<option value="auto"{{if or (eq $f.Addressing "auto") (eq $f.Addressing "")}} selected{{end}}>{{ctx.Locale.Tr "ascbyo.storage.field.addressing_auto"}}</option>
+			<option value="path"{{if eq $f.Addressing "path"}} selected{{end}}>{{ctx.Locale.Tr "ascbyo.storage.field.addressing_path"}}</option>
+			<option value="virtual_host"{{if eq $f.Addressing "virtual_host"}} selected{{end}}>{{ctx.Locale.Tr "ascbyo.storage.field.addressing_virtual"}}</option>
+		</select>
+		{{if $a.Errors.addressing}}<p class="asc-field-error" id="{{$pfx}}-addressing-err" role="alert">{{ctx.Locale.Tr $a.Errors.addressing}}</p>{{end}}
+	</div>
+</div>
+<fieldset class="asc-byo-secrets">
+	<legend>{{svg "octicon-lock" 16}} {{ctx.Locale.Tr "ascbyo.storage.card.credentials"}}</legend>
+	<p class="asc-field-hint">{{ctx.Locale.Tr "ascbyo.secret_note"}}{{if .Edit}} {{ctx.Locale.Tr "ascbyo.storage.field.credentials_new_hint"}}{{end}}</p>
+	<div class="asc-form-grid">
+		{{template "shared/asc/byo_field" (dict "id" (print $pfx "-akid") "name" "access_key_id" "label" (ctx.Locale.Tr "ascbyo.storage.field.access_key_id") "error" $a.Errors.access_key_id "required" (not .Edit) "maxlength" 128 "secret" true)}}
+		{{template "shared/asc/byo_field" (dict "id" (print $pfx "-secret") "name" "secret_access_key" "label" (ctx.Locale.Tr "ascbyo.storage.field.secret_access_key") "error" $a.Errors.secret_access_key "required" (not .Edit) "maxlength" 256 "secret" true)}}
+	</div>
+	<details class="asc-byo-more"{{if $a.Errors.session_token}} open{{end}}>
+		<summary>{{ctx.Locale.Tr "ascbyo.storage.field.session_token"}}</summary>
+		{{template "shared/asc/byo_field" (dict "id" (print $pfx "-token") "name" "session_token" "label" (ctx.Locale.Tr "ascbyo.storage.field.session_token") "hint" (ctx.Locale.Tr "ascbyo.storage.field.session_token_hint") "error" $a.Errors.session_token "maxlength" 4096 "secret" true)}}
+	</details>
+</fieldset>
