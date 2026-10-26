@@ -7,6 +7,8 @@ Settings (all under `[asc]`, all need `ENABLED = true`):
 - `BRIDGE = eager|lazy|off` (default `eager`). `lazy` builds the git directory on the first legacy git request with
   `asc export --git` and rebuilds it when the refs in asc moved (`services/ascbridge`). `off` refuses git access.
 - `NEW_REPOSITORIES = git|asc`, `ASC_BINARY`, `BRIDGE_WORKSPACES`.
+- `PUBLIC_URL` (default `SERVER_URL`): the asc address that `/.well-known/asc` and the Actions context announce to
+  clients. `SERVER_URL` stays the address Forgejo dials. `PUBLIC_URL` must be https unless its host is loopback.
 
 Writer rules: git ids are mapped with `GitMap` at the boundary; a change is built without a ref and published with one
 `UpdateRefs` call (fast-forward, or force when asked); `refs/pull/*` use `HOOK_MODE_SKIP_PRE`; `BeforePublish` runs
