@@ -5,6 +5,7 @@ package setting
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 	"unicode"
@@ -16,8 +17,12 @@ import (
 var Asc = struct {
 	// Enabled turns on the internal authz endpoint and /.well-known/asc.
 	Enabled bool `ini:"ENABLED"`
-	// ServerURL is the public base URL of `asc serve`, announced by /.well-known/asc.
+	// ServerURL is the base URL Forgejo itself dials `asc serve` on (a loopback address is fine).
 	ServerURL string `ini:"SERVER_URL"`
+	// PublicURL is the base URL asc clients and Actions runners are told to use, announced by
+	// /.well-known/asc. It defaults to ServerURL; set it when Forgejo reaches asc on an address that
+	// outside clients cannot (for example the hub's own root URL when it proxies asc). Use AscPublicURL.
+	PublicURL string `ini:"PUBLIC_URL"`
 	// ShadowSamplePercent is the share (0 to 100) of read calls of a storage_backend=dual repository that
 	// are repeated against asc and compared (modules/git/dual). Zero turns the shadow off.
 	ShadowSamplePercent int `ini:"SHADOW_SAMPLE_PERCENT"`
@@ -53,6 +58,7 @@ const DefaultAscShadowSamplePercent = 10
 func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.Enabled = false
 	Asc.ServerURL = ""
+	Asc.PublicURL = ""
 	Asc.ShadowSamplePercent = DefaultAscShadowSamplePercent
 	Asc.Writer = AscWriterGit
 	Asc.Bridge = AscBridgeEager
@@ -92,6 +98,48 @@ func loadAscFrom(rootCfg ConfigProvider) {
 		log.Fatal("Invalid [asc] SERVER_URL: %v", err)
 	}
 	Asc.ServerURL = serverURL
+	if strings.TrimSpace(Asc.PublicURL) == "" {
+		Asc.PublicURL = ""
+		return
+	}
+	publicURL, err := validateAscPublicURL(Asc.PublicURL)
+	if err != nil {
+		log.Fatal("Invalid [asc] PUBLIC_URL: %v", err)
+	}
+	Asc.PublicURL = publicURL
+}
+
+// AscPublicURL is the asc URL to announce to clients: [asc] PUBLIC_URL, or SERVER_URL when it is not set.
+func AscPublicURL() string {
+	if Asc.PublicURL != "" {
+		return Asc.PublicURL
+	}
+	return Asc.ServerURL
+}
+
+// validateAscPublicURL is validateAscServerURL for a URL that outside clients dial: it must also be https,
+// except for a loopback host (a local setup), because a client sends its credentials there.
+func validateAscPublicURL(raw string) (string, error) {
+	normalised, err := validateAscServerURL(raw)
+	if err != nil {
+		return "", err
+	}
+	u, err := url.Parse(normalised)
+	if err != nil {
+		return "", err
+	}
+	if u.Scheme != "https" && !isLoopbackHost(u.Hostname()) {
+		return "", fmt.Errorf("must use https unless the host is loopback")
+	}
+	return normalised, nil
+}
+
+func isLoopbackHost(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }
 
 // validateAscServerURL returns the normalised URL of asc serve (no trailing slash).

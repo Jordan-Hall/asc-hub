@@ -16,13 +16,14 @@ type ascWellKnown struct {
 	Repos  string `json:"repos"`
 }
 
-// AscWellKnown tells asc clients where `asc serve` lives. It answers 404 unless
-// `[asc] ENABLED` is true. The document is public and holds no secret.
+// AscWellKnown tells asc clients where `asc serve` lives: [asc] PUBLIC_URL, or SERVER_URL when that is not
+// set. It answers 404 unless `[asc] ENABLED` is true. The document is public and holds no secret.
 func AscWellKnown(ctx *context.Context) {
-	if !setting.Asc.Enabled || setting.Asc.ServerURL == "" {
+	server := setting.AscPublicURL()
+	if !setting.Asc.Enabled || server == "" {
 		ctx.Error(http.StatusNotFound)
 		return
 	}
 	ctx.Resp.Header().Set("Cache-Control", "public, max-age=300")
-	ctx.JSON(http.StatusOK, ascWellKnown{Server: setting.Asc.ServerURL, Repos: "*"})
+	ctx.JSON(http.StatusOK, ascWellKnown{Server: server, Repos: "*"})
 }

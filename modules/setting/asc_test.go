@@ -100,3 +100,59 @@ NEW_REPOSITORIES = asc
 	assert.Equal(t, "/var/lib/forgejo/asc-bridge", Asc.BridgeWorkspaces)
 	assert.Equal(t, AscWriterAsc, Asc.NewRepositories)
 }
+
+func TestValidateAscPublicURL(t *testing.T) {
+	for raw, want := range map[string]string{
+		"https://hub.example.org":      "https://hub.example.org",
+		" https://hub.example.org/ ":   "https://hub.example.org",
+		"https://hub.example.org:8443": "https://hub.example.org:8443",
+		"http://127.0.0.1:7890":        "http://127.0.0.1:7890",
+		"http://localhost:7890/":       "http://localhost:7890",
+		"http://[::1]:7890":            "http://[::1]:7890",
+	} {
+		got, err := validateAscPublicURL(raw)
+		require.NoError(t, err, raw)
+		assert.Equal(t, want, got)
+	}
+	for _, raw := range []string{
+		"", "hub.example.org", "http://hub.example.org", "http://10.0.0.5:7890", "ftp://hub.example.org",
+		"https://u:p@hub.example.org", "https://hub.example.org?x=1", "https://hub.example.org#f",
+	} {
+		_, err := validateAscPublicURL(raw)
+		require.Error(t, err, raw)
+	}
+}
+
+func TestLoadAscFromPublicURL(t *testing.T) {
+	cfg, err := NewConfigProviderFromData(`
+[asc]
+ENABLED = true
+SERVER_URL = http://127.0.0.1:7890
+`)
+	require.NoError(t, err)
+	loadAscFrom(cfg)
+	assert.Empty(t, Asc.PublicURL)
+	assert.Equal(t, "http://127.0.0.1:7890", AscPublicURL(), "without PUBLIC_URL the server URL is announced")
+
+	cfg, err = NewConfigProviderFromData(`
+[asc]
+ENABLED = true
+SERVER_URL = http://127.0.0.1:7890
+PUBLIC_URL = https://hub.example.org/
+`)
+	require.NoError(t, err)
+	loadAscFrom(cfg)
+	assert.Equal(t, "https://hub.example.org", Asc.PublicURL)
+	assert.Equal(t, "https://hub.example.org", AscPublicURL())
+	assert.Equal(t, "http://127.0.0.1:7890", Asc.ServerURL, "Forgejo still dials the server URL")
+
+	cfg, err = NewConfigProviderFromData(`
+[asc]
+ENABLED = true
+SERVER_URL = http://127.0.0.1:7890
+PUBLIC_URL = "  "
+`)
+	require.NoError(t, err)
+	loadAscFrom(cfg)
+	assert.Equal(t, "http://127.0.0.1:7890", AscPublicURL(), "a blank PUBLIC_URL is not set")
+}
