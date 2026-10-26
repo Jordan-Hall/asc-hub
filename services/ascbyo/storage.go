@@ -17,7 +17,7 @@ func (s *Service) ListTargets(ctx context.Context, sc Scope) ([]*ascv1.StorageTa
 	if !sc.Valid() {
 		return nil, failure(FailInvalid)
 	}
-	cctx, cancel := call(ctx, "", false)
+	cctx, cancel := s.call(ctx, sc, "ListTargets", "", false)
 	defer cancel()
 	resp, err := s.api.Storage.ListTargets(cctx, &ascv1.ListStorageTargetsRequest{Owner: sc.Owner()})
 	if err != nil {
@@ -47,7 +47,7 @@ func (s *Service) GetTarget(ctx context.Context, sc Scope, id string) (*ascv1.St
 }
 
 func (s *Service) fetchTarget(ctx context.Context, sc Scope, id string) (*ascv1.StorageTarget, error) {
-	cctx, cancel := call(ctx, "", false)
+	cctx, cancel := s.call(ctx, sc, "fetchTarget", "", false)
 	defer cancel()
 	resp, err := s.api.Storage.GetTarget(cctx, &ascv1.GetStorageTargetRequest{Id: id})
 	if err != nil {
@@ -69,7 +69,7 @@ func (s *Service) CreateTarget(ctx context.Context, sc Scope, in *StorageInput, 
 	if fe := in.Validate(true); len(fe) > 0 {
 		return nil, fe, nil
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, sc, "CreateTarget", op, false)
 	defer cancel()
 	resp, err := s.api.Storage.CreateTarget(cctx, &ascv1.CreateStorageTargetRequest{
 		Owner:      sc.Owner(),
@@ -88,7 +88,32 @@ func (s *Service) CreateTarget(ctx context.Context, sc Scope, in *StorageInput, 
 	if err != nil {
 		return nil, nil, done("create storage target", sc, err, in.secrets()...)
 	}
-	return resp.GetTarget(), nil, nil
+	t := resp.GetTarget()
+	if t == nil || !ValidTargetID(t.GetId()) || !sc.Owns(t.GetOwner()) {
+		// An answer about no target, or about another owner's, is a server bug; nothing of it is shown.
+		return nil, nil, failure(FailInternal)
+	}
+	return t, nil, nil
+}
+
+// ownedTarget checks the target that asc returned from a change of target id: it has to be there, be that
+// target and belong to the scope. Anything else is not returned.
+func ownedTarget(sc Scope, id string, t *ascv1.StorageTarget) (*ascv1.StorageTarget, error) {
+	if t == nil {
+		return nil, failure(FailInternal)
+	}
+	if t.GetId() != id || !sc.Owns(t.GetOwner()) {
+		return nil, failure(FailNotFound)
+	}
+	return t, nil
+}
+
+// ConnectionChanged reports whether in names another place than cur: the endpoint, the bucket, the region or
+// the addressing differ. The stored credentials were given for the old place; keeping them for a new one
+// would send them to whoever runs that place. in has to be validated (normalised) first.
+func (in *StorageInput) ConnectionChanged(cur *ascv1.StorageTarget) bool {
+	return in.Endpoint != cur.GetEndpoint() || in.Bucket != cur.GetBucket() || in.Region != cur.GetRegion() ||
+		in.Addressing != cur.GetAddressing()
 }
 
 // UpdateTarget changes the fields of a target that differ from the stored ones and replaces the credentials
@@ -98,7 +123,17 @@ func (s *Service) UpdateTarget(ctx context.Context, sc Scope, id string, in *Sto
 	if err != nil {
 		return nil, false, nil, err
 	}
-	if fe := in.Validate(false); len(fe) > 0 {
+	fe = in.Validate(false)
+	if in.ConnectionChanged(cur) {
+		// New place, new credentials: the key id and the secret have to be typed again.
+		if in.AccessKeyID == "" {
+			fe.Add("access_key_id", "ascbyo.storage.err.access_key_id")
+		}
+		if in.SecretAccessKey == "" {
+			fe.Add("secret_access_key", "ascbyo.storage.err.secret_access_key")
+		}
+	}
+	if len(fe) > 0 {
 		return cur, false, fe, nil
 	}
 	req := &ascv1.UpdateStorageTargetRequest{Id: id}
@@ -131,13 +166,17 @@ func (s *Service) UpdateTarget(ctx context.Context, sc Scope, id string, in *Sto
 	if !changed {
 		return cur, false, nil, nil
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, sc, "UpdateTarget", op, false)
 	defer cancel()
 	resp, err := s.api.Storage.UpdateTarget(cctx, req)
 	if err != nil {
 		return nil, false, nil, done("update storage target", sc, err, in.secrets()...)
 	}
-	return resp.GetTarget(), true, nil, nil
+	t, err = ownedTarget(sc, id, resp.GetTarget())
+	if err != nil {
+		return nil, false, nil, err
+	}
+	return t, true, nil, nil
 }
 
 // DeleteTarget removes a target. asc refuses while a repository uses it.
@@ -145,7 +184,7 @@ func (s *Service) DeleteTarget(ctx context.Context, sc Scope, id, op string) err
 	if _, err := s.GetTarget(ctx, sc, id); err != nil {
 		return err
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, sc, "DeleteTarget", op, false)
 	defer cancel()
 	_, err := s.api.Storage.DeleteTarget(cctx, &ascv1.DeleteStorageTargetRequest{Id: id})
 	return done("delete storage target", sc, err)
@@ -192,7 +231,7 @@ func (s *Service) VerifyTarget(ctx context.Context, sc Scope, id, op string) (*V
 	if _, err := s.GetTarget(ctx, sc, id); err != nil {
 		return nil, err
 	}
-	cctx, cancel := call(ctx, op, true)
+	cctx, cancel := s.call(ctx, sc, "VerifyTarget", op, true)
 	defer cancel()
 	resp, err := s.api.Storage.VerifyTarget(cctx, &ascv1.VerifyStorageTargetRequest{Id: id})
 	if err != nil {
@@ -222,13 +261,13 @@ func (s *Service) SetEnabled(ctx context.Context, sc Scope, id string, enabled b
 	if _, err := s.GetTarget(ctx, sc, id); err != nil {
 		return nil, err
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, sc, "SetEnabled", op, false)
 	defer cancel()
 	resp, err := s.api.Storage.SetEnabled(cctx, &ascv1.SetStorageTargetEnabledRequest{Id: id, Enabled: enabled})
 	if err != nil {
 		return nil, done("set storage target enabled", sc, err)
 	}
-	return resp.GetTarget(), nil
+	return ownedTarget(sc, id, resp.GetTarget())
 }
 
 // RepoTargets are the targets a repository may use: its own and those of the owners in allowed (the owners
@@ -286,7 +325,7 @@ func (s *Service) AssignRepo(ctx context.Context, repo Scope, allowed []Scope, t
 			return err
 		}
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, repo, "AssignRepo", op, false)
 	defer cancel()
 	_, err := s.api.Storage.AssignRepo(cctx, &ascv1.AssignRepoStorageRequest{Repo: repo.Repo(), TargetId: targetID})
 	return done("assign repository storage", repo, err)
@@ -361,7 +400,7 @@ func (s *Service) ListMigrations(ctx context.Context, repo Scope) ([]*Migration,
 	if repo.Kind != KindRepo || !repo.Valid() {
 		return nil, failure(FailInvalid)
 	}
-	cctx, cancel := call(ctx, "", false)
+	cctx, cancel := s.call(ctx, repo, "ListMigrations", "", false)
 	defer cancel()
 	resp, err := s.api.Storage.ListMigrations(cctx, &ascv1.ListStorageMigrationsRequest{Repo: repo.Repo(), Limit: MaxMigrationsShown})
 	if err != nil {
@@ -385,7 +424,7 @@ func (s *Service) GetMigration(ctx context.Context, repo Scope, id string) (*Mig
 	if repo.Kind != KindRepo || !repo.Valid() || !ValidMigrationID(id) {
 		return nil, failure(FailNotFound)
 	}
-	cctx, cancel := call(ctx, "", false)
+	cctx, cancel := s.call(ctx, repo, "GetMigration", "", false)
 	defer cancel()
 	resp, err := s.api.Storage.GetMigration(cctx, &ascv1.GetStorageMigrationRequest{Id: id})
 	if err != nil {
@@ -409,7 +448,7 @@ func (s *Service) StartMigration(ctx context.Context, repo Scope, allowed []Scop
 			return nil, err
 		}
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, repo, "StartMigration", op, false)
 	defer cancel()
 	resp, err := s.api.Storage.StartMigration(cctx, &ascv1.StartStorageMigrationRequest{Repo: repo.Repo(), ToTargetId: targetID, DeleteSource: deleteSource})
 	if err != nil {
@@ -427,7 +466,7 @@ func (s *Service) CancelMigration(ctx context.Context, repo Scope, id, op string
 	if _, err := s.GetMigration(ctx, repo, id); err != nil {
 		return nil, err
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, repo, "CancelMigration", op, false)
 	defer cancel()
 	resp, err := s.api.Storage.CancelMigration(cctx, &ascv1.CancelStorageMigrationRequest{Id: id})
 	if err != nil {

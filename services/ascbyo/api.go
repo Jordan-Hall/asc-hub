@@ -5,7 +5,11 @@ package ascbyo
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/binary"
 	"errors"
+	"strconv"
 	"sync"
 	"time"
 
@@ -80,7 +84,19 @@ func UseAPI(a API) (restore func()) {
 }
 
 // Service is the entry point. It is cheap; get one per request.
-type Service struct{ api *API }
+type Service struct {
+	api *API
+	// user is the id of the signed-in user the calls are made for. It is part of every derived op id, so one
+	// user cannot replay or pre-empt the op id of another.
+	user int64
+}
+
+// ForUser returns a Service whose op ids are bound to the signed-in user with this id.
+func (s *Service) ForUser(userID int64) *Service {
+	c := *s
+	c.user = userID
+	return &c
+}
 
 // New returns a Service, or an unavailable Failure when asc cannot be reached from this configuration.
 func New() (*Service, error) {
@@ -92,12 +108,43 @@ func New() (*Service, error) {
 	return &Service{api: a}, nil
 }
 
-// call returns the context of one call: a system call with a timeout and, when op is a UUID, its op id.
-// op comes from a hidden form field; anything that does not parse is ignored and the client picks one.
-func call(ctx context.Context, op string, slow bool) (context.Context, context.CancelFunc) {
+// opIDDomain separates the op id key from every other use of the app secret.
+const opIDDomain = "asc byo op id v1"
+
+// deriveOpID turns the op id a form carried into the one sent to asc: an HMAC, keyed by the app secret, of
+// the user, the scope, the method and the form's id. asc replays the first answer of an op id, so an id
+// taken as sent would let a client choose which earlier answer (of another user, scope or method) it gets
+// back. It returns "" when the form id is not a UUID or the app secret is not set; the client then picks a
+// fresh id.
+func deriveOpID(secret string, user int64, sc Scope, method, formOp string) string {
+	id, err := uuid.Parse(formOp)
+	if err != nil || id == uuid.Nil || secret == "" {
+		return ""
+	}
+	key := sha256.Sum256([]byte(opIDDomain + "\x00" + secret))
+	m := hmac.New(sha256.New, key[:])
+	for _, part := range [][]byte{[]byte(strconv.FormatInt(user, 10)), []byte(sc.String()), []byte(method), id[:]} {
+		var n [4]byte
+		binary.BigEndian.PutUint32(n[:], uint32(len(part)))
+		m.Write(n[:])
+		m.Write(part)
+	}
+	var out uuid.UUID
+	copy(out[:], m.Sum(nil))
+	out[6] = out[6]&0x0f | 0x80 // version 8: custom
+	out[8] = out[8]&0x3f | 0x80 // RFC 4122 variant
+	return out.String()
+}
+
+// call returns the context of one call: a system call with a timeout and, when op is a UUID, an op id
+// derived from it (see deriveOpID). op comes from a hidden form field and is never sent as it is; anything
+// that does not parse is ignored and the client picks one. method names the call, sc the scope it is for.
+func (s *Service) call(ctx context.Context, sc Scope, method, op string, slow bool) (context.Context, context.CancelFunc) {
 	ctx = ascclient.WithSystem(ctx)
-	if id, err := uuid.Parse(op); err == nil && id != uuid.Nil {
-		ctx = ascclient.WithOpID(ctx, id)
+	if d := deriveOpID(setting.SecretKey, s.user, sc, method, op); d != "" {
+		if id, err := uuid.Parse(d); err == nil {
+			ctx = ascclient.WithOpID(ctx, id)
+		}
 	}
 	d := callTimeout
 	if slow {

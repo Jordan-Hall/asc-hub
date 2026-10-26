@@ -16,7 +16,7 @@ func (s *Service) ListKeys(ctx context.Context, sc Scope) ([]*ascv1.AiKey, error
 	if !sc.Valid() {
 		return nil, failure(FailInvalid)
 	}
-	cctx, cancel := call(ctx, "", false)
+	cctx, cancel := s.call(ctx, sc, "ListKeys", "", false)
 	defer cancel()
 	resp, err := s.api.AI.ListKeys(cctx, &ascv1.ListAiKeysRequest{Owner: sc.Owner()})
 	if err != nil {
@@ -37,7 +37,7 @@ func (s *Service) GetKey(ctx context.Context, sc Scope, id string) (*ascv1.AiKey
 	if !sc.Valid() || !ValidKeyID(id) {
 		return nil, failure(FailNotFound)
 	}
-	cctx, cancel := call(ctx, "", false)
+	cctx, cancel := s.call(ctx, sc, "GetKey", "", false)
 	defer cancel()
 	resp, err := s.api.AI.GetKey(cctx, &ascv1.GetAiKeyRequest{Id: id})
 	if err != nil {
@@ -59,7 +59,7 @@ func (s *Service) CreateKey(ctx context.Context, sc Scope, in *AIKeyInput, op st
 		return nil, fe, nil
 	}
 	provider, _ := ProviderFromForm(in.Provider)
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, sc, "CreateKey", op, false)
 	defer cancel()
 	resp, err := s.api.AI.CreateKey(cctx, &ascv1.CreateAiKeyRequest{
 		Owner:              sc.Owner(),
@@ -73,7 +73,24 @@ func (s *Service) CreateKey(ctx context.Context, sc Scope, in *AIKeyInput, op st
 	if err != nil {
 		return nil, nil, done("create ai key", sc, err, in.secrets()...)
 	}
-	return resp.GetKey(), nil, nil
+	k := resp.GetKey()
+	if k == nil || !ValidKeyID(k.GetId()) || !sc.Owns(k.GetOwner()) {
+		// An answer about no key, or about another owner's, is a server bug; nothing of it is shown.
+		return nil, nil, failure(FailInternal)
+	}
+	return k, nil, nil
+}
+
+// ownedKey checks the key that asc returned from a change of key id: it has to be there, be that key and
+// belong to the scope. Anything else is not returned.
+func ownedKey(sc Scope, id string, k *ascv1.AiKey) (*ascv1.AiKey, error) {
+	if k == nil {
+		return nil, failure(FailInternal)
+	}
+	if k.GetId() != id || !sc.Owns(k.GetOwner()) {
+		return nil, failure(FailNotFound)
+	}
+	return k, nil
 }
 
 // UpdateKey changes the fields that differ from the stored key and replaces the secret when the input
@@ -84,7 +101,13 @@ func (s *Service) UpdateKey(ctx context.Context, sc Scope, id string, in *AIKeyI
 		return nil, false, nil, err
 	}
 	in.Provider = string(ProviderToForm(cur.GetProvider()))
-	if verr := in.Validate(false); len(verr) > 0 {
+	verr := in.Validate(false)
+	// A key goes to the address it was stored for. Pointing a stored key at a new address (or at one for
+	// the first time) would send it to whoever runs that address, so the form has to carry the key again.
+	if in.BaseURL != cur.GetBaseUrl() && in.APIKey == "" {
+		verr.Add("api_key", "ascbyo.ai.err.api_key")
+	}
+	if len(verr) > 0 {
 		return cur, false, verr, nil
 	}
 	req := &ascv1.UpdateAiKeyRequest{Id: id}
@@ -106,13 +129,17 @@ func (s *Service) UpdateKey(ctx context.Context, sc Scope, id string, in *AIKeyI
 	if !changed {
 		return cur, false, nil, nil
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, sc, "UpdateKey", op, false)
 	defer cancel()
 	resp, err := s.api.AI.UpdateKey(cctx, req)
 	if err != nil {
 		return nil, false, nil, done("update ai key", sc, err, in.secrets()...)
 	}
-	return resp.GetKey(), true, nil, nil
+	k, err = ownedKey(sc, id, resp.GetKey())
+	if err != nil {
+		return nil, false, nil, err
+	}
+	return k, true, nil, nil
 }
 
 // SetKeyDisabled disables a key or enables it again. Enabling moves the key to UNTESTED in asc only if
@@ -121,13 +148,13 @@ func (s *Service) SetKeyDisabled(ctx context.Context, sc Scope, id string, disab
 	if _, err := s.GetKey(ctx, sc, id); err != nil {
 		return nil, err
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, sc, "SetKeyDisabled", op, false)
 	defer cancel()
 	resp, err := s.api.AI.UpdateKey(cctx, &ascv1.UpdateAiKeyRequest{Id: id, Disabled: &disabled})
 	if err != nil {
 		return nil, done("set ai key disabled", sc, err)
 	}
-	return resp.GetKey(), nil
+	return ownedKey(sc, id, resp.GetKey())
 }
 
 // DeleteKey removes a key. asc refuses while a live run or token uses it.
@@ -135,7 +162,7 @@ func (s *Service) DeleteKey(ctx context.Context, sc Scope, id, op string) error 
 	if _, err := s.GetKey(ctx, sc, id); err != nil {
 		return err
 	}
-	cctx, cancel := call(ctx, op, false)
+	cctx, cancel := s.call(ctx, sc, "DeleteKey", op, false)
 	defer cancel()
 	_, err := s.api.AI.DeleteKey(cctx, &ascv1.DeleteAiKeyRequest{Id: id})
 	return done("delete ai key", sc, err)
@@ -160,7 +187,7 @@ func (s *Service) TestKey(ctx context.Context, sc Scope, id, op string) (*TestRe
 	if _, err := s.GetKey(ctx, sc, id); err != nil {
 		return nil, err
 	}
-	cctx, cancel := call(ctx, op, true)
+	cctx, cancel := s.call(ctx, sc, "TestKey", op, true)
 	defer cancel()
 	resp, err := s.api.AI.TestKey(cctx, &ascv1.TestAiKeyRequest{Id: id})
 	if err != nil {
@@ -192,7 +219,7 @@ func (s *Service) ListModels(ctx context.Context, sc Scope, id string) ([]Model,
 	if _, err := s.GetKey(ctx, sc, id); err != nil {
 		return nil, err
 	}
-	cctx, cancel := call(ctx, "", true)
+	cctx, cancel := s.call(ctx, sc, "ListModels", "", true)
 	defer cancel()
 	resp, err := s.api.AI.ListModels(cctx, &ascv1.ListAiModelsRequest{Id: id})
 	if err != nil {
@@ -239,7 +266,7 @@ func (s *Service) Usage(ctx context.Context, sc Scope, keyID string, group ascv1
 			return nil, err
 		}
 	}
-	cctx, cancel := call(ctx, "", false)
+	cctx, cancel := s.call(ctx, sc, "Usage", "", false)
 	defer cancel()
 	resp, err := s.api.AI.Usage(cctx, &ascv1.AiUsageRequest{Owner: sc.Owner(), KeyId: keyID, GroupBy: group})
 	if err != nil {
