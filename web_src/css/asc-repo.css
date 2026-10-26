@@ -120,7 +120,7 @@
 }
 
 /* ---- repository home: main column and About column ---- */
-.asc-repo-page > .ui.ui.ui.container,
+.asc-repo-page > .ui.ui.ui.container:not(.fluid),
 .repository .secondary-nav > .ui.ui.ui.container {
   width: 1280px;
   max-width: 100%;
@@ -134,7 +134,7 @@
 }
 
 @media (min-width: 768px) {
-  .asc-repo-page > .ui.ui.ui.container,
+  .asc-repo-page > .ui.ui.ui.container:not(.fluid),
   .repository .secondary-nav > .ui.ui.ui.container {
     padding-inline: 24px;
   }
@@ -648,4 +648,23 @@
 
 .asc-repo-page .non-diff-file-content .view-raw {
   padding: 16px;
+}
+
+#language-stats stats-bar.asc-lang-bar {
+  gap: 0;
+  border-radius: 99px;
+  height: 8px;
+}
+
+#language-stats ul.asc-lang-legend {
+  min-height: 0;
+  padding: 0;
+  justify-content: flex-start;
+  gap: 4px 14px;
+}
+
+#language-stats ul.asc-lang-legend li {
+  display: inline-flex;
+  justify-content: flex-start;
+  padding: 0;
 }

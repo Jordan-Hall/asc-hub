@@ -604,6 +604,10 @@
 		"one": "%s open pull request",
 		"other": "%s open pull requests"
 	},
+	"repo.pulls.asc_stack_changes": {
+		"one": "%s change",
+		"other": "%s changes"
+	},
 	"counters.n_commits": {
 		"one": "%s commit",
 		"other": "%s commits"
