@@ -90,7 +90,9 @@
 @tailwind utilities;
 @import "./helpers.css";
 
+@import "./asc-fonts.css";
 @import "./asc.css";
+@import "./asc-download.css";
 @import "./asc-search.css";
 @import "./asc-queue.css";
 @import "./asc-settings.css";

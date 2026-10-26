@@ -3,11 +3,14 @@
 	{{$notificationUnreadCount = call .NotificationUnreadCount}}
 {{end}}
 
-<nav id="navbar" aria-label="{{ctx.Locale.Tr "aria.navbar"}}">
+<nav id="navbar" class="{{if .IsSigned}}navbar-app{{else}}navbar-site{{end}}" aria-label="{{ctx.Locale.Tr "aria.navbar"}}">
 	<div class="navbar-left ui secondary menu">
+		<!-- the menu button comes first on a phone, like the design -->
+		<button class="item tw-w-auto ui icon mini button tw-p-2 tw-m-0 only-mobile" id="navbar-expand-toggle" aria-label="{{ctx.Locale.Tr "toggle_menu"}}" aria-expanded="false" aria-controls="navbar">{{svg "octicon-three-bars"}}</button>
+
 		<!-- the logo -->
 		<a class="item" id="navbar-logo" href="{{AppSubUrl}}/" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}">
-			<img width="28" height="28" src="{{AssetUrlPrefix}}/img/logo-dark.svg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true">
+			{{template "base/brand_tile" .}}
 			<span class="navbar-brand-name">{{AppName}}</span>
 		</a>
 
@@ -20,8 +23,10 @@
 					<span class="notification_count{{if not $notificationUnreadCount}} tw-hidden{{end}}">{{$notificationUnreadCount}}</span>
 				</div>
 			</a>
+			<a class="item tw-w-auto tw-p-2 asc-nav-avatar" href="{{.SignedUser.HomeLink}}" aria-label="{{ctx.Locale.Tr "your_profile"}}">{{ctx.AvatarUtils.Avatar .SignedUser 32}}</a>
+			{{else}}
+			<a class="item asc-nav-signin" rel="nofollow" href="{{AppSubUrl}}/user/login{{if not .PageIsSignIn}}?redirect_to={{.CurrentURL}}{{end}}">{{ctx.Locale.Tr "sign_in"}}</a>
 			{{end}}
-			<button class="item tw-w-auto ui icon mini button tw-p-2 tw-m-0" id="navbar-expand-toggle" aria-label="{{ctx.Locale.Tr "toggle_menu"}}">{{svg "octicon-three-bars"}}</button>
 		</div>
 
 		<!-- navbar links non-mobile -->
@@ -46,17 +51,30 @@
 			<a class="item{{if .PageIsExplore}} active{{end}}" {{if .PageIsExplore}}aria-current="page" {{end}}href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a>
 		{{end}}
 
+		{{if AscDownloadAvailable}}
+			<a class="item{{if .PageIsAscDownload}} active{{end}}" {{if .PageIsAscDownload}}aria-current="page" {{end}}href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_download.nav"}}</a>
+		{{end}}
+
 		{{template "custom/extra_links" .}}
 
 		{{if not .IsSigned}}
-			<a class="item" target="_blank" rel="noopener noreferrer" href="https://forgejo.org/docs/latest/">{{ctx.Locale.Tr "help"}}</a>
+			<a class="item" target="_blank" rel="noopener noreferrer" href="https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/README.md">{{ctx.Locale.Tr "docs"}}</a>
 		{{end}}
 	</div>
+
+	{{if and .IsSigned (not .HideNavbarLinks)}}
+		<form class="navbar-search not-mobile" role="search" action="{{AppSubUrl}}/explore/repos" method="get">
+			<label class="tw-sr-only" for="navbar-search-input">{{ctx.Locale.Tr "asc_shell.search_label"}}</label>
+			{{svg "octicon-search" 16 "navbar-search-icon"}}
+			<input id="navbar-search-input" type="search" name="q" autocomplete="off" placeholder="{{ctx.Locale.Tr "asc_shell.search_placeholder"}}" enterkeyhint="search">
+			<kbd class="navbar-search-key" aria-hidden="true">/</kbd>
+		</form>
+	{{end}}
 
 	<!-- the full dropdown menus -->
 	<div class="navbar-right ui secondary menu">
 		{{if and .IsSigned .HideNavbarLinks}}
-			<details class="dropdown dir-rtl">
+			<details class="dropdown dir-rtl asc-nav-user">
 				<summary data-tooltip-content="{{ctx.Locale.Tr "user_profile_and_more"}}">
 					{{ctx.AvatarUtils.Avatar .SignedUser 24}}
 					<span class="only-mobile tw-ml-2">{{.SignedUser.Name}}</span>
@@ -113,6 +131,13 @@
 			</div>
 			{{end}}
 
+			{{if AscEnabled}}
+			<a class="item not-mobile asc-nav-inbox{{if .PageIsAscInbox}} active{{end}}" {{if .PageIsAscInbox}}aria-current="page" {{end}}href="{{AppSubUrl}}/-/asc/inbox" data-asc-inbox-count-url="{{AppSubUrl}}/api/v1/user/asc/inbox/count?section=needs_review">
+				<span>{{ctx.Locale.Tr "user.asc_inbox"}}</span>
+				<span class="asc-nav-count tw-hidden" data-asc-inbox-count></span>
+			</a>
+			{{end}}
+
 			<a class="item not-mobile tw-mx-0" href="{{AppSubUrl}}/notifications" data-tooltip-content="{{ctx.Locale.Tr "notifications"}}" aria-label="{{ctx.Locale.Tr "notifications"}}">
 				<div class="notification-icon-relative">
 					{{svg "octicon-bell"}}
@@ -120,7 +145,7 @@
 				</div>
 			</a>
 
-			<details class="dropdown dir-rtl">
+			<details class="dropdown dir-rtl asc-nav-create">
 				<summary data-tooltip-content="{{ctx.Locale.Tr "create_new"}}">
 					{{svg "octicon-plus"}}
 					<span class="not-mobile dropdown-icon">{{svg "octicon-triangle-down"}}</span>
@@ -151,7 +176,7 @@
 				</div>
 			</details>
 
-			<details class="dropdown dir-rtl">
+			<details class="dropdown dir-rtl asc-nav-user">
 				<summary data-tooltip-content="{{ctx.Locale.Tr "user_profile_and_more"}}">
 					{{ctx.AvatarUtils.Avatar .SignedUser 24}}
 					<span class="only-mobile tw-ml-2">{{.SignedUser.Name}}</span>
@@ -190,7 +215,7 @@
 							</a>
 						</li>
 						<li>
-							<a target="_blank" rel="noopener noreferrer" href="https://forgejo.org/docs/latest/">
+							<a target="_blank" rel="noopener noreferrer" href="https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/README.md">
 								{{svg "octicon-question"}}
 								{{ctx.Locale.Tr "help"}}
 							</a>
@@ -226,16 +251,14 @@
 				</div>
 			</details>
 		{{else}}
+			<a class="item{{if .PageIsSignIn}} active{{end}}" rel="nofollow" href="{{AppSubUrl}}/user/login{{if not .PageIsSignIn}}?redirect_to={{.CurrentURL}}{{end}}">
+				<span>{{ctx.Locale.Tr "sign_in"}}</span>
+			</a>
 			{{if .ShowRegistrationButton}}
-				<a class="item{{if .PageIsSignUp}} active{{end}}" href="{{AppSubUrl}}/user/sign_up">
-					{{svg "octicon-person" 16 "tw-mr-1"}}
+				<a class="item asc-nav-cta{{if .PageIsSignUp}} active{{end}}" href="{{AppSubUrl}}/user/sign_up">
 					<span>{{ctx.Locale.Tr "register"}}</span>
 				</a>
 			{{end}}
-			<a class="item{{if .PageIsSignIn}} active{{end}}" rel="nofollow" href="{{AppSubUrl}}/user/login{{if not .PageIsSignIn}}?redirect_to={{.CurrentURL}}{{end}}">
-				{{svg "octicon-sign-in" 16 "tw-mr-1"}}
-				<span>{{ctx.Locale.Tr "sign_in"}}</span>
-			</a>
 		{{end}}
 	</div><!-- end full right menu -->
 </nav>
