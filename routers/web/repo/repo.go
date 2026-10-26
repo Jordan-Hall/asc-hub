@@ -150,6 +150,13 @@ func getRepoPrivate(ctx *context.Context) bool {
 	}
 }
 
+// newRepositoriesInAsc reports whether a repository created now is stored in asc, which is the condition that
+// services/repository applies to pick the asc storage backend: the instance writes through asc and creates new
+// repositories there. The create page uses it to drop the git-only settings.
+func newRepositoriesInAsc() bool {
+	return setting.Asc.Enabled && setting.Asc.Writer == setting.AscWriterAsc && setting.Asc.NewRepositories == setting.AscWriterAsc
+}
+
 // Create render creating repository page
 func Create(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("new_repo.title")
@@ -184,6 +191,7 @@ func Create(ctx *context.Context) {
 	ctx.Data["MaxCreationLimit"] = ctx.Doer.MaxCreationLimit()
 	ctx.Data["SupportedObjectFormats"] = git.SupportedObjectFormats
 	ctx.Data["DefaultObjectFormat"] = git.Sha1ObjectFormat
+	ctx.Data["NewRepoIsAsc"] = newRepositoriesInAsc()
 
 	ctx.HTML(http.StatusOK, tplCreate)
 }
@@ -234,6 +242,7 @@ func CreatePost(ctx *context.Context) {
 	ctx.Data["MaxCreationLimit"] = ctx.Doer.MaxCreationLimit()
 	ctx.Data["SupportedObjectFormats"] = git.SupportedObjectFormats
 	ctx.Data["DefaultObjectFormat"] = git.Sha1ObjectFormat
+	ctx.Data["NewRepoIsAsc"] = newRepositoriesInAsc()
 
 	ctxUser := checkContextUser(ctx, form.UID)
 	if ctx.Written() {

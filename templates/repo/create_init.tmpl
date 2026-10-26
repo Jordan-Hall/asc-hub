@@ -6,17 +6,17 @@
 
 <div class="hide-unless-checked">
 	<label>
-		.gitignore
+		{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.ignore_file"}}{{else}}.gitignore{{end}}
 		<div class="ui multiple search selection dropdown tw-flex-wrap">
 			<input type="hidden" name="gitignores" value="{{.gitignores}}">
-			<div class="default text">{{ctx.Locale.Tr "repo.repo_gitignore_helper"}}</div>
+			<div class="default text">{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.repo_ignore_helper"}}{{else}}{{ctx.Locale.Tr "repo.repo_gitignore_helper"}}{{end}}</div>
 			<div class="menu">
 				{{range .Gitignores}}
 					<div class="item" data-value="{{.}}">{{.}}</div>
 				{{end}}
 			</div>
 		</div>
-		<span class="help">{{ctx.Locale.Tr "repo.repo_gitignore_helper_desc"}}</span>
+		<span class="help">{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.repo_ignore_helper_desc"}}{{else}}{{ctx.Locale.Tr "repo.repo_gitignore_helper_desc"}}{{end}}</span>
 	</label>
 
 	<label>

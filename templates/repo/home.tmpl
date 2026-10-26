@@ -146,6 +146,12 @@
 				{{end}}
 			</div>
 		</div>
+		{{if and $isHomepage (eq .Repository.GetStorageBackend "asc")}}
+			<details class="tw-my-2 asc-clone-more">
+				<summary>{{ctx.Locale.Tr "repo.clone_other_ways"}}</summary>
+				{{template "repo/clone_asc_tabs" .}}
+			</details>
+		{{end}}
 
 		{{if (not .Repository.IsArchived)}}
 			{{template "repo/code/recently_pushed_new_branches" .}}

@@ -1,0 +1,19 @@
+{{/* The clone commands of an asc repository: asc first, git for tools that only speak git. Needs CloneButtonOriginLink. */}}
+<div class="asc-clone-tabs">
+	<div class="ui top attached tabular menu">
+		<a class="item active" data-tab="asc-clone-with-asc">{{ctx.Locale.Tr "repo.clone_with_asc"}}</a>
+		<a class="item" data-tab="asc-clone-with-git">{{ctx.Locale.Tr "repo.clone_with_git"}}</a>
+	</div>
+	<div class="ui bottom attached active tab segment" data-tab="asc-clone-with-asc">
+		<div class="markup">
+			<pre><code>asc clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></code></pre>
+		</div>
+	</div>
+	<div class="ui bottom attached tab segment" data-tab="asc-clone-with-git">
+		<p class="help">{{ctx.Locale.Tr "repo.clone_with_git_help"}}</p>
+		<div class="markup">
+			<pre><code>git clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></code></pre>
+		</div>
+	</div>
+</div>
+{{template "repo/clone_script" .}}
