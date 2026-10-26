@@ -351,3 +351,47 @@ func TestUseStackOpsAndClient(t *testing.T) {
 	_, err = StackClient()
 	require.Error(t, err)
 }
+
+func TestRestackStackPlumbsExpectedHeads(t *testing.T) {
+	ops, stacks, _ := newOps(t)
+	stacks.restackResp = &ascv1.RestackStackResponse{
+		Onto: id32(0xaa),
+		Items: []*ascv1.RestackItemResult{
+			{Change: mustChange(t, changeA), State: ascv1.RestackItemState_RESTACK_ITEM_STATE_REWRITTEN, OldHead: id32(0x11), NewVersion: 3},
+			{Change: mustChange(t, changeB), State: ascv1.RestackItemState_RESTACK_ITEM_STATE_SKIPPED_LANDED},
+		},
+	}
+	dry, err := ops.RestackStack(t.Context(), RestackStackRequest{Repo: "o/r", Change: changeA, DryRun: true})
+	require.NoError(t, err)
+	assert.Equal(t, strings.Repeat("11", 32), dry.Items[0].OldHeadID, "the asc id of the old head is kept for the pin")
+	assert.Empty(t, dry.Items[1].OldHeadID)
+
+	stacks.restackResp = &ascv1.RestackStackResponse{Applied: true, Items: []*ascv1.RestackItemResult{
+		{Change: mustChange(t, changeA), State: ascv1.RestackItemState_RESTACK_ITEM_STATE_REWRITTEN, OldHead: id32(0x11), NewHead: id32(0x22), NewVersion: 3},
+	}}
+	_, err = ops.RestackStack(t.Context(), RestackStackRequest{
+		Repo: "o/r", Change: changeA,
+		ExpectedHeads: []ExpectedHead{{Change: changeA, OldHeadID: dry.Items[0].OldHeadID}},
+	})
+	require.NoError(t, err)
+	got := stacks.restackReq[1].GetExpectedHeads()
+	require.Len(t, got, 1)
+	assert.Equal(t, mustChange(t, changeA), got[0].GetChange())
+	assert.Equal(t, id32(0x11), got[0].GetOldHead())
+
+	_, err = ops.RestackStack(t.Context(), RestackStackRequest{Repo: "o/r", Change: changeA})
+	require.NoError(t, err)
+	assert.Empty(t, stacks.restackReq[2].GetExpectedHeads(), "no pin when none is given")
+
+	for name, e := range map[string]ExpectedHead{
+		"bad change":   {Change: "nope", OldHeadID: strings.Repeat("11", 32)},
+		"short head":   {Change: changeA, OldHeadID: "1111"},
+		"non-hex head": {Change: changeA, OldHeadID: strings.Repeat("zz", 32)},
+		"empty head":   {Change: changeA},
+	} {
+		before := len(stacks.restackReq)
+		_, err := ops.RestackStack(t.Context(), RestackStackRequest{Repo: "o/r", Change: changeA, ExpectedHeads: []ExpectedHead{e}})
+		require.ErrorIs(t, err, ErrStackBadRequest, name)
+		assert.Len(t, stacks.restackReq, before, "%s: nothing was sent", name)
+	}
+}

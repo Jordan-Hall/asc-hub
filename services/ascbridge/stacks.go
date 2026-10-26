@@ -87,6 +87,17 @@ type RestackStackRequest struct {
 	Change       string // text form, 32 letters k-z; any change of the stack
 	DryRun       bool
 	AllowPartial bool
+	// ExpectedHeads pins an apply to a reviewed plan: one entry per change the call may rewrite, with the
+	// head the caller saw. asc refuses the apply (ABORTED, REF_CONFLICT) when a listed change has another head
+	// now, a change it would rewrite is not listed, or a listed change left the stack. Empty means no pin. A
+	// dry run ignores it.
+	ExpectedHeads []ExpectedHead
+}
+
+// ExpectedHead is a change and the head asc showed for it on a dry run.
+type ExpectedHead struct {
+	Change    string // text form
+	OldHeadID string // RestackItem.OldHeadID
 }
 
 // RestackItem is one change of the stack, bottom to top. OldHead and NewHead are git ids ("" when there is
@@ -98,6 +109,9 @@ type RestackItem struct {
 	NewHead    string
 	NewVersion uint32
 	Conflicts  []string // paths
+	// OldHeadID is the asc id (hex, 32 bytes) of the old head, "" when there is none. It is what
+	// ExpectedHead.OldHeadID takes; OldHead is the git id for the same commit.
+	OldHeadID string
 }
 
 // RestackStackResult is asc's answer. Onto is the git id of the target tip the stack stands on.
@@ -354,8 +368,21 @@ func (o *stackOps) RestackStack(ctx context.Context, req RestackStackRequest) (*
 	}
 	ctx, cancel := o.ctx(ctx)
 	defer cancel()
+	var expected []*ascv1.ExpectedHead
+	for _, e := range req.ExpectedHeads {
+		c, err := ChangeBytes(e.Change)
+		if err != nil {
+			return nil, fmt.Errorf("%w: expected head: %w", ErrStackBadRequest, err)
+		}
+		h, err := hex.DecodeString(e.OldHeadID)
+		if err != nil || len(h) != idLen {
+			return nil, fmt.Errorf("%w: expected head of a change is not an id", ErrStackBadRequest)
+		}
+		expected = append(expected, &ascv1.ExpectedHead{Change: c, OldHead: h})
+	}
 	resp, err := o.stacks.Restack(ctx, &ascv1.RestackStackRequest{
 		Repo: &ascv1.RepoRef{Name: req.Repo}, Change: change, DryRun: req.DryRun, AllowPartial: req.AllowPartial,
+		ExpectedHeads: expected,
 	})
 	if err != nil {
 		return nil, mapStackError("Restack", err)
@@ -376,6 +403,9 @@ func (o *stackOps) RestackStack(ctx context.Context, req RestackStackRequest) (*
 			return nil, fmt.Errorf("%w: unknown restack state", ErrBadAnswer)
 		}
 		items[i] = RestackItem{Change: text, State: st, NewVersion: it.GetNewVersion(), Conflicts: conflictPaths(it.GetConflicts())}
+		if len(it.GetOldHead()) == idLen {
+			items[i].OldHeadID = hex.EncodeToString(it.GetOldHead())
+		}
 		olds = append(olds, it.GetOldHead())
 		// Only an applied rewrite has a head in the store to map; a dry run prints none. A patch-identical
 		// rewrite is reported as unchanged and may carry its new head too.
