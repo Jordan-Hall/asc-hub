@@ -1,0 +1,69 @@
+{{/*
+The agent runs of a repository (routers/web/repo/asc_agents.go).
+Template Attributes:
+* AscAgentsRuns: []ascAgentRunRow, AscAgentsActive: how many of them are active
+* AscAgentsNext: the link to the next page, if any
+* AscAgentsFilterState / AscAgentsFilterMine / AscAgentsFilterAgent, AscAgentsStateFilters
+* AscAgentsFailure / AscAgentsDisabled: see repo/asc_agents_notice
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+		{{template "repo/asc_agents_nav" .}}
+		<div class="asc-ag-head">
+			<h2 class="asc-ag-title">Agent runs</h2>
+			{{if .AscAgentsCanStart}}<a class="ui primary button" href="{{.AscAgentsBase}}/new">New task</a>{{end}}
+		</div>
+		<p class="asc-muted">An agent works in a stack of changes of its own. Nothing it makes reaches trunk until people review and land it.</p>
+		{{template "repo/asc_agents_notice" .}}
+
+		{{if not .AscAgentsDisabled}}
+			<form class="asc-filter" method="get" action="{{.AscAgentsBase}}" role="search" aria-label="Filter runs">
+				<label class="asc-filter-item">
+					<span>State</span>
+					<select name="state">
+						<option value="">Any</option>
+						{{range .AscAgentsStateFilters}}<option value="{{.Slug}}"{{if eq $.AscAgentsFilterState .Slug}} selected{{end}}>{{.Label}}</option>{{end}}
+					</select>
+				</label>
+				<label class="asc-filter-item">
+					<span>Agent</span>
+					<input type="text" name="agent" maxlength="40" value="{{.AscAgentsFilterAgent}}" placeholder="any" autocomplete="off">
+				</label>
+				<label class="asc-filter-check"><input type="checkbox" name="mine" value="1"{{if .AscAgentsFilterMine}} checked{{end}}> Only mine</label>
+				<button class="ui basic button" type="submit">Filter</button>
+			</form>
+
+			{{if .AscAgentsRuns}}
+				<ul class="asc-runs" data-testid="asc-agent-runs">
+					{{range .AscAgentsRuns}}
+						<li class="asc-run">
+							<div class="asc-run-main">
+								<a class="asc-run-title" href="{{.Link}}">{{.Title}}</a>
+								{{template "repo/asc_agents_pill" .State}}
+							</div>
+							<div class="asc-run-meta">
+								<span>Run {{.ID}}</span>
+								{{if .Agent}}<span>agent <code>{{.Agent}}</code></span>{{end}}
+								{{if .CreatedBy}}<span>by {{.CreatedBy}}</span>{{end}}
+								{{if not .Created.IsZero}}<span>{{DateUtils.TimeSince .Created}}</span>{{end}}
+								<span>{{.Changes}} change{{if ne .Changes 1}}s{{end}}</span>
+								<span>{{.Tokens}} tokens, {{.Cost}}</span>
+							</div>
+							{{if .Failure}}<div class="asc-run-fail">{{.Failure}}</div>{{end}}
+						</li>
+					{{end}}
+				</ul>
+				{{if .AscAgentsNext}}<p><a class="ui basic button" href="{{.AscAgentsNext}}">Older runs</a></p>{{end}}
+			{{else if not .AscAgentsFailure}}
+				<div class="asc-empty" data-testid="asc-agent-runs-empty">
+					<p>No runs match.</p>
+					{{if .AscAgentsCanStart}}<p><a href="{{.AscAgentsBase}}/new">Give an agent a task</a></p>{{end}}
+				</div>
+			{{end}}
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

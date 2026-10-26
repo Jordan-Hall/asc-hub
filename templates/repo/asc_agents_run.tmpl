@@ -1,0 +1,113 @@
+{{/*
+One agent run, live (routers/web/repo/asc_agents.go; the script is web_src/js/features/asc-agent-run.ts).
+Template Attributes:
+* AscAgentRun: ascAgentRunRow, AscAgentRunTarget, AscAgentRunStarted, AscAgentRunWaiting, AscAgentRunWorkflow
+* AscAgentMeters: []ascagentui.Meter, AscAgentChanges: []ascagentui.ChangeLink (the result stack, bottom first)
+* AscAgentEvents: []ascAgentEvent (the newest), AscAgentEventsHidden, AscAgentLastSeq, AscAgentFeedDone
+* AscAgentCanAct: the person may stop and steer; AscAgentPolicy; AscAgentsPollURL
+* CsrfTokenHtml
+The page works without the script: the log shows what existed when it was drawn, and a reload shows the rest.
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+		{{template "repo/asc_agents_nav" .}}
+		{{template "repo/asc_agents_notice" .}}
+		{{if .AscAgentRun}}
+		<div id="asc-agent-run"
+			class="asc-run-page"
+			data-asc-agent-run
+			data-poll-url="{{.AscAgentsPollURL}}"
+			data-last-seq="{{.AscAgentLastSeq}}"
+			data-active="{{if .AscAgentRun.State.Active}}true{{else}}false{{end}}"
+			data-done="{{if .AscAgentFeedDone}}true{{else}}false{{end}}">
+			<div class="asc-run-head">
+				<h2 class="asc-ag-title" data-run-title>{{.AscAgentRun.Title}}</h2>
+				<span data-run-state>{{template "repo/asc_agents_pill" .AscAgentRun.State}}</span>
+				{{if and .AscAgentCanAct .AscAgentRun.State.Active}}
+					<form class="asc-inline-form" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/cancel" data-run-cancel>
+						{{.CsrfTokenHtml}}
+						<button class="ui basic red button" type="submit">Stop</button>
+					</form>
+				{{end}}
+			</div>
+			<p class="asc-muted asc-run-sub">
+				Run {{.AscAgentRun.ID}}
+				{{if .AscAgentRun.Agent}} · agent <code>{{.AscAgentRun.Agent}}</code>{{end}}
+				{{if .AscAgentRun.CreatedBy}} · started by {{.AscAgentRun.CreatedBy}}{{end}}
+				{{if not .AscAgentRun.Created.IsZero}} · {{DateUtils.TimeSince .AscAgentRun.Created}}{{end}}
+				{{if .AscAgentRunTarget}} · for <code>{{.AscAgentRunTarget}}</code>{{end}}
+				{{if .AscAgentRun.Model}} · model <code>{{.AscAgentRun.Model}}</code>{{end}}
+				{{if .AscAgentRunWorkflow}} · part of <a href="{{.AscWorkflowsBase}}/runs">workflow run {{.AscAgentRunWorkflow}}</a>{{end}}
+			</p>
+			<div class="ui negative message{{if not .AscAgentRun.Failure}} tw-hidden{{end}}" role="alert" data-run-failure>{{.AscAgentRun.Failure}}</div>
+			<div class="ui warning message{{if not .AscAgentRunWaiting}} tw-hidden{{end}}" role="status" data-run-waiting>The agent is waiting for you. Answer it below.</div>
+
+			<div class="asc-split">
+				<div class="asc-main">
+					<section class="asc-card" aria-labelledby="asc-result-title" data-testid="asc-agent-result">
+						<h3 id="asc-result-title" class="asc-card-title">Result: a stack to review</h3>
+						<p class="asc-muted asc-result-empty{{if .AscAgentChanges}} tw-hidden{{end}}" data-result-empty>No changes yet.</p>
+						{{if .AscAgentChanges}}
+							<ol class="asc-stack-list" data-result-list>
+								{{range .AscAgentChanges}}
+									<li class="asc-stack-item">
+										<span class="asc-stack-pos">{{.Position}}</span>
+										<code>{{.Short}}</code>
+										{{if .HasPull}}
+											<a href="{{.URL}}">Review #{{.PullID}}</a>
+											{{if .Merged}}<span class="asc-pill asc-tone-ok">Landed</span>{{else if .Closed}}<span class="asc-pill asc-tone-idle">Closed</span>{{else}}<span class="asc-pill asc-tone-wait">Waiting for review</span>{{end}}
+										{{else}}
+											<span class="asc-muted">not submitted for review yet</span>
+										{{end}}
+									</li>
+								{{end}}
+							</ol>
+						{{end}}
+						<p class="asc-muted">Landing goes through the normal review and merge queue. The agent cannot merge.</p>
+					</section>
+
+					<section class="asc-card" aria-labelledby="asc-activity-title">
+						<div class="asc-card-head">
+							<h3 id="asc-activity-title" class="asc-card-title">Live activity</h3>
+							<label class="asc-toggle"><input type="checkbox" data-show-all> Show everything</label>
+						</div>
+						<p class="asc-muted" data-feed-status role="status">{{if .AscAgentFeedDone}}The run is over; this is the whole log.{{else if .AscAgentRun.State.Active}}Following the run.{{else}}The run is over.{{end}}</p>
+						{{if .AscAgentEventsHidden}}<p class="asc-muted">{{.AscAgentEventsHidden}} earlier events are not shown.</p>{{end}}
+						<ol class="asc-log" data-log aria-live="off" data-testid="asc-agent-log">
+							{{template "repo/asc_agents_events" .AscAgentEvents}}
+						</ol>
+						<p class="asc-muted{{if .AscAgentEvents}} tw-hidden{{end}}" data-log-empty>Nothing has happened yet.</p>
+					</section>
+
+					{{if .AscAgentCanAct}}
+						<section class="asc-card" aria-labelledby="asc-steer-title" data-run-steer{{if not .AscAgentRun.State.Active}} hidden{{end}}>
+							<h3 id="asc-steer-title" class="asc-card-title">{{if .AscAgentRunWaiting}}Answer the agent{{else}}Steer this run{{end}}</h3>
+							<form class="ui form" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/input">
+								{{.CsrfTokenHtml}}
+								<div class="field">
+									<label for="asc-ag-input" class="tw-sr-only">Message to the agent</label>
+									<textarea id="asc-ag-input" name="text" rows="3" required maxlength="{{.AscAgentsMaxInput}}" placeholder="Also add a metric for retry exhaustion"></textarea>
+								</div>
+								<button class="ui primary button" type="submit">Send to {{if .AscAgentRun.Agent}}{{.AscAgentRun.Agent}}{{else}}the agent{{end}}</button>
+							</form>
+						</section>
+					{{end}}
+				</div>
+
+				<aside class="asc-side" aria-label="Budget and access">
+					<section class="asc-card" aria-labelledby="asc-budget-title">
+						<h3 id="asc-budget-title" class="asc-card-title">Budget</h3>
+						<div data-meters>{{template "repo/asc_agents_meters" .AscAgentMeters}}</div>
+						<p class="asc-muted">Hard limits, kept by the server. The run stops at any of them.</p>
+					</section>
+					{{template "repo/asc_agents_policy" .}}
+				</aside>
+			</div>
+		</div>
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

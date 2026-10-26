@@ -1,0 +1,55 @@
+{{/*
+The workflows of a repository (routers/web/repo/asc_workflows.go).
+Template Attributes:
+* AscWorkflowDefs: []ascWorkflowDef, AscWorkflowSkipped: definitions the hub could not show
+* AscWorkflowRecent: []ascWorkflowRunRow
+* AscAgentsFailure / AscAgentsDisabled: see repo/asc_agents_notice
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+		{{template "repo/asc_agents_nav" .}}
+		<div class="asc-ag-head">
+			<h2 class="asc-ag-title">Workflows</h2>
+			<a class="ui basic button" href="{{.AscWorkflowsBase}}/runs">Run history</a>
+		</div>
+		<p class="asc-muted">A workflow starts on an event and runs steps in order: an agent task, a wait for a person to approve, a wait for checks. Definitions are files in <code>.asc/workflows/</code> on trunk, so a change to one is reviewed like code.</p>
+		{{template "repo/asc_agents_notice" .}}
+
+		{{if not .AscAgentsDisabled}}
+			{{if .AscWorkflowDefs}}
+				<ul class="asc-runs" data-testid="asc-workflow-defs">
+					{{range .AscWorkflowDefs}}
+						<li class="asc-run">
+							<div class="asc-run-main">
+								<a class="asc-run-title" href="{{.Link}}">{{.Name}}</a>
+								{{if not .Valid}}<span class="asc-pill asc-tone-bad">Not valid</span>{{else if .Enabled}}<span class="asc-pill asc-tone-ok">On</span>{{else}}<span class="asc-pill asc-tone-idle">Off</span>{{end}}
+							</div>
+							{{if .Description}}<div class="asc-run-desc">{{.Description}}</div>{{end}}
+							<div class="asc-run-meta">
+								<span>{{len .Steps}} step{{if ne (len .Steps) 1}}s{{end}}</span>
+								{{range .Triggers}}<span>{{.Label}}</span>{{end}}
+								{{if .Path}}<span><code>{{.Path}}</code></span>{{end}}
+							</div>
+							{{if .Error}}<div class="asc-run-fail">{{.Error}}</div>{{end}}
+						</li>
+					{{end}}
+				</ul>
+				{{if .AscWorkflowSkipped}}<p class="asc-muted">{{.AscWorkflowSkipped}} definition{{if ne .AscWorkflowSkipped 1}}s have{{else}} has{{end}} a name the hub cannot link to and {{if ne .AscWorkflowSkipped 1}}are{{else}}is{{end}} not shown.</p>{{end}}
+			{{else if not .AscAgentsFailure}}
+				<div class="asc-empty" data-testid="asc-workflow-defs-empty">
+					<p>This repository has no workflows.</p>
+					<p class="asc-muted">Add a file such as <code>.asc/workflows/review.toml</code> on trunk to make one.</p>
+				</div>
+			{{end}}
+
+			{{if .AscWorkflowRecent}}
+				<h3 class="asc-card-title asc-section">Latest runs</h3>
+				{{template "repo/asc_workflows_runlist" .AscWorkflowRecent}}
+			{{end}}
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

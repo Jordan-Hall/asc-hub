@@ -1,0 +1,20 @@
+{{/* A list of workflow runs. Dot: []ascWorkflowRunRow */}}
+<ul class="asc-runs" data-testid="asc-workflow-runs">
+	{{range .}}
+		<li class="asc-run">
+			<div class="asc-run-main">
+				<a class="asc-run-title" href="{{.Link}}">{{.Workflow}} · run {{.ID}}</a>
+				{{template "repo/asc_agents_pill" .State}}
+			</div>
+			<div class="asc-run-meta">
+				<span>{{.Trigger}}</span>
+				{{if .StartedBy}}<span>by {{.StartedBy}}</span>{{end}}
+				{{if .Change}}<span>change <code>{{.Change}}</code></span>{{end}}
+				{{if .Source}}<span>definition <code>{{.Source}}</code></span>{{end}}
+				{{if not .Created.IsZero}}<span>{{DateUtils.TimeSince .Created}}</span>{{end}}
+				<span>{{.Done}} of {{len .Steps}} steps done</span>
+			</div>
+			{{if .Error}}<div class="asc-run-fail">{{.Error}}</div>{{end}}
+		</li>
+	{{end}}
+</ul>

@@ -1,0 +1,121 @@
+{{/*
+The task form (routers/web/repo/asc_agents.go).
+Template Attributes:
+* AscAgentForm: *ascAgentForm (values as typed, Errors by field, Summary)
+* AscAgentKeys: []ascAgentKeyOption (the AI keys the person may pick), AscAgentModelsJSON: model ids per key, as JSON
+* AscBudgetFields: the names of the budget fields; AscAgentPolicy: see repo/asc_agents_policy
+* CsrfTokenHtml
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+		{{template "repo/asc_agents_nav" .}}
+		<h2 class="asc-ag-title">Ask an agent</h2>
+		<p class="asc-muted">Describe the work. The agent makes a stack of small changes for you to review. It cannot merge, and the repository policy limits where it may write.</p>
+		{{template "repo/asc_agents_notice" .}}
+
+		<div class="asc-split">
+			<form class="ui form asc-form" method="post" action="{{.AscAgentsBase}}/new" data-testid="asc-agent-form">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="op" value="{{.AscAgentForm.OpID}}">
+				{{if .AscAgentForm.Summary}}<div class="ui negative message" role="alert">{{.AscAgentForm.Summary}}</div>{{end}}
+
+				<div class="field{{if index .AscAgentForm.Errors "task"}} error{{end}}">
+					<label for="asc-ag-task">Task</label>
+					<textarea id="asc-ag-task" name="task" rows="8" required maxlength="{{.AscAgentsMaxTask}}" aria-describedby="asc-ag-task-help">{{.AscAgentForm.Task}}</textarea>
+					<small id="asc-ag-task-help" class="asc-muted">What to do, and what to leave alone. Keep changes small and stacked.</small>
+					{{with index .AscAgentForm.Errors "task"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+				</div>
+
+				<div class="field{{if index .AscAgentForm.Errors "title"}} error{{end}}">
+					<label for="asc-ag-title">Title <span class="asc-muted">(optional)</span></label>
+					<input id="asc-ag-title" name="title" type="text" maxlength="200" value="{{.AscAgentForm.Title}}" autocomplete="off">
+					{{with index .AscAgentForm.Errors "title"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+				</div>
+
+				<div class="asc-grid-2">
+					<div class="field{{if index .AscAgentForm.Errors "agent"}} error{{end}}">
+						<label for="asc-ag-agent">Agent name</label>
+						<input id="asc-ag-agent" name="agent" type="text" maxlength="40" value="{{.AscAgentForm.Agent}}" required autocomplete="off" autocapitalize="none" spellcheck="false">
+						{{with index .AscAgentForm.Errors "agent"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+					</div>
+					<div class="field{{if index .AscAgentForm.Errors "target"}} error{{end}}">
+						<label for="asc-ag-target">Target branch</label>
+						<input id="asc-ag-target" name="target" type="text" maxlength="255" value="{{.AscAgentForm.Target}}" required autocomplete="off" spellcheck="false">
+						{{with index .AscAgentForm.Errors "target"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+					</div>
+				</div>
+
+				<fieldset class="asc-fieldset">
+					<legend>Model</legend>
+					<div class="asc-grid-2">
+						<div class="field{{if index .AscAgentForm.Errors "key"}} error{{end}}">
+							<label for="asc-ag-key">AI key</label>
+							<select id="asc-ag-key" name="key" data-asc-models="{{.AscAgentModelsJSON}}">
+								<option value="">The repository default</option>
+								{{range .AscAgentKeys}}
+									<option value="{{.ID}}" data-model="{{.Model}}"{{if not .Usable}} disabled{{end}}{{if eq $.AscAgentForm.Key .ID}} selected{{end}}>{{.Label}} ({{.Provider}}, {{.Owner}}){{if .Note}}, {{.Note}}{{end}}</option>
+								{{end}}
+							</select>
+							{{with index .AscAgentForm.Errors "key"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+						</div>
+						<div class="field{{if index .AscAgentForm.Errors "model"}} error{{end}}">
+							<label for="asc-ag-model">Model <span class="asc-muted">(optional)</span></label>
+							<input id="asc-ag-model" name="model" type="text" maxlength="128" value="{{.AscAgentForm.Model}}" list="asc-ag-model-list" placeholder="the key's default" autocomplete="off" autocapitalize="none" spellcheck="false">
+							<datalist id="asc-ag-model-list"></datalist>
+							{{with index .AscAgentForm.Errors "model"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+						</div>
+					</div>
+					{{if not .AscAgentKeys}}<p class="asc-muted">No AI key of yours or of the repository owner is listed. Without a pick the repository owner's default key is used. Keys are added in the owner's settings, and are only shown to their admins.</p>{{end}}
+				</fieldset>
+
+				<fieldset class="asc-fieldset">
+					<legend>Limits <span class="asc-muted">(empty means the policy default; the server enforces them)</span></legend>
+					<div class="asc-grid-3">
+						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.Changes}} error{{end}}">
+							<label for="asc-ag-changes">Changes</label>
+							<input id="asc-ag-changes" name="{{.AscBudgetFields.Changes}}" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentForm.Budget.Changes}}" autocomplete="off">
+							{{with index .AscAgentForm.Errors .AscBudgetFields.Changes}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+						</div>
+						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.Tokens}} error{{end}}">
+							<label for="asc-ag-tokens">Model tokens</label>
+							<input id="asc-ag-tokens" name="{{.AscBudgetFields.Tokens}}" type="text" inputmode="numeric" maxlength="15" value="{{.AscAgentForm.Budget.Tokens}}" autocomplete="off">
+							{{with index .AscAgentForm.Errors .AscBudgetFields.Tokens}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+						</div>
+						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.CostUSD}} error{{end}}">
+							<label for="asc-ag-cost">Cost cap (USD)</label>
+							<input id="asc-ag-cost" name="{{.AscBudgetFields.CostUSD}}" type="text" inputmode="decimal" maxlength="14" value="{{.AscAgentForm.Budget.CostUSD}}" placeholder="2.50" autocomplete="off">
+							{{with index .AscAgentForm.Errors .AscBudgetFields.CostUSD}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+						</div>
+						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.Paths}} error{{end}}">
+							<label for="asc-ag-maxpaths">Paths written</label>
+							<input id="asc-ag-maxpaths" name="{{.AscBudgetFields.Paths}}" type="text" inputmode="numeric" maxlength="7" value="{{.AscAgentForm.Budget.Paths}}" autocomplete="off">
+							{{with index .AscAgentForm.Errors .AscBudgetFields.Paths}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+						</div>
+						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.Minutes}} error{{end}}">
+							<label for="asc-ag-minutes">Time (minutes)</label>
+							<input id="asc-ag-minutes" name="{{.AscBudgetFields.Minutes}}" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentForm.Budget.Minutes}}" autocomplete="off">
+							{{with index .AscAgentForm.Errors .AscBudgetFields.Minutes}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+						</div>
+					</div>
+					<div class="field{{if index .AscAgentForm.Errors "paths"}} error{{end}}">
+						<label for="asc-ag-paths">Narrow the write scope <span class="asc-muted">(optional, one pattern per line)</span></label>
+						<textarea id="asc-ag-paths" name="paths" rows="3" maxlength="4500" spellcheck="false" placeholder="src/**&#10;tests/**">{{.AscAgentForm.Paths}}</textarea>
+						{{with index .AscAgentForm.Errors "paths"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+					</div>
+				</fieldset>
+
+				<div class="asc-actions">
+					<button class="ui primary button" type="submit">Start the run</button>
+					<a class="ui basic button" href="{{.AscAgentsBase}}">Cancel</a>
+				</div>
+			</form>
+			<div class="asc-side">
+				{{template "repo/asc_agents_policy" .}}
+			</div>
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}

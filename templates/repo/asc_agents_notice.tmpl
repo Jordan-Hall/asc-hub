@@ -1,0 +1,12 @@
+{{/*
+What a failed call looks like. Only fixed sentences and cleaned details; asc's own text never gets here.
+Template Attributes:
+* AscAgentsFailure: *ascagentui.Failure
+* AscAgentsDisabled: the feature is off (a state to explain, not a fault)
+*/}}
+{{with .AscAgentsFailure}}
+	<div class="ui {{if $.AscAgentsDisabled}}info{{else}}warning{{end}} message" role="{{if $.AscAgentsDisabled}}status{{else}}alert{{end}}" data-testid="asc-agents-notice"{{if .Code}} data-code="{{.Code}}"{{end}}>
+		<p>{{.Message}}</p>
+		{{if .Details}}<ul>{{range .Details}}<li><code>{{.}}</code></li>{{end}}</ul>{{end}}
+	</div>
+{{end}}

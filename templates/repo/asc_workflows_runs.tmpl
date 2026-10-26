@@ -1,0 +1,50 @@
+{{/*
+The run history of the workflows (routers/web/repo/asc_workflows.go).
+Template Attributes:
+* AscWorkflowRuns: []ascWorkflowRunRow, AscWorkflowNext: link to older runs
+* AscWorkflowFilterName / AscWorkflowFilterState / AscWorkflowFilterChange, AscWorkflowStateFilters
+* AscWorkflowScanned: runs looked at for the change filter, AscWorkflowScanCut: older runs were not looked at
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+		{{template "repo/asc_agents_nav" .}}
+		<div class="asc-ag-head">
+			<h2 class="asc-ag-title">Workflow runs</h2>
+			<a class="ui basic button" href="{{.AscWorkflowsBase}}">Workflows</a>
+		</div>
+		{{template "repo/asc_agents_notice" .}}
+		{{if not .AscAgentsFailure}}
+			<form class="asc-filter" method="get" action="{{.AscWorkflowsBase}}/runs" role="search" aria-label="Filter runs">
+				<label class="asc-filter-item">
+					<span>Workflow</span>
+					<input type="text" name="workflow" maxlength="64" value="{{.AscWorkflowFilterName}}" placeholder="any" autocomplete="off" autocapitalize="none" spellcheck="false">
+				</label>
+				<label class="asc-filter-item">
+					<span>State</span>
+					<select name="state">
+						<option value="">Any</option>
+						{{range .AscWorkflowStateFilters}}<option value="{{.Slug}}"{{if eq $.AscWorkflowFilterState .Slug}} selected{{end}}>{{.Label}}</option>{{end}}
+					</select>
+				</label>
+				<label class="asc-filter-item">
+					<span>Change</span>
+					<input type="text" name="change" maxlength="32" value="{{.AscWorkflowFilterChange}}" placeholder="32 letters, k to z" autocomplete="off" autocapitalize="none" spellcheck="false">
+				</label>
+				<button class="ui basic button" type="submit">Filter</button>
+			</form>
+			{{if .AscWorkflowFilterChange}}
+				<p class="asc-muted" role="status">Runs about change <code>{{.AscWorkflowFilterChange}}</code>, newest first. Each row names the definition version it ran. {{if .AscWorkflowScanCut}}Only the latest {{.AscWorkflowScanned}} runs were looked at; older ones may exist.{{else}}{{.AscWorkflowScanned}} runs were looked at.{{end}}</p>
+			{{end}}
+			{{if .AscWorkflowRuns}}
+				{{template "repo/asc_workflows_runlist" .AscWorkflowRuns}}
+				{{if .AscWorkflowNext}}<p><a class="ui basic button" href="{{.AscWorkflowNext}}">Older runs</a></p>{{end}}
+			{{else}}
+				<div class="asc-empty" data-testid="asc-workflow-runs-empty"><p>No runs match.</p></div>
+			{{end}}
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}
