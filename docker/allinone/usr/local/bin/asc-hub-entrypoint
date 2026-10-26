@@ -1,0 +1,287 @@
+#!/bin/bash
+# ASC Hub, one container: starts the hub and `asc serve` together and keeps them together.
+#
+#  1. First boot: generate the shared secrets under $WORK/bootstrap. Every boot: write the
+#     asc serve configuration from the environment, so a changed variable takes effect.
+#  2. `asc serve migrate`, then the hub, then (when the hub answers) `asc serve` on 127.0.0.1:7890.
+#  3. Optionally create the first administrator once.
+#  4. Wait for either process to exit. If one exits, stop the other and exit non-zero, so the
+#     container restarts as a whole. SIGTERM and SIGINT are forwarded to both and give exit 0.
+#
+# Run as the unprivileged user (uid 1000). pid 1 is dumb-init, which starts this script.
+
+set -euo pipefail
+
+WORK="${GITEA_WORK_DIR:-/var/lib/gitea}"
+BOOT="$WORK/bootstrap"
+ASC_DIR="$WORK/asc"
+REPO_ROOT="$WORK/git/repositories"
+SERVE_CFG="$ASC_DIR/asc-serve.toml"
+ASC_BIN="${ASC_BINARY:-/usr/local/bin/asc}"
+
+log() { printf 'asc-hub: %s\n' "$*" >&2; }
+die() {
+	log "error: $*"
+	exit 1
+}
+
+# A command line (docker run IMAGE forgejo admin ...) runs the hub's own entrypoint and nothing else.
+if [ "$#" -gt 0 ]; then
+	exec /usr/local/bin/docker-entrypoint.sh "$@"
+fi
+
+# set_default NAME VALUE: export NAME=VALUE unless NAME is already set (even to an empty string).
+set_default() {
+	if [ -z "${!1+x}" ]; then
+		export "$1=$2"
+	fi
+}
+
+# safe_value NAME: the value goes into a TOML string, so refuse quotes and line breaks.
+safe_value() {
+	local v="${!1:-}"
+	case "$v" in
+	*\'* | *\"* | *$'\n'* | *$'\r'*) die "$1 must not contain quotes or line breaks" ;;
+	esac
+}
+
+# --- directories and secrets --------------------------------------------------------------
+
+(
+	umask 077
+	mkdir -p "$BOOT" "$ASC_DIR" "$ASC_DIR/objects" "$ASC_DIR/cache" "$ASC_DIR/gitview" "$ASC_DIR/home"
+)
+mkdir -p "$REPO_ROOT"
+chmod 0700 "$BOOT" "$ASC_DIR"
+
+# ensure_secret FILE LENGTH: create a random alphanumeric secret once and keep it.
+ensure_secret() {
+	local f="$1" n="$2"
+	if [ ! -s "$f" ]; then
+		(
+			umask 077
+			set +o pipefail
+			LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c "$n" >"$f.tmp"
+		)
+		[ "$(stat -c %s "$f.tmp")" -ge "$n" ] || die "could not generate $f"
+		mv -f "$f.tmp" "$f"
+	fi
+	chmod 0400 "$f"
+}
+ensure_secret "$BOOT/internal-token" 48
+ensure_secret "$BOOT/webhook-secret" 48
+ensure_secret "$BOOT/secret-key" 64
+
+# --- hub defaults (each can be overridden by setting the variable) -------------------------
+
+if [ -z "${ROOT_URL:-}" ] && [ -z "${FORGEJO__server__ROOT_URL:-}" ]; then
+	log "warning: ROOT_URL is not set; using http://localhost:3000/ (set ROOT_URL to the public https address)"
+fi
+set_default ROOT_URL "http://localhost:3000/"
+ROOT_URL="${FORGEJO__server__ROOT_URL:-$ROOT_URL}"
+host="${ROOT_URL#*://}"
+host="${host%%/*}"
+host="${host%%:*}"
+
+set_default APP_NAME "ASC Hub"
+set_default SSH_DOMAIN "$host"
+set_default SSH_PORT "2222"
+set_default SSH_LISTEN_PORT "2222"
+set_default INSTALL_LOCK "true"
+set_default DISABLE_REGISTRATION "true"
+SECRET_KEY="${SECRET_KEY:-$(cat "$BOOT/secret-key")}"
+export SECRET_KEY
+
+set_default FORGEJO__server__ROOT_URL "$ROOT_URL"
+set_default FORGEJO__actions__ENABLED "true"
+# The shared secret is a file, so it never lands in app.ini. The hub refuses a file URI together with
+# a literal INTERNAL_TOKEN, so INSTALL_LOCK stays true (the web installer would write one).
+set_default FORGEJO__security__INTERNAL_TOKEN_URI "file://$BOOT/internal-token"
+set_default FORGEJO__asc__ENABLED "true"
+set_default FORGEJO__asc__SERVER_URL "http://127.0.0.1:7890"
+set_default FORGEJO__asc__PUBLIC_URL "${ROOT_URL%/}"
+set_default FORGEJO__asc__WRITER "asc"
+set_default FORGEJO__asc__NEW_REPOSITORIES "asc"
+set_default FORGEJO__asc__BRIDGE "${ASC_HUB_BRIDGE:-eager}"
+set_default FORGEJO__asc__SHADOW_SAMPLE_PERCENT "0"
+
+HTTP_PORT_EFFECTIVE="${FORGEJO__server__HTTP_PORT:-${HTTP_PORT:-3000}}"
+HUB_URL="http://127.0.0.1:${HTTP_PORT_EFFECTIVE}"
+
+# --- asc serve configuration ----------------------------------------------------------------
+
+BRIDGE="$(printf '%s' "$FORGEJO__asc__BRIDGE" | tr '[:upper:]' '[:lower:]')"
+case "$BRIDGE" in
+eager)
+	BRIDGE_PROMOTE=true
+	GIT_ENABLED=true
+	;;
+lazy | off)
+	BRIDGE_PROMOTE=false
+	GIT_ENABLED="${ASC_GIT_ENABLED:-false}"
+	;;
+*) die "[asc] BRIDGE must be eager, lazy or off (got '$FORGEJO__asc__BRIDGE')" ;;
+esac
+
+for v in ASC_S3_ENDPOINT ASC_S3_BUCKET ASC_S3_REGION ASC_DATABASE_URL ASC_CACHE_MEMORY ASC_CACHE_DISK ASC_TEXT_MEMORY ASC_GIT_ENABLED; do
+	safe_value "$v"
+done
+
+if [ -n "${ASC_S3_ENDPOINT:-}" ]; then
+	STORE="s3://${ASC_S3_BUCKET:-asc-hub}?endpoint=${ASC_S3_ENDPOINT}&region=${ASC_S3_REGION:-garage}&path_style=true"
+else
+	STORE="file://$ASC_DIR/objects"
+fi
+if [ -n "${ASC_DATABASE_URL:-}" ]; then
+	DB="$ASC_DATABASE_URL"
+else
+	DB="sqlite://$ASC_DIR/asc.db?mode=rwc"
+fi
+
+(
+	umask 077
+	{
+		printf 'listen = "127.0.0.1:7890"\n'
+		printf "store = '%s'\n" "$STORE"
+		printf "db = '%s'\n" "$DB"
+		printf 'cache = { memory = "%s", disk_dir = "%s/cache", disk = "%s" }\n\n' "${ASC_CACHE_MEMORY:-256MiB}" "$ASC_DIR" "${ASC_CACHE_DISK:-2GiB}"
+		printf '[auth]\nprovider = "forgejo"\n\n'
+		printf '[forgejo]\nurl = "%s"\n' "$HUB_URL"
+		printf 'internal_token_file = "%s/internal-token"\n' "$BOOT"
+		printf 'webhook_secret_file = "%s/webhook-secret"\n' "$BOOT"
+		printf 'repo_root = "%s"\n' "$REPO_ROOT"
+		printf 'bridge_promote = %s\n\n' "$BRIDGE_PROMOTE"
+		printf '[limits]\ntext_memory = "%s"\ntrusted_proxies = []\n\n' "${ASC_TEXT_MEMORY:-256MiB}"
+		printf '[git]\nenabled = %s\nview_dir = "%s/gitview"\n' "$GIT_ENABLED" "$ASC_DIR"
+	} >"$SERVE_CFG.tmp"
+)
+mv -f "$SERVE_CFG.tmp" "$SERVE_CFG"
+
+# asc serve gets its own environment. Plain http to the hub on loopback is allowed for this process
+# only; the hub never sees the opt-in.
+run_asc() {
+	env \
+		ASC_SERVE_CONFIG="$SERVE_CFG" \
+		ASC_ALLOW_LOOPBACK_HTTP=1 \
+		HOME="$ASC_DIR/home" \
+		RUST_LOG="${ASC_LOG:-info}" \
+		ASC_LOG_FORMAT="${ASC_LOG_FORMAT:-text}" \
+		AWS_ACCESS_KEY_ID="${ASC_S3_ACCESS_KEY_ID:-}" \
+		AWS_SECRET_ACCESS_KEY="${ASC_S3_SECRET_ACCESS_KEY:-}" \
+		AWS_REGION="${ASC_S3_REGION:-garage}" \
+		"$ASC_BIN" "$@"
+}
+
+log "asc serve migrate"
+run_asc serve migrate || die "asc serve migrate failed"
+
+# --- supervision ---------------------------------------------------------------------------
+
+hub_pid=""
+asc_pid=""
+stopping=0
+
+stop_all() {
+	local p
+	for p in "$asc_pid" "$hub_pid"; do
+		if [ -n "$p" ]; then kill -TERM "$p" 2>/dev/null || true; fi
+	done
+}
+
+on_signal() {
+	stopping=1
+	log "signal received, stopping"
+	stop_all
+}
+trap on_signal TERM INT
+
+# reap gives both processes a grace period, then kills what is left.
+reap() {
+	local i p alive
+	for i in $(seq 1 25); do
+		alive=0
+		for p in "$asc_pid" "$hub_pid"; do
+			if [ -n "$p" ] && kill -0 "$p" 2>/dev/null; then alive=1; fi
+		done
+		[ "$alive" = 0 ] && break
+		sleep 1
+	done
+	for p in "$asc_pid" "$hub_pid"; do
+		if [ -n "$p" ]; then kill -KILL "$p" 2>/dev/null || true; fi
+	done
+	wait 2>/dev/null || true
+}
+
+log "starting the hub"
+# The hub does not need asc serve's database password or object store keys.
+env -u ASC_DATABASE_URL -u ASC_S3_ACCESS_KEY_ID -u ASC_S3_SECRET_ACCESS_KEY /usr/local/bin/docker-entrypoint.sh &
+hub_pid=$!
+
+# asc serve asks the hub for authorization, so start it once the hub answers.
+timeout="${ASC_HUB_START_TIMEOUT:-120}"
+up=0
+for ((i = 0; i < timeout; i++)); do
+	if [ "$stopping" = 1 ]; then
+		reap
+		exit 0
+	fi
+	if ! kill -0 "$hub_pid" 2>/dev/null; then
+		set +e
+		wait "$hub_pid"
+		rc=$?
+		set -e
+		die "the hub exited during start (status $rc)"
+	fi
+	if curl -fsS -m 3 -o /dev/null "$HUB_URL/api/healthz" 2>/dev/null; then
+		up=1
+		break
+	fi
+	sleep 1
+done
+if [ "$up" != 1 ]; then
+	stop_all
+	reap
+	die "the hub did not answer $HUB_URL/api/healthz within ${timeout}s"
+fi
+
+log "starting asc serve"
+run_asc serve &
+asc_pid=$!
+
+# --- first administrator (once) --------------------------------------------------------------
+
+if [ -n "${ASC_HUB_ADMIN_EMAIL:-}" ] && [ ! -e "$BOOT/.admin-done" ]; then
+	admin_user="${ASC_HUB_ADMIN_USER:-asc-admin}"
+	(
+		umask 077
+		if forgejo admin user list 2>/dev/null | awk 'NR>1 {print $2}' | grep -qx -- "$admin_user"; then
+			: >"$BOOT/.admin-done"
+			log "user $admin_user exists: nothing to create"
+		elif forgejo admin user create --admin --username "$admin_user" --email "$ASC_HUB_ADMIN_EMAIL" \
+			--random-password --must-change-password=true >"$BOOT/admin-password.tmp"; then
+			mv -f "$BOOT/admin-password.tmp" "$BOOT/admin-password"
+			: >"$BOOT/.admin-done"
+			log "admin $admin_user created: the password is in $BOOT/admin-password (mode 0600); change it at first sign-in, then delete the file"
+		else
+			rm -f "$BOOT/admin-password.tmp"
+			log "warning: creating the admin user failed; create it by hand (docs/asc/OPERATIONS.md)"
+		fi
+	) || true
+fi
+
+# --- wait --------------------------------------------------------------------------------------
+
+set +e
+wait -n "$hub_pid" "$asc_pid"
+rc=$?
+set -e
+
+if [ "$stopping" = 1 ]; then
+	reap
+	exit 0
+fi
+log "a process exited (status $rc); stopping the other one"
+stop_all
+reap
+[ "$rc" -ne 0 ] || rc=1
+exit "$rc"
