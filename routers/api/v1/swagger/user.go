@@ -48,3 +48,13 @@ type swaggerResponseUserSettings struct {
 	// in:body
 	Body api.UserSettings `json:"body"`
 }
+
+// AscInboxEntryList
+// swagger:response AscInboxEntryList
+type swaggerResponseAscInboxEntryList struct {
+	// in:body
+	Body []api.AscInboxEntry `json:"body"`
+
+	// The total number of entries
+	TotalCount int64 `json:"X-Total-Count"`
+}
