@@ -1535,6 +1535,7 @@ func ViewIssue(ctx *context.Context) {
 		if ctx.Written() {
 			return
 		}
+		prepareAscVersions(ctx, issue.PullRequest)
 	}
 
 	// Metas.

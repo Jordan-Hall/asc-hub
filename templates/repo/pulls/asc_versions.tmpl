@@ -1,0 +1,46 @@
+{{/*
+Versions dropdown of a stacked pull request (SPEC 20.5 flow 2, PLAN C37).
+Template Attributes:
+* AscVersions: *pull.AscVersionList (nil or empty: nothing is shown)
+* AscVersionFrom, AscVersionTo: uint32, the versions being shown (both 0: the ordinary diff; only To: that version)
+* AscSinceVersion: uint32, the version of the viewer's last review (0 when there is none or it is the latest)
+* Issue.Link: the pull request link
+Numbers are inserted as they are; the actor name comes from asc and is escaped by the template engine.
+*/}}
+{{if and .AscVersions .AscVersions.Versions}}
+{{$current := .AscVersions.Latest}}
+{{if .AscVersionTo}}{{$current = .AscVersionTo}}{{end}}
+<div class="ui small compact menu asc-versions tw-mb-4" data-testid="asc-versions">
+	<div class="ui dropdown item">
+		<span class="text">{{ctx.Locale.Tr "repo.pulls.asc_versions.of" $current (len .AscVersions.Versions)}}</span>
+		{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+		<div class="menu">
+			<a class="item {{if not .AscVersionTo}}active{{end}}" href="{{.Issue.Link}}/files">{{ctx.Locale.Tr "repo.pulls.asc_versions.latest"}}</a>
+			{{range .AscVersions.Versions}}
+				<a class="item {{if and (eq $.AscVersionTo .N) (not $.AscVersionFrom)}}active{{end}}" href="{{$.Issue.Link}}/files?asc_to={{.N}}">
+					{{ctx.Locale.Tr "repo.pulls.asc_versions.version" .N}}
+					<span class="ui tiny text grey">{{.Actor}} · {{DateUtils.TimeSince .At}}</span>
+				</a>
+			{{end}}
+		</div>
+	</div>
+	{{if gt (len .AscVersions.Versions) 1}}
+	<div class="ui dropdown item">
+		<span class="text">{{ctx.Locale.Tr "repo.pulls.asc_versions.interdiff"}}</span>
+		{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+		<div class="menu">
+			{{range .AscVersions.Steps}}
+				<a class="item {{if and (eq $.AscVersionTo .To) (eq $.AscVersionFrom .From)}}active{{end}}" href="{{$.Issue.Link}}/files?asc_from={{.From}}&asc_to={{.To}}">
+					{{ctx.Locale.Tr "repo.pulls.asc_versions.interdiff_step" .From .To}}
+				</a>
+			{{end}}
+		</div>
+	</div>
+	{{end}}
+	{{if .AscSinceVersion}}
+	<a class="item" href="{{.Issue.Link}}/files?asc_from={{.AscSinceVersion}}&asc_to={{.AscVersions.Latest}}" data-testid="asc-since-last-review">
+		{{ctx.Locale.Tr "repo.pulls.asc_versions.since_review" .AscSinceVersion}}
+	</a>
+	{{end}}
+</div>
+{{end}}
