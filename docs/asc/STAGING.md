@@ -5,7 +5,7 @@ It has its own SQLite database in its own volume. It shares nothing with product
 
 ## Deploy
 
-1. Push `asc/v16`. The `asc-image` workflow publishes `hub.example.org/asc/asc-hub:<sha12>` and `:asc-v16`.
+1. Push `asc/v16`. The `asc-image` workflow publishes `<REGISTRY>/asc/asc-hub:<sha12>` and `:asc-v16`.
 2. In Coolify, create a Docker Compose resource from `deploy/coolify/forgejo-staging.compose.yml` (source-control repository).
 3. Set `ASC_HUB_IMAGE_TAG` to the `<sha12>` tag to run. The compose file refuses to start without it. Pin the sha, not `asc-v16`.
 4. Deploy. Coolify routes the domain to port 3000 (`SERVICE_FQDN_FORGEJO_3000`).
