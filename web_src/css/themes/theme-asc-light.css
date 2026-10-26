@@ -326,7 +326,9 @@
   --asc-ink: #0b1220;
   --asc-accent: #22d3ee;
   --asc-muted: #475569;
-  --asc-radius: 12px;
+  --border-radius: 6px;
+  --border-radius-medium: 8px;
+  --border-radius-card: 12px;
   --color-body: #f6f8fa;
   --color-box-header: #eef2f6;
   --color-box-body: #ffffff;
@@ -357,6 +359,9 @@
   --color-nav-text-muted: #94a3b8;
   --color-nav-border: #243049;
   --color-nav-hover-bg: #1a2438;
+  --color-nav-brand: #ffffff;
+  --color-nav-badge-bg: #22d3ee;
+  --color-nav-badge-text: #0b1220;
   --color-secondary-nav-bg: #ffffff;
   --color-accent: #125469;
   --color-focus: #125469;

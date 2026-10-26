@@ -106,11 +106,11 @@ h4.ui.header .sub.header {
 }
 
 .ui.top.attached.header {
-  border-radius: 0.28571429rem 0.28571429rem 0 0;
+  border-radius: var(--border-radius-card, 0.28571429rem) var(--border-radius-card, 0.28571429rem) 0 0;
 }
 
 .ui.bottom.attached.header {
-  border-radius: 0 0 0.28571429rem 0.28571429rem;
+  border-radius: 0 0 var(--border-radius-card, 0.28571429rem) var(--border-radius-card, 0.28571429rem);
 }
 
 .ui.attached.header:not(h1,h2,h3,h4,h5,h6) {

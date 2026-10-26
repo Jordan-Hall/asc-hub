@@ -1,19 +1,22 @@
-/* container for full-page content with sidebar on left */
+/* container for full-page content with sidebar on left. Mobile first: one column, the sidebar or nav first. */
 
 .flex-container {
   display: flex !important;
+  flex-direction: column;
   gap: var(--page-spacing);
   margin-top: var(--page-spacing);
 }
 
 /* small options menu on the left, used in settings/admin pages */
 .flex-container-nav {
-  width: 240px;
+  order: -1;
+  width: auto;
 }
 
 /* wide sidebar on the right, used in frontpage */
 .flex-container-sidebar {
-  width: 35%;
+  order: -1;
+  width: auto;
 }
 
 .flex-container-main {
@@ -21,13 +24,18 @@
   min-width: 0; /* make the "text truncate" work, otherwise the flex axis is not limited and the text just overflows */
 }
 
-@media (max-width: 767.98px) {
+@media (min-width: 768px) {
   .flex-container {
-    flex-direction: column;
+    flex-direction: row;
   }
   .flex-container-nav,
   .flex-container-sidebar {
-    order: -1;
-    width: auto;
+    order: 0;
+  }
+  .flex-container-nav {
+    width: 240px;
+  }
+  .flex-container-sidebar {
+    width: 35%;
   }
 }
