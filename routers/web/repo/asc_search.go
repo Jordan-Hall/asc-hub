@@ -185,7 +185,7 @@ func AscSearch(ctx *context.Context) {
 	}
 	ctx.Data["Title"] = "Search"
 	ctx.Data["AscSearchDefaultBranch"] = repo.DefaultBranch
-	ctx.Data["PageIsViewCode"] = true
+	ctx.Data["PageIsAscSearch"] = true
 
 	q := ascSearchRawQuery(ctx)
 	ascSearchShowQuery(ctx, q)

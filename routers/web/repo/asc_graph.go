@@ -175,8 +175,7 @@ func AscGraph(ctx *context.Context) {
 		return
 	}
 	ctx.Data["Title"] = ctx.Tr("repo.asc_graph")
-	ctx.Data["PageIsCommits"] = true
-	ctx.Data["PageIsViewCode"] = true
+	ctx.Data["PageIsAscGraph"] = true
 	ctx.Data["AscGraphPresets"] = ascGraphPresetOrder
 
 	q, errKey := ascGraphParse(ctx, repo)

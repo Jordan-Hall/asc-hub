@@ -16,7 +16,7 @@
 					</div>
 				</div>
 			</td>
-			<td class="text grey right age repo-files-table-latest-commit-cell tw-py-0">{{if .LatestCommit}}{{if .LatestCommit.Committer}}{{DateUtils.TimeSince .LatestCommit.Committer.When}}{{end}}{{end}}</td>
+			<td class="text grey right age repo-files-table-latest-commit-cell tw-py-0">{{if .LatestCommit}}{{if .LatestCommit.Committer}}{{DateUtils.TimeSince .LatestCommit.Committer.When}}{{end}}{{end}}{{if and .CommitsCount (not .TreePath)}}<span class="asc-commit-count"> &middot; <a class="muted" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.TrPluralString .CommitsCount "counters.n_commits" (ctx.Locale.PrettyNumber .CommitsCount)}}</a></span>{{end}}</td>
 		</tr>
 		{{if .HasParentPath}}
 			<tr class="has-parent">
