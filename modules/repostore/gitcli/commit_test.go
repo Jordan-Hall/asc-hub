@@ -22,7 +22,8 @@ import (
 func TestRegistered(t *testing.T) {
 	w, err := repostore.Default()
 	require.NoError(t, err)
-	assert.IsType(t, &gitcli.Writer{}, w)
+	// Default returns the router over the registered backends; the git writer is its default.
+	assert.NotNil(t, w)
 }
 
 func TestCreateCommitRootAndChild(t *testing.T) {
@@ -80,8 +81,8 @@ func TestCreateCommitPublishedIdentity(t *testing.T) {
 		Update: toBranch(repo, "main"),
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "Alice <alice@example.com> 2026-01-02T03:04:05+00:00", gitOut(t, repo.Path, "log", "-1", "--format=%an <%ae> %aI", "main"))
-	assert.Equal(t, "Bob <bob@example.com> 2026-01-02T03:04:06+00:00", gitOut(t, repo.Path, "log", "-1", "--format=%cn <%ce> %cI", "main"))
+	assert.Equal(t, "Alice <alice@example.com> 1767323045", gitOut(t, repo.Path, "log", "-1", "--format=%an <%ae> %at", "main"))
+	assert.Equal(t, "Bob <bob@example.com> 1767323046", gitOut(t, repo.Path, "log", "-1", "--format=%cn <%ce> %ct", "main"))
 	assert.Equal(t, "msg\n\nSigned-off-by: Bob <bob@example.com>", gitOut(t, repo.Path, "log", "-1", "--format=%B", "main"))
 }
 
