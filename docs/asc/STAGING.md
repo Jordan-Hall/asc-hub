@@ -5,7 +5,7 @@ It has its own SQLite database in its own volume. It shares nothing with product
 
 ## Deploy
 
-1. Push `asc/v16`. The `asc-image` workflow publishes `hub.example.org/asc/asc-hub:<sha12>` and `:asc-v16`.
+1. Push `asc/v16`. The `asc-image` workflow publishes `<REGISTRY>/asc/asc-hub:<sha12>` and `:asc-v16`.
 3. Set `ASC_HUB_IMAGE_TAG` to the `<sha12>` tag to run. The compose file refuses to start without it. Pin the sha, not `asc-v16`.
 
 Settings come from `FORGEJO__section__KEY` environment variables. The application name is `ASC Hub` (`FORGEJO__DEFAULT__APP_NAME`). The install is locked, registration is off, Actions are on, and the default theme is `asc-auto`.

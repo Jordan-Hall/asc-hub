@@ -1,8 +1,9 @@
 name: asc-image
 # ASC Hub (the ASC fork of Forgejo) as a container image in the Forgejo registry (Dockerfile.rootless):
-#   push to asc/v16  ->  hub.example.org/asc/asc-hub:<sha12> and :asc-v16
+#   push to asc/v16  ->  <REGISTRY>/asc/asc-hub:<sha12> and :asc-v16
 # Needs the repository secret REGISTRY_TOKEN (a token with write:package) and the
-# repository variable REGISTRY_USER (the user the token belongs to).
+# repository variables REGISTRY (the registry host) and REGISTRY_USER (the user the token belongs to).
+# The registry host is operator configuration and is not kept in the repository.
 # Trust rules: only a push (or manual run) on asc/v16 or a v* tag reaches the trusted runner and
 # the credential. There is no pull_request trigger, so untrusted code never sees the secret.
 on:
@@ -16,8 +17,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  REGISTRY: hub.example.org
-  IMAGE: hub.example.org/asc/asc-hub
+  REGISTRY: ${{ vars.REGISTRY }}
+  IMAGE: ${{ vars.REGISTRY }}/asc/asc-hub
 
 jobs:
   image:

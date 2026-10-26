@@ -2,7 +2,7 @@
 
 ASC Hub is the server for ASC (Agent Source Control). It hosts `asc` changesets and stacks, review, the inbox, and CI (Actions).
 It is a fork of [Forgejo](https://forgejo.org) v16, kept rebased on upstream. The repository is `ASC/asc-hub`.
-The image is `hub.example.org/asc/asc-hub`.
+The image is `<REGISTRY>/asc/asc-hub`, with the registry host taken from the `REGISTRY` repository variable.
 
 ## How it relates to asc
 
