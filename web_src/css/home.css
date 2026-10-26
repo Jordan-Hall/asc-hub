@@ -1,54 +1,234 @@
-.home .logo {
-  max-width: 220px;
+/* Landing page and footer. Mobile first: the base rules are for 320px and up,
+   min-width media queries add columns and room. */
+
+.home {
+  background: var(--color-body);
 }
 
-@media (max-width: 767.98px) {
-  .home .hero h1 {
-    font-size: 3.5em;
+/* the hero touches the header */
+.page-content.home > .asc-hero:first-child {
+  margin-top: 0;
+}
+
+/* hero: dark in both themes, like the header */
+.asc-hero {
+  background: #0b1220;
+  color: #e2e8f0;
+  padding: 40px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left));
+}
+
+.asc-hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.asc-hero-wordmark {
+  max-width: 100%;
+  height: auto;
+}
+
+.asc-hero-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: 2.25rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  overflow-wrap: break-word;
+}
+
+.asc-hero-lead {
+  margin: 0;
+  color: #b4c0d0; /* 9.6:1 on #0b1220 */
+  font-size: 1.1rem;
+  line-height: 1.55;
+}
+
+.asc-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.asc-hero .ui.button {
+  margin: 0;
+  min-height: 44px;
+  border-radius: 10px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-hero .ui.primary.button {
+  background: #22d3ee; /* accent as a fill, dark text: 10.4:1 */
+  color: #04222b;
+}
+
+.asc-hero .ui.primary.button:hover,
+.asc-hero .ui.primary.button:focus-visible {
+  background: #67e8f9;
+  color: #04222b;
+}
+
+.asc-hero .ui.button.asc-button-on-dark {
+  background: transparent;
+  border: 1px solid #5f7189; /* 3.6:1 on #0b1220 */
+  color: #e2e8f0;
+}
+
+.asc-hero .ui.button.asc-button-on-dark:hover,
+.asc-hero .ui.button.asc-button-on-dark:focus-visible {
+  background: #1a2438;
+  color: #ffffff;
+}
+
+.asc-hero a:focus-visible {
+  outline: 2px solid #22d3ee;
+  outline-offset: 2px;
+}
+
+/* the command scrolls inside its own box, never the page */
+.asc-hero-command {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  overflow-x: auto;
+  background: #0e1a2b;
+  border: 1px solid #243049;
+  border-radius: 10px;
+  color: #e2e8f0;
+  font-family: var(--fonts-monospace);
+  font-size: 0.9rem;
+  text-align: start;
+}
+
+.asc-prompt {
+  color: #22d3ee;
+  user-select: none;
+}
+
+.asc-command-text {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+}
+
+/* feature cards */
+.asc-features {
+  padding: 24px max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left));
+}
+
+.asc-features-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  max-width: 1127px;
+  margin: 0 auto;
+}
+
+.asc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-card, 12px);
+}
+
+.asc-card p {
+  margin: 0;
+  color: var(--color-text-light);
+  line-height: 1.55;
+}
+
+.asc-card-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.asc-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--color-primary-light-6);
+  border-radius: 10px;
+  color: var(--color-primary);
+}
+
+@media (min-width: 600px) {
+  .asc-hero-actions {
+    flex-direction: row;
+    justify-content: center;
+    width: auto;
   }
-  .home .hero h2 {
-    font-size: 2em;
+  .asc-hero .ui.button {
+    min-width: 160px;
+  }
+  .asc-features-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 768px) {
-  .home .hero h1 {
-    font-size: 5.5em;
+  .asc-hero {
+    padding-top: 72px;
+    padding-bottom: 72px;
   }
-  .home .hero h2 {
-    font-size: 3em;
+  .asc-hero-title {
+    font-size: 3.5rem;
+  }
+  .asc-hero-lead {
+    font-size: 1.25rem;
+  }
+  .asc-hero-command {
+    font-size: 1rem;
   }
 }
 
-.home .hero .svg {
-  color: var(--color-primary);
-  height: 40px;
-  width: 50px;
-  vertical-align: bottom;
+@media (min-width: 1100px) {
+  .asc-hero-title {
+    font-size: 4.25rem;
+  }
+  .asc-features {
+    padding-top: 48px;
+    padding-bottom: 72px;
+  }
+  .asc-features-inner {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
-.home .hero.header {
-  font-size: 20px;
-}
-
-.home p.large {
-  font-size: 16px;
-}
-
-.home .stackable {
-  padding-top: 30px;
-}
-
-.home a {
-  color: var(--color-primary);
-}
-
+/* footer: stacked and centred on phones, one row from 881px */
 .page-footer {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
   background-color: var(--color-footer);
   border-top: 1px solid var(--color-secondary);
-  padding: 8px 20px;
+  padding: 12px max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  text-align: center;
+}
+
+.page-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 
 .page-footer .left-links {
@@ -65,12 +245,14 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  gap: 4px 16px;
 }
 
-.page-footer .right-links > a {
-  border-inline-start: 1px solid var(--color-secondary-dark-1);
-  padding-inline-start: 8px;
-  margin-inline-start: 8px;
+.page-footer .right-links .ui.dropdown.language {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
 }
 
 .page-footer .ui.dropdown.language .menu {
@@ -79,9 +261,19 @@
   margin-bottom: 10px;
 }
 
-@media (max-width: 880px) {
+@media (min-width: 881px) {
   .page-footer {
-    flex-direction: column;
-    gap: 0.5em;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 8px 20px;
+    text-align: start;
+  }
+  .page-footer .right-links > a {
+    border-inline-start: 1px solid var(--color-secondary-dark-1);
+    padding-inline-start: 8px;
+    margin-inline-start: 8px;
+  }
+  .page-footer .right-links {
+    gap: 0;
   }
 }
