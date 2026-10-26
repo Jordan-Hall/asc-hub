@@ -37,8 +37,10 @@ type Repo struct {
 	// FullName is the name Forgejo shows, "Owner/Repo".
 	FullName string
 	// Branch is the default branch; Rev is "refs/heads/<branch>".
-	Branch  string
-	Rev     string
+	Branch string
+	Rev    string
+	// Link is the repository page path ("/Owner/Repo", with the sub URL).
+	Link    string
 	Updated int64
 }
 
@@ -99,7 +101,7 @@ func repoOf(r *repo_model.Repository) (Repo, bool) {
 	}
 	return Repo{
 		ID: r.ID, Name: name, FullName: r.FullName(), Branch: r.DefaultBranch,
-		Rev: "refs/heads/" + r.DefaultBranch, Updated: int64(r.UpdatedUnix),
+		Rev: "refs/heads/" + r.DefaultBranch, Updated: int64(r.UpdatedUnix), Link: r.Link(),
 	}, true
 }
 
