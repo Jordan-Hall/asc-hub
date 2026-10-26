@@ -668,3 +668,29 @@
   justify-content: flex-start;
   padding: 0;
 }
+
+/* ---- repository search: the search board without the owner facets ---- */
+.asc-repo-page.asc-search .asc-search-layout.asc-search-layout-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.asc-repo-page.asc-search .asc-search-form {
+  padding: 16px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+  margin-top: 0;
+}
+
+/* the agents stylesheet also defines .asc-card; the search cards keep their own box */
+.asc-repo-page.asc-search .asc-card {
+  padding: 0;
+}
+
+.asc-repo-page.asc-search .asc-card-head {
+  justify-content: flex-start;
+}
+
+.asc-repo-page.asc-search .asc-search-form .asc-search-options > summary {
+  gap: 6px;
+}
