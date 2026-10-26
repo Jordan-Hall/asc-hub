@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"path/filepath"
 	"strings"
 	"unicode"
 
@@ -40,6 +41,13 @@ var Asc = struct {
 	AscBinary string `ini:"ASC_BINARY"`
 	// BridgeWorkspaces is the directory that holds the asc workspaces a lazy bridge is built from.
 	BridgeWorkspaces string `ini:"BRIDGE_WORKSPACES"`
+	// DownloadDir is the directory of the asc releases this hub offers on /download: a manifest.json and the
+	// files it lists. It is served read-only under /-/download/. Empty means the hub offers no download.
+	// Unlike the rest of [asc] it works with ENABLED false.
+	DownloadDir string `ini:"DOWNLOAD_DIR"`
+	// DownloadBaseURL is the base the download links point at. Empty means this hub's own /-/download/ mount.
+	// It must be https (http only for a loopback host), with no credentials, query or fragment.
+	DownloadBaseURL string `ini:"DOWNLOAD_BASE_URL"`
 }{}
 
 // Values of [asc] WRITER and [asc] BRIDGE.
@@ -65,9 +73,14 @@ func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.AscBinary = "asc"
 	Asc.NewRepositories = AscWriterGit
 	Asc.BridgeWorkspaces = ""
+	Asc.DownloadDir = ""
+	Asc.DownloadBaseURL = ""
 	sec := rootCfg.Section("asc")
 	if err := sec.MapTo(&Asc); err != nil {
 		log.Fatal("Failed to map [asc] settings: %v", err)
+	}
+	if err := normaliseAscDownload(); err != nil {
+		log.Fatal("Invalid [asc] download settings: %v", err)
 	}
 	if !Asc.Enabled {
 		return
@@ -166,4 +179,28 @@ func validateAscServerURL(raw string) (string, error) {
 		return "", fmt.Errorf("must not contain credentials, a query or a fragment")
 	}
 	return strings.TrimRight(u.String(), "/"), nil
+}
+
+// normaliseAscDownload checks [asc] DOWNLOAD_DIR and DOWNLOAD_BASE_URL and stores them in their final form:
+// the directory cleaned and absolute, the base URL with exactly one trailing slash.
+func normaliseAscDownload() error {
+	Asc.DownloadDir = strings.TrimSpace(Asc.DownloadDir)
+	if Asc.DownloadDir != "" {
+		if strings.IndexFunc(Asc.DownloadDir, unicode.IsControl) >= 0 {
+			return fmt.Errorf("DOWNLOAD_DIR contains a control character")
+		}
+		if !filepath.IsAbs(Asc.DownloadDir) {
+			return fmt.Errorf("DOWNLOAD_DIR must be an absolute path")
+		}
+		Asc.DownloadDir = filepath.Clean(Asc.DownloadDir)
+	}
+	Asc.DownloadBaseURL = strings.TrimSpace(Asc.DownloadBaseURL)
+	if Asc.DownloadBaseURL != "" {
+		base, err := validateAscPublicURL(Asc.DownloadBaseURL)
+		if err != nil {
+			return fmt.Errorf("DOWNLOAD_BASE_URL %w", err)
+		}
+		Asc.DownloadBaseURL = base + "/"
+	}
+	return nil
 }
