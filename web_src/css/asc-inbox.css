@@ -1,0 +1,448 @@
+/* The inbox (templates/user/asc_inbox.tmpl). Components come from asc-app.css. */
+
+.ap-inbox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  min-height: 60vh;
+}
+
+@media (min-width: 1000px) {
+  .ap-inbox {
+    grid-template-columns: minmax(420px, 520px) minmax(0, 1fr);
+    min-height: calc(100vh - 140px);
+  }
+}
+
+.ap-inbox-list {
+  min-width: 0;
+  background: var(--color-box-body);
+}
+
+@media (min-width: 1000px) {
+  .ap-inbox-list {
+    align-self: stretch;
+    border-inline-end: 1px solid var(--color-secondary);
+  }
+}
+
+.ap-inbox-top {
+  padding: 16px max(16px, env(safe-area-inset-left)) 12px;
+}
+
+.ap-inbox-top h1 {
+  margin: 0 0 12px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ap-inbox-top h1 .sub {
+  margin-inline-start: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--color-text-light-2);
+}
+
+@media (min-width: 1000px) {
+  /* the page title is in the header bar on a wide screen, keep it for screen readers */
+  .ap-inbox-top h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .ap-inbox-top {
+    padding: 0;
+  }
+}
+
+/* tabs: pills on a phone, underlined tabs on a wide screen */
+.ap-itabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ap-itabs a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--color-input-border, var(--color-secondary));
+  border-radius: 999px;
+  background: var(--color-box-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.ap-itabs a .count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-light-2);
+}
+
+.ap-itabs a.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.ap-itabs a.active .count {
+  color: #fff;
+}
+
+@media (min-width: 1000px) {
+  .ap-itabs {
+    gap: 0;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--color-secondary);
+  }
+  .ap-itabs a {
+    margin-bottom: -1px;
+    padding: 0 12px;
+    min-height: 54px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-text-light-2);
+  }
+  .ap-itabs a.active {
+    border-color: transparent;
+    border-bottom-color: var(--color-primary);
+    background: transparent;
+    color: var(--color-text);
+  }
+  .ap-itabs a.active .count {
+    color: var(--color-text-light-2);
+  }
+  .ap-itabs a .count {
+    min-width: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--ap-chip-amber-bg);
+    color: var(--ap-chip-amber-fg);
+    text-align: center;
+  }
+  .ap-itabs a.active .count {
+    color: var(--ap-chip-amber-fg);
+  }
+}
+
+.ap-ifilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ap-ifilters select {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 12px;
+  border: 1px solid var(--color-input-border, var(--color-secondary));
+  border-radius: 999px;
+  background: var(--color-box-body);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ap-ifilters .sort {
+  margin-inline-start: auto;
+  font-size: 13px;
+  color: var(--color-text-light-2);
+}
+
+@media (min-width: 1000px) {
+  .ap-ifilters {
+    margin: 0;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-secondary);
+  }
+  .ap-ifilters select {
+    min-height: 32px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+}
+
+/* the list */
+.ap-ilist {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+  border-top: 1px solid var(--ap-line);
+}
+
+.ap-irow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px max(16px, env(safe-area-inset-left));
+  border-bottom: 1px solid var(--ap-line);
+  border-inline-start: 3px solid transparent;
+  color: var(--color-text);
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.ap-irow:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.ap-irow.selected {
+  background: var(--ap-tint-bg);
+  border-inline-start-color: var(--color-primary);
+}
+
+.ap-irow .ap-dot {
+  margin-top: 6px;
+}
+
+.ap-irow .body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ap-irow .title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ap-irow .where {
+  font-size: 13px;
+  color: var(--color-text-light-2);
+  overflow-wrap: anywhere;
+}
+
+.ap-irow .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ap-irow .when {
+  flex: none;
+  font-size: 13px;
+  color: var(--color-text-light-2);
+}
+
+.ap-irow .go {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ap-chip-green-fg);
+}
+
+/* the detail pane */
+.ap-inbox-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px max(16px, env(safe-area-inset-left)) 24px;
+}
+
+@media (min-width: 1000px) {
+  .ap-inbox-detail {
+    padding: 24px 32px;
+  }
+}
+
+.ap-detail-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 14px;
+  color: var(--color-text-light-2);
+}
+
+.ap-detail-title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 1000px) {
+  .ap-detail-title {
+    font-size: 26px;
+  }
+}
+
+.ap-eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-light-2);
+}
+
+.ap-why {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.5;
+}
+
+.ap-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--color-text-light);
+}
+
+.ap-facts b {
+  color: var(--color-text);
+}
+
+.ap-facts .good b {
+  color: var(--ap-chip-green-fg);
+}
+
+.ap-facts .bad b {
+  color: var(--ap-chip-red-fg);
+}
+
+.ap-comment {
+  display: flex;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--ap-line);
+}
+
+.ap-comment .body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ap-comment .who {
+  font-size: 14px;
+}
+
+.ap-comment .who span {
+  color: var(--color-text-light-2);
+}
+
+.ap-comment .text {
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ap-reply {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px 16px;
+}
+
+.ap-reply textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-input-border, var(--color-secondary));
+  border-radius: 8px;
+  background: var(--color-input-background, var(--color-box-body));
+  color: var(--color-text);
+  font: inherit;
+  font-size: 15px;
+  resize: vertical;
+}
+
+.ap-reply .buttons,
+.ap-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ap-detail-actions form {
+  margin: 0;
+}
+
+.ap-snooze {
+  position: relative;
+}
+
+.ap-snooze summary {
+  list-style: none;
+}
+
+.ap-snooze summary::-webkit-details-marker {
+  display: none;
+}
+
+.ap-snooze .menu {
+  position: absolute;
+  inset-block-start: calc(100% + 4px);
+  inset-inline-start: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  padding: 6px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+  background: var(--color-menu, var(--color-box-body));
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
+.ap-snooze .menu form {
+  display: block;
+}
+
+.ap-snooze .menu button {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ap-snooze .menu button:hover {
+  background: var(--color-hover);
+}
+
+.ap-next {
+  position: sticky;
+  inset-block-end: 0;
+  padding: 10px 0;
+  background: var(--color-body);
+}
+
+.ap-next .ap-btn {
+  width: 100%;
+}

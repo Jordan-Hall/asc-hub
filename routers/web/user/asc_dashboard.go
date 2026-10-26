@@ -472,12 +472,18 @@ func ascPullLink(pr *issues_model.PullRequest) string {
 // ascDashAgentsFromServe asks asc serve for the person's runs that are queued, running or waiting for an
 // answer. It returns the runs to show and how many of them wait for the person.
 func ascDashAgentsFromServe(ctx *context.Context, doer *user_model.User) ([]AscDashAgent, int, error) {
+	return ascAgentsActive(ctx, doer, ascDashAgentRepos, ascDashAgentRuns, ascDashAgentRuns)
+}
+
+// ascAgentsActive asks asc serve, for at most maxRepos repositories of the person, for at most perRepo active
+// runs each, and returns at most maxTotal of them with how many wait for the person.
+func ascAgentsActive(ctx *context.Context, doer *user_model.User, maxRepos, perRepo, maxTotal int) ([]AscDashAgent, int, error) {
 	repos, err := ascAgentsHomeRepos(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
-	if len(repos) > ascDashAgentRepos {
-		repos = repos[:ascDashAgentRepos]
+	if len(repos) > maxRepos {
+		repos = repos[:maxRepos]
 	}
 	if len(repos) == 0 {
 		return nil, 0, nil
@@ -502,7 +508,7 @@ func ascDashAgentsFromServe(ctx *context.Context, doer *user_model.User) ([]AscD
 			Repo:      &ascv1.RepoRef{Name: name},
 			States:    states,
 			CreatedBy: doer.Name, // always the signed-in person
-			Limit:     ascDashAgentRuns,
+			Limit:     uint32(perRepo),
 		})
 		if err != nil {
 			if f := ascagentui.Classify(err); f != nil && !f.Disabled {
@@ -521,8 +527,8 @@ func ascDashAgentsFromServe(ctx *context.Context, doer *user_model.User) ([]AscD
 			out = append(out, a)
 		}
 	}
-	if len(out) > ascDashAgentRuns {
-		out = out[:ascDashAgentRuns]
+	if len(out) > maxTotal {
+		out = out[:maxTotal]
 	}
 	return out, waiting, nil
 }

@@ -148,4 +148,18 @@ func TestAscRenderUserPages(t *testing.T) {
 	ctx, body := ascRenderContext(t, "/", 2)
 	Dashboard(ctx)
 	ascRenderWrite(t, "dashboard", ctx.Resp.Status(), body())
+
+	oldComments := ascInboxCommentsLoad
+	ascInboxCommentsLoad = func(gocontext.Context, int64) []AscInboxComment {
+		return []AscInboxComment{{Poster: ctx.Doer, Body: "Every outbound call now goes through the retry policy. I kept the 30 s ceiling from the spec. Refund calls use the same policy, flagged for you.", Created: time.Now().Add(-12 * time.Minute)}}
+	}
+	defer func() { ascInboxCommentsLoad = oldComments }()
+	oldAgents := ascInboxAgentsLoad
+	ascInboxAgentsLoad = func(c *context.Context, u *user_model.User) ([]AscDashAgent, int, error) {
+		return ascDashAgentsLoad(c, u)
+	}
+	defer func() { ascInboxAgentsLoad = oldAgents }()
+	ctx, body = ascRenderContext(t, "/-/asc/inbox", 2)
+	AscInbox(ctx)
+	ascRenderWrite(t, "inbox", ctx.Resp.Status(), body())
 }

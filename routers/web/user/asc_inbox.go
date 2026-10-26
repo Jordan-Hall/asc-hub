@@ -5,7 +5,6 @@ package user
 
 import (
 	gocontext "context"
-	"net/http"
 	"sort"
 	"time"
 
@@ -19,10 +18,8 @@ import (
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
-	"forgejo.org/modules/setting"
 	"forgejo.org/services/automerge"
 
-	"forgejo.org/services/context"
 	pull_service "forgejo.org/services/pull"
 )
 
@@ -251,34 +248,4 @@ func ascInboxGroup(entries []*AscInboxEntry, states map[int64]*issues_model.AscI
 		out = append(out, AscInboxGroup{Section: s, Entries: es})
 	}
 	return out, snoozed
-}
-
-// AscInbox serves `GET /-/asc/inbox`.
-func AscInbox(ctx *context.Context) {
-	if !setting.Asc.Enabled || ctx.Doer == nil {
-		ctx.NotFound("AscInbox", nil)
-		return
-	}
-	ctx.Data["Title"] = ctx.Tr("user.asc_inbox")
-	ctx.Data["PageIsAscInbox"] = true
-
-	now := time.Now()
-	entries, err := ascInboxLoad(ctx, ctx.Doer, now)
-	if err != nil {
-		ctx.ServerError("ascInboxLoad", err)
-		return
-	}
-	ids := make([]int64, 0, len(entries))
-	for _, e := range entries {
-		ids = append(ids, e.PullID)
-	}
-	states, err := issues_model.ListAscInboxStates(ctx, ctx.Doer.ID, ids)
-	if err != nil {
-		ctx.ServerError("ListAscInboxStates", err)
-		return
-	}
-	groups, snoozed := ascInboxGroup(entries, states, now)
-	ctx.Data["AscInboxGroups"] = groups
-	ctx.Data["AscInboxSnoozed"] = snoozed
-	ctx.HTML(http.StatusOK, tplAscInbox)
 }
