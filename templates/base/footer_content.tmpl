@@ -1,8 +1,8 @@
 <footer class="page-footer" role="group" aria-label="{{ctx.Locale.Tr "aria.footer"}}">
 	<div class="left-links" role="contentinfo" aria-label="{{ctx.Locale.Tr "aria.footer.software"}}">
 		{{if ShowFooterPoweredBy}}
-			<span>{{ctx.Locale.Tr "powered_by" "ASC Hub"}}</span>
-			<small class="tw-text-text-light-2">&middot; <a target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "based_on" "Forgejo"}}</a></small>
+			<strong class="asc-footer-brand">ASC Hub</strong>
+			<small class="asc-footer-based">&middot; <a target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "based_on" "Forgejo"}}</a></small>
 		{{end}}
 		{{if (or .ShowFooterVersion .PageIsAdmin)}}
 			{{ctx.Locale.Tr "version"}}:
@@ -26,6 +26,8 @@
 				{{end}}
 			</div>
 		</div>
+		{{if AscDownloadAvailable}}<a href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_download.nav"}}</a>{{end}}
+		<a target="_blank" rel="noopener noreferrer" href="https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/README.md">{{ctx.Locale.Tr "docs"}}</a>
 		<a target="_blank" rel="noopener noreferrer" href="https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/WHY.md">{{ctx.Locale.Tr "why_asc_hub"}}</a>
 		<a href="{{AssetUrlPrefix}}/licenses.txt">{{ctx.Locale.Tr "licenses"}}</a>
 		{{if .EnableSwagger}}<a href="{{AppSubUrl}}/api/swagger">API</a>{{end}}
