@@ -2,67 +2,90 @@
 
 This page is for the person who runs a hub: deploy, volumes, ports, backup and restore, upgrade, and the choice of database. Names such as `hub.example.org` are placeholders. For what the pieces do, read [ARCHITECTURE.md](ARCHITECTURE.md). For one concrete staging setup, read [STAGING.md](STAGING.md).
 
+
 ## What runs
 
-A hub deployment has two programs that talk over gRPC:
+ASC Hub is one container. The image (`ghcr.io/<owner>/asc-hub`, built from `Dockerfile.allinone`) holds the hub (the Forgejo v16 fork), the `asc` binary and `git`. Its entrypoint, `asc-hub-entrypoint` under `dumb-init`, starts both programs and keeps them together:
 
-| Program | Image or binary | Port | Public |
-| --- | --- | --- | --- |
-| Hub (the Forgejo v16 fork) | `ghcr.io/<owner>/asc-hub:<sha12>`, built from `Dockerfile.rootless` | 3000 web, 2222 git over SSH | yes |
-| `asc serve` | from the ASC distribution, not from this repository | 7890 (the default port of the hub's client) | no |
+1. On every start it makes sure the directories exist and, on the first start, generates the secrets the two programs share: the internal token, the webhook secret and the hub's `SECRET_KEY`, all under `/var/lib/gitea/bootstrap` (mode 0400, kept across restarts).
+2. It writes the `asc serve` configuration (`/var/lib/gitea/asc/asc-serve.toml`) from the environment, then runs `asc serve migrate`.
+3. It starts the hub with the `[asc]` defaults filled in (`ENABLED`, `SERVER_URL=http://127.0.0.1:7890`, `PUBLIC_URL` from `ROOT_URL`, `WRITER=asc`, `NEW_REPOSITORIES=asc`, `BRIDGE=eager`), waits for `GET /api/healthz`, then starts `asc serve` on `127.0.0.1:7890`.
+4. If `ASC_HUB_ADMIN_EMAIL` is set and no marker exists, it creates the first administrator once.
+5. It waits for either program to exit. If one does, it stops the other and exits with a non-zero status, so Docker restarts the whole container. `SIGTERM` and `SIGINT` are forwarded to both and end in exit 0; give the container `stop_grace_period: 30s`.
 
-The hub image contains the hub, `git`, and an SSH server, and nothing else: it does not contain `asc serve` or the `asc` CLI. Run `asc serve` as a second service of the same compose project. The standard layout puts it in the hub's network namespace (`network_mode: "service:hub"` in Compose), so the two meet on `127.0.0.1:7890`. That layout is the default for two reasons: the hub's client refuses plain `http` to a host that is not loopback, and `[asc] PUBLIC_URL` is the only address clients ever see, so `asc serve` needs no route of its own. If you put the two on separate hosts, use `https` for `[asc] SERVER_URL`.
+| Program | Port | Public |
+| --- | --- | --- |
+| Hub, web and API | 3000 | yes, behind your TLS proxy |
+| Hub, git over SSH (built-in server) | 2222 in the container | yes, publish it |
+| `asc serve` | 127.0.0.1:7890 in the container | no |
 
-### The contract between the two
+The hub and `asc serve` meet on loopback inside the container, so the hub's client needs no TLS to reach it, and `asc serve` has no route or published port of its own. Clients reach the ASC API through the hub's address: `GET /.well-known/asc` announces `[asc] PUBLIC_URL`, which defaults to your `ROOT_URL`.
 
-- **Address.** `[asc] SERVER_URL` is where the hub dials `asc serve`. `[asc] PUBLIC_URL` is what `/.well-known/asc` tells clients. If clients reach `asc serve` through the hub's own domain, set it to the hub's root URL (for example `https://hub.example.org`) and have your proxy route asc's paths to `asc serve`.
-- **Shared secret.** Both read the same internal token. Create it once (for example 32 random bytes in hex, mode 0400, in a file both containers mount read-only) and give the hub `FORGEJO__security__INTERNAL_TOKEN_URI=file:///run/secrets/asc-internal-token`. The hub refuses a `file://` token URI together with a literal `INTERNAL_TOKEN` in `app.ini`; start from a fresh data volume or remove the literal.
-- **Authorization.** `asc serve` must ask the hub, at `/api/internal/asc/authz` (and `/api/internal/asc/ssh-key` for SSH keys, `/api/internal/asc/request-merge` for the merge queue), what a credential may do. The hub accepts requests on that API only with the internal token.
-- **Git bridge.** With `[asc] BRIDGE = eager` (default) `asc serve` writes the objects and refs of every change into the hub's bare repository directory (`/var/lib/gitea/git/repositories` in the image), so asc needs that directory mounted read-write at the same path, and the same user id as the hub (1000 in the image). `asc serve` also reads push quarantines from that directory when a git push is imported. With `lazy` the hub builds the directory itself and needs an `asc` binary in its own container (`[asc] ASC_BINARY`); the stock image does not have one, so `lazy` needs a derived image. With `off` there is no git access to ASC repositories.
-- **Configuration of `asc serve` itself** (its database, its object store, its listener, TLS) is documented with `asc serve`, not here.
+The build copies the `asc` binary from the published `asc-serve` image (`--build-arg ASC_IMAGE=ghcr.io/<owner>/asc-serve:<tag>`) into a Debian base (the label `io.asc.serve.image` records which). The hub-only image (`Dockerfile.rootless`, no `asc serve`) still builds; [STAGING.md](STAGING.md) describes a staging setup that runs `asc serve` as a separate service next to it.
 
-The `asc serve` side of this contract is owned by the ASC repository; the hub side is what `modules/setting/asc.go` and `routers/private/asc*.go` implement.
+Both programs run as the same user (uid 1000) and share the volume. That is simpler than two containers, and it also means that a bug in one can read the other's secrets. The configuration and secret files are mode 0600 and 0400, and the processes get separate environments: `asc serve` gets the loopback-http opt-in, the hub does not, and the hub does not get `asc serve`'s database URL or object store keys.
+
+Status: the image is new. `Dockerfile.allinone`, the entrypoint and the health check were written and checked by reading them and with `bash -n`; the image has not been built or started yet (no container runtime was used where it was written). Treat the first CI build and the first start as the test, and report what breaks.
 
 ## Deploy with Compose
 
-The README has a minimal hub service. Notes for a real deployment:
+The README has the one-service file. Notes for a real deployment:
 
 1. Pin the image to the 12-character commit tag. `:asc-v16` moves with every push to `asc/v16`.
-2. Put a TLS proxy in front of port 3000 and set `ROOT_URL` to the public https URL. Port 3000 itself is plain HTTP.
-3. Publish the SSH port. `SSH_PORT` is the port shown in clone URLs, `SSH_LISTEN_PORT` is the port the built-in server listens on in the container (it defaults to `SSH_PORT`), and `SSH_DOMAIN` is the host name shown. The image runs as user 1000, so the listen port must be above 1024; the image's default is 2222.
-4. Set the secrets: `SECRET_KEY` (first start), and the internal token file.
-5. Keep registration closed (`DISABLE_REGISTRATION=true`) unless you want open sign-up, and `INSTALL_LOCK=true` to skip the web installer.
-6. The root filesystem can be read-only if `/tmp` is a tmpfs (the image's temp directory is `/tmp/gitea`) and `/var/lib/gitea` is a volume. [STAGING.md](STAGING.md) runs that way with all capabilities dropped and `no-new-privileges`.
-7. Health check: `GET /api/healthz` on port 3000.
+2. Put a TLS proxy in front of port 3000 and set `ROOT_URL` to the public https URL. Port 3000 itself is plain HTTP. Without `ROOT_URL` the container falls back to `http://localhost:3000/` and logs a warning.
+3. Publish the SSH port. `SSH_PORT` is the port shown in clone URLs, `SSH_LISTEN_PORT` is the port the built-in server listens on in the container (the entrypoint sets it to 2222), and `SSH_DOMAIN` is the host name shown (default: the host of `ROOT_URL`). On the shared server use host port 22223 (`"22223:2222"` with `SSH_PORT=22223`), because 22222 is taken.
+4. `DISABLE_REGISTRATION` is `true` and `INSTALL_LOCK` is `true` unless you set them. With the lock on there is no web installer; the installer would write a literal internal token into `app.ini`, which conflicts with the token file.
+5. A read-only root filesystem should work if `/tmp` is a tmpfs (the temp directory is `/tmp/gitea`) and `/var/lib/gitea` is a volume. [STAGING.md](STAGING.md) runs the hub-only image that way with all capabilities dropped and `no-new-privileges`; this image has not been run with those options yet.
+6. The image's health check needs both programs: `GET /api/healthz` on the hub and `GET /readyz` on `asc serve`. `/readyz` fails when the database of `asc serve` does not answer or its outbox lags.
 
-### Environment variables
+### Variables read by the entrypoint
 
-`docker-setup.sh` fills `app.ini` from a template **only when the file does not exist**. The plain variables (`APP_NAME`, `ROOT_URL`, `SSH_DOMAIN`, `SSH_PORT`, `SSH_LISTEN_PORT`, `HTTP_PORT`, `DISABLE_SSH`, `DB_TYPE`, `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWD`, `INSTALL_LOCK`, `DISABLE_REGISTRATION`, `REQUIRE_SIGNIN_VIEW`, `SECRET_KEY`, `LFS_START_SERVER`) matter on the first start. Afterwards, change settings with `FORGEJO__<section>__<KEY>` variables, which are applied to `app.ini` at every start, or edit `app.ini` in the volume. Notably, without `APP_NAME` the first-start template writes `Forgejo: Beyond coding. We forge.` Set `APP_NAME` before the first start, or fix it later with `FORGEJO____APP_NAME` (four underscores: a key in the unnamed top section).
+Each `FORGEJO__<section>__<KEY>` variable you set wins over the defaults above. The plain hub variables (`APP_NAME`, `ROOT_URL`, `SSH_DOMAIN`, `SSH_PORT`, `SSH_LISTEN_PORT`, `HTTP_PORT`, `DB_TYPE`, `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWD`, `INSTALL_LOCK`, `DISABLE_REGISTRATION`, `REQUIRE_SIGNIN_VIEW`, `SECRET_KEY`) fill `app.ini` on the first start only (`docker-setup.sh` writes it only when it does not exist). Afterwards use `FORGEJO__...` variables, which are applied at every start, or edit `app.ini`. `APP_NAME` defaults to `ASC Hub`.
 
-The `[asc]` keys and their `FORGEJO__asc__*` variables are in the README table. The hub reads no `ASC_*` environment variable of its own.
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `ROOT_URL` | `http://localhost:3000/` | Public URL of the hub. Also the default of `[asc] PUBLIC_URL`. |
+| `ASC_HUB_ADMIN_EMAIL` | none | Creates the first administrator once. The password goes to `/var/lib/gitea/bootstrap/admin-password` (mode 0600). |
+| `ASC_HUB_ADMIN_USER` | `asc-admin` | User name of that administrator. |
+| `ASC_HUB_BRIDGE` | `eager` | Default of `[asc] BRIDGE` (`eager`, `lazy`, `off`). `eager` turns on `bridge_promote` and the git layer of `asc serve`. |
+| `ASC_HUB_START_TIMEOUT` | `120` | Seconds to wait for the hub before giving up. |
+| `ASC_DATABASE_URL` | SQLite file `/var/lib/gitea/asc/asc.db` | Database of `asc serve`, for example a Postgres URL. |
+| `ASC_S3_ENDPOINT`, `ASC_S3_BUCKET` (`asc-hub`), `ASC_S3_REGION` (`garage`), `ASC_S3_ACCESS_KEY_ID`, `ASC_S3_SECRET_ACCESS_KEY` | none | With an endpoint, the objects of `asc serve` go to an S3-compatible bucket (path-style) instead of `/var/lib/gitea/asc/objects`. This is the operator's storage, not a per-user setting. |
+| `ASC_CACHE_MEMORY`, `ASC_CACHE_DISK`, `ASC_TEXT_MEMORY` | `256MiB`, `2GiB`, `256MiB` | Cache sizes of `asc serve`. |
+| `ASC_GIT_ENABLED` | `false` | Git layer of `asc serve` when the bridge is `lazy` or `off` (always on for `eager`). |
+| `ASC_LOG`, `ASC_LOG_FORMAT` | `info`, `text` | Log level and format of `asc serve`. |
+
+The values that go into the `asc serve` configuration file may not contain quotes or line breaks; the entrypoint refuses them. These names are read by the entrypoint script (`docker/allinone/usr/local/bin/asc-hub-entrypoint`), not by the hub program.
+
+Running the image with a command, for example `docker run IMAGE forgejo admin user list`, skips the supervisor and runs the hub's own entrypoint with that command.
+
+## Other shapes
+
+- **Hub image and `asc serve` as two services.** Build `Dockerfile.rootless` (no `asc serve` inside), run `asc serve` from the ASC distribution as a second service in the hub's network namespace (`network_mode: "service:hub"`), and set the `[asc]` keys, the internal token and the shared repository directory yourself. The contract: `[asc] SERVER_URL` is where the hub dials; both read the same internal token (`[security] INTERNAL_TOKEN_URI`, a `file://` URI); `asc serve` asks the hub at `/api/internal/asc/authz` (and `/ssh-key`, `/request-merge`) what a credential may do; with `BRIDGE = eager`, `asc serve` needs the hub's `git/repositories` directory read-write at the same path and the same user id. The configuration of `asc serve` itself is documented with `asc serve`.
+- **Separate hosts.** Use `https` for `[asc] SERVER_URL`; the hub's client refuses plain `http` to a host that is not loopback.
 
 ## Coolify
 
-Create a **Docker Compose** resource from your compose file, with the hub and `asc serve` as services of one project:
+Create a **Docker Compose** resource from the one-service file:
 
-1. Set the resource's domain on the `hub` service, port 3000, so Coolify's proxy terminates TLS and routes to it. Coolify's magic variable for that is `SERVICE_FQDN_<SERVICE>_3000` (staging uses `SERVICE_FQDN_FORGEJO_3000` for a service named `forgejo`). Set `ROOT_URL` and `[asc] PUBLIC_URL` to the same https address.
-2. Publish the SSH port on the host (`2222:2222` or another host port, with `SSH_PORT` set to the host port) and open it in the firewall. Coolify's HTTP proxy does not carry SSH.
-3. Keep all state in named volumes, so redeploys keep the data.
-4. Put the secrets in Coolify's environment, and write the token file into a volume that both services mount read-only, owned by uid 1000, with a one-shot init service.
-5. Set the image tag in an environment variable that the compose file requires, and change it per deploy. Do not use a moving tag.
+1. Set the resource's domain on the `hub` service, port 3000, so Coolify's proxy terminates TLS and routes to it. Coolify's magic variable for that is `SERVICE_FQDN_<SERVICE>_3000` (staging uses `SERVICE_FQDN_FORGEJO_3000` for a service named `forgejo`). Set `ROOT_URL` to the same https address.
+2. Publish the SSH port on the host (`22223:2222` on the shared server, with `SSH_PORT=22223`) and open it in the firewall. Coolify's HTTP proxy does not carry SSH.
+3. Keep all state in the one named volume at `/var/lib/gitea`, so redeploys keep the data, the secrets and the `asc serve` state.
+4. Set the image tag in an environment variable that the compose file requires, and change it per deploy. Do not use a moving tag.
+5. Set `ASC_HUB_ADMIN_EMAIL` for the first deploy, read the password file once from the Coolify terminal, change the password, delete the file.
 
-The staging resource, with SQLite, is described in [STAGING.md](STAGING.md); the compose file it names belongs to the ASC repository, not this one.
+[STAGING.md](STAGING.md) describes the older staging resource, with the hub-only image and SQLite; its compose file belongs to the ASC repository, not this one.
 
 ## Volumes
 
-| Mount | Content | Back up |
-| --- | --- | --- |
-| `/var/lib/gitea` (hub) | `custom/conf/app.ini`; `data/` (SQLite file `data/gitea.db` when used, sessions, avatars, attachments, logs); `git/repositories` (the bare repositories, which for ASC repositories are the git bridge); `git/lfs`; `asc-bridge/` (workspaces of a lazy bridge) | yes |
-| `/tmp` (hub) | scratch space (`/tmp/gitea`) | no |
-| the secrets directory | the internal token | yes, in your secret store |
-| `asc serve` state | its database and object store, wherever you configured them | yes, together with the hub |
+One volume holds all state of the all-in-one image.
 
-The path `/var/lib/gitea` comes from `GITEA_WORK_DIR` in `Dockerfile.rootless`; the sub-paths come from `docker/rootless/etc/templates/app.ini`.
+| Path in the container | Content | Back up |
+| --- | --- | --- |
+| `/var/lib/gitea` | `custom/conf/app.ini`; `data/` (the SQLite file `data/gitea.db` when used, sessions, avatars, attachments, logs); `git/repositories` (the bare repositories, which for ASC repositories are the git bridge); `git/lfs`; `bootstrap/` (the internal token, webhook secret, `SECRET_KEY`, the admin password file until you delete it); `asc/` (`asc-serve.toml`, `asc.db`, `objects/`, `cache/`, `gitview/`, `home/`); `asc-bridge/` (workspaces of a lazy bridge) | yes |
+| `/tmp` | scratch space (`/tmp/gitea`) | no |
+
+The path `/var/lib/gitea` comes from `GITEA_WORK_DIR` in `Dockerfile.allinone`; the sub-paths of the hub come from `docker/rootless/etc/templates/app.ini`, those of `asc serve` from the entrypoint. With a bind mount instead of a named volume, the host directory must be owned by uid 1000.
 
 ## Database: SQLite and Postgres
 
@@ -73,20 +96,20 @@ The path `/var/lib/gitea` comes from `GITEA_WORK_DIR` in `Dockerfile.rootless`; 
 | Backup | stop the hub or use `forgejo dump`; the file is in the data volume | `pg_dump`, or your database's snapshots |
 | Tradeoff | one writer, lives and dies with the volume | one more service to run, back up and patch |
 
-The hub's database holds only the hub's data. `asc serve` has its own database, which can also be SQLite or Postgres; choose it with the same reasoning and keep the two backed up together.
+The hub's database holds only the hub's data. `asc serve` has its own database: SQLite (`/var/lib/gitea/asc/asc.db`) by default, or Postgres through `ASC_DATABASE_URL`. Choose it with the same reasoning and keep the two backed up together.
 
 ## Backup and restore
 
-The hub and `asc serve` each hold half of the truth, and each refers to the other (pull requests point at asc changes; asc refs feed the bridge). Take both backups at the same point, and restore both from the same point.
+The hub and `asc serve` each hold half of the truth, and each refers to the other (pull requests point at asc changes; asc refs feed the bridge). With SQLite for both and the files on the one volume, a consistent copy of the volume is a consistent backup. With Postgres or an S3 bucket in use, take those backups at the same point as the volume.
 
 Backup:
 
-1. Quiesce writes: stop the hub and `asc serve`, or take a consistent snapshot of both volumes and databases.
-2. Hub: the `/var/lib/gitea` volume plus the database. `forgejo dump --file <path>` (run as the container user, in the container, with the file on a writable mount) writes a zip of the files and a database dump; add `--skip-repository` if you back the repositories up separately.
-3. `asc serve`: its database and object store, by the method its documentation gives.
-4. The internal token and `SECRET_KEY`. Without the same `SECRET_KEY` the stored secrets of the hub (two-factor seeds, webhook secrets) cannot be read.
+1. Quiesce writes: stop the container, or take a consistent snapshot of the volume and of any external database.
+2. The `/var/lib/gitea` volume. It includes the secrets in `bootstrap/`; without the same `SECRET_KEY` the stored secrets of the hub (two-factor seeds, webhook secrets) cannot be read, and without the same internal token the two programs cannot talk (the entrypoint would generate new ones, which is also fine as long as both are regenerated together).
+3. An external hub database (`pg_dump` or snapshots), an external `asc serve` database and an S3 bucket, if you configured them.
+4. Optionally `forgejo dump --file <path>` (run in the container as the container user, with the file on a writable mount) writes a zip of the hub's files and a database dump; add `--skip-repository` if you back the repositories up separately. It does not contain `asc serve`'s state.
 
-Restore: restore both sets onto empty volumes and databases, start `asc serve` first, then the hub. If the git bridge directories are older than asc's refs, `BRIDGE = eager` catches them up from asc's outbox. A `lazy` bridge rebuilds itself when the fingerprint of asc's refs differs from the one it last recorded. After a restore, run the repository health check (the `repo_health_check` cron task, in the admin monitor). For an ASC repository it asks asc to verify that every ref's closure exists and that the git id map round-trips, instead of running `git fsck` (`services/repository/check_asc.go`).
+Restore: restore the volume (and any external database or bucket) onto empty storage and start the container. The entrypoint starts `asc serve` after the hub. If the git bridge directories are older than asc's refs, `BRIDGE = eager` catches them up from asc's outbox. A `lazy` bridge rebuilds itself when the fingerprint of asc's refs differs from the one it last recorded. After a restore, run the repository health check (the `repo_health_check` cron task, in the admin monitor). For an ASC repository it asks asc to verify that every ref's closure exists and that the git id map round-trips, instead of running `git fsck` (`services/repository/check_asc.go`).
 
 Test a restore before you need one.
 
@@ -94,25 +117,32 @@ Test a restore before you need one.
 
 1. Take the backup above.
 2. Set the image tag to the new commit tag and redeploy. The hub applies its database migrations at start; the ASC tables are `v17b` to `v17h` in `models/forgejo_migrations`. Migrations only go forward.
-3. Upgrade `asc serve` and the hub as a compatible pair; the `asc.v1` stubs the hub speaks are in `modules/ascproto`, generated from the ASC repository's `proto` directory.
+3. The hub and `asc serve` are upgraded together because they ship in one image: the `asc` binary comes from the `asc-serve` image named by the build argument `ASC_IMAGE`, and the `asc.v1` stubs the hub speaks are in `modules/ascproto`, generated from the ASC repository's `proto` directory. `asc serve migrate` runs at every start, before the hub.
 4. Roll back by setting the previous tag. If the older image refuses to start because the schema moved forward, restore the backup of step 1.
 
 Upstream security releases are merged into `asc/v16` first; see [FORK.md](FORK.md).
 
 ## First administrator
 
-After the first healthy start, as the container user:
+Set `ASC_HUB_ADMIN_EMAIL` (and optionally `ASC_HUB_ADMIN_USER`, default `asc-admin`) on the first start. After the hub answers, the entrypoint creates the administrator with a generated password and writes it to `/var/lib/gitea/bootstrap/admin-password` (mode 0600), then leaves a marker so it does not run again:
+
+```sh
+docker compose exec hub cat /var/lib/gitea/bootstrap/admin-password
+```
+
+Sign in, change the password (the account must), and delete the file. Without `ASC_HUB_ADMIN_EMAIL`, run once, as the container user:
 
 ```sh
 forgejo admin user create --admin --username asc-admin --email admin@example.org \
   --random-password --must-change-password=true
 ```
 
-The command prints a generated password once; sign in and change it. The command also accepts `--password`, but a password in an argument is visible in `ps` and shell history, so use `--random-password`. To get an access token for `asc auth login` at the same time the command has `--access-token`, `--access-token-name` and `--access-token-scopes`.
+The command prints a generated password once. It also accepts `--password`, but a password in an argument is visible in `ps` and shell history, so use `--random-password`. To get an access token for `asc auth login` at the same time the command has `--access-token`, `--access-token-name` and `--access-token-scopes`.
 
 ## Checks after a deploy
 
 - `curl -fsS https://hub.example.org/api/healthz`
 - `curl -fsS https://hub.example.org/.well-known/asc` returns `{"server":"...","repos":"*"}`; a 404 means `[asc] ENABLED` is false or `SERVER_URL` is empty.
 - Create a repository, then `asc clone https://hub.example.org/<owner>/<repo>` and `git clone https://hub.example.org/<owner>/<repo>.git`.
-- Look in the hub log for `[asc]` validation errors; an invalid `[asc]` value stops the start.
+- `docker inspect --format '{{.State.Health.Status}}' <container>` is `healthy` only when both the hub and `asc serve` answer.
+- Look in the container log for `asc-hub:` lines (they name each step) and for `[asc]` validation errors; an invalid `[asc]` value stops the start.

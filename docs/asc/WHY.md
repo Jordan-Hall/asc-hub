@@ -93,7 +93,7 @@ Grouped by who gains. For each one we name the mechanism and whether it is avail
 
 | Benefit | Mechanism | Status |
 | --- | --- | --- |
-| One deployment | The hub and `asc serve` run as two services of one compose project and meet on loopback in one network namespace; the hub image itself does not contain `asc serve` ([OPERATIONS.md](OPERATIONS.md)). | available |
+| One container | The image built from `Dockerfile.allinone` holds the hub and `asc serve`; its entrypoint generates the shared secrets and the `asc serve` configuration, starts both on loopback, and stops the container if either dies ([OPERATIONS.md](OPERATIONS.md)). This image has not been run by us yet: see the note in OPERATIONS.md. | available in the repository; unverified at runtime |
 | SQLite or Postgres | The hub supports both (`DB_TYPE`); `asc serve` takes its own database setting. SQLite for staging, Postgres for production. | available |
 | Coolify-ready | The staging notes describe a Coolify Docker Compose deployment ([STAGING.md](STAGING.md), [OPERATIONS.md](OPERATIONS.md)). | available |
 | Git clients keep working | The bridge and the pre-receive import (see above). | available, with the stated limits |

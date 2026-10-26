@@ -26,7 +26,8 @@ The fork replaces the repository layer and the branding. It adds, in this order 
 7. **Actions.** `permissions:` for the job token with enforcement ([actions-token-permissions.md](actions-token-permissions.md)) and the asc context variables.
 8. **Database tables.** Migrations `v17b`, `v17c`, `v17d`, `v17e`, `v17g`, `v17h` in `models/forgejo_migrations`.
 9. **Branding and UI.** Name, logo, themes, landing page, footer, mobile-first CSS: [BRANDING.md](BRANDING.md), [THEME.md](THEME.md), [ASC-NATIVE-UI.md](ASC-NATIVE-UI.md).
-10. **CI.** `.github/workflows/asc-hub-test.yml`, `.github/workflows/asc-hub-image.yml`, `.forgejo/workflows/asc-fork.yml`, `.forgejo/workflows/asc-image.yml`.
+10. **The all-in-one image.** `Dockerfile.allinone` (a copy of the build stage of `Dockerfile.rootless` plus a Debian runtime that carries the `asc` binary from the published `asc-serve` image) and `docker/allinone` (the supervising entrypoint and the combined health check). `Dockerfile.rootless` is left as upstream so that merges stay simple; when upstream changes its build stage, apply the same change to `Dockerfile.allinone`.
+11. **CI.** `.github/workflows/asc-hub-test.yml`, `.github/workflows/asc-hub-image.yml` (builds `Dockerfile.allinone`), `.forgejo/workflows/asc-fork.yml`, `.forgejo/workflows/asc-image.yml` (still builds the hub-only `Dockerfile.rootless`).
 
 Existing upstream files that the fork edits (176 at the time of writing) are mostly in `services/repository`, `services/pull`, `modules/git`, `routers/web/repo`, `routers/private`, `routers/api/v1`, `models/repo` and `models/git`. These are where a merge from upstream can conflict.
 

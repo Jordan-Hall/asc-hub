@@ -24,7 +24,7 @@ Each line names the mechanism. "Planned" means it is not built. [docs/asc/WHY.md
 - **Developers.** Undo with `asc undo` and `asc redo` (local operations; a push or land is not undone), restore an earlier version of a change from the web, small stacked changes with one review each, review from a phone (mobile-first pages). No speed claim: we have no measured numbers for the hub.
 - **Teams.** Approvals tied to a version, with the diff between versions and "changes since your last review"; fewer approvals for docs-only style changes by rules that the change cannot edit; an ordered merge queue (partial). Planned: policy file in the repository, signed changes, failure and flaky-test grouping, an audit page.
 - **People using agents.** Scoped access tokens, MCP tools in `asc` with writes enabled only by the user's configuration, pushes to non-shared names stored as the pusher's own refs in a branchless repository, everything reversible through kept versions, search by meaning on the repository search page. Planned: agent budgets.
-- **Operators.** Two services in one compose project, SQLite or Postgres, a Coolify deployment, git clients keep working through the bridge. Bring your own S3 storage is an operator setting of `asc serve` today and planned per user; bring your own AI keys is planned.
+- **Operators.** One container with the hub and `asc serve` inside (`Dockerfile.allinone`), SQLite or Postgres, a Coolify deployment, git clients keep working through the bridge. Bring your own S3 storage is an operator setting of `asc serve` today and planned per user; bring your own AI keys is planned.
 
 ## Feature highlights
 
@@ -47,55 +47,45 @@ Status is what the code in this repository does today. Items marked "partial" ar
 
 ## Quick start
 
-You need Docker with Compose, a DNS name for the hub (`hub.example.org` below) and a TLS-terminating reverse proxy in front of port 3000. The image is built from `Dockerfile.rootless` by CI and published as `ghcr.io/<owner>/asc-hub`, tagged with the 12-character commit id and with `asc-v16`. Pin the commit id.
-
-The hub talks to `asc serve`, which runs next to it. The hub image does not contain `asc serve`; use the `asc` image or binary from the ASC distribution and its documentation for the `asc serve` configuration. The hub needs four things from it: the address in `[asc] SERVER_URL`, the same internal token as the hub (`[security] INTERNAL_TOKEN_URI`), the hub's authorization endpoint (`/api/internal/asc/authz`) as its authentication provider, and read access to the hub's repository directory for the git bridge. [docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md) has the full contract.
+One container runs everything: the hub and `asc serve` (the ASC backend) start together from a single image, `ghcr.io/<owner>/asc-hub`, built from `Dockerfile.allinone`. You need Docker with Compose, a DNS name for the hub (`hub.example.org` below) and a TLS-terminating reverse proxy in front of port 3000. The image is tagged with the 12-character commit id and with `asc-v16`; pin the commit id.
 
 ```yaml
-# compose.yml (hub side; hub.example.org and the placeholders are yours to set)
+# compose.yml: the hub and asc serve are both inside this one service
 services:
   hub:
     image: ghcr.io/<owner>/asc-hub:<sha12>
     restart: unless-stopped
+    stop_grace_period: 30s
     environment:
-      # APP_NAME to DISABLE_REGISTRATION below fill app.ini on the first start only
-      APP_NAME: "ASC Hub"
-      ROOT_URL: "https://hub.example.org/"
+      ROOT_URL: "https://hub.example.org/"       # the public https address
       SSH_DOMAIN: "hub.example.org"
-      SSH_PORT: "2222"                          # the port clients use
-      INSTALL_LOCK: "true"
-      SECRET_KEY: "<random string, 64 characters>"
-      DISABLE_REGISTRATION: "true"
-      FORGEJO__security__INTERNAL_TOKEN_URI: "file:///run/secrets/asc-internal-token"
-      FORGEJO__asc__ENABLED: "true"
-      FORGEJO__asc__SERVER_URL: "http://127.0.0.1:7890"
-      FORGEJO__asc__PUBLIC_URL: "https://hub.example.org"
-      FORGEJO__asc__WRITER: "asc"
-      FORGEJO__asc__NEW_REPOSITORIES: "asc"
+      SSH_PORT: "22223"                          # the host port below, shown in clone URLs
+      ASC_HUB_ADMIN_EMAIL: "admin@example.org"   # creates the first administrator once
     volumes:
       - hub-data:/var/lib/gitea
-      - ./secrets/asc-internal-token:/run/secrets/asc-internal-token:ro
     ports:
-      - "3000:3000"   # web: put your TLS proxy in front
-      - "2222:2222"   # git over SSH (built-in server)
-
-  # asc: the `asc serve` service. Image, command and configuration file come from the ASC
-  # distribution. It must share the hub's network namespace (network_mode: "service:hub")
-  # so that the hub reaches it on 127.0.0.1:7890 without TLS.
+      - "3000:3000"      # web: put your TLS proxy in front of it
+      - "22223:2222"     # git over SSH (the built-in server listens on 2222 in the container)
 
 volumes:
   hub-data:
 ```
 
-Start it with `docker compose up -d`, then create the first administrator. Run the command once, as the `git` user, after the first healthy start:
+The all-in-one image is new and has not been built or started by its authors yet; the first CI build and first start are its test.
+
+On first start the container generates the secrets it shares with `asc serve`, writes the `asc serve` configuration, runs its migrations, starts the hub with `[asc] WRITER = asc` and `NEW_REPOSITORIES = asc` already set, then starts `asc serve` on `127.0.0.1:7890` inside the container. You edit no `[asc]` setting for this. [docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md) lists every variable, the volume layout and the other deployment shapes.
+
+Start it with `docker compose up -d`. With `ASC_HUB_ADMIN_EMAIL` set, the container creates the administrator `asc-admin` once, after the hub is up, and writes the generated password to a file that only the container user can read:
 
 ```sh
-docker compose exec hub forgejo admin user create --admin \
-  --username asc-admin --email admin@example.org \
-  --random-password --must-change-password=true
+docker compose exec hub cat /var/lib/gitea/bootstrap/admin-password
 ```
 
-The command prints a generated password once. Sign in at `https://hub.example.org/`, set a new password, then create a repository. With `NEW_REPOSITORIES = asc` it is stored in ASC.
+Sign in at `https://hub.example.org/`, set a new password (the account must change it), delete that file, and create a repository. With `NEW_REPOSITORIES = asc` it is stored in ASC. Without `ASC_HUB_ADMIN_EMAIL`, create the administrator by hand, once:
+
+```sh
+docker compose exec hub forgejo admin user create --admin   --username asc-admin --email admin@example.org   --random-password --must-change-password=true
+```
 
 On your machine, with the `asc` CLI installed:
 
@@ -109,7 +99,7 @@ asc clone https://hub.example.org/<owner>/<repo>
 
 ## Configuration
 
-Settings are read from `app.ini` (`custom/conf/app.ini`, `/var/lib/gitea/custom/conf/app.ini` in the image). In the image, `environment-to-ini` also copies every `FORGEJO__<section>__<KEY>` environment variable into `app.ini` at start (the section name is case-insensitive, so `FORGEJO__asc__KEY` and `FORGEJO__ASC__KEY` are the same). The hub reads no environment variable named `ASC_*` itself; the only `ASC_BINARY` is the `[asc]` key below, set as `FORGEJO__asc__ASC_BINARY`.
+Settings are read from `app.ini` (`custom/conf/app.ini`, `/var/lib/gitea/custom/conf/app.ini` in the image). In the image, `environment-to-ini` also copies every `FORGEJO__<section>__<KEY>` environment variable into `app.ini` at start (the section name is case-insensitive, so `FORGEJO__asc__KEY` and `FORGEJO__ASC__KEY` are the same). The hub program reads no environment variable named `ASC_*` itself; the only `ASC_BINARY` is the `[asc]` key below, set as `FORGEJO__asc__ASC_BINARY`. In the all-in-one image the entrypoint script reads a few `ASC_*` and `ASC_HUB_*` variables to configure `asc serve` and sets defaults for every `[asc]` key below (it only fills in what you have not set); those variables are listed in [docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md).
 
 The `[asc]` section (`modules/setting/asc.go`). Every key other than `ENABLED` is checked only when `ENABLED = true`, and an invalid value stops the start.
 
@@ -121,7 +111,7 @@ The `[asc]` section (`modules/setting/asc.go`). Every key other than `ENABLED` i
 | `WRITER` | `FORGEJO__asc__WRITER` | `git` | `asc` sends every write to an ASC repository through `asc.v1`. `git` keeps the older flow that pushes into the git bridge and lets asc import it. |
 | `NEW_REPOSITORIES` | `FORGEJO__asc__NEW_REPOSITORIES` | `git` | Storage backend of a repository created from now on: `git` or `asc`. Takes effect only with `WRITER = asc`. Migrations and mirrors stay git. |
 | `BRIDGE` | `FORGEJO__asc__BRIDGE` | `eager` | How the git directory that serves legacy git clients is kept: `eager` (asc keeps it current), `lazy` (the hub builds it with `asc export --git` on the first git request) or `off` (git access to ASC repositories is refused). |
-| `ASC_BINARY` | `FORGEJO__asc__ASC_BINARY` | `asc` | The `asc` executable a `lazy` bridge runs. It must exist in the hub container. |
+| `ASC_BINARY` | `FORGEJO__asc__ASC_BINARY` | `asc` | The `asc` executable a `lazy` bridge runs. The all-in-one image has it at `/usr/local/bin/asc`. |
 | `BRIDGE_WORKSPACES` | `FORGEJO__asc__BRIDGE_WORKSPACES` | `<APP_DATA_PATH>/asc-bridge` | Directory of the asc workspaces a `lazy` bridge is built from. |
 | `SHADOW_SAMPLE_PERCENT` | `FORGEJO__asc__SHADOW_SAMPLE_PERCENT` | `10` | For repositories with storage backend `dual`: the share (0 to 100) of reads repeated against asc and compared. `0` turns it off. |
 
@@ -147,7 +137,7 @@ flowchart LR
         A["asc CLI / IDE / agent"]
         G[git client]
     end
-    subgraph deployment
+    subgraph deployment["one container (Dockerfile.allinone)"]
         subgraph hub["ASC Hub (Forgejo v16 fork)"]
             W[web UI and API]
             S[SSH server]
@@ -195,7 +185,7 @@ make test-sqlite     # integration tests on SQLite
 make lint
 ```
 
-The CI for this fork is in `.github/workflows/asc-hub-test.yml` (build, vet and test the ASC packages) and `.github/workflows/asc-hub-image.yml` (the image). The generated Go stubs for `asc.v1` are committed under `modules/ascproto`; [modules/ascproto/README.md](modules/ascproto/README.md) says how to regenerate them.
+The CI for this fork is in `.github/workflows/asc-hub-test.yml` (build, vet and test the ASC packages) and `.github/workflows/asc-hub-image.yml` (the all-in-one image; it needs the repository variable `ASC_SERVE_IMAGE`, see the comments in the file). To build the image yourself: `docker build -f Dockerfile.allinone --build-arg ASC_IMAGE=ghcr.io/<owner>/asc-serve:<tag> -t asc-hub .`. The generated Go stubs for `asc.v1` are committed under `modules/ascproto`; [modules/ascproto/README.md](modules/ascproto/README.md) says how to regenerate them.
 
 ## Security
 

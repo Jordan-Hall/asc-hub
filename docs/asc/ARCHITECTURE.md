@@ -2,6 +2,10 @@
 
 ASC Hub is a fork of Forgejo v16 (see [FORK.md](FORK.md)). Forgejo's web application still runs the accounts, organizations, teams, issues, sign-in, administration, Actions and package registry. The repository layer is different: a repository can be stored in `asc serve` (storage backend `asc`), and the hub reads and writes it through the `asc.v1` RPC protocol. This page says what runs where, who owns which data, and which packages hold the code. Every path named here exists in this repository.
 
+## Deployment unit
+
+The product ships as one container image (`Dockerfile.allinone`). Inside it, `asc-hub-entrypoint` (under `dumb-init`) generates the secrets the two programs share, writes the `asc serve` configuration, runs `asc serve migrate`, starts the hub, waits for `GET /api/healthz`, starts `asc serve` on `127.0.0.1:7890`, and then supervises both with `wait -n`: if either exits, it stops the other and exits non-zero. The `asc` binary is copied from the published `asc-serve` image. The two programs share a user, a volume (`/var/lib/gitea`) and the loopback interface; they keep separate environments. [OPERATIONS.md](OPERATIONS.md) has the details. The boxes below are logical: in the all-in-one image they are two processes of one container, and in the hub-only image (`Dockerfile.rootless`) `asc serve` runs as a separate service.
+
 ## Components
 
 ```mermaid
@@ -105,7 +109,7 @@ Nothing in the hub writes a ref into a bridge directory.
 
 - The hub and `asc serve` share one secret, the internal token (`[security] INTERNAL_TOKEN` or `INTERNAL_TOKEN_URI`). `[asc] ENABLED = true` without it stops the start. The hub's internal API checks it in constant time.
 - User-initiated calls forward the user's own token, so asc authorizes them as that user. A call that carries no user token must be marked as a system call explicitly; the client never falls back to the internal token on its own (`modules/ascclient/auth.go`).
-- The hub dials `asc serve` over gRPC. Plain `http` is accepted only for a loopback host; that is why the usual deployment puts the two in one network namespace (see [OPERATIONS.md](OPERATIONS.md)). `[asc] PUBLIC_URL` must be `https` unless loopback, because clients send credentials there.
+- The hub dials `asc serve` over gRPC. Plain `http` is accepted only for a loopback host; that is why the all-in-one image runs both on loopback in one container (see [OPERATIONS.md](OPERATIONS.md)), and a two-service deployment shares one network namespace. `[asc] PUBLIC_URL` must be `https` unless loopback, because clients send credentials there.
 - Mutating calls carry an operation id that is reused across retries, so a retry is not a second write.
 - Errors from asc reach users only as a named refusal; other failures become fixed texts.
 - ASC repositories have no LFS: the LFS routes answer 404 (`services/lfs/asc.go`).
