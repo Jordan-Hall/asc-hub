@@ -7,9 +7,21 @@ ASC Hub is a fork of [Forgejo](https://forgejo.org). It is not Forgejo, it is no
 | | |
 | --- | --- |
 | Upstream | Forgejo, <https://forgejo.org>; source at <https://codeberg.org/forgejo/forgejo> |
-| Base release | v16.0.6, commit `1aa13944143b3bc4312607239a68da23512d5ce3`, "2026-10-12 security patches", branch `v16.0/forgejo` |
+| Base release | v16.0.7, commit `44861ff4ed2bdcbf2607d250600203a75ed94c59`, "ci: only run current forgejo version end-to-end tests", branch `v16.0/forgejo`; it carries the "2026-10-26 security patches" (`e949d860dd`). Merged into the fork at `46f51726b7` on top of v16.0.6 (`1aa13944143b3bc4312607239a68da23512d5ce3`, "2026-10-12 security patches"). |
 | Fork branch | `asc/v16` |
-| Size of the difference | 168 commits, 668 files changed (about 469 added, 190 modified, 8 deleted, 1 renamed) on 2026-10-26. Run `git diff --stat 1aa13944143b..asc/v16` for the current figure. |
+| Size of the difference | 166 commits, 655 files changed (about 456 added, 190 modified, 8 deleted, 1 renamed) as of merge commit `46f51726b7`. Run `git diff --stat v16.0.7..asc/v16` for the current figure. |
+
+### Upstream security fixes taken in v16.0.7
+
+The merge of v16.0.7 (`git log v16.0.6..v16.0.7`) brought in these fixes. It merged without conflicts and needed no string overrides.
+
+- Go toolchain directive raised to go1.26.10 (security update of the Go toolchain).
+- `happy-dom` raised to v21 (security update of a development dependency).
+- Forgejo Actions: `pull_request_review` events could trigger and run as trusted from arbitrary commits (`services/actions/notifier.go`).
+- Starred repositories: the visibility of the user who fetches the list is now considered; the permission check uses the doer, not the context user (`routers/api/v1/user/star.go`).
+- Watched repositories: the same visibility and doer fixes, and an unwatch no longer counts in `SearchRepo` conditions (`routers/api/v1/user/watch.go`, `models/repo/repo_list.go`). `GetStarredRepos` and `GetWatchedRepos` were removed from `models/repo/user_repo.go`.
+- NuGet packages: token authentication now respects token scopes (`routers/api/packages/nuget/auth.go`).
+- Not a security fix: CI runs only the current Forgejo version end-to-end tests (`.forgejo/cascading-release-end-to-end`).
 
 The full history of Forgejo, and before it of Gitea, is in this repository's git log. [BASELINE.md](BASELINE.md) records the test baseline of the base.
 
