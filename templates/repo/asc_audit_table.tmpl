@@ -8,57 +8,57 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 {{with .AscAudit}}
 <div class="asc-trust" data-testid="asc-audit">
 	<div class="asc-trust-head">
-		<h2 class="asc-trust-title">Audit log</h2>
+		<h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_trust.audit.title"}}</h2>
 		<span class="asc-trust-sub">{{.Label}}</span>
 	</div>
-	<p class="asc-trust-lead">Every security-relevant action appends one event. Events form a hash chain, so an event that was removed or edited can be found. The log never holds a credential, a key or a file body.</p>
+	<p class="asc-trust-lead">{{ctx.Locale.Tr "asc_trust.audit.lead"}}</p>
 
 	{{if .Unsupported}}
-		<div class="ui warning message" role="status">This ASC server does not have the audit log yet.</div>
+		<div class="ui warning message" role="status">{{ctx.Locale.Tr "asc_trust.audit.unsupported"}}</div>
 	{{else}}
 		<form class="ui form asc-trust-filters" method="get" action="{{.Base}}" data-testid="asc-audit-filters">
 			<div class="asc-trust-grid">
 				<div class="field">
-					<label for="asc-audit-actor">Who</label>
-					<input id="asc-audit-actor" name="actor" type="text" maxlength="2048" value="{{.Query.Actor}}" placeholder="user names, separated by commas" autocomplete="off">
+					<label for="asc-audit-actor">{{ctx.Locale.Tr "asc_trust.audit.who"}}</label>
+					<input id="asc-audit-actor" name="actor" type="text" maxlength="2048" value="{{.Query.Actor}}" placeholder="{{ctx.Locale.TrString "asc_trust.audit.who_hint"}}" autocomplete="off">
 				</div>
 				<div class="field">
-					<label for="asc-audit-action">What</label>
+					<label for="asc-audit-action">{{ctx.Locale.Tr "asc_trust.audit.what"}}</label>
 					<input id="asc-audit-action" name="action" type="text" maxlength="520" value="{{.Query.Action}}" placeholder="storage.* or repo.ref.update" list="asc-audit-actions" autocomplete="off">
 					<datalist id="asc-audit-actions">
 						{{range .Actions}}<option value="{{.Action}}">{{.Description}}</option>{{end}}
 					</datalist>
 				</div>
 				<div class="field">
-					<label for="asc-audit-outcome">Outcome</label>
+					<label for="asc-audit-outcome">{{ctx.Locale.Tr "asc_trust.audit.outcome"}}</label>
 					<select id="asc-audit-outcome" name="outcome">
-						<option value=""{{if eq .Query.Outcome ""}} selected{{end}}>Any</option>
-						<option value="success"{{if eq .Query.Outcome "success"}} selected{{end}}>Success</option>
-						<option value="denied"{{if eq .Query.Outcome "denied"}} selected{{end}}>Denied</option>
-						<option value="failed"{{if eq .Query.Outcome "failed"}} selected{{end}}>Failed</option>
+						<option value=""{{if eq .Query.Outcome ""}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.any"}}</option>
+						<option value="success"{{if eq .Query.Outcome "success"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_ok"}}</option>
+						<option value="denied"{{if eq .Query.Outcome "denied"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_no"}}</option>
+						<option value="failed"{{if eq .Query.Outcome "failed"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_wn"}}</option>
 					</select>
 				</div>
 				<div class="field">
-					<label for="asc-audit-target">Target starts with</label>
+					<label for="asc-audit-target">{{ctx.Locale.Tr "asc_trust.audit.target_starts"}}</label>
 					<input id="asc-audit-target" name="target" type="text" maxlength="256" value="{{.Query.Target}}" autocomplete="off">
 				</div>
 				<div class="field">
-					<label for="asc-audit-since">From</label>
+					<label for="asc-audit-since">{{ctx.Locale.Tr "asc_trust.audit.from"}}</label>
 					<input id="asc-audit-since" name="since" type="date" value="{{.Query.Since}}">
 				</div>
 				<div class="field">
-					<label for="asc-audit-until">To</label>
+					<label for="asc-audit-until">{{ctx.Locale.Tr "asc_trust.audit.to"}}</label>
 					<input id="asc-audit-until" name="until" type="date" value="{{.Query.Until}}">
 				</div>
 				<div class="field">
-					<label for="asc-audit-order">Order</label>
+					<label for="asc-audit-order">{{ctx.Locale.Tr "asc_trust.audit.order"}}</label>
 					<select id="asc-audit-order" name="order">
-						<option value=""{{if not .Query.OldestFirst}} selected{{end}}>Newest first</option>
-						<option value="oldest"{{if .Query.OldestFirst}} selected{{end}}>Oldest first</option>
+						<option value=""{{if not .Query.OldestFirst}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.newest_first"}}</option>
+						<option value="oldest"{{if .Query.OldestFirst}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.oldest_first"}}</option>
 					</select>
 				</div>
 				<div class="field">
-					<label for="asc-audit-limit">Rows</label>
+					<label for="asc-audit-limit">{{ctx.Locale.Tr "asc_trust.audit.rows"}}</label>
 					<select id="asc-audit-limit" name="limit">
 						<option value="25"{{if eq .Query.Limit 25}} selected{{end}}>25</option>
 						<option value="50"{{if eq .Query.Limit 50}} selected{{end}}>50</option>
@@ -68,10 +68,10 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 				</div>
 			</div>
 			<div class="asc-trust-actions">
-				<button class="ui primary button" type="submit">Filter</button>
-				<a class="ui basic button" href="{{.Base}}">Clear</a>
-				<a class="ui basic button" href="{{.ExportJSONL}}" data-testid="asc-audit-export-jsonl" download>Export JSONL</a>
-				<a class="ui basic button" href="{{.ExportCSV}}" data-testid="asc-audit-export-csv" download>Export CSV</a>
+				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "asc_trust.audit.filter"}}</button>
+				<a class="ui basic button" href="{{.Base}}">{{ctx.Locale.Tr "asc_trust.audit.clear"}}</a>
+				<a class="ui basic button" href="{{.ExportJSONL}}" data-testid="asc-audit-export-jsonl" download>{{ctx.Locale.Tr "asc_trust.audit.export_jsonl"}}</a>
+				<a class="ui basic button" href="{{.ExportCSV}}" data-testid="asc-audit-export-csv" download>{{ctx.Locale.Tr "asc_trust.audit.export_csv"}}</a>
 			</div>
 		</form>
 
@@ -86,30 +86,30 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 
 		{{if .Chain}}
 			{{if .Chain.OK}}
-				<div class="ui positive message" role="status" data-testid="asc-audit-chain">The hash chain is intact: {{.Chain.Checked}} events checked.</div>
+				<div class="ui positive message" role="status" data-testid="asc-audit-chain">{{ctx.Locale.Tr "asc_trust.audit.chain_ok" .Chain.Checked}}</div>
 			{{else}}
-				<div class="ui negative message" role="alert" data-testid="asc-audit-chain">The hash chain is broken at event {{.Chain.FirstBad}}{{if .Chain.Reason}}: {{.Chain.Reason}}{{end}}.</div>
+				<div class="ui negative message" role="alert" data-testid="asc-audit-chain">{{ctx.Locale.Tr "asc_trust.audit.chain_broken" .Chain.FirstBad}}{{if .Chain.Reason}}: {{.Chain.Reason}}{{end}}</div>
 			{{end}}
 		{{end}}
 
 		{{if .Searched}}
 			<div class="asc-trust-table-wrap">
 				<table class="ui very basic table asc-trust-table" data-testid="asc-audit-table">
-					<caption class="tw-sr-only">Audit events</caption>
+					<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_trust.audit.events"}}</caption>
 					<thead>
-						<tr><th scope="col">When</th><th scope="col">Who</th><th scope="col">What</th><th scope="col">Target</th><th scope="col">Outcome</th></tr>
+						<tr><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.when"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.who"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.what"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.target"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.outcome"}}</th></tr>
 					</thead>
 					<tbody>
 						{{range .Rows}}
 						<tr data-seq="{{.Seq}}">
 							<td class="asc-trust-nowrap">{{DateUtils.AbsoluteShort .Time}}</td>
-							<td>{{.Actor}}{{if .OnBehalf}} <span class="text grey">for {{.OnBehalf}}</span>{{end}}</td>
+							<td>{{.Actor}}{{if .OnBehalf}} <span class="text grey">{{ctx.Locale.Tr "asc_trust.audit.for" .OnBehalf}}</span>{{end}}</td>
 							<td>
 								<span>{{.What}}</span>
 								<code class="asc-trust-code">{{.Action}}</code>
 								{{if .Details}}
 								<details class="asc-trust-details">
-									<summary>Details</summary>
+									<summary>{{ctx.Locale.Tr "asc_trust.audit.details"}}</summary>
 									<dl class="asc-trust-dl">
 										{{range .Details}}<dt>{{.Key}}</dt><dd>{{.Value}}</dd>{{end}}
 									</dl>
@@ -117,26 +117,26 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 								{{end}}
 							</td>
 							<td>{{if .Repo}}<span class="text grey">{{.Repo}}</span> {{end}}{{if .Target}}<code class="asc-trust-code">{{.Target}}</code>{{end}}</td>
-							<td><span class="ast-pill ast-pill-{{.Tone}}">{{.Outcome}}</span></td>
+							<td><span class="ast-pill ast-pill-{{.Tone}}">{{ctx.Locale.Tr (printf "asc_trust.audit.outcome_%s" .Tone)}}</span></td>
 						</tr>
 						{{else}}
-						<tr><td colspan="5" class="center aligned text grey" data-testid="asc-audit-empty">No events match.</td></tr>
+						<tr><td colspan="5" class="center aligned text grey" data-testid="asc-audit-empty">{{ctx.Locale.Tr "asc_trust.audit.empty"}}</td></tr>
 						{{end}}
 					</tbody>
 				</table>
 			</div>
 			{{if .NextURL}}
 				<div class="asc-trust-actions">
-					<a class="ui basic button" href="{{.NextURL}}" rel="next" data-testid="asc-audit-next">Older events</a>
-					<a class="ui basic button" href="{{.FirstURL}}">Back to the first page</a>
+					<a class="ui basic button" href="{{.NextURL}}" rel="next" data-testid="asc-audit-next">{{ctx.Locale.Tr "asc_trust.audit.older"}}</a>
+					<a class="ui basic button" href="{{.FirstURL}}">{{ctx.Locale.Tr "asc_trust.audit.first_page"}}</a>
 				</div>
 			{{end}}
 		{{end}}
 
 		<form class="ui form asc-trust-verify" method="post" action="{{.Base}}/verify">
 			{{$.CsrfTokenHtml}}
-			<button class="ui basic button" type="submit" data-testid="asc-audit-verify">Verify the hash chain</button>
-			<span class="asc-trust-sub">Reads every event of this log and checks the chain. It changes nothing.</span>
+			<button class="ui basic button" type="submit" data-testid="asc-audit-verify">{{ctx.Locale.Tr "asc_trust.audit.verify"}}</button>
+			<span class="asc-trust-sub">{{ctx.Locale.Tr "asc_trust.audit.verify_hint"}}</span>
 		</form>
 	{{end}}
 </div>

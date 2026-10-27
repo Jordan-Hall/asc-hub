@@ -103,7 +103,7 @@ func (lvl *AuditLevel) view(q asctrust.AuditQuery) *AuditView {
 // ServeAudit serves GET <base>: the filter form and one page of the log.
 func ServeAudit(ctx *app_context.Context, lvl *AuditLevel) {
 	NoStore(ctx)
-	ctx.Data["Title"] = "Audit log"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_trust.audit.title")
 	q, filter, problems := asctrust.AuditQueryOf(ctx.FormString)
 	v := lvl.view(q)
 	ctx.Data[AuditData] = v
@@ -121,14 +121,14 @@ func ServeAudit(ctx *app_context.Context, lvl *AuditLevel) {
 	conn, err := asctrust.Conn()
 	if err != nil {
 		log.Error("asc audit: no connection to asc serve: %v", err)
-		v.Error = "The ASC server is not reachable right now."
+		v.Error = ctx.Locale.TrString("asc_trust.err.unavailable")
 		ctx.HTML(http.StatusBadGateway, lvl.Tpl)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, lvl.Call, lvl.Repo)
 	if err != nil {
 		f := FailureOf("audit credential", err)
-		v.Error = f.Message
+		v.Error = f.Localized(ctx)
 		ctx.HTML(f.Status, lvl.Tpl)
 		return
 	}
@@ -137,7 +137,7 @@ func ServeAudit(ctx *app_context.Context, lvl *AuditLevel) {
 	res, err := asctrust.ListAudit(callCtx, conn, lvl.Scope, q, filter)
 	if err != nil {
 		f := FailureOf("audit list", err)
-		v.Error = f.Message
+		v.Error = f.Localized(ctx)
 		if f.Status == http.StatusNotFound {
 			// A scope the person may not see looks like a scope that does not exist.
 			ctx.NotFound("asc audit", nil)
@@ -159,7 +159,7 @@ func ServeAudit(ctx *app_context.Context, lvl *AuditLevel) {
 // result. It changes nothing.
 func ServeAuditVerify(ctx *app_context.Context, lvl *AuditLevel) {
 	NoStore(ctx)
-	ctx.Data["Title"] = "Audit log"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_trust.audit.title")
 	q := asctrust.AuditQuery{Limit: asctrust.AuditPageSizeDefault}
 	v := lvl.view(q)
 	ctx.Data[AuditData] = v
@@ -170,14 +170,14 @@ func ServeAuditVerify(ctx *app_context.Context, lvl *AuditLevel) {
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		v.Error = "The ASC server is not reachable right now."
+		v.Error = ctx.Locale.TrString("asc_trust.err.unavailable")
 		ctx.HTML(http.StatusBadGateway, lvl.Tpl)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, lvl.Call, lvl.Repo)
 	if err != nil {
 		f := FailureOf("audit credential", err)
-		v.Error = f.Message
+		v.Error = f.Localized(ctx)
 		ctx.HTML(f.Status, lvl.Tpl)
 		return
 	}
@@ -189,7 +189,7 @@ func ServeAuditVerify(ctx *app_context.Context, lvl *AuditLevel) {
 			ctx.NotFound("asc audit verify", nil)
 			return
 		}
-		v.Error = f.Message
+		v.Error = f.Localized(ctx)
 		ctx.HTML(f.Status, lvl.Tpl)
 		return
 	}
@@ -222,22 +222,22 @@ func ServeAuditExport(ctx *app_context.Context, lvl *AuditLevel) {
 	case "csv":
 		csv = true
 	default:
-		ctx.Error(http.StatusBadRequest, "The format is jsonl or csv.")
+		ctx.Error(http.StatusBadRequest, ctx.Locale.TrString("asc_trust.audit.err_format"))
 		return
 	}
 	if !asctrust.HasFeature(ctx, asctrust.FeatureAudit) {
-		ctx.Error(http.StatusNotImplemented, "This server has no audit log yet.")
+		ctx.Error(http.StatusNotImplemented, ctx.Locale.TrString("asc_trust.audit.unsupported"))
 		return
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		ctx.Error(http.StatusBadGateway, "The ASC server is not reachable right now.")
+		ctx.Error(http.StatusBadGateway, ctx.Locale.TrString("asc_trust.err.unavailable"))
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, lvl.Call, lvl.Repo)
 	if err != nil {
 		f := FailureOf("audit export credential", err)
-		ctx.Error(f.Status, f.Message)
+		ctx.Error(f.Status, f.Localized(ctx))
 		return
 	}
 	defer release()
@@ -247,13 +247,13 @@ func ServeAuditExport(ctx *app_context.Context, lvl *AuditLevel) {
 	stream, err := asctrust.StartAuditExport(streamCtx, conn, lvl.Scope, filter, csv)
 	if err != nil {
 		f := FailureOf("audit export", err)
-		ctx.Error(f.Status, f.Message)
+		ctx.Error(f.Status, f.Localized(ctx))
 		return
 	}
 	tmp, err := os.CreateTemp("", "asc-audit-*")
 	if err != nil {
 		log.Error("asc audit export: scratch file: %v", err)
-		ctx.Error(http.StatusInternalServerError, "The export could not be prepared.")
+		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
 		return
 	}
 	defer func() {
@@ -262,16 +262,16 @@ func ServeAuditExport(ctx *app_context.Context, lvl *AuditLevel) {
 	}()
 	if _, err := asctrust.CopyExport(stream, tmp); err != nil {
 		f := FailureOf("audit export copy", err)
-		ctx.Error(f.Status, f.Message)
+		ctx.Error(f.Status, f.Localized(ctx))
 		return
 	}
 	size, err := tmp.Seek(0, io.SeekCurrent)
 	if err != nil {
-		ctx.Error(http.StatusInternalServerError, "The export could not be prepared.")
+		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
 		return
 	}
 	if _, err := tmp.Seek(0, io.SeekStart); err != nil {
-		ctx.Error(http.StatusInternalServerError, "The export could not be prepared.")
+		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
 		return
 	}
 	ext, ctype := "jsonl", "application/x-ndjson"

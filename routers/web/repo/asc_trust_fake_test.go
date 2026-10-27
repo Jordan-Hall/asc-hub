@@ -49,6 +49,7 @@ type fakeTrust struct {
 	ascv1.UnimplementedRepoServer
 	ascv1.UnimplementedStacksServer
 	ascv1.UnimplementedCiInsightsServer
+	ascv1.UnimplementedAuditServer
 
 	mu       sync.Mutex
 	calls    []trustCall
@@ -59,6 +60,8 @@ type fakeTrust struct {
 	listGroups func(*ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error)
 	listFlaky  func(*ascv1.ListFlakyTestsRequest) (*ascv1.ListFlakyTestsResponse, error)
 	history    func(*ascv1.FlakyHistoryRequest) (*ascv1.FlakyHistoryResponse, error)
+	auditList  func(*ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error)
+	auditChain func(*ascv1.VerifyAuditChainRequest) (*ascv1.VerifyAuditChainResponse, error)
 }
 
 func (f *fakeTrust) note(ctx gocontext.Context, method string, req any) {
@@ -132,6 +135,27 @@ func (f *fakeTrust) FlakyHistory(ctx gocontext.Context, r *ascv1.FlakyHistoryReq
 	return f.history(r)
 }
 
+func (f *fakeTrust) List(ctx gocontext.Context, r *ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error) {
+	f.note(ctx, "AuditList", r)
+	if f.auditList == nil {
+		return f.UnimplementedAuditServer.List(ctx, r)
+	}
+	return f.auditList(r)
+}
+
+func (f *fakeTrust) ListActions(ctx gocontext.Context, r *ascv1.ListAuditActionsRequest) (*ascv1.ListAuditActionsResponse, error) {
+	f.note(ctx, "AuditActions", r)
+	return &ascv1.ListAuditActionsResponse{}, nil
+}
+
+func (f *fakeTrust) VerifyChain(ctx gocontext.Context, r *ascv1.VerifyAuditChainRequest) (*ascv1.VerifyAuditChainResponse, error) {
+	f.note(ctx, "VerifyChain", r)
+	if f.auditChain == nil {
+		return f.UnimplementedAuditServer.VerifyChain(ctx, r)
+	}
+	return f.auditChain(r)
+}
+
 // startFakeTrust serves the fake on a loopback port, points asctrust at it, makes the repository 1 an asc
 // repository and switches [asc] on. The call credential is a fixed token, so no row is written to the database.
 func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
@@ -141,6 +165,7 @@ func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
 	ascv1.RegisterRepoServer(srv, f)
 	ascv1.RegisterStacksServer(srv, f)
 	ascv1.RegisterCiInsightsServer(srv, f)
+	ascv1.RegisterAuditServer(srv, f)
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()
