@@ -32,6 +32,7 @@
 	{{template "custom/body_outer_pre" .}}
 
 	<div class="full height">
+		{{if not .PageIsInstall}}<a class="skip-link" href="#main-content">{{ctx.Locale.Tr "aria.skip_to_content"}}</a>{{end}}
 		<noscript>
 			<div class="tw-ml-2 tw-mr-2 tw-text-center tw-text-text-light-2">{{ctx.Locale.Tr "enable_javascript"}}</div>
 		</noscript>
@@ -40,6 +41,8 @@
 
 		{{if not .PageIsInstall}}
 			{{template "base/head_navbar" .}}
+			{{/* the target of the skip link: after the navigation, before the page */}}
+			<a id="main-content" class="skip-target" tabindex="-1"></a>
 		{{end}}
 
 {{if false}}

@@ -167,8 +167,12 @@ function attachInit(dropdown) {
   // Since #19861 we have prepared the "combobox" solution, but didn't get enough time to put it into practice and test before.
   const isComboBox = dropdown.querySelectorAll('input').length > 0;
 
-  dropdown[ariaPatchKey].focusableRole = isComboBox ? 'combobox' : 'menu';
-  dropdown[ariaPatchKey].listPopupRole = isComboBox ? 'listbox' : '';
+  // A dropdown that is not a combobox is a menu button: the dropdown element is the button that opens the menu, and
+  // the popup is the menu that owns the menu items. (The element used to be the "menu" itself and the popup had no
+  // role, so a closed menu, whose items are hidden, was a role="menu" without items: axe aria-required-children, a
+  // critical finding on every page through the language menu of the footer.)
+  dropdown[ariaPatchKey].focusableRole = isComboBox ? 'combobox' : 'button';
+  dropdown[ariaPatchKey].listPopupRole = isComboBox ? 'listbox' : 'menu';
   dropdown[ariaPatchKey].listItemRole = isComboBox ? 'option' : 'menuitem';
 
   attachDomEvents(dropdown, focusable, menu);
@@ -192,8 +196,9 @@ function attachDomEvents(dropdown, focusable, menu) {
     // if the popup is visible and has an active/selected item, use its id as aria-activedescendant
     if (menuVisible) {
       focusable.setAttribute('aria-activedescendant', active.id);
-    } else if (dropdown[ariaPatchKey].listPopupRole === 'menu') {
-      // for menu, when the popup is hidden, no need to keep the aria-activedescendant, and clear the active/selected item
+    } else if (dropdown[ariaPatchKey].focusableRole === 'menu') {
+      // (dead since the menu button role: a menu button keeps its active/selected item, which is the current choice of
+      // the language menu) when the popup is hidden there is no need to keep the aria-activedescendant
       focusable.removeAttribute('aria-activedescendant');
       active.classList.remove('active', 'selected');
     }
