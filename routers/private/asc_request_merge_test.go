@@ -14,6 +14,7 @@ import (
 	issues_model "forgejo.org/models/issues"
 	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/json"
@@ -34,7 +35,12 @@ const (
 
 type rmLander struct{ lands []int64 }
 
-func (l *rmLander) Land(_ context.Context, _ *user_model.User, _ access_model.Permission, pr *issues_model.PullRequest, _ pull_service.AscMergeOptions) (*pull_service.AscStackMergeResult, error) {
+// Land stands in for pull_service.MergeAscStack, which is where a land refuses a person who may not merge
+// (the queue hands it the permission of the doer).
+func (l *rmLander) Land(_ context.Context, _ *user_model.User, perm access_model.Permission, pr *issues_model.PullRequest, _ pull_service.AscMergeOptions) (*pull_service.AscStackMergeResult, error) {
+	if !perm.CanWrite(unit.TypePullRequests) {
+		return nil, pull_service.ErrAscStackNotAllowed
+	}
 	l.lands = append(l.lands, pr.ID)
 	return &pull_service.AscStackMergeResult{Merged: []*issues_model.PullRequest{pr}}, nil
 }
@@ -61,6 +67,10 @@ func ascRequestMergeFixture(t *testing.T, backed bool) *rmLander {
 	prev := ascRequestMergeBacked
 	ascRequestMergeBacked = func(*repo_model.Repository) (bool, error) { return backed, nil }
 	t.Cleanup(func() { ascRequestMergeBacked = prev })
+	// The queue and the stack service ask for themselves whether the repository is stored in asc (ascsync.BackedBy).
+	isBacked := func(*repo_model.Repository) (bool, error) { return backed, nil }
+	t.Cleanup(automerge.UseAscQueueBacked(isBacked))
+	t.Cleanup(pull_service.UseAscStackBacked(isBacked))
 	return l
 }
 
