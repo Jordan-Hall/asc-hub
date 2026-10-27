@@ -39,6 +39,7 @@ import (
 	"forgejo.org/services/ascbridge"
 	"forgejo.org/services/ascdownloadsync"
 	"forgejo.org/services/ascforward"
+	"forgejo.org/services/asctrust"
 	auth_method "forgejo.org/services/auth/method"
 	"forgejo.org/services/auth/source/oauth2"
 	"forgejo.org/services/automerge"
@@ -151,6 +152,7 @@ func InitWebInstalled(ctx context.Context) {
 	mustInitCtx(ctx, models.Init)
 	mustInitCtx(ctx, auth_model.Init)
 	mustInitCtx(ctx, web_auth.EnsureAscIdeClient)
+	mustInitCtx(ctx, asctrust.PurgeLegacyCallTokens)
 	mustInitCtx(ctx, repo_service.Init)
 
 	// Booting long running goroutines.
