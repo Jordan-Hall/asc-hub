@@ -3,6 +3,7 @@ import './bootstrap.js';
 
 import {initRepoActivityTopAuthorsChart} from './features/repo-activity-top-authors.ts';
 import {initDashboardRepoList} from './features/dashboard-repo-list.ts';
+import {initAscAgentRun} from './features/asc-agent-run.ts';
 
 import {initGlobalCopyToClipboardListener} from './features/clipboard.js';
 import {initContextPopups} from './features/contextpopup.js';
@@ -141,6 +142,7 @@ onDomReady(() => {
   initAdminConfigs();
 
   initDashboardRepoList();
+  initAscAgentRun();
 
   initNotificationCount();
   initNotificationsTable();
