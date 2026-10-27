@@ -47,7 +47,7 @@ export function closeOverlay({restoreFocus = true} = {}) {
   document.body.classList.remove('ds-lock');
   setExpanded(id, false);
   if (id === 'ds-palette') resetPalette();
-  if (window.location.hash === `#${id}`) history.replaceState(null, '', window.location.pathname + window.location.search);
+  if (window.location.hash === `#${id}`) window.history.replaceState(null, '', window.location.pathname + window.location.search);
   const trigger = lastTrigger;
   lastTrigger = null;
   if (restoreFocus && trigger && document.contains(trigger)) trigger.focus();

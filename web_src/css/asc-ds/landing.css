@@ -377,7 +377,7 @@
 
 @media (min-width: 768px) {
   .ds-app .ds-land-hero {
-    padding: 64px 0 64px;
+    padding: 64px 0;
   }
 
   .ds-app .ds-land-title {

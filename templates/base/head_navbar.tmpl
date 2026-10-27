@@ -3,7 +3,7 @@ The application header of every page (ASC design system, board A2):
 - desktop (1024 and wider): .ds-hdr-desktop, the brand, the primary links, the search field that opens the command palette, Inbox, Create and the account menu
 - phone and tablet: .ds-topbar (menu, brand, search, account), the bottom navigation and the menu drawer
 - the overlays (drawer, account menu, create menu, command palette) are siblings of the header so a page that brings its own .ds-subbar keeps them
-The script in web_src/js/features/ds-shell.ts opens and closes the overlays: elements with data-ds-open="id" open the overlay with that id, data-ds-close closes it. Without script, the links in the overlay triggers still work: the drawer and the menus open through :target, the search field is a link to the explore page.
+The script in web_src/js/features/ds-shell.js opens and closes the overlays: elements with data-ds-open="id" open the overlay with that id, data-ds-close closes it. Without script, the links in the overlay triggers still work: the drawer and the menus open through :target, the search field is a link to the explore page.
 */}}
 {{$notificationUnreadCount := 0}}
 {{if and .IsSigned .NotificationUnreadCount}}
