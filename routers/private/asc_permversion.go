@@ -6,6 +6,7 @@ package private
 import (
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -33,55 +34,142 @@ import (
 //
 // A collaborator, team, organisation, visibility, rename, transfer, deletion or token change reaches the answer only
 // through one of these, so it changes the value without a hook in each place that makes such a change. A deletion or a
-// revocation ends in a refusal, and a refusal has no version. The value is the first 64 bits of a SHA-256 of the
-// facts, which carry no secret. It is a fingerprint, not a counter: an access that changes and changes back has the
-// old value again.
+// revocation ends in a refusal, and a refusal has no version. The value is the first 64 bits of a SHA-256 of a JSON
+// encoding of the facts (a struct, so every field has its own name and quoting: no text of a ref or a scope can pass
+// for another field), after a domain-separation line that names the format. The facts carry no secret. It is a
+// fingerprint, not a counter: an access that changes and changes back has the old value again.
 func ascPermVersion(ctx *context.PrivateContext, repo *repo_model.Repository, p *ascPrincipal, access access_model.Permission, ref string) (uint64, error) {
 	if err := repo.LoadUnits(ctx); err != nil {
 		return 0, fmt.Errorf("LoadUnits: %w", err)
 	}
-	var b strings.Builder
-	fmt.Fprintf(&b, "asc-perm-v2|repo=%d|owner=%d|%s/%s|private=%t|archived=%t|mirror=%t|status=%d|storage=%s",
-		repo.ID, repo.OwnerID, strings.ToLower(repo.OwnerName), repo.LowerName,
-		repo.IsPrivate, repo.IsArchived, repo.IsMirror, repo.Status, repo.GetStorageBackend())
+	f := permFacts{
+		Repo: permRepo{
+			ID: repo.ID, OwnerID: repo.OwnerID, OwnerName: strings.ToLower(repo.OwnerName), Name: repo.LowerName,
+			Private: repo.IsPrivate, Archived: repo.IsArchived, Mirror: repo.IsMirror, Status: int(repo.Status),
+			Storage: repo.GetStorageBackend(),
+		},
+		Mode: int(access.AccessMode),
+		Ref:  ref,
+		Cred: permCred{
+			TokenID: p.tokenID, TokenUpdated: p.tokenUpdated, Expires: p.expires,
+			Scope: p.scope, Grants: p.grantScopes, Password: p.passwordAuth,
+		},
+	}
 	if repo.Owner != nil {
-		fmt.Fprintf(&b, "|ownertype=%d|ownervis=%d|owneractive=%t", repo.Owner.Type, repo.Owner.Visibility, repo.Owner.IsActive)
+		f.Owner = &permOwner{Type: int(repo.Owner.Type), Visibility: int(repo.Owner.Visibility), Active: repo.Owner.IsActive}
 	}
-	units := make([]string, 0, len(repo.Units))
+	f.Units = make([]string, 0, len(repo.Units))
 	for _, u := range repo.Units {
-		units = append(units, fmt.Sprintf("%d=%d", u.Type, access.UnitAccessMode(u.Type)))
+		f.Units = append(f.Units, fmt.Sprintf("%d=%d", u.Type, access.UnitAccessMode(u.Type)))
 	}
-	sort.Strings(units)
-	fmt.Fprintf(&b, "|mode=%d|units=%s", access.AccessMode, strings.Join(units, ","))
-
+	sort.Strings(f.Units)
 	if u := p.user; u != nil {
-		required := u.MustHaveTwoFactor()
 		enrolled, err := auth_model.HasTwoFactorByUID(ctx, u.ID)
 		if err != nil {
 			return 0, fmt.Errorf("HasTwoFactorByUID: %w", err)
 		}
-		fmt.Fprintf(&b, "|user=%d|active=%t|prohibit=%t|mustchange=%t|restricted=%t|admin=%t|2fa=%t/%t",
-			u.ID, u.IsActive, u.ProhibitLogin, u.MustChangePassword, u.IsRestricted, u.IsAdmin, required, enrolled)
+		f.User = &permUser{
+			ID: u.ID, Active: u.IsActive, Prohibit: u.ProhibitLogin, MustChange: u.MustChangePassword,
+			Restricted: u.IsRestricted, Admin: u.IsAdmin, TwoFactorRequired: u.MustHaveTwoFactor(), TwoFactorEnrolled: enrolled,
+		}
 	}
-	fmt.Fprintf(&b, "|token=%d@%d|scope=%s|expires=%d|grants=%s|password=%t",
-		p.tokenID, p.tokenUpdated, p.scope, p.expires, p.grantScopes, p.passwordAuth)
 	if k := p.deployKey; k != nil {
-		fmt.Fprintf(&b, "|deploykey=%d|keymode=%d", k.ID, k.Mode)
+		f.Key = &permKey{ID: k.ID, Mode: int(k.Mode)}
 	}
 	if t := p.task; t != nil {
-		fmt.Fprintf(&b, "|task=%d|taskstatus=%d|stopped=%d", t.ID, t.Status, t.Stopped)
+		f.Task = &permTask{ID: t.ID, Status: int(t.Status), Stopped: int64(t.Stopped)}
 	}
-
-	fmt.Fprintf(&b, "|ref=%s", ref)
 	if branch := strings.TrimPrefix(ref, "refs/heads/"); branch != "" {
 		rule, err := git_model.GetFirstMatchProtectedBranchRule(ctx, repo.ID, branch)
 		if err != nil {
 			return 0, fmt.Errorf("GetFirstMatchProtectedBranchRule: %w", err)
 		}
 		if rule != nil {
-			fmt.Fprintf(&b, "|rule=%d@%d|signed=%t", rule.ID, rule.UpdatedUnix, rule.RequireSignedCommits)
+			f.Rule = &permRule{ID: rule.ID, Updated: int64(rule.UpdatedUnix), Signed: rule.RequireSignedCommits}
 		}
 	}
-	sum := sha256.Sum256([]byte(b.String()))
+	return permVersionOf(f)
+}
+
+// permFacts are the facts of the fingerprint. Every field is named in the encoding, strings are quoted by it, and a
+// field that is absent (a nil pointer encodes as null) differs from one that is present with zero values.
+type permFacts struct {
+	Repo  permRepo   `json:"repo"`
+	Owner *permOwner `json:"owner"`
+	Mode  int        `json:"mode"`
+	Units []string   `json:"units"`
+	User  *permUser  `json:"user"`
+	Cred  permCred   `json:"cred"`
+	Key   *permKey   `json:"deploy_key"`
+	Task  *permTask  `json:"task"`
+	Ref   string     `json:"ref"`
+	Rule  *permRule  `json:"rule"`
+}
+
+type permRepo struct {
+	ID        int64
+	OwnerID   int64
+	OwnerName string
+	Name      string
+	Storage   string
+	Private   bool
+	Archived  bool
+	Mirror    bool
+	Status    int
+}
+
+type permOwner struct {
+	Type       int
+	Visibility int
+	Active     bool
+}
+
+type permUser struct {
+	ID                int64
+	Active            bool
+	Prohibit          bool
+	MustChange        bool
+	Restricted        bool
+	Admin             bool
+	TwoFactorRequired bool
+	TwoFactorEnrolled bool
+}
+
+type permCred struct {
+	TokenID      int64
+	TokenUpdated int64
+	Expires      int64
+	Scope        string
+	Grants       string
+	Password     bool
+}
+
+type permKey struct {
+	ID   int64
+	Mode int
+}
+
+type permTask struct {
+	ID      int64
+	Status  int
+	Stopped int64
+}
+
+type permRule struct {
+	ID      int64
+	Updated int64
+	Signed  bool
+}
+
+// permDomain starts the hashed text. A change of the facts or of their encoding changes it.
+const permDomain = "asc-hub perm_version v3\n"
+
+// permVersionOf is the fingerprint of the facts.
+func permVersionOf(f permFacts) (uint64, error) {
+	text, err := json.Marshal(f)
+	if err != nil {
+		return 0, fmt.Errorf("encode the facts: %w", err)
+	}
+	sum := sha256.Sum256(append([]byte(permDomain), text...))
 	return binary.BigEndian.Uint64(sum[:8]), nil
 }
