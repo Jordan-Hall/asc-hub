@@ -1,6 +1,6 @@
 # Why ASC Hub
 
-We wrote this page to say why ASC Hub exists, what we chose, what we gave up, and what is not built yet. Where a claim is about code, we checked it against the code and name the place. Where something is not built, we say "planned" and do not describe it as if it worked.
+We wrote this page to say why ASC Hub exists, what we chose, what we gave up, and what is not built yet. Where a claim is about code, we checked it against the code and name the place. Where something is not built, we say so and do not describe it as if it worked.
 
 ## The problem
 
@@ -72,18 +72,18 @@ Grouped by who gains. For each one we name the mechanism and whether it is avail
 | Approvals that do not go stale | A review is tied to the exact version it was made on; the page shows what changed since your review, and the diff between any two versions. | available |
 | One ordered way to land | The merge queue lands the largest ready prefix of a stack, can be paused per branch and re-checks the enqueuing user's permission at every land. It has a web button and a queue page; a land that needs a content merge is refused and the stack is restacked and re-checked. | available (needs `stacks.v1` on the asc server for the restack) |
 | Rules the change cannot edit | Change classes come from asc's rules at the merge base; branch protection can require fewer approvals for docs-only style changes (`asc_relaxed_classes`, `asc_relaxed_approvals`, `services/pull/review_asc.go`). | available |
-| Policy as code in the repository | A full repository policy file. | planned (in progress in the ASC repository) |
-| An audit trail | Restoring a version writes an `asc audit:` log line; path policy refusals are reported to the pusher. | partial: no audit page |
+| Policy as code in the repository | The policy page of a repository shows the policy file in force, explains what it means and who may write, validates a draft, and proposes a change as a change under review, never as a write to trunk (`routers/web/repo/setting/asc_policy.go`, `services/asctrust/policy.go`). | available (needs `policy-api.v1` on the asc server) |
+| An audit trail | Repository administrators get an audit page with filters, paging, JSONL and CSV export and a hash-chain check (`routers/web/repo/asc_audit.go`); the operation log page lists ref changes (`routers/web/repo/asc_ops.go`). Restoring a version also writes an `asc audit:` log line, and path policy refusals are reported to the pusher. | available (needs `audit.v1` on the asc server) |
 | Secrets stay out of drafts | Before a draft is uploaded, the asc client holds a change that adds denied paths (such as `.env*` or `*.pem`) or a known token pattern, until it is released with `asc cloud release`. This guards drafts and does not replace a scanner on your server. | available in asc |
-| Signed changes | The asc writer cannot honour a signing request (`modules/repostore/asc/commit.go`). | planned |
-| Failure and flaky-test grouping in checks | Not in the hub. | planned |
+| Signed changes | People register signing keys and see signature badges (`routers/web/repo/asc_signatures.go`). The asc writer still cannot honour a signing request (`modules/repostore/asc/commit.go`), so a commit made through the web is not signed. | partial |
+| Failure and flaky-test grouping in checks | The checks page groups failures by cause, shows the failing jobs, the flaky tests and the trend of each failing job; a maintainer can acknowledge, quarantine or resolve a group, and the merge queue page lists the quarantined checks with their reason (`routers/web/repo/asc_checks.go`, `asc_queue.go`). | available (needs `ci-insights.v1` on the asc server) |
 
 ### People who use AI agents
 
 | Benefit | Mechanism | Status |
 | --- | --- | --- |
 | Agents get limited credentials | A hub access token carries scopes, and the hub's authz endpoint accepts bearer access tokens, OAuth2 tokens and Actions task tokens (`routers/private/asc.go`). `asc mcp` write tools can be enabled only by the user's or the system's configuration, never by the repository's, and `--read-only` overrides everything. | available |
-| Agent budgets (spend or change count) | Not built. | planned |
+| Agent budgets (spend or change count) | A budget of changes or tokens can be set per agent token on the agents pages (`services/ascagentui/budget.go`); asc applies the limits. | available (needs the agent services on the asc server) |
 | An agent's work stays off trunk | In a repository with the branchless setting, a pushed branch that is not one of the repository's shared refs is stored as the pusher's own ref and counted against a per-user limit, and only shared refs advance trunk. Branch protection still applies to shared refs. | available in asc; the setting is asc's |
 | Everything is reversible | Every version of a change is kept, `asc undo` covers local operations, and the hub restores versions. | available / partial as above |
 | MCP tools | `asc mcp` (stdio) and the `/mcp` endpoint of `asc serve` expose read tools (status, diff, log, stack, versions, op log) and, only when enabled, write tools, with an audit of calls on the server. | available in asc |
@@ -97,5 +97,5 @@ Grouped by who gains. For each one we name the mechanism and whether it is avail
 | SQLite or Postgres | The hub supports both (`DB_TYPE`); `asc serve` takes its own database setting. SQLite for staging, Postgres for production. | available |
 | Coolify-ready | The staging notes describe a Coolify Docker Compose deployment ([STAGING.md](STAGING.md), [OPERATIONS.md](OPERATIONS.md)). | available |
 | Git clients keep working | The bridge and the pre-receive import (see above). | available, with the stated limits |
-| Bring your own S3 storage | The object store of `asc serve` can be a local path or an S3-compatible bucket, chosen by the operator in the asc configuration. A store chosen per user or per organization is not built. | operator-level available; per user planned |
-| Bring your own AI keys | Not built in the hub. | planned |
+| Bring your own S3 storage | The object store of `asc serve` can be a local path or an S3-compatible bucket, chosen by the operator in the asc configuration. A user or an organization can also bring an S3-compatible store of its own on the storage settings page (`routers/web/shared/byoweb`, `services/ascbyo/storage.go`). | available |
+| Bring your own AI keys | A user or an organization stores the API key of an AI provider on the AI settings page; asc keeps the key and the hub never shows it again (`services/ascbyo/aikeys.go`). | available |
