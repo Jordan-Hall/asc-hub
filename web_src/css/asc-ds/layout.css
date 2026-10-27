@@ -263,6 +263,11 @@
   text-decoration: none;
 }
 
+.ds-hdr a.ds-btn-accent,
+.ds-hdr a.ds-btn-accent:hover {
+  color: #04222b;
+}
+
 /* the desktop bar is hidden on a phone and the other way round */
 .ds-hdr-desktop {
   display: none;
@@ -748,6 +753,15 @@
 
 .ds-palette-field input::placeholder {
   color: var(--navy-text-2);
+}
+
+/* the field draws the focus ring, not the input inside it */
+.ds-app .ds-palette-field input:focus-visible {
+  outline: 0;
+}
+
+.ds-palette-field input::-webkit-search-cancel-button {
+  display: none;
 }
 
 .ds-palette-field:focus-within {
