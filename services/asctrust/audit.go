@@ -44,7 +44,7 @@ const (
 var (
 	actorPattern  = regexp.MustCompile(`^[A-Za-z0-9._@+-]{1,255}$`)
 	actionPattern = regexp.MustCompile(`^[a-z][a-z0-9_]*(\.[a-z0-9_]+)*(\.\*)?$`)
-	tokenPattern  = regexp.MustCompile(`^[A-Za-z0-9_=.-]{1,1024}$`)
+	tokenPattern  = regexp.MustCompile(`^[A-Za-z0-9_=.-]{1,1000}$`)
 	// secretKey matches the names of audit detail keys whose value is never shown, as a second line of defence: the
 	// server builds details from an allow-list and keeps credentials out of them.
 	secretKey = regexp.MustCompile(`(?i)(secret|token|password|passwd|credential|private|api[_-]?key|authorization|cookie|signature)`)
