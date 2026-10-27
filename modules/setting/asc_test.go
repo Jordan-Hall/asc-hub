@@ -29,6 +29,40 @@ func TestValidateAscServerURL(t *testing.T) {
 	}
 }
 
+func TestAscSSHEnabled(t *testing.T) {
+	oldSSH, oldAsc := SSH, Asc
+	defer func() { SSH, Asc = oldSSH, oldAsc }()
+
+	load := func(data string) {
+		t.Helper()
+		cfg, err := NewConfigProviderFromData(data)
+		require.NoError(t, err)
+		SSH.Disabled, SSH.StartBuiltinServer = false, false
+		loadAscFrom(cfg)
+		loadSSHFrom(cfg)
+	}
+
+	// An ASC Hub is HTTPS-only by default, whatever [server] says.
+	load("[asc]\nENABLED = true\nSERVER_URL = https://asc.example.com\n[server]\nSTART_SSH_SERVER = true\n")
+	assert.False(t, Asc.SSHEnabled)
+	assert.True(t, SSH.Disabled)
+	assert.False(t, SSH.StartBuiltinServer)
+	assert.False(t, SSHEnabled())
+
+	// SSH_ENABLED turns it on, and the server section still decides about the built-in server.
+	load("[asc]\nENABLED = true\nSERVER_URL = https://asc.example.com\nSSH_ENABLED = true\n[server]\nSTART_SSH_SERVER = true\n")
+	assert.True(t, SSHEnabled())
+	assert.True(t, SSH.StartBuiltinServer)
+
+	// SSH_ENABLED does not override DISABLE_SSH.
+	load("[asc]\nENABLED = true\nSERVER_URL = https://asc.example.com\nSSH_ENABLED = true\n[server]\nDISABLE_SSH = true\n")
+	assert.False(t, SSHEnabled())
+
+	// Without [asc] ENABLED the setting has no effect.
+	load("[server]\nSTART_SSH_SERVER = true\n")
+	assert.True(t, SSHEnabled())
+}
+
 func TestLoadAscFrom(t *testing.T) {
 	cfg, err := NewConfigProviderFromData(`
 [asc]

@@ -40,6 +40,10 @@ var Asc = struct {
 	AscBinary string `ini:"ASC_BINARY"`
 	// BridgeWorkspaces is the directory that holds the asc workspaces a lazy bridge is built from.
 	BridgeWorkspaces string `ini:"BRIDGE_WORKSPACES"`
+	// SSHEnabled allows the hub's SSH server and every SSH instruction in the UI. It is false by default:
+	// an ASC Hub works with HTTPS alone (asc and git both speak HTTPS to it). It only has an effect with
+	// [asc] ENABLED = true, where a false value forces [server] DISABLE_SSH = true. See SSHEnabled.
+	SSHEnabled bool `ini:"SSH_ENABLED"`
 }{}
 
 // Values of [asc] WRITER and [asc] BRIDGE.
@@ -65,6 +69,7 @@ func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.AscBinary = "asc"
 	Asc.NewRepositories = AscWriterGit
 	Asc.BridgeWorkspaces = ""
+	Asc.SSHEnabled = false
 	sec := rootCfg.Section("asc")
 	if err := sec.MapTo(&Asc); err != nil {
 		log.Fatal("Failed to map [asc] settings: %v", err)
@@ -107,6 +112,13 @@ func loadAscFrom(rootCfg ConfigProvider) {
 		log.Fatal("Invalid [asc] PUBLIC_URL: %v", err)
 	}
 	Asc.PublicURL = publicURL
+}
+
+// SSHEnabled says whether git over SSH is offered: the SSH server may run, and clone panels, settings and
+// documentation may show SSH instructions. With [asc] ENABLED = true it needs [asc] SSH_ENABLED = true as
+// well as [server] DISABLE_SSH = false; loadSSHFrom enforces the first, so SSH.Disabled is the answer.
+func SSHEnabled() bool {
+	return !SSH.Disabled
 }
 
 // AscPublicURL is the asc URL to announce to clients: [asc] PUBLIC_URL, or SERVER_URL when it is not set.
