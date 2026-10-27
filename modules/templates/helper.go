@@ -132,6 +132,10 @@ func NewFuncMap() template.FuncMap {
 		},
 		// SSHEnabled: git over SSH is offered; false on an ASC Hub unless [asc] SSH_ENABLED is true.
 		"SSHEnabled": setting.SSHEnabled,
+		// AscHubHost: the address of this hub for `asc auth login --host`, without a trailing slash.
+		"AscHubHost": func() string {
+			return strings.TrimRight(setting.AppURL, "/")
+		},
 		"RepoFlagsEnabled": func() bool {
 			return setting.Repository.EnableFlags
 		},

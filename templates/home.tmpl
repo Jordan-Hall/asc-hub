@@ -13,6 +13,10 @@
 					<a class="ui button asc-button-on-dark" rel="nofollow" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>
 				</div>
 			{{end}}
+			<div class="asc-hero-command" role="group" aria-label="asc auth login">
+				<span class="asc-prompt" aria-hidden="true">$</span>
+				<code class="asc-command-text">asc auth login --host {{AscHubHost}} --prompt</code>
+			</div>
 			<div class="asc-hero-command" role="group" aria-label="asc clone">
 				<span class="asc-prompt" aria-hidden="true">$</span>
 				<code class="asc-command-text">asc clone {{AppUrl}}acme/payments</code>
