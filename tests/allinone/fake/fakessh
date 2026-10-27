@@ -1,0 +1,30 @@
+#!/bin/bash
+# Fake of the ssh program for scripts/smoke.sh: accepts only a key that the fake hub has registered
+# (FAKE_KEYS), and runs the git command against the fake hub's repositories (FAKE_REPOS). It logs
+# each call to FAKE_SSH_LOG.
+set -u
+key=""
+host=""
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+	-i) key="$2"; shift 2 ;;
+	-F | -o | -p) shift 2 ;;
+	-*) shift ;;
+	*)
+		host="$1"
+		shift
+		break
+		;;
+	esac
+done
+cmd="$*"
+echo "$host $cmd" >>"${FAKE_SSH_LOG:-/dev/null}"
+pub="$(awk '{print $1 " " $2}' "$key.pub" 2>/dev/null)"
+if [ -z "$pub" ] || ! grep -q -F -- " $pub" "$FAKE_KEYS"; then
+	echo "git@$host: Permission denied (publickey)." >&2
+	exit 255
+fi
+cmd="${cmd/#git-upload-pack/git upload-pack}"
+cmd="${cmd/#git-receive-pack/git receive-pack}"
+cmd="${cmd//\'\//\'$FAKE_REPOS/}"
+exec sh -c "$cmd"
