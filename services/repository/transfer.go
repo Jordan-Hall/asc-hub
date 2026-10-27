@@ -239,6 +239,17 @@ func transferOwnership(ctx context.Context, doer *user_model.User, newOwnerName 
 		}
 	}
 
+	// asc authorises by name: its registry follows the transfer, and goes back if a later step fails.
+	undoAsc, err := ascRenameRepo(ctx, repo, oldOwner.Name, repo.Name, newOwner.Name, repo.Name)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			undoAsc()
+		}
+	}()
+
 	// Rename remote repository to new path and delete local copy.
 	dir := user_model.UserPath(newOwner.Name)
 
@@ -305,6 +316,17 @@ func changeRepositoryName(ctx context.Context, repo *repo_model.Repository, newR
 			Name:  newRepoName,
 		}
 	}
+
+	// asc authorises by name: its registry follows the rename, and goes back if a later step fails.
+	undoAsc, err := ascRenameRepo(ctx, repo, repo.Owner.Name, oldRepoName, repo.Owner.Name, newRepoName)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			undoAsc()
+		}
+	}()
 
 	newRepoPath := repo_model.RepoPath(repo.Owner.Name, newRepoName)
 	if err = util.Rename(repo.RepoPath(), newRepoPath); err != nil {

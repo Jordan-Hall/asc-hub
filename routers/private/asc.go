@@ -20,6 +20,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/private"
 	"forgejo.org/modules/setting"
@@ -235,6 +236,8 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 
 	resp := &private.AscAuthzResponse{
 		Allowed:  true,
+		RepoID:   repo.ID,
+		OwnerID:  repo.OwnerID,
 		UserID:   principal.userID,
 		Username: principal.username,
 		Perm:     max(access.UnitAccessMode(unit.TypeCode), mode).String(),
@@ -254,7 +257,8 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 	return resp, nil
 }
 
-// ascLoadRepo returns nil, nil when the repository cannot be used.
+// ascLoadRepo returns nil, nil when the repository cannot be used: the owner or the repository does not exist, the
+// owner is inactive, or the repository is not stored in asc.
 func ascLoadRepo(ctx *context.PrivateContext, ownerName, repoName string) (*repo_model.Repository, error) {
 	owner, err := user_model.GetUserByName(ctx, ownerName)
 	if err != nil {
@@ -272,6 +276,11 @@ func ascLoadRepo(ctx *context.PrivateContext, ownerName, repoName string) (*repo
 			return nil, nil
 		}
 		return nil, fmt.Errorf("GetRepositoryByName: %w", err)
+	}
+	// asc authorises by name, so only a repository that Forgejo stores in asc may be answered for. A repository on
+	// git storage that took the name of one that was renamed or transferred away looks the same as a missing one.
+	if repo.GetStorageBackend() != string(gitrepo.StorageBackendAsc) {
+		return nil, nil
 	}
 	repo.Owner = owner
 	repo.OwnerName = owner.Name

@@ -88,7 +88,12 @@ type AscAuthzBranchRules struct {
 // (asc answers 403). A repository the principal cannot read looks the same as a
 // missing one.
 type AscAuthzResponse struct {
-	Allowed       bool                `json:"allowed"`
+	Allowed bool `json:"allowed"`
+	// RepoID and OwnerID are the stable ids of the repository and of its owner on this hub (Allowed only). A name
+	// can be given up and taken again by another repository; the ids cannot, so asc serve binds its registry
+	// entry to RepoID and refuses an entry whose id differs.
+	RepoID        int64               `json:"repo_id"`
+	OwnerID       int64               `json:"owner_id"`
 	UserID        int64               `json:"user_id"`
 	Username      string              `json:"username"`
 	Perm          string              `json:"perm"`

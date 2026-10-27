@@ -123,8 +123,20 @@ func Verify(ctx context.Context, repo repostore.RepoRef) (string, error) {
 	return shared.Verify(ctx, repo)
 }
 
-// Rename renames a repository in asc's registry (owner and name; RepoAdmin.rename). to is the new repository.
+// Rename renames a repository in asc's registry (owner and name; RepoAdmin.rename) and then moves the bridge
+// directory with the registered Bridge. to is the new repository.
 func (w *Writer) Rename(ctx context.Context, repo, to repostore.RepoRef) error {
+	if err := w.renameRegistry(ctx, repo, to); err != nil {
+		return err
+	}
+	if b := w.bridgeHandler(); b != nil {
+		return b.Rename(ctx, repo, to)
+	}
+	return nil
+}
+
+// renameRegistry renames the repository in asc's registry only. The directory is the caller's to move.
+func (w *Writer) renameRegistry(ctx context.Context, repo, to repostore.RepoRef) error {
 	target, err := handle(to)
 	if err != nil {
 		return err
@@ -132,13 +144,14 @@ func (w *Writer) Rename(ctx context.Context, repo, to repostore.RepoRef) error {
 	_, err = w.admin(ctx, "RepoAdmin.rename", repo, func(r *ascv1.RepoAdminRequest) {
 		r.Op = &ascv1.RepoAdminRequest_RenameTo{RenameTo: target.name}
 	})
-	if err != nil {
-		return err
-	}
-	if b := w.bridgeHandler(); b != nil {
-		return b.Rename(ctx, repo, to)
-	}
-	return nil
+	return err
+}
+
+// RenameRegistry renames a repository in the registry of asc serve through the registered Writer and leaves every
+// directory alone. A caller that moves the repository directory itself (the rename and transfer of a repository, the
+// rename of its owner) uses it, so the name asc authorises by follows the name Forgejo has.
+func RenameRegistry(ctx context.Context, from, to repostore.RepoRef) error {
+	return shared.renameRegistry(ctx, from, to)
 }
 
 func clampInt64(v uint64) int64 {
