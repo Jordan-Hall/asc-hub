@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
@@ -281,4 +282,53 @@ func TestPostReceiveMarksAMergedPullRequestOfACgRepository(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, pr.HasMerged)
 	assert.Equal(t, "01234567", pr.MergedCommitID)
+}
+
+// ---------------------------------------------------------------------------------- post-receive fan-out of asc
+
+func settleOpts(trigger repo_module.PushTrigger, userID int64) *private.HookOptions {
+	return &private.HookOptions{
+		UserID:       userID,
+		PushTrigger:  trigger,
+		RefFullNames: []git.RefName{"refs/heads/qa-removed"},
+		OldCommitIDs: []string{ascCommitID},
+		NewCommitIDs: []string{ascZeroID},
+	}
+}
+
+func settle(t *testing.T, opts *private.HookOptions) {
+	t.Helper()
+	ctx, _ := contexttest.MockPrivateContext(t, "/")
+	settleAscFanOut(ctx, opts, "user2", "repo1")
+}
+
+func TestPostReceiveOfAscGetsTheRememberedPusherBack(t *testing.T) {
+	useAsc(t)
+	setBackend(t, "asc")
+	repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
+	ascsync.RememberPusher(repo, 2, []ascsync.PushRef{{Name: "refs/heads/qa-removed", Old: ascCommitID, New: ascZeroID}})
+
+	// asc names itself as the pusher, so the call arrives without a user.
+	opts := settleOpts(ascsync.PushTriggerAsc, 0)
+	settle(t, opts)
+	assert.Equal(t, int64(2), opts.UserID)
+	assert.Equal(t, "user2", opts.UserName)
+
+	// A user that asc did name is kept.
+	opts = settleOpts(ascsync.PushTriggerAsc, 5)
+	settle(t, opts)
+	assert.Equal(t, int64(5), opts.UserID)
+
+	// A git-origin call is not touched, and neither is a push nobody remembers.
+	opts = settleOpts("", 0)
+	settle(t, opts)
+	assert.Zero(t, opts.UserID)
+	opts = settleOpts(ascsync.PushTriggerAsc, 0)
+	opts.NewCommitIDs[0] = ascCommitID
+	opts.OldCommitIDs[0] = ascZeroID
+	opts.RefFullNames[0] = "refs/heads/qa-unknown"
+	old := ascsync.SetFanOutWaitForTest(50 * time.Millisecond)
+	defer old()
+	settle(t, opts)
+	assert.Zero(t, opts.UserID)
 }

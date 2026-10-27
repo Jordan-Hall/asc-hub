@@ -54,6 +54,10 @@ func HookPostReceive(ctx *app_context.PrivateContext) {
 	if ascOwnsFanOut(ctx, opts, ownerName, repoName) {
 		return
 	}
+	settleAscFanOut(ctx, opts, ownerName, repoName)
+	if ctx.Written() {
+		return
+	}
 
 	// defer getting the repository at this point - as we should only retrieve it if we're going to call update
 	var repo *repo_model.Repository
@@ -390,6 +394,45 @@ func ascOwnsFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions, o
 	}
 	ctx.JSON(http.StatusOK, private.HookPostReceiveResult{})
 	return true
+}
+
+// settleAscFanOut makes the post-receive call of asc's outbox (PushTrigger "asc") usable. The outbox calls without
+// a user when asc itself took the push from the hub, and it can call before the repository holds the new refs.
+// Both made the hub drop the push: no user means the push update fails ("user does not exist"), and reading a
+// stale branch leaves the branch table on the old commit (the page warns that the database is out of
+// synchronization). So the pusher is put back from what pre-receive remembered and the call waits, for a bounded
+// time, until the repository holds the refs. It never fails the call; a push that did not arrive is processed as
+// before.
+func settleAscFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions, ownerName, repoName string) {
+	if !setting.Asc.Enabled || opts.IsWiki || opts.PushTrigger != ascsync.PushTriggerAsc || len(opts.RefFullNames) == 0 {
+		return
+	}
+	repo, err := repo_model.GetRepositoryByOwnerAndName(ctx, ownerName, repoName)
+	if err != nil {
+		return // the ordinary path reports it
+	}
+	refs := make([]ascsync.PushRef, 0, len(opts.RefFullNames))
+	for i, name := range opts.RefFullNames {
+		if i >= len(opts.OldCommitIDs) || i >= len(opts.NewCommitIDs) {
+			break
+		}
+		refs = append(refs, ascsync.PushRef{Name: string(name), Old: opts.OldCommitIDs[i], New: opts.NewCommitIDs[i]})
+	}
+	if opts.UserID <= 0 && opts.UserID != user_model.ActionsUserID {
+		for _, r := range refs {
+			id, ok := ascsync.PusherOf(repo, r.Name, r.New)
+			if !ok {
+				continue
+			}
+			if u, err := loadContextCacheUser(ctx, id); err == nil {
+				opts.UserID, opts.UserName = u.ID, u.Name
+			}
+			break
+		}
+	}
+	if err := ascsync.WaitForRefs(ctx, repo, refs); err != nil {
+		log.Warn("post-receive for %-v: the repository did not hold the pushed refs in time: %v", repo, err)
+	}
 }
 
 func loadContextCacheUser(ctx context.Context, id int64) (*user_model.User, error) {
