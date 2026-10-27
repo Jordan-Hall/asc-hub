@@ -11,6 +11,7 @@
 		{{end}}
 	>
 		<a class="ui compact{{if $.ShowForkModal}} show-modal{{end}} small basic button"
+			{{if or (not $.IsSigned) (and (not $.CanSignedUserFork) (not $.UserAndOrgForks))}}aria-disabled="true"{{end}}
 			{{if not $.CanSignedUserFork}}
 				{{if gt (len $.UserAndOrgForks) 1}}
 					href="#" data-modal="#fork-repo-modal"

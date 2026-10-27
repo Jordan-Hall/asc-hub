@@ -136,9 +136,25 @@ function attachLazyTooltip(el) {
   if (!el.hasAttribute('aria-label')) {
     const content = el.getAttribute('data-tooltip-content');
     if (content) {
-      el.setAttribute('aria-label', content);
+      if (isGenericElement(el)) {
+        // aria-label is not allowed on an element without a role. An icon with a tooltip is an image to assistive
+        // technology; an element with text keeps its text as its name and the tooltip stays a visual hint.
+        if (!el.textContent.trim()) {
+          el.setAttribute('role', 'img');
+          el.setAttribute('aria-label', content);
+        }
+      } else {
+        el.setAttribute('aria-label', content);
+      }
     }
   }
+}
+
+const genericTags = new Set(['SPAN', 'DIV', 'I', 'B', 'EM', 'STRONG', 'SMALL', 'P']);
+
+// whether the element is of the kinds that have no role of their own, where aria-label is not allowed
+function isGenericElement(el) {
+  return genericTags.has(el.tagName) && !el.hasAttribute('role') && !el.hasAttribute('tabindex');
 }
 
 // Activate the tooltip for all children elements.

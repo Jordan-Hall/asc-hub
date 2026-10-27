@@ -6,13 +6,16 @@
 				<span class="text not-mobile">{{if $.RepoWatchSelection.IsWatching}}{{ctx.Locale.Tr "repo.watching"}}{{else}}{{ctx.Locale.Tr "repo.watch"}}{{end}}</span>
 				{{svg "octicon-triangle-down" 14}}
 			</div>
-			<a class="ui basic label" href="{{.RepoLink}}/watchers"
-				aria-label="{{ctx.Locale.TrPluralString .Repository.NumWatches "watch.n_watchers" (printf "%d" .Repository.NumWatches)}}"
-				>
-				{{CountFmt .Repository.NumWatches}}
-			</a>
+			{{/* The count is text here, not a link: a summary is a button, and a button must not hold a link. The list of
+			watchers is the first entry of the menu. */}}
+			<span class="ui basic label">{{CountFmt .Repository.NumWatches}}</span>
 		</summary>
 		<div class="content">
+			<a class="tw-block tw-px-3 tw-pt-3" href="{{.RepoLink}}/watchers"
+				aria-label="{{ctx.Locale.TrPluralString .Repository.NumWatches "watch.n_watchers" (printf "%d" .Repository.NumWatches)}}"
+				>
+				{{ctx.Locale.TrPluralString .Repository.NumWatches "watch.n_watchers" (printf "%d" .Repository.NumWatches)}}
+			</a>
 			<form class="ui form tw-p-3" hx-target="#watch-button" method="post" hx-post="{{$.RepoLink}}/action/watch/select" action="{{$.RepoLink}}/action/watch/select" hx-swap="outerHTML">
 				<fieldset>
 					<label>
@@ -45,7 +48,7 @@
 	</details>
 {{else}}
 	{{/* not logged-in user */}}
-	<div class="ui disabled labeled button" data-tooltip-content="{{ctx.Locale.Tr "repo.watch_guest_user"}}">
+	<div class="ui disabled labeled button" aria-disabled="true" data-tooltip-content="{{ctx.Locale.Tr "repo.watch_guest_user"}}">
 		<div class="ui compact small basic button">
 			{{svg "octicon-eye"}}<span class="text not-mobile">{{ctx.Locale.Tr "repo.watch"}}</span>
 		</div>

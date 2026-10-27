@@ -21,7 +21,7 @@
   --steel-150: #c3cedd;
   --steel-100: #e6edf6;
   --is-dark-theme: true;
-  --color-primary: #2394b2;
+  --color-primary: #3fa9c6;
   --color-primary-contrast: #0b1220;
   --color-primary-dark-1: #4fb0ca;
   --color-primary-dark-2: #4fb0ca;
@@ -433,4 +433,12 @@ strong.attention-caution, svg.attention-caution {
   --color-warning-text: #fde68a;
   --color-info-bg: #14303b;
   --color-info-text: #bfe8f2;
+}
+
+/* The red and green of this theme are light, so a filled red or green label or button has dark text (WCAG 1.4.3). */
+.ui.ui.ui.red.label,
+.ui.ui.ui.green.label,
+.ui.ui.red.button,
+.ui.ui.green.button {
+  color: var(--color-primary-contrast);
 }

@@ -15,7 +15,7 @@
 					{{ctx.AvatarUtils.Avatar nil 40}}
 				</span>
 				{{else}}
-				<a class="timeline-avatar" {{if gt .Issue.Poster.ID 0}}href="{{.Issue.Poster.HomeLink}}"{{end}}>
+				<a class="timeline-avatar" {{if gt .Issue.Poster.ID 0}}href="{{.Issue.Poster.HomeLink}}"{{end}} aria-label="{{.Issue.Poster.GetDisplayName}}">
 					{{ctx.AvatarUtils.Avatar .Issue.Poster 40}}
 				</a>
 				{{end}}
@@ -34,7 +34,7 @@
 									{{if .Repository.OriginalURL}} ({{ctx.Locale.Tr "repo.migrated_from" .Repository.OriginalURL .Repository.GetOriginalURLHostname}}){{end}}
 								</span>
 							{{else}}
-								<a class="inline-timeline-avatar" href="{{.Issue.Poster.HomeLink}}">
+								<a class="inline-timeline-avatar" href="{{.Issue.Poster.HomeLink}}" aria-label="{{.Issue.Poster.GetDisplayName}}">
 									{{ctx.AvatarUtils.Avatar .Issue.Poster 24}}
 								</a>
 								<span class="text grey muted-links">
@@ -93,7 +93,7 @@
 				</div>
 			{{else if .IsSigned}}
 				<div class="timeline-item comment form">
-					<a class="timeline-avatar" href="{{.SignedUser.HomeLink}}">
+					<a class="timeline-avatar" href="{{.SignedUser.HomeLink}}" aria-label="{{.SignedUser.GetDisplayName}}">
 						{{ctx.AvatarUtils.Avatar .SignedUser 40}}
 					</a>
 					<div class="content">
