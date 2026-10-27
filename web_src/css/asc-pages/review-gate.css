@@ -118,3 +118,93 @@
   color: var(--link);
   font-weight: 600;
 }
+
+/* policy gate */
+.rv-held {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rv-held-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 14px 16px;
+  border-top: 1px solid var(--line-2);
+}
+
+.rv-term-flush {
+  border-radius: 0;
+}
+
+.rv-banner-flush {
+  margin: 12px 16px;
+}
+
+.rv-normal {
+  font-weight: 400;
+}
+
+.rv-cell {
+  font-weight: 600;
+}
+
+.rv-cell-ok {
+  color: var(--ok);
+}
+
+.rv-cell-no,
+.rv-cell-never {
+  color: var(--err);
+}
+
+.rv-cell-ro {
+  color: var(--text-2);
+}
+
+.rv-cell-via {
+  color: var(--text-1);
+  font-weight: 400;
+}
+
+.rv-tbl th.rv-cell-main {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+  color: var(--text);
+  background: none;
+  white-space: normal;
+}
+
+.rv-gate.rv-card-b {
+  list-style: none;
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  .rv-cols-gate {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 16px 20px;
+  }
+
+  .rv-cols-gate > .rv-side {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .rv-cols-gate > :not(.rv-side) {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .rv-tbl-stack th.rv-cell-main {
+    display: block;
+    width: 100%;
+    padding: 0 0 6px;
+    border: 0;
+    font-weight: 700;
+  }
+}

@@ -19,6 +19,8 @@ import (
 	"forgejo.org/services/context"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Page snapshots for the design review of the agents, workflows, trust and change pages. Set ASC_REVIEW_SNAPSHOT_DIR
@@ -264,4 +266,42 @@ func TestAscReviewSnapshotTrust(t *testing.T) {
 	p = runTrust(t, trustReq{path: "/user2/repo1/settings/asc/audit", user: 2, access: adminAccess}, withLocale(AscAudit))
 	require.Equal(t, 200, p.status, p.body)
 	writeSnapshot(t, dir, "audit", p.body)
+}
+
+func TestAscReviewSnapshotGate(t *testing.T) {
+	dir := snapshotDir(t)
+	f := gateFake(t)
+	p := gatePage(t, "", 2, adminAccess)
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "gate", p.body)
+
+	f.auditList = func(*ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error) {
+		return &ascv1.ListAuditResponse{}, nil
+	}
+	f.listGroups = func(*ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error) {
+		return &ascv1.ListFailureGroupsResponse{}, nil
+	}
+	p = gatePage(t, "?days=30", 2, adminAccess)
+	writeSnapshot(t, dir, "gate-empty", p.body)
+
+	p = gatePage(t, "", 4, perm_model.AccessModeRead)
+	writeSnapshot(t, dir, "gate-reader", p.body)
+
+	f.policySource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+		return gatePolicySource(false), nil
+	}
+	p = gatePage(t, "", 2, adminAccess)
+	writeSnapshot(t, dir, "gate-invalid", p.body)
+
+	f.policySource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+		return &ascv1.GetPolicySourceResponse{}, nil
+	}
+	p = gatePage(t, "", 2, adminAccess)
+	writeSnapshot(t, dir, "gate-absent", p.body)
+
+	f.policySource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+		return nil, status.Error(codes.Unavailable, "secret-internal-detail")
+	}
+	p = gatePage(t, "", 2, adminAccess)
+	writeSnapshot(t, dir, "gate-error", p.body)
 }
