@@ -95,13 +95,13 @@ func TestAscWorkflowsList(t *testing.T) {
 			p := runAgents(t, agentsReq{path: testWorkflowsPath, user: tc.user, features: tc.features}, AscWorkflows)
 			require.Equal(t, http.StatusOK, p.status, p.body)
 			assert.Contains(t, p.body, `href="/user2/repo1/asc/workflows/review"`)
-			assert.Contains(t, p.body, ">On<")
-			assert.Contains(t, p.body, "Not valid")
+			assert.Contains(t, p.body, "asc_review.wf_on")
+			assert.Contains(t, p.body, "asc_review.wf_not_valid")
 			assert.Contains(t, p.body, "12: unknown key &#34;colour&#34;[31m")
-			assert.Contains(t, p.body, "2 definitions have a name the hub cannot link to")
+			assert.Contains(t, p.body, "asc_review.wf_skipped_one")
 			assert.NotContains(t, p.body, `href="/user2/repo1/asc/workflows/runs"`+`>runs`, "runs is the history page")
 			assert.Contains(t, p.body, "A change was opened")
-			assert.Contains(t, p.body, "review · run 3")
+			assert.Contains(t, p.body, "asc_review.wf_run_n")
 			assert.Equal(t, tc.features, strings.Contains(p.body, `href="/user2/repo1/asc/agents"`), "the agent tabs follow the switch")
 			if !tc.features {
 				assert.Contains(t, p.body, `data-testid="asc-agents-off"`)
@@ -125,7 +125,7 @@ func TestAscWorkflowsList(t *testing.T) {
 		hub.ok("Workflows.ListDefinitions", &ascv1.ListWorkflowDefinitionsResponse{})
 		p := runAgents(t, agentsReq{path: testWorkflowsPath, user: agentsOwner, features: true}, AscWorkflows)
 		require.Equal(t, http.StatusOK, p.status)
-		assert.Contains(t, p.body, "This repository has no workflows")
+		assert.Contains(t, p.body, "asc_review.wf_none")
 	})
 
 	t.Run("the server has no workflows", func(t *testing.T) {
@@ -182,7 +182,7 @@ func TestAscWorkflowDefinitionPage(t *testing.T) {
 	assert.NotContains(t, p.body, "\x1b")
 	// Budget of the agent steps, the latest runs, the on/off button, the trigger form.
 	assert.Contains(t, p.body, "300k")
-	assert.Contains(t, p.body, "review · run 3")
+	assert.Contains(t, p.body, "asc_review.wf_run_n")
 	assert.Contains(t, p.body, "/workflows/review/enable")
 	assert.Contains(t, p.body, "Switch off")
 	assert.Contains(t, p.body, `action="/user2/repo1/asc/workflows/review/trigger"`)

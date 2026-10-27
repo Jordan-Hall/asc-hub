@@ -159,3 +159,43 @@ func TestAscReviewSnapshotAgentPages(t *testing.T) {
 	p = runAgents(t, agentsReq{method: "POST", path: testTokensPath, user: agentsOwner, features: true, form: newTokenForm()}, withLocale(AscAgentsTokenCreate))
 	writeSnapshot(t, dir, "agent-token-made", p.body)
 }
+
+func TestAscReviewSnapshotWorkflows(t *testing.T) {
+	dir := snapshotDir(t)
+	require.NoError(t, unittest.PrepareTestDatabase())
+	setStorageBackend(t, 1, "asc")
+	hub := startFakeHub(t)
+	hub.ok("Policy.GetSource", &ascv1.GetPolicySourceResponse{Present: true, Parsed: &ascv1.GetPolicyResponse{Agents: &ascv1.PolicyAgents{DefaultScope: []string{"src/**"}}}})
+	broken := &ascv1.WorkflowDefinition{Name: "hotfix-gate", Valid: false, Description: "Extra approvals for changes on release branches", Error: "Step gate names approver role:releaser, which does not exist."}
+	off := sampleDef("nightly-fuzz")
+	off.Enabled = false
+	hub.ok("Workflows.ListDefinitions", &ascv1.ListWorkflowDefinitionsResponse{Definitions: []*ascv1.WorkflowDefinition{sampleDef("dependency-update"), sampleDef("changed-src-review"), off, broken}})
+	runs := []*ascv1.WorkflowRun{
+		sampleWorkflowRun(1042, ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_RUNNING),
+		sampleWorkflowRun(1041, ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_SUCCEEDED),
+		sampleWorkflowRun(1040, ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_WAITING_APPROVAL),
+		sampleWorkflowRun(1039, ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_FAILED),
+	}
+	hub.ok("Workflows.ListRuns", &ascv1.ListWorkflowRunsResponse{Runs: runs, NextPageToken: "tok1"})
+	p := runAgents(t, agentsReq{path: testWorkflowsPath, user: agentsOwner, features: true}, withLocale(AscWorkflows))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "workflows", p.body)
+	p = runAgents(t, agentsReq{path: testWorkflowsPath + "/runs", user: agentsOwner, features: true}, withLocale(AscWorkflowRuns))
+	writeSnapshot(t, dir, "workflow-runs", p.body)
+
+	hub.ok("Workflows.ListDefinitions", &ascv1.ListWorkflowDefinitionsResponse{})
+	hub.ok("Workflows.ListRuns", &ascv1.ListWorkflowRunsResponse{})
+	p = runAgents(t, agentsReq{path: testWorkflowsPath, user: agentsOwner, features: true}, withLocale(AscWorkflows))
+	writeSnapshot(t, dir, "workflows-empty", p.body)
+
+	hub.ok("Workflows.GetDefinition", &ascv1.GetWorkflowDefinitionResponse{Definition: sampleDef("review"), Text: []byte("description = \"Review every new change\"\n[[step]]\nid = \"review\"\n")})
+	hub.ok("Workflows.ListRuns", &ascv1.ListWorkflowRunsResponse{Runs: runs[:2]})
+	p = runAgents(t, agentsReq{path: testWorkflowsPath + "/review", user: agentsOwner, features: true, params: map[string]string{":name": "review"}}, withLocale(AscWorkflowDef))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "workflow-def", p.body)
+
+	hub.ok("Workflows.GetRun", &ascv1.GetWorkflowRunResponse{Run: sampleWorkflowRun(3, ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_WAITING_APPROVAL)})
+	p = runAgents(t, agentsReq{path: testWorkflowsPath + "/runs/3", user: agentsOwner, features: true, params: map[string]string{":id": "3"}}, withLocale(AscWorkflowRun))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "workflow-run", p.body)
+}

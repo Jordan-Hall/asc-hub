@@ -6,131 +6,141 @@ Template Attributes:
 * CsrfTokenHtml
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-agents">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="rv rv-page">
 		{{template "base/alert" .}}
-		{{template "repo/asc_agents_nav" .}}
+		<div class="rv-area">{{template "repo/asc_agents_nav" .}}</div>
 		{{template "repo/asc_agents_notice" .}}
 		{{with .AscWorkflowDef}}
-			<div class="asc-run-head">
-				<h2 class="asc-ag-title">{{.Name}}</h2>
-				{{if not .Valid}}<span class="asc-pill asc-tone-bad">Not valid</span>{{else if .Enabled}}<span class="asc-pill asc-tone-ok">On</span>{{else}}<span class="asc-pill asc-tone-idle">Off</span>{{end}}
+			<header class="rv-head">
+				<div class="rv-head-main">
+					<div class="rv-eyebrow"><a href="{{$.AscWorkflowsBase}}">{{ctx.Locale.Tr "asc_review.wf_title"}}</a></div>
+					<h1 class="rv-title"><code class="rv-title-code">{{.Name}}</code>
+						{{if not .Valid}}<span class="asc-pill asc-tone-bad">{{ctx.Locale.Tr "asc_review.wf_not_valid"}}</span>{{else if .Enabled}}<span class="asc-pill asc-tone-ok">{{ctx.Locale.Tr "asc_review.wf_on"}}</span>{{else}}<span class="asc-pill asc-tone-idle">{{ctx.Locale.Tr "asc_review.wf_off"}}</span>{{end}}
+					</h1>
+					{{if .Description}}<p class="rv-lead">{{.Description}}</p>{{end}}
+					<p class="rv-li-meta">
+						{{if .Path}}<span><code>{{.Path}}</code></span>{{end}}
+						{{if .Source}}<span>{{ctx.Locale.Tr "asc_review.wf_def_version"}} <code>{{.Source}}</code></span>{{end}}
+						<span>{{ctx.Locale.TrN .MaxParallel "asc_review.wf_parallel_one" "asc_review.wf_parallel_other" .MaxParallel}}</span>
+					</p>
+					<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_trunk_tip"}}</p>
+				</div>
 				{{if and $.CanChangeWorkflows .Valid}}
-					<form class="asc-inline-form" method="post" action="{{.Link}}/enable">
+					<form class="rv-acts" method="post" action="{{.Link}}/enable">
 						{{$.CsrfTokenHtml}}
 						<input type="hidden" name="enabled" value="{{if .Enabled}}0{{else}}1{{end}}">
-						<button class="ui basic button" type="submit">{{if .Enabled}}Switch off{{else}}Switch on{{end}}</button>
+						<button class="rv-btn rv-btn-secondary" type="submit">{{if .Enabled}}{{ctx.Locale.Tr "asc_review.wf_switch_off"}}{{else}}{{ctx.Locale.Tr "asc_review.wf_switch_on"}}{{end}}</button>
 					</form>
 				{{end}}
-			</div>
-			{{if .Description}}<p>{{.Description}}</p>{{end}}
-			<p class="asc-muted">
-				{{if .Path}}<code>{{.Path}}</code>{{end}}
-				{{if .Source}} · definition version <code>{{.Source}}</code>{{end}}
-				· at most {{.MaxParallel}} run{{if ne .MaxParallel 1}}s{{end}} at once.
-				The version on the trunk tip is the one that runs.
-			</p>
-			{{if .Error}}<div class="ui negative message" role="alert">{{.Error}}</div>{{end}}
+			</header>
+			{{if .Error}}<div class="rv-banner rv-banner-err" role="alert"><div>{{.Error}}</div></div>{{end}}
 
-			<div class="asc-split">
-				<div class="asc-main">
-					<section class="asc-card" aria-labelledby="asc-wf-steps">
-						<h3 id="asc-wf-steps" class="asc-card-title">Steps</h3>
-						<ol class="asc-steps" data-testid="asc-workflow-steps">
-							{{range .Steps}}
-								<li class="asc-step">
-									<div class="asc-run-main"><strong><code>{{.ID}}</code></strong> <span class="asc-pill asc-tone-idle">{{.Kind}}</span></div>
-									<div class="asc-run-meta">
-										{{if .Needs}}<span>after {{range $i, $n := .Needs}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}</span>{{end}}
-										{{if .Agent}}<span>agent <code>{{.Agent}}</code></span>{{end}}
-										{{if .Paths}}<span>writes {{range $i, $n := .Paths}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}</span>{{end}}
-										{{if .Approvers}}<span>approved by {{range $i, $n := .Approvers}}{{if $i}}, {{end}}{{$n}}{{end}}</span>{{end}}
-										{{if .Checks}}<span>checks {{range $i, $n := .Checks}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}</span>{{end}}
-										{{if .Timeout}}<span>times out after {{.Timeout}}</span>{{end}}
-										{{if .Continue}}<span>continues on failure</span>{{end}}
+			<div class="rv-cols rv-cols-main-side rv-gap">
+				<div class="rv-stack">
+					<section class="rv-card" aria-labelledby="rv-wf-steps">
+						<div class="rv-card-h"><h2 id="rv-wf-steps">{{ctx.Locale.Tr "asc_review.wf_steps"}}</h2></div>
+						<ol class="rv-steps" data-testid="asc-workflow-steps">
+							{{range $i, $s := .Steps}}
+								<li class="rv-step">
+									<span class="rv-step-n" aria-hidden="true">{{Eval $i "+" 1}}</span>
+									<div class="rv-step-main">
+										<div class="rv-step-top"><code class="rv-step-id">{{.ID}}</code> <span class="rv-pill rv-pill-outline">{{.Kind}}</span></div>
+										<div class="rv-li-meta">
+											{{if .Needs}}<span>{{ctx.Locale.Tr "asc_review.wf_after"}} {{range $j, $n := .Needs}}{{if $j}}, {{end}}<code>{{$n}}</code>{{end}}</span>{{end}}
+											{{if .Agent}}<span>{{ctx.Locale.Tr "asc_review.wf_agent"}} <code>{{.Agent}}</code></span>{{end}}
+											{{if .Paths}}<span>{{ctx.Locale.Tr "asc_review.wf_writes"}} {{range $j, $n := .Paths}}{{if $j}}, {{end}}<code>{{$n}}</code>{{end}}</span>{{end}}
+											{{if .Approvers}}<span>{{ctx.Locale.Tr "asc_review.wf_approved_by"}} {{range $j, $n := .Approvers}}{{if $j}}, {{end}}{{$n}}{{end}}</span>{{end}}
+											{{if .Checks}}<span>{{ctx.Locale.Tr "asc_review.wf_checks"}} {{range $j, $n := .Checks}}{{if $j}}, {{end}}<code>{{$n}}</code>{{end}}</span>{{end}}
+											{{if .Timeout}}<span>{{ctx.Locale.Tr "asc_review.wf_times_out" .Timeout}}</span>{{end}}
+											{{if .Continue}}<span>{{ctx.Locale.Tr "asc_review.wf_continues"}}</span>{{end}}
+										</div>
+										{{if .Prompt}}<details class="rv-details"><summary>{{ctx.Locale.Tr "asc_review.wf_prompt"}}</summary><pre class="rv-pre">{{.Prompt}}</pre></details>{{end}}
 									</div>
-									{{if .Prompt}}<details><summary>Prompt</summary><pre class="asc-pre">{{.Prompt}}</pre></details>{{end}}
 								</li>
 							{{else}}
-								<li class="asc-muted">No steps.</li>
+								<li class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.wf_no_steps"}}</li>
 							{{end}}
 						</ol>
 					</section>
 
-					<section class="asc-card" aria-labelledby="asc-wf-triggers">
-						<h3 id="asc-wf-triggers" class="asc-card-title">Starts when</h3>
-						<ul class="asc-plain">
+					<section class="rv-card" aria-labelledby="rv-wf-triggers">
+						<div class="rv-card-h"><h2 id="rv-wf-triggers">{{ctx.Locale.Tr "asc_review.wf_starts_when"}}</h2></div>
+						<ul class="rv-card-b rv-plain">
 							{{range .Triggers}}
 								<li>{{.Label}}
-									{{if .Branches}} on {{range $i, $n := .Branches}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}{{end}}
-									{{if .Paths}} touching {{range $i, $n := .Paths}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}{{end}}
+									{{if .Branches}} {{ctx.Locale.Tr "asc_review.wf_on_branches"}} {{range $i, $n := .Branches}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}{{end}}
+									{{if .Paths}} {{ctx.Locale.Tr "asc_review.wf_touching"}} {{range $i, $n := .Paths}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}{{end}}
 									{{if .Cron}} (<code>{{.Cron}}</code> UTC){{end}}
-									{{if .Agent}} for <code>@{{.Agent}}</code>{{end}}
+									{{if .Agent}} {{ctx.Locale.Tr "asc_review.wf_for"}} <code>@{{.Agent}}</code>{{end}}
 								</li>
 							{{else}}
-								<li class="asc-muted">Only by hand.</li>
+								<li class="rv-muted">{{ctx.Locale.Tr "asc_review.wf_by_hand"}}</li>
 							{{end}}
 						</ul>
 					</section>
 
 					{{if $.CanChangeWorkflows}}{{if .Valid}}
-						<section class="asc-card" aria-labelledby="asc-wf-run">
-							<h3 id="asc-wf-run" class="asc-card-title">Run it now</h3>
-							<form class="ui form asc-form" method="post" action="{{.Link}}/trigger" data-testid="asc-workflow-trigger">
+						<section class="rv-card" aria-labelledby="rv-wf-run">
+							<div class="rv-card-h"><h2 id="rv-wf-run">{{ctx.Locale.Tr "asc_review.wf_run_now"}}</h2></div>
+							<form class="rv-card-b rv-form" method="post" action="{{.Link}}/trigger" data-testid="asc-workflow-trigger">
 								{{$.CsrfTokenHtml}}
 								<input type="hidden" name="op" value="{{$.AscWorkflowForm.OpID}}">
-								{{if $.AscWorkflowForm.Summary}}<div class="ui negative message" role="alert">{{$.AscWorkflowForm.Summary}}</div>{{end}}
+								{{if $.AscWorkflowForm.Summary}}<div class="rv-banner rv-banner-err" role="alert"><div>{{$.AscWorkflowForm.Summary}}</div></div>{{end}}
 								{{range .Inputs}}
-									<div class="field{{if index $.AscWorkflowForm.Errors .Name}} error{{end}}">
-										<label for="asc-wf-in-{{.Name}}">{{.Name}}{{if .Required}} <span class="asc-muted">(required)</span>{{end}}</label>
-										<input id="asc-wf-in-{{.Name}}" name="in_{{.Name}}" type="text" maxlength="4096" value="{{index $.AscWorkflowForm.Values .Name}}" autocomplete="off"{{if .Required}} aria-required="true"{{end}}>
-										{{if .Description}}<small class="asc-muted">{{.Description}}</small>{{end}}
-										{{with index $.AscWorkflowForm.Errors .Name}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+									<div class="rv-field">
+										<label class="rv-label" for="asc-wf-in-{{.Name}}">{{.Name}}{{if .Required}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.required"}}</span>{{end}}</label>
+										<input class="rv-input" id="asc-wf-in-{{.Name}}" name="in_{{.Name}}" type="text" maxlength="4096" value="{{index $.AscWorkflowForm.Values .Name}}" autocomplete="off"{{if .Required}} aria-required="true"{{end}}{{if index $.AscWorkflowForm.Errors .Name}} aria-invalid="true"{{end}}>
+										{{if .Description}}<small class="rv-hint">{{.Description}}</small>{{end}}
+										{{with index $.AscWorkflowForm.Errors .Name}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
 									</div>
 								{{end}}
-								<div class="field{{if index $.AscWorkflowForm.Errors "change"}} error{{end}}">
-									<label for="asc-wf-change">Change <span class="asc-muted">(optional, 32 letters k to z)</span></label>
-									<input id="asc-wf-change" name="change" type="text" maxlength="32" value="{{$.AscWorkflowForm.Change}}" autocomplete="off" autocapitalize="none" spellcheck="false">
-									{{with index $.AscWorkflowForm.Errors "change"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+								<div class="rv-field">
+									<label class="rv-label" for="asc-wf-change">{{ctx.Locale.Tr "asc_review.wf_change_label"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.wf_change_optional"}}</span></label>
+									<input class="rv-input" id="asc-wf-change" name="change" type="text" maxlength="32" value="{{$.AscWorkflowForm.Change}}" autocomplete="off" autocapitalize="none" spellcheck="false"{{if index $.AscWorkflowForm.Errors "change"}} aria-invalid="true"{{end}}>
+									{{with index $.AscWorkflowForm.Errors "change"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
 								</div>
-								<button class="ui primary button" type="submit">Run workflow</button>
+								<div class="rv-sticky"><button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "asc_review.wf_run_button"}}</button></div>
 							</form>
 						</section>
 					{{end}}{{end}}
 
-					<section class="asc-card" aria-labelledby="asc-wf-latest">
-						<h3 id="asc-wf-latest" class="asc-card-title">Latest runs</h3>
+					<section aria-labelledby="rv-wf-latest">
+						<div class="rv-row rv-section-head"><h2 id="rv-wf-latest" class="rv-h3">{{ctx.Locale.Tr "asc_review.wf_latest"}}</h2>{{if $.AscWorkflowRuns}}<a class="rv-end" href="{{$.AscWorkflowsBase}}/runs?workflow={{.Name}}">{{ctx.Locale.Tr "asc_review.wf_all_runs_of" .Name}}</a>{{end}}</div>
 						{{if $.AscWorkflowRuns}}
 							{{template "repo/asc_workflows_runlist" $.AscWorkflowRuns}}
-							<p><a href="{{$.AscWorkflowsBase}}/runs?workflow={{.Name}}">All runs of {{.Name}}</a></p>
 						{{else}}
-							<p class="asc-muted">It has not run yet.</p>
+							<p class="rv-card rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.wf_not_run"}}</p>
 						{{end}}
 					</section>
 				</div>
-				<aside class="asc-side" aria-label="Inputs and budget">
+				<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.wf_side_label"}}">
 					{{if .Inputs}}
-						<section class="asc-card" aria-labelledby="asc-wf-inputs">
-							<h3 id="asc-wf-inputs" class="asc-card-title">Inputs</h3>
-							<ul class="asc-plain">
-								{{range .Inputs}}<li><code>{{.Name}}</code>{{if .Required}} (required){{end}}{{if .Default}}, default <code>{{.Default}}</code>{{end}}{{if .Description}}<br><span class="asc-muted">{{.Description}}</span>{{end}}</li>{{end}}
+						<section class="rv-card" aria-labelledby="rv-wf-inputs">
+							<div class="rv-card-h"><h2 id="rv-wf-inputs">{{ctx.Locale.Tr "asc_review.wf_inputs"}}</h2></div>
+							<ul class="rv-card-b rv-plain">
+								{{range .Inputs}}<li><code>{{.Name}}</code>{{if .Required}} {{ctx.Locale.Tr "asc_review.required"}}{{end}}{{if .Default}}, {{ctx.Locale.Tr "asc_review.wf_default"}} <code>{{.Default}}</code>{{end}}{{if .Description}}<br><span class="rv-muted">{{.Description}}</span>{{end}}</li>{{end}}
 							</ul>
 						</section>
 					{{end}}
 					{{if .HasAgent}}
-						<section class="asc-card" aria-labelledby="asc-wf-budget">
-							<h3 id="asc-wf-budget" class="asc-card-title">Budget</h3>
-							{{template "repo/asc_agents_meters" .Meters}}
-							<p class="asc-muted">A cap on the sum over all agent steps. The server also applies the policy.</p>
+						<section class="rv-card" aria-labelledby="rv-wf-budget">
+							<div class="rv-card-h"><h2 id="rv-wf-budget">{{ctx.Locale.Tr "asc_review.run_budget"}}</h2></div>
+							<div class="rv-card-b">
+								<div class="rv-meters">{{template "repo/asc_agents_meters" .Meters}}</div>
+								<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_budget_help"}}</p>
+							</div>
 						</section>
 					{{end}}
-					<section class="asc-card" aria-labelledby="asc-wf-file">
-						<h3 id="asc-wf-file" class="asc-card-title">The file</h3>
-						<details>
-							<summary>Show {{if .Path}}<code>{{.Path}}</code>{{else}}the definition{{end}}</summary>
-							<pre class="asc-pre" data-testid="asc-workflow-text">{{$.AscWorkflowText}}</pre>
-						</details>
+					<section class="rv-card" aria-labelledby="rv-wf-file">
+						<div class="rv-card-h"><h2 id="rv-wf-file">{{ctx.Locale.Tr "asc_review.wf_file"}}</h2></div>
+						<div class="rv-card-b">
+							<details class="rv-details">
+								<summary>{{if .Path}}{{ctx.Locale.Tr "asc_review.wf_show_path"}} <code>{{.Path}}</code>{{else}}{{ctx.Locale.Tr "asc_review.wf_show_def"}}{{end}}</summary>
+								<pre class="rv-pre" tabindex="0" data-testid="asc-workflow-text">{{$.AscWorkflowText}}</pre>
+							</details>
+						</div>
 					</section>
 				</aside>
 			</div>
