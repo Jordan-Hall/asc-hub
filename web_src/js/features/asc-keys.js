@@ -3,6 +3,8 @@
 // its form when it changes. Every key is ignored while a field has the focus or a modifier key is held, and
 // every key has a button or link on the page that does the same, so nothing depends on the keyboard.
 
+import {openOverlay} from './ds-shell.js';
+
 const chordMs = 1200;
 
 export function isTypingTarget(el) {
@@ -48,8 +50,11 @@ export function initAscKeys() {
     const isCtrlK = (e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'k';
     if (search && (isCtrlK || (e.key === '/' && !e.ctrlKey && !e.metaKey && !isTypingTarget(e.target)))) {
       e.preventDefault();
-      search.focus();
-      search.select();
+      // the search box of the shell is the command palette: open it (ds-shell.js); a bare box just takes the focus
+      if (!openOverlay('ds-palette', document.activeElement)) {
+        search.focus();
+        search.select();
+      }
       return;
     }
     if (e.ctrlKey || e.metaKey || e.shiftKey) return;
@@ -95,16 +100,21 @@ const countMaxAgeMs = 60 * 1000;
 // Shows how many items need the person on the inbox link of the header. The answer is kept for a minute in
 // the session storage, so moving between pages asks once; storage that is blocked only costs a request.
 export async function initAscInboxBadge() {
-  const link = document.querySelector('a[data-asc-count-url]');
-  const badge = link?.querySelector('[data-asc-count]');
-  if (!badge) return;
+  // every place that shows the count (header, drawer, account menu, bottom navigation) carries
+  // data-asc-count-url on itself or on its link; the first one names the address
+  const holders = Array.from(document.querySelectorAll('[data-asc-count-url]'));
+  const badges = holders.map((h) => (h.matches('[data-asc-count]') ? h : h.querySelector('[data-asc-count]'))).filter(Boolean);
+  const url = holders[0]?.getAttribute('data-asc-count-url');
+  if (!badges.length || !url) return;
   const show = (n) => {
-    if (!Number.isInteger(n) || n <= 0) {
-      badge.classList.add('tw-hidden');
-      return;
+    for (const badge of badges) {
+      if (!Number.isInteger(n) || n <= 0) {
+        badge.classList.add('tw-hidden');
+        continue;
+      }
+      badge.textContent = String(n);
+      badge.classList.remove('tw-hidden');
     }
-    badge.textContent = String(n);
-    badge.classList.remove('tw-hidden');
   };
   try {
     const cached = JSON.parse(sessionStorage.getItem(countKey) || 'null');
@@ -116,7 +126,7 @@ export async function initAscInboxBadge() {
     // no storage: ask the server
   }
   try {
-    const res = await fetch(link.getAttribute('data-asc-count-url'), {credentials: 'same-origin', cache: 'no-store'});
+    const res = await fetch(url, {credentials: 'same-origin', cache: 'no-store'});
     if (!res.ok) return;
     const data = await res.json();
     show(data.count);

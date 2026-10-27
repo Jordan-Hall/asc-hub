@@ -1,0 +1,2 @@
+{{/* One filter pill of a .ds-scrollx row: a link that is on when Active. Props: Label, Href, Active (bool), Count (optional). */}}
+<a class="ds-chip-btn" href="{{.Href}}"{{if .Active}} aria-current="true"{{end}}>{{.Label}}{{if .Count}} <span class="ds-count">{{.Count}}</span>{{end}}</a>

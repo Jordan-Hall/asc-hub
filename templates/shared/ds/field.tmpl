@@ -1,0 +1,26 @@
+{{/*
+One labelled text-like field: label above, hint or error below in words.
+Props:
+* ID, Name, Label (required)
+* Type (default "text": text, email, password, number, search, url, tel), Value, Placeholder, Autocomplete, InputMode, Pattern
+* Required (bool), Optional (bool: the label says "(optional)"), Autofocus (bool), Disabled (bool), Readonly (bool), MaxLength (int)
+* Hint (optional text under the field), Error (bool: marks the field invalid), ErrorText (optional message under the field)
+* Reveal (bool: a Show/Hide button for a password), Mono (bool: monospace value)
+* Extra: set "off" to turn autocorrect and autocapitalize off (user names, addresses)
+* LabelHref + LabelLink (optional): a small link on the label line, like "Forgot password?"
+*/}}
+{{$type := "text"}}{{if .Type}}{{$type = .Type}}{{end}}
+<div class="ds-field">
+	{{if .LabelHref}}<div class="ds-label-row">{{end}}
+	<label class="ds-label" for="{{.ID}}">{{.Label}}{{if .Optional}} <span class="ds-opt">({{ctx.Locale.Tr "asc_shell.optional"}})</span>{{end}}</label>
+	{{if .LabelHref}}<a class="ds-link ds-t-small" href="{{.LabelHref}}">{{.LabelLink}}</a></div>{{end}}
+	{{if .Reveal}}<div class="ds-inwrap">{{end}}
+	<input class="ds-input{{if .Error}} is-err{{end}}{{if .Mono}} ds-mono{{end}}{{if .Reveal}} ds-input-pr{{end}}" id="{{.ID}}" name="{{.Name}}" type="{{$type}}"{{if .Value}} value="{{.Value}}"{{end}}{{if .Placeholder}} placeholder="{{.Placeholder}}"{{end}}{{if .Autocomplete}} autocomplete="{{.Autocomplete}}"{{end}}{{if .InputMode}} inputmode="{{.InputMode}}"{{end}}{{if .Pattern}} pattern="{{.Pattern}}"{{end}}{{if .Autofocus}} autofocus{{end}}{{if .Required}} required{{end}}{{if .Disabled}} disabled{{end}}{{if .Readonly}} readonly{{end}}{{if .MaxLength}} maxlength="{{.MaxLength}}"{{end}}{{if eq .Extra "off"}} autocorrect="off" autocapitalize="none" spellcheck="false"{{end}}{{if .Error}} aria-invalid="true"{{end}}{{if or .Hint .ErrorText}} aria-describedby="{{.ID}}-desc"{{end}}>
+	{{if .Reveal}}<button type="button" class="ds-reveal" data-ds-reveal="{{.ID}}" data-show="{{ctx.Locale.Tr "asc_shell.show"}}" data-hide="{{ctx.Locale.Tr "asc_shell.hide"}}" aria-pressed="false">{{ctx.Locale.Tr "asc_shell.show"}}</button></div>{{end}}
+	{{if or .Hint .ErrorText}}
+		<div id="{{.ID}}-desc">
+			{{if .ErrorText}}<div class="ds-err-msg">{{svg "dsi-alert" 16}}<span>{{.ErrorText}}</span></div>{{end}}
+			{{if .Hint}}<div class="ds-hint">{{.Hint}}</div>{{end}}
+		</div>
+	{{end}}
+</div>

@@ -1,83 +1,59 @@
-<div class="flex-list">
+{{/* A list of repositories (boards A8 and B4): one row per repository. Also used by profile, organization, subscription and admin pages. */}}
+{{if .Repos}}
+<ul class="ds-list ds-repolist">
 	{{range .Repos}}
-		<div class="flex-item">
-			<div class="flex-item-leading">
-				{{template "repo/icon" .}}
-			</div>
-			<div class="flex-item-main">
-				<div class="flex-item-header">
-					<div class="flex-item-title">
-						{{if and (or $.PageIsExplore $.PageIsProfileStarList) .Owner}}
-						<a class="text primary name" href="{{.Owner.HomeLink}}">{{.Owner.Name}}</a>/
-						{{end}}
-						<a class="text primary name" href="{{.Link}}">{{.Name}}</a>
-						<span>
-							{{if .IsArchived}}
-								<span class="ui label">{{ctx.Locale.Tr "repo.desc.archived"}}</span>
-							{{end}}
-							{{if .IsPrivate}}
-								<span class="ui label">{{ctx.Locale.Tr "repo.desc.private"}}</span>
-							{{else}}
-								{{if .Owner.Visibility.IsPrivate}}
-									<span class="ui label">{{ctx.Locale.Tr "repo.desc.internal"}}</span>
-								{{end}}
-							{{end}}
-							{{if .IsTemplate}}
-								<span class="ui label">{{ctx.Locale.Tr "repo.desc.template"}}</span>
-							{{end}}
-							{{if eq .ObjectFormatName "sha256"}}
-								<span class="ui label">{{ctx.Locale.Tr "repo.desc.sha256"}}</span>
-							{{end}}
-						</span>
-					</div>
-					<div class="flex-item-trailing muted-links">
-						{{if .PrimaryLanguage}}
-							<a class="flex-text-inline" href="?q={{$.Keyword}}&sort={{$.SortType}}&language={{.PrimaryLanguage.Language}}{{if $.TabName}}&tab={{$.TabName}}{{end}}">
-								<i class="color-icon tw-mr-2" style="background-color: {{.PrimaryLanguage.Color}}"></i>
-								{{.PrimaryLanguage.Language}}
-							</a>
-						{{end}}
-						{{if not $.DisableStars}}
-							<a class="flex-text-inline" href="{{.Link}}/stars"
-								aria-label="{{ctx.Locale.TrPluralString .NumStars "stars.n_stars" (printf "%d" .NumStars)}}"
-								{{if ge .NumStars 1000}}
-									data-tooltip-content="{{ctx.Locale.TrPluralString .NumStars "stars.n_stars" (ctx.Locale.PrettyNumber .NumStars)}}"
-								{{end}}
-								>
-								{{svg "octicon-star" 16}}
-								{{CountFmt .NumStars}}
-							</a>
-						{{end}}
-						{{if not $.DisableForks}}
-							<a class="flex-text-inline" href="{{.Link}}/forks"
-								aria-label="{{ctx.Locale.TrPluralString .NumForks "fork.n_forks" (printf "%d" .NumForks)}}"
-								{{if ge .NumForks 1000}}
-									data-tooltip-content="{{ctx.Locale.TrPluralString .NumForks "fork.n_forks" (ctx.Locale.PrettyNumber .NumForks)}}"
-								{{end}}
-								>
-								{{svg "octicon-repo-forked" 16}}
-								{{CountFmt .NumForks}}
-							</a>
-						{{end}}
-					</div>
+		<li class="ds-li ds-repo-row">
+			{{if and (or $.PageIsExplore $.PageIsProfileStarList) .Owner}}
+				<a class="ds-repo-av" href="{{.Owner.HomeLink}}" tabindex="-1" aria-hidden="true">{{ctx.AvatarUtils.Avatar .Owner 48 "ds-avatar-org"}}</a>
+			{{else}}
+				<span class="ds-repo-av" aria-hidden="true">{{template "repo/icon" .}}</span>
+			{{end}}
+			<div class="ds-li-main">
+				<div class="ds-li-title">
+					<span class="ds-li-name">
+						{{if and (or $.PageIsExplore $.PageIsProfileStarList) .Owner}}<a class="ds-li-owner" href="{{.Owner.HomeLink}}">{{.Owner.Name}}</a><span class="ds-li-owner" aria-hidden="true"> / </span><span class="ds-sr">/</span>{{end}}<a href="{{.Link}}">{{.Name}}</a>
+					</span>
+					{{if .IsArchived}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.archived"}}</span>{{end}}
+					{{if .IsPrivate}}
+						<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>
+					{{else if .Owner.Visibility.IsPrivate}}
+						<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "repo.desc.internal"}}</span>
+					{{else}}
+						<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "explore.public"}}</span>
+					{{end}}
+					{{if .IsTemplate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.template"}}</span>{{end}}
+					{{if eq .ObjectFormatName "sha256"}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.sha256"}}</span>{{end}}
 				</div>
 				{{$description := .DescriptionHTML $.Context}}
-				{{if $description}}
-					<div class="flex-item-body">{{$description}}</div>
-				{{end}}
+				{{if $description}}<div class="ds-li-sub ds-repo-desc">{{$description}}</div>{{end}}
 				{{if .Topics}}
-					<div class="repo-topics">
-					{{range .Topics}}
-						{{if ne . ""}}<a class="ui label" href="{{AppSubUrl}}/explore/repos?q={{.}}&topic=1">{{.}}</a>{{end}}
-					{{end}}
+					<div class="ds-repo-topics">
+						{{range .Topics}}{{if ne . ""}}<a class="ds-chip ds-chip-outline" href="{{AppSubUrl}}/explore/repos?q={{.}}&topic=1">{{.}}</a>{{end}}{{end}}
 					</div>
 				{{end}}
-				<div class="flex-item-body">{{ctx.Locale.Tr "org.repo_updated" (DateUtils.TimeSince .UpdatedUnix)}}</div>
+				<div class="ds-li-meta">
+					{{if .PrimaryLanguage}}
+						<a href="?q={{$.Keyword}}&sort={{$.SortType}}&language={{.PrimaryLanguage.Language}}{{if $.TabName}}&tab={{$.TabName}}{{end}}"><i class="ds-dot ds-lang-dot" style="background-color: {{.PrimaryLanguage.Color}}"></i>{{.PrimaryLanguage.Language}}</a>
+					{{end}}
+					{{if not $.DisableStars}}
+						<a href="{{.Link}}/stars" aria-label="{{ctx.Locale.TrPluralString .NumStars "stars.n_stars" (printf "%d" .NumStars)}}"{{if ge .NumStars 1000}} data-tooltip-content="{{ctx.Locale.TrPluralString .NumStars "stars.n_stars" (ctx.Locale.PrettyNumber .NumStars)}}"{{end}}>{{svg "octicon-star" 14}}{{CountFmt .NumStars}}</a>
+					{{end}}
+					{{if not $.DisableForks}}
+						<a href="{{.Link}}/forks" aria-label="{{ctx.Locale.TrPluralString .NumForks "fork.n_forks" (printf "%d" .NumForks)}}"{{if ge .NumForks 1000}} data-tooltip-content="{{ctx.Locale.TrPluralString .NumForks "fork.n_forks" (ctx.Locale.PrettyNumber .NumForks)}}"{{end}}>{{svg "octicon-repo-forked" 14}}{{CountFmt .NumForks}}</a>
+					{{end}}
+					{{$open := .NumOpenPulls $.Context}}
+					{{if $open}}<span class="ds-only-mobile">{{ctx.Locale.TrPluralString $open "explore.open_stacks_n" (ctx.Locale.PrettyNumber $open)}}</span>{{end}}
+					<span>{{ctx.Locale.Tr "org.repo_updated" (DateUtils.TimeSince .UpdatedUnix)}}</span>
+				</div>
 			</div>
-		</div>
-	{{else}}
-	<div>
-		{{ctx.Locale.Tr "search.no_results"}}
-	</div>
+			{{if $open}}
+				<div class="ds-li-aside ds-hide-md"><a class="ds-chip ds-chip-info" href="{{.Link}}/pulls">{{ctx.Locale.TrPluralString $open "explore.open_stacks_n" (ctx.Locale.PrettyNumber $open)}}</a></div>
+			{{end}}
+		</li>
 	{{end}}
+</ul>
+{{else}}
+<div class="ds-card">
+	{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_repos_title") "Body" (ctx.Locale.Tr "search.no_results"))}}
 </div>
+{{end}}

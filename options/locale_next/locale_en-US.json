@@ -1003,5 +1003,17 @@
 	"actions.permissions.packages_write.org_label": "Let repositories of this organization allow job tokens write access to the organization's packages",
 	"actions.permissions.packages_write.org_off": "The organization that owns this repository does not allow job tokens write access to its packages. An owner of the organization must allow it first.",
 	"actions.permissions.packages_write.saved": "The job token permissions were saved.",
-	"meta.last_line": "Thank you for translating Forgejo! This line isn't seen by the users but it serves other purposes in the translation management. You can place a fun fact in the translation instead of translating it."
+	"meta.last_line": "Thank you for translating Forgejo! This line isn't seen by the users but it serves other purposes in the translation management. You can place a fun fact in the translation instead of translating it.",
+	"explore.open_stacks_n": {
+		"one": "%s open stack",
+		"other": "%s open stacks"
+	},
+	"explore.count_repos": {
+		"one": "%s repository",
+		"other": "%s repositories"
+	},
+	"explore.count_users": {
+		"one": "%s account",
+		"other": "%s accounts"
+	}
 }

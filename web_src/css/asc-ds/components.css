@@ -1,0 +1,2455 @@
+/* ASC Hub design system, components.
+   Every class is prefixed ds-. Sizes are for a phone (44px targets); the 1024 query restores the
+   desktop density of the boards (32, 38 or 44 high controls). See docs/asc/THEME.md for the contracts. */
+
+:root {
+  --ctl-h: 44px;
+  --ctl-sm-h: 44px;
+  --ctl-lg-h: 48px;
+  --input-h: 44px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --ctl-h: 38px;
+    --ctl-sm-h: 32px;
+    --ctl-lg-h: 44px;
+    --input-h: 40px;
+  }
+}
+
+/* ================================================================ buttons */
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--ctl-h);
+  min-width: var(--touch);
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ds-btn:hover {
+  text-decoration: none;
+}
+
+.ds-btn-lg {
+  height: var(--ctl-lg-h);
+  padding: 0 20px;
+  font-size: 15px;
+}
+
+.ds-btn-sm {
+  height: var(--ctl-sm-h);
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.ds-btn-icon {
+  width: var(--ctl-h);
+  padding: 0;
+}
+
+.ds-btn-icon.ds-btn-sm {
+  width: var(--ctl-sm-h);
+}
+
+.ds-btn-primary {
+  background: var(--fill);
+  color: var(--on-fill);
+}
+
+.ds-btn-primary:hover {
+  background: var(--fill-hover);
+  color: var(--on-fill);
+}
+
+.ds-btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.ds-btn-secondary:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.ds-btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+}
+
+.ds-btn-ghost:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.ds-btn-danger {
+  background: var(--surface);
+  color: var(--err);
+  border-color: var(--err-line);
+}
+
+.ds-btn-danger:hover {
+  background: var(--err-soft);
+  color: var(--err);
+}
+
+.ds-btn-danger-fill {
+  background: var(--err);
+  color: #fff;
+}
+
+:root[data-theme*="dark"] .ds-btn-danger-fill {
+  background: #b91c1c;
+}
+
+.ds-btn-accent {
+  background: #22d3ee;
+  color: #04222b;
+}
+
+.ds-btn-accent:hover {
+  background: #67e8f9;
+  color: #04222b;
+}
+
+.ds-btn-ondark {
+  background: transparent;
+  color: var(--navy-text);
+  border-color: #334155;
+}
+
+.ds-btn-ondark:hover {
+  background: var(--navy-hover);
+  color: #fff;
+}
+
+.ds-btn[disabled],
+.ds-btn.is-disabled,
+.ds-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.ds-btn.is-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.ds-btn.is-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--on-fill);
+  border-right-color: transparent;
+  animation: ds-spin 0.8s linear infinite;
+}
+
+.ds-btn-secondary.is-loading::after {
+  border-color: var(--text-2);
+  border-right-color: transparent;
+}
+
+@keyframes ds-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ds-btn-block {
+  display: flex;
+  width: 100%;
+}
+
+/* a block button only on a phone */
+@media (max-width: 639.98px) {
+  .ds-btn-block-sm {
+    display: flex;
+    width: 100%;
+  }
+}
+
+/* a button that looks like a link (inline, not a target of its own) */
+.ds-btn-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ================================================================ forms */
+.ds-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ds-field + .ds-field,
+.ds-form > * + * {
+  margin-top: 16px;
+}
+
+.ds-form-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ds-form-row > .ds-field + .ds-field {
+  margin-top: 0;
+}
+
+@media (min-width: 640px) {
+  .ds-form-row-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ds-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ds-label .ds-opt {
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.ds-hint {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ds-err-msg {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: var(--err);
+}
+
+.ds-input,
+.ds-select,
+.ds-textarea {
+  display: block;
+  width: 100%;
+  height: var(--input-h);
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px; /* 16px stops iOS from zooming on focus; the desktop value is below */
+  line-height: 1.4;
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+@media (min-width: 1024px) {
+  .ds-input,
+  .ds-select,
+  .ds-textarea {
+    font-size: 14.5px;
+  }
+}
+
+.ds-textarea {
+  height: auto;
+  min-height: 96px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.ds-input::placeholder,
+.ds-textarea::placeholder {
+  color: var(--text-3);
+  opacity: 1;
+}
+
+.ds-input:hover,
+.ds-select:hover,
+.ds-textarea:hover {
+  border-color: var(--text-3);
+}
+
+.ds-input:focus,
+.ds-select:focus,
+.ds-textarea:focus {
+  outline: none;
+  border-color: var(--fill);
+  box-shadow: 0 0 0 2px var(--primary-soft), 0 0 0 1px var(--fill);
+}
+
+.ds-input:focus-visible,
+.ds-select:focus-visible,
+.ds-textarea:focus-visible {
+  outline: none;
+}
+
+.ds-input.is-err,
+.ds-textarea.is-err,
+.ds-select.is-err,
+.ds-input[aria-invalid="true"],
+.ds-textarea[aria-invalid="true"] {
+  border-color: var(--err-dot);
+  box-shadow: 0 0 0 2px var(--err-soft);
+}
+
+.ds-input[disabled],
+.ds-select[disabled],
+.ds-textarea[disabled],
+.ds-input[readonly] {
+  background: var(--surface-3);
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+
+.ds-input-lg {
+  height: 48px;
+  font-size: 16px;
+}
+
+.ds-select {
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 9l7 7 7-7'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+/* input with a leading icon and an optional trailing key hint */
+.ds-inwrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ds-inwrap > svg {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+.ds-inwrap > .ds-input {
+  padding-left: 36px;
+}
+
+.ds-inwrap > .ds-kbd,
+.ds-inwrap > .ds-trail {
+  position: absolute;
+  right: 10px;
+}
+
+.ds-inwrap > .ds-input-pr {
+  padding-right: 44px;
+}
+
+/* checkbox and radio: the native control, drawn to the design */
+.ds-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 24px;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.ds-check > input[type="checkbox"],
+.ds-check > input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--surface);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+}
+
+.ds-check > input[type="radio"] {
+  border-radius: 50%;
+}
+
+.ds-check > input:checked {
+  background: var(--fill);
+  border-color: var(--fill);
+}
+
+.ds-check > input[type="checkbox"]:checked::after {
+  content: "";
+  width: 10px;
+  height: 6px;
+  margin-top: -2px;
+  border-left: 2px solid var(--on-fill);
+  border-bottom: 2px solid var(--on-fill);
+  transform: rotate(-45deg);
+}
+
+.ds-check > input[type="radio"]:checked::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--on-fill);
+}
+
+.ds-check > input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ds-check label {
+  cursor: pointer;
+}
+
+/* the whole line is the target on a phone */
+@media (max-width: 1023.98px) {
+  .ds-check {
+    min-height: var(--touch);
+    align-items: center;
+  }
+
+  .ds-check > input {
+    margin-top: 0;
+  }
+}
+
+/* toggle: <label class="ds-switch"><input type="checkbox" role="switch"><span class="ds-switch-track"></span><span>Text</span></label> */
+.ds-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch);
+  cursor: pointer;
+}
+
+.ds-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.ds-switch-track {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--line-strong);
+  transition: background 0.15s;
+}
+
+.ds-switch-track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.15s;
+}
+
+.ds-switch input:checked + .ds-switch-track {
+  background: var(--fill);
+}
+
+.ds-switch input:checked + .ds-switch-track::after {
+  left: 19px;
+}
+
+.ds-switch input:focus-visible + .ds-switch-track {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.ds-switch input:disabled + .ds-switch-track {
+  opacity: 0.5;
+}
+
+/* segmented control and filter pills (a row of buttons or links with aria-pressed or aria-current) */
+.ds-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ds-seg > button,
+.ds-seg > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--touch);
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text-b);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ds-seg > button:hover,
+.ds-seg > a:hover {
+  background: var(--surface-3);
+}
+
+.ds-seg > [aria-pressed="true"],
+.ds-seg > [aria-current="true"],
+.ds-seg > [aria-current="page"] {
+  padding: 0 13px;
+  border: 2px solid var(--fill);
+  background: var(--primary-tint);
+  color: var(--text);
+  font-weight: 700;
+}
+
+@media (min-width: 1024px) {
+  .ds-seg > button,
+  .ds-seg > a {
+    min-height: 34px;
+  }
+
+  .ds-seg-mini {
+    gap: 6px;
+  }
+
+  .ds-seg-mini > button,
+  .ds-seg-mini > a {
+    min-height: 28px;
+    padding: 0 11px;
+    font-size: 12.5px;
+    border-radius: 7px;
+  }
+
+  .ds-seg-mini > [aria-pressed="true"],
+  .ds-seg-mini > [aria-current="true"],
+  .ds-seg-mini > [aria-current="page"] {
+    border-width: 1px;
+    padding: 0 11px;
+  }
+}
+
+.ds-seg-fill {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.ds-seg-fill > * {
+  flex: 1;
+}
+
+.ds-kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 6px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ================================================================ chips, counts, dots */
+.ds-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  padding: 2px 9px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ds-chip svg {
+  width: 13px;
+  height: 13px;
+}
+
+a.ds-chip:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ds-chip-ok { background: var(--ok-soft); color: var(--ok); }
+.ds-chip-warn { background: var(--warn-soft); color: var(--warn); }
+.ds-chip-err { background: var(--err-soft); color: var(--err); }
+.ds-chip-agent { background: var(--agent-soft); color: var(--agent); }
+.ds-chip-info { background: var(--primary-soft); color: var(--link); }
+.ds-chip-outline { background: transparent; border-color: var(--line-strong); color: var(--text-2); }
+.ds-chip-lg { min-height: 30px; padding: 3px 13px; font-size: 13px; }
+
+/* a chip that is a control: filter pills, scope pills */
+.ds-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  min-height: var(--touch);
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-b);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ds-chip-btn:hover {
+  background: var(--surface-3);
+}
+
+.ds-chip-btn[aria-pressed="true"],
+.ds-chip-btn[aria-current="true"],
+.ds-chip-btn[aria-current="page"],
+.ds-chip-btn.is-on {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--on-fill);
+}
+
+.ds-chip-btn.is-on .ds-count,
+.ds-chip-btn[aria-current] .ds-count,
+.ds-chip-btn[aria-pressed="true"] .ds-count {
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+}
+
+@media (min-width: 1024px) {
+  .ds-chip-btn {
+    min-height: 32px;
+    padding: 0 14px;
+  }
+}
+
+.ds-dot {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+
+.ds-dot-ok { background: var(--ok-dot); }
+.ds-dot-warn { background: var(--warn-dot); }
+.ds-dot-err { background: var(--err-dot); }
+.ds-dot-agent { background: var(--agent-dot); }
+.ds-dot-info { background: var(--accent); }
+
+.ds-count {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--line-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-count-hot { background: #f59e0b; color: #1c1100; font-weight: 800; }
+.ds-count-agent { background: var(--agent-soft); color: var(--agent); }
+
+/* ================================================================ avatars */
+.ds-av {
+  --s: 40px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: #125469;
+  color: #fff;
+  font-size: calc(var(--s) * 0.34);
+  font-weight: 700;
+  line-height: 1;
+  overflow: hidden;
+  user-select: none;
+  vertical-align: middle;
+}
+
+.ds-av img,
+img.ds-av {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.ds-av-24 { --s: 24px; }
+.ds-av-32 { --s: 32px; }
+.ds-av-40 { --s: 40px; }
+.ds-av-48 { --s: 48px; }
+.ds-av-56 { --s: 56px; }
+.ds-av-72 { --s: 72px; }
+.ds-av-96 { --s: 96px; }
+.ds-av-org { border-radius: 8px; }
+.ds-av-agent { background: var(--agent); color: #fff; }
+:root[data-theme*="dark"] .ds-av-agent { background: #7c3aed; }
+
+.ds-av-stack { display: flex; }
+.ds-av-stack > .ds-av { box-shadow: 0 0 0 2px var(--surface); }
+.ds-av-stack > .ds-av + .ds-av { margin-left: -6px; }
+
+/* the hub's own avatars (images from ctx.AvatarUtils) */
+img.ds-avatar {
+  display: inline-block;
+  flex: none;
+  border-radius: 50%;
+  vertical-align: middle;
+  object-fit: cover;
+}
+
+img.ds-avatar-org { border-radius: 8px; }
+
+/* ================================================================ cards */
+.ds-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  min-width: 0;
+}
+
+.ds-card-link:hover {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+
+.ds-card-h {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.ds-card-h h2,
+.ds-card-h h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ds-card-h .ds-card-sub {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ds-card-b {
+  padding: 16px;
+}
+
+.ds-card-f {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-2);
+  background: var(--surface-2);
+  border-radius: 0 0 var(--r-card) var(--r-card);
+}
+
+.ds-card-inset {
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+}
+
+@media (min-width: 640px) {
+  .ds-card-h { padding: 14px 18px; }
+  .ds-card-b { padding: 18px; }
+  .ds-card-f { padding: 12px 18px; }
+}
+
+/* ================================================================ lists and rows */
+.ds-list {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+
+.ds-list > ul,
+ul.ds-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-li {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: var(--row-pad-y) 16px;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.ds-li:last-child {
+  border-bottom: 0;
+}
+
+.ds-li:hover {
+  background: var(--surface-3);
+}
+
+.ds-li-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-li-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.ds-li-title a {
+  color: inherit;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.ds-li-title a:hover {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ds-li-title .ds-li-owner {
+  font-weight: 400;
+  color: var(--text-2);
+}
+
+.ds-li-sub {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.ds-li-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.ds-li-meta > span,
+.ds-li-meta > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ds-li-meta > a:hover {
+  color: var(--link);
+}
+
+.ds-li-stat {
+  min-width: 64px;
+  text-align: right;
+}
+
+.ds-li-stat b {
+  display: block;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-li-stat span {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* row actions drop below the row on a phone */
+.ds-li-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+@media (min-width: 768px) {
+  .ds-li {
+    gap: 14px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .ds-li-actions {
+    margin-top: 0;
+  }
+}
+
+/* a row that is a link in itself (settings lists, menus): the whole row is the target */
+.ds-li-link {
+  align-items: center;
+  min-height: 56px;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ================================================================ tables */
+.ds-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  scrollbar-width: thin;
+}
+
+.ds-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.ds-table th {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ds-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-3);
+  vertical-align: middle;
+}
+
+.ds-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ds-table tbody tr:hover td {
+  background: var(--surface-3);
+}
+
+.ds-table .ds-r {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* a table that becomes a stack of cards on a phone: put data-label on every cell */
+@media (max-width: 639.98px) {
+  .ds-table-stack,
+  .ds-table-stack tbody,
+  .ds-table-stack tr,
+  .ds-table-stack td {
+    display: block;
+    width: 100%;
+  }
+
+  .ds-table-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .ds-table-stack tr {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line-3);
+  }
+
+  .ds-table-stack tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .ds-table-stack td {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 6px 16px;
+    border: 0;
+    text-align: right;
+  }
+
+  .ds-table-stack td::before {
+    content: attr(data-label);
+    flex: none;
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .ds-table-stack td:not([data-label])::before {
+    content: none;
+  }
+}
+
+/* ================================================================ tabs (views of one object) and the side list */
+.ds-tabs {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.ds-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.ds-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 6px;
+  min-height: 48px;
+  margin-bottom: -1px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ds-tab:hover {
+  color: var(--text);
+}
+
+.ds-tab[aria-selected="true"],
+.ds-tab[aria-current="page"] {
+  border-bottom-color: var(--fill);
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .ds-tab {
+    min-height: 44px;
+  }
+}
+
+.ds-sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ds-sidenav .ds-grp {
+  padding: 16px 10px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.ds-sidenav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  color: var(--text-b);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.ds-sidenav a:hover {
+  background: var(--hover);
+}
+
+.ds-sidenav a[aria-current="page"] {
+  background: var(--primary-soft);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ds-sidenav a svg {
+  color: var(--text-3);
+}
+
+.ds-sidenav a .ds-count {
+  margin-left: auto;
+  padding: 0;
+  background: none;
+  font-weight: 400;
+  color: var(--text-2);
+}
+
+.ds-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.ds-crumbs a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ds-crumbs a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.ds-crumbs .ds-sep { color: var(--text-3); }
+.ds-crumbs b { color: var(--text); }
+
+/* ---- pager ---- */
+.ds-pager-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0 4px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.ds-pager {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.ds-pager a,
+.ds-pager span {
+  display: inline-grid;
+  place-items: center;
+  min-width: var(--touch);
+  height: var(--touch);
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  color: var(--text-b);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ds-pager a:hover {
+  background: var(--surface-3);
+}
+
+.ds-pager a[aria-current="page"] {
+  background: var(--fill);
+  color: var(--on-fill);
+}
+
+.ds-pager .ds-disabled {
+  opacity: 0.4;
+}
+
+@media (min-width: 768px) {
+  .ds-pager-wrap {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .ds-pager a,
+  .ds-pager span {
+    min-width: 34px;
+    height: 34px;
+  }
+}
+
+/* ================================================================ filter bar */
+.ds-filterbar {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.ds-filterbar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ds-filterbar-form {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-filterbar-form .ds-inwrap {
+  flex: 1;
+  min-width: 0;
+}
+
+/* horizontally scrolling pills; the row bleeds to the screen edges on a phone */
+.ds-scrollx {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 2px var(--gutter);
+}
+
+.ds-scrollx::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .ds-filterbar-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .ds-scrollx {
+    flex-wrap: wrap;
+    overflow: visible;
+    margin: 0;
+    padding: 2px 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ds-filterbar {
+    padding: 14px 0;
+  }
+}
+
+/* a select-like control of the filter bar, shown as a labelled value: "Sort: Recently active" */
+.ds-sortlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ds-sortlink b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .ds-sortlink {
+    min-height: var(--input-h);
+  }
+}
+
+/* ================================================================ banners, flash, toast */
+.ds-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--primary-line);
+  border-radius: var(--r-row);
+  background: var(--primary-tint);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.ds-banner > svg {
+  margin-top: 1px;
+  width: 18px;
+  height: 18px;
+  color: var(--link);
+}
+
+.ds-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-banner-body > * + * {
+  margin-top: 6px;
+}
+
+.ds-banner a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ds-banner-ok { background: var(--ok-soft); border-color: var(--ok-line); }
+.ds-banner-ok > svg { color: var(--ok); }
+.ds-banner-warn { background: var(--note-bg); border-color: var(--note-line); color: var(--note-ink); }
+.ds-banner-warn > svg { color: var(--warn); }
+.ds-banner-err { background: var(--err-soft); border-color: var(--err-line); }
+.ds-banner-err > svg { color: var(--err); }
+
+.ds-banner-close {
+  flex: none;
+  margin: -8px -10px -8px 0;
+}
+
+.ds-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 360px;
+  max-width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--r-row);
+  background: var(--inv-bg);
+  color: var(--inv-text);
+  box-shadow: var(--sh-3);
+  font-size: 14px;
+}
+
+.ds-toast b { display: block; }
+.ds-toast .ds-sub { font-size: 13px; opacity: 0.85; }
+
+.ds-toasts {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--bnav-space) + 12px);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.ds-toasts > * { pointer-events: auto; }
+
+@media (min-width: 1024px) {
+  .ds-toasts {
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+    align-items: flex-end;
+  }
+}
+
+/* ================================================================ dialog and sheet
+   Native <dialog> (and the Fomantic .ui.modal that is left) take the same look:
+   a centred dialog on a desktop, a bottom sheet on a phone. Markup:
+   <dialog id="x"><article><header>Title</header><div class="content">...</div><div class="actions">...</div></article></dialog> */
+.ds-app dialog {
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  min-width: 0;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-dialog);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--sh-3);
+  text-align: start;
+}
+
+.ds-app dialog::backdrop {
+  background: var(--scrim);
+}
+
+.ds-app dialog article {
+  display: block;
+  width: 100%;
+  line-height: 1.5;
+}
+
+.ds-app dialog header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 20px 22px 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ds-app dialog .content {
+  padding: 12px 22px 20px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 14.5px;
+}
+
+.ds-app dialog .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 14px 22px;
+  border-top: 1px solid var(--line-2);
+  background: var(--surface-2);
+}
+
+.ds-app dialog .actions .ds-btn {
+  flex: none;
+}
+
+@media (max-width: 639.98px) {
+  .ds-app dialog {
+    width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .ds-app dialog::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: 8px auto 0;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+
+  .ds-app dialog .actions {
+    flex-direction: column-reverse;
+  }
+
+  .ds-app dialog .actions .ds-btn,
+  .ds-app dialog .actions .ui.button {
+    width: 100%;
+  }
+}
+
+/* ================================================================ tooltip */
+.ds-tip {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: var(--inv-bg);
+  color: var(--inv-text);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ================================================================ notes, callouts, intent */
+.ds-note {
+  padding: 8px 12px 8px 24px;
+  border-top: 1px solid var(--note-line);
+  border-bottom: 1px solid var(--note-line);
+  background: var(--note-bg);
+  color: var(--note-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ds-callout {
+  padding: 14px 16px;
+  border: 1px solid var(--primary-line);
+  border-radius: var(--r-row);
+  background: var(--primary-tint);
+  font-size: 14px;
+}
+
+.ds-intent {
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-b);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ds-intent b { color: var(--text); }
+.ds-intent .ds-risk { color: var(--warn); font-weight: 700; }
+
+/* ================================================================ progress, skeleton, stat tiles */
+.ds-bar {
+  height: 7px;
+  border-radius: 99px;
+  background: var(--line-2);
+  overflow: hidden;
+}
+
+.ds-bar > i {
+  display: block;
+  height: 100%;
+  background: var(--fill);
+}
+
+.ds-sk {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--surface-3) 0%, var(--line-2) 50%, var(--surface-3) 100%);
+  background-size: 200% 100%;
+  animation: ds-sk 1.4s linear infinite;
+}
+
+@keyframes ds-sk {
+  to { background-position: -200% 0; }
+}
+
+.ds-stat {
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+
+a.ds-stat:hover {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+
+.ds-stat-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.ds-stat-value {
+  margin-top: 4px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-stat-sub {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* ================================================================ empty, loading, error states */
+.ds-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.ds-empty-ic {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+
+.ds-empty-ic svg {
+  width: 34px;
+  height: 34px;
+}
+
+.ds-empty-err .ds-empty-ic {
+  background: var(--err-soft);
+  color: var(--err);
+}
+
+.ds-empty h2,
+.ds-empty h3 {
+  margin-top: 10px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ds-empty p {
+  max-width: 46ch;
+  font-size: 15px;
+  color: var(--text-2);
+}
+
+.ds-empty-acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+@media (min-width: 640px) {
+  .ds-empty { padding: 48px 24px; }
+}
+
+/* ================================================================ command and terminal blocks */
+.ds-cmd {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--navy-line);
+  border-radius: var(--r-row);
+  background: var(--navy);
+  color: var(--navy-text);
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+}
+
+.ds-cmd code {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-cmd-scroll code {
+  overflow-x: auto;
+  text-overflow: clip;
+  scrollbar-width: none;
+}
+
+.ds-cmd code::-webkit-scrollbar {
+  display: none;
+}
+
+.ds-cmd .ds-pr,
+.ds-term .ds-pr { color: var(--term-prompt); user-select: none; }
+.ds-term .ds-cm { color: var(--term-comment); }
+.ds-term .ds-ok { color: var(--term-ok); }
+.ds-term .ds-ag { color: var(--term-agent); }
+
+.ds-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 1px solid #334155;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--navy-text-3);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ds-copy:hover {
+  background: var(--navy-hover);
+  color: #fff;
+}
+
+@media (min-width: 1024px) {
+  .ds-copy {
+    min-height: 30px;
+  }
+}
+
+.ds-term {
+  border: 1px solid var(--navy-line);
+  border-radius: var(--r-row);
+  background: var(--navy);
+  color: var(--navy-text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.ds-term-hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 16px;
+  border-bottom: 1px solid var(--navy-line);
+  font-size: 12px;
+  color: var(--navy-text-2);
+}
+
+.ds-term-hd .ds-copy {
+  margin-left: auto;
+}
+
+.ds-term-bd {
+  padding: 12px 16px;
+  overflow-x: auto;
+  white-space: pre;
+  scrollbar-width: thin;
+}
+
+/* ================================================================ code and diff containers
+   Code, blame and diffs scroll inside their card, never the page. */
+.ds-codebox {
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.ds-codebox-hd {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.ds-codebox-bd {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+}
+
+.ds-diff {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  overflow-x: auto;
+  background: var(--surface);
+}
+
+.ds-diff .ds-l {
+  display: flex;
+  min-width: max-content;
+  white-space: pre;
+}
+
+.ds-diff .ds-n {
+  flex: 0 0 44px;
+  padding-right: 10px;
+  text-align: right;
+  color: var(--text-b);
+  user-select: none;
+}
+
+.ds-diff .ds-a { background: var(--add-bg); color: var(--add-ink); }
+.ds-diff .ds-a .ds-n { background: var(--add-gut); }
+.ds-diff .ds-d { background: var(--del-bg); color: var(--del-ink); }
+.ds-diff .ds-d .ds-n { background: var(--del-gut); }
+
+/* ================================================================ accordion */
+.ds-acc {
+  border-top: 1px solid var(--line-2);
+}
+
+.ds-acc > summary {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  font-size: 14px;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.ds-acc > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* ================================================================ the Fomantic leftovers inside DS pages
+   The form controls and buttons of pages that are not rebuilt yet keep working; these rules only make them
+   reach the 44px target on a phone. */
+@media (max-width: 1023.98px) {
+  .ds-app .ui.button:not(.ds-btn),
+  .ds-app .ui.form input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], [type="range"]),
+  .ds-app .ui.form select {
+    min-height: var(--touch);
+  }
+}
+
+/* ================================================================ avatars of the hub (img.ui.avatar from ctx.AvatarUtils) */
+.ds-app img.ui.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ds-app img.ui.avatar.ds-avatar-org {
+  border-radius: 8px;
+}
+
+/* ================================================================ select as a labelled pill: "Sort: Recently active" */
+.ds-selectpill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: var(--input-h);
+  padding: 0 12px 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.ds-selectpill:hover {
+  border-color: var(--text-3);
+}
+
+.ds-selectpill:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.ds-selectpill select {
+  max-width: 220px;
+  padding: 0 22px 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.ds-selectpill select:focus {
+  outline: none;
+}
+
+.ds-selectpill > svg {
+  position: absolute;
+  right: 12px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+/* ================================================================ chips as radio buttons (the filter sheets) */
+.ds-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ds-chip-radio {
+  position: relative;
+  display: inline-flex;
+}
+
+.ds-chip-radio > input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.ds-chip-radio > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-b);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.ds-chip-radio > input:checked + span {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--on-fill);
+}
+
+.ds-chip-radio > input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.ds-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ds-fieldset > legend {
+  display: block;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.ds-sheet-form > * + * {
+  margin-top: 18px;
+}
+
+/* ================================================================ list parts used by explore and profile lists */
+.ds-li-aside {
+  flex: none;
+  align-self: center;
+}
+
+.ds-li-stats {
+  display: flex;
+  flex: none;
+  gap: 20px;
+  align-self: center;
+}
+
+.ds-li-stats .ds-li-stat {
+  min-width: 56px;
+  text-align: center;
+}
+
+.ds-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ds-repo-row .ds-repo-av,
+.ds-user-row .ds-user-av {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+
+.ds-repo-row .ds-repo-av img,
+.ds-user-row .ds-user-av img {
+  width: 40px;
+  height: 40px;
+}
+
+@media (min-width: 640px) {
+  .ds-repo-row .ds-repo-av img,
+  .ds-user-row .ds-user-av img {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.ds-li-name {
+  font-size: 15px;
+}
+
+.ds-li-name a:last-child {
+  font-weight: 700;
+}
+
+.ds-repo-desc {
+  overflow-wrap: anywhere;
+}
+
+.ds-repo-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.ds-lang-dot {
+  width: 10px;
+  height: 10px;
+}
+
+/* ================================================================ page head band, explore */
+.ds-pagehead-band {
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.ds-pagehead-band .ds-tabs {
+  border-bottom: 0;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 0 calc(var(--gutter) - 4px);
+}
+
+@media (min-width: 640px) {
+  .ds-pagehead-band .ds-tabs {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.ds-results-line {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ds-results-line b {
+  color: var(--text);
+}
+
+.ds-page-head-desk {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .ds-page-head-desk {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+  }
+}
+
+.ds-filterbar-pills {
+  margin-top: 12px;
+}
+
+.ds-filterbar-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.ds-show-sm-only {
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .ds-show-sm-only {
+    display: none !important;
+  }
+}
+
+.ds-explore-body {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+@media (min-width: 1024px) {
+  .ds-explore-body {
+    padding-top: 22px;
+  }
+}
+
+.ds-rail-clone {
+  background: var(--primary-soft);
+}
+
+/* ================================================================ form odds and ends */
+.ds-form > * + * {
+  margin-top: 16px;
+}
+
+.ds-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ds-reveal {
+  position: absolute;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--link);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ds-reveal:hover {
+  background: var(--primary-soft);
+}
+
+.ds-input-pr {
+  padding-right: 64px;
+}
+
+.ds-details {
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-row);
+  background: var(--surface-2);
+  padding: 0 14px;
+}
+
+.ds-details > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ds-details[open] {
+  padding-bottom: 14px;
+}
+
+.ds-captcha {
+  max-width: 100%;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.ds-captcha-box {
+  align-items: center;
+}
+
+/* ================================================================ account pages (sign in, sign up, recovery, authorize)
+   Under 1024 one column: the form on the page. From 1024 the form pane sits beside the navy brand panel; pages
+   without a brand panel are one centred card. */
+.ds-auth {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ds-auth-pane {
+  display: flex;
+  justify-content: center;
+  padding: 24px var(--gutter) 40px;
+}
+
+.ds-auth-form {
+  width: 100%;
+  max-width: 440px;
+}
+
+.ds-auth:not(.ds-auth-split) .ds-auth-pane {
+  padding-top: 24px;
+}
+
+.ds-auth:not(.ds-auth-split) .ds-auth-form {
+  padding: 22px 18px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+
+.ds-auth-title {
+  margin-top: 4px;
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ds-auth-lead {
+  margin: 8px 0 0;
+  color: var(--text-2);
+}
+
+.ds-auth-flash:not(:empty) {
+  margin-top: 16px;
+}
+
+.ds-auth-form > form,
+.ds-auth-form > .ds-form,
+.ds-auth-form > .ds-stack-16 {
+  margin-top: 22px;
+}
+
+.ds-auth-form .ds-tabs {
+  margin-top: 16px;
+}
+
+.ds-auth-form .ds-tabpanel {
+  margin-top: 18px;
+}
+
+.ds-auth-alt {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ds-auth-alt a {
+  color: var(--link);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ds-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 14px;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.ds-or::before,
+.ds-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.ds-auth-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ds-auth-cli {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  background: var(--surface-2);
+  border-color: var(--line-2);
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.ds-auth-cli .ds-pr {
+  color: var(--link);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.ds-auth-cli code {
+  overflow-wrap: anywhere;
+  font-size: 12.5px;
+}
+
+.ds-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ds-auth-actions > .ds-btn {
+  flex: 1 1 140px;
+}
+
+.ds-auth-key {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
+  text-align: center;
+}
+
+.ds-auth-key-wait {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-2);
+}
+
+.ds-auth-spin {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+
+.ds-auth-brand {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .ds-auth:not(.ds-auth-split) .ds-auth-pane {
+    padding-top: 48px;
+  }
+
+  .ds-auth:not(.ds-auth-split) .ds-auth-form {
+    padding: 28px 28px 30px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ds-auth-split {
+    flex-direction: row;
+    min-height: calc(100vh - var(--header-h));
+  }
+
+  .ds-auth-split .ds-auth-pane {
+    flex: 1 1 50%;
+    align-items: center;
+    padding: 48px;
+  }
+
+  .ds-auth-split .ds-auth-brand {
+    display: flex;
+    flex: 1 1 50%;
+    align-items: center;
+    padding: 64px;
+    background: var(--navy);
+    color: #fff;
+  }
+
+  .ds-auth-brand-in {
+    width: 100%;
+    max-width: 447px;
+  }
+
+  .ds-auth-brand-eyebrow {
+    color: var(--accent);
+  }
+
+  .ds-auth-brand-title {
+    margin: 12px 0 0;
+    font-size: 36px;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    font-weight: 800;
+  }
+
+  .ds-auth-points {
+    margin: 28px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ds-auth-points li {
+    display: flex;
+    gap: 14px;
+  }
+
+  .ds-auth-points li + li {
+    margin-top: 24px;
+  }
+
+  .ds-auth-points svg {
+    margin-top: 2px;
+    color: var(--accent);
+  }
+
+  .ds-auth-points b {
+    display: block;
+    font-size: 14.5px;
+    font-weight: 600;
+  }
+
+  .ds-auth-points span {
+    display: block;
+    margin-top: 2px;
+    font-size: 13.5px;
+    color: var(--navy-text-2);
+  }
+}

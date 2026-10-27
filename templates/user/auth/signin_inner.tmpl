@@ -1,71 +1,38 @@
-<div class="ui container fluid">
-	{{if or (not .LinkAccountMode) (and .LinkAccountMode .LinkAccountModeSignIn)}}
-	{{template "base/alert" .}}
+{{/* The sign in form: the username and password, the remember choice, other ways in and the hint for the command line. Also used by the account linking page. */}}
+{{$alertOn := or (not .LinkAccountMode) .LinkAccountModeSignIn}}
+{{if $alertOn}}<div class="ds-auth-flash">{{template "base/alert" .}}</div>{{end}}
+{{if .LinkAccountMode}}<h2 class="ds-t-h3 ds-mb-16">{{ctx.Locale.Tr "auth.oauth_signin_title"}}</h2>{{end}}
+{{if .EnableInternalSignIn}}
+<form class="ds-form" action="{{.SignInLink}}" method="post">
+	{{template "shared/ds/field" (dict "ID" "user_name" "Name" "user_name" "Label" (ctx.Locale.Tr "home.uname_holder") "Value" .user_name "Autofocus" true "Required" true "Extra" "off" "Error" (and .Err_UserName $alertOn))}}
+	{{if or (not .DisablePassword) .LinkAccountMode}}
+		{{template "shared/ds/field" (dict "ID" "password" "Name" "password" "Type" "password" "Label" (ctx.Locale.Tr "password") "Value" .password "Autocomplete" "current-password" "Required" true "Reveal" true "Error" (and .Err_Password $alertOn) "LabelHref" (print AppSubUrl "/user/forgot_password") "LabelLink" (ctx.Locale.Tr "auth.forgot_password"))}}
 	{{end}}
-	<h4 class="ui top attached header center">
-		{{if .LinkAccountMode}}
-			{{ctx.Locale.Tr "auth.oauth_signin_title"}}
-		{{else}}
-			{{ctx.Locale.Tr "auth.login_userpass"}}
-		{{end}}
-	</h4>
-	<div class="ui attached segment">
-		{{if .EnableInternalSignIn}}
-		<form class="ui form tw-mb-4" action="{{.SignInLink}}" method="post">
-			<div class="required field {{if and (.Err_UserName) (or (not .LinkAccountMode) (and .LinkAccountMode .LinkAccountModeSignIn))}}error{{end}}">
-				<label for="user_name">{{ctx.Locale.Tr "home.uname_holder"}}</label>
-				<input id="user_name" type="text" name="user_name" value="{{.user_name}}" autofocus required autocorrect="off" autocapitalize="none">
-			</div>
-			{{if or (not .DisablePassword) .LinkAccountMode}}
-			<div class="required field {{if and (.Err_Password) (or (not .LinkAccountMode) (and .LinkAccountMode .LinkAccountModeSignIn))}}error{{end}}">
-				<label for="password">{{ctx.Locale.Tr "password"}}</label>
-				<input id="password" name="password" type="password" value="{{.password}}" autocomplete="current-password" required>
-			</div>
-			{{end}}
-			{{if not .LinkAccountMode}}
-			<div class="inline field">
-				<div class="ui checkbox">
-					<label>{{ctx.Locale.Tr "auth.remember_me"}}</label>
-					<input name="remember" type="checkbox">
-				</div>
-			</div>
-			{{end}}
+	{{if not .LinkAccountMode}}
+		<div class="ds-check"><input id="remember" name="remember" type="checkbox"><label for="remember">{{ctx.Locale.Tr "auth.remember_me"}}</label></div>
+	{{end}}
 
-			{{template "user/auth/captcha" .}}
+	{{template "user/auth/captcha" .}}
 
-			<div class="field">
-				<button class="ui primary button tw-w-full">
-					{{if .LinkAccountMode}}
-						{{ctx.Locale.Tr "auth.oauth_signin_submit"}}
-					{{else}}
-						{{ctx.Locale.Tr "sign_in"}}
-					{{end}}
-				</button>
-			</div>
-		</form>
-		{{end}}
-
-		{{template "custom/signin_mid"}}
-
-		{{template "user/auth/oauth_container" .}}
-	</div>
-</div>
-
-{{if not .DisablePassword}}
-<div class="ui container fluid">
-	{{template "user/auth/webauthn_error" .}}
-
-		<div class="ui attached segment header top tw-max-w-2xl tw-m-auto tw-flex tw-flex-col tw-items-center">
-			{{if .ShowRegistrationButton}}
-			<div class="field">
-				{{ctx.Locale.Tr "auth.hint_register" (printf "%s/user/sign_up" AppSubUrl)}}
-				<br>
-			</div>
-			{{end}}
-			<div class="field">
-				<a href="{{AppSubUrl}}/user/forgot_password">{{ctx.Locale.Tr "auth.forgot_password"}}</a>
-			</div>
-		</div>
-</div>
+	<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block">
+		{{if .LinkAccountMode}}{{ctx.Locale.Tr "auth.oauth_signin_submit"}}{{else}}{{ctx.Locale.Tr "sign_in"}}{{end}}
+	</button>
+</form>
 {{end}}
 
+{{template "custom/signin_mid"}}
+
+{{template "user/auth/oauth_container" .}}
+
+{{template "user/auth/webauthn_error" .}}
+
+{{if and (not .LinkAccountMode) .ShowRegistrationButton}}
+	<p class="ds-auth-alt">{{ctx.Locale.Tr "auth.hint_register" (printf "%s/user/sign_up" AppSubUrl)}}</p>
+{{end}}
+
+{{if and .EnableInternalSignIn (not .LinkAccountMode)}}
+	<div class="ds-callout ds-auth-cli">
+		<span class="ds-pr" aria-hidden="true">$</span>
+		<p>{{ctx.Locale.Tr "asc_auth.cli_hint" AscHubHost}}</p>
+	</div>
+{{end}}
