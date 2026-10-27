@@ -294,16 +294,13 @@ type ascQuarantineView struct {
 	Problem string
 }
 
-// ascQueueQuarantine reads the quarantined failure groups for the queue page. They are CI data, which Forgejo shows
-// only to a reader of Actions, so a viewer who may not read the Actions of the repository sees no section. A failure
-// to read them never stops the queue page: the section says it could not be read.
+// ascQueueQuarantine reads the quarantined failure groups for the queue page. They are CI data about changes and
+// tests, so the viewer must pass the guard of the checks pages (trustweb.CheckReader: asc repository, read access to
+// the code and to the Actions); anyone else sees no section. A failure to read them never stops the queue page: the
+// section says it could not be read.
 func ascQueueQuarantine(ctx *context.Context) *ascQuarantineView {
-	repo := ctx.Repo.Repository
-	if !ctx.Repo.CanRead(unit.TypeActions) || !asctrust.HasFeature(ctx, asctrust.FeatureCiInsights) {
-		return nil
-	}
-	name, err := asctrust.RepoName(repo)
-	if err != nil {
+	repo, name, ok := trustweb.CheckReader(ctx)
+	if !ok || !asctrust.HasFeature(ctx, asctrust.FeatureCiInsights) {
 		return nil
 	}
 	v := &ascQuarantineView{ChecksURL: ascChecksURL(repo)}

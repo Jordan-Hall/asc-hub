@@ -108,17 +108,28 @@ func AdminRepo(ctx *context.Context) (*repo_model.Repository, string, bool) {
 	return repo, name, true
 }
 
-// ReaderRepo is the guard of the checks pages: a person who may read the code and the Actions of the repository.
-// Failure groups, occurrences and runs are CI data, which Forgejo shows only to a reader of Actions, so a reader of
-// the code alone gets 404 before anything is loaded. The person may be anonymous on a public repository.
-func ReaderRepo(ctx *context.Context) (*repo_model.Repository, string, bool) {
+// CheckReader is the test behind ReaderRepo, for a page that has its own answer and must not have one written for
+// it: asc is on, the repository is stored in asc, and the person may read both the code and the Actions of the
+// repository. Failure groups, occurrences and runs are CI data, which Forgejo shows only to a reader of Actions, and
+// they name changes and tests, which only a reader of the code may see. The person may be anonymous on a public
+// repository.
+func CheckReader(ctx *context.Context) (*repo_model.Repository, string, bool) {
 	repo := ctx.Repo.Repository
 	if !setting.Asc.Enabled || repo == nil {
-		ctx.NotFound("asc trust", nil)
 		return nil, "", false
 	}
 	name, err := asctrust.RepoName(repo)
 	if err != nil || !ctx.Repo.CanRead(unit.TypeCode) || !ctx.Repo.CanRead(unit.TypeActions) {
+		return nil, "", false
+	}
+	return repo, name, true
+}
+
+// ReaderRepo is the guard of the checks pages: a person for whom CheckReader holds. Anyone else gets 404 before
+// anything is loaded.
+func ReaderRepo(ctx *context.Context) (*repo_model.Repository, string, bool) {
+	repo, name, ok := CheckReader(ctx)
+	if !ok {
 		ctx.NotFound("asc trust", nil)
 		return nil, "", false
 	}
