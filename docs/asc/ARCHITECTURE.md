@@ -109,10 +109,38 @@ Nothing in the hub writes a ref into a bridge directory.
 
 - The hub and `asc serve` share one secret, the internal token (`[security] INTERNAL_TOKEN` or `INTERNAL_TOKEN_URI`). `[asc] ENABLED = true` without it stops the start. The hub's internal API checks it in constant time.
 - User-initiated calls forward the user's own token, so asc authorizes them as that user. A call that carries no user token must be marked as a system call explicitly; the client never falls back to the internal token on its own (`modules/ascclient/auth.go`).
+- The signed-in person is also forwarded in a signed form, next to the token (`services/ascidentity`). See "Forwarded identity" below.
 - The hub dials `asc serve` over gRPC. Plain `http` is accepted only for a loopback host; that is why the all-in-one image runs both on loopback in one container (see [OPERATIONS.md](OPERATIONS.md)), and a two-service deployment shares one network namespace. `[asc] PUBLIC_URL` must be `https` unless loopback, because clients send credentials there.
 - Mutating calls carry an operation id that is reused across retries, so a retry is not a second write.
 - Errors from asc reach users only as a named refusal; other failures become fixed texts.
 - ASC repositories have no LFS: the LFS routes answer 404 (`services/lfs/asc.go`).
+
+## Forwarded identity
+
+A call made for a person carries that person's own token, and `asc serve` authorises it by that token. The hub adds the identity it signed in, so that `asc serve` can tell a site administrator from a writer and name the person in the audit log without a second lookup. `services/ascidentity` signs it; `asctrust.UserCall` and `ascagentui.UserCall` attach it to every call they make for a person. System calls carry no identity.
+
+The contract is five gRPC metadata entries (HTTP/2 headers, lower case):
+
+| Header | Value |
+| --- | --- |
+| `x-asc-hub-user` | The numeric user id on the hub, in decimal with no leading zero. |
+| `x-asc-hub-login` | The login name: visible ASCII, no space, at most 255 bytes. |
+| `x-asc-hub-admin` | `1` for a site administrator, `0` otherwise. |
+| `x-asc-hub-ts` | The time of signing, Unix seconds, decimal. |
+| `x-asc-hub-sig` | Lower-case hex of HMAC-SHA256 (64 characters) over the text below. |
+
+The signing text is the five lines `asc-hub-identity-v1`, user, login, admin and ts, each ended by a line feed (`
+`). The key is `HMAC-SHA256(secret, "asc-hub-identity-v1 key")`, where `secret` is the internal token that the hub and `asc serve` already share (`[security] INTERNAL_TOKEN` or `INTERNAL_TOKEN_URI`, at least 16 bytes). The bearer value is not used as the key itself.
+
+A verifier must:
+
+1. Refuse the identity when any of the five entries is missing or repeated.
+2. Compute the signature over the received user, login, admin and ts, and compare it in constant time. Any mismatch is a refusal; the entries are not read as an identity before that.
+3. Accept only the canonical decimal spelling of user and ts, `0` or `1` for admin, and a login of visible ASCII.
+4. Refuse a time more than 5 minutes (`ascidentity.MaxSkew`) from its own clock, in either direction.
+5. Treat the result as who the hub signed in, never as a grant: the call is still authorised by its token, and a call without a valid identity is an ordinary token call. An entry of this contract on a call that is not authenticated by the secret holder must be dropped, not trusted.
+
+The hub replaces any `x-asc-hub-*` entry that a context already holds, so a caller cannot choose another person. A hub whose internal token is shorter than 16 bytes fails the call instead of signing with a weak key. `ascidentity.Verify` is the reference implementation of steps 1 to 4, and the tests pin its behaviour.
 
 ## Package map
 
@@ -120,6 +148,7 @@ Nothing in the hub writes a ref into a bridge directory.
 | --- | --- |
 | `modules/setting/asc.go` | The `[asc]` settings and their validation. |
 | `modules/ascproto/ascv1` | Generated `asc.v1` stubs (see `modules/ascproto/README.md`). |
+| `services/ascidentity` | The signed identity of the person, forwarded with each call made for them. |
 | `modules/ascclient` | The gRPC client: authentication, retries, operation ids, verified object fetches, cache. |
 | `modules/repostore`, `modules/repostore/asc`, `modules/repostore/gitcli` | The writer interface, its router, and the asc and git writers. |
 | `modules/git/ascbackend` | Reads of an asc repository as a git backend. |

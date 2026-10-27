@@ -66,6 +66,7 @@ type fakeAsc struct {
 
 type fakeCall struct {
 	Method string
+	MD     metadata.MD
 	Auth   string
 	OpID   string
 	Req    any
@@ -73,7 +74,7 @@ type fakeCall struct {
 
 func (f *fakeAsc) note(ctx context.Context, method string, req any) {
 	md, _ := metadata.FromIncomingContext(ctx)
-	c := fakeCall{Method: method, Req: req}
+	c := fakeCall{Method: method, Req: req, MD: md}
 	if v := md.Get("authorization"); len(v) > 0 {
 		c.Auth = v[0]
 	}

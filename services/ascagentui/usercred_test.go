@@ -17,6 +17,8 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/setting"
+	"forgejo.org/services/ascidentity"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,11 +31,13 @@ import (
 type authSpy struct {
 	ascv1.UnimplementedAgentsServer
 	auth []string
+	md   []metadata.MD
 }
 
 func (s *authSpy) GetRun(ctx context.Context, _ *ascv1.GetAgentRunRequest) (*ascv1.GetAgentRunResponse, error) {
 	md, _ := metadata.FromIncomingContext(ctx)
 	s.auth = append(s.auth, md.Get("authorization")...)
+	s.md = append(s.md, md)
 	return nil, status.Error(codes.NotFound, "none")
 }
 
@@ -75,6 +79,9 @@ func TestUserCall(t *testing.T) {
 		require.NoError(t, err)
 		t.Cleanup(func() { _ = client.Close() })
 
+		oldToken := setting.InternalToken
+		setting.InternalToken = "internal-token-for-the-test"
+		t.Cleanup(func() { setting.InternalToken = oldToken })
 		callCtx, done, err := UserCall(db.DefaultContext, doer, repo)
 		require.NoError(t, err)
 
@@ -94,6 +101,9 @@ func TestUserCall(t *testing.T) {
 		bearer, ok := strings.CutPrefix(spy.auth[0], "Bearer ")
 		require.True(t, ok)
 		assert.NotEqual(t, "internal-token-for-the-test", bearer, "a person's call never carries the internal token")
+		signed, err := ascidentity.Verify("internal-token-for-the-test", func(k string) string { return strings.Join(spy.md[0].Get(k), ",") }, time.Now())
+		require.NoError(t, err, "the identity the hub signed in is signed for the server")
+		assert.Equal(t, ascidentity.Identity{ID: doer.ID, Login: doer.Name, Admin: doer.IsAdmin}, signed)
 		found, err := auth_model.GetAccessTokenBySHA(db.DefaultContext, bearer)
 		require.NoError(t, err)
 		assert.Equal(t, tok.ID, found.ID)
