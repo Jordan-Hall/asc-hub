@@ -149,7 +149,7 @@ func TestAscInboxLoad(t *testing.T) {
 	assert.Nil(t, find(), "a reviewer who cannot read the repository does not see its pull request")
 
 	setPrivate(false)
-	stranger := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
+	stranger := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 8})
 	es, err := ascinbox.Load(db.DefaultContext, stranger, &authz.AllAccessAuthorizationReducer{}, time.Now())
 	require.NoError(t, err)
 	for _, e := range es {

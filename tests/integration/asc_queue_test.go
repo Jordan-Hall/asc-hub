@@ -43,7 +43,7 @@ type ascQueueLander struct {
 	lands []int64
 }
 
-func (l *ascQueueLander) Land(_ context.Context, _ *user_model.User, _ access_model.Permission, pr *issues_model.PullRequest, _ bool) (*pull_service.AscStackMergeResult, error) {
+func (l *ascQueueLander) Land(_ context.Context, _ *user_model.User, _ access_model.Permission, pr *issues_model.PullRequest, _ pull_service.AscMergeOptions) (*pull_service.AscStackMergeResult, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.lands = append(l.lands, pr.ID)

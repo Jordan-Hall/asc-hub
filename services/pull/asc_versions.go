@@ -19,6 +19,7 @@ import (
 	"forgejo.org/modules/git/ascbackend"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/setting"
+	"forgejo.org/services/ascsync"
 )
 
 // Versions dropdown, interdiff and "since my last review" (SPEC section 20.5 flow 2, PLAN unit C37).
@@ -230,6 +231,21 @@ func AscVersions(ctx context.Context, pr *issues_model.PullRequest) (*AscVersion
 		}
 	}
 	return verifyAscVersions(all)
+}
+
+func init() {
+	// The review summary that goes back to asc names the newest version a review looked at (reviewed_version).
+	ascsync.RegisterVersionCommits(func(ctx context.Context, pr *issues_model.PullRequest) ([]string, error) {
+		list, err := AscVersions(ctx, pr)
+		if err != nil {
+			return nil, err
+		}
+		commits := make([]string, len(list.Versions))
+		for i, v := range list.Versions {
+			commits[i] = v.GitCommit
+		}
+		return commits, nil
+	})
 }
 
 // verifyAscVersions checks that the versions are numbered 1..N in order and carry ids of the right length.

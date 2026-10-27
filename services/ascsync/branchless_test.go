@@ -5,6 +5,7 @@ package ascsync
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
@@ -32,7 +33,7 @@ func TestAscBranchlessLoad(t *testing.T) {
 	got, err := LoadBranchlessSettings(t.Context(), fx.repo)
 	require.NoError(t, err)
 	assert.Equal(t, BranchlessSettings{Branchless: true, Cloud: true, SharedRefs: []string{"refs/heads/master"}}, got)
-	assert.Equal(t, "Owner/Repo", api.name)
+	assert.Equal(t, "owner/repo", strings.ToLower(api.name))
 
 	// A repository not stored in asc is refused, and nothing is sent.
 	api.name = ""

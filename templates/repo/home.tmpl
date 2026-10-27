@@ -148,7 +148,7 @@
 		</div>
 		{{if and $isHomepage (eq .Repository.GetStorageBackend "asc")}}
 			<details class="tw-my-2 asc-clone-more">
-				<summary>{{ctx.Locale.Tr "repo.clone_other_ways"}}</summary>
+				<summary>{{if .AscGitAccess}}{{ctx.Locale.Tr "repo.clone_other_ways"}}{{else}}{{ctx.Locale.Tr "repo.clone_with_asc"}}{{end}}</summary>
 				{{template "repo/clone_asc_tabs" .}}
 			</details>
 		{{end}}
