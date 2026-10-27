@@ -643,3 +643,57 @@
 .asc-trust-page .asc-trust {
   overflow-wrap: anywhere;
 }
+
+/* the operation log: one row per operation, the action under the text on a phone and beside it from 640px */
+.ast-ops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ast-op {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ast-op:last-child {
+  border-bottom: 0;
+}
+
+.ast-op-main {
+  min-width: 0;
+}
+
+.ast-op-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0 0 4px;
+}
+
+.ast-op-ref {
+  min-width: 0;
+}
+
+.ast-op-side .ui.button {
+  min-height: 44px;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .ast-op {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .ast-op-side {
+    flex: none;
+    text-align: end;
+  }
+}

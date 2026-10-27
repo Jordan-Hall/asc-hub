@@ -1,0 +1,59 @@
+{{/*
+The confirmation of an undo (routers/web/repo/asc_ops.go). The form carries the operation, the ref and the two heads
+that were shown (the expected heads); the undo is made only if the log still matches them.
+Template Attributes:
+* AscUndo: *ascUndoPage (Preview *asctrust.UndoPreview, OpsURL, Problem)
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+	{{template "repo/header" .}}
+	<div class="ui container">
+	{{with .AscUndo}}
+	<div class="asc-trust" data-testid="asc-undo">
+		<p class="asc-trust-links"><a href="{{.OpsURL}}">{{ctx.Locale.Tr "asc_trust.ops.title"}}</a></p>
+		<div class="asc-trust-head"><h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_trust.ops.undo_title"}}</h2></div>
+		{{if .Problem}}
+			<div class="ui negative message" role="alert" data-testid="asc-undo-problem">{{.Problem}}</div>
+		{{else if .Preview}}
+		{{with .Preview}}
+		<p class="asc-trust-lead">{{ctx.Locale.Tr "asc_trust.ops.undo_lead"}}</p>
+		<section class="ast-card" aria-labelledby="asc-undo-what">
+			<div class="ast-card-head">
+				<h3 id="asc-undo-what" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.ops.undo_what"}}</h3>
+				<span class="ast-pill ast-pill-via">{{ctx.Locale.Tr (printf "asc_trust.ops.via.%s" .Row.ViaKey)}}</span>
+			</div>
+			<dl class="asc-trust-dl ast-card-body" data-testid="asc-undo-preview">
+				<dt>{{ctx.Locale.Tr "asc_trust.ops.undo_ref"}}</dt>
+				<dd>{{.Row.Label}}</dd>
+				<dt>{{ctx.Locale.Tr "asc_trust.ops.undo_now"}}</dt>
+				<dd>{{if .Current}}{{.Row.NewShort}}{{else}}{{ctx.Locale.Tr "asc_trust.ops.undo_none"}}{{end}}</dd>
+				<dt>{{ctx.Locale.Tr "asc_trust.ops.undo_back"}}</dt>
+				<dd>{{if .Restore}}{{.Row.OldShort}}{{else}}{{ctx.Locale.Tr "asc_trust.ops.undo_none"}}{{end}}</dd>
+				<dt>{{ctx.Locale.Tr "asc_trust.ops.undo_when"}}</dt>
+				<dd>{{DateUtils.TimeSince .Row.At}}</dd>
+			</dl>
+		</section>
+		<form class="ui form" method="post" action="{{$.AscUndo.OpsURL}}/undo" data-testid="asc-undo-form">
+			{{$.CsrfTokenHtml}}
+			<input type="hidden" name="ref" value="{{.Row.Ref}}">
+			<input type="hidden" name="seq" value="{{.Row.Seq}}">
+			<input type="hidden" name="current" value="{{.Current}}">
+			<input type="hidden" name="restore" value="{{.Restore}}">
+			<input type="hidden" name="op" value="{{.Op}}">
+			<div class="field">
+				<label for="asc-undo-reason">{{ctx.Locale.Tr "asc_trust.ops.undo_reason"}}</label>
+				<input id="asc-undo-reason" name="reason" type="text" maxlength="256" autocomplete="off">
+			</div>
+			<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_trust.ops.note"}}</p>
+			<div class="asc-trust-actions">
+				<button class="ui primary button" type="submit" data-testid="asc-undo-confirm">{{ctx.Locale.Tr "asc_trust.ops.undo_confirm"}}</button>
+				<a class="ui basic button" href="{{$.AscUndo.OpsURL}}">{{ctx.Locale.Tr "asc_trust.ops.undo_cancel"}}</a>
+			</div>
+		</form>
+		{{end}}
+		{{end}}
+	</div>
+	{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

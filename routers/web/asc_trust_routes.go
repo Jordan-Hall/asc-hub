@@ -98,7 +98,14 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 //	GET  .../asc/checks/groups/{id}           one group
 //	POST .../asc/checks/groups/{id}/state     acknowledge, quarantine, resolve, reopen (writers)
 //	POST .../asc/checks/rerun                 re-run a run (writers of the repository's Actions)
+//	GET  .../asc/ops                          the operation log (signed-in readers)
+//	GET  .../asc/ops/undo                     the dry run and confirmation of an undo (signed-in writers)
+//	POST .../asc/ops/undo                     undo one operation of the signed-in person (CSRF-checked like every POST)
 func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
+	m.Group("/asc/ops", func() {
+		m.Get("", repo.AscOps)
+		m.Combo("/undo").Get(repo.AscOpsUndoPreview).Post(context.RepoMustNotBeArchived(), repo.AscOpsUndo)
+	}, reqSignIn)
 	m.Group("/asc/checks", func() {
 		m.Get("", repo.AscChecks)
 		m.Get("/groups/{id}", repo.AscCheckGroup)

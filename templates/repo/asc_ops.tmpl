@@ -1,0 +1,80 @@
+{{/*
+The operation log of a repository, and the way to undo one operation (routers/web/repo/asc_ops.go).
+Template Attributes:
+* AscOps: *ascOpsPage (Rows []asctrust.OpRow, Ref, Mine, NextURL, OpsURL, CanUndo, Problem, Unsupported)
+Texts that come from asc (ref names, actors) are cleaned in services/asctrust and escaped by the template engine.
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+	{{template "repo/header" .}}
+	<div class="ui container">
+	{{template "base/alert" .}}
+	{{with .AscOps}}
+	<div class="asc-trust" data-testid="asc-ops">
+		<div class="asc-trust-head">
+			<h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_trust.ops.title"}}</h2>
+		</div>
+		<p class="asc-trust-lead">{{ctx.Locale.Tr "asc_trust.ops.lead"}}</p>
+
+		{{if .Unsupported}}
+			<div class="ui warning message" role="status" data-testid="asc-ops-unsupported">{{ctx.Locale.Tr "asc_trust.ops.unsupported"}}</div>
+		{{else}}
+			{{if .Problem}}<div class="ui negative message" role="alert" data-testid="asc-ops-problem">{{.Problem}}</div>{{end}}
+
+			<form class="ui form asc-trust-filters" method="get" action="{{.OpsURL}}" data-testid="asc-ops-filter">
+				<div class="asc-trust-grid">
+					<div class="field">
+						<label for="asc-ops-ref">{{ctx.Locale.Tr "asc_trust.ops.filter_ref"}}</label>
+						<input id="asc-ops-ref" name="ref" type="text" maxlength="1024" value="{{.Ref}}" autocomplete="off" placeholder="refs/heads/main">
+					</div>
+					<div class="field">
+						<div class="ui checkbox"><input id="asc-ops-mine" name="mine" type="checkbox" value="1"{{if .Mine}} checked{{end}}><label for="asc-ops-mine">{{ctx.Locale.Tr "asc_trust.ops.filter_mine"}}</label></div>
+					</div>
+				</div>
+				<div class="asc-trust-actions">
+					<button class="ui primary button" type="submit">{{ctx.Locale.Tr "asc_trust.ops.filter"}}</button>
+					<a class="ui basic button" href="{{.OpsURL}}">{{ctx.Locale.Tr "asc_trust.ops.clear"}}</a>
+				</div>
+			</form>
+
+			<section class="ast-card" aria-labelledby="asc-ops-list">
+				<div class="ast-card-head"><h3 id="asc-ops-list" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.ops.list"}}</h3></div>
+				{{if .Rows}}
+				<ol class="ast-ops" data-testid="asc-ops-list">
+					{{range .Rows}}
+					<li class="ast-op" data-testid="asc-op" data-seq="{{.Seq}}">
+						<div class="ast-op-main">
+							<div class="ast-op-line">
+								<span class="ast-pill ast-pill-via">{{ctx.Locale.Tr (printf "asc_trust.ops.via.%s" .ViaKey)}}</span>
+								<code class="asc-trust-code ast-op-ref">{{.Label}}</code>
+							</div>
+							<div class="asc-trust-sub">
+								{{if .Mine}}{{ctx.Locale.Tr "asc_trust.ops.you"}}{{else}}{{ctx.Locale.Tr "asc_trust.ops.by" .Actor}}{{end}}
+								· {{DateUtils.TimeSince .At}}
+								· {{if and .Old .New}}<code class="asc-trust-code">{{.OldShort}}</code> → <code class="asc-trust-code">{{.NewShort}}</code>{{else if .New}}{{ctx.Locale.Tr "asc_trust.ops.created"}} <code class="asc-trust-code">{{.NewShort}}</code>{{else}}{{ctx.Locale.Tr "asc_trust.ops.deleted"}}{{end}}
+							</div>
+						</div>
+						<div class="ast-op-side">
+							{{if .Undoable}}
+								{{if $.AscOps.CanUndo}}
+								<a class="ui basic button" href="{{$.AscOps.OpsURL}}/undo?ref={{.Ref | QueryEscape}}&seq={{.Seq}}" aria-label="{{ctx.Locale.TrString "asc_trust.ops.undo_aria" .Label}}" data-testid="asc-op-undo">{{ctx.Locale.Tr "asc_trust.ops.undo"}}</a>
+								{{end}}
+							{{else}}
+								<span class="asc-trust-sub" data-testid="asc-op-blocked">{{ctx.Locale.Tr (printf "asc_trust.ops.blocked.%s" .BlockKey)}}</span>
+							{{end}}
+						</div>
+					</li>
+					{{end}}
+				</ol>
+				{{else if not .Problem}}
+				<p data-testid="asc-ops-empty">{{ctx.Locale.Tr "asc_trust.ops.empty"}}</p>
+				{{end}}
+				{{if .NextURL}}<div class="asc-trust-actions ast-card-foot"><a class="ui basic button" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.ops.more"}}</a></div>{{end}}
+			</section>
+			<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_trust.ops.note"}}</p>
+		{{end}}
+	</div>
+	{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}
