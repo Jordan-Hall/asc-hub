@@ -154,11 +154,10 @@ func AscChecks(ctx *context.Context) {
 		ctx.HTML(http.StatusOK, tplAscChecks)
 		return
 	}
-	for _, s := range append([]struct {
-		Key   string
-		Label string
-	}{{"", "open"}}, ascGroupStateOptions()...) {
-		p.States = append(p.States, ascChecksState{Key: s.Key, Label: s.Key, Active: s.Key == p.State})
+	// The tab of the default view (no state in the address) is the "open" tab, not a tab of its own: an empty
+	// key made its label the half key "asc_trust.checks.state." and listed "Open" twice.
+	for _, s := range ascGroupStateOptions() {
+		p.States = append(p.States, ascChecksState{Key: s.Key, Label: s.Key, Active: s.Key == p.State || (p.State == "" && s.Key == "open")})
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
