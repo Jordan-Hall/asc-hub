@@ -158,14 +158,25 @@ func renameUser(ctx context.Context, u *user_model.User, newUserName string, doe
 		return err
 	}
 
+	// asc authorises by name: the repositories of the user that are stored in asc move in its registry before the
+	// directory moves, and move back if a later step fails.
+	undoAsc, err := repo_service.AscRenameOwnerRepos(ctx, u.ID, oldUserName, newUserName)
+	if err != nil {
+		u.Name = oldUserName
+		u.LowerName = strings.ToLower(oldUserName)
+		return fmt.Errorf("rename the repositories in asc: %w", err)
+	}
+
 	// Do not fail if directory does not exist
 	if err = util.Rename(user_model.UserPath(oldUserName), user_model.UserPath(newUserName)); err != nil && !os.IsNotExist(err) {
+		undoAsc()
 		u.Name = oldUserName
 		u.LowerName = strings.ToLower(oldUserName)
 		return fmt.Errorf("rename user directory: %w", err)
 	}
 
 	if err = committer.Commit(); err != nil {
+		undoAsc()
 		u.Name = oldUserName
 		u.LowerName = strings.ToLower(oldUserName)
 		if err2 := util.Rename(user_model.UserPath(newUserName), user_model.UserPath(oldUserName)); err2 != nil && !os.IsNotExist(err2) {

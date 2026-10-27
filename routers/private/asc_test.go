@@ -17,6 +17,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/json"
 	"forgejo.org/modules/private"
 	"forgejo.org/modules/setting"
@@ -67,6 +68,9 @@ func ascAuthzSetup(t *testing.T) {
 	t.Helper()
 	require.NoError(t, unittest.PrepareTestDatabase())
 	t.Cleanup(test.MockVariableValue(&setting.Asc.Enabled, true))
+	// The endpoint answers only for repositories stored in asc.
+	_, err := db.GetEngine(db.DefaultContext).Exec("UPDATE repository SET storage_backend = ?", string(gitrepo.StorageBackendAsc))
+	require.NoError(t, err)
 }
 
 func TestAscAuthzDisabled(t *testing.T) {
@@ -317,9 +321,11 @@ func TestAscAuthzRoundTripShape(t *testing.T) {
 
 	var generic map[string]any
 	require.NoError(t, json.Unmarshal(bytes.TrimSpace([]byte(out)), &generic))
-	for _, key := range []string{"allowed", "user_id", "username", "perm", "deploy_key_id", "is_actions_task", "task", "branch_rules"} {
+	for _, key := range []string{"allowed", "user_id", "username", "perm", "deploy_key_id", "is_actions_task", "task", "branch_rules", "repo_id", "owner_id"} {
 		assert.Contains(t, generic, key)
 	}
+	assert.EqualValues(t, 1, generic["repo_id"], "the stable id of the repository, for asc serve to bind its entry to")
+	assert.EqualValues(t, 2, generic["owner_id"])
 	assert.Equal(t, map[string]any{"require_signed": false}, generic["branch_rules"])
 }
 
