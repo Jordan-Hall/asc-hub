@@ -1,0 +1,494 @@
+/* Inbox (boards Inbox and Mobile-Inbox): tabs, list grouped by day, detail pane, thread and answer form. */
+
+.wk-inbox-grid {
+  display: block;
+}
+
+.wk-inbox-top {
+  padding: 16px var(--gutter) 0;
+}
+
+.wk-inbox .wk-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+
+.wk-title-sub {
+  color: var(--text-2);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* tabs: pills on a phone, an underlined strip from 1024 */
+.wk-itabs {
+  display: flex;
+  gap: 8px;
+  margin: 14px calc(var(--gutter) * -1) 0;
+  padding: 2px var(--gutter);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.wk-itabs::-webkit-scrollbar {
+  display: none;
+}
+
+.wk-itabs a {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-b);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.wk-itabs a:hover {
+  background: var(--surface-3);
+}
+
+.wk-itabs a[aria-current="page"] {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--on-fill);
+}
+
+.wk-itabs a[aria-current="page"] .ds-count {
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+}
+
+.wk-ifilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+
+.wk-sort {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+/* list */
+.wk-inbox-list {
+  min-width: 0;
+  padding-bottom: 12px;
+}
+
+.wk-ilist {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wk-iday {
+  padding: 8px var(--gutter);
+  border-bottom: 1px solid var(--line-2);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wk-iday:not(:first-child) {
+  border-top: 1px solid var(--line-2);
+}
+
+.wk-irow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--line-3);
+}
+
+.wk-irow:last-child {
+  border-bottom: 0;
+}
+
+.wk-irow:hover {
+  background: var(--surface-3);
+}
+
+.wk-irow.is-selected {
+  background: var(--primary-tint);
+  box-shadow: inset 3px 0 0 var(--fill);
+}
+
+.wk-irow-dot {
+  margin-top: 6px;
+}
+
+.wk-irow-main {
+  min-width: 0;
+}
+
+.wk-irow-link {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+/* the whole row is the target */
+.wk-irow-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.wk-irow-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.wk-irow-where {
+  margin-top: 2px;
+  color: var(--text-2);
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+
+.wk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-top: 8px;
+}
+
+.wk-irow-go {
+  color: var(--ok);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.wk-hintbar {
+  padding: 10px var(--gutter) 0;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+/* detail */
+.wk-inbox-detail {
+  min-width: 0;
+  padding: 16px var(--gutter) 24px;
+}
+
+.wk-inbox-none {
+  display: none;
+}
+
+.wk-detail-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.wk-detail-where {
+  color: var(--text-2);
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+
+.wk-detail-open {
+  display: none;
+  margin-left: auto;
+}
+
+.wk-detail-title {
+  margin: 12px 0 16px;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+
+.wk-eyebrow {
+  margin: 0 0 6px;
+  color: var(--text-2);
+}
+
+.wk-why {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.wk-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.wk-comment {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.wk-comment-body {
+  min-width: 0;
+}
+
+.wk-comment-who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: 14px;
+}
+
+.wk-comment-text {
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.wk-reply {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 16px;
+}
+
+.wk-reply-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wk-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.wk-detail-actions > form {
+  display: contents;
+}
+
+.wk-snooze > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.wk-snooze > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wk-snooze-menu {
+  display: grid;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+  background: var(--surface);
+}
+
+.wk-snooze-menu form {
+  display: block;
+}
+
+.wk-snooze-menu button {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wk-snooze-menu button:hover {
+  background: var(--hover);
+}
+
+.wk-inbox-first {
+  padding: 0 var(--gutter);
+}
+
+/* one pane on a phone and a tablet: the list, or the chosen item with a way back */
+@media (max-width: 1023.98px) {
+  .wk-inbox:not(.is-detail) .wk-inbox-detail {
+    display: none;
+  }
+
+  .wk-ilist {
+    margin: 14px var(--gutter) 0;
+    border: 1px solid var(--line);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+
+  .wk-inbox:not(.is-detail) .wk-irow.is-selected {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .wk-inbox.is-detail .wk-inbox-list {
+    display: none;
+  }
+
+  .wk-inbox .wk-inbox-grid {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .wk-inbox-first {
+    max-width: 760px;
+  }
+
+  .wk-inbox-next {
+    margin-left: calc(var(--gutter) * -1);
+    margin-right: calc(var(--gutter) * -1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .wk-inbox-grid {
+    display: grid;
+    grid-template-columns: 400px minmax(0, 1fr);
+    align-items: start;
+    max-width: 1440px;
+    margin: 0 auto;
+    min-height: calc(100vh - var(--header-h) - 120px);
+  }
+
+  .wk-inbox-list {
+    border-right: 1px solid var(--line);
+    background: var(--surface);
+    min-height: inherit;
+  }
+
+  .wk-inbox-top {
+    padding-top: 20px;
+  }
+
+  .wk-inbox .wk-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .wk-inbox-top {
+    padding-top: 0;
+  }
+
+  .wk-itabs {
+    margin-top: 0;
+  }
+
+  .wk-itabs {
+    gap: 0;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .wk-itabs a {
+    min-height: 48px;
+    padding: 0 11px;
+    font-size: 13.5px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-2);
+  }
+
+  .wk-itabs a:hover {
+    background: transparent;
+    color: var(--text);
+  }
+
+  .wk-itabs a[aria-current="page"] {
+    border-bottom-color: var(--fill);
+    background: transparent;
+    color: var(--text);
+  }
+
+  .wk-itabs a[aria-current="page"] .ds-count {
+    background: var(--surface-3);
+    color: var(--text-2);
+  }
+
+  .wk-ilist {
+    margin: 12px 0 0;
+    border: 0;
+    border-radius: 0;
+    border-top: 0;
+  }
+
+  .wk-inbox-detail {
+    padding: 24px 28px 40px;
+    max-width: 1000px;
+  }
+
+  .wk-detail-open {
+    display: inline-flex;
+  }
+
+  .wk-detail-title {
+    font-size: 26px;
+  }
+
+  .wk-detail-actions {
+    margin-top: 20px;
+  }
+
+  .wk-inbox-first {
+    display: none;
+  }
+
+  .wk-inbox-none {
+    display: block;
+  }
+
+  .wk-inbox-next {
+    display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .wk-inbox-grid {
+    grid-template-columns: 480px minmax(0, 1fr);
+  }
+
+  .wk-itabs a {
+    padding: 0 14px;
+  }
+}
