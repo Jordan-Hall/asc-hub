@@ -1,0 +1,12 @@
+{{/*
+The identity card at the top of a settings menu: who or what the settings belong to.
+Props: Entity (a user or organization for the avatar, optional), Icon (a ds icon name when there is no Entity), Name, Sub (optional line under the name), Href + Label (optional button, like "Profile").
+*/}}
+<div class="ds-settings-who">
+	{{if .Entity}}{{ctx.AvatarUtils.Avatar .Entity 40}}{{else}}<span class="ds-ico-box" aria-hidden="true">{{svg (print "dsi-" .Icon) 20}}</span>{{end}}
+	<div class="ds-grow ds-min0">
+		<div class="ds-sb ds-truncate">{{.Name}}</div>
+		{{if .Sub}}<div class="ds-t-small ds-c-2 ds-truncate">{{.Sub}}</div>{{end}}
+	</div>
+	{{if .Href}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Href}}">{{.Label}}</a>{{end}}
+</div>

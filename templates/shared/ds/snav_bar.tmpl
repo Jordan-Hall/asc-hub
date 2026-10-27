@@ -1,0 +1,9 @@
+{{/*
+The top bar of the settings menu when it opens as a page of its own on a phone (hidden from 1024 on, where the menu is the left column).
+Props: Title (the shell's title, "Settings"), Back (optional label of the back arrow).
+The arrow returns to the page that was open; the menu itself is the target of #settings-menu.
+*/}}
+<div class="ds-settings-bar">
+	<a class="ds-ti" href="#main-content" aria-label="{{if .Back}}{{.Back}}{{else}}{{ctx.Locale.Tr "asc_shell.back"}}{{end}}">{{svg "dsi-arrow-left" 22}}</a>
+	<div class="ds-topbar-title">{{.Title}}</div>
+</div>
