@@ -1,0 +1,58 @@
+{{/*
+The preview of a dependency proposal (routers/web/repo/asc_deps.go). The form at the end creates exactly what the
+preview shows: it repeats the options and carries the operation id, so a double submit is one proposal.
+Template Attributes:
+* AscDeps: *ascDepsPage (Plan is set)
+* AscDepsMaxKind: the update size the preview was made with
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+	{{template "repo/header" .}}
+	<div class="ui container">
+	{{template "base/alert" .}}
+	{{with .AscDeps}}
+	<div class="asc-trust" data-testid="asc-deps-plan">
+		<p class="asc-trust-links"><a href="{{.DepsURL}}?view=updates">{{ctx.Locale.Tr "asc_trust.deps.back_updates"}}</a></p>
+		<div class="asc-trust-head"><h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_trust.deps.plan_title"}}</h2></div>
+		<p class="asc-trust-lead">{{ctx.Locale.Tr "asc_trust.deps.plan_lead"}}</p>
+		{{with .Plan}}
+			{{range .Proposals}}
+			<section class="ast-card" aria-labelledby="asc-plan-{{.Group}}" data-testid="asc-plan-proposal">
+				<div class="ast-card-head"><h3 id="asc-plan-{{.Group}}" class="ast-card-title">{{.Group}}</h3><span class="ast-card-aside"><code class="asc-trust-code">{{.Ref}}</code></span></div>
+				<ul class="ast-ops">
+					{{range .Updates}}
+					<li class="ast-op"><div class="ast-op-main"><div class="ast-op-line"><strong>{{.Name}}</strong> <code class="asc-trust-code">{{.Current}}</code> → <code class="asc-trust-code">{{.Target}}</code> <span class="ast-pill ast-pill-{{.KindTone}}">{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" .KindKey)}}</span></div>
+						{{if .Fixes}}<div class="asc-trust-sub ast-tone-ok">{{ctx.Locale.Tr "asc_trust.deps.fixes"}} {{range $i, $f := .Fixes}}{{if $i}}, {{end}}{{$f}}{{end}}</div>{{end}}</div></li>
+					{{end}}
+				</ul>
+				{{if .Files}}<p class="asc-trust-sub ast-card-body">{{ctx.Locale.Tr "asc_trust.deps.plan_files"}} {{range $i, $f := .Files}}{{if $i}}, {{end}}<code class="asc-trust-code">{{$f}}</code>{{end}}</p>{{end}}
+				{{range .Notes}}<p class="asc-trust-sub ast-card-body ast-tone-wn">{{.}}</p>{{end}}
+			</section>
+			{{else}}
+			<div class="ui info message" data-testid="asc-plan-empty">{{ctx.Locale.Tr "asc_trust.deps.nothing_to_propose"}}</div>
+			{{end}}
+			{{if .Skipped}}
+			<section class="ast-card" aria-labelledby="asc-plan-skipped">
+				<div class="ast-card-head"><h3 id="asc-plan-skipped" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.deps.plan_skipped"}}</h3></div>
+				<ul class="ast-blocked" data-testid="asc-plan-skipped">{{range .Skipped}}<li><strong>{{.Name}}</strong> {{if .Ecosystem}}<span class="ast-pill ast-pill-ro">{{.Ecosystem}}</span>{{end}} {{.Reason}}</li>{{end}}</ul>
+			</section>
+			{{end}}
+			{{if .Proposals}}
+			<form class="ui form" method="post" action="{{$.AscDeps.DepsURL}}/propose" data-testid="asc-plan-apply-form">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="mode" value="apply">
+				<input type="hidden" name="op" value="{{$.AscDeps.Op}}">
+				{{if $.AscDeps.SecurityOnly}}<input type="hidden" name="security" value="1">{{end}}
+				<input type="hidden" name="max_kind" value="{{$.AscDepsMaxKind}}">
+				<div class="asc-trust-actions">
+					<button class="ui primary button" type="submit" data-testid="asc-plan-apply">{{ctx.Locale.Tr "asc_trust.deps.plan_apply"}}</button>
+					<a class="ui basic button" href="{{$.AscDeps.DepsURL}}?view=updates">{{ctx.Locale.Tr "asc_trust.deps.cancel"}}</a>
+				</div>
+			</form>
+			{{end}}
+		{{end}}
+	</div>
+	{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

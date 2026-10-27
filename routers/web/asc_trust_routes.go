@@ -101,7 +101,17 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 //	GET  .../asc/ops                          the operation log (signed-in readers)
 //	GET  .../asc/ops/undo                     the dry run and confirmation of an undo (signed-in writers)
 //	POST .../asc/ops/undo                     undo one operation of the signed-in person (CSRF-checked like every POST)
+//	GET  .../asc/deps                         dependencies: findings, newer versions, settings (signed-in readers)
+//	POST .../asc/deps/scan                    scan trunk (administrators)
+//	POST .../asc/deps/propose                 preview or create update proposals (administrators)
+//	POST .../asc/deps/findings/{id}/dismiss   dismiss or reopen a finding (administrators)
 func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
+	m.Group("/asc/deps", func() {
+		m.Get("", repo.AscDeps)
+		m.Post("/scan", context.RepoMustNotBeArchived(), repo.AscDepsScan)
+		m.Post("/propose", context.RepoMustNotBeArchived(), repo.AscDepsPropose)
+		m.Post("/findings/{id}/dismiss", context.RepoMustNotBeArchived(), repo.AscDepsDismiss)
+	}, reqSignIn)
 	m.Group("/asc/ops", func() {
 		m.Get("", repo.AscOps)
 		m.Combo("/undo").Get(repo.AscOpsUndoPreview).Post(context.RepoMustNotBeArchived(), repo.AscOpsUndo)

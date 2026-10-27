@@ -197,6 +197,9 @@
 					<a class="{{if .PageIsAscOps}}active {{end}}item" href="{{.RepoLink}}/asc/ops">
 						{{svg "octicon-history"}} {{ctx.Locale.Tr "asc_trust.nav_ops"}}
 					</a>
+					<a class="{{if .PageIsAscDeps}}active {{end}}item" href="{{.RepoLink}}/asc/deps">
+						{{svg "octicon-package"}} {{ctx.Locale.Tr "asc_trust.nav_deps"}}
+					</a>
 				{{end}}
 
 				{{template "custom/extra_tabs" .}}

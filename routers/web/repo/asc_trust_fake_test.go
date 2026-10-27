@@ -50,6 +50,7 @@ type fakeTrust struct {
 	ascv1.UnimplementedStacksServer
 	ascv1.UnimplementedCiInsightsServer
 	ascv1.UnimplementedAuditServer
+	ascv1.UnimplementedDepsServiceServer
 
 	mu       sync.Mutex
 	calls    []trustCall
@@ -62,6 +63,13 @@ type fakeTrust struct {
 	history    func(*ascv1.FlakyHistoryRequest) (*ascv1.FlakyHistoryResponse, error)
 	auditList  func(*ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error)
 	auditChain func(*ascv1.VerifyAuditChainRequest) (*ascv1.VerifyAuditChainResponse, error)
+
+	depFindings func(*ascv1.ListDepFindingsRequest) (*ascv1.ListDepFindingsResponse, error)
+	depUpdates  func(*ascv1.ListDepUpdatesRequest) (*ascv1.ListDepUpdatesResponse, error)
+	depConfig   func(*ascv1.GetDepsConfigRequest) (*ascv1.GetDepsConfigResponse, error)
+	depScan     func(*ascv1.ScanDepsRequest) (*ascv1.ScanDepsResponse, error)
+	depPropose  func(*ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error)
+	depDismiss  func(*ascv1.DismissDepFindingRequest) (*ascv1.DismissDepFindingResponse, error)
 }
 
 func (f *fakeTrust) note(ctx gocontext.Context, method string, req any) {
@@ -156,6 +164,54 @@ func (f *fakeTrust) VerifyChain(ctx gocontext.Context, r *ascv1.VerifyAuditChain
 	return f.auditChain(r)
 }
 
+func (f *fakeTrust) ListFindings(ctx gocontext.Context, r *ascv1.ListDepFindingsRequest) (*ascv1.ListDepFindingsResponse, error) {
+	f.note(ctx, "DepFindings", r)
+	if f.depFindings == nil {
+		return f.UnimplementedDepsServiceServer.ListFindings(ctx, r)
+	}
+	return f.depFindings(r)
+}
+
+func (f *fakeTrust) ListUpdates(ctx gocontext.Context, r *ascv1.ListDepUpdatesRequest) (*ascv1.ListDepUpdatesResponse, error) {
+	f.note(ctx, "DepUpdates", r)
+	if f.depUpdates == nil {
+		return f.UnimplementedDepsServiceServer.ListUpdates(ctx, r)
+	}
+	return f.depUpdates(r)
+}
+
+func (f *fakeTrust) GetConfig(ctx gocontext.Context, r *ascv1.GetDepsConfigRequest) (*ascv1.GetDepsConfigResponse, error) {
+	f.note(ctx, "DepConfig", r)
+	if f.depConfig == nil {
+		return f.UnimplementedDepsServiceServer.GetConfig(ctx, r)
+	}
+	return f.depConfig(r)
+}
+
+func (f *fakeTrust) Scan(ctx gocontext.Context, r *ascv1.ScanDepsRequest) (*ascv1.ScanDepsResponse, error) {
+	f.note(ctx, "DepScan", r)
+	if f.depScan == nil {
+		return f.UnimplementedDepsServiceServer.Scan(ctx, r)
+	}
+	return f.depScan(r)
+}
+
+func (f *fakeTrust) ProposeUpdate(ctx gocontext.Context, r *ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error) {
+	f.note(ctx, "DepPropose", r)
+	if f.depPropose == nil {
+		return f.UnimplementedDepsServiceServer.ProposeUpdate(ctx, r)
+	}
+	return f.depPropose(r)
+}
+
+func (f *fakeTrust) Dismiss(ctx gocontext.Context, r *ascv1.DismissDepFindingRequest) (*ascv1.DismissDepFindingResponse, error) {
+	f.note(ctx, "DepDismiss", r)
+	if f.depDismiss == nil {
+		return f.UnimplementedDepsServiceServer.Dismiss(ctx, r)
+	}
+	return f.depDismiss(r)
+}
+
 // startFakeTrust serves the fake on a loopback port, points asctrust at it, makes the repository 1 an asc
 // repository and switches [asc] on. The call credential is a fixed token, so no row is written to the database.
 func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
@@ -166,6 +222,7 @@ func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
 	ascv1.RegisterStacksServer(srv, f)
 	ascv1.RegisterCiInsightsServer(srv, f)
 	ascv1.RegisterAuditServer(srv, f)
+	ascv1.RegisterDepsServiceServer(srv, f)
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()

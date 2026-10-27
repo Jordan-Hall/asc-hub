@@ -697,3 +697,24 @@
     text-align: end;
   }
 }
+
+/* dependencies: a finding or an update is a row like an operation; the dismiss form sits under the text on a phone */
+.ast-dep .ast-op-side {
+  width: 100%;
+}
+
+.ast-dep .ast-finding-form {
+  min-width: 0;
+}
+
+.ast-dep .ast-finding-form select,
+.ast-dep .ast-finding-form input[type="text"] {
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .ast-dep .ast-op-side {
+    width: auto;
+    max-width: 24rem;
+  }
+}

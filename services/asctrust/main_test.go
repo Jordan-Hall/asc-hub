@@ -62,6 +62,12 @@ type fakeAsc struct {
 	setGroup    func(*ascv1.SetFailureGroupStateRequest) (*ascv1.SetFailureGroupStateResponse, error)
 	history     func(*ascv1.FlakyHistoryRequest) (*ascv1.FlakyHistoryResponse, error)
 	listFlaky   func(*ascv1.ListFlakyTestsRequest) (*ascv1.ListFlakyTestsResponse, error)
+	depFindings func(*ascv1.ListDepFindingsRequest) (*ascv1.ListDepFindingsResponse, error)
+	depUpdates  func(*ascv1.ListDepUpdatesRequest) (*ascv1.ListDepUpdatesResponse, error)
+	depConfig   func(*ascv1.GetDepsConfigRequest) (*ascv1.GetDepsConfigResponse, error)
+	depScan     func(*ascv1.ScanDepsRequest) (*ascv1.ScanDepsResponse, error)
+	depPropose  func(*ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error)
+	depDismiss  func(*ascv1.DismissDepFindingRequest) (*ascv1.DismissDepFindingResponse, error)
 }
 
 type fakeCall struct {
@@ -304,6 +310,61 @@ func (f *fakeAsc) ListFlakyTests(ctx context.Context, req *ascv1.ListFlakyTestsR
 	return f.listFlaky(req)
 }
 
+// fakeDeps is the DepsService of the fake: its method names meet those of the secret scanning service, so it is
+// a type of its own. Its hooks are on fakeAsc.
+type fakeDeps struct {
+	ascv1.UnimplementedDepsServiceServer
+	f *fakeAsc
+}
+
+func (d fakeDeps) ListFindings(ctx context.Context, req *ascv1.ListDepFindingsRequest) (*ascv1.ListDepFindingsResponse, error) {
+	d.f.note(ctx, "DepFindings", req)
+	if d.f.depFindings == nil {
+		return d.UnimplementedDepsServiceServer.ListFindings(ctx, req)
+	}
+	return d.f.depFindings(req)
+}
+
+func (d fakeDeps) ListUpdates(ctx context.Context, req *ascv1.ListDepUpdatesRequest) (*ascv1.ListDepUpdatesResponse, error) {
+	d.f.note(ctx, "DepUpdates", req)
+	if d.f.depUpdates == nil {
+		return d.UnimplementedDepsServiceServer.ListUpdates(ctx, req)
+	}
+	return d.f.depUpdates(req)
+}
+
+func (d fakeDeps) GetConfig(ctx context.Context, req *ascv1.GetDepsConfigRequest) (*ascv1.GetDepsConfigResponse, error) {
+	d.f.note(ctx, "DepConfig", req)
+	if d.f.depConfig == nil {
+		return d.UnimplementedDepsServiceServer.GetConfig(ctx, req)
+	}
+	return d.f.depConfig(req)
+}
+
+func (d fakeDeps) Scan(ctx context.Context, req *ascv1.ScanDepsRequest) (*ascv1.ScanDepsResponse, error) {
+	d.f.note(ctx, "DepScan", req)
+	if d.f.depScan == nil {
+		return d.UnimplementedDepsServiceServer.Scan(ctx, req)
+	}
+	return d.f.depScan(req)
+}
+
+func (d fakeDeps) ProposeUpdate(ctx context.Context, req *ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error) {
+	d.f.note(ctx, "DepPropose", req)
+	if d.f.depPropose == nil {
+		return d.UnimplementedDepsServiceServer.ProposeUpdate(ctx, req)
+	}
+	return d.f.depPropose(req)
+}
+
+func (d fakeDeps) Dismiss(ctx context.Context, req *ascv1.DismissDepFindingRequest) (*ascv1.DismissDepFindingResponse, error) {
+	d.f.note(ctx, "DepDismiss", req)
+	if d.f.depDismiss == nil {
+		return d.UnimplementedDepsServiceServer.Dismiss(ctx, req)
+	}
+	return d.f.depDismiss(req)
+}
+
 // startFake starts a fake asc serve on a loopback port and returns a client connected to it, with the internal
 // token configured. The package connection (Conn) is pointed at it for the test.
 func startFake(t *testing.T) (*fakeAsc, *ascclient.Client) {
@@ -316,6 +377,7 @@ func startFake(t *testing.T) (*fakeAsc, *ascclient.Client) {
 	ascv1.RegisterSecretScanServer(srv, f)
 	ascv1.RegisterSigningServer(srv, f)
 	ascv1.RegisterCiInsightsServer(srv, f)
+	ascv1.RegisterDepsServiceServer(srv, fakeDeps{f: f})
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()
