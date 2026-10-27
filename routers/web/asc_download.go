@@ -12,6 +12,7 @@ import (
 	"forgejo.org/modules/ascdownload"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	"forgejo.org/services/ascdownloadsync"
 	"forgejo.org/services/context"
 )
 
@@ -72,7 +73,10 @@ func prepareAscDownload(ctx *context.Context) bool {
 		if isAdmin {
 			note := err.Error()
 			if ascdownload.IsNoRelease(err) {
-				note += ". Set [asc] DOWNLOAD_DIR to a directory with a manifest.json and the release files to offer the asc download here."
+				note += ". Set [asc] DOWNLOAD_DIR to a directory with a manifest.json and the release files, or [asc] DOWNLOAD_SOURCE_URL to fetch a signed release into it, to offer the asc download here."
+			}
+			if _, syncErr, configured := ascdownloadsync.Status(); configured && syncErr != nil {
+				note += " The last fetch from [asc] DOWNLOAD_SOURCE_URL failed: " + syncErr.Error()
 			}
 			ctx.Data["AscDownloadAdminNote"] = note
 		}
@@ -95,13 +99,14 @@ func prepareAscDownload(ctx *context.Context) bool {
 	return true
 }
 
-// Download renders /download. Without a published release it is a 404 for everyone but an administrator,
-// who sees what to configure.
+// Download renders /download. Without a usable release it says so, in plain words, and shows how to build asc from
+// source and how to connect it to this hub; an administrator also sees what to configure. The landing page and the
+// header offer no link to it then, and no file under /-/download/ is served.
 func Download(ctx *context.Context) {
 	shown := prepareAscDownload(ctx)
-	if !shown && ctx.Data["AscDownloadAdminNote"] == nil {
-		ctx.NotFound("ascdownload", nil)
-		return
+	if !shown {
+		ctx.Data["AscNoRelease"] = true
+		ctx.Data["AscConnectCommand"] = ascdownload.ConnectCommand(setting.AppURL)
 	}
 	ctx.Data["Title"] = ctx.Locale.TrString("asc_download.title")
 	ctx.Data["PageIsAscDownload"] = true

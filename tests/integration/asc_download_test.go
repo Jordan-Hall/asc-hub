@@ -46,8 +46,12 @@ func TestAscDownloadHiddenWithoutRelease(t *testing.T) {
 	ascdownload.ResetCache()
 	defer func() { setting.Asc.DownloadDir = old; ascdownload.ResetCache() }()
 
-	// a visitor: no page, no link, no section, no file
-	MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusNotFound)
+	// a visitor: a page that says there is no release and how to build asc, no link, no section, no file
+	visitor := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
+	assert.Equal(t, 1, visitor.doc.Find(`[data-testid="asc-no-release"]`).Length(), "the page says no release has been published")
+	assert.Contains(t, visitor.doc.Find(`[data-testid="asc-no-release"]`).Text(), "cargo build --release -p asc")
+	assert.Zero(t, visitor.doc.Find(".ui.warning.message").Length(), "an ordinary visitor sees no setting advice")
+	assert.Zero(t, visitor.doc.Find("a.hub-dl-button").Length(), "no download button")
 	MakeRequest(t, NewRequest(t, "GET", "/-/download/manifest.json"), http.StatusNotFound)
 	home := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/"), http.StatusOK).Body)
 	assert.Zero(t, home.doc.Find("#download").Length(), "the landing page hides the download section")
@@ -61,7 +65,9 @@ func TestAscDownloadHiddenWithoutRelease(t *testing.T) {
 
 	// an ordinary user is not
 	user := loginUser(t, "user2")
-	user.MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusNotFound)
+	ordinary := NewHTMLParser(t, user.MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
+	assert.Zero(t, ordinary.doc.Find(".ui.warning.message").Length())
+	assert.Equal(t, 1, ordinary.doc.Find(`[data-testid="asc-no-release"]`).Length())
 }
 
 func TestAscDownloadPage(t *testing.T) {
@@ -183,7 +189,7 @@ func TestAscDownloadBrokenManifestFailsClosed(t *testing.T) {
 	// a file that is no longer what the manifest says hides the whole release
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "install.sh"), []byte("changed after the manifest"), 0o600))
 	ascdownload.ResetCache()
-	MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusNotFound)
+	assertNoReleasePage(t)
 	MakeRequest(t, NewRequest(t, "GET", "/-/download/install.sh"), http.StatusNotFound)
 	home := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/"), http.StatusOK).Body)
 	assert.Zero(t, home.doc.Find("#download").Length())
@@ -196,9 +202,18 @@ func TestAscDownloadBrokenManifestFailsClosed(t *testing.T) {
 	bad := strings.Replace(string(data), `"name":"install.sh"`, `"name":"../install.sh"`, 1)
 	require.NoError(t, os.WriteFile(manifest, []byte(bad), 0o600))
 	ascdownload.ResetCache()
-	MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusNotFound)
+	assertNoReleasePage(t)
 	// a manifest that is not JSON is refused
 	require.NoError(t, os.WriteFile(manifest, []byte("<html>"), 0o600))
 	ascdownload.ResetCache()
-	MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusNotFound)
+	assertNoReleasePage(t)
+}
+
+// assertNoReleasePage checks that /download offers nothing to download and says why, in the words for a visitor.
+func assertNoReleasePage(t *testing.T) {
+	t.Helper()
+	page := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
+	assert.Equal(t, 1, page.doc.Find(`[data-testid="asc-no-release"]`).Length())
+	assert.Zero(t, page.doc.Find("a.hub-dl-button").Length(), "a release that fails its checks offers no download")
+	assert.Zero(t, page.doc.Find(".ui.warning.message").Length())
 }

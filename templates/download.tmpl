@@ -13,6 +13,33 @@
 			</div>
 		{{end}}
 
+		{{if .AscNoRelease}}
+		<section class="hub-panel" aria-labelledby="asc-norelease-title" data-testid="asc-no-release">
+			<h2 class="hub-panel-title" id="asc-norelease-title">{{ctx.Locale.Tr "asc_download.no_release_title"}}</h2>
+			<p class="hub-panel-text">{{ctx.Locale.Tr "asc_download.no_release_text"}}</p>
+			<h3 class="hub-dl-arch-title">{{ctx.Locale.Tr "asc_download.source_title"}}</h3>
+			<p class="hub-panel-text">{{ctx.Locale.Tr "asc_download.source_text"}}</p>
+			<div class="hub-dl-command">
+				<div class="hub-dl-command-head">
+					<span class="hub-dl-command-shell">{{ctx.Locale.Tr "asc_download.terminal"}}</span>
+					<button type="button" class="ui basic compact button hub-copy" data-clipboard-text="cargo build --release -p asc&#10;target/release/asc --version">{{svg "octicon-copy" 16}} <span>{{ctx.Locale.Tr "asc_download.copy"}}</span></button>
+				</div>
+				<pre class="hub-code" tabindex="0"><code>cargo build --release -p asc
+target/release/asc --version</code></pre>
+			</div>
+			<h3 class="hub-dl-arch-title">{{ctx.Locale.Tr "asc_download.connect_title"}}</h3>
+			<p class="hub-panel-text">{{ctx.Locale.Tr "asc_download.connect_desc"}}</p>
+			<div class="hub-dl-command">
+				<div class="hub-dl-command-head">
+					<span class="hub-dl-command-shell">{{ctx.Locale.Tr "asc_download.terminal"}}</span>
+					<button type="button" class="ui basic compact button hub-copy" data-clipboard-text="{{.AscConnectCommand}}">{{svg "octicon-copy" 16}} <span>{{ctx.Locale.Tr "asc_download.copy"}}</span></button>
+				</div>
+				<pre class="hub-code" tabindex="0"><code>{{.AscConnectCommand}}</code></pre>
+			</div>
+			<a class="hub-panel-link" href="{{AppSubUrl}}/user/settings/applications">{{ctx.Locale.Tr "asc_download.create_token"}}</a>
+		</section>
+		{{end}}
+
 		{{with .AscDownload}}
 		{{$view := .}}
 		{{$offers := .Offers}}
