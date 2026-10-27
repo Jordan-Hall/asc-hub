@@ -25,7 +25,6 @@
 		<div class="hub-strip-inner">
 			<p class="hub-strip-label">{{ctx.Locale.Tr "startpage.works_with"}}</p>
 			<ul class="hub-strip-list">
-				<li>git</li>
 				<li>VS Code</li>
 				<li>JetBrains</li>
 				<li>Claude Code</li>
@@ -84,7 +83,7 @@
 					<span class="hub-step-number" aria-hidden="true">3</span>
 					<h3 class="hub-step-title">{{ctx.Locale.Tr "startpage.step3_title"}}</h3>
 					<p>{{ctx.Locale.Tr "startpage.step3_text"}}</p>
-					<pre class="hub-code" tabindex="0"><code>git push origin HEAD:refs/for/main</code></pre>
+					<pre class="hub-code" tabindex="0"><code>asc submit --publish</code></pre>
 				</li>
 			</ol>
 		</div>
@@ -114,10 +113,12 @@
 				<p>{{ctx.Locale.Tr "startpage.search_text"}}</p>
 			</article>
 			<article class="hub-card">
-				<p class="hub-eyebrow">{{ctx.Locale.Tr "startpage.git_eyebrow"}}</p>
-				<h3 class="hub-card-title">{{ctx.Locale.Tr "startpage.git_title"}}</h3>
-				<p>{{ctx.Locale.Tr "startpage.git_text"}}</p>
-				<pre class="hub-code" tabindex="0"><code>git clone {{.AscHubURL}}/OWNER/REPOSITORY</code></pre>
+				<details class="hub-compat">
+					<summary class="hub-eyebrow">{{ctx.Locale.Tr "startpage.git_eyebrow"}}</summary>
+					<h3 class="hub-card-title">{{ctx.Locale.Tr "startpage.git_title"}}</h3>
+					<p>{{ctx.Locale.Tr "startpage.git_text"}}</p>
+					<pre class="hub-code" tabindex="0"><code>git clone {{.AscHubURL}}/OWNER/REPOSITORY</code></pre>
+				</details>
 			</article>
 		</div>
 	</section>
