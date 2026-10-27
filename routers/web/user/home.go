@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	activities_model "forgejo.org/models/activities"
 	asymkey_model "forgejo.org/models/asymkey"
@@ -136,6 +137,13 @@ func Dashboard(ctx *context.Context) {
 	pager := context.NewPagination(int(count), setting.UI.FeedPagingNum, page, 5)
 	pager.AddParam(ctx, "date", "Date")
 	ctx.Data["Page"] = pager
+
+	// The person's own dashboard has the layout of the design board; an organisation keeps the activity feed.
+	if !ctxUser.IsOrganization() {
+		now := time.Now()
+		ctx.Data["AscDash"] = ascDashBuild(ctx, now)
+		ctx.Data["AscDashToday"] = ascDashToday(feeds, now)
+	}
 
 	ctx.HTML(http.StatusOK, tplDashboard)
 }

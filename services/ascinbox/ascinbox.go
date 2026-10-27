@@ -61,12 +61,20 @@ type Entry struct {
 	PullID       int64
 	Title        string
 	HTMLURL      string
+	Link         string // relative link of the pull request, with the sub-URL
 	RepoFullName string
 	Index        int64
 	Section      issues_model.AscInboxSection
 	Pinned       bool
 	SnoozedUntil time.Time // zero when not snoozed
 	Updated      time.Time
+
+	// What the section was derived from, kept to draw a row without asking again.
+	Author        string // login of the author, "" when it cannot be read
+	Draft         bool
+	Conflicted    bool
+	ChecksFailing bool
+	Approved      bool
 }
 
 // Options selects what List returns.
@@ -142,7 +150,7 @@ func entryFor(ctx context.Context, doer *user_model.User, reducer authz.Authoriz
 	if err := pr.LoadBaseRepo(ctx); err != nil {
 		return nil, err
 	}
-	if !canRead(ctx, doer, reducer, pr.BaseRepo) {
+	if !CanRead(ctx, doer, reducer, pr.BaseRepo) {
 		return nil, nil
 	}
 	reviewers, err := issues_model.GetAscInboxReviewers(ctx, issue.ID)
@@ -158,11 +166,11 @@ func entryFor(ctx context.Context, doer *user_model.User, reducer authz.Authoriz
 		Reviewers:  reviewers,
 	}
 	if !facts.Merged && !facts.Closed {
-		facts.HeadCommitID = headCommit(ctx, pr)
+		facts.HeadCommitID = HeadCommit(ctx, pr)
 		if pass, err := pull_service.IsPullCommitStatusPass(ctx, pr); err == nil {
 			facts.ChecksFailing = !pass
 		}
-		facts.Approved = approved(ctx, pr)
+		facts.Approved = Approved(ctx, pr)
 		facts.Queued = queued(ctx, pr)
 	}
 	section := issues_model.AscInboxSectionFor(facts, doer.ID)
@@ -173,15 +181,32 @@ func entryFor(ctx context.Context, doer *user_model.User, reducer authz.Authoriz
 		PullID:       pr.ID,
 		Title:        issue.Title,
 		HTMLURL:      issue.HTMLURL(),
+		Link:         issue.Link(),
 		RepoFullName: pr.BaseRepo.FullName(),
 		Index:        pr.Index,
 		Section:      section,
 		Updated:      issue.UpdatedUnix.AsTime(),
+
+		Author:        authorOf(ctx, issue),
+		Draft:         facts.Draft,
+		Conflicted:    facts.Conflicted,
+		ChecksFailing: facts.ChecksFailing,
+		Approved:      facts.Approved,
 	}, nil
 }
 
-// canRead reports whether doer may read the pull requests of repo, as far as reducer allows.
-func canRead(ctx context.Context, doer *user_model.User, reducer authz.AuthorizationReducer, repo *repo_model.Repository) bool {
+// authorOf returns the login of the author of the issue, or "" when it cannot be read.
+func authorOf(ctx context.Context, issue *issues_model.Issue) string {
+	if issue.Poster == nil {
+		if err := issue.LoadPoster(ctx); err != nil || issue.Poster == nil {
+			return ""
+		}
+	}
+	return issue.Poster.Name
+}
+
+// CanRead reports whether doer may read the pull requests of repo, as far as reducer allows.
+func CanRead(ctx context.Context, doer *user_model.User, reducer authz.AuthorizationReducer, repo *repo_model.Repository) bool {
 	if repo == nil || doer == nil {
 		return false
 	}
@@ -189,7 +214,8 @@ func canRead(ctx context.Context, doer *user_model.User, reducer authz.Authoriza
 	return err == nil && perm.CanRead(unit.TypePullRequests)
 }
 
-func headCommit(ctx context.Context, pr *issues_model.PullRequest) string {
+// HeadCommit returns the head commit of pr, or "" when it cannot be read.
+func HeadCommit(ctx context.Context, pr *issues_model.PullRequest) string {
 	if pr.HeadCommitID != "" {
 		return pr.HeadCommitID
 	}
@@ -205,9 +231,9 @@ func headCommit(ctx context.Context, pr *issues_model.PullRequest) string {
 	return id
 }
 
-// approved reports whether pr meets its branch rule's approvals; with no rule it is not "approved" (nothing
+// Approved reports whether pr meets its branch rule's approvals; with no rule it is not "approved" (nothing
 // was asked for), so an unreviewed pull request stays in waiting.
-func approved(ctx context.Context, pr *issues_model.PullRequest) bool {
+func Approved(ctx context.Context, pr *issues_model.PullRequest) bool {
 	pb, err := git_model.GetFirstMatchProtectedBranchRule(ctx, pr.BaseRepoID, pr.BaseBranch)
 	if err != nil || pb == nil || pb.RequiredApprovals <= 0 {
 		return false

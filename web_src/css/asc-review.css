@@ -1,0 +1,414 @@
+/* Review, stacks, compare and checks after the design boards Review, NewChange and Checks.
+   Mobile first. Colours come from theme variables. */
+
+/* ---- title, state, tabs ---- */
+.asc-review-page .issue-title-header {
+  margin-bottom: 12px;
+}
+
+.asc-review-page.repository.view.issue .issue-title h1 {
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.asc-review-page.repository.view.issue .issue-title .index {
+  color: var(--color-text-light-3);
+  font-weight: 400;
+}
+
+@media (min-width: 768px) {
+  .asc-review-page.repository.view.issue .issue-title h1 {
+    font-size: 28px;
+  }
+}
+
+.asc-review-page .issue-state-label {
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.asc-review-page .issue-title-meta {
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text-light-1);
+}
+
+.asc-review-page.repository.view.issue .pull.tabular.menu {
+  border-bottom: 1px solid var(--color-secondary);
+  margin-bottom: 16px;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.asc-review-page .pull.tabular.menu > .item {
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-light-1);
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+
+.asc-review-page .pull.tabular.menu > .item > svg {
+  display: none;
+}
+
+.asc-review-page .pull.tabular.menu > .item.active {
+  color: var(--color-text);
+  border-bottom-color: var(--color-primary);
+  background: transparent;
+}
+
+.asc-review-page .pull.tabular.menu > .item .ui.label {
+  background: var(--color-secondary);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.asc-review-page .ui.tabs.divider {
+  display: none;
+}
+
+/* ---- stack rail ---- */
+.asc-review-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.asc-review-main {
+  min-width: 0;
+}
+
+.asc-stack-rail {
+  min-width: 0;
+}
+
+@media (min-width: 992px) {
+  .asc-review-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 28px;
+  }
+  .asc-stack-rail {
+    flex: 0 0 260px;
+    position: sticky;
+    top: 16px;
+  }
+  .asc-review-main {
+    flex: 1 1 0;
+  }
+}
+
+.asc-stack-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.asc-stack-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-inline: 4px;
+}
+
+.asc-rail-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-light-2);
+}
+
+.asc-stack-queue-link {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.asc-stack-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.asc-stack-link {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  grid-template-areas: "dot title" ". state";
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+  color: var(--color-text);
+}
+
+.asc-stack-link:hover {
+  border-color: var(--color-primary);
+}
+
+.asc-stack-item.is-current .asc-stack-link {
+  border: 2px solid var(--color-primary);
+  background: var(--color-primary-light-7, var(--color-box-body));
+  padding: 9px 11px;
+}
+
+.asc-stack-dot {
+  grid-area: dot;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text-light-3);
+}
+
+.asc-stack-item.state-merged .asc-stack-dot {
+  background: var(--color-green);
+}
+
+.asc-stack-item.state-open .asc-stack-dot {
+  background: var(--color-orange, var(--color-yellow));
+}
+
+.asc-stack-item.state-closed .asc-stack-dot {
+  background: var(--color-red);
+}
+
+.asc-stack-title {
+  grid-area: title;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.asc-stack-index {
+  font-weight: 400;
+  color: var(--color-text-light-3);
+}
+
+.asc-stack-state {
+  grid-area: state;
+  font-size: 12.5px;
+  color: var(--color-text-light-2);
+}
+
+.asc-stack-note {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--color-text-light-1);
+  border: 1px solid var(--color-warning-border, var(--color-secondary));
+  background: var(--color-warning-bg, var(--color-box-body));
+  border-radius: 10px;
+}
+
+.asc-stack-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-secondary);
+}
+
+.asc-stack-actions .ui.button {
+  margin: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+/* ---- conversation: comment cards, merge box, sidebar ---- */
+.asc-review-page .timeline-item.comment .content,
+.asc-review-page .comment-list .comment .content {
+  border-radius: 10px;
+}
+
+.asc-review-page .ui.attached.header.comment-header {
+  background: var(--color-box-header);
+}
+
+.asc-review-page .timeline-item.merge.box .content {
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-box-body);
+}
+
+.asc-review-page .timeline-item.merge.box .ui.attached.segment {
+  border-inline: 0;
+}
+
+.asc-review-page .issue-content-right.ui.segment {
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+  background: var(--color-box-body);
+  box-shadow: none;
+}
+
+.asc-review-page .issue-content-right .ui.divider {
+  border-color: var(--color-secondary);
+}
+
+.asc-review-page .issue-content-right .ui.header,
+.asc-review-page .issue-content-right > .ui.dropdown > .text,
+.asc-review-page .issue-content-right .issue-sidebar-combo > .text {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ---- files and diffs ---- */
+.asc-review-page .diff-file-box,
+.diff-detail-box + .diff-file-box {
+  border-radius: 10px;
+}
+
+.asc-review-page .diff-file-header {
+  background: var(--color-box-header);
+  font-family: var(--fonts-monospace);
+  font-size: 13px;
+}
+
+.asc-review-page .code-diff,
+.asc-review-page .code-diff .code-inner {
+  font-family: var(--fonts-monospace);
+  font-size: 13px;
+}
+
+.asc-review-page .code-diff .lines-num {
+  color: var(--color-text-light-3);
+}
+
+/* the version bar of a stacked pull request */
+.asc-review-page .asc-versions {
+  border-radius: 10px;
+}
+
+/* ---- checks (commit statuses of a pull request) ---- */
+.asc-review-page .commit-status-panel,
+.asc-review-page .commit-status-header {
+  font-weight: 600;
+}
+
+.asc-review-page .commit-status-list .commit-status-item {
+  min-height: 44px;
+  align-items: center;
+}
+
+/* ---- open a change (compare, new pull request) ---- */
+.asc-review-page.compare .asc-compare-title.ui.header {
+  margin: 4px 0 16px;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.asc-review-page.compare .asc-compare-title .sub.header {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--color-text-light-2);
+}
+
+.asc-review-page.compare .ui.segment.choose.branch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+  background: var(--color-box-body);
+  box-shadow: none;
+  margin: 0 0 16px;
+}
+
+.asc-review-page.compare .ui.segment.choose.branch .ui.basic.small.button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  font-family: var(--fonts-monospace);
+  font-size: 13px;
+}
+
+.asc-review-page.compare .pullrequest-form .issue-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0 0 24px;
+}
+
+@media (min-width: 992px) {
+  .asc-review-page.compare .pullrequest-form .issue-content {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .asc-review-page.compare .pullrequest-form .issue-content-left {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .asc-review-page.compare .pullrequest-form .issue-content-right {
+    flex: 0 0 300px;
+  }
+}
+
+.asc-review-page.compare .pullrequest-form .ui.segment.content {
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+  padding: 20px;
+  background: var(--color-box-body);
+  box-shadow: none;
+}
+
+.asc-review-page.compare .pullrequest-form #issue_title {
+  min-height: 44px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.asc-review-page.compare .pullrequest-form .avatar {
+  display: none;
+}
+
+.asc-review-page.compare .pullrequest-form .ui.primary.button {
+  min-height: 44px;
+  border-radius: 8px;
+  font-weight: 600;
+  padding-inline: 22px;
+}
+
+.asc-review-page.compare .pullrequest-form .ui.comments .comment > .content,
+.asc-review-page.compare .pullrequest-form .comment.form .issue-content-left .content {
+  margin-inline-start: 0;
+}
+
+.asc-review-page.compare .pullrequest-form .issue-content-left .content::before,
+.asc-review-page.compare .pullrequest-form .issue-content-left .content::after {
+  display: none;
+}

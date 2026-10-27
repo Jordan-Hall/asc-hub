@@ -1,0 +1,329 @@
+/* The download page (/download). Mobile first. Without JavaScript every system panel shows, one under the
+   other; the script turns them into tabs (.is-tabbed). */
+
+.asc-download {
+  padding-bottom: 48px;
+}
+
+.asc-dl-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 4px 0 20px;
+}
+
+.asc-dl-meta-text {
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+}
+
+.asc-dl-meta-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.asc-dl-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.asc-dl-main {
+  min-width: 0;
+}
+
+.asc-dl-detected {
+  margin: 0 0 12px;
+  color: var(--color-text-light);
+  font-size: 0.9375rem;
+}
+
+/* system tabs */
+.asc-dl-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  overflow-x: auto;
+  background: var(--color-secondary-nav-bg, var(--color-footer));
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+}
+
+.asc-dl-tabs[hidden] {
+  display: none;
+}
+
+.asc-dl-tab {
+  flex: 1 0 auto;
+  min-height: 44px;
+  padding: 0 18px;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--color-text-light);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.asc-dl-tab:hover {
+  color: var(--color-text);
+}
+
+.asc-dl-tab[aria-selected="true"] {
+  background: var(--color-box-body);
+  box-shadow: 0 1px 3px var(--color-shadow);
+  color: var(--color-text);
+}
+
+.asc-dl-tab:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* panels */
+.asc-dl-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.asc-dl-panel[hidden] {
+  display: none;
+}
+
+.asc-dl.is-tabbed .asc-dl-panel-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.asc-dl-panel-title {
+  margin: 8px 0 0;
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.asc-dl-arch {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+  padding: 18px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--asc-radius);
+}
+
+.asc-dl-arch[data-recommended] {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+  order: -1;
+}
+
+.asc-dl-arch-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.asc-dl-arch-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.asc-dl-badge[hidden] {
+  display: none;
+}
+
+.asc-dl-button.ui.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  gap: 10px;
+  min-height: 52px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.asc-dl-button-size {
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+/* files */
+.asc-dl-files {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.asc-dl-file {
+  padding: 12px 14px;
+  background: var(--color-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: 10px;
+}
+
+.asc-dl-file-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.asc-dl-file-name {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.asc-dl-file-meta {
+  color: var(--color-text-light);
+  font-size: 0.8125rem;
+}
+
+.asc-dl-hash {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 6px;
+}
+
+.asc-dl-hash-label {
+  color: var(--color-text-light);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.asc-dl-hash .asc-hash {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.asc-dl-file-sig {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.asc-copy.ui.button,
+.asc-copy.ui.compact.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  justify-content: center;
+}
+
+/* commands */
+.asc-dl-command {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.asc-dl-command + .asc-dl-command {
+  margin-top: 4px;
+}
+
+.asc-dl-command-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.asc-dl-command-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.asc-dl-command-shell {
+  color: var(--color-text-light);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.asc-dl-packages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--asc-radius);
+}
+
+.asc-dl-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.asc-dl-note svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+@media (min-width: 640px) {
+  .asc-dl-file-head {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .asc-dl-button.ui.button {
+    align-self: flex-start;
+    min-width: 300px;
+  }
+}
+
+@media (min-width: 960px) {
+  .asc-dl-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 32px;
+  }
+  .asc-dl-side {
+    position: sticky;
+    top: 16px;
+  }
+}
