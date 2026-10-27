@@ -52,6 +52,7 @@ func (w *Writer) UpdateRefs(ctx context.Context, req repostore.UpdateRefsRequest
 
 	results := make([]repostore.RefResult, len(req.Updates))
 	updates := make([]*ascv1.RefUpdate, len(req.Updates))
+	noted := make([]PushedRef, 0, len(req.Updates))
 	var copies [][]byte
 	for i, u := range req.Updates {
 		old, err := s.resolve(to, u.Name)
@@ -62,12 +63,14 @@ func (w *Writer) UpdateRefs(ctx context.Context, req repostore.UpdateRefsRequest
 		updates[i] = &ascv1.RefUpdate{Name: u.Name, Expect: &ascv1.RefUpdate_Any{Any: true}}
 		if u.Delete {
 			updates[i].Delete = true
+			noted = append(noted, PushedRef{Name: u.Name})
 			continue
 		}
 		tip, err := s.mustResolve(from, u.NewRev)
 		if err != nil {
 			return nil, err
 		}
+		noted = append(noted, PushedRef{Name: u.Name, New: tip.String()})
 		p, err := s.pair(from, tip)
 		if err != nil {
 			return nil, err
@@ -82,10 +85,13 @@ func (w *Writer) UpdateRefs(ctx context.Context, req repostore.UpdateRefsRequest
 	for i, u := range req.Updates {
 		names[i] = u.Name
 	}
+	// asc calls the hub's hooks as the hub, with no person. The hub is told whose change this is first.
+	forget := s.notePusher(to.name, req.HookEnv, noted)
 	resp, err := s.api.UpdateRefs(s.ctx, &ascv1.UpdateRefsRequest{
 		Repo: to.ascRef(), Updates: updates, Mode: mode, Hooks: hookMode(names...),
 	})
 	if err != nil {
+		forget()
 		return nil, publishErr("UpdateRefs", err)
 	}
 	if len(resp.GetResults()) != len(req.Updates) {
