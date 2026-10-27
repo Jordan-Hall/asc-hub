@@ -190,6 +190,12 @@
 							</a>
 						</li>
 						<li>
+							<a {{if .PageIsAscAgents}}class="active"{{end}} href="{{AppSubUrl}}/-/asc/agents">
+								{{svg "octicon-hubot"}}
+								Your agents
+							</a>
+						</li>
+						<li>
 							<a target="_blank" rel="noopener noreferrer" href="https://forgejo.org/docs/latest/">
 								{{svg "octicon-question"}}
 								{{ctx.Locale.Tr "help"}}
