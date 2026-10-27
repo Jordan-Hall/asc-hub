@@ -8,6 +8,7 @@ import (
 	"errors"
 	"testing"
 
+	asymkey_model "forgejo.org/models/asymkey"
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/db"
 	"forgejo.org/models/perm"
@@ -252,4 +253,105 @@ func TestAscRefusalsDoNotTellWhatExists(t *testing.T) {
 	assert.False(t, hidden.Allowed)
 	anon := ascAuthzDo(t, private.AscAuthzRequest{Owner: "user2", Repo: "repo2", Mode: "read"})
 	assert.Equal(t, private.AscAuthzResponse{}, anon)
+}
+
+// Credentials: what a token's scope, a deploy key, a block and a two-factor requirement do is what they do for a git
+// repository. The expectations are the hub's rules for git over HTTP and SSH (services/context.CheckRepoScopedToken,
+// serv.go): a token needs the repository scope of the level it asks for, a public-only token never reaches a private
+// repository, a deploy key has the mode it was given and only on its repository, a block touches issues and pull
+// requests and not the code, and a required second factor must be enrolled.
+func TestAscPermissionParityCredentials(t *testing.T) {
+	ask := func(r private.AscAuthzRequest) (read, write bool) {
+		r.Mode = "read"
+		read = ascAuthzDo(t, r).Allowed
+		r.Mode = "write"
+		write = ascAuthzDo(t, r).Allowed
+		return read, write
+	}
+	token := func(uid int64, scope auth_model.AccessTokenScope) string { return ascNewToken(t, uid, scope) }
+
+	t.Run("scopes of a token, private repository of the owner", func(t *testing.T) {
+		ascAuthzSetup(t)
+		for _, c := range []struct {
+			name        string
+			scope       auth_model.AccessTokenScope
+			read, write bool
+		}{
+			{"all", auth_model.AccessTokenScopeAll, true, true},
+			{"read:repository only", auth_model.AccessTokenScopeReadRepository, true, false},
+			{"write:repository without read:repository", auth_model.AccessTokenScopeWriteRepository, true, true},
+			{"read:user only", auth_model.AccessTokenScopeReadUser, false, false},
+			{"read:repository, public only", auth_model.AccessTokenScope(string(auth_model.AccessTokenScopeReadRepository) + "," + string(auth_model.AccessTokenScopePublicOnly)), false, false},
+		} {
+			read, write := ask(private.AscAuthzRequest{Token: token(2, c.scope), Owner: "user2", Repo: "repo2"})
+			assert.Equal(t, c.read, read, c.name+": read")
+			assert.Equal(t, c.write, write, c.name+": write")
+		}
+		// The same scopes on the public repository: public only still reads.
+		read, write := ask(private.AscAuthzRequest{Token: token(2, auth_model.AccessTokenScope(string(auth_model.AccessTokenScopeReadRepository)+","+string(auth_model.AccessTokenScopePublicOnly))), Owner: "user2", Repo: "repo1"})
+		assert.True(t, read)
+		assert.False(t, write)
+	})
+
+	t.Run("the scope never gives more than the person has", func(t *testing.T) {
+		ascAuthzSetup(t)
+		read, write := ask(private.AscAuthzRequest{Token: token(5, auth_model.AccessTokenScopeAll), Owner: "user2", Repo: "repo2"})
+		assert.False(t, read)
+		assert.False(t, write)
+		collaborate(t, 2, 5, perm.AccessModeRead)
+		read, write = ask(private.AscAuthzRequest{Token: token(5, auth_model.AccessTokenScopeAll), Owner: "user2", Repo: "repo2"})
+		assert.True(t, read)
+		assert.False(t, write, "a write:repository token of a reader")
+	})
+
+	t.Run("deploy keys", func(t *testing.T) {
+		ascAuthzSetup(t)
+		ro, err := asymkey_model.AddDeployKey(db.DefaultContext, 2, "ro", ascDeployKey, true)
+		require.NoError(t, err)
+		read, write := ask(private.AscAuthzRequest{KeyID: ro.KeyID, Owner: "user2", Repo: "repo2"})
+		assert.True(t, read)
+		assert.False(t, write)
+		// The key is for its repository only, and is not an administrator.
+		read, _ = ask(private.AscAuthzRequest{KeyID: ro.KeyID, Owner: "user2", Repo: "repo1"})
+		assert.False(t, read)
+		w := ascAuthzDo(t, private.AscAuthzRequest{KeyID: ro.KeyID, Owner: "user2", Repo: "repo2", Mode: "read"})
+		assert.Equal(t, "read", w.Perm)
+	})
+
+	t.Run("a write deploy key", func(t *testing.T) {
+		ascAuthzSetup(t)
+		rw, err := asymkey_model.AddDeployKey(db.DefaultContext, 2, "rw", ascDeployKey, false)
+		require.NoError(t, err)
+		read, write := ask(private.AscAuthzRequest{KeyID: rw.KeyID, Owner: "user2", Repo: "repo2"})
+		assert.True(t, read)
+		assert.True(t, write)
+		resp := ascAuthzDo(t, private.AscAuthzRequest{KeyID: rw.KeyID, Owner: "user2", Repo: "repo2", Mode: "write"})
+		assert.Equal(t, "write", resp.Perm, "a deploy key is not an administrator")
+	})
+
+	t.Run("a block does not touch the code", func(t *testing.T) {
+		ascAuthzSetup(t)
+		t.Cleanup(test.MockVariableValue(&setting.Asc.ForwardedKey, []byte("0123456789abcdef0123456789abcdef")))
+		before := viaEndpoint(t, "user2", "repo1", 5)
+		require.NoError(t, db.Insert(db.DefaultContext, &user_model.BlockedUser{UserID: 2, BlockID: 5}))
+		assert.Equal(t, before, viaEndpoint(t, "user2", "repo1", 5))
+		assert.Equal(t, baseline(t, 1, 5), viaEndpoint(t, "user2", "repo1", 5))
+		list, _, _ := viaPages(t, 1, 5)
+		assert.True(t, list)
+	})
+
+	t.Run("a required second factor", func(t *testing.T) {
+		ascAuthzSetup(t)
+		t.Cleanup(test.MockVariableValue(&setting.Asc.ForwardedKey, []byte("0123456789abcdef0123456789abcdef")))
+		defer test.MockVariableValue(&setting.GlobalTwoFactorRequirement, setting.NewTwoFactorRequirementType("all"))()
+		// Not enrolled: refused on every way in.
+		assert.Equal(t, denied, viaEndpoint(t, "user2", "repo2", 2))
+		list, run, settings := viaPages(t, 2, 2)
+		assert.False(t, list || run || settings)
+		// Enrolled: the person has what the model gives.
+		require.NoError(t, db.Insert(db.DefaultContext, &auth_model.TwoFactor{UID: 2, Secret: []byte("x")}))
+		assert.Equal(t, manager, viaEndpoint(t, "user2", "repo2", 2))
+		list, run, settings = viaPages(t, 2, 2)
+		assert.True(t, list && run && settings)
+	})
 }
