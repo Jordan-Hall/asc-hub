@@ -52,7 +52,12 @@ const (
 	CallRepoRead CallKind = iota + 1
 	// CallRepoWrite is a change of one repository.
 	CallRepoWrite
-	// CallOrg is a read of an organisation (its audit log).
+	// CallRepoAdmin is a read or change that asc allows to a repository administrator only (the audit log of a
+	// repository). asc asks the hub for write access to the repository to decide "administrator", so the token
+	// must be one that may write.
+	CallRepoAdmin
+	// CallOrg is a read of an organisation (its audit log). asc lets the owner of every repository of the
+	// organisation read it, which it decides repository by repository as for an administrator.
 	CallOrg
 	// CallAccount is a call about the account of the doer (signing keys).
 	CallAccount
@@ -80,16 +85,18 @@ func UseTokenIssuer(fn func(ctx context.Context, doer *user_model.User, scope au
 func scopeOf(kind CallKind) (auth_model.AccessTokenScope, error) {
 	var s string
 	switch kind {
+	// Every call carries read:user: asc first asks the hub who the credential is (GET /api/v1/user) and refuses a
+	// credential that cannot answer, whatever the rest of the call is.
 	case CallRepoRead:
-		s = string(auth_model.AccessTokenScopeReadRepository)
-	case CallRepoWrite:
-		s = string(auth_model.AccessTokenScopeReadRepository) + "," + string(auth_model.AccessTokenScopeWriteRepository)
+		s = string(auth_model.AccessTokenScopeReadRepository) + "," + string(auth_model.AccessTokenScopeReadUser)
+	case CallRepoWrite, CallRepoAdmin:
+		s = string(auth_model.AccessTokenScopeReadRepository) + "," + string(auth_model.AccessTokenScopeWriteRepository) + "," + string(auth_model.AccessTokenScopeReadUser)
 	case CallOrg:
-		s = string(auth_model.AccessTokenScopeReadOrganization)
+		s = string(auth_model.AccessTokenScopeReadOrganization) + "," + string(auth_model.AccessTokenScopeWriteRepository) + "," + string(auth_model.AccessTokenScopeReadUser)
 	case CallAccount:
 		s = string(auth_model.AccessTokenScopeReadUser) + "," + string(auth_model.AccessTokenScopeWriteUser)
 	case CallInstance:
-		s = string(auth_model.AccessTokenScopeReadAdmin)
+		s = string(auth_model.AccessTokenScopeReadAdmin) + "," + string(auth_model.AccessTokenScopeReadUser)
 	default:
 		return "", fmt.Errorf("asctrust: unknown call kind %d", kind)
 	}
@@ -105,7 +112,7 @@ func UserCall(ctx context.Context, doer *user_model.User, kind CallKind, repo *r
 	}
 	var repoID int64
 	switch kind {
-	case CallRepoRead, CallRepoWrite:
+	case CallRepoRead, CallRepoWrite, CallRepoAdmin:
 		if repo == nil {
 			return ctx, func() {}, errors.New("asctrust: a repository call needs a repository")
 		}

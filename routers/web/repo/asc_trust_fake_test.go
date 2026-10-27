@@ -54,6 +54,7 @@ type fakeTrust struct {
 
 	mu       sync.Mutex
 	calls    []trustCall
+	scopes   []auth_model.AccessTokenScope // the scope of every call token issued
 	features []string
 
 	listRefLog func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error)
@@ -231,7 +232,10 @@ func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = c.Close() })
 	t.Cleanup(asctrust.UseConn(c))
-	t.Cleanup(asctrust.UseTokenIssuer(func(gocontext.Context, *user_model.User, auth_model.AccessTokenScope, int64) (string, func(), error) {
+	t.Cleanup(asctrust.UseTokenIssuer(func(_ gocontext.Context, _ *user_model.User, scope auth_model.AccessTokenScope, _ int64) (string, func(), error) {
+		f.mu.Lock()
+		f.scopes = append(f.scopes, scope)
+		f.mu.Unlock()
 		return "per-request-token", func() {}, nil
 	}))
 	t.Cleanup(test.MockVariableValue(&setting.Asc.Enabled, true))
