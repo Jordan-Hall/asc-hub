@@ -169,14 +169,14 @@ func BuildReviewState(f *PullFacts, now time.Time) (change []byte, st *ascv1.Rev
 	}
 	approvals := min(max(f.Approvals, 0), maxApprovals)
 	return change, &ascv1.ReviewState{
-		Host:      ReviewStateHost,
-		Number:    uint64(f.Index),
-		Url:       clean(f.URL, 2048),
-		State:     state,
-		Draft:     f.Draft && live,
-		Approvals: uint32(approvals),
-		Checks:    checks,
-		Queue:     queue,
+		Host:            ReviewStateHost,
+		Number:          uint64(f.Index),
+		Url:             clean(f.URL, 2048),
+		State:           state,
+		Draft:           f.Draft && live,
+		Approvals:       uint32(approvals),
+		Checks:          checks,
+		Queue:           queue,
 		ReviewedVersion: uint32(min(max(f.ReviewedVersion, 0), maxVersions)),
 		Updated:         now.Unix(),
 	}, nil
