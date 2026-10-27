@@ -19,7 +19,7 @@ flowchart TB
     subgraph hub["hub process (the Forgejo v16 fork)"]
         WEB["web and API routers"]
         INT["internal API /api/internal/asc/*"]
-        SSHS["built-in SSH server"]
+        SSHS["built-in SSH server (off unless SSH_ENABLED)"]
         SVC["services: ascsync, ascbridge, ascinbox, pull, automerge"]
         RS["modules/repostore (router: git or asc writer)"]
         CL["modules/ascclient (gRPC client)"]
@@ -32,7 +32,7 @@ flowchart TB
     end
     B --> WEB
     G --> WEB
-    G --> SSHS
+    G -.->|"only if enabled"| SSHS
     R --> WEB
     A -->|"GET /.well-known/asc"| WEB
     A -->|asc.v1| ST
@@ -77,11 +77,11 @@ A web edit, a merge, or a pull request head update calls `modules/repostore`. Th
 
 ### git push (the compatibility layer)
 
-A push arrives at the hub over HTTPS or SSH. The pre-receive hook (`services/ascsync/importpush.go`) hands the push quarantine to asc with `ImportGitPush`; asc imports the commits and moves its refs in fast-forward mode. A refusal from asc (a rejected ref, a path policy, a stale old value) is returned to the pusher with the control characters removed and at most 512 bytes. Any other failure rejects the push with a fixed text. `refs/for/*` commands are never forwarded. The named limits (import 55 s, call 30 s, bridge wait 30 s, at most 1024 ref updates) are in `services/ascsync/ascsync.go`; [asc-stage2-hooks.md](asc-stage2-hooks.md) has the rest.
+A push arrives at the hub over HTTPS (the git-compatible endpoint, `https://<hub>/<owner>/<repo>.git`, with an access token as the password) or, when the operator enabled `[asc] SSH_ENABLED`, over SSH. The default is HTTPS only: an ASC Hub needs no inbound port besides 443, and with `SSH_ENABLED = false` the hub forces `[server] DISABLE_SSH = true`, so there is no SSH server, no SSH keys page and no SSH clone address. The pre-receive hook (`services/ascsync/importpush.go`) hands the push quarantine to asc with `ImportGitPush`; asc imports the commits and moves its refs in fast-forward mode. A refusal from asc (a rejected ref, a path policy, a stale old value) is returned to the pusher with the control characters removed and at most 512 bytes. Any other failure rejects the push with a fixed text. `refs/for/*` commands are never forwarded. The named limits (import 55 s, call 30 s, bridge wait 30 s, at most 1024 ref updates) are in `services/ascsync/ascsync.go`; [asc-stage2-hooks.md](asc-stage2-hooks.md) has the rest.
 
 ### git clone and fetch (the bridge)
 
-`services/ascbridge` keeps one git directory per asc repository, at the path Forgejo always used, because legacy consumers (git over HTTPS and SSH, checkout in Actions, push mirrors, submodules) need a git directory. `[asc] BRIDGE` says how it is kept:
+`services/ascbridge` keeps one git directory per asc repository, at the path Forgejo always used, because legacy consumers (git over HTTPS, and SSH when enabled; checkout in Actions, push mirrors, submodules) need a git directory. `[asc] BRIDGE` says how it is kept:
 
 - `eager` (default): asc's outbox keeps the directory current (`bridge_promote`); the hub makes sure it exists.
 - `lazy`: the hub builds it on the first git request with `asc export --git` (the `asc` binary at `[asc] ASC_BINARY`, in workspaces below `[asc] BRIDGE_WORKSPACES`) and rebuilds when a fingerprint of asc's refs changes. The child process gets a minimal environment with the internal token as `ASC_TOKEN`.

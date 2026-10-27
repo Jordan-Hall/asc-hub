@@ -16,8 +16,9 @@ ASC Hub is one container. The image (`ghcr.io/<owner>/asc-hub`, built from `Dock
 | Program | Port | Public |
 | --- | --- | --- |
 | Hub, web and API | 3000 | yes, behind your TLS proxy |
-| Hub, git over SSH (built-in server) | 2222 in the container | yes, publish it |
 | `asc serve` | 127.0.0.1:7890 in the container | no |
+
+HTTPS is the only inbound port a hub needs. The image starts no SSH server and exposes only port 3000; git over SSH is an opt-in ([Git over SSH](#git-over-ssh-optional)). Clients use `asc auth login --host <this hub>` with an access token, and `git` over HTTPS through the git-compatible endpoint.
 
 The hub and `asc serve` meet on loopback inside the container, so the hub's client needs no TLS to reach it, and `asc serve` has no route or published port of its own. Clients reach the ASC API through the hub's address: `GET /.well-known/asc` announces `[asc] PUBLIC_URL`, which defaults to your `ROOT_URL`.
 
@@ -35,7 +36,7 @@ The README has the one-service file. Notes for a real deployment:
 
 1. Pin the image to the 12-character commit tag. `:asc-v16` moves with every push to `asc/v16`.
 2. Put a TLS proxy in front of port 3000 and set `ROOT_URL` to the public https URL. Port 3000 itself is plain HTTP. Without `ROOT_URL` the container falls back to `http://localhost:3000/` and logs a warning; a plain `http://` address of any other host is refused, because clients send their credentials to the public address.
-3. Publish the SSH port. `SSH_PORT` is the port shown in clone URLs and must equal the host port you publish, `SSH_LISTEN_PORT` is the port the built-in server listens on in the container (the entrypoint sets it to 2222), and `SSH_DOMAIN` is the host name shown (default: the host of `ROOT_URL`). On the shared server use host port 22223 (`"22223:2222"` with `SSH_PORT=22223`), because 22222 is taken.
+3. Publish no SSH port. Git over SSH is off by default; to use it, see [Git over SSH](#git-over-ssh-optional).
 4. `DISABLE_REGISTRATION` is `true` and `INSTALL_LOCK` is `true` unless you set them. With the lock on there is no web installer; the installer would write a literal internal token into `app.ini`, which conflicts with the token file.
 5. The volume at `/var/lib/gitea` must belong to uid 1000. A named volume does (the image creates the directory with that owner). For a bind mount run `chown -R 1000:1000 <directory>` first; on Kubernetes set `fsGroup: 1000` and `runAsUser: 1000`. The container does not fix ownership itself, because it runs without privileges; it stops and says which path is wrong.
 6. A read-only root filesystem needs `/tmp` as a tmpfs (the hub's temporary directory is `/tmp/gitea`) and `/var/lib/gitea` as a volume. [STAGING.md](STAGING.md) runs the hub-only image that way with all capabilities dropped and `no-new-privileges`. The all-in-one image writes nowhere else, but it has not been run with those options by us.
@@ -44,7 +45,7 @@ The README has the one-service file. Notes for a real deployment:
 
 ### Variables read by the entrypoint
 
-Each `FORGEJO__<section>__<KEY>` variable you set wins over the defaults above. The plain hub variables (`APP_NAME`, `ROOT_URL`, `SSH_DOMAIN`, `SSH_PORT`, `SSH_LISTEN_PORT`, `HTTP_PORT`, `DB_TYPE`, `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWD`, `INSTALL_LOCK`, `DISABLE_REGISTRATION`, `REQUIRE_SIGNIN_VIEW`, `SECRET_KEY`) fill `app.ini` on the first start only (`docker-setup.sh` writes it only when it does not exist). Afterwards use `FORGEJO__...` variables, which are applied at every start, or edit `app.ini`. `APP_NAME` defaults to `ASC Hub`.
+Each `FORGEJO__<section>__<KEY>` variable you set wins over the defaults above. The plain hub variables (`APP_NAME`, `ROOT_URL`, `HTTP_PORT`, `DB_TYPE`, `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWD`, `INSTALL_LOCK`, `DISABLE_REGISTRATION`, `REQUIRE_SIGNIN_VIEW`, `SECRET_KEY`) fill `app.ini` on the first start only (`docker-setup.sh` writes it only when it does not exist). Afterwards use `FORGEJO__...` variables, which are applied at every start, or edit `app.ini`. `APP_NAME` defaults to `ASC Hub`.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -52,6 +53,7 @@ Each `FORGEJO__<section>__<KEY>` variable you set wins over the defaults above. 
 | `ASC_HUB_ADMIN_EMAIL` | none | Creates the first administrator once. Must look like an e-mail address. The password goes to `/var/lib/gitea/bootstrap/admin-password` (mode 0600). |
 | `ASC_HUB_ADMIN_USER` | `asc-admin` | User name of that administrator: letters, digits, `-`, `_`, `.`, starting with a letter or digit, at most 39 characters. |
 | `ASC_HUB_BRIDGE` | `eager` | Default of `[asc] BRIDGE` (`eager`, `lazy`, `off`). `eager` turns on `bridge_promote` and the git layer of `asc serve`. |
+| `ASC_HUB_SSH_ENABLE` | `false` | `true` or `false` (anything else stops the container). `false`: no SSH server, no sshd, `[asc] SSH_ENABLED=false`, no SSH keys page and no SSH clone address in the UI. The entrypoint forces `DISABLE_SSH=true` and `START_SSH_SERVER=false` whatever else is set. `true`: see [Git over SSH](#git-over-ssh-optional). `asc serve`'s own SSH listener stays off either way. |
 | `ASC_HUB_START_TIMEOUT` | `120` | Seconds to wait for the hub before giving up (1 to 9999). |
 | `ASC_HUB_ASC_PORT` | `7890` | Loopback port of `asc serve`; also the default port in `[asc] SERVER_URL` and the port the health check asks. Change it only if 7890 is taken (for example with host networking). |
 | `ASC_DATABASE_URL` | SQLite file `/var/lib/gitea/asc/asc.db` | Database of `asc serve`: a `sqlite://`, `postgres://` or `postgresql://` URL. |
@@ -64,6 +66,18 @@ The values that go into the `asc serve` configuration file may not contain quote
 
 Running the image with a command, for example `docker run IMAGE forgejo admin user list`, skips the supervisor and runs the hub's own entrypoint with that command.
 
+### Git over SSH (optional)
+
+Only if the host can open an extra port. With `ASC_HUB_SSH_ENABLE=true` the entrypoint starts the hub's built-in SSH server and sets `[asc] SSH_ENABLED=true`; the hub then shows the SSH keys page, SSH deploy keys and an SSH clone address. You publish the port yourself:
+
+| Variable | Default when enabled | Meaning |
+| --- | --- | --- |
+| `SSH_LISTEN_PORT` | `2222` | Port of the built-in server inside the container. |
+| `SSH_PORT` | `2222` | Port shown in clone addresses; it must equal the host port you publish. |
+| `SSH_DOMAIN` | host of `ROOT_URL` | Host name shown in clone addresses. |
+
+Add the published port to the Compose file (`"<host port>:2222"`, with `SSH_PORT=<host port>`) and open it in the firewall. Coolify's HTTP proxy does not carry SSH. These three variables are ignored (the entrypoint logs a warning) while `ASC_HUB_SSH_ENABLE` is not `true`. In a hub run without the image, set `[asc] SSH_ENABLED = true` (default `false`); with `[asc] ENABLED = true` and `SSH_ENABLED = false` the hub forces `[server] DISABLE_SSH = true`.
+
 ## Other shapes
 
 - **Hub image and `asc serve` as two services.** Build `Dockerfile.rootless` (no `asc serve` inside), run `asc serve` from the ASC distribution as a second service in the hub's network namespace (`network_mode: "service:hub"`), and set the `[asc]` keys, the internal token and the shared repository directory yourself. The contract: `[asc] SERVER_URL` is where the hub dials; both read the same internal token (`[security] INTERNAL_TOKEN_URI`, a `file://` URI); `asc serve` asks the hub at `/api/internal/asc/authz` (and `/ssh-key`, `/request-merge`) what a credential may do; with `BRIDGE = eager`, `asc serve` needs the hub's `git/repositories` directory read-write at the same path and the same user id. The configuration of `asc serve` itself is documented with `asc serve`. The backup tool and the lock below belong to the all-in-one image only.
@@ -74,11 +88,11 @@ Running the image with a command, for example `docker run IMAGE forgejo admin us
 The ASC repository ships the Compose file for this image in `deploy/coolify/asc-hub-allinone.compose.yml`. Create a **Docker Compose** resource from it, or from the one-service file in the README:
 
 1. Set the resource's domain on the `hub` service, port 3000, so Coolify's proxy terminates TLS and routes to it. Coolify's magic variable for that is `SERVICE_FQDN_<SERVICE>_3000` (the file uses `SERVICE_FQDN_HUB_3000` for the service `hub`). Set `ROOT_URL` to the same https address.
-2. Publish the SSH port on the host (`22223:2222` on the shared server, with `SSH_PORT=22223`) and open it in the firewall. Coolify's HTTP proxy does not carry SSH.
+2. Publish no SSH port: Coolify's HTTP proxy carries HTTPS only, and the file does not publish one. Clients use `asc auth login --host <hub>` and HTTPS clones. (Git over SSH is optional; see [Git over SSH](#git-over-ssh-optional).)
 3. Keep all state in the one named volume at `/var/lib/gitea`, so redeploys keep the data, the secrets and the `asc serve` state.
 4. Set the image tag in an environment variable that the compose file requires (`${VAR:?message}`), and change it per deploy. Do not use a moving tag.
 5. Set `ASC_HUB_ADMIN_EMAIL` for the first deploy, read the password file once from the Coolify terminal, change the password, delete the file.
-6. Keep every secret (S3 keys, database URL) in Coolify's environment, never in the file. `tests/allinone/compose_test.go` checks a Compose file against the image: set `ASC_ALLINONE_COMPOSE_FILES` to its path and run `go test ./tests/allinone/`. It fails for an unpinned or unguarded image tag, a variable the image does not read, a literal value for a variable that looks like a secret, a missing `ROOT_URL`, an SSH port that does not match the published one, a `stop_grace_period` under 30 seconds, no restart policy, a state path that is not a named volume, and privileged mode.
+6. Keep every secret (S3 keys, database URL) in Coolify's environment, never in the file. `tests/allinone/compose_test.go` checks a Compose file against the image: set `ASC_ALLINONE_COMPOSE_FILES` to its path and run `go test ./tests/allinone/`. It fails for an unpinned or unguarded image tag, a variable the image does not read, a literal value for a variable that looks like a secret, a missing `ROOT_URL`, a published SSH port without `ASC_HUB_SSH_ENABLE: "true"` (or a published one that does not match `SSH_PORT`), a `stop_grace_period` under 30 seconds, no restart policy, a state path that is not a named volume, and privileged mode.
 
 [STAGING.md](STAGING.md) describes the older staging resource, with the hub-only image and SQLite; its compose file belongs to the ASC repository, not this one.
 
@@ -191,7 +205,7 @@ The command prints a generated password once. It also accepts `--password`, but 
 
 ## Checks after a deploy
 
-Run the smoke test from any machine that can reach the hub. It needs `curl`, `git` 2.31 or later, `ssh` and `ssh-keygen`, and an access token of a test user with the scopes `write:repository` and `write:user` (Settings, Applications):
+Run the smoke test from any machine that can reach the hub. It needs `curl`, `git` 2.31 or later (plus `ssh` and `ssh-keygen` only when you check SSH), and an access token of a test user with the scopes `write:repository` and `write:user` (Settings, Applications):
 
 ```sh
 printf '%s\n' "$TOKEN" > ~/.asc-smoke-token && chmod 600 ~/.asc-smoke-token
@@ -199,7 +213,7 @@ ASC_SMOKE_URL=https://hub.example.org ASC_SMOKE_USER=alice \
   ASC_SMOKE_TOKEN_FILE=~/.asc-smoke-token scripts/smoke.sh
 ```
 
-In order it checks: `GET /api/healthz`; `GET /.well-known/asc` (it must announce an https address, or a loopback one); the sign-in page; that the API refuses a request without a token; that the token signs in as the named user; creating a public repository `asc-smoke-<random>` under that user (and that the answer describes that repository, under that user, at the address you gave); `git clone`, a commit and `git push` over https; that the API shows the branch and serves the file unchanged; a second clone whose head equals the pushed commit; the repository's web page; then, with a temporary ssh key, a clone over ssh with the same head and a push of a second branch over ssh. It finishes by deleting the repository and the key, and the run fails if that fails (the message names what to delete by hand). It prints the number of checks passed and skipped. A skip is printed as `skip` and never counted as a pass: the ssh checks skip when you set `ASC_SMOKE_SKIP_SSH=1`, and the web page check skips when the hub requires sign-in to view.
+In order it checks: `GET /api/healthz`; `GET /.well-known/asc` (it must announce an https address, or a loopback one); the sign-in page; that the API refuses a request without a token; that the token signs in as the named user; creating a public repository `asc-smoke-<random>` under that user (and that the answer describes that repository, under that user, at the address you gave); `git clone`, a commit and `git push` over https; that the API shows the branch and serves the file unchanged; a second clone whose head equals the pushed commit; the repository's web page; then, only with `ASC_HUB_SSH_ENABLE=true` in the script's environment (the hub offers git over SSH and its port is reachable), with a temporary ssh key, a clone over ssh with the same head and a push of a second branch over ssh. It finishes by deleting the repository and the key, and the run fails if that fails (the message names what to delete by hand). It prints the number of checks passed and skipped. A skip is printed as `skip` and never counted as a pass: the ssh checks skip, with the reason, unless `ASC_HUB_SSH_ENABLE=true` (and also when you set `ASC_SMOKE_SKIP_SSH=1`), and the web page check skips when the hub requires sign-in to view.
 
 Safety of the script: the token goes to `curl` through a file in a private temporary directory and to `git` through its environment, never on a command line or into the output; redirects are not followed; plain http is accepted only for a loopback host with `ASC_SMOKE_ALLOW_HTTP=1`; the ssh clone address must name the host of `ASC_SMOKE_URL` (or `ASC_SMOKE_SSH_HOST`) and the test connects to no other host; it deletes only what it made, and only after the hub's answer named that repository under the user you gave. The ssh host key is accepted at first sight, into a known-hosts file that is deleted at the end. The settings are listed at the top of the script. Use a test user, not an administrator: an administrator's token could do far more than the test needs.
 
