@@ -1,51 +1,11 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content user signin openid">
-	<div class="ui middle very relaxed page grid">
-		<div class="column tw-flex tw-flex-col tw-gap-4 tw-max-w-2xl tw-m-auto">
-			<a href="{{AppSubUrl}}/user/login" class="tw-mx-auto">
-				<img class="logo-on-light" width="100" height="100" src="{{AssetUrlPrefix}}/img/logo.svg" alt="{{ctx.Locale.Tr "logo"}}">
-				<img class="logo-on-dark" width="100" height="100" src="{{AssetUrlPrefix}}/img/logo-dark.svg" alt="" aria-hidden="true">
-			</a>
-
-			<div class="ui container fluid">
-				{{template "base/alert" .}}
-				<h4 class="ui top attached header center">
-					{{svg "fontawesome-openid"}}
-					OpenID
-				</h4>
-				<div class="ui attached segment">
-					<form class="ui form tw-m-auto" action="{{.Link}}" method="post">
-						<div class="inline field">
-							{{ctx.Locale.Tr "auth.openid_signin_desc"}}
-						</div>
-						<div class="required field {{if .Err_OpenID}}error{{end}}">
-							<label for="openid">
-							{{svg "fontawesome-openid"}}
-							OpenID URI
-							</label>
-							<input id="openid" name="openid" value="{{.openid}}" autofocus required>
-						</div>
-						<div class="inline field">
-							<div class="ui checkbox">
-								<label>{{ctx.Locale.Tr "auth.remember_me"}}</label>
-								<input name="remember" type="checkbox">
-							</div>
-						</div>
-						<div class="inline field">
-							<button class="ui primary button tw-w-full">{{ctx.Locale.Tr "sign_in"}}</button>
-						</div>
-					</form>
-				</div>
-			</div>
-
-			<div class="ui container fluid">
-				{{template "user/auth/webauthn_error" .}}
-
-				<div class="ui attached segment header top tw-flex tw-flex-col tw-items-center">
-					<a href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "auth.back_to_sign_in"}}</a>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user signin openid" "Title" "OpenID" "Lead" (ctx.Locale.Tr "auth.openid_signin_desc"))}}
+	<form class="ds-form" action="{{.Link}}" method="post">
+		{{template "shared/ds/field" (dict "ID" "openid" "Name" "openid" "Label" "OpenID URI" "Value" .openid "Autofocus" true "Required" true "Extra" "off" "Mono" true "Error" .Err_OpenID)}}
+		<div class="ds-check"><input id="remember" name="remember" type="checkbox"><label for="remember">{{ctx.Locale.Tr "auth.remember_me"}}</label></div>
+		<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block">{{ctx.Locale.Tr "sign_in"}}</button>
+	</form>
+	{{template "user/auth/webauthn_error" .}}
+	<p class="ds-auth-alt"><a class="ds-link" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "auth.back_to_sign_in"}}</a></p>
+{{template "user/auth/shell_end" (dict "Data" .)}}
 {{template "base/footer" .}}

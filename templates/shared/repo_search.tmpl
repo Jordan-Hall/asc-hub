@@ -1,69 +1,140 @@
-<div class="ui small secondary filter menu">
-	<form id="repo-search-form" class="ui form ignore-dirty tw-flex-1 tw-flex tw-flex-row tw-gap-x-2 tw-items-center">
-		{{if .Language}}<input hidden name="language" value="{{.Language}}">{{end}}
-		{{if .TopicOnly}}<input hidden name="topic" value="{{.TopicOnly}}">{{end}}
-		<div class="ui small fluid action input tw-flex-1">
-			{{template "shared/search/input" dict "Value" .Keyword "Placeholder" (ctx.Locale.Tr "search.repo_kind")}}
-			{{if .PageIsExploreRepositories}}
-				<input type="hidden" name="only_show_relevant" value="{{.OnlyShowRelevant}}">
-			{{else if .TabName}}
-				<input type="hidden" name="tab" value="{{.TabName}}">
-			{{end}}
-			{{template "shared/search/button"}}
+{{/*
+The filter bar of every repository list (explore, organization and profile pages, subscriptions, the admin list). It is a GET form; web_src/js/features/repo-search.js sends it when a select changes.
+Reads: .Keyword, .SortType, .Language, .TopicOnly, .IsArchived, .IsFork, .IsMirror, .IsTemplate, .IsPrivate, .OnlyShowRelevant, .TabName, .DisableStars, .PageIsExploreRepositories
+Under 768 a "Sort and filter" button opens a sheet with the same choices; from 768 the sort and visibility selects sit in the bar and the kind pills below it.
+*/}}
+{{$pageIsExplore := .PageIsExploreRepositories}}
+{{$private := ""}}{{if .IsPrivate.Has}}{{if .IsPrivate.Value}}{{$private = "1"}}{{else}}{{$private = "0"}}{{end}}{{end}}
+{{$archived := ""}}{{if .IsArchived.Has}}{{if .IsArchived.Value}}{{$archived = "1"}}{{else}}{{$archived = "0"}}{{end}}{{end}}
+{{$fork := ""}}{{if .IsFork.Has}}{{if .IsFork.Value}}{{$fork = "1"}}{{else}}{{$fork = "0"}}{{end}}{{end}}
+{{$mirror := ""}}{{if .IsMirror.Has}}{{if .IsMirror.Value}}{{$mirror = "1"}}{{else}}{{$mirror = "0"}}{{end}}{{end}}
+{{$template := ""}}{{if .IsTemplate.Has}}{{if .IsTemplate.Value}}{{$template = "1"}}{{else}}{{$template = "0"}}{{end}}{{end}}
+{{/* the query every pill starts from: the text, the order, the language and what the page itself needs */}}
+{{$common := printf "?q=%s&sort=%s&language=%s" (QueryEscape .Keyword) .SortType (QueryEscape .Language)}}
+{{if .TopicOnly}}{{$common = print $common "&topic=1"}}{{end}}
+{{if $pageIsExplore}}{{$common = print $common "&only_show_relevant=" .OnlyShowRelevant}}{{else if .TabName}}{{$common = print $common "&tab=" .TabName}}{{end}}
+{{$withPrivate := $common}}{{if $private}}{{$withPrivate = print $common "&private=" $private}}{{end}}
+<div class="ds-filterbar">
+	<div class="ds-container ds-container-wide">
+		<div class="ds-filterbar-row">
+			<form id="repo-search-form" class="ds-filterbar-form" role="search" method="get">
+				{{if .Language}}<input type="hidden" name="language" value="{{.Language}}">{{end}}
+				{{if .TopicOnly}}<input type="hidden" name="topic" value="{{.TopicOnly}}">{{end}}
+				{{if $pageIsExplore}}<input type="hidden" name="only_show_relevant" value="{{.OnlyShowRelevant}}">{{else if .TabName}}<input type="hidden" name="tab" value="{{.TabName}}">{{end}}
+				{{if $archived}}<input type="hidden" name="archived" value="{{$archived}}">{{end}}
+				{{if $fork}}<input type="hidden" name="fork" value="{{$fork}}">{{end}}
+				{{if $mirror}}<input type="hidden" name="mirror" value="{{$mirror}}">{{end}}
+				{{if $template}}<input type="hidden" name="template" value="{{$template}}">{{end}}
+				<div class="ds-inwrap">
+					{{svg "dsi-search" 16}}
+					<label class="ds-sr" for="repo-search-q">{{ctx.Locale.Tr "search.repo_kind"}}</label>
+					<input id="repo-search-q" class="ds-input" type="search" name="q" value="{{.Keyword}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "search.repo_kind"}}">
+				</div>
+				<label class="ds-selectpill ds-hide-sm">
+					<span>{{ctx.Locale.Tr "explore.sort_label"}}</span>
+					<select name="sort" aria-label="{{ctx.Locale.Tr "repo.issues.filter_sort"}}">
+						<option value="newest"{{if eq .SortType "newest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.latest"}}</option>
+						<option value="oldest"{{if eq .SortType "oldest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</option>
+						<option value="alphabetically"{{if eq .SortType "alphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</option>
+						<option value="reversealphabetically"{{if eq .SortType "reversealphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</option>
+						<option value="recentupdate"{{if eq .SortType "recentupdate"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.recentupdate"}}</option>
+						<option value="leastupdate"{{if eq .SortType "leastupdate"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.leastupdate"}}</option>
+						{{if not .DisableStars}}
+							<option value="moststars"{{if eq .SortType "moststars"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.moststars"}}</option>
+							<option value="feweststars"{{if eq .SortType "feweststars"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.feweststars"}}</option>
+						{{end}}
+						<option value="mostforks"{{if eq .SortType "mostforks"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.mostforks"}}</option>
+						<option value="fewestforks"{{if eq .SortType "fewestforks"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.fewestforks"}}</option>
+						<option value="size"{{if eq .SortType "size"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.by_size"}}</option>
+						<option value="reversesize"{{if eq .SortType "reversesize"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_by_size"}}</option>
+					</select>
+					{{svg "dsi-chevron-down" 16}}
+				</label>
+				<label class="ds-selectpill ds-hide-sm">
+					<span>{{ctx.Locale.Tr "explore.visibility_label"}}</span>
+					<select name="private" aria-label="{{ctx.Locale.Tr "explore.visibility_label"}}">
+						<option value=""{{if not $private}} selected{{end}}>{{ctx.Locale.Tr "explore.visibility_all"}}</option>
+						<option value="0"{{if eq $private "0"}} selected{{end}}>{{ctx.Locale.Tr "filter.public"}}</option>
+						<option value="1"{{if eq $private "1"}} selected{{end}}>{{ctx.Locale.Tr "filter.private"}}</option>
+					</select>
+					{{svg "dsi-chevron-down" 16}}
+				</label>
+			</form>
 		</div>
-		<!-- Filter -->
-		<div class="ui small dropdown type jump item tw-mr-0">
-			<span class="text">
-				{{ctx.Locale.Tr "filter"}}
-			</span>
-			{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-			<div class="menu">
-				<label class="item"><input type="radio" name="clear-filter"> {{ctx.Locale.Tr "filter.clear"}}</label>
-				<div class="divider"></div>
-				<label class="item"><input type="radio" name="archived" {{if .IsArchived.ValueOrZeroValue}}checked{{end}} value="1"> {{ctx.Locale.Tr "filter.is_archived"}}</label>
-				<label class="item"><input type="radio" name="archived" {{if (not (.IsArchived.ValueOrDefault true))}}checked{{end}} value="0"> {{ctx.Locale.Tr "filter.not_archived"}}</label>
-				<div class="divider"></div>
-				<label class="item"><input type="radio" name="fork" {{if .IsFork.ValueOrZeroValue}}checked{{end}} value="1"> {{ctx.Locale.Tr "filter.is_fork"}}</label>
-				<label class="item"><input type="radio" name="fork" {{if (not (.IsFork.ValueOrDefault true))}}checked{{end}} value="0"> {{ctx.Locale.Tr "filter.not_fork"}}</label>
-				<div class="divider"></div>
-				<label class="item"><input type="radio" name="mirror" {{if .IsMirror.ValueOrZeroValue}}checked{{end}} value="1"> {{ctx.Locale.Tr "filter.is_mirror"}}</label>
-				<label class="item"><input type="radio" name="mirror" {{if (not (.IsMirror.ValueOrDefault true))}}checked{{end}} value="0"> {{ctx.Locale.Tr "filter.not_mirror"}}</label>
-				<div class="divider"></div>
-				<label class="item"><input type="radio" name="template" {{if .IsTemplate.ValueOrZeroValue}}checked{{end}} value="1"> {{ctx.Locale.Tr "filter.is_template"}}</label>
-				<label class="item"><input type="radio" name="template" {{if (not (.IsTemplate.ValueOrDefault true))}}checked{{end}} value="0"> {{ctx.Locale.Tr "filter.not_template"}}</label>
-				<div class="divider"></div>
-				<label class="item"><input type="radio" name="private" {{if .IsPrivate.ValueOrZeroValue}}checked{{end}} value="1"> {{ctx.Locale.Tr "filter.private"}}</label>
-				<label class="item"><input type="radio" name="private" {{if (not (.IsPrivate.ValueOrDefault true))}}checked{{end}} value="0"> {{ctx.Locale.Tr "filter.public"}}</label>
+		<div class="ds-filterbar-pills">
+			<div class="ds-scrollx" role="group" aria-label="{{ctx.Locale.Tr "filter"}}">
+				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "explore.filter_all") "Href" $common "Active" (not (or $archived $fork $mirror $template)))}}
+				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "filter.is_fork") "Href" (print $withPrivate "&fork=1") "Active" (eq $fork "1"))}}
+				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "filter.is_mirror") "Href" (print $withPrivate "&mirror=1") "Active" (eq $mirror "1"))}}
+				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "filter.is_template") "Href" (print $withPrivate "&template=1") "Active" (eq $template "1"))}}
+				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "filter.is_archived") "Href" (print $withPrivate "&archived=1") "Active" (eq $archived "1"))}}
 			</div>
 		</div>
-		<!-- Sort -->
-		<div class="ui small dropdown type jump item tw-mr-0">
-			<span class="text">
-				{{ctx.Locale.Tr "repo.issues.filter_sort"}}
-			</span>
-			{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-			<div class="menu">
-				<label class="{{if eq .SortType "newest"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "newest"}}checked{{end}} value="newest"> {{ctx.Locale.Tr "repo.issues.filter_sort.latest"}}</label>
-				<label class="{{if eq .SortType "oldest"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "oldest"}}checked{{end}} value="oldest"> {{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</label>
-				<label class="{{if eq .SortType "alphabetically"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "alphabetically"}}checked{{end}} value="alphabetically"> {{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</label>
-				<label class="{{if eq .SortType "reversealphabetically"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "reversealphabetically"}}checked{{end}} value="reversealphabetically"> {{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</label>
-				<label class="{{if eq .SortType "recentupdate"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "recentupdate"}}checked{{end}} value="recentupdate"> {{ctx.Locale.Tr "repo.issues.filter_sort.recentupdate"}}</label>
-				<label class="{{if eq .SortType "leastupdate"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "leastupdate"}}checked{{end}} value="leastupdate"> {{ctx.Locale.Tr "repo.issues.filter_sort.leastupdate"}}</label>
-				{{if not .DisableStars}}
-					<label class="{{if eq .SortType "moststars"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "moststars"}}checked{{end}} value="moststars"> {{ctx.Locale.Tr "repo.issues.filter_sort.moststars"}}</label>
-					<label class="{{if eq .SortType "feweststars"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "feweststars"}}checked{{end}} value="feweststars"> {{ctx.Locale.Tr "repo.issues.filter_sort.feweststars"}}</label>
-				{{end}}
-				<label class="{{if eq .SortType "mostforks"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "mostforks"}}checked{{end}} value="mostforks"> {{ctx.Locale.Tr "repo.issues.filter_sort.mostforks"}}</label>
-				<label class="{{if eq .SortType "fewestforks"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "fewestforks"}}checked{{end}} value="fewestforks"> {{ctx.Locale.Tr "repo.issues.filter_sort.fewestforks"}}</label>
-				<label class="{{if eq .SortType "size"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "size"}}checked{{end}} value="size"> {{ctx.Locale.Tr "repo.issues.label.filter_sort.by_size"}}</label>
-				<label class="{{if eq .SortType "reversesize"}}active {{end}}item"><input hidden type="radio" name="sort" {{if eq .SortType "reversesize"}}checked{{end}} value="reversesize"> {{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_by_size"}}</label>
-			</div>
+		<div class="ds-filterbar-meta ds-show-sm-only">
+			<span class="ds-t-small">{{if .Total}}{{ctx.Locale.TrPluralString .Total "explore.count_repos" (ctx.Locale.PrettyNumber .Total)}}{{end}}</span>
+			<button type="button" class="ds-btn ds-btn-secondary show-modal" data-modal="#repo-filter-sheet" aria-haspopup="dialog">{{svg "dsi-sliders" 18}} {{ctx.Locale.Tr "explore.sort_and_filter"}}</button>
 		</div>
-	</form>
+	</div>
 </div>
+
+{{/* the phone sheet: the same choices, one "Show results" button */}}
+<dialog id="repo-filter-sheet">
+	<article>
+		<header>{{ctx.Locale.Tr "explore.sort_and_filter"}}</header>
+		<form method="get" class="ignore-dirty">
+			<div class="content ds-sheet-form">
+				{{if .Keyword}}<input type="hidden" name="q" value="{{.Keyword}}">{{end}}
+				{{if .Language}}<input type="hidden" name="language" value="{{.Language}}">{{end}}
+				{{if .TopicOnly}}<input type="hidden" name="topic" value="{{.TopicOnly}}">{{end}}
+				{{if $pageIsExplore}}<input type="hidden" name="only_show_relevant" value="{{.OnlyShowRelevant}}">{{else if .TabName}}<input type="hidden" name="tab" value="{{.TabName}}">{{end}}
+				<div class="ds-field">
+					<label class="ds-label" for="repo-filter-sort">{{ctx.Locale.Tr "explore.sort_label"}}</label>
+					<select id="repo-filter-sort" class="ds-select" name="sort">
+						<option value="newest"{{if eq .SortType "newest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.latest"}}</option>
+						<option value="oldest"{{if eq .SortType "oldest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</option>
+						<option value="alphabetically"{{if eq .SortType "alphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</option>
+						<option value="reversealphabetically"{{if eq .SortType "reversealphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</option>
+						<option value="recentupdate"{{if eq .SortType "recentupdate"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.recentupdate"}}</option>
+						<option value="leastupdate"{{if eq .SortType "leastupdate"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.leastupdate"}}</option>
+						{{if not .DisableStars}}
+							<option value="moststars"{{if eq .SortType "moststars"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.moststars"}}</option>
+							<option value="feweststars"{{if eq .SortType "feweststars"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.feweststars"}}</option>
+						{{end}}
+						<option value="mostforks"{{if eq .SortType "mostforks"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.mostforks"}}</option>
+						<option value="fewestforks"{{if eq .SortType "fewestforks"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.fewestforks"}}</option>
+						<option value="size"{{if eq .SortType "size"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.by_size"}}</option>
+						<option value="reversesize"{{if eq .SortType "reversesize"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_by_size"}}</option>
+					</select>
+				</div>
+				<fieldset class="ds-fieldset">
+					<legend class="ds-label">{{ctx.Locale.Tr "explore.visibility_label"}}</legend>
+					<div class="ds-chips">
+						<label class="ds-chip-radio"><input type="radio" name="private" value=""{{if not $private}} checked{{end}}><span>{{ctx.Locale.Tr "explore.visibility_all"}}</span></label>
+						<label class="ds-chip-radio"><input type="radio" name="private" value="0"{{if eq $private "0"}} checked{{end}}><span>{{ctx.Locale.Tr "filter.public"}}</span></label>
+						<label class="ds-chip-radio"><input type="radio" name="private" value="1"{{if eq $private "1"}} checked{{end}}><span>{{ctx.Locale.Tr "filter.private"}}</span></label>
+					</div>
+				</fieldset>
+				<fieldset class="ds-fieldset">
+					<legend class="ds-label">{{ctx.Locale.Tr "explore.show_only"}}</legend>
+					<label class="ds-switch"><input type="checkbox" role="switch" name="fork" value="1"{{if eq $fork "1"}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "filter.is_fork"}}</span></label>
+					<label class="ds-switch"><input type="checkbox" role="switch" name="mirror" value="1"{{if eq $mirror "1"}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "filter.is_mirror"}}</span></label>
+					<label class="ds-switch"><input type="checkbox" role="switch" name="template" value="1"{{if eq $template "1"}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "filter.is_template"}}</span></label>
+					<label class="ds-switch"><input type="checkbox" role="switch" name="archived" value="1"{{if eq $archived "1"}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "filter.is_archived"}}</span></label>
+				</fieldset>
+			</div>
+			<div class="actions">
+				<a class="ds-btn ds-btn-ghost" href="{{$common}}">{{ctx.Locale.Tr "explore.reset"}}</a>
+				<button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button>
+				<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "explore.show_results"}}</button>
+			</div>
+		</form>
+	</article>
+</dialog>
 {{if and .PageIsExploreRepositories .OnlyShowRelevant}}
-	<div class="ui message explore-relevancy-note">
-		<span data-tooltip-content="{{ctx.Locale.Tr "explore.relevant_repositories_tooltip"}}">{{ctx.Locale.Tr "explore.relevant_repositories" (printf "?only_show_relevant=0&sort=%s&q=%s&language=%s" $.SortType (QueryEscape $.Keyword) (QueryEscape $.Language))}}</span>
+	<div class="ds-container ds-mt-16">
+		<div class="ds-banner explore-relevancy-note">
+			{{svg "dsi-info" 18}}
+			<div class="ds-banner-body" data-tooltip-content="{{ctx.Locale.Tr "explore.relevant_repositories_tooltip"}}">{{ctx.Locale.Tr "explore.relevant_repositories" (printf "?only_show_relevant=0&sort=%s&q=%s&language=%s" $.SortType (QueryEscape $.Keyword) (QueryEscape $.Language))}}</div>
+		</div>
 	</div>
 {{end}}
-<div class="divider"></div>

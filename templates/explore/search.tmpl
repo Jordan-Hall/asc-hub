@@ -1,35 +1,27 @@
-<div class="list-header">
-	<form class="ui form ignore-dirty list-header-search">
-		{{if .PageIsExploreUsers}}
-			{{template "shared/search/combo" dict "Value" .Keyword "Placeholder" (ctx.Locale.Tr "search.user_kind")}}
-		{{else}}
-			{{template "shared/search/combo" dict "Value" .Keyword "Placeholder" (ctx.Locale.Tr "search.org_kind")}}
-		{{end}}
-	</form>
-	<div class="button-row">
-		<!-- Sort -->
-		<details class="dropdown dir-rtl">
-			<summary class="options">
-				{{ctx.Locale.Tr "repo.issues.filter_sort"}}
-				{{svg "octicon-triangle-down" 14}}
-			</summary>
-			<div class="content">
-				<ul>
-					<li>
-						<a class="{{if eq .SortType "newest"}}active{{end}}" href="?sort=newest&q={{$.Keyword}}">{{ctx.Locale.Tr "repo.issues.filter_sort.latest"}}</a>
-					</li>
-					<li>
-						<a class="{{if eq .SortType "oldest"}}active{{end}}" href="?sort=oldest&q={{$.Keyword}}">{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</a>
-					</li>
-					<li>
-						<a class="{{if eq .SortType "alphabetically"}}active{{end}}" href="?sort=alphabetically&q={{$.Keyword}}">{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</a>
-					</li>
-					<li>
-						<a class="{{if eq .SortType "reversealphabetically"}}active{{end}}" href="?sort=reversealphabetically&q={{$.Keyword}}">{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</a>
-					</li>
-				</ul>
-			</div>
-		</details>
+{{/* The filter bar of the people and organizations lists: a search field and the order. GET form. */}}
+{{$placeholder := ctx.Locale.Tr "search.org_kind"}}
+{{if .PageIsExploreUsers}}{{$placeholder = ctx.Locale.Tr "search.user_kind"}}{{end}}
+<div class="ds-filterbar">
+	<div class="ds-container ds-container-wide">
+		<div class="ds-filterbar-row">
+			<form id="explore-user-search" class="ds-filterbar-form" role="search" method="get">
+				<div class="ds-inwrap">
+					{{svg "dsi-search" 16}}
+					<label class="ds-sr" for="explore-user-q">{{$placeholder}}</label>
+					<input id="explore-user-q" class="ds-input" type="search" name="q" value="{{.Keyword}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{$placeholder}}">
+				</div>
+				<label class="ds-selectpill ds-hide-sm">
+					<span>{{ctx.Locale.Tr "explore.sort_label"}}</span>
+					<select name="sort" data-asc-autosubmit aria-label="{{ctx.Locale.Tr "repo.issues.filter_sort"}}">
+						<option value="newest"{{if eq .SortType "newest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.latest"}}</option>
+						<option value="oldest"{{if eq .SortType "oldest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</option>
+						<option value="alphabetically"{{if eq .SortType "alphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</option>
+						<option value="reversealphabetically"{{if eq .SortType "reversealphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</option>
+					</select>
+					{{svg "dsi-chevron-down" 16}}
+				</label>
+				<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "search.search"}}</button>
+			</form>
+		</div>
 	</div>
 </div>
-<div class="divider"></div>

@@ -1,0 +1,42 @@
+/* ASC Hub design system, utilities. A short list on purpose: pages compose the components, they do not style. */
+
+.ds-hidden { display: none !important; }
+.ds-only-mobile { display: initial; }
+.ds-only-desktop { display: none !important; }
+
+@media (min-width: 1024px) {
+  .ds-only-mobile { display: none !important; }
+  .ds-only-desktop { display: initial !important; }
+  .ds-only-desktop.ds-flex { display: flex !important; }
+}
+
+@media (max-width: 639.98px) { .ds-hide-xs { display: none !important; } }
+@media (max-width: 767.98px) { .ds-hide-sm { display: none !important; } }
+@media (max-width: 1023.98px) { .ds-hide-md { display: none !important; } }
+@media (min-width: 640px) { .ds-show-xs-only { display: none !important; } }
+
+.ds-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ds-break { overflow-wrap: anywhere; }
+.ds-min0 { min-width: 0; }
+.ds-text-right { text-align: right; }
+.ds-text-center { text-align: center; }
+.ds-mt-0 { margin-top: 0 !important; }
+.ds-mt-8 { margin-top: 8px; }
+.ds-mt-12 { margin-top: 12px; }
+.ds-mt-16 { margin-top: 16px; }
+.ds-mt-24 { margin-top: 24px; }
+.ds-mb-0 { margin-bottom: 0 !important; }
+.ds-mb-8 { margin-bottom: 8px; }
+.ds-mb-16 { margin-bottom: 16px; }
+.ds-mb-24 { margin-bottom: 24px; }
+.ds-w-full { width: 100%; }
+.ds-flex { display: flex; }
+.ds-inline-flex { display: inline-flex; }
+.ds-items-center { align-items: center; }
+.ds-justify-between { justify-content: space-between; }

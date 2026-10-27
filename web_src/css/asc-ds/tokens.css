@@ -1,0 +1,276 @@
+/* ASC Hub design system, tokens.
+   Source of truth: the approved boards (components.dc.html, A1) and docs/asc/THEME.md.
+   Light is the default. Dark applies when the account theme or the saved mode is a dark theme, and for "auto"
+   when the system asks for dark. The head script of base/head_style.tmpl sets data-theme on <html>:
+   asc-light, asc-dark or asc-auto. Components never use a hex value except the fixed navy set below. */
+
+:root {
+  /* surfaces */
+  --bg: #f6f8fa;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #f1f5f9;
+  --canvas: #eef2f6;
+  --hover: #e7edf3;
+  /* lines */
+  --line: #d8dee6;
+  --line-2: #e2e8f0;
+  --line-3: #eef2f6;
+  --line-strong: #cbd5e1;
+  /* text */
+  --text: #0f172a;
+  --text-1: #1e293b;
+  --text-b: #334155;
+  --text-2: #475569;
+  --text-3: #5b6b80;
+  /* brand */
+  --link: #125469;
+  --fill: #125469;
+  --fill-hover: #0e4457;
+  --on-fill: #ffffff;
+  --primary-soft: #e1ecf0;
+  --primary-tint: #e9f4f7;
+  --primary-line: #bcd9e1;
+  --accent: #22d3ee;
+  --focus: #0e7490;
+  /* status */
+  --ok: #047857;
+  --ok-soft: #d1fae5;
+  --ok-line: #a7f3d0;
+  --ok-dot: #047857;
+  --warn: #92400e;
+  --warn-soft: #fef3c7;
+  --warn-line: #fde68a;
+  --warn-dot: #b45309;
+  --err: #b91c1c;
+  --err-soft: #fee2e2;
+  --err-line: #fca5a5;
+  --err-dot: #b91c1c;
+  --agent: #5b21b6;
+  --agent-soft: #ede9fe;
+  --agent-line: #ddd6fe;
+  --agent-dot: #7c3aed;
+  --agent-tint: #faf8ff;
+  /* diff and review notes */
+  --add-bg: #e8f7ef;
+  --add-gut: #d3f0e0;
+  --add-ink: #0b5d3a;
+  --del-bg: #fdecec;
+  --del-gut: #f9d5d5;
+  --del-ink: #991b1b;
+  --note-bg: #fffbeb;
+  --note-line: #fde68a;
+  --note-ink: #78350f;
+  /* inverse surface: toast, tooltip */
+  --inv-bg: #0b1220;
+  --inv-text: #f1f5f9;
+  /* overlays only */
+  --sh-1: none;
+  --sh-2: 0 6px 24px -8px rgba(15, 23, 42, 0.14);
+  --sh-3: 0 18px 50px -12px rgba(15, 23, 42, 0.3);
+  --scrim: rgba(6, 10, 20, 0.6);
+
+  /* fixed navy set: header, terminal and log blocks in both themes */
+  --navy: #0b1220;
+  --navy-line: #1e293b;
+  --navy-field: #111c30;
+  --navy-field-line: #243049;
+  --navy-text: #e2e8f0;
+  --navy-text-2: #94a3b8;
+  --navy-text-3: #cbd5e1;
+  --navy-hover: #1e293b;
+  --term-text: #dbe5f1;
+  --term-gutter: #8a9bb3;
+  --term-comment: #8da0b8;
+  --term-ok: #34d399;
+  --term-agent: #c4b5fd;
+  --term-prompt: #22d3ee;
+
+  /* type */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  /* shape */
+  --r-btn: 8px;
+  --r-row: 10px;
+  --r-card: 12px;
+  --r-dialog: 14px;
+  --r-pill: 999px;
+
+  /* spacing scale: 4 6 8 10 12 14 18 24 */
+  --s-1: 4px;
+  --s-2: 6px;
+  --s-3: 8px;
+  --s-4: 10px;
+  --s-5: 12px;
+  --s-6: 14px;
+  --s-7: 18px;
+  --s-8: 24px;
+  --s-9: 32px;
+  --s-10: 48px;
+
+  /* layout metrics: mobile first, widened by the media queries at the end of this file */
+  --gutter: 16px;
+  --header-h: 56px;
+  --bnav-h: 56px;
+  --menu-w: 250px;
+  --rail-w: 300px;
+  --container: 1200px;
+  --touch: 44px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --bnav-space: calc(var(--bnav-h) + var(--safe-bottom));
+
+  /* stacking */
+  --z-sticky: 5;
+  --z-header: 30;
+  --z-bnav: 32;
+  --z-pop: 40;
+  --z-scrim: 50;
+  --z-sheet: 60;
+  --z-toast: 70;
+
+  color-scheme: light;
+}
+
+/* dark: explicit */
+:root[data-theme*="dark"] {
+  --bg: #0e1626;
+  --surface: #151f33;
+  --surface-2: #121b2d;
+  --surface-3: #1a2438;
+  --canvas: #0a111f;
+  --hover: #1a2438;
+  --line: #2a3750;
+  --line-2: #26324a;
+  --line-3: #1d283d;
+  --line-strong: #34425d;
+  --text: #e6edf6;
+  --text-1: #c9d4e3;
+  --text-b: #c3cedd;
+  --text-2: #9fb0c6;
+  --text-3: #8aa0bb;
+  --link: #3aa8c6;
+  --fill: #1a7a96;
+  --fill-hover: #17708a;
+  --on-fill: #ffffff;
+  --primary-soft: #14303b;
+  --primary-tint: #12303b;
+  --primary-line: #24505f;
+  --accent: #22d3ee;
+  --focus: #22d3ee;
+  --ok: #34d399;
+  --ok-soft: #0f3a2b;
+  --ok-line: #14513b;
+  --ok-dot: #34d399;
+  --warn: #fbbf24;
+  --warn-soft: #3b2d0f;
+  --warn-line: #5a4515;
+  --warn-dot: #f59e0b;
+  --err: #f87171;
+  --err-soft: #3b1518;
+  --err-line: #5a2226;
+  --err-dot: #f87171;
+  --agent: #c4b5fd;
+  --agent-soft: #2b2150;
+  --agent-line: #3d3170;
+  --agent-dot: #a78bfa;
+  --agent-tint: #1d1838;
+  --add-bg: #0d3325;
+  --add-gut: #14513b;
+  --add-ink: #6ee7b7;
+  --del-bg: #3a171b;
+  --del-gut: #5a2226;
+  --del-ink: #fca5a5;
+  --note-bg: #2b2210;
+  --note-line: #5a4515;
+  --note-ink: #fcd34d;
+  --inv-bg: #24324c;
+  --inv-text: #f1f5f9;
+  --sh-2: 0 6px 24px -8px rgba(0, 0, 0, 0.6);
+  --sh-3: 0 18px 50px -12px rgba(0, 0, 0, 0.75);
+  color-scheme: dark;
+}
+
+/* dark: the system asks for it and the theme is an auto theme */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme*="auto"] {
+    --bg: #0e1626;
+    --surface: #151f33;
+    --surface-2: #121b2d;
+    --surface-3: #1a2438;
+    --canvas: #0a111f;
+    --hover: #1a2438;
+    --line: #2a3750;
+    --line-2: #26324a;
+    --line-3: #1d283d;
+    --line-strong: #34425d;
+    --text: #e6edf6;
+    --text-1: #c9d4e3;
+    --text-b: #c3cedd;
+    --text-2: #9fb0c6;
+    --text-3: #8aa0bb;
+    --link: #3aa8c6;
+    --fill: #1a7a96;
+    --fill-hover: #17708a;
+    --on-fill: #ffffff;
+    --primary-soft: #14303b;
+    --primary-tint: #12303b;
+    --primary-line: #24505f;
+    --accent: #22d3ee;
+    --focus: #22d3ee;
+    --ok: #34d399;
+    --ok-soft: #0f3a2b;
+    --ok-line: #14513b;
+    --ok-dot: #34d399;
+    --warn: #fbbf24;
+    --warn-soft: #3b2d0f;
+    --warn-line: #5a4515;
+    --warn-dot: #f59e0b;
+    --err: #f87171;
+    --err-soft: #3b1518;
+    --err-line: #5a2226;
+    --err-dot: #f87171;
+    --agent: #c4b5fd;
+    --agent-soft: #2b2150;
+    --agent-line: #3d3170;
+    --agent-dot: #a78bfa;
+    --agent-tint: #1d1838;
+    --add-bg: #0d3325;
+    --add-gut: #14513b;
+    --add-ink: #6ee7b7;
+    --del-bg: #3a171b;
+    --del-gut: #5a2226;
+    --del-ink: #fca5a5;
+    --note-bg: #2b2210;
+    --note-line: #5a4515;
+    --note-ink: #fcd34d;
+    --inv-bg: #24324c;
+    --inv-text: #f1f5f9;
+    --sh-2: 0 6px 24px -8px rgba(0, 0, 0, 0.6);
+    --sh-3: 0 18px 50px -12px rgba(0, 0, 0, 0.75);
+    color-scheme: dark;
+  }
+}
+
+/* wider screens: 640 widens the gutter, 1024 is the desktop header */
+@media (min-width: 640px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 60px;
+    --bnav-space: 0px;
+  }
+}
+
+/* density: the account menu switch. It changes row height, never content. */
+:root[data-density="compact"] {
+  --row-pad-y: 10px;
+}
+:root {
+  --row-pad-y: 14px;
+}

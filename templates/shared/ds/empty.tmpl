@@ -1,0 +1,17 @@
+{{/*
+An empty, no-result or error state with words and the next step.
+Props: Icon (a ds-* icon name, default "book"), Title, Body (optional), Tone ("err" for an error), PrimaryLabel + PrimaryHref, SecondaryLabel + SecondaryHref (all optional).
+Put it inside a .ds-card or .ds-list.
+*/}}
+{{$icon := "book"}}{{if .Icon}}{{$icon = .Icon}}{{end}}
+<div class="ds-empty{{if eq .Tone "err"}} ds-empty-err{{end}}">
+	<div class="ds-empty-ic" aria-hidden="true">{{svg (print "dsi-" $icon) 34}}</div>
+	<h2>{{.Title}}</h2>
+	{{if .Body}}<p>{{.Body}}</p>{{end}}
+	{{if or .PrimaryHref .SecondaryHref}}
+		<div class="ds-empty-acts">
+			{{if .PrimaryHref}}<a class="ds-btn ds-btn-primary" href="{{.PrimaryHref}}">{{.PrimaryLabel}}</a>{{end}}
+			{{if .SecondaryHref}}<a class="ds-btn ds-btn-secondary" href="{{.SecondaryHref}}">{{.SecondaryLabel}}</a>{{end}}
+		</div>
+	{{end}}
+</div>

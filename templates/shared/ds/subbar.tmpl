@@ -1,0 +1,23 @@
+{{/*
+The phone top bar of a page whose title belongs in the bar (board "Mobile-Explore", "Mobile-UserSettingsMenu"): replaces the brand bar under 1024.
+Props:
+* Data: the page data (pass ".")
+* Title: the title shown in the bar
+* BackHref (optional): a back arrow to this address; without it the bar shows the menu button that opens the drawer
+* BackLabel (optional): the accessible name of the back arrow
+Place it first inside the page's main element. It is hidden from 1024 on, where the header carries the page.
+*/}}
+<div class="ds-subbar">
+	{{if .BackHref}}
+		<a class="ds-ti" href="{{.BackHref}}" aria-label="{{if .BackLabel}}{{.BackLabel}}{{else}}{{ctx.Locale.Tr "asc_shell.back"}}{{end}}">{{svg "dsi-arrow-left" 22}}</a>
+	{{else}}
+		<a class="ds-ti" href="#ds-drawer" data-ds-open="ds-drawer" aria-haspopup="dialog" aria-controls="ds-drawer" aria-expanded="false" aria-label="{{ctx.Locale.Tr "toggle_menu"}}">{{svg "dsi-menu" 22}}</a>
+	{{end}}
+	<div class="ds-topbar-title">{{.Title}}</div>
+	{{if .Data.IsSigned}}
+		<a class="ds-ti" href="{{AppSubUrl}}/explore/repos" data-ds-open="ds-palette" aria-haspopup="dialog" aria-controls="ds-palette" aria-label="{{ctx.Locale.Tr "asc_shell.search_label"}}">{{svg "dsi-search" 20}}</a>
+		<button type="button" class="ds-hdr-av" data-ds-open="ds-account" aria-haspopup="menu" aria-controls="ds-account" aria-expanded="false" aria-label="{{ctx.Locale.Tr "user_profile_and_more"}}">{{ctx.AvatarUtils.Avatar .Data.SignedUser 34}}</button>
+	{{else}}
+		<a class="ds-btn ds-btn-accent ds-topbar-signin" rel="nofollow" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>
+	{{end}}
+</div>

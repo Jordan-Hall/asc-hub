@@ -1,0 +1,6 @@
+{{/* A stat tile. Props: Label, Value, Sub (optional), Href (optional: the tile is a link). Put tiles in a .ds-grid-stats. */}}
+{{if .Href}}<a class="ds-stat" href="{{.Href}}">{{else}}<div class="ds-stat">{{end}}
+	<div class="ds-stat-label">{{.Label}}</div>
+	<div class="ds-stat-value">{{.Value}}</div>
+	{{if .Sub}}<div class="ds-stat-sub">{{.Sub}}</div>{{end}}
+{{if .Href}}</a>{{else}}</div>{{end}}

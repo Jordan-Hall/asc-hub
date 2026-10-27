@@ -1,25 +1,9 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content user signin">
-	<div class="ui middle very relaxed page grid">
-		<div class="column">
-			<form class="ui form tw-max-w-2xl tw-m-auto" action="{{.Link}}" method="post">
-				<h3 class="ui top attached header">
-					{{ctx.Locale.Tr "twofa"}}
-				</h3>
-				<div class="ui attached segment">
-					{{template "base/alert" .}}
-					<div class="required field">
-						<label for="passcode">{{ctx.Locale.Tr "passcode"}}</label>
-						<input id="passcode" name="passcode" type="text" autocomplete="one-time-code" spellcheck="false" inputmode="numeric" pattern="[0-9]*" autofocus required>
-					</div>
-
-					<div class="inline field">
-						<button class="ui primary button">{{ctx.Locale.Tr "auth.verify"}}</button>
-						<a href="{{AppSubUrl}}/user/two_factor/scratch">{{ctx.Locale.Tr "auth.use_scratch_code"}}</a>
-					</div>
-				</div>
-			</form>
-		</div>
-	</div>
-</div>
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user signin" "Title" (ctx.Locale.Tr "twofa") "Lead" (ctx.Locale.Tr "asc_auth.twofa_lead"))}}
+	<form class="ds-form ignore-dirty" action="{{.Link}}" method="post">
+		{{template "shared/ds/field" (dict "ID" "passcode" "Name" "passcode" "Label" (ctx.Locale.Tr "passcode") "Autocomplete" "one-time-code" "InputMode" "numeric" "Pattern" "[0-9]*" "Autofocus" true "Required" true "Extra" "off" "Mono" true)}}
+		<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block">{{ctx.Locale.Tr "auth.verify"}}</button>
+		<p class="ds-auth-alt"><a class="ds-link" href="{{AppSubUrl}}/user/two_factor/scratch">{{ctx.Locale.Tr "auth.use_scratch_code"}}</a></p>
+	</form>
+{{template "user/auth/shell_end" (dict "Data" .)}}
 {{template "base/footer" .}}
