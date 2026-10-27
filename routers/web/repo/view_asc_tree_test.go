@@ -14,8 +14,8 @@ import (
 
 func fakeAscTree(listed *[]string) ascTreeLister {
 	dirs := map[string][]ascTreeEntry{
-		"": {{"README.md", false}, {"src", true}, {"Cargo.toml", false}, {"docs", true}, {"Tests", true}},
-		"src": {{"retry.rs", false}, {"client.rs", false}, {"metrics", true}},
+		"":            {{"README.md", false}, {"src", true}, {"Cargo.toml", false}, {"docs", true}, {"Tests", true}},
+		"src":         {{"retry.rs", false}, {"client.rs", false}, {"metrics", true}},
 		"src/metrics": {{"mod.rs", false}},
 		"docs":        {{"retries.md", false}},
 		"Tests":       {{"a.rs", false}},
