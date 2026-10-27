@@ -5,6 +5,7 @@ package setting
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -228,4 +229,40 @@ PUBLIC_URL = "  "
 	require.NoError(t, err)
 	loadAscFrom(cfg)
 	assert.Equal(t, "http://127.0.0.1:7890", AscPublicURL(), "a blank PUBLIC_URL is not set")
+}
+
+func TestNormaliseAscDownloadSource(t *testing.T) {
+	t.Cleanup(func() {
+		Asc.DownloadDir, Asc.DownloadSourceURL, Asc.DownloadSourceToken, Asc.DownloadPublicKey = "", "", "", ""
+		Asc.DownloadSyncInterval = time.Hour
+	})
+	set := func(dir, src, token, key string, every time.Duration) {
+		Asc.DownloadDir, Asc.DownloadBaseURL, Asc.DownloadSourceURL, Asc.DownloadSourceToken, Asc.DownloadPublicKey, Asc.DownloadSyncInterval = dir, "", src, token, key, every
+	}
+	set("/srv/dl", " https://api.github.com/repos/o/r/releases/latest ", " tok ", " RWQabc ", 0)
+	require.NoError(t, normaliseAscDownload())
+	assert.Equal(t, "https://api.github.com/repos/o/r/releases/latest", Asc.DownloadSourceURL)
+	assert.Equal(t, "tok", Asc.DownloadSourceToken)
+	assert.Equal(t, "RWQabc", Asc.DownloadPublicKey)
+	assert.Equal(t, time.Hour, Asc.DownloadSyncInterval, "the default interval")
+
+	set("", "", "", "", 0)
+	require.NoError(t, normaliseAscDownload(), "no source: nothing is fetched")
+
+	for name, tc := range map[string]struct {
+		dir, src, token, key string
+		every                time.Duration
+	}{
+		"plain http":      {"/srv/dl", "http://example.com/rel", "", "RWQ", time.Hour},
+		"credentials":     {"/srv/dl", "https://u:p@example.com/rel", "", "RWQ", time.Hour},
+		"a query":         {"/srv/dl", "https://example.com/rel?x=1", "", "RWQ", time.Hour},
+		"no directory":    {"", "https://example.com/rel", "", "RWQ", time.Hour},
+		"no key":          {"/srv/dl", "https://example.com/rel", "", "", time.Hour},
+		"a token alone":   {"/srv/dl", "", "tok", "", time.Hour},
+		"a spaced token":  {"/srv/dl", "https://example.com/rel", "a b", "RWQ", time.Hour},
+		"too short a run": {"/srv/dl", "https://example.com/rel", "", "RWQ", time.Second},
+	} {
+		set(tc.dir, tc.src, tc.token, tc.key, tc.every)
+		assert.Error(t, normaliseAscDownload(), name)
+	}
 }

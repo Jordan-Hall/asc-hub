@@ -149,6 +149,7 @@ The hub replaces any `x-asc-hub-*` entry that a context already holds, so a call
 | --- | --- |
 | `modules/setting/asc.go` | The `[asc]` settings and their validation. |
 | `modules/ascproto/ascv1` | Generated `asc.v1` stubs (see `modules/ascproto/README.md`). |
+| `services/ascdownloadsync` | Fetches the signed `asc` release from a private source into `[asc] DOWNLOAD_DIR`: checks the checksums and files against the configured release public key, publishes atomically, keeps the last good release. |
 | `services/ascidentity` | The signed identity of the person, forwarded with each call made for them. |
 | `modules/ascclient` | The gRPC client: authentication, retries, operation ids, verified object fetches, cache. |
 | `modules/repostore`, `modules/repostore/asc`, `modules/repostore/gitcli` | The writer interface, its router, and the asc and git writers. |

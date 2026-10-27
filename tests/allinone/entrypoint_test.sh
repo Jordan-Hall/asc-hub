@@ -536,6 +536,38 @@ t_validation() {
 	t_refused timeout "ASC_HUB_START_TIMEOUT is not valid" ASC_HUB_START_TIMEOUT=abc
 	t_refused ssh_flag "ASC_HUB_SSH_ENABLE is not valid" ASC_HUB_SSH_ENABLE=yes
 	t_refused ssh_flag_upper "ASC_HUB_SSH_ENABLE is not valid" ASC_HUB_SSH_ENABLE=TRUE
+	t_refused download_http "ASC_HUB_DOWNLOAD_SOURCE_URL is not valid" ASC_HUB_DOWNLOAD_SOURCE_URL=http://releases.example.org/asc ASC_HUB_DOWNLOAD_PUBLIC_KEY=RWQ0123456789abcdef0123456789abcdef0123456789abcdef
+	t_refused download_credentials "ASC_HUB_DOWNLOAD_SOURCE_URL is not valid" ASC_HUB_DOWNLOAD_SOURCE_URL=https://u:p@releases.example.org/asc ASC_HUB_DOWNLOAD_PUBLIC_KEY=RWQ0123456789abcdef0123456789abcdef0123456789abcdef
+	t_refused download_no_key "needs ASC_HUB_DOWNLOAD_PUBLIC_KEY" ASC_HUB_DOWNLOAD_SOURCE_URL=https://releases.example.org/asc
+	t_refused download_bad_key "ASC_HUB_DOWNLOAD_PUBLIC_KEY is not valid" ASC_HUB_DOWNLOAD_SOURCE_URL=https://releases.example.org/asc ASC_HUB_DOWNLOAD_PUBLIC_KEY=short
+	t_refused download_interval "ASC_HUB_DOWNLOAD_SYNC_INTERVAL is not valid" ASC_HUB_DOWNLOAD_SOURCE_URL=https://releases.example.org/asc ASC_HUB_DOWNLOAD_PUBLIC_KEY=RWQ0123456789abcdef0123456789abcdef0123456789abcdef ASC_HUB_DOWNLOAD_SYNC_INTERVAL=0m
+	t_refused download_two_tokens "not both" ASC_HUB_DOWNLOAD_SOURCE_URL=https://releases.example.org/asc ASC_HUB_DOWNLOAD_PUBLIC_KEY=RWQ0123456789abcdef0123456789abcdef0123456789abcdef ASC_HUB_DOWNLOAD_SOURCE_TOKEN=a ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE=/nonexistent
+	t_refused download_token_file "cannot be read" ASC_HUB_DOWNLOAD_SOURCE_URL=https://releases.example.org/asc ASC_HUB_DOWNLOAD_PUBLIC_KEY=RWQ0123456789abcdef0123456789abcdef0123456789abcdef ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE=/nonexistent
+}
+
+# t_download: the release source reaches the hub as [asc] settings; a token is handed over as a file.
+t_download() {
+	local key=RWQ0123456789abcdef0123456789abcdef0123456789abcdef
+	new_case download_source
+	start ASC_HUB_DOWNLOAD_SOURCE_URL=https://api.github.com/repos/o/r/releases/latest ASC_HUB_DOWNLOAD_PUBLIC_KEY=$key ASC_HUB_DOWNLOAD_SYNC_INTERVAL=6h ASC_HUB_DOWNLOAD_SOURCE_TOKEN=ghp_secret_token_value
+	wait_ready || { end_case; return; }
+	eq "[asc] DOWNLOAD_SOURCE_URL" https://api.github.com/repos/o/r/releases/latest "$(env_of hub.env FORGEJO__asc__DOWNLOAD_SOURCE_URL)"
+	eq "[asc] DOWNLOAD_PUBLIC_KEY" "$key" "$(env_of hub.env FORGEJO__asc__DOWNLOAD_PUBLIC_KEY)"
+	eq "[asc] DOWNLOAD_SYNC_INTERVAL" 6h "$(env_of hub.env FORGEJO__asc__DOWNLOAD_SYNC_INTERVAL)"
+	eq "[asc] DOWNLOAD_DIR is on the volume" "$T/work/asc-releases" "$(env_of hub.env FORGEJO__asc__DOWNLOAD_DIR)"
+	eq "the token is a file" "file://$T/work/bootstrap/download-source-token" "$(env_of hub.env FORGEJO__asc__DOWNLOAD_SOURCE_TOKEN_URI)"
+	eq "the token file" ghp_secret_token_value "$(cat "$T/work/bootstrap/download-source-token")"
+	eq "the token file is private" 600 "$(mode_of "$T/work/bootstrap/download-source-token")"
+	eq "no literal token in the hub environment" "" "$(env_of hub.env ASC_HUB_DOWNLOAD_SOURCE_TOKEN)"
+	eq "no literal [asc] token" "" "$(env_of hub.env FORGEJO__asc__DOWNLOAD_SOURCE_TOKEN)"
+	end_case
+
+	new_case download_unset
+	start ASC_HUB_DOWNLOAD_PUBLIC_KEY=$key
+	wait_ready || { end_case; return; }
+	eq "no source, no setting" "" "$(env_of hub.env FORGEJO__asc__DOWNLOAD_SOURCE_URL)"
+	has "an orphan setting is reported" "$T/out.1" "ASC_HUB_DOWNLOAD_PUBLIC_KEY is ignored because ASC_HUB_DOWNLOAD_SOURCE_URL is not set"
+	end_case
 }
 
 t_ssh() {
@@ -648,7 +680,7 @@ t_healthcheck() {
 cleanup_all() { [ -z "$T" ] || end_case; }
 trap cleanup_all EXIT
 
-for t in t_first_boot t_restart_idempotent t_admin_bootstrap t_admin_invalid t_kill_either t_sigterm_during_start t_start_failures t_volume t_backup_lock t_command_passthrough t_validation t_ssh t_variants t_healthcheck; do
+for t in t_first_boot t_restart_idempotent t_admin_bootstrap t_admin_invalid t_kill_either t_sigterm_during_start t_start_failures t_volume t_backup_lock t_command_passthrough t_validation t_download t_ssh t_variants t_healthcheck; do
 	if selected "$t"; then
 		"$t"
 	fi
