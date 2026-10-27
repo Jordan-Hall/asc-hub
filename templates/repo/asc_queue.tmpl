@@ -5,6 +5,7 @@ Template Attributes:
 * AscQueueUsers: map of user id to user, for "queued by"
 * AscQueueCanAdmin: the viewer may pause and resume
 * AscQueueRevalidate: bool, lands carry no_content_merge
+* AscQuarantine: *ascQuarantineView or nil (Rows of quarantined failure groups with the note that says why, More, ChecksURL, Problem)
 Entry reasons are written by the queue worker from fixed texts and pull request numbers; the template engine escapes them.
 */}}
 {{template "base/head" .}}
@@ -89,6 +90,36 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 					{{end}}
 				</tbody>
 			</table>
+			{{end}}
+
+			{{with .AscQuarantine}}
+			<h3 class="ui header" id="asc-queue-quarantine-title">{{ctx.Locale.Tr "asc_trust.queue.quarantine_title"}}</h3>
+			<p class="text grey">{{ctx.Locale.Tr "asc_trust.queue.quarantine_lead"}}</p>
+			{{if .Problem}}
+				<div class="ui warning message" role="status" data-testid="asc-queue-quarantine-problem">{{.Problem}}</div>
+			{{else if .Rows}}
+			<ul class="ast-ops" aria-labelledby="asc-queue-quarantine-title" data-testid="asc-queue-quarantine">
+				{{range .Rows}}
+				<li class="ast-op">
+					<div class="ast-op-main">
+						<div class="ast-op-line">
+							<span class="ast-pill ast-pill-wn">{{ctx.Locale.Tr "asc_trust.queue.quarantined"}}</span>
+							<a href="{{$.AscQuarantine.ChecksURL}}/groups/{{.ID}}">{{if .Title}}{{.Title}}{{else}}{{.TestName}}{{end}}</a>
+						</div>
+						<div class="asc-trust-sub">
+							{{if .TestName}}<code class="asc-trust-code">{{.TestName}}</code>{{end}}{{if .JobName}} {{ctx.Locale.Tr "asc_trust.queue.in_job" .JobName}}{{end}}
+							· {{ctx.Locale.Tr "asc_trust.queue.seen" .Occurrences .ChangesAffected}}
+							· {{ctx.Locale.Tr "asc_trust.queue.last_seen"}} {{DateUtils.TimeSince .LastSeen}}
+						</div>
+						<div class="asc-trust-sub" data-testid="asc-queue-quarantine-why"><strong>{{ctx.Locale.Tr "asc_trust.queue.why"}}</strong> {{if .Note}}{{.Note}}{{else}}{{ctx.Locale.Tr "asc_trust.queue.no_note"}}{{end}}</div>
+					</div>
+				</li>
+				{{end}}
+			</ul>
+			{{if .More}}<p><a href="{{.ChecksURL}}?state=quarantined">{{ctx.Locale.Tr "asc_trust.queue.more"}}</a></p>{{end}}
+			{{else}}
+			<div class="ui info message" data-testid="asc-queue-quarantine-empty">{{ctx.Locale.Tr "asc_trust.queue.quarantine_empty"}}</div>
+			{{end}}
 			{{end}}
 		</div>
 	</div>

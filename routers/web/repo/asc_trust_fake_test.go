@@ -172,8 +172,10 @@ type trustReq struct {
 	// user is the signed-in user (0 is nobody); access is the person's access to the code and the pull requests.
 	user   int64
 	access perm_model.AccessMode
-	form   url.Values
-	params map[string]string
+	// noActions takes away the right to read the Actions of the repository.
+	noActions bool
+	form      url.Values
+	params    map[string]string
 }
 
 // runTrust runs a handler of the trust pages for repository 1 (user2/repo1).
@@ -194,6 +196,9 @@ func runTrust(t *testing.T, r trustReq, handler func(*context.Context)) trustPag
 	ctx.Repo.Permission.AccessMode = r.access
 	ctx.Repo.Permission.UnitsMode = map[unit.Type]perm_model.AccessMode{
 		unit.TypeCode: r.access, unit.TypePullRequests: r.access, unit.TypeActions: r.access,
+	}
+	if r.noActions {
+		ctx.Repo.Permission.UnitsMode[unit.TypeActions] = perm_model.AccessModeNone
 	}
 	if r.form != nil {
 		if r.method == http.MethodPost {
