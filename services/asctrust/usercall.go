@@ -15,6 +15,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
@@ -81,7 +82,14 @@ func UseTokenIssuer(fn func(ctx context.Context, doer *user_model.User, scope au
 	return func() { issueToken = prev }
 }
 
-// scopeOf returns the access token scope a kind of call needs.
+// scopeOf returns the access token scope a kind of call needs. It is the least that asc accepts for the call:
+//
+//   - a read of a repository is read:repository (and read:user, because asc asks the hub who the credential is);
+//   - a change of a repository, and the calls that only a repository administrator may make, are
+//     write:repository, because asc decides "administrator" by asking the hub for write access and reading the
+//     permission in the answer. Such a token is always limited to the one repository (UserCall) or to the listed
+//     repositories of an organisation (UserCallOrg), never to all repositories of the person;
+//   - the audit log of the server is read:admin and read:user.
 func scopeOf(kind CallKind) (auth_model.AccessTokenScope, error) {
 	var s string
 	switch kind {
@@ -92,7 +100,8 @@ func scopeOf(kind CallKind) (auth_model.AccessTokenScope, error) {
 	case CallRepoWrite, CallRepoAdmin:
 		s = string(auth_model.AccessTokenScopeReadRepository) + "," + string(auth_model.AccessTokenScopeWriteRepository) + "," + string(auth_model.AccessTokenScopeReadUser)
 	case CallOrg:
-		s = string(auth_model.AccessTokenScopeReadOrganization) + "," + string(auth_model.AccessTokenScopeWriteRepository) + "," + string(auth_model.AccessTokenScopeReadUser)
+		// Only ever on the repositories of the organisation, listed one by one (UserCallOrg).
+		s = string(auth_model.AccessTokenScopeWriteRepository) + "," + string(auth_model.AccessTokenScopeReadUser)
 	case CallAccount:
 		s = string(auth_model.AccessTokenScopeReadUser) + "," + string(auth_model.AccessTokenScopeWriteUser)
 	case CallInstance:
@@ -130,6 +139,11 @@ func UserCall(ctx context.Context, doer *user_model.User, kind CallKind, repo *r
 	if err != nil {
 		return ctx, func() {}, fmt.Errorf("asctrust: issue the call credential: %w", err)
 	}
+	return withToken(ctx, doer, token, revoke)
+}
+
+// withToken puts the token and the signed identity of doer into the context of a call.
+func withToken(ctx context.Context, doer *user_model.User, token string, revoke func()) (context.Context, func(), error) {
 	callCtx, err := ascclient.WithUserToken(ctx, token)
 	if err != nil {
 		revoke()
@@ -143,23 +157,92 @@ func UserCall(ctx context.Context, doer *user_model.User, kind CallKind, repo *r
 	return callCtx, revoke, nil
 }
 
+// MaxOrgRepos is the most repositories of an organisation a token is issued for: the most asc lets a log of an
+// organisation cover.
+const MaxOrgRepos = 200
+
+// ErrNoOrgRepos is returned when an organisation has no repository in asc, or more than MaxOrgRepos: asc would
+// refuse its log either way, so no token is issued.
+var ErrNoOrgRepos = errors.New("asctrust: the organisation has no repository in asc, or too many")
+
+// orgTokenIssuer issues a token limited to the listed repositories. Tests replace it.
+type orgTokenIssuer func(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoIDs []int64) (token string, revoke func(), err error)
+
+var issueOrgToken orgTokenIssuer = issueAccessTokenRepos
+
+// UseOrgTokenIssuer replaces the issuer of the tokens of UserCallOrg until the returned function is called. It is
+// for tests.
+func UseOrgTokenIssuer(fn func(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoIDs []int64) (string, func(), error)) (restore func()) {
+	prev := issueOrgToken
+	issueOrgToken = fn
+	return func() { issueOrgToken = prev }
+}
+
+// UserCallOrg is UserCall for the log of an organisation. asc lets the owner of every repository of the
+// organisation read it and decides that repository by repository, so the token is made for exactly the repositories
+// of the organisation that are stored in asc (at most MaxOrgRepos), as rows of the token and not as "all
+// repositories". Like every call token it lives for the one request: it is deleted when release is called, also
+// when the request was cancelled, and a crash leaves one for the sweep to delete after staleAfter.
+func UserCallOrg(ctx context.Context, doer *user_model.User, orgID int64) (context.Context, func(), error) {
+	if doer == nil || doer.ID <= 0 {
+		return ctx, func() {}, ErrNoDoer
+	}
+	var ids []int64
+	if err := db.GetEngine(ctx).Table("repository").Where("owner_id = ? AND storage_backend = ?", orgID, string(gitrepo.StorageBackendAsc)).Cols("id").Limit(MaxOrgRepos + 1).Find(&ids); err != nil {
+		return ctx, func() {}, fmt.Errorf("asctrust: the repositories of the organisation: %w", err)
+	}
+	if len(ids) == 0 || len(ids) > MaxOrgRepos {
+		return ctx, func() {}, ErrNoOrgRepos
+	}
+	scope, err := scopeOf(CallOrg)
+	if err != nil {
+		return ctx, func() {}, err
+	}
+	token, revoke, err := issueOrgToken(ctx, doer, scope, ids)
+	if err != nil {
+		return ctx, func() {}, fmt.Errorf("asctrust: issue the call credential: %w", err)
+	}
+	return withToken(ctx, doer, token, revoke)
+}
+
 var lastSweep atomic.Int64
 
-// issueAccessToken is the default issuer: a Forgejo access token for doer, deleted by the returned function.
+// issueAccessToken is the default issuer: a Forgejo access token for doer, deleted by the returned function. A
+// token for a repository is limited to that one repository; repoID 0 is for the calls about the person, which have no
+// repository.
 func issueAccessToken(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoID int64) (string, func(), error) {
+	if repoID == 0 {
+		return issueTokenRows(ctx, doer, scope, nil, true)
+	}
+	return issueTokenRows(ctx, doer, scope, []int64{repoID}, false)
+}
+
+// issueAccessTokenRepos issues a token limited to the listed repositories.
+func issueAccessTokenRepos(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoIDs []int64) (string, func(), error) {
+	if len(repoIDs) == 0 {
+		return "", nil, errors.New("asctrust: a token for no repository")
+	}
+	return issueTokenRows(ctx, doer, scope, repoIDs, false)
+}
+
+func issueTokenRows(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoIDs []int64, allRepos bool) (string, func(), error) {
 	sweepStale(ctx)
 	t := &auth_model.AccessToken{
 		UID:              doer.ID,
 		Name:             tokenPrefix + util.CryptoRandomString(util.RandomStringMedium),
 		Scope:            scope,
-		ResourceAllRepos: repoID == 0,
+		ResourceAllRepos: allRepos,
 	}
 	err := db.WithTx(ctx, func(ctx context.Context) error {
 		if err := auth_model.NewAccessToken(ctx, t); err != nil {
 			return err
 		}
-		if repoID != 0 {
-			return auth_model.InsertAccessTokenResourceRepos(ctx, t.ID, []*auth_model.AccessTokenResourceRepo{{RepoID: repoID}})
+		rows := make([]*auth_model.AccessTokenResourceRepo, 0, len(repoIDs))
+		for _, id := range repoIDs {
+			rows = append(rows, &auth_model.AccessTokenResourceRepo{RepoID: id})
+		}
+		if len(rows) > 0 {
+			return auth_model.InsertAccessTokenResourceRepos(ctx, t.ID, rows)
 		}
 		return nil
 	})

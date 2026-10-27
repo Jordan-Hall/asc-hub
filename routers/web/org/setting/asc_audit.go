@@ -34,6 +34,7 @@ func ascAuditLevel(ctx *context.Context) *trustweb.AuditLevel {
 	return &trustweb.AuditLevel{
 		Scope: &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_ORG, Name: strings.ToLower(org.Name)},
 		Call:  asctrust.CallOrg,
+		OrgID: org.ID,
 		Base:  setting.AppSubURL + "/org/" + org.Name + "/settings/asc/audit",
 		Label: org.Name,
 		Tpl:   tplSettingsAscAudit,

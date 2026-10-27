@@ -100,7 +100,7 @@ func TestUserCallScopesPerKind(t *testing.T) {
 		CallRepoWrite: {[]S{"read:repository", "write:repository", "read:user"}, []S{"write:user", "read:organization", "read:admin", "write:issue"}},
 		// asc decides "administrator of the repository" by asking for write access, so the audit token may write.
 		CallRepoAdmin: {[]S{"read:repository", "write:repository", "read:user"}, []S{"write:user", "read:organization", "read:admin", "write:issue"}},
-		CallOrg:       {[]S{"read:organization", "write:repository", "read:user"}, []S{"write:organization", "write:user", "read:admin"}},
+		CallOrg:       {[]S{"write:repository", "read:user"}, []S{"read:organization", "write:organization", "write:user", "read:admin"}},
 		CallAccount:   {[]S{"read:user", "write:user"}, []S{"read:repository", "read:organization", "read:admin"}},
 		CallInstance:  {[]S{"read:admin", "read:user"}, []S{"write:admin", "read:repository", "write:user"}},
 	}
@@ -232,4 +232,73 @@ func TestStaleCallTokensAreSweptAndOnlyThose(t *testing.T) {
 	require.NoError(t, err)
 	sweepStale(t.Context())
 	assert.True(t, exists(again.ID))
+}
+
+// The scope of each kind of call, exactly: nothing a call does not need. Writing is for the calls asc lets only an
+// administrator make, and then only on the repository (or the repositories of one organisation) of the call.
+func TestScopeOfEachKindOfCall(t *testing.T) {
+	for kind, want := range map[CallKind][]string{
+		CallRepoRead:  {"read:repository", "read:user"},
+		CallRepoWrite: {"write:repository", "read:user"},
+		CallRepoAdmin: {"write:repository", "read:user"},
+		CallOrg:       {"write:repository", "read:user"},
+		CallAccount:   {"write:user"},
+		CallInstance:  {"read:admin", "read:user"},
+	} {
+		s, err := scopeOf(kind)
+		require.NoError(t, err)
+		got := strings.Split(string(s), ",")
+		assert.ElementsMatch(t, want, got, "kind %d: %s", kind, s)
+	}
+}
+
+func TestUserCallOrgIssuesATokenForTheRepositoriesOfTheOrganisationOnly(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	doer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	ctx := t.Context()
+
+	// No repository of the organisation is stored in asc: no token at all.
+	before := countCallTokens(t)
+	_, _, err := UserCallOrg(ctx, doer, 3)
+	require.ErrorIs(t, err, ErrNoOrgRepos)
+	assert.Equal(t, before, countCallTokens(t))
+
+	_, err = db.GetEngine(ctx).Exec("UPDATE repository SET storage_backend = ? WHERE owner_id = ? AND id = ?", "asc", 3, 3)
+	require.NoError(t, err)
+	_, release, err := UserCallOrg(ctx, doer, 3)
+	require.NoError(t, err)
+	assert.Equal(t, before+1, countCallTokens(t), "one token while the call lives")
+
+	var row auth_model.AccessToken
+	has, err := db.GetEngine(ctx).Where("uid = ? AND name LIKE ?", doer.ID, tokenPrefix+"%").Get(&row)
+	require.NoError(t, err)
+	require.True(t, has)
+	assert.False(t, row.ResourceAllRepos, "never all repositories of the person")
+	resources, err := auth_model.GetRepositoriesAccessibleWithToken(ctx, row.ID)
+	require.NoError(t, err)
+	require.Len(t, resources, 1)
+	assert.EqualValues(t, 3, resources[0].RepoID, "the repositories of the organisation, one row each")
+	assertScope(t, row.Scope, []auth_model.AccessTokenScope{"write:repository", "read:user"}, []auth_model.AccessTokenScope{"write:user", "read:admin", "write:organization", "read:organization"})
+
+	release()
+	assert.Equal(t, before, countCallTokens(t), "the token goes with the request")
+
+	_, _, err = UserCallOrg(ctx, nil, 3)
+	assert.ErrorIs(t, err, ErrNoDoer)
+}
+
+func TestUserCallOrgRefusesAnOrganisationAscWouldRefuse(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	doer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	// Over the limit of asc: no token with so many rows.
+	_, err := db.GetEngine(t.Context()).Exec("UPDATE repository SET storage_backend = ? WHERE owner_id = ?", "asc", 2)
+	require.NoError(t, err)
+	var n int64
+	n, err = db.GetEngine(t.Context()).Table("repository").Where("owner_id = ?", 2).Count()
+	require.NoError(t, err)
+	if n <= MaxOrgRepos {
+		t.Skip("the fixtures have too few repositories to pass the limit")
+	}
+	_, _, err = UserCallOrg(t.Context(), doer, 2)
+	assert.ErrorIs(t, err, ErrNoOrgRepos)
 }
