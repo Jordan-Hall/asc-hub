@@ -161,7 +161,7 @@ type qrLander struct {
 	restacks int
 }
 
-func (l *qrLander) Land(_ gocontext.Context, _ *user_model.User, _ access_model.Permission, pr *issues_model.PullRequest, _ bool) (*pull_service.AscStackMergeResult, error) {
+func (l *qrLander) Land(_ gocontext.Context, _ *user_model.User, _ access_model.Permission, pr *issues_model.PullRequest, _ pull_service.AscMergeOptions) (*pull_service.AscStackMergeResult, error) {
 	l.lands = append(l.lands, pr.ID)
 	if l.landErr != nil {
 		return nil, l.landErr

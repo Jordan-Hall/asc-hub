@@ -49,8 +49,11 @@ import (
 // ReviewStateHost is the ReviewState.host value Forgejo sends.
 const ReviewStateHost = "forgejo"
 
-// maxApprovals clamps the approvals count.
-const maxApprovals = 1 << 16
+// maxApprovals clamps the approvals count; maxVersions clamps the reviewed version.
+const (
+	maxApprovals = 1 << 16
+	maxVersions  = 1 << 16
+)
 
 // ReviewState words (SPEC section 8.8 json: state, checks, queue).
 const (
@@ -131,6 +134,8 @@ type PullFacts struct {
 	Approvals int
 	Checks    string // one of the Checks words
 	Queued    bool
+	// ReviewedVersion is the newest version of the change that a published review looked at, or 0.
+	ReviewedVersion int
 }
 
 // BuildReviewState turns facts into the message sent to asc. The change id is checked here too.
@@ -172,8 +177,7 @@ func BuildReviewState(f *PullFacts, now time.Time) (change []byte, st *ascv1.Rev
 		Approvals: uint32(approvals),
 		Checks:    checks,
 		Queue:     queue,
-		// TODO(C37): reviewed_version needs the versions model; 0 until it lands.
-		ReviewedVersion: 0,
+		ReviewedVersion: uint32(min(max(f.ReviewedVersion, 0), maxVersions)),
 		Updated:         now.Unix(),
 	}, nil
 }
@@ -266,6 +270,14 @@ func loadPullFacts(ctx context.Context, pr *issues_model.PullRequest) (*PullFact
 			f.Approvals++
 		}
 	}
+	// When the versions cannot be read the summary is not sent: a wrong 0 would replace a right number in asc.
+	if src := versionCommitSource(); src != nil {
+		commits, err := src(ctx, pr)
+		if err != nil {
+			return nil, fmt.Errorf("versions of pull request %d: %w", pr.ID, err)
+		}
+		f.ReviewedVersion = reviewedVersionOf(reviews, commits)
+	}
 	if sha := headCommit(ctx, pr); sha != "" {
 		statuses, _, err := git_model.GetLatestCommitStatus(ctx, pr.BaseRepoID, sha, db.ListOptions{ListAll: true})
 		if err != nil {
@@ -277,6 +289,63 @@ func loadPullFacts(ctx context.Context, pr *issues_model.PullRequest) (*PullFact
 		f.Queued = true
 	}
 	return f, nil
+}
+
+// VersionCommitsFunc lists the git commits of the versions of the change of pr, oldest first: version N is
+// element N-1. Versions belong to asc and services/pull reads and verifies them (AscVersions); that package
+// imports this one, so it registers the function here (RegisterVersionCommits) instead of being imported.
+type VersionCommitsFunc func(ctx context.Context, pr *issues_model.PullRequest) ([]string, error)
+
+var (
+	versionCommitsMu  sync.Mutex
+	versionCommitsFor VersionCommitsFunc
+)
+
+// RegisterVersionCommits sets the source of version commits and returns a function that restores the previous
+// one. Without a source the reviewed version is reported as 0.
+func RegisterVersionCommits(f VersionCommitsFunc) (restore func()) {
+	versionCommitsMu.Lock()
+	defer versionCommitsMu.Unlock()
+	prev := versionCommitsFor
+	versionCommitsFor = f
+	return func() {
+		versionCommitsMu.Lock()
+		defer versionCommitsMu.Unlock()
+		versionCommitsFor = prev
+	}
+}
+
+func versionCommitSource() VersionCommitsFunc {
+	versionCommitsMu.Lock()
+	defer versionCommitsMu.Unlock()
+	return versionCommitsFor
+}
+
+// reviewedVersionOf is the newest version whose git commit a published review (approve, comment or reject, not
+// dismissed, stale or not) was made on; commits[i] is the git commit of version i+1. A review of a commit that
+// is no version counts for nothing. A commit that two versions share is the later version.
+func reviewedVersionOf(reviews []*issues_model.Review, commits []string) int {
+	best := 0
+	for _, r := range reviews {
+		if r == nil || r.Dismissed {
+			continue
+		}
+		switch r.Type {
+		case issues_model.ReviewTypeApprove, issues_model.ReviewTypeComment, issues_model.ReviewTypeReject:
+		default:
+			continue
+		}
+		if len(r.CommitID) != 40 {
+			continue
+		}
+		for i := len(commits) - 1; i >= best; i-- {
+			if strings.EqualFold(commits[i], r.CommitID) {
+				best = i + 1
+				break
+			}
+		}
+	}
+	return best
 }
 
 func headCommit(ctx context.Context, pr *issues_model.PullRequest) string {
@@ -455,8 +524,8 @@ func notifyIssue(ctx context.Context, issue *issues_model.Issue) {
 }
 
 // ActionRunNowDone is the check event for Actions: the run's commit may be the head of stacked pull requests.
-// TODO(C35 wiring): services/repository/commitstatus.CreateCommitStatus raises no notify event; it should
-// call ascsync.NotifyCommitStatus(ctx, repo, sha) after a status is stored, to cover external status posters.
+// Statuses posted by anything else (the API, a commit status poster) reach NotifyCommitStatus from
+// services/repository/commitstatus.CreateCommitStatus.
 func (*reviewStateNotifier) ActionRunNowDone(ctx context.Context, run *actions_model.ActionRun, _ actions_model.Status, _ *actions_model.ActionRun) {
 	if !setting.Asc.Enabled || run == nil || run.CommitSHA == "" {
 		return

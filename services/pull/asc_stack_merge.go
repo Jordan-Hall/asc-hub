@@ -22,11 +22,13 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/cache"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/services/ascsync"
+	notify_service "forgejo.org/services/notify"
 )
 
 // "Merge stack (N)" and the post-merge restack (SPEC section 20.5 flows 3 and 4, PLAN unit C38).
@@ -275,6 +277,8 @@ type AscStackMergeResult struct {
 type AscMergeOptions struct {
 	// NoContentMerge refuses a land that needs a content merge (ErrAscLandNeedsContentMerge).
 	NoContentMerge bool
+	// Auto marks a land made by the merge queue ("merge when ready"): the merged event is the automatic one.
+	Auto bool
 }
 
 // MergeAscStack merges the prefix bottom..pr of a stack and restacks the open children. perm is the doer's
@@ -331,6 +335,7 @@ func MergeAscStackWith(ctx context.Context, doer *user_model.User, perm access_m
 		merged[it.PR.ID] = true
 		res.Merged = append(res.Merged, it.PR)
 	}
+	afterAscStackMerge(ctx, doer, res.Merged, opt.Auto)
 
 	children, err := openAscStackChildren(ctx, items, merged)
 	if err != nil {
@@ -367,6 +372,43 @@ func MergeAscStackWith(ctx context.Context, doer *user_model.User, perm access_m
 		}
 	}
 	return res, nil
+}
+
+// afterAscStackMerge does for the pull requests of a landed stack what Merge does for one merged pull request:
+// the merged event (notifications, webhooks, the review state in asc), the commit count cache, the branch-chain
+// children, the issues the pull request closes, and a new conflict check of the open pull requests on the base
+// branch. A failure is logged: the stack has landed, and nothing here can undo that.
+func afterAscStackMerge(ctx context.Context, doer *user_model.User, merged []*issues_model.PullRequest, auto bool) {
+	if len(merged) == 0 {
+		return
+	}
+	for _, pr := range merged {
+		if err := pr.LoadIssue(ctx); err != nil {
+			log.Error("asc stack merge: load issue of %-v: %v", pr, err)
+			continue
+		}
+		if err := pr.Issue.LoadRepo(ctx); err != nil {
+			log.Error("asc stack merge: load repository of %-v: %v", pr, err)
+			continue
+		}
+		if err := pr.Issue.Repo.LoadOwner(ctx); err != nil {
+			log.Error("asc stack merge: load owner of %-v: %v", pr, err)
+			continue
+		}
+		if auto {
+			notify_service.AutoMergePullRequest(ctx, doer, pr)
+		} else {
+			notify_service.MergePullRequest(ctx, doer, pr)
+		}
+		cache.Remove(pr.Issue.Repo.GetCommitsCountCacheKey(pr.BaseBranch, true))
+		if _, err := RetargetAscBranchChain(ctx, pr, doer); err != nil {
+			log.Error("asc stack merge: RetargetAscBranchChain %-v: %v", pr, err)
+		}
+		if err := handleCloseCrossReferences(ctx, pr, doer); err != nil {
+			log.Error("asc stack merge: closing referenced issues of %-v: %v", pr, err)
+		}
+	}
+	AddTestPullRequestTask(ctx, doer, merged[0].BaseRepoID, merged[0].BaseBranch, false, "", "", 0)
 }
 
 type ascStackChild struct {

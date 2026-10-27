@@ -13,7 +13,9 @@ import (
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/modules/ascclient"
 	"forgejo.org/modules/graceful"
+	asc_indexer "forgejo.org/modules/indexer/code/asc"
 	"forgejo.org/modules/indexer/code/bleve"
 	"forgejo.org/modules/indexer/code/elasticsearch"
 	"forgejo.org/modules/indexer/code/internal"
@@ -152,6 +154,13 @@ func Init() {
 		if indexerQueue == nil {
 			log.Fatal("Unable to create codes indexer queue")
 		}
+	case "asc":
+		// The asc server indexes on ingest, so a queued repository needs no work here. The queue stays
+		// because UpdateRepoIndexer and the repository hooks enqueue into it for every indexer type.
+		indexerQueue = queue.CreateUniqueQueue(ctx, "code_indexer", func(...*internal.IndexerData) []*internal.IndexerData { return nil })
+		if indexerQueue == nil {
+			log.Fatal("Unable to create codes indexer queue")
+		}
 	default:
 		log.Fatal("Unknown codes indexer type; %s", setting.Indexer.RepoType)
 	}
@@ -221,6 +230,29 @@ func Init() {
 				log.Fatal("PID: %d Unable to initialize the zoekt Repository Indexer at path: %s Error: %v", os.Getpid(), setting.Indexer.RepoPath, err)
 			}
 
+		case "asc":
+			if !setting.Asc.Enabled {
+				cancel()
+				(*globalIndexer.Load()).Close()
+				close(waitChannel)
+				log.Fatal("PID: %d REPO_INDEXER_TYPE = asc needs [asc] ENABLED = true", os.Getpid())
+			}
+			log.Info("PID: %d Initializing Repository Indexer on the asc server", os.Getpid())
+			client, cerr := ascclient.New(ascclient.Config{Target: setting.Asc.ServerURL, InternalToken: setting.InternalToken})
+			if cerr != nil {
+				cancel()
+				(*globalIndexer.Load()).Close()
+				close(waitChannel)
+				log.Fatal("PID: %d Unable to connect the asc Repository Indexer: %v", os.Getpid(), cerr)
+			}
+			rIndexer = asc_indexer.NewIndexer(client.CodeIntel(), nil)
+			existed, err = rIndexer.Init(ctx)
+			if err != nil {
+				cancel()
+				(*globalIndexer.Load()).Close()
+				close(waitChannel)
+				log.Fatal("PID: %d Unable to initialize the asc Repository Indexer: %v", os.Getpid(), err)
+			}
 		default:
 			log.Fatal("PID: %d Unknown Indexer type: %s", os.Getpid(), setting.Indexer.RepoType)
 		}

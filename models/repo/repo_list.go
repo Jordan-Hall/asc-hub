@@ -706,6 +706,22 @@ func FindUserCodeAccessibleRepoIDs(ctx context.Context, user *user_model.User) (
 	return SearchRepositoryIDsByCondition(ctx, AccessibleRepositoryCondition(user, unit.TypeCode))
 }
 
+// FindUserCodeAccessibleAscRepoIDs finds, newest first and at most limit, the IDs of the repositories stored in asc
+// whose code the user can see. A nil user is a guest; an administrator sees every repository.
+func FindUserCodeAccessibleAscRepoIDs(ctx context.Context, user *user_model.User, limit int) ([]int64, error) {
+	ids := make([]int64, 0, 10)
+	if limit <= 0 {
+		return ids, nil
+	}
+	return ids, db.GetEngine(ctx).
+		Table("repository").
+		Cols("id").
+		Where(builder.And(builder.Eq{"storage_backend": "asc"}, AccessibleRepositoryCondition(user, unit.TypeCode))).
+		OrderBy("updated_unix DESC, id DESC").
+		Limit(limit).
+		Find(&ids)
+}
+
 // FindUserCodeAccessibleOwnerRepoIDs finds all repository IDs for the given owner whose code the user can see.
 func FindUserCodeAccessibleOwnerRepoIDs(ctx context.Context, ownerID int64, user *user_model.User) ([]int64, error) {
 	return SearchRepositoryIDsByCondition(ctx, builder.NewCond().And(

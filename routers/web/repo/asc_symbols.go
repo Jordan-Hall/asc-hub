@@ -51,6 +51,9 @@ import (
 //     characters, and left to the template to escape. Paths, lines and confidences are checked and an answer
 //     that fails a check fails the page. The server redacts secrets (SPEC 23.7); nothing is rebuilt from raw
 //     lines here. Only the status code of an asc error is used.
+//
+// The route is registered next to the graph route in routers/web/web.go; the texts are locale keys
+// (repo.asc_symbols.*).
 const (
 	tplAscSymbols base.TplName = "repo/asc_symbols"
 
@@ -126,7 +129,7 @@ func AscSymbols(ctx *context.Context) {
 		ctx.NotFound("AscSymbols", nil)
 		return
 	}
-	ctx.Data["Title"] = "Symbols"
+	ctx.Data["Title"] = ctx.Tr("repo.asc_symbols")
 	ctx.Data["PageIsViewCode"] = true
 
 	q, code, ok := ascSymbolsParse(ctx)

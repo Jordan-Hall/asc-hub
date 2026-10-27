@@ -86,4 +86,7 @@ func ascByoLevel(ctx *context.Context) *byoweb.Level {
 }
 
 // AscRoutes registers the Storage and AI keys pages below /{owner}/{repo}/settings.
-func AscRoutes(m *web.Route) { byoweb.Routes(m, ascByoLevel) }
+func AscRoutes(m *web.Route) {
+	byoweb.Routes(m, ascByoLevel)
+	m.Get("/asc/branchless", AscBranchless)
+}

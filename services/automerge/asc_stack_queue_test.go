@@ -42,12 +42,12 @@ type fakeLander struct {
 	maxFlight  int
 }
 
-func (f *fakeLander) Land(ctx context.Context, _ *user_model.User, _ access_model.Permission, pr *issues_model.PullRequest, noCM bool) (*pull_service.AscStackMergeResult, error) {
+func (f *fakeLander) Land(ctx context.Context, _ *user_model.User, _ access_model.Permission, pr *issues_model.PullRequest, opt pull_service.AscMergeOptions) (*pull_service.AscStackMergeResult, error) {
 	f.inflight++
 	f.maxFlight = max(f.maxFlight, f.inflight)
 	defer func() { f.inflight-- }()
 	f.lands = append(f.lands, pr.ID)
-	f.flags = append(f.flags, noCM)
+	f.flags = append(f.flags, opt.NoContentMerge)
 	items, err := pull_service.AscStackPrefix(ctx, pr)
 	if err != nil {
 		return nil, err
@@ -309,7 +309,7 @@ func TestAscStackQueueDefaultLanderFailsClosed(t *testing.T) {
 
 	t.Cleanup(pull_service.UseAscStackBackend(nil))
 	for _, noCM := range []bool{true, false} {
-		_, err = ascPullLander{}.Land(t.Context(), doer, perm, f.top, noCM)
+		_, err = ascPullLander{}.Land(t.Context(), doer, perm, f.top, pull_service.AscMergeOptions{NoContentMerge: noCM})
 		require.ErrorIs(t, err, pull_service.ErrAscStackDisabled, "no backend")
 	}
 

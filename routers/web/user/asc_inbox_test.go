@@ -18,6 +18,8 @@ import (
 	"forgejo.org/modules/templates"
 	"forgejo.org/modules/test"
 	"forgejo.org/modules/timeutil"
+	"forgejo.org/services/ascinbox"
+	"forgejo.org/services/authz"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -34,17 +36,17 @@ func getAscInbox(t *testing.T, doer *user_model.User, query string) (int, string
 	return resp.Code, resp.Body.String()
 }
 
-func useAscInboxEntries(t *testing.T, es ...*AscInboxEntry) {
+func useAscInboxEntries(t *testing.T, es ...*ascinbox.Entry) {
 	t.Helper()
 	old := ascInboxLoad
-	ascInboxLoad = func(gocontext.Context, *user_model.User, time.Time) ([]*AscInboxEntry, error) { return es, nil }
+	ascInboxLoad = func(gocontext.Context, *user_model.User, time.Time) ([]*ascinbox.Entry, error) { return es, nil }
 	t.Cleanup(func() { ascInboxLoad = old })
 }
 
 func TestAscInboxPageGroup(t *testing.T) {
 	now := time.Unix(1_700_000_000, 0)
 	t0 := now.Add(-time.Hour)
-	es := []*AscInboxEntry{
+	es := []*ascinbox.Entry{
 		{PullID: 1, Section: issues_model.AscInboxWaiting, Updated: t0},
 		{PullID: 2, Section: issues_model.AscInboxNeedsReview, Updated: t0},
 		{PullID: 3, Section: issues_model.AscInboxNeedsReview, Updated: t0.Add(time.Minute)},
@@ -73,7 +75,7 @@ func TestAscInboxPage(t *testing.T) {
 	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
 
 	t.Run("renders sections and escapes titles", func(t *testing.T) {
-		useAscInboxEntries(t, &AscInboxEntry{PullID: 1, Title: "<script>alert(1)</script>", Link: "/o/r/pulls/1",
+		useAscInboxEntries(t, &ascinbox.Entry{PullID: 1, Title: "<script>alert(1)</script>", HTMLURL: "/o/r/pulls/1",
 			RepoFullName: "o/r", Index: 1, Section: issues_model.AscInboxNeedsReview})
 		code, body := getAscInbox(t, user2, "?user=user1&section=merged")
 		assert.Equal(t, http.StatusOK, code)
@@ -91,8 +93,8 @@ func TestAscInboxPage(t *testing.T) {
 		_, err = issues_model.SetAscInboxState(db.DefaultContext, 2, 7002, nil, &snooze, now)
 		require.NoError(t, err)
 		useAscInboxEntries(t,
-			&AscInboxEntry{PullID: 7001, Title: "other-pinned", Section: issues_model.AscInboxWaiting},
-			&AscInboxEntry{PullID: 7002, Title: "mine-snoozed", Section: issues_model.AscInboxWaiting})
+			&ascinbox.Entry{PullID: 7001, Title: "other-pinned", Section: issues_model.AscInboxWaiting},
+			&ascinbox.Entry{PullID: 7002, Title: "mine-snoozed", Section: issues_model.AscInboxWaiting})
 		_, body := getAscInbox(t, user2, "")
 		assert.Contains(t, body, "other-pinned")
 		states, err := issues_model.ListAscInboxStates(db.DefaultContext, user2.ID, []int64{7001, 7002})
@@ -126,8 +128,8 @@ func TestAscInboxLoad(t *testing.T) {
 		_, err := db.GetEngine(db.DefaultContext).ID(repoID).Cols("is_private").Update(&repo_model.Repository{IsPrivate: p})
 		require.NoError(t, err)
 	}
-	find := func() *AscInboxEntry {
-		es, err := ascInboxLoadFromModels(db.DefaultContext, reviewer, time.Now())
+	find := func() *ascinbox.Entry {
+		es, err := ascinbox.Load(db.DefaultContext, reviewer, &authz.AllAccessAuthorizationReducer{}, time.Now())
 		require.NoError(t, err)
 		for _, e := range es {
 			if e.PullID == 2 {
@@ -147,8 +149,8 @@ func TestAscInboxLoad(t *testing.T) {
 	assert.Nil(t, find(), "a reviewer who cannot read the repository does not see its pull request")
 
 	setPrivate(false)
-	stranger := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
-	es, err := ascInboxLoadFromModels(db.DefaultContext, stranger, time.Now())
+	stranger := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 8})
+	es, err := ascinbox.Load(db.DefaultContext, stranger, &authz.AllAccessAuthorizationReducer{}, time.Now())
 	require.NoError(t, err)
 	for _, e := range es {
 		assert.NotEqual(t, int64(2), e.PullID, "an uninvolved user does not see it")
