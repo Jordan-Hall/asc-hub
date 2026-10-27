@@ -130,7 +130,7 @@ func TestLoadAndList(t *testing.T) {
 	assert.NotNil(t, find(author, all), "the author sees it")
 	assert.NotNil(t, find(reviewer, public), "a public repository is within a public-only token")
 
-	stranger := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
+	stranger := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 8})
 	assert.Nil(t, find(stranger, all), "an uninvolved user does not see it")
 
 	setPrivate(true)

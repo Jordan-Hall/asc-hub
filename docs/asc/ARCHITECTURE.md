@@ -49,7 +49,7 @@ flowchart TB
 | `asc serve` | The repositories themselves: objects, refs, changesets, stacks and their versions, branchless settings, path policy, and the code index. |
 | The `asc` client | Makes changesets and stacks, talks to `asc serve` after discovering it through the hub. |
 
-The hub keeps no second copy of what asc owns. For example the branchless settings of a repository are read from asc and written back to asc (`services/ascsync/branchless.go`), and the link between a pull request and its asc change is the only change data the hub stores (`models/issues/pull_asc_stack.go`).
+The hub keeps no second copy of what asc owns. For example the branchless settings of a repository are read from asc and shown, never written, by the hub (`services/ascsync/branchless.go`, page `/<owner>/<repo>/settings/asc/branchless`), and the link between a pull request and its asc change is the only change data the hub stores (`models/issues/pull_asc_stack.go`).
 
 ## Review objects: pull requests that wrap changes
 
@@ -137,4 +137,4 @@ Nothing in the hub writes a ref into a bridge directory.
 
 ## Known gaps
 
-Implemented but not routed yet: the cross-repository code search on the explore page (`routers/web/explore/asc_code.go`), the symbol panel (`routers/web/repo/asc_symbols.go`), the JSON search, symbols and semantic API (`routers/api/v1/repo/asc_codeintel.go`), and the revert of a landed stack (`services/pull/asc_revert_stack.go`). Not done: migrations and mirrors into asc, wiki pull mirrors, and the web LFS settings pages (see [asc-stage4-writer.md](asc-stage4-writer.md)).
+Not built: migrations and mirrors into asc, wiki pull mirrors, and the web LFS settings pages (see [asc-stage4-writer.md](asc-stage4-writer.md)).
