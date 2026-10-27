@@ -120,6 +120,7 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
   --bnav-space: calc(var(--bnav-h) + var(--safe-bottom));
+  --row-pad-y: 14px;
 
   /* stacking */
   --z-sticky: 5;
@@ -270,7 +271,4 @@
 /* density: the account menu switch. It changes row height, never content. */
 :root[data-density="compact"] {
   --row-pad-y: 10px;
-}
-:root {
-  --row-pad-y: 14px;
 }

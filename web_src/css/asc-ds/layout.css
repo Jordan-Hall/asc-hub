@@ -362,6 +362,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .ds-topbar .ds-hdr-av {
@@ -601,10 +602,7 @@
 @media (min-width: 1024px) {
   .ds-pop {
     position: absolute;
-    left: auto;
-    right: 20px;
-    bottom: auto;
-    top: calc(var(--header-h) - 4px);
+    inset: calc(var(--header-h) - 4px) 20px auto auto;
     width: 288px;
     max-height: calc(100vh - var(--header-h) - 16px);
     z-index: var(--z-pop);
@@ -719,7 +717,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: calc(8px + var(--safe-top)) 12px 8px 12px;
+  padding: calc(8px + var(--safe-top)) 12px 8px;
   background: var(--navy);
 }
 
@@ -1477,7 +1475,6 @@
   .ds-settings-nav,
   .ds-settings-nav:target {
     position: sticky;
-    top: calc(var(--header-h) + 16px);
     z-index: auto;
     display: block;
     inset: auto;
@@ -1619,10 +1616,6 @@
 .ds-brand-tile {
   flex: none;
   border-radius: 7px;
-}
-
-.ds-hdr-av img {
-  border-radius: 50%;
 }
 
 /* the notification bell: the count of the page script becomes the cyan dot of the board */
