@@ -99,6 +99,8 @@ func TestWorkflowStates(t *testing.T) {
 	assert.False(t, ok)
 
 	assert.Equal(t, "Approval", StepKind(ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_APPROVAL))
+	assert.Equal(t, "Command", StepKind(ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_COMMAND))
+	assert.Equal(t, "A stack landed", TriggerLabel(ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_LAND))
 	assert.Equal(t, "Step", StepKind(ascv1.WorkflowStepKind(40)))
 	for v := range ascv1.WorkflowTriggerKind_name {
 		if v == 0 {
