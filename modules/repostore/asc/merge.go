@@ -103,11 +103,37 @@ func (s *session) mergeBase(h *repoHandle, a, b git.ObjectID) (git.ObjectID, err
 	return idFromWire(resp.GetBases()[0])
 }
 
-// count counts the commits reachable from include and not from exclude.
+// count counts the commits reachable from include and not from exclude. It asks asc to count (count_only); an
+// asc server that does not offer that yet answers Unimplemented, and the commits are then listed and counted
+// here, up to MaxLogCommits. Without this fallback no pull request could be opened against such a server.
 func (s *session) count(h *repoHandle, include, exclude git.ObjectID) (int, error) {
-	st, err := s.api.Log(s.ctx, &ascv1.LogRequest{
-		Repo: h.gitRef(), Include: []string{include.String()}, Exclude: []string{exclude.String()}, CountOnly: true,
-	})
+	if !s.noCountOnly {
+		n, err := s.countLog(h, include, exclude, true)
+		if err == nil || !isUnimplemented(err) {
+			return n, err
+		}
+		s.noCountOnly = true
+	}
+	return s.countLog(h, include, exclude, false)
+}
+
+// isUnimplemented reports whether err is asc's answer that the call or an option of it is not available.
+func isUnimplemented(err error) bool {
+	var ae *Error
+	if errors.As(err, &ae) {
+		return ae.Code == codes.Unimplemented
+	}
+	return status.Code(err) == codes.Unimplemented
+}
+
+func (s *session) countLog(h *repoHandle, include, exclude git.ObjectID, countOnly bool) (int, error) {
+	req := &ascv1.LogRequest{
+		Repo: h.gitRef(), Include: []string{include.String()}, Exclude: []string{exclude.String()}, CountOnly: countOnly,
+	}
+	if !countOnly {
+		req.Limit = MaxLogCommits + 1
+	}
+	st, err := s.api.Log(s.ctx, req)
 	if err != nil {
 		return 0, callErr("Log", err)
 	}
