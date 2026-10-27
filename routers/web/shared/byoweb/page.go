@@ -172,7 +172,7 @@ const (
 // begin prepares a response: it refuses when [asc] is off, keeps the page out of every cache and returns the
 // service. A nil service with ok=true means asc cannot be reached; the caller shows that.
 func begin(ctx *context.Context, lvl *Level, nav string) (s *svc.Service, p *Page, ok bool) {
-	if !setting.Asc.Enabled || lvl == nil || !lvl.Scope.Valid() {
+	if !setting.Asc.Enabled || ctx.Doer == nil || lvl == nil || !lvl.Scope.Valid() {
 		ctx.NotFound("asc byo", nil)
 		return nil, nil, false
 	}
@@ -197,7 +197,9 @@ func begin(ctx *context.Context, lvl *Level, nav string) (s *svc.Service, p *Pag
 		p.Unavailable = true
 		return nil, p, true
 	}
-	return s, p, true
+	// The service is bound to the signed-in person: op ids are derived from the user, so one person cannot
+	// replay the answer of another.
+	return s.ForUser(ctx.Doer.ID), p, true
 }
 
 // problemOf turns a failure into the text of the box at the top of the page.

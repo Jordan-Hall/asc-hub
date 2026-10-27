@@ -27,6 +27,7 @@ import (
 	"forgejo.org/services/context"
 	"forgejo.org/services/contexttest"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -204,6 +205,7 @@ func TestStorageIndexEscapesText(t *testing.T) {
 }
 
 func TestStorageCreate(t *testing.T) {
+	defer test.MockVariableValue(&setting.SecretKey, "byoweb-test-secret")()
 	f := setup(t)
 	opID := ascbyotest.OpIDForTest
 
@@ -220,7 +222,12 @@ func TestStorageCreate(t *testing.T) {
 		req := calls[0].Req.(*ascv1.CreateStorageTargetRequest)
 		assert.Equal(t, "alice", req.GetOwner().GetName())
 		assert.Equal(t, ascv1.OwnerKind_OWNER_KIND_USER, req.GetOwner().GetKind())
-		assert.Equal(t, opID, calls[0].OpID)
+		// The op id sent to asc is derived by HMAC from the user, the scope, the method and the form's id: a
+		// valid UUID that is not the one the form carried.
+		sent, err := uuid.Parse(calls[0].OpID)
+		require.NoError(t, err, calls[0].OpID)
+		assert.NotEqual(t, opID, calls[0].OpID)
+		assert.NotEqual(t, uuid.Nil, sent)
 		assert.Equal(t, "asc/", req.GetPrefix())
 		assert.NotContains(t, r.loc()+r.ctx.Flash.SuccessMsg, "wJalr")
 	})
