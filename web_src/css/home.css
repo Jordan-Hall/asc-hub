@@ -106,6 +106,10 @@
   text-align: start;
 }
 
+.asc-hero-command + .asc-hero-command {
+  margin-top: 8px;
+}
+
 .asc-prompt {
   color: var(--asc-accent);
   user-select: none;

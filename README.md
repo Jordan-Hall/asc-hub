@@ -59,20 +59,19 @@ services:
     stop_grace_period: 30s
     environment:
       ROOT_URL: "https://hub.example.org/"       # the public https address
-      SSH_DOMAIN: "hub.example.org"
-      SSH_PORT: "22223"                          # the host port below, shown in clone URLs
       ASC_HUB_ADMIN_EMAIL: "admin@example.org"   # creates the first administrator once
     volumes:
       - hub-data:/var/lib/gitea
     ports:
-      - "3000:3000"      # web: put your TLS proxy in front of it
-      - "22223:2222"     # git over SSH (the built-in server listens on 2222 in the container)
+      - "3000:3000"      # web: put your TLS proxy in front of it. Nothing else is published.
 
 volumes:
   hub-data:
 ```
 
-The entrypoint, the health check and the backup tool of the image are tested against fake programs (`tests/allinone`); the image itself is built by CI. After your first deployment run `scripts/smoke.sh`, which signs in, creates a repository, pushes and clones it over https and ssh, and deletes it again ([docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md#checks-after-a-deploy)). The volume must belong to uid 1000; backups and restores use `asc-hub-backup` ([docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md#backup-and-restore)).
+HTTPS (443 through your proxy) is the only inbound port. The image starts no SSH server and the hub shows no SSH instructions. Git over SSH is an opt-in for a host that can open a port: set `ASC_HUB_SSH_ENABLE: "true"` and publish the SSH port yourself ([docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md#git-over-ssh-optional)).
+
+The entrypoint, the health check and the backup tool of the image are tested against fake programs (`tests/allinone`); the image itself is built by CI. After your first deployment run `scripts/smoke.sh`, which signs in, creates a repository, pushes and clones it over https, and deletes it again (with `ASC_HUB_SSH_ENABLE=true` it also checks ssh; otherwise those checks are skipped with a message) ([docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md#checks-after-a-deploy)). The volume must belong to uid 1000; backups and restores use `asc-hub-backup` ([docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md#backup-and-restore)).
 
 On first start the container generates the secrets it shares with `asc serve`, writes the `asc serve` configuration, runs its migrations, starts the hub with `[asc] WRITER = asc` and `NEW_REPOSITORIES = asc` already set, then starts `asc serve` on `127.0.0.1:7890` inside the container. You edit no `[asc]` setting for this. [docs/asc/OPERATIONS.md](docs/asc/OPERATIONS.md) lists every variable, the volume layout and the other deployment shapes.
 
@@ -96,7 +95,7 @@ printf '%s' "$TOKEN" | asc auth login --host https://hub.example.org --token-std
 asc clone https://hub.example.org/<owner>/<repo>
 ```
 
-`asc auth login` stores the token with your git credential helper, and `asc clone` reads `https://hub.example.org/.well-known/asc` to find the ASC server. A git client can still use `git clone https://hub.example.org/<owner>/<repo>.git` against the same repository; see [Git compatibility](#git-compatibility).
+`asc auth login` stores the token with your git credential helper, and `asc clone` reads `https://hub.example.org/.well-known/asc` to find the ASC server. A git client can still use `git clone https://hub.example.org/<owner>/<repo>.git` against the same repository, with your user name and the token as the password; see [Git compatibility](#git-compatibility).
 
 ## Configuration
 
@@ -114,6 +113,7 @@ The `[asc]` section (`modules/setting/asc.go`). Every key other than `ENABLED` i
 | `BRIDGE` | `FORGEJO__asc__BRIDGE` | `eager` | How the git directory that serves legacy git clients is kept: `eager` (asc keeps it current), `lazy` (the hub builds it with `asc export --git` on the first git request) or `off` (git access to ASC repositories is refused). |
 | `ASC_BINARY` | `FORGEJO__asc__ASC_BINARY` | `asc` | The `asc` executable a `lazy` bridge runs. The all-in-one image has it at `/usr/local/bin/asc`. |
 | `BRIDGE_WORKSPACES` | `FORGEJO__asc__BRIDGE_WORKSPACES` | `<APP_DATA_PATH>/asc-bridge` | Directory of the asc workspaces a `lazy` bridge is built from. |
+| `SSH_ENABLED` | `FORGEJO__asc__SSH_ENABLED` | `false` | Allows git over SSH. With `ENABLED = true` and `SSH_ENABLED = false` the hub forces `[server] DISABLE_SSH = true`: no SSH server, no SSH keys page, no SSH clone address. The all-in-one image sets it from `ASC_HUB_SSH_ENABLE`. |
 | `SHADOW_SAMPLE_PERCENT` | `FORGEJO__asc__SHADOW_SAMPLE_PERCENT` | `10` | For repositories with storage backend `dual`: the share (0 to 100) of reads repeated against asc and compared. `0` turns it off. |
 
 Related settings:
@@ -127,7 +127,7 @@ Related settings:
 
 ## Git compatibility
 
-An ASC repository can be cloned and pushed to with `git` over HTTPS and SSH. The hub keeps a git directory per repository, the bridge, at the path Forgejo always used, and serves git requests from it. A git push is imported into ASC by the pre-receive hook before it is accepted; a refusal from asc is returned to the pusher. Limits: ASC repositories have no LFS (the LFS routes answer 404), and a git signing decision cannot be honoured by the asc writer. Details are in [docs/asc/ARCHITECTURE.md](docs/asc/ARCHITECTURE.md).
+An ASC repository can be cloned and pushed to with `git` over HTTPS (your user name and an access token as the password; the `/<owner>/<repo>.git` address of the git-compatible endpoint). Git over SSH is off by default and exists only when you enable it (`[asc] SSH_ENABLED`, `ASC_HUB_SSH_ENABLE` in the image). The hub keeps a git directory per repository, the bridge, at the path Forgejo always used, and serves git requests from it. A git push is imported into ASC by the pre-receive hook before it is accepted; a refusal from asc is returned to the pusher. Limits: ASC repositories have no LFS (the LFS routes answer 404), and a git signing decision cannot be honoured by the asc writer. Details are in [docs/asc/ARCHITECTURE.md](docs/asc/ARCHITECTURE.md).
 
 ## Architecture
 
@@ -141,7 +141,7 @@ flowchart LR
     subgraph deployment["one container (Dockerfile.allinone)"]
         subgraph hub["ASC Hub (Forgejo v16 fork)"]
             W[web UI and API]
-            S[SSH server]
+            S["SSH server (off by default)"]
             P[pull requests as the stack review object]
             BR[git bridge directory]
         end
@@ -151,8 +151,8 @@ flowchart LR
         DB[(hub database)]
     end
     B -->|HTTPS| W
-    G -->|HTTPS, SSH| W
-    G --> S
+    G -->|HTTPS| W
+    G -.->|"SSH, only if enabled"| S
     A -->|"/.well-known/asc, then asc.v1"| R
     W -->|"asc.v1 over gRPC"| R
     R -->|"/api/internal/asc/authz, request-merge"| W

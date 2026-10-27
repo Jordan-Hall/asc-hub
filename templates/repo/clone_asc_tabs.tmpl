@@ -7,13 +7,15 @@
 	</div>
 	{{end}}
 	<div class="ui {{if $.AscGitAccess}}bottom attached {{end}}active tab segment" data-tab="asc-clone-with-asc">
+		<p class="help">{{ctx.Locale.Tr "repo.clone_signin_help" (print AppSubUrl "/user/settings/applications")}}</p>
 		<div class="markup">
-			<pre><code>asc clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></code></pre>
+			<pre><code>asc auth login --host {{AscHubHost}} --prompt
+asc clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></code></pre>
 		</div>
 	</div>
 	{{if $.AscGitAccess}}
 	<div class="ui bottom attached tab segment" data-tab="asc-clone-with-git">
-		<p class="help">{{ctx.Locale.Tr "repo.clone_with_git_help"}}</p>
+		<p class="help">{{ctx.Locale.Tr "repo.clone_with_git_help"}}{{if not SSHEnabled}} {{ctx.Locale.Tr "repo.clone_https_only_help"}}{{end}}</p>
 		<div class="markup">
 			<pre><code>git clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></code></pre>
 		</div>
