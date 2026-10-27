@@ -118,17 +118,18 @@ func init() {
 
 // AscQueueLander is the asc side of the queue: the land of a prefix and the restack of a stack.
 type AscQueueLander interface {
-	// Land lands bottom..pr atomically. noContentMerge sets UpdateRefsRequest.no_content_merge. A land that
-	// would need a content merge returns an error for which isAscNeedsContentMerge is true.
-	Land(ctx context.Context, doer *user_model.User, perm access_model.Permission, pr *issues_model.PullRequest, noContentMerge bool) (*pull_service.AscStackMergeResult, error)
+	// Land lands bottom..pr atomically. opt.NoContentMerge sets UpdateRefsRequest.no_content_merge, and opt.Auto
+	// says the merged event is the automatic one. A land that would need a content merge returns an error for
+	// which isAscNeedsContentMerge is true.
+	Land(ctx context.Context, doer *user_model.User, perm access_model.Permission, pr *issues_model.PullRequest, opt pull_service.AscMergeOptions) (*pull_service.AscStackMergeResult, error)
 	// Restack rewrites the stack of pr as new versions on top of the current target.
 	Restack(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest) error
 }
 
 type ascPullLander struct{}
 
-func (ascPullLander) Land(ctx context.Context, doer *user_model.User, perm access_model.Permission, pr *issues_model.PullRequest, noContentMerge bool) (*pull_service.AscStackMergeResult, error) {
-	return pull_service.MergeAscStackWith(ctx, doer, perm, pr, pull_service.AscMergeOptions{NoContentMerge: noContentMerge})
+func (ascPullLander) Land(ctx context.Context, doer *user_model.User, perm access_model.Permission, pr *issues_model.PullRequest, opt pull_service.AscMergeOptions) (*pull_service.AscStackMergeResult, error) {
+	return pull_service.MergeAscStackWith(ctx, doer, perm, pr, opt)
 }
 
 // Restack rewrites the whole stack of pr onto the target through asc Stacks.Restack, as doer. A stack that
@@ -343,6 +344,7 @@ func AscQueueEnqueue(ctx context.Context, doer *user_model.User, pr *issues_mode
 	}
 
 	res := &AscQueueEnqueueResult{}
+	var fresh []int64
 	err = db.WithTx(ctx, func(ctx context.Context) error {
 		e := db.GetEngine(ctx)
 		for _, it := range items {
@@ -369,11 +371,15 @@ func AscQueueEnqueue(ctx context.Context, doer *user_model.User, pr *issues_mode
 				return err
 			}
 			res.Queued = append(res.Queued, ent)
+			fresh = append(fresh, it.PR.ID)
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
+	}
+	for _, id := range fresh {
+		ascQueueNote(ctx, id, doer, true)
 	}
 	log.Info("asc audit: merge queue: repository %d, branch %q: user %d queued %d pull requests up to pull request %d",
 		first.BaseRepoID, first.BaseBranch, doer.ID, len(res.Queued), pr.ID)
@@ -420,7 +426,9 @@ func AscQueueCancel(ctx context.Context, doer *user_model.User, pr *issues_model
 			return ErrAscQueueNotAllowed
 		}
 	}
-	return db.WithTx(ctx, func(ctx context.Context) error {
+	var cancelled []*AscStackQueueEntry
+	err = db.WithTx(ctx, func(ctx context.Context) error {
+		cancelled = nil
 		entries, err := ascQueueEntries(ctx, ent.RepoID, ent.Branch, AscQueueQueued, AscQueueBlocked)
 		if err != nil {
 			return err
@@ -437,6 +445,7 @@ func AscQueueCancel(ctx context.Context, doer *user_model.User, pr *issues_model
 			}
 			if c.PullID == pr.ID || slices.ContainsFunc(prefix, func(it *pull_service.AscStackItem) bool { return it.PR.ID == pr.ID }) {
 				ids = append(ids, c.ID)
+				cancelled = append(cancelled, c)
 			}
 		}
 		if len(ids) == 0 {
@@ -450,6 +459,14 @@ func AscQueueCancel(ctx context.Context, doer *user_model.User, pr *issues_model
 		}
 		return err
 	})
+	if err != nil {
+		return err
+	}
+	for _, c := range cancelled {
+		ascQueueNote(ctx, c.PullID, doer, false)
+		ascQueueTell(ctx, c, doer.ID)
+	}
+	return nil
 }
 
 // AscQueueList returns the entries of a branch in enqueue order.
@@ -475,12 +492,22 @@ func ascQueueSetState(ctx context.Context, state, reason, blockedHead string, pu
 	if len(reason) > 250 {
 		reason = reason[:250]
 	}
+	var stopped []*AscStackQueueEntry
+	if state == AscQueueCancelled || state == AscQueueBlocked {
+		var err error
+		if stopped, err = ascQueueEntriesToChange(ctx, state, pullIDs, onlyFrom); err != nil {
+			return err
+		}
+	}
 	sess := db.GetEngine(ctx).In("pull_id", pullIDs)
 	if len(onlyFrom) > 0 {
 		sess = sess.In("state", onlyFrom)
 	}
-	_, err := sess.Cols("state", "reason", "blocked_head").Update(&AscStackQueueEntry{State: state, Reason: reason, BlockedHead: blockedHead})
-	return err
+	if _, err := sess.Cols("state", "reason", "blocked_head").Update(&AscStackQueueEntry{State: state, Reason: reason, BlockedHead: blockedHead}); err != nil {
+		return err
+	}
+	ascQueueAnnounceStopped(ctx, stopped, state)
+	return nil
 }
 
 // ascQueueRecover finishes what a crashed worker left in "landing".
@@ -625,7 +652,7 @@ func ascQueueTryLand(ctx context.Context, c *ascCandidate) (ascStepResult, int, 
 		return ascQueueSetState(ctx, AscQueueQueued, reason, "", ids, AscQueueLanding)
 	}
 
-	res, err := ascQueueLander.Land(ctx, doer, perm, c.pr, ascQueueNoContentMerge())
+	res, err := ascQueueLander.Land(ctx, doer, perm, c.pr, pull_service.AscMergeOptions{NoContentMerge: ascQueueNoContentMerge(), Auto: true})
 	switch {
 	case err == nil:
 	case errors.Is(err, pull_service.ErrAscStackNotAllowed):
@@ -745,7 +772,7 @@ func AscQueueLandNow(ctx context.Context, doer *user_model.User, pr *issues_mode
 	} else if paused {
 		return nil, ErrAscQueuePaused
 	}
-	res, err := ascQueueLander.Land(ctx, doer, perm, pr, ascQueueNoContentMerge())
+	res, err := ascQueueLander.Land(ctx, doer, perm, pr, pull_service.AscMergeOptions{NoContentMerge: ascQueueNoContentMerge()})
 	if err != nil {
 		return nil, err
 	}

@@ -78,6 +78,9 @@
 		<a class="{{if .PageIsSettingsAscAI}}active {{end}}item" href="{{.RepoLink}}/settings/asc/ai">
 			{{ctx.Locale.Tr "ascbyo.nav_ai"}}
 		</a>
+		<a class="{{if .PageIsSettingsAscBranchless}}active {{end}}item" href="{{.RepoLink}}/settings/asc/branchless">
+			{{ctx.Locale.Tr "repo.settings.asc_branchless"}}
+		</a>
 		{{end}}
 		{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
 		<a class="{{if .PageIsSettingsAscPolicy}}active {{end}}item" href="{{.RepoLink}}/settings/asc/policy">Policy and trust</a>

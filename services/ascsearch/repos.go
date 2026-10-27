@@ -36,11 +36,11 @@ type Repo struct {
 	Name string
 	// FullName is the name Forgejo shows, "Owner/Repo".
 	FullName string
-	// Link is the address of the repository page on this hub.
-	Link string
 	// Branch is the default branch; Rev is "refs/heads/<branch>".
-	Branch  string
-	Rev     string
+	Branch string
+	Rev    string
+	// Link is the path of the repository page, with the sub-URL and without a trailing slash.
+	Link    string
 	Updated int64
 }
 

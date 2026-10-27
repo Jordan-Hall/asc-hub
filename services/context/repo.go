@@ -636,6 +636,9 @@ func RepoAssignment(ctx *Context) context.CancelFunc {
 	ctx.Data["CloneButtonShowHTTPS"] = cloneButtonShowHTTPS
 	ctx.Data["CloneButtonShowSSH"] = cloneButtonShowSSH
 	ctx.Data["CloneButtonOriginLink"] = ctx.Data["RepoCloneLink"] // it may be rewritten to the WikiCloneLink by the router middleware
+	// An asc repository can be cloned with git only while the git bridge exists; the clone panel offers the git
+	// command only then.
+	ctx.Data["AscGitAccess"] = setting.Asc.Enabled && setting.Asc.Bridge != setting.AscBridgeOff
 
 	ctx.Data["RepoSearchEnabled"] = setting.Indexer.RepoIndexerEnabled
 	if setting.Indexer.RepoIndexerEnabled {

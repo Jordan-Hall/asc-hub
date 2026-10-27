@@ -115,6 +115,24 @@ merged like any other pull request, so branch protection and the queue apply.
 - If asc stored the reverts but a pull request could not be opened, the flash says how many were opened; the rest
   can be submitted from `asc` (`refs/users/...`).
 
+## Timeline and notifications
+
+What the pull request page and the notification list show of the queue:
+
+- Queuing a pull request adds the "scheduled to auto merge" line to its timeline, written as the user who queued it. Taking it
+  out of the queue adds the "canceled auto merging" line, written as the user who did it. When the queue itself cancels an
+  entry (the user who queued it lost the right or was deactivated, the pull request left its stack), the line is written as
+  the user who queued it.
+- When the queue cancels an entry, or blocks it because the land needs a content merge and the restack did not help, the user
+  who queued it and the author of the pull request get a notification. The user who removed an entry by hand is not told about
+  their own action. The reason is on the queue page; no text from asc or from an error is put in a notification.
+- A land raises the same merged event as a merge of one pull request: notifications, webhooks, the commit count, the issues the
+  pull request closes ("fixes #n"), branch-chain children, and a new conflict check of the open pull requests on the target.
+  A land by the queue raises the automatic merge event, "Merge the stack up to here" the ordinary one.
+- A restack and a revert write the push comment and the notification of the pull requests they move or open (see above).
+- Review summaries go back to asc after each of these events (`reviewed_version` is the newest version a review was made
+  on). A check posted through the commit status API reaches asc the same way as one from Actions.
+
 ## Secrets and errors
 
 The hub calls asc with the internal token after Forgejo has decided who may act (`ascclient.WithSystem`). No token
@@ -133,5 +151,7 @@ Every restack and revert writes an `asc audit:` line to the log with the reposit
   `no_content_merge` flag and `LAND_NEEDS_CONTENT_MERGE` on the wire.
 - `services/automerge/asc_stack_queue_test.go`, `asc_queue_view_test.go`: ordering, pause, lease, revalidation,
   the queue view and the dry run.
+- `services/automerge/asc_queue_events_test.go`: timeline lines and notifications of the queue.
+- `services/ascsync/review_version_test.go`: `reviewed_version` of the review summary.
 - `routers/web/repo/asc_queue_test.go`: every handler, the error mapping and the action buttons.
 - `tests/integration/asc_queue_test.go`: the routes through the full router.

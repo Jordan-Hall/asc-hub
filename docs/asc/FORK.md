@@ -17,11 +17,11 @@ The full history of Forgejo, and before it of Gitea, is in this repository's git
 
 The fork replaces the repository layer and the branding. It adds, in this order of importance:
 
-1. **Storage and writes.** A per-repository `storage_backend` (`git`, `dual`, `asc`), a writer interface with a git and an asc implementation, and an asc client. Paths: `modules/repostore`, `modules/ascclient`, `modules/ascproto`, `modules/git/ascbackend`, `modules/gitrepo/backend_select.go`, `modules/setting/asc.go`.
+1. **Storage and writes.** A per-repository `storage_backend` (`git`, `dual`, `asc`), a writer interface with a git and an asc implementation, and an asc client. Paths: `modules/repostore`, `modules/ascclient`, `modules/ascproto`, `modules/git/ascbackend`, `modules/gitrepo/backend_select.go`, `modules/setting/asc.go`. Code search can also run on asc (`[indexer] REPO_INDEXER_TYPE = asc`, `modules/indexer/code/asc`): asc indexes on ingest, the hub only asks, and the explore code page searches the asc repositories the viewer may read.
 2. **Compatibility layer.** The git bridge and the push import: `services/ascbridge`, `services/ascsync`, `services/lfs/asc.go`.
 3. **Review model.** Stacked pull requests, versions and interdiff, restore, revert, the merge queue, change-class approvals: `models/issues/pull_asc_stack.go`, `services/pull/*asc*.go`, `services/automerge/asc_stack_queue.go`, `templates/repo/pulls/asc_*.tmpl`.
 4. **Internal API for `asc serve`.** `routers/private/asc*.go`, `modules/private/asc.go`, `GET /.well-known/asc`.
-5. **New pages and APIs.** The inbox, drafts, repository search, graph and compare, the read-only RPC proxy: `routers/web/user/asc_*.go`, `routers/web/repo/asc_*.go`, `routers/api/v1/user/asc_inbox.go`, `services/ascinbox`.
+5. **New pages and APIs.** The inbox, drafts, repository search, symbols, graph and compare, the read-only branchless settings page, the read-only RPC proxy: `routers/web/user/asc_*.go`, `routers/web/repo/asc_*.go`, `routers/api/v1/user/asc_inbox.go`, `services/ascinbox`.
 6. **Sign-in for IDEs.** The OAuth2 public client `asc-ide` (`routers/web/auth/oauth_asc_ide.go`).
 7. **Actions.** `permissions:` for the job token with enforcement ([actions-token-permissions.md](actions-token-permissions.md)) and the asc context variables.
 8. **Database tables.** Migrations `v17b`, `v17c`, `v17d`, `v17e`, `v17g`, `v17h` in `models/forgejo_migrations`.

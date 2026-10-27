@@ -34,7 +34,7 @@ const (
 
 type rmLander struct{ lands []int64 }
 
-func (l *rmLander) Land(_ context.Context, _ *user_model.User, _ access_model.Permission, pr *issues_model.PullRequest, _ bool) (*pull_service.AscStackMergeResult, error) {
+func (l *rmLander) Land(_ context.Context, _ *user_model.User, _ access_model.Permission, pr *issues_model.PullRequest, _ pull_service.AscMergeOptions) (*pull_service.AscStackMergeResult, error) {
 	l.lands = append(l.lands, pr.ID)
 	return &pull_service.AscStackMergeResult{Merged: []*issues_model.PullRequest{pr}}, nil
 }
