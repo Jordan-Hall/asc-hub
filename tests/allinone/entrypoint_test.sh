@@ -182,6 +182,9 @@ t_first_boot() {
 	local b="$T/work/bootstrap"
 	eq "internal-token length" 48 "$(wc -c <"$b/internal-token" | tr -d ' ')"
 	eq "webhook-secret length" 48 "$(wc -c <"$b/webhook-secret" | tr -d ' ')"
+	eq "forwarded-key length" 64 "$(wc -c <"$b/forwarded-key" | tr -d ' ')"
+	check "forwarded-key is 64 hex digits" grep -Eqx '[0-9a-f]{64}' "$b/forwarded-key"
+	eq "forwarded-key mode" 400 "$(mode_of "$b/forwarded-key")"
 	eq "secret-key length" 64 "$(wc -c <"$b/secret-key" | tr -d ' ')"
 	eq "internal-token mode" 400 "$(mode_of "$b/internal-token")"
 	eq "secret-key mode" 400 "$(mode_of "$b/secret-key")"
@@ -197,6 +200,9 @@ t_first_boot() {
 	has "toml db" "$toml" "db = 'sqlite://$T/work/asc/custom.db?mode=rwc'"
 	has "toml bridge" "$toml" "bridge_promote = true"
 	has "toml hub url" "$toml" "url = \"http://127.0.0.1:$HP\""
+	has "toml forwarded key file" "$toml" "forwarded_key_file = \"$b/forwarded-key\""
+	has "toml trusted proxies" "$toml" 'trusted_proxies = ["127.0.0.1/32"]'
+	hasnt "toml holds no forwarded key" "$toml" "$(cat "$b/forwarded-key")"
 	has "toml token file" "$toml" "internal_token_file = \"$b/internal-token\""
 	has "toml git" "$toml" "enabled = true"
 	hasnt "toml holds no secret" "$toml" "$(cat "$b/internal-token")"
@@ -212,6 +218,7 @@ t_first_boot() {
 	eq "hub NEW_REPOSITORIES" asc "$(env_of $he FORGEJO__asc__NEW_REPOSITORIES)"
 	eq "hub BRIDGE" eager "$(env_of $he FORGEJO__asc__BRIDGE)"
 	eq "hub token uri" "file://$b/internal-token" "$(env_of $he FORGEJO__security__INTERNAL_TOKEN_URI)"
+	eq "hub forwarded key uri" "file://$b/forwarded-key" "$(env_of $he FORGEJO__asc__FORWARDED_KEY_URI)"
 	eq "hub INSTALL_LOCK" true "$(env_of $he INSTALL_LOCK)"
 	eq "hub DISABLE_REGISTRATION" true "$(env_of $he DISABLE_REGISTRATION)"
 	eq "hub SSH_DOMAIN" hub.test "$(env_of $he SSH_DOMAIN)"
@@ -241,7 +248,7 @@ t_first_boot() {
 	check_not "asc gets no HTTP_PORT of the hub" grep -q "^HTTP_PORT=" "$T/fake/$ae"
 
 	# nothing secret in the log
-	for s in "$(cat "$b/internal-token")" "$(cat "$b/secret-key")" hunter2 hunter3; do
+	for s in "$(cat "$b/internal-token")" "$(cat "$b/forwarded-key")" "$(cat "$b/secret-key")" hunter2 hunter3; do
 		hasnt "log holds no secret" "$T/out.1" "$s"
 	done
 

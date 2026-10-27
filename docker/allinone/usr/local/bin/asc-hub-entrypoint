@@ -132,15 +132,15 @@ fi
 mkdir -p "$REPO_ROOT"
 chmod 0700 "$BOOT" "$ASC_DIR"
 
-# ensure_secret FILE LENGTH: create a random alphanumeric secret once and keep it.
+# ensure_secret FILE LENGTH [CHARS]: create a random secret once and keep it (alphanumeric unless CHARS says otherwise).
 ensure_secret() {
-	local f="$1" n="$2"
+	local f="$1" n="$2" chars="${3:-A-Za-z0-9}"
 	if [ ! -s "$f" ]; then
 		rm -f "$f.tmp"
 		(
 			umask 077
 			set +o pipefail
-			LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c "$n" >"$f.tmp"
+			LC_ALL=C tr -dc "$chars" </dev/urandom | head -c "$n" >"$f.tmp"
 		)
 		[ "$(stat -c %s "$f.tmp")" -ge "$n" ] || die "could not generate $f"
 		mv -f "$f.tmp" "$f"
@@ -149,6 +149,10 @@ ensure_secret() {
 }
 ensure_secret "$BOOT/internal-token" 48
 ensure_secret "$BOOT/webhook-secret" 48
+# The key of the claims the hub signs about the signed-in person (32 bytes as 64 hex digits). The hub makes no access
+# tokens for its web pages: it calls asc serve with its own credential and a signed claim, and asc serve verifies the
+# claim with this same file.
+ensure_secret "$BOOT/forwarded-key" 64 '0-9a-f'
 ensure_secret "$BOOT/secret-key" 64
 
 # --- hub defaults (each can be overridden by setting the variable) -------------------------
@@ -194,6 +198,7 @@ set_default FORGEJO__actions__ENABLED "true"
 # The shared secret is a file, so it never lands in app.ini. The hub refuses a file URI together with
 # a literal INTERNAL_TOKEN, so INSTALL_LOCK stays true (the web installer would write one).
 set_default FORGEJO__security__INTERNAL_TOKEN_URI "file://$BOOT/internal-token"
+set_default FORGEJO__asc__FORWARDED_KEY_URI "file://$BOOT/forwarded-key"
 set_default FORGEJO__asc__ENABLED "true"
 set_default FORGEJO__asc__SERVER_URL "http://127.0.0.1:${ASC_PORT}"
 set_default FORGEJO__asc__PUBLIC_URL "${ROOT_URL%/}"
@@ -306,13 +311,13 @@ fi
 		printf "store = '%s'\n" "$STORE"
 		printf "db = '%s'\n" "$DB"
 		printf 'cache = { memory = "%s", disk_dir = "%s/cache", disk = "%s" }\n\n' "${ASC_CACHE_MEMORY:-256MiB}" "$ASC_DIR" "${ASC_CACHE_DISK:-2GiB}"
-		printf '[auth]\nprovider = "forgejo"\n\n'
+		printf '[auth]\nprovider = "forgejo"\nforwarded_key_file = "%s/forwarded-key"\n\n' "$BOOT"
 		printf '[forgejo]\nurl = "%s"\n' "$HUB_URL"
 		printf 'internal_token_file = "%s/internal-token"\n' "$BOOT"
 		printf 'webhook_secret_file = "%s/webhook-secret"\n' "$BOOT"
 		printf 'repo_root = "%s"\n' "$REPO_ROOT"
 		printf 'bridge_promote = %s\n\n' "$BRIDGE_PROMOTE"
-		printf '[limits]\ntext_memory = "%s"\ntrusted_proxies = []\n\n' "${ASC_TEXT_MEMORY:-256MiB}"
+		printf '[limits]\ntext_memory = "%s"\ntrusted_proxies = ["127.0.0.1/32"]\n\n' "${ASC_TEXT_MEMORY:-256MiB}"
 		printf '[git]\nenabled = %s\nview_dir = "%s/gitview"\n\n' "$GIT_ENABLED" "$ASC_DIR"
 		# asc serve has its own SSH listener; it stays off. The hub's SSH server (ASC_HUB_SSH_ENABLE) is the one that serves git over SSH.
 		printf '[ssh]\nenabled = false\n'
