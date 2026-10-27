@@ -108,10 +108,10 @@ Nothing in the hub writes a ref into a bridge directory.
 ## Trust and failure rules
 
 - The hub and `asc serve` share one secret, the internal token (`[security] INTERNAL_TOKEN` or `INTERNAL_TOKEN_URI`). `[asc] ENABLED = true` without it stops the start. The hub's internal API checks it in constant time.
-- User-initiated calls forward the user's own token, so asc authorizes them as that user. A call that carries no user token must be marked as a system call explicitly; the client never falls back to the internal token on its own (`modules/ascclient/auth.go`).
-- The signed-in person is also forwarded in a signed form, next to the token (`services/ascidentity`). See "Forwarded identity" below.
+- There is one token system, the platform's. The asc command line, agents and API clients present the platform's own personal access tokens (created at `/user/settings/applications`, same scopes, same `Authorization` header, same expiry and revocation), and `asc serve` accepts one only after asking the hub (`POST /api/internal/asc/authz`, `GET /api/v1/user`), which applies its own permission model. The hub invents no token type, scope set or table for asc. A call that carries no user credential must be marked as a system call explicitly; the client never falls back to the internal token on its own (`modules/ascclient/auth.go`).
+- A web page of the hub makes no token at all. It calls `asc serve` with the hub's service credential and a short-lived signed claim about the person, in which the hub says what its own permission model decided (`services/asctrust/usercall.go`, `services/ascidentity`). See "Forwarded identity" below.
 - `asc serve` authorises a repository by name through `POST /api/internal/asc/authz`. The endpoint answers only for a repository that the hub stores in asc (`storage_backend = asc`); a git repository that took over a name looks the same as a missing one. A rename or transfer of a repository, and the rename of a user or an organisation, first move every asc repository of that owner in the asc registry (`RepoAdmin.rename`, `services/repository/asc_rename.go`) and stop with an error when asc cannot be told; a later failure moves the registry back. An allowed answer carries `repo_id` and `owner_id`, the stable hub ids, so that `asc serve` can bind its registry entry to `repo_id` and refuse an entry whose id differs.
-- The token of a call made for a person lives for one request and has the least scope asc accepts (`services/asctrust/usercall.go`, `scopeOf`): `read:repository` and `read:user` for a read, and `write:repository` only for the changes and the administrator-only calls, because asc decides "administrator" by asking the hub for write access and reading the permission in the answer. A token for a repository is limited to that repository by a row; the token for the log of an organisation lists the organisation's asc repositories one by one (at most 200). No call token is ever for all repositories of a person. An asc that asked for read access and read the permission from the answer would let the hub drop `write:repository` from these.
+- The hub decides, again, at the moment of every web call, whatever the handler checked before: repository units, collaborator and team permissions, organisation ownership, private and public visibility, restricted users, site administrators, and an account that is inactive or may not sign in (`access_model.GetUserRepoPermission`). A person the hub does not allow gets no claim and nothing is sent to asc. Nothing is cached and nothing is stored: the claim is made per call and expires after a minute of clock skew.
 - The hub dials `asc serve` over gRPC. Plain `http` is accepted only for a loopback host; that is why the all-in-one image runs both on loopback in one container (see [OPERATIONS.md](OPERATIONS.md)), and a two-service deployment shares one network namespace. `[asc] PUBLIC_URL` must be `https` unless loopback, because clients send credentials there.
 - Mutating calls carry an operation id that is reused across retries, so a retry is not a second write.
 - Errors from asc reach users only as a named refusal; other failures become fixed texts.
@@ -119,30 +119,39 @@ Nothing in the hub writes a ref into a bridge directory.
 
 ## Forwarded identity
 
-A call made for a person carries that person's own token, and `asc serve` authorises it by that token. The hub adds the identity it signed in, so that `asc serve` can tell a site administrator from a writer and name the person in the audit log without a second lookup. `services/ascidentity` signs it; `asctrust.UserCall` and `ascagentui.UserCall` attach it to every call they make for a person. System calls carry no identity.
-
-The contract is five gRPC metadata entries (HTTP/2 headers, lower case):
+A call made from a web page for a person carries the hub's own service credential (the internal token) and a claim: who the person is and what the hub decided that person may do on the subject of the call. `asc serve` does not decide again. `services/ascidentity` signs the claim; `asctrust.UserCall`, `asctrust.UserCallOrg` and `ascagentui.UserCall` evaluate the hub's permission model first and attach it. The claim is the one `asc serve` defines in `asc_rpc::forwarded`, four gRPC metadata entries (lower case):
 
 | Header | Value |
 | --- | --- |
-| `x-asc-hub-user` | The numeric user id on the hub, in decimal with no leading zero. |
-| `x-asc-hub-login` | The login name: visible ASCII, no space, at most 255 bytes. |
-| `x-asc-hub-admin` | `1` for a site administrator, `0` otherwise. |
-| `x-asc-hub-ts` | The time of signing, Unix seconds, decimal. |
-| `x-asc-hub-sig` | Lower-case hex of HMAC-SHA256 (64 characters) over the text below. |
+| `x-asc-forwarded-user` | `<user id>:<login>`: the numeric id in decimal and the login (visible ASCII, no space). |
+| `x-asc-forwarded-role` | What the hub decided for the subject: `admin`, `write` or `read`. |
+| `x-asc-forwarded-ts` | The time of signing, Unix seconds, decimal. |
+| `x-asc-forwarded-mac` | Lower-case hex HMAC-SHA256 (64 characters) over the text below. |
 
-The signing text is the five lines `asc-hub-identity-v1`, user, login, admin and ts, each ended by a line feed (`
-`). The key is `HMAC-SHA256(secret, "asc-hub-identity-v1 key")`, where `secret` is the internal token that the hub and `asc serve` already share (`[security] INTERNAL_TOKEN` or `INTERNAL_TOKEN_URI`, at least 16 bytes). The bearer value is not used as the key itself.
+The signed text is `asc-forwarded-v1`, user, role, subject and ts, joined by line feeds with none after ts. The key is `[asc] FORWARDED_KEY` (32 bytes as 64 hex digits) or the file named by `[asc] FORWARDED_KEY_URI`; `asc serve` reads the same bytes from `[auth] forwarded_key_file`. The all-in-one image makes the key once (`bootstrap/forwarded-key`) and points both at it. Without a key the hub makes no web call and the page says it is not set up.
+
+The subject is what the claim is about, and a claim for one subject is no claim for another: `owner/name` (lower case) for a repository, `org:<name>` for the log of an organisation, `user:<login>` for the account of the person (signing keys) and `instance` for the whole server.
+
+| Call | Hub decision before signing | Role |
+| --- | --- | --- |
+| repository read | the person can read the code unit | `read`, or `write`/`admin` when the person has more |
+| repository change | the person can write the code unit | `write`, or `admin` |
+| repository administration (audit log, dependency scan) | the person is an administrator of the repository | `admin` |
+| organisation log | an owner of the organisation, or a site administrator | `admin` |
+| account | the signed-in person | `write` |
+| server | a site administrator | `admin` |
 
 A verifier must:
 
-1. Refuse the identity when any of the five entries is missing or repeated.
-2. Compute the signature over the received user, login, admin and ts, and compare it in constant time. Any mismatch is a refusal; the entries are not read as an identity before that.
-3. Accept only the canonical decimal spelling of user and ts, `0` or `1` for admin, and a login of visible ASCII.
-4. Refuse a time more than 5 minutes (`ascidentity.MaxSkew`) from its own clock, in either direction.
-5. Treat the result as who the hub signed in, never as a grant: the call is still authorised by its token, and a call without a valid identity is an ordinary token call. An entry of this contract on a call that is not authenticated by the secret holder must be dropped, not trusted.
+1. Refuse the claim when any entry is missing or repeated.
+2. Compute the MAC over the received user, role, the subject of the call and ts, and compare it in constant time. A mismatch is a refusal; the entries are not read before that.
+3. Accept only the canonical decimal spelling of ts.
+4. Refuse a time more than 60 seconds (`ascidentity.MaxSkew`) from its own clock, in either direction.
+5. Accept the claim only on a call authenticated with the hub's service credential; on any other call drop it.
 
-The hub replaces any `x-asc-hub-*` entry that a context already holds, so a caller cannot choose another person. A hub whose internal token is shorter than 16 bytes fails the call instead of signing with a weak key. `ascidentity.Verify` is the reference implementation of steps 1 to 4, and the tests pin its behaviour.
+The hub replaces any `x-asc-forwarded-*` entry that a context already holds, so a caller cannot choose another person. `ascidentity.Verify` is the reference implementation of steps 2 to 4, and the tests pin its behaviour.
+
+`asc serve` today honours the claim with the role `admin` for repairs. Accepting `read` and `write`, and the `org:`, `user:` and `instance` subjects for the audit log, policy, secrets, signing keys and dependency pages, is the server side of this contract; until it does, those pages answer from the server's own refusal.
 
 ## Package map
 
@@ -151,7 +160,7 @@ The hub replaces any `x-asc-hub-*` entry that a context already holds, so a call
 | `modules/setting/asc.go` | The `[asc]` settings and their validation. |
 | `modules/ascproto/ascv1` | Generated `asc.v1` stubs (see `modules/ascproto/README.md`). |
 | `services/ascdownloadsync` | Fetches the signed `asc` release from a private source into `[asc] DOWNLOAD_DIR`: checks the checksums and files against the configured release public key, publishes atomically, keeps the last good release. |
-| `services/ascidentity` | The signed identity of the person, forwarded with each call made for them. |
+| `services/ascidentity` | The signed claim about the person, forwarded with each call made for them. |
 | `modules/ascclient` | The gRPC client: authentication, retries, operation ids, verified object fetches, cache. |
 | `modules/repostore`, `modules/repostore/asc`, `modules/repostore/gitcli` | The writer interface, its router, and the asc and git writers. |
 | `modules/git/ascbackend` | Reads of an asc repository as a git backend. |
