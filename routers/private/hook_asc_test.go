@@ -306,7 +306,13 @@ func TestPostReceiveOfAscGetsTheRememberedPusherBack(t *testing.T) {
 	useAsc(t)
 	setBackend(t, "asc")
 	repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
-	ascsync.RememberPusher(repo, 2, []ascsync.PushRef{{Name: "refs/heads/qa-removed", Old: ascCommitID, New: ascZeroID}})
+	deletion := ascsync.PushRef{Name: "refs/heads/qa-removed", Old: ascCommitID, New: ascZeroID}
+	remember := func() ascsync.PushToken {
+		tok, err := ascsync.RememberPusher(repo, 2, []ascsync.PushRef{deletion})
+		require.NoError(t, err)
+		return tok
+	}
+	remember()
 
 	// asc names itself as the pusher, so the call arrives without a user.
 	opts := settleOpts(ascsync.PushTriggerAsc, 0)
@@ -314,10 +320,20 @@ func TestPostReceiveOfAscGetsTheRememberedPusherBack(t *testing.T) {
 	assert.Equal(t, int64(2), opts.UserID)
 	assert.Equal(t, "user2", opts.UserName)
 
-	// A user that asc did name is kept.
-	opts = settleOpts(ascsync.PushTriggerAsc, 5)
+	// The push is attributed once: a second call for the same ref change gets nobody.
+	opts = settleOpts(ascsync.PushTriggerAsc, 0)
+	old := ascsync.SetFanOutWaitForTest(50 * time.Millisecond)
+	defer old()
 	settle(t, opts)
-	assert.Equal(t, int64(5), opts.UserID)
+	assert.Zero(t, opts.UserID, "a remembered push is used once")
+
+	// Only a call without a user is given one: a user that asc did name, and the Actions user, are kept.
+	remember()
+	for _, id := range []int64{5, user_model.ActionsUserID} {
+		opts = settleOpts(ascsync.PushTriggerAsc, id)
+		settle(t, opts)
+		assert.Equal(t, id, opts.UserID)
+	}
 
 	// A git-origin call is not touched, and neither is a push nobody remembers.
 	opts = settleOpts("", 0)
@@ -327,8 +343,93 @@ func TestPostReceiveOfAscGetsTheRememberedPusherBack(t *testing.T) {
 	opts.NewCommitIDs[0] = ascCommitID
 	opts.OldCommitIDs[0] = ascZeroID
 	opts.RefFullNames[0] = "refs/heads/qa-unknown"
-	old := ascsync.SetFanOutWaitForTest(50 * time.Millisecond)
-	defer old()
 	settle(t, opts)
 	assert.Zero(t, opts.UserID)
+
+	// The remembered deletion is still there, and it is not claimed through another deletion of the same ref.
+	opts = settleOpts(ascsync.PushTriggerAsc, 0)
+	opts.OldCommitIDs[0] = "2222222222222222222222222222222222222222"
+	settle(t, opts)
+	assert.Zero(t, opts.UserID, "a deletion from another commit is another push")
+	opts = settleOpts(ascsync.PushTriggerAsc, 0)
+	settle(t, opts)
+	assert.Equal(t, int64(2), opts.UserID)
+}
+
+func TestPostReceiveOfAscAttributesOnlyACallThatIsOnePush(t *testing.T) {
+	useAsc(t)
+	setBackend(t, "asc")
+	defer ascsync.SetFanOutWaitForTest(50 * time.Millisecond)()
+	repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
+	a := ascsync.PushRef{Name: "refs/heads/qa-a", Old: ascZeroID, New: ascCommitID}
+	b := ascsync.PushRef{Name: "refs/heads/qa-b", Old: ascZeroID, New: ascCommitID}
+	_, err := ascsync.RememberPusher(repo, 2, []ascsync.PushRef{a})
+	require.NoError(t, err)
+	_, err = ascsync.RememberPusher(repo, 4, []ascsync.PushRef{b})
+	require.NoError(t, err)
+
+	opts := &private.HookOptions{
+		PushTrigger:  ascsync.PushTriggerAsc,
+		RefFullNames: []git.RefName{"refs/heads/qa-a", "refs/heads/qa-b"},
+		OldCommitIDs: []string{ascZeroID, ascZeroID},
+		NewCommitIDs: []string{ascCommitID, ascCommitID},
+	}
+	settle(t, opts)
+	assert.Zero(t, opts.UserID, "ref changes of two users in one call are attributed to nobody")
+
+	// A call whose lists disagree is not attributed either.
+	opts = &private.HookOptions{
+		PushTrigger:  ascsync.PushTriggerAsc,
+		RefFullNames: []git.RefName{"refs/heads/qa-a", "refs/heads/qa-b"},
+		OldCommitIDs: []string{ascZeroID},
+		NewCommitIDs: []string{ascCommitID},
+	}
+	settle(t, opts)
+	assert.Zero(t, opts.UserID)
+
+	// Each push on its own is still attributed: nothing was used up by the refusals.
+	for ref, want := range map[string]int64{"refs/heads/qa-a": 2, "refs/heads/qa-b": 4} {
+		opts = &private.HookOptions{
+			PushTrigger:  ascsync.PushTriggerAsc,
+			RefFullNames: []git.RefName{git.RefName(ref)},
+			OldCommitIDs: []string{ascZeroID},
+			NewCommitIDs: []string{ascCommitID},
+		}
+		settle(t, opts)
+		assert.Equal(t, want, opts.UserID, ref)
+	}
+}
+
+// A push that asc refused or could not take must not leave its pusher behind for a later call to claim.
+func TestPreReceiveForgetsThePusherUnlessTheImportSucceeds(t *testing.T) {
+	fake := useAsc(t)
+	repo := ascRepo(t, "asc")
+	claim := func() (int64, bool) {
+		return ascsync.ClaimPusher(repo, []ascsync.PushRef{{Name: "refs/heads/feature", Old: ascZeroID, New: ascCommitID}})
+	}
+
+	for { // earlier tests leave the pushes they did not claim
+		if _, found := claim(); !found {
+			break
+		}
+	}
+	for name, err := range map[string]error{
+		"a refusal":          status.Error(codes.FailedPrecondition, "! [rejected] refs/heads/feature (fetch first)"),
+		"an unavailable asc": status.Error(codes.Unavailable, "down"),
+	} {
+		fake.err = err
+		ok, _, _ := importCall(t, repo, pushOpts("refs/heads/feature"))
+		require.False(t, ok, name)
+		_, found := claim()
+		assert.False(t, found, name+": the pusher of a push that did not happen is forgotten")
+	}
+
+	fake.err = nil
+	ok, _, _ := importCall(t, repo, pushOpts("refs/heads/feature"))
+	require.True(t, ok)
+	id, found := claim()
+	assert.True(t, found, "an accepted push is remembered for the outbox call")
+	assert.Equal(t, int64(2), id)
+	_, found = claim()
+	assert.False(t, found, "and used once")
 }
