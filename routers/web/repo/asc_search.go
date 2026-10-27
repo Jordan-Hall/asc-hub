@@ -23,6 +23,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascsearch"
 	"forgejo.org/services/context"
 
 	"google.golang.org/grpc/codes"
@@ -113,9 +114,12 @@ type ascSearchFile struct {
 	Path     string
 	Link     string
 	Lang     string
+	FileID   string
 	Redacted bool
 	Also     []ascSearchAlso
 	Lines    []ascSearchLine
+	// Branches names the branches of an all-branches search that have this file.
+	Branches []ascSearchBranch
 }
 
 // ascSearchAlso is another path of the same file.
@@ -135,6 +139,7 @@ type ascSearchChunk struct {
 	Sources   []string
 	Text      string
 	Redacted  bool
+	Branches  []ascSearchBranch
 }
 
 // ascSearchCoverage is the state of one index.
@@ -153,6 +158,9 @@ type ascSearchQuery struct {
 	rawRef        string
 	rawPath       string
 	rawLang       string
+	scope         string // version, change, stack, branches or repos
+	rawPull       string
+	stackDiff     bool
 
 	path  string
 	lang  string
@@ -197,7 +205,10 @@ func AscSearch(ctx *context.Context) {
 		ascSearchFail(ctx, code)
 		return
 	}
-	ctx.Data["AscSearchRev"] = q.label
+	if q.scope == ascSearchScopeRepos {
+		ctx.Redirect(ascSearchExploreURL(q))
+		return
+	}
 
 	name, err := ascGraphRepoName(repo)
 	if err != nil {
@@ -214,31 +225,18 @@ func AscSearch(ctx *context.Context) {
 	defer cancel()
 	api := ascv1.NewCodeIntelClient(conn)
 
-	scope := &ascv1.Scope{
-		Repo: &ascv1.RepoRef{Name: name, IdMode: ascv1.IdMode_ID_MODE_GIT},
-		At:   &ascv1.Scope_Rev{Rev: q.rev},
+	targets, code := ascSearchTargets(ctx, repo, name, &q)
+	if code != 0 {
+		ascSearchFail(ctx, code)
+		return
 	}
-	if q.path != "" {
-		scope.Paths = []string{q.path}
-	}
-	if q.lang != "" {
-		scope.Langs = []string{q.lang}
-	}
-
-	var res ascSearchResult
-	switch q.mode {
-	case ascSearchModeLexical:
-		res, err = ascSearchLexical(callCtx, api, scope, q)
-	case ascSearchModeSymbol:
-		res, err = ascSearchSymbols(callCtx, api, scope, q)
-	default:
-		res, err = ascSearchSemantic(callCtx, api, scope, q)
-	}
+	res, failed, err := ascSearchRun(callCtx, api, q, targets)
 	if err != nil {
 		ascSearchMapError(ctx, err)
 		return
 	}
 
+	ctx.Data["AscSearchRev"] = ascSearchTargetLabel(q, targets)
 	ctx.Data["AscSearchDone"] = true
 	ctx.Data["AscSearchFiles"] = res.files
 	ctx.Data["AscSearchSymbols"] = res.symbols
@@ -246,12 +244,17 @@ func AscSearch(ctx *context.Context) {
 	ctx.Data["AscSearchTruncated"] = res.truncated
 	ctx.Data["AscSearchModel"] = res.model
 	ctx.Data["AscSearchCount"] = len(res.files) + len(res.symbols) + len(res.chunks)
+	ctx.Data["AscSearchFailed"] = failed
+	ctx.Data["AscSearchTargets"] = len(targets)
+	ctx.Data["AscSearchLangFacets"], ctx.Data["AscSearchDirFacets"] = ascSearchFacets(ctx.Repo.RepoLink, q, res)
 
-	// The coverage note is advice about the answer, so its failure never fails the page.
-	cov, ok := ascSearchCoverageOf(callCtx, api, scope, q.mode, res.resolved)
+	// The coverage note is advice about the answer, so its failure never fails the page. It is read for the
+	// first place searched; an all-branches search says so.
+	cov, ok := ascSearchCoverageOf(callCtx, api, targets[0].scope, q.mode, res.resolved)
 	ctx.Data["AscSearchCoverageKnown"] = ok
 	ctx.Data["AscSearchCoverage"] = cov
-	ctx.Data["AscSearchComplete"] = ok && ascSearchCovComplete(cov)
+	ctx.Data["AscSearchComplete"] = ok && ascSearchCovComplete(cov) && failed == 0
+	ctx.Data["AscSearchCoverageOf"] = targets[0].label
 	ctx.HTML(http.StatusOK, tplAscSearch)
 }
 
@@ -264,6 +267,9 @@ func ascSearchShowQuery(ctx *context.Context, q ascSearchQuery) {
 	ctx.Data["AscSearchRefInput"] = q.rawRef
 	ctx.Data["AscSearchPathInput"] = q.rawPath
 	ctx.Data["AscSearchLangInput"] = q.rawLang
+	ctx.Data["AscSearchScope"] = q.scope
+	ctx.Data["AscSearchPullInput"] = q.rawPull
+	ctx.Data["AscSearchStackDiff"] = q.stackDiff
 }
 
 // ascSearchRawQuery reads the query string without trusting it: what it returns is only echoed into the form.
@@ -283,6 +289,9 @@ func ascSearchRawQuery(ctx *context.Context) ascSearchQuery {
 		rawRef:        short("ref"),
 		rawPath:       short("path"),
 		rawLang:       short("lang"),
+		scope:         ascSearchScopeOK(short("scope")),
+		rawPull:       short("pull"),
+		stackDiff:     ctx.FormBool("diff"),
 	}
 	switch q.mode {
 	case ascSearchModeLexical, ascSearchModeSymbol, ascSearchModeSemantic:
@@ -362,6 +371,10 @@ func ascSearchParse(ctx *context.Context, q *ascSearchQuery) (int, bool) {
 			return http.StatusBadRequest, false
 		}
 		q.lang = q.rawLang
+	}
+
+	if q.scope != ascSearchScopeVersion {
+		return 0, true // a change, a stack, the branches and the other repositories need no revision
 	}
 
 	repoLink := ctx.Repo.RepoLink
@@ -514,6 +527,7 @@ func ascSearchFileOf(h *ascv1.FileHit, q ascSearchQuery) (ascSearchFile, error) 
 		Path:     path,
 		Link:     ascSearchLink(q, path, 0, 0),
 		Lang:     ascSymbolsText([]byte(h.GetLang()), ascSymbolsMaxShortTxt),
+		FileID:   ascsearch.Hex(h.GetFileId()),
 		Redacted: h.GetRedacted(),
 	}
 	for _, a := range h.GetAlsoAt() {

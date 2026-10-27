@@ -43,6 +43,7 @@ func prepareAscVersions(ctx *context.Context, pull *issues_model.PullRequest) *p
 		return nil
 	}
 	ctx.Data["AscVersions"] = versions
+	prepareAscSignatures(ctx, versions)
 	prepareAscRestore(ctx, pull, versions)
 	if ctx.Doer != nil {
 		seen, err := pull_service.AscSeenVersion(ctx, pull, ctx.Doer.ID, versions)

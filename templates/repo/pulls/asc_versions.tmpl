@@ -6,6 +6,7 @@ Template Attributes:
 * AscHeadVersion: uint32, the version the head of the pull request is at (0: the newest, or none)
 * AscCanRestore: bool, the viewer may restore a version of this open pull request
 * CsrfTokenHtml: the CSRF field of the restore form
+* AscSignatures: map[uint32]asctrust.Badge, the Verified badge of each version that has one (nil: none is shown)
 * AscSinceVersion: uint32, the version of the viewer's last review (0 when there is none or it is the latest)
 * Issue.Link: the pull request link
 Numbers are inserted as they are; the actor name comes from asc and is escaped by the template engine.
@@ -18,6 +19,7 @@ Numbers are inserted as they are; the actor name comes from asc and is escaped b
 <div class="ui small compact menu asc-versions tw-mb-4" data-testid="asc-versions">
 	<div class="ui dropdown item">
 		<span class="text">{{ctx.Locale.Tr "repo.pulls.asc_versions.of" $current (len .AscVersions.Versions)}}</span>
+		{{if $.AscSignatures}}{{template "repo/pulls/asc_signature_badge" (index $.AscSignatures $current)}}{{end}}
 		{{svg "octicon-triangle-down" 14 "dropdown icon"}}
 		<div class="menu">
 			<a class="item {{if not .AscVersionTo}}active{{end}}" href="{{.Issue.Link}}/files">{{ctx.Locale.Tr "repo.pulls.asc_versions.latest"}}</a>
@@ -25,6 +27,7 @@ Numbers are inserted as they are; the actor name comes from asc and is escaped b
 				<a class="item {{if and (eq $.AscVersionTo .N) (not $.AscVersionFrom)}}active{{end}}" href="{{$.Issue.Link}}/files?asc_to={{.N}}">
 					{{ctx.Locale.Tr "repo.pulls.asc_versions.version" .N}}
 					<span class="ui tiny text grey">{{.Actor}} · {{DateUtils.TimeSince .At}}</span>
+					{{if $.AscSignatures}}{{template "repo/pulls/asc_signature_badge" (index $.AscSignatures .N)}}{{end}}
 				</a>
 			{{end}}
 		</div>
@@ -59,6 +62,7 @@ Numbers are inserted as they are; the actor name comes from asc and is escaped b
 		</div>
 	</div>
 	{{end}}
+	<a class="item" href="{{.Issue.Link}}/asc/checks" data-testid="asc-checks-link">Checks</a>
 	{{if .AscSinceVersion}}
 	<a class="item" href="{{.Issue.Link}}/files?asc_from={{.AscSinceVersion}}&asc_to={{.AscVersions.Latest}}" data-testid="asc-since-last-review">
 		{{ctx.Locale.Tr "repo.pulls.asc_versions.since_review" .AscSinceVersion}}
