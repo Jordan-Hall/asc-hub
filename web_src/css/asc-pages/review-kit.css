@@ -176,6 +176,13 @@
 }
 
 /* ---------- page frame ---------- */
+.rv {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 .rv-page {
   width: 100%;
   max-width: 1296px;
@@ -187,13 +194,13 @@
   overflow-wrap: anywhere;
 }
 
-.rv-page *,
-.rv-page *::before,
-.rv-page *::after {
+.rv *,
+.rv *::before,
+.rv *::after {
   box-sizing: border-box;
 }
 
-.rv-page :where(h1, h2, h3, h4, p, ul, ol, dl, dd, figure) {
+.rv :where(h1, h2, h3, h4, p, ul, ol, dl, dd, figure) {
   margin: 0;
   padding: 0;
 }
@@ -202,22 +209,22 @@
   list-style: none;
 }
 
-:where(.rv-page a:not(.rv-btn, .rv-chip-btn, .rv-seg a, .rv-tab, .rv-side a)) {
+:where(.rv a:not(.rv-btn, .rv-chip-btn, .rv-seg a, .rv-tab, .rv-side a)) {
   color: var(--link);
 }
 
-.rv-page :focus-visible {
+.rv :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-radius: 6px;
 }
 
 .rv-mono,
-.rv-page code {
+.rv code {
   font-family: var(--fonts-monospace);
 }
 
-.rv-page code {
+.rv code {
   font-size: .86em;
   background: var(--surface-3);
   border-radius: 5px;
@@ -1615,7 +1622,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rv-page * {
+  .rv * {
     transition: none !important;
     scroll-behavior: auto !important;
   }

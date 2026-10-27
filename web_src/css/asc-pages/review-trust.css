@@ -1,0 +1,417 @@
+/* stylelint-disable scale-unlimited/declaration-strict-value, csstools/value-no-unknown-custom-properties -- the tokens of the review pages are defined in review-kit.css */
+
+/* Merge queue, operation log, checks, audit log, policy gate and secret scanning. */
+
+.rv-pill-no {
+  background: var(--err-soft);
+  color: var(--err);
+}
+
+.rv-pill-wn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.rv-pill-ro {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--text-2);
+}
+
+.rv-pill-via {
+  background: var(--primary-soft);
+  color: var(--link);
+}
+
+.rv-tone-ok {
+  color: var(--ok);
+}
+
+.rv-tone-no {
+  color: var(--err);
+}
+
+.rv-tone-wn {
+  color: var(--warn);
+}
+
+.rv-tone-ro {
+  color: var(--text-2);
+}
+
+.rv-center {
+  text-align: center;
+}
+
+.rv-nowrap {
+  white-space: nowrap;
+}
+
+.rv-narrow {
+  max-width: 720px;
+}
+
+.rv-crumb {
+  padding: 12px 0 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.rv-flat {
+  border-radius: 0;
+  border-inline: 0;
+  border-bottom: 0;
+}
+
+.rv-head-inline {
+  padding-top: 0;
+}
+
+.rv-select-s {
+  min-height: 44px;
+  width: auto;
+}
+
+.rv-empty-flat {
+  border: 0;
+  background: none;
+}
+
+.rv-ic {
+  vertical-align: -2px;
+}
+
+.rv-bare {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.rv-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rv-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-inline-start: 18px;
+  list-style: disc;
+  font-size: 14px;
+  color: var(--text-1);
+}
+
+.rv-bullets li::marker {
+  color: var(--text-3);
+}
+
+/* filters of the log, the checks and the audit pages */
+.rv-filter-fields-ops,
+.rv-filter-fields-3 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 640px) {
+  .rv-filter-fields-ops {
+    grid-template-columns: minmax(0, 340px) auto auto;
+  }
+
+  .rv-filter-fields-3 {
+    grid-template-columns: minmax(0, 220px) minmax(0, 220px) auto auto;
+  }
+}
+
+.rv-audit-filters .rv-card-f {
+  display: flex;
+}
+
+/* merge queue */
+.rv-queue,
+.rv-recent,
+.rv-ops,
+.rv-occurrences,
+.rv-checklist {
+  display: flex;
+  flex-direction: column;
+}
+
+.rv-queue-row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 6px 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+  align-items: start;
+}
+
+.rv-queue-row:last-child,
+.rv-recent-row:last-child,
+.rv-op:last-child,
+.rv-occ:last-child,
+.rv-checklist li:last-child {
+  border-bottom: 0;
+}
+
+.rv-queue-pos {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.rv-queue-title {
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.rv-queue-title a {
+  color: var(--text);
+}
+
+.rv-queue-state,
+.rv-queue-act {
+  grid-column: 2;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 900px) {
+  .rv-queue-row {
+    grid-template-columns: 32px minmax(0, 1fr) auto auto;
+    align-items: center;
+  }
+
+  .rv-queue-state,
+  .rv-queue-act {
+    grid-column: auto;
+  }
+}
+
+.rv-recent-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-2);
+  align-items: center;
+}
+
+.rv-recent-when {
+  grid-column: 2;
+  font-size: 13px;
+  text-align: end;
+}
+
+@media (min-width: 640px) {
+  .rv-recent-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .rv-recent-when {
+    grid-column: auto;
+    min-width: 90px;
+  }
+}
+
+.rv-quarantine {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rv-quarantine-row {
+  padding: 12px 14px;
+}
+
+.rv-quarantine-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* operation log */
+.rv-op {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.rv-op-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.rv-op-ref {
+  font-weight: 600;
+  background: none;
+  padding: 0;
+  font-size: 14px;
+}
+
+.rv-hashes code {
+  font-size: 12.5px;
+}
+
+.rv-blocked {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+@media (min-width: 640px) {
+  .rv-op {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .rv-op-main {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* checks */
+.rv-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.rv-strip-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.rv-strip-cells {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.rv-strip-cell {
+  width: 10px;
+  height: 22px;
+  border-radius: 2px;
+  background: var(--ok-dot);
+  display: block;
+}
+
+.rv-strip-no {
+  background: var(--err-dot);
+}
+
+.rv-strip-wn {
+  background: var(--warn-dot);
+}
+
+.rv-strip-ro {
+  background: var(--line-2);
+}
+
+.rv-trend + .rv-trend {
+  border-top: 1px solid var(--line-2);
+}
+
+.rv-log-block {
+  margin: 0;
+  padding: 12px 16px;
+  background: #0b1220;
+  color: #dbe5f1;
+  font-family: var(--fonts-monospace);
+  font-size: 12.5px;
+  line-height: 1.7;
+  overflow: auto;
+  max-height: 320px;
+  white-space: pre;
+}
+
+.rv-occ {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.rv-checklist li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 14px;
+}
+
+.rv-tablewrap.rv-flat {
+  background: none;
+}
+
+/* audit log */
+.rv-audit-filters .rv-formgrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rv-audit-filters .rv-field:not(.rv-half) {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 900px) {
+  .rv-audit-filters .rv-formgrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .rv-audit-filters .rv-field:not(.rv-half) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .rv-tbl-stack td.rv-cell-wide {
+    display: block;
+    text-align: start;
+  }
+
+  .rv-tbl-stack td.rv-cell-wide::before {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .rv-tbl-stack td.rv-cell-wide code {
+    margin-inline-start: 6px;
+  }
+}
+
+.rv-stats-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rv-stats-3 .rv-stat {
+  padding: 12px;
+}
+
+.rv-stats-3 .rv-stat-l {
+  font-size: 12.5px;
+}
+
+@media (min-width: 640px) {
+  .rv-stats-3 {
+    gap: 16px;
+  }
+
+  .rv-stats-3 .rv-stat {
+    padding: 16px 18px;
+  }
+}

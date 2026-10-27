@@ -10,10 +10,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	perm_model "forgejo.org/models/perm"
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/translation"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 
 	"github.com/stretchr/testify/require"
@@ -198,4 +200,68 @@ func TestAscReviewSnapshotWorkflows(t *testing.T) {
 	p = runAgents(t, agentsReq{path: testWorkflowsPath + "/runs/3", user: agentsOwner, features: true, params: map[string]string{":id": "3"}}, withLocale(AscWorkflowRun))
 	require.Equal(t, 200, p.status, p.body)
 	writeSnapshot(t, dir, "workflow-run", p.body)
+}
+
+func TestAscReviewSnapshotTrust(t *testing.T) {
+	dir := snapshotDir(t)
+
+	// Queue with two entries, a quarantine and a finished one.
+	f := newQRFixture(t)
+	ft := startFakeTrust(t, asctrust.FeatureCiInsights, asctrust.FeatureStacks, asctrust.FeatureAudit)
+	ft.listGroups = func(r *ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error) {
+		return &ascv1.ListFailureGroupsResponse{Groups: []*ascv1.FailureGroup{
+			quarantinedGroup(4, "webhook::refund_webhook_timeout", "Flaky since the gateway sandbox moved regions. Owner: Priya Raman."), quarantinedGroup(5, "ledger::tests::reconcile_batch", ""),
+		}}, nil
+	}
+	qrRequest(t, AscQueueEnqueue, 2, f.top, "user2/repo1/pulls/5/asc/enqueue", nil)
+	p := runTrust(t, trustReq{path: "/user2/repo1/asc/queue", user: 2, access: perm_model.AccessModeAdmin}, withLocale(AscQueuePage))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "queue", p.body)
+
+	ft.listRefLog = func(r *ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) {
+		return &ascv1.ListRefLogResponse{Entries: []*ascv1.RefLogEntry{
+			opsEntry(9, "refs/heads/retry-with-backoff", "user2", 1, 2, true, ""),
+			opsEntry(8, "refs/heads/main", "someone", 3, 4, false, "not your operation"),
+			opsEntry(7, "refs/heads/main", "user2", 5, 6, false, "outside the undo window of a protected ref"),
+			opsEntry(6, "refs/heads/odd", "other-name", 5, 6, false, "the ref moved since this operation"),
+			opsEntry(5, "refs/heads/new", "user2", 0, 6, false, "something the hub does not know"),
+		}, NextPageToken: "5"}, nil
+	}
+	p = runTrust(t, trustReq{path: "/user2/repo1/asc/ops", user: 2, access: perm_model.AccessModeWrite}, withLocale(AscOps))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "ops", p.body)
+	ft.listRefLog = func(r *ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) {
+		return &ascv1.ListRefLogResponse{}, nil
+	}
+	p = runTrust(t, trustReq{path: "/user2/repo1/asc/ops?mine=1", user: 2, access: perm_model.AccessModeWrite}, withLocale(AscOps))
+	writeSnapshot(t, dir, "ops-empty", p.body)
+	previewServer(ft, opsEntry(9, "refs/heads/feature", "user2", 1, 2, true, ""))
+	p = runTrust(t, trustReq{path: "/user2/repo1/asc/ops/undo?ref=refs/heads/feature&seq=9", user: 2, access: perm_model.AccessModeWrite}, withLocale(AscOpsUndoPreview))
+	writeSnapshot(t, dir, "ops-undo", p.body)
+
+	open := ascv1.FailureGroupState_FAILURE_GROUP_STATE_OPEN
+	ft.listGroups = func(r *ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error) {
+		return &ascv1.ListFailureGroupsResponse{Groups: []*ascv1.FailureGroup{
+			checksGroup(1, "panic", "unit", 7, open), checksGroup(2, "timeout", "e2e", 20, open), checksGroup(3, "lint", "unit", 2, open),
+		}, NextPageToken: "n_3"}, nil
+	}
+	p = runTrust(t, trustReq{path: "/user2/repo1/asc/checks", user: 2, access: perm_model.AccessModeRead}, withLocale(AscChecks))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "checks", p.body)
+	ft.listFlaky = func(r *ascv1.ListFlakyTestsRequest) (*ascv1.ListFlakyTestsResponse, error) {
+		return &ascv1.ListFlakyTestsResponse{Tests: []*ascv1.FlakyTest{{TestName: "retry::zero", JobName: "unit", FlakeRate: 0.125, Runs: 40, GroupId: 9, LastFlip: 1_700_000_000}, {TestName: "net::dial", FlakeRate: 0.05, Runs: 20}}}, nil
+	}
+	p = runTrust(t, trustReq{path: "/user2/repo1/asc/checks?view=flaky", user: 2, access: perm_model.AccessModeRead}, withLocale(AscChecks))
+	writeSnapshot(t, dir, "checks-flaky", p.body)
+
+	ft.auditList = func(r *ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error) {
+		return &ascv1.ListAuditResponse{Events: []*ascv1.AuditEvent{
+			auditEvent(9, "repo.ref.update", ascv1.AuditOutcome_AUDIT_OUTCOME_SUCCESS),
+			auditEvent(8, "policy.proposed", ascv1.AuditOutcome_AUDIT_OUTCOME_DENIED),
+			auditEvent(7, "storage.target.set", ascv1.AuditOutcome_AUDIT_OUTCOME_FAILED),
+		}, NextPageToken: "7"}, nil
+	}
+	p = runTrust(t, trustReq{path: "/user2/repo1/settings/asc/audit", user: 2, access: adminAccess}, withLocale(AscAudit))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "audit", p.body)
 }

@@ -5,76 +5,82 @@ Template Attributes:
 Texts that come from asc (ref names, actors) are cleaned in services/asctrust and escaped by the template engine.
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
 	{{template "repo/header" .}}
-	<div class="ui container">
-	{{template "base/alert" .}}
-	{{with .AscOps}}
-	<div class="asc-trust" data-testid="asc-ops">
-		<div class="asc-trust-head">
-			<h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_trust.ops.title"}}</h2>
-		</div>
-		<p class="asc-trust-lead">{{ctx.Locale.Tr "asc_trust.ops.lead"}}</p>
-
-		{{if .Unsupported}}
-			<div class="ui warning message" role="status" data-testid="asc-ops-unsupported">{{ctx.Locale.Tr "asc_trust.ops.unsupported"}}</div>
-		{{else}}
-			{{if .Problem}}<div class="ui negative message" role="alert" data-testid="asc-ops-problem">{{.Problem}}</div>{{end}}
-
-			<form class="ui form asc-trust-filters" method="get" action="{{.OpsURL}}" data-testid="asc-ops-filter">
-				<div class="asc-trust-grid">
-					<div class="field">
-						<label for="asc-ops-ref">{{ctx.Locale.Tr "asc_trust.ops.filter_ref"}}</label>
-						<input id="asc-ops-ref" name="ref" type="text" maxlength="1024" value="{{.Ref}}" autocomplete="off" placeholder="refs/heads/main">
-					</div>
-					<div class="field">
-						<div class="ui checkbox"><input id="asc-ops-mine" name="mine" type="checkbox" value="1"{{if .Mine}} checked{{end}}><label for="asc-ops-mine">{{ctx.Locale.Tr "asc_trust.ops.filter_mine"}}</label></div>
-					</div>
+	<div class="rv rv-page">
+		{{template "base/alert" .}}
+		<div class="rv-area">{{template "repo/asc_stack_nav" (dict "Tab" "ops" "Link" .RepoLink)}}</div>
+		{{with .AscOps}}
+		<div data-testid="asc-ops">
+			<header class="rv-head">
+				<div class="rv-head-main">
+					<div class="rv-eyebrow">{{$.Repository.FullName}} · {{ctx.Locale.Tr "asc_review.stack_eyebrow"}}</div>
+					<h1 class="rv-title">{{ctx.Locale.Tr "asc_trust.ops.title"}}</h1>
+					<p class="rv-lead">{{ctx.Locale.Tr "asc_trust.ops.lead"}}</p>
 				</div>
-				<div class="asc-trust-actions">
-					<button class="ui primary button" type="submit">{{ctx.Locale.Tr "asc_trust.ops.filter"}}</button>
-					<a class="ui basic button" href="{{.OpsURL}}">{{ctx.Locale.Tr "asc_trust.ops.clear"}}</a>
-				</div>
-			</form>
+			</header>
 
-			<section class="ast-card" aria-labelledby="asc-ops-list">
-				<div class="ast-card-head"><h3 id="asc-ops-list" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.ops.list"}}</h3></div>
-				{{if .Rows}}
-				<ol class="ast-ops" data-testid="asc-ops-list">
-					{{range .Rows}}
-					<li class="ast-op" data-testid="asc-op" data-seq="{{.Seq}}">
-						<div class="ast-op-main">
-							<div class="ast-op-line">
-								<span class="ast-pill ast-pill-via">{{ctx.Locale.Tr (printf "asc_trust.ops.via.%s" .ViaKey)}}</span>
-								<code class="asc-trust-code ast-op-ref">{{.Label}}</code>
-							</div>
-							<div class="asc-trust-sub">
-								{{if .Mine}}{{ctx.Locale.Tr "asc_trust.ops.you"}}{{else}}{{ctx.Locale.Tr "asc_trust.ops.by" .Actor}}{{end}}
-								· {{DateUtils.TimeSince .At}}
-								· {{if and .Old .New}}<code class="asc-trust-code">{{.OldShort}}</code> → <code class="asc-trust-code">{{.NewShort}}</code>{{else if .New}}{{ctx.Locale.Tr "asc_trust.ops.created"}} <code class="asc-trust-code">{{.NewShort}}</code>{{else}}{{ctx.Locale.Tr "asc_trust.ops.deleted"}}{{end}}
-							</div>
+			{{if .Unsupported}}
+				<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-ops-unsupported"><div>{{ctx.Locale.Tr "asc_trust.ops.unsupported"}}</div></div>
+			{{else}}
+				{{if .Problem}}<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-ops-problem"><div>{{.Problem}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="">{{ctx.Locale.Tr "asc_review.reload"}}</a></div></div></div>{{end}}
+
+				<form class="rv-filters" method="get" action="{{.OpsURL}}" data-testid="asc-ops-filter" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.ops.filter"}}">
+					<div class="rv-filter-fields rv-filter-fields-ops">
+						<div class="rv-field">
+							<label class="rv-label" for="asc-ops-ref">{{ctx.Locale.Tr "asc_trust.ops.filter_ref"}}</label>
+							<input class="rv-input" id="asc-ops-ref" name="ref" type="text" maxlength="1024" value="{{.Ref}}" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="refs/heads/main">
 						</div>
-						<div class="ast-op-side">
-							{{if .Undoable}}
-								{{if $.AscOps.CanUndo}}
-								<a class="ui basic button" href="{{$.AscOps.OpsURL}}/undo?ref={{.Ref | QueryEscape}}&seq={{.Seq}}" aria-label="{{ctx.Locale.TrString "asc_trust.ops.undo_aria" .Label}}" data-testid="asc-op-undo">{{ctx.Locale.Tr "asc_trust.ops.undo"}}</a>
-								{{end}}
-							{{else}}
-								<span class="asc-trust-sub" data-testid="asc-op-blocked">{{ctx.Locale.Tr (printf "asc_trust.ops.blocked.%s" .BlockKey)}}</span>
+						<label class="rv-check" for="asc-ops-mine"><input id="asc-ops-mine" name="mine" type="checkbox" value="1"{{if .Mine}} checked{{end}}> {{ctx.Locale.Tr "asc_trust.ops.filter_mine"}}</label>
+						<div class="rv-acts">
+							<button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "asc_trust.ops.filter"}}</button>
+							<a class="rv-btn rv-btn-secondary" href="{{.OpsURL}}">{{ctx.Locale.Tr "asc_trust.ops.clear"}}</a>
+						</div>
+					</div>
+				</form>
+
+				<section class="rv-card rv-gap" aria-labelledby="asc-ops-list">
+					<div class="rv-card-h"><h2 id="asc-ops-list">{{ctx.Locale.Tr "asc_trust.ops.list"}}</h2></div>
+					{{if .Rows}}
+						<ol class="rv-ops" data-testid="asc-ops-list">
+							{{range .Rows}}
+								<li class="rv-op" data-testid="asc-op" data-seq="{{.Seq}}">
+									<div class="rv-op-main">
+										<div class="rv-op-top">
+											<span class="rv-pill rv-pill-info">{{ctx.Locale.Tr (printf "asc_trust.ops.via.%s" .ViaKey)}}</span>
+											<code class="rv-op-ref">{{.Label}}</code>
+										</div>
+										<div class="rv-li-meta">
+											<span>{{if .Mine}}{{ctx.Locale.Tr "asc_trust.ops.you"}}{{else}}{{ctx.Locale.Tr "asc_trust.ops.by" .Actor}}{{end}}</span>
+											<span>{{DateUtils.TimeSince .At}}</span>
+											<span class="rv-hashes">{{if and .Old .New}}<code>{{.OldShort}}</code> <span aria-hidden="true">→</span><span class="rv-sr">{{ctx.Locale.Tr "asc_review.ops_to"}}</span> <code>{{.NewShort}}</code>{{else if .New}}{{ctx.Locale.Tr "asc_trust.ops.created"}} <code>{{.NewShort}}</code>{{else}}{{ctx.Locale.Tr "asc_trust.ops.deleted"}}{{end}}</span>
+										</div>
+									</div>
+									<div class="rv-op-side">
+										{{if .Undoable}}
+											{{if $.AscOps.CanUndo}}
+												<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscOps.OpsURL}}/undo?ref={{.Ref | QueryEscape}}&seq={{.Seq}}" aria-label="{{ctx.Locale.TrString "asc_trust.ops.undo_aria" .Label}}" data-testid="asc-op-undo">{{ctx.Locale.Tr "asc_trust.ops.undo"}}</a>
+											{{end}}
+										{{else}}
+											<span class="rv-blocked" data-testid="asc-op-blocked">{{svg "octicon-lock" 14 "rv-ic"}} {{ctx.Locale.Tr (printf "asc_trust.ops.blocked.%s" .BlockKey)}}</span>
+										{{end}}
+									</div>
+								</li>
 							{{end}}
+						</ol>
+					{{else if not .Problem}}
+						<div class="rv-empty rv-empty-flat" data-testid="asc-ops-empty">
+							<h3>{{ctx.Locale.Tr "asc_review.ops_empty_title"}}</h3>
+							<p>{{ctx.Locale.Tr "asc_trust.ops.empty"}}</p>
+							{{if or .Ref .Mine}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.OpsURL}}">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></div>{{end}}
 						</div>
-					</li>
 					{{end}}
-				</ol>
-				{{else if not .Problem}}
-				<p data-testid="asc-ops-empty">{{ctx.Locale.Tr "asc_trust.ops.empty"}}</p>
-				{{end}}
-				{{if .NextURL}}<div class="asc-trust-actions ast-card-foot"><a class="ui basic button" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.ops.more"}}</a></div>{{end}}
-			</section>
-			<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_trust.ops.note"}}</p>
+					{{if .NextURL}}<div class="rv-card-f rv-center"><a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.ops.more"}}</a></div>{{end}}
+				</section>
+				<p class="rv-hint rv-gap">{{ctx.Locale.Tr "asc_trust.ops.note"}}</p>
+			{{end}}
+		</div>
 		{{end}}
-	</div>
-	{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}

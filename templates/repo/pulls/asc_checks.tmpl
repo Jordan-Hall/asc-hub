@@ -1,116 +1,118 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
 	{{template "repo/header" .}}
-	<div class="ui container">
-	{{template "base/alert" .}}
-	{{with .AscPullChecks}}
-	<div class="asc-trust" data-testid="asc-pull-checks">
-		<p class="asc-trust-links"><a href="{{.PullURL}}">{{ctx.Locale.Tr "asc_trust.pull.back"}}</a> <a href="{{.ChecksURL}}">{{ctx.Locale.Tr "asc_trust.pull.all_checks_link"}}</a></p>
-		{{if .Problem}}
-			<div class="ui warning message" role="status" data-testid="asc-pull-checks-problem">{{.Problem}}</div>
-		{{else if .Checks}}
-		{{$c := .Checks}}
-		<div class="asc-trust-head">
-			<h2 class="asc-trust-title" data-testid="asc-pull-headline">{{$c.Headline}}</h2>
-			<span class="ast-pill ast-pill-{{$c.Tone}}" data-testid="asc-pull-pill">{{$c.Pill}}</span>
-			{{if and .CanRerun $c.Runs}}
-			<form class="ast-head-actions" method="post" action="{{.RerunURL}}">
-				{{$.CsrfTokenHtml}}
-				{{if $c.FailedRuns}}<button class="ui basic button" type="submit" name="mode" value="failed" data-testid="asc-rerun-failed">{{ctx.Locale.Tr "asc_trust.pull.rerun_failed"}}</button>{{end}}
-				<button class="ui basic button" type="submit" name="mode" value="all" data-testid="asc-rerun-all">{{ctx.Locale.Tr "asc_trust.pull.rerun_all"}}</button>
-			</form>
+	<div class="rv rv-page">
+		{{template "base/alert" .}}
+		{{with .AscPullChecks}}
+		<div data-testid="asc-pull-checks">
+			<p class="rv-crumb"><a href="{{.PullURL}}">{{ctx.Locale.Tr "asc_trust.pull.back"}}</a> <span class="rv-faint" aria-hidden="true">/</span> <a href="{{.ChecksURL}}">{{ctx.Locale.Tr "asc_trust.pull.all_checks_link"}}</a></p>
+			{{if .Problem}}
+				<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-pull-checks-problem"><div>{{.Problem}}</div></div>
+			{{else if .Checks}}
+			{{$c := .Checks}}
+			<header class="rv-head">
+				<div class="rv-head-main">
+					<h1 class="rv-title" data-testid="asc-pull-headline">{{$c.Headline}}</h1>
+					<p class="rv-run-sub"><span class="rv-pill rv-pill-{{$c.Tone}}" data-testid="asc-pull-pill">{{$c.Pill}}</span></p>
+					<p class="rv-li-meta" data-testid="asc-pull-meta">
+						{{if $c.Version}}<span>{{ctx.Locale.Tr "asc_trust.pull.version_commit" $c.Version}} <code>{{$c.Head}}</code></span>{{else}}<span>{{ctx.Locale.Tr "asc_trust.pull.commit"}} <code>{{$c.Head}}</code></span>{{end}}
+						{{if not $c.Started.IsZero}}<span>{{ctx.Locale.Tr "asc_trust.pull.started"}} {{DateUtils.TimeSince $c.Started}}</span>{{end}}
+						{{if $c.Took}}<span>{{ctx.Locale.Tr "asc_trust.pull.took"}} {{$c.Took}}</span>{{end}}
+						{{range $c.Stale}}<span class="rv-warn" data-testid="asc-pull-stale">{{ctx.Locale.Tr "asc_trust.pull.stale" .}}</span>{{end}}
+					</p>
+				</div>
+				{{if and .CanRerun $c.Runs}}
+				<form class="rv-acts" method="post" action="{{.RerunURL}}">
+					{{$.CsrfTokenHtml}}
+					{{if $c.FailedRuns}}<button class="rv-btn rv-btn-secondary" type="submit" name="mode" value="failed" data-testid="asc-rerun-failed">{{ctx.Locale.Tr "asc_trust.pull.rerun_failed"}}</button>{{end}}
+					<button class="rv-btn rv-btn-secondary" type="submit" name="mode" value="all" data-testid="asc-rerun-all">{{ctx.Locale.Tr "asc_trust.pull.rerun_all"}}</button>
+				</form>
+				{{end}}
+			</header>
+			{{if .CausesNote}}<div class="rv-banner rv-banner-warn" role="status"><div>{{.CausesNote}}</div></div>{{end}}
+
+			<div class="rv-cols rv-cols-main-side rv-gap">
+				<div class="rv-stack">
+					{{range $c.Causes}}
+					<section class="rv-card" aria-labelledby="asc-cause-{{.Index}}" data-testid="asc-cause">
+						<div class="rv-card-h">
+							<h2 id="asc-cause-{{.Index}}">{{ctx.Locale.Tr "asc_trust.pull.cause" .Index .Title}}</h2>
+							<span class="rv-pill rv-pill-err">{{ctx.Locale.TrN .Tests "asc_trust.pull.tests_one" "asc_trust.pull.tests_other" .Tests}}</span>
+							{{if $c.Version}}{{if .IsNew}}<span class="rv-pill rv-pill-info">{{ctx.Locale.Tr "asc_trust.pull.new_in" $c.Version}}</span>{{else}}<span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_trust.pull.seen_before"}}</span>{{end}}{{end}}
+						</div>
+						{{if .Excerpt}}<pre class="rv-log-block rv-flat" tabindex="0">{{.Excerpt}}</pre>{{end}}
+						<div class="rv-card-f rv-acts">
+							{{if .RunURL}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.RunURL}}">{{ctx.Locale.Tr "asc_trust.pull.full_log"}}</a>{{end}}
+							<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">{{ctx.Locale.Tr "asc_trust.pull.open_group"}}</a>
+						</div>
+					</section>
+					{{end}}
+
+					{{range $c.Flaky}}
+					<section class="rv-card" aria-labelledby="asc-flaky-{{.GroupID}}" data-testid="asc-flaky-card">
+						<div class="rv-card-h">
+							<h2 id="asc-flaky-{{.GroupID}}">{{ctx.Locale.Tr "asc_trust.pull.flaky_card" .Test}}</h2>
+							<span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_trust.pull.passed_on_retry"}}</span>
+						</div>
+						<div class="rv-card-b">
+							<p>{{ctx.Locale.Tr "asc_trust.pull.flaky_text" .Flips .Runs}}</p>
+							{{if .Strip}}
+							<div class="rv-strip" role="img" aria-label="{{ctx.Locale.TrString "asc_trust.pull.flaky_aria" .Flips .Runs}}">
+								<span class="rv-strip-label" aria-hidden="true">{{ctx.Locale.Tr "asc_trust.pull.last_days"}}</span>
+								<span class="rv-strip-cells">{{range .Strip}}<span class="rv-strip-cell rv-strip-{{.Tone}}" title="{{DateUtils.AbsoluteShort .Day}}: {{.Label}}"></span>{{end}}</span>
+							</div>
+							{{end}}
+						</div>
+						<div class="rv-card-f rv-acts">
+							{{if $.AscPullChecks.CanWrite}}
+							<form class="rv-inline-form" method="post" action="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}/state">
+								{{$.CsrfTokenHtml}}
+								<input type="hidden" name="op" value="{{index $.AscPullChecks.Ops .GroupID}}">
+								<input type="hidden" name="state" value="quarantined">
+								<input type="hidden" name="next" value="pull">
+								<input type="hidden" name="index" value="{{$.AscPullChecks.Index}}">
+								<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" data-testid="asc-quarantine">{{ctx.Locale.Tr "asc_trust.pull.quarantine"}}</button>
+							</form>
+							{{end}}
+							<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscPullChecks.NewIssueURL}}?{{.IssueQuery}}">{{ctx.Locale.Tr "asc_trust.pull.open_issue"}}</a>
+							<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">{{ctx.Locale.Tr "asc_trust.pull.history"}}</a>
+						</div>
+					</section>
+					{{end}}
+
+					{{if and (not $c.Causes) (not $c.Flaky)}}
+					<section class="rv-card"><div class="rv-card-b"><p class="rv-muted" data-testid="asc-pull-nocause">{{if eq $c.Tone "no"}}{{ctx.Locale.Tr "asc_trust.pull.no_reason"}}{{else}}{{ctx.Locale.Tr "asc_trust.pull.nothing"}}{{end}}</p></div></section>
+					{{end}}
+				</div>
+
+				<aside class="rv-side">
+					<section class="rv-card" aria-labelledby="asc-all-checks">
+						<div class="rv-card-h"><h2 id="asc-all-checks">{{ctx.Locale.Tr "asc_trust.pull.all_checks"}}</h2></div>
+						<ul class="rv-checklist" data-testid="asc-all-checks">
+							{{range $c.Statuses}}
+							<li>
+								<span>{{if .URL}}<a href="{{.URL}}">{{.Context}}</a>{{else}}{{.Context}}{{end}}{{if .Required}} <span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_trust.pull.required"}}</span>{{end}}</span>
+								<b class="rv-tone-{{.Tone}}">{{.Label}}</b>
+							</li>
+							{{else}}
+							<li class="rv-muted">{{ctx.Locale.Tr "asc_trust.pull.none_reported"}}</li>
+							{{end}}
+						</ul>
+					</section>
+					{{if $c.Main}}
+					<section class="rv-card" aria-labelledby="asc-vs-main">
+						<div class="rv-card-h"><h2 id="asc-vs-main">{{ctx.Locale.Tr "asc_trust.pull.vs_main"}}</h2></div>
+						<div class="rv-card-b"><p data-testid="asc-pull-main" class="rv-tone-{{$c.MainTone}}">{{$c.Main}}</p></div>
+					</section>
+					{{end}}
+					<section class="rv-card">
+						<div class="rv-card-b"><p class="rv-muted"><b>{{ctx.Locale.Tr "asc_trust.pull.trust_title"}}</b> {{ctx.Locale.Tr "asc_trust.pull.trust_text"}}</p></div>
+					</section>
+				</aside>
+			</div>
 			{{end}}
 		</div>
-		<div class="ast-meta" data-testid="asc-pull-meta">
-			{{if $c.Version}}<span>{{ctx.Locale.Tr "asc_trust.pull.version_commit" $c.Version}} <code class="asc-trust-code">{{$c.Head}}</code></span>{{else}}<span>{{ctx.Locale.Tr "asc_trust.pull.commit"}} <code class="asc-trust-code">{{$c.Head}}</code></span>{{end}}
-			{{if not $c.Started.IsZero}}<span>{{ctx.Locale.Tr "asc_trust.pull.started"}} {{DateUtils.TimeSince $c.Started}}</span>{{end}}
-			{{if $c.Took}}<span>{{ctx.Locale.Tr "asc_trust.pull.took"}} {{$c.Took}}</span>{{end}}
-			{{range $c.Stale}}<span class="ast-meta-warn" data-testid="asc-pull-stale">{{ctx.Locale.Tr "asc_trust.pull.stale" .}}</span>{{end}}
-		</div>
-		{{if .CausesNote}}<div class="ui warning message" role="status">{{.CausesNote}}</div>{{end}}
-
-		<div class="ast-two">
-			<div class="ast-two-main">
-				{{range $c.Causes}}
-				<section class="ast-card" aria-labelledby="asc-cause-{{.Index}}" data-testid="asc-cause">
-					<div class="ast-card-head">
-						<h3 id="asc-cause-{{.Index}}" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.pull.cause" .Index .Title}}</h3>
-						<span class="ast-pill ast-pill-no">{{ctx.Locale.TrN .Tests "asc_trust.pull.tests_one" "asc_trust.pull.tests_other" .Tests}}</span>
-						{{if $c.Version}}{{if .IsNew}}<span class="ast-pill ast-pill-info">{{ctx.Locale.Tr "asc_trust.pull.new_in" $c.Version}}</span>{{else}}<span class="ast-pill ast-pill-ro">{{ctx.Locale.Tr "asc_trust.pull.seen_before"}}</span>{{end}}{{end}}
-					</div>
-					{{if .Excerpt}}<pre class="ast-log" tabindex="0">{{.Excerpt}}</pre>{{end}}
-					<div class="asc-trust-actions ast-card-foot">
-						{{if .RunURL}}<a class="ui basic button" href="{{.RunURL}}">{{ctx.Locale.Tr "asc_trust.pull.full_log"}}</a>{{end}}
-						<a class="ui basic button" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">{{ctx.Locale.Tr "asc_trust.pull.open_group"}}</a>
-					</div>
-				</section>
-				{{end}}
-
-				{{range $c.Flaky}}
-				<section class="ast-card" aria-labelledby="asc-flaky-{{.GroupID}}" data-testid="asc-flaky-card">
-					<div class="ast-card-head">
-						<h3 id="asc-flaky-{{.GroupID}}" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.pull.flaky_card" .Test}}</h3>
-						<span class="ast-pill ast-pill-wn">{{ctx.Locale.Tr "asc_trust.pull.passed_on_retry"}}</span>
-					</div>
-					<div class="ast-card-body">
-						<p>{{ctx.Locale.Tr "asc_trust.pull.flaky_text" .Flips .Runs}}</p>
-						{{if .Strip}}
-						<div class="ast-strip" role="img" aria-label="{{ctx.Locale.TrString "asc_trust.pull.flaky_aria" .Flips .Runs}}">
-							<span class="ast-strip-label" aria-hidden="true">{{ctx.Locale.Tr "asc_trust.pull.last_days"}}</span>
-							{{range .Strip}}<span class="ast-strip-cell ast-strip-{{.Tone}}" title="{{DateUtils.AbsoluteShort .Day}}: {{.Label}}"></span>{{end}}
-						</div>
-						{{end}}
-					</div>
-					<div class="asc-trust-actions ast-card-foot">
-						{{if $.AscPullChecks.CanWrite}}
-						<form class="ast-inline-form" method="post" action="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}/state">
-							{{$.CsrfTokenHtml}}
-							<input type="hidden" name="op" value="{{index $.AscPullChecks.Ops .GroupID}}">
-							<input type="hidden" name="state" value="quarantined">
-							<input type="hidden" name="next" value="pull">
-							<input type="hidden" name="index" value="{{$.AscPullChecks.Index}}">
-							<button class="ui basic button" type="submit" data-testid="asc-quarantine">{{ctx.Locale.Tr "asc_trust.pull.quarantine"}}</button>
-						</form>
-						{{end}}
-						<a class="ui basic button" href="{{$.AscPullChecks.NewIssueURL}}?{{.IssueQuery}}">{{ctx.Locale.Tr "asc_trust.pull.open_issue"}}</a>
-						<a class="ui basic button" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">{{ctx.Locale.Tr "asc_trust.pull.history"}}</a>
-					</div>
-				</section>
-				{{end}}
-
-				{{if and (not $c.Causes) (not $c.Flaky)}}
-				<section class="ast-card"><div class="ast-card-body"><p class="asc-trust-sub" data-testid="asc-pull-nocause">{{if eq $c.Tone "no"}}{{ctx.Locale.Tr "asc_trust.pull.no_reason"}}{{else}}{{ctx.Locale.Tr "asc_trust.pull.nothing"}}{{end}}</p></div></section>
-				{{end}}
-			</div>
-
-			<aside class="ast-two-side">
-				<section class="ast-card" aria-labelledby="asc-all-checks">
-					<div class="ast-card-head"><h3 id="asc-all-checks" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.pull.all_checks"}}</h3></div>
-					<ul class="ast-checklist" data-testid="asc-all-checks">
-						{{range $c.Statuses}}
-						<li>
-							<span>{{if .URL}}<a href="{{.URL}}">{{.Context}}</a>{{else}}{{.Context}}{{end}}{{if .Required}} <span class="ast-pill ast-pill-ro">{{ctx.Locale.Tr "asc_trust.pull.required"}}</span>{{end}}</span>
-							<b class="ast-tone-{{.Tone}}">{{.Label}}</b>
-						</li>
-						{{else}}
-						<li class="text grey">{{ctx.Locale.Tr "asc_trust.pull.none_reported"}}</li>
-						{{end}}
-					</ul>
-				</section>
-				{{if $c.Main}}
-				<section class="ast-card" aria-labelledby="asc-vs-main">
-					<div class="ast-card-head"><h3 id="asc-vs-main" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.pull.vs_main"}}</h3></div>
-					<div class="ast-card-body"><p data-testid="asc-pull-main" class="ast-tone-{{$c.MainTone}}">{{$c.Main}}</p></div>
-				</section>
-				{{end}}
-				<section class="ast-card">
-					<div class="ast-card-body"><p class="asc-trust-sub"><b>{{ctx.Locale.Tr "asc_trust.pull.trust_title"}}</b> {{ctx.Locale.Tr "asc_trust.pull.trust_text"}}</p></div>
-				</section>
-			</aside>
-		</div>
 		{{end}}
-	</div>
-	{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}

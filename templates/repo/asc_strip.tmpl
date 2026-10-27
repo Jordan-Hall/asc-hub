@@ -5,9 +5,9 @@ Template Attributes:
 * . : *asctrust.History
 */}}
 {{if .Cells}}
-<div class="ast-strip" role="img" aria-label="{{ctx.Locale.TrString "asc_trust.checks.strip_aria" (len .Cells) .Runs .Failures .Flips}}">
-	<span class="ast-strip-label" aria-hidden="true">{{ctx.Locale.Tr "asc_trust.checks.last_days" (len .Cells)}}</span>
-	{{range .Cells}}<span class="ast-strip-cell ast-strip-{{.Tone}}" title="{{DateUtils.AbsoluteShort .Day}}: {{if eq .Tone "ro"}}{{ctx.Locale.TrString "asc_trust.checks.cell_none"}}{{else if eq .Tone "wn"}}{{ctx.Locale.TrString "asc_trust.checks.cell_flipped" .Fails .Runs .Flips}}{{else if eq .Tone "no"}}{{ctx.Locale.TrString "asc_trust.checks.cell_failed" .Fails .Runs}}{{else}}{{ctx.Locale.TrString "asc_trust.checks.cell_passed" .Runs}}{{end}}"></span>{{end}}
+<div class="rv-strip" role="img" aria-label="{{ctx.Locale.TrString "asc_trust.checks.strip_aria" (len .Cells) .Runs .Failures .Flips}}">
+	<span class="rv-strip-label" aria-hidden="true">{{ctx.Locale.Tr "asc_trust.checks.last_days" (len .Cells)}}</span>
+	<span class="rv-strip-cells">{{range .Cells}}<span class="rv-strip-cell rv-strip-{{.Tone}}" title="{{DateUtils.AbsoluteShort .Day}}: {{if eq .Tone "ro"}}{{ctx.Locale.TrString "asc_trust.checks.cell_none"}}{{else if eq .Tone "wn"}}{{ctx.Locale.TrString "asc_trust.checks.cell_flipped" .Fails .Runs .Flips}}{{else if eq .Tone "no"}}{{ctx.Locale.TrString "asc_trust.checks.cell_failed" .Fails .Runs}}{{else}}{{ctx.Locale.TrString "asc_trust.checks.cell_passed" .Runs}}{{end}}"></span>{{end}}</span>
 </div>
-<p class="asc-trust-sub" data-testid="asc-strip-summary">{{ctx.Locale.Tr "asc_trust.checks.strip_summary" .Runs .Failures .Flips .RatePercent}}{{if .Flaky}} {{ctx.Locale.Tr "asc_trust.checks.strip_flaky"}}{{end}}</p>
+<p class="rv-hint" data-testid="asc-strip-summary">{{ctx.Locale.Tr "asc_trust.checks.strip_summary" .Runs .Failures .Flips .RatePercent}}{{if .Flaky}} {{ctx.Locale.Tr "asc_trust.checks.strip_flaky"}}{{end}}</p>
 {{end}}
