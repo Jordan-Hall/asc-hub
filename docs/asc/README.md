@@ -25,6 +25,7 @@ Only changes that are in the `asc/v16` log (unit ids in brackets):
 - OAuth2 public client `asc-ide` with PKCE and IDE redirects (P06).
 - A read-only asc RPC proxy at `/-/asc/rpc` (P04).
 - A commit graph page at `/asc/graph` (C42).
+- Agents and workflows pages behind a per-person switch that is off by default (H5). See [AGENTS-UI.md](AGENTS-UI.md).
 - The ASC themes `asc-auto`, `asc-light`, `asc-dark` (see [THEME.md](THEME.md)).
 - A CI baseline and the `asc-image` workflow (K01, see [BASELINE.md](BASELINE.md)).
 
