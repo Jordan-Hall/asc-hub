@@ -1,87 +1,64 @@
+{{/*
+The CI failures page of a repository (routers/web/repo/asc_checks.go): three views. "failures" shows the failing jobs
+and the failure groups, "flaky" the tests that flip between pass and fail, "trends" the history of each failing job.
+Template Attributes:
+* AscChecks: *ascChecksPage
+Texts from asc and from runners are cleaned in services/asctrust and escaped by the template engine.
+*/}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
 	{{template "repo/header" .}}
 	<div class="ui container">
+	{{template "base/alert" .}}
 	{{with .AscChecks}}
 	<div class="asc-trust" data-testid="asc-checks">
 		<div class="asc-trust-head">
-			<h2 class="asc-trust-title">Checks</h2>
-			<span class="asc-trust-sub">Failures grouped by cause, and the tests that flip between pass and fail</span>
+			<h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_trust.checks.title"}}</h2>
+			<span class="asc-trust-sub">{{ctx.Locale.Tr "asc_trust.checks.lead"}}</span>
 		</div>
 
+		<nav class="ast-tabs" aria-label="{{ctx.Locale.TrString "asc_trust.checks.views_aria"}}" data-testid="asc-checks-views">
+			{{range .Views}}
+			<a class="ast-tab{{if .Active}} active{{end}}" href="{{.URL}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-checks-view-{{.Key}}">{{ctx.Locale.Tr (printf "asc_trust.checks.view.%s" .Key)}}</a>
+			{{end}}
+		</nav>
+
 		{{if .Unsupported}}
-			<div class="ui warning message" role="status" data-testid="asc-checks-unsupported">This ASC server does not group CI failures yet.</div>
+			<div class="ui warning message" role="status" data-testid="asc-checks-unsupported">{{ctx.Locale.Tr "asc_trust.checks.unsupported"}}</div>
 		{{else}}
 			{{if .Problem}}<div class="ui negative message" role="alert" data-testid="asc-checks-problem">{{.Problem}}</div>{{end}}
 
-			<div class="ast-tabs" role="navigation" aria-label="Failure group state">
+			{{if eq .View "failures"}}
+			<nav class="ast-tabs" aria-label="{{ctx.Locale.TrString "asc_trust.checks.state_aria"}}">
 				{{range .States}}
-				<a class="ast-tab{{if .Active}} active{{end}}" href="{{$.AscChecks.ChecksURL}}{{if .Key}}?state={{.Key}}{{end}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-checks-tab-{{if .Key}}{{.Key}}{{else}}open{{end}}">{{.Label}}</a>
+				<a class="ast-tab{{if .Active}} active{{end}}" href="{{$.AscChecks.ChecksURL}}{{if .Key}}?state={{.Key}}{{end}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-checks-tab-{{if .Key}}{{.Key}}{{else}}open{{end}}">{{ctx.Locale.Tr (printf "asc_trust.checks.state.%s" .Label)}}</a>
 				{{end}}
-			</div>
+			</nav>
 			<form class="ui form asc-trust-filters" method="get" action="{{.ChecksURL}}">
 				{{if .State}}<input type="hidden" name="state" value="{{.State}}">{{end}}
 				<div class="asc-trust-grid">
-					<div class="field"><label for="asc-checks-job">Job</label><input id="asc-checks-job" name="job" type="text" maxlength="512" value="{{.Job}}" autocomplete="off"></div>
-					<div class="field"><label for="asc-checks-test">Test</label><input id="asc-checks-test" name="test" type="text" maxlength="512" value="{{.Test}}" autocomplete="off"></div>
-					<div class="field">
-						<label for="asc-checks-window">Flaky window</label>
-						<select id="asc-checks-window" name="window">
-							<option value="7"{{if eq .Window 7}} selected{{end}}>7 days</option>
-							<option value="14"{{if eq .Window 14}} selected{{end}}>14 days</option>
-							<option value="30"{{if eq .Window 30}} selected{{end}}>30 days</option>
-							<option value="90"{{if eq .Window 90}} selected{{end}}>90 days</option>
-							<option value="180"{{if eq .Window 180}} selected{{end}}>180 days</option>
-						</select>
-					</div>
-					<div class="field"><div class="ui checkbox"><input id="asc-checks-flaky" name="flaky" type="checkbox" value="1"{{if .Flaky}} checked{{end}}><label for="asc-checks-flaky">Flaky only</label></div></div>
+					<div class="field"><label for="asc-checks-job">{{ctx.Locale.Tr "asc_trust.checks.job"}}</label><input id="asc-checks-job" name="job" type="text" maxlength="512" value="{{.Job}}" autocomplete="off"></div>
+					<div class="field"><label for="asc-checks-test">{{ctx.Locale.Tr "asc_trust.checks.test"}}</label><input id="asc-checks-test" name="test" type="text" maxlength="512" value="{{.Test}}" autocomplete="off"></div>
+					<div class="field"><div class="ui checkbox"><input id="asc-checks-flaky" name="flaky" type="checkbox" value="1"{{if .Flaky}} checked{{end}}><label for="asc-checks-flaky">{{ctx.Locale.Tr "asc_trust.checks.flaky_only"}}</label></div></div>
 				</div>
-				<div class="asc-trust-actions"><button class="ui primary button" type="submit">Filter</button><a class="ui basic button" href="{{.ChecksURL}}">Clear</a></div>
+				<div class="asc-trust-actions"><button class="ui primary button" type="submit">{{ctx.Locale.Tr "asc_trust.checks.filter"}}</button><a class="ui basic button" href="{{.ChecksURL}}">{{ctx.Locale.Tr "asc_trust.checks.clear"}}</a></div>
 			</form>
 
 			{{if .Data}}
-			<section class="ast-card" aria-labelledby="asc-groups">
-				<div class="ast-card-head"><h3 id="asc-groups" class="ast-card-title">Failure groups</h3><span class="ast-card-aside">One group per cause</span></div>
+			{{if .Jobs}}
+			<section class="ast-card" aria-labelledby="asc-jobs">
+				<div class="ast-card-head"><h3 id="asc-jobs" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.jobs_title"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_trust.checks.jobs_aside"}}</span></div>
 				<div class="asc-trust-table-wrap">
-					<table class="ui very basic table asc-trust-table" data-testid="asc-groups">
-						<caption class="tw-sr-only">Failure groups</caption>
-						<thead><tr><th scope="col">Cause</th><th scope="col">State</th><th scope="col">Seen</th><th scope="col">Changes</th><th scope="col">Last seen</th></tr></thead>
+					<table class="ui very basic table asc-trust-table" data-testid="asc-jobs">
+						<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_trust.checks.jobs_title"}}</caption>
+						<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.job"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_causes"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_failures"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_changes"}}</th></tr></thead>
 						<tbody>
-							{{range .Data.Groups.Rows}}
+							{{range .Jobs}}
 							<tr>
-								<td>
-									<a href="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}">{{if .Title}}{{.Title}}{{else}}{{.TestName}}{{end}}</a>
-									{{if .Flaky}} <span class="ast-pill ast-pill-wn">Flaky</span>{{end}}
-									<div class="asc-trust-sub">{{if .TestName}}<code class="asc-trust-code">{{.TestName}}</code> {{end}}{{if .JobName}}in {{.JobName}}{{end}}</div>
-								</td>
-								<td><span class="ast-pill ast-pill-{{.Tone}}">{{.State}}</span></td>
+								<th scope="row">{{if .Job}}<a href="{{$.AscChecks.ChecksURL}}?job={{.Job | QueryEscape}}">{{.Job}}</a>{{else}}<span class="text grey">{{ctx.Locale.Tr "asc_trust.checks.no_job"}}</span>{{end}}{{if .Flaky}} <span class="ast-pill ast-pill-wn">{{ctx.Locale.Tr "asc_trust.checks.flaky"}}</span>{{end}}</th>
+								<td>{{.Groups}}</td>
 								<td>{{.Occurrences}}</td>
-								<td>{{.ChangesAffected}}</td>
-								<td class="asc-trust-nowrap">{{DateUtils.TimeSince .LastSeen}}</td>
-							</tr>
-							{{else}}
-							<tr><td colspan="5" class="center aligned text grey" data-testid="asc-groups-empty">No failures in this state.</td></tr>
-							{{end}}
-						</tbody>
-					</table>
-				</div>
-				{{if .NextURL}}<div class="asc-trust-actions"><a class="ui basic button" href="{{.NextURL}}" rel="next">More groups</a></div>{{end}}
-			</section>
-
-			{{if .Data.Flaky}}
-			<section class="ast-card" aria-labelledby="asc-flaky">
-				<div class="ast-card-head"><h3 id="asc-flaky" class="ast-card-title">Flaky tests</h3><span class="ast-card-aside">Last {{.Window}} days</span></div>
-				<div class="asc-trust-table-wrap">
-					<table class="ui very basic table asc-trust-table" data-testid="asc-flaky">
-						<caption class="tw-sr-only">Flaky tests</caption>
-						<thead><tr><th scope="col">Test</th><th scope="col">Flake rate</th><th scope="col">Runs</th><th scope="col">Last flip</th></tr></thead>
-						<tbody>
-							{{range .Data.Flaky}}
-							<tr>
-								<td>{{if .GroupID}}<a href="{{$.AscChecks.ChecksURL}}/groups/{{.GroupID}}">{{.TestName}}</a>{{else}}{{.TestName}}{{end}}{{if .JobName}}<div class="asc-trust-sub">in {{.JobName}}</div>{{end}}</td>
-								<td>{{.RatePercent}}%</td>
-								<td>{{.Runs}}</td>
-								<td class="asc-trust-nowrap">{{DateUtils.TimeSince .LastFlip}}</td>
+								<td>{{.Changes}}</td>
 							</tr>
 							{{end}}
 						</tbody>
@@ -89,6 +66,87 @@
 				</div>
 			</section>
 			{{end}}
+
+			<section class="ast-card" aria-labelledby="asc-groups">
+				<div class="ast-card-head"><h3 id="asc-groups" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.groups_title"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_trust.checks.groups_aside"}}</span></div>
+				<div class="asc-trust-table-wrap">
+					<table class="ui very basic table asc-trust-table" data-testid="asc-groups">
+						<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_trust.checks.groups_title"}}</caption>
+						<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_cause"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_state"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_seen"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_changes"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_last_seen"}}</th></tr></thead>
+						<tbody>
+							{{range .Data.Groups.Rows}}
+							<tr>
+								<td>
+									<a href="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}">{{if .Title}}{{.Title}}{{else}}{{.TestName}}{{end}}</a>
+									{{if .Flaky}} <span class="ast-pill ast-pill-wn">{{ctx.Locale.Tr "asc_trust.checks.flaky"}}</span>{{end}}
+									<div class="asc-trust-sub">{{if .TestName}}<code class="asc-trust-code">{{.TestName}}</code> {{end}}{{if .JobName}}{{ctx.Locale.Tr "asc_trust.checks.in_job" .JobName}}{{end}}</div>
+								</td>
+								<td><span class="ast-pill ast-pill-{{.Tone}}">{{ctx.Locale.Tr (printf "asc_trust.checks.state.%s" .StateKey)}}</span></td>
+								<td>{{.Occurrences}}</td>
+								<td>{{.ChangesAffected}}</td>
+								<td class="asc-trust-nowrap">{{DateUtils.TimeSince .LastSeen}}</td>
+							</tr>
+							{{else}}
+							<tr><td colspan="5" class="center aligned text grey" data-testid="asc-groups-empty">{{ctx.Locale.Tr "asc_trust.checks.groups_empty"}}</td></tr>
+							{{end}}
+						</tbody>
+					</table>
+				</div>
+				{{if .NextURL}}<div class="asc-trust-actions"><a class="ui basic button" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.checks.more_groups"}}</a></div>{{end}}
+			</section>
+			{{end}}
+			{{end}}
+
+			{{if or (eq .View "flaky") (eq .View "trends")}}
+			<form class="ui form asc-trust-filters" method="get" action="{{.ChecksURL}}">
+				<input type="hidden" name="view" value="{{.View}}">
+				<div class="field">
+					<label for="asc-checks-window">{{ctx.Locale.Tr "asc_trust.checks.window"}}</label>
+					<select id="asc-checks-window" name="window">
+						{{range .Windows}}<option value="{{.}}"{{if eq $.AscChecks.Window .}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" .}}</option>{{end}}
+					</select>
+				</div>
+				<div class="asc-trust-actions"><button class="ui basic button" type="submit">{{ctx.Locale.Tr "asc_trust.checks.show"}}</button></div>
+			</form>
+			{{end}}
+
+			{{if eq .View "flaky"}}
+			<section class="ast-card" aria-labelledby="asc-flaky">
+				<div class="ast-card-head"><h3 id="asc-flaky" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.flaky_title"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_trust.checks.last_days" .Window}}</span></div>
+				<div class="asc-trust-table-wrap">
+					<table class="ui very basic table asc-trust-table" data-testid="asc-flaky">
+						<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_trust.checks.flaky_title"}}</caption>
+						<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.test"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_rate"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_runs"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_last_flip"}}</th></tr></thead>
+						<tbody>
+							{{range .FlakyRows}}
+							<tr>
+								<td>{{if .GroupID}}<a href="{{$.AscChecks.ChecksURL}}/groups/{{.GroupID}}">{{.TestName}}</a>{{else}}{{.TestName}}{{end}}{{if .JobName}}<div class="asc-trust-sub">{{ctx.Locale.Tr "asc_trust.checks.in_job" .JobName}}</div>{{end}}</td>
+								<td>{{.RatePercent}}%</td>
+								<td>{{.Runs}}</td>
+								<td class="asc-trust-nowrap">{{DateUtils.TimeSince .LastFlip}}</td>
+							</tr>
+							{{else}}
+							<tr><td colspan="4" class="center aligned text grey" data-testid="asc-flaky-empty">{{ctx.Locale.Tr "asc_trust.checks.flaky_empty"}}</td></tr>
+							{{end}}
+						</tbody>
+					</table>
+				</div>
+				{{if .NextURL}}<div class="asc-trust-actions"><a class="ui basic button" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.checks.more_tests"}}</a></div>{{end}}
+			</section>
+			{{end}}
+
+			{{if eq .View "trends"}}
+			<section class="ast-card" aria-labelledby="asc-trends">
+				<div class="ast-card-head"><h3 id="asc-trends" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.trends_title"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_trust.checks.last_days" .Window}}</span></div>
+				{{range .Trends}}
+				<div class="ast-card-body" data-testid="asc-trend">
+					<h4 class="asc-trust-sub"><a href="{{$.AscChecks.ChecksURL}}?job={{.Job | QueryEscape}}">{{.Job}}</a></h4>
+					{{template "repo/asc_strip" .History}}
+				</div>
+				{{else}}
+				<p data-testid="asc-trends-empty">{{ctx.Locale.Tr "asc_trust.checks.trends_empty"}}</p>
+				{{end}}
+			</section>
 			{{end}}
 		{{end}}
 	</div>
