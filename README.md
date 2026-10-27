@@ -6,7 +6,7 @@
 
 ASC Hub is the hosting product for ASC (Agent Source Control): a web server where people review and land stacks of changesets that they made with the `asc` command line or an IDE plugin.
 It is a fork of [Forgejo](https://forgejo.org) v16 that keeps Forgejo's web foundation (accounts, organizations, teams, issues, sign-in, administration, Actions) and replaces the repository layer: repositories are stored by `asc serve` and the hub talks to it over the `asc.v1` RPC protocol.
-ASC Hub is **not Forgejo** and **not a git forge**. Git clients can still clone and push through a compatibility layer, but the repository of record is an ASC repository, not a bare git directory.
+ASC is the successor to the commit-and-branch workflow: changesets and stacks instead of a staging area, long branches and hand-made rebases. You do not need git to use ASC Hub. ASC Hub is **not Forgejo** and **not a git forge**. Existing tools and CI that still speak git can clone and push through an optional compatibility layer, but the repository of record is an ASC repository, not a bare git directory.
 
 ## Who it is for
 
@@ -15,7 +15,7 @@ Agents are optional: a coding agent that drives `asc` works against the same hub
 
 ## Why ASC Hub
 
-We kept running into the same problems with branches and pull requests: long branches that are hard to review, stacked work that has to be rebased by hand, force-pushes that people are afraid of, approvals that go stale when the author pushes again, and agents that can make a dozen changes an hour. So ASC stores work as changesets in stacks, keeps every version of each change, and lets reviewers approve an exact version. We forked Forgejo instead of starting from zero because accounts, organizations, sign-in, issues and administration are already solved there, and we replace only the repository layer. We kept git compatibility so that nobody has to move all their tools on one day. [docs/asc/WHY.md](docs/asc/WHY.md) has the longer argument, what ASC Hub will not do, and the benefits with their status.
+Working with branches and pull requests, we kept running into the same problems: long branches that are hard to review, stacked work that has to be rebased by hand, force-pushes that people are afraid of, approvals that go stale when the author pushes again, and agents that can make a dozen changes an hour. So ASC stores work as changesets in stacks, keeps every version of each change, and lets reviewers approve an exact version. We forked Forgejo instead of starting from zero because accounts, organizations, sign-in, issues and administration are already solved there, and we replace only the repository layer. We kept an optional compatibility layer for tools that still speak git, so that nobody has to move all their tools on one day. [docs/asc/WHY.md](docs/asc/WHY.md) has the longer argument, what ASC Hub will not do, and the benefits with their status.
 
 ## Benefits
 
@@ -24,7 +24,7 @@ Each line names the mechanism. "Planned" means it is not built. [docs/asc/WHY.md
 - **Developers.** Undo with `asc undo` and `asc redo` (local operations; a push or land is not undone), restore an earlier version of a change from the web, small stacked changes with one review each, review from a phone (mobile-first pages). No speed claim: we have no measured numbers for the hub.
 - **Teams.** Approvals tied to a version, with the diff between versions and "changes since your last review"; fewer approvals for docs-only style changes by rules that the change cannot edit; an ordered merge queue with a web button, a restack button and the revert of a landed stack. Planned: policy file in the repository, signed changes, failure and flaky-test grouping, an audit page.
 - **People using agents.** Scoped access tokens, MCP tools in `asc` with writes enabled only by the user's configuration, pushes to non-shared names stored as the pusher's own refs in a branchless repository, everything reversible through kept versions, search by meaning on the repository search page. Planned: agent budgets.
-- **Operators.** One container with the hub and `asc serve` inside (`Dockerfile.allinone`), SQLite or Postgres, a Coolify deployment, git clients keep working through the bridge. Bring your own S3 storage and bring your own AI keys have settings pages for a person, an organization and a repository (partial: they need an `asc serve` that implements them).
+- **Operators.** One container with the hub and `asc serve` inside (`Dockerfile.allinone`), SQLite or Postgres, a Coolify deployment, existing git-speaking tools keep working through the optional bridge. Bring your own S3 storage and bring your own AI keys have settings pages for a person, an organization and a repository (partial: they need an `asc serve` that implements them).
 
 ## Feature highlights
 
@@ -95,7 +95,7 @@ printf '%s' "$TOKEN" | asc auth login --host https://hub.example.org --token-std
 asc clone https://hub.example.org/<owner>/<repo>
 ```
 
-`asc auth login` stores the token with your git credential helper, and `asc clone` reads `https://hub.example.org/.well-known/asc` to find the ASC server. A git client can still use `git clone https://hub.example.org/<owner>/<repo>.git` against the same repository, with your user name and the token as the password; see [Git compatibility](#git-compatibility).
+`asc auth login` stores the token on your machine, and `asc clone` reads `https://hub.example.org/.well-known/asc` to find the ASC server. Tools that only speak git are covered by the optional [Git compatibility](#git-compatibility) layer.
 
 ## Configuration
 
@@ -127,7 +127,7 @@ Related settings:
 
 ## Git compatibility
 
-An ASC repository can be cloned and pushed to with `git` over HTTPS (your user name and an access token as the password; the `/<owner>/<repo>.git` address of the git-compatible endpoint). Git over SSH is off by default and exists only when you enable it (`[asc] SSH_ENABLED`, `ASC_HUB_SSH_ENABLE` in the image). The hub keeps a git directory per repository, the bridge, at the path Forgejo always used, and serves git requests from it. A git push is imported into ASC by the pre-receive hook before it is accepted; a refusal from asc is returned to the pusher. Limits: ASC repositories have no LFS (the LFS routes answer 404), and a git signing decision cannot be honoured by the asc writer. Details are in [docs/asc/ARCHITECTURE.md](docs/asc/ARCHITECTURE.md).
+This section is for existing tools and CI that still speak git; nobody needs git to use ASC. An ASC repository can be cloned and pushed to with `git` over HTTPS (your user name and an access token as the password; the `/<owner>/<repo>.git` address of the git-compatible endpoint). Git over SSH is off by default and exists only when you enable it (`[asc] SSH_ENABLED`, `ASC_HUB_SSH_ENABLE` in the image). The hub keeps a git directory per repository, the bridge, at the path Forgejo always used, and serves git requests from it. A git push is imported into ASC by the pre-receive hook before it is accepted; a refusal from asc is returned to the pusher. Limits: ASC repositories have no LFS (the LFS routes answer 404), and a git signing decision cannot be honoured by the asc writer. Details are in [docs/asc/ARCHITECTURE.md](docs/asc/ARCHITECTURE.md).
 
 ## Architecture
 

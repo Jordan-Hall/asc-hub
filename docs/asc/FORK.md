@@ -1,6 +1,6 @@
 # The fork: how ASC Hub differs from Forgejo, and how upstream is merged
 
-ASC Hub is a fork of [Forgejo](https://forgejo.org). It is not Forgejo, it is not an official Forgejo release, and it is not a git forge. This page names the base, says what the fork changes and what it leaves alone, and gives the procedure for taking in upstream releases. The licence and attribution rules are at the end.
+ASC Hub is a fork of [Forgejo](https://forgejo.org). It is not Forgejo, it is not an official Forgejo release, and it is not a git forge: it is built for ASC, with an optional compatibility layer for tools that still speak git. This page names the base, says what the fork changes and what it leaves alone, and gives the procedure for taking in upstream releases. The licence and attribution rules are at the end.
 
 ## Base
 

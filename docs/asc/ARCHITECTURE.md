@@ -75,11 +75,11 @@ A web edit, a merge, or a pull request head update calls `modules/repostore`. Th
 
 `modules/git/ascbackend` implements the hub's git backend interface on top of `asc.v1`, with verified object fetches and a bounded cache (`modules/ascclient`). Pages that need only git facts keep working on any backend.
 
-### git push (the compatibility layer)
+### git push (the optional compatibility layer)
 
 A push arrives at the hub over HTTPS (the git-compatible endpoint, `https://<hub>/<owner>/<repo>.git`, with an access token as the password) or, when the operator enabled `[asc] SSH_ENABLED`, over SSH. The default is HTTPS only: an ASC Hub needs no inbound port besides 443, and with `SSH_ENABLED = false` the hub forces `[server] DISABLE_SSH = true`, so there is no SSH server, no SSH keys page and no SSH clone address. The pre-receive hook (`services/ascsync/importpush.go`) hands the push quarantine to asc with `ImportGitPush`; asc imports the commits and moves its refs in fast-forward mode. A refusal from asc (a rejected ref, a path policy, a stale old value) is returned to the pusher with the control characters removed and at most 512 bytes. Any other failure rejects the push with a fixed text. `refs/for/*` commands are never forwarded. The named limits (import 55 s, call 30 s, bridge wait 30 s, at most 1024 ref updates) are in `services/ascsync/ascsync.go`; [asc-stage2-hooks.md](asc-stage2-hooks.md) has the rest.
 
-### git clone and fetch (the bridge)
+### git clone and fetch (the optional bridge)
 
 `services/ascbridge` keeps one git directory per asc repository, at the path Forgejo always used, because legacy consumers (git over HTTPS, and SSH when enabled; checkout in Actions, push mirrors, submodules) need a git directory. `[asc] BRIDGE` says how it is kept:
 

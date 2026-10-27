@@ -4,7 +4,7 @@ We wrote this page to say why ASC Hub exists, what we chose, what we gave up, an
 
 ## The problem
 
-Most teams work with branches and pull requests on top of git. After years of that we keep running into the same things.
+Most teams still work with long-lived branches and pull requests, the model that grew up around git. ASC is the successor to that workflow, and it does not need git to be used. After years of the old model we keep running into the same things.
 
 - **A branch is a poor unit of review.** One long branch holds many ideas, so reviewers read a large diff, or the author splits the work into several branches that depend on each other and then fixes them by hand every time the first one changes.
 - **History can be rewritten, and people are afraid of it.** To update a review you force-push. A mistake with a force-push, a bad rebase or a reset loses work, and the recovery tools are hard to find and harder to trust.
@@ -33,9 +33,9 @@ A source hosting site is mostly not about repositories. Accounts, organizations,
 
 The cost is real, and we say so in [FORK.md](FORK.md). We carry a patch stack on top of Forgejo, we merge its releases and security fixes, and we keep some of its internal names so that merges stay possible. The pages that are shared with git-stored repositories still say "pull request". ASC Hub is not Forgejo and not a git forge, and it credits Forgejo in the footer ("Based on Forgejo"), in the README and in the licence files.
 
-## Why git compatibility and not a flag day
+## Why an optional git compatibility layer and not a flag day
 
-Teams do not move all their tools on one day. CI, deploy scripts, package builds and every developer's habits expect `git clone` to work. So an ASC repository can still be cloned and pushed to with git over HTTPS (and over SSH where the operator enables it): the hub keeps a git directory per repository (the bridge) and imports a git push into ASC before accepting it (`services/ascbridge`, `services/ascsync`). The limits are stated: no LFS for ASC repositories, and a commit that must be signed cannot be created by the asc writer. Repositories that already exist stay git-stored until you choose otherwise (`[asc] NEW_REPOSITORIES` only affects new ones), and migrating an existing git repository into ASC storage is not done yet: planned.
+ASC is the way to work with a repository here; git is optional compatibility. Teams do not move all their tools on one day, though. CI, deploy scripts and package builds that already exist expect `git clone` to work. So an ASC repository can still be cloned and pushed to with git over HTTPS (and over SSH where the operator enables it): the hub keeps a git directory per repository (the bridge) and imports a git push into ASC before accepting it (`services/ascbridge`, `services/ascsync`). The limits are stated: no LFS for ASC repositories, and a commit that must be signed cannot be created by the asc writer. Repositories that already exist stay git-stored until you choose otherwise (`[asc] NEW_REPOSITORIES` only affects new ones), and migrating an existing git repository into ASC storage is not done yet: planned.
 
 ## Who it is for
 
@@ -96,6 +96,6 @@ Grouped by who gains. For each one we name the mechanism and whether it is avail
 | One container | The image built from `Dockerfile.allinone` holds the hub and `asc serve`; its entrypoint generates the shared secrets and the `asc serve` configuration, starts both on loopback, and stops the container if either dies ([OPERATIONS.md](OPERATIONS.md)). Its scripts (entrypoint, health check, backup tool) are tested against fake programs, and `scripts/smoke.sh` checks a deployed hub end to end; we have not yet run the built image ourselves ([OPERATIONS.md](OPERATIONS.md#what-is-tested)). | available; the built image is not yet verified at runtime |
 | SQLite or Postgres | The hub supports both (`DB_TYPE`); `asc serve` takes its own database setting. SQLite for staging, Postgres for production. | available |
 | Coolify-ready | The staging notes describe a Coolify Docker Compose deployment ([STAGING.md](STAGING.md), [OPERATIONS.md](OPERATIONS.md)). | available |
-| Git clients keep working | The bridge and the pre-receive import (see above). | available, with the stated limits |
+| Existing git-speaking tools keep working (optional) | The bridge and the pre-receive import (see above). | available, with the stated limits |
 | Bring your own S3 storage | The object store of `asc serve` can be a local path or an S3-compatible bucket, chosen by the operator in the asc configuration. A user or an organization can also bring an S3-compatible store of its own on the storage settings page (`routers/web/shared/byoweb`, `services/ascbyo/storage.go`). | available |
 | Bring your own AI keys | A user or an organization stores the API key of an AI provider on the AI settings page; asc keeps the key and the hub never shows it again (`services/ascbyo/aikeys.go`). | available |

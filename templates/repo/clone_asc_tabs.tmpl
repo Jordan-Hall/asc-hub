@@ -1,12 +1,7 @@
-{{/* The clone commands of an asc repository: asc first, and git for tools that only speak git while the git bridge is on. Needs CloneButtonOriginLink and AscGitAccess. */}}
+{{/* The clone commands of an asc repository: the asc command line first, always. Git is one collapsed compatibility note for tools that only speak git while the git bridge is on. Needs CloneButtonOriginLink and AscGitAccess. */}}
 <div class="asc-clone-tabs">
-	{{if $.AscGitAccess}}
-	<div class="ui top attached tabular menu">
-		<a class="item active" data-tab="asc-clone-with-asc">{{ctx.Locale.Tr "repo.clone_with_asc"}}</a>
-		<a class="item" data-tab="asc-clone-with-git">{{ctx.Locale.Tr "repo.clone_with_git"}}</a>
-	</div>
-	{{end}}
-	<div class="ui {{if $.AscGitAccess}}bottom attached {{end}}active tab segment" data-tab="asc-clone-with-asc">
+	<div class="ui active tab segment" data-tab="asc-clone-with-asc">
+		{{if AscDownloadAvailable}}<p class="help"><a href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "repo.clone_install_asc"}}</a></p>{{end}}
 		<p class="help">{{ctx.Locale.Tr "repo.clone_signin_help" (print AppSubUrl "/user/settings/applications")}}</p>
 		<div class="markup">
 			<pre><code>asc auth login --host {{AscHubHost}} --prompt
@@ -14,12 +9,15 @@ asc clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></c
 		</div>
 	</div>
 	{{if $.AscGitAccess}}
-	<div class="ui bottom attached tab segment" data-tab="asc-clone-with-git">
-		<p class="help">{{ctx.Locale.Tr "repo.clone_with_git_help"}}{{if not SSHEnabled}} {{ctx.Locale.Tr "repo.clone_https_only_help"}}{{end}}</p>
-		<div class="markup">
-			<pre><code>git clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></code></pre>
+	<details class="asc-git-compat tw-mt-2">
+		<summary>{{ctx.Locale.Tr "repo.clone_with_git"}}</summary>
+		<div class="ui segment" data-tab="asc-clone-with-git">
+			<p class="help">{{ctx.Locale.Tr "repo.clone_with_git_help"}}{{if not SSHEnabled}} {{ctx.Locale.Tr "repo.clone_https_only_help"}}{{end}}</p>
+			<div class="markup">
+				<pre><code>git clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></code></pre>
+			</div>
 		</div>
-	</div>
+	</details>
 	{{end}}
 </div>
 {{template "repo/clone_script" .}}
