@@ -73,6 +73,7 @@
 
 	<!-- the full dropdown menus -->
 	<div class="navbar-right ui secondary menu">
+		{{template "base/theme_toggle" .}}
 		{{if and .IsSigned .HideNavbarLinks}}
 			<details class="dropdown dir-rtl hub-nav-user">
 				<summary data-tooltip-content="{{ctx.Locale.Tr "user_profile_and_more"}}">

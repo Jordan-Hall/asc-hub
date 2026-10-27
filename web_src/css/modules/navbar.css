@@ -485,3 +485,53 @@
   display: flex;
   justify-content: space-between;
 }
+
+/* the light, dark and system colour toggle (templates/base/theme_toggle.tmpl): an icon on a wide
+   screen, icon and name in the opened phone menu; always a 44px target */
+#navbar .asc-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+#navbar .asc-theme-icons {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+}
+
+#navbar .asc-theme-icons > svg {
+  display: none;
+}
+
+#navbar .asc-theme-toggle[data-mode="system"] .asc-ti-system,
+#navbar .asc-theme-toggle[data-mode="light"] .asc-ti-light,
+#navbar .asc-theme-toggle[data-mode="dark"] .asc-ti-dark {
+  display: block;
+}
+
+#navbar .asc-theme-text {
+  display: none;
+}
+
+#navbar .asc-theme-toggle:focus-visible {
+  outline: 2px solid var(--asc-accent, #22d3ee);
+  outline-offset: 2px;
+}
+
+@media not all and (min-width: 768px) {
+  #navbar.navbar-menu-open .asc-theme-toggle {
+    justify-content: flex-start;
+    padding-inline: 12px;
+  }
+  #navbar.navbar-menu-open .asc-theme-text {
+    display: inline;
+  }
+}

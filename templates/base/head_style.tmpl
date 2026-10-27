@@ -1,2 +1,51 @@
 <link rel="stylesheet" href="{{AssetUrlPrefix}}/css/index.css?v={{AssetVersion}}">
-<link rel="stylesheet" href="{{AssetUrlPrefix}}/css/theme-{{ThemeName .SignedUser | PathEscape}}.css?v={{AssetVersion}}">
+{{$theme := ThemeName .SignedUser}}
+{{if StringUtils.HasPrefix $theme "asc-"}}
+{{/* Light and dark are both linked, so the colour mode can change without a reload. The dark sheet comes last and wins when its media query is on. The script below sets the mode before the first paint: the saved choice of this browser, else the account theme, else the system. */}}
+<link rel="stylesheet" id="asc-theme-light" href="{{AssetUrlPrefix}}/css/theme-asc-light.css?v={{AssetVersion}}">
+<link rel="stylesheet" id="asc-theme-dark" href="{{AssetUrlPrefix}}/css/theme-asc-dark.css?v={{AssetVersion}}" media="{{if eq $theme "asc-light"}}not all{{else if eq $theme "asc-dark"}}all{{else}}(prefers-color-scheme: dark){{end}}">
+<script>
+	(function () {
+		var root = document.documentElement;
+		var dark = document.getElementById('asc-theme-dark');
+		var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+		var order = ['system', 'light', 'dark'];
+		var account = {{$theme}};
+		var mode = null;
+		try { mode = window.localStorage.getItem('asc-theme-mode'); } catch (e) { /* storage can be blocked */ }
+		if (order.indexOf(mode) < 0) {
+			mode = account === 'asc-light' ? 'light' : account === 'asc-dark' ? 'dark' : 'system';
+		}
+		function names(btn) {
+			return {system: btn.getAttribute('data-name-system'), light: btn.getAttribute('data-name-light'), dark: btn.getAttribute('data-name-dark')};
+		}
+		function paint(btn) {
+			var n = names(btn);
+			var next = order[(order.indexOf(mode) + 1) % order.length];
+			btn.setAttribute('data-mode', mode);
+			btn.setAttribute('aria-label', (btn.getAttribute('data-label') || '').replace('{current}', n[mode]).replace('{next}', n[next]));
+			var text = btn.querySelector('.asc-theme-text');
+			if (text) { text.textContent = n[mode]; }
+		}
+		function apply() {
+			dark.media = mode === 'dark' ? 'all' : mode === 'light' ? 'not all' : '(prefers-color-scheme: dark)';
+			root.setAttribute('data-theme', mode === 'dark' ? 'asc-dark' : mode === 'light' ? 'asc-light' : 'asc-auto');
+			root.setAttribute('data-theme-mode', mode);
+			var all = document.querySelectorAll('[data-asc-theme-toggle]');
+			for (var i = 0; i < all.length; i++) { paint(all[i]); }
+		}
+		apply();
+		document.addEventListener('DOMContentLoaded', apply);
+		document.addEventListener('click', function (e) {
+			var btn = e.target.closest ? e.target.closest('[data-asc-theme-toggle]') : null;
+			if (!btn) { return; }
+			e.preventDefault();
+			mode = order[(order.indexOf(mode) + 1) % order.length];
+			try { window.localStorage.setItem('asc-theme-mode', mode); } catch (err) { /* keep the choice for this page only */ }
+			apply();
+		});
+	})();
+</script>
+{{else}}
+<link rel="stylesheet" href="{{AssetUrlPrefix}}/css/theme-{{$theme | PathEscape}}.css?v={{AssetVersion}}">
+{{end}}
