@@ -74,7 +74,8 @@ const (
 )
 
 var (
-	ascSymbolsSHA = regexp.MustCompile(`^[0-9a-f]{40}$`)
+	ascSymbolsSHA        = regexp.MustCompile(`^[0-9a-f]{40}$`)
+	ascSymbolsSHAAnyCase = regexp.MustCompile(`^[0-9A-Fa-f]{40}$`)
 
 	// ascSymbolsConfidence lists the confidences the server defines (SPEC 23.4.1).
 	ascSymbolsConfidence = map[string]bool{"precise": true, "import_match": true, "name_match": true}
@@ -302,9 +303,12 @@ func ascSymbolsParse(ctx *context.Context) (ascSymbolsQuery, int, bool) {
 	return q, 0, true
 }
 
-// ascSymbolsBranchOK refuses an empty name, one that could be read as an option, and control characters.
+// ascSymbolsBranchOK refuses an empty name, one that could be read as an option, control characters and a name
+// that is spelled like a full object id in capitals (a lower case one is taken as the commit it names before
+// this is asked).
 func ascSymbolsBranchOK(s string) bool {
 	return s != "" && len(s) <= ascSymbolsMaxRefBytes && utf8.ValidString(s) && !strings.HasPrefix(s, "-") &&
+		!ascSymbolsSHAAnyCase.MatchString(s) &&
 		!strings.ContainsFunc(s, func(r rune) bool { return unicode.IsControl(r) || isAscBidi(r) })
 }
 
