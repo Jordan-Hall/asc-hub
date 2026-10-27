@@ -18,6 +18,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascidentity"
 )
 
 // The credential of a person for one request.
@@ -126,6 +127,11 @@ func UserCall(ctx context.Context, doer *user_model.User, kind CallKind, repo *r
 	if err != nil {
 		revoke()
 		return ctx, func() {}, fmt.Errorf("asctrust: the call credential: %w", err)
+	}
+	// The identity the hub signed in goes with the token, signed with the service secret (ascidentity).
+	if callCtx, err = ascidentity.AttachDoer(callCtx, doer); err != nil {
+		revoke()
+		return ctx, func() {}, fmt.Errorf("asctrust: the forwarded identity: %w", err)
 	}
 	return callCtx, revoke, nil
 }

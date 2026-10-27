@@ -6,6 +6,7 @@ package asctrust
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,7 +16,9 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
+	"forgejo.org/services/ascidentity"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -154,13 +157,43 @@ func TestTheCredentialReachesTheServerAsThePerson(t *testing.T) {
 		return "per-request-token", func() {}, nil
 	})
 	defer restore()
-	ctx, release, err := UserCall(t.Context(), &user_model.User{ID: 5}, CallAccount, nil)
+	ctx, release, err := UserCall(t.Context(), &user_model.User{ID: 5, Name: "alice"}, CallAccount, nil)
 	require.NoError(t, err)
 	defer release()
 	_, err = LoadKeys(ctx, c, time.Now())
 	require.NoError(t, err)
 	assert.Equal(t, "Bearer per-request-token", f.last(t, "ListKeys").Auth)
 	assert.NotContains(t, f.last(t, "ListKeys").Auth, testInternalToken, "a person's call never carries the internal token")
+}
+
+func TestTheSignedIdentityReachesTheServer(t *testing.T) {
+	f, c := startFake(t)
+	f.listKeys = func(*ascv1.ListSigningKeysRequest) (*ascv1.ListSigningKeysResponse, error) {
+		return &ascv1.ListSigningKeysResponse{}, nil
+	}
+	old := setting.InternalToken
+	setting.InternalToken = testInternalToken
+	defer func() { setting.InternalToken = old }()
+	restore := UseTokenIssuer(func(context.Context, *user_model.User, auth_model.AccessTokenScope, int64) (string, func(), error) {
+		return "per-request-token", func() {}, nil
+	})
+	defer restore()
+	ctx, release, err := UserCall(t.Context(), &user_model.User{ID: 5, Name: "alice", IsAdmin: true}, CallAccount, nil)
+	require.NoError(t, err)
+	defer release()
+	_, err = LoadKeys(ctx, c, time.Now())
+	require.NoError(t, err)
+
+	md := f.last(t, "ListKeys").MD
+	id, err := ascidentity.Verify(testInternalToken, func(k string) string { return strings.Join(md.Get(k), ",") }, time.Now())
+	require.NoError(t, err, "the server can verify what the hub signed")
+	assert.Equal(t, ascidentity.Identity{ID: 5, Login: "alice", Admin: true}, id)
+	assert.Equal(t, "Bearer per-request-token", f.last(t, "ListKeys").Auth)
+
+	// A secret that is set but too short is an error: never a weak key.
+	setting.InternalToken = "short"
+	_, _, err = UserCall(t.Context(), &user_model.User{ID: 5, Name: "alice"}, CallAccount, nil)
+	require.ErrorIs(t, err, ascidentity.ErrNoSecret)
 }
 
 func TestStaleCallTokensAreSweptAndOnlyThose(t *testing.T) {

@@ -17,6 +17,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascidentity"
 )
 
 // A browser session holds no asc credential. A call that changes something (start or stop a run, make or revoke
@@ -67,6 +68,11 @@ func UserCall(ctx context.Context, doer *user_model.User, repo *repo_model.Repos
 	if err != nil {
 		cleanup()
 		return ctx, func() {}, fmt.Errorf("ascagentui: %w", err)
+	}
+	// The identity the hub signed in goes with the token, signed with the service secret (ascidentity).
+	if callCtx, err = ascidentity.AttachDoer(callCtx, doer); err != nil {
+		cleanup()
+		return ctx, func() {}, fmt.Errorf("ascagentui: the forwarded identity: %w", err)
 	}
 	return callCtx, cleanup, nil
 }
