@@ -1,0 +1,120 @@
+/* stylelint-disable scale-unlimited/declaration-strict-value, csstools/value-no-unknown-custom-properties -- the tokens of the review pages are defined in review-kit.css */
+
+/* Secret scanning and the policy gate. Mobile first. */
+
+.rv-head-row {
+  margin-bottom: 10px;
+  align-items: baseline;
+}
+
+.rv-head-row .rv-h3 {
+  margin: 0;
+}
+
+.rv-cols-even {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 900px) {
+  .rv-cols-even {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+/* a finding: severity and state pills, the place, and the actions that fit under it on a phone */
+.rv-finding {
+  align-items: stretch;
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.rv-finding .rv-li-main {
+  flex: 0 1 auto;
+}
+
+.rv-finding-when {
+  font-size: 13px;
+}
+
+.rv-finding-where {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.rv-finding-where code {
+  font-family: var(--fonts-monospace, "JetBrains Mono", ui-monospace, monospace);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.rv-finding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rv-finding-acts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rv-finding-note > summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rv-finding-note .rv-input {
+  margin-bottom: 8px;
+}
+
+@media (min-width: 900px) {
+  .rv-finding {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .rv-finding .rv-li-main {
+    flex: 1 1 auto;
+  }
+
+  .rv-finding-form {
+    flex: none;
+    align-items: flex-end;
+    max-width: 52%;
+  }
+
+  .rv-finding-acts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+.rv ul.rv-facts {
+  list-style: none;
+  padding: 0;
+}
+
+.rv-finding-acts > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.rv-finding-note > summary {
+  color: var(--link);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rv-scan-text {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.rv-card-b > a:not(.rv-btn) {
+  color: var(--link);
+  font-weight: 600;
+}

@@ -6,6 +6,10 @@
    (asc-auto). The names follow the design boards (v3); the prefix keeps them apart from the shared sheets. */
 
 .rv {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
   --rv-bg: #f6f8fa;
   --surface: #fff;
   --surface-2: #f8fafc;
@@ -176,13 +180,6 @@
 }
 
 /* ---------- page frame ---------- */
-.rv {
-  color: var(--text);
-  font-size: 15px;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
 .rv-page {
   width: 100%;
   max-width: 1296px;
