@@ -39,6 +39,7 @@ type fakeCall struct {
 	req    proto.Message
 	auth   string
 	opID   string
+	md     metadata.MD
 }
 
 type fakeHub struct {
@@ -71,7 +72,7 @@ func (h *fakeHub) fail(method string, err error) {
 // record notes a call and returns the handler of the method, if any.
 func (h *fakeHub) record(ctx gocontext.Context, method string, req proto.Message) func(proto.Message) (proto.Message, error) {
 	md, _ := metadata.FromIncomingContext(ctx)
-	rec := fakeCall{method: method, req: proto.Clone(req)}
+	rec := fakeCall{method: method, req: proto.Clone(req), md: md}
 	if v := md.Get("authorization"); len(v) > 0 {
 		rec.auth = v[0]
 	}

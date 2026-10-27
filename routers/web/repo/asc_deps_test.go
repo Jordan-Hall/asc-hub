@@ -12,6 +12,7 @@ import (
 	perm_model "forgejo.org/models/perm"
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 
@@ -72,7 +73,7 @@ func TestAscDepsFindingsView(t *testing.T) {
 	assert.Equal(t, "user2/repo1", req.GetRepo().GetName())
 	assert.Equal(t, ascv1.DepSeverity_DEP_SEVERITY_MODERATE, req.GetMinSeverity())
 	assert.Equal(t, []string{"npm"}, req.GetEcosystems())
-	assert.Equal(t, "Bearer per-request-token", calls[0].Auth)
+	assertAs(t, calls[0], "2:user2", ascidentity.RoleAdmin, "user2/repo1")
 }
 
 func TestAscDepsHidesManagementFromNonAdministrators(t *testing.T) {
@@ -180,7 +181,7 @@ func TestAscDepsScanIsForAdministrators(t *testing.T) {
 	calls := f.callsOf("DepScan")
 	require.Len(t, calls, 1)
 	assert.True(t, calls[0].Req.(*ascv1.ScanDepsRequest).GetRefresh())
-	assert.Equal(t, "Bearer per-request-token", calls[0].Auth, "made as the person")
+	assertAs(t, calls[0], "2:user2", ascidentity.RoleAdmin, "user2/repo1")
 
 	f.depScan = func(*ascv1.ScanDepsRequest) (*ascv1.ScanDepsResponse, error) {
 		return nil, status.Error(codes.PermissionDenied, "not a maintainer, /srv/asc/x")

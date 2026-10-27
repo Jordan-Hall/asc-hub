@@ -7,282 +7,155 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync/atomic"
-	"time"
+	"strings"
 
-	auth_model "forgejo.org/models/auth"
-	"forgejo.org/models/db"
+	"forgejo.org/models/organization"
+	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
-	"forgejo.org/modules/gitrepo"
-	"forgejo.org/modules/log"
-	"forgejo.org/modules/timeutil"
-	"forgejo.org/modules/util"
 	"forgejo.org/services/ascidentity"
 )
 
 // The credential of a person for one request.
 //
-// A web session holds no asc token, and asc must decide for the person, not for the hub (docs/BUILDOUT.md, "Who is
-// calling"). UserCall therefore issues an ordinary Forgejo access token for the doer, limited in scope (and, for a
-// repository call, to that one repository), hands it to the asc client for the calls of one request, and deletes it
-// when the request is done. asc asks Forgejo to authorise it as it does for any bearer token.
+// The hub makes no access tokens for its web pages. A call from a page is made with the hub's service credential and
+// a signed claim about the person (services/ascidentity): who they are and what the hub decided they may do on the
+// subject of the call. The decision is the hub's own permission model, evaluated here, again, at the moment of the
+// call, whatever the handler checked before: repository units, collaborators, teams, organisation ownership,
+// private and public visibility, restricted and blocked users, site administrators, an inactive account or one that
+// may not sign in. asc serve does not decide again.
 //
-//   - The token is never shown, logged or stored anywhere but the database row, which holds only its salted hash.
-//   - It is deleted by a context that survives the cancellation of the request, so a browser that goes away
-//     cannot leave one behind. A token that outlives a crash is deleted by the next sweep (staleAfter).
-//   - The scopes are the least that the call needs: read:repository for a read, write:repository for a change,
-//     read:organization for the audit log of an organisation, read:user and write:user for signing keys.
-const (
-	// tokenPrefix names every token this package issues, so a sweep finds only its own.
-	tokenPrefix = "asc-hub-call-"
-	// staleAfter is the age after which a token of this package is deleted by a sweep. A request lives seconds.
-	staleAfter = 15 * time.Minute
-	// sweepEvery bounds how often a sweep may run.
-	sweepEvery = time.Minute
-	// revokeTimeout bounds the deletion of the token.
-	revokeTimeout = 10 * time.Second
-)
+// The claim is short-lived (a minute of clock skew), made for one subject (one repository, one organisation, the
+// account of the person, the server) and per call; nothing is stored. Platform access tokens are what the asc command
+// line, agents and API clients present, and they are not involved here.
 
-// CallKind says what a call is for, and so what scope its token gets.
+// CallKind says what a call is for, and so what the hub must decide before it signs the claim.
 type CallKind int
 
 const (
-	// CallRepoRead is a read of one repository that only administrators or writers may do.
+	// CallRepoRead is a read of one repository that the person may read.
 	CallRepoRead CallKind = iota + 1
-	// CallRepoWrite is a change of one repository.
+	// CallRepoWrite is a change of one repository: the person may write its code.
 	CallRepoWrite
-	// CallRepoAdmin is a read or change that asc allows to a repository administrator only (the audit log of a
-	// repository). asc asks the hub for write access to the repository to decide "administrator", so the token
-	// must be one that may write.
+	// CallRepoAdmin is a read or change that only an administrator of the repository may make (the audit log of a
+	// repository, a scan of its dependencies).
 	CallRepoAdmin
-	// CallOrg is a read of an organisation (its audit log). asc lets the owner of every repository of the
-	// organisation read it, which it decides repository by repository as for an administrator.
+	// CallOrg is a read of an organisation (its audit log): an owner of the organisation.
 	CallOrg
-	// CallAccount is a call about the account of the doer (signing keys).
+	// CallAccount is a call about the account of the person (signing keys).
 	CallAccount
-	// CallInstance is a call about the whole server (the instance audit log). It needs a site administrator.
+	// CallInstance is a call about the whole server (the instance audit log): a site administrator.
 	CallInstance
 )
 
-// ErrNoDoer is returned when a person's call is asked for nobody.
-var ErrNoDoer = errors.New("asctrust: no signed-in user")
+var (
+	// ErrNoDoer is returned when a person's call is asked for nobody.
+	ErrNoDoer = errors.New("asctrust: no signed-in user")
+	// ErrForbidden is returned when the hub's permission model does not allow the person what the call is for. No
+	// claim is signed and nothing is sent to asc.
+	ErrForbidden = errors.New("asctrust: the hub does not allow this to the person")
+)
 
-// tokenIssuer issues a token. Tests replace it.
-type tokenIssuer func(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoID int64) (token string, revoke func(), err error)
-
-var issueToken tokenIssuer = issueAccessToken
-
-// UseTokenIssuer replaces the issuer until the returned function is called. It is for tests of the handlers, which
-// have no asc server that checks a Forgejo token.
-func UseTokenIssuer(fn func(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoID int64) (string, func(), error)) (restore func()) {
-	prev := issueToken
-	issueToken = fn
-	return func() { issueToken = prev }
-}
-
-// scopeOf returns the access token scope a kind of call needs. It is the least that asc accepts for the call:
-//
-//   - a read of a repository is read:repository (and read:user, because asc asks the hub who the credential is);
-//   - a change of a repository, and the calls that only a repository administrator may make, are
-//     write:repository, because asc decides "administrator" by asking the hub for write access and reading the
-//     permission in the answer. Such a token is always limited to the one repository (UserCall) or to the listed
-//     repositories of an organisation (UserCallOrg), never to all repositories of the person;
-//   - the audit log of the server is read:admin and read:user.
-func scopeOf(kind CallKind) (auth_model.AccessTokenScope, error) {
-	var s string
-	switch kind {
-	// Every call carries read:user: asc first asks the hub who the credential is (GET /api/v1/user) and refuses a
-	// credential that cannot answer, whatever the rest of the call is.
-	case CallRepoRead:
-		s = string(auth_model.AccessTokenScopeReadRepository) + "," + string(auth_model.AccessTokenScopeReadUser)
-	case CallRepoWrite, CallRepoAdmin:
-		s = string(auth_model.AccessTokenScopeReadRepository) + "," + string(auth_model.AccessTokenScopeWriteRepository) + "," + string(auth_model.AccessTokenScopeReadUser)
-	case CallOrg:
-		// Only ever on the repositories of the organisation, listed one by one (UserCallOrg).
-		s = string(auth_model.AccessTokenScopeWriteRepository) + "," + string(auth_model.AccessTokenScopeReadUser)
-	case CallAccount:
-		s = string(auth_model.AccessTokenScopeReadUser) + "," + string(auth_model.AccessTokenScopeWriteUser)
-	case CallInstance:
-		s = string(auth_model.AccessTokenScopeReadAdmin) + "," + string(auth_model.AccessTokenScopeReadUser)
-	default:
-		return "", fmt.Errorf("asctrust: unknown call kind %d", kind)
-	}
-	return auth_model.AccessTokenScope(s).Normalize()
-}
-
-// UserCall returns a context whose calls to asc are made as doer, and the function that ends the credential. The
-// caller defers release immediately. repo is the repository of a CallRepoRead or CallRepoWrite call and is nil for
-// the other kinds.
+// UserCall returns a context whose calls to asc are made for doer, and the function that ends the call (nothing to
+// end: it exists so that callers keep their `defer release()`). repo is the repository of a repository call and is nil
+// for the other kinds.
 func UserCall(ctx context.Context, doer *user_model.User, kind CallKind, repo *repo_model.Repository) (context.Context, func(), error) {
-	if doer == nil || doer.ID <= 0 {
-		return ctx, func() {}, ErrNoDoer
+	noop := func() {}
+	if !usable(doer) {
+		return ctx, noop, ErrNoDoer
 	}
-	var repoID int64
 	switch kind {
 	case CallRepoRead, CallRepoWrite, CallRepoAdmin:
 		if repo == nil {
-			return ctx, func() {}, errors.New("asctrust: a repository call needs a repository")
+			return ctx, noop, errors.New("asctrust: a repository call needs a repository")
 		}
-		repoID = repo.ID
-	default:
+		// The states ascAuthorize (routers/private/asc.go) refuses for a command line client: a repository that is
+		// being created or is broken cannot be used, and a mirror or an archive is read only.
+		if repo.IsBeingCreated() || repo.IsBroken() {
+			return ctx, noop, ErrForbidden
+		}
+		if kind == CallRepoWrite && (repo.IsMirror || repo.IsArchived) {
+			return ctx, noop, ErrForbidden
+		}
+		perm, err := access_model.GetUserRepoPermission(ctx, repo, doer)
+		if err != nil {
+			return ctx, noop, fmt.Errorf("asctrust: the permission of the person: %w", err)
+		}
+		role, ok := "", false
+		switch kind {
+		case CallRepoRead:
+			role, ok = ascidentity.RoleRead, perm.CanRead(unit.TypeCode)
+		case CallRepoWrite:
+			role, ok = ascidentity.RoleWrite, perm.CanWrite(unit.TypeCode)
+		default:
+			role, ok = ascidentity.RoleAdmin, perm.IsAdmin()
+		}
+		if !ok {
+			return ctx, noop, ErrForbidden
+		}
+		// A role a person has is the highest the hub gives them, so the claim says admin to an administrator even for
+		// a read: the server sees what the hub decided, not what the call asked for.
+		if perm.IsAdmin() {
+			role = ascidentity.RoleAdmin
+		} else if perm.CanWrite(unit.TypeCode) && role == ascidentity.RoleRead {
+			role = ascidentity.RoleWrite
+		}
+		name, err := RepoName(repo)
+		if err != nil {
+			return ctx, noop, err
+		}
+		return claim(ctx, doer, role, name)
+	case CallAccount:
 		if repo != nil {
-			return ctx, func() {}, errors.New("asctrust: only a repository call names a repository")
+			return ctx, noop, errors.New("asctrust: only a repository call names a repository")
+		}
+		return claim(ctx, doer, ascidentity.RoleWrite, "user:"+strings.ToLower(doer.Name))
+	case CallInstance:
+		if repo != nil {
+			return ctx, noop, errors.New("asctrust: only a repository call names a repository")
+		}
+		if !doer.IsAdmin {
+			return ctx, noop, ErrForbidden
+		}
+		return claim(ctx, doer, ascidentity.RoleAdmin, "instance")
+	}
+	return ctx, noop, fmt.Errorf("asctrust: unknown call kind %d", kind)
+}
+
+// UserCallOrg is UserCall for the log of an organisation: the person must be an owner of the organisation, or a site
+// administrator.
+func UserCallOrg(ctx context.Context, doer *user_model.User, org *user_model.User) (context.Context, func(), error) {
+	noop := func() {}
+	if !usable(doer) {
+		return ctx, noop, ErrNoDoer
+	}
+	if org == nil || !org.IsOrganization() {
+		return ctx, noop, errors.New("asctrust: an organisation call needs an organisation")
+	}
+	if !doer.IsAdmin {
+		owner, err := organization.IsOrganizationOwner(ctx, org.ID, doer.ID)
+		if err != nil {
+			return ctx, noop, fmt.Errorf("asctrust: the ownership of the organisation: %w", err)
+		}
+		if !owner {
+			return ctx, noop, ErrForbidden
 		}
 	}
-	scope, err := scopeOf(kind)
-	if err != nil {
-		return ctx, func() {}, err
-	}
-	token, revoke, err := issueToken(ctx, doer, scope, repoID)
-	if err != nil {
-		return ctx, func() {}, fmt.Errorf("asctrust: issue the call credential: %w", err)
-	}
-	return withToken(ctx, doer, token, revoke)
+	return claim(ctx, doer, ascidentity.RoleAdmin, "org:"+strings.ToLower(org.Name))
 }
 
-// withToken puts the token and the signed identity of doer into the context of a call.
-func withToken(ctx context.Context, doer *user_model.User, token string, revoke func()) (context.Context, func(), error) {
-	callCtx, err := ascclient.WithUserToken(ctx, token)
+// usable reports whether the person may use the hub at all: an account that exists, is active and may sign in.
+func usable(doer *user_model.User) bool {
+	return doer != nil && doer.ID > 0 && doer.IsActive && !doer.ProhibitLogin
+}
+
+// claim puts the hub's service credential and the signed claim into the context of a call.
+func claim(ctx context.Context, doer *user_model.User, role, subject string) (context.Context, func(), error) {
+	callCtx, err := ascidentity.AttachDoer(ascclient.WithSystem(ctx), doer, role, subject)
 	if err != nil {
-		revoke()
-		return ctx, func() {}, fmt.Errorf("asctrust: the call credential: %w", err)
+		return ctx, func() {}, fmt.Errorf("asctrust: the claim about the person: %w", err)
 	}
-	// The identity the hub signed in goes with the token, signed with the service secret (ascidentity).
-	if callCtx, err = ascidentity.AttachDoer(callCtx, doer); err != nil {
-		revoke()
-		return ctx, func() {}, fmt.Errorf("asctrust: the forwarded identity: %w", err)
-	}
-	return callCtx, revoke, nil
-}
-
-// MaxOrgRepos is the most repositories of an organisation a token is issued for: the most asc lets a log of an
-// organisation cover.
-const MaxOrgRepos = 200
-
-// ErrNoOrgRepos is returned when an organisation has no repository in asc, or more than MaxOrgRepos: asc would
-// refuse its log either way, so no token is issued.
-var ErrNoOrgRepos = errors.New("asctrust: the organisation has no repository in asc, or too many")
-
-// orgTokenIssuer issues a token limited to the listed repositories. Tests replace it.
-type orgTokenIssuer func(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoIDs []int64) (token string, revoke func(), err error)
-
-var issueOrgToken orgTokenIssuer = issueAccessTokenRepos
-
-// UseOrgTokenIssuer replaces the issuer of the tokens of UserCallOrg until the returned function is called. It is
-// for tests.
-func UseOrgTokenIssuer(fn func(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoIDs []int64) (string, func(), error)) (restore func()) {
-	prev := issueOrgToken
-	issueOrgToken = fn
-	return func() { issueOrgToken = prev }
-}
-
-// UserCallOrg is UserCall for the log of an organisation. asc lets the owner of every repository of the
-// organisation read it and decides that repository by repository, so the token is made for exactly the repositories
-// of the organisation that are stored in asc (at most MaxOrgRepos), as rows of the token and not as "all
-// repositories". Like every call token it lives for the one request: it is deleted when release is called, also
-// when the request was cancelled, and a crash leaves one for the sweep to delete after staleAfter.
-func UserCallOrg(ctx context.Context, doer *user_model.User, orgID int64) (context.Context, func(), error) {
-	if doer == nil || doer.ID <= 0 {
-		return ctx, func() {}, ErrNoDoer
-	}
-	var ids []int64
-	if err := db.GetEngine(ctx).Table("repository").Where("owner_id = ? AND storage_backend = ?", orgID, string(gitrepo.StorageBackendAsc)).Cols("id").Limit(MaxOrgRepos + 1).Find(&ids); err != nil {
-		return ctx, func() {}, fmt.Errorf("asctrust: the repositories of the organisation: %w", err)
-	}
-	if len(ids) == 0 || len(ids) > MaxOrgRepos {
-		return ctx, func() {}, ErrNoOrgRepos
-	}
-	scope, err := scopeOf(CallOrg)
-	if err != nil {
-		return ctx, func() {}, err
-	}
-	token, revoke, err := issueOrgToken(ctx, doer, scope, ids)
-	if err != nil {
-		return ctx, func() {}, fmt.Errorf("asctrust: issue the call credential: %w", err)
-	}
-	return withToken(ctx, doer, token, revoke)
-}
-
-var lastSweep atomic.Int64
-
-// issueAccessToken is the default issuer: a Forgejo access token for doer, deleted by the returned function. A
-// token for a repository is limited to that one repository; repoID 0 is for the calls about the person, which have no
-// repository.
-func issueAccessToken(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoID int64) (string, func(), error) {
-	if repoID == 0 {
-		return issueTokenRows(ctx, doer, scope, nil, true)
-	}
-	return issueTokenRows(ctx, doer, scope, []int64{repoID}, false)
-}
-
-// issueAccessTokenRepos issues a token limited to the listed repositories.
-func issueAccessTokenRepos(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoIDs []int64) (string, func(), error) {
-	if len(repoIDs) == 0 {
-		return "", nil, errors.New("asctrust: a token for no repository")
-	}
-	return issueTokenRows(ctx, doer, scope, repoIDs, false)
-}
-
-func issueTokenRows(ctx context.Context, doer *user_model.User, scope auth_model.AccessTokenScope, repoIDs []int64, allRepos bool) (string, func(), error) {
-	sweepStale(ctx)
-	t := &auth_model.AccessToken{
-		UID:              doer.ID,
-		Name:             tokenPrefix + util.CryptoRandomString(util.RandomStringMedium),
-		Scope:            scope,
-		ResourceAllRepos: allRepos,
-	}
-	err := db.WithTx(ctx, func(ctx context.Context) error {
-		if err := auth_model.NewAccessToken(ctx, t); err != nil {
-			return err
-		}
-		rows := make([]*auth_model.AccessTokenResourceRepo, 0, len(repoIDs))
-		for _, id := range repoIDs {
-			rows = append(rows, &auth_model.AccessTokenResourceRepo{RepoID: id})
-		}
-		if len(rows) > 0 {
-			return auth_model.InsertAccessTokenResourceRepos(ctx, t.ID, rows)
-		}
-		return nil
-	})
-	if err != nil {
-		return "", nil, err
-	}
-	id, uid := t.ID, doer.ID
-	revoke := func() {
-		dctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), revokeTimeout)
-		defer cancel()
-		if err := auth_model.DeleteAccessTokenByID(dctx, id, uid); err != nil && !auth_model.IsErrAccessTokenNotExist(err) {
-			// The sweep removes it later. The log names the row, never the token.
-			log.Error("asctrust: delete call credential %d: %v", id, err)
-		}
-	}
-	return t.Token, revoke, nil
-}
-
-// sweepStale deletes the call tokens that a crash left behind. It runs at most once a minute.
-func sweepStale(ctx context.Context) {
-	now := time.Now().Unix()
-	last := lastSweep.Load()
-	if now-last < int64(sweepEvery/time.Second) || !lastSweep.CompareAndSwap(last, now) {
-		return
-	}
-	cutoff := timeutil.TimeStamp(now - int64(staleAfter/time.Second))
-	var rows []struct {
-		ID  int64
-		UID int64 `xorm:"uid"`
-	}
-	err := db.GetEngine(ctx).Table("access_token").
-		Where("name LIKE ? AND created_unix < ?", tokenPrefix+"%", cutoff).
-		Cols("id", "uid").Limit(100).Find(&rows)
-	if err != nil {
-		log.Error("asctrust: sweep call credentials: %v", err)
-		return
-	}
-	for _, r := range rows {
-		if err := auth_model.DeleteAccessTokenByID(ctx, r.ID, r.UID); err != nil && !auth_model.IsErrAccessTokenNotExist(err) {
-			log.Error("asctrust: sweep call credential %d: %v", r.ID, err)
-		}
-	}
+	return callCtx, func() {}, nil
 }

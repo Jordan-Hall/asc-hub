@@ -1,24 +1,27 @@
 // Copyright 2026 The ASC Authors. All rights reserved.
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// Package ascidentity forwards the signed-in person to `asc serve` in a form the server can verify.
+// Package ascidentity is the hub's claim about the signed-in person, for the calls the hub makes to `asc serve` on
+// their behalf from its web pages.
 //
-// A call made for a person carries that person's own token. This package adds the identity the hub vouches for,
-// as five gRPC metadata entries (the header contract is in docs/asc/ARCHITECTURE.md, "Forwarded identity"):
+// The hub does not issue access tokens for these calls. A call from a web page is made with the hub's own service
+// credential and carries a claim: who the person is and what the hub decided that person may do on the subject of the
+// call. The hub's permission decision stands; asc serve does not decide again. The claim is the one asc defines in
+// asc-rpc (src/forwarded.rs), four metadata entries:
 //
-//	x-asc-hub-user    the numeric id of the user on the hub
-//	x-asc-hub-login   the login name
-//	x-asc-hub-admin   "1" for a site administrator, "0" otherwise
-//	x-asc-hub-ts      the time of signing, Unix seconds
-//	x-asc-hub-sig     lowercase hex of HMAC-SHA256 over the canonical text of the four above
+//	x-asc-forwarded-user   "<user id>:<login>"
+//	x-asc-forwarded-role   what the hub decided: "admin", "write" or "read" (asc accepts "admin" today; the other two
+//	                       are the hub's proposal, see docs/asc/ARCHITECTURE.md)
+//	x-asc-forwarded-ts     Unix seconds when the hub made the claim
+//	x-asc-forwarded-mac    lower-case hex HMAC-SHA256, under the key only the hub and the server share, of
+//	                       "asc-forwarded-v1\n<user>\n<role>\n<subject>\n<ts>"
 //
-// The key is not the service secret itself: it is HMAC-SHA256(secret, "asc-hub-identity-v1 key"), so the bearer
-// value that the hub and asc already share is never used as a signing key and a signature leaks nothing about it.
-// The canonical text is the lines "asc-hub-identity-v1", user, login, admin and ts, each ended by a line feed.
-// A server accepts a signature when it verifies in constant time and the time is at most MaxSkew from its clock.
+// The subject is the repository ("owner/name", lower case), "org:<name>" for the log of an organisation,
+// "user:<login>" for the account of the person and "instance" for the whole server. A claim made for one subject is no
+// claim for another, and one older than MaxSkew is no claim. The key is [asc] FORWARDED_KEY (32 bytes, 64 hex digits).
 //
-// A signature says who the hub signed in. It does not grant anything: asc still authorises the call by the
-// token, and a request that reaches asc without the secret cannot carry a valid signature.
+// Platform access tokens are not involved: the asc command line, agents and API clients present the platform's own
+// personal access tokens, which asc serve validates by asking the hub's authz endpoint.
 package ascidentity
 
 import (
@@ -29,6 +32,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	user_model "forgejo.org/models/user"
@@ -37,138 +41,136 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// The metadata keys of the contract.
+// The metadata keys of the claim.
 const (
-	HeaderUser      = "x-asc-hub-user"
-	HeaderLogin     = "x-asc-hub-login"
-	HeaderAdmin     = "x-asc-hub-admin"
-	HeaderTimestamp = "x-asc-hub-ts"
-	HeaderSignature = "x-asc-hub-sig"
+	HeaderUser = "x-asc-forwarded-user"
+	HeaderRole = "x-asc-forwarded-role"
+	HeaderTS   = "x-asc-forwarded-ts"
+	HeaderMAC  = "x-asc-forwarded-mac"
 
-	// Version names the canonical text and the key derivation. A change of either is a new version.
-	Version = "asc-hub-identity-v1"
-	// MaxSkew is how far the time of a signature may be from the clock of the verifier.
-	MaxSkew = 5 * time.Minute
-	// MaxLoginBytes bounds the login name.
-	MaxLoginBytes = 255
-	// MinSecretBytes is the shortest secret that signs. A shorter one is a configuration error, not a key.
-	MinSecretBytes = 16
+	// Context is the first line of the signed text; it names the version of the format.
+	Context = "asc-forwarded-v1"
+	// MaxSkew is how far the time of a claim may be from the clock of the verifier.
+	MaxSkew = 60 * time.Second
+	// MinKey is the length of the key in bytes.
+	MinKey = 32
+	// MaxUserBytes bounds the user entry.
+	MaxUserBytes = 300
 )
 
-var headers = [...]string{HeaderUser, HeaderLogin, HeaderAdmin, HeaderTimestamp, HeaderSignature}
+// Roles a claim can carry.
+const (
+	RoleAdmin = "admin"
+	RoleWrite = "write"
+	RoleRead  = "read"
+)
+
+var headers = [...]string{HeaderUser, HeaderRole, HeaderTS, HeaderMAC}
 
 var (
-	// ErrNoSecret is returned when there is no shared secret to sign with.
-	ErrNoSecret = errors.New("ascidentity: no shared secret")
-	// ErrBadIdentity is returned for an identity that cannot be signed: no user, or a login that is not safe text.
-	ErrBadIdentity = errors.New("ascidentity: bad identity")
-	// ErrBadSignature is returned by Verify for a missing, malformed, expired or wrong signature.
-	ErrBadSignature = errors.New("ascidentity: bad signature")
+	// ErrNoKey is returned when the hub has no (or a short) forwarded key: a claim cannot be signed, so the call is
+	// not made.
+	ErrNoKey = errors.New("ascidentity: no forwarded key")
+	// ErrBadClaim is returned for a claim that cannot be signed, or by Verify for one that does not verify.
+	ErrBadClaim = errors.New("ascidentity: bad claim")
 )
 
-// Identity is the person the hub signed in.
-type Identity struct {
+// Claim is what the hub says about a person.
+type Claim struct {
+	// ID and Login name the person.
 	ID    int64
 	Login string
-	Admin bool
+	// Role is what the hub decided the person may do on Subject.
+	Role string
+	// Subject is what the claim is about (see the package documentation).
+	Subject string
 }
 
-// Validate checks that the identity can be signed. A login is visible ASCII without a space, because it travels
-// in a header and in a line-oriented text.
-func (id Identity) Validate() error {
-	if id.ID <= 0 {
-		return fmt.Errorf("%w: no user id", ErrBadIdentity)
+// User is the first entry of the claim, "<id>:<login>".
+func (c Claim) User() string { return strconv.FormatInt(c.ID, 10) + ":" + c.Login }
+
+// Validate checks that the claim can be signed: the entries are text a header and a line-oriented payload can carry.
+func (c Claim) Validate() error {
+	if c.ID <= 0 || c.Login == "" || len(c.User()) > MaxUserBytes {
+		return fmt.Errorf("%w: user", ErrBadClaim)
 	}
-	if id.Login == "" || len(id.Login) > MaxLoginBytes {
-		return fmt.Errorf("%w: login length", ErrBadIdentity)
+	for i := range len(c.Login) {
+		if b := c.Login[i]; b < 0x21 || b > 0x7e {
+			return fmt.Errorf("%w: login", ErrBadClaim)
+		}
 	}
-	for i := range len(id.Login) {
-		if c := id.Login[i]; c < 0x21 || c > 0x7e {
-			return fmt.Errorf("%w: login character", ErrBadIdentity)
+	switch c.Role {
+	case RoleAdmin, RoleWrite, RoleRead:
+	default:
+		return fmt.Errorf("%w: role", ErrBadClaim)
+	}
+	if c.Subject == "" || len(c.Subject) > 300 {
+		return fmt.Errorf("%w: subject", ErrBadClaim)
+	}
+	for i := range len(c.Subject) {
+		if b := c.Subject[i]; b < 0x21 || b > 0x7e {
+			return fmt.Errorf("%w: subject", ErrBadClaim)
 		}
 	}
 	return nil
 }
 
-func adminText(admin bool) string {
-	if admin {
-		return "1"
-	}
-	return "0"
+func payload(user, role, subject string, ts int64) []byte {
+	return []byte(Context + "\n" + user + "\n" + role + "\n" + subject + "\n" + strconv.FormatInt(ts, 10))
 }
 
-// canonical is the text that is signed.
-func canonical(id, login, admin, ts string) string {
-	return Version + "\n" + id + "\n" + login + "\n" + admin + "\n" + ts + "\n"
-}
-
-func key(secret string) []byte {
-	m := hmac.New(sha256.New, []byte(secret))
-	m.Write([]byte(Version + " key"))
-	return m.Sum(nil)
-}
-
-func mac(secret, text string) string {
-	m := hmac.New(sha256.New, key(secret))
-	m.Write([]byte(text))
+func mac(key []byte, user, role, subject string, ts int64) string {
+	m := hmac.New(sha256.New, key)
+	m.Write(payload(user, role, subject, ts))
 	return hex.EncodeToString(m.Sum(nil))
 }
 
-// Sign returns the metadata entries that vouch for id at the time at.
-func Sign(secret string, id Identity, at time.Time) (map[string]string, error) {
-	if len(secret) < MinSecretBytes {
-		return nil, ErrNoSecret
+// Sign returns the four entries of the claim made at the time at.
+func Sign(key []byte, c Claim, at time.Time) (map[string]string, error) {
+	if len(key) < MinKey {
+		return nil, ErrNoKey
 	}
-	if err := id.Validate(); err != nil {
+	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	user, admin, ts := strconv.FormatInt(id.ID, 10), adminText(id.Admin), strconv.FormatInt(at.Unix(), 10)
+	ts := at.Unix()
 	return map[string]string{
-		HeaderUser:      user,
-		HeaderLogin:     id.Login,
-		HeaderAdmin:     admin,
-		HeaderTimestamp: ts,
-		HeaderSignature: mac(secret, canonical(user, id.Login, admin, ts)),
+		HeaderUser: c.User(),
+		HeaderRole: c.Role,
+		HeaderTS:   strconv.FormatInt(ts, 10),
+		HeaderMAC:  mac(key, c.User(), c.Role, c.Subject, ts),
 	}, nil
 }
 
-// Verify is the check a server makes. get returns the value of a metadata key ("" when absent). It is here as the
-// reference of the contract and for tests; the server has its own implementation.
-func Verify(secret string, get func(string) string, now time.Time) (Identity, error) {
-	if len(secret) < MinSecretBytes {
-		return Identity{}, ErrNoSecret
+// Verify is the check a server makes: get returns the value of a metadata key ("" when absent). It returns the user
+// and the role of a claim that is signed under key, made for subject and inside the clock window. It is the reference
+// of the format, for tests; the server has its own implementation.
+func Verify(key []byte, get func(string) string, subject string, now time.Time) (user, role string, err error) {
+	if len(key) < MinKey {
+		return "", "", ErrNoKey
 	}
-	user, login, admin, ts, sig := get(HeaderUser), get(HeaderLogin), get(HeaderAdmin), get(HeaderTimestamp), get(HeaderSignature)
-	if admin != "0" && admin != "1" {
-		return Identity{}, ErrBadSignature
+	user, role, ts, given := get(HeaderUser), get(HeaderRole), get(HeaderTS), get(HeaderMAC)
+	if user == "" || len(user) > MaxUserBytes || strings.ContainsAny(user, "\r\n") {
+		return "", "", ErrBadClaim
 	}
-	want := mac(secret, canonical(user, login, admin, ts))
-	if !hmac.Equal([]byte(want), []byte(sig)) {
-		return Identity{}, ErrBadSignature
+	n, perr := strconv.ParseInt(ts, 10, 64)
+	if perr != nil || strconv.FormatInt(n, 10) != ts {
+		return "", "", ErrBadClaim
 	}
-	// Parse only after the signature held, and require the canonical decimal spelling so one identity has one text.
-	uid, err := strconv.ParseInt(user, 10, 64)
-	if err != nil || strconv.FormatInt(uid, 10) != user {
-		return Identity{}, ErrBadSignature
+	if d := now.Sub(time.Unix(n, 0)); d > MaxSkew || d < -MaxSkew {
+		return "", "", fmt.Errorf("%w: outside the clock window", ErrBadClaim)
 	}
-	at, err := strconv.ParseInt(ts, 10, 64)
-	if err != nil || strconv.FormatInt(at, 10) != ts {
-		return Identity{}, ErrBadSignature
+	want := mac(key, user, role, subject, n)
+	if !hmac.Equal([]byte(want), []byte(given)) {
+		return "", "", ErrBadClaim
 	}
-	if d := now.Sub(time.Unix(at, 0)); d > MaxSkew || d < -MaxSkew {
-		return Identity{}, fmt.Errorf("%w: expired", ErrBadSignature)
-	}
-	id := Identity{ID: uid, Login: login, Admin: admin == "1"}
-	if err := id.Validate(); err != nil {
-		return Identity{}, ErrBadSignature
-	}
-	return id, nil
+	return user, role, nil
 }
 
-// Attach returns a context whose outgoing calls carry the signed identity. Entries of the contract that the
-// context already holds are replaced, never kept, so a caller cannot choose another person.
-func Attach(ctx context.Context, secret string, id Identity, at time.Time) (context.Context, error) {
-	signed, err := Sign(secret, id, at)
+// Attach returns a context whose outgoing calls carry the claim. Entries of the claim that the context already holds
+// are replaced, never kept, so a caller cannot choose another person.
+func Attach(ctx context.Context, key []byte, c Claim, at time.Time) (context.Context, error) {
+	signed, err := Sign(key, c, at)
 	if err != nil {
 		return ctx, err
 	}
@@ -180,15 +182,11 @@ func Attach(ctx context.Context, secret string, id Identity, at time.Time) (cont
 	return metadata.NewOutgoingContext(ctx, md), nil
 }
 
-// AttachDoer signs doer with the hub's internal token and attaches the entries. A hub with no internal token has no
-// connection to asc at all (asctrust.Conn refuses to dial), so there nothing is added and the call carries the
-// token of the person alone; a token that is set but too short is an error, never a weak key.
-func AttachDoer(ctx context.Context, doer *user_model.User) (context.Context, error) {
+// AttachDoer signs the claim of doer with the key of the hub ([asc] FORWARDED_KEY). Without a key the call is not made:
+// the claim is the only thing that says who the person is, and the hub does not fall back to a call without it.
+func AttachDoer(ctx context.Context, doer *user_model.User, role, subject string) (context.Context, error) {
 	if doer == nil {
-		return ctx, fmt.Errorf("%w: no user", ErrBadIdentity)
+		return ctx, fmt.Errorf("%w: no user", ErrBadClaim)
 	}
-	if setting.InternalToken == "" {
-		return ctx, nil
-	}
-	return Attach(ctx, setting.InternalToken, Identity{ID: doer.ID, Login: doer.Name, Admin: doer.IsAdmin}, time.Now())
+	return Attach(ctx, setting.Asc.ForwardedKey, Claim{ID: doer.ID, Login: doer.Name, Role: role, Subject: subject}, time.Now())
 }

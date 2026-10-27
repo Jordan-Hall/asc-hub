@@ -272,7 +272,7 @@ func ascDepsWrite(ctx *context.Context, op string) (*ascDepsWriter, bool) {
 		ctx.Redirect(w.back)
 		return nil, false
 	}
-	call, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoWrite, repo)
+	call, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoAdmin, repo)
 	if err != nil {
 		ascDepsFail(ctx, op+" credential", w.back, err)
 		return nil, false

@@ -14,20 +14,21 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
-	auth_model "forgejo.org/models/auth"
 	perm_model "forgejo.org/models/perm"
 	"forgejo.org/models/unit"
-	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
 	"forgejo.org/modules/test"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 	"forgejo.org/services/contexttest"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -54,7 +55,6 @@ type fakeTrust struct {
 
 	mu       sync.Mutex
 	calls    []trustCall
-	scopes   []auth_model.AccessTokenScope // the scope of every call token issued
 	features []string
 
 	listRefLog func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error)
@@ -213,6 +213,19 @@ func (f *fakeTrust) Dismiss(ctx gocontext.Context, r *ascv1.DismissDepFindingReq
 	return f.depDismiss(r)
 }
 
+var testForwardedKey = []byte("0123456789abcdef0123456789abcdef")
+
+// assertAs checks what a call carried: the hub's own service credential (never an access token of the person) and a
+// claim, signed for subject, that names the person and the role the hub decided.
+func assertAs(t *testing.T, c trustCall, user, role, subject string) {
+	t.Helper()
+	assert.Equal(t, "Bearer internal-token-for-tests", c.Auth, "the hub's service credential")
+	got, gotRole, err := ascidentity.Verify(testForwardedKey, func(k string) string { return strings.Join(c.MD.Get(k), ",") }, subject, time.Now())
+	require.NoError(t, err, "the claim verifies for %s", subject)
+	assert.Equal(t, user, got)
+	assert.Equal(t, role, gotRole)
+}
+
 // startFakeTrust serves the fake on a loopback port, points asctrust at it, makes the repository 1 an asc
 // repository and switches [asc] on. The call credential is a fixed token, so no row is written to the database.
 func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
@@ -232,12 +245,7 @@ func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = c.Close() })
 	t.Cleanup(asctrust.UseConn(c))
-	t.Cleanup(asctrust.UseTokenIssuer(func(_ gocontext.Context, _ *user_model.User, scope auth_model.AccessTokenScope, _ int64) (string, func(), error) {
-		f.mu.Lock()
-		f.scopes = append(f.scopes, scope)
-		f.mu.Unlock()
-		return "per-request-token", func() {}, nil
-	}))
+	t.Cleanup(test.MockVariableValue(&setting.Asc.ForwardedKey, testForwardedKey))
 	t.Cleanup(test.MockVariableValue(&setting.Asc.Enabled, true))
 	setStorageBackend(t, 1, "asc")
 	return f

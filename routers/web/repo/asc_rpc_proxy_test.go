@@ -200,6 +200,7 @@ func (f *fakeAsc) count() int {
 func useAsc(t *testing.T, addr string) {
 	t.Helper()
 	t.Cleanup(test.MockVariableValue(&setting.Asc.Enabled, true))
+	t.Cleanup(test.MockVariableValue(&setting.Asc.ForwardedKey, testForwardedKey))
 	ascRPCConnMu.Lock()
 	oldNew, oldConn := ascRPCNewConn, ascRPCConnVal
 	ascRPCConnVal = nil

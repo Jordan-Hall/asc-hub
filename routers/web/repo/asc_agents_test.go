@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/db"
@@ -20,6 +21,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/test"
 	"forgejo.org/services/ascagentui"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/context"
 
 	"github.com/google/uuid"
@@ -70,15 +72,23 @@ func noCallTokens(t *testing.T) {
 	t.Helper()
 	n, err := db.GetEngine(db.DefaultContext).Where("name LIKE ?", "asc-hub-call-%").Count(&auth_model.AccessToken{})
 	require.NoError(t, err)
-	assert.Zero(t, n, "a one-use call token is left behind")
+	assert.Zero(t, n, "the hub made an access token for a call")
 }
 
 func isUserCredential(t *testing.T, c fakeCall) {
 	t.Helper()
-	bearer, ok := strings.CutPrefix(c.auth, "Bearer ")
-	require.True(t, ok, "%s carries no bearer credential", c.method)
-	assert.NotEqual(t, testInternalTok, bearer, "%s: a person's action must not use the internal token", c.method)
-	assert.Len(t, bearer, 40, "%s: a one-use access token", c.method)
+	// A person's action carries the hub's service credential and a claim, signed for the repository, about the person
+	// whom the hub's permission model allowed it. The hub makes no access token for it.
+	assert.Equal(t, "Bearer "+testInternalTok, c.auth, "%s: the hub's service credential", c.method)
+	get := func(k string) string { return strings.Join(c.md.Get(k), ",") }
+	var verified bool
+	for _, subject := range []string{"user2/repo1", "user:user2", "instance"} {
+		if user, _, err := ascidentity.Verify(testForwardedKey, get, subject, time.Now()); err == nil {
+			assert.Equal(t, "2:user2", user, "%s", c.method)
+			verified = true
+		}
+	}
+	assert.True(t, verified, "%s: no claim about the person verifies", c.method)
 }
 
 func isSystemCredential(t *testing.T, c fakeCall) {

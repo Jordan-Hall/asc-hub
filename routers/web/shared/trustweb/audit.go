@@ -14,6 +14,7 @@ import (
 	"time"
 
 	repo_model "forgejo.org/models/repo"
+	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
@@ -27,9 +28,9 @@ type AuditLevel struct {
 	Scope *ascv1.OwnerRef
 	// Call is the kind of credential the call needs, and Repo the repository of a repository level.
 	Call asctrust.CallKind
-	// OrgID is the organisation of a CallOrg level: its token is limited to the repositories of that organisation.
-	OrgID int64
-	Repo  *repo_model.Repository
+	// Org is the organisation of a CallOrg level.
+	Org  *user_model.User
+	Repo *repo_model.Repository
 	// Base is the link of the audit page without a query string, for the pager, the export and the form.
 	Base string
 	// Label names the scope for the person ("owner/repo", an organisation, "this server").
@@ -296,7 +297,7 @@ func ServeAuditExport(ctx *app_context.Context, lvl *AuditLevel) {
 // userCall makes the credential of the person for the level.
 func (lvl *AuditLevel) userCall(ctx *app_context.Context) (context.Context, func(), error) {
 	if lvl.Call == asctrust.CallOrg {
-		return asctrust.UserCallOrg(ctx, ctx.Doer, lvl.OrgID)
+		return asctrust.UserCallOrg(ctx, ctx.Doer, lvl.Org)
 	}
 	return asctrust.UserCall(ctx, ctx.Doer, lvl.Call, lvl.Repo)
 }
