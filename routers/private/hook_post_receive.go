@@ -54,7 +54,9 @@ func HookPostReceive(ctx *app_context.PrivateContext) {
 	if ascOwnsFanOut(ctx, opts, ownerName, repoName) {
 		return
 	}
-	settleAscFanOut(ctx, opts, ownerName, repoName)
+	settled := settleAscFanOut(ctx, opts, ownerName, repoName)
+	// The writer of a write the hub made waits for this call to be processed before it returns.
+	defer settled()
 	if ctx.Written() {
 		return
 	}
@@ -403,13 +405,14 @@ func ascOwnsFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions, o
 // synchronization). So the pusher is put back from what pre-receive remembered and the call waits, for a bounded
 // time, until the repository holds the refs. It never fails the call; a push that did not arrive is processed as
 // before.
-func settleAscFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions, ownerName, repoName string) {
+func settleAscFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions, ownerName, repoName string) (settled func()) {
+	settled = func() {}
 	if !setting.Asc.Enabled || opts.IsWiki || opts.PushTrigger != ascsync.PushTriggerAsc || len(opts.RefFullNames) == 0 {
-		return
+		return settled
 	}
 	repo, err := repo_model.GetRepositoryByOwnerAndName(ctx, ownerName, repoName)
 	if err != nil {
-		return // the ordinary path reports it
+		return settled // the ordinary path reports it
 	}
 	refs := make([]ascsync.PushRef, 0, len(opts.RefFullNames))
 	complete := len(opts.OldCommitIDs) == len(opts.RefFullNames) && len(opts.NewCommitIDs) == len(opts.RefFullNames)
@@ -423,7 +426,8 @@ func settleAscFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions,
 	// ref change of the call belongs to the one push that was remembered: a call that mixes pushes, or holds a ref
 	// change nobody remembers, stays unattributed.
 	if opts.UserID == 0 && complete {
-		if id, ok := ascsync.ClaimPusher(repo, refs); ok {
+		if id, done, ok := ascsync.ClaimPusherUntilSettled(repo, refs); ok {
+			settled = done
 			if u, err := loadContextCacheUser(ctx, id); err == nil {
 				opts.UserID, opts.UserName = u.ID, u.Name
 			}
@@ -432,6 +436,7 @@ func settleAscFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions,
 	if err := ascsync.WaitForRefs(ctx, repo, refs); err != nil {
 		log.Warn("post-receive for %-v: the repository did not hold the pushed refs in time: %v", repo, err)
 	}
+	return settled
 }
 
 func loadContextCacheUser(ctx context.Context, id int64) (*user_model.User, error) {

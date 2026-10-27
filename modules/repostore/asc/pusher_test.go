@@ -21,6 +21,7 @@ type notedWrite struct {
 	pr        int64
 	refs      []asc.PushedRef
 	forgotten bool
+	waited    bool
 }
 
 // useNotes installs a recorder for asc.NotePusher for one test and returns what it recorded.
@@ -28,10 +29,10 @@ func useNotes(t *testing.T) *[]*notedWrite {
 	t.Helper()
 	var notes []*notedWrite
 	old := asc.NotePusher
-	asc.NotePusher = func(_ context.Context, repo string, pusher, pr int64, refs []asc.PushedRef) func() {
+	asc.NotePusher = func(_ context.Context, repo string, pusher, pr int64, refs []asc.PushedRef) *asc.PusherNote {
 		n := &notedWrite{repo: repo, pusher: pusher, pr: pr, refs: refs}
 		notes = append(notes, n)
-		return func() { n.forgotten = true }
+		return &asc.PusherNote{Forget: func() { n.forgotten = true }, Wait: func(context.Context) { n.waited = true }}
 	}
 	t.Cleanup(func() { asc.NotePusher = old })
 	return &notes
@@ -59,6 +60,7 @@ func TestWritesNoteTheirPusher(t *testing.T) {
 		assert.Equal(t, int64(9), n.pr)
 		assert.Equal(t, []asc.PushedRef{{Name: "refs/heads/main", New: gid(0x70).String()}}, n.refs)
 		assert.False(t, n.forgotten, "a write that succeeded stays noted until post-receive claims it")
+		assert.True(t, n.waited, "the writer waits for the hub to process the write before it returns")
 	})
 
 	t.Run("a write that asc refuses is forgotten", func(t *testing.T) {
@@ -73,6 +75,7 @@ func TestWritesNoteTheirPusher(t *testing.T) {
 		require.Error(t, err)
 		require.Len(t, *notes, 1)
 		assert.True(t, (*notes)[0].forgotten)
+		assert.False(t, (*notes)[0].waited, "a write that failed has nothing to wait for")
 	})
 
 	t.Run("no person in the environment: nothing is noted", func(t *testing.T) {

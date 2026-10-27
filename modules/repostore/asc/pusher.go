@@ -27,11 +27,20 @@ type PushedRef struct {
 	New  string
 }
 
+// PusherNote is the hub's record of a write, made by NotePusher.
+type PusherNote struct {
+	// Forget drops the record. The writer calls it when the write fails.
+	Forget func()
+	// Wait returns when the hub has processed the post-receive calls of the write (so that its own records of the
+	// repository, such as its branches, hold the change), or after a bounded time. The writer calls it after the write
+	// succeeded, so that a page that follows a web edit is not ahead of the hub's records.
+	Wait func(ctx context.Context)
+}
+
 // NotePusher is set by the hub (services/ascsync). It records that pusherID is writing refs of the repository called
 // repo ("owner/name"), before the write is sent to asc, so that asc's pre-receive and post-receive calls, which come
-// back to the hub without a person, can be attributed to that person and checked as that person. It returns the
-// function that forgets the record; the writer calls it when the write fails. Nil does nothing.
-var NotePusher func(ctx context.Context, repo string, pusherID, pullRequestID int64, refs []PushedRef) (forget func())
+// back to the hub without a person, can be attributed to that person and checked as that person. Nil does nothing.
+var NotePusher func(ctx context.Context, repo string, pusherID, pullRequestID int64, refs []PushedRef) *PusherNote
 
 // pusherOf reads the person and the pull request from a hook environment: 0 when it names none.
 func pusherOf(env []string) (pusher, pullRequest int64) {
@@ -50,14 +59,26 @@ func pusherOf(env []string) (pusher, pullRequest int64) {
 	return pusher, pullRequest
 }
 
-// notePusher records the pusher of a write, when the environment names one, and returns the function that forgets it.
-func (s *session) notePusher(repo string, env []string, refs []PushedRef) func() {
+// notePusher records the pusher of a write, when the environment names one. The note it returns is never nil.
+func (s *session) notePusher(repo string, env []string, refs []PushedRef) *PusherNote {
 	id, pr := pusherOf(env)
 	if id == 0 || NotePusher == nil || len(refs) == 0 {
-		return func() {}
+		return &PusherNote{}
 	}
-	if forget := NotePusher(s.ctx, repo, id, pr, refs); forget != nil {
-		return forget
+	if n := NotePusher(s.ctx, repo, id, pr, refs); n != nil {
+		return n
 	}
-	return func() {}
+	return &PusherNote{}
+}
+
+func (n *PusherNote) forget() {
+	if n.Forget != nil {
+		n.Forget()
+	}
+}
+
+func (n *PusherNote) wait(ctx context.Context) {
+	if n.Wait != nil {
+		n.Wait(ctx)
+	}
 }

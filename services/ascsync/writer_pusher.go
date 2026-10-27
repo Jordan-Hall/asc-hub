@@ -6,6 +6,7 @@ package ascsync
 import (
 	"context"
 	"strings"
+	"time"
 
 	repo_model "forgejo.org/models/repo"
 	ascwriter "forgejo.org/modules/repostore/asc"
@@ -20,7 +21,7 @@ func init() {
 
 // notePusher is ascwriter.NotePusher: it records the write under the repository the asc name "owner/name" stands
 // for. A name that is no repository of the hub records nothing, and the hooks then refuse the call as before.
-func notePusher(ctx context.Context, name string, pusherID, pullRequestID int64, refs []ascwriter.PushedRef) func() {
+func notePusher(ctx context.Context, name string, pusherID, pullRequestID int64, refs []ascwriter.PushedRef) *ascwriter.PusherNote {
 	owner, repoName, ok := strings.Cut(name, "/")
 	if !ok {
 		return nil
@@ -33,5 +34,12 @@ func notePusher(ctx context.Context, name string, pusherID, pullRequestID int64,
 	for i, r := range refs {
 		pushed[i] = PushRef{Name: r.Name, New: r.New}
 	}
-	return RememberWriter(repo, pusherID, pullRequestID, pushed).Forget
+	tok := RememberWriter(repo, pusherID, pullRequestID, pushed)
+	return &ascwriter.PusherNote{
+		Forget: tok.Forget,
+		Wait:   func(ctx context.Context) { tok.Wait(ctx, SettleWait) },
+	}
 }
+
+// SettleWait is the longest a writer waits for the hub to process the post-receive calls of its write.
+const SettleWait = 5 * time.Second

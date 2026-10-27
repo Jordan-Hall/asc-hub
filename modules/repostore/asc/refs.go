@@ -86,17 +86,18 @@ func (w *Writer) UpdateRefs(ctx context.Context, req repostore.UpdateRefsRequest
 		names[i] = u.Name
 	}
 	// asc calls the hub's hooks as the hub, with no person. The hub is told whose change this is first.
-	forget := s.notePusher(to.name, req.HookEnv, noted)
+	note := s.notePusher(to.name, req.HookEnv, noted)
 	resp, err := s.api.UpdateRefs(s.ctx, &ascv1.UpdateRefsRequest{
 		Repo: to.ascRef(), Updates: updates, Mode: mode, Hooks: hookMode(names...),
 	})
 	if err != nil {
-		forget()
+		note.forget()
 		return nil, publishErr("UpdateRefs", err)
 	}
 	if len(resp.GetResults()) != len(req.Updates) {
 		return nil, fmt.Errorf("%w: UpdateRefs answered %d results for %d updates", ErrBadAnswer, len(resp.GetResults()), len(req.Updates))
 	}
+	note.wait(s.ctx)
 	for i, u := range req.Updates {
 		if u.Delete {
 			continue
