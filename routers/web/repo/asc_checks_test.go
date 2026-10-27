@@ -130,3 +130,23 @@ func TestAscChecksViewsRefuseBadInputAndUnsupportedServers(t *testing.T) {
 	assert.Contains(t, page.body, "asc_trust.checks.unsupported")
 	assert.Empty(t, f2.callsOf("ListFailureGroups"))
 }
+
+func TestAscChecksStateTabsAreFourWithTheOpenTabCurrent(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureCiInsights)
+	f.listGroups = func(*ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error) {
+		return &ascv1.ListFailureGroupsResponse{Groups: []*ascv1.FailureGroup{
+			checksGroup(1, "panic", "unit", 7, ascv1.FailureGroupState_FAILURE_GROUP_STATE_OPEN),
+		}}, nil
+	}
+	page := checksPage(t, "", 2)
+
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	for _, key := range []string{"open", "acknowledged", "quarantined", "resolved"} {
+		assert.Equal(t, 1, strings.Count(page.body, `data-testid="asc-checks-tab-`+key+`"`), key)
+	}
+	assert.NotContains(t, page.body, "asc_trust.checks.state.</a>", "no tab is labelled with half a translation key")
+	assert.Equal(t, 4, strings.Count(page.body, `data-testid="asc-checks-tab-`), "the default view is the open tab, not a fifth one")
+	open := page.body[strings.Index(page.body, `data-testid="asc-checks-tab-open"`)-200:]
+	assert.Contains(t, open[:300], `aria-current="page"`, "the default view is the open tab")
+}
