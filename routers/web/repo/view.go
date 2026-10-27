@@ -1199,6 +1199,8 @@ PostRecentBranchCheck:
 	} else {
 		ctx.Data["CodeSearchOptions"] = git.GrepSearchOptions
 	}
+	isFile, _ := ctx.Data["IsViewFile"].(bool)
+	prepareAscTree(ctx, !isFile)
 	ctx.HTML(http.StatusOK, tplRepoHome)
 }
 
