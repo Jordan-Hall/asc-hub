@@ -19,6 +19,7 @@
 package trustweb
 
 import (
+	context2 "context"
 	"errors"
 	"net/http"
 	"strings"
@@ -87,8 +88,9 @@ func AdminRepo(ctx *context.Context) (*repo_model.Repository, string, bool) {
 	return repo, name, true
 }
 
-// ReaderRepo is the guard of the pages everyone who may read the code can open (the checks). The person may be
-// anonymous on a public repository.
+// ReaderRepo is the guard of the checks pages: a person who may read the code and the Actions of the repository.
+// Failure groups, occurrences and runs are CI data, which Forgejo shows only to a reader of Actions, so a reader of
+// the code alone gets 404 before anything is loaded. The person may be anonymous on a public repository.
 func ReaderRepo(ctx *context.Context) (*repo_model.Repository, string, bool) {
 	repo := ctx.Repo.Repository
 	if !setting.Asc.Enabled || repo == nil {
@@ -96,11 +98,21 @@ func ReaderRepo(ctx *context.Context) (*repo_model.Repository, string, bool) {
 		return nil, "", false
 	}
 	name, err := asctrust.RepoName(repo)
-	if err != nil || !ctx.Repo.CanRead(unit.TypeCode) {
+	if err != nil || !ctx.Repo.CanRead(unit.TypeCode) || !ctx.Repo.CanRead(unit.TypeActions) {
 		ctx.NotFound("asc trust", nil)
 		return nil, "", false
 	}
 	return repo, name, true
+}
+
+// ReadCall returns the context for the asc reads of a checks page and the function that ends it. A signed-in person
+// is the caller (asctrust.UserCall), so asc applies the permissions of that person as well; an anonymous reader of
+// a public repository, who has no credential, is served as the hub. The caller defers release at once.
+func ReadCall(ctx *context.Context, repo *repo_model.Repository) (context2.Context, func(), error) {
+	if ctx.IsSigned && ctx.Doer != nil {
+		return asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, repo)
+	}
+	return asctrust.System(ctx.Req.Context()), func() {}, nil
 }
 
 // WriterRepo is the guard of the actions on the checks page: a signed-in person who may write to the code.
