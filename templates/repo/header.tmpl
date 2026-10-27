@@ -183,13 +183,19 @@
 
 				{{if and .SignedUser (eq .Repository.StorageBackend "asc") (.Permission.CanRead $.UnitTypeCode)}}
 					<a class="{{if .PageIsAscAgentArea}}active {{end}}item" href="{{.RepoLink}}/asc/workflows">
-						{{svg "octicon-workflow"}} Workflows
+						{{svg "octicon-workflow"}} {{ctx.Locale.Tr "asc_trust.nav_workflows"}}
 					</a>
 				{{end}}
 
 				{{if and (eq .Repository.StorageBackend "asc") (.Permission.CanRead $.UnitTypeCode)}}
 					<a class="{{if .PageIsAscChecks}}active {{end}}item" href="{{.RepoLink}}/asc/checks">
-						{{svg "octicon-checklist"}} Checks
+						{{svg "octicon-checklist"}} {{ctx.Locale.Tr "asc_trust.nav_checks"}}
+					</a>
+				{{end}}
+
+				{{if and .SignedUser (eq .Repository.StorageBackend "asc") (.Permission.CanRead $.UnitTypeCode)}}
+					<a class="{{if .PageIsAscOps}}active {{end}}item" href="{{.RepoLink}}/asc/ops">
+						{{svg "octicon-history"}} {{ctx.Locale.Tr "asc_trust.nav_ops"}}
 					</a>
 				{{end}}
 

@@ -135,6 +135,8 @@ var messages = map[string]string{
 	"CHANGE_NOT_ALLOWED":  "You may not change this.",
 	"ALREADY_EXISTS":      "That already exists.",
 	"QUARANTINE_DISABLED": "The policy of this repository does not allow quarantining tests.",
+	"REF_UNDO_PROTECTED":  "That branch is protected, so it cannot be undone here. Revert the landed changes instead.",
+	"REF_LOG_EXPIRED":     "That operation is too old to undo.",
 }
 
 // Message is the text for the person. It depends only on the code and the kind of the failure.
@@ -159,4 +161,48 @@ func (e *Error) Message() string {
 		return "This server does not have that feature yet."
 	}
 	return "ASC could not do this right now."
+}
+
+// codeKeys maps ErrorDetail.code to the locale key (under "asc_trust.err.") of its text. Every entry of messages has
+// one, so the English text above and the locale file say the same.
+var codeKeys = map[string]string{
+	"POLICY_INVALID":      "policy_invalid",
+	"POLICY_LOCKOUT":      "policy_lockout",
+	"POLICY_DENIED":       "policy_denied",
+	"VERSION_CONFLICT":    "version_conflict",
+	"SECRET_DETECTED":     "secret_detected",
+	"UNSIGNED_CHANGE":     "unsigned_change",
+	"SIGNATURE_INVALID":   "signature_invalid",
+	"SIGNING_KEY_LIMIT":   "signing_key_limit",
+	"SEARCH_TOO_BROAD":    "search_too_broad",
+	"RATE_LIMITED":        "rate_limited",
+	"CHANGE_NOT_ALLOWED":  "change_not_allowed",
+	"ALREADY_EXISTS":      "already_exists",
+	"QUARANTINE_DISABLED": "quarantine_disabled",
+	"REF_UNDO_PROTECTED":  "ref_undo_protected",
+	"REF_LOG_EXPIRED":     "ref_log_expired",
+}
+
+// kindKeys is the locale key of the text of a kind of failure that has no code of its own.
+var kindKeys = map[Kind]string{
+	KindNotFound:      "not_found",
+	KindDenied:        "denied",
+	KindInvalid:       "invalid",
+	KindConflict:      "conflict",
+	KindLimit:         "limit",
+	KindUnavailable:   "unavailable",
+	KindUnimplemented: "unimplemented",
+	KindOther:         "other",
+}
+
+// MessageKey is the full locale key ("asc_trust.err.<name>") of the text for the person. It depends only on the code
+// and the kind of the failure, like Message.
+func (e *Error) MessageKey() string {
+	if k, ok := codeKeys[e.Code]; ok {
+		return "asc_trust.err." + k
+	}
+	if k, ok := kindKeys[e.Kind]; ok {
+		return "asc_trust.err." + k
+	}
+	return "asc_trust.err.other"
 }

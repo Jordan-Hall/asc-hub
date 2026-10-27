@@ -1,0 +1,212 @@
+// Copyright 2026 The ASC Authors. All rights reserved.
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+package repo
+
+import (
+	gocontext "context"
+	"html/template"
+	"io"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
+	"sync"
+	"testing"
+
+	auth_model "forgejo.org/models/auth"
+	perm_model "forgejo.org/models/perm"
+	"forgejo.org/models/unit"
+	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/ascclient"
+	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/setting"
+	"forgejo.org/modules/templates"
+	"forgejo.org/modules/test"
+	"forgejo.org/services/asctrust"
+	"forgejo.org/services/context"
+	"forgejo.org/services/contexttest"
+
+	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+)
+
+// A fake asc serve for the trust pages that read the operation log, the CI insights and the stack service. A test
+// sets the hook of each method it expects; a method without a hook answers Unimplemented. Every call is recorded with
+// the credential, the op id and the request.
+
+type trustCall struct {
+	Method string
+	Auth   string
+	OpID   string
+	MD     metadata.MD
+	Req    any
+}
+
+type fakeTrust struct {
+	ascv1.UnimplementedRepoServer
+	ascv1.UnimplementedStacksServer
+	ascv1.UnimplementedCiInsightsServer
+
+	mu       sync.Mutex
+	calls    []trustCall
+	features []string
+
+	listRefLog func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error)
+	undoRef    func(*ascv1.UndoRefRequest) (*ascv1.UndoRefResponse, error)
+	listGroups func(*ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error)
+	listFlaky  func(*ascv1.ListFlakyTestsRequest) (*ascv1.ListFlakyTestsResponse, error)
+	history    func(*ascv1.FlakyHistoryRequest) (*ascv1.FlakyHistoryResponse, error)
+}
+
+func (f *fakeTrust) note(ctx gocontext.Context, method string, req any) {
+	md, _ := metadata.FromIncomingContext(ctx)
+	c := trustCall{Method: method, Req: req, MD: md}
+	if v := md.Get("authorization"); len(v) > 0 {
+		c.Auth = v[0]
+	}
+	if v := md.Get("x-asc-op-id"); len(v) > 0 {
+		c.OpID = v[0]
+	}
+	f.mu.Lock()
+	f.calls = append(f.calls, c)
+	f.mu.Unlock()
+}
+
+func (f *fakeTrust) callsOf(method string) []trustCall {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	var out []trustCall
+	for _, c := range f.calls {
+		if c.Method == method {
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
+func (f *fakeTrust) Version(ctx gocontext.Context, _ *ascv1.VersionRequest) (*ascv1.VersionResponse, error) {
+	f.note(ctx, "Version", nil)
+	return &ascv1.VersionResponse{Features: f.features}, nil
+}
+
+func (f *fakeTrust) ListRefLog(ctx gocontext.Context, r *ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) {
+	f.note(ctx, "ListRefLog", r)
+	if f.listRefLog == nil {
+		return f.UnimplementedStacksServer.ListRefLog(ctx, r)
+	}
+	return f.listRefLog(r)
+}
+
+func (f *fakeTrust) UndoRef(ctx gocontext.Context, r *ascv1.UndoRefRequest) (*ascv1.UndoRefResponse, error) {
+	f.note(ctx, "UndoRef", r)
+	if f.undoRef == nil {
+		return f.UnimplementedStacksServer.UndoRef(ctx, r)
+	}
+	return f.undoRef(r)
+}
+
+func (f *fakeTrust) ListFailureGroups(ctx gocontext.Context, r *ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error) {
+	f.note(ctx, "ListFailureGroups", r)
+	if f.listGroups == nil {
+		return f.UnimplementedCiInsightsServer.ListFailureGroups(ctx, r)
+	}
+	return f.listGroups(r)
+}
+
+func (f *fakeTrust) ListFlakyTests(ctx gocontext.Context, r *ascv1.ListFlakyTestsRequest) (*ascv1.ListFlakyTestsResponse, error) {
+	f.note(ctx, "ListFlakyTests", r)
+	if f.listFlaky == nil {
+		return f.UnimplementedCiInsightsServer.ListFlakyTests(ctx, r)
+	}
+	return f.listFlaky(r)
+}
+
+func (f *fakeTrust) FlakyHistory(ctx gocontext.Context, r *ascv1.FlakyHistoryRequest) (*ascv1.FlakyHistoryResponse, error) {
+	f.note(ctx, "FlakyHistory", r)
+	if f.history == nil {
+		return f.UnimplementedCiInsightsServer.FlakyHistory(ctx, r)
+	}
+	return f.history(r)
+}
+
+// startFakeTrust serves the fake on a loopback port, points asctrust at it, makes the repository 1 an asc
+// repository and switches [asc] on. The call credential is a fixed token, so no row is written to the database.
+func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
+	t.Helper()
+	f := &fakeTrust{features: features}
+	srv := grpc.NewServer()
+	ascv1.RegisterRepoServer(srv, f)
+	ascv1.RegisterStacksServer(srv, f)
+	ascv1.RegisterCiInsightsServer(srv, f)
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	go func() { _ = srv.Serve(l) }()
+	t.Cleanup(srv.Stop)
+	c, err := ascclient.New(ascclient.Config{Target: l.Addr().String(), InternalToken: "internal-token-for-tests", Retry: ascclient.RetryConfig{MaxAttempts: 1}})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = c.Close() })
+	t.Cleanup(asctrust.UseConn(c))
+	t.Cleanup(asctrust.UseTokenIssuer(func(gocontext.Context, *user_model.User, auth_model.AccessTokenScope, int64) (string, func(), error) {
+		return "per-request-token", func() {}, nil
+	}))
+	t.Cleanup(test.MockVariableValue(&setting.Asc.Enabled, true))
+	setStorageBackend(t, 1, "asc")
+	return f
+}
+
+// trustPage is the answer of a handler run by runTrust.
+type trustPage struct {
+	status int
+	body   string
+	loc    string
+	ctx    *context.Context
+	flash  string
+}
+
+type trustReq struct {
+	method string
+	path   string
+	// user is the signed-in user (0 is nobody); access is the person's access to the code and the pull requests.
+	user   int64
+	access perm_model.AccessMode
+	form   url.Values
+	params map[string]string
+}
+
+// runTrust runs a handler of the trust pages for repository 1 (user2/repo1).
+func runTrust(t *testing.T, r trustReq, handler func(*context.Context)) trustPage {
+	t.Helper()
+	if r.method == "" {
+		r.method = http.MethodGet
+	}
+	ctx, resp := contexttest.MockContext(t, r.method+" "+r.path)
+	ctx.Render = templates.HTMLRenderer()
+	if r.user != 0 {
+		contexttest.LoadUser(t, ctx, r.user)
+		ctx.IsSigned = true
+	}
+	contexttest.LoadRepo(t, ctx, 1)
+	ctx.Data["RepoLink"] = ctx.Repo.RepoLink
+	ctx.Data["CsrfTokenHtml"] = template.HTML(`<input type="hidden" name="_csrf" value="csrf-token-for-tests">`)
+	ctx.Repo.Permission.AccessMode = r.access
+	ctx.Repo.Permission.UnitsMode = map[unit.Type]perm_model.AccessMode{
+		unit.TypeCode: r.access, unit.TypePullRequests: r.access, unit.TypeActions: r.access,
+	}
+	if r.form != nil {
+		if r.method == http.MethodPost {
+			ctx.Req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			ctx.Req.Body = io.NopCloser(strings.NewReader(r.form.Encode()))
+		}
+		ctx.Req.Form = r.form
+	}
+	for k, v := range r.params {
+		ctx.SetParams(k, v)
+	}
+	handler(ctx)
+	return trustPage{status: resp.Code, body: resp.Body.String(), loc: resp.Header().Get("Location"), ctx: ctx}
+}
+
+var _ = httptest.NewRecorder
