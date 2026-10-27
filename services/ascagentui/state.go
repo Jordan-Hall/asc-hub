@@ -150,6 +150,8 @@ func StepKind(k ascv1.WorkflowStepKind) string {
 		return "Approval"
 	case ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_CHECKS:
 		return "Checks"
+	case ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_COMMAND:
+		return "Command"
 	}
 	return "Step"
 }
@@ -169,6 +171,8 @@ func TriggerLabel(k ascv1.WorkflowTriggerKind) string {
 		return "An agent was mentioned"
 	case ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_SCHEDULE:
 		return "On a schedule"
+	case ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_LAND:
+		return "A stack landed"
 	}
 	return "Unknown trigger"
 }
