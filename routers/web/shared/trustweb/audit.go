@@ -27,7 +27,9 @@ type AuditLevel struct {
 	Scope *ascv1.OwnerRef
 	// Call is the kind of credential the call needs, and Repo the repository of a repository level.
 	Call asctrust.CallKind
-	Repo *repo_model.Repository
+	// OrgID is the organisation of a CallOrg level: its token is limited to the repositories of that organisation.
+	OrgID int64
+	Repo  *repo_model.Repository
 	// Base is the link of the audit page without a query string, for the pager, the export and the form.
 	Base string
 	// Label names the scope for the person ("owner/repo", an organisation, "this server").
@@ -125,7 +127,7 @@ func ServeAudit(ctx *app_context.Context, lvl *AuditLevel) {
 		ctx.HTML(http.StatusBadGateway, lvl.Tpl)
 		return
 	}
-	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, lvl.Call, lvl.Repo)
+	callCtx, release, err := lvl.userCall(ctx)
 	if err != nil {
 		f := FailureOf("audit credential", err)
 		v.Error = f.Localized(ctx)
@@ -174,7 +176,7 @@ func ServeAuditVerify(ctx *app_context.Context, lvl *AuditLevel) {
 		ctx.HTML(http.StatusBadGateway, lvl.Tpl)
 		return
 	}
-	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, lvl.Call, lvl.Repo)
+	callCtx, release, err := lvl.userCall(ctx)
 	if err != nil {
 		f := FailureOf("audit credential", err)
 		v.Error = f.Localized(ctx)
@@ -234,7 +236,7 @@ func ServeAuditExport(ctx *app_context.Context, lvl *AuditLevel) {
 		ctx.Error(http.StatusBadGateway, ctx.Locale.TrString("asc_trust.err.unavailable"))
 		return
 	}
-	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, lvl.Call, lvl.Repo)
+	callCtx, release, err := lvl.userCall(ctx)
 	if err != nil {
 		f := FailureOf("audit export credential", err)
 		ctx.Error(f.Status, f.Localized(ctx))
@@ -289,4 +291,12 @@ func ServeAuditExport(ctx *app_context.Context, lvl *AuditLevel) {
 			log.Warn("asc audit export: the browser went away: %v", err)
 		}
 	}
+}
+
+// userCall makes the credential of the person for the level.
+func (lvl *AuditLevel) userCall(ctx *app_context.Context) (context.Context, func(), error) {
+	if lvl.Call == asctrust.CallOrg {
+		return asctrust.UserCallOrg(ctx, ctx.Doer, lvl.OrgID)
+	}
+	return asctrust.UserCall(ctx, ctx.Doer, lvl.Call, lvl.Repo)
 }
