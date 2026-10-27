@@ -3,7 +3,7 @@
 #   docker build -f Dockerfile.allinone --build-arg ASC_IMAGE=ghcr.io/jordan-hall/asc-serve:<tag> -t asc-hub .
 #
 # ASC_IMAGE is the published asc-serve image that the `asc` binary is copied from. There is no
-# default tag on purpose: pin the one you tested with. The hub is built exactly as in
+# default tag on purpose: pin the one you tested with, by digest (image@sha256:...). The hub is built exactly as in
 # Dockerfile.rootless (same build stage), then both programs run under asc-hub-entrypoint.
 #
 # The runtime base is Debian (glibc), not Alpine, because the asc binary is built against glibc.
@@ -14,9 +14,11 @@ ARG ASC_IMAGE
 # Fails with a blank base name when ASC_IMAGE is not given.
 FROM ${ASC_IMAGE} AS asc-bin
 
-FROM --platform=$BUILDPLATFORM data.forgejo.org/oci/xx AS xx
+# data.forgejo.org/oci/xx:latest
+FROM --platform=$BUILDPLATFORM data.forgejo.org/oci/xx@sha256:40fe21f44bb8cddf1eb1226db190d0a984118f62ee02a91b77d99448d28264a6 AS xx
 
-FROM --platform=$BUILDPLATFORM data.forgejo.org/oci/golang:1.26-alpine3.23 AS build-env
+# data.forgejo.org/oci/golang:1.26-alpine3.23
+FROM --platform=$BUILDPLATFORM data.forgejo.org/oci/golang@sha256:0525c952defebc693cdaf62cdf43afa32be5a7f377e99260642ea19c240c708e AS build-env
 
 ARG GOPROXY
 ENV GOPROXY=${GOPROXY:-https://proxy.golang.org,direct}
