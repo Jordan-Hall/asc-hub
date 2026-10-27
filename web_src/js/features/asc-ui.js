@@ -23,7 +23,7 @@ export function osFromPlatform(platform) {
 
 function selectOS(root, os) {
   const tabs = root.querySelectorAll('[role="tab"][data-os]');
-  const panels = root.querySelectorAll('.asc-dl-panel[data-os]');
+  const panels = root.querySelectorAll('.hub-dl-panel[data-os]');
   let found = false;
   for (const panel of panels) if (panel.getAttribute('data-os') === os) found = true;
   if (!found) return;
@@ -36,15 +36,15 @@ function selectOS(root, os) {
 }
 
 function recommendArch(root, os, arch) {
-  for (const panel of root.querySelectorAll(`.asc-dl-panel[data-os="${os}"]`)) {
-    const cards = panel.querySelectorAll('.asc-dl-arch[data-arch]');
+  for (const panel of root.querySelectorAll(`.hub-dl-panel[data-os="${os}"]`)) {
+    const cards = panel.querySelectorAll('.hub-dl-arch[data-arch]');
     let match = false;
     for (const card of cards) if (card.getAttribute('data-arch') === arch) match = true;
     if (!match) continue;
     for (const card of cards) {
       const on = card.getAttribute('data-arch') === arch;
       card.toggleAttribute('data-recommended', on);
-      const badge = card.querySelector('.asc-dl-badge');
+      const badge = card.querySelector('.hub-dl-badge');
       if (badge) badge.hidden = !on;
     }
   }
@@ -56,7 +56,7 @@ function initDownload() {
   const root = document.querySelector('[data-asc-download]');
   if (!root) return;
   root.classList.add('is-tabbed');
-  const bar = root.querySelector('.asc-dl-tabs');
+  const bar = root.querySelector('.hub-dl-tabs');
   if (bar) bar.hidden = false;
   let os = root.getAttribute('data-active-os');
   selectOS(root, os);

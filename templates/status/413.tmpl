@@ -1,11 +1,13 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content ui {{if .IsRepo}}repository{{end}}">
 	{{if .IsRepo}}{{template "repo/header" .}}{{end}}
-	<div class="ui container center">
-		<h1 style="margin-top: 100px" class="error-code">413</h1>
-		<p>{{ctx.Locale.Tr "error413"}}</p>
-		<div class="divider"></div>
-		<br>
+	<div class="hub-status">
+		<p class="error-code" aria-hidden="true">413</p>
+		<h1 class="hub-status-title">{{ctx.Locale.Tr "asc_status.quota_title"}}</h1>
+		<p class="hub-status-text">{{ctx.Locale.Tr "error413"}}</p>
+		<div class="hub-status-actions">
+			<a class="hub-btn hub-btn-outline" href="{{AppSubUrl}}/">{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}</a>
+		</div>
 	</div>
 </div>
 {{template "base/footer" .}}
