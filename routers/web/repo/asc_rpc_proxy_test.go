@@ -67,7 +67,7 @@ var ascRPCTestDenied = map[string]string{
 // by RepoRef"). A method added to one of them is denied without an entry here.
 var ascRPCTestDeniedServices = map[string]bool{
 	"AgentTokens": true, "Agents": true, "AiProviders": true, "Audit": true, "Bridge": true, "Ci": true,
-	"CiInsights": true, "CrossSearch": true, "Inbox": true, "MergeQueue": true, "Policy": true, "Review": true,
+	"CiInsights": true, "CrossSearch": true, "DepsService": true, "Inbox": true, "MergeQueue": true, "Policy": true, "Review": true,
 	"SecretScan": true, "Signing": true, "Stacks": true, "Storage": true, "Vault": true, "Workflows": true,
 }
 

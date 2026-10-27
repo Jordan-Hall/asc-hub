@@ -109,6 +109,32 @@ func TestTrustLocaleKeys(t *testing.T) {
 		assert.Contains(t, keys, "asc_trust.checks.state."+st.Key)
 		assert.Contains(t, keys, "asc_trust.checks.state_done."+st.Key)
 	}
+	for _, sev := range DepSeverityKeys {
+		assert.Contains(t, keys, "asc_trust.deps.severity."+sev.Key)
+	}
+	assert.Contains(t, keys, "asc_trust.deps.severity.unknown")
+	for _, k := range DepKindKeys {
+		assert.Contains(t, keys, "asc_trust.deps.kind."+k.Key)
+	}
+	assert.Contains(t, keys, "asc_trust.deps.kind.unknown")
+	for _, r := range DepDismissReasons {
+		assert.Contains(t, keys, "asc_trust.deps.reason."+r.Key)
+	}
+	for _, st := range DepStateKeys {
+		assert.Contains(t, keys, "asc_trust.deps.state."+st.Key)
+		assert.Contains(t, keys, "asc_trust.deps.dismiss_done."+st.Key)
+	}
+	assert.Contains(t, keys, "asc_trust.deps.dismiss_done.unknown")
+	for _, l := range []string{"partial", "failed", "unknown"} {
+		assert.Contains(t, keys, "asc_trust.deps.lookup_"+l)
+		assert.Contains(t, keys, "asc_trust.deps.last_lookup_"+l)
+	}
+	for _, v := range []string{"findings", "updates", "config"} {
+		assert.Contains(t, keys, "asc_trust.deps.view."+v)
+	}
+	for _, v := range []string{"file", "default"} {
+		assert.Contains(t, keys, "asc_trust.deps.source."+v)
+	}
 	assert.Contains(t, keys, "asc_trust.checks.state.unknown")
 	assert.Contains(t, keys, "asc_trust.checks.state_done.unknown")
 	for _, reason := range []string{"nothing", "not_yours", "moved", "needs_maintainer", "protected_off", "expired", "other"} {
