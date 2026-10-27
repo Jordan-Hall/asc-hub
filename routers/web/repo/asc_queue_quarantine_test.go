@@ -30,8 +30,14 @@ func quarantinedGroup(id uint64, title, note string) *ascv1.FailureGroup {
 
 func queuePage(t *testing.T, user int64, noActions bool) trustPage {
 	t.Helper()
+	return queuePageAs(t, trustReq{user: user, noActions: noActions})
+}
+
+func queuePageAs(t *testing.T, r trustReq) trustPage {
+	t.Helper()
 	t.Cleanup(automerge.UseAscQueueBacked(func(*repo_model.Repository) (bool, error) { return true, nil }))
-	return runTrust(t, trustReq{path: "/user2/repo1/asc/queue", user: user, access: perm_model.AccessModeRead, noActions: noActions}, AscQueuePage)
+	r.path, r.access = "/user2/repo1/asc/queue", perm_model.AccessModeRead
+	return runTrust(t, r, AscQueuePage)
 }
 
 func TestAscQueueShowsQuarantinedChecksAndWhy(t *testing.T) {
@@ -69,6 +75,23 @@ func TestAscQueueQuarantineNeedsActionsRead(t *testing.T) {
 	require.Equal(t, http.StatusOK, page.status)
 	assert.NotContains(t, page.body, "asc_trust.queue.quarantine_title", "CI data is shown only to a reader of Actions")
 	assert.Empty(t, f.callsOf("ListFailureGroups"))
+}
+
+// A person who may read the Actions but not the code of the repository must not learn which changes and tests are
+// quarantined: the section follows the guard of the checks pages.
+func TestAscQueueQuarantineNeedsCodeRead(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureCiInsights)
+	f.listGroups = func(*ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error) {
+		return &ascv1.ListFailureGroupsResponse{Groups: []*ascv1.FailureGroup{quarantinedGroup(4, "a secret test name", "private note")}}, nil
+	}
+	page := queuePageAs(t, trustReq{user: 4, noCode: true})
+	require.Equal(t, http.StatusOK, page.status, "the queue itself follows the right to read pull requests")
+	assert.NotContains(t, page.body, "asc_trust.queue.quarantine_title")
+	assert.NotContains(t, page.body, "a secret test name")
+	assert.NotContains(t, page.body, "private note")
+	assert.Empty(t, f.callsOf("ListFailureGroups"), "nothing is asked of asc")
+	assert.Empty(t, f.callsOf("Version"), "not even for the features")
 }
 
 func TestAscQueueQuarantineFailureDoesNotStopTheQueue(t *testing.T) {
