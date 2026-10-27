@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	git_model "forgejo.org/models/git"
@@ -65,6 +66,23 @@ type ascAgentRunRow struct {
 	Cost      string
 	Failure   string
 	Link      string
+	// Initials is the mark of the agent avatar: its first letter and its trailing number ("c2" for coder-2).
+	Initials string
+}
+
+// ascAgentInitials draws the avatar mark of an agent name: the first letter and a trailing number, else the first two letters.
+func ascAgentInitials(name string) string {
+	r := []rune(strings.ToLower(name))
+	if len(r) == 0 {
+		return "?"
+	}
+	if last := r[len(r)-1]; len(r) > 1 && last >= '0' && last <= '9' {
+		return string([]rune{r[0], last})
+	}
+	if len(r) > 1 {
+		return string(r[:2])
+	}
+	return string(r)
 }
 
 // ascAgentRunOf checks a run that asc sent for repository `name` and turns it into a row. A run of another
@@ -87,6 +105,7 @@ func ascAgentRunOf(run *ascv1.AgentRun, name, runsLink string, wantID uint64) (a
 		Cost:      ascagentui.FormatUSD(run.GetUsage().GetCostMicroUsd()),
 		Link:      runsLink + "/runs/" + strconv.FormatUint(run.GetId(), 10),
 	}
+	row.Initials = ascAgentInitials(row.Agent)
 	if row.Title == "" {
 		row.Title = "Run " + strconv.FormatUint(row.ID, 10)
 	}
@@ -97,6 +116,17 @@ func ascAgentRunOf(run *ascv1.AgentRun, name, runsLink string, wantID uint64) (a
 		}
 	}
 	return row, true
+}
+
+// ascAgentWaitingRows are the runs on the page that wait for a person: the "Needs you" panel.
+func ascAgentWaitingRows(rows []ascAgentRunRow) []ascAgentRunRow {
+	var out []ascAgentRunRow
+	for _, r := range rows {
+		if r.State.Slug == "waiting" {
+			out = append(out, r)
+		}
+	}
+	return out
 }
 
 func (e *ascAgentsEnv) runsLink() string { return e.link + "/asc/agents" }
@@ -148,7 +178,7 @@ func AscAgents(ctx *context.Context) {
 		return
 	}
 	rows := make([]ascAgentRunRow, 0, len(resp.GetRuns()))
-	active := 0
+	active, waiting, done := 0, 0, 0
 	for _, run := range resp.GetRuns() {
 		row, ok := ascAgentRunOf(run, env.name, env.runsLink(), 0)
 		if !ok {
@@ -159,10 +189,19 @@ func AscAgents(ctx *context.Context) {
 		if row.State.Active {
 			active++
 		}
+		switch row.State.Slug {
+		case "waiting":
+			waiting++
+		case "succeeded":
+			done++
+		}
 		rows = append(rows, row)
 	}
 	ctx.Data["AscAgentsRuns"] = rows
 	ctx.Data["AscAgentsActive"] = active
+	ctx.Data["AscAgentsWaiting"] = waiting
+	ctx.Data["AscAgentsDone"] = done
+	ctx.Data["AscAgentsWaitingRuns"] = ascAgentWaitingRows(rows)
 	if next, ok := ascAgentsPageToken(resp.GetNextPageToken()); ok && next != "" {
 		q := url.Values{}
 		if stateSlug != "" {

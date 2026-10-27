@@ -1,2 +1,2 @@
-{{/* A state as a pill: the label is always written, the colour only backs it up. Dot: ascagentui.State */}}
-<span class="asc-pill asc-tone-{{.Tone}}" data-state="{{.Slug}}">{{.Label}}</span>
+{{/* A run state as a pill: the label is always written, the colour only backs it up. The classes asc-pill and asc-tone-* are what the live page script keeps. Dot: ascagentui.State */}}
+<span class="asc-pill asc-tone-{{.Tone}}" data-state="{{.Slug}}">{{ctx.Locale.Tr (print "asc_review.run_state_" .Slug)}}</span>
