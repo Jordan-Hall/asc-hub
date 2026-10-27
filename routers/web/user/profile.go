@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"path"
 	"strings"
+	"time"
 
 	activities_model "forgejo.org/models/activities"
 	"forgejo.org/models/db"
@@ -86,12 +87,8 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 	// if there is a profile readme, default to "overview" page, otherwise, default to "repositories" page
 	// if there is not a profile readme, the overview tab should be treated as the repositories tab
 	tab := ctx.FormString("tab")
-	if tab == "" || tab == "overview" {
-		if profileReadme != nil {
-			tab = "overview"
-		} else {
-			tab = "repositories"
-		}
+	if tab == "" {
+		tab = "overview"
 	}
 	ctx.Data["TabName"] = tab
 	ctx.Data["HasProfileReadme"] = profileReadme != nil
@@ -208,6 +205,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 			}
 			ctx.Data["HeatmapData"] = data
 			ctx.Data["HeatmapTotalContributions"] = activities_model.GetTotalContributionsInHeatmap(data)
+			ctx.Data["AscHeat"] = ascHeatBuild(data, time.Now(), setting.DefaultUILocation, ctx.Locale)
 		}
 
 		date := ctx.FormString("date")
@@ -287,6 +285,13 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 
 		total = int(count)
 	case "overview":
+		ascProfileOverview(ctx)
+		if ctx.Written() {
+			return
+		}
+		if profileReadme == nil {
+			break
+		}
 		if rc, _, err := profileReadme.NewTruncatedReader(setting.UI.MaxDisplayFileSize); err != nil {
 			log.Error("failed to NewTruncatedReader: %v", err)
 		} else {

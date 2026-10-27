@@ -1,0 +1,26 @@
+{{/*
+The contribution grid: one square per day of the last year, a column per week, a row per weekday (design board
+"Profile"). Dot: *user.AscHeat. The grid is server drawn, so it needs no script. It is described as one image
+with the total, because 365 squares are noise for a screen reader; every square has its day and count as a
+tooltip for a mouse.
+*/}}
+<div class="ap-heat">
+	<div class="ap-heat-scroll">
+		<div class="ap-heat-inner" role="img" aria-label="{{ctx.Locale.TrN .Total "user.asc_profile.total_one" "user.asc_profile.total_n" .Total}}">
+			<div class="ap-heat-months" aria-hidden="true">
+				{{range .Months}}<span style="grid-column-start: {{.Col}}">{{.Name}}</span>{{end}}
+			</div>
+			<div class="ap-heat-body">
+				<div class="ap-heat-days" aria-hidden="true"><span></span><span>{{ctx.Locale.Tr "user.asc_profile.mon"}}</span><span></span><span>{{ctx.Locale.Tr "user.asc_profile.wed"}}</span><span></span><span>{{ctx.Locale.Tr "user.asc_profile.fri"}}</span><span></span></div>
+				<div class="ap-heat-grid" aria-hidden="true">
+					{{range .Weeks}}{{range .}}<span class="ap-heat-cell{{if .Blank}} blank{{else}} l{{.Level}}{{end}}"{{if not .Blank}} title="{{.Label}}"{{end}}></span>{{end}}{{end}}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="ap-heat-legend" aria-hidden="true">
+		<span>{{ctx.Locale.Tr "heatmap.less"}}</span>
+		<span class="ap-heat-cell l0"></span><span class="ap-heat-cell l1"></span><span class="ap-heat-cell l2"></span><span class="ap-heat-cell l3"></span><span class="ap-heat-cell l4"></span>
+		<span>{{ctx.Locale.Tr "heatmap.more"}}</span>
+	</div>
+</div>
