@@ -1,0 +1,2 @@
+{{/* A state as a pill, worded from the messages with the given prefix. The classes asc-pill and asc-tone-* are what the live page script keeps. Dot: dict "S" ascagentui.State "P" the message prefix */}}
+<span class="asc-pill asc-tone-{{.S.Tone}}" data-state="{{.S.Slug}}">{{ctx.Locale.Tr (print .P .S.Slug)}}</span>

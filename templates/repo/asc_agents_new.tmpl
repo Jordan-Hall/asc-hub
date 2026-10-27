@@ -7,112 +7,120 @@ Template Attributes:
 * CsrfTokenHtml
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-agents">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="rv rv-page">
 		{{template "base/alert" .}}
-		{{template "repo/asc_agents_nav" .}}
-		<h2 class="asc-ag-title">Ask an agent</h2>
-		<p class="asc-muted">Describe the work. The agent makes a stack of small changes for you to review. It cannot merge, and the repository policy limits where it may write.</p>
+		<div class="rv-area">{{template "repo/asc_agents_nav" .}}</div>
+		<header class="rv-head">
+			<div class="rv-head-main">
+				<div class="rv-eyebrow">{{.Repository.FullName}} · {{ctx.Locale.Tr "asc_review.agents_eyebrow"}}</div>
+				<h1 class="rv-title">{{ctx.Locale.Tr "asc_review.new_title"}}</h1>
+				<p class="rv-lead">{{ctx.Locale.Tr "asc_review.new_lead"}}</p>
+			</div>
+		</header>
 		{{template "repo/asc_agents_notice" .}}
 
-		<div class="asc-split">
-			<form class="ui form asc-form" method="post" action="{{.AscAgentsBase}}/new" data-testid="asc-agent-form">
+		<div class="rv-cols rv-cols-main-side">
+			<form class="rv-card rv-form-card" method="post" action="{{.AscAgentsBase}}/new" data-testid="asc-agent-form">
 				{{.CsrfTokenHtml}}
 				<input type="hidden" name="op" value="{{.AscAgentForm.OpID}}">
-				{{if .AscAgentForm.Summary}}<div class="ui negative message" role="alert">{{.AscAgentForm.Summary}}</div>{{end}}
+				<div class="rv-card-b rv-form">
+					{{if .AscAgentForm.Summary}}<div class="rv-banner rv-banner-err" role="alert"><div>{{.AscAgentForm.Summary}}</div></div>{{end}}
 
-				<div class="field{{if index .AscAgentForm.Errors "task"}} error{{end}}">
-					<label for="asc-ag-task">Task</label>
-					<textarea id="asc-ag-task" name="task" rows="8" required maxlength="{{.AscAgentsMaxTask}}" aria-describedby="asc-ag-task-help">{{.AscAgentForm.Task}}</textarea>
-					<small id="asc-ag-task-help" class="asc-muted">What to do, and what to leave alone. Keep changes small and stacked.</small>
-					{{with index .AscAgentForm.Errors "task"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+					<div class="rv-field">
+						<label class="rv-label" for="asc-ag-task">{{ctx.Locale.Tr "asc_review.new_task"}}</label>
+						<textarea class="rv-textarea rv-textarea-lg" id="asc-ag-task" name="task" rows="8" required maxlength="{{.AscAgentsMaxTask}}" aria-describedby="asc-ag-task-help{{if index .AscAgentForm.Errors "task"}} asc-ag-task-err{{end}}"{{if index .AscAgentForm.Errors "task"}} aria-invalid="true"{{end}}>{{.AscAgentForm.Task}}</textarea>
+						<small id="asc-ag-task-help" class="rv-hint">{{ctx.Locale.Tr "asc_review.new_task_help"}}</small>
+						{{with index .AscAgentForm.Errors "task"}}<div id="asc-ag-task-err" class="rv-error" role="alert">{{.}}</div>{{end}}
+					</div>
+
+					<div class="rv-field">
+						<label class="rv-label" for="asc-ag-title">{{ctx.Locale.Tr "asc_review.new_title_field"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.optional"}}</span></label>
+						<input class="rv-input" id="asc-ag-title" name="title" type="text" maxlength="200" value="{{.AscAgentForm.Title}}" autocomplete="off"{{if index .AscAgentForm.Errors "title"}} aria-invalid="true"{{end}}>
+						{{with index .AscAgentForm.Errors "title"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+					</div>
+
+					<div class="rv-formgrid rv-formgrid-2">
+						<div class="rv-field">
+							<label class="rv-label" for="asc-ag-agent">{{ctx.Locale.Tr "asc_review.new_agent"}}</label>
+							<input class="rv-input" id="asc-ag-agent" name="agent" type="text" maxlength="40" value="{{.AscAgentForm.Agent}}" required autocomplete="off" autocapitalize="none" spellcheck="false"{{if index .AscAgentForm.Errors "agent"}} aria-invalid="true"{{end}}>
+							{{with index .AscAgentForm.Errors "agent"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+						</div>
+						<div class="rv-field">
+							<label class="rv-label" for="asc-ag-target">{{ctx.Locale.Tr "asc_review.new_target"}}</label>
+							<input class="rv-input" id="asc-ag-target" name="target" type="text" maxlength="255" value="{{.AscAgentForm.Target}}" required autocomplete="off" spellcheck="false"{{if index .AscAgentForm.Errors "target"}} aria-invalid="true"{{end}}>
+							{{with index .AscAgentForm.Errors "target"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+						</div>
+					</div>
+
+					<fieldset class="rv-fieldset rv-fieldset-box">
+						<legend>{{ctx.Locale.Tr "asc_review.new_model"}}</legend>
+						<div class="rv-formgrid rv-formgrid-2">
+							<div class="rv-field">
+								<label class="rv-label" for="asc-ag-key">{{ctx.Locale.Tr "asc_review.new_key"}}</label>
+								<select class="rv-select" id="asc-ag-key" name="key" data-asc-models="{{.AscAgentModelsJSON}}"{{if index .AscAgentForm.Errors "key"}} aria-invalid="true"{{end}}>
+									<option value="">{{ctx.Locale.Tr "asc_review.new_key_default"}}</option>
+									{{range .AscAgentKeys}}
+										<option value="{{.ID}}" data-model="{{.Model}}"{{if not .Usable}} disabled{{end}}{{if eq $.AscAgentForm.Key .ID}} selected{{end}}>{{.Label}} ({{.Provider}}, {{.Owner}}){{if .Note}}, {{.Note}}{{end}}</option>
+									{{end}}
+								</select>
+								{{with index .AscAgentForm.Errors "key"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+							</div>
+							<div class="rv-field">
+								<label class="rv-label" for="asc-ag-model">{{ctx.Locale.Tr "asc_review.new_model_field"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.optional"}}</span></label>
+								<input class="rv-input" id="asc-ag-model" name="model" type="text" maxlength="128" value="{{.AscAgentForm.Model}}" list="asc-ag-model-list" placeholder="{{ctx.Locale.Tr "asc_review.new_model_placeholder"}}" autocomplete="off" autocapitalize="none" spellcheck="false"{{if index .AscAgentForm.Errors "model"}} aria-invalid="true"{{end}}>
+								<datalist id="asc-ag-model-list"></datalist>
+								{{with index .AscAgentForm.Errors "model"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+							</div>
+						</div>
+						{{if not .AscAgentKeys}}<p class="rv-hint">{{ctx.Locale.Tr "asc_review.new_no_keys"}}</p>{{end}}
+					</fieldset>
+
+					<fieldset class="rv-fieldset rv-fieldset-box">
+						<legend>{{ctx.Locale.Tr "asc_review.new_limits"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.new_limits_help"}}</span></legend>
+						<div class="rv-formgrid rv-formgrid-3">
+							<div class="rv-field">
+								<label class="rv-label" for="asc-ag-changes">{{ctx.Locale.Tr "asc_review.new_changes"}}</label>
+								<input class="rv-input" id="asc-ag-changes" name="{{.AscBudgetFields.Changes}}" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentForm.Budget.Changes}}" autocomplete="off"{{if index .AscAgentForm.Errors .AscBudgetFields.Changes}} aria-invalid="true"{{end}}>
+								{{with index .AscAgentForm.Errors .AscBudgetFields.Changes}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+							</div>
+							<div class="rv-field">
+								<label class="rv-label" for="asc-ag-tokens">{{ctx.Locale.Tr "asc_review.new_tokens"}}</label>
+								<input class="rv-input" id="asc-ag-tokens" name="{{.AscBudgetFields.Tokens}}" type="text" inputmode="numeric" maxlength="15" value="{{.AscAgentForm.Budget.Tokens}}" autocomplete="off"{{if index .AscAgentForm.Errors .AscBudgetFields.Tokens}} aria-invalid="true"{{end}}>
+								{{with index .AscAgentForm.Errors .AscBudgetFields.Tokens}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+							</div>
+							<div class="rv-field">
+								<label class="rv-label" for="asc-ag-cost">{{ctx.Locale.Tr "asc_review.new_cost"}}</label>
+								<input class="rv-input" id="asc-ag-cost" name="{{.AscBudgetFields.CostUSD}}" type="text" inputmode="decimal" maxlength="14" value="{{.AscAgentForm.Budget.CostUSD}}" placeholder="2.50" autocomplete="off"{{if index .AscAgentForm.Errors .AscBudgetFields.CostUSD}} aria-invalid="true"{{end}}>
+								{{with index .AscAgentForm.Errors .AscBudgetFields.CostUSD}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+							</div>
+							<div class="rv-field">
+								<label class="rv-label" for="asc-ag-maxpaths">{{ctx.Locale.Tr "asc_review.new_paths_written"}}</label>
+								<input class="rv-input" id="asc-ag-maxpaths" name="{{.AscBudgetFields.Paths}}" type="text" inputmode="numeric" maxlength="7" value="{{.AscAgentForm.Budget.Paths}}" autocomplete="off"{{if index .AscAgentForm.Errors .AscBudgetFields.Paths}} aria-invalid="true"{{end}}>
+								{{with index .AscAgentForm.Errors .AscBudgetFields.Paths}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+							</div>
+							<div class="rv-field">
+								<label class="rv-label" for="asc-ag-minutes">{{ctx.Locale.Tr "asc_review.new_minutes"}}</label>
+								<input class="rv-input" id="asc-ag-minutes" name="{{.AscBudgetFields.Minutes}}" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentForm.Budget.Minutes}}" autocomplete="off"{{if index .AscAgentForm.Errors .AscBudgetFields.Minutes}} aria-invalid="true"{{end}}>
+								{{with index .AscAgentForm.Errors .AscBudgetFields.Minutes}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+							</div>
+						</div>
+						<div class="rv-field">
+							<label class="rv-label" for="asc-ag-paths">{{ctx.Locale.Tr "asc_review.new_scope"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.new_scope_help"}}</span></label>
+							<textarea class="rv-textarea rv-mono" id="asc-ag-paths" name="paths" rows="3" maxlength="4500" spellcheck="false" placeholder="src/**&#10;tests/**"{{if index .AscAgentForm.Errors "paths"}} aria-invalid="true"{{end}}>{{.AscAgentForm.Paths}}</textarea>
+							{{with index .AscAgentForm.Errors "paths"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
+						</div>
+					</fieldset>
 				</div>
-
-				<div class="field{{if index .AscAgentForm.Errors "title"}} error{{end}}">
-					<label for="asc-ag-title">Title <span class="asc-muted">(optional)</span></label>
-					<input id="asc-ag-title" name="title" type="text" maxlength="200" value="{{.AscAgentForm.Title}}" autocomplete="off">
-					{{with index .AscAgentForm.Errors "title"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-				</div>
-
-				<div class="asc-grid-2">
-					<div class="field{{if index .AscAgentForm.Errors "agent"}} error{{end}}">
-						<label for="asc-ag-agent">Agent name</label>
-						<input id="asc-ag-agent" name="agent" type="text" maxlength="40" value="{{.AscAgentForm.Agent}}" required autocomplete="off" autocapitalize="none" spellcheck="false">
-						{{with index .AscAgentForm.Errors "agent"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
+				<div class="rv-card-f rv-sticky-form">
+					<div class="rv-sticky">
+						<button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "asc_review.new_start"}}</button>
+						<a class="rv-btn rv-btn-secondary" href="{{.AscAgentsBase}}">{{ctx.Locale.Tr "asc_review.cancel"}}</a>
 					</div>
-					<div class="field{{if index .AscAgentForm.Errors "target"}} error{{end}}">
-						<label for="asc-ag-target">Target branch</label>
-						<input id="asc-ag-target" name="target" type="text" maxlength="255" value="{{.AscAgentForm.Target}}" required autocomplete="off" spellcheck="false">
-						{{with index .AscAgentForm.Errors "target"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-					</div>
-				</div>
-
-				<fieldset class="asc-fieldset">
-					<legend>Model</legend>
-					<div class="asc-grid-2">
-						<div class="field{{if index .AscAgentForm.Errors "key"}} error{{end}}">
-							<label for="asc-ag-key">AI key</label>
-							<select id="asc-ag-key" name="key" data-asc-models="{{.AscAgentModelsJSON}}">
-								<option value="">The repository default</option>
-								{{range .AscAgentKeys}}
-									<option value="{{.ID}}" data-model="{{.Model}}"{{if not .Usable}} disabled{{end}}{{if eq $.AscAgentForm.Key .ID}} selected{{end}}>{{.Label}} ({{.Provider}}, {{.Owner}}){{if .Note}}, {{.Note}}{{end}}</option>
-								{{end}}
-							</select>
-							{{with index .AscAgentForm.Errors "key"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-						</div>
-						<div class="field{{if index .AscAgentForm.Errors "model"}} error{{end}}">
-							<label for="asc-ag-model">Model <span class="asc-muted">(optional)</span></label>
-							<input id="asc-ag-model" name="model" type="text" maxlength="128" value="{{.AscAgentForm.Model}}" list="asc-ag-model-list" placeholder="the key's default" autocomplete="off" autocapitalize="none" spellcheck="false">
-							<datalist id="asc-ag-model-list"></datalist>
-							{{with index .AscAgentForm.Errors "model"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-						</div>
-					</div>
-					{{if not .AscAgentKeys}}<p class="asc-muted">No AI key of yours or of the repository owner is listed. Without a pick the repository owner's default key is used. Keys are added in the owner's settings, and are only shown to their admins.</p>{{end}}
-				</fieldset>
-
-				<fieldset class="asc-fieldset">
-					<legend>Limits <span class="asc-muted">(empty means the policy default; the server enforces them)</span></legend>
-					<div class="asc-grid-3">
-						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.Changes}} error{{end}}">
-							<label for="asc-ag-changes">Changes</label>
-							<input id="asc-ag-changes" name="{{.AscBudgetFields.Changes}}" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentForm.Budget.Changes}}" autocomplete="off">
-							{{with index .AscAgentForm.Errors .AscBudgetFields.Changes}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-						</div>
-						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.Tokens}} error{{end}}">
-							<label for="asc-ag-tokens">Model tokens</label>
-							<input id="asc-ag-tokens" name="{{.AscBudgetFields.Tokens}}" type="text" inputmode="numeric" maxlength="15" value="{{.AscAgentForm.Budget.Tokens}}" autocomplete="off">
-							{{with index .AscAgentForm.Errors .AscBudgetFields.Tokens}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-						</div>
-						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.CostUSD}} error{{end}}">
-							<label for="asc-ag-cost">Cost cap (USD)</label>
-							<input id="asc-ag-cost" name="{{.AscBudgetFields.CostUSD}}" type="text" inputmode="decimal" maxlength="14" value="{{.AscAgentForm.Budget.CostUSD}}" placeholder="2.50" autocomplete="off">
-							{{with index .AscAgentForm.Errors .AscBudgetFields.CostUSD}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-						</div>
-						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.Paths}} error{{end}}">
-							<label for="asc-ag-maxpaths">Paths written</label>
-							<input id="asc-ag-maxpaths" name="{{.AscBudgetFields.Paths}}" type="text" inputmode="numeric" maxlength="7" value="{{.AscAgentForm.Budget.Paths}}" autocomplete="off">
-							{{with index .AscAgentForm.Errors .AscBudgetFields.Paths}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-						</div>
-						<div class="field{{if index .AscAgentForm.Errors .AscBudgetFields.Minutes}} error{{end}}">
-							<label for="asc-ag-minutes">Time (minutes)</label>
-							<input id="asc-ag-minutes" name="{{.AscBudgetFields.Minutes}}" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentForm.Budget.Minutes}}" autocomplete="off">
-							{{with index .AscAgentForm.Errors .AscBudgetFields.Minutes}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-						</div>
-					</div>
-					<div class="field{{if index .AscAgentForm.Errors "paths"}} error{{end}}">
-						<label for="asc-ag-paths">Narrow the write scope <span class="asc-muted">(optional, one pattern per line)</span></label>
-						<textarea id="asc-ag-paths" name="paths" rows="3" maxlength="4500" spellcheck="false" placeholder="src/**&#10;tests/**">{{.AscAgentForm.Paths}}</textarea>
-						{{with index .AscAgentForm.Errors "paths"}}<div class="asc-field-error" role="alert">{{.}}</div>{{end}}
-					</div>
-				</fieldset>
-
-				<div class="asc-actions">
-					<button class="ui primary button" type="submit">Start the run</button>
-					<a class="ui basic button" href="{{.AscAgentsBase}}">Cancel</a>
 				</div>
 			</form>
-			<div class="asc-side">
+			<div class="rv-side">
 				{{template "repo/asc_agents_policy" .}}
 			</div>
 		</div>

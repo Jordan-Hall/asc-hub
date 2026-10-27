@@ -246,15 +246,15 @@ func TestAscAgentsList(t *testing.T) {
 	assert.Contains(t, p.body, `data-state="failed"`)
 	assert.Contains(t, p.body, "the limit was reached")
 	assert.NotContains(t, p.body, rloChar)
-	assert.Contains(t, p.body, "agent <code>coder</code>")
+	assert.Contains(t, p.body, `<div class="rv-run-name">coder</div>`)
 	assert.Contains(t, p.body, "state=active")
 	assert.Contains(t, p.body, "page=tok_A-b%3D1", "the next page keeps the filter")
-	assert.Contains(t, p.body, ">New task<")
+	assert.Contains(t, p.body, `href="/user2/repo1/asc/agents/new"`)
 
 	t.Run("a reader sees the list but no new task button", func(t *testing.T) {
 		p := runAgents(t, agentsReq{path: testRunsPath, user: agentsReader, features: true}, AscAgents)
 		require.Equal(t, http.StatusOK, p.status)
-		assert.NotContains(t, p.body, ">New task<")
+		assert.NotContains(t, p.body, `href="/user2/repo1/asc/agents/new"`)
 		assert.NotContains(t, p.body, "/tokens")
 	})
 
@@ -358,8 +358,8 @@ func TestAscAgentsNewForm(t *testing.T) {
 	// The policy panel.
 	assert.Contains(t, p.body, "<code>src/**</code>, <code>tests/**</code>")
 	assert.Contains(t, p.body, "<code>infra/**</code>")
-	assert.Contains(t, p.body, "8 changes per run")
-	assert.Contains(t, p.body, "Cannot</span> push or merge to trunk")
+	assert.Contains(t, p.body, "asc_review.policy_max_changes")
+	assert.Contains(t, p.body, "asc_review.policy_no_trunk")
 	// A fresh op id for the form.
 	assert.Regexp(t, `name="op" value="[0-9a-f-]{36}"`, p.body)
 	noCallTokens(t)
@@ -368,8 +368,8 @@ func TestAscAgentsNewForm(t *testing.T) {
 		hub.fail("AiProviders.ListKeys", withDetail(t, codes.NotFound, "no such owner", ""))
 		p := runAgents(t, agentsReq{path: testRunsPath + "/new", user: agentsOwner, features: true}, AscAgentsNew)
 		require.Equal(t, http.StatusOK, p.status)
-		assert.Contains(t, p.body, "The repository default")
-		assert.Contains(t, p.body, "No AI key of yours or of the repository owner is listed")
+		assert.Contains(t, p.body, "asc_review.new_key_default")
+		assert.Contains(t, p.body, "asc_review.new_no_keys")
 	})
 }
 
@@ -570,15 +570,15 @@ func TestAscAgentsRunPage(t *testing.T) {
 	assert.Contains(t, p.body, `<code class="asc-log-tool">edit_file</code>`)
 	assert.Contains(t, p.body, "scope refused infra/limits.tf")
 	assert.Contains(t, p.body, `asc-log-row is-quiet" data-seq="1"`, "the agent's own words are quiet until asked for")
-	assert.Regexp(t, `<progress class="asc-meter-bar" max="100" value="58" aria-label="Tokens">`, p.body)
-	assert.Contains(t, p.body, "116k of 200k")
-	assert.Contains(t, p.body, "$1.25 (no limit)")
+	assert.Regexp(t, `<progress class="asc-meter-bar" max="100" value="58" aria-label="asc_review.meter_tokens">`, p.body)
+	assert.Contains(t, p.body, "116k asc_review.meter_of 200k")
+	assert.Contains(t, p.body, "$1.25 asc_review.meter_no_limit")
 	// The stack: bottom first, with where to review each change.
 	assert.Contains(t, p.body, `href="/user2/repo1/pulls/2"`)
-	assert.Contains(t, p.body, "Landed")
+	assert.Contains(t, p.body, "asc_review.run_change_landed")
 	assert.Contains(t, p.body, `href="/user2/repo1/pulls/3"`)
-	assert.Contains(t, p.body, "Waiting for review")
-	assert.Contains(t, p.body, "not submitted for review yet")
+	assert.Contains(t, p.body, "asc_review.run_change_waiting")
+	assert.Contains(t, p.body, "asc_review.run_change_draft")
 	assert.Contains(t, p.body, `class="asc-log-change" href="/user2/repo1/pulls/3">change `+ascagentui.ShortChange(ascagentui.ChangeText(c2)))
 	// The person may stop and steer; the policy panel is there.
 	assert.Contains(t, p.body, "/runs/7/cancel")
@@ -618,7 +618,7 @@ func TestAscAgentsRunPage(t *testing.T) {
 		}
 		p := runAgents(t, agentsReq{path: testRunsPath + "/runs/7", user: agentsOwner, features: true, params: map[string]string{":id": "7"}}, AscAgentsRun)
 		require.Equal(t, http.StatusOK, p.status)
-		assert.Contains(t, p.body, "50 earlier events are not shown")
+		assert.Contains(t, p.body, "asc_review.run_events_hidden")
 		assert.Contains(t, p.body, ">line-250<")
 		assert.NotContains(t, p.body, ">line-50<")
 		assert.Contains(t, p.body, `data-last-seq="250"`)
