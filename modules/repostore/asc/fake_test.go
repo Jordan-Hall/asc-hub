@@ -38,6 +38,8 @@ func hexOf(c byte) string { return fmt.Sprintf("%x", ascid(c)) }
 // fake implements the part of ascv1.RepoClient the Writer uses. A call it does not implement panics on the
 // embedded nil interface, which fails the test that made it.
 type fake struct {
+	// noCountOnly makes Log refuse count_only, as an asc server without it does.
+	noCountOnly bool
 	ascv1.RepoClient
 
 	mu      sync.Mutex
@@ -226,6 +228,9 @@ func (s *stream[T]) Recv() (*T, error) {
 
 func (f *fake) Log(_ context.Context, in *ascv1.LogRequest, _ ...grpc.CallOption) (grpc.ServerStreamingClient[ascv1.LogResponse], error) {
 	f.rec("Log", in)
+	if f.noCountOnly && in.GetCountOnly() {
+		return nil, status.Error(codes.Unimplemented, "count_only, pickaxe and resume_token are not available on this server yet")
+	}
 	key := strings.Join(in.GetInclude(), ",") + "|" + strings.Join(in.GetExclude(), ",")
 	return &stream[ascv1.LogResponse]{items: []*ascv1.LogResponse{{Entries: f.logEntries[key], Count: f.logCount[key]}}}, nil
 }

@@ -196,6 +196,8 @@ type session struct {
 	ctx    context.Context // authenticated; for RPCs
 	caller context.Context // as given; for callbacks
 	cancel context.CancelFunc
+	// noCountOnly is set once asc answered that Log has no count_only; the commits are then counted here.
+	noCountOnly bool
 }
 
 func (s *session) close() { s.cancel() }

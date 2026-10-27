@@ -321,6 +321,19 @@ func TestMergeDryRun(t *testing.T) {
 		assert.Equal(t, []string{"docs/**"}, m.GetProtectedGlobs())
 		assert.Zero(t, f.called("UpdateRefs"))
 	})
+	t.Run("divergence is counted by listing when asc has no count_only", func(t *testing.T) {
+		f := mergeFixture()
+		f.noCountOnly = true
+		f.logEntries[gid(0x22).String()+"|"+gid(0x11).String()] = make([]*ascv1.LogEntry, 3)
+		f.logEntries[gid(0x11).String()+"|"+gid(0x22).String()] = make([]*ascv1.LogEntry, 1)
+		req := dry()
+		req.WantDivergence = true
+		res, err := newWriter(t, f).Merge(t.Context(), req)
+		require.NoError(t, err)
+		assert.Equal(t, 3, res.Ahead)
+		assert.Equal(t, 1, res.Behind)
+		assert.Equal(t, 3, f.called("Log"), "one refused count_only call, then a listing for each side")
+	})
 	t.Run("conflict", func(t *testing.T) {
 		f := mergeFixture()
 		f.mergeResp = &ascv1.MergeResponse{Conflicts: [][]byte{[]byte("a.txt")}, ChangedProtected: [][]byte{[]byte("x")}}
