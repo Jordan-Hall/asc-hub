@@ -12,6 +12,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/automerge"
 
@@ -65,7 +66,7 @@ func TestAscQueueShowsQuarantinedChecksAndWhy(t *testing.T) {
 	req := calls[0].Req.(*ascv1.ListFailureGroupsRequest)
 	assert.Equal(t, []ascv1.FailureGroupState{ascv1.FailureGroupState_FAILURE_GROUP_STATE_QUARANTINED}, req.GetStates())
 	assert.EqualValues(t, asctrust.MaxQuarantined, req.GetLimit())
-	assert.Equal(t, "Bearer per-request-token", calls[0].Auth, "a signed-in person reads as that person")
+	assertAs(t, calls[0], "2:user2", ascidentity.RoleAdmin, "user2/repo1")
 }
 
 func TestAscQueueQuarantineNeedsActionsRead(t *testing.T) {

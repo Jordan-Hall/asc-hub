@@ -28,6 +28,7 @@ import (
 	"forgejo.org/models/unit"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 )
@@ -69,6 +70,11 @@ func FailureOf(op string, err error) Failure {
 		return Failure{Status: http.StatusBadGateway, Message: "The ASC server sent an answer that could not be trusted, so nothing is shown.", Key: "asc_trust.err.bad_answer"}
 	case errors.Is(err, asctrust.ErrNoDoer):
 		return Failure{Status: http.StatusForbidden, Message: "Sign in to do this.", Key: "asc_trust.err.sign_in"}
+	case errors.Is(err, asctrust.ErrForbidden):
+		return Failure{Status: http.StatusForbidden, Message: "You do not have the right to do this.", Key: "asc_trust.err.denied"}
+	case errors.Is(err, ascidentity.ErrNoKey):
+		log.Error("asc trust %s: the hub has no forwarded key ([asc] FORWARDED_KEY)", op)
+		return Failure{Status: http.StatusServiceUnavailable, Message: "This page is not set up on this server.", Key: "asc_trust.err.unconfigured"}
 	case errors.Is(err, asctrust.ErrUndoMoved):
 		return Failure{Status: http.StatusConflict, Message: "That branch changed since it was shown. Look at the log again.", Key: "asc_trust.err.undo_moved"}
 	case errors.Is(err, asctrust.ErrUndoNotYours):

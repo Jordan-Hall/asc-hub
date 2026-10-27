@@ -4,6 +4,7 @@
 package setting
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net"
 	"net/url"
@@ -65,6 +66,11 @@ var Asc = struct {
 	// an ASC Hub works with HTTPS alone (asc and git both speak HTTPS to it). It only has an effect with
 	// [asc] ENABLED = true, where a false value forces [server] DISABLE_SSH = true. See SSHEnabled.
 	SSHEnabled bool `ini:"SSH_ENABLED"`
+	// ForwardedKey is the key, shared with `asc serve` ([auth] forwarded_key_file there), that the claims about the
+	// signed-in person are signed with (services/ascidentity): 32 bytes, set by FORWARDED_KEY (64 hex digits) or
+	// read from the file named by FORWARDED_KEY_URI. The hub makes no access tokens for its web pages; without the
+	// key those pages cannot call asc serve and say so.
+	ForwardedKey []byte `ini:"-"`
 }{}
 
 // Values of [asc] WRITER and [asc] BRIDGE.
@@ -97,6 +103,7 @@ func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.DownloadPublicKey = ""
 	Asc.DownloadSyncInterval = time.Hour
 	Asc.SSHEnabled = false
+	Asc.ForwardedKey = nil
 	sec := rootCfg.Section("asc")
 	if err := sec.MapTo(&Asc); err != nil {
 		log.Fatal("Failed to map [asc] settings: %v", err)
@@ -105,6 +112,11 @@ func loadAscFrom(rootCfg ConfigProvider) {
 	if err := normaliseAscDownload(); err != nil {
 		log.Fatal("Invalid [asc] download settings: %v", err)
 	}
+	key, err := parseAscForwardedKey(loadSecret(sec, "FORWARDED_KEY_URI", "FORWARDED_KEY"))
+	if err != nil {
+		log.Fatal("Invalid [asc] FORWARDED_KEY: %v", err)
+	}
+	Asc.ForwardedKey = key
 	if !Asc.Enabled {
 		return
 	}
@@ -233,6 +245,19 @@ func normaliseAscDownload() error {
 		Asc.DownloadBaseURL = base + "/"
 	}
 	return normaliseAscDownloadSource()
+}
+
+// parseAscForwardedKey reads the key of the claims: empty means none, else 64 hexadecimal digits.
+func parseAscForwardedKey(s string) ([]byte, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil, nil
+	}
+	key, err := hex.DecodeString(s)
+	if err != nil || len(key) != 32 {
+		return nil, fmt.Errorf("it is 32 bytes as 64 hexadecimal digits")
+	}
+	return key, nil
 }
 
 // normaliseAscDownloadSource checks the settings of the release fetch. They go together: a source needs a

@@ -13,6 +13,7 @@ import (
 	perm_model "forgejo.org/models/perm"
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 
@@ -100,7 +101,7 @@ func TestAscOpsListShowsUndoOnlyForOwnOperations(t *testing.T) {
 	assert.Equal(t, "user2/repo1", req.GetRepo().GetName())
 	assert.Equal(t, "user2", req.GetActor(), "the filter is the signed-in person's own name")
 	assert.Equal(t, "refs/heads/", req.GetRef())
-	assert.Equal(t, "Bearer per-request-token", calls[0].Auth, "the log is read as the person")
+	assertAs(t, calls[0], "2:user2", ascidentity.RoleAdmin, "user2/repo1")
 }
 
 func TestAscOpsReadOnlyVisitorSeesNoUndoButton(t *testing.T) {
@@ -230,7 +231,7 @@ func TestAscOpsUndoAppliesWhatWasShown(t *testing.T) {
 	assert.Equal(t, "refs/heads/feature", req.GetRef())
 	assert.Equal(t, "wrong branch", req.GetReason())
 	assert.Equal(t, "0190b7f5-8d5e-7000-8000-000000000001", undo[0].OpID, "the form's operation id makes a double submit one undo")
-	assert.Equal(t, "Bearer per-request-token", undo[0].Auth, "made as the person")
+	assertAs(t, undo[0], "2:user2", ascidentity.RoleAdmin, "user2/repo1")
 }
 
 func TestAscOpsUndoIsBoundToTheHeadsThatWereShown(t *testing.T) {
