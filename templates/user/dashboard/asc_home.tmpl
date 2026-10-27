@@ -1,0 +1,143 @@
+{{/*
+The dashboard of a person (design board "Dashboard"). routers/web/user/asc_dashboard.go builds .AscDash.
+Template Attributes:
+* AscDash: *user.AscDash
+* AscDashToday: the activities of the last day
+*/}}
+{{$d := .AscDash}}
+<div role="main" aria-label="{{.Title}}" class="page-content dashboard asc-dash">
+	<div class="ap-shell">
+		<aside class="ap-side" aria-label="{{ctx.Locale.Tr "user.asc_dash.sidebar"}}">
+			<nav class="ap-side-group" aria-labelledby="ap-side-work">
+				<h2 class="ap-side-title" id="ap-side-work">{{ctx.Locale.Tr "user.asc_dash.work"}}</h2>
+				{{if $d.InboxLink}}
+					<a class="ap-side-link active" href="{{$d.InboxLink}}" data-asc-inbox-link><span class="name">{{ctx.Locale.Tr "user.asc_inbox"}}</span><span class="ap-side-count">{{$d.NeedsCount}}</span></a>
+				{{end}}
+				<a class="ap-side-link" href="{{AppSubUrl}}/pulls?type=created_by&state=open"><span class="name">{{ctx.Locale.Tr "user.asc_dash.my_stacks"}}</span><span class="ap-side-count">{{$d.StackCount}}</span></a>
+				<a class="ap-side-link" href="{{AppSubUrl}}/pulls?type=review_requested&state=open"><span class="name">{{ctx.Locale.Tr "user.asc_dash.review_requests"}}</span><span class="ap-side-count">{{$d.ReviewCount}}</span></a>
+				{{if $d.AgentsOn}}
+					<a class="ap-side-link" href="{{AppSubUrl}}/-/asc/agents"><span class="name">{{ctx.Locale.Tr "user.asc_dash.agent_runs"}}</span><span class="ap-side-count">{{$d.AgentsActive}}</span></a>
+				{{end}}
+			</nav>
+			<nav class="ap-side-group" aria-labelledby="ap-side-repos">
+				<h2 class="ap-side-title" id="ap-side-repos">{{ctx.Locale.Tr "user.asc_dash.repositories"}}</h2>
+				{{range $i, $r := $d.Repos}}
+					<a class="ap-side-link" href="{{$r.Link}}"><span class="ap-swatch c{{$i}}" aria-hidden="true"></span><span class="name">{{$r.FullName}}</span></a>
+				{{end}}
+				<a class="ap-side-link more" href="{{.ContextUser.HomeLink}}?tab=repositories">{{ctx.Locale.Tr "user.asc_dash.all_repositories"}}</a>
+			</nav>
+			{{if $d.Teams}}
+				<nav class="ap-side-group" aria-labelledby="ap-side-teams">
+					<h2 class="ap-side-title" id="ap-side-teams">{{ctx.Locale.Tr "user.asc_dash.teams"}}</h2>
+					{{range $d.Teams}}
+						<a class="ap-side-link" href="{{.Link}}" title="{{.Org}}"><span class="name">{{.Name}}</span></a>
+					{{end}}
+				</nav>
+			{{end}}
+		</aside>
+
+		<main class="ap-main">
+			{{template "base/alert" .}}
+			<div class="ap-head">
+				<div>
+					<h1>{{$d.Greeting}}</h1>
+					<div class="sub">{{$d.Summary}}</div>
+				</div>
+				<div class="actions">
+					{{if $d.AgentsOn}}<a class="ap-btn primary" href="{{AppSubUrl}}/-/asc/agents">{{ctx.Locale.Tr "user.asc_dash.new_agent_task"}}</a>{{end}}
+					<a class="ap-btn" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a>
+				</div>
+			</div>
+
+			<section class="ap-panel" aria-labelledby="ap-needs-title">
+				<div class="ap-panel-head">
+					<h2 id="ap-needs-title">{{ctx.Locale.Tr "user.asc_dash.needs_you"}}</h2>
+					<span class="ap-pill amber bold">{{$d.NeedsCount}}</span>
+					{{if $d.Rows}}<span class="hint ap-hide-touch">{{ctx.Locale.Tr "user.asc_dash.keys_hint"}}</span>{{end}}
+				</div>
+				{{if $d.Rows}}
+					<div data-asc-list>
+						{{range $d.Rows}}
+							<a class="ap-row" href="{{.Link}}" data-asc-row>
+								<span class="ap-dot {{.Tone}}" aria-hidden="true"></span>
+								<div class="body">
+									<div class="title">{{if .Action}}{{ctx.Locale.Tr "user.asc_dash.ready_to_merge"}} {{end}}{{.Title}} <span class="where">{{.Where}}</span></div>
+									{{if or .Chips .Meta}}
+										<div class="meta">
+											{{range .Chips}}<span class="ap-pill {{.Tone}}">{{.Text}}</span>{{end}}
+											{{if .Meta}}<span>{{.Meta}}</span>{{end}}
+										</div>
+									{{end}}
+								</div>
+								{{if .Action}}<span class="go">{{.Action}}</span>{{else if not .Updated.IsZero}}<span class="when">{{DateUtils.TimeSince .Updated}}</span>{{end}}
+							</a>
+						{{end}}
+					</div>
+				{{else}}
+					<p class="ap-empty">{{ctx.Locale.Tr "user.asc_dash.needs_empty"}}</p>
+				{{end}}
+			</section>
+
+			{{if and $d.AgentsOn $d.Agents}}
+				<section class="ap-panel" aria-labelledby="ap-agents-title">
+					<div class="ap-panel-head">
+						<h2 id="ap-agents-title">{{ctx.Locale.Tr "user.asc_dash.agents_now"}}</h2>
+						<span class="hint"><a href="{{AppSubUrl}}/-/asc/agents">{{ctx.Locale.Tr "user.asc_dash.all_runs"}}</a></span>
+					</div>
+					<ul class="ap-dash-agents">
+						{{range $d.Agents}}
+							<li>
+								<a class="name" href="{{.Link}}">{{.Agent}} &middot; {{.Title}}</a>
+								{{if eq .State.Slug "waiting"}}
+									<div class="state bad">{{ctx.Locale.Tr "user.asc_dash.paused"}}</div>
+								{{else}}
+									<div class="state">{{.Repo}}</div>
+								{{end}}
+								{{if .Meter}}
+									<progress class="ap-progress{{if eq .State.Slug "waiting"}} amber{{end}}" max="100" value="{{.Percent}}" aria-label="{{.Meter}}">{{.Percent}}%</progress>
+									<div class="ap-mono meter-text">{{.Meter}}</div>
+								{{end}}
+							</li>
+						{{end}}
+					</ul>
+				</section>
+			{{end}}
+		</main>
+
+		<aside class="ap-aside" aria-label="{{ctx.Locale.Tr "user.asc_dash.at_a_glance"}}">
+			{{if $d.Stacks}}
+				<section class="ap-panel padded" aria-labelledby="ap-stacks-title">
+					<h2 id="ap-stacks-title">{{ctx.Locale.Tr "user.asc_dash.your_stacks"}}</h2>
+					<ul class="ap-dash-stacks">
+						{{range $d.Stacks}}
+							<li>
+								<a class="name" href="{{.Link}}">{{.Name}}</a>
+								<ul class="ap-segs">
+									{{range .Segs}}<li class="{{.Tone}}" title="{{.Label}}"><span class="ap-sr">{{.Label}}</span></li>{{end}}
+								</ul>
+							</li>
+						{{end}}
+					</ul>
+				</section>
+			{{end}}
+			<section class="ap-panel padded" aria-labelledby="ap-today-title">
+				<h2 id="ap-today-title">{{ctx.Locale.Tr "user.asc_dash.today"}}</h2>
+				{{if .AscDashToday}}
+					<ul class="ap-feed">
+						{{range .AscDashToday}}
+							<li>{{template "user/dashboard/feed_sentence" .}}</li>
+						{{end}}
+					</ul>
+				{{else}}
+					<p class="ap-quiet">{{ctx.Locale.Tr "user.asc_dash.today_none"}}</p>
+				{{end}}
+			</section>
+			{{if $d.InboxLink}}
+				<section class="ap-tint ap-hide-touch" aria-label="{{ctx.Locale.Tr "user.asc_dash.tip"}}">
+					<b>{{ctx.Locale.Tr "user.asc_dash.tip"}}.</b>
+					{{ctx.Locale.Tr "user.asc_dash.tip_text" (HTMLFormat `<kbd class="ap-kbd">%s</kbd>` "g") (HTMLFormat `<kbd class="ap-kbd">%s</kbd>` "i")}}
+				</section>
+			{{end}}
+		</aside>
+	</div>
+</div>

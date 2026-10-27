@@ -5,16 +5,14 @@ package user
 
 import (
 	gocontext "context"
-	"net/http"
 	"time"
 
 	issues_model "forgejo.org/models/issues"
+	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/base"
-	"forgejo.org/modules/setting"
 	"forgejo.org/services/ascinbox"
 	"forgejo.org/services/authz"
-	"forgejo.org/services/context"
 )
 
 // The inbox page (SPEC 20.8, PLAN unit C41c): `GET /-/asc/inbox` lists, for the signed-in user, the pull
@@ -26,21 +24,42 @@ import (
 // user lost access to is never listed, and marks are read only for the doer.
 const tplAscInbox base.TplName = "user/asc_inbox"
 
+// AscInboxEntry is one pull request in the inbox of one user.
+type AscInboxEntry = ascinbox.Entry
+
 // AscInboxGroup is one section as shown.
 type AscInboxGroup struct {
 	Section issues_model.AscInboxSection
-	Entries []*ascinbox.Entry
+	Entries []*AscInboxEntry
 }
 
 // ascInboxLoad returns the entries of doer, each with its derived section. Tests replace it.
-var ascInboxLoad = func(ctx gocontext.Context, doer *user_model.User, now time.Time) ([]*ascinbox.Entry, error) {
-	// A browser session carries the full rights of the user; only an access token narrows them.
+var ascInboxLoad = ascInboxLoadFromModels
+
+// ascInboxLoadFromModels loads the entries with the shared service. A browser session carries the full rights of
+// the user; only an access token narrows them.
+func ascInboxLoadFromModels(ctx gocontext.Context, doer *user_model.User, now time.Time) ([]*AscInboxEntry, error) {
 	return ascinbox.Load(ctx, doer, &authz.AllAccessAuthorizationReducer{}, now)
+}
+
+// ascInboxCanSee reports whether doer may read the pull requests of repo.
+func ascInboxCanSee(ctx gocontext.Context, doer *user_model.User, repo *repo_model.Repository) bool {
+	return ascinbox.CanRead(ctx, doer, &authz.AllAccessAuthorizationReducer{}, repo)
+}
+
+// ascInboxHead returns the head commit of pr, or "".
+func ascInboxHead(ctx gocontext.Context, pr *issues_model.PullRequest) string {
+	return ascinbox.HeadCommit(ctx, pr)
+}
+
+// ascInboxApproved reports whether pr meets the approvals of its branch rule.
+func ascInboxApproved(ctx gocontext.Context, pr *issues_model.PullRequest) bool {
+	return ascinbox.Approved(ctx, pr)
 }
 
 // ascInboxGroup applies the marks of the doer to entries and groups them in section order. A snoozed entry
 // is left out and counted; inside a section pinned entries come first, then the most recently updated.
-func ascInboxGroup(entries []*ascinbox.Entry, states map[int64]*issues_model.AscInboxState, now time.Time) ([]AscInboxGroup, int) {
+func ascInboxGroup(entries []*AscInboxEntry, states map[int64]*issues_model.AscInboxState, now time.Time) ([]AscInboxGroup, int) {
 	arranged := ascinbox.Arrange(entries, states, now, ascinbox.Options{IncludeSnoozed: true})
 	var out []AscInboxGroup
 	snoozed := 0
@@ -53,37 +72,7 @@ func ascInboxGroup(entries []*ascinbox.Entry, states map[int64]*issues_model.Asc
 			out[n-1].Entries = append(out[n-1].Entries, e)
 			continue
 		}
-		out = append(out, AscInboxGroup{Section: e.Section, Entries: []*ascinbox.Entry{e}})
+		out = append(out, AscInboxGroup{Section: e.Section, Entries: []*AscInboxEntry{e}})
 	}
 	return out, snoozed
-}
-
-// AscInbox serves `GET /-/asc/inbox`.
-func AscInbox(ctx *context.Context) {
-	if !setting.Asc.Enabled || ctx.Doer == nil {
-		ctx.NotFound("AscInbox", nil)
-		return
-	}
-	ctx.Data["Title"] = ctx.Tr("user.asc_inbox")
-	ctx.Data["PageIsAscInbox"] = true
-
-	now := time.Now()
-	entries, err := ascInboxLoad(ctx, ctx.Doer, now)
-	if err != nil {
-		ctx.ServerError("ascInboxLoad", err)
-		return
-	}
-	ids := make([]int64, 0, len(entries))
-	for _, e := range entries {
-		ids = append(ids, e.PullID)
-	}
-	states, err := issues_model.ListAscInboxStates(ctx, ctx.Doer.ID, ids)
-	if err != nil {
-		ctx.ServerError("ListAscInboxStates", err)
-		return
-	}
-	groups, snoozed := ascInboxGroup(entries, states, now)
-	ctx.Data["AscInboxGroups"] = groups
-	ctx.Data["AscInboxSnoozed"] = snoozed
-	ctx.HTML(http.StatusOK, tplAscInbox)
 }

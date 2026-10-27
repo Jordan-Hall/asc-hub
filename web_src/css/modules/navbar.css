@@ -1,12 +1,21 @@
+/* The ASC Hub header (docs/asc/THEME.md): always the dark bar of the design, in both themes.
+   Mobile first: the base is the collapsed bar (menu button, logo, one action); the links and the rest
+   show from 768px, or when the menu button opened the menu.
+   navbar-site is the signed out bar (68px, content up to 1200px, a cyan "Create account" button);
+   navbar-app is the signed in bar (60px, search, inbox, create, avatar). */
+
 #navbar {
+  --asc-nav-link: #cbd5e1; /* 11.4:1 on #0b1220 */
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
+  gap: 8px;
   background: var(--color-nav-bg);
   color: var(--color-nav-text, var(--color-text));
   border-bottom: 1px solid var(--color-nav-border, var(--color-secondary));
   margin: 0 !important;
-  padding: 0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
+  min-height: 56px;
+  padding: 0 max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
 }
 
 #navbar .navbar-left,
@@ -14,19 +23,29 @@
   margin: 0;
   display: flex;
   align-items: center;
-  min-height: 48px;
+  min-height: 56px;
 }
 
 #navbar-logo {
   margin: 0;
   align-items: center;
-  gap: 0.6rem;
+  gap: 10px;
+}
+
+#navbar-logo .asc-brand-tile {
+  flex: none;
+}
+
+@media (min-width: 768px) {
+  #navbar #navbar-logo {
+    padding-inline-start: 0;
+  }
 }
 
 #navbar-logo .navbar-brand-name {
   color: var(--color-nav-brand, inherit);
-  font-size: 1.15rem;
-  font-weight: var(--font-weight-bold);
+  font-size: 1.0625rem;
+  font-weight: 800;
   letter-spacing: -0.01em;
   line-height: 1;
 }
@@ -35,13 +54,10 @@
   background: transparent;
 }
 
-#navbar .active.item {
-  background: var(--color-nav-hover-bg);
-}
-
 #navbar button.item {
   background: transparent;
   justify-content: center;
+  color: var(--color-nav-text, var(--color-text));
 }
 
 #navbar details.dropdown > summary {
@@ -52,35 +68,46 @@
   color: var(--color-text);
 }
 
+#navbar .item {
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--asc-nav-link);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+#navbar .item:hover,
+#navbar .item:focus-visible {
+  color: #fff;
+}
+
 #navbar a.item.active,
 #navbar a.item[aria-current="page"] {
-  color: var(--color-nav-brand, var(--color-text));
-  box-shadow: inset 0 -2px 0 var(--color-focus, transparent);
+  color: #fff;
+  background: transparent;
+  box-shadow: inset 0 -2px 0 var(--color-nav-badge-bg, #22d3ee);
 }
 
 #navbar a.item:focus-visible,
 #navbar button.item:focus-visible,
-#navbar details.dropdown > summary:focus-visible {
-  outline: 2px solid var(--color-focus, var(--color-primary));
+#navbar details.dropdown > summary:focus-visible,
+#navbar .navbar-search input:focus-visible {
+  outline: 2px solid var(--color-nav-badge-bg, #22d3ee);
   outline-offset: -2px;
-}
-
-#navbar .item {
-  min-height: 44px;
-  min-width: 44px;
-  color: var(--color-nav-text, var(--color-text));
-  padding-top: 3px;
-  padding-bottom: 3px;
 }
 
 #navbar .dropdown .item {
   justify-content: stretch;
 }
 
-#navbar a.item:hover, #navbar a.item:focus,
+#navbar a.item:hover,
+#navbar a.item:focus,
 #navbar details.dropdown > summary:is(:hover, :focus),
 #navbar details.dropdown[open] > summary,
-#navbar button.item:hover, #navbar button.item:focus {
+#navbar button.item:hover,
+#navbar button.item:focus {
   background: var(--color-nav-hover-bg);
 }
 
@@ -95,32 +122,39 @@
   display: flex;
 }
 
-/* Mobile first: the base is the collapsed menu (logo, notification icon and the 44px
-   menu button); the items show from 768px, or when the menu button opened the menu. */
-#navbar {
-  align-items: stretch;
-}
-
-/* hide all items */
+/* hide all items until the menu is open or the screen is wide */
 #navbar .item {
   display: none;
 }
 
-#navbar #navbar-logo {
+#navbar #navbar-logo,
+#navbar #navbar-expand-toggle {
   display: flex;
 }
 
-/* the first navbar item holds the logo and its mobile right items */
+#navbar #navbar-expand-toggle {
+  min-width: 44px;
+  min-height: 44px;
+  margin-inline-end: 2px !important;
+  border-radius: 8px;
+}
+
+#navbar #navbar-expand-toggle svg {
+  color: #fff;
+}
+
+/* the first navbar item holds the menu button, the logo and the mobile right items */
 #navbar .navbar-left {
   flex: 1;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 #navbar .navbar-mobile-right {
   display: flex;
   margin-inline-start: auto !important;
   width: auto !important;
+  gap: 4px;
 }
 
 #navbar .navbar-mobile-right > .item {
@@ -134,18 +168,166 @@
 }
 
 #navbar #mobile-notifications-icon {
-  margin-inline-end: 6px !important;
+  margin-inline-end: 0 !important;
 }
 
-/* the opened menu; ignored on wide screens even if the class is still set */
+#navbar .asc-nav-avatar img {
+  border-radius: 50%;
+}
+
+/* Sign in on a phone: an outlined button like the design */
+#navbar .navbar-mobile-right .asc-nav-signin {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding-inline: 14px;
+  color: #fff;
+  font-weight: 600;
+}
+
+#navbar .navbar-mobile-right .asc-nav-signin:hover {
+  background: var(--color-nav-hover-bg);
+}
+
+/* the search of the signed in bar */
+#navbar .navbar-search {
+  display: none;
+  align-items: center;
+  align-self: center;
+  gap: 10px;
+  flex: 1 1 200px;
+  max-width: 560px;
+  min-width: 0;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 10px 0 12px;
+  background: #111c30;
+  border: 1px solid #243049;
+  border-radius: 8px;
+  color: #94a3b8; /* 6.4:1 on #111c30 */
+}
+
+#navbar .navbar-search:focus-within {
+  border-color: var(--color-nav-badge-bg, #22d3ee);
+}
+
+#navbar .navbar-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+}
+
+#navbar .navbar-search input::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+#navbar .navbar-search input:focus-visible {
+  outline: 0;
+}
+
+#navbar .navbar-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+#navbar .navbar-search-key {
+  flex: none;
+  padding: 0 6px;
+  background: #0b1220;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  color: #94a3b8;
+  font-family: var(--fonts-monospace);
+  font-size: 0.75rem;
+  line-height: 20px;
+}
+
+/* inbox link with the amber count of what needs you */
+#navbar a.asc-nav-inbox {
+  gap: 8px;
+  color: #fff;
+  font-weight: 600;
+}
+
+#navbar .asc-nav-count {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 8px;
+  box-sizing: border-box;
+  background: #f59e0b;
+  border-radius: 999px;
+  color: #1c1100; /* 8.6:1 on the amber */
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
+}
+
+#navbar .asc-nav-count.tw-hidden {
+  display: none;
+}
+
+/* the create account button of the signed out bar */
+#navbar a.asc-nav-cta {
+  height: 38px;
+  min-height: 38px;
+  padding: 0 20px;
+  background: #22d3ee;
+  border-radius: 8px;
+  color: #04222b; /* 10.4:1 on the cyan */
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+#navbar a.asc-nav-cta:hover,
+#navbar a.asc-nav-cta:focus-visible {
+  background: #67e8f9;
+  color: #04222b;
+}
+
+#navbar a.asc-nav-cta:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* the create and account menus of the signed in bar */
+#navbar details.asc-nav-create > summary {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  box-sizing: border-box;
+  border: 1px solid #334155;
+  color: #fff;
+}
+
+#navbar details.asc-nav-create > summary .dropdown-icon {
+  display: none;
+}
+
+#navbar details.asc-nav-user > summary {
+  padding-inline: 4px;
+}
+
+#navbar details.asc-nav-user > summary img {
+  border-radius: 50%;
+}
+
+/* the opened menu on a phone; ignored on wide screens even if the class is still set */
 @media not all and (min-width: 768px) {
   #navbar.navbar-menu-open {
     padding-bottom: 8px;
-    gap: .35714286em;
+    gap: 0.35714286em;
   }
   #navbar.navbar-menu-open,
   #navbar.navbar-menu-open .navbar-right {
     flex-direction: column;
+    align-items: stretch;
   }
   #navbar.navbar-menu-open .navbar-left {
     display: flex;
@@ -155,6 +337,14 @@
     display: flex;
     width: 100%;
     margin: 0;
+  }
+  #navbar.navbar-menu-open .navbar-mobile-right,
+  #navbar.navbar-menu-open #navbar-expand-toggle {
+    width: auto;
+  }
+  #navbar.navbar-menu-open a.asc-nav-cta {
+    justify-content: center;
+    margin-top: 4px;
   }
   #navbar.navbar-menu-open details.dropdown {
     display: block;
@@ -167,31 +357,74 @@
       width: 100%;
     }
   }
-
   #navbar.navbar-menu-open .navbar-left #navbar-logo {
     justify-content: flex-start;
     width: auto;
   }
   #navbar.navbar-menu-open .navbar-left .navbar-mobile-right {
-    justify-content: flex-end;
-    width: 50%;
-    min-height: 48px;
+    min-height: 56px;
   }
 }
 
 @media (min-width: 768px) {
   #navbar {
     align-items: center;
+    gap: 16px;
+    min-height: 60px;
+    padding-inline: max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-left));
+  }
+  #navbar.navbar-site {
+    min-height: 68px;
+    gap: 32px;
+    padding-inline: max(24px, calc((100% - 1200px) / 2));
+  }
+  #navbar .navbar-left,
+  #navbar .navbar-right {
+    min-height: 60px;
+  }
+  #navbar.navbar-site .navbar-left,
+  #navbar.navbar-site .navbar-right {
+    min-height: 68px;
+  }
+  #navbar.navbar-site .navbar-left {
+    flex: 1;
+    gap: 24px;
+  }
+  #navbar.navbar-site #navbar-logo .navbar-brand-name {
+    font-size: 1.1875rem;
+  }
+  #navbar.navbar-site #navbar-logo .asc-brand-tile {
+    width: 26px;
+    height: 26px;
   }
   #navbar .item {
     display: flex;
   }
   #navbar .navbar-left {
     flex: initial;
-    justify-content: normal;
+  }
+  #navbar.navbar-app .navbar-left {
+    gap: 4px;
   }
   #navbar details.dropdown {
     display: block;
+  }
+  #navbar .navbar-search {
+    display: flex;
+  }
+  #navbar.navbar-app .navbar-right {
+    margin-inline-start: auto;
+    gap: 6px;
+  }
+  #navbar.navbar-site .navbar-right {
+    gap: 10px;
+  }
+}
+
+/* the search shows where there is room for it next to the page links; Explore has the same search */
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  #navbar .navbar-search {
+    display: none;
   }
 }
 
@@ -199,6 +432,16 @@
   padding-inline-start: 0.75rem;
   /* The min height is dictated by the largest dropdown, which is the one that has an avatar in the opener */
   min-height: 44px;
+}
+
+#navbar details.asc-nav-create > summary,
+#navbar details.asc-nav-user > summary {
+  padding-inline-start: 4px;
+}
+
+#navbar details.asc-nav-create > summary {
+  padding-inline: 0;
+  min-height: 34px;
 }
 
 #navbar details.dropdown .dropdown-icon {

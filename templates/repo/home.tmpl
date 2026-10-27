@@ -1,42 +1,12 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository file list {{if .IsBlame}}blame{{end}}">
+<div role="main" aria-label="{{.Title}}" class="page-content repository file list asc-repo-page {{if .IsBlame}}blame{{end}}">
 	{{template "repo/header" .}}
 	<div class="ui container {{if .IsBlame}}fluid padded{{end}}">
 		{{template "base/alert" .}}
-		{{if and (not .HideRepoInfo) (not .IsBlame)}}
-		<div class="repo-description">
-			<div id="repo-desc" class="tw-break-anywhere tw-text-16">
-				{{$description := .Repository.DescriptionHTML $.Context}}
-				{{if $description}}<span class="description">{{$description | RenderCodeBlock}}</span>{{else}}<span class="no-description text-italic">{{ctx.Locale.Tr "repo.no_desc"}}</span>{{end}}
-				{{if .Repository.Website}}<a class="link" href="{{.Repository.Website}}">{{.Repository.Website}}</a>{{end}}
-			</div>
-		</div>
-		<div class="repo-topics tw-my-2" id="repo-topics">
-			{{range .Topics}}
-				<a class="repo-topic ui large label" href="{{AppSubUrl}}/explore/repos?q={{.Name}}&topic=1">{{.Name}}</a>
-			{{end}}
-			{{if and .Permission.IsAdmin (not .Repository.IsArchived)}}
-				<button id="manage_topic" class="btn interact-fg tw-text-12">{{ctx.Locale.Tr "repo.topic.manage_topics"}}</button>
-			{{end}}
-		</div>
-		{{end}}
-		{{if and .Permission.IsAdmin (not .Repository.IsArchived)}}
-		<div class="ui form tw-hidden tw-flex tw-gap-2 tw-my-2" id="topic_edit">
-			<div class="ui fluid multiple search selection dropdown tw-flex-wrap tw-flex-1">
-				<input type="hidden" name="topics" value="{{range $i, $v := .Topics}}{{.Name}}{{if Eval $i "+" 1 "<" (len $.Topics)}},{{end}}{{end}}">
-				{{range .Topics}}
-					{{/* keep the same layout as Fomantic UI generated labels */}}
-					<a class="ui label transition visible tw-cursor-default tw-inline-block" data-value="{{.Name}}">{{.Name}}{{svg "octicon-x" 16 "delete icon"}}</a>
-				{{end}}
-				<div class="text"></div>
-			</div>
-			<div>
-				<button class="ui basic button" id="cancel_topic_edit">{{ctx.Locale.Tr "cancel"}}</button>
-				<button class="ui primary button" id="save_topic" data-link="{{.RepoLink}}/topics">{{ctx.Locale.Tr "save"}}</button>
-			</div>
-		</div>
-		{{end}}
-
+		{{$n := len .TreeNames}}
+		{{$l := Eval $n "-" 1}}
+		{{$isHomepage := (eq $n 0)}}
+		{{$hasAside := and $isHomepage (not .HideRepoInfo) (not .IsBlame) (not .IsViewFile)}}
 		{{if RepoFlagsEnabled}}
 			{{template "custom/repo_flag_banners" .}}
 			{{if .SignedUser.IsAdmin}}
@@ -53,10 +23,8 @@
 				{{end}}
 			</div>
 		{{end}}
-		{{template "repo/sub_menu" .}}
-		{{$n := len .TreeNames}}
-		{{$l := Eval $n "-" 1}}
-		{{$isHomepage := (eq $n 0)}}
+		<div class="{{if $hasAside}}asc-repo-layout{{end}}">
+		<div class="{{if $hasAside}}asc-repo-main{{end}}">
 		<div class="repo-button-row">
 			<div class="button-sequence tw-gap-y-2">
 				{{template "repo/branch_dropdown" dict "root" .}}
@@ -72,9 +40,8 @@
 						{{svg "octicon-git-pull-request"}}
 					</a>
 				{{end}}
-				<!-- Show go to file and breadcrumbs if not on home page -->
 				{{if $isHomepage}}
-					<a href="{{.Repository.Link}}/find/{{.BranchNameSubURL}}" class="ui compact basic button">{{ctx.Locale.Tr "repo.find_file.go_to_file"}}</a>
+					<span class="asc-branch-meta">{{ctx.Locale.TrPluralString (.Repository.NumOpenPulls ctx) "repo.asc_home.open_pulls" (ctx.Locale.PrettyNumber (.Repository.NumOpenPulls ctx))}}{{if .BranchesCount}} &middot; {{ctx.Locale.TrPluralString .BranchesCount "counters.n_branches" (ctx.Locale.PrettyNumber .BranchesCount)}}{{end}}</span>
 				{{end}}
 
 				{{if and .CanWriteCode .IsViewBranch (not .Repository.IsMirror) (not .Repository.IsArchived) (not .IsViewFile)}}
@@ -107,7 +74,11 @@
 			<div class="tw-flex tw-items-center max-[390px]:tw-w-full">
 				<!-- Only show clone panel in repository home page -->
 				{{if $isHomepage}}
-					<div class="clone-panel ui action tiny input max-[390px]:tw-w-full">
+					<a href="{{.Repository.Link}}/find/{{.BranchNameSubURL}}" class="ui compact basic button asc-find-file">{{ctx.Locale.Tr "repo.find_file.go_to_file"}}</a>
+					<details class="dropdown asc-clone">
+					<summary class="ui primary compact button">{{ctx.Locale.Tr "repo.asc_home.clone"}} {{svg "octicon-triangle-down" 14}}</summary>
+					<div class="content asc-clone-pop">
+					<div class="clone-panel ui action tiny input">
 						{{template "repo/clone_buttons" .}}
 						<button class="ui small jump dropdown icon button" data-tooltip-content="{{ctx.Locale.Tr "repo.more_operations"}}">
 							{{svg "octicon-kebab-horizontal"}}
@@ -127,6 +98,8 @@
 						</button>
 						{{template "repo/clone_script" .}}{{/* the script will update `.js-clone-url` and related elements */}}
 					</div>
+					</div>
+					</details>
 				{{end}}
 				{{if and (not $isHomepage) (not .IsViewFile) (not .IsBlame)}}{{/* IsViewDirectory (not home), TODO: split the templates, avoid using "if" tricks */}}
 					<div class="button-sequence folder-actions">
@@ -181,6 +154,11 @@
 			{{end}}
 			{{template "repo/view_list" .}}
 		{{end}}
+		</div>
+		{{if $hasAside}}
+			{{template "repo/asc_about" .}}
+		{{end}}
+		</div>
 	</div>
 </div>
 {{template "base/footer" .}}

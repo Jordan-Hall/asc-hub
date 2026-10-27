@@ -29,6 +29,45 @@ func TestValidateAscServerURL(t *testing.T) {
 	}
 }
 
+func TestNormaliseAscDownload(t *testing.T) {
+	t.Cleanup(func() { Asc.DownloadDir, Asc.DownloadBaseURL = "", "" })
+	for _, tc := range []struct{ dir, base, wantBase string }{
+		{"", "", ""},
+		{"/srv/asc/releases/", "https://dl.example.com/asc", "https://dl.example.com/asc/"},
+		{"/srv/asc/releases", " https://dl.example.com/asc/ ", "https://dl.example.com/asc/"},
+		{"/srv/asc", "http://127.0.0.1:9000", "http://127.0.0.1:9000/"},
+	} {
+		Asc.DownloadDir, Asc.DownloadBaseURL = tc.dir, tc.base
+		require.NoError(t, normaliseAscDownload(), tc)
+		assert.Equal(t, tc.wantBase, Asc.DownloadBaseURL)
+	}
+	for _, tc := range []struct{ dir, base string }{
+		{"relative/dir", ""},
+		{"/srv/asc\x00", ""},
+		{"", "http://dl.example.com"},
+		{"", "https://u:p@dl.example.com"},
+		{"", "https://dl.example.com?x=1"},
+		{"", "ftp://dl.example.com"},
+	} {
+		Asc.DownloadDir, Asc.DownloadBaseURL = tc.dir, tc.base
+		require.Error(t, normaliseAscDownload(), tc)
+	}
+}
+
+func TestLoadAscFromDownloadWithoutEnabled(t *testing.T) {
+	t.Cleanup(func() { Asc.DownloadDir, Asc.DownloadBaseURL = "", "" })
+	cfg, err := NewConfigProviderFromData(`
+[asc]
+DOWNLOAD_DIR = /srv/asc/releases
+DOWNLOAD_BASE_URL = https://dl.example.com/asc
+`)
+	require.NoError(t, err)
+	loadAscFrom(cfg)
+	assert.False(t, Asc.Enabled)
+	assert.Equal(t, "/srv/asc/releases", Asc.DownloadDir)
+	assert.Equal(t, "https://dl.example.com/asc/", Asc.DownloadBaseURL)
+}
+
 func TestLoadAscFrom(t *testing.T) {
 	cfg, err := NewConfigProviderFromData(`
 [asc]

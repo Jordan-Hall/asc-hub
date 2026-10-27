@@ -1,0 +1,142 @@
+/* The dashboard of a person (templates/user/dashboard/asc_home.tmpl). Components come from asc-app.css. */
+
+.asc-dash .ap-panel.padded h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ap-quiet {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--color-text-light-2);
+}
+
+/* agents working now: stacked on a phone, three columns from 900px */
+.ap-dash-agents {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-dash-agents > li {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--ap-line);
+  min-width: 0;
+}
+
+.ap-dash-agents > li:last-child {
+  border-bottom: 0;
+}
+
+.ap-dash-agents .name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.ap-dash-agents .state {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--color-text-light-2);
+}
+
+.ap-dash-agents .state.bad {
+  font-weight: 600;
+  color: var(--ap-chip-red-fg);
+}
+
+.ap-dash-agents progress {
+  margin-top: 12px;
+}
+
+.ap-dash-agents .meter-text {
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--color-text-light-2);
+}
+
+@media (min-width: 900px) {
+  .ap-dash-agents {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ap-dash-agents > li {
+    border-bottom: 0;
+    border-inline-end: 1px solid var(--ap-line);
+  }
+  .ap-dash-agents > li:last-child {
+    border-inline-end: 0;
+  }
+}
+
+/* a native progress bar drawn as the board's meter, so the value is exposed to assistive technology */
+.ap-progress {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border: 0;
+  border-radius: 99px;
+  background: var(--ap-track);
+  overflow: hidden;
+  appearance: none;
+  accent-color: var(--ap-dot-blue);
+}
+
+.ap-progress::-webkit-progress-bar {
+  background: var(--ap-track);
+  border-radius: 99px;
+}
+
+.ap-progress::-webkit-progress-value {
+  background: var(--ap-dot-blue);
+  border-radius: 99px;
+}
+
+.ap-progress::-moz-progress-bar {
+  background: var(--ap-dot-blue);
+  border-radius: 99px;
+}
+
+.ap-progress.amber::-webkit-progress-value {
+  background: var(--ap-dot-amber);
+}
+
+.ap-progress.amber::-moz-progress-bar {
+  background: var(--ap-dot-amber);
+}
+
+.ap-progress.red::-webkit-progress-value {
+  background: var(--ap-dot-red);
+}
+
+.ap-progress.red::-moz-progress-bar {
+  background: var(--ap-dot-red);
+}
+
+/* your stacks */
+.ap-dash-stacks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.ap-dash-stacks .name {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.ap-dash-stacks .ap-segs {
+  gap: 4px;
+}
