@@ -23,9 +23,9 @@
 					<span class="notification_count{{if not $notificationUnreadCount}} tw-hidden{{end}}">{{$notificationUnreadCount}}</span>
 				</div>
 			</a>
-			<a class="item tw-w-auto tw-p-2 asc-nav-avatar" href="{{.SignedUser.HomeLink}}" aria-label="{{ctx.Locale.Tr "your_profile"}}">{{ctx.AvatarUtils.Avatar .SignedUser 32}}</a>
+			<a class="item tw-w-auto tw-p-2 hub-nav-avatar" href="{{.SignedUser.HomeLink}}" aria-label="{{ctx.Locale.Tr "your_profile"}}">{{ctx.AvatarUtils.Avatar .SignedUser 32}}</a>
 			{{else}}
-			<a class="item asc-nav-signin" rel="nofollow" href="{{AppSubUrl}}/user/login{{if not .PageIsSignIn}}?redirect_to={{.CurrentURL}}{{end}}">{{ctx.Locale.Tr "sign_in"}}</a>
+			<a class="item hub-nav-signin" rel="nofollow" href="{{AppSubUrl}}/user/login{{if not .PageIsSignIn}}?redirect_to={{.CurrentURL}}{{end}}">{{ctx.Locale.Tr "sign_in"}}</a>
 			{{end}}
 		</div>
 
@@ -74,7 +74,7 @@
 	<!-- the full dropdown menus -->
 	<div class="navbar-right ui secondary menu">
 		{{if and .IsSigned .HideNavbarLinks}}
-			<details class="dropdown dir-rtl asc-nav-user">
+			<details class="dropdown dir-rtl hub-nav-user">
 				<summary data-tooltip-content="{{ctx.Locale.Tr "user_profile_and_more"}}">
 					{{ctx.AvatarUtils.Avatar .SignedUser 24}}
 					<span class="only-mobile tw-ml-2">{{.SignedUser.Name}}</span>
@@ -132,9 +132,9 @@
 			{{end}}
 
 			{{if AscEnabled}}
-			<a class="item not-mobile asc-nav-inbox{{if .PageIsAscInbox}} active{{end}}" {{if .PageIsAscInbox}}aria-current="page" {{end}}href="{{AppSubUrl}}/-/asc/inbox" data-asc-inbox-count-url="{{AppSubUrl}}/api/v1/user/asc/inbox/count?section=needs_review">
+			<a class="item not-mobile hub-nav-inbox{{if .PageIsAscInbox}} active{{end}}" {{if .PageIsAscInbox}}aria-current="page" {{end}}href="{{AppSubUrl}}/-/asc/inbox" data-asc-inbox-count-url="{{AppSubUrl}}/api/v1/user/asc/inbox/count?section=needs_review">
 				<span>{{ctx.Locale.Tr "user.asc_inbox"}}</span>
-				<span class="asc-nav-count tw-hidden" data-asc-inbox-count></span>
+				<span class="hub-nav-count tw-hidden" data-asc-inbox-count></span>
 			</a>
 			{{end}}
 
@@ -145,7 +145,7 @@
 				</div>
 			</a>
 
-			<details class="dropdown dir-rtl asc-nav-create">
+			<details class="dropdown dir-rtl hub-nav-create">
 				<summary data-tooltip-content="{{ctx.Locale.Tr "create_new"}}">
 					{{svg "octicon-plus"}}
 					<span class="not-mobile dropdown-icon">{{svg "octicon-triangle-down"}}</span>
@@ -176,7 +176,7 @@
 				</div>
 			</details>
 
-			<details class="dropdown dir-rtl asc-nav-user">
+			<details class="dropdown dir-rtl hub-nav-user">
 				<summary data-tooltip-content="{{ctx.Locale.Tr "user_profile_and_more"}}">
 					{{ctx.AvatarUtils.Avatar .SignedUser 24}}
 					<span class="only-mobile tw-ml-2">{{.SignedUser.Name}}</span>
@@ -255,7 +255,7 @@
 				<span>{{ctx.Locale.Tr "sign_in"}}</span>
 			</a>
 			{{if .ShowRegistrationButton}}
-				<a class="item asc-nav-cta{{if .PageIsSignUp}} active{{end}}" href="{{AppSubUrl}}/user/sign_up">
+				<a class="item hub-nav-cta{{if .PageIsSignUp}} active{{end}}" href="{{AppSubUrl}}/user/sign_up">
 					<span>{{ctx.Locale.Tr "register"}}</span>
 				</a>
 			{{end}}

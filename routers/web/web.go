@@ -650,6 +650,9 @@ func registerRoutes(m *web.Route) {
 	}, optionsCorsHandler())
 
 	m.Post("/-/asc/rpc/{service}/{method}", ignSignIn, repo.AscRPCProxy)
+	m.Get("/download", ignSignIn, Download)
+	m.Get("/user/welcome", reqSignIn, Welcome)
+	m.Methods("GET, HEAD", "/-/download/*", ignSignIn, DownloadFile)
 
 	m.Group("/explore", func() {
 		m.Get("", func(ctx *context.Context) {

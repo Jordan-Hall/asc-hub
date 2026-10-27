@@ -552,7 +552,17 @@ func SignUpPost(ctx *context.Context) {
 	}
 
 	ctx.Flash.Success(ctx.Tr("auth.sign_up_successful"))
-	handleSignIn(ctx, u, false)
+	// A new account lands on the first run page, unless the sign up was started from a link that
+	// leads somewhere (an invitation, for one), which still wins.
+	hadRedirect := ctx.GetSiteCookie("redirect_to") != ""
+	redirect := handleSignInFull(ctx, u, false, true)
+	if ctx.Written() {
+		return
+	}
+	if !hadRedirect {
+		redirect = setting.AppSubURL + "/user/welcome"
+	}
+	ctx.Redirect(redirect)
 }
 
 // createAndHandleCreatedUser calls createUserInContext and
