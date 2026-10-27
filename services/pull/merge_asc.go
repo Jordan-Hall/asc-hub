@@ -15,6 +15,7 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/timeutil"
+	"forgejo.org/services/ascsync"
 )
 
 // writtenThroughAsc reports whether the repository is stored in asc and the instance writes it through asc.v1
@@ -46,11 +47,14 @@ func markMergedThroughAsc(ctx context.Context, pr *issues_model.PullRequest, doe
 	})
 }
 
+// pullHeadWriter is the Writer that moves a pull head; tests replace it.
+var pullHeadWriter = repostore.Default
+
 // setPullHeadThroughAsc points refs/pull/<n>/head of a pull request at a revision, with asc: the closure is copied
 // from the repository the revision is in (from, nil for the base repository itself) and the ref moves with
 // UpdateRefs and HOOK_MODE_SKIP_PRE (K12, SPEC 13.5). The bridge follows through asc.
 func setPullHeadThroughAsc(ctx context.Context, pr *issues_model.PullRequest, from *repo_model.Repository, rev string) error {
-	writer, err := repostore.Default()
+	writer, err := pullHeadWriter()
 	if err != nil {
 		return err
 	}
@@ -66,8 +70,19 @@ func setPullHeadThroughAsc(ctx context.Context, pr *issues_model.PullRequest, fr
 		ref := from.StoreRef()
 		req.From = &ref
 	}
-	if _, err := writer.UpdateRefs(ctx, req); err != nil {
+	results, err := writer.UpdateRefs(ctx, req)
+	if err != nil {
 		return fmt.Errorf("set %s through asc: %w", pr.GetGitRefName(), err)
+	}
+	// The ref is asc's; the git bridge follows through bridge_promote a moment later, and the callers read the
+	// pull head with git straight away (the compare of a new pull request). Wait until git shows it.
+	for _, r := range results {
+		if r.Name != pr.GetGitRefName() || r.New == nil {
+			continue
+		}
+		if err := ascsync.WaitForRefs(ctx, pr.BaseRepo, []ascsync.PushRef{{Name: r.Name, New: r.New.String()}}); err != nil {
+			return fmt.Errorf("set %s through asc: %w", pr.GetGitRefName(), err)
+		}
 	}
 	return nil
 }
