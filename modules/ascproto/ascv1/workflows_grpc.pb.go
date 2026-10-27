@@ -29,6 +29,9 @@ const (
 	Workflows_CancelRun_FullMethodName       = "/asc.v1.Workflows/CancelRun"
 	Workflows_DecideApproval_FullMethodName  = "/asc.v1.Workflows/DecideApproval"
 	Workflows_WatchRun_FullMethodName        = "/asc.v1.Workflows/WatchRun"
+	Workflows_ListSecrets_FullMethodName     = "/asc.v1.Workflows/ListSecrets"
+	Workflows_SetSecret_FullMethodName       = "/asc.v1.Workflows/SetSecret"
+	Workflows_DeleteSecret_FullMethodName    = "/asc.v1.Workflows/DeleteSecret"
 )
 
 // WorkflowsClient is the client API for Workflows service.
@@ -37,9 +40,11 @@ const (
 //
 // Workflows (build-out feature "workflows"; docs/BUILDOUT.md): agent work that starts on an event and runs steps in order. A
 // definition is a file `.asc/workflows/<name>.toml` on trunk, so a change to a workflow is reviewed like code and the server
-// runs the version on the trunk tip, never the one in an update. The server keeps only whether a workflow is enabled and the
-// runs. A step is an agent task, a wait for approval by a person, or a wait for checks; a step cannot run commands. Every
-// agent step runs as an agent run (agents.proto) with its own token and budget, and the workflow budget caps their sum.
+// runs the version on the trunk tip, never the one in an update. The server keeps only whether a workflow is enabled, the
+// runs and the secrets a command step may read. A step is an agent task, a command, a wait for approval by a person, or a
+// wait for checks. Every agent step runs as an agent run (agents.proto) with its own token and budget, and the workflow
+// budget caps their sum. A command step runs a fixed argument list (never a shell line) in the operator's sandbox over a
+// working copy of the change, and its result is attached to that exact change version as a check (ci.proto).
 // Advertised as Version.features "workflows.v1". ErrorDetail.code also carries WORKFLOW_INVALID (INVALID_ARGUMENT; `paths`
 // holds "<line>: <message>") and WORKFLOW_DISABLED (FAILED_PRECONDITION).
 type WorkflowsClient interface {
@@ -53,6 +58,9 @@ type WorkflowsClient interface {
 	CancelRun(ctx context.Context, in *CancelWorkflowRunRequest, opts ...grpc.CallOption) (*CancelWorkflowRunResponse, error)
 	DecideApproval(ctx context.Context, in *DecideWorkflowApprovalRequest, opts ...grpc.CallOption) (*DecideWorkflowApprovalResponse, error)
 	WatchRun(ctx context.Context, in *WatchWorkflowRunRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WorkflowRunEvent], error)
+	ListSecrets(ctx context.Context, in *ListWorkflowSecretsRequest, opts ...grpc.CallOption) (*ListWorkflowSecretsResponse, error)
+	SetSecret(ctx context.Context, in *SetWorkflowSecretRequest, opts ...grpc.CallOption) (*SetWorkflowSecretResponse, error)
+	DeleteSecret(ctx context.Context, in *DeleteWorkflowSecretRequest, opts ...grpc.CallOption) (*DeleteWorkflowSecretResponse, error)
 }
 
 type workflowsClient struct {
@@ -172,15 +180,47 @@ func (c *workflowsClient) WatchRun(ctx context.Context, in *WatchWorkflowRunRequ
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Workflows_WatchRunClient = grpc.ServerStreamingClient[WorkflowRunEvent]
 
+func (c *workflowsClient) ListSecrets(ctx context.Context, in *ListWorkflowSecretsRequest, opts ...grpc.CallOption) (*ListWorkflowSecretsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListWorkflowSecretsResponse)
+	err := c.cc.Invoke(ctx, Workflows_ListSecrets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workflowsClient) SetSecret(ctx context.Context, in *SetWorkflowSecretRequest, opts ...grpc.CallOption) (*SetWorkflowSecretResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetWorkflowSecretResponse)
+	err := c.cc.Invoke(ctx, Workflows_SetSecret_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workflowsClient) DeleteSecret(ctx context.Context, in *DeleteWorkflowSecretRequest, opts ...grpc.CallOption) (*DeleteWorkflowSecretResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteWorkflowSecretResponse)
+	err := c.cc.Invoke(ctx, Workflows_DeleteSecret_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WorkflowsServer is the server API for Workflows service.
 // All implementations should embed UnimplementedWorkflowsServer
 // for forward compatibility.
 //
 // Workflows (build-out feature "workflows"; docs/BUILDOUT.md): agent work that starts on an event and runs steps in order. A
 // definition is a file `.asc/workflows/<name>.toml` on trunk, so a change to a workflow is reviewed like code and the server
-// runs the version on the trunk tip, never the one in an update. The server keeps only whether a workflow is enabled and the
-// runs. A step is an agent task, a wait for approval by a person, or a wait for checks; a step cannot run commands. Every
-// agent step runs as an agent run (agents.proto) with its own token and budget, and the workflow budget caps their sum.
+// runs the version on the trunk tip, never the one in an update. The server keeps only whether a workflow is enabled, the
+// runs and the secrets a command step may read. A step is an agent task, a command, a wait for approval by a person, or a
+// wait for checks. Every agent step runs as an agent run (agents.proto) with its own token and budget, and the workflow
+// budget caps their sum. A command step runs a fixed argument list (never a shell line) in the operator's sandbox over a
+// working copy of the change, and its result is attached to that exact change version as a check (ci.proto).
 // Advertised as Version.features "workflows.v1". ErrorDetail.code also carries WORKFLOW_INVALID (INVALID_ARGUMENT; `paths`
 // holds "<line>: <message>") and WORKFLOW_DISABLED (FAILED_PRECONDITION).
 type WorkflowsServer interface {
@@ -194,6 +234,9 @@ type WorkflowsServer interface {
 	CancelRun(context.Context, *CancelWorkflowRunRequest) (*CancelWorkflowRunResponse, error)
 	DecideApproval(context.Context, *DecideWorkflowApprovalRequest) (*DecideWorkflowApprovalResponse, error)
 	WatchRun(*WatchWorkflowRunRequest, grpc.ServerStreamingServer[WorkflowRunEvent]) error
+	ListSecrets(context.Context, *ListWorkflowSecretsRequest) (*ListWorkflowSecretsResponse, error)
+	SetSecret(context.Context, *SetWorkflowSecretRequest) (*SetWorkflowSecretResponse, error)
+	DeleteSecret(context.Context, *DeleteWorkflowSecretRequest) (*DeleteWorkflowSecretResponse, error)
 }
 
 // UnimplementedWorkflowsServer should be embedded to have
@@ -232,6 +275,15 @@ func (UnimplementedWorkflowsServer) DecideApproval(context.Context, *DecideWorkf
 }
 func (UnimplementedWorkflowsServer) WatchRun(*WatchWorkflowRunRequest, grpc.ServerStreamingServer[WorkflowRunEvent]) error {
 	return status.Error(codes.Unimplemented, "method WatchRun not implemented")
+}
+func (UnimplementedWorkflowsServer) ListSecrets(context.Context, *ListWorkflowSecretsRequest) (*ListWorkflowSecretsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSecrets not implemented")
+}
+func (UnimplementedWorkflowsServer) SetSecret(context.Context, *SetWorkflowSecretRequest) (*SetWorkflowSecretResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetSecret not implemented")
+}
+func (UnimplementedWorkflowsServer) DeleteSecret(context.Context, *DeleteWorkflowSecretRequest) (*DeleteWorkflowSecretResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteSecret not implemented")
 }
 func (UnimplementedWorkflowsServer) testEmbeddedByValue() {}
 
@@ -426,6 +478,60 @@ func _Workflows_WatchRun_Handler(srv interface{}, stream grpc.ServerStream) erro
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Workflows_WatchRunServer = grpc.ServerStreamingServer[WorkflowRunEvent]
 
+func _Workflows_ListSecrets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWorkflowSecretsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServer).ListSecrets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workflows_ListSecrets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServer).ListSecrets(ctx, req.(*ListWorkflowSecretsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Workflows_SetSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetWorkflowSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServer).SetSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workflows_SetSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServer).SetSecret(ctx, req.(*SetWorkflowSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Workflows_DeleteSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteWorkflowSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServer).DeleteSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workflows_DeleteSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServer).DeleteSecret(ctx, req.(*DeleteWorkflowSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Workflows_ServiceDesc is the grpc.ServiceDesc for Workflows service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -468,6 +574,18 @@ var Workflows_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DecideApproval",
 			Handler:    _Workflows_DecideApproval_Handler,
+		},
+		{
+			MethodName: "ListSecrets",
+			Handler:    _Workflows_ListSecrets_Handler,
+		},
+		{
+			MethodName: "SetSecret",
+			Handler:    _Workflows_SetSecret_Handler,
+		},
+		{
+			MethodName: "DeleteSecret",
+			Handler:    _Workflows_DeleteSecret_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

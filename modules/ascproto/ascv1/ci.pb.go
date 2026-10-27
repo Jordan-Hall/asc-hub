@@ -189,6 +189,7 @@ type CiRun struct {
 	Finished      int64                  `protobuf:"varint,10,opt,name=finished,proto3" json:"finished,omitempty"`
 	Url           string                 `protobuf:"bytes,11,opt,name=url,proto3" json:"url,omitempty"`
 	Jobs          []*CiJob               `protobuf:"bytes,12,rep,name=jobs,proto3" json:"jobs,omitempty"`
+	Stale         bool                   `protobuf:"varint,13,opt,name=stale,proto3" json:"stale,omitempty"` // the change has a newer version than the one this run is for
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -305,6 +306,13 @@ func (x *CiRun) GetJobs() []*CiJob {
 		return x.Jobs
 	}
 	return nil
+}
+
+func (x *CiRun) GetStale() bool {
+	if x != nil {
+		return x.Stale
+	}
+	return false
 }
 
 // `change` empty lists runs of every change. `status` unspecified lists all. Newest first. `limit` 0 means 30, at most 100.
@@ -970,7 +978,7 @@ const file_asc_v1_ci_proto_rawDesc = "" +
 	"\astarted\x18\x04 \x01(\x03R\astarted\x12\x1a\n" +
 	"\bfinished\x18\x05 \x01(\x03R\bfinished\x12\x10\n" +
 	"\x03url\x18\x06 \x01(\tR\x03url\x12\x19\n" +
-	"\blog_size\x18\a \x01(\x04R\alogSize\"\xcb\x02\n" +
+	"\blog_size\x18\a \x01(\x04R\alogSize\"\xe1\x02\n" +
 	"\x05CiRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x16\n" +
 	"\x06source\x18\x02 \x01(\tR\x06source\x12\x1f\n" +
@@ -985,7 +993,8 @@ const file_asc_v1_ci_proto_rawDesc = "" +
 	"\bfinished\x18\n" +
 	" \x01(\x03R\bfinished\x12\x10\n" +
 	"\x03url\x18\v \x01(\tR\x03url\x12!\n" +
-	"\x04jobs\x18\f \x03(\v2\r.asc.v1.CiJobR\x04jobs\"\xb3\x01\n" +
+	"\x04jobs\x18\f \x03(\v2\r.asc.v1.CiJobR\x04jobs\x12\x14\n" +
+	"\x05stale\x18\r \x01(\bR\x05stale\"\xb3\x01\n" +
 	"\x0fListRunsRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12(\n" +

@@ -1226,14 +1226,15 @@ func (x *AiUsageRequest) GetGroupBy() AiUsageGroup {
 }
 
 type AiUsageRow struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Group         string                 `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"` // a day (YYYY-MM-DD, UTC), a model id, "owner/repo" or an agent name
-	Requests      uint64                 `protobuf:"varint,2,opt,name=requests,proto3" json:"requests,omitempty"`
-	InputTokens   uint64                 `protobuf:"varint,3,opt,name=input_tokens,json=inputTokens,proto3" json:"input_tokens,omitempty"`
-	OutputTokens  uint64                 `protobuf:"varint,4,opt,name=output_tokens,json=outputTokens,proto3" json:"output_tokens,omitempty"`
-	CostMicroUsd  uint64                 `protobuf:"varint,5,opt,name=cost_micro_usd,json=costMicroUsd,proto3" json:"cost_micro_usd,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Group            string                 `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"` // a day (YYYY-MM-DD, UTC), a model id, "owner/repo" or an agent name
+	Requests         uint64                 `protobuf:"varint,2,opt,name=requests,proto3" json:"requests,omitempty"`
+	InputTokens      uint64                 `protobuf:"varint,3,opt,name=input_tokens,json=inputTokens,proto3" json:"input_tokens,omitempty"`
+	OutputTokens     uint64                 `protobuf:"varint,4,opt,name=output_tokens,json=outputTokens,proto3" json:"output_tokens,omitempty"`
+	CostMicroUsd     uint64                 `protobuf:"varint,5,opt,name=cost_micro_usd,json=costMicroUsd,proto3" json:"cost_micro_usd,omitempty"`
+	UnpricedRequests uint64                 `protobuf:"varint,6,opt,name=unpriced_requests,json=unpricedRequests,proto3" json:"unpriced_requests,omitempty"` // requests whose model had no price (their cost is recorded as 0)
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *AiUsageRow) Reset() {
@@ -1297,6 +1298,13 @@ func (x *AiUsageRow) GetOutputTokens() uint64 {
 func (x *AiUsageRow) GetCostMicroUsd() uint64 {
 	if x != nil {
 		return x.CostMicroUsd
+	}
+	return 0
+}
+
+func (x *AiUsageRow) GetUnpricedRequests() uint64 {
+	if x != nil {
+		return x.UnpricedRequests
 	}
 	return 0
 }
@@ -1438,14 +1446,15 @@ const file_asc_v1_aiproviders_proto_rawDesc = "" +
 	"\x06key_id\x18\x02 \x01(\tR\x05keyId\x12\x14\n" +
 	"\x05since\x18\x03 \x01(\x03R\x05since\x12\x14\n" +
 	"\x05until\x18\x04 \x01(\x03R\x05until\x12/\n" +
-	"\bgroup_by\x18\x05 \x01(\x0e2\x14.asc.v1.AiUsageGroupR\agroupBy\"\xac\x01\n" +
+	"\bgroup_by\x18\x05 \x01(\x0e2\x14.asc.v1.AiUsageGroupR\agroupBy\"\xd9\x01\n" +
 	"\n" +
 	"AiUsageRow\x12\x14\n" +
 	"\x05group\x18\x01 \x01(\tR\x05group\x12\x1a\n" +
 	"\brequests\x18\x02 \x01(\x04R\brequests\x12!\n" +
 	"\finput_tokens\x18\x03 \x01(\x04R\vinputTokens\x12#\n" +
 	"\routput_tokens\x18\x04 \x01(\x04R\foutputTokens\x12$\n" +
-	"\x0ecost_micro_usd\x18\x05 \x01(\x04R\fcostMicroUsd\"c\n" +
+	"\x0ecost_micro_usd\x18\x05 \x01(\x04R\fcostMicroUsd\x12+\n" +
+	"\x11unpriced_requests\x18\x06 \x01(\x04R\x10unpricedRequests\"c\n" +
 	"\x0fAiUsageResponse\x12&\n" +
 	"\x04rows\x18\x01 \x03(\v2\x12.asc.v1.AiUsageRowR\x04rows\x12(\n" +
 	"\x05total\x18\x02 \x01(\v2\x12.asc.v1.AiUsageRowR\x05total*\x97\x01\n" +
