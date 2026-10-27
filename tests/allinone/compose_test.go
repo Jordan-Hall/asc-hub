@@ -35,7 +35,9 @@ var entrypointVariables = map[string]bool{
 	"ASC_S3_ENDPOINT": true, "ASC_S3_BUCKET": true, "ASC_S3_REGION": true,
 	"ASC_S3_ACCESS_KEY_ID": true, "ASC_S3_SECRET_ACCESS_KEY": true, "ASC_CACHE_MEMORY": true,
 	"ASC_CACHE_DISK": true, "ASC_TEXT_MEMORY": true, "ASC_GIT_ENABLED": true, "ASC_LOG": true,
-	"ASC_LOG_FORMAT": true,
+	"ASC_LOG_FORMAT": true, "ASC_HUB_DOWNLOAD_SOURCE_URL": true, "ASC_HUB_DOWNLOAD_PUBLIC_KEY": true,
+	"ASC_HUB_DOWNLOAD_SYNC_INTERVAL": true, "ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE": true,
+	"ASC_HUB_DOWNLOAD_SOURCE_TOKEN": true,
 }
 
 var (
