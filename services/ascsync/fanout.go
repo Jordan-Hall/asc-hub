@@ -66,6 +66,10 @@ type push struct {
 	byWriter bool
 	// pr is the pull request this write merges, 0 when it merges none (a writer push only).
 	pr int64
+	// done is closed when the post-receive calls of every ref change of the write have been processed (a writer push
+	// only), so that the writer can hand back control when the hub's own view of the repository holds the change.
+	done   chan struct{}
+	closed bool
 }
 
 // keyOf is the key a ref change of a call has in this push.
@@ -214,8 +218,33 @@ func (rp *repoPushes) remove(p *push) {
 //   - no other remembered push of the repository fits as well with another user (an ambiguous call is attributed
 //     to nobody).
 func ClaimPusher(repo *repo_model.Repository, refs []PushRef) (int64, bool) {
-	user, _, ok := matchPusher(repo, refs, true, false)
-	return user, ok
+	m, ok := matchPusher(repo, refs, true, false)
+	if !ok {
+		return 0, false
+	}
+	return m.user, true
+}
+
+// ClaimPusherUntilSettled is ClaimPusher for the post-receive hook of asc's outbox. The function it returns, which is
+// never nil, is called when the hook has finished processing the call; the writer of a write the hub made waits for
+// that (PushToken.Wait), so that the hub's records of the repository (its branches, its pull requests) hold the
+// change when the writer returns and a page that follows is not ahead of them.
+func ClaimPusherUntilSettled(repo *repo_model.Repository, refs []PushRef) (user int64, settled func(), ok bool) {
+	m, found := matchPusher(repo, refs, true, false)
+	if !found {
+		return 0, func() {}, false
+	}
+	return m.user, func() { m.settle() }, true
+}
+
+// settle closes done when no ref change of the write is left to claim.
+func (p *push) settle() {
+	pusherMu.Lock()
+	defer pusherMu.Unlock()
+	if p.done != nil && !p.closed && len(p.left) == 0 {
+		p.closed = true
+		close(p.done)
+	}
 }
 
 // PeekWriter returns the user who is making the write of refs through the hub's writer (RememberWriter) without
@@ -224,29 +253,33 @@ func ClaimPusher(repo *repo_model.Repository, refs []PushRef) (int64, bool) {
 // nobody remembers, and for one that more than one user remembers (it is attributed to nobody, and the hook then
 // refuses it).
 func PeekWriter(repo *repo_model.Repository, refs []PushRef) (userID, pullRequestID int64, ok bool) {
-	return matchPusher(repo, refs, false, true)
+	m, found := matchPusher(repo, refs, false, true)
+	if !found {
+		return 0, 0, false
+	}
+	return m.user, m.pr, true
 }
 
 // matchPusher is ClaimPusher (consume) and PeekWriter (onlyWriter, no consume).
-func matchPusher(repo *repo_model.Repository, refs []PushRef, consume, onlyWriter bool) (user, pr int64, ok bool) {
+func matchPusher(repo *repo_model.Repository, refs []PushRef, consume, onlyWriter bool) (*push, bool) {
 	if repo == nil || len(refs) == 0 || len(refs) > MaxRefsPerPush {
-		return 0, 0, false
+		return nil, false
 	}
 	keys, normOK := normalised(refs)
 	if !normOK {
-		return 0, 0, false
+		return nil, false
 	}
 	now := pusherClock()
 	pusherMu.Lock()
 	defer pusherMu.Unlock()
 	rp := pushers[repo.ID]
 	if rp == nil {
-		return 0, 0, false
+		return nil, false
 	}
 	rp.dropExpired(now)
 	if len(rp.list) == 0 {
 		delete(pushers, repo.ID)
-		return 0, 0, false
+		return nil, false
 	}
 	var match *push
 	for _, p := range rp.list {
@@ -264,17 +297,17 @@ func matchPusher(repo *repo_model.Repository, refs []PushRef, consume, onlyWrite
 			continue
 		}
 		if match != nil && match.user != p.user {
-			return 0, 0, false
+			return nil, false
 		}
 		if match == nil {
 			match = p
 		}
 	}
 	if match == nil {
-		return 0, 0, false
+		return nil, false
 	}
 	if !consume {
-		return match.user, match.pr, true
+		return match, true
 	}
 	for k := range keys {
 		delete(match.left, match.keyOf(k))
@@ -285,7 +318,7 @@ func matchPusher(repo *repo_model.Repository, refs []PushRef, consume, onlyWrite
 	if len(rp.list) == 0 {
 		delete(pushers, repo.ID)
 	}
-	return match.user, match.pr, true
+	return match, true
 }
 
 // RememberWriter records that userID is making a write of refs to repo through the hub's own writer (a web edit, a
@@ -327,10 +360,27 @@ func RememberWriter(repo *repo_model.Repository, userID, pullRequestID int64, re
 	if len(rp.list) >= MaxPushesPerRepo {
 		rp.list = rp.list[len(rp.list)-MaxPushesPerRepo+1:]
 	}
-	p := &push{user: userID, expires: now.Add(pusherTTL), left: keys, byWriter: true, pr: max(pullRequestID, 0)}
+	p := &push{user: userID, expires: now.Add(pusherTTL), left: keys, byWriter: true, pr: max(pullRequestID, 0), done: make(chan struct{})}
 	rp.list = append(rp.list, p)
 	rp.active = now
 	return PushToken{repo.ID, p}
+}
+
+// Wait blocks until the post-receive calls of every ref change of a write recorded by RememberWriter have been
+// processed, or max has passed, or ctx ends. It is for the writer, so that what it returns is also in the hub's own
+// records. It does nothing for the zero token or a record of a git push. A write that is never reported (asc's outbox is
+// off or slow) costs the wait and no more: the write itself has been made.
+func (t PushToken) Wait(ctx context.Context, max time.Duration) {
+	if t.p == nil || t.p.done == nil {
+		return
+	}
+	timer := time.NewTimer(max)
+	defer timer.Stop()
+	select {
+	case <-t.p.done:
+	case <-ctx.Done():
+	case <-timer.C:
+	}
 }
 
 // WaitForRefs blocks until every ref of refs in the repository's git directory equals its new commit (a deletion

@@ -4,6 +4,7 @@
 package ascsync
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -113,4 +114,76 @@ func TestWriterRecordIsForgottenAndExpires(t *testing.T) {
 	}
 	assert.Equal(t, PushToken{}, RememberWriter(repo, 7, 0, many))
 	assert.Zero(t, pusherCount(repo))
+}
+
+func TestWriterWaitsUntilPostReceiveIsSettled(t *testing.T) {
+	resetPushers(t)
+	repo := &repo_model.Repository{ID: 57}
+	refs := []PushRef{ref("refs/heads/a", "1111", "aaaa")}
+	tok := RememberWriter(repo, 7, 0, []PushRef{{Name: "refs/heads/a", New: "aaaa"}})
+
+	// Nothing has been claimed: the wait ends at its limit.
+	start := time.Now()
+	tok.Wait(t.Context(), 60*time.Millisecond)
+	assert.GreaterOrEqual(t, time.Since(start), 50*time.Millisecond)
+
+	// The claim alone is not enough: the hook is still working. The wait ends when the hook says it is settled.
+	user, settled, ok := ClaimPusherUntilSettled(repo, refs)
+	require.True(t, ok)
+	assert.Equal(t, int64(7), user)
+	released := make(chan time.Duration)
+	go func() {
+		s := time.Now()
+		tok.Wait(t.Context(), 5*time.Second)
+		released <- time.Since(s)
+	}()
+	time.Sleep(80 * time.Millisecond)
+	select {
+	case <-released:
+		t.Fatal("the writer was released before the hook had settled")
+	default:
+	}
+	settled()
+	select {
+	case d := <-released:
+		assert.Less(t, d, 2*time.Second)
+	case <-time.After(2 * time.Second):
+		t.Fatal("the writer was not released when the hook settled")
+	}
+	settled() // twice is harmless
+}
+
+func TestWriterWaitEndsForAWriteThatHasNothingToWaitFor(t *testing.T) {
+	resetPushers(t)
+	repo := &repo_model.Repository{ID: 58}
+	start := time.Now()
+	PushToken{}.Wait(t.Context(), 5*time.Second)
+	assert.Less(t, time.Since(start), time.Second, "the zero token")
+	tok, err := RememberPusher(repo, 7, []PushRef{ref("refs/heads/a", zeroID, "aaaa")})
+	require.NoError(t, err)
+	tok.Wait(t.Context(), 5*time.Second)
+	assert.Less(t, time.Since(start), time.Second, "a record of a git push")
+
+	// A claim of a call that holds only some of the ref changes does not release the writer.
+	w := RememberWriter(repo, 7, 0, []PushRef{{Name: "refs/heads/a", New: "aaaa"}, {Name: "refs/heads/b", New: "bbbb"}})
+	_, settled, ok := ClaimPusherUntilSettled(repo, []PushRef{ref("refs/heads/a", "1111", "aaaa")})
+	require.True(t, ok)
+	settled()
+	s := time.Now()
+	w.Wait(t.Context(), 60*time.Millisecond)
+	assert.GreaterOrEqual(t, time.Since(s), 50*time.Millisecond, "one ref change is still to be reported")
+	_, settled, ok = ClaimPusherUntilSettled(repo, []PushRef{ref("refs/heads/b", "2222", "bbbb")})
+	require.True(t, ok)
+	settled()
+	s = time.Now()
+	w.Wait(t.Context(), 5*time.Second)
+	assert.Less(t, time.Since(s), time.Second)
+
+	// A cancelled context ends the wait.
+	w2 := RememberWriter(repo, 7, 0, []PushRef{{Name: "refs/heads/c", New: "cccc"}})
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	s = time.Now()
+	w2.Wait(ctx, 5*time.Second)
+	assert.Less(t, time.Since(s), time.Second)
 }

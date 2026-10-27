@@ -213,7 +213,7 @@ func TestWriterNoteResolvesTheRepository(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, int64(2), user)
 	assert.Equal(t, int64(4), pr)
-	forget()
+	forget.Forget()
 	_, _, ok = ascsync.PeekWriter(w.repo, []ascsync.PushRef{{Name: w.ref, Old: w.old, New: w.new}})
 	assert.False(t, ok)
 

@@ -95,7 +95,7 @@ func (s *session) publish(from *repoHandle, u *repostore.RefUpdate, asc []byte, 
 		mode = ascv1.UpdateMode_UPDATE_MODE_FORCE
 	}
 	// asc calls the hub's hooks as the hub, with no person. The hub is told whose change this is first.
-	forget := s.notePusher(to.name, env, []PushedRef{{Name: u.Ref, New: commit}})
+	note := s.notePusher(to.name, env, []PushedRef{{Name: u.Ref, New: commit}})
 	resp, err := s.api.UpdateRefs(s.ctx, &ascv1.UpdateRefsRequest{
 		Repo: to.ascRef(),
 		Updates: []*ascv1.RefUpdate{{
@@ -107,12 +107,13 @@ func (s *session) publish(from *repoHandle, u *repostore.RefUpdate, asc []byte, 
 		Hooks: hookMode(u.Ref),
 	})
 	if err != nil {
-		forget()
+		note.forget()
 		return publishErr("UpdateRefs", err)
 	}
 	if len(resp.GetResults()) != 1 {
 		return fmt.Errorf("%w: UpdateRefs answered %d results for 1", ErrBadAnswer, len(resp.GetResults()))
 	}
+	note.wait(s.ctx)
 	return nil
 }
 
