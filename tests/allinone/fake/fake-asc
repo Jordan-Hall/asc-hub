@@ -1,0 +1,25 @@
+#!/bin/bash
+# Fake of the asc binary: `serve migrate` and `serve`.
+set -u
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# asc runs with a small environment, so the fake finds its record directory next to the programs.
+FAKE_DIR="$(cd "$here/../fake" && pwd)"
+case "$*" in
+"serve migrate")
+	echo "asc-migrate" >>"$FAKE_DIR/events.log"
+	env | sort >"$FAKE_DIR/asc-migrate.env"
+	[ ! -e "$FAKE_DIR/asc.migrate-fail" ] || exit 5
+	exit 0
+	;;
+"serve")
+	echo "$$" >>"$FAKE_DIR/asc.pids"
+	echo "asc-serve" >>"$FAKE_DIR/events.log"
+	env | sort >"$FAKE_DIR/asc.env"
+	cp "$ASC_SERVE_CONFIG" "$FAKE_DIR/asc-serve.toml.seen"
+	[ ! -e "$FAKE_DIR/asc.exit-immediately" ] || exit 4
+	port="$(sed -n 's/^listen = "127.0.0.1:\([0-9]*\)"$/\1/p' "$ASC_SERVE_CONFIG")"
+	exec python3 "$here/fakeserve.py" "$port" 0
+	;;
+esac
+echo "fake-asc: unexpected arguments: $*" >&2
+exit 64
