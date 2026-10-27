@@ -143,7 +143,7 @@ The script in web_src/js/features/ds-shell.ts opens and closes the overlays: ele
 				<div class="ds-t-small ds-c-2 ds-mono ds-truncate">@{{.SignedUser.Name}}</div>
 			</div>
 		{{else}}
-			<a class="ds-brand ds-grow" style="color: var(--text)" href="{{AppSubUrl}}/">{{template "base/brand_tile" .}}<span>{{AppName}}</span></a>
+			<a class="ds-brand ds-brand-ink ds-grow" href="{{AppSubUrl}}/">{{template "base/brand_tile" .}}<span>{{AppName}}</span></a>
 		{{end}}
 		<a class="ds-ti ds-ti-light" href="#main-content" data-ds-close aria-label="{{ctx.Locale.Tr "asc_shell.close"}}">{{svg "dsi-x" 20}}</a>
 	</div>

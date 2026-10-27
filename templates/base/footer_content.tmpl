@@ -2,9 +2,10 @@
 {{$docsURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/README.md"}}
 {{$whyURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/WHY.md"}}
 {{$opsURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/OPERATIONS.md"}}
-<footer class="ds-footer{{if and .IsSigned (not .FooterFull)}} ds-footer-compact{{end}}" role="group" aria-label="{{ctx.Locale.Tr "aria.footer"}}">
+{{$compact := or (and .IsSigned (not .FooterFull)) .PageIsSignIn .PageIsSignUp}}
+<footer class="ds-footer{{if $compact}} ds-footer-compact{{end}}" role="group" aria-label="{{ctx.Locale.Tr "aria.footer"}}">
 	<div class="ds-container">
-		{{if or (not .IsSigned) .FooterFull}}
+		{{if not $compact}}
 		<div class="ds-footer-top" data-ds-footer-groups>
 			<div class="ds-footer-about">
 				<a class="ds-brand" href="{{AppSubUrl}}/">{{template "base/brand_tile" .}}<span>{{AppName}}</span></a>
@@ -66,7 +67,7 @@
 						{{end}}
 					</div>
 				</details>
-				{{if and .IsSigned (not .FooterFull)}}
+				{{if $compact}}
 					{{if AscDownloadAvailable}}<a href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_download.nav"}}</a>{{end}}
 					<a target="_blank" rel="noopener noreferrer" href="{{$docsURL}}">{{ctx.Locale.Tr "docs"}}</a>
 					<a target="_blank" rel="noopener noreferrer" href="{{$whyURL}}">{{ctx.Locale.Tr "why_asc_hub"}}</a>

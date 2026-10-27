@@ -1735,3 +1735,8 @@ body.ds-lock {
     min-height: var(--header-h);
   }
 }
+
+/* the brand on a light surface (the drawer of a visitor) */
+.ds-brand-ink {
+  color: var(--text);
+}
