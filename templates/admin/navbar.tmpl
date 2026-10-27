@@ -104,6 +104,9 @@
 		<a class="{{if .PageIsAdminNotices}}active {{end}}item" href="{{AppSubUrl}}/admin/notices">
 			{{ctx.Locale.Tr "admin.notices"}}
 		</a>
+		{{if .AscEnabled}}
+		<a class="{{if .PageIsAdminAscAudit}}active {{end}}item" href="{{AppSubUrl}}/admin/asc/audit">Audit log</a>
+		{{end}}
 		<details class="item toggleable-item" {{if or .PageIsAdminMonitorStats .PageIsAdminMonitorCron .PageIsAdminMonitorQueue .PageIsAdminMonitorStacktrace}}open{{end}}>
 			<summary>{{ctx.Locale.Tr "admin.monitor"}}</summary>
 			<div class="menu">

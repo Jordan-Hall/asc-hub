@@ -1,0 +1,98 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+	{{template "repo/header" .}}
+	<div class="ui container">
+	{{with .AscChecks}}
+	<div class="asc-trust" data-testid="asc-checks">
+		<div class="asc-trust-head">
+			<h2 class="asc-trust-title">Checks</h2>
+			<span class="asc-trust-sub">Failures grouped by cause, and the tests that flip between pass and fail</span>
+		</div>
+
+		{{if .Unsupported}}
+			<div class="ui warning message" role="status" data-testid="asc-checks-unsupported">This ASC server does not group CI failures yet.</div>
+		{{else}}
+			{{if .Problem}}<div class="ui negative message" role="alert" data-testid="asc-checks-problem">{{.Problem}}</div>{{end}}
+
+			<div class="ast-tabs" role="navigation" aria-label="Failure group state">
+				{{range .States}}
+				<a class="ast-tab{{if .Active}} active{{end}}" href="{{$.AscChecks.ChecksURL}}{{if .Key}}?state={{.Key}}{{end}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-checks-tab-{{if .Key}}{{.Key}}{{else}}open{{end}}">{{.Label}}</a>
+				{{end}}
+			</div>
+			<form class="ui form asc-trust-filters" method="get" action="{{.ChecksURL}}">
+				{{if .State}}<input type="hidden" name="state" value="{{.State}}">{{end}}
+				<div class="asc-trust-grid">
+					<div class="field"><label for="asc-checks-job">Job</label><input id="asc-checks-job" name="job" type="text" maxlength="512" value="{{.Job}}" autocomplete="off"></div>
+					<div class="field"><label for="asc-checks-test">Test</label><input id="asc-checks-test" name="test" type="text" maxlength="512" value="{{.Test}}" autocomplete="off"></div>
+					<div class="field">
+						<label for="asc-checks-window">Flaky window</label>
+						<select id="asc-checks-window" name="window">
+							<option value="7"{{if eq .Window 7}} selected{{end}}>7 days</option>
+							<option value="14"{{if eq .Window 14}} selected{{end}}>14 days</option>
+							<option value="30"{{if eq .Window 30}} selected{{end}}>30 days</option>
+							<option value="90"{{if eq .Window 90}} selected{{end}}>90 days</option>
+							<option value="180"{{if eq .Window 180}} selected{{end}}>180 days</option>
+						</select>
+					</div>
+					<div class="field"><div class="ui checkbox"><input id="asc-checks-flaky" name="flaky" type="checkbox" value="1"{{if .Flaky}} checked{{end}}><label for="asc-checks-flaky">Flaky only</label></div></div>
+				</div>
+				<div class="asc-trust-actions"><button class="ui primary button" type="submit">Filter</button><a class="ui basic button" href="{{.ChecksURL}}">Clear</a></div>
+			</form>
+
+			{{if .Data}}
+			<section class="ast-card" aria-labelledby="asc-groups">
+				<div class="ast-card-head"><h3 id="asc-groups" class="ast-card-title">Failure groups</h3><span class="ast-card-aside">One group per cause</span></div>
+				<div class="asc-trust-table-wrap">
+					<table class="ui very basic table asc-trust-table" data-testid="asc-groups">
+						<caption class="tw-sr-only">Failure groups</caption>
+						<thead><tr><th scope="col">Cause</th><th scope="col">State</th><th scope="col">Seen</th><th scope="col">Changes</th><th scope="col">Last seen</th></tr></thead>
+						<tbody>
+							{{range .Data.Groups.Rows}}
+							<tr>
+								<td>
+									<a href="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}">{{if .Title}}{{.Title}}{{else}}{{.TestName}}{{end}}</a>
+									{{if .Flaky}} <span class="ast-pill ast-pill-wn">Flaky</span>{{end}}
+									<div class="asc-trust-sub">{{if .TestName}}<code class="asc-trust-code">{{.TestName}}</code> {{end}}{{if .JobName}}in {{.JobName}}{{end}}</div>
+								</td>
+								<td><span class="ast-pill ast-pill-{{.Tone}}">{{.State}}</span></td>
+								<td>{{.Occurrences}}</td>
+								<td>{{.ChangesAffected}}</td>
+								<td class="asc-trust-nowrap">{{DateUtils.TimeSince .LastSeen}}</td>
+							</tr>
+							{{else}}
+							<tr><td colspan="5" class="center aligned text grey" data-testid="asc-groups-empty">No failures in this state.</td></tr>
+							{{end}}
+						</tbody>
+					</table>
+				</div>
+				{{if .NextURL}}<div class="asc-trust-actions"><a class="ui basic button" href="{{.NextURL}}" rel="next">More groups</a></div>{{end}}
+			</section>
+
+			{{if .Data.Flaky}}
+			<section class="ast-card" aria-labelledby="asc-flaky">
+				<div class="ast-card-head"><h3 id="asc-flaky" class="ast-card-title">Flaky tests</h3><span class="ast-card-aside">Last {{.Window}} days</span></div>
+				<div class="asc-trust-table-wrap">
+					<table class="ui very basic table asc-trust-table" data-testid="asc-flaky">
+						<caption class="tw-sr-only">Flaky tests</caption>
+						<thead><tr><th scope="col">Test</th><th scope="col">Flake rate</th><th scope="col">Runs</th><th scope="col">Last flip</th></tr></thead>
+						<tbody>
+							{{range .Data.Flaky}}
+							<tr>
+								<td>{{if .GroupID}}<a href="{{$.AscChecks.ChecksURL}}/groups/{{.GroupID}}">{{.TestName}}</a>{{else}}{{.TestName}}{{end}}{{if .JobName}}<div class="asc-trust-sub">in {{.JobName}}</div>{{end}}</td>
+								<td>{{.RatePercent}}%</td>
+								<td>{{.Runs}}</td>
+								<td class="asc-trust-nowrap">{{DateUtils.TimeSince .LastFlip}}</td>
+							</tr>
+							{{end}}
+						</tbody>
+					</table>
+				</div>
+			</section>
+			{{end}}
+			{{end}}
+		{{end}}
+	</div>
+	{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

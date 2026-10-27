@@ -48,6 +48,7 @@
 		<a class="{{if .PageIsSettingsAscAI}}active {{end}}item" href="{{.OrgLink}}/settings/asc/ai">
 			{{ctx.Locale.Tr "ascbyo.nav_ai"}}
 		</a>
+		<a class="{{if .PageIsSettingsAscAudit}}active {{end}}item" href="{{.OrgLink}}/settings/asc/audit">Audit log</a>
 		{{end}}
 		<a class="{{if .PageIsSettingsBlockedUsers}}active {{end}}item" href="{{.OrgLink}}/settings/blocked_users">
 			{{ctx.Locale.Tr "settings.blocked_users"}}

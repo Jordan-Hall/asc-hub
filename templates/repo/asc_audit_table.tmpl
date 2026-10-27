@@ -1,0 +1,143 @@
+{{/*
+The audit log of a repository, an organisation or the instance: the filter form, the table and the pager.
+Template Attributes:
+* AscAudit: *trustweb.AuditView
+* CsrfTokenHtml: the CSRF field of the verify form
+Every text in the table was cleaned by services/asctrust and is escaped here.
+*/}}
+{{with .AscAudit}}
+<div class="asc-trust" data-testid="asc-audit">
+	<div class="asc-trust-head">
+		<h2 class="asc-trust-title">Audit log</h2>
+		<span class="asc-trust-sub">{{.Label}}</span>
+	</div>
+	<p class="asc-trust-lead">Every security-relevant action appends one event. Events form a hash chain, so an event that was removed or edited can be found. The log never holds a credential, a key or a file body.</p>
+
+	{{if .Unsupported}}
+		<div class="ui warning message" role="status">This ASC server does not have the audit log yet.</div>
+	{{else}}
+		<form class="ui form asc-trust-filters" method="get" action="{{.Base}}" data-testid="asc-audit-filters">
+			<div class="asc-trust-grid">
+				<div class="field">
+					<label for="asc-audit-actor">Who</label>
+					<input id="asc-audit-actor" name="actor" type="text" maxlength="2048" value="{{.Query.Actor}}" placeholder="user names, separated by commas" autocomplete="off">
+				</div>
+				<div class="field">
+					<label for="asc-audit-action">What</label>
+					<input id="asc-audit-action" name="action" type="text" maxlength="520" value="{{.Query.Action}}" placeholder="storage.* or repo.ref.update" list="asc-audit-actions" autocomplete="off">
+					<datalist id="asc-audit-actions">
+						{{range .Actions}}<option value="{{.Action}}">{{.Description}}</option>{{end}}
+					</datalist>
+				</div>
+				<div class="field">
+					<label for="asc-audit-outcome">Outcome</label>
+					<select id="asc-audit-outcome" name="outcome">
+						<option value=""{{if eq .Query.Outcome ""}} selected{{end}}>Any</option>
+						<option value="success"{{if eq .Query.Outcome "success"}} selected{{end}}>Success</option>
+						<option value="denied"{{if eq .Query.Outcome "denied"}} selected{{end}}>Denied</option>
+						<option value="failed"{{if eq .Query.Outcome "failed"}} selected{{end}}>Failed</option>
+					</select>
+				</div>
+				<div class="field">
+					<label for="asc-audit-target">Target starts with</label>
+					<input id="asc-audit-target" name="target" type="text" maxlength="256" value="{{.Query.Target}}" autocomplete="off">
+				</div>
+				<div class="field">
+					<label for="asc-audit-since">From</label>
+					<input id="asc-audit-since" name="since" type="date" value="{{.Query.Since}}">
+				</div>
+				<div class="field">
+					<label for="asc-audit-until">To</label>
+					<input id="asc-audit-until" name="until" type="date" value="{{.Query.Until}}">
+				</div>
+				<div class="field">
+					<label for="asc-audit-order">Order</label>
+					<select id="asc-audit-order" name="order">
+						<option value=""{{if not .Query.OldestFirst}} selected{{end}}>Newest first</option>
+						<option value="oldest"{{if .Query.OldestFirst}} selected{{end}}>Oldest first</option>
+					</select>
+				</div>
+				<div class="field">
+					<label for="asc-audit-limit">Rows</label>
+					<select id="asc-audit-limit" name="limit">
+						<option value="25"{{if eq .Query.Limit 25}} selected{{end}}>25</option>
+						<option value="50"{{if eq .Query.Limit 50}} selected{{end}}>50</option>
+						<option value="100"{{if eq .Query.Limit 100}} selected{{end}}>100</option>
+						<option value="200"{{if eq .Query.Limit 200}} selected{{end}}>200</option>
+					</select>
+				</div>
+			</div>
+			<div class="asc-trust-actions">
+				<button class="ui primary button" type="submit">Filter</button>
+				<a class="ui basic button" href="{{.Base}}">Clear</a>
+				<a class="ui basic button" href="{{.ExportJSONL}}" data-testid="asc-audit-export-jsonl" download>Export JSONL</a>
+				<a class="ui basic button" href="{{.ExportCSV}}" data-testid="asc-audit-export-csv" download>Export CSV</a>
+			</div>
+		</form>
+
+		{{if .Problems}}
+			<div class="ui negative message" role="alert" data-testid="asc-audit-problems">
+				<ul class="list">{{range .Problems}}<li>{{.}}</li>{{end}}</ul>
+			</div>
+		{{end}}
+		{{if .Error}}
+			<div class="ui negative message" role="alert" data-testid="asc-audit-error">{{.Error}}</div>
+		{{end}}
+
+		{{if .Chain}}
+			{{if .Chain.OK}}
+				<div class="ui positive message" role="status" data-testid="asc-audit-chain">The hash chain is intact: {{.Chain.Checked}} events checked.</div>
+			{{else}}
+				<div class="ui negative message" role="alert" data-testid="asc-audit-chain">The hash chain is broken at event {{.Chain.FirstBad}}{{if .Chain.Reason}}: {{.Chain.Reason}}{{end}}.</div>
+			{{end}}
+		{{end}}
+
+		{{if .Searched}}
+			<div class="asc-trust-table-wrap">
+				<table class="ui very basic table asc-trust-table" data-testid="asc-audit-table">
+					<caption class="tw-sr-only">Audit events</caption>
+					<thead>
+						<tr><th scope="col">When</th><th scope="col">Who</th><th scope="col">What</th><th scope="col">Target</th><th scope="col">Outcome</th></tr>
+					</thead>
+					<tbody>
+						{{range .Rows}}
+						<tr data-seq="{{.Seq}}">
+							<td class="asc-trust-nowrap">{{DateUtils.AbsoluteShort .Time}}</td>
+							<td>{{.Actor}}{{if .OnBehalf}} <span class="text grey">for {{.OnBehalf}}</span>{{end}}</td>
+							<td>
+								<span>{{.What}}</span>
+								<code class="asc-trust-code">{{.Action}}</code>
+								{{if .Details}}
+								<details class="asc-trust-details">
+									<summary>Details</summary>
+									<dl class="asc-trust-dl">
+										{{range .Details}}<dt>{{.Key}}</dt><dd>{{.Value}}</dd>{{end}}
+									</dl>
+								</details>
+								{{end}}
+							</td>
+							<td>{{if .Repo}}<span class="text grey">{{.Repo}}</span> {{end}}{{if .Target}}<code class="asc-trust-code">{{.Target}}</code>{{end}}</td>
+							<td><span class="ast-pill ast-pill-{{.Tone}}">{{.Outcome}}</span></td>
+						</tr>
+						{{else}}
+						<tr><td colspan="5" class="center aligned text grey" data-testid="asc-audit-empty">No events match.</td></tr>
+						{{end}}
+					</tbody>
+				</table>
+			</div>
+			{{if .NextURL}}
+				<div class="asc-trust-actions">
+					<a class="ui basic button" href="{{.NextURL}}" rel="next" data-testid="asc-audit-next">Older events</a>
+					<a class="ui basic button" href="{{.FirstURL}}">Back to the first page</a>
+				</div>
+			{{end}}
+		{{end}}
+
+		<form class="ui form asc-trust-verify" method="post" action="{{.Base}}/verify">
+			{{$.CsrfTokenHtml}}
+			<button class="ui basic button" type="submit" data-testid="asc-audit-verify">Verify the hash chain</button>
+			<span class="asc-trust-sub">Reads every event of this log and checks the chain. It changes nothing.</span>
+		</form>
+	{{end}}
+</div>
+{{end}}

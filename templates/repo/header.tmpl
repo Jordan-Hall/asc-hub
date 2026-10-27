@@ -175,6 +175,18 @@
 					</a>
 				{{end}}
 
+				{{if and .SignedUser (eq .Repository.StorageBackend "asc") (.Permission.CanRead $.UnitTypeCode)}}
+					<a class="{{if .PageIsAscAgentArea}}active {{end}}item" href="{{.RepoLink}}/asc/workflows">
+						{{svg "octicon-workflow"}} Workflows
+					</a>
+				{{end}}
+
+				{{if and (eq .Repository.StorageBackend "asc") (.Permission.CanRead $.UnitTypeCode)}}
+					<a class="{{if .PageIsAscChecks}}active {{end}}item" href="{{.RepoLink}}/asc/checks">
+						{{svg "octicon-checklist"}} Checks
+					</a>
+				{{end}}
+
 				{{template "custom/extra_tabs" .}}
 
 				{{if and RepoFlagsEnabled .SignedUser.IsAdmin}}

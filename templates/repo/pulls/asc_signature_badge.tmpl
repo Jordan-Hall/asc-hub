@@ -1,0 +1,7 @@
+{{/*
+The signature badge of a version of a change.
+Template Attributes:
+* . : asctrust.Badge (an empty Label draws nothing). Label is Verified, Unverified or Unsigned; Title explains it.
+The state is in the text, so colour is never the only signal.
+*/}}
+{{if .Label}}<span class="ast-pill ast-pill-{{.Tone}} ast-sig" title="{{.Title}}" data-testid="asc-signature" data-state="{{.Label}}">{{if eq .Label "Verified"}}{{svg "octicon-verified" 12}} {{end}}{{.Label}}<span class="tw-sr-only">. {{.Title}}</span></span>{{end}}

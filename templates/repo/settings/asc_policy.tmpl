@@ -1,0 +1,148 @@
+{{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings asc-trust-page")}}
+<div class="repo-setting-content">
+{{with .AscPolicy}}
+<div class="asc-trust" data-testid="asc-policy">
+	<div class="asc-trust-head">
+		<h2 class="asc-trust-title">Policy and trust</h2>
+	</div>
+	<p class="asc-trust-lead">Rules live in the repository as <code class="asc-trust-code">.asc/policy.toml</code>, so they are reviewed like code and travel with a fork. Changing them is a proposal: it becomes a change under review, and a maintainer lands it.</p>
+	<nav class="asc-trust-links" aria-label="Trust pages">
+		<a href="{{.SecurityURL}}">Secret scanning</a>
+		<a href="{{.AuditURL}}">Audit log</a>
+		<a href="{{.ChecksURL}}">Checks</a>
+	</nav>
+
+	{{if .Unsupported}}
+		<div class="ui warning message" role="status" data-testid="asc-policy-unsupported">This ASC server does not have the policy API yet, so the policy cannot be shown or changed here.</div>
+	{{else}}
+		{{if .Problem}}<div class="ui negative message" role="alert" data-testid="asc-policy-problem">{{.Problem}}</div>{{end}}
+
+		{{if .View}}
+		<section class="ast-card" aria-labelledby="asc-policy-file">
+			<div class="ast-card-head">
+				<h3 id="asc-policy-file" class="ast-card-title">Policy file</h3>
+				{{if .View.Usable}}<span class="ast-pill ast-pill-ok" data-testid="asc-policy-state">Valid</span>
+				{{else if .View.Present}}<span class="ast-pill ast-pill-no" data-testid="asc-policy-state">Cannot be used</span>
+				{{else}}<span class="ast-pill ast-pill-ro" data-testid="asc-policy-state">No policy file</span>{{end}}
+				{{if .View.Source}}<span class="asc-trust-sub">read from <code class="asc-trust-code">{{.View.Source}}</code></span>{{end}}
+				<span class="ast-card-aside">Changes need a maintainer and a reviewed change</span>
+			</div>
+			{{if .View.Error}}<div class="ui warning message" role="alert">{{.View.Error}}</div>{{end}}
+
+			<div class="ast-split">
+				<form class="ui form ast-policy-form" method="post" action="{{.PolicyURL}}/propose" data-testid="asc-policy-form">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="op" value="{{.Op}}">
+					<input type="hidden" name="base" value="{{.Base}}">
+					<div class="field">
+						<label for="asc-policy-text">.asc/policy.toml</label>
+						<textarea id="asc-policy-text" class="ast-policy-text" name="text" rows="18" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" data-testid="asc-policy-text">{{.Draft}}</textarea>
+					</div>
+					<div class="field">
+						<label for="asc-policy-message">Describe the change</label>
+						<input id="asc-policy-message" name="message" type="text" maxlength="200" value="{{.Message}}" placeholder="policy: update .asc/policy.toml">
+					</div>
+					<div class="asc-trust-actions">
+						<button class="ui basic button" type="submit" formaction="{{.PolicyURL}}/check" data-testid="asc-policy-check">Check the draft</button>
+						<button class="ui primary button" type="submit" data-testid="asc-policy-propose"{{if not .Dirty}} disabled{{end}}>Propose as a change</button>
+					</div>
+					{{if not .Dirty}}<p class="asc-trust-sub">Edit the file to propose a change.</p>{{end}}
+				</form>
+
+				<div class="ast-meaning" data-testid="asc-policy-meaning">
+					<h4 class="ast-meaning-title">What this means</h4>
+					{{if .View.Meaning}}
+						<ul class="ast-meaning-list">{{range .View.Meaning}}<li>{{.}}</li>{{end}}</ul>
+					{{else}}
+						<p class="asc-trust-sub">Nothing to explain yet.</p>
+					{{end}}
+					{{if .View.MergeNote}}<p class="asc-trust-sub">{{.View.MergeNote}}</p>{{end}}
+				</div>
+			</div>
+
+			{{if .Preview}}
+			<div class="ast-preview" data-testid="asc-policy-preview">
+				<div class="ast-card-head">
+					<h4 class="ast-card-title">The draft</h4>
+					{{if .Preview.Valid}}<span class="ast-pill ast-pill-ok">Valid</span>{{else}}<span class="ast-pill ast-pill-no">Not valid</span>{{end}}
+				</div>
+				{{if .Preview.Diagnostics}}
+					<ul class="ast-diag" data-testid="asc-policy-diagnostics">
+						{{range .Preview.Diagnostics}}
+						<li class="ast-diag-{{if .Error}}error{{else}}warning{{end}}">
+							<span class="ast-pill ast-pill-{{if .Error}}no{{else}}wn{{end}}">{{if .Error}}Error{{else}}Warning{{end}}</span>
+							{{if .Line}}<span class="asc-trust-code">line {{.Line}}{{if .Column}}, column {{.Column}}{{end}}</span>{{end}}
+							{{.Message}}
+						</li>
+						{{end}}
+					</ul>
+				{{end}}
+				{{if and .Preview.Valid (not .Preview.StaysMaintainer)}}
+					<div class="ui warning message" role="alert" data-testid="asc-policy-lockout">With this draft you would no longer be a maintainer, so you could not change the policy again. Check the <code>maintainer</code> role.</div>
+				{{end}}
+				{{if .Preview.Meaning}}
+					<h4 class="ast-meaning-title">What the draft would mean</h4>
+					<ul class="ast-meaning-list">{{range .Preview.Meaning}}<li>{{.}}</li>{{end}}</ul>
+				{{end}}
+			</div>
+			{{end}}
+
+			{{if .Proposed}}
+			<div class="ui info message" role="status">The change {{.Proposed.Change}} was made and is under review.</div>
+			{{end}}
+		</section>
+
+		{{if .View.Table.Rows}}
+		<section class="ast-card" aria-labelledby="asc-policy-who">
+			<div class="ast-card-head">
+				<h3 id="asc-policy-who" class="ast-card-title">Who can write here</h3>
+				<span class="ast-card-aside">Computed from the policy</span>
+			</div>
+			<div class="asc-trust-table-wrap">
+				<table class="ui very basic table asc-trust-table" data-testid="asc-policy-who">
+					<thead>
+						<tr><th scope="col">Who</th>{{range .View.Table.Columns}}<th scope="col">{{.}}</th>{{end}}</tr>
+					</thead>
+					<tbody>
+						{{range .View.Table.Rows}}
+						<tr>
+							<th scope="row"><b>{{.Who}}</b>{{if .Detail}} <span class="text grey">({{.Detail}})</span>{{end}}</th>
+							{{range .Cells}}<td><span class="ast-cell ast-cell-{{.Tone}}"{{if .Title}} title="{{.Title}}"{{end}}>{{.Text}}</span></td>{{end}}
+						</tr>
+						{{end}}
+					</tbody>
+				</table>
+			</div>
+			<p class="asc-trust-sub ast-card-foot">Agents never push trunk directly: their work is a stack of changes under review. The policy file itself can only be changed by a maintainer.</p>
+		</section>
+		{{end}}
+
+		{{if .View.Usable}}
+		<section class="ast-card" aria-labelledby="asc-policy-protections">
+			<div class="ast-card-head"><h3 id="asc-policy-protections" class="ast-card-title">Protections</h3><span class="ast-card-aside">A switch proposes a change to the file</span></div>
+			<ul class="ast-protections">
+				{{range .View.Protections}}
+				<li class="ast-protection" data-testid="asc-protection-{{.Key}}">
+					<div class="ast-protection-text">
+						<b>{{.Title}}</b>
+						<div class="asc-trust-sub">{{.Help}}</div>
+					</div>
+					<span class="ast-pill ast-pill-{{if .On}}ok{{else}}ro{{end}}">{{if .On}}On{{else}}Off{{end}}</span>
+					<form method="post" action="{{$.AscPolicy.PolicyURL}}/protection">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="key" value="{{.Key}}">
+						<input type="hidden" name="value" value="{{if .On}}off{{else}}on{{end}}">
+						<input type="hidden" name="op" value="{{index $.AscPolicy.ToggleOps .Key}}">
+						<button class="ui basic button" type="submit">Propose to turn {{if .On}}off{{else}}on{{end}}</button>
+					</form>
+				</li>
+				{{end}}
+			</ul>
+		</section>
+		{{end}}
+		{{end}}
+	{{end}}
+</div>
+{{end}}
+</div>
+{{template "repo/settings/layout_footer" .}}

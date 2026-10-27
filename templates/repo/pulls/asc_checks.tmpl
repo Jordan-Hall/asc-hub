@@ -1,0 +1,115 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+	{{template "repo/header" .}}
+	<div class="ui container">
+	{{with .AscPullChecks}}
+	<div class="asc-trust" data-testid="asc-pull-checks">
+		<p class="asc-trust-links"><a href="{{.PullURL}}">Back to the pull request</a> <a href="{{.ChecksURL}}">All checks of the repository</a></p>
+		{{if .Problem}}
+			<div class="ui warning message" role="status" data-testid="asc-pull-checks-problem">{{.Problem}}</div>
+		{{else if .Checks}}
+		{{$c := .Checks}}
+		<div class="asc-trust-head">
+			<h2 class="asc-trust-title" data-testid="asc-pull-headline">{{$c.Headline}}</h2>
+			<span class="ast-pill ast-pill-{{$c.Tone}}" data-testid="asc-pull-pill">{{$c.Pill}}</span>
+			{{if and .CanRerun $c.Runs}}
+			<form class="ast-head-actions" method="post" action="{{.RerunURL}}">
+				{{$.CsrfTokenHtml}}
+				{{if $c.FailedRuns}}<button class="ui basic button" type="submit" name="mode" value="failed" data-testid="asc-rerun-failed">Re-run failed only</button>{{end}}
+				<button class="ui basic button" type="submit" name="mode" value="all" data-testid="asc-rerun-all">Re-run all</button>
+			</form>
+			{{end}}
+		</div>
+		<div class="ast-meta" data-testid="asc-pull-meta">
+			{{if $c.Version}}<span>Version {{$c.Version}} · commit <code class="asc-trust-code">{{$c.Head}}</code></span>{{else}}<span>Commit <code class="asc-trust-code">{{$c.Head}}</code></span>{{end}}
+			{{if not $c.Started.IsZero}}<span>Started {{DateUtils.TimeSince $c.Started}}</span>{{end}}
+			{{if $c.Took}}<span>Took {{$c.Took}}</span>{{end}}
+			{{range $c.Stale}}<span class="ast-meta-warn" data-testid="asc-pull-stale">{{.}} has no result for this version</span>{{end}}
+		</div>
+		{{if .CausesNote}}<div class="ui warning message" role="status">{{.CausesNote}}</div>{{end}}
+
+		<div class="ast-two">
+			<div class="ast-two-main">
+				{{range $c.Causes}}
+				<section class="ast-card" aria-labelledby="asc-cause-{{.Index}}" data-testid="asc-cause">
+					<div class="ast-card-head">
+						<h3 id="asc-cause-{{.Index}}" class="ast-card-title">Cause {{.Index}}: {{.Title}}</h3>
+						<span class="ast-pill ast-pill-no">{{.Tests}} {{if eq .Tests 1}}test{{else}}tests{{end}}</span>
+						{{if $c.Version}}{{if .IsNew}}<span class="ast-pill ast-pill-info">New in v{{$c.Version}}</span>{{else}}<span class="ast-pill ast-pill-ro">Seen before</span>{{end}}{{end}}
+					</div>
+					{{if .Excerpt}}<pre class="ast-log" tabindex="0">{{.Excerpt}}</pre>{{end}}
+					<div class="asc-trust-actions ast-card-foot">
+						{{if .RunURL}}<a class="ui basic button" href="{{.RunURL}}">Show full log</a>{{end}}
+						<a class="ui basic button" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">Open the group</a>
+					</div>
+				</section>
+				{{end}}
+
+				{{range $c.Flaky}}
+				<section class="ast-card" aria-labelledby="asc-flaky-{{.GroupID}}" data-testid="asc-flaky-card">
+					<div class="ast-card-head">
+						<h3 id="asc-flaky-{{.GroupID}}" class="ast-card-title">Flaky: {{.Test}}</h3>
+						<span class="ast-pill ast-pill-wn">Passed on retry</span>
+					</div>
+					<div class="ast-card-body">
+						<p>This test has flipped <b>{{.Flips}} {{if eq .Flips 1}}time{{else}}times{{end}} in {{.Runs}} runs</b> on other changes too, so this is unlikely to be caused by this change.</p>
+						{{if .Strip}}
+						<div class="ast-strip" role="img" aria-label="{{.Flips}} flips in {{.Runs}} runs">
+							<span class="ast-strip-label" aria-hidden="true">Last days</span>
+							{{range .Strip}}<span class="ast-strip-cell ast-strip-{{.Tone}}" title="{{DateUtils.AbsoluteShort .Day}}: {{.Label}}"></span>{{end}}
+						</div>
+						{{end}}
+					</div>
+					<div class="asc-trust-actions ast-card-foot">
+						{{if $.AscPullChecks.CanWrite}}
+						<form class="ast-inline-form" method="post" action="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}/state">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="op" value="{{index $.AscPullChecks.Ops .GroupID}}">
+							<input type="hidden" name="state" value="quarantined">
+							<input type="hidden" name="next" value="pull">
+							<input type="hidden" name="index" value="{{$.AscPullChecks.Index}}">
+							<button class="ui basic button" type="submit" data-testid="asc-quarantine">Quarantine this test</button>
+						</form>
+						{{end}}
+						<a class="ui basic button" href="{{$.AscPullChecks.NewIssueURL}}?{{.IssueQuery}}">Open an issue</a>
+						<a class="ui basic button" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">History</a>
+					</div>
+				</section>
+				{{end}}
+
+				{{if and (not $c.Causes) (not $c.Flaky)}}
+				<section class="ast-card"><div class="ast-card-body"><p class="asc-trust-sub" data-testid="asc-pull-nocause">{{if eq $c.Tone "no"}}No reason for the failures is recorded yet.{{else}}Nothing needs attention.{{end}}</p></div></section>
+				{{end}}
+			</div>
+
+			<aside class="ast-two-side">
+				<section class="ast-card" aria-labelledby="asc-all-checks">
+					<div class="ast-card-head"><h3 id="asc-all-checks" class="ast-card-title">All checks</h3></div>
+					<ul class="ast-checklist" data-testid="asc-all-checks">
+						{{range $c.Statuses}}
+						<li>
+							<span>{{if .URL}}<a href="{{.URL}}">{{.Context}}</a>{{else}}{{.Context}}{{end}}{{if .Required}} <span class="ast-pill ast-pill-ro">Required</span>{{end}}</span>
+							<b class="ast-tone-{{.Tone}}">{{.Label}}</b>
+						</li>
+						{{else}}
+						<li class="text grey">No check has reported.</li>
+						{{end}}
+					</ul>
+				</section>
+				{{if $c.Main}}
+				<section class="ast-card" aria-labelledby="asc-vs-main">
+					<div class="ast-card-head"><h3 id="asc-vs-main" class="ast-card-title">Compared with main</h3></div>
+					<div class="ast-card-body"><p data-testid="asc-pull-main" class="ast-tone-{{$c.MainTone}}">{{$c.Main}}</p></div>
+				</section>
+				{{end}}
+				<section class="ast-card">
+					<div class="ast-card-body"><p class="asc-trust-sub"><b>Why you can trust this.</b> Results belong to the exact version you are reading. When you push a new version, the results of this one turn stale instead of passing silently.</p></div>
+				</section>
+			</aside>
+		</div>
+		{{end}}
+	</div>
+	{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}
