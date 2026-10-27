@@ -553,3 +553,34 @@ pre.code-block {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The skip link: the first tab stop of every page, out of sight until it has the focus. Its target is a point right
+   after the navigation bar (templates/base/head.tmpl). */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 8px;
+  top: -100px;
+  z-index: 10000;
+  min-height: 44px;
+  padding: 10px 16px;
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border-radius: var(--border-radius);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 8px;
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.skip-target {
+  display: block;
+  height: 0;
+  outline: none;
+}
