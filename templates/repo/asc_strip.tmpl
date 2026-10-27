@@ -1,0 +1,13 @@
+{{/*
+The history strip of a test: one cell per day, oldest first. The colour is never the only signal: every cell has a
+text alternative, and the strip has a one-sentence summary for screen readers.
+Template Attributes:
+* . : *asctrust.History
+*/}}
+{{if .Cells}}
+<div class="ast-strip" role="img" aria-label="Last {{len .Cells}} days: {{.Runs}} runs, {{.Failures}} failed, {{.Flips}} flips between pass and fail">
+	<span class="ast-strip-label" aria-hidden="true">Last {{len .Cells}} days</span>
+	{{range .Cells}}<span class="ast-strip-cell ast-strip-{{.Tone}}" title="{{DateUtils.AbsoluteShort .Day}}: {{.Label}}"></span>{{end}}
+</div>
+<p class="asc-trust-sub" data-testid="asc-strip-summary">{{.Runs}} runs, {{.Failures}} failed, {{.Flips}} flips between pass and fail. Flake rate {{.RatePercent}}%{{if .Flaky}}, above the threshold of this repository{{end}}.</p>
+{{end}}

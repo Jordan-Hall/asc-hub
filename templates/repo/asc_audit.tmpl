@@ -1,0 +1,5 @@
+{{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings asc-trust-page")}}
+	<div class="repo-setting-content">
+		{{template "repo/asc_audit_table" .}}
+	</div>
+{{template "repo/settings/layout_footer" .}}

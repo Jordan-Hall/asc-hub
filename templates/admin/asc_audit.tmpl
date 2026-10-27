@@ -1,0 +1,5 @@
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin asc-trust-page")}}
+<div class="admin-setting-content">
+	{{template "repo/asc_audit_table" .}}
+</div>
+{{template "admin/layout_footer" .}}

@@ -682,6 +682,7 @@ func registerRoutes(m *web.Route) {
 	m.Get("/milestones", reqSignIn, reqMilestonesDashboardPageEnabled, user.Milestones)
 	m.Get("/-/asc/drafts", reqSignIn, user.AscDrafts)
 	m.Get("/-/asc/inbox", reqSignIn, user.AscInbox)
+	registerAscAgentsUserRoutes(m, reqSignIn)
 
 	// ***** START: User *****
 	// "user/login" doesn't need signOut, then logged-in users can still access this route for redirection purposes by "/user/login?redirec_to=..."
@@ -869,6 +870,7 @@ func registerRoutes(m *web.Route) {
 		})
 		m.Get("/storage_overview", user_setting.StorageOverview)
 		user_setting.AscRoutes(m)
+		registerAscTrustUserRoutes(m)
 	}, reqSignIn, ctxDataSet("PageIsUserSettings", true, "EnablePackages", setting.Packages.Enabled, "EnableQuota", setting.Quota.Enabled, "AscEnabled", setting.Asc.Enabled))
 
 	m.Group("/user", func() {
@@ -1019,7 +1021,8 @@ func registerRoutes(m *web.Route) {
 				m.Get("/hosts/{id}", admin.FederationHost)
 			})
 		}
-	}, adminReq, ctxDataSet("EnableOAuth2", setting.OAuth2.Enabled, "EnablePackages", setting.Packages.Enabled, "EnableModeration", setting.Moderation.Enabled))
+		registerAscTrustAdminRoutes(m)
+	}, adminReq, ctxDataSet("EnableOAuth2", setting.OAuth2.Enabled, "EnablePackages", setting.Packages.Enabled, "EnableModeration", setting.Moderation.Enabled, "AscEnabled", setting.Asc.Enabled))
 	// ***** END: Admin *****
 
 	m.Group("", func() {
@@ -1163,6 +1166,7 @@ func registerRoutes(m *web.Route) {
 				})
 				m.Get("/storage_overview", org_setting.StorageOverview)
 				org_setting.AscRoutes(m)
+				registerAscTrustOrgRoutes(m)
 
 				m.Group("/packages", func() {
 					m.Get("", org.Packages)
@@ -1349,6 +1353,7 @@ func registerRoutes(m *web.Route) {
 				m.Post("/cancel", repo.MigrateCancelPost)
 			})
 			repo_setting.AscRoutes(m)
+			registerAscTrustRepoSettingsRoutes(m)
 		}, ctxDataSet("PageIsRepoSettings", true, "LFSStartServer", setting.LFS.StartServer, "AscEnabled", setting.Asc.Enabled))
 	}, reqSignIn, context.RepoAssignment, context.UnitTypes(), reqRepoAdmin, context.RepoRef())
 
@@ -1765,6 +1770,7 @@ func registerRoutes(m *web.Route) {
 				m.Post("/restack", context.RepoMustNotBeArchived(), repo.AscStackRestack)
 				m.Post("/revert", context.RepoMustNotBeArchived(), repo.AscStackRevert)
 			}, reqSignIn)
+			registerAscTrustPullRoutes(m, reqSignIn)
 			m.Post("/set_allow_maintainer_edit", web.Bind(forms.UpdateAllowEditsForm{}), repo.SetAllowEdits)
 			m.Post("/cleanup", context.RepoMustNotBeArchived(), context.RepoRef(), repo.CleanUpPullRequest)
 			m.Group("/files", func() {
@@ -1809,11 +1815,15 @@ func registerRoutes(m *web.Route) {
 			m.Get("/commit/*", context.RepoRefByType(context.RepoRefCommit), repo.RefBlame)
 		}, repo.MustBeNotEmpty, reqRepoCodeReader)
 
+		registerAscAgentsRepoRoutes(m, reqSignIn, reqRepoCodeReader)
+
 		m.Group("", func() {
 			m.Get("/graph", repo.Graph)
 			m.Get("/asc/graph", repo.AscGraph)
 			m.Get("/asc/search", repo.AscSearch)
 			m.Get("/asc/compare", repo.AscCompare)
+			m.Get("/asc/symbols", repo.AscSymbols)
+			registerAscTrustRepoRoutes(m, reqSignIn)
 			m.Get("/commit/{sha:([a-f0-9]{4,64})$}", repo.SetEditorconfigIfExists, repo.SetDiffViewStyle, repo.SetWhitespaceBehavior, repo.Diff)
 			m.Get("/commit/{sha:([a-f0-9]{4,64})$}/load-branches-and-tags", repo.LoadBranchesAndTags)
 			m.Group("/commit/{sha:([a-f0-9]{4,64})$}/notes", func() {

@@ -79,5 +79,10 @@
 			{{ctx.Locale.Tr "ascbyo.nav_ai"}}
 		</a>
 		{{end}}
+		{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
+		<a class="{{if .PageIsSettingsAscPolicy}}active {{end}}item" href="{{.RepoLink}}/settings/asc/policy">Policy and trust</a>
+		<a class="{{if .PageIsSettingsAscSecurity}}active {{end}}item" href="{{.RepoLink}}/settings/asc/security">Secret scanning</a>
+		<a class="{{if .PageIsSettingsAscAudit}}active {{end}}item" href="{{.RepoLink}}/settings/asc/audit">Audit log</a>
+		{{end}}
 	</div>
 </div>

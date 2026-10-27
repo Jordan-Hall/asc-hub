@@ -1,0 +1,85 @@
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings asc-trust-page")}}
+<div class="user-setting-content">
+{{with .AscKeys}}
+<div class="asc-trust" data-testid="asc-keys">
+	<div class="asc-trust-head">
+		<h2 class="asc-trust-title">Signing keys</h2>
+	</div>
+	<p class="asc-trust-lead">A change you sign shows a <b>Verified</b> badge when the signature was made with a live key of yours. Only the public half of a key is ever sent here. A repository can require signed changes before anything lands on trunk.</p>
+
+	{{if .Unsupported}}
+		<div class="ui warning message" role="status" data-testid="asc-keys-unsupported">This ASC server does not have signed changes yet.</div>
+	{{else}}
+		{{if .Problem}}<div class="ui negative message" role="alert" data-testid="asc-keys-problem">{{.Problem}}</div>{{end}}
+
+		<section class="ast-card" aria-labelledby="asc-keys-add">
+			<div class="ast-card-head"><h3 id="asc-keys-add" class="ast-card-title">Add a key</h3><span class="ast-card-aside">ed25519, ecdsa-p256 or rsa of 3072 bits or more</span></div>
+			<form class="ui form" method="post" action="{{.KeysURL}}" data-testid="asc-keys-form">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="op" value="{{.AddOp}}">
+				<div class="field">
+					<label for="asc-key-title">Title</label>
+					<input id="asc-key-title" name="title" type="text" maxlength="100" value="{{.Title}}" placeholder="Laptop" required autocomplete="off">
+				</div>
+				<div class="field">
+					<label for="asc-key-public">Public key</label>
+					<textarea id="asc-key-public" class="ast-key-text" name="public_key" rows="4" spellcheck="false" autocomplete="off" wrap="soft" placeholder="ssh-ed25519 AAAAC3Nza..." required></textarea>
+					<div class="help">One line, as in <code>~/.ssh/id_ed25519.pub</code>. Never paste a private key. Options such as <code>command=</code> are not accepted.</div>
+				</div>
+				<div class="field">
+					<label for="asc-key-expires">Expires (optional)</label>
+					<input id="asc-key-expires" name="expires" type="date" value="{{.Expires}}">
+					<div class="help">At most ten years ahead. Leave it empty for a key that does not expire.</div>
+				</div>
+				<button class="ui primary button" type="submit" data-testid="asc-keys-add">Add the key</button>
+			</form>
+		</section>
+
+		{{if .Page}}
+		<section class="ast-card" aria-labelledby="asc-keys-list">
+			<div class="ast-card-head"><h3 id="asc-keys-list" class="ast-card-title">Your keys</h3></div>
+			<ul class="ast-keys" data-testid="asc-keys-list">
+				{{range .Page.Keys}}
+				<li class="ast-key" data-state="{{.State}}">
+					<div class="ast-key-main">
+						<b>{{.Title}}</b>
+						<span class="ast-pill ast-pill-{{if eq .State "live"}}ok{{else if eq .State "expired"}}wn{{else}}no{{end}}">{{if eq .State "live"}}Live{{else if eq .State "expired"}}Expired{{else}}Revoked{{end}}</span>
+						<span class="ast-pill ast-pill-ro">{{.Kind}}</span>
+						<div class="asc-trust-code ast-key-fp">{{.Fingerprint}}</div>
+						<div class="asc-trust-sub">
+							Added {{DateUtils.TimeSince .Created}}
+							{{if not .Expires.IsZero}} · expires {{DateUtils.AbsoluteShort .Expires}}{{end}}
+							{{if not .LastUsed.IsZero}} · last used {{DateUtils.TimeSince .LastUsed}}{{end}}
+							{{if not .Revoked.IsZero}} · revoked {{DateUtils.TimeSince .Revoked}}{{if .RevokedReason}}: {{.RevokedReason}}{{end}}{{end}}
+						</div>
+					</div>
+					{{if eq .State "live"}}
+					<form class="ui form ast-key-revoke" method="post" action="{{$.AscKeys.KeysURL}}/revoke">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="id" value="{{.ID}}">
+						<input type="hidden" name="op" value="{{index $.AscKeys.RevokeOps .ID}}">
+						<label class="tw-sr-only" for="asc-key-reason-{{.ID}}">Reason to revoke {{.Title}}</label>
+						<input id="asc-key-reason-{{.ID}}" name="reason" type="text" maxlength="256" placeholder="Reason (optional)" autocomplete="off">
+						<button class="ui basic red button" type="submit">Revoke</button>
+					</form>
+					{{end}}
+				</li>
+				{{else}}
+				<li class="ast-key-empty text grey" data-testid="asc-keys-empty">You have no signing keys yet.</li>
+				{{end}}
+			</ul>
+		</section>
+
+		<section class="ast-card" aria-labelledby="asc-keys-how">
+			<div class="ast-card-head"><h3 id="asc-keys-how" class="ast-card-title">Sign a change</h3></div>
+			<p class="asc-trust-sub">With the <code>asc</code> client: <code class="asc-trust-code">asc sign</code>, or <code class="asc-trust-code">--sign</code> on <code>commit</code> and <code>modify</code>. It uses your ssh-agent or a key file. By hand, a signature is an SSH signature in the namespace <code class="asc-trust-code">{{.Namespace}}</code> over the text <code class="asc-trust-code">asc-changeset-v1</code>, a line break, the 64 hex digits of the changeset id and a line break.</p>
+			{{if .Page.Server.Configured}}
+			<p class="asc-trust-sub" data-testid="asc-keys-server">Commits that the server makes itself are signed with its own key: <code class="asc-trust-code">{{.Page.Server.Fingerprint}}</code> ({{.Page.Server.Kind}}).</p>
+			{{end}}
+		</section>
+		{{end}}
+	{{end}}
+</div>
+{{end}}
+</div>
+{{template "user/settings/layout_footer" .}}

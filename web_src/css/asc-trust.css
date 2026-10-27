@@ -1,0 +1,645 @@
+/* Trust pages: the policy and trust settings, secret scanning, the audit log, signing keys, the checks and the
+   signature badge. Mobile first: the base rules are for 320px and up, min-width queries add columns. Colours come
+   from the theme variables, so the asc, forgejo and gitea themes (light and dark) all work. A state is never shown
+   by colour alone: every pill and cell carries its word. Classes: asc-trust-* for the page chrome, ast-* for the
+   parts (a prefix of its own, so it cannot meet the agents or settings pages). */
+
+.asc-trust {
+  min-width: 0;
+  max-width: 72rem;
+}
+
+.asc-trust-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 6px;
+}
+
+.asc-trust-title {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.asc-trust-lead {
+  margin: 0 0 12px;
+  color: var(--color-text-light-1);
+  max-width: 60rem;
+}
+
+.asc-trust-sub {
+  color: var(--color-text-light-1);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.asc-trust-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 12px;
+}
+
+.asc-trust-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.asc-trust-code {
+  font-family: var(--fonts-monospace);
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+
+.asc-trust-nowrap {
+  white-space: nowrap;
+}
+
+.asc-trust-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.asc-trust-actions .ui.button,
+.ast-head-actions .ui.button,
+.ast-inline-form .ui.button {
+  min-height: 44px;
+  margin: 0;
+}
+
+.asc-trust-filters {
+  margin: 0 0 16px;
+}
+
+.asc-trust-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px 12px;
+}
+
+@media (min-width: 640px) {
+  .asc-trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .asc-trust-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.asc-trust-verify {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 16px 0 0;
+}
+
+/* tables scroll inside their own block, never the page */
+.asc-trust-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.asc-trust-table {
+  min-width: 36rem;
+}
+
+.asc-trust-table th[scope="row"] {
+  font-weight: var(--font-weight-normal, 400);
+  text-align: start;
+}
+
+.asc-trust-details summary {
+  min-height: 32px;
+  cursor: pointer;
+  color: var(--color-text-light-1);
+}
+
+.asc-trust-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 12px;
+  margin: 4px 0;
+  font-size: 0.85rem;
+}
+
+.asc-trust-dl dt {
+  color: var(--color-text-light-1);
+}
+
+.asc-trust-dl dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--fonts-monospace);
+}
+
+/* cards */
+.ast-card {
+  margin: 0 0 16px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-card, var(--border-radius));
+  overflow: hidden;
+}
+
+.ast-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ast-card-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.ast-card-aside {
+  margin-inline-start: auto;
+  color: var(--color-text-light-1);
+  font-size: 0.85rem;
+}
+
+.ast-card-body {
+  padding: 12px 14px;
+}
+
+.ast-card-foot {
+  padding: 0 14px 12px;
+}
+
+.ast-card > p,
+.ast-card > form,
+.ast-card > .asc-trust-table-wrap + p,
+.ast-card > .ast-tabs,
+.ast-card > .ast-preview,
+.ast-card > .ui.message,
+.ast-card > ul,
+.ast-card > .asc-trust-actions {
+  margin-inline: 14px;
+}
+
+.ast-card > p {
+  margin-block: 10px;
+}
+
+.ast-card > form {
+  margin-block: 10px 14px;
+}
+
+/* pills: a word in a tinted box, tone from the theme */
+.ast-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.ast-pill-ok {
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
+}
+
+.ast-pill-wn {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-text);
+}
+
+.ast-pill-no {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error-text);
+}
+
+.ast-pill-info {
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+  color: var(--color-info-text);
+}
+
+.ast-pill-ro,
+.ast-pill-via {
+  background: var(--color-secondary-alpha-20, var(--color-box-header));
+  border-color: var(--color-secondary);
+  color: var(--color-text);
+}
+
+.ast-sig {
+  margin-inline-start: 4px;
+  vertical-align: middle;
+}
+
+/* plain text tones, used in lists: the word carries the meaning, the colour only helps */
+.ast-tone-ok {
+  color: var(--color-success-text);
+}
+
+.ast-tone-wn {
+  color: var(--color-warning-text);
+}
+
+.ast-tone-no {
+  color: var(--color-error-text);
+}
+
+.ast-tone-ro {
+  color: var(--color-text-light-1);
+}
+
+/* the policy editor and "what this means" */
+.ast-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 14px;
+}
+
+@media (min-width: 900px) {
+  .ast-split {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+
+.ast-policy-text,
+.ast-key-text {
+  font-family: var(--fonts-monospace);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  white-space: pre;
+  overflow: auto;
+  tab-size: 2;
+}
+
+.ast-policy-text {
+  min-height: 20rem;
+}
+
+.ast-meaning-title {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.ast-meaning-list {
+  margin: 0;
+  padding-inline-start: 1.2em;
+  line-height: 1.7;
+}
+
+.ast-preview {
+  margin-block: 0 14px;
+  padding: 12px 14px;
+  background: var(--color-box-header);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius);
+}
+
+.ast-preview .ast-card-head {
+  padding: 0 0 8px;
+  border-bottom: 0;
+}
+
+.ast-diag {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.ast-diag li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding: 4px 0;
+}
+
+/* who-can-write cells */
+.ast-cell {
+  font-weight: var(--font-weight-semibold);
+}
+
+.ast-cell-ok {
+  color: var(--color-success-text);
+}
+
+.ast-cell-no,
+.ast-cell-never {
+  color: var(--color-error-text);
+}
+
+.ast-cell-via {
+  color: var(--color-text);
+}
+
+.ast-cell-ro {
+  color: var(--color-text-light-1);
+  font-weight: var(--font-weight-normal, 400);
+}
+
+/* protections */
+.ast-protections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ast-protection {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ast-protection:last-child {
+  border-bottom: 0;
+}
+
+.ast-protection-text {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .ast-protection {
+    grid-template-columns: 1fr auto auto;
+  }
+
+  .ast-protection-text {
+    grid-column: auto;
+  }
+}
+
+/* tabs */
+.ast-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 12px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ast-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.ast-tab:hover {
+  background: var(--color-hover);
+}
+
+.ast-tab.active {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.ast-count {
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--color-box-header);
+  font-size: 0.8rem;
+}
+
+.ast-inline-form {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.ast-finding-form,
+.ast-key-revoke {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 14rem;
+}
+
+.ast-finding-form select,
+.ast-finding-form input[type="text"],
+.ast-key-revoke input[type="text"] {
+  flex: 1 1 8rem;
+  min-height: 44px;
+}
+
+.ast-blocked {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 12px;
+}
+
+.ast-blocked li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ast-blocked li:last-child {
+  border-bottom: 0;
+}
+
+/* signing keys */
+.ast-keys {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ast-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ast-key:last-child {
+  border-bottom: 0;
+}
+
+.ast-key-main {
+  min-width: 0;
+  flex: 1 1 16rem;
+}
+
+.ast-key-fp {
+  margin: 4px 0;
+}
+
+.ast-key[data-state="revoked"] .ast-key-main,
+.ast-key[data-state="expired"] .ast-key-main {
+  opacity: 0.85;
+}
+
+.ast-key-empty {
+  padding: 12px 14px;
+}
+
+/* checks */
+.ast-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.ast-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 16px;
+  color: var(--color-text-light-1);
+  font-size: 0.9rem;
+}
+
+.ast-meta-warn {
+  color: var(--color-warning-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.ast-two {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .ast-two {
+    grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  }
+}
+
+.ast-two-main,
+.ast-two-side {
+  min-width: 0;
+}
+
+.ast-log {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--color-code-bg, var(--color-box-header));
+  color: var(--color-text);
+  font-family: var(--fonts-monospace);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 20rem;
+  overflow: auto;
+}
+
+.ast-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ast-checklist li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ast-checklist li:last-child {
+  border-bottom: 0;
+}
+
+.ast-occurrences {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px;
+}
+
+.ast-occurrences li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ast-occurrences li:last-child {
+  border-bottom: 0;
+}
+
+/* the history strip: one cell per day, with a word in the title and a summary line beside it */
+.ast-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  margin: 8px 0;
+}
+
+.ast-strip-label {
+  margin-inline-end: 8px;
+  color: var(--color-text-light-1);
+  font-size: 0.8rem;
+}
+
+.ast-strip-cell {
+  width: 12px;
+  height: 22px;
+  border-radius: 3px;
+  background: var(--color-secondary);
+}
+
+.ast-strip-ok {
+  background: var(--color-green);
+}
+
+.ast-strip-no {
+  background: var(--color-red);
+}
+
+.ast-strip-wn {
+  background: var(--color-orange);
+}
+
+.ast-strip-ro {
+  background: var(--color-secondary-dark-3, var(--color-secondary));
+  opacity: 0.6;
+}
+
+/* Cells carry a shape too, for people who cannot tell the colours apart */
+.ast-strip-no,
+.ast-strip-wn {
+  height: 22px;
+  box-shadow: inset 0 -6px 0 0 var(--color-box-body);
+}
+
+.ast-strip-wn {
+  box-shadow: inset 0 -11px 0 0 var(--color-box-body);
+}
+
+.repository.asc-trust-page .page-content,
+.asc-trust-page .asc-trust {
+  overflow-wrap: anywhere;
+}

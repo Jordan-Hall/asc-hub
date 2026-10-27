@@ -30,6 +30,7 @@
 		<a class="{{if .PageIsSettingsAscAI}}active {{end}}item" href="{{AppSubUrl}}/user/settings/asc/ai">
 			{{ctx.Locale.Tr "ascbyo.nav_ai"}}
 		</a>
+		<a class="{{if .PageIsSettingsAscKeys}}active {{end}}item" href="{{AppSubUrl}}/user/settings/asc/keys">Signing keys</a>
 		{{end}}
 		{{if .EnableActions}}
 		<details class="item toggleable-item" {{if or .PageIsSharedSettingsRunners .PageIsSharedSettingsSecrets .PageIsSharedSettingsVariables}}open{{end}}>
