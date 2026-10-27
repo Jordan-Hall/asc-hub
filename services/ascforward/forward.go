@@ -276,8 +276,41 @@ func (f *Forwarder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	r = r.WithContext(ctx)
 	r.Body = http.MaxBytesReader(w, r.Body, limit)
-	f.proxy.ServeHTTP(w, r)
+	f.proxy.ServeHTTP(&trailersOnlyWriter{ResponseWriter: w}, r)
 }
+
+// trailersOnlyWriter keeps an answer that is "trailers only" (a gRPC error, whose status is in the headers and which
+// has no body) from being flushed before it ends. ReverseProxy flushes the headers at once when it streams; sent so,
+// the headers would go out without the end of the stream, and the client would see "closed without trailers"
+// (Internal) instead of the status. Held back, the headers and the end of the stream go in one frame. Any answer
+// with a body is flushed as usual.
+type trailersOnlyWriter struct {
+	http.ResponseWriter
+	hold bool
+}
+
+func (t *trailersOnlyWriter) WriteHeader(code int) {
+	t.hold = t.ResponseWriter.Header().Get("Grpc-Status") != ""
+	t.ResponseWriter.WriteHeader(code)
+}
+
+func (t *trailersOnlyWriter) Write(b []byte) (int, error) {
+	if len(b) > 0 {
+		t.hold = false
+	}
+	return t.ResponseWriter.Write(b)
+}
+
+// FlushError makes http.ResponseController's Flush skip the flush while the answer is held back.
+func (t *trailersOnlyWriter) FlushError() error {
+	if t.hold {
+		return nil
+	}
+	return http.NewResponseController(t.ResponseWriter).Flush()
+}
+
+// Unwrap lets http.ResponseController reach the writer below.
+func (t *trailersOnlyWriter) Unwrap() http.ResponseWriter { return t.ResponseWriter }
 
 // splitPath reads "/asc.v1.<Service>/<Method>" and nothing else.
 func splitPath(p string) (service, method string, ok bool) {

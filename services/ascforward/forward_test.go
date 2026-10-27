@@ -6,6 +6,7 @@ package ascforward
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -19,7 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -135,7 +135,7 @@ func newRig(t *testing.T) *rig {
 		}
 		http.Error(w, "the web interface", http.StatusTeapot)
 	})
-	hub := httptest.NewUnstartedServer(h2c.NewHandler(mux, &http2.Server{}))
+	hub := httptest.NewUnstartedServer(PriorKnowledgeH2C(mux))
 	hub.Start()
 	t.Cleanup(hub.Close)
 
@@ -258,7 +258,7 @@ func TestAnUnreachableAscIsAnUnavailableStatusWithoutDetails(t *testing.T) {
 
 	fwd, err := New("http://"+addr, nil)
 	require.NoError(t, err)
-	hub := httptest.NewUnstartedServer(h2c.NewHandler(fwd, &http2.Server{}))
+	hub := httptest.NewUnstartedServer(PriorKnowledgeH2C(fwd))
 	hub.Start()
 	defer hub.Close()
 	conn, err := grpc.NewClient(strings.TrimPrefix(hub.URL, "http://"), grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -363,4 +363,61 @@ func registeredServices(t *testing.T) []svcInfo {
 		return true
 	})
 	return out
+}
+
+// The upgrade to h2c is refused on every route; prior-knowledge HTTP/2 serves the asc calls only.
+func TestH2CIsPriorKnowledgeAndForAscCallsOnly(t *testing.T) {
+	r := newRig(t)
+
+	// The HTTP/1.1 upgrade, in the spellings a smuggler would try, reaches nothing.
+	for name, headers := range map[string]map[string]string{
+		"upgrade":              {"Connection": "Upgrade, HTTP2-Settings", "Upgrade": "h2c", "HTTP2-Settings": "AAMAAABkAAQAAP__"},
+		"upgrade, no settings": {"Connection": "Upgrade", "Upgrade": "h2c"},
+		"upper case":           {"Connection": "upgrade", "Upgrade": "H2C"},
+		"settings only":        {"HTTP2-Settings": "AAMAAABkAAQAAP__"},
+	} {
+		for _, path := range []string{"/", "/user/login", "/api/v1/user", "/asc.v1.Repo/ListRefs"} {
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, r.hub.URL+path, http.NoBody)
+			require.NoError(t, err)
+			for k, v := range headers {
+				req.Header.Set(k, v)
+			}
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			resp.Body.Close()
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode, name+" "+path)
+		}
+	}
+
+	// Plain HTTP/1.1 is served as before.
+	resp, err := http.Get(r.hub.URL + "/user/login")
+	require.NoError(t, err)
+	resp.Body.Close()
+	assert.Equal(t, http.StatusTeapot, resp.StatusCode)
+
+	// Prior-knowledge HTTP/2 without TLS: the web interface is not reachable on it.
+	h2 := &http.Client{Transport: &http2.Transport{AllowHTTP: true, DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
+		var d net.Dialer
+		return d.DialContext(ctx, network, addr)
+	}}}
+	for _, tc := range []struct{ method, path, ct string }{
+		{http.MethodGet, "/", ""}, {http.MethodGet, "/user/login", ""}, {http.MethodPost, "/user/login", "application/x-www-form-urlencoded"},
+		{http.MethodGet, "/asc.v1.Repo/ListRefs", "application/grpc"}, {http.MethodPost, "/api/v1/user/repos", "application/json"},
+		{http.MethodPost, "/user/login", "application/grpc"},
+	} {
+		req, err := http.NewRequestWithContext(t.Context(), tc.method, r.hub.URL+tc.path, strings.NewReader(""))
+		require.NoError(t, err)
+		if tc.ct != "" {
+			req.Header.Set("Content-Type", tc.ct)
+		}
+		resp, err := h2.Do(req)
+		require.NoError(t, err)
+		resp.Body.Close()
+		assert.Equal(t, 2, resp.ProtoMajor, "it was HTTP/2")
+		assert.Equal(t, http.StatusMisdirectedRequest, resp.StatusCode, tc.method+" "+tc.path)
+	}
+
+	// And the asc proxy still works on it.
+	_, err = ascv1.NewRepoClient(r.conn).ListRefs(t.Context(), &ascv1.ListRefsRequest{Repo: &ascv1.RepoRef{Name: "acme/app"}})
+	require.NoError(t, err)
 }
