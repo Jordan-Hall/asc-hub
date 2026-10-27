@@ -344,7 +344,7 @@ func TestAscRestackAndRevertHandlers(t *testing.T) {
 		{Change: qrBottomChange, State: ascbridge.RestackRewritten}, {Change: qrTopChange, State: ascbridge.RestackRewritten}}}
 	ctx, _ = qrRequest(t, AscStackRestack, 5, f.top, "user2/repo1/pulls/5/asc/restack", nil)
 	assert.Equal(t, "repo.pulls.asc_op.err.not_allowed", ctx.Flash.ErrorMsg)
-	assert.Equal(t, 2, f.ops.reqs)
+	assert.Equal(t, 1, f.ops.reqs, "a person who may not rewrite the pull request is refused before asc is asked anything")
 
 	// A conflict is reported with its paths.
 	f.ops.restackDry = &ascbridge.RestackStackResult{Items: []ascbridge.RestackItem{

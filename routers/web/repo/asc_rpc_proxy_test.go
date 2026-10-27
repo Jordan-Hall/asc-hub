@@ -61,6 +61,22 @@ var ascRPCTestDenied = map[string]string{
 	"asc.v1.Repo/Resolve": "not used by the islands", "asc.v1.Repo/Stat": "not used by the islands",
 }
 
+// ascRPCTestDeniedServices lists the services that the proxy never serves, whole. They write, hold secrets or are
+// selected by an owner and not by a repository permission, so the hub serves them from handlers of its own that check
+// Forgejo permissions first and call asc with the signed-in person's token (docs/BUILDOUT.md, "Repositories are named
+// by RepoRef"). A method added to one of them is denied without an entry here.
+var ascRPCTestDeniedServices = map[string]bool{
+	"AgentTokens": true, "Agents": true, "AiProviders": true, "Audit": true, "Bridge": true, "Ci": true,
+	"CiInsights": true, "CrossSearch": true, "Inbox": true, "MergeQueue": true, "Policy": true, "Review": true,
+	"SecretScan": true, "Signing": true, "Stacks": true, "Storage": true, "Vault": true, "Workflows": true,
+}
+
+// ascRPCTestDeniedMore lists single methods of services the proxy otherwise serves.
+var ascRPCTestDeniedMore = map[string]string{
+	"asc.v1.CodeIntel/UploadScip": "writes", "asc.v1.Repo/GetPolicy": "decided by the policy service pages",
+	"asc.v1.Repo/WatchRefs": "long-lived stream",
+}
+
 func TestAscRpcProxyClassification(t *testing.T) {
 	seen := map[string]bool{}
 	protoregistry.GlobalFiles.RangeFilesByPackage("asc.v1", func(fd protoreflect.FileDescriptor) bool {
@@ -72,6 +88,9 @@ func TestAscRpcProxyClassification(t *testing.T) {
 				seen[name] = true
 				_, allowed := ascRPCReadMethods[name]
 				_, denied := ascRPCTestDenied[name]
+				if _, more := ascRPCTestDeniedMore[name]; more || ascRPCTestDeniedServices[string(sd.Name())] {
+					denied = true
+				}
 				switch {
 				case sd.Name() == "Workspace":
 					assert.False(t, allowed, name)
@@ -91,6 +110,9 @@ func TestAscRpcProxyClassification(t *testing.T) {
 		assert.False(t, md.IsStreamingClient(), name)
 	}
 	for name := range ascRPCTestDenied {
+		assert.True(t, seen[name], "%s is denied but is not an RPC", name)
+	}
+	for name := range ascRPCTestDeniedMore {
 		assert.True(t, seen[name], "%s is denied but is not an RPC", name)
 	}
 }
