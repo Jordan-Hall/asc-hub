@@ -35,7 +35,7 @@ The cost is real, and we say so in [FORK.md](FORK.md). We carry a patch stack on
 
 ## Why git compatibility and not a flag day
 
-Teams do not move all their tools on one day. CI, deploy scripts, package builds and every developer's habits expect `git clone` to work. So an ASC repository can still be cloned and pushed to with git over HTTPS and SSH: the hub keeps a git directory per repository (the bridge) and imports a git push into ASC before accepting it (`services/ascbridge`, `services/ascsync`). The limits are stated: no LFS for ASC repositories, and a commit that must be signed cannot be created by the asc writer. Repositories that already exist stay git-stored until you choose otherwise (`[asc] NEW_REPOSITORIES` only affects new ones), and migrating an existing git repository into ASC storage is not done yet: planned.
+Teams do not move all their tools on one day. CI, deploy scripts, package builds and every developer's habits expect `git clone` to work. So an ASC repository can still be cloned and pushed to with git over HTTPS (and over SSH where the operator enables it): the hub keeps a git directory per repository (the bridge) and imports a git push into ASC before accepting it (`services/ascbridge`, `services/ascsync`). The limits are stated: no LFS for ASC repositories, and a commit that must be signed cannot be created by the asc writer. Repositories that already exist stay git-stored until you choose otherwise (`[asc] NEW_REPOSITORIES` only affects new ones), and migrating an existing git repository into ASC storage is not done yet: planned.
 
 ## Who it is for
 
