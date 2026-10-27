@@ -1,99 +1,109 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
 	{{template "repo/header" .}}
-	<div class="ui container">
-	{{template "base/alert" .}}
-	{{with .AscCheckGroup}}
-	<div class="asc-trust" data-testid="asc-check-group">
-		<p class="asc-trust-links"><a href="{{.ChecksURL}}">{{ctx.Locale.Tr "asc_trust.checks.title"}}</a></p>
-		{{if .Unsupported}}
-			<div class="ui warning message" role="status">{{ctx.Locale.Tr "asc_trust.checks.unsupported"}}</div>
-		{{else if .Problem}}
-			<div class="ui negative message" role="alert" data-testid="asc-group-problem">{{.Problem}}</div>
-		{{else if .Detail}}
-			<div class="asc-trust-head">
-				<h2 class="asc-trust-title">{{if .Detail.Group.Title}}{{.Detail.Group.Title}}{{else}}{{.Detail.Group.TestName}}{{end}}</h2>
-				<span class="ast-pill ast-pill-{{.Detail.Group.Tone}}" data-testid="asc-group-state">{{ctx.Locale.Tr (printf "asc_trust.checks.state.%s" .Detail.Group.StateKey)}}</span>
-				{{if .Detail.Group.Flaky}}<span class="ast-pill ast-pill-wn">{{ctx.Locale.Tr "asc_trust.checks.flaky"}}</span>{{end}}
-			</div>
-			<p class="asc-trust-sub">
-				{{if .Detail.Group.TestName}}<code class="asc-trust-code">{{.Detail.Group.TestName}}</code> {{end}}{{if .Detail.Group.JobName}}{{ctx.Locale.Tr "asc_trust.checks.in_job" .Detail.Group.JobName}} · {{end}}
-				{{ctx.Locale.Tr "asc_trust.checks.group_seen" .Detail.Group.Occurrences .Detail.Group.ChangesAffected}} · {{ctx.Locale.Tr "asc_trust.checks.group_first"}} {{DateUtils.TimeSince .Detail.Group.FirstSeen}} · {{ctx.Locale.Tr "asc_trust.checks.group_last"}} {{DateUtils.TimeSince .Detail.Group.LastSeen}}
-			</p>
-			{{if .Detail.Group.Note}}<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_trust.checks.group_note" .Detail.Group.Note}}</p>{{end}}
+	<div class="rv rv-page">
+		{{template "base/alert" .}}
+		{{with .AscCheckGroup}}
+		<div data-testid="asc-check-group">
+			<p class="rv-crumb"><a href="{{.ChecksURL}}">{{ctx.Locale.Tr "asc_trust.checks.title"}}</a></p>
+			{{if .Unsupported}}
+				<div class="rv-banner rv-banner-warn" role="status"><div>{{ctx.Locale.Tr "asc_trust.checks.unsupported"}}</div></div>
+			{{else if .Problem}}
+				<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-group-problem"><div>{{.Problem}}</div></div>
+			{{else if .Detail}}
+				<header class="rv-head">
+					<div class="rv-head-main">
+						<h1 class="rv-title">{{if .Detail.Group.Title}}{{.Detail.Group.Title}}{{else}}{{.Detail.Group.TestName}}{{end}}</h1>
+						<p class="rv-run-sub">
+							<span class="rv-pill rv-pill-{{.Detail.Group.Tone}}" data-testid="asc-group-state">{{ctx.Locale.Tr (printf "asc_trust.checks.state.%s" .Detail.Group.StateKey)}}</span>
+							{{if .Detail.Group.Flaky}}<span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_trust.checks.flaky"}}</span>{{end}}
+							{{if .Detail.Group.TestName}}<code>{{.Detail.Group.TestName}}</code>{{end}}
+							{{if .Detail.Group.JobName}}<span>{{ctx.Locale.Tr "asc_trust.checks.in_job" .Detail.Group.JobName}}</span>{{end}}
+						</p>
+						<p class="rv-li-meta">
+							<span>{{ctx.Locale.Tr "asc_trust.checks.group_seen" .Detail.Group.Occurrences .Detail.Group.ChangesAffected}}</span>
+							<span>{{ctx.Locale.Tr "asc_trust.checks.group_first"}} {{DateUtils.TimeSince .Detail.Group.FirstSeen}}</span>
+							<span>{{ctx.Locale.Tr "asc_trust.checks.group_last"}} {{DateUtils.TimeSince .Detail.Group.LastSeen}}</span>
+						</p>
+						{{if .Detail.Group.Note}}<p class="rv-hint">{{ctx.Locale.Tr "asc_trust.checks.group_note" .Detail.Group.Note}}</p>{{end}}
+					</div>
+				</header>
 
-			{{if .History}}
-			<section class="ast-card" aria-labelledby="asc-group-history">
-				<div class="ast-card-head">
-					<h3 id="asc-group-history" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.history"}}</h3>
-					<form class="ast-inline-form" method="get" action="{{.GroupURL}}">
-						<label class="tw-sr-only" for="asc-group-window">{{ctx.Locale.Tr "asc_trust.checks.window"}}</label>
-						<select id="asc-group-window" name="window" data-testid="asc-group-window">
-							<option value="7"{{if eq .Window 7}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 7}}</option>
-							<option value="14"{{if eq .Window 14}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 14}}</option>
-							<option value="30"{{if eq .Window 30}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 30}}</option>
-							<option value="90"{{if eq .Window 90}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 90}}</option>
-							<option value="180"{{if eq .Window 180}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 180}}</option>
-						</select>
-						<button class="ui basic button" type="submit">{{ctx.Locale.Tr "asc_trust.checks.show"}}</button>
+				{{if .History}}
+				<section class="rv-card" aria-labelledby="asc-group-history">
+					<div class="rv-card-h">
+						<h2 id="asc-group-history">{{ctx.Locale.Tr "asc_trust.checks.history"}}</h2>
+						<form class="rv-row rv-end" method="get" action="{{.GroupURL}}">
+							<label class="rv-sr" for="asc-group-window">{{ctx.Locale.Tr "asc_trust.checks.window"}}</label>
+							<select class="rv-select rv-select-s" id="asc-group-window" name="window" data-testid="asc-group-window">
+								<option value="7"{{if eq .Window 7}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 7}}</option>
+								<option value="14"{{if eq .Window 14}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 14}}</option>
+								<option value="30"{{if eq .Window 30}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 30}}</option>
+								<option value="90"{{if eq .Window 90}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 90}}</option>
+								<option value="180"{{if eq .Window 180}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" 180}}</option>
+							</select>
+							<button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_trust.checks.show"}}</button>
+						</form>
+					</div>
+					<div class="rv-card-b">{{template "repo/asc_strip" .History}}</div>
+				</section>
+				{{end}}
+
+				{{if .CanWrite}}
+				<section class="rv-card rv-gap" aria-labelledby="asc-group-actions">
+					<div class="rv-card-h"><h2 id="asc-group-actions">{{ctx.Locale.Tr "asc_trust.checks.actions_title"}}</h2></div>
+					<form class="rv-card-b rv-form" method="post" action="{{.GroupURL}}/state" data-testid="asc-group-form">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="op" value="{{.Op}}">
+						<div class="rv-field">
+							<label class="rv-label" for="asc-group-note">{{ctx.Locale.Tr "asc_trust.checks.note"}}</label>
+							<input class="rv-input" id="asc-group-note" name="note" type="text" maxlength="1024" autocomplete="off">
+						</div>
+						<div class="rv-acts">
+							{{if ne .Detail.Group.StateKey "acknowledged"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="acknowledged">{{ctx.Locale.Tr "asc_trust.checks.acknowledge"}}</button>{{end}}
+							{{if ne .Detail.Group.StateKey "quarantined"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="quarantined" data-testid="asc-group-quarantine">{{ctx.Locale.Tr "asc_trust.checks.quarantine"}}</button>{{end}}
+							{{if ne .Detail.Group.StateKey "resolved"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="resolved">{{ctx.Locale.Tr "asc_trust.checks.resolve"}}</button>{{end}}
+							{{if ne .Detail.Group.StateKey "open"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="open">{{ctx.Locale.Tr "asc_trust.checks.reopen"}}</button>{{end}}
+							<a class="rv-btn rv-btn-secondary" href="{{$.RepoLink}}/issues/new?{{.IssueQuery}}">{{ctx.Locale.Tr "asc_trust.checks.open_issue"}}</a>
+						</div>
+						<p class="rv-hint">{{ctx.Locale.Tr "asc_trust.checks.quarantine_note"}}</p>
 					</form>
-				</div>
-				{{template "repo/asc_strip" .History}}
-			</section>
-			{{end}}
+				</section>
+				{{end}}
 
-			{{if .CanWrite}}
-			<section class="ast-card" aria-labelledby="asc-group-actions">
-				<div class="ast-card-head"><h3 id="asc-group-actions" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.actions_title"}}</h3></div>
-				<form class="ui form" method="post" action="{{.GroupURL}}/state" data-testid="asc-group-form">
-					{{$.CsrfTokenHtml}}
-					<input type="hidden" name="op" value="{{.Op}}">
-					<div class="field">
-						<label for="asc-group-note">{{ctx.Locale.Tr "asc_trust.checks.note"}}</label>
-						<input id="asc-group-note" name="note" type="text" maxlength="1024" autocomplete="off">
-					</div>
-					<div class="asc-trust-actions">
-						{{if ne .Detail.Group.StateKey "acknowledged"}}<button class="ui basic button" type="submit" name="state" value="acknowledged">{{ctx.Locale.Tr "asc_trust.checks.acknowledge"}}</button>{{end}}
-						{{if ne .Detail.Group.StateKey "quarantined"}}<button class="ui basic button" type="submit" name="state" value="quarantined" data-testid="asc-group-quarantine">{{ctx.Locale.Tr "asc_trust.checks.quarantine"}}</button>{{end}}
-						{{if ne .Detail.Group.StateKey "resolved"}}<button class="ui basic button" type="submit" name="state" value="resolved">{{ctx.Locale.Tr "asc_trust.checks.resolve"}}</button>{{end}}
-						{{if ne .Detail.Group.StateKey "open"}}<button class="ui basic button" type="submit" name="state" value="open">{{ctx.Locale.Tr "asc_trust.checks.reopen"}}</button>{{end}}
-						<a class="ui basic button" href="{{$.RepoLink}}/issues/new?{{.IssueQuery}}">{{ctx.Locale.Tr "asc_trust.checks.open_issue"}}</a>
-					</div>
-					<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_trust.checks.quarantine_note"}}</p>
-				</form>
-			</section>
+				<section class="rv-card rv-gap" aria-labelledby="asc-group-where">
+					<div class="rv-card-h"><h2 id="asc-group-where">{{ctx.Locale.Tr "asc_trust.checks.where"}}</h2></div>
+					<ul class="rv-occurrences" data-testid="asc-occurrences">
+						{{range .Occurrences}}
+						<li class="rv-occ">
+							<div class="rv-li-meta">
+								<span>{{DateUtils.TimeSince .At}}</span>
+								{{if .Change}}<span>{{ctx.Locale.Tr "asc_trust.checks.change"}} <code>{{.Change}}</code>{{if .Version}} v{{.Version}}{{end}}</span>{{end}}
+								{{if .Head}}<span><code>{{.Head}}</code></span>{{end}}
+								{{if gt .Attempt 1}}<span>{{ctx.Locale.Tr "asc_trust.checks.attempt" .Attempt}}</span>{{end}}
+							</div>
+							{{if .Message}}<pre class="rv-log-block" tabindex="0">{{.Message}}</pre>{{end}}
+							<div class="rv-acts">
+								{{if .RunURL}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.RunURL}}">{{ctx.Locale.Tr "asc_trust.checks.show_run"}}</a>{{end}}
+								{{if and $.AscCheckGroup.CanRerun .RunID}}
+								<form class="rv-acts" method="post" action="{{$.AscCheckGroup.ChecksURL}}/rerun">
+									{{$.CsrfTokenHtml}}
+									<input type="hidden" name="run" value="{{.RunID}}">
+									<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" name="mode" value="failed">{{ctx.Locale.Tr "asc_trust.checks.rerun_failed"}}</button>
+									<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" name="mode" value="all">{{ctx.Locale.Tr "asc_trust.checks.rerun_all"}}</button>
+								</form>
+								{{end}}
+							</div>
+						</li>
+						{{else}}
+						<li class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_trust.checks.no_occurrences"}}</li>
+						{{end}}
+					</ul>
+					{{if .NextURL}}<div class="rv-card-f rv-center"><a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.checks.older"}}</a></div>{{end}}
+				</section>
 			{{end}}
-
-			<section class="ast-card" aria-labelledby="asc-group-where">
-				<div class="ast-card-head"><h3 id="asc-group-where" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.where"}}</h3></div>
-				<ul class="ast-occurrences" data-testid="asc-occurrences">
-					{{range .Occurrences}}
-					<li>
-						<div class="asc-trust-sub">
-							{{DateUtils.TimeSince .At}}{{if .Change}} · {{ctx.Locale.Tr "asc_trust.checks.change"}} <code class="asc-trust-code">{{.Change}}</code>{{if .Version}} v{{.Version}}{{end}}{{end}}{{if .Head}} · <code class="asc-trust-code">{{.Head}}</code>{{end}}{{if gt .Attempt 1}} · {{ctx.Locale.Tr "asc_trust.checks.attempt" .Attempt}}{{end}}
-						</div>
-						{{if .Message}}<pre class="ast-log" tabindex="0">{{.Message}}</pre>{{end}}
-						<div class="asc-trust-actions">
-							{{if .RunURL}}<a class="ui basic button" href="{{.RunURL}}">{{ctx.Locale.Tr "asc_trust.checks.show_run"}}</a>{{end}}
-							{{if and $.AscCheckGroup.CanRerun .RunID}}
-							<form class="ast-inline-form" method="post" action="{{$.AscCheckGroup.ChecksURL}}/rerun">
-								{{$.CsrfTokenHtml}}
-								<input type="hidden" name="run" value="{{.RunID}}">
-								<button class="ui basic button" type="submit" name="mode" value="failed">{{ctx.Locale.Tr "asc_trust.checks.rerun_failed"}}</button>
-								<button class="ui basic button" type="submit" name="mode" value="all">{{ctx.Locale.Tr "asc_trust.checks.rerun_all"}}</button>
-							</form>
-							{{end}}
-						</div>
-					</li>
-					{{else}}
-					<li class="text grey">{{ctx.Locale.Tr "asc_trust.checks.no_occurrences"}}</li>
-					{{end}}
-				</ul>
-				{{if .NextURL}}<div class="asc-trust-actions"><a class="ui basic button" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.checks.older"}}</a></div>{{end}}
-			</section>
+		</div>
 		{{end}}
-	</div>
-	{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}
