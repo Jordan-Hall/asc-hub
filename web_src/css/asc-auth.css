@@ -1,0 +1,185 @@
+/* Sign in, create account and the other pages of the sign in flow: one card on the page, like the
+   boards' cards. Mobile first: the card is full width up to 480px (560px for create account). */
+
+.page-content.user.signin {
+  padding-block: 8px 48px;
+}
+
+.page-content.user.signin .auth-brand {
+  display: inline-flex;
+  margin-top: 16px;
+}
+
+.page-content.user.signin .auth-brand img,
+.page-content.user.signin .auth-brand svg {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+
+.hub-auth-title {
+  margin: 0;
+  text-align: center;
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.hub-auth-lead {
+  margin: 6px 0 0;
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 0.9375rem;
+}
+
+/* the form card: header, form and oauth buttons are one surface */
+.page-content.user.signin .ui.container.fluid {
+  overflow: hidden;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--asc-radius);
+  box-shadow: 0 1px 2px var(--color-shadow);
+}
+
+.page-content.user.signin .ui.container.fluid > .ui.top.attached.header {
+  margin: 0;
+  padding: 22px 24px 0;
+  background: transparent;
+  border: 0;
+  text-align: start;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.page-content.user.signin .ui.container.fluid > .ui.attached.segment {
+  padding: 16px 24px 24px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+/* the hint below the card ("Need an account?") is its own, lighter card */
+.page-content.user.signin .ui.container.fluid > .ui.attached.segment.header.top {
+  padding: 16px 24px;
+  background: var(--color-secondary-nav-bg, var(--color-footer));
+  border-top: 1px solid var(--color-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.page-content.user.signin .ui.form .field > label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.page-content.user.signin .ui.form input:not([type="checkbox"], [type="radio"]) {
+  min-height: 44px;
+  border-radius: var(--asc-radius-sm);
+}
+
+.page-content.user.signin .ui.form .ui.primary.button,
+.page-content.user.signin .ui.form button.ui.primary {
+  min-height: 44px;
+  border-radius: var(--asc-radius-sm);
+  font-weight: 600;
+}
+
+.page-content.user.signin .ui.checkbox,
+.page-content.user.signin .ui.checkbox label {
+  min-height: 24px;
+}
+
+.page-content.user.signin a:not(.ui.button) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+.page-content.user.signin .ui.form a:not(.ui.button),
+.page-content.user.signin .ui.container.fluid p a {
+  display: inline;
+  min-height: 0;
+}
+
+/* sign in with a provider */
+.page-content.user.signin .oauth-login-container,
+.page-content.user.signin .oauth-login-image {
+  max-width: 100%;
+}
+
+/* error pages: 404, 413 and 500 */
+.hub-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 56px var(--asc-gutter) 64px;
+  text-align: center;
+}
+
+.hub-status .error-code {
+  margin: 0;
+  color: var(--color-primary);
+  font-family: var(--fonts-monospace);
+  font-size: 4.5rem;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.hub-status-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.hub-status-text {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--color-text-light);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.hub-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.hub-status-meta {
+  margin: 12px 0 0;
+  color: var(--color-text-light);
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 768px) {
+  .hub-status {
+    padding-top: 96px;
+  }
+  .hub-status .error-code {
+    font-size: 6.5rem;
+  }
+  .hub-status-title {
+    font-size: 2.25rem;
+  }
+}
+
+@media (min-width: 600px) {
+  .page-content.user.signin .column {
+    max-width: 480px;
+  }
+  .page-content.user.signin .ui.form .ui.button {
+    width: 100%;
+  }
+}

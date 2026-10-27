@@ -275,7 +275,7 @@ pre.code-block {
   }
 }
 
-.asc-container {
+.hub-container {
   box-sizing: border-box;
   width: 100%;
   max-width: calc(var(--asc-measure) + 2 * var(--asc-gutter));
@@ -284,11 +284,11 @@ pre.code-block {
 }
 
 /* page heads of the plain pages (download, onboarding) */
-.asc-page-head {
+.hub-page-head {
   padding-block: 28px 8px;
 }
 
-.asc-page-title {
+.hub-page-title {
   margin: 0;
   font-size: 1.875rem;
   font-weight: 800;
@@ -296,7 +296,7 @@ pre.code-block {
   line-height: 1.15;
 }
 
-.asc-page-lead {
+.hub-page-lead {
   margin: 8px 0 0;
   max-width: 62ch;
   color: var(--color-text-light);
@@ -305,16 +305,16 @@ pre.code-block {
 }
 
 @media (min-width: 768px) {
-  .asc-page-head {
+  .hub-page-head {
     padding-block: 40px 12px;
   }
-  .asc-page-title {
+  .hub-page-title {
     font-size: 2.25rem;
   }
 }
 
 /* buttons of the landing page; the .ui.button of the application keeps its own look */
-.asc-btn {
+.hub-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -332,58 +332,70 @@ pre.code-block {
   cursor: pointer;
 }
 
-.asc-btn-primary {
+.hub-btn-primary {
   background: var(--asc-accent);
   color: var(--asc-on-accent);
 }
 
-.asc-btn-primary:hover,
-.asc-btn-primary:focus-visible {
+.hub-btn-primary:hover,
+.hub-btn-primary:focus-visible {
   background: var(--asc-accent-hover);
   color: var(--asc-on-accent);
 }
 
-.asc-btn-ghost {
+/* the primary action on a light surface */
+.hub-btn-primary-solid {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.hub-btn-primary-solid:hover,
+.hub-btn-primary-solid:focus-visible {
+  background: var(--color-primary-hover);
+  color: var(--color-primary-contrast);
+}
+
+.hub-btn-ghost {
   background: transparent;
   border-color: #5f7189; /* 3.6:1 on #0b1220 */
   color: var(--asc-on-dark);
 }
 
-.asc-btn-ghost:hover,
-.asc-btn-ghost:focus-visible {
+.hub-btn-ghost:hover,
+.hub-btn-ghost:focus-visible {
   background: #1a2438;
   color: #fff;
 }
 
-.asc-btn-outline {
+.hub-btn-outline {
   background: var(--color-box-body);
   border-color: var(--color-light-border, var(--color-secondary));
   color: var(--color-text);
 }
 
-.asc-btn-outline:hover,
-.asc-btn-outline:focus-visible {
+.hub-btn-outline:hover,
+.hub-btn-outline:focus-visible {
   background: var(--color-hover);
   color: var(--color-text);
 }
 
-.asc-btn-meta {
+.hub-btn-meta {
   font-weight: 500;
   opacity: 0.8;
 }
 
-.asc-btn:focus-visible {
+.hub-btn:focus-visible {
   outline: 2px solid var(--asc-accent);
   outline-offset: 2px;
 }
 
-.asc-landing .asc-btn-outline:focus-visible,
-.asc-download .asc-btn-outline:focus-visible {
+.hub-landing .hub-btn-outline:focus-visible,
+.hub-download .hub-btn-outline:focus-visible {
   outline-color: var(--color-focus, var(--color-primary));
 }
 
 /* chips and pills */
-.asc-chip {
+.hub-chip {
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
@@ -395,25 +407,25 @@ pre.code-block {
   line-height: 1.4;
 }
 
-.asc-chip-accent {
+.hub-chip-accent {
   background: var(--color-primary-light-6);
   color: var(--color-primary-dark-2);
 }
 
-:root[data-theme*="dark"] .asc-chip-accent {
+:root[data-theme*="dark"] .hub-chip-accent {
   background: #12303b;
   color: #7dd3e8;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-theme*="auto"] .asc-chip-accent {
+  :root[data-theme*="auto"] .hub-chip-accent {
     background: #12303b;
     color: #7dd3e8;
   }
 }
 
 /* a boxed panel: the side cards of the download page and onboarding */
-.asc-panel {
+.hub-panel {
   box-sizing: border-box;
   padding: 18px;
   background: var(--color-box-body);
@@ -421,43 +433,43 @@ pre.code-block {
   border-radius: var(--asc-radius);
 }
 
-.asc-panel + .asc-panel {
+.hub-panel + .hub-panel {
   margin-top: 16px;
 }
 
-.asc-panel-title {
+.hub-panel-title {
   margin: 0 0 6px;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.005em;
 }
 
-.asc-panel-text {
+.hub-panel-text {
   margin: 0 0 12px;
   color: var(--color-text-light);
   font-size: 0.875rem;
   line-height: 1.55;
 }
 
-.asc-panel-label {
+.hub-panel-label {
   margin: 12px 0 4px;
   font-weight: 600;
 }
 
-.asc-panel-link {
+.hub-panel-link {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   font-weight: 600;
 }
 
-.asc-link-list {
+.hub-link-list {
   margin: 0 0 8px;
   padding: 0;
   list-style: none;
 }
 
-.asc-link-list a {
+.hub-link-list a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -466,7 +478,7 @@ pre.code-block {
 }
 
 /* command blocks: dark in both themes, they scroll inside their own box */
-.asc-code {
+.hub-code {
   margin: 0;
   padding: 12px 14px;
   overflow-x: auto;
@@ -480,7 +492,7 @@ pre.code-block {
   -webkit-overflow-scrolling: touch;
 }
 
-.asc-code code {
+.hub-code code {
   background: none;
   padding: 0;
   color: inherit;
@@ -488,12 +500,12 @@ pre.code-block {
   white-space: pre;
 }
 
-.asc-code:focus-visible {
+.hub-code:focus-visible {
   outline: 2px solid var(--asc-accent);
   outline-offset: 2px;
 }
 
-.asc-hash {
+.hub-hash {
   display: inline-block;
   max-width: 100%;
   padding: 2px 6px;
@@ -513,12 +525,12 @@ pre.code-block {
   font-size: 0.8125rem;
 }
 
-.page-footer .asc-footer-brand {
+.page-footer .hub-footer-brand {
   color: var(--color-text);
   font-weight: 700;
 }
 
-.page-footer .asc-footer-based {
+.page-footer .hub-footer-based {
   color: var(--color-text-light);
 }
 

@@ -1,11 +1,11 @@
 /* The download page (/download). Mobile first. Without JavaScript every system panel shows, one under the
    other; the script turns them into tabs (.is-tabbed). */
 
-.asc-download {
+.hub-download {
   padding-bottom: 48px;
 }
 
-.asc-dl-meta {
+.hub-dl-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -13,12 +13,12 @@
   margin: 4px 0 20px;
 }
 
-.asc-dl-meta-text {
+.hub-dl-meta-text {
   color: var(--color-text-light);
   font-size: 0.875rem;
 }
 
-.asc-dl-meta-link {
+.hub-dl-meta-link {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -26,25 +26,25 @@
   font-weight: 600;
 }
 
-.asc-dl-layout {
+.hub-dl-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
 
-.asc-dl-main {
+.hub-dl-main {
   min-width: 0;
 }
 
-.asc-dl-detected {
+.hub-dl-detected {
   margin: 0 0 12px;
   color: var(--color-text-light);
   font-size: 0.9375rem;
 }
 
 /* system tabs */
-.asc-dl-tabs {
+.hub-dl-tabs {
   display: flex;
   gap: 4px;
   margin-bottom: 16px;
@@ -55,11 +55,11 @@
   border-radius: 10px;
 }
 
-.asc-dl-tabs[hidden] {
+.hub-dl-tabs[hidden] {
   display: none;
 }
 
-.asc-dl-tab {
+.hub-dl-tab {
   flex: 1 0 auto;
   min-height: 44px;
   padding: 0 18px;
@@ -72,34 +72,34 @@
   cursor: pointer;
 }
 
-.asc-dl-tab:hover {
+.hub-dl-tab:hover {
   color: var(--color-text);
 }
 
-.asc-dl-tab[aria-selected="true"] {
+.hub-dl-tab[aria-selected="true"] {
   background: var(--color-box-body);
   box-shadow: 0 1px 3px var(--color-shadow);
   color: var(--color-text);
 }
 
-.asc-dl-tab:focus-visible {
+.hub-dl-tab:focus-visible {
   outline: 2px solid var(--color-focus, var(--color-primary));
   outline-offset: 2px;
 }
 
 /* panels */
-.asc-dl-panel {
+.hub-dl-panel {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.asc-dl-panel[hidden] {
+.hub-dl-panel[hidden] {
   display: none;
 }
 
-.asc-dl.is-tabbed .asc-dl-panel-title {
+.hub-dl.is-tabbed .hub-dl-panel-title {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -107,14 +107,14 @@
   clip-path: inset(50%);
 }
 
-.asc-dl-panel-title {
+.hub-dl-panel-title {
   margin: 8px 0 0;
   font-size: 1.375rem;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
-.asc-dl-arch {
+.hub-dl-arch {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -125,30 +125,30 @@
   border-radius: var(--asc-radius);
 }
 
-.asc-dl-arch[data-recommended] {
+.hub-dl-arch[data-recommended] {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 1px var(--color-primary);
   order: -1;
 }
 
-.asc-dl-arch-head {
+.hub-dl-arch-head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
 }
 
-.asc-dl-arch-title {
+.hub-dl-arch-title {
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
 }
 
-.asc-dl-badge[hidden] {
+.hub-dl-badge[hidden] {
   display: none;
 }
 
-.asc-dl-button.ui.button {
+.hub-dl-button.ui.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -160,13 +160,13 @@
   font-weight: 700;
 }
 
-.asc-dl-button-size {
+.hub-dl-button-size {
   font-weight: 500;
   opacity: 0.85;
 }
 
 /* files */
-.asc-dl-files {
+.hub-dl-files {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -175,20 +175,20 @@
   list-style: none;
 }
 
-.asc-dl-file {
+.hub-dl-file {
   padding: 12px 14px;
   background: var(--color-body);
   border: 1px solid var(--color-secondary);
   border-radius: 10px;
 }
 
-.asc-dl-file-head {
+.hub-dl-file-head {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.asc-dl-file-name {
+.hub-dl-file-name {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -196,12 +196,12 @@
   overflow-wrap: anywhere;
 }
 
-.asc-dl-file-meta {
+.hub-dl-file-meta {
   color: var(--color-text-light);
   font-size: 0.8125rem;
 }
 
-.asc-dl-hash {
+.hub-dl-hash {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -209,7 +209,7 @@
   margin-top: 6px;
 }
 
-.asc-dl-hash-label {
+.hub-dl-hash-label {
   color: var(--color-text-light);
   font-size: 0.75rem;
   font-weight: 700;
@@ -217,12 +217,12 @@
   text-transform: uppercase;
 }
 
-.asc-dl-hash .asc-hash {
+.hub-dl-hash .hub-hash {
   flex: 1 1 14rem;
   min-width: 0;
 }
 
-.asc-dl-file-sig {
+.hub-dl-file-sig {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -232,8 +232,8 @@
   overflow-wrap: anywhere;
 }
 
-.asc-copy.ui.button,
-.asc-copy.ui.compact.button {
+.hub-copy.ui.button,
+.hub-copy.ui.compact.button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -244,18 +244,18 @@
 }
 
 /* commands */
-.asc-dl-command {
+.hub-dl-command {
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-width: 0;
 }
 
-.asc-dl-command + .asc-dl-command {
+.hub-dl-command + .hub-dl-command {
   margin-top: 4px;
 }
 
-.asc-dl-command-head {
+.hub-dl-command-head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -263,7 +263,7 @@
   gap: 4px 12px;
 }
 
-.asc-dl-command-title {
+.hub-dl-command-title {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -273,13 +273,13 @@
   font-weight: 700;
 }
 
-.asc-dl-command-shell {
+.hub-dl-command-shell {
   color: var(--color-text-light);
   font-size: 0.8125rem;
   font-weight: 600;
 }
 
-.asc-dl-packages {
+.hub-dl-packages {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -289,7 +289,7 @@
   border-radius: var(--asc-radius);
 }
 
-.asc-dl-note {
+.hub-dl-note {
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -299,30 +299,30 @@
   line-height: 1.55;
 }
 
-.asc-dl-note svg {
+.hub-dl-note svg {
   flex: none;
   margin-top: 3px;
 }
 
 @media (min-width: 640px) {
-  .asc-dl-file-head {
+  .hub-dl-file-head {
     flex-direction: row;
     align-items: baseline;
     justify-content: space-between;
     gap: 12px;
   }
-  .asc-dl-button.ui.button {
+  .hub-dl-button.ui.button {
     align-self: flex-start;
     min-width: 300px;
   }
 }
 
 @media (min-width: 960px) {
-  .asc-dl-layout {
+  .hub-dl-layout {
     grid-template-columns: minmax(0, 1fr) 360px;
     gap: 32px;
   }
-  .asc-dl-side {
+  .hub-dl-side {
     position: sticky;
     top: 16px;
   }
