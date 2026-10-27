@@ -1,129 +1,139 @@
 {{/*
-The inbox (design board "Inbox: whose turn"). routers/web/user/asc_inbox_page.go builds .AscInbox.
+The inbox (design boards "Inbox" and "Mobile-Inbox": whose turn it is). routers/web/user/asc_inbox_page.go builds .AscInbox.
 Template Attributes:
 * AscInbox: *user.AscInboxPage
 * AscInboxSnoozed: how many items are hidden by a snooze
 * CsrfTokenHtml
+Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Explicit) with a way back; from 1024 both sit side by side.
 */}}
 {{template "base/head" .}}
 {{$p := .AscInbox}}
-<div role="main" aria-label="{{.Title}}" class="page-content dashboard asc-inbox">
-	<div class="ap-inbox">
-		<section class="ap-inbox-list" aria-labelledby="ap-inbox-title">
-			<div class="ap-inbox-top">
-				<h1 id="ap-inbox-title">{{ctx.Locale.Tr "user.asc_inbox"}} <span class="sub">{{ctx.Locale.Tr "user.asc_inbox.subtitle"}}</span></h1>
-				<nav class="ap-itabs" aria-label="{{ctx.Locale.Tr "user.asc_inbox.tabs"}}">
+<div role="main" aria-label="{{.Title}}" class="ds-main wk-page wk-inbox{{if $p.Explicit}} is-detail{{end}}">
+	{{if $p.Explicit}}
+		{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "user.asc_inbox") "BackHref" (print AppSubUrl "/-/asc/inbox") "BackLabel" (ctx.Locale.Tr "asc_work.inbox_back"))}}
+	{{end}}
+	<div class="wk-inbox-grid">
+		<section class="wk-inbox-list" aria-labelledby="wk-inbox-title">
+			<div class="wk-inbox-top">
+				<h1 id="wk-inbox-title" class="ds-t-h1 wk-title">{{ctx.Locale.Tr "user.asc_inbox"}} <span class="wk-title-sub">{{ctx.Locale.Tr "user.asc_inbox.subtitle"}}</span></h1>
+				<nav class="wk-itabs" aria-label="{{ctx.Locale.Tr "user.asc_inbox.tabs"}}">
 					{{range $p.Tabs}}
-						<a href="{{.URL}}"{{if .Active}} class="active" aria-current="page"{{end}}>{{.Label}}{{if .Count}} <span class="count">{{.Count}}</span>{{end}}</a>
+						<a href="{{.URL}}"{{if .Active}} aria-current="page"{{end}}>{{.Label}}{{if .Count}} <span class="ds-count">{{.Count}}</span>{{end}}</a>
 					{{end}}
 				</nav>
 				{{if $p.Repos}}
-					<form class="ap-ifilters" method="get" action="{{AppSubUrl}}/-/asc/inbox">
+					<form class="wk-ifilters" method="get" action="{{AppSubUrl}}/-/asc/inbox">
 						{{if ne $p.Tab "needs"}}<input type="hidden" name="tab" value="{{$p.Tab}}">{{end}}
-						<label class="ap-sr" for="ap-inbox-repo">{{ctx.Locale.Tr "user.asc_inbox.filter_repo"}}</label>
-						<select id="ap-inbox-repo" name="repo" data-asc-autosubmit>
-							<option value="">{{ctx.Locale.Tr "user.asc_inbox.all_repos"}}</option>
-							{{range $p.Repos}}<option value="{{.}}"{{if eq . $p.Repo}} selected{{end}}>{{.}}</option>{{end}}
-						</select>
-						<noscript><button class="ap-btn small" type="submit">{{ctx.Locale.Tr "user.asc_inbox.apply"}}</button></noscript>
-						<span class="sort">{{ctx.Locale.Tr "user.asc_inbox.sorted_by"}}</span>
+						<label class="ds-selectpill">
+							<span class="ds-sr">{{ctx.Locale.Tr "user.asc_inbox.filter_repo"}}</span>
+							<select name="repo" data-asc-autosubmit>
+								<option value="">{{ctx.Locale.Tr "user.asc_inbox.all_repos"}}</option>
+								{{range $p.Repos}}<option value="{{.}}"{{if eq . $p.Repo}} selected{{end}}>{{.}}</option>{{end}}
+							</select>
+							{{svg "dsi-chevron-down" 14}}
+						</label>
+						<noscript><button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "user.asc_inbox.apply"}}</button></noscript>
+						<span class="wk-sort ds-hide-xs">{{ctx.Locale.Tr "user.asc_inbox.sorted_by"}}</span>
 					</form>
 				{{end}}
 			</div>
 
 			{{if $p.Rows}}
-				<div class="ap-ilist" data-asc-list>
+				<ul class="wk-ilist" data-asc-list>
+					{{$day := ""}}
 					{{range $p.Rows}}
-						{{if .Entry}}
-							<a class="ap-irow{{if .Selected}} selected{{end}}" href="{{.URL}}" data-asc-row data-section="{{.Entry.Section}}"{{if .Selected}} aria-current="true"{{end}}>
-								<span class="ap-dot {{.Dash.Tone}}" aria-hidden="true"></span>
-								<span class="body">
-									<span class="title">{{.Dash.Title}}</span>
-									<span class="where">{{.Dash.Where}}{{if .Entry.Pinned}} &middot; {{ctx.Locale.Tr "user.asc_inbox.pinned"}}{{end}}</span>
-									{{if .Dash.Chips}}<span class="chips">{{range .Dash.Chips}}<span class="ap-pill {{.Tone}}">{{.Text}}</span>{{end}}</span>{{end}}
-								</span>
-								{{if .Dash.Action}}<span class="go">{{.Dash.Action}}</span>{{else if not .Entry.Updated.IsZero}}<span class="when">{{DateUtils.TimeSince .Entry.Updated}}</span>{{end}}
-							</a>
-						{{else}}
-							<a class="ap-irow" href="{{.URL}}" data-asc-row data-section="agent">
-								<span class="ap-dot {{.Dash.Tone}}" aria-hidden="true"></span>
-								<span class="body">
-									<span class="title">{{.Dash.Title}}</span>
-									<span class="where">{{.Dash.Where}}{{if .Dash.Meta}} &middot; {{.Dash.Meta}}{{end}}</span>
-									{{if .Dash.Chips}}<span class="chips">{{range .Dash.Chips}}<span class="ap-pill {{.Tone}}">{{.Text}}</span>{{end}}</span>{{end}}
-								</span>
-							</a>
+						{{if and .Day (ne .Day $day)}}
+							{{$day = .Day}}
+							<li class="wk-iday">{{.Day}}</li>
 						{{end}}
+						<li class="wk-irow{{if .Selected}} is-selected{{end}}">
+							<span class="ds-dot ds-dot-{{if eq .Dash.Tone "amber"}}warn{{else if eq .Dash.Tone "red"}}err{{else if eq .Dash.Tone "green"}}ok{{else if eq .Dash.Tone "violet"}}agent{{end}} wk-irow-dot" aria-hidden="true"></span>
+							<div class="wk-irow-main">
+								<a class="wk-irow-link" href="{{.URL}}" data-asc-row{{if .Entry}} data-section="{{.Entry.Section}}"{{else}} data-section="agent"{{end}}{{if .Selected}} aria-current="true"{{end}}>{{.Dash.Title}}</a>
+								<div class="wk-irow-where">{{.Dash.Where}}{{if and .Entry .Entry.Pinned}} &middot; {{ctx.Locale.Tr "user.asc_inbox.pinned"}}{{else if and (not .Entry) .Dash.Meta}} &middot; {{.Dash.Meta}}{{end}}</div>
+								{{if .Dash.Chips}}
+									<div class="wk-chips">
+										{{range .Dash.Chips}}<span class="ds-chip{{if eq .Tone "amber"}} ds-chip-warn{{else if eq .Tone "green"}} ds-chip-ok{{else if eq .Tone "red"}} ds-chip-err{{else if eq .Tone "violet"}} ds-chip-agent{{end}}">{{.Text}}</span>{{end}}
+									</div>
+								{{end}}
+							</div>
+							{{if .Dash.Action}}<span class="wk-irow-go">{{.Dash.Action}}</span>{{else if and .Entry (not .Entry.Updated.IsZero)}}<span class="wk-when">{{DateUtils.TimeSince .Entry.Updated}}</span>{{end}}
+						</li>
 					{{end}}
-				</div>
+				</ul>
 			{{else}}
-				<p class="ap-empty">{{ctx.Locale.Tr (printf "user.asc_inbox.empty.%s" $p.Tab)}}</p>
+				<div class="ds-empty wk-empty-in">
+					<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-inbox" 32}}</span>
+					<h3>{{ctx.Locale.Tr (printf "asc_work.inbox_empty_title_%s" $p.Tab)}}</h3>
+					<p>{{ctx.Locale.Tr (printf "user.asc_inbox.empty.%s" $p.Tab)}}</p>
+				</div>
 			{{end}}
-			<p class="ap-hintbar ap-hide-touch">
+			<p class="wk-hintbar">
 				{{ctx.Locale.Tr "user.asc_inbox.count" $p.Total}}
-				<kbd class="ap-kbd">j</kbd><kbd class="ap-kbd">k</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_move"}} &middot;
-				<kbd class="ap-kbd">s</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_snooze"}} &middot;
-				<kbd class="ap-kbd">p</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_pin"}}
+				<span class="ds-hide-md"><kbd class="ds-kbd">j</kbd> <kbd class="ds-kbd">k</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_move"}} &middot; <kbd class="ds-kbd">s</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_snooze"}} &middot; <kbd class="ds-kbd">p</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_pin"}}</span>
 			</p>
-			{{if .AscInboxSnoozed}}<p class="ap-hintbar">{{ctx.Locale.Tr "user.asc_inbox.snoozed" .AscInboxSnoozed}}</p>{{end}}
+			{{if .AscInboxSnoozed}}<p class="wk-hintbar">{{ctx.Locale.Tr "user.asc_inbox.snoozed" .AscInboxSnoozed}}</p>{{end}}
 		</section>
 
 		{{with $p.Detail}}
-		<section class="ap-inbox-detail" aria-labelledby="ap-detail-title">
-			<div class="ap-detail-top">
-				<span class="ap-pill amber bold">{{ctx.Locale.Tr (printf "user.asc_inbox.turn.%s" .Row.Entry.Section)}}</span>
-				<span class="where">{{.Row.Dash.Where}}</span>
+		<section class="wk-inbox-detail" aria-labelledby="wk-detail-title">
+			<div class="wk-detail-top">
+				<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr (printf "user.asc_inbox.turn.%s" .Row.Entry.Section)}}</span>
+				<span class="wk-detail-where">{{.Row.Dash.Where}}</span>
+				<a class="ds-btn ds-btn-secondary ds-btn-sm wk-detail-open" href="{{.Row.Entry.Link}}" data-asc-open>{{ctx.Locale.Tr "user.asc_inbox.open_review"}}</a>
 			</div>
-			<h2 id="ap-detail-title" class="ap-detail-title">{{.Row.Dash.Title}}</h2>
+			<h2 id="wk-detail-title" class="wk-detail-title">{{.Row.Dash.Title}}</h2>
 
-			<section class="ap-panel padded" aria-labelledby="ap-why-title">
-				<h3 class="ap-eyebrow" id="ap-why-title">{{ctx.Locale.Tr "user.asc_inbox.why_title"}}</h3>
-				<p class="ap-why">{{.Why}}</p>
-				<div class="ap-facts">
-					{{if .Info}}
-						{{if .Info.HasDiff}}<span><b>+{{.Info.Additions}} &minus;{{.Info.Deletions}}</b> {{ctx.Locale.TrN .Info.Files "user.asc_dash.in_file_one" "user.asc_dash.in_file_n" .Info.Files}}</span>{{end}}
-						{{if .Info.ChecksFail}}<span class="bad"><b>{{ctx.Locale.TrN .Info.ChecksFail "user.asc_dash.check_failing_one" "user.asc_dash.check_failing_n" .Info.ChecksFail}}</b></span>
-						{{else if .Info.ChecksPending}}<span>{{ctx.Locale.Tr "user.asc_dash.checks_running"}}</span>
-						{{else if .Info.ChecksPass}}<span class="good"><b>{{ctx.Locale.TrN .Info.ChecksPass "user.asc_dash.check_pass_one" "user.asc_dash.check_pass_n" .Info.ChecksPass}}</b></span>{{end}}
-						{{if .Info.Approvals}}<span>{{ctx.Locale.TrN .Info.Approvals "user.asc_dash.approval_one" "user.asc_dash.approval_n" .Info.Approvals}}</span>{{end}}
-					{{end}}
-					{{if .Row.Entry.Conflicted}}<span class="bad"><b>{{ctx.Locale.Tr "user.asc_dash.conflicts"}}</b></span>{{end}}
+			<section class="ds-card wk-card" aria-labelledby="wk-why-title">
+				<div class="ds-card-b">
+					<h3 class="ds-t-micro wk-eyebrow" id="wk-why-title">{{ctx.Locale.Tr "user.asc_inbox.why_title"}}</h3>
+					<p class="wk-why">{{.Why}}</p>
+					<div class="wk-facts">
+						{{if .Info}}
+							{{if .Info.HasDiff}}<span><b>+{{.Info.Additions}} &minus;{{.Info.Deletions}}</b> {{ctx.Locale.TrN .Info.Files "user.asc_dash.in_file_one" "user.asc_dash.in_file_n" .Info.Files}}</span>{{end}}
+							{{if .Info.ChecksFail}}<span class="ds-c-err"><b>{{ctx.Locale.TrN .Info.ChecksFail "user.asc_dash.check_failing_one" "user.asc_dash.check_failing_n" .Info.ChecksFail}}</b></span>
+							{{else if .Info.ChecksPending}}<span>{{ctx.Locale.Tr "user.asc_dash.checks_running"}}</span>
+							{{else if .Info.ChecksPass}}<span class="ds-c-ok"><b>{{ctx.Locale.TrN .Info.ChecksPass "user.asc_dash.check_pass_one" "user.asc_dash.check_pass_n" .Info.ChecksPass}}</b></span>{{end}}
+							{{if .Info.Approvals}}<span>{{ctx.Locale.TrN .Info.Approvals "user.asc_dash.approval_one" "user.asc_dash.approval_n" .Info.Approvals}}</span>{{end}}
+						{{end}}
+						{{if .Row.Entry.Conflicted}}<span class="ds-c-err"><b>{{ctx.Locale.Tr "user.asc_dash.conflicts"}}</b></span>{{end}}
+					</div>
 				</div>
 			</section>
 
-			<section class="ap-panel" aria-labelledby="ap-thread-title">
-				<div class="ap-panel-head"><h3 id="ap-thread-title">{{ctx.Locale.Tr "user.asc_inbox.thread"}}</h3></div>
+			<section class="ds-card wk-card" aria-labelledby="wk-thread-title">
+				<div class="ds-card-h"><h3 id="wk-thread-title">{{ctx.Locale.Tr "user.asc_inbox.thread"}}</h3></div>
 				{{range .Comments}}
-					<div class="ap-comment">
+					<div class="wk-comment">
 						{{ctx.AvatarUtils.Avatar .Poster 32}}
-						<div class="body">
-							<div class="who"><b>{{.Poster.GetDisplayName}}</b> <span>{{DateUtils.TimeSince .Created}}</span></div>
-							<div class="text">{{.Body}}</div>
+						<div class="wk-comment-body">
+							<div class="wk-comment-who"><b>{{.Poster.GetDisplayName}}</b> <span class="ds-c-2">{{DateUtils.TimeSince .Created}}</span></div>
+							<div class="wk-comment-text">{{.Body}}</div>
 						</div>
 					</div>
 				{{else}}
-					<p class="ap-empty">{{ctx.Locale.Tr "user.asc_inbox.thread_empty"}}</p>
+					<p class="wk-quiet">{{ctx.Locale.Tr "user.asc_inbox.thread_empty"}}</p>
 				{{end}}
-				<form class="ap-reply form-fetch-action" method="post" action="{{.ReviewURL}}">
+				<form class="wk-reply form-fetch-action" method="post" action="{{.ReviewURL}}">
 					{{$.CsrfTokenHtml}}
 					{{if .CommitID}}<input type="hidden" name="commit_id" value="{{.CommitID}}">{{end}}
-					<label class="ap-sr" for="ap-reply-text">{{ctx.Locale.Tr "user.asc_inbox.reply_label"}}</label>
-					<textarea id="ap-reply-text" name="content" rows="2" placeholder="{{ctx.Locale.Tr "user.asc_inbox.reply_placeholder"}}"></textarea>
-					<div class="buttons">
+					<label class="ds-sr" for="wk-reply-text">{{ctx.Locale.Tr "user.asc_inbox.reply_label"}}</label>
+					<textarea class="ds-textarea" id="wk-reply-text" name="content" rows="2" placeholder="{{ctx.Locale.Tr "user.asc_inbox.reply_placeholder"}}"></textarea>
+					<div class="wk-reply-actions">
 						{{if .CanReview}}
-							<button class="ap-btn primary" type="submit" name="type" value="approve">{{ctx.Locale.Tr "user.asc_inbox.approve"}}</button>
-							<button class="ap-btn" type="submit" name="type" value="reject">{{ctx.Locale.Tr "user.asc_inbox.request_changes"}}</button>
+							<button class="ds-btn ds-btn-primary" type="submit" name="type" value="approve">{{ctx.Locale.Tr "user.asc_inbox.approve"}}</button>
+							<button class="ds-btn ds-btn-secondary" type="submit" name="type" value="reject">{{ctx.Locale.Tr "user.asc_inbox.request_changes"}}</button>
 						{{end}}
-						<button class="ap-btn" type="submit" name="type" value="comment">{{ctx.Locale.Tr "user.asc_inbox.reply"}}</button>
+						<button class="ds-btn ds-btn-secondary" type="submit" name="type" value="comment">{{ctx.Locale.Tr "user.asc_inbox.reply"}}</button>
 					</div>
 				</form>
 			</section>
 
-			<div class="ap-detail-actions">
-				<a class="ap-btn" href="{{.Row.Entry.Link}}" data-asc-open>{{ctx.Locale.Tr "user.asc_inbox.open_review"}} <kbd class="ap-kbd ap-hide-touch">Enter</kbd></a>
-				<details class="ap-snooze" data-asc-snooze>
-					<summary class="ap-btn">{{ctx.Locale.Tr "user.asc_inbox.snooze"}} <kbd class="ap-kbd ap-hide-touch">s</kbd></summary>
-					<div class="menu">
+			<div class="wk-detail-actions">
+				<a class="ds-btn ds-btn-secondary" href="{{.Row.Entry.Link}}">{{ctx.Locale.Tr "user.asc_inbox.open_review"}} <kbd class="ds-kbd ds-hide-md">Enter</kbd></a>
+				<details class="wk-snooze" data-asc-snooze>
+					<summary class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "user.asc_inbox.snooze"}} <kbd class="ds-kbd ds-hide-md">s</kbd></summary>
+					<div class="wk-snooze-menu">
 						{{range $k := (StringUtils.Make "1h" "4h" "tomorrow" "week")}}
 							<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state">
 								{{$.CsrfTokenHtml}}
@@ -141,18 +151,26 @@ Template Attributes:
 					<input type="hidden" name="pull" value="{{.Row.Entry.PullID}}">
 					<input type="hidden" name="tab" value="{{.Return}}">
 					<input type="hidden" name="do" value="{{if .Pinned}}unpin{{else}}pin{{end}}">
-					<button class="ap-btn" type="submit" data-asc-pin>{{if .Pinned}}{{ctx.Locale.Tr "user.asc_inbox.unpin"}}{{else}}{{ctx.Locale.Tr "user.asc_inbox.pin"}}{{end}} <kbd class="ap-kbd ap-hide-touch">p</kbd></button>
+					<button class="ds-btn ds-btn-secondary" type="submit" data-asc-pin>{{if .Pinned}}{{ctx.Locale.Tr "user.asc_inbox.unpin"}}{{else}}{{ctx.Locale.Tr "user.asc_inbox.pin"}}{{end}} <kbd class="ds-kbd ds-hide-md">p</kbd></button>
 				</form>
 			</div>
-			{{if $p.NextURL}}
-				<div class="ap-next only-mobile"><a class="ap-btn primary" href="{{$p.NextURL}}">{{ctx.Locale.Tr "user.asc_inbox.open_next"}}</a></div>
+			{{if and $p.Explicit $p.NextURL}}
+				<div class="ds-sticky-actions wk-inbox-next"><a class="ds-btn ds-btn-primary" href="{{$p.NextURL}}">{{ctx.Locale.Tr "user.asc_inbox.open_next"}}</a></div>
 			{{end}}
 		</section>
 		{{else}}
-			<section class="ap-inbox-detail ap-inbox-none" aria-label="{{ctx.Locale.Tr "user.asc_inbox"}}">
-				<p class="ap-empty">{{ctx.Locale.Tr "user.asc_inbox.pick"}}</p>
+			<section class="wk-inbox-detail wk-inbox-none" aria-label="{{ctx.Locale.Tr "user.asc_inbox"}}">
+				<p class="wk-quiet">{{ctx.Locale.Tr "user.asc_inbox.pick"}}</p>
 			</section>
 		{{end}}
 	</div>
+	{{if and (not $p.Explicit) $p.Rows}}
+		{{$first := index $p.Rows 0}}
+		{{if $first.Entry}}
+			<div class="wk-inbox-first">
+				<div class="ds-sticky-actions"><a class="ds-btn ds-btn-primary" href="{{$first.URL}}"><span class="ds-truncate">{{ctx.Locale.Tr "asc_work.inbox_open_first" $first.Dash.Title}}</span></a></div>
+			</div>
+		{{end}}
+	{{end}}
 </div>
 {{template "base/footer" .}}

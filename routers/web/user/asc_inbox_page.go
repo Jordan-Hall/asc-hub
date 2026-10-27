@@ -81,6 +81,7 @@ type AscInboxRow struct {
 	Dash     AscDashRow
 	Selected bool
 	URL      string // the page with this row selected
+	Day      string // "Today", "Yesterday" or the date: the heading the row sits under
 }
 
 // AscInboxComment is one comment of the thread.
@@ -118,6 +119,22 @@ type AscInboxPage struct {
 	Total    int
 	NextURL  string // the first row that is not selected, for the phone's "open next" button
 	Return   string
+	Explicit bool // the person picked a row (the address names a listed pull request): a phone then shows its pane instead of the list
+}
+
+// ascInboxDay names the day of t for the headings of the list: today, yesterday or the date.
+func ascInboxDay(l translation.Locale, t, now time.Time) string {
+	loc := setting.DefaultUILocation
+	t, now = t.In(loc), now.In(loc)
+	y, m, d := now.Date()
+	today := time.Date(y, m, d, 0, 0, 0, 0, loc)
+	switch {
+	case !t.Before(today):
+		return l.TrString("asc_work.inbox_today")
+	case !t.Before(today.AddDate(0, 0, -1)):
+		return l.TrString("asc_work.inbox_yesterday")
+	}
+	return t.Format("2 Jan 2006")
 }
 
 // ascInboxURL builds the address of the page with the given parts.
@@ -239,7 +256,7 @@ func ascInboxBuild(ctx *context.Context, now time.Time, tabName, repoFilter stri
 		if len(p.Rows) < ascInboxInfoRows {
 			info = ascInboxInfoLoad(ctx, e)
 		}
-		p.Rows = append(p.Rows, AscInboxRow{Entry: e, Dash: ascDashRowFor(l, e, info), URL: ascInboxURL(tab, p.Repo, e.PullID)})
+		p.Rows = append(p.Rows, AscInboxRow{Entry: e, Dash: ascDashRowFor(l, e, info), URL: ascInboxURL(tab, p.Repo, e.PullID), Day: ascInboxDay(l, e.Updated, now)})
 	}
 	if tab == ascInboxTabNeeds && agentsOn {
 		for i := range agents {
@@ -257,6 +274,7 @@ func ascInboxBuild(ctx *context.Context, now time.Time, tabName, repoFilter stri
 	for i, r := range p.Rows {
 		if r.Entry != nil && r.Entry.PullID == pullID && pullID > 0 {
 			sel = i
+			p.Explicit = true
 			break
 		}
 	}
