@@ -279,7 +279,18 @@ func (ctx *preReceiveContext) importIntoAsc() bool {
 	}
 	// asc's outbox can call post-receive before this call returns, and names the hub itself as the pusher, so
 	// the pusher is recorded first (services/ascsync/fanout.go).
-	ascsync.RememberPusher(repo, ctx.opts.UserID, refs)
+	// The memory of the push is forgotten on every path that does not end with the push accepted, so a refused or
+	// failed push can never be claimed by a later call.
+	token, rerr := ascsync.RememberPusher(repo, ctx.opts.UserID, refs)
+	if rerr != nil {
+		log.Warn("the pusher of a push to %-v is not remembered: %v", repo, rerr)
+	}
+	accepted := false
+	defer func() {
+		if !accepted {
+			token.Forget()
+		}
+	}()
 	err = ascsync.ImportPush(ctx, ascsync.ImportRequest{
 		Repo:     repo,
 		PusherID: ctx.opts.UserID,
@@ -287,6 +298,7 @@ func (ctx *preReceiveContext) importIntoAsc() bool {
 		Refs:     refs,
 	})
 	if err == nil {
+		accepted = true
 		return true
 	}
 	if msg, ok := ascsync.RejectMessage(err); ok {

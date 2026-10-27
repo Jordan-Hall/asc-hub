@@ -412,22 +412,21 @@ func settleAscFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions,
 		return // the ordinary path reports it
 	}
 	refs := make([]ascsync.PushRef, 0, len(opts.RefFullNames))
+	complete := len(opts.OldCommitIDs) == len(opts.RefFullNames) && len(opts.NewCommitIDs) == len(opts.RefFullNames)
 	for i, name := range opts.RefFullNames {
 		if i >= len(opts.OldCommitIDs) || i >= len(opts.NewCommitIDs) {
 			break
 		}
 		refs = append(refs, ascsync.PushRef{Name: string(name), Old: opts.OldCommitIDs[i], New: opts.NewCommitIDs[i]})
 	}
-	if opts.UserID <= 0 && opts.UserID != user_model.ActionsUserID {
-		for _, r := range refs {
-			id, ok := ascsync.PusherOf(repo, r.Name, r.New)
-			if !ok {
-				continue
-			}
+	// Only a call without a user is given one (not the Actions user, not a user asc named), and only when every
+	// ref change of the call belongs to the one push that was remembered: a call that mixes pushes, or holds a ref
+	// change nobody remembers, stays unattributed.
+	if opts.UserID == 0 && complete {
+		if id, ok := ascsync.ClaimPusher(repo, refs); ok {
 			if u, err := loadContextCacheUser(ctx, id); err == nil {
 				opts.UserID, opts.UserName = u.ID, u.Name
 			}
-			break
 		}
 	}
 	if err := ascsync.WaitForRefs(ctx, repo, refs); err != nil {
