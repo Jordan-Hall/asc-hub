@@ -1,0 +1,7 @@
+{{/* The light, dark and system colour toggle. One button cycles the three modes; head_style.tmpl holds the script that paints it. Only for the asc themes. */}}
+{{if StringUtils.HasPrefix (ThemeName .SignedUser) "asc-"}}
+<button type="button" class="item asc-theme-toggle" data-asc-theme-toggle data-mode="system" aria-label="{{ctx.Locale.Tr "asc_shell.theme_label"}}" data-label="{{ctx.Locale.Tr "asc_shell.theme_current"}}" data-name-system="{{ctx.Locale.Tr "asc_shell.theme_system"}}" data-name-light="{{ctx.Locale.Tr "asc_shell.theme_light"}}" data-name-dark="{{ctx.Locale.Tr "asc_shell.theme_dark"}}">
+	<span class="asc-theme-icons" aria-hidden="true">{{svg "octicon-device-desktop" 16 "asc-ti-system"}}{{svg "octicon-sun" 16 "asc-ti-light"}}{{svg "octicon-moon" 16 "asc-ti-dark"}}</span>
+	<span class="asc-theme-text">{{ctx.Locale.Tr "asc_shell.theme_system"}}</span>
+</button>
+{{end}}
