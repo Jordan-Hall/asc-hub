@@ -36,7 +36,7 @@
 		{{if and .HasIssuesOrPullsWritePermission (not .Repository.IsArchived)}}
 			{{with index .Assignees 0}}
 				–
-				<a class="select-assign-me" href="#" data-id="{{.ID}}" data-id-selector="#assignee_{{.ID}}" {{if $.isExistingIssue}} data-action="update" {{end}} data-issue-id="{{$.Issue.ID}}" data-update-url="{{$.RepoLink}}/issues/assignee" role="option">
+				<a class="select-assign-me tw-underline" href="#" data-id="{{.ID}}" data-id-selector="#assignee_{{.ID}}" {{if $.isExistingIssue}} data-action="update" {{end}} data-issue-id="{{$.Issue.ID}}" data-update-url="{{$.RepoLink}}/issues/assignee">
 					{{ctx.Locale.Tr "repo.issues.new.assign_to_me"}}
 				</a>
 			{{end}}

@@ -181,7 +181,8 @@ class ComboMarkdownEditor {
     const monospaceText = monospaceButton.getAttribute(monospaceEnabled ? 'data-disable-text' : 'data-enable-text');
     monospaceButton.setAttribute('data-tooltip-content', monospaceText);
     monospaceButton.setAttribute('aria-label', monospaceText);
-    monospaceButton.setAttribute('aria-checked', String(monospaceEnabled));
+    // a toggle button is pressed or not; aria-checked belongs to the roles checkbox and switch, not to a button
+    monospaceButton.setAttribute('aria-pressed', String(monospaceEnabled));
 
     monospaceButton?.addEventListener('click', (e) => {
       e.preventDefault();
@@ -191,7 +192,7 @@ class ComboMarkdownEditor {
       const text = monospaceButton.getAttribute(enabled ? 'data-disable-text' : 'data-enable-text');
       monospaceButton.setAttribute('data-tooltip-content', text);
       monospaceButton.setAttribute('aria-label', text);
-      monospaceButton.setAttribute('aria-checked', String(enabled));
+      monospaceButton.setAttribute('aria-pressed', String(enabled));
     });
 
     const easymdeButton = this.container.querySelector('.markdown-switch-easymde');

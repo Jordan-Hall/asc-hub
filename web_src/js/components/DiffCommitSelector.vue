@@ -198,7 +198,6 @@ export default {
       aria-haspopup="true"
       aria-controls="diff-commit-selector-menu"
       :aria-label="locale.filter_changes_by_commit"
-      aria-activedescendant="diff-commit-list-show-all"
     >
       <svg-icon name="octicon-git-commit"/>
     </button>

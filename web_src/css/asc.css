@@ -584,3 +584,15 @@ pre.code-block {
   height: 0;
   outline: none;
 }
+
+/* A link inside a sentence of a message box is told apart from the text by more than its color (WCAG 1.4.1). */
+.ui.message a:not(.ui.button):not(.ui.label):not(.item) {
+  text-decoration: underline;
+}
+
+/* A title link of a list row is at least 24 CSS pixels tall (WCAG 2.5.8), as every other link target. */
+.flex-item-title > a.issue-title {
+  display: inline-block;
+  min-height: 24px;
+  line-height: 24px;
+}

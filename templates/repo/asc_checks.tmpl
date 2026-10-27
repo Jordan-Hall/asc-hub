@@ -48,7 +48,7 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 			{{if .Jobs}}
 			<section class="ast-card" aria-labelledby="asc-jobs">
 				<div class="ast-card-head"><h3 id="asc-jobs" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.jobs_title"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_trust.checks.jobs_aside"}}</span></div>
-				<div class="asc-trust-table-wrap">
+				<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 					<table class="ui very basic table asc-trust-table" data-testid="asc-jobs">
 						<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_trust.checks.jobs_title"}}</caption>
 						<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.job"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_causes"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_failures"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_changes"}}</th></tr></thead>
@@ -69,7 +69,7 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 
 			<section class="ast-card" aria-labelledby="asc-groups">
 				<div class="ast-card-head"><h3 id="asc-groups" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.groups_title"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_trust.checks.groups_aside"}}</span></div>
-				<div class="asc-trust-table-wrap">
+				<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 					<table class="ui very basic table asc-trust-table" data-testid="asc-groups">
 						<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_trust.checks.groups_title"}}</caption>
 						<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_cause"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_state"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_seen"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_changes"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_last_seen"}}</th></tr></thead>
@@ -113,7 +113,7 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 			{{if eq .View "flaky"}}
 			<section class="ast-card" aria-labelledby="asc-flaky">
 				<div class="ast-card-head"><h3 id="asc-flaky" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.checks.flaky_title"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_trust.checks.last_days" .Window}}</span></div>
-				<div class="asc-trust-table-wrap">
+				<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 					<table class="ui very basic table asc-trust-table" data-testid="asc-flaky">
 						<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_trust.checks.flaky_title"}}</caption>
 						<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.test"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_rate"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_runs"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_last_flip"}}</th></tr></thead>

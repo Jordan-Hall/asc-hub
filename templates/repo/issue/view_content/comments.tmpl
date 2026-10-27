@@ -20,7 +20,7 @@
 					{{ctx.AvatarUtils.Avatar nil 40}}
 				</span>
 			{{else}}
-				<a class="timeline-avatar"{{if gt .Poster.ID 0}} href="{{.Poster.HomeLink}}"{{end}}>
+				<a class="timeline-avatar"{{if gt .Poster.ID 0}} href="{{.Poster.HomeLink}}"{{end}} aria-label="{{.Poster.GetDisplayName}}">
 					{{ctx.AvatarUtils.Avatar .Poster 40}}
 				</a>
 			{{end}}
@@ -40,7 +40,7 @@
 								</span>
 							{{else}}
 								{{if gt .Poster.ID 0}}
-									<a class="inline-timeline-avatar" href="{{.Poster.HomeLink}}">
+									<a class="inline-timeline-avatar" href="{{.Poster.HomeLink}}" aria-label="{{.Poster.GetDisplayName}}">
 										{{ctx.AvatarUtils.Avatar .Poster 24}}
 									</a>
 								{{end}}
@@ -401,7 +401,7 @@
 					{{if not .OriginalAuthor}}
 					{{/* Some timeline avatars need a offset to correctly align with their speech bubble.
 						The condition depends on whether the comment has contents/attachments or reviews */}}
-					<a class="timeline-avatar{{if or .Content .Attachments (and .Review .Review.CodeComments)}} timeline-avatar-offset{{end}}"{{if gt .Poster.ID 0}} href="{{.Poster.HomeLink}}"{{end}}>
+					<a class="timeline-avatar{{if or .Content .Attachments (and .Review .Review.CodeComments)}} timeline-avatar-offset{{end}}"{{if gt .Poster.ID 0}} href="{{.Poster.HomeLink}}"{{end}} aria-label="{{.Poster.GetDisplayName}}">
 						{{ctx.AvatarUtils.Avatar .Poster 40}}
 					</a>
 					{{end}}
@@ -428,7 +428,7 @@
 						<div class="ui top attached header comment-header tw-flex tw-items-center tw-justify-between">
 							<div class="comment-header-left tw-flex tw-items-center">
 								{{if gt .Poster.ID 0}}
-									<a class="inline-timeline-avatar" href="{{.Poster.HomeLink}}">
+									<a class="inline-timeline-avatar" href="{{.Poster.HomeLink}}" aria-label="{{.Poster.GetDisplayName}}">
 										{{ctx.AvatarUtils.Avatar .Poster 24}}
 									</a>
 								{{end}}
@@ -636,7 +636,7 @@
 		{{else if eq .Type 32}}
 			<div class="timeline-item-group">
 				<div class="timeline-item event" id="{{.HashTag}}">
-					<a class="timeline-avatar"{{if gt .Poster.ID 0}} href="{{.Poster.HomeLink}}"{{end}}>
+					<a class="timeline-avatar"{{if gt .Poster.ID 0}} href="{{.Poster.HomeLink}}"{{end}} aria-label="{{.Poster.GetDisplayName}}">
 						{{ctx.AvatarUtils.Avatar .Poster 40}}
 					</a>
 					<span class="badge grey">{{svg "octicon-x" 16}}</span>
@@ -656,7 +656,7 @@
 						<div class="content">
 							<div class="ui top attached header comment-header-left tw-flex tw-items-center arrow-top">
 								{{if gt .Poster.ID 0}}
-									<a class="inline-timeline-avatar" href="{{.Poster.HomeLink}}">
+									<a class="inline-timeline-avatar" href="{{.Poster.HomeLink}}" aria-label="{{.Poster.GetDisplayName}}">
 										{{ctx.AvatarUtils.Avatar .Poster 24}}
 									</a>
 								{{end}}

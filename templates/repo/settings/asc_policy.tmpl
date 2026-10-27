@@ -98,7 +98,7 @@
 				<h3 id="asc-policy-who" class="ast-card-title">Who can write here</h3>
 				<span class="ast-card-aside">Computed from the policy</span>
 			</div>
-			<div class="asc-trust-table-wrap">
+			<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 				<table class="ui very basic table asc-trust-table" data-testid="asc-policy-who">
 					<thead>
 						<tr><th scope="col">Who</th>{{range .View.Table.Columns}}<th scope="col">{{.}}</th>{{end}}</tr>

@@ -93,7 +93,7 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 		{{end}}
 
 		{{if .Searched}}
-			<div class="asc-trust-table-wrap">
+			<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 				<table class="ui very basic table asc-trust-table" data-testid="asc-audit-table">
 					<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_trust.audit.events"}}</caption>
 					<thead>

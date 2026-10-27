@@ -124,6 +124,26 @@ function attachStaticElements(dropdown, focusable, menu) {
   if (tooltipContent && !dropdown.getAttribute('aria-label')) {
     dropdown.setAttribute('aria-label', tooltipContent);
   }
+
+  // the search input of a combobox is the element that screen readers announce, so it needs a name: when no label,
+  // aria-label or aria-labelledby names it, use what the dropdown shows (its aria-label, tooltip, default text or
+  // the placeholder of the input).
+  if (focusable.getAttribute('role') === 'combobox' && !hasAccessibleName(focusable)) {
+    const name = dropdown.getAttribute('aria-label') ||
+      dropdown.querySelector(':scope > .default.text, :scope > .text')?.textContent?.trim() ||
+      focusable.getAttribute('placeholder') || '';
+    if (name) focusable.setAttribute('aria-label', name);
+  }
+
+  // a dropdown that is switched off with the "disabled" class is a disabled widget for assistive technology too; this
+  // also exempts its dimmed text from the contrast requirement, as a disabled control is.
+  if (dropdown.classList.contains('disabled')) {
+    focusable.setAttribute('aria-disabled', 'true');
+  }
+}
+
+function hasAccessibleName(el) {
+  return Boolean(el.getAttribute('aria-label') || el.getAttribute('aria-labelledby') || el.labels?.length);
 }
 
 function attachInit(dropdown) {

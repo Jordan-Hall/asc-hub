@@ -50,7 +50,7 @@
 				<a class="ast-tab{{if .Active}} active{{end}}" href="{{$.AscSecurity.SecurityURL}}?state={{.Key}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-findings-tab-{{.Key}}">{{.Label}} <span class="ast-count">{{.Count}}</span></a>
 				{{end}}
 			</div>
-			<div class="asc-trust-table-wrap">
+			<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 				<table class="ui very basic table asc-trust-table" data-testid="asc-findings">
 					<caption class="tw-sr-only">Findings</caption>
 					<thead><tr><th scope="col">Where</th><th scope="col">Rule</th><th scope="col">Seen</th><th scope="col">State</th><th scope="col"><span class="tw-sr-only">Actions</span></th></tr></thead>
@@ -105,7 +105,7 @@
 
 		<section class="ast-card" aria-labelledby="asc-sec-rules">
 			<div class="ast-card-head"><h3 id="asc-sec-rules" class="ast-card-title">Rules</h3><span class="ast-card-aside">Built-in rules and the custom ones of the policy</span></div>
-			<div class="asc-trust-table-wrap">
+			<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 				<table class="ui very basic table asc-trust-table" data-testid="asc-rules">
 					<caption class="tw-sr-only">Scanning rules</caption>
 					<thead><tr><th scope="col">Rule</th><th scope="col">Severity</th><th scope="col">Detector</th><th scope="col">On</th></tr></thead>

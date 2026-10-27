@@ -25,7 +25,7 @@
 		<div {{if ne .Issue.DeadlineUnix 0}} class="tw-hidden"{{end}} id="deadlineForm">
 			<form class="ui fluid action input issue-due-form" action="{{AppSubUrl}}/{{PathEscape .Repository.Owner.Name}}/{{PathEscape .Repository.Name}}/issues/{{.Issue.Index}}/deadline" method="post" id="update-issue-deadline-form">
 				<input required placeholder="{{ctx.Locale.Tr "repo.issues.due_date_form"}}" {{if gt .Issue.DeadlineUnix 0}}value="{{.Issue.DeadlineUnix.FormatDate}}"{{end}} type="date" name="deadlineDate" id="deadlineDate">
-				<button class="ui icon button">
+				<button class="ui icon button" type="submit" aria-label="{{if ne .Issue.DeadlineUnix 0}}{{ctx.Locale.Tr "repo.issues.due_date_form_edit"}}{{else}}{{ctx.Locale.Tr "repo.issues.due_date_form_add"}}{{end}}">
 					{{if ne .Issue.DeadlineUnix 0}}
 						{{svg "octicon-check"}}
 					{{else}}
