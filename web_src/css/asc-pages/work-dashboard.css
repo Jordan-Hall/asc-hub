@@ -1,0 +1,395 @@
+/* Dashboard (boards Dashboard and Mobile-Dashboard): menu, needs you, agents, stacks, today. */
+
+.wk-dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.wk-dash-menu {
+  display: none;
+}
+
+.wk-dash-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.wk-dash-main {
+  min-width: 0;
+}
+
+.wk-dash-main .wk-head {
+  margin-bottom: 14px;
+}
+
+.wk-repos-mobile {
+  order: 3;
+}
+
+.wk-repo-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-repo-list li + li {
+  border-top: 1px solid var(--line-3);
+}
+
+.wk-repo-list a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.wk-repo-list a .ds-chev {
+  margin-left: auto;
+  color: var(--text-3);
+}
+
+.wk-sticky-wrap {
+  order: 4;
+}
+
+@media (min-width: 768px) {
+  .wk-dash-rail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  .wk-dash-rail > .ds-callout,
+  .wk-dash-rail > .wk-terminal-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .wk-dash-grid {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 24px;
+    padding-top: 24px;
+  }
+
+  .wk-dash-menu {
+    display: block;
+    position: sticky;
+    top: calc(var(--header-h) + 16px);
+    align-self: start;
+  }
+
+  .wk-dash-rail {
+    grid-column: 2;
+  }
+
+  .wk-repos-mobile,
+  .wk-sticky-wrap {
+    display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .wk-dash-grid {
+    grid-template-columns: 220px minmax(0, 1fr) 320px;
+  }
+
+  .wk-dash-rail {
+    grid-column: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wk-dash-rail > .wk-terminal-card {
+    grid-column: auto;
+  }
+
+  .wk-dash-main {
+    grid-column: 2;
+  }
+}
+
+/* left menu */
+.wk-dash-menu .ds-sidenav a {
+  min-height: 40px;
+}
+
+.wk-dash-menu .ds-sidenav a .ds-count {
+  font-size: 13px;
+}
+
+.wk-menu-more {
+  color: var(--link) !important;
+  font-weight: 600;
+}
+
+.wk-swatch {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--fill);
+}
+
+.wk-swatch-1 { background: var(--agent); }
+.wk-swatch-2 { background: var(--ok); }
+.wk-swatch-3 { background: var(--warn); }
+.wk-swatch-4 { background: var(--err); }
+
+/* needs you */
+.wk-needs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-need {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "dot main when"
+    "acts acts acts";
+  gap: 4px 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.wk-need:last-child {
+  border-bottom: 0;
+}
+
+.wk-need-dot {
+  grid-area: dot;
+  margin-top: 6px;
+}
+
+.wk-need-main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.wk-when {
+  grid-area: when;
+  padding-top: 1px;
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.wk-need-acts {
+  grid-area: acts;
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 0 22px;
+}
+
+.wk-need-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.wk-need-link {
+  color: var(--text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.wk-need-link:hover {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.wk-need-where {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.wk-need-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 8px;
+}
+
+.wk-need-acts .ds-btn {
+  min-width: 112px;
+}
+
+@media (min-width: 768px) {
+  .wk-need {
+    grid-template-columns: 10px minmax(0, 1fr) auto auto;
+    grid-template-areas: "dot main when acts";
+    align-items: start;
+    padding: 14px 18px;
+  }
+
+  .wk-need-acts {
+    margin: -4px 0 0;
+  }
+
+  .wk-need-acts .ds-btn {
+    min-width: 0;
+  }
+
+  .wk-need-where {
+    display: inline;
+    margin: 0 0 0 6px;
+  }
+}
+
+/* agents working now */
+.wk-agents {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-agent {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.wk-agent:last-child {
+  border-bottom: 0;
+}
+
+.wk-agent-name {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.wk-agent-name:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.wk-agent-state {
+  margin: 2px 0 8px;
+  font-size: 13.5px;
+}
+
+.wk-meter {
+  margin-top: 6px;
+}
+
+@media (min-width: 768px) {
+  .wk-agents {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wk-agent {
+    border-bottom: 0;
+    border-right: 1px solid var(--line-3);
+    padding: 14px 18px;
+  }
+
+  .wk-agent:last-child {
+    border-right: 0;
+  }
+}
+
+/* stacks and segments */
+.wk-stacks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-stack {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.wk-stack:last-child {
+  border-bottom: 0;
+}
+
+.wk-stack-name {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.wk-stack-name:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.wk-segs {
+  display: flex;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-segs li {
+  flex: 1;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--line-strong);
+}
+
+.wk-segs li.wk-seg-green { background: var(--ok); }
+.wk-segs li.wk-seg-amber { background: var(--warn); }
+.wk-segs li.wk-seg-red { background: var(--err); }
+.wk-segs li.wk-seg-grey { background: var(--line-strong); }
+
+/* today */
+.wk-feed {
+  margin: 0;
+  padding: 4px 16px 8px;
+  list-style: none;
+}
+
+.wk-feed li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-3);
+  color: var(--text-b);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.wk-feed li:last-child {
+  border-bottom: 0;
+}
+
+.wk-feed a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.wk-feed a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.wk-terminal-card .ds-card-b {
+  padding-top: 12px;
+}
