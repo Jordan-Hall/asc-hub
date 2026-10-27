@@ -72,5 +72,24 @@ Inline code comments, approve, merge now, merge queue landing, undo (blocked by 
 
 ## Re-run after the fixes (hub side)
 
-- Journey 3, clone: run against a real hub and a real `asc serve` (all-in-one layout, loopback h2c). `asc clone` through the hub address works, the authenticated push works, the private repository is refused to an anonymous client, and the upgrade request is refused. Not re-run with Playwright: the journeys of the browser (1, 2, 4 to 11) were not repeated after the fixes; only the Go tests (end to end through the forwarder with a real gRPC client and server, the permission parity matrix, the skip link integration test) stand for them.
-- New findings in this run: the commits API answered 500 for an asc repository (no HEAD to read), fixed (71a7092131); a second `asc clone` of the same repository fails on the client with a UNIQUE constraint on `workspaces.path` (asc client, not the hub); `trusted_proxies = []` in the generated asc serve configuration made every proxied client share the address 127.0.0.1, now `["127.0.0.1/32"]` (7b17f010bc).
+Run on 2026-10-27 at hub commit ac1a46ba72 plus a rebuilt frontend, next to a real `asc serve` (master debug build of the same day) started by the all-in-one entrypoint (so with the new forwarded key and `trusted_proxies`), SQLite, loopback. Driven with the real `asc` and `git` clients, the hub API, and Playwright (Chromium, 1440x900 light and 390x844 dark, axe-core WCAG 2.2 AA) over the pages named below.
+
+| Journey | Now |
+|---|---|
+| 3 Org, repo, clone, push | Pass. `asc clone` through the hub address, an edit committed with `asc`, `asc push`, a second clone that sees both commits, an anonymous clone of a private repository refused, an `Upgrade: h2c` request answered 400, a gRPC call at the hub over prior-knowledge h2c answered by asc. The hub's commit list shows the pushed commit a moment later (see N3). |
+| 4 Change, review, merge | Partly. A branch pushed with `asc push` appears on the hub; a pull request opened through the hub API shows commits and files. `asc submit` is refused by the server ("that ref namespace is local to a client", asc side, O2). **Merging the pull request fails (N1).** Review, queue and undo pages render; the operation log is still not served by this asc build (O4). |
+| 8 Admin | The repository audit page and `/admin/asc/audit` answer 200 and call asc (`Audit/List`, `Audit/ListActions`) as the hub's service credential with the claim. The signing keys page (`/user/settings/asc/keys`) answers 403 because this asc build ignores the claim for the `user:` subject and refuses (`grpc_status=7`): needs the server side of the claim (N2). |
+| 11 Accessibility | Axe on `/`, explore, repository home, repository audit, checks, settings applications, download and admin, both variants: no critical finding; the skip link is the first tab stop and its target exists on every page. The pull request pages still have critical findings (`aria-allowed-attr`, `aria-required-parent`, `button-name` twice, `label`) and the repository and checks pages `color-contrast` and `nested-interactive` (serious). |
+
+Not re-run: the other journeys (1, 2, 5, 6, 7, 9, 10) were not repeated after the fixes; their pages were not changed by them.
+
+New findings in this run:
+
+| ID | Where | What | Severity | Status |
+|---|---|---|---|---|
+| N1 | Merge of a pull request, and every write the hub makes to an asc repository (web file edit, API contents) | `repostore/asc: UpdateRefs: ... HOOK_REJECTED: pre-receive failed with status 500`. The hub's asc writer calls asc as the hub's service credential; asc then calls the hub's pre-receive hook with `PushTrigger = asc` and no user, and the hook stops with "Unable to get User id 0" (`routers/private/hook_pre_receive.go`, `loadPusherAndPermission`). Only pushes that began as git pushes are attributed (`ascsync.RememberPusher`). A fix needs the writer to name the doer (the pusher id is in `HookEnv`, `GITEA_PUSHER_ID`) and the hook to take it back before its checks; not done here because it decides which checks protect these writes. | critical | open (escalated) |
+| N2 | Pages that need the claim for the `user:`, `org:` and `instance` subjects | The server side of the claim (roles read and write, those subjects) is not in the asc build used. | high | blocked (asc) |
+| N3 | Commit list right after a push | The hub's commit list and branch list showed the old head for a second or two after `asc push` returned, then the new one. | low | open |
+| N4 | Pull request pages | Critical axe findings listed above. | medium | open (shell) |
+
+Fixed in this run: the commits API answered 500 for an asc repository (no HEAD to read), fixed (71a7092131, test ac1a46ba72); the generated asc serve configuration had `trusted_proxies = []`, so every proxied client shared the address 127.0.0.1, now `["127.0.0.1/32"]` (7b17f010bc). A second `asc clone` into a directory that an earlier run registered fails on the client with a UNIQUE constraint on `workspaces.path` (asc client, not the hub).
