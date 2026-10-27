@@ -27,7 +27,7 @@ func ascAuditLevel(ctx *context.Context) *trustweb.AuditLevel {
 	ctx.Data["PageIsSettingsAscAudit"] = true
 	return &trustweb.AuditLevel{
 		Scope: &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_REPO, Name: name},
-		Call:  asctrust.CallRepoRead,
+		Call:  asctrust.CallRepoAdmin,
 		Repo:  repo,
 		Base:  setting.AppSubURL + "/" + repo.OwnerName + "/" + repo.Name + "/settings/asc/audit",
 		Label: repo.FullName(),

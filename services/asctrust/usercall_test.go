@@ -51,7 +51,7 @@ func TestUserCallIssuesAShortLivedTokenAndDeletesIt(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, resources, 1)
 	assert.Equal(t, repo.ID, resources[0].RepoID)
-	assertScope(t, row.Scope, []auth_model.AccessTokenScope{"read:repository", "write:repository"}, []auth_model.AccessTokenScope{"read:user", "write:user", "read:organization", "read:admin", "write:organization"})
+	assertScope(t, row.Scope, []auth_model.AccessTokenScope{"read:repository", "write:repository", "read:user"}, []auth_model.AccessTokenScope{"write:user", "read:organization", "read:admin", "write:organization"})
 
 	// The credential is in the context and is not the internal token.
 	require.NotNil(t, ctx)
@@ -95,11 +95,14 @@ func assertScope(t *testing.T, scope auth_model.AccessTokenScope, has, hasNot []
 func TestUserCallScopesPerKind(t *testing.T) {
 	type S = auth_model.AccessTokenScope
 	cases := map[CallKind]struct{ has, hasNot []S }{
-		CallRepoRead:  {[]S{"read:repository"}, []S{"write:repository", "read:user", "read:organization", "read:admin"}},
-		CallRepoWrite: {[]S{"read:repository", "write:repository"}, []S{"write:user", "read:organization", "read:admin", "write:issue"}},
-		CallOrg:       {[]S{"read:organization"}, []S{"write:organization", "read:repository", "read:user"}},
+		// Every kind has read:user: asc asks who the credential is before it decides anything else.
+		CallRepoRead:  {[]S{"read:repository", "read:user"}, []S{"write:repository", "write:user", "read:organization", "read:admin"}},
+		CallRepoWrite: {[]S{"read:repository", "write:repository", "read:user"}, []S{"write:user", "read:organization", "read:admin", "write:issue"}},
+		// asc decides "administrator of the repository" by asking for write access, so the audit token may write.
+		CallRepoAdmin: {[]S{"read:repository", "write:repository", "read:user"}, []S{"write:user", "read:organization", "read:admin", "write:issue"}},
+		CallOrg:       {[]S{"read:organization", "write:repository", "read:user"}, []S{"write:organization", "write:user", "read:admin"}},
 		CallAccount:   {[]S{"read:user", "write:user"}, []S{"read:repository", "read:organization", "read:admin"}},
-		CallInstance:  {[]S{"read:admin"}, []S{"write:admin", "read:repository"}},
+		CallInstance:  {[]S{"read:admin", "read:user"}, []S{"write:admin", "read:repository", "write:user"}},
 	}
 	for kind, want := range cases {
 		s, err := scopeOf(kind)

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	auth_model "forgejo.org/models/auth"
 	perm_model "forgejo.org/models/perm"
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
@@ -85,6 +86,15 @@ func TestAscAuditListsEventsWithFiltersAndPaging(t *testing.T) {
 	assert.EqualValues(t, 25, req.GetLimit())
 	assert.Equal(t, "Bearer per-request-token", calls[0].Auth, "read as the person")
 	assert.Contains(t, page.ctx.Resp.Header().Get("Cache-Control"), "no-store")
+
+	// asc asks the hub who the token is (read:user) and, to decide "administrator", for write access to the repository.
+	// A read-only token made the log answer 403 to the owner of the repository.
+	require.NotEmpty(t, f.scopes)
+	for _, want := range []auth_model.AccessTokenScope{"read:user", "write:repository"} {
+		ok, err := f.scopes[0].HasScope(want)
+		require.NoError(t, err)
+		assert.True(t, ok, "the audit token has %s (it is %s)", want, f.scopes[0])
+	}
 
 	// The next page carries the marker and keeps the filters.
 	next := runTrust(t, trustReq{path: "/user2/repo1/settings/asc/audit?actor=user2&page=8", user: 2, access: adminAccess}, AscAudit)
