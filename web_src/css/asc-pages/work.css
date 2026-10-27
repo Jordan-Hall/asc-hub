@@ -1,0 +1,4 @@
+/* Pages of the "work" group: dashboard, inbox, drafts, profile, organizations, account settings, issues, projects, packages.
+   Built from the design system in asc-ds; every class here starts with wk-. */
+@import "./work-common.css";
+@import "./work-dashboard.css";

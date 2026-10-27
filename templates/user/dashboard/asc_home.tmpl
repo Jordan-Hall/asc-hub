@@ -1,143 +1,184 @@
 {{/*
-The dashboard of a person (design board "Dashboard"). routers/web/user/asc_dashboard.go builds .AscDash.
+The dashboard of a person (design boards "Dashboard" and "Mobile-Dashboard"). routers/web/user/asc_dashboard.go builds .AscDash.
 Template Attributes:
 * AscDash: *user.AscDash
 * AscDashToday: the activities of the last day
 */}}
 {{$d := .AscDash}}
-<div role="main" aria-label="{{.Title}}" class="page-content dashboard asc-dash">
-	<div class="ap-shell">
-		<aside class="ap-side" aria-label="{{ctx.Locale.Tr "user.asc_dash.sidebar"}}">
-			<nav class="ap-side-group" aria-labelledby="ap-side-work">
-				<h2 class="ap-side-title" id="ap-side-work">{{ctx.Locale.Tr "user.asc_dash.work"}}</h2>
+<div role="main" aria-label="{{.Title}}" class="ds-main wk-page wk-dash">
+	<div class="ds-container ds-container-xl wk-dash-grid">
+		<nav class="wk-dash-menu" aria-label="{{ctx.Locale.Tr "user.asc_dash.sidebar"}}">
+			<div class="ds-sidenav">
+				<h2 class="ds-grp">{{ctx.Locale.Tr "user.asc_dash.work"}}</h2>
 				{{if $d.InboxLink}}
-					<a class="ap-side-link active" href="{{$d.InboxLink}}" data-asc-inbox-link><span class="name">{{ctx.Locale.Tr "user.asc_inbox"}}</span><span class="ap-side-count">{{$d.NeedsCount}}</span></a>
+					<a href="{{$d.InboxLink}}" aria-current="page" data-asc-inbox-link><span>{{ctx.Locale.Tr "user.asc_inbox"}}</span><span class="ds-count">{{$d.NeedsCount}}</span></a>
 				{{end}}
-				<a class="ap-side-link" href="{{AppSubUrl}}/pulls?type=created_by&state=open"><span class="name">{{ctx.Locale.Tr "user.asc_dash.my_stacks"}}</span><span class="ap-side-count">{{$d.StackCount}}</span></a>
-				<a class="ap-side-link" href="{{AppSubUrl}}/pulls?type=review_requested&state=open"><span class="name">{{ctx.Locale.Tr "user.asc_dash.review_requests"}}</span><span class="ap-side-count">{{$d.ReviewCount}}</span></a>
+				<a href="{{AppSubUrl}}/pulls?type=created_by&state=open"><span>{{ctx.Locale.Tr "user.asc_dash.my_stacks"}}</span><span class="ds-count">{{$d.StackCount}}</span></a>
+				<a href="{{AppSubUrl}}/pulls?type=review_requested&state=open"><span>{{ctx.Locale.Tr "user.asc_dash.review_requests"}}</span><span class="ds-count">{{$d.ReviewCount}}</span></a>
 				{{if $d.AgentsOn}}
-					<a class="ap-side-link" href="{{AppSubUrl}}/-/asc/agents"><span class="name">{{ctx.Locale.Tr "user.asc_dash.agent_runs"}}</span><span class="ap-side-count">{{$d.AgentsActive}}</span></a>
+					<a href="{{AppSubUrl}}/-/asc/agents"><span>{{ctx.Locale.Tr "user.asc_dash.agent_runs"}}</span><span class="ds-count">{{$d.AgentsActive}}</span></a>
 				{{end}}
-			</nav>
-			<nav class="ap-side-group" aria-labelledby="ap-side-repos">
-				<h2 class="ap-side-title" id="ap-side-repos">{{ctx.Locale.Tr "user.asc_dash.repositories"}}</h2>
+				<h2 class="ds-grp">{{ctx.Locale.Tr "user.asc_dash.repositories"}}</h2>
 				{{range $i, $r := $d.Repos}}
-					<a class="ap-side-link" href="{{$r.Link}}"><span class="ap-swatch c{{$i}}" aria-hidden="true"></span><span class="name">{{$r.FullName}}</span></a>
+					<a href="{{$r.Link}}"><span class="wk-swatch wk-swatch-{{$i}}" aria-hidden="true"></span><span class="ds-truncate">{{$r.FullName}}</span></a>
 				{{end}}
-				<a class="ap-side-link more" href="{{.ContextUser.HomeLink}}?tab=repositories">{{ctx.Locale.Tr "user.asc_dash.all_repositories"}}</a>
-			</nav>
-			{{if $d.Teams}}
-				<nav class="ap-side-group" aria-labelledby="ap-side-teams">
-					<h2 class="ap-side-title" id="ap-side-teams">{{ctx.Locale.Tr "user.asc_dash.teams"}}</h2>
+				{{if $d.Teams}}
+					<h2 class="ds-grp">{{ctx.Locale.Tr "user.asc_dash.teams"}}</h2>
 					{{range $d.Teams}}
-						<a class="ap-side-link" href="{{.Link}}" title="{{.Org}}"><span class="name">{{.Name}}</span></a>
+						<a href="{{.Link}}" title="{{.Org}}"><span class="ds-truncate">{{.Name}}</span></a>
 					{{end}}
-				</nav>
-			{{end}}
-		</aside>
+				{{end}}
+				<a class="wk-menu-more" href="{{.ContextUser.HomeLink}}?tab=repositories">{{ctx.Locale.Tr "user.asc_dash.all_repositories"}}</a>
+			</div>
+		</nav>
 
-		<main class="ap-main">
+		<div class="wk-dash-main">
 			{{template "base/alert" .}}
-			<div class="ap-head">
-				<div>
-					<h1>{{$d.Greeting}}</h1>
-					<div class="sub">{{$d.Summary}}</div>
+			<div class="wk-head">
+				<div class="ds-min0">
+					<h1 class="ds-t-h1 wk-title">{{$d.Greeting}}</h1>
+					<p class="ds-c-2 wk-sub">{{$d.Summary}}</p>
 				</div>
-				<div class="actions">
-					{{if $d.AgentsOn}}<a class="ap-btn primary" href="{{AppSubUrl}}/-/asc/agents">{{ctx.Locale.Tr "user.asc_dash.new_agent_task"}}</a>{{end}}
-					<a class="ap-btn" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a>
+				<div class="wk-head-actions">
+					{{if $d.AgentsOn}}<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/-/asc/agents">{{ctx.Locale.Tr "user.asc_dash.new_agent_task"}}</a>{{end}}
+					<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a>
 				</div>
 			</div>
 
-			<section class="ap-panel" aria-labelledby="ap-needs-title">
-				<div class="ap-panel-head">
-					<h2 id="ap-needs-title">{{ctx.Locale.Tr "user.asc_dash.needs_you"}}</h2>
-					<span class="ap-pill amber bold">{{$d.NeedsCount}}</span>
-					{{if $d.Rows}}<span class="hint ap-hide-touch">{{ctx.Locale.Tr "user.asc_dash.keys_hint"}}</span>{{end}}
+			<section class="ds-card wk-card" aria-labelledby="wk-needs-title">
+				<div class="ds-card-h">
+					<h2 id="wk-needs-title">{{ctx.Locale.Tr "user.asc_dash.needs_you"}}</h2>
+					<span class="ds-chip ds-chip-warn">{{$d.NeedsCount}}</span>
+					{{if $d.Rows}}<span class="ds-card-sub ds-ml-auto ds-hide-md">{{ctx.Locale.Tr "user.asc_dash.keys_hint"}}</span>{{end}}
 				</div>
 				{{if $d.Rows}}
-					<div data-asc-list>
+					<ul class="wk-needs" data-asc-list>
 						{{range $d.Rows}}
-							<a class="ap-row" href="{{.Link}}" data-asc-row>
-								<span class="ap-dot {{.Tone}}" aria-hidden="true"></span>
-								<div class="body">
-									<div class="title">{{if .Action}}{{ctx.Locale.Tr "user.asc_dash.ready_to_merge"}} {{end}}{{.Title}} <span class="where">{{.Where}}</span></div>
+							<li class="wk-need">
+								<span class="ds-dot ds-dot-{{if eq .Tone "amber"}}warn{{else if eq .Tone "red"}}err{{else if eq .Tone "green"}}ok{{end}} wk-need-dot" aria-hidden="true"></span>
+								<div class="wk-need-main">
+									<div class="wk-need-title">
+										<a class="wk-need-link" href="{{.Link}}" data-asc-row>{{if .Action}}{{ctx.Locale.Tr "user.asc_dash.ready_to_merge"}} {{end}}{{.Title}}</a>
+										<span class="wk-need-where">{{.Where}}</span>
+									</div>
 									{{if or .Chips .Meta}}
-										<div class="meta">
-											{{range .Chips}}<span class="ap-pill {{.Tone}}">{{.Text}}</span>{{end}}
-											{{if .Meta}}<span>{{.Meta}}</span>{{end}}
+										<div class="wk-need-meta">
+											{{range .Chips}}<span class="ds-chip{{if eq .Tone "amber"}} ds-chip-warn{{else if eq .Tone "green"}} ds-chip-ok{{else if eq .Tone "red"}} ds-chip-err{{else if eq .Tone "violet"}} ds-chip-agent{{end}}">{{.Text}}</span>{{end}}
+											{{if .Meta}}<span class="ds-c-2 ds-t-small">{{.Meta}}</span>{{end}}
 										</div>
 									{{end}}
 								</div>
-								{{if .Action}}<span class="go">{{.Action}}</span>{{else if not .Updated.IsZero}}<span class="when">{{DateUtils.TimeSince .Updated}}</span>{{end}}
-							</a>
+								{{if not .Updated.IsZero}}<span class="wk-when">{{DateUtils.TimeSince .Updated}}</span>{{end}}
+								<div class="wk-need-acts">
+									<a class="ds-btn {{if or .Action (eq .Tone "amber")}}ds-btn-primary{{else}}ds-btn-secondary{{end}} ds-btn-sm" href="{{.Link}}" tabindex="-1" aria-hidden="true">{{if .Action}}{{.Action}}{{else if eq .Tone "amber"}}{{ctx.Locale.Tr "asc_work.dash_act_review"}}{{else if eq .Tone "red"}}{{ctx.Locale.Tr "asc_work.dash_act_resolve"}}{{else}}{{ctx.Locale.Tr "asc_work.dash_act_open"}}{{end}}</a>
+								</div>
+							</li>
 						{{end}}
-					</div>
+					</ul>
 				{{else}}
-					<p class="ap-empty">{{ctx.Locale.Tr "user.asc_dash.needs_empty"}}</p>
+					<div class="ds-empty wk-empty-in">
+						<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-check-circle" 32}}</span>
+						<h3>{{ctx.Locale.Tr "asc_work.dash_needs_empty_title"}}</h3>
+						<p>{{ctx.Locale.Tr "user.asc_dash.needs_empty"}}</p>
+						<div class="ds-empty-acts"><a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a></div>
+					</div>
 				{{end}}
 			</section>
 
 			{{if and $d.AgentsOn $d.Agents}}
-				<section class="ap-panel" aria-labelledby="ap-agents-title">
-					<div class="ap-panel-head">
-						<h2 id="ap-agents-title">{{ctx.Locale.Tr "user.asc_dash.agents_now"}}</h2>
-						<span class="hint"><a href="{{AppSubUrl}}/-/asc/agents">{{ctx.Locale.Tr "user.asc_dash.all_runs"}}</a></span>
+				<section class="ds-card wk-card" aria-labelledby="wk-agents-title">
+					<div class="ds-card-h">
+						<h2 id="wk-agents-title">{{ctx.Locale.Tr "user.asc_dash.agents_now"}}</h2>
+						<span class="ds-chip ds-chip-agent">{{len $d.Agents}}</span>
+						<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{AppSubUrl}}/-/asc/agents">{{ctx.Locale.Tr "user.asc_dash.all_runs"}}</a>
 					</div>
-					<ul class="ap-dash-agents">
+					<ul class="wk-agents">
 						{{range $d.Agents}}
-							<li>
-								<a class="name" href="{{.Link}}">{{.Agent}} &middot; {{.Title}}</a>
+							<li class="wk-agent">
+								<a class="wk-agent-name" href="{{.Link}}">{{.Agent}} &middot; {{.Title}}</a>
 								{{if eq .State.Slug "waiting"}}
-									<div class="state bad">{{ctx.Locale.Tr "user.asc_dash.paused"}}</div>
+									<div class="wk-agent-state ds-c-err ds-sb">{{ctx.Locale.Tr "user.asc_dash.paused"}}</div>
 								{{else}}
-									<div class="state">{{.Repo}}</div>
+									<div class="wk-agent-state ds-c-2">{{.Repo}}</div>
 								{{end}}
 								{{if .Meter}}
-									<progress class="ap-progress{{if eq .State.Slug "waiting"}} amber{{end}}" max="100" value="{{.Percent}}" aria-label="{{.Meter}}">{{.Percent}}%</progress>
-									<div class="ap-mono meter-text">{{.Meter}}</div>
+									<progress class="wk-progress{{if eq .State.Slug "waiting"}} wk-progress-warn{{end}}" max="100" value="{{.Percent}}" aria-label="{{.Meter}}">{{.Percent}}%</progress>
+									<div class="ds-mono ds-t-small ds-c-2 wk-meter">{{.Meter}}</div>
 								{{end}}
 							</li>
 						{{end}}
 					</ul>
 				</section>
 			{{end}}
-		</main>
+		</div>
 
-		<aside class="ap-aside" aria-label="{{ctx.Locale.Tr "user.asc_dash.at_a_glance"}}">
+		<aside class="wk-dash-rail" aria-label="{{ctx.Locale.Tr "user.asc_dash.at_a_glance"}}">
 			{{if $d.Stacks}}
-				<section class="ap-panel padded" aria-labelledby="ap-stacks-title">
-					<h2 id="ap-stacks-title">{{ctx.Locale.Tr "user.asc_dash.your_stacks"}}</h2>
-					<ul class="ap-dash-stacks">
+				<section class="ds-card wk-card" aria-labelledby="wk-stacks-title">
+					<div class="ds-card-h">
+						<h2 id="wk-stacks-title">{{ctx.Locale.Tr "user.asc_dash.your_stacks"}}</h2>
+						<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{AppSubUrl}}/pulls?type=created_by&state=open">{{ctx.Locale.Tr "asc_work.dash_all_n" $d.StackCount}}</a>
+					</div>
+					<ul class="wk-stacks">
 						{{range $d.Stacks}}
-							<li>
-								<a class="name" href="{{.Link}}">{{.Name}}</a>
-								<ul class="ap-segs">
-									{{range .Segs}}<li class="{{.Tone}}" title="{{.Label}}"><span class="ap-sr">{{.Label}}</span></li>{{end}}
+							<li class="wk-stack">
+								<a class="wk-stack-name ds-mono" href="{{.Link}}">{{.Name}}</a>
+								<div class="ds-t-small ds-c-2">{{ctx.Locale.TrN (len .Segs) "asc_work.dash_changes_one" "asc_work.dash_changes_n" (len .Segs)}}</div>
+								<ul class="wk-segs">
+									{{range .Segs}}<li class="wk-seg-{{.Tone}}" title="{{.Label}}"><span class="ds-sr">{{.Label}}</span></li>{{end}}
 								</ul>
 							</li>
 						{{end}}
 					</ul>
 				</section>
 			{{end}}
-			<section class="ap-panel padded" aria-labelledby="ap-today-title">
-				<h2 id="ap-today-title">{{ctx.Locale.Tr "user.asc_dash.today"}}</h2>
+			<section class="ds-card wk-card" aria-labelledby="wk-today-title">
+				<div class="ds-card-h"><h2 id="wk-today-title">{{ctx.Locale.Tr "user.asc_dash.today"}}</h2></div>
 				{{if .AscDashToday}}
-					<ul class="ap-feed">
+					<ul class="wk-feed">
 						{{range .AscDashToday}}
 							<li>{{template "user/dashboard/feed_sentence" .}}</li>
 						{{end}}
 					</ul>
 				{{else}}
-					<p class="ap-quiet">{{ctx.Locale.Tr "user.asc_dash.today_none"}}</p>
+					<p class="wk-quiet">{{ctx.Locale.Tr "user.asc_dash.today_none"}}</p>
 				{{end}}
 			</section>
+			<section class="ds-card wk-card wk-terminal-card" aria-labelledby="wk-term-title">
+				<div class="ds-card-h"><h2 id="wk-term-title">{{ctx.Locale.Tr "asc_work.dash_terminal"}}</h2></div>
+				<div class="ds-card-b">
+					<div class="ds-term">
+						<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_work.terminal_label"}}</span><button type="button" class="ds-copy" data-clipboard-text="asc sync">{{ctx.Locale.Tr "copy"}}</button></div>
+						<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_work.dash_terminal"}}"><code>$ asc sync          <span class="wk-term-c"># {{ctx.Locale.Tr "asc_work.dash_term_sync"}}</span>
+$ asc stack submit  <span class="wk-term-c"># {{ctx.Locale.Tr "asc_work.dash_term_submit"}}</span>
+$ asc undo          <span class="wk-term-c"># {{ctx.Locale.Tr "asc_work.dash_term_undo"}}</span></code></div>
+					</div>
+				</div>
+			</section>
 			{{if $d.InboxLink}}
-				<section class="ap-tint ap-hide-touch" aria-label="{{ctx.Locale.Tr "user.asc_dash.tip"}}">
+				<section class="ds-callout ds-hide-md" aria-label="{{ctx.Locale.Tr "user.asc_dash.tip"}}">
 					<b>{{ctx.Locale.Tr "user.asc_dash.tip"}}.</b>
-					{{ctx.Locale.Tr "user.asc_dash.tip_text" (HTMLFormat `<kbd class="ap-kbd">%s</kbd>` "g") (HTMLFormat `<kbd class="ap-kbd">%s</kbd>` "i")}}
+					{{ctx.Locale.Tr "user.asc_dash.tip_text" (HTMLFormat `<kbd class="ds-kbd">%s</kbd>` "g") (HTMLFormat `<kbd class="ds-kbd">%s</kbd>` "i")}}
 				</section>
 			{{end}}
 		</aside>
+
+		{{if $d.Repos}}
+			<section class="ds-card wk-card wk-repos-mobile" aria-labelledby="wk-repos-title">
+				<div class="ds-card-h"><h2 id="wk-repos-title">{{ctx.Locale.Tr "user.asc_dash.repositories"}}</h2></div>
+				<ul class="wk-repo-list">
+					{{range $d.Repos}}
+						<li><a href="{{.Link}}"><span class="ds-truncate">{{.FullName}}</span><span class="ds-chev" aria-hidden="true">{{svg "dsi-chevron-right" 18}}</span></a></li>
+					{{end}}
+					<li><a class="ds-link ds-sb" href="{{.ContextUser.HomeLink}}?tab=repositories">{{ctx.Locale.Tr "user.asc_dash.all_repositories"}}</a></li>
+				</ul>
+			</section>
+		{{end}}
+	</div>
+	<div class="ds-container ds-container-xl wk-sticky-wrap">
+		<div class="ds-sticky-actions">
+			<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a>
+			{{if $d.AgentsOn}}<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/-/asc/agents">{{ctx.Locale.Tr "user.asc_dash.new_agent_task"}}</a>{{end}}
+		</div>
 	</div>
 </div>
