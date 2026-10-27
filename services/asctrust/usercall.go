@@ -63,7 +63,7 @@ var (
 // for the other kinds.
 func UserCall(ctx context.Context, doer *user_model.User, kind CallKind, repo *repo_model.Repository) (context.Context, func(), error) {
 	noop := func() {}
-	if !usable(doer) {
+	if !usable(ctx, doer) {
 		return ctx, noop, ErrNoDoer
 	}
 	switch kind {
@@ -128,7 +128,7 @@ func UserCall(ctx context.Context, doer *user_model.User, kind CallKind, repo *r
 // administrator.
 func UserCallOrg(ctx context.Context, doer *user_model.User, org *user_model.User) (context.Context, func(), error) {
 	noop := func() {}
-	if !usable(doer) {
+	if !usable(ctx, doer) {
 		return ctx, noop, ErrNoDoer
 	}
 	if org == nil || !org.IsOrganization() {
@@ -146,9 +146,11 @@ func UserCallOrg(ctx context.Context, doer *user_model.User, org *user_model.Use
 	return claim(ctx, doer, ascidentity.RoleAdmin, "org:"+strings.ToLower(org.Name))
 }
 
-// usable reports whether the person may use the hub at all: an account that exists, is active and may sign in.
-func usable(doer *user_model.User) bool {
-	return doer != nil && doer.ID > 0 && doer.IsActive && !doer.ProhibitLogin
+// usable reports whether the person may use the hub at all, with the checks the authz endpoint makes for a command line
+// credential (routers/private/asc.go, ascUserUsable): an account that exists, is active, may sign in, has no pending
+// password change, and has two-factor authentication when the hub requires it.
+func usable(ctx context.Context, doer *user_model.User) bool {
+	return doer != nil && doer.ID > 0 && !doer.MustChangePassword && doer.IsAccessAllowed(ctx)
 }
 
 // claim puts the hub's service credential and the signed claim into the context of a call.
