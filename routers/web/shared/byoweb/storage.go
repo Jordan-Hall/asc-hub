@@ -228,10 +228,17 @@ func StorageUpdate(ctx *context.Context, lvl *Level) {
 		renderStorageTarget(ctx, lvl, s, p, id, http.StatusUnprocessableEntity)
 		return
 	}
-	_, changed, _, err := s.UpdateTarget(ctx, lvl.Scope, id, in, f.op())
+	_, changed, fe, err := s.UpdateTarget(ctx, lvl.Scope, id, in, f.op())
 	if err != nil {
 		p.Problem = problemOf(ctx, err)
 		refuse(ctx, err, func(status int) { renderStorageTarget(ctx, lvl, s, p, id, status) })
+		return
+	}
+	if len(fe) > 0 {
+		// A new place needs new credentials: the service refused, and the page says which fields to fill in.
+		p.Errors = fe
+		p.Problem = &Problem{Message: ctx.Locale.TrString("ascbyo.error.invalid")}
+		renderStorageTarget(ctx, lvl, s, p, id, http.StatusUnprocessableEntity)
 		return
 	}
 	if changed {

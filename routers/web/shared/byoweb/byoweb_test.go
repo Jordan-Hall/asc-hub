@@ -396,12 +396,22 @@ func TestStorageLifecycleActions(t *testing.T) {
 		assert.Equal(t, tr(t, "ascbyo.flash.nothing_changed"), r.ctx.Flash.InfoMsg)
 		assert.Empty(t, f.CallsTo("UpdateTarget"), "identical values send nothing")
 
-		form.Set("bucket", "new-bucket-name")
+		// A new name is not a new place: the stored credentials stay.
+		form.Set("prefix", "other/")
 		r = run(t, StorageUpdate, userLevel(t), http.MethodPost, form, id)
-		require.Equal(t, http.StatusSeeOther, r.resp.Code)
+		require.Equal(t, http.StatusSeeOther, r.resp.Code, r.body())
 		req := f.CallsTo("UpdateTarget")[0].Req.(*ascv1.UpdateStorageTargetRequest)
-		assert.Equal(t, "new-bucket-name", req.GetBucket())
+		assert.Equal(t, "other/", req.GetPrefix())
 		assert.Nil(t, req.Credentials)
+	})
+	t.Run("a new place without new credentials is refused", func(t *testing.T) {
+		form := url.Values{"name": {"life"}, "endpoint": {"https://s3.example.com"}, "region": {"eu"}, "bucket": {"new-bucket-name"}, "prefix": {"other/"}, "addressing": {"auto"}}
+		before := len(f.CallsTo("UpdateTarget"))
+		r := run(t, StorageUpdate, userLevel(t), http.MethodPost, form, id)
+		require.Equal(t, http.StatusUnprocessableEntity, r.resp.Code)
+		assert.Contains(t, r.body(), tr(t, "ascbyo.storage.err.access_key_id_reenter"))
+		assert.Contains(t, r.body(), tr(t, "ascbyo.storage.err.secret_access_key_reenter"))
+		assert.Len(t, f.CallsTo("UpdateTarget"), before)
 	})
 	t.Run("update with a half-typed credential pair is refused", func(t *testing.T) {
 		form := url.Values{"name": {"life"}, "endpoint": {"https://s3.example.com"}, "bucket": {"new-bucket-name"}, "access_key_id": {"AKIAONLYIDTYPED"}}
