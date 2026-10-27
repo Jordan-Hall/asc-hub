@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 	"unicode"
 
 	"forgejo.org/modules/log"
@@ -48,6 +49,18 @@ var Asc = struct {
 	// DownloadBaseURL is the base the download links point at. Empty means this hub's own /-/download/ mount.
 	// It must be https (http only for a loopback host), with no credentials, query or fragment.
 	DownloadBaseURL string `ini:"DOWNLOAD_BASE_URL"`
+	// DownloadSourceURL is where the hub fetches the signed release files into DownloadDir (services/ascdownloadsync):
+	// an https address, either the API address of a (private) GitHub release or a directory that holds manifest.json
+	// and the files. Empty means the hub does not fetch; the directory is filled by other means.
+	DownloadSourceURL string `ini:"DOWNLOAD_SOURCE_URL"`
+	// DownloadSourceToken is sent to the host of DownloadSourceURL as a bearer credential (a token that may read a
+	// private release). It is set by DOWNLOAD_SOURCE_TOKEN or read from the file named by DOWNLOAD_SOURCE_TOKEN_URI.
+	DownloadSourceToken string `ini:"-"`
+	// DownloadPublicKey is the minisign public key (the key line of the .pub file) that the checksums and the files
+	// of a fetched release must be signed with. It is required with DownloadSourceURL.
+	DownloadPublicKey string `ini:"DOWNLOAD_PUBLIC_KEY"`
+	// DownloadSyncInterval is how often the source is looked at; the default is one hour, the least one minute.
+	DownloadSyncInterval time.Duration `ini:"DOWNLOAD_SYNC_INTERVAL"`
 	// SSHEnabled allows the hub's SSH server and every SSH instruction in the UI. It is false by default:
 	// an ASC Hub works with HTTPS alone (asc and git both speak HTTPS to it). It only has an effect with
 	// [asc] ENABLED = true, where a false value forces [server] DISABLE_SSH = true. See SSHEnabled.
@@ -79,11 +92,16 @@ func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.BridgeWorkspaces = ""
 	Asc.DownloadDir = ""
 	Asc.DownloadBaseURL = ""
+	Asc.DownloadSourceURL = ""
+	Asc.DownloadSourceToken = ""
+	Asc.DownloadPublicKey = ""
+	Asc.DownloadSyncInterval = time.Hour
 	Asc.SSHEnabled = false
 	sec := rootCfg.Section("asc")
 	if err := sec.MapTo(&Asc); err != nil {
 		log.Fatal("Failed to map [asc] settings: %v", err)
 	}
+	Asc.DownloadSourceToken = loadSecret(sec, "DOWNLOAD_SOURCE_TOKEN_URI", "DOWNLOAD_SOURCE_TOKEN")
 	if err := normaliseAscDownload(); err != nil {
 		log.Fatal("Invalid [asc] download settings: %v", err)
 	}
@@ -213,6 +231,40 @@ func normaliseAscDownload() error {
 			return fmt.Errorf("DOWNLOAD_BASE_URL %w", err)
 		}
 		Asc.DownloadBaseURL = base + "/"
+	}
+	return normaliseAscDownloadSource()
+}
+
+// normaliseAscDownloadSource checks the settings of the release fetch. They go together: a source needs a
+// directory to fill and the key its files are signed with, and a token needs a source.
+func normaliseAscDownloadSource() error {
+	Asc.DownloadSourceURL = strings.TrimSpace(Asc.DownloadSourceURL)
+	Asc.DownloadSourceToken = strings.TrimSpace(Asc.DownloadSourceToken)
+	Asc.DownloadPublicKey = strings.TrimSpace(Asc.DownloadPublicKey)
+	if Asc.DownloadSyncInterval < time.Minute {
+		if Asc.DownloadSyncInterval != 0 {
+			return fmt.Errorf("DOWNLOAD_SYNC_INTERVAL must be at least one minute")
+		}
+		Asc.DownloadSyncInterval = time.Hour
+	}
+	if Asc.DownloadSourceURL == "" {
+		if Asc.DownloadSourceToken != "" {
+			return fmt.Errorf("DOWNLOAD_SOURCE_TOKEN needs DOWNLOAD_SOURCE_URL")
+		}
+		return nil
+	}
+	u, err := url.Parse(Asc.DownloadSourceURL)
+	if err != nil || u.Scheme != "https" || u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+		return fmt.Errorf("DOWNLOAD_SOURCE_URL must be an https address without credentials, query or fragment")
+	}
+	if Asc.DownloadDir == "" {
+		return fmt.Errorf("DOWNLOAD_SOURCE_URL needs DOWNLOAD_DIR")
+	}
+	if Asc.DownloadPublicKey == "" {
+		return fmt.Errorf("DOWNLOAD_SOURCE_URL needs DOWNLOAD_PUBLIC_KEY: the key the release is signed with")
+	}
+	if strings.IndexFunc(Asc.DownloadSourceToken, func(r rune) bool { return r <= ' ' || r == 0x7f }) >= 0 {
+		return fmt.Errorf("DOWNLOAD_SOURCE_TOKEN has a space or a control character")
 	}
 	return nil
 }

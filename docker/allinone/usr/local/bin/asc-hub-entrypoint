@@ -202,6 +202,41 @@ set_default FORGEJO__asc__NEW_REPOSITORIES "asc"
 set_default FORGEJO__asc__BRIDGE "${ASC_HUB_BRIDGE:-eager}"
 set_default FORGEJO__asc__SHADOW_SAMPLE_PERCENT "0"
 
+# --- the asc download page: signed releases fetched from a private source ----------------------
+# ASC_HUB_DOWNLOAD_SOURCE_URL is an https address: the API address of a (private) GitHub release such as
+# https://api.github.com/repos/OWNER/REPO/releases/latest, or a directory that holds manifest.json and the files.
+# The hub fetches the release into $WORK/asc-releases on start and then every ASC_HUB_DOWNLOAD_SYNC_INTERVAL, and
+# publishes it only when the checksums and the files verify with ASC_HUB_DOWNLOAD_PUBLIC_KEY. A token that may read a
+# private release is ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE (a file, best) or ASC_HUB_DOWNLOAD_SOURCE_TOKEN; either way
+# the hub reads it from a file, so it does not land in app.ini.
+DL_URL="${ASC_HUB_DOWNLOAD_SOURCE_URL:-}"
+if [ -n "$DL_URL" ]; then
+	require_match ASC_HUB_DOWNLOAD_SOURCE_URL '^https://[^[:space:]?#@\]+$' "an https address without credentials, query or fragment"
+	[ -n "${ASC_HUB_DOWNLOAD_PUBLIC_KEY:-}" ] || die "ASC_HUB_DOWNLOAD_SOURCE_URL needs ASC_HUB_DOWNLOAD_PUBLIC_KEY: the minisign public key the release is signed with"
+	require_match ASC_HUB_DOWNLOAD_PUBLIC_KEY '^[A-Za-z0-9+/=]{40,120}$' "the key line of a minisign .pub file (it starts with RW)"
+	require_match ASC_HUB_DOWNLOAD_SYNC_INTERVAL '^[1-9][0-9]{0,4}[mh]$' "a number of minutes or hours such as 30m or 6h"
+	if [ -n "${ASC_HUB_DOWNLOAD_SOURCE_TOKEN:-}" ] && [ -n "${ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE:-}" ]; then
+		die "set ASC_HUB_DOWNLOAD_SOURCE_TOKEN or ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE, not both"
+	fi
+	DL_TOKEN_FILE="${ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE:-}"
+	if [ -n "$DL_TOKEN_FILE" ]; then
+		[ -r "$DL_TOKEN_FILE" ] || die "ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE ($DL_TOKEN_FILE) cannot be read"
+	elif [ -n "${ASC_HUB_DOWNLOAD_SOURCE_TOKEN:-}" ]; then
+		DL_TOKEN_FILE="$BOOT/download-source-token"
+		(umask 077 && printf '%s' "$ASC_HUB_DOWNLOAD_SOURCE_TOKEN" >"$DL_TOKEN_FILE")
+	fi
+	unset ASC_HUB_DOWNLOAD_SOURCE_TOKEN
+	set_default FORGEJO__asc__DOWNLOAD_DIR "$WORK/asc-releases"
+	set_default FORGEJO__asc__DOWNLOAD_SOURCE_URL "$DL_URL"
+	set_default FORGEJO__asc__DOWNLOAD_PUBLIC_KEY "$ASC_HUB_DOWNLOAD_PUBLIC_KEY"
+	if [ -n "${ASC_HUB_DOWNLOAD_SYNC_INTERVAL:-}" ]; then set_default FORGEJO__asc__DOWNLOAD_SYNC_INTERVAL "$ASC_HUB_DOWNLOAD_SYNC_INTERVAL"; fi
+	if [ -n "$DL_TOKEN_FILE" ]; then set_default FORGEJO__asc__DOWNLOAD_SOURCE_TOKEN_URI "file://$DL_TOKEN_FILE"; fi
+else
+	for v in ASC_HUB_DOWNLOAD_PUBLIC_KEY ASC_HUB_DOWNLOAD_SOURCE_TOKEN ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE ASC_HUB_DOWNLOAD_SYNC_INTERVAL; do
+		if [ -n "${!v:-}" ]; then log "warning: $v is ignored because ASC_HUB_DOWNLOAD_SOURCE_URL is not set"; fi
+	done
+fi
+
 # Clients send credentials to the public address, so it is https unless it is a loopback host. The
 # hub checks this too; saying it here names the variable to change.
 # shellcheck disable=SC2154 # set by set_default above

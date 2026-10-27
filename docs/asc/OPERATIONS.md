@@ -54,6 +54,10 @@ Each `FORGEJO__<section>__<KEY>` variable you set wins over the defaults above. 
 | `ASC_HUB_ADMIN_USER` | `asc-admin` | User name of that administrator: letters, digits, `-`, `_`, `.`, starting with a letter or digit, at most 39 characters. |
 | `ASC_HUB_BRIDGE` | `eager` | Default of `[asc] BRIDGE` (`eager`, `lazy`, `off`). `eager` turns on `bridge_promote` and the git layer of `asc serve`. |
 | `ASC_HUB_SSH_ENABLE` | `false` | `true` or `false` (anything else stops the container). `false`: no SSH server, no sshd, `[asc] SSH_ENABLED=false`, no SSH keys page and no SSH clone address in the UI. The entrypoint forces `DISABLE_SSH=true` and `START_SSH_SERVER=false` whatever else is set. `true`: see [Git over SSH](#git-over-ssh-optional). `asc serve`'s own SSH listener stays off either way. |
+| `ASC_HUB_DOWNLOAD_SOURCE_URL` | none | An https address the hub fetches the signed `asc` release from, for the page `/download`: the API address of a (private) GitHub release, such as `https://api.github.com/repos/OWNER/REPO/releases/latest` (also `.../releases/tags/TAG`), or a directory that holds `manifest.json` and the files. It sets `[asc] DOWNLOAD_SOURCE_URL` and `[asc] DOWNLOAD_DIR` (`/var/lib/gitea/asc-releases`). See "Release downloads from a private source". |
+| `ASC_HUB_DOWNLOAD_PUBLIC_KEY` | none | Required with the source: the minisign public key (the key line of the `.pub` file, it starts with `RW`) that the checksums and the files must be signed with. |
+| `ASC_HUB_DOWNLOAD_SOURCE_TOKEN_FILE` or `ASC_HUB_DOWNLOAD_SOURCE_TOKEN` | none | A token that may read a private release (for GitHub a fine-grained token with read access to Contents of that one repository). The file form is best; the plain form is written to `/var/lib/gitea/bootstrap/download-source-token` (mode 0600) and removed from the environment, so it does not land in `app.ini`. Not both. |
+| `ASC_HUB_DOWNLOAD_SYNC_INTERVAL` | `1h` | How often the source is looked at: minutes or hours such as `30m` or `6h`, at least `1m`. |
 | `ASC_HUB_START_TIMEOUT` | `120` | Seconds to wait for the hub before giving up (1 to 9999). |
 | `ASC_HUB_ASC_PORT` | `7890` | Loopback port of `asc serve`; also the default port in `[asc] SERVER_URL` and the port the health check asks. Change it only if 7890 is taken (for example with host networking). |
 | `ASC_DATABASE_URL` | SQLite file `/var/lib/gitea/asc/asc.db` | Database of `asc serve`: a `sqlite://`, `postgres://` or `postgresql://` URL. |
@@ -65,6 +69,21 @@ Each `FORGEJO__<section>__<KEY>` variable you set wins over the defaults above. 
 The values that go into the `asc serve` configuration file may not contain quotes or line breaks. A value that does not fit stops the container before anything is written, with a message that names the variable and never prints a secret. The names are read by the entrypoint script (`docker/allinone/usr/local/bin/asc-hub-entrypoint`), not by the hub program; `tests/allinone/compose_test.go` fails when this list and the script disagree.
 
 Running the image with a command, for example `docker run IMAGE forgejo admin user list`, skips the supervisor and runs the hub's own entrypoint with that command.
+
+### Release downloads from a private source
+
+The page `/download` offers the `asc` command line from the directory `[asc] DOWNLOAD_DIR`. A hub cannot link to the assets of a private GitHub release, so it can fetch them itself (`services/ascdownloadsync`). Set `[asc] DOWNLOAD_SOURCE_URL`, `[asc] DOWNLOAD_PUBLIC_KEY` and, for a private release, `[asc] DOWNLOAD_SOURCE_TOKEN` or `DOWNLOAD_SOURCE_TOKEN_URI` (a `file://` address); in the all-in-one image use the `ASC_HUB_DOWNLOAD_*` variables above.
+
+What the hub does, at start and then every `[asc] DOWNLOAD_SYNC_INTERVAL` (one hour by default), in a goroutine that never holds up the start:
+
+1. Fetches `manifest.json`, the checksum file and its signature that the manifest names. The checksum file must verify with `[asc] DOWNLOAD_PUBLIC_KEY`; a key named in the manifest must be the same one. A source cannot choose its own key.
+2. Requires the signed checksums to list `manifest.json` with the hash of the manifest that was fetched, and every file of the manifest with the hash and size the manifest says. A file with a detached signature must verify with the key too (prehashed `ED` and legacy `Ed` minisign signatures are read).
+3. Downloads every file into a staging directory below the download directory, with caps: 1 MiB for the manifest, 1 GiB for a file and 4 GiB for a release. Only when all of it has verified are the files moved in, each by an atomic rename and `manifest.json` last. Files of the release that was replaced, and only those, are removed.
+4. On any failure the last good release stays and a warning goes to the log. An administrator who opens `/download` while nothing is published sees the last error.
+
+The token goes only to the host of the source URL; GitHub redirects the download to its storage on another host and the token is not sent there. Every connection is made through a dialer that refuses private, loopback and link-local addresses, so the source address cannot point inside your network. Sign the release with `minisign -Sm SHA256SUMS` (and each file you want signed) and publish `manifest.json` in the release; the format of the manifest is in `modules/ascdownload`.
+
+While no release is published `/download` says so and shows how to build `asc` from source and how to connect it to the hub.
 
 ### Git over SSH (optional)
 
