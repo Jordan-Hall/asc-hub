@@ -53,13 +53,18 @@ flag is dropped.
 
 ## Clone panel and home (`clone_buttons.tmpl`, `clone_script.tmpl`, `clone_asc_tabs.tmpl`, `home.tmpl`)
 
-- `clone_buttons.tmpl`: for an asc repository the read-only box shows `asc clone <url>` (the HTTPS/SSH buttons still pick
-  the URL), and the copy button copies the whole command. `clone_script.tmpl` gained `data-clone-prefix`: an element
+- `clone_buttons.tmpl`: for an asc repository the read-only box shows `asc clone <url>` (the HTTPS button, and the SSH button only when SSH is
+  enabled, still pick the URL), and the copy button copies the whole command. `clone_script.tmpl` gained `data-clone-prefix`: an element
   with that attribute gets the prefix before the URL when the protocol changes. Git repositories and wikis are unchanged.
 - `clone_asc_tabs.tmpl` (new): tab "Use with asc" (`asc clone <url>`) and tab "Use with git" (`git clone <url>` with the
   note `repo.clone_with_git_help`). Shown on the empty-repository page and, under a `<details>` "Clone with asc or git"
   (`repo.clone_other_ways`), on the repository home page.
-- The URLs are the existing HTTPS and SSH clone links (they end in `.git`; asc accepts and strips that suffix).
+- The URLs are the HTTPS clone links (they end in `.git`; asc accepts and strips that suffix); the SSH link exists only when `[asc] SSH_ENABLED` is true.
+- Connecting needs no SSH: the asc tab and the empty-repository page show `asc auth login --host <this hub> --prompt` (the
+  `AscHubHost` template function) before the clone or push, with a link to Settings, Applications for the token. The
+  git tab says that git over HTTPS takes the user name and the token (`repo.clone_https_only_help`, shown while SSH is off).
+- Settings: the SSH keys and principals sections are shown only when the `SSHEnabled` template function is true; otherwise
+  the page is "GPG keys" (signing keys stay).
 
 ## Left git-flavoured
 

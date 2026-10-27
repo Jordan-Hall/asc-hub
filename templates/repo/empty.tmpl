@@ -56,7 +56,8 @@
 								<h3>{{ctx.Locale.Tr "repo.create_new_repo_command"}}</h3>
 								<div class="markup">
 									{{if $isAsc}}
-									<pre><code>touch README.md
+									<pre><code>asc auth login --host {{AscHubHost}} --prompt
+touch README.md
 asc init{{if ne .Repository.DefaultBranch "master"}} -b {{.Repository.DefaultBranch}}{{end}}
 asc add README.md
 asc commit -m "first commit"
@@ -79,7 +80,8 @@ git push -u origin {{.Repository.DefaultBranch}}</code></pre>
 								<h3>{{ctx.Locale.Tr "repo.push_exist_repo"}}</h3>
 								<div class="markup">
 									{{if $isAsc}}
-									<pre><code>asc remote add origin <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span>
+									<pre><code>asc auth login --host {{AscHubHost}} --prompt
+asc remote add origin <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span>
 asc push -u origin {{.Repository.DefaultBranch}}</code></pre>
 									{{else}}
 									<pre><code>git remote add origin <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span>

@@ -17,7 +17,7 @@ Only changes that are in the `asc/v16` log (unit ids in brackets):
 
 - Storage seams: a `Backend` and a `Writer` interface, with the git CLI implementation and an asc backend (K03 to K05, K08, K10).
   `storage_backend` is chosen per repository; `dual` runs asc with a git shadow and samples differences (K11).
-- Authorization: an internal authz endpoint, SSH key lookup, and path hiding (K02, K07, K19).
+- Authorization: an internal authz endpoint, SSH key lookup (used only when SSH is enabled), and path hiding (K02, K07, K19).
 - Git pushes are imported into asc, and `refs/pull/*` moves through asc first (K09).
 - Relaxed approvals by change class on branch protection, and a per-file class badge (K17).
 - Actions: a `permissions:` block with enforcement for the API, git, LFS and asc (K20), and `packages: write` for the job token (K20, K20b).
@@ -32,7 +32,7 @@ Only changes that are in the `asc/v16` log (unit ids in brackets):
 ## What it keeps from Forgejo
 
 Git hosting, issues, pull requests, wikis, releases, the package registry and Actions all remain.
-Git-compatible clients (`git`, git over SSH and HTTPS) still work.
+Git-compatible clients (`git` over HTTPS) still work. Git over SSH works only when the operator turns it on (off by default; HTTPS is the only inbound port a hub needs).
 
 ## Licence and credit
 

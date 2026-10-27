@@ -1,7 +1,9 @@
 #!/bin/bash
 # Smoke test of a running ASC Hub. It checks, in this order: /api/healthz, /.well-known/asc, the
 # sign-in page and a token sign-in, creating a repository, a push and a clone over https, the
-# repository's web page, a clone and a push over ssh. It then deletes what it made.
+# repository's web page. Only when the hub offers git over SSH (ASC_HUB_SSH_ENABLE=true) it also
+# checks a clone and a push over ssh; otherwise the ssh checks are skipped, with a message. It then
+# deletes what it made.
 #
 #   ASC_SMOKE_URL=https://hub.example.org ASC_SMOKE_USER=alice ASC_SMOKE_TOKEN_FILE=~/.hub-token \
 #     scripts/smoke.sh
@@ -14,13 +16,16 @@
 #   ASC_SMOKE_TOKEN_FILE   or        a file whose first line is an access token with the scopes
 #   ASC_SMOKE_TOKEN                  write:repository and write:user. Prefer the file: an environment
 #                                    variable is visible to other processes of the same user.
+#   ASC_HUB_SSH_ENABLE     optional  true if the hub was started with ASC_HUB_SSH_ENABLE=true and its SSH
+#                                    port is reachable from here. Default false: the ssh checks are
+#                                    skipped (reported as skipped, never as passed).
 #   ASC_SMOKE_SSH_HOST     optional  host name the ssh clone address must have (default: the host of
 #                                    ASC_SMOKE_URL). The test connects nowhere else.
 #   ASC_SMOKE_SSH          optional  the ssh program (default ssh).
-#   ASC_SMOKE_SKIP_SSH=1   optional  skip the ssh checks (reported as skipped, never as passed).
+#   ASC_SMOKE_SKIP_SSH=1   optional  skip the ssh checks even when ASC_HUB_SSH_ENABLE=true.
 #   ASC_SMOKE_TIMEOUT      optional  seconds per request (default 20).
 #
-# Needs curl, git 2.31 or later, ssh, ssh-keygen, base64, sed, grep, mktemp. The token goes to
+# Needs curl, git 2.31 or later, base64, sed, grep, mktemp, and with ssh checks ssh and ssh-keygen. The token goes to
 # curl through a file in a private temporary directory and to git through its environment, never
 # onto a command line, into the log or to a host other than the one in ASC_SMOKE_URL. The ssh host
 # key is accepted at its first sight (the run uses a new known_hosts file). Exit status 0 only if
@@ -52,6 +57,11 @@ BASE="${BASE%/}"
 USER_NAME="${ASC_SMOKE_USER:-}"
 TIMEOUT="${ASC_SMOKE_TIMEOUT:-20}"
 SSH_BIN="${ASC_SMOKE_SSH:-ssh}"
+SSH_ENABLE="${ASC_HUB_SSH_ENABLE:-false}"
+[[ "$SSH_ENABLE" =~ ^(true|false)$ ]] || die "ASC_HUB_SSH_ENABLE must be true or false"
+# The ssh checks run only for a hub that offers git over SSH, and only if they are not switched off.
+RUN_SSH=0
+if [ "$SSH_ENABLE" = true ] && [ "${ASC_SMOKE_SKIP_SSH:-}" != 1 ]; then RUN_SSH=1; fi
 
 [ -n "$BASE" ] || die "ASC_SMOKE_URL is not set"
 [ -n "$USER_NAME" ] || die "ASC_SMOKE_USER is not set"
@@ -86,7 +96,7 @@ done
 git_version="$(git --version | sed -n 's/^git version \([0-9]*\)\.\([0-9]*\).*/\1 \2/p')"
 read -r git_major git_minor <<<"$git_version"
 { [ "${git_major:-0}" -gt 2 ] || { [ "${git_major:-0}" -eq 2 ] && [ "${git_minor:-0}" -ge 31 ]; }; } || die "git 2.31 or later is needed"
-if [ "${ASC_SMOKE_SKIP_SSH:-}" != 1 ]; then
+if [ "$RUN_SSH" = 1 ]; then
 	command -v "$SSH_BIN" >/dev/null 2>&1 || die "$SSH_BIN is needed for the ssh checks (or set ASC_SMOKE_SKIP_SSH=1)"
 	command -v ssh-keygen >/dev/null 2>&1 || die "ssh-keygen is needed for the ssh checks (or set ASC_SMOKE_SKIP_SSH=1)"
 fi
@@ -292,8 +302,12 @@ esac
 
 # --- 7. ssh -----------------------------------------------------------------------------------------
 
-if [ "${ASC_SMOKE_SKIP_SSH:-}" = 1 ]; then
-	skip "clone and push over ssh (ASC_SMOKE_SKIP_SSH=1)"
+if [ "$RUN_SSH" != 1 ]; then
+	if [ "$SSH_ENABLE" != true ]; then
+		skip "clone and push over ssh: ASC_HUB_SSH_ENABLE is not true, so this hub offers git over https only"
+	else
+		skip "clone and push over ssh (ASC_SMOKE_SKIP_SSH=1)"
+	fi
 else
 	ssh-keygen -q -t ed25519 -N '' -C "asc-smoke-$RUN_ID" -f "$TMP/id" >/dev/null
 	PUB="$(cat "$TMP/id.pub")"

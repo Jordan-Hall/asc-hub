@@ -81,9 +81,27 @@ selected() { [ -z "$FILTER" ] || [[ "$1" == *"$FILTER"* ]]; }
 
 # --- cases ------------------------------------------------------------------------------------
 
+t_success_https() {
+	new_case success_https
+	smoke
+	eq "all checks pass" 0 "$RC"
+	for line in "GET /api/healthz answers 200" "announces http://127.0.0.1:$PORT" "sign-in page loads" "refuses a request without a token" \
+		"signs in as alice" "created alice/asc-smoke-" "git clone over https (empty" "git push over https" \
+		"API shows branch main" "serves the pushed file unchanged" "returns the pushed commit" "repository page loads" \
+		"skip clone and push over ssh: ASC_HUB_SSH_ENABLE is not true" "cleanup: repository"; do
+		has "step reported" "$T/smoke.out" "$line"
+	done
+	has "summary" "$T/smoke.out" "smoke: 12 checks passed, 1 skipped"
+	hasnt "no ssh key step" "$T/smoke.out" "ssh key"
+	check_not "no ssh key was requested" grep -q '/api/v1/user/keys' "$REQ"
+	check_not "ssh was not used" test -s "$T/ssh.log"
+	eq "the repository is deleted" 0 "$(repos_left)"
+	end_case
+}
+
 t_success() {
 	new_case success
-	smoke
+	smoke ASC_HUB_SSH_ENABLE=true
 	eq "all checks pass" 0 "$RC"
 	for line in "GET /api/healthz answers 200" "announces http://127.0.0.1:$PORT" "sign-in page loads" "refuses a request without a token" \
 		"signs in as alice" "created alice/asc-smoke-" "git clone over https (empty" "git push over https" \
@@ -103,7 +121,7 @@ t_success() {
 
 t_skip_ssh() {
 	new_case skip_ssh
-	smoke ASC_SMOKE_SKIP_SSH=1
+	smoke ASC_HUB_SSH_ENABLE=true ASC_SMOKE_SKIP_SSH=1
 	eq "passes" 0 "$RC"
 	has "reported as skipped" "$T/smoke.out" "skip clone and push over ssh"
 	has "summary counts the skip" "$T/smoke.out" "1 skipped"
@@ -166,7 +184,7 @@ t_failures() {
 	end_case
 
 	new_case ssh_host_mismatch FAKE_SSH_HOST=evil.example.org
-	smoke
+	smoke ASC_HUB_SSH_ENABLE=true
 	eq "ssh address on another host" 1 "$RC"
 	has "says so" "$T/smoke.out" "not '127.0.0.1'"
 	check_not "ssh never connected" test -s "$T/ssh.log"
@@ -175,8 +193,15 @@ t_failures() {
 	end_case
 
 	new_case ssh_host_allowed FAKE_SSH_HOST=localhost
-	smoke ASC_SMOKE_SSH_HOST=localhost
+	smoke ASC_HUB_SSH_ENABLE=true ASC_SMOKE_SSH_HOST=localhost
 	eq "an explicit ssh host is accepted" 0 "$RC"
+	end_case
+
+	# A hub without SSH is not asked for an ssh address, even if the fake one is wrong.
+	new_case ssh_off_ignores_ssh_url FAKE_SSH_HOST=evil.example.org
+	smoke
+	eq "no ssh check, no ssh failure" 0 "$RC"
+	check_not "ssh never connected" test -s "$T/ssh.log"
 	end_case
 }
 
@@ -211,8 +236,15 @@ t_settings() {
 	end_case
 
 	new_case token_from_env
-	smoke ASC_SMOKE_TOKEN_FILE= "ASC_SMOKE_TOKEN=$TOKEN" ASC_SMOKE_SKIP_SSH=1
+	smoke ASC_SMOKE_TOKEN_FILE= "ASC_SMOKE_TOKEN=$TOKEN"
 	eq "token from the environment" 0 "$RC"
+	end_case
+
+	new_case ssh_flag
+	smoke ASC_HUB_SSH_ENABLE=yes
+	eq "ASC_HUB_SSH_ENABLE must be true or false" 1 "$RC"
+	has "says so" "$T/smoke.out" "ASC_HUB_SSH_ENABLE must be true or false"
+	check_not "nothing reached the hub" grep -q 'POST' "$REQ"
 	end_case
 
 	new_case unreachable
@@ -227,7 +259,7 @@ t_settings() {
 
 trap 'end_case' EXIT
 
-for t in t_success t_skip_ssh t_signin_required t_failures t_settings; do
+for t in t_success_https t_success t_skip_ssh t_signin_required t_failures t_settings; do
 	selected "$t" && "$t"
 done
 
