@@ -24,11 +24,10 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/routers"
 	"forgejo.org/routers/install"
+	"forgejo.org/services/ascforward"
 
 	"github.com/felixge/fgprof"
 	"github.com/urfave/cli/v3"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 )
 
 // PIDFile could be set from build tag
@@ -325,9 +324,9 @@ func listen(m http.Handler, handleRedirector bool) error {
 	}
 
 	// A TLS proxy in front of the hub passes the gRPC calls of the asc command line (services/ascforward) on as
-	// HTTP/2 without TLS (h2c); every other request is served as before.
+	// HTTP/2 without TLS (h2c, prior knowledge only, for those calls only); every other request is served as before.
 	if setting.Asc.Enabled && (setting.Protocol == setting.HTTP || setting.Protocol == setting.HTTPUnix) {
-		m = h2c.NewHandler(m, &http2.Server{})
+		m = ascforward.PriorKnowledgeH2C(m)
 	}
 
 	var err error
