@@ -1,0 +1,454 @@
+/* A person's profile (templates/user/profile.tmpl, shared/user/profile_big_avatar.tmpl). Components come from asc-app.css. */
+
+.ap-pfband {
+  background: var(--color-box-body);
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ap-pfwrap {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+}
+
+.ap-pfband .ap-pfwrap {
+  padding-top: 20px;
+}
+
+.ap-pfbody {
+  padding-block: 20px 28px;
+}
+
+@media (min-width: 768px) {
+  .ap-pfwrap {
+    padding-inline: 24px;
+  }
+  .ap-pfband .ap-pfwrap {
+    padding-top: 28px;
+  }
+  .ap-pfbody {
+    padding-block: 24px 32px;
+  }
+}
+
+/* head */
+.ap-pfcard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 22px;
+}
+
+.ap-pfcard .avatar {
+  flex: none;
+  display: block;
+  width: 88px;
+  height: 88px;
+}
+
+.ap-pfcard .avatar img {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ap-pfcard .info {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.ap-pfcard .line1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.ap-pfcard h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+  .ap-pfcard h1 {
+    font-size: 28px;
+  }
+}
+
+.ap-pfcard .line2,
+.ap-pfcard .line3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--color-text-light-2);
+}
+
+.ap-pfcard .line3 {
+  font-size: 14px;
+}
+
+.ap-pfcard .line2 > span + span::before {
+  content: "\00b7";
+  margin-inline-end: 14px;
+}
+
+.ap-pfcard .desc {
+  max-width: 620px;
+  margin-top: 8px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--color-text-light);
+}
+
+.ap-pfcard .desc > :first-child {
+  margin-top: 0;
+}
+
+.ap-pfcard .desc > :last-child {
+  margin-bottom: 0;
+}
+
+.ap-pfcard .line4 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 10px;
+}
+
+.ap-pfcard .user-orgs,
+.ap-pfcard .user-badges {
+  margin: 0 !important;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-pfcard .user-orgs > li {
+  max-width: 34px;
+}
+
+.ap-pfcard .user-badges {
+  grid-template-columns: repeat(auto-fill, 32px);
+}
+
+.ap-pfcard .actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ap-pfcard .actions .primary-action {
+  display: contents;
+}
+
+.ap-pfcard .actions summary.border {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px;
+}
+
+/* tabs: the stock overflow menu, drawn like the board's tabs */
+.ap-pfband overflow-menu.ui.secondary.pointing.tabular.borderless.menu {
+  margin: 16px 0 0;
+  border: 0;
+  background: transparent;
+}
+
+.ap-pfband overflow-menu .overflow-menu-items {
+  gap: 0;
+  border: 0;
+}
+
+.ap-pfband overflow-menu .item {
+  min-height: 44px;
+  margin: 0 20px 0 0;
+  padding: 12px 4px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-light-2);
+}
+
+.ap-pfband overflow-menu .item svg {
+  display: none;
+}
+
+.ap-pfband overflow-menu .item:hover {
+  color: var(--color-text);
+  background: transparent;
+}
+
+.ap-pfband overflow-menu .active.item {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-text);
+  background: transparent;
+}
+
+/* body */
+.ap-pfgrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 1000px) {
+  .ap-pfgrid {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .ap-pfgrid > .ap-main {
+    flex: 1 1 640px;
+  }
+  .ap-pfgrid > .ap-aside {
+    flex: 0 0 310px;
+  }
+}
+
+.ap-sechead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin-bottom: 14px;
+}
+
+.ap-sechead h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ap-sechead span {
+  font-size: 13px;
+  color: var(--color-text-light-2);
+}
+
+.ap-panel.padded > h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ap-work {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-work a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--ap-head-line);
+  border-radius: 10px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.ap-work a:hover {
+  background: var(--color-hover);
+}
+
+.ap-work .ap-dot {
+  margin: 0;
+  width: 10px;
+  height: 10px;
+}
+
+.ap-work .body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ap-work .title {
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ap-work .where {
+  font-size: 13px;
+  color: var(--color-text-light-2);
+  overflow-wrap: anywhere;
+}
+
+.ap-recent {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-recent > li {
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--ap-line);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.ap-recent > li:last-child {
+  border-bottom: 0;
+}
+
+.ap-recent .ap-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+}
+
+.ap-recent a {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ap-pfrepos {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.ap-pfrepos li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ap-pfrepos a {
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.ap-pfrepos span {
+  flex: none;
+  font-size: 13px;
+  color: var(--color-text-light-2);
+}
+
+.ap-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ap-pills .ap-pill {
+  text-decoration: none;
+}
+
+.ap-note {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--color-text-light);
+}
+
+.ap-note b {
+  color: var(--color-text);
+}
+
+/* the contribution grid: 53 columns of 7 days */
+.ap-heat-scroll {
+  direction: rtl; /* a narrow screen starts at the latest weeks */
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.ap-heat-inner {
+  direction: ltr;
+  display: inline-block;
+  min-width: min-content;
+}
+
+.ap-heat-months {
+  display: grid;
+  grid-template-columns: 22px repeat(53, 13px);
+  column-gap: 3px;
+  margin-bottom: 4px;
+  padding-inline-start: 8px;
+  font-size: 11px;
+  line-height: 13px;
+  color: var(--color-text-light-2);
+}
+
+.ap-heat-months span {
+  grid-row: 1;
+  white-space: nowrap;
+  margin-inline-start: calc(22px + 3px - 8px + 8px);
+}
+
+.ap-heat-body {
+  display: flex;
+  gap: 8px;
+}
+
+.ap-heat-days {
+  display: grid;
+  grid-template-rows: repeat(7, 13px);
+  gap: 3px;
+  width: 22px;
+  font-size: 10.5px;
+  line-height: 13px;
+  color: var(--color-text-light-2);
+}
+
+.ap-heat-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 13px);
+  grid-auto-columns: 13px;
+  gap: 3px;
+}
+
+.ap-heat-cell {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background: var(--ap-heat-0);
+}
+
+.ap-heat-cell.l1 { background: var(--ap-heat-1); }
+.ap-heat-cell.l2 { background: var(--ap-heat-2); }
+.ap-heat-cell.l3 { background: var(--ap-heat-3); }
+.ap-heat-cell.l4 { background: var(--ap-heat-4); }
+.ap-heat-cell.blank { background: transparent; }
+
+.ap-heat-cell:not(.blank):hover {
+  outline: 1.5px solid var(--color-text);
+}
+
+.ap-heat-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--color-text-light-2);
+}
