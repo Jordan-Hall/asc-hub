@@ -163,6 +163,7 @@ type ascPrincipal struct {
 	deployKey *asymkey_model.DeployKey
 	task      *actions_model.ActionTask
 	reducer   authz.AuthorizationReducer
+	scope     string // the scope of the token, "" for any other credential
 	userID    int64
 	username  string
 }
@@ -252,6 +253,9 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 		}
 	}
 	if resp.BranchRules.RequireSigned, err = ascRequireSigned(ctx, repo, req.Ref); err != nil {
+		return ascDenied(), err
+	}
+	if resp.PermVersion, err = ascPermVersion(ctx, repo, principal, access); err != nil {
 		return ascDenied(), err
 	}
 	return resp, nil
@@ -422,6 +426,9 @@ func ascPrincipalFromAuthResult(ctx *context.PrivateContext, repo *repo_model.Re
 		}
 	}
 	p.reducer = ar.Reducer()
+	if has, scope := ar.Scope().Get(); has {
+		p.scope = string(scope)
+	}
 	return p, true, nil
 }
 

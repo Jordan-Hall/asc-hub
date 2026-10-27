@@ -92,12 +92,20 @@ type AscAuthzResponse struct {
 	// RepoID and OwnerID are the stable ids of the repository and of its owner on this hub (Allowed only). A name
 	// can be given up and taken again by another repository; the ids cannot, so asc serve binds its registry
 	// entry to RepoID and refuses an entry whose id differs.
-	RepoID        int64               `json:"repo_id"`
-	OwnerID       int64               `json:"owner_id"`
-	UserID        int64               `json:"user_id"`
-	Username      string              `json:"username"`
-	Perm          string              `json:"perm"`
-	DeployKeyID   int64               `json:"deploy_key_id"`
+	RepoID      int64  `json:"repo_id"`
+	OwnerID     int64  `json:"owner_id"`
+	UserID      int64  `json:"user_id"`
+	Username    string `json:"username"`
+	Perm        string `json:"perm"`
+	DeployKeyID int64  `json:"deploy_key_id"`
+	// PermVersion identifies everything this decision rested on (Allowed only): the repository (id, owner, name,
+	// visibility, archive, mirror, storage, units), the asker (account state, permission on every unit, the
+	// scope of the token, the deploy key) as the hub's permission model sees them. It changes whenever a
+	// collaborator, a team, an organisation, the visibility, a rename, a transfer, a deletion or the scope of a
+	// token changes what the asker may do, and only then. It is a fingerprint, not a counter: an asker whose
+	// access changes and changes back has the old value again. asc serve may keep an answer for as long as it
+	// can tell that the value is the same, and not otherwise.
+	PermVersion   uint64              `json:"perm_version"`
 	IsActionsTask bool                `json:"is_actions_task"`
 	Task          *AscAuthzTask       `json:"task"`
 	BranchRules   AscAuthzBranchRules `json:"branch_rules"`
