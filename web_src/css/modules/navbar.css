@@ -32,7 +32,7 @@
   gap: 10px;
 }
 
-#navbar-logo .asc-brand-tile {
+#navbar-logo .hub-brand-tile {
   flex: none;
 }
 
@@ -171,12 +171,12 @@
   margin-inline-end: 0 !important;
 }
 
-#navbar .asc-nav-avatar img {
+#navbar .hub-nav-avatar img {
   border-radius: 50%;
 }
 
 /* Sign in on a phone: an outlined button like the design */
-#navbar .navbar-mobile-right .asc-nav-signin {
+#navbar .navbar-mobile-right .hub-nav-signin {
   border: 1px solid #334155;
   border-radius: 8px;
   padding-inline: 14px;
@@ -184,7 +184,7 @@
   font-weight: 600;
 }
 
-#navbar .navbar-mobile-right .asc-nav-signin:hover {
+#navbar .navbar-mobile-right .hub-nav-signin:hover {
   background: var(--color-nav-hover-bg);
 }
 
@@ -247,13 +247,13 @@
 }
 
 /* inbox link with the amber count of what needs you */
-#navbar a.asc-nav-inbox {
+#navbar a.hub-nav-inbox {
   gap: 8px;
   color: #fff;
   font-weight: 600;
 }
 
-#navbar .asc-nav-count {
+#navbar .hub-nav-count {
   display: inline-block;
   min-width: 18px;
   padding: 1px 8px;
@@ -267,12 +267,12 @@
   text-align: center;
 }
 
-#navbar .asc-nav-count.tw-hidden {
+#navbar .hub-nav-count.tw-hidden {
   display: none;
 }
 
 /* the create account button of the signed out bar */
-#navbar a.asc-nav-cta {
+#navbar a.hub-nav-cta {
   height: 38px;
   min-height: 38px;
   padding: 0 20px;
@@ -284,19 +284,19 @@
   box-shadow: none;
 }
 
-#navbar a.asc-nav-cta:hover,
-#navbar a.asc-nav-cta:focus-visible {
+#navbar a.hub-nav-cta:hover,
+#navbar a.hub-nav-cta:focus-visible {
   background: #67e8f9;
   color: #04222b;
 }
 
-#navbar a.asc-nav-cta:focus-visible {
+#navbar a.hub-nav-cta:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
 /* the create and account menus of the signed in bar */
-#navbar details.asc-nav-create > summary {
+#navbar details.hub-nav-create > summary {
   width: 34px;
   height: 34px;
   min-height: 34px;
@@ -306,15 +306,15 @@
   color: #fff;
 }
 
-#navbar details.asc-nav-create > summary .dropdown-icon {
+#navbar details.hub-nav-create > summary .dropdown-icon {
   display: none;
 }
 
-#navbar details.asc-nav-user > summary {
+#navbar details.hub-nav-user > summary {
   padding-inline: 4px;
 }
 
-#navbar details.asc-nav-user > summary img {
+#navbar details.hub-nav-user > summary img {
   border-radius: 50%;
 }
 
@@ -342,7 +342,7 @@
   #navbar.navbar-menu-open #navbar-expand-toggle {
     width: auto;
   }
-  #navbar.navbar-menu-open a.asc-nav-cta {
+  #navbar.navbar-menu-open a.hub-nav-cta {
     justify-content: center;
     margin-top: 4px;
   }
@@ -393,7 +393,7 @@
   #navbar.navbar-site #navbar-logo .navbar-brand-name {
     font-size: 1.1875rem;
   }
-  #navbar.navbar-site #navbar-logo .asc-brand-tile {
+  #navbar.navbar-site #navbar-logo .hub-brand-tile {
     width: 26px;
     height: 26px;
   }
@@ -434,12 +434,12 @@
   min-height: 44px;
 }
 
-#navbar details.asc-nav-create > summary,
-#navbar details.asc-nav-user > summary {
+#navbar details.hub-nav-create > summary,
+#navbar details.hub-nav-user > summary {
   padding-inline-start: 4px;
 }
 
-#navbar details.asc-nav-create > summary {
+#navbar details.hub-nav-create > summary {
   padding-inline: 0;
   min-height: 34px;
 }

@@ -1,0 +1,150 @@
+// Copyright 2026 The Forgejo Authors. All rights reserved.
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+package web
+
+import (
+	"net/http"
+	"os"
+	"sync"
+	"time"
+
+	"forgejo.org/modules/ascdownload"
+	"forgejo.org/modules/log"
+	"forgejo.org/modules/setting"
+	"forgejo.org/services/context"
+)
+
+const tplAscDownload = "download"
+
+// ascDownloadView is what the landing page and /download render.
+type ascDownloadView struct {
+	Offers *ascdownload.Offers
+	// ActiveOS is the operating system tab shown first: the visitor's, or the first one the release has.
+	ActiveOS string
+	// ActiveArch is the processor of that system the visitor most likely has.
+	ActiveArch string
+	// Detected is true when ActiveOS came from the visitor's browser rather than from the release.
+	Detected bool
+	// ActiveOSOffer and ActiveArchOffer are the offer for ActiveOS and ActiveArch.
+	ActiveOSOffer   *ascdownload.OSOffer
+	ActiveArchOffer *ascdownload.ArchOffer
+	// HubURL is this hub's root URL without the trailing slash.
+	HubURL string
+}
+
+// ascDownloadBase is where the download links point: [asc] DOWNLOAD_BASE_URL, or this hub's own mount.
+func ascDownloadBase() string {
+	if setting.Asc.DownloadBaseURL != "" {
+		return setting.Asc.DownloadBaseURL
+	}
+	return setting.AppURL + "-/download/"
+}
+
+var (
+	ascDownloadLogMu  sync.Mutex
+	ascDownloadLogged string
+)
+
+// logAscDownloadError says once per distinct problem that the manifest is unusable.
+func logAscDownloadError(err error) {
+	if err == nil || ascdownload.IsNoRelease(err) {
+		return
+	}
+	ascDownloadLogMu.Lock()
+	defer ascDownloadLogMu.Unlock()
+	if ascDownloadLogged != err.Error() {
+		ascDownloadLogged = err.Error()
+		log.Warn("asc download: the release manifest is not usable and the download section is hidden: %v", err)
+	}
+}
+
+// prepareAscDownload puts the download section into the page data. A visitor gets it only when a valid
+// release is published; an administrator who gets nothing is told why, in plain words, and nobody else is.
+// It reports whether there is a section to show.
+func prepareAscDownload(ctx *context.Context) bool {
+	// the hub's own address, for commands that name it; it is never a fixed host
+	ctx.Data["AscHubURL"] = setting.AppURL[:len(setting.AppURL)-1]
+	m, err := ascdownload.Cached(setting.Asc.DownloadDir, setting.Asc.DownloadBaseURL == "")
+	isAdmin := ctx.IsSigned && ctx.Doer != nil && ctx.Doer.IsAdmin
+	if err != nil {
+		logAscDownloadError(err)
+		if isAdmin {
+			note := err.Error()
+			if ascdownload.IsNoRelease(err) {
+				note += ". Set [asc] DOWNLOAD_DIR to a directory with a manifest.json and the release files to offer the asc download here."
+			}
+			ctx.Data["AscDownloadAdminNote"] = note
+		}
+		return false
+	}
+	hub := setting.AppURL
+	offers := ascdownload.BuildOffers(m, ascDownloadBase(), hub)
+	if len(offers.OSes) == 0 {
+		return false
+	}
+	platform := ascdownload.DetectPlatform(ctx.Req.UserAgent())
+	view := &ascDownloadView{Offers: offers, HubURL: hub[:len(hub)-1]}
+	osOffer, archOffer, ok := offers.Pick(platform)
+	if !ok {
+		osOffer, archOffer = &offers.OSes[0], &offers.OSes[0].Arches[0]
+	}
+	view.ActiveOS, view.ActiveArch, view.Detected = osOffer.OS, archOffer.Arch, ok
+	view.ActiveOSOffer, view.ActiveArchOffer = osOffer, archOffer
+	ctx.Data["AscDownload"] = view
+	return true
+}
+
+// Download renders /download. Without a published release it is a 404 for everyone but an administrator,
+// who sees what to configure.
+func Download(ctx *context.Context) {
+	shown := prepareAscDownload(ctx)
+	if !shown && ctx.Data["AscDownloadAdminNote"] == nil {
+		ctx.NotFound("ascdownload", nil)
+		return
+	}
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_download.title")
+	ctx.Data["PageIsAscDownload"] = true
+	ctx.Data["OpenGraphDescription"] = ctx.Locale.TrString("asc_download.lead")
+	ctx.HTML(http.StatusOK, tplAscDownload)
+}
+
+// DownloadFile serves one file of the download directory under /-/download/. Only the manifest, the files
+// it lists and their signature and checksum files are reachable, and the directory is opened as a root so
+// that no link inside it leads out. Every installer is sent as an attachment.
+func DownloadFile(ctx *context.Context) {
+	name := ctx.Params("*")
+	m, err := ascdownload.Cached(setting.Asc.DownloadDir, setting.Asc.DownloadBaseURL == "")
+	if err != nil || !m.ServedNames()[name] {
+		ctx.NotFound("ascdownload", nil)
+		return
+	}
+	root, err := os.OpenRoot(setting.Asc.DownloadDir)
+	if err != nil {
+		ctx.NotFound("ascdownload", nil)
+		return
+	}
+	defer root.Close()
+	f, err := root.Open(name)
+	if err != nil {
+		ctx.NotFound("ascdownload", nil)
+		return
+	}
+	defer f.Close()
+	st, err := f.Stat()
+	if err != nil || !st.Mode().IsRegular() {
+		ctx.NotFound("ascdownload", nil)
+		return
+	}
+	opts := &context.ServeHeaderOptions{
+		Filename:      name,
+		LastModified:  st.ModTime(),
+		CacheDuration: 5 * time.Minute,
+	}
+	if name == ascdownload.ManifestName {
+		opts.ContentType = "application/json"
+		opts.ContentTypeCharset = "utf-8"
+		opts.Disposition = "inline"
+	}
+	ctx.ServeContent(f, opts)
+}
