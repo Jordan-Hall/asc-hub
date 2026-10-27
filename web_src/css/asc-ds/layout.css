@@ -1437,6 +1437,21 @@
   color: var(--err);
 }
 
+.ds-settings-list a .ds-chip + .ds-chev {
+  margin-left: 0;
+}
+
+.ds-ico-box {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--link);
+}
+
 @media (min-width: 1024px) {
   .ds-settings {
     grid-template-columns: var(--menu-w) minmax(0, 1fr);
@@ -1695,6 +1710,11 @@ body.ds-lock {
 .ds-shell > .page-content {
   flex: 1 0 auto;
   min-width: 0;
+}
+
+/* the legacy rule that spaces the first child of a page must not push the sub bar down */
+.ds-shell .page-content > .ds-subbar:first-child {
+  margin-top: 0;
 }
 
 /* before the script runs, a drawer without :target stays shut; the scrim only exists for the script */

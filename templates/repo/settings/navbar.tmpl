@@ -1,91 +1,62 @@
-<div class="flex-container-nav">
-	<div class="ui fluid vertical menu">
-		<div class="header item">{{ctx.Locale.Tr "repo.settings"}}</div>
-		<a class="{{if .PageIsSettingsOptions}}active {{end}}item" href="{{.RepoLink}}/settings">
-			{{ctx.Locale.Tr "repo.settings.options"}}
-		</a>
-		<details class="item toggleable-item" {{if .PageIsRepoSettingsUnits}}open{{end}}>
-			<summary {{if .PageIsRepoSettingsUnits}}class="active"{{end}}>{{ctx.Locale.Tr "repo.settings.units.units"}}</summary>
-			<div class="menu">
-				<a class="item" href="{{.RepoLink}}/settings/units">
-					{{ctx.Locale.Tr "repo.settings.units.overview"}}
-				</a>
-				<a class="item" href="{{.RepoLink}}/settings/units#issues">
-					{{ctx.Locale.Tr "repo.issues"}}
-				</a>
-				<a class="item" href="{{.RepoLink}}/settings/units#pulls">
-					{{ctx.Locale.Tr "repo.pulls"}}
-				</a>
-				<a class="item" href="{{.RepoLink}}/settings/units#wiki">
-					{{ctx.Locale.Tr "repo.wiki"}}
-				</a>
-			</div>
-		</details>
-		<a class="{{if .PageIsSettingsCollaboration}}active {{end}}item" href="{{.RepoLink}}/settings/collaboration">
-			{{ctx.Locale.Tr "repo.settings.collaboration"}}
-		</a>
-		{{if not DisableWebhooks}}
-			<a class="{{if .PageIsSettingsHooks}}active {{end}}item" href="{{.RepoLink}}/settings/hooks">
-				{{ctx.Locale.Tr "repo.settings.hooks"}}
-			</a>
-		{{end}}
+{{/* The repository settings menu: the same shell as the account settings (user/settings/navbar). */}}
+{{$base := print .RepoLink "/settings"}}
+<nav class="ds-settings-nav" id="settings-menu" aria-label="{{ctx.Locale.Tr "repo.settings"}}">
+	{{template "shared/ds/snav_bar" (dict "Title" (ctx.Locale.Tr "repo.settings"))}}
+	<div class="ds-settings-nav-in">
+		{{template "shared/ds/snav_who" (dict "Icon" "book" "Name" .Repository.Name "Sub" (ctx.Locale.Tr "asc_shell.sn_repo_sub" .Repository.OwnerName) "Href" .RepoLink "Label" (ctx.Locale.Tr "asc_shell.sn_view_repo"))}}
+
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_general"}}</h2>
+		<ul class="ds-settings-list">
+			{{template "shared/ds/snav_item" (dict "Href" $base "Label" (ctx.Locale.Tr "repo.settings.options") "Icon" "sliders" "Active" .PageIsSettingsOptions)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/units") "Label" (ctx.Locale.Tr "repo.settings.units.units") "Icon" "layers" "Active" .PageIsRepoSettingsUnits)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/collaboration") "Label" (ctx.Locale.Tr "repo.settings.collaboration") "Icon" "users" "Active" .PageIsSettingsCollaboration)}}
+			{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/branchless") "Label" (ctx.Locale.Tr "repo.settings.asc_branchless") "Icon" "branch" "Active" .PageIsSettingsAscBranchless)}}
+			{{end}}
+		</ul>
+
 		{{if .Repository.UnitEnabled $.Context $.UnitTypeCode}}
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_code"}}</h2>
+		<ul class="ds-settings-list">
 			{{if not .Repository.IsEmpty}}
-				<a class="{{if .PageIsSettingsBranches}}active {{end}}item" href="{{.RepoLink}}/settings/branches">
-					{{ctx.Locale.Tr "repo.settings.branches"}}
-				</a>
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/branches") "Label" (ctx.Locale.Tr "repo.settings.branches") "Icon" "branch" "Active" .PageIsSettingsBranches)}}
 			{{end}}
-			<a class="{{if .PageIsSettingsTags}}active {{end}}item" href="{{.RepoLink}}/settings/tags">
-				{{ctx.Locale.Tr "repo.settings.tags"}}
-			</a>
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/tags") "Label" (ctx.Locale.Tr "repo.settings.tags") "Icon" "tag" "Active" .PageIsSettingsTags)}}
 			{{if .SignedUser.CanEditGitHook}}
-				<a class="{{if .PageIsSettingsGitHooks}}active {{end}}item" href="{{.RepoLink}}/settings/hooks/git">
-					{{ctx.Locale.Tr "repo.settings.githooks"}}
-				</a>
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/hooks/git") "Label" (ctx.Locale.Tr "repo.settings.githooks") "Icon" "terminal" "Active" .PageIsSettingsGitHooks)}}
 			{{end}}
-			<a class="{{if .PageIsSettingsKeys}}active {{end}}item" href="{{.RepoLink}}/settings/keys">
-				{{ctx.Locale.Tr "repo.settings.deploy_keys"}}
-			</a>
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/keys") "Label" (ctx.Locale.Tr "repo.settings.deploy_keys") "Icon" "key" "Active" .PageIsSettingsKeys)}}
 			{{if .LFSStartServer}}
-				<a class="{{if .PageIsSettingsLFS}}active {{end}}item" href="{{.RepoLink}}/settings/lfs">
-					{{ctx.Locale.Tr "repo.settings.lfs"}}
-				</a>
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/lfs") "Label" (ctx.Locale.Tr "repo.settings.lfs") "Icon" "database" "Active" .PageIsSettingsLFS)}}
 			{{end}}
+		</ul>
 		{{end}}
-		{{if and .EnableActions (not .UnitActionsGlobalDisabled) (.Permission.CanRead $.UnitTypeActions)}}
-		<details class="item toggleable-item" {{if or .PageIsSharedSettingsRunners .PageIsSharedSettingsSecrets .PageIsSharedSettingsVariables .PageIsSharedSettingsPermissions}}open{{end}}>
-			<summary>{{ctx.Locale.Tr "actions.actions"}}</summary>
-			<div class="menu">
-				<a class="{{if .PageIsSharedSettingsPermissions}}active {{end}}item" href="{{.RepoLink}}/settings/actions/permissions">
-					{{ctx.Locale.Tr "actions.permissions.title"}}
-				</a>
-				<a class="{{if .PageIsSharedSettingsRunners}}active {{end}}item" href="{{.RepoLink}}/settings/actions/runners">
-					{{ctx.Locale.Tr "actions.runners"}}
-				</a>
-				<a class="{{if .PageIsSharedSettingsSecrets}}active {{end}}item" href="{{.RepoLink}}/settings/actions/secrets">
-					{{ctx.Locale.Tr "secrets.secrets"}}
-				</a>
-				<a class="{{if .PageIsSharedSettingsVariables}}active {{end}}item" href="{{.RepoLink}}/settings/actions/variables">
-					{{ctx.Locale.Tr "actions.variables"}}
-				</a>
-			</div>
-		</details>
-		{{end}}
+
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_integrations"}}</h2>
+		<ul class="ds-settings-list">
+			{{if not DisableWebhooks}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/hooks") "Label" (ctx.Locale.Tr "repo.settings.hooks") "Icon" "link" "Active" .PageIsSettingsHooks)}}
+			{{end}}
+			{{if and .EnableActions (not .UnitActionsGlobalDisabled) (.Permission.CanRead $.UnitTypeActions)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/permissions") "Label" (ctx.Locale.Tr "actions.permissions.title") "Icon" "shield-check" "Active" .PageIsSharedSettingsPermissions)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/runners") "Label" (ctx.Locale.Tr "actions.runners") "Icon" "cpu" "Active" .PageIsSharedSettingsRunners)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/secrets") "Label" (ctx.Locale.Tr "secrets.secrets") "Icon" "lock" "Active" .PageIsSharedSettingsSecrets)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/variables") "Label" (ctx.Locale.Tr "actions.variables") "Icon" "hash" "Active" .PageIsSharedSettingsVariables)}}
+			{{end}}
+		</ul>
+
 		{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
-		<a class="{{if .PageIsSettingsAscStorage}}active {{end}}item" href="{{.RepoLink}}/settings/asc/storage">
-			{{ctx.Locale.Tr "ascbyo.nav_storage"}}
-		</a>
-		<a class="{{if .PageIsSettingsAscAI}}active {{end}}item" href="{{.RepoLink}}/settings/asc/ai">
-			{{ctx.Locale.Tr "ascbyo.nav_ai"}}
-		</a>
-		<a class="{{if .PageIsSettingsAscBranchless}}active {{end}}item" href="{{.RepoLink}}/settings/asc/branchless">
-			{{ctx.Locale.Tr "repo.settings.asc_branchless"}}
-		</a>
-		{{end}}
-		{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
-		<a class="{{if .PageIsSettingsAscPolicy}}active {{end}}item" href="{{.RepoLink}}/settings/asc/policy">Policy and trust</a>
-		<a class="{{if .PageIsSettingsAscSecurity}}active {{end}}item" href="{{.RepoLink}}/settings/asc/security">Secret scanning</a>
-		<a class="{{if .PageIsSettingsAscAudit}}active {{end}}item" href="{{.RepoLink}}/settings/asc/audit">Audit log</a>
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_byo"}}</h2>
+		<ul class="ds-settings-list">
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/ai") "Label" (ctx.Locale.Tr "ascbyo.nav_ai") "Icon" "sparkles" "Active" .PageIsSettingsAscAI)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/storage") "Label" (ctx.Locale.Tr "ascbyo.nav_storage") "Icon" "database" "Active" .PageIsSettingsAscStorage)}}
+		</ul>
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_policy"}}</h2>
+		<ul class="ds-settings-list">
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/policy") "Label" (ctx.Locale.Tr "asc_shell.sn_policy_trust") "Icon" "shield-check" "Active" .PageIsSettingsAscPolicy)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/security") "Label" (ctx.Locale.Tr "asc_shell.sn_secret_scanning") "Icon" "fingerprint" "Active" .PageIsSettingsAscSecurity)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_shell.sn_audit_log") "Icon" "history" "Active" .PageIsSettingsAscAudit)}}
+		</ul>
 		{{end}}
 	</div>
-</div>
+</nav>
