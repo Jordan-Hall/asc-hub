@@ -1,6 +1,5 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content dashboard asc-drafts">
-	{{template "user/dashboard/navbar" .}}
 	<div class="ui container">
 		<h2>{{ctx.Locale.Tr "user.asc_drafts"}}</h2>
 		{{if .AscDraftsError}}
