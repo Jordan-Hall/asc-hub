@@ -277,6 +277,9 @@ func (ctx *preReceiveContext) importIntoAsc() bool {
 	for i, name := range ctx.opts.RefFullNames {
 		refs[i] = ascsync.PushRef{Name: string(name), Old: ctx.opts.OldCommitIDs[i], New: ctx.opts.NewCommitIDs[i]}
 	}
+	// asc's outbox can call post-receive before this call returns, and names the hub itself as the pusher, so
+	// the pusher is recorded first (services/ascsync/fanout.go).
+	ascsync.RememberPusher(repo, ctx.opts.UserID, refs)
 	err = ascsync.ImportPush(ctx, ascsync.ImportRequest{
 		Repo:     repo,
 		PusherID: ctx.opts.UserID,
