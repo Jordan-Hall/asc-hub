@@ -214,6 +214,7 @@ type ReportTestCasesRequest struct {
 	RunId         uint64                 `protobuf:"varint,2,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
 	JobId         uint64                 `protobuf:"varint,3,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
 	Cases         []*TestCase            `protobuf:"bytes,4,rep,name=cases,proto3" json:"cases,omitempty"`
+	Head          []byte                 `protobuf:"bytes,5,opt,name=head,proto3" json:"head,omitempty"` // the code the cases ran against; empty: the head of the run's change version, else unknown
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -272,6 +273,13 @@ func (x *ReportTestCasesRequest) GetJobId() uint64 {
 func (x *ReportTestCasesRequest) GetCases() []*TestCase {
 	if x != nil {
 		return x.Cases
+	}
+	return nil
+}
+
+func (x *ReportTestCasesRequest) GetHead() []byte {
+	if x != nil {
+		return x.Head
 	}
 	return nil
 }
@@ -342,6 +350,7 @@ type FailureGroup struct {
 	LastSeen        int64                  `protobuf:"varint,10,opt,name=last_seen,json=lastSeen,proto3" json:"last_seen,omitempty"`
 	Flaky           bool                   `protobuf:"varint,11,opt,name=flaky,proto3" json:"flaky,omitempty"`
 	Note            string                 `protobuf:"bytes,12,opt,name=note,proto3" json:"note,omitempty"`
+	NewVsMain       bool                   `protobuf:"varint,13,opt,name=new_vs_main,json=newVsMain,proto3" json:"new_vs_main,omitempty"` // no occurrence came from a run on the trunk
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -458,6 +467,13 @@ func (x *FailureGroup) GetNote() string {
 		return x.Note
 	}
 	return ""
+}
+
+func (x *FailureGroup) GetNewVsMain() bool {
+	if x != nil {
+		return x.NewVsMain
+	}
+	return false
 }
 
 // Most recently seen first. `limit` 0 means 30, at most 100.
@@ -623,6 +639,7 @@ type FailureOccurrence struct {
 	Attempt       uint32                 `protobuf:"varint,6,opt,name=attempt,proto3" json:"attempt,omitempty"`
 	At            int64                  `protobuf:"varint,7,opt,name=at,proto3" json:"at,omitempty"`
 	Message       string                 `protobuf:"bytes,8,opt,name=message,proto3" json:"message,omitempty"`
+	Stale         bool                   `protobuf:"varint,9,opt,name=stale,proto3" json:"stale,omitempty"` // the change has a newer version than the one this result is for
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -711,6 +728,13 @@ func (x *FailureOccurrence) GetMessage() string {
 		return x.Message
 	}
 	return ""
+}
+
+func (x *FailureOccurrence) GetStale() bool {
+	if x != nil {
+		return x.Stale
+	}
+	return false
 }
 
 type GetFailureGroupRequest struct {
@@ -1167,6 +1191,7 @@ type FlakyTest struct {
 	Runs          uint32                 `protobuf:"varint,4,opt,name=runs,proto3" json:"runs,omitempty"`
 	LastFlip      int64                  `protobuf:"varint,5,opt,name=last_flip,json=lastFlip,proto3" json:"last_flip,omitempty"`
 	GroupId       uint64                 `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	Flips         uint32                 `protobuf:"varint,7,opt,name=flips,proto3" json:"flips,omitempty"` // verdict changes between results of one head, in the last runs
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1239,6 +1264,13 @@ func (x *FlakyTest) GetLastFlip() int64 {
 func (x *FlakyTest) GetGroupId() uint64 {
 	if x != nil {
 		return x.GroupId
+	}
+	return 0
+}
+
+func (x *FlakyTest) GetFlips() uint32 {
+	if x != nil {
+		return x.Flips
 	}
 	return 0
 }
@@ -1374,15 +1406,16 @@ const file_asc_v1_ciinsights_proto_rawDesc = "" +
 	"\aattempt\x18\x03 \x01(\rR\aattempt\x12\x1f\n" +
 	"\vduration_ms\x18\x04 \x01(\rR\n" +
 	"durationMs\x12\x18\n" +
-	"\amessage\x18\x05 \x01(\tR\amessage\"\x93\x01\n" +
+	"\amessage\x18\x05 \x01(\tR\amessage\"\xad\x01\n" +
 	"\x16ReportTestCasesRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x15\n" +
 	"\x06run_id\x18\x02 \x01(\x04R\x05runId\x12\x15\n" +
 	"\x06job_id\x18\x03 \x01(\x04R\x05jobId\x12&\n" +
-	"\x05cases\x18\x04 \x03(\v2\x10.asc.v1.TestCaseR\x05cases\"X\n" +
+	"\x05cases\x18\x04 \x03(\v2\x10.asc.v1.TestCaseR\x05cases\x12\x18\n" +
+	"\x04head\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\x04head\"X\n" +
 	"\x17ReportTestCasesResponse\x12\x16\n" +
 	"\x06stored\x18\x01 \x01(\rR\x06stored\x12%\n" +
-	"\x0egroups_touched\x18\x02 \x01(\rR\rgroupsTouched\"\xee\x02\n" +
+	"\x0egroups_touched\x18\x02 \x01(\rR\rgroupsTouched\"\x8e\x03\n" +
 	"\fFailureGroup\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1c\n" +
 	"\tsignature\x18\x02 \x01(\tR\tsignature\x12\x14\n" +
@@ -1397,7 +1430,8 @@ const file_asc_v1_ciinsights_proto_rawDesc = "" +
 	"\tlast_seen\x18\n" +
 	" \x01(\x03R\blastSeen\x12\x14\n" +
 	"\x05flaky\x18\v \x01(\bR\x05flaky\x12\x12\n" +
-	"\x04note\x18\f \x01(\tR\x04note\"\x94\x02\n" +
+	"\x04note\x18\f \x01(\tR\x04note\x12\x1e\n" +
+	"\vnew_vs_main\x18\r \x01(\bR\tnewVsMain\"\x94\x02\n" +
 	"\x18ListFailureGroupsRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x121\n" +
 	"\x06states\x18\x02 \x03(\x0e2\x19.asc.v1.FailureGroupStateR\x06states\x12\x1d\n" +
@@ -1411,7 +1445,7 @@ const file_asc_v1_ciinsights_proto_rawDesc = "" +
 	"page_token\x18\b \x01(\tR\tpageToken\"q\n" +
 	"\x19ListFailureGroupsResponse\x12,\n" +
 	"\x06groups\x18\x01 \x03(\v2\x14.asc.v1.FailureGroupR\x06groups\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xd7\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xed\x01\n" +
 	"\x11FailureOccurrence\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\x04R\x05runId\x12\x15\n" +
 	"\x06job_id\x18\x02 \x01(\x04R\x05jobId\x12\x1c\n" +
@@ -1420,7 +1454,8 @@ const file_asc_v1_ciinsights_proto_rawDesc = "" +
 	"\x04head\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\x04head\x12\x18\n" +
 	"\aattempt\x18\x06 \x01(\rR\aattempt\x12\x0e\n" +
 	"\x02at\x18\a \x01(\x03R\x02at\x12\x18\n" +
-	"\amessage\x18\b \x01(\tR\amessage\"\x82\x01\n" +
+	"\amessage\x18\b \x01(\tR\amessage\x12\x14\n" +
+	"\x05stale\x18\t \x01(\bR\x05stale\"\x82\x01\n" +
 	"\x16GetFailureGroupRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\x04R\x02id\x12\x14\n" +
@@ -1456,7 +1491,7 @@ const file_asc_v1_ciinsights_proto_rawDesc = "" +
 	"flake_rate\x18\x02 \x01(\x01R\tflakeRate\x12\x14\n" +
 	"\x05flaky\x18\x03 \x01(\bR\x05flaky\x12\x1f\n" +
 	"\vfirst_flaky\x18\x04 \x01(\x03R\n" +
-	"firstFlaky\"\xae\x01\n" +
+	"firstFlaky\"\xc4\x01\n" +
 	"\tFlakyTest\x12\x1b\n" +
 	"\ttest_name\x18\x01 \x01(\tR\btestName\x12\x19\n" +
 	"\bjob_name\x18\x02 \x01(\tR\ajobName\x12\x1d\n" +
@@ -1464,7 +1499,8 @@ const file_asc_v1_ciinsights_proto_rawDesc = "" +
 	"flake_rate\x18\x03 \x01(\x01R\tflakeRate\x12\x12\n" +
 	"\x04runs\x18\x04 \x01(\rR\x04runs\x12\x1b\n" +
 	"\tlast_flip\x18\x05 \x01(\x03R\blastFlip\x12\x19\n" +
-	"\bgroup_id\x18\x06 \x01(\x04R\agroupId\"\x92\x01\n" +
+	"\bgroup_id\x18\x06 \x01(\x04R\agroupId\x12\x14\n" +
+	"\x05flips\x18\a \x01(\rR\x05flips\"\x92\x01\n" +
 	"\x15ListFlakyTestsRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1f\n" +
 	"\vwindow_days\x18\x02 \x01(\rR\n" +

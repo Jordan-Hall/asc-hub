@@ -42,7 +42,7 @@ const (
 // after `Enable`. The access key id and secret access key are accepted on `CreateTarget` and `UpdateTarget`, encrypted at rest
 // with the master key (see Vault), and never returned: a target shows `access_key_hint` ("AKIA...WXYZ", first 4 and last 4
 // characters, or fewer for a short id) and `has_secret`. Users cannot name an address the server can reach but the
-// internet cannot: after DNS resolution the endpoint must not be loopback, link-local, private (RFC 1918, ULA, CGNAT), multicast,
+// internet cannot: after DNS resolution the endpoint must not be loopback, link-local, private (RFC 1918, ULA, carrier-grade NAT), multicast,
 // unspecified or a cloud metadata address, every connection is pinned to the checked address, and the scheme is https unless the
 // operator sets `[storage] allow_loopback_http`. Advertised as Version.features "storage.v1". ErrorDetail.code also carries
 // STORAGE_ENDPOINT_BLOCKED (INVALID_ARGUMENT; `paths[0]` is the reason slug: loopback, private, link_local, metadata,
@@ -200,7 +200,7 @@ func (c *storageClient) CancelMigration(ctx context.Context, in *CancelStorageMi
 // after `Enable`. The access key id and secret access key are accepted on `CreateTarget` and `UpdateTarget`, encrypted at rest
 // with the master key (see Vault), and never returned: a target shows `access_key_hint` ("AKIA...WXYZ", first 4 and last 4
 // characters, or fewer for a short id) and `has_secret`. Users cannot name an address the server can reach but the
-// internet cannot: after DNS resolution the endpoint must not be loopback, link-local, private (RFC 1918, ULA, CGNAT), multicast,
+// internet cannot: after DNS resolution the endpoint must not be loopback, link-local, private (RFC 1918, ULA, carrier-grade NAT), multicast,
 // unspecified or a cloud metadata address, every connection is pinned to the checked address, and the scheme is https unless the
 // operator sets `[storage] allow_loopback_http`. Advertised as Version.features "storage.v1". ErrorDetail.code also carries
 // STORAGE_ENDPOINT_BLOCKED (INVALID_ARGUMENT; `paths[0]` is the reason slug: loopback, private, link_local, metadata,

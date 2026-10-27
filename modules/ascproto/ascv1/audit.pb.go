@@ -135,6 +135,7 @@ type AuditEvent struct {
 	Details       map[string]string      `protobuf:"bytes,12,rep,name=details,proto3" json:"details,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	PrevHash      []byte                 `protobuf:"bytes,13,opt,name=prev_hash,json=prevHash,proto3" json:"prev_hash,omitempty"`
 	Hash          []byte                 `protobuf:"bytes,14,opt,name=hash,proto3" json:"hash,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,15,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"` // the client program, control characters removed, at most 256 bytes
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -265,6 +266,13 @@ func (x *AuditEvent) GetHash() []byte {
 		return x.Hash
 	}
 	return nil
+}
+
+func (x *AuditEvent) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
 }
 
 // Filters. `actions` are exact names or a prefix ending in ".*". `search` matches `target` as a prefix. `limit` 0 means 50, at
@@ -548,7 +556,8 @@ type ExportAuditResponse struct {
 	Data          []byte                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Last          bool                   `protobuf:"varint,2,opt,name=last,proto3" json:"last,omitempty"`
 	Digest        []byte                 `protobuf:"bytes,3,opt,name=digest,proto3" json:"digest,omitempty"`
-	Events        uint64                 `protobuf:"varint,4,opt,name=events,proto3" json:"events,omitempty"` // on the last message: how many events the export holds
+	Events        uint64                 `protobuf:"varint,4,opt,name=events,proto3" json:"events,omitempty"`       // on the last message: how many events the export holds
+	Truncated     bool                   `protobuf:"varint,5,opt,name=truncated,proto3" json:"truncated,omitempty"` // on the last message: more events matched than `[audit] export_max_events`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -609,6 +618,13 @@ func (x *ExportAuditResponse) GetEvents() uint64 {
 		return x.Events
 	}
 	return 0
+}
+
+func (x *ExportAuditResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
 }
 
 // `to_seq` 0 means the newest.
@@ -892,7 +908,7 @@ var File_asc_v1_audit_proto protoreflect.FileDescriptor
 
 const file_asc_v1_audit_proto_rawDesc = "" +
 	"\n" +
-	"\x12asc/v1/audit.proto\x12\x06asc.v1\x1a\x13asc/v1/common.proto\x1a\x14asc/v1/options.proto\"\x93\x04\n" +
+	"\x12asc/v1/audit.proto\x12\x06asc.v1\x1a\x13asc/v1/common.proto\x1a\x14asc/v1/options.proto\"\xb2\x04\n" +
 	"\n" +
 	"AuditEvent\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\x04R\x03seq\x12\x0e\n" +
@@ -912,7 +928,9 @@ const file_asc_v1_audit_proto_rawDesc = "" +
 	"remoteAddr\x129\n" +
 	"\adetails\x18\f \x03(\v2\x1f.asc.v1.AuditEvent.DetailsEntryR\adetails\x12!\n" +
 	"\tprev_hash\x18\r \x01(\fB\x04\xa8\xbb\x18\x01R\bprevHash\x12\x18\n" +
-	"\x04hash\x18\x0e \x01(\fB\x04\xa8\xbb\x18\x01R\x04hash\x1a:\n" +
+	"\x04hash\x18\x0e \x01(\fB\x04\xa8\xbb\x18\x01R\x04hash\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x0f \x01(\tR\tuserAgent\x1a:\n" +
 	"\fDetailsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbd\x01\n" +
@@ -936,12 +954,13 @@ const file_asc_v1_audit_proto_rawDesc = "" +
 	"\x12ExportAuditRequest\x12&\n" +
 	"\x05scope\x18\x01 \x01(\v2\x10.asc.v1.OwnerRefR\x05scope\x12+\n" +
 	"\x06filter\x18\x02 \x01(\v2\x13.asc.v1.AuditFilterR\x06filter\x121\n" +
-	"\x06format\x18\x03 \x01(\x0e2\x19.asc.v1.AuditExportFormatR\x06format\"y\n" +
+	"\x06format\x18\x03 \x01(\x0e2\x19.asc.v1.AuditExportFormatR\x06format\"\x97\x01\n" +
 	"\x13ExportAuditResponse\x12\x18\n" +
 	"\x04data\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x05R\x04data\x12\x12\n" +
 	"\x04last\x18\x02 \x01(\bR\x04last\x12\x1c\n" +
 	"\x06digest\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x06digest\x12\x16\n" +
-	"\x06events\x18\x04 \x01(\x04R\x06events\"s\n" +
+	"\x06events\x18\x04 \x01(\x04R\x06events\x12\x1c\n" +
+	"\ttruncated\x18\x05 \x01(\bR\ttruncated\"s\n" +
 	"\x17VerifyAuditChainRequest\x12&\n" +
 	"\x05scope\x18\x01 \x01(\v2\x10.asc.v1.OwnerRefR\x05scope\x12\x19\n" +
 	"\bfrom_seq\x18\x02 \x01(\x04R\afromSeq\x12\x15\n" +

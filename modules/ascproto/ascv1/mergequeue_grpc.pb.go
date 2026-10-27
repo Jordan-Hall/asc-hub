@@ -37,7 +37,7 @@ const (
 // against the policy of the target: conflicts, required checks on the exact head, approvals of the exact version, signatures
 // and secret findings. The queue never lands on a stale answer: when a check cannot be decided the entry stays where it is.
 // `Changes.RequestMerge` is the compatibility entry and calls `Enqueue`. Advertised as Version.features "mergequeue.v1".
-// ErrorDetail.code also carries QUEUE_PAUSED (UNAVAILABLE), QUEUE_ENTRY_EXISTS (ALREADY_EXISTS) and REVALIDATION_FAILED
+// ErrorDetail.code also carries QUEUE_PAUSED (FAILED_PRECONDITION), QUEUE_ENTRY_EXISTS (ALREADY_EXISTS) and REVALIDATION_FAILED
 // (FAILED_PRECONDITION; `paths` holds the reason slugs).
 type MergeQueueClient interface {
 	Enqueue(ctx context.Context, in *EnqueueRequest, opts ...grpc.CallOption) (*EnqueueResponse, error)
@@ -145,7 +145,7 @@ type MergeQueue_WatchClient = grpc.ServerStreamingClient[QueueEvent]
 // against the policy of the target: conflicts, required checks on the exact head, approvals of the exact version, signatures
 // and secret findings. The queue never lands on a stale answer: when a check cannot be decided the entry stays where it is.
 // `Changes.RequestMerge` is the compatibility entry and calls `Enqueue`. Advertised as Version.features "mergequeue.v1".
-// ErrorDetail.code also carries QUEUE_PAUSED (UNAVAILABLE), QUEUE_ENTRY_EXISTS (ALREADY_EXISTS) and REVALIDATION_FAILED
+// ErrorDetail.code also carries QUEUE_PAUSED (FAILED_PRECONDITION), QUEUE_ENTRY_EXISTS (ALREADY_EXISTS) and REVALIDATION_FAILED
 // (FAILED_PRECONDITION; `paths` holds the reason slugs).
 type MergeQueueServer interface {
 	Enqueue(context.Context, *EnqueueRequest) (*EnqueueResponse, error)

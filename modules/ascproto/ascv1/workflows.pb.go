@@ -31,6 +31,7 @@ const (
 	WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_CHECK_FAILED    WorkflowTriggerKind = 4
 	WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_COMMENT_MENTION WorkflowTriggerKind = 5 // a review comment that mentions `@agent-<name>`
 	WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_SCHEDULE        WorkflowTriggerKind = 6 // `cron`, UTC, five fields, at most every 15 minutes
+	WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_LAND            WorkflowTriggerKind = 7 // a stack landed on a branch
 )
 
 // Enum value maps for WorkflowTriggerKind.
@@ -43,6 +44,7 @@ var (
 		4: "WORKFLOW_TRIGGER_KIND_CHECK_FAILED",
 		5: "WORKFLOW_TRIGGER_KIND_COMMENT_MENTION",
 		6: "WORKFLOW_TRIGGER_KIND_SCHEDULE",
+		7: "WORKFLOW_TRIGGER_KIND_LAND",
 	}
 	WorkflowTriggerKind_value = map[string]int32{
 		"WORKFLOW_TRIGGER_KIND_UNSPECIFIED":     0,
@@ -52,6 +54,7 @@ var (
 		"WORKFLOW_TRIGGER_KIND_CHECK_FAILED":    4,
 		"WORKFLOW_TRIGGER_KIND_COMMENT_MENTION": 5,
 		"WORKFLOW_TRIGGER_KIND_SCHEDULE":        6,
+		"WORKFLOW_TRIGGER_KIND_LAND":            7,
 	}
 )
 
@@ -89,6 +92,7 @@ const (
 	WorkflowStepKind_WORKFLOW_STEP_KIND_AGENT       WorkflowStepKind = 1 // an agent run with `prompt`
 	WorkflowStepKind_WORKFLOW_STEP_KIND_APPROVAL    WorkflowStepKind = 2 // waits for one of `approvers`
 	WorkflowStepKind_WORKFLOW_STEP_KIND_CHECKS      WorkflowStepKind = 3 // waits for the named checks on the newest change of the run
+	WorkflowStepKind_WORKFLOW_STEP_KIND_COMMAND     WorkflowStepKind = 4 // runs `command` in the sandbox over a working copy of the change
 )
 
 // Enum value maps for WorkflowStepKind.
@@ -98,12 +102,14 @@ var (
 		1: "WORKFLOW_STEP_KIND_AGENT",
 		2: "WORKFLOW_STEP_KIND_APPROVAL",
 		3: "WORKFLOW_STEP_KIND_CHECKS",
+		4: "WORKFLOW_STEP_KIND_COMMAND",
 	}
 	WorkflowStepKind_value = map[string]int32{
 		"WORKFLOW_STEP_KIND_UNSPECIFIED": 0,
 		"WORKFLOW_STEP_KIND_AGENT":       1,
 		"WORKFLOW_STEP_KIND_APPROVAL":    2,
 		"WORKFLOW_STEP_KIND_CHECKS":      3,
+		"WORKFLOW_STEP_KIND_COMMAND":     4,
 	}
 )
 
@@ -346,8 +352,10 @@ type WorkflowStep struct {
 	Limits            *AgentBudgetLimits     `protobuf:"bytes,7,opt,name=limits,proto3" json:"limits,omitempty"`                                         // AGENT
 	Approvers         []string               `protobuf:"bytes,8,rep,name=approvers,proto3" json:"approvers,omitempty"`                                   // APPROVAL: policy subjects
 	Checks            []string               `protobuf:"bytes,9,rep,name=checks,proto3" json:"checks,omitempty"`                                         // CHECKS
-	TimeoutSeconds    uint32                 `protobuf:"varint,10,opt,name=timeout_seconds,json=timeoutSeconds,proto3" json:"timeout_seconds,omitempty"` // 0 means 1 hour for AGENT and 7 days for APPROVAL
+	TimeoutSeconds    uint32                 `protobuf:"varint,10,opt,name=timeout_seconds,json=timeoutSeconds,proto3" json:"timeout_seconds,omitempty"` // 0 means 1 hour for AGENT and CHECKS, 15 minutes for COMMAND, 7 days for APPROVAL
 	ContinueOnFailure bool                   `protobuf:"varint,11,opt,name=continue_on_failure,json=continueOnFailure,proto3" json:"continue_on_failure,omitempty"`
+	Command           []string               `protobuf:"bytes,12,rep,name=command,proto3" json:"command,omitempty"`                                                                           // COMMAND: an argument list, never a shell line
+	Secrets           map[string]string      `protobuf:"bytes,13,rep,name=secrets,proto3" json:"secrets,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // COMMAND: environment variable to the name of a repository secret
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -457,6 +465,20 @@ func (x *WorkflowStep) GetContinueOnFailure() bool {
 		return x.ContinueOnFailure
 	}
 	return false
+}
+
+func (x *WorkflowStep) GetCommand() []string {
+	if x != nil {
+		return x.Command
+	}
+	return nil
+}
+
+func (x *WorkflowStep) GetSecrets() map[string]string {
+	if x != nil {
+		return x.Secrets
+	}
+	return nil
 }
 
 type WorkflowInput struct {
@@ -1152,7 +1174,12 @@ type WorkflowStepRun struct {
 	Finished      int64                  `protobuf:"varint,5,opt,name=finished,proto3" json:"finished,omitempty"`
 	DecidedBy     string                 `protobuf:"bytes,6,opt,name=decided_by,json=decidedBy,proto3" json:"decided_by,omitempty"` // APPROVAL
 	Comment       string                 `protobuf:"bytes,7,opt,name=comment,proto3" json:"comment,omitempty"`
-	Error         string                 `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"` // sanitised
+	Error         string                 `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`                         // sanitised
+	ExitCode      int32                  `protobuf:"varint,9,opt,name=exit_code,json=exitCode,proto3" json:"exit_code,omitempty"`  // COMMAND
+	TimedOut      bool                   `protobuf:"varint,10,opt,name=timed_out,json=timedOut,proto3" json:"timed_out,omitempty"` // COMMAND
+	Output        string                 `protobuf:"bytes,11,opt,name=output,proto3" json:"output,omitempty"`                      // COMMAND: the end of the output, secrets masked; only in GetRun
+	CiRunId       uint64                 `protobuf:"varint,12,opt,name=ci_run_id,json=ciRunId,proto3" json:"ci_run_id,omitempty"`  // COMMAND: the check (ci.proto run) that carries the result
+	Usage         *AgentBudgetUsage      `protobuf:"bytes,13,opt,name=usage,proto3" json:"usage,omitempty"`                        // AGENT: what the step's run used
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1241,6 +1268,41 @@ func (x *WorkflowStepRun) GetError() string {
 		return x.Error
 	}
 	return ""
+}
+
+func (x *WorkflowStepRun) GetExitCode() int32 {
+	if x != nil {
+		return x.ExitCode
+	}
+	return 0
+}
+
+func (x *WorkflowStepRun) GetTimedOut() bool {
+	if x != nil {
+		return x.TimedOut
+	}
+	return false
+}
+
+func (x *WorkflowStepRun) GetOutput() string {
+	if x != nil {
+		return x.Output
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetCiRunId() uint64 {
+	if x != nil {
+		return x.CiRunId
+	}
+	return 0
+}
+
+func (x *WorkflowStepRun) GetUsage() *AgentBudgetUsage {
+	if x != nil {
+		return x.Usage
+	}
+	return nil
 }
 
 type WorkflowRun struct {
@@ -2083,6 +2145,366 @@ func (x *WorkflowRunEvent) GetStep() string {
 	return ""
 }
 
+// Secrets a command step reads (`secrets = { TOKEN = "name" }`). A name is [A-Za-z0-9_.-], 1 to 64 bytes; a value is 1 to
+// 16,384 bytes. The value is sealed by the vault when it arrives, shown nowhere afterwards (a list shows the last four
+// characters when the value is long enough that they reveal nothing), never put in a log, an audit event or a step's
+// output, and handed only to a command of a workflow that names it. Repository scoped.
+type WorkflowSecret struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Hint          string                 `protobuf:"bytes,2,opt,name=hint,proto3" json:"hint,omitempty"`
+	Created       int64                  `protobuf:"varint,3,opt,name=created,proto3" json:"created,omitempty"`
+	Updated       int64                  `protobuf:"varint,4,opt,name=updated,proto3" json:"updated,omitempty"`
+	UpdatedBy     string                 `protobuf:"bytes,5,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkflowSecret) Reset() {
+	*x = WorkflowSecret{}
+	mi := &file_asc_v1_workflows_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowSecret) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowSecret) ProtoMessage() {}
+
+func (x *WorkflowSecret) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workflows_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowSecret.ProtoReflect.Descriptor instead.
+func (*WorkflowSecret) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workflows_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *WorkflowSecret) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *WorkflowSecret) GetHint() string {
+	if x != nil {
+		return x.Hint
+	}
+	return ""
+}
+
+func (x *WorkflowSecret) GetCreated() int64 {
+	if x != nil {
+		return x.Created
+	}
+	return 0
+}
+
+func (x *WorkflowSecret) GetUpdated() int64 {
+	if x != nil {
+		return x.Updated
+	}
+	return 0
+}
+
+func (x *WorkflowSecret) GetUpdatedBy() string {
+	if x != nil {
+		return x.UpdatedBy
+	}
+	return ""
+}
+
+type ListWorkflowSecretsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListWorkflowSecretsRequest) Reset() {
+	*x = ListWorkflowSecretsRequest{}
+	mi := &file_asc_v1_workflows_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListWorkflowSecretsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListWorkflowSecretsRequest) ProtoMessage() {}
+
+func (x *ListWorkflowSecretsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workflows_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListWorkflowSecretsRequest.ProtoReflect.Descriptor instead.
+func (*ListWorkflowSecretsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workflows_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *ListWorkflowSecretsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+type ListWorkflowSecretsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Secrets       []*WorkflowSecret      `protobuf:"bytes,1,rep,name=secrets,proto3" json:"secrets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListWorkflowSecretsResponse) Reset() {
+	*x = ListWorkflowSecretsResponse{}
+	mi := &file_asc_v1_workflows_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListWorkflowSecretsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListWorkflowSecretsResponse) ProtoMessage() {}
+
+func (x *ListWorkflowSecretsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workflows_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListWorkflowSecretsResponse.ProtoReflect.Descriptor instead.
+func (*ListWorkflowSecretsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workflows_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *ListWorkflowSecretsResponse) GetSecrets() []*WorkflowSecret {
+	if x != nil {
+		return x.Secrets
+	}
+	return nil
+}
+
+type SetWorkflowSecretRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Value         string                 `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetWorkflowSecretRequest) Reset() {
+	*x = SetWorkflowSecretRequest{}
+	mi := &file_asc_v1_workflows_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetWorkflowSecretRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetWorkflowSecretRequest) ProtoMessage() {}
+
+func (x *SetWorkflowSecretRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workflows_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetWorkflowSecretRequest.ProtoReflect.Descriptor instead.
+func (*SetWorkflowSecretRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workflows_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *SetWorkflowSecretRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *SetWorkflowSecretRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SetWorkflowSecretRequest) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type SetWorkflowSecretResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Secret        *WorkflowSecret        `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetWorkflowSecretResponse) Reset() {
+	*x = SetWorkflowSecretResponse{}
+	mi := &file_asc_v1_workflows_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetWorkflowSecretResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetWorkflowSecretResponse) ProtoMessage() {}
+
+func (x *SetWorkflowSecretResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workflows_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetWorkflowSecretResponse.ProtoReflect.Descriptor instead.
+func (*SetWorkflowSecretResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workflows_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *SetWorkflowSecretResponse) GetSecret() *WorkflowSecret {
+	if x != nil {
+		return x.Secret
+	}
+	return nil
+}
+
+type DeleteWorkflowSecretRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteWorkflowSecretRequest) Reset() {
+	*x = DeleteWorkflowSecretRequest{}
+	mi := &file_asc_v1_workflows_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteWorkflowSecretRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteWorkflowSecretRequest) ProtoMessage() {}
+
+func (x *DeleteWorkflowSecretRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workflows_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteWorkflowSecretRequest.ProtoReflect.Descriptor instead.
+func (*DeleteWorkflowSecretRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workflows_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *DeleteWorkflowSecretRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *DeleteWorkflowSecretRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type DeleteWorkflowSecretResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteWorkflowSecretResponse) Reset() {
+	*x = DeleteWorkflowSecretResponse{}
+	mi := &file_asc_v1_workflows_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteWorkflowSecretResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteWorkflowSecretResponse) ProtoMessage() {}
+
+func (x *DeleteWorkflowSecretResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workflows_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteWorkflowSecretResponse.ProtoReflect.Descriptor instead.
+func (*DeleteWorkflowSecretResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workflows_proto_rawDescGZIP(), []int{33}
+}
+
 var File_asc_v1_workflows_proto protoreflect.FileDescriptor
 
 const file_asc_v1_workflows_proto_rawDesc = "" +
@@ -2093,7 +2515,7 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	"\bbranches\x18\x02 \x03(\tR\bbranches\x12\x14\n" +
 	"\x05paths\x18\x03 \x03(\tR\x05paths\x12\x12\n" +
 	"\x04cron\x18\x04 \x01(\tR\x04cron\x12\x14\n" +
-	"\x05agent\x18\x05 \x01(\tR\x05agent\"\xe8\x02\n" +
+	"\x05agent\x18\x05 \x01(\tR\x05agent\"\xfb\x03\n" +
 	"\fWorkflowStep\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
 	"\x04kind\x18\x02 \x01(\x0e2\x18.asc.v1.WorkflowStepKindR\x04kind\x12\x14\n" +
@@ -2106,7 +2528,12 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	"\x06checks\x18\t \x03(\tR\x06checks\x12'\n" +
 	"\x0ftimeout_seconds\x18\n" +
 	" \x01(\rR\x0etimeoutSeconds\x12.\n" +
-	"\x13continue_on_failure\x18\v \x01(\bR\x11continueOnFailure\"\x86\x01\n" +
+	"\x13continue_on_failure\x18\v \x01(\bR\x11continueOnFailure\x12\x18\n" +
+	"\acommand\x18\f \x03(\tR\acommand\x12;\n" +
+	"\asecrets\x18\r \x03(\v2!.asc.v1.WorkflowStep.SecretsEntryR\asecrets\x1a:\n" +
+	"\fSecretsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x86\x01\n" +
 	"\rWorkflowInput\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +
@@ -2160,7 +2587,7 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	"\x1aSetWorkflowEnabledResponse\x12:\n" +
 	"\n" +
 	"definition\x18\x01 \x01(\v2\x1a.asc.v1.WorkflowDefinitionR\n" +
-	"definition\"\xf9\x01\n" +
+	"definition\"\x97\x03\n" +
 	"\x0fWorkflowStepRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12/\n" +
 	"\x05state\x18\x02 \x01(\x0e2\x19.asc.v1.WorkflowStepStateR\x05state\x12 \n" +
@@ -2171,7 +2598,13 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	"\n" +
 	"decided_by\x18\x06 \x01(\tR\tdecidedBy\x12\x18\n" +
 	"\acomment\x18\a \x01(\tR\acomment\x12\x14\n" +
-	"\x05error\x18\b \x01(\tR\x05error\"\xae\x04\n" +
+	"\x05error\x18\b \x01(\tR\x05error\x12\x1b\n" +
+	"\texit_code\x18\t \x01(\x05R\bexitCode\x12\x1b\n" +
+	"\ttimed_out\x18\n" +
+	" \x01(\bR\btimedOut\x12\x16\n" +
+	"\x06output\x18\v \x01(\tR\x06output\x12\x1a\n" +
+	"\tci_run_id\x18\f \x01(\x04R\aciRunId\x12.\n" +
+	"\x05usage\x18\r \x01(\v2\x18.asc.v1.AgentBudgetUsageR\x05usage\"\xae\x04\n" +
 	"\vWorkflowRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
 	"\x04repo\x18\x02 \x01(\tR\x04repo\x12\x1a\n" +
@@ -2239,7 +2672,28 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	"\x03seq\x18\x01 \x01(\x04R\x03seq\x12\x17\n" +
 	"\atime_ms\x18\x02 \x01(\x03R\x06timeMs\x12%\n" +
 	"\x03run\x18\x03 \x01(\v2\x13.asc.v1.WorkflowRunR\x03run\x12\x12\n" +
-	"\x04step\x18\x04 \x01(\tR\x04step*\xa8\x02\n" +
+	"\x04step\x18\x04 \x01(\tR\x04step\"\x8b\x01\n" +
+	"\x0eWorkflowSecret\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04hint\x18\x02 \x01(\tR\x04hint\x12\x18\n" +
+	"\acreated\x18\x03 \x01(\x03R\acreated\x12\x18\n" +
+	"\aupdated\x18\x04 \x01(\x03R\aupdated\x12\x1d\n" +
+	"\n" +
+	"updated_by\x18\x05 \x01(\tR\tupdatedBy\"A\n" +
+	"\x1aListWorkflowSecretsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\"O\n" +
+	"\x1bListWorkflowSecretsResponse\x120\n" +
+	"\asecrets\x18\x01 \x03(\v2\x16.asc.v1.WorkflowSecretR\asecrets\"i\n" +
+	"\x18SetWorkflowSecretRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05value\x18\x03 \x01(\tR\x05value\"K\n" +
+	"\x19SetWorkflowSecretResponse\x12.\n" +
+	"\x06secret\x18\x01 \x01(\v2\x16.asc.v1.WorkflowSecretR\x06secret\"V\n" +
+	"\x1bDeleteWorkflowSecretRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\x1e\n" +
+	"\x1cDeleteWorkflowSecretResponse*\xc8\x02\n" +
 	"\x13WorkflowTriggerKind\x12%\n" +
 	"!WORKFLOW_TRIGGER_KIND_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cWORKFLOW_TRIGGER_KIND_MANUAL\x10\x01\x12'\n" +
@@ -2247,12 +2701,14 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	"$WORKFLOW_TRIGGER_KIND_CHANGE_UPDATED\x10\x03\x12&\n" +
 	"\"WORKFLOW_TRIGGER_KIND_CHECK_FAILED\x10\x04\x12)\n" +
 	"%WORKFLOW_TRIGGER_KIND_COMMENT_MENTION\x10\x05\x12\"\n" +
-	"\x1eWORKFLOW_TRIGGER_KIND_SCHEDULE\x10\x06*\x94\x01\n" +
+	"\x1eWORKFLOW_TRIGGER_KIND_SCHEDULE\x10\x06\x12\x1e\n" +
+	"\x1aWORKFLOW_TRIGGER_KIND_LAND\x10\a*\xb4\x01\n" +
 	"\x10WorkflowStepKind\x12\"\n" +
 	"\x1eWORKFLOW_STEP_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18WORKFLOW_STEP_KIND_AGENT\x10\x01\x12\x1f\n" +
 	"\x1bWORKFLOW_STEP_KIND_APPROVAL\x10\x02\x12\x1d\n" +
-	"\x19WORKFLOW_STEP_KIND_CHECKS\x10\x03*\x81\x02\n" +
+	"\x19WORKFLOW_STEP_KIND_CHECKS\x10\x03\x12\x1e\n" +
+	"\x1aWORKFLOW_STEP_KIND_COMMAND\x10\x04*\x81\x02\n" +
 	"\x10WorkflowRunState\x12\"\n" +
 	"\x1eWORKFLOW_RUN_STATE_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19WORKFLOW_RUN_STATE_QUEUED\x10\x01\x12\x1e\n" +
@@ -2269,7 +2725,7 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	"\x1dWORKFLOW_STEP_STATE_SUCCEEDED\x10\x04\x12\x1e\n" +
 	"\x1aWORKFLOW_STEP_STATE_FAILED\x10\x05\x12\x1f\n" +
 	"\x1bWORKFLOW_STEP_STATE_SKIPPED\x10\x06\x12!\n" +
-	"\x1dWORKFLOW_STEP_STATE_CANCELLED\x10\a2\xd1\x06\n" +
+	"\x1dWORKFLOW_STEP_STATE_CANCELLED\x10\a2\xd6\b\n" +
 	"\tWorkflows\x12b\n" +
 	"\x0fListDefinitions\x12&.asc.v1.ListWorkflowDefinitionsRequest\x1a'.asc.v1.ListWorkflowDefinitionsResponse\x12\\\n" +
 	"\rGetDefinition\x12$.asc.v1.GetWorkflowDefinitionRequest\x1a%.asc.v1.GetWorkflowDefinitionResponse\x12M\n" +
@@ -2281,7 +2737,10 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	"\x06GetRun\x12\x1d.asc.v1.GetWorkflowRunRequest\x1a\x1e.asc.v1.GetWorkflowRunResponse\x12P\n" +
 	"\tCancelRun\x12 .asc.v1.CancelWorkflowRunRequest\x1a!.asc.v1.CancelWorkflowRunResponse\x12_\n" +
 	"\x0eDecideApproval\x12%.asc.v1.DecideWorkflowApprovalRequest\x1a&.asc.v1.DecideWorkflowApprovalResponse\x12G\n" +
-	"\bWatchRun\x12\x1f.asc.v1.WatchWorkflowRunRequest\x1a\x18.asc.v1.WorkflowRunEvent0\x01By\n" +
+	"\bWatchRun\x12\x1f.asc.v1.WatchWorkflowRunRequest\x1a\x18.asc.v1.WorkflowRunEvent0\x01\x12V\n" +
+	"\vListSecrets\x12\".asc.v1.ListWorkflowSecretsRequest\x1a#.asc.v1.ListWorkflowSecretsResponse\x12P\n" +
+	"\tSetSecret\x12 .asc.v1.SetWorkflowSecretRequest\x1a!.asc.v1.SetWorkflowSecretResponse\x12Y\n" +
+	"\fDeleteSecret\x12#.asc.v1.DeleteWorkflowSecretRequest\x1a$.asc.v1.DeleteWorkflowSecretResponseBy\n" +
 	"\n" +
 	"com.asc.v1B\x0eWorkflowsProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -2298,7 +2757,7 @@ func file_asc_v1_workflows_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_workflows_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_asc_v1_workflows_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_asc_v1_workflows_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_asc_v1_workflows_proto_goTypes = []any{
 	(WorkflowTriggerKind)(0),                // 0: asc.v1.WorkflowTriggerKind
 	(WorkflowStepKind)(0),                   // 1: asc.v1.WorkflowStepKind
@@ -2331,74 +2790,95 @@ var file_asc_v1_workflows_proto_goTypes = []any{
 	(*DecideWorkflowApprovalResponse)(nil),  // 28: asc.v1.DecideWorkflowApprovalResponse
 	(*WatchWorkflowRunRequest)(nil),         // 29: asc.v1.WatchWorkflowRunRequest
 	(*WorkflowRunEvent)(nil),                // 30: asc.v1.WorkflowRunEvent
-	nil,                                     // 31: asc.v1.WorkflowRun.InputsEntry
-	nil,                                     // 32: asc.v1.TriggerWorkflowRequest.InputsEntry
-	(*AgentBudgetLimits)(nil),               // 33: asc.v1.AgentBudgetLimits
-	(*RepoRef)(nil),                         // 34: asc.v1.RepoRef
-	(*AgentBudgetUsage)(nil),                // 35: asc.v1.AgentBudgetUsage
+	(*WorkflowSecret)(nil),                  // 31: asc.v1.WorkflowSecret
+	(*ListWorkflowSecretsRequest)(nil),      // 32: asc.v1.ListWorkflowSecretsRequest
+	(*ListWorkflowSecretsResponse)(nil),     // 33: asc.v1.ListWorkflowSecretsResponse
+	(*SetWorkflowSecretRequest)(nil),        // 34: asc.v1.SetWorkflowSecretRequest
+	(*SetWorkflowSecretResponse)(nil),       // 35: asc.v1.SetWorkflowSecretResponse
+	(*DeleteWorkflowSecretRequest)(nil),     // 36: asc.v1.DeleteWorkflowSecretRequest
+	(*DeleteWorkflowSecretResponse)(nil),    // 37: asc.v1.DeleteWorkflowSecretResponse
+	nil,                                     // 38: asc.v1.WorkflowStep.SecretsEntry
+	nil,                                     // 39: asc.v1.WorkflowRun.InputsEntry
+	nil,                                     // 40: asc.v1.TriggerWorkflowRequest.InputsEntry
+	(*AgentBudgetLimits)(nil),               // 41: asc.v1.AgentBudgetLimits
+	(*RepoRef)(nil),                         // 42: asc.v1.RepoRef
+	(*AgentBudgetUsage)(nil),                // 43: asc.v1.AgentBudgetUsage
 }
 var file_asc_v1_workflows_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.WorkflowTrigger.kind:type_name -> asc.v1.WorkflowTriggerKind
 	1,  // 1: asc.v1.WorkflowStep.kind:type_name -> asc.v1.WorkflowStepKind
-	33, // 2: asc.v1.WorkflowStep.limits:type_name -> asc.v1.AgentBudgetLimits
-	4,  // 3: asc.v1.WorkflowDefinition.triggers:type_name -> asc.v1.WorkflowTrigger
-	6,  // 4: asc.v1.WorkflowDefinition.inputs:type_name -> asc.v1.WorkflowInput
-	5,  // 5: asc.v1.WorkflowDefinition.steps:type_name -> asc.v1.WorkflowStep
-	33, // 6: asc.v1.WorkflowDefinition.limits:type_name -> asc.v1.AgentBudgetLimits
-	34, // 7: asc.v1.ListWorkflowDefinitionsRequest.repo:type_name -> asc.v1.RepoRef
-	7,  // 8: asc.v1.ListWorkflowDefinitionsResponse.definitions:type_name -> asc.v1.WorkflowDefinition
-	34, // 9: asc.v1.GetWorkflowDefinitionRequest.repo:type_name -> asc.v1.RepoRef
-	7,  // 10: asc.v1.GetWorkflowDefinitionResponse.definition:type_name -> asc.v1.WorkflowDefinition
-	34, // 11: asc.v1.ValidateWorkflowRequest.repo:type_name -> asc.v1.RepoRef
-	12, // 12: asc.v1.ValidateWorkflowResponse.diagnostics:type_name -> asc.v1.WorkflowDiagnostic
-	7,  // 13: asc.v1.ValidateWorkflowResponse.definition:type_name -> asc.v1.WorkflowDefinition
-	34, // 14: asc.v1.SetWorkflowEnabledRequest.repo:type_name -> asc.v1.RepoRef
-	7,  // 15: asc.v1.SetWorkflowEnabledResponse.definition:type_name -> asc.v1.WorkflowDefinition
-	3,  // 16: asc.v1.WorkflowStepRun.state:type_name -> asc.v1.WorkflowStepState
-	2,  // 17: asc.v1.WorkflowRun.state:type_name -> asc.v1.WorkflowRunState
-	0,  // 18: asc.v1.WorkflowRun.trigger:type_name -> asc.v1.WorkflowTriggerKind
-	31, // 19: asc.v1.WorkflowRun.inputs:type_name -> asc.v1.WorkflowRun.InputsEntry
-	17, // 20: asc.v1.WorkflowRun.steps:type_name -> asc.v1.WorkflowStepRun
-	35, // 21: asc.v1.WorkflowRun.usage:type_name -> asc.v1.AgentBudgetUsage
-	34, // 22: asc.v1.TriggerWorkflowRequest.repo:type_name -> asc.v1.RepoRef
-	32, // 23: asc.v1.TriggerWorkflowRequest.inputs:type_name -> asc.v1.TriggerWorkflowRequest.InputsEntry
-	18, // 24: asc.v1.TriggerWorkflowResponse.run:type_name -> asc.v1.WorkflowRun
-	34, // 25: asc.v1.ListWorkflowRunsRequest.repo:type_name -> asc.v1.RepoRef
-	2,  // 26: asc.v1.ListWorkflowRunsRequest.states:type_name -> asc.v1.WorkflowRunState
-	18, // 27: asc.v1.ListWorkflowRunsResponse.runs:type_name -> asc.v1.WorkflowRun
-	34, // 28: asc.v1.GetWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 29: asc.v1.GetWorkflowRunResponse.run:type_name -> asc.v1.WorkflowRun
-	34, // 30: asc.v1.CancelWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 31: asc.v1.CancelWorkflowRunResponse.run:type_name -> asc.v1.WorkflowRun
-	34, // 32: asc.v1.DecideWorkflowApprovalRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 33: asc.v1.DecideWorkflowApprovalResponse.run:type_name -> asc.v1.WorkflowRun
-	34, // 34: asc.v1.WatchWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 35: asc.v1.WorkflowRunEvent.run:type_name -> asc.v1.WorkflowRun
-	8,  // 36: asc.v1.Workflows.ListDefinitions:input_type -> asc.v1.ListWorkflowDefinitionsRequest
-	10, // 37: asc.v1.Workflows.GetDefinition:input_type -> asc.v1.GetWorkflowDefinitionRequest
-	13, // 38: asc.v1.Workflows.Validate:input_type -> asc.v1.ValidateWorkflowRequest
-	15, // 39: asc.v1.Workflows.SetEnabled:input_type -> asc.v1.SetWorkflowEnabledRequest
-	19, // 40: asc.v1.Workflows.Trigger:input_type -> asc.v1.TriggerWorkflowRequest
-	21, // 41: asc.v1.Workflows.ListRuns:input_type -> asc.v1.ListWorkflowRunsRequest
-	23, // 42: asc.v1.Workflows.GetRun:input_type -> asc.v1.GetWorkflowRunRequest
-	25, // 43: asc.v1.Workflows.CancelRun:input_type -> asc.v1.CancelWorkflowRunRequest
-	27, // 44: asc.v1.Workflows.DecideApproval:input_type -> asc.v1.DecideWorkflowApprovalRequest
-	29, // 45: asc.v1.Workflows.WatchRun:input_type -> asc.v1.WatchWorkflowRunRequest
-	9,  // 46: asc.v1.Workflows.ListDefinitions:output_type -> asc.v1.ListWorkflowDefinitionsResponse
-	11, // 47: asc.v1.Workflows.GetDefinition:output_type -> asc.v1.GetWorkflowDefinitionResponse
-	14, // 48: asc.v1.Workflows.Validate:output_type -> asc.v1.ValidateWorkflowResponse
-	16, // 49: asc.v1.Workflows.SetEnabled:output_type -> asc.v1.SetWorkflowEnabledResponse
-	20, // 50: asc.v1.Workflows.Trigger:output_type -> asc.v1.TriggerWorkflowResponse
-	22, // 51: asc.v1.Workflows.ListRuns:output_type -> asc.v1.ListWorkflowRunsResponse
-	24, // 52: asc.v1.Workflows.GetRun:output_type -> asc.v1.GetWorkflowRunResponse
-	26, // 53: asc.v1.Workflows.CancelRun:output_type -> asc.v1.CancelWorkflowRunResponse
-	28, // 54: asc.v1.Workflows.DecideApproval:output_type -> asc.v1.DecideWorkflowApprovalResponse
-	30, // 55: asc.v1.Workflows.WatchRun:output_type -> asc.v1.WorkflowRunEvent
-	46, // [46:56] is the sub-list for method output_type
-	36, // [36:46] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	41, // 2: asc.v1.WorkflowStep.limits:type_name -> asc.v1.AgentBudgetLimits
+	38, // 3: asc.v1.WorkflowStep.secrets:type_name -> asc.v1.WorkflowStep.SecretsEntry
+	4,  // 4: asc.v1.WorkflowDefinition.triggers:type_name -> asc.v1.WorkflowTrigger
+	6,  // 5: asc.v1.WorkflowDefinition.inputs:type_name -> asc.v1.WorkflowInput
+	5,  // 6: asc.v1.WorkflowDefinition.steps:type_name -> asc.v1.WorkflowStep
+	41, // 7: asc.v1.WorkflowDefinition.limits:type_name -> asc.v1.AgentBudgetLimits
+	42, // 8: asc.v1.ListWorkflowDefinitionsRequest.repo:type_name -> asc.v1.RepoRef
+	7,  // 9: asc.v1.ListWorkflowDefinitionsResponse.definitions:type_name -> asc.v1.WorkflowDefinition
+	42, // 10: asc.v1.GetWorkflowDefinitionRequest.repo:type_name -> asc.v1.RepoRef
+	7,  // 11: asc.v1.GetWorkflowDefinitionResponse.definition:type_name -> asc.v1.WorkflowDefinition
+	42, // 12: asc.v1.ValidateWorkflowRequest.repo:type_name -> asc.v1.RepoRef
+	12, // 13: asc.v1.ValidateWorkflowResponse.diagnostics:type_name -> asc.v1.WorkflowDiagnostic
+	7,  // 14: asc.v1.ValidateWorkflowResponse.definition:type_name -> asc.v1.WorkflowDefinition
+	42, // 15: asc.v1.SetWorkflowEnabledRequest.repo:type_name -> asc.v1.RepoRef
+	7,  // 16: asc.v1.SetWorkflowEnabledResponse.definition:type_name -> asc.v1.WorkflowDefinition
+	3,  // 17: asc.v1.WorkflowStepRun.state:type_name -> asc.v1.WorkflowStepState
+	43, // 18: asc.v1.WorkflowStepRun.usage:type_name -> asc.v1.AgentBudgetUsage
+	2,  // 19: asc.v1.WorkflowRun.state:type_name -> asc.v1.WorkflowRunState
+	0,  // 20: asc.v1.WorkflowRun.trigger:type_name -> asc.v1.WorkflowTriggerKind
+	39, // 21: asc.v1.WorkflowRun.inputs:type_name -> asc.v1.WorkflowRun.InputsEntry
+	17, // 22: asc.v1.WorkflowRun.steps:type_name -> asc.v1.WorkflowStepRun
+	43, // 23: asc.v1.WorkflowRun.usage:type_name -> asc.v1.AgentBudgetUsage
+	42, // 24: asc.v1.TriggerWorkflowRequest.repo:type_name -> asc.v1.RepoRef
+	40, // 25: asc.v1.TriggerWorkflowRequest.inputs:type_name -> asc.v1.TriggerWorkflowRequest.InputsEntry
+	18, // 26: asc.v1.TriggerWorkflowResponse.run:type_name -> asc.v1.WorkflowRun
+	42, // 27: asc.v1.ListWorkflowRunsRequest.repo:type_name -> asc.v1.RepoRef
+	2,  // 28: asc.v1.ListWorkflowRunsRequest.states:type_name -> asc.v1.WorkflowRunState
+	18, // 29: asc.v1.ListWorkflowRunsResponse.runs:type_name -> asc.v1.WorkflowRun
+	42, // 30: asc.v1.GetWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 31: asc.v1.GetWorkflowRunResponse.run:type_name -> asc.v1.WorkflowRun
+	42, // 32: asc.v1.CancelWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 33: asc.v1.CancelWorkflowRunResponse.run:type_name -> asc.v1.WorkflowRun
+	42, // 34: asc.v1.DecideWorkflowApprovalRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 35: asc.v1.DecideWorkflowApprovalResponse.run:type_name -> asc.v1.WorkflowRun
+	42, // 36: asc.v1.WatchWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 37: asc.v1.WorkflowRunEvent.run:type_name -> asc.v1.WorkflowRun
+	42, // 38: asc.v1.ListWorkflowSecretsRequest.repo:type_name -> asc.v1.RepoRef
+	31, // 39: asc.v1.ListWorkflowSecretsResponse.secrets:type_name -> asc.v1.WorkflowSecret
+	42, // 40: asc.v1.SetWorkflowSecretRequest.repo:type_name -> asc.v1.RepoRef
+	31, // 41: asc.v1.SetWorkflowSecretResponse.secret:type_name -> asc.v1.WorkflowSecret
+	42, // 42: asc.v1.DeleteWorkflowSecretRequest.repo:type_name -> asc.v1.RepoRef
+	8,  // 43: asc.v1.Workflows.ListDefinitions:input_type -> asc.v1.ListWorkflowDefinitionsRequest
+	10, // 44: asc.v1.Workflows.GetDefinition:input_type -> asc.v1.GetWorkflowDefinitionRequest
+	13, // 45: asc.v1.Workflows.Validate:input_type -> asc.v1.ValidateWorkflowRequest
+	15, // 46: asc.v1.Workflows.SetEnabled:input_type -> asc.v1.SetWorkflowEnabledRequest
+	19, // 47: asc.v1.Workflows.Trigger:input_type -> asc.v1.TriggerWorkflowRequest
+	21, // 48: asc.v1.Workflows.ListRuns:input_type -> asc.v1.ListWorkflowRunsRequest
+	23, // 49: asc.v1.Workflows.GetRun:input_type -> asc.v1.GetWorkflowRunRequest
+	25, // 50: asc.v1.Workflows.CancelRun:input_type -> asc.v1.CancelWorkflowRunRequest
+	27, // 51: asc.v1.Workflows.DecideApproval:input_type -> asc.v1.DecideWorkflowApprovalRequest
+	29, // 52: asc.v1.Workflows.WatchRun:input_type -> asc.v1.WatchWorkflowRunRequest
+	32, // 53: asc.v1.Workflows.ListSecrets:input_type -> asc.v1.ListWorkflowSecretsRequest
+	34, // 54: asc.v1.Workflows.SetSecret:input_type -> asc.v1.SetWorkflowSecretRequest
+	36, // 55: asc.v1.Workflows.DeleteSecret:input_type -> asc.v1.DeleteWorkflowSecretRequest
+	9,  // 56: asc.v1.Workflows.ListDefinitions:output_type -> asc.v1.ListWorkflowDefinitionsResponse
+	11, // 57: asc.v1.Workflows.GetDefinition:output_type -> asc.v1.GetWorkflowDefinitionResponse
+	14, // 58: asc.v1.Workflows.Validate:output_type -> asc.v1.ValidateWorkflowResponse
+	16, // 59: asc.v1.Workflows.SetEnabled:output_type -> asc.v1.SetWorkflowEnabledResponse
+	20, // 60: asc.v1.Workflows.Trigger:output_type -> asc.v1.TriggerWorkflowResponse
+	22, // 61: asc.v1.Workflows.ListRuns:output_type -> asc.v1.ListWorkflowRunsResponse
+	24, // 62: asc.v1.Workflows.GetRun:output_type -> asc.v1.GetWorkflowRunResponse
+	26, // 63: asc.v1.Workflows.CancelRun:output_type -> asc.v1.CancelWorkflowRunResponse
+	28, // 64: asc.v1.Workflows.DecideApproval:output_type -> asc.v1.DecideWorkflowApprovalResponse
+	30, // 65: asc.v1.Workflows.WatchRun:output_type -> asc.v1.WorkflowRunEvent
+	33, // 66: asc.v1.Workflows.ListSecrets:output_type -> asc.v1.ListWorkflowSecretsResponse
+	35, // 67: asc.v1.Workflows.SetSecret:output_type -> asc.v1.SetWorkflowSecretResponse
+	37, // 68: asc.v1.Workflows.DeleteSecret:output_type -> asc.v1.DeleteWorkflowSecretResponse
+	56, // [56:69] is the sub-list for method output_type
+	43, // [43:56] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_workflows_proto_init() }
@@ -2415,7 +2895,7 @@ func file_asc_v1_workflows_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_workflows_proto_rawDesc), len(file_asc_v1_workflows_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   29,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
