@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	issues_model "forgejo.org/models/issues"
+	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/git/ascbackend"
@@ -382,12 +383,16 @@ func GetCommitPullRequest(ctx *context.APIContext) {
 // repository. A repository stored in asc has no HEAD file to read (asc.v1 reports none), so its default branch,
 // which the hub keeps, is the answer.
 func defaultBranchOf(ctx *context.APIContext) (string, error) {
-	head, err := ctx.Repo().GitRepo.GetHEADBranch()
+	return defaultBranchFrom(ctx.Repo().GitRepo.GetHEADBranch, ctx.Repo().Repository)
+}
+
+func defaultBranchFrom(head func() (*git.Branch, error), repo *repo_model.Repository) (string, error) {
+	b, err := head()
 	if err == nil {
-		return head.Name, nil
+		return b.Name, nil
 	}
-	if errors.Is(err, ascbackend.ErrUnsupported) && ctx.Repo().Repository.DefaultBranch != "" {
-		return ctx.Repo().Repository.DefaultBranch, nil
+	if errors.Is(err, ascbackend.ErrUnsupported) && repo != nil && repo.DefaultBranch != "" {
+		return repo.DefaultBranch, nil
 	}
 	return "", err
 }
