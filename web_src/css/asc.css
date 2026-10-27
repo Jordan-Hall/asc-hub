@@ -596,3 +596,8 @@ pre.code-block {
   min-height: 24px;
   line-height: 24px;
 }
+
+/* The same for a link in a paragraph, a help text or a note: running text tells its links by more than color. */
+:is(p, .help, .ap-note) > a:not(.ui):not(.button):not(.btn):not(.label):not(.item):not([role="button"]) {
+  text-decoration: underline;
+}

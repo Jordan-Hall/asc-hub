@@ -5,7 +5,7 @@ with the total, because 365 squares are noise for a screen reader; every square 
 tooltip for a mouse.
 */}}
 <div class="ap-heat">
-	<div class="ap-heat-scroll">
+	<div class="ap-heat-scroll" tabindex="0" role="group" aria-label="{{ctx.Locale.TrN .Total "user.asc_profile.total_one" "user.asc_profile.total_n" .Total}}">
 		<div class="ap-heat-inner" role="img" aria-label="{{ctx.Locale.TrN .Total "user.asc_profile.total_one" "user.asc_profile.total_n" .Total}}">
 			<div class="ap-heat-months" aria-hidden="true">
 				{{range .Months}}<span style="grid-column-start: {{.Col}}">{{.Name}}</span>{{end}}
