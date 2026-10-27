@@ -60,6 +60,23 @@ type push struct {
 	user    int64
 	expires time.Time
 	left    map[pushKey]struct{}
+	// byWriter marks a write that the hub's own writer makes (RememberWriter). The writer expects any old commit,
+	// so such a push is known by the ref and the new commit only: its keys have an empty old commit and a call is
+	// matched with its old commit left out.
+	byWriter bool
+	// pr is the pull request this write merges, 0 when it merges none (a writer push only).
+	pr int64
+}
+
+// keyOf is the key a ref change of a call has in this push.
+func (p *push) keyOf(k pushKey) pushKey {
+	if p.byWriter {
+		k.old = ""
+		if isZeroID(k.new) {
+			k.new = ""
+		}
+	}
+	return k
 }
 
 type repoPushes struct {
@@ -197,30 +214,48 @@ func (rp *repoPushes) remove(p *push) {
 //   - no other remembered push of the repository fits as well with another user (an ambiguous call is attributed
 //     to nobody).
 func ClaimPusher(repo *repo_model.Repository, refs []PushRef) (int64, bool) {
+	user, _, ok := matchPusher(repo, refs, true, false)
+	return user, ok
+}
+
+// PeekWriter returns the user who is making the write of refs through the hub's writer (RememberWriter) without
+// using the ref changes up, for the pre-receive hook, which is called before the post-receive hook for the same
+// ref changes. It answers false for a push that was not made by the writer, for a call that holds a ref change
+// nobody remembers, and for one that more than one user remembers (it is attributed to nobody, and the hook then
+// refuses it).
+func PeekWriter(repo *repo_model.Repository, refs []PushRef) (userID, pullRequestID int64, ok bool) {
+	return matchPusher(repo, refs, false, true)
+}
+
+// matchPusher is ClaimPusher (consume) and PeekWriter (onlyWriter, no consume).
+func matchPusher(repo *repo_model.Repository, refs []PushRef, consume, onlyWriter bool) (user, pr int64, ok bool) {
 	if repo == nil || len(refs) == 0 || len(refs) > MaxRefsPerPush {
-		return 0, false
+		return 0, 0, false
 	}
-	keys, ok := normalised(refs)
-	if !ok {
-		return 0, false
+	keys, normOK := normalised(refs)
+	if !normOK {
+		return 0, 0, false
 	}
 	now := pusherClock()
 	pusherMu.Lock()
 	defer pusherMu.Unlock()
 	rp := pushers[repo.ID]
 	if rp == nil {
-		return 0, false
+		return 0, 0, false
 	}
 	rp.dropExpired(now)
 	if len(rp.list) == 0 {
 		delete(pushers, repo.ID)
-		return 0, false
+		return 0, 0, false
 	}
 	var match *push
 	for _, p := range rp.list {
+		if onlyWriter && !p.byWriter {
+			continue
+		}
 		fits := true
 		for k := range keys {
-			if _, in := p.left[k]; !in {
+			if _, in := p.left[p.keyOf(k)]; !in {
 				fits = false
 				break
 			}
@@ -229,17 +264,20 @@ func ClaimPusher(repo *repo_model.Repository, refs []PushRef) (int64, bool) {
 			continue
 		}
 		if match != nil && match.user != p.user {
-			return 0, false
+			return 0, 0, false
 		}
 		if match == nil {
 			match = p
 		}
 	}
 	if match == nil {
-		return 0, false
+		return 0, 0, false
+	}
+	if !consume {
+		return match.user, match.pr, true
 	}
 	for k := range keys {
-		delete(match.left, k)
+		delete(match.left, match.keyOf(k))
 	}
 	if len(match.left) == 0 {
 		rp.remove(match)
@@ -247,7 +285,52 @@ func ClaimPusher(repo *repo_model.Repository, refs []PushRef) (int64, bool) {
 	if len(rp.list) == 0 {
 		delete(pushers, repo.ID)
 	}
-	return match.user, true
+	return match.user, match.pr, true
+}
+
+// RememberWriter records that userID is making a write of refs to repo through the hub's own writer (a web edit, a
+// merge, a branch operation), before it is sent to asc. asc runs the hub's pre-receive and post-receive hooks for it
+// as the hub's service credential and names nobody, so the hooks take the person back from here (PeekWriter,
+// ClaimPusher) and run their checks as that person, as they do for a git push. Only the ref and the new commit are
+// known to the writer; the old commit of a PushRef is ignored. It returns the function that forgets the record, which
+// the writer calls when the write fails. The record is not used up by the pre-receive hook, and ends when the
+// post-receive hook claims it, or after pusherTTL.
+//
+// A zero or negative user, an empty write and one of more than MaxRefsPerPush refs are not remembered.
+func RememberWriter(repo *repo_model.Repository, userID, pullRequestID int64, refs []PushRef) PushToken {
+	if repo == nil || userID <= 0 || len(refs) == 0 || len(refs) > MaxRefsPerPush {
+		return PushToken{}
+	}
+	keys := make(map[pushKey]struct{}, len(refs))
+	for _, r := range refs {
+		if r.Name == "" {
+			return PushToken{}
+		}
+		n := r.New
+		if isZeroID(n) {
+			n = ""
+		}
+		keys[pushKey{ref: r.Name, new: n}] = struct{}{}
+	}
+	now := pusherClock()
+	pusherMu.Lock()
+	defer pusherMu.Unlock()
+	rp := pushers[repo.ID]
+	if rp == nil {
+		if len(pushers) >= maxPusherRepos {
+			evictQuietRepo(now)
+		}
+		rp = &repoPushes{}
+		pushers[repo.ID] = rp
+	}
+	rp.dropExpired(now)
+	if len(rp.list) >= MaxPushesPerRepo {
+		rp.list = rp.list[len(rp.list)-MaxPushesPerRepo+1:]
+	}
+	p := &push{user: userID, expires: now.Add(pusherTTL), left: keys, byWriter: true, pr: max(pullRequestID, 0)}
+	rp.list = append(rp.list, p)
+	rp.active = now
+	return PushToken{repo.ID, p}
 }
 
 // WaitForRefs blocks until every ref of refs in the repository's git directory equals its new commit (a deletion

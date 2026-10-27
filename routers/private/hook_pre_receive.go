@@ -202,6 +202,7 @@ func (ctx *preReceiveContext) quotaExceeded() {
 // HookPreReceive checks whether a individual commit is acceptable
 func HookPreReceive(ctx *app_context.PrivateContext) {
 	opts := web.GetForm(ctx).(*private.HookOptions)
+	attributeAscWrite(ctx, opts)
 
 	ourCtx := &preReceiveContext{
 		PrivateContext: ctx,
@@ -249,6 +250,30 @@ func HookPreReceive(ctx *app_context.PrivateContext) {
 	}
 
 	ctx.PlainText(http.StatusOK, "ok")
+}
+
+// attributeAscWrite names the person for a write that the hub's own writer made to an asc repository (a web edit, a
+// merge, a branch operation). asc runs this hook for it as the hub's service credential and names nobody, so the
+// options arrive without a user; the writer told the hub whose change it was before it sent the write
+// (ascsync.RememberWriter). The person is put back only when every ref change of the call belongs to the one write
+// that was remembered, so that a call which mixes writes, or holds a change nobody remembers, stays without a user and
+// is refused below. The checks that follow are then the ones a git push of that person gets: permission to write the
+// code, protected branches, and the rest. The record is not used up here; post-receive claims it.
+func attributeAscWrite(ctx *app_context.PrivateContext, opts *private.HookOptions) {
+	if !setting.Asc.Enabled || opts.UserID != 0 || opts.IsWiki || opts.PushTrigger != ascsync.PushTriggerAsc || ctx.Repo == nil || ctx.Repo.Repository == nil {
+		return
+	}
+	n := len(opts.RefFullNames)
+	if n == 0 || len(opts.OldCommitIDs) != n || len(opts.NewCommitIDs) != n {
+		return
+	}
+	refs := make([]ascsync.PushRef, n)
+	for i, name := range opts.RefFullNames {
+		refs[i] = ascsync.PushRef{Name: string(name), Old: opts.OldCommitIDs[i], New: opts.NewCommitIDs[i]}
+	}
+	if id, pr, ok := ascsync.PeekWriter(ctx.Repo.Repository, refs); ok {
+		opts.UserID, opts.PullRequestID = id, pr
+	}
 }
 
 // importIntoAsc is the Stage 2 step of a git-origin push to a storage_backend=asc repository (SPEC 13.3 K09):

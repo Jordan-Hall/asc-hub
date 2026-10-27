@@ -321,7 +321,7 @@ func (s *session) merge(base *repoHandle, bp, hp gitAndAsc, req repostore.MergeR
 		}
 		in.MergeBase = mb
 	}
-	if err := s.finish(base, req.Publish, req.BeforePublish, in, tip); err != nil {
+	if err := s.finish(base, req.Publish, req.BeforePublish, in, tip, req.HookEnv); err != nil {
 		return nil, err
 	}
 	return result, nil

@@ -39,7 +39,10 @@
 //     commit). A SignFunc that asks to sign fails with ErrUnsupported: asc serve has no signing key.
 //   - BeforePublish is called with PublishInput.GitDir empty. It runs after the commit exists and before any
 //     ref moves. A callback that needs the git directory (LFS pushes) must not be set for an asc repository.
-//   - HookEnv is not forwarded. asc's outbox calls post-receive itself, for every ref change it holds.
+//   - HookEnv is not forwarded as an environment. asc's outbox calls post-receive itself, for every ref change it
+//     holds, and asc calls pre-receive, both as the hub's service credential and without a person. The person
+//     (GITEA_PUSHER_ID) and the pull request (GITEA_PR_ID) in HookEnv are told to the hub first (NotePusher), and the
+//     hub's hooks take them back, so the checks of a git push apply to the write as that person (pusher.go).
 //   - A submodule entry (EntryModeCommit) is refused: asc.v1 stores no gitlinks through Commit.
 //   - The content of all files of one CreateCommit is limited to MaxCommitBytes, because it travels inline in
 //     one request.

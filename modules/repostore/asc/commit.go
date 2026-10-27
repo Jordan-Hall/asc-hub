@@ -82,7 +82,7 @@ func hookMode(refs ...string) ascv1.HookMode {
 
 // publish moves one ref to a changeset with the repository's hooks: a fast-forward check, or a forced
 // update when u.Force is set. Objects come from the repository the change was built in.
-func (s *session) publish(from *repoHandle, u *repostore.RefUpdate, asc []byte) error {
+func (s *session) publish(from *repoHandle, u *repostore.RefUpdate, asc []byte, env []string, commit string) error {
 	to, err := handle(u.Repo)
 	if err != nil {
 		return err
@@ -94,6 +94,8 @@ func (s *session) publish(from *repoHandle, u *repostore.RefUpdate, asc []byte) 
 	if u.Force {
 		mode = ascv1.UpdateMode_UPDATE_MODE_FORCE
 	}
+	// asc calls the hub's hooks as the hub, with no person. The hub is told whose change this is first.
+	forget := s.notePusher(to.name, env, []PushedRef{{Name: u.Ref, New: commit}})
 	resp, err := s.api.UpdateRefs(s.ctx, &ascv1.UpdateRefsRequest{
 		Repo: to.ascRef(),
 		Updates: []*ascv1.RefUpdate{{
@@ -105,6 +107,7 @@ func (s *session) publish(from *repoHandle, u *repostore.RefUpdate, asc []byte) 
 		Hooks: hookMode(u.Ref),
 	})
 	if err != nil {
+		forget()
 		return publishErr("UpdateRefs", err)
 	}
 	if len(resp.GetResults()) != 1 {
@@ -114,7 +117,7 @@ func (s *session) publish(from *repoHandle, u *repostore.RefUpdate, asc []byte) 
 }
 
 // finish runs BeforePublish and publishes the commit, when the request has an Update.
-func (s *session) finish(from *repoHandle, update *repostore.RefUpdate, before repostore.BeforePublish, in repostore.PublishInput, asc []byte) error {
+func (s *session) finish(from *repoHandle, update *repostore.RefUpdate, before repostore.BeforePublish, in repostore.PublishInput, asc []byte, env []string) error {
 	if update == nil {
 		return nil
 	}
@@ -123,7 +126,7 @@ func (s *session) finish(from *repoHandle, update *repostore.RefUpdate, before r
 			return err
 		}
 	}
-	return s.publish(from, update, asc)
+	return s.publish(from, update, asc, env, in.Commit.String())
 }
 
 // tree reads the git tree id of a commit.
@@ -215,7 +218,7 @@ func (w *Writer) CreateCommit(ctx context.Context, req repostore.CommitRequest) 
 		return &repostore.CommitResult{Tree: tree, Stat: stat}, nil
 	}
 	in := repostore.PublishInput{Commit: commit, Base: req.Parent}
-	if err := s.finish(h, req.Update, req.BeforePublish, in, resp.GetId()); err != nil {
+	if err := s.finish(h, req.Update, req.BeforePublish, in, resp.GetId(), req.HookEnv); err != nil {
 		return nil, err
 	}
 	return &repostore.CommitResult{Commit: commit, Tree: tree}, nil
@@ -353,7 +356,7 @@ func (w *Writer) pick(ctx context.Context, req repostore.PickRequest, mode ascv1
 	}
 	return s.apply(h, &ascv1.ApplyRequest{
 		Repo: h.ascRef(), Onto: hexString(ids[0]), Changeset: hexString(ids[1]), Mode: mode,
-	}, meta, req.Parent, req.Update, req.BeforePublish)
+	}, meta, req.Parent, req.Update, req.BeforePublish, req.HookEnv)
 }
 
 // ApplyPatch applies a unified diff to Parent.
@@ -384,11 +387,11 @@ func (w *Writer) ApplyPatch(ctx context.Context, req repostore.PatchRequest) (*r
 	}
 	return s.apply(h, &ascv1.ApplyRequest{
 		Repo: h.ascRef(), Onto: hexString(parent.asc), Patch: []byte(req.Patch), Mode: ascv1.ApplyMode_APPLY_MODE_PATCH,
-	}, meta, req.Parent, req.Update, req.BeforePublish)
+	}, meta, req.Parent, req.Update, req.BeforePublish, req.HookEnv)
 }
 
 // apply runs one Apply call without a ref, then publishes its result.
-func (s *session) apply(h *repoHandle, areq *ascv1.ApplyRequest, meta *metaWire, base git.ObjectID, update *repostore.RefUpdate, before repostore.BeforePublish) (*repostore.CommitResult, error) {
+func (s *session) apply(h *repoHandle, areq *ascv1.ApplyRequest, meta *metaWire, base git.ObjectID, update *repostore.RefUpdate, before repostore.BeforePublish, env []string) (*repostore.CommitResult, error) {
 	areq.Message, areq.Author, areq.Committer = meta.message, meta.author, meta.committer
 	resp, err := s.api.Apply(s.ctx, areq)
 	if err != nil {
@@ -405,7 +408,7 @@ func (s *session) apply(h *repoHandle, areq *ascv1.ApplyRequest, meta *metaWire,
 		return nil, err
 	}
 	in := repostore.PublishInput{Commit: commit, Base: base}
-	if err := s.finish(h, update, before, in, resp.GetResult()); err != nil {
+	if err := s.finish(h, update, before, in, resp.GetResult(), env); err != nil {
 		return nil, err
 	}
 	return result, nil
