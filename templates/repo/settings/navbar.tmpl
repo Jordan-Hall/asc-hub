@@ -3,7 +3,7 @@
 <nav class="ds-settings-nav" id="settings-menu" aria-label="{{ctx.Locale.Tr "repo.settings"}}">
 	{{template "shared/ds/snav_bar" (dict "Title" (ctx.Locale.Tr "repo.settings"))}}
 	<div class="ds-settings-nav-in">
-		{{template "shared/ds/snav_who" (dict "Icon" "book" "Name" .Repository.Name "Sub" (ctx.Locale.Tr "asc_shell.sn_repo_sub" .Repository.OwnerName) "Href" .RepoLink "Label" (ctx.Locale.Tr "asc_shell.sn_view_repo"))}}
+		{{template "shared/ds/snav_who" (dict "Icon" "book" "Name" .Repository.Name "Sub" .Repository.OwnerName "Href" .RepoLink "Label" (ctx.Locale.Tr "asc_shell.sn_view_repo"))}}
 
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_general"}}</h2>
 		<ul class="ds-settings-list">

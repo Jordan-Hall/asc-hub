@@ -3,7 +3,7 @@
 <nav class="ds-settings-nav" id="settings-menu" aria-label="{{ctx.Locale.Tr "org.settings"}}">
 	{{template "shared/ds/snav_bar" (dict "Title" (ctx.Locale.Tr "org.settings"))}}
 	<div class="ds-settings-nav-in">
-		{{template "shared/ds/snav_who" (dict "Entity" .Org "Name" (or .Org.FullName .Org.Name) "Sub" (ctx.Locale.Tr "asc_shell.sn_org_sub" .Org.Name) "Href" .OrgLink "Label" (ctx.Locale.Tr "asc_shell.sn_view_org"))}}
+		{{template "shared/ds/snav_who" (dict "Entity" .Org "Name" (or .Org.FullName .Org.Name) "Sub" (print "@" .Org.Name) "Href" .OrgLink "Label" (ctx.Locale.Tr "asc_shell.sn_view_org"))}}
 
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_general"}}</h2>
 		<ul class="ds-settings-list">

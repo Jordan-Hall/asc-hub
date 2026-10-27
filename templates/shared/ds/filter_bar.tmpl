@@ -1,0 +1,25 @@
+{{/*
+The search row of a list page: a GET form with one search field (and the pills of shared/ds/pill below it, in your own markup).
+Props:
+* Action (optional, default: the current page), Name (query parameter, default "q"), Value (the current text)
+* Label (the accessible name, required), Placeholder (optional, default Label)
+* Hidden (optional): a dict of name -> value kept as hidden inputs (the other filters)
+* Wide (optional): use the wide container
+Put it right after the page head. The field submits on Enter; no script is needed.
+*/}}
+{{$name := "q"}}{{if .Name}}{{$name = .Name}}{{end}}
+<div class="ds-filterbar">
+	<div class="ds-container{{if .Wide}} ds-container-wide{{end}}">
+		<div class="ds-filterbar-row">
+			<form class="ds-filterbar-form" role="search" method="get"{{if .Action}} action="{{.Action}}"{{end}}>
+				{{range $k, $v := .Hidden}}<input type="hidden" name="{{$k}}" value="{{$v}}">{{end}}
+				<div class="ds-inwrap">
+					{{svg "dsi-search" 16}}
+					<label class="ds-sr" for="ds-filter-{{$name}}">{{.Label}}</label>
+					<input id="ds-filter-{{$name}}" class="ds-input" type="search" name="{{$name}}" value="{{.Value}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{if .Placeholder}}{{.Placeholder}}{{else}}{{.Label}}{{end}}">
+				</div>
+				<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_shell.search_label"}}</button>
+			</form>
+		</div>
+	</div>
+</div>
