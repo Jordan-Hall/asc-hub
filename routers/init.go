@@ -38,6 +38,7 @@ import (
 	actions_service "forgejo.org/services/actions"
 	"forgejo.org/services/ascbridge"
 	"forgejo.org/services/ascdownloadsync"
+	"forgejo.org/services/ascforward"
 	auth_method "forgejo.org/services/auth/method"
 	"forgejo.org/services/auth/source/oauth2"
 	"forgejo.org/services/automerge"
@@ -185,6 +186,16 @@ func NormalRoutes() *web.Route {
 	_ = templates.HTMLRenderer()
 	r := web.NewRoute()
 	r.Use(common.ProtocolMiddlewares()...)
+
+	// The asc command line sends its gRPC calls to the hub, which announces itself as the asc server
+	// (/.well-known/asc). They go before the web routes: no session, no CSRF, no cookie.
+	if setting.Asc.Enabled {
+		if fwd, err := ascforward.New(setting.Asc.ServerURL, nil); err != nil {
+			log.Error("The asc API is not forwarded: %v", err)
+		} else {
+			r.Post("/asc.v1.{service}/{method}", fwd.ServeHTTP)
+		}
+	}
 
 	r.Mount("/", web_routers.Routes())
 	r.Mount("/api/v1", apiv1.Routes())
