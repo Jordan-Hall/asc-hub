@@ -105,7 +105,7 @@ func (s *Service) UpdateKey(ctx context.Context, sc Scope, id string, in *AIKeyI
 	// A key goes to the address it was stored for. Pointing a stored key at a new address (or at one for
 	// the first time) would send it to whoever runs that address, so the form has to carry the key again.
 	if in.BaseURL != cur.GetBaseUrl() && in.APIKey == "" {
-		verr.Add("api_key", "ascbyo.ai.err.api_key")
+		verr.Add("api_key", "ascbyo.ai.err.api_key_reenter")
 	}
 	if len(verr) > 0 {
 		return cur, false, verr, nil

@@ -127,10 +127,10 @@ func (s *Service) UpdateTarget(ctx context.Context, sc Scope, id string, in *Sto
 	if in.ConnectionChanged(cur) {
 		// New place, new credentials: the key id and the secret have to be typed again.
 		if in.AccessKeyID == "" {
-			fe.Add("access_key_id", "ascbyo.storage.err.access_key_id")
+			fe.Add("access_key_id", "ascbyo.storage.err.access_key_id_reenter")
 		}
 		if in.SecretAccessKey == "" {
-			fe.Add("secret_access_key", "ascbyo.storage.err.secret_access_key")
+			fe.Add("secret_access_key", "ascbyo.storage.err.secret_access_key_reenter")
 		}
 	}
 	if len(fe) > 0 {

@@ -98,7 +98,7 @@ func TestAIKeyBaseURLNeedsNewKey(t *testing.T) {
 		}, "")
 		require.NoError(t, err)
 		assert.False(t, changed)
-		assert.Contains(t, fe, "api_key")
+		assert.Equal(t, "ascbyo.ai.err.api_key_reenter", fe["api_key"])
 		assert.Zero(t, updates())
 	})
 	t.Run("a cleared address without the key is refused too", func(t *testing.T) {
@@ -244,8 +244,8 @@ func TestStorageChangedPlaceNeedsNewCredentials(t *testing.T) {
 			_, changed, fe, err := s.UpdateTarget(t.Context(), alice, tg.GetId(), in, "")
 			require.NoError(t, err)
 			assert.False(t, changed)
-			assert.Contains(t, fe, "access_key_id")
-			assert.Contains(t, fe, "secret_access_key")
+			assert.Equal(t, "ascbyo.storage.err.access_key_id_reenter", fe["access_key_id"])
+			assert.Equal(t, "ascbyo.storage.err.secret_access_key_reenter", fe["secret_access_key"])
 			assert.Empty(t, f.CallsTo("UpdateTarget"))
 		})
 		t.Run(name+" with only the session token", func(t *testing.T) {
