@@ -115,7 +115,15 @@ func AscChecks(ctx *context.Context) {
 		ctx.HTML(http.StatusBadGateway, tplAscChecks)
 		return
 	}
-	data, err := asctrust.LoadChecks(asctrust.System(ctx.Req.Context()), conn, name, asctrust.ChecksQuery{
+	callCtx, release, err := trustweb.ReadCall(ctx, repo)
+	if err != nil {
+		f := trustweb.FailureOf("checks credential", err)
+		p.Problem = f.Message
+		ctx.HTML(f.Status, tplAscChecks)
+		return
+	}
+	defer release()
+	data, err := asctrust.LoadChecks(callCtx, conn, name, asctrust.ChecksQuery{
 		State: p.State, FlakyOnly: p.Flaky, Job: p.Job, Test: p.Test, PageToken: ctx.FormString("page"),
 	}, window)
 	if err != nil {
@@ -224,7 +232,15 @@ func AscCheckGroup(ctx *context.Context) {
 		ctx.HTML(http.StatusBadGateway, tplAscCheckGroup)
 		return
 	}
-	detail, hist, err := asctrust.LoadGroup(asctrust.System(ctx.Req.Context()), conn, name, uint64(id), ctx.FormString("page"), window)
+	callCtx, release, err := trustweb.ReadCall(ctx, repo)
+	if err != nil {
+		f := trustweb.FailureOf("checks credential", err)
+		p.Problem = f.Message
+		ctx.HTML(f.Status, tplAscCheckGroup)
+		return
+	}
+	defer release()
+	detail, hist, err := asctrust.LoadGroup(callCtx, conn, name, uint64(id), ctx.FormString("page"), window)
 	if err != nil {
 		f := trustweb.FailureOf("checks group", err)
 		if f.Status == http.StatusNotFound {
@@ -483,29 +499,43 @@ func AscPullChecks(ctx *context.Context) {
 	// What the policy requires, and the failure groups seen in these runs: advice, so a failure of either leaves
 	// the page without it and says so.
 	if asctrust.HasFeature(ctx, asctrust.FeaturePolicy) || asctrust.HasFeature(ctx, asctrust.FeatureCiInsights) {
-		if conn, err := asctrust.Conn(); err == nil {
-			sys := asctrust.System(ctx.Req.Context())
-			if required, err := asctrust.RequiredChecks(sys, conn, name); err == nil {
-				in.Required = required
-			} else {
-				log.Warn("asc checks: required checks of %s: %v", repo.FullName(), err)
-			}
-			if asctrust.HasFeature(ctx, asctrust.FeatureCiInsights) {
-				causes, err := asctrust.PullCauses(sys, conn, name, runIDs, earliest)
-				if err != nil {
-					log.Warn("asc checks: failure groups of %s: %v", repo.FullName(), err)
-					p.CausesNote = "The reasons for the failures cannot be read right now."
-				} else {
-					in.Causes, in.CausesKnown = causes, true
-				}
-			}
-		}
+		ascPullAdvice(ctx, repo, name, &in, p, runIDs, earliest)
 	}
 	p.Checks = asctrust.BuildPullChecks(in)
 	for _, card := range p.Checks.Flaky {
 		p.Ops[card.GroupID] = asctrust.NewOpID()
 	}
 	ctx.HTML(http.StatusOK, tplAscPullChecks)
+}
+
+// ascPullAdvice adds what the policy requires and the failure groups seen in the runs to in. The reads are made as
+// the signed-in person. A failure of either leaves the page without it and says so.
+func ascPullAdvice(ctx *context.Context, repo *repo_model.Repository, name string, in *asctrust.PullChecksIn, p *ascPullChecksPage, runIDs map[uint64]bool, earliest time.Time) {
+	conn, err := asctrust.Conn()
+	if err != nil {
+		return
+	}
+	callCtx, release, err := trustweb.ReadCall(ctx, repo)
+	if err != nil {
+		log.Warn("asc checks: credential for %s: %v", repo.FullName(), err)
+		p.CausesNote = "The reasons for the failures cannot be read right now."
+		return
+	}
+	defer release()
+	if required, err := asctrust.RequiredChecks(callCtx, conn, name); err == nil {
+		in.Required = required
+	} else {
+		log.Warn("asc checks: required checks of %s: %v", repo.FullName(), err)
+	}
+	if asctrust.HasFeature(ctx, asctrust.FeatureCiInsights) {
+		causes, err := asctrust.PullCauses(callCtx, conn, name, runIDs, earliest)
+		if err != nil {
+			log.Warn("asc checks: failure groups of %s: %v", repo.FullName(), err)
+			p.CausesNote = "The reasons for the failures cannot be read right now."
+			return
+		}
+		in.Causes, in.CausesKnown = causes, true
+	}
 }
 
 func ascRunIn(repo *repo_model.Repository, r *actions_model.ActionRun) asctrust.RunIn {
