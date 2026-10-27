@@ -5,6 +5,7 @@
 package repo
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	issues_model "forgejo.org/models/issues"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/git/ascbackend"
 	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/routers/api/v1/utils"
@@ -180,13 +182,13 @@ func GetAllCommits(ctx *context.APIContext) {
 		var baseCommit *git.Commit
 		if len(sha) == 0 {
 			// no sha supplied - use default branch
-			head, err := ctx.Repo().GitRepo.GetHEADBranch()
+			branch, err := defaultBranchOf(ctx)
 			if err != nil {
 				ctx.Error(http.StatusInternalServerError, "GetHEADBranch", err)
 				return
 			}
 
-			baseCommit, err = ctx.Repo().GitRepo.GetBranchCommit(head.Name)
+			baseCommit, err = ctx.Repo().GitRepo.GetBranchCommit(branch)
 			if err != nil {
 				ctx.Error(http.StatusInternalServerError, "GetCommit", err)
 				return
@@ -374,4 +376,18 @@ func GetCommitPullRequest(ctx *context.APIContext) {
 		return
 	}
 	ctx.JSON(http.StatusOK, convert.ToAPIPullRequest(ctx, pr, ctx.Doer()))
+}
+
+// defaultBranchOf is the branch a list of commits starts from when the request names none: the HEAD of the
+// repository. A repository stored in asc has no HEAD file to read (asc.v1 reports none), so its default branch,
+// which the hub keeps, is the answer.
+func defaultBranchOf(ctx *context.APIContext) (string, error) {
+	head, err := ctx.Repo().GitRepo.GetHEADBranch()
+	if err == nil {
+		return head.Name, nil
+	}
+	if errors.Is(err, ascbackend.ErrUnsupported) && ctx.Repo().Repository.DefaultBranch != "" {
+		return ctx.Repo().Repository.DefaultBranch, nil
+	}
+	return "", err
 }
