@@ -15,7 +15,9 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	"forgejo.org/routers/web/shared/trustweb"
 	"forgejo.org/services/ascbridge"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/automerge"
 	"forgejo.org/services/context"
 	pull_service "forgejo.org/services/pull"
@@ -279,7 +281,51 @@ func AscQueuePage(ctx *context.Context) {
 	ctx.Data["AscQueueCanAdmin"] = canAdmin
 	ctx.Data["AscQueueBranch"] = branch
 	ctx.Data["AscQueueRevalidate"] = automerge.AscQueueNoContentMerge()
+	ctx.Data["AscQuarantine"] = ascQueueQuarantine(ctx)
 	ctx.HTML(http.StatusOK, tplAscQueue)
+}
+
+// ascQuarantineView is the template data under .AscQuarantine: the failures that do not hold up a landing, and why.
+type ascQuarantineView struct {
+	Rows      []asctrust.GroupRow
+	More      bool
+	ChecksURL string
+	// Problem is a fixed sentence when the list could not be read; the queue itself is shown either way.
+	Problem string
+}
+
+// ascQueueQuarantine reads the quarantined failure groups for the queue page. They are CI data, which Forgejo shows
+// only to a reader of Actions, so a viewer who may not read the Actions of the repository sees no section. A failure
+// to read them never stops the queue page: the section says it could not be read.
+func ascQueueQuarantine(ctx *context.Context) *ascQuarantineView {
+	repo := ctx.Repo.Repository
+	if !ctx.Repo.CanRead(unit.TypeActions) || !asctrust.HasFeature(ctx, asctrust.FeatureCiInsights) {
+		return nil
+	}
+	name, err := asctrust.RepoName(repo)
+	if err != nil {
+		return nil
+	}
+	v := &ascQuarantineView{ChecksURL: ascChecksURL(repo)}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		log.Error("asc queue: no connection to asc serve: %v", err)
+		v.Problem = ctx.Locale.TrString("asc_trust.err.unavailable")
+		return v
+	}
+	callCtx, release, err := trustweb.ReadCall(ctx, repo)
+	if err != nil {
+		v.Problem = trustweb.FailureOf("queue quarantine credential", err).Localized(ctx)
+		return v
+	}
+	defer release()
+	q, err := asctrust.LoadQuarantined(callCtx, conn, name)
+	if err != nil {
+		v.Problem = trustweb.FailureOf("queue quarantine", err).Localized(ctx)
+		return v
+	}
+	v.Rows, v.More = q.Rows, q.More
+	return v
 }
 
 // ascQueueSetPaused is the shared body of AscQueuePause and AscQueueResume.
