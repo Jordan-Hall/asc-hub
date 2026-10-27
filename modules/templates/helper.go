@@ -130,6 +130,8 @@ func NewFuncMap() template.FuncMap {
 		"AppDomain": func() string { // documented in mail-templates.md
 			return setting.Domain
 		},
+		// SSHEnabled: git over SSH is offered; false on an ASC Hub unless [asc] SSH_ENABLED is true.
+		"SSHEnabled": setting.SSHEnabled,
 		"RepoFlagsEnabled": func() bool {
 			return setting.Repository.EnableFlags
 		},

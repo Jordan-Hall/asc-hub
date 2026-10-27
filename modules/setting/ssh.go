@@ -140,6 +140,10 @@ func loadSSHFrom(rootCfg ConfigProvider) {
 	SSH.ListenPort = sec.Key("SSH_LISTEN_PORT").MustInt(SSH.Port)
 	SSH.UseProxyProtocol = sec.Key("SSH_SERVER_USE_PROXY_PROTOCOL").MustBool(false)
 
+	// An ASC Hub is HTTPS-only unless [asc] SSH_ENABLED says otherwise.
+	if Asc.Enabled && !Asc.SSHEnabled {
+		SSH.Disabled = true
+	}
 	// When disable SSH, start builtin server value is ignored.
 	if SSH.Disabled {
 		SSH.StartBuiltinServer = false
