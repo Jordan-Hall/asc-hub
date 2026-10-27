@@ -164,8 +164,14 @@ type ascPrincipal struct {
 	task      *actions_model.ActionTask
 	reducer   authz.AuthorizationReducer
 	scope     string // the scope of the token, "" for any other credential
-	userID    int64
-	username  string
+	// What the credential itself rested on, for ascPermVersion: the stored token (id and last change), the expiry
+	// and the grant scopes of a token that carries them, and whether a password was used.
+	tokenID, tokenUpdated int64
+	expires               int64
+	grantScopes           string
+	passwordAuth          bool
+	userID                int64
+	username              string
 }
 
 // ascDenied is the answer for a credential that did not authenticate.
@@ -255,7 +261,7 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 	if resp.BranchRules.RequireSigned, err = ascRequireSigned(ctx, repo, req.Ref); err != nil {
 		return ascDenied(), err
 	}
-	if resp.PermVersion, err = ascPermVersion(ctx, repo, principal, access); err != nil {
+	if resp.PermVersion, err = ascPermVersion(ctx, repo, principal, access, req.Ref); err != nil {
 		return ascDenied(), err
 	}
 	return resp, nil
@@ -371,7 +377,14 @@ func ascPrincipalFromToken(ctx *context.PrivateContext, repo *repo_model.Reposit
 
 	switch out := group.Verify(authReq, nil, nil).(type) {
 	case *auth_service.AuthenticationSuccess:
-		return ascPrincipalFromAuthResult(ctx, repo, out.Result, mode)
+		p, ok, err := ascPrincipalFromAuthResult(ctx, repo, out.Result, mode)
+		if p != nil {
+			// A personal access token is a row: which one, and when it last changed, is part of the decision.
+			if tok, terr := auth_model.GetAccessTokenBySHA(ctx, req.Token); terr == nil {
+				p.tokenID, p.tokenUpdated = tok.ID, int64(tok.UpdatedUnix)
+			}
+		}
+		return p, ok, err
 	case *auth_service.AuthenticationAttemptedIncorrectCredential, *auth_service.AuthenticationNotAttempted:
 		return nil, false, nil
 	case *auth_service.AuthenticationError:
@@ -429,6 +442,11 @@ func ascPrincipalFromAuthResult(ctx *context.PrivateContext, repo *repo_model.Re
 	if has, scope := ar.Scope().Get(); has {
 		p.scope = string(scope)
 	}
+	if has, at := ar.ExpiresAt().Get(); has {
+		p.expires = int64(at)
+	}
+	p.grantScopes = ar.OAuth2GrantScopes().ValueOrDefault("")
+	p.passwordAuth = ar.IsPasswordAuthentication()
 	return p, true, nil
 }
 

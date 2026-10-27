@@ -4,29 +4,44 @@
 package private
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
-	"hash/fnv"
 	"sort"
 	"strings"
 
+	auth_model "forgejo.org/models/auth"
+	git_model "forgejo.org/models/git"
 	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/services/context"
 )
 
-// ascPermVersion is the fingerprint of what an authz decision rested on (private.AscAuthzResponse.PermVersion).
+// ascPermVersion is the fingerprint of everything an allowed authz answer rested on (private.AscAuthzResponse.PermVersion).
 //
-// It is computed from the same facts the decision used and nothing else: the repository as the hub stores it, the
-// state of the asker's account, the permission the hub's model gave on every unit of the repository, and the scope
-// of the token. A change of a collaborator, a team, the organisation, the visibility, the name or the owner of the
-// repository, or the scope of the token, reaches the decision only through one of these, so it changes the value
-// without a hook in each place that makes such a change. No secret goes in.
-func ascPermVersion(ctx *context.PrivateContext, repo *repo_model.Repository, p *ascPrincipal, access access_model.Permission) (uint64, error) {
+// Repository level (the same for every asker and every ref until the repository or the permission changes):
+// the repository as the hub stores it (id, owner, name, visibility, archive, mirror, state, storage, units) and its
+// owner (type, visibility, active).
+//
+// Asker level (the same for the same credential and the same asker): the account (active, may sign in, must change
+// the password, restricted, administrator, two-factor required and enrolled), the permission the hub's model gave on
+// every unit, and the credential: the stored token (id, last change), its scope, its expiry, the grant scopes of an
+// OAuth token, whether a password was used, the deploy key (id, mode), the Actions task (id, status, stopped).
+//
+// Request level (depends on the ref asked): the ref, and the protected-branch rule that matches it (id, last change,
+// whether it requires signed commits). The answer's branch_rules and task fields are of this level.
+//
+// A collaborator, team, organisation, visibility, rename, transfer, deletion or token change reaches the answer only
+// through one of these, so it changes the value without a hook in each place that makes such a change. A deletion or a
+// revocation ends in a refusal, and a refusal has no version. The value is the first 64 bits of a SHA-256 of the
+// facts, which carry no secret. It is a fingerprint, not a counter: an access that changes and changes back has the
+// old value again.
+func ascPermVersion(ctx *context.PrivateContext, repo *repo_model.Repository, p *ascPrincipal, access access_model.Permission, ref string) (uint64, error) {
 	if err := repo.LoadUnits(ctx); err != nil {
 		return 0, fmt.Errorf("LoadUnits: %w", err)
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "asc-perm-v1|repo=%d|owner=%d|%s/%s|private=%t|archived=%t|mirror=%t|status=%d|storage=%s",
+	fmt.Fprintf(&b, "asc-perm-v2|repo=%d|owner=%d|%s/%s|private=%t|archived=%t|mirror=%t|status=%d|storage=%s",
 		repo.ID, repo.OwnerID, strings.ToLower(repo.OwnerName), repo.LowerName,
 		repo.IsPrivate, repo.IsArchived, repo.IsMirror, repo.Status, repo.GetStorageBackend())
 	if repo.Owner != nil {
@@ -38,17 +53,35 @@ func ascPermVersion(ctx *context.PrivateContext, repo *repo_model.Repository, p 
 	}
 	sort.Strings(units)
 	fmt.Fprintf(&b, "|mode=%d|units=%s", access.AccessMode, strings.Join(units, ","))
+
 	if u := p.user; u != nil {
-		fmt.Fprintf(&b, "|user=%d|active=%t|prohibit=%t|mustchange=%t|restricted=%t|admin=%t|scope=%s",
-			u.ID, u.IsActive, u.ProhibitLogin, u.MustChangePassword, u.IsRestricted, u.IsAdmin, p.scope)
+		required := u.MustHaveTwoFactor()
+		enrolled, err := auth_model.HasTwoFactorByUID(ctx, u.ID)
+		if err != nil {
+			return 0, fmt.Errorf("HasTwoFactorByUID: %w", err)
+		}
+		fmt.Fprintf(&b, "|user=%d|active=%t|prohibit=%t|mustchange=%t|restricted=%t|admin=%t|2fa=%t/%t",
+			u.ID, u.IsActive, u.ProhibitLogin, u.MustChangePassword, u.IsRestricted, u.IsAdmin, required, enrolled)
 	}
+	fmt.Fprintf(&b, "|token=%d@%d|scope=%s|expires=%d|grants=%s|password=%t",
+		p.tokenID, p.tokenUpdated, p.scope, p.expires, p.grantScopes, p.passwordAuth)
 	if k := p.deployKey; k != nil {
 		fmt.Fprintf(&b, "|deploykey=%d|keymode=%d", k.ID, k.Mode)
 	}
-	if p.task != nil {
-		fmt.Fprintf(&b, "|task=%d", p.task.ID)
+	if t := p.task; t != nil {
+		fmt.Fprintf(&b, "|task=%d|taskstatus=%d|stopped=%d", t.ID, t.Status, t.Stopped)
 	}
-	h := fnv.New64a()
-	_, _ = h.Write([]byte(b.String()))
-	return h.Sum64(), nil
+
+	fmt.Fprintf(&b, "|ref=%s", ref)
+	if branch := strings.TrimPrefix(ref, "refs/heads/"); branch != "" {
+		rule, err := git_model.GetFirstMatchProtectedBranchRule(ctx, repo.ID, branch)
+		if err != nil {
+			return 0, fmt.Errorf("GetFirstMatchProtectedBranchRule: %w", err)
+		}
+		if rule != nil {
+			fmt.Fprintf(&b, "|rule=%d@%d|signed=%t", rule.ID, rule.UpdatedUnix, rule.RequireSignedCommits)
+		}
+	}
+	sum := sha256.Sum256([]byte(b.String()))
+	return binary.BigEndian.Uint64(sum[:8]), nil
 }
