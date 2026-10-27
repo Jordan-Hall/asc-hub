@@ -578,6 +578,7 @@ func AscPullChecks(ctx *context.Context) {
 		ascPullAdvice(ctx, repo, name, &in, p, runIDs, earliest)
 	}
 	p.Checks = asctrust.BuildPullChecks(in)
+	p.Checks.Localize(ctx.Locale.TrString)
 	for _, card := range p.Checks.Flaky {
 		p.Ops[card.GroupID] = asctrust.NewOpID()
 	}

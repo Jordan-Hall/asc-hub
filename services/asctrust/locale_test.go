@@ -135,6 +135,9 @@ func TestTrustLocaleKeys(t *testing.T) {
 	for _, v := range []string{"file", "default"} {
 		assert.Contains(t, keys, "asc_trust.deps.source."+v)
 	}
+	for _, k := range pullLocaleKeys() {
+		assert.Contains(t, keys, k)
+	}
 	assert.Contains(t, keys, "asc_trust.checks.state.unknown")
 	assert.Contains(t, keys, "asc_trust.checks.state_done.unknown")
 	for _, reason := range []string{"nothing", "not_yours", "moved", "needs_maintainer", "protected_off", "expired", "other"} {
