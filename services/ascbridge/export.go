@@ -82,7 +82,7 @@ func (e *CLIExporter) Export(ctx context.Context, repoName, bridgeDir string) er
 		if err := util.RemoveAll(ws); err != nil {
 			return fmt.Errorf("ascbridge: workspace: %w", err)
 		}
-		if err := e.run(ctx, filepath.Dir(ws), "clone", strings.TrimRight(e.ServerURL, "/")+"/"+repoName, name); err != nil {
+		if err := e.run(ctx, filepath.Dir(ws), "clone", "--", strings.TrimRight(e.ServerURL, "/")+"/"+repoName, name); err != nil {
 			return err
 		}
 		if err := os.WriteFile(ready, nil, 0o600); err != nil {
@@ -94,9 +94,10 @@ func (e *CLIExporter) Export(ctx context.Context, repoName, bridgeDir string) er
 	return e.run(ctx, ws, "export", "--git", bridgeDir, "--refs", "refs/heads/*", "--refs", "refs/tags/*", "--refs", "refs/pull/*")
 }
 
-// safeElement accepts the characters of owner and repository names, and not a path element that climbs.
+// safeElement accepts the characters of owner and repository names, and not a path element that climbs or one that
+// starts with '-', which a command line would read as an option. The clone also puts "--" before its positionals.
 func safeElement(s string) bool {
-	if s == "" || s == "." || s == ".." {
+	if s == "" || s == "." || s == ".." || s[0] == '-' {
 		return false
 	}
 	for i := range len(s) {
