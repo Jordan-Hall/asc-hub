@@ -25,7 +25,11 @@ const (
 
 // Keys render user's SSH/GPG public keys page
 func Keys(ctx *context.Context) {
-	ctx.Data["Title"] = ctx.Tr("settings.ssh_gpg_keys")
+	if setting.SSHEnabled() {
+		ctx.Data["Title"] = ctx.Tr("settings.ssh_gpg_keys")
+	} else {
+		ctx.Data["Title"] = ctx.Tr("settings.gpg_keys")
+	}
 	ctx.Data["PageIsSettingsKeys"] = true
 	ctx.Data["DisableSSH"] = setting.SSH.Disabled
 	ctx.Data["BuiltinSSH"] = setting.SSH.StartBuiltinServer

@@ -1,9 +1,12 @@
 {{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings sshkeys")}}
 	<div class="user-setting-content">
-		{{if not ($.UserDisabledFeatures.Contains "manage_ssh_keys")}}
+		{{/* SSH keys and principals are for git over SSH; with SSH off (the ASC Hub default) only signing keys are managed. */}}
+		{{if and SSHEnabled (not ($.UserDisabledFeatures.Contains "manage_ssh_keys"))}}
 			{{template "user/settings/keys_ssh" .}}
 		{{end}}
-		{{template "user/settings/keys_principal" .}}
+		{{if SSHEnabled}}
+			{{template "user/settings/keys_principal" .}}
+		{{end}}
 		{{if not ($.UserDisabledFeatures.Contains "manage_gpg_keys")}}
 		{{template "user/settings/keys_gpg" .}}
 		{{end}}
