@@ -10,6 +10,7 @@ import (
 	activities_model "forgejo.org/models/activities"
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/unittest"
 	"forgejo.org/tests"
 
 	"github.com/stretchr/testify/assert"
