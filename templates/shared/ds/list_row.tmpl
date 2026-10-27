@@ -1,0 +1,31 @@
+{{/*
+One row of a .ds-list (put it inside <ul class="ds-list">). Dense: avatar, title line, sub line, meta line, stat on the right.
+Props (all optional except Title):
+* Href: the title is a link to it
+* Title, Owner (a quiet "owner /" before the title)
+* Chip + ChipTone (ok, warn, err, info, agent; default neutral): one status chip after the title, always words
+* Sub: one line of description
+* Meta1, Meta2, Meta3: short facts under the sub line (a language, a count, "Updated 3 days ago")
+* StatValue + StatLabel: a number on the right ("4" / "open stacks")
+* Avatar: pre-rendered avatar HTML (use ctx.AvatarUtils.Avatar)
+Actions that belong to the row go below it on a phone: wrap them in <div class="ds-li-actions"> in your own markup (see THEME.md "List row").
+*/}}
+<li class="ds-li">
+	{{if .Avatar}}<span class="ds-li-av">{{.Avatar}}</span>{{end}}
+	<div class="ds-li-main">
+		<div class="ds-li-title">
+			{{if .Owner}}<span class="ds-li-owner">{{.Owner}} /</span>{{end}}
+			{{if .Href}}<a href="{{.Href}}">{{.Title}}</a>{{else}}<span>{{.Title}}</span>{{end}}
+			{{if .Chip}}<span class="ds-chip{{if .ChipTone}} ds-chip-{{.ChipTone}}{{end}}">{{.Chip}}</span>{{end}}
+		</div>
+		{{if .Sub}}<div class="ds-li-sub">{{.Sub}}</div>{{end}}
+		{{if or .Meta1 .Meta2 .Meta3}}
+			<div class="ds-li-meta">
+				{{if .Meta1}}<span>{{.Meta1}}</span>{{end}}
+				{{if .Meta2}}<span>{{.Meta2}}</span>{{end}}
+				{{if .Meta3}}<span>{{.Meta3}}</span>{{end}}
+			</div>
+		{{end}}
+	</div>
+	{{if .StatValue}}<div class="ds-li-stat"><b>{{.StatValue}}</b>{{if .StatLabel}}<span>{{.StatLabel}}</span>{{end}}</div>{{end}}
+</li>

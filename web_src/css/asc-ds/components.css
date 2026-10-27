@@ -853,6 +853,10 @@ ul.ds-list {
   background: var(--surface-3);
 }
 
+.ds-li-av {
+  flex: none;
+}
+
 .ds-li-main {
   flex: 1;
   min-width: 0;
@@ -1225,6 +1229,18 @@ ul.ds-list {
 
 .ds-pager .ds-disabled {
   opacity: 0.4;
+}
+
+.ds-pager a.ds-pager-nav,
+.ds-pager span.ds-pager-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ds-pager-note {
+  color: var(--text-2);
+  font-size: 13px;
 }
 
 @media (min-width: 768px) {
@@ -1800,6 +1816,8 @@ a.ds-stat:hover {
 }
 
 .ds-codebox-bd {
+  margin: 0;
+  padding: 10px 14px;
   overflow-x: auto;
   scrollbar-width: thin;
   font-family: var(--font-mono);
