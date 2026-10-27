@@ -115,7 +115,7 @@ func prepareAscTree(ctx *context.Context, isDir bool) {
 		}
 		out := make([]ascTreeEntry, 0, len(entries))
 		for _, e := range entries {
-			if e.IsSubModule() {
+			if e.IsSubmodule() {
 				continue
 			}
 			out = append(out, ascTreeEntry{Name: e.Name(), IsDir: e.IsDir()})
