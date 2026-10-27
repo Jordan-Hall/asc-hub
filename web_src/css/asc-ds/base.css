@@ -267,3 +267,8 @@ svg.svg[class^="dsi-"] {
     display: none !important;
   }
 }
+
+/* the hidden attribute always wins over a component's display value */
+.ds-app [hidden] {
+  display: none !important;
+}

@@ -19,7 +19,7 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 				</div>
 			{{end}}
 			<div class="ds-land-install" role="group" aria-label="{{ctx.Locale.Tr "startpage.connect_label"}}">
-				<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code>asc auth login --host {{.AscHubURL}} --prompt</code><button type="button" class="ds-copy" data-clipboard-text="asc auth login --host {{.AscHubURL}} --prompt">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+				<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{.AscHubURL}} --prompt</code><button type="button" class="ds-copy" data-clipboard-text="asc auth login --host {{.AscHubURL}} --prompt">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 			</div>
 		</div>
 	</section>
@@ -71,19 +71,19 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 					<span class="ds-land-num" aria-hidden="true">1</span>
 					<h3>{{ctx.Locale.Tr "startpage.step1_title"}}</h3>
 					<p>{{ctx.Locale.Tr "startpage.step1_text"}}</p>
-					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code>asc auth login --host {{.AscHubURL}} --prompt</code></div>
+					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{.AscHubURL}} --prompt</code></div>
 				</li>
 				<li class="ds-land-step">
 					<span class="ds-land-num" aria-hidden="true">2</span>
 					<h3>{{ctx.Locale.Tr "startpage.step2_title"}}</h3>
 					<p>{{ctx.Locale.Tr "startpage.step2_text"}}</p>
-					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code>asc clone {{.AscHubURL}}/OWNER/REPOSITORY</code></div>
+					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc clone {{.AscHubURL}}/OWNER/REPOSITORY</code></div>
 				</li>
 				<li class="ds-land-step">
 					<span class="ds-land-num" aria-hidden="true">3</span>
 					<h3>{{ctx.Locale.Tr "startpage.step3_title"}}</h3>
 					<p>{{ctx.Locale.Tr "startpage.step3_text"}}</p>
-					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code>asc submit --publish</code></div>
+					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc submit --publish</code></div>
 				</li>
 			</ol>
 		</div>
@@ -118,7 +118,7 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 					<details class="ds-land-compat">
 						<summary><h3>{{ctx.Locale.Tr "startpage.git_title"}}</h3>{{svg "dsi-chevron-down" 18}}</summary>
 						<p>{{ctx.Locale.Tr "startpage.git_text"}}</p>
-						<div class="ds-cmd ds-cmd-scroll ds-mt-12"><span class="ds-pr" aria-hidden="true">$</span><code>git clone {{.AscHubURL}}/OWNER/REPOSITORY</code></div>
+						<div class="ds-cmd ds-cmd-scroll ds-mt-12"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">git clone {{.AscHubURL}}/OWNER/REPOSITORY</code></div>
 					</details>
 				</article>
 			</div>
