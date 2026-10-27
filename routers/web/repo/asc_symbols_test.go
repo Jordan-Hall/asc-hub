@@ -114,7 +114,7 @@ func TestAscSymbolsPage(t *testing.T) {
 		assert.Contains(t, page.body, "precise")
 		assert.Contains(t, page.body, "name_match")
 		assert.Contains(t, page.body, "/user2/repo1/src/branch/master/src/a%20b/lib.rs#L10")
-		assert.Contains(t, page.body, "More results exist")
+		assert.Contains(t, page.body, "repo.asc_symbols.truncated")
 		// Text from asc is escaped, and control and bidirectional characters are gone.
 		assert.Contains(t, page.body, "&lt;b&gt;evil&lt;/b&gt;")
 		assert.Contains(t, page.body, "&lt;script&gt;alert(1)&lt;/script&gt;")
