@@ -419,6 +419,8 @@ type ChecksQuery struct {
 	Job       string
 	Test      string
 	PageToken string
+	// SkipFlaky leaves out the flaky list, for a view that does not draw it.
+	SkipFlaky bool
 }
 
 // ChecksPage is the checks page content.
@@ -471,7 +473,7 @@ func LoadChecks(ctx context.Context, conn grpc.ClientConnInterface, repoName str
 		return nil, err
 	}
 	page := &ChecksPage{Groups: groups}
-	if q.PageToken == "" {
+	if q.PageToken == "" && !q.SkipFlaky {
 		if fresp, err := client.ListFlakyTests(cctx, &ascv1.ListFlakyTestsRequest{Repo: RepoRef(repoName), WindowDays: windowDays, Limit: 15}); err == nil {
 			if rows, _, err := FlakyOf(fresp); err == nil {
 				page.Flaky = rows

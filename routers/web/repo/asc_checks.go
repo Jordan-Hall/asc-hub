@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	actions_model "forgejo.org/models/actions"
@@ -56,12 +55,18 @@ const (
 // ascChecksPage is the template data under .AscChecks.
 type ascChecksPage struct {
 	Data        *asctrust.ChecksPage
+	View        string
+	Views       []ascChecksView
 	State       string
 	States      []ascChecksState
 	Flaky       bool
 	Job         string
 	Test        string
 	Window      uint32
+	Windows     []uint32
+	Jobs        []asctrust.JobStat
+	FlakyRows   []asctrust.FlakyRow
+	Trends      []asctrust.TrendRow
 	NextURL     string
 	Problem     string
 	Unsupported bool
@@ -74,8 +79,40 @@ type ascChecksState struct {
 	Active     bool
 }
 
+// ascChecksView is one tab of the CI failures page.
+type ascChecksView struct {
+	Key    string
+	URL    string
+	Active bool
+}
+
+// The views of the CI failures page: the failing jobs and failure groups, the flaky tests, the trend of the jobs.
+const (
+	ascChecksViewFailures = "failures"
+	ascChecksViewFlaky    = "flaky"
+	ascChecksViewTrends   = "trends"
+)
+
+// ascChecksWindows are the windows of a history, in days.
+var ascChecksWindows = []uint32{7, 14, 30, 90, 180}
+
 func ascChecksURL(repo *repo_model.Repository) string {
 	return setting.AppSubURL + "/" + repo.OwnerName + "/" + repo.Name + "/asc/checks"
+}
+
+// ascChecksViewURL is the link of a tab; the window carries over from tab to tab.
+func ascChecksViewURL(base, view string, window uint32, windowGiven bool) string {
+	q := url.Values{}
+	if view != ascChecksViewFailures {
+		q.Set("view", view)
+	}
+	if windowGiven {
+		q.Set("window", strconv.FormatUint(uint64(window), 10))
+	}
+	if len(q) == 0 {
+		return base
+	}
+	return base + "?" + q.Encode()
 }
 
 // AscChecks serves GET /{owner}/{repo}/asc/checks.
@@ -84,15 +121,30 @@ func AscChecks(ctx *context.Context) {
 	if !ok {
 		return
 	}
-	ctx.Data["Title"] = "Checks"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_trust.checks.title")
 	ctx.Data["PageIsAscChecks"] = true
-	p := &ascChecksPage{ChecksURL: ascChecksURL(repo), State: ctx.FormString("state"), Flaky: ctx.FormBool("flaky"), Job: ctx.FormString("job"), Test: ctx.FormString("test")}
+	p := &ascChecksPage{
+		ChecksURL: ascChecksURL(repo), View: ctx.FormString("view"), State: ctx.FormString("state"), Flaky: ctx.FormBool("flaky"),
+		Job: ctx.FormString("job"), Test: ctx.FormString("test"), Windows: ascChecksWindows,
+	}
 	p.CanWrite = ctx.IsSigned && ctx.Repo.CanWrite(unit.TypeCode)
 	ctx.Data["AscChecks"] = p
 
+	if p.View == "" {
+		p.View = ascChecksViewFailures
+	}
 	window, wok := asctrust.WindowDays(ctx.FormString("window"))
+	_, windowGiven := ctx.Req.Form["window"]
+	switch p.View {
+	case ascChecksViewFailures, ascChecksViewFlaky, ascChecksViewTrends:
+	default:
+		wok = false
+	}
+	for _, v := range []string{ascChecksViewFailures, ascChecksViewFlaky, ascChecksViewTrends} {
+		p.Views = append(p.Views, ascChecksView{Key: v, Active: v == p.View, URL: ascChecksViewURL(p.ChecksURL, v, window, windowGiven && wok)})
+	}
 	if !wok {
-		p.Problem = "The window is 7, 14, 30, 90 or 180 days."
+		p.Problem = ctx.Locale.TrString("asc_trust.checks.err_window")
 		ctx.HTML(http.StatusBadRequest, tplAscChecks)
 		return
 	}
@@ -105,53 +157,77 @@ func AscChecks(ctx *context.Context) {
 	for _, s := range append([]struct {
 		Key   string
 		Label string
-	}{{"", "Open"}}, ascGroupStateOptions()...) {
-		p.States = append(p.States, ascChecksState{Key: s.Key, Label: s.Label, Active: s.Key == p.State})
+	}{{"", "open"}}, ascGroupStateOptions()...) {
+		p.States = append(p.States, ascChecksState{Key: s.Key, Label: s.Key, Active: s.Key == p.State})
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
 		log.Error("asc checks: no connection to asc serve: %v", err)
-		p.Problem = "The ASC server is not reachable right now."
+		p.Problem = ctx.Locale.TrString("asc_trust.err.unavailable")
 		ctx.HTML(http.StatusBadGateway, tplAscChecks)
 		return
 	}
 	callCtx, release, err := trustweb.ReadCall(ctx, repo)
 	if err != nil {
 		f := trustweb.FailureOf("checks credential", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscChecks)
 		return
 	}
 	defer release()
-	data, err := asctrust.LoadChecks(callCtx, conn, name, asctrust.ChecksQuery{
-		State: p.State, FlakyOnly: p.Flaky, Job: p.Job, Test: p.Test, PageToken: ctx.FormString("page"),
-	}, window)
-	if err != nil {
-		f := trustweb.FailureOf("checks load", err)
+	fail := func(op string, err error) {
+		f := trustweb.FailureOf(op, err)
 		if f.Status == http.StatusNotFound {
 			ctx.NotFound("asc checks", nil)
 			return
 		}
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscChecks)
-		return
 	}
-	p.Data = data
-	if data.Groups.Next != "" {
-		q := url.Values{"page": {data.Groups.Next}}
-		if p.State != "" {
-			q.Set("state", p.State)
+	switch p.View {
+	case ascChecksViewFlaky:
+		page, err := asctrust.LoadFlaky(callCtx, conn, name, window, ctx.FormString("page"))
+		if err != nil {
+			fail("checks flaky", err)
+			return
 		}
-		if p.Flaky {
-			q.Set("flaky", "1")
+		p.FlakyRows = page.Rows
+		if page.Next != "" {
+			p.NextURL = p.ChecksURL + "?" + url.Values{"view": {ascChecksViewFlaky}, "window": {strconv.FormatUint(uint64(window), 10)}, "page": {page.Next}}.Encode()
 		}
-		if p.Job != "" {
-			q.Set("job", p.Job)
+	case ascChecksViewTrends:
+		trends, err := asctrust.LoadTrends(callCtx, conn, name, window)
+		if err != nil {
+			fail("checks trends", err)
+			return
 		}
-		if p.Test != "" {
-			q.Set("test", p.Test)
+		p.Trends = trends
+	default:
+		data, err := asctrust.LoadChecks(callCtx, conn, name, asctrust.ChecksQuery{
+			State: p.State, FlakyOnly: p.Flaky, Job: p.Job, Test: p.Test, PageToken: ctx.FormString("page"), SkipFlaky: true,
+		}, window)
+		if err != nil {
+			fail("checks load", err)
+			return
 		}
-		p.NextURL = p.ChecksURL + "?" + q.Encode()
+		p.Data = data
+		p.Jobs = asctrust.JobStats(data.Groups.Rows)
+		if data.Groups.Next != "" {
+			q := url.Values{"page": {data.Groups.Next}}
+			if p.State != "" {
+				q.Set("state", p.State)
+			}
+			if p.Flaky {
+				q.Set("flaky", "1")
+			}
+			if p.Job != "" {
+				q.Set("job", p.Job)
+			}
+			if p.Test != "" {
+				q.Set("test", p.Test)
+			}
+			p.NextURL = p.ChecksURL + "?" + q.Encode()
+		}
 	}
 	ctx.HTML(http.StatusOK, tplAscChecks)
 }
@@ -203,7 +279,7 @@ func AscCheckGroup(ctx *context.Context) {
 		return
 	}
 	id := ctx.ParamsInt64(":id")
-	ctx.Data["Title"] = "Failure group"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_trust.checks.group_title")
 	ctx.Data["PageIsAscChecks"] = true
 	p := &ascGroupPage{ChecksURL: ascChecksURL(repo), Op: asctrust.NewOpID()}
 	p.GroupURL = p.ChecksURL + "/groups/" + strconv.FormatInt(id, 10)
@@ -216,7 +292,7 @@ func AscCheckGroup(ctx *context.Context) {
 	}
 	window, wok := asctrust.WindowDays(ctx.FormString("window"))
 	if !wok {
-		p.Problem = "The window is 7, 14, 30, 90 or 180 days."
+		p.Problem = ctx.Locale.TrString("asc_trust.checks.err_window")
 		ctx.HTML(http.StatusBadRequest, tplAscCheckGroup)
 		return
 	}
@@ -228,14 +304,14 @@ func AscCheckGroup(ctx *context.Context) {
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		p.Problem = "The ASC server is not reachable right now."
+		p.Problem = ctx.Locale.TrString("asc_trust.err.unavailable")
 		ctx.HTML(http.StatusBadGateway, tplAscCheckGroup)
 		return
 	}
 	callCtx, release, err := trustweb.ReadCall(ctx, repo)
 	if err != nil {
 		f := trustweb.FailureOf("checks credential", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscCheckGroup)
 		return
 	}
@@ -247,12 +323,12 @@ func AscCheckGroup(ctx *context.Context) {
 			ctx.NotFound("asc check group", nil)
 			return
 		}
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscCheckGroup)
 		return
 	}
 	p.Detail, p.History = detail, hist
-	p.IssueQuery = "title=" + url.QueryEscape("Failing check: "+firstNonEmptyString(detail.Group.TestName, detail.Group.Title))
+	p.IssueQuery = "title=" + url.QueryEscape(ctx.Locale.TrString("asc_trust.checks.issue_title", firstNonEmptyString(detail.Group.TestName, detail.Group.Title)))
 	for _, o := range detail.Occurrences {
 		view := ascOccurrenceView{OccurrenceRow: o}
 		// A run id from asc is only a link when the run belongs to this repository.
@@ -296,24 +372,24 @@ func AscCheckGroupState(ctx *context.Context) {
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		ctx.Flash.Error("The ASC server is not reachable right now.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_trust.err.unavailable"))
 		ctx.Redirect(back)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoWrite, repo)
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("checks credential", err).Message)
+		ctx.Flash.Error(trustweb.FailureOf("checks credential", err).Localized(ctx))
 		ctx.Redirect(back)
 		return
 	}
 	defer release()
 	g, err := asctrust.SetGroupState(callCtx, conn, name, uint64(id), ctx.Req.PostFormValue("state"), trustweb.Lines(ctx.Req.PostFormValue("note")), ctx.Req.PostFormValue("op"))
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("checks state", err).Message)
+		ctx.Flash.Error(trustweb.FailureOf("checks state", err).Localized(ctx))
 		ctx.Redirect(back)
 		return
 	}
-	ctx.Flash.Success("The group is now " + strings.ToLower(g.State) + ".")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_trust.checks.state_done." + g.StateKey))
 	if next := ctx.Req.PostFormValue("next"); next == "pull" {
 		if index, err := strconv.ParseInt(ctx.Req.PostFormValue("index"), 10, 64); err == nil && index > 0 {
 			ctx.Redirect(repo.Link() + "/pulls/" + strconv.FormatInt(index, 10) + "/asc/checks")
@@ -324,14 +400,14 @@ func AscCheckGroupState(ctx *context.Context) {
 }
 
 // ascRerunMessage turns the error of a re-run into a sentence. known is false for an error the person cannot act on.
-func ascRerunMessage(err error) (msg string, known bool) {
+func ascRerunMessage(ctx *context.Context, err error) (msg string, known bool) {
 	switch {
 	case errors.Is(err, actions_service.ErrRerunWorkflowInvalid):
-		return "That workflow cannot be run again because it is not valid.", true
+		return ctx.Locale.TrString("asc_trust.checks.rerun_invalid"), true
 	case errors.Is(err, actions_service.ErrRerunWorkflowStillRunning), errors.Is(err, actions_service.ErrRerunJobStillRunning):
-		return "Wait until the run has finished, then run it again.", true
+		return ctx.Locale.TrString("asc_trust.checks.rerun_running"), true
 	case errors.Is(err, actions_service.ErrRerunWorkflowDisabled):
-		return "That workflow is disabled.", true
+		return ctx.Locale.TrString("asc_trust.checks.rerun_disabled"), true
 	}
 	return "", false
 }
@@ -391,7 +467,7 @@ func AscChecksRerun(ctx *context.Context) {
 	}
 	failedOnly := ctx.Req.PostFormValue("mode") == "failed"
 	n, err := ascRerunRun(ctx, run, failedOnly)
-	if msg, known := ascRerunMessage(err); known {
+	if msg, known := ascRerunMessage(ctx, err); known {
 		ctx.Flash.Error(msg)
 		ctx.Redirect(back)
 		return
@@ -401,7 +477,7 @@ func AscChecksRerun(ctx *context.Context) {
 		return
 	}
 	if n == 0 {
-		ctx.Flash.Info("There was nothing to run again.")
+		ctx.Flash.Info(ctx.Locale.TrString("asc_trust.checks.rerun_nothing"))
 		ctx.Redirect(back)
 		return
 	}
@@ -449,7 +525,7 @@ func AscPullChecks(ctx *context.Context) {
 
 	sha, headOK := ascPullHead(ctx, pull)
 	if !headOK {
-		p.Problem = "The head of this pull request cannot be read, so its checks cannot be shown."
+		p.Problem = ctx.Locale.TrString("asc_trust.checks.err_head_page")
 		ctx.HTML(http.StatusOK, tplAscPullChecks)
 		return
 	}
@@ -518,7 +594,7 @@ func ascPullAdvice(ctx *context.Context, repo *repo_model.Repository, name strin
 	callCtx, release, err := trustweb.ReadCall(ctx, repo)
 	if err != nil {
 		log.Warn("asc checks: credential for %s: %v", repo.FullName(), err)
-		p.CausesNote = "The reasons for the failures cannot be read right now."
+		p.CausesNote = ctx.Locale.TrString("asc_trust.checks.err_causes")
 		return
 	}
 	defer release()
@@ -531,7 +607,7 @@ func ascPullAdvice(ctx *context.Context, repo *repo_model.Repository, name strin
 		causes, err := asctrust.PullCauses(callCtx, conn, name, runIDs, earliest)
 		if err != nil {
 			log.Warn("asc checks: failure groups of %s: %v", repo.FullName(), err)
-			p.CausesNote = "The reasons for the failures cannot be read right now."
+			p.CausesNote = ctx.Locale.TrString("asc_trust.checks.err_causes")
 			return
 		}
 		in.Causes, in.CausesKnown = causes, true
@@ -602,7 +678,7 @@ func AscPullChecksRerun(ctx *context.Context) {
 	back := issue.Link() + "/asc/checks"
 	sha, headOK := ascPullHead(ctx, issue.PullRequest)
 	if !headOK {
-		ctx.Flash.Error("The head of this pull request cannot be read.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_trust.checks.err_head"))
 		ctx.Redirect(back)
 		return
 	}
@@ -625,17 +701,17 @@ func AscPullChecksRerun(ctx *context.Context) {
 		}
 	}
 	if firstErr != nil {
-		if msg, known := ascRerunMessage(firstErr); known {
+		if msg, known := ascRerunMessage(ctx, firstErr); known {
 			ctx.Flash.Error(msg)
 		} else {
 			log.Error("asc checks: re-run for pull request %d: %v", issue.PullRequest.ID, firstErr)
-			ctx.Flash.Error("Some runs could not be started again.")
+			ctx.Flash.Error(ctx.Locale.TrString("asc_trust.checks.rerun_some_failed"))
 		}
 	}
 	if started > 0 {
-		ctx.Flash.Success(strconv.Itoa(started) + " jobs were started again.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_trust.checks.rerun_started", started))
 	} else if firstErr == nil {
-		ctx.Flash.Info("There was nothing to run again.")
+		ctx.Flash.Info(ctx.Locale.TrString("asc_trust.checks.rerun_nothing"))
 	}
 	ctx.Redirect(back)
 }

@@ -2,9 +2,10 @@
 <div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
 	{{template "repo/header" .}}
 	<div class="ui container">
+	{{template "base/alert" .}}
 	{{with .AscPullChecks}}
 	<div class="asc-trust" data-testid="asc-pull-checks">
-		<p class="asc-trust-links"><a href="{{.PullURL}}">Back to the pull request</a> <a href="{{.ChecksURL}}">All checks of the repository</a></p>
+		<p class="asc-trust-links"><a href="{{.PullURL}}">{{ctx.Locale.Tr "asc_trust.pull.back"}}</a> <a href="{{.ChecksURL}}">{{ctx.Locale.Tr "asc_trust.pull.all_checks_link"}}</a></p>
 		{{if .Problem}}
 			<div class="ui warning message" role="status" data-testid="asc-pull-checks-problem">{{.Problem}}</div>
 		{{else if .Checks}}
@@ -15,16 +16,16 @@
 			{{if and .CanRerun $c.Runs}}
 			<form class="ast-head-actions" method="post" action="{{.RerunURL}}">
 				{{$.CsrfTokenHtml}}
-				{{if $c.FailedRuns}}<button class="ui basic button" type="submit" name="mode" value="failed" data-testid="asc-rerun-failed">Re-run failed only</button>{{end}}
-				<button class="ui basic button" type="submit" name="mode" value="all" data-testid="asc-rerun-all">Re-run all</button>
+				{{if $c.FailedRuns}}<button class="ui basic button" type="submit" name="mode" value="failed" data-testid="asc-rerun-failed">{{ctx.Locale.Tr "asc_trust.pull.rerun_failed"}}</button>{{end}}
+				<button class="ui basic button" type="submit" name="mode" value="all" data-testid="asc-rerun-all">{{ctx.Locale.Tr "asc_trust.pull.rerun_all"}}</button>
 			</form>
 			{{end}}
 		</div>
 		<div class="ast-meta" data-testid="asc-pull-meta">
-			{{if $c.Version}}<span>Version {{$c.Version}} · commit <code class="asc-trust-code">{{$c.Head}}</code></span>{{else}}<span>Commit <code class="asc-trust-code">{{$c.Head}}</code></span>{{end}}
-			{{if not $c.Started.IsZero}}<span>Started {{DateUtils.TimeSince $c.Started}}</span>{{end}}
-			{{if $c.Took}}<span>Took {{$c.Took}}</span>{{end}}
-			{{range $c.Stale}}<span class="ast-meta-warn" data-testid="asc-pull-stale">{{.}} has no result for this version</span>{{end}}
+			{{if $c.Version}}<span>{{ctx.Locale.Tr "asc_trust.pull.version_commit" $c.Version}} <code class="asc-trust-code">{{$c.Head}}</code></span>{{else}}<span>{{ctx.Locale.Tr "asc_trust.pull.commit"}} <code class="asc-trust-code">{{$c.Head}}</code></span>{{end}}
+			{{if not $c.Started.IsZero}}<span>{{ctx.Locale.Tr "asc_trust.pull.started"}} {{DateUtils.TimeSince $c.Started}}</span>{{end}}
+			{{if $c.Took}}<span>{{ctx.Locale.Tr "asc_trust.pull.took"}} {{$c.Took}}</span>{{end}}
+			{{range $c.Stale}}<span class="ast-meta-warn" data-testid="asc-pull-stale">{{ctx.Locale.Tr "asc_trust.pull.stale" .}}</span>{{end}}
 		</div>
 		{{if .CausesNote}}<div class="ui warning message" role="status">{{.CausesNote}}</div>{{end}}
 
@@ -33,14 +34,14 @@
 				{{range $c.Causes}}
 				<section class="ast-card" aria-labelledby="asc-cause-{{.Index}}" data-testid="asc-cause">
 					<div class="ast-card-head">
-						<h3 id="asc-cause-{{.Index}}" class="ast-card-title">Cause {{.Index}}: {{.Title}}</h3>
-						<span class="ast-pill ast-pill-no">{{.Tests}} {{if eq .Tests 1}}test{{else}}tests{{end}}</span>
-						{{if $c.Version}}{{if .IsNew}}<span class="ast-pill ast-pill-info">New in v{{$c.Version}}</span>{{else}}<span class="ast-pill ast-pill-ro">Seen before</span>{{end}}{{end}}
+						<h3 id="asc-cause-{{.Index}}" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.pull.cause" .Index .Title}}</h3>
+						<span class="ast-pill ast-pill-no">{{ctx.Locale.TrN .Tests "asc_trust.pull.tests_one" "asc_trust.pull.tests_other" .Tests}}</span>
+						{{if $c.Version}}{{if .IsNew}}<span class="ast-pill ast-pill-info">{{ctx.Locale.Tr "asc_trust.pull.new_in" $c.Version}}</span>{{else}}<span class="ast-pill ast-pill-ro">{{ctx.Locale.Tr "asc_trust.pull.seen_before"}}</span>{{end}}{{end}}
 					</div>
 					{{if .Excerpt}}<pre class="ast-log" tabindex="0">{{.Excerpt}}</pre>{{end}}
 					<div class="asc-trust-actions ast-card-foot">
-						{{if .RunURL}}<a class="ui basic button" href="{{.RunURL}}">Show full log</a>{{end}}
-						<a class="ui basic button" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">Open the group</a>
+						{{if .RunURL}}<a class="ui basic button" href="{{.RunURL}}">{{ctx.Locale.Tr "asc_trust.pull.full_log"}}</a>{{end}}
+						<a class="ui basic button" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">{{ctx.Locale.Tr "asc_trust.pull.open_group"}}</a>
 					</div>
 				</section>
 				{{end}}
@@ -48,14 +49,14 @@
 				{{range $c.Flaky}}
 				<section class="ast-card" aria-labelledby="asc-flaky-{{.GroupID}}" data-testid="asc-flaky-card">
 					<div class="ast-card-head">
-						<h3 id="asc-flaky-{{.GroupID}}" class="ast-card-title">Flaky: {{.Test}}</h3>
-						<span class="ast-pill ast-pill-wn">Passed on retry</span>
+						<h3 id="asc-flaky-{{.GroupID}}" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.pull.flaky_card" .Test}}</h3>
+						<span class="ast-pill ast-pill-wn">{{ctx.Locale.Tr "asc_trust.pull.passed_on_retry"}}</span>
 					</div>
 					<div class="ast-card-body">
-						<p>This test has flipped <b>{{.Flips}} {{if eq .Flips 1}}time{{else}}times{{end}} in {{.Runs}} runs</b> on other changes too, so this is unlikely to be caused by this change.</p>
+						<p>{{ctx.Locale.Tr "asc_trust.pull.flaky_text" .Flips .Runs}}</p>
 						{{if .Strip}}
-						<div class="ast-strip" role="img" aria-label="{{.Flips}} flips in {{.Runs}} runs">
-							<span class="ast-strip-label" aria-hidden="true">Last days</span>
+						<div class="ast-strip" role="img" aria-label="{{ctx.Locale.TrString "asc_trust.pull.flaky_aria" .Flips .Runs}}">
+							<span class="ast-strip-label" aria-hidden="true">{{ctx.Locale.Tr "asc_trust.pull.last_days"}}</span>
 							{{range .Strip}}<span class="ast-strip-cell ast-strip-{{.Tone}}" title="{{DateUtils.AbsoluteShort .Day}}: {{.Label}}"></span>{{end}}
 						</div>
 						{{end}}
@@ -68,42 +69,42 @@
 							<input type="hidden" name="state" value="quarantined">
 							<input type="hidden" name="next" value="pull">
 							<input type="hidden" name="index" value="{{$.AscPullChecks.Index}}">
-							<button class="ui basic button" type="submit" data-testid="asc-quarantine">Quarantine this test</button>
+							<button class="ui basic button" type="submit" data-testid="asc-quarantine">{{ctx.Locale.Tr "asc_trust.pull.quarantine"}}</button>
 						</form>
 						{{end}}
-						<a class="ui basic button" href="{{$.AscPullChecks.NewIssueURL}}?{{.IssueQuery}}">Open an issue</a>
-						<a class="ui basic button" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">History</a>
+						<a class="ui basic button" href="{{$.AscPullChecks.NewIssueURL}}?{{.IssueQuery}}">{{ctx.Locale.Tr "asc_trust.pull.open_issue"}}</a>
+						<a class="ui basic button" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">{{ctx.Locale.Tr "asc_trust.pull.history"}}</a>
 					</div>
 				</section>
 				{{end}}
 
 				{{if and (not $c.Causes) (not $c.Flaky)}}
-				<section class="ast-card"><div class="ast-card-body"><p class="asc-trust-sub" data-testid="asc-pull-nocause">{{if eq $c.Tone "no"}}No reason for the failures is recorded yet.{{else}}Nothing needs attention.{{end}}</p></div></section>
+				<section class="ast-card"><div class="ast-card-body"><p class="asc-trust-sub" data-testid="asc-pull-nocause">{{if eq $c.Tone "no"}}{{ctx.Locale.Tr "asc_trust.pull.no_reason"}}{{else}}{{ctx.Locale.Tr "asc_trust.pull.nothing"}}{{end}}</p></div></section>
 				{{end}}
 			</div>
 
 			<aside class="ast-two-side">
 				<section class="ast-card" aria-labelledby="asc-all-checks">
-					<div class="ast-card-head"><h3 id="asc-all-checks" class="ast-card-title">All checks</h3></div>
+					<div class="ast-card-head"><h3 id="asc-all-checks" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.pull.all_checks"}}</h3></div>
 					<ul class="ast-checklist" data-testid="asc-all-checks">
 						{{range $c.Statuses}}
 						<li>
-							<span>{{if .URL}}<a href="{{.URL}}">{{.Context}}</a>{{else}}{{.Context}}{{end}}{{if .Required}} <span class="ast-pill ast-pill-ro">Required</span>{{end}}</span>
+							<span>{{if .URL}}<a href="{{.URL}}">{{.Context}}</a>{{else}}{{.Context}}{{end}}{{if .Required}} <span class="ast-pill ast-pill-ro">{{ctx.Locale.Tr "asc_trust.pull.required"}}</span>{{end}}</span>
 							<b class="ast-tone-{{.Tone}}">{{.Label}}</b>
 						</li>
 						{{else}}
-						<li class="text grey">No check has reported.</li>
+						<li class="text grey">{{ctx.Locale.Tr "asc_trust.pull.none_reported"}}</li>
 						{{end}}
 					</ul>
 				</section>
 				{{if $c.Main}}
 				<section class="ast-card" aria-labelledby="asc-vs-main">
-					<div class="ast-card-head"><h3 id="asc-vs-main" class="ast-card-title">Compared with main</h3></div>
+					<div class="ast-card-head"><h3 id="asc-vs-main" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.pull.vs_main"}}</h3></div>
 					<div class="ast-card-body"><p data-testid="asc-pull-main" class="ast-tone-{{$c.MainTone}}">{{$c.Main}}</p></div>
 				</section>
 				{{end}}
 				<section class="ast-card">
-					<div class="ast-card-body"><p class="asc-trust-sub"><b>Why you can trust this.</b> Results belong to the exact version you are reading. When you push a new version, the results of this one turn stale instead of passing silently.</p></div>
+					<div class="ast-card-body"><p class="asc-trust-sub"><b>{{ctx.Locale.Tr "asc_trust.pull.trust_title"}}</b> {{ctx.Locale.Tr "asc_trust.pull.trust_text"}}</p></div>
 				</section>
 			</aside>
 		</div>

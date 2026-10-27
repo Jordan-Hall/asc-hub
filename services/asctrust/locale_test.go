@@ -102,6 +102,15 @@ func TestTrustLocaleKeys(t *testing.T) {
 		assert.Contains(t, keys, "asc_trust.ops.via."+via)
 	}
 	assert.Contains(t, keys, "asc_trust.ops.via.other")
+	for _, view := range []string{"failures", "flaky", "trends"} {
+		assert.Contains(t, keys, "asc_trust.checks.view."+view)
+	}
+	for _, st := range GroupStates {
+		assert.Contains(t, keys, "asc_trust.checks.state."+st.Key)
+		assert.Contains(t, keys, "asc_trust.checks.state_done."+st.Key)
+	}
+	assert.Contains(t, keys, "asc_trust.checks.state.unknown")
+	assert.Contains(t, keys, "asc_trust.checks.state_done.unknown")
 	for _, reason := range []string{"nothing", "not_yours", "moved", "needs_maintainer", "protected_off", "expired", "other"} {
 		assert.Contains(t, keys, "asc_trust.ops.blocked."+reason)
 		assert.Contains(t, keys, "asc_trust.err.undo_blocked_"+reason)

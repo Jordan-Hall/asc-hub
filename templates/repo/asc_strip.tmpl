@@ -1,13 +1,13 @@
 {{/*
-The history strip of a test: one cell per day, oldest first. The colour is never the only signal: every cell has a
-text alternative, and the strip has a one-sentence summary for screen readers.
+The history strip of a test or a job: one cell per day, oldest first. The colour is never the only signal: every cell has
+a text alternative, and the strip has a one-sentence summary for screen readers.
 Template Attributes:
 * . : *asctrust.History
 */}}
 {{if .Cells}}
-<div class="ast-strip" role="img" aria-label="Last {{len .Cells}} days: {{.Runs}} runs, {{.Failures}} failed, {{.Flips}} flips between pass and fail">
-	<span class="ast-strip-label" aria-hidden="true">Last {{len .Cells}} days</span>
-	{{range .Cells}}<span class="ast-strip-cell ast-strip-{{.Tone}}" title="{{DateUtils.AbsoluteShort .Day}}: {{.Label}}"></span>{{end}}
+<div class="ast-strip" role="img" aria-label="{{ctx.Locale.TrString "asc_trust.checks.strip_aria" (len .Cells) .Runs .Failures .Flips}}">
+	<span class="ast-strip-label" aria-hidden="true">{{ctx.Locale.Tr "asc_trust.checks.last_days" (len .Cells)}}</span>
+	{{range .Cells}}<span class="ast-strip-cell ast-strip-{{.Tone}}" title="{{DateUtils.AbsoluteShort .Day}}: {{if eq .Tone "ro"}}{{ctx.Locale.TrString "asc_trust.checks.cell_none"}}{{else if eq .Tone "wn"}}{{ctx.Locale.TrString "asc_trust.checks.cell_flipped" .Fails .Runs .Flips}}{{else if eq .Tone "no"}}{{ctx.Locale.TrString "asc_trust.checks.cell_failed" .Fails .Runs}}{{else}}{{ctx.Locale.TrString "asc_trust.checks.cell_passed" .Runs}}{{end}}"></span>{{end}}
 </div>
-<p class="asc-trust-sub" data-testid="asc-strip-summary">{{.Runs}} runs, {{.Failures}} failed, {{.Flips}} flips between pass and fail. Flake rate {{.RatePercent}}%{{if .Flaky}}, above the threshold of this repository{{end}}.</p>
+<p class="asc-trust-sub" data-testid="asc-strip-summary">{{ctx.Locale.Tr "asc_trust.checks.strip_summary" .Runs .Failures .Flips .RatePercent}}{{if .Flaky}} {{ctx.Locale.Tr "asc_trust.checks.strip_flaky"}}{{end}}</p>
 {{end}}
