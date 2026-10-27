@@ -1,30 +1,33 @@
+{{/*
+The landing page (board A3, Main and Mobile-Landing). Signed out visitors see it at "/"; a signed in person with nothing to show sees the same page without the account buttons.
+Sections: hero with the install command, the tools strip, why, three benefits, three steps, agents, search and compatibility, download, public repositories, call to action. Mobile first (see web_src/css/asc-ds/landing.css).
+*/}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}" class="page-content home hub-landing">
-	<section class="hub-hero" aria-labelledby="hub-hero-title">
-		<div class="hub-hero-inner">
-			<p class="hub-pill"><span class="hub-pill-dot" aria-hidden="true"></span>{{ctx.Locale.Tr "startpage.pill"}}</p>
-			<h1 class="hub-hero-title" id="hub-hero-title">{{ctx.Locale.Tr "startpage.headline"}}</h1>
-			<p class="hub-hero-lead">{{ctx.Locale.Tr "startpage.lead"}}</p>
+<div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}" class="ds-main ds-land home">
+	<section class="ds-land-hero" aria-labelledby="hub-hero-title">
+		<div class="ds-container">
+			<p class="ds-land-pill"><i aria-hidden="true"></i>{{ctx.Locale.Tr "startpage.pill"}}</p>
+			<h1 class="ds-land-title" id="hub-hero-title">{{ctx.Locale.Tr "startpage.headline"}}</h1>
+			<p class="ds-land-lead">{{ctx.Locale.Tr "startpage.lead"}}</p>
 			{{if not .IsSigned}}
-				<div class="hub-hero-actions">
+				<div class="ds-land-actions">
+					{{if .AscDownload}}<a class="ds-btn ds-btn-accent" href="#download">{{ctx.Locale.Tr "asc_download.home_cta"}}</a>{{end}}
 					{{if .ShowRegistrationButton}}
-						<a class="hub-btn hub-btn-primary" href="{{AppSubUrl}}/user/sign_up">{{ctx.Locale.Tr "register"}}</a>
+						<a class="ds-btn {{if .AscDownload}}ds-btn-ondark-outline{{else}}ds-btn-accent{{end}}" href="{{AppSubUrl}}/user/sign_up">{{ctx.Locale.Tr "asc_shell.create_account"}}</a>
 					{{end}}
-					<a class="hub-btn hub-btn-ghost" rel="nofollow" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>
-					{{if .AscDownload}}<a class="hub-btn hub-btn-ghost" href="#download">{{svg "octicon-download" 16}} {{ctx.Locale.Tr "asc_download.home_cta"}}</a>{{end}}
+					<a class="ds-btn ds-btn-ondark-outline" rel="nofollow" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>
 				</div>
 			{{end}}
-			<div class="hub-hero-command" role="group" aria-label="{{ctx.Locale.Tr "startpage.connect_label"}}">
-				<span class="hub-prompt" aria-hidden="true">$</span>
-				<code class="hub-command-text">asc auth login --host {{.AscHubURL}} --prompt</code>
+			<div class="ds-land-install" role="group" aria-label="{{ctx.Locale.Tr "startpage.connect_label"}}">
+				<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code>asc auth login --host {{.AscHubURL}} --prompt</code><button type="button" class="ds-copy" data-clipboard-text="asc auth login --host {{.AscHubURL}} --prompt">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 			</div>
 		</div>
 	</section>
 
-	<section class="hub-strip" aria-label="{{ctx.Locale.Tr "startpage.works_with"}}">
-		<div class="hub-strip-inner">
-			<p class="hub-strip-label">{{ctx.Locale.Tr "startpage.works_with"}}</p>
-			<ul class="hub-strip-list">
+	<section class="ds-land-strip" aria-label="{{ctx.Locale.Tr "startpage.works_with"}}">
+		<div class="ds-container ds-land-strip-in">
+			<p>{{ctx.Locale.Tr "startpage.works_with"}}</p>
+			<ul>
 				<li>VS Code</li>
 				<li>JetBrains</li>
 				<li>Claude Code</li>
@@ -34,120 +37,116 @@
 		</div>
 	</section>
 
-	<section class="hub-section" aria-labelledby="asc-why-title">
-		<div class="hub-container hub-why">
-			<p class="hub-eyebrow">{{ctx.Locale.Tr "startpage.why_eyebrow"}}</p>
-			<h2 class="hub-section-title" id="asc-why-title">{{ctx.Locale.Tr "startpage.why_title"}}</h2>
-			<p class="hub-section-lead">{{ctx.Locale.Tr "startpage.why_text"}}</p>
+	<section class="ds-land-sec" aria-labelledby="asc-why-title">
+		<div class="ds-container">
+			<p class="ds-t-eyebrow">{{ctx.Locale.Tr "startpage.why_eyebrow"}}</p>
+			<h2 class="ds-land-h2" id="asc-why-title">{{ctx.Locale.Tr "startpage.why_title"}}</h2>
+			<p class="ds-land-p">{{ctx.Locale.Tr "startpage.why_text"}}</p>
+			<div class="ds-land-cards" aria-label="{{ctx.Locale.Tr "startpage.benefits_label"}}">
+				<article class="ds-land-card">
+					<span class="ds-land-ic" aria-hidden="true">{{svg "dsi-layers" 20}}</span>
+					<h3>{{ctx.Locale.Tr "startpage.benefit1_title"}}</h3>
+					<p>{{ctx.Locale.Tr "startpage.benefit1_text"}}</p>
+				</article>
+				<article class="ds-land-card">
+					<span class="ds-land-ic" aria-hidden="true">{{svg "dsi-message" 20}}</span>
+					<h3>{{ctx.Locale.Tr "startpage.benefit2_title"}}</h3>
+					<p>{{ctx.Locale.Tr "startpage.benefit2_text"}}</p>
+				</article>
+				<article class="ds-land-card">
+					<span class="ds-land-ic" aria-hidden="true">{{svg "dsi-inbox" 20}}</span>
+					<h3>{{ctx.Locale.Tr "startpage.benefit3_title"}}</h3>
+					<p>{{ctx.Locale.Tr "startpage.benefit3_text"}}</p>
+				</article>
+			</div>
 		</div>
 	</section>
 
-	<section class="hub-section hub-section-tight" aria-label="{{ctx.Locale.Tr "startpage.benefits_label"}}">
-		<div class="hub-container hub-cards-3">
-			<article class="hub-card">
-				<span class="hub-card-icon">{{svg "octicon-stack" 20}}</span>
-				<h3 class="hub-card-title">{{ctx.Locale.Tr "startpage.benefit1_title"}}</h3>
-				<p>{{ctx.Locale.Tr "startpage.benefit1_text"}}</p>
-			</article>
-			<article class="hub-card">
-				<span class="hub-card-icon">{{svg "octicon-code-review" 20}}</span>
-				<h3 class="hub-card-title">{{ctx.Locale.Tr "startpage.benefit2_title"}}</h3>
-				<p>{{ctx.Locale.Tr "startpage.benefit2_text"}}</p>
-			</article>
-			<article class="hub-card">
-				<span class="hub-card-icon">{{svg "octicon-inbox" 20}}</span>
-				<h3 class="hub-card-title">{{ctx.Locale.Tr "startpage.benefit3_title"}}</h3>
-				<p>{{ctx.Locale.Tr "startpage.benefit3_text"}}</p>
-			</article>
-		</div>
-	</section>
-
-	<section class="hub-section" aria-labelledby="asc-how-title">
-		<div class="hub-container">
-			<p class="hub-eyebrow">{{ctx.Locale.Tr "startpage.how_eyebrow"}}</p>
-			<h2 class="hub-section-title" id="asc-how-title">{{ctx.Locale.Tr "startpage.how_title"}}</h2>
-			<ol class="hub-steps">
-				<li class="hub-step">
-					<span class="hub-step-number" aria-hidden="true">1</span>
-					<h3 class="hub-step-title">{{ctx.Locale.Tr "startpage.step1_title"}}</h3>
+	<section class="ds-land-sec ds-land-sec-tint" aria-labelledby="asc-how-title">
+		<div class="ds-container">
+			<p class="ds-t-eyebrow">{{ctx.Locale.Tr "startpage.how_eyebrow"}}</p>
+			<h2 class="ds-land-h2" id="asc-how-title">{{ctx.Locale.Tr "startpage.how_title"}}</h2>
+			<ol class="ds-land-steps">
+				<li class="ds-land-step">
+					<span class="ds-land-num" aria-hidden="true">1</span>
+					<h3>{{ctx.Locale.Tr "startpage.step1_title"}}</h3>
 					<p>{{ctx.Locale.Tr "startpage.step1_text"}}</p>
-					<pre class="hub-code" tabindex="0"><code>asc auth login --host {{.AscHubURL}} --prompt</code></pre>
+					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code>asc auth login --host {{.AscHubURL}} --prompt</code></div>
 				</li>
-				<li class="hub-step">
-					<span class="hub-step-number" aria-hidden="true">2</span>
-					<h3 class="hub-step-title">{{ctx.Locale.Tr "startpage.step2_title"}}</h3>
+				<li class="ds-land-step">
+					<span class="ds-land-num" aria-hidden="true">2</span>
+					<h3>{{ctx.Locale.Tr "startpage.step2_title"}}</h3>
 					<p>{{ctx.Locale.Tr "startpage.step2_text"}}</p>
-					<pre class="hub-code" tabindex="0"><code>asc clone {{.AscHubURL}}/OWNER/REPOSITORY</code></pre>
+					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code>asc clone {{.AscHubURL}}/OWNER/REPOSITORY</code></div>
 				</li>
-				<li class="hub-step">
-					<span class="hub-step-number" aria-hidden="true">3</span>
-					<h3 class="hub-step-title">{{ctx.Locale.Tr "startpage.step3_title"}}</h3>
+				<li class="ds-land-step">
+					<span class="ds-land-num" aria-hidden="true">3</span>
+					<h3>{{ctx.Locale.Tr "startpage.step3_title"}}</h3>
 					<p>{{ctx.Locale.Tr "startpage.step3_text"}}</p>
-					<pre class="hub-code" tabindex="0"><code>asc submit --publish</code></pre>
+					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code>asc submit --publish</code></div>
 				</li>
 			</ol>
 		</div>
 	</section>
 
-	<section class="hub-section hub-section-dark" aria-labelledby="asc-agents-title">
-		<div class="hub-container hub-agents">
+	<section class="ds-land-sec ds-land-sec-dark" aria-labelledby="asc-agents-title">
+		<div class="ds-container ds-land-split">
 			<div>
-				<p class="hub-eyebrow hub-eyebrow-accent">{{ctx.Locale.Tr "startpage.agents_eyebrow"}}</p>
-				<h2 class="hub-section-title" id="asc-agents-title">{{ctx.Locale.Tr "startpage.agents_title"}}</h2>
-				<p class="hub-section-lead">{{ctx.Locale.Tr "startpage.agents_text"}}</p>
+				<p class="ds-t-eyebrow ds-land-eyebrow-dark">{{ctx.Locale.Tr "startpage.agents_eyebrow"}}</p>
+				<h2 class="ds-land-h2" id="asc-agents-title">{{ctx.Locale.Tr "startpage.agents_title"}}</h2>
+				<p class="ds-land-p">{{ctx.Locale.Tr "startpage.agents_text"}}</p>
 			</div>
-			<ul class="hub-mini-cards">
-				<li class="hub-mini-card"><h3>{{ctx.Locale.Tr "startpage.agents_scope_title"}}</h3><p>{{ctx.Locale.Tr "startpage.agents_scope_text"}}</p></li>
-				<li class="hub-mini-card"><h3>{{ctx.Locale.Tr "startpage.agents_budget_title"}}</h3><p>{{ctx.Locale.Tr "startpage.agents_budget_text"}}</p></li>
-				<li class="hub-mini-card"><h3>{{ctx.Locale.Tr "startpage.agents_checkpoint_title"}}</h3><p>{{ctx.Locale.Tr "startpage.agents_checkpoint_text"}}</p></li>
-				<li class="hub-mini-card"><h3>{{ctx.Locale.Tr "startpage.agents_audit_title"}}</h3><p>{{ctx.Locale.Tr "startpage.agents_audit_text"}}</p></li>
+			<ul class="ds-land-mini">
+				<li><h3>{{ctx.Locale.Tr "startpage.agents_scope_title"}}</h3><p>{{ctx.Locale.Tr "startpage.agents_scope_text"}}</p></li>
+				<li><h3>{{ctx.Locale.Tr "startpage.agents_budget_title"}}</h3><p>{{ctx.Locale.Tr "startpage.agents_budget_text"}}</p></li>
+				<li><h3>{{ctx.Locale.Tr "startpage.agents_checkpoint_title"}}</h3><p>{{ctx.Locale.Tr "startpage.agents_checkpoint_text"}}</p></li>
+				<li><h3>{{ctx.Locale.Tr "startpage.agents_audit_title"}}</h3><p>{{ctx.Locale.Tr "startpage.agents_audit_text"}}</p></li>
 			</ul>
 		</div>
 	</section>
 
-	<section class="hub-section" aria-label="{{ctx.Locale.Tr "startpage.git_label"}}">
-		<div class="hub-container hub-cards-2">
-			<article class="hub-card">
-				<p class="hub-eyebrow">{{ctx.Locale.Tr "startpage.search_eyebrow"}}</p>
-				<h3 class="hub-card-title">{{ctx.Locale.Tr "startpage.search_title"}}</h3>
-				<p>{{ctx.Locale.Tr "startpage.search_text"}}</p>
-			</article>
-			<article class="hub-card">
-				<details class="hub-compat">
-					<summary class="hub-eyebrow">{{ctx.Locale.Tr "startpage.git_eyebrow"}}</summary>
-					<h3 class="hub-card-title">{{ctx.Locale.Tr "startpage.git_title"}}</h3>
-					<p>{{ctx.Locale.Tr "startpage.git_text"}}</p>
-					<pre class="hub-code" tabindex="0"><code>git clone {{.AscHubURL}}/OWNER/REPOSITORY</code></pre>
-				</details>
-			</article>
+	<section class="ds-land-sec" aria-label="{{ctx.Locale.Tr "startpage.git_label"}}">
+		<div class="ds-container">
+			<div class="ds-land-cards ds-land-cards-2">
+				<article class="ds-land-card">
+					<p class="ds-t-eyebrow">{{ctx.Locale.Tr "startpage.search_eyebrow"}}</p>
+					<h3>{{ctx.Locale.Tr "startpage.search_title"}}</h3>
+					<p>{{ctx.Locale.Tr "startpage.search_text"}}</p>
+				</article>
+				<article class="ds-land-card">
+					<p class="ds-t-eyebrow">{{ctx.Locale.Tr "startpage.git_eyebrow"}}</p>
+					<details class="ds-land-compat">
+						<summary><h3>{{ctx.Locale.Tr "startpage.git_title"}}</h3>{{svg "dsi-chevron-down" 18}}</summary>
+						<p>{{ctx.Locale.Tr "startpage.git_text"}}</p>
+						<div class="ds-cmd ds-cmd-scroll ds-mt-12"><span class="ds-pr" aria-hidden="true">$</span><code>git clone {{.AscHubURL}}/OWNER/REPOSITORY</code></div>
+					</details>
+				</article>
+			</div>
 		</div>
 	</section>
 
 	{{if .AscDownload}}
 	{{$view := .AscDownload}}
 	{{$arch := $view.ActiveArchOffer}}
-	<section class="hub-section hub-section-tint" id="download" aria-labelledby="asc-home-download-title">
-		<div class="hub-container hub-home-download">
+	<section class="ds-land-sec ds-land-sec-tint" id="download" aria-labelledby="asc-home-download-title">
+		<div class="ds-container ds-land-dl">
 			<div>
-				<p class="hub-eyebrow">{{ctx.Locale.Tr "asc_download.nav"}}</p>
-				<h2 class="hub-section-title" id="asc-home-download-title">{{ctx.Locale.Tr "asc_download.home_title"}}</h2>
-				<p class="hub-section-lead">{{ctx.Locale.Tr "asc_download.home_desc"}}</p>
-				<div class="hub-hero-actions hub-actions-start">
+				<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_download.nav"}}</p>
+				<h2 class="ds-land-h2" id="asc-home-download-title">{{ctx.Locale.Tr "asc_download.home_title"}}</h2>
+				<p class="ds-land-p">{{ctx.Locale.Tr "asc_download.home_desc"}}</p>
+				<div class="ds-row ds-row-wrap ds-gap-8 ds-mt-16">
 					{{with $arch.Primary}}
-					<a class="hub-btn hub-btn-primary" href="{{.URL}}" download="{{.Name}}">{{svg "octicon-download" 18}} {{ctx.Locale.Tr "asc_download.download_for" $view.ActiveOSOffer.Label}} <span class="hub-btn-meta">{{ctx.Locale.TrSize .Size}}</span></a>
+					<a class="ds-btn ds-btn-primary ds-btn-lg" href="{{.URL}}" download="{{.Name}}">{{svg "dsi-download" 18}} {{ctx.Locale.Tr "asc_download.download_for" $view.ActiveOSOffer.Label}} <span class="ds-t-small">{{ctx.Locale.TrSize .Size}}</span></a>
 					{{end}}
-					<a class="hub-btn hub-btn-outline" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_download.all_downloads"}}</a>
+					<a class="ds-btn ds-btn-secondary ds-btn-lg" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_download.all_downloads"}}</a>
 				</div>
-				<p class="hub-home-download-meta">{{ctx.Locale.Tr "asc_download.version" $view.Offers.Manifest.Version}}{{if $view.Detected}} &middot; {{$arch.Label}}{{end}}</p>
+				<p class="ds-t-small ds-c-2 ds-mt-12">{{ctx.Locale.Tr "asc_download.version" $view.Offers.Manifest.Version}}{{if $view.Detected}} &middot; {{$arch.Label}}{{end}}</p>
 			</div>
-			<div class="hub-home-download-side">
+			<div class="ds-land-dl-cmds">
 				{{range $arch.Commands}}
-				<div class="hub-dl-command">
-					<div class="hub-dl-command-head">
-						<span class="hub-dl-command-shell">{{.Title}}</span>
-						<button type="button" class="ui basic compact button hub-copy" data-clipboard-text="{{.Text}}">{{svg "octicon-copy" 16}} <span>{{ctx.Locale.Tr "asc_download.copy"}}</span></button>
-					</div>
-					<pre class="hub-code" tabindex="0"><code>{{.Text}}</code></pre>
+				<div class="ds-term">
+					<div class="ds-term-hd"><span>{{.Title}}</span><button type="button" class="ds-copy" data-clipboard-text="{{.Text}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+					<div class="ds-term-bd" tabindex="0">{{.Text}}</div>
 				</div>
 				{{end}}
 			</div>
@@ -156,19 +155,15 @@
 	{{end}}
 
 	{{if .AscHomeRepos}}
-	<section class="hub-section" aria-labelledby="asc-explore-title">
-		<div class="hub-container">
-			<div class="hub-section-head">
-				<h2 class="hub-section-title hub-section-title-small" id="asc-explore-title">{{ctx.Locale.Tr "startpage.explore_title"}}</h2>
-				<a class="hub-link-more" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "startpage.explore_all"}}</a>
+	<section class="ds-land-sec" aria-labelledby="asc-explore-title">
+		<div class="ds-container">
+			<div class="ds-land-head">
+				<h2 class="ds-t-h2" id="asc-explore-title">{{ctx.Locale.Tr "startpage.explore_title"}}</h2>
+				<a class="ds-link" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "startpage.explore_all"}}</a>
 			</div>
-			<ul class="hub-repo-grid">
+			<ul class="ds-list">
 				{{range .AscHomeRepos}}
-				<li class="hub-repo-card">
-					<a class="hub-repo-name" href="{{.Link}}">{{.FullName}}</a>
-					{{if .Description}}<p class="hub-repo-desc">{{.Description}}</p>{{end}}
-					<p class="hub-repo-meta">{{ctx.Locale.Tr "startpage.explore_updated" (DateUtils.TimeSince .UpdatedUnix)}}</p>
-				</li>
+					{{template "shared/ds/list_row" (dict "Title" .FullName "Href" .Link "Sub" .Description "Meta1" (ctx.Locale.Tr "startpage.explore_updated" (DateUtils.TimeSince .UpdatedUnix)))}}
 				{{end}}
 			</ul>
 		</div>
@@ -176,15 +171,15 @@
 	{{end}}
 
 	{{if not .IsSigned}}
-	<section class="hub-section hub-section-tight" aria-labelledby="hub-cta-title">
-		<div class="hub-container">
-			<div class="hub-cta">
-				<h2 class="hub-cta-title" id="hub-cta-title">{{ctx.Locale.Tr "startpage.cta_title"}}</h2>
-				<p class="hub-cta-text">{{ctx.Locale.Tr "startpage.cta_text"}}</p>
-				<div class="hub-hero-actions">
-					{{if .ShowRegistrationButton}}<a class="hub-btn hub-btn-primary" href="{{AppSubUrl}}/user/sign_up">{{ctx.Locale.Tr "register"}}</a>{{end}}
-					<a class="hub-btn hub-btn-ghost" rel="nofollow" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>
-					<a class="hub-btn hub-btn-ghost" href="https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/README.md" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "startpage.cta_docs"}}</a>
+	<section class="ds-land-sec ds-land-sec-flush" aria-labelledby="hub-cta-title">
+		<div class="ds-container">
+			<div class="ds-land-cta">
+				<h2 id="hub-cta-title">{{ctx.Locale.Tr "startpage.cta_title"}}</h2>
+				<p>{{ctx.Locale.Tr "startpage.cta_text"}}</p>
+				<div class="ds-land-actions">
+					{{if .ShowRegistrationButton}}<a class="ds-btn ds-btn-accent" href="{{AppSubUrl}}/user/sign_up">{{ctx.Locale.Tr "asc_shell.create_account"}}</a>{{end}}
+					<a class="ds-btn ds-btn-ondark-outline" rel="nofollow" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>
+					<a class="ds-btn ds-btn-ondark-outline" href="https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/README.md" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "startpage.cta_docs"}}</a>
 				</div>
 			</div>
 		</div>

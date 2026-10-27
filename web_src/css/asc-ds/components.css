@@ -2471,3 +2471,16 @@ a.ds-stat:hover {
     color: var(--navy-text-2);
   }
 }
+
+/* the legacy two-column form rules of web_src/css/form.css (.user.signin form { width: 800px }) do not apply to the account pages */
+.ds-shell .ds-main.ds-auth form {
+  width: 100% !important;
+  margin: 22px 0 0;
+}
+
+.ds-shell .ds-main.ds-auth form .header,
+.ds-shell .ds-main.ds-auth form .help,
+.ds-shell .ds-main.ds-auth form .optional .title {
+  padding-inline-start: 0 !important;
+  margin-inline-start: 0 !important;
+}
