@@ -80,6 +80,7 @@ type StatusRow struct {
 	URL         string
 	Required    bool
 	Stale       bool
+	labelKey    string
 }
 
 // Cause is one reason for failing, from one failure group.
@@ -93,6 +94,7 @@ type Cause struct {
 	RunURL   string
 	StateKey string
 	State    string
+	titleKey string
 }
 
 // FlakyCard is a failing test that is probably not the fault of this change.
@@ -126,24 +128,30 @@ type PullChecks struct {
 	// FailedRuns is the number of finished runs that failed; the "re-run failed only" button needs one.
 	FailedRuns int
 	Runs       int
+
+	// The text above is English, the fallback. These say which locale key and arguments make the same sentence;
+	// Localize fills the text in the language of the request.
+	headline pullMsg
+	pillKey  string
+	main     pullMsg
 }
 
-func statusLabel(state string) (label, tone string) {
+func statusLabel(state string) (label, key, tone string) {
 	switch state {
 	case "success":
-		return "Pass", "ok"
+		return "Pass", "pass", "ok"
 	case "failure":
-		return "Failed", "no"
+		return "Failed", "failed", "no"
 	case "error":
-		return "Error", "no"
+		return "Error", "error", "no"
 	case "pending":
-		return "Running", "wn"
+		return "Running", "running", "wn"
 	case "warning":
-		return "Warning", "wn"
+		return "Warning", "warning", "wn"
 	case "skipped":
-		return "Skipped", "ro"
+		return "Skipped", "skipped", "ro"
 	}
-	return "Unknown", "ro"
+	return "Unknown", "unknown", "ro"
 }
 
 func isFailed(state string) bool { return state == "failure" || state == "error" }
@@ -158,7 +166,7 @@ func BuildPullChecks(in PullChecksIn) *PullChecks {
 
 	var failed, pending int
 	for _, s := range in.Statuses {
-		label, tone := statusLabel(s.State)
+		label, labelKey, tone := statusLabel(s.State)
 		req := false
 		for _, want := range in.Required {
 			if contextMatches(want, s.Context) {
@@ -166,7 +174,7 @@ func BuildPullChecks(in PullChecksIn) *PullChecks {
 			}
 		}
 		pc.Statuses = append(pc.Statuses, StatusRow{
-			Context: CleanText(s.Context, MaxTextBytes), Label: label, Tone: tone,
+			Context: CleanText(s.Context, MaxTextBytes), Label: label, labelKey: labelKey, Tone: tone,
 			Description: CleanText(s.Description, MaxTextBytes), URL: safeURL(s.URL), Required: req,
 		})
 		switch {
@@ -187,7 +195,7 @@ func BuildPullChecks(in PullChecksIn) *PullChecks {
 		if !found {
 			name := CleanText(want, MaxTextBytes)
 			pc.Stale = append(pc.Stale, name)
-			pc.Statuses = append(pc.Statuses, StatusRow{Context: name, Label: "No result for this version", Tone: "wn", Required: true, Stale: true})
+			pc.Statuses = append(pc.Statuses, StatusRow{Context: name, Label: "No result for this version", labelKey: "no_result", Tone: "wn", Required: true, Stale: true})
 		}
 	}
 	sort.SliceStable(pc.Statuses, func(i, j int) bool { return rank(pc.Statuses[i]) < rank(pc.Statuses[j]) })
@@ -251,7 +259,9 @@ func BuildPullChecks(in PullChecksIn) *PullChecks {
 			StateKey: c.Group.StateKey, State: c.Group.State,
 		}
 		if cause.Title == "" {
-			cause.Title = firstNonEmpty(c.Group.TestName, c.Group.JobName, "a failing check")
+			if cause.Title = firstNonEmpty(c.Group.TestName, c.Group.JobName); cause.Title == "" {
+				cause.Title, cause.titleKey = "a failing check", "asc_trust.pull.cause_fallback_title"
+			}
 		}
 		pc.Causes = append(pc.Causes, cause)
 	}
@@ -260,29 +270,35 @@ func BuildPullChecks(in PullChecksIn) *PullChecks {
 	reasons := len(pc.Causes)
 	switch {
 	case failed > 0:
-		pc.Tone, pc.Pill = "no", "Failing"
+		pc.Tone, pc.Pill, pc.pillKey = "no", "Failing", "failing"
 		pc.Headline = plural(failed, "check", "checks") + " failed"
+		pc.headline = pullMsg{Key: "headline_failed_" + pluralKey(failed) + "_none", Args: []any{failed}}
 		if in.CausesKnown && reasons > 0 {
 			pc.Headline += ", for " + plural(reasons, "reason", "reasons")
+			pc.headline = pullMsg{Key: "headline_failed_" + pluralKey(failed) + "_" + pluralKey(reasons), Args: []any{failed, reasons}}
 		}
 	case pending > 0 || running:
-		pc.Tone, pc.Pill = "wn", "Running"
+		pc.Tone, pc.Pill, pc.pillKey = "wn", "Running", "running"
 		pc.Headline = "Checks are running"
+		pc.headline = pullMsg{Key: "headline_running"}
 	case len(pc.Stale) > 0:
-		pc.Tone, pc.Pill = "wn", "Waiting"
+		pc.Tone, pc.Pill, pc.pillKey = "wn", "Waiting", "waiting"
 		pc.Headline = "Waiting for " + plural(len(pc.Stale), "required check", "required checks") + " on this version"
+		pc.headline = pullMsg{Key: "headline_waiting_" + pluralKey(len(pc.Stale)), Args: []any{len(pc.Stale)}}
 	case len(in.Statuses) == 0:
-		pc.Tone, pc.Pill = "ro", "No checks"
+		pc.Tone, pc.Pill, pc.pillKey = "ro", "No checks", "none"
 		pc.Headline = "No checks have reported for this version"
+		pc.headline = pullMsg{Key: "headline_none"}
 	default:
-		pc.Tone, pc.Pill = "ok", "Passing"
+		pc.Tone, pc.Pill, pc.pillKey = "ok", "Passing", "passing"
 		pc.Headline = "All checks passed"
+		pc.headline = pullMsg{Key: "headline_passed"}
 	}
 
 	// Compared with the base branch.
 	switch {
 	case in.MainStatuses == nil:
-		pc.Main = "Unknown"
+		pc.Main, pc.main = "Unknown", pullMsg{Key: "main_unknown"}
 	default:
 		mainFailed, mainPending := 0, 0
 		for _, s := range in.MainStatuses {
@@ -294,13 +310,13 @@ func BuildPullChecks(in PullChecksIn) *PullChecks {
 		}
 		switch {
 		case len(in.MainStatuses) == 0:
-			pc.Main, pc.MainTone = "Main has no results.", "ro"
+			pc.Main, pc.MainTone, pc.main = "Main has no results.", "ro", pullMsg{Key: "main_none"}
 		case mainFailed > 0:
-			pc.Main, pc.MainTone = "Main is failing: "+plural(mainFailed, "check", "checks")+" failed there too.", "no"
+			pc.Main, pc.MainTone, pc.main = "Main is failing: "+plural(mainFailed, "check", "checks")+" failed there too.", "no", pullMsg{Key: "main_failing_" + pluralKey(mainFailed), Args: []any{mainFailed}}
 		case mainPending > 0:
-			pc.Main, pc.MainTone = "Main is still running its checks.", "wn"
+			pc.Main, pc.MainTone, pc.main = "Main is still running its checks.", "wn", pullMsg{Key: "main_pending"}
 		default:
-			pc.Main, pc.MainTone = "Main is green.", "ok"
+			pc.Main, pc.MainTone, pc.main = "Main is green.", "ok", pullMsg{Key: "main_green"}
 		}
 	}
 	return pc
