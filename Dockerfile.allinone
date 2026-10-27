@@ -82,8 +82,9 @@ LABEL maintainer="ASC Hub" \
       org.opencontainers.image.description="ASC Hub with asc serve in one container: source control for people and their agents. A fork of Forgejo." \
       io.asc.serve.image="${ASC_IMAGE}"
 
-# 3000: web. 2222: git over SSH (built-in server). asc serve listens on 127.0.0.1:7890 only.
-EXPOSE 2222 3000
+# 3000: web, behind your HTTPS proxy. Nothing else is exposed: git over SSH is off (no SSH server starts)
+# unless ASC_HUB_SSH_ENABLE=true, and then you publish its port yourself. asc serve listens on 127.0.0.1:7890 only.
+EXPOSE 3000
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -124,6 +125,10 @@ ENV TMPDIR=/tmp/gitea
 
 ENV GITEA_APP_INI=${GITEA_CUSTOM}/conf/app.ini
 ENV HOME="/var/lib/gitea/git"
+# HTTPS only by default: no SSH server. ASC_HUB_SSH_ENABLE=true (see docs/asc/OPERATIONS.md) turns it on.
+ENV ASC_HUB_SSH_ENABLE=false \
+    DISABLE_SSH=true \
+    START_SSH_SERVER=false
 VOLUME ["/var/lib/gitea"]
 WORKDIR /var/lib/gitea
 

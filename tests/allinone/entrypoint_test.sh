@@ -55,6 +55,13 @@ has() { # description, file, fixed string
 hasnt() {
 	if grep -qF -- "$3" "$2" 2>/dev/null; then fail "$1: '$3' is in $2"; else ok; fi
 }
+toml_has() { # description, file, section, line: the line is inside [section]
+	if awk -v s="[$3]" -v l="$4" '$0 == s {on = 1; next} /^\[/ {on = 0} on && $0 == l {found = 1} END {exit !found}' "$2"; then
+		ok
+	else
+		fail "$1: '$4' is not in [$3] of $2"
+	fi
+}
 mode_of() { stat -c %a "$1" 2>/dev/null; }
 
 free_port() { python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1])'; }
@@ -208,7 +215,15 @@ t_first_boot() {
 	eq "hub INSTALL_LOCK" true "$(env_of $he INSTALL_LOCK)"
 	eq "hub DISABLE_REGISTRATION" true "$(env_of $he DISABLE_REGISTRATION)"
 	eq "hub SSH_DOMAIN" hub.test "$(env_of $he SSH_DOMAIN)"
-	eq "hub SSH_LISTEN_PORT" 2222 "$(env_of $he SSH_LISTEN_PORT)"
+	# git over SSH is off by default: no SSH server, no SSH port, nothing for the UI to show
+	eq "hub DISABLE_SSH" true "$(env_of $he DISABLE_SSH)"
+	eq "hub START_SSH_SERVER" false "$(env_of $he START_SSH_SERVER)"
+	eq "hub server DISABLE_SSH" true "$(env_of $he FORGEJO__server__DISABLE_SSH)"
+	eq "hub server START_SSH_SERVER" false "$(env_of $he FORGEJO__server__START_SSH_SERVER)"
+	eq "hub [asc] SSH_ENABLED" false "$(env_of $he FORGEJO__asc__SSH_ENABLED)"
+	eq "hub gets no SSH_PORT" "" "$(env_of $he SSH_PORT)"
+	eq "hub gets no SSH_LISTEN_PORT" "" "$(env_of $he SSH_LISTEN_PORT)"
+	toml_has "asc serve SSH listener stays off" "$toml" ssh "enabled = false"
 	eq "hub APP_NAME" "ASC Hub" "$(env_of $he APP_NAME)"
 	eq "hub SECRET_KEY" "$(cat "$b/secret-key")" "$(env_of $he SECRET_KEY)"
 	eq "hub gets no asc database url" "" "$(env_of $he ASC_DATABASE_URL)"
@@ -519,6 +534,49 @@ t_validation() {
 	t_refused http_port "HTTP port is not a number" HTTP_PORT=abc
 	t_refused asc_port "ASC_HUB_ASC_PORT" ASC_HUB_ASC_PORT=0
 	t_refused timeout "ASC_HUB_START_TIMEOUT is not valid" ASC_HUB_START_TIMEOUT=abc
+	t_refused ssh_flag "ASC_HUB_SSH_ENABLE is not valid" ASC_HUB_SSH_ENABLE=yes
+	t_refused ssh_flag_upper "ASC_HUB_SSH_ENABLE is not valid" ASC_HUB_SSH_ENABLE=TRUE
+}
+
+t_ssh() {
+	# Disabled stays disabled whatever else the environment says.
+	new_case ssh_forced_off
+	start DISABLE_SSH=false START_SSH_SERVER=true SSH_PORT=22 FORGEJO__server__START_SSH_SERVER=true
+	wait_ready || { end_case; return; }
+	eq "DISABLE_SSH forced" true "$(env_of hub.env DISABLE_SSH)"
+	eq "START_SSH_SERVER forced" false "$(env_of hub.env START_SSH_SERVER)"
+	eq "server START_SSH_SERVER forced" false "$(env_of hub.env FORGEJO__server__START_SSH_SERVER)"
+	eq "[asc] SSH_ENABLED" false "$(env_of hub.env FORGEJO__asc__SSH_ENABLED)"
+	has "ignored port is reported" "$T/out.1" "SSH_PORT is ignored because ASC_HUB_SSH_ENABLE is not true"
+	end_case
+
+	new_case ssh_explicit_false
+	start ASC_HUB_SSH_ENABLE=false
+	wait_ready || { end_case; return; }
+	eq "DISABLE_SSH" true "$(env_of hub.env DISABLE_SSH)"
+	end_case
+
+	# Opt in.
+	new_case ssh_enabled
+	start ASC_HUB_SSH_ENABLE=true
+	wait_ready || { end_case; return; }
+	eq "DISABLE_SSH" false "$(env_of hub.env DISABLE_SSH)"
+	eq "START_SSH_SERVER" true "$(env_of hub.env START_SSH_SERVER)"
+	eq "server DISABLE_SSH" false "$(env_of hub.env FORGEJO__server__DISABLE_SSH)"
+	eq "[asc] SSH_ENABLED" true "$(env_of hub.env FORGEJO__asc__SSH_ENABLED)"
+	eq "SSH_DOMAIN from ROOT_URL" hub.test "$(env_of hub.env SSH_DOMAIN)"
+	eq "SSH_PORT default" 2222 "$(env_of hub.env SSH_PORT)"
+	eq "SSH_LISTEN_PORT default" 2222 "$(env_of hub.env SSH_LISTEN_PORT)"
+	toml_has "asc serve SSH listener stays off" "$T/work/asc/asc-serve.toml" ssh "enabled = false"
+	end_case
+
+	new_case ssh_enabled_ports
+	start ASC_HUB_SSH_ENABLE=true SSH_PORT=2200 SSH_LISTEN_PORT=2201 SSH_DOMAIN=ssh.hub.test
+	wait_ready || { end_case; return; }
+	eq "SSH_PORT kept" 2200 "$(env_of hub.env SSH_PORT)"
+	eq "SSH_LISTEN_PORT kept" 2201 "$(env_of hub.env SSH_LISTEN_PORT)"
+	eq "SSH_DOMAIN kept" ssh.hub.test "$(env_of hub.env SSH_DOMAIN)"
+	end_case
 }
 
 t_variants() {
@@ -548,7 +606,7 @@ t_variants() {
 	start ASC_HUB_BRIDGE=lazy
 	wait_ready || { end_case; return; }
 	has "lazy: no promote" "$T/work/asc/asc-serve.toml" "bridge_promote = false"
-	has "lazy: git layer off by default" "$T/work/asc/asc-serve.toml" "enabled = false"
+	toml_has "lazy: git layer off by default" "$T/work/asc/asc-serve.toml" git "enabled = false"
 	end_case
 
 	new_case no_root_url_warns
@@ -590,7 +648,7 @@ t_healthcheck() {
 cleanup_all() { [ -z "$T" ] || end_case; }
 trap cleanup_all EXIT
 
-for t in t_first_boot t_restart_idempotent t_admin_bootstrap t_admin_invalid t_kill_either t_sigterm_during_start t_start_failures t_volume t_backup_lock t_command_passthrough t_validation t_variants t_healthcheck; do
+for t in t_first_boot t_restart_idempotent t_admin_bootstrap t_admin_invalid t_kill_either t_sigterm_during_start t_start_failures t_volume t_backup_lock t_command_passthrough t_validation t_ssh t_variants t_healthcheck; do
 	if selected "$t"; then
 		"$t"
 	fi
