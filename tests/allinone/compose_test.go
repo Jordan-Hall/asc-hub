@@ -23,7 +23,7 @@ const entrypointPath = "../../docker/allinone/usr/local/bin/asc-hub-entrypoint"
 // the ones the entrypoint sets a default for.
 var plainHubVariables = map[string]bool{
 	"APP_NAME": true, "RUN_MODE": true, "SSH_DOMAIN": true, "HTTP_PORT": true, "ROOT_URL": true,
-	"DISABLE_SSH": true, "SSH_PORT": true, "SSH_LISTEN_PORT": true, "DB_TYPE": true, "DB_HOST": true,
+	"DISABLE_SSH": true, "START_SSH_SERVER": true, "SSH_PORT": true, "SSH_LISTEN_PORT": true, "DB_TYPE": true, "DB_HOST": true,
 	"DB_NAME": true, "DB_USER": true, "DB_PASSWD": true, "INSTALL_LOCK": true,
 	"DISABLE_REGISTRATION": true, "REQUIRE_SIGNIN_VIEW": true, "SECRET_KEY": true,
 }
@@ -31,7 +31,7 @@ var plainHubVariables = map[string]bool{
 // entrypointVariables are the variables that asc-hub-entrypoint and asc-hub-healthcheck read.
 var entrypointVariables = map[string]bool{
 	"ASC_HUB_ADMIN_EMAIL": true, "ASC_HUB_ADMIN_USER": true, "ASC_HUB_BRIDGE": true,
-	"ASC_HUB_START_TIMEOUT": true, "ASC_HUB_ASC_PORT": true, "ASC_DATABASE_URL": true,
+	"ASC_HUB_START_TIMEOUT": true, "ASC_HUB_ASC_PORT": true, "ASC_HUB_SSH_ENABLE": true, "ASC_DATABASE_URL": true,
 	"ASC_S3_ENDPOINT": true, "ASC_S3_BUCKET": true, "ASC_S3_REGION": true,
 	"ASC_S3_ACCESS_KEY_ID": true, "ASC_S3_SECRET_ACCESS_KEY": true, "ASC_CACHE_MEMORY": true,
 	"ASC_CACHE_DISK": true, "ASC_TEXT_MEMORY": true, "ASC_GIT_ENABLED": true, "ASC_LOG": true,
@@ -185,7 +185,7 @@ func checkCompose(t *testing.T, name string, data []byte, deployment bool) {
 		case deployment && !strings.Contains(root, ":?"):
 			t.Errorf("%s: ROOT_URL %q has no ${VAR:?message} guard, so a missing value is not caught at deploy time", where, root)
 		}
-		if deployment && !strings.Contains(env["SSH_DOMAIN"], ":?") {
+		if v, ok := env["SSH_DOMAIN"]; ok && deployment && !strings.Contains(v, ":?") {
 			t.Errorf("%s: SSH_DOMAIN has no ${VAR:?message} guard", where)
 		}
 
@@ -209,11 +209,19 @@ func checkCompose(t *testing.T, name string, data []byte, deployment bool) {
 			t.Errorf("%s: volume %q is not declared under volumes:", where, named)
 		}
 
-		// SSH: the host port that is published is the one that clone addresses show
+		// SSH is off unless ASC_HUB_SSH_ENABLE is true, and then it is the file's own choice: only an
+		// opted-in file publishes the SSH port, and the port it publishes is the one clone addresses show.
+		sshOn := env["ASC_HUB_SSH_ENABLE"] == "true"
+		if v, ok := env["ASC_HUB_SSH_ENABLE"]; ok && !sshOn && !pureRef.MatchString(v) && v != "false" {
+			t.Errorf("%s: ASC_HUB_SSH_ENABLE %q must be true, false or a variable reference", where, v)
+		}
+		if v := env["DISABLE_SSH"]; v == "false" && !sshOn {
+			t.Errorf("%s: DISABLE_SSH is false but ASC_HUB_SSH_ENABLE is not true; the image ignores it", where)
+		}
 		var sshHost string
 		for _, p := range s.Ports {
 			i := strings.LastIndex(p.Value, ":")
-			if i > 0 && strings.HasSuffix(p.Value, ":2222") {
+			if i > 0 && strings.HasSuffix(strings.TrimSuffix(p.Value, "/tcp"), ":2222") {
 				host := p.Value[:i]
 				if j := strings.LastIndex(host, ":"); j >= 0 && !strings.HasPrefix(host, "${") {
 					host = host[j+1:]
@@ -221,10 +229,13 @@ func checkCompose(t *testing.T, name string, data []byte, deployment bool) {
 				sshHost = host
 			}
 		}
-		if sshHost == "" {
-			t.Errorf("%s: port 2222 (git over SSH) is not published", where)
-		} else if env["SSH_PORT"] != sshHost {
+		switch {
+		case sshHost != "" && !sshOn:
+			t.Errorf("%s: publishes the SSH port without ASC_HUB_SSH_ENABLE: true; an HTTPS-only deployment publishes no SSH port", where)
+		case sshHost != "" && env["SSH_PORT"] != sshHost:
 			t.Errorf("%s: SSH_PORT %q does not equal the published host port %q, so clone addresses would show a port that is closed", where, env["SSH_PORT"], sshHost)
+		case sshHost == "" && sshOn:
+			t.Errorf("%s: ASC_HUB_SSH_ENABLE is true but the SSH port is not published", where)
 		}
 
 		grace, err := time.ParseDuration(s.StopGrace)
