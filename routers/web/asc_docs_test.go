@@ -80,3 +80,14 @@ func TestAscDocsPageTablesScrollAndAreReachable(t *testing.T) {
 	assert.Contains(t, html, `<div class="site-table" role="region" tabindex="0"`)
 	assert.Equal(t, strings.Count(html, "<table"), strings.Count(html, "</table></div>"))
 }
+
+func TestAscPaletteNeedsAQueryOfTheRightLength(t *testing.T) {
+	for _, q := range []string{"", "a", strings.Repeat("x", ascPaletteMaxQuery+1)} {
+		ctx, resp := contexttest.MockContext(t, "GET /-/asc/palette")
+		ctx.Req.Form = map[string][]string{"q": {q}}
+		AscPalette(ctx)
+		require.Equal(t, http.StatusOK, resp.Code)
+		assert.JSONEq(t, `{"groups":[]}`, resp.Body.String(), "query %d bytes", len(q))
+		assert.Equal(t, "private, no-store", resp.Header().Get("Cache-Control"))
+	}
+}
