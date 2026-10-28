@@ -79,7 +79,7 @@ func TestRepoMigrationUI(t *testing.T) {
 			response := session.MakeRequest(t, NewRequest(t, "GET", fmt.Sprintf("/repo/migrate?service_type=%d", id)), http.StatusOK)
 			page := NewHTMLParser(t, response.Body)
 
-			items := page.Find("#migrate_items .field .checkbox input")
+			items := page.Find("#migrate_items .ds-field .ds-check input")
 			testRepoMigrationFormItems(t, items, migration.ExpectedItems)
 
 			page.AssertElement(t, "#clone_addr", true)

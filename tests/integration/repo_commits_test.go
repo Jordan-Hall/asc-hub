@@ -202,7 +202,7 @@ func TestRepoCommitsStatusMultiple(t *testing.T) {
 
 	doc = NewHTMLParser(t, resp.Body)
 	// Check that the data-tippy="commit-statuses" (for trigger) and commit-status (svg) are present
-	sel := doc.doc.Find("#commits-table tbody tr td.message [data-tippy=\"commit-statuses\"] .commit-status")
+	sel := doc.doc.Find("#commits-table .rp-commit [data-tippy=\"commit-statuses\"] .commit-status")
 	assert.Equal(t, 1, sel.Length())
 }
 

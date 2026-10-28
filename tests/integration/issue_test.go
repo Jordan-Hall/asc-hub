@@ -1389,8 +1389,8 @@ body:
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			htmlDoc.AssertElement(t, "#new-issue .field .ui.checkbox input[name='form-field-test-0']", true)
-			checkboxLabel := htmlDoc.Find("#new-issue .field .ui.checkbox label").Text()
+			htmlDoc.AssertElement(t, "#new-issue .ds-field .ui.checkbox input[name='form-field-test-0']", true)
+			checkboxLabel := htmlDoc.Find("#new-issue .ds-field .ui.checkbox label").Text()
 			assert.Contains(t, checkboxLabel, "This is a label")
 		})
 	})

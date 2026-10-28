@@ -28,7 +28,7 @@ func TestRepoCollaborators(t *testing.T) {
 
 	// Verify button text
 	page = page.Find("#repo-collab-form")
-	assert.Equal(t, "Add collaborator", strings.TrimSpace(page.Find("button.primary").Text()))
+	assert.Equal(t, "Add collaborator", strings.TrimSpace(page.Find("button.ds-btn-primary").Text()))
 
 	// Verify placeholder
 	placeholder, exists := page.Find("#search-user-box input").Attr("placeholder")

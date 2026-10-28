@@ -529,7 +529,7 @@ func assertViewPullUpdate(t *testing.T, pr *issues_model.PullRequest, session *T
 		}
 	}
 	if dropdownExpected {
-		htmlDoc.AssertElement(t, fmt.Sprintf(".update-button .button[data-do=\"%s\"]", mainExpectedURL), true)
+		htmlDoc.AssertElement(t, fmt.Sprintf(".update-button > button[data-do=\"%s\"]", mainExpectedURL), true)
 	} else {
 		htmlDoc.AssertElement(t, fmt.Sprintf("form[action=\"%s\"]", mainExpectedURL), true)
 	}

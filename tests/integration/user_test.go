@@ -1429,7 +1429,7 @@ func TestAuthorizedIntegrationView(t *testing.T) {
 	htmlDoc.AssertSelection(t, htmlDoc.FindByTextTrim("div.flex-item span.flex-item-title", "AI TestAuthorizedIntegrationView"), true)
 
 	// Find button to view/edit and verify it's URL
-	viewButtonSelector := htmlDoc.Find("div.flex-item-trailing a.primary.button")
+	viewButtonSelector := htmlDoc.Find("div.flex-item-trailing a.ds-btn-primary")
 	require.Equal(t, 1, viewButtonSelector.Length())
 	viewButton := viewButtonSelector.Get(0)
 	hrefIndex := slices.IndexFunc(viewButton.Attr, func(attr html.Attribute) bool {

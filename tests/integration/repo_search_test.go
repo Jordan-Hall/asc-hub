@@ -107,7 +107,7 @@ func testEmptySearch(t *testing.T, indexer, withFuzzy bool) {
 
 	container := NewHTMLParser(t, resp.Body).
 		Find(".repository").
-		Find(".ui.container")
+		Find(".ds-container")
 
 	key := "search.exact"
 	if withFuzzy && indexer {
@@ -129,7 +129,7 @@ func testSearch(t *testing.T, rawURL string, expected []string, indexer bool) {
 	resp := MakeRequest(t, req, http.StatusOK)
 
 	doc := NewHTMLParser(t, resp.Body)
-	container := doc.Find(".repository").Find(".ui.container")
+	container := doc.Find(".repository").Find(".ds-container")
 
 	branchDropdown := container.Find(".js-branch-tag-selector")
 	assert.Equal(t, indexer, len(branchDropdown.Nodes) == 0)

@@ -305,7 +305,7 @@ func TestCompareWithPRsDisabled(t *testing.T) {
 			req := NewRequest(t, "GET", "/user1/repo1/compare/master...recent-push")
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			assert.Equal(t, "Compare branches", strings.TrimSpace(htmlDoc.Find("h2.header").Text()))
+			assert.Equal(t, "Compare branches", strings.TrimSpace(htmlDoc.Find("h1.rp-cmp-title").Text()))
 		})
 	})
 }
@@ -414,7 +414,7 @@ func TestCompareSignedIn(t *testing.T) {
 		testCreateBranch(t, session, "user1", "repo1", "branch/master", "recent-push", http.StatusSeeOther)
 		testEditFile(t, session, "user1", "repo1", "recent-push", "README.md", "Hello recently!\n")
 
-		newPrSelector := "button.ui.button.primary.show-form"
+		newPrSelector := "button.ds-btn-primary.show-form"
 
 		t.Run("PR creation button displayed if logged in", func(t *testing.T) {
 			defer tests.PrintCurrentTest(t)()

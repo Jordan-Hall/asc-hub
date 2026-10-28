@@ -26,7 +26,7 @@ export function initCompLabelEdit(selector) {
   if (!$(selector).length) return;
 
   // Create label
-  $('.new-label.button').on('click', () => {
+  $('button.new-label').on('click', () => {
     updateExclusiveLabelEdit('.new-label');
     showModal('new-label-modal', () => {
       const form = document.querySelector('.new-label.form');

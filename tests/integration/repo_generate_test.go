@@ -164,7 +164,7 @@ func TestRepoCreateFormRepoLimit(t *testing.T) {
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assertRepoCreateForm(t, htmlDoc, org, "")
 
-		alert := htmlDoc.doc.Find(".flash-error").Text()
+		alert := htmlDoc.doc.Find(".ds-banner-warn, .ds-banner-err").Text()
 		assert.Contains(t, alert, creationLimitTr)
 	})
 
@@ -195,7 +195,7 @@ func TestRepoCreateFormRepoLimit(t *testing.T) {
 		resp := session.MakeRequest(t, NewRequest(t, "GET", "/repo/create"), http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
-		alert := htmlDoc.doc.Find(".flash-error").Text()
+		alert := htmlDoc.doc.Find(".ds-banner-warn, .ds-banner-err").Text()
 		assert.Contains(t, alert, cannotCreateTr)
 	})
 }
