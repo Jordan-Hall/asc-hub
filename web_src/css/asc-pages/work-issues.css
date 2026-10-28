@@ -66,6 +66,10 @@
 .wk-toolbar {
   display: flex;
   flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  min-width: 0;
+  max-width: 100%;
   gap: 8px;
   margin: 0 0 12px;
 }

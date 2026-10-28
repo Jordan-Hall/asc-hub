@@ -278,3 +278,11 @@ form .wk-choice > input[type="checkbox"]:checked::after {
 .wk-settings .asc-byo {
   max-width: none;
 }
+
+/* the filled danger button keeps 4.5:1 when the dark colours come from the system setting */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme*="light"]) .ds-btn-danger-fill {
+    background: #b91c1c;
+    color: #fff;
+  }
+}
