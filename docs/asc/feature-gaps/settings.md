@@ -18,8 +18,8 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 54 |
-| ui-only-missing | 44 |
+| done | 66 |
+| ui-only-missing | 32 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 36 |

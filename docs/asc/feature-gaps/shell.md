@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 62 |
-| ui-only-missing | 62 |
+| done | 77 |
+| ui-only-missing | 47 |
 | needs-hub-backend | 44 |
 | needs-asc-backend | 0 |
 | needs-both | 26 |
