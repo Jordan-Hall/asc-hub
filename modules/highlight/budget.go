@@ -32,6 +32,10 @@ const (
 
 	// highlightMaxBytes is the largest file that is highlighted at all.
 	highlightMaxBytes = 256 * 1024
+	// highlightWindowBytes is how much of the start of a file larger than highlightMaxBytes is still highlighted (cut
+	// at a line), and highlightWindowMaxBytes is the largest file that gets this window; beyond it the file is plain text.
+	highlightWindowBytes    = 128 * 1024
+	highlightWindowMaxBytes = 4 * 1024 * 1024
 	// highlightBudget is the time one file may take to tokenize.
 	highlightBudget = 1500 * time.Millisecond
 
@@ -50,6 +54,9 @@ type Result struct {
 	Lexer string
 	// Skipped is true when the file is plain text because it is too large or took too long to highlight.
 	Skipped bool
+	// Window is the number of lines at the start of the file that are highlighted when a large file got only its start
+	// highlighted (Skipped is true then, and the rest of the file is plain text); 0 otherwise.
+	Window int
 	// Cached is true when the lines came from a cache.
 	Cached bool
 }
