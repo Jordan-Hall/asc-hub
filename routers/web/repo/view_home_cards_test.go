@@ -54,3 +54,24 @@ func TestSparkPoints(t *testing.T) {
 	assert.Equal(t, "0.0,23.0 100.0,23.0", sparkPoints([]int{0, 0}), "a flat series is a flat line")
 	assert.Empty(t, sparkPoints([]int{3}))
 }
+
+func TestParseActivityLog(t *testing.T) {
+	out := "100\x00Priya Raman\x00priya@example.org\n" +
+		"90\x00Diego\x00diego@example.org\n" +
+		"80\x00priya raman\x00PRIYA@example.org\n" +
+		"garbage\n" +
+		"x\x00Bad\x00bad@example.org\n" +
+		"70\x00Hannah\x00hannah@example.org\n"
+	times, people := parseActivityLog(out, 2)
+	assert.Equal(t, []int64{100, 90, 80, 70}, times, "every well-formed line is a change")
+	require.Len(t, people, 2, "at most limit people")
+	assert.Equal(t, "Priya Raman", people[0].Name, "people are grouped by email without regard to case")
+	assert.Equal(t, 2, people[0].Count)
+	assert.Equal(t, 100, people[0].Pct)
+	assert.Equal(t, "Diego", people[1].Name, "ties are ordered by name")
+	assert.Equal(t, 50, people[1].Pct)
+
+	times, people = parseActivityLog("", 5)
+	assert.Empty(t, times)
+	assert.Empty(t, people)
+}

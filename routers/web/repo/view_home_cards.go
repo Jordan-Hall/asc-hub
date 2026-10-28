@@ -6,6 +6,7 @@ package repo
 import (
 	gocontext "context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import (
 	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
@@ -38,6 +40,62 @@ type homeLanded struct {
 
 // homeActivityWeeks is how many weeks the Activity card covers.
 const homeActivityWeeks = 12
+
+// HomeContributor is one row of the Contributors card: who landed the most changes in the weeks of the Activity card.
+type HomeContributor struct {
+	Name  string
+	Email string
+	Count int
+	Pct   int // of the most active contributor, for the bar
+	User  *user_model.User
+}
+
+// homeContributorLimit is how many people the Contributors card lists.
+const homeContributorLimit = 5
+
+// parseActivityLog reads the output of `git log --format=%ct%x00%aN%x00%aE`: the times of the changes and the people
+// who made them, most changes first (ties by name), at most limit of them. A line that does not parse is skipped.
+func parseActivityLog(out string, limit int) (times []int64, people []HomeContributor) {
+	byEmail := map[string]*HomeContributor{}
+	var order []string
+	for _, line := range strings.Split(out, "\n") {
+		parts := strings.Split(line, "\x00")
+		if len(parts) != 3 {
+			continue
+		}
+		t, err := strconv.ParseInt(strings.TrimSpace(parts[0]), 10, 64)
+		if err != nil {
+			continue
+		}
+		times = append(times, t)
+		key := strings.ToLower(parts[2])
+		if c, ok := byEmail[key]; ok {
+			c.Count++
+			continue
+		}
+		byEmail[key] = &HomeContributor{Name: parts[1], Email: parts[2], Count: 1}
+		order = append(order, key)
+	}
+	for _, k := range order {
+		people = append(people, *byEmail[k])
+	}
+	sort.SliceStable(people, func(i, j int) bool {
+		if people[i].Count != people[j].Count {
+			return people[i].Count > people[j].Count
+		}
+		return people[i].Name < people[j].Name
+	})
+	if len(people) > limit {
+		people = people[:limit]
+	}
+	if len(people) > 0 {
+		most := people[0].Count
+		for i := range people {
+			people[i].Pct = people[i].Count * 100 / most
+		}
+	}
+	return times, people
+}
 
 // HomeActivity is the Activity card: the changes landed per week on the viewed ref, oldest week first.
 type HomeActivity struct {
@@ -92,17 +150,18 @@ func prepareHomeActivity(ctx *context.Context) {
 		return
 	}
 	since := time.Now().Add(-time.Duration(homeActivityWeeks) * 7 * 24 * time.Hour)
-	out, _, err := git.NewCommand(ctx, "log", "--format=%ct").AddOptionFormat("--since=%d", since.Unix()).AddDynamicArguments(ctx.Repo.Commit.ID.String()).
+	out, _, err := git.NewCommand(ctx, "log", "--format=%ct%x00%aN%x00%aE").AddOptionFormat("--since=%d", since.Unix()).AddDynamicArguments(ctx.Repo.Commit.ID.String()).
 		RunStdString(&git.RunOpts{Dir: ctx.Repo.GitRepo.Path})
 	if err != nil {
 		return
 	}
-	var times []int64
-	for _, line := range strings.Fields(out) {
-		if v, err := strconv.ParseInt(line, 10, 64); err == nil {
-			times = append(times, v)
+	times, people := parseActivityLog(out, homeContributorLimit)
+	for i := range people {
+		if u, err := user_model.GetUserByEmail(ctx, people[i].Email); err == nil {
+			people[i].User = u
 		}
 	}
+	ctx.Data["HomeContributors"] = people
 	counts := weeklyCounts(times, time.Now(), homeActivityWeeks)
 	total := 0
 	for _, c := range counts {
