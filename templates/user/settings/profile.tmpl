@@ -33,23 +33,10 @@
 	</form>
 	<form id="profile-form" class="ui form ds-form wk-sp-form" action="{{.Link}}" method="post">
 		{{.CsrfTokenHtml}}
-		<section class="ds-card wk-preview" aria-labelledby="sp-preview" data-preview-form="profile-form">
-			<div class="ds-card-h"><h2 id="sp-preview">{{ctx.Locale.Tr "asc_work.sp_preview_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_preview_hint"}}</span></div>
-			<div class="ds-card-b wk-preview-body">
-				<span class="wk-preview-avatar">{{ctx.AvatarUtils.Avatar .SignedUser 48}}</span>
-				<div class="ds-min0">
-					<b class="wk-preview-name" data-preview-field="full_name" data-preview-fallback="name"></b>
-					<div class="ds-hint">@<span data-preview-field="name"></span><span data-preview-field="pronouns" data-preview-empty class="wk-preview-sep"></span></div>
-					<p class="wk-preview-bio" data-preview-field="biography" data-preview-empty></p>
-					<div class="ds-hint" data-preview-field="location" data-preview-empty></div>
-				</div>
-			</div>
-		</section>
-
 		<section class="ds-card" aria-labelledby="sp-public">
 			<div class="ds-card-h"><h2 id="sp-public">{{ctx.Locale.Tr "settings.public_profile"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.profile_desc"}}</span></div>
 			<div class="ds-card-b ds-stack-16">
-				<div class="ds-form-row ds-form-row-2">
+				<div class="ds-form-row">
 					<div class="ds-field {{if .Err_FullName}}error{{end}}">
 						<label class="ds-label" for="full_name">{{ctx.Locale.Tr "asc_work.sp_display_name"}}</label>
 						<input id="full_name" class="ds-input" name="full_name" value="{{.SignedUser.FullName}}" maxlength="100">
@@ -94,6 +81,18 @@
 					<label class="ds-label" for="website">{{ctx.Locale.Tr "settings.website"}}</label>
 					<input id="website" class="ds-input" name="website" type="url" value="{{.SignedUser.Website}}" maxlength="255" pattern="{{.ValidSiteURLPattern}}">
 					<p class="ds-hint">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</p>
+				</div>
+				<div class="wk-preview wk-preview-inline" data-preview-form="profile-form" role="group" aria-labelledby="sp-preview">
+					<p class="ds-t-eyebrow" id="sp-preview">{{ctx.Locale.Tr "asc_work.sp_preview_title"}}</p>
+					<div class="ds-card-b wk-preview-body">
+						<span class="wk-preview-avatar">{{ctx.AvatarUtils.Avatar .SignedUser 48}}</span>
+						<div class="ds-min0">
+							<b class="wk-preview-name" data-preview-field="full_name" data-preview-fallback="name"></b>
+							<div class="ds-hint">@<span data-preview-field="name"></span><span data-preview-field="pronouns" data-preview-empty class="wk-preview-sep"></span></div>
+							<p class="wk-preview-bio" data-preview-field="biography" data-preview-empty></p>
+							<div class="ds-hint" data-preview-field="location" data-preview-empty></div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</section>

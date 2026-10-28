@@ -62,6 +62,7 @@ import {initLivePreview, initImagePreview, initLayoutToggle, initPasswordStrengt
 import {initPrefs} from './features/ds-prefs.js';
 import {initBulk} from './features/ds-bulk.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
+import {initAscPush} from './features/asc-push.js';
 import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {initAscDensity} from './features/asc-density.js';
 import {initAscBoard} from './features/asc-board.js';
@@ -192,6 +193,7 @@ onDomReady(() => {
   initPrefs();
   initBulk();
   initAscKeys();
+  initAscPush();
   initAscRepoKeys();
   initAscDensity();
   initAscBoard();

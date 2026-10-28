@@ -39,7 +39,8 @@ func TestQuietHoursCrossMidnightInTheTimeZoneOfThePerson(t *testing.T) {
 func TestValidate(t *testing.T) {
 	require.NoError(t, ascnotify.Prefs{}.Validate())
 	require.NoError(t, ascnotify.Prefs{EmailOff: []string{"mentioned"}, TZ: "Europe/London", Quiet: ascnotify.QuietHours{On: true, From: "20:00", Until: "07:30"}}.Validate())
-	require.Error(t, ascnotify.Prefs{EmailOff: []string{"agent_question"}}.Validate(), "an event with no email cannot be switched")
+	require.NoError(t, ascnotify.Prefs{EmailOff: []string{"agent_question"}}.Validate())
+	require.Error(t, ascnotify.Prefs{EmailOff: []string{"nope"}}.Validate(), "an event the page does not have cannot be switched")
 	require.Error(t, ascnotify.Prefs{TZ: "Mars/Olympus"}.Validate())
 	require.Error(t, ascnotify.Prefs{Quiet: ascnotify.QuietHours{On: true, From: "25:00", Until: "07:30"}}.Validate())
 }
@@ -61,4 +62,21 @@ func TestEmailAllowedFollowsTheStoredChoice(t *testing.T) {
 	assert.True(t, ascnotify.EmailAllowed(ctx, 4, ascnotify.EventMentioned, night), "another person is not affected")
 
 	require.Error(t, ascnotify.Save(ctx, 2, ascnotify.Prefs{TZ: "nope"}))
+}
+
+func TestPushChoiceAndDigestHour(t *testing.T) {
+	p := ascnotify.Prefs{PushOff: []string{"checks_failed"}}
+	require.NoError(t, p.Validate())
+	assert.False(t, p.PushOn("checks_failed"))
+	assert.True(t, p.PushOn("merge_queue"))
+	require.Error(t, ascnotify.Prefs{PushOff: []string{"nope"}}.Validate())
+
+	at := time.Date(2026, 10, 28, 7, 30, 0, 0, time.UTC) // 08:30 in London (BST ended on 25 October: 07:30 UTC is 07:30)
+	assert.False(t, ascnotify.Prefs{}.DigestDue(time.Date(2026, 10, 28, 8, 0, 0, 0, time.UTC)), "no summary unless asked for")
+	d := ascnotify.Prefs{Digest: true}
+	assert.True(t, d.DigestDue(time.Date(2026, 10, 28, 8, 5, 0, 0, time.UTC)))
+	assert.False(t, d.DigestDue(at))
+	d.TZ = "Asia/Tokyo" // 08:00 in Tokyo is 23:00 UTC the day before
+	assert.True(t, d.DigestDue(time.Date(2026, 10, 27, 23, 10, 0, 0, time.UTC)))
+	assert.False(t, d.DigestDue(time.Date(2026, 10, 28, 8, 10, 0, 0, time.UTC)))
 }

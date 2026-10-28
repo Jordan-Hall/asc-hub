@@ -18,9 +18,9 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 70 |
+| done | 74 |
 | ui-only-missing | 28 |
-| needs-hub-backend | 37 |
+| needs-hub-backend | 33 |
 | needs-asc-backend | 2 |
 | needs-both | 36 |
 | total | 173 |
@@ -75,12 +75,12 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsAppearance | Apply instantly with an undo toast (no Save step); an app-wide toast/undo component does not exist | done | new web_src/js/features/ds-toast.js; reused by Appearance, Notifications, Privacy, Org people | M |
 | UserSettingsNotifications | Page itself (not in the settings menu; only the Forgejo email preference on Account and /notifications/subscriptions exist) | needs-hub-backend | templates/user/settings/navbar.tmpl, new templates/user/settings/notifications.tmpl, route in routers/web/web.go | M |
 | UserSettingsNotifications | Event x channel matrix (Inbox/Email/Push for review requested, mention, agent question, run finished, checks failed, restack conflict, queue result, policy change); needs-you rows locked on | needs-both | hub: new model asc_notify_pref + migration + dispatch in services/notify and routers/web/user/asc_inbox.go; asc: proto/asc/v1/inbox.proto has no preference or channel field | L |
-| UserSettingsNotifications | Email frequency (right away / per-thread limit) and daily summary at a time | needs-hub-backend | services/mailer (digest job in services/cron), user prefs | M |
-| UserSettingsNotifications | Quiet hours (from/until, time zone aware) | needs-hub-backend | prefs + services/mailer + push; needs time zone from Profile | M |
-| UserSettingsNotifications | Push channel, permission prompt and denied state | needs-hub-backend | web push (VAPID keys, service worker in public/, subscription table) | L |
+| UserSettingsNotifications | Email frequency (right away / per-thread limit) and daily summary at a time | done | services/mailer (digest job in services/cron), user prefs | M |
+| UserSettingsNotifications | Quiet hours (from/until, time zone aware) | done | prefs + services/mailer + push; needs time zone from Profile | M |
+| UserSettingsNotifications | Push channel, permission prompt and denied state | done | web push (VAPID keys, service worker in public/, subscription table) | L |
 | UserSettingsNotifications | Watching table with level and last notified, Unwatch with undo | done | exists as /notifications/subscriptions (Forgejo); move into the settings page, add level and last-notified columns | M |
 | UserSettingsPrivacy | Page itself; Show activity and Hide email switches live on Profile instead | done | navbar.tmpl, new privacy.tmpl, move keep_activity_private and keep_email_private out of profile.tmpl | S |
-| UserSettingsPrivacy | Show when I am online (green presence dot) | needs-hub-backend | user column + presence from session activity; avatar template | M |
+| UserSettingsPrivacy | Show when I am online (green presence dot) | done | user column + presence from session activity; avatar template | M |
 | UserSettingsPrivacy | Allow agents to read my profile | needs-both | hub user column; asc must honour it when agents read profile data | S |
 | UserSettingsPrivacy | Blocked people list, block by username, unblock | done | templates/user/settings/blocked_users.tmpl, routers/web/user/setting/blocked_users.go | - |
 | UserSettingsPrivacy | Block confirm dialog, 10 s undo on unblock; blocking also drops pending review requests (only follows are removed today) | needs-hub-backend | services/user/block.go, blocked_users.tmpl, toast component | S |

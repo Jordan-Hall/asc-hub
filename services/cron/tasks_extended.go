@@ -10,12 +10,14 @@ import (
 	activities_model "forgejo.org/models/activities"
 	asymkey_model "forgejo.org/models/asymkey"
 	auth_model "forgejo.org/models/auth"
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/system"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
 	issue_indexer "forgejo.org/modules/indexer/issues"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/updatechecker"
+	"forgejo.org/services/ascdigest"
 	moderation_service "forgejo.org/services/moderation"
 	repo_service "forgejo.org/services/repository"
 	archiver_service "forgejo.org/services/repository/archiver"
@@ -251,6 +253,8 @@ func initExtendedTasks() {
 	registerGCLFS()
 	registerRebuildIssueIndexer()
 	registerCleanupAscDeviceCodes()
+	registerRefreshAscTrending()
+	registerSendAscDigest()
 	if setting.Moderation.Enabled {
 		registerRemoveResolvedReports()
 	}
@@ -263,7 +267,34 @@ func registerCleanupAscDeviceCodes() {
 		RunAtStart: true,
 		Schedule:   "@every 6h",
 	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		if _, err := user_model.DeleteOldAscNotifyLog(ctx); err != nil {
+			return err
+		}
 		_, err := auth_model.DeleteExpiredAscDeviceCodes(ctx)
+		return err
+	})
+}
+
+// registerRefreshAscTrending keeps the weekly score of the Trending list of the explore page.
+func registerRefreshAscTrending() {
+	RegisterTaskFatal("refresh_asc_trending", &BaseConfig{
+		Enabled:    true,
+		RunAtStart: true,
+		Schedule:   "@every 1h",
+	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		return repo_model.RefreshAscTrending(ctx)
+	})
+}
+
+// registerSendAscDigest sends the daily summaries; it runs five minutes past every hour because 08:00 is a different
+// moment in every time zone.
+func registerSendAscDigest() {
+	RegisterTaskFatal("send_asc_digest", &BaseConfig{
+		Enabled:    true,
+		RunAtStart: false,
+		Schedule:   "5 * * * *",
+	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		_, err := ascdigest.Run(ctx, time.Now())
 		return err
 	})
 }

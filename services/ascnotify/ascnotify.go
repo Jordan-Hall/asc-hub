@@ -13,6 +13,7 @@ import (
 	"slices"
 	"time"
 
+	"forgejo.org/models/db"
 	user_model "forgejo.org/models/user"
 )
 
@@ -25,8 +26,12 @@ const (
 // Events lists every event the page shows, in the order of the board. The inbox keeps all of them; only the ones in
 // EmailEvents can be switched for email, because the hub sends no email for the others yet.
 var (
-	Events      = []string{"review_requested", "mentioned", "agent_question", "agent_finished", "checks_failed", "restack_conflict", "merge_queue", "policy_changed"}
-	EmailEvents = []string{EventReviewRequested, EventMentioned}
+	Events = []string{"review_requested", "mentioned", "agent_question", "agent_finished", "checks_failed", "restack_conflict", "merge_queue", "policy_changed"}
+	// EmailEvents are the events a person can switch for email: the hub sends mail for every one of them, review requests
+	// and mentions from its own mailer for the pull requests of the hub, and every event when asc serve reports it (IngestEvents:
+	// reviews and mentions made through asc, agent runs, checks, restacks, the merge queue, policy).
+	EmailEvents  = Events
+	IngestEvents = Events
 )
 
 const settingKey = "asc.notify"
@@ -35,6 +40,10 @@ const settingKey = "asc.notify"
 type Prefs struct {
 	// EmailOff lists the email events the person switched off.
 	EmailOff []string `json:"email_off,omitempty"`
+	// PushOff lists the events the person switched off for notifications in the browser (Web Push).
+	PushOff []string `json:"push_off,omitempty"`
+	// Digest sends the events that are not emailed one by one as one summary a day, at 08:00 in the time zone TZ.
+	Digest bool `json:"digest,omitempty"`
 	// Quiet pauses email between From and Until (HH:MM, 24 h) in the time zone TZ.
 	Quiet QuietHours `json:"quiet"`
 	// TZ is an IANA time zone name; empty means UTC.
@@ -83,6 +92,11 @@ func (p Prefs) Validate() error {
 			return fmt.Errorf("%q is not an event with email", e)
 		}
 	}
+	for _, e := range p.PushOff {
+		if !slices.Contains(Events, e) {
+			return fmt.Errorf("%q is not an event with notifications", e)
+		}
+	}
 	if p.TZ != "" {
 		if _, err := time.LoadLocation(p.TZ); err != nil {
 			return fmt.Errorf("unknown time zone %q", p.TZ)
@@ -98,6 +112,9 @@ func (p Prefs) Validate() error {
 	}
 	return nil
 }
+
+// PushOn reports whether the person wants a browser notification for the event.
+func (p Prefs) PushOn(event string) bool { return !slices.Contains(p.PushOff, event) }
 
 // EmailOn reports whether the person wants email for the event.
 func (p Prefs) EmailOn(event string) bool { return !slices.Contains(p.EmailOff, event) }
@@ -143,4 +160,40 @@ func EmailAllowed(ctx context.Context, userID int64, event string, now time.Time
 		return false
 	}
 	return event == "" || p.EmailOn(event)
+}
+
+// IsIngestEvent reports whether asc serve may report the event to the hub.
+func IsIngestEvent(event string) bool { return slices.Contains(IngestEvents, event) }
+
+// PushAllowed is the question of the sender of browser notifications: may this person be notified of the event now?
+// Quiet hours pause notifications in the browser as they pause email.
+func PushAllowed(ctx context.Context, userID int64, event string, now time.Time) bool {
+	p := Load(ctx, userID)
+	return !p.InQuietHours(now) && p.PushOn(event)
+}
+
+// DigestHour is the hour of the day, in the time zone of the person, when the daily summary is sent.
+const DigestHour = 8
+
+// DigestDue reports whether the summary of the person is due at now: they asked for it and it is DigestHour o'clock
+// in their time zone.
+func (p Prefs) DigestDue(now time.Time) bool {
+	if !p.Digest {
+		return false
+	}
+	loc := time.UTC
+	if p.TZ != "" {
+		if l, err := time.LoadLocation(p.TZ); err == nil {
+			loc = l
+		}
+	}
+	return now.In(loc).Hour() == DigestHour
+}
+
+// DigestUserIDs lists the people who asked for the daily summary.
+func DigestUserIDs(ctx context.Context) ([]int64, error) {
+	var ids []int64
+	err := db.GetEngine(ctx).Table("user_setting").
+		Where("setting_key = ? AND setting_value LIKE ?", settingKey, `%"digest":true%`).Cols("user_id").Find(&ids)
+	return ids, err
 }

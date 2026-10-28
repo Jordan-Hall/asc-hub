@@ -143,6 +143,15 @@ func mailIssueCommentBatch(ctx *mailCommentContext, users []*user_model.User, vi
 		checkUnit = unit.TypePullRequests
 	}
 
+	if fromMention {
+		pushed := container.Set[int64]{}
+		for _, user := range users {
+			if pushed.Add(user.ID) {
+				ascPushIssue(ctx, ctx.Issue, ctx.Doer, user, ascnotify.EventMentioned)
+			}
+		}
+	}
+
 	langMap := make(map[string][]*user_model.User)
 	for _, user := range users {
 		if !user.IsActive {

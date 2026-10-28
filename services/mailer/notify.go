@@ -135,6 +135,9 @@ func (m *mailNotifier) IssueChangeAssignee(ctx context.Context, doer *user_model
 }
 
 func (m *mailNotifier) PullRequestReviewRequest(ctx context.Context, doer *user_model.User, issue *issues_model.Issue, reviewer *user_model.User, isRequest bool, comment *issues_model.Comment) {
+	if isRequest {
+		ascPushIssue(ctx, issue, doer, reviewer, ascnotify.EventReviewRequested)
+	}
 	if isRequest && doer.ID != reviewer.ID && reviewer.EmailNotificationsPreference != user_model.EmailNotificationsDisabled &&
 		ascnotify.EmailAllowed(ctx, reviewer.ID, ascnotify.EventReviewRequested, time.Now()) {
 		ct := fmt.Sprintf("Requested to review %s.", issue.HTMLURL())

@@ -16,6 +16,7 @@ routers/web/user/profile.go answers those actions with this same template.
 		{{else}}
 			{{ctx.AvatarUtils.Avatar .ContextUser 96}}
 		{{end}}
+		{{if .AscOnline}}<span class="wk-pf-online" role="img" aria-label="{{ctx.Locale.Tr "asc_work.pf_online"}}"></span>{{end}}
 	</div>
 	<div class="wk-pf-info tw-break-anywhere">
 		<div class="wk-pf-line1">

@@ -4,6 +4,8 @@
 package setting
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -15,7 +17,9 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/webpush"
 	"forgejo.org/services/ascnotify"
+	"forgejo.org/services/ascpush"
 	"forgejo.org/services/context"
 	user_service "forgejo.org/services/user"
 )
@@ -38,6 +42,7 @@ type ascNotifyEvent struct {
 	Key        string
 	EmailOn    bool
 	EmailReady bool // the hub sends email for this event, so the switch works
+	PushOn     bool
 }
 
 // Notifications renders the page (board UserSettingsNotifications): what reaches the person, email, quiet hours and
@@ -51,10 +56,18 @@ func Notifications(ctx *context.Context) {
 	events := make([]ascNotifyEvent, 0, len(ascnotify.Events))
 	for _, e := range ascnotify.Events {
 		ready := slices.Contains(ascnotify.EmailEvents, e)
-		events = append(events, ascNotifyEvent{Key: e, EmailReady: ready, EmailOn: ready && prefs.EmailOn(e)})
+		events = append(events, ascNotifyEvent{Key: e, EmailReady: ready, EmailOn: ready && prefs.EmailOn(e), PushOn: prefs.PushOn(e)})
 	}
 	ctx.Data["NotifyEvents"] = events
 	ctx.Data["EmailPreference"] = ctx.Doer.EmailNotificationsPreference
+	ctx.Data["DigestOn"] = prefs.Digest
+	if keys, err := ascpush.VAPID(ctx); err == nil {
+		ctx.Data["PushKey"] = webpush.EncodeKey(keys.Public())
+	} else {
+		log.Error("asc push: VAPID key: %v", err)
+	}
+	subs, _ := user_model.ListAscPushSubscriptions(ctx, ctx.Doer.ID)
+	ctx.Data["PushDevices"] = len(subs)
 	ctx.Data["QuietOn"] = prefs.Quiet.On
 	from, until := prefs.Quiet.From, prefs.Quiet.Until
 	if from == "" {
@@ -84,6 +97,13 @@ func Notifications(ctx *context.Context) {
 		return
 	}
 	ctx.Data["WatchedRepos"] = repos
+	ids := make([]int64, 0, len(repos))
+	for _, r := range repos {
+		ids = append(ids, r.ID)
+	}
+	if last, err := user_model.LastAscNotified(ctx, ctx.Doer.ID, ids); err == nil {
+		ctx.Data["LastNotified"] = last
+	}
 	ctx.HTML(http.StatusOK, tplSettingsNotifications)
 }
 
@@ -113,6 +133,18 @@ func NotificationsPost(ctx *context.Context) {
 		if !slices.Contains(ctx.Req.PostForm["value"], "1") {
 			prefs.EmailOff = append(prefs.EmailOff, event)
 		}
+	case "push_event":
+		event := ctx.FormString("event")
+		if !slices.Contains(ascnotify.Events, event) {
+			ctx.Error(http.StatusBadRequest)
+			return
+		}
+		prefs.PushOff = slices.DeleteFunc(prefs.PushOff, func(e string) bool { return e == event })
+		if !slices.Contains(ctx.Req.PostForm["value"], "1") {
+			prefs.PushOff = append(prefs.PushOff, event)
+		}
+	case "digest":
+		prefs.Digest = slices.Contains(ctx.Req.PostForm["on"], "1")
 	case "email_mode":
 		preference := ctx.FormString("preference")
 		if !slices.Contains([]string{user_model.EmailNotificationsEnabled, user_model.EmailNotificationsOnMention, user_model.EmailNotificationsDisabled}, preference) {
@@ -150,4 +182,56 @@ func ascTimeZonesWith(chosen string) []string {
 		return append([]string{chosen}, ascTimeZones...)
 	}
 	return ascTimeZones
+}
+
+// ascPushBody is what a browser gives when it subscribes (PushSubscription.toJSON()).
+type ascPushBody struct {
+	Endpoint string `json:"endpoint"`
+	Keys     struct {
+		P256dh string `json:"p256dh"`
+		Auth   string `json:"auth"`
+	} `json:"keys"`
+}
+
+// PushSubscribe stores the subscription of the browser of the person. The endpoint is checked for being a public https
+// address, the keys for being what a browser makes, and a person has a few browsers at most.
+func PushSubscribe(ctx *context.Context) {
+	var body ascPushBody
+	if err := json.NewDecoder(http.MaxBytesReader(ctx.Resp, ctx.Req.Body, 8192)).Decode(&body); err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		return
+	}
+	if err := user_model.ValidateAscPushEndpoint(body.Endpoint); err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	if err := webpush.ValidateSubscriptionKeys(body.Keys.P256dh, body.Keys.Auth); err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	if err := user_model.SaveAscPushSubscription(ctx, ctx.Doer.ID, body.Endpoint, body.Keys.P256dh, body.Keys.Auth); err != nil {
+		if errors.Is(err, user_model.ErrTooManyPushSubscriptions) {
+			ctx.JSON(http.StatusConflict, map[string]string{"error": err.Error()})
+			return
+		}
+		ctx.ServerError("SaveAscPushSubscription", err)
+		return
+	}
+	ctx.JSON(http.StatusCreated, map[string]bool{"ok": true})
+}
+
+// PushUnsubscribe removes the subscription of a browser of the person.
+func PushUnsubscribe(ctx *context.Context) {
+	var body struct {
+		Endpoint string `json:"endpoint"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(ctx.Resp, ctx.Req.Body, 4096)).Decode(&body); err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		return
+	}
+	if _, err := user_model.DeleteAscPushSubscription(ctx, ctx.Doer.ID, body.Endpoint); err != nil {
+		ctx.ServerError("DeleteAscPushSubscription", err)
+		return
+	}
+	ctx.JSON(http.StatusOK, map[string]bool{"ok": true})
 }
