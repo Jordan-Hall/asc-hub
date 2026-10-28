@@ -1,0 +1,350 @@
+/* Issue and pull request lists, the issue page: mobile first, built from the design system. */
+
+.wk-issues {
+  padding-top: 16px;
+  padding-bottom: 32px;
+}
+
+.wk-head-text {
+  min-width: 0;
+}
+
+.wk-head-btns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.wk-head-btns .ds-btn {
+  min-height: var(--touch);
+}
+
+.wk-head-btns .ds-btn.is-on {
+  border-color: var(--fill);
+  background: var(--primary-tint);
+}
+
+@media (min-width: 1024px) {
+  .wk-head-btns .ds-btn {
+    min-height: 0;
+  }
+}
+
+/* search field and filters */
+.wk-search {
+  margin-bottom: 12px;
+}
+
+.wk-search .ui.action.input {
+  display: flex;
+  width: 100%;
+}
+
+.wk-search .ui.action.input > input {
+  flex: 1;
+  min-width: 0;
+  height: var(--input-h);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn) 0 0 var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.wk-search .ui.action.input > .button {
+  min-width: var(--touch);
+  height: var(--input-h);
+  margin: 0;
+  border: 1px solid var(--line-strong);
+  border-left: 0;
+  border-radius: 0 var(--r-btn) var(--r-btn) 0;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.wk-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.wk-toolbar .issue-list-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.wk-toolbar .issue-checkbox-all {
+  flex: none;
+  margin: 0 4px 0 0;
+}
+
+/* the filter dropdowns are one row of pills that scrolls; their menus are sheets on a phone */
+.wk-toolbar .issue-list-toolbar-right {
+  width: 100%;
+  min-width: 0;
+}
+
+.wk-toolbar .ui.secondary.filter.menu {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin: 0;
+  padding: 2px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border: 0;
+  background: none;
+}
+
+.wk-toolbar .ui.secondary.filter.menu::-webkit-scrollbar {
+  display: none;
+}
+
+.wk-toolbar .ui.secondary.filter.menu > .item,
+.wk-toolbar .ui.secondary.filter.menu > .button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--touch);
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  position: static;
+}
+
+.wk-toolbar .ui.secondary.filter.menu > .item.disabled {
+  opacity: 0.5;
+}
+
+@media (max-width: 639.98px) {
+  .wk-toolbar .ui.dropdown .menu {
+    position: fixed !important;
+    inset: auto 0 0 0 !important;
+    width: auto !important;
+    max-height: 70vh !important;
+    margin: 0 !important;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom)) !important;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: 16px 16px 0 0 !important;
+    background: var(--surface);
+    box-shadow: 0 -12px 40px rgb(0 0 0 / 0.25);
+    z-index: var(--z-sheet);
+  }
+
+  .wk-toolbar .ui.dropdown .menu > .item {
+    display: flex;
+    align-items: center;
+    min-height: var(--touch);
+    padding: 8px 20px !important;
+  }
+}
+
+@media (min-width: 640px) {
+  .wk-toolbar .ui.secondary.filter.menu {
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .wk-toolbar .ui.secondary.filter.menu > .item,
+  .wk-toolbar .ui.secondary.filter.menu > .button {
+    min-height: 34px;
+    padding: 0 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  .wk-toolbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .wk-toolbar .issue-list-toolbar-right {
+    width: auto;
+  }
+}
+
+.wk-states {
+  margin: 0;
+}
+
+.wk-toolbar .wk-states {
+  margin: 0;
+  padding: 2px 0;
+  overflow-x: auto;
+}
+
+/* the list */
+.wk-issue-list {
+  margin: 0;
+}
+
+.wk-issue {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "lead main"
+    ". side";
+  column-gap: 12px;
+  row-gap: 6px;
+  align-items: start;
+}
+
+.wk-issue-lead {
+  grid-area: lead;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
+}
+
+.wk-issue .ds-li-main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.wk-issue-side {
+  grid-area: side;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  .wk-issue {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "lead main side";
+  }
+
+  .wk-issue-side {
+    justify-content: flex-end;
+    min-height: 24px;
+  }
+}
+
+.wk-issue-check {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+.wk-issue-icon svg.text.green,
+.wk-issue-icon svg.text.red,
+.wk-issue-icon svg.text.purple,
+.wk-issue-icon svg.text.grey {
+  width: 18px;
+  height: 18px;
+}
+
+.wk-issue-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.wk-issue-assignees {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.wk-issue-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  line-height: 1.4;
+}
+
+.wk-issue-title a.issue-title {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.wk-issue-title a.issue-title:hover {
+  text-decoration: underline;
+}
+
+.wk-labels {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.wk-issue .issue-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin-top: 4px;
+}
+
+.wk-issue .issue-meta a {
+  color: var(--text-2);
+}
+
+.wk-issue .issue-meta a.index {
+  font-weight: 500;
+}
+
+.wk-issue .issue-meta .branch {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--surface-3);
+}
+
+.wk-overdue {
+  color: var(--err);
+}
+
+.wk-issue .flex-text-inline {
+  max-width: 100%;
+}
+
+.wk-issue-none {
+  display: block;
+  padding: 0;
+}
+
+.wk-issue-none .ds-empty {
+  border: 0;
+}
+
+.wk-issue .issue-meta a.index {
+  display: inline-block;
+  min-height: 24px;
+  line-height: 24px;
+}
+
+.wk-toolbar .wk-states {
+  max-width: 100%;
+}
+
+.wk-toolbar .issue-list-toolbar-left > .wk-states {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wk-toolbar .issue-list-toolbar-left > .wk-issue-stat {
+  flex: none;
+  white-space: nowrap;
+}

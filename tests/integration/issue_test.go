@@ -473,7 +473,7 @@ Description`)
 	resp = MakeRequest(t, req, http.StatusOK)
 
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	issuesSelection := htmlDoc.Find("#issue-list .flex-item")
+	issuesSelection := htmlDoc.Find("#issue-list .wk-issue")
 	assert.Equal(t, "4 / 8", strings.TrimSpace(issuesSelection.Find(".checklist").Text()))
 	value, _ := issuesSelection.Find("progress").Attr("value")
 	vmax, _ := issuesSelection.Find("progress").Attr("max")
