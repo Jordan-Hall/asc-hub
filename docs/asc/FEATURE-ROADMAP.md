@@ -23,6 +23,15 @@ Status words: **done**, **ui-only-missing** (data and routes exist, markup or sc
 
 Rules: permissions and row-level visibility exactly the platform's; tokens are the platform's personal access tokens (extend them with expiry and new scopes where a board shows them, never a second token system); no TODO, stub, fake data or hidden control.
 
+## Definition of done (user directive: do not stop until all of it holds)
+
+1. Every row in `feature-gaps/*.md` is `done`, or carries a reason the user accepted; counts in this file match.
+2. `grep` finds no TODO, FIXME, `unimplemented!`, `todo!`, "not supported yet", placeholder or lorem text in user-reachable code of the hub and asc.
+3. Every one of the 191 boards has its page implemented and matches its board at 390, 768, 1024 and 1440 pixels, light and dark (screenshot pairs checked), mobile twins included; axe has no critical or serious findings; no console errors on any page.
+4. Every control on every page works against a real hub and a real asc serve (end-to-end journeys re-run: sign up, import, push, stack submit, review, queue, agent run, settings, admin, download).
+5. Permissions and row-level visibility equal the platform's (parity matrix green); every security review finding is fixed.
+6. CI green on both repositories (fmt, clippy -D warnings, all tests, image builds), signed release cut, staging deployed and healthy, docs updated.
+
 ## Language support: TSRX (user requirement)
 
 TSRX (https://tsrx.dev/) is a TypeScript extension for declarative UIs, files `.tsrx`: statement-container component bodies `@{ ... }`, `@for` and `@if` control flow in the template, scoped `<style>` blocks, JSX-compatible expressions and events. The product must support it as a first-class language wherever code is shown, searched or understood.
