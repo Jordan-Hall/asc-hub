@@ -266,6 +266,12 @@ a.wk-act-title:hover {
   overflow-wrap: anywhere;
 }
 
+.wk-stops {
+  margin: 0;
+  padding-inline-start: 20px;
+  color: var(--text-b);
+}
+
 .wk-file {
   max-width: 100%;
   font-size: 14px;
