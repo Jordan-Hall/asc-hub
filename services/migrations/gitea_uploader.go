@@ -32,6 +32,7 @@ import (
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/uri"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascsync"
 	"forgejo.org/services/migrations/allowlist"
 	"forgejo.org/services/pull"
 	repo_service "forgejo.org/services/repository"
@@ -123,7 +124,8 @@ func (g *GiteaLocalUploader) CreateRepo(repo *base.Repository, opts base.Migrate
 	r.Description = repo.Description
 	r.Website = repo.Website
 
-	r, err = repo_service.MigrateRepositoryGitData(g.ctx, owner, r, base.MigrateOptions{
+	// An import into an asc repository is made for the user who migrates.
+	r, err = repo_service.MigrateRepositoryGitData(ascsync.WithImporter(g.ctx, g.doer.ID), owner, r, base.MigrateOptions{
 		CloneAddr:      repo.CloneURL, // SECURITY: we will assume that this has already been checked
 		LFS:            opts.LFS,
 		LFSEndpoint:    opts.LFSEndpoint,
