@@ -129,12 +129,12 @@ func TestDashboardPagination(t *testing.T) {
 	setting.AppSubURL = "/SubPath"
 	out, err := ctx.RenderToHTML("base/paginate", map[string]any{"Link": setting.AppSubURL, "Page": page})
 	require.NoError(t, err)
-	assert.Contains(t, out, `<a class=" item navigation" href="/SubPath/?page=2">`)
+	assert.Contains(t, out, `rel="next" href="/SubPath/?page=2"`)
 
 	setting.AppSubURL = ""
 	out, err = ctx.RenderToHTML("base/paginate", map[string]any{"Link": setting.AppSubURL, "Page": page})
 	require.NoError(t, err)
-	assert.Contains(t, out, `<a class=" item navigation" href="/?page=2">`)
+	assert.Contains(t, out, `rel="next" href="/?page=2"`)
 }
 
 func TestOrgLabels(t *testing.T) {
