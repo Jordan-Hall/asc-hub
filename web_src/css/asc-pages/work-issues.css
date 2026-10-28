@@ -556,3 +556,29 @@
   padding: 6px 0;
   overflow-wrap: anywhere;
 }
+
+.wk-dash-list-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.wk-dash-list-header .wk-search {
+  margin-bottom: 0;
+}
+
+.wk-dash-list-header .wk-toolbar {
+  margin: 0;
+}
+
+.wk-dash-list-header > .wk-search { order: 1; }
+.wk-dash-list-header > .wk-states { order: 2; }
+.wk-dash-list-header > .wk-toolbar { order: 3; }
+
+.wk-issue .issue-meta a.project,
+.wk-issue .issue-meta a.milestone,
+.wk-issue .issue-meta a.ref {
+  min-height: 24px;
+}
