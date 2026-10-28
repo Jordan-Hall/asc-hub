@@ -729,3 +729,17 @@ a.adm-who-name:hover {
   text-decoration: none;
   font-weight: 600;
 }
+
+/* a text link that must be a 44 px target on its own line */
+.adm-tap {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* a long action label wraps instead of widening the page at 320 */
+.admin .ds-sticky-actions > .ds-btn {
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
+}
