@@ -159,33 +159,26 @@ func ascConfirmMerge(ctx *context.Context, pr *issues_model.PullRequest, now boo
 	return false
 }
 
-// ascConfirmUnqueue shows the pull requests the removal takes out of the queue.
+// ascConfirmUnqueue shows the pull requests the removal takes out of the queue: the entries AscQueueCancel
+// cancels, which are this pull request and the queued ones above it.
 func ascConfirmUnqueue(ctx *context.Context, pr *issues_model.PullRequest) bool {
-	items, err := pull_service.AscStackPrefix(ctx, pr)
+	set, err := automerge.AscQueueCancelSet(ctx, pr)
 	if err != nil {
-		return ascConfirmFail(ctx, err)
-	}
-	ids := make([]int64, len(items))
-	for i, it := range items {
-		ids[i] = it.PR.ID
-	}
-	queued, err := automerge.AscQueueEntries(ctx, ids)
-	if err != nil {
-		ctx.ServerError("AscQueueEntries", err)
+		ctx.ServerError("AscQueueCancelSet", err)
 		return true
 	}
 	var rows []AscConfirmRow
-	for _, it := range items {
-		e := queued[it.PR.ID]
-		if e == nil || (e.State != automerge.AscQueueQueued && e.State != automerge.AscQueueBlocked && e.State != automerge.AscQueueLanding) {
+	for _, e := range set {
+		queued, err := issues_model.GetPullRequestByID(ctx, e.PullID)
+		if err != nil {
 			continue
 		}
-		if err := ascLoadIssue(ctx, it.PR); err != nil {
+		if err := ascLoadIssue(ctx, queued); err != nil {
 			ctx.ServerError("LoadIssue", err)
 			return true
 		}
 		row := AscConfirmRow{Status: "queued_" + e.State}
-		ascConfirmPR(&row, it.PR)
+		ascConfirmPR(&row, queued)
 		rows = append(rows, row)
 	}
 	ctx.Data["AscRows"] = rows
