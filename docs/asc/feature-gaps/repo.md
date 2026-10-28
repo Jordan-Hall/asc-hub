@@ -175,7 +175,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | Cross-repository results grouped by repository, URL `/-/asc/search` | needs-hub-backend | scope "repos" sends to the explore search page (`H:routers/web/explore/asc_search.go`, `templates/explore/asc_search.tmpl`); route in the board is `/-/asc/search`; REST `GET /api/v1/asc/search` exists | M |
 | Search | Facets: Repository (21 / 9 / 5, "11 more"), Language, Path, Branch or commit, "Only files the stack changes" | ui-only-missing | Language and Path facets and the stack-diff checkbox exist; add Repository and Branch facets from `CrossSearch` result group keys in `ascsearch/types.go` | M |
 | Search | Result card: path, language, branch list, snippet with highlights | done | `asc_search.tmpl` | S |
-| Search | Relevance percentage with a bar (grows over 300 ms) | ui-only-missing | `Chunk` score is shown as a raw number pill (`$c.Score`); convert to percent bar in `asc_search.tmpl` | S |
+| Search | Relevance percentage with a bar (grows over 300 ms) | done | `Chunk` score is shown as a raw number pill (`$c.Score`); convert to percent bar in `asc_search.tmpl` | S |
 | Search | "Why it matched" reason sentence per result | needs-asc-backend | `A:proto/asc/v1/codeintel.proto` `Chunk` has no reason; add a reason from the retrieval source or a short model-written line; show in `asc_search.tmpl` | L |
 | Search | Symbol chips under a result ("RetryPolicy::delay", "14 references elsewhere", "changed 3 h ago") | ui-only-missing | symbol and reference counts from `CodeIntel.Symbols`; last change from `Repo.LastCommits` | M |
 | Search | "Symbols matched: RetryPolicy, retry" line | ui-only-missing | `asc_search.tmpl` header line from `CodeIntel.Symbols` | S |
@@ -184,7 +184,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | Sort: best match, pagination "Showing 4 of 38", page links | ui-only-missing | `asc_search.tmpl` has a Truncated banner only | M |
 | Search | "The other two kinds of search" teaser (Text and Symbol hits for the same query) | ui-only-missing | run two cheap queries in `asc_search.go`; fragment | M |
 | Search | First-visit state with example queries | ui-only-missing | `asc_search.tmpl` | S |
-| Search | No-results state with "Search all branches / All repositories" actions | ui-only-missing | `asc_search.tmpl` shows a plain banner | S |
+| Search | No-results state with "Search all branches / All repositories" actions | done | `asc_search.tmpl` shows a plain banner | S |
 | Search | Not available (503) for meaning search with "Use Text search" and "Open storage settings" | ui-only-missing | `s_err_503` banner exists; add actions | S |
 | Search | Rate limited (429) keeps the query | done | `s_err_429` | S |
 | Search | Loading state | ui-only-missing | skeleton | S |

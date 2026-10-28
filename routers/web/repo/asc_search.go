@@ -136,7 +136,9 @@ type ascSearchChunk struct {
 	EndLine   uint32
 	Symbol    string
 	Score     string
-	Sources   []string
+	// ScorePct is the score as a percentage of the best score of the answer (0 to 100), for the relevance bar.
+	ScorePct int
+	Sources  []string
 	Text      string
 	Redacted  bool
 	Branches  []ascSearchBranch
@@ -674,6 +676,7 @@ func ascSearchSemantic(ctx gocontext.Context, api ascv1.CodeIntelClient, scope *
 		return ascSearchResult{}, ascSearchBad("too many chunks")
 	}
 	res := ascSearchResult{resolved: -1, model: ascSymbolsText([]byte(resp.GetModel()), ascSearchMaxLabel)}
+	scores := make([]float64, 0, len(chunks))
 	for _, c := range chunks {
 		path, ok := ascSymbolsPath(string(c.GetPath()))
 		if !ok || path == "" {
@@ -704,6 +707,10 @@ func ascSearchSemantic(ctx gocontext.Context, api ascv1.CodeIntelClient, scope *
 			ch.Text = ascSearchBlock(c.GetText())
 		}
 		res.chunks = append(res.chunks, ch)
+		scores = append(scores, c.GetScore())
+	}
+	for i, pct := range ascSearchRelative(scores) {
+		res.chunks[i].ScorePct = pct
 	}
 	if resp.GetScope() != nil {
 		if c, ok := ascSearchCoverageValue(resp.GetScope().GetCoverage()); ok {
@@ -768,4 +775,22 @@ func ascSearchCovComplete(cov []ascSearchCoverage) bool {
 		}
 	}
 	return len(cov) > 0
+}
+
+// ascSearchRelative turns scores into whole percentages of the best one. The scale of a score depends on the
+// ranking that made it, so the bar says how a hit compares with the best hit of the same answer. A best score that
+// is not positive gives 0 for every hit (nothing to compare with).
+func ascSearchRelative(scores []float64) []int {
+	out := make([]int, len(scores))
+	best := 0.0
+	for _, s := range scores {
+		best = math.Max(best, s)
+	}
+	if best <= 0 {
+		return out
+	}
+	for i, s := range scores {
+		out[i] = int(math.Round(math.Max(0, s) / best * 100))
+	}
+	return out
 }
