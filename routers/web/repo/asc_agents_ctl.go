@@ -33,7 +33,7 @@ type ascAgentsRunPlan struct {
 
 // ascAgentsLoadRunBoard fills what the run page shows besides the run itself: the runs rail, the requests, the plan,
 // the checkpoints. A failed read leaves its card out; the page still draws.
-func ascAgentsLoadRunBoard(ctx *context.Context, env *ascAgentsEnv, callCtx gocontext.Context, conn grpc.ClientConnInterface, run *ascv1.AgentRun) {
+func ascAgentsLoadRunBoard(ctx *context.Context, env *ascAgentsEnv, callCtx gocontext.Context, conn grpc.ClientConnInterface, run *ascv1.AgentRun, see bool) {
 	api := ascv1.NewAgentsClient(conn)
 	id := run.GetId()
 
@@ -49,6 +49,9 @@ func ascAgentsLoadRunBoard(ctx *context.Context, env *ascAgentsEnv, callCtx goco
 		log.Warn("asc agents: ListRuns for the rail failed: %s", ascagentuiLogLine(ascagentui.Classify(err)))
 	}
 
+	if !see {
+		return // the plan, the requests and the checkpoints are private to the creator and the administrators
+	}
 	if resp, err := api.ListRequests(callCtx, &ascv1.ListAgentRequestsRequest{Repo: env.ref(), RunId: id, Limit: 50}); err == nil {
 		reqs := ascagentui.Requests(resp.GetRequests())
 		var plan *ascAgentsRunPlan
@@ -273,6 +276,10 @@ func AscAgentsLog(ctx *context.Context) {
 	}
 	if _, ok := ascAgentRunOf(got.GetRun(), env.name, env.runsLink(), id); !ok {
 		ctx.NotFound("asc agent run", nil)
+		return
+	}
+	if !ascAgentsMaySeeRun(ctx, got.GetRun().GetCreatedBy()) {
+		ctx.Error(http.StatusForbidden) // the log holds what the agent read and wrote
 		return
 	}
 	resp, err := api.GetRunLog(callCtx, &ascv1.GetAgentRunLogRequest{Repo: env.ref(), Id: id})

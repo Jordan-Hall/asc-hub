@@ -48,6 +48,11 @@ Template Attributes:
 			<div class="rv-banner rv-banner-err{{if not .Error}} tw-hidden{{end}}" role="alert" data-run-failure>{{.Error}}</div>
 
 			<div class="rv-cols rv-cols-main-side rv-gap">
+				<section class="rv-card wf-flowcard" aria-label="{{ctx.Locale.Tr "asc_review.wf_flow"}}" data-testid="asc-wf-flow">
+					<ol class="wf-flow">
+						{{range $i, $s := .Steps}}<li class="wf-node wf-tone-{{$s.State.Tone}}{{if $s.State.Active}} is-active{{end}}" data-flow-step="{{$s.ID}}"><span class="wf-dot" aria-hidden="true"></span><code>{{$s.ID}}</code><span class="rv-sr"> {{$s.State.Label}}</span></li>{{end}}
+					</ol>
+				</section>
 				<section class="rv-card" aria-labelledby="rv-wfr-steps">
 					<div class="rv-card-h"><h2 id="rv-wfr-steps">{{ctx.Locale.Tr "asc_review.wf_steps"}}</h2></div>
 					<ol class="rv-steps" data-testid="asc-workflow-run-steps">

@@ -62,7 +62,7 @@ The text of the policy file and every text from asc was cleaned by services/asct
 				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_median"}}</div><div class="rv-stat-v">{{if .Median}}{{.Median}}{{else}}&mdash;{{end}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_median_d"}}</div></div>
 			</div>
 			<section class="rv-card rv-gap" aria-labelledby="asc-gate-days" data-testid="asc-gate-days">
-				<div class="rv-card-h"><h2 id="asc-gate-days">{{ctx.Locale.Tr "asc_review.gate_days"}}</h2></div>
+				<div class="rv-card-h"><h2 id="asc-gate-days">{{ctx.Locale.Tr "asc_review.gate_perday"}}</h2></div>
 				{{if .Days}}
 				<div class="sp-bars gt-bars" role="img" aria-label="{{ctx.Locale.Tr "asc_review.gate_days_alt"}}">{{range .Days}}<span class="gt-bar" title="{{.Day}}: {{.Checked}} / {{.Held}}"><i class="gt-c" style="height:{{if .CheckedPct}}{{.CheckedPct}}{{else}}2{{end}}%"></i><i class="gt-h" style="height:{{.HeldPct}}%"></i></span>{{end}}</div>
 				<details class="sp-table"><summary>{{ctx.Locale.Tr "asc_review.spend_table"}}</summary>
