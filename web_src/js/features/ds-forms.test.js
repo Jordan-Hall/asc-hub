@@ -36,3 +36,13 @@ test('the layout toggle shows, applies the saved layout and keeps a new choice',
   expect(document.querySelector('.l').classList.contains('is-grid')).toBe(false);
   expect(localStorage.getItem('asc-layout')).toBe('list');
 });
+
+test('password strength is a word from length and character kinds', async () => {
+  const {passwordStrength} = await import('./ds-forms.js');
+  expect(passwordStrength('abc')).toBe('short');
+  expect(passwordStrength('abcdefgh')).toBe('weak');
+  expect(passwordStrength('abcdefghijkl')).toBe('fair');
+  expect(passwordStrength('Abcdefgh1234')).toBe('fair');
+  expect(passwordStrength('correct horse battery staple')).toBe('fair');
+  expect(passwordStrength('Correct-Horse-Battery-7')).toBe('strong');
+});

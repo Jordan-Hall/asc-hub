@@ -54,7 +54,7 @@ Open rows by size: S 45, M 64, L 23.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Main | Hero: announcement pill, headline, lead, Download ASC / Create account / Sign in | done | `templates/home.tmpl` | - |
-| Main | Download ASC goes to `/download` and preselects the detected OS | ui-only-missing | Hero button is `href="#download"`, a section on the same page | S |
+| Main | Download ASC goes to `/download` and preselects the detected OS | done | Hero button is `href="#download"`, a section on the same page | S |
 | Main | Install method pills (Homebrew, Scoop, winget, curl, PowerShell, .deb .rpm) as a labelled group with `aria-pressed`; the command swaps; Copy raises a toast; "1 Install ASC / 2 Connect to this hub" cards | ui-only-missing | Hero has only the connect command. Data exists in `modules/ascdownload/offer.go` (`Command` list per OS). Add pills and swap script (`home.tmpl`, `asc-ui.js`, pattern of `initDownload`) | M |
 | Main | Product window in the hero (stack rail, change with intent, comment, whose turn) | ui-only-missing | No such markup in `home.tmpl`; static preview with a text equivalent | M |
 | Main | Works-with strip | done | `home.tmpl` `ds-land-strip` | - |

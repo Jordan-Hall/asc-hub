@@ -85,7 +85,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsPrivacy | Blocked people list, block by username, unblock | done | templates/user/settings/blocked_users.tmpl, routers/web/user/setting/blocked_users.go | - |
 | UserSettingsPrivacy | Block confirm dialog, 10 s undo on unblock; blocking also drops pending review requests (only follows are removed today) | needs-hub-backend | services/user/block.go, blocked_users.tmpl, toast component | S |
 | UserSettingsSecurity | Change password | done | templates/user/settings/account.tmpl (password lives on Account, not Security) | - |
-| UserSettingsSecurity | Password strength meter in words after 300 ms, show/hide buttons | ui-only-missing | account.tmpl + new JS | S |
+| UserSettingsSecurity | Password strength meter in words after 300 ms, show/hide buttons | done | account.tmpl + new JS | S |
 | UserSettingsSecurity | Two-factor enable/disable/re-enroll, passkeys (WebAuthn) add/delete | done | templates/user/settings/security/twofa.tmpl, webauthn.tmpl | - |
 | UserSettingsSecurity | Recovery codes: "8 of 10 unused", download as text file, shown once | needs-hub-backend | models/auth/twofactor.go (one scratch token only), security/twofa.tmpl | M |
 | UserSettingsSecurity | Signed-in devices list (browser, place, last active), Sign out one / everywhere else | needs-both | hub: per-user session registry (none today); asc: CLI/token sessions via a new authn session-list RPC | L |

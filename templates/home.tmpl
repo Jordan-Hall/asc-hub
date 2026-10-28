@@ -11,7 +11,7 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 			<p class="ds-land-lead">{{ctx.Locale.Tr "startpage.lead"}}</p>
 			{{if not .IsSigned}}
 				<div class="ds-land-actions">
-					{{if .AscDownload}}<a class="ds-btn ds-btn-accent" href="#download">{{ctx.Locale.Tr "asc_download.home_cta"}}</a>{{end}}
+					{{if .AscDownload}}<a class="ds-btn ds-btn-accent" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_download.home_cta"}}</a>{{end}}
 					{{if .ShowRegistrationButton}}
 						<a class="ds-btn {{if .AscDownload}}ds-btn-ondark-outline{{else}}ds-btn-accent{{end}}" href="{{AppSubUrl}}/user/sign_up">{{ctx.Locale.Tr "asc_shell.create_account"}}</a>
 					{{end}}
