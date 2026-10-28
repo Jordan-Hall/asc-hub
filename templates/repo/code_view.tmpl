@@ -1,4 +1,5 @@
 {{/* The file viewer and blame (board Code): folder rail, the file, and what is known about it. */}}
+{{$isAsc := eq .Repository.GetStorageBackend "asc"}}
 {{$n := len .TreeNames}}
 {{$dirLink := .BranchLink}}
 {{if gt $n 1}}{{$dirLink = print .BranchLink "/" (PathEscapeSegments (index .Paths (Eval $n "-" 2)))}}{{end}}
@@ -17,6 +18,7 @@
 					{{if .AscTreeCut}}<p class="rp-tree-hint">{{ctx.Locale.Tr "asc_rp.tree_cut"}}</p>{{end}}
 				{{end}}
 				<p class="rp-tree-hint"><a href="{{.BranchLink}}">{{.Repository.FullName}}</a></p>
+				<p class="rp-tree-hint">{{ctx.Locale.Tr "asc_rp.tree_keys_hint"}}</p>
 			</div>
 		</aside>
 		<div class="rp-codemain">
@@ -35,7 +37,7 @@
 				<div class="rp-codebar-acts">
 					<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.RawFileLink}}">{{ctx.Locale.Tr "repo.file_raw"}}</a>
 					{{if and .IsViewFile .Repository.CanEnableEditor}}
-						{{if .CanEditFile}}<a class="ds-btn ds-btn-primary ds-btn-sm" data-asc-key="e" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}" title="{{.EditFileTooltip}}">{{ctx.Locale.Tr "asc_rp.edit_file"}}</a>{{end}}
+						{{if .CanEditFile}}<a class="ds-btn ds-btn-primary ds-btn-sm" data-asc-key="e" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}" title="{{.EditFileTooltip}}">{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.propose_change"}} <kbd class="ds-kbd" aria-hidden="true">e</kbd>{{else}}{{ctx.Locale.Tr "asc_rp.edit_file"}}{{end}}</a>{{end}}
 					{{end}}
 					{{if .IsViewFile}}
 					<details class="dropdown rp-dd rp-fileops">
@@ -76,8 +78,8 @@
 			{{if and .IsViewFile .CanEditFile .Repository.CanEnableEditor}}
 			<div class="ds-banner rp-editnote">
 				{{svg "dsi-pencil" 18}}
-				<div class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_rp.edit_note_title"}}</b> {{ctx.Locale.Tr "asc_rp.edit_note_body" .BranchName}}</div>
-				<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}">{{ctx.Locale.Tr "asc_rp.edit_file"}}</a>
+				<div class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_rp.edit_note_title"}}</b> {{if $isAsc}}{{ctx.Locale.Tr "asc_rp.edit_note_body_asc" .BranchName}}{{else}}{{ctx.Locale.Tr "asc_rp.edit_note_body" .BranchName}}{{end}}</div>
+				<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}">{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.start_change"}}{{else}}{{ctx.Locale.Tr "asc_rp.edit_file"}}{{end}}</a>
 			</div>
 			{{end}}
 		</div>
