@@ -2902,3 +2902,7 @@ a.ds-stat:hover {
 .wk-verified {
   vertical-align: middle;
 }
+
+.wk-feedbar {
+  padding: 8px 16px 0;
+}
