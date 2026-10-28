@@ -382,7 +382,7 @@
   min-height: var(--touch);
 }
 
-.repository.view.issue .issue-content-right.ui.segment {
+.repository.view.issue .issue-content-right.ds-card {
   border-radius: var(--r-card);
 }
 

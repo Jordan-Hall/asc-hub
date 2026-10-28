@@ -26,24 +26,12 @@ type TestCollationTbl struct {
 func TestDatabaseCollationSelfCheckUI(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 
-	assertSelfCheckExists := func(exists bool) {
-		expectedHTTPResponse := http.StatusOK
-		if !exists {
-			expectedHTTPResponse = http.StatusNotFound
-		}
-		session := loginUser(t, "user1")
-		req := NewRequest(t, "GET", "/admin/self_check")
-		resp := session.MakeRequest(t, req, expectedHTTPResponse)
-		htmlDoc := NewHTMLParser(t, resp.Body)
-
-		htmlDoc.AssertElement(t, "a.item[href*='/admin/self_check']", exists)
-	}
-
-	if setting.Database.Type.IsMySQL() {
-		assertSelfCheckExists(true)
-	} else {
-		assertSelfCheckExists(false)
-	}
+	// The health page holds the self check and the runtime figures, so it exists on every database and the
+	// administration menu always links it.
+	session := loginUser(t, "user1")
+	resp := session.MakeRequest(t, NewRequest(t, "GET", "/admin/self_check"), http.StatusOK)
+	htmlDoc := NewHTMLParser(t, resp.Body)
+	htmlDoc.AssertElement(t, "a[href*='/admin/self_check']", true)
 }
 
 func TestDatabaseCollation(t *testing.T) {

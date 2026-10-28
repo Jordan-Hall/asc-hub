@@ -22,17 +22,17 @@ func TestExploreOrg(t *testing.T) {
 	defer test.MockVariableValue(&setting.UI.ExploreDefaultSort, "alphabetically")()
 
 	cases := []struct{ sortOrder, expected string }{
-		{"", "?sort=" + setting.UI.ExploreDefaultSort + "&q="},
-		{"newest", "?sort=newest&q="},
-		{"oldest", "?sort=oldest&q="},
-		{"alphabetically", "?sort=alphabetically&q="},
-		{"reversealphabetically", "?sort=reversealphabetically&q="},
+		{"", setting.UI.ExploreDefaultSort},
+		{"newest", "newest"},
+		{"oldest", "oldest"},
+		{"alphabetically", "alphabetically"},
+		{"reversealphabetically", "reversealphabetically"},
 	}
 	for _, c := range cases {
 		req := NewRequest(t, "GET", "/explore/organizations?sort="+c.sortOrder)
 		resp := MakeRequest(t, req, http.StatusOK)
 		h := NewHTMLParser(t, resp.Body)
-		href, _ := h.Find(`.list-header details.dropdown > .content > ul > li > a.active[href^="?sort="]`).Attr("href")
+		href, _ := h.Find(`select[name="sort"] option[selected]`).Attr("value")
 		assert.Equal(t, c.expected, href)
 	}
 

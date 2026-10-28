@@ -264,7 +264,7 @@
   border-inline: 0;
 }
 
-.asc-review-page .issue-content-right.ui.segment {
+.asc-review-page .issue-content-right.ds-card {
   border: 1px solid var(--color-secondary);
   border-radius: 10px;
   background: var(--color-box-body);
@@ -379,7 +379,7 @@
   }
 }
 
-.asc-review-page.compare .pullrequest-form .ui.segment.content {
+.asc-review-page.compare .pullrequest-form .ds-card.content {
   border: 1px solid var(--color-secondary);
   border-radius: 10px;
   padding: 20px;
@@ -397,14 +397,14 @@
   display: none;
 }
 
-.asc-review-page.compare .pullrequest-form .ui.primary.button {
+.asc-review-page.compare .pullrequest-form .ds-btn-primary {
   min-height: 44px;
   border-radius: 8px;
   font-weight: 600;
   padding-inline: 22px;
 }
 
-.asc-review-page.compare .pullrequest-form .ui.comments .comment > .content,
+.asc-review-page.compare .pullrequest-form .rp-newform-main .comment > .content,
 .asc-review-page.compare .pullrequest-form .comment.form .issue-content-left .content {
   margin-inline-start: 0;
 }

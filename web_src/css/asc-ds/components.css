@@ -2484,3 +2484,14 @@ a.ds-stat:hover {
   padding-inline-start: 0 !important;
   margin-inline-start: 0 !important;
 }
+
+/* file drop area of the legacy upload script, in a design-system page */
+.ds-main .ui.dropzone {
+  min-height: 96px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r-row);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+

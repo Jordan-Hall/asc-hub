@@ -36,7 +36,7 @@ func TestDemoErrorPages(t *testing.T) {
 		req := NewRequest(t, "GET", "/-/demo/error/500")
 		resp := MakeRequest(t, req, http.StatusInternalServerError)
 		doc := NewHTMLParser(t, resp.Body)
-		assert.Equal(t, "500", doc.Find(".error-code").Text())
+		assert.Equal(t, "500", doc.Find(".st-code").Text())
 		assert.Contains(t, doc.Find("head title").Text(), "Internal server error")
 	})
 
@@ -47,7 +47,7 @@ func TestDemoErrorPages(t *testing.T) {
 				SetHeader("Accept", "text/html")
 			resp := MakeRequest(t, req, http.StatusNotFound)
 			doc := NewHTMLParser(t, resp.Body)
-			assert.Equal(t, "404", doc.Find(".error-code").Text())
+			assert.Equal(t, "404", doc.Find(".st-code").Text())
 			assert.Contains(t, doc.Find("head title").Text(), "Page not found")
 		})
 
@@ -56,6 +56,6 @@ func TestDemoErrorPages(t *testing.T) {
 			req := NewRequest(t, "GET", "/-/demo/error/413")
 			resp := MakeRequest(t, req, http.StatusRequestEntityTooLarge)
 			doc := NewHTMLParser(t, resp.Body)
-			assert.Equal(t, "413", doc.Find(".error-code").Text())
+			assert.Equal(t, "413", doc.Find(".st-code").Text())
 		})
 }
