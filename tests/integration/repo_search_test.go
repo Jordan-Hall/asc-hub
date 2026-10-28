@@ -35,7 +35,7 @@ func resultFilenames(t testing.TB, doc *HTMLDoc) []string {
 		assert.Positive(t, selection.Find("div ol li").Length(), 0)
 		assert.Positive(t, selection.Find(".code-inner").Find(".search-highlight").Length(), 0)
 		result[i] = selection.
-			Find(".header").
+			Find(".ds-card-top").
 			Find("span.file a.file-link").
 			First().
 			Text()
