@@ -1,90 +1,85 @@
-{{if and $.CanWriteProjects (not $.Repository.IsArchived)}}
-	<div class="tw-flex tw-justify-between tw-mb-4 tw-gap-2">
-		<div class="switch list-header-toggle">
-			<a class="item{{if not .IsShowClosed}} active{{end}}" href="?state=open&q={{$.Keyword}}">
-				{{svg "octicon-project-symlink" 16}}
-				{{ctx.Locale.PrettyNumber .OpenCount}}&nbsp;{{ctx.Locale.Tr "repo.issues.open_title"}}
-			</a>
-			<a class="item{{if .IsShowClosed}} active{{end}}" href="?state=closed&q={{$.Keyword}}">
-				{{svg "octicon-check" 16}}
-				{{ctx.Locale.PrettyNumber .ClosedCount}}&nbsp;{{ctx.Locale.Tr "repo.issues.closed_title"}}
-			</a>
+{{/* The projects of a repository, an organization or a person. Shared by repo/projects/list and org/projects/list. */}}
+{{$canWrite := and $.CanWriteProjects (or (not $.Repository) (not $.Repository.IsArchived))}}
+<div class="wk-projects">
+	{{template "base/alert" .}}
+	<div class="wk-head">
+		<div class="wk-head-text">
+			<h1 class="ds-t-h1 wk-title">{{ctx.Locale.Tr "repo.projects"}}</h1>
+			<p class="ds-c-2 wk-sub">{{ctx.Locale.Tr "asc_work.pj_lead"}}</p>
 		</div>
-		<a class="primary button" href="{{$.Link}}/new">{{ctx.Locale.Tr "repo.projects.new"}}</a>
+		{{if $canWrite}}
+			<div class="wk-head-btns"><a class="ds-btn ds-btn-primary" href="{{$.Link}}/new">{{ctx.Locale.Tr "repo.projects.new"}}</a></div>
+		{{end}}
 	</div>
-{{end}}
 
-{{template "base/alert" .}}
-
-<div class="list-header">
-	<!-- Search -->
-	<form class="list-header-search ui form ignore-dirty">
+	<form class="list-header-search ui form ignore-dirty wk-search" role="search">
 		<input type="hidden" name="state" value="{{$.State}}">
 		{{template "shared/search/combo" dict "Value" .Keyword "Placeholder" (ctx.Locale.Tr "search.project_kind")}}
 	</form>
-	<!-- Sort -->
-	<div class="ui secondary menu tw-mt-0">
-		<div class="list-header-sort ui dropdown type jump item">
-		<span class="text">
-			{{ctx.Locale.Tr "repo.issues.filter_sort"}}
-		</span>
-		{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-		<div class="menu">
-			<a class="{{if eq .SortType "oldest"}}active {{end}}item" href="?q={{$.Keyword}}&sort=oldest&state={{$.State}}">{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</a>
-			<a class="{{if eq .SortType "recentupdate"}}active {{end}}item" href="?q={{$.Keyword}}&sort=recentupdate&state={{$.State}}">{{ctx.Locale.Tr "repo.issues.filter_sort.recentupdate"}}</a>
-			<a class="{{if eq .SortType "leastupdate"}}active {{end}}item" href="?q={{$.Keyword}}&sort=leastupdate&state={{$.State}}">{{ctx.Locale.Tr "repo.issues.filter_sort.leastupdate"}}</a>
+
+	<div class="wk-toolbar">
+		<div class="ds-scrollx wk-states" role="group" aria-label="{{ctx.Locale.Tr "asc_work.is_state"}}">
+			<a class="ds-chip-btn{{if not .IsShowClosed}} is-on{{end}}" {{if not .IsShowClosed}}aria-current="true"{{end}} href="?state=open&q={{$.Keyword}}">{{ctx.Locale.PrettyNumber .OpenCount}}&nbsp;{{ctx.Locale.Tr "repo.issues.open_title"}}</a>
+			<a class="ds-chip-btn{{if .IsShowClosed}} is-on{{end}}" {{if .IsShowClosed}}aria-current="true"{{end}} href="?state=closed&q={{$.Keyword}}">{{ctx.Locale.PrettyNumber .ClosedCount}}&nbsp;{{ctx.Locale.Tr "repo.issues.closed_title"}}</a>
+		</div>
+		<div class="issue-list-toolbar-right">
+			<div class="ui secondary filter menu">
+				<div class="list-header-sort ui dropdown type jump item">
+					<span class="text">{{ctx.Locale.Tr "repo.issues.filter_sort"}}</span>
+					{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+					<div class="menu">
+						<a class="{{if eq .SortType "oldest"}}active {{end}}item" href="?q={{$.Keyword}}&sort=oldest&state={{$.State}}">{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</a>
+						<a class="{{if eq .SortType "recentupdate"}}active {{end}}item" href="?q={{$.Keyword}}&sort=recentupdate&state={{$.State}}">{{ctx.Locale.Tr "repo.issues.filter_sort.recentupdate"}}</a>
+						<a class="{{if eq .SortType "leastupdate"}}active {{end}}item" href="?q={{$.Keyword}}&sort=leastupdate&state={{$.State}}">{{ctx.Locale.Tr "repo.issues.filter_sort.leastupdate"}}</a>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
-	</div>
-</div>
 
-<div class="milestone-list">
-	{{range .Projects}}
-		<li class="milestone-card">
-			<div class="milestone-header">
-				<h3>
-					{{svg .IconName 16}}
-					<a class="muted tw-break-anywhere" href="{{.Link ctx}}">{{.Title}}</a>
-				</h3>
-			</div>
-			<div class="milestone-toolbar">
-				<div class="group">
-					<div class="flex-text-block">
-						{{svg "octicon-issue-opened" 14}}
-						{{ctx.Locale.PrettyNumber (index $.NumOpenIssuesInProject .ID)}}&nbsp;{{ctx.Locale.Tr "repo.issues.open_title"}}
+	{{if .Projects}}
+	<ul class="ds-list wk-project-list">
+		{{range .Projects}}
+			<li class="ds-li wk-row">
+				<span class="ds-li-av" aria-hidden="true">{{svg .IconName 20}}</span>
+				<div class="ds-li-main">
+					<div class="ds-li-title"><a class="tw-break-anywhere" href="{{.Link ctx}}">{{.Title}}</a>
+						{{if .IsClosed}}<span class="ds-chip">{{ctx.Locale.Tr "repo.issues.closed_title"}}</span>{{end}}
 					</div>
-					<div class="flex-text-block">
-						{{svg "octicon-check" 14}}
-						{{ctx.Locale.PrettyNumber (index $.NumClosedIssuesInProject .ID)}}&nbsp;{{ctx.Locale.Tr "repo.issues.closed_title"}}
+					<div class="ds-li-meta">
+						<span>{{ctx.Locale.PrettyNumber (index $.NumOpenIssuesInProject .ID)}}&nbsp;{{ctx.Locale.Tr "repo.issues.open_title"}}</span>
+						<span>{{ctx.Locale.PrettyNumber (index $.NumClosedIssuesInProject .ID)}}&nbsp;{{ctx.Locale.Tr "repo.issues.closed_title"}}</span>
 					</div>
+					{{if .Description}}<div class="content markup ds-li-sub">{{.RenderedContent}}</div>{{end}}
 				</div>
-				{{if and $.CanWriteProjects (not $.Repository.IsArchived)}}
-				<div class="group">
-					<a class="flex-text-inline" href="{{.Link ctx}}/edit">{{svg "octicon-pencil" 14}}{{ctx.Locale.Tr "repo.issues.label_edit"}}</a>
+				{{if $canWrite}}
+				<div class="wk-row-acts">
+					<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Link ctx}}/edit">{{ctx.Locale.Tr "repo.issues.label_edit"}}</a>
 					{{if .IsClosed}}
-						<a class="link-action flex-text-inline" href data-url="{{.Link ctx}}/open">{{svg "octicon-check" 14}}{{ctx.Locale.Tr "repo.projects.open"}}</a>
+						<a class="ds-btn ds-btn-secondary ds-btn-sm link-action" href data-url="{{.Link ctx}}/open">{{ctx.Locale.Tr "repo.projects.open"}}</a>
 					{{else}}
-						<a class="link-action flex-text-inline" href data-url="{{.Link ctx}}/close">{{svg "octicon-skip" 14}}{{ctx.Locale.Tr "repo.projects.close"}}</a>
+						<a class="ds-btn ds-btn-secondary ds-btn-sm link-action" href data-url="{{.Link ctx}}/close">{{ctx.Locale.Tr "repo.projects.close"}}</a>
 					{{end}}
-					<a class="delete-button flex-text-inline" href="#" data-url="{{.Link ctx}}/delete" data-modal-id="delete-project">{{svg "octicon-trash" 14}}{{ctx.Locale.Tr "repo.issues.label_delete"}}</a>
+					<a class="ds-btn ds-btn-danger ds-btn-sm delete-button" href="#" data-url="{{.Link ctx}}/delete" data-modal-id="delete-project">{{ctx.Locale.Tr "repo.issues.label_delete"}}</a>
 				</div>
 				{{end}}
-			</div>
-			{{if .Description}}
-			<div class="content markup">
-				{{.RenderedContent}}
-			</div>
-			{{end}}
-		</li>
+			</li>
+		{{end}}
+	</ul>
+	{{else}}
+		{{if $canWrite}}
+			{{template "shared/ds/empty" (dict "Icon" "layers" "Title" (ctx.Locale.Tr "asc_work.pj_empty") "Body" (ctx.Locale.Tr "asc_work.pj_empty_body") "PrimaryHref" (print $.Link "/new") "PrimaryLabel" (ctx.Locale.Tr "repo.projects.new"))}}
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "layers" "Title" (ctx.Locale.Tr "asc_work.pj_empty"))}}
+		{{end}}
 	{{end}}
-
 	{{template "base/paginate" .}}
 </div>
 
-{{if and $.CanWriteProjects (not $.Repository.IsArchived)}}
+{{if $canWrite}}
 <div class="ui g-modal-confirm delete modal" id="delete-project">
 	<div class="header">
-		{{svg "octicon-trash"}}
+		{{svg "dsi-trash" 16}}
 		{{ctx.Locale.Tr "repo.projects.deletion"}}
 	</div>
 	<div class="content">
