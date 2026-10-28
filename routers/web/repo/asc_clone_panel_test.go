@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// The clone panel of an asc repository offers the asc command, and the git command only while the git
-// bridge exists (docs/asc/ASC-NATIVE-UI.md).
+// The git compatibility note of an asc repository (board GitNote) is one collapsed disclosure with the git
+// command, and it exists only while the git bridge does (docs/asc/ASC-NATIVE-UI.md).
 func TestAscClonePanel(t *testing.T) {
 	render := func(t *testing.T, gitAccess bool) string {
 		t.Helper()
@@ -28,18 +28,16 @@ func TestAscClonePanel(t *testing.T) {
 		return resp.Body.String()
 	}
 
-	t.Run("the bridge is on: both commands", func(t *testing.T) {
+	t.Run("the bridge is on: a collapsed note with the git command", func(t *testing.T) {
 		html := render(t, true)
-		assert.Contains(t, html, `asc clone <span class="js-clone-url">https://hub.example/o/r.git</span>`)
+		assert.Contains(t, html, `<details class="asc-git-compat`)
+		assert.NotContains(t, html, `<details class="asc-git-compat" open`)
 		assert.Contains(t, html, `git clone <span class="js-clone-url">https://hub.example/o/r.git</span>`)
-		assert.Contains(t, html, `data-tab="asc-clone-with-git"`)
 	})
 
-	t.Run("the bridge is off: the asc command only", func(t *testing.T) {
+	t.Run("the bridge is off: no git command", func(t *testing.T) {
 		html := render(t, false)
-		assert.Contains(t, html, `asc clone <span class="js-clone-url">`)
 		assert.NotContains(t, html, "git clone")
-		assert.NotContains(t, html, `data-tab="asc-clone-with-git"`)
-		assert.NotContains(t, html, `tabular menu`, "one command needs no tabs")
+		assert.NotContains(t, html, "asc-git-compat")
 	})
 }
