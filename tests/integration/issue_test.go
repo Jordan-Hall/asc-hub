@@ -44,7 +44,7 @@ import (
 func getIssuesSelection(t testing.TB, htmlDoc *HTMLDoc) *goquery.Selection {
 	issueList := htmlDoc.doc.Find("#issue-list")
 	assert.Equal(t, 1, issueList.Length())
-	return issueList.Find(".flex-item").Find(".issue-title")
+	return issueList.Find(".wk-issue").Find(".issue-title")
 }
 
 func getIssue(t *testing.T, repoID int64, issueSelection *goquery.Selection) *issues_model.Issue {
@@ -142,7 +142,7 @@ func TestViewIssuesSortByUpdatedTime(t *testing.T) {
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
 		issueList := htmlDoc.doc.Find("#issue-list")
-		updatedText := issueList.Find(".flex-item-body").First().Text()
+		updatedText := issueList.Find(".issue-meta").First().Text()
 		assert.Contains(t, updatedText, "updated")
 
 		historyIcon := issueList.Find(".octicon-history")

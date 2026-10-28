@@ -126,9 +126,9 @@ func testPullRequestIcon(t *testing.T, session *TestSession, pr *issues_model.Pu
 }
 
 func testPullRequestListIcon(t *testing.T, doc *HTMLDoc, name, expectedColor, expectedIcon string) {
-	sel := doc.doc.Find("div#issue-list > div.flex-item").
+	sel := doc.doc.Find("ul#issue-list > li.wk-issue").
 		FilterFunction(func(_ int, selection *goquery.Selection) bool {
-			return selection.Find(fmt.Sprintf(`div.flex-item-icon > svg.%s.%s`, expectedColor, expectedIcon)).Length() == 1 &&
+			return selection.Find(fmt.Sprintf(`.wk-issue-icon > svg.%s.%s`, expectedColor, expectedIcon)).Length() == 1 &&
 				strings.HasSuffix(selection.Find("a.issue-title").Text(), name)
 		})
 

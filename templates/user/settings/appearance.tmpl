@@ -7,9 +7,10 @@
 		<section class="ds-card" aria-labelledby="sp-theme">
 			<div class="ds-card-h"><h2 id="sp-theme">{{ctx.Locale.Tr "settings.manage_themes"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.theme_desc"}}</span></div>
 			<div class="ds-card-b ds-stack-16">
+				{{$currentTheme := ThemeName $.SignedUser}}
 				<div class="wk-radio-cards wk-cols-3 wk-theme-cards" role="group" aria-label="{{ctx.Locale.Tr "settings.ui"}}">
-					{{range $i, $a := .AllThemes}}{{if or (StringUtils.HasPrefix $a "asc-") (eq $.SignedUser.Theme $a)}}
-						<button type="submit" name="theme" value="{{$a}}" class="wk-radio-card wk-theme-card wk-pressed-card" aria-pressed="{{if eq $.SignedUser.Theme $a}}true{{else}}false{{end}}"{{if eq $a "asc-light"}} data-ds-theme-set="light"{{else if eq $a "asc-dark"}} data-ds-theme-set="dark"{{else if eq $a "asc-auto"}} data-ds-theme-set="system"{{end}}>
+					{{range $i, $a := .AllThemes}}{{if or (StringUtils.HasPrefix $a "asc-") (eq $currentTheme $a)}}
+						<button type="submit" name="theme" value="{{$a}}" class="wk-radio-card wk-theme-card wk-pressed-card" aria-pressed="{{if eq $currentTheme $a}}true{{else}}false{{end}}"{{if eq $a "asc-light"}} data-ds-theme-set="light"{{else if eq $a "asc-dark"}} data-ds-theme-set="dark"{{else if eq $a "asc-auto"}} data-ds-theme-set="system"{{end}}>
 							<span class="wk-theme-body">
 								{{if eq $a "asc-light"}}<span class="wk-theme-prev is-light" aria-hidden="true"><i></i><i></i></span>
 								{{else if eq $a "asc-dark"}}<span class="wk-theme-prev is-dark" aria-hidden="true"><i></i><i></i></span>

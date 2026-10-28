@@ -60,11 +60,11 @@ func testSelectedTheme(t *testing.T, session *TestSession, expectedTheme, expect
 	assert.True(t, dataThemeExists)
 	assert.Equal(t, expectedTheme, dataTheme)
 
-	selectedTheme := page.Find("form[action='/user/settings/appearance/theme'] .menu .item.selected")
-	selectorTheme, selectorThemeExists := selectedTheme.Attr("data-value")
+	selectedTheme := page.Find("form[action='/user/settings/appearance/theme'] button[name='theme'][aria-pressed='true']")
+	selectorTheme, selectorThemeExists := selectedTheme.Attr("value")
 	assert.True(t, selectorThemeExists)
 	assert.Equal(t, expectedTheme, selectorTheme)
-	assert.Equal(t, expectedName, strings.TrimSpace(selectedTheme.Text()))
+	assert.Contains(t, strings.TrimSpace(selectedTheme.Text()), expectedName)
 
 	if expectedErr != "" {
 		errMsg := strings.TrimSpace(page.Find("#flash-message").Text())
