@@ -663,47 +663,47 @@
 
 /* Mobile-Landing: on a phone in a light theme the hero is the page colour (board Mobile-Landing); desktop and dark keep the navy hero */
 @media (max-width: 767px) {
-  :root[data-theme*="light"] .ds-app .ds-land-hero { background: var(--bg); color: var(--text); text-align: start; }
-  :root[data-theme*="light"] .ds-app .ds-land-pill { border-color: var(--line); background: var(--surface); color: var(--text-2); }
-  :root[data-theme*="light"] .ds-app .ds-land-title { color: var(--text); margin-inline: 0; }
-  :root[data-theme*="light"] .ds-app .ds-land-lead { color: var(--text-2); margin-inline: 0; }
-  :root[data-theme*="light"] .ds-app .ds-land-actions { margin-inline: 0; max-width: none; }
-  :root[data-theme*="light"] .ds-app .ds-land-actions .ds-btn-accent { background: var(--fill); color: var(--on-fill); }
-  :root[data-theme*="light"] .ds-app .ds-land-actions .ds-btn-ondark-outline { border-color: var(--line-strong, var(--line)); background: var(--surface); color: var(--text); }
-  :root[data-theme*="light"] .ds-app .ds-install-pill { border-color: var(--line); background: var(--surface); color: var(--text); }
-  :root[data-theme*="light"] .ds-app .ds-install-pill[aria-pressed="true"] { border-color: var(--fill); background: var(--fill); color: var(--on-fill); }
-  :root[data-theme*="light"] .ds-app .ds-install-card { border-color: transparent; background: transparent; padding: 0; }
-  :root[data-theme*="light"] .ds-app .ds-install-step { color: var(--text-2); }
-  :root[data-theme*="light"] .ds-app .ds-install-step b { color: var(--text); }
-  :root[data-theme*="light"] .ds-app .ds-install-ok { color: var(--ok-text, #047857); }
-  :root[data-theme*="light"] .ds-app .ds-land-meta { color: var(--text-2); text-align: start; }
+  :root[data-theme*="light"] .ds-app .ds-land-home { background: var(--bg); color: var(--text); text-align: start; }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-land-pill { border-color: var(--line); background: var(--surface); color: var(--text-2); }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-land-title { color: var(--text); margin-inline: 0; }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-land-lead { color: var(--text-2); margin-inline: 0; }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-land-actions { margin-inline: 0; max-width: none; }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-land-actions .ds-btn-accent { background: var(--fill); color: var(--on-fill); }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-land-actions .ds-btn-ondark-outline { border-color: var(--line-strong, var(--line)); background: var(--surface); color: var(--text); }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-install-pill { border-color: var(--line); background: var(--surface); color: var(--text); }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-install-pill[aria-pressed="true"] { border-color: var(--fill); background: var(--fill); color: var(--on-fill); }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-install-card { border-color: transparent; background: transparent; padding: 0; }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-install-step { color: var(--text-2); }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-install-step b { color: var(--text); }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-install-ok { color: var(--ok-text, #047857); }
+  :root[data-theme*="light"] .ds-app .ds-land-home .ds-land-meta { color: var(--text-2); text-align: start; }
   :root[data-theme*="light"] .ds-app .ds-land-sticky { background: var(--surface); border-top-color: var(--line); }
   :root[data-theme*="light"] .ds-app .ds-land-sticky .ds-btn-accent { background: var(--fill); color: var(--on-fill); }
   :root[data-theme*="light"] .ds-app .ds-land-sticky .ds-btn-ondark-outline { border-color: var(--line); background: var(--surface); color: var(--text); }
 }
 
 @media (max-width: 767px) and (prefers-color-scheme: light) {
-  :root[data-theme*="auto"] .ds-app .ds-land-hero { background: var(--bg); color: var(--text); text-align: start; }
-  :root[data-theme*="auto"] .ds-app .ds-land-pill { border-color: var(--line); background: var(--surface); color: var(--text-2); }
-  :root[data-theme*="auto"] .ds-app .ds-land-title { color: var(--text); margin-inline: 0; }
-  :root[data-theme*="auto"] .ds-app .ds-land-lead { color: var(--text-2); margin-inline: 0; }
-  :root[data-theme*="auto"] .ds-app .ds-land-actions { margin-inline: 0; max-width: none; }
-  :root[data-theme*="auto"] .ds-app .ds-land-actions .ds-btn-accent { background: var(--fill); color: var(--on-fill); }
-  :root[data-theme*="auto"] .ds-app .ds-land-actions .ds-btn-ondark-outline { border-color: var(--line-strong, var(--line)); background: var(--surface); color: var(--text); }
-  :root[data-theme*="auto"] .ds-app .ds-install-pill { border-color: var(--line); background: var(--surface); color: var(--text); }
-  :root[data-theme*="auto"] .ds-app .ds-install-pill[aria-pressed="true"] { border-color: var(--fill); background: var(--fill); color: var(--on-fill); }
-  :root[data-theme*="auto"] .ds-app .ds-install-card { border-color: transparent; background: transparent; padding: 0; }
-  :root[data-theme*="auto"] .ds-app .ds-install-step { color: var(--text-2); }
-  :root[data-theme*="auto"] .ds-app .ds-install-step b { color: var(--text); }
-  :root[data-theme*="auto"] .ds-app .ds-install-ok { color: var(--ok-text, #047857); }
-  :root[data-theme*="auto"] .ds-app .ds-land-meta { color: var(--text-2); text-align: start; }
+  :root[data-theme*="auto"] .ds-app .ds-land-home { background: var(--bg); color: var(--text); text-align: start; }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-land-pill { border-color: var(--line); background: var(--surface); color: var(--text-2); }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-land-title { color: var(--text); margin-inline: 0; }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-land-lead { color: var(--text-2); margin-inline: 0; }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-land-actions { margin-inline: 0; max-width: none; }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-land-actions .ds-btn-accent { background: var(--fill); color: var(--on-fill); }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-land-actions .ds-btn-ondark-outline { border-color: var(--line-strong, var(--line)); background: var(--surface); color: var(--text); }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-install-pill { border-color: var(--line); background: var(--surface); color: var(--text); }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-install-pill[aria-pressed="true"] { border-color: var(--fill); background: var(--fill); color: var(--on-fill); }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-install-card { border-color: transparent; background: transparent; padding: 0; }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-install-step { color: var(--text-2); }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-install-step b { color: var(--text); }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-install-ok { color: var(--ok-text, #047857); }
+  :root[data-theme*="auto"] .ds-app .ds-land-home .ds-land-meta { color: var(--text-2); text-align: start; }
   :root[data-theme*="auto"] .ds-app .ds-land-sticky { background: var(--surface); border-top-color: var(--line); }
   :root[data-theme*="auto"] .ds-app .ds-land-sticky .ds-btn-accent { background: var(--fill); color: var(--on-fill); }
   :root[data-theme*="auto"] .ds-app .ds-land-sticky .ds-btn-ondark-outline { border-color: var(--line); background: var(--surface); color: var(--text); }
 }
 
 @media (max-width: 767px) {
-  .ds-app .ds-land-title {
+  .ds-app .ds-land-home .ds-land-title {
     max-width: none;
     font-size: 34px;
   }

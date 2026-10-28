@@ -6,6 +6,7 @@ package explore
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
@@ -79,6 +80,7 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 
 	language := ctx.FormTrim("language")
 	ctx.Data["Language"] = language
+	ctx.Data["ExploreLanguages"] = exploreLanguages(ctx, language)
 
 	archived := ctx.FormOptionalBool("archived")
 	ctx.Data["IsArchived"] = archived
@@ -192,4 +194,20 @@ func Repos(ctx *context.Context) {
 		TplName:          tplExploreRepos,
 		OnlyShowRelevant: onlyShowRelevant,
 	})
+}
+
+// exploreLanguages lists the primary languages of public repositories for the Language filter, with the language the
+// visitor already chose kept in the list. At most 60 names; the names of languages only used by private repositories
+// are not listed.
+func exploreLanguages(ctx *context.Context, chosen string) []string {
+	var names []string
+	err := db.GetEngine(ctx).SQL("SELECT DISTINCT ls.language FROM language_stat ls JOIN repository r ON r.id = ls.repo_id WHERE ls.is_primary = ? AND ls.language != ? AND r.is_private = ? ORDER BY ls.language LIMIT 60", true, "other", false).Find(&names)
+	if err != nil {
+		log.Error("listing the languages of the explore filter: %v", err)
+		return nil
+	}
+	if chosen != "" && !slices.Contains(names, chosen) {
+		names = append(names, chosen)
+	}
+	return names
 }
