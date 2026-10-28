@@ -44,7 +44,7 @@ func TestTranslatePreExecutionWarning(t *testing.T) {
 					{"job1", "https://forgejo.org/docs/latest/user/authorized-integrations/"},
 				},
 			},
-			expected: []template.HTML{"Job <code>job1</code> or its workflow has a <code>permissions</code> field, which is not supported in Forgejo and will be ignored. Use <a href=\"https://forgejo.org/docs/latest/user/authorized-integrations/\">Authorized Integrations</a> to grant capabilities to this job instead."},
+			expected: []template.HTML{"Job <code>job1</code> or its workflow has a <code>permissions</code> field. This run was created before ASC Hub enforced <code>permissions</code>, so the field was ignored for it. Use <a href=\"https://forgejo.org/docs/latest/user/authorized-integrations/\">Authorized Integrations</a> to grant capabilities to this job instead."},
 		},
 		{
 			name: "WarningCodePermissionsEncoding",
@@ -55,7 +55,7 @@ func TestTranslatePreExecutionWarning(t *testing.T) {
 					{"<img src=x onerror=alert(document.domain)>", "https://forgejo.org/docs/latest/user/authorized-integrations/"},
 				},
 			},
-			expected: []template.HTML{"Job <code>&lt;img src=x onerror=alert(document.domain)&gt;</code> or its workflow has a <code>permissions</code> field, which is not supported in Forgejo and will be ignored. Use <a href=\"https://forgejo.org/docs/latest/user/authorized-integrations/\">Authorized Integrations</a> to grant capabilities to this job instead."},
+			expected: []template.HTML{"Job <code>&lt;img src=x onerror=alert(document.domain)&gt;</code> or its workflow has a <code>permissions</code> field. This run was created before ASC Hub enforced <code>permissions</code>, so the field was ignored for it. Use <a href=\"https://forgejo.org/docs/latest/user/authorized-integrations/\">Authorized Integrations</a> to grant capabilities to this job instead."},
 		},
 		{
 			name: "MultipleWarnings",
@@ -67,8 +67,8 @@ func TestTranslatePreExecutionWarning(t *testing.T) {
 				},
 			},
 			expected: []template.HTML{
-				"Job <code>job1</code> or its workflow has a <code>permissions</code> field, which is not supported in Forgejo and will be ignored. Use <a href=\"https://forgejo.org/docs/latest/user/authorized-integrations/\">Authorized Integrations</a> to grant capabilities to this job instead.",
-				"Job <code>job4</code> or its workflow has a <code>permissions</code> field, which is not supported in Forgejo and will be ignored. Use <a href=\"https://forgejo.org/docs/latest/user/authorized-integrations/\">Authorized Integrations</a> to grant capabilities to this job instead.",
+				"Job <code>job1</code> or its workflow has a <code>permissions</code> field. This run was created before ASC Hub enforced <code>permissions</code>, so the field was ignored for it. Use <a href=\"https://forgejo.org/docs/latest/user/authorized-integrations/\">Authorized Integrations</a> to grant capabilities to this job instead.",
+				"Job <code>job4</code> or its workflow has a <code>permissions</code> field. This run was created before ASC Hub enforced <code>permissions</code>, so the field was ignored for it. Use <a href=\"https://forgejo.org/docs/latest/user/authorized-integrations/\">Authorized Integrations</a> to grant capabilities to this job instead.",
 			},
 		},
 	}
