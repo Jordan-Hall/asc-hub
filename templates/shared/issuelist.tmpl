@@ -152,7 +152,7 @@ Props: Issues, listType ("repo", "milestone", "dashboard"), the page data of the
 		</li>
 	{{else}}
 		<li class="ds-li wk-issue-none">
-			{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "repo.issues.filter_no_results") "Body" (ctx.Locale.Tr "repo.issues.filter_no_results_placeholder"))}}
+			{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "repo.issues.filter_no_results") "Body" (ctx.Locale.Tr "repo.issues.filter_no_results_placeholder") "SecondaryHref" $.Link "SecondaryLabel" (ctx.Locale.Tr "asc_admin.clear_filters"))}}
 		</li>
 	{{end}}
 	{{if .IssueIndexerUnavailable}}

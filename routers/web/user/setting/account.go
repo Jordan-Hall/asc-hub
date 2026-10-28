@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"forgejo.org/models"
+	auth_model "forgejo.org/models/auth"
+	models_db "forgejo.org/models/db"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/auth/password"
 	"forgejo.org/modules/base"
@@ -40,6 +42,7 @@ func Account(ctx *context.Context) {
 	ctx.Data["EnableNotifyMail"] = setting.Service.EnableNotifyMail
 
 	loadAccountData(ctx)
+	loadSignInMethods(ctx)
 
 	ctx.HTML(http.StatusOK, tplSettingsAccount)
 }
@@ -356,4 +359,21 @@ func loadAccountData(ctx *context.Context) {
 		ctx.Data["UserDeleteWithCommentsMaxTime"] = setting.Service.UserDeleteWithCommentsMaxTime.String()
 		ctx.Data["UserDeleteWithComments"] = ctx.Doer.CreatedUnix.AsTime().Add(setting.Service.UserDeleteWithCommentsMaxTime).After(time.Now())
 	}
+}
+
+// loadSignInMethods puts the names of the single sign-on providers the person has connected on the page, for the
+// "Sign-in methods" card; passkeys and the password are managed on the security page.
+func loadSignInMethods(ctx *context.Context) {
+	links, err := models_db.Find[user_model.ExternalLoginUser](ctx, user_model.FindExternalUserOptions{UserID: ctx.Doer.ID, OrderBy: "login_source_id DESC"})
+	if err != nil {
+		log.Warn("listing the connected sign-in providers of user %d: %v", ctx.Doer.ID, err)
+		return
+	}
+	var names []string
+	for _, l := range links {
+		if src, err := auth_model.GetSourceByID(ctx, l.LoginSourceID); err == nil {
+			names = append(names, src.Name)
+		}
+	}
+	ctx.Data["SignInProviders"] = names
 }
