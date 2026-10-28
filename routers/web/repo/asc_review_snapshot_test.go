@@ -463,3 +463,56 @@ func TestAscReviewSnapshotConfirm(t *testing.T) {
 	data["AscCanConfirm"] = true
 	renderPage(t, dir, "confirm-revert", "repo/asc_confirm", data)
 }
+
+func TestAscReviewSnapshotDeps(t *testing.T) {
+	dir := snapshotDir(t)
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureDeps)
+	finding := func(id uint64, sev ascv1.DepSeverity, state ascv1.DepFindingState, name, ver, eco, id2, sum string) *ascv1.DepFinding {
+		d := depsFinding(id, sev, state)
+		d.Name, d.Version, d.Ecosystem, d.Advisory.Id, d.Advisory.Summary = name, ver, eco, id2, sum
+		d.Direct = id != 1
+		d.Path = []byte("Cargo.lock")
+		return d
+	}
+	f.depFindings = func(r *ascv1.ListDepFindingsRequest) (*ascv1.ListDepFindingsResponse, error) {
+		return &ascv1.ListDepFindingsResponse{
+			Findings: []*ascv1.DepFinding{
+				finding(1, ascv1.DepSeverity_DEP_SEVERITY_HIGH, ascv1.DepFindingState_DEP_FINDING_STATE_OPEN, "tokio", "1.38.0", "crates.io", "RUSTSEC-2025-0044", "Unbounded memory growth when a connection is closed during a read"),
+				finding(2, ascv1.DepSeverity_DEP_SEVERITY_MODERATE, ascv1.DepFindingState_DEP_FINDING_STATE_OPEN, "vite", "5.2.8", "npm", "GHSA-q7x4-2m8r-vh5c", "Dev server serves files outside the project root on Windows"),
+			},
+			CountsByState: map[string]uint32{"open": 2, "dismissed": 1}, LastScan: 1_700_000_000, LastLookup: ascv1.DepLookupStatus_DEP_LOOKUP_STATUS_PARTIAL,
+		}, nil
+	}
+	p := runTrust(t, trustReq{path: "/user2/repo1/asc/deps", user: 2, access: perm_model.AccessModeAdmin}, withLocale(AscDeps))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "deps", p.body)
+	f.depFindings = func(r *ascv1.ListDepFindingsRequest) (*ascv1.ListDepFindingsResponse, error) {
+		return &ascv1.ListDepFindingsResponse{}, nil
+	}
+	p = runTrust(t, trustReq{path: "/user2/repo1/asc/deps", user: 2, access: perm_model.AccessModeAdmin}, withLocale(AscDeps))
+	writeSnapshot(t, dir, "deps-never", p.body)
+	f.depUpdates = func(r *ascv1.ListDepUpdatesRequest) (*ascv1.ListDepUpdatesResponse, error) {
+		return &ascv1.ListDepUpdatesResponse{
+			Updates: []*ascv1.DepUpdate{
+				{Ecosystem: "crates.io", Name: "tokio", Current: "1.38.0", Latest: "1.41.1", Target: "1.41.1", Kind: ascv1.DepUpdateKind_DEP_UPDATE_KIND_MINOR, Fixes: []string{"RUSTSEC-2025-0044"}},
+				{Ecosystem: "npm", Name: "vite", Current: "5.2.8", Latest: "5.2.14", Target: "5.2.14", Kind: ascv1.DepUpdateKind_DEP_UPDATE_KIND_PATCH, Fixes: []string{"GHSA-q7x4-2m8r-vh5c"}},
+				{Ecosystem: "npm", Name: "react", Current: "18.3.0", Latest: "19.0.0", Target: "19.0.0", Kind: ascv1.DepUpdateKind_DEP_UPDATE_KIND_MAJOR},
+			},
+			Packages: 214, UnknownPackages: 2,
+		}, nil
+	}
+	p = runTrust(t, trustReq{path: "/user2/repo1/asc/deps?view=updates", user: 2, access: perm_model.AccessModeAdmin}, withLocale(AscDeps))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "deps-updates", p.body)
+	f.depConfig = func(*ascv1.GetDepsConfigRequest) (*ascv1.GetDepsConfigResponse, error) {
+		return &ascv1.GetDepsConfigResponse{
+			Source: "file", Text: "schedule = \"0 6 * * 1\"\n", Supported: []string{"cargo", "npm", "pip", "go", "maven"},
+			Config: &ascv1.DepsConfig{Schedule: "0 6 * * 1", SeverityThreshold: ascv1.DepSeverity_DEP_SEVERITY_MODERATE, MaxKind: ascv1.DepUpdateKind_DEP_UPDATE_KIND_MINOR, MaxProposals: 5, Grouping: "none",
+				Ignore: []*ascv1.DepIgnore{{Name: "derivative", Reason: "Accepted risk until Dec 1"}}},
+		}, nil
+	}
+	p = runTrust(t, trustReq{path: "/user2/repo1/asc/deps?view=config", user: 2, access: perm_model.AccessModeAdmin}, withLocale(AscDeps))
+	require.Equal(t, 200, p.status, p.body)
+	writeSnapshot(t, dir, "deps-config", p.body)
+}
