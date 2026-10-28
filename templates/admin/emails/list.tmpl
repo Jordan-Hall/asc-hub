@@ -1,103 +1,96 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin user")}}
-	<div class="admin-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.emails.email_manage_panel"}} ({{ctx.Locale.Tr "admin.total" .Total}})
-		</h4>
-		<div class="ui attached segment">
-			<div class="ui secondary filter menu tw-items-center tw-mx-0">
-				<form class="ui form ignore-dirty tw-flex-1">
-					{{template "shared/search/combo" dict "Value" .Keyword}}
-				</form>
-				<!-- Sort -->
-				<div class="ui dropdown type jump item tw-mr-0">
-					<span class="text">
-						{{ctx.Locale.Tr "repo.issues.filter_sort"}}
-					</span>
-					{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-					<div class="menu">
-						<a class="{{if or (eq .SortType "email") (not .SortType)}}active {{end}}item" href="?sort=email&q={{$.Keyword}}">{{ctx.Locale.Tr "admin.emails.filter_sort.email"}}</a>
-						<a class="{{if eq .SortType "reverseemail"}}active {{end}}item" href="?sort=reverseemail&q={{$.Keyword}}">{{ctx.Locale.Tr "admin.emails.filter_sort.email_reverse"}}</a>
-						<a class="{{if eq .SortType "username"}}active {{end}}item" href="?sort=username&q={{$.Keyword}}">{{ctx.Locale.Tr "admin.emails.filter_sort.name"}}</a>
-						<a class="{{if eq .SortType "reverseusername"}}active {{end}}item" href="?sort=reverseusername&q={{$.Keyword}}">{{ctx.Locale.Tr "admin.emails.filter_sort.name_reverse"}}</a>
-					</div>
-				</div>
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "admin.emails") "Desc" (ctx.Locale.Tr "asc_admin.emails_lead"))}}
+
+	<div class="adm-filter">
+		<form class="ds-filterbar-form ignore-dirty" role="search" method="get" action="{{AppSubUrl}}/admin/emails">
+			<div class="ds-inwrap">
+				{{svg "dsi-search" 16}}
+				<label class="ds-sr" for="adm-mail-q">{{ctx.Locale.Tr "asc_admin.emails_search"}}</label>
+				<input id="adm-mail-q" class="ds-input" type="search" name="q" value="{{.Keyword}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "asc_admin.emails_search"}}">
 			</div>
-		</div>
-		<div class="ui attached table segment">
-			<table class="ui very basic striped table unstackable">
+			<label class="ds-selectpill">
+				<span class="ds-sr">{{ctx.Locale.Tr "repo.issues.filter_sort"}}</span>
+				<select name="sort">
+					<option value="email"{{if or (eq .SortType "email") (not .SortType)}} selected{{end}}>{{ctx.Locale.Tr "admin.emails.filter_sort.email"}}</option>
+					<option value="reverseemail"{{if eq .SortType "reverseemail"}} selected{{end}}>{{ctx.Locale.Tr "admin.emails.filter_sort.email_reverse"}}</option>
+					<option value="username"{{if eq .SortType "username"}} selected{{end}}>{{ctx.Locale.Tr "admin.emails.filter_sort.name"}}</option>
+					<option value="reverseusername"{{if eq .SortType "reverseusername"}} selected{{end}}>{{ctx.Locale.Tr "admin.emails.filter_sort.name_reverse"}}</option>
+				</select>
+				{{svg "dsi-chevron-down" 16}}
+			</label>
+			<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_shell.search_label"}}</button>
+		</form>
+	</div>
+
+	{{if .Emails}}
+		<div class="ds-table-wrap adm-only-md">
+			<table class="ds-table">
+				<caption class="ds-sr">{{ctx.Locale.Tr "admin.emails.email_manage_panel"}}</caption>
 				<thead>
 					<tr>
-						<th data-sortt-asc="username" data-sortt-desc="reverseusername">
-							{{ctx.Locale.Tr "admin.users.name"}}
-							{{SortArrow "username" "reverseusername" $.SortType false}}
-						</th>
-						<th>{{ctx.Locale.Tr "admin.users.full_name"}}</th>
-						<th data-sortt-asc="email" data-sortt-desc="reverseemail" data-sortt-default="true">
-							{{ctx.Locale.Tr "email"}}
-							{{SortArrow "email" "reverseemail" $.SortType true}}
-						</th>
-						<th>{{ctx.Locale.Tr "admin.emails.primary"}}</th>
-						<th>{{ctx.Locale.Tr "admin.emails.activated"}}</th>
-						<th></th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_person"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "email"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_status"}}</th>
+						<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.col_actions"}}</span></th>
 					</tr>
 				</thead>
 				<tbody>
 					{{range .Emails}}
 						<tr>
-							<td><a href="{{AppSubUrl}}/{{.Name | PathEscape}}">{{.Name}}</a></td>
-							<td class="gt-ellipsis tw-max-w-48">{{.FullName}}</td>
-							<td class="gt-ellipsis tw-max-w-48">{{.Email}}</td>
-							<td>{{if .IsPrimary}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</td>
-							<td>
-								{{if .CanChange}}
-									<a class="link-email-action" href data-uid="{{.UID}}"
-										data-email="{{.Email}}"
-										data-primary="{{if .IsPrimary}}1{{else}}0{{end}}"
-										data-activate="{{if .IsActivated}}0{{else}}1{{end}}">
-										{{if .IsActivated}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}
-									</a>
-								{{else}}
-									{{if .IsActivated}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}
-								{{end}}
-							</td>
-							<td>
-								<div class="tw-flex tw-gap-2">
-									<a class="delete-button" href="" data-url="{{$.Link}}/delete" data-id="{{.ID}}" data-data-uid="{{.UID}}" data-modal-id="delete-email">{{svg "octicon-trash"}}</a>
-								</div>
-							</td>
+							<td><a class="adm-who-name" href="{{AppSubUrl}}/{{.Name | PathEscape}}">{{if .FullName}}{{.FullName}}{{else}}{{.Name}}{{end}}</a>{{if .FullName}}<span class="adm-who-sub adm-mono">@{{.Name}}</span>{{end}}</td>
+							<td class="ds-break">{{.Email}}</td>
+							<td>{{template "admin/emails/state" (dict "Mail" . "Q" $)}}</td>
+							<td class="ds-r"><button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-url="{{$.Link}}/delete" data-id="{{.ID}}" data-data-uid="{{.UID}}" data-modal-id="delete-email" aria-label="{{ctx.Locale.Tr "asc_admin.delete"}}: {{.Email}}">{{ctx.Locale.Tr "asc_admin.delete"}}</button></td>
 						</tr>
-					{{else}}
-						<tr><td class="tw-text-center" colspan="6">{{ctx.Locale.Tr "repo.pulls.no_results"}}</td></tr>
 					{{end}}
 				</tbody>
 			</table>
 		</div>
 
-		{{template "base/paginate" .}}
+		<ul class="ds-list adm-only-sm">
+			{{range .Emails}}
+				<li class="ds-li">
+					<div class="ds-li-main">
+						<div class="ds-li-title ds-break">{{.Email}}</div>
+						<div class="ds-li-sub"><a class="ds-link" href="{{AppSubUrl}}/{{.Name | PathEscape}}">{{if .FullName}}{{.FullName}}{{else}}{{.Name}}{{end}}</a></div>
+						<div class="ds-chips adm-chip-row">{{template "admin/emails/state" (dict "Mail" . "Q" $)}}</div>
+						<div class="ds-li-actions"><button type="button" class="ds-btn ds-btn-danger delete-button" data-url="{{$.Link}}/delete" data-id="{{.ID}}" data-data-uid="{{.UID}}" data-modal-id="delete-email">{{svg "dsi-trash" 16}}{{ctx.Locale.Tr "asc_admin.delete"}}</button></div>
+					</div>
+				</li>
+			{{end}}
+		</ul>
 
-		<dialog id="change-email-modal">
-			<article>
-				<header>{{ctx.Locale.Tr "admin.emails.change_email_header"}}</header>
-				<div class="content">
-					{{ctx.Locale.Tr "admin.emails.change_email_text"}}
-				</div>
-				<form class="ui form" id="email-action-form" action="{{AppSubUrl}}/admin/emails/activate" method="post">
+		<div class="adm-table-foot">
+			<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.shown_of" (len .Emails) .Total}}</p>
+			{{template "base/paginate" .}}
+		</div>
+	{{else}}
+		<div class="ds-card">
+			{{template "shared/ds/empty" (dict "Icon" "mail" "Title" (ctx.Locale.Tr "asc_admin.no_results_title") "Body" (ctx.Locale.Tr "asc_admin.emails_no_results") "PrimaryLabel" (ctx.Locale.Tr "asc_admin.clear_filters") "PrimaryHref" (print AppSubUrl "/admin/emails"))}}
+		</div>
+	{{end}}
 
-					<input type="hidden" id="query-sort" name="sort" value="{{.SortType}}">
-					<input type="hidden" id="query-keyword" name="q" value="{{.Keyword}}">
-					<input type="hidden" id="query-primary" name="is_primary" value="{{.IsPrimary}}" required>
-					<input type="hidden" id="query-activated" name="is_activated" value="{{.IsActivated}}" required>
-
-					<input type="hidden" id="form-uid" name="uid" value="" required>
-					<input type="hidden" id="form-email" name="email" value="" required>
-					<input type="hidden" id="form-primary" name="primary" value="" required>
-					<input type="hidden" id="form-activate" name="activate" value="" required>
-
-					{{template "base/modal_actions_confirm" .}}
-				</form>
-			</article>
-		</dialog>
-	</div>
+<dialog id="change-email-modal">
+	<article>
+		<header>{{ctx.Locale.Tr "admin.emails.change_email_header"}}</header>
+		<form id="email-action-form" action="{{AppSubUrl}}/admin/emails/activate" method="post">
+			{{.CsrfTokenHtml}}
+			<div class="content"><p>{{ctx.Locale.Tr "admin.emails.change_email_text"}}</p></div>
+			<input type="hidden" id="query-sort" name="sort" value="{{.SortType}}">
+			<input type="hidden" id="query-keyword" name="q" value="{{.Keyword}}">
+			<input type="hidden" id="query-primary" name="is_primary" value="{{.IsPrimary}}" required>
+			<input type="hidden" id="query-activated" name="is_activated" value="{{.IsActivated}}" required>
+			<input type="hidden" id="form-uid" name="uid" value="" required>
+			<input type="hidden" id="form-email" name="email" value="" required>
+			<input type="hidden" id="form-primary" name="primary" value="" required>
+			<input type="hidden" id="form-activate" name="activate" value="" required>
+			<div class="actions">
+				<button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button>
+				<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "modal.confirm"}}</button>
+			</div>
+		</form>
+	</article>
+</dialog>
 
 <div class="ui g-modal-confirm delete modal" id="delete-email">
 	<div class="header">
@@ -109,5 +102,4 @@
 	</div>
 	{{template "base/modal_actions_confirm" .}}
 </div>
-
 {{template "admin/layout_footer" .}}

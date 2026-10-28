@@ -1,17 +1,13 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin monitor")}}
-<div class="admin-setting-content">
-	<h4 class="ui top attached header">
-		{{ctx.Locale.Tr "admin.dashboard.statistic"}}
-	</h4>
-	<div class="ui attached table segment">
-		<table class="ui very basic striped table unstackable">
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.monitor") "Desc" (ctx.Locale.Tr "asc_admin.stats_note"))}}
+	{{template "admin/monitor_tabs" (dict "Active" "stats")}}
+
+	<section class="ds-card adm-sec" aria-labelledby="adm-stats-h">
+		<div class="ds-card-h"><h2 id="adm-stats-h">{{ctx.Locale.Tr "admin.dashboard.statistic"}}</h2></div>
+		<dl class="adm-kv adm-kv-cfg">
 			{{range $statsKey, $statsValue := .Stats}}
-			<tr>
-				<td width="200">{{$statsKey}}</td>
-				<td>{{$statsValue}}</td>
-			</tr>
+				<div><dt>{{$statsKey}}</dt><dd class="adm-mono">{{$statsValue}}</dd></div>
 			{{end}}
-		</table>
-	</div>
-</div>
+		</dl>
+	</section>
 {{template "admin/layout_footer" .}}

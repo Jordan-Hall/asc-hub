@@ -1,100 +1,108 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin")}}
-	<div class="admin-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.repos.repo_manage_panel"}} ({{ctx.Locale.Tr "admin.total" .Total}})
-			<div class="ui right">
-				<a class="ui primary tiny button" href="{{AppSubUrl}}/admin/repos/unadopted">{{ctx.Locale.Tr "admin.repos.unadopted"}}</a>
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.repositories") "Desc" (ctx.Locale.Tr "asc_admin.repos_lead") "ActionLabel" (ctx.Locale.Tr "admin.repos.unadopted") "ActionHref" (print AppSubUrl "/admin/repos/unadopted") "ActionIcon" "folder" "Secondary" true)}}
+
+	<div class="adm-filter">
+		<form class="ds-filterbar-form ignore-dirty" role="search" method="get" action="{{AppSubUrl}}/admin/repos">
+			<div class="ds-inwrap">
+				{{svg "dsi-search" 16}}
+				<label class="ds-sr" for="adm-repo-q">{{ctx.Locale.Tr "asc_admin.repos_search"}}</label>
+				<input id="adm-repo-q" class="ds-input" type="search" name="q" value="{{.Keyword}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "asc_admin.repos_search"}}">
 			</div>
-		</h4>
-		<div class="ui attached segment">
-			{{template "shared/repo_search" .}}
-		</div>
-		<div class="ui attached table segment">
-			<table class="ui very basic striped table unstackable">
+			<label class="ds-selectpill">
+				<span class="ds-sr">{{ctx.Locale.Tr "repo.issues.filter_sort"}}</span>
+				<select name="sort">
+					<option value="recentupdate"{{if or (eq .SortType "recentupdate") (not .SortType)}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.recentupdate"}}</option>
+					<option value="leastupdate"{{if eq .SortType "leastupdate"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.leastupdate"}}</option>
+					<option value="alphabetically"{{if eq .SortType "alphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</option>
+					<option value="reversealphabetically"{{if eq .SortType "reversealphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</option>
+					<option value="newest"{{if eq .SortType "newest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.latest"}}</option>
+					<option value="oldest"{{if eq .SortType "oldest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</option>
+					<option value="reversegitsize"{{if eq .SortType "reversegitsize"}} selected{{end}}>{{ctx.Locale.Tr "admin.repos.size"}} ↓</option>
+					<option value="gitsize"{{if eq .SortType "gitsize"}} selected{{end}}>{{ctx.Locale.Tr "admin.repos.size"}} ↑</option>
+				</select>
+				{{svg "dsi-chevron-down" 16}}
+			</label>
+			<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_shell.search_label"}}</button>
+		</form>
+	</div>
+
+	{{if .Repos}}
+		<div class="ds-table-wrap adm-only-md">
+			<table class="ds-table">
+				<caption class="ds-sr">{{ctx.Locale.Tr "admin.repos.repo_manage_panel"}}</caption>
 				<thead>
 					<tr>
-						<th data-sortt-asc="oldest" data-sortt-desc="newest">ID{{SortArrow "oldest" "newest" $.SortType false}}</th>
-						<th>{{ctx.Locale.Tr "admin.repos.owner"}}</th>
-						<th data-sortt-asc="alphabetically" data-sortt-desc="reversealphabetically">
-							{{ctx.Locale.Tr "admin.repos.name"}}
-							{{SortArrow "alphabetically" "reversealphabetically" $.SortType false}}
-						</th>
-						<th>{{ctx.Locale.Tr "repo.watchers"}}</th>
-						<th  data-sortt-asc="moststars" data-sortt-desc="feweststars">
-							{{ctx.Locale.Tr "repo.stars"}}
-							{{SortArrow "moststars" "feweststars" $.SortType false}}
-						</th>
-						<th  data-sortt-asc="mostforks" data-sortt-desc="fewestforks">
-							{{ctx.Locale.Tr "repo.forks"}}
-							{{SortArrow "mostforks" "fewestforks" $.SortType false}}
-						</th>
-						<th>{{ctx.Locale.Tr "admin.repos.issues"}}</th>
-						<th  data-sortt-asc="gitsize" data-sortt-desc="reversegitsize">
-							{{ctx.Locale.Tr "admin.repos.size"}}
-							{{SortArrow "gitsize" "reversegitsize" $.SortType false}}
-						</th>
-						<th  data-sortt-asc="lfssize" data-sortt-desc="reverselfssize">
-							{{ctx.Locale.Tr "admin.repos.lfs_size"}}
-							{{SortArrow "lfssize" "reverselfssize" $.SortType false}}
-						</th>
-						<th>{{ctx.Locale.Tr "admin.auths.updated"}}</th>
-						<th>{{ctx.Locale.Tr "admin.users.created"}}</th>
-						<th>{{ctx.Locale.Tr "admin.notices.op"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_repo"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.visibility"}}</th>
+						<th scope="col" class="ds-r">{{ctx.Locale.Tr "admin.repos.size"}}</th>
+						<th scope="col" class="ds-r">{{ctx.Locale.Tr "admin.repos.issues"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_activity"}}</th>
+						<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.col_actions"}}</span></th>
 					</tr>
 				</thead>
 				<tbody>
 					{{range .Repos}}
 						<tr>
-							<td>{{.ID}}</td>
 							<td>
-								<a class="tw-break-anywhere" href="{{.Owner.HomeLink}}">{{.Owner.Name}}</a>
-								{{if .Owner.Visibility.IsPrivate}}
-									<span class="text gold">{{svg "octicon-lock"}}</span>
-								{{end}}
+								<a class="adm-who-name" href="{{.Link}}">{{.FullName}}</a>
+								<span class="adm-who-sub">{{.Owner.DisplayName}}</span>
 							</td>
-							<td>
-								<a class="tw-break-anywhere" href="{{.Link}}">{{.Name}}</a>
-								{{if .IsArchived}}
-									<span class="ui basic label">{{ctx.Locale.Tr "repo.desc.archived"}}</span>
-								{{end}}
-								{{if .IsPrivate}}
-									<span class="ui basic label">{{ctx.Locale.Tr "repo.desc.private"}}</span>
-								{{else}}
-									{{if .Owner.Visibility.IsPrivate}}
-										<span class="ui basic label">{{ctx.Locale.Tr "repo.desc.internal"}}</span>
-									{{end}}
-								{{end}}
-								{{if .IsTemplate}}
-									<span class="ui basic label">{{ctx.Locale.Tr "repo.desc.template"}}</span>
-								{{end}}
-								{{if eq .ObjectFormatName "sha256"}}
-									<span class="ui basic label">{{ctx.Locale.Tr "repo.desc.sha256"}}</span>
-								{{end}}
-								{{if .IsMirror}}
-									{{svg "octicon-mirror"}}
-								{{else if .IsFork}}
-									{{svg "octicon-repo-forked"}}
-								{{end}}
+							<td>{{template "admin/repo/visibility_chip" .}}</td>
+							<td class="ds-r ds-num">{{template "admin/repo/size" .}}</td>
+							<td class="ds-r ds-num">{{.NumIssues ctx}}</td>
+							<td>{{DateUtils.TimeSince .UpdatedUnix}}</td>
+							<td class="ds-r">
+								<div class="adm-acts">
+									<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Link}}/settings" aria-label="{{ctx.Locale.Tr "asc_admin.manage"}}: {{.FullName}}">{{ctx.Locale.Tr "asc_admin.manage"}}</a>
+									<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-url="{{$.Link}}/delete?page={{$.Page.Paginater.Current}}&sort={{$.SortType}}" data-id="{{.ID}}" data-name="{{.FullName}}" data-modal-id="delete-repo" aria-label="{{ctx.Locale.Tr "asc_admin.delete"}}: {{.FullName}}">{{svg "dsi-trash" 16}}</button>
+								</div>
 							</td>
-							<td>{{.NumWatches}}</td>
-							<td>{{.NumStars}}</td>
-							<td>{{.NumForks}}</td>
-							<td>{{.NumIssues ctx}}</td>
-							<td>{{ctx.Locale.TrSize .GitSize}}</td>
-							<td>{{ctx.Locale.TrSize .LFSSize}}</td>
-							<td>{{DateUtils.AbsoluteShort .UpdatedUnix}}</td>
-							<td>{{DateUtils.AbsoluteShort .CreatedUnix}}</td>
-							<td><a class="delete-button" href="" data-url="{{$.Link}}/delete?page={{$.Page.Paginater.Current}}&sort={{$.SortType}}" data-id="{{.ID}}" data-name="{{.Name}}" data-modal-id="delete-repo">{{svg "octicon-trash"}}</a></td>
 						</tr>
-					{{else}}
-						<tr><td class="tw-text-center" colspan="12">{{ctx.Locale.Tr "repo.pulls.no_results"}}</td></tr>
 					{{end}}
 				</tbody>
 			</table>
 		</div>
 
-		{{template "base/paginate" .}}
-	</div>
+		<ul class="ds-list adm-only-sm">
+			{{range .Repos}}
+				<li class="ds-li">
+					<div class="ds-li-main">
+						<div class="ds-li-title"><a href="{{.Link}}">{{.FullName}}</a></div>
+						<div class="ds-li-sub">{{.Owner.DisplayName}}</div>
+						<div class="ds-chips adm-chip-row">{{template "admin/repo/visibility_chip" .}}</div>
+						<div class="ds-li-meta">
+							<span>{{template "admin/repo/size" .}}</span>
+							<span>{{ctx.Locale.Tr "org.repo_updated" (DateUtils.TimeSince .UpdatedUnix)}}</span>
+						</div>
+						<div class="ds-li-actions">
+							<a class="ds-btn ds-btn-secondary" href="{{.Link}}/settings" aria-label="{{ctx.Locale.Tr "asc_admin.manage"}}: {{.FullName}}">{{ctx.Locale.Tr "asc_admin.manage"}}</a>
+							<button type="button" class="ds-btn ds-btn-danger delete-button" data-url="{{$.Link}}/delete?page={{$.Page.Paginater.Current}}&sort={{$.SortType}}" data-id="{{.ID}}" data-name="{{.FullName}}" data-modal-id="delete-repo">{{svg "dsi-trash" 16}}{{ctx.Locale.Tr "asc_admin.delete"}}</button>
+						</div>
+					</div>
+				</li>
+			{{end}}
+		</ul>
+
+		<div class="adm-table-foot">
+			<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.shown_of" (len .Repos) .Total}}</p>
+			{{template "base/paginate" .}}
+		</div>
+	{{else if .Keyword}}
+		<div class="ds-card">
+			{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_admin.no_results_title") "Body" (ctx.Locale.Tr "asc_admin.repos_no_results") "PrimaryLabel" (ctx.Locale.Tr "asc_admin.clear_filters") "PrimaryHref" (print AppSubUrl "/admin/repos"))}}
+		</div>
+	{{else}}
+		<div class="ds-card">
+			{{template "shared/ds/empty" (dict "Icon" "file" "Title" (ctx.Locale.Tr "asc_admin.repos_empty_title") "Body" (ctx.Locale.Tr "asc_admin.repos_empty_text"))}}
+		</div>
+	{{end}}
+
+	<section class="adm-sec" aria-labelledby="adm-unadopted">
+		<div class="adm-sec-h"><h2 id="adm-unadopted">{{ctx.Locale.Tr "admin.repos.unadopted"}}</h2></div>
+		<div class="ds-card">
+			{{template "shared/ds/empty" (dict "Icon" "folder" "Title" (ctx.Locale.Tr "asc_admin.unadopted_none_title") "Body" (ctx.Locale.Tr "asc_admin.unadopted_lead") "PrimaryLabel" (ctx.Locale.Tr "asc_admin.unadopted_search_title") "PrimaryHref" (print AppSubUrl "/admin/repos/unadopted?search=true"))}}
+		</div>
+	</section>
 
 <div class="ui g-modal-confirm delete modal" id="delete-repo">
 	<div class="header">
@@ -108,5 +116,4 @@
 	</div>
 	{{template "base/modal_actions_confirm" .}}
 </div>
-
 {{template "admin/layout_footer" .}}

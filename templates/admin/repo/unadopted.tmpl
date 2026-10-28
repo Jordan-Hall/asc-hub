@@ -1,73 +1,45 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin")}}
-	<div class="admin-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.repos.unadopted"}}
-			<div class="ui right">
-				<a class="ui primary tiny button" href="{{AppSubUrl}}/admin/repos">{{ctx.Locale.Tr "admin.repos.repo_manage_panel"}}</a>
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "admin.repos.unadopted") "Desc" (ctx.Locale.Tr "asc_admin.unadopted_lead") "ActionLabel" (ctx.Locale.Tr "asc_admin.repositories") "ActionHref" (print AppSubUrl "/admin/repos") "Secondary" true)}}
+
+	<div class="adm-filter">
+		<form class="ds-filterbar-form ignore-dirty" role="search" method="get" action="{{AppSubUrl}}/admin/repos/unadopted">
+			<input name="search" value="true" type="hidden">
+			<div class="ds-inwrap">
+				{{svg "dsi-search" 16}}
+				<label class="ds-sr" for="adm-adopt-q">{{ctx.Locale.Tr "repo.adopt_search"}}</label>
+				<input id="adm-adopt-q" class="ds-input" type="search" name="q" value="{{.Keyword}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "repo.adopt_search"}}" autofocus>
 			</div>
-		</h4>
-		<div class="ui attached segment">
-			<form class="ui form ignore-dirty">
-				<div class="ui small fluid action input">
-					<input name="search" value="true" type="hidden">
-					<input name="q" value="{{.Keyword}}" placeholder="{{ctx.Locale.Tr "repo.adopt_search"}}" autofocus>
-					{{template "shared/search/button"}}
-				</div>
-			</form>
-		</div>
-		{{if .search}}
-			<div class="ui attached segment settings">
-				{{if .Dirs}}
-					<div class="ui aligned divided list">
-						{{range $dirI, $dir := .Dirs}}
-							<div class="item tw-flex tw-items-center">
-								<span class="tw-flex-1"> {{svg "octicon-file-directory-fill"}} {{$dir}}</span>
-								<div>
-									<button class="ui button primary show-modal tw-p-2" data-modal="#adopt-unadopted-modal-{{$dirI}}">{{svg "octicon-plus"}} {{ctx.Locale.Tr "repo.adopt_preexisting_label"}}</button>
-									<dialog id="adopt-unadopted-modal-{{$dirI}}">
-										<article>
-											<header>{{ctx.Locale.Tr "repo.adopt_preexisting"}}</header>
-											<div class="content">
-												<p>{{ctx.Locale.Tr "repo.adopt_preexisting_content" $dir}}</p>
-											</div>
-											<form class="ui form" method="post" action="{{AppSubUrl}}/admin/repos/unadopted">
-												<input type="hidden" name="id" value="{{$dir}}">
-												<input type="hidden" name="action" value="adopt">
-												<input type="hidden" name="q" value="{{$.Keyword}}">
-												<input type="hidden" name="page" value="{{$.CurrentPage}}">
-												{{template "base/modal_actions_confirm"}}
-											</form>
-										</article>
-									</dialog>
-									<button class="ui button red show-modal tw-p-2" data-modal="#delete-unadopted-modal-{{$dirI}}">{{svg "octicon-x"}} {{ctx.Locale.Tr "repo.delete_preexisting_label"}}</button>
-									<dialog id="delete-unadopted-modal-{{$dirI}}">
-										<article>
-											<header>{{ctx.Locale.Tr "repo.delete_preexisting"}}</header>
-											<div class="content">
-												<p>{{ctx.Locale.Tr "repo.delete_preexisting_content" $dir}}</p>
-											</div>
-											<form class="ui form" method="post" action="{{AppSubUrl}}/admin/repos/unadopted">
-												<input type="hidden" name="id" value="{{$dir}}">
-												<input type="hidden" name="action" value="delete">
-												<input type="hidden" name="q" value="{{$.Keyword}}">
-												<input type="hidden" name="page" value="{{$.CurrentPage}}">
-												{{template "base/modal_actions_confirm"}}
-											</form>
-										</article>
-									</dialog>
-								</div>
-							</div>
-						{{end}}
-					</div>
-					{{template "base/paginate" .}}
-				{{else}}
-					<div class="item">
-						{{ctx.Locale.Tr "admin.repos.unadopted.no_more"}}
-					</div>
-					{{template "base/paginate" .}}
-				{{end}}
-			</div>
-		{{end}}
+			<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_shell.search_label"}}</button>
+		</form>
 	</div>
 
+	{{if .search}}
+		{{if .Dirs}}
+			<ul class="ds-list">
+				{{range $dirI, $dir := .Dirs}}
+					<li class="ds-li ds-li-wrap">
+						<span class="adm-tile" aria-hidden="true">{{svg "dsi-folder" 18}}</span>
+						<div class="ds-li-main"><div class="ds-li-title adm-mono ds-break">{{$dir}}</div></div>
+						<div class="adm-row-side">
+							<button type="button" class="ds-btn ds-btn-primary ds-btn-sm show-modal" data-modal="#adopt-unadopted-modal-{{$dirI}}">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "repo.adopt_preexisting_label"}}</button>
+							<button type="button" class="ds-btn ds-btn-danger ds-btn-sm show-modal" data-modal="#delete-unadopted-modal-{{$dirI}}">{{svg "dsi-x" 16}}{{ctx.Locale.Tr "repo.delete_preexisting_label"}}</button>
+						</div>
+					</li>
+				{{end}}
+			</ul>
+			{{range $dirI, $dir := .Dirs}}
+				{{template "shared/ds/confirm" (dict "Data" $ "ID" (print "adopt-unadopted-modal-" $dirI) "Title" (ctx.Locale.Tr "repo.adopt_preexisting") "Body" (ctx.Locale.Tr "repo.adopt_preexisting_content" $dir) "Action" (print AppSubUrl "/admin/repos/unadopted") "Confirm" (ctx.Locale.Tr "modal.confirm") "Fields" (dict "id" $dir "action" "adopt" "q" $.Keyword "page" $.CurrentPage))}}
+				{{template "shared/ds/confirm" (dict "Data" $ "ID" (print "delete-unadopted-modal-" $dirI) "Title" (ctx.Locale.Tr "repo.delete_preexisting") "Body" (ctx.Locale.Tr "repo.delete_preexisting_content" $dir) "Action" (print AppSubUrl "/admin/repos/unadopted") "Confirm" (ctx.Locale.Tr "modal.confirm") "Danger" true "Fields" (dict "id" $dir "action" "delete" "q" $.Keyword "page" $.CurrentPage))}}
+			{{end}}
+		{{else}}
+			<div class="ds-card">
+				{{template "shared/ds/empty" (dict "Icon" "folder" "Title" (ctx.Locale.Tr "asc_admin.unadopted_none_title") "Body" (ctx.Locale.Tr "admin.repos.unadopted.no_more"))}}
+			</div>
+		{{end}}
+		{{template "base/paginate" .}}
+	{{else}}
+		<div class="ds-card">
+			{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_admin.unadopted_search_title") "Body" (ctx.Locale.Tr "asc_admin.unadopted_search_text"))}}
+		</div>
+	{{end}}
 {{template "admin/layout_footer" .}}
