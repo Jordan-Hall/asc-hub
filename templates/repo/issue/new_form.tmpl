@@ -1,14 +1,15 @@
 {{if .Flash}}
 {{template "base/alert" .}}
 {{end}}
-<form class="issue-content ui comment form form-fetch-action" id="new-issue" action="{{.Link}}" method="post">
+<form class="issue-content ds-form comment form form-fetch-action rp-newform" id="new-issue" action="{{.Link}}" method="post">
 	<div class="issue-content-left">
-		<div class="ui comments">
+		<div class="rp-newform-main">
 			<div class="comment">
 				{{ctx.AvatarUtils.Avatar .SignedUser 40}}
-				<div class="ui segment content tw-my-0">
-					<div class="field">
-						<input name="title" class="js-autofocus-end" id="issue_title" placeholder="{{ctx.Locale.Tr "repo.milestones.title"}}" value="{{if .TitleQuery}}{{.TitleQuery}}{{else if .IssueTemplateTitle}}{{.IssueTemplateTitle}}{{else}}{{.title}}{{end}}" required maxlength="255" autocomplete="off">
+				<div class="ds-card ds-card-b content">
+					<div class="ds-field">
+						<label class="ds-label" for="issue_title">{{ctx.Locale.Tr "repo.milestones.title"}}</label>
+						<input name="title" class="ds-input js-autofocus-end" id="issue_title" placeholder="{{ctx.Locale.Tr "repo.milestones.title"}}" value="{{if .TitleQuery}}{{.TitleQuery}}{{else if .IssueTemplateTitle}}{{.IssueTemplateTitle}}{{else}}{{.title}}{{end}}" required maxlength="255" autocomplete="off">
 						{{if .PageIsComparePull}}
 							<div class="title_wip_desc" data-wip-prefixes="{{JsonUtils.EncodeToString .PullRequestWorkInProgressPrefixes}}">{{ctx.Locale.Tr "repo.pulls.title_wip_desc" (index .PullRequestWorkInProgressPrefixes 0)}}</div>
 						{{end}}
@@ -31,8 +32,8 @@
 					{{else}}
 						{{template "repo/issue/comment_tab" .}}
 					{{end}}
-					<div class="text right">
-						<button class="ui primary button">
+					<div class="ds-row ds-justify-end">
+						<button class="ds-btn ds-btn-primary">
 							{{if .PageIsComparePull}}
 								{{ctx.Locale.Tr "repo.pulls.create"}}
 							{{else}}
@@ -45,7 +46,7 @@
 		</div>
 	</div>
 
-	<div class="issue-content-right ui segment">
+	<div class="issue-content-right ds-card ds-card-b">
 		{{template "repo/issue/view_content/sidebar/branch_selector_field" .}}
 
 		<input id="label_ids" name="label_ids" type="hidden" value="{{.label_ids}}">

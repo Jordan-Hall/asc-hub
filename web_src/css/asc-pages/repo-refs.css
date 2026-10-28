@@ -421,14 +421,6 @@ a.rp-ref-name:hover {
   }
 }
 
-.rp-rel-form .ui.dropzone {
-  min-height: 96px;
-  border: 1.5px dashed var(--line-strong);
-  border-radius: var(--r-row);
-  background: var(--surface-2);
-  color: var(--text-2);
-}
-
 .rp-form-title + .ds-c-2 {
   margin-bottom: 16px;
 }

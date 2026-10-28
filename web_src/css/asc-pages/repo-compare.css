@@ -86,7 +86,7 @@
 }
 
 /* the classic compare of two refs (and the start of a pull request) */
-.rp-compare .rp-cmp-title.ui.header {
+.rp-compare .rp-cmp-title {
   margin: 4px 0 16px;
   padding-top: 8px;
   font-size: 26px;
@@ -95,7 +95,7 @@
   color: var(--text);
 }
 
-.rp-compare .ui.segment.choose.branch.rp-cmp-choose {
+.rp-compare .choose.branch.rp-cmp-choose {
   border-color: var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
@@ -114,4 +114,58 @@
 
 .rp-compare .rp-cmp-diff {
   padding-top: 0;
+}
+
+.rp-compare .rp-cmp-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.rp-cmp-has-pr {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rp-cmp-has-pr .issue-title h1 {
+  margin: 4px 0 0;
+  font-size: 22px;
+}
+
+@media (min-width: 768px) {
+  .rp-cmp-has-pr {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.rp-newform {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rp-newform .rp-newform-main .comment {
+  display: block;
+}
+
+.rp-newform .ds-field + * {
+  margin-top: 12px;
+}
+
+.title_wip_desc a {
+  text-decoration: underline;
+}
+
+.rp-newform .ui.dropzone {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.rp-cmp-has-pr .issue-title a {
+  text-decoration: underline;
 }

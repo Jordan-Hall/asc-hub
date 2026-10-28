@@ -59,8 +59,8 @@ func TestFooterContent(t *testing.T) {
 func testFooterContent(t *testing.T, session *TestSession, url string, expectPoweredBy, expectVersion, expectVersionLink bool) {
 	page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
 	// AssertElement will only pass if there's just one such element
-	footerLeft := page.Find("footer .left-links").Text()
-	assert.Equal(t, expectPoweredBy, strings.Contains(footerLeft, "Powered by ASC Hub"))
-	assert.Equal(t, expectVersion, strings.Contains(footerLeft, "Version"))
-	page.AssertElement(t, `footer .left-links a[href="/admin/config"]`, expectVersionLink)
+	footerBase := page.Find("footer .ds-footer-base").Text()
+	assert.Equal(t, expectPoweredBy, strings.Contains(footerBase, "Based on Forgejo"))
+	assert.Equal(t, expectVersion, strings.Contains(footerBase, strings.Split(setting.AppVer, "+")[0]))
+	page.AssertElement(t, `footer .ds-footer-base a[href="/admin/config"]`, expectVersionLink)
 }
