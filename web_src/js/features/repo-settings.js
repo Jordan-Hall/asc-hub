@@ -6,6 +6,36 @@ import {createCodemirror} from './codemirror.ts';
 
 const {appSubUrl} = window.config;
 
+// The settings form that carries a save bar: the bar names how many fields changed, Discard puts them back.
+export function initRepoSettingsSaveBar() {
+  for (const bar of document.querySelectorAll('[data-savebar]')) {
+    const form = bar.closest('form');
+    if (!form) continue;
+    const note = bar.querySelector('[data-savebar-note]');
+    const fields = [...form.elements].filter((el) => el.name && el.type !== 'hidden' && el.type !== 'submit' && el.type !== 'button');
+    const initial = new Map(fields.map((el) => [el, el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value]));
+    const update = () => {
+      let changed = 0;
+      for (const [el, was] of initial) {
+        const now = el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value;
+        if (now !== was) changed++;
+      }
+      bar.classList.toggle('is-dirty', changed > 0);
+      if (note) note.textContent = changed === 0 ? '' : (changed === 1 ? bar.getAttribute('data-savebar-one') : bar.getAttribute('data-savebar-n').replace('%d', String(changed)));
+    };
+    form.addEventListener('input', update);
+    form.addEventListener('change', update);
+    bar.querySelector('[data-savebar-discard]')?.addEventListener('click', () => {
+      for (const [el, was] of initial) {
+        if (el.type === 'checkbox' || el.type === 'radio') el.checked = was;
+        else el.value = was;
+      }
+      update();
+    });
+    update();
+  }
+}
+
 export function initRepoSettingsCollaboration() {
   // Change collaborator access mode
   $('.page-content.repository .ui.dropdown.access-mode').each((_, el) => {

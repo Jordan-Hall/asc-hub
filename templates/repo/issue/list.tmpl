@@ -20,6 +20,8 @@
 		</div>
 	{{end}}
 
+		<div class="{{if .PageIsIssueList}}ds-split{{end}}">
+		<div class="ds-min0">
 		<div class="list-header list-header-issues">
 			{{template "repo/issue/navbar" .}}
 			{{template "repo/issue/search" .}}
@@ -56,6 +58,30 @@
 			</div>
 		</div>
 		{{template "shared/issuelist" dict "." . "listType" "repo"}}
+		</div>
+		{{if .PageIsIssueList}}
+		<aside class="ds-rail rp-issue-rail" aria-label="{{ctx.Locale.Tr "repo.issues.new.labels"}}">
+			<section class="rp-card" aria-labelledby="rp-rail-labels">
+				<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-rail-labels">{{ctx.Locale.Tr "repo.issues.new.labels"}}</h2><a class="rp-sec-act" href="{{.RepoLink}}/labels">{{ctx.Locale.Tr "asc_rp.rail_manage"}}</a></div>
+				{{if .Labels}}
+				<ul class="rp-rail-list">
+					{{range .Labels}}
+						<li><a href="{{$.RepoLink}}/issues?labels={{.ID}}">{{RenderLabel ctx .}}</a><span class="ds-num ds-c-2">{{Eval .NumIssues "-" .NumClosedIssues}}</span></li>
+					{{end}}
+				</ul>
+				{{else}}<p class="rp-quiet">{{ctx.Locale.Tr "repo.issues.new.no_items"}}</p>{{end}}
+			</section>
+			{{with .OpenMilestones}}{{if not (eq (printf "%T" .) "bool")}}{{range $i, $m := .}}{{if eq $i 0}}
+			<section class="rp-card" aria-labelledby="rp-rail-ms">
+				<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-rail-ms">{{ctx.Locale.Tr "repo.issues.new.milestone"}}</h2><a class="rp-sec-act" href="{{$.RepoLink}}/milestones">{{ctx.Locale.Tr "asc_rp.rail_all"}}</a></div>
+				<p class="rp-rel-line"><a class="rp-rel-name" href="{{$.RepoLink}}/milestone/{{$m.ID}}">{{$m.Name}}</a></p>
+				<progress class="wk-progress" max="100" value="{{$m.Completeness}}" aria-label="{{$m.Completeness}}%">{{$m.Completeness}}%</progress>
+				<p class="rp-quiet">{{ctx.Locale.Tr "repo.milestones.completeness" $m.Completeness}} &middot; {{ctx.Locale.Tr "asc_rp.ms_counts" $m.NumClosedIssues $m.NumOpenIssues}}</p>
+			</section>
+			{{end}}{{end}}{{end}}{{end}}
+		</aside>
+		{{end}}
+		</div>
 	</div>
 </div>
 {{template "base/footer" .}}

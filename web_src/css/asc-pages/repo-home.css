@@ -1107,3 +1107,20 @@
   flex: 1 1 220px;
   min-width: 0;
 }
+
+/* the labels and milestone rail of the issue list */
+.rp-rail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-rail-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}

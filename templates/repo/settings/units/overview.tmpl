@@ -7,8 +7,8 @@
 	<div class="inline ds-field">
 		<label>{{ctx.Locale.Tr "repo.code"}}</label>
 		<div class="ds-check{{if $isCodeGlobalDisabled}} disabled{{end}}"{{if $isCodeGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
-			<input id="unit-units\overview-enable_code" class="enable-system" name="enable_code" type="checkbox"{{if $isCodeEnabled}} checked{{end}}>
-			<label for="unit-units\overview-enable_code">{{ctx.Locale.Tr "repo.code.desc"}}</label>
+			<input id="unit-overview-enable_code" class="enable-system" name="enable_code" type="checkbox"{{if $isCodeEnabled}} checked{{end}}>
+			<label for="unit-overview-enable_code">{{ctx.Locale.Tr "repo.code.desc"}}</label>
 		</div>
 	</div>
 
@@ -17,8 +17,8 @@
 	<div class="inline ds-field">
 		<label>{{ctx.Locale.Tr "repo.projects"}}</label>
 		<div class="ds-check{{if $isProjectsGlobalDisabled}} disabled{{end}}"{{if $isProjectsGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
-			<input id="unit-units\overview-enable_projects2" class="enable-system" name="enable_projects" type="checkbox" {{if $isProjectsEnabled}}checked{{end}}>
-			<label for="unit-units\overview-enable_projects2">{{ctx.Locale.Tr "repo.settings.projects_desc"}}</label>
+			<input id="unit-overview-enable_projects2" class="enable-system" name="enable_projects" type="checkbox" {{if $isProjectsEnabled}}checked{{end}}>
+			<label for="unit-overview-enable_projects2">{{ctx.Locale.Tr "repo.settings.projects_desc"}}</label>
 		</div>
 	</div>
 
@@ -27,8 +27,8 @@
 	<div class="inline ds-field">
 		<label>{{ctx.Locale.Tr "repo.releases"}}</label>
 		<div class="ds-check{{if $isReleasesGlobalDisabled}} disabled{{end}}"{{if $isReleasesGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
-			<input id="unit-units\overview-enable_releases3" class="enable-system" name="enable_releases" type="checkbox" {{if $isReleasesEnabled}}checked{{end}}>
-			<label for="unit-units\overview-enable_releases3">{{ctx.Locale.Tr "repo.settings.releases_desc"}}</label>
+			<input id="unit-overview-enable_releases3" class="enable-system" name="enable_releases" type="checkbox" {{if $isReleasesEnabled}}checked{{end}}>
+			<label for="unit-overview-enable_releases3">{{ctx.Locale.Tr "repo.settings.releases_desc"}}</label>
 		</div>
 	</div>
 
@@ -37,8 +37,8 @@
 	<div class="inline ds-field">
 		<label>{{ctx.Locale.Tr "repo.packages"}}</label>
 		<div class="ds-check{{if $isPackagesGlobalDisabled}} disabled{{end}}"{{if $isPackagesGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
-			<input id="unit-units\overview-enable_packages4" class="enable-system" name="enable_packages" type="checkbox" {{if $isPackagesEnabled}}checked{{end}}>
-			<label for="unit-units\overview-enable_packages4">{{ctx.Locale.Tr "repo.settings.packages_desc"}}</label>
+			<input id="unit-overview-enable_packages4" class="enable-system" name="enable_packages" type="checkbox" {{if $isPackagesEnabled}}checked{{end}}>
+			<label for="unit-overview-enable_packages4">{{ctx.Locale.Tr "repo.settings.packages_desc"}}</label>
 		</div>
 		{{if (and .Repository.IsPrivate .Repository.Owner.Visibility.IsPublic)}}
 			<span class="ds-chip ds-chip-warn warning">
@@ -54,8 +54,8 @@
 		<div class="inline ds-field">
 			<label>{{ctx.Locale.Tr "actions.actions"}}</label>
 			<div class="ds-check{{if $isActionsGlobalDisabled}} disabled{{end}}"{{if $isActionsGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
-				<input id="unit-units\overview-enable_actions5" class="enable-system" name="enable_actions" type="checkbox" {{if $isActionsEnabled}}checked{{end}}>
-				<label for="unit-units\overview-enable_actions5">{{ctx.Locale.Tr "repo.settings.actions_desc"}}</label>
+				<input id="unit-overview-enable_actions5" class="enable-system" name="enable_actions" type="checkbox" {{if $isActionsEnabled}}checked{{end}}>
+				<label for="unit-overview-enable_actions5">{{ctx.Locale.Tr "repo.settings.actions_desc"}}</label>
 			</div>
 		</div>
 	{{end}}

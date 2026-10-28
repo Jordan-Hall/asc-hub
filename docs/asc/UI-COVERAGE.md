@@ -18,8 +18,8 @@ Boards (95 desktop boards, each with a mobile twin except the two system boards)
 
 | Status | Boards |
 | --- | --- |
-| design system | 91 |
-| partial | 4 |
+| design system | 94 |
+| partial | 1 |
 | old Fomantic markup | 0 |
 | asc era | 0 |
 | missing | 0 |
@@ -28,10 +28,10 @@ All templates (without mail, swagger, demo):
 
 | Status | Templates |
 | --- | --- |
-| design system | 462 |
-| design system shell with old markup inside | 44 |
+| design system | 467 |
+| design system shell with old markup inside | 43 |
 | old Fomantic markup | 18 |
-| asc era | 8 |
+| asc era | 5 |
 | no class markup (data, includes, emails) | 146 |
 
 Page templates reached by a route of `web.go` (138):
@@ -107,7 +107,7 @@ Page templates reached by a route with no board: 56.
 | E5 Workflows | `Workflows` (`Mobile-Workflows`) | `repo/asc_workflows.tmpl`, `repo/asc_workflows_runs.tmpl`, `repo/asc_workflows_runlist.tmpl` | design system |  |
 | E6 Workflow definition | `WorkflowDef` (`Mobile-WorkflowDef`) | `repo/asc_workflows_def.tmpl` | design system |  |
 | E7 Workflow run | `WorkflowRun` (`Mobile-WorkflowRun`) | `repo/asc_workflows_run.tmpl` | design system |  |
-| F1 General | `RepoSettingsGeneral` (`Mobile-RepoSettingsGeneral`) | `repo/settings/options.tmpl`, `repo/settings/units/issues.tmpl`, `repo/settings/units/overview.tmpl`, `repo/settings/units/pulls.tmpl`, `repo/settings/units/wiki.tmpl`, `repo/settings/asc_branchless.tmpl` | partial | `repo/settings/units/issues.tmpl` (3 old / 34 ds) |
+| F1 General | `RepoSettingsGeneral` (`Mobile-RepoSettingsGeneral`) | `repo/settings/options.tmpl`, `repo/settings/units/issues.tmpl`, `repo/settings/units/overview.tmpl`, `repo/settings/units/pulls.tmpl`, `repo/settings/units/wiki.tmpl`, `repo/settings/asc_branchless.tmpl` | design system |  |
 | F2 Access | `RepoSettingsAccess` (`Mobile-RepoSettingsAccess`) | `repo/settings/collaboration.tmpl`, `repo/settings/deploy_keys.tmpl` | design system |  |
 | F3 Policy | `RepoSettingsPolicy` (`Mobile-RepoSettingsPolicy`) | `repo/settings/asc_policy.tmpl` | design system |  |
 | F4 Branches and stacks | `RepoSettingsRules` (`Mobile-RepoSettingsRules`) | `repo/settings/branches.tmpl`, `repo/settings/protected_branch.tmpl`, `repo/settings/tags.tmpl` | design system |  |
@@ -124,8 +124,8 @@ Page templates reached by a route with no board: 56.
 | G7 Access tokens | `UserSettingsTokens` (`Mobile-UserSettingsTokens`) | `user/settings/applications.tmpl`, `user/settings/authorized_integrations.tmpl` | design system |  |
 | G8 SSH and signing keys | `UserSettingsKeys` (`Mobile-UserSettingsKeys`) | `user/settings/keys.tmpl`, `user/settings/keys_ssh.tmpl`, `user/settings/keys_gpg.tmpl`, `user/settings/asc_keys.tmpl` | design system |  |
 | G9 Applications | `UserSettingsApps` (`Mobile-UserSettingsApps`) | `user/settings/grants_oauth2.tmpl`, `user/settings/hooks.tmpl`, `user/settings/applications.tmpl`, `user/settings/applications_oauth2.tmpl`, `user/settings/applications_oauth2_edit.tmpl`, `user/settings/applications_oauth2_edit_form.tmpl` (+1) | design system |  |
-| G10 AI keys | `UserSettingsAI` (`Mobile-UserSettingsAI`) | `user/settings/asc_ai.tmpl`, `shared/asc/byo_ai.tmpl`, `shared/asc/byo_ai_fields.tmpl`, `shared/asc/byo_ai_key.tmpl`, `shared/asc/byo_ai_page.tmpl` | partial |  |
-| G11 Storage | `UserSettingsStorage` (`Mobile-UserSettingsStorage`) | `user/settings/asc_storage.tmpl`, `shared/asc/byo_storage.tmpl`, `shared/asc/byo_storage_cards.tmpl`, `shared/asc/byo_storage_fields.tmpl`, `shared/asc/byo_storage_page.tmpl`, `shared/asc/byo_storage_repo.tmpl` (+1) | partial |  |
+| G10 AI keys | `UserSettingsAI` (`Mobile-UserSettingsAI`) | `user/settings/asc_ai.tmpl`, `shared/asc/byo_ai.tmpl`, `shared/asc/byo_ai_fields.tmpl`, `shared/asc/byo_ai_key.tmpl`, `shared/asc/byo_ai_page.tmpl` | design system |  |
+| G11 Storage | `UserSettingsStorage` (`Mobile-UserSettingsStorage`) | `user/settings/asc_storage.tmpl`, `shared/asc/byo_storage.tmpl`, `shared/asc/byo_storage_cards.tmpl`, `shared/asc/byo_storage_fields.tmpl`, `shared/asc/byo_storage_page.tmpl`, `shared/asc/byo_storage_repo.tmpl` (+1) | design system |  |
 | G12 Organizations | `UserSettingsOrgs` (`Mobile-UserSettingsOrgs`) | `user/settings/organization.tmpl` | design system |  |
 | G13 Repositories | `UserSettingsRepos` (`Mobile-UserSettingsRepos`) | `user/settings/repos.tmpl` | design system |  |
 | G14 Usage and quota | `UserSettingsUsage` (`Mobile-UserSettingsUsage`) | `user/settings/storage_overview.tmpl` | design system |  |
@@ -412,12 +412,6 @@ Every template with Fomantic classes, not reached by a board above or reached wi
 | `repo/settings/githooks.tmpl` | partial | 1 old / 4 ds | - |
 | `repo/settings/lfs_file.tmpl` | partial | 3 old / 11 ds | - |
 | `repo/settings/push_mirror_sync_modal.tmpl` | partial | 1 old / 6 ds | - |
-
-### `repo/settings/units`
-
-| Template | State | old / ds | Board |
-| --- | --- | --- | --- |
-| `repo/settings/units/issues.tmpl` | partial | 3 old / 34 ds | F1 RepoSettingsGeneral |
 
 ### `repo/settings/webhook`
 

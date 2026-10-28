@@ -58,10 +58,10 @@ func TestArchivedLabelVisualProperties(t *testing.T) {
 
 			if label.Text() == "active_label" {
 				assert.False(t, label.HasClass("archived-label"))
-				assert.Contains(t, style, "background-color: #aa00aaff")
+				assert.Contains(t, style, "background-color: #aa00aa2b")
 			} else if label.Text() == "archived_label" {
 				assert.True(t, label.HasClass("archived-label"))
-				assert.Contains(t, style, "background-color: #00aa007f")
+				assert.Contains(t, style, "background-color: #00aa0015")
 			}
 		})
 	})
