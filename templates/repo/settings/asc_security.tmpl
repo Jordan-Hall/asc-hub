@@ -1,121 +1,159 @@
-{{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings asc-trust-page")}}
+{{/*
+Secret scanning of a repository: rules, findings, refused pushes and the allowlist (routers/web/repo/setting/asc_secrets.go).
+Template Attributes:
+* AscSecurity: the page data (Data, Blocked, States, Allowlist, Ops, URLs, Problem, Unsupported)
+A finding never carries a value: the preview was cut to two characters before it got here.
+*/}}
+{{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings rv-trust-page")}}
 <div class="repo-setting-content">
 {{with .AscSecurity}}
-<div class="asc-trust" data-testid="asc-security">
-	<div class="asc-trust-head">
-		<h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_rp.p_secret"}}</h2>
-	</div>
-	<p class="asc-trust-lead">{{ctx.Locale.Tr "asc_rp.x_lead"}}</p>
-	<nav class="asc-trust-links" aria-label="{{ctx.Locale.Tr "asc_rp.p_pages"}}">
-		<a href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_rp.p_title"}}</a>
-		<a href="{{.AuditURL}}">{{ctx.Locale.Tr "asc_rp.p_audit"}}</a>
-	</nav>
+<div class="rv rv-trust-inline" data-testid="asc-security">
+	<header class="rv-head rv-head-inline">
+		<div class="rv-head-main">
+			<div class="rv-eyebrow">{{ctx.Locale.Tr "asc_review.sec_eyebrow"}}</div>
+			<h1 class="rv-title">{{ctx.Locale.Tr "asc_review.sec_title"}}</h1>
+			<p class="rv-lead">{{ctx.Locale.Tr "asc_review.sec_lead"}}</p>
+			{{if .Data}}
+			<ul class="rv-facts">
+				<li>{{if .Data.Rules.BlockOnPush}}<span class="rv-pill rv-pill-ok" data-testid="asc-security-block">{{ctx.Locale.Tr "asc_review.sec_blocks"}}</span>{{else}}<span class="rv-pill rv-pill-warn" data-testid="asc-security-block">{{ctx.Locale.Tr "asc_review.sec_records_only"}}</span>{{end}}</li>
+				<li><span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_review.sec_branch"}} <code class="rv-bare">{{.Branch}}</code></span></li>
+			</ul>
+			{{end}}
+		</div>
+		{{if .Data}}
+		<form class="rv-acts" method="post" action="{{.SecurityURL}}/scan">
+			{{$.CsrfTokenHtml}}
+			<button class="rv-btn rv-btn-secondary" type="submit" data-testid="asc-security-scan">{{ctx.Locale.Tr "asc_review.sec_scan" .Branch}}</button>
+		</form>
+		{{end}}
+	</header>
 
 	{{if .Unsupported}}
-		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-security-unsupported">{{ctx.Locale.Tr "asc_rp.x_unsupported"}}</div>
+		<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-security-unsupported"><div><b>{{ctx.Locale.Tr "asc_review.sec_unsupported_title"}}</b> {{ctx.Locale.Tr "asc_review.sec_unsupported"}}</div></div>
 	{{else}}
-		{{if .Problem}}<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-security-problem">{{.Problem}}</div>{{end}}
+		{{if .Problem}}<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-security-problem"><div>{{.Problem}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.SecurityURL}}">{{ctx.Locale.Tr "asc_review.try_again"}}</a></div></div></div>{{end}}
 
 		{{if .Data}}
-		<section class="ast-card" aria-labelledby="asc-sec-state">
-			<div class="ast-card-head">
-				<h3 id="asc-sec-state" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_scanning"}}</h3>
-				{{if .Data.Rules.BlockOnPush}}<span class="ast-pill ast-pill-ok" data-testid="asc-security-block">{{ctx.Locale.Tr "asc_rp.x_blocks"}}</span>{{else}}<span class="ast-pill ast-pill-wn" data-testid="asc-security-block">{{ctx.Locale.Tr "asc_rp.x_records"}}</span>{{end}}
-				<form class="ast-inline-form" method="post" action="{{.SecurityURL}}/scan">
-					{{$.CsrfTokenHtml}}
-					<button class="ds-btn ds-btn-secondary" type="submit" data-testid="asc-security-scan">{{ctx.Locale.Tr "asc_rp.x_scan_now" .Branch}}</button>
-				</form>
+		<div class="rv-stats rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.sec_stats"}}">
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_open"}}</div><div class="rv-stat-v">{{range .States}}{{if eq .Key "open"}}{{.Count}}{{end}}{{end}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_open_d"}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_refused"}}</div><div class="rv-stat-v">{{len .Blocked}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_refused_d"}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_rules"}}</div><div class="rv-stat-v">{{len .Data.Rules.Rules}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_rules_d"}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_allow"}}</div><div class="rv-stat-v">{{len .Data.Rules.AllowPaths}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_allow_d"}}</div></div>
+		</div>
+
+		<section class="rv-card rv-gap" aria-labelledby="asc-sec-state">
+			<div class="rv-card-h"><h2 id="asc-sec-state">{{ctx.Locale.Tr "asc_review.sec_scanning"}}</h2></div>
+			<div class="rv-card-b rv-row rv-row-wrap">
+				<div class="rv-scan-text">
+					<div class="rv-row rv-row-wrap"><b>{{if .Data.Rules.BlockOnPush}}{{ctx.Locale.Tr "asc_review.sec_blocks"}}{{else}}{{ctx.Locale.Tr "asc_review.sec_records_only"}}{{end}}</b> <span class="rv-pill {{if .Data.Rules.BlockOnPush}}rv-pill-ok{{else}}rv-pill-warn{{end}}">{{if .Data.Rules.BlockOnPush}}{{ctx.Locale.Tr "asc_review.sec_on"}}{{else}}{{ctx.Locale.Tr "asc_review.sec_off"}}{{end}}</span></div>
+					<p class="rv-muted">{{ctx.Locale.Tr "asc_review.sec_block_help"}} <a href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_review.sec_policy_link"}}</a>.</p>
+				</div>
+				<a class="rv-btn rv-btn-secondary" href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_review.sec_propose_change"}}</a>
 			</div>
-			<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.x_where_set" .PolicyURL}}</p>
 		</section>
 
-		{{if .Blocked}}
-		<section class="ast-card" aria-labelledby="asc-sec-blocked">
-			<div class="ast-card-head"><h3 id="asc-sec-blocked" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_refused"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_rp.x_from_audit"}}</span></div>
-			<ul class="ast-blocked" data-testid="asc-security-blocked">
-				{{range .Blocked}}
-				<li>
-					<b>{{ctx.Locale.Tr "asc_rp.x_blocked" (DateUtils.TimeSince .Time)}}</b> {{ctx.Locale.Tr "asc_rp.x_push_by" .Actor}}{{if .Target}} {{ctx.Locale.Tr "asc_rp.x_to"}} <code class="asc-trust-code">{{.Target}}</code>{{end}} {{ctx.Locale.Tr "asc_rp.x_was_refused"}}
-					{{range .Details}}<span class="asc-trust-code">{{.Key}}: {{.Value}}</span> {{end}}
+		<section class="rv-gap" aria-labelledby="asc-sec-findings">
+			<div class="rv-row rv-row-wrap rv-head-row">
+				<h2 id="asc-sec-findings" class="rv-h3">{{ctx.Locale.Tr "asc_review.sec_findings"}}</h2>
+			</div>
+			<nav class="rv-chips" aria-label="{{ctx.Locale.Tr "asc_review.sec_state_nav"}}">
+				{{range .States}}
+				<a class="rv-chip-btn" href="{{$.AscSecurity.SecurityURL}}?state={{.Key}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-findings-tab-{{.Key}}">{{ctx.Locale.Tr (printf "asc_review.sec_state_%s" .Key)}} <span class="rv-count">{{.Count}}</span></a>
+				{{end}}
+			</nav>
+
+			{{if .Data.Findings.Rows}}
+			<ul class="rv-list rv-gap" data-testid="asc-findings">
+				{{range .Data.Findings.Rows}}
+				<li class="rv-li rv-finding">
+					<div class="rv-li-main">
+						<div class="rv-li-title"><span class="rv-pill {{if eq .StateKey "open"}}rv-pill-err{{else if eq .StateKey "revoked"}}rv-pill-ok{{else if eq .StateKey "accepted_risk"}}rv-pill-warn{{else}}rv-pill-outline{{end}}">{{ctx.Locale.Tr (printf "asc_review.sec_state_%s" .StateKey)}}</span><span class="rv-pill rv-pill-{{.Tone}}">{{ctx.Locale.Tr (printf "asc_review.sec_sev_%s" .Severity)}}</span><span class="rv-faint rv-end rv-finding-when">{{DateUtils.TimeSince .LastSeen}}</span></div>
+						<div class="rv-finding-where"><code>{{.Location}}</code></div>
+						<div class="rv-li-sub"><code class="rv-bare">{{.Rule}}</code> · {{ctx.Locale.Tr "asc_review.sec_starts_with"}} <code class="rv-bare">{{.Preview}}</code>{{if .Change}} · {{ctx.Locale.Tr "asc_review.sec_in_change"}} <code class="rv-bare">{{.Change}}</code>{{end}}</div>
+						{{if .ResolvedBy}}<div class="rv-li-sub">{{ctx.Locale.Tr "asc_review.sec_set_by" .ResolvedBy}}</div>{{end}}
+						{{if .Note}}<div class="rv-li-sub">{{.Note}}</div>{{end}}
+					</div>
+					<form class="rv-finding-form" method="post" action="{{$.AscSecurity.SecurityURL}}/finding">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="id" value="{{.ID}}">
+						<input type="hidden" name="back" value="{{$.AscSecurity.State}}">
+						<input type="hidden" name="op" value="{{index $.AscSecurity.Ops .ID}}">
+						<details class="rv-details rv-finding-note">
+							<summary>{{ctx.Locale.Tr "asc_review.sec_add_note"}}</summary>
+							<label class="rv-sr" for="asc-finding-note-{{.ID}}">{{ctx.Locale.Tr "asc_review.sec_note"}}</label>
+							<input class="rv-input" id="asc-finding-note-{{.ID}}" name="note" type="text" maxlength="1024" placeholder="{{ctx.Locale.TrString "asc_review.sec_note"}}" autocomplete="off">
+						</details>
+						<div class="rv-finding-acts">
+							{{if ne .StateKey "open"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="open">{{ctx.Locale.Tr "asc_review.sec_act_open"}}</button>{{end}}
+							{{if ne .StateKey "revoked"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="revoked">{{ctx.Locale.Tr "asc_review.sec_state_revoked"}}</button>{{end}}
+							{{if ne .StateKey "false_positive"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="false_positive">{{ctx.Locale.Tr "asc_review.sec_state_false_positive"}}</button>{{end}}
+							{{if ne .StateKey "accepted_risk"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="accepted_risk">{{ctx.Locale.Tr "asc_review.sec_act_accept"}}</button>{{end}}
+						</div>
+					</form>
 				</li>
 				{{end}}
 			</ul>
+			{{else}}
+			<div class="rv-empty rv-gap" data-testid="asc-findings-empty">
+				<span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-shield-check" 24}}</span>
+				<h3>{{ctx.Locale.Tr "asc_review.sec_empty_title"}}</h3>
+				<p>{{ctx.Locale.Tr "asc_review.sec_empty_help"}}</p>
+			</div>
+			{{end}}
+			{{if .NextURL}}<div class="rv-more"><a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_review.sec_more"}}</a></div>{{end}}
 		</section>
-		{{end}}
 
-		<section class="ast-card" aria-labelledby="asc-sec-findings">
-			<div class="ast-card-head"><h3 id="asc-sec-findings" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_findings"}}</h3></div>
-			<div class="ast-tabs" role="navigation" aria-label="{{ctx.Locale.Tr "asc_rp.x_finding_state"}}">
-				{{range .States}}
-				<a class="ast-tab{{if .Active}} active{{end}}" href="{{$.AscSecurity.SecurityURL}}?state={{.Key}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-findings-tab-{{.Key}}">{{.Label}} <span class="ast-count">{{.Count}}</span></a>
+		<div class="rv-cols rv-cols-even rv-gap">
+			<section class="rv-card" aria-labelledby="asc-sec-blocked">
+				<div class="rv-card-h"><h2 id="asc-sec-blocked">{{ctx.Locale.Tr "asc_review.sec_refused"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.sec_from_audit"}}</span></div>
+				{{if .Blocked}}
+				<ul class="rv-recent" data-testid="asc-security-blocked">
+					{{range .Blocked}}
+					<li class="rv-recent-row">
+						<div class="rv-queue-main">
+							<div class="rv-queue-title">{{ctx.Locale.Tr "asc_review.sec_push_refused" .Actor}}</div>
+							<div class="rv-li-sub">{{if .Target}}<code class="rv-bare">{{.Target}}</code> {{end}}{{range .Details}}<code class="rv-bare">{{.Key}}: {{.Value}}</code> {{end}}</div>
+						</div>
+						<span class="rv-faint rv-recent-when">{{DateUtils.TimeSince .Time}}</span>
+					</li>
+					{{end}}
+				</ul>
+				<div class="rv-card-b"><a href="{{.AuditURL}}">{{ctx.Locale.Tr "asc_review.sec_open_audit"}}</a></div>
+				{{else}}
+				<p class="rv-card-b rv-muted" data-testid="asc-security-blocked-empty">{{ctx.Locale.Tr "asc_review.sec_refused_empty"}} <a href="{{.AuditURL}}">{{ctx.Locale.Tr "asc_review.sec_open_audit"}}</a></p>
 				{{end}}
-			</div>
-			<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
-				<table class="ui very basic table asc-trust-table" data-testid="asc-findings">
-					<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.x_findings"}}</caption>
-					<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_rp.x_where"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_rule"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_seen"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_state"}}</th><th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.x_actions"}}</span></th></tr></thead>
-					<tbody>
-						{{range .Data.Findings.Rows}}
-						<tr>
-							<td><code class="asc-trust-code">{{.Location}}</code><div class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.x_starts_with"}} <code class="asc-trust-code">{{.Preview}}</code>{{if .Change}} {{ctx.Locale.Tr "asc_rp.x_in_change"}} <code class="asc-trust-code">{{.Change}}</code>{{end}}</div></td>
-							<td><span class="ast-pill ast-pill-{{.Tone}}">{{.Severity}}</span> <code class="asc-trust-code">{{.Rule}}</code></td>
-							<td class="asc-trust-nowrap">{{DateUtils.TimeSince .LastSeen}}</td>
-							<td>{{.State}}{{if .ResolvedBy}}<div class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.x_by" .ResolvedBy}}</div>{{end}}{{if .Note}}<div class="asc-trust-sub">{{.Note}}</div>{{end}}</td>
-							<td>
-								<form class="ds-form ast-finding-form" method="post" action="{{$.AscSecurity.SecurityURL}}/finding">
-									{{$.CsrfTokenHtml}}
-									<input type="hidden" name="id" value="{{.ID}}">
-									<input type="hidden" name="back" value="{{$.AscSecurity.State}}">
-									<input type="hidden" name="op" value="{{index $.AscSecurity.Ops .ID}}">
-									<label class="tw-sr-only" for="asc-finding-state-{{.ID}}">{{ctx.Locale.Tr "asc_rp.x_new_state"}}</label>
-									<select id="asc-finding-state-{{.ID}}" class="ds-select" name="state">
-										<option value="open"{{if eq .StateKey "open"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.x_open"}}</option>
-										<option value="revoked"{{if eq .StateKey "revoked"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.x_revoked"}}</option>
-										<option value="false_positive"{{if eq .StateKey "false_positive"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.x_false_positive"}}</option>
-										<option value="accepted_risk"{{if eq .StateKey "accepted_risk"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.x_accepted_risk"}}</option>
-									</select>
-									<label class="tw-sr-only" for="asc-finding-note-{{.ID}}">{{ctx.Locale.Tr "asc_rp.x_note"}}</label>
-									<input id="asc-finding-note-{{.ID}}" class="ds-input" name="note" type="text" maxlength="1024" placeholder="{{ctx.Locale.Tr "asc_rp.x_note"}}" autocomplete="off">
-									<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_rp.x_save"}}</button>
-								</form>
-							</td>
-						</tr>
-						{{else}}
-						<tr><td colspan="5" class="center aligned text grey" data-testid="asc-findings-empty">{{ctx.Locale.Tr "asc_rp.x_no_findings"}}</td></tr>
-						{{end}}
-					</tbody>
-				</table>
-			</div>
-			{{if .NextURL}}<div class="asc-trust-actions"><a class="ds-btn ds-btn-secondary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_rp.x_more"}}</a></div>{{end}}
-		</section>
+			</section>
 
-		<section class="ast-card" aria-labelledby="asc-sec-allow">
-			<div class="ast-card-head"><h3 id="asc-sec-allow" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_allowlist"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_rp.x_reviewed"}}</span></div>
-			<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.x_allow_help"}}</p>
-			<form class="ds-form" method="post" action="{{.SecurityURL}}/allowlist" data-testid="asc-allowlist-form">
-				{{$.CsrfTokenHtml}}
-				<input type="hidden" name="op" value="{{.AllowOp}}">
-				<div class="ds-field">
-					<label for="asc-allow-paths">{{ctx.Locale.Tr "asc_rp.x_paths"}}</label>
-					<textarea id="asc-allow-paths" class="ds-textarea ds-mono" name="paths" rows="5" spellcheck="false" autocomplete="off" wrap="off" placeholder="tests/fixtures/**">{{.Allowlist}}</textarea>
-				</div>
-				<button class="ds-btn ds-btn-primary" type="submit" data-testid="asc-allowlist-save">{{ctx.Locale.Tr "asc_rp.x_propose_allow"}}</button>
-			</form>
-		</section>
+			<section class="rv-card" aria-labelledby="asc-sec-allow">
+				<div class="rv-card-h"><h2 id="asc-sec-allow">{{ctx.Locale.Tr "asc_review.sec_allowlist"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.sec_reviewed_like_code"}}</span></div>
+				<form class="rv-card-b rv-form" method="post" action="{{.SecurityURL}}/allowlist" data-testid="asc-allowlist-form">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="op" value="{{.AllowOp}}">
+					<p class="rv-muted">{{ctx.Locale.Tr "asc_review.sec_allow_help"}}</p>
+					<div class="rv-field">
+						<label class="rv-label" for="asc-allow-paths">{{ctx.Locale.Tr "asc_review.sec_paths"}}</label>
+						<textarea class="rv-textarea rv-mono" id="asc-allow-paths" name="paths" rows="5" spellcheck="false" autocomplete="off" wrap="off" placeholder="tests/fixtures/**" aria-describedby="asc-allow-hint">{{.Allowlist}}</textarea>
+						<p class="rv-hint" id="asc-allow-hint">{{ctx.Locale.Tr "asc_review.sec_allow_hint"}}</p>
+					</div>
+					<div class="rv-acts"><button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-allowlist-save">{{ctx.Locale.Tr "asc_review.sec_allow_save"}}</button></div>
+				</form>
+			</section>
+		</div>
 
-		<section class="ast-card" aria-labelledby="asc-sec-rules">
-			<div class="ast-card-head"><h3 id="asc-sec-rules" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_rules"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_rp.x_rules_aside"}}</span></div>
-			<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
-				<table class="ui very basic table asc-trust-table" data-testid="asc-rules">
-					<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.x_scan_rules"}}</caption>
-					<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_rp.x_rule"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_severity"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_detector"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.p_on"}}</th></tr></thead>
+		<section class="rv-gap" aria-labelledby="asc-sec-rules">
+			<div class="rv-row rv-row-wrap rv-head-row"><h2 id="asc-sec-rules" class="rv-h3">{{ctx.Locale.Tr "asc_review.sec_rules"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.sec_rules_help"}}</span></div>
+			<div class="rv-tablewrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
+				<table class="rv-tbl rv-tbl-stack" data-testid="asc-rules">
+					<caption class="rv-sr">{{ctx.Locale.Tr "asc_review.sec_rules"}}</caption>
+					<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_rule"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_severity"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_detector"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_source"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_on"}}</th></tr></thead>
 					<tbody>
 						{{range .Data.Rules.Rules}}
 						<tr>
-							<td><b>{{.Name}}</b> <code class="asc-trust-code">{{.ID}}</code>{{if not .Builtin}} <span class="ast-pill ast-pill-ro">{{ctx.Locale.Tr "asc_rp.x_custom"}}</span>{{end}}<div class="asc-trust-sub">{{.Description}}</div></td>
-							<td><span class="ast-pill ast-pill-{{.Tone}}">{{.Severity}}</span></td>
-							<td>{{.Detector}}</td>
-							<td>{{if .Enabled}}{{ctx.Locale.Tr "asc_rp.x_yes"}}{{else}}{{ctx.Locale.Tr "asc_rp.x_no"}}{{end}}</td>
+							<td class="rv-cell-main"><b>{{.Name}}</b> <code>{{.ID}}</code>{{if .Description}}<div class="rv-li-sub">{{.Description}}</div>{{end}}</td>
+							<td data-label="{{ctx.Locale.Tr "asc_review.sec_col_severity"}}"><span class="rv-pill rv-pill-{{.Tone}}">{{ctx.Locale.Tr (printf "asc_review.sec_sev_%s" .Severity)}}</span></td>
+							<td data-label="{{ctx.Locale.Tr "asc_review.sec_col_detector"}}">{{.Detector}}</td>
+							<td data-label="{{ctx.Locale.Tr "asc_review.sec_col_source"}}">{{if .Builtin}}{{ctx.Locale.Tr "asc_review.sec_builtin"}}{{else}}<span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_review.sec_custom"}}</span>{{end}}</td>
+							<td data-label="{{ctx.Locale.Tr "asc_review.sec_col_on"}}">{{if .Enabled}}{{ctx.Locale.Tr "asc_review.sec_yes"}}{{else}}{{ctx.Locale.Tr "asc_review.sec_no"}}{{end}}</td>
 						</tr>
 						{{end}}
 					</tbody>

@@ -1,0 +1,10 @@
+{{/*
+The area navigation of the stack pages: stacks, merge queue, policy gate and operation log.
+Dot: dict "Tab" (stacks, queue, gate or ops) "Link" the repository link
+*/}}
+<nav class="rv-seg rv-area-nav" aria-label="{{ctx.Locale.Tr "asc_review.stack_nav_label"}}" data-testid="asc-stack-nav">
+	<a href="{{.Link}}/pulls"{{if eq .Tab "stacks"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.stack_nav_stacks"}}</a>
+	<a href="{{.Link}}/asc/queue"{{if eq .Tab "queue"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.stack_nav_queue"}}</a>
+	<a href="{{.Link}}/asc/gate"{{if eq .Tab "gate"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.stack_nav_gate"}}</a>
+	<a href="{{.Link}}/asc/ops"{{if eq .Tab "ops"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.stack_nav_ops"}}</a>
+</nav>

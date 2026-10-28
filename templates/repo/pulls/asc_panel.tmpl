@@ -1,0 +1,29 @@
+{{/*
+The side panel of a stacked change on the files page: where the checks, the policy gate and the merge queue of this
+repository are. It holds links only, so it needs no data of its own.
+Template Attributes: AscStackPanel (the panel is drawn only for a stacked change), Issue, RepoLink
+*/}}
+{{if .AscStackPanel}}
+<div class="rv rv-sidepanel" data-testid="asc-panel">
+	<section class="rv-card" aria-labelledby="asc-panel-title">
+		<div class="rv-card-h"><h2 id="asc-panel-title">{{ctx.Locale.Tr "asc_review.rev_panel"}}</h2></div>
+		<ul class="rv-gate rv-card-b">
+			<li class="rv-gr">
+				<span class="rv-gi rv-gi-info" aria-hidden="true"></span>
+				<div><div class="rv-gt"><a href="{{.Issue.Link}}/asc/checks">{{ctx.Locale.Tr "asc_review.rev_checks"}}</a></div><div class="rv-li-sub">{{ctx.Locale.Tr "asc_review.rev_checks_help"}}</div></div>
+				<span></span>
+			</li>
+			<li class="rv-gr">
+				<span class="rv-gi rv-gi-info" aria-hidden="true"></span>
+				<div><div class="rv-gt"><a href="{{.RepoLink}}/asc/gate">{{ctx.Locale.Tr "asc_review.stack_nav_gate"}}</a></div><div class="rv-li-sub">{{ctx.Locale.Tr "asc_review.rev_gate_help"}}</div></div>
+				<span></span>
+			</li>
+			<li class="rv-gr">
+				<span class="rv-gi rv-gi-info" aria-hidden="true"></span>
+				<div><div class="rv-gt"><a href="{{.RepoLink}}/asc/queue">{{ctx.Locale.Tr "asc_review.stack_nav_queue"}}</a></div><div class="rv-li-sub">{{ctx.Locale.Tr "asc_review.rev_queue_help"}}</div></div>
+				<span></span>
+			</li>
+		</ul>
+	</section>
+</div>
+{{end}}

@@ -9,154 +9,170 @@ Template Attributes:
 Entry reasons are written by the queue worker from fixed texts and pull request numbers; the template engine escapes them.
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-queue-page asc-repo-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="rv rv-page" data-testid="asc-queue">
 		{{template "base/alert" .}}
-		<div class="ui segment" data-testid="asc-queue">
-			<div class="asc-queue-head">
-				<h2 class="ui header tw-mb-0">{{ctx.Locale.Tr "repo.asc_queue.title"}}
-					<span class="ui basic label tw-font-mono">{{.AscQueue.Branch}}</span>
-				</h2>
-				<span class="asc-state {{if .AscQueue.Paused}}asc-state-blocked{{else}}asc-state-ready{{end}}" data-testid="asc-queue-status">
-					{{if .AscQueue.Paused}}{{ctx.Locale.Tr "repo.asc_queue.status_paused"}}{{else if .AscQueue.Landing}}{{ctx.Locale.Tr "repo.asc_queue.status_landing"}}{{else}}{{ctx.Locale.Tr "repo.asc_queue.status_running"}}{{end}}
-				</span>
+		<div class="rv-area">{{template "repo/asc_stack_nav" (dict "Tab" "queue" "Link" .RepoLink)}}</div>
+		<header class="rv-head">
+			<div class="rv-head-main">
+				<div class="rv-eyebrow">{{.Repository.FullName}} Â· {{ctx.Locale.Tr "asc_review.stack_eyebrow"}}</div>
+				<h1 class="rv-title">{{ctx.Locale.Tr "repo.asc_queue.title"}}</h1>
+				<p class="rv-lead">{{ctx.Locale.Tr "repo.asc_queue.desc"}}</p>
+				<ul class="rv-facts">
+					<li><span class="rv-pill {{if .AscQueue.Paused}}rv-pill-warn{{else}}rv-pill-ok{{end}}" data-testid="asc-queue-status">{{if .AscQueue.Paused}}{{ctx.Locale.Tr "repo.asc_queue.status_paused"}}{{else if .AscQueue.Landing}}{{ctx.Locale.Tr "repo.asc_queue.status_landing"}}{{else}}{{ctx.Locale.Tr "repo.asc_queue.status_running"}}{{end}}</span></li>
+					<li><span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_review.queue_branch"}} <code class="rv-bare">{{.AscQueue.Branch}}</code></span></li>
+					<li><span class="rv-pill rv-pill-info">{{if .AscQueueRevalidate}}{{ctx.Locale.Tr "asc_review.queue_revalidate_on"}}{{else}}{{ctx.Locale.Tr "asc_review.queue_revalidate_off"}}{{end}}</span></li>
+				</ul>
 			</div>
-			<p class="text grey">{{ctx.Locale.Tr "repo.asc_queue.desc"}}</p>
-			<p class="text grey">
-				{{if .AscQueueRevalidate}}{{ctx.Locale.Tr "repo.asc_queue.revalidate_on"}}{{else}}{{ctx.Locale.Tr "repo.asc_queue.revalidate_off"}}{{end}}
-			</p>
-
 			{{if .AscQueueCanAdmin}}
-			<div class="asc-queue-admin">
-				{{if .AscQueue.Paused}}
-					<button class="ui basic button show-modal" data-modal="#asc-queue-resume-modal">{{ctx.Locale.Tr "repo.asc_queue.resume"}}</button>
-				{{else}}
-					<button class="ui basic button show-modal" data-modal="#asc-queue-pause-modal">{{ctx.Locale.Tr "repo.asc_queue.pause"}}</button>
+				<div class="rv-acts">
+					{{if .AscQueue.Paused}}
+						<button class="rv-btn rv-btn-secondary show-modal" type="button" data-modal="#asc-queue-resume-modal">{{ctx.Locale.Tr "repo.asc_queue.resume"}}</button>
+					{{else}}
+						<button class="rv-btn rv-btn-secondary show-modal" type="button" data-modal="#asc-queue-pause-modal">{{ctx.Locale.Tr "repo.asc_queue.pause"}}</button>
+					{{end}}
+				</div>
+			{{end}}
+		</header>
+
+		{{if .AscQueue.Paused}}
+			<div class="rv-banner rv-banner-warn" role="status"><div><b>{{ctx.Locale.Tr "repo.asc_queue.paused_done"}}</b> {{ctx.Locale.Tr "repo.asc_queue.pause_confirm"}}</div></div>
+		{{end}}
+
+		<div class="rv-stats rv-stats-3 rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.queue_stats"}}">
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "repo.asc_queue.waiting"}}</div><div class="rv-stat-v">{{len .AscQueue.Active}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "repo.asc_queue.recent"}}</div><div class="rv-stat-v">{{len .AscQueue.Recent}}</div></div>
+			{{with .AscQuarantine}}<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_trust.queue.quarantine_title"}}</div><div class="rv-stat-v">{{len .Rows}}</div></div>{{end}}
+		</div>
+
+		<div class="rv-cols rv-cols-main-side rv-gap">
+			<div class="rv-stack">
+				<section class="rv-card" aria-labelledby="rv-queue-waiting">
+					<div class="rv-card-h"><h2 id="rv-queue-waiting">{{ctx.Locale.Tr "repo.asc_queue.waiting"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.queue_in_order"}}</span><span class="rv-count rv-end">{{len .AscQueue.Active}}</span></div>
+					{{if .AscQueue.Active}}
+						<ol class="rv-queue" data-testid="asc-queue-active">
+							{{range .AscQueue.Active}}
+								<li class="rv-queue-row">
+									<span class="rv-queue-pos" aria-label="{{ctx.Locale.Tr "repo.asc_queue.col_position"}}">{{.Position}}</span>
+									<div class="rv-queue-main">
+										<div class="rv-queue-title">{{if .PR}}<a href="{{.PR.Issue.Link}}">#{{.PR.Issue.Index}} {{.PR.Issue.Title}}</a>{{else}}<span class="rv-muted">{{ctx.Locale.Tr "repo.asc_queue.gone"}}</span>{{end}}</div>
+										{{if .Entry.Reason}}<div class="rv-li-sub">{{.Entry.Reason}}</div>{{end}}
+										<div class="rv-li-meta"><span>{{ctx.Locale.Tr "repo.asc_queue.col_by"}} {{with index $.AscQueueUsers .Entry.DoerID}}{{.GetDisplayName}}{{end}}</span></div>
+									</div>
+									<div class="rv-queue-state">
+										<span class="rv-pill {{if eq .Entry.State "blocked"}}rv-pill-err{{else if eq .Entry.State "landing"}}rv-pill-info{{else}}rv-pill-warn{{end}}">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.queued_%s" .Entry.State)}}</span>
+									</div>
+									{{if and .CanCancel .PR}}<div class="rv-queue-act"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.PR.Issue.Link}}/asc/confirm?op=unqueue">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a></div>{{end}}
+								</li>
+							{{end}}
+						</ol>
+					{{else}}
+						<div class="rv-empty rv-empty-flat" data-testid="asc-queue-empty">
+							<h3>{{ctx.Locale.Tr "asc_review.queue_empty_title"}}</h3>
+							<p>{{ctx.Locale.Tr "repo.asc_queue.empty"}} {{ctx.Locale.Tr "asc_review.queue_empty_help"}}</p>
+							<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.RepoLink}}/pulls">{{ctx.Locale.Tr "asc_review.queue_open_changes"}}</a></div>
+						</div>
+					{{end}}
+				</section>
+
+				{{with .AscQuarantine}}
+				<section class="rv-card" aria-labelledby="asc-queue-quarantine-title">
+					<div class="rv-card-h"><h2 id="asc-queue-quarantine-title">{{ctx.Locale.Tr "asc_trust.queue.quarantine_title"}}</h2>{{if .ChecksURL}}<a class="rv-end" href="{{.ChecksURL}}?state=quarantined">{{ctx.Locale.Tr "asc_review.queue_manage_checks"}}</a>{{end}}</div>
+					<div class="rv-card-b">
+						<p class="rv-muted">{{ctx.Locale.Tr "asc_trust.queue.quarantine_lead"}}</p>
+						{{if .Problem}}
+							<div class="rv-banner rv-banner-warn rv-gap" role="status" data-testid="asc-queue-quarantine-problem"><div>{{.Problem}}</div></div>
+						{{else if .Rows}}
+							<ul class="rv-quarantine rv-gap" data-testid="asc-queue-quarantine">
+								{{range .Rows}}
+									<li class="rv-inset rv-quarantine-row">
+										<div class="rv-row rv-row-wrap">
+											<a class="rv-quarantine-title" href="{{$.AscQuarantine.ChecksURL}}/groups/{{.ID}}">{{if .Title}}{{.Title}}{{else}}{{.TestName}}{{end}}</a>
+											<span class="rv-pill rv-pill-warn rv-end">{{ctx.Locale.Tr "asc_trust.queue.quarantined"}}</span>
+										</div>
+										<div class="rv-li-sub">
+											{{if .TestName}}<code>{{.TestName}}</code>{{end}}{{if .JobName}} {{ctx.Locale.Tr "asc_trust.queue.in_job" .JobName}}{{end}}
+											Â· {{ctx.Locale.Tr "asc_trust.queue.seen" .Occurrences .ChangesAffected}}
+											Â· {{ctx.Locale.Tr "asc_trust.queue.last_seen"}} {{DateUtils.TimeSince .LastSeen}}
+										</div>
+										<div class="rv-li-sub" data-testid="asc-queue-quarantine-why"><strong>{{ctx.Locale.Tr "asc_trust.queue.why"}}</strong> {{if .Note}}{{.Note}}{{else}}{{ctx.Locale.Tr "asc_trust.queue.no_note"}}{{end}}</div>
+									</li>
+								{{end}}
+							</ul>
+							{{if .More}}<p class="rv-gap"><a href="{{.ChecksURL}}?state=quarantined">{{ctx.Locale.Tr "asc_trust.queue.more"}}</a></p>{{end}}
+						{{else}}
+							<p class="rv-muted rv-gap" data-testid="asc-queue-quarantine-empty">{{ctx.Locale.Tr "asc_trust.queue.quarantine_empty"}}</p>
+						{{end}}
+					</div>
+				</section>
+				{{end}}
+
+				{{if .AscQueue.Recent}}
+				<section class="rv-card" aria-labelledby="rv-queue-recent">
+					<div class="rv-card-h"><h2 id="rv-queue-recent">{{ctx.Locale.Tr "repo.asc_queue.recent"}}</h2></div>
+					<ul class="rv-recent" data-testid="asc-queue-recent">
+						{{range .AscQueue.Recent}}
+							<li class="rv-recent-row">
+								<div class="rv-queue-main">
+									<div class="rv-queue-title">{{if .PR}}<a href="{{.PR.Issue.Link}}">#{{.PR.Issue.Index}} {{.PR.Issue.Title}}</a>{{else}}<span class="rv-muted">{{ctx.Locale.Tr "repo.asc_queue.gone"}}</span>{{end}}</div>
+									{{if .Entry.Reason}}<div class="rv-li-sub">{{.Entry.Reason}}</div>{{end}}
+								</div>
+								<span class="rv-pill {{if eq .Entry.State "merged"}}rv-pill-ok{{else}}rv-pill-outline{{end}}">{{ctx.Locale.Tr (printf "repo.asc_queue.finished_%s" .Entry.State)}}</span>
+								<span class="rv-faint rv-recent-when">{{DateUtils.TimeSince .Entry.UpdatedUnix}}</span>
+							</li>
+						{{end}}
+					</ul>
+				</section>
 				{{end}}
 			</div>
-			{{end}}
 
-			<h3 class="ui header">{{ctx.Locale.Tr "repo.asc_queue.waiting"}}</h3>
-			{{if .AscQueue.Active}}
-			<table class="ui table asc-stack" data-testid="asc-queue-active">
-				<thead>
-					<tr>
-						<th scope="col">{{ctx.Locale.Tr "repo.asc_queue.col_position"}}</th>
-						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}</th>
-						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}</th>
-						<th scope="col">{{ctx.Locale.Tr "repo.asc_queue.col_by"}}</th>
-						<th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "repo.asc_queue.col_actions"}}</span></th>
-					</tr>
-				</thead>
-				<tbody>
-					{{range .AscQueue.Active}}
-					<tr>
-						<td data-label="{{ctx.Locale.Tr "repo.asc_queue.col_position"}}">{{.Position}}</td>
-						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}">
-							{{if .PR}}<a href="{{.PR.Issue.Link}}">#{{.PR.Issue.Index}} {{.PR.Issue.Title}}</a>{{else}}<span class="text grey">{{ctx.Locale.Tr "repo.asc_queue.gone"}}</span>{{end}}
-						</td>
-						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}">
-							<span class="asc-state asc-state-queued_{{.Entry.State}}">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.queued_%s" .Entry.State)}}</span>
-							{{if .Entry.Reason}}<div class="text grey tw-text-sm">{{.Entry.Reason}}</div>{{end}}
-						</td>
-						<td data-label="{{ctx.Locale.Tr "repo.asc_queue.col_by"}}">{{with index $.AscQueueUsers .Entry.DoerID}}{{.GetDisplayName}}{{end}}</td>
-						<td>
-							{{if and .CanCancel .PR}}<a class="ui basic mini button" href="{{.PR.Issue.Link}}/asc/confirm?op=unqueue">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a>{{end}}
-						</td>
-					</tr>
-					{{end}}
-				</tbody>
-			</table>
-			{{else}}
-			<div class="ui info message" data-testid="asc-queue-empty">{{ctx.Locale.Tr "repo.asc_queue.empty"}}</div>
-			{{end}}
-
-			{{if .AscQueue.Recent}}
-			<h3 class="ui header">{{ctx.Locale.Tr "repo.asc_queue.recent"}}</h3>
-			<table class="ui table asc-stack" data-testid="asc-queue-recent">
-				<tbody>
-					{{range .AscQueue.Recent}}
-					<tr>
-						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}">
-							{{if .PR}}<a href="{{.PR.Issue.Link}}">#{{.PR.Issue.Index}} {{.PR.Issue.Title}}</a>{{else}}<span class="text grey">{{ctx.Locale.Tr "repo.asc_queue.gone"}}</span>{{end}}
-						</td>
-						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}">
-							<span class="asc-state asc-state-{{.Entry.State}}">{{ctx.Locale.Tr (printf "repo.asc_queue.finished_%s" .Entry.State)}}</span>
-							{{if .Entry.Reason}}<div class="text grey tw-text-sm">{{.Entry.Reason}}</div>{{end}}
-						</td>
-						<td data-label="{{ctx.Locale.Tr "repo.asc_queue.col_when"}}">{{DateUtils.TimeSince .Entry.UpdatedUnix}}</td>
-					</tr>
-					{{end}}
-				</tbody>
-			</table>
-			{{end}}
-
-			{{with .AscQuarantine}}
-			<h3 class="ui header" id="asc-queue-quarantine-title">{{ctx.Locale.Tr "asc_trust.queue.quarantine_title"}}</h3>
-			<p class="text grey">{{ctx.Locale.Tr "asc_trust.queue.quarantine_lead"}}</p>
-			{{if .Problem}}
-				<div class="ui warning message" role="status" data-testid="asc-queue-quarantine-problem">{{.Problem}}</div>
-			{{else if .Rows}}
-			<ul class="ast-ops" aria-labelledby="asc-queue-quarantine-title" data-testid="asc-queue-quarantine">
-				{{range .Rows}}
-				<li class="ast-op">
-					<div class="ast-op-main">
-						<div class="ast-op-line">
-							<span class="ast-pill ast-pill-wn">{{ctx.Locale.Tr "asc_trust.queue.quarantined"}}</span>
-							<a href="{{$.AscQuarantine.ChecksURL}}/groups/{{.ID}}">{{if .Title}}{{.Title}}{{else}}{{.TestName}}{{end}}</a>
-						</div>
-						<div class="asc-trust-sub">
-							{{if .TestName}}<code class="asc-trust-code">{{.TestName}}</code>{{end}}{{if .JobName}} {{ctx.Locale.Tr "asc_trust.queue.in_job" .JobName}}{{end}}
-							· {{ctx.Locale.Tr "asc_trust.queue.seen" .Occurrences .ChangesAffected}}
-							· {{ctx.Locale.Tr "asc_trust.queue.last_seen"}} {{DateUtils.TimeSince .LastSeen}}
-						</div>
-						<div class="asc-trust-sub" data-testid="asc-queue-quarantine-why"><strong>{{ctx.Locale.Tr "asc_trust.queue.why"}}</strong> {{if .Note}}{{.Note}}{{else}}{{ctx.Locale.Tr "asc_trust.queue.no_note"}}{{end}}</div>
-					</div>
-				</li>
-				{{end}}
-			</ul>
-			{{if .More}}<p><a href="{{.ChecksURL}}?state=quarantined">{{ctx.Locale.Tr "asc_trust.queue.more"}}</a></p>{{end}}
-			{{else}}
-			<div class="ui info message" data-testid="asc-queue-quarantine-empty">{{ctx.Locale.Tr "asc_trust.queue.quarantine_empty"}}</div>
-			{{end}}
-			{{end}}
+			<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.queue_safe_title"}}">
+				<section class="rv-card">
+					<div class="rv-card-h"><h2>{{ctx.Locale.Tr "asc_review.queue_safe_title"}}</h2></div>
+					<ul class="rv-card-b rv-bullets">
+						<li>{{ctx.Locale.Tr "repo.asc_queue.revalidate_on"}}</li>
+						<li>{{ctx.Locale.Tr "asc_review.queue_safe_permission"}}</li>
+						<li>{{ctx.Locale.Tr "asc_review.queue_safe_pause"}}</li>
+					</ul>
+				</section>
+			</aside>
 		</div>
+
+		{{if .AscQueueCanAdmin}}
+		<dialog id="asc-queue-pause-modal">
+			<article>
+				<header>{{ctx.Locale.Tr "repo.asc_queue.pause"}}</header>
+				<div class="content">
+					<div class="rv-banner rv-banner-warn"><div>{{ctx.Locale.Tr "repo.asc_queue.pause_confirm"}}</div></div>
+				</div>
+				<form method="post" action="{{.RepoLink}}/asc/queue/pause">
+					{{.CsrfTokenHtml}}
+					<input type="hidden" name="branch" value="{{.AscQueue.Branch}}">
+					<div class="actions">
+						<button type="button" class="rv-btn rv-btn-secondary cancel">{{ctx.Locale.Tr "settings.cancel"}}</button>
+						<button type="submit" class="rv-btn rv-btn-primary">{{ctx.Locale.Tr "repo.asc_queue.pause"}}</button>
+					</div>
+				</form>
+			</article>
+		</dialog>
+		<dialog id="asc-queue-resume-modal">
+			<article>
+				<header>{{ctx.Locale.Tr "repo.asc_queue.resume"}}</header>
+				<div class="content">
+					<div class="rv-banner"><div>{{ctx.Locale.Tr "repo.asc_queue.resume_confirm"}}</div></div>
+				</div>
+				<form method="post" action="{{.RepoLink}}/asc/queue/resume">
+					{{.CsrfTokenHtml}}
+					<input type="hidden" name="branch" value="{{.AscQueue.Branch}}">
+					<div class="actions">
+						<button type="button" class="rv-btn rv-btn-secondary cancel">{{ctx.Locale.Tr "settings.cancel"}}</button>
+						<button type="submit" class="rv-btn rv-btn-primary">{{ctx.Locale.Tr "repo.asc_queue.resume"}}</button>
+					</div>
+				</form>
+			</article>
+		</dialog>
+		{{end}}
 	</div>
 </div>
-
-{{if .AscQueueCanAdmin}}
-<dialog id="asc-queue-pause-modal">
-	<article>
-		<header>{{ctx.Locale.Tr "repo.asc_queue.pause"}}</header>
-		<div class="content">
-			<div class="ui warning message">{{ctx.Locale.Tr "repo.asc_queue.pause_confirm"}}</div>
-		</div>
-		<form method="post" action="{{.RepoLink}}/asc/queue/pause">
-			{{.CsrfTokenHtml}}
-			<input type="hidden" name="branch" value="{{.AscQueue.Branch}}">
-			<div class="actions">
-				<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-				<button type="submit" class="ui primary button">{{ctx.Locale.Tr "repo.asc_queue.pause"}}</button>
-			</div>
-		</form>
-	</article>
-</dialog>
-<dialog id="asc-queue-resume-modal">
-	<article>
-		<header>{{ctx.Locale.Tr "repo.asc_queue.resume"}}</header>
-		<div class="content">
-			<div class="ui info message">{{ctx.Locale.Tr "repo.asc_queue.resume_confirm"}}</div>
-		</div>
-		<form method="post" action="{{.RepoLink}}/asc/queue/resume">
-			{{.CsrfTokenHtml}}
-			<input type="hidden" name="branch" value="{{.AscQueue.Branch}}">
-			<div class="actions">
-				<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-				<button type="submit" class="ui primary button">{{ctx.Locale.Tr "repo.asc_queue.resume"}}</button>
-			</div>
-		</form>
-	</article>
-</dialog>
-{{end}}
 {{template "base/footer" .}}

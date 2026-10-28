@@ -12,87 +12,95 @@ Template Attributes:
 Every text comes from the locale or from the handler; pull request titles are escaped by the template engine.
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-confirm asc-repo-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-confirm asc-repo-page rv-trust-page">
 	{{template "repo/header" .}}
-	<div class="ui container">
-		<div class="ui segment asc-confirm-box" data-testid="asc-confirm" data-asc-op="{{.AscOp}}">
-			<h2 class="ui header">{{.Title}}</h2>
-			<p>{{ctx.Locale.Tr (printf "repo.pulls.asc_op.desc.%s" .AscOp)}}</p>
+	<div class="rv rv-page">
+		{{template "base/alert" .}}
+		<div class="rv-narrow asc-confirm-box" data-testid="asc-confirm" data-asc-op="{{.AscOp}}">
+			<header class="rv-head">
+				<div class="rv-head-main">
+					<div class="rv-eyebrow"><a href="{{.AscBack}}">{{ctx.Locale.Tr "asc_review.rev_back_change"}}</a></div>
+					<h1 class="rv-title">{{.Title}}</h1>
+				</div>
+			</header>
+			<p class="rv-lead">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.desc.%s" .AscOp)}}</p>
 
 			{{if eq .AscOp "revert"}}
-			<form class="ui form asc-revert-options" method="get" action="{{.AscBack}}/asc/confirm">
+			<form class="rv-form rv-card rv-gap asc-revert-options" method="get" action="{{.AscBack}}/asc/confirm">
 				<input type="hidden" name="op" value="revert">
-				<div class="grouped fields">
-					<div class="field">
-						<div class="ui radio checkbox">
-							<input id="asc-scope-stack" type="radio" name="scope" value="stack"{{if not .AscScopeThis}} checked{{end}}>
-							<label for="asc-scope-stack">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_scope_stack"}}</label>
-						</div>
-					</div>
-					<div class="field">
-						<div class="ui radio checkbox">
-							<input id="asc-scope-this" type="radio" name="scope" value="this"{{if .AscScopeThis}} checked{{end}}>
-							<label for="asc-scope-this">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_scope_this"}}</label>
-						</div>
-					</div>
-					<div class="field">
-						<div class="ui checkbox">
-							<input id="asc-squash" type="checkbox" name="squash" value="1"{{if .AscSquash}} checked{{end}}>
-							<label for="asc-squash">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_squash"}}</label>
-						</div>
-					</div>
+				<div class="rv-card-b rv-stack">
+					<label class="rv-check" for="asc-scope-stack">
+						<input id="asc-scope-stack" type="radio" name="scope" value="stack"{{if not .AscScopeThis}} checked{{end}}>
+						<span>{{ctx.Locale.Tr "repo.pulls.asc_op.revert_scope_stack"}}</span>
+					</label>
+					<label class="rv-check" for="asc-scope-this">
+						<input id="asc-scope-this" type="radio" name="scope" value="this"{{if .AscScopeThis}} checked{{end}}>
+						<span>{{ctx.Locale.Tr "repo.pulls.asc_op.revert_scope_this"}}</span>
+					</label>
+					<label class="rv-check" for="asc-squash">
+						<input id="asc-squash" type="checkbox" name="squash" value="1"{{if .AscSquash}} checked{{end}}>
+						<span>{{ctx.Locale.Tr "repo.pulls.asc_op.revert_squash"}}</span>
+					</label>
 				</div>
-				<button class="ui basic button" type="submit">{{ctx.Locale.Tr "repo.pulls.asc_op.preview"}}</button>
+				<div class="rv-card-f"><button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "repo.pulls.asc_op.preview"}}</button></div>
 			</form>
 			{{end}}
 
 			{{if .AscFailure}}
-			<div class="ui negative message asc-op-message" role="alert" data-testid="asc-failure">{{svg "octicon-x-circle" 16}} {{.AscFailure}}</div>
+			<div class="rv-banner rv-banner-err rv-gap asc-op-message" role="alert" data-testid="asc-failure"><div>{{svg "octicon-x-circle" 16}} {{.AscFailure}}</div></div>
 			{{end}}
 			{{if .AscPreviewNote}}
-			<div class="ui info message asc-op-message" role="status">{{.AscPreviewNote}}</div>
+			<div class="rv-banner rv-gap asc-op-message" role="status"><div>{{.AscPreviewNote}}</div></div>
 			{{end}}
 			{{if .AscPaused}}
-			<div class="ui warning message asc-op-message" role="status">{{svg "octicon-alert" 16}} {{ctx.Locale.Tr "repo.pulls.asc_op.paused_note"}}</div>
+			<div class="rv-banner rv-banner-warn rv-gap asc-op-message" role="status"><div>{{svg "octicon-alert" 16}} {{ctx.Locale.Tr "repo.pulls.asc_op.paused_note"}}</div></div>
 			{{end}}
 			{{if and .AscNeedsContentMerge .AscNoContentMerge}}
-			<div class="ui warning message asc-op-message" role="status" data-testid="asc-content-merge">{{svg "octicon-alert" 16}} {{ctx.Locale.Tr "repo.pulls.asc_op.content_merge_note"}}</div>
+			<div class="rv-banner rv-banner-warn rv-gap asc-op-message" role="status" data-testid="asc-content-merge"><div>{{svg "octicon-alert" 16}} {{ctx.Locale.Tr "repo.pulls.asc_op.content_merge_note"}}</div></div>
 			{{end}}
 
 			{{if .AscRows}}
-			<table class="ui table asc-stack asc-op-table" data-testid="asc-rows">
-				<thead>
-					<tr>
-						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}</th>
-						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}</th>
-						<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_detail"}}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{{range .AscRows}}
-					<tr>
-						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}">
-							{{if .Link}}<a href="{{.Link}}">#{{.Index}} {{.Title}}</a>{{else}}<span class="tw-font-mono">{{.Change}}</span>{{end}}
-						</td>
-						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}">
-							<span class="asc-state asc-state-{{.Status}}">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.%s" .Status)}}</span>
-						</td>
-						<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_detail"}}">{{.Detail}}</td>
-					</tr>
-					{{end}}
-				</tbody>
-			</table>
+			<section class="rv-card rv-gap" aria-label="{{ctx.Locale.Tr "asc_review.rev_dry_run"}}">
+				<div class="rv-tablewrap">
+					<table class="rv-tbl rv-tbl-stack asc-stack asc-op-table" data-testid="asc-rows">
+						<thead>
+							<tr>
+								<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}</th>
+								<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}</th>
+								<th scope="col">{{ctx.Locale.Tr "repo.pulls.asc_op.col_detail"}}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{{range .AscRows}}
+							<tr>
+								<td class="rv-cell-main" data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_pull"}}">
+									{{if .Link}}<a href="{{.Link}}">#{{.Index}} {{.Title}}</a>{{else}}<span class="rv-mono">{{.Change}}</span>{{end}}
+								</td>
+								<td data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_state"}}">
+									{{$tone := "info"}}
+									{{if or (eq .Status "ready") (eq .Status "merged") (eq .Status "rewritten") (eq .Status "revert")}}{{$tone = "ok"}}
+									{{else if or (eq .Status "not_ready") (eq .Status "queued_blocked") (eq .Status "skipped_frozen")}}{{$tone = "warn"}}
+									{{else if or (eq .Status "conflict") (eq .Status "blocked") (eq .Status "cancelled")}}{{$tone = "err"}}{{end}}
+									<span class="rv-pill rv-pill-{{$tone}} asc-state asc-state-{{.Status}}">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.%s" .Status)}}</span>
+								</td>
+								<td class="rv-muted{{if not .Detail}} rv-cell-empty{{end}}" data-label="{{ctx.Locale.Tr "repo.pulls.asc_op.col_detail"}}">{{.Detail}}</td>
+							</tr>
+							{{end}}
+						</tbody>
+					</table>
+				</div>
+			</section>
 			{{end}}
 
-			<form class="ui form asc-op-form" method="post" action="{{.AscAction}}">
+			<form class="rv-form rv-gap asc-op-form" method="post" action="{{.AscAction}}">
 				{{.CsrfTokenHtml}}
 				{{if eq .AscOp "revert"}}
 					<input type="hidden" name="scope" value="{{if .AscScopeThis}}this{{else}}stack{{end}}">
 					{{if .AscSquash}}<input type="hidden" name="squash" value="1">{{end}}
 				{{end}}
-				<div class="asc-op-buttons">
-					<button class="ui primary button" type="submit" data-testid="asc-confirm-button"{{if not .AscCanConfirm}} disabled aria-disabled="true"{{end}}>{{ctx.Locale.Tr (printf "repo.pulls.asc_op.confirm.%s" .AscOp)}}</button>
-					<a class="ui basic button" href="{{.AscBack}}">{{ctx.Locale.Tr "repo.pulls.asc_op.cancel"}}</a>
+				<div class="rv-sticky asc-op-buttons">
+					<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-confirm-button"{{if not .AscCanConfirm}} disabled aria-disabled="true"{{end}}>{{ctx.Locale.Tr (printf "repo.pulls.asc_op.confirm.%s" .AscOp)}}</button>
+					<a class="rv-btn rv-btn-secondary" href="{{.AscBack}}">{{ctx.Locale.Tr "repo.pulls.asc_op.cancel"}}</a>
 				</div>
 			</form>
 		</div>

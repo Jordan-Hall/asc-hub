@@ -1,0 +1,167 @@
+{{/*
+The policy gate of a repository (asc_gate.go): the rules in force, what they refused lately, who can write where, and the
+tests that are quarantined.
+Template Attributes:
+* AscGate: *ascGatePage (View, Days, Held, HeldShown, Problem, Unsupported, URLs)
+* AscQuarantine: *ascQuarantineView or nil
+The text of the policy file and every text from asc was cleaned by services/asctrust and is escaped here.
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
+	{{template "repo/header" .}}
+	{{with .AscGate}}
+	<div class="rv rv-page" data-testid="asc-gate">
+		{{template "base/alert" $}}
+		<div class="rv-area">{{template "repo/asc_stack_nav" (dict "Tab" "gate" "Link" $.RepoLink)}}</div>
+		<header class="rv-head">
+			<div class="rv-head-main">
+				<div class="rv-eyebrow">{{$.Repository.FullName}} · {{ctx.Locale.Tr "asc_review.stack_eyebrow"}}</div>
+				<h1 class="rv-title">{{ctx.Locale.Tr "asc_review.gate_title"}}</h1>
+				<p class="rv-lead">{{ctx.Locale.Tr "asc_review.gate_lead"}}</p>
+				{{if .View}}
+				<ul class="rv-facts">
+					<li>{{if .View.Usable}}<span class="rv-pill rv-pill-ok" data-testid="asc-gate-state">{{ctx.Locale.Tr "asc_review.gate_valid"}}</span>{{else if .View.Present}}<span class="rv-pill rv-pill-err" data-testid="asc-gate-state">{{ctx.Locale.Tr "asc_review.gate_invalid"}}</span>{{else}}<span class="rv-pill rv-pill-outline" data-testid="asc-gate-state">{{ctx.Locale.Tr "asc_review.gate_absent"}}</span>{{end}}</li>
+					{{if .View.MergeNote}}<li><span class="rv-pill rv-pill-info">{{.View.MergeNote}}</span></li>{{end}}
+				</ul>
+				{{end}}
+			</div>
+			<div class="rv-acts">
+				<nav class="rv-seg" aria-label="{{ctx.Locale.Tr "asc_review.gate_window"}}">
+					<a href="{{.GateURL}}?days={{.DaysShort}}"{{if eq .Days .DaysShort}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.gate_days" .DaysShort}}</a>
+					<a href="{{.GateURL}}?days={{.DaysLong}}"{{if eq .Days .DaysLong}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.gate_days" .DaysLong}}</a>
+				</nav>
+				{{if .PolicyURL}}<a class="rv-btn rv-btn-secondary rv-desk" href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_review.gate_edit"}}</a>{{end}}
+			</div>
+		</header>
+
+		{{if .Unsupported}}
+			<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-gate-unsupported"><div>{{ctx.Locale.Tr "asc_review.gate_unsupported"}}</div></div>
+		{{else if .Problem}}
+			<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-gate-problem"><div>{{.Problem}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.GateURL}}?days={{.Days}}">{{ctx.Locale.Tr "asc_review.try_again"}}</a></div></div></div>
+		{{else if .View}}
+			{{if .View.Error}}
+				<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-gate-invalid"><div><b>{{ctx.Locale.Tr "asc_review.gate_invalid_title"}}</b> {{.View.Error}}
+					{{if .PolicyURL}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_review.gate_open_file"}}</a></div>{{end}}</div></div>
+			{{else if not .View.Present}}
+				<div class="rv-banner" role="status" data-testid="asc-gate-absent"><div><b>{{ctx.Locale.Tr "asc_review.gate_absent_title"}}</b> {{ctx.Locale.Tr "asc_review.gate_absent_help"}}
+					{{if .PolicyURL}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_review.gate_edit"}}</a></div>{{end}}</div></div>
+			{{end}}
+
+			<div class="rv-stats rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.gate_stats"}}">
+				{{if .HeldShown}}<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_stat_held"}}</div><div class="rv-stat-v" data-testid="asc-gate-held-count">{{len .Held}}{{if .HeldMore}}+{{end}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_stat_held_d" .Days}}</div></div>{{end}}
+				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_stat_rules"}}</div><div class="rv-stat-v">{{len .View.Meaning}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_stat_rules_d"}}</div></div>
+				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_stat_prot"}}</div><div class="rv-stat-v">{{.ProtectionsOn}}<span class="rv-faint"> / {{.ProtectionsTotal}}</span></div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_stat_prot_d"}}</div></div>
+				{{with $.AscQuarantine}}{{if not .Problem}}<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_stat_quar"}}</div><div class="rv-stat-v">{{len .Rows}}{{if .More}}+{{end}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_stat_quar_d"}}</div></div>{{end}}{{end}}
+			</div>
+
+			<div class="rv-cols rv-cols-gate rv-gap">
+					{{if .HeldShown}}
+					<section class="rv-card" aria-labelledby="asc-gate-held">
+						<div class="rv-card-h"><h2 id="asc-gate-held">{{ctx.Locale.Tr "asc_review.gate_held"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.gate_held_help"}}</span>{{if .Held}}<span class="rv-count rv-end">{{len .Held}}{{if .HeldMore}}+{{end}}</span>{{end}}</div>
+						{{if .HeldProblem}}
+							<div class="rv-banner rv-banner-warn rv-banner-flush" role="status" data-testid="asc-gate-held-problem"><div>{{.HeldProblem}}</div></div>
+						{{else if .Held}}
+							<ul class="rv-held" data-testid="asc-gate-held-list">
+								{{range .Held}}
+								<li class="rv-held-row">
+									<span class="rv-gi rv-gi-err" aria-hidden="true"></span>
+									<div class="rv-queue-main">
+										<div class="rv-queue-title">{{.What}}</div>
+										<div class="rv-li-sub">{{ctx.Locale.Tr "asc_review.gate_held_by" .Actor}}{{if .Target}} · <code class="rv-bare">{{.Target}}</code>{{end}}</div>
+										{{if .Details}}<div class="rv-li-sub">{{range .Details}}<code class="rv-bare">{{.Key}}: {{.Value}}</code> {{end}}</div>{{end}}
+									</div>
+									<span class="rv-faint rv-recent-when">{{DateUtils.TimeSince .Time}}</span>
+								</li>
+								{{end}}
+							</ul>
+							<div class="rv-card-b"><a href="{{$.AscGate.AuditURL}}?outcome=denied">{{ctx.Locale.Tr "asc_review.gate_open_audit"}}</a></div>
+						{{else}}
+							<div class="rv-empty rv-empty-flat" data-testid="asc-gate-empty">
+								<span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-check-circle" 24}}</span>
+								<h3>{{ctx.Locale.Tr "asc_review.gate_empty_title"}}</h3>
+								<p>{{ctx.Locale.Tr "asc_review.gate_empty_help"}}</p>
+								<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="#asc-gate-file">{{ctx.Locale.Tr "asc_review.gate_read_rules"}}</a></div>
+							</div>
+						{{end}}
+					</section>
+					{{end}}
+
+					<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.gate_rules"}}">
+				<section class="rv-card" aria-labelledby="asc-gate-rules">
+					<div class="rv-card-h"><h2 id="asc-gate-rules">{{ctx.Locale.Tr "asc_review.gate_rules"}}</h2></div>
+					{{if .View.Protections}}
+					<ul class="rv-gate rv-card-b" data-testid="asc-gate-protections">
+						{{range .View.Protections}}
+						<li class="rv-gr">
+							<span class="rv-gi {{if .On}}rv-gi-ok{{else}}rv-gi-idle{{end}}" aria-hidden="true"></span>
+							<div><div class="rv-gt">{{.Title}}</div><div class="rv-li-sub">{{.Help}}</div></div>
+							<span class="rv-pill {{if .On}}rv-pill-ok{{else}}rv-pill-outline{{end}}">{{if .On}}{{ctx.Locale.Tr "asc_review.sec_on"}}{{else}}{{ctx.Locale.Tr "asc_review.sec_off"}}{{end}}</span>
+						</li>
+						{{end}}
+					</ul>
+					{{else}}
+						<p class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.gate_rules_none"}}</p>
+					{{end}}
+					{{if .PolicyURL}}<div class="rv-card-b"><a href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_review.gate_open_settings"}}</a></div>{{end}}
+				</section>
+
+				{{with $.AscQuarantine}}
+				<section class="rv-card" aria-labelledby="asc-gate-quar">
+					<div class="rv-card-h"><h2 id="asc-gate-quar">{{ctx.Locale.Tr "asc_trust.queue.quarantine_title"}}</h2></div>
+					<div class="rv-card-b">
+						{{if .Problem}}
+							<p class="rv-muted" data-testid="asc-gate-quarantine-problem">{{.Problem}}</p>
+						{{else if .Rows}}
+							<p data-testid="asc-gate-quarantine"><b>{{ctx.Locale.Tr "asc_review.gate_quar_count" (len .Rows)}}</b></p>
+							<p class="rv-muted">{{ctx.Locale.Tr "asc_review.gate_quar_help"}}</p>
+							<div class="rv-acts rv-gap"><a class="rv-btn rv-btn-secondary" href="{{$.AscGate.QueueURL}}">{{ctx.Locale.Tr "asc_review.gate_quar_link"}}</a></div>
+						{{else}}
+							<p class="rv-muted" data-testid="asc-gate-quarantine-empty">{{ctx.Locale.Tr "asc_trust.queue.quarantine_empty"}}</p>
+						{{end}}
+					</div>
+				</section>
+				{{end}}
+			</aside>
+
+					<section class="rv-card" aria-labelledby="asc-gate-file">
+						<div class="rv-card-h"><h2 id="asc-gate-file">{{ctx.Locale.Tr "asc_review.gate_file"}}</h2>{{if .View.Source}}<span class="rv-faint">{{ctx.Locale.Tr "asc_review.gate_file_from"}} <code class="rv-bare">{{.View.Source}}</code></span>{{end}}<span class="rv-faint rv-end">{{ctx.Locale.Tr "asc_review.gate_file_help"}}</span></div>
+						{{if .View.Text}}
+							<div class="rv-term rv-term-flush"><div class="rv-term-b" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_review.gate_file_region"}}" data-testid="asc-gate-text">{{.View.Text}}</div></div>
+						{{else}}
+							<p class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.gate_file_none"}}</p>
+						{{end}}
+						{{if .View.Meaning}}
+						<div class="rv-card-b">
+							<h3 class="rv-h4">{{ctx.Locale.Tr "asc_review.gate_means"}}</h3>
+							<ul class="rv-bullets" data-testid="asc-gate-meaning">{{range .View.Meaning}}<li>{{.}}</li>{{end}}</ul>
+						</div>
+						{{end}}
+					</section>
+
+					{{if .View.Table.Rows}}
+					<section aria-labelledby="asc-gate-who">
+						<div class="rv-row rv-row-wrap rv-head-row"><h2 id="asc-gate-who" class="rv-h3">{{ctx.Locale.Tr "asc_review.gate_who"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.gate_who_help"}}</span></div>
+						<div class="rv-tablewrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
+							<table class="rv-tbl rv-tbl-stack" data-testid="asc-gate-who-table">
+								<caption class="rv-sr">{{ctx.Locale.Tr "asc_review.gate_who"}}</caption>
+								<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_review.gate_col_who"}}</th>{{range .View.Table.Columns}}<th scope="col">{{.}}</th>{{end}}</tr></thead>
+								<tbody>
+									{{range .View.Table.Rows}}
+									<tr>
+										<th class="rv-cell-main" scope="row">{{.Who}}{{if .Detail}} <span class="rv-muted rv-normal">({{.Detail}})</span>{{end}}</th>
+										{{range $i, $c := .Cells}}<td data-label="{{index $.AscGate.View.Table.Columns $i}}"><span class="rv-cell rv-cell-{{$c.Tone}}"{{if $c.Title}} title="{{$c.Title}}"{{end}}>{{$c.Text}}</span></td>{{end}}
+									</tr>
+									{{end}}
+								</tbody>
+							</table>
+						</div>
+						<p class="rv-hint rv-gap">{{ctx.Locale.Tr "asc_review.gate_who_note"}}</p>
+					</section>
+					{{end}}
+			</div>
+			{{if .PolicyURL}}<div class="rv-sticky rv-mob"><a class="rv-btn rv-btn-primary" href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_review.gate_edit"}}</a></div>{{end}}
+		{{end}}
+	</div>
+	{{end}}
+</div>
+{{template "base/footer" .}}

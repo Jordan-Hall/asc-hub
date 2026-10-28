@@ -5,36 +5,38 @@ Template Attributes:
 Every text below comes from the checked answer of asc and is escaped by the Go template. No link comes from asc.
 */}}
 {{with .AscBadges}}
-<div class="ui segments asc-badges tw-mb-4" data-testid="asc-badges">
+<div class="rv rv-badges" data-testid="asc-badges">
 	{{with .Merge}}
-	<div class="ui segment asc-mergeability" data-state="{{.State}}">
-		<span class="ui small label {{if eq .State "conflicts"}}red{{else if eq .State "needs_restack"}}yellow{{else}}green{{end}}">
-			{{ctx.Locale.Tr (printf "repo.pulls.asc_merge.%s" .State)}}
-		</span>
-		{{if .Conflicts}}
-		<ul class="tw-m-0 tw-mt-2">
-			{{range .Conflicts}}<li><code>{{.}}</code></li>{{end}}
-			{{if .MoreConflicts}}<li>{{ctx.Locale.Tr "repo.pulls.asc_badge.more" .MoreConflicts}}</li>{{end}}
-		</ul>
-		{{end}}
+	<div class="rv-banner {{if eq .State "conflicts"}}rv-banner-err{{else if eq .State "needs_restack"}}rv-banner-warn{{else}}rv-banner-ok{{end}} asc-mergeability" data-state="{{.State}}" role="status">
+		<div>
+			<b>{{ctx.Locale.Tr (printf "repo.pulls.asc_merge.%s" .State)}}</b>
+			{{if .Conflicts}}
+			<ul class="rv-badge-paths">
+				{{range .Conflicts}}<li><code>{{.}}</code></li>{{end}}
+				{{if .MoreConflicts}}<li>{{ctx.Locale.Tr "repo.pulls.asc_badge.more" .MoreConflicts}}</li>{{end}}
+			</ul>
+			{{end}}
+		</div>
 	</div>
 	{{end}}
 	{{if .Overlaps}}
-	<div class="ui segment asc-overlaps">
-		<h5 class="ui header tw-mb-2">{{ctx.Locale.Tr "repo.pulls.asc_overlaps"}}</h5>
-		<ul class="tw-list-none tw-m-0 tw-p-0">
+	<section class="rv-card asc-overlaps" aria-labelledby="asc-overlaps-title">
+		<div class="rv-card-h"><h2 id="asc-overlaps-title">{{ctx.Locale.Tr "repo.pulls.asc_overlaps"}}</h2></div>
+		<ul class="rv-overlaps">
 			{{range .Overlaps}}
-			<li class="tw-mb-2">
-				{{if .PullLink}}<a href="{{.PullLink}}">#{{.PullIndex}}</a>{{else}}<code>{{.Change}}</code>{{end}}
-				{{if .ReviewState}}<span class="ui mini label">{{.ReviewState}}{{if .Approvals}} · {{ctx.Locale.Tr "repo.pulls.asc_badge.approvals" .Approvals}}{{end}}</span>{{end}}
-				<div class="tw-text-sm">
+			<li class="rv-overlap">
+				<div class="rv-row rv-row-wrap">
+					{{if .PullLink}}<a class="rv-mono" href="{{.PullLink}}">#{{.PullIndex}}</a>{{else}}<code>{{.Change}}</code>{{end}}
+					{{if .ReviewState}}<span class="rv-pill rv-pill-outline">{{.ReviewState}}{{if .Approvals}} · {{ctx.Locale.Tr "repo.pulls.asc_badge.approvals" .Approvals}}{{end}}</span>{{end}}
+				</div>
+				<div class="rv-li-sub">
 					{{range $i, $p := .Paths}}{{if $i}}, {{end}}<code>{{$p}}</code>{{end}}{{if .MorePaths}}, {{ctx.Locale.Tr "repo.pulls.asc_badge.more" .MorePaths}}{{end}}
 				</div>
 			</li>
 			{{end}}
-			{{if .MoreOverlaps}}<li>{{ctx.Locale.Tr "repo.pulls.asc_badge.more" .MoreOverlaps}}</li>{{end}}
+			{{if .MoreOverlaps}}<li class="rv-overlap rv-muted">{{ctx.Locale.Tr "repo.pulls.asc_badge.more" .MoreOverlaps}}</li>{{end}}
 		</ul>
-	</div>
+	</section>
 	{{end}}
 </div>
 {{end}}

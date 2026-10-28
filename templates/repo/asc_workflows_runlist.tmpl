@@ -1,20 +1,20 @@
 {{/* A list of workflow runs. Dot: []ascWorkflowRunRow */}}
-<ul class="asc-runs" data-testid="asc-workflow-runs">
+<ul class="rv-list rv-wfruns" data-testid="asc-workflow-runs">
 	{{range .}}
-		<li class="asc-run">
-			<div class="asc-run-main">
-				<a class="asc-run-title" href="{{.Link}}">{{.Workflow}} · run {{.ID}}</a>
-				{{template "repo/asc_agents_pill" .State}}
+		<li class="rv-wfrun">
+			<div class="rv-wfrun-main">
+				<h3 class="rv-wfrun-title"><a href="{{.Link}}">{{ctx.Locale.Tr "asc_review.wf_run_n" .ID}} <code>{{.Workflow}}</code></a></h3>
+				<div class="rv-li-meta">
+					<span>{{.Trigger}}</span>
+					{{if .StartedBy}}<span>{{ctx.Locale.Tr "asc_review.agents_by" .StartedBy}}</span>{{end}}
+					{{if .Change}}<span>{{ctx.Locale.Tr "asc_review.wf_change"}} <code>{{.Change}}</code></span>{{end}}
+					{{if .Source}}<span>{{ctx.Locale.Tr "asc_review.wf_definition"}} <code>{{.Source}}</code></span>{{end}}
+					{{if not .Created.IsZero}}<span>{{DateUtils.TimeSince .Created}}</span>{{end}}
+					<span>{{ctx.Locale.Tr "asc_review.wf_steps_done" .Done (len .Steps)}}</span>
+				</div>
+				{{if .Error}}<div class="rv-run-fail" role="note">{{.Error}}</div>{{end}}
 			</div>
-			<div class="asc-run-meta">
-				<span>{{.Trigger}}</span>
-				{{if .StartedBy}}<span>by {{.StartedBy}}</span>{{end}}
-				{{if .Change}}<span>change <code>{{.Change}}</code></span>{{end}}
-				{{if .Source}}<span>definition <code>{{.Source}}</code></span>{{end}}
-				{{if not .Created.IsZero}}<span>{{DateUtils.TimeSince .Created}}</span>{{end}}
-				<span>{{.Done}} of {{len .Steps}} steps done</span>
-			</div>
-			{{if .Error}}<div class="asc-run-fail">{{.Error}}</div>{{end}}
+			<div class="rv-wfrun-state">{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.wf_state_"}}</div>
 		</li>
 	{{end}}
 </ul>

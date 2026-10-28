@@ -3,13 +3,28 @@
 <input type="hidden" id="repolink" value="{{$.RepoRelPath}}">
 <input type="hidden" id="issueIndex" value="{{.Issue.Index}}">
 
-<div role="main" aria-label="{{.Title}}" class="page-content repository view issue pull files diff asc-repo-page asc-review-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository view issue pull files diff asc-repo-page asc-review-page rv-review-page">
 	{{template "repo/header" .}}
-	<div class="ui container fluid padded">
-		{{template "repo/issue/view_title" .}}
-		{{template "repo/pulls/tab_menu" .}}
-		{{template "repo/pulls/asc_versions" .}}
-		{{template "repo/diff/box" .}}
+	<div class="rv rv-page rv-review{{if .AscStackPanel}} rv-review-rail{{end}}" data-testid="asc-review">
+		<div class="rv-review-title">
+			{{template "repo/issue/view_title" .}}
+		</div>
+		{{if .AscStackPanel}}
+		<div class="rv-review-stack">
+			{{template "repo/pulls/asc_stack" .}}
+		</div>
+		{{end}}
+		<div class="rv-review-main">
+			{{template "repo/pulls/tab_menu" .}}
+			{{template "repo/pulls/asc_versions" .}}
+			{{template "repo/pulls/asc_badges" .}}
+			{{template "repo/diff/box" .}}
+		</div>
+		{{if .AscStackPanel}}
+		<div class="rv-review-panel">
+			{{template "repo/pulls/asc_panel" .}}
+		</div>
+		{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}

@@ -6,48 +6,57 @@ Template Attributes:
 * AscAgentsFailure / AscAgentsDisabled: see repo/asc_agents_notice
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-agents">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="rv rv-page">
 		{{template "base/alert" .}}
-		{{template "repo/asc_agents_nav" .}}
-		<div class="asc-ag-head">
-			<h2 class="asc-ag-title">Workflows</h2>
-			<a class="ui basic button" href="{{.AscWorkflowsBase}}/runs">Run history</a>
-		</div>
-		<p class="asc-muted">A workflow starts on an event and runs steps in order: an agent task, a wait for a person to approve, a wait for checks. Definitions are files in <code>.asc/workflows/</code> on trunk, so a change to one is reviewed like code.</p>
+		<div class="rv-area">{{template "repo/asc_agents_nav" .}}</div>
+		<header class="rv-head">
+			<div class="rv-head-main">
+				<div class="rv-eyebrow">{{.Repository.FullName}} · {{ctx.Locale.Tr "asc_review.wf_eyebrow"}}</div>
+				<h1 class="rv-title">{{ctx.Locale.Tr "asc_review.wf_title"}}</h1>
+				<p class="rv-lead">{{ctx.Locale.Tr "asc_review.wf_lead"}} <code>.asc/workflows/</code></p>
+			</div>
+			<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.AscWorkflowsBase}}/runs">{{ctx.Locale.Tr "asc_review.wf_history"}}</a></div>
+		</header>
 		{{template "repo/asc_agents_notice" .}}
 
 		{{if not .AscAgentsDisabled}}
 			{{if .AscWorkflowDefs}}
-				<ul class="asc-runs" data-testid="asc-workflow-defs">
+				<ul class="rv-list rv-wf-defs" data-testid="asc-workflow-defs">
 					{{range .AscWorkflowDefs}}
-						<li class="asc-run">
-							<div class="asc-run-main">
-								<a class="asc-run-title" href="{{.Link}}">{{.Name}}</a>
-								{{if not .Valid}}<span class="asc-pill asc-tone-bad">Not valid</span>{{else if .Enabled}}<span class="asc-pill asc-tone-ok">On</span>{{else}}<span class="asc-pill asc-tone-idle">Off</span>{{end}}
+						<li class="rv-wf">
+							<div class="rv-wf-main">
+								<h2 class="rv-wf-name"><a href="{{.Link}}"><code>{{.Name}}</code></a>
+									{{if not .Valid}}<span class="asc-pill asc-tone-bad">{{ctx.Locale.Tr "asc_review.wf_not_valid"}}</span>{{else if .Enabled}}<span class="asc-pill asc-tone-ok">{{ctx.Locale.Tr "asc_review.wf_on"}}</span>{{else}}<span class="asc-pill asc-tone-idle">{{ctx.Locale.Tr "asc_review.wf_off"}}</span>{{end}}
+								</h2>
+								{{if .Description}}<p class="rv-li-sub">{{.Description}}</p>{{end}}
+								<ul class="rv-wf-triggers" aria-label="{{ctx.Locale.Tr "asc_review.wf_starts_when"}}">
+									{{range .Triggers}}<li class="rv-pill rv-pill-outline">{{.Label}}</li>{{end}}
+								</ul>
+								<p class="rv-li-meta">
+									<span>{{ctx.Locale.TrN (len .Steps) "asc_review.wf_steps_one" "asc_review.wf_steps_other" (len .Steps)}}</span>
+									{{if .Path}}<span><code>{{.Path}}</code></span>{{end}}
+								</p>
+								{{if .Error}}<div class="rv-run-fail" role="note">{{.Error}}</div>{{end}}
 							</div>
-							{{if .Description}}<div class="asc-run-desc">{{.Description}}</div>{{end}}
-							<div class="asc-run-meta">
-								<span>{{len .Steps}} step{{if ne (len .Steps) 1}}s{{end}}</span>
-								{{range .Triggers}}<span>{{.Label}}</span>{{end}}
-								{{if .Path}}<span><code>{{.Path}}</code></span>{{end}}
-							</div>
-							{{if .Error}}<div class="asc-run-fail">{{.Error}}</div>{{end}}
+							<div class="rv-wf-act"><a class="rv-btn rv-btn-secondary" href="{{.Link}}">{{if .Valid}}{{ctx.Locale.Tr "asc_review.wf_open"}}{{else}}{{ctx.Locale.Tr "asc_review.wf_fix"}}{{end}}</a></div>
 						</li>
 					{{end}}
 				</ul>
-				{{if .AscWorkflowSkipped}}<p class="asc-muted">{{.AscWorkflowSkipped}} definition{{if ne .AscWorkflowSkipped 1}}s have{{else}} has{{end}} a name the hub cannot link to and {{if ne .AscWorkflowSkipped 1}}are{{else}}is{{end}} not shown.</p>{{end}}
+				{{if .AscWorkflowSkipped}}<p class="rv-hint rv-gap">{{ctx.Locale.TrN .AscWorkflowSkipped "asc_review.wf_skipped_one" "asc_review.wf_skipped_other" .AscWorkflowSkipped}}</p>{{end}}
 			{{else if not .AscAgentsFailure}}
-				<div class="asc-empty" data-testid="asc-workflow-defs-empty">
-					<p>This repository has no workflows.</p>
-					<p class="asc-muted">Add a file such as <code>.asc/workflows/review.toml</code> on trunk to make one.</p>
+				<div class="rv-empty" data-testid="asc-workflow-defs-empty">
+					<h2>{{ctx.Locale.Tr "asc_review.wf_none"}}</h2>
+					<p>{{ctx.Locale.Tr "asc_review.wf_none_help"}} <code>.asc/workflows/review.toml</code></p>
 				</div>
 			{{end}}
 
 			{{if .AscWorkflowRecent}}
-				<h3 class="asc-card-title asc-section">Latest runs</h3>
-				{{template "repo/asc_workflows_runlist" .AscWorkflowRecent}}
+				<section class="rv-gap" aria-labelledby="rv-wf-latest">
+					<div class="rv-row rv-section-head"><h2 id="rv-wf-latest" class="rv-h3">{{ctx.Locale.Tr "asc_review.wf_latest"}}</h2><a class="rv-end" href="{{.AscWorkflowsBase}}/runs">{{ctx.Locale.Tr "asc_review.wf_all_runs"}}</a></div>
+					{{template "repo/asc_workflows_runlist" .AscWorkflowRecent}}
+				</section>
 			{{end}}
 		{{end}}
 	</div>

@@ -5,8 +5,11 @@ Template Attributes:
 * AscAgentsDisabled: the feature is off (a state to explain, not a fault)
 */}}
 {{with .AscAgentsFailure}}
-	<div class="ui {{if $.AscAgentsDisabled}}info{{else}}warning{{end}} message" role="{{if $.AscAgentsDisabled}}status{{else}}alert{{end}}" data-testid="asc-agents-notice"{{if .Code}} data-code="{{.Code}}"{{end}}>
-		<p>{{.Message}}</p>
-		{{if .Details}}<ul>{{range .Details}}<li><code>{{.}}</code></li>{{end}}</ul>{{end}}
+	<div class="rv-banner {{if $.AscAgentsDisabled}}rv-banner-agent{{else}}rv-banner-warn{{end}}" role="{{if $.AscAgentsDisabled}}status{{else}}alert{{end}}" data-testid="asc-agents-notice"{{if .Code}} data-code="{{.Code}}"{{end}}>
+		<div>
+			<p>{{.Message}}</p>
+			{{if .Details}}<ul class="rv-notice-details">{{range .Details}}<li><code>{{.}}</code></li>{{end}}</ul>{{end}}
+			{{if not $.AscAgentsDisabled}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="">{{ctx.Locale.Tr "asc_review.try_again"}}</a></div>{{end}}
+		</div>
 	</div>
 {{end}}

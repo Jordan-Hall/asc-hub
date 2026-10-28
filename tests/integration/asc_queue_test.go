@@ -184,7 +184,7 @@ func TestAscQueueMergeWhenReady(t *testing.T) {
 	// The queue page lists them in order.
 	resp = session.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/asc/queue"), http.StatusOK)
 	doc = NewHTMLParser(t, resp.Body)
-	rows := doc.doc.Find(`[data-testid="asc-queue-active"] tbody tr`)
+	rows := doc.doc.Find(`[data-testid="asc-queue-active"] > li`)
 	require.Equal(t, 2, rows.Length())
 	assert.Contains(t, rows.First().Text(), "Queued")
 	assert.Equal(t, 0, doc.doc.Find(`[data-testid="asc-queue-empty"]`).Length())
