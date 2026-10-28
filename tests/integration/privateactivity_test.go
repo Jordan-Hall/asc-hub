@@ -94,8 +94,7 @@ func testPrivateActivityHelperHasVisibleProfileHeatmapFromSession(t *testing.T, 
 }
 
 func testPrivateActivityHelperHasVisibleDashboardHeatmapFromSession(t *testing.T, session *TestSession) bool {
-	// The dashboard of the hub has no contribution grid; the person's own profile page carries it.
-	req := NewRequestf(t, "GET", "/%s?tab=activity", privateActivityTestUser)
+	req := NewRequest(t, "GET", "/")
 	resp := session.MakeRequest(t, req, http.StatusOK)
 
 	htmlDoc := NewHTMLParser(t, resp.Body)
