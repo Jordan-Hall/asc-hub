@@ -110,3 +110,11 @@ func Forget() {
 	cached, cachedAt = State{}, time.Time{}
 	mu.Unlock()
 }
+
+// UntilText is the expected time back as text for a page: "2026-10-29 23:00 UTC", or "" when there is none.
+func (s State) UntilText() string {
+	if t, ok := s.UntilTime(); ok {
+		return t.UTC().Format("2006-01-02 15:04") + " UTC"
+	}
+	return ""
+}
