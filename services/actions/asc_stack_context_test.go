@@ -5,6 +5,7 @@ package actions
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -113,7 +114,9 @@ func TestAscStackContext(t *testing.T) {
 		got, err := generate("asc", top.Index)
 		require.NoError(t, err)
 		assert.Equal(t, ascTestBase, got["asc_stack_parent_sha"])
-		assert.Equal(t, ascTestMergeBase, got["asc_base_merge_base"])
+		// asc_base_merge_base is the asc changeset id (32 bytes, 64 hex digits) the asc server gives to the merge base commit;
+		// the git ids stay 40 hex digits (SHA-1) as stored in the pull request
+		assert.Equal(t, hex.EncodeToString(ascTestChangeset(0x33)), got["asc_base_merge_base"])
 	})
 
 	t.Run("a malformed stored merge base fails closed", func(t *testing.T) {
