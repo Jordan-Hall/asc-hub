@@ -12,7 +12,7 @@
   font-weight: var(--font-weight-medium);
 }
 
-.ui.button.add-code-comment {
+.add-code-comment {
   padding: 2px;
   position: absolute;
   margin-inline-start: -22px;
@@ -24,7 +24,7 @@
   border: none !important;
 }
 
-.ui.button.add-code-comment:hover {
+.add-code-comment:hover {
   transform: scale(1.1);
 }
 
@@ -39,11 +39,11 @@
   padding-inline-start: 0 !important;
 }
 
-.diff-file-box .lines-code:hover .ui.button.add-code-comment {
+.diff-file-box .lines-code:hover .add-code-comment {
   opacity: 1;
 }
 
-.ui.button.add-code-comment:focus {
+.add-code-comment:focus {
   opacity: 1;
 }
 

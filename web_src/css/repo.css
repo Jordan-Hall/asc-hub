@@ -2400,7 +2400,7 @@ tbody.commit-list {
   overflow-block: auto;
 }
 
-.ui.message.unicode-escape-prompt {
+.ds-banner.unicode-escape-prompt {
   margin-bottom: 0;
   border-radius: 0;
   display: flex;
