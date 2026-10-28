@@ -343,3 +343,25 @@ func TestLargeFileHighlightsItsStart(t *testing.T) {
 	assert.Zero(t, res.Window, "a file over the window limit is plain text")
 	assert.True(t, res.Skipped)
 }
+
+func TestManyLinesGetAWindow(t *testing.T) {
+	line := "let a = 1;\n"
+	src := []byte(strings.Repeat(line, highlightFullLines+100)) // small in bytes, long in lines
+	res, err := FileBudgeted("many.rs", "", src)
+	require.NoError(t, err)
+	assert.True(t, res.Skipped)
+	assert.Equal(t, highlightWindowLines, res.Window, "the first lines are highlighted")
+	assert.Equal(t, highlightFullLines+100, len(res.Lines))
+
+	fit := []byte(strings.Repeat(line, highlightFullLines))
+	res, err = FileBudgeted("fits.rs", "", fit)
+	require.NoError(t, err)
+	assert.False(t, res.Skipped, "a file of up to highlightFullLines lines is highlighted whole")
+}
+
+func TestWindowEnd(t *testing.T) {
+	assert.Equal(t, -1, windowEnd([]byte("no newline")))
+	assert.Equal(t, 1, windowEnd([]byte("a\nb")))
+	big := []byte(strings.Repeat("x\n", highlightWindowLines+50))
+	assert.Equal(t, highlightWindowLines*2-1, windowEnd(big), "the newline that ends line highlightWindowLines")
+}
