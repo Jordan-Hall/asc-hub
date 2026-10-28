@@ -2608,6 +2608,11 @@ a.ds-stat:hover {
   margin: 0 0 0 32px;
 }
 
+.ds-check > label {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 /* the save bar of a settings form: it sits at the end of the form, and sticks to the bottom once something changed */
 .ds-savebar {
   display: flex;
