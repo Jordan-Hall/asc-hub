@@ -2049,3 +2049,11 @@ body.ds-lock {
 .site-article .ds-breadcrumb a {
   text-decoration: underline;
 }
+
+.site-table > table {
+  display: table;
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  overflow: visible;
+}
