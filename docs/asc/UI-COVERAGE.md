@@ -497,3 +497,15 @@ Every template with Fomantic classes, not reached by a board above or reached wi
 | Template | State | old / ds | Board |
 | --- | --- | --- | --- |
 | `user/settings/authorized_integrations/view_footer.tmpl` | partial | 3 old / 27 ds | - |
+
+## Visual pass: what still differs from the boards
+
+Checked at 1440 light on the dev hub (qa/demo data) beside the boards Repo, Code, Releases, Issues, IssueView, Dashboard, Profile, Explore, OrgProfile, UserSettingsProfile, Packages, Projects, Search and Compare, and the pull request pages next to Review. Differences that come from data the dev hub does not have (agents, stacks, policy, activity numbers) are not listed.
+
+- Repo: the tab strip has no Stacks, Agent runs, Checks or Dependencies tabs unless the asc backend is on; the "stacks in flight" and "who writes the code" cards need asc data.
+- Code: the file outline, "used in", blame hover card and "open changes touching this file" need asc code intelligence; the file tree and header match.
+- Issues: labels are solid colour chips (the colour the user chose), the board shows soft tinted chips; the labels and milestone rail of the board is not built, labels and milestones are the two buttons above the list.
+- Dashboard: the terminal card cuts long command comments instead of wrapping; the filter chips, the agents row and the merge queue card need asc data. The contribution grid card shows only when the person has activity in the last year.
+- Pull request pages: the stack rail and the policy gate card need asc data (a plain pull request shows the stock sidebar).
+- Repository settings (General): the single save bar of the board is not built, each section keeps its own save button; visibility and working mode are checkboxes, not radio cards.
+- The mobile twins were checked for horizontal overflow only (no scroll at 390 on the pages above); their layout was not compared board by board in this pass.
