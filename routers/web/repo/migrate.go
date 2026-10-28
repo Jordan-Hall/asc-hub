@@ -290,6 +290,11 @@ func MigrateRetryPost(ctx *context.Context) {
 		ctx.ServerError("task.RetryMigrateTask", err)
 		return
 	}
+	if ctx.FormBool("redirect") {
+		// The "repository unavailable" page posts a form; the migration page asks for JSON.
+		ctx.Redirect(ctx.Repo.Repository.Link())
+		return
+	}
 	ctx.JSONOK()
 }
 
