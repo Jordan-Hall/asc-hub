@@ -33,10 +33,10 @@
 							<button type="button" class="item" data-tab="diff" hx-params="context,content" hx-vals='{"context":"{{.BranchLink}}"}' hx-include="#edit_area" hx-swap="innerHTML" hx-target=".tab[data-tab='diff']" hx-indicator=".tab[data-tab='diff']" hx-post="{{.RepoLink}}/_preview/{{.BranchName | PathEscapeSegments}}/{{.TreePath | PathEscapeSegments}}">{{svg "octicon-diff"}} {{ctx.Locale.Tr "repo.editor.preview_changes"}}</button>
 						{{end}}
 					</div>
-					<button class="secondary button" id="editor-find" type="button">{{svg "octicon-search"}}<span class="text not-mobile">Search</span></button>
+					<button class="ds-btn ds-btn-secondary ds-btn-sm" id="editor-find" type="button" aria-label="{{ctx.Locale.Tr "search.search"}}">{{svg "octicon-search"}}<span class="text not-mobile">{{ctx.Locale.Tr "search.search"}}</span></button>
 				</div>
 				<div class="ui bottom active tab segment" data-tab="write">
-					<textarea id="edit_area" name="content" class="tw-hidden" data-id="repo-{{.Repository.Name}}-{{.TreePath}}"
+					<textarea id="edit_area" name="content" aria-label="{{ctx.Locale.Tr "repo.editor.edit_file"}}" class="tw-hidden" data-id="repo-{{.Repository.Name}}-{{.TreePath}}"
 						data-url="{{.Repository.Link}}/markup"
 						data-context="{{.RepoLink}}"
 						data-previewable-extensions="{{.PreviewableExtensions}}"

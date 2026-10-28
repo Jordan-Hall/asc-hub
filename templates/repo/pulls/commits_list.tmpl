@@ -54,7 +54,7 @@
 					"signature" .Signature
 					"verification" .Verification
 				)}}
-				<button class="btn interact-bg tw-p-2" data-clipboard-text="{{.ID}}">
+				<button class="btn interact-bg tw-p-2" data-clipboard-text="{{.ID}}" aria-label="{{ctx.Locale.Tr "copy_hash"}}">
 					{{svg "octicon-copy"}}
 				</button>
 			</div>
@@ -93,7 +93,7 @@
 		</div>
 
 		<div class="commit-buttons">
-			<button class="btn interact-bg tw-p-2" data-tooltip-content="{{ctx.Locale.Tr "copy_hash"}}" data-clipboard-text="{{.ID}}">{{svg "octicon-copy"}}</button>
+			<button class="btn interact-bg tw-p-2" data-tooltip-content="{{ctx.Locale.Tr "copy_hash"}}" aria-label="{{ctx.Locale.Tr "copy_hash"}}" data-clipboard-text="{{.ID}}">{{svg "octicon-copy"}}</button>
 			{{if $.FileName}}
 				<a
 					class="btn interact-bg tw-p-2"
