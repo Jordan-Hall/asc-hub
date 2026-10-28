@@ -33,10 +33,11 @@ func TestAscAgentsSpendPage(t *testing.T) {
 		isSystemCredential(t, c)
 	}
 
-	t.Run("a reader sees the spend but no cap form", func(t *testing.T) {
+	t.Run("a reader gets no spend page: asc shows spend to writers", func(t *testing.T) {
+		before := len(hub.callsOf("Agents.GetSpend"))
 		p := runAgents(t, agentsReq{path: testRunsPath + "/spend", user: agentsReader, features: true}, AscAgentsSpend)
-		require.Equal(t, http.StatusOK, p.status)
-		assert.NotContains(t, p.body, "spend/budget")
+		assert.Equal(t, http.StatusForbidden, p.status)
+		assert.Len(t, hub.callsOf("Agents.GetSpend"), before)
 	})
 }
 
