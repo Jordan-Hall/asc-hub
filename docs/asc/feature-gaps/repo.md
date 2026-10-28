@@ -130,13 +130,13 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | History | Graph and List as two views of one page with the same rows; graph beside the rows | ui-only-missing | merge `asc_graph.tmpl` rail into `commits.tmpl`; the segment links to two pages today | M |
 | History | Node state shape plus chip (Needs review, Queued, Agent writing); agent vs person nodes; stack brackets; "A stack that landed together" | needs-hub-backend | map graph rows to pulls and queue state (`H:routers/web/repo/asc_queue.go`, `pull_asc_stack.go`), draw shapes in `asc_graph.tmpl` | L |
 | History | "Open on top of main" section listing open changes with stack position, "Waiting on Priya Raman", agent run status | needs-hub-backend | open pulls + reviewers + agent runs; `commits.tmpl` | L |
-| History | Comfy / Compact density switch | ui-only-missing | `commits.tmpl` seg + CSS + localStorage | S |
+| History | Comfy / Compact density switch | done | `commits.tmpl` seg + CSS + localStorage | S |
 | History | Filter bar: Everyone / People / Agents, Path, Stack, date range, in the URL, sticky | needs-hub-backend | author kind needs agent identity; path and date filters exist in Forgejo `RefCommits` partly; `commits.tmpl`, `routers/web/repo/commit.go` | M |
 | History | Export | needs-hub-backend | new route (CSV/JSON of the filtered list) in `H:routers/web/repo/commit.go` | S |
-| History | Keyboard: `j`/`k` move, Enter opens, `c` copies id | ui-only-missing | none bound; list-nav helper in `H:web_src/js` | S |
+| History | Keyboard: `j`/`k` move, Enter opens, `c` copies id | done | none bound; list-nav helper in `H:web_src/js` | S |
 | History | Row hover actions (copy id, browse files) and hover lift | done | copy hash and view-at-point buttons in `commits_list.tmpl` | S |
 | History | "Landing rate, last 12 weeks" card with this-week delta | needs-both | statistics RPC (see Insights) | M |
-| History | Graph key legend | ui-only-missing | `asc_graph.tmpl` | S |
+| History | Graph key legend | done | `asc_graph.tmpl` | S |
 | History | "Show 25 older changes" on-demand load (44 px button on mobile) | done | pager/`AscGraphNextURL` | S |
 | History | States: loading skeleton, no results with explanation and Clear filters, partial-data banner with Retry | ui-only-missing | `commits.tmpl`; partial banner needs index lag signal from `Repo.CommitGraph` (hub `AscGraphError` path) | M |
 | History | Mobile rail-and-node list, chips open a bottom sheet for Path, Stack, date | ui-only-missing | `commits.tmpl`, sheet component | M |
