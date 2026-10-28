@@ -1,0 +1,53 @@
+{{/*
+The brief of a stacked change (board Review): what it does, why, how to check it, what could go wrong and where to look
+first, with the size and risk class asc computed and "how it was made" when an agent run made the change.
+Template Attributes:
+* AscBrief: *repo.AscBrief (nil: nothing is shown)
+Every text comes from the cleaned answer of asc and is escaped by the Go template; the links are made by the hub.
+*/}}
+{{with .AscBrief}}
+<section class="rv-card rv-brief" aria-labelledby="asc-brief-title" data-testid="asc-brief">
+	<div class="rv-card-h">
+		<h2 id="asc-brief-title">{{ctx.Locale.Tr "asc_review.brief_title"}}</h2>
+		<div class="rv-row rv-row-wrap">
+			{{if .RiskLevel}}<span class="ds-chip {{if eq .RiskLevel "high"}}ds-chip-err{{else if eq .RiskLevel "medium"}}ds-chip-warn{{else}}ds-chip-ok{{end}}">{{ctx.Locale.Tr (printf "asc_review.risk_%s" .RiskLevel)}}</span>{{end}}
+			<span class="rp-delta" title="{{ctx.Locale.Tr "asc_review.brief_size_title"}}"><span class="rp-add">+{{.Added}}</span> <span class="rp-del">&minus;{{.Removed}}</span> <span class="rp-dim">{{ctx.Locale.TrN .Files "asc_review.brief_files_one" "asc_review.brief_files_other" .Files}}{{if .StatsTruncated}}+{{end}}</span></span>
+		</div>
+	</div>
+	<div class="rv-brief-b">
+		{{if .Written}}
+			<dl class="rv-brief-dl">
+				{{if .What}}<div><dt>{{ctx.Locale.Tr "asc_review.brief_what"}}</dt><dd>{{.What}}</dd></div>{{end}}
+				{{if .Why}}<div><dt>{{ctx.Locale.Tr "asc_review.brief_why"}}</dt><dd>{{.Why}}</dd></div>{{end}}
+				{{if .How}}<div><dt>{{ctx.Locale.Tr "asc_review.brief_how"}}</dt><dd>{{.How}}</dd></div>{{end}}
+				{{if .RiskNote}}<div><dt>{{ctx.Locale.Tr "asc_review.brief_risk_note"}}</dt><dd>{{.RiskNote}}</dd></div>{{end}}
+			</dl>
+			{{if .Where}}
+			<h3 class="rv-brief-h">{{ctx.Locale.Tr "asc_review.brief_where"}}</h3>
+			<ul class="rv-brief-where">
+				{{range .Where}}<li>{{if .Link}}<a class="rv-mono" href="{{.Link}}">{{.Path}}{{if .Line}}:{{.Line}}{{end}}</a>{{else}}<code>{{.Path}}{{if .Line}}:{{.Line}}{{end}}</code>{{end}}{{if .Note}} <span>{{.Note}}</span>{{end}}</li>{{end}}
+			</ul>
+			{{end}}
+		{{else}}
+			<p class="rp-quiet" data-testid="asc-brief-empty">{{ctx.Locale.Tr "asc_review.brief_empty"}}</p>
+		{{end}}
+		{{if .RiskReasons}}
+		<h3 class="rv-brief-h">{{ctx.Locale.Tr "asc_review.brief_why_risk"}}</h3>
+		<ul class="rv-brief-where">{{range .RiskReasons}}<li>{{.}}</li>{{end}}</ul>
+		{{end}}
+		{{with .Provenance}}
+		<h3 class="rv-brief-h">{{ctx.Locale.Tr "asc_review.how_made"}}</h3>
+		<p class="rv-brief-made" data-testid="asc-brief-made">
+			<a href="{{.RunLink}}">{{ctx.Locale.Tr "asc_review.how_made_run" .RunID}}</a>
+			{{if .Agent}}<span class="ds-chip ds-chip-agent">{{.Agent}}</span>{{end}}
+			{{if .Title}}<span>{{.Title}}</span>{{end}}
+			<span class="rp-dim">{{ctx.Locale.Tr "asc_review.how_made_counts" .ToolCalls .FilesRead .Versions}}{{if .Minutes}} · {{ctx.Locale.Tr "asc_review.how_made_minutes" .Minutes}}{{end}}</span>
+		</p>
+		{{end}}
+		<p class="rv-brief-gate rp-dim" data-testid="asc-brief-gate">
+			{{ctx.Locale.Tr "asc_review.gate_line" .OpenThreads .TotalThreads .ApprovalsCurrent .ChangesRequested}}
+			{{if .ApprovalsCarried}} · {{ctx.Locale.Tr "asc_review.gate_carried" .ApprovalsCarried}}{{end}}
+		</p>
+	</div>
+</section>
+{{end}}

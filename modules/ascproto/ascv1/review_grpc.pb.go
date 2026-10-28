@@ -19,16 +19,32 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Review_ListThreads_FullMethodName   = "/asc.v1.Review/ListThreads"
-	Review_AddComment_FullMethodName    = "/asc.v1.Review/AddComment"
-	Review_ResolveThread_FullMethodName = "/asc.v1.Review/ResolveThread"
-	Review_RequestReview_FullMethodName = "/asc.v1.Review/RequestReview"
+	Review_ListThreads_FullMethodName           = "/asc.v1.Review/ListThreads"
+	Review_AddComment_FullMethodName            = "/asc.v1.Review/AddComment"
+	Review_ResolveThread_FullMethodName         = "/asc.v1.Review/ResolveThread"
+	Review_RequestReview_FullMethodName         = "/asc.v1.Review/RequestReview"
+	Review_GetBrief_FullMethodName              = "/asc.v1.Review/GetBrief"
+	Review_SetBrief_FullMethodName              = "/asc.v1.Review/SetBrief"
+	Review_RecordApproval_FullMethodName        = "/asc.v1.Review/RecordApproval"
+	Review_CompareVersions_FullMethodName       = "/asc.v1.Review/CompareVersions"
+	Review_PrepareSuggestion_FullMethodName     = "/asc.v1.Review/PrepareSuggestion"
+	Review_MarkSuggestionApplied_FullMethodName = "/asc.v1.Review/MarkSuggestionApplied"
+	Review_SuggestReviewers_FullMethodName      = "/asc.v1.Review/SuggestReviewers"
+	Review_RecordGateDecision_FullMethodName    = "/asc.v1.Review/RecordGateDecision"
+	Review_GetGateStats_FullMethodName          = "/asc.v1.Review/GetGateStats"
+	Review_GrantOverride_FullMethodName         = "/asc.v1.Review/GrantOverride"
+	Review_RevokeOverride_FullMethodName        = "/asc.v1.Review/RevokeOverride"
+	Review_ListOverrides_FullMethodName         = "/asc.v1.Review/ListOverrides"
 )
 
 // ReviewClient is the client API for Review service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
+// Calls made by the host service (the hub) for a signed-in person carry that person's forwarded claim (x-asc-forwarded-*,
+// subject = the repository): the call then acts as the person, within the claim's role (read, write or admin) and no more,
+// and the audit events name the person as the actor and the host service as the relay. A claim that does not verify, or
+// whose role is too small, is PERMISSION_DENIED. This holds for every RPC of this file.
 // Review comment threads on a change, stored by asc itself so every client sees the same threads whichever forge,
 // if any, sits in front of the server. Advertised as Version.features "review.v1". Reads need repo read; comments
 // and resolving need repo read and a user identity (comments carry the author's handle); RequestReview needs repo write.
@@ -37,6 +53,18 @@ type ReviewClient interface {
 	AddComment(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error)
 	ResolveThread(ctx context.Context, in *ResolveThreadRequest, opts ...grpc.CallOption) (*ResolveThreadResponse, error)
 	RequestReview(ctx context.Context, in *RequestReviewRequest, opts ...grpc.CallOption) (*RequestReviewResponse, error)
+	GetBrief(ctx context.Context, in *GetBriefRequest, opts ...grpc.CallOption) (*GetBriefResponse, error)
+	SetBrief(ctx context.Context, in *SetBriefRequest, opts ...grpc.CallOption) (*SetBriefResponse, error)
+	RecordApproval(ctx context.Context, in *RecordApprovalRequest, opts ...grpc.CallOption) (*RecordApprovalResponse, error)
+	CompareVersions(ctx context.Context, in *CompareVersionsRequest, opts ...grpc.CallOption) (*CompareVersionsResponse, error)
+	PrepareSuggestion(ctx context.Context, in *PrepareSuggestionRequest, opts ...grpc.CallOption) (*PrepareSuggestionResponse, error)
+	MarkSuggestionApplied(ctx context.Context, in *MarkSuggestionAppliedRequest, opts ...grpc.CallOption) (*MarkSuggestionAppliedResponse, error)
+	SuggestReviewers(ctx context.Context, in *SuggestReviewersRequest, opts ...grpc.CallOption) (*SuggestReviewersResponse, error)
+	RecordGateDecision(ctx context.Context, in *RecordGateDecisionRequest, opts ...grpc.CallOption) (*RecordGateDecisionResponse, error)
+	GetGateStats(ctx context.Context, in *GetGateStatsRequest, opts ...grpc.CallOption) (*GetGateStatsResponse, error)
+	GrantOverride(ctx context.Context, in *GrantOverrideRequest, opts ...grpc.CallOption) (*GrantOverrideResponse, error)
+	RevokeOverride(ctx context.Context, in *RevokeOverrideRequest, opts ...grpc.CallOption) (*RevokeOverrideResponse, error)
+	ListOverrides(ctx context.Context, in *ListOverridesRequest, opts ...grpc.CallOption) (*ListOverridesResponse, error)
 }
 
 type reviewClient struct {
@@ -87,10 +115,134 @@ func (c *reviewClient) RequestReview(ctx context.Context, in *RequestReviewReque
 	return out, nil
 }
 
+func (c *reviewClient) GetBrief(ctx context.Context, in *GetBriefRequest, opts ...grpc.CallOption) (*GetBriefResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBriefResponse)
+	err := c.cc.Invoke(ctx, Review_GetBrief_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) SetBrief(ctx context.Context, in *SetBriefRequest, opts ...grpc.CallOption) (*SetBriefResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetBriefResponse)
+	err := c.cc.Invoke(ctx, Review_SetBrief_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) RecordApproval(ctx context.Context, in *RecordApprovalRequest, opts ...grpc.CallOption) (*RecordApprovalResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecordApprovalResponse)
+	err := c.cc.Invoke(ctx, Review_RecordApproval_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) CompareVersions(ctx context.Context, in *CompareVersionsRequest, opts ...grpc.CallOption) (*CompareVersionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompareVersionsResponse)
+	err := c.cc.Invoke(ctx, Review_CompareVersions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) PrepareSuggestion(ctx context.Context, in *PrepareSuggestionRequest, opts ...grpc.CallOption) (*PrepareSuggestionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PrepareSuggestionResponse)
+	err := c.cc.Invoke(ctx, Review_PrepareSuggestion_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) MarkSuggestionApplied(ctx context.Context, in *MarkSuggestionAppliedRequest, opts ...grpc.CallOption) (*MarkSuggestionAppliedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MarkSuggestionAppliedResponse)
+	err := c.cc.Invoke(ctx, Review_MarkSuggestionApplied_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) SuggestReviewers(ctx context.Context, in *SuggestReviewersRequest, opts ...grpc.CallOption) (*SuggestReviewersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SuggestReviewersResponse)
+	err := c.cc.Invoke(ctx, Review_SuggestReviewers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) RecordGateDecision(ctx context.Context, in *RecordGateDecisionRequest, opts ...grpc.CallOption) (*RecordGateDecisionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecordGateDecisionResponse)
+	err := c.cc.Invoke(ctx, Review_RecordGateDecision_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) GetGateStats(ctx context.Context, in *GetGateStatsRequest, opts ...grpc.CallOption) (*GetGateStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGateStatsResponse)
+	err := c.cc.Invoke(ctx, Review_GetGateStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) GrantOverride(ctx context.Context, in *GrantOverrideRequest, opts ...grpc.CallOption) (*GrantOverrideResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GrantOverrideResponse)
+	err := c.cc.Invoke(ctx, Review_GrantOverride_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) RevokeOverride(ctx context.Context, in *RevokeOverrideRequest, opts ...grpc.CallOption) (*RevokeOverrideResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeOverrideResponse)
+	err := c.cc.Invoke(ctx, Review_RevokeOverride_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) ListOverrides(ctx context.Context, in *ListOverridesRequest, opts ...grpc.CallOption) (*ListOverridesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOverridesResponse)
+	err := c.cc.Invoke(ctx, Review_ListOverrides_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReviewServer is the server API for Review service.
 // All implementations should embed UnimplementedReviewServer
 // for forward compatibility.
 //
+// Calls made by the host service (the hub) for a signed-in person carry that person's forwarded claim (x-asc-forwarded-*,
+// subject = the repository): the call then acts as the person, within the claim's role (read, write or admin) and no more,
+// and the audit events name the person as the actor and the host service as the relay. A claim that does not verify, or
+// whose role is too small, is PERMISSION_DENIED. This holds for every RPC of this file.
 // Review comment threads on a change, stored by asc itself so every client sees the same threads whichever forge,
 // if any, sits in front of the server. Advertised as Version.features "review.v1". Reads need repo read; comments
 // and resolving need repo read and a user identity (comments carry the author's handle); RequestReview needs repo write.
@@ -99,6 +251,18 @@ type ReviewServer interface {
 	AddComment(context.Context, *AddCommentRequest) (*AddCommentResponse, error)
 	ResolveThread(context.Context, *ResolveThreadRequest) (*ResolveThreadResponse, error)
 	RequestReview(context.Context, *RequestReviewRequest) (*RequestReviewResponse, error)
+	GetBrief(context.Context, *GetBriefRequest) (*GetBriefResponse, error)
+	SetBrief(context.Context, *SetBriefRequest) (*SetBriefResponse, error)
+	RecordApproval(context.Context, *RecordApprovalRequest) (*RecordApprovalResponse, error)
+	CompareVersions(context.Context, *CompareVersionsRequest) (*CompareVersionsResponse, error)
+	PrepareSuggestion(context.Context, *PrepareSuggestionRequest) (*PrepareSuggestionResponse, error)
+	MarkSuggestionApplied(context.Context, *MarkSuggestionAppliedRequest) (*MarkSuggestionAppliedResponse, error)
+	SuggestReviewers(context.Context, *SuggestReviewersRequest) (*SuggestReviewersResponse, error)
+	RecordGateDecision(context.Context, *RecordGateDecisionRequest) (*RecordGateDecisionResponse, error)
+	GetGateStats(context.Context, *GetGateStatsRequest) (*GetGateStatsResponse, error)
+	GrantOverride(context.Context, *GrantOverrideRequest) (*GrantOverrideResponse, error)
+	RevokeOverride(context.Context, *RevokeOverrideRequest) (*RevokeOverrideResponse, error)
+	ListOverrides(context.Context, *ListOverridesRequest) (*ListOverridesResponse, error)
 }
 
 // UnimplementedReviewServer should be embedded to have
@@ -119,6 +283,42 @@ func (UnimplementedReviewServer) ResolveThread(context.Context, *ResolveThreadRe
 }
 func (UnimplementedReviewServer) RequestReview(context.Context, *RequestReviewRequest) (*RequestReviewResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RequestReview not implemented")
+}
+func (UnimplementedReviewServer) GetBrief(context.Context, *GetBriefRequest) (*GetBriefResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBrief not implemented")
+}
+func (UnimplementedReviewServer) SetBrief(context.Context, *SetBriefRequest) (*SetBriefResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetBrief not implemented")
+}
+func (UnimplementedReviewServer) RecordApproval(context.Context, *RecordApprovalRequest) (*RecordApprovalResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordApproval not implemented")
+}
+func (UnimplementedReviewServer) CompareVersions(context.Context, *CompareVersionsRequest) (*CompareVersionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompareVersions not implemented")
+}
+func (UnimplementedReviewServer) PrepareSuggestion(context.Context, *PrepareSuggestionRequest) (*PrepareSuggestionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PrepareSuggestion not implemented")
+}
+func (UnimplementedReviewServer) MarkSuggestionApplied(context.Context, *MarkSuggestionAppliedRequest) (*MarkSuggestionAppliedResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkSuggestionApplied not implemented")
+}
+func (UnimplementedReviewServer) SuggestReviewers(context.Context, *SuggestReviewersRequest) (*SuggestReviewersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SuggestReviewers not implemented")
+}
+func (UnimplementedReviewServer) RecordGateDecision(context.Context, *RecordGateDecisionRequest) (*RecordGateDecisionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordGateDecision not implemented")
+}
+func (UnimplementedReviewServer) GetGateStats(context.Context, *GetGateStatsRequest) (*GetGateStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetGateStats not implemented")
+}
+func (UnimplementedReviewServer) GrantOverride(context.Context, *GrantOverrideRequest) (*GrantOverrideResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GrantOverride not implemented")
+}
+func (UnimplementedReviewServer) RevokeOverride(context.Context, *RevokeOverrideRequest) (*RevokeOverrideResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RevokeOverride not implemented")
+}
+func (UnimplementedReviewServer) ListOverrides(context.Context, *ListOverridesRequest) (*ListOverridesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOverrides not implemented")
 }
 func (UnimplementedReviewServer) testEmbeddedByValue() {}
 
@@ -212,6 +412,222 @@ func _Review_RequestReview_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Review_GetBrief_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBriefRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).GetBrief(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_GetBrief_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).GetBrief(ctx, req.(*GetBriefRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_SetBrief_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetBriefRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).SetBrief(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_SetBrief_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).SetBrief(ctx, req.(*SetBriefRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_RecordApproval_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordApprovalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).RecordApproval(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_RecordApproval_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).RecordApproval(ctx, req.(*RecordApprovalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_CompareVersions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompareVersionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).CompareVersions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_CompareVersions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).CompareVersions(ctx, req.(*CompareVersionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_PrepareSuggestion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrepareSuggestionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).PrepareSuggestion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_PrepareSuggestion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).PrepareSuggestion(ctx, req.(*PrepareSuggestionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_MarkSuggestionApplied_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkSuggestionAppliedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).MarkSuggestionApplied(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_MarkSuggestionApplied_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).MarkSuggestionApplied(ctx, req.(*MarkSuggestionAppliedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_SuggestReviewers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SuggestReviewersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).SuggestReviewers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_SuggestReviewers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).SuggestReviewers(ctx, req.(*SuggestReviewersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_RecordGateDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordGateDecisionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).RecordGateDecision(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_RecordGateDecision_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).RecordGateDecision(ctx, req.(*RecordGateDecisionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_GetGateStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGateStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).GetGateStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_GetGateStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).GetGateStats(ctx, req.(*GetGateStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_GrantOverride_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GrantOverrideRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).GrantOverride(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_GrantOverride_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).GrantOverride(ctx, req.(*GrantOverrideRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_RevokeOverride_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeOverrideRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).RevokeOverride(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_RevokeOverride_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).RevokeOverride(ctx, req.(*RevokeOverrideRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_ListOverrides_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOverridesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).ListOverrides(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_ListOverrides_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).ListOverrides(ctx, req.(*ListOverridesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Review_ServiceDesc is the grpc.ServiceDesc for Review service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -234,6 +650,54 @@ var Review_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RequestReview",
 			Handler:    _Review_RequestReview_Handler,
+		},
+		{
+			MethodName: "GetBrief",
+			Handler:    _Review_GetBrief_Handler,
+		},
+		{
+			MethodName: "SetBrief",
+			Handler:    _Review_SetBrief_Handler,
+		},
+		{
+			MethodName: "RecordApproval",
+			Handler:    _Review_RecordApproval_Handler,
+		},
+		{
+			MethodName: "CompareVersions",
+			Handler:    _Review_CompareVersions_Handler,
+		},
+		{
+			MethodName: "PrepareSuggestion",
+			Handler:    _Review_PrepareSuggestion_Handler,
+		},
+		{
+			MethodName: "MarkSuggestionApplied",
+			Handler:    _Review_MarkSuggestionApplied_Handler,
+		},
+		{
+			MethodName: "SuggestReviewers",
+			Handler:    _Review_SuggestReviewers_Handler,
+		},
+		{
+			MethodName: "RecordGateDecision",
+			Handler:    _Review_RecordGateDecision_Handler,
+		},
+		{
+			MethodName: "GetGateStats",
+			Handler:    _Review_GetGateStats_Handler,
+		},
+		{
+			MethodName: "GrantOverride",
+			Handler:    _Review_GrantOverride_Handler,
+		},
+		{
+			MethodName: "RevokeOverride",
+			Handler:    _Review_RevokeOverride_Handler,
+		},
+		{
+			MethodName: "ListOverrides",
+			Handler:    _Review_ListOverrides_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
