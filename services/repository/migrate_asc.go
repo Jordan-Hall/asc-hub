@@ -19,11 +19,13 @@ import (
 	"forgejo.org/services/ascsync"
 )
 
-// How long a migration waits for the hub's own view of an asc repository to hold the imported default branch,
-// and how often it looks.
+// How long a migration waits for the hub's own view of an asc repository to hold the imported default branch, and
+// how often it looks. asc has just taken a whole history and is still busy deriving from it (a repository of
+// 160 MB made its first reads after the import take minutes), so the wait is long; the import itself is complete
+// and a failure here only means the hub cannot read it yet.
 var (
-	ascImportVisibleWait = 30 * time.Second
-	ascImportVisiblePoll = 250 * time.Millisecond
+	ascImportVisibleWait = 10 * time.Minute
+	ascImportVisiblePoll = time.Second
 )
 
 // isAscStored reports whether the migrated repository lives in asc. A bad storage value is an error, so a
