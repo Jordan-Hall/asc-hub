@@ -1,4 +1,4 @@
-import {splitKeys, readKeymap, resolveKey, chordMs, initAscRepoKeys, openRow, copyRowId, toggleTarget} from './asc-repo-keys.js';
+import {splitKeys, readKeymap, resolveKey, chordMs, initAscRepoKeys, openRow, copyRowId, toggleTarget, enhanceLists} from './asc-repo-keys.js';
 
 afterEach(() => {
   document.body.innerHTML = '';
@@ -91,4 +91,14 @@ test('a toggle button switches the class of its target and aria-pressed', () => 
   expect(toggleTarget(btn)).toBe(false);
   expect(btn.getAttribute('aria-pressed')).toBe('false');
   expect(toggleTarget(document.querySelector('#n'))).toBeNull();
+});
+
+test('enhanceLists makes the rows of a shared list reachable', () => {
+  document.body.innerHTML = '<div data-asc-enhance-list="#issue-list"><ul id="issue-list"><li><a href="/a">a</a><a class="issue-title" href="/b">b</a></li><li><a href="/c">c</a></li></ul></div><div data-asc-enhance-list="#none"></div>';
+  expect(enhanceLists()).toBe(2);
+  const rows = document.querySelectorAll('#issue-list > li');
+  expect(document.querySelector('#issue-list').hasAttribute('data-asc-list')).toBe(true);
+  expect(rows[0].getAttribute('tabindex')).toBe('-1');
+  expect(rows[0].querySelector('[data-asc-open]').getAttribute('href')).toBe('/b');
+  expect(rows[1].querySelector('[data-asc-open]').getAttribute('href')).toBe('/c');
 });
