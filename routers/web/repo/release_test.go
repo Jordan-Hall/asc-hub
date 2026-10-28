@@ -10,6 +10,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	"forgejo.org/models/unittest"
+	"forgejo.org/modules/optional"
 	"forgejo.org/modules/web"
 	"forgejo.org/services/contexttest"
 	"forgejo.org/services/forms"
@@ -170,4 +171,44 @@ func Test_getReleaseInfos(t *testing.T) {
 			assert.Equal(t, tc.expectedCount, count)
 		})
 	}
+}
+
+func TestReleaseChannel(t *testing.T) {
+	assert.Equal(t, "stable", releaseChannel("stable", false))
+	assert.Equal(t, "pre", releaseChannel("pre", false))
+	assert.Equal(t, "draft", releaseChannel("draft", true))
+	assert.Equal(t, "all", releaseChannel("draft", false), "a reader cannot see drafts")
+	assert.Equal(t, "all", releaseChannel("nonsense", true))
+	assert.Equal(t, "all", releaseChannel("", true))
+}
+
+func TestApplyReleaseChannel(t *testing.T) {
+	opts := &repo_model.FindReleasesOptions{}
+	applyReleaseChannel(opts, "stable")
+	assert.Equal(t, optional.Some(false), opts.IsPreRelease)
+	assert.Equal(t, optional.Some(false), opts.IsDraft)
+
+	opts = &repo_model.FindReleasesOptions{}
+	applyReleaseChannel(opts, "pre")
+	assert.Equal(t, optional.Some(true), opts.IsPreRelease)
+	assert.Equal(t, optional.Some(false), opts.IsDraft)
+
+	opts = &repo_model.FindReleasesOptions{}
+	applyReleaseChannel(opts, "draft")
+	assert.Equal(t, optional.Some(true), opts.IsDraft)
+	assert.Equal(t, optional.None[bool](), opts.IsPreRelease)
+
+	opts = &repo_model.FindReleasesOptions{}
+	applyReleaseChannel(opts, "all")
+	assert.Equal(t, optional.None[bool](), opts.IsDraft)
+}
+
+func TestLatestStable(t *testing.T) {
+	mk := func(tag string, draft, pre, isTag bool) *ReleaseInfo {
+		return &ReleaseInfo{Release: &repo_model.Release{TagName: tag, IsDraft: draft, IsPrerelease: pre, IsTag: isTag}}
+	}
+	list := []*ReleaseInfo{mk("v3", true, false, false), mk("v2rc", false, true, false), mk("bare", false, false, true), mk("v2", false, false, false), mk("v1", false, false, false)}
+	assert.Equal(t, "v2", latestStable(list).Release.TagName)
+	assert.Nil(t, latestStable(list[:3]))
+	assert.Nil(t, latestStable(nil))
 }

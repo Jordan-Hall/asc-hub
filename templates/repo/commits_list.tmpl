@@ -1,9 +1,9 @@
 {{/* A list of changes: one row each with the author, the hash and the time, joined by a line (board History). */}}
 {{$commitRepoLink := $.RepoLink}}{{if $.CommitRepoLink}}{{$commitRepoLink = $.CommitRepoLink}}{{end}}
-<ol class="rp-hist commit-list" id="commits-table">
+<ol class="rp-hist commit-list" id="commits-table" data-asc-list data-density="comfy">
 	{{range .Commits}}
 		{{$userName := .Author.Name}}
-		<li class="rp-commit">
+		<li class="rp-commit" data-asc-row tabindex="-1" data-asc-id="{{.ID}}">
 			<span class="rp-node{{if gt .ParentCount 1}} is-merge{{end}}" aria-hidden="true"></span>
 			<div class="rp-commit-main">
 				<div class="rp-commit-title">

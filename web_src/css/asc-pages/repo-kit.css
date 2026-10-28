@@ -785,3 +785,125 @@ a.rp-hash:hover {
 .ds-banner a.ds-btn-primary {
   color: var(--on-fill);
 }
+
+/* ---- stack list rows: 44 px targets, the keyboard row, a slide-in of the hovered row ---- */
+[data-asc-row]:focus-visible,
+[data-asc-row]:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+[data-asc-row][data-asc-copied="true"] {
+  background: var(--ok-soft);
+}
+
+@media (max-width: 639px) {
+  .wk-issue-list > .wk-issue {
+    min-height: 44px;
+  }
+
+  .rv-area {
+    overflow-x: auto;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .wk-issue-list > .wk-issue > .ds-li-main {
+    transition: transform 120ms ease-out;
+  }
+
+  .wk-issue-list > .wk-issue:hover > .ds-li-main {
+    transform: translateX(3px);
+  }
+}
+
+/* ---- the title row on a phone: Watch, Star and Fork fold into one "..." menu ---- */
+.rp-acts-more {
+  position: relative;
+  min-width: 0;
+}
+
+.rp-acts-more-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.rp-acts-more-btn::-webkit-details-marker {
+  display: none;
+}
+
+.rp-acts-more-body {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop, 0 8px 24px rgba(0, 0, 0, 0.18));
+}
+
+@media (max-width: 639px) {
+  .rp-acts {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .rp-title-row {
+    gap: 6px;
+  }
+}
+
+@media (min-width: 640px) {
+  .rp-acts-more-btn {
+    display: none;
+  }
+
+  .rp-acts-more-body {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    gap: 10px;
+  }
+}
+
+@media (min-width: 640px) {
+  .rp-acts-more::details-content {
+    content-visibility: visible;
+    display: contents;
+  }
+}
+
+/* ---- release assets as a table, and the side rail of the releases page ---- */
+.rp-asset-table .rp-asset-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.rp-asset-table td .rp-asset-meta {
+  display: block;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.rp-rel-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

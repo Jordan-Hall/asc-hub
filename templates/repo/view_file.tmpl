@@ -33,6 +33,7 @@
 		{{if not (or .IsMarkup .IsRenderedHTML)}}
 			{{template "repo/unicode_escape_prompt" dict "EscapeStatus" .EscapeStatus "root" $}}
 		{{end}}
+		{{if .HighlightSkipped}}<div class="ds-banner" role="status" data-testid="highlight-skipped">{{svg "dsi-info" 16}}<span>{{ctx.Locale.Tr "asc_rp.highlight_skipped"}}</span></div>{{end}}
 		<div class="file-view{{if .IsMarkup}} markup {{.MarkupType}}{{else if .IsPlainText}} plain-text{{else if .IsTextSource}} code-view{{end}}">
 			{{if .IsMarkup}}
 				{{if .FileContent}}{{.FileContent}}{{end}}

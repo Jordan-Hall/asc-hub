@@ -471,3 +471,85 @@
     order: 3;
   }
 }
+
+/* ---- shortcuts card and the collapsed folder list ---- */
+.rp-codekeys-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+.rp-codekeys-list a,
+.rp-codekeys-list > li > span,
+.rp-codekeys-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 32px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: var(--r-sm, 6px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rp-codekeys-list > li > span {
+  cursor: default;
+}
+
+.rp-codekeys-list a:hover,
+.rp-codekeys-btn:hover {
+  background: var(--hover);
+  color: var(--link);
+}
+
+.rp-codekeys-btn[aria-pressed="true"] {
+  background: var(--surface-3);
+}
+
+@media (min-width: 1024px) {
+  .rp-codegrid.rp-tree-off {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rp-codegrid.rp-tree-off > .rp-tree {
+    display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .rp-codegrid.rp-tree-off {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+}
+
+/* ---- blame heat: a bar at the edge of the blame cell, darker is newer; the age text sits beside it ---- */
+tr[data-heat] > td.lines-commit {
+  box-shadow: inset 3px 0 0 transparent;
+}
+
+tr[data-heat="1"] > td.lines-commit {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--link) 18%, transparent);
+}
+
+tr[data-heat="2"] > td.lines-commit {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--link) 40%, transparent);
+}
+
+tr[data-heat="3"] > td.lines-commit {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--link) 68%, transparent);
+}
+
+tr[data-heat="4"] > td.lines-commit {
+  box-shadow: inset 3px 0 0 var(--link);
+}

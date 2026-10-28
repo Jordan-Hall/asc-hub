@@ -14,12 +14,12 @@
 			<div class="rp-cmp-fields">
 				<div class="ds-field">
 					<label class="ds-label" for="asc-compare-a">{{ctx.Locale.Tr "repo.asc_compare.a"}}</label>
-					<input id="asc-compare-a" class="ds-input ds-mono" name="a" type="text" maxlength="255" value="{{.AscCompareA}}" autocomplete="off" autocapitalize="none" spellcheck="false"{{if .AscCompareError}} aria-invalid="true"{{end}}>
+					<select id="asc-compare-a" class="ds-select ds-mono" name="a"{{if .AscCompareError}} aria-invalid="true"{{end}}><option value=""{{if not .AscCompareA}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.cmp_choose"}}</option>{{range $.AscCompareGroups}}<optgroup label="{{ctx.Locale.Tr .Label}}">{{range .Names}}<option value="{{.}}"{{if eq . $.AscCompareA}} selected{{end}}>{{.}}</option>{{end}}</optgroup>{{end}}</select>
 				</div>
 				<a class="ds-btn ds-btn-secondary ds-btn-icon rp-cmp-swap" href="{{.RepoLink}}/asc/compare?a={{.AscCompareB}}&b={{.AscCompareA}}{{if .AscCompareThreeDot}}&three_dot=1{{end}}" aria-label="{{ctx.Locale.Tr "asc_rp.swap_sides"}}">{{svg "dsi-sort" 18}}</a>
 				<div class="ds-field">
 					<label class="ds-label" for="asc-compare-b">{{ctx.Locale.Tr "repo.asc_compare.b"}}</label>
-					<input id="asc-compare-b" class="ds-input ds-mono" name="b" type="text" maxlength="255" value="{{.AscCompareB}}" autocomplete="off" autocapitalize="none" spellcheck="false"{{if .AscCompareError}} aria-invalid="true"{{end}}>
+					<select id="asc-compare-b" class="ds-select ds-mono" name="b"{{if .AscCompareError}} aria-invalid="true"{{end}}><option value=""{{if not .AscCompareB}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.cmp_choose"}}</option>{{range $.AscCompareGroups}}<optgroup label="{{ctx.Locale.Tr .Label}}">{{range .Names}}<option value="{{.}}"{{if eq . $.AscCompareB}} selected{{end}}>{{.}}</option>{{end}}</optgroup>{{end}}</select>
 				</div>
 			</div>
 			<div class="rp-cmp-go">
@@ -30,7 +30,9 @@
 				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "repo.asc_compare.show"}}</button>
 			</div>
 		</form>
-		{{if .AscCompareError}}
+		{{if .AscCompareSame}}
+			<div class="ds-banner ds-banner-info" role="status" data-testid="asc-compare-same">{{svg "dsi-info" 16}}<span>{{ctx.Locale.Tr "asc_rp.cmp_same" .AscCompareA}}</span></div>
+		{{else if .AscCompareError}}
 			<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-compare-error">{{svg "dsi-alert" 16}}<span>{{ctx.Locale.Tr .AscCompareError}}</span></div>
 		{{else}}
 			{{with .AscCompare}}

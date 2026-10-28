@@ -10,6 +10,9 @@
 		</div>
 	</div>
 
+	{{$ascStacks := and .PageIsPullList (eq .Repository.GetStorageBackend "asc")}}
+	{{if $ascStacks}}<div class="rv-area">{{template "repo/asc_stack_nav" (dict "Tab" "stacks" "Link" .RepoLink)}}</div>{{end}}
+
 	{{if .PinnedIssues}}
 		<div id="issue-pins" {{if .IsRepoAdmin}}data-is-repo-admin{{end}}>
 			{{range .PinnedIssues}}
@@ -20,7 +23,7 @@
 		</div>
 	{{end}}
 
-		<div class="{{if .PageIsIssueList}}ds-split{{end}}">
+		<div class="{{if or .PageIsIssueList $ascStacks}}ds-split{{end}}">
 		<div class="ds-min0">
 		<div class="list-header list-header-issues">
 			{{template "repo/issue/navbar" .}}
@@ -57,8 +60,26 @@
 				{{template "repo/issue/filter_actions" .}}
 			</div>
 		</div>
+		{{if and $ascStacks (not .Issues) (not .Keyword) (eq .State "open")}}
+			<div class="ds-card" data-testid="asc-stacks-empty">
+				{{template "shared/ds/empty" (dict "Icon" "layers" "Title" (ctx.Locale.Tr "asc_rp.stacks_empty_title") "Body" (ctx.Locale.Tr "asc_rp.stacks_empty_body") "PrimaryLabel" (ctx.Locale.Tr "asc_rp.stacks_new") "PrimaryHref" (printf "%s/compare/%s" .Repository.Link (PathEscapeSegments .Repository.DefaultBranch)) "SecondaryLabel" (ctx.Locale.Tr "asc_rp.stacks_open_history") "SecondaryHref" (printf "%s/commits/%s" .RepoLink (.Repository.DefaultBranch | PathEscapeSegments)))}}
+			</div>
+		{{else}}
+		<div {{if $ascStacks}}data-asc-enhance-list="#issue-list"{{end}}>
 		{{template "shared/issuelist" dict "." . "listType" "repo"}}
 		</div>
+		{{end}}
+		</div>
+		{{if $ascStacks}}
+		<aside class="ds-rail rp-issue-rail" aria-label="{{ctx.Locale.Tr "asc_rp.stacks_terminal_title"}}">
+			<section class="rp-card" aria-labelledby="rp-rail-term">
+				<h2 class="rp-rail-title" id="rp-rail-term">{{ctx.Locale.Tr "asc_rp.stacks_terminal_title"}}</h2>
+				<div class="ds-cmd ds-cmd-scroll ds-mt-12"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc stack list</code><button type="button" class="ds-copy" data-clipboard-text="asc stack list" aria-label="{{ctx.Locale.Tr "asc_rp.copy_command"}}: asc stack list">{{svg "dsi-copy" 14}}</button></div>
+				<div class="ds-cmd ds-cmd-scroll ds-mt-8"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc stack submit</code><button type="button" class="ds-copy" data-clipboard-text="asc stack submit" aria-label="{{ctx.Locale.Tr "asc_rp.copy_command"}}: asc stack submit">{{svg "dsi-copy" 14}}</button></div>
+				<p class="rp-quiet ds-mt-12">{{ctx.Locale.Tr "asc_rp.stacks_terminal_note"}}</p>
+			</section>
+		</aside>
+		{{end}}
 		{{if .PageIsIssueList}}
 		<aside class="ds-rail rp-issue-rail" aria-label="{{ctx.Locale.Tr "repo.issues.new.labels"}}">
 			<section class="rp-card" aria-labelledby="rp-rail-labels">

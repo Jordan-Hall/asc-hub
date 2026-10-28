@@ -669,6 +669,91 @@
   font-size: 13px;
 }
 
+/* the whole row opens the stack or the change: the title link covers the row, other links sit above it */
+.rp-flight-link {
+  position: relative;
+  align-items: center;
+}
+
+.rp-flight-link > .ds-dot {
+  margin-top: 0;
+}
+
+.rp-flight-link .rp-flight-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.rp-flight-link .rp-flight-meta a {
+  position: relative;
+  z-index: 1;
+}
+
+.rp-flight-link:hover {
+  background: var(--hover);
+}
+
+.rp-flight-link:focus-within {
+  outline: 2px solid var(--focus, var(--link));
+  outline-offset: -2px;
+}
+
+.rp-flight-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 10px;
+  flex: none;
+  max-width: 45%;
+}
+
+.rp-delta {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.rp-add {
+  color: var(--ok);
+}
+
+.rp-del {
+  color: var(--err);
+}
+
+.rp-open {
+  display: none;
+  flex: none;
+  color: var(--link);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (hover: hover) and (min-width: 768px) {
+  .rp-flight-link:hover .rp-open,
+  .rp-flight-link:focus-within .rp-open {
+    display: inline;
+  }
+
+  .rp-flight-link:hover .rp-flight-when,
+  .rp-flight-link:focus-within .rp-flight-when {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .rp-flight-link {
+    min-height: 56px;
+  }
+
+  .rp-flight-side {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+}
+
 .rp-quiet {
   margin: 0;
   color: var(--text-2);
@@ -1123,4 +1208,38 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+/* ---- about: licence line and policy card ---- */
+.rp-about-license {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-2);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.rp-about-license:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-policy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rp-policy-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-1);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rp-policy-lines li + li {
+  margin-top: 2px;
 }

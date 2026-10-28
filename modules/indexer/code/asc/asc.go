@@ -29,11 +29,11 @@ import (
 	"unicode/utf8"
 
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/modules/analyze"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/indexer/code/internal"
 	"forgejo.org/modules/timeutil"
 
-	"github.com/go-enry/go-enry/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -310,7 +310,7 @@ func toResult(repoID int64, branch string, h *ascv1.FileHit) *internal.SearchRes
 		CommitID:    branch,
 		UpdatedUnix: timeutil.TimeStampNow(),
 		Language:    h.GetLang(),
-		Color:       enry.GetColor(h.GetLang()),
+		Color:       analyze.GetColor(h.GetLang()),
 	}
 	var sb strings.Builder
 	for _, n := range nums {

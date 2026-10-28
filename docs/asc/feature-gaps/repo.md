@@ -32,19 +32,19 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | Title row (owner / name, Private chip, Watch, Star, Fork) and tab bar with Stacks and Releases and Issues counts | done | `H:templates/repo/header*.tmpl` | S |
 | Repo | Tab counts on Agent runs and Dependencies (3, 2) | needs-hub-backend | `H:templates/repo/header_tabs.tmpl` plus a cached count from `Agents.ListRuns` and `DepsService.ListFindings` in the repo header context | S |
 | Repo | Ref meta line ("4 open stacks, 12 branches, a41f9c2 landed 3 h ago"), Go to file button, Clone button | done | `H:templates/repo/home_dir.tmpl` | S |
-| Repo | Shortcuts: `t` go to file, `/` focus search, `g` then `c` jump to Code | ui-only-missing | `H:web_src/js/features/ds-shell.js` (`onGlobalKey` handles only Ctrl+K and `/`); add a key-sequence helper | S |
-| Repo | Last-change row: person, intent, change id, age, "1,204 changes" total | ui-only-missing | `H:templates/repo/latest_commit.tmpl`, `view_list.tmpl` (shows commit summary and sha, no change-id or count label) | S |
+| Repo | Shortcuts: `t` go to file, `/` focus search, `g` then `c` jump to Code | done (t, g c, and the key attributes; / was there) | `H:web_src/js/features/ds-shell.js` (`onGlobalKey` handles only Ctrl+K and `/`); add a key-sequence helper | S |
+| Repo | Last-change row: person, intent, change id, age, "1,204 changes" total | done | `H:templates/repo/latest_commit.tmpl`, `view_list.tmpl` (shows commit summary and sha, no change-id or count label) | S |
 | Repo | Directory table (name, last change message, age) with htmx last-commit load | done | `H:templates/repo/view_list.tmpl` | S |
 | Repo | Stacks in flight: one row per stack with status chip (Needs your review, Queued to merge, Agent writing, Checks failing), people and agents, change count, +/- size, age | needs-hub-backend | `H:routers/web/repo/view_home_cards.go` (`HomePulls` is a flat PR list with an Open/Draft chip), `H:services/pull` (`BuildAscStackPanel` per PR, needs a batched list form), `H:templates/repo/home_cards.tmpl` | L |
 | Repo | Progress rail: segments per change ("2 of 4 landed"), segments link to each change, text label and aria-label, "12 of 12 checks" / "1 of 31 failing" | needs-hub-backend | same as above plus commit-status counts per head from `H:models/git` | M |
 | Repo | Segment filter Open / Mine / Agents / All N stacks without page load | needs-hub-backend | `H:templates/repo/home_cards.tmpl`, small script in `H:web_src/js/features/repo-home.js`; needs an "agent-written" flag per pull (agent identity of the poster) | M |
-| Repo | Row hover and focus reveals "Open"; row click opens the stack review | ui-only-missing | `H:templates/repo/home_cards.tmpl`, `H:web_src/css` (rp-flight) | S |
-| Repo | Recently landed on main: title, author, change id, stack name, +/- size, checks chip | ui-only-missing | `H:templates/repo/home_cards.tmpl` (has title, author, sha, time only); sizes from `Repo.Log` stats, checks from `commit_statuses` | M |
+| Repo | Row hover and focus reveals "Open"; row click opens the stack review | done | `H:templates/repo/home_cards.tmpl`, `H:web_src/css` (rp-flight) | S |
+| Repo | Recently landed on main: title, author, change id, stack name, +/- size, checks chip | done | `H:templates/repo/home_cards.tmpl` (has title, author, sha, time only); sizes from `Repo.Log` stats, checks from `commit_statuses` | M |
 | Repo | README card with tabs README / AGENTS.md / License | ui-only-missing | `H:templates/repo/home_dir.tmpl`, `view_file.tmpl` (only one README is shown) | M |
 | Repo | About card: description, topics, website, numbers | done | `H:templates/repo/asc_about.tmpl` | S |
-| Repo | About card: license line and "1,204 changes on main" wording | ui-only-missing | `H:templates/repo/asc_about.tmpl` (`rp-numbers`) | S |
+| Repo | About card: license line and "1,204 changes on main" wording | done | `H:templates/repo/asc_about.tmpl` (`rp-numbers`) | S |
 | Repo | "Who writes the code" card: 46% people / 54% agents, "100% reviewed by a human", median review time | needs-both | asc: a landed-change statistics RPC (author kind, review latency); hub: card on `asc_about.tmpl` | L |
-| Repo | Policy card: Valid / invalid chip, rule summary, link to `.asc/policy.toml` | ui-only-missing | `Policy.GetSource` / `Repo.GetPolicy` already called by `H:routers/web/repo/setting/asc_policy.go`; add the call to the home handler and a card in `asc_about.tmpl` | M |
+| Repo | Policy card: Valid / invalid chip, rule summary, link to `.asc/policy.toml` | done | `Policy.GetSource` / `Repo.GetPolicy` already called by `H:routers/web/repo/setting/asc_policy.go`; add the call to the home handler and a card in `asc_about.tmpl` | M |
 | Repo | Policy card lines that need new policy keys (budget "20 min and 200k tokens", merge queue on) | needs-asc-backend | `A:crates/asc-core/src/policy.rs` (see Policy rows) | M |
 | Repo | Activity card: landed per week over 12 weeks, Contributors list with agent marks | needs-both | same statistics RPC as Insights; hub `asc_about.tmpl` | L |
 | Repo | Languages bar with legend and aria-label | done | `H:templates/repo/asc_about.tmpl` | S |
@@ -55,7 +55,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | Clone popover: asc login and clone, Install asc, Open in IDE, Copy | done | `H:templates/repo/clone_dialog.tmpl` | S |
 | Repo | Git compatibility note collapsed and expanded in the clone sheet | done | `H:templates/repo/clone_asc_tabs.tmpl` | S |
 | Repo | "Switch version" popover that lists shared refs, stacks and tags with labels | needs-hub-backend | `H:web_src/js/components/RepoBranchTagSelector.vue` and `H:templates/repo/branch_dropdown.tmpl` list branches and tags only; add stacks (`Stacks`/open pulls) and a "Shared ref" label | M |
-| Repo | Pull to refresh and sticky Clone / New stack buttons (Mobile-Repo) | ui-only-missing | sticky buttons exist (`rp-sticky-m` in `home_dir.tmpl`); pull to refresh is not implemented anywhere in `H:web_src/js` | S |
+| Repo | Pull to refresh and sticky Clone / New stack buttons (Mobile-Repo) | ui-only-missing (the Watch, Star and Fork menu is done; pull to refresh remains) | sticky buttons exist (`rp-sticky-m` in `home_dir.tmpl`); pull to refresh is not implemented anywhere in `H:web_src/js` | S |
 | Repo | Clone card shown before first clone ("Work on it locally", `asc stack new fix-refund-timeout`) | ui-only-missing | `H:templates/repo/home_dir.tmpl` / `clone_dialog.tmpl` | S |
 
 ## NewRepo
@@ -85,7 +85,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Code | Segment Code / Blame / History on the file | done | `H:templates/repo/code_view.tmpl` | S |
 | Code | Blame cell shows author avatar, intent, change id, age | done | `H:templates/repo/blame.tmpl` | S |
 | Code | Blame hover and focus card (intent as "Why", stack, approver, size, Open change, Blame before this); 150 ms delay, 120 ms fade | needs-hub-backend | `H:templates/repo/blame.tmpl` rows carry no stack or approver data; new endpoint returning change summary (pull lookup by commit, `Changes.ResolveChanges`) and popover script (`H:web_src/js/features/contextpopup.js` is for issue refs only) | L |
-| Code | Heat bar paired with age text (recency scale) | ui-only-missing | `H:routers/web/repo/blame.go` (compute age rank per row), `blame.tmpl`, CSS | S |
+| Code | Heat bar paired with age text (recency scale) | done | `H:routers/web/repo/blame.go` (compute age rank per row), `blame.tmpl`, CSS | S |
 | Code | Agent author carries the violet agent mark in blame | needs-hub-backend | author kind from agent identity (`H:services/ascidentity`) in blame row struct | S |
 | Code | Click a line number selects and shares a range; selected lines flash once | done | Forgejo `repo-code.ts` range select; flash not verified | S |
 | Code | Shortcuts `b` toggle blame, `y` permalink, `l` go to line, `e` propose change, `t` find file, `[` collapse tree | ui-only-missing | none bound in `H:web_src/js`; add to a repo keymap module | M |
@@ -94,7 +94,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Code | Outline panel (struct / impl / fn with line numbers) | ui-only-missing | `CodeIntel.Symbols` op=outline is served at `GET /{owner}/{repo}/asc/symbols?op=outline&path=` by `H:routers/web/repo/asc_symbols.go`, but `H:templates/repo/code_view.tmpl` right rail only has `file_info`; embed outline as htmx fragment | M |
 | Code | "Used in / 4 references" code-intelligence panel on the file | ui-only-missing | same handler (`op=def`), or `CrossSearch.SymbolPanel` via `H:services/ascsearch/panel.go`; add fragment to right rail | M |
 | Code | "Open changes touching this file" card (stack, change 3 of 4, lines changed) | needs-hub-backend | open pulls by changed path, line ranges from diff; `H:services/pull` | M |
-| Code | Shortcuts legend card | ui-only-missing | `code_view.tmpl` right rail | S |
+| Code | Shortcuts legend card | done | `code_view.tmpl` right rail | S |
 | Code | Propose change bar ("Changes go into a new change on top of main"), Start a new change / Add to my stack | needs-hub-backend | bar exists (`rp-editnote`) and links to the Forgejo editor; the editor commits to a branch/PR rather than creating a change or adding to the user's stack | L |
 | Code | Directory view columns: Last change, In open stack chip, Author, Size, Updated | ui-only-missing | `H:templates/repo/view_list.tmpl` has name, message, age only; author and size from `Repo.LastCommits`/`ReadTree`, open-stack chip as in tree badges | M |
 | Code | Loading state (lines stream in) | ui-only-missing | skeleton in `view_file.tmpl` | S |
@@ -130,13 +130,13 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | History | Graph and List as two views of one page with the same rows; graph beside the rows | ui-only-missing | merge `asc_graph.tmpl` rail into `commits.tmpl`; the segment links to two pages today | M |
 | History | Node state shape plus chip (Needs review, Queued, Agent writing); agent vs person nodes; stack brackets; "A stack that landed together" | needs-hub-backend | map graph rows to pulls and queue state (`H:routers/web/repo/asc_queue.go`, `pull_asc_stack.go`), draw shapes in `asc_graph.tmpl` | L |
 | History | "Open on top of main" section listing open changes with stack position, "Waiting on Priya Raman", agent run status | needs-hub-backend | open pulls + reviewers + agent runs; `commits.tmpl` | L |
-| History | Comfy / Compact density switch | ui-only-missing | `commits.tmpl` seg + CSS + localStorage | S |
+| History | Comfy / Compact density switch | done | `commits.tmpl` seg + CSS + localStorage | S |
 | History | Filter bar: Everyone / People / Agents, Path, Stack, date range, in the URL, sticky | needs-hub-backend | author kind needs agent identity; path and date filters exist in Forgejo `RefCommits` partly; `commits.tmpl`, `routers/web/repo/commit.go` | M |
 | History | Export | needs-hub-backend | new route (CSV/JSON of the filtered list) in `H:routers/web/repo/commit.go` | S |
-| History | Keyboard: `j`/`k` move, Enter opens, `c` copies id | ui-only-missing | none bound; list-nav helper in `H:web_src/js` | S |
+| History | Keyboard: `j`/`k` move, Enter opens, `c` copies id | done | none bound; list-nav helper in `H:web_src/js` | S |
 | History | Row hover actions (copy id, browse files) and hover lift | done | copy hash and view-at-point buttons in `commits_list.tmpl` | S |
 | History | "Landing rate, last 12 weeks" card with this-week delta | needs-both | statistics RPC (see Insights) | M |
-| History | Graph key legend | ui-only-missing | `asc_graph.tmpl` | S |
+| History | Graph key legend | done | `asc_graph.tmpl` | S |
 | History | "Show 25 older changes" on-demand load (44 px button on mobile) | done | pager/`AscGraphNextURL` | S |
 | History | States: loading skeleton, no results with explanation and Clear filters, partial-data banner with Retry | ui-only-missing | `commits.tmpl`; partial banner needs index lag signal from `Repo.CommitGraph` (hub `AscGraphError` path) | M |
 | History | Mobile rail-and-node list, chips open a bottom sheet for Path, Stack, date | ui-only-missing | `commits.tmpl`, sheet component | M |
@@ -152,7 +152,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Refs | Stack cleanup note ("clean themselves up 7 days after the last change lands") | needs-asc-backend | the setting does not exist (see Rules) | S |
 | Refs | Tags section with release title, change count, author, date | ui-only-missing | `H:templates/repo/tag/list.tmpl` is a separate page | M |
 | Refs | Row More menu names its target; no delete on protected refs | done | `branch/row.tmpl` | S |
-| Refs | State: nothing matches with "Search stacks" link | ui-only-missing | `list.tmpl` empty state has no stack search action | S |
+| Refs | State: nothing matches with "Search stacks" link | done | `list.tmpl` empty state has no stack search action | S |
 | Refs | State: delete protected ref refused with "Open rule" | ui-only-missing | `H:routers/web/repo/branch.go` flash message and link to `settings/branches` | S |
 
 ## Compare
@@ -160,9 +160,9 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Compare | From / To, swap, "only what the stack adds" checkbox, ahead / behind chips, common ancestor | done | `H:templates/repo/asc_compare.tmpl`, `H:routers/web/repo/asc_compare.go` | S |
-| Compare | From / To as labelled selects listing shared refs, stacks and tags (text inputs today) | ui-only-missing | `asc_compare.tmpl`; options from refs/pulls | S |
+| Compare | From / To as labelled selects listing shared refs, stacks and tags (text inputs today) | done | `asc_compare.tmpl`; options from refs/pulls | S |
 | Compare | Per-change and per-file +/- counts and avatars | needs-hub-backend | `AscCompareCommit`/`AscCompareFile` carry no stats; `Repo.Compare` returns `PathChange` and `LogEntry`; add numstat (`Repo.Diff`) | M |
-| Compare | Same version state ("Both sides are main@a41f9c2") | ui-only-missing | `asc_compare.tmpl` shows "Nothing to compare" without the ref | S |
+| Compare | Same version state ("Both sides are main@a41f9c2") | done | `asc_compare.tmpl` shows "Nothing to compare" without the ref | S |
 | Compare | Unknown ref with "Did you mean retry-with-backoff?" | needs-hub-backend | resolve error in `asc_compare.go`; suggest nearest ref name | S |
 | Compare | Open any change or file from the lists, both sides kept in the address | done | links and query string | S |
 
@@ -175,7 +175,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | Cross-repository results grouped by repository, URL `/-/asc/search` | needs-hub-backend | scope "repos" sends to the explore search page (`H:routers/web/explore/asc_search.go`, `templates/explore/asc_search.tmpl`); route in the board is `/-/asc/search`; REST `GET /api/v1/asc/search` exists | M |
 | Search | Facets: Repository (21 / 9 / 5, "11 more"), Language, Path, Branch or commit, "Only files the stack changes" | ui-only-missing | Language and Path facets and the stack-diff checkbox exist; add Repository and Branch facets from `CrossSearch` result group keys in `ascsearch/types.go` | M |
 | Search | Result card: path, language, branch list, snippet with highlights | done | `asc_search.tmpl` | S |
-| Search | Relevance percentage with a bar (grows over 300 ms) | ui-only-missing | `Chunk` score is shown as a raw number pill (`$c.Score`); convert to percent bar in `asc_search.tmpl` | S |
+| Search | Relevance percentage with a bar (grows over 300 ms) | done | `Chunk` score is shown as a raw number pill (`$c.Score`); convert to percent bar in `asc_search.tmpl` | S |
 | Search | "Why it matched" reason sentence per result | needs-asc-backend | `A:proto/asc/v1/codeintel.proto` `Chunk` has no reason; add a reason from the retrieval source or a short model-written line; show in `asc_search.tmpl` | L |
 | Search | Symbol chips under a result ("RetryPolicy::delay", "14 references elsewhere", "changed 3 h ago") | ui-only-missing | symbol and reference counts from `CodeIntel.Symbols`; last change from `Repo.LastCommits` | M |
 | Search | "Symbols matched: RetryPolicy, retry" line | ui-only-missing | `asc_search.tmpl` header line from `CodeIntel.Symbols` | S |
@@ -184,8 +184,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | Sort: best match, pagination "Showing 4 of 38", page links | ui-only-missing | `asc_search.tmpl` has a Truncated banner only | M |
 | Search | "The other two kinds of search" teaser (Text and Symbol hits for the same query) | ui-only-missing | run two cheap queries in `asc_search.go`; fragment | M |
 | Search | First-visit state with example queries | ui-only-missing | `asc_search.tmpl` | S |
-| Search | No-results state with "Search all branches / All repositories" actions | ui-only-missing | `asc_search.tmpl` shows a plain banner | S |
-| Search | Not available (503) for meaning search with "Use Text search" and "Open storage settings" | ui-only-missing | `s_err_503` banner exists; add actions | S |
+| Search | No-results state with "Search all branches / All repositories" actions | done | `asc_search.tmpl` shows a plain banner | S |
+| Search | Not available (503) for meaning search with "Use Text search" and "Open storage settings" | done | `s_err_503` banner exists; add actions | S |
 | Search | Rate limited (429) keeps the query | done | `s_err_429` | S |
 | Search | Loading state | ui-only-missing | skeleton | S |
 | Search | `/` focuses search in the repository | done | `ds-shell.js` | S |
@@ -197,7 +197,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | Releases | Timeline of release cards, tag, stable / pre-release / draft chips, Compare, edit, assets list with downloads | done | `H:templates/repo/release/list.tmpl`, `release_tag_header.tmpl` | S |
 | Releases | Releases / Tags segment, search filter, feed | done | `release_tag_header.tmpl` | S |
-| Releases | Filter pills All 14 / Stable 11 / Pre-release 2 / Draft 1 and Sort (Newest, Most downloaded) | ui-only-missing | `release_tag_header.tmpl`; `H:routers/web/repo/release.go` query params | M |
+| Releases | Filter pills All 14 / Stable 11 / Pre-release 2 / Draft 1 and Sort (Newest, Most downloaded) | ui-only-missing (channel pills with counts done; Most downloaded sort remains) | `release_tag_header.tmpl`; `H:routers/web/repo/release.go` query params | M |
 | Releases | Provenance strip ("Built by run #4218 from main@a41f9c2, 14 of 14 checks passed, signed with release key 7F3A...") | needs-hub-backend | `tag/verification_line.tmpl` gives the signature; add the building Actions run and check summary, link release to run (`H:models/actions`) | L |
 | Releases | Notes grouped Added / Changed / Fixed, "written from the intent of each change" | needs-hub-backend | generator over landed changes since last tag (`Repo.Log`, `Compare`); category from change class or trailer | L |
 | Releases | "N changes in this release" list with author, change id, category | needs-hub-backend | `Repo.Compare(prev tag, tag)` in `release.go`; template block | M |
@@ -251,27 +251,27 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | GitNote | One-line collapsed disclosure after the asc command, aria-expanded, URL shown only after expand, git clone command with Copy | done | `H:templates/repo/clone_asc_tabs.tmpl`, `clone_dialog.tmpl` | S |
-| GitNote | Body copy: "A push arrives as changes and goes through policy... Stacks appear as branches named asc/<stack>" | ui-only-missing | `options/locale/locale_en-US.ini` `repo.clone_with_git_help` differs from the board | S |
-| GitNote | Bridge switched off by admin: one sentence "The Git remote is off on this hub. Everything works with asc." and no button | ui-only-missing | `clone_asc_tabs.tmpl` renders nothing when `AscGitAccess` is false | S |
+| GitNote | Body copy: "A push arrives as changes and goes through policy... Stacks appear as branches named asc/<stack>" | done | `options/locale/locale_en-US.ini` `repo.clone_with_git_help` differs from the board | S |
+| GitNote | Bridge switched off by admin: one sentence "The Git remote is off on this hub. Everything works with asc." and no button | done | `clone_asc_tabs.tmpl` renders nothing when `AscGitAccess` is false | S |
 | GitNote | Inline variant in the repository home hero card; also in settings Working mode when branches are on; also in the empty-repository state | ui-only-missing | `home_dir.tmpl`, `settings/asc_branchless.tmpl`, `empty.tmpl` | S |
 
 ## Stacks
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| Stacks | Area sub-navigation Stacks / Merge queue / Policy gate / Operation log | ui-only-missing | `H:templates/repo/asc_stack_nav.tmpl` is used on queue, gate and ops pages; the `/pulls` list does not include it | S |
+| Stacks | Area sub-navigation Stacks / Merge queue / Policy gate / Operation log | done | `H:templates/repo/asc_stack_nav.tmpl` is used on queue, gate and ops pages; the `/pulls` list does not include it | S |
 | Stacks | Merge queue page with pause and resume | done | `H:routers/web/repo/asc_queue.go`, `asc_queue.tmpl` | S |
 | Stacks | Stack row: avatar, title, stack name, author, change count, +/- size, checks, age, status chip (Needs your review, Queued to merge, Checks failing, Agent writing, Waiting on author), reviewers | needs-hub-backend | `/pulls` renders the Forgejo issue list (`H:templates/repo/issue/list.tmpl`, `shared/issuelist.tmpl`); build a stack-grouped list from stacked pulls (`H:services/pull`, `BuildAscStackPanel`) | L |
 | Stacks | Rail with segments per change and text alternative "Stack of 4 changes"; legend (Landed, Approved ready, Waiting, Agent writing, Draft) | needs-hub-backend | same data as the Repo progress rail; one shared template | M |
 | Stacks | Filters Open / Mine / Agents / Needs me / Closed with counts; sticky filter bar | needs-hub-backend | Needs me = review requested or queue-ready for the viewer; Agents needs an agent flag; `H:routers/web/repo/issue.go` (`Pulls`) | M |
 | Stacks | Sort Newest / Needs attention | needs-hub-backend | attention score from status | S |
 | Stacks | "Your turn" card with jump to the exact change | needs-hub-backend | pulls awaiting the viewer's review or enqueue | M |
-| Stacks | "From your terminal" card (`asc stack list`, `asc stack submit`) | ui-only-missing | template | S |
+| Stacks | "From your terminal" card (`asc stack list`, `asc stack submit`) | done | template | S |
 | Stacks | New stack button | needs-hub-backend | no web create-stack flow; `H:routers/web/repo/pull.go` creates pulls by compare; agents or terminal create stacks | M |
-| Stacks | Keyboard `j`/`k` and Enter | ui-only-missing | list-nav helper | S |
-| Stacks | States: empty (Nothing is in flight, New stack, Open history), skeleton, error with request id | ui-only-missing | list template | S |
-| Stacks | Row hover slide-in, status chip pulses once on change | ui-only-missing | CSS + SSE event (`H:services/ascinbox` / `eventsource.sharedworker.js`) | S |
-| Stacks | Mobile: 44 px rows, chips scroll | ui-only-missing | list template | S |
+| Stacks | Keyboard `j`/`k` and Enter | done | list-nav helper | S |
+| Stacks | States: empty (Nothing is in flight, New stack, Open history), skeleton, error with request id | ui-only-missing (empty state done; skeleton and error with request id remain) | list template | S |
+| Stacks | Row hover slide-in, status chip pulses once on change | ui-only-missing (slide-in done; chip pulse on SSE change remains) | CSS + SSE event (`H:services/ascinbox` / `eventsource.sharedworker.js`) | S |
+| Stacks | Mobile: 44 px rows, chips scroll | done | list template | S |
 
 ## RepoSettingsMenu (mobile) and the shared settings shell
 

@@ -238,7 +238,7 @@ func (repo *Repository) GetLanguageStats(commitID string) (map[string]int64, err
 		}
 
 		included, checked := includedLanguage[language]
-		langType := enry.GetLanguageType(language)
+		langType := analyze.GetLanguageType(language)
 		if !checked {
 			included = langType == enry.Programming || langType == enry.Markup
 			if !included && (isTrue(isDetectable) || (langType == enry.Prose && isFalse(isDocumentation))) {
