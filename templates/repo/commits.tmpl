@@ -11,6 +11,10 @@
 				<p class="rp-sub">{{ctx.Locale.TrPluralString .CommitCount "counters.n_commits" (ctx.Locale.PrettyNumber .CommitCount)}}</p>
 			</div>
 			<div class="rp-band-acts">
+				<div class="ds-seg ds-hide-xs" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.density_label"}}" data-asc-density="#commits-table">
+					<button type="button" data-density="comfy" aria-pressed="true">{{ctx.Locale.Tr "asc_rp.density_comfy"}}</button>
+					<button type="button" data-density="compact" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.density_compact"}}</button>
+				</div>
 				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.history_view"}}">
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}" aria-current="true">{{ctx.Locale.Tr "asc_rp.view_list"}}</a>
 					<a href="{{.RepoLink}}/{{if $isAsc}}asc/graph{{else}}graph{{end}}">{{ctx.Locale.Tr "repo.commit_graph"}}</a>

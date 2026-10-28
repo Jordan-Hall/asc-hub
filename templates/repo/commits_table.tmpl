@@ -37,7 +37,7 @@
 		{{end}}
 	</div>
 {{else if .PageIsCommits}}
-	<div class="rp-sec">{{template "shared/ds/empty" (dict "Icon" "history" "Title" (ctx.Locale.Tr "asc_rp.no_commits_title") "Body" (ctx.Locale.Tr "asc_rp.no_commits_body"))}}</div>
+	<div class="rp-sec" data-testid="history-empty">{{if .Keyword}}{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_rp.no_commits_title") "Body" (ctx.Locale.Tr "asc_rp.no_commits_filtered" .Keyword) "PrimaryLabel" (ctx.Locale.Tr "asc_rp.clear_filters") "PrimaryHref" (printf "%s/commits/%s" .RepoLink .BranchNameSubURL))}}{{else}}{{template "shared/ds/empty" (dict "Icon" "history" "Title" (ctx.Locale.Tr "asc_rp.no_commits_title") "Body" (ctx.Locale.Tr "asc_rp.no_commits_body"))}}{{end}}</div>
 {{end}}
 
 {{if .OldFilename}}
