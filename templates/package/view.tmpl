@@ -1,23 +1,26 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository view issue packages">
+<div role="main" aria-label="{{.Title}}" class="page-content repository view issue packages wk-pkg-page">
 	{{template "shared/user/org_profile_avatar" .}}
-	<div class="ui container">
+	<div class="ui container wk-pkg-view">
 		{{template "user/overview/header" .}}
-		<div class="issue-title-header">
-			<div class="issue-title">
-				<h1>{{.PackageDescriptor.Package.Name}} ({{.PackageDescriptor.Version.Version}})</h1>
+		<div class="wk-head wk-pkg-head">
+			<div class="wk-head-text">
+				<h1 class="ds-t-h1 wk-title tw-break-anywhere">{{.PackageDescriptor.Package.Name}} <span class="ds-chip ds-mono">{{.PackageDescriptor.Version.Version}}</span></h1>
+				<p class="ds-c-2 wk-sub">
+					{{$timeStr := DateUtils.TimeSince .PackageDescriptor.Version.CreatedUnix}}
+					{{if .HasRepositoryAccess}}
+						{{ctx.Locale.Tr "packages.published_by_in" $timeStr .PackageDescriptor.Creator.HomeLink .PackageDescriptor.Creator.GetDisplayName .PackageDescriptor.Repository.Link .PackageDescriptor.Repository.FullName}}
+					{{else}}
+						{{ctx.Locale.Tr "packages.published_by" $timeStr .PackageDescriptor.Creator.HomeLink .PackageDescriptor.Creator.GetDisplayName}}
+					{{end}}
+				</p>
 			</div>
-			<div>
-				{{$timeStr := DateUtils.TimeSince .PackageDescriptor.Version.CreatedUnix}}
-				{{if .HasRepositoryAccess}}
-					{{ctx.Locale.Tr "packages.published_by_in" $timeStr .PackageDescriptor.Creator.HomeLink .PackageDescriptor.Creator.GetDisplayName .PackageDescriptor.Repository.Link .PackageDescriptor.Repository.FullName}}
-				{{else}}
-					{{ctx.Locale.Tr "packages.published_by" $timeStr .PackageDescriptor.Creator.HomeLink .PackageDescriptor.Creator.GetDisplayName}}
-				{{end}}
-			</div>
+			{{if .CanWritePackages}}
+			<div class="wk-head-btns"><a class="ds-btn ds-btn-secondary" href="{{.Link}}/settings">{{ctx.Locale.Tr "repo.settings"}}</a></div>
+			{{end}}
 		</div>
 		<div class="issue-content">
-			<div class="issue-content-left">
+			<div class="issue-content-left wk-pkg-main">
 				{{template "package/content/alpine" .}}
 				{{template "package/content/arch" .}}
 				{{template "package/content/cargo" .}}
@@ -42,7 +45,7 @@
 				{{template "package/content/swift" .}}
 				{{template "package/content/vagrant" .}}
 			</div>
-			<div class="issue-content-right ui segment">
+			<div class="issue-content-right ui segment wk-pkg-side">
 				<strong>{{ctx.Locale.Tr "packages.details"}}</strong>
 				<div class="ui relaxed list">
 					<div class="item">{{svg .PackageDescriptor.Package.Type.SVGName 16 "tw-mr-2"}} {{.PackageDescriptor.Package.Type.Name}}</div>

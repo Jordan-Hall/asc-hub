@@ -1,9 +1,11 @@
+{{/* The packages of an owner or a repository: search, type filter, one row per package version. */}}
+<div class="wk-packages">
 {{template "base/alert" .}}
 {{if .HasPackages}}
-<form class="ui form ignore-dirty">
-	<div class="ui small fluid action input">
+<form class="ui form ignore-dirty wk-search" role="search">
+	<div class="ui small fluid action input wk-pkg-search">
 		{{template "shared/search/input" dict "Value" .Query "Placeholder" (ctx.Locale.Tr "search.package_kind")}}
-		<select class="ui small dropdown" name="type">
+		<select class="ds-select wk-pkg-type" name="type" aria-label="{{ctx.Locale.Tr "packages.filter.type"}}">
 			<option value="">{{ctx.Locale.Tr "packages.filter.type"}}</option>
 			<option value="all">{{ctx.Locale.Tr "packages.filter.type.all"}}</option>
 			{{range $type := .AvailableTypes}}
@@ -14,16 +16,17 @@
 	</div>
 </form>
 {{end}}
-<div>
+{{if .PackageDescriptors}}
+<ul class="ds-list wk-rows">
 	{{range .PackageDescriptors}}
-	<div class="flex-list">
-		<div class="flex-item">
-			<div class="flex-item-main">
-				<div class="flex-item-title">
-					<a href="{{.VersionWebLink}}">{{.Package.Name}}</a>
-					<span class="ui label">{{svg .Package.Type.SVGName 16}} {{.Package.Type.Name}}</span>
+		<li class="ds-li wk-row">
+			<span class="ds-li-av" aria-hidden="true">{{svg .Package.Type.SVGName 24}}</span>
+			<div class="ds-li-main">
+				<div class="ds-li-title"><a class="tw-break-anywhere" href="{{.VersionWebLink}}">{{.Package.Name}}</a>
+					<span class="ds-chip">{{.Package.Type.Name}}</span>
+					<span class="ds-chip ds-mono">{{.Version.Version}}</span>
 				</div>
-				<div class="flex-item-body">
+				<div class="ds-li-sub">
 					{{$timeStr := DateUtils.TimeSince .Version.CreatedUnix}}
 					{{$hasRepositoryAccess := false}}
 					{{if .Repository}}
@@ -36,22 +39,21 @@
 					{{end}}
 				</div>
 			</div>
-		</div>
-	</div>
-	{{else}}
-		{{if not .HasPackages}}
-			<div class="empty-placeholder">
-				{{svg "octicon-package" 48}}
-				<h2>{{ctx.Locale.Tr "packages.empty"}}</h2>
-				{{if and .Repository .CanWritePackages}}
-					{{$packagesUrl := URLJoin .Owner.HomeLink "-" "packages"}}
-					<p>{{ctx.Locale.Tr "packages.empty.repo" $packagesUrl}}</p>
-				{{end}}
-				<p>{{ctx.Locale.Tr "packages.empty.documentation" "https://forgejo.org/docs/latest/user/packages/"}}</p>
-			</div>
-		{{else}}
-			<p class="tw-py-4">{{ctx.Locale.Tr "packages.filter.no_result"}}</p>
-		{{end}}
+			<div class="ds-li-stat"><b>{{.Version.DownloadCount}}</b><span>{{ctx.Locale.Tr "asc_work.pk_downloads"}}</span></div>
+		</li>
 	{{end}}
-	{{template "base/paginate" .}}
+</ul>
+{{else}}
+	{{if not .HasPackages}}
+		{{$body := ctx.Locale.Tr "packages.empty.documentation" "https://forgejo.org/docs/latest/user/packages/"}}
+		{{template "shared/ds/empty" (dict "Icon" "package" "Title" (ctx.Locale.Tr "packages.empty") "Body" $body)}}
+		{{if and .Repository .CanWritePackages}}
+			{{$packagesUrl := URLJoin .Owner.HomeLink "-" "packages"}}
+			<p class="ds-hint wk-quiet">{{ctx.Locale.Tr "packages.empty.repo" $packagesUrl}}</p>
+		{{end}}
+	{{else}}
+		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "packages.filter.no_result"))}}
+	{{end}}
+{{end}}
+{{template "base/paginate" .}}
 </div>

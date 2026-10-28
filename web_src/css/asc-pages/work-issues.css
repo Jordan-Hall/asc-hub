@@ -516,3 +516,43 @@
 .wk-states {
   justify-content: flex-start;
 }
+
+/* ---- packages ---- */
+.wk-packages {
+  padding-bottom: 24px;
+}
+
+.wk-packages .wk-search .ui.action.input {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wk-packages .wk-search .ui.action.input > input {
+  flex: 1 1 200px;
+  border-radius: var(--r-btn);
+}
+
+.wk-packages .wk-search .ui.action.input > .button {
+  border-left: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+}
+
+.wk-pkg-type {
+  width: auto;
+  min-width: 140px;
+  flex: 0 1 180px;
+}
+
+.wk-pkg-view {
+  padding-top: 16px;
+  padding-bottom: 32px;
+}
+
+.wk-quiet {
+  margin-top: 12px;
+}
+
+.wk-pkg-side .ui.relaxed.list .item {
+  padding: 6px 0;
+  overflow-wrap: anywhere;
+}
