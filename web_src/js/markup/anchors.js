@@ -37,6 +37,7 @@ export function initMarkupAnchors() {
       const a = document.createElement('a');
       a.classList.add('anchor');
       a.setAttribute('href', `#${encodeURIComponent(removePrefix(heading.id))}`);
+      a.setAttribute('aria-label', heading.textContent.trim()); // a link with only an icon needs a name
       a.innerHTML = svg('octicon-link');
       heading.prepend(a);
     }
