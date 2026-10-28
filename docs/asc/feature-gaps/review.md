@@ -224,10 +224,10 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | Workflows | Definitions list with triggers, description, path, valid/not valid reason | done | templates/repo/asc_workflows.tmpl, routers/web/repo/asc_workflows.go | - |
-| Workflows | On/off switch (role=switch) and Run now on each list row | ui-only-missing | templates/repo/asc_workflows.tmpl (pill only; POST /{name}/enable and /trigger exist) | S |
-| Workflows | Step chain 'scan > update > review' on the card | ui-only-missing | templates/repo/asc_workflows.tmpl (shows a step count) | S |
+| Workflows | On/off switch (role=switch) and Run now on each list row | done | templates/repo/asc_workflows.tmpl (pill only; POST /{name}/enable and /trigger exist) (switch and Run it now clicked against a live asc) | S |
+| Workflows | Step chain 'scan > update > review' on the card | done | templates/repo/asc_workflows.tmpl (shows a step count) (chain of step ids seen on the dev hub) | S |
 | Workflows | Last-12-runs history strip and 'last run' time per workflow | needs-hub-backend | asc_workflows.go (Workflows.ListRuns per workflow) + template strip | M |
-| Workflows | State filter (All, On, Off, Not valid), search, counts | ui-only-missing | templates/repo/asc_workflows.tmpl | S |
+| Workflows | State filter (All, On, Off, Not valid), search, counts | done | templates/repo/asc_workflows.tmpl (chips with counts seen on the dev hub; search covered by a Go test) | S |
 | Workflows | 'New workflow' and 'Start from a template' (creates a reviewed change with the file) | needs-hub-backend | routers/web/repo/asc_workflows.go + web editor/propose-file flow; templates under options/ | M |
 | Workflows | Latest runs list (running, passed, needs approval, failed) with link to all runs | done | templates/repo/asc_workflows_runlist.tmpl, asc_workflows_runs.tmpl | - |
 | Workflows | Secrets and variables panel (names per workflow) with link to settings | needs-hub-backend | Workflows.ListSecrets (repo admin only) in asc_workflows.go; template card | S |
