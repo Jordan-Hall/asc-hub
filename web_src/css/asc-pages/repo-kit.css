@@ -923,3 +923,21 @@ a.rp-hash:hover {
 .rv-runs[data-density="compact"] .rv-li-sub {
   display: none;
 }
+
+/* ---- the bar of a new change: size, files, changes ahead and the way to the diff ---- */
+.rp-cmpbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 12px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  font-size: 14px;
+}
+
+.rp-cmpbar .ds-btn {
+  margin-inline-start: auto;
+}

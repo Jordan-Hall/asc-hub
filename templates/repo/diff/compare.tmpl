@@ -158,6 +158,15 @@
 		</div>
 	</div>
 
+	{{if and .PageIsComparePull .Diff (not .IsNothingToCompare) (gt .CommitCount 0)}}
+	<div class="rp-cmpbar" data-testid="compare-bar" role="status">
+		<span class="rp-delta"><span class="rp-add">+{{.Diff.TotalAddition}}</span> <span class="rp-del">&minus;{{.Diff.TotalDeletion}}</span></span>
+		<span>{{ctx.Locale.TrN .Diff.NumFiles "asc_rp.cmp_in_files_one" "asc_rp.cmp_in_files_other" .Diff.NumFiles}}</span>
+		<span class="rp-dim">{{ctx.Locale.TrN .CommitCount "asc_rp.cmp_ahead_one" "asc_rp.cmp_ahead_other" .CommitCount}}</span>
+		<a class="ds-btn ds-btn-secondary ds-btn-sm" href="#rp-cmp-diff">{{ctx.Locale.Tr "asc_rp.cmp_review_first"}}</a>
+	</div>
+	{{end}}
+
 	{{if .IsNothingToCompare}}
 		{{if and $.IsSigned $.AllowEmptyPr (not .Repository.IsArchived) .PageIsComparePull}}
 			<div class="ds-callout">{{ctx.Locale.Tr "repo.pulls.nothing_to_compare_and_allow_empty_pr"}}</div>
@@ -223,7 +232,7 @@
 	</div>
 
 	{{if $showDiffBox}}
-	<div class="ds-container rp-body rp-cmp-diff">
+	<div class="ds-container rp-body rp-cmp-diff" id="rp-cmp-diff">
 		{{template "repo/commits_table" .}}
 		{{template "repo/diff/box" .}}
 	</div>
