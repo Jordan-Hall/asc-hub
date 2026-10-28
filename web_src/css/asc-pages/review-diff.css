@@ -846,3 +846,9 @@
     --rv-bottom-bar: var(--bnav-space, 0px);
   }
 }
+
+/* the avatar link of a comment is a target of at least 24px */
+.repository.issue a.avatar {
+  min-width: 24px;
+  min-height: 24px;
+}
