@@ -94,8 +94,8 @@ else
     FORGEJO_VERSION ?= $(GITEA_VERSION)
     FORGEJO_VERSION_API ?= $(GITEA_VERSION)+${GITEA_COMPATIBILITY}
   else
-    # drop the "g" prefix prepended by git describe to the commit hash
-    FORGEJO_VERSION ?= $(shell git describe --exclude '*-test' --tags --always 2>/dev/null | sed 's/^v//' | sed 's/\-g/-/')
+    # drop the "g" prefix prepended by git describe to the commit hash; a bare commit hash (no tag reachable) is not a version, so it becomes a 0.0.0 pre-release
+    FORGEJO_VERSION ?= $(shell git describe --exclude '*-test' --tags --always 2>/dev/null | sed 's/^v//' | sed 's/\-g/-/' | sed -E '/^[0-9]+\.[0-9]+/! s/^/0.0.0-/')
     ifneq ($(FORGEJO_VERSION),)
       ifeq ($(findstring $(GITEA_COMPATIBILITY),$(FORGEJO_VERSION)),)
         FORGEJO_VERSION := $(FORGEJO_VERSION)+$(GITEA_COMPATIBILITY)
