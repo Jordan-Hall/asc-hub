@@ -77,6 +77,9 @@ const (
 	// ImportTimeout bounds one push import. It sits under the 60 s the git hook waits for pre-receive
 	// (modules/private/hook.go), so the hook never gives up on a push asc then accepts.
 	ImportTimeout = 55 * time.Second
+	// BulkImportTimeout bounds one import that carries a whole history (a migration, WithBulkImport). It
+	// is far longer than ImportTimeout because nothing waits on it behind a git hook.
+	BulkImportTimeout = 30 * time.Minute
 	// CallTimeout bounds one of the small calls (GitMap, ListRefs, UpdateRefs).
 	CallTimeout = 30 * time.Second
 	// BridgeWait is how long SetPullHead waits for asc's bridge_promote to move the bridge ref.
@@ -139,35 +142,86 @@ var (
 	apiMu  sync.Mutex
 	apiVal ascv1.RepoClient
 
+	// bulkVal is the client for imports of a whole history; its per-attempt bound is BulkImportTimeout.
+	bulkVal ascv1.RepoClient
+
 	// newAPI builds the Repo client. Tests replace it through UseClient.
-	newAPI = func() (ascv1.RepoClient, error) {
-		if setting.InternalToken == "" {
-			return nil, errors.New("ascsync: the internal token is not set")
-		}
-		// CallTimeout is the per-attempt bound inside the client; the context deadline set by each
-		// call is the bound that matters.
-		c, err := ascclient.New(ascclient.Config{
-			Target:        setting.Asc.ServerURL,
-			InternalToken: setting.InternalToken,
-			CallTimeout:   ImportTimeout,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return c.Repo(), nil
-	}
+	newAPI = func() (ascv1.RepoClient, error) { return buildAPI(ImportTimeout) }
+	// newBulkAPI builds the client of WithBulkImport.
+	newBulkAPI = func() (ascv1.RepoClient, error) { return buildAPI(BulkImportTimeout) }
 )
+
+// buildAPI builds a Repo client whose per-attempt bound is callTimeout.
+func buildAPI(callTimeout time.Duration) (ascv1.RepoClient, error) {
+	if setting.InternalToken == "" {
+		return nil, errors.New("ascsync: the internal token is not set")
+	}
+	// CallTimeout is the per-attempt bound inside the client; the context deadline set by each
+	// call is the bound that matters.
+	c, err := ascclient.New(ascclient.Config{
+		Target:        setting.Asc.ServerURL,
+		InternalToken: setting.InternalToken,
+		CallTimeout:   callTimeout,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return c.Repo(), nil
+}
+
+type bulkKey struct{}
+
+// WithBulkImport marks ctx as the context of an import that carries a whole history (a migration or a first
+// mirror run). ImportPush then allows BulkImportTimeout instead of ImportTimeout, because no git hook waits
+// on it. It changes nothing about what asc checks.
+func WithBulkImport(ctx context.Context) context.Context {
+	return context.WithValue(ctx, bulkKey{}, true)
+}
+
+type importerKey struct{}
+
+// WithImporter names the user an import is made for. ImportPush sends that user as the pusher of a request
+// that names none, and remembers the push for the user, so the hub's fan-out of it is attributed to them. An
+// import is a system action done for the user; it does not change what a later push of theirs is checked
+// against.
+func WithImporter(ctx context.Context, userID int64) context.Context {
+	return context.WithValue(ctx, importerKey{}, userID)
+}
+
+func importerOf(ctx context.Context) int64 {
+	id, _ := ctx.Value(importerKey{}).(int64)
+	return max(id, 0)
+}
+
+func isBulk(ctx context.Context) bool {
+	v, _ := ctx.Value(bulkKey{}).(bool)
+	return v
+}
+
+// bulkAPI returns the client of WithBulkImport, building it on first use.
+func bulkAPI() (ascv1.RepoClient, error) {
+	apiMu.Lock()
+	defer apiMu.Unlock()
+	if bulkVal == nil {
+		api, err := newBulkAPI()
+		if err != nil {
+			return nil, fmt.Errorf("ascsync: asc client: %w", err)
+		}
+		bulkVal = api
+	}
+	return bulkVal, nil
+}
 
 // UseClient replaces the Repo client until the returned function is called. It is for tests.
 func UseClient(api ascv1.RepoClient) (restore func()) {
 	apiMu.Lock()
 	defer apiMu.Unlock()
-	prev := apiVal
-	apiVal = api
+	prev, prevBulk := apiVal, bulkVal
+	apiVal, bulkVal = api, api
 	return func() {
 		apiMu.Lock()
 		defer apiMu.Unlock()
-		apiVal = prev
+		apiVal, bulkVal = prev, prevBulk
 	}
 }
 
