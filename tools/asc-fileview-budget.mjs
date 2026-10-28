@@ -27,13 +27,13 @@ const cookieHeader = () => Array.from(cookies, ([k, v]) => `${k}=${v}`).join('; 
 
 const form = await fetch(`${base}/user/login`, {redirect: 'manual'});
 remember(form);
+// some builds protect forms with the Sec-Fetch headers and put no token in the page: the token is sent when there is one
 const csrf = /name="_csrf" value="([^"]+)"/.exec(await form.text())?.[1];
-if (!csrf) throw new Error('no CSRF token on the sign-in page');
 const login = await fetch(`${base}/user/login`, {
   method: 'POST',
   redirect: 'manual',
   headers: {'content-type': 'application/x-www-form-urlencoded', cookie: cookieHeader()},
-  body: new URLSearchParams({_csrf: csrf, user_name: user, password}).toString(),
+  body: new URLSearchParams({...(csrf ? {_csrf: csrf} : {}), user_name: user, password}).toString(),
 });
 remember(login);
 
