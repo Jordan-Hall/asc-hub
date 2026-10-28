@@ -198,7 +198,7 @@ func TestLDAPAuthChange(t *testing.T) {
 	req := NewRequest(t, "GET", "/admin/auths")
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	doc := NewHTMLParser(t, resp.Body)
-	href, exists := doc.Find("table.table td a").Attr("href")
+	href, exists := doc.Find("table.ds-table td a").Attr("href")
 	if !exists {
 		assert.True(t, exists, "No authentication source found")
 		return
@@ -284,7 +284,7 @@ func TestLDAPUserSyncWithEmptyUsernameAttribute(t *testing.T) {
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
-		tr := htmlDoc.doc.Find("table.table tbody tr:not(.no-results-row)")
+		tr := htmlDoc.doc.Find("table.ds-table tbody tr")
 		assert.Equal(t, 0, tr.Length())
 	}
 
