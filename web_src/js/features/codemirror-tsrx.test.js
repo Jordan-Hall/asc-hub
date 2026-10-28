@@ -104,3 +104,45 @@ test('copyState keeps the stacks apart and indent follows the nesting', () => {
   expect(tsrxParser.indent(s, '</div>', cx)).toBe(2);
   expect(tsrxParser.indent(c, '}', cx)).toBe(0);
 });
+
+// The editor re-highlights an edit locally: CodeMirror keeps the parser state at the start of each line (copyState) and
+// resumes from the line before the edit. This checks that resuming gives the same tokens as parsing the whole text.
+function tokenizeLines(lines, from = 0, startState = null) {
+  const state = startState ?? tsrxParser.startState(2);
+  const snapshots = [];
+  const out = [];
+  for (let i = from; i < lines.length; i++) {
+    snapshots[i] = tsrxParser.copyState(state);
+    const stream = new StringStream(lines[i], 2, 2);
+    while (!stream.eol()) {
+      const style = tsrxParser.token(stream, state);
+      const text = stream.current();
+      stream.start = stream.pos;
+      out.push([i, style ?? '-', text]);
+    }
+  }
+  return {out, snapshots};
+}
+
+test('resuming from the saved state of the line before an edit equals a full re-parse', () => {
+  const before = ['function A() @{', '  const a = 1;', '  @if (a) {', '    <p>{a}</p>', '  }', '}', 'const z = 2;'];
+  const full = tokenizeLines(before);
+  const after = [...before];
+  after[3] = '    <p class="x">{a + 1}</p>';
+  const expected = tokenizeLines(after).out;
+  // resume at line 3 with the state saved for the start of line 3
+  const resumed = tokenizeLines(after, 3, tsrxParser.copyState(full.snapshots[3])).out;
+  expect(resumed).toEqual(expected.filter(([line]) => line >= 3));
+  // lines before the edit are untouched
+  expect(expected.filter(([line]) => line < 3)).toEqual(full.out.filter(([line]) => line < 3));
+});
+
+test('an edit that opens a tag changes the state of the lines below it, so they are parsed again', () => {
+  const lines = ['function A() @{', '  <div>', '  </div>', '}', 'const z = 2;'];
+  const full = tokenizeLines(lines);
+  const edited = ['function A() @{', '  <div>', '  </div>', '}', 'const z = 2;'];
+  edited[1] = '  <div';
+  const reparsed = tokenizeLines(edited, 1, tsrxParser.copyState(full.snapshots[1])).out;
+  const expected = tokenizeLines(edited).out.filter(([line]) => line >= 1);
+  expect(reparsed).toEqual(expected);
+});
