@@ -54,6 +54,13 @@
 		</ul>
 	</section>
 	{{end}}
+	{{if and .HomeActivity (gt .HomeActivity.Total 0)}}
+	<section class="rp-card rp-activity" aria-labelledby="rp-activity-title" data-testid="home-activity">
+		<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-activity-title">{{ctx.Locale.Tr "asc_rp.activity_title"}}</h2><span class="rp-dim">{{ctx.Locale.Tr "asc_rp.activity_last_weeks" 12}}</span></div>
+		<p class="rp-activity-n"><b>{{.HomeActivity.Total}}</b> <span class="rp-dim">{{ctx.Locale.Tr "asc_rp.activity_landed"}}</span></p>
+		<svg class="rp-spark" viewBox="0 0 100 24" preserveAspectRatio="none" role="img" aria-label="{{ctx.Locale.Tr "asc_rp.activity_label" .HomeActivity.Total 12}}"><polyline points="{{.HomeActivity.Points}}" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>
+	</section>
+	{{end}}
 	{{if .HomePolicy}}
 	<section class="rp-card rp-policy" aria-labelledby="rp-policy-title">
 		<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-policy-title">{{ctx.Locale.Tr "asc_rp.policy_title"}}</h2>
