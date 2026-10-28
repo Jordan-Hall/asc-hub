@@ -214,7 +214,7 @@ func (ctx *Context) ServerError(logMsg string, logErr error) {
 
 func (ctx *Context) serverErrorInternal(logMsg string, logErr error) {
 	if logErr != nil {
-		log.ErrorWithSkip(2, "%s: %v", logMsg, logErr)
+		log.ErrorWithSkip(2, "%s: %v (request %s)", logMsg, logErr, ctx.RequestIDForLog())
 		var opError *net.OpError
 		if errors.As(logErr, &opError) {
 			// This is an error within the underlying connection

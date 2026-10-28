@@ -44,6 +44,11 @@ Template Attributes:
 					<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a>
 				</div>
 			</div>
+			{{if gt (len $d.Scopes) 2}}
+				<nav class="ds-chips wk-scope" aria-label="{{ctx.Locale.Tr "user.asc_dash.scope"}}">
+					{{range $d.Scopes}}<a class="ds-chip ds-chip-filter{{if .Active}} is-on{{end}}" href="{{.Link}}"{{if .Active}} aria-current="true"{{end}}>{{.Label}}</a>{{end}}
+				</nav>
+			{{end}}
 
 			<section class="ds-card wk-card" aria-labelledby="wk-needs-title">
 				<div class="ds-card-h">

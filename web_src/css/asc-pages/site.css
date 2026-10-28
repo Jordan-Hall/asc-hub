@@ -805,3 +805,21 @@
   max-width: 320px;
   height: 8px;
 }
+
+.st-reqid {
+  margin: 16px 0 0;
+  color: var(--c-2, #475569);
+  font-size: 12px;
+}
+
+.st-reqid-v {
+  color: var(--c-1, inherit);
+  user-select: all;
+}
+
+.st-meta {
+  display: grid;
+  gap: 4px;
+  margin: 16px 0 0;
+  text-align: left;
+}

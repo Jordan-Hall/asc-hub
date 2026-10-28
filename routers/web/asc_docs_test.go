@@ -66,6 +66,8 @@ func TestAscServiceWorkerIsScriptForTheWholeHub(t *testing.T) {
 	assert.Equal(t, "nosniff", resp.Header().Get("X-Content-Type-Options"))
 	body := resp.Body.String()
 	assert.Contains(t, body, `addEventListener("push"`)
+	assert.Contains(t, body, `addEventListener("fetch"`)
+	assert.Contains(t, body, `-/offline`)
 	assert.Contains(t, body, `startsWith("//")`, "a click opens a path of this site only")
 }
 
