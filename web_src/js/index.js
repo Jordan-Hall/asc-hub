@@ -66,6 +66,7 @@ import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {initAscDensity} from './features/asc-density.js';
 import {initAscBoard} from './features/asc-board.js';
 import {initAscMeters} from './features/asc-meters.js';
+import {initAscTitleCounter} from './features/asc-title-counter.js';
 import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
 import {
   initRepoSettingGitHook,
@@ -195,6 +196,7 @@ onDomReady(() => {
   initAscDensity();
   initAscBoard();
   initAscMeters();
+  initAscTitleCounter();
   initAscResponsiveDetails();
   initAscInboxBadge();
   initRepoProject();

@@ -1819,3 +1819,97 @@ body.ds-lock {
   min-height: 24px;
   vertical-align: middle;
 }
+
+/* the notification matrix: a real table; on a phone each row is a group with its switches labelled */
+.wk-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.wk-matrix th,
+.wk-matrix td {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.wk-matrix thead th {
+  background: var(--surface-2, var(--surface));
+  color: var(--text-2);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wk-matrix tbody th {
+  font-weight: 400;
+}
+
+.wk-matrix tbody th b,
+.wk-matrix tbody th .ds-hint {
+  display: block;
+}
+
+.wk-matrix td:not(:first-child),
+.wk-matrix thead th:not(:first-child) {
+  width: 96px;
+  text-align: center;
+}
+
+.wk-watch td:not(:first-child),
+.wk-watch thead th:not(:first-child) {
+  width: auto;
+}
+
+.wk-two {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .wk-two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.wk-inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.wk-inline-form .ds-inwrap {
+  flex: 1;
+}
+
+.site-docsearch {
+  max-width: 520px;
+  margin: 24px auto 0;
+  text-align: start;
+}
+
+.site-docsearch .ds-input {
+  width: 100%;
+}
+
+.site-docs-none {
+  margin: 0 0 16px;
+  color: var(--text-2);
+}
+
+.site-docsearch .ds-input {
+  border-color: #1e293b;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.site-docsearch .ds-input::placeholder {
+  color: #94a3b8;
+}
+
+.site-docsearch svg {
+  color: #94a3b8;
+}

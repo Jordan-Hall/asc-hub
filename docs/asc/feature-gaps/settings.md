@@ -18,8 +18,8 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 68 |
-| ui-only-missing | 30 |
+| done | 70 |
+| ui-only-missing | 28 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 36 |
@@ -78,8 +78,8 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsNotifications | Email frequency (right away / per-thread limit) and daily summary at a time | needs-hub-backend | services/mailer (digest job in services/cron), user prefs | M |
 | UserSettingsNotifications | Quiet hours (from/until, time zone aware) | needs-hub-backend | prefs + services/mailer + push; needs time zone from Profile | M |
 | UserSettingsNotifications | Push channel, permission prompt and denied state | needs-hub-backend | web push (VAPID keys, service worker in public/, subscription table) | L |
-| UserSettingsNotifications | Watching table with level and last notified, Unwatch with undo | ui-only-missing | exists as /notifications/subscriptions (Forgejo); move into the settings page, add level and last-notified columns | M |
-| UserSettingsPrivacy | Page itself; Show activity and Hide email switches live on Profile instead | ui-only-missing | navbar.tmpl, new privacy.tmpl, move keep_activity_private and keep_email_private out of profile.tmpl | S |
+| UserSettingsNotifications | Watching table with level and last notified, Unwatch with undo | done | exists as /notifications/subscriptions (Forgejo); move into the settings page, add level and last-notified columns | M |
+| UserSettingsPrivacy | Page itself; Show activity and Hide email switches live on Profile instead | done | navbar.tmpl, new privacy.tmpl, move keep_activity_private and keep_email_private out of profile.tmpl | S |
 | UserSettingsPrivacy | Show when I am online (green presence dot) | needs-hub-backend | user column + presence from session activity; avatar template | M |
 | UserSettingsPrivacy | Allow agents to read my profile | needs-both | hub user column; asc must honour it when agents read profile data | S |
 | UserSettingsPrivacy | Blocked people list, block by username, unblock | done | templates/user/settings/blocked_users.tmpl, routers/web/user/setting/blocked_users.go | - |

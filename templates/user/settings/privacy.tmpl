@@ -1,0 +1,46 @@
+{{/* Privacy (board UserSettingsPrivacy): what others see, and the people you block. Each switch is a form that saves when it changes. */}}
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings privacy wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_work.sn_privacy") "Lead" (ctx.Locale.Tr "asc_work.sp_privacy_lead"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-see">
+		<div class="ds-card-h"><h2 id="sp-see">{{ctx.Locale.Tr "asc_work.sp_see"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_see_hint"}}</span></div>
+		<div class="ds-card-b wk-switch-rows">
+			<form action="{{.PrivacyLink}}" method="post">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="setting" value="show_activity">
+				<input type="hidden" name="value" value="0">
+				<label class="ds-switch wk-switch-row">
+					<input type="checkbox" role="switch" name="value" value="1" data-asc-autosubmit{{if .ShowActivity}} checked{{end}}>
+					<span class="ds-switch-track"></span>
+					<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.sp_show_activity"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_show_activity_hint"}}</span></span>
+				</label>
+			</form>
+			<form action="{{.PrivacyLink}}" method="post">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="setting" value="hide_email">
+				<input type="hidden" name="value" value="0">
+				<label class="ds-switch wk-switch-row">
+					<input type="checkbox" role="switch" name="value" value="1" data-asc-autosubmit{{if .HideEmail}} checked{{end}}>
+					<span class="ds-switch-track"></span>
+					<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.sp_hide_email"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_hide_email_hint" .NoreplyEmail}}</span></span>
+				</label>
+			</form>
+		</div>
+	</section>
+
+	<section class="ds-card" aria-labelledby="sp-blocked">
+		<div class="ds-card-h"><h2 id="sp-blocked">{{ctx.Locale.Tr "asc_work.sp_blocked_people"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_blocked_count" (len .BlockedUsers)}}</span></div>
+		{{template "shared/blocked_users_list" .}}
+		<form class="ds-card-b ds-form wk-inline-form" action="{{.PrivacyLink}}/block" method="post">
+			{{.CsrfTokenHtml}}
+			<div class="ds-inwrap">
+				{{svg "dsi-ban" 16}}
+				<label class="ds-sr" for="block-username">{{ctx.Locale.Tr "asc_work.sp_block_label"}}</label>
+				<input id="block-username" class="ds-input" name="username" type="text" required maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_work.sp_block_label"}}">
+			</div>
+			<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_work.sp_block_btn"}}</button>
+		</form>
+		<p class="ds-hint ds-card-b">{{ctx.Locale.Tr "asc_work.sp_blocked_note"}}</p>
+	</section>
+</div>
+{{template "user/settings/layout_footer" .}}
