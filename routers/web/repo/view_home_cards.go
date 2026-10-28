@@ -4,6 +4,8 @@
 package repo
 
 import (
+	gocontext "context"
+	"fmt"
 	"strings"
 
 	"forgejo.org/models/db"
@@ -48,8 +50,22 @@ func licenseFileName(names []string) string {
 	return ""
 }
 
+// homeStackOf is the stack (pull request) a commit landed through: its head branch and link. It answers only when
+// the viewer may read pull requests of the repository; a person with code access alone gets nothing, because the
+// name of a head branch and the link belong to the pull request unit.
+func homeStackOf(ctx gocontext.Context, repoID int64, repoLink, sha string, canPulls bool) (name, link string) {
+	if !canPulls {
+		return "", ""
+	}
+	pr, err := issues_model.GetPullRequestByMergedCommit(ctx, repoID, sha)
+	if err != nil || pr.HeadBranch == "" {
+		return "", ""
+	}
+	return pr.HeadBranch, fmt.Sprintf("%s/pulls/%d", repoLink, pr.Index)
+}
+
 // buildHomeLanded decorates commits with their size and stack. Each lookup that fails leaves its field empty.
-func buildHomeLanded(ctx *context.Context, repo *repo_model.Repository, commits []*git_model.SignCommitWithStatuses) []*homeLanded {
+func buildHomeLanded(ctx *context.Context, repo *repo_model.Repository, commits []*git_model.SignCommitWithStatuses, canPulls bool) []*homeLanded {
 	rows := make([]*homeLanded, 0, len(commits))
 	for _, c := range commits {
 		row := &homeLanded{SignCommitWithStatuses: c}
@@ -58,10 +74,7 @@ func buildHomeLanded(ctx *context.Context, repo *repo_model.Repository, commits 
 				row.Additions, row.Deletions, row.HasStat = add, del, true
 			}
 		}
-		if pr, err := issues_model.GetPullRequestByMergedCommit(ctx, repo.ID, c.ID.String()); err == nil && pr.HeadBranch != "" {
-			row.StackName = pr.HeadBranch
-			row.StackLink = pr.Issue.Link()
-		}
+		row.StackName, row.StackLink = homeStackOf(ctx, repo.ID, repo.Link(), c.ID.String(), canPulls)
 		rows = append(rows, row)
 	}
 	return rows
@@ -96,7 +109,7 @@ func prepareHomeCards(ctx *context.Context) {
 	} else {
 		withStatus := git_model.ParseCommitsWithStatus(ctx, commits, repo)
 		ctx.Data["HomeCommits"] = withStatus
-		ctx.Data["HomeLanded"] = buildHomeLanded(ctx, repo, withStatus)
+		ctx.Data["HomeLanded"] = buildHomeLanded(ctx, repo, withStatus, repo.CanEnablePulls() && ctx.Repo.CanRead(unit.TypePullRequests))
 	}
 
 	if entries, err := ctx.Repo.Commit.ListEntries(); err == nil {
