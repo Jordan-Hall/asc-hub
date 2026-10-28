@@ -4,8 +4,11 @@
 package mailer
 
 import (
+	"time"
+
 	"context"
 	"fmt"
+	"forgejo.org/services/ascnotify"
 
 	activities_model "forgejo.org/models/activities"
 	issues_model "forgejo.org/models/issues"
@@ -144,6 +147,14 @@ func mailIssueCommentBatch(ctx *mailCommentContext, users []*user_model.User, vi
 	for _, user := range users {
 		if !user.IsActive {
 			// Exclude deactivated users
+			continue
+		}
+		// the person chose, on the Notifications page, which events reach them by email and when
+		event := ""
+		if fromMention {
+			event = ascnotify.EventMentioned
+		}
+		if !ascnotify.EmailAllowed(ctx, user.ID, event, time.Now()) {
 			continue
 		}
 		// At this point we exclude:
