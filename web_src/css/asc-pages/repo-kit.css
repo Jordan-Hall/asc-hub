@@ -816,3 +816,75 @@ a.rp-hash:hover {
     transform: translateX(3px);
   }
 }
+
+/* ---- the title row on a phone: Watch, Star and Fork fold into one "..." menu ---- */
+.rp-more {
+  position: relative;
+  min-width: 0;
+}
+
+.rp-more-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.rp-more-btn::-webkit-details-marker {
+  display: none;
+}
+
+.rp-more-body {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop, 0 8px 24px rgba(0, 0, 0, 0.18));
+}
+
+@media (max-width: 639px) {
+  .rp-acts {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .rp-title-row {
+    gap: 6px;
+  }
+}
+
+@media (min-width: 640px) {
+  .rp-more-btn {
+    display: none;
+  }
+
+  .rp-more-body {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    gap: 10px;
+  }
+}
+
+@media (min-width: 640px) {
+  .rp-more::details-content {
+    content-visibility: visible;
+    display: contents;
+  }
+}

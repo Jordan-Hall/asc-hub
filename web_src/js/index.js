@@ -60,6 +60,7 @@ import {initDsShell} from './features/ds-shell.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {initAscDensity} from './features/asc-density.js';
+import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
 import {
   initRepoSettingGitHook,
   initRepoSettingsCollaboration,
@@ -179,6 +180,7 @@ onDomReady(() => {
   initAscKeys();
   initAscRepoKeys();
   initAscDensity();
+  initAscResponsiveDetails();
   initAscInboxBadge();
   initRepoProject();
   initRepoPullRequestAllowMaintainerEdit();

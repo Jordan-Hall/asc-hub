@@ -145,3 +145,13 @@
     display: none;
   }
 }
+
+/* a 44 px target for the icon actions of a row and the dropdown triggers of an issue or pull request */
+@media (max-width: 1023.98px) {
+  div.item.action.ui.dropdown,
+  .ds-btn.ds-btn-icon.ds-btn-sm {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    flex: none;
+  }
+}
