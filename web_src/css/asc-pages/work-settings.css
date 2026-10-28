@@ -205,3 +205,66 @@ form .wk-choice > input[type="checkbox"]:checked::after {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* storage quota rules */
+.wk-quota > summary {
+  display: block;
+  cursor: pointer;
+}
+
+.wk-quota-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.wk-quota-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.wk-ok {
+  color: var(--ok);
+}
+
+.wk-err {
+  color: var(--err);
+}
+
+.wk-quota > ul {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-quota > ul > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+}
+
+.wk-quota-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.wk-inline-field .ui.search,
+.wk-inline-field .ui.search > .ui.input {
+  display: block;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.wk-inline-field .ui.search .prompt {
+  width: 100%;
+  border-radius: var(--r-btn);
+}

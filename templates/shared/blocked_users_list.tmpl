@@ -1,27 +1,23 @@
-<div class="flex-list">
+{{/* The people one account or organization blocks, one row each with Unblock. Put it inside a .ds-card. */}}
+{{if .BlockedUsers}}
+<ul class="ds-list wk-rows">
 	{{range .BlockedUsers}}
-		<div class="flex-item flex-item-center">
-			<div class="flex-item-leading">
-				{{ctx.AvatarUtils.Avatar . 48}}
+		<li class="ds-li wk-row">
+			<span class="ds-li-av">{{ctx.AvatarUtils.Avatar . 40}}</span>
+			<div class="ds-li-main">
+				<div class="ds-li-title">{{template "shared/user/name" .}}</div>
+				<div class="ds-li-sub">{{ctx.Locale.Tr "settings.blocked_since" (DateUtils.AbsoluteShort .CreatedUnix)}}</div>
 			</div>
-			<div class="flex-item-main">
-				<div class="flex-item-title">
-					{{template "shared/user/name" .}}
-				</div>
-				<div class="flex-item-body">
-					<span>{{ctx.Locale.Tr "settings.blocked_since" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>
-				</div>
-			</div>
-			<div class="flex-item-trailing">
+			<div class="wk-row-acts">
 				<form action="{{$.Link}}/unblock" method="post">
+					{{$.CsrfTokenHtml}}
 					<input type="hidden" name="user_id" value="{{.ID}}">
-					<button class="ui red button">{{ctx.Locale.Tr "user.unblock"}}</button>
+					<button class="ds-btn ds-btn-danger ds-btn-sm">{{ctx.Locale.Tr "user.unblock"}}</button>
 				</form>
 			</div>
-		</div>
-	{{else}}
-		<div class="flex-item">
-			<span class="text grey italic">{{ctx.Locale.Tr "settings.blocked_users_none"}}</span>
-		</div>
+		</li>
 	{{end}}
-</div>
+</ul>
+{{else}}
+	{{template "shared/ds/empty" (dict "Icon" "ban" "Title" (ctx.Locale.Tr "settings.blocked_users_none"))}}
+{{end}}

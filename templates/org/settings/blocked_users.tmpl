@@ -1,23 +1,27 @@
-{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "organization settings blocked-users")}}
-<div class="org-setting-content">
-	<h4 class="ui top attached header">
-		{{ctx.Locale.Tr "settings.blocked_users"}}
-	</h4>
-	<div class="ui attached segment">
-		<form class="ui form ignore-dirty tw-flex tw-flex-wrap tw-gap-2" action="{{$.Link}}/block" method="post">
+{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main organization settings blocked-users wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.blocked_users") "Lead" (ctx.Locale.Tr "asc_work.sp_blocked_org_lead"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-block">
+		<div class="ds-card-h"><h2 id="sp-block">{{ctx.Locale.Tr "user.block"}}</h2></div>
+		<form class="ui form ds-form wk-card-form ignore-dirty" action="{{$.Link}}/block" method="post">
+			{{.CsrfTokenHtml}}
 			<input type="hidden" name="uid" value="">
-			<div class="ui left">
-				<div id="search-user-box" class="ui search">
-					<div class="ui input">
-						<input class="prompt" name="uname" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" required>
+			<div class="ds-field">
+				<label class="ds-label" for="block-uname">{{ctx.Locale.Tr "search.user_kind"}}</label>
+				<div class="wk-inline-field">
+					<div id="search-user-box" class="ui search ds-grow">
+						<div class="ui input">
+							<input id="block-uname" class="prompt ds-input" name="uname" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" required>
+						</div>
 					</div>
+					<button type="submit" class="ds-btn ds-btn-danger-fill">{{ctx.Locale.Tr "user.block"}}</button>
 				</div>
 			</div>
-			<button type="submit" class="ui red button">{{ctx.Locale.Tr "user.block"}}</button>
 		</form>
-	</div>
-	<div class="ui attached segment">
+	</section>
+	<section class="ds-card" aria-labelledby="sp-blocked">
+		<div class="ds-card-h"><h2 id="sp-blocked">{{ctx.Locale.Tr "settings.blocked_users"}}</h2></div>
 		{{template "shared/blocked_users_list" .}}
-	</div>
+	</section>
 </div>
 {{template "org/settings/layout_footer" .}}
