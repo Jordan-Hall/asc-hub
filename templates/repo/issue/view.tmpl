@@ -1,16 +1,18 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository view issue pull asc-repo-page asc-review-page">
 	{{template "repo/header" .}}
+	{{$rail := and .Issue.IsPull .PageIsPullConversation .AscStackPanel}}
 	<div class="ui container">
-		{{$rail := and .Issue.IsPull .PageIsPullConversation .AscStackPanel}}
-		<div class="{{if $rail}}asc-review-layout{{end}}">
+		<div class="rv rv-review-wrap{{if $rail}} rv-review rv-review-rail rv-review-rail2{{end}}">
+			<div class="rv-review-title">
+				{{template "repo/issue/view_title" .}}
+			</div>
 			{{if $rail}}
-				<nav class="asc-stack-rail" aria-label="{{ctx.Locale.Tr "repo.pulls.asc_stack"}}">
+				<nav class="rv-review-stack asc-stack-rail" aria-label="{{ctx.Locale.Tr "repo.pulls.asc_stack"}}">
 					{{template "repo/pulls/asc_stack" .}}
 				</nav>
 			{{end}}
-			<div class="{{if $rail}}asc-review-main{{end}}">
-				{{template "repo/issue/view_title" .}}
+			<div class="rv-review-main">
 				{{if .Issue.IsPull}}
 					{{template "repo/pulls/tab_menu" .}}
 				{{end}}

@@ -24,7 +24,7 @@ Template Attributes:
 		{{range .Entries}}
 		<li class="rv-stn rv-stn-{{.State}}{{if .Current}} is-current{{end}}"{{if .Current}} aria-current="step"{{end}}>
 			<a class="rv-stn-link" href="{{.Link}}">
-				<span class="rv-stn-tick" aria-hidden="true"><i class="rv-stn-dot"></i></span>
+				<span class="rv-stn-tick" aria-hidden="true"><i class="rv-stn-dot"></i><b class="rv-stn-num">{{.Position}}</b></span>
 				<span class="rv-stn-body">
 					<span class="rv-stn-title">{{.Title}}</span>
 					<span class="rv-stn-meta">

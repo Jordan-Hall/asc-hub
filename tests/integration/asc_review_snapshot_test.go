@@ -51,3 +51,31 @@ func TestAscReviewSnapshotFixturePages(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(dir, name+".html"), resp.Body.Bytes(), 0o644))
 	}
 }
+
+// TestAscReviewSnapshotStackPages writes the pages of a stacked change (two linked pull requests with a faked asc):
+// the conversation, the files, and the confirmation of each stack operation.
+func TestAscReviewSnapshotStackPages(t *testing.T) {
+	dir := os.Getenv("ASC_REVIEW_SNAPSHOT_DIR")
+	if dir == "" {
+		t.Skip("set ASC_REVIEW_SNAPSHOT_DIR to write page snapshots")
+	}
+	require.NoError(t, os.MkdirAll(dir, 0o755))
+	defer tests.PrepareTestEnv(t)()
+	newAscQueueEnv(t)
+
+	session := loginUser(t, "user2")
+	for name, path := range map[string]string{
+		"stack-pull":    "/user2/repo1/pulls/5",
+		"stack-files":   "/user2/repo1/pulls/5/files",
+		"stack-queue":   "/user2/repo1/pulls/5/asc/confirm?op=queue",
+		"stack-merge":   "/user2/repo1/pulls/5/asc/confirm?op=merge",
+		"stack-restack": "/user2/repo1/pulls/5/asc/confirm?op=restack",
+		"stack-bottom":  "/user2/repo1/pulls/2",
+	} {
+		resp := session.MakeRequest(t, NewRequest(t, "GET", path), NoExpectedStatus)
+		if resp.Code != http.StatusOK {
+			t.Logf("snapshot %s: %s answered %d", name, path, resp.Code)
+		}
+		require.NoError(t, os.WriteFile(filepath.Join(dir, name+".html"), resp.Body.Bytes(), 0o644))
+	}
+}

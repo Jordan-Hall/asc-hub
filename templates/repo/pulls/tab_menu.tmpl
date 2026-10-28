@@ -16,6 +16,7 @@ Template Attributes: PageIsPullConversation, PageIsPullCommits, PageIsPullFiles,
 			{{ctx.Locale.Tr "repo.pulls.tab_files"}}
 			<span class="rv-count">{{if .NumFiles}}{{.NumFiles}}{{else}}-{{end}}</span>
 		</a>
+		{{if .AscStackPanel}}<a class="rv-tab" href="{{.Issue.Link}}/asc/checks">{{ctx.Locale.Tr "asc_review.rev_checks"}}</a>{{end}}
 	</nav>
 	{{if or .Diff.TotalAddition .Diff.TotalDeletion}}
 	<div class="rv-tabs-size" aria-label="{{ctx.Locale.Tr "repo.diff.stats_desc" .NumFiles .Diff.TotalAddition .Diff.TotalDeletion}}">
