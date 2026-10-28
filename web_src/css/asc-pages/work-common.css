@@ -221,8 +221,15 @@ a.wk-act-title:hover {
 
 .wk-avatar-row {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .wk-avatar-row {
+    flex-direction: row;
+  }
 }
 
 .wk-avatar-now img {
@@ -269,4 +276,236 @@ a.wk-act-title:hover {
 
 .ds-settings-body .wk-sp .ds-sticky-actions {
   margin-top: 0;
+}
+
+/* radio cards and switch rows of settings pages */
+.wk-avatar-round img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+}
+
+.wk-radio-cards {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .wk-radio-cards.wk-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.wk-radio-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: var(--touch);
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-row);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.wk-radio-card:hover {
+  background: var(--surface-3);
+}
+
+.wk-radio-card:has(input:checked) {
+  border-color: var(--fill);
+  background: var(--primary-tint);
+  box-shadow: inset 0 0 0 1px var(--fill);
+}
+
+.wk-radio-card:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.wk-radio-card > input[type="radio"],
+.wk-choice > input[type="radio"],
+.wk-choice > input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  display: inline-grid;
+  place-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.wk-choice > input[type="checkbox"] {
+  border-radius: 5px;
+}
+
+.wk-radio-card > input:checked,
+.wk-choice > input:checked {
+  border-color: var(--fill);
+  background: var(--fill);
+}
+
+.wk-radio-card > input[type="radio"]:checked::after,
+.wk-choice > input[type="radio"]:checked::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--on-fill);
+}
+
+.wk-choice > input[type="checkbox"]:checked::after {
+  content: "";
+  width: 10px;
+  height: 6px;
+  margin-top: -2px;
+  border-left: 2px solid var(--on-fill);
+  border-bottom: 2px solid var(--on-fill);
+  transform: rotate(-45deg);
+}
+
+.wk-radio-card b {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.wk-radio-card .ds-hint {
+  display: block;
+  margin-top: 2px;
+}
+
+.wk-switch-rows {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line-2);
+}
+
+.wk-switch-row {
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-direction: row-reverse;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.wk-switch-row:last-child {
+  border-bottom: 0;
+}
+
+.wk-switch-row .ds-switch-track {
+  margin-top: 2px;
+}
+
+.wk-switch-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.wk-switch-text b {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.wk-switch-text .ds-hint {
+  display: block;
+  margin-top: 2px;
+}
+
+/* inside a form the base rule `:is(form, .markup) input[type="checkbox"]` out-ranks .ds-switch input: keep the real box hidden */
+.ds-switch > input[type="checkbox"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+/* rows inside a settings card, a form that fills the rest of a card, one field with its button */
+.wk-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-row {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.wk-row .ds-li-main {
+  flex: 1 1 220px;
+}
+
+.wk-row-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1 1 100%;
+}
+
+.wk-row-acts > form {
+  display: contents;
+}
+
+@media (min-width: 768px) {
+  .wk-row-acts {
+    flex: none;
+    justify-content: flex-end;
+  }
+}
+
+.wk-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.ds-list + .wk-card-form,
+.wk-rows + .wk-card-form {
+  border-top: 1px solid var(--line-2);
+}
+
+@media (min-width: 640px) {
+  .wk-card-form {
+    padding: 18px;
+  }
+}
+
+.wk-inline-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .wk-inline-field {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .wk-inline-field .ds-input,
+  .wk-inline-field .ds-select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.wk-danger {
+  border-color: var(--err-line);
+}
+
+.wk-danger .ds-card-h {
+  border-bottom-color: var(--err-line);
+}
+
+.wk-danger .ds-card-h h2 {
+  color: var(--err);
 }
