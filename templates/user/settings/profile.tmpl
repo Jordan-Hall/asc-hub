@@ -1,150 +1,134 @@
-{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings profile")}}
-	<div class="user-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "settings.public_profile"}}
-		</h4>
-		<div class="ui attached segment">
-			<form class="ui form" action="{{.Link}}" method="post">
-				<fieldset>
-					<legend>{{ctx.Locale.Tr "settings.profile_desc"}}</legend>
-					<label {{if .Err_Name}}class="field error"{{end}}>
-						{{ctx.Locale.Tr "username"}}
-						<input name="name" value="{{.SignedUser.Name}}" data-name="{{.SignedUser.Name}}" autofocus required {{if or .UserRenameDisabled .IsReverseProxy}}disabled{{end}} maxlength="40">
-						{{if or .UserRenameDisabled .IsReverseProxy}}
-							<span class="help">{{ctx.Locale.Tr "settings.password_username_disabled"}}</span>
-						{{else}}
-							<span class="help">
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings profile wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.profile") "Lead" (ctx.Locale.Tr "asc_work.sp_profile_lead"))}}
+<div class="wk-sp">
+	<form id="avatar-settings" class="ui form ds-form wk-sp-form" action="{{.Link}}/avatar" method="post" enctype="multipart/form-data">
+		{{.CsrfTokenHtml}}
+		<section class="ds-card" aria-labelledby="sp-photo">
+			<div class="ds-card-h"><h2 id="sp-photo">{{ctx.Locale.Tr "settings.avatar"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_photo_hint"}}</span></div>
+			<div class="ds-card-b ds-stack-16">
+				<div class="wk-avatar-row">
+					<span class="wk-avatar-now wk-avatar-round">{{ctx.AvatarUtils.Avatar .SignedUser 96}}</span>
+					<div class="ds-stack-12 ds-grow ds-min0">
+						{{if not .DisableGravatar}}
+							<div class="ds-check"><input id="avatar-lookup" name="source" value="lookup" type="radio" {{if not .SignedUser.UseCustomAvatar}}checked{{end}}><label for="avatar-lookup">{{ctx.Locale.Tr "settings.lookup_avatar_by_mail"}}</label></div>
+							<div class="ds-field {{if .Err_Gravatar}}error{{end}}">
+								<label class="ds-label" for="gravatar">{{ctx.Locale.Tr "asc_work.sp_avatar_email"}}</label>
+								<input id="gravatar" class="ds-input{{if .Err_Gravatar}} is-err{{end}}" name="gravatar" value="{{.SignedUser.AvatarEmail}}">
+							</div>
+						{{end}}
+						<div class="ds-check"><input id="avatar-local" name="source" value="local" type="radio" {{if .SignedUser.UseCustomAvatar}}checked{{end}}><label for="avatar-local">{{ctx.Locale.Tr "settings.enable_custom_avatar"}}</label></div>
+						<div class="ds-field">
+							<label class="ds-label" for="new-avatar">{{ctx.Locale.Tr "settings.choose_new_avatar"}}</label>
+							<input id="new-avatar" class="wk-file" name="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+							<p class="ds-hint">{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</p>
+						</div>
+					</div>
+				</div>
+				<div class="ds-row ds-row-wrap">
+					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.update_avatar"}}</button>
+					<button class="ds-btn ds-btn-danger link-action" type="button" data-url="{{.Link}}/avatar/delete">{{ctx.Locale.Tr "settings.delete_current_avatar"}}</button>
+				</div>
+			</div>
+		</section>
+	</form>
+
+	<form class="ui form ds-form wk-sp-form" action="{{.Link}}" method="post">
+		{{.CsrfTokenHtml}}
+		<section class="ds-card" aria-labelledby="sp-public">
+			<div class="ds-card-h"><h2 id="sp-public">{{ctx.Locale.Tr "settings.public_profile"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.profile_desc"}}</span></div>
+			<div class="ds-card-b ds-stack-16">
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field {{if .Err_FullName}}error{{end}}">
+						<label class="ds-label" for="full_name">{{ctx.Locale.Tr "settings.full_name"}}</label>
+						<input id="full_name" class="ds-input" name="full_name" value="{{.SignedUser.FullName}}" maxlength="100">
+					</div>
+					<div class="ds-field {{if .Err_Name}}error{{end}}">
+						<label class="ds-label" for="username">{{ctx.Locale.Tr "username"}}</label>
+						<input id="username" class="ds-input{{if .Err_Name}} is-err{{end}}" name="name" value="{{.SignedUser.Name}}" data-name="{{.SignedUser.Name}}" autofocus required {{if or .UserRenameDisabled .IsReverseProxy}}disabled{{end}} maxlength="40">
+						<p class="ds-hint">
+							{{if or .UserRenameDisabled .IsReverseProxy}}
+								{{ctx.Locale.Tr "settings.password_username_disabled"}}
+							{{else}}
 								{{ctx.Locale.Tr "settings.change_username_prompt"}}
 								{{if gt .CooldownPeriod 0}}
-								{{ctx.Locale.TrN .CooldownPeriod "settings.change_username_redirect_prompt.with_cooldown.one" "settings.change_username_redirect_prompt.with_cooldown.few" .CooldownPeriod}}</span>
+									{{ctx.Locale.TrN .CooldownPeriod "settings.change_username_redirect_prompt.with_cooldown.one" "settings.change_username_redirect_prompt.with_cooldown.few" .CooldownPeriod}}
 								{{else}}
-								{{ctx.Locale.Tr "settings.change_username_redirect_prompt"}}
+									{{ctx.Locale.Tr "settings.change_username_redirect_prompt"}}
 								{{end}}
-							</span>
-						{{end}}
-					</label>
-
-					<label {{if .Err_FullName}}class="field error"{{end}}>
-						{{ctx.Locale.Tr "settings.full_name"}}
-						<input name="full_name" value="{{.SignedUser.FullName}}" maxlength="100">
-					</label>
-
-					<label id="label-pronouns">
-						{{ctx.Locale.Tr "settings.pronouns"}}
-						<input name="pronouns" list="pronouns" placeholder="{{ctx.Locale.Tr "settings.pronouns_unspecified"}}" value="{{.SignedUser.Pronouns}}" maxlength="50">
+							{{end}}
+						</p>
+					</div>
+				</div>
+				<div class="ds-field {{if .Err_Biography}}error{{end}}">
+					<label class="ds-label" for="biography">{{ctx.Locale.Tr "user.user_bio"}}</label>
+					<textarea id="biography" class="ds-textarea" name="biography" rows="3" placeholder="{{ctx.Locale.Tr "settings.biography_placeholder"}}" maxlength="255">{{.SignedUser.Description}}</textarea>
+				</div>
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field" id="label-pronouns">
+						<label class="ds-label" for="pronouns-input">{{ctx.Locale.Tr "settings.pronouns"}}</label>
+						<input id="pronouns-input" class="ds-input" name="pronouns" list="pronouns" placeholder="{{ctx.Locale.Tr "settings.pronouns_unspecified"}}" value="{{.SignedUser.Pronouns}}" maxlength="50">
 						<datalist id="pronouns">
 							{{range .CommonPronouns}}
 								<option value="{{.}}"></option>
 							{{end}}
 						</datalist>
-					</label>
-
-					<label {{if .Err_Biography}}class="field error"{{end}}>
-						{{ctx.Locale.Tr "user.user_bio"}}
-						<textarea name="biography" rows="2" placeholder="{{ctx.Locale.Tr "settings.biography_placeholder"}}" maxlength="255">{{.SignedUser.Description}}</textarea>
-					</label>
-
-					<label {{if .Err_Website}}class="field error"{{end}}>
-						{{ctx.Locale.Tr "settings.website"}}
-						<input name="website" type="url" value="{{.SignedUser.Website}}" maxlength="255" pattern="{{.ValidSiteURLPattern}}">
-						<span class="help">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</span>
-					</label>
-
-					<label>
-						{{ctx.Locale.Tr "settings.location"}}
-						<input name="location" placeholder="{{ctx.Locale.Tr "settings.location_placeholder"}}" value="{{.SignedUser.Location}}" maxlength="50">
-					</label>
-				</fieldset>
-
-				<fieldset>
-					<legend id="privacy-user-settings">{{ctx.Locale.Tr "settings.privacy"}}</legend>
-
-					<label id="visibility-setting" {{if .Err_Visibility}}class="field error"{{end}}>
-						{{ctx.Locale.Tr "settings.visibility"}}
-						<div class="ui selection type dropdown" aria-labelledby="visibility-setting">
-							{{if .SignedUser.Visibility.IsPublic}}<input type="hidden" id="visibility" name="visibility" value="0">{{end}}
-							{{if .SignedUser.Visibility.IsLimited}}<input type="hidden" id="visibility" name="visibility" value="1">{{end}}
-							{{if .SignedUser.Visibility.IsPrivate}}<input type="hidden" id="visibility" name="visibility" value="2">{{end}}
-							<div class="text">
-								{{if .SignedUser.Visibility.IsPublic}}{{ctx.Locale.Tr "settings.visibility.public"}}{{end}}
-								{{if .SignedUser.Visibility.IsLimited}}{{ctx.Locale.Tr "settings.visibility.limited"}}{{end}}
-								{{if .SignedUser.Visibility.IsPrivate}}{{ctx.Locale.Tr "settings.visibility.private"}}{{end}}
-							</div>
-							{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-							<div class="menu">
-								{{range $mode := .AllowedUserVisibilityModes}}
-									{{if $mode.IsPublic}}
-										<div class="item" data-tooltip-content="{{ctx.Locale.Tr "settings.visibility.public_tooltip"}}" data-value="0">{{ctx.Locale.Tr "settings.visibility.public"}}</div>
-									{{else if $mode.IsLimited}}
-										<div class="item" data-tooltip-content="{{ctx.Locale.Tr "settings.visibility.limited_tooltip"}}" data-value="1">{{ctx.Locale.Tr "settings.visibility.limited"}}</div>
-									{{else if $mode.IsPrivate}}
-										<div class="item" data-tooltip-content="{{ctx.Locale.Tr "settings.visibility.private_tooltip"}}" data-value="2">{{ctx.Locale.Tr "settings.visibility.private"}}</div>
-									{{end}}
-								{{end}}
-							</div>
-						</div>
-						<span class="help">{{ctx.Locale.Tr "settings.visibility.description" "https://forgejo.org/docs/latest/user/repo-permissions/#profile-and-visibility"}}</span>
-					</label>
-
-					<label>
-						<input name="keep_email_private" type="checkbox" {{if .SignedUser.KeepEmailPrivate}}checked{{end}}>
-						{{ctx.Locale.Tr "settings.keep_email_private"}}
-						<span class="help">{{ctx.Locale.Tr "settings.keep_email_private_popup" .SignedUser.GetPlaceholderEmail}}</span>
-					</label>
-
-					<label id="keep-activity-private">
-						<input name="keep_activity_private" type="checkbox" {{if .SignedUser.KeepActivityPrivate}}checked{{end}}>
-						{{ctx.Locale.Tr "settings.keep_activity_private"}}
-						<span class="help">{{ctx.Locale.Tr "settings.keep_activity_private.description" (printf "/%s?tab=activity" .SignedUser.Name)}}</span>
-					</label>
-
-					<label>
-						<input name="keep_pronouns_private" type="checkbox" {{if .SignedUser.KeepPronounsPrivate}}checked{{end}}>
-						{{ctx.Locale.Tr "settings.keep_pronouns_private"}}
-						<span class="help">{{ctx.Locale.Tr "settings.keep_pronouns_private.description"}}</span>
-					</label>
-				</fieldset>
-
-				<button class="ui primary button">{{ctx.Locale.Tr "settings.update_profile"}}</button>
-			</form>
-		</div>
-
-		<h4 id="avatar-settings" class="ui top attached header">
-			{{ctx.Locale.Tr "settings.avatar"}}
-		</h4>
-		<div class="ui attached segment">
-			<form class="ui form" action="{{.Link}}/avatar" method="post" enctype="multipart/form-data">
-				{{if not .DisableGravatar}}
-				<div class="inline field">
-					<div class="ui radio checkbox">
-						<input name="source" value="lookup" type="radio" {{if not .SignedUser.UseCustomAvatar}}checked{{end}}>
-						<label>{{ctx.Locale.Tr "settings.lookup_avatar_by_mail"}}</label>
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="location">{{ctx.Locale.Tr "settings.location"}}</label>
+						<input id="location" class="ds-input" name="location" placeholder="{{ctx.Locale.Tr "settings.location_placeholder"}}" value="{{.SignedUser.Location}}" maxlength="50">
 					</div>
 				</div>
-				<div class="field tw-pl-4 {{if .Err_Gravatar}}error{{end}}">
-					<label for="gravatar">Avatar {{ctx.Locale.Tr "email"}}</label>
-					<input id="gravatar" name="gravatar" value="{{.SignedUser.AvatarEmail}}">
+				<div class="ds-field {{if .Err_Website}}error{{end}}">
+					<label class="ds-label" for="website">{{ctx.Locale.Tr "settings.website"}}</label>
+					<input id="website" class="ds-input" name="website" type="url" value="{{.SignedUser.Website}}" maxlength="255" pattern="{{.ValidSiteURLPattern}}">
+					<p class="ds-hint">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</p>
 				</div>
-				{{end}}
+			</div>
+		</section>
 
-				<div class="inline field">
-					<div class="ui radio checkbox">
-						<input name="source" value="local" type="radio" {{if .SignedUser.UseCustomAvatar}}checked{{end}}>
-						<label>{{ctx.Locale.Tr "settings.enable_custom_avatar"}}</label>
+		<section class="ds-card" aria-labelledby="privacy-user-settings">
+			<div class="ds-card-h"><h2 id="privacy-user-settings">{{ctx.Locale.Tr "settings.privacy"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_visibility_hint"}}</span></div>
+			<div class="ds-card-b ds-stack-16">
+				<fieldset id="visibility-setting" class="wk-fieldset {{if .Err_Visibility}}error{{end}}">
+					<legend class="ds-label">{{ctx.Locale.Tr "settings.visibility"}}</legend>
+					<div class="wk-radio-cards">
+						{{range $mode := .AllowedUserVisibilityModes}}
+							{{if $mode.IsPublic}}
+								<label class="wk-radio-card"><input type="radio" name="visibility" value="0" {{if $.SignedUser.Visibility.IsPublic}}checked{{end}}><span><b>{{ctx.Locale.Tr "settings.visibility.public"}}</b><span class="ds-hint">{{ctx.Locale.Tr "settings.visibility.public_tooltip"}}</span></span></label>
+							{{else if $mode.IsLimited}}
+								<label class="wk-radio-card"><input type="radio" name="visibility" value="1" {{if $.SignedUser.Visibility.IsLimited}}checked{{end}}><span><b>{{ctx.Locale.Tr "settings.visibility.limited"}}</b><span class="ds-hint">{{ctx.Locale.Tr "settings.visibility.limited_tooltip"}}</span></span></label>
+							{{else if $mode.IsPrivate}}
+								<label class="wk-radio-card"><input type="radio" name="visibility" value="2" {{if $.SignedUser.Visibility.IsPrivate}}checked{{end}}><span><b>{{ctx.Locale.Tr "settings.visibility.private"}}</b><span class="ds-hint">{{ctx.Locale.Tr "settings.visibility.private_tooltip"}}</span></span></label>
+							{{end}}
+						{{end}}
 					</div>
-				</div>
+					<p class="ds-hint">{{ctx.Locale.Tr "settings.visibility.description" "https://forgejo.org/docs/latest/user/repo-permissions/#profile-and-visibility"}}</p>
+				</fieldset>
 
-				<div class="inline field tw-pl-4">
-					<label for="new-avatar">{{ctx.Locale.Tr "settings.choose_new_avatar"}}</label>
-					<input id="new-avatar" name="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
-					<br/><span class=help>{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</span>
+				<div class="wk-switch-rows">
+					<label class="ds-switch wk-switch-row">
+						<input name="keep_email_private" type="checkbox" role="switch" {{if .SignedUser.KeepEmailPrivate}}checked{{end}}>
+						<span class="ds-switch-track"></span>
+						<span class="wk-switch-text"><b>{{ctx.Locale.Tr "settings.keep_email_private"}}</b><span class="ds-hint">{{ctx.Locale.Tr "settings.keep_email_private_popup" .SignedUser.GetPlaceholderEmail}}</span></span>
+					</label>
+					<label class="ds-switch wk-switch-row" id="keep-activity-private">
+						<input name="keep_activity_private" type="checkbox" role="switch" {{if .SignedUser.KeepActivityPrivate}}checked{{end}}>
+						<span class="ds-switch-track"></span>
+						<span class="wk-switch-text"><b>{{ctx.Locale.Tr "settings.keep_activity_private"}}</b><span class="ds-hint">{{ctx.Locale.Tr "settings.keep_activity_private.description" (printf "/%s?tab=activity" .SignedUser.Name)}}</span></span>
+					</label>
+					<label class="ds-switch wk-switch-row">
+						<input name="keep_pronouns_private" type="checkbox" role="switch" {{if .SignedUser.KeepPronounsPrivate}}checked{{end}}>
+						<span class="ds-switch-track"></span>
+						<span class="wk-switch-text"><b>{{ctx.Locale.Tr "settings.keep_pronouns_private"}}</b><span class="ds-hint">{{ctx.Locale.Tr "settings.keep_pronouns_private.description"}}</span></span>
+					</label>
 				</div>
+			</div>
+		</section>
 
-				<div class="field button-sequence">
-					<button class="primary button">{{ctx.Locale.Tr "settings.update_avatar"}}</button>
-					<button class="danger button link-action" data-url="{{.Link}}/avatar/delete">{{ctx.Locale.Tr "settings.delete_current_avatar"}}</button>
-				</div>
-			</form>
+		<div class="ds-sticky-actions wk-form-actions">
+			<a class="ds-btn ds-btn-secondary" href="{{.Link}}">{{ctx.Locale.Tr "asc_work.discard"}}</a>
+			<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.update_profile"}}</button>
 		</div>
-	</div>
+	</form>
+</div>
 {{template "user/settings/layout_footer" .}}

@@ -1,168 +1,155 @@
-{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings account")}}
-	<div class="user-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "settings.change_password"}}
-		</h4>
-		<div class="ui attached segment">
-			{{if and (not ($.UserDisabledFeatures.Contains "manage_password")) (or (.SignedUser.IsLocal) (.SignedUser.IsOAuth2))}}
-			<form class="ui form ignore-dirty" action="{{AppSubUrl}}/user/settings/account" method="post">
-				{{template "base/disable_form_autofill"}}
-				{{if .SignedUser.IsPasswordSet}}
-				<div class="required field {{if .Err_OldPassword}}error{{end}}">
-					<label for="old_password">{{ctx.Locale.Tr "settings.old_password"}}</label>
-					<input id="old_password" name="old_password" type="password" autocomplete="current-password" autofocus required>
-				</div>
-				{{end}}
-				<div class="required field {{if .Err_Password}}error{{end}}">
-					<label for="password">{{ctx.Locale.Tr "settings.new_password"}}</label>
-					<input id="password" name="password" type="password" autocomplete="new-password" required>
-				</div>
-				<div class="required field {{if .Err_Password}}error{{end}}">
-					<label for="retype">{{ctx.Locale.Tr "settings.retype_new_password"}}</label>
-					<input id="retype" name="retype" type="password" autocomplete="new-password" required>
-				</div>
-
-				<div class="field">
-					<button class="ui primary button">{{ctx.Locale.Tr "settings.update_password"}}</button>
-					<a href="{{AppSubUrl}}/user/forgot_password?email={{.Email}}">{{ctx.Locale.Tr "auth.forgot_password"}}</a>
-				</div>
-			</form>
-			{{else}}
-			<div class="ui info message">
-				<p class="text left">{{ctx.Locale.Tr "settings.password_change_disabled"}}</p>
-			</div>
-			{{end}}
-		</div>
-
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "settings.manage_emails"}}
-		</h4>
-		<div class="ui attached segment">
-			<div class="ui list">
-				<div class="tw-mb-2">{{ctx.Locale.Tr "settings.email_desc"}}</div>
-				{{if $.EnableNotifyMail}}
-				<div class="item">
-					<form action="{{AppSubUrl}}/user/settings/account/email" class="ui form" method="post">
-						<input name="_method" type="hidden" value="NOTIFICATION">
-						<div class="tw-flex tw-flex-wrap tw-gap-2">
-							<div class="ui selection dropdown">
-								<input name="preference" type="hidden" value="{{.EmailNotificationsPreference}}">
-								{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-								<div class="text"></div>
-								<div class="menu">
-									<div data-value="enabled" class="{{if eq .EmailNotificationsPreference "enabled"}}active selected {{end}}item">{{ctx.Locale.Tr "settings.email_notifications.enable"}}</div>
-									<div data-value="andyourown" class="{{if eq .EmailNotificationsPreference "andyourown"}}active selected {{end}}item">{{ctx.Locale.Tr "settings.email_notifications.andyourown"}}</div>
-									<div data-value="onmention" class="{{if eq .EmailNotificationsPreference "onmention"}}active selected {{end}}item">{{ctx.Locale.Tr "settings.email_notifications.onmention"}}</div>
-									<div data-value="disabled" class="{{if eq .EmailNotificationsPreference "disabled"}}active selected {{end}}item">{{ctx.Locale.Tr "settings.email_notifications.disable"}}</div>
-								</div>
-							</div>
-							<button class="ui primary button">{{ctx.Locale.Tr "settings.email_notifications.submit"}}</button>
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings account wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.account") "Lead" (ctx.Locale.Tr "asc_work.sp_account_lead"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-emails">
+		<div class="ds-card-h"><h2 id="sp-emails">{{ctx.Locale.Tr "settings.manage_emails"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.email_desc"}}</span></div>
+		<ul class="ds-list wk-rows">
+			{{range .Emails}}
+				<li class="ds-li wk-row">
+					<div class="ds-li-main">
+						<div class="ds-li-title"><span class="ds-break">{{.Email}}</span>
+							{{if .IsPrimary}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "settings.primary"}}</span>{{end}}
+							{{if .IsActivated}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "settings.activated"}}</span>{{else}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "settings.requires_activation"}}</span>{{end}}
 						</div>
-					</form>
-				</div>
-				{{end}}
-				{{range .Emails}}
-					<div class="item">
+					</div>
+					<div class="wk-row-acts">
 						{{if not .IsPrimary}}
-							<div class="right floated content">
-								<button class="ui red tiny button delete-button" data-modal-id="delete-email" data-url="{{AppSubUrl}}/user/settings/account/email/delete" data-id="{{.ID}}">
-									{{ctx.Locale.Tr "settings.delete_email"}}
-								</button>
-							</div>
 							{{if .CanBePrimary}}
-								<div class="right floated content">
-									<form action="{{AppSubUrl}}/user/settings/account/email" method="post">
-										<input name="_method" type="hidden" value="PRIMARY">
-										<input name="id" type="hidden" value="{{.ID}}">
-										<button class="ui primary tiny button">{{ctx.Locale.Tr "settings.primary_email"}}</button>
-									</form>
-								</div>
+								<form action="{{AppSubUrl}}/user/settings/account/email" method="post">
+									{{$.CsrfTokenHtml}}
+									<input name="_method" type="hidden" value="PRIMARY">
+									<input name="id" type="hidden" value="{{.ID}}">
+									<button class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "settings.primary_email"}}</button>
+								</form>
 							{{end}}
 						{{end}}
 						{{if not .IsActivated}}
-							<div class="right floated content">
-								<form action="{{AppSubUrl}}/user/settings/account/email" method="post">
-									<input name="_method" type="hidden" value="SENDACTIVATION">
-									<input name="id" type="hidden" value="{{.ID}}">
-									{{if $.ActivationsPending}}
-										<button disabled class="ui primary tiny button">{{ctx.Locale.Tr "settings.activations_pending"}}</button>
-									{{else}}
-										<button class="ui primary tiny button">{{ctx.Locale.Tr "settings.activate_email"}}</button>
-									{{end}}
-								</form>
-							</div>
+							<form action="{{AppSubUrl}}/user/settings/account/email" method="post">
+								{{$.CsrfTokenHtml}}
+								<input name="_method" type="hidden" value="SENDACTIVATION">
+								<input name="id" type="hidden" value="{{.ID}}">
+								{{if $.ActivationsPending}}
+									<button disabled class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "settings.activations_pending"}}</button>
+								{{else}}
+									<button class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "settings.activate_email"}}</button>
+								{{end}}
+							</form>
 						{{end}}
-						<div class="content tw-py-2">
-							<strong>{{.Email}}</strong>
-							{{if .IsPrimary}}
-								<div class="ui primary label">{{ctx.Locale.Tr "settings.primary"}}</div>
-							{{end}}
-							{{if .IsActivated}}
-								<div class="ui green label">{{ctx.Locale.Tr "settings.activated"}}</div>
-							{{else}}
-								<div class="ui label">{{ctx.Locale.Tr "settings.requires_activation"}}</div>
-							{{end}}
-						</div>
+						{{if not .IsPrimary}}
+							<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="delete-email" data-url="{{AppSubUrl}}/user/settings/account/email/delete" data-id="{{.ID}}">{{ctx.Locale.Tr "settings.delete_email"}}</button>
+						{{end}}
 					</div>
-				{{end}}
-			</div>
-		</div>
-		<div class="ui attached bottom segment">
-			<form class="ui form" action="{{AppSubUrl}}/user/settings/account/email" method="post">
-				<div class="required field {{if .Err_Email}}error{{end}}">
-					<label for="email">{{ctx.Locale.Tr "settings.add_new_email"}}</label>
-					<input id="email" name="email" type="email" required {{if not .CanAddEmails}}disabled{{end}}>
+				</li>
+			{{end}}
+		</ul>
+		<form class="ui form ds-form wk-card-form" action="{{AppSubUrl}}/user/settings/account/email" method="post">
+			{{.CsrfTokenHtml}}
+			<div class="required field ds-field {{if .Err_Email}}error{{end}}">
+				<label class="ds-label" for="email">{{ctx.Locale.Tr "settings.add_new_email"}}</label>
+				<div class="wk-inline-field">
+					<input id="email" class="ds-input{{if .Err_Email}} is-err{{end}}" name="email" type="email" required {{if not .CanAddEmails}}disabled{{end}}>
+					<button class="ds-btn ds-btn-primary" {{if not .CanAddEmails}}disabled{{end}}>{{ctx.Locale.Tr "settings.add_email"}}</button>
 				</div>
-				<button class="ui primary button" {{if not .CanAddEmails}}disabled{{end}}>
-					{{ctx.Locale.Tr "settings.add_email"}}
-				</button>
-			</form>
+			</div>
 			{{/* if ActivationsPending is false, then CanAddEmails must be true, so if CanAddEmails is false, ActivationsPending must be true */}}
 			{{if not .CanAddEmails}}
-				<div class="ui warning message">{{ctx.Locale.Tr "settings.can_not_add_email_activations_pending"}}</div>
+				<div class="ds-banner ds-banner-warn" role="status"><div class="ds-banner-body">{{ctx.Locale.Tr "settings.can_not_add_email_activations_pending"}}</div></div>
 			{{end}}
-		</div>
+		</form>
+	</section>
 
-		{{if not ($.UserDisabledFeatures.Contains "deletion")}}
-		<h4 class="ui top attached error header">
-			{{ctx.Locale.Tr "settings.delete_account"}}
-		</h4>
-		<div class="ui attached error segment">
-			<div class="ui red message">
-				<p class="text left">{{svg "octicon-alert"}} {{ctx.Locale.Tr "settings.delete_prompt"}}</p>
-				{{if .UserDeleteWithComments}}
-				<p class="text left tw-font-semibold">{{ctx.Locale.Tr "settings.delete_with_all_comments" .UserDeleteWithCommentsMaxTime}}</p>
-				{{end}}
+	{{if $.EnableNotifyMail}}
+	<section class="ds-card" aria-labelledby="sp-mailpref">
+		<div class="ds-card-h"><h2 id="sp-mailpref">{{ctx.Locale.Tr "asc_work.sp_email_notifications"}}</h2></div>
+		<form action="{{AppSubUrl}}/user/settings/account/email" class="ui form ds-form wk-card-form" method="post">
+			{{.CsrfTokenHtml}}
+			<input name="_method" type="hidden" value="NOTIFICATION">
+			<div class="ds-field">
+				<label class="ds-label" for="email-pref">{{ctx.Locale.Tr "asc_work.sp_email_notifications"}}</label>
+				<div class="wk-inline-field">
+					<select id="email-pref" class="ds-select" name="preference">
+						<option value="enabled"{{if eq .EmailNotificationsPreference "enabled"}} selected{{end}}>{{ctx.Locale.Tr "settings.email_notifications.enable"}}</option>
+						<option value="andyourown"{{if eq .EmailNotificationsPreference "andyourown"}} selected{{end}}>{{ctx.Locale.Tr "settings.email_notifications.andyourown"}}</option>
+						<option value="onmention"{{if eq .EmailNotificationsPreference "onmention"}} selected{{end}}>{{ctx.Locale.Tr "settings.email_notifications.onmention"}}</option>
+						<option value="disabled"{{if eq .EmailNotificationsPreference "disabled"}} selected{{end}}>{{ctx.Locale.Tr "settings.email_notifications.disable"}}</option>
+					</select>
+					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.email_notifications.submit"}}</button>
+				</div>
 			</div>
-			<form class="ui form ignore-dirty" id="delete-form" action="{{AppSubUrl}}/user/settings/account/delete" method="post">
-				{{template "base/disable_form_autofill"}}
-				<div class="required field {{if .Err_Password}}error{{end}}">
-					<label for="password-confirmation">{{ctx.Locale.Tr "password"}}</label>
-					<input id="password-confirmation" name="password" type="password" autocomplete="off" required>
-				</div>
-				<div class="field">
-					<button class="ui red button delete-button" data-modal-id="delete-account" data-type="form" data-form="#delete-form">
-						{{ctx.Locale.Tr "settings.confirm_delete_account"}}
-					</button>
-				</div>
-			</form>
-			<div class="ui g-modal-confirm delete modal" id="delete-account">
-				<div class="header">
-					{{svg "octicon-trash"}}
-					{{ctx.Locale.Tr "settings.delete_account_title"}}
-				</div>
-				<div class="content">
-					<p>{{ctx.Locale.Tr "settings.delete_account_desc"}}</p>
-				</div>
-				{{template "base/modal_actions_confirm" .}}
+		</form>
+	</section>
+	{{end}}
+
+	<section class="ds-card" aria-labelledby="sp-password">
+		<div class="ds-card-h"><h2 id="sp-password">{{ctx.Locale.Tr "settings.change_password"}}</h2></div>
+		{{if and (not ($.UserDisabledFeatures.Contains "manage_password")) (or (.SignedUser.IsLocal) (.SignedUser.IsOAuth2))}}
+		<form class="ui form ds-form wk-card-form ignore-dirty" action="{{AppSubUrl}}/user/settings/account" method="post">
+			{{.CsrfTokenHtml}}
+			{{template "base/disable_form_autofill"}}
+			{{if .SignedUser.IsPasswordSet}}
+			<div class="required field ds-field {{if .Err_OldPassword}}error{{end}}">
+				<label class="ds-label" for="old_password">{{ctx.Locale.Tr "settings.old_password"}}</label>
+				<input id="old_password" class="ds-input{{if .Err_OldPassword}} is-err{{end}}" name="old_password" type="password" autocomplete="current-password" required>
 			</div>
-		</div>
+			{{end}}
+			<div class="ds-form-row ds-form-row-2">
+				<div class="required field ds-field {{if .Err_Password}}error{{end}}">
+					<label class="ds-label" for="password">{{ctx.Locale.Tr "settings.new_password"}}</label>
+					<input id="password" class="ds-input{{if .Err_Password}} is-err{{end}}" name="password" type="password" autocomplete="new-password" required>
+				</div>
+				<div class="required field ds-field {{if .Err_Password}}error{{end}}">
+					<label class="ds-label" for="retype">{{ctx.Locale.Tr "settings.retype_new_password"}}</label>
+					<input id="retype" class="ds-input{{if .Err_Password}} is-err{{end}}" name="retype" type="password" autocomplete="new-password" required>
+				</div>
+			</div>
+			<div class="ds-row ds-row-wrap">
+				<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.update_password"}}</button>
+				<a class="ds-link" href="{{AppSubUrl}}/user/forgot_password?email={{.Email}}">{{ctx.Locale.Tr "auth.forgot_password"}}</a>
+			</div>
+		</form>
+		{{else}}
+			<div class="ds-card-b"><div class="ds-banner" role="status"><div class="ds-banner-body">{{ctx.Locale.Tr "settings.password_change_disabled"}}</div></div></div>
 		{{end}}
-	</div>
+	</section>
+
+	{{if not ($.UserDisabledFeatures.Contains "deletion")}}
+	<section class="ds-card wk-danger" aria-labelledby="sp-delete">
+		<div class="ds-card-h"><h2 id="sp-delete">{{ctx.Locale.Tr "settings.delete_account"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_cannot_undo"}}</span></div>
+		<form class="ui form ds-form wk-card-form ignore-dirty" id="delete-form" action="{{AppSubUrl}}/user/settings/account/delete" method="post">
+			{{.CsrfTokenHtml}}
+			{{template "base/disable_form_autofill"}}
+			<div class="ds-banner ds-banner-err" role="note">
+				<span aria-hidden="true">{{svg "dsi-alert" 18}}</span>
+				<div class="ds-banner-body">
+					{{ctx.Locale.Tr "settings.delete_prompt"}}
+					{{if .UserDeleteWithComments}}<b>{{ctx.Locale.Tr "settings.delete_with_all_comments" .UserDeleteWithCommentsMaxTime}}</b>{{end}}
+				</div>
+			</div>
+			<div class="required field ds-field {{if .Err_Password}}error{{end}}">
+				<label class="ds-label" for="password-confirmation">{{ctx.Locale.Tr "password"}}</label>
+				<input id="password-confirmation" class="ds-input{{if .Err_Password}} is-err{{end}}" name="password" type="password" autocomplete="off" required>
+			</div>
+			<div>
+				<button type="button" class="ds-btn ds-btn-danger-fill delete-button" data-modal-id="delete-account" data-type="form" data-form="#delete-form">{{ctx.Locale.Tr "settings.confirm_delete_account"}}</button>
+			</div>
+		</form>
+		<div class="ui g-modal-confirm delete modal" id="delete-account">
+			<div class="header">
+				{{svg "dsi-trash" 18}}
+				{{ctx.Locale.Tr "settings.delete_account_title"}}
+			</div>
+			<div class="content">
+				<p>{{ctx.Locale.Tr "settings.delete_account_desc"}}</p>
+			</div>
+			{{template "base/modal_actions_confirm" .}}
+		</div>
+	</section>
+	{{end}}
+</div>
 
 <div class="ui g-modal-confirm delete modal" id="delete-email">
 	<div class="header">
-		{{svg "octicon-trash"}}
+		{{svg "dsi-trash" 18}}
 		{{ctx.Locale.Tr "settings.email_deletion"}}
 	</div>
 	<div class="content">
