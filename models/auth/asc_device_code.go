@@ -31,6 +31,12 @@ const (
 	userCodeLength   = 8
 )
 
+// Caps on codes waiting for an answer: on the whole hub and from one client address. They are variables so a test can lower them.
+var (
+	AscDeviceCodeMaxPending      int64 = 10000
+	AscDeviceCodeMaxPendingPerIP int64 = 20
+)
+
 // AscDeviceCodeStatus is where a device code is in its life.
 type AscDeviceCodeStatus int
 
@@ -48,6 +54,7 @@ type AscDeviceCode struct {
 	DeviceCodeHash string              `xorm:"VARCHAR(64) UNIQUE NOT NULL"`
 	UserCode       string              `xorm:"VARCHAR(16) UNIQUE NOT NULL"` // normal form: capitals, no dash
 	DeviceName     string              `xorm:"VARCHAR(128) NOT NULL DEFAULT ''"`
+	CreatorIP      string              `xorm:"VARCHAR(45) NOT NULL DEFAULT ''"`
 	Status         AscDeviceCodeStatus `xorm:"NOT NULL DEFAULT 0"`
 	UserID         int64               `xorm:"NOT NULL DEFAULT 0"`
 	ExpiresUnix    timeutil.TimeStamp  `xorm:"INDEX NOT NULL"`
@@ -71,6 +78,7 @@ var (
 	ErrAscDeviceCodePending   = errors.New("authorization pending")
 	ErrAscDeviceCodeSlowDown  = errors.New("polling too fast")
 	ErrAscDeviceCodeBadDevice = errors.New("device name is not valid")
+	ErrAscDeviceCodeTooMany   = errors.New("too many pending device codes")
 )
 
 // HashAscDeviceCode is the stored form of a device code.
@@ -130,7 +138,24 @@ func CleanAscDeviceName(s string) (string, error) {
 
 // CreateAscDeviceCode starts a device authorisation. It returns the row and the device code, which is shown once,
 // to the terminal.
-func CreateAscDeviceCode(ctx context.Context, deviceName string) (row *AscDeviceCode, deviceCode string, err error) {
+func CreateAscDeviceCode(ctx context.Context, deviceName, clientIP string) (row *AscDeviceCode, deviceCode string, err error) {
+	now := timeutil.TimeStampNow()
+	total, err := db.GetEngine(ctx).Where("status = ? AND expires_unix > ?", AscDeviceCodePending, now).Count(new(AscDeviceCode))
+	if err != nil {
+		return nil, "", err
+	}
+	if total >= AscDeviceCodeMaxPending {
+		return nil, "", ErrAscDeviceCodeTooMany
+	}
+	if clientIP != "" {
+		mine, err := db.GetEngine(ctx).Where("status = ? AND expires_unix > ? AND creator_ip = ?", AscDeviceCodePending, now, clientIP).Count(new(AscDeviceCode))
+		if err != nil {
+			return nil, "", err
+		}
+		if mine >= AscDeviceCodeMaxPendingPerIP {
+			return nil, "", ErrAscDeviceCodeTooMany
+		}
+	}
 	if deviceName, err = CleanAscDeviceName(deviceName); err != nil {
 		return nil, "", err
 	}
@@ -148,6 +173,7 @@ func CreateAscDeviceCode(ctx context.Context, deviceName string) (row *AscDevice
 			DeviceCodeHash: HashAscDeviceCode(deviceCode),
 			UserCode:       code,
 			DeviceName:     deviceName,
+			CreatorIP:      clientIP,
 			ExpiresUnix:    timeutil.TimeStampNow().Add(int64(AscDeviceCodeLifetime / time.Second)),
 		}
 		if _, err = db.GetEngine(ctx).Insert(row); err == nil {

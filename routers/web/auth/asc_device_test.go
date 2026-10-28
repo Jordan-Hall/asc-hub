@@ -6,6 +6,7 @@ package auth
 import (
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -113,4 +114,70 @@ func TestAscDeviceCodeIsRateLimited(t *testing.T) {
 		AscDeviceCode(ctx)
 		assert.Equal(t, want, resp.Code, "request %d", i)
 	}
+}
+
+func TestAscClientIPIgnoresThePort(t *testing.T) {
+	for addr, want := range map[string]string{
+		"203.0.113.7:51000": "203.0.113.7",
+		"203.0.113.7:51001": "203.0.113.7",
+		"[2001:db8::1]:443": "2001:db8::1",
+		"203.0.113.7":       "203.0.113.7",
+	} {
+		ctx, _ := contexttest.MockContext(t, "POST /login/device/code")
+		ctx.Req.RemoteAddr = addr
+		assert.Equal(t, want, ascClientIP(ctx), addr)
+	}
+}
+
+func TestAscDeviceCodeLimitSharedAcrossPorts(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	ascDeviceAsks = newAscLimiter(2, time.Minute)
+	t.Cleanup(func() { ascDeviceAsks = newAscLimiter(20, time.Minute) })
+	// every request is a new connection with a new source port, from one address
+	for i, want := range []int{http.StatusOK, http.StatusOK, http.StatusTooManyRequests, http.StatusTooManyRequests} {
+		ctx, resp := contexttest.MockContext(t, "POST /login/device/code")
+		ctx.Req.RemoteAddr = "203.0.113.7:" + strconv.Itoa(40000+i)
+		AscDeviceCode(ctx)
+		assert.Equal(t, want, resp.Code, "request %d", i)
+	}
+	// another address has its own bucket
+	ctx, resp := contexttest.MockContext(t, "POST /login/device/code")
+	ctx.Req.RemoteAddr = "203.0.113.8:40000"
+	AscDeviceCode(ctx)
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestAscDeviceCodeRefusedAtThePendingCap(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	old := auth_model.AscDeviceCodeMaxPendingPerIP
+	auth_model.AscDeviceCodeMaxPendingPerIP = 1
+	ascDeviceAsks = newAscLimiter(100, time.Minute)
+	t.Cleanup(func() {
+		auth_model.AscDeviceCodeMaxPendingPerIP = old
+		ascDeviceAsks = newAscLimiter(20, time.Minute)
+	})
+	for i, want := range []int{http.StatusOK, http.StatusTooManyRequests} {
+		ctx, resp := contexttest.MockContext(t, "POST /login/device/code")
+		ctx.Req.RemoteAddr = "203.0.113.9:" + strconv.Itoa(41000+i)
+		AscDeviceCode(ctx)
+		assert.Equal(t, want, resp.Code, "request %d", i)
+	}
+}
+
+func TestAscLimiterIsBounded(t *testing.T) {
+	now := time.Unix(5000, 0)
+	l := newAscLimiter(3, time.Minute)
+	l.now = func() time.Time { return now }
+	l.maxKeys = 100
+
+	// a flood of distinct keys never holds more than maxKeys
+	for i := range 1000 {
+		now = now.Add(time.Millisecond)
+		l.add("k" + strconv.Itoa(i))
+		assert.LessOrEqual(t, l.size(), 100)
+	}
+	// a window later the sweep drops every key with no recent event
+	now = now.Add(2 * time.Minute)
+	l.add("fresh")
+	assert.Equal(t, 1, l.size())
 }

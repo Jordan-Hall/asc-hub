@@ -5,6 +5,7 @@ package auth
 
 import (
 	"errors"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -27,18 +28,22 @@ const (
 	ascDeviceGrantType = "urn:ietf:params:oauth:grant-type:device_code"
 )
 
-// ascLimiter allows n events per window for each key. It guards two unauthenticated or guessable surfaces: asking
-// for a device code, and typing user codes that do not exist.
+// ascLimiter allows n events per window for each key. It guards three surfaces: asking for a device code and polling
+// for the token (both unauthenticated), and typing user codes that do not exist. It is bounded: every window it
+// drops the keys with no recent event, and it never holds more than maxKeys keys (the key with the oldest last event
+// goes first), so a flood of distinct keys cannot grow it without limit.
 type ascLimiter struct {
-	mu     sync.Mutex
-	n      int
-	window time.Duration
-	hits   map[string][]time.Time
-	now    func() time.Time
+	mu        sync.Mutex
+	n         int
+	maxKeys   int
+	window    time.Duration
+	hits      map[string][]time.Time
+	lastSweep time.Time
+	now       func() time.Time
 }
 
 func newAscLimiter(n int, window time.Duration) *ascLimiter {
-	return &ascLimiter{n: n, window: window, hits: map[string][]time.Time{}, now: time.Now}
+	return &ascLimiter{n: n, maxKeys: 10000, window: window, hits: map[string][]time.Time{}, now: time.Now}
 }
 
 // blocked reports whether the key used up its events in the window.
@@ -52,7 +57,18 @@ func (l *ascLimiter) blocked(key string) bool {
 func (l *ascLimiter) add(key string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	l.sweep()
+	if _, known := l.hits[key]; !known && len(l.hits) >= l.maxKeys {
+		l.evictOldest()
+	}
 	l.hits[key] = append(l.recent(key), l.now())
+}
+
+// size is the number of keys held.
+func (l *ascLimiter) size() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return len(l.hits)
 }
 
 func (l *ascLimiter) recent(key string) []time.Time {
@@ -69,10 +85,47 @@ func (l *ascLimiter) recent(key string) []time.Time {
 	return kept
 }
 
+// sweep drops every key without a recent event, at most once per window.
+func (l *ascLimiter) sweep() {
+	now := l.now()
+	if now.Sub(l.lastSweep) < l.window {
+		return
+	}
+	l.lastSweep = now
+	for key := range l.hits {
+		l.recent(key)
+	}
+}
+
+func (l *ascLimiter) evictOldest() {
+	var oldest string
+	var oldestAt time.Time
+	for key, hits := range l.hits {
+		last := hits[len(hits)-1]
+		if oldest == "" || last.Before(oldestAt) {
+			oldest, oldestAt = key, last
+		}
+	}
+	delete(l.hits, oldest)
+}
+
 var (
 	ascDeviceAsks     = newAscLimiter(20, time.Minute)
-	ascDeviceBadCodes = newAscLimiter(10, 5*time.Minute)
+	ascDevicePolls    = newAscLimiter(120, time.Minute)
+	ascDeviceBadCodes = newAscLimiter(10, 5*time.Minute) // per account
+	ascDeviceBadByIP  = newAscLimiter(30, 5*time.Minute) // per client address
 )
+
+// ascClientIP is the address of the client without its port. The proxy middleware has already replaced the remote
+// address with the forwarded one when the request came from a trusted proxy, so this is the real client, and one
+// client's connections (each with its own port) share one bucket.
+func ascClientIP(ctx *context.Context) string {
+	addr := ctx.RemoteAddr()
+	if host, _, err := net.SplitHostPort(addr); err == nil {
+		return host
+	}
+	return strings.Trim(addr, "[]")
+}
 
 func ascDeviceError(ctx *context.Context, status int, code, description string) {
 	ctx.Resp.Header().Set("Cache-Control", "no-store")
@@ -81,15 +134,20 @@ func ascDeviceError(ctx *context.Context, status int, code, description string) 
 
 // AscDeviceCode serves POST /login/device/code: the terminal asks to be authorised.
 func AscDeviceCode(ctx *context.Context) {
-	ip := ctx.RemoteAddr()
+	ip := ascClientIP(ctx)
 	if ascDeviceAsks.blocked(ip) {
 		ctx.Resp.Header().Set("Retry-After", "60")
 		ascDeviceError(ctx, http.StatusTooManyRequests, "slow_down", "too many requests, wait a minute")
 		return
 	}
 	ascDeviceAsks.add(ip)
-	row, deviceCode, err := auth_model.CreateAscDeviceCode(ctx, ctx.FormString("client_name"))
+	row, deviceCode, err := auth_model.CreateAscDeviceCode(ctx, ctx.FormString("client_name"), ip)
 	if err != nil {
+		if errors.Is(err, auth_model.ErrAscDeviceCodeTooMany) {
+			ctx.Resp.Header().Set("Retry-After", "60")
+			ascDeviceError(ctx, http.StatusTooManyRequests, "slow_down", "too many authorisations are waiting, try again later")
+			return
+		}
 		if errors.Is(err, auth_model.ErrAscDeviceCodeBadDevice) {
 			ascDeviceError(ctx, http.StatusBadRequest, "invalid_request", "client_name is not valid")
 			return
@@ -116,6 +174,13 @@ func AscDeviceToken(ctx *context.Context) {
 		ascDeviceError(ctx, http.StatusBadRequest, "unsupported_grant_type", "grant_type must be "+ascDeviceGrantType)
 		return
 	}
+	ip := ascClientIP(ctx)
+	if ascDevicePolls.blocked(ip) {
+		ctx.Resp.Header().Set("Retry-After", "60")
+		ascDeviceError(ctx, http.StatusTooManyRequests, "slow_down", "too many requests, wait a minute")
+		return
+	}
+	ascDevicePolls.add(ip)
 	code := strings.TrimSpace(ctx.FormString("device_code"))
 	if code == "" {
 		ascDeviceError(ctx, http.StatusBadRequest, "invalid_request", "device_code is missing")
@@ -202,8 +267,8 @@ func AscDevicePost(ctx *context.Context) {
 // ascDeviceLookup finds the code a person typed. A wrong code is counted: after ten in five minutes the person
 // waits, so the short code cannot be guessed.
 func ascDeviceLookup(ctx *context.Context, typed string) (*auth_model.AscDeviceCode, bool) {
-	key := ctx.Doer.LowerName
-	if ascDeviceBadCodes.blocked(key) {
+	key, ip := ctx.Doer.LowerName, ascClientIP(ctx)
+	if ascDeviceBadCodes.blocked(key) || ascDeviceBadByIP.blocked(ip) {
 		ctx.Resp.Header().Set("Retry-After", "300")
 		ascDeviceFail(ctx, "limited")
 		return nil, false
@@ -216,6 +281,7 @@ func ascDeviceLookup(ctx *context.Context, typed string) (*auth_model.AscDeviceC
 		ascDeviceFail(ctx, "expired")
 	case errors.Is(err, auth_model.ErrAscDeviceCodeNotFound):
 		ascDeviceBadCodes.add(key)
+		ascDeviceBadByIP.add(ip)
 		ctx.Data["DeviceTyped"] = typed
 		ascDeviceFail(ctx, "unknown")
 	default:

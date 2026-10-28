@@ -22,6 +22,7 @@ func addAscDeviceCode(x *xorm.Engine) error {
 		DeviceName     string `xorm:"VARCHAR(128) NOT NULL DEFAULT ''"`
 		Status         int    `xorm:"NOT NULL DEFAULT 0"`
 		UserID         int64  `xorm:"NOT NULL DEFAULT 0"`
+		CreatorIP      string `xorm:"VARCHAR(45) NOT NULL DEFAULT ''"`
 		ExpiresUnix    int64  `xorm:"INDEX NOT NULL"`
 		LastPollUnix   int64  `xorm:"NOT NULL DEFAULT 0"`
 		CreatedUnix    int64  `xorm:"created"`
