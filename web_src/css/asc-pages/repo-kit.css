@@ -888,3 +888,22 @@ a.rp-hash:hover {
     display: contents;
   }
 }
+
+/* ---- release assets as a table, and the side rail of the releases page ---- */
+.rp-asset-table .rp-asset-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.rp-asset-table td .rp-asset-meta {
+  display: block;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.rp-rel-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
