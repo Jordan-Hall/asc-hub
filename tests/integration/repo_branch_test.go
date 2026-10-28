@@ -131,7 +131,7 @@ func testCreateBranches(t *testing.T, giteaURL *url.URL) {
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 			assert.Contains(t,
-				strings.TrimSpace(htmlDoc.doc.Find(".ui.message").Text()),
+				strings.TrimSpace(htmlDoc.doc.Find("#flash-message").Text()),
 				test.FlashMessage,
 			)
 		}

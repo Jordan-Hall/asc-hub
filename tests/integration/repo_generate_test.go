@@ -164,7 +164,7 @@ func TestRepoCreateFormRepoLimit(t *testing.T) {
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assertRepoCreateForm(t, htmlDoc, org, "")
 
-		alert := htmlDoc.doc.Find("div.ui.negative.message").Text()
+		alert := htmlDoc.doc.Find(".flash-error").Text()
 		assert.Contains(t, alert, creationLimitTr)
 	})
 
@@ -179,7 +179,7 @@ func TestRepoCreateFormRepoLimit(t *testing.T) {
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assertRepoCreateForm(t, htmlDoc, org, "")
 
-		htmlDoc.AssertElement(t, "div.ui.negative.message", false)
+		htmlDoc.AssertElement(t, ".flash-error", false)
 	})
 
 	// Test the case where a user has hit the global max creation limit, and also cannot create
@@ -195,7 +195,7 @@ func TestRepoCreateFormRepoLimit(t *testing.T) {
 		resp := session.MakeRequest(t, NewRequest(t, "GET", "/repo/create"), http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
-		alert := htmlDoc.doc.Find("div.ui.negative.message").Text()
+		alert := htmlDoc.doc.Find(".flash-error").Text()
 		assert.Contains(t, alert, cannotCreateTr)
 	})
 }

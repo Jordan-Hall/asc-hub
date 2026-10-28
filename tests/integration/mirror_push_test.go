@@ -62,7 +62,7 @@ func TestPushMirrorRedactCredential(t *testing.T) {
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assert.Contains(t,
-			htmlDoc.doc.Find(".ui.negative.message").Text(),
+			htmlDoc.doc.Find(".flash-error").Text(),
 			translation.NewLocale("en-US").Tr("migrate.form.error.url_credentials"),
 		)
 	})
@@ -254,7 +254,7 @@ func TestSSHPushMirror(t *testing.T) {
 			resp := sess.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			errMsg := htmlDoc.Find(".ui.negative.message").Text()
+			errMsg := htmlDoc.Find(".flash-error").Text()
 			assert.Contains(t, errMsg, "Cannot use public key and password based authentication in combination.")
 		})
 
@@ -273,7 +273,7 @@ func TestSSHPushMirror(t *testing.T) {
 			resp := sess.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			errMsg := htmlDoc.Find(".ui.negative.message").Text()
+			errMsg := htmlDoc.Find(".flash-error").Text()
 			assert.Contains(t, errMsg, "SSH authentication isn't available.")
 
 			htmlDoc.AssertElement(t, inputSelector, false)

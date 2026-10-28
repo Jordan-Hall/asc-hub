@@ -257,7 +257,7 @@ func TestRepositoryFlagsUI(t *testing.T) {
 		flagsLinkCount := doc.Find(fmt.Sprintf(`a[href="%s/flags"]`, repoURL)).Length()
 		assert.Equal(t, expectedLinkCount, flagsLinkCount)
 
-		flagCount := doc.Find(".ui.info.message .ui.label").Length()
+		flagCount := doc.Find(".ds-banner .ds-chip").Length()
 		assert.Equal(t, expectedFlagCount, flagCount)
 
 		req = NewRequest(t, "GET", fmt.Sprintf("%s/flags", repoURL))

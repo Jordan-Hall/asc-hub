@@ -90,7 +90,7 @@ func TestSignupEmail(t *testing.T) {
 			htmlDoc := NewHTMLParser(t, resp.Body)
 			assert.Equal(t,
 				test.wantMsg,
-				strings.TrimSpace(htmlDoc.doc.Find(".ui.message").Text()),
+				strings.TrimSpace(htmlDoc.doc.Find("#flash-message").Text()),
 			)
 		}
 	}
