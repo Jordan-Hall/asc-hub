@@ -253,9 +253,9 @@ Open rows by size: S 45, M 64, L 23.
 | Inbox | Detail pane: why waiting, changed since last look, policy line (approvals 1 of 2), thread, reply box with Approve and Request changes | done | `asc_inbox.tmpl` | - |
 | Inbox | "Ask agent to change" (comment becomes an instruction for the author agent) | needs-both | Reply form has Approve, Request changes, Reply only. Hub: POST to `CreateRun` or `SendInput`; asc: instruction flag on review comments (`review.proto` `AddComment`) | L |
 | Inbox | Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | needs-hub-backend | j k s p g i present; x, e need the new states; a and r submit the form with confirm | S |
-| Inbox | Pagination "Showing 8 of 23" | ui-only-missing | None in `asc_inbox.tmpl`; list is capped (`ascInboxInfoRows`) | M |
+| Inbox | Pagination "Showing 8 of 23" | done | None in `asc_inbox.tmpl`; list is capped (`ascInboxInfoRows`) | M |
 | Inbox | New items slide in from the top without jumping the list | needs-both | No live update. Hub poll or SSE; asc `inbox.proto` `Count` is poll friendly | M |
-| Inbox | States: bulk bar, inbox zero with Watch more repositories, loading skeleton | ui-only-missing | Empty exists; the other two missing | S |
+| Inbox | States: bulk bar, inbox zero with Watch more repositories, loading skeleton | done | Empty exists; the other two missing | S |
 | Inbox | Subscriptions link to Settings, Notifications | done | `/notifications/subscriptions` | - |
 | Mobile-Inbox | Swipe right to mark done, left to snooze; sticky action bar with Open next | needs-hub-backend | New touch JS; done state | M |
 
