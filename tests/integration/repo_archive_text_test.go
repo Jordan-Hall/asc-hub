@@ -48,16 +48,16 @@ func testRepoArchiveElements(t *testing.T, tr translation.Locale, doc *HTMLDoc, 
 	t.Helper()
 
 	// Test danger section
-	section := doc.Find(".danger.segment .flex-list .flex-item:has(.button[data-modal='#archive-repo-modal'])")
+	section := doc.Find(".danger .flex-list .flex-item:has(button[data-modal='#archive-repo-modal'])")
 	testRepoArchiveElement(t, tr, section, ".flex-item-title", opType+".header")
 	testRepoArchiveElement(t, tr, section, ".flex-item-body", opType+".text")
-	testRepoArchiveElement(t, tr, section, ".button", opType+".button")
+	testRepoArchiveElement(t, tr, section, "button", opType+".button")
 
 	// Test modal
 	modal := doc.Find("#archive-repo-modal")
 	testRepoArchiveElement(t, tr, modal, "header", opType+".header")
-	testRepoArchiveElement(t, tr, modal, ".message", opType+".text")
-	testRepoArchiveElement(t, tr, modal, ".button.red", opType+".button")
+	testRepoArchiveElement(t, tr, modal, ".ds-banner", opType+".text")
+	testRepoArchiveElement(t, tr, modal, ".ds-btn-danger", opType+".button")
 }
 
 func testRepoArchiveElement(t *testing.T, tr translation.Locale, doc *goquery.Selection, selector, op string) {
