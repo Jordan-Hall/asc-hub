@@ -340,3 +340,19 @@ func TestAscOverlapCompareVerify(t *testing.T) {
 		assert.ErrorIs(t, err, errAscBadgeAnswer, name)
 	}
 }
+
+func TestAscCompareGroups(t *testing.T) {
+	groups := ascCompareGroups(
+		[]string{"main", "release/2.18", "main"},
+		[]string{"retry-with-backoff"},
+		[]string{"v2.18.0", "main"},
+		"main", "a41f9c2", "",
+	)
+	require.Len(t, groups, 4)
+	assert.Equal(t, ascRefGroup{Label: "asc_rp.cmp_shared", Names: []string{"main", "release/2.18"}}, groups[0])
+	assert.Equal(t, []string{"retry-with-backoff"}, groups[1].Names)
+	assert.Equal(t, []string{"v2.18.0"}, groups[2].Names, "a name is listed once")
+	assert.Equal(t, ascRefGroup{Label: "asc_rp.cmp_current", Names: []string{"a41f9c2"}}, groups[3], "a value no group holds is kept")
+
+	assert.Empty(t, ascCompareGroups(nil, nil, nil, "", ""))
+}
