@@ -1,43 +1,99 @@
+{{/*
+Your drafts (design boards "Drafts" and "Mobile-Drafts"). routers/web/user/asc_drafts.go builds .AscDraftsRepos; an unreachable
+asc serve sets .AscDraftsError, a repository that could not be read is a row with Failed.
+*/}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content dashboard asc-drafts">
-	<div class="ui container">
-		<h2>{{ctx.Locale.Tr "user.asc_drafts"}}</h2>
+<div role="main" aria-label="{{.Title}}" class="ds-main wk-page wk-drafts">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "asc_work.drafts_title") "BackHref" (print AppSubUrl "/") "BackLabel" (ctx.Locale.Tr "asc_work.dashboard"))}}
+	<div class="ds-container ds-container-wide">
+		{{template "base/alert" .}}
+		<div class="wk-page-head">
+			<div class="ds-min0">
+				<p class="ds-t-eyebrow wk-eyebrow-kicker">{{ctx.Locale.Tr "asc_work.drafts_yours"}}</p>
+				<h1 class="ds-t-h1 wk-title">{{ctx.Locale.Tr "asc_work.drafts_title"}}</h1>
+				<p class="ds-c-2 wk-sub">{{ctx.Locale.Tr "asc_work.drafts_lead"}}</p>
+			</div>
+			<div class="wk-head-cmd">
+				<span class="wk-cmdchip"><code>asc stack draft</code><button type="button" class="wk-cmdchip-copy" data-clipboard-text="asc stack draft" aria-label="{{ctx.Locale.Tr "copy"}}">{{svg "dsi-copy" 16}}</button></span>
+			</div>
+		</div>
+
 		{{if .AscDraftsError}}
-			<div class="ui warning message" role="alert">{{ctx.Locale.Tr .AscDraftsError}}</div>
+			<div class="ds-banner ds-banner-err" role="alert">
+				<span aria-hidden="true">{{svg "dsi-wifi-off" 18}}</span>
+				<div class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_work.drafts_error_title"}}</b> {{ctx.Locale.Tr .AscDraftsError}}</div>
+			</div>
+			<p class="ds-mt-12"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/-/asc/drafts">{{ctx.Locale.Tr "asc_work.try_again"}}</a></p>
 		{{else}}
 			{{if .AscDraftsAnyFailed}}
-				<div class="ui warning message" role="alert">{{ctx.Locale.Tr "user.asc_drafts.error.partial"}}</div>
+				<div class="ds-banner ds-banner-warn" role="status">
+					<span aria-hidden="true">{{svg "dsi-alert" 18}}</span>
+					<div class="ds-banner-body">{{ctx.Locale.Tr "user.asc_drafts.error.partial"}}</div>
+				</div>
 			{{end}}
-			{{range .AscDraftsRepos}}
-				<div class="ui segment asc-drafts-repo">
-					<h3><a href="{{.Repo.Link}}">{{.Repo.FullName}}</a></h3>
-					{{if .Failed}}
-						<p>{{ctx.Locale.Tr "user.asc_drafts.error.repo"}}</p>
-					{{else}}
-						<table class="ui very basic table">
-							<thead>
-								<tr>
-									<th>{{ctx.Locale.Tr "user.asc_drafts.change"}}</th>
-									<th>{{ctx.Locale.Tr "user.asc_drafts.labels"}}</th>
-									<th>{{ctx.Locale.Tr "user.asc_drafts.added"}}</th>
-								</tr>
-							</thead>
-							<tbody>
-								{{range .Drafts}}
-									<tr>
-										<td><code>{{if .Change}}{{.Change}}{{else}}{{.Commit}}{{end}}</code></td>
-										<td>{{range .Labels}}<span class="ui label">{{.}}</span> {{end}}</td>
-										<td>{{if not .Added.IsZero}}{{DateUtils.AbsoluteShort .Added}}{{end}}</td>
-									</tr>
+			<div class="ds-split wk-drafts-split">
+				<div class="ds-min0">
+					{{if .AscDraftsRepos}}
+						<section class="ds-card" aria-label="{{ctx.Locale.Tr "user.asc_drafts"}}">
+							<ul class="wk-drafts-list">
+								{{range .AscDraftsRepos}}
+									{{$repo := .Repo}}
+									{{if .Failed}}
+										<li class="wk-draft">
+											<span class="ds-dot ds-dot-err wk-draft-dot" aria-hidden="true"></span>
+											<div class="wk-draft-main">
+												<div class="wk-draft-title"><a href="{{$repo.Link}}">{{$repo.FullName}}</a> <span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_work.drafts_unreadable"}}</span></div>
+												<div class="wk-draft-sub">{{ctx.Locale.Tr "user.asc_drafts.error.repo"}}</div>
+											</div>
+										</li>
+									{{else}}
+										{{range .Drafts}}
+											{{$name := .Commit}}{{if .Change}}{{$name = .Change}}{{end}}{{if .Labels}}{{$name = index .Labels 0}}{{end}}
+											<li class="wk-draft">
+												<span class="ds-dot wk-draft-dot" aria-hidden="true"></span>
+												<div class="wk-draft-main">
+													<div class="wk-draft-title">
+														<span class="wk-draft-name">{{$name}}</span>
+														<span class="ds-chip">{{ctx.Locale.Tr "asc_work.drafts_chip"}}</span>
+														{{range $i, $l := .Labels}}{{if $i}}<span class="ds-chip ds-chip-outline">{{$l}}</span>{{end}}{{end}}
+													</div>
+													<div class="wk-draft-sub"><a class="ds-mono" href="{{$repo.Link}}">{{$repo.FullName}}</a>{{if .Change}} &middot; <span class="ds-mono" title="{{ctx.Locale.Tr "user.asc_drafts.change"}}">{{.Change}}</span>{{end}}</div>
+													{{if not .Added.IsZero}}<div class="wk-draft-meta">{{ctx.Locale.Tr "asc_work.drafts_saved" (DateUtils.TimeSince .Added)}}</div>{{end}}
+												</div>
+												<div class="wk-draft-acts">
+													<button type="button" class="ds-btn ds-btn-primary ds-btn-sm" data-clipboard-text="asc stack resume {{if .Change}}{{.Change}}{{else}}{{.Commit}}{{end}}" aria-label="{{ctx.Locale.Tr "asc_work.drafts_continue_label" $name}}">{{ctx.Locale.Tr "asc_work.drafts_continue"}}</button>
+												</div>
+											</li>
+										{{end}}
+										{{if .Omitted}}<li class="wk-draft-more">{{ctx.Locale.Tr "user.asc_drafts.omitted" .Omitted}}</li>{{end}}
+									{{end}}
 								{{end}}
-							</tbody>
-						</table>
-						{{if .Omitted}}<p class="tw-text-text-light">{{ctx.Locale.Tr "user.asc_drafts.omitted" .Omitted}}</p>{{end}}
+							</ul>
+						</section>
+					{{else}}
+						<section class="ds-card" aria-label="{{ctx.Locale.Tr "user.asc_drafts"}}">
+							<div class="ds-empty">
+								<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-layers" 32}}</span>
+								<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_work.drafts_empty_title"}}</h2>
+								<p>{{ctx.Locale.Tr "asc_work.drafts_empty_body"}}</p>
+							</div>
+						</section>
 					{{end}}
 				</div>
-			{{else}}
-				<p>{{ctx.Locale.Tr "user.asc_drafts.none"}}</p>
-			{{end}}
+				<aside class="ds-rail" aria-label="{{ctx.Locale.Tr "asc_work.drafts_aside"}}">
+					<section class="ds-card" aria-labelledby="wk-drafts-term">
+						<div class="ds-card-h"><h2 id="wk-drafts-term">{{ctx.Locale.Tr "asc_work.dash_terminal"}}</h2></div>
+						<div class="ds-card-b">
+							<div class="ds-term">
+								<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_work.terminal_label"}}</span><button type="button" class="ds-copy" data-clipboard-text="asc stack draft">{{ctx.Locale.Tr "copy"}}</button></div>
+								<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_work.dash_terminal"}}"><code>$ asc stack draft
+$ asc stack resume &lt;change&gt;</code></div>
+							</div>
+						</div>
+					</section>
+					<p class="ds-callout">{{ctx.Locale.Tr "asc_work.drafts_retention"}}</p>
+				</aside>
+			</div>
 		{{end}}
 	</div>
 </div>

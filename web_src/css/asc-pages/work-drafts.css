@@ -1,0 +1,154 @@
+/* Drafts (boards Drafts and Mobile-Drafts): head with the command, list of drafts, rail. */
+
+.wk-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px 20px;
+  padding: 20px 0 18px;
+}
+
+.wk-eyebrow-kicker {
+  margin-bottom: 4px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.wk-head-cmd .ds-cmd {
+  max-width: 100%;
+}
+
+.wk-drafts-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-draft {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  grid-template-areas:
+    "dot main"
+    "acts acts";
+  gap: 8px 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.wk-draft:last-child {
+  border-bottom: 0;
+}
+
+.wk-draft-dot {
+  grid-area: dot;
+  margin-top: 7px;
+}
+
+.wk-draft-main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.wk-draft-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.wk-draft-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.wk-draft-name {
+  overflow-wrap: anywhere;
+}
+
+.wk-draft-sub {
+  margin-top: 2px;
+  color: var(--text-2);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.wk-draft-sub a {
+  color: inherit;
+}
+
+.wk-draft-meta {
+  margin-top: 2px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.wk-draft-acts {
+  grid-area: acts;
+  display: flex;
+}
+
+.wk-draft-acts .ds-btn {
+  flex: 1;
+}
+
+.wk-draft-more {
+  padding: 12px 16px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  .wk-draft {
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+    grid-template-areas: "dot main acts";
+    align-items: center;
+    padding: 14px 18px;
+  }
+
+  .wk-draft-acts .ds-btn {
+    flex: none;
+  }
+}
+
+.wk-cmdchip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: var(--touch);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.wk-cmdchip code {
+  padding: 0 4px 0 14px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.wk-cmdchip-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch);
+  height: var(--touch);
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.wk-cmdchip-copy:hover {
+  color: var(--text);
+}
