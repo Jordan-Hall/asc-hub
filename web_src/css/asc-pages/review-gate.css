@@ -1,0 +1,316 @@
+/* stylelint-disable scale-unlimited/declaration-strict-value, csstools/value-no-unknown-custom-properties -- the tokens of the review pages are defined in review-kit.css */
+
+/* Secret scanning and the policy gate. Mobile first. */
+
+.rv-head-row {
+  margin-bottom: 10px;
+  align-items: baseline;
+}
+
+.rv-head-row .rv-h3 {
+  margin: 0;
+}
+
+.rv-cols-even {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 900px) {
+  .rv-cols-even {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+/* a finding: severity and state pills, the place, and the actions that fit under it on a phone */
+.rv-finding {
+  align-items: stretch;
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.rv-finding .rv-li-main {
+  flex: 0 1 auto;
+}
+
+.rv-finding-when {
+  font-size: 13px;
+}
+
+.rv-finding-where {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.rv-finding-where code {
+  font-family: var(--fonts-monospace, "JetBrains Mono", ui-monospace, monospace);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.rv-finding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rv-finding-acts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rv-finding-note > summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rv-finding-note .rv-input {
+  margin-bottom: 8px;
+}
+
+@media (min-width: 900px) {
+  .rv-finding {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .rv-finding .rv-li-main {
+    flex: 1 1 auto;
+  }
+
+  .rv-finding-form {
+    flex: none;
+    align-items: flex-end;
+    max-width: 52%;
+  }
+
+  .rv-finding-acts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+.rv ul.rv-facts {
+  list-style: none;
+  padding: 0;
+}
+
+.rv-finding-acts > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.rv-finding-note > summary {
+  color: var(--link);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rv-scan-text {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.rv-card-b > a:not(.rv-btn) {
+  color: var(--link);
+  font-weight: 600;
+}
+
+/* policy gate */
+.rv-held {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rv-held-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 14px 16px;
+  border-top: 1px solid var(--line-2);
+}
+
+.rv-term-flush {
+  border-radius: 0;
+}
+
+.rv-banner-flush {
+  margin: 12px 16px;
+}
+
+.rv-normal {
+  font-weight: 400;
+}
+
+.rv-cell {
+  font-weight: 600;
+}
+
+.rv-cell-ok {
+  color: var(--ok);
+}
+
+.rv-cell-no,
+.rv-cell-never {
+  color: var(--err);
+}
+
+.rv-cell-ro {
+  color: var(--text-2);
+}
+
+.rv-cell-via {
+  color: var(--text-1);
+  font-weight: 400;
+}
+
+.rv-tbl th.rv-cell-main {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+  color: var(--text);
+  background: none;
+  white-space: normal;
+}
+
+.rv-gate.rv-card-b {
+  list-style: none;
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  .rv-cols-gate {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 16px 20px;
+  }
+
+  .rv-cols-gate > .rv-side {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .rv-cols-gate > :not(.rv-side) {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .rv-tbl-stack th.rv-cell-main {
+    display: block;
+    width: 100%;
+    padding: 0 0 6px;
+    border: 0;
+    font-weight: 700;
+  }
+}
+
+/* compare: the base and head chooser, file rows */
+.rv-chooser {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.rv-chooser .rv-btn {
+  width: 100%;
+  justify-content: flex-start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rv-chooser .rv-chooser-swap {
+  align-self: flex-start;
+  width: 44px;
+  justify-content: center;
+}
+
+.rv-chooser .rv-chooser-sep {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--text-2);
+}
+
+.rv-chooser-dd.ui.dropdown {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.rv-chooser .rv-chooser-sep {
+  padding-inline: 4px;
+}
+
+@media (min-width: 900px) {
+  .rv-chooser-dd.ui.dropdown {
+    display: inline-block;
+    width: auto;
+  }
+
+  .rv-chooser {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .rv-chooser .rv-btn {
+    width: auto;
+    max-width: 360px;
+  }
+}
+
+/* the branch menus open as a bottom sheet on a phone */
+@media (max-width: 639.98px) {
+  .rv-chooser-dd > .menu {
+    position: fixed !important;
+    inset: auto 0 0 !important;
+    width: 100% !important;
+    max-height: 70vh;
+    border-radius: 16px 16px 0 0 !important;
+    z-index: var(--z-sheet, 60) !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .rv-chooser-dd > .menu .item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.rv-files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rv-file-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line-2);
+  font-size: 14px;
+}
+
+.rv-chooser-caret {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+.rv .rv-muted a,
+.rv .rv-lead a,
+.rv .rv-hint a,
+.rv .rv-li-sub a {
+  text-decoration: underline;
+}

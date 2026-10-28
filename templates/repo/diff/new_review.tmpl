@@ -3,19 +3,19 @@
 		{{if .Repository.IsArchived}}
 			data-tooltip-content="{{ctx.Locale.Tr "repo.archive.pull.noreview"}}"
 		{{end}}>
-		<button class="ui tiny primary button tw-pr-1 tw-flex js-btn-review {{if .Repository.IsArchived}}disabled{{end}}">
+		<button class="rv-btn rv-btn-primary js-btn-review {{if .Repository.IsArchived}}disabled{{end}}" type="button">
 			{{ctx.Locale.Tr "repo.diff.review"}}
-			<span class="ui small label review-comments-counter" data-pending-comment-number="{{.PendingCodeCommentNumber}}">{{.PendingCodeCommentNumber}}</span>
-			{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+			<span class="rv-count review-comments-counter" data-pending-comment-number="{{.PendingCodeCommentNumber}}">{{.PendingCodeCommentNumber}}</span>
+			{{svg "octicon-triangle-down" 14 "rv-caret"}}
 		</button>
 	</div>
 	<div class="review-box-panel tippy-target">
-		<div class="ui segment">
+		<div class="rv-reviewpanel">
 			<form class="ui form form-fetch-action" action="{{.Link}}/reviews/submit" method="post">
 				<input type="hidden" name="commit_id" value="{{.AfterCommitID}}">
-				<div class="field tw-flex tw-items-center">
-					<div class="tw-flex-1">{{ctx.Locale.Tr "repo.diff.review.header"}}</div>
-					<a class="muted close">{{svg "octicon-x" 16}}</a>
+				<div class="field rv-reviewpanel-head">
+					<div class="rv-grow rv-h4">{{ctx.Locale.Tr "repo.diff.review.header"}}</div>
+					<a class="muted close rv-btn rv-btn-ghost rv-btn-icon" role="button" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_review.rev_close"}}">{{svg "octicon-x" 16}}</a>
 				</div>
 				<div class="field">
 					{{template "shared/combomarkdowneditor" (dict
@@ -31,23 +31,24 @@
 						{{template "repo/upload" .}}
 					</div>
 				{{end}}
-				<div class="divider"></div>
+				<div class="rv-reviewpanel-acts">
 				{{$showSelfTooltip := (and $.IsSigned ($.Issue.IsPoster $.SignedUser.ID))}}
 				{{if $showSelfTooltip}}
 					<span class="tw-inline-block" data-tooltip-content="{{ctx.Locale.Tr "repo.diff.review.self_approve"}}">
-						<button type="submit" name="type" value="approve" disabled class="ui submit primary tiny button btn-submit">{{ctx.Locale.Tr "repo.diff.review.approve"}}</button>
+						<button type="submit" name="type" value="approve" disabled class="rv-btn rv-btn-primary btn-submit">{{ctx.Locale.Tr "repo.diff.review.approve"}}</button>
 					</span>
 				{{else}}
-					<button type="submit" name="type" value="approve" class="ui submit primary tiny button btn-submit">{{ctx.Locale.Tr "repo.diff.review.approve"}}</button>
+					<button type="submit" name="type" value="approve" class="rv-btn rv-btn-primary btn-submit">{{ctx.Locale.Tr "repo.diff.review.approve"}}</button>
 				{{end}}
-				<button type="submit" name="type" value="comment" class="ui submit tiny basic button btn-submit">{{ctx.Locale.Tr "repo.diff.review.comment"}}</button>
+				<button type="submit" name="type" value="comment" class="rv-btn rv-btn-secondary btn-submit">{{ctx.Locale.Tr "repo.diff.review.comment"}}</button>
 				{{if $showSelfTooltip}}
 					<span class="tw-inline-block" data-tooltip-content="{{ctx.Locale.Tr "repo.diff.review.self_reject"}}">
-						<button type="submit" name="type" value="reject" disabled class="ui submit red tiny button btn-submit">{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>
+						<button type="submit" name="type" value="reject" disabled class="rv-btn rv-btn-danger btn-submit">{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>
 					</span>
 				{{else}}
-					<button type="submit" name="type" value="reject" class="ui submit red tiny button btn-submit">{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>
+					<button type="submit" name="type" value="reject" class="rv-btn rv-btn-danger btn-submit">{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>
 				{{end}}
+				</div>
 			</form>
 		</div>
 	</div>

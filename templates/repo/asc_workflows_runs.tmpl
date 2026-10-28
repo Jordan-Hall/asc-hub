@@ -6,43 +6,48 @@ Template Attributes:
 * AscWorkflowScanned: runs looked at for the change filter, AscWorkflowScanCut: older runs were not looked at
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-agents">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="rv rv-page">
 		{{template "base/alert" .}}
-		{{template "repo/asc_agents_nav" .}}
-		<div class="asc-ag-head">
-			<h2 class="asc-ag-title">Workflow runs</h2>
-			<a class="ui basic button" href="{{.AscWorkflowsBase}}">Workflows</a>
-		</div>
+		<div class="rv-area">{{template "repo/asc_agents_nav" .}}</div>
+		<header class="rv-head">
+			<div class="rv-head-main">
+				<div class="rv-eyebrow">{{.Repository.FullName}} · {{ctx.Locale.Tr "asc_review.wf_eyebrow"}}</div>
+				<h1 class="rv-title">{{ctx.Locale.Tr "asc_review.wf_runs_title"}}</h1>
+			</div>
+			<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.AscWorkflowsBase}}">{{ctx.Locale.Tr "asc_review.wf_title"}}</a></div>
+		</header>
 		{{template "repo/asc_agents_notice" .}}
 		{{if not .AscAgentsFailure}}
-			<form class="asc-filter" method="get" action="{{.AscWorkflowsBase}}/runs" role="search" aria-label="Filter runs">
-				<label class="asc-filter-item">
-					<span>Workflow</span>
-					<input type="text" name="workflow" maxlength="64" value="{{.AscWorkflowFilterName}}" placeholder="any" autocomplete="off" autocapitalize="none" spellcheck="false">
-				</label>
-				<label class="asc-filter-item">
-					<span>State</span>
-					<select name="state">
-						<option value="">Any</option>
-						{{range .AscWorkflowStateFilters}}<option value="{{.Slug}}"{{if eq $.AscWorkflowFilterState .Slug}} selected{{end}}>{{.Label}}</option>{{end}}
-					</select>
-				</label>
-				<label class="asc-filter-item">
-					<span>Change</span>
-					<input type="text" name="change" maxlength="32" value="{{.AscWorkflowFilterChange}}" placeholder="32 letters, k to z" autocomplete="off" autocapitalize="none" spellcheck="false">
-				</label>
-				<button class="ui basic button" type="submit">Filter</button>
+			<form class="rv-filters" method="get" action="{{.AscWorkflowsBase}}/runs" role="search" aria-label="{{ctx.Locale.Tr "asc_review.agents_filter_label"}}">
+				<div class="rv-filter-fields rv-filter-fields-3">
+					<div class="rv-field">
+						<label class="rv-label" for="rv-wf-name">{{ctx.Locale.Tr "asc_review.wf_filter_workflow"}}</label>
+						<input class="rv-input" id="rv-wf-name" type="text" name="workflow" maxlength="64" value="{{.AscWorkflowFilterName}}" placeholder="{{ctx.Locale.Tr "asc_review.agents_filter_any"}}" autocomplete="off" autocapitalize="none" spellcheck="false">
+					</div>
+					<div class="rv-field">
+						<label class="rv-label" for="rv-wf-state">{{ctx.Locale.Tr "asc_review.agents_filter_state"}}</label>
+						<select class="rv-select" id="rv-wf-state" name="state">
+							<option value="">{{ctx.Locale.Tr "asc_review.wf_filter_any"}}</option>
+							{{range .AscWorkflowStateFilters}}<option value="{{.Slug}}"{{if eq $.AscWorkflowFilterState .Slug}} selected{{end}}>{{ctx.Locale.Tr (print "asc_review.wf_filter_" .Slug)}}</option>{{end}}
+						</select>
+					</div>
+					<div class="rv-field">
+						<label class="rv-label" for="rv-wf-change">{{ctx.Locale.Tr "asc_review.wf_change_label"}}</label>
+						<input class="rv-input" id="rv-wf-change" type="text" name="change" maxlength="32" value="{{.AscWorkflowFilterChange}}" placeholder="{{ctx.Locale.Tr "asc_review.wf_change_placeholder"}}" autocomplete="off" autocapitalize="none" spellcheck="false">
+					</div>
+					<button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_review.agents_filter_apply"}}</button>
+				</div>
 			</form>
 			{{if .AscWorkflowFilterChange}}
-				<p class="asc-muted" role="status">Runs about change <code>{{.AscWorkflowFilterChange}}</code>, newest first. Each row names the definition version it ran. {{if .AscWorkflowScanCut}}Only the latest {{.AscWorkflowScanned}} runs were looked at; older ones may exist.{{else}}{{.AscWorkflowScanned}} runs were looked at.{{end}}</p>
+				<p class="rv-banner" role="status"><span>{{ctx.Locale.Tr "asc_review.wf_change_note" .AscWorkflowFilterChange}} {{if .AscWorkflowScanCut}}{{ctx.Locale.Tr "asc_review.wf_scan_cut" .AscWorkflowScanned}}{{else}}{{ctx.Locale.Tr "asc_review.wf_scan_all" .AscWorkflowScanned}}{{end}}</span></p>
 			{{end}}
 			{{if .AscWorkflowRuns}}
-				{{template "repo/asc_workflows_runlist" .AscWorkflowRuns}}
-				{{if .AscWorkflowNext}}<p><a class="ui basic button" href="{{.AscWorkflowNext}}">Older runs</a></p>{{end}}
+				<div class="rv-gap">{{template "repo/asc_workflows_runlist" .AscWorkflowRuns}}</div>
+				{{if .AscWorkflowNext}}<p class="rv-more"><a class="rv-btn rv-btn-secondary" href="{{.AscWorkflowNext}}">{{ctx.Locale.Tr "asc_review.agents_older"}}</a></p>{{end}}
 			{{else}}
-				<div class="asc-empty" data-testid="asc-workflow-runs-empty"><p>No runs match.</p></div>
+				<div class="rv-empty rv-gap" data-testid="asc-workflow-runs-empty"><h2>{{ctx.Locale.Tr "asc_review.agents_none_match"}}</h2><p>{{ctx.Locale.Tr "asc_review.agents_none_match_help"}}</p><div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.AscWorkflowsBase}}/runs">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></div></div>
 			{{end}}
 		{{end}}
 	</div>

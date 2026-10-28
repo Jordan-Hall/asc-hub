@@ -1,5 +1,5 @@
 {{/*
-Versions dropdown of a stacked pull request (SPEC 20.5 flow 2, PLAN C37).
+Versions panel of a stacked pull request (SPEC 20.5 flow 2, PLAN C37; design board Review versions).
 Template Attributes:
 * AscVersions: *pull.AscVersionList (nil or empty: nothing is shown)
 * AscVersionFrom, AscVersionTo: uint32, the versions being shown (both 0: the ordinary diff; only To: that version)
@@ -9,64 +9,77 @@ Template Attributes:
 * AscSignatures: map[uint32]asctrust.Badge, the Verified badge of each version that has one (nil: none is shown)
 * AscSinceVersion: uint32, the version of the viewer's last review (0 when there is none or it is the latest)
 * Issue.Link: the pull request link
-Numbers are inserted as they are; the actor name comes from asc and is escaped by the template engine.
+Numbers are inserted as they are; the actor name comes from asc and is escaped by the template engine. The base and head
+pickers are plain radio buttons of a GET form, so the panel works without a script.
 */}}
 {{if and .AscVersions .AscVersions.Versions}}
-{{$current := .AscVersions.Latest}}
-{{$head := $current}}
+{{$latest := .AscVersions.Latest}}
+{{$current := $latest}}
+{{$head := $latest}}
 {{if .AscHeadVersion}}{{$head = .AscHeadVersion}}{{$current = .AscHeadVersion}}{{end}}
 {{if .AscVersionTo}}{{$current = .AscVersionTo}}{{end}}
-<div class="ui small compact menu asc-versions tw-mb-4" data-testid="asc-versions">
-	<div class="ui dropdown item">
-		<span class="text">{{ctx.Locale.Tr "repo.pulls.asc_versions.of" $current (len .AscVersions.Versions)}}</span>
-		{{if $.AscSignatures}}{{template "repo/pulls/asc_signature_badge" (index $.AscSignatures $current)}}{{end}}
-		{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-		<div class="menu">
-			<a class="item {{if not .AscVersionTo}}active{{end}}" href="{{.Issue.Link}}/files">{{ctx.Locale.Tr "repo.pulls.asc_versions.latest"}}</a>
-			{{range .AscVersions.Versions}}
-				<a class="item {{if and (eq $.AscVersionTo .N) (not $.AscVersionFrom)}}active{{end}}" href="{{$.Issue.Link}}/files?asc_to={{.N}}">
-					{{ctx.Locale.Tr "repo.pulls.asc_versions.version" .N}}
-					<span class="ui tiny text grey">{{.Actor}} · {{DateUtils.TimeSince .At}}</span>
-					{{if $.AscSignatures}}{{template "repo/pulls/asc_signature_badge" (index $.AscSignatures .N)}}{{end}}
-				</a>
-			{{end}}
-		</div>
-	</div>
-	{{if gt (len .AscVersions.Versions) 1}}
-	<div class="ui dropdown item">
-		<span class="text">{{ctx.Locale.Tr "repo.pulls.asc_versions.interdiff"}}</span>
-		{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-		<div class="menu">
-			{{range .AscVersions.Steps}}
-				<a class="item {{if and (eq $.AscVersionTo .To) (eq $.AscVersionFrom .From)}}active{{end}}" href="{{$.Issue.Link}}/files?asc_from={{.From}}&asc_to={{.To}}">
-					{{ctx.Locale.Tr "repo.pulls.asc_versions.interdiff_step" .From .To}}
-				</a>
-			{{end}}
-		</div>
-	</div>
-	{{end}}
-	{{if .AscCanRestore}}
-	<div class="ui dropdown item" data-testid="asc-restore-version">
-		<span class="text">{{ctx.Locale.Tr "repo.pulls.asc_versions.restore"}}</span>
-		{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-		<div class="menu">
-			{{range .AscVersions.Versions}}
-				{{if ne .N $head}}
-				<form class="item" method="post" action="{{$.Issue.Link}}/asc/restore_version">
-					{{$.CsrfTokenHtml}}
-					<input type="hidden" name="version" value="{{.N}}">
-					<button class="ui basic tiny button" type="submit">{{ctx.Locale.Tr "repo.pulls.asc_versions.restore_version" .N}}</button>
+<section class="rv rv-vers" data-testid="asc-versions" aria-label="{{ctx.Locale.Tr "asc_review.rev_versions"}}">
+	<div class="rv-vers-bar">
+		<details class="rv-menu rv-vers-pick">
+			<summary class="rv-btn rv-btn-secondary rv-vers-sum">
+				<span>{{ctx.Locale.Tr "repo.pulls.asc_versions.of" $current (len .AscVersions.Versions)}}</span>
+				{{if $.AscSignatures}}{{template "repo/pulls/asc_signature_badge" (index $.AscSignatures $current)}}{{end}}
+				{{svg "octicon-chevron-down" 14 "rv-caret"}}
+			</summary>
+			<div class="rv-menu-panel rv-vers-panel">
+				<form method="get" action="{{.Issue.Link}}/files" class="rv-vers-form">
+					<div class="rv-card-h"><h2 class="rv-h4">{{ctx.Locale.Tr "asc_review.rev_versions"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.rev_versions_help"}}</span></div>
+					<ol class="rv-vlist">
+						{{range .AscVersions.Newest}}
+						<li class="rv-vrow{{if eq .N $current}} is-current{{end}}">
+							<span class="rv-vnum">v{{.N}}</span>
+							<div class="rv-vmain">
+								<div class="rv-vtitle">
+									<a href="{{$.Issue.Link}}/files?asc_to={{.N}}">{{ctx.Locale.Tr "repo.pulls.asc_versions.version" .N}}</a>
+									{{if eq .N $head}}<span class="rv-pill rv-pill-info">{{ctx.Locale.Tr "asc_review.rev_current"}}</span>{{end}}
+									{{if $.AscSignatures}}{{template "repo/pulls/asc_signature_badge" (index $.AscSignatures .N)}}{{end}}
+								</div>
+								<div class="rv-li-sub">{{.Actor}} · {{DateUtils.TimeSince .At}}</div>
+							</div>
+							<fieldset class="rv-fieldset rv-vpick">
+								<legend class="rv-sr">{{ctx.Locale.Tr "repo.pulls.asc_versions.version" .N}}</legend>
+								<label class="rv-check rv-check-inline"><input type="radio" name="asc_from" value="{{.N}}"{{if eq $.AscVersionFrom .N}} checked{{end}}> {{ctx.Locale.Tr "asc_review.rev_base"}}</label>
+								<label class="rv-check rv-check-inline"><input type="radio" name="asc_to" value="{{.N}}"{{if eq $current .N}} checked{{end}}> {{ctx.Locale.Tr "asc_review.rev_head"}}</label>
+							</fieldset>
+							{{if and $.AscCanRestore (ne .N $head)}}
+							<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" form="asc-restore-{{.N}}">{{ctx.Locale.Tr "repo.pulls.asc_versions.restore_version" .N}}</button>
+							{{end}}
+						</li>
+						{{end}}
+					</ol>
+					<div class="rv-card-f rv-acts">
+						<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-versions-compare">{{ctx.Locale.Tr "asc_review.rev_compare"}}</button>
+						<a class="rv-btn rv-btn-secondary" href="{{.Issue.Link}}/files">{{ctx.Locale.Tr "repo.pulls.asc_versions.latest"}}</a>
+					</div>
 				</form>
+				{{if .AscCanRestore}}
+				<div data-testid="asc-restore-version">
+					{{range .AscVersions.Versions}}{{if ne .N $head}}
+					<form id="asc-restore-{{.N}}" method="post" action="{{$.Issue.Link}}/asc/restore_version">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="version" value="{{.N}}">
+					</form>
+					{{end}}{{end}}
+				</div>
 				{{end}}
+			</div>
+		</details>
+		{{if gt (len .AscVersions.Versions) 1}}
+		<nav class="rv-chips rv-vers-steps" aria-label="{{ctx.Locale.Tr "repo.pulls.asc_versions.interdiff"}}">
+			{{range .AscVersions.Steps}}
+				<a class="rv-chip-btn" href="{{$.Issue.Link}}/files?asc_from={{.From}}&asc_to={{.To}}"{{if and (eq $.AscVersionTo .To) (eq $.AscVersionFrom .From)}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.pulls.asc_versions.interdiff_step" .From .To}}</a>
 			{{end}}
+		</nav>
+		{{end}}
+		<div class="rv-vers-links">
+			{{if .AscSinceVersion}}<a class="rv-btn rv-btn-secondary" href="{{.Issue.Link}}/files?asc_from={{.AscSinceVersion}}&asc_to={{.AscVersions.Latest}}" data-testid="asc-since-last-review">{{ctx.Locale.Tr "repo.pulls.asc_versions.since_review" .AscSinceVersion}}</a>{{end}}
+			<a class="rv-btn rv-btn-secondary" href="{{.Issue.Link}}/asc/checks" data-testid="asc-checks-link">{{ctx.Locale.Tr "asc_review.rev_checks"}}</a>
 		</div>
 	</div>
-	{{end}}
-	<a class="item" href="{{.Issue.Link}}/asc/checks" data-testid="asc-checks-link">Checks</a>
-	{{if .AscSinceVersion}}
-	<a class="item" href="{{.Issue.Link}}/files?asc_from={{.AscSinceVersion}}&asc_to={{.AscVersions.Latest}}" data-testid="asc-since-last-review">
-		{{ctx.Locale.Tr "repo.pulls.asc_versions.since_review" .AscSinceVersion}}
-	</a>
-	{{end}}
-</div>
+</section>
 {{end}}

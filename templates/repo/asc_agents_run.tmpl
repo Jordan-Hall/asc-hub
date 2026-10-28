@@ -9,103 +9,107 @@ Template Attributes:
 The page works without the script: the log shows what existed when it was drawn, and a reload shows the rest.
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-agents">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-agents">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="rv rv-page">
 		{{template "base/alert" .}}
-		{{template "repo/asc_agents_nav" .}}
+		<div class="rv-area">{{template "repo/asc_agents_nav" .}}</div>
 		{{template "repo/asc_agents_notice" .}}
 		{{if .AscAgentRun}}
 		<div id="asc-agent-run"
-			class="asc-run-page"
+			class="rv-run-page"
 			data-asc-agent-run
 			data-poll-url="{{.AscAgentsPollURL}}"
 			data-last-seq="{{.AscAgentLastSeq}}"
 			data-active="{{if .AscAgentRun.State.Active}}true{{else}}false{{end}}"
 			data-done="{{if .AscAgentFeedDone}}true{{else}}false{{end}}">
-			<div class="asc-run-head">
-				<h2 class="asc-ag-title" data-run-title>{{.AscAgentRun.Title}}</h2>
-				<span data-run-state>{{template "repo/asc_agents_pill" .AscAgentRun.State}}</span>
+			<header class="rv-head rv-run-head">
+				<span class="rv-av rv-av-agent rv-av-lg" aria-hidden="true">{{.AscAgentRun.Initials}}</span>
+				<div class="rv-head-main">
+					<div class="rv-eyebrow">{{ctx.Locale.Tr "asc_review.agents_run_n" .AscAgentRun.ID}}{{if .AscAgentRun.Agent}} · {{.AscAgentRun.Agent}}{{end}}</div>
+					<h1 class="rv-title" data-run-title>{{.AscAgentRun.Title}}</h1>
+					<p class="rv-run-sub">
+						<span data-run-state>{{template "repo/asc_agents_pill" .AscAgentRun.State}}</span>
+						{{if .AscAgentRun.CreatedBy}}<span>{{ctx.Locale.Tr "asc_review.run_started_by" .AscAgentRun.CreatedBy}}</span>{{end}}
+						{{if not .AscAgentRun.Created.IsZero}}<span>{{DateUtils.TimeSince .AscAgentRun.Created}}</span>{{end}}
+						{{if .AscAgentRunTarget}}<span>{{ctx.Locale.Tr "asc_review.run_for"}} <code>{{.AscAgentRunTarget}}</code></span>{{end}}
+						{{if .AscAgentRun.Model}}<span>{{ctx.Locale.Tr "asc_review.run_model"}} <code>{{.AscAgentRun.Model}}</code></span>{{end}}
+						{{if .AscAgentRunWorkflow}}<span>{{ctx.Locale.Tr "asc_review.run_part_of"}} <a href="{{.AscWorkflowsBase}}/runs">{{ctx.Locale.Tr "asc_review.run_workflow_run" .AscAgentRunWorkflow}}</a></span>{{end}}
+					</p>
+				</div>
 				{{if and .AscAgentCanAct .AscAgentRun.State.Active}}
-					<form class="asc-inline-form" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/cancel" data-run-cancel>
+					<form class="rv-acts" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/cancel" data-run-cancel>
 						{{.CsrfTokenHtml}}
-						<button class="ui basic red button" type="submit">Stop</button>
+						<button class="rv-btn rv-btn-danger" type="submit">{{ctx.Locale.Tr "asc_review.run_stop"}}</button>
 					</form>
 				{{end}}
-			</div>
-			<p class="asc-muted asc-run-sub">
-				Run {{.AscAgentRun.ID}}
-				{{if .AscAgentRun.Agent}} · agent <code>{{.AscAgentRun.Agent}}</code>{{end}}
-				{{if .AscAgentRun.CreatedBy}} · started by {{.AscAgentRun.CreatedBy}}{{end}}
-				{{if not .AscAgentRun.Created.IsZero}} · {{DateUtils.TimeSince .AscAgentRun.Created}}{{end}}
-				{{if .AscAgentRunTarget}} · for <code>{{.AscAgentRunTarget}}</code>{{end}}
-				{{if .AscAgentRun.Model}} · model <code>{{.AscAgentRun.Model}}</code>{{end}}
-				{{if .AscAgentRunWorkflow}} · part of <a href="{{.AscWorkflowsBase}}/runs">workflow run {{.AscAgentRunWorkflow}}</a>{{end}}
-			</p>
-			<div class="ui negative message{{if not .AscAgentRun.Failure}} tw-hidden{{end}}" role="alert" data-run-failure>{{.AscAgentRun.Failure}}</div>
-			<div class="ui warning message{{if not .AscAgentRunWaiting}} tw-hidden{{end}}" role="status" data-run-waiting>The agent is waiting for you. Answer it below.</div>
+			</header>
+			<div class="rv-banner rv-banner-err{{if not .AscAgentRun.Failure}} tw-hidden{{end}}" role="alert" data-run-failure>{{.AscAgentRun.Failure}}</div>
+			<div class="rv-banner rv-banner-warn{{if not .AscAgentRunWaiting}} tw-hidden{{end}}" role="status" data-run-waiting><div>{{ctx.Locale.Tr "asc_review.run_waiting"}} <a href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer_link"}}</a></div></div>
 
-			<div class="asc-split">
-				<div class="asc-main">
-					<section class="asc-card" aria-labelledby="asc-result-title" data-testid="asc-agent-result">
-						<h3 id="asc-result-title" class="asc-card-title">Result: a stack to review</h3>
-						<p class="asc-muted asc-result-empty{{if .AscAgentChanges}} tw-hidden{{end}}" data-result-empty>No changes yet.</p>
+			<div class="rv-cols rv-run-cols">
+				<section class="rv-card rv-area-budget" aria-labelledby="rv-budget-title">
+					<div class="rv-card-h"><h2 id="rv-budget-title">{{ctx.Locale.Tr "asc_review.run_budget"}}</h2></div>
+					<div class="rv-card-b">
+						<div class="rv-meters" data-meters>{{template "repo/asc_agents_meters" .AscAgentMeters}}</div>
+						<p class="rv-hint">{{ctx.Locale.Tr "asc_review.run_budget_help"}}</p>
+					</div>
+				</section>
+
+				<div class="rv-area-main rv-stack">
+					<section class="rv-card" aria-labelledby="rv-activity-title">
+						<div class="rv-card-h">
+							<h2 id="rv-activity-title">{{ctx.Locale.Tr "asc_review.run_activity"}}</h2>
+							<label class="rv-check rv-check-inline rv-end"><input type="checkbox" data-show-all> {{ctx.Locale.Tr "asc_review.run_show_all"}}</label>
+						</div>
+						<p class="rv-feed-status" data-feed-status role="status">{{if .AscAgentFeedDone}}{{ctx.Locale.Tr "asc_review.run_feed_done"}}{{else if .AscAgentRun.State.Active}}{{ctx.Locale.Tr "asc_review.run_feed_following"}}{{else}}{{ctx.Locale.Tr "asc_review.run_feed_over"}}{{end}}</p>
+						{{if .AscAgentEventsHidden}}<p class="rv-feed-status">{{ctx.Locale.Tr "asc_review.run_events_hidden" .AscAgentEventsHidden}}</p>{{end}}
+						<ol class="asc-log rv-log" data-log aria-live="off" data-testid="asc-agent-log">
+							{{template "repo/asc_agents_events" .AscAgentEvents}}
+						</ol>
+						<p class="rv-feed-status{{if .AscAgentEvents}} tw-hidden{{end}}" data-log-empty>{{ctx.Locale.Tr "asc_review.run_log_empty"}}</p>
+					</section>
+
+					{{if .AscAgentCanAct}}
+						<section class="rv-card rv-steer" id="rv-steer" aria-labelledby="rv-steer-title" data-run-steer{{if not .AscAgentRun.State.Active}} hidden{{end}}>
+							<div class="rv-card-h"><h2 id="rv-steer-title">{{if .AscAgentRunWaiting}}{{ctx.Locale.Tr "asc_review.run_answer"}}{{else}}{{ctx.Locale.Tr "asc_review.run_steer"}}{{end}}</h2></div>
+							<form class="rv-card-b rv-form" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/input">
+								{{.CsrfTokenHtml}}
+								<div class="rv-field">
+									<label for="asc-ag-input" class="rv-sr">{{ctx.Locale.Tr "asc_review.run_message_label"}}</label>
+									<textarea class="rv-textarea" id="asc-ag-input" name="text" rows="3" required maxlength="{{.AscAgentsMaxInput}}" placeholder="{{ctx.Locale.Tr "asc_review.run_message_placeholder"}}"></textarea>
+								</div>
+								<button class="rv-btn rv-btn-agent" type="submit">{{if .AscAgentRun.Agent}}{{ctx.Locale.Tr "asc_review.run_send_to" .AscAgentRun.Agent}}{{else}}{{ctx.Locale.Tr "asc_review.run_send"}}{{end}}</button>
+							</form>
+						</section>
+					{{end}}
+
+					<section class="rv-card" aria-labelledby="rv-result-title" data-testid="asc-agent-result">
+						<div class="rv-card-h"><h2 id="rv-result-title">{{ctx.Locale.Tr "asc_review.run_result"}}</h2></div>
+						<p class="rv-card-b rv-muted{{if .AscAgentChanges}} tw-hidden{{end}}" data-result-empty>{{ctx.Locale.Tr "asc_review.run_result_empty"}}</p>
 						{{if .AscAgentChanges}}
-							<ol class="asc-stack-list" data-result-list>
+							<ol class="rv-result" data-result-list>
 								{{range .AscAgentChanges}}
-									<li class="asc-stack-item">
-										<span class="asc-stack-pos">{{.Position}}</span>
+									<li class="rv-result-row">
+										<span class="rv-result-pos">{{.Position}}</span>
 										<code>{{.Short}}</code>
 										{{if .HasPull}}
-											<a href="{{.URL}}">Review #{{.PullID}}</a>
-											{{if .Merged}}<span class="asc-pill asc-tone-ok">Landed</span>{{else if .Closed}}<span class="asc-pill asc-tone-idle">Closed</span>{{else}}<span class="asc-pill asc-tone-wait">Waiting for review</span>{{end}}
+											<span class="rv-result-state">{{if .Merged}}<span class="asc-pill asc-tone-ok">{{ctx.Locale.Tr "asc_review.run_change_landed"}}</span>{{else if .Closed}}<span class="asc-pill asc-tone-idle">{{ctx.Locale.Tr "asc_review.run_change_closed"}}</span>{{else}}<span class="asc-pill asc-tone-wait">{{ctx.Locale.Tr "asc_review.run_change_waiting"}}</span>{{end}}</span>
+											<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.URL}}">{{ctx.Locale.Tr "asc_review.run_change_review" .PullID}}</a>
 										{{else}}
-											<span class="asc-muted">not submitted for review yet</span>
+											<span class="rv-muted rv-result-note">{{ctx.Locale.Tr "asc_review.run_change_draft"}}</span>
 										{{end}}
 									</li>
 								{{end}}
 							</ol>
 						{{end}}
-						<p class="asc-muted">Landing goes through the normal review and merge queue. The agent cannot merge.</p>
+						<p class="rv-card-f rv-hint">{{ctx.Locale.Tr "asc_review.run_result_help"}}</p>
 					</section>
-
-					<section class="asc-card" aria-labelledby="asc-activity-title">
-						<div class="asc-card-head">
-							<h3 id="asc-activity-title" class="asc-card-title">Live activity</h3>
-							<label class="asc-toggle"><input type="checkbox" data-show-all> Show everything</label>
-						</div>
-						<p class="asc-muted" data-feed-status role="status">{{if .AscAgentFeedDone}}The run is over; this is the whole log.{{else if .AscAgentRun.State.Active}}Following the run.{{else}}The run is over.{{end}}</p>
-						{{if .AscAgentEventsHidden}}<p class="asc-muted">{{.AscAgentEventsHidden}} earlier events are not shown.</p>{{end}}
-						<ol class="asc-log" data-log aria-live="off" data-testid="asc-agent-log">
-							{{template "repo/asc_agents_events" .AscAgentEvents}}
-						</ol>
-						<p class="asc-muted{{if .AscAgentEvents}} tw-hidden{{end}}" data-log-empty>Nothing has happened yet.</p>
-					</section>
-
-					{{if .AscAgentCanAct}}
-						<section class="asc-card" aria-labelledby="asc-steer-title" data-run-steer{{if not .AscAgentRun.State.Active}} hidden{{end}}>
-							<h3 id="asc-steer-title" class="asc-card-title">{{if .AscAgentRunWaiting}}Answer the agent{{else}}Steer this run{{end}}</h3>
-							<form class="ui form" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/input">
-								{{.CsrfTokenHtml}}
-								<div class="field">
-									<label for="asc-ag-input" class="tw-sr-only">Message to the agent</label>
-									<textarea id="asc-ag-input" name="text" rows="3" required maxlength="{{.AscAgentsMaxInput}}" placeholder="Also add a metric for retry exhaustion"></textarea>
-								</div>
-								<button class="ui primary button" type="submit">Send to {{if .AscAgentRun.Agent}}{{.AscAgentRun.Agent}}{{else}}the agent{{end}}</button>
-							</form>
-						</section>
-					{{end}}
 				</div>
 
-				<aside class="asc-side" aria-label="Budget and access">
-					<section class="asc-card" aria-labelledby="asc-budget-title">
-						<h3 id="asc-budget-title" class="asc-card-title">Budget</h3>
-						<div data-meters>{{template "repo/asc_agents_meters" .AscAgentMeters}}</div>
-						<p class="asc-muted">Hard limits, kept by the server. The run stops at any of them.</p>
-					</section>
-					{{template "repo/asc_agents_policy" .}}
-				</aside>
+				<div class="rv-area-policy">{{template "repo/asc_agents_policy" .}}</div>
 			</div>
+			{{if and .AscAgentCanAct .AscAgentRunWaiting}}<div class="rv-sticky rv-mob"><a class="rv-btn rv-btn-primary" href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer"}}</a></div>{{end}}
 		</div>
 		{{end}}
 	</div>

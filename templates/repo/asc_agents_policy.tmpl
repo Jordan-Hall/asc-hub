@@ -5,22 +5,24 @@ Template Attributes:
 The server enforces all of this on every update; the page only shows it.
 */}}
 {{with .AscAgentPolicy}}
-	<section class="asc-card" aria-labelledby="asc-policy-title" data-testid="asc-agent-policy">
-		<h2 id="asc-policy-title" class="asc-card-title">Access for agents</h2>
-		{{if .Known}}
-			<ul class="asc-access">
-				<li><span class="asc-can">Can</span> read the repository</li>
-				<li><span class="asc-can">Can</span> write
-					{{range $i, $g := .Scope}}{{if $i}}, {{end}}<code>{{$g}}</code>{{else}}the paths the policy allows{{end}}
-				</li>
-				<li><span class="asc-can">Can</span> open changes in a stack of their own, under review</li>
-				<li><span class="asc-cannot">Cannot</span> push or merge to trunk</li>
-				{{if .Denied}}<li><span class="asc-cannot">Cannot</span> touch {{range $i, $g := .Denied}}{{if $i}}, {{end}}<code>{{$g}}</code>{{end}}</li>{{end}}
-				{{if .MaxChanges}}<li><span class="asc-limit">Limit</span> {{.MaxChanges}} changes per run</li>{{end}}
-				{{if .MaxPaths}}<li><span class="asc-limit">Limit</span> {{.MaxPaths}} paths per run</li>{{end}}
-			</ul>
-		{{else}}
-			<p class="asc-muted">The repository has no readable policy, so the server defaults apply: agents write their own stack of changes, never trunk.</p>
-		{{end}}
+	<section class="rv-card rv-policy" aria-labelledby="rv-policy-title" data-testid="asc-agent-policy">
+		<div class="rv-card-h"><h2 id="rv-policy-title">{{ctx.Locale.Tr "asc_review.policy_title"}}</h2></div>
+		<div class="rv-card-b">
+			{{if .Known}}
+				<ul class="rv-access">
+					<li><span class="rv-can">{{ctx.Locale.Tr "asc_review.policy_can"}}</span> {{ctx.Locale.Tr "asc_review.policy_read"}}</li>
+					<li><span class="rv-can">{{ctx.Locale.Tr "asc_review.policy_can"}}</span> {{ctx.Locale.Tr "asc_review.policy_write"}}
+						{{range $i, $g := .Scope}}{{if $i}}, {{end}}<code>{{$g}}</code>{{else}}{{ctx.Locale.Tr "asc_review.policy_write_default"}}{{end}}
+					</li>
+					<li><span class="rv-can">{{ctx.Locale.Tr "asc_review.policy_can"}}</span> {{ctx.Locale.Tr "asc_review.policy_stack"}}</li>
+					<li><span class="rv-cannot">{{ctx.Locale.Tr "asc_review.policy_cannot"}}</span> {{ctx.Locale.Tr "asc_review.policy_no_trunk"}}</li>
+					{{if .Denied}}<li><span class="rv-cannot">{{ctx.Locale.Tr "asc_review.policy_cannot"}}</span> {{ctx.Locale.Tr "asc_review.policy_denied"}} {{range $i, $g := .Denied}}{{if $i}}, {{end}}<code>{{$g}}</code>{{end}}</li>{{end}}
+					{{if .MaxChanges}}<li><span class="rv-limit">{{ctx.Locale.Tr "asc_review.policy_limit"}}</span> {{ctx.Locale.Tr "asc_review.policy_max_changes" .MaxChanges}}</li>{{end}}
+					{{if .MaxPaths}}<li><span class="rv-limit">{{ctx.Locale.Tr "asc_review.policy_limit"}}</span> {{ctx.Locale.Tr "asc_review.policy_max_paths" .MaxPaths}}</li>{{end}}
+				</ul>
+			{{else}}
+				<p class="rv-muted">{{ctx.Locale.Tr "asc_review.policy_unknown"}}</p>
+			{{end}}
+		</div>
 	</section>
 {{end}}

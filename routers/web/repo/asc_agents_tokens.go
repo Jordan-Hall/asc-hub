@@ -70,6 +70,7 @@ type ascAgentTokenRow struct {
 	Hint       string
 	Meters     []ascagentui.Meter
 	CanRevoke  bool
+	Initials   string
 }
 
 func ascAgentTokenOf(t *ascv1.AgentToken, name string) (ascAgentTokenRow, bool) {
@@ -80,6 +81,7 @@ func ascAgentTokenOf(t *ascv1.AgentToken, name string) (ascAgentTokenRow, bool) 
 		ID:         t.GetId(),
 		Name:       ascagentui.CleanLine(t.GetName(), ascagentui.MaxTokenName),
 		Agent:      ascagentui.SafeName(t.GetAgent()),
+		Initials:   ascAgentInitials(ascagentui.SafeName(t.GetAgent())),
 		MaxChanges: t.GetMaxChangesPerRun(),
 		State:      ascagentui.TokenState(t.GetState()),
 		CreatedBy:  ascagentui.SafeName(t.GetCreatedBy()),

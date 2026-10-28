@@ -52,6 +52,7 @@ type fakeTrust struct {
 	ascv1.UnimplementedCiInsightsServer
 	ascv1.UnimplementedAuditServer
 	ascv1.UnimplementedDepsServiceServer
+	ascv1.UnimplementedPolicyServer
 
 	mu       sync.Mutex
 	calls    []trustCall
@@ -71,6 +72,9 @@ type fakeTrust struct {
 	depScan     func(*ascv1.ScanDepsRequest) (*ascv1.ScanDepsResponse, error)
 	depPropose  func(*ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error)
 	depDismiss  func(*ascv1.DismissDepFindingRequest) (*ascv1.DismissDepFindingResponse, error)
+
+	policySource func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error)
+	policyEval   func(*ascv1.EvaluatePolicyRequest) (*ascv1.EvaluatePolicyResponse, error)
 }
 
 func (f *fakeTrust) note(ctx gocontext.Context, method string, req any) {
@@ -213,6 +217,22 @@ func (f *fakeTrust) Dismiss(ctx gocontext.Context, r *ascv1.DismissDepFindingReq
 	return f.depDismiss(r)
 }
 
+func (f *fakeTrust) GetSource(ctx gocontext.Context, r *ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+	f.note(ctx, "PolicySource", r)
+	if f.policySource == nil {
+		return f.UnimplementedPolicyServer.GetSource(ctx, r)
+	}
+	return f.policySource(r)
+}
+
+func (f *fakeTrust) Evaluate(ctx gocontext.Context, r *ascv1.EvaluatePolicyRequest) (*ascv1.EvaluatePolicyResponse, error) {
+	f.note(ctx, "PolicyEvaluate", r)
+	if f.policyEval == nil {
+		return f.UnimplementedPolicyServer.Evaluate(ctx, r)
+	}
+	return f.policyEval(r)
+}
+
 var testForwardedKey = []byte("0123456789abcdef0123456789abcdef")
 
 // assertAs checks what a call carried: the hub's own service credential (never an access token of the person) and a
@@ -237,6 +257,7 @@ func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
 	ascv1.RegisterCiInsightsServer(srv, f)
 	ascv1.RegisterAuditServer(srv, f)
 	ascv1.RegisterDepsServiceServer(srv, f)
+	ascv1.RegisterPolicyServer(srv, f)
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()

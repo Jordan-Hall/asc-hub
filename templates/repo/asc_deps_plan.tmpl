@@ -6,53 +6,63 @@ Template Attributes:
 * AscDepsMaxKind: the update size the preview was made with
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
 	{{template "repo/header" .}}
-	<div class="ui container">
-	{{template "base/alert" .}}
-	{{with .AscDeps}}
-	<div class="asc-trust" data-testid="asc-deps-plan">
-		<p class="asc-trust-links"><a href="{{.DepsURL}}?view=updates">{{ctx.Locale.Tr "asc_trust.deps.back_updates"}}</a></p>
-		<div class="asc-trust-head"><h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_trust.deps.plan_title"}}</h2></div>
-		<p class="asc-trust-lead">{{ctx.Locale.Tr "asc_trust.deps.plan_lead"}}</p>
-		{{with .Plan}}
-			{{range .Proposals}}
-			<section class="ast-card" aria-labelledby="asc-plan-{{.Group}}" data-testid="asc-plan-proposal">
-				<div class="ast-card-head"><h3 id="asc-plan-{{.Group}}" class="ast-card-title">{{.Group}}</h3><span class="ast-card-aside"><code class="asc-trust-code">{{.Ref}}</code></span></div>
-				<ul class="ast-ops">
-					{{range .Updates}}
-					<li class="ast-op"><div class="ast-op-main"><div class="ast-op-line"><strong>{{.Name}}</strong> <code class="asc-trust-code">{{.Current}}</code> → <code class="asc-trust-code">{{.Target}}</code> <span class="ast-pill ast-pill-{{.KindTone}}">{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" .KindKey)}}</span></div>
-						{{if .Fixes}}<div class="asc-trust-sub ast-tone-ok">{{ctx.Locale.Tr "asc_trust.deps.fixes"}} {{range $i, $f := .Fixes}}{{if $i}}, {{end}}{{$f}}{{end}}</div>{{end}}</div></li>
-					{{end}}
-				</ul>
-				{{if .Files}}<p class="asc-trust-sub ast-card-body">{{ctx.Locale.Tr "asc_trust.deps.plan_files"}} {{range $i, $f := .Files}}{{if $i}}, {{end}}<code class="asc-trust-code">{{$f}}</code>{{end}}</p>{{end}}
-				{{range .Notes}}<p class="asc-trust-sub ast-card-body ast-tone-wn">{{.}}</p>{{end}}
-			</section>
-			{{else}}
-			<div class="ui info message" data-testid="asc-plan-empty">{{ctx.Locale.Tr "asc_trust.deps.nothing_to_propose"}}</div>
-			{{end}}
-			{{if .Skipped}}
-			<section class="ast-card" aria-labelledby="asc-plan-skipped">
-				<div class="ast-card-head"><h3 id="asc-plan-skipped" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.deps.plan_skipped"}}</h3></div>
-				<ul class="ast-blocked" data-testid="asc-plan-skipped">{{range .Skipped}}<li><strong>{{.Name}}</strong> {{if .Ecosystem}}<span class="ast-pill ast-pill-ro">{{.Ecosystem}}</span>{{end}} {{.Reason}}</li>{{end}}</ul>
-			</section>
-			{{end}}
-			{{if .Proposals}}
-			<form class="ui form" method="post" action="{{$.AscDeps.DepsURL}}/propose" data-testid="asc-plan-apply-form">
-				{{$.CsrfTokenHtml}}
-				<input type="hidden" name="mode" value="apply">
-				<input type="hidden" name="op" value="{{$.AscDeps.Op}}">
-				{{if $.AscDeps.SecurityOnly}}<input type="hidden" name="security" value="1">{{end}}
-				<input type="hidden" name="max_kind" value="{{$.AscDepsMaxKind}}">
-				<div class="asc-trust-actions">
-					<button class="ui primary button" type="submit" data-testid="asc-plan-apply">{{ctx.Locale.Tr "asc_trust.deps.plan_apply"}}</button>
-					<a class="ui basic button" href="{{$.AscDeps.DepsURL}}?view=updates">{{ctx.Locale.Tr "asc_trust.deps.cancel"}}</a>
+	<div class="rv rv-page">
+		{{template "base/alert" .}}
+		{{with .AscDeps}}
+		<div class="rv-narrow" data-testid="asc-deps-plan">
+			<header class="rv-head">
+				<div class="rv-head-main">
+					<div class="rv-eyebrow"><a href="{{.DepsURL}}?view=updates">{{ctx.Locale.Tr "asc_trust.deps.back_updates"}}</a></div>
+					<h1 class="rv-title">{{ctx.Locale.Tr "asc_trust.deps.plan_title"}}</h1>
+					<p class="rv-lead">{{ctx.Locale.Tr "asc_trust.deps.plan_lead"}}</p>
 				</div>
-			</form>
+			</header>
+			{{with .Plan}}
+				{{range .Proposals}}
+				<section class="rv-card rv-gap" aria-labelledby="asc-plan-{{.Group}}" data-testid="asc-plan-proposal">
+					<div class="rv-card-h"><h2 id="asc-plan-{{.Group}}">{{.Group}}</h2><code class="rv-end rv-faint">{{.Ref}}</code></div>
+					<ul class="rv-list">
+						{{range .Updates}}
+						<li class="rv-li">
+							<div class="rv-li-main">
+								<div class="rv-li-title"><span class="rv-mono">{{.Name}}</span> <span class="rv-mono rv-muted">{{.Current}} → {{.Target}}</span></div>
+								{{if .Fixes}}<div class="rv-li-sub rv-ok">{{ctx.Locale.Tr "asc_trust.deps.fixes"}} {{range $i, $f := .Fixes}}{{if $i}}, {{end}}{{$f}}{{end}}</div>{{end}}
+							</div>
+						</li>
+						{{end}}
+					</ul>
+					{{if .Files}}<p class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_trust.deps.plan_files"}} {{range $i, $f := .Files}}{{if $i}}, {{end}}<code>{{$f}}</code>{{end}}</p>{{end}}
+					{{range .Notes}}<p class="rv-card-b rv-warn">{{.}}</p>{{end}}
+				</section>
+				{{else}}
+				<div class="rv-empty" data-testid="asc-plan-empty"><span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-check-circle" 24}}</span><h2>{{ctx.Locale.Tr "asc_review.deps_uptodate_title"}}</h2><p>{{ctx.Locale.Tr "asc_trust.deps.nothing_to_propose"}}</p></div>
+				{{end}}
+				{{if .Skipped}}
+				<section class="rv-card rv-gap" aria-labelledby="asc-plan-skipped">
+					<div class="rv-card-h"><h2 id="asc-plan-skipped">{{ctx.Locale.Tr "asc_trust.deps.plan_skipped"}}</h2></div>
+					<ul class="rv-list" data-testid="asc-plan-skipped">
+						{{range .Skipped}}<li class="rv-li"><div class="rv-li-main"><div class="rv-li-title"><span class="rv-mono">{{.Name}}</span>{{if .Ecosystem}} <span class="rv-pill rv-pill-ro">{{.Ecosystem}}</span>{{end}}</div><div class="rv-li-sub">{{.Reason}}</div></div></li>{{end}}
+					</ul>
+				</section>
+				{{end}}
+				{{if .Proposals}}
+				<form class="rv-form rv-gap" method="post" action="{{$.AscDeps.DepsURL}}/propose" data-testid="asc-plan-apply-form">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="mode" value="apply">
+					<input type="hidden" name="op" value="{{$.AscDeps.Op}}">
+					{{if $.AscDeps.SecurityOnly}}<input type="hidden" name="security" value="1">{{end}}
+					<input type="hidden" name="max_kind" value="{{$.AscDepsMaxKind}}">
+					<div class="rv-sticky">
+						<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-plan-apply">{{ctx.Locale.Tr "asc_trust.deps.plan_apply"}}</button>
+						<a class="rv-btn rv-btn-secondary" href="{{$.AscDeps.DepsURL}}?view=updates">{{ctx.Locale.Tr "asc_trust.deps.cancel"}}</a>
+					</div>
+				</form>
+				{{end}}
 			{{end}}
+		</div>
 		{{end}}
-	</div>
-	{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}

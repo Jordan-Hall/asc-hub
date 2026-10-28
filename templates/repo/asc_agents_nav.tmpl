@@ -1,23 +1,23 @@
 {{/*
-The sub-navigation of the agents and workflows pages.
+The area navigation of the agents and workflows pages: one row of buttons, scrolling sideways on a phone.
 Template Attributes:
 * AscAgentsTab: runs, new, tokens or workflows
 * AscAgentFeatures: the person's agent features switch
 * AscAgentsCanStart, AscAgentsCanAdmin: what the person may do (both imply the switch)
 * AscAgentsBase, AscWorkflowsBase: the two link prefixes
 */}}
-<nav class="asc-ag-nav" aria-label="Agents and workflows" data-testid="asc-agents-nav">
-	<ul class="asc-ag-nav-list">
-		{{if .AscAgentFeatures}}
-			<li><a class="asc-ag-nav-link{{if eq .AscAgentsTab "runs"}} is-active{{end}}" href="{{.AscAgentsBase}}"{{if eq .AscAgentsTab "runs"}} aria-current="page"{{end}}>Runs</a></li>
-			{{if .AscAgentsCanStart}}<li><a class="asc-ag-nav-link{{if eq .AscAgentsTab "new"}} is-active{{end}}" href="{{.AscAgentsBase}}/new"{{if eq .AscAgentsTab "new"}} aria-current="page"{{end}}>New task</a></li>{{end}}
-			{{if .AscAgentsCanAdmin}}<li><a class="asc-ag-nav-link{{if eq .AscAgentsTab "tokens"}} is-active{{end}}" href="{{.AscAgentsBase}}/tokens"{{if eq .AscAgentsTab "tokens"}} aria-current="page"{{end}}>Tokens</a></li>{{end}}
-		{{end}}
-		<li><a class="asc-ag-nav-link{{if eq .AscAgentsTab "workflows"}} is-active{{end}}" href="{{.AscWorkflowsBase}}"{{if eq .AscAgentsTab "workflows"}} aria-current="page"{{end}}>Workflows</a></li>
-	</ul>
+<nav class="rv-seg rv-area-nav" aria-label="{{ctx.Locale.Tr "asc_review.agents_nav_label"}}" data-testid="asc-agents-nav">
+	{{if .AscAgentFeatures}}
+		<a href="{{.AscAgentsBase}}"{{if eq .AscAgentsTab "runs"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.agents_nav_runs"}}</a>
+	{{end}}
+	<a href="{{.AscWorkflowsBase}}"{{if eq .AscAgentsTab "workflows"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.agents_nav_workflows"}}</a>
+	{{if .AscAgentFeatures}}
+		{{if .AscAgentsCanStart}}{{if eq .AscAgentsTab "new"}}<a href="{{.AscAgentsBase}}/new" aria-current="page">{{ctx.Locale.Tr "asc_review.agents_nav_new"}}</a>{{end}}{{end}}
+		{{if .AscAgentsCanAdmin}}<a href="{{.AscAgentsBase}}/tokens"{{if eq .AscAgentsTab "tokens"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.agents_nav_access"}}</a>{{end}}
+	{{end}}
 </nav>
 {{if not .AscAgentFeatures}}
-	<div class="ui info message" role="note" data-testid="asc-agents-off">
-		Agent features are off for you, so runs, tokens and tasks are hidden. <a href="{{AppSubUrl}}/-/asc/agents">Turn them on</a> when you want them.
+	<div class="rv-banner rv-banner-agent" role="note" data-testid="asc-agents-off">
+		<div>{{ctx.Locale.Tr "asc_review.agents_off_note"}} <a href="{{AppSubUrl}}/-/asc/agents">{{ctx.Locale.Tr "asc_review.agents_off_link"}}</a></div>
 	</div>
 {{end}}

@@ -1,0 +1,67 @@
+/* stylelint-disable scale-unlimited/declaration-strict-value, csstools/value-no-unknown-custom-properties -- the tokens of the review pages are defined in review-kit.css */
+
+/* The dependencies page: findings, newer versions and the settings in force. Mobile first. */
+
+.rv-scan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.rv-dep {
+  align-items: flex-start;
+}
+
+.rv-dep-sum {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.rv-dep-form {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.rv-dep-dismiss > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.rv-dep-dismiss > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rv-dep-fields {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.rv-dep-chips {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+  .rv-dep-form {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+  }
+
+  .rv-dep-dismiss[open] {
+    flex-basis: 100%;
+  }
+}
