@@ -532,3 +532,24 @@
     grid-template-columns: minmax(0, 1fr) 280px;
   }
 }
+
+/* ---- blame heat: a bar at the edge of the blame cell, darker is newer; the age text sits beside it ---- */
+tr[data-heat] > td.lines-commit {
+  box-shadow: inset 3px 0 0 transparent;
+}
+
+tr[data-heat="1"] > td.lines-commit {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--link) 18%, transparent);
+}
+
+tr[data-heat="2"] > td.lines-commit {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--link) 40%, transparent);
+}
+
+tr[data-heat="3"] > td.lines-commit {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--link) 68%, transparent);
+}
+
+tr[data-heat="4"] > td.lines-commit {
+  box-shadow: inset 3px 0 0 var(--link);
+}
