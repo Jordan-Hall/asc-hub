@@ -112,7 +112,7 @@
 					{{end}}
 
 					{{if eq .AscSearchCount 0}}
-						<div class="ds-banner">{{ctx.Locale.Tr "asc_rp.s_nothing"}}</div>
+						{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_rp.s_nothing_title") "Body" (ctx.Locale.Tr "asc_rp.s_nothing") "PrimaryLabel" (ctx.Locale.Tr "asc_rp.s_all_branches") "PrimaryHref" (printf "%s/asc/search?q=%s&mode=%s&scope=branches" .RepoLink (QueryEscape .AscSearchText) .AscSearchMode) "SecondaryLabel" (ctx.Locale.Tr "asc_rp.s_all_repos") "SecondaryHref" (printf "%s/asc/search?q=%s&mode=%s&scope=repos" .RepoLink (QueryEscape .AscSearchText) .AscSearchMode))}}
 					{{end}}
 
 					{{if .AscSearchFiles}}
@@ -172,7 +172,7 @@
 									<div class="asc-card-head">
 										<a class="asc-path" href="{{$c.Link}}">{{$c.Path}}{{if $c.StartLine}}:{{$c.StartLine}}{{if gt $c.EndLine $c.StartLine}}-{{$c.EndLine}}{{end}}{{end}}</a>
 										{{if $c.Symbol}}<span class="tw-font-mono">{{$c.Symbol}}</span>{{end}}
-										<span class="asc-pill asc-pill-lang" title="{{ctx.Locale.Tr "asc_rp.s_score"}}">{{$c.Score}}</span>
+										<span class="rp-relevance" title="{{ctx.Locale.Tr "asc_rp.s_score"}}: {{$c.Score}}"><span class="rp-relevance-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{$c.ScorePct}}" aria-label="{{ctx.Locale.Tr "asc_rp.s_relevance"}}"><span class="rp-relevance-fill" data-pct="{{$c.ScorePct}}"></span></span><span class="rp-relevance-pct">{{$c.ScorePct}}%</span></span>
 										{{range $s := $c.Sources}}<span class="asc-pill asc-pill-lang">{{$s}}</span>{{end}}
 									</div>
 									{{if $c.Redacted}}
