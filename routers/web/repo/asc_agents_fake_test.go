@@ -289,6 +289,7 @@ type agentsReq struct {
 	features bool
 	form     url.Values
 	params   map[string]string
+	header   map[string]string
 	// notAsc leaves the repository on git storage.
 }
 
@@ -316,6 +317,9 @@ func runAgents(t *testing.T, r agentsReq, handler func(*context.Context)) agents
 	}
 	for k, v := range r.params {
 		ctx.SetParams(k, v)
+	}
+	for k, v := range r.header {
+		ctx.Req.Header.Set(k, v)
 	}
 	handler(ctx)
 	return agentsPage{status: resp.Code, body: resp.Body.String(), loc: resp.Header().Get("Location"), ctx: ctx, resp: resp}

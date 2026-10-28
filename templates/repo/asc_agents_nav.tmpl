@@ -13,6 +13,7 @@ Template Attributes:
 	<a href="{{.AscWorkflowsBase}}"{{if eq .AscAgentsTab "workflows"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.agents_nav_workflows"}}</a>
 	{{if .AscAgentFeatures}}
 		{{if .AscAgentsCanStart}}{{if eq .AscAgentsTab "new"}}<a href="{{.AscAgentsBase}}/new" aria-current="page">{{ctx.Locale.Tr "asc_review.agents_nav_new"}}</a>{{end}}{{end}}
+		<a href="{{.AscAgentsBase}}/spend"{{if eq .AscAgentsTab "spend"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.agents_nav_spend"}}</a>
 		{{if .AscAgentsCanAdmin}}<a href="{{.AscAgentsBase}}/tokens"{{if eq .AscAgentsTab "tokens"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_review.agents_nav_access"}}</a>{{end}}
 	{{end}}
 </nav>

@@ -29,10 +29,14 @@ Template Attributes:
 				</div>
 				{{if $.AscWorkflowCanAct}}
 					{{if .State.Active}}
-						<form class="rv-acts" method="post" action="{{.Link}}/cancel" data-run-cancel>
-							{{$.CsrfTokenHtml}}
-							<button class="rv-btn rv-btn-danger" type="submit">{{ctx.Locale.Tr "asc_review.wf_cancel"}}</button>
-						</form>
+						<details class="ag-pop rv-acts" data-run-cancel data-testid="asc-wf-cancel">
+							<summary class="rv-btn rv-btn-danger">{{ctx.Locale.Tr "asc_review.wf_cancel"}}</summary>
+							<form class="ag-pop-b rv-form" method="post" action="{{.Link}}/cancel">
+								{{$.CsrfTokenHtml}}
+								<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_cancel_help"}}</p>
+								<button class="rv-btn rv-btn-danger rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.wf_cancel_confirm"}}</button>
+							</form>
+						</details>
 					{{else}}
 						<form class="rv-acts" method="post" action="{{.Link}}/rerun">
 							{{$.CsrfTokenHtml}}

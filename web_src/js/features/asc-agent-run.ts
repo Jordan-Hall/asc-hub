@@ -223,6 +223,7 @@ async function followAgentRun(root: HTMLElement) {
       if (!resp.ok) throw new Error(`status ${resp.status}`);
       const feed: AgentFeed = await resp.json();
       failures = 0;
+      root.querySelector('[data-reconnect]')?.classList.add('tw-hidden');
       if (Number(feed.last) > last) last = Number(feed.last);
       applyAgentFeed(root, feed);
       if (feed.done) {
@@ -242,6 +243,7 @@ async function followAgentRun(root: HTMLElement) {
         return;
       }
       if (status) status.textContent = 'Reconnecting…';
+      root.querySelector('[data-reconnect]')?.classList.remove('tw-hidden');
       await sleep(Math.min(maxBackoffMs, 1000 * 2 ** failures));
     }
   }

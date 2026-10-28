@@ -63,8 +63,8 @@ func RunStateFilter(slug string) ([]ascv1.AgentRunState, bool) {
 
 // RunStateSlugs lists the filter slugs in the order the filter bar shows them.
 var RunStateSlugs = []State{
-	{Slug: "active", Label: "Active"},
-	{Slug: "waiting", Label: "Needs you"},
+	{Slug: "active", Label: "Running"},
+	{Slug: "waiting", Label: "Waiting"},
 	{Slug: "succeeded", Label: "Done"},
 	{Slug: "failed", Label: "Failed"},
 	{Slug: "cancelled", Label: "Stopped"},

@@ -30,7 +30,7 @@ Template Attributes:
 
 					<div class="rv-field">
 						<label class="rv-label" for="asc-ag-task">{{ctx.Locale.Tr "asc_review.new_task"}}</label>
-						<textarea class="rv-textarea rv-textarea-lg" id="asc-ag-task" name="task" rows="8" required maxlength="{{.AscAgentsMaxTask}}" aria-describedby="asc-ag-task-help{{if index .AscAgentForm.Errors "task"}} asc-ag-task-err{{end}}"{{if index .AscAgentForm.Errors "task"}} aria-invalid="true"{{end}}>{{.AscAgentForm.Task}}</textarea>
+						<textarea class="rv-textarea rv-textarea-lg" id="asc-ag-task" data-asc-estimate-task name="task" rows="8" required maxlength="{{.AscAgentsMaxTask}}" aria-describedby="asc-ag-task-help{{if index .AscAgentForm.Errors "task"}} asc-ag-task-err{{end}}"{{if index .AscAgentForm.Errors "task"}} aria-invalid="true"{{end}}>{{.AscAgentForm.Task}}</textarea>
 						<small id="asc-ag-task-help" class="rv-hint">{{ctx.Locale.Tr "asc_review.new_task_help"}}</small>
 						{{with index .AscAgentForm.Errors "task"}}<div id="asc-ag-task-err" class="rv-error" role="alert">{{.}}</div>{{end}}
 					</div>
@@ -44,7 +44,8 @@ Template Attributes:
 					<div class="rv-formgrid rv-formgrid-2">
 						<div class="rv-field">
 							<label class="rv-label" for="asc-ag-agent">{{ctx.Locale.Tr "asc_review.new_agent"}}</label>
-							<input class="rv-input" id="asc-ag-agent" name="agent" type="text" maxlength="40" value="{{.AscAgentForm.Agent}}" required autocomplete="off" autocapitalize="none" spellcheck="false"{{if index .AscAgentForm.Errors "agent"}} aria-invalid="true"{{end}}>
+							<input class="rv-input" id="asc-ag-agent" name="agent" type="text" maxlength="40" value="{{.AscAgentForm.Agent}}" required autocomplete="off" autocapitalize="none" spellcheck="false"{{if index .AscAgentForm.Errors "agent"}} aria-invalid="true"{{end}} list="asc-ag-agents" data-asc-estimate-agent>
+							<datalist id="asc-ag-agents">{{range .AscAgentsRoster}}<option value="{{.Name}}">{{.Scope}}</option>{{end}}</datalist>
 							{{with index .AscAgentForm.Errors "agent"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
 						</div>
 						<div class="rv-field">
@@ -76,6 +77,11 @@ Template Attributes:
 						</div>
 						{{if not .AscAgentKeys}}<p class="rv-hint">{{ctx.Locale.Tr "asc_review.new_no_keys"}}</p>{{end}}
 					</fieldset>
+
+					<div class="ag-switch">
+						<input type="checkbox" role="switch" id="asc-ag-plan" name="plan_first" value="1"{{if .AscAgentForm.PlanFirst}} checked{{end}} aria-describedby="asc-ag-plan-help">
+						<div><label for="asc-ag-plan"><b>{{ctx.Locale.Tr "asc_review.new_plan_first"}}</b></label><div id="asc-ag-plan-help" class="rv-hint">{{ctx.Locale.Tr "asc_review.new_plan_first_help"}}</div></div>
+					</div>
 
 					<fieldset class="rv-fieldset rv-fieldset-box">
 						<legend>{{ctx.Locale.Tr "asc_review.new_limits"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.new_limits_help"}}</span></legend>
@@ -122,6 +128,23 @@ Template Attributes:
 			</form>
 			<div class="rv-side">
 				{{template "repo/asc_agents_policy" .}}
+				<section class="rv-card ag-estimate" aria-labelledby="ag-est-h" data-testid="asc-agent-estimate" data-asc-estimate="{{.AscAgentsBase}}/estimate" data-known="{{if .AscAgentEstimate.Known}}1{{end}}">
+					<div class="rv-card-h"><h2 id="ag-est-h">{{ctx.Locale.Tr "asc_review.new_estimate"}}</h2></div>
+					<div class="rv-card-b" aria-live="polite">
+						<p data-est-known{{if not .AscAgentEstimate.Known}} hidden{{end}}><b>{{ctx.Locale.Tr "asc_review.new_est_about"}} <span data-est-duration>{{.AscAgentEstimate.Duration}}</span> {{ctx.Locale.Tr "asc_review.new_est_and"}} <span data-est-cost>{{.AscAgentEstimate.Cost}}</span></b><br><span class="rv-hint">{{ctx.Locale.Tr "asc_review.new_est_based"}} <span data-est-samples>{{.AscAgentEstimate.Samples}}</span> {{ctx.Locale.Tr "asc_review.new_est_runs"}}</span></p>
+						<p class="rv-muted" data-est-unknown{{if .AscAgentEstimate.Known}} hidden{{end}}>{{ctx.Locale.Tr "asc_review.new_est_none"}}</p>
+					</div>
+				</section>
+				{{if .AscAgentRecent}}
+				<section class="rv-card ag-recent" aria-labelledby="ag-recent-h" data-testid="asc-agent-recent">
+					<div class="rv-card-h"><h2 id="ag-recent-h">{{ctx.Locale.Tr "asc_review.new_recent"}}</h2></div>
+					<ul class="rv-list">
+						{{range .AscAgentRecent}}
+						<li class="ag-recent-row"><span>{{.Title}}</span><button class="rv-btn rv-btn-ghost rv-btn-sm" type="button" data-asc-reuse="{{.Task}}" data-asc-reuse-agent="{{.Agent}}">{{ctx.Locale.Tr "asc_review.new_reuse"}}</button></li>
+						{{end}}
+					</ul>
+				</section>
+				{{end}}
 			</div>
 		</div>
 	</div>
