@@ -1755,6 +1755,7 @@ func registerRoutes(m *web.Route) {
 
 		m.Group("/asc/queue", func() {
 			m.Get("", repo.AscQueuePage)
+			m.Get("/live", repo.AscQueueLive)
 			m.Post("/pause", reqSignIn, context.RepoMustNotBeArchived(), repo.AscQueuePause)
 			m.Post("/resume", reqSignIn, context.RepoMustNotBeArchived(), repo.AscQueueResume)
 		}, repo.MustAllowPulls, repo.MustBeNotEmpty, context.RepoRef(), reqRepoPullsReader)

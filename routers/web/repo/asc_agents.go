@@ -268,6 +268,7 @@ type ascAgentForm struct {
 	Key     string
 	Model   string
 	Paths   string
+	PlanFirst bool
 	Budget  ascagentui.BudgetInput
 	OpID    string
 	Errors  map[string]string
@@ -454,6 +455,7 @@ func ascAgentsRenderForm(ctx *context.Context, env *ascAgentsEnv, form *ascAgent
 		defer done()
 		keys := ascAgentKeyOptions(ctx, uctx, ascv1.NewAiProvidersClient(conn))
 		ctx.Data["AscAgentKeys"] = keys
+		ascAgentsLoadNewExtras(ctx, env, readCtx, uctx, form)
 		models := map[string][]string{}
 		for _, k := range keys {
 			if len(k.Models) > 0 {
@@ -493,6 +495,7 @@ func AscAgentsCreate(ctx *context.Context) {
 		Key:    ctx.FormTrim("key"),
 		Model:  ctx.FormTrim("model"),
 		Paths:  ctx.FormString("paths"),
+		PlanFirst: ctx.FormBool("plan_first"),
 		OpID:   ctx.FormTrim("op"),
 		Budget: ascagentui.BudgetInput{
 			Changes: ctx.FormTrim(ascagentui.BudgetFields.Changes),
@@ -513,7 +516,7 @@ func AscAgentsCreate(ctx *context.Context) {
 		form.Target = ctx.Repo.Repository.DefaultBranch
 	}
 
-	req := &ascv1.CreateAgentRunRequest{Repo: env.ref(), Agent: form.Agent}
+	req := &ascv1.CreateAgentRunRequest{Repo: env.ref(), Agent: form.Agent, PlanFirst: form.PlanFirst}
 	if t, ok := ascagentui.CheckFreeText(form.Task, ascagentui.MaxTaskBytes); ok {
 		req.Task = t
 	} else {
@@ -604,7 +607,12 @@ func AscAgentsCreate(ctx *context.Context) {
 		ascAgentsRenderForm(ctx, env, &form, http.StatusBadGateway)
 		return
 	}
-	ctx.Flash.Success("Run " + strconv.FormatUint(row.ID, 10) + " started.")
+	started := "Run " + strconv.FormatUint(row.ID, 10) + " started."
+	if len(resp.GetLowered()) > 0 {
+		ctx.Flash.Warning(ascAgentsLoweredText(started+" A limit was above the policy cap.", resp.GetLowered()))
+	} else {
+		ctx.Flash.Success(started)
+	}
 	ctx.Redirect(row.Link)
 }
 
@@ -688,6 +696,16 @@ func AscAgentsRun(ctx *context.Context) {
 	ctx.Data["AscAgentCanAct"] = ctx.Repo.CanWrite(unit.TypeCode)
 	ctx.Data["AscAgentsMaxInput"] = ascagentui.MaxInputBytes
 	ctx.Data["AscAgentsPollURL"] = env.runsLink() + "/runs/" + strconv.FormatUint(id, 10) + "/events"
+	ctx.Data["AscAgentRunTask"] = ascagentui.CleanText(run.GetTask(), 1200)
+	ctx.Data["AscAgentRunPaused"] = run.GetPaused()
+	ctx.Data["AscAgentRunTokensLimit"] = run.GetLimits().GetMaxTokens()
+	ctx.Data["AscAgentRunCostLimit"] = ascAgentsUSDField(run.GetLimits().GetMaxCostMicroUsd())
+	ctx.Data["AscAgentRunMinutesLimit"] = run.GetLimits().GetMaxRuntimeSeconds() / 60
+	ctx.Data["AscAgentRunChangesLimit"] = run.GetLimits().GetMaxChanges()
+	ctx.Data["AscAgentRunSummaryTokens"] = ascagentui.FormatCount(run.GetUsage().GetTokens())
+	ctx.Data["AscAgentRunSummaryCost"] = ascagentui.FormatUSD(run.GetUsage().GetCostMicroUsd())
+	ctx.Data["AscAgentRunSummaryTime"] = ascagentui.FormatDuration(uint64(run.GetUsage().GetRuntimeSeconds()))
+	ascAgentsLoadRunBoard(ctx, env, callCtx, conn, run)
 	ctx.HTML(http.StatusOK, tplAscAgentsRun)
 }
 
@@ -890,4 +908,12 @@ func AscAgentsInput(ctx *context.Context) {
 	}
 	ctx.Flash.Success("Sent to the agent.")
 	ctx.Redirect(back)
+}
+
+// ascAgentsUSDField writes micro-USD as the dollars a form field takes: 5000000 is "5", 1500000 is "1.5". 0 is "".
+func ascAgentsUSDField(micro uint64) string {
+	if micro == 0 {
+		return ""
+	}
+	return strconv.FormatFloat(float64(micro)/1e6, 'f', -1, 64)
 }

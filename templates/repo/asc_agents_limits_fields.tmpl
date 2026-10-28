@@ -1,0 +1,10 @@
+{{/*
+The limit fields of a live run and of a continued run. Empty keeps the current value.
+Template Attributes: AscAgentRunTokensLimit, AscAgentRunCostLimit, AscAgentRunMinutesLimit, AscAgentRunChangesLimit
+*/}}
+<div class="ar-limits">
+	<div class="rv-field"><label class="rv-label" for="ar-l-tokens">{{ctx.Locale.Tr "asc_review.run_limit_tokens"}}</label><input class="rv-input" id="ar-l-tokens" name="max_tokens" inputmode="numeric" pattern="[0-9]*" placeholder="{{.AscAgentRunTokensLimit}}" autocomplete="off"></div>
+	<div class="rv-field"><label class="rv-label" for="ar-l-cost">{{ctx.Locale.Tr "asc_review.run_limit_cost"}}</label><input class="rv-input" id="ar-l-cost" name="max_cost_usd" inputmode="decimal" placeholder="{{.AscAgentRunCostLimit}}" autocomplete="off"></div>
+	<div class="rv-field"><label class="rv-label" for="ar-l-min">{{ctx.Locale.Tr "asc_review.run_limit_minutes"}}</label><input class="rv-input" id="ar-l-min" name="max_minutes" inputmode="numeric" pattern="[0-9]*" placeholder="{{.AscAgentRunMinutesLimit}}" autocomplete="off"></div>
+	<div class="rv-field"><label class="rv-label" for="ar-l-changes">{{ctx.Locale.Tr "asc_review.run_limit_changes"}}</label><input class="rv-input" id="ar-l-changes" name="max_changes" inputmode="numeric" pattern="[0-9]*" placeholder="{{.AscAgentRunChangesLimit}}" autocomplete="off"></div>
+</div>

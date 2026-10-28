@@ -115,9 +115,12 @@ func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
 	}, reqSignIn)
 	m.Group("/asc/gate", func() {
 		m.Get("", repo.AscGate)
+		m.Post("/overrides", context.RepoMustNotBeArchived(), repo.AscGateOverrideGrant)
+		m.Post("/overrides/{id}/revoke", context.RepoMustNotBeArchived(), repo.AscGateOverrideRevoke)
 	}, reqSignIn)
 	m.Group("/asc/ops", func() {
 		m.Get("", repo.AscOps)
+		m.Get("/export", repo.AscOpsExport)
 		m.Combo("/undo").Get(repo.AscOpsUndoPreview).Post(context.RepoMustNotBeArchived(), repo.AscOpsUndo)
 	}, reqSignIn)
 	m.Group("/asc/checks", func() {

@@ -1,4 +1,4 @@
-import {decisionOf, applyDecision, filterRows} from './asc-board.js';
+import {decisionOf, applyDecision, filterRows, reuseTask, applyEstimate} from './asc-board.js';
 
 function card() {
   document.body.innerHTML = `<section data-asc-needs><span data-asc-needs-count>2</span>
@@ -38,4 +38,33 @@ test('filterRows hides rows without the text', () => {
   expect(filterRows(list, 'retries')).toBe(1);
   expect(list.children[1].hidden).toBe(true);
   expect(filterRows(list, '')).toBe(2);
+});
+
+test('reuse puts the text into the textarea and the agent into the field', () => {
+  document.body.innerHTML = '<textarea data-asc-estimate-task></textarea><input data-asc-estimate-agent><button data-asc-reuse="Fix <b>it</b>" data-asc-reuse-agent="coder-2">r</button>';
+  expect(reuseTask(document.querySelector('button'))).toBe(true);
+  expect(document.querySelector('textarea').value).toBe('Fix <b>it</b>');
+  expect(document.querySelector('input').value).toBe('coder-2');
+  expect(document.querySelector('b')).toBeNull();
+});
+
+test('an estimate shows or hides its two lines and never parses markup', () => {
+  document.body.innerHTML = `<div id="c"><p data-est-known hidden><span data-est-duration></span><span data-est-cost></span><span data-est-samples></span></p><p data-est-unknown>none</p></div>`;
+  const c = document.querySelector('#c');
+  applyEstimate(c, {known: true, duration: '10 min', cost: '<i>$1.60</i>', samples: 14});
+  expect(c.querySelector('[data-est-known]').hidden).toBe(false);
+  expect(c.querySelector('[data-est-unknown]').hidden).toBe(true);
+  expect(c.querySelector('[data-est-cost]').textContent).toBe('<i>$1.60</i>');
+  expect(c.querySelector('i')).toBeNull();
+  applyEstimate(c, {known: false});
+  expect(c.querySelector('[data-est-unknown]').hidden).toBe(false);
+});
+
+test('a row with a key matches by the start of the key only', () => {
+  document.body.innerHTML = '<ul id="l"><li data-asc-row data-asc-key="src/a.rs">mentions config/</li><li data-asc-row data-asc-key="config/x">x</li></ul>';
+  const list = document.querySelector('#l');
+  expect(filterRows(list, 'src/')).toBe(1);
+  expect(list.children[1].hidden).toBe(true);
+  expect(filterRows(list, 'config/')).toBe(1);
+  expect(list.children[0].hidden).toBe(true);
 });
