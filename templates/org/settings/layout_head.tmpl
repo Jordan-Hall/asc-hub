@@ -1,7 +1,6 @@
 {{template "base/head" .ctxData}}
 <div role="main" aria-label="{{.ctxData.Title}}" class="page-content {{.pageClass}}">
 	{{template "shared/ds/subbar" (dict "Data" .ctxData "Title" .ctxData.Title "BackHref" "#settings-menu" "BackLabel" (ctx.Locale.Tr "org.settings"))}}
-	{{template "org/header" .ctxData}}
 	<div class="ds-container ds-settings">
 		{{template "org/settings/navbar" .ctxData}}
 		<div class="ds-settings-body">

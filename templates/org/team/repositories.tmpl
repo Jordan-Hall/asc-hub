@@ -1,58 +1,54 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content organization teams">
+<div role="main" aria-label="{{.Title}}" class="ds-main organization teams wk-org">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" .Team.Name "BackHref" (print .OrgLink "/teams") "BackLabel" (ctx.Locale.Tr "org.teams"))}}
 	{{template "org/header" .}}
-	<div class="ui container">
+	<div class="ds-container ds-container-wide wk-org-body">
 		{{template "base/alert" .}}
-		<div class="ui stackable grid">
-			{{template "org/team/sidebar" .}}
-			<div class="ui ten wide column">
+		<div class="ds-split wk-team-split">
+			<div class="ds-min0 wk-team-main">
 				{{template "org/team/navbar" .}}
 				{{$canAddRemove := and $.IsOrganizationOwner (not $.Team.IncludesAllRepositories)}}
 				{{if $canAddRemove}}
-					<div class="ui attached segment tw-flex tw-flex-wrap tw-gap-2">
-						<form class="ui form ignore-dirty tw-flex-1 tw-flex" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/add" method="post">
+					<div class="wk-team-add">
+						<form class="ui form ignore-dirty wk-team-add-form" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/add" method="post">
+							{{.CsrfTokenHtml}}
 							<div id="search-repo-box" data-uid="{{.Org.ID}}" class="ui search">
 								<div class="ui input">
-									<input class="prompt" name="repo_name" placeholder="{{ctx.Locale.Tr "search.repo_kind"}}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" required>
+									<label class="ds-sr" for="team-add-repo">{{ctx.Locale.Tr "search.repo_kind"}}</label>
+									<input id="team-add-repo" class="prompt ds-input" name="repo_name" placeholder="{{ctx.Locale.Tr "search.repo_kind"}}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" required>
 								</div>
 							</div>
-							<button class="ui primary button tw-ml-2">{{ctx.Locale.Tr "add"}}</button>
+							<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "add"}}</button>
 						</form>
-						<div class="tw-inline-block">
-							<button class="ui primary button show-modal" data-modal="#addall-repos-modal">{{ctx.Locale.Tr "add_all"}}</button>
-							<button class="ui red button show-modal" data-modal="#removeall-repos-modal">{{ctx.Locale.Tr "remove_all"}}</button>
+						<div class="wk-team-add-all">
+							<button type="button" class="ds-btn ds-btn-secondary show-modal" data-modal="#addall-repos-modal">{{ctx.Locale.Tr "add_all"}}</button>
+							<button type="button" class="ds-btn ds-btn-danger show-modal" data-modal="#removeall-repos-modal">{{ctx.Locale.Tr "remove_all"}}</button>
 						</div>
 					</div>
 				{{end}}
-				<div class="ui attached segment">
-					<div class="flex-list">
+				<div class="ds-card">
+					<ul class="ds-list">
 						{{range .Team.Repos}}
-							<div class="flex-item tw-items-center">
-								<div class="flex-item-leading">
-									{{template "repo/icon" .}}
+							<li class="ds-li wk-member">
+								<span class="ds-li-av">{{template "repo/icon" .}}</span>
+								<div class="ds-li-main">
+									<div class="ds-li-title"><a href="{{$.Org.HomeLink}}/{{.Name | PathEscape}}">{{$.Org.Name}}/{{.Name}}</a></div>
 								</div>
-								<div class="flex-item-main">
-									<a class="flex-item-title text primary" href="{{$.Org.HomeLink}}/{{.Name | PathEscape}}">
-										{{$.Org.Name}}/{{.Name}}
-									</a>
-								</div>
-								<div class="flex-item-trailing">
-									{{if $canAddRemove}}
-										<form method="post" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/remove">
-											<button type="submit" class="ui red small button" name="repoid" value="{{.ID}}">{{ctx.Locale.Tr "remove"}}</button>
-										</form>
-									{{end}}
-								</div>
-							</div>
+								{{if $canAddRemove}}
+									<form class="wk-member-acts" method="post" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/remove">
+										{{$.CsrfTokenHtml}}
+										<button type="submit" class="ds-btn ds-btn-danger ds-btn-sm" name="repoid" value="{{.ID}}">{{ctx.Locale.Tr "remove"}}</button>
+									</form>
+								{{end}}
+							</li>
 						{{else}}
-							<div class="flex-item">
-								<span class="text grey tw-italic">{{ctx.Locale.Tr "org.teams.repos.none"}}</span>
-							</div>
+							<li class="wk-empty-li"><p class="wk-quiet">{{ctx.Locale.Tr "org.teams.repos.none"}}</p></li>
 						{{end}}
-					</div>
+					</ul>
 					{{template "base/paginate" .}}
 				</div>
 			</div>
+			{{template "org/team/sidebar" .}}
 		</div>
 	</div>
 </div>
@@ -64,6 +60,7 @@
 			<span>{{ctx.Locale.Tr "org.teams.add_all_repos_desc"}}</span>
 		</div>
 		<form class="ui form" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/addall" method="post">
+			{{.CsrfTokenHtml}}
 			{{template "base/modal_actions_confirm" .}}
 		</form>
 	</article>
@@ -76,6 +73,7 @@
 			<span>{{ctx.Locale.Tr "org.teams.remove_all_repos_desc"}}</span>
 		</div>
 		<form class="ui form" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/removeall" method="post">
+			{{.CsrfTokenHtml}}
 			{{template "base/modal_actions_confirm" .}}
 		</form>
 	</article>

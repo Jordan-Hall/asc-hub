@@ -106,9 +106,13 @@
   grid-area: acts;
   grid-row: 6;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 4px;
+}
+
+.wk-pf-actions > * {
+  flex: 1 1 140px;
 }
 
 .wk-pf-primary {
@@ -167,8 +171,12 @@
 
   .wk-pf-actions {
     grid-area: acts;
-    flex-direction: row;
+    flex-wrap: nowrap;
     margin-top: 0;
+  }
+
+  .wk-pf-actions > * {
+    flex: none;
   }
 
   .wk-pf-primary .ds-btn,
