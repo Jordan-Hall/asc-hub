@@ -196,13 +196,19 @@ func Releases(ctx *context.Context) {
 	writeAccess := ctx.Repo.CanWrite(unit.TypeReleases)
 	ctx.Data["CanCreateRelease"] = writeAccess && !ctx.Repo.Repository.IsArchived
 
-	releases, releasesCount, err := getReleaseInfos(ctx, &repo_model.FindReleasesOptions{
+	findOpts := &repo_model.FindReleasesOptions{
 		ListOptions: listOptions,
 		// only show draft releases for users who can write, read-only users shouldn't see draft releases.
 		IncludeDrafts: writeAccess,
 		RepoID:        ctx.Repo.Repository.ID,
 		Keyword:       keyword,
-	})
+	}
+	channel := releaseChannel(ctx.FormString("channel"), writeAccess)
+	applyReleaseChannel(findOpts, channel)
+	ctx.Data["ReleaseChannel"] = channel
+	ctx.Data["ReleaseChannels"] = releaseChannelCounts(ctx, ctx.Repo.Repository.ID, keyword, writeAccess)
+
+	releases, releasesCount, err := getReleaseInfos(ctx, findOpts)
 	if err != nil {
 		ctx.ServerError("getReleaseInfos", err)
 		return
@@ -218,6 +224,9 @@ func Releases(ctx *context.Context) {
 
 	pager := context.NewPagination(int(releasesCount), listOptions.PageSize, listOptions.Page, 5)
 	pager.SetDefaultParams(ctx)
+	if channel != releaseChannelAll {
+		pager.AddParamString("channel", channel)
+	}
 	ctx.Data["Page"] = pager
 
 	ctx.HTML(http.StatusOK, tplReleasesList)
@@ -875,4 +884,66 @@ func deleteReleaseOrTag(ctx *context.Context, isDelTag bool) {
 	}
 
 	redirect()
+}
+
+// The channels of the release list: every release, the stable ones, the pre-releases and (for people who can
+// write) the drafts.
+const (
+	releaseChannelAll    = "all"
+	releaseChannelStable = "stable"
+	releaseChannelPre    = "pre"
+	releaseChannelDraft  = "draft"
+)
+
+// releaseChannel normalizes the channel of the query: an unknown word is "all", and "draft" is "all" for a person
+// who cannot see drafts.
+func releaseChannel(raw string, canSeeDrafts bool) string {
+	switch raw {
+	case releaseChannelStable, releaseChannelPre:
+		return raw
+	case releaseChannelDraft:
+		if canSeeDrafts {
+			return raw
+		}
+	}
+	return releaseChannelAll
+}
+
+// applyReleaseChannel narrows the find options to a channel.
+func applyReleaseChannel(opts *repo_model.FindReleasesOptions, channel string) {
+	switch channel {
+	case releaseChannelStable:
+		opts.IsPreRelease, opts.IsDraft = optional.Some(false), optional.Some(false)
+	case releaseChannelPre:
+		opts.IsPreRelease, opts.IsDraft = optional.Some(true), optional.Some(false)
+	case releaseChannelDraft:
+		opts.IsDraft = optional.Some(true)
+	}
+}
+
+// ReleaseChannelCount is one pill of the channel filter.
+type ReleaseChannelCount struct {
+	Key   string
+	Count int64
+}
+
+// releaseChannelCounts counts the releases of each channel the person can see, for the keyword of the page. A
+// failed count leaves its pill out.
+func releaseChannelCounts(ctx *context.Context, repoID int64, keyword string, canSeeDrafts bool) []ReleaseChannelCount {
+	channels := []string{releaseChannelAll, releaseChannelStable, releaseChannelPre}
+	if canSeeDrafts {
+		channels = append(channels, releaseChannelDraft)
+	}
+	var out []ReleaseChannelCount
+	for _, ch := range channels {
+		opts := &repo_model.FindReleasesOptions{IncludeDrafts: canSeeDrafts, RepoID: repoID, Keyword: keyword}
+		applyReleaseChannel(opts, ch)
+		n, err := db.Count[repo_model.Release](ctx, opts)
+		if err != nil {
+			log.Error("release channel count %s: %v", ch, err)
+			continue
+		}
+		out = append(out, ReleaseChannelCount{Key: ch, Count: n})
+	}
+	return out
 }

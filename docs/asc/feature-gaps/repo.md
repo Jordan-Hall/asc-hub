@@ -197,7 +197,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | Releases | Timeline of release cards, tag, stable / pre-release / draft chips, Compare, edit, assets list with downloads | done | `H:templates/repo/release/list.tmpl`, `release_tag_header.tmpl` | S |
 | Releases | Releases / Tags segment, search filter, feed | done | `release_tag_header.tmpl` | S |
-| Releases | Filter pills All 14 / Stable 11 / Pre-release 2 / Draft 1 and Sort (Newest, Most downloaded) | ui-only-missing | `release_tag_header.tmpl`; `H:routers/web/repo/release.go` query params | M |
+| Releases | Filter pills All 14 / Stable 11 / Pre-release 2 / Draft 1 and Sort (Newest, Most downloaded) | ui-only-missing (channel pills with counts done; Most downloaded sort remains) | `release_tag_header.tmpl`; `H:routers/web/repo/release.go` query params | M |
 | Releases | Provenance strip ("Built by run #4218 from main@a41f9c2, 14 of 14 checks passed, signed with release key 7F3A...") | needs-hub-backend | `tag/verification_line.tmpl` gives the signature; add the building Actions run and check summary, link release to run (`H:models/actions`) | L |
 | Releases | Notes grouped Added / Changed / Fixed, "written from the intent of each change" | needs-hub-backend | generator over landed changes since last tag (`Repo.Log`, `Compare`); category from change class or trailer | L |
 | Releases | "N changes in this release" list with author, change id, category | needs-hub-backend | `Repo.Compare(prev tag, tag)` in `release.go`; template block | M |
