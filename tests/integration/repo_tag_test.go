@@ -43,11 +43,11 @@ func TestTagViewWithoutRelease(t *testing.T) {
 
 	// Test that the tags sub-menu is active and has a counter
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	tagsTab := htmlDoc.Find(".switch .active.item[href$='/tags']")
+	tagsTab := htmlDoc.Find(".ds-seg .active.item[href$='/tags']")
 	assert.Contains(t, tagsTab.Text(), "4 tags")
 
 	// Test that the release sub-menu isn't active
-	releaseLink := htmlDoc.Find(".switch .item[href$='/releases']")
+	releaseLink := htmlDoc.Find(".ds-seg .item[href$='/releases']")
 	assert.False(t, releaseLink.HasClass("active"))
 
 	// Test that the title is displayed

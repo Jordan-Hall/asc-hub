@@ -9,7 +9,7 @@
 	</div>
 	<div class="rp-band-acts">
 		{{if $canReadReleases}}
-			<div class="ds-seg switch" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.releases_view"}}">
+			<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.releases_view"}}">
 				<a class="item{{if and .PageIsReleaseList (not .PageIsSingleTag)}} active{{end}}" href="{{.RepoLink}}/releases{{if .Keyword}}?q={{.Keyword}}{{end}}"{{if and .PageIsReleaseList (not .PageIsSingleTag)}} aria-current="true"{{end}}>{{ctx.Locale.TrPluralString .NumReleases "counters.n_releases" (ctx.Locale.PrettyNumber .NumReleases)}}</a>
 				{{if $canReadCode}}<a class="item{{if or .PageIsTagList .PageIsSingleTag}} active{{end}}" href="{{.RepoLink}}/tags{{if .Keyword}}?q={{.Keyword}}{{end}}"{{if or .PageIsTagList .PageIsSingleTag}} aria-current="true"{{end}}>{{ctx.Locale.TrPluralString .NumTags "counters.n_tags" (ctx.Locale.PrettyNumber .NumTags)}}</a>{{end}}
 			</div>

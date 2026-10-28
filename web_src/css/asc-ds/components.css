@@ -731,12 +731,17 @@ a.ds-chip:hover {
   vertical-align: middle;
 }
 
-.ds-av img,
-img.ds-av {
+.ds-av img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: inherit;
+}
+
+img.ds-av {
+  width: var(--s);
+  height: var(--s);
+  object-fit: cover;
 }
 
 .ds-av-24 { --s: 24px; }
