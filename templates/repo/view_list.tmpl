@@ -1,78 +1,76 @@
-<table id="repo-files-table" class="ui single line table tw-mt-0" {{if .HasFilesWithoutLatestCommit}}hx-indicator="tr.notready td.message span" hx-trigger="load" hx-swap="morph" hx-get="{{.LastCommitLoaderURL}}"{{end}}>
-	<caption class="tw-sr-only">
-		{{ctx.Locale.Tr "repo.files.caption"}}
-	</caption>
-	<thead class="tw-sr-only">
-		<th>{{ctx.Locale.Tr "repo.files.filename"}}</th>
-		<th>{{ctx.Locale.Tr "repo.files.last_commit_message"}}</th>
-		<th>{{ctx.Locale.Tr "repo.files.last_commit_date"}}</th>
+{{/* The files of a directory: one card, the latest change first. htmx replaces #repo-files-table with this template while the last change of each file loads. */}}
+<div class="rp-sec rp-files-card">
+<table id="repo-files-table" class="rp-files" {{if .HasFilesWithoutLatestCommit}}hx-indicator="tr.notready td.message span" hx-trigger="load" hx-swap="morph" hx-get="{{.LastCommitLoaderURL}}"{{end}}>
+	<caption class="ds-sr">{{ctx.Locale.Tr "repo.files.caption"}}</caption>
+	<thead class="ds-sr">
+		<tr>
+			<th>{{ctx.Locale.Tr "repo.files.filename"}}</th>
+			<th>{{ctx.Locale.Tr "repo.files.last_commit_message"}}</th>
+			<th>{{ctx.Locale.Tr "repo.files.last_commit_date"}}</th>
+		</tr>
 	</thead>
 	<tbody>
-		<tr class="commit-list">
-			<td class="tw-overflow-hidden repo-files-table-latest-commit-cell repo-files-table-latest-commit-left" colspan="2">
-				<div class="tw-flex">
-					<div class="latest-commit">
-						{{template "repo/latest_commit" .}}
-					</div>
+		<tr class="commit-list rp-files-last">
+			<td colspan="3">
+				<div class="rp-files-last-in">
+					<div class="latest-commit rp-latest">{{template "repo/latest_commit" .}}</div>
+					<div class="rp-files-last-meta">{{if .LatestCommit}}{{template "repo/shabox" (dict "sha1" .LatestCommit.ID.String "commitLink" (printf "%s/commit/%s" .RepoLink (.LatestCommit.ID.String|PathEscape)) "signature" .LatestCommit.Signature "verification" .LatestCommitVerification)}}{{template "repo/commit_statuses" dict "Status" .LatestCommitStatus "Statuses" .LatestCommitStatuses}}{{if .LatestCommit.Committer}}<span class="ds-hide-xs">{{DateUtils.TimeSince .LatestCommit.Committer.When}}</span>{{end}}{{end}}{{if and .CommitsCount (not .TreePath)}}<a class="ds-hide-xs" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.TrPluralString .CommitsCount "counters.n_commits" (ctx.Locale.PrettyNumber .CommitsCount)}}</a>{{end}}</div>
 				</div>
 			</td>
-			<td class="text grey right age repo-files-table-latest-commit-cell tw-py-0">{{if .LatestCommit}}{{if .LatestCommit.Committer}}{{DateUtils.TimeSince .LatestCommit.Committer.When}}{{end}}{{end}}{{if and .CommitsCount (not .TreePath)}}<span class="asc-commit-count"> &middot; <a class="muted" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.TrPluralString .CommitsCount "counters.n_commits" (ctx.Locale.PrettyNumber .CommitsCount)}}</a></span>{{end}}</td>
 		</tr>
 		{{if .HasParentPath}}
-			<tr class="has-parent">
-				<td colspan="3"><a class="muted" href="{{.BranchLink}}{{if .ParentPath}}{{PathEscapeSegments .ParentPath}}{{end}}">{{svg "octicon-reply" 16 "tw-mr-2"}}..</a></td>
+			<tr class="has-parent entry">
+				<td colspan="3" class="rp-files-up">{{$n := len .TreeNames}}<a href="{{.BranchLink}}{{if gt $n 1}}/{{PathEscapeSegments (index .Paths (Eval $n "-" 2))}}{{end}}">{{svg "dsi-arrow-left" 16}}<span aria-hidden="true">..</span><span class="ds-sr">{{ctx.Locale.Tr "asc_rp.parent_dir"}}</span></a></td>
 			</tr>
 		{{end}}
 		{{range $item := .Files}}
 			{{$entry := $item.Entry}}
 			{{$commit := $item.Commit}}
 			<tr data-entryname="{{$entry.Name}}" data-ready="{{if $commit}}true{{else}}false{{end}}" class="{{if not $commit}}not{{end}}ready entry">
-				<td class="name four wide">
+				<td class="name">
 					<span class="truncate">
 						{{if $entry.IsSubmodule}}
 							{{$submodule := $item.Submodule}}
 							{{$refURL := $submodule.ResolveUpstreamURL $.Repository.HTMLURL}}
-							{{$icon := (svg "octicon-file-submodule" 16 "tw-mr-2")}}
+							{{$icon := (svg "octicon-file-submodule" 16 "rp-ico rp-ico-file")}}
 							{{if $refURL}}
-								<a class="muted" href="{{$refURL}}">{{$icon}}{{$entry.Name}}</a><span class="at">@</span><a href="{{$refURL}}/commit/{{PathEscape $submodule.Commit.String}}">{{ShortSha $submodule.Commit.String}}</a>
+								<a href="{{$refURL}}">{{$icon}}{{$entry.Name}}</a><span class="at">@</span><a class="rp-hash" href="{{$refURL}}/commit/{{PathEscape $submodule.Commit.String}}">{{ShortSha $submodule.Commit.String}}</a>
 							{{else}}
 								{{$icon}}{{$entry.Name}}<span class="at">@</span>{{ShortSha $submodule.Commit.String}}
 							{{end}}
 						{{else}}
 							{{if $entry.IsDir}}
 								{{$subJumpablePathName := $entry.GetSubJumpablePathName}}
-								<a class="muted" href="{{$.TreeLink}}/{{PathEscapeSegments $subJumpablePathName}}" title="{{$subJumpablePathName}}">
+								<a href="{{$.TreeLink}}/{{PathEscapeSegments $subJumpablePathName}}" title="{{$subJumpablePathName}}">
 									{{$subJumpablePathFields := StringUtils.Split $subJumpablePathName "/"}}
 									{{$subJumpablePathFieldLast := (Eval (len $subJumpablePathFields) "-" 1)}}
-									{{svg "octicon-file-directory-fill" 16 "tw-mr-2" -}}
-									{{if eq $subJumpablePathFieldLast 0 -}}
+									{{svg "dsi-folder" 18 "rp-ico rp-ico-dir"}}
+									{{- if eq $subJumpablePathFieldLast 0 -}}
 										{{$subJumpablePathName}}
-									{{else -}}
+									{{- else -}}
 										{{$subJumpablePathPrefixes := slice $subJumpablePathFields 0 $subJumpablePathFieldLast -}}
-										<span class="text light-2">{{StringUtils.Join $subJumpablePathPrefixes "/"}}</span>/{{index $subJumpablePathFields $subJumpablePathFieldLast}}
-									{{end}}
+										<span class="rp-dim">{{StringUtils.Join $subJumpablePathPrefixes "/"}}/</span>{{index $subJumpablePathFields $subJumpablePathFieldLast}}
+									{{- end -}}
 								</a>
 							{{else}}
-								<a class="muted" href="{{$.TreeLink}}/{{PathEscapeSegments $entry.Name}}" title="{{$entry.Name}}">{{svg (printf "octicon-%s" (EntryIcon $entry)) 16 "tw-mr-2"}}{{$entry.Name}}</a>
+								<a href="{{$.TreeLink}}/{{PathEscapeSegments $entry.Name}}" title="{{$entry.Name}}">{{svg "dsi-file" 18 "rp-ico rp-ico-file"}}{{$entry.Name}}</a>
 							{{end}}
 						{{end}}
 					</span>
 				</td>
-				<td class="message nine wide">
+				<td class="message">
 					<span class="truncate">
 						{{if $commit}}
 							{{$commitLink := printf "%s/commit/%s" $.RepoLink (PathEscape $commit.ID.String)}}
 							{{RenderCommitMessageLinkSubject $.Context $commit.Message $commitLink ($.Repository.ComposeMetas ctx)}}
 						{{else}}
-							<div class="ui active tiny slow centered inline"></div>
+							<span class="rp-sk rp-sk-line" aria-hidden="true"></span><span class="ds-sr">{{ctx.Locale.Tr "asc_rp.loading"}}</span>
 						{{end}}
 					</span>
 				</td>
-				<td class="text right age three wide">{{if $commit}}{{DateUtils.TimeSince $commit.Committer.When}}{{end}}</td>
+				<td class="age">{{if $commit}}{{DateUtils.TimeSince $commit.Committer.When}}{{end}}</td>
 			</tr>
 		{{end}}
 	</tbody>
 </table>
-{{if and .ReadmeExist (or .IsMarkup .IsPlainText)}}
-	{{template "repo/view_file" .}}
-{{end}}
+</div>

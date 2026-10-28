@@ -1,0 +1,771 @@
+/* ASC Hub repository pages: the shared kit (title row, tab strip, menus, page bands, sections, rows).
+   Mobile first: base rules are for 320 to 390 px, min-width queries add room at 640, 768, 1024.
+   Everything here reads the design tokens of web_src/css/asc-ds; classes are prefixed rp-. */
+
+.rp-page {
+  background: var(--canvas);
+  min-height: 60vh;
+}
+
+@media (min-width: 1024px) {
+  .rp-page {
+    background: var(--bg);
+  }
+}
+
+/* ---- title row: owner / name, flags, watch star fork ---- */
+.rp-top {
+  background: var(--bg);
+}
+
+.rp-head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 18px;
+  padding-bottom: 14px;
+}
+
+.rp-head-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rp-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  min-width: 0;
+}
+
+.rp-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  min-width: 0;
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.rp-owner {
+  color: var(--text-2);
+  font-size: 20px;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.rp-owner:hover {
+  color: var(--link);
+}
+
+.rp-sep {
+  margin: 0 8px;
+  color: var(--text-3);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.rp-name {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.rp-name:hover {
+  color: var(--link);
+}
+
+.rp-flag {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.rp-desc {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-b);
+}
+
+.rp-acts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rp-acts > form,
+.rp-acts > details,
+.rp-acts > div {
+  min-width: 0;
+}
+
+.rp-acts > .rp-act-icon,
+.rp-acts > form:not(.rp-actg) {
+  grid-column: auto;
+}
+
+/* a pill with an action and, next to it, its count */
+.rp-actg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 10px 0 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  margin: 0;
+}
+
+.rp-actg:hover {
+  background: var(--surface-2);
+}
+
+.rp-actg > summary {
+  list-style: none;
+}
+
+.rp-actg > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rp-act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 7px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 4px 0 12px;
+  border: 0;
+  border-radius: var(--r-btn);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rp-act:disabled,
+.rp-act[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rp-act-icon {
+  flex: none;
+  width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+}
+
+.rp-act[aria-pressed="true"] svg {
+  color: #b45309;
+}
+
+.rp-actg .ds-count {
+  flex: none;
+  text-decoration: none;
+}
+
+a.ds-count:hover {
+  color: var(--link);
+}
+
+details.dropdown.rp-actg > summary.rp-act {
+  flex: 1;
+  width: 100%;
+  background: transparent;
+  border-radius: var(--r-btn);
+  padding: 0 4px 0 12px;
+  justify-content: center;
+  gap: 7px;
+}
+
+details.dropdown.rp-actg > summary.rp-act:hover,
+details.dropdown.rp-actg[open] > summary.rp-act {
+  background: transparent;
+}
+
+/* ---- popover menus (details.dropdown): a popover from 640, a bottom sheet under ---- */
+details.dropdown.rp-dd > .content.rp-pop {
+  position: fixed;
+  z-index: var(--z-pop);
+  inset: auto 0 0 0;
+  min-width: 0;
+  max-height: 80vh;
+  overflow: auto;
+  margin: 0;
+  padding: 8px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+  border: 1px solid var(--line);
+  border-radius: var(--r-dialog) var(--r-dialog) 0 0;
+  background: var(--surface);
+  box-shadow: 0 -12px 40px -12px rgba(0, 0, 0, 0.45);
+}
+
+details.dropdown.rp-dd[open] > summary::after {
+  content: "";
+  position: fixed;
+  z-index: calc(var(--z-pop) - 1);
+  inset: 0;
+  background: rgba(8, 14, 26, 0.5);
+  cursor: default;
+}
+
+details.dropdown.rp-dd[open] > .content.rp-pop::before {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 4px;
+  margin: 4px auto 8px;
+  border-radius: 4px;
+  background: var(--line-strong);
+}
+
+.rp-pop-h {
+  padding: 10px 16px 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rp-pop-b {
+  padding: 8px 16px 4px;
+}
+
+.rp-pop ul {
+  margin: 0;
+  padding: 4px 8px;
+  list-style: none;
+}
+
+.rp-pop li > a,
+.rp-pop li > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  width: 100%;
+  text-align: left;
+}
+
+.rp-pop li > a:hover,
+.rp-pop li > button:hover {
+  background: var(--surface-3);
+}
+
+.rp-pop li > a[aria-current="page"] {
+  background: var(--primary-soft);
+  color: var(--link);
+  font-weight: 600;
+}
+
+.rp-pop li .ds-count {
+  margin-left: auto;
+}
+
+@media (min-width: 640px) {
+  details.dropdown.rp-dd > .content.rp-pop {
+    position: absolute;
+    inset: auto;
+    top: 100%;
+    right: 0;
+    min-width: 220px;
+    margin-top: 6px;
+    padding: 6px 0;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px -8px rgba(15, 23, 42, 0.28);
+  }
+
+  details.dropdown.rp-dd[open] > summary::after {
+    background: transparent;
+  }
+
+  details.dropdown.rp-dd[open] > .content.rp-pop::before {
+    display: none;
+  }
+
+  .rp-pop li > a,
+  .rp-pop li > button {
+    min-height: 36px;
+    font-size: 14px;
+  }
+
+  .rp-watch-pop {
+    width: 280px;
+  }
+}
+
+/* ---- the tab strip ---- */
+.rp-tabs {
+  margin: 0 calc(var(--gutter) * -1);
+}
+
+.rp-tabs-in {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 var(--gutter) 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.rp-tabs-in::-webkit-scrollbar {
+  display: none;
+}
+
+.rp-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-b);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  list-style: none;
+}
+
+.rp-tab::-webkit-details-marker {
+  display: none;
+}
+
+.rp-tab:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.rp-tab[aria-current="page"] {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--on-fill);
+}
+
+.rp-tab[aria-current="page"] .ds-count {
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+}
+
+.rp-tab.is-on {
+  border-color: var(--fill);
+  color: var(--link);
+}
+
+.rp-tab svg {
+  flex: none;
+}
+
+.rp-more {
+  flex: none;
+}
+
+@media (min-width: 1024px) {
+  .rp-head {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-top: 22px;
+    padding-bottom: 8px;
+  }
+
+  .rp-title {
+    font-size: 24px;
+  }
+
+  .rp-owner,
+  .rp-sep {
+    font-size: 22px;
+  }
+
+  .rp-acts {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rp-actg {
+    min-height: 38px;
+    padding: 0 10px 0 0;
+  }
+
+  .rp-act {
+    min-height: 36px;
+    padding-left: 14px;
+  }
+
+  .rp-tabs {
+    margin: 0;
+    border-bottom: 0;
+  }
+
+  .rp-tabs-in {
+    gap: 2px;
+    padding: 0;
+    overflow: visible;
+    flex-wrap: wrap;
+    border-bottom: 0;
+  }
+
+  .rp-tab {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-b);
+  }
+
+  .rp-tab:hover {
+    background: transparent;
+    color: var(--text);
+  }
+
+  .rp-tab[aria-current="page"] {
+    border-color: transparent;
+    border-bottom-color: var(--fill);
+    background: transparent;
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .rp-tab[aria-current="page"] .ds-count {
+    background: var(--line-2);
+    color: var(--text-2);
+  }
+
+  .rp-tab.is-on {
+    border-color: transparent;
+    border-bottom-color: var(--fill);
+    color: var(--text);
+  }
+}
+
+/* the hairline under the tabs spans the page on a desktop */
+.rp-top {
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 1023.98px) {
+  .rp-top {
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+  }
+}
+
+.rp-plain-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---- page body below the title row ---- */
+.rp-body {
+  padding-top: 16px;
+  padding-bottom: 40px;
+}
+
+@media (min-width: 1024px) {
+  .rp-body {
+    padding-top: 24px;
+    padding-bottom: 64px;
+  }
+}
+
+/* an eyebrow, a title and a sentence: the band that opens a repository sub page (History, Refs, Pulse) */
+.rp-band {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  padding-bottom: 12px;
+}
+
+.rp-band-main {
+  min-width: 0;
+}
+
+.rp-eyebrow {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--link);
+}
+
+.rp-h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.rp-h1.ds-mono {
+  font-family: var(--font-mono);
+}
+
+.rp-sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.rp-band-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .rp-band {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-top: 22px;
+  }
+
+  .rp-h1 {
+    font-size: 30px;
+  }
+
+  .rp-band-acts {
+    flex: none;
+    padding-top: 8px;
+  }
+}
+
+/* ---- sections: a card with a title, one sentence, optional action and rows ---- */
+.rp-sec {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rp-sec-h {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.rp-sec-h > div {
+  min-width: 0;
+}
+
+.rp-sec-title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rp-sec-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.rp-sec-act {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--link);
+  text-decoration: none;
+}
+
+.rp-sec-act:hover {
+  text-decoration: underline;
+}
+
+.rp-sec-b {
+  padding: 16px;
+}
+
+.rp-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-rows > li {
+  border-top: 1px solid var(--line-3);
+}
+
+.rp-rows > li:first-child {
+  border-top: 0;
+}
+
+.rp-mono {
+  font-family: var(--font-mono);
+}
+
+.rp-hash {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+a.rp-hash:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-add {
+  color: var(--ok);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.rp-del {
+  color: var(--err);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.rp-dim {
+  color: var(--text-2);
+}
+
+.rp-sep-dot::before {
+  content: "\00b7";
+  margin: 0 6px;
+  color: var(--text-3);
+}
+
+/* a bar of filters under a band: a search field and a scrolling row of pills */
+.rp-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+.rp-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  margin: 0 calc(var(--gutter) * -1);
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+.rp-pills::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .rp-filters {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .rp-pills {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-wrap: wrap;
+  }
+}
+
+.rp-search {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .rp-search {
+    flex: 0 1 320px;
+  }
+}
+
+/* the sticky action bar of a phone: one primary action above the bottom navigation */
+.rp-sticky {
+  position: sticky;
+  bottom: calc(var(--bnav-h) + 8px + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-sticky);
+  display: flex;
+  gap: 8px;
+  padding: 10px 0;
+}
+
+.rp-sticky > * {
+  flex: 1;
+}
+
+@media (min-width: 1024px) {
+  .rp-sticky {
+    position: static;
+    padding: 0;
+  }
+
+  .rp-sticky > * {
+    flex: none;
+  }
+}
+
+.ds-banner a.ds-btn {
+  text-decoration: none;
+}
+
+.ds-banner a.ds-btn-primary {
+  color: var(--on-fill);
+}

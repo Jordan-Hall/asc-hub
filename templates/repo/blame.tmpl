@@ -1,44 +1,19 @@
+{{/* Blame: every line says which change wrote it (board Code, blame on). */}}
 {{if or .UsesIgnoreRevs .FaultyIgnoreRevsFile}}
 	{{$revsFileLink := URLJoin .RepoLink "src" .BranchNameSubURL "/.git-blame-ignore-revs"}}
 	{{if .UsesIgnoreRevs}}
-		<div class="ui info message">
-			<p>{{ctx.Locale.Tr "repo.blame.ignore_revs" $revsFileLink "?bypass-blame-ignore=true"}}</p>
-		</div>
+		<div class="ds-banner rp-filemsg" role="status">{{svg "dsi-info" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "repo.blame.ignore_revs" $revsFileLink "?bypass-blame-ignore=true"}}</div></div>
 	{{else}}
-		<div class="ui error message">
-			<p>{{ctx.Locale.Tr "repo.blame.ignore_revs.failed" $revsFileLink}}</p>
-		</div>
+		<div class="ds-banner ds-banner-err rp-filemsg" role="alert">{{svg "dsi-alert" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "repo.blame.ignore_revs.failed" $revsFileLink}}</div></div>
 	{{end}}
 {{end}}
-<div class="{{TabSizeClass .Editorconfig .FileName}} non-diff-file-content">
-	<h4 class="file-header ui top attached header tw-flex tw-items-center tw-justify-between tw-flex-wrap">
-		<div class="file-header-left tw-flex tw-items-center tw-py-2 tw-pr-4">
-			{{template "repo/file_info" .}}
-		</div>
-		<div class="file-header-right file-actions tw-flex tw-items-center tw-flex-wrap">
-			<div class="ui buttons">
-				<a class="ui tiny button" href="{{$.RawFileLink}}">{{ctx.Locale.Tr "repo.file_raw"}}</a>
-				{{if not .IsViewCommit}}
-					<a class="ui tiny button" href="{{.RepoLink}}/src/commit/{{.CommitID | PathEscape}}/{{.TreePath | PathEscapeSegments}}">{{ctx.Locale.Tr "repo.file_permalink"}}</a>
-				{{end}}
-				<a class="ui tiny button" href="{{.RepoLink}}/src/{{.BranchNameSubURL}}/{{.TreePath | PathEscapeSegments}}">{{ctx.Locale.Tr "repo.normal_view"}}</a>
-				<a class="ui tiny button" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}/{{.TreePath | PathEscapeSegments}}">{{ctx.Locale.Tr "repo.file_history"}}</a>
-				<button class="ui tiny button unescape-button">{{ctx.Locale.Tr "repo.unescape_control_characters"}}</button>
-				<button class="ui tiny button escape-button tw-hidden">{{ctx.Locale.Tr "repo.escape_control_characters"}}</button>
-			</div>
-		</div>
-	</h4>
-	<div class="ui bottom attached table unstackable segment">
+<section class="rp-sec rp-filecard {{TabSizeClass .Editorconfig .FileName}} non-diff-file-content">
+	<div class="rp-filebody">
 		<div class="file-view code-view unicode-escaped">
 			{{if .IsFileTooLarge}}
-				<table>
-					<tbody>
-						<tr>
-							<td class="gt-text-center tw-p-0.5"><strong>{{ctx.Locale.Tr "repo.file_too_large"}}</strong></td>
-						</tr>
-					</tbody>
-				</table>
+				{{template "shared/ds/empty" (dict "Icon" "package" "Title" (ctx.Locale.Tr "asc_rp.large_title" .FileName) "Body" (ctx.Locale.Tr "asc_rp.large_body") "PrimaryLabel" (ctx.Locale.Tr "repo.file_raw") "PrimaryHref" $.RawFileLink)}}
 			{{else}}
+			<div class="rp-codescroll" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_rp.code_region" .FileName}}">
 			<table>
 				<tbody>
 					{{range $row := .BlameRows}}
@@ -46,25 +21,18 @@
 							<td class="lines-commit">
 								<div class="blame-info">
 									<div class="blame-data">
-										<div class="blame-avatar">
-											{{$row.Avatar}}
-										</div>
+										<div class="blame-avatar">{{$row.Avatar}}</div>
 										<div class="blame-message">
-											<a class="suppressed tw-text-text" href="{{$row.CommitURL}}" title="{{$row.CommitMessage}}">
-												{{$row.CommitMessage}}
-											</a>
+											<a class="suppressed" href="{{$row.CommitURL}}" title="{{$row.CommitMessage}}">{{$row.CommitMessage}}</a>
 										</div>
-										<div class="blame-time not-mobile">
-											{{$row.CommitSince}}
-										</div>
+										{{if $row.CommitMessage}}<a class="blame-sha rp-hash" href="{{$row.CommitURL}}">{{ShortSha $row.PartSha}}</a>{{end}}
+										<div class="blame-time">{{$row.CommitSince}}</div>
 									</div>
 								</div>
 							</td>
 							<td class="lines-blame-btn">
 								{{if $row.PreviousSha}}
-									<a role="button" class="muted" href="{{$row.PreviousShaURL}}" data-tooltip-content='{{ctx.Locale.Tr "repo.blame_prior"}}'>
-										{{svg "octicon-versions"}}
-									</a>
+									<a role="button" class="muted" href="{{$row.PreviousShaURL}}" title="{{ctx.Locale.Tr "repo.blame_prior"}}" aria-label="{{ctx.Locale.Tr "repo.blame_prior"}}">{{svg "octicon-versions"}}</a>
 								{{end}}
 							</td>
 							<td class="lines-num">
@@ -84,6 +52,7 @@
 					{{end}}
 				</tbody>
 			</table>
+			</div>
 			<div class="code-line-menu tippy-target">
 				{{if $.Permission.CanRead $.UnitTypeIssues}}
 					<a class="item ref-in-new-issue" role="menuitem" data-url-issue-new="{{.RepoLink}}/issues/new" data-url-param-body-link="{{.Repository.Link}}/src/commit/{{PathEscape .CommitID}}/{{PathEscapeSegments .TreePath}}{{if $.HasSourceRenderedToggle}}?display=source{{end}}" rel="nofollow noindex">{{ctx.Locale.Tr "repo.issues.context.reference_issue"}}</a>
@@ -93,4 +62,4 @@
 			{{end}}
 		</div>
 	</div>
-</div>
+</section>

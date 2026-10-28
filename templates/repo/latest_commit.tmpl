@@ -1,31 +1,24 @@
 {{if not .LatestCommit}}
-	<div class="ui active tiny slow centered inline">…</div>
+	<span class="rp-sk" aria-hidden="true"></span><span class="ds-sr">{{ctx.Locale.Tr "asc_rp.loading"}}</span>
 {{else}}
 	{{if .LatestCommitUser}}
-		{{ctx.AvatarUtils.Avatar .LatestCommitUser 24 "tw-mr-2"}}
+		{{ctx.AvatarUtils.Avatar .LatestCommitUser 24 "ds-avatar"}}
 		{{if and .LatestCommitUser.FullName DefaultShowFullName}}
-			<a class="muted author-wrapper" title="{{.LatestCommitUser.FullName}}" href="{{.LatestCommitUser.HomeLink}}"><strong>{{.LatestCommitUser.FullName}}</strong></a>
+			<a class="rp-author ds-hide-xs" title="{{.LatestCommitUser.FullName}}" href="{{.LatestCommitUser.HomeLink}}">{{.LatestCommitUser.FullName}}</a>
 		{{else}}
-			<a class="muted author-wrapper" title="{{if .LatestCommit.Author}}{{.LatestCommit.Author.Name}}{{else}}{{.LatestCommitUser.Name}}{{end}}" href="{{.LatestCommitUser.HomeLink}}"><strong>{{if .LatestCommit.Author}}{{.LatestCommit.Author.Name}}{{else}}{{.LatestCommitUser.Name}}{{end}}</strong></a>
+			<a class="rp-author ds-hide-xs" title="{{if .LatestCommit.Author}}{{.LatestCommit.Author.Name}}{{else}}{{.LatestCommitUser.Name}}{{end}}" href="{{.LatestCommitUser.HomeLink}}">{{if .LatestCommit.Author}}{{.LatestCommit.Author.Name}}{{else}}{{.LatestCommitUser.Name}}{{end}}</a>
 		{{end}}
 	{{else}}
 		{{if .LatestCommit.Author}}
-			{{ctx.AvatarUtils.AvatarByEmail .LatestCommit.Author.Email .LatestCommit.Author.Name 24 "tw-mr-2"}}
-			<span class="author-wrapper" title="{{.LatestCommit.Author.Name}}"><strong>{{.LatestCommit.Author.Name}}</strong></span>
+			{{ctx.AvatarUtils.AvatarByEmail .LatestCommit.Author.Email .LatestCommit.Author.Name 24 "ds-avatar"}}
+			<span class="rp-author ds-hide-xs" title="{{.LatestCommit.Author.Name}}">{{.LatestCommit.Author.Name}}</span>
 		{{end}}
 	{{end}}
-	{{template "repo/shabox" (dict
-		"sha1" .LatestCommit.ID.String
-		"commitLink" (printf "%s/commit/%s" .RepoLink (.LatestCommit.ID.String|PathEscape))
-		"signature" .LatestCommit.Signature
-		"verification" .LatestCommitVerification
-	)}}
-	{{template "repo/commit_statuses" dict "Status" .LatestCommitStatus "Statuses" .LatestCommitStatuses}}
 	{{$commitLink:= printf "%s/commit/%s" .RepoLink (PathEscape .LatestCommit.ID.String)}}
-	<span class="grey commit-summary" title="{{.LatestCommit.Summary}}"><span class="message-wrapper">{{RenderCommitMessageLinkSubject $.Context .LatestCommit.Message $commitLink ($.Repository.ComposeMetas ctx)}}</span>
+	<span class="rp-commit-msg" title="{{.LatestCommit.Summary}}"><span class="message-wrapper">{{RenderCommitMessageLinkSubject $.Context .LatestCommit.Message $commitLink ($.Repository.ComposeMetas ctx)}}</span>
 		{{if IsMultilineCommitMessage .LatestCommit.Message}}
-			<button class="ui button js-toggle-commit-body ellipsis-button" aria-expanded="false">...</button>
-			<pre class="commit-body tw-hidden">{{RenderCommitBody $.Context .LatestCommit.Message ($.Repository.ComposeMetas ctx)}}</pre>
+			<button type="button" class="rp-ellipsis js-toggle-commit-body" aria-expanded="false" aria-label="{{ctx.Locale.Tr "asc_rp.show_body"}}">&hellip;</button>
+			<pre class="rp-commit-body commit-body tw-hidden">{{RenderCommitBody $.Context .LatestCommit.Message ($.Repository.ComposeMetas ctx)}}</pre>
 		{{end}}
 	</span>
 {{end}}

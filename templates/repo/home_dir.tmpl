@@ -1,0 +1,107 @@
+{{/* The repository home and the directory view (boards Repo and Code, directory view). */}}
+{{$n := len .TreeNames}}
+{{$isHomepage := (eq $n 0)}}
+{{$hasAside := and $isHomepage (not .HideRepoInfo)}}
+{{$subTitle := .Repository.FullName}}{{$subBack := .Repository.Owner.HomeLink}}
+{{if gt $n 0}}{{$subTitle = index .TreeNames (Eval $n "-" 1)}}{{$subBack = .BranchLink}}{{if gt $n 1}}{{$subBack = print .BranchLink "/" (PathEscapeSegments (index .Paths (Eval $n "-" 2)))}}{{end}}{{end}}
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository file list rp-page">
+	{{template "repo/header" (dict "HdrData" . "SubTitle" $subTitle "SubBack" $subBack)}}
+	<div class="ds-container rp-body">
+		{{template "base/alert" .}}
+		{{if RepoFlagsEnabled}}
+			{{template "custom/repo_flag_banners" .}}
+			{{if .SignedUser.IsAdmin}}{{template "repo/admin_flags" .}}{{end}}
+		{{end}}
+		{{if .Repository.IsArchived}}
+			<div class="ds-banner ds-banner-warn rp-banner" role="status">
+				{{svg "dsi-alert" 18}}
+				<div class="ds-banner-body">{{if .Repository.ArchivedUnix.IsZero}}{{ctx.Locale.Tr "repo.archive.title"}}{{else}}{{ctx.Locale.Tr "repo.archive.title_date" (DateUtils.AbsoluteLong .Repository.ArchivedUnix)}}{{end}}</div>
+			</div>
+		{{end}}
+		{{if (not .Repository.IsArchived)}}
+			{{template "repo/code/recently_pushed_new_branches" .}}
+			{{template "repo/code/fork_sync_message" .}}
+		{{end}}
+		<div class="{{if $hasAside}}ds-split{{end}}">
+			<div class="rp-main ds-stack">
+				<div class="rp-toolbar">
+					<div class="rp-toolbar-l">
+						{{template "repo/branch_dropdown" dict "root" . "ContainerClasses" "rp-ref"}}
+						{{if and .CanCompareOrPull .IsViewBranch (not .Repository.IsArchived)}}
+							{{$cmpBranch := ""}}
+							{{if ne .Repository.ID .BaseRepo.ID}}
+								{{$cmpBranch = printf "%s/%s:" (.Repository.OwnerName|PathEscape) (.Repository.Name|PathEscape)}}
+							{{end}}
+							{{$cmpBranch = print $cmpBranch (.BranchName|PathEscapeSegments)}}
+							{{$compareLink := printf "%s/compare/%s...%s" .BaseRepo.Link (.BaseRepo.DefaultBranch|PathEscapeSegments) $cmpBranch}}
+							<a id="new-pull-request" class="ds-btn ds-btn-secondary ds-btn-icon" href="{{$compareLink}}" aria-label="{{if .PullRequestCtx.Allowed}}{{ctx.Locale.Tr "repo.pulls.compare_changes"}}{{else}}{{ctx.Locale.Tr "action.compare_branch"}}{{end}}" title="{{if .PullRequestCtx.Allowed}}{{ctx.Locale.Tr "repo.pulls.compare_changes"}}{{else}}{{ctx.Locale.Tr "action.compare_branch"}}{{end}}">{{svg "octicon-git-pull-request" 16}}</a>
+						{{end}}
+						{{if $isHomepage}}
+							<p class="rp-meta">{{ctx.Locale.TrPluralString (.Repository.NumOpenPulls ctx) "repo.asc_home.open_pulls" (ctx.Locale.PrettyNumber (.Repository.NumOpenPulls ctx))}}{{if .BranchesCount}}<span class="rp-sep-dot"></span>{{ctx.Locale.TrPluralString .BranchesCount "counters.n_branches" (ctx.Locale.PrettyNumber .BranchesCount)}}{{end}}{{if .LatestCommit}}<span class="rp-sep-dot"></span><span class="rp-hash">{{ShortSha .LatestCommit.ID.String}}</span> {{ctx.Locale.Tr "asc_rp.landed"}} {{DateUtils.TimeSince .LatestCommit.Committer.When}}{{end}}</p>
+						{{end}}
+						{{template "repo/filepath" .}}
+					</div>
+					<div class="rp-toolbar-r">
+						{{if $isHomepage}}
+							<a class="ds-btn ds-btn-secondary rp-find" href="{{.Repository.Link}}/find/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "asc_rp.go_to_file"}}</a>
+						{{end}}
+						{{if and .CanWriteCode .IsViewBranch (not .Repository.IsMirror) (not .Repository.IsArchived)}}
+							<details class="dropdown rp-dd rp-add">
+								<summary class="ds-btn ds-btn-secondary"{{if not .Repository.CanEnableEditor}} aria-disabled="true"{{end}}>{{ctx.Locale.Tr "repo.editor.add_file"}}{{svg "dsi-chevron-down" 14}}</summary>
+								<div class="content rp-pop">
+									<ul>
+										<li><a href="{{.RepoLink}}/_new/{{.BranchName | PathEscapeSegments}}/{{.TreePath | PathEscapeSegments}}">{{svg "dsi-plus" 18}}{{ctx.Locale.Tr "repo.editor.new_file"}}</a></li>
+										{{if .RepositoryUploadEnabled}}<li><a href="{{.RepoLink}}/_upload/{{.BranchName | PathEscapeSegments}}/{{.TreePath | PathEscapeSegments}}">{{svg "dsi-upload" 18}}{{ctx.Locale.Tr "repo.editor.upload_file"}}</a></li>{{end}}
+										<li><a href="{{.RepoLink}}/_diffpatch/{{.BranchName | PathEscapeSegments}}/{{.TreePath | PathEscapeSegments}}">{{svg "dsi-diff" 18}}{{ctx.Locale.Tr "repo.editor.patch"}}</a></li>
+									</ul>
+								</div>
+							</details>
+						{{end}}
+						{{if and $isHomepage .Repository.IsTemplate}}
+							<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/repo/create?template_id={{.Repository.ID}}">{{ctx.Locale.Tr "repo.use_template"}}</a>
+						{{end}}
+						{{if $isHomepage}}
+							<button type="button" class="ds-btn ds-btn-primary show-modal rp-clone-btn ds-only-desktop" data-modal="#rp-clone-dialog" aria-haspopup="dialog">{{ctx.Locale.Tr "repo.asc_home.clone"}}{{svg "dsi-chevron-down" 14}}</button>
+						{{else}}
+							<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}/{{.TreePath | PathEscapeSegments}}">{{svg "dsi-history" 16}}{{ctx.Locale.Tr "repo.file_history"}}</a>
+							{{if not $.DisableDownloadSourceArchives}}
+								<details class="dropdown rp-dd rp-more-ops">
+									<summary class="ds-btn ds-btn-secondary ds-btn-icon" aria-label="{{ctx.Locale.Tr "repo.more_operations"}}">{{svg "dsi-dots" 18}}</summary>
+									<div class="content rp-pop">
+										<ul>
+											<li><a class="archive-link" href="{{$.RepoLink}}/archive/{{PathEscapeSegments (printf "%s:%s" $.RefName .TreePath)}}.zip" rel="nofollow" type="application/zip">{{svg "octicon-file-zip" 16}}{{ctx.Locale.Tr "repo.download_zip"}}</a></li>
+											<li><a class="archive-link" href="{{$.RepoLink}}/archive/{{PathEscapeSegments (printf "%s:%s" $.RefName .TreePath)}}.tar.gz" rel="nofollow" type="application/gzip">{{svg "octicon-file-zip" 16}}{{ctx.Locale.Tr "repo.download_tar"}}</a></li>
+										</ul>
+									</div>
+								</details>
+							{{end}}
+						{{end}}
+					</div>
+				</div>
+
+				{{template "repo/view_list" .}}
+
+				{{if $isHomepage}}
+					{{template "repo/home_cards" .}}
+				{{end}}
+				{{if and .ReadmeExist (or .IsMarkup .IsPlainText)}}
+					{{template "repo/view_file" .}}
+				{{end}}
+			</div>
+			{{if $hasAside}}
+				{{template "repo/asc_about" .}}
+			{{end}}
+		</div>
+		{{if $isHomepage}}
+			<div class="rp-sticky rp-sticky-m">
+				<button type="button" class="ds-btn ds-btn-primary show-modal" data-modal="#rp-clone-dialog" aria-haspopup="dialog">{{ctx.Locale.Tr "repo.asc_home.clone"}}</button>
+				{{if and .CanWriteCode .IsViewBranch (not .Repository.IsMirror) (not .Repository.IsArchived) .Repository.CanEnableEditor}}
+					<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/_new/{{.BranchName | PathEscapeSegments}}/">{{ctx.Locale.Tr "repo.editor.new_file"}}</a>
+				{{else}}
+					<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "repo.file_history"}}</a>
+				{{end}}
+			</div>
+			{{template "repo/clone_dialog" .}}
+		{{end}}
+	</div>
+</div>

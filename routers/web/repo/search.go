@@ -74,6 +74,7 @@ func Search(ctx *context.Context) {
 	}
 
 	ctx.Data["PageIsViewCode"] = true
+	ctx.Data["PageIsRepoSearch"] = true
 	ctx.Data["CodeIndexerDisabled"] = !setting.Indexer.RepoIndexerEnabled
 	if setting.Indexer.RepoIndexerEnabled {
 		ctx.Data["CodeSearchOptions"] = code_indexer.CodeSearchOptions
