@@ -839,3 +839,10 @@
     display: none;
   }
 }
+
+/* under 1024 the shell shows its bottom navigation: fixed and sticky bars of the review pages sit above it */
+@media (max-width: 1023.98px) {
+  .rv {
+    --rv-bottom-bar: var(--bnav-space, 0px);
+  }
+}
