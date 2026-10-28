@@ -251,8 +251,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | GitNote | One-line collapsed disclosure after the asc command, aria-expanded, URL shown only after expand, git clone command with Copy | done | `H:templates/repo/clone_asc_tabs.tmpl`, `clone_dialog.tmpl` | S |
-| GitNote | Body copy: "A push arrives as changes and goes through policy... Stacks appear as branches named asc/<stack>" | ui-only-missing | `options/locale/locale_en-US.ini` `repo.clone_with_git_help` differs from the board | S |
-| GitNote | Bridge switched off by admin: one sentence "The Git remote is off on this hub. Everything works with asc." and no button | ui-only-missing | `clone_asc_tabs.tmpl` renders nothing when `AscGitAccess` is false | S |
+| GitNote | Body copy: "A push arrives as changes and goes through policy... Stacks appear as branches named asc/<stack>" | done | `options/locale/locale_en-US.ini` `repo.clone_with_git_help` differs from the board | S |
+| GitNote | Bridge switched off by admin: one sentence "The Git remote is off on this hub. Everything works with asc." and no button | done | `clone_asc_tabs.tmpl` renders nothing when `AscGitAccess` is false | S |
 | GitNote | Inline variant in the repository home hero card; also in settings Working mode when branches are on; also in the empty-repository state | ui-only-missing | `home_dir.tmpl`, `settings/asc_branchless.tmpl`, `empty.tmpl` | S |
 
 ## Stacks
