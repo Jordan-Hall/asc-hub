@@ -1,6 +1,7 @@
+{{/* The dialog that adds or invites a member (opened by #add-org-member-button, web_src/js/features/add-org-member.ts): a sheet on a phone. */}}
 <div class="ui g-modal-confirm delete modal" id="delete-label">
 	<div class="header">
-		{{svg "octicon-trash"}}
+		{{svg "dsi-trash" 18}}
 		{{ctx.Locale.Tr "repo.issues.label_deletion"}}
 	</div>
 	<div class="content">
@@ -18,44 +19,36 @@
 				{{ctx.Locale.Tr "members.add_member"}}
 			{{end}}
 		</header>
-		<form class="ui add-member form ignore-dirty" action="{{$.OrgLink}}/members/action/add" method="post">
+		<form class="ui add-member form ignore-dirty ds-form" action="{{$.OrgLink}}/members/action/add" method="post">
 			<input type="hidden" name="uid" value="{{.SignedUser.ID}}">
 			<div class="content">
-				<div class="field">
-					<label>{{ctx.Locale.Tr "members.user"}}</label>
-					<div id="search-user-box" class="ui search tw-mr-2"{{if .IsEmailInviteEnabled}} data-allow-email="true" data-allow-email-description="{{ctx.Locale.Tr "org.teams.invite_team_member" $.Team.Name}}"{{end}}>
+				<div class="field ds-field">
+					<label class="ds-label" for="add-member-user">{{ctx.Locale.Tr "members.user"}}</label>
+					<div id="search-user-box" class="ui search"{{if .IsEmailInviteEnabled}} data-allow-email="true" data-allow-email-description="{{ctx.Locale.Tr "org.teams.invite_team_member" $.Team.Name}}"{{end}}>
 						<div class="ui input">
-							<input class="prompt" name="uname" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" required>
+							<input id="add-member-user" class="prompt ds-input" name="uname" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" required>
 						</div>
 					</div>
 				</div>
 
-				<div class="field">
-					<label>{{ctx.Locale.Tr "org.teams"}}</label>
-					<div class="ui negative message flash-message flash-error" id="no-team-selected-message" hidden>{{ctx.Locale.Tr "members.no_team_selected"}}</div>
+				<fieldset class="ds-fieldset wk-team-pick">
+					<legend class="ds-label">{{ctx.Locale.Tr "org.teams"}}</legend>
+					<div class="ds-banner ds-banner-err" id="no-team-selected-message" role="alert" hidden>{{ctx.Locale.Tr "members.no_team_selected"}}</div>
 					<div class="team-list">
 						{{range .Teams}}
-						<div class="inline field">
-							<div class="ui checkbox">
+							<div class="ds-check">
 								<input name="team_{{.ID}}" id="add-member-team_{{.ID}}" type="checkbox">
 								<label for="add-member-team_{{.ID}}">{{.Name}}</label>
 							</div>
-						</div>
 						{{end}}
-						<div class="inline">
-							{{svg "octicon-plus"}} <a href="{{$.OrgLink}}/teams/new">{{ctx.Locale.Tr "org.create_new_team"}}</a>
-						</div>
+						<a class="ds-link" href="{{$.OrgLink}}/teams/new">{{ctx.Locale.Tr "org.create_new_team"}}</a>
 					</div>
-				</div>
-
+				</fieldset>
 			</div>
 		</form>
 		<div class="actions">
-			<button class="secondary cancel button">
-				{{svg "octicon-x"}}
-				{{ctx.Locale.Tr "cancel"}}
-			</button>
-			<button class="primary ok button" type="submit">
+			<button class="ds-btn ds-btn-secondary cancel" type="button">{{ctx.Locale.Tr "cancel"}}</button>
+			<button class="ds-btn ds-btn-primary ok" type="submit">
 				{{if $.AddMembersByInvitations}}
 					{{ctx.Locale.Tr "members.invite_member"}}
 				{{else}}

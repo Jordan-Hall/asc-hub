@@ -1,36 +1,34 @@
-<div class="ui six wide column">
-	<h4 class="ui top attached header">
-		<strong>{{.Team.Name}}</strong>
-		<div class="ui right">
+{{/* The summary of one team: access, permissions and the settings button, a card beside the member list. */}}
+<aside class="ds-rail" aria-label="{{.Team.Name}}">
+	<section class="ds-card" aria-labelledby="wk-team-sum">
+		<div class="ds-card-h">
+			<h2 id="wk-team-sum">{{.Team.Name}}</h2>
+			<span class="ds-ml-auto">
 			{{if .Team.IsMember ctx $.SignedUser.ID}}
-				<form>
-					<button class="ui red tiny button delete-button" data-modal-id="leave-team-sidebar"
-						data-url="{{.OrgLink}}/teams/{{.Team.LowerName | PathEscape}}/action/leave" data-datauid="{{$.SignedUser.ID}}"
-						data-name="{{.Team.Name}}">{{ctx.Locale.Tr "org.teams.leave"}}</button>
-				</form>
+				<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="leave-team-sidebar"
+					data-url="{{.OrgLink}}/teams/{{.Team.LowerName | PathEscape}}/action/leave" data-datauid="{{$.SignedUser.ID}}"
+					data-name="{{.Team.Name}}">{{ctx.Locale.Tr "org.teams.leave"}}</button>
 			{{else if .IsOrganizationOwner}}
-				<form method="post" action="{{.OrgLink}}/teams/{{.Team.LowerName | PathEscape}}/action/join">
+				<form class="wk-inline-form" method="post" action="{{.OrgLink}}/teams/{{.Team.LowerName | PathEscape}}/action/join">
+					{{.CsrfTokenHtml}}
 					<input type="hidden" name="page" value="team">
-					<button type="submit" class="ui primary tiny button" name="uid" value="{{$.SignedUser.ID}}">{{ctx.Locale.Tr "org.teams.join"}}</button>
+					<button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm" name="uid" value="{{$.SignedUser.ID}}">{{ctx.Locale.Tr "org.teams.join"}}</button>
 				</form>
 			{{end}}
+			</span>
 		</div>
-	</h4>
-	<div class="ui attached table segment detail">
-		<div class="item">
-			{{if .Team.Description}}
-				{{.Team.Description}}
+		<div class="ds-card-b wk-team-sum">
+			<p>
+				{{if .Team.Description}}
+					{{.Team.Description}}
+				{{else}}
+					<span class="ds-c-2">{{ctx.Locale.Tr "org.teams.no_desc"}}</span>
+				{{end}}
+			</p>
+			{{if eq .Team.LowerName "owners"}}
+				<p>{{ctx.Locale.Tr "org.teams.owners_permission_desc"}}</p>
 			{{else}}
-				<span class="text grey tw-italic">{{ctx.Locale.Tr "org.teams.no_desc"}}</span>
-			{{end}}
-		</div>
-		{{if eq .Team.LowerName "owners"}}
-			<div class="item">
-				{{ctx.Locale.Tr "org.teams.owners_permission_desc"}}
-			</div>
-		{{else}}
-			<div class="item">
-				<h3>{{ctx.Locale.Tr "settings.specific_repo_access"}}</h3>
+				<h3 class="ds-t-micro">{{ctx.Locale.Tr "settings.specific_repo_access"}}</h3>
 				<ul>
 					{{if .Team.IncludesAllRepositories}}
 						<li>{{ctx.Locale.Tr "org.teams.all_repositories"}}</li>
@@ -41,44 +39,44 @@
 						<li>{{ctx.Locale.Tr "org.teams.can_create_org_repo"}}</li>
 					{{end}}
 				</ul>
-				<h3>{{ctx.Locale.Tr "org.settings.permission"}}</h3>
+				<h3 class="ds-t-micro">{{ctx.Locale.Tr "org.settings.permission"}}</h3>
 				{{if (eq .Team.AccessMode 3)}}
-					{{ctx.Locale.Tr "org.teams.admin_permission_desc"}}
+					<p>{{ctx.Locale.Tr "org.teams.admin_permission_desc"}}</p>
 				{{else}}
-					<table class="ui table">
-						<thead>
-							<tr>
-								<th>{{ctx.Locale.Tr "units.unit"}}</th>
-								<th>{{ctx.Locale.Tr "org.team_permission_desc"}}</th>
-							</tr>
-						</thead>
-						<tbody>
-							{{range $t, $unit := $.Units}}
-								{{if (not $unit.Type.UnitGlobalDisabled)}}
-									<tr>
-										<td><strong>{{ctx.Locale.Tr $unit.NameKey}}</strong></td>
-										<td>{{if eq ($.Team.UnitAccessMode $.Context $unit.Type) 0 -}}
-										{{ctx.Locale.Tr "org.teams.none_access"}}
-										{{- else if or (eq $.Team.ID 0) (eq ($.Team.UnitAccessMode $.Context $unit.Type) 1) -}}
-										{{ctx.Locale.Tr "org.teams.read_access"}}
-										{{- else if eq ($.Team.UnitAccessMode $.Context $unit.Type) 2 -}}
-										{{ctx.Locale.Tr "org.teams.write_access"}}
-										{{- end}}</td>
-									</tr>
+					<div class="ds-table-wrap">
+						<table class="ds-table">
+							<thead>
+								<tr>
+									<th scope="col">{{ctx.Locale.Tr "units.unit"}}</th>
+									<th scope="col">{{ctx.Locale.Tr "org.team_permission_desc"}}</th>
+								</tr>
+							</thead>
+							<tbody>
+								{{range $t, $unit := $.Units}}
+									{{if (not $unit.Type.UnitGlobalDisabled)}}
+										<tr>
+											<td><strong>{{ctx.Locale.Tr $unit.NameKey}}</strong></td>
+											<td>{{if eq ($.Team.UnitAccessMode $.Context $unit.Type) 0 -}}
+											{{ctx.Locale.Tr "org.teams.none_access"}}
+											{{- else if or (eq $.Team.ID 0) (eq ($.Team.UnitAccessMode $.Context $unit.Type) 1) -}}
+											{{ctx.Locale.Tr "org.teams.read_access"}}
+											{{- else if eq ($.Team.UnitAccessMode $.Context $unit.Type) 2 -}}
+											{{ctx.Locale.Tr "org.teams.write_access"}}
+											{{- end}}</td>
+										</tr>
+									{{end}}
 								{{end}}
-							{{end}}
-						</tbody>
-					</table>
+							</tbody>
+						</table>
+					</div>
 				{{end}}
-			</div>
-		{{end}}
-	</div>
-	{{if .IsOrganizationOwner}}
-		<div class="ui bottom attached segment">
-			<a class="ui teal small button" href="{{.OrgLink}}/teams/{{.Team.LowerName | PathEscape}}/edit">{{svg "octicon-gear"}} {{ctx.Locale.Tr "org.teams.settings"}}</a>
+			{{end}}
 		</div>
-	{{end}}
-</div>
+		{{if .IsOrganizationOwner}}
+			<div class="ds-card-f"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.OrgLink}}/teams/{{.Team.LowerName | PathEscape}}/edit">{{svg "dsi-pencil" 14}} {{ctx.Locale.Tr "org.teams.settings"}}</a></div>
+		{{end}}
+	</section>
+</aside>
 <div class="ui g-modal-confirm delete modal" id="leave-team-sidebar">
 	<div class="header">
 		{{ctx.Locale.Tr "org.teams.leave"}}

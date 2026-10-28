@@ -1,82 +1,80 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content organization members">
+<div role="main" aria-label="{{.Title}}" class="ds-main organization members wk-org">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "org.members") "BackHref" .Org.HomeLink "BackLabel" .Org.DisplayName)}}
 	{{template "org/header" .}}
-	<div class="ui container">
+	<div class="ds-container ds-container-wide wk-org-body wk-people-page">
 		{{template "base/alert" .}}
-
-		{{if $.IsOrganizationOwner}}
-			<div class="text right">
-				<button class="primary button" id="add-org-member-button">
-				{{svg "octicon-plus"}}
-				{{if $.AddMembersByInvitations}}
-					{{ctx.Locale.Tr "members.invite_member"}}
-				{{else}}
-					{{ctx.Locale.Tr "members.add_member"}}
-				{{end}}
+		<div class="wk-toolbar">
+			<h2 class="ds-t-h3">{{ctx.Locale.Tr "org.members"}} <span class="ds-count">{{.NumMembers}}</span></h2>
+			{{if $.IsOrganizationOwner}}
+				<button class="ds-btn ds-btn-primary" id="add-org-member-button" type="button">
+					{{svg "dsi-plus" 16}}
+					{{if $.AddMembersByInvitations}}
+						{{ctx.Locale.Tr "members.invite_member"}}
+					{{else}}
+						{{ctx.Locale.Tr "members.add_member"}}
+					{{end}}
 				</button>
-			</div>
-			<div class="divider"></div>
-		{{end}}
-		<div class="list">
-			{{range $idx, $_ := .Members}}
-				{{if ne $idx 0}}
-					<div class="divider"></div>
-				{{end}}
-				{{$isPublic := index $.MembersIsPublicMember .ID}}
-				<a href="{{.HomeLink}}">{{ctx.AvatarUtils.Avatar . 48}}</a>
-				<div>
-					<h3>
-						{{template "shared/user/name" .}}
-						{{if not $isPublic}}
-							<span class="ui label">{{ctx.Locale.Tr "org.members.private"}}</span>
-						{{end}}
-					</h3>
-					{{if not $.PublicOnly}}
-						<div>
-							{{ctx.Locale.Tr "org.members.member_role"}}
-							<strong>{{if index $.MembersIsUserOrgOwner .ID}}{{svg "octicon-shield-lock"}} {{ctx.Locale.Tr "org.members.owner"}}{{else}}{{ctx.Locale.Tr "org.members.member"}}{{end}}</strong>
-						</div>
-						{{if $.IsOrganizationOwner}}
-						<div>
-							{{ctx.Locale.Tr "admin.users.2fa"}}
-							<strong>
-								{{if index $.MembersTwoFaStatus .ID}}
-									<span class="text green">{{svg "octicon-check"}}</span>
-								{{else}}
-									{{svg "octicon-x"}}
-								{{end}}
-							</strong>
-						</div>
-						{{end}}
-					{{end}}
-				</div>
-				<div class="actions">
-					{{if or (eq $.SignedUser.ID .ID) $.IsOrganizationOwner}}
-						{{if $isPublic}}
-							<a class="small secondary button link-action" href data-url="{{$.OrgLink}}/members/action/private?uid={{.ID}}">
-								{{svg "octicon-eye-closed"}}
-								{{ctx.Locale.Tr "org.members.public_helper"}}
-							</a>
-						{{else}}
-							<a class="small secondary button link-action" href data-url="{{$.OrgLink}}/members/action/public?uid={{.ID}}">
-								{{svg "octicon-eye"}}
-								{{ctx.Locale.Tr "org.members.private_helper"}}
-							</a>
-						{{end}}
-					{{end}}
-					{{if eq $.SignedUser.ID .ID}}
-						<button class="small danger button delete-button" data-modal-id="leave-organization"
-							data-url="{{$.OrgLink}}/members/action/leave" data-datauid="{{.ID}}"
-							data-name="{{.DisplayName}}"
-							data-data-organization-name="{{$.Org.DisplayName}}">{{ctx.Locale.Tr "org.members.leave"}}</button>
-					{{else if $.IsOrganizationOwner}}
-						<button class="small danger button delete-button" data-modal-id="remove-organization-member"
-							data-url="{{$.OrgLink}}/members/action/remove" data-datauid="{{.ID}}"
-							data-name="{{.DisplayName}}"
-							data-data-organization-name="{{$.Org.DisplayName}}">{{ctx.Locale.Tr "org.members.remove"}}</button>
-					{{end}}
-				</div>
 			{{end}}
+		</div>
+		<div class="ds-card">
+			<ul class="ds-list">
+				{{range $idx, $_ := .Members}}
+					{{$isPublic := index $.MembersIsPublicMember .ID}}
+					<li class="ds-li wk-member">
+						<span class="ds-li-av"><a href="{{.HomeLink}}" tabindex="-1" aria-hidden="true">{{ctx.AvatarUtils.Avatar . 40}}</a></span>
+						<div class="ds-li-main">
+							<div class="ds-li-title">
+								{{template "shared/user/name" .}}
+								{{if not $.PublicOnly}}
+									{{if index $.MembersIsUserOrgOwner .ID}}<span class="ds-chip">{{ctx.Locale.Tr "org.members.owner"}}</span>{{else}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "org.members.member"}}</span>{{end}}
+								{{end}}
+								{{if not $isPublic}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "org.members.private"}}</span>{{end}}
+								{{if and (not $.PublicOnly) $.IsOrganizationOwner}}
+									{{if index $.MembersTwoFaStatus .ID}}
+										<span class="ds-chip ds-chip-ok">{{svg "dsi-check" 12}} {{ctx.Locale.Tr "asc_work.org_2fa_on"}}</span>
+									{{else}}
+										<span class="ds-chip ds-chip-warn">{{svg "dsi-alert" 12}} {{ctx.Locale.Tr "asc_work.org_2fa_off"}}</span>
+									{{end}}
+								{{end}}
+							</div>
+						</div>
+						<div class="wk-member-acts">
+							{{if or (eq $.SignedUser.ID .ID) $.IsOrganizationOwner}}
+								{{if $isPublic}}
+									<a class="ds-btn ds-btn-secondary ds-btn-sm link-action" href data-url="{{$.OrgLink}}/members/action/private?uid={{.ID}}">
+										{{svg "dsi-eye" 14}}
+										{{ctx.Locale.Tr "org.members.public_helper"}}
+									</a>
+								{{else}}
+									<a class="ds-btn ds-btn-secondary ds-btn-sm link-action" href data-url="{{$.OrgLink}}/members/action/public?uid={{.ID}}">
+										{{svg "dsi-eye" 14}}
+										{{ctx.Locale.Tr "org.members.private_helper"}}
+									</a>
+								{{end}}
+							{{end}}
+							{{if eq $.SignedUser.ID .ID}}
+								<button class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="leave-organization"
+									data-url="{{$.OrgLink}}/members/action/leave" data-datauid="{{.ID}}"
+									data-name="{{.DisplayName}}"
+									data-data-organization-name="{{$.Org.DisplayName}}">{{ctx.Locale.Tr "org.members.leave"}}</button>
+							{{else if $.IsOrganizationOwner}}
+								<button class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="remove-organization-member"
+									data-url="{{$.OrgLink}}/members/action/remove" data-datauid="{{.ID}}"
+									data-name="{{.DisplayName}}"
+									data-data-organization-name="{{$.Org.DisplayName}}">{{ctx.Locale.Tr "org.members.remove"}}</button>
+							{{end}}
+						</div>
+					</li>
+				{{else}}
+					<li class="wk-empty-li">
+						<div class="ds-empty wk-empty-in">
+							<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-users" 32}}</span>
+							<h3>{{ctx.Locale.Tr "asc_work.org_no_members"}}</h3>
+						</div>
+					</li>
+				{{end}}
+			</ul>
 		</div>
 
 		{{template "base/paginate" .}}

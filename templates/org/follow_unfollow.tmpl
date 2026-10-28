@@ -1,4 +1,4 @@
-<button class="secondary button" hx-post="{{.Org.HomeLink}}?action={{if $.IsFollowing}}unfollow{{else}}follow{{end}}">
+<button class="ds-btn {{if $.IsFollowing}}ds-btn-secondary{{else}}ds-btn-primary{{end}}" hx-post="{{.Org.HomeLink}}?action={{if $.IsFollowing}}unfollow{{else}}follow{{end}}" hx-swap="outerHTML">
 	{{if $.IsFollowing}}
 		{{ctx.Locale.Tr "user.unfollow"}}
 	{{else}}

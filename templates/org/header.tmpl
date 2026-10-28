@@ -1,57 +1,64 @@
-<div class="ui container tw-flex tw-gap-x-4">
-	{{ctx.AvatarUtils.Avatar .Org 100 "org-avatar"}}
-	<div id="org-info" class="tw-flex tw-flex-col">
-		<div class="org-header tw-flex">
-			<div class="org-title">
-				<h1>{{.Org.DisplayName}}</h1>
-				<span class="org-visibility">
-					{{if .Org.Visibility.IsLimited}}<span class="ui large horizontal label">{{ctx.Locale.Tr "org.settings.visibility.limited_shortname"}}</span>{{end}}
-					{{if .Org.Visibility.IsPrivate}}<span class="ui large horizontal label">{{ctx.Locale.Tr "org.settings.visibility.private_shortname"}}</span>{{end}}
-				</span>
-			</div>
-			<span class="button-sequence tw-items-center tw-ml-auto tw-whitespace-nowrap">
-				{{if .IsSigned}}
-					{{template "org/follow_unfollow" .}}
+{{/* The head of an organization (design boards "OrgProfile" and "Mobile-OrgProfile"): avatar, name, description, facts, actions, then the tabs. */}}
+<div class="wk-pf-band wk-org-band">
+	<div class="ds-container ds-container-wide">
+		<div id="org-info" class="wk-pf-card wk-org-card">
+			<div class="wk-pf-av wk-org-av">{{ctx.AvatarUtils.Avatar .Org 96 "org-avatar"}}</div>
+			<div class="wk-pf-info tw-break-anywhere">
+				<div class="wk-pf-line1">
+					<h1 class="wk-pf-name">{{.Org.DisplayName}}</h1>
+					{{if .Org.Visibility.IsLimited}}<span class="ds-chip">{{ctx.Locale.Tr "org.settings.visibility.limited_shortname"}}</span>{{end}}
+					{{if .Org.Visibility.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "org.settings.visibility.private_shortname"}}</span>{{end}}
+				</div>
+				{{if .RenderedDescription}}<div class="wk-pf-desc render-content markup">{{.RenderedDescription}}</div>{{end}}
+				<div class="wk-pf-line2 wk-org-facts">
+					{{if .Org.Location}}<span>{{svg "dsi-map-pin" 14}} {{.Org.Location}}</span>{{end}}
+					{{if .Org.Website}}<a class="ds-mono" target="_blank" rel="noopener noreferrer me" href="{{.Org.Website}}">{{.Org.Website}}</a>{{end}}
+					{{if .IsSigned}}{{if .Org.Email}}<a href="mailto:{{.Org.Email}}">{{.Org.Email}}</a>{{end}}{{end}}
+				</div>
+				{{if .NumMembers}}
+					<div class="wk-pf-stats">
+						<a href="{{.OrgLink}}/members">{{ctx.Locale.TrN .NumMembers "asc_work.org_people_one" "asc_work.org_people_n" .NumMembers}}</a>
+					</div>
 				{{end}}
-				{{if .IsOrganizationMember}}
-					<a class="secondary button" href="{{.OrgLink}}/dashboard">{{ctx.Locale.Tr "org.open_dashboard"}}</a>
+			</div>
+			<div class="wk-pf-actions">
+				{{if .IsSigned}}
+					<div class="wk-pf-primary">{{template "org/follow_unfollow" .}}</div>
+				{{end}}
+				{{if .IsOrganizationOwner}}
+					<a id="settings-btn" class="ds-btn ds-btn-secondary" href="{{.OrgLink}}/settings">{{ctx.Locale.Tr "asc_work.org_settings"}}</a>
+				{{else if .IsOrganizationMember}}
+					<a class="ds-btn ds-btn-secondary" href="{{.OrgLink}}/dashboard">{{ctx.Locale.Tr "org.open_dashboard"}}</a>
 				{{end}}
 				{{$moderationEntryNeeded := and .IsModerationEnabled .IsSigned (not .IsOrganizationOwner)}}
-				{{if or .EnableFeed $moderationEntryNeeded}}
-					<details class="dropdown dir-rtl">
-						<summary class="border" data-tooltip-content="{{ctx.Locale.Tr "profile.actions.tooltip"}}">
-							{{svg "octicon-kebab-horizontal" 20}}
-						</summary>
-						<div class="content">
-							<ul>
-								{{if .EnableFeed}}
-									<li>
-										<a href="{{.Org.HomeLink}}.rss">{{svg "octicon-rss"}}{{ctx.Locale.Tr "rss_feed"}}</a>
-									</li>
-									<li>
-										<a href="{{.Org.HomeLink}}.atom">{{svg "octicon-rss"}}{{ctx.Locale.Tr "feed.atom.link"}}</a>
-									</li>
-								{{end}}
-								{{if $moderationEntryNeeded}}
-									<li>
-										<a class="orange text" href="{{AppSubUrl}}/report_abuse?type=org&id={{$.Org.ID}}">{{svg "octicon-stop"}}{{ctx.Locale.Tr "moderation.report_abuse"}}</a>
-									</li>
-								{{end}}
-							</ul>
-						</div>
-					</details>
+				{{if or .EnableFeed $moderationEntryNeeded .IsOrganizationOwner}}
+					<button type="button" class="ds-btn ds-btn-secondary show-modal" data-modal="#org-actions" aria-haspopup="dialog">{{ctx.Locale.Tr "asc_work.pf_more"}}</button>
 				{{end}}
-			</span>
+			</div>
 		</div>
-		{{if .RenderedDescription}}<div class="render-content markup">{{.RenderedDescription}}</div>{{end}}
-		<div class="text light meta tw-mt-1">
-			{{if .Org.Location}}<div class="flex-text-block">{{svg "octicon-location"}} <span>{{.Org.Location}}</span></div>{{end}}
-			{{if .Org.Website}}<div class="flex-text-block">{{svg "octicon-link"}} <a class="muted" target="_blank" rel="noopener noreferrer me" href="{{.Org.Website}}">{{.Org.Website}}</a></div>{{end}}
-			{{if .IsSigned}}
-				{{if .Org.Email}}<div class="flex-text-block">{{svg "octicon-mail"}} <a class="muted" href="mailto:{{.Org.Email}}">{{.Org.Email}}</a></div>{{end}}
-			{{end}}
-		</div>
+		{{template "org/menu" .}}
 	</div>
 </div>
-
-{{template "org/menu" .}}
+{{$moderationEntryNeeded := and .IsModerationEnabled .IsSigned (not .IsOrganizationOwner)}}
+{{if or .EnableFeed $moderationEntryNeeded .IsOrganizationOwner}}
+<dialog id="org-actions" class="wk-sheet-menu">
+	<article>
+		<header>{{ctx.Locale.Tr "profile.actions.tooltip"}}</header>
+		<div class="content">
+			<ul class="wk-sheet-list">
+				{{if .IsOrganizationOwner}}
+					<li><a href="{{.OrgLink}}/dashboard">{{svg "dsi-grid" 18}}<span>{{ctx.Locale.Tr "org.open_dashboard"}}</span></a></li>
+				{{end}}
+				{{if .EnableFeed}}
+					<li><a href="{{.Org.HomeLink}}.rss">{{svg "dsi-activity" 18}}<span>{{ctx.Locale.Tr "rss_feed"}}</span></a></li>
+					<li><a href="{{.Org.HomeLink}}.atom">{{svg "dsi-activity" 18}}<span>{{ctx.Locale.Tr "feed.atom.link"}}</span></a></li>
+				{{end}}
+				{{if $moderationEntryNeeded}}
+					<li><a class="is-danger" href="{{AppSubUrl}}/report_abuse?type=org&id={{$.Org.ID}}">{{svg "dsi-flag" 18}}<span>{{ctx.Locale.Tr "moderation.report_abuse"}}</span></a></li>
+				{{end}}
+			</ul>
+		</div>
+		<div class="actions"><button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button></div>
+	</article>
+</dialog>
+{{end}}

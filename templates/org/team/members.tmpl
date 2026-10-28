@@ -1,94 +1,76 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content organization teams">
+<div role="main" aria-label="{{.Title}}" class="ds-main organization teams wk-org">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" .Team.Name "BackHref" (print .OrgLink "/teams") "BackLabel" (ctx.Locale.Tr "org.teams"))}}
 	{{template "org/header" .}}
-	<div class="ui container">
+	<div class="ds-container ds-container-wide wk-org-body">
 		{{template "base/alert" .}}
-		<div class="ui stackable grid">
-			{{template "org/team/sidebar" .}}
-			<div class="ui ten wide column">
+		<div class="ds-split wk-team-split">
+			<div class="ds-min0 wk-team-main">
 				{{template "org/team/navbar" .}}
 				{{if .IsOrganizationOwner}}
-					<div class="ui attached segment">
-						<form class="ui form ignore-dirty tw-flex tw-flex-wrap tw-gap-2" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/add" method="post">
-							<input type="hidden" name="uid" value="{{.SignedUser.ID}}">
-							<div id="search-user-box" class="ui search tw-mr-2"{{if .IsEmailInviteEnabled}} data-allow-email="true" data-allow-email-description="{{ctx.Locale.Tr "org.teams.invite_team_member" $.Team.Name}}"{{end}}>
-								<div class="ui input">
-									<input class="prompt" name="uname" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" required>
-								</div>
+					<form class="ui form ignore-dirty wk-team-add" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/add" method="post">
+						{{.CsrfTokenHtml}}
+						<input type="hidden" name="uid" value="{{.SignedUser.ID}}">
+						<div id="search-user-box" class="ui search"{{if .IsEmailInviteEnabled}} data-allow-email="true" data-allow-email-description="{{ctx.Locale.Tr "org.teams.invite_team_member" $.Team.Name}}"{{end}}>
+							<div class="ui input">
+								<label class="ds-sr" for="team-add-user">{{ctx.Locale.Tr "search.user_kind"}}</label>
+								<input id="team-add-user" class="prompt ds-input" name="uname" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" required>
 							</div>
-							<button class="ui primary button">
-								{{if $.AddMembersByInvitations}}
-									{{ctx.Locale.Tr "members.invite_team_member"}}
-								{{else}}
-									{{ctx.Locale.Tr "org.teams.add_team_member"}}
-								{{end}}
-							</button>
-						</form>
-					</div>
+						</div>
+						<button class="ds-btn ds-btn-primary">
+							{{if $.AddMembersByInvitations}}
+								{{ctx.Locale.Tr "members.invite_team_member"}}
+							{{else}}
+								{{ctx.Locale.Tr "org.teams.add_team_member"}}
+							{{end}}
+						</button>
+					</form>
 				{{end}}
-				<div class="ui attached segment">
-					<div class="flex-list">
+				<div class="ds-card">
+					<ul class="ds-list">
 						{{range .Team.Members}}
-							<div class="flex-item tw-items-center">
-								<div class="flex-item-leading">
-									<a href="{{.HomeLink}}">{{ctx.AvatarUtils.Avatar . 32}}</a>
-								</div>
-								<div class="flex-item-main">
-									<div class="flex-item-title">
-										{{template "shared/user/name" .}}
+							<li class="ds-li wk-member">
+								<span class="ds-li-av"><a href="{{.HomeLink}}" tabindex="-1" aria-hidden="true">{{ctx.AvatarUtils.Avatar . 40}}</a></span>
+								<div class="ds-li-main"><div class="ds-li-title">{{template "shared/user/name" .}}</div></div>
+								{{if and $.IsOrganizationOwner (not (and ($.Team.IsOwnerTeam) (eq (len $.Team.Members) 1)))}}
+									<div class="wk-member-acts">
+										<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="remove-team-member"
+											data-url="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/remove" data-datauid="{{.ID}}"
+											data-name="{{.DisplayName}}"
+											data-data-team-name="{{$.Team.Name}}">{{ctx.Locale.Tr "org.members.remove"}}</button>
 									</div>
-								</div>
-								<div class="flex-item-trailing">
-									{{if and $.IsOrganizationOwner (not (and ($.Team.IsOwnerTeam) (eq (len $.Team.Members) 1)))}}
-										<form>
-											<button class="ui red button delete-button" data-modal-id="remove-team-member"
-												data-url="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/remove" data-datauid="{{.ID}}"
-												data-name="{{.DisplayName}}"
-												data-data-team-name="{{$.Team.Name}}">{{ctx.Locale.Tr "org.members.remove"}}</button>
-										</form>
-									{{end}}
-								</div>
-							</div>
+								{{end}}
+							</li>
 						{{else}}
-							<div class="flex-item">
-								<span class="text grey tw-italic">{{ctx.Locale.Tr "org.teams.members.none"}}</span>
-							</div>
+							<li class="wk-empty-li"><p class="wk-quiet">{{ctx.Locale.Tr "org.teams.members.none"}}</p></li>
 						{{end}}
-					</div>
+					</ul>
 					{{template "base/paginate" .}}
 				</div>
 				{{if and .Invites $.IsOrganizationOwner}}
-				<h4 class="ui top attached header">{{ctx.Locale.Tr "org.teams.invite_team_member.list"}}</h4>
-				<div class="ui attached segment">
-					<div class="flex-list">
+				<section class="ds-card" aria-labelledby="wk-team-invites">
+					<div class="ds-card-h"><h3 id="wk-team-invites">{{ctx.Locale.Tr "org.teams.invite_team_member.list"}}</h3></div>
+					<ul class="ds-list">
 						{{range .Invites}}
-							<div class="flex-item tw-items-center">
+							<li class="ds-li wk-member">
 								{{if .InvitedUser}}
-									<div class="flex-item-leading">
-										<a href="{{.InvitedUser.HomeLink}}">{{ctx.AvatarUtils.Avatar .InvitedUser 32}}</a>
-									</div>
-									<div class="flex-item-main">
-										<div class="flex-item-title">
-											{{template "shared/user/name" .InvitedUser}}
-										</div>
-									</div>
+									<span class="ds-li-av"><a href="{{.InvitedUser.HomeLink}}" tabindex="-1" aria-hidden="true">{{ctx.AvatarUtils.Avatar .InvitedUser 40}}</a></span>
+									<div class="ds-li-main"><div class="ds-li-title">{{template "shared/user/name" .InvitedUser}}</div></div>
 								{{else}}
-									<div class="flex-item-main">
-										{{.Email}}
-									</div>
+									<div class="ds-li-main"><div class="ds-li-title">{{.Email}}</div></div>
 								{{end}}
-								<div class="flex-item-trailing">
-									<form action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/remove_invite" method="post">
-										<input type="hidden" name="iid" value="{{.ID}}">
-										<button class="ui red button">{{ctx.Locale.Tr "org.members.remove"}}</button>
-									</form>
-								</div>
-							</div>
+								<form class="wk-member-acts" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/remove_invite" method="post">
+									{{$.CsrfTokenHtml}}
+									<input type="hidden" name="iid" value="{{.ID}}">
+									<button class="ds-btn ds-btn-danger ds-btn-sm">{{ctx.Locale.Tr "org.members.remove"}}</button>
+								</form>
+							</li>
 						{{end}}
-					</div>
-				</div>
+					</ul>
+				</section>
 				{{end}}
 			</div>
+			{{template "org/team/sidebar" .}}
 		</div>
 	</div>
 </div>
