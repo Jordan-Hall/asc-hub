@@ -277,7 +277,7 @@
     width: 100% !important;
     max-height: 70vh;
     border-radius: 16px 16px 0 0 !important;
-    z-index: 40;
+    z-index: var(--z-sheet, 60) !important;
     padding-bottom: env(safe-area-inset-bottom);
   }
 
