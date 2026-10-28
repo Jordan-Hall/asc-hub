@@ -1,8 +1,14 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository issue-list">
-	{{template "repo/header" .}}
-	<div class="ui container">
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository issue-list rp-page">
+	{{template "repo/header" (dict "HdrData" . "SubTitle" .Title "SubBack" .RepoLink)}}
+	<div class="ds-container rp-body rp-skin">
 	{{template "base/alert" .}}
+	<div class="rp-band rp-list-band">
+		<div class="rp-band-main">
+			<p class="rp-eyebrow">{{.Repository.FullName}}</p>
+			<h2 class="rp-h1">{{if .PageIsIssueList}}{{ctx.Locale.Tr "repo.issues"}}{{else if eq .Repository.GetStorageBackend "asc"}}{{ctx.Locale.Tr "asc_rp.tab_stacks"}}{{else}}{{ctx.Locale.Tr "repo.pulls"}}{{end}}</h2>
+		</div>
+	</div>
 
 	{{if .PinnedIssues}}
 		<div id="issue-pins" {{if .IsRepoAdmin}}data-is-repo-admin{{end}}>
