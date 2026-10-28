@@ -48,10 +48,10 @@ func TestTheSummaryIsSentOnceAtEightAndOnlyWithWhatThePersonMayRead(t *testing.T
 
 	require.NoError(t, ascnotify.Save(ctx, uid, ascnotify.Prefs{Digest: true, EmailOff: []string{"merge_queue"}}))
 	now := time.Now()
-	require.NoError(t, user_model.RecordAscNotification(ctx, uid, 1, "checks_failed", "build failed", "/user2/repo1/pulls/3", false))
-	require.NoError(t, user_model.RecordAscNotification(ctx, uid, 1, "merge_queue", "merged", "/user2/repo1/pulls/2", false)) // email switched off for it
-	require.NoError(t, user_model.RecordAscNotification(ctx, uid, 1, "agent_finished", "already emailed", "", true))          // not in the summary
-	require.NoError(t, user_model.RecordAscNotification(ctx, 4, 1, "checks_failed", "somebody else", "", false))              // another person's
+	require.NoError(t, user_model.RecordAscNotification(ctx, uid, 1, "checks_failed", "build failed", "/user2/repo1/pulls/3", "", false))
+	require.NoError(t, user_model.RecordAscNotification(ctx, uid, 1, "merge_queue", "merged", "/user2/repo1/pulls/2", "", false)) // email switched off for it
+	require.NoError(t, user_model.RecordAscNotification(ctx, uid, 1, "agent_finished", "already emailed", "", "", true))          // not in the summary
+	require.NoError(t, user_model.RecordAscNotification(ctx, 4, 1, "checks_failed", "somebody else", "", "", false))              // another person's
 	_, err = db.GetEngine(ctx).Exec("UPDATE `asc_notify_log` SET sent_unix = ?", now.Unix())
 	require.NoError(t, err)
 
@@ -83,7 +83,7 @@ func TestNoMailServiceKeepsTheEntries(t *testing.T) {
 	got := capture(t)
 	setting.MailService = nil
 	require.NoError(t, ascnotify.Save(ctx, 2, ascnotify.Prefs{Digest: true}))
-	require.NoError(t, user_model.RecordAscNotification(ctx, 2, 1, "checks_failed", "x", "", false))
+	require.NoError(t, user_model.RecordAscNotification(ctx, 2, 1, "checks_failed", "x", "", "", false))
 	n, err := Run(ctx, time.Date(2026, 10, 28, 8, 5, 0, 0, time.UTC))
 	require.NoError(t, err)
 	assert.Zero(t, n)

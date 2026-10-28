@@ -80,7 +80,7 @@ func TestAscEventRefusesWhatItDoesNotKnow(t *testing.T) {
 	t.Cleanup(test.MockVariableValue(&setting.Asc.Enabled, true))
 	ok := ascEventRequest{Event: "merge_queue", Repo: "user2/repo1", Users: []string{"user2"}, Title: "merged", Path: "/user2/repo1/pulls/1"}
 	for name, mutate := range map[string]func(*ascEventRequest){
-		"unknown event":         func(r *ascEventRequest) { r.Event = "mentioned" }, // the hub makes this one itself
+		"unknown event":         func(r *ascEventRequest) { r.Event = "nope" },
 		"no users":              func(r *ascEventRequest) { r.Users = nil },
 		"too many users":        func(r *ascEventRequest) { r.Users = make([]string, ascEventMaxUsers+1) },
 		"no title":              func(r *ascEventRequest) { r.Title = "" },
@@ -115,5 +115,7 @@ func TestAscEventHonoursTheChoiceOfThePerson(t *testing.T) {
 		assert.True(t, ascnotify.IsIngestEvent(e), e)
 		assert.Contains(t, ascnotify.EmailEvents, e)
 	}
-	assert.False(t, ascnotify.IsIngestEvent("review_requested"))
+	assert.True(t, ascnotify.IsIngestEvent("review_requested"))
+	assert.True(t, ascnotify.IsIngestEvent("mentioned"))
+	assert.False(t, ascnotify.IsIngestEvent("nope"))
 }

@@ -5,6 +5,7 @@ package private
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -26,6 +27,10 @@ const (
 	ascEventMaxUsers  = 50
 	ascEventMaxTitle  = 200
 	ascEventMaxDetail = 500
+)
+
+var (
+	ascEventIDRe = regexp.MustCompile(`^[A-Za-z0-9_.:-]{1,64}$`)
 )
 
 // ascEventRequest is the body of `POST /api/internal/asc/event`. asc serve sends it when something happens that a
@@ -78,6 +83,12 @@ func AscEvent(ctx *context.PrivateContext) {
 		ctx.JSON(http.StatusInternalServerError, private.Response{Err: "internal error"})
 		return
 	}
+	req.Path = ascCanonicalPath(ctx, repo, req.Path)
+	eventID := ctx.Req.Header.Get("X-Asc-Event-Id")
+	if !ascEventIDRe.MatchString(eventID) && eventID != "" {
+		ctx.JSON(http.StatusBadRequest, private.Response{UserMsg: "invalid request"})
+		return
+	}
 	notified := 0
 	seen := map[int64]bool{}
 	for _, login := range req.Users {
@@ -86,6 +97,9 @@ func AscEvent(ctx *context.PrivateContext) {
 			continue
 		}
 		seen[u.ID] = true
+		if dup, err := user_model.HasAscNotificationEvent(ctx, u.ID, eventID); err != nil || dup {
+			continue // a retry of an event the person was told about already
+		}
 		perm, err := access.GetUserRepoPermission(ctx, repo, u)
 		if err != nil || !perm.HasAccess() {
 			continue // a person who cannot read the repository is told nothing about it
@@ -99,7 +113,7 @@ func AscEvent(ctx *context.PrivateContext) {
 			emailed = true
 		}
 		ascpush.Notify(ctx, u.ID, req.Event, ascpush.Message{Title: req.Title, Body: repo.FullName(), Path: ascEventPath(repo, req), Tag: req.Event + "-" + repo.FullName()})
-		if err := user_model.RecordAscNotification(ctx, u.ID, repo.ID, req.Event, req.Title, req.Path, emailed); err != nil {
+		if err := user_model.RecordAscNotification(ctx, u.ID, repo.ID, req.Event, req.Title, req.Path, eventID, emailed); err != nil {
 			log.Error("asc event: recording for user %d: %v", u.ID, err)
 			continue
 		}
@@ -126,10 +140,5 @@ func sendAscEventMail(u *user_model.User, repo *repo_model.Repository, req *ascE
 	mailer.SendAsync(mailer.NewMessage(u.EmailTo(), subject, body))
 }
 
-// ascEventPath is where a click on a notification of the event goes: the path asc sent, or the repository.
-func ascEventPath(repo *repo_model.Repository, req *ascEventRequest) string {
-	if req.Path != "" {
-		return req.Path
-	}
-	return repo.Link()
-}
+// ascEventPath is where a click on a notification of the event goes: the canonical path made from what asc sent.
+func ascEventPath(_ *repo_model.Repository, req *ascEventRequest) string { return req.Path }

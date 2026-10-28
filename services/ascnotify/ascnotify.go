@@ -28,9 +28,10 @@ const (
 var (
 	Events = []string{"review_requested", "mentioned", "agent_question", "agent_finished", "checks_failed", "restack_conflict", "merge_queue", "policy_changed"}
 	// EmailEvents are the events a person can switch for email: the hub sends mail for every one of them, review requests
-	// and mentions from its own mailer, the other six when asc serve reports them (IngestEvents).
+	// and mentions from its own mailer for the pull requests of the hub, and every event when asc serve reports it (IngestEvents:
+	// reviews and mentions made through asc, agent runs, checks, restacks, the merge queue, policy).
 	EmailEvents  = Events
-	IngestEvents = []string{"agent_question", "agent_finished", "checks_failed", "restack_conflict", "merge_queue", "policy_changed"}
+	IngestEvents = Events
 )
 
 const settingKey = "asc.notify"
