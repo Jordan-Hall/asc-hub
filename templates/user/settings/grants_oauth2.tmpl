@@ -1,35 +1,26 @@
-<h4 class="ui top attached header">
-	{{ctx.Locale.Tr "settings.authorized_oauth2_applications"}}
-</h4>
-<div class="ui attached segment">
-	<div class="flex-list">
-		<div class="flex-item">
-			{{ctx.Locale.Tr "settings.authorized_oauth2_applications_description"}}
-		</div>
+<section class="ds-card" aria-labelledby="sp-grants">
+	<div class="ds-card-h"><h2 id="sp-grants">{{ctx.Locale.Tr "settings.authorized_oauth2_applications"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.authorized_oauth2_applications_description"}}</span></div>
+	{{if .Grants}}
+	<ul class="ds-list wk-rows">
 		{{range .Grants}}
-			<div class="flex-item">
-				<div class="flex-item-leading">
-					{{svg "octicon-key" 32}}
+			<li class="ds-li wk-row">
+				<span class="ds-li-av" aria-hidden="true">{{svg "dsi-puzzle" 20}}</span>
+				<div class="ds-li-main">
+					<div class="ds-li-title"><span class="ds-break">{{.Application.Name}}</span></div>
+					<div class="ds-li-sub">{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</div>
 				</div>
-				<div class="flex-item-main">
-					<div class="flex-item-title">{{.Application.Name}}</div>
-					<div class="flex-item-body">
-						<p>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</p>
-					</div>
+				<div class="wk-row-acts">
+					<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="revoke-gitea-oauth2-grant" data-url="{{AppSubUrl}}/user/settings/applications/oauth2/{{.ApplicationID}}/revoke/{{.ID}}">{{ctx.Locale.Tr "settings.revoke_key"}}</button>
 				</div>
-				<div class="flex-item-trailing">
-					<button class="ui red tiny button delete-button" data-modal-id="revoke-gitea-oauth2-grant"
-							data-url="{{AppSubUrl}}/user/settings/applications/oauth2/{{.ApplicationID}}/revoke/{{.ID}}">
-						{{ctx.Locale.Tr "settings.revoke_key"}}
-					</button>
-				</div>
-			</div>
+			</li>
 		{{end}}
-	</div>
-
+	</ul>
+	{{else}}
+		<div class="ds-card-b"><p class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_grants_empty"}}</p></div>
+	{{end}}
 	<div class="ui g-modal-confirm delete modal" id="revoke-gitea-oauth2-grant">
 		<div class="header">
-			{{svg "octicon-shield" 16 "tw-mr-1"}}
+			{{svg "dsi-shield-check" 16 "tw-mr-1"}}
 			{{ctx.Locale.Tr "settings.revoke_oauth2_grant"}}
 		</div>
 		<div class="content">
@@ -37,4 +28,4 @@
 		</div>
 		{{template "base/modal_actions_confirm" .}}
 	</div>
-</div>
+</section>

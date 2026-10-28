@@ -115,3 +115,93 @@ button.wk-radio-card {
 .ds-card > .ds-card-h + .ds-list.wk-rows {
   border-top: 0;
 }
+
+/* scopes of a token, one chip each, and the details they sit in */
+.wk-details {
+  margin-top: 8px;
+}
+
+.wk-details > summary {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: var(--link);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.wk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.wk-plain {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+/* inside a form the legacy checkbox rules (mask tick, white fill) out-rank the design system box: draw the tick as the system does */
+form .ds-check > input[type="checkbox"]:checked,
+form .wk-choice > input[type="checkbox"]:checked {
+  border: 1.5px solid var(--fill);
+  background: var(--fill);
+}
+
+form .ds-check > input[type="checkbox"]:checked::after,
+form .wk-choice > input[type="checkbox"]:checked::after {
+  position: static;
+  inset: auto;
+  width: 10px;
+  height: 6px;
+  margin-top: -2px;
+  border-left: 2px solid var(--on-fill);
+  border-bottom: 2px solid var(--on-fill);
+  background: none;
+  mask-image: none;
+  transform: rotate(-45deg);
+}
+
+/* new token: repository picker and scope grid */
+.wk-repo-selector {
+  display: grid;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.wk-repo-selector .wk-inline-field {
+  margin: 8px 0;
+}
+
+.wk-pager {
+  margin-top: 12px;
+}
+
+.wk-repo-rows {
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+}
+
+@media (min-width: 768px) {
+  .wk-repo-selector {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.wk-scope-grid {
+  display: grid;
+  gap: 14px 16px;
+}
+
+@media (min-width: 640px) {
+  .wk-scope-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .wk-scope-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

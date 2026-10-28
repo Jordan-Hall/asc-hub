@@ -1,5 +1,6 @@
-{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "organization settings options")}}
-			<div class="org-setting-content">
-				{{template "user/settings/applications_oauth2_edit_form" .}}
-			</div>
+{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main organization settings options wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.edit_oauth2_application") "Lead" (ctx.Locale.Tr "settings.oauth2_application_create_description"))}}
+<div class="wk-sp">
+	{{template "user/settings/applications_oauth2_edit_form" .}}
+</div>
 {{template "org/settings/layout_footer" .}}

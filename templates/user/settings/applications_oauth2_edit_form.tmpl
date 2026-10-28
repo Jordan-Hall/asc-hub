@@ -1,51 +1,42 @@
-<h4 class="ui top attached header">
-	{{ctx.Locale.Tr "settings.edit_oauth2_application"}}
-</h4>
-<div class="ui attached segment">
-	<p>{{ctx.Locale.Tr "settings.oauth2_application_create_description"}}</p>
-</div>
-<div class="ui attached segment form ignore-dirty">
-	<div class="field">
-		<label for="client-id">{{ctx.Locale.Tr "settings.oauth2_client_id"}}</label>
-		<input id="client-id" readonly value="{{.App.ClientID}}">
+{{/* Shared by the account, organization and administration pages that edit one OAuth2 application. Put it inside a .wk-sp. */}}
+<section class="ds-card" aria-labelledby="sp-oauth-secret">
+	<div class="ds-card-h"><h2 id="sp-oauth-secret">{{ctx.Locale.Tr "settings.oauth2_client_id"}}</h2></div>
+	<div class="wk-card-form ui form ignore-dirty">
+		<div class="ds-field">
+			<label class="ds-label" for="client-id">{{ctx.Locale.Tr "settings.oauth2_client_id"}}</label>
+			<input id="client-id" class="ds-input ds-mono" readonly value="{{.App.ClientID}}">
+		</div>
+		<div class="ds-field">
+			<label class="ds-label" for="client-secret">{{ctx.Locale.Tr "settings.oauth2_client_secret"}}</label>
+			{{if .ClientSecret}}
+				<input id="client-secret" class="ds-input ds-mono" type="text" readonly value="{{.ClientSecret}}">
+			{{else}}
+				<input id="client-secret" class="ds-input ds-mono" type="password" readonly value="averysecuresecret">
+			{{end}}
+		</div>
 	</div>
-	{{if .ClientSecret}}
-		<div class="field">
-			<label for="client-secret">{{ctx.Locale.Tr "settings.oauth2_client_secret"}}</label>
-			<input id="client-secret" type="text" readonly value="{{.ClientSecret}}">
-		</div>
-	{{else}}
-		<div class="field">
-			<label for="client-secret">{{ctx.Locale.Tr "settings.oauth2_client_secret"}}</label>
-			<input id="client-secret" type="password" readonly value="averysecuresecret">
-		</div>
-	{{end}}
-	<div class="item">
-		<!-- TODO add regenerate secret functionality */ -->
-		<form class="ui form ignore-dirty" action="{{.FormActionPath}}/regenerate_secret" method="post">
-			{{ctx.Locale.Tr "settings.oauth2_regenerate_secret_hint"}}
-			<button class="ui mini button tw-ml-2" type="submit">{{ctx.Locale.Tr "settings.oauth2_regenerate_secret"}}</button>
-		</form>
-	</div>
-</div>
-<div class="ui attached bottom segment">
-	<form class="ui form ignore-dirty" action="{{.FormActionPath}}" method="post">
-		<div class="field {{if .Err_AppName}}error{{end}}">
-			<label for="application-name">{{ctx.Locale.Tr "settings.oauth2_application_name"}}</label>
-			<input id="application-name" value="{{.App.Name}}" name="application_name" required maxlength="255">
-		</div>
-		<div class="field {{if .Err_RedirectURI}}error{{end}}">
-			<label for="redirect-uris">{{ctx.Locale.Tr "settings.oauth2_redirect_uris"}}</label>
-			<textarea name="redirect_uris" id="redirect-uris" required>{{StringUtils.Join .App.RedirectURIs "\n"}}</textarea>
-		</div>
-		<div class="field {{if .Err_ConfidentialClient}}error{{end}}">
-			<div class="ui checkbox">
-				<label>{{ctx.Locale.Tr "settings.oauth2_confidential_client"}}</label>
-				<input type="checkbox" name="confidential_client" {{if .App.ConfidentialClient}}checked{{end}}>
-			</div>
-		</div>
-		<button class="ui primary button">
-			{{ctx.Locale.Tr "settings.save_application"}}
-		</button>
+	<form class="ui form ds-form wk-card-form ignore-dirty" action="{{.FormActionPath}}/regenerate_secret" method="post">
+		{{.CsrfTokenHtml}}
+		<p class="ds-hint">{{ctx.Locale.Tr "settings.oauth2_regenerate_secret_hint"}}</p>
+		<div><button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "settings.oauth2_regenerate_secret"}}</button></div>
 	</form>
-</div>
+</section>
+<section class="ds-card" aria-labelledby="sp-oauth-edit">
+	<div class="ds-card-h"><h2 id="sp-oauth-edit">{{ctx.Locale.Tr "settings.edit_oauth2_application"}}</h2></div>
+	<form class="ui form ds-form wk-card-form ignore-dirty" action="{{.FormActionPath}}" method="post">
+		{{.CsrfTokenHtml}}
+		<div class="required field ds-field {{if .Err_AppName}}error{{end}}">
+			<label class="ds-label" for="application-name">{{ctx.Locale.Tr "settings.oauth2_application_name"}}</label>
+			<input id="application-name" class="ds-input{{if .Err_AppName}} is-err{{end}}" value="{{.App.Name}}" name="application_name" required maxlength="255">
+		</div>
+		<div class="required field ds-field {{if .Err_RedirectURI}}error{{end}}">
+			<label class="ds-label" for="redirect-uris">{{ctx.Locale.Tr "settings.oauth2_redirect_uris"}}</label>
+			<textarea name="redirect_uris" id="redirect-uris" class="ds-textarea{{if .Err_RedirectURI}} is-err{{end}}" rows="3" required>{{StringUtils.Join .App.RedirectURIs "\n"}}</textarea>
+		</div>
+		<div class="ds-check {{if .Err_ConfidentialClient}}error{{end}}">
+			<input id="confidential-client" type="checkbox" name="confidential_client" {{if .App.ConfidentialClient}}checked{{end}}>
+			<label for="confidential-client">{{ctx.Locale.Tr "settings.oauth2_confidential_client"}}</label>
+		</div>
+		<div><button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.save_application"}}</button></div>
+	</form>
+</section>
