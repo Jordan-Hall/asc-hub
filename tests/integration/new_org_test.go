@@ -31,7 +31,7 @@ func TestNewOrganizationForm(t *testing.T) {
 		assert.True(t, exists)
 
 		// Verify page header
-		header := strings.TrimSpace(page.Find(".form[action='/org/create'] .header").Text())
+		header := strings.TrimSpace(page.Find("h1.wk-title").Text())
 		assert.Equal(t, locale.TrString("new_org.title"), header)
 	})
 }

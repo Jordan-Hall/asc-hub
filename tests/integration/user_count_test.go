@@ -164,14 +164,5 @@ func TestFrontendHeaderCountOrg(t *testing.T) {
 	countTest.TestPage(t, "members", true)
 	countTest.TestPage(t, "teams", true)
 
-	countTest.TestPage(t, "settings", true)
-	countTest.TestPage(t, "settings/hooks", true)
-	countTest.TestPage(t, "settings/labels", true)
-	countTest.TestPage(t, "settings/applications", true)
-	countTest.TestPage(t, "settings/packages", true)
-	countTest.TestPage(t, "settings/actions/runners", true)
-	countTest.TestPage(t, "settings/actions/secrets", true)
-	countTest.TestPage(t, "settings/actions/variables", true)
-	countTest.TestPage(t, "settings/blocked_users", true)
-	countTest.TestPage(t, "settings/delete", true)
+	// The settings pages have the settings menu and no organization header, so they carry no counts.
 }

@@ -2,7 +2,7 @@
 	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
 	<div class="ui attached segment">
 		<div class="ui form">
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.common.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>{{- if gt (len .Groups) 1 -}}
 # {{ctx.Locale.Tr "packages.alt.repository.multiple_groups"}}
@@ -15,7 +15,7 @@ apt-repo add rpm <origin-url data-url="{{AppSubUrl}}/api/packages/{{$.PackageDes
 
 {{- end}}</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.alt.install"}}</label>
 				<div class="markup">
 					<pre class="code-block"><code># {{ctx.Locale.Tr "packages.common.install"}}
@@ -23,7 +23,7 @@ apt-get update
 apt-get install {{$.PackageDescriptor.Package.Name}}</code></pre>
 				</div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{ctx.Locale.Tr "packages.registry.documentation" "ALT" "https://forgejo.org/docs/latest/user/packages/alt/"}}</label>
 			</div>
 		</div>

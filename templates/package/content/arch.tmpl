@@ -2,7 +2,7 @@
 <h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
 <div class="ui attached segment">
 	<div class="ui form">
-		<div class="field">
+		<div class="ds-field">
 			<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.arch.pacman.helper.gpg"}}</label>
 			<div class="markup">
 				<pre class="code-block"><code>wget -O sign.gpg <origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/arch/repository.key"></origin-url>
@@ -10,7 +10,7 @@ pacman-key --add sign.gpg
 pacman-key --lsign-key '{{$.SignMail}}'</code></pre>
 			</div>
 		</div>
-		<div class="field">
+		<div class="ds-field">
 			<label>{{svg "octicon-gear"}} {{ctx.Locale.Tr "packages.arch.pacman.conf"}}</label>
 			<div class="markup">
 				<pre
@@ -32,13 +32,13 @@ Server = <origin-url data-url="{{AppSubUrl}}/api/packages/{{$.PackageDescriptor.
 </code></pre>
 			</div>
 		</div>
-		<div class="field">
+		<div class="ds-field">
 			<label>{{svg "octicon-sync"}} {{ctx.Locale.Tr "packages.arch.pacman.sync"}}</label>
 			<div class="markup">
 				<pre class="code-block"><code>pacman -Sy {{.PackageDescriptor.Package.LowerName}}</code></pre>
 			</div>
 		</div>
-		<div class="field">
+		<div class="ds-field">
 			<label>{{ctx.Locale.Tr "packages.registry.documentation" "Arch"
 				"https://forgejo.org/docs/latest/user/packages/arch/"}}</label>
 		</div>

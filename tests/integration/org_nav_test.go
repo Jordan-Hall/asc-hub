@@ -36,10 +36,10 @@ func TestOrgNavigationDashboard(t *testing.T) {
 	// Check if the "Open dashboard" button is available to the org admin (member)
 	resp := session1.MakeRequest(t, NewRequest(t, "GET", "/org_navigation_test"), http.StatusOK)
 	doc := NewHTMLParser(t, resp.Body)
-	doc.AssertElement(t, "#org-info a[href='/org/org_navigation_test/dashboard']", true)
+	doc.AssertElement(t, "#org-actions a[href='/org/org_navigation_test/dashboard']", true)
 
 	// Verify the "New repository" and "New migration" buttons
-	links := doc.Find(".organization.profile .grid .column .center")
+	links := doc.Find(".organization.profile .wk-org-main")
 	assert.Equal(t, locale.TrString("new_repo.link"), strings.TrimSpace(links.Find("a[href^='/repo/create?org=']").Text()))
 	assert.Equal(t, locale.TrString("new_migrate.link"), strings.TrimSpace(links.Find("a[href^='/repo/migrate?org=']").Text()))
 
@@ -54,7 +54,7 @@ func TestOrgNavigationDashboard(t *testing.T) {
 	// Check if the "Open dashboard" button is available to non-member
 	resp = session2.MakeRequest(t, NewRequest(t, "GET", "/org_navigation_test"), http.StatusOK)
 	doc = NewHTMLParser(t, resp.Body)
-	doc.AssertElement(t, "#org-info a[href='/org/org_navigation_test/dashboard']", false)
+	doc.AssertElement(t, "a[href='/org/org_navigation_test/dashboard']", false)
 
 	// There's no need to test "View <orgname>" button on dashboard as non-member
 	// because this page is not supposed to be visitable for this user

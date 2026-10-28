@@ -2,15 +2,15 @@
 	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
 	<div class="ui attached segment">
 		<div class="ui form">
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.cran.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>options("repos" = c(getOption("repos"), c(forgejo="<origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/cran"></origin-url>")))</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.common.install"}}</label>
 				<div class="markup"><pre class="code-block"><code>install.packages("{{.PackageDescriptor.Package.Name}}")</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{ctx.Locale.Tr "packages.registry.documentation" "CRAN" "https://forgejo.org/docs/latest/user/packages/cran/"}}</label>
 			</div>
 		</div>

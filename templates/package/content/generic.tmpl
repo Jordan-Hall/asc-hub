@@ -2,7 +2,7 @@
 	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
 	<div class="ui attached segment">
 		<div class="ui form">
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.generic.download"}}</label>
 				<div class="markup"><pre class="code-block"><code>
 {{- range .PackageDescriptor.Files -}}
@@ -10,7 +10,7 @@ curl -OJ <origin-url data-url="{{AppSubUrl}}/api/packages/{{$.PackageDescriptor.
 {{end -}}
 				</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{ctx.Locale.Tr "packages.registry.documentation" "Generic" "https://forgejo.org/docs/latest/user/packages/generic/"}}</label>
 			</div>
 		</div>
