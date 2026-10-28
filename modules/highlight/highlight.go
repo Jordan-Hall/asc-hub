@@ -160,7 +160,7 @@ func File(fileName, language string, code []byte) ([]template.HTML, string, erro
 func FileBudgeted(fileName, language string, code []byte) (Result, error) {
 	NewContext()
 
-	if len(code) > highlightMaxBytes {
+	if len(code) > highlightMaxBytes || bytes.Count(code, []byte{'\n'}) > highlightFullLines {
 		return largeFile(fileName, language, code), nil
 	}
 
@@ -275,7 +275,7 @@ func formatLexerName(name string) string {
 // file, or one whose start cannot be cut at a line, is plain text.
 func largeFile(fileName, language string, code []byte) Result {
 	if len(code) <= highlightWindowMaxBytes {
-		if cut := bytes.LastIndexByte(code[:highlightWindowBytes], '\n'); cut > 0 {
+		if cut := windowEnd(code); cut > 0 {
 			head, err := FileBudgeted(fileName, language, code[:cut+1])
 			if err == nil && !head.Skipped && len(head.Lines) > 0 {
 				lines := make([]template.HTML, 0, len(head.Lines)+bytes.Count(code[cut+1:], []byte{'\n'})+1)
@@ -286,4 +286,20 @@ func largeFile(fileName, language string, code []byte) Result {
 		}
 	}
 	return Result{Lines: PlainText(code), Skipped: true}
+}
+
+// windowEnd is the index of the last newline of the window of a large file: the first highlightWindowLines lines, or
+// the lines within the first highlightWindowBytes, whichever is less. It is -1 when the file has no such newline.
+func windowEnd(code []byte) int {
+	end := min(len(code), highlightWindowBytes)
+	cut, n := -1, 0
+	for i := 0; i < end; i++ {
+		if code[i] == '\n' {
+			cut = i
+			if n++; n >= highlightWindowLines {
+				break
+			}
+		}
+	}
+	return cut
 }
