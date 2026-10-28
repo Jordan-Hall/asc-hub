@@ -571,14 +571,17 @@ func (g *GiteaLocalUploader) ascStored() bool {
 	return err == nil && stored
 }
 
-// setPullHead points the pull request head ref at sha. In an asc repository asc owns the ref (SetPullHead imports
-// the commit from the clone and moves the ref; the bridge follows); in a git repository git does.
+// setPullHead points the pull request head ref at sha: git writes it in the clone, and in an asc repository asc then
+// takes it over (SetPullHead).
 func (g *GiteaLocalUploader) setPullHead(ref, sha string) error {
-	if g.ascStored() {
-		return ascsync.SetPullHead(g.ctx, g.repo, ref, sha)
-	}
 	_, _, err := git.NewCommand(g.ctx, "update-ref", "--no-deref").AddDynamicArguments(ref, sha).RunStdString(&git.RunOpts{Dir: g.repo.RepoPath()})
-	return err
+	if err != nil || !g.ascStored() {
+		return err
+	}
+	// The clone is the bridge, and git has written the ref there, as a push does. asc imports the commit from it and
+	// takes the ref; a commit asc does not know yet is imported by ImportGitPush, which does not promote the bridge, so
+	// the bridge must already hold the ref for SetPullHead to see it follow.
+	return ascsync.SetPullHead(g.ctx, g.repo, ref, sha)
 }
 
 // importBranchIntoAsc hands a branch that the migration fetched into the clone (the head branch of a fork pull
