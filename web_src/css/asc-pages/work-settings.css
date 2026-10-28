@@ -1,0 +1,96 @@
+/* Account settings pages (appearance, notifications, security, keys, ...): small pieces the design system does not cover. */
+
+/* a card that is a button (density, theme): same look as a radio card, state from aria-pressed */
+button.wk-radio-card {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+}
+
+.wk-pressed-card[aria-pressed="true"] {
+  border-color: var(--fill);
+  background: var(--primary-tint);
+  box-shadow: inset 0 0 0 1px var(--fill);
+}
+
+.wk-pressed-card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.wk-theme-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.wk-theme-prev {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  height: 56px;
+  margin-bottom: 6px;
+  padding: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: #f6f8fa;
+}
+
+.wk-theme-prev i {
+  flex: 1;
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #d8dee4;
+}
+
+.wk-theme-prev i:first-child {
+  flex: 0 0 28%;
+  background: #e8edf2;
+}
+
+.wk-theme-prev.is-dark {
+  background: #0d1117;
+}
+
+.wk-theme-prev.is-dark i {
+  background: #161b22;
+  box-shadow: inset 0 0 0 1px #30363d;
+}
+
+.wk-theme-prev.is-dark i:first-child {
+  background: #21262d;
+}
+
+.wk-theme-prev.is-auto {
+  background: linear-gradient(105deg, #f6f8fa 50%, #0d1117 50%);
+}
+
+.wk-theme-prev.is-auto i {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px #8b949e;
+}
+
+.wk-theme-prev.is-auto i:first-child {
+  background: transparent;
+}
+
+.wk-check-grid {
+  display: grid;
+  gap: 4px 16px;
+}
+
+@media (min-width: 640px) {
+  .wk-check-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* links inside quiet text keep an underline so they are not told apart by colour alone */
+.ds-hint a,
+.ds-card-sub a,
+.wk-sub a {
+  text-decoration: underline;
+}
