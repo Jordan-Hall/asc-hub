@@ -130,3 +130,42 @@ func AscDocsPage(ctx *context.Context) {
 	ctx.Data["DocsPages"] = ascdocs.Pages()
 	ctx.HTML(http.StatusOK, "asc/docs_page")
 }
+
+// ascServiceWorker is the script that shows the notifications of the hub and opens the page a click is for. It reads
+// the message the hub sent (title, body, a path of the hub), and opens only a path on this site.
+const ascServiceWorker = `"use strict";
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
+  const title = String(data.title || "ASC Hub").slice(0, 200);
+  const options = {body: String(data.body || "").slice(0, 300), data: {path: typeof data.path === "string" ? data.path : ""}};
+  if (typeof data.tag === "string" && data.tag) options.tag = data.tag.slice(0, 100);
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const path = event.notification.data && event.notification.data.path;
+  const safe = typeof path === "string" && path.startsWith("/") && !path.startsWith("//") ? path : "/";
+  const target = new URL(safe, self.location.origin).href;
+  event.waitUntil(self.clients.matchAll({type: "window", includeUncontrolled: true}).then((list) => {
+    for (const client of list) {
+      if (client.url === target && "focus" in client) return client.focus();
+    }
+    return self.clients.openWindow(target);
+  }));
+});
+`
+
+// AscServiceWorker serves GET /-/asc-sw.js. It is served from here and not from the assets so that it may control the
+// whole hub.
+func AscServiceWorker(ctx *context.Context) {
+	h := ctx.Resp.Header()
+	h.Set("Content-Type", "text/javascript; charset=utf-8")
+	h.Set("Service-Worker-Allowed", setting.AppSubURL+"/")
+	h.Set("Cache-Control", "no-cache")
+	h.Set("X-Content-Type-Options", "nosniff")
+	ctx.Resp.WriteHeader(http.StatusOK)
+	_, _ = ctx.Resp.Write([]byte(ascServiceWorker))
+}

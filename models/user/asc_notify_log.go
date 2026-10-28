@@ -17,7 +17,10 @@ type AscNotifyLog struct {
 	UserID   int64              `xorm:"INDEX(user_repo) NOT NULL"`
 	RepoID   int64              `xorm:"INDEX(user_repo) NOT NULL"`
 	Event    string             `xorm:"VARCHAR(40) NOT NULL"`
+	Title    string             `xorm:"VARCHAR(200) NOT NULL DEFAULT ''"`
+	Path     string             `xorm:"VARCHAR(300) NOT NULL DEFAULT ''"`
 	Emailed  bool               `xorm:"NOT NULL DEFAULT false"`
+	Digested bool               `xorm:"NOT NULL DEFAULT false"` // listed in a daily summary already
 	SentUnix timeutil.TimeStamp `xorm:"INDEX NOT NULL"`
 }
 
@@ -29,8 +32,26 @@ func init() {
 func (AscNotifyLog) TableName() string { return "asc_notify_log" }
 
 // RecordAscNotification stores one notification.
-func RecordAscNotification(ctx context.Context, userID, repoID int64, event string, emailed bool) error {
-	_, err := db.GetEngine(ctx).Insert(&AscNotifyLog{UserID: userID, RepoID: repoID, Event: event, Emailed: emailed, SentUnix: timeutil.TimeStampNow()})
+func RecordAscNotification(ctx context.Context, userID, repoID int64, event, title, path string, emailed bool) error {
+	_, err := db.GetEngine(ctx).Insert(&AscNotifyLog{UserID: userID, RepoID: repoID, Event: event, Title: title, Path: path, Emailed: emailed, SentUnix: timeutil.TimeStampNow()})
+	return err
+}
+
+// PendingAscDigest returns the entries of the person that no email and no summary has carried yet, oldest first, newer
+// than since.
+func PendingAscDigest(ctx context.Context, userID int64, since timeutil.TimeStamp) ([]*AscNotifyLog, error) {
+	var rows []*AscNotifyLog
+	err := db.GetEngine(ctx).Where("user_id = ? AND emailed = ? AND digested = ? AND sent_unix > ?", userID, false, false, since).
+		OrderBy("sent_unix, id").Limit(500).Find(&rows)
+	return rows, err
+}
+
+// MarkAscDigested marks entries as carried by a summary.
+func MarkAscDigested(ctx context.Context, userID int64, ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := db.GetEngine(ctx).Table("asc_notify_log").Where("user_id = ?", userID).In("id", ids).Cols("digested").Update(map[string]any{"digested": true})
 	return err
 }
 

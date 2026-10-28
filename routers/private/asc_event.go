@@ -16,6 +16,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascnotify"
+	"forgejo.org/services/ascpush"
 	"forgejo.org/services/context"
 	"forgejo.org/services/mailer"
 )
@@ -90,12 +91,15 @@ func AscEvent(ctx *context.PrivateContext) {
 			continue // a person who cannot read the repository is told nothing about it
 		}
 		now := time.Now()
+		prefs := ascnotify.Load(ctx, u.ID)
 		emailed := false
-		if setting.MailService != nil && u.EmailNotificationsPreference != user_model.EmailNotificationsDisabled && ascnotify.EmailAllowed(ctx, u.ID, req.Event, now) {
+		// with the daily summary on, the email is the summary and not one mail for each event
+		if !prefs.Digest && setting.MailService != nil && u.EmailNotificationsPreference != user_model.EmailNotificationsDisabled && ascnotify.EmailAllowed(ctx, u.ID, req.Event, now) {
 			sendAscEventMail(u, repo, req)
 			emailed = true
 		}
-		if err := user_model.RecordAscNotification(ctx, u.ID, repo.ID, req.Event, emailed); err != nil {
+		ascpush.Notify(ctx, u.ID, req.Event, ascpush.Message{Title: req.Title, Body: repo.FullName(), Path: ascEventPath(repo, req), Tag: req.Event + "-" + repo.FullName()})
+		if err := user_model.RecordAscNotification(ctx, u.ID, repo.ID, req.Event, req.Title, req.Path, emailed); err != nil {
 			log.Error("asc event: recording for user %d: %v", u.ID, err)
 			continue
 		}
@@ -120,4 +124,12 @@ func sendAscEventMail(u *user_model.User, repo *repo_model.Repository, req *ascE
 	}
 	body += "\n" + link + "\n\n" + l.TrString("asc_work.ev_mail_footer") + " " + strings.TrimSuffix(setting.AppURL, "/") + "/user/settings/notifications\n"
 	mailer.SendAsync(mailer.NewMessage(u.EmailTo(), subject, body))
+}
+
+// ascEventPath is where a click on a notification of the event goes: the path asc sent, or the repository.
+func ascEventPath(repo *repo_model.Repository, req *ascEventRequest) string {
+	if req.Path != "" {
+		return req.Path
+	}
+	return repo.Link()
 }

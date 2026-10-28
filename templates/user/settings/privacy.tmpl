@@ -27,6 +27,16 @@
 			</form>
 			<form action="{{.PrivacyLink}}" method="post">
 				{{.CsrfTokenHtml}}
+				<input type="hidden" name="setting" value="agents_profile">
+				<input type="hidden" name="value" value="0">
+				<label class="ds-switch wk-switch-row">
+					<input type="checkbox" role="switch" name="value" value="1" data-asc-autosubmit{{if .AgentsReadProfile}} checked{{end}}>
+					<span class="ds-switch-track"></span>
+					<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.sp_agents_profile"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_agents_profile_hint"}}</span></span>
+				</label>
+			</form>
+			<form action="{{.PrivacyLink}}" method="post">
+				{{.CsrfTokenHtml}}
 				<input type="hidden" name="setting" value="hide_email">
 				<input type="hidden" name="value" value="0">
 				<label class="ds-switch wk-switch-row">

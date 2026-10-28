@@ -20,7 +20,10 @@ func addAscNotifyLog(x *xorm.Engine) error {
 		UserID   int64  `xorm:"INDEX(user_repo) NOT NULL"`
 		RepoID   int64  `xorm:"INDEX(user_repo) NOT NULL"`
 		Event    string `xorm:"VARCHAR(40) NOT NULL"`
+		Title    string `xorm:"VARCHAR(200) NOT NULL DEFAULT ''"`
+		Path     string `xorm:"VARCHAR(300) NOT NULL DEFAULT ''"`
 		Emailed  bool   `xorm:"NOT NULL DEFAULT false"`
+		Digested bool   `xorm:"NOT NULL DEFAULT false"`
 		SentUnix int64  `xorm:"INDEX NOT NULL"`
 	}
 	_, err := x.SyncWithOptions(xorm.SyncOptions{IgnoreDropIndices: true}, new(AscNotifyLog))

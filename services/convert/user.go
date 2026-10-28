@@ -17,6 +17,19 @@ func ToUser(ctx context.Context, user, doer *user_model.User) *api.User {
 	if user == nil {
 		return nil
 	}
+	// a person can keep agents (runs of the hub's automation) from reading the free-text fields of their profile
+	if doer != nil && doer.IsActions() && doer.ID != user.ID && user.IsIndividual() && !user_model.AscAgentsMayReadProfile(ctx, user.ID) {
+		return &api.User{
+			ID:         user.ID,
+			UserName:   user.Name,
+			Email:      user.GetPlaceholderEmail(),
+			AvatarURL:  user.AvatarLink(ctx),
+			HTMLURL:    user.HTMLURL(),
+			Created:    user.CreatedUnix.AsTime(),
+			Restricted: user.IsRestricted,
+			Visibility: user.Visibility.String(),
+		}
+	}
 	authed := false
 	signed := false
 	if doer != nil {

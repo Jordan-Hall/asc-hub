@@ -654,6 +654,7 @@ func registerRoutes(m *web.Route) {
 	m.Get("/-/about", ignSignIn, AscAbout)
 	m.Get("/-/docs", ignSignIn, AscDocs)
 	m.Get("/-/docs/{slug}", ignSignIn, AscDocsPage)
+	m.Get("/-/asc-sw.js", AscServiceWorker)
 	m.Get("/-/offline", ignSignIn, AscOffline)
 	m.Get("/-/get-started", reqSignIn, AscGetStarted)
 	m.Get("/user/welcome", reqSignIn, Welcome)
@@ -886,6 +887,8 @@ func registerRoutes(m *web.Route) {
 		m.Group("/notifications", func() {
 			m.Get("", user_setting.Notifications)
 			m.Post("", user_setting.NotificationsPost)
+			m.Post("/push", user_setting.PushSubscribe)
+			m.Post("/push/remove", user_setting.PushUnsubscribe)
 		})
 		m.Get("/pins", user.AscPinSettings)
 		m.Post("/pins", user.AscPinSettingsPost)

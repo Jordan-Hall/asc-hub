@@ -31,6 +31,7 @@ func Privacy(ctx *context.Context) {
 	ctx.Data["ShowActivity"] = !ctx.Doer.KeepActivityPrivate
 	ctx.Data["HideEmail"] = ctx.Doer.KeepEmailPrivate
 	ctx.Data["ShowOnline"] = ascpresence.ShowOnline(ctx, ctx.Doer.ID)
+	ctx.Data["AgentsReadProfile"] = user_model.AscAgentsMayReadProfile(ctx, ctx.Doer.ID)
 	ctx.Data["NoreplyEmail"] = ctx.Doer.GetPlaceholderEmail()
 
 	blocked, err := user_model.ListBlockedUsers(ctx, ctx.Doer.ID, db.ListOptions{})
@@ -53,6 +54,14 @@ func PrivacyPost(ctx *context.Context) {
 	case "show_online":
 		if err := ascpresence.SetShowOnline(ctx, ctx.Doer.ID, on); err != nil {
 			ctx.ServerError("SetShowOnline", err)
+			return
+		}
+		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
+		ctx.Redirect(privacyLink())
+		return
+	case "agents_profile":
+		if err := user_model.SetAscAgentsMayReadProfile(ctx, ctx.Doer.ID, on); err != nil {
+			ctx.ServerError("SetAscAgentsMayReadProfile", err)
 			return
 		}
 		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
