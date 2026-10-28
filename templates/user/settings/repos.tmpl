@@ -1,128 +1,97 @@
-{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings repos")}}
-	<div class="user-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "settings.repos"}}
-		</h4>
-		<div class="ui attached segment">
-			{{if or .allowAdopt .allowDelete}}
-				{{if .Dirs}}
-					<div class="ui list">
-						{{range $dirI, $dir := .Dirs}}
-							{{$repo := index $.ReposMap $dir}}
-							<div class="item {{if not $repo}}tw-py-1{{end}}">{{/* if not repo, then there are "adapt" buttons, so the padding shouldn't be that default large*/}}
-								<div class="content">
-									{{if $repo}}
-										{{if $repo.IsPrivate}}
-											<span class="text gold icon">{{svg "octicon-lock"}}</span>
-										{{else if $repo.IsFork}}
-											<span class="icon">{{svg "octicon-repo-forked"}}</span>
-										{{else if $repo.IsMirror}}
-											<span class="icon">{{svg "octicon-mirror"}}</span>
-										{{else if $repo.IsTemplate}}
-											<span class="icon">{{svg "octicon-repo-template"}}</span>
-										{{else}}
-											<span class="icon">{{svg "octicon-repo"}}</span>
-										{{end}}
-										<a class="muted name" href="{{$repo.Link}}">{{$repo.OwnerName}}/{{$repo.Name}}</a>
-										<span class="text light-3" {{if not (eq $repo.Size 0)}} data-tooltip-content="{{$repo.SizeDetailsString ctx.Locale}}"{{end}}>{{ctx.Locale.TrSize $repo.Size}}</span>
-										{{if $repo.IsFork}}
-											{{ctx.Locale.Tr "repo.forked_from"}}
-											<span><a href="{{$repo.BaseRepo.Link}}">{{$repo.BaseRepo.OwnerName}}/{{$repo.BaseRepo.Name}}</a></span>
-										{{end}}
-									{{else}}
-										<span class="icon tw-inline-block tw-pt-2">{{svg "octicon-file-directory-fill"}}</span>
-										<span class="name tw-inline-block tw-pt-2">{{$.ContextUser.Name}}/{{$dir}}</span>
-										<div class="tw-float-right">
-											{{if $.allowAdopt}}
-												<button class="ui button primary show-modal tw-p-2" data-modal="#adopt-unadopted-modal-{{$dirI}}"><span class="icon">{{svg "octicon-plus"}}</span><span class="label">{{ctx.Locale.Tr "repo.adopt_preexisting_label"}}</span></button>
-												<dialog id="adopt-unadopted-modal-{{$dirI}}">
-													<article>
-														<header>{{ctx.Locale.Tr "repo.adopt_preexisting"}}</header>
-														<div class="content">
-															<p>{{ctx.Locale.Tr "repo.adopt_preexisting_content" $dir}}</p>
-														</div>
-														<form class="ui form" method="post" action="{{AppSubUrl}}/user/settings/repos/unadopted">
-															<input type="hidden" name="id" value="{{$dir}}">
-															<input type="hidden" name="action" value="adopt">
-															{{template "base/modal_actions_confirm" $}}
-														</form>
-													</article>
-												</dialog>
-											{{end}}
-											{{if $.allowDelete}}
-												<button class="ui button red show-modal tw-p-2" data-modal="#delete-unadopted-modal-{{$dirI}}"><span class="icon">{{svg "octicon-x"}}</span><span class="label">{{ctx.Locale.Tr "repo.delete_preexisting_label"}}</span></button>
-												<dialog id="delete-unadopted-modal-{{$dirI}}">
-													<article>
-														<header>{{ctx.Locale.Tr "repo.delete_preexisting"}}</header>
-														<div class="content">
-															<p>{{ctx.Locale.Tr "repo.delete_preexisting_content" $dir}}</p>
-														</div>
-														<form class="ui form" method="post" action="{{AppSubUrl}}/user/settings/repos/unadopted">
-															<input type="hidden" name="id" value="{{$dir}}">
-															<input type="hidden" name="action" value="delete">
-															{{template "base/modal_actions_confirm" $}}
-														</form>
-													</article>
-												</dialog>
-											{{end}}
-										</div>
-									{{end}}
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings repos wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.repos") "Lead" (ctx.Locale.Tr "asc_work.sp_repos_lead"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-repos">
+		<div class="ds-card-h"><h2 id="sp-repos">{{ctx.Locale.Tr "settings.repos"}}</h2></div>
+		{{if or .allowAdopt .allowDelete}}
+			{{if .Dirs}}
+			<ul class="ds-list wk-rows">
+				{{range $dirI, $dir := .Dirs}}
+					{{$repo := index $.ReposMap $dir}}
+					<li class="ds-li wk-row">
+						{{if $repo}}
+							<span class="ds-li-av" aria-hidden="true">{{if $repo.IsPrivate}}{{svg "dsi-lock" 20}}{{else}}{{svg "dsi-book" 20}}{{end}}</span>
+							<div class="ds-li-main">
+								<div class="ds-li-title"><a class="ds-break" href="{{$repo.Link}}">{{$repo.OwnerName}}/{{$repo.Name}}</a>
+									{{if $repo.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>{{end}}
+								</div>
+								<div class="ds-li-meta">
+									<span {{if not (eq $repo.Size 0)}}data-tooltip-content="{{$repo.SizeDetailsString ctx.Locale}}"{{end}}>{{ctx.Locale.TrSize $repo.Size}}</span>
+									{{if $repo.IsFork}}<span>{{ctx.Locale.Tr "repo.forked_from"}} <a href="{{$repo.BaseRepo.Link}}">{{$repo.BaseRepo.OwnerName}}/{{$repo.BaseRepo.Name}}</a></span>{{end}}
 								</div>
 							</div>
+						{{else}}
+							<span class="ds-li-av" aria-hidden="true">{{svg "dsi-folder" 20}}</span>
+							<div class="ds-li-main">
+								<div class="ds-li-title"><span class="ds-break">{{$.ContextUser.Name}}/{{$dir}}</span><span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_work.sp_unadopted"}}</span></div>
+							</div>
+							<div class="wk-row-acts">
+								{{if $.allowAdopt}}
+									<button type="button" class="ds-btn ds-btn-primary ds-btn-sm show-modal" data-modal="#adopt-unadopted-modal-{{$dirI}}">{{ctx.Locale.Tr "repo.adopt_preexisting_label"}}</button>
+									<dialog id="adopt-unadopted-modal-{{$dirI}}">
+										<article>
+											<header>{{ctx.Locale.Tr "repo.adopt_preexisting"}}</header>
+											<div class="content">
+												<p>{{ctx.Locale.Tr "repo.adopt_preexisting_content" $dir}}</p>
+											</div>
+											<form class="ui form" method="post" action="{{AppSubUrl}}/user/settings/repos/unadopted">
+												{{$.CsrfTokenHtml}}
+												<input type="hidden" name="id" value="{{$dir}}">
+												<input type="hidden" name="action" value="adopt">
+												{{template "base/modal_actions_confirm" $}}
+											</form>
+										</article>
+									</dialog>
+								{{end}}
+								{{if $.allowDelete}}
+									<button type="button" class="ds-btn ds-btn-danger ds-btn-sm show-modal" data-modal="#delete-unadopted-modal-{{$dirI}}">{{ctx.Locale.Tr "repo.delete_preexisting_label"}}</button>
+									<dialog id="delete-unadopted-modal-{{$dirI}}">
+										<article>
+											<header>{{ctx.Locale.Tr "repo.delete_preexisting"}}</header>
+											<div class="content">
+												<p>{{ctx.Locale.Tr "repo.delete_preexisting_content" $dir}}</p>
+											</div>
+											<form class="ui form" method="post" action="{{AppSubUrl}}/user/settings/repos/unadopted">
+												{{$.CsrfTokenHtml}}
+												<input type="hidden" name="id" value="{{$dir}}">
+												<input type="hidden" name="action" value="delete">
+												{{template "base/modal_actions_confirm" $}}
+											</form>
+										</article>
+									</dialog>
+								{{end}}
+							</div>
 						{{end}}
-					</div>
-					{{template "base/paginate" .}}
-				{{else}}
-					<div class="item">
-						{{ctx.Locale.Tr "settings.repos_none"}}
-					</div>
+					</li>
 				{{end}}
+			</ul>
+			{{template "base/paginate" .}}
 			{{else}}
-				{{if .Repos}}
-					<div class="ui middle aligned divided list">
-						{{range .Repos}}
-							<div class="item">
-								<div class="content">
-									{{if .IsPrivate}}
-										{{svg "octicon-lock" 16 "tw-mr-1 iconFloat text gold"}}
-									{{else if .IsFork}}
-										{{svg "octicon-repo-forked" 16 "tw-mr-1 iconFloat"}}
-									{{else if .IsMirror}}
-										{{svg "octicon-mirror" 16 "tw-mr-1 iconFloat"}}
-									{{else if .IsTemplate}}
-										{{svg "octicon-repo-template" 16 "tw-mr-1 iconFloat"}}
-									{{else}}
-										{{svg "octicon-repo" 16 "tw-mr-1 iconFloat"}}
-									{{end}}
-									<a class="name" href="{{.Link}}">{{.OwnerName}}/{{.Name}}</a>
-									<span>{{ctx.Locale.TrSize .Size}}</span>
-									{{if .IsFork}}
-										{{ctx.Locale.Tr "repo.forked_from"}}
-										<span><a href="{{.BaseRepo.Link}}">{{.BaseRepo.OwnerName}}/{{.BaseRepo.Name}}</a></span>
-									{{end}}
-								</div>
-							</div>
-						{{end}}
-					</div>
-					{{template "base/paginate" .}}
-				{{else}}
-					<div class="item">
-						{{ctx.Locale.Tr "settings.repos_none"}}
-					</div>
-				{{end}}
+				{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "settings.repos_none"))}}
 			{{end}}
-		</div>
-	</div>
-
-<div class="ui g-modal-confirm delete modal">
-	<div class="header">
-		{{svg "octicon-trash"}}
-		{{ctx.Locale.Tr "settings.remove_account_link"}}
-	</div>
-	<div class="content">
-		<p>{{ctx.Locale.Tr "settings.remove_account_link_desc"}}</p>
-	</div>
-	{{template "base/modal_actions_confirm" .}}
+		{{else}}
+			{{if .Repos}}
+			<ul class="ds-list wk-rows">
+				{{range .Repos}}
+					<li class="ds-li wk-row">
+						<span class="ds-li-av" aria-hidden="true">{{if .IsPrivate}}{{svg "dsi-lock" 20}}{{else}}{{svg "dsi-book" 20}}{{end}}</span>
+						<div class="ds-li-main">
+							<div class="ds-li-title"><a class="ds-break" href="{{.Link}}">{{.OwnerName}}/{{.Name}}</a>
+								{{if .IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>{{end}}
+							</div>
+							<div class="ds-li-meta">
+								<span>{{ctx.Locale.TrSize .Size}}</span>
+								{{if .IsFork}}<span>{{ctx.Locale.Tr "repo.forked_from"}} <a href="{{.BaseRepo.Link}}">{{.BaseRepo.OwnerName}}/{{.BaseRepo.Name}}</a></span>{{end}}
+							</div>
+						</div>
+					</li>
+				{{end}}
+			</ul>
+			{{template "base/paginate" .}}
+			{{else}}
+				{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "settings.repos_none"))}}
+			{{end}}
+		{{end}}
+	</section>
 </div>
-
 {{template "user/settings/layout_footer" .}}

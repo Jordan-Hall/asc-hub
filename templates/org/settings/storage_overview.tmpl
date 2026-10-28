@@ -1,5 +1,6 @@
-{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "organization settings size-overview")}}
-<div class="org-setting-content">
+{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main organization settings size-overview wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.storage_overview") "Lead" (ctx.Locale.Tr "asc_work.sp_usage_lead"))}}
+<div class="wk-sp">
 	{{template "shared/quota_overview" .}}
 </div>
 {{template "org/settings/layout_footer" .}}

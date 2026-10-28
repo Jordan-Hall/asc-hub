@@ -1,10 +1,9 @@
-{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings blocked-users")}}
-<div class="user-setting-content">
-	<h4 class="ui top attached header">
-		{{ctx.Locale.Tr "settings.blocked_users"}}
-	</h4>
-	<div class="ui attached segment">
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings blocked-users wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.blocked_users") "Lead" (ctx.Locale.Tr "asc_work.sp_blocked_lead"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-blocked">
+		<div class="ds-card-h"><h2 id="sp-blocked">{{ctx.Locale.Tr "settings.blocked_users"}}</h2></div>
 		{{template "shared/blocked_users_list" .}}
-	</div>
+	</section>
 </div>
 {{template "user/settings/layout_footer" .}}
