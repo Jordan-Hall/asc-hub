@@ -22,6 +22,7 @@ func addAscNotifyLog(x *xorm.Engine) error {
 		Event    string `xorm:"VARCHAR(40) NOT NULL"`
 		Title    string `xorm:"VARCHAR(200) NOT NULL DEFAULT ''"`
 		Path     string `xorm:"VARCHAR(300) NOT NULL DEFAULT ''"`
+		EventID  string `xorm:"VARCHAR(64) NOT NULL DEFAULT '' INDEX"`
 		Emailed  bool   `xorm:"NOT NULL DEFAULT false"`
 		Digested bool   `xorm:"NOT NULL DEFAULT false"`
 		SentUnix int64  `xorm:"INDEX NOT NULL"`

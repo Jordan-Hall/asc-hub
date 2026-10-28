@@ -19,6 +19,7 @@ type AscNotifyLog struct {
 	Event    string             `xorm:"VARCHAR(40) NOT NULL"`
 	Title    string             `xorm:"VARCHAR(200) NOT NULL DEFAULT ''"`
 	Path     string             `xorm:"VARCHAR(300) NOT NULL DEFAULT ''"`
+	EventID  string             `xorm:"VARCHAR(64) NOT NULL DEFAULT '' INDEX"` // x-asc-event-id of asc serve: a retry is told once
 	Emailed  bool               `xorm:"NOT NULL DEFAULT false"`
 	Digested bool               `xorm:"NOT NULL DEFAULT false"` // listed in a daily summary already
 	SentUnix timeutil.TimeStamp `xorm:"INDEX NOT NULL"`
@@ -32,8 +33,8 @@ func init() {
 func (AscNotifyLog) TableName() string { return "asc_notify_log" }
 
 // RecordAscNotification stores one notification.
-func RecordAscNotification(ctx context.Context, userID, repoID int64, event, title, path string, emailed bool) error {
-	_, err := db.GetEngine(ctx).Insert(&AscNotifyLog{UserID: userID, RepoID: repoID, Event: event, Title: title, Path: path, Emailed: emailed, SentUnix: timeutil.TimeStampNow()})
+func RecordAscNotification(ctx context.Context, userID, repoID int64, event, title, path, eventID string, emailed bool) error {
+	_, err := db.GetEngine(ctx).Insert(&AscNotifyLog{UserID: userID, RepoID: repoID, Event: event, Title: title, Path: path, EventID: eventID, Emailed: emailed, SentUnix: timeutil.TimeStampNow()})
 	return err
 }
 
@@ -79,4 +80,13 @@ func LastAscNotified(ctx context.Context, userID int64, repoIDs []int64) (map[in
 // DeleteOldAscNotifyLog removes entries older than 90 days.
 func DeleteOldAscNotifyLog(ctx context.Context) (int64, error) {
 	return db.GetEngine(ctx).Where("sent_unix < ?", timeutil.TimeStampNow().Add(-90*86400)).Delete(new(AscNotifyLog))
+}
+
+// HasAscNotificationEvent reports whether the person was already told about the event with this id (the id asc serve
+// puts in x-asc-event-id, the same for every retry of one event).
+func HasAscNotificationEvent(ctx context.Context, userID int64, eventID string) (bool, error) {
+	if eventID == "" {
+		return false, nil
+	}
+	return db.GetEngine(ctx).Where("user_id = ? AND event_id = ?", userID, eventID).Exist(new(AscNotifyLog))
 }

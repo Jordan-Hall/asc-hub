@@ -108,6 +108,42 @@ Only if the host can open an extra port. With `ASC_HUB_SSH_ENABLE=true` the entr
 
 Add the published port to the Compose file (`"<host port>:2222"`, with `SSH_PORT=<host port>`) and open it in the firewall. Coolify's HTTP proxy does not carry SSH. These three variables are ignored (the entrypoint logs a warning) while `ASC_HUB_SSH_ENABLE` is not `true`. In a hub run without the image, set `[asc] SSH_ENABLED = true` (default `false`); with `[asc] ENABLED = true` and `SSH_ENABLED = false` the hub forces `[server] DISABLE_SSH = true`.
 
+## Events from asc serve to the hub
+
+`asc serve` tells the hub when something happens that a person has to know about, and the hub decides who is told and how: the inbox keeps everything, and each person chose on **Settings, Notifications** what also reaches them by email, in the browser (Web Push) and in the daily summary.
+
+- **Call.** `POST /api/internal/asc/event` on the hub, with the internal token as a Bearer token and the header `x-asc-event-id` (the same value for every retry of one event). Body: `event`, `repo` (`owner/name`), `users` (logins, at most 50), `title` (one line, at most 200 bytes), `detail` (at most 500), `path` (a path of the hub). `event` is one of `review_requested`, `mentioned`, `agent_question`, `agent_finished`, `checks_failed`, `restack_conflict`, `merge_queue`, `policy_changed`.
+- **Who is told.** Only active people who can read the repository. A login that does not exist, has no access or is an organization is skipped, and the answer (`{"notified": N}`) never says which. A person who was told about an event id is not told again, so retries are safe. An answer 4xx is final (do not retry); 5xx and a dropped connection may be retried.
+- **Where a notification leads.** The hub gives the links of `asc serve` their real address and keeps every link inside the repository; a path it does not know goes to the repository.
+
+  | `asc serve` writes | The hub page |
+  | --- | --- |
+  | `/{repo}/changes/{change}` | `/{repo}/pulls/{number}` (the pull request of the change; `/{repo}/pulls` when it has none yet) |
+  | `/{repo}/agents` and `/{repo}/agents/runs/{id}` | `/{repo}/asc/agents` and `/{repo}/asc/agents/runs/{id}` |
+  | `/{repo}/merge-queue` | `/{repo}/asc/queue` |
+  | `/{repo}/settings/policy` | `/{repo}/settings/asc/policy` |
+  | `/{repo}`, `/{repo}/pulls/{n}`, `/{repo}/issues/{n}`, `/{repo}/asc/...`, `/{repo}/settings/asc/...` | unchanged |
+  | another repository, `..`, a doubled slash, any other page | `/{repo}` |
+
+### The internal token
+
+The call is the same trust as the hooks and `authz`: both programs read **one** secret, and anyone who has it can act as `asc serve`. Keep it out of images, logs and the `app.ini` you commit.
+
+- **All-in-one image.** Nothing to set. The entrypoint makes the token once under `/var/lib/gitea/bootstrap/internal-token` (mode 0400), sets `[security] INTERNAL_TOKEN_URI=file:///var/lib/gitea/bootstrap/internal-token` for the hub and `[forgejo] internal_token_file` in `asc-serve.toml` for `asc serve`. A backup holds it; a restore on another host keeps the two in step.
+- **Two services (hub image and `asc serve`).** Make the token once, `docker run --rm IMAGE forgejo generate secret INTERNAL_TOKEN`, and store it as a secret file that both containers mount read-only:
+
+  | Side | Setting | Environment form |
+  | --- | --- | --- |
+  | Hub | `[security] INTERNAL_TOKEN_URI = file:///run/secrets/asc_internal_token` | `FORGEJO__security__INTERNAL_TOKEN_URI=file:///run/secrets/asc_internal_token` |
+  | Hub | `[asc] ENABLED = true`, `SERVER_URL = http://asc:7890` | `FORGEJO__asc__ENABLED=true`, `FORGEJO__asc__SERVER_URL=http://asc:7890` |
+  | `asc serve` | `[forgejo] internal_token_file = "/run/secrets/asc_internal_token"`, `url = "http://hub:3000"` | the file is written from your configuration; the secret is mounted, not passed as a variable |
+
+  `[forgejo] url` is the address of the hub inside the private network, not the public one. With the variable form, `INTERNAL_TOKEN` itself in the environment works for the hub but puts the secret in `docker inspect`; use the file.
+- **Compose.** Declare a top-level `secrets: asc_internal_token: { file: ./secrets/asc_internal_token }` and list it under `secrets:` of both services; the file is then `/run/secrets/asc_internal_token` in each.
+- **Coolify.** Add a file mount (or a persistent storage file) with the token at `/run/secrets/asc_internal_token` on **both** services of the resource, and the two variables above in the environment of the hub. The domain you give the hub in Coolify exposes `/api/internal/...` too; every call there needs the token, but block the prefix at the proxy anyway when the proxy offers a path rule (`/api/internal` is only for the private network).
+- **Rotation.** Make a new token, replace the file for both, restart both. A call with the old token answers 403, which is a final answer for `asc serve` (it does not retry a 4xx), so events sent between the change of the two files are lost; rotate in a quiet moment.
+- **Check.** With the token in `$T`: `curl -sS -X POST -H "Authorization: Bearer $T" -H 'content-type: application/json' -d '{"event":"merge_queue","repo":"OWNER/NAME","users":["LOGIN"],"title":"test"}' http://hub:3000/api/internal/asc/event` answers `{"notified":1}` when LOGIN can read the repository, and 403 without the token. A 404 means `[asc] ENABLED` is off.
+
 ## Other shapes
 
 - **Hub image and `asc serve` as two services.** Build `Dockerfile.rootless` (no `asc serve` inside), run `asc serve` from the ASC distribution as a second service in the hub's network namespace (`network_mode: "service:hub"`), and set the `[asc]` keys, the internal token and the shared repository directory yourself. The contract: `[asc] SERVER_URL` is where the hub dials; both read the same internal token (`[security] INTERNAL_TOKEN_URI`, a `file://` URI); `asc serve` asks the hub at `/api/internal/asc/authz` (and `/ssh-key`, `/request-merge`) what a credential may do; with `BRIDGE = eager`, `asc serve` needs the hub's `git/repositories` directory read-write at the same path and the same user id. The configuration of `asc serve` itself is documented with `asc serve`. The backup tool and the lock below belong to the all-in-one image only.
