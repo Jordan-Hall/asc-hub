@@ -221,6 +221,9 @@ func AscAgentsContinue(ctx *context.Context) {
 		if !ok || row.ID == id {
 			return "", "", errAscAgentsBadAnswer
 		}
+		if err := ascagentui.RecordRunOwner(ctx, ctx.Repo.Repository.ID, row.ID, ctx.Doer.ID); err != nil {
+			log.Error("asc agents: recording the owner of run %d: %v", row.ID, err)
+		}
 		return ascAgentsLoweredText("The run continues as a new run.", resp.GetLowered()), row.Link, nil
 	})
 }
@@ -278,7 +281,7 @@ func AscAgentsLog(ctx *context.Context) {
 		ctx.NotFound("asc agent run", nil)
 		return
 	}
-	if !ascAgentsMaySeeRun(ctx, got.GetRun().GetCreatedBy()) {
+	if !ascAgentsMaySeeRun(ctx, got.GetRun().GetId(), got.GetRun().GetCreatedBy()) {
 		ctx.Error(http.StatusForbidden) // the log holds what the agent read and wrote
 		return
 	}

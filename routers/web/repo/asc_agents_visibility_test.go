@@ -8,8 +8,11 @@ import (
 	"net/url"
 	"testing"
 
+	"forgejo.org/models/db"
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/services/ascagentui"
+	"forgejo.org/services/context"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -163,4 +166,80 @@ func TestAscAgentsPrivateTextAfterADecision(t *testing.T) {
 		params: map[string]string{":id": "5"}, header: map[string]string{"X-Asc-Fetch": "1"}, form: url.Values{"decision": {"allow"}}}, AscAgentsDecide)
 	require.Equal(t, http.StatusOK, p.status)
 	assertNoSecrets(t, p.body)
+}
+
+// The creator of a run is bound to the immutable user id. A person who is renamed keeps their runs; a new person who takes
+// the old name does not get them.
+func TestAscAgentsRunOwnerIsBoundToTheUserIDNotTheName(t *testing.T) {
+	visibilityHub(t, "user4") // the run was started by user4, who only reads repo1
+	list := func(user int64) string {
+		return runAgents(t, agentsReq{path: testRunsPath, user: user, features: true}, AscAgents).body
+	}
+	// user4 looks at the list first: the hub records user 4 as the owner of run 7.
+	assert.Contains(t, list(4), "rotate the key")
+	assert.NotContains(t, list(5), "rotate the key", "another reader never sees it")
+
+	// user4 is renamed, and user5 takes the old name.
+	_, err := db.GetEngine(t.Context()).Exec("UPDATE `user` SET name = ?, lower_name = ? WHERE id = ?", "user4_renamed", "user4_renamed", 4)
+	require.NoError(t, err)
+	_, err = db.GetEngine(t.Context()).Exec("UPDATE `user` SET name = ?, lower_name = ? WHERE id = ?", "user4", "user4", 5)
+	require.NoError(t, err)
+
+	body := list(5)
+	assert.NotContains(t, body, "rotate the key", "the person who now has the old name does not inherit the run")
+	assert.NotContains(t, body, secretFailure)
+	assert.Contains(t, body, "asc_review.agents_task_hidden")
+	assert.Contains(t, list(4), "rotate the key", "the renamed person keeps their run")
+
+	p := runAgents(t, agentsReq{path: testRunsPath + "/runs/7/log", user: 5, features: true, params: map[string]string{":id": "7"}}, AscAgentsLog)
+	assert.Equal(t, http.StatusForbidden, p.status)
+}
+
+// A run started through the hub is recorded for the person who started it, before any name can change.
+func TestAscAgentsRecordsTheOwnerOfARunItStarts(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	setStorageBackend(t, 1, "asc")
+	hub := startFakeHub(t)
+	hub.ok("Agents.CreateRun", &ascv1.CreateAgentRunResponse{Run: sampleRun(31, ascv1.AgentRunState_AGENT_RUN_STATE_QUEUED)})
+	p := runAgents(t, agentsReq{method: "POST", path: testRunsPath + "/new", user: agentsOwner, features: true,
+		form: url.Values{"task": {"Add retries"}, "agent": {"coder"}, "target": {"master"}}}, AscAgentsCreate)
+	require.Equal(t, http.StatusSeeOther, p.status, p.body)
+	assert.EqualValues(t, 2, ascagentui.RunOwnerID(t.Context(), 1, 31, "someone-else"), "the record wins over the name asc gives")
+	assert.Zero(t, ascagentui.RunOwnerID(t.Context(), 1, 999, "no-such-person"), "a name that belongs to nobody gives no owner")
+}
+
+func TestAscWorkflowStepOfAnAgentRunIsPrivateToItsCreatorAndAdmins(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	setStorageBackend(t, 1, "asc")
+	hub := startFakeHub(t)
+	run := sampleWorkflowRun(3, ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_FAILED)
+	run.Error = "step review failed: " + secretFailure
+	run.Steps[0].Error = secretFailure
+	hub.ok("Workflows.GetRun", &ascv1.GetWorkflowRunResponse{Run: run})
+	agent := sampleRun(7, ascv1.AgentRunState_AGENT_RUN_STATE_FAILED)
+	agent.CreatedBy = "user2"
+	hub.ok("Agents.GetRun", &ascv1.GetAgentRunResponse{Run: agent})
+	hub.watch = func(*ascv1.WatchAgentRunRequest) ([]*ascv1.AgentRunEvent, bool) {
+		return []*ascv1.AgentRunEvent{{RunId: 7, Seq: 1, Kind: ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_MESSAGE, Text: secretTask}}, false
+	}
+	id := map[string]string{":id": "3"}
+	path := "/user2/repo1/asc/workflows/runs/3"
+
+	p := runAgents(t, agentsReq{path: path, user: agentsOwner, features: true, params: id}, AscWorkflowRun)
+	require.Equal(t, http.StatusOK, p.status, p.body)
+	assert.Contains(t, p.body, secretTask, "the creator of the agent run sees its log")
+	assert.Contains(t, p.body, secretFailure)
+
+	for _, route := range []struct {
+		name string
+		h    func(*context.Context)
+		path string
+	}{{"page", AscWorkflowRun, path}, {"state", AscWorkflowRunState, path + "/state"}} {
+		p = runAgents(t, agentsReq{path: route.path, user: agentsReader, features: true, params: id}, route.h)
+		require.Equal(t, http.StatusOK, p.status, route.name)
+		assertNoSecrets(t, p.body)
+	}
+	p = runAgents(t, agentsReq{path: path, user: agentsReader, features: true, params: id}, AscWorkflowRun)
+	assert.Contains(t, p.body, "asc_review.wf_step_private")
+	assert.Contains(t, p.body, "asc_review.wf_private_error")
 }

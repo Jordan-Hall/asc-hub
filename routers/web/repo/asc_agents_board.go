@@ -92,7 +92,7 @@ func ascAgentsLoadBoard(ctx *context.Context, env *ascAgentsEnv, callCtx goconte
 		// The text of a request (what the agent wants to run, the plan) is private to the run's creator and the
 		// administrators. A run that is not on this page has an unknown creator: only an administrator sees it.
 		for i := range needs {
-			if !ascAgentsMaySeeRun(ctx, creators[needs[i].RunID]) {
+			if !ascAgentsMaySeeRun(ctx, needs[i].RunID, creators[needs[i].RunID]) {
 				needs[i].Redact()
 			}
 		}
