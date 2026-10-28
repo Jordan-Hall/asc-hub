@@ -224,10 +224,10 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | Workflows | Definitions list with triggers, description, path, valid/not valid reason | done | templates/repo/asc_workflows.tmpl, routers/web/repo/asc_workflows.go | - |
-| Workflows | On/off switch (role=switch) and Run now on each list row | ui-only-missing | templates/repo/asc_workflows.tmpl (pill only; POST /{name}/enable and /trigger exist) | S |
-| Workflows | Step chain 'scan > update > review' on the card | ui-only-missing | templates/repo/asc_workflows.tmpl (shows a step count) | S |
+| Workflows | On/off switch (role=switch) and Run now on each list row | done | templates/repo/asc_workflows.tmpl (pill only; POST /{name}/enable and /trigger exist) (switch and Run it now clicked against a live asc) | S |
+| Workflows | Step chain 'scan > update > review' on the card | done | templates/repo/asc_workflows.tmpl (shows a step count) (chain of step ids seen on the dev hub) | S |
 | Workflows | Last-12-runs history strip and 'last run' time per workflow | needs-hub-backend | asc_workflows.go (Workflows.ListRuns per workflow) + template strip | M |
-| Workflows | State filter (All, On, Off, Not valid), search, counts | ui-only-missing | templates/repo/asc_workflows.tmpl | S |
+| Workflows | State filter (All, On, Off, Not valid), search, counts | done | templates/repo/asc_workflows.tmpl (chips with counts seen on the dev hub; search covered by a Go test) | S |
 | Workflows | 'New workflow' and 'Start from a template' (creates a reviewed change with the file) | needs-hub-backend | routers/web/repo/asc_workflows.go + web editor/propose-file flow; templates under options/ | M |
 | Workflows | Latest runs list (running, passed, needs approval, failed) with link to all runs | done | templates/repo/asc_workflows_runlist.tmpl, asc_workflows_runs.tmpl | - |
 | Workflows | Secrets and variables panel (names per workflow) with link to settings | needs-hub-backend | Workflows.ListSecrets (repo admin only) in asc_workflows.go; template card | S |
@@ -285,10 +285,10 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Ops | Operation list: kind pill, ref, actor, age, hash pair, Undo | done | templates/repo/asc_ops.tmpl, routers/web/repo/asc_ops.go (Stacks.ListRefLog) | - |
 | Ops | Blocked reasons beside a lock icon (not yours, branch changed, too old, protected needs maintainer) | done | templates/repo/asc_ops.tmpl (asc_trust.ops.blocked.*) | - |
 | Ops | Branch filter, Only my operations; filters in URL; older operations pager | done | templates/repo/asc_ops.tmpl | - |
-| Ops | Kind filter chips (Push, Landed, Restack, Undo, Agent) and '6 of 214' count | ui-only-missing | templates/repo/asc_ops.tmpl (ViaKey exists per row) | S |
+| Ops | Kind filter chips (Push, Landed, Restack, Undo, Agent) and '6 of 214' count | done | templates/repo/asc_ops.tmpl (ViaKey exists per row) (counts of the rows shown; seen on the dev hub with live asc data) | S |
 | Ops | Restack banner with 'See what changed' and 'Undo restack' | ui-only-missing | templates/repo/asc_ops.tmpl | M |
-| Ops | Export of operations | needs-hub-backend | routers/web/repo/asc_ops.go (stream ListRefLog as JSONL/CSV) | M |
-| Ops | 'Who changed branches this week' actor bars with 7/30 window | needs-hub-backend | asc_ops.go aggregation of ListRefLog | M |
+| Ops | Export of operations | done | routers/web/repo/asc_ops.go (stream ListRefLog as JSONL/CSV) (JSONL download clicked on the dev hub) | M |
+| Ops | 'Who changed branches this week' actor bars with 7/30 window | done | asc_ops.go aggregation of ListRefLog (bars of the rows shown; seen on the dev hub) | M |
 | Ops | Selecting a row loads the undo preview in a right panel without navigating | ui-only-missing | templates/repo/asc_ops.tmpl, asc_ops_undo.tmpl (separate page today); web_src/js | M |
 | Ops | Undo preview (now at / goes back to / who / reason) and undo is itself logged | done | templates/repo/asc_ops_undo.tmpl, AscOpsUndo (Stacks.UndoRef) | - |
 | Ops | Preview lines '4 changes go back', 'approvals on 2 unchanged diffs are kept' | needs-both | UndoRef/preview must report affected changes and kept approvals; asc_ops_undo.tmpl | S |
@@ -301,7 +301,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | Queue | Branch, running/paused chip, revalidate on/off, Pause/Resume confirm dialogs | done | templates/repo/asc_queue.tmpl, routers/web/repo/asc_queue.go | - |
-| Queue | Stats: Waiting, Landed today, Median wait (was 9 min last week), Refused after dry run | needs-hub-backend | queue DB aggregates in asc_queue.go; stat cards (today: waiting/recent/quarantine counts) | M |
+| Queue | Stats: Waiting, Landed today, Median wait (was 9 min last week), Refused after dry run | done | queue DB aggregates in asc_queue.go; stat cards (today: waiting/recent/quarantine counts) (waiting, landed today, median from asc (live), blocked; seen on the dev hub at 390 and 1440) | M |
 | Queue | Waiting list: position, title, state chip (Checking/Queued), queued-by, Remove | done | templates/repo/asc_queue.tmpl | - |
 | Queue | Row detail: 'unit running on merged trunk, about 3 min' and 'starts about 6 min' ETAs | needs-both | asc: ETA and check progress per entry (mergequeue.proto QueueEntry has state/detail/position only); hub display | M |
 | Queue | Merge now per row (hover/focus) with confirm | ui-only-missing | templates/repo/asc_queue.tmpl (POST /merge exists) | S |

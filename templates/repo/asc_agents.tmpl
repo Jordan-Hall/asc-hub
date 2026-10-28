@@ -97,7 +97,7 @@ Template Attributes:
 							<span class="rv-av rv-av-agent ag-av" aria-hidden="true">{{.Initials}}</span>
 							<div class="ag-run-main">
 								<h2 class="rv-run-title"><a href="{{.Link}}">{{.Title}}</a></h2>
-								<div class="rv-li-sub ag-run-sub">{{if .Pending}}{{ctx.Locale.Tr "asc_review.agents_row_asks"}}{{else if .Task}}{{.Task}}{{else if .Workflow}}{{ctx.Locale.Tr "asc_review.agents_row_workflow" .Workflow}}{{else if .Changes}}{{ctx.Locale.TrN .Changes "asc_review.agents_row_ready_one" "asc_review.agents_row_ready_other" .Changes}}{{end}}</div>
+								<div class="rv-li-sub ag-run-sub">{{if .Pending}}{{ctx.Locale.Tr "asc_review.agents_row_asks"}}{{else if .Task}}{{.Task}}{{else if .TaskHidden}}<span class="rv-faint" data-testid="asc-task-hidden">{{ctx.Locale.Tr "asc_review.agents_task_hidden"}}</span>{{else if .Workflow}}{{ctx.Locale.Tr "asc_review.agents_row_workflow" .Workflow}}{{else if .Changes}}{{ctx.Locale.TrN .Changes "asc_review.agents_row_ready_one" "asc_review.agents_row_ready_other" .Changes}}{{end}}</div>
 								<div class="rv-li-sub ag-run-ids"><span class="rv-mono">{{ctx.Locale.Tr "asc_review.agents_run_n" .ID}}</span> <span class="rv-mono">{{if .Agent}}{{.Agent}}{{else}}{{ctx.Locale.Tr "asc_review.agents_unnamed"}}{{end}}</span>{{if .Tokens}} <span class="rv-num ag-tok">{{.Tokens}}{{if .TokensLimit}} / {{.TokensLimit}}{{end}} {{ctx.Locale.Tr "asc_review.agents_row_tokens"}}</span>{{end}}{{if .Duration}} <span class="rv-num">{{.Duration}}</span>{{end}}</div>
 							</div>
 							<div class="ag-run-prog">
