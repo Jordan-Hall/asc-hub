@@ -20,7 +20,7 @@ func TestRoutes(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
-	assert.Contains(t, w.Body.String(), `class="page-content install"`)
+	assert.Contains(t, w.Body.String(), `class="page-content install `)
 
 	w = httptest.NewRecorder()
 	req = httptest.NewRequest("GET", "/no-such", nil)

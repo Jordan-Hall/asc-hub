@@ -302,7 +302,7 @@ func TestAscSearchSemanticMode(t *testing.T) {
 	assert.NotContains(t, page.body, "<script>x")
 	assert.NotContains(t, page.body, "\x1b")
 	assert.NotContains(t, page.body, "hunter2")
-	assert.Contains(t, page.body, "asc_rp.s_hidden_file")
+	assert.Contains(t, page.body, "asc_rp.s_hidden_chunk")
 	// The semantic mode reports the vectors index.
 	assert.Contains(t, page.body, "vectors 100%")
 	assert.NotContains(t, page.body, "files 20%")

@@ -122,7 +122,7 @@ func TestAscDashPage(t *testing.T) {
 	Dashboard(ctx)
 	require.Equal(t, 200, ctx.Resp.Status())
 	html := string(body())
-	assert.Contains(t, html, `class="page-content dashboard asc-dash"`)
+	assert.Contains(t, html, `class="ds-main wk-page wk-dash"`)
 	assert.Contains(t, html, "Wire retry policy into the client")
 	assert.Contains(t, html, "Ready to merge:")
 	assert.Contains(t, html, "Agents working now")

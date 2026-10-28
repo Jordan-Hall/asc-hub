@@ -28,14 +28,14 @@ func TestAscSkipLinkOnEveryPage(t *testing.T) {
 			resp = user.MakeRequest(t, NewRequest(t, "GET", path), http.StatusOK)
 		}
 		doc := NewHTMLParser(t, resp.Body)
-		skip := doc.doc.Find("a.skip-link")
+		skip := doc.doc.Find("a.ds-skip")
 		assert.Equal(t, 1, skip.Length(), path)
 		href, _ := skip.Attr("href")
 		assert.Equal(t, "#main-content", href, path)
 		assert.NotEmpty(t, skip.Text(), path+": the link has a text")
 		assert.Equal(t, 1, doc.doc.Find("#main-content").Length(), path+": the target exists once")
 		first := doc.doc.Find("body a, body button, body input").First()
-		assert.True(t, first.HasClass("skip-link"), path+": the skip link is the first thing to tab to")
+		assert.True(t, first.HasClass("ds-skip"), path+": the skip link is the first thing to tab to")
 	}
 }
 
@@ -48,11 +48,11 @@ func TestAscControlsAreNamedAndNotNested(t *testing.T) {
 	doc := NewHTMLParser(t, user.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1"), http.StatusOK).Body)
 	assert.Zero(t, doc.doc.Find("#watch-button summary a").Length(), "no link inside the summary")
 	assert.Equal(t, 1, doc.doc.Find("#watch-button .content a[href$='/watchers']").Length())
-	assert.Equal(t, 1, doc.doc.Find("#watch-button summary .label").Length(), "the count stays visible")
+	assert.Equal(t, 1, doc.doc.Find("#watch-button summary .ds-count").Length(), "the count stays visible")
 
 	// A fork button that cannot be used is disabled for assistive technology too, not only dimmed.
 	anon := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/user2/repo1"), http.StatusOK).Body)
-	disabled := anon.doc.Find(".ui.labeled.button.disabled a.ui.button[aria-disabled='true']")
+	disabled := anon.doc.Find(".rp-actg-off a.rp-act[aria-disabled='true']")
 	assert.GreaterOrEqual(t, disabled.Length(), 1, "the fork button of a guest")
 
 	// The fold arrow of a file of a diff has a name.
