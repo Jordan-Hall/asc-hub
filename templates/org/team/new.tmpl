@@ -29,15 +29,15 @@
 					<div class="ds-card-h"><h2>{{ctx.Locale.Tr "settings.specific_repo_access"}}</h2></div>
 					<fieldset class="ds-card-b wk-choice-list">
 						<legend class="ds-sr">{{ctx.Locale.Tr "settings.specific_repo_access"}}</legend>
-						<label class="wk-choice">
+						<label class="wk-choice ds-check">
 							<input type="radio" name="repo_access" value="specific" {{if not .Team.IncludesAllRepositories}}checked{{end}}>
 							<span><b>{{ctx.Locale.Tr "org.teams.specific_repositories"}}</b><span class="ds-hint">{{ctx.Locale.Tr "org.teams.specific_repositories_helper"}}</span></span>
 						</label>
-						<label class="wk-choice">
+						<label class="wk-choice ds-check">
 							<input type="radio" name="repo_access" value="all" {{if .Team.IncludesAllRepositories}}checked{{end}}>
 							<span><b>{{ctx.Locale.Tr "org.teams.all_repositories"}}</b><span class="ds-hint">{{ctx.Locale.Tr "org.teams.all_repositories_helper"}}</span></span>
 						</label>
-						<label class="wk-choice">
+						<label class="wk-choice ds-check">
 							<input name="can_create_org_repo" type="checkbox" {{if .Team.CanCreateOrgRepo}}checked{{end}}>
 							<span><b>{{ctx.Locale.Tr "org.teams.can_create_org_repo"}}</b><span class="ds-hint">{{ctx.Locale.Tr "org.teams.can_create_org_repo_helper"}}</span></span>
 						</label>
@@ -47,11 +47,11 @@
 					<div class="ds-card-h"><h2>{{ctx.Locale.Tr "org.team_permission_desc"}}</h2></div>
 					<fieldset class="ds-card-b wk-choice-list">
 						<legend class="ds-sr">{{ctx.Locale.Tr "org.team_permission_desc"}}</legend>
-						<label class="wk-choice">
+						<label class="wk-choice ds-check">
 							<input type="radio" name="permission" value="admin" {{if eq .Team.AccessMode 3}}checked{{end}}>
 							<span><b>{{ctx.Locale.Tr "org.teams.admin_access"}}</b><span class="ds-hint">{{ctx.Locale.Tr "org.teams.admin_access_helper"}}</span></span>
 						</label>
-						<label class="wk-choice">
+						<label class="wk-choice ds-check">
 							<input type="radio" name="permission" value="read" {{if or .PageIsOrgTeamsNew (le .Team.AccessMode 2)}}checked{{end}}>
 							<span><b>{{ctx.Locale.Tr "org.teams.general_access"}}</b><span class="ds-hint">{{ctx.Locale.Tr "org.teams.general_access_helper"}}</span></span>
 						</label>
@@ -105,7 +105,7 @@
 							<div class="wk-choice-list">
 							{{range $t, $unit := $.Units}}
 								{{if lt $unit.MaxPerm 2}}
-									<label class="wk-choice" {{if $unit.Type.UnitGlobalDisabled}}data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
+									<label class="wk-choice ds-check" {{if $unit.Type.UnitGlobalDisabled}}data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
 										<input type="checkbox" name="unit_{{$unit.Type.Value}}" value="1"{{if or (eq $.Team.ID 0) (eq ($.Team.UnitAccessMode $.Context $unit.Type) 1)}} checked{{end}} {{if $unit.Type.UnitGlobalDisabled}}disabled{{end}}>
 										<span><b>{{ctx.Locale.Tr $unit.NameKey}}{{if $unit.Type.UnitGlobalDisabled}} {{ctx.Locale.Tr "org.team_unit_disabled"}}{{end}}</b><span class="ds-hint">{{ctx.Locale.Tr (print "repo.permissions." $unit.Name)}}</span></span>
 									</label>
