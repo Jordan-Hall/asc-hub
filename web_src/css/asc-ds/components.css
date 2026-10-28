@@ -1409,6 +1409,26 @@ ul.ds-list {
   font-size: 14px;
 }
 
+.ds-toast-text { flex: 1; min-width: 0; align-self: center; }
+
+.ds-toast-action,
+.ds-toast-close {
+  flex: none;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--r-btn);
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ds-toast-close { color: var(--inv-text); opacity: 0.8; }
+.ds-toast-action:hover,
+.ds-toast-close:hover { background: rgba(255, 255, 255, 0.12); }
+
 .ds-toast b { display: block; }
 .ds-toast .ds-sub { font-size: 13px; opacity: 0.85; }
 

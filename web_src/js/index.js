@@ -57,6 +57,7 @@ import {initRepoMigrationStatusChecker} from './features/repo-migrate.js';
 import {initAscByoMigration} from './features/asc-byo.js';
 import {initAscUi} from './features/asc-ui.js';
 import {initDsShell} from './features/ds-shell.js';
+import {initDsToast} from './features/ds-toast.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {
   initRepoSettingGitHook,
@@ -174,6 +175,7 @@ onDomReady(() => {
   initAscByoMigration();
   initAscUi();
   initDsShell();
+  initDsToast();
   initAscKeys();
   initAscInboxBadge();
   initRepoProject();
