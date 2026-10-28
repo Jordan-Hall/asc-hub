@@ -1,0 +1,68 @@
+/* New repository (board NewRepo): one form of cards, switches with their explanation, a sticky create bar on a phone. */
+
+.rp-new {
+  padding-bottom: 24px;
+}
+
+.rp-new-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rp-new-switch {
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.rp-new-switch > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rp-new-switch strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.rp-new-migrate {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.rp-new-adv > summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: var(--touch);
+  list-style: none;
+  cursor: pointer;
+}
+
+.rp-new-adv > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rp-new-form .ui.dropdown {
+  min-height: var(--input-h);
+  border-radius: var(--r-btn);
+}
+
+.rp-new-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.rp-new-actions .ds-btn-primary {
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .rp-new-actions .ds-btn-primary {
+    flex: none;
+  }
+}

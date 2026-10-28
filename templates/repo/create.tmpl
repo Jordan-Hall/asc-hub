@@ -1,57 +1,72 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository new repo">
-	<div class="ui middle very relaxed page one column grid">
-		<div class="column">
-			<form class="ui form" action="{{.Link}}" method="post">
-				<h3 class="ui top attached header">
-					{{ctx.Locale.Tr "new_repo.title"}}
-				</h3>
-				<div class="ui attached segment">
-					{{if or .CanCreateRepo .Orgs}}
-						{{template "base/alert" .}}
-						{{template "repo/create_helper" .}}
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository new repo rp-page">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "new_repo.title") "BackHref" (print AppSubUrl "/"))}}
+	<div class="ds-container ds-container-form rp-new">
+		<div class="rp-band">
+			<div class="rp-band-main">
+				<p class="rp-eyebrow">{{ctx.Locale.Tr "asc_rp.new_eyebrow"}}</p>
+				<h1 class="rp-h1">{{ctx.Locale.Tr "new_repo.title"}}</h1>
+				<p class="rp-sub">{{ctx.Locale.Tr "asc_rp.new_sub"}}</p>
+			</div>
+		</div>
+		{{template "base/alert" .}}
+		{{if or .CanCreateRepo .Orgs}}
+			<form class="ds-form rp-new-form" action="{{.Link}}" method="post">
+				{{.CsrfTokenHtml}}
+				{{template "repo/create_helper" .}}
+				{{if and (not .CanCreateRepo) (ne .MaxCreationLimit 0)}}
+					<div class="ds-banner ds-banner-warn" role="status">{{ctx.Locale.TrN .MaxCreationLimit "repo.form.reach_limit_of_creation_1" "repo.form.reach_limit_of_creation_n" .MaxCreationLimit}}</div>
+				{{end}}
+				<section class="rp-sec">
+					<div class="rp-sec-b ds-stack ds-stack-16">
+						{{template "repo/create_basic" .}}
+					</div>
+				</section>
 
-						{{if and (not .CanCreateRepo) (ne .MaxCreationLimit 0)}}
-							<div class="ui negative message">
-								<p>{{ctx.Locale.TrN .MaxCreationLimit "repo.form.reach_limit_of_creation_1" "repo.form.reach_limit_of_creation_n" .MaxCreationLimit}}</p>
+				<section class="rp-sec">
+					<div class="rp-sec-h">
+						<div>
+							<h2 class="rp-sec-title">{{ctx.Locale.Tr "repo.new_from_template"}}</h2>
+							<p class="rp-sec-sub">{{ctx.Locale.Tr "repo.new_from_template_description"}}</p>
+						</div>
+					</div>
+					<div class="rp-sec-b ds-stack ds-stack-16">
+						{{template "repo/create_from_template" .}}
+					</div>
+				</section>
+
+				<div id="non_template" class="ds-stack ds-stack-16">
+					<section class="rp-sec">
+						<div class="rp-sec-h">
+							<div>
+								<h2 class="rp-sec-title">{{ctx.Locale.Tr "repo.auto_init"}}</h2>
+								<p class="rp-sec-sub">{{ctx.Locale.Tr "repo.auto_init_description"}}</p>
 							</div>
-						{{end}}
-						<fieldset>
-							{{template "repo/create_basic" .}}
-						</fieldset>
-
-						<fieldset>
-							<legend>
-								{{ctx.Locale.Tr "repo.new_from_template"}}
-								<span class="help">{{ctx.Locale.Tr "repo.new_from_template_description"}}</span>
-							</legend>
-							{{template "repo/create_from_template" .}}
-						</fieldset>
-
-						<div id="non_template">
-							<fieldset>
-								<legend>{{ctx.Locale.Tr "repo.auto_init"}}</legend>
-								{{template "repo/create_init" .}}
-							</fieldset>
-
-							<fieldset>
-								<legend>{{ctx.Locale.Tr "repo.new_advanced"}}</legend>
-								<details><summary>{{ctx.Locale.Tr "repo.new_advanced_expand"}}</summary>
-									{{template "repo/create_advanced" .}}
-								</details>
-							</fieldset>
 						</div>
-						<button class="ui primary button">
-							{{ctx.Locale.Tr "repo.create_repo"}}
-						</button>
-					{{else}}
-						<div class="ui negative message">
-							{{ctx.Locale.Tr "repo.form.cannot_create"}}
+						<div class="rp-sec-b ds-stack ds-stack-16">
+							{{template "repo/create_init" .}}
 						</div>
-					{{end}}
+					</section>
+
+					<details class="ds-acc rp-sec rp-new-adv">
+						<summary class="rp-sec-h">
+							<span class="rp-sec-title">{{ctx.Locale.Tr "repo.new_advanced"}}</span>
+							<span class="rp-sec-sub">{{ctx.Locale.Tr "repo.new_advanced_expand"}}</span>
+						</summary>
+						<div class="rp-sec-b ds-stack ds-stack-16">
+							{{template "repo/create_advanced" .}}
+						</div>
+					</details>
+				</div>
+
+				<div class="ds-sticky-actions rp-new-actions">
+					<button class="ds-btn ds-btn-primary ds-btn-lg" type="submit">{{ctx.Locale.Tr "repo.create_repo"}}</button>
+					<a class="ds-btn ds-btn-ghost ds-btn-lg" href="{{if .ContextUser}}{{.ContextUser.HomeLink}}{{else}}{{AppSubUrl}}/{{end}}">{{ctx.Locale.Tr "settings.cancel"}}</a>
 				</div>
 			</form>
-		</div>
+		{{else}}
+			<div class="ds-banner ds-banner-err" role="alert">{{ctx.Locale.Tr "repo.form.cannot_create"}}</div>
+		{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}

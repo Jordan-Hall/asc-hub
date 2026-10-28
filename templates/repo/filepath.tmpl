@@ -1,17 +1,17 @@
+{{/* The path of the directory or file being viewed, as a breadcrumb. */}}
 {{$n := len .TreeNames}}
 {{$l := Eval $n "-" 1}}
-{{$showFilePath := (gt $n 0)}}
-{{if $showFilePath}}
-	<span class="breadcrumb repo-path tw-ml-1">
-		<a class="section" href="{{$.BranchLink}}" title="{{.Repository.Name}}">{{StringUtils.EllipsisString .Repository.Name 30}}</a>
+{{if gt $n 0}}
+	<nav class="rp-crumbs" aria-label="{{ctx.Locale.Tr "asc_rp.path_label"}}">
+		<a href="{{$.BranchLink}}" title="{{.Repository.FullName}}">{{StringUtils.EllipsisString .Repository.FullName 40}}</a>
 		{{- range $i, $v := .TreeNames -}}
-			<span class="breadcrumb-divider">/</span>
+			<span class="rp-crumb-sep" aria-hidden="true">/</span>
 			{{- if eq $i $l -}}
-				<span class="active section" title="{{$v}}">{{$v}}</span>
-				<button class="btn interact-fg tw-p-2" data-clipboard-text="{{$.TreePath}}" data-tooltip-content="{{ctx.Locale.Tr "copy_path"}}">{{svg "octicon-copy" 14}}</button>
+				<b aria-current="page" title="{{$v}}">{{$v}}</b>
+				<button type="button" class="rp-crumb-copy" data-clipboard-text="{{$.TreePath}}" aria-label="{{ctx.Locale.Tr "copy_path"}}" title="{{ctx.Locale.Tr "copy_path"}}">{{svg "dsi-copy" 14}}</button>
 			{{- else -}}
-				{{$p := index $.Paths $i}}<span class="section"><a href="{{$.BranchLink}}/{{PathEscapeSegments $p}}" title="{{$v}}">{{$v}}</a></span>
+				{{$p := index $.Paths $i}}<a href="{{$.BranchLink}}/{{PathEscapeSegments $p}}" title="{{$v}}">{{$v}}</a>
 			{{- end -}}
 		{{- end -}}
-	</span>
+	</nav>
 {{end}}

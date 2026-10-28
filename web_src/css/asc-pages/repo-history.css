@@ -1,0 +1,224 @@
+/* History, a pull request's commits, compare lists (board History). Mobile first. */
+
+.rp-histbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding-bottom: 14px;
+}
+
+.rp-histbar > .rp-ref {
+  flex: 0 1 220px;
+  min-width: 120px;
+}
+
+.rp-band-acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rp-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.rp-select .ds-select {
+  min-width: 150px;
+}
+
+.rp-histcard {
+  overflow: hidden;
+}
+
+.rp-hist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-commit {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 0 8px;
+  padding: 14px 12px 14px 8px;
+  border-top: 1px solid var(--line-3);
+}
+
+.rp-commit:first-child {
+  border-top: 0;
+}
+
+.rp-commit::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 21px;
+  width: 2px;
+  background: var(--primary-line);
+}
+
+.rp-commit:first-child::before {
+  top: 24px;
+}
+
+.rp-commit:last-child::before {
+  bottom: calc(100% - 24px);
+}
+
+.rp-commit:only-child::before {
+  display: none;
+}
+
+.rp-node {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  align-self: start;
+  width: 12px;
+  height: 12px;
+  margin-top: 5px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--fill);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+
+.rp-node.is-merge {
+  background: var(--surface);
+  border: 3px solid var(--fill);
+}
+
+.rp-commit-main {
+  min-width: 0;
+}
+
+.rp-commit-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.rp-commit-title .message-wrapper {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rp-commit-title .message-wrapper,
+.rp-commit-title .commit-summary {
+  display: inline;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.rp-commit-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.rp-commit-title a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-commit-title .rp-commit-body {
+  flex-basis: 100%;
+  font-weight: 400;
+}
+
+.rp-commit-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  margin-top: 4px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.rp-commit-meta .ds-avatar {
+  width: 20px;
+  height: 20px;
+}
+
+.rp-who {
+  color: var(--text-b);
+  text-decoration: none;
+}
+
+a.rp-who:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-commit-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.rp-commit-when {
+  color: var(--text-2);
+  font-size: 13px;
+  text-align: right;
+}
+
+.rp-commit-acts {
+  display: none;
+  gap: 2px;
+}
+
+.rp-tagchip svg {
+  width: 12px;
+  height: 12px;
+}
+
+@media (min-width: 1024px) {
+  .rp-commit {
+    padding: 16px 18px 16px 12px;
+  }
+
+  .rp-commit-side {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .rp-commit-acts {
+    display: flex;
+    opacity: 0.5;
+  }
+
+  .rp-commit:hover .rp-commit-acts,
+  .rp-commit:focus-within .rp-commit-acts {
+    opacity: 1;
+  }
+}

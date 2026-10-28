@@ -1,0 +1,78 @@
+{{/* One branch of the Refs page. Props: root (page data), b (the branch), default (bool). */}}
+{{$root := .root}}{{$b := .b}}{{$isDefault := .default}}
+<li class="rp-ref">
+	<div class="rp-ref-main">
+		<div class="rp-ref-title">
+			{{if $b.DBBranch.IsDeleted}}
+				<span class="rp-ref-name ds-mono">{{$b.DBBranch.Name}}</span>
+				<span class="ds-chip">{{ctx.Locale.Tr "asc_rp.deleted"}}</span>
+			{{else}}
+				<a class="rp-ref-name ds-mono" href="{{$root.RepoLink}}/src/branch/{{PathEscapeSegments $b.DBBranch.Name}}">{{$b.DBBranch.Name}}</a>
+				{{if $isDefault}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_rp.default"}}</span>{{end}}
+				{{if $b.IsProtected}}<span class="ds-chip">{{svg "dsi-lock" 12}}{{ctx.Locale.Tr "asc_rp.protected"}}</span>{{end}}
+				{{template "repo/commit_statuses" dict "Status" (index $root.CommitStatus $b.DBBranch.CommitID) "Statuses" (index $root.CommitStatuses $b.DBBranch.CommitID)}}
+			{{end}}
+			<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm rp-ref-copy" data-clipboard-text="{{$b.DBBranch.Name}}" aria-label="{{ctx.Locale.Tr "copy_branch"}}">{{svg "dsi-copy" 16}}</button>
+		</div>
+		{{if $b.DBBranch.IsDeleted}}
+			<p class="rp-ref-sub">{{ctx.Locale.Tr "repo.branch.deleted_by" $b.DBBranch.DeletedBy.Name}} {{DateUtils.TimeSince $b.DBBranch.DeletedUnix}}</p>
+		{{else}}
+			<p class="rp-ref-sub commit-message">{{RenderCommitMessage $root.Context $b.DBBranch.CommitMessage ($root.Repository.ComposeMetas ctx)}}</p>
+			<p class="rp-ref-meta">
+				{{if $b.DBBranch.Pusher}}<span class="rp-ref-who">{{template "shared/user/avatarlink" dict "user" $b.DBBranch.Pusher}}{{template "shared/user/namelink" $b.DBBranch.Pusher}}</span>{{end}}
+				<a class="rp-hash" href="{{$root.RepoLink}}/commit/{{PathEscape $b.DBBranch.CommitID}}">{{ShortSha $b.DBBranch.CommitID}}</a>
+				<span>{{DateUtils.TimeSince $b.DBBranch.CommitTime}}</span>
+				{{if and (not $isDefault) $root.DefaultBranchBranch}}<span class="rp-ref-div ds-num">{{ctx.Locale.Tr "asc_rp.ahead_behind" $b.CommitsAhead $b.CommitsBehind}}</span>{{end}}
+			</p>
+		{{end}}
+	</div>
+	<div class="rp-ref-side">
+		{{if and (not $isDefault) $root.DefaultBranchBranch}}
+			{{if not ($root.Permission.CanRead $root.UnitTypePullRequests)}}
+				<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$root.RepoLink}}/compare/{{PathEscapeSegments $root.DefaultBranchBranch.DBBranch.Name}}...{{if ne $root.Repository.Owner.Name $root.Owner.Name}}{{PathEscape $root.Owner.Name}}:{{end}}{{PathEscapeSegments $b.DBBranch.Name}}">{{ctx.Locale.Tr "compare.branches.title"}}</a>
+			{{else if not $b.LatestPullRequest}}
+				{{if $b.IsIncluded}}
+					<span class="ds-chip ds-chip-warn" title="{{ctx.Locale.Tr "repo.branch.included_desc"}}">{{ctx.Locale.Tr "repo.branch.included"}}</span>
+				{{else if and (not $b.DBBranch.IsDeleted) $root.AllowsPulls (gt $b.CommitsAhead 0)}}
+					<a class="ds-btn ds-btn-secondary ds-btn-sm new-pull-request" href="{{$root.RepoLink}}/compare/{{PathEscapeSegments $root.DefaultBranchBranch.DBBranch.Name}}...{{if ne $root.Repository.Owner.Name $root.Owner.Name}}{{PathEscape $root.Owner.Name}}:{{end}}{{PathEscapeSegments $b.DBBranch.Name}}">{{if $root.CanPull}}{{ctx.Locale.Tr "repo.pulls.compare_changes"}}{{else}}{{ctx.Locale.Tr "action.compare_branch"}}{{end}}</a>
+				{{end}}
+			{{else if and $b.LatestPullRequest.HasMerged $b.MergeMovedOn}}
+				{{if and (not $b.DBBranch.IsDeleted) $root.AllowsPulls (gt $b.CommitsAhead 0)}}
+					<a class="ds-btn ds-btn-secondary ds-btn-sm new-pull-request" href="{{$root.RepoLink}}/compare/{{PathEscapeSegments $root.DefaultBranchBranch.DBBranch.Name}}...{{if ne $root.Repository.Owner.Name $root.Owner.Name}}{{PathEscape $root.Owner.Name}}:{{end}}{{PathEscapeSegments $b.DBBranch.Name}}">{{if $root.CanPull}}{{ctx.Locale.Tr "repo.pulls.compare_changes"}}{{else}}{{ctx.Locale.Tr "action.compare_branch"}}{{end}}</a>
+				{{end}}
+			{{else}}
+				<a href="{{$b.LatestPullRequest.Issue.Link}}" class="ref-issue rp-hash">{{if not $b.LatestPullRequest.IsSameRepo}}{{$b.LatestPullRequest.BaseRepo.FullName}}{{end}}#{{$b.LatestPullRequest.Issue.Index}}</a>
+				{{if $b.LatestPullRequest.HasMerged}}<a href="{{$b.LatestPullRequest.Issue.Link}}" class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "repo.pulls.merged"}}</a>
+				{{else if $b.LatestPullRequest.Issue.IsClosed}}<a href="{{$b.LatestPullRequest.Issue.Link}}" class="ds-chip ds-chip-err">{{ctx.Locale.Tr "repo.issues.closed_title"}}</a>
+				{{else if $b.LatestPullRequest.IsWorkInProgress ctx}}<a href="{{$b.LatestPullRequest.Issue.Link}}" class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "repo.issues.draft_title"}}</a>
+				{{else}}<a href="{{$b.LatestPullRequest.Issue.Link}}" class="ds-chip ds-chip-info">{{ctx.Locale.Tr "repo.issues.open_title"}}</a>{{end}}
+			{{end}}
+		{{end}}
+		{{$canWrite := and $root.IsWriter (not $root.Repository.IsArchived) (not $root.IsMirror) (not $b.DBBranch.IsDeleted)}}
+		{{$canAdmin := and $root.Permission.IsAdmin (not $root.Repository.IsArchived) (not $root.IsDeleted)}}
+		{{$canDelete := and $root.IsWriter (not $root.IsMirror) (not $root.Repository.IsArchived) (not $b.IsProtected)}}
+		<details class="dropdown rp-dd rp-ref-more">
+			<summary class="ds-btn ds-btn-secondary ds-btn-sm ds-btn-icon" aria-label="{{ctx.Locale.Tr "asc_rp.more_for" $b.DBBranch.Name}}">{{svg "dsi-dots" 18}}</summary>
+			<div class="content rp-pop">
+				<div class="rp-pop-h ds-mono">{{$b.DBBranch.Name}}</div>
+				<ul>
+					{{if $canWrite}}<li><button type="button" class="show-create-branch-modal" data-branch-from="{{$b.DBBranch.Name}}">{{svg "dsi-branch" 18}}{{ctx.Locale.Tr "repo.branch.new_branch_from" $b.DBBranch.Name}}</button></li>{{end}}
+					{{if $root.EnableFeed}}<li><a href="{{$root.FeedURL}}/rss/branch/{{PathEscapeSegments $b.DBBranch.Name}}">{{svg "octicon-rss" 18}}{{ctx.Locale.Tr "rss_feed"}}</a></li>{{end}}
+					{{if and (not $b.DBBranch.IsDeleted) (not $root.DisableDownloadSourceArchives)}}
+						<li><a class="archive-link" href="{{$root.RepoLink}}/archive/{{PathEscapeSegments $b.DBBranch.Name}}.zip" rel="nofollow">{{svg "dsi-download" 18}}ZIP</a></li>
+						<li><a class="archive-link" href="{{$root.RepoLink}}/archive/{{PathEscapeSegments $b.DBBranch.Name}}.tar.gz" rel="nofollow">{{svg "dsi-download" 18}}TAR.GZ</a></li>
+					{{end}}
+					{{if $canWrite}}<li><button type="button" class="show-rename-branch-modal" data-is-default-branch="{{if $isDefault}}true{{else}}false{{end}}" data-old-branch-name="{{$b.DBBranch.Name}}">{{svg "dsi-pencil" 18}}{{ctx.Locale.Tr "repo.branch.rename" $b.DBBranch.Name}}</button></li>{{end}}
+					{{if and $isDefault $canAdmin}}<li><a href="{{$root.RepoLink}}/settings/branches">{{svg "dsi-sliders" 18}}{{ctx.Locale.Tr "repo.settings.branches.switch_default_branch"}}</a></li>{{end}}
+					{{if and (not $isDefault) $canDelete}}
+						{{if $b.DBBranch.IsDeleted}}
+							<li><button type="button" class="link-action restore-branch-button" data-url="{{$root.Link}}/restore?branch_id={{$b.DBBranch.ID}}&name={{$b.DBBranch.Name}}&page={{$root.Page.Paginater.Current}}">{{svg "dsi-undo" 18}}{{ctx.Locale.Tr "repo.branch.restore" $b.DBBranch.Name}}</button></li>
+						{{else}}
+							<li><button type="button" class="delete-button delete-branch-button rp-danger" data-url="{{$root.Link}}/delete?name={{$b.DBBranch.Name}}&page={{$root.Page.Paginater.Current}}" data-name="{{$b.DBBranch.Name}}" data-modal-id="delete-branch">{{svg "dsi-trash" 18}}{{ctx.Locale.Tr "repo.branch.delete" $b.DBBranch.Name}}</button></li>
+						{{end}}
+					{{end}}
+				</ul>
+			</div>
+		</details>
+	</div>
+</li>

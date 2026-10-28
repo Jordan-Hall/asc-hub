@@ -1,8 +1,8 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository new release">
-	{{template "repo/header" .}}
-	<div class="ui container">
-		<h2 class="ui dividing header">
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository new release rp-page">
+	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "repo.release.new_release") "SubBack" (print .RepoLink "/releases"))}}
+	<div class="ds-container ds-container-form rp-body rp-skin">
+		<h2 class="ui dividing header rp-h1 rp-form-title">
 			{{if .PageIsEditRelease}}
 				{{ctx.Locale.Tr "repo.release.edit_release"}}
 				<div class="sub header">{{ctx.Locale.Tr "repo.release.edit_subheader"}}</div>

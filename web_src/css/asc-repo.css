@@ -796,3 +796,16 @@
   border-radius: 8px;
   min-height: 44px;
 }
+
+/* the rebuilt repository pages (boards C1 to C15, D1, F1 to F8) */
+@import "./asc-pages/repo-kit.css";
+@import "./asc-pages/repo-home.css";
+@import "./asc-pages/repo-code.css";
+@import "./asc-pages/repo-history.css";
+@import "./asc-pages/repo-commit.css";
+@import "./asc-pages/repo-refs.css";
+@import "./asc-pages/repo-new.css";
+@import "./asc-pages/repo-compare.css";
+@import "./asc-pages/repo-search.css";
+@import "./asc-pages/repo-settings.css";
+@import "./asc-pages/repo-insights.css";

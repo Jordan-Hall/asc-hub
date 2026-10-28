@@ -1,7 +1,7 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository new migrate">
-	<div class="ui middle very relaxed page grid">
-		<div class="column">
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository new migrate rp-page">
+	<div class="ds-container ds-container-form rp-body rp-skin">
+		<div class="rp-new-col">
 			<form class="ui form" action="{{.Link}}" method="post">
 				<h3 class="ui top attached header">
 					{{ctx.Locale.Tr "repo.migrate.migrate" .service.Title}}

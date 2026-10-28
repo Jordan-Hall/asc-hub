@@ -1,7 +1,13 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository diff asc-repo-page asc-review-page">
-	{{template "repo/header" .}}
-	<div class="ui container fluid padded">
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository diff rp-page asc-review-page rp-commit-page">
+	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "asc_rp.change_of" (ShortSha .CommitID)) "SubBack" (printf "%s/commits/%s" .RepoLink (PathEscapeSegments .Repository.DefaultBranch)))}}
+	<div class="ds-container rp-body">
+		{{template "base/alert" .}}
+		<nav class="ds-crumbs rp-crumbs" aria-label="{{ctx.Locale.Tr "asc_rp.crumbs"}}">
+			<a href="{{.RepoLink}}/commits/{{PathEscapeSegments .Repository.DefaultBranch}}">{{ctx.Locale.Tr "asc_rp.history"}}</a>
+			<span aria-hidden="true">/</span>
+			<span class="ds-mono" aria-current="page">{{ShortSha .CommitID}}</span>
+		</nav>
 		{{template "repo/commit_header" .}}
 		{{template "repo/diff/box" .}}
 	</div>
