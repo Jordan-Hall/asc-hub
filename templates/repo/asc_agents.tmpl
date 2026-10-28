@@ -24,7 +24,7 @@ Template Attributes:
 		{{template "repo/asc_agents_notice" .}}
 
 		{{if not .AscAgentsDisabled}}
-			{{if .AscAgentFeatures}}
+			{{if and .AscAgentFeatures (not .AscAgentsFailure)}}
 			<div class="rv-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_review.agents_stats_label"}}">
 				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_active"}}</div><div class="rv-stat-v">{{.AscAgentsActive}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}</div></div>
 				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_waiting"}}</div><div class="rv-stat-v">{{.AscAgentsWaiting}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}</div></div>
