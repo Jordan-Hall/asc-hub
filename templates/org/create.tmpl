@@ -1,56 +1,41 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content organization new org">
-	<div class="ui middle very relaxed page grid">
-		<div class="column">
-			<form class="ui form" action="{{.Link}}" method="post">
-				<h3 class="ui top attached header">
-					{{ctx.Locale.Tr "new_org.title"}}
-				</h3>
-				<div class="ui attached segment">
-					{{template "base/alert" .}}
-					<div class="inline required field {{if .Err_OrgName}}error{{end}}">
-						<label for="org_name">{{ctx.Locale.Tr "org.org_name_holder"}}</label>
-						<input id="org_name" name="org_name" value="{{.org_name}}" autofocus required maxlength="40">
-						<span class="help">{{ctx.Locale.Tr "org.org_name_helper"}}</span>
-					</div>
-
-					<div class="inline field {{if .Err_OrgVisibility}}error{{end}}">
-						<span class="inline required field"><label for="visibility">{{ctx.Locale.Tr "org.settings.visibility"}}</label></span>
-						<div class="inline-grouped-list">
-							<div class="ui radio checkbox">
-								<input class="enable-system-radio" name="visibility" type="radio" value="0" {{if .visibility.IsPublic}}checked{{end}}>
-								<label>{{ctx.Locale.Tr "org.settings.visibility.public"}}</label>
-							</div>
-							<div class="ui radio checkbox">
-								<input class="enable-system-radio" name="visibility" type="radio" value="1" {{if .visibility.IsLimited}}checked{{end}}>
-								<label>{{ctx.Locale.Tr "org.settings.visibility.limited"}}</label>
-							</div>
-							<div class="ui radio checkbox">
-								<input class="enable-system-radio" name="visibility" type="radio" value="2" {{if .visibility.IsPrivate}}checked{{end}}>
-								<label>{{ctx.Locale.Tr "org.settings.visibility.private"}}</label>
-							</div>
-						</div>
-					</div>
-
-					<div class="inline field" id="permission_box">
-						<span class="inline field"><label>{{ctx.Locale.Tr "org.settings.permission"}}</label></span>
-						<div class="inline-grouped-list">
-							<div class="ui checkbox">
-								<input type="checkbox" name="repo_admin_change_team_access" {{if .repo_admin_change_team_access}}checked{{end}}>
-								<label>{{ctx.Locale.Tr "org.settings.repoadminchangeteam"}}</label>
-							</div>
-						</div>
-					</div>
-
-					<div class="inline field">
-						<label></label>
-						<button class="ui primary button">
-							{{ctx.Locale.Tr "org.create_org"}}
-						</button>
-					</div>
-				</div>
-			</form>
+<div role="main" aria-label="{{.Title}}" class="ds-main organization new org wk-page">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "new_org.title") "BackHref" (print AppSubUrl "/explore/organizations") "BackLabel" (ctx.Locale.Tr "explore.organizations"))}}
+	<div class="ds-container ds-container-form">
+		<div class="wk-page-head wk-form-head">
+			<div class="ds-min0">
+				<p class="ds-t-eyebrow wk-eyebrow-kicker">{{ctx.Locale.Tr "asc_work.neworg_eyebrow"}}</p>
+				<h1 class="ds-t-h1 wk-title">{{ctx.Locale.Tr "new_org.title"}}</h1>
+				<p class="ds-c-2 wk-sub">{{ctx.Locale.Tr "asc_work.neworg_lead"}}</p>
+			</div>
 		</div>
+		{{template "base/alert" .}}
+		<form class="ui form ds-form wk-sp-form" action="{{.Link}}" method="post">
+			{{.CsrfTokenHtml}}
+			<section class="ds-card" aria-label="{{ctx.Locale.Tr "new_org.title"}}">
+				<div class="ds-card-b ds-stack-16">
+					<div class="required field ds-field {{if .Err_OrgName}}error{{end}}">
+						<label class="ds-label" for="org_name">{{ctx.Locale.Tr "org.org_name_holder"}}</label>
+						<input id="org_name" class="ds-input{{if .Err_OrgName}} is-err{{end}}" name="org_name" value="{{.org_name}}" autofocus required maxlength="40">
+						<p class="ds-hint">{{ctx.Locale.Tr "org.org_name_helper"}}</p>
+					</div>
+					<fieldset class="wk-fieldset {{if .Err_OrgVisibility}}error{{end}}">
+						<legend class="ds-label">{{ctx.Locale.Tr "org.settings.visibility"}}</legend>
+						<div class="ds-check"><input class="enable-system-radio" id="vis-public" name="visibility" type="radio" value="0" {{if .visibility.IsPublic}}checked{{end}}><label for="vis-public">{{ctx.Locale.Tr "org.settings.visibility.public"}}</label></div>
+						<div class="ds-check"><input class="enable-system-radio" id="vis-limited" name="visibility" type="radio" value="1" {{if .visibility.IsLimited}}checked{{end}}><label for="vis-limited">{{ctx.Locale.Tr "org.settings.visibility.limited"}}</label></div>
+						<div class="ds-check"><input class="enable-system-radio" id="vis-private" name="visibility" type="radio" value="2" {{if .visibility.IsPrivate}}checked{{end}}><label for="vis-private">{{ctx.Locale.Tr "org.settings.visibility.private"}}</label></div>
+					</fieldset>
+					<fieldset class="wk-fieldset" id="permission_box">
+						<legend class="ds-label">{{ctx.Locale.Tr "org.settings.permission"}}</legend>
+						<div class="ds-check"><input type="checkbox" id="repo-admin-teams" name="repo_admin_change_team_access" {{if .repo_admin_change_team_access}}checked{{end}}><label for="repo-admin-teams">{{ctx.Locale.Tr "org.settings.repoadminchangeteam"}}</label></div>
+					</fieldset>
+				</div>
+			</section>
+			<div class="ds-sticky-actions wk-form-actions">
+				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/organizations">{{ctx.Locale.Tr "cancel"}}</a>
+				<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "org.create_org"}}</button>
+			</div>
+		</form>
 	</div>
 </div>
 {{template "base/footer" .}}

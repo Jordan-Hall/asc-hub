@@ -1,106 +1,105 @@
-{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "organization settings options")}}
-			<div class="org-setting-content">
-				<h4 class="ui top attached header">
-					{{ctx.Locale.Tr "org.settings.options"}}
-				</h4>
-				<div class="ui attached segment">
-					<form class="ui form" action="{{.Link}}" method="post">
-						<label {{if .Err_Name}}class="field error"{{end}}>
-							{{ctx.Locale.Tr "org.org_name_holder"}}
-							<input id="org_name" name="name" value="{{.Org.Name}}" data-org-name="{{.Org.Name}}" autofocus required maxlength="40">
-							<span class="help">
-								{{ctx.Locale.Tr "org.settings.change_orgname_prompt"}}
-								{{if gt .CooldownPeriod 0}}
-									{{ctx.Locale.TrN .CooldownPeriod "org.settings.change_orgname_redirect_prompt.with_cooldown.one" "org.settings.change_orgname_redirect_prompt.with_cooldown.few" .CooldownPeriod}}</span>
-								{{else}}
-									{{ctx.Locale.Tr "org.settings.change_orgname_redirect_prompt"}}
-								{{end}}
-							</span>
-						</label>
-						<div class="field {{if .Err_FullName}}error{{end}}">
-							<label for="full_name">{{ctx.Locale.Tr "org.org_full_name_holder"}}</label>
-							<input id="full_name" name="full_name" value="{{.Org.FullName}}" maxlength="100">
-						</div>
-						<div class="field {{if .Err_Email}}error{{end}}">
-							<label for="email">{{ctx.Locale.Tr "org.settings.email"}}</label>
-							<input id="email" name="email" type="email" value="{{.Org.Email}}" maxlength="255">
-						</div>
-						<div class="field {{if .Err_Description}}error{{end}}">
-							<label for="description">{{ctx.Locale.Tr "org.org_desc"}}</label>
-							<textarea id="description" name="description" rows="2" maxlength="255">{{.Org.Description}}</textarea>
-						</div>
-						<div class="field {{if .Err_Website}}error{{end}}">
-							<label for="website">{{ctx.Locale.Tr "org.settings.website"}}</label>
-							<input id="website" name="website" type="url" value="{{.Org.Website}}" maxlength="255" pattern="{{.ValidSiteURLPattern}}">
-							<span class="help">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</span>
-						</div>
-						<div class="field">
-							<label for="location">{{ctx.Locale.Tr "org.settings.location"}}</label>
-							<input id="location" name="location"  value="{{.Org.Location}}" maxlength="50">
-						</div>
-
-						<div class="divider"></div>
-						<div class="field" id="visibility_box">
-							<label for="visibility">{{ctx.Locale.Tr "org.settings.visibility"}}</label>
-							<div class="field">
-								<div class="ui radio checkbox">
-									<input class="enable-system-radio" name="visibility" type="radio" value="0" {{if eq .CurrentVisibility 0}}checked{{end}}>
-									<label>{{ctx.Locale.Tr "org.settings.visibility.public"}}</label>
-								</div>
-							</div>
-							<div class="field">
-								<div class="ui radio checkbox">
-									<input class="enable-system-radio" name="visibility" type="radio" value="1" {{if eq .CurrentVisibility 1}}checked{{end}}>
-									<label>{{ctx.Locale.Tr "org.settings.visibility.limited"}}</label>
-								</div>
-							</div>
-							<div class="field">
-								<div class="ui radio checkbox">
-									<input class="enable-system-radio" name="visibility" type="radio" value="2" {{if eq .CurrentVisibility 2}}checked{{end}}>
-									<label>{{ctx.Locale.Tr "org.settings.visibility.private"}}</label>
-								</div>
-							</div>
-						</div>
-
-						<div class="field" id="permission_box">
-							<label>{{ctx.Locale.Tr "org.settings.permission"}}</label>
-							<div class="field">
-								<div class="ui checkbox">
-									<input type="checkbox" name="repo_admin_change_team_access" {{if .RepoAdminChangeTeamAccess}}checked{{end}}>
-									<label>{{ctx.Locale.Tr "org.settings.repoadminchangeteam"}}</label>
-								</div>
-							</div>
-						</div>
-
-						{{if .SignedUser.IsAdmin}}
-						<div class="divider"></div>
-
-						<div class="inline field {{if .Err_MaxRepoCreation}}error{{end}}">
-							<label for="max_repo_creation">{{ctx.Locale.Tr "admin.users.max_repo_creation"}}</label>
-							<input id="max_repo_creation" name="max_repo_creation" type="number" min="-1" value="{{.Org.MaxRepoCreation}}">
-							<p class="help">{{ctx.Locale.Tr "admin.users.max_repo_creation_desc"}}</p>
-						</div>
-						{{end}}
-
-						<div class="field">
-							<button class="ui primary button">{{ctx.Locale.Tr "org.settings.update_settings"}}</button>
-						</div>
-					</form>
-
-					<div class="divider"></div>
-
-					<form class="ui form" action="{{.Link}}/avatar" method="post" enctype="multipart/form-data">
-						<div class="inline field">
-							<label for="avatar">{{ctx.Locale.Tr "settings.choose_new_avatar"}}</label>
-							<input name="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
-							<br/><span class=help>{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</span>
-						</div>
-
-						<div class="field button-sequence">
-							<button class="primary button">{{ctx.Locale.Tr "settings.update_avatar"}}</button>
-							<button class="danger button link-action" data-url="{{.Link}}/avatar/delete">{{ctx.Locale.Tr "settings.delete_current_avatar"}}</button>
-						</div>
-					</form>
+{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main organization settings options wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_work.sp_general") "Lead" (ctx.Locale.Tr "asc_work.sp_org_general_lead" (or .Org.FullName .Org.Name)))}}
+<div class="wk-sp">
+	<form class="ui form ds-form wk-sp-form" action="{{.Link}}" method="post">
+		{{.CsrfTokenHtml}}
+		<section class="ds-card" aria-labelledby="sp-profile">
+			<div class="ds-card-h"><h2 id="sp-profile">{{ctx.Locale.Tr "asc_work.sp_profile_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_org_profile_hint"}}</span></div>
+			<div class="ds-card-b ds-stack-16">
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field {{if .Err_FullName}}error{{end}}">
+						<label class="ds-label" for="full_name">{{ctx.Locale.Tr "org.org_full_name_holder"}}</label>
+						<input id="full_name" class="ds-input" name="full_name" value="{{.Org.FullName}}" maxlength="100">
+					</div>
+					<div class="ds-field {{if .Err_Name}}error{{end}}">
+						<label class="ds-label" for="org_name">{{ctx.Locale.Tr "org.org_name_holder"}}</label>
+						<input id="org_name" class="ds-input{{if .Err_Name}} is-err{{end}}" name="name" value="{{.Org.Name}}" data-org-name="{{.Org.Name}}" autofocus required maxlength="40">
+						<p class="ds-hint">
+							{{ctx.Locale.Tr "org.settings.change_orgname_prompt"}}
+							{{if gt .CooldownPeriod 0}}
+								{{ctx.Locale.TrN .CooldownPeriod "org.settings.change_orgname_redirect_prompt.with_cooldown.one" "org.settings.change_orgname_redirect_prompt.with_cooldown.few" .CooldownPeriod}}
+							{{else}}
+								{{ctx.Locale.Tr "org.settings.change_orgname_redirect_prompt"}}
+							{{end}}
+						</p>
+					</div>
+				</div>
+				<div class="ds-field {{if .Err_Description}}error{{end}}">
+					<label class="ds-label" for="description">{{ctx.Locale.Tr "org.org_desc"}}</label>
+					<textarea id="description" class="ds-textarea" name="description" rows="3" maxlength="255">{{.Org.Description}}</textarea>
+				</div>
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field {{if .Err_Website}}error{{end}}">
+						<label class="ds-label" for="website">{{ctx.Locale.Tr "org.settings.website"}}</label>
+						<input id="website" class="ds-input" name="website" type="url" value="{{.Org.Website}}" maxlength="255" pattern="{{.ValidSiteURLPattern}}">
+						<p class="ds-hint">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</p>
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="location">{{ctx.Locale.Tr "org.settings.location"}}</label>
+						<input id="location" class="ds-input" name="location" value="{{.Org.Location}}" maxlength="50">
+					</div>
+				</div>
+				<div class="ds-field {{if .Err_Email}}error{{end}}">
+					<label class="ds-label" for="email">{{ctx.Locale.Tr "org.settings.email"}}</label>
+					<input id="email" class="ds-input" name="email" type="email" value="{{.Org.Email}}" maxlength="255">
 				</div>
 			</div>
+		</section>
+
+		<section class="ds-card" aria-labelledby="sp-defaults">
+			<div class="ds-card-h"><h2 id="sp-defaults">{{ctx.Locale.Tr "asc_work.sp_defaults_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_defaults_hint"}}</span></div>
+			<div class="ds-card-b ds-stack-16">
+				<fieldset class="wk-fieldset" id="visibility_box">
+					<legend class="ds-label">{{ctx.Locale.Tr "org.settings.visibility"}}</legend>
+					<div class="ds-check"><input class="enable-system-radio" id="vis-public" name="visibility" type="radio" value="0" {{if eq .CurrentVisibility 0}}checked{{end}}><label for="vis-public">{{ctx.Locale.Tr "org.settings.visibility.public"}}</label></div>
+					<div class="ds-check"><input class="enable-system-radio" id="vis-limited" name="visibility" type="radio" value="1" {{if eq .CurrentVisibility 1}}checked{{end}}><label for="vis-limited">{{ctx.Locale.Tr "org.settings.visibility.limited"}}</label></div>
+					<div class="ds-check"><input class="enable-system-radio" id="vis-private" name="visibility" type="radio" value="2" {{if eq .CurrentVisibility 2}}checked{{end}}><label for="vis-private">{{ctx.Locale.Tr "org.settings.visibility.private"}}</label></div>
+				</fieldset>
+				<fieldset class="wk-fieldset" id="permission_box">
+					<legend class="ds-label">{{ctx.Locale.Tr "org.settings.permission"}}</legend>
+					<div class="ds-check"><input type="checkbox" id="repo-admin-teams" name="repo_admin_change_team_access" {{if .RepoAdminChangeTeamAccess}}checked{{end}}><label for="repo-admin-teams">{{ctx.Locale.Tr "org.settings.repoadminchangeteam"}}</label></div>
+				</fieldset>
+			</div>
+		</section>
+
+		{{if .SignedUser.IsAdmin}}
+		<section class="ds-card" aria-labelledby="sp-limits">
+			<div class="ds-card-h"><h2 id="sp-limits">{{ctx.Locale.Tr "asc_work.sp_limits_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_limits_hint"}}</span></div>
+			<div class="ds-card-b">
+				<div class="ds-field {{if .Err_MaxRepoCreation}}error{{end}}">
+					<label class="ds-label" for="max_repo_creation">{{ctx.Locale.Tr "admin.users.max_repo_creation"}}</label>
+					<input id="max_repo_creation" class="ds-input" name="max_repo_creation" type="number" min="-1" value="{{.Org.MaxRepoCreation}}">
+					<p class="ds-hint">{{ctx.Locale.Tr "admin.users.max_repo_creation_desc"}}</p>
+				</div>
+			</div>
+		</section>
+		{{end}}
+
+		<div class="ds-sticky-actions wk-form-actions">
+			<a class="ds-btn ds-btn-secondary" href="{{.Link}}">{{ctx.Locale.Tr "asc_work.discard"}}</a>
+			<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "asc_work.sp_save"}}</button>
+		</div>
+	</form>
+
+	<form class="ui form ds-form wk-sp-form" action="{{.Link}}/avatar" method="post" enctype="multipart/form-data">
+		{{.CsrfTokenHtml}}
+		<section class="ds-card" aria-labelledby="sp-logo">
+			<div class="ds-card-h"><h2 id="sp-logo">{{ctx.Locale.Tr "asc_work.sp_logo_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_logo_hint"}}</span></div>
+			<div class="ds-card-b ds-stack-16">
+				<div class="wk-avatar-row">
+					<span class="wk-avatar-now">{{ctx.AvatarUtils.Avatar .Org 72 "org-avatar"}}</span>
+					<div class="ds-field ds-grow ds-min0">
+						<label class="ds-label" for="avatar">{{ctx.Locale.Tr "settings.choose_new_avatar"}}</label>
+						<input id="avatar" class="wk-file" name="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+						<p class="ds-hint">{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</p>
+					</div>
+				</div>
+				<div class="ds-row ds-row-wrap">
+					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.update_avatar"}}</button>
+					<button class="ds-btn ds-btn-danger link-action" type="button" data-url="{{.Link}}/avatar/delete">{{ctx.Locale.Tr "settings.delete_current_avatar"}}</button>
+				</div>
+			</div>
+		</section>
+	</form>
+</div>
 {{template "org/settings/layout_footer" .}}

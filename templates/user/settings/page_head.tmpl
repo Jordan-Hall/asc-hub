@@ -1,0 +1,8 @@
+{{/*
+The title block of a settings page (account, organization, repository): the page title and one line that says what the page is for.
+Props: Title (the page's h1), Lead (optional). Put it first inside .ds-settings-body.
+*/}}
+<div class="wk-sp-head">
+	<h1 class="ds-t-h1 wk-title">{{.Title}}</h1>
+	{{if .Lead}}<p class="ds-c-2 wk-sub">{{.Lead}}</p>{{end}}
+</div>

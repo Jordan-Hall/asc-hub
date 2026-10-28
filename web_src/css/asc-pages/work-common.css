@@ -182,3 +182,91 @@ a.wk-act-title:hover {
   border: 0;
   background: transparent;
 }
+
+/* settings pages: title block, card stack, fieldsets, avatar row, file input */
+.wk-sp-head {
+  margin-bottom: 16px;
+}
+
+.wk-sp-head .wk-title {
+  font-size: 26px;
+}
+
+.wk-sp {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wk-sp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wk-fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.wk-fieldset > .ds-label {
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.wk-avatar-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.wk-avatar-now img {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+}
+
+.wk-file {
+  max-width: 100%;
+  font-size: 14px;
+}
+
+.wk-file::file-selector-button {
+  min-height: 36px;
+  margin-right: 12px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wk-form-head {
+  padding-top: 24px;
+}
+
+.wk-form-actions {
+  justify-content: flex-end;
+}
+
+.wk-form-actions .ds-btn {
+  flex: 1 1 0;
+}
+
+@media (min-width: 640px) {
+  .wk-form-actions .ds-btn {
+    flex: none;
+  }
+}
+
+.ds-settings-body .wk-sp .ds-sticky-actions {
+  margin-top: 0;
+}
