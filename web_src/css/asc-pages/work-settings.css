@@ -94,3 +94,24 @@ button.wk-radio-card {
 .wk-sub a {
   text-decoration: underline;
 }
+
+.wk-qr img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+  background: #fff;
+}
+
+/* a list that fills a card runs edge to edge under the card header */
+.ds-card > .ds-list.wk-rows {
+  border: 0;
+  border-top: 1px solid var(--line-2);
+  border-radius: 0;
+}
+
+.ds-card > .ds-card-h + .ds-list.wk-rows {
+  border-top: 0;
+}

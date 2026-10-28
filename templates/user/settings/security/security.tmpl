@@ -1,16 +1,22 @@
-{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings security" "HideNavbarLinks" .HideNavbarLinks)}}
-	<div class="user-setting-content">
-		{{if .MustEnableTwoFactor}}
-			<div class="ui red message">{{ctx.Locale.Tr "settings.must_enable_2fa"}}</div>
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings security wk-settings" "HideNavbarLinks" .HideNavbarLinks)}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.security") "Lead" (ctx.Locale.Tr "asc_work.sp_security_lead"))}}
+<div class="wk-sp">
+	{{if .MustEnableTwoFactor}}
+		<div class="ds-banner ds-banner-err" role="alert"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "settings.must_enable_2fa"}}</div></div>
+	{{end}}
+	<section class="ds-card" aria-labelledby="sp-password">
+		<div class="ds-card-h"><h2 id="sp-password">{{ctx.Locale.Tr "settings.change_password"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_password_where"}}</span></div>
+		<div class="ds-card-b">
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/user/settings/account">{{ctx.Locale.Tr "settings.change_password"}}</a>
+		</div>
+	</section>
+	{{template "user/settings/security/twofa" .}}
+	{{template "user/settings/security/webauthn" .}}
+	{{if not .MustEnableTwoFactor}}
+		{{template "user/settings/security/accountlinks" .}}
+		{{if .EnableOpenIDSignIn}}
+			{{template "user/settings/security/openid" .}}
 		{{end}}
-		{{template "user/settings/security/twofa" .}}
-		{{template "user/settings/security/webauthn" .}}
-		{{if not .MustEnableTwoFactor}}
-			{{template "user/settings/security/accountlinks" .}}
-			{{if .EnableOpenIDSignIn}}
-				{{template "user/settings/security/openid" .}}
-			{{end}}
-		{{end}}
-	</div>
-
+	{{end}}
+</div>
 {{template "user/settings/layout_footer" .}}

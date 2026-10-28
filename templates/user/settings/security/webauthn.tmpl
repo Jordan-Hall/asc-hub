@@ -1,38 +1,37 @@
-<h4 class="ui top attached header">{{ctx.Locale.Tr "settings.webauthn"}}</h4>
-<div class="ui attached segment">
-	<p>{{ctx.Locale.Tr "settings.webauthn_desc" "https://w3c.github.io/webauthn/#webauthn-authenticator"}}</p>
-	<p>{{ctx.Locale.Tr "settings.webauthn_key_loss_warning"}} {{ctx.Locale.Tr "settings.webauthn_alternative_tip"}}</p>
-	{{template "user/auth/webauthn_error" .}}
-	<div class="flex-list">
-		{{range .WebAuthnCredentials}}
-			<div class="flex-item">
-				<div class="flex-item-leading">
-					{{svg "octicon-key" 32}}
-				</div>
-				<div class="flex-item-main">
-					<div class="flex-item-title">{{.Name}}</div>
-					<div class="flex-item-body">
-						<p>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</p>
-					</div>
-				</div>
-				<div class="flex-item-trailing">
-					<button class="ui red tiny button delete-button" data-modal-id="delete-registration" data-url="{{$.Link}}/webauthn/delete" data-id="{{.ID}}">
-					{{ctx.Locale.Tr "settings.delete_key"}}
-					</button>
-				</div>
-			</div>
-		{{end}}
+<section class="ds-card" aria-labelledby="sp-webauthn">
+	<div class="ds-card-h"><h2 id="sp-webauthn">{{ctx.Locale.Tr "settings.webauthn"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.webauthn_desc" "https://w3c.github.io/webauthn/#webauthn-authenticator"}}</span></div>
+	<div class="ds-card-b">
+		<div class="ds-banner ds-banner-warn" role="note"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "settings.webauthn_key_loss_warning"}} {{ctx.Locale.Tr "settings.webauthn_alternative_tip"}}</div></div>
 	</div>
-	<div class="ui form">
-		<div class="required field">
-			<label for="nickname">{{ctx.Locale.Tr "settings.webauthn_nickname"}}</label>
-			<input id="nickname" name="nickname" type="text" required>
+	{{template "user/auth/webauthn_error" .}}
+	{{if .WebAuthnCredentials}}
+	<ul class="ds-list wk-rows">
+		{{range .WebAuthnCredentials}}
+			<li class="ds-li wk-row">
+				<span class="ds-li-av" aria-hidden="true">{{svg "dsi-key" 20}}</span>
+				<div class="ds-li-main">
+					<div class="ds-li-title"><span class="ds-break">{{.Name}}</span></div>
+					<div class="ds-li-sub">{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</div>
+				</div>
+				<div class="wk-row-acts">
+					<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="delete-registration" data-url="{{$.Link}}/webauthn/delete" data-id="{{.ID}}">{{ctx.Locale.Tr "settings.delete_key"}}</button>
+				</div>
+			</li>
+		{{end}}
+	</ul>
+	{{end}}
+	<div class="ui form ds-form wk-card-form">
+		<div class="required field ds-field">
+			<label class="ds-label" for="nickname">{{ctx.Locale.Tr "settings.webauthn_nickname"}}</label>
+			<div class="wk-inline-field">
+				<input id="nickname" class="ds-input" name="nickname" type="text" required>
+				<button id="register-webauthn" class="ds-btn ds-btn-primary"><span aria-hidden="true">{{svg "dsi-key" 16}}</span> {{ctx.Locale.Tr "settings.webauthn_register_key"}}</button>
+			</div>
 		</div>
-		<button id="register-webauthn" class="ui primary button">{{svg "octicon-key"}} {{ctx.Locale.Tr "settings.webauthn_register_key"}}</button>
 	</div>
 	<div class="ui g-modal-confirm delete modal" id="delete-registration">
 		<div class="header">
-			{{svg "octicon-trash"}}
+			{{svg "dsi-trash" 18}}
 			{{ctx.Locale.Tr "settings.webauthn_delete_key"}}
 		</div>
 		<div class="content">
@@ -40,4 +39,4 @@
 		</div>
 		{{template "base/modal_actions_confirm" .}}
 	</div>
-</div>
+</section>
