@@ -2034,3 +2034,18 @@ body.ds-lock {
 .wk-preview-inline .ds-card-b {
   padding: 0;
 }
+
+/* documentation: tap targets of the popular searches, tables that scroll, the breadcrumb of an article */
+.site-popular .ds-chip {
+  min-height: 28px;
+  padding-block: 4px;
+}
+
+.site-table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.site-article .ds-breadcrumb a {
+  text-decoration: underline;
+}
