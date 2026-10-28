@@ -1,56 +1,42 @@
-<h4 class="ui top attached header">
-	{{ctx.Locale.Tr "settings.manage_openid"}}
-</h4>
-<div class="ui attached segment">
-	<div class="flex-list">
-		<div class="flex-item">
-			{{ctx.Locale.Tr "settings.openid_desc"}}
-		</div>
+<section class="ds-card" aria-labelledby="sp-openid">
+	<div class="ds-card-h"><h2 id="sp-openid">{{ctx.Locale.Tr "settings.manage_openid"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.openid_desc"}}</span></div>
+	{{if .OpenIDs}}
+	<ul class="ds-list wk-rows">
 		{{range .OpenIDs}}
-			<div class="flex-item tw-items-center">
-				<div class="flex-item-leading">
-					{{svg "fontawesome-openid" 20}}
+			<li class="ds-li wk-row">
+				<span class="ds-li-av" aria-hidden="true">{{svg "fontawesome-openid" 20}}</span>
+				<div class="ds-li-main">
+					<div class="ds-li-title"><span class="ds-break">{{.URI}}</span></div>
 				</div>
-				<div class="flex-item-main">
-					<div class="flex-item-title">{{.URI}}</div>
-				</div>
-				<div class="flex-item-trailing">
+				<div class="wk-row-acts">
 					<form action="{{AppSubUrl}}/user/settings/security/openid/toggle_visibility" method="post">
+						{{$.CsrfTokenHtml}}
 						<input name="id" type="hidden" value="{{.ID}}">
 						{{if .Show}}
-							<button class="ui tiny button">
-							{{svg "octicon-eye" 16 "icon"}}
-							{{ctx.Locale.Tr "settings.hide_openid"}}
-							</button>
+							<button class="ds-btn ds-btn-secondary ds-btn-sm"><span aria-hidden="true">{{svg "dsi-eye" 16}}</span> {{ctx.Locale.Tr "settings.hide_openid"}}</button>
 						{{else}}
-							<button class="ui tiny button">
-							{{svg "octicon-eye-closed" 16 "icon"}}
-							{{ctx.Locale.Tr "settings.show_openid"}}
-							</button>
+							<button class="ds-btn ds-btn-secondary ds-btn-sm"><span aria-hidden="true">{{svg "dsi-eye" 16}}</span> {{ctx.Locale.Tr "settings.show_openid"}}</button>
 						{{end}}
 					</form>
-					<button class="ui red tiny button delete-button" data-modal-id="delete-openid" data-url="{{AppSubUrl}}/user/settings/security/openid/delete" data-id="{{.ID}}">
-						{{ctx.Locale.Tr "settings.delete_key"}}
-					</button>
+					<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="delete-openid" data-url="{{AppSubUrl}}/user/settings/security/openid/delete" data-id="{{.ID}}">{{ctx.Locale.Tr "settings.delete_key"}}</button>
 				</div>
-			</div>
+			</li>
 		{{end}}
-	</div>
-</div>
-<div class="ui attached bottom segment">
-	<form class="ui form" action="{{AppSubUrl}}/user/settings/security/openid" method="post">
-		<div class="required field {{if .Err_OpenID}}error{{end}}">
-			<label for="openid">{{ctx.Locale.Tr "settings.add_new_openid"}}</label>
-			<input id="openid" name="openid" type="text" required>
+	</ul>
+	{{end}}
+	<form class="ui form ds-form wk-card-form" action="{{AppSubUrl}}/user/settings/security/openid" method="post">
+		{{.CsrfTokenHtml}}
+		<div class="required field ds-field {{if .Err_OpenID}}error{{end}}">
+			<label class="ds-label" for="openid">{{ctx.Locale.Tr "settings.add_new_openid"}}</label>
+			<div class="wk-inline-field">
+				<input id="openid" class="ds-input{{if .Err_OpenID}} is-err{{end}}" name="openid" type="text" required>
+				<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.add_openid"}}</button>
+			</div>
 		</div>
-		<button class="ui primary button">
-			{{ctx.Locale.Tr "settings.add_openid"}}
-		</button>
 	</form>
-
 	<div class="ui g-modal-confirm delete modal" id="delete-openid">
 		<div class="header">
-			{{svg "octicon-trash"}}
+			{{svg "dsi-trash" 18}}
 			{{ctx.Locale.Tr "settings.openid_deletion"}}
 		</div>
 		<div class="content">
@@ -58,4 +44,4 @@
 		</div>
 		{{template "base/modal_actions_confirm" .}}
 	</div>
-</div>
+</section>

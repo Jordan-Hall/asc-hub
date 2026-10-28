@@ -1,56 +1,39 @@
 {{/* No account links, no way to add account links: Menu will not be shown. */}}
 {{if or .AccountLinks .OrderedOAuth2Names}}
-<h4 class="ui top attached header">
-	{{ctx.Locale.Tr "settings.manage_account_links"}}
-	{{if .OrderedOAuth2Names}}
-		<div class="ui right">
-			<div class="ui dropdown">
-				<div class="ui primary tiny button">{{ctx.Locale.Tr "settings.link_account"}}</div>
-				<div class="menu">
-					{{range $key := .OrderedOAuth2Names}}
-						{{$provider := index $.OAuth2Providers $key}}
-						<a class="item" href="{{AppSubUrl}}/user/oauth2/{{$key}}">
-							{{$provider.IconHTML 20}}
-							{{$provider.DisplayName}}
-						</a>
-					{{end}}
-				</div>
-			</div>
-		</div>
-	{{end}}
-</h4>
-
-<div class="ui attached segment">
-	<div class="flex-list">
-		<div class="flex-item">
-			{{ctx.Locale.Tr "settings.manage_account_links_desc"}}
-		</div>
+<section class="ds-card" aria-labelledby="sp-links">
+	<div class="ds-card-h"><h2 id="sp-links">{{ctx.Locale.Tr "settings.manage_account_links"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.manage_account_links_desc"}}</span></div>
+	{{if .AccountLinks}}
+	<ul class="ds-list wk-rows">
 		{{range $loginSource, $provider := .AccountLinks}}
-			<div class="flex-item">
-				{{$providerData := index $.OAuth2Providers $loginSource.Name}}
-				<div class="flex-item-leading">
-					{{$providerData.IconHTML 20}}
+			{{$providerData := index $.OAuth2Providers $loginSource.Name}}
+			<li class="ds-li wk-row">
+				<span class="ds-li-av" aria-hidden="true">{{$providerData.IconHTML 20}}</span>
+				<div class="ds-li-main">
+					<div class="ds-li-title"><span class="ds-break" data-tooltip-content="{{$provider}}">{{$loginSource.Name}}</span>
+						{{if $loginSource.IsActive}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "repo.settings.active"}}</span>{{end}}
+					</div>
 				</div>
-				<div class="flex-item-main">
-					<span class="flex-item-title" data-tooltip-content="{{$provider}}">
-						{{$loginSource.Name}}
-					</span>
-					{{if $loginSource.IsActive}}
-					<span class="flex-text-body text primary">{{ctx.Locale.Tr "repo.settings.active"}}</span>
-					{{end}}
+				<div class="wk-row-acts">
+					<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="delete-account-link" data-url="{{AppSubUrl}}/user/settings/security/account_link" data-id="{{$loginSource.ID}}">{{ctx.Locale.Tr "settings.delete_key"}}</button>
 				</div>
-				<div class="flex-item-trailing">
-					<button class="ui red tiny button delete-button" data-modal-id="delete-account-link" data-url="{{AppSubUrl}}/user/settings/security/account_link" data-id="{{$loginSource.ID}}">
-						{{ctx.Locale.Tr "settings.delete_key"}}
-					</button>
-				</div>
-			</div>
+			</li>
 		{{end}}
+	</ul>
+	{{end}}
+	{{if .OrderedOAuth2Names}}
+	<div class="wk-card-form">
+		<h3 class="ds-t-h3">{{ctx.Locale.Tr "settings.link_account"}}</h3>
+		<div class="ds-row ds-row-wrap">
+			{{range $key := .OrderedOAuth2Names}}
+				{{$provider := index $.OAuth2Providers $key}}
+				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/user/oauth2/{{$key}}"><span aria-hidden="true">{{$provider.IconHTML 20}}</span> {{$provider.DisplayName}}</a>
+			{{end}}
+		</div>
 	</div>
-
+	{{end}}
 	<div class="ui g-modal-confirm delete modal" id="delete-account-link">
 		<div class="header">
-			{{svg "octicon-trash"}}
+			{{svg "dsi-trash" 18}}
 			{{ctx.Locale.Tr "settings.remove_account_link"}}
 		</div>
 		<div class="content">
@@ -58,5 +41,5 @@
 		</div>
 		{{template "base/modal_actions_confirm" .}}
 	</div>
-</div>
+</section>
 {{end}}
