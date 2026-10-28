@@ -6,198 +6,217 @@ Advisory ids, summaries, package names and links come from public sources. They 
 link is only an https address, and the template engine escapes the rest.
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-trust-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
 	{{template "repo/header" .}}
-	<div class="ui container">
-	{{template "base/alert" .}}
 	{{with .AscDeps}}
-	<div class="asc-trust" data-testid="asc-deps">
-		<div class="asc-trust-head">
-			<h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_trust.deps.title"}}</h2>
-			<span class="asc-trust-sub">{{ctx.Locale.Tr "asc_trust.deps.lead"}}</span>
+	<div class="rv rv-page" data-testid="asc-deps">
+		{{template "base/alert" $}}
+		<header class="rv-head">
+			<div class="rv-head-main">
+				<div class="rv-eyebrow">{{$.Repository.FullName}}</div>
+				<h1 class="rv-title">{{ctx.Locale.Tr "asc_trust.deps.title"}}</h1>
+				<p class="rv-lead">{{ctx.Locale.Tr "asc_trust.deps.lead"}}</p>
+				{{if and (eq .View "findings") (not .Unsupported)}}{{with .Findings}}{{if not .NeverScanned}}
+				<p class="rv-faint" data-testid="asc-deps-last">{{ctx.Locale.Tr "asc_trust.deps.last_scan"}} {{DateUtils.TimeSince .LastScan}}</p>
+				{{end}}{{end}}{{end}}
+			</div>
+			{{if and (eq .View "findings") .CanManage (not .Unsupported)}}
+			<form class="rv-acts rv-scan" method="post" action="{{.DepsURL}}/scan" data-testid="asc-deps-scan-form">
+				{{$.CsrfTokenHtml}}
+				<label class="rv-check" for="asc-deps-refresh"><input id="asc-deps-refresh" name="refresh" type="checkbox" value="1"><span>{{ctx.Locale.Tr "asc_trust.deps.refresh"}}</span></label>
+				<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-deps-scan">{{ctx.Locale.Tr "asc_trust.deps.scan"}}</button>
+			</form>
+			{{end}}
+		</header>
+
+		<div class="rv-tabsbar">
+			<nav class="rv-tabs" aria-label="{{ctx.Locale.TrString "asc_trust.deps.views_aria"}}" data-testid="asc-deps-views">
+				{{range .Views}}
+				<a class="rv-tab" href="{{.URL}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-deps-view-{{.Key}}">{{ctx.Locale.Tr (printf "asc_trust.deps.view.%s" .Key)}}</a>
+				{{end}}
+			</nav>
 		</div>
 
-		<nav class="ast-tabs" aria-label="{{ctx.Locale.TrString "asc_trust.deps.views_aria"}}" data-testid="asc-deps-views">
-			{{range .Views}}
-			<a class="ast-tab{{if .Active}} active{{end}}" href="{{.URL}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-deps-view-{{.Key}}">{{ctx.Locale.Tr (printf "asc_trust.deps.view.%s" .Key)}}</a>
-			{{end}}
-		</nav>
-
 		{{if .Unsupported}}
-			<div class="ui warning message" role="status" data-testid="asc-deps-unsupported">{{ctx.Locale.Tr "asc_trust.deps.unsupported"}}</div>
+			<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-deps-unsupported"><div>{{ctx.Locale.Tr "asc_trust.deps.unsupported"}}</div></div>
 		{{else}}
-			{{if .Problem}}<div class="ui negative message" role="alert" data-testid="asc-deps-problem">{{.Problem}}</div>{{end}}
+			{{if .Problem}}<div class="rv-banner rv-banner-err rv-gap" role="alert" data-testid="asc-deps-problem"><div>{{.Problem}}</div></div>{{end}}
 
 			{{if eq .View "findings"}}
 			{{with .Findings}}
 				{{if .NeverScanned}}
-				<div class="ui info message" role="status" data-testid="asc-deps-never">{{ctx.Locale.Tr "asc_trust.deps.never_scanned"}}</div>
-				{{else}}
-				<p class="asc-trust-sub" data-testid="asc-deps-last">{{ctx.Locale.Tr "asc_trust.deps.last_scan"}} {{DateUtils.TimeSince .LastScan}}</p>
-				{{if ne .LookupKey "complete"}}
-				<div class="ui warning message" role="status" data-testid="asc-deps-lookup">{{ctx.Locale.Tr (printf "asc_trust.deps.last_lookup_%s" .LookupKey)}}</div>
-				{{end}}
+				<div class="rv-empty" role="status" data-testid="asc-deps-never"><span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-search" 24}}</span><h2>{{ctx.Locale.Tr "asc_review.deps_never_title"}}</h2><p>{{ctx.Locale.Tr "asc_trust.deps.never_scanned"}}</p></div>
+				{{else if ne .LookupKey "complete"}}
+				<div class="rv-banner rv-banner-warn rv-gap" role="status" data-testid="asc-deps-lookup"><div>{{ctx.Locale.Tr (printf "asc_trust.deps.last_lookup_%s" .LookupKey)}}</div></div>
 				{{end}}
 			{{end}}
 
-			{{if .CanManage}}
-			<form class="ast-inline-form asc-trust-actions" method="post" action="{{.DepsURL}}/scan" data-testid="asc-deps-scan-form">
-				{{$.CsrfTokenHtml}}
-				<div class="ui checkbox"><input id="asc-deps-refresh" name="refresh" type="checkbox" value="1"><label for="asc-deps-refresh">{{ctx.Locale.Tr "asc_trust.deps.refresh"}}</label></div>
-				<button class="ui primary button" type="submit" data-testid="asc-deps-scan">{{ctx.Locale.Tr "asc_trust.deps.scan"}}</button>
-			</form>
-			{{end}}
-
-			<nav class="ast-tabs" aria-label="{{ctx.Locale.TrString "asc_trust.deps.state_aria"}}">
+			<nav class="rv-chips rv-gap" aria-label="{{ctx.Locale.TrString "asc_trust.deps.state_aria"}}">
 				{{range .States}}
-				<a class="ast-tab{{if .Active}} active{{end}}" href="{{.URL}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-deps-tab-{{.Key}}">{{ctx.Locale.Tr (printf "asc_trust.deps.state.%s" .Key)}} <span class="ast-count">{{.Count}}</span></a>
+				<a class="rv-chip-btn" href="{{.URL}}"{{if .Active}} aria-current="true"{{end}} data-testid="asc-deps-tab-{{.Key}}">{{ctx.Locale.Tr (printf "asc_trust.deps.state.%s" .Key)}} <span class="rv-count">{{.Count}}</span></a>
 				{{end}}
 			</nav>
-			<form class="ui form asc-trust-filters" method="get" action="{{.DepsURL}}">
+
+			<form class="rv-form rv-card rv-gap" method="get" action="{{.DepsURL}}" aria-label="{{ctx.Locale.Tr "asc_trust.deps.filter"}}">
 				{{if .State}}<input type="hidden" name="state" value="{{.State}}">{{end}}
-				<div class="asc-trust-grid">
-					<div class="field">
-						<label for="asc-deps-severity">{{ctx.Locale.Tr "asc_trust.deps.min_severity"}}</label>
-						<select id="asc-deps-severity" name="severity">
+				<div class="rv-card-b rv-formgrid rv-formgrid-2">
+					<div class="rv-field">
+						<label class="rv-label" for="asc-deps-severity">{{ctx.Locale.Tr "asc_trust.deps.min_severity"}}</label>
+						<select class="rv-select" id="asc-deps-severity" name="severity">
 							<option value=""{{if eq .Severity ""}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.deps.any"}}</option>
 							{{range .Severities}}<option value="{{.}}"{{if eq $.AscDeps.Severity .}} selected{{end}}>{{ctx.Locale.Tr (printf "asc_trust.deps.severity.%s" .)}}</option>{{end}}
 						</select>
 					</div>
-					<div class="field"><label for="asc-deps-eco">{{ctx.Locale.Tr "asc_trust.deps.ecosystem"}}</label><input id="asc-deps-eco" name="ecosystem" type="text" maxlength="64" value="{{.Ecosystem}}" placeholder="crates.io, npm, PyPI" autocomplete="off"></div>
+					<div class="rv-field"><label class="rv-label" for="asc-deps-eco">{{ctx.Locale.Tr "asc_trust.deps.ecosystem"}}</label><input class="rv-input" id="asc-deps-eco" name="ecosystem" type="text" maxlength="64" value="{{.Ecosystem}}" placeholder="crates.io, npm, PyPI" autocomplete="off"></div>
 				</div>
-				<div class="asc-trust-actions"><button class="ui primary button" type="submit">{{ctx.Locale.Tr "asc_trust.deps.filter"}}</button><a class="ui basic button" href="{{.DepsURL}}">{{ctx.Locale.Tr "asc_trust.deps.clear"}}</a></div>
+				<div class="rv-card-f rv-acts"><button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "asc_trust.deps.filter"}}</button><a class="rv-btn rv-btn-secondary" href="{{.DepsURL}}">{{ctx.Locale.Tr "asc_trust.deps.clear"}}</a></div>
 			</form>
 
 			{{with .Findings}}
-			<section class="ast-card" aria-labelledby="asc-deps-findings">
-				<div class="ast-card-head"><h3 id="asc-deps-findings" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.deps.findings_title"}}</h3></div>
+			<section class="rv-card" aria-labelledby="asc-deps-findings">
+				<div class="rv-card-h"><h2 id="asc-deps-findings">{{ctx.Locale.Tr "asc_trust.deps.findings_title"}}</h2></div>
 				{{if .Rows}}
-				<ul class="ast-ops" data-testid="asc-deps-findings">
+				<ul class="rv-list" data-testid="asc-deps-findings">
 					{{range .Rows}}
-					<li class="ast-op ast-dep" data-testid="asc-dep-finding" data-id="{{.ID}}">
-						<div class="ast-op-main">
-							<div class="ast-op-line">
-								<span class="ast-pill ast-pill-{{.Tone}}" data-testid="asc-dep-severity">{{ctx.Locale.Tr (printf "asc_trust.deps.severity.%s" .SeverityKey)}}</span>
-								<strong>{{.Name}}</strong> <code class="asc-trust-code">{{.Version}}</code>
-								<span class="ast-pill ast-pill-ro">{{.Ecosystem}}</span>
-								<span class="asc-trust-sub">{{if .Direct}}{{ctx.Locale.Tr "asc_trust.deps.direct"}}{{else}}{{ctx.Locale.Tr "asc_trust.deps.transitive"}}{{end}}</span>
+					<li class="rv-li rv-dep" data-testid="asc-dep-finding" data-id="{{.ID}}">
+						<div class="rv-li-main">
+							<div class="rv-li-title">
+								<span class="rv-pill rv-pill-{{.Tone}}" data-testid="asc-dep-severity">{{ctx.Locale.Tr (printf "asc_trust.deps.severity.%s" .SeverityKey)}}</span>
+								<span class="rv-mono">{{.Name}} {{.Version}}</span>
+								<span class="rv-pill rv-pill-ro">{{.Ecosystem}}</span>
 							</div>
-							<div class="asc-trust-sub">
-								{{if .URL}}<a href="{{.URL}}" rel="noopener noreferrer nofollow" target="_blank">{{.AdvisoryID}}</a>{{else}}<code class="asc-trust-code">{{.AdvisoryID}}</code>{{end}}
+							{{if .Summary}}<div class="rv-dep-sum">{{.Summary}}</div>{{end}}
+							<div class="rv-li-sub">
+								{{if .URL}}<a href="{{.URL}}" rel="noopener noreferrer nofollow" target="_blank">{{.AdvisoryID}}</a>{{else}}<code>{{.AdvisoryID}}</code>{{end}}
+								· {{if .Direct}}{{ctx.Locale.Tr "asc_trust.deps.direct"}}{{else}}{{ctx.Locale.Tr "asc_trust.deps.transitive"}}{{end}}
 								{{if .CVSS}} · {{ctx.Locale.Tr "asc_trust.deps.cvss" .CVSS}}{{end}}
 								{{if .FixedIn}} · {{ctx.Locale.Tr "asc_trust.deps.fixed_in" .FixedIn}}{{else}} · {{ctx.Locale.Tr "asc_trust.deps.no_fix"}}{{end}}
-								{{if .Path}} · <code class="asc-trust-code">{{.Path}}</code>{{end}}
+								{{if .Path}} · <code>{{.Path}}</code>{{end}}
 							</div>
-							{{if .Summary}}<div class="asc-trust-sub">{{.Summary}}</div>{{end}}
 							{{if eq .StateKey "dismissed"}}
-							<div class="asc-trust-sub" data-testid="asc-dep-dismissed">{{ctx.Locale.Tr "asc_trust.deps.dismissed_by" .DismissedBy}}{{if .ReasonKey}} · {{ctx.Locale.Tr (printf "asc_trust.deps.reason.%s" .ReasonKey)}}{{end}}{{if .Note}} · {{.Note}}{{end}}</div>
+							<div class="rv-li-sub" data-testid="asc-dep-dismissed">{{ctx.Locale.Tr "asc_trust.deps.dismissed_by" .DismissedBy}}{{if .ReasonKey}} · {{ctx.Locale.Tr (printf "asc_trust.deps.reason.%s" .ReasonKey)}}{{end}}{{if .Note}} · {{.Note}}{{end}}</div>
 							{{end}}
 						</div>
 						{{if $.AscDeps.CanManage}}
-						<div class="ast-op-side">
-							<form class="ast-finding-form" method="post" action="{{$.AscDeps.DepsURL}}/findings/{{.ID}}/dismiss">
-								{{$.CsrfTokenHtml}}
-								<input type="hidden" name="op" value="{{$.AscDeps.Op}}">
-								<input type="hidden" name="state" value="{{if eq .StateKey "open"}}open{{else}}{{.StateKey}}{{end}}">
-								{{if eq .StateKey "open"}}
-								<label class="tw-sr-only" for="asc-dep-reason-{{.ID}}">{{ctx.Locale.Tr "asc_trust.deps.reason_label"}}</label>
-								<select id="asc-dep-reason-{{.ID}}" name="reason">
-									{{range $.AscDeps.Reasons}}<option value="{{.}}">{{ctx.Locale.Tr (printf "asc_trust.deps.reason.%s" .)}}</option>{{end}}
-								</select>
-								<label class="tw-sr-only" for="asc-dep-note-{{.ID}}">{{ctx.Locale.Tr "asc_trust.deps.note"}}</label>
-								<input id="asc-dep-note-{{.ID}}" name="note" type="text" maxlength="1024" placeholder="{{ctx.Locale.TrString "asc_trust.deps.note"}}" autocomplete="off">
-								<button class="ui basic button" type="submit">{{ctx.Locale.Tr "asc_trust.deps.dismiss"}}</button>
-								{{else if eq .StateKey "dismissed"}}
-								<input type="hidden" name="reason" value="reopen">
-								<button class="ui basic button" type="submit">{{ctx.Locale.Tr "asc_trust.deps.reopen"}}</button>
-								{{end}}
-							</form>
-						</div>
+						<form class="rv-dep-form" method="post" action="{{$.AscDeps.DepsURL}}/findings/{{.ID}}/dismiss">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="op" value="{{$.AscDeps.Op}}">
+							<input type="hidden" name="state" value="{{.StateKey}}">
+							{{if eq .StateKey "open"}}
+							<details class="rv-dep-dismiss">
+								<summary class="rv-btn rv-btn-secondary">{{ctx.Locale.Tr "asc_trust.deps.dismiss"}}</summary>
+								<div class="rv-dep-fields">
+									<div class="rv-field">
+										<label class="rv-label" for="asc-dep-reason-{{.ID}}">{{ctx.Locale.Tr "asc_trust.deps.reason_label"}}</label>
+										<select class="rv-select" id="asc-dep-reason-{{.ID}}" name="reason">
+											{{range $.AscDeps.Reasons}}<option value="{{.}}">{{ctx.Locale.Tr (printf "asc_trust.deps.reason.%s" .)}}</option>{{end}}
+										</select>
+									</div>
+									<div class="rv-field">
+										<label class="rv-label" for="asc-dep-note-{{.ID}}">{{ctx.Locale.Tr "asc_trust.deps.note"}}</label>
+										<input class="rv-input" id="asc-dep-note-{{.ID}}" name="note" type="text" maxlength="1024" autocomplete="off">
+									</div>
+									<button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "asc_trust.deps.dismiss"}}</button>
+								</div>
+							</details>
+							{{else if eq .StateKey "dismissed"}}
+							<input type="hidden" name="reason" value="reopen">
+							<button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_trust.deps.reopen"}}</button>
+							{{end}}
+						</form>
 						{{end}}
 					</li>
 					{{end}}
 				</ul>
 				{{else if not .NeverScanned}}
-				<p data-testid="asc-deps-empty">{{ctx.Locale.Tr "asc_trust.deps.findings_empty"}}</p>
+				<div class="rv-empty" data-testid="asc-deps-empty"><span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-shield-check" 24}}</span><h2>{{ctx.Locale.Tr "asc_review.deps_none_title"}}</h2><p>{{ctx.Locale.Tr "asc_trust.deps.findings_empty"}}</p></div>
 				{{end}}
-				{{if $.AscDeps.NextURL}}<div class="asc-trust-actions ast-card-foot"><a class="ui basic button" href="{{$.AscDeps.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.deps.more"}}</a></div>{{end}}
+				{{if $.AscDeps.NextURL}}<div class="rv-card-f"><a class="rv-btn rv-btn-secondary" href="{{$.AscDeps.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.deps.more"}}</a></div>{{end}}
 			</section>
 			{{end}}
 			{{end}}
 
 			{{if eq .View "updates"}}
-			<form class="ui form asc-trust-filters" method="get" action="{{.DepsURL}}">
-				<input type="hidden" name="view" value="updates">
-				<div class="ui checkbox"><input id="asc-deps-security" name="security" type="checkbox" value="1"{{if .SecurityOnly}} checked{{end}}><label for="asc-deps-security">{{ctx.Locale.Tr "asc_trust.deps.security_only"}}</label></div>
-				<div class="asc-trust-actions"><button class="ui basic button" type="submit">{{ctx.Locale.Tr "asc_trust.deps.show"}}</button></div>
-			</form>
-			{{with .Updates}}
-			{{if .Unknown}}
-			<div class="ui warning message" role="status" data-testid="asc-deps-unknown">{{ctx.Locale.Tr "asc_trust.deps.unknown_packages" .Unknown .Packages}}{{if .Errors}}<ul class="list">{{range .Errors}}<li>{{.}}</li>{{end}}</ul>{{end}}</div>
-			{{end}}
-			<section class="ast-card" aria-labelledby="asc-deps-updates">
-				<div class="ast-card-head"><h3 id="asc-deps-updates" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.deps.updates_title"}}</h3></div>
-				{{if .Rows}}
-				<ul class="ast-ops" data-testid="asc-deps-updates">
-					{{range .Rows}}
-					<li class="ast-op ast-dep" data-testid="asc-dep-update">
-						<div class="ast-op-main">
-							<div class="ast-op-line">
-								<strong>{{.Name}}</strong>
-								<code class="asc-trust-code">{{.Current}}</code> → <code class="asc-trust-code">{{if .Target}}{{.Target}}{{else}}{{.Latest}}{{end}}</code>
-								<span class="ast-pill ast-pill-{{.KindTone}}">{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" .KindKey)}}</span>
-								<span class="ast-pill ast-pill-ro">{{.Ecosystem}}</span>
-								{{if .Ignored}}<span class="ast-pill ast-pill-ro">{{ctx.Locale.Tr "asc_trust.deps.ignored"}}</span>{{end}}
-							</div>
-							<div class="asc-trust-sub">
-								{{if .Latest}}{{if ne .Latest .Target}}{{ctx.Locale.Tr "asc_trust.deps.latest" .Latest}}{{end}}{{end}}
-								{{if .Fixes}} · <span class="ast-tone-ok">{{ctx.Locale.Tr "asc_trust.deps.fixes"}} {{range $i, $f := .Fixes}}{{if $i}}, {{end}}{{$f}}{{end}}</span>{{end}}
-								{{if .Unfixed}} · <span class="ast-tone-no">{{ctx.Locale.Tr "asc_trust.deps.unfixed"}} {{range $i, $f := .Unfixed}}{{if $i}}, {{end}}{{$f}}{{end}}</span>{{end}}
-								{{if .Path}} · <code class="asc-trust-code">{{.Path}}</code>{{end}}
-							</div>
-							{{if .Error}}<div class="asc-trust-sub ast-tone-wn">{{.Error}}</div>{{end}}
-						</div>
-					</li>
+			<div class="rv-cols rv-cols-main-side">
+				<div class="rv-stack">
+					<form class="rv-form rv-card" method="get" action="{{.DepsURL}}" aria-label="{{ctx.Locale.Tr "asc_trust.deps.show"}}">
+						<input type="hidden" name="view" value="updates">
+						<div class="rv-card-b"><label class="rv-check" for="asc-deps-security"><input id="asc-deps-security" name="security" type="checkbox" value="1"{{if .SecurityOnly}} checked{{end}}><span>{{ctx.Locale.Tr "asc_trust.deps.security_only"}}</span></label></div>
+						<div class="rv-card-f"><button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_trust.deps.show"}}</button></div>
+					</form>
+					{{with .Updates}}
+					{{if .Unknown}}
+					<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-deps-unknown"><div>{{ctx.Locale.Tr "asc_trust.deps.unknown_packages" .Unknown .Packages}}{{if .Errors}}<ul>{{range .Errors}}<li>{{.}}</li>{{end}}</ul>{{end}}</div></div>
 					{{end}}
-				</ul>
-				{{else}}
-				<p data-testid="asc-deps-updates-empty">{{ctx.Locale.Tr "asc_trust.deps.updates_empty"}}</p>
-				{{end}}
-			</section>
-			{{end}}
-
-			{{if .CanManage}}
-			<section class="ast-card" aria-labelledby="asc-deps-propose">
-				<div class="ast-card-head"><h3 id="asc-deps-propose" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.deps.propose_title"}}</h3></div>
-				<p>{{ctx.Locale.Tr "asc_trust.deps.propose_lead"}}</p>
-				<form class="ui form" method="post" action="{{.DepsURL}}/propose" data-testid="asc-deps-propose-form">
-					{{$.CsrfTokenHtml}}
-					<input type="hidden" name="op" value="{{.Op}}">
-					<div class="asc-trust-grid">
-						<div class="field"><div class="ui checkbox"><input id="asc-deps-p-security" name="security" type="checkbox" value="1"{{if .SecurityOnly}} checked{{end}}><label for="asc-deps-p-security">{{ctx.Locale.Tr "asc_trust.deps.security_only"}}</label></div></div>
-						<div class="field">
-							<label for="asc-deps-max">{{ctx.Locale.Tr "asc_trust.deps.max_kind"}}</label>
-							<select id="asc-deps-max" name="max_kind">
-								<option value="">{{ctx.Locale.Tr "asc_trust.deps.repo_limit"}}</option>
-								{{range .Kinds}}<option value="{{.}}">{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" .)}}</option>{{end}}
-							</select>
+					<section class="rv-card" aria-labelledby="asc-deps-updates">
+						<div class="rv-card-h"><h2 id="asc-deps-updates">{{ctx.Locale.Tr "asc_trust.deps.updates_title"}}</h2></div>
+						{{if .Rows}}
+						<div class="rv-tablewrap">
+							<table class="rv-tbl rv-tbl-stack" data-testid="asc-deps-updates">
+								<thead><tr>
+									<th scope="col">{{ctx.Locale.Tr "asc_review.deps_col_package"}}</th>
+									<th scope="col">{{ctx.Locale.Tr "asc_review.deps_col_change"}}</th>
+									<th scope="col">{{ctx.Locale.Tr "asc_review.deps_col_kind"}}</th>
+									<th scope="col">{{ctx.Locale.Tr "asc_review.deps_col_notes"}}</th>
+								</tr></thead>
+								<tbody>
+									{{range .Rows}}
+									<tr data-testid="asc-dep-update">
+										<td class="rv-cell-main" data-label="{{ctx.Locale.Tr "asc_review.deps_col_package"}}"><span class="rv-mono">{{.Name}}</span> <span class="rv-pill rv-pill-ro">{{.Ecosystem}}</span>{{if .Ignored}} <span class="rv-pill rv-pill-ro">{{ctx.Locale.Tr "asc_trust.deps.ignored"}}</span>{{end}}</td>
+										<td data-label="{{ctx.Locale.Tr "asc_review.deps_col_change"}}"><span class="rv-mono">{{.Current}} → {{if .Target}}{{.Target}}{{else}}{{.Latest}}{{end}}</span></td>
+										<td data-label="{{ctx.Locale.Tr "asc_review.deps_col_kind"}}"><span class="rv-pill rv-pill-{{.KindTone}}">{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" .KindKey)}}</span></td>
+										<td class="rv-muted{{if not (or .Fixes .Unfixed .Path .Error (and .Latest (ne .Latest .Target)))}} rv-cell-empty{{end}}" data-label="{{ctx.Locale.Tr "asc_review.deps_col_notes"}}">
+											{{if .Latest}}{{if ne .Latest .Target}}{{ctx.Locale.Tr "asc_trust.deps.latest" .Latest}}{{end}}{{end}}
+											{{if .Fixes}} <span class="rv-ok">{{ctx.Locale.Tr "asc_trust.deps.fixes"}} {{range $i, $f := .Fixes}}{{if $i}}, {{end}}{{$f}}{{end}}</span>{{end}}
+											{{if .Unfixed}} <span class="rv-err">{{ctx.Locale.Tr "asc_trust.deps.unfixed"}} {{range $i, $f := .Unfixed}}{{if $i}}, {{end}}{{$f}}{{end}}</span>{{end}}
+											{{if .Path}} <code>{{.Path}}</code>{{end}}
+											{{if .Error}} <span class="rv-warn">{{.Error}}</span>{{end}}
+										</td>
+									</tr>
+									{{end}}
+								</tbody>
+							</table>
 						</div>
-					</div>
-					<div class="asc-trust-actions">
-						<button class="ui primary button" type="submit" name="mode" value="preview" data-testid="asc-deps-preview">{{ctx.Locale.Tr "asc_trust.deps.preview"}}</button>
-						<button class="ui basic button" type="submit" name="mode" value="apply" data-testid="asc-deps-apply">{{ctx.Locale.Tr "asc_trust.deps.propose"}}</button>
-					</div>
-				</form>
-			</section>
-			{{end}}
+						{{else}}
+						<div class="rv-empty" data-testid="asc-deps-updates-empty"><span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-check-circle" 24}}</span><h2>{{ctx.Locale.Tr "asc_review.deps_uptodate_title"}}</h2><p>{{ctx.Locale.Tr "asc_trust.deps.updates_empty"}}</p></div>
+						{{end}}
+					</section>
+					{{end}}
+				</div>
+
+				{{if .CanManage}}
+				<section class="rv-card" aria-labelledby="asc-deps-propose">
+					<div class="rv-card-h"><h2 id="asc-deps-propose">{{ctx.Locale.Tr "asc_trust.deps.propose_title"}}</h2></div>
+					<form class="rv-form" method="post" action="{{.DepsURL}}/propose" data-testid="asc-deps-propose-form">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="op" value="{{.Op}}">
+						<div class="rv-card-b rv-stack">
+							<p class="rv-muted">{{ctx.Locale.Tr "asc_trust.deps.propose_lead"}}</p>
+							<label class="rv-check" for="asc-deps-p-security"><input id="asc-deps-p-security" name="security" type="checkbox" value="1"{{if .SecurityOnly}} checked{{end}}><span>{{ctx.Locale.Tr "asc_trust.deps.security_only"}}</span></label>
+							<div class="rv-field">
+								<label class="rv-label" for="asc-deps-max">{{ctx.Locale.Tr "asc_trust.deps.max_kind"}}</label>
+								<select class="rv-select" id="asc-deps-max" name="max_kind">
+									<option value="">{{ctx.Locale.Tr "asc_trust.deps.repo_limit"}}</option>
+									{{range .Kinds}}<option value="{{.}}">{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" .)}}</option>{{end}}
+								</select>
+							</div>
+						</div>
+						<div class="rv-card-f rv-acts">
+							<button class="rv-btn rv-btn-secondary" type="submit" name="mode" value="preview" data-testid="asc-deps-preview">{{ctx.Locale.Tr "asc_trust.deps.preview"}}</button>
+							<button class="rv-btn rv-btn-primary" type="submit" name="mode" value="apply" data-testid="asc-deps-apply">{{ctx.Locale.Tr "asc_trust.deps.propose"}}</button>
+						</div>
+					</form>
+				</section>
+				{{end}}
+			</div>
 			{{end}}
 
 			{{if eq .View "config"}}
 			{{with .Config}}
-			<section class="ast-card" aria-labelledby="asc-deps-config">
-				<div class="ast-card-head"><h3 id="asc-deps-config" class="ast-card-title">{{ctx.Locale.Tr "asc_trust.deps.config_title"}}</h3><span class="ast-pill ast-pill-ro" data-testid="asc-deps-source">{{ctx.Locale.Tr (printf "asc_trust.deps.source.%s" .Source)}}</span></div>
-				{{if .Error}}<div class="ui warning message" role="status" data-testid="asc-deps-config-error">{{ctx.Locale.Tr "asc_trust.deps.config_error"}} {{.Error}}</div>{{end}}
-				<dl class="asc-trust-dl ast-card-body" data-testid="asc-deps-config">
+			<section class="rv-card" aria-labelledby="asc-deps-config">
+				<div class="rv-card-h"><h2 id="asc-deps-config">{{ctx.Locale.Tr "asc_trust.deps.config_title"}}</h2><span class="rv-pill rv-pill-ro rv-end" data-testid="asc-deps-source">{{ctx.Locale.Tr (printf "asc_trust.deps.source.%s" .Source)}}</span></div>
+				{{if .Error}}<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-deps-config-error"><div>{{ctx.Locale.Tr "asc_trust.deps.config_error"}} {{.Error}}</div></div>{{end}}
+				<dl class="rv-card-b rv-dl" data-testid="asc-deps-config">
 					<dt>{{ctx.Locale.Tr "asc_trust.deps.cfg_ecosystems"}}</dt><dd>{{if .Ecosystems}}{{range $i, $e := .Ecosystems}}{{if $i}}, {{end}}{{$e}}{{end}}{{else}}{{ctx.Locale.Tr "asc_trust.deps.cfg_all_found"}}{{end}}</dd>
 					<dt>{{ctx.Locale.Tr "asc_trust.deps.cfg_schedule"}}</dt><dd>{{if .Schedule}}{{.Schedule}}{{else}}{{ctx.Locale.Tr "asc_trust.deps.cfg_not_scheduled"}}{{end}}</dd>
 					<dt>{{ctx.Locale.Tr "asc_trust.deps.cfg_security_only"}}</dt><dd>{{if .SecurityOnly}}{{ctx.Locale.Tr "asc_trust.deps.yes"}}{{else}}{{ctx.Locale.Tr "asc_trust.deps.no"}}{{end}}</dd>
@@ -208,36 +227,35 @@ link is only an https address, and the template engine escapes the rest.
 					<dt>{{ctx.Locale.Tr "asc_trust.deps.cfg_supported"}}</dt><dd>{{range $i, $e := .Supported}}{{if $i}}, {{end}}{{$e}}{{end}}</dd>
 				</dl>
 				{{if .Groups}}
-				<h4 class="ast-card-body asc-trust-sub">{{ctx.Locale.Tr "asc_trust.deps.cfg_groups"}}</h4>
-				<ul class="ast-blocked" data-testid="asc-deps-groups">
-					{{range .Groups}}<li><strong>{{.Name}}</strong> {{if .Ecosystem}}<span class="ast-pill ast-pill-ro">{{.Ecosystem}}</span>{{end}} <code class="asc-trust-code">{{range $i, $e := .Patterns}}{{if $i}}, {{end}}{{$e}}{{end}}</code>{{if .Kinds}} · {{range $i, $k := .Kinds}}{{if $i}}, {{end}}{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" $k)}}{{end}}{{end}}</li>{{end}}
-				</ul>
+				<div class="rv-card-b"><h3 class="rv-h4">{{ctx.Locale.Tr "asc_trust.deps.cfg_groups"}}</h3>
+				<ul class="rv-dep-chips" data-testid="asc-deps-groups">
+					{{range .Groups}}<li><strong>{{.Name}}</strong> {{if .Ecosystem}}<span class="rv-pill rv-pill-ro">{{.Ecosystem}}</span>{{end}} <code>{{range $i, $e := .Patterns}}{{if $i}}, {{end}}{{$e}}{{end}}</code>{{if .Kinds}} · {{range $i, $k := .Kinds}}{{if $i}}, {{end}}{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" $k)}}{{end}}{{end}}</li>{{end}}
+				</ul></div>
 				{{end}}
 				{{if .Ignores}}
-				<h4 class="ast-card-body asc-trust-sub">{{ctx.Locale.Tr "asc_trust.deps.cfg_ignores"}}</h4>
-				<ul class="ast-blocked" data-testid="asc-deps-ignores">
-					{{range .Ignores}}<li><code class="asc-trust-code">{{if .Ecosystem}}{{.Ecosystem}}:{{end}}{{.Name}}</code>{{if .Kinds}} · {{range $i, $k := .Kinds}}{{if $i}}, {{end}}{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" $k)}}{{end}}{{end}}{{if .Advisories}} · {{range $i, $a := .Advisories}}{{if $i}}, {{end}}{{$a}}{{end}}{{end}}{{if .Until}} · {{ctx.Locale.Tr "asc_trust.deps.until" .Until}}{{end}}{{if .Reason}} · {{.Reason}}{{end}}</li>{{end}}
-				</ul>
+				<div class="rv-card-b"><h3 class="rv-h4">{{ctx.Locale.Tr "asc_trust.deps.cfg_ignores"}}</h3>
+				<ul class="rv-dep-chips" data-testid="asc-deps-ignores">
+					{{range .Ignores}}<li><code>{{if .Ecosystem}}{{.Ecosystem}}:{{end}}{{.Name}}</code>{{if .Kinds}} · {{range $i, $k := .Kinds}}{{if $i}}, {{end}}{{ctx.Locale.Tr (printf "asc_trust.deps.kind.%s" $k)}}{{end}}{{end}}{{if .Advisories}} · {{range $i, $a := .Advisories}}{{if $i}}, {{end}}{{$a}}{{end}}{{end}}{{if .Until}} · {{ctx.Locale.Tr "asc_trust.deps.until" .Until}}{{end}}{{if .Reason}} · {{.Reason}}{{end}}</li>{{end}}
+				</ul></div>
 				{{end}}
 				{{if .Text}}
-				<details class="asc-trust-details ast-card-body">
+				<details class="rv-card-b rv-notice-details">
 					<summary>{{ctx.Locale.Tr "asc_trust.deps.cfg_file"}}</summary>
-					<pre class="ast-log" tabindex="0" data-testid="asc-deps-config-text">{{.Text}}</pre>
+					<pre class="rv-term-b" tabindex="0" data-testid="asc-deps-config-text">{{.Text}}</pre>
 				</details>
 				{{end}}
 				{{if .Workflow}}
-				<details class="asc-trust-details ast-card-body">
+				<details class="rv-card-b rv-notice-details">
 					<summary>{{ctx.Locale.Tr "asc_trust.deps.cfg_workflow"}}</summary>
-					<pre class="ast-log" tabindex="0">{{.Workflow}}</pre>
+					<pre class="rv-term-b" tabindex="0">{{.Workflow}}</pre>
 				</details>
 				{{end}}
-				<p class="asc-trust-sub ast-card-body">{{ctx.Locale.Tr "asc_trust.deps.cfg_how"}}</p>
+				<p class="rv-card-f rv-muted">{{ctx.Locale.Tr "asc_trust.deps.cfg_how"}}</p>
 			</section>
 			{{end}}
 			{{end}}
 		{{end}}
 	</div>
 	{{end}}
-	</div>
 </div>
 {{template "base/footer" .}}
