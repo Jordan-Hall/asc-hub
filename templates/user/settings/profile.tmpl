@@ -7,7 +7,7 @@
 			<div class="ds-card-h"><h2 id="sp-photo">{{ctx.Locale.Tr "settings.avatar"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_photo_hint"}}</span></div>
 			<div class="ds-card-b ds-stack-16">
 				<div class="wk-avatar-row">
-					<span class="wk-avatar-now wk-avatar-round">{{ctx.AvatarUtils.Avatar .SignedUser 96}}</span>
+					<span class="wk-avatar-now wk-avatar-round" id="avatar-now">{{ctx.AvatarUtils.Avatar .SignedUser 96}}</span>
 					<div class="ds-stack-12 ds-grow ds-min0">
 						{{if not .DisableGravatar}}
 							<div class="ds-check"><input id="avatar-lookup" name="source" value="lookup" type="radio" {{if not .SignedUser.UseCustomAvatar}}checked{{end}}><label for="avatar-lookup">{{ctx.Locale.Tr "settings.lookup_avatar_by_mail"}}</label></div>
@@ -19,7 +19,7 @@
 						<div class="ds-check"><input id="avatar-local" name="source" value="local" type="radio" {{if .SignedUser.UseCustomAvatar}}checked{{end}}><label for="avatar-local">{{ctx.Locale.Tr "settings.enable_custom_avatar"}}</label></div>
 						<div class="ds-field">
 							<label class="ds-label" for="new-avatar">{{ctx.Locale.Tr "settings.choose_new_avatar"}}</label>
-							<input id="new-avatar" class="wk-file" name="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+							<input id="new-avatar" class="wk-file" name="avatar" type="file" data-image-preview="avatar-now" accept="image/png,image/jpeg,image/gif,image/webp">
 							<p class="ds-hint">{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</p>
 						</div>
 					</div>
@@ -32,8 +32,21 @@
 		</section>
 	</form>
 
-	<form class="ui form ds-form wk-sp-form" action="{{.Link}}" method="post">
+	<form id="profile-form" class="ui form ds-form wk-sp-form" action="{{.Link}}" method="post">
 		{{.CsrfTokenHtml}}
+		<section class="ds-card wk-preview" aria-labelledby="sp-preview" data-preview-form="profile-form">
+			<div class="ds-card-h"><h2 id="sp-preview">{{ctx.Locale.Tr "asc_work.sp_preview_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_preview_hint"}}</span></div>
+			<div class="ds-card-b wk-preview-body">
+				<span class="wk-preview-avatar">{{ctx.AvatarUtils.Avatar .SignedUser 48}}</span>
+				<div class="ds-min0">
+					<b class="wk-preview-name" data-preview-field="full_name" data-preview-fallback="name"></b>
+					<div class="ds-hint">@<span data-preview-field="name"></span><span data-preview-field="pronouns" data-preview-empty class="wk-preview-sep"></span></div>
+					<p class="wk-preview-bio" data-preview-field="biography" data-preview-empty></p>
+					<div class="ds-hint" data-preview-field="location" data-preview-empty></div>
+				</div>
+			</div>
+		</section>
+
 		<section class="ds-card" aria-labelledby="sp-public">
 			<div class="ds-card-h"><h2 id="sp-public">{{ctx.Locale.Tr "settings.public_profile"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.profile_desc"}}</span></div>
 			<div class="ds-card-b ds-stack-16">
@@ -125,9 +138,10 @@
 			</div>
 		</section>
 
-		<div class="ds-sticky-actions wk-form-actions">
-			<a class="ds-btn ds-btn-secondary" href="{{.Link}}">{{ctx.Locale.Tr "asc_work.discard"}}</a>
-			<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.update_profile"}}</button>
+		<div class="ds-savebar wk-form-actions" data-savebar data-savebar-one="{{ctx.Locale.Tr "asc_rp.unsaved_one"}}" data-savebar-n="{{ctx.Locale.Tr "asc_rp.unsaved_n"}}">
+			<span class="ds-savebar-note" data-savebar-note aria-live="polite"></span>
+			<button type="button" class="ds-btn ds-btn-secondary" data-savebar-discard>{{ctx.Locale.Tr "asc_work.discard"}}</button>
+			<button class="ds-btn ds-btn-primary" data-savebar-submit disabled>{{ctx.Locale.Tr "settings.update_profile"}}</button>
 		</div>
 	</form>
 </div>

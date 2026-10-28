@@ -238,6 +238,34 @@ a.wk-act-title:hover {
   border-radius: 14px;
 }
 
+.wk-preview-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.wk-preview-avatar img {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+
+.wk-preview-name {
+  display: block;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.wk-preview-sep::before {
+  content: " · ";
+}
+
+.wk-preview-bio {
+  margin: 6px 0;
+  color: var(--text-b);
+  overflow-wrap: anywhere;
+}
+
 .wk-file {
   max-width: 100%;
   font-size: 14px;

@@ -12,6 +12,7 @@ export function initRepoSettingsSaveBar() {
     const form = bar.closest('form');
     if (!form) continue;
     const note = bar.querySelector('[data-savebar-note]');
+    const submit = bar.querySelector('[data-savebar-submit]');
     const fields = [...form.elements].filter((el) => el.name && el.type !== 'hidden' && el.type !== 'submit' && el.type !== 'button');
     const initial = new Map(fields.map((el) => [el, el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value]));
     const update = () => {
@@ -21,6 +22,8 @@ export function initRepoSettingsSaveBar() {
         if (now !== was) changed++;
       }
       bar.classList.toggle('is-dirty', changed > 0);
+      // the save button is active only once a field differs from the saved value
+      if (submit) submit.disabled = changed === 0;
       if (note) note.textContent = changed === 0 ? '' : (changed === 1 ? bar.getAttribute('data-savebar-one') : bar.getAttribute('data-savebar-n').replace('%d', String(changed)));
     };
     form.addEventListener('input', update);

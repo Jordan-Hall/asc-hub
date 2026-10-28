@@ -53,12 +53,12 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | UserSettingsProfile | Photo upload and remove (initials placeholder) | done | templates/user/settings/profile.tmpl, routers/web/user/setting/profile.go | - |
-| UserSettingsProfile | Photo preview before saving; upload-failed error text | ui-only-missing | profile.tmpl + web_src/js/features/asc-ui.js (FileReader preview) | S |
+| UserSettingsProfile | Photo preview before saving; upload-failed error text | done | profile.tmpl + web_src/js/features/asc-ui.js (FileReader preview) | S |
 | UserSettingsProfile | Display name, username (redirect hint), bio, pronouns, location, website, visibility radio | done | profile.tmpl (bio limit is 255, board says 160) | - |
 | UserSettingsProfile | Username availability check after 400 ms of no typing | needs-hub-backend | new GET route in routers/web/web.go under /user/settings + handler in routers/web/user/setting/profile.go; JS in asc-ui.js | S |
-| UserSettingsProfile | "How others see you" live preview card | ui-only-missing | profile.tmpl + asc-ui.js | S |
+| UserSettingsProfile | "How others see you" live preview card | done | profile.tmpl + asc-ui.js | S |
 | UserSettingsProfile | Public email select (verified addresses), time zone select | needs-hub-backend | models/user (new columns + models/forgejo_migrations), forms.UpdateProfileForm, profile.tmpl; time zone must feed DateUtils and quiet hours | M |
-| UserSettingsProfile | Save bar that turns active on edit, names the change count, Discard restores, "Saved" confirmation | ui-only-missing | profile.tmpl has a static .ds-sticky-actions; reuse initRepoSettingsSaveBar (web_src/js/features/repo-settings.js) via data-savebar | S |
+| UserSettingsProfile | Save bar that turns active on edit, names the change count, Discard restores, "Saved" confirmation | done | profile.tmpl has a static .ds-sticky-actions; reuse initRepoSettingsSaveBar (web_src/js/features/repo-settings.js) via data-savebar | S |
 | UserSettingsProfile | Loading skeleton inputs | ui-only-missing | profile.tmpl + CSS (page is server rendered, low value) | S |
 | UserSettingsAccount | Email list, primary, verify/resend, add, delete | done | templates/user/settings/account.tmpl, routers/web/user/setting/account.go | - |
 | UserSettingsAccount | Resend rate limit that says when to retry | needs-hub-backend | routers/web/user/setting/account.go (EmailPost SENDACTIVATION) | S |
@@ -127,7 +127,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsUsage | Over-quota banner, empty month, "BYO does not count" note | needs-both | quota service + asc usage rows | S |
 | UserSettingsUsage | Menu entry always shown (hub hides it unless quota is enabled) | ui-only-missing | templates/user/settings/navbar.tmpl EnableQuota guard | S |
 | MobileUserSettings* | Settings menu as one list page, Other group (Site administration for admins, Sign out), bottom nav Inbox/Changes/Explore/Search/Me | done | templates/user/settings/navbar.tmpl, templates/base/head_navbar.tmpl | - |
-| MobileUserSettings* | Save bar sticks above the bottom nav once a field changes | ui-only-missing | same savebar work as Profile | S |
+| MobileUserSettings* | Save bar sticks above the bottom nav once a field changes | done | same savebar work as Profile | S |
 | OrgSettings | Profile fields, logo upload/remove, visibility, repo-admin team access, repository creation limit | done | templates/org/settings/options.tmpl, routers/web/org/setting.go | - |
 | OrgSettings | Who can create repositories (owners / maintainers), base permission for members, default repository visibility as org default | needs-hub-backend | models/organization columns, options.tmpl, repo create permission checks | M |
 | OrgSettings | Agents card: allow agents, agent changesets need a person, monthly agent spend ceiling | needs-both | hub org columns + form; asc: org-level agent policy and spend ceiling (no org scope in proto/asc/v1/agents.proto or policy.proto) | L |
