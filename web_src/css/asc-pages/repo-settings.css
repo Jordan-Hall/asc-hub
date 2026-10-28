@@ -117,6 +117,13 @@
   font-size: 16px;
 }
 
+/* one line fields are exactly the design height (44 on a phone): padding and line height do not add up to less */
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]),
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form select {
+  height: var(--input-h);
+  box-sizing: border-box;
+}
+
 :is(.repository.settings .ds-settings-body, .rp-skin) .ui.form textarea {
   min-height: 88px;
 }
