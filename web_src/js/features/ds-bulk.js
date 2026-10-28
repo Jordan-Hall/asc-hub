@@ -10,9 +10,20 @@
 // Every row action keeps working without this script.
 
 import {shortcutsEnabled} from './ds-prefs.js';
+import {POST} from '../modules/fetch.js';
 
 export function selectionLabel(count, one, many) {
   return count === 1 ? one : many.replace('%d', String(count));
+}
+
+const bulkItems = (root) => Array.from(root.querySelectorAll('input[data-bulk-item]'));
+const bulkChosen = (root) => bulkItems(root).filter((el) => el.checked);
+
+function updateBar(root, bar, note) {
+  const n = bulkChosen(root).length;
+  bar.hidden = n === 0;
+  note.textContent = n === 0 ? '' : selectionLabel(n, note.getAttribute('data-one') || '', note.getAttribute('data-n') || '');
+  for (const el of bulkItems(root)) el.closest('[data-bulk-row]')?.classList.toggle('is-checked', el.checked);
 }
 
 export function initBulk() {
@@ -20,14 +31,9 @@ export function initBulk() {
     const bar = root.querySelector('[data-bulk-bar]');
     const note = root.querySelector('[data-bulk-count]');
     if (!bar || !note) continue;
-    const items = () => Array.from(root.querySelectorAll('input[data-bulk-item]'));
-    const chosen = () => items().filter((el) => el.checked);
-    const update = () => {
-      const n = chosen().length;
-      bar.hidden = n === 0;
-      note.textContent = n === 0 ? '' : selectionLabel(n, note.getAttribute('data-one') || '', note.getAttribute('data-n') || '');
-      for (const el of items()) el.closest('[data-bulk-row]')?.classList.toggle('is-checked', el.checked);
-    };
+    const items = () => bulkItems(root);
+    const chosen = () => bulkChosen(root);
+    const update = () => updateBar(root, bar, note);
     root.addEventListener('change', (e) => {
       if (e.target instanceof Element && e.target.matches('input[data-bulk-item]')) update();
     });
@@ -60,7 +66,7 @@ export function initBulk() {
         for (const el of chosen()) {
           const body = new URLSearchParams({_csrf: token, [field]: el.value, ...extra});
           try {
-            const res = await fetch(url, {method: 'POST', body, credentials: 'same-origin'});
+            const res = await POST(url, {data: body, credentials: 'same-origin'});
             if (!res.ok) failed++;
           } catch {
             failed++;
