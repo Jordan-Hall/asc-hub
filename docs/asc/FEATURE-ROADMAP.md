@@ -23,6 +23,21 @@ Status words: **done**, **ui-only-missing** (data and routes exist, markup or sc
 
 Rules: permissions and row-level visibility exactly the platform's; tokens are the platform's personal access tokens (extend them with expiry and new scopes where a board shows them, never a second token system); no TODO, stub, fake data or hidden control.
 
+## Language support: TSRX (user requirement)
+
+TSRX (https://tsrx.dev/) is a TypeScript extension for declarative UIs, files `.tsrx`: statement-container component bodies `@{ ... }`, `@for` and `@if` control flow in the template, scoped `<style>` blocks, JSX-compatible expressions and events. The product must support it as a first-class language wherever code is shown, searched or understood.
+
+| Area | Requirement | Where | Phase |
+|---|---|---|---|
+| Hub | `.tsrx` detected as TSRX (language stats, linguist overrides, `.gitattributes` `linguist-language`) | modules/analyze, modules/highlight | 1 |
+| Hub | Syntax highlighting in file view, blame, diffs, review, search results, markdown fences (```tsrx) with the `@{}` container, `@for`/`@if`, scoped style (CSS) and TS/JSX inside | server-side highlighter and the web editor | 1 |
+| Hub | Web editor (Monaco or equivalent): TSRX language registration, tokenizer, bracket and indent rules, comments | web_src/js/features/codeeditor | 1 |
+| Hub | Search facet "language: tsrx" and the language chip | repo search, explore | 1 |
+| asc | Code intelligence: parse `.tsrx` (components, functions, props types, imports/exports, `@for`/`@if` scopes), symbols and references, outline, blame hover and "used in" | crates/asc-codeintel | 3 |
+| asc | Semantic/text search chunking for `.tsrx`; dependency scanning treats `.tsrx` imports like TS imports | crates/asc-serve codeintel, deps | 3 |
+| asc | Diff and review: syntax-aware hunks and the "where to look" block for `.tsrx` | review | 3 |
+| Tooling | `asc` formatter/lint hooks: allow Prettier and ESLint TSRX plugins in workflow templates; document language server use | docs | 3 |
+
 ## Release cadence
 
 - When Phase 1 (UI) is complete: cut a release (tag, signed artifacts, images, downloads published) and deploy it to staging.
