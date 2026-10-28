@@ -90,6 +90,18 @@ func (l *AscVersionList) Latest() uint32 {
 	return l.Versions[len(l.Versions)-1].N
 }
 
+// Newest returns the versions newest first, the order the versions panel lists them in.
+func (l *AscVersionList) Newest() []AscVersion {
+	if l == nil {
+		return nil
+	}
+	out := make([]AscVersion, len(l.Versions))
+	for i, v := range l.Versions {
+		out[len(l.Versions)-1-i] = v
+	}
+	return out
+}
+
 // Has reports whether n is one of the versions.
 func (l *AscVersionList) Has(n uint32) bool {
 	return l != nil && n >= 1 && int(n) <= len(l.Versions)

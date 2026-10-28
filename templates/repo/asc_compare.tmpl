@@ -1,59 +1,105 @@
+{{/*
+The stack compare view (asc_compare.go): two revisions, what each has that the other lacks, and the changed files.
+Template Attributes:
+* AscCompareA, AscCompareB: the revisions asked for; AscCompareThreeDot: three dots
+* AscCompare: the answer (Ahead, Behind, MergeBase, AheadList, BehindList, AheadMore, BehindMore, Files) or nil
+* AscCompareError: a message key when the comparison failed
+Every text from asc was bounded and is escaped here.
+*/}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository commits asc-repo-page">
+<div role="main" aria-label="{{.Title}}" class="page-content repository commits rv-trust-page">
 	{{template "repo/header" .}}
-	<div class="ui container">
-		<div id="asc-compare-container" class="ui segment">
-			<h2>{{ctx.Locale.Tr "repo.asc_compare"}}</h2>
-			<form class="ui form tw-mb-4" method="get" action="{{.RepoLink}}/asc/compare">
-				<div class="tw-flex tw-flex-wrap tw-gap-3 tw-items-end">
-					<div class="field">
-						<label for="asc-compare-a">{{ctx.Locale.Tr "repo.asc_compare.a"}}</label>
-						<input id="asc-compare-a" name="a" type="text" maxlength="255" value="{{.AscCompareA}}">
+	<div class="rv rv-page rv-compare" id="asc-compare-container" data-testid="asc-compare-page">
+		{{template "base/alert" .}}
+		<header class="rv-head">
+			<div class="rv-head-main">
+				<h1 class="rv-title">{{ctx.Locale.Tr "repo.asc_compare"}}</h1>
+				<p class="rv-lead">{{ctx.Locale.Tr "asc_review.nc_lead"}}</p>
+			</div>
+		</header>
+
+		<form class="rv-card" method="get" action="{{.RepoLink}}/asc/compare" role="search" aria-label="{{ctx.Locale.Tr "repo.asc_compare"}}">
+			<div class="rv-card-b rv-form">
+				<div class="rv-formgrid rv-formgrid-2">
+					<div class="rv-field">
+						<label class="rv-label" for="asc-compare-a">{{ctx.Locale.Tr "repo.asc_compare.a"}}</label>
+						<input class="rv-input rv-mono" id="asc-compare-a" name="a" type="text" maxlength="255" value="{{.AscCompareA}}" autocomplete="off" autocapitalize="none" spellcheck="false">
 					</div>
-					<div class="field">
-						<label for="asc-compare-b">{{ctx.Locale.Tr "repo.asc_compare.b"}}</label>
-						<input id="asc-compare-b" name="b" type="text" maxlength="255" value="{{.AscCompareB}}">
+					<div class="rv-field">
+						<label class="rv-label" for="asc-compare-b">{{ctx.Locale.Tr "repo.asc_compare.b"}}</label>
+						<input class="rv-input rv-mono" id="asc-compare-b" name="b" type="text" maxlength="255" value="{{.AscCompareB}}" autocomplete="off" autocapitalize="none" spellcheck="false">
 					</div>
-					<div class="field">
-						<div class="ui checkbox">
-							<input id="asc-compare-three" name="three_dot" type="checkbox" value="1"{{if .AscCompareThreeDot}} checked{{end}}>
-							<label for="asc-compare-three">{{ctx.Locale.Tr "repo.asc_compare.three_dot"}}</label>
-						</div>
-					</div>
-					<button class="ui primary button" type="submit">{{ctx.Locale.Tr "repo.asc_compare.show"}}</button>
 				</div>
-			</form>
-			{{if .AscCompareError}}
-				<div class="ui negative message" data-testid="asc-compare-error">{{ctx.Locale.Tr .AscCompareError}}</div>
+				<label class="rv-check" for="asc-compare-three"><input id="asc-compare-three" name="three_dot" type="checkbox" value="1"{{if .AscCompareThreeDot}} checked{{end}}> {{ctx.Locale.Tr "repo.asc_compare.three_dot"}}</label>
+			</div>
+			<div class="rv-card-f rv-acts">
+				<button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "repo.asc_compare.show"}}</button>
+			</div>
+		</form>
+
+		{{if .AscCompareError}}
+			<div class="rv-banner rv-banner-err rv-gap" role="alert" data-testid="asc-compare-error"><div>{{ctx.Locale.Tr .AscCompareError}}</div></div>
+		{{else}}
+			{{with .AscCompare}}
+			<ul class="rv-facts rv-gap" data-testid="asc-compare-summary">
+				<li><span class="rv-pill rv-pill-info">{{ctx.Locale.Tr "repo.asc_compare.summary" .Ahead .Behind}}{{if .MergeBase}} <code class="rv-bare">{{.MergeBase}}</code>{{end}}</span></li>
+				<li><span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_review.nc_files" (len .Files)}}</span></li>
+			</ul>
+
+			{{if and (not .AheadList) (not .BehindList) (not .Files)}}
+				<div class="rv-empty rv-gap" data-testid="asc-compare-nothing">
+					<span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-search" 24}}</span>
+					<h2>{{ctx.Locale.Tr "asc_review.nc_nothing_title"}}</h2>
+					<p>{{ctx.Locale.Tr "asc_review.nc_nothing_help"}}</p>
+				</div>
 			{{else}}
-				{{with .AscCompare}}
-				<p data-testid="asc-compare-summary">
-					{{ctx.Locale.Tr "repo.asc_compare.summary" .Ahead .Behind}}
-					{{if .MergeBase}}<code>{{.MergeBase}}</code>{{end}}
-				</p>
-				<div class="ui two column stackable grid">
-					<div class="column">
-						<h4>{{ctx.Locale.Tr "repo.asc_compare.ahead"}}</h4>
-						<ul class="tw-list-none tw-p-0">
-							{{range .AheadList}}<li><a href="{{$.RepoLink}}/commit/{{.SHA}}"><code>{{slice .SHA 0 10}}</code></a> {{.Subject}} <span class="tw-text-sm">{{.Author}}</span></li>{{end}}
-							{{if .AheadMore}}<li>{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
-						</ul>
-					</div>
-					<div class="column">
-						<h4>{{ctx.Locale.Tr "repo.asc_compare.behind"}}</h4>
-						<ul class="tw-list-none tw-p-0">
-							{{range .BehindList}}<li><a href="{{$.RepoLink}}/commit/{{.SHA}}"><code>{{slice .SHA 0 10}}</code></a> {{.Subject}} <span class="tw-text-sm">{{.Author}}</span></li>{{end}}
-							{{if .BehindMore}}<li>{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
-						</ul>
-					</div>
-				</div>
-				<h4>{{ctx.Locale.Tr "repo.asc_compare.files"}}</h4>
-				<ul class="tw-list-none tw-p-0">
-					{{range .Files}}<li><span class="ui mini label">{{.Status}}</span> <code>{{.Path}}</code></li>{{end}}
+			<div class="rv-cols rv-cols-even rv-gap">
+				<section class="rv-card" aria-labelledby="asc-compare-ahead">
+					<div class="rv-card-h"><h2 id="asc-compare-ahead">{{ctx.Locale.Tr "repo.asc_compare.ahead"}}</h2><span class="rv-count rv-end">{{.Ahead}}</span></div>
+					<ul class="rv-recent">
+						{{range .AheadList}}
+						<li class="rv-recent-row">
+							<div class="rv-queue-main">
+								<div class="rv-queue-title">{{.Subject}}</div>
+								<div class="rv-li-sub">{{.Author}}</div>
+							</div>
+							<a class="rv-mono" href="{{$.RepoLink}}/commit/{{.SHA}}">{{slice .SHA 0 10}}</a>
+						</li>
+						{{else}}
+						<li class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.nc_none"}}</li>
+						{{end}}
+						{{if .AheadMore}}<li class="rv-card-b rv-muted">{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
+					</ul>
+				</section>
+				<section class="rv-card" aria-labelledby="asc-compare-behind">
+					<div class="rv-card-h"><h2 id="asc-compare-behind">{{ctx.Locale.Tr "repo.asc_compare.behind"}}</h2><span class="rv-count rv-end">{{.Behind}}</span></div>
+					<ul class="rv-recent">
+						{{range .BehindList}}
+						<li class="rv-recent-row">
+							<div class="rv-queue-main">
+								<div class="rv-queue-title">{{.Subject}}</div>
+								<div class="rv-li-sub">{{.Author}}</div>
+							</div>
+							<a class="rv-mono" href="{{$.RepoLink}}/commit/{{.SHA}}">{{slice .SHA 0 10}}</a>
+						</li>
+						{{else}}
+						<li class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.nc_none"}}</li>
+						{{end}}
+						{{if .BehindMore}}<li class="rv-card-b rv-muted">{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
+					</ul>
+				</section>
+			</div>
+
+			<section class="rv-card rv-gap" aria-labelledby="asc-compare-files">
+				<div class="rv-card-h"><h2 id="asc-compare-files">{{ctx.Locale.Tr "repo.asc_compare.files"}}</h2><span class="rv-count rv-end">{{len .Files}}</span></div>
+				<ul class="rv-files">
+					{{range .Files}}<li class="rv-file-row"><span class="rv-pill rv-pill-outline">{{.Status}}</span> <code class="rv-bare">{{.Path}}</code></li>{{end}}
 				</ul>
-				{{end}}
+				{{if .FilesMore}}<p class="rv-card-b rv-muted">{{ctx.Locale.Tr "repo.asc_compare.more"}}</p>{{end}}
+			</section>
 			{{end}}
-		</div>
+			{{end}}
+		{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}
