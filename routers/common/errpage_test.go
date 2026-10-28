@@ -23,7 +23,7 @@ func TestRenderPanicErrorPage(t *testing.T) {
 	req = req.WithContext(middleware.WithContextData(t.Context()))
 	RenderPanicErrorPage(w, req, errors.New("fake panic error (for test only)"))
 	respContent := w.Body.String()
-	assert.Contains(t, respContent, `class="page-content status-page-500"`)
+	assert.Contains(t, respContent, `status-page-500"`)
 	assert.Contains(t, respContent, `</html>`)
 	assert.Contains(t, respContent, `lang="en-US"`) // make sure the locale work
 

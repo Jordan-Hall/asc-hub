@@ -58,7 +58,7 @@ func TestAscSearchAllBranches(t *testing.T) {
 	}
 	assert.ElementsMatch(t, []string{"refs/heads/master", "refs/heads/branch2"}, revs, "every live branch, and no deleted one (foo, bar)")
 	assert.Contains(t, page.body, "2 branches")
-	assert.Contains(t, page.body, "4 asc_rp.s_result_n", "the same file on two branches is listed once: 4 distinct files")
+	assert.Contains(t, page.body, "4 asc_rp.s_result_1", "the same file on two branches is listed once: 4 distinct files (the mock locale prints the singular key)")
 	text := strings.NewReplacer("<mark>", "", "</mark>", "").Replace(page.body) // the matched word is marked
 	assert.Equal(t, 1, strings.Count(text, "needle one"))
 	assert.Contains(t, text, "needle changed")
