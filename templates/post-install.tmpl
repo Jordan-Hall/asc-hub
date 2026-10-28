@@ -1,24 +1,20 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content install post-install">
-	<div class="ui container">
-		<div class="ui grid">
-			<div class="sixteen wide column content">
-				<div class="home">
-					<div class="ui stackable middle very relaxed page grid">
-						<div class="sixteen wide center aligned centered column">
-							<div>
-								<img src="{{AssetUrlPrefix}}/img/forgejo-loading.svg" alt="{{ctx.Locale.Tr "loading"}}" width="256" height="256">
-							</div>
-						</div>
-					</div>
-					<div class="ui stackable middle very relaxed page grid">
-						<div class="sixteen wide center aligned centered column">
-							<p><a id="goto-user-login" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "loading"}}</a></p>
-						</div>
-					</div>
-				</div>
+<header class="ds-hdr ds-hdr-lg ins-bar" role="banner">
+	<div class="ds-topbar ds-topbar-static">
+		<a class="ds-brand" href="{{AppSubUrl}}/" aria-label="{{ctx.Locale.Tr "home"}}">{{template "base/brand_tile" .}}<span>{{AppName}}</span></a>
+		<span class="ins-bar-sub">{{ctx.Locale.Tr "asc_install.bar"}}</span>
+	</div>
+</header>
+<div role="main" aria-label="{{.Title}}" class="page-content install post-install ds-main ins">
+	<div class="ds-container st-wrap">
+		<section class="st-card" aria-labelledby="ins-post-h" aria-live="polite">
+			<h1 class="ds-t-h2" id="ins-post-h">{{ctx.Locale.Tr "asc_install.post_h"}}</h1>
+			<p class="st-text">{{ctx.Locale.Tr "asc_install.post_t"}}</p>
+			<progress class="ds-bar ins-wait" aria-label="{{ctx.Locale.Tr "asc_install.post_h"}}"></progress>
+			<div class="st-actions">
+				<a class="ds-btn ds-btn-primary" id="goto-user-login" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "asc_install.post_link"}}</a>
 			</div>
-		</div>
+		</section>
 	</div>
 </div>
 {{template "base/footer" .}}
