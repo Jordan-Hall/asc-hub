@@ -164,7 +164,7 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 		for _, r := range repos {
 			starred[r.ID] = repo_model.IsStaring(ctx, ctx.Doer.ID, r.ID)
 		}
-		ctx.Data["StarredRepos"] = starred
+		ctx.Data["StarredRepos"] = starred // may be empty: the template shows the Star button only when the map was made
 	}
 	ctx.Data["IsRepoIndexerEnabled"] = setting.Indexer.RepoIndexerEnabled
 
