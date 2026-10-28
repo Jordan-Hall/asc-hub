@@ -421,3 +421,45 @@ func TestAscReviewSnapshotChangeParts(t *testing.T) {
 	}})
 	renderFragment(t, dir, "panel", "repo/pulls/asc_panel", map[string]any{"AscStackPanel": panel})
 }
+
+// renderPage renders a whole page template of the repository with the given data and the real messages, and writes
+// it as <name>.html.
+func renderPage(t *testing.T, dir, name, tpl string, data map[string]any) {
+	t.Helper()
+	ctx, resp := contexttest.MockContext(t, "/user2/repo1/pulls/13/asc/confirm")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadRepo(t, ctx, 1)
+	ctx.Base.Locale = translation.NewLocale("en-US")
+	if ctx.TemplateContext != nil {
+		ctx.TemplateContext.Locale = ctx.Base.Locale
+	}
+	ctx.Data["RepoLink"] = ctx.Repo.RepoLink
+	ctx.Data["CsrfTokenHtml"] = template.HTML(`<input type="hidden" name="_csrf" value="csrf-token-for-tests">`)
+	for k, v := range data {
+		ctx.Data[k] = v
+	}
+	ctx.HTML(200, base.TplName(tpl))
+	require.Equal(t, 200, resp.Code, resp.Body.String())
+	writeSnapshot(t, dir, name, resp.Body.String())
+}
+
+func TestAscReviewSnapshotConfirm(t *testing.T) {
+	dir := snapshotDir(t)
+	require.NoError(t, unittest.PrepareTestDatabase())
+	initSnapshotLocales()
+	rows := []AscConfirmRow{
+		{Index: 11, Title: "Add the retry policy type", Link: "/user2/repo1/pulls/11", Status: "ready"},
+		{Index: 12, Title: "Backoff with jitter", Link: "/user2/repo1/pulls/12", Status: "ready", Detail: "Approved, restacked"},
+		{Index: 13, Title: "Wire the retry policy into the client", Link: "/user2/repo1/pulls/13", Status: "not_ready", Detail: "Needs your review"},
+	}
+	data := map[string]any{"Title": "Merge the stack", "AscOp": "merge", "AscRows": rows, "AscCanConfirm": true, "AscAction": "/user2/repo1/pulls/13/asc/merge", "AscBack": "/user2/repo1/pulls/13", "AscPreviewNote": "Both changes are approved and signed."}
+	renderPage(t, dir, "confirm", "repo/asc_confirm", data)
+	data["AscCanConfirm"] = false
+	data["AscFailure"] = "The trunk moved while you decided. Reload and check the dry run again."
+	data["AscNeedsContentMerge"], data["AscNoContentMerge"] = true, true
+	renderPage(t, dir, "confirm-blocked", "repo/asc_confirm", data)
+	data["AscOp"], data["AscFailure"] = "revert", ""
+	data["AscNeedsContentMerge"], data["AscNoContentMerge"] = false, false
+	data["AscCanConfirm"] = true
+	renderPage(t, dir, "confirm-revert", "repo/asc_confirm", data)
+}
