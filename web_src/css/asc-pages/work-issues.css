@@ -434,3 +434,85 @@
   min-height: 24px;
   line-height: 24px;
 }
+
+/* ---- projects ---- */
+.wk-projects {
+  padding-top: 16px;
+  padding-bottom: 32px;
+}
+
+.wk-project-list {
+  margin: 0;
+}
+
+.wk-project-list .ds-li-sub.markup {
+  margin-top: 6px;
+}
+
+.wk-pv-head,
+.wk-pv-nav {
+  padding-top: 12px;
+}
+
+.wk-pv-desc {
+  margin-bottom: 8px;
+  color: var(--text-1);
+}
+
+.wk-pv {
+  padding-bottom: 32px;
+}
+
+/* the board scrolls sideways and snaps column by column; every card is a 44px target */
+.wk-pv #project-board .board {
+  gap: 12px;
+  margin: 0;
+  padding: 4px var(--gutter, 16px) 12px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding: 0 var(--gutter, 16px);
+  -webkit-overflow-scrolling: touch;
+}
+
+.wk-pv #project-board .project-column {
+  width: min(86vw, 320px);
+  height: auto;
+  min-height: 40vh;
+  margin: 0 !important;
+  scroll-snap-align: start;
+  border-radius: var(--r-card);
+}
+
+.wk-pv #project-board .project-column:first-child,
+.wk-pv #project-board .project-column:last-child {
+  margin: 0 !important;
+}
+
+.wk-pv .project-column .issue-card {
+  min-height: var(--touch);
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+  background: var(--surface);
+}
+
+.wk-pv .project-column-header .ui.dropdown.item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--touch);
+  min-height: var(--touch);
+}
+
+@media (min-width: 1024px) {
+  .wk-pv #project-board .board {
+    padding-inline: var(--gutter, 24px);
+  }
+
+  .wk-pv #project-board .project-column {
+    width: 300px;
+  }
+}
+
+.wk-states {
+  justify-content: flex-start;
+}
