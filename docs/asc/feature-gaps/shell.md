@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 81 |
-| ui-only-missing | 44 |
+| done | 82 |
+| ui-only-missing | 43 |
 | needs-hub-backend | 44 |
 | needs-asc-backend | 0 |
 | needs-both | 26 |
@@ -141,7 +141,7 @@ Open rows by size: S 45, M 64, L 23.
 | --- | --- | --- | --- | --- |
 | Explore | Tabs Repositories, Users, Organizations with counts | done | `explore/navbar.tmpl` | - |
 | Explore | Filter bar: search, Sort, Visibility, kind pills; `/` focuses search | done | `shared/repo_search.tmpl`, `repo-search.js` | - |
-| Explore | Language filter menu | ui-only-missing | `.Language` is read from the query but no menu lists languages. Menu from language stats (`models/repo/language_stats.go`) in `repo_search.tmpl` | M |
+| Explore | Language filter menu | done | `.Language` is read from the query but no menu lists languages. Menu from language stats (`models/repo/language_stats.go`) in `repo_search.tmpl` | M |
 | Explore | Quick chips All, Has open stacks, Agent activity, Starred, Templates, Archived | needs-hub-backend | `repo_search` has fork, mirror, template, archived pills only. "Has open stacks" needs an option on `repo_model.SearchRepoOptions` (`routers/web/explore/repo.go`); "Agent activity" needs the agent flag below; "Starred" a per-user filter | M |
 | Explore | List and Grid layout toggle; layout persists per person | done | No layout toggle anywhere (density exists in the account menu). Toggle, grid CSS, `localStorage` in `repo_search.tmpl`, `repo_list.tmpl` | M |
 | Explore | Row: owner avatar, name, visibility chip, description, topics, language, stars, updated, open-stacks chip | done | `explore/repo_list.tmpl` | - |

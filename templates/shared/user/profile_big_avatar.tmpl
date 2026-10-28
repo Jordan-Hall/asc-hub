@@ -35,7 +35,7 @@ routers/web/user/profile.go answers those actions with this same template.
 			<a href="{{.ContextUser.HomeLink}}?tab=following">{{ctx.Locale.TrN .NumFollowing "user.following_one" "user.following_few" .NumFollowing}}</a>
 			<span>{{ctx.Locale.Tr "user.joined_on" (DateUtils.AbsoluteShort .ContextUser.CreatedUnix)}}</span>
 			{{if .ShowUserEmail}}
-				<span><a href="mailto:{{.ContextUser.Email}}" rel="nofollow">{{.ContextUser.Email}}</a>{{if (eq .SignedUserID .ContextUser.ID)}} <a href="{{AppSubUrl}}/user/settings#privacy-user-settings" aria-label="{{ctx.Locale.Tr "user.email_visibility.limited"}}" data-tooltip-content="{{ctx.Locale.Tr "user.email_visibility.limited"}}">{{svg "dsi-eye" 12}}</a>{{end}}</span>
+				<span><a href="mailto:{{.ContextUser.Email}}" rel="nofollow">{{.ContextUser.Email}}</a>{{if (eq .SignedUserID .ContextUser.ID)}} <a class="ds-icon-link" href="{{AppSubUrl}}/user/settings#privacy-user-settings" aria-label="{{ctx.Locale.Tr "user.email_visibility.limited"}}" data-tooltip-content="{{ctx.Locale.Tr "user.email_visibility.limited"}}">{{svg "dsi-eye" 12}}</a>{{end}}</span>
 			{{end}}
 			{{if .ContextUser.Website}}<a class="ds-mono" target="_blank" rel="noopener noreferrer me" href="{{.ContextUser.Website}}">{{.ContextUser.Website}}</a>{{end}}
 			{{range .OpenIDs}}{{if .Show}}<a target="_blank" rel="noopener noreferrer" href="{{.URI}}">{{.URI}}</a>{{end}}{{end}}

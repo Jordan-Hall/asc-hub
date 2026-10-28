@@ -4,6 +4,8 @@
 package cron
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -49,4 +51,12 @@ PROPORTION_TO_CHECK_PER_REPO = 0.1
 	assert.Equal(t, 7*time.Hour, config.LastUpdatedMoreThanAgo)
 	assert.Equal(t, int64(10), config.NumberToCheckPerRepo)
 	assert.InDelta(t, 0.1, config.ProportionToCheckPerRepo, 0.001)
+}
+
+// The task cannot be registered without the translation of its name (RegisterTask refuses and the hub stops), so the
+// key is checked in the locale file; the deletion itself is tested with the model.
+func Test_CleanupAscDeviceCodesHasATranslation(t *testing.T) {
+	raw, err := os.ReadFile(filepath.Join("..", "..", "options", "locale", "locale_en-US.ini"))
+	require.NoError(t, err)
+	assert.Contains(t, string(raw), "\ndashboard.cleanup_asc_device_codes = ")
 }

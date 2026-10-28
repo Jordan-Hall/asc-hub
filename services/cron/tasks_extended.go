@@ -9,6 +9,7 @@ import (
 
 	activities_model "forgejo.org/models/activities"
 	asymkey_model "forgejo.org/models/asymkey"
+	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/system"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
@@ -249,7 +250,20 @@ func initExtendedTasks() {
 	registerDeleteOldSystemNotices()
 	registerGCLFS()
 	registerRebuildIssueIndexer()
+	registerCleanupAscDeviceCodes()
 	if setting.Moderation.Enabled {
 		registerRemoveResolvedReports()
 	}
+}
+
+// registerCleanupAscDeviceCodes removes the device authorisations of the asc command line that ended a day ago, decided or not.
+func registerCleanupAscDeviceCodes() {
+	RegisterTaskFatal("cleanup_asc_device_codes", &BaseConfig{
+		Enabled:    true,
+		RunAtStart: true,
+		Schedule:   "@every 6h",
+	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		_, err := auth_model.DeleteExpiredAscDeviceCodes(ctx)
+		return err
+	})
 }
