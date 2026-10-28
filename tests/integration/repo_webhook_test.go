@@ -367,7 +367,7 @@ func testWebhookFormsShared(t *testing.T, endpoint, name string, session *TestSe
 		// system-hooks and default-hooks are listed on the same page
 		// add a specifier to select the latest system-hooks
 		// (the default-hooks are at the end, so no further specifier needed)
-		selector = `.admin-setting-content > div:first-of-type ` + selector
+		selector = `.ds-settings-body > section:first-of-type ` + selector
 	}
 	editFormURL := htmlDoc.Find(selector).Last().AttrOr("href", "")
 	assert.NotEmpty(t, editFormURL)

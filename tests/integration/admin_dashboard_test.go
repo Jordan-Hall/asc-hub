@@ -83,9 +83,11 @@ func TestAdminDashboard(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		// Check data units translations in the System status table
-		selector := ".table[hx-get='/admin/system_status'] > dl > dd"
+		// (the figures moved to the health page)
+		selector := "div[hx-get='/admin/system_status'] dl > div > dd"
+		healthURL := "/admin/self_check"
 		// ...in English
-		page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
+		page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", healthURL), http.StatusOK).Body)
 		assert.Contains(t, page.Find(selector).Text(), "MiB")
 
 		// ...in another language
@@ -93,7 +95,7 @@ func TestAdminDashboard(t *testing.T) {
 		lang.Value = "ru-RU"
 		session.SetCookie(lang)
 
-		page = NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
+		page = NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", healthURL), http.StatusOK).Body)
 		assert.Contains(t, page.Find(selector).Text(), "МиБ")
 	})
 }
