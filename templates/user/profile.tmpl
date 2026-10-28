@@ -30,6 +30,28 @@
 							</ul>
 						</section>
 					{{end}}
+					{{if or .AscPins (eq .SignedUserID .ContextUser.ID)}}
+						<section class="ds-card" aria-labelledby="wk-pins-title">
+							<div class="ds-card-h">
+								<h2 id="wk-pins-title">{{ctx.Locale.Tr "asc_work.pf_pinned"}}</h2>
+								{{if eq .SignedUserID .ContextUser.ID}}<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{AppSubUrl}}/user/settings/pins">{{ctx.Locale.Tr "asc_work.pf_customize"}}</a>{{end}}
+							</div>
+							{{if .AscPins}}
+								<ul class="wk-pins">
+									{{range .AscPins}}
+										<li class="wk-pin">
+											<a class="wk-pin-name" href="{{.Link}}">{{.FullName}}</a>
+											<span class="ds-chip ds-chip-outline">{{if .Private}}{{ctx.Locale.Tr "filter.private"}}{{else}}{{ctx.Locale.Tr "filter.public"}}{{end}}</span>
+											{{if .Description}}<p class="ds-hint">{{.Description}}</p>{{end}}
+											<p class="ds-hint">{{ctx.Locale.TrN .Changes "asc_work.pf_pin_change_one" "asc_work.pf_pin_change_n" .Changes}}</p>
+										</li>
+									{{end}}
+								</ul>
+							{{else}}
+								<div class="ds-card-b ds-hint">{{ctx.Locale.Tr "asc_work.pf_pinned_none"}}</div>
+							{{end}}
+						</section>
+					{{end}}
 					{{if .ProfileReadme}}
 						<div id="readme_profile" class="ds-card wk-pf-readme {{if not .IsProfileReadmePlain}}markup{{end}}">
 						{{if .IsProfileReadmePlain}}
@@ -102,6 +124,40 @@
 					</p>
 				</aside>
 			</div>
+		{{else if eq .TabName "work"}}
+			<section class="ds-card" aria-labelledby="wk-work-tab">
+				<div class="ds-card-h"><h2 id="wk-work-tab">{{ctx.Locale.Tr "asc_work.pf_work"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.pf_work_hint" (or .ContextUser.FullName .ContextUser.Name)}}</span></div>
+				{{if .AscProfileWork}}
+					<ul class="wk-pf-work">
+						{{range .AscProfileWork}}
+							<li><a href="{{.Link}}">
+								<span class="ds-dot ds-dot-{{if eq .Tone "amber"}}warn{{else if eq .Tone "red"}}err{{else if eq .Tone "green"}}ok{{end}}" aria-hidden="true"></span>
+								<span class="wk-pf-work-body"><span class="wk-pf-work-title">{{.Title}}</span><span class="wk-pf-work-where">{{.Repo}}{{if .Detail}} &middot; {{.Detail}}{{end}} &middot; {{DateUtils.TimeSince .Updated}}</span></span>
+								{{if .State}}<span class="ds-chip{{if eq .StateTone "green"}} ds-chip-ok{{else if eq .StateTone "red"}} ds-chip-err{{end}}">{{.State}}</span>{{end}}
+							</a></li>
+						{{end}}
+					</ul>
+				{{else}}
+					{{template "shared/ds/empty" (dict "Icon" "changes" "Title" (ctx.Locale.Tr "asc_work.pf_work_none"))}}
+				{{end}}
+			</section>
+		{{else if eq .TabName "reviews"}}
+			<section class="ds-card" aria-labelledby="wk-reviews-tab">
+				<div class="ds-card-h"><h2 id="wk-reviews-tab">{{ctx.Locale.Tr "asc_work.pf_reviews"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.pf_reviews_hint" (or .ContextUser.FullName .ContextUser.Name)}}</span></div>
+				{{if .AscProfileReviews}}
+					<ul class="wk-pf-work">
+						{{range .AscProfileReviews}}
+							<li><a href="{{.Link}}">
+								<span class="ds-dot ds-dot-{{if eq .State "approved"}}ok{{else if eq .State "changes"}}warn{{end}}" aria-hidden="true"></span>
+								<span class="wk-pf-work-body"><span class="wk-pf-work-title">{{.Title}}</span><span class="wk-pf-work-where">{{.Repo}} &middot; {{DateUtils.TimeSince .When}}</span></span>
+								<span class="ds-chip{{if eq .State "approved"}} ds-chip-ok{{end}}">{{ctx.Locale.Tr (printf "asc_work.pf_review_%s" .State)}}</span>
+							</a></li>
+						{{end}}
+					</ul>
+				{{else}}
+					{{template "shared/ds/empty" (dict "Icon" "message" "Title" (ctx.Locale.Tr "asc_work.pf_reviews_none"))}}
+				{{end}}
+			</section>
 		{{else if eq .TabName "activity"}}
 			{{if eq .SignedUserID .ContextUser.ID}}
 			<p class="ds-callout ds-mb-16" id="visibility-hint">

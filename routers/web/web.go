@@ -886,6 +886,8 @@ func registerRoutes(m *web.Route) {
 			m.Get("", user_setting.Notifications)
 			m.Post("", user_setting.NotificationsPost)
 		})
+		m.Get("/pins", user.AscPinSettings)
+		m.Post("/pins", user.AscPinSettingsPost)
 		m.Group("/privacy", func() {
 			m.Get("", user_setting.Privacy)
 			m.Post("", user_setting.PrivacyPost)

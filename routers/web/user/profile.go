@@ -154,6 +154,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 	private := ctx.FormOptionalBool("private")
 	ctx.Data["IsPrivate"] = private
 
+	ascProfileCounts(ctx)
 	switch tab {
 	case "followers":
 		ctx.Data["Cards"] = followers
@@ -284,6 +285,8 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 		}
 
 		total = int(count)
+	case "work", "reviews":
+		ascProfileTabData(ctx, tab)
 	case "overview":
 		ascProfileOverview(ctx)
 		if ctx.Written() {

@@ -1913,3 +1913,33 @@ body.ds-lock {
 .site-docsearch svg {
   color: #94a3b8;
 }
+
+/* the pinned repositories of a profile */
+.wk-pins {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 16px;
+  list-style: none;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .wk-pins {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.wk-pin {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.wk-pin-name {
+  font-weight: 600;
+}
+
+.wk-pin p {
+  margin: 4px 0 0;
+}
