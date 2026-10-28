@@ -210,6 +210,171 @@ func (AgentTokenState) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_agents_proto_rawDescGZIP(), []int{2}
 }
 
+type AgentRequestKind int32
+
+const (
+	AgentRequestKind_AGENT_REQUEST_KIND_UNSPECIFIED AgentRequestKind = 0
+	AgentRequestKind_AGENT_REQUEST_KIND_PERMISSION  AgentRequestKind = 1 // the agent wants to run a command or take an action that needs a person to say yes
+	AgentRequestKind_AGENT_REQUEST_KIND_PLAN        AgentRequestKind = 2 // the agent proposed a plan and waits for approval
+)
+
+// Enum value maps for AgentRequestKind.
+var (
+	AgentRequestKind_name = map[int32]string{
+		0: "AGENT_REQUEST_KIND_UNSPECIFIED",
+		1: "AGENT_REQUEST_KIND_PERMISSION",
+		2: "AGENT_REQUEST_KIND_PLAN",
+	}
+	AgentRequestKind_value = map[string]int32{
+		"AGENT_REQUEST_KIND_UNSPECIFIED": 0,
+		"AGENT_REQUEST_KIND_PERMISSION":  1,
+		"AGENT_REQUEST_KIND_PLAN":        2,
+	}
+)
+
+func (x AgentRequestKind) Enum() *AgentRequestKind {
+	p := new(AgentRequestKind)
+	*p = x
+	return p
+}
+
+func (x AgentRequestKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AgentRequestKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_agents_proto_enumTypes[3].Descriptor()
+}
+
+func (AgentRequestKind) Type() protoreflect.EnumType {
+	return &file_asc_v1_agents_proto_enumTypes[3]
+}
+
+func (x AgentRequestKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AgentRequestKind.Descriptor instead.
+func (AgentRequestKind) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{3}
+}
+
+type AgentRequestState int32
+
+const (
+	AgentRequestState_AGENT_REQUEST_STATE_UNSPECIFIED AgentRequestState = 0 // in a request: any state
+	AgentRequestState_AGENT_REQUEST_STATE_PENDING     AgentRequestState = 1
+	AgentRequestState_AGENT_REQUEST_STATE_ALLOWED     AgentRequestState = 2 // permission: allowed once
+	AgentRequestState_AGENT_REQUEST_STATE_DENIED      AgentRequestState = 3
+	AgentRequestState_AGENT_REQUEST_STATE_APPROVED    AgentRequestState = 4 // plan
+	AgentRequestState_AGENT_REQUEST_STATE_REJECTED    AgentRequestState = 5
+	AgentRequestState_AGENT_REQUEST_STATE_EXPIRED     AgentRequestState = 6 // the run ended before a decision
+)
+
+// Enum value maps for AgentRequestState.
+var (
+	AgentRequestState_name = map[int32]string{
+		0: "AGENT_REQUEST_STATE_UNSPECIFIED",
+		1: "AGENT_REQUEST_STATE_PENDING",
+		2: "AGENT_REQUEST_STATE_ALLOWED",
+		3: "AGENT_REQUEST_STATE_DENIED",
+		4: "AGENT_REQUEST_STATE_APPROVED",
+		5: "AGENT_REQUEST_STATE_REJECTED",
+		6: "AGENT_REQUEST_STATE_EXPIRED",
+	}
+	AgentRequestState_value = map[string]int32{
+		"AGENT_REQUEST_STATE_UNSPECIFIED": 0,
+		"AGENT_REQUEST_STATE_PENDING":     1,
+		"AGENT_REQUEST_STATE_ALLOWED":     2,
+		"AGENT_REQUEST_STATE_DENIED":      3,
+		"AGENT_REQUEST_STATE_APPROVED":    4,
+		"AGENT_REQUEST_STATE_REJECTED":    5,
+		"AGENT_REQUEST_STATE_EXPIRED":     6,
+	}
+)
+
+func (x AgentRequestState) Enum() *AgentRequestState {
+	p := new(AgentRequestState)
+	*p = x
+	return p
+}
+
+func (x AgentRequestState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AgentRequestState) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_agents_proto_enumTypes[4].Descriptor()
+}
+
+func (AgentRequestState) Type() protoreflect.EnumType {
+	return &file_asc_v1_agents_proto_enumTypes[4]
+}
+
+func (x AgentRequestState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AgentRequestState.Descriptor instead.
+func (AgentRequestState) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{4}
+}
+
+type AgentDecision int32
+
+const (
+	AgentDecision_AGENT_DECISION_UNSPECIFIED  AgentDecision = 0
+	AgentDecision_AGENT_DECISION_ALLOW_ONCE   AgentDecision = 1
+	AgentDecision_AGENT_DECISION_DENY         AgentDecision = 2
+	AgentDecision_AGENT_DECISION_APPROVE_PLAN AgentDecision = 3
+	AgentDecision_AGENT_DECISION_REJECT_PLAN  AgentDecision = 4
+)
+
+// Enum value maps for AgentDecision.
+var (
+	AgentDecision_name = map[int32]string{
+		0: "AGENT_DECISION_UNSPECIFIED",
+		1: "AGENT_DECISION_ALLOW_ONCE",
+		2: "AGENT_DECISION_DENY",
+		3: "AGENT_DECISION_APPROVE_PLAN",
+		4: "AGENT_DECISION_REJECT_PLAN",
+	}
+	AgentDecision_value = map[string]int32{
+		"AGENT_DECISION_UNSPECIFIED":  0,
+		"AGENT_DECISION_ALLOW_ONCE":   1,
+		"AGENT_DECISION_DENY":         2,
+		"AGENT_DECISION_APPROVE_PLAN": 3,
+		"AGENT_DECISION_REJECT_PLAN":  4,
+	}
+)
+
+func (x AgentDecision) Enum() *AgentDecision {
+	p := new(AgentDecision)
+	*p = x
+	return p
+}
+
+func (x AgentDecision) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AgentDecision) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_agents_proto_enumTypes[5].Descriptor()
+}
+
+func (AgentDecision) Type() protoreflect.EnumType {
+	return &file_asc_v1_agents_proto_enumTypes[5]
+}
+
+func (x AgentDecision) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AgentDecision.Descriptor instead.
+func (AgentDecision) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{5}
+}
+
 // Zero in a request means "the default": the policy `[agents.budgets]` value, then the instance default. No limit is unlimited
 // unless both of those are unlimited too; `AgentBudgetUsage` and the policy decide what is left.
 type AgentBudgetLimits struct {
@@ -373,30 +538,36 @@ func (x *AgentBudgetUsage) GetRequests() uint64 {
 }
 
 type AgentRun struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Repo           string                 `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
-	Agent          string                 `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"` // [a-z0-9-], 1 to 40 characters; becomes the principal name "agent:<name>"
-	Title          string                 `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
-	State          AgentRunState          `protobuf:"varint,5,opt,name=state,proto3,enum=asc.v1.AgentRunState" json:"state,omitempty"`
-	Target         string                 `protobuf:"bytes,6,opt,name=target,proto3" json:"target,omitempty"` // the branch the changes are meant for; never written directly
-	Base           []byte                 `protobuf:"bytes,7,opt,name=base,proto3" json:"base,omitempty"`
-	AiKeyId        string                 `protobuf:"bytes,8,opt,name=ai_key_id,json=aiKeyId,proto3" json:"ai_key_id,omitempty"`
-	Model          string                 `protobuf:"bytes,9,opt,name=model,proto3" json:"model,omitempty"`
-	Limits         *AgentBudgetLimits     `protobuf:"bytes,10,opt,name=limits,proto3" json:"limits,omitempty"`
-	Usage          *AgentBudgetUsage      `protobuf:"bytes,11,opt,name=usage,proto3" json:"usage,omitempty"`
-	Changes        [][]byte               `protobuf:"bytes,12,rep,name=changes,proto3" json:"changes,omitempty"`                      // bottom to top
-	CreatedBy      string                 `protobuf:"bytes,13,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"` // the person who started it
-	Created        int64                  `protobuf:"varint,14,opt,name=created,proto3" json:"created,omitempty"`
-	Started        int64                  `protobuf:"varint,15,opt,name=started,proto3" json:"started,omitempty"`
-	Finished       int64                  `protobuf:"varint,16,opt,name=finished,proto3" json:"finished,omitempty"`
-	FailureCode    string                 `protobuf:"bytes,17,opt,name=failure_code,json=failureCode,proto3" json:"failure_code,omitempty"`          // an ErrorDetail code or a short slug; empty unless failed
-	FailureMessage string                 `protobuf:"bytes,18,opt,name=failure_message,json=failureMessage,proto3" json:"failure_message,omitempty"` // sanitised
-	TokenId        string                 `protobuf:"bytes,19,opt,name=token_id,json=tokenId,proto3" json:"token_id,omitempty"`                      // the run's own agent token
-	WorkflowRunId  uint64                 `protobuf:"varint,20,opt,name=workflow_run_id,json=workflowRunId,proto3" json:"workflow_run_id,omitempty"` // 0 unless a workflow started it
-	WorkflowStep   string                 `protobuf:"bytes,21,opt,name=workflow_step,json=workflowStep,proto3" json:"workflow_step,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Repo            string                 `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
+	Agent           string                 `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"` // [a-z0-9-], 1 to 40 characters; becomes the principal name "agent:<name>"
+	Title           string                 `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
+	State           AgentRunState          `protobuf:"varint,5,opt,name=state,proto3,enum=asc.v1.AgentRunState" json:"state,omitempty"`
+	Target          string                 `protobuf:"bytes,6,opt,name=target,proto3" json:"target,omitempty"` // the branch the changes are meant for; never written directly
+	Base            []byte                 `protobuf:"bytes,7,opt,name=base,proto3" json:"base,omitempty"`
+	AiKeyId         string                 `protobuf:"bytes,8,opt,name=ai_key_id,json=aiKeyId,proto3" json:"ai_key_id,omitempty"`
+	Model           string                 `protobuf:"bytes,9,opt,name=model,proto3" json:"model,omitempty"`
+	Limits          *AgentBudgetLimits     `protobuf:"bytes,10,opt,name=limits,proto3" json:"limits,omitempty"`
+	Usage           *AgentBudgetUsage      `protobuf:"bytes,11,opt,name=usage,proto3" json:"usage,omitempty"`
+	Changes         [][]byte               `protobuf:"bytes,12,rep,name=changes,proto3" json:"changes,omitempty"`                      // bottom to top
+	CreatedBy       string                 `protobuf:"bytes,13,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"` // the person who started it
+	Created         int64                  `protobuf:"varint,14,opt,name=created,proto3" json:"created,omitempty"`
+	Started         int64                  `protobuf:"varint,15,opt,name=started,proto3" json:"started,omitempty"`
+	Finished        int64                  `protobuf:"varint,16,opt,name=finished,proto3" json:"finished,omitempty"`
+	FailureCode     string                 `protobuf:"bytes,17,opt,name=failure_code,json=failureCode,proto3" json:"failure_code,omitempty"`          // an ErrorDetail code or a short slug; empty unless failed
+	FailureMessage  string                 `protobuf:"bytes,18,opt,name=failure_message,json=failureMessage,proto3" json:"failure_message,omitempty"` // sanitised
+	TokenId         string                 `protobuf:"bytes,19,opt,name=token_id,json=tokenId,proto3" json:"token_id,omitempty"`                      // the run's own agent token
+	WorkflowRunId   uint64                 `protobuf:"varint,20,opt,name=workflow_run_id,json=workflowRunId,proto3" json:"workflow_run_id,omitempty"` // 0 unless a workflow started it
+	WorkflowStep    string                 `protobuf:"bytes,21,opt,name=workflow_step,json=workflowStep,proto3" json:"workflow_step,omitempty"`
+	Task            string                 `protobuf:"bytes,22,opt,name=task,proto3" json:"task,omitempty"` // the task text as the person gave it
+	Progress        *AgentRunProgress      `protobuf:"bytes,23,opt,name=progress,proto3" json:"progress,omitempty"`
+	Paused          bool                   `protobuf:"varint,24,opt,name=paused,proto3" json:"paused,omitempty"`
+	PendingRequests uint32                 `protobuf:"varint,25,opt,name=pending_requests,json=pendingRequests,proto3" json:"pending_requests,omitempty"` // permission or plan requests waiting for a decision
+	ContinuesRun    uint64                 `protobuf:"varint,26,opt,name=continues_run,json=continuesRun,proto3" json:"continues_run,omitempty"`          // the run this one continues, or 0
+	ForChange       []byte                 `protobuf:"bytes,27,opt,name=for_change,json=forChange,proto3" json:"for_change,omitempty"`                    // the change the run was started for (checks babysitting), or empty
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *AgentRun) Reset() {
@@ -576,6 +747,118 @@ func (x *AgentRun) GetWorkflowStep() string {
 	return ""
 }
 
+func (x *AgentRun) GetTask() string {
+	if x != nil {
+		return x.Task
+	}
+	return ""
+}
+
+func (x *AgentRun) GetProgress() *AgentRunProgress {
+	if x != nil {
+		return x.Progress
+	}
+	return nil
+}
+
+func (x *AgentRun) GetPaused() bool {
+	if x != nil {
+		return x.Paused
+	}
+	return false
+}
+
+func (x *AgentRun) GetPendingRequests() uint32 {
+	if x != nil {
+		return x.PendingRequests
+	}
+	return 0
+}
+
+func (x *AgentRun) GetContinuesRun() uint64 {
+	if x != nil {
+		return x.ContinuesRun
+	}
+	return 0
+}
+
+func (x *AgentRun) GetForChange() []byte {
+	if x != nil {
+		return x.ForChange
+	}
+	return nil
+}
+
+// `steps_total` is the length of the approved plan, 0 without one; `steps_done` counts the finished plan steps, or the model turns
+// when there is no plan. `plan_first` is whether the run waits for an approved plan before its first tool call.
+type AgentRunProgress struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StepsDone     uint32                 `protobuf:"varint,1,opt,name=steps_done,json=stepsDone,proto3" json:"steps_done,omitempty"`
+	StepsTotal    uint32                 `protobuf:"varint,2,opt,name=steps_total,json=stepsTotal,proto3" json:"steps_total,omitempty"`
+	Current       string                 `protobuf:"bytes,3,opt,name=current,proto3" json:"current,omitempty"`
+	PlanFirst     bool                   `protobuf:"varint,4,opt,name=plan_first,json=planFirst,proto3" json:"plan_first,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentRunProgress) Reset() {
+	*x = AgentRunProgress{}
+	mi := &file_asc_v1_agents_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentRunProgress) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentRunProgress) ProtoMessage() {}
+
+func (x *AgentRunProgress) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentRunProgress.ProtoReflect.Descriptor instead.
+func (*AgentRunProgress) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AgentRunProgress) GetStepsDone() uint32 {
+	if x != nil {
+		return x.StepsDone
+	}
+	return 0
+}
+
+func (x *AgentRunProgress) GetStepsTotal() uint32 {
+	if x != nil {
+		return x.StepsTotal
+	}
+	return 0
+}
+
+func (x *AgentRunProgress) GetCurrent() string {
+	if x != nil {
+		return x.Current
+	}
+	return ""
+}
+
+func (x *AgentRunProgress) GetPlanFirst() bool {
+	if x != nil {
+		return x.PlanFirst
+	}
+	return false
+}
+
 // `task` is 1 to 65,536 bytes. `paths` narrows the write scope further; globs the policy does not admit are refused with
 // AGENT_SCOPE_DENIED. `ai_key_id` empty means the repository owner's default key. `base` empty means the tip of `target`.
 type CreateAgentRunRequest struct {
@@ -590,13 +873,15 @@ type CreateAgentRunRequest struct {
 	AiKeyId       string                 `protobuf:"bytes,8,opt,name=ai_key_id,json=aiKeyId,proto3" json:"ai_key_id,omitempty"`
 	Model         string                 `protobuf:"bytes,9,opt,name=model,proto3" json:"model,omitempty"`
 	Limits        *AgentBudgetLimits     `protobuf:"bytes,10,opt,name=limits,proto3" json:"limits,omitempty"`
+	PlanFirst     bool                   `protobuf:"varint,11,opt,name=plan_first,json=planFirst,proto3" json:"plan_first,omitempty"` // wait for an approved plan before any tool call
+	ForChange     []byte                 `protobuf:"bytes,12,opt,name=for_change,json=forChange,proto3" json:"for_change,omitempty"`  // the run is for this change
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateAgentRunRequest) Reset() {
 	*x = CreateAgentRunRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[3]
+	mi := &file_asc_v1_agents_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -608,7 +893,7 @@ func (x *CreateAgentRunRequest) String() string {
 func (*CreateAgentRunRequest) ProtoMessage() {}
 
 func (x *CreateAgentRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[3]
+	mi := &file_asc_v1_agents_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -621,7 +906,7 @@ func (x *CreateAgentRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAgentRunRequest.ProtoReflect.Descriptor instead.
 func (*CreateAgentRunRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{3}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreateAgentRunRequest) GetRepo() *RepoRef {
@@ -694,16 +979,32 @@ func (x *CreateAgentRunRequest) GetLimits() *AgentBudgetLimits {
 	return nil
 }
 
+func (x *CreateAgentRunRequest) GetPlanFirst() bool {
+	if x != nil {
+		return x.PlanFirst
+	}
+	return false
+}
+
+func (x *CreateAgentRunRequest) GetForChange() []byte {
+	if x != nil {
+		return x.ForChange
+	}
+	return nil
+}
+
+// `lowered` names the limits (changes, tokens, cost, paths, runtime) that were asked above the policy cap and lowered to it.
 type CreateAgentRunResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Run           *AgentRun              `protobuf:"bytes,1,opt,name=run,proto3" json:"run,omitempty"`
+	Lowered       []string               `protobuf:"bytes,2,rep,name=lowered,proto3" json:"lowered,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateAgentRunResponse) Reset() {
 	*x = CreateAgentRunResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[4]
+	mi := &file_asc_v1_agents_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -715,7 +1016,7 @@ func (x *CreateAgentRunResponse) String() string {
 func (*CreateAgentRunResponse) ProtoMessage() {}
 
 func (x *CreateAgentRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[4]
+	mi := &file_asc_v1_agents_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -728,12 +1029,19 @@ func (x *CreateAgentRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAgentRunResponse.ProtoReflect.Descriptor instead.
 func (*CreateAgentRunResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{4}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateAgentRunResponse) GetRun() *AgentRun {
 	if x != nil {
 		return x.Run
+	}
+	return nil
+}
+
+func (x *CreateAgentRunResponse) GetLowered() []string {
+	if x != nil {
+		return x.Lowered
 	}
 	return nil
 }
@@ -753,7 +1061,7 @@ type ListAgentRunsRequest struct {
 
 func (x *ListAgentRunsRequest) Reset() {
 	*x = ListAgentRunsRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[5]
+	mi := &file_asc_v1_agents_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -765,7 +1073,7 @@ func (x *ListAgentRunsRequest) String() string {
 func (*ListAgentRunsRequest) ProtoMessage() {}
 
 func (x *ListAgentRunsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[5]
+	mi := &file_asc_v1_agents_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -778,7 +1086,7 @@ func (x *ListAgentRunsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentRunsRequest.ProtoReflect.Descriptor instead.
 func (*ListAgentRunsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{5}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListAgentRunsRequest) GetRepo() *RepoRef {
@@ -833,7 +1141,7 @@ type ListAgentRunsResponse struct {
 
 func (x *ListAgentRunsResponse) Reset() {
 	*x = ListAgentRunsResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[6]
+	mi := &file_asc_v1_agents_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -845,7 +1153,7 @@ func (x *ListAgentRunsResponse) String() string {
 func (*ListAgentRunsResponse) ProtoMessage() {}
 
 func (x *ListAgentRunsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[6]
+	mi := &file_asc_v1_agents_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -858,7 +1166,7 @@ func (x *ListAgentRunsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentRunsResponse.ProtoReflect.Descriptor instead.
 func (*ListAgentRunsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{6}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListAgentRunsResponse) GetRuns() []*AgentRun {
@@ -885,7 +1193,7 @@ type GetAgentRunRequest struct {
 
 func (x *GetAgentRunRequest) Reset() {
 	*x = GetAgentRunRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[7]
+	mi := &file_asc_v1_agents_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -897,7 +1205,7 @@ func (x *GetAgentRunRequest) String() string {
 func (*GetAgentRunRequest) ProtoMessage() {}
 
 func (x *GetAgentRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[7]
+	mi := &file_asc_v1_agents_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -910,7 +1218,7 @@ func (x *GetAgentRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentRunRequest.ProtoReflect.Descriptor instead.
 func (*GetAgentRunRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{7}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetAgentRunRequest) GetRepo() *RepoRef {
@@ -936,7 +1244,7 @@ type GetAgentRunResponse struct {
 
 func (x *GetAgentRunResponse) Reset() {
 	*x = GetAgentRunResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[8]
+	mi := &file_asc_v1_agents_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -948,7 +1256,7 @@ func (x *GetAgentRunResponse) String() string {
 func (*GetAgentRunResponse) ProtoMessage() {}
 
 func (x *GetAgentRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[8]
+	mi := &file_asc_v1_agents_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -961,7 +1269,7 @@ func (x *GetAgentRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentRunResponse.ProtoReflect.Descriptor instead.
 func (*GetAgentRunResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{8}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetAgentRunResponse) GetRun() *AgentRun {
@@ -982,7 +1290,7 @@ type CancelAgentRunRequest struct {
 
 func (x *CancelAgentRunRequest) Reset() {
 	*x = CancelAgentRunRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[9]
+	mi := &file_asc_v1_agents_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -994,7 +1302,7 @@ func (x *CancelAgentRunRequest) String() string {
 func (*CancelAgentRunRequest) ProtoMessage() {}
 
 func (x *CancelAgentRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[9]
+	mi := &file_asc_v1_agents_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1007,7 +1315,7 @@ func (x *CancelAgentRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelAgentRunRequest.ProtoReflect.Descriptor instead.
 func (*CancelAgentRunRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{9}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CancelAgentRunRequest) GetRepo() *RepoRef {
@@ -1040,7 +1348,7 @@ type CancelAgentRunResponse struct {
 
 func (x *CancelAgentRunResponse) Reset() {
 	*x = CancelAgentRunResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[10]
+	mi := &file_asc_v1_agents_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1052,7 +1360,7 @@ func (x *CancelAgentRunResponse) String() string {
 func (*CancelAgentRunResponse) ProtoMessage() {}
 
 func (x *CancelAgentRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[10]
+	mi := &file_asc_v1_agents_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1065,7 +1373,7 @@ func (x *CancelAgentRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelAgentRunResponse.ProtoReflect.Descriptor instead.
 func (*CancelAgentRunResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{10}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CancelAgentRunResponse) GetRun() *AgentRun {
@@ -1087,7 +1395,7 @@ type SendAgentInputRequest struct {
 
 func (x *SendAgentInputRequest) Reset() {
 	*x = SendAgentInputRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[11]
+	mi := &file_asc_v1_agents_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1099,7 +1407,7 @@ func (x *SendAgentInputRequest) String() string {
 func (*SendAgentInputRequest) ProtoMessage() {}
 
 func (x *SendAgentInputRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[11]
+	mi := &file_asc_v1_agents_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1112,7 +1420,7 @@ func (x *SendAgentInputRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendAgentInputRequest.ProtoReflect.Descriptor instead.
 func (*SendAgentInputRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{11}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SendAgentInputRequest) GetRepo() *RepoRef {
@@ -1145,7 +1453,7 @@ type SendAgentInputResponse struct {
 
 func (x *SendAgentInputResponse) Reset() {
 	*x = SendAgentInputResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[12]
+	mi := &file_asc_v1_agents_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1157,7 +1465,7 @@ func (x *SendAgentInputResponse) String() string {
 func (*SendAgentInputResponse) ProtoMessage() {}
 
 func (x *SendAgentInputResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[12]
+	mi := &file_asc_v1_agents_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1170,7 +1478,7 @@ func (x *SendAgentInputResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendAgentInputResponse.ProtoReflect.Descriptor instead.
 func (*SendAgentInputResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{12}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SendAgentInputResponse) GetRun() *AgentRun {
@@ -1199,7 +1507,7 @@ type AgentRunEvent struct {
 
 func (x *AgentRunEvent) Reset() {
 	*x = AgentRunEvent{}
-	mi := &file_asc_v1_agents_proto_msgTypes[13]
+	mi := &file_asc_v1_agents_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1211,7 +1519,7 @@ func (x *AgentRunEvent) String() string {
 func (*AgentRunEvent) ProtoMessage() {}
 
 func (x *AgentRunEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[13]
+	mi := &file_asc_v1_agents_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1224,7 +1532,7 @@ func (x *AgentRunEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentRunEvent.ProtoReflect.Descriptor instead.
 func (*AgentRunEvent) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{13}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *AgentRunEvent) GetRunId() uint64 {
@@ -1302,7 +1610,7 @@ type WatchAgentRunRequest struct {
 
 func (x *WatchAgentRunRequest) Reset() {
 	*x = WatchAgentRunRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[14]
+	mi := &file_asc_v1_agents_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1314,7 +1622,7 @@ func (x *WatchAgentRunRequest) String() string {
 func (*WatchAgentRunRequest) ProtoMessage() {}
 
 func (x *WatchAgentRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[14]
+	mi := &file_asc_v1_agents_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1327,7 +1635,7 @@ func (x *WatchAgentRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchAgentRunRequest.ProtoReflect.Descriptor instead.
 func (*WatchAgentRunRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{14}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *WatchAgentRunRequest) GetRepo() *RepoRef {
@@ -1374,7 +1682,7 @@ type AgentToken struct {
 
 func (x *AgentToken) Reset() {
 	*x = AgentToken{}
-	mi := &file_asc_v1_agents_proto_msgTypes[15]
+	mi := &file_asc_v1_agents_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1386,7 +1694,7 @@ func (x *AgentToken) String() string {
 func (*AgentToken) ProtoMessage() {}
 
 func (x *AgentToken) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[15]
+	mi := &file_asc_v1_agents_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1399,7 +1707,7 @@ func (x *AgentToken) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentToken.ProtoReflect.Descriptor instead.
 func (*AgentToken) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{15}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *AgentToken) GetId() string {
@@ -1523,7 +1831,7 @@ type CreateAgentTokenRequest struct {
 
 func (x *CreateAgentTokenRequest) Reset() {
 	*x = CreateAgentTokenRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[16]
+	mi := &file_asc_v1_agents_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1535,7 +1843,7 @@ func (x *CreateAgentTokenRequest) String() string {
 func (*CreateAgentTokenRequest) ProtoMessage() {}
 
 func (x *CreateAgentTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[16]
+	mi := &file_asc_v1_agents_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1548,7 +1856,7 @@ func (x *CreateAgentTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAgentTokenRequest.ProtoReflect.Descriptor instead.
 func (*CreateAgentTokenRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{16}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *CreateAgentTokenRequest) GetRepo() *RepoRef {
@@ -1610,7 +1918,7 @@ type CreateAgentTokenResponse struct {
 
 func (x *CreateAgentTokenResponse) Reset() {
 	*x = CreateAgentTokenResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[17]
+	mi := &file_asc_v1_agents_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1622,7 +1930,7 @@ func (x *CreateAgentTokenResponse) String() string {
 func (*CreateAgentTokenResponse) ProtoMessage() {}
 
 func (x *CreateAgentTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[17]
+	mi := &file_asc_v1_agents_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1635,7 +1943,7 @@ func (x *CreateAgentTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAgentTokenResponse.ProtoReflect.Descriptor instead.
 func (*CreateAgentTokenResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{17}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CreateAgentTokenResponse) GetToken() *AgentToken {
@@ -1664,7 +1972,7 @@ type ListAgentTokensRequest struct {
 
 func (x *ListAgentTokensRequest) Reset() {
 	*x = ListAgentTokensRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[18]
+	mi := &file_asc_v1_agents_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1676,7 +1984,7 @@ func (x *ListAgentTokensRequest) String() string {
 func (*ListAgentTokensRequest) ProtoMessage() {}
 
 func (x *ListAgentTokensRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[18]
+	mi := &file_asc_v1_agents_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1689,7 +1997,7 @@ func (x *ListAgentTokensRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentTokensRequest.ProtoReflect.Descriptor instead.
 func (*ListAgentTokensRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{18}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListAgentTokensRequest) GetRepo() *RepoRef {
@@ -1730,7 +2038,7 @@ type ListAgentTokensResponse struct {
 
 func (x *ListAgentTokensResponse) Reset() {
 	*x = ListAgentTokensResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[19]
+	mi := &file_asc_v1_agents_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1742,7 +2050,7 @@ func (x *ListAgentTokensResponse) String() string {
 func (*ListAgentTokensResponse) ProtoMessage() {}
 
 func (x *ListAgentTokensResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[19]
+	mi := &file_asc_v1_agents_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1755,7 +2063,7 @@ func (x *ListAgentTokensResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentTokensResponse.ProtoReflect.Descriptor instead.
 func (*ListAgentTokensResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{19}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListAgentTokensResponse) GetTokens() []*AgentToken {
@@ -1782,7 +2090,7 @@ type GetAgentTokenRequest struct {
 
 func (x *GetAgentTokenRequest) Reset() {
 	*x = GetAgentTokenRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[20]
+	mi := &file_asc_v1_agents_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1794,7 +2102,7 @@ func (x *GetAgentTokenRequest) String() string {
 func (*GetAgentTokenRequest) ProtoMessage() {}
 
 func (x *GetAgentTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[20]
+	mi := &file_asc_v1_agents_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1807,7 +2115,7 @@ func (x *GetAgentTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentTokenRequest.ProtoReflect.Descriptor instead.
 func (*GetAgentTokenRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{20}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetAgentTokenRequest) GetRepo() *RepoRef {
@@ -1834,7 +2142,7 @@ type GetAgentTokenResponse struct {
 
 func (x *GetAgentTokenResponse) Reset() {
 	*x = GetAgentTokenResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[21]
+	mi := &file_asc_v1_agents_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1846,7 +2154,7 @@ func (x *GetAgentTokenResponse) String() string {
 func (*GetAgentTokenResponse) ProtoMessage() {}
 
 func (x *GetAgentTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[21]
+	mi := &file_asc_v1_agents_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1859,7 +2167,7 @@ func (x *GetAgentTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentTokenResponse.ProtoReflect.Descriptor instead.
 func (*GetAgentTokenResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{21}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetAgentTokenResponse) GetToken() *AgentToken {
@@ -1887,7 +2195,7 @@ type RevokeAgentTokenRequest struct {
 
 func (x *RevokeAgentTokenRequest) Reset() {
 	*x = RevokeAgentTokenRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[22]
+	mi := &file_asc_v1_agents_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1899,7 +2207,7 @@ func (x *RevokeAgentTokenRequest) String() string {
 func (*RevokeAgentTokenRequest) ProtoMessage() {}
 
 func (x *RevokeAgentTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[22]
+	mi := &file_asc_v1_agents_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1912,7 +2220,7 @@ func (x *RevokeAgentTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeAgentTokenRequest.ProtoReflect.Descriptor instead.
 func (*RevokeAgentTokenRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{22}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *RevokeAgentTokenRequest) GetRepo() *RepoRef {
@@ -1945,7 +2253,7 @@ type RevokeAgentTokenResponse struct {
 
 func (x *RevokeAgentTokenResponse) Reset() {
 	*x = RevokeAgentTokenResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[23]
+	mi := &file_asc_v1_agents_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1957,7 +2265,7 @@ func (x *RevokeAgentTokenResponse) String() string {
 func (*RevokeAgentTokenResponse) ProtoMessage() {}
 
 func (x *RevokeAgentTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[23]
+	mi := &file_asc_v1_agents_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1970,7 +2278,7 @@ func (x *RevokeAgentTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeAgentTokenResponse.ProtoReflect.Descriptor instead.
 func (*RevokeAgentTokenResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{23}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *RevokeAgentTokenResponse) GetToken() *AgentToken {
@@ -1991,7 +2299,7 @@ type SetAgentTokenBudgetRequest struct {
 
 func (x *SetAgentTokenBudgetRequest) Reset() {
 	*x = SetAgentTokenBudgetRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[24]
+	mi := &file_asc_v1_agents_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2003,7 +2311,7 @@ func (x *SetAgentTokenBudgetRequest) String() string {
 func (*SetAgentTokenBudgetRequest) ProtoMessage() {}
 
 func (x *SetAgentTokenBudgetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[24]
+	mi := &file_asc_v1_agents_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2016,7 +2324,7 @@ func (x *SetAgentTokenBudgetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAgentTokenBudgetRequest.ProtoReflect.Descriptor instead.
 func (*SetAgentTokenBudgetRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{24}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *SetAgentTokenBudgetRequest) GetRepo() *RepoRef {
@@ -2049,7 +2357,7 @@ type SetAgentTokenBudgetResponse struct {
 
 func (x *SetAgentTokenBudgetResponse) Reset() {
 	*x = SetAgentTokenBudgetResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[25]
+	mi := &file_asc_v1_agents_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2061,7 +2369,7 @@ func (x *SetAgentTokenBudgetResponse) String() string {
 func (*SetAgentTokenBudgetResponse) ProtoMessage() {}
 
 func (x *SetAgentTokenBudgetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[25]
+	mi := &file_asc_v1_agents_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2074,7 +2382,7 @@ func (x *SetAgentTokenBudgetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAgentTokenBudgetResponse.ProtoReflect.Descriptor instead.
 func (*SetAgentTokenBudgetResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{25}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *SetAgentTokenBudgetResponse) GetToken() *AgentToken {
@@ -2099,7 +2407,7 @@ type ReportAgentUsageRequest struct {
 
 func (x *ReportAgentUsageRequest) Reset() {
 	*x = ReportAgentUsageRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[26]
+	mi := &file_asc_v1_agents_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2111,7 +2419,7 @@ func (x *ReportAgentUsageRequest) String() string {
 func (*ReportAgentUsageRequest) ProtoMessage() {}
 
 func (x *ReportAgentUsageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[26]
+	mi := &file_asc_v1_agents_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2124,7 +2432,7 @@ func (x *ReportAgentUsageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportAgentUsageRequest.ProtoReflect.Descriptor instead.
 func (*ReportAgentUsageRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{26}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ReportAgentUsageRequest) GetRepo() *RepoRef {
@@ -2172,7 +2480,7 @@ type ReportAgentUsageResponse struct {
 
 func (x *ReportAgentUsageResponse) Reset() {
 	*x = ReportAgentUsageResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[27]
+	mi := &file_asc_v1_agents_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2184,7 +2492,7 @@ func (x *ReportAgentUsageResponse) String() string {
 func (*ReportAgentUsageResponse) ProtoMessage() {}
 
 func (x *ReportAgentUsageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[27]
+	mi := &file_asc_v1_agents_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2197,7 +2505,7 @@ func (x *ReportAgentUsageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportAgentUsageResponse.ProtoReflect.Descriptor instead.
 func (*ReportAgentUsageResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{27}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ReportAgentUsageResponse) GetUsage() *AgentBudgetUsage {
@@ -2212,6 +2520,2132 @@ func (x *ReportAgentUsageResponse) GetRemaining() *AgentBudgetUsage {
 		return x.Remaining
 	}
 	return nil
+}
+
+type AgentPlanStep struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Index         uint32                 `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"` // from 0
+	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
+	State         string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"` // todo, doing or done
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentPlanStep) Reset() {
+	*x = AgentPlanStep{}
+	mi := &file_asc_v1_agents_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentPlanStep) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentPlanStep) ProtoMessage() {}
+
+func (x *AgentPlanStep) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentPlanStep.ProtoReflect.Descriptor instead.
+func (*AgentPlanStep) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *AgentPlanStep) GetIndex() uint32 {
+	if x != nil {
+		return x.Index
+	}
+	return 0
+}
+
+func (x *AgentPlanStep) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *AgentPlanStep) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+type AgentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	RunId         uint64                 `protobuf:"varint,2,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	Kind          AgentRequestKind       `protobuf:"varint,3,opt,name=kind,proto3,enum=asc.v1.AgentRequestKind" json:"kind,omitempty"`
+	State         AgentRequestState      `protobuf:"varint,4,opt,name=state,proto3,enum=asc.v1.AgentRequestState" json:"state,omitempty"`
+	Summary       string                 `protobuf:"bytes,5,opt,name=summary,proto3" json:"summary,omitempty"` // "run pnpm install" or the plan title
+	Detail        string                 `protobuf:"bytes,6,opt,name=detail,proto3" json:"detail,omitempty"`   // the command line, or the reason the agent gave
+	Plan          []*AgentPlanStep       `protobuf:"bytes,7,rep,name=plan,proto3" json:"plan,omitempty"`       // kind PLAN: the proposed steps
+	RequestedAt   int64                  `protobuf:"varint,8,opt,name=requested_at,json=requestedAt,proto3" json:"requested_at,omitempty"`
+	DecidedBy     string                 `protobuf:"bytes,9,opt,name=decided_by,json=decidedBy,proto3" json:"decided_by,omitempty"` // the person; empty while pending
+	DecidedAt     int64                  `protobuf:"varint,10,opt,name=decided_at,json=decidedAt,proto3" json:"decided_at,omitempty"`
+	Reason        string                 `protobuf:"bytes,11,opt,name=reason,proto3" json:"reason,omitempty"` // the words of the decider
+	Agent         string                 `protobuf:"bytes,12,opt,name=agent,proto3" json:"agent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentRequest) Reset() {
+	*x = AgentRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentRequest) ProtoMessage() {}
+
+func (x *AgentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentRequest.ProtoReflect.Descriptor instead.
+func (*AgentRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *AgentRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *AgentRequest) GetRunId() uint64 {
+	if x != nil {
+		return x.RunId
+	}
+	return 0
+}
+
+func (x *AgentRequest) GetKind() AgentRequestKind {
+	if x != nil {
+		return x.Kind
+	}
+	return AgentRequestKind_AGENT_REQUEST_KIND_UNSPECIFIED
+}
+
+func (x *AgentRequest) GetState() AgentRequestState {
+	if x != nil {
+		return x.State
+	}
+	return AgentRequestState_AGENT_REQUEST_STATE_UNSPECIFIED
+}
+
+func (x *AgentRequest) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *AgentRequest) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *AgentRequest) GetPlan() []*AgentPlanStep {
+	if x != nil {
+		return x.Plan
+	}
+	return nil
+}
+
+func (x *AgentRequest) GetRequestedAt() int64 {
+	if x != nil {
+		return x.RequestedAt
+	}
+	return 0
+}
+
+func (x *AgentRequest) GetDecidedBy() string {
+	if x != nil {
+		return x.DecidedBy
+	}
+	return ""
+}
+
+func (x *AgentRequest) GetDecidedAt() int64 {
+	if x != nil {
+		return x.DecidedAt
+	}
+	return 0
+}
+
+func (x *AgentRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *AgentRequest) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+type ListAgentRequestsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	RunId         uint64                 `protobuf:"varint,2,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"` // 0: every run of the repository
+	States        []AgentRequestState    `protobuf:"varint,3,rep,packed,name=states,proto3,enum=asc.v1.AgentRequestState" json:"states,omitempty"`
+	Limit         uint32                 `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"` // 0 means 50, at most 200
+	PageToken     string                 `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAgentRequestsRequest) Reset() {
+	*x = ListAgentRequestsRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAgentRequestsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAgentRequestsRequest) ProtoMessage() {}
+
+func (x *ListAgentRequestsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAgentRequestsRequest.ProtoReflect.Descriptor instead.
+func (*ListAgentRequestsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *ListAgentRequestsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *ListAgentRequestsRequest) GetRunId() uint64 {
+	if x != nil {
+		return x.RunId
+	}
+	return 0
+}
+
+func (x *ListAgentRequestsRequest) GetStates() []AgentRequestState {
+	if x != nil {
+		return x.States
+	}
+	return nil
+}
+
+func (x *ListAgentRequestsRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListAgentRequestsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListAgentRequestsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Requests      []*AgentRequest        `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAgentRequestsResponse) Reset() {
+	*x = ListAgentRequestsResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAgentRequestsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAgentRequestsResponse) ProtoMessage() {}
+
+func (x *ListAgentRequestsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAgentRequestsResponse.ProtoReflect.Descriptor instead.
+func (*ListAgentRequestsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ListAgentRequestsResponse) GetRequests() []*AgentRequest {
+	if x != nil {
+		return x.Requests
+	}
+	return nil
+}
+
+func (x *ListAgentRequestsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+// A permission is allowed once (it does not become a standing grant) or denied; a plan is approved or rejected. `reason` is at most
+// 512 bytes and is recorded with the decider. A request that is decided already answers with the stored decision.
+type DecideAgentRequestRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	RequestId     uint64                 `protobuf:"varint,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	Decision      AgentDecision          `protobuf:"varint,3,opt,name=decision,proto3,enum=asc.v1.AgentDecision" json:"decision,omitempty"`
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DecideAgentRequestRequest) Reset() {
+	*x = DecideAgentRequestRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DecideAgentRequestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DecideAgentRequestRequest) ProtoMessage() {}
+
+func (x *DecideAgentRequestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DecideAgentRequestRequest.ProtoReflect.Descriptor instead.
+func (*DecideAgentRequestRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *DecideAgentRequestRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *DecideAgentRequestRequest) GetRequestId() uint64 {
+	if x != nil {
+		return x.RequestId
+	}
+	return 0
+}
+
+func (x *DecideAgentRequestRequest) GetDecision() AgentDecision {
+	if x != nil {
+		return x.Decision
+	}
+	return AgentDecision_AGENT_DECISION_UNSPECIFIED
+}
+
+func (x *DecideAgentRequestRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type DecideAgentRequestResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Request       *AgentRequest          `protobuf:"bytes,1,opt,name=request,proto3" json:"request,omitempty"`
+	Run           *AgentRun              `protobuf:"bytes,2,opt,name=run,proto3" json:"run,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DecideAgentRequestResponse) Reset() {
+	*x = DecideAgentRequestResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DecideAgentRequestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DecideAgentRequestResponse) ProtoMessage() {}
+
+func (x *DecideAgentRequestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DecideAgentRequestResponse.ProtoReflect.Descriptor instead.
+func (*DecideAgentRequestResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *DecideAgentRequestResponse) GetRequest() *AgentRequest {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+func (x *DecideAgentRequestResponse) GetRun() *AgentRun {
+	if x != nil {
+		return x.Run
+	}
+	return nil
+}
+
+type PauseAgentRunRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Id            uint64                 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	Paused        bool                   `protobuf:"varint,3,opt,name=paused,proto3" json:"paused,omitempty"`
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PauseAgentRunRequest) Reset() {
+	*x = PauseAgentRunRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PauseAgentRunRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PauseAgentRunRequest) ProtoMessage() {}
+
+func (x *PauseAgentRunRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PauseAgentRunRequest.ProtoReflect.Descriptor instead.
+func (*PauseAgentRunRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *PauseAgentRunRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *PauseAgentRunRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *PauseAgentRunRequest) GetPaused() bool {
+	if x != nil {
+		return x.Paused
+	}
+	return false
+}
+
+func (x *PauseAgentRunRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type PauseAgentRunResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Run           *AgentRun              `protobuf:"bytes,1,opt,name=run,proto3" json:"run,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PauseAgentRunResponse) Reset() {
+	*x = PauseAgentRunResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PauseAgentRunResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PauseAgentRunResponse) ProtoMessage() {}
+
+func (x *PauseAgentRunResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PauseAgentRunResponse.ProtoReflect.Descriptor instead.
+func (*PauseAgentRunResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *PauseAgentRunResponse) GetRun() *AgentRun {
+	if x != nil {
+		return x.Run
+	}
+	return nil
+}
+
+type AgentCheckpoint struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	RunId         uint64                 `protobuf:"varint,2,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	Seq           uint32                 `protobuf:"varint,3,opt,name=seq,proto3" json:"seq,omitempty"`
+	At            int64                  `protobuf:"varint,4,opt,name=at,proto3" json:"at,omitempty"`
+	Label         string                 `protobuf:"bytes,5,opt,name=label,proto3" json:"label,omitempty"`     // the commit message that made it
+	Changes       [][]byte               `protobuf:"bytes,6,rep,name=changes,proto3" json:"changes,omitempty"` // the changes of the run at the checkpoint, bottom to top
+	Tip           []byte                 `protobuf:"bytes,7,opt,name=tip,proto3" json:"tip,omitempty"`
+	RolledBackAt  int64                  `protobuf:"varint,8,opt,name=rolled_back_at,json=rolledBackAt,proto3" json:"rolled_back_at,omitempty"`
+	RolledBackBy  string                 `protobuf:"bytes,9,opt,name=rolled_back_by,json=rolledBackBy,proto3" json:"rolled_back_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentCheckpoint) Reset() {
+	*x = AgentCheckpoint{}
+	mi := &file_asc_v1_agents_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentCheckpoint) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentCheckpoint) ProtoMessage() {}
+
+func (x *AgentCheckpoint) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentCheckpoint.ProtoReflect.Descriptor instead.
+func (*AgentCheckpoint) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *AgentCheckpoint) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *AgentCheckpoint) GetRunId() uint64 {
+	if x != nil {
+		return x.RunId
+	}
+	return 0
+}
+
+func (x *AgentCheckpoint) GetSeq() uint32 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+func (x *AgentCheckpoint) GetAt() int64 {
+	if x != nil {
+		return x.At
+	}
+	return 0
+}
+
+func (x *AgentCheckpoint) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *AgentCheckpoint) GetChanges() [][]byte {
+	if x != nil {
+		return x.Changes
+	}
+	return nil
+}
+
+func (x *AgentCheckpoint) GetTip() []byte {
+	if x != nil {
+		return x.Tip
+	}
+	return nil
+}
+
+func (x *AgentCheckpoint) GetRolledBackAt() int64 {
+	if x != nil {
+		return x.RolledBackAt
+	}
+	return 0
+}
+
+func (x *AgentCheckpoint) GetRolledBackBy() string {
+	if x != nil {
+		return x.RolledBackBy
+	}
+	return ""
+}
+
+type ListAgentCheckpointsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	RunId         uint64                 `protobuf:"varint,2,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAgentCheckpointsRequest) Reset() {
+	*x = ListAgentCheckpointsRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAgentCheckpointsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAgentCheckpointsRequest) ProtoMessage() {}
+
+func (x *ListAgentCheckpointsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAgentCheckpointsRequest.ProtoReflect.Descriptor instead.
+func (*ListAgentCheckpointsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ListAgentCheckpointsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *ListAgentCheckpointsRequest) GetRunId() uint64 {
+	if x != nil {
+		return x.RunId
+	}
+	return 0
+}
+
+type ListAgentCheckpointsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Checkpoints   []*AgentCheckpoint     `protobuf:"bytes,1,rep,name=checkpoints,proto3" json:"checkpoints,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAgentCheckpointsResponse) Reset() {
+	*x = ListAgentCheckpointsResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAgentCheckpointsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAgentCheckpointsResponse) ProtoMessage() {}
+
+func (x *ListAgentCheckpointsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAgentCheckpointsResponse.ProtoReflect.Descriptor instead.
+func (*ListAgentCheckpointsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *ListAgentCheckpointsResponse) GetCheckpoints() []*AgentCheckpoint {
+	if x != nil {
+		return x.Checkpoints
+	}
+	return nil
+}
+
+// The run must be paused. It is taken back to the checkpoint at its next tool call: the ref of the run goes back to the tip of the
+// checkpoint, the later changes leave the run, and the rollback is logged with the person and the reason.
+type RollbackAgentRunRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	RunId         uint64                 `protobuf:"varint,2,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	CheckpointId  uint64                 `protobuf:"varint,3,opt,name=checkpoint_id,json=checkpointId,proto3" json:"checkpoint_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RollbackAgentRunRequest) Reset() {
+	*x = RollbackAgentRunRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RollbackAgentRunRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RollbackAgentRunRequest) ProtoMessage() {}
+
+func (x *RollbackAgentRunRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RollbackAgentRunRequest.ProtoReflect.Descriptor instead.
+func (*RollbackAgentRunRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *RollbackAgentRunRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *RollbackAgentRunRequest) GetRunId() uint64 {
+	if x != nil {
+		return x.RunId
+	}
+	return 0
+}
+
+func (x *RollbackAgentRunRequest) GetCheckpointId() uint64 {
+	if x != nil {
+		return x.CheckpointId
+	}
+	return 0
+}
+
+func (x *RollbackAgentRunRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type RollbackAgentRunResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Run           *AgentRun              `protobuf:"bytes,1,opt,name=run,proto3" json:"run,omitempty"`
+	Checkpoint    *AgentCheckpoint       `protobuf:"bytes,2,opt,name=checkpoint,proto3" json:"checkpoint,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RollbackAgentRunResponse) Reset() {
+	*x = RollbackAgentRunResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RollbackAgentRunResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RollbackAgentRunResponse) ProtoMessage() {}
+
+func (x *RollbackAgentRunResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RollbackAgentRunResponse.ProtoReflect.Descriptor instead.
+func (*RollbackAgentRunResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *RollbackAgentRunResponse) GetRun() *AgentRun {
+	if x != nil {
+		return x.Run
+	}
+	return nil
+}
+
+func (x *RollbackAgentRunResponse) GetCheckpoint() *AgentCheckpoint {
+	if x != nil {
+		return x.Checkpoint
+	}
+	return nil
+}
+
+// The limits of a queued, running, waiting or paused run. A value of 0 keeps the current value. Values above the policy cap are
+// lowered to it and named in `lowered`.
+type SetAgentRunLimitsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Id            uint64                 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	Limits        *AgentBudgetLimits     `protobuf:"bytes,3,opt,name=limits,proto3" json:"limits,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetAgentRunLimitsRequest) Reset() {
+	*x = SetAgentRunLimitsRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetAgentRunLimitsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetAgentRunLimitsRequest) ProtoMessage() {}
+
+func (x *SetAgentRunLimitsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetAgentRunLimitsRequest.ProtoReflect.Descriptor instead.
+func (*SetAgentRunLimitsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *SetAgentRunLimitsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *SetAgentRunLimitsRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SetAgentRunLimitsRequest) GetLimits() *AgentBudgetLimits {
+	if x != nil {
+		return x.Limits
+	}
+	return nil
+}
+
+type SetAgentRunLimitsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Run           *AgentRun              `protobuf:"bytes,1,opt,name=run,proto3" json:"run,omitempty"`
+	Lowered       []string               `protobuf:"bytes,2,rep,name=lowered,proto3" json:"lowered,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetAgentRunLimitsResponse) Reset() {
+	*x = SetAgentRunLimitsResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetAgentRunLimitsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetAgentRunLimitsResponse) ProtoMessage() {}
+
+func (x *SetAgentRunLimitsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetAgentRunLimitsResponse.ProtoReflect.Descriptor instead.
+func (*SetAgentRunLimitsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *SetAgentRunLimitsResponse) GetRun() *AgentRun {
+	if x != nil {
+		return x.Run
+	}
+	return nil
+}
+
+func (x *SetAgentRunLimitsResponse) GetLowered() []string {
+	if x != nil {
+		return x.Lowered
+	}
+	return nil
+}
+
+// Starts a new run with the same agent, task and target that continues the finished run `id`; the model is told what the earlier run
+// did. `limits` replace the earlier ones (0 keeps the earlier value).
+type ContinueAgentRunRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Id            uint64                 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	Limits        *AgentBudgetLimits     `protobuf:"bytes,3,opt,name=limits,proto3" json:"limits,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContinueAgentRunRequest) Reset() {
+	*x = ContinueAgentRunRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContinueAgentRunRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContinueAgentRunRequest) ProtoMessage() {}
+
+func (x *ContinueAgentRunRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContinueAgentRunRequest.ProtoReflect.Descriptor instead.
+func (*ContinueAgentRunRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *ContinueAgentRunRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *ContinueAgentRunRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *ContinueAgentRunRequest) GetLimits() *AgentBudgetLimits {
+	if x != nil {
+		return x.Limits
+	}
+	return nil
+}
+
+type ContinueAgentRunResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Run           *AgentRun              `protobuf:"bytes,1,opt,name=run,proto3" json:"run,omitempty"`
+	Lowered       []string               `protobuf:"bytes,2,rep,name=lowered,proto3" json:"lowered,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContinueAgentRunResponse) Reset() {
+	*x = ContinueAgentRunResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContinueAgentRunResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContinueAgentRunResponse) ProtoMessage() {}
+
+func (x *ContinueAgentRunResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContinueAgentRunResponse.ProtoReflect.Descriptor instead.
+func (*ContinueAgentRunResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *ContinueAgentRunResponse) GetRun() *AgentRun {
+	if x != nil {
+		return x.Run
+	}
+	return nil
+}
+
+func (x *ContinueAgentRunResponse) GetLowered() []string {
+	if x != nil {
+		return x.Lowered
+	}
+	return nil
+}
+
+type GetAgentEstimateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
+	TaskBytes     uint32                 `protobuf:"varint,3,opt,name=task_bytes,json=taskBytes,proto3" json:"task_bytes,omitempty"` // the length of the task text, to weigh similar runs
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentEstimateRequest) Reset() {
+	*x = GetAgentEstimateRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentEstimateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentEstimateRequest) ProtoMessage() {}
+
+func (x *GetAgentEstimateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentEstimateRequest.ProtoReflect.Descriptor instead.
+func (*GetAgentEstimateRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *GetAgentEstimateRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GetAgentEstimateRequest) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *GetAgentEstimateRequest) GetTaskBytes() uint32 {
+	if x != nil {
+		return x.TaskBytes
+	}
+	return 0
+}
+
+type GetAgentEstimateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Samples       uint32                 `protobuf:"varint,1,opt,name=samples,proto3" json:"samples,omitempty"`                                 // finished runs it is based on (up to 50); 0 means no estimate
+	Seconds       uint32                 `protobuf:"varint,2,opt,name=seconds,proto3" json:"seconds,omitempty"`                                 // median
+	CostMicroUsd  uint64                 `protobuf:"varint,3,opt,name=cost_micro_usd,json=costMicroUsd,proto3" json:"cost_micro_usd,omitempty"` // median
+	Tokens        uint64                 `protobuf:"varint,4,opt,name=tokens,proto3" json:"tokens,omitempty"`                                   // median
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentEstimateResponse) Reset() {
+	*x = GetAgentEstimateResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentEstimateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentEstimateResponse) ProtoMessage() {}
+
+func (x *GetAgentEstimateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentEstimateResponse.ProtoReflect.Descriptor instead.
+func (*GetAgentEstimateResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *GetAgentEstimateResponse) GetSamples() uint32 {
+	if x != nil {
+		return x.Samples
+	}
+	return 0
+}
+
+func (x *GetAgentEstimateResponse) GetSeconds() uint32 {
+	if x != nil {
+		return x.Seconds
+	}
+	return 0
+}
+
+func (x *GetAgentEstimateResponse) GetCostMicroUsd() uint64 {
+	if x != nil {
+		return x.CostMicroUsd
+	}
+	return 0
+}
+
+func (x *GetAgentEstimateResponse) GetTokens() uint64 {
+	if x != nil {
+		return x.Tokens
+	}
+	return 0
+}
+
+type AgentTaskRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Task          string                 `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Agent         string                 `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"`
+	RunId         uint64                 `protobuf:"varint,4,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"` // the latest run with this task
+	At            int64                  `protobuf:"varint,5,opt,name=at,proto3" json:"at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentTaskRef) Reset() {
+	*x = AgentTaskRef{}
+	mi := &file_asc_v1_agents_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentTaskRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentTaskRef) ProtoMessage() {}
+
+func (x *AgentTaskRef) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentTaskRef.ProtoReflect.Descriptor instead.
+func (*AgentTaskRef) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *AgentTaskRef) GetTask() string {
+	if x != nil {
+		return x.Task
+	}
+	return ""
+}
+
+func (x *AgentTaskRef) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *AgentTaskRef) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *AgentTaskRef) GetRunId() uint64 {
+	if x != nil {
+		return x.RunId
+	}
+	return 0
+}
+
+func (x *AgentTaskRef) GetAt() int64 {
+	if x != nil {
+		return x.At
+	}
+	return 0
+}
+
+type RecentAgentTasksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Limit         uint32                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"` // 0 means 10, at most 50
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecentAgentTasksRequest) Reset() {
+	*x = RecentAgentTasksRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecentAgentTasksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecentAgentTasksRequest) ProtoMessage() {}
+
+func (x *RecentAgentTasksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecentAgentTasksRequest.ProtoReflect.Descriptor instead.
+func (*RecentAgentTasksRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *RecentAgentTasksRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *RecentAgentTasksRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type RecentAgentTasksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tasks         []*AgentTaskRef        `protobuf:"bytes,1,rep,name=tasks,proto3" json:"tasks,omitempty"` // distinct task texts, newest first
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecentAgentTasksResponse) Reset() {
+	*x = RecentAgentTasksResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecentAgentTasksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecentAgentTasksResponse) ProtoMessage() {}
+
+func (x *RecentAgentTasksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecentAgentTasksResponse.ProtoReflect.Descriptor instead.
+func (*RecentAgentTasksResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *RecentAgentTasksResponse) GetTasks() []*AgentTaskRef {
+	if x != nil {
+		return x.Tasks
+	}
+	return nil
+}
+
+type GetAgentRunLogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Id            uint64                 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentRunLogRequest) Reset() {
+	*x = GetAgentRunLogRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentRunLogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentRunLogRequest) ProtoMessage() {}
+
+func (x *GetAgentRunLogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentRunLogRequest.ProtoReflect.Descriptor instead.
+func (*GetAgentRunLogRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *GetAgentRunLogRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GetAgentRunLogRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type GetAgentRunLogResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Jsonl         []byte                 `protobuf:"bytes,1,opt,name=jsonl,proto3" json:"jsonl,omitempty"` // one JSON object per line: events, requests and rollbacks, in time order; at most 4 MiB
+	Truncated     bool                   `protobuf:"varint,2,opt,name=truncated,proto3" json:"truncated,omitempty"`
+	RetainedUntil int64                  `protobuf:"varint,3,opt,name=retained_until,json=retainedUntil,proto3" json:"retained_until,omitempty"` // when the events are pruned (retention window)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentRunLogResponse) Reset() {
+	*x = GetAgentRunLogResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentRunLogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentRunLogResponse) ProtoMessage() {}
+
+func (x *GetAgentRunLogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentRunLogResponse.ProtoReflect.Descriptor instead.
+func (*GetAgentRunLogResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *GetAgentRunLogResponse) GetJsonl() []byte {
+	if x != nil {
+		return x.Jsonl
+	}
+	return nil
+}
+
+func (x *GetAgentRunLogResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
+func (x *GetAgentRunLogResponse) GetRetainedUntil() int64 {
+	if x != nil {
+		return x.RetainedUntil
+	}
+	return 0
+}
+
+type RepoAgentInfo struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Agent             string                 `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
+	Runs              uint32                 `protobuf:"varint,2,opt,name=runs,proto3" json:"runs,omitempty"` // all runs
+	Active            uint32                 `protobuf:"varint,3,opt,name=active,proto3" json:"active,omitempty"`
+	Landed_30D        uint32                 `protobuf:"varint,4,opt,name=landed_30d,json=landed30d,proto3" json:"landed_30d,omitempty"` // changes of its runs that landed in the last 30 days
+	PendingRequests   uint32                 `protobuf:"varint,5,opt,name=pending_requests,json=pendingRequests,proto3" json:"pending_requests,omitempty"`
+	CostMicroUsdMonth uint64                 `protobuf:"varint,6,opt,name=cost_micro_usd_month,json=costMicroUsdMonth,proto3" json:"cost_micro_usd_month,omitempty"`
+	LastRun           int64                  `protobuf:"varint,7,opt,name=last_run,json=lastRun,proto3" json:"last_run,omitempty"`
+	Paths             []string               `protobuf:"bytes,8,rep,name=paths,proto3" json:"paths,omitempty"` // the write scope of its tokens
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *RepoAgentInfo) Reset() {
+	*x = RepoAgentInfo{}
+	mi := &file_asc_v1_agents_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RepoAgentInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RepoAgentInfo) ProtoMessage() {}
+
+func (x *RepoAgentInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RepoAgentInfo.ProtoReflect.Descriptor instead.
+func (*RepoAgentInfo) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *RepoAgentInfo) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *RepoAgentInfo) GetRuns() uint32 {
+	if x != nil {
+		return x.Runs
+	}
+	return 0
+}
+
+func (x *RepoAgentInfo) GetActive() uint32 {
+	if x != nil {
+		return x.Active
+	}
+	return 0
+}
+
+func (x *RepoAgentInfo) GetLanded_30D() uint32 {
+	if x != nil {
+		return x.Landed_30D
+	}
+	return 0
+}
+
+func (x *RepoAgentInfo) GetPendingRequests() uint32 {
+	if x != nil {
+		return x.PendingRequests
+	}
+	return 0
+}
+
+func (x *RepoAgentInfo) GetCostMicroUsdMonth() uint64 {
+	if x != nil {
+		return x.CostMicroUsdMonth
+	}
+	return 0
+}
+
+func (x *RepoAgentInfo) GetLastRun() int64 {
+	if x != nil {
+		return x.LastRun
+	}
+	return 0
+}
+
+func (x *RepoAgentInfo) GetPaths() []string {
+	if x != nil {
+		return x.Paths
+	}
+	return nil
+}
+
+type ListRepoAgentsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListRepoAgentsRequest) Reset() {
+	*x = ListRepoAgentsRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRepoAgentsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRepoAgentsRequest) ProtoMessage() {}
+
+func (x *ListRepoAgentsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRepoAgentsRequest.ProtoReflect.Descriptor instead.
+func (*ListRepoAgentsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *ListRepoAgentsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+type ListRepoAgentsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Agents        []*RepoAgentInfo       `protobuf:"bytes,1,rep,name=agents,proto3" json:"agents,omitempty"`
+	Running       uint32                 `protobuf:"varint,2,opt,name=running,proto3" json:"running,omitempty"`
+	MaxConcurrent uint32                 `protobuf:"varint,3,opt,name=max_concurrent,json=maxConcurrent,proto3" json:"max_concurrent,omitempty"` // the concurrency cap of the repository
+	Landed_30D    uint32                 `protobuf:"varint,4,opt,name=landed_30d,json=landed30d,proto3" json:"landed_30d,omitempty"`
+	Changes_30D   uint32                 `protobuf:"varint,5,opt,name=changes_30d,json=changes30d,proto3" json:"changes_30d,omitempty"` // all changes agents made in the last 30 days (for "31% of changes")
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListRepoAgentsResponse) Reset() {
+	*x = ListRepoAgentsResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRepoAgentsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRepoAgentsResponse) ProtoMessage() {}
+
+func (x *ListRepoAgentsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRepoAgentsResponse.ProtoReflect.Descriptor instead.
+func (*ListRepoAgentsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *ListRepoAgentsResponse) GetAgents() []*RepoAgentInfo {
+	if x != nil {
+		return x.Agents
+	}
+	return nil
+}
+
+func (x *ListRepoAgentsResponse) GetRunning() uint32 {
+	if x != nil {
+		return x.Running
+	}
+	return 0
+}
+
+func (x *ListRepoAgentsResponse) GetMaxConcurrent() uint32 {
+	if x != nil {
+		return x.MaxConcurrent
+	}
+	return 0
+}
+
+func (x *ListRepoAgentsResponse) GetLanded_30D() uint32 {
+	if x != nil {
+		return x.Landed_30D
+	}
+	return 0
+}
+
+func (x *ListRepoAgentsResponse) GetChanges_30D() uint32 {
+	if x != nil {
+		return x.Changes_30D
+	}
+	return 0
+}
+
+type SpendDay struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Day           string                 `protobuf:"bytes,1,opt,name=day,proto3" json:"day,omitempty"` // YYYY-MM-DD, UTC
+	CostMicroUsd  uint64                 `protobuf:"varint,2,opt,name=cost_micro_usd,json=costMicroUsd,proto3" json:"cost_micro_usd,omitempty"`
+	Tokens        uint64                 `protobuf:"varint,3,opt,name=tokens,proto3" json:"tokens,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SpendDay) Reset() {
+	*x = SpendDay{}
+	mi := &file_asc_v1_agents_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpendDay) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpendDay) ProtoMessage() {}
+
+func (x *SpendDay) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpendDay.ProtoReflect.Descriptor instead.
+func (*SpendDay) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *SpendDay) GetDay() string {
+	if x != nil {
+		return x.Day
+	}
+	return ""
+}
+
+func (x *SpendDay) GetCostMicroUsd() uint64 {
+	if x != nil {
+		return x.CostMicroUsd
+	}
+	return 0
+}
+
+func (x *SpendDay) GetTokens() uint64 {
+	if x != nil {
+		return x.Tokens
+	}
+	return 0
+}
+
+type AgentSpend struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Agent              string                 `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
+	CostMicroUsd       uint64                 `protobuf:"varint,2,opt,name=cost_micro_usd,json=costMicroUsd,proto3" json:"cost_micro_usd,omitempty"`
+	Tokens             uint64                 `protobuf:"varint,3,opt,name=tokens,proto3" json:"tokens,omitempty"`
+	Requests           uint64                 `protobuf:"varint,4,opt,name=requests,proto3" json:"requests,omitempty"`
+	MonthlyCapMicroUsd uint64                 `protobuf:"varint,5,opt,name=monthly_cap_micro_usd,json=monthlyCapMicroUsd,proto3" json:"monthly_cap_micro_usd,omitempty"` // 0 = none
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *AgentSpend) Reset() {
+	*x = AgentSpend{}
+	mi := &file_asc_v1_agents_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentSpend) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentSpend) ProtoMessage() {}
+
+func (x *AgentSpend) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentSpend.ProtoReflect.Descriptor instead.
+func (*AgentSpend) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *AgentSpend) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *AgentSpend) GetCostMicroUsd() uint64 {
+	if x != nil {
+		return x.CostMicroUsd
+	}
+	return 0
+}
+
+func (x *AgentSpend) GetTokens() uint64 {
+	if x != nil {
+		return x.Tokens
+	}
+	return 0
+}
+
+func (x *AgentSpend) GetRequests() uint64 {
+	if x != nil {
+		return x.Requests
+	}
+	return 0
+}
+
+func (x *AgentSpend) GetMonthlyCapMicroUsd() uint64 {
+	if x != nil {
+		return x.MonthlyCapMicroUsd
+	}
+	return 0
+}
+
+type GetAgentSpendRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Month         string                 `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"` // YYYY-MM, empty for the current month (UTC)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentSpendRequest) Reset() {
+	*x = GetAgentSpendRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentSpendRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentSpendRequest) ProtoMessage() {}
+
+func (x *GetAgentSpendRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentSpendRequest.ProtoReflect.Descriptor instead.
+func (*GetAgentSpendRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *GetAgentSpendRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GetAgentSpendRequest) GetMonth() string {
+	if x != nil {
+		return x.Month
+	}
+	return ""
+}
+
+type GetAgentSpendResponse struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Month              string                 `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
+	CostMicroUsd       uint64                 `protobuf:"varint,2,opt,name=cost_micro_usd,json=costMicroUsd,proto3" json:"cost_micro_usd,omitempty"`
+	Tokens             uint64                 `protobuf:"varint,3,opt,name=tokens,proto3" json:"tokens,omitempty"`
+	MonthlyCapMicroUsd uint64                 `protobuf:"varint,4,opt,name=monthly_cap_micro_usd,json=monthlyCapMicroUsd,proto3" json:"monthly_cap_micro_usd,omitempty"` // the cap of the whole repository, 0 = none
+	Days               []*SpendDay            `protobuf:"bytes,5,rep,name=days,proto3" json:"days,omitempty"`                                                            // every day with spend, ascending
+	Agents             []*AgentSpend          `protobuf:"bytes,6,rep,name=agents,proto3" json:"agents,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *GetAgentSpendResponse) Reset() {
+	*x = GetAgentSpendResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentSpendResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentSpendResponse) ProtoMessage() {}
+
+func (x *GetAgentSpendResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentSpendResponse.ProtoReflect.Descriptor instead.
+func (*GetAgentSpendResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *GetAgentSpendResponse) GetMonth() string {
+	if x != nil {
+		return x.Month
+	}
+	return ""
+}
+
+func (x *GetAgentSpendResponse) GetCostMicroUsd() uint64 {
+	if x != nil {
+		return x.CostMicroUsd
+	}
+	return 0
+}
+
+func (x *GetAgentSpendResponse) GetTokens() uint64 {
+	if x != nil {
+		return x.Tokens
+	}
+	return 0
+}
+
+func (x *GetAgentSpendResponse) GetMonthlyCapMicroUsd() uint64 {
+	if x != nil {
+		return x.MonthlyCapMicroUsd
+	}
+	return 0
+}
+
+func (x *GetAgentSpendResponse) GetDays() []*SpendDay {
+	if x != nil {
+		return x.Days
+	}
+	return nil
+}
+
+func (x *GetAgentSpendResponse) GetAgents() []*AgentSpend {
+	if x != nil {
+		return x.Agents
+	}
+	return nil
+}
+
+// `agent` empty sets the cap of the repository; otherwise the cap of one agent. 0 removes the cap. A run that would start, or a
+// model call that would be made, after the spend of the month reached a cap is refused with BUDGET_EXCEEDED (paths[0] = "monthly").
+type SetMonthlyBudgetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
+	CapMicroUsd   uint64                 `protobuf:"varint,3,opt,name=cap_micro_usd,json=capMicroUsd,proto3" json:"cap_micro_usd,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetMonthlyBudgetRequest) Reset() {
+	*x = SetMonthlyBudgetRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetMonthlyBudgetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetMonthlyBudgetRequest) ProtoMessage() {}
+
+func (x *SetMonthlyBudgetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetMonthlyBudgetRequest.ProtoReflect.Descriptor instead.
+func (*SetMonthlyBudgetRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{60}
+}
+
+func (x *SetMonthlyBudgetRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *SetMonthlyBudgetRequest) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *SetMonthlyBudgetRequest) GetCapMicroUsd() uint64 {
+	if x != nil {
+		return x.CapMicroUsd
+	}
+	return 0
+}
+
+type SetMonthlyBudgetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Agent         string                 `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
+	CapMicroUsd   uint64                 `protobuf:"varint,2,opt,name=cap_micro_usd,json=capMicroUsd,proto3" json:"cap_micro_usd,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetMonthlyBudgetResponse) Reset() {
+	*x = SetMonthlyBudgetResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetMonthlyBudgetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetMonthlyBudgetResponse) ProtoMessage() {}
+
+func (x *SetMonthlyBudgetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetMonthlyBudgetResponse.ProtoReflect.Descriptor instead.
+func (*SetMonthlyBudgetResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *SetMonthlyBudgetResponse) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *SetMonthlyBudgetResponse) GetCapMicroUsd() uint64 {
+	if x != nil {
+		return x.CapMicroUsd
+	}
+	return 0
 }
 
 var File_asc_v1_agents_proto protoreflect.FileDescriptor
@@ -2233,7 +4667,7 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\x0ecost_micro_usd\x18\x03 \x01(\x04R\fcostMicroUsd\x12\x14\n" +
 	"\x05paths\x18\x04 \x01(\rR\x05paths\x12'\n" +
 	"\x0fruntime_seconds\x18\x05 \x01(\rR\x0eruntimeSeconds\x12\x1a\n" +
-	"\brequests\x18\x06 \x01(\x04R\brequests\"\x91\x05\n" +
+	"\brequests\x18\x06 \x01(\x04R\brequests\"\xe8\x06\n" +
 	"\bAgentRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
 	"\x04repo\x18\x02 \x01(\tR\x04repo\x12\x14\n" +
@@ -2257,7 +4691,22 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\x0ffailure_message\x18\x12 \x01(\tR\x0efailureMessage\x12\x19\n" +
 	"\btoken_id\x18\x13 \x01(\tR\atokenId\x12&\n" +
 	"\x0fworkflow_run_id\x18\x14 \x01(\x04R\rworkflowRunId\x12#\n" +
-	"\rworkflow_step\x18\x15 \x01(\tR\fworkflowStep\"\xa3\x02\n" +
+	"\rworkflow_step\x18\x15 \x01(\tR\fworkflowStep\x12\x12\n" +
+	"\x04task\x18\x16 \x01(\tR\x04task\x124\n" +
+	"\bprogress\x18\x17 \x01(\v2\x18.asc.v1.AgentRunProgressR\bprogress\x12\x16\n" +
+	"\x06paused\x18\x18 \x01(\bR\x06paused\x12)\n" +
+	"\x10pending_requests\x18\x19 \x01(\rR\x0fpendingRequests\x12#\n" +
+	"\rcontinues_run\x18\x1a \x01(\x04R\fcontinuesRun\x12#\n" +
+	"\n" +
+	"for_change\x18\x1b \x01(\fB\x04\xa8\xbb\x18\x02R\tforChange\"\x8b\x01\n" +
+	"\x10AgentRunProgress\x12\x1d\n" +
+	"\n" +
+	"steps_done\x18\x01 \x01(\rR\tstepsDone\x12\x1f\n" +
+	"\vsteps_total\x18\x02 \x01(\rR\n" +
+	"stepsTotal\x12\x18\n" +
+	"\acurrent\x18\x03 \x01(\tR\acurrent\x12\x1d\n" +
+	"\n" +
+	"plan_first\x18\x04 \x01(\bR\tplanFirst\"\xe7\x02\n" +
 	"\x15CreateAgentRunRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x14\n" +
@@ -2269,9 +4718,14 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\tai_key_id\x18\b \x01(\tR\aaiKeyId\x12\x14\n" +
 	"\x05model\x18\t \x01(\tR\x05model\x121\n" +
 	"\x06limits\x18\n" +
-	" \x01(\v2\x19.asc.v1.AgentBudgetLimitsR\x06limits\"<\n" +
+	" \x01(\v2\x19.asc.v1.AgentBudgetLimitsR\x06limits\x12\x1d\n" +
+	"\n" +
+	"plan_first\x18\v \x01(\bR\tplanFirst\x12#\n" +
+	"\n" +
+	"for_change\x18\f \x01(\fB\x04\xa8\xbb\x18\x02R\tforChange\"V\n" +
 	"\x16CreateAgentRunResponse\x12\"\n" +
-	"\x03run\x18\x01 \x01(\v2\x10.asc.v1.AgentRunR\x03run\"\xd4\x01\n" +
+	"\x03run\x18\x01 \x01(\v2\x10.asc.v1.AgentRunR\x03run\x12\x18\n" +
+	"\alowered\x18\x02 \x03(\tR\alowered\"\xd4\x01\n" +
 	"\x14ListAgentRunsRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12-\n" +
 	"\x06states\x18\x02 \x03(\x0e2\x15.asc.v1.AgentRunStateR\x06states\x12\x14\n" +
@@ -2384,7 +4838,168 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\brequests\x18\x05 \x01(\x04R\brequests\"\x82\x01\n" +
 	"\x18ReportAgentUsageResponse\x12.\n" +
 	"\x05usage\x18\x01 \x01(\v2\x18.asc.v1.AgentBudgetUsageR\x05usage\x126\n" +
-	"\tremaining\x18\x02 \x01(\v2\x18.asc.v1.AgentBudgetUsageR\tremaining*\xa8\x02\n" +
+	"\tremaining\x18\x02 \x01(\v2\x18.asc.v1.AgentBudgetUsageR\tremaining\"O\n" +
+	"\rAgentPlanStep\x12\x14\n" +
+	"\x05index\x18\x01 \x01(\rR\x05index\x12\x12\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\x12\x14\n" +
+	"\x05state\x18\x03 \x01(\tR\x05state\"\x80\x03\n" +
+	"\fAgentRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x15\n" +
+	"\x06run_id\x18\x02 \x01(\x04R\x05runId\x12,\n" +
+	"\x04kind\x18\x03 \x01(\x0e2\x18.asc.v1.AgentRequestKindR\x04kind\x12/\n" +
+	"\x05state\x18\x04 \x01(\x0e2\x19.asc.v1.AgentRequestStateR\x05state\x12\x18\n" +
+	"\asummary\x18\x05 \x01(\tR\asummary\x12\x16\n" +
+	"\x06detail\x18\x06 \x01(\tR\x06detail\x12)\n" +
+	"\x04plan\x18\a \x03(\v2\x15.asc.v1.AgentPlanStepR\x04plan\x12!\n" +
+	"\frequested_at\x18\b \x01(\x03R\vrequestedAt\x12\x1d\n" +
+	"\n" +
+	"decided_by\x18\t \x01(\tR\tdecidedBy\x12\x1d\n" +
+	"\n" +
+	"decided_at\x18\n" +
+	" \x01(\x03R\tdecidedAt\x12\x16\n" +
+	"\x06reason\x18\v \x01(\tR\x06reason\x12\x14\n" +
+	"\x05agent\x18\f \x01(\tR\x05agent\"\xbe\x01\n" +
+	"\x18ListAgentRequestsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x15\n" +
+	"\x06run_id\x18\x02 \x01(\x04R\x05runId\x121\n" +
+	"\x06states\x18\x03 \x03(\x0e2\x19.asc.v1.AgentRequestStateR\x06states\x12\x14\n" +
+	"\x05limit\x18\x04 \x01(\rR\x05limit\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken\"u\n" +
+	"\x19ListAgentRequestsResponse\x120\n" +
+	"\brequests\x18\x01 \x03(\v2\x14.asc.v1.AgentRequestR\brequests\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xaa\x01\n" +
+	"\x19DecideAgentRequestRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x02 \x01(\x04R\trequestId\x121\n" +
+	"\bdecision\x18\x03 \x01(\x0e2\x15.asc.v1.AgentDecisionR\bdecision\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\"p\n" +
+	"\x1aDecideAgentRequestResponse\x12.\n" +
+	"\arequest\x18\x01 \x01(\v2\x14.asc.v1.AgentRequestR\arequest\x12\"\n" +
+	"\x03run\x18\x02 \x01(\v2\x10.asc.v1.AgentRunR\x03run\"{\n" +
+	"\x14PauseAgentRunRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x04R\x02id\x12\x16\n" +
+	"\x06paused\x18\x03 \x01(\bR\x06paused\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\";\n" +
+	"\x15PauseAgentRunResponse\x12\"\n" +
+	"\x03run\x18\x01 \x01(\v2\x10.asc.v1.AgentRunR\x03run\"\xf4\x01\n" +
+	"\x0fAgentCheckpoint\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x15\n" +
+	"\x06run_id\x18\x02 \x01(\x04R\x05runId\x12\x10\n" +
+	"\x03seq\x18\x03 \x01(\rR\x03seq\x12\x0e\n" +
+	"\x02at\x18\x04 \x01(\x03R\x02at\x12\x14\n" +
+	"\x05label\x18\x05 \x01(\tR\x05label\x12\x1e\n" +
+	"\achanges\x18\x06 \x03(\fB\x04\xa8\xbb\x18\x02R\achanges\x12\x16\n" +
+	"\x03tip\x18\a \x01(\fB\x04\xa8\xbb\x18\x01R\x03tip\x12$\n" +
+	"\x0erolled_back_at\x18\b \x01(\x03R\frolledBackAt\x12$\n" +
+	"\x0erolled_back_by\x18\t \x01(\tR\frolledBackBy\"Y\n" +
+	"\x1bListAgentCheckpointsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x15\n" +
+	"\x06run_id\x18\x02 \x01(\x04R\x05runId\"Y\n" +
+	"\x1cListAgentCheckpointsResponse\x129\n" +
+	"\vcheckpoints\x18\x01 \x03(\v2\x17.asc.v1.AgentCheckpointR\vcheckpoints\"\x92\x01\n" +
+	"\x17RollbackAgentRunRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x15\n" +
+	"\x06run_id\x18\x02 \x01(\x04R\x05runId\x12#\n" +
+	"\rcheckpoint_id\x18\x03 \x01(\x04R\fcheckpointId\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\"w\n" +
+	"\x18RollbackAgentRunResponse\x12\"\n" +
+	"\x03run\x18\x01 \x01(\v2\x10.asc.v1.AgentRunR\x03run\x127\n" +
+	"\n" +
+	"checkpoint\x18\x02 \x01(\v2\x17.asc.v1.AgentCheckpointR\n" +
+	"checkpoint\"\x82\x01\n" +
+	"\x18SetAgentRunLimitsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x04R\x02id\x121\n" +
+	"\x06limits\x18\x03 \x01(\v2\x19.asc.v1.AgentBudgetLimitsR\x06limits\"Y\n" +
+	"\x19SetAgentRunLimitsResponse\x12\"\n" +
+	"\x03run\x18\x01 \x01(\v2\x10.asc.v1.AgentRunR\x03run\x12\x18\n" +
+	"\alowered\x18\x02 \x03(\tR\alowered\"\x81\x01\n" +
+	"\x17ContinueAgentRunRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x04R\x02id\x121\n" +
+	"\x06limits\x18\x03 \x01(\v2\x19.asc.v1.AgentBudgetLimitsR\x06limits\"X\n" +
+	"\x18ContinueAgentRunResponse\x12\"\n" +
+	"\x03run\x18\x01 \x01(\v2\x10.asc.v1.AgentRunR\x03run\x12\x18\n" +
+	"\alowered\x18\x02 \x03(\tR\alowered\"s\n" +
+	"\x17GetAgentEstimateRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
+	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x1d\n" +
+	"\n" +
+	"task_bytes\x18\x03 \x01(\rR\ttaskBytes\"\x8c\x01\n" +
+	"\x18GetAgentEstimateResponse\x12\x18\n" +
+	"\asamples\x18\x01 \x01(\rR\asamples\x12\x18\n" +
+	"\aseconds\x18\x02 \x01(\rR\aseconds\x12$\n" +
+	"\x0ecost_micro_usd\x18\x03 \x01(\x04R\fcostMicroUsd\x12\x16\n" +
+	"\x06tokens\x18\x04 \x01(\x04R\x06tokens\"u\n" +
+	"\fAgentTaskRef\x12\x12\n" +
+	"\x04task\x18\x01 \x01(\tR\x04task\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
+	"\x05agent\x18\x03 \x01(\tR\x05agent\x12\x15\n" +
+	"\x06run_id\x18\x04 \x01(\x04R\x05runId\x12\x0e\n" +
+	"\x02at\x18\x05 \x01(\x03R\x02at\"T\n" +
+	"\x17RecentAgentTasksRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\rR\x05limit\"F\n" +
+	"\x18RecentAgentTasksResponse\x12*\n" +
+	"\x05tasks\x18\x01 \x03(\v2\x14.asc.v1.AgentTaskRefR\x05tasks\"L\n" +
+	"\x15GetAgentRunLogRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x04R\x02id\"y\n" +
+	"\x16GetAgentRunLogResponse\x12\x1a\n" +
+	"\x05jsonl\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x04R\x05jsonl\x12\x1c\n" +
+	"\ttruncated\x18\x02 \x01(\bR\ttruncated\x12%\n" +
+	"\x0eretained_until\x18\x03 \x01(\x03R\rretainedUntil\"\xfd\x01\n" +
+	"\rRepoAgentInfo\x12\x14\n" +
+	"\x05agent\x18\x01 \x01(\tR\x05agent\x12\x12\n" +
+	"\x04runs\x18\x02 \x01(\rR\x04runs\x12\x16\n" +
+	"\x06active\x18\x03 \x01(\rR\x06active\x12\x1d\n" +
+	"\n" +
+	"landed_30d\x18\x04 \x01(\rR\tlanded30d\x12)\n" +
+	"\x10pending_requests\x18\x05 \x01(\rR\x0fpendingRequests\x12/\n" +
+	"\x14cost_micro_usd_month\x18\x06 \x01(\x04R\x11costMicroUsdMonth\x12\x19\n" +
+	"\blast_run\x18\a \x01(\x03R\alastRun\x12\x14\n" +
+	"\x05paths\x18\b \x03(\tR\x05paths\"<\n" +
+	"\x15ListRepoAgentsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\"\xc8\x01\n" +
+	"\x16ListRepoAgentsResponse\x12-\n" +
+	"\x06agents\x18\x01 \x03(\v2\x15.asc.v1.RepoAgentInfoR\x06agents\x12\x18\n" +
+	"\arunning\x18\x02 \x01(\rR\arunning\x12%\n" +
+	"\x0emax_concurrent\x18\x03 \x01(\rR\rmaxConcurrent\x12\x1d\n" +
+	"\n" +
+	"landed_30d\x18\x04 \x01(\rR\tlanded30d\x12\x1f\n" +
+	"\vchanges_30d\x18\x05 \x01(\rR\n" +
+	"changes30d\"Z\n" +
+	"\bSpendDay\x12\x10\n" +
+	"\x03day\x18\x01 \x01(\tR\x03day\x12$\n" +
+	"\x0ecost_micro_usd\x18\x02 \x01(\x04R\fcostMicroUsd\x12\x16\n" +
+	"\x06tokens\x18\x03 \x01(\x04R\x06tokens\"\xaf\x01\n" +
+	"\n" +
+	"AgentSpend\x12\x14\n" +
+	"\x05agent\x18\x01 \x01(\tR\x05agent\x12$\n" +
+	"\x0ecost_micro_usd\x18\x02 \x01(\x04R\fcostMicroUsd\x12\x16\n" +
+	"\x06tokens\x18\x03 \x01(\x04R\x06tokens\x12\x1a\n" +
+	"\brequests\x18\x04 \x01(\x04R\brequests\x121\n" +
+	"\x15monthly_cap_micro_usd\x18\x05 \x01(\x04R\x12monthlyCapMicroUsd\"Q\n" +
+	"\x14GetAgentSpendRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
+	"\x05month\x18\x02 \x01(\tR\x05month\"\xf0\x01\n" +
+	"\x15GetAgentSpendResponse\x12\x14\n" +
+	"\x05month\x18\x01 \x01(\tR\x05month\x12$\n" +
+	"\x0ecost_micro_usd\x18\x02 \x01(\x04R\fcostMicroUsd\x12\x16\n" +
+	"\x06tokens\x18\x03 \x01(\x04R\x06tokens\x121\n" +
+	"\x15monthly_cap_micro_usd\x18\x04 \x01(\x04R\x12monthlyCapMicroUsd\x12$\n" +
+	"\x04days\x18\x05 \x03(\v2\x10.asc.v1.SpendDayR\x04days\x12*\n" +
+	"\x06agents\x18\x06 \x03(\v2\x12.asc.v1.AgentSpendR\x06agents\"x\n" +
+	"\x17SetMonthlyBudgetRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
+	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\"\n" +
+	"\rcap_micro_usd\x18\x03 \x01(\x04R\vcapMicroUsd\"T\n" +
+	"\x18SetMonthlyBudgetResponse\x12\x14\n" +
+	"\x05agent\x18\x01 \x01(\tR\x05agent\x12\"\n" +
+	"\rcap_micro_usd\x18\x02 \x01(\x04R\vcapMicroUsd*\xa8\x02\n" +
 	"\rAgentRunState\x12\x1f\n" +
 	"\x1bAGENT_RUN_STATE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16AGENT_RUN_STATE_QUEUED\x10\x01\x12\x1b\n" +
@@ -2410,14 +5025,46 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\x18AGENT_TOKEN_STATE_ACTIVE\x10\x01\x12\x1d\n" +
 	"\x19AGENT_TOKEN_STATE_EXPIRED\x10\x02\x12\x1d\n" +
 	"\x19AGENT_TOKEN_STATE_REVOKED\x10\x03\x12\x1f\n" +
-	"\x1bAGENT_TOKEN_STATE_EXHAUSTED\x10\x042\xbb\x03\n" +
+	"\x1bAGENT_TOKEN_STATE_EXHAUSTED\x10\x04*v\n" +
+	"\x10AgentRequestKind\x12\"\n" +
+	"\x1eAGENT_REQUEST_KIND_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dAGENT_REQUEST_KIND_PERMISSION\x10\x01\x12\x1b\n" +
+	"\x17AGENT_REQUEST_KIND_PLAN\x10\x02*\xff\x01\n" +
+	"\x11AgentRequestState\x12#\n" +
+	"\x1fAGENT_REQUEST_STATE_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bAGENT_REQUEST_STATE_PENDING\x10\x01\x12\x1f\n" +
+	"\x1bAGENT_REQUEST_STATE_ALLOWED\x10\x02\x12\x1e\n" +
+	"\x1aAGENT_REQUEST_STATE_DENIED\x10\x03\x12 \n" +
+	"\x1cAGENT_REQUEST_STATE_APPROVED\x10\x04\x12 \n" +
+	"\x1cAGENT_REQUEST_STATE_REJECTED\x10\x05\x12\x1f\n" +
+	"\x1bAGENT_REQUEST_STATE_EXPIRED\x10\x06*\xa8\x01\n" +
+	"\rAgentDecision\x12\x1e\n" +
+	"\x1aAGENT_DECISION_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19AGENT_DECISION_ALLOW_ONCE\x10\x01\x12\x17\n" +
+	"\x13AGENT_DECISION_DENY\x10\x02\x12\x1f\n" +
+	"\x1bAGENT_DECISION_APPROVE_PLAN\x10\x03\x12\x1e\n" +
+	"\x1aAGENT_DECISION_REJECT_PLAN\x10\x042\xe5\v\n" +
 	"\x06Agents\x12J\n" +
 	"\tCreateRun\x12\x1d.asc.v1.CreateAgentRunRequest\x1a\x1e.asc.v1.CreateAgentRunResponse\x12G\n" +
 	"\bListRuns\x12\x1c.asc.v1.ListAgentRunsRequest\x1a\x1d.asc.v1.ListAgentRunsResponse\x12A\n" +
 	"\x06GetRun\x12\x1a.asc.v1.GetAgentRunRequest\x1a\x1b.asc.v1.GetAgentRunResponse\x12J\n" +
 	"\tCancelRun\x12\x1d.asc.v1.CancelAgentRunRequest\x1a\x1e.asc.v1.CancelAgentRunResponse\x12J\n" +
 	"\tSendInput\x12\x1d.asc.v1.SendAgentInputRequest\x1a\x1e.asc.v1.SendAgentInputResponse\x12A\n" +
-	"\bWatchRun\x12\x1c.asc.v1.WatchAgentRunRequest\x1a\x15.asc.v1.AgentRunEvent0\x012\xf1\x03\n" +
+	"\bWatchRun\x12\x1c.asc.v1.WatchAgentRunRequest\x1a\x15.asc.v1.AgentRunEvent0\x01\x12S\n" +
+	"\fListRequests\x12 .asc.v1.ListAgentRequestsRequest\x1a!.asc.v1.ListAgentRequestsResponse\x12V\n" +
+	"\rDecideRequest\x12!.asc.v1.DecideAgentRequestRequest\x1a\".asc.v1.DecideAgentRequestResponse\x12G\n" +
+	"\bPauseRun\x12\x1c.asc.v1.PauseAgentRunRequest\x1a\x1d.asc.v1.PauseAgentRunResponse\x12\\\n" +
+	"\x0fListCheckpoints\x12#.asc.v1.ListAgentCheckpointsRequest\x1a$.asc.v1.ListAgentCheckpointsResponse\x12P\n" +
+	"\vRollbackRun\x12\x1f.asc.v1.RollbackAgentRunRequest\x1a .asc.v1.RollbackAgentRunResponse\x12S\n" +
+	"\fSetRunLimits\x12 .asc.v1.SetAgentRunLimitsRequest\x1a!.asc.v1.SetAgentRunLimitsResponse\x12P\n" +
+	"\vContinueRun\x12\x1f.asc.v1.ContinueAgentRunRequest\x1a .asc.v1.ContinueAgentRunResponse\x12P\n" +
+	"\vGetEstimate\x12\x1f.asc.v1.GetAgentEstimateRequest\x1a .asc.v1.GetAgentEstimateResponse\x12P\n" +
+	"\vRecentTasks\x12\x1f.asc.v1.RecentAgentTasksRequest\x1a .asc.v1.RecentAgentTasksResponse\x12J\n" +
+	"\tGetRunLog\x12\x1d.asc.v1.GetAgentRunLogRequest\x1a\x1e.asc.v1.GetAgentRunLogResponse\x12K\n" +
+	"\n" +
+	"ListAgents\x12\x1d.asc.v1.ListRepoAgentsRequest\x1a\x1e.asc.v1.ListRepoAgentsResponse\x12G\n" +
+	"\bGetSpend\x12\x1c.asc.v1.GetAgentSpendRequest\x1a\x1d.asc.v1.GetAgentSpendResponse\x12U\n" +
+	"\x10SetMonthlyBudget\x12\x1f.asc.v1.SetMonthlyBudgetRequest\x1a .asc.v1.SetMonthlyBudgetResponse2\xf1\x03\n" +
 	"\vAgentTokens\x12P\n" +
 	"\vCreateToken\x12\x1f.asc.v1.CreateAgentTokenRequest\x1a .asc.v1.CreateAgentTokenResponse\x12M\n" +
 	"\n" +
@@ -2441,111 +5088,208 @@ func file_asc_v1_agents_proto_rawDescGZIP() []byte {
 	return file_asc_v1_agents_proto_rawDescData
 }
 
-var file_asc_v1_agents_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_asc_v1_agents_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_asc_v1_agents_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_asc_v1_agents_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
 var file_asc_v1_agents_proto_goTypes = []any{
-	(AgentRunState)(0),                  // 0: asc.v1.AgentRunState
-	(AgentRunEventKind)(0),              // 1: asc.v1.AgentRunEventKind
-	(AgentTokenState)(0),                // 2: asc.v1.AgentTokenState
-	(*AgentBudgetLimits)(nil),           // 3: asc.v1.AgentBudgetLimits
-	(*AgentBudgetUsage)(nil),            // 4: asc.v1.AgentBudgetUsage
-	(*AgentRun)(nil),                    // 5: asc.v1.AgentRun
-	(*CreateAgentRunRequest)(nil),       // 6: asc.v1.CreateAgentRunRequest
-	(*CreateAgentRunResponse)(nil),      // 7: asc.v1.CreateAgentRunResponse
-	(*ListAgentRunsRequest)(nil),        // 8: asc.v1.ListAgentRunsRequest
-	(*ListAgentRunsResponse)(nil),       // 9: asc.v1.ListAgentRunsResponse
-	(*GetAgentRunRequest)(nil),          // 10: asc.v1.GetAgentRunRequest
-	(*GetAgentRunResponse)(nil),         // 11: asc.v1.GetAgentRunResponse
-	(*CancelAgentRunRequest)(nil),       // 12: asc.v1.CancelAgentRunRequest
-	(*CancelAgentRunResponse)(nil),      // 13: asc.v1.CancelAgentRunResponse
-	(*SendAgentInputRequest)(nil),       // 14: asc.v1.SendAgentInputRequest
-	(*SendAgentInputResponse)(nil),      // 15: asc.v1.SendAgentInputResponse
-	(*AgentRunEvent)(nil),               // 16: asc.v1.AgentRunEvent
-	(*WatchAgentRunRequest)(nil),        // 17: asc.v1.WatchAgentRunRequest
-	(*AgentToken)(nil),                  // 18: asc.v1.AgentToken
-	(*CreateAgentTokenRequest)(nil),     // 19: asc.v1.CreateAgentTokenRequest
-	(*CreateAgentTokenResponse)(nil),    // 20: asc.v1.CreateAgentTokenResponse
-	(*ListAgentTokensRequest)(nil),      // 21: asc.v1.ListAgentTokensRequest
-	(*ListAgentTokensResponse)(nil),     // 22: asc.v1.ListAgentTokensResponse
-	(*GetAgentTokenRequest)(nil),        // 23: asc.v1.GetAgentTokenRequest
-	(*GetAgentTokenResponse)(nil),       // 24: asc.v1.GetAgentTokenResponse
-	(*RevokeAgentTokenRequest)(nil),     // 25: asc.v1.RevokeAgentTokenRequest
-	(*RevokeAgentTokenResponse)(nil),    // 26: asc.v1.RevokeAgentTokenResponse
-	(*SetAgentTokenBudgetRequest)(nil),  // 27: asc.v1.SetAgentTokenBudgetRequest
-	(*SetAgentTokenBudgetResponse)(nil), // 28: asc.v1.SetAgentTokenBudgetResponse
-	(*ReportAgentUsageRequest)(nil),     // 29: asc.v1.ReportAgentUsageRequest
-	(*ReportAgentUsageResponse)(nil),    // 30: asc.v1.ReportAgentUsageResponse
-	(*RepoRef)(nil),                     // 31: asc.v1.RepoRef
+	(AgentRunState)(0),                   // 0: asc.v1.AgentRunState
+	(AgentRunEventKind)(0),               // 1: asc.v1.AgentRunEventKind
+	(AgentTokenState)(0),                 // 2: asc.v1.AgentTokenState
+	(AgentRequestKind)(0),                // 3: asc.v1.AgentRequestKind
+	(AgentRequestState)(0),               // 4: asc.v1.AgentRequestState
+	(AgentDecision)(0),                   // 5: asc.v1.AgentDecision
+	(*AgentBudgetLimits)(nil),            // 6: asc.v1.AgentBudgetLimits
+	(*AgentBudgetUsage)(nil),             // 7: asc.v1.AgentBudgetUsage
+	(*AgentRun)(nil),                     // 8: asc.v1.AgentRun
+	(*AgentRunProgress)(nil),             // 9: asc.v1.AgentRunProgress
+	(*CreateAgentRunRequest)(nil),        // 10: asc.v1.CreateAgentRunRequest
+	(*CreateAgentRunResponse)(nil),       // 11: asc.v1.CreateAgentRunResponse
+	(*ListAgentRunsRequest)(nil),         // 12: asc.v1.ListAgentRunsRequest
+	(*ListAgentRunsResponse)(nil),        // 13: asc.v1.ListAgentRunsResponse
+	(*GetAgentRunRequest)(nil),           // 14: asc.v1.GetAgentRunRequest
+	(*GetAgentRunResponse)(nil),          // 15: asc.v1.GetAgentRunResponse
+	(*CancelAgentRunRequest)(nil),        // 16: asc.v1.CancelAgentRunRequest
+	(*CancelAgentRunResponse)(nil),       // 17: asc.v1.CancelAgentRunResponse
+	(*SendAgentInputRequest)(nil),        // 18: asc.v1.SendAgentInputRequest
+	(*SendAgentInputResponse)(nil),       // 19: asc.v1.SendAgentInputResponse
+	(*AgentRunEvent)(nil),                // 20: asc.v1.AgentRunEvent
+	(*WatchAgentRunRequest)(nil),         // 21: asc.v1.WatchAgentRunRequest
+	(*AgentToken)(nil),                   // 22: asc.v1.AgentToken
+	(*CreateAgentTokenRequest)(nil),      // 23: asc.v1.CreateAgentTokenRequest
+	(*CreateAgentTokenResponse)(nil),     // 24: asc.v1.CreateAgentTokenResponse
+	(*ListAgentTokensRequest)(nil),       // 25: asc.v1.ListAgentTokensRequest
+	(*ListAgentTokensResponse)(nil),      // 26: asc.v1.ListAgentTokensResponse
+	(*GetAgentTokenRequest)(nil),         // 27: asc.v1.GetAgentTokenRequest
+	(*GetAgentTokenResponse)(nil),        // 28: asc.v1.GetAgentTokenResponse
+	(*RevokeAgentTokenRequest)(nil),      // 29: asc.v1.RevokeAgentTokenRequest
+	(*RevokeAgentTokenResponse)(nil),     // 30: asc.v1.RevokeAgentTokenResponse
+	(*SetAgentTokenBudgetRequest)(nil),   // 31: asc.v1.SetAgentTokenBudgetRequest
+	(*SetAgentTokenBudgetResponse)(nil),  // 32: asc.v1.SetAgentTokenBudgetResponse
+	(*ReportAgentUsageRequest)(nil),      // 33: asc.v1.ReportAgentUsageRequest
+	(*ReportAgentUsageResponse)(nil),     // 34: asc.v1.ReportAgentUsageResponse
+	(*AgentPlanStep)(nil),                // 35: asc.v1.AgentPlanStep
+	(*AgentRequest)(nil),                 // 36: asc.v1.AgentRequest
+	(*ListAgentRequestsRequest)(nil),     // 37: asc.v1.ListAgentRequestsRequest
+	(*ListAgentRequestsResponse)(nil),    // 38: asc.v1.ListAgentRequestsResponse
+	(*DecideAgentRequestRequest)(nil),    // 39: asc.v1.DecideAgentRequestRequest
+	(*DecideAgentRequestResponse)(nil),   // 40: asc.v1.DecideAgentRequestResponse
+	(*PauseAgentRunRequest)(nil),         // 41: asc.v1.PauseAgentRunRequest
+	(*PauseAgentRunResponse)(nil),        // 42: asc.v1.PauseAgentRunResponse
+	(*AgentCheckpoint)(nil),              // 43: asc.v1.AgentCheckpoint
+	(*ListAgentCheckpointsRequest)(nil),  // 44: asc.v1.ListAgentCheckpointsRequest
+	(*ListAgentCheckpointsResponse)(nil), // 45: asc.v1.ListAgentCheckpointsResponse
+	(*RollbackAgentRunRequest)(nil),      // 46: asc.v1.RollbackAgentRunRequest
+	(*RollbackAgentRunResponse)(nil),     // 47: asc.v1.RollbackAgentRunResponse
+	(*SetAgentRunLimitsRequest)(nil),     // 48: asc.v1.SetAgentRunLimitsRequest
+	(*SetAgentRunLimitsResponse)(nil),    // 49: asc.v1.SetAgentRunLimitsResponse
+	(*ContinueAgentRunRequest)(nil),      // 50: asc.v1.ContinueAgentRunRequest
+	(*ContinueAgentRunResponse)(nil),     // 51: asc.v1.ContinueAgentRunResponse
+	(*GetAgentEstimateRequest)(nil),      // 52: asc.v1.GetAgentEstimateRequest
+	(*GetAgentEstimateResponse)(nil),     // 53: asc.v1.GetAgentEstimateResponse
+	(*AgentTaskRef)(nil),                 // 54: asc.v1.AgentTaskRef
+	(*RecentAgentTasksRequest)(nil),      // 55: asc.v1.RecentAgentTasksRequest
+	(*RecentAgentTasksResponse)(nil),     // 56: asc.v1.RecentAgentTasksResponse
+	(*GetAgentRunLogRequest)(nil),        // 57: asc.v1.GetAgentRunLogRequest
+	(*GetAgentRunLogResponse)(nil),       // 58: asc.v1.GetAgentRunLogResponse
+	(*RepoAgentInfo)(nil),                // 59: asc.v1.RepoAgentInfo
+	(*ListRepoAgentsRequest)(nil),        // 60: asc.v1.ListRepoAgentsRequest
+	(*ListRepoAgentsResponse)(nil),       // 61: asc.v1.ListRepoAgentsResponse
+	(*SpendDay)(nil),                     // 62: asc.v1.SpendDay
+	(*AgentSpend)(nil),                   // 63: asc.v1.AgentSpend
+	(*GetAgentSpendRequest)(nil),         // 64: asc.v1.GetAgentSpendRequest
+	(*GetAgentSpendResponse)(nil),        // 65: asc.v1.GetAgentSpendResponse
+	(*SetMonthlyBudgetRequest)(nil),      // 66: asc.v1.SetMonthlyBudgetRequest
+	(*SetMonthlyBudgetResponse)(nil),     // 67: asc.v1.SetMonthlyBudgetResponse
+	(*RepoRef)(nil),                      // 68: asc.v1.RepoRef
 }
 var file_asc_v1_agents_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.AgentRun.state:type_name -> asc.v1.AgentRunState
-	3,  // 1: asc.v1.AgentRun.limits:type_name -> asc.v1.AgentBudgetLimits
-	4,  // 2: asc.v1.AgentRun.usage:type_name -> asc.v1.AgentBudgetUsage
-	31, // 3: asc.v1.CreateAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	3,  // 4: asc.v1.CreateAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	5,  // 5: asc.v1.CreateAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	31, // 6: asc.v1.ListAgentRunsRequest.repo:type_name -> asc.v1.RepoRef
-	0,  // 7: asc.v1.ListAgentRunsRequest.states:type_name -> asc.v1.AgentRunState
-	5,  // 8: asc.v1.ListAgentRunsResponse.runs:type_name -> asc.v1.AgentRun
-	31, // 9: asc.v1.GetAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	5,  // 10: asc.v1.GetAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	31, // 11: asc.v1.CancelAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	5,  // 12: asc.v1.CancelAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	31, // 13: asc.v1.SendAgentInputRequest.repo:type_name -> asc.v1.RepoRef
-	5,  // 14: asc.v1.SendAgentInputResponse.run:type_name -> asc.v1.AgentRun
-	1,  // 15: asc.v1.AgentRunEvent.kind:type_name -> asc.v1.AgentRunEventKind
-	0,  // 16: asc.v1.AgentRunEvent.state:type_name -> asc.v1.AgentRunState
-	4,  // 17: asc.v1.AgentRunEvent.usage:type_name -> asc.v1.AgentBudgetUsage
-	31, // 18: asc.v1.WatchAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	2,  // 19: asc.v1.AgentToken.state:type_name -> asc.v1.AgentTokenState
-	3,  // 20: asc.v1.AgentToken.limits:type_name -> asc.v1.AgentBudgetLimits
-	4,  // 21: asc.v1.AgentToken.usage:type_name -> asc.v1.AgentBudgetUsage
-	31, // 22: asc.v1.CreateAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
-	3,  // 23: asc.v1.CreateAgentTokenRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	18, // 24: asc.v1.CreateAgentTokenResponse.token:type_name -> asc.v1.AgentToken
-	31, // 25: asc.v1.ListAgentTokensRequest.repo:type_name -> asc.v1.RepoRef
-	2,  // 26: asc.v1.ListAgentTokensRequest.states:type_name -> asc.v1.AgentTokenState
-	18, // 27: asc.v1.ListAgentTokensResponse.tokens:type_name -> asc.v1.AgentToken
-	31, // 28: asc.v1.GetAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 29: asc.v1.GetAgentTokenResponse.token:type_name -> asc.v1.AgentToken
-	4,  // 30: asc.v1.GetAgentTokenResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
-	31, // 31: asc.v1.RevokeAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 32: asc.v1.RevokeAgentTokenResponse.token:type_name -> asc.v1.AgentToken
-	31, // 33: asc.v1.SetAgentTokenBudgetRequest.repo:type_name -> asc.v1.RepoRef
-	3,  // 34: asc.v1.SetAgentTokenBudgetRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	18, // 35: asc.v1.SetAgentTokenBudgetResponse.token:type_name -> asc.v1.AgentToken
-	31, // 36: asc.v1.ReportAgentUsageRequest.repo:type_name -> asc.v1.RepoRef
-	4,  // 37: asc.v1.ReportAgentUsageResponse.usage:type_name -> asc.v1.AgentBudgetUsage
-	4,  // 38: asc.v1.ReportAgentUsageResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
-	6,  // 39: asc.v1.Agents.CreateRun:input_type -> asc.v1.CreateAgentRunRequest
-	8,  // 40: asc.v1.Agents.ListRuns:input_type -> asc.v1.ListAgentRunsRequest
-	10, // 41: asc.v1.Agents.GetRun:input_type -> asc.v1.GetAgentRunRequest
-	12, // 42: asc.v1.Agents.CancelRun:input_type -> asc.v1.CancelAgentRunRequest
-	14, // 43: asc.v1.Agents.SendInput:input_type -> asc.v1.SendAgentInputRequest
-	17, // 44: asc.v1.Agents.WatchRun:input_type -> asc.v1.WatchAgentRunRequest
-	19, // 45: asc.v1.AgentTokens.CreateToken:input_type -> asc.v1.CreateAgentTokenRequest
-	21, // 46: asc.v1.AgentTokens.ListTokens:input_type -> asc.v1.ListAgentTokensRequest
-	23, // 47: asc.v1.AgentTokens.GetToken:input_type -> asc.v1.GetAgentTokenRequest
-	25, // 48: asc.v1.AgentTokens.RevokeToken:input_type -> asc.v1.RevokeAgentTokenRequest
-	27, // 49: asc.v1.AgentTokens.SetBudget:input_type -> asc.v1.SetAgentTokenBudgetRequest
-	29, // 50: asc.v1.AgentTokens.ReportUsage:input_type -> asc.v1.ReportAgentUsageRequest
-	7,  // 51: asc.v1.Agents.CreateRun:output_type -> asc.v1.CreateAgentRunResponse
-	9,  // 52: asc.v1.Agents.ListRuns:output_type -> asc.v1.ListAgentRunsResponse
-	11, // 53: asc.v1.Agents.GetRun:output_type -> asc.v1.GetAgentRunResponse
-	13, // 54: asc.v1.Agents.CancelRun:output_type -> asc.v1.CancelAgentRunResponse
-	15, // 55: asc.v1.Agents.SendInput:output_type -> asc.v1.SendAgentInputResponse
-	16, // 56: asc.v1.Agents.WatchRun:output_type -> asc.v1.AgentRunEvent
-	20, // 57: asc.v1.AgentTokens.CreateToken:output_type -> asc.v1.CreateAgentTokenResponse
-	22, // 58: asc.v1.AgentTokens.ListTokens:output_type -> asc.v1.ListAgentTokensResponse
-	24, // 59: asc.v1.AgentTokens.GetToken:output_type -> asc.v1.GetAgentTokenResponse
-	26, // 60: asc.v1.AgentTokens.RevokeToken:output_type -> asc.v1.RevokeAgentTokenResponse
-	28, // 61: asc.v1.AgentTokens.SetBudget:output_type -> asc.v1.SetAgentTokenBudgetResponse
-	30, // 62: asc.v1.AgentTokens.ReportUsage:output_type -> asc.v1.ReportAgentUsageResponse
-	51, // [51:63] is the sub-list for method output_type
-	39, // [39:51] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	6,  // 1: asc.v1.AgentRun.limits:type_name -> asc.v1.AgentBudgetLimits
+	7,  // 2: asc.v1.AgentRun.usage:type_name -> asc.v1.AgentBudgetUsage
+	9,  // 3: asc.v1.AgentRun.progress:type_name -> asc.v1.AgentRunProgress
+	68, // 4: asc.v1.CreateAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	6,  // 5: asc.v1.CreateAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	8,  // 6: asc.v1.CreateAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	68, // 7: asc.v1.ListAgentRunsRequest.repo:type_name -> asc.v1.RepoRef
+	0,  // 8: asc.v1.ListAgentRunsRequest.states:type_name -> asc.v1.AgentRunState
+	8,  // 9: asc.v1.ListAgentRunsResponse.runs:type_name -> asc.v1.AgentRun
+	68, // 10: asc.v1.GetAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,  // 11: asc.v1.GetAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	68, // 12: asc.v1.CancelAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,  // 13: asc.v1.CancelAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	68, // 14: asc.v1.SendAgentInputRequest.repo:type_name -> asc.v1.RepoRef
+	8,  // 15: asc.v1.SendAgentInputResponse.run:type_name -> asc.v1.AgentRun
+	1,  // 16: asc.v1.AgentRunEvent.kind:type_name -> asc.v1.AgentRunEventKind
+	0,  // 17: asc.v1.AgentRunEvent.state:type_name -> asc.v1.AgentRunState
+	7,  // 18: asc.v1.AgentRunEvent.usage:type_name -> asc.v1.AgentBudgetUsage
+	68, // 19: asc.v1.WatchAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	2,  // 20: asc.v1.AgentToken.state:type_name -> asc.v1.AgentTokenState
+	6,  // 21: asc.v1.AgentToken.limits:type_name -> asc.v1.AgentBudgetLimits
+	7,  // 22: asc.v1.AgentToken.usage:type_name -> asc.v1.AgentBudgetUsage
+	68, // 23: asc.v1.CreateAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
+	6,  // 24: asc.v1.CreateAgentTokenRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	22, // 25: asc.v1.CreateAgentTokenResponse.token:type_name -> asc.v1.AgentToken
+	68, // 26: asc.v1.ListAgentTokensRequest.repo:type_name -> asc.v1.RepoRef
+	2,  // 27: asc.v1.ListAgentTokensRequest.states:type_name -> asc.v1.AgentTokenState
+	22, // 28: asc.v1.ListAgentTokensResponse.tokens:type_name -> asc.v1.AgentToken
+	68, // 29: asc.v1.GetAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
+	22, // 30: asc.v1.GetAgentTokenResponse.token:type_name -> asc.v1.AgentToken
+	7,  // 31: asc.v1.GetAgentTokenResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
+	68, // 32: asc.v1.RevokeAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
+	22, // 33: asc.v1.RevokeAgentTokenResponse.token:type_name -> asc.v1.AgentToken
+	68, // 34: asc.v1.SetAgentTokenBudgetRequest.repo:type_name -> asc.v1.RepoRef
+	6,  // 35: asc.v1.SetAgentTokenBudgetRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	22, // 36: asc.v1.SetAgentTokenBudgetResponse.token:type_name -> asc.v1.AgentToken
+	68, // 37: asc.v1.ReportAgentUsageRequest.repo:type_name -> asc.v1.RepoRef
+	7,  // 38: asc.v1.ReportAgentUsageResponse.usage:type_name -> asc.v1.AgentBudgetUsage
+	7,  // 39: asc.v1.ReportAgentUsageResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
+	3,  // 40: asc.v1.AgentRequest.kind:type_name -> asc.v1.AgentRequestKind
+	4,  // 41: asc.v1.AgentRequest.state:type_name -> asc.v1.AgentRequestState
+	35, // 42: asc.v1.AgentRequest.plan:type_name -> asc.v1.AgentPlanStep
+	68, // 43: asc.v1.ListAgentRequestsRequest.repo:type_name -> asc.v1.RepoRef
+	4,  // 44: asc.v1.ListAgentRequestsRequest.states:type_name -> asc.v1.AgentRequestState
+	36, // 45: asc.v1.ListAgentRequestsResponse.requests:type_name -> asc.v1.AgentRequest
+	68, // 46: asc.v1.DecideAgentRequestRequest.repo:type_name -> asc.v1.RepoRef
+	5,  // 47: asc.v1.DecideAgentRequestRequest.decision:type_name -> asc.v1.AgentDecision
+	36, // 48: asc.v1.DecideAgentRequestResponse.request:type_name -> asc.v1.AgentRequest
+	8,  // 49: asc.v1.DecideAgentRequestResponse.run:type_name -> asc.v1.AgentRun
+	68, // 50: asc.v1.PauseAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,  // 51: asc.v1.PauseAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	68, // 52: asc.v1.ListAgentCheckpointsRequest.repo:type_name -> asc.v1.RepoRef
+	43, // 53: asc.v1.ListAgentCheckpointsResponse.checkpoints:type_name -> asc.v1.AgentCheckpoint
+	68, // 54: asc.v1.RollbackAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,  // 55: asc.v1.RollbackAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	43, // 56: asc.v1.RollbackAgentRunResponse.checkpoint:type_name -> asc.v1.AgentCheckpoint
+	68, // 57: asc.v1.SetAgentRunLimitsRequest.repo:type_name -> asc.v1.RepoRef
+	6,  // 58: asc.v1.SetAgentRunLimitsRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	8,  // 59: asc.v1.SetAgentRunLimitsResponse.run:type_name -> asc.v1.AgentRun
+	68, // 60: asc.v1.ContinueAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	6,  // 61: asc.v1.ContinueAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	8,  // 62: asc.v1.ContinueAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	68, // 63: asc.v1.GetAgentEstimateRequest.repo:type_name -> asc.v1.RepoRef
+	68, // 64: asc.v1.RecentAgentTasksRequest.repo:type_name -> asc.v1.RepoRef
+	54, // 65: asc.v1.RecentAgentTasksResponse.tasks:type_name -> asc.v1.AgentTaskRef
+	68, // 66: asc.v1.GetAgentRunLogRequest.repo:type_name -> asc.v1.RepoRef
+	68, // 67: asc.v1.ListRepoAgentsRequest.repo:type_name -> asc.v1.RepoRef
+	59, // 68: asc.v1.ListRepoAgentsResponse.agents:type_name -> asc.v1.RepoAgentInfo
+	68, // 69: asc.v1.GetAgentSpendRequest.repo:type_name -> asc.v1.RepoRef
+	62, // 70: asc.v1.GetAgentSpendResponse.days:type_name -> asc.v1.SpendDay
+	63, // 71: asc.v1.GetAgentSpendResponse.agents:type_name -> asc.v1.AgentSpend
+	68, // 72: asc.v1.SetMonthlyBudgetRequest.repo:type_name -> asc.v1.RepoRef
+	10, // 73: asc.v1.Agents.CreateRun:input_type -> asc.v1.CreateAgentRunRequest
+	12, // 74: asc.v1.Agents.ListRuns:input_type -> asc.v1.ListAgentRunsRequest
+	14, // 75: asc.v1.Agents.GetRun:input_type -> asc.v1.GetAgentRunRequest
+	16, // 76: asc.v1.Agents.CancelRun:input_type -> asc.v1.CancelAgentRunRequest
+	18, // 77: asc.v1.Agents.SendInput:input_type -> asc.v1.SendAgentInputRequest
+	21, // 78: asc.v1.Agents.WatchRun:input_type -> asc.v1.WatchAgentRunRequest
+	37, // 79: asc.v1.Agents.ListRequests:input_type -> asc.v1.ListAgentRequestsRequest
+	39, // 80: asc.v1.Agents.DecideRequest:input_type -> asc.v1.DecideAgentRequestRequest
+	41, // 81: asc.v1.Agents.PauseRun:input_type -> asc.v1.PauseAgentRunRequest
+	44, // 82: asc.v1.Agents.ListCheckpoints:input_type -> asc.v1.ListAgentCheckpointsRequest
+	46, // 83: asc.v1.Agents.RollbackRun:input_type -> asc.v1.RollbackAgentRunRequest
+	48, // 84: asc.v1.Agents.SetRunLimits:input_type -> asc.v1.SetAgentRunLimitsRequest
+	50, // 85: asc.v1.Agents.ContinueRun:input_type -> asc.v1.ContinueAgentRunRequest
+	52, // 86: asc.v1.Agents.GetEstimate:input_type -> asc.v1.GetAgentEstimateRequest
+	55, // 87: asc.v1.Agents.RecentTasks:input_type -> asc.v1.RecentAgentTasksRequest
+	57, // 88: asc.v1.Agents.GetRunLog:input_type -> asc.v1.GetAgentRunLogRequest
+	60, // 89: asc.v1.Agents.ListAgents:input_type -> asc.v1.ListRepoAgentsRequest
+	64, // 90: asc.v1.Agents.GetSpend:input_type -> asc.v1.GetAgentSpendRequest
+	66, // 91: asc.v1.Agents.SetMonthlyBudget:input_type -> asc.v1.SetMonthlyBudgetRequest
+	23, // 92: asc.v1.AgentTokens.CreateToken:input_type -> asc.v1.CreateAgentTokenRequest
+	25, // 93: asc.v1.AgentTokens.ListTokens:input_type -> asc.v1.ListAgentTokensRequest
+	27, // 94: asc.v1.AgentTokens.GetToken:input_type -> asc.v1.GetAgentTokenRequest
+	29, // 95: asc.v1.AgentTokens.RevokeToken:input_type -> asc.v1.RevokeAgentTokenRequest
+	31, // 96: asc.v1.AgentTokens.SetBudget:input_type -> asc.v1.SetAgentTokenBudgetRequest
+	33, // 97: asc.v1.AgentTokens.ReportUsage:input_type -> asc.v1.ReportAgentUsageRequest
+	11, // 98: asc.v1.Agents.CreateRun:output_type -> asc.v1.CreateAgentRunResponse
+	13, // 99: asc.v1.Agents.ListRuns:output_type -> asc.v1.ListAgentRunsResponse
+	15, // 100: asc.v1.Agents.GetRun:output_type -> asc.v1.GetAgentRunResponse
+	17, // 101: asc.v1.Agents.CancelRun:output_type -> asc.v1.CancelAgentRunResponse
+	19, // 102: asc.v1.Agents.SendInput:output_type -> asc.v1.SendAgentInputResponse
+	20, // 103: asc.v1.Agents.WatchRun:output_type -> asc.v1.AgentRunEvent
+	38, // 104: asc.v1.Agents.ListRequests:output_type -> asc.v1.ListAgentRequestsResponse
+	40, // 105: asc.v1.Agents.DecideRequest:output_type -> asc.v1.DecideAgentRequestResponse
+	42, // 106: asc.v1.Agents.PauseRun:output_type -> asc.v1.PauseAgentRunResponse
+	45, // 107: asc.v1.Agents.ListCheckpoints:output_type -> asc.v1.ListAgentCheckpointsResponse
+	47, // 108: asc.v1.Agents.RollbackRun:output_type -> asc.v1.RollbackAgentRunResponse
+	49, // 109: asc.v1.Agents.SetRunLimits:output_type -> asc.v1.SetAgentRunLimitsResponse
+	51, // 110: asc.v1.Agents.ContinueRun:output_type -> asc.v1.ContinueAgentRunResponse
+	53, // 111: asc.v1.Agents.GetEstimate:output_type -> asc.v1.GetAgentEstimateResponse
+	56, // 112: asc.v1.Agents.RecentTasks:output_type -> asc.v1.RecentAgentTasksResponse
+	58, // 113: asc.v1.Agents.GetRunLog:output_type -> asc.v1.GetAgentRunLogResponse
+	61, // 114: asc.v1.Agents.ListAgents:output_type -> asc.v1.ListRepoAgentsResponse
+	65, // 115: asc.v1.Agents.GetSpend:output_type -> asc.v1.GetAgentSpendResponse
+	67, // 116: asc.v1.Agents.SetMonthlyBudget:output_type -> asc.v1.SetMonthlyBudgetResponse
+	24, // 117: asc.v1.AgentTokens.CreateToken:output_type -> asc.v1.CreateAgentTokenResponse
+	26, // 118: asc.v1.AgentTokens.ListTokens:output_type -> asc.v1.ListAgentTokensResponse
+	28, // 119: asc.v1.AgentTokens.GetToken:output_type -> asc.v1.GetAgentTokenResponse
+	30, // 120: asc.v1.AgentTokens.RevokeToken:output_type -> asc.v1.RevokeAgentTokenResponse
+	32, // 121: asc.v1.AgentTokens.SetBudget:output_type -> asc.v1.SetAgentTokenBudgetResponse
+	34, // 122: asc.v1.AgentTokens.ReportUsage:output_type -> asc.v1.ReportAgentUsageResponse
+	98, // [98:123] is the sub-list for method output_type
+	73, // [73:98] is the sub-list for method input_type
+	73, // [73:73] is the sub-list for extension type_name
+	73, // [73:73] is the sub-list for extension extendee
+	0,  // [0:73] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_agents_proto_init() }
@@ -2560,8 +5304,8 @@ func file_asc_v1_agents_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_agents_proto_rawDesc), len(file_asc_v1_agents_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   28,
+			NumEnums:      6,
+			NumMessages:   62,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

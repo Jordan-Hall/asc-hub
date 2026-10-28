@@ -39,6 +39,19 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 					</div>
 				</form>
 
+
+				<div class="rv-chips ag-ops-chips" role="group" aria-label="{{ctx.Locale.Tr "asc_review.ops_kind_label"}}" data-testid="asc-ops-kinds">
+					<a class="rv-chip-btn" href="{{.AllURL}}"{{if not .Kind}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.agents_filter_all"}} <span class="rv-count">{{.Total}}</span></a>
+					{{range .Chips}}<a class="rv-chip-btn" href="{{.URL}}"{{if .On}} aria-current="true"{{end}}>{{ctx.Locale.Tr (printf "asc_trust.ops.via.%s" .Key)}} <span class="rv-count">{{.Count}}</span></a>{{end}}
+					{{if .ExportURL}}<a class="rv-btn rv-btn-secondary rv-btn-sm ag-ops-export" href="{{.ExportURL}}" download>{{ctx.Locale.Tr "asc_review.ops_export"}}</a>{{end}}
+				</div>
+				{{if .Actors}}
+				<section class="rv-card rv-gap" aria-labelledby="asc-ops-actors" data-testid="asc-ops-actors">
+					<div class="rv-card-h"><h2 id="asc-ops-actors">{{ctx.Locale.Tr "asc_review.ops_actors"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.ops_actors_help" .Total}}</span></div>
+					<ul class="rv-list ag-actors">{{range .Actors}}<li><span class="ag-actor-n">{{.Actor}}</span><span class="rv-bar" role="img" aria-label="{{.Count}}"><i style="width:{{.Pct}}%"></i></span><span class="rv-num">{{.Count}}</span></li>{{end}}</ul>
+				</section>
+				{{end}}
+
 				<section class="rv-card rv-gap" aria-labelledby="asc-ops-list">
 					<div class="rv-card-h"><h2 id="asc-ops-list">{{ctx.Locale.Tr "asc_trust.ops.list"}}</h2></div>
 					{{if .Rows}}

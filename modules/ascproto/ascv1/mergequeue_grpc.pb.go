@@ -19,13 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MergeQueue_Enqueue_FullMethodName    = "/asc.v1.MergeQueue/Enqueue"
-	MergeQueue_Dequeue_FullMethodName    = "/asc.v1.MergeQueue/Dequeue"
-	MergeQueue_List_FullMethodName       = "/asc.v1.MergeQueue/List"
-	MergeQueue_Get_FullMethodName        = "/asc.v1.MergeQueue/Get"
-	MergeQueue_Revalidate_FullMethodName = "/asc.v1.MergeQueue/Revalidate"
-	MergeQueue_SetPaused_FullMethodName  = "/asc.v1.MergeQueue/SetPaused"
-	MergeQueue_Watch_FullMethodName      = "/asc.v1.MergeQueue/Watch"
+	MergeQueue_Enqueue_FullMethodName     = "/asc.v1.MergeQueue/Enqueue"
+	MergeQueue_Dequeue_FullMethodName     = "/asc.v1.MergeQueue/Dequeue"
+	MergeQueue_List_FullMethodName        = "/asc.v1.MergeQueue/List"
+	MergeQueue_Get_FullMethodName         = "/asc.v1.MergeQueue/Get"
+	MergeQueue_Revalidate_FullMethodName  = "/asc.v1.MergeQueue/Revalidate"
+	MergeQueue_SetPaused_FullMethodName   = "/asc.v1.MergeQueue/SetPaused"
+	MergeQueue_Watch_FullMethodName       = "/asc.v1.MergeQueue/Watch"
+	MergeQueue_Preview_FullMethodName     = "/asc.v1.MergeQueue/Preview"
+	MergeQueue_ReportEntry_FullMethodName = "/asc.v1.MergeQueue/ReportEntry"
 )
 
 // MergeQueueClient is the client API for MergeQueue service.
@@ -47,6 +49,8 @@ type MergeQueueClient interface {
 	Revalidate(ctx context.Context, in *RevalidateRequest, opts ...grpc.CallOption) (*RevalidateResponse, error)
 	SetPaused(ctx context.Context, in *SetQueuePausedRequest, opts ...grpc.CallOption) (*SetQueuePausedResponse, error)
 	Watch(ctx context.Context, in *WatchQueueRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QueueEvent], error)
+	Preview(ctx context.Context, in *PreviewEnqueueRequest, opts ...grpc.CallOption) (*PreviewEnqueueResponse, error)
+	ReportEntry(ctx context.Context, in *ReportQueueEntryRequest, opts ...grpc.CallOption) (*ReportQueueEntryResponse, error)
 }
 
 type mergeQueueClient struct {
@@ -136,6 +140,26 @@ func (c *mergeQueueClient) Watch(ctx context.Context, in *WatchQueueRequest, opt
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type MergeQueue_WatchClient = grpc.ServerStreamingClient[QueueEvent]
 
+func (c *mergeQueueClient) Preview(ctx context.Context, in *PreviewEnqueueRequest, opts ...grpc.CallOption) (*PreviewEnqueueResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewEnqueueResponse)
+	err := c.cc.Invoke(ctx, MergeQueue_Preview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mergeQueueClient) ReportEntry(ctx context.Context, in *ReportQueueEntryRequest, opts ...grpc.CallOption) (*ReportQueueEntryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportQueueEntryResponse)
+	err := c.cc.Invoke(ctx, MergeQueue_ReportEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MergeQueueServer is the server API for MergeQueue service.
 // All implementations should embed UnimplementedMergeQueueServer
 // for forward compatibility.
@@ -155,6 +179,8 @@ type MergeQueueServer interface {
 	Revalidate(context.Context, *RevalidateRequest) (*RevalidateResponse, error)
 	SetPaused(context.Context, *SetQueuePausedRequest) (*SetQueuePausedResponse, error)
 	Watch(*WatchQueueRequest, grpc.ServerStreamingServer[QueueEvent]) error
+	Preview(context.Context, *PreviewEnqueueRequest) (*PreviewEnqueueResponse, error)
+	ReportEntry(context.Context, *ReportQueueEntryRequest) (*ReportQueueEntryResponse, error)
 }
 
 // UnimplementedMergeQueueServer should be embedded to have
@@ -184,6 +210,12 @@ func (UnimplementedMergeQueueServer) SetPaused(context.Context, *SetQueuePausedR
 }
 func (UnimplementedMergeQueueServer) Watch(*WatchQueueRequest, grpc.ServerStreamingServer[QueueEvent]) error {
 	return status.Error(codes.Unimplemented, "method Watch not implemented")
+}
+func (UnimplementedMergeQueueServer) Preview(context.Context, *PreviewEnqueueRequest) (*PreviewEnqueueResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Preview not implemented")
+}
+func (UnimplementedMergeQueueServer) ReportEntry(context.Context, *ReportQueueEntryRequest) (*ReportQueueEntryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReportEntry not implemented")
 }
 func (UnimplementedMergeQueueServer) testEmbeddedByValue() {}
 
@@ -324,6 +356,42 @@ func _MergeQueue_Watch_Handler(srv interface{}, stream grpc.ServerStream) error 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type MergeQueue_WatchServer = grpc.ServerStreamingServer[QueueEvent]
 
+func _MergeQueue_Preview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewEnqueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MergeQueueServer).Preview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MergeQueue_Preview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MergeQueueServer).Preview(ctx, req.(*PreviewEnqueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MergeQueue_ReportEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportQueueEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MergeQueueServer).ReportEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MergeQueue_ReportEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MergeQueueServer).ReportEntry(ctx, req.(*ReportQueueEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MergeQueue_ServiceDesc is the grpc.ServiceDesc for MergeQueue service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -354,6 +422,14 @@ var MergeQueue_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetPaused",
 			Handler:    _MergeQueue_SetPaused_Handler,
+		},
+		{
+			MethodName: "Preview",
+			Handler:    _MergeQueue_Preview_Handler,
+		},
+		{
+			MethodName: "ReportEntry",
+			Handler:    _MergeQueue_ReportEntry_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

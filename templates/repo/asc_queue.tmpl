@@ -40,10 +40,11 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 			<div class="rv-banner rv-banner-warn" role="status"><div><b>{{ctx.Locale.Tr "repo.asc_queue.paused_done"}}</b> {{ctx.Locale.Tr "repo.asc_queue.pause_confirm"}}</div></div>
 		{{end}}
 
-		<div class="rv-stats rv-stats-3 rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.queue_stats"}}">
-			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "repo.asc_queue.waiting"}}</div><div class="rv-stat-v">{{len .AscQueue.Active}}</div></div>
-			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "repo.asc_queue.recent"}}</div><div class="rv-stat-v">{{len .AscQueue.Recent}}</div></div>
-			{{with .AscQuarantine}}<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_trust.queue.quarantine_title"}}</div><div class="rv-stat-v">{{len .Rows}}</div></div>{{end}}
+		<div class="rv-stats rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.queue_stats"}}" data-testid="asc-queue-stats">
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "repo.asc_queue.waiting"}}</div><div class="rv-stat-v" data-q-waiting>{{len .AscQueue.Active}}</div><div class="rv-stat-d">{{if .AscQueueNext}}{{ctx.Locale.Tr "asc_review.queue_next_lands" .AscQueueNext}}{{else}}{{ctx.Locale.Tr "asc_review.queue_in_order"}}{{end}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.queue_landed_today"}}</div><div class="rv-stat-v ag-v-ok">{{.AscQueueLandedToday}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.queue_recent_n" (len .AscQueue.Recent)}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.queue_median"}}</div><div class="rv-stat-v" data-q-median>{{if .AscQueueMedian}}{{.AscQueueMedian}}{{else}}&mdash;{{end}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.queue_median_help"}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.queue_refused"}}</div><div class="rv-stat-v{{if .AscQueueRefused}} ag-v-warn{{end}}">{{.AscQueueRefused}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.queue_refused_help"}}</div></div>
 		</div>
 
 		<div class="rv-cols rv-cols-main-side rv-gap">
@@ -51,19 +52,20 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 				<section class="rv-card" aria-labelledby="rv-queue-waiting">
 					<div class="rv-card-h"><h2 id="rv-queue-waiting">{{ctx.Locale.Tr "repo.asc_queue.waiting"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.queue_in_order"}}</span><span class="rv-count rv-end">{{len .AscQueue.Active}}</span></div>
 					{{if .AscQueue.Active}}
-						<ol class="rv-queue" data-testid="asc-queue-active">
+						<ol class="rv-queue" data-testid="asc-queue-active"{{if .AscQueueLiveURL}} data-asc-queue-live="{{.AscQueueLiveURL}}"{{end}}>
 							{{range .AscQueue.Active}}
-								<li class="rv-queue-row">
+								<li class="rv-queue-row" data-q-change="{{.Entry.AscChange}}">
 									<span class="rv-queue-pos" aria-label="{{ctx.Locale.Tr "repo.asc_queue.col_position"}}">{{.Position}}</span>
 									<div class="rv-queue-main">
 										<div class="rv-queue-title">{{if .PR}}<a href="{{.PR.Issue.Link}}">#{{.PR.Issue.Index}} {{.PR.Issue.Title}}</a>{{else}}<span class="rv-muted">{{ctx.Locale.Tr "repo.asc_queue.gone"}}</span>{{end}}</div>
 										{{if .Entry.Reason}}<div class="rv-li-sub">{{.Entry.Reason}}</div>{{end}}
+										{{with index $.AscQueueTimings .Entry.AscChange}}<div class="rv-li-sub ag-q-eta" data-q-eta>{{if .Detail}}{{.Detail}}{{if .ETA}}, {{ctx.Locale.Tr "asc_review.queue_lands_in" .ETA}}{{end}}{{else if .StartsIn}}{{ctx.Locale.Tr "asc_review.queue_starts_in" .StartsIn}}{{else if .ETA}}{{ctx.Locale.Tr "asc_review.queue_lands_in" .ETA}}{{end}}</div>{{end}}
 										<div class="rv-li-meta"><span>{{ctx.Locale.Tr "repo.asc_queue.col_by"}} {{with index $.AscQueueUsers .Entry.DoerID}}{{.GetDisplayName}}{{end}}</span></div>
 									</div>
 									<div class="rv-queue-state">
 										<span class="rv-pill {{if eq .Entry.State "blocked"}}rv-pill-err{{else if eq .Entry.State "landing"}}rv-pill-info{{else}}rv-pill-warn{{end}}">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.queued_%s" .Entry.State)}}</span>
 									</div>
-									{{if and .CanCancel .PR}}<div class="rv-queue-act"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.PR.Issue.Link}}/asc/confirm?op=unqueue">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a></div>{{end}}
+									{{if and .CanCancel .PR}}<div class="rv-queue-act"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.PR.Issue.Link}}/asc/confirm?op=unqueue">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a>{{if eq .Position 1}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.PR.Issue.Link}}/asc/confirm?op=merge">{{ctx.Locale.Tr "asc_review.queue_merge_now"}}</a>{{end}}</div>{{end}}
 								</li>
 							{{end}}
 						</ol>
