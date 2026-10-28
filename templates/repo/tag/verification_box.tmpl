@@ -1,27 +1,8 @@
 {{$v := call .ctxData.VerifyTag .release}}
 {{if call .ctxData.HasSignature $v}}
-	{{$class := "isSigned"}}
-	{{$href := ""}}
 	{{if $v.Verified}}
-		{{$href = $v.SigningUser.HomeLink}}
-		{{$class = (print $class " isVerified")}}
+		<span class="ds-chip ds-chip-ok isSigned isVerified" title="{{$v.Reason}}">{{svg "dsi-shield-check" 12}}{{ctx.Locale.Tr "asc_rp.verified"}}</span>
 	{{else}}
-		{{$class = (print $class " isWarning")}}
+		<span class="ds-chip ds-chip-warn isSigned isWarning" title="{{ctx.Locale.Tr $v.Reason}}">{{svg "dsi-alert" 12}}{{ctx.Locale.Tr "asc_rp.unverified"}}</span>
 	{{end}}
-
-	<a {{if $href}}href="{{$href}}"{{end}} class="ui label tw-ml-2 {{$class}}">
-		{{if $v.Verified}}
-			<div title="{{$v.Reason}}">
-				{{if ne $v.SigningUser.ID 0}}
-					{{svg "gitea-lock"}}
-					{{ctx.AvatarUtils.Avatar $v.SigningUser 28 "signature"}}
-				{{else}}
-					<span title="{{ctx.Locale.Tr "gpg.default_key"}}">{{svg "gitea-lock-cog"}}</span>
-					{{ctx.AvatarUtils.AvatarByEmail $v.Verification.SigningEmail "" 28 "signature"}}
-				{{end}}
-			</div>
-		{{else}}
-			<span title="{{ctx.Locale.Tr $v.Reason}}">{{svg "gitea-unlock"}}</span>
-		{{end}}
-	</a>
 {{end}}
