@@ -790,8 +790,21 @@
 }
 
 /* the stats line stays on a phone; the toolbar scrolls away there instead of sticking */
+.repository .rv-diff .diff-detail-box {
+  height: auto;
+  min-height: 44px;
+  margin-inline: 0;
+  padding: 0;
+}
+
 .repository .rv-diff .diff-detail-box .diff-detail-stats {
-  display: flex !important;
+  display: block !important;
+  min-width: 0;
+}
+
+.rv-diffbar-stats .rv-ic {
+  vertical-align: -3px;
+  margin-inline-end: 4px;
 }
 
 @media (max-width: 899.98px) {
