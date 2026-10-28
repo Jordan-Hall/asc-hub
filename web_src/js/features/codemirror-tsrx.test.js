@@ -127,7 +127,7 @@ function tokenizeLines(lines, from = 0, startState = null) {
 test('resuming from the saved state of the line before an edit equals a full re-parse', () => {
   const before = ['function A() @{', '  const a = 1;', '  @if (a) {', '    <p>{a}</p>', '  }', '}', 'const z = 2;'];
   const full = tokenizeLines(before);
-  const after = [...before];
+  const after = Array.from(before);
   after[3] = '    <p class="x">{a + 1}</p>';
   const expected = tokenizeLines(after).out;
   // resume at line 3 with the state saved for the start of line 3

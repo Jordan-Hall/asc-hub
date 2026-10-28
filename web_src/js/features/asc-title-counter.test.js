@@ -12,7 +12,7 @@ test('describeCount fills the template', () => {
 });
 
 function page(value) {
-  document.body.innerHTML = `<input id="t" value="${value}" data-asc-count="o" data-asc-count-max="10" data-asc-count-template="%d of %d" data-asc-count-over="Too long.">` + '<span id="o"></span>';
+  document.body.innerHTML = `<input id="t" value="${value}" data-asc-count="o" data-asc-count-max="10" data-asc-count-template="%d of %d" data-asc-count-over="Too long."><span id="o"></span>`;
   return [document.querySelector('#t'), document.querySelector('#o')];
 }
 
