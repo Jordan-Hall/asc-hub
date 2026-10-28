@@ -18,3 +18,15 @@
 	</div>
 </aside>
 {{end}}
+{{if .TrendingRepos}}
+<aside class="ds-rail ds-only-desktop" aria-label="{{ctx.Locale.Tr "explore.trending"}}">
+	<div class="ds-callout">
+		<h2 class="ds-t-h4">{{ctx.Locale.Tr "explore.trending"}}</h2>
+		<ol class="ds-rail-trend">
+			{{range .TrendingRepos}}
+				<li><a href="{{.Repo.Link}}">{{.Repo.FullName}}</a><span class="ds-hint">{{ctx.Locale.Tr "explore.trending_n" .Count}}</span></li>
+			{{end}}
+		</ol>
+	</div>
+</aside>
+{{end}}

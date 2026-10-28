@@ -2823,3 +2823,20 @@ a.ds-stat:hover {
   gap: 6px;
   margin-top: 12px;
 }
+
+.ds-rail-trend {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-rail-trend li {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ds-rail-trend li:first-child {
+  border-top: 0;
+}
