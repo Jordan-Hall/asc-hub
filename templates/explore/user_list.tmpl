@@ -35,6 +35,10 @@
 </ul>
 {{else}}
 <div class="ds-card">
-	{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_users_title") "Body" (ctx.Locale.Tr "search.no_results"))}}
+	{{if .Keyword}}
+		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_users_title") "Body" (ctx.Locale.Tr "search.no_results") "PrimaryHref" "?" "PrimaryLabel" (ctx.Locale.Tr "asc_shell.filters_clear"))}}
+	{{else}}
+		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_users_title") "Body" (ctx.Locale.Tr "search.no_results"))}}
+	{{end}}
 </div>
 {{end}}

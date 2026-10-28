@@ -5,7 +5,11 @@
 	<div class="ds-container ds-container-wide ds-explore-body">
 		<div class="ds-split">
 			<div class="ds-min0">
-				<p class="ds-results-line ds-hide-sm">{{ctx.Locale.TrPluralString .Total "explore.count_repos" (ctx.Locale.PrettyNumber .Total)}}</p>
+				<div class="ds-results-bar">
+					<p class="ds-results-line ds-hide-sm">{{ctx.Locale.TrPluralString .Total "explore.count_repos" (ctx.Locale.PrettyNumber .Total)}}</p>
+					{{template "shared/ds/layout_toggle" (dict "Target" ".ds-repolist")}}
+				</div>
+				{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" .Language "Sort" .SortType)}}
 				{{template "explore/repo_list" .}}
 				{{template "base/paginate" .}}
 			</div>

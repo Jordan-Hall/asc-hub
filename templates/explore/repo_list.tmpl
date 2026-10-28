@@ -49,11 +49,22 @@
 			{{if $open}}
 				<div class="ds-li-aside ds-hide-md"><a class="ds-chip ds-chip-info" href="{{.Link}}/pulls">{{ctx.Locale.TrPluralString $open "explore.open_stacks_n" (ctx.Locale.PrettyNumber $open)}}</a></div>
 			{{end}}
+			{{if AscEnabled}}
+			<div class="ds-row-acts">
+				<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-clipboard-text="asc clone {{AscHubHost}}/{{.FullName}}" data-ds-toast-copied="{{ctx.Locale.Tr "asc_shell.clone_copied"}}" aria-label="{{ctx.Locale.Tr "asc_shell.row_copy_clone_for" .FullName}}">{{svg "dsi-copy" 16}}<span class="ds-row-act-text">{{ctx.Locale.Tr "asc_shell.row_copy_clone"}}</span></button>
+			</div>
+			{{end}}
 		</li>
 	{{end}}
 </ul>
 {{else}}
 <div class="ds-card">
-	{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_repos_title") "Body" (ctx.Locale.Tr "search.no_results"))}}
+	{{if or .Keyword .Language}}
+		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_repos_title") "Body" (ctx.Locale.Tr "search.no_results") "PrimaryHref" "?" "PrimaryLabel" (ctx.Locale.Tr "asc_shell.filters_clear"))}}
+	{{else if and .IsSigned .PageIsExplore}}
+		{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "explore.no_repos_title") "Body" (ctx.Locale.Tr "search.no_results") "PrimaryHref" (print AppSubUrl "/repo/create") "PrimaryLabel" (ctx.Locale.Tr "new_repo.link") "SecondaryHref" (print AppSubUrl "/repo/migrate") "SecondaryLabel" (ctx.Locale.Tr "new_migrate.link"))}}
+	{{else}}
+		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_repos_title") "Body" (ctx.Locale.Tr "search.no_results"))}}
+	{{end}}
 </div>
 {{end}}

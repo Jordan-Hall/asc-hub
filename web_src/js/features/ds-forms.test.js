@@ -22,3 +22,17 @@ test('the live preview follows the form and hides empty rows', () => {
   expect(loc.textContent).toBe('London');
   expect(loc.hidden).toBe(false);
 });
+
+test('the layout toggle shows, applies the saved layout and keeps a new choice', async () => {
+  const {initLayoutToggle} = await import('./ds-forms.js');
+  localStorage.setItem('asc-layout', 'grid');
+  document.body.innerHTML = `<div data-layout-toggle data-layout-target=".l" hidden>
+    <button data-layout-set="list" aria-pressed="true"></button><button data-layout-set="grid" aria-pressed="false"></button></div><ul class="l"></ul>`;
+  initLayoutToggle();
+  expect(document.querySelector('[data-layout-toggle]').hidden).toBe(false);
+  expect(document.querySelector('.l').classList.contains('is-grid')).toBe(true);
+  expect(document.querySelector('[data-layout-set="grid"]').getAttribute('aria-pressed')).toBe('true');
+  document.querySelector('[data-layout-set="list"]').click();
+  expect(document.querySelector('.l').classList.contains('is-grid')).toBe(false);
+  expect(localStorage.getItem('asc-layout')).toBe('list');
+});
