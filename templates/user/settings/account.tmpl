@@ -58,6 +58,20 @@
 		</form>
 	</section>
 
+	<section class="ds-card" aria-labelledby="sp-signin">
+		<div class="ds-card-h"><h2 id="sp-signin">{{ctx.Locale.Tr "asc_work.sp_signin_methods"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_signin_methods_hint"}}</span></div>
+		<div class="ds-card-b ds-stack-16">
+			{{if .SignInProviders}}
+				<ul class="wk-switch-rows">
+					{{range .SignInProviders}}<li class="wk-switch-row"><span class="wk-switch-text"><b>{{.}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_signin_connected"}}</span></span></li>{{end}}
+				</ul>
+			{{else}}
+				<p class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_signin_none"}}</p>
+			{{end}}
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/user/settings/security">{{ctx.Locale.Tr "asc_work.sp_signin_manage"}}</a>
+		</div>
+	</section>
+
 	{{if $.EnableNotifyMail}}
 	<section class="ds-card" aria-labelledby="sp-mailpref">
 		<div class="ds-card-h"><h2 id="sp-mailpref">{{ctx.Locale.Tr "asc_work.sp_email_notifications"}}</h2></div>

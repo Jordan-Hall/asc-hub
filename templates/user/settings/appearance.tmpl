@@ -55,6 +55,22 @@
 		</div>
 	</section>
 
+	{{if .AscEnabled}}
+	<!-- Agent features: the same switch as on the agents page -->
+	<section class="ds-card" aria-labelledby="sp-agents">
+		<div class="ds-card-h"><h2 id="sp-agents">{{ctx.Locale.Tr "asc_work.sp_agents"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_agents_hint"}}</span></div>
+		<form class="ds-card-b" action="{{AppSubUrl}}/-/asc/agents/features" method="post">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="return" value="appearance">
+			<input type="hidden" name="enabled" value="{{if .AscAgentFeatures}}0{{else}}1{{end}}">
+			<div class="wk-switch-row">
+				<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.sp_agents_switch"}}</b><span class="ds-hint">{{if .AscAgentFeatures}}{{ctx.Locale.Tr "asc_work.sp_agents_on"}}{{else}}{{ctx.Locale.Tr "asc_work.sp_agents_off"}}{{end}}</span></span>
+				<button type="submit" class="ds-btn {{if .AscAgentFeatures}}ds-btn-secondary{{else}}ds-btn-primary{{end}}">{{if .AscAgentFeatures}}{{ctx.Locale.Tr "asc_work.sp_agents_turn_off"}}{{else}}{{ctx.Locale.Tr "asc_work.sp_agents_turn_on"}}{{end}}</button>
+			</div>
+		</form>
+	</section>
+	{{end}}
+
 	<!-- Language -->
 	<form class="ui form ds-form wk-sp-form" action="{{.Link}}/language" method="post">
 		{{.CsrfTokenHtml}}

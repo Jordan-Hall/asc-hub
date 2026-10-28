@@ -227,5 +227,9 @@ func AscAgentsFeaturesPost(ctx *context.Context) {
 	} else {
 		ctx.Flash.Success("Agent features are off.")
 	}
+	if ctx.FormString("return") == "appearance" {
+		ctx.Redirect(setting.AppSubURL + "/user/settings/appearance")
+		return
+	}
 	ctx.Redirect(setting.AppSubURL + "/-/asc/agents")
 }

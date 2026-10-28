@@ -26,6 +26,7 @@ import (
 	"forgejo.org/modules/util"
 	"forgejo.org/modules/web"
 	"forgejo.org/modules/web/middleware"
+	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/context"
 	"forgejo.org/services/forms"
 	user_service "forgejo.org/services/user"
@@ -355,6 +356,7 @@ func Repos(ctx *context.Context) {
 func Appearance(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings.appearance")
 	ctx.Data["PageIsSettingsAppearance"] = true
+	ctx.Data["AscAgentFeatures"] = setting.Asc.Enabled && ascagentui.FeaturesEnabled(ctx, ctx.Doer)
 	ctx.Data["AllThemes"] = setting.UI.Themes
 	ctx.Data["ThemeName"] = func(themeName string) string {
 		fullThemeName := "themes.names." + themeName
@@ -384,6 +386,7 @@ func UpdateUIThemePost(ctx *context.Context) {
 	form := web.GetForm(ctx).(*forms.UpdateThemeForm)
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsSettingsAppearance"] = true
+	ctx.Data["AscAgentFeatures"] = setting.Asc.Enabled && ascagentui.FeaturesEnabled(ctx, ctx.Doer)
 
 	if ctx.HasError() {
 		ctx.Redirect(setting.AppSubURL + "/user/settings/appearance")
@@ -413,6 +416,7 @@ func UpdateUserLang(ctx *context.Context) {
 	form := web.GetForm(ctx).(*forms.UpdateLanguageForm)
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsSettingsAppearance"] = true
+	ctx.Data["AscAgentFeatures"] = setting.Asc.Enabled && ascagentui.FeaturesEnabled(ctx, ctx.Doer)
 
 	if form.Language != "" {
 		if !util.SliceContainsString(setting.Langs, form.Language) {
@@ -443,6 +447,7 @@ func UpdateUserHints(ctx *context.Context) {
 	form := web.GetForm(ctx).(*forms.UpdateHintsForm)
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsSettingsAppearance"] = true
+	ctx.Data["AscAgentFeatures"] = setting.Asc.Enabled && ascagentui.FeaturesEnabled(ctx, ctx.Doer)
 
 	opts := &user_service.UpdateOptions{
 		EnableRepoUnitHints: optional.Some(form.EnableRepoUnitHints),
