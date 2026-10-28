@@ -653,6 +653,7 @@ func registerRoutes(m *web.Route) {
 	m.Get("/download", ignSignIn, Download)
 	m.Get("/-/about", ignSignIn, AscAbout)
 	m.Get("/-/docs", ignSignIn, AscDocs)
+	m.Get("/-/offline", ignSignIn, AscOffline)
 	m.Get("/-/get-started", reqSignIn, AscGetStarted)
 	m.Get("/user/welcome", reqSignIn, Welcome)
 	m.Methods("GET, HEAD", "/-/download/*", ignSignIn, DownloadFile)

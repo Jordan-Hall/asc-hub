@@ -1,0 +1,14 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="ds-main st-main">
+	<div class="ds-container st-wrap">
+		<section class="st-card" aria-labelledby="st-title">
+			<span class="st-ic" aria-hidden="true">{{svg "dsi-alert" 40}}</span>
+			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_err.title_offline"}}</h1>
+			<p class="st-text">{{ctx.Locale.Tr "asc_err.text_offline"}}</p>
+			<div class="st-actions">
+				<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/">{{ctx.Locale.Tr "asc_err.try_again"}}</a>
+			</div>
+		</section>
+	</div>
+</div>
+{{template "base/footer" .}}

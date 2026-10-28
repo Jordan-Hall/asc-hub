@@ -61,6 +61,7 @@ import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {
   initRepoSettingGitHook,
   initRepoSettingsCollaboration,
+  initRepoSettingsSaveBar,
   initRepoSettingSearchTeamBox,
 } from './features/repo-settings.js';
 import {initRepoDiffView} from './features/repo-diff.js';
@@ -183,6 +184,7 @@ onDomReady(() => {
   initRepoSettingGitHook();
   initRepoSettingSearchTeamBox();
   initRepoSettingsCollaboration();
+  initRepoSettingsSaveBar();
   initRepoTemplateSearch();
   initRepoTopicBar();
   initRepoWikiForm();

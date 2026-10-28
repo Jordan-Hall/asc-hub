@@ -78,7 +78,7 @@
 				<summary>{{ctx.Locale.Tr "ascbyo.storage.detail.delete_summary"}}</summary>
 				<form class="asc-byo-form" method="post" action="{{$a.StorageURL}}/targets/{{$t.ID}}/delete">
 					{{$.CsrfTokenHtml}}
-					<div class="asc-field asc-field-check">
+					<div class="ds-field asc-field asc-field-check">
 						<label><input type="checkbox" name="confirm" value="on" required> {{ctx.Locale.Tr "ascbyo.storage.detail.delete_confirm"}}</label>
 					</div>
 					<button class="ds-btn ds-btn-danger" type="submit">{{ctx.Locale.Tr "ascbyo.storage.detail.delete_button"}}</button>

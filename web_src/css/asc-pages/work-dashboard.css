@@ -393,3 +393,9 @@
 .wk-terminal-card .ds-card-b {
   padding-top: 12px;
 }
+
+/* long command comments wrap instead of being cut off */
+.wk-terminal-card .ds-term-bd code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

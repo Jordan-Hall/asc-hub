@@ -29,6 +29,12 @@ func AscAbout(ctx *context.Context) {
 	ctx.HTML(http.StatusOK, tplAscAbout)
 }
 
+// AscOffline serves GET /-/offline: the page a browser shows from its cache when the hub cannot be reached.
+func AscOffline(ctx *context.Context) {
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_err.title_offline")
+	ctx.HTML(http.StatusOK, "status/offline")
+}
+
 // AscDocs serves GET /-/docs: the start page of the documentation, which lives in the docs folder of the source.
 func AscDocs(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Locale.TrString("asc_site.docs_title")

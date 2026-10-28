@@ -107,8 +107,10 @@ func RenderCodeBlock(htmlEscapedTextToRender template.HTML) template.HTML {
 }
 
 const (
-	activeLabelOpacity   = uint8(255)
-	archivedLabelOpacity = uint8(127)
+	softLabelAlpha         = uint8(0x2b)
+	softArchivedLabelAlpha = uint8(0x15)
+	activeLabelOpacity     = uint8(255)
+	archivedLabelOpacity   = uint8(127)
 )
 
 func GetLabelOpacityByte(isArchived bool) uint8 {
@@ -161,9 +163,15 @@ func RenderLabel(ctx *Context, label *issues_model.Label) template.HTML {
 	if labelScope == "" {
 		// Regular label
 
-		labelColor := label.Color + hex.EncodeToString([]byte{GetLabelOpacityByte(label.IsArchived())})
-		s := fmt.Sprintf("<div class='ui label %s' style='color: %s !important; background-color: %s !important;' data-tooltip-content='%s' aria-description='%s'>%s</div>",
-			archivedCSSClass, textColor, labelColor, description, description, RenderEmoji(ctx, label.Name))
+		// A soft chip (design boards): the label colour as a light tint, the text a darker mix of it with the page text.
+		alpha := softLabelAlpha
+		if label.IsArchived() {
+			alpha = softArchivedLabelAlpha
+		}
+		labelColor := label.Color + hex.EncodeToString([]byte{alpha})
+		_ = textColor
+		s := fmt.Sprintf("<div class='ui label %s' style='color: color-mix(in srgb, %s 62%%, var(--text)) !important; background-color: %s !important; box-shadow: inset 0 0 0 1px %s !important;' data-tooltip-content='%s' aria-description='%s'>%s</div>",
+			archivedCSSClass, label.Color, labelColor, label.Color+hex.EncodeToString([]byte{0x59}), description, description, RenderEmoji(ctx, label.Name))
 		return template.HTML(s)
 	}
 

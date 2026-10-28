@@ -45,7 +45,9 @@
 					<input class="ds-input" id="website" name="website" type="url" maxlength="1024" pattern="{{.ValidSiteURLPattern}}" value="{{.Repository.Website}}">
 					<span class="ds-hint">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</span>
 				</div>
-				<div class="ds-field">
+				<div class="ds-savebar" data-savebar data-savebar-one="{{ctx.Locale.Tr "asc_rp.unsaved_one"}}" data-savebar-n="{{ctx.Locale.Tr "asc_rp.unsaved_n"}}">
+					<span class="ds-savebar-note" data-savebar-note aria-live="polite"></span>
+					<button type="button" class="ds-btn ds-btn-secondary" data-savebar-discard>{{ctx.Locale.Tr "asc_rp.discard"}}</button>
 					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
 				</div>
 			</form>

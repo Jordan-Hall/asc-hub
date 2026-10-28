@@ -7,7 +7,7 @@
 		<form class="asc-byo-form" method="post" action="{{$a.StorageURL}}/assign" data-testid="asc-assign">
 			{{.CsrfTokenHtml}}
 			<input type="hidden" name="op_id" value="{{$a.Op "assign"}}">
-			<div class="asc-field">
+			<div class="ds-field asc-field">
 				<label for="asc-assign-target">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_field"}}</label>
 				<select class="ds-select" id="asc-assign-target" name="target_id">
 					<option value="">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_default"}}</option>
@@ -42,20 +42,20 @@
 			<form class="asc-byo-form" method="post" action="{{$a.StorageURL}}/migrations" data-testid="asc-migrate">
 				{{.CsrfTokenHtml}}
 				<input type="hidden" name="op_id" value="{{$a.Op "migrate"}}">
-				<div class="asc-field">
+				<div class="ds-field asc-field">
 					<label for="asc-migrate-target">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_field"}}</label>
 					<select class="ds-select" id="asc-migrate-target" name="target_id">
 						<option value="">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_default"}}</option>
 						{{range $a.Usable}}<option value="{{.ID}}">{{.Label}}</option>{{end}}
 					</select>
 				</div>
-				<div class="asc-field asc-field-check">
+				<div class="ds-field asc-field asc-field-check">
 					<label><input type="checkbox" name="delete_source" value="on"> {{ctx.Locale.Tr "ascbyo.storage.repo.migrate_delete_source"}}</label>
-					<p class="asc-field-hint">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_delete_help"}}</p>
+					<p class="ds-hint asc-field-hint">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_delete_help"}}</p>
 				</div>
-				<div class="asc-field asc-field-check{{if $a.Errors.confirm_delete_source}} has-error{{end}}">
+				<div class="ds-field asc-field asc-field-check{{if $a.Errors.confirm_delete_source}} has-error{{end}}">
 					<label><input type="checkbox" name="confirm_delete_source" value="on"{{if $a.Errors.confirm_delete_source}} aria-invalid="true" aria-describedby="asc-confirm-err"{{end}}> {{ctx.Locale.Tr "ascbyo.storage.repo.migrate_confirm_delete"}}</label>
-					{{if $a.Errors.confirm_delete_source}}<p class="asc-field-error" id="asc-confirm-err" role="alert">{{ctx.Locale.Tr $a.Errors.confirm_delete_source}}</p>{{end}}
+					{{if $a.Errors.confirm_delete_source}}<p class="ds-hint ds-c-err asc-field-error" id="asc-confirm-err" role="alert">{{ctx.Locale.Tr $a.Errors.confirm_delete_source}}</p>{{end}}
 				</div>
 				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_button"}}</button>
 			</form>
