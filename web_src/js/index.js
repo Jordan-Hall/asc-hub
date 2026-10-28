@@ -58,7 +58,7 @@ import {initAscByoMigration} from './features/asc-byo.js';
 import {initAscUi} from './features/asc-ui.js';
 import {initDsShell} from './features/ds-shell.js';
 import {initDsToast} from './features/ds-toast.js';
-import {initLivePreview, initImagePreview, initLayoutToggle} from './features/ds-forms.js';
+import {initLivePreview, initImagePreview, initLayoutToggle, initPasswordStrength} from './features/ds-forms.js';
 import {initPrefs} from './features/ds-prefs.js';
 import {initBulk} from './features/ds-bulk.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
@@ -182,6 +182,7 @@ onDomReady(() => {
   initLivePreview();
   initImagePreview();
   initLayoutToggle();
+  initPasswordStrength();
   initPrefs();
   initBulk();
   initAscKeys();

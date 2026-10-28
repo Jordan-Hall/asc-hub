@@ -80,3 +80,42 @@ export function initLayoutToggle() {
     });
   }
 }
+
+// A word for the strength of a new password: "short", "weak", "fair" or "strong". It is advice only; the server
+// applies the real password rules. Length counts most, then how many kinds of characters are used.
+export function passwordStrength(value, minLength = 8) {
+  if (value.length < minLength) return 'short';
+  const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((re) => re.test(value)).length;
+  const score = (value.length >= 16 ? 2 : value.length >= 12 ? 1 : 0) + (kinds >= 3 ? 1 : 0) + (kinds === 4 ? 1 : 0);
+  if (score >= 3) return 'strong';
+  return score >= 1 ? 'fair' : 'weak';
+}
+
+// <input data-password-strength data-min="8"> and <span data-strength-for="<input id>" data-words='{"short":"...","weak":"...","fair":"...","strong":"..."}'>:
+// the word appears 300 ms after the person stops typing, in a polite live region.
+export function initPasswordStrength() {
+  for (const input of document.querySelectorAll('input[data-password-strength]')) {
+    const out = document.querySelector(`[data-strength-for="${input.id}"]`);
+    if (!out) continue;
+    let words = {};
+    try {
+      words = JSON.parse(out.getAttribute('data-words') || '{}');
+    } catch {
+      words = {};
+    }
+    let timer = 0;
+    input.addEventListener('input', () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (input.value === '') {
+          out.textContent = '';
+          out.removeAttribute('data-level');
+          return;
+        }
+        const level = passwordStrength(input.value, Number(input.getAttribute('data-min')) || 8);
+        out.textContent = words[level] || '';
+        out.setAttribute('data-level', level);
+      }, 300);
+    });
+  }
+}

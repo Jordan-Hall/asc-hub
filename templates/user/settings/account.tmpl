@@ -95,7 +95,11 @@
 			<div class="ds-form-row ds-form-row-2">
 				<div class="required field ds-field {{if .Err_Password}}error{{end}}">
 					<label class="ds-label" for="password">{{ctx.Locale.Tr "settings.new_password"}}</label>
-					<input id="password" class="ds-input{{if .Err_Password}} is-err{{end}}" name="password" type="password" autocomplete="new-password" required>
+					<div class="ds-inwrap">
+						<input id="password" class="ds-input ds-input-pr{{if .Err_Password}} is-err{{end}}" name="password" type="password" autocomplete="new-password" required data-password-strength>
+						<button type="button" class="ds-reveal" data-ds-reveal="password" data-show="{{ctx.Locale.Tr "asc_shell.show"}}" data-hide="{{ctx.Locale.Tr "asc_shell.hide"}}" aria-pressed="false">{{ctx.Locale.Tr "asc_shell.show"}}</button>
+					</div>
+					<p class="ds-hint" id="password-strength" data-strength-for="password" aria-live="polite" data-words='{"short":"{{ctx.Locale.Tr "asc_work.pw_short"}}","weak":"{{ctx.Locale.Tr "asc_work.pw_weak"}}","fair":"{{ctx.Locale.Tr "asc_work.pw_fair"}}","strong":"{{ctx.Locale.Tr "asc_work.pw_strong"}}"}'></p>
 				</div>
 				<div class="required field ds-field {{if .Err_Password}}error{{end}}">
 					<label class="ds-label" for="retype">{{ctx.Locale.Tr "settings.retype_new_password"}}</label>
