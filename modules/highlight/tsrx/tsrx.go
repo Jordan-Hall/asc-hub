@@ -20,6 +20,11 @@ import (
 	"github.com/alecthomas/chroma/v2/lexers"
 )
 
+// styleOpen is the opening tag of a scoped style. The attributes are bounded so that a "<style" without its ">"
+// costs a line, not the rest of the file.
+const styleOpen = `(<)(style)((?:\s[^>
+]{0,200})?>)`
+
 const ident = `[A-Za-z_$][\w$]*`
 
 // A "<" starts markup only where an expression can start: not after a word, ")" or "]" (a generic or a
@@ -47,14 +52,15 @@ func codeRules() []chroma.Rule {
 		{Pattern: `\s+`, Type: chroma.Text},
 		{Pattern: `//[^\n]*`, Type: chroma.CommentSingle},
 		{Pattern: `/\*[\s\S]*?\*/`, Type: chroma.CommentMultiline},
+		// an unterminated comment runs to the end of the file; matching it here keeps the failed search for "*/" to one
+		{Pattern: `/\*[\s\S]*`, Type: chroma.CommentMultiline},
 
 		// The three TSRX forms that start with "@".
 		{Pattern: `@\{`, Type: chroma.NameDecorator, Mutator: chroma.Push("braces")},
 		{Pattern: `@(?:if|for)\b`, Type: chroma.KeywordReserved, Mutator: chroma.Push("control")},
 
 		// Markup inside TypeScript: a scoped style, a fragment, an element.
-		{Pattern: tagGuard + `(<)(style)((?:\s[^>]*)?>)([\s\S]*?)(</)(style)(\s*>)`, Type: chroma.ByGroups(
-			chroma.Punctuation, chroma.NameTag, chroma.Punctuation, chroma.Using("css"), chroma.Punctuation, chroma.NameTag, chroma.Punctuation)},
+		{Pattern: tagGuard + styleOpen, Type: chroma.ByGroups(chroma.Punctuation, chroma.NameTag, chroma.Punctuation), Mutator: chroma.Push("style")},
 		{Pattern: tagGuard + `<>`, Type: chroma.Punctuation, Mutator: chroma.Push("children")},
 		{Pattern: tagGuard + `<(?=[A-Za-z_])`, Type: chroma.Punctuation, Mutator: chroma.Push("tag")},
 
@@ -110,6 +116,13 @@ func rules() chroma.Rules {
 			{Pattern: `\$`, Type: chroma.LiteralStringBacktick},
 		},
 
+		// The body of a scoped style is CSS up to the closing tag, or to the end of the file when there is none. The
+		// search for the closing tag happens once per opener: when it fails, the second rule takes the rest.
+		"style": {
+			{Pattern: `([\s\S]*?)(</)(style)(\s*>)`, Type: chroma.ByGroups(chroma.Using("css"), chroma.Punctuation, chroma.NameTag, chroma.Punctuation), Mutator: chroma.Pop(1)},
+			{Pattern: `[\s\S]+`, Type: chroma.Using("css"), Mutator: chroma.Pop(1)},
+		},
+
 		// The name of an element, right after its "<".
 		"tag": {
 			{Pattern: `[A-Za-z_][\w.:$-]*`, Type: chroma.NameTag, Mutator: chroma.Mutators(chroma.Pop(1), chroma.Push("attrs"))},
@@ -131,8 +144,7 @@ func rules() chroma.Rules {
 		// Between the tags of an element or fragment.
 		"children": {
 			{Pattern: `(</)([A-Za-z_][\w.:$-]*)?(\s*>)`, Type: chroma.ByGroups(chroma.Punctuation, chroma.NameTag, chroma.Punctuation), Mutator: chroma.Pop(1)},
-			{Pattern: `(<)(style)((?:\s[^>]*)?>)([\s\S]*?)(</)(style)(\s*>)`, Type: chroma.ByGroups(
-				chroma.Punctuation, chroma.NameTag, chroma.Punctuation, chroma.Using("css"), chroma.Punctuation, chroma.NameTag, chroma.Punctuation)},
+			{Pattern: styleOpen, Type: chroma.ByGroups(chroma.Punctuation, chroma.NameTag, chroma.Punctuation), Mutator: chroma.Push("style")},
 			{Pattern: `<>`, Type: chroma.Punctuation, Mutator: chroma.Push("children")},
 			{Pattern: `<(?=[A-Za-z_])`, Type: chroma.Punctuation, Mutator: chroma.Push("tag")},
 			{Pattern: `\{`, Type: chroma.Punctuation, Mutator: chroma.Push("braces")},
