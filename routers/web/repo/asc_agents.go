@@ -68,6 +68,18 @@ type ascAgentRunRow struct {
 	Link      string
 	// Initials is the mark of the agent avatar: its first letter and its trailing number ("c2" for coder-2).
 	Initials string
+	// Progress is "3 of 4 steps"; TokensPct the share of the token limit used (0 without a limit).
+	Progress    ascagentui.Progress
+	TokensLimit string
+	TokensPct   int
+	TokensWarn  bool
+	Duration    string
+	Paused      bool
+	Pending     int
+	Task        string
+	ByInitials  string
+	Workflow    uint64
+	Active      bool
 }
 
 // ascAgentInitials draws the avatar mark of an agent name: the first letter and a trailing number, else the first two letters.
@@ -106,6 +118,21 @@ func ascAgentRunOf(run *ascv1.AgentRun, name, runsLink string, wantID uint64) (a
 		Link:      runsLink + "/runs/" + strconv.FormatUint(run.GetId(), 10),
 	}
 	row.Initials = ascAgentInitials(row.Agent)
+	row.Progress = ascagentui.ProgressOf(run.GetProgress())
+	if lim := run.GetLimits().GetMaxTokens(); lim > 0 {
+		row.TokensLimit = ascagentui.FormatCount(lim)
+		row.TokensPct = ascagentui.Percent(run.GetUsage().GetTokens(), lim)
+		row.TokensWarn = row.TokensPct >= 80
+	}
+	if sec := run.GetUsage().GetRuntimeSeconds(); sec > 0 {
+		row.Duration = ascagentui.FormatDuration(uint64(sec))
+	}
+	row.Paused = run.GetPaused()
+	row.Pending = int(min(run.GetPendingRequests(), 1000))
+	row.Task = ascagentui.CleanLine(run.GetTask(), 300)
+	row.ByInitials = ascAgentInitials(row.CreatedBy)
+	row.Workflow = run.GetWorkflowRunId()
+	row.Active = row.State.Active
 	if row.Title == "" {
 		row.Title = "Run " + strconv.FormatUint(row.ID, 10)
 	}
@@ -159,6 +186,11 @@ func AscAgents(ctx *context.Context) {
 	ctx.Data["AscAgentsFilterMine"] = mine
 	ctx.Data["AscAgentsFilterAgent"] = agent
 	ctx.Data["AscAgentsStateFilters"] = ascagentui.RunStateSlugs
+	q := ctx.FormTrim("q")
+	if len(q) > 80 || strings.ContainsAny(q, "\x00\r\n") {
+		q = ""
+	}
+	ctx.Data["AscAgentsFilterQ"] = q
 
 	req := &ascv1.ListAgentRunsRequest{Repo: env.ref(), States: states, Agent: agent, Limit: ascAgentsPageSize, PageToken: token}
 	if mine {
@@ -197,7 +229,10 @@ func AscAgents(ctx *context.Context) {
 		}
 		rows = append(rows, row)
 	}
-	ctx.Data["AscAgentsRuns"] = rows
+	ascAgentsLoadBoard(ctx, env, callCtx, conn)
+	shown := ascAgentsFilterRows(rows, q)
+	ctx.Data["AscAgentsRuns"] = shown
+	ctx.Data["AscAgentsLoaded"] = len(rows)
 	ctx.Data["AscAgentsActive"] = active
 	ctx.Data["AscAgentsWaiting"] = waiting
 	ctx.Data["AscAgentsDone"] = done
@@ -212,6 +247,9 @@ func AscAgents(ctx *context.Context) {
 		}
 		if agent != "" {
 			q.Set("agent", agent)
+		}
+		if search := ctx.FormTrim("q"); search != "" && len(search) <= 80 {
+			q.Set("q", search)
 		}
 		q.Set("page", next)
 		ctx.Data["AscAgentsNext"] = env.runsLink() + "?" + q.Encode()
@@ -780,6 +818,9 @@ func AscAgentsCancel(ctx *context.Context) {
 	}
 	ascAgentsLimitBody(ctx)
 	back := env.runsLink() + "/runs/" + strconv.FormatUint(id, 10)
+	if ctx.FormString("next") == "list" {
+		back = env.runsLink()
+	}
 	reason, ok := ascagentui.CheckLine(ctx.FormString("reason"), ascagentui.MaxReasonBytes, true)
 	if !ok {
 		ctx.Flash.Error("The reason is at most 256 characters on one line.")

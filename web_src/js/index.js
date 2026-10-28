@@ -64,6 +64,7 @@ import {initBulk} from './features/ds-bulk.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {initAscDensity} from './features/asc-density.js';
+import {initAscBoard} from './features/asc-board.js';
 import {initAscMeters} from './features/asc-meters.js';
 import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
 import {
@@ -192,6 +193,7 @@ onDomReady(() => {
   initAscKeys();
   initAscRepoKeys();
   initAscDensity();
+  initAscBoard();
   initAscMeters();
   initAscResponsiveDetails();
   initAscInboxBadge();
