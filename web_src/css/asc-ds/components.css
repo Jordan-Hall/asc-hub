@@ -2840,3 +2840,32 @@ a.ds-stat:hover {
 .ds-rail-trend li:first-child {
   border-top: 0;
 }
+
+/* chips that are links and filter a page (the scope of the dashboard, the filters of a list) */
+.ds-chip-filter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-b);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.ds-chip-filter:hover {
+  background: var(--surface-2, var(--surface));
+}
+
+.ds-chip-filter.is-on {
+  border-color: var(--brand, #2563eb);
+  background: var(--brand-soft, #eff6ff);
+  color: var(--brand-ink, #1d4ed8);
+  font-weight: 600;
+}
+
+.wk-scope {
+  margin: 0 0 16px;
+}

@@ -411,7 +411,7 @@ func Routes() *web.Route {
 		func() {
 			registerRoutes(routes)
 		},
-		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence,
+		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence, ascMaintenanceGuard,
 		// TODO: GetNotificationCount & GetActiveStopwatch really seem like things that could be folded into Contexter or as helper functions
 		user.GetNotificationCount, repo.GetActiveStopwatch,
 		goGet)
@@ -438,7 +438,7 @@ func Routes() *web.Route {
 		auth.InfoOAuth)
 
 	routes.NotFound(
-		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence,
+		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence, ascMaintenanceGuard,
 		// TODO: GetNotificationCount & GetActiveStopwatch really seem like things that could be folded into Contexter or as helper functions
 		user.GetNotificationCount, repo.GetActiveStopwatch,
 		goGet,
@@ -938,6 +938,8 @@ func registerRoutes(m *web.Route) {
 
 		m.Get("/self_check", admin.SelfCheck)
 		m.Get("/asc/backups", admin.Backups)
+		m.Get("/maintenance", admin.Maintenance)
+		m.Post("/maintenance", admin.MaintenancePost)
 
 		m.Group("/config", func() {
 			m.Get("", admin.Config)
