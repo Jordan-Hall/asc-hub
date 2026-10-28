@@ -254,13 +254,13 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | WorkflowRun | Run header: state, started by, time, about change; Cancel run, Run again with same inputs | done | templates/repo/asc_workflows_run.tmpl, asc_workflows.go (cancel, rerun) | - |
-| WorkflowRun | Cancel confirmation dialog | ui-only-missing | templates/repo/asc_workflows_run.tmpl | S |
+| WorkflowRun | Cancel confirmation dialog | done | templates/repo/asc_workflows_run.tmpl (popover with the effect and a confirm button) | S |
 | WorkflowRun | Approval banner: comment, Approve / Decline, signed log entry, 'an agent can never decide' | done | templates/repo/asc_workflows_run.tmpl, POST decide (Workflows.DecideApproval) | - |
 | WorkflowRun | Flow diagram with connectors filling as steps finish | ui-only-missing | templates/repo/asc_workflows_run.tmpl | S |
 | WorkflowRun | Steps list with output line, duration, state | done | templates/repo/asc_workflows_run.tmpl | - |
 | WorkflowRun | Live polling of step state | done | web_src/js/features/asc-agent-run.ts (workflow poll), GET runs/{id}/state | - |
 | WorkflowRun | 'Proposed by the agent': changes with size, state and Review links | needs-hub-backend | asc_workflows.go: resolve the step's agent run to changes via services/ascagentui/links.go | M |
-| WorkflowRun | Step log (agent events) and 'Open the agent run' link | ui-only-missing | templates/repo/asc_workflows_run.tmpl (log details exist; link missing) | S |
+| WorkflowRun | Step log (agent events) and 'Open the agent run' link | done | templates/repo/asc_workflows_run.tmpl (log details exist; link missing) (link to the agent run exists) | S |
 | WorkflowRun | 'Used so far' meters (tokens, cost, time, agent steps) | done | templates/repo/asc_workflows_run.tmpl | - |
 
 ### Policy
