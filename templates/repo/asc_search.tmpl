@@ -1,6 +1,6 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="ds-main page-content repository asc-repo-page asc-search rp-page rp-searchpage">
-	{{template "repo/header" (dict "HdrData" . "SubTitle" {{ctx.Locale.Tr "asc_rp.s_title"}} "SubBack" .RepoLink)}}
+	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "asc_rp.s_title") "SubBack" .RepoLink)}}
 	<div class="ds-container rp-body">
 		<h1 class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.s_title"}}</h1>
 		<form id="asc-search-form" class="asc-search-form ds-form" method="get" action="{{.RepoLink}}/asc/search" role="search">
@@ -101,7 +101,7 @@
 
 				<div class="asc-search-results">
 					<p class="asc-search-where" id="asc-search-where" role="status">
-						<b>{{ctx.Locale.TrN .AscSearchCount "asc_rp.s_result_1" "asc_rp.s_result_n" .AscSearchCount}}</b> {{ctx.Locale.Tr "asc_rp.s_at"}} <span class="tw-font-mono">{{.AscSearchRev}}</span>
+						<b>{{.AscSearchCount}} {{ctx.Locale.TrN .AscSearchCount "asc_rp.s_result_1" "asc_rp.s_result_n"}}</b> {{ctx.Locale.Tr "asc_rp.s_at"}} <span class="tw-font-mono">{{.AscSearchRev}}</span>
 						{{if eq .AscSearchMode "semantic"}}{{if .AscSearchModel}} {{ctx.Locale.Tr "asc_rp.s_using_model"}} <span class="tw-font-mono">{{.AscSearchModel}}</span>{{end}}{{end}}
 					</p>
 					{{if .AscSearchFailed}}
