@@ -907,3 +907,19 @@ a.rp-hash:hover {
   flex-direction: column;
   gap: 16px;
 }
+
+/* ---- agent runs: the density switch and the compact row ---- */
+.rv-density {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0;
+}
+
+.rv-runs[data-density="compact"] .rv-run {
+  padding-block: 6px;
+}
+
+.rv-runs[data-density="compact"] .rv-run-fail,
+.rv-runs[data-density="compact"] .rv-li-sub {
+  display: none;
+}

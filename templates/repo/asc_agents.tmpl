@@ -63,9 +63,15 @@ Template Attributes:
 			</form>
 
 			{{if .AscAgentsRuns}}
-				<ul class="rv-list rv-runs" data-testid="asc-agent-runs">
+				<div class="rv-density">
+					<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.density_label"}}" data-asc-density="#rv-runs">
+						<button type="button" data-density="comfy" aria-pressed="true">{{ctx.Locale.Tr "asc_rp.density_comfy"}}</button>
+						<button type="button" data-density="compact" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.density_compact"}}</button>
+					</div>
+				</div>
+				<ul class="rv-list rv-runs" id="rv-runs" data-density="comfy" data-asc-list data-testid="asc-agent-runs">
 					{{range .AscAgentsRuns}}
-						<li class="rv-run">
+						<li class="rv-run" data-asc-row tabindex="-1" data-asc-id="{{.ID}}">
 							<span class="rv-av rv-av-agent" aria-hidden="true">{{.Initials}}</span>
 							<div class="rv-run-who">
 								<div class="rv-run-name">{{if .Agent}}{{.Agent}}{{else}}{{ctx.Locale.Tr "asc_review.agents_unnamed"}}{{end}}</div>
