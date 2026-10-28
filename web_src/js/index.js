@@ -62,6 +62,10 @@ import {initLivePreview, initImagePreview, initLayoutToggle, initPasswordStrengt
 import {initPrefs} from './features/ds-prefs.js';
 import {initBulk} from './features/ds-bulk.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
+import {initAscRepoKeys} from './features/asc-repo-keys.js';
+import {initAscDensity} from './features/asc-density.js';
+import {initAscMeters} from './features/asc-meters.js';
+import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
 import {
   initRepoSettingGitHook,
   initRepoSettingsCollaboration,
@@ -186,6 +190,10 @@ onDomReady(() => {
   initPrefs();
   initBulk();
   initAscKeys();
+  initAscRepoKeys();
+  initAscDensity();
+  initAscMeters();
+  initAscResponsiveDetails();
   initAscInboxBadge();
   initRepoProject();
   initRepoPullRequestAllowMaintainerEdit();

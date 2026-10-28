@@ -94,6 +94,33 @@ func TestLoadPolicyPageNeedsOnlyTheSource(t *testing.T) {
 	}
 }
 
+func TestLoadPolicySummaryReadsOnlyTheSource(t *testing.T) {
+	f, c := startFake(t)
+	f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+		return policySource(), nil
+	}
+	sum, err := LoadPolicySummary(userCtx(t, "t"), c, "acme/payments")
+	require.NoError(t, err)
+	assert.True(t, sum.Present)
+	assert.True(t, sum.Usable)
+	require.NotEmpty(t, sum.Lines)
+	assert.LessOrEqual(t, len(sum.Lines), maxSummaryLines)
+
+	f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+		return &ascv1.GetPolicySourceResponse{}, nil
+	}
+	sum, err = LoadPolicySummary(userCtx(t, "t"), c, "acme/payments")
+	require.NoError(t, err)
+	assert.False(t, sum.Present)
+	assert.Empty(t, sum.Lines)
+
+	f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+		return nil, status.Error(codes.PermissionDenied, "no")
+	}
+	_, err = LoadPolicySummary(userCtx(t, "t"), c, "acme/payments")
+	require.Error(t, err)
+}
+
 func TestLoadPolicyPageFailsWithoutTheSource(t *testing.T) {
 	f, c := startFake(t)
 	f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {

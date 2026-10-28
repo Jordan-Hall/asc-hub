@@ -30,10 +30,15 @@
 						<button type="submit" class="ds-btn ds-btn-danger ds-btn-sm"{{if not $.CanUserAcceptTransfer}} disabled title="{{ctx.Locale.Tr "repo.transfer.no_permission_to_reject"}}"{{end}}>{{ctx.Locale.Tr "repo.transfer.reject"}}</button>
 					</form>
 				{{end}}
-				{{template "repo/watch_unwatch" $}}
-				{{if not $.DisableStars}}{{template "repo/star_unstar" $}}{{end}}
-				{{if not $.DisableForks}}{{template "repo/header_fork" $}}{{end}}
-				{{if $.EnableFeed}}<a class="rp-act rp-act-icon ds-hide-xs" href="{{$.RepoLink}}.rss" aria-label="{{ctx.Locale.Tr "rss_feed"}}" title="{{ctx.Locale.Tr "rss_feed"}}">{{svg "octicon-rss" 16}}</a>{{end}}
+				<details class="rp-acts-more" data-asc-open-from="640">
+					<summary class="rp-act rp-act-icon rp-acts-more-btn" aria-label="{{ctx.Locale.Tr "repo.more_operations"}}">{{svg "dsi-dots" 18}}</summary>
+					<div class="rp-acts-more-body">
+						{{template "repo/watch_unwatch" $}}
+						{{if not $.DisableStars}}{{template "repo/star_unstar" $}}{{end}}
+						{{if not $.DisableForks}}{{template "repo/header_fork" $}}{{end}}
+						{{if $.EnableFeed}}<a class="rp-act rp-act-icon ds-hide-xs" href="{{$.RepoLink}}.rss" aria-label="{{ctx.Locale.Tr "rss_feed"}}" title="{{ctx.Locale.Tr "rss_feed"}}">{{svg "octicon-rss" 16}}</a>{{end}}
+					</div>
+				</details>
 				{{if and $.IsModerationEnabled $.IsSigned (not $.IsRepositoryAdmin)}}
 					<a class="rp-act rp-act-icon" href="{{AppSubUrl}}/report_abuse?type=repo&id={{$.Repository.ID}}" aria-label="{{ctx.Locale.Tr "moderation.report_content"}}" title="{{ctx.Locale.Tr "moderation.report_content"}}">{{svg "dsi-flag" 16}}</a>
 				{{end}}

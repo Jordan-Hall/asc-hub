@@ -13,12 +13,17 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"forgejo.org/models/db"
+	git_model "forgejo.org/models/git"
 	issues_model "forgejo.org/models/issues"
+	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/context"
 
@@ -434,6 +439,13 @@ func AscCompare(ctx *context.Context) {
 	ctx.Data["AscCompareA"] = a
 	ctx.Data["AscCompareB"] = b
 	ctx.Data["AscCompareThreeDot"] = three
+	prepareAscCompareRefs(ctx, repo, a, b)
+	if okA && okB && a != "" && a == b {
+		// the same version on both sides: say so, the server has nothing to compare
+		ctx.Data["AscCompareSame"] = true
+		ctx.HTML(http.StatusOK, tplAscCompare)
+		return
+	}
 	if !okA || !okB {
 		ascCompareFail(ctx, http.StatusBadRequest, "repo.asc_compare.error.bad_request")
 		return
@@ -471,6 +483,86 @@ func AscCompare(ctx *context.Context) {
 	}
 	ctx.Data["AscCompare"] = res
 	ctx.HTML(http.StatusOK, tplAscCompare)
+}
+
+// ascRefGroup is one group of the From and To selects of the compare page.
+type ascRefGroup struct {
+	Label string // a locale key
+	Names []string
+}
+
+// ascCompareMaxRefs bounds each group of the selects.
+const ascCompareMaxRefs = 100
+
+// ascCompareGroups builds the groups of the selects: shared refs, stacks and tags, without empty groups, without
+// repeated names inside a group, and a group of "current" for a value of the query that none of them holds (a
+// change id or a commit), so the select can show what was asked.
+func ascCompareGroups(shared, stacks, tags []string, current ...string) []ascRefGroup {
+	var groups []ascRefGroup
+	seen := map[string]bool{}
+	add := func(label string, names []string) {
+		var out []string
+		for _, n := range names {
+			if n == "" || seen[n] || len(out) >= ascCompareMaxRefs {
+				continue
+			}
+			seen[n] = true
+			out = append(out, n)
+		}
+		if len(out) > 0 {
+			groups = append(groups, ascRefGroup{Label: label, Names: out})
+		}
+	}
+	add("asc_rp.cmp_shared", shared)
+	add("asc_rp.cmp_stacks", stacks)
+	add("asc_rp.cmp_tags", tags)
+	var extra []string
+	for _, c := range current {
+		if c != "" && !seen[c] {
+			extra = append(extra, c)
+		}
+	}
+	add("asc_rp.cmp_current", extra)
+	return groups
+}
+
+// prepareAscCompareRefs lists what the From and To selects offer. A failed lookup leaves its group out; the
+// selects still show the value of the query.
+func prepareAscCompareRefs(ctx *context.Context, repo *repo_model.Repository, a, b string) {
+	var shared, stacks, tags []string
+	if names, err := git_model.FindBranchNames(ctx, git_model.FindBranchOptions{
+		ListOptions: db.ListOptions{PageSize: ascCompareMaxRefs, Page: 1}, RepoID: repo.ID, IsDeletedBranch: optional.Some(false),
+	}); err != nil {
+		log.Error("asc compare: branches of %s: %v", repo.FullName(), err)
+	} else {
+		shared = names
+	}
+	if repo.CanEnablePulls() && ctx.Repo.CanRead(unit.TypePullRequests) {
+		if pulls, err := issues_model.Issues(ctx, &issues_model.IssuesOptions{
+			Paginator: &db.ListOptions{Page: 1, PageSize: ascCompareMaxRefs}, RepoIDs: []int64{repo.ID},
+			IsPull: optional.Some(true), IsClosed: optional.Some(false), SortType: "recentupdate",
+		}); err != nil {
+			log.Error("asc compare: stacks of %s: %v", repo.FullName(), err)
+		} else {
+			for _, p := range pulls {
+				if err := p.LoadPullRequest(ctx); err == nil && p.PullRequest != nil && p.PullRequest.BaseRepoID == repo.ID {
+					stacks = append(stacks, p.PullRequest.HeadBranch)
+				}
+			}
+		}
+	}
+	if names, err := repo_model.GetTagNamesByRepoID(ctx, repo.ID); err != nil {
+		log.Error("asc compare: tags of %s: %v", repo.FullName(), err)
+	} else {
+		tags = names
+	}
+	// a stack is also a branch of the repository: list it once, under Stacks
+	isStack := map[string]bool{}
+	for _, s := range stacks {
+		isStack[s] = true
+	}
+	shared = slices.DeleteFunc(slices.Clone(shared), func(n string) bool { return isStack[n] })
+	ctx.Data["AscCompareGroups"] = ascCompareGroups(shared, stacks, tags, a, b)
 }
 
 // ascCompareRev checks one revision of the query. An empty value is allowed (the form is shown empty).

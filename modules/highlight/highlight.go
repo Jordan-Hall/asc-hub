@@ -14,8 +14,10 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"forgejo.org/modules/analyze"
+	_ "forgejo.org/modules/highlight/tsrx" // registers the TSRX lexer
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
@@ -28,7 +30,7 @@ import (
 )
 
 // don't index files larger than this many bytes for performance purposes
-const sizeLimit = 1024 * 1024
+const sizeLimit = highlightMaxBytes
 
 var (
 	// For custom user mapping
@@ -146,18 +148,21 @@ var normalizeEnryToChroma = map[string]string{
 	"Gradle Kotlin DSL": "Kotlin",
 }
 
-// File returns a slice of chroma syntax highlighted HTML lines of code and the matched lexer name
+// File returns a slice of chroma syntax highlighted HTML lines of code and the matched lexer name. A file that is
+// too large or too slow to highlight comes back as plain text with an empty lexer name; FileBudgeted says so.
 func File(fileName, language string, code []byte) ([]template.HTML, string, error) {
+	res, err := FileBudgeted(fileName, language, code)
+	return res.Lines, res.Lexer, err
+}
+
+// FileBudgeted is File with the outcome spelled out: whether the file was left as plain text (Skipped) and whether
+// the lines came from a cache. See budget.go for the bounds and the caches.
+func FileBudgeted(fileName, language string, code []byte) (Result, error) {
 	NewContext()
 
-	if len(code) > sizeLimit {
-		return PlainText(code), "", nil
+	if len(code) > highlightMaxBytes {
+		return Result{Lines: PlainText(code), Skipped: true}, nil
 	}
-
-	formatter := html.New(html.WithClasses(true),
-		html.WithLineNumbers(false),
-		html.PreventSurroundingPre(true),
-	)
 
 	var lexer chroma.Lexer
 
@@ -192,26 +197,50 @@ func File(fileName, language string, code []byte) ([]template.HTML, string, erro
 		lexerName = "Shell"
 	}
 
-	iterator, err := lexer.Tokenise(nil, string(code))
-	if err != nil {
-		return nil, "", fmt.Errorf("can't tokenize code: %w", err)
+	key := cacheKey(lexerName, code)
+	if e, ok := resultCache.get(key); ok {
+		return Result{Lines: e.lines, Lexer: e.lexer, Cached: true}, nil
+	}
+	if len(code) >= persistentMinBytes {
+		if v, ok := persistentGet(key); ok {
+			if name, lines, ok := decodeLines(v); ok {
+				resultCache.put(key, lines, name)
+				return Result{Lines: lines, Lexer: name, Cached: true}, nil
+			}
+		}
 	}
 
-	tokensLines := chroma.SplitTokensIntoLines(iterator.Tokens())
+	iterator, err := lexer.Tokenise(nil, string(code))
+	if err != nil {
+		return Result{}, fmt.Errorf("can't tokenize code: %w", err)
+	}
+	tokens, inTime := tokensWithin(iterator, time.Now().Add(highlightBudget))
+	if !inTime {
+		return Result{Lines: PlainText(code), Skipped: true}, nil
+	}
+
+	formatter := html.New(html.WithClasses(true),
+		html.WithLineNumbers(false),
+		html.PreventSurroundingPre(true),
+	)
+	tokensLines := chroma.SplitTokensIntoLines(tokens)
 	htmlBuf := &bytes.Buffer{}
 
 	lines := make([]template.HTML, 0, len(tokensLines))
-	for _, tokens := range tokensLines {
-		iterator = chroma.Literator(tokens...)
-		err = formatter.Format(htmlBuf, githubStyles, iterator)
+	for _, lineTokens := range tokensLines {
+		err = formatter.Format(htmlBuf, githubStyles, chroma.Literator(lineTokens...))
 		if err != nil {
-			return nil, "", fmt.Errorf("can't format code: %w", err)
+			return Result{}, fmt.Errorf("can't format code: %w", err)
 		}
 		lines = append(lines, template.HTML(htmlBuf.String()))
 		htmlBuf.Reset()
 	}
 
-	return lines, lexerName, nil
+	resultCache.put(key, lines, lexerName)
+	if len(code) >= persistentMinBytes {
+		persistentPut(key, encodeLines(lexerName, lines))
+	}
+	return Result{Lines: lines, Lexer: lexerName}, nil
 }
 
 // PlainText returns non-highlighted HTML for code

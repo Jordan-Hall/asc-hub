@@ -332,7 +332,7 @@ func getSearchResultLanguages(searchResult *zoekt.SearchResult) []*internal.Sear
 		searchResultLanguages = append(searchResultLanguages, &internal.SearchResultLanguages{
 			Language: lang,
 			Count:    count,
-			Color:    enry.GetColor(lang),
+			Color:    analyze.GetColor(lang),
 		})
 	}
 
@@ -400,7 +400,7 @@ func convertZoektResult(files []zoekt.FileMatch) []*internal.SearchResult {
 			CommitID:    f.Version,
 			Content:     strings.Join(contentLines, "\n"),
 			Language:    lang,
-			Color:       enry.GetColor(lang),
+			Color:       analyze.GetColor(lang),
 			Matches:     matches,
 			LineNumbers: lineNumbers,
 			LineOffsets: lineOffsets,

@@ -222,3 +222,41 @@ a.rp-who:hover {
     opacity: 1;
   }
 }
+
+/* ---- compact density: one tight line per change (the switch is in the page band) ---- */
+.rp-hist[data-density="compact"] .rp-commit {
+  padding-block: 6px;
+}
+
+.rp-hist[data-density="compact"] .rp-commit-meta {
+  display: inline-flex;
+  margin-top: 0;
+}
+
+.rp-hist[data-density="compact"] .rp-commit-body {
+  display: none;
+}
+
+/* ---- graph key ---- */
+.rp-graph-key {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px 24px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-1);
+  font-size: 13px;
+}
+
+.rp-graph-key li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .rp-graph-key {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

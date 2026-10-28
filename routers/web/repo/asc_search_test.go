@@ -521,3 +521,10 @@ func TestAscSearchTexts(t *testing.T) {
 	assert.False(t, ascSearchLangOK("a/b"))
 	assert.False(t, ascSearchLangOK("a\"b"))
 }
+
+func TestAscSearchRelative(t *testing.T) {
+	assert.Equal(t, []int{100, 50, 0}, ascSearchRelative([]float64{0.8, 0.4, -1}))
+	assert.Equal(t, []int{0, 0}, ascSearchRelative([]float64{0, 0}))
+	assert.Equal(t, []int{}, ascSearchRelative(nil))
+	assert.Equal(t, []int{100, 33}, ascSearchRelative([]float64{3, 1}))
+}

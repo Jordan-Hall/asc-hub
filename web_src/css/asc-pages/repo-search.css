@@ -107,3 +107,36 @@
 .rp-searchpage .asc-search-fields select {
   width: 100%;
 }
+
+/* ---- relevance: a percentage of the best hit with a bar that grows once ---- */
+.rp-relevance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.rp-relevance-bar {
+  display: inline-block;
+  width: 56px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.rp-relevance-fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--link);
+  width: 0;
+  transition: width 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-relevance-fill {
+    transition: none;
+  }
+}

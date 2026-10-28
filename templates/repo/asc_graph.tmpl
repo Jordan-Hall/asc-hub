@@ -3,7 +3,13 @@
 	{{template "repo/header" .}}
 	<div class="ds-container">
 		<div id="asc-graph-container" class="ds-card ds-card-b">
-			<h2>{{ctx.Locale.Tr "repo.asc_graph"}}</h2>
+			<div class="ds-row ds-row-wrap tw-justify-between tw-items-center">
+				<h2>{{ctx.Locale.Tr "repo.asc_graph"}}</h2>
+				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.history_view"}}">
+					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "asc_rp.view_list"}}</a>
+					<a href="{{.RepoLink}}/asc/graph" aria-current="true">{{ctx.Locale.Tr "repo.commit_graph"}}</a>
+				</div>
+			</div>
 			<form class="ui form ds-form tw-mb-4" method="get" action="{{.RepoLink}}/asc/graph">
 				<div class="tw-flex tw-flex-wrap tw-gap-3 tw-items-end">
 					<div class="ds-field">
@@ -42,9 +48,9 @@
 			{{else if not .AscGraphRows}}
 				<div class="ds-banner">{{ctx.Locale.Tr "repo.asc_graph.empty"}}</div>
 			{{else}}
-				<ol id="asc-graph-rows" class="tw-list-none tw-p-0 tw-m-0">
+				<ol id="asc-graph-rows" class="tw-list-none tw-p-0 tw-m-0" data-asc-list>
 					{{range $row := .AscGraphRows}}
-						<li class="asc-graph-row tw-flex tw-items-center tw-gap-2 tw-h-7" id="asc-commit-{{$row.ID}}">
+						<li class="asc-graph-row tw-flex tw-items-center tw-gap-2 tw-h-7" id="asc-commit-{{$row.ID}}" data-asc-row tabindex="-1" data-asc-id="{{$row.ID}}">
 							<svg class="tw-shrink-0" width="{{$.AscGraphLaneWidth}}" height="{{$.AscGraphRowHeight}}" viewBox="0 0 {{$.AscGraphLaneWidth}} {{$.AscGraphRowHeight}}" aria-hidden="true" focusable="false">
 								{{range $row.Segments}}<line x1="{{.X1}}" y1="{{.Y1}}" x2="{{.X2}}" y2="{{.Y2}}" stroke="{{.Color}}" stroke-width="2" stroke-linecap="round"/>{{end}}
 								<circle cx="{{$row.NodeX}}" cy="14" r="{{if $row.Overflow}}3{{else}}4.5{{end}}" fill="{{$row.NodeColor}}"/>
@@ -72,6 +78,19 @@
 						</li>
 					{{end}}
 				</ol>
+				<details class="ds-acc ds-mt-16" id="asc-graph-key">
+					<summary>{{ctx.Locale.Tr "asc_rp.graph_key_title"}}</summary>
+					<ul class="rp-graph-key">
+						<li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="4.5" fill="currentColor"/></svg>{{ctx.Locale.Tr "asc_rp.graph_key_change"}}</li>
+						<li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><line x1="8" y1="0" x2="8" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>{{ctx.Locale.Tr "asc_rp.graph_key_line"}}</li>
+						<li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="3" fill="currentColor"/></svg>{{ctx.Locale.Tr "asc_rp.graph_key_overflow"}}</li>
+						<li><span class="ds-chip ds-chip-outline">{{svg "octicon-git-branch" 12}}</span>{{ctx.Locale.Tr "asc_rp.graph_key_ref"}}</li>
+						<li><span class="ds-chip">{{svg "octicon-git-pull-request" 12}}</span>{{ctx.Locale.Tr "asc_rp.graph_key_review"}}</li>
+						<li><kbd class="ds-kbd">j</kbd> <kbd class="ds-kbd">k</kbd>{{ctx.Locale.Tr "asc_rp.graph_key_move"}}</li>
+						<li><kbd class="ds-kbd">Enter</kbd>{{ctx.Locale.Tr "asc_rp.graph_key_open"}}</li>
+						<li><kbd class="ds-kbd">c</kbd>{{ctx.Locale.Tr "asc_rp.graph_key_copy"}}</li>
+					</ul>
+				</details>
 				<div class="tw-flex tw-justify-between tw-mt-4">
 					{{if .AscGraphIsFirst}}<span></span>{{else}}<a class="ds-btn ds-btn-secondary" href="{{.AscGraphFirstURL}}">{{ctx.Locale.Tr "repo.asc_graph.first"}}</a>{{end}}
 					{{if .AscGraphNextURL}}<a class="ds-btn ds-btn-secondary" rel="next" href="{{.AscGraphNextURL}}">{{ctx.Locale.Tr "repo.asc_graph.older"}}</a>{{end}}

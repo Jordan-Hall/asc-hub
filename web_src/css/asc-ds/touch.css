@@ -145,3 +145,33 @@
     display: none;
   }
 }
+
+/* a 44 px target for the icon actions of a row and the dropdown triggers of an issue or pull request */
+@media (max-width: 1023.98px) {
+  div.item.action.ui.dropdown,
+  .ds-btn.ds-btn-icon.ds-btn-sm {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    flex: none;
+  }
+}
+
+/* file names, the folder list hint and the release meta are links people tap: give them room, and mark a link inside
+   running text with more than colour */
+@media (max-width: 1023.98px) {
+  .rp-files td.name a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+.rp-tree-hint a {
+  display: inline-block;
+  min-height: 24px;
+  padding-block: 4px;
+}
+
+.rp-ref-meta a {
+  text-decoration: underline;
+}

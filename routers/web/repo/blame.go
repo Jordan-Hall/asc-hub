@@ -8,6 +8,7 @@ import (
 	gotemplate "html/template"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 
 	user_model "forgejo.org/models/user"
@@ -33,8 +34,12 @@ type blameRow struct {
 	CommitURL      string
 	CommitMessage  string
 	CommitSince    gotemplate.HTML
-	Code           gotemplate.HTML
-	EscapeStatus   *charset.EscapeStatus
+	// Heat is how recent the line's change is among the changes of the file: 4 for the newest quarter, 1 for the
+	// oldest. It draws the bar at the edge of the blame cell, next to the age text.
+	Heat int
+	Code gotemplate.HTML
+
+	EscapeStatus *charset.EscapeStatus
 }
 
 // RefBlame render blame page
@@ -242,6 +247,20 @@ func renderBlame(ctx *context.Context, blameParts []*git.BlamePart, commitNames 
 	var lexerName string
 
 	avatarUtils := templates.NewAvatarUtils(ctx)
+	heats := blameHeat(blameParts, commitNames)
+
+	// the whole file is highlighted at once, so a string or a comment that spans lines is one token, and the
+	// result is cached; a count that does not match the blame lines falls back to line by line
+	var allLines []string
+	for _, part := range blameParts {
+		allLines = append(allLines, part.Lines...)
+	}
+	whole := highlight.Result{}
+	if len(allLines) > 0 {
+		whole, _ = highlight.FileBudgeted(fmt.Sprintf("%v", ctx.Data["FileName"]), language, []byte(strings.Join(allLines, "\n")+"\n"))
+	}
+	useWhole := len(whole.Lines) == len(allLines) && !whole.Skipped
+
 	i := 0
 	commitCnt := 0
 	for _, part := range blameParts {
@@ -251,6 +270,7 @@ func renderBlame(ctx *context.Context, blameParts []*git.BlamePart, commitNames 
 
 			br := &blameRow{
 				RowNumber: i,
+				Heat:      heats[part.Sha],
 			}
 
 			commit := commitNames[part.Sha]
@@ -282,7 +302,13 @@ func renderBlame(ctx *context.Context, blameParts []*git.BlamePart, commitNames 
 				line += "\n"
 			}
 			fileName := fmt.Sprintf("%v", ctx.Data["FileName"])
-			line, lexerNameForLine := highlight.Code(fileName, language, line)
+			var lineHTML gotemplate.HTML
+			var lexerNameForLine string
+			if useWhole {
+				lineHTML, lexerNameForLine = whole.Lines[i-1], whole.Lexer
+			} else {
+				lineHTML, lexerNameForLine = highlight.Code(fileName, language, line)
+			}
 
 			// set lexer name to the first detected lexer. this is certainly suboptimal and
 			// we should instead highlight the whole file at once
@@ -290,7 +316,7 @@ func renderBlame(ctx *context.Context, blameParts []*git.BlamePart, commitNames 
 				lexerName = lexerNameForLine
 			}
 
-			br.EscapeStatus, br.Code = charset.EscapeControlHTML(line, ctx.Locale, charset.FileviewContext)
+			br.EscapeStatus, br.Code = charset.EscapeControlHTML(lineHTML, ctx.Locale, charset.FileviewContext)
 			rows = append(rows, br)
 			escapeStatus = escapeStatus.Or(br.EscapeStatus)
 		}
@@ -300,4 +326,29 @@ func renderBlame(ctx *context.Context, blameParts []*git.BlamePart, commitNames 
 	ctx.Data["BlameRows"] = rows
 	ctx.Data["CommitCnt"] = commitCnt
 	ctx.Data["LexerName"] = lexerName
+}
+
+// blameHeat ranks the changes of a file by author date and returns, per change, a level from 4 (the newest quarter
+// of the changes) to 1 (the oldest). A file with one change is all 4.
+func blameHeat(parts []*git.BlamePart, commits map[string]*user_model.UserCommit) map[string]int {
+	type dated struct {
+		sha  string
+		when int64
+	}
+	seen := map[string]bool{}
+	var list []dated
+	for _, part := range parts {
+		c := commits[part.Sha]
+		if c == nil || c.Author == nil || seen[part.Sha] {
+			continue
+		}
+		seen[part.Sha] = true
+		list = append(list, dated{part.Sha, c.Author.When.Unix()})
+	}
+	sort.SliceStable(list, func(i, j int) bool { return list[i].when < list[j].when }) // oldest first
+	out := make(map[string]int, len(list))
+	for rank, d := range list {
+		out[d.sha] = 1 + rank*4/len(list)
+	}
+	return out
 }

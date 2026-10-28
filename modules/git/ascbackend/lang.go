@@ -128,7 +128,7 @@ func (b *Backend) LanguageStats(ctx context.Context, at git.ObjectID) (map[strin
 			language = group
 		}
 		included, checked := includedLanguage[language]
-		langType := enry.GetLanguageType(language)
+		langType := analyze.GetLanguageType(language)
 		if !checked {
 			included = langType == enry.Programming || langType == enry.Markup
 			if !included && (isTrue(f.isDetectable) || (langType == enry.Prose && isFalse(f.isDocument))) {
