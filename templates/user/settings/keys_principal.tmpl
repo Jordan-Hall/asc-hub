@@ -1,63 +1,50 @@
 {{if .AllowPrincipals}}
-	<h4 class="ui top attached header">
-		{{ctx.Locale.Tr "settings.manage_ssh_principals"}}
-		<div class="ui right">
+<section class="ds-card" aria-labelledby="sp-principals">
+	<div class="ds-card-h">
+		<h2 id="sp-principals">{{ctx.Locale.Tr "settings.manage_ssh_principals"}}</h2>
+		<span class="ds-card-sub">{{ctx.Locale.Tr "settings.principal_desc"}}</span>
 		{{if not .DisableSSH}}
-			<button class="ui primary tiny show-panel button" data-panel="#add-ssh-principal-panel">{{ctx.Locale.Tr "settings.add_new_principal"}}</button>
+			<button type="button" class="ds-btn ds-btn-primary ds-btn-sm ds-ml-auto show-panel" data-panel="#add-ssh-principal-panel">{{ctx.Locale.Tr "settings.add_new_principal"}}</button>
 		{{else}}
-			<button class="ui primary tiny button disabled">{{ctx.Locale.Tr "settings.ssh_disabled"}}</button>
+			<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm ds-ml-auto" disabled>{{ctx.Locale.Tr "settings.ssh_disabled"}}</button>
 		{{end}}
-		</div>
-	</h4>
-	<div class="ui attached segment">
-		<div class="flex-list">
-			<div class="flex-item">
-				{{ctx.Locale.Tr "settings.principal_desc"}}
-			</div>
-			{{range .Principals}}
-				<div class="flex-item">
-					<div class="flex-item-leading">
-						<span class="text {{if .HasRecentActivity}}green{{end}}" {{if .HasRecentActivity}}data-tooltip-content="{{ctx.Locale.Tr "settings.principal_state_desc"}}"{{end}}>{{svg "octicon-key" 32}}</span>
-					</div>
-					<div class="flex-item-main">
-						<div class="flex-item-title">{{.Name}}</div>
-						<div class="flex-item-body">
-							<p>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}} —  {{svg "octicon-info" 16}} {{if .HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} <span {{if .HasRecentActivity}}class="green"{{end}}>{{DateUtils.AbsoluteShort .UpdatedUnix}}</span>{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</p>
-						</div>
-					</div>
-					<div class="flex-item-trailing">
-						<button class="ui red tiny button delete-button" data-modal-id="delete-principal" data-url="{{$.Link}}/delete?type=principal" data-id="{{.ID}}">
-							{{ctx.Locale.Tr "settings.delete_key"}}
-						</button>
-					</div>
-				</div>
-			{{end}}
-		</div>
 	</div>
-	<br>
-
 	<div {{if not .HasPrincipalError}}class="tw-hidden"{{end}} id="add-ssh-principal-panel">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "settings.add_new_principal"}}
-		</h4>
-		<div class="ui attached segment">
-			<form class="ui form" action="{{.Link}}" method="post">
-				<div class="field {{if .Err_Content}}error{{end}}">
-					<label for="ssh-principal-content">{{ctx.Locale.Tr "settings.principal_content"}}</label>
-					<input id="ssh-principal-content" name="content" value="{{.content}}" autofocus required>
-				</div>
-				<input name="title" type="hidden" value="principal">
-				<input name="type" type="hidden" value="principal">
-				<button class="ui primary button">
-					{{ctx.Locale.Tr "settings.add_new_principal"}}
-				</button>
-			</form>
-		</div>
+		<form class="ui form ds-form wk-card-form" action="{{.Link}}" method="post">
+			{{.CsrfTokenHtml}}
+			<div class="required field ds-field {{if .Err_Content}}error{{end}}">
+				<label class="ds-label" for="ssh-principal-content">{{ctx.Locale.Tr "settings.principal_content"}}</label>
+				<input id="ssh-principal-content" class="ds-input{{if .Err_Content}} is-err{{end}}" name="content" value="{{.content}}" autofocus required>
+			</div>
+			<input name="title" type="hidden" value="principal">
+			<input name="type" type="hidden" value="principal">
+			<div><button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.add_new_principal"}}</button></div>
+		</form>
 	</div>
-
+	{{if .Principals}}
+	<ul class="ds-list wk-rows">
+		{{range .Principals}}
+			<li class="ds-li wk-row">
+				<span class="ds-li-av" aria-hidden="true">{{svg "dsi-key" 20}}</span>
+				<div class="ds-li-main">
+					<div class="ds-li-title"><span class="ds-break">{{.Name}}</span>
+						{{if .HasRecentActivity}}<span class="ds-chip" data-tooltip-content="{{ctx.Locale.Tr "settings.principal_state_desc"}}">{{ctx.Locale.Tr "asc_work.sp_recently_used"}}</span>{{end}}
+					</div>
+					<div class="ds-li-meta">
+						<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>
+						<span>{{if .HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} {{DateUtils.AbsoluteShort .UpdatedUnix}}{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</span>
+					</div>
+				</div>
+				<div class="wk-row-acts">
+					<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="delete-principal" data-url="{{$.Link}}/delete?type=principal" data-id="{{.ID}}">{{ctx.Locale.Tr "settings.delete_key"}}</button>
+				</div>
+			</li>
+		{{end}}
+	</ul>
+	{{end}}
 	<div class="ui g-modal-confirm delete modal" id="delete-principal">
 		<div class="header">
-			{{svg "octicon-trash"}}
+			{{svg "dsi-trash" 16}}
 			{{ctx.Locale.Tr "settings.ssh_principal_deletion"}}
 		</div>
 		<div class="content">
@@ -65,4 +52,5 @@
 		</div>
 		{{template "base/modal_actions_confirm" .}}
 	</div>
+</section>
 {{end}}

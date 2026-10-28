@@ -47,7 +47,7 @@ type ascKeysPage struct {
 
 func ascKeysPageFor(ctx *context.Context) *ascKeysPage {
 	p := &ascKeysPage{AddOp: asctrust.NewOpID(), RevokeOps: map[string]string{}, KeysURL: setting.AppSubURL + "/user/settings/asc/keys", Namespace: asctrust.SigningNamespace}
-	ctx.Data["Title"] = "Signing keys"
+	ctx.Data["Title"] = ctx.Tr("asc_shell.sn_signing_keys")
 	ctx.Data["PageIsSettingsAscKeys"] = true
 	ctx.Data["AscKeys"] = p
 	trustweb.NoStore(ctx)
