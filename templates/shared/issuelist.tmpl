@@ -46,10 +46,10 @@ Props: Issues, listType ("repo", "milestone", "dashboard"), the page data of the
 							{{ctx.Locale.Tr .GetLastEventLabelFake $timeStr .Poster.GetDisplayName}}
 						{{end}}
 					</span>
-					{{if .IsPull}}
+					{{if and .IsPull .PullRequest.BaseBranch}}
 						<span class="flex-text-inline issue-meta-branch">
 							<span class="branch">
-								<a href="{{.PullRequest.BaseRepo.Link}}/src/branch/{{PathEscapeSegments .PullRequest.BaseBranch}}">
+								<a href="{{.PullRequest.BaseRepo.Link}}/src/branch/{{PathEscapeSegments .PullRequest.BaseBranch}}" aria-label="{{.PullRequest.BaseBranch}}">
 									{{/* inline to remove the spaces between spans */}}
 									{{if ne .RepoID .PullRequest.BaseRepoID}}<span class="truncated-name">{{.PullRequest.BaseRepo.OwnerName}}</span>:{{end}}<span class="truncated-name">{{.PullRequest.BaseBranch}}</span>
 								</a>
