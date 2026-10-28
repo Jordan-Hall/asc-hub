@@ -2592,3 +2592,13 @@ a.ds-stat:hover {
 .collapsible-comment-box .ds-chip {
   min-width: unset;
 }
+
+/* a choice with an explanation: the explanation sits under the label */
+.ds-check {
+  flex-wrap: wrap;
+}
+
+.ds-check > .ds-hint {
+  flex: 1 1 100%;
+  margin: 0 0 0 32px;
+}
