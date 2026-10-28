@@ -119,6 +119,110 @@ func (DiffSide) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_review_proto_rawDescGZIP(), []int{1}
 }
 
+type RiskLevel int32
+
+const (
+	RiskLevel_RISK_LEVEL_UNSPECIFIED RiskLevel = 0
+	RiskLevel_RISK_LEVEL_LOW         RiskLevel = 1
+	RiskLevel_RISK_LEVEL_MEDIUM      RiskLevel = 2
+	RiskLevel_RISK_LEVEL_HIGH        RiskLevel = 3
+)
+
+// Enum value maps for RiskLevel.
+var (
+	RiskLevel_name = map[int32]string{
+		0: "RISK_LEVEL_UNSPECIFIED",
+		1: "RISK_LEVEL_LOW",
+		2: "RISK_LEVEL_MEDIUM",
+		3: "RISK_LEVEL_HIGH",
+	}
+	RiskLevel_value = map[string]int32{
+		"RISK_LEVEL_UNSPECIFIED": 0,
+		"RISK_LEVEL_LOW":         1,
+		"RISK_LEVEL_MEDIUM":      2,
+		"RISK_LEVEL_HIGH":        3,
+	}
+)
+
+func (x RiskLevel) Enum() *RiskLevel {
+	p := new(RiskLevel)
+	*p = x
+	return p
+}
+
+func (x RiskLevel) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (RiskLevel) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_review_proto_enumTypes[2].Descriptor()
+}
+
+func (RiskLevel) Type() protoreflect.EnumType {
+	return &file_asc_v1_review_proto_enumTypes[2]
+}
+
+func (x RiskLevel) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RiskLevel.Descriptor instead.
+func (RiskLevel) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{2}
+}
+
+type ApprovalState int32
+
+const (
+	ApprovalState_APPROVAL_STATE_UNSPECIFIED       ApprovalState = 0
+	ApprovalState_APPROVAL_STATE_APPROVED          ApprovalState = 1
+	ApprovalState_APPROVAL_STATE_CHANGES_REQUESTED ApprovalState = 2
+	ApprovalState_APPROVAL_STATE_DISMISSED         ApprovalState = 3
+)
+
+// Enum value maps for ApprovalState.
+var (
+	ApprovalState_name = map[int32]string{
+		0: "APPROVAL_STATE_UNSPECIFIED",
+		1: "APPROVAL_STATE_APPROVED",
+		2: "APPROVAL_STATE_CHANGES_REQUESTED",
+		3: "APPROVAL_STATE_DISMISSED",
+	}
+	ApprovalState_value = map[string]int32{
+		"APPROVAL_STATE_UNSPECIFIED":       0,
+		"APPROVAL_STATE_APPROVED":          1,
+		"APPROVAL_STATE_CHANGES_REQUESTED": 2,
+		"APPROVAL_STATE_DISMISSED":         3,
+	}
+)
+
+func (x ApprovalState) Enum() *ApprovalState {
+	p := new(ApprovalState)
+	*p = x
+	return p
+}
+
+func (x ApprovalState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ApprovalState) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_review_proto_enumTypes[3].Descriptor()
+}
+
+func (ApprovalState) Type() protoreflect.EnumType {
+	return &file_asc_v1_review_proto_enumTypes[3]
+}
+
+func (x ApprovalState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ApprovalState.Descriptor instead.
+func (ApprovalState) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{3}
+}
+
 // Where a thread sits. An empty `path` is a thread on the change as a whole. Lines are 1-based and inclusive;
 // `end_line` 0 means `start_line`.
 type ThreadAnchor struct {
@@ -198,13 +302,17 @@ func (x *ThreadAnchor) GetEndLine() uint32 {
 }
 
 type ReviewComment struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Author        string                 `protobuf:"bytes,2,opt,name=author,proto3" json:"author,omitempty"`
-	Body          string                 `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
-	Created       int64                  `protobuf:"varint,4,opt,name=created,proto3" json:"created,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Author         string                 `protobuf:"bytes,2,opt,name=author,proto3" json:"author,omitempty"`
+	Body           string                 `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	Created        int64                  `protobuf:"varint,4,opt,name=created,proto3" json:"created,omitempty"`
+	ExternalId     string                 `protobuf:"bytes,5,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`              // the host's own id of the comment, when it mirrored it here; empty otherwise
+	Suggestion     string                 `protobuf:"bytes,6,opt,name=suggestion,proto3" json:"suggestion,omitempty"`                                // replacement text for the lines of the thread; empty when the comment suggests nothing
+	AppliedVersion uint32                 `protobuf:"varint,7,opt,name=applied_version,json=appliedVersion,proto3" json:"applied_version,omitempty"` // the version that applied the suggestion, 0 while it is not applied
+	AppliedBy      string                 `protobuf:"bytes,8,opt,name=applied_by,json=appliedBy,proto3" json:"applied_by,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ReviewComment) Reset() {
@@ -263,6 +371,34 @@ func (x *ReviewComment) GetCreated() int64 {
 		return x.Created
 	}
 	return 0
+}
+
+func (x *ReviewComment) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
+	}
+	return ""
+}
+
+func (x *ReviewComment) GetSuggestion() string {
+	if x != nil {
+		return x.Suggestion
+	}
+	return ""
+}
+
+func (x *ReviewComment) GetAppliedVersion() uint32 {
+	if x != nil {
+		return x.AppliedVersion
+	}
+	return 0
+}
+
+func (x *ReviewComment) GetAppliedBy() string {
+	if x != nil {
+		return x.AppliedBy
+	}
+	return ""
 }
 
 type ReviewThread struct {
@@ -530,12 +666,19 @@ func (x *ListThreadsResponse) GetOpenThreads() uint32 {
 // `thread_id` 0 starts a thread at `anchor` (version 0 = the newest); otherwise the comment is added to that thread
 // and `anchor` is ignored. `body` is 1 to 65536 bytes of UTF-8. A retried x-asc-op-id returns the first answer.
 type AddCommentRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
-	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
-	ThreadId      uint64                 `protobuf:"varint,3,opt,name=thread_id,json=threadId,proto3" json:"thread_id,omitempty"`
-	Anchor        *ThreadAnchor          `protobuf:"bytes,4,opt,name=anchor,proto3" json:"anchor,omitempty"`
-	Body          string                 `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Repo     *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change   []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	ThreadId uint64                 `protobuf:"varint,3,opt,name=thread_id,json=threadId,proto3" json:"thread_id,omitempty"`
+	Anchor   *ThreadAnchor          `protobuf:"bytes,4,opt,name=anchor,proto3" json:"anchor,omitempty"`
+	Body     string                 `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
+	// The host's own id of the comment (at most 128 bytes of [A-Za-z0-9._:/-]). A comment mirrored twice under the same
+	// id is stored once: the second call answers with the stored comment and thread and changes nothing. The id is
+	// unique per repository, so it cannot name a comment of another change.
+	ExternalId string `protobuf:"bytes,6,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	// Replacement text for the lines of the thread (at most 64 KiB; the thread must be on lines). Applying it is PrepareSuggestion and
+	// MarkSuggestionApplied.
+	Suggestion    string `protobuf:"bytes,7,opt,name=suggestion,proto3" json:"suggestion,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -601,6 +744,20 @@ func (x *AddCommentRequest) GetAnchor() *ThreadAnchor {
 func (x *AddCommentRequest) GetBody() string {
 	if x != nil {
 		return x.Body
+	}
+	return ""
+}
+
+func (x *AddCommentRequest) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
+	}
+	return ""
+}
+
+func (x *AddCommentRequest) GetSuggestion() string {
+	if x != nil {
+		return x.Suggestion
 	}
 	return ""
 }
@@ -944,6 +1101,2633 @@ func (x *RequestReviewResponse) GetRequests() []*ReviewRequestInfo {
 	return nil
 }
 
+type WhereToLook struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Line          uint32                 `protobuf:"varint,2,opt,name=line,proto3" json:"line,omitempty"` // 1-based; 0 for the file as a whole
+	Note          string                 `protobuf:"bytes,3,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WhereToLook) Reset() {
+	*x = WhereToLook{}
+	mi := &file_asc_v1_review_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WhereToLook) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WhereToLook) ProtoMessage() {}
+
+func (x *WhereToLook) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WhereToLook.ProtoReflect.Descriptor instead.
+func (*WhereToLook) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *WhereToLook) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *WhereToLook) GetLine() uint32 {
+	if x != nil {
+		return x.Line
+	}
+	return 0
+}
+
+func (x *WhereToLook) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+// The block the author writes: what changed, why, how, what could go wrong and where to look first.
+type ReviewBrief struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	What          string                 `protobuf:"bytes,1,opt,name=what,proto3" json:"what,omitempty"`
+	Why           string                 `protobuf:"bytes,2,opt,name=why,proto3" json:"why,omitempty"`
+	How           string                 `protobuf:"bytes,3,opt,name=how,proto3" json:"how,omitempty"`
+	RiskNote      string                 `protobuf:"bytes,4,opt,name=risk_note,json=riskNote,proto3" json:"risk_note,omitempty"`
+	WhereToLook   []*WhereToLook         `protobuf:"bytes,5,rep,name=where_to_look,json=whereToLook,proto3" json:"where_to_look,omitempty"`
+	UpdatedBy     string                 `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	Updated       int64                  `protobuf:"varint,7,opt,name=updated,proto3" json:"updated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReviewBrief) Reset() {
+	*x = ReviewBrief{}
+	mi := &file_asc_v1_review_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReviewBrief) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReviewBrief) ProtoMessage() {}
+
+func (x *ReviewBrief) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReviewBrief.ProtoReflect.Descriptor instead.
+func (*ReviewBrief) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ReviewBrief) GetWhat() string {
+	if x != nil {
+		return x.What
+	}
+	return ""
+}
+
+func (x *ReviewBrief) GetWhy() string {
+	if x != nil {
+		return x.Why
+	}
+	return ""
+}
+
+func (x *ReviewBrief) GetHow() string {
+	if x != nil {
+		return x.How
+	}
+	return ""
+}
+
+func (x *ReviewBrief) GetRiskNote() string {
+	if x != nil {
+		return x.RiskNote
+	}
+	return ""
+}
+
+func (x *ReviewBrief) GetWhereToLook() []*WhereToLook {
+	if x != nil {
+		return x.WhereToLook
+	}
+	return nil
+}
+
+func (x *ReviewBrief) GetUpdatedBy() string {
+	if x != nil {
+		return x.UpdatedBy
+	}
+	return ""
+}
+
+func (x *ReviewBrief) GetUpdated() int64 {
+	if x != nil {
+		return x.Updated
+	}
+	return 0
+}
+
+type ChangeFileStat struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Added         uint32                 `protobuf:"varint,2,opt,name=added,proto3" json:"added,omitempty"`
+	Removed       uint32                 `protobuf:"varint,3,opt,name=removed,proto3" json:"removed,omitempty"`
+	Binary        bool                   `protobuf:"varint,4,opt,name=binary,proto3" json:"binary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChangeFileStat) Reset() {
+	*x = ChangeFileStat{}
+	mi := &file_asc_v1_review_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangeFileStat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangeFileStat) ProtoMessage() {}
+
+func (x *ChangeFileStat) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangeFileStat.ProtoReflect.Descriptor instead.
+func (*ChangeFileStat) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ChangeFileStat) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *ChangeFileStat) GetAdded() uint32 {
+	if x != nil {
+		return x.Added
+	}
+	return 0
+}
+
+func (x *ChangeFileStat) GetRemoved() uint32 {
+	if x != nil {
+		return x.Removed
+	}
+	return 0
+}
+
+func (x *ChangeFileStat) GetBinary() bool {
+	if x != nil {
+		return x.Binary
+	}
+	return false
+}
+
+// The classifier is deterministic and path and size based; `reasons` says why, in words a reviewer can read.
+type ChangeRisk struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Level         RiskLevel              `protobuf:"varint,1,opt,name=level,proto3,enum=asc.v1.RiskLevel" json:"level,omitempty"`
+	Reasons       []string               `protobuf:"bytes,2,rep,name=reasons,proto3" json:"reasons,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChangeRisk) Reset() {
+	*x = ChangeRisk{}
+	mi := &file_asc_v1_review_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangeRisk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangeRisk) ProtoMessage() {}
+
+func (x *ChangeRisk) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangeRisk.ProtoReflect.Descriptor instead.
+func (*ChangeRisk) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ChangeRisk) GetLevel() RiskLevel {
+	if x != nil {
+		return x.Level
+	}
+	return RiskLevel_RISK_LEVEL_UNSPECIFIED
+}
+
+func (x *ChangeRisk) GetReasons() []string {
+	if x != nil {
+		return x.Reasons
+	}
+	return nil
+}
+
+// Where a change came from when an agent run made it ("How it was made").
+type ChangeProvenance struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RunId         uint64                 `protobuf:"varint,1,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"` // 0 when no run made the change
+	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Task          string                 `protobuf:"bytes,4,opt,name=task,proto3" json:"task,omitempty"`
+	CreatedBy     string                 `protobuf:"bytes,5,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	RunState      string                 `protobuf:"bytes,6,opt,name=run_state,json=runState,proto3" json:"run_state,omitempty"`
+	ToolCalls     uint32                 `protobuf:"varint,7,opt,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
+	FilesRead     uint32                 `protobuf:"varint,8,opt,name=files_read,json=filesRead,proto3" json:"files_read,omitempty"`
+	Versions      uint32                 `protobuf:"varint,9,opt,name=versions,proto3" json:"versions,omitempty"` // versions of this change
+	Paths         []string               `protobuf:"bytes,10,rep,name=paths,proto3" json:"paths,omitempty"`       // the write scope of the run
+	Started       int64                  `protobuf:"varint,11,opt,name=started,proto3" json:"started,omitempty"`
+	Finished      int64                  `protobuf:"varint,12,opt,name=finished,proto3" json:"finished,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChangeProvenance) Reset() {
+	*x = ChangeProvenance{}
+	mi := &file_asc_v1_review_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangeProvenance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangeProvenance) ProtoMessage() {}
+
+func (x *ChangeProvenance) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangeProvenance.ProtoReflect.Descriptor instead.
+func (*ChangeProvenance) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ChangeProvenance) GetRunId() uint64 {
+	if x != nil {
+		return x.RunId
+	}
+	return 0
+}
+
+func (x *ChangeProvenance) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *ChangeProvenance) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *ChangeProvenance) GetTask() string {
+	if x != nil {
+		return x.Task
+	}
+	return ""
+}
+
+func (x *ChangeProvenance) GetCreatedBy() string {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return ""
+}
+
+func (x *ChangeProvenance) GetRunState() string {
+	if x != nil {
+		return x.RunState
+	}
+	return ""
+}
+
+func (x *ChangeProvenance) GetToolCalls() uint32 {
+	if x != nil {
+		return x.ToolCalls
+	}
+	return 0
+}
+
+func (x *ChangeProvenance) GetFilesRead() uint32 {
+	if x != nil {
+		return x.FilesRead
+	}
+	return 0
+}
+
+func (x *ChangeProvenance) GetVersions() uint32 {
+	if x != nil {
+		return x.Versions
+	}
+	return 0
+}
+
+func (x *ChangeProvenance) GetPaths() []string {
+	if x != nil {
+		return x.Paths
+	}
+	return nil
+}
+
+func (x *ChangeProvenance) GetStarted() int64 {
+	if x != nil {
+		return x.Started
+	}
+	return 0
+}
+
+func (x *ChangeProvenance) GetFinished() int64 {
+	if x != nil {
+		return x.Finished
+	}
+	return 0
+}
+
+// One person's verdict on one version, and whether it still applies to the newest one: it does when the patch of every file the
+// version changes is identical in the newest version (`carried`); otherwise `changed_files` names the files that differ.
+type ApprovalInfo struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Reviewer       string                 `protobuf:"bytes,1,opt,name=reviewer,proto3" json:"reviewer,omitempty"`
+	Version        uint32                 `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	State          ApprovalState          `protobuf:"varint,3,opt,name=state,proto3,enum=asc.v1.ApprovalState" json:"state,omitempty"`
+	At             int64                  `protobuf:"varint,4,opt,name=at,proto3" json:"at,omitempty"`
+	Applies        bool                   `protobuf:"varint,5,opt,name=applies,proto3" json:"applies,omitempty"` // still counts for the newest version
+	Carried        bool                   `protobuf:"varint,6,opt,name=carried,proto3" json:"carried,omitempty"` // applies although the version is not the newest
+	UnchangedFiles uint32                 `protobuf:"varint,7,opt,name=unchanged_files,json=unchangedFiles,proto3" json:"unchanged_files,omitempty"`
+	ChangedFiles   [][]byte               `protobuf:"bytes,8,rep,name=changed_files,json=changedFiles,proto3" json:"changed_files,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ApprovalInfo) Reset() {
+	*x = ApprovalInfo{}
+	mi := &file_asc_v1_review_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApprovalInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApprovalInfo) ProtoMessage() {}
+
+func (x *ApprovalInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApprovalInfo.ProtoReflect.Descriptor instead.
+func (*ApprovalInfo) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ApprovalInfo) GetReviewer() string {
+	if x != nil {
+		return x.Reviewer
+	}
+	return ""
+}
+
+func (x *ApprovalInfo) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *ApprovalInfo) GetState() ApprovalState {
+	if x != nil {
+		return x.State
+	}
+	return ApprovalState_APPROVAL_STATE_UNSPECIFIED
+}
+
+func (x *ApprovalInfo) GetAt() int64 {
+	if x != nil {
+		return x.At
+	}
+	return 0
+}
+
+func (x *ApprovalInfo) GetApplies() bool {
+	if x != nil {
+		return x.Applies
+	}
+	return false
+}
+
+func (x *ApprovalInfo) GetCarried() bool {
+	if x != nil {
+		return x.Carried
+	}
+	return false
+}
+
+func (x *ApprovalInfo) GetUnchangedFiles() uint32 {
+	if x != nil {
+		return x.UnchangedFiles
+	}
+	return 0
+}
+
+func (x *ApprovalInfo) GetChangedFiles() [][]byte {
+	if x != nil {
+		return x.ChangedFiles
+	}
+	return nil
+}
+
+// What the policy gate card of the review page shows, as far as asc knows it. Checks and the rules of the policy are evaluated by
+// Policy.Evaluate and Ci.ListRuns.
+type ReviewGateData struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	OpenThreads       uint32                 `protobuf:"varint,1,opt,name=open_threads,json=openThreads,proto3" json:"open_threads,omitempty"`
+	TotalThreads      uint32                 `protobuf:"varint,2,opt,name=total_threads,json=totalThreads,proto3" json:"total_threads,omitempty"`
+	PendingReviewers  uint32                 `protobuf:"varint,3,opt,name=pending_reviewers,json=pendingReviewers,proto3" json:"pending_reviewers,omitempty"`
+	FinishedReviewers uint32                 `protobuf:"varint,4,opt,name=finished_reviewers,json=finishedReviewers,proto3" json:"finished_reviewers,omitempty"`
+	ApprovalsCurrent  uint32                 `protobuf:"varint,5,opt,name=approvals_current,json=approvalsCurrent,proto3" json:"approvals_current,omitempty"` // approvals that apply to the newest version, carried ones included
+	ApprovalsCarried  uint32                 `protobuf:"varint,6,opt,name=approvals_carried,json=approvalsCarried,proto3" json:"approvals_carried,omitempty"`
+	ChangesRequested  uint32                 `protobuf:"varint,7,opt,name=changes_requested,json=changesRequested,proto3" json:"changes_requested,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ReviewGateData) Reset() {
+	*x = ReviewGateData{}
+	mi := &file_asc_v1_review_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReviewGateData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReviewGateData) ProtoMessage() {}
+
+func (x *ReviewGateData) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReviewGateData.ProtoReflect.Descriptor instead.
+func (*ReviewGateData) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ReviewGateData) GetOpenThreads() uint32 {
+	if x != nil {
+		return x.OpenThreads
+	}
+	return 0
+}
+
+func (x *ReviewGateData) GetTotalThreads() uint32 {
+	if x != nil {
+		return x.TotalThreads
+	}
+	return 0
+}
+
+func (x *ReviewGateData) GetPendingReviewers() uint32 {
+	if x != nil {
+		return x.PendingReviewers
+	}
+	return 0
+}
+
+func (x *ReviewGateData) GetFinishedReviewers() uint32 {
+	if x != nil {
+		return x.FinishedReviewers
+	}
+	return 0
+}
+
+func (x *ReviewGateData) GetApprovalsCurrent() uint32 {
+	if x != nil {
+		return x.ApprovalsCurrent
+	}
+	return 0
+}
+
+func (x *ReviewGateData) GetApprovalsCarried() uint32 {
+	if x != nil {
+		return x.ApprovalsCarried
+	}
+	return 0
+}
+
+func (x *ReviewGateData) GetChangesRequested() uint32 {
+	if x != nil {
+		return x.ChangesRequested
+	}
+	return 0
+}
+
+type GetBriefRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBriefRequest) Reset() {
+	*x = GetBriefRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBriefRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBriefRequest) ProtoMessage() {}
+
+func (x *GetBriefRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBriefRequest.ProtoReflect.Descriptor instead.
+func (*GetBriefRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetBriefRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GetBriefRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+type GetBriefResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Brief          *ReviewBrief           `protobuf:"bytes,1,opt,name=brief,proto3" json:"brief,omitempty"` // empty fields when the author wrote none
+	LatestVersion  uint32                 `protobuf:"varint,2,opt,name=latest_version,json=latestVersion,proto3" json:"latest_version,omitempty"`
+	Files          uint32                 `protobuf:"varint,3,opt,name=files,proto3" json:"files,omitempty"`
+	Added          uint32                 `protobuf:"varint,4,opt,name=added,proto3" json:"added,omitempty"`
+	Removed        uint32                 `protobuf:"varint,5,opt,name=removed,proto3" json:"removed,omitempty"`
+	FileStats      []*ChangeFileStat      `protobuf:"bytes,6,rep,name=file_stats,json=fileStats,proto3" json:"file_stats,omitempty"` // at most 500
+	StatsTruncated bool                   `protobuf:"varint,7,opt,name=stats_truncated,json=statsTruncated,proto3" json:"stats_truncated,omitempty"`
+	Risk           *ChangeRisk            `protobuf:"bytes,8,opt,name=risk,proto3" json:"risk,omitempty"`
+	Provenance     *ChangeProvenance      `protobuf:"bytes,9,opt,name=provenance,proto3" json:"provenance,omitempty"`
+	Approvals      []*ApprovalInfo        `protobuf:"bytes,10,rep,name=approvals,proto3" json:"approvals,omitempty"`
+	Gate           *ReviewGateData        `protobuf:"bytes,11,opt,name=gate,proto3" json:"gate,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetBriefResponse) Reset() {
+	*x = GetBriefResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBriefResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBriefResponse) ProtoMessage() {}
+
+func (x *GetBriefResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBriefResponse.ProtoReflect.Descriptor instead.
+func (*GetBriefResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetBriefResponse) GetBrief() *ReviewBrief {
+	if x != nil {
+		return x.Brief
+	}
+	return nil
+}
+
+func (x *GetBriefResponse) GetLatestVersion() uint32 {
+	if x != nil {
+		return x.LatestVersion
+	}
+	return 0
+}
+
+func (x *GetBriefResponse) GetFiles() uint32 {
+	if x != nil {
+		return x.Files
+	}
+	return 0
+}
+
+func (x *GetBriefResponse) GetAdded() uint32 {
+	if x != nil {
+		return x.Added
+	}
+	return 0
+}
+
+func (x *GetBriefResponse) GetRemoved() uint32 {
+	if x != nil {
+		return x.Removed
+	}
+	return 0
+}
+
+func (x *GetBriefResponse) GetFileStats() []*ChangeFileStat {
+	if x != nil {
+		return x.FileStats
+	}
+	return nil
+}
+
+func (x *GetBriefResponse) GetStatsTruncated() bool {
+	if x != nil {
+		return x.StatsTruncated
+	}
+	return false
+}
+
+func (x *GetBriefResponse) GetRisk() *ChangeRisk {
+	if x != nil {
+		return x.Risk
+	}
+	return nil
+}
+
+func (x *GetBriefResponse) GetProvenance() *ChangeProvenance {
+	if x != nil {
+		return x.Provenance
+	}
+	return nil
+}
+
+func (x *GetBriefResponse) GetApprovals() []*ApprovalInfo {
+	if x != nil {
+		return x.Approvals
+	}
+	return nil
+}
+
+func (x *GetBriefResponse) GetGate() *ReviewGateData {
+	if x != nil {
+		return x.Gate
+	}
+	return nil
+}
+
+// Replaces the brief. Each text is at most 8 KiB, at most 20 pointers. The author of the change (the actor of its first version) or
+// anyone with repo write may write it.
+type SetBriefRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Brief         *ReviewBrief           `protobuf:"bytes,3,opt,name=brief,proto3" json:"brief,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetBriefRequest) Reset() {
+	*x = SetBriefRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetBriefRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetBriefRequest) ProtoMessage() {}
+
+func (x *SetBriefRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetBriefRequest.ProtoReflect.Descriptor instead.
+func (*SetBriefRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *SetBriefRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *SetBriefRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *SetBriefRequest) GetBrief() *ReviewBrief {
+	if x != nil {
+		return x.Brief
+	}
+	return nil
+}
+
+type SetBriefResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Brief         *ReviewBrief           `protobuf:"bytes,1,opt,name=brief,proto3" json:"brief,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetBriefResponse) Reset() {
+	*x = SetBriefResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetBriefResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetBriefResponse) ProtoMessage() {}
+
+func (x *SetBriefResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetBriefResponse.ProtoReflect.Descriptor instead.
+func (*SetBriefResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *SetBriefResponse) GetBrief() *ReviewBrief {
+	if x != nil {
+		return x.Brief
+	}
+	return nil
+}
+
+// The host (the hub) reports the verdict of a person on a version. The reviewer is the person of the claim; a person with only
+// repo read cannot approve. A second verdict of the same person on the same version replaces the first. `version` 0 means the newest.
+type RecordApprovalRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Version       uint32                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	State         ApprovalState          `protobuf:"varint,4,opt,name=state,proto3,enum=asc.v1.ApprovalState" json:"state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecordApprovalRequest) Reset() {
+	*x = RecordApprovalRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordApprovalRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordApprovalRequest) ProtoMessage() {}
+
+func (x *RecordApprovalRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordApprovalRequest.ProtoReflect.Descriptor instead.
+func (*RecordApprovalRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *RecordApprovalRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *RecordApprovalRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *RecordApprovalRequest) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *RecordApprovalRequest) GetState() ApprovalState {
+	if x != nil {
+		return x.State
+	}
+	return ApprovalState_APPROVAL_STATE_UNSPECIFIED
+}
+
+type RecordApprovalResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Approvals     []*ApprovalInfo        `protobuf:"bytes,1,rep,name=approvals,proto3" json:"approvals,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecordApprovalResponse) Reset() {
+	*x = RecordApprovalResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordApprovalResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordApprovalResponse) ProtoMessage() {}
+
+func (x *RecordApprovalResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordApprovalResponse.ProtoReflect.Descriptor instead.
+func (*RecordApprovalResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *RecordApprovalResponse) GetApprovals() []*ApprovalInfo {
+	if x != nil {
+		return x.Approvals
+	}
+	return nil
+}
+
+type CompareVersionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	FromVersion   uint32                 `protobuf:"varint,3,opt,name=from_version,json=fromVersion,proto3" json:"from_version,omitempty"`
+	ToVersion     uint32                 `protobuf:"varint,4,opt,name=to_version,json=toVersion,proto3" json:"to_version,omitempty"` // 0 means the newest
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompareVersionsRequest) Reset() {
+	*x = CompareVersionsRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompareVersionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompareVersionsRequest) ProtoMessage() {}
+
+func (x *CompareVersionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompareVersionsRequest.ProtoReflect.Descriptor instead.
+func (*CompareVersionsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CompareVersionsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *CompareVersionsRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *CompareVersionsRequest) GetFromVersion() uint32 {
+	if x != nil {
+		return x.FromVersion
+	}
+	return 0
+}
+
+func (x *CompareVersionsRequest) GetToVersion() uint32 {
+	if x != nil {
+		return x.ToVersion
+	}
+	return 0
+}
+
+type VersionFile struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	State         string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`  // changed, unchanged, added or removed (relative to `from_version`)
+	Added         uint32                 `protobuf:"varint,3,opt,name=added,proto3" json:"added,omitempty"` // lines added in `to_version`
+	Removed       uint32                 `protobuf:"varint,4,opt,name=removed,proto3" json:"removed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VersionFile) Reset() {
+	*x = VersionFile{}
+	mi := &file_asc_v1_review_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VersionFile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VersionFile) ProtoMessage() {}
+
+func (x *VersionFile) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VersionFile.ProtoReflect.Descriptor instead.
+func (*VersionFile) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *VersionFile) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *VersionFile) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *VersionFile) GetAdded() uint32 {
+	if x != nil {
+		return x.Added
+	}
+	return 0
+}
+
+func (x *VersionFile) GetRemoved() uint32 {
+	if x != nil {
+		return x.Removed
+	}
+	return 0
+}
+
+type CompareVersionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Files         []*VersionFile         `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty"` // at most 2000
+	Changed       uint32                 `protobuf:"varint,2,opt,name=changed,proto3" json:"changed,omitempty"`
+	Unchanged     uint32                 `protobuf:"varint,3,opt,name=unchanged,proto3" json:"unchanged,omitempty"`
+	Added         uint32                 `protobuf:"varint,4,opt,name=added,proto3" json:"added,omitempty"` // lines added across the changed files
+	Removed       uint32                 `protobuf:"varint,5,opt,name=removed,proto3" json:"removed,omitempty"`
+	Approvals     []*ApprovalInfo        `protobuf:"bytes,6,rep,name=approvals,proto3" json:"approvals,omitempty"` // the verdicts on `from_version` and whether they apply to `to_version`
+	Truncated     bool                   `protobuf:"varint,7,opt,name=truncated,proto3" json:"truncated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompareVersionsResponse) Reset() {
+	*x = CompareVersionsResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompareVersionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompareVersionsResponse) ProtoMessage() {}
+
+func (x *CompareVersionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompareVersionsResponse.ProtoReflect.Descriptor instead.
+func (*CompareVersionsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *CompareVersionsResponse) GetFiles() []*VersionFile {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+func (x *CompareVersionsResponse) GetChanged() uint32 {
+	if x != nil {
+		return x.Changed
+	}
+	return 0
+}
+
+func (x *CompareVersionsResponse) GetUnchanged() uint32 {
+	if x != nil {
+		return x.Unchanged
+	}
+	return 0
+}
+
+func (x *CompareVersionsResponse) GetAdded() uint32 {
+	if x != nil {
+		return x.Added
+	}
+	return 0
+}
+
+func (x *CompareVersionsResponse) GetRemoved() uint32 {
+	if x != nil {
+		return x.Removed
+	}
+	return 0
+}
+
+func (x *CompareVersionsResponse) GetApprovals() []*ApprovalInfo {
+	if x != nil {
+		return x.Approvals
+	}
+	return nil
+}
+
+func (x *CompareVersionsResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
+type PrepareSuggestionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	ThreadId      uint64                 `protobuf:"varint,3,opt,name=thread_id,json=threadId,proto3" json:"thread_id,omitempty"`
+	CommentId     uint64                 `protobuf:"varint,4,opt,name=comment_id,json=commentId,proto3" json:"comment_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PrepareSuggestionRequest) Reset() {
+	*x = PrepareSuggestionRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PrepareSuggestionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PrepareSuggestionRequest) ProtoMessage() {}
+
+func (x *PrepareSuggestionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PrepareSuggestionRequest.ProtoReflect.Descriptor instead.
+func (*PrepareSuggestionRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *PrepareSuggestionRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *PrepareSuggestionRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *PrepareSuggestionRequest) GetThreadId() uint64 {
+	if x != nil {
+		return x.ThreadId
+	}
+	return 0
+}
+
+func (x *PrepareSuggestionRequest) GetCommentId() uint64 {
+	if x != nil {
+		return x.CommentId
+	}
+	return 0
+}
+
+// The file as it would be with the suggestion applied. The host commits it as the next version of the change, then calls
+// MarkSuggestionApplied. `stale` is true when the suggestion no longer fits (the thread is on an older version, the file or the lines
+// are gone); `new_content` is empty then and `reason` says why.
+type PrepareSuggestionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Version       uint32                 `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	LatestVersion uint32                 `protobuf:"varint,3,opt,name=latest_version,json=latestVersion,proto3" json:"latest_version,omitempty"`
+	BaseChangeset []byte                 `protobuf:"bytes,4,opt,name=base_changeset,json=baseChangeset,proto3" json:"base_changeset,omitempty"`
+	NewContent    []byte                 `protobuf:"bytes,5,opt,name=new_content,json=newContent,proto3" json:"new_content,omitempty"`
+	StartLine     uint32                 `protobuf:"varint,6,opt,name=start_line,json=startLine,proto3" json:"start_line,omitempty"`
+	EndLine       uint32                 `protobuf:"varint,7,opt,name=end_line,json=endLine,proto3" json:"end_line,omitempty"`
+	Stale         bool                   `protobuf:"varint,8,opt,name=stale,proto3" json:"stale,omitempty"`
+	Reason        string                 `protobuf:"bytes,9,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PrepareSuggestionResponse) Reset() {
+	*x = PrepareSuggestionResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PrepareSuggestionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PrepareSuggestionResponse) ProtoMessage() {}
+
+func (x *PrepareSuggestionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PrepareSuggestionResponse.ProtoReflect.Descriptor instead.
+func (*PrepareSuggestionResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *PrepareSuggestionResponse) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *PrepareSuggestionResponse) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *PrepareSuggestionResponse) GetLatestVersion() uint32 {
+	if x != nil {
+		return x.LatestVersion
+	}
+	return 0
+}
+
+func (x *PrepareSuggestionResponse) GetBaseChangeset() []byte {
+	if x != nil {
+		return x.BaseChangeset
+	}
+	return nil
+}
+
+func (x *PrepareSuggestionResponse) GetNewContent() []byte {
+	if x != nil {
+		return x.NewContent
+	}
+	return nil
+}
+
+func (x *PrepareSuggestionResponse) GetStartLine() uint32 {
+	if x != nil {
+		return x.StartLine
+	}
+	return 0
+}
+
+func (x *PrepareSuggestionResponse) GetEndLine() uint32 {
+	if x != nil {
+		return x.EndLine
+	}
+	return 0
+}
+
+func (x *PrepareSuggestionResponse) GetStale() bool {
+	if x != nil {
+		return x.Stale
+	}
+	return false
+}
+
+func (x *PrepareSuggestionResponse) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type MarkSuggestionAppliedRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	ThreadId      uint64                 `protobuf:"varint,3,opt,name=thread_id,json=threadId,proto3" json:"thread_id,omitempty"`
+	CommentId     uint64                 `protobuf:"varint,4,opt,name=comment_id,json=commentId,proto3" json:"comment_id,omitempty"`
+	Version       uint32                 `protobuf:"varint,5,opt,name=version,proto3" json:"version,omitempty"` // the version the apply made; later than the one the thread is on, at most the newest
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MarkSuggestionAppliedRequest) Reset() {
+	*x = MarkSuggestionAppliedRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkSuggestionAppliedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkSuggestionAppliedRequest) ProtoMessage() {}
+
+func (x *MarkSuggestionAppliedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkSuggestionAppliedRequest.ProtoReflect.Descriptor instead.
+func (*MarkSuggestionAppliedRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *MarkSuggestionAppliedRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *MarkSuggestionAppliedRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *MarkSuggestionAppliedRequest) GetThreadId() uint64 {
+	if x != nil {
+		return x.ThreadId
+	}
+	return 0
+}
+
+func (x *MarkSuggestionAppliedRequest) GetCommentId() uint64 {
+	if x != nil {
+		return x.CommentId
+	}
+	return 0
+}
+
+func (x *MarkSuggestionAppliedRequest) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type MarkSuggestionAppliedResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Thread        *ReviewThread          `protobuf:"bytes,1,opt,name=thread,proto3" json:"thread,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MarkSuggestionAppliedResponse) Reset() {
+	*x = MarkSuggestionAppliedResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkSuggestionAppliedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkSuggestionAppliedResponse) ProtoMessage() {}
+
+func (x *MarkSuggestionAppliedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkSuggestionAppliedResponse.ProtoReflect.Descriptor instead.
+func (*MarkSuggestionAppliedResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *MarkSuggestionAppliedResponse) GetThread() *ReviewThread {
+	if x != nil {
+		return x.Thread
+	}
+	return nil
+}
+
+type SuggestReviewersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Limit         uint32                 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"` // 0 means 5, at most 20
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SuggestReviewersRequest) Reset() {
+	*x = SuggestReviewersRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SuggestReviewersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SuggestReviewersRequest) ProtoMessage() {}
+
+func (x *SuggestReviewersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SuggestReviewersRequest.ProtoReflect.Descriptor instead.
+func (*SuggestReviewersRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *SuggestReviewersRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *SuggestReviewersRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *SuggestReviewersRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type SuggestedReviewer struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Handle        string                 `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
+	IsAgent       bool                   `protobuf:"varint,2,opt,name=is_agent,json=isAgent,proto3" json:"is_agent,omitempty"`
+	Reviews       uint32                 `protobuf:"varint,3,opt,name=reviews,proto3" json:"reviews,omitempty"`                              // finished reviews in this repository
+	OnSameFiles   uint32                 `protobuf:"varint,4,opt,name=on_same_files,json=onSameFiles,proto3" json:"on_same_files,omitempty"` // threads they opened on the files this change touches
+	Reason        string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SuggestedReviewer) Reset() {
+	*x = SuggestedReviewer{}
+	mi := &file_asc_v1_review_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SuggestedReviewer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SuggestedReviewer) ProtoMessage() {}
+
+func (x *SuggestedReviewer) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SuggestedReviewer.ProtoReflect.Descriptor instead.
+func (*SuggestedReviewer) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *SuggestedReviewer) GetHandle() string {
+	if x != nil {
+		return x.Handle
+	}
+	return ""
+}
+
+func (x *SuggestedReviewer) GetIsAgent() bool {
+	if x != nil {
+		return x.IsAgent
+	}
+	return false
+}
+
+func (x *SuggestedReviewer) GetReviews() uint32 {
+	if x != nil {
+		return x.Reviews
+	}
+	return 0
+}
+
+func (x *SuggestedReviewer) GetOnSameFiles() uint32 {
+	if x != nil {
+		return x.OnSameFiles
+	}
+	return 0
+}
+
+func (x *SuggestedReviewer) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type SuggestReviewersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Reviewers     []*SuggestedReviewer   `protobuf:"bytes,1,rep,name=reviewers,proto3" json:"reviewers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SuggestReviewersResponse) Reset() {
+	*x = SuggestReviewersResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SuggestReviewersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SuggestReviewersResponse) ProtoMessage() {}
+
+func (x *SuggestReviewersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SuggestReviewersResponse.ProtoReflect.Descriptor instead.
+func (*SuggestReviewersResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *SuggestReviewersResponse) GetReviewers() []*SuggestedReviewer {
+	if x != nil {
+		return x.Reviewers
+	}
+	return nil
+}
+
+type GateRuleResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rule          string                 `protobuf:"bytes,1,opt,name=rule,proto3" json:"rule,omitempty"`  // the rule as the gate names it ("two approvals", "checks green", ...), at most 120 bytes
+	Held          bool                   `protobuf:"varint,2,opt,name=held,proto3" json:"held,omitempty"` // this rule held the change
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GateRuleResult) Reset() {
+	*x = GateRuleResult{}
+	mi := &file_asc_v1_review_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GateRuleResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GateRuleResult) ProtoMessage() {}
+
+func (x *GateRuleResult) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GateRuleResult.ProtoReflect.Descriptor instead.
+func (*GateRuleResult) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *GateRuleResult) GetRule() string {
+	if x != nil {
+		return x.Rule
+	}
+	return ""
+}
+
+func (x *GateRuleResult) GetHeld() bool {
+	if x != nil {
+		return x.Held
+	}
+	return false
+}
+
+type RecordGateDecisionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Version       uint32                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"` // 0 means the newest
+	Rules         []*GateRuleResult      `protobuf:"bytes,4,rep,name=rules,proto3" json:"rules,omitempty"`      // at most 64
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecordGateDecisionRequest) Reset() {
+	*x = RecordGateDecisionRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordGateDecisionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordGateDecisionRequest) ProtoMessage() {}
+
+func (x *RecordGateDecisionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordGateDecisionRequest.ProtoReflect.Descriptor instead.
+func (*RecordGateDecisionRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *RecordGateDecisionRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *RecordGateDecisionRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *RecordGateDecisionRequest) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *RecordGateDecisionRequest) GetRules() []*GateRuleResult {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
+// The same version reported again replaces the rules; a version that held and passes later is cleared (the time to clear is counted).
+type RecordGateDecisionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Passed        bool                   `protobuf:"varint,1,opt,name=passed,proto3" json:"passed,omitempty"`
+	FirstTime     bool                   `protobuf:"varint,2,opt,name=first_time,json=firstTime,proto3" json:"first_time,omitempty"` // it passed at its first evaluation
+	Cleared       bool                   `protobuf:"varint,3,opt,name=cleared,proto3" json:"cleared,omitempty"`                      // it held before and passes now
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecordGateDecisionResponse) Reset() {
+	*x = RecordGateDecisionResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordGateDecisionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordGateDecisionResponse) ProtoMessage() {}
+
+func (x *RecordGateDecisionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordGateDecisionResponse.ProtoReflect.Descriptor instead.
+func (*RecordGateDecisionResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *RecordGateDecisionResponse) GetPassed() bool {
+	if x != nil {
+		return x.Passed
+	}
+	return false
+}
+
+func (x *RecordGateDecisionResponse) GetFirstTime() bool {
+	if x != nil {
+		return x.FirstTime
+	}
+	return false
+}
+
+func (x *RecordGateDecisionResponse) GetCleared() bool {
+	if x != nil {
+		return x.Cleared
+	}
+	return false
+}
+
+type GetGateStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Days          uint32                 `protobuf:"varint,2,opt,name=days,proto3" json:"days,omitempty"` // 0 means 30, at most 365
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGateStatsRequest) Reset() {
+	*x = GetGateStatsRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGateStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGateStatsRequest) ProtoMessage() {}
+
+func (x *GetGateStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGateStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetGateStatsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *GetGateStatsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GetGateStatsRequest) GetDays() uint32 {
+	if x != nil {
+		return x.Days
+	}
+	return 0
+}
+
+type GateDay struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Day           string                 `protobuf:"bytes,1,opt,name=day,proto3" json:"day,omitempty"` // YYYY-MM-DD, UTC
+	Checked       uint32                 `protobuf:"varint,2,opt,name=checked,proto3" json:"checked,omitempty"`
+	Held          uint32                 `protobuf:"varint,3,opt,name=held,proto3" json:"held,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GateDay) Reset() {
+	*x = GateDay{}
+	mi := &file_asc_v1_review_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GateDay) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GateDay) ProtoMessage() {}
+
+func (x *GateDay) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GateDay.ProtoReflect.Descriptor instead.
+func (*GateDay) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *GateDay) GetDay() string {
+	if x != nil {
+		return x.Day
+	}
+	return ""
+}
+
+func (x *GateDay) GetChecked() uint32 {
+	if x != nil {
+		return x.Checked
+	}
+	return 0
+}
+
+func (x *GateDay) GetHeld() uint32 {
+	if x != nil {
+		return x.Held
+	}
+	return 0
+}
+
+type GateRuleCount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rule          string                 `protobuf:"bytes,1,opt,name=rule,proto3" json:"rule,omitempty"`
+	Checked       uint32                 `protobuf:"varint,2,opt,name=checked,proto3" json:"checked,omitempty"`
+	Held          uint32                 `protobuf:"varint,3,opt,name=held,proto3" json:"held,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GateRuleCount) Reset() {
+	*x = GateRuleCount{}
+	mi := &file_asc_v1_review_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GateRuleCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GateRuleCount) ProtoMessage() {}
+
+func (x *GateRuleCount) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GateRuleCount.ProtoReflect.Descriptor instead.
+func (*GateRuleCount) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *GateRuleCount) GetRule() string {
+	if x != nil {
+		return x.Rule
+	}
+	return ""
+}
+
+func (x *GateRuleCount) GetChecked() uint32 {
+	if x != nil {
+		return x.Checked
+	}
+	return 0
+}
+
+func (x *GateRuleCount) GetHeld() uint32 {
+	if x != nil {
+		return x.Held
+	}
+	return 0
+}
+
+type GetGateStatsResponse struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Checked            uint32                 `protobuf:"varint,1,opt,name=checked,proto3" json:"checked,omitempty"` // versions the gate looked at in the window
+	PassedFirstTime    uint32                 `protobuf:"varint,2,opt,name=passed_first_time,json=passedFirstTime,proto3" json:"passed_first_time,omitempty"`
+	Held               uint32                 `protobuf:"varint,3,opt,name=held,proto3" json:"held,omitempty"`                         // versions that were held at least once
+	HeldOpen           uint32                 `protobuf:"varint,4,opt,name=held_open,json=heldOpen,proto3" json:"held_open,omitempty"` // still held
+	HeldCleared        uint32                 `protobuf:"varint,5,opt,name=held_cleared,json=heldCleared,proto3" json:"held_cleared,omitempty"`
+	MedianClearSeconds uint32                 `protobuf:"varint,6,opt,name=median_clear_seconds,json=medianClearSeconds,proto3" json:"median_clear_seconds,omitempty"` // among the cleared
+	PerDay             []*GateDay             `protobuf:"bytes,7,rep,name=per_day,json=perDay,proto3" json:"per_day,omitempty"`                                        // every day of the window, ascending, zero days included
+	PerRule            []*GateRuleCount       `protobuf:"bytes,8,rep,name=per_rule,json=perRule,proto3" json:"per_rule,omitempty"`                                     // busiest first
+	OverridesActive    uint32                 `protobuf:"varint,9,opt,name=overrides_active,json=overridesActive,proto3" json:"overrides_active,omitempty"`
+	Truncated          bool                   `protobuf:"varint,10,opt,name=truncated,proto3" json:"truncated,omitempty"` // more than 20000 evaluations: the oldest were left out
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *GetGateStatsResponse) Reset() {
+	*x = GetGateStatsResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGateStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGateStatsResponse) ProtoMessage() {}
+
+func (x *GetGateStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGateStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetGateStatsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *GetGateStatsResponse) GetChecked() uint32 {
+	if x != nil {
+		return x.Checked
+	}
+	return 0
+}
+
+func (x *GetGateStatsResponse) GetPassedFirstTime() uint32 {
+	if x != nil {
+		return x.PassedFirstTime
+	}
+	return 0
+}
+
+func (x *GetGateStatsResponse) GetHeld() uint32 {
+	if x != nil {
+		return x.Held
+	}
+	return 0
+}
+
+func (x *GetGateStatsResponse) GetHeldOpen() uint32 {
+	if x != nil {
+		return x.HeldOpen
+	}
+	return 0
+}
+
+func (x *GetGateStatsResponse) GetHeldCleared() uint32 {
+	if x != nil {
+		return x.HeldCleared
+	}
+	return 0
+}
+
+func (x *GetGateStatsResponse) GetMedianClearSeconds() uint32 {
+	if x != nil {
+		return x.MedianClearSeconds
+	}
+	return 0
+}
+
+func (x *GetGateStatsResponse) GetPerDay() []*GateDay {
+	if x != nil {
+		return x.PerDay
+	}
+	return nil
+}
+
+func (x *GetGateStatsResponse) GetPerRule() []*GateRuleCount {
+	if x != nil {
+		return x.PerRule
+	}
+	return nil
+}
+
+func (x *GetGateStatsResponse) GetOverridesActive() uint32 {
+	if x != nil {
+		return x.OverridesActive
+	}
+	return 0
+}
+
+func (x *GetGateStatsResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
+type GateOverride struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Rule          string                 `protobuf:"bytes,3,opt,name=rule,proto3" json:"rule,omitempty"`
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	GrantedBy     string                 `protobuf:"bytes,5,opt,name=granted_by,json=grantedBy,proto3" json:"granted_by,omitempty"`
+	GrantedAt     int64                  `protobuf:"varint,6,opt,name=granted_at,json=grantedAt,proto3" json:"granted_at,omitempty"`
+	RevokedBy     string                 `protobuf:"bytes,7,opt,name=revoked_by,json=revokedBy,proto3" json:"revoked_by,omitempty"`
+	RevokedAt     int64                  `protobuf:"varint,8,opt,name=revoked_at,json=revokedAt,proto3" json:"revoked_at,omitempty"` // 0 while active
+	Proof         []byte                 `protobuf:"bytes,9,opt,name=proof,proto3" json:"proof,omitempty"`                           // SHA-256 over the previous proof and this row
+	Prev          []byte                 `protobuf:"bytes,10,opt,name=prev,proto3" json:"prev,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GateOverride) Reset() {
+	*x = GateOverride{}
+	mi := &file_asc_v1_review_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GateOverride) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GateOverride) ProtoMessage() {}
+
+func (x *GateOverride) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GateOverride.ProtoReflect.Descriptor instead.
+func (*GateOverride) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *GateOverride) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *GateOverride) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *GateOverride) GetRule() string {
+	if x != nil {
+		return x.Rule
+	}
+	return ""
+}
+
+func (x *GateOverride) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *GateOverride) GetGrantedBy() string {
+	if x != nil {
+		return x.GrantedBy
+	}
+	return ""
+}
+
+func (x *GateOverride) GetGrantedAt() int64 {
+	if x != nil {
+		return x.GrantedAt
+	}
+	return 0
+}
+
+func (x *GateOverride) GetRevokedBy() string {
+	if x != nil {
+		return x.RevokedBy
+	}
+	return ""
+}
+
+func (x *GateOverride) GetRevokedAt() int64 {
+	if x != nil {
+		return x.RevokedAt
+	}
+	return 0
+}
+
+func (x *GateOverride) GetProof() []byte {
+	if x != nil {
+		return x.Proof
+	}
+	return nil
+}
+
+func (x *GateOverride) GetPrev() []byte {
+	if x != nil {
+		return x.Prev
+	}
+	return nil
+}
+
+type GrantOverrideRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Rule          string                 `protobuf:"bytes,3,opt,name=rule,proto3" json:"rule,omitempty"`     // 1 to 120 bytes
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"` // 1 to 500 bytes
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GrantOverrideRequest) Reset() {
+	*x = GrantOverrideRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GrantOverrideRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GrantOverrideRequest) ProtoMessage() {}
+
+func (x *GrantOverrideRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GrantOverrideRequest.ProtoReflect.Descriptor instead.
+func (*GrantOverrideRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *GrantOverrideRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GrantOverrideRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *GrantOverrideRequest) GetRule() string {
+	if x != nil {
+		return x.Rule
+	}
+	return ""
+}
+
+func (x *GrantOverrideRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type GrantOverrideResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Override      *GateOverride          `protobuf:"bytes,1,opt,name=override,proto3" json:"override,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GrantOverrideResponse) Reset() {
+	*x = GrantOverrideResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GrantOverrideResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GrantOverrideResponse) ProtoMessage() {}
+
+func (x *GrantOverrideResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GrantOverrideResponse.ProtoReflect.Descriptor instead.
+func (*GrantOverrideResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *GrantOverrideResponse) GetOverride() *GateOverride {
+	if x != nil {
+		return x.Override
+	}
+	return nil
+}
+
+type RevokeOverrideRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Id            uint64                 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeOverrideRequest) Reset() {
+	*x = RevokeOverrideRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeOverrideRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeOverrideRequest) ProtoMessage() {}
+
+func (x *RevokeOverrideRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeOverrideRequest.ProtoReflect.Descriptor instead.
+func (*RevokeOverrideRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *RevokeOverrideRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *RevokeOverrideRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type RevokeOverrideResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Override      *GateOverride          `protobuf:"bytes,1,opt,name=override,proto3" json:"override,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeOverrideResponse) Reset() {
+	*x = RevokeOverrideResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeOverrideResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeOverrideResponse) ProtoMessage() {}
+
+func (x *RevokeOverrideResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeOverrideResponse.ProtoReflect.Descriptor instead.
+func (*RevokeOverrideResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *RevokeOverrideResponse) GetOverride() *GateOverride {
+	if x != nil {
+		return x.Override
+	}
+	return nil
+}
+
+type ListOverridesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"` // empty: every change of the repository
+	ActiveOnly    bool                   `protobuf:"varint,3,opt,name=active_only,json=activeOnly,proto3" json:"active_only,omitempty"`
+	Limit         uint32                 `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"` // 0 means 50, at most 200
+	PageToken     string                 `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOverridesRequest) Reset() {
+	*x = ListOverridesRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOverridesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOverridesRequest) ProtoMessage() {}
+
+func (x *ListOverridesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOverridesRequest.ProtoReflect.Descriptor instead.
+func (*ListOverridesRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *ListOverridesRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *ListOverridesRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *ListOverridesRequest) GetActiveOnly() bool {
+	if x != nil {
+		return x.ActiveOnly
+	}
+	return false
+}
+
+func (x *ListOverridesRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListOverridesRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListOverridesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Overrides     []*GateOverride        `protobuf:"bytes,1,rep,name=overrides,proto3" json:"overrides,omitempty"` // newest first
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOverridesResponse) Reset() {
+	*x = ListOverridesResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOverridesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOverridesResponse) ProtoMessage() {}
+
+func (x *ListOverridesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOverridesResponse.ProtoReflect.Descriptor instead.
+func (*ListOverridesResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *ListOverridesResponse) GetOverrides() []*GateOverride {
+	if x != nil {
+		return x.Overrides
+	}
+	return nil
+}
+
+func (x *ListOverridesResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
 var File_asc_v1_review_proto protoreflect.FileDescriptor
 
 const file_asc_v1_review_proto_rawDesc = "" +
@@ -955,12 +3739,20 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\x04side\x18\x03 \x01(\x0e2\x10.asc.v1.DiffSideR\x04side\x12\x1d\n" +
 	"\n" +
 	"start_line\x18\x04 \x01(\rR\tstartLine\x12\x19\n" +
-	"\bend_line\x18\x05 \x01(\rR\aendLine\"e\n" +
+	"\bend_line\x18\x05 \x01(\rR\aendLine\"\xee\x01\n" +
 	"\rReviewComment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x16\n" +
 	"\x06author\x18\x02 \x01(\tR\x06author\x12\x12\n" +
 	"\x04body\x18\x03 \x01(\tR\x04body\x12\x18\n" +
-	"\acreated\x18\x04 \x01(\x03R\acreated\"\xde\x02\n" +
+	"\acreated\x18\x04 \x01(\x03R\acreated\x12\x1f\n" +
+	"\vexternal_id\x18\x05 \x01(\tR\n" +
+	"externalId\x12\x1e\n" +
+	"\n" +
+	"suggestion\x18\x06 \x01(\tR\n" +
+	"suggestion\x12'\n" +
+	"\x0fapplied_version\x18\a \x01(\rR\x0eappliedVersion\x12\x1d\n" +
+	"\n" +
+	"applied_by\x18\b \x01(\tR\tappliedBy\"\xde\x02\n" +
 	"\fReviewThread\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1c\n" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12,\n" +
@@ -986,13 +3778,18 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\x13ListThreadsResponse\x12.\n" +
 	"\athreads\x18\x01 \x03(\v2\x14.asc.v1.ReviewThreadR\athreads\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12!\n" +
-	"\fopen_threads\x18\x03 \x01(\rR\vopenThreads\"\xb5\x01\n" +
+	"\fopen_threads\x18\x03 \x01(\rR\vopenThreads\"\xf6\x01\n" +
 	"\x11AddCommentRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x1b\n" +
 	"\tthread_id\x18\x03 \x01(\x04R\bthreadId\x12,\n" +
 	"\x06anchor\x18\x04 \x01(\v2\x14.asc.v1.ThreadAnchorR\x06anchor\x12\x12\n" +
-	"\x04body\x18\x05 \x01(\tR\x04body\"a\n" +
+	"\x04body\x18\x05 \x01(\tR\x04body\x12\x1f\n" +
+	"\vexternal_id\x18\x06 \x01(\tR\n" +
+	"externalId\x12\x1e\n" +
+	"\n" +
+	"suggestion\x18\a \x01(\tR\n" +
+	"suggestion\"a\n" +
 	"\x12AddCommentResponse\x12,\n" +
 	"\x06thread\x18\x01 \x01(\v2\x14.asc.v1.ReviewThreadR\x06thread\x12\x1d\n" +
 	"\n" +
@@ -1014,7 +3811,228 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\frequested_at\x18\x03 \x01(\x03R\vrequestedAt\x12\x17\n" +
 	"\adone_at\x18\x04 \x01(\x03R\x06doneAt\"N\n" +
 	"\x15RequestReviewResponse\x125\n" +
-	"\brequests\x18\x01 \x03(\v2\x19.asc.v1.ReviewRequestInfoR\brequests*a\n" +
+	"\brequests\x18\x01 \x03(\v2\x19.asc.v1.ReviewRequestInfoR\brequests\"O\n" +
+	"\vWhereToLook\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x12\n" +
+	"\x04line\x18\x02 \x01(\rR\x04line\x12\x12\n" +
+	"\x04note\x18\x03 \x01(\tR\x04note\"\xd4\x01\n" +
+	"\vReviewBrief\x12\x12\n" +
+	"\x04what\x18\x01 \x01(\tR\x04what\x12\x10\n" +
+	"\x03why\x18\x02 \x01(\tR\x03why\x12\x10\n" +
+	"\x03how\x18\x03 \x01(\tR\x03how\x12\x1b\n" +
+	"\trisk_note\x18\x04 \x01(\tR\briskNote\x127\n" +
+	"\rwhere_to_look\x18\x05 \x03(\v2\x13.asc.v1.WhereToLookR\vwhereToLook\x12\x1d\n" +
+	"\n" +
+	"updated_by\x18\x06 \x01(\tR\tupdatedBy\x12\x18\n" +
+	"\aupdated\x18\a \x01(\x03R\aupdated\"r\n" +
+	"\x0eChangeFileStat\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x14\n" +
+	"\x05added\x18\x02 \x01(\rR\x05added\x12\x18\n" +
+	"\aremoved\x18\x03 \x01(\rR\aremoved\x12\x16\n" +
+	"\x06binary\x18\x04 \x01(\bR\x06binary\"O\n" +
+	"\n" +
+	"ChangeRisk\x12'\n" +
+	"\x05level\x18\x01 \x01(\x0e2\x11.asc.v1.RiskLevelR\x05level\x12\x18\n" +
+	"\areasons\x18\x02 \x03(\tR\areasons\"\xcb\x02\n" +
+	"\x10ChangeProvenance\x12\x15\n" +
+	"\x06run_id\x18\x01 \x01(\x04R\x05runId\x12\x14\n" +
+	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x12\n" +
+	"\x04task\x18\x04 \x01(\tR\x04task\x12\x1d\n" +
+	"\n" +
+	"created_by\x18\x05 \x01(\tR\tcreatedBy\x12\x1b\n" +
+	"\trun_state\x18\x06 \x01(\tR\brunState\x12\x1d\n" +
+	"\n" +
+	"tool_calls\x18\a \x01(\rR\ttoolCalls\x12\x1d\n" +
+	"\n" +
+	"files_read\x18\b \x01(\rR\tfilesRead\x12\x1a\n" +
+	"\bversions\x18\t \x01(\rR\bversions\x12\x14\n" +
+	"\x05paths\x18\n" +
+	" \x03(\tR\x05paths\x12\x18\n" +
+	"\astarted\x18\v \x01(\x03R\astarted\x12\x1a\n" +
+	"\bfinished\x18\f \x01(\x03R\bfinished\"\x89\x02\n" +
+	"\fApprovalInfo\x12\x1a\n" +
+	"\breviewer\x18\x01 \x01(\tR\breviewer\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\rR\aversion\x12+\n" +
+	"\x05state\x18\x03 \x01(\x0e2\x15.asc.v1.ApprovalStateR\x05state\x12\x0e\n" +
+	"\x02at\x18\x04 \x01(\x03R\x02at\x12\x18\n" +
+	"\aapplies\x18\x05 \x01(\bR\aapplies\x12\x18\n" +
+	"\acarried\x18\x06 \x01(\bR\acarried\x12'\n" +
+	"\x0funchanged_files\x18\a \x01(\rR\x0eunchangedFiles\x12)\n" +
+	"\rchanged_files\x18\b \x03(\fB\x04\xa8\xbb\x18\x03R\fchangedFiles\"\xbb\x02\n" +
+	"\x0eReviewGateData\x12!\n" +
+	"\fopen_threads\x18\x01 \x01(\rR\vopenThreads\x12#\n" +
+	"\rtotal_threads\x18\x02 \x01(\rR\ftotalThreads\x12+\n" +
+	"\x11pending_reviewers\x18\x03 \x01(\rR\x10pendingReviewers\x12-\n" +
+	"\x12finished_reviewers\x18\x04 \x01(\rR\x11finishedReviewers\x12+\n" +
+	"\x11approvals_current\x18\x05 \x01(\rR\x10approvalsCurrent\x12+\n" +
+	"\x11approvals_carried\x18\x06 \x01(\rR\x10approvalsCarried\x12+\n" +
+	"\x11changes_requested\x18\a \x01(\rR\x10changesRequested\"T\n" +
+	"\x0fGetBriefRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\"\xcc\x03\n" +
+	"\x10GetBriefResponse\x12)\n" +
+	"\x05brief\x18\x01 \x01(\v2\x13.asc.v1.ReviewBriefR\x05brief\x12%\n" +
+	"\x0elatest_version\x18\x02 \x01(\rR\rlatestVersion\x12\x14\n" +
+	"\x05files\x18\x03 \x01(\rR\x05files\x12\x14\n" +
+	"\x05added\x18\x04 \x01(\rR\x05added\x12\x18\n" +
+	"\aremoved\x18\x05 \x01(\rR\aremoved\x125\n" +
+	"\n" +
+	"file_stats\x18\x06 \x03(\v2\x16.asc.v1.ChangeFileStatR\tfileStats\x12'\n" +
+	"\x0fstats_truncated\x18\a \x01(\bR\x0estatsTruncated\x12&\n" +
+	"\x04risk\x18\b \x01(\v2\x12.asc.v1.ChangeRiskR\x04risk\x128\n" +
+	"\n" +
+	"provenance\x18\t \x01(\v2\x18.asc.v1.ChangeProvenanceR\n" +
+	"provenance\x122\n" +
+	"\tapprovals\x18\n" +
+	" \x03(\v2\x14.asc.v1.ApprovalInfoR\tapprovals\x12*\n" +
+	"\x04gate\x18\v \x01(\v2\x16.asc.v1.ReviewGateDataR\x04gate\"\x7f\n" +
+	"\x0fSetBriefRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12)\n" +
+	"\x05brief\x18\x03 \x01(\v2\x13.asc.v1.ReviewBriefR\x05brief\"=\n" +
+	"\x10SetBriefResponse\x12)\n" +
+	"\x05brief\x18\x01 \x01(\v2\x13.asc.v1.ReviewBriefR\x05brief\"\xa1\x01\n" +
+	"\x15RecordApprovalRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\rR\aversion\x12+\n" +
+	"\x05state\x18\x04 \x01(\x0e2\x15.asc.v1.ApprovalStateR\x05state\"L\n" +
+	"\x16RecordApprovalResponse\x122\n" +
+	"\tapprovals\x18\x01 \x03(\v2\x14.asc.v1.ApprovalInfoR\tapprovals\"\x9d\x01\n" +
+	"\x16CompareVersionsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12!\n" +
+	"\ffrom_version\x18\x03 \x01(\rR\vfromVersion\x12\x1d\n" +
+	"\n" +
+	"to_version\x18\x04 \x01(\rR\ttoVersion\"m\n" +
+	"\vVersionFile\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x14\n" +
+	"\x05state\x18\x02 \x01(\tR\x05state\x12\x14\n" +
+	"\x05added\x18\x03 \x01(\rR\x05added\x12\x18\n" +
+	"\aremoved\x18\x04 \x01(\rR\aremoved\"\xfe\x01\n" +
+	"\x17CompareVersionsResponse\x12)\n" +
+	"\x05files\x18\x01 \x03(\v2\x13.asc.v1.VersionFileR\x05files\x12\x18\n" +
+	"\achanged\x18\x02 \x01(\rR\achanged\x12\x1c\n" +
+	"\tunchanged\x18\x03 \x01(\rR\tunchanged\x12\x14\n" +
+	"\x05added\x18\x04 \x01(\rR\x05added\x12\x18\n" +
+	"\aremoved\x18\x05 \x01(\rR\aremoved\x122\n" +
+	"\tapprovals\x18\x06 \x03(\v2\x14.asc.v1.ApprovalInfoR\tapprovals\x12\x1c\n" +
+	"\ttruncated\x18\a \x01(\bR\ttruncated\"\x99\x01\n" +
+	"\x18PrepareSuggestionRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x1b\n" +
+	"\tthread_id\x18\x03 \x01(\x04R\bthreadId\x12\x1d\n" +
+	"\n" +
+	"comment_id\x18\x04 \x01(\x04R\tcommentId\"\xb2\x02\n" +
+	"\x19PrepareSuggestionResponse\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\rR\aversion\x12%\n" +
+	"\x0elatest_version\x18\x03 \x01(\rR\rlatestVersion\x12+\n" +
+	"\x0ebase_changeset\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\rbaseChangeset\x12%\n" +
+	"\vnew_content\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x05R\n" +
+	"newContent\x12\x1d\n" +
+	"\n" +
+	"start_line\x18\x06 \x01(\rR\tstartLine\x12\x19\n" +
+	"\bend_line\x18\a \x01(\rR\aendLine\x12\x14\n" +
+	"\x05stale\x18\b \x01(\bR\x05stale\x12\x16\n" +
+	"\x06reason\x18\t \x01(\tR\x06reason\"\xb7\x01\n" +
+	"\x1cMarkSuggestionAppliedRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x1b\n" +
+	"\tthread_id\x18\x03 \x01(\x04R\bthreadId\x12\x1d\n" +
+	"\n" +
+	"comment_id\x18\x04 \x01(\x04R\tcommentId\x12\x18\n" +
+	"\aversion\x18\x05 \x01(\rR\aversion\"M\n" +
+	"\x1dMarkSuggestionAppliedResponse\x12,\n" +
+	"\x06thread\x18\x01 \x01(\v2\x14.asc.v1.ReviewThreadR\x06thread\"r\n" +
+	"\x17SuggestReviewersRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\rR\x05limit\"\x9c\x01\n" +
+	"\x11SuggestedReviewer\x12\x16\n" +
+	"\x06handle\x18\x01 \x01(\tR\x06handle\x12\x19\n" +
+	"\bis_agent\x18\x02 \x01(\bR\aisAgent\x12\x18\n" +
+	"\areviews\x18\x03 \x01(\rR\areviews\x12\"\n" +
+	"\ron_same_files\x18\x04 \x01(\rR\vonSameFiles\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\"S\n" +
+	"\x18SuggestReviewersResponse\x127\n" +
+	"\treviewers\x18\x01 \x03(\v2\x19.asc.v1.SuggestedReviewerR\treviewers\"8\n" +
+	"\x0eGateRuleResult\x12\x12\n" +
+	"\x04rule\x18\x01 \x01(\tR\x04rule\x12\x12\n" +
+	"\x04held\x18\x02 \x01(\bR\x04held\"\xa6\x01\n" +
+	"\x19RecordGateDecisionRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\rR\aversion\x12,\n" +
+	"\x05rules\x18\x04 \x03(\v2\x16.asc.v1.GateRuleResultR\x05rules\"m\n" +
+	"\x1aRecordGateDecisionResponse\x12\x16\n" +
+	"\x06passed\x18\x01 \x01(\bR\x06passed\x12\x1d\n" +
+	"\n" +
+	"first_time\x18\x02 \x01(\bR\tfirstTime\x12\x18\n" +
+	"\acleared\x18\x03 \x01(\bR\acleared\"N\n" +
+	"\x13GetGateStatsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x04days\x18\x02 \x01(\rR\x04days\"I\n" +
+	"\aGateDay\x12\x10\n" +
+	"\x03day\x18\x01 \x01(\tR\x03day\x12\x18\n" +
+	"\achecked\x18\x02 \x01(\rR\achecked\x12\x12\n" +
+	"\x04held\x18\x03 \x01(\rR\x04held\"Q\n" +
+	"\rGateRuleCount\x12\x12\n" +
+	"\x04rule\x18\x01 \x01(\tR\x04rule\x12\x18\n" +
+	"\achecked\x18\x02 \x01(\rR\achecked\x12\x12\n" +
+	"\x04held\x18\x03 \x01(\rR\x04held\"\x87\x03\n" +
+	"\x14GetGateStatsResponse\x12\x18\n" +
+	"\achecked\x18\x01 \x01(\rR\achecked\x12*\n" +
+	"\x11passed_first_time\x18\x02 \x01(\rR\x0fpassedFirstTime\x12\x12\n" +
+	"\x04held\x18\x03 \x01(\rR\x04held\x12\x1b\n" +
+	"\theld_open\x18\x04 \x01(\rR\bheldOpen\x12!\n" +
+	"\fheld_cleared\x18\x05 \x01(\rR\vheldCleared\x120\n" +
+	"\x14median_clear_seconds\x18\x06 \x01(\rR\x12medianClearSeconds\x12(\n" +
+	"\aper_day\x18\a \x03(\v2\x0f.asc.v1.GateDayR\x06perDay\x120\n" +
+	"\bper_rule\x18\b \x03(\v2\x15.asc.v1.GateRuleCountR\aperRule\x12)\n" +
+	"\x10overrides_active\x18\t \x01(\rR\x0foverridesActive\x12\x1c\n" +
+	"\ttruncated\x18\n" +
+	" \x01(\bR\ttruncated\"\x9a\x02\n" +
+	"\fGateOverride\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x12\n" +
+	"\x04rule\x18\x03 \x01(\tR\x04rule\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x1d\n" +
+	"\n" +
+	"granted_by\x18\x05 \x01(\tR\tgrantedBy\x12\x1d\n" +
+	"\n" +
+	"granted_at\x18\x06 \x01(\x03R\tgrantedAt\x12\x1d\n" +
+	"\n" +
+	"revoked_by\x18\a \x01(\tR\trevokedBy\x12\x1d\n" +
+	"\n" +
+	"revoked_at\x18\b \x01(\x03R\trevokedAt\x12\x1a\n" +
+	"\x05proof\x18\t \x01(\fB\x04\xa8\xbb\x18\x01R\x05proof\x12\x18\n" +
+	"\x04prev\x18\n" +
+	" \x01(\fB\x04\xa8\xbb\x18\x01R\x04prev\"\x85\x01\n" +
+	"\x14GrantOverrideRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x12\n" +
+	"\x04rule\x18\x03 \x01(\tR\x04rule\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\"I\n" +
+	"\x15GrantOverrideResponse\x120\n" +
+	"\boverride\x18\x01 \x01(\v2\x14.asc.v1.GateOverrideR\boverride\"L\n" +
+	"\x15RevokeOverrideRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x04R\x02id\"J\n" +
+	"\x16RevokeOverrideResponse\x120\n" +
+	"\boverride\x18\x01 \x01(\v2\x14.asc.v1.GateOverrideR\boverride\"\xaf\x01\n" +
+	"\x14ListOverridesRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x1f\n" +
+	"\vactive_only\x18\x03 \x01(\bR\n" +
+	"activeOnly\x12\x14\n" +
+	"\x05limit\x18\x04 \x01(\rR\x05limit\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken\"s\n" +
+	"\x15ListOverridesResponse\x122\n" +
+	"\toverrides\x18\x01 \x03(\v2\x14.asc.v1.GateOverrideR\toverrides\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken*a\n" +
 	"\fThreadStatus\x12\x1d\n" +
 	"\x19THREAD_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12THREAD_STATUS_OPEN\x10\x01\x12\x1a\n" +
@@ -1022,13 +4040,36 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\bDiffSide\x12\x19\n" +
 	"\x15DIFF_SIDE_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rDIFF_SIDE_OLD\x10\x01\x12\x11\n" +
-	"\rDIFF_SIDE_NEW\x10\x022\xb1\x02\n" +
+	"\rDIFF_SIDE_NEW\x10\x02*g\n" +
+	"\tRiskLevel\x12\x1a\n" +
+	"\x16RISK_LEVEL_UNSPECIFIED\x10\x00\x12\x12\n" +
+	"\x0eRISK_LEVEL_LOW\x10\x01\x12\x15\n" +
+	"\x11RISK_LEVEL_MEDIUM\x10\x02\x12\x13\n" +
+	"\x0fRISK_LEVEL_HIGH\x10\x03*\x90\x01\n" +
+	"\rApprovalState\x12\x1e\n" +
+	"\x1aAPPROVAL_STATE_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17APPROVAL_STATE_APPROVED\x10\x01\x12$\n" +
+	" APPROVAL_STATE_CHANGES_REQUESTED\x10\x02\x12\x1c\n" +
+	"\x18APPROVAL_STATE_DISMISSED\x10\x032\x80\n" +
+	"\n" +
 	"\x06Review\x12F\n" +
 	"\vListThreads\x12\x1a.asc.v1.ListThreadsRequest\x1a\x1b.asc.v1.ListThreadsResponse\x12C\n" +
 	"\n" +
 	"AddComment\x12\x19.asc.v1.AddCommentRequest\x1a\x1a.asc.v1.AddCommentResponse\x12L\n" +
 	"\rResolveThread\x12\x1c.asc.v1.ResolveThreadRequest\x1a\x1d.asc.v1.ResolveThreadResponse\x12L\n" +
-	"\rRequestReview\x12\x1c.asc.v1.RequestReviewRequest\x1a\x1d.asc.v1.RequestReviewResponseBv\n" +
+	"\rRequestReview\x12\x1c.asc.v1.RequestReviewRequest\x1a\x1d.asc.v1.RequestReviewResponse\x12=\n" +
+	"\bGetBrief\x12\x17.asc.v1.GetBriefRequest\x1a\x18.asc.v1.GetBriefResponse\x12=\n" +
+	"\bSetBrief\x12\x17.asc.v1.SetBriefRequest\x1a\x18.asc.v1.SetBriefResponse\x12O\n" +
+	"\x0eRecordApproval\x12\x1d.asc.v1.RecordApprovalRequest\x1a\x1e.asc.v1.RecordApprovalResponse\x12R\n" +
+	"\x0fCompareVersions\x12\x1e.asc.v1.CompareVersionsRequest\x1a\x1f.asc.v1.CompareVersionsResponse\x12X\n" +
+	"\x11PrepareSuggestion\x12 .asc.v1.PrepareSuggestionRequest\x1a!.asc.v1.PrepareSuggestionResponse\x12d\n" +
+	"\x15MarkSuggestionApplied\x12$.asc.v1.MarkSuggestionAppliedRequest\x1a%.asc.v1.MarkSuggestionAppliedResponse\x12U\n" +
+	"\x10SuggestReviewers\x12\x1f.asc.v1.SuggestReviewersRequest\x1a .asc.v1.SuggestReviewersResponse\x12[\n" +
+	"\x12RecordGateDecision\x12!.asc.v1.RecordGateDecisionRequest\x1a\".asc.v1.RecordGateDecisionResponse\x12I\n" +
+	"\fGetGateStats\x12\x1b.asc.v1.GetGateStatsRequest\x1a\x1c.asc.v1.GetGateStatsResponse\x12L\n" +
+	"\rGrantOverride\x12\x1c.asc.v1.GrantOverrideRequest\x1a\x1d.asc.v1.GrantOverrideResponse\x12O\n" +
+	"\x0eRevokeOverride\x12\x1d.asc.v1.RevokeOverrideRequest\x1a\x1e.asc.v1.RevokeOverrideResponse\x12L\n" +
+	"\rListOverrides\x12\x1c.asc.v1.ListOverridesRequest\x1a\x1d.asc.v1.ListOverridesResponseBv\n" +
 	"\n" +
 	"com.asc.v1B\vReviewProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -1044,53 +4085,151 @@ func file_asc_v1_review_proto_rawDescGZIP() []byte {
 	return file_asc_v1_review_proto_rawDescData
 }
 
-var file_asc_v1_review_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_asc_v1_review_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_asc_v1_review_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_asc_v1_review_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
 var file_asc_v1_review_proto_goTypes = []any{
-	(ThreadStatus)(0),             // 0: asc.v1.ThreadStatus
-	(DiffSide)(0),                 // 1: asc.v1.DiffSide
-	(*ThreadAnchor)(nil),          // 2: asc.v1.ThreadAnchor
-	(*ReviewComment)(nil),         // 3: asc.v1.ReviewComment
-	(*ReviewThread)(nil),          // 4: asc.v1.ReviewThread
-	(*ListThreadsRequest)(nil),    // 5: asc.v1.ListThreadsRequest
-	(*ListThreadsResponse)(nil),   // 6: asc.v1.ListThreadsResponse
-	(*AddCommentRequest)(nil),     // 7: asc.v1.AddCommentRequest
-	(*AddCommentResponse)(nil),    // 8: asc.v1.AddCommentResponse
-	(*ResolveThreadRequest)(nil),  // 9: asc.v1.ResolveThreadRequest
-	(*ResolveThreadResponse)(nil), // 10: asc.v1.ResolveThreadResponse
-	(*RequestReviewRequest)(nil),  // 11: asc.v1.RequestReviewRequest
-	(*ReviewRequestInfo)(nil),     // 12: asc.v1.ReviewRequestInfo
-	(*RequestReviewResponse)(nil), // 13: asc.v1.RequestReviewResponse
-	(*RepoRef)(nil),               // 14: asc.v1.RepoRef
+	(ThreadStatus)(0),                     // 0: asc.v1.ThreadStatus
+	(DiffSide)(0),                         // 1: asc.v1.DiffSide
+	(RiskLevel)(0),                        // 2: asc.v1.RiskLevel
+	(ApprovalState)(0),                    // 3: asc.v1.ApprovalState
+	(*ThreadAnchor)(nil),                  // 4: asc.v1.ThreadAnchor
+	(*ReviewComment)(nil),                 // 5: asc.v1.ReviewComment
+	(*ReviewThread)(nil),                  // 6: asc.v1.ReviewThread
+	(*ListThreadsRequest)(nil),            // 7: asc.v1.ListThreadsRequest
+	(*ListThreadsResponse)(nil),           // 8: asc.v1.ListThreadsResponse
+	(*AddCommentRequest)(nil),             // 9: asc.v1.AddCommentRequest
+	(*AddCommentResponse)(nil),            // 10: asc.v1.AddCommentResponse
+	(*ResolveThreadRequest)(nil),          // 11: asc.v1.ResolveThreadRequest
+	(*ResolveThreadResponse)(nil),         // 12: asc.v1.ResolveThreadResponse
+	(*RequestReviewRequest)(nil),          // 13: asc.v1.RequestReviewRequest
+	(*ReviewRequestInfo)(nil),             // 14: asc.v1.ReviewRequestInfo
+	(*RequestReviewResponse)(nil),         // 15: asc.v1.RequestReviewResponse
+	(*WhereToLook)(nil),                   // 16: asc.v1.WhereToLook
+	(*ReviewBrief)(nil),                   // 17: asc.v1.ReviewBrief
+	(*ChangeFileStat)(nil),                // 18: asc.v1.ChangeFileStat
+	(*ChangeRisk)(nil),                    // 19: asc.v1.ChangeRisk
+	(*ChangeProvenance)(nil),              // 20: asc.v1.ChangeProvenance
+	(*ApprovalInfo)(nil),                  // 21: asc.v1.ApprovalInfo
+	(*ReviewGateData)(nil),                // 22: asc.v1.ReviewGateData
+	(*GetBriefRequest)(nil),               // 23: asc.v1.GetBriefRequest
+	(*GetBriefResponse)(nil),              // 24: asc.v1.GetBriefResponse
+	(*SetBriefRequest)(nil),               // 25: asc.v1.SetBriefRequest
+	(*SetBriefResponse)(nil),              // 26: asc.v1.SetBriefResponse
+	(*RecordApprovalRequest)(nil),         // 27: asc.v1.RecordApprovalRequest
+	(*RecordApprovalResponse)(nil),        // 28: asc.v1.RecordApprovalResponse
+	(*CompareVersionsRequest)(nil),        // 29: asc.v1.CompareVersionsRequest
+	(*VersionFile)(nil),                   // 30: asc.v1.VersionFile
+	(*CompareVersionsResponse)(nil),       // 31: asc.v1.CompareVersionsResponse
+	(*PrepareSuggestionRequest)(nil),      // 32: asc.v1.PrepareSuggestionRequest
+	(*PrepareSuggestionResponse)(nil),     // 33: asc.v1.PrepareSuggestionResponse
+	(*MarkSuggestionAppliedRequest)(nil),  // 34: asc.v1.MarkSuggestionAppliedRequest
+	(*MarkSuggestionAppliedResponse)(nil), // 35: asc.v1.MarkSuggestionAppliedResponse
+	(*SuggestReviewersRequest)(nil),       // 36: asc.v1.SuggestReviewersRequest
+	(*SuggestedReviewer)(nil),             // 37: asc.v1.SuggestedReviewer
+	(*SuggestReviewersResponse)(nil),      // 38: asc.v1.SuggestReviewersResponse
+	(*GateRuleResult)(nil),                // 39: asc.v1.GateRuleResult
+	(*RecordGateDecisionRequest)(nil),     // 40: asc.v1.RecordGateDecisionRequest
+	(*RecordGateDecisionResponse)(nil),    // 41: asc.v1.RecordGateDecisionResponse
+	(*GetGateStatsRequest)(nil),           // 42: asc.v1.GetGateStatsRequest
+	(*GateDay)(nil),                       // 43: asc.v1.GateDay
+	(*GateRuleCount)(nil),                 // 44: asc.v1.GateRuleCount
+	(*GetGateStatsResponse)(nil),          // 45: asc.v1.GetGateStatsResponse
+	(*GateOverride)(nil),                  // 46: asc.v1.GateOverride
+	(*GrantOverrideRequest)(nil),          // 47: asc.v1.GrantOverrideRequest
+	(*GrantOverrideResponse)(nil),         // 48: asc.v1.GrantOverrideResponse
+	(*RevokeOverrideRequest)(nil),         // 49: asc.v1.RevokeOverrideRequest
+	(*RevokeOverrideResponse)(nil),        // 50: asc.v1.RevokeOverrideResponse
+	(*ListOverridesRequest)(nil),          // 51: asc.v1.ListOverridesRequest
+	(*ListOverridesResponse)(nil),         // 52: asc.v1.ListOverridesResponse
+	(*RepoRef)(nil),                       // 53: asc.v1.RepoRef
 }
 var file_asc_v1_review_proto_depIdxs = []int32{
 	1,  // 0: asc.v1.ThreadAnchor.side:type_name -> asc.v1.DiffSide
-	2,  // 1: asc.v1.ReviewThread.anchor:type_name -> asc.v1.ThreadAnchor
+	4,  // 1: asc.v1.ReviewThread.anchor:type_name -> asc.v1.ThreadAnchor
 	0,  // 2: asc.v1.ReviewThread.status:type_name -> asc.v1.ThreadStatus
-	3,  // 3: asc.v1.ReviewThread.comments:type_name -> asc.v1.ReviewComment
-	14, // 4: asc.v1.ListThreadsRequest.repo:type_name -> asc.v1.RepoRef
+	5,  // 3: asc.v1.ReviewThread.comments:type_name -> asc.v1.ReviewComment
+	53, // 4: asc.v1.ListThreadsRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 5: asc.v1.ListThreadsRequest.status:type_name -> asc.v1.ThreadStatus
-	4,  // 6: asc.v1.ListThreadsResponse.threads:type_name -> asc.v1.ReviewThread
-	14, // 7: asc.v1.AddCommentRequest.repo:type_name -> asc.v1.RepoRef
-	2,  // 8: asc.v1.AddCommentRequest.anchor:type_name -> asc.v1.ThreadAnchor
-	4,  // 9: asc.v1.AddCommentResponse.thread:type_name -> asc.v1.ReviewThread
-	14, // 10: asc.v1.ResolveThreadRequest.repo:type_name -> asc.v1.RepoRef
-	4,  // 11: asc.v1.ResolveThreadResponse.thread:type_name -> asc.v1.ReviewThread
-	14, // 12: asc.v1.RequestReviewRequest.repo:type_name -> asc.v1.RepoRef
-	12, // 13: asc.v1.RequestReviewResponse.requests:type_name -> asc.v1.ReviewRequestInfo
-	5,  // 14: asc.v1.Review.ListThreads:input_type -> asc.v1.ListThreadsRequest
-	7,  // 15: asc.v1.Review.AddComment:input_type -> asc.v1.AddCommentRequest
-	9,  // 16: asc.v1.Review.ResolveThread:input_type -> asc.v1.ResolveThreadRequest
-	11, // 17: asc.v1.Review.RequestReview:input_type -> asc.v1.RequestReviewRequest
-	6,  // 18: asc.v1.Review.ListThreads:output_type -> asc.v1.ListThreadsResponse
-	8,  // 19: asc.v1.Review.AddComment:output_type -> asc.v1.AddCommentResponse
-	10, // 20: asc.v1.Review.ResolveThread:output_type -> asc.v1.ResolveThreadResponse
-	13, // 21: asc.v1.Review.RequestReview:output_type -> asc.v1.RequestReviewResponse
-	18, // [18:22] is the sub-list for method output_type
-	14, // [14:18] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	6,  // 6: asc.v1.ListThreadsResponse.threads:type_name -> asc.v1.ReviewThread
+	53, // 7: asc.v1.AddCommentRequest.repo:type_name -> asc.v1.RepoRef
+	4,  // 8: asc.v1.AddCommentRequest.anchor:type_name -> asc.v1.ThreadAnchor
+	6,  // 9: asc.v1.AddCommentResponse.thread:type_name -> asc.v1.ReviewThread
+	53, // 10: asc.v1.ResolveThreadRequest.repo:type_name -> asc.v1.RepoRef
+	6,  // 11: asc.v1.ResolveThreadResponse.thread:type_name -> asc.v1.ReviewThread
+	53, // 12: asc.v1.RequestReviewRequest.repo:type_name -> asc.v1.RepoRef
+	14, // 13: asc.v1.RequestReviewResponse.requests:type_name -> asc.v1.ReviewRequestInfo
+	16, // 14: asc.v1.ReviewBrief.where_to_look:type_name -> asc.v1.WhereToLook
+	2,  // 15: asc.v1.ChangeRisk.level:type_name -> asc.v1.RiskLevel
+	3,  // 16: asc.v1.ApprovalInfo.state:type_name -> asc.v1.ApprovalState
+	53, // 17: asc.v1.GetBriefRequest.repo:type_name -> asc.v1.RepoRef
+	17, // 18: asc.v1.GetBriefResponse.brief:type_name -> asc.v1.ReviewBrief
+	18, // 19: asc.v1.GetBriefResponse.file_stats:type_name -> asc.v1.ChangeFileStat
+	19, // 20: asc.v1.GetBriefResponse.risk:type_name -> asc.v1.ChangeRisk
+	20, // 21: asc.v1.GetBriefResponse.provenance:type_name -> asc.v1.ChangeProvenance
+	21, // 22: asc.v1.GetBriefResponse.approvals:type_name -> asc.v1.ApprovalInfo
+	22, // 23: asc.v1.GetBriefResponse.gate:type_name -> asc.v1.ReviewGateData
+	53, // 24: asc.v1.SetBriefRequest.repo:type_name -> asc.v1.RepoRef
+	17, // 25: asc.v1.SetBriefRequest.brief:type_name -> asc.v1.ReviewBrief
+	17, // 26: asc.v1.SetBriefResponse.brief:type_name -> asc.v1.ReviewBrief
+	53, // 27: asc.v1.RecordApprovalRequest.repo:type_name -> asc.v1.RepoRef
+	3,  // 28: asc.v1.RecordApprovalRequest.state:type_name -> asc.v1.ApprovalState
+	21, // 29: asc.v1.RecordApprovalResponse.approvals:type_name -> asc.v1.ApprovalInfo
+	53, // 30: asc.v1.CompareVersionsRequest.repo:type_name -> asc.v1.RepoRef
+	30, // 31: asc.v1.CompareVersionsResponse.files:type_name -> asc.v1.VersionFile
+	21, // 32: asc.v1.CompareVersionsResponse.approvals:type_name -> asc.v1.ApprovalInfo
+	53, // 33: asc.v1.PrepareSuggestionRequest.repo:type_name -> asc.v1.RepoRef
+	53, // 34: asc.v1.MarkSuggestionAppliedRequest.repo:type_name -> asc.v1.RepoRef
+	6,  // 35: asc.v1.MarkSuggestionAppliedResponse.thread:type_name -> asc.v1.ReviewThread
+	53, // 36: asc.v1.SuggestReviewersRequest.repo:type_name -> asc.v1.RepoRef
+	37, // 37: asc.v1.SuggestReviewersResponse.reviewers:type_name -> asc.v1.SuggestedReviewer
+	53, // 38: asc.v1.RecordGateDecisionRequest.repo:type_name -> asc.v1.RepoRef
+	39, // 39: asc.v1.RecordGateDecisionRequest.rules:type_name -> asc.v1.GateRuleResult
+	53, // 40: asc.v1.GetGateStatsRequest.repo:type_name -> asc.v1.RepoRef
+	43, // 41: asc.v1.GetGateStatsResponse.per_day:type_name -> asc.v1.GateDay
+	44, // 42: asc.v1.GetGateStatsResponse.per_rule:type_name -> asc.v1.GateRuleCount
+	53, // 43: asc.v1.GrantOverrideRequest.repo:type_name -> asc.v1.RepoRef
+	46, // 44: asc.v1.GrantOverrideResponse.override:type_name -> asc.v1.GateOverride
+	53, // 45: asc.v1.RevokeOverrideRequest.repo:type_name -> asc.v1.RepoRef
+	46, // 46: asc.v1.RevokeOverrideResponse.override:type_name -> asc.v1.GateOverride
+	53, // 47: asc.v1.ListOverridesRequest.repo:type_name -> asc.v1.RepoRef
+	46, // 48: asc.v1.ListOverridesResponse.overrides:type_name -> asc.v1.GateOverride
+	7,  // 49: asc.v1.Review.ListThreads:input_type -> asc.v1.ListThreadsRequest
+	9,  // 50: asc.v1.Review.AddComment:input_type -> asc.v1.AddCommentRequest
+	11, // 51: asc.v1.Review.ResolveThread:input_type -> asc.v1.ResolveThreadRequest
+	13, // 52: asc.v1.Review.RequestReview:input_type -> asc.v1.RequestReviewRequest
+	23, // 53: asc.v1.Review.GetBrief:input_type -> asc.v1.GetBriefRequest
+	25, // 54: asc.v1.Review.SetBrief:input_type -> asc.v1.SetBriefRequest
+	27, // 55: asc.v1.Review.RecordApproval:input_type -> asc.v1.RecordApprovalRequest
+	29, // 56: asc.v1.Review.CompareVersions:input_type -> asc.v1.CompareVersionsRequest
+	32, // 57: asc.v1.Review.PrepareSuggestion:input_type -> asc.v1.PrepareSuggestionRequest
+	34, // 58: asc.v1.Review.MarkSuggestionApplied:input_type -> asc.v1.MarkSuggestionAppliedRequest
+	36, // 59: asc.v1.Review.SuggestReviewers:input_type -> asc.v1.SuggestReviewersRequest
+	40, // 60: asc.v1.Review.RecordGateDecision:input_type -> asc.v1.RecordGateDecisionRequest
+	42, // 61: asc.v1.Review.GetGateStats:input_type -> asc.v1.GetGateStatsRequest
+	47, // 62: asc.v1.Review.GrantOverride:input_type -> asc.v1.GrantOverrideRequest
+	49, // 63: asc.v1.Review.RevokeOverride:input_type -> asc.v1.RevokeOverrideRequest
+	51, // 64: asc.v1.Review.ListOverrides:input_type -> asc.v1.ListOverridesRequest
+	8,  // 65: asc.v1.Review.ListThreads:output_type -> asc.v1.ListThreadsResponse
+	10, // 66: asc.v1.Review.AddComment:output_type -> asc.v1.AddCommentResponse
+	12, // 67: asc.v1.Review.ResolveThread:output_type -> asc.v1.ResolveThreadResponse
+	15, // 68: asc.v1.Review.RequestReview:output_type -> asc.v1.RequestReviewResponse
+	24, // 69: asc.v1.Review.GetBrief:output_type -> asc.v1.GetBriefResponse
+	26, // 70: asc.v1.Review.SetBrief:output_type -> asc.v1.SetBriefResponse
+	28, // 71: asc.v1.Review.RecordApproval:output_type -> asc.v1.RecordApprovalResponse
+	31, // 72: asc.v1.Review.CompareVersions:output_type -> asc.v1.CompareVersionsResponse
+	33, // 73: asc.v1.Review.PrepareSuggestion:output_type -> asc.v1.PrepareSuggestionResponse
+	35, // 74: asc.v1.Review.MarkSuggestionApplied:output_type -> asc.v1.MarkSuggestionAppliedResponse
+	38, // 75: asc.v1.Review.SuggestReviewers:output_type -> asc.v1.SuggestReviewersResponse
+	41, // 76: asc.v1.Review.RecordGateDecision:output_type -> asc.v1.RecordGateDecisionResponse
+	45, // 77: asc.v1.Review.GetGateStats:output_type -> asc.v1.GetGateStatsResponse
+	48, // 78: asc.v1.Review.GrantOverride:output_type -> asc.v1.GrantOverrideResponse
+	50, // 79: asc.v1.Review.RevokeOverride:output_type -> asc.v1.RevokeOverrideResponse
+	52, // 80: asc.v1.Review.ListOverrides:output_type -> asc.v1.ListOverridesResponse
+	65, // [65:81] is the sub-list for method output_type
+	49, // [49:65] is the sub-list for method input_type
+	49, // [49:49] is the sub-list for extension type_name
+	49, // [49:49] is the sub-list for extension extendee
+	0,  // [0:49] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_review_proto_init() }
@@ -1105,8 +4244,8 @@ func file_asc_v1_review_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_review_proto_rawDesc), len(file_asc_v1_review_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   12,
+			NumEnums:      4,
+			NumMessages:   49,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
