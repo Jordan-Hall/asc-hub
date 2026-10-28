@@ -18,8 +18,8 @@ Boards (95 desktop boards, each with a mobile twin except the two system boards)
 
 | Status | Boards |
 | --- | --- |
-| design system | 94 |
-| partial | 1 |
+| design system | 95 |
+| partial | 0 |
 | old Fomantic markup | 0 |
 | asc era | 0 |
 | missing | 0 |
@@ -62,7 +62,7 @@ Page templates reached by a route with no board: 56.
 | A10 Explore: organizations | `ExploreOrgs` (`Mobile-ExploreOrgs`) | `explore/user_list.tmpl`, `explore/navbar.tmpl` | design system |  |
 | A11 Documentation | `Docs` (`Mobile-Docs`) | `asc/docs.tmpl` | design system |  |
 | A12 About ASC Hub | `About` (`Mobile-About`) | `asc/about.tmpl` | design system |  |
-| A13 Error and status pages | `Errors` (`Mobile-Errors`) | `status/404.tmpl`, `status/413.tmpl`, `status/500.tmpl`, missing: `status/403.tmpl`, `status/503.tmpl`, `status/offline.tmpl` | partial |  |
+| A13 Error and status pages | `Errors` (`Mobile-Errors`) | `status/404.tmpl`, `status/413.tmpl`, `status/500.tmpl`, `status/403.tmpl`, `status/503.tmpl`, `status/offline.tmpl` | design system |  |
 | B1 Dashboard | `Dashboard` (`Mobile-Dashboard`) | `user/dashboard/asc_home.tmpl` | design system |  |
 | B2 Inbox | `Inbox` (`Mobile-Inbox`) | `user/asc_inbox.tmpl`, `user/notification/notification.tmpl` | design system |  |
 | B3 Drafts | `Drafts` (`Mobile-Drafts`) | `user/asc_drafts.tmpl` | design system |  |
