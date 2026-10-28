@@ -14,7 +14,7 @@
 					{{range $i, $v := .TreeNames}}
 						<div class="breadcrumb-divider">/</div>
 						{{if eq $i $l}}
-							<input id="file-name" maxlength="255" value="{{$v}}" placeholder="{{ctx.Locale.Tr "repo.editor.name_your_file"}}" data-editorconfig="{{$.EditorconfigJson}}" required autofocus>
+							<input class="ds-input" id="file-name" maxlength="255" value="{{$v}}" placeholder="{{ctx.Locale.Tr "repo.editor.name_your_file"}}" data-editorconfig="{{$.EditorconfigJson}}" required autofocus>
 							<span data-tooltip-content="{{ctx.Locale.Tr "repo.editor.filename_help"}}">{{svg "octicon-info"}}</span>
 						{{else}}
 							<span class="section"><a href="{{$.BranchLink}}/{{index $.TreePaths $i | PathEscapeSegments}}">{{$v}}</a></span>
@@ -24,7 +24,7 @@
 					<input type="hidden" id="tree_path" name="tree_path" value="{{.TreePath}}" required>
 				</div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<div id="editor-bar">
 					<div class="switch" data-write="write" data-preview="preview" data-diff="diff">
 						<button type="button" class="active item" data-tab="write">{{svg "octicon-code"}} {{if .IsNewFile}}{{ctx.Locale.Tr "repo.editor.new_file"}}{{else}}{{ctx.Locale.Tr "repo.editor.edit_file"}}{{end}}</button>

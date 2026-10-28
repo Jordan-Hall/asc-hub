@@ -9,7 +9,7 @@
 			{{template "repo/issue/search" .}}
 			{{if and (or .CanWriteIssues .CanWritePulls) (not .Repository.IsArchived)}}
 				<div class="button-row">
-					<a class="ui small primary button" href="{{$.Link}}/new">{{ctx.Locale.Tr "repo.milestones.new"}}</a>
+					<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{$.Link}}/new">{{ctx.Locale.Tr "repo.milestones.new"}}</a>
 				</div>
 			{{end}}
 		</div>

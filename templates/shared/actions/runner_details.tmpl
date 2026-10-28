@@ -3,7 +3,7 @@
 		{{ctx.Locale.Tr "actions.runners.runner_title" .Runner.Name}}
 		{{if .Runner.Editable $.RunnerOwnerID $.RunnerRepoID}}
 			<div class="ui right">
-				<a class="ui primary tiny button" tabindex="0" href="{{$.Link}}/edit">
+				<a class="ds-btn ds-btn-primary ds-btn-sm" tabindex="0" href="{{$.Link}}/edit">
 					{{ctx.Locale.Tr "actions.runners.edit_runner_button"}}
 				</a>
 			</div>
@@ -36,7 +36,7 @@
 				<dd class="tw-flex tw-items-start tw-flex-wrap tw-gap-2">
 					{{if gt (len .Runner.AgentLabels) 0}}
 						{{range .Runner.AgentLabels}}
-							<div class="ui label">{{.}}</div>
+							<div class="ds-chip">{{.}}</div>
 						{{end}}
 					{{else}}
 						&mdash;
@@ -136,7 +136,7 @@
 				{{range .Tasks}}
 				<tr>
 					<td><a href="{{.GetRunLink}}" target="_blank">{{.ID}}</a></td>
-					<td><span class="ui label task-status-{{.Status.String}}">{{.Status.LocaleString ctx.Locale}}</span></td>
+					<td><span class="ds-chip task-status-{{.Status.String}}">{{.Status.LocaleString ctx.Locale}}</span></td>
 					<td><a href="{{.GetRepoLink}}" target="_blank">{{.GetRepoName}}</a></td>
 					<td>
 						<strong><a href="{{.GetCommitLink}}" target="_blank">{{ShortSha .CommitSHA}}</a></strong>

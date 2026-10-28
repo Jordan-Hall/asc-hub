@@ -1,7 +1,7 @@
 <h4 class="ui top attached header">
 	{{ctx.Locale.Tr "actions.variables.management"}}
 	<div class="ui right">
-		<button class="ui primary tiny button show-modal"
+		<button class="ds-btn ds-btn-primary ds-btn-sm show-modal"
 			data-modal="#edit-variable-modal"
 			data-modal-form.action="{{.Link}}/new"
 			data-modal-header="{{ctx.Locale.Tr "actions.variables.creation"}}"
@@ -64,12 +64,12 @@
 		<header></header>
 		<form class="ui form form-fetch-action" method="post">
 			<fieldset class="content">
-				<div class="field">
+				<div class="ds-field">
 					{{ctx.Locale.Tr "actions.variables.description"}}
 				</div>
-				<div class="field">
+				<div class="ds-field">
 					<label for="dialog-variable-name">{{ctx.Locale.Tr "name"}}</label>
-					<input autofocus required
+					<input class="ds-input" autofocus required
 						name="name"
 						id="dialog-variable-name"
 						value="{{.name}}"
@@ -77,9 +77,9 @@
 					>
 					<p id="name-description" class="help">{{ctx.Locale.Tr "actions.variables.mutation.name_description"}}</p>
 				</div>
-				<div class="field">
+				<div class="ds-field">
 					<label for="dialog-variable-data">{{ctx.Locale.Tr "value"}}</label>
-					<textarea required
+					<textarea class="ds-textarea" required
 						name="data"
 						id="dialog-variable-data"
 					></textarea>

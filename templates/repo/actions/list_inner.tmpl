@@ -16,7 +16,7 @@
 					{{end}}
 
 					{{if $.ActionsConfig.IsWorkflowDisabled .Entry.Name}}
-						<div class="ui red label">{{ctx.Locale.Tr "disabled"}}</div>
+						<div class="ds-chip ds-chip-err">{{ctx.Locale.Tr "disabled"}}</div>
 					{{end}}
 				</a>
 			{{end}}
@@ -33,7 +33,7 @@
 				<div class="menu">
 					<div class="ui icon search input">
 						<i class="icon">{{svg "octicon-search"}}</i>
-						<input type="text" placeholder="{{ctx.Locale.Tr "actions.runs.actor"}}">
+						<input class="ds-input" type="text" placeholder="{{ctx.Locale.Tr "actions.runs.actor"}}">
 					</div>
 					<a class="item{{if not $.CurActor}} active{{end}}" href="?workflow={{$.CurWorkflow}}&status={{$.CurStatus}}&actor=0">
 						{{ctx.Locale.Tr "actions.runs.actors_no_select"}}
@@ -52,7 +52,7 @@
 				<div class="menu">
 					<div class="ui icon search input">
 						<i class="icon">{{svg "octicon-search"}}</i>
-						<input type="text" placeholder="{{ctx.Locale.Tr "actions.runs.status"}}">
+						<input class="ds-input" type="text" placeholder="{{ctx.Locale.Tr "actions.runs.status"}}">
 					</div>
 					<a class="item{{if not $.CurStatus}} active{{end}}" href="?workflow={{$.CurWorkflow}}&actor={{$.CurActor}}&status=0">
 						{{ctx.Locale.Tr "actions.runs.status_no_select"}}

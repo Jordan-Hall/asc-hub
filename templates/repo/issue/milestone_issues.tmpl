@@ -9,15 +9,15 @@
 				<div class="tw-flex button-row">
 					{{if or .CanWriteIssues .CanWritePulls}}
 						{{if .Milestone.IsClosed}}
-							<a class="ui primary button link-action" href data-url="{{$.RepoLink}}/milestones/{{.MilestoneID}}/open">{{ctx.Locale.Tr "repo.milestones.open"}}
+							<a class="ds-btn ds-btn-primary link-action" href data-url="{{$.RepoLink}}/milestones/{{.MilestoneID}}/open">{{ctx.Locale.Tr "repo.milestones.open"}}
 							</a>
 						{{else}}
-							<a class="ui red button link-action" href data-url="{{$.RepoLink}}/milestones/{{.MilestoneID}}/close">{{ctx.Locale.Tr "repo.milestones.close"}}
+							<a class="ds-btn ds-btn-danger link-action" href data-url="{{$.RepoLink}}/milestones/{{.MilestoneID}}/close">{{ctx.Locale.Tr "repo.milestones.close"}}
 							</a>
 						{{end}}
-						<a class="ui button" href="{{.RepoLink}}/milestones/{{.MilestoneID}}/edit">{{ctx.Locale.Tr "repo.milestones.edit"}}</a>
+						<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/milestones/{{.MilestoneID}}/edit">{{ctx.Locale.Tr "repo.milestones.edit"}}</a>
 					{{end}}
-					<a class="ui primary button" href="{{.RepoLink}}/issues/new{{if .NewIssueChooseTemplate}}/choose{{end}}?milestone={{.MilestoneID}}">{{ctx.Locale.Tr "repo.issues.new"}}</a>
+					<a class="ds-btn ds-btn-primary" href="{{.RepoLink}}/issues/new{{if .NewIssueChooseTemplate}}/choose{{end}}?milestone={{.MilestoneID}}">{{ctx.Locale.Tr "repo.issues.new"}}</a>
 				</div>
 			{{end}}
 		</div>

@@ -15,7 +15,7 @@
 					<a title="{{.Title}}" href="{{if .Link}}{{.Link}}{{else}}{{$.Link}}/{{.Index}}{{end}}">
 						{{if .Title}}{{.Title}}{{else}}{{ctx.Locale.Tr "actions.runs.empty_commit_message"}}{{end}}
 					</a>
-					{{if .Prioritize}}<span class="ui label">{{ctx.Locale.Tr "actions.runs.prioritized_run"}}</span>{{end}}
+					{{if .Prioritize}}<span class="ds-chip">{{ctx.Locale.Tr "actions.runs.prioritized_run"}}</span>{{end}}
 				</div>
 				<div class="flex-item-body">
 					<b>{{if not $.CurWorkflow}}{{.WorkflowID}} {{end}}#{{.Index}}</b> -
@@ -30,9 +30,9 @@
 			</div>
 			<div class="flex-item-trailing">
 				{{if .IsRefDeleted}}
-					<span class="ui label run-list-ref gt-ellipsis tw-line-through" data-tooltip-content="{{.PrettyRef}}">{{.PrettyRef}}</span>
+					<span class="ds-chip run-list-ref gt-ellipsis tw-line-through" data-tooltip-content="{{.PrettyRef}}">{{.PrettyRef}}</span>
 				{{else}}
-					<a class="ui label run-list-ref gt-ellipsis" href="{{.RefLink}}" data-tooltip-content="{{.PrettyRef}}">{{.PrettyRef}}</a>
+					<a class="ds-chip run-list-ref gt-ellipsis" href="{{.RefLink}}" data-tooltip-content="{{.PrettyRef}}">{{.PrettyRef}}</a>
 				{{end}}
 				<div class="run-list-item-right">
 					<div class="run-list-meta">{{svg "octicon-calendar" 16}}{{DateUtils.TimeSince .Updated}}</div>

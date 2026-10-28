@@ -12,7 +12,7 @@
 					{{range $i, $v := .TreeNames}}
 						<div class="breadcrumb-divider">/</div>
 						{{if eq $i $l}}
-							<input type="text" id="file-name" maxlength="255" value="{{$v}}" placeholder="{{ctx.Locale.Tr "repo.editor.add_subdir"}}" autofocus>
+							<input class="ds-input" type="text" id="file-name" maxlength="255" value="{{$v}}" placeholder="{{ctx.Locale.Tr "repo.editor.add_subdir"}}" autofocus>
 							<span data-tooltip-content="{{ctx.Locale.Tr "repo.editor.filename_help"}}">{{svg "octicon-info"}}</span>
 						{{else}}
 							<span class="section"><a href="{{$.BranchLink}}/{{index $.TreePaths $i | PathEscapeSegments}}">{{$v}}</a></span>
@@ -22,7 +22,7 @@
 					<input type="hidden" id="tree_path" name="tree_path" value="{{.TreePath}}" required>
 				</div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				{{template "repo/upload" .}}
 			</div>
 			{{template "repo/editor/commit_form" .}}

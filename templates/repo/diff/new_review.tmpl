@@ -13,11 +13,11 @@
 		<div class="rv-reviewpanel">
 			<form class="ui form form-fetch-action" action="{{.Link}}/reviews/submit" method="post">
 				<input type="hidden" name="commit_id" value="{{.AfterCommitID}}">
-				<div class="field rv-reviewpanel-head">
+				<div class="ds-field rv-reviewpanel-head">
 					<div class="rv-grow rv-h4">{{ctx.Locale.Tr "repo.diff.review.header"}}</div>
 					<a class="muted close rv-btn rv-btn-ghost rv-btn-icon" role="button" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_review.rev_close"}}">{{svg "octicon-x" 16}}</a>
 				</div>
-				<div class="field">
+				<div class="ds-field">
 					{{template "shared/combomarkdowneditor" (dict
 						"MarkdownPreviewUrl" (print .Repository.Link "/markup")
 						"MarkdownPreviewContext" .RepoLink
@@ -27,7 +27,7 @@
 					)}}
 				</div>
 				{{if .IsAttachmentEnabled}}
-					<div class="field">
+					<div class="ds-field">
 						{{template "repo/upload" .}}
 					</div>
 				{{end}}

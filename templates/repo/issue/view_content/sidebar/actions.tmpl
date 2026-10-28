@@ -1,6 +1,6 @@
 {{if or .PinEnabled .Issue.IsPinned}}
 	<form class="tw-mt-1 form-fetch-action single-button-form" method="post" {{if $.NewPinAllowed}}action="{{.Issue.Link}}/pin"{{else}}data-tooltip-content="{{ctx.Locale.Tr "repo.issues.max_pinned"}}"{{end}}>
-		<button class="fluid ui button {{if not $.NewPinAllowed}}disabled{{end}}">
+		<button class="ds-btn ds-btn-secondary ds-btn-block {{if not $.NewPinAllowed}}disabled {{end}}">
 			{{if not .Issue.IsPinned}}
 				{{svg "octicon-pin" 16 "tw-mr-2"}}
 				{{ctx.Locale.Tr "pin"}}
@@ -31,7 +31,7 @@
 			{{end}}
 		</header>
 		<div class="content">
-			<div class="ui warning message">
+			<div class="ds-banner ds-banner-warn">
 				{{if .Issue.IsLocked}}
 					{{ctx.Locale.Tr "repo.issues.unlock.notice_1"}}<br>
 					{{ctx.Locale.Tr "repo.issues.unlock.notice_2"}}<br>
@@ -45,14 +45,14 @@
 		<form class="ui form form-fetch-action" action="{{.Issue.Link}}{{if .Issue.IsLocked}}/unlock{{else}}/lock{{end}}" method="post">
 			<div class="content">
 			{{if not .Issue.IsLocked}}
-				<div class="field">
+				<div class="ds-field">
 					<strong>{{ctx.Locale.Tr "repo.issues.lock.reason"}}</strong>
 				</div>
 
-				<div class="field">
+				<div class="ds-field">
 					<div class="ui fluid dropdown selection">
 
-						<select name="reason">
+						<select class="ds-select" name="reason">
 							<option value=""> </option>
 							{{range .LockReasons}}
 								<option value="{{.}}">{{.}}</option>
@@ -73,7 +73,7 @@
 			</div>
 			<div class="actions">
 				<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-				<button type="submit" class="ui red button">
+				<button type="submit" class="ds-btn ds-btn-danger">
 					{{if .Issue.IsLocked}}
 						{{ctx.Locale.Tr "repo.issues.unlock_confirm"}}
 					{{else}}
@@ -84,7 +84,7 @@
 		</form>
 	</article>
 </dialog>
-<button class="tw-mt-1 fluid ui show-modal button" data-modal="#sidebar-delete-issue">
+<button class="ds-btn ds-btn-secondary ds-btn-block tw-mt-1 show-modal" data-modal="#sidebar-delete-issue">
 	{{svg "octicon-trash"}}
 	{{ctx.Locale.Tr "repo.issues.delete"}}
 </button>

@@ -9,7 +9,7 @@
 			{{if and $.UpdateAllowed $.UpdateByRebaseAllowed}}
 				<div class="tw-inline-block">
 					<div class="ui buttons update-button">
-						<button class="ui button" data-do="{{$.Link}}/update?style={{$.UpdateStyle}}" data-redirect="{{$.Link}}">
+						<button class="ds-btn ds-btn-secondary" data-do="{{$.Link}}/update?style={{$.UpdateStyle}}" data-redirect="{{$.Link}}">
 							<span class="button-text">
 								{{if eq $.UpdateStyle "rebase"}}
 									{{ctx.Locale.Tr "repo.pulls.update_branch_rebase"}}
@@ -34,7 +34,7 @@
 			{{end}}
 			{{if and $.UpdateAllowed (not $.UpdateByRebaseAllowed)}}
 				<form action="{{$.Link}}/update?style=merge" method="post" class="ui update-branch-form">
-					<button class="ui compact button">
+					<button class="ds-btn ds-btn-secondary ds-btn-sm">
 						<span class="ui text">{{ctx.Locale.Tr "repo.pulls.update_branch"}}</span>
 					</button>
 				</form>

@@ -6,14 +6,14 @@
 </form>
 {{/* TODO: share this branch selector dropdown with the same in repo page */}}
 <div class="ui {{if not $hasIssuesOrPullsWritePermission}}disabled{{end}} floating filter select-branch dropdown tw-max-w-full" data-no-results="{{ctx.Locale.Tr "repo.pulls.no_results"}}">
-	<div class="ui basic small button">
+	<div class="ds-btn ds-btn-secondary ds-btn-sm">
 		<span class="text branch-name gt-ellipsis">{{if .Reference}}{{$.RefEndName}}{{else}}{{ctx.Locale.Tr "repo.issues.no_ref"}}{{end}}</span>
 		{{if $hasIssuesOrPullsWritePermission}}{{svg "octicon-triangle-down" 14 "dropdown icon"}}{{end}}
 	</div>
 	<div class="menu">
 		<div class="ui icon search input">
 			<i class="icon">{{svg "octicon-filter" 16}}</i>
-			<input name="search" placeholder="{{ctx.Locale.Tr "repo.filter_branch_and_tag"}}...">
+			<input class="ds-input" name="search" placeholder="{{ctx.Locale.Tr "repo.filter_branch_and_tag"}}...">
 		</div>
 		<div class="branch-tag-tab">
 			<a class="branch-tag-item muted" href="#" data-target="#branch-list">

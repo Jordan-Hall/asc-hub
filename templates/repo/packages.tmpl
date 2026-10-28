@@ -3,7 +3,7 @@
 	{{template "repo/header" .}}
 	<div class="ui container">
 		{{if (and .Repository.IsPrivate .Repository.Owner.Visibility.IsPublic)}}
-			<div class="ui warning message flash-message flash-warning">
+			<div class="ds-banner ds-banner-warn flash-message flash-warning">
 				{{svg "octicon-alert"}}
 				{{ctx.Locale.Tr "repo.packages.visibility_warning" .Repository.OwnerName}}
 			</div>

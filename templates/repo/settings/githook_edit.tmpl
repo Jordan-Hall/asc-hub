@@ -7,17 +7,17 @@
 			<p>{{ctx.Locale.Tr "repo.settings.githook_edit_desc"}}</p>
 			<form class="ui form" action="{{.Link}}" method="post">
 				{{with .Hook}}
-					<div class="inline field">
+					<div class="inline ds-field">
 						<label>{{ctx.Locale.Tr "repo.settings.githook_name"}}</label>
 						<span class="hook-filename">{{.Name}}</span>
 					</div>
-					<div class="field">
+					<div class="ds-field">
 						<label for="content">{{ctx.Locale.Tr "repo.settings.githook_content"}}</label>
 						<textarea id="content" name="content" class="tw-hidden">{{if .IsActive}}{{.Content}}{{else}}{{.Sample}}{{end}}</textarea>
 						{{template "shared/codemirror_container" .}}
 					</div>
-					<div class="inline field">
-						<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.update_githook"}}</button>
+					<div class="inline ds-field">
+						<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.update_githook"}}</button>
 					</div>
 				{{end}}
 			</form>

@@ -79,7 +79,7 @@
 
 {{if .Permission.CanRead $.UnitTypeCode}}
 	{{if eq .Activity.Code.CommitCountInAllBranches 0}}
-		<div class="ui center aligned segment">
+		<div class="ds-card ds-card-b center aligned">
 		<h4 class="ui header">{{ctx.Locale.Tr "repo.activity.no_git_activity"}}</h4>
 		</div>
 	{{end}}
@@ -120,11 +120,11 @@
 		{{range .Activity.PublishedReleases}}
 			<p class="desc">
 				{{if .IsTag}}
-					<span class="ui yellow label">{{ctx.Locale.Tr "repo.activity.published_tag_label"}}</span>
+					<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.activity.published_tag_label"}}</span>
 				{{else if .IsPrerelease}}
-					<span class="ui orange label">{{ctx.Locale.Tr "repo.activity.published_prerelease_label"}}</span>
+					<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.activity.published_prerelease_label"}}</span>
 				{{else}}
-					<span class="ui green label">{{ctx.Locale.Tr "repo.activity.published_release_label"}}</span>
+					<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "repo.activity.published_release_label"}}</span>
 				{{end}}
 				{{if .IsTag}}
 					<a href="{{$.RepoLink}}/src/{{.TagName | PathEscapeSegments}}">{{.TagName}}</a>
@@ -149,7 +149,7 @@
 	<div class="list">
 		{{range .Activity.MergedPRs}}
 			<p class="desc">
-				<span class="ui purple label">{{ctx.Locale.Tr "repo.activity.merged_prs_label"}}</span>
+				<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "repo.activity.merged_prs_label"}}</span>
 				#{{.Index}} <a class="title" href="{{$.RepoLink}}/pulls/{{.Index}}">{{RenderRefIssueTitle $.Context .Issue.Title}}</a>
 				{{DateUtils.TimeSince .MergedUnix}}
 			</p>
@@ -168,7 +168,7 @@
 	<div class="list">
 		{{range .Activity.OpenedPRs}}
 			<p class="desc">
-				<span class="ui green label">{{ctx.Locale.Tr "repo.activity.opened_prs_label"}}</span>
+				<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "repo.activity.opened_prs_label"}}</span>
 				#{{.Index}} <a class="title" href="{{$.RepoLink}}/pulls/{{.Index}}">{{RenderRefIssueTitle $.Context .Issue.Title}}</a>
 				{{DateUtils.TimeSince .Issue.CreatedUnix}}
 			</p>
@@ -187,7 +187,7 @@
 	<div class="list">
 		{{range .Activity.ClosedIssues}}
 			<p class="desc">
-				<span class="ui red label">{{ctx.Locale.Tr "repo.activity.closed_issue_label"}}</span>
+				<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "repo.activity.closed_issue_label"}}</span>
 				#{{.Index}} <a class="title" href="{{$.RepoLink}}/issues/{{.Index}}">{{RenderRefIssueTitle $.Context .Title}}</a>
 				{{DateUtils.TimeSince .ClosedUnix}}
 			</p>
@@ -206,7 +206,7 @@
 	<div class="list">
 		{{range .Activity.OpenedIssues}}
 			<p class="desc">
-				<span class="ui green label">{{ctx.Locale.Tr "repo.activity.new_issue_label"}}</span>
+				<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "repo.activity.new_issue_label"}}</span>
 				#{{.Index}} <a class="title" href="{{$.RepoLink}}/issues/{{.Index}}">{{RenderRefIssueTitle $.Context .Title}}</a>
 				{{DateUtils.TimeSince .CreatedUnix}}
 			</p>
@@ -222,7 +222,7 @@
 	<div class="list">
 		{{range .Activity.UnresolvedIssues}}
 			<p class="desc">
-				<span class="ui green label">{{ctx.Locale.Tr "repo.activity.unresolved_conv_label"}}</span>
+				<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "repo.activity.unresolved_conv_label"}}</span>
 				#{{.Index}}
 				{{if .IsPull}}
 				<a class="title" href="{{$.RepoLink}}/pulls/{{.Index}}">{{RenderRefIssueTitle $.Context .Title}}</a>

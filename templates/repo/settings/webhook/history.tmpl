@@ -41,12 +41,12 @@
 								{{ctx.Locale.Tr "repo.settings.webhook.response"}}
 								{{if .ResponseInfo}}
 									{{if .IsSucceed}}
-										<span class="ui green label">{{.ResponseInfo.Status}}</span>
+										<span class="ds-chip ds-chip-ok">{{.ResponseInfo.Status}}</span>
 									{{else}}
-										<span class="ui red label">{{.ResponseInfo.Status}}</span>
+										<span class="ds-chip ds-chip-err">{{.ResponseInfo.Status}}</span>
 									{{end}}
 								{{else}}
-									<span class="ui label">-</span>
+									<span class="ds-chip">-</span>
 								{{end}}
 							</a>
 							{{if or $.Permission.IsAdmin $.IsOrganizationOwner $.PageIsAdmin $.PageIsUserSettings}}
