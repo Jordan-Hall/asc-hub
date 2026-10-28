@@ -16,6 +16,21 @@
 					{{end}}
 				</button>
 			{{end}}
+		<form class="ds-filterbar-form wk-people-filter" role="search" method="get" action="{{$.OrgLink}}/members">
+			{{if .PeopleFilter}}<input type="hidden" name="filter" value="{{.PeopleFilter}}">{{end}}
+			<div class="ds-inwrap">
+				{{svg "dsi-search" 16}}
+				<label class="ds-sr" for="people-q">{{ctx.Locale.Tr "asc_work.people_search"}}</label>
+				<input id="people-q" class="ds-input" type="search" name="q" value="{{.PeopleQuery}}" maxlength="100" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_work.people_search"}}">
+			</div>
+			<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "search.search"}}</button>
+		</form>
+		<div class="ds-scrollx wk-people-chips" role="group" aria-label="{{ctx.Locale.Tr "filter"}}">
+			{{$q := QueryEscape .PeopleQuery}}
+			{{template "shared/ds/pill" (dict "Label" (printf "%s %d" (ctx.Locale.TrString "asc_work.people_all") .PeopleCountAll) "Href" (print $.OrgLink "/members?q=" $q) "Active" (not .PeopleFilter))}}
+			{{template "shared/ds/pill" (dict "Label" (printf "%s %d" (ctx.Locale.TrString "org.members.owner") .PeopleCountOwners) "Href" (print $.OrgLink "/members?filter=owners&q=" $q) "Active" (eq .PeopleFilter "owners"))}}
+			{{template "shared/ds/pill" (dict "Label" (printf "%s %d" (ctx.Locale.TrString "asc_work.people_2fa_off") .PeopleCountTwoFAOff) "Href" (print $.OrgLink "/members?filter=2fa_off&q=" $q) "Active" (eq .PeopleFilter "2fa_off"))}}
+		</div>
 		</div>
 		<div class="ds-card">
 			<ul class="ds-list">
