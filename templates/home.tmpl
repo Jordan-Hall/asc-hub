@@ -19,7 +19,7 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 				</div>
 			{{end}}
 			<div class="ds-land-install" role="group" aria-label="{{ctx.Locale.Tr "startpage.connect_label"}}">
-				<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{.AscHubURL}} --prompt</code><button type="button" class="ds-copy" data-clipboard-text="asc auth login --host {{.AscHubURL}} --prompt">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+				<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{.AscHubURL}} --prompt</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="asc auth login --host {{.AscHubURL}} --prompt">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 			</div>
 		</div>
 	</section>
@@ -264,7 +264,7 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 			<div class="ds-land-dl-cmds">
 				{{range $arch.Commands}}
 				<div class="ds-term">
-					<div class="ds-term-hd"><span>{{.Title}}</span><button type="button" class="ds-copy" data-clipboard-text="{{.Text}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+					<div class="ds-term-hd"><span>{{.Title}}</span><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{.Text}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 					<div class="ds-term-bd" tabindex="0">{{.Text}}</div>
 				</div>
 				{{end}}
