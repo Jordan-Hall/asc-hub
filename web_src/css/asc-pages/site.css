@@ -1,0 +1,381 @@
+/* Public site pages: about, documentation start, get started. They compose the design system (asc-ds) and the
+   landing page pieces; only the arrangement is here. Mobile first. */
+
+.site .site-hero {
+  padding: 40px 0 44px;
+}
+
+.site .site-hero .ds-land-title {
+  max-width: 20ch;
+}
+
+.site .site-actions {
+  flex-direction: column;
+}
+
+.site .site-two {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+
+.site .site-two > * {
+  min-width: 0;
+}
+
+.site .site-caption {
+  caption-side: top;
+  text-align: start;
+  color: var(--text-3);
+  padding-bottom: 8px;
+}
+
+.site .site-ba .ds-table th[scope="row"] {
+  font-weight: 700;
+}
+
+.site .site-four {
+  margin-top: 28px;
+}
+
+.site .site-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.site .site-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 16px 0 0;
+}
+
+.site .site-links .ds-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.site .site-checks {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.site .site-checks li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.site .site-checks p {
+  margin: 2px 0 0;
+}
+
+.site .site-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 20px;
+}
+
+.site .site-doccards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.site .site-doccard {
+  height: 100%;
+}
+
+.site .site-doccard .ds-card-b {
+  display: grid;
+  gap: 6px;
+}
+
+.site .site-help {
+  align-self: stretch;
+}
+
+/* get started */
+.site-started .site-started-head {
+  padding: 24px 0 16px;
+}
+
+.site-started .site-started-head .ds-t-lead {
+  margin: 8px 0 0;
+}
+
+.site-started .site-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.site-started .site-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+
+.site-started .site-step.is-current {
+  border-color: var(--link);
+  box-shadow: 0 0 0 1px var(--link);
+}
+
+.site-started .site-step p {
+  margin: 0;
+}
+
+.site-started .site-step-h {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.site-started .site-step-h h2 {
+  margin: 0;
+}
+
+.site-started .site-step-num {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.site-started .is-current .site-step-num {
+  background: var(--fill);
+  border-color: var(--fill);
+  color: var(--on-fill);
+}
+
+.site-started .is-done .site-step-num {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #fff;
+}
+
+.site-started .site-wait {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-started .site-skip {
+  margin: 16px 0 0;
+}
+
+.site-started .site-rail {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.site-started .site-progress {
+  display: block;
+  width: 100%;
+  height: 8px;
+  margin-top: 12px;
+}
+
+.site-started .site-checkl {
+  margin: 12px 0 0;
+  display: grid;
+  gap: 4px;
+}
+
+.site-started .site-checkl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+  align-items: center;
+}
+
+.site-started .site-checkl dt {
+  color: var(--text-2);
+}
+
+.site-started .site-checkl dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+@media (min-width: 640px) {
+  .site .site-actions {
+    flex-direction: row;
+    justify-content: center;
+    max-width: none;
+  }
+
+  .site .site-actions .ds-btn {
+    width: auto;
+  }
+
+  .site .site-doccards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .site .site-four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .site .site-contact {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .site .site-hero {
+    padding: 88px 0;
+  }
+
+  .site .site-two {
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+    align-items: center;
+  }
+
+  .site .site-two-wide {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+  }
+
+  .site .site-doccards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .site .site-four {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.site .ds-card > .ds-card-b {
+  padding: 24px 20px;
+}
+
+.site .site-ba .ds-table th[scope="row"] {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.site .site-ba .ds-table-wrap {
+  margin-top: 4px;
+}
+
+@media (min-width: 768px) {
+  .site .ds-card > .ds-card-b {
+    padding: 32px;
+  }
+
+  .site .ds-land-sec {
+    padding: 56px 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .site .site-hero .ds-land-title {
+    font-size: 60px;
+    max-width: 18ch;
+  }
+
+  .site .ds-land-sec {
+    padding: 72px 0;
+  }
+
+  .site .ds-land-sec-flush {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .site .ds-card > .ds-card-b {
+    padding: 16px;
+  }
+
+  .site .site-ba .ds-table-stack tbody th {
+    display: block;
+    padding: 10px 16px 0;
+    border: 0;
+  }
+
+  .site .site-ba .ds-table-stack td {
+    text-align: right;
+  }
+
+  .site .site-hero .ds-land-actions .ds-btn:nth-child(2) {
+    min-height: 44px;
+  }
+}
+
+.site-started .site-rail {
+  padding-top: 24px;
+}
+
+.site .site-doccard {
+  display: block;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.site .site-doccard .ds-t-h4 {
+  color: var(--text);
+}
+
+.site .ds-btn {
+  text-decoration: none;
+}
+
+.site-started .site-progress-top {
+  margin-bottom: 12px;
+}
+
+.site-started .site-progress-side {
+  display: none;
+}
+
+@media (max-width: 639.98px) {
+  .site-started .site-step .ds-row .ds-btn {
+    flex: 1 1 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .site-started .site-progress-top {
+    display: none;
+  }
+
+  .site-started .site-progress-side {
+    display: block;
+  }
+}
