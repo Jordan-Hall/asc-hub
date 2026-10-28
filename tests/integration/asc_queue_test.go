@@ -321,9 +321,12 @@ func TestAscQueueRevertOpensAStackOfPullRequests(t *testing.T) {
 	require.NoError(t, err)
 	branch2, err := git.GetFullCommitID(ctx, repo.RepoPath(), "branch2")
 	require.NoError(t, err)
+	// the head of the second revert needs a first parent (the stack rule reads it), which master, the root commit, has not
+	branch2Parent, err := git.GetFullCommitID(ctx, repo.RepoPath(), "branch2~1")
+	require.NoError(t, err)
 	e.ops.revert = &ascbridge.RevertLandedResult{Ref: "refs/users/user2/reverts", Applied: true, StackTop: "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", Reverts: []ascbridge.RevertedChange{
 		{Original: ascQueueTopChange, RevertChange: "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", RevertGit: branch2},
-		{Original: ascQueueBottomChange, RevertChange: "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", RevertGit: master},
+		{Original: ascQueueBottomChange, RevertChange: "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", RevertGit: branch2Parent},
 	}}
 
 	session := loginUser(t, "user2")
@@ -347,7 +350,7 @@ func TestAscQueueRevertOpensAStackOfPullRequests(t *testing.T) {
 	first, second := fresh[len(fresh)-2], fresh[len(fresh)-1]
 	assert.Equal(t, issues_model.PullRequestFlowAGit, first.Flow)
 	assert.Equal(t, "master", first.BaseBranch)
-	assert.Equal(t, branch2, first.HeadCommitID)
+	assert.Equal(t, "user2/asc-mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", first.HeadBranch, "the head commit is not stored; the branch names the revert")
 	row, err := issues_model.GetPullRequestAscStack(ctx, first.ID)
 	require.NoError(t, err)
 	require.NotNil(t, row)

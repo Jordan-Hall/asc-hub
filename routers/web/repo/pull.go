@@ -492,6 +492,11 @@ func PrepareMergedViewPullInfo(ctx *context.Context, issue *issues_model.Issue) 
 	setMergeTarget(ctx, pull)
 	ctx.Data["HasMerged"] = true
 
+	// A merged change of a stack keeps the panel: it carries the revert of what landed.
+	if !prepareAscStackPanel(ctx, pull) {
+		return nil
+	}
+
 	baseCommit := GetMergedBaseCommitID(ctx, issue)
 
 	compareInfo, err := ctx.Repo.GitRepo.GetCompareInfo(ctx.Repo.Repository.RepoPath(),

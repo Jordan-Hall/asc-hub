@@ -197,7 +197,7 @@ func AscQueueEnqueue(ctx *context.Context) {
 	ctx.Redirect(issue.Link())
 }
 
-// AscQueueDequeue takes this pull request, and the queued pull requests above it in the stack, out of the queue.
+// AscQueueDequeue takes the stack of this pull request, and the queued pull requests above it, out of the queue.
 func AscQueueDequeue(ctx *context.Context) {
 	issue, pr, ok := ascStackTarget(ctx)
 	if !ok {

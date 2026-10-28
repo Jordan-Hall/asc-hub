@@ -403,7 +403,8 @@ func UseAscQueueBacked(f func(*repo_model.Repository) (bool, error)) (restore fu
 // AscQueueBackedBy reports whether the repository is stored in asc, so the queue applies to it.
 func AscQueueBackedBy(repo *repo_model.Repository) (bool, error) { return ascQueueBacked(repo) }
 
-// AscQueueCancel removes pr from the queue, and every queued pull request above it (they would land it).
+// AscQueueCancel removes the stack of pr from the queue: the queued pull requests from the bottom up to pr, and every
+// queued pull request above it (they would land it).
 // The user who enqueued the entry and an administrator may cancel.
 func AscQueueCancel(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest) error {
 	if doer == nil || !doer.IsActive || doer.ProhibitLogin {
@@ -429,24 +430,13 @@ func AscQueueCancel(ctx context.Context, doer *user_model.User, pr *issues_model
 	var cancelled []*AscStackQueueEntry
 	err = db.WithTx(ctx, func(ctx context.Context) error {
 		cancelled = nil
-		entries, err := ascQueueEntries(ctx, ent.RepoID, ent.Branch, AscQueueQueued, AscQueueBlocked)
+		cancelled, err = ascQueueCancelSet(ctx, ent, pr)
 		if err != nil {
 			return err
 		}
-		ids := []int64{}
-		for _, c := range entries {
-			cp, err := issues_model.GetPullRequestByID(ctx, c.PullID)
-			if err != nil {
-				continue
-			}
-			prefix, err := pull_service.AscStackPrefix(ctx, cp)
-			if err != nil {
-				continue
-			}
-			if c.PullID == pr.ID || slices.ContainsFunc(prefix, func(it *pull_service.AscStackItem) bool { return it.PR.ID == pr.ID }) {
-				ids = append(ids, c.ID)
-				cancelled = append(cancelled, c)
-			}
+		ids := make([]int64, len(cancelled))
+		for i, c := range cancelled {
+			ids[i] = c.ID
 		}
 		if len(ids) == 0 {
 			return nil
@@ -467,6 +457,51 @@ func AscQueueCancel(ctx context.Context, doer *user_model.User, pr *issues_model
 		ascQueueTell(ctx, c, doer.ID)
 	}
 	return nil
+}
+
+// AscQueueCancelSet returns the entries AscQueueCancel would take out of the queue for pr, in stack order: the
+// queued entries from the bottom of the stack up to pr (what "merge when ready" on pr queued) and the queued
+// entries above pr, which would land it. The confirmation page lists exactly these.
+func AscQueueCancelSet(ctx context.Context, pr *issues_model.PullRequest) ([]*AscStackQueueEntry, error) {
+	ent := &AscStackQueueEntry{}
+	has, err := db.GetEngine(ctx).Where("pull_id = ?", pr.ID).Get(ent)
+	if err != nil || !has {
+		return nil, err
+	}
+	return ascQueueCancelSet(ctx, ent, pr)
+}
+
+func ascQueueCancelSet(ctx context.Context, ent *AscStackQueueEntry, pr *issues_model.PullRequest) ([]*AscStackQueueEntry, error) {
+	entries, err := ascQueueEntries(ctx, ent.RepoID, ent.Branch, AscQueueQueued, AscQueueBlocked)
+	if err != nil {
+		return nil, err
+	}
+	below := map[int64]bool{pr.ID: true}
+	if prefix, err := pull_service.AscStackPrefix(ctx, pr); err == nil {
+		for _, it := range prefix {
+			below[it.PR.ID] = true
+		}
+	}
+	var set []*AscStackQueueEntry
+	for _, c := range entries {
+		if below[c.PullID] {
+			set = append(set, c)
+			continue
+		}
+		cp, err := issues_model.GetPullRequestByID(ctx, c.PullID)
+		if err != nil {
+			continue
+		}
+		prefix, err := pull_service.AscStackPrefix(ctx, cp)
+		if err != nil {
+			continue
+		}
+		if slices.ContainsFunc(prefix, func(it *pull_service.AscStackItem) bool { return it.PR.ID == pr.ID }) {
+			set = append(set, c)
+		}
+	}
+	slices.SortFunc(set, func(a, b *AscStackQueueEntry) int { return int(a.ID - b.ID) })
+	return set, nil
 }
 
 // AscQueueList returns the entries of a branch in enqueue order.
@@ -758,6 +793,19 @@ func AscQueueLandNow(ctx context.Context, doer *user_model.User, pr *issues_mode
 	perm, err := access_model.GetUserRepoPermission(ctx, pr.BaseRepo, doer)
 	if err != nil {
 		return nil, err
+	}
+	// The doer must be allowed to merge every pull request of the prefix before the lander is asked, whatever the
+	// lander checks itself.
+	items, err := pull_service.AscStackPrefix(ctx, pr)
+	if err != nil {
+		return nil, err
+	}
+	for _, it := range items {
+		if ok, err := ascQueueMayMerge(ctx, it.PR, perm, doer); err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, fmt.Errorf("%w: #%d", ErrAscQueueNotAllowed, it.PR.Index)
+		}
 	}
 	unlock, ok, err := ascQueueLock(ctx, pr.BaseRepoID, pr.BaseBranch)
 	if err != nil {
