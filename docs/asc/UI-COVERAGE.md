@@ -18,8 +18,8 @@ Boards (95 desktop boards, each with a mobile twin except the two system boards)
 
 | Status | Boards |
 | --- | --- |
-| design system | 90 |
-| partial | 5 |
+| design system | 91 |
+| partial | 4 |
 | old Fomantic markup | 0 |
 | asc era | 0 |
 | missing | 0 |
@@ -28,18 +28,18 @@ All templates (without mail, swagger, demo):
 
 | Status | Templates |
 | --- | --- |
-| design system | 458 |
-| design system shell with old markup inside | 46 |
-| old Fomantic markup | 21 |
+| design system | 462 |
+| design system shell with old markup inside | 44 |
+| old Fomantic markup | 18 |
 | asc era | 8 |
-| no class markup (data, includes, emails) | 145 |
+| no class markup (data, includes, emails) | 146 |
 
 Page templates reached by a route of `web.go` (138):
 
 | Status | Pages |
 | --- | --- |
-| design system | 109 |
-| partial | 15 |
+| design system | 110 |
+| partial | 14 |
 | old Fomantic markup | 0 |
 | asc era | 0 |
 | no class markup | 14 |
@@ -91,7 +91,7 @@ Page templates reached by a route with no board: 56.
 | C15 Compatibility note | `GitNote` (`Mobile-GitNote`) | `repo/clone_asc_tabs.tmpl`, `repo/clone_buttons.tmpl`, `repo/settings/asc_branchless.tmpl` | design system |  |
 | D1 Stacks | `Stacks` (`Mobile-Stacks`) | `repo/issue/list.tmpl`, `repo/pulls/asc_stack.tmpl`, `repo/pulls/asc_badges.tmpl` | design system |  |
 | D2 Open a change | `NewChange` (`Mobile-NewChange`) | `repo/asc_compare.tmpl` | design system |  |
-| D3 Stacked review | `Review` (`Mobile-Review`) | `repo/diff/asc_class_badge.tmpl`, `repo/diff/blob_excerpt.tmpl`, `repo/diff/box.tmpl`, `repo/diff/comment_form.tmpl`, `repo/diff/comment_form_datahandler.tmpl`, `repo/diff/comments.tmpl` (+17) | partial | `repo/diff/image_diff.tmpl` (1 old / 0 ds) |
+| D3 Stacked review | `Review` (`Mobile-Review`) | `repo/diff/asc_class_badge.tmpl`, `repo/diff/blob_excerpt.tmpl`, `repo/diff/box.tmpl`, `repo/diff/comment_form.tmpl`, `repo/diff/comment_form_datahandler.tmpl`, `repo/diff/comments.tmpl` (+17) | design system |  |
 | D4 Versions and landing | `ReviewVersions` (`Mobile-ReviewVersions`) | `repo/asc_confirm.tmpl`, `repo/asc_compare.tmpl`, `repo/asc_graph.tmpl` | design system |  |
 | D5 Merge queue | `Queue` (`Mobile-Queue`) | `repo/asc_queue.tmpl`, `repo/asc_confirm.tmpl` | design system |  |
 | D6 Operation log and undo | `Ops` (`Mobile-Ops`) | `repo/asc_ops.tmpl`, `repo/asc_ops_undo.tmpl` | design system |  |
@@ -107,7 +107,7 @@ Page templates reached by a route with no board: 56.
 | E5 Workflows | `Workflows` (`Mobile-Workflows`) | `repo/asc_workflows.tmpl`, `repo/asc_workflows_runs.tmpl`, `repo/asc_workflows_runlist.tmpl` | design system |  |
 | E6 Workflow definition | `WorkflowDef` (`Mobile-WorkflowDef`) | `repo/asc_workflows_def.tmpl` | design system |  |
 | E7 Workflow run | `WorkflowRun` (`Mobile-WorkflowRun`) | `repo/asc_workflows_run.tmpl` | design system |  |
-| F1 General | `RepoSettingsGeneral` (`Mobile-RepoSettingsGeneral`) | `repo/settings/options.tmpl`, `repo/settings/units/issues.tmpl`, `repo/settings/units/overview.tmpl`, `repo/settings/units/pulls.tmpl`, `repo/settings/units/wiki.tmpl`, `repo/settings/asc_branchless.tmpl` | partial | `repo/settings/options.tmpl` (3 old / 181 ds), `repo/settings/units/issues.tmpl` (3 old / 34 ds) |
+| F1 General | `RepoSettingsGeneral` (`Mobile-RepoSettingsGeneral`) | `repo/settings/options.tmpl`, `repo/settings/units/issues.tmpl`, `repo/settings/units/overview.tmpl`, `repo/settings/units/pulls.tmpl`, `repo/settings/units/wiki.tmpl`, `repo/settings/asc_branchless.tmpl` | partial | `repo/settings/units/issues.tmpl` (3 old / 34 ds) |
 | F2 Access | `RepoSettingsAccess` (`Mobile-RepoSettingsAccess`) | `repo/settings/collaboration.tmpl`, `repo/settings/deploy_keys.tmpl` | design system |  |
 | F3 Policy | `RepoSettingsPolicy` (`Mobile-RepoSettingsPolicy`) | `repo/settings/asc_policy.tmpl` | design system |  |
 | F4 Branches and stacks | `RepoSettingsRules` (`Mobile-RepoSettingsRules`) | `repo/settings/branches.tmpl`, `repo/settings/protected_branch.tmpl`, `repo/settings/tags.tmpl` | design system |  |
@@ -241,7 +241,7 @@ GET routes of `routers/web/web.go` whose handler renders a template (handlers th
 | `repo/settings/lfs_file_find.tmpl` | /{username}/{reponame}/settings/lfs/find | design system | no board |
 | `repo/settings/lfs_locks.tmpl` | /{username}/{reponame}/settings/lfs/locks/ | design system | no board |
 | `repo/settings/lfs_pointers.tmpl` | /{username}/{reponame}/settings/lfs/pointers | design system | no board |
-| `repo/settings/options.tmpl` | /org/{org}/settings<br>/{username}/{reponame}/settings | partial (3 old / 181 ds) | F1 RepoSettingsGeneral |
+| `repo/settings/options.tmpl` | /org/{org}/settings<br>/{username}/{reponame}/settings | design system | F1 RepoSettingsGeneral |
 | `repo/settings/protected_branch.tmpl` | /{username}/{reponame}/settings/branches/edit | design system | F4 RepoSettingsRules |
 | `repo/settings/tags.tmpl` | /{username}/{reponame}/settings/tags<br>/{username}/{reponame}/settings/tags/{id} | design system | F4 RepoSettingsRules |
 | `repo/settings/units.tmpl` | /{username}/{reponame}/settings/units | design system | no board |
@@ -339,12 +339,6 @@ Every template with Fomantic classes, not reached by a board above or reached wi
 | --- | --- | --- | --- |
 | `repo/actions/list_inner.tmpl` | partial | 2 old / 4 ds | - |
 
-### `repo/diff`
-
-| Template | State | old / ds | Board |
-| --- | --- | --- | --- |
-| `repo/diff/image_diff.tmpl` | old | 1 old / 0 ds | D3 Review |
-
 ### `repo/editor`
 
 | Template | State | old / ds | Board |
@@ -388,9 +382,6 @@ Every template with Fomantic classes, not reached by a board above or reached wi
 | Template | State | old / ds | Board |
 | --- | --- | --- | --- |
 | `repo/issue/view_content/attachments.tmpl` | old | 2 old / 0 ds | - |
-| `repo/issue/view_content/comments.tmpl` | partial | 4 old / 12 ds | - |
-| `repo/issue/view_content/conversation.tmpl` | old | 9 old / 0 ds | - |
-| `repo/issue/view_content/pull.tmpl` | old | 6 old / 0 ds | - |
 | `repo/issue/view_content/update_branch_by_merge.tmpl` | partial | 3 old / 5 ds | - |
 
 ### `repo/issue/view_content/sidebar`
@@ -420,7 +411,6 @@ Every template with Fomantic classes, not reached by a board above or reached wi
 | --- | --- | --- | --- |
 | `repo/settings/githooks.tmpl` | partial | 1 old / 4 ds | - |
 | `repo/settings/lfs_file.tmpl` | partial | 3 old / 11 ds | - |
-| `repo/settings/options.tmpl` | partial | 3 old / 181 ds | F1 RepoSettingsGeneral |
 | `repo/settings/push_mirror_sync_modal.tmpl` | partial | 1 old / 6 ds | - |
 
 ### `repo/settings/units`
@@ -434,7 +424,7 @@ Every template with Fomantic classes, not reached by a board above or reached wi
 | Template | State | old / ds | Board |
 | --- | --- | --- | --- |
 | `repo/settings/webhook/base_list.tmpl` | partial | 2 old / 7 ds | - |
-| `repo/settings/webhook/history.tmpl` | partial | 5 old / 9 ds | - |
+| `repo/settings/webhook/history.tmpl` | partial | 4 old / 9 ds | - |
 
 ### `repo/tag`
 
