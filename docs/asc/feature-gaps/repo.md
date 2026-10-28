@@ -32,19 +32,19 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | Title row (owner / name, Private chip, Watch, Star, Fork) and tab bar with Stacks and Releases and Issues counts | done | `H:templates/repo/header*.tmpl` | S |
 | Repo | Tab counts on Agent runs and Dependencies (3, 2) | needs-hub-backend | `H:templates/repo/header_tabs.tmpl` plus a cached count from `Agents.ListRuns` and `DepsService.ListFindings` in the repo header context | S |
 | Repo | Ref meta line ("4 open stacks, 12 branches, a41f9c2 landed 3 h ago"), Go to file button, Clone button | done | `H:templates/repo/home_dir.tmpl` | S |
-| Repo | Shortcuts: `t` go to file, `/` focus search, `g` then `c` jump to Code | ui-only-missing | `H:web_src/js/features/ds-shell.js` (`onGlobalKey` handles only Ctrl+K and `/`); add a key-sequence helper | S |
-| Repo | Last-change row: person, intent, change id, age, "1,204 changes" total | ui-only-missing | `H:templates/repo/latest_commit.tmpl`, `view_list.tmpl` (shows commit summary and sha, no change-id or count label) | S |
+| Repo | Shortcuts: `t` go to file, `/` focus search, `g` then `c` jump to Code | done (t, g c, and the key attributes; / was there) | `H:web_src/js/features/ds-shell.js` (`onGlobalKey` handles only Ctrl+K and `/`); add a key-sequence helper | S |
+| Repo | Last-change row: person, intent, change id, age, "1,204 changes" total | done | `H:templates/repo/latest_commit.tmpl`, `view_list.tmpl` (shows commit summary and sha, no change-id or count label) | S |
 | Repo | Directory table (name, last change message, age) with htmx last-commit load | done | `H:templates/repo/view_list.tmpl` | S |
 | Repo | Stacks in flight: one row per stack with status chip (Needs your review, Queued to merge, Agent writing, Checks failing), people and agents, change count, +/- size, age | needs-hub-backend | `H:routers/web/repo/view_home_cards.go` (`HomePulls` is a flat PR list with an Open/Draft chip), `H:services/pull` (`BuildAscStackPanel` per PR, needs a batched list form), `H:templates/repo/home_cards.tmpl` | L |
 | Repo | Progress rail: segments per change ("2 of 4 landed"), segments link to each change, text label and aria-label, "12 of 12 checks" / "1 of 31 failing" | needs-hub-backend | same as above plus commit-status counts per head from `H:models/git` | M |
 | Repo | Segment filter Open / Mine / Agents / All N stacks without page load | needs-hub-backend | `H:templates/repo/home_cards.tmpl`, small script in `H:web_src/js/features/repo-home.js`; needs an "agent-written" flag per pull (agent identity of the poster) | M |
-| Repo | Row hover and focus reveals "Open"; row click opens the stack review | ui-only-missing | `H:templates/repo/home_cards.tmpl`, `H:web_src/css` (rp-flight) | S |
-| Repo | Recently landed on main: title, author, change id, stack name, +/- size, checks chip | ui-only-missing | `H:templates/repo/home_cards.tmpl` (has title, author, sha, time only); sizes from `Repo.Log` stats, checks from `commit_statuses` | M |
+| Repo | Row hover and focus reveals "Open"; row click opens the stack review | done | `H:templates/repo/home_cards.tmpl`, `H:web_src/css` (rp-flight) | S |
+| Repo | Recently landed on main: title, author, change id, stack name, +/- size, checks chip | done | `H:templates/repo/home_cards.tmpl` (has title, author, sha, time only); sizes from `Repo.Log` stats, checks from `commit_statuses` | M |
 | Repo | README card with tabs README / AGENTS.md / License | ui-only-missing | `H:templates/repo/home_dir.tmpl`, `view_file.tmpl` (only one README is shown) | M |
 | Repo | About card: description, topics, website, numbers | done | `H:templates/repo/asc_about.tmpl` | S |
-| Repo | About card: license line and "1,204 changes on main" wording | ui-only-missing | `H:templates/repo/asc_about.tmpl` (`rp-numbers`) | S |
+| Repo | About card: license line and "1,204 changes on main" wording | done | `H:templates/repo/asc_about.tmpl` (`rp-numbers`) | S |
 | Repo | "Who writes the code" card: 46% people / 54% agents, "100% reviewed by a human", median review time | needs-both | asc: a landed-change statistics RPC (author kind, review latency); hub: card on `asc_about.tmpl` | L |
-| Repo | Policy card: Valid / invalid chip, rule summary, link to `.asc/policy.toml` | ui-only-missing | `Policy.GetSource` / `Repo.GetPolicy` already called by `H:routers/web/repo/setting/asc_policy.go`; add the call to the home handler and a card in `asc_about.tmpl` | M |
+| Repo | Policy card: Valid / invalid chip, rule summary, link to `.asc/policy.toml` | done | `Policy.GetSource` / `Repo.GetPolicy` already called by `H:routers/web/repo/setting/asc_policy.go`; add the call to the home handler and a card in `asc_about.tmpl` | M |
 | Repo | Policy card lines that need new policy keys (budget "20 min and 200k tokens", merge queue on) | needs-asc-backend | `A:crates/asc-core/src/policy.rs` (see Policy rows) | M |
 | Repo | Activity card: landed per week over 12 weeks, Contributors list with agent marks | needs-both | same statistics RPC as Insights; hub `asc_about.tmpl` | L |
 | Repo | Languages bar with legend and aria-label | done | `H:templates/repo/asc_about.tmpl` | S |
@@ -94,7 +94,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Code | Outline panel (struct / impl / fn with line numbers) | ui-only-missing | `CodeIntel.Symbols` op=outline is served at `GET /{owner}/{repo}/asc/symbols?op=outline&path=` by `H:routers/web/repo/asc_symbols.go`, but `H:templates/repo/code_view.tmpl` right rail only has `file_info`; embed outline as htmx fragment | M |
 | Code | "Used in / 4 references" code-intelligence panel on the file | ui-only-missing | same handler (`op=def`), or `CrossSearch.SymbolPanel` via `H:services/ascsearch/panel.go`; add fragment to right rail | M |
 | Code | "Open changes touching this file" card (stack, change 3 of 4, lines changed) | needs-hub-backend | open pulls by changed path, line ranges from diff; `H:services/pull` | M |
-| Code | Shortcuts legend card | ui-only-missing | `code_view.tmpl` right rail | S |
+| Code | Shortcuts legend card | done | `code_view.tmpl` right rail | S |
 | Code | Propose change bar ("Changes go into a new change on top of main"), Start a new change / Add to my stack | needs-hub-backend | bar exists (`rp-editnote`) and links to the Forgejo editor; the editor commits to a branch/PR rather than creating a change or adding to the user's stack | L |
 | Code | Directory view columns: Last change, In open stack chip, Author, Size, Updated | ui-only-missing | `H:templates/repo/view_list.tmpl` has name, message, age only; author and size from `Repo.LastCommits`/`ReadTree`, open-stack chip as in tree badges | M |
 | Code | Loading state (lines stream in) | ui-only-missing | skeleton in `view_file.tmpl` | S |

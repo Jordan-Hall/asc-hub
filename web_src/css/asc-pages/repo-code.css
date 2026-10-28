@@ -471,3 +471,64 @@
     order: 3;
   }
 }
+
+/* ---- shortcuts card and the collapsed folder list ---- */
+.rp-keys-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+.rp-keys-list a,
+.rp-keys-list > li > span,
+.rp-keys-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 32px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: var(--r-sm, 6px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rp-keys-list > li > span {
+  cursor: default;
+}
+
+.rp-keys-list a:hover,
+.rp-keys-btn:hover {
+  background: var(--hover);
+  color: var(--link);
+}
+
+.rp-keys-btn[aria-pressed="true"] {
+  background: var(--surface-3);
+}
+
+@media (min-width: 1024px) {
+  .rp-codegrid.rp-tree-off {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rp-codegrid.rp-tree-off > .rp-tree {
+    display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .rp-codegrid.rp-tree-off {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+}

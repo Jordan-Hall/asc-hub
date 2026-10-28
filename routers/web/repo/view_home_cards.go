@@ -4,6 +4,8 @@
 package repo
 
 import (
+	"strings"
+
 	"forgejo.org/models/db"
 	git_model "forgejo.org/models/git"
 	issues_model "forgejo.org/models/issues"
@@ -11,11 +13,59 @@ import (
 	"forgejo.org/models/unit"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
+	"forgejo.org/modules/setting"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 )
 
 // homeCardLimit is how many rows the repository home shows in each of its two lists.
 const homeCardLimit = 5
+
+// homeLanded is one row of "Recently landed": the commit with its checks, the size of the change and the stack
+// (pull request) it landed through when the hub knows one. HasStat is false when the size could not be read.
+type homeLanded struct {
+	*git_model.SignCommitWithStatuses
+	Additions, Deletions int
+	HasStat              bool
+	StackName            string
+	StackLink            string
+}
+
+// licenseFileName returns the name of the licence file among the names of a root tree, or "". The match is the
+// usual spelling of the file (LICENSE, LICENCE, COPYING, UNLICENSE, with or without an extension); it does not
+// read the file, so the card names the file and does not claim a licence.
+func licenseFileName(names []string) string {
+	for _, n := range names {
+		base := strings.ToUpper(n)
+		if i := strings.IndexByte(base, '.'); i > 0 {
+			base = base[:i]
+		}
+		switch base {
+		case "LICENSE", "LICENCE", "COPYING", "UNLICENSE":
+			return n
+		}
+	}
+	return ""
+}
+
+// buildHomeLanded decorates commits with their size and stack. Each lookup that fails leaves its field empty.
+func buildHomeLanded(ctx *context.Context, repo *repo_model.Repository, commits []*git_model.SignCommitWithStatuses) []*homeLanded {
+	rows := make([]*homeLanded, 0, len(commits))
+	for _, c := range commits {
+		row := &homeLanded{SignCommitWithStatuses: c}
+		if ctx.Repo.GitRepo != nil {
+			if _, add, del, err := ctx.Repo.GitRepo.GetCommitShortStat(c.ID.String()); err == nil {
+				row.Additions, row.Deletions, row.HasStat = add, del, true
+			}
+		}
+		if pr, err := issues_model.GetPullRequestByMergedCommit(ctx, repo.ID, c.ID.String()); err == nil && pr.HeadBranch != "" {
+			row.StackName = pr.HeadBranch
+			row.StackLink = pr.Issue.Link()
+		}
+		rows = append(rows, row)
+	}
+	return rows
+}
 
 // prepareHomeCards loads what the repository home shows besides the files: the open stacks (pull requests), the
 // latest changes of the viewed ref and the latest release. A failure is logged and the card stays out.
@@ -44,8 +94,22 @@ func prepareHomeCards(ctx *context.Context) {
 	if err != nil {
 		log.Error("home: latest commits of %s: %v", repo.FullName(), err)
 	} else {
-		ctx.Data["HomeCommits"] = git_model.ParseCommitsWithStatus(ctx, commits, repo)
+		withStatus := git_model.ParseCommitsWithStatus(ctx, commits, repo)
+		ctx.Data["HomeCommits"] = withStatus
+		ctx.Data["HomeLanded"] = buildHomeLanded(ctx, repo, withStatus)
 	}
+
+	if entries, err := ctx.Repo.Commit.ListEntries(); err == nil {
+		names := make([]string, 0, len(entries))
+		for _, e := range entries {
+			if !e.IsDir() {
+				names = append(names, e.Name())
+			}
+		}
+		ctx.Data["HomeLicenseFile"] = licenseFileName(names)
+	}
+
+	prepareHomePolicy(ctx, repo)
 
 	if ctx.Repo.CanRead(unit.TypeReleases) {
 		rel, err := repo_model.GetLatestReleaseByRepoID(ctx, repo.ID)
@@ -55,4 +119,31 @@ func prepareHomeCards(ctx *context.Context) {
 			log.Error("home: latest release of %s: %v", repo.FullName(), err)
 		}
 	}
+}
+
+// prepareHomePolicy adds the Policy card: one read of the policy source with the credential of the viewer. The card
+// stays out when asc is off, the repository is not stored in asc, the server lacks the policy service or the read fails.
+func prepareHomePolicy(ctx *context.Context, repo *repo_model.Repository) {
+	if !setting.Asc.Enabled || !ctx.IsSigned || ctx.Doer == nil || !asctrust.HasFeature(ctx, asctrust.FeaturePolicy) {
+		return
+	}
+	name, err := asctrust.RepoName(repo)
+	if err != nil {
+		return
+	}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		return
+	}
+	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, repo)
+	if err != nil {
+		return
+	}
+	defer release()
+	sum, err := asctrust.LoadPolicySummary(callCtx, conn, name)
+	if err != nil {
+		log.Error("home: policy summary of %s: %v", repo.FullName(), err)
+		return
+	}
+	ctx.Data["HomePolicy"] = sum
 }
