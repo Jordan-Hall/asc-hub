@@ -9,7 +9,6 @@ import (
 	"time"
 
 	issues_model "forgejo.org/models/issues"
-	"forgejo.org/models/unit"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/gitrepo"
@@ -197,8 +196,8 @@ func prepareAscBrief(ctx *context.Context, pull *issues_model.PullRequest) {
 		log.Error("asc brief: %v", err)
 		return
 	}
-	if !ctx.Repo.CanRead(unit.TypeActions) {
-		// the agent run behind a change (its title, its agent, its counts) is data of the Actions unit
+	if !ascAgentsCanReadRuns(ctx) {
+		// the agent run behind a change (its title, its agent, its counts) is data of the agents area
 		brief.Provenance = nil
 	}
 	ctx.Data["AscBrief"] = brief
