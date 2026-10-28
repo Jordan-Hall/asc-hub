@@ -1,0 +1,17 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="ds-main st-main{{if .IsRepo}} repository{{end}}">
+	{{if .IsRepo}}{{template "repo/header" .}}{{end}}
+	<div class="ds-container st-wrap">
+		<section class="st-card" aria-labelledby="st-title">
+			<span class="st-ic" aria-hidden="true">{{svg "dsi-alert" 40}}</span>
+			<p class="st-code ds-mono">503</p>
+			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_err.title503"}}</h1>
+			<p class="st-text">{{if .ForbiddenPrompt}}{{.ForbiddenPrompt}}{{else}}{{ctx.Locale.Tr "asc_err.text503"}}{{end}}</p>
+			<div class="st-actions">
+				<a class="ds-btn {{if .IsSigned}}ds-btn-primary{{else}}ds-btn-secondary{{end}}" href="{{AppSubUrl}}/">{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}</a>
+				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "asc_err.search_hub"}}</a>
+			</div>
+		</section>
+	</div>
+</div>
+{{template "base/footer" .}}
