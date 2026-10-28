@@ -23,12 +23,12 @@ func testReportDetails(t *testing.T, htmlDoc *HTMLDoc, reportID, contentIcon, co
 	assert.Equal(t, 1, icon.Length())
 
 	// Check content reference and URL
-	title := htmlDoc.Find("#report-" + reportID + " .flex-item-main .flex-item-title a")
+	title := htmlDoc.Find("#report-" + reportID + " .ds-li-title > a")
 	if len(contentURL) == 0 {
 		// No URL means that the content was already deleted, so we should not find the anchor element.
 		assert.Zero(t, title.Length())
 		// Instead we should find an emphasis element.
-		title = htmlDoc.Find("#report-" + reportID + " .flex-item-main .flex-item-title em")
+		title = htmlDoc.Find("#report-" + reportID + " .ds-li-title > em")
 		assert.Equal(t, 1, title.Length())
 		assert.Equal(t, contentRef, title.Text())
 	} else {
@@ -41,17 +41,17 @@ func testReportDetails(t *testing.T, htmlDoc *HTMLDoc, reportID, contentIcon, co
 	}
 
 	// Check category
-	cat := htmlDoc.Find("#report-" + reportID + " .flex-item-main .flex-items-inline .item:nth-child(3)")
+	cat := htmlDoc.Find("#report-" + reportID + " .ds-li-title .ds-chip")
 	assert.Equal(t, 1, cat.Length())
 	assert.Equal(t, category, strings.TrimSpace(cat.Text()))
 
 	// Check number of reports for the same content
-	count := htmlDoc.Find("#report-" + reportID + " a span")
+	count := htmlDoc.Find("#report-" + reportID + " .ds-li-meta a")
 	assert.Equal(t, 1, count.Length())
-	assert.Equal(t, reportsNo, count.Text())
+	assert.Equal(t, "Reported "+reportsNo+" times", strings.TrimSpace(count.Text()))
 
 	// Check 'More actions' (⋯) dropdown
-	htmlDoc.AssertElement(t, "#report-"+reportID+" > .flex-item-trailing .button-sequence details.dropdown", hasMoreActions)
+	htmlDoc.AssertElement(t, "#report-"+reportID+" .ds-li-actions .ds-btn-danger", hasMoreActions)
 }
 
 func TestAdminModerationViewReports(t *testing.T) {
@@ -91,7 +91,7 @@ func TestAdminModerationViewReports(t *testing.T) {
 
 			// Check how many reports are being displayed.
 			// Reports linked to the same content (type and id) should be grouped; therefore we should see only 11 instead of 14.
-			reports := htmlDoc.Find(".admin-setting-content .flex-list .flex-item.report")
+			reports := htmlDoc.Find(".ds-settings-body ul.ds-list > li.report")
 			assert.Equal(t, 11, reports.Length())
 
 			// Check details for shown reports.
@@ -123,7 +123,7 @@ func TestAdminModerationViewReports(t *testing.T) {
 				htmlDoc = NewHTMLParser(t, resp.Body)
 
 				// Check the title (content reference) and corresponding URL.
-				title := htmlDoc.Find(".admin-setting-content .flex-item-main .flex-item-title a")
+				title := htmlDoc.Find(".ds-settings-body .adm-who-name a")
 				assert.Equal(t, 1, title.Length())
 				assert.Equal(t, "spammer01", title.Text())
 				href, exists := title.Attr("href")
@@ -131,7 +131,7 @@ func TestAdminModerationViewReports(t *testing.T) {
 				assert.Equal(t, "/spammer01", href)
 
 				// Check how many reports are being displayed for user 1002.
-				reports = htmlDoc.Find(".admin-setting-content .flex-list .flex-item")
+				reports = htmlDoc.Find(".ds-settings-body ul.adm-sec > li")
 				assert.Equal(t, 3, reports.Length())
 
 				// ## Poster of comment 1003 was deleted; make sure the details page is still rendered correctly.
@@ -140,7 +140,7 @@ func TestAdminModerationViewReports(t *testing.T) {
 				htmlDoc = NewHTMLParser(t, resp.Body)
 
 				// Check the title (content reference) and corresponding URL.
-				title = htmlDoc.Find(".admin-setting-content .flex-item-main .flex-item-title a")
+				title = htmlDoc.Find(".ds-settings-body .adm-who-name a")
 				assert.Equal(t, 1, title.Length())
 				assert.Equal(t, "/contributor/first/issues/1#issuecomment-1003", title.Text())
 				href, exists = title.Attr("href")
@@ -153,23 +153,23 @@ func TestAdminModerationViewReports(t *testing.T) {
 				htmlDoc = NewHTMLParser(t, resp.Body)
 
 				// Check the title (content reference); no URL in case of deleted content.
-				title = htmlDoc.Find(".admin-setting-content .flex-item-main .flex-item-title a")
+				title = htmlDoc.Find(".ds-settings-body .adm-who-name a")
 				assert.Equal(t, 0, title.Length()) // no anchor because the reported content was deleted
-				title = htmlDoc.Find(".admin-setting-content .flex-item-main .flex-item-title em")
+				title = htmlDoc.Find(".ds-settings-body .adm-who-name em")
 				assert.Equal(t, 1, title.Length()) // a generic emphasised title is shown for deleted content
 				assert.Equal(t, "Reported content with type 4 and id 9991 no longer exists", title.Text())
 
 				// Check shadow copies for deleted comment when poster still exists.
-				reports := htmlDoc.Find(".admin-setting-content .flex-list .flex-item")
+				reports := htmlDoc.Find(".ds-settings-body ul.adm-sec > li")
 				assert.Equal(t, 1, reports.Length()) // there is only one report for this content
-				shadowCopyRows := htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr")
+				shadowCopyRows := htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div")
 				assert.Equal(t, 6, shadowCopyRows.Length()) // a shadow copy was created and it has 6 fields
-				posterRowCells := htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr:first-of-type td")
+				posterRowCells := htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:first-of-type :is(dt, dd)")
 				assert.Equal(t, 2, posterRowCells.Length())
-				assert.Equal(t, "Poster", posterRowCells.Nodes[0].FirstChild.Data) // in case of comment shadow copies, the first field should be 'Poster'
+				assert.Equal(t, "Poster", posterRowCells.First().Text()) // in case of comment shadow copies, the first field should be 'Poster'
 				// For reports of deleted comments, in case the poster still exists
 				// the value of 'Poster' field should contain a link to the poster profile.
-				poster := htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr:first-of-type td:last-of-type a")
+				poster := htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:first-of-type dd a")
 				assert.Equal(t, 1, poster.Length())
 				assert.Equal(t, "grace", poster.Text())
 				href, exists = poster.Attr("href")
@@ -182,25 +182,25 @@ func TestAdminModerationViewReports(t *testing.T) {
 				htmlDoc = NewHTMLParser(t, resp.Body)
 
 				// Check the title (content reference); no URL in case of deleted content.
-				title = htmlDoc.Find(".admin-setting-content .flex-item-main .flex-item-title a")
+				title = htmlDoc.Find(".ds-settings-body .adm-who-name a")
 				assert.Equal(t, 0, title.Length()) // no anchor because the reported content was deleted
-				title = htmlDoc.Find(".admin-setting-content .flex-item-main .flex-item-title em")
+				title = htmlDoc.Find(".ds-settings-body .adm-who-name em")
 				assert.Equal(t, 1, title.Length()) // a generic emphasised title is shown for deleted content
 				assert.Equal(t, "Reported content with type 4 and id 9992 no longer exists", title.Text())
 
 				// Check shadow copies for deleted comment when poster was also deleted.
-				reports = htmlDoc.Find(".admin-setting-content .flex-list .flex-item")
+				reports = htmlDoc.Find(".ds-settings-body ul.adm-sec > li")
 				assert.Equal(t, 1, reports.Length()) // there is only one report for this content
-				shadowCopyRows = htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr")
+				shadowCopyRows = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div")
 				assert.Equal(t, 6, shadowCopyRows.Length()) // a shadow copy was created and it has 6 fields
-				posterRowCells = htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr:first-of-type td")
+				posterRowCells = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:first-of-type :is(dt, dd)")
 				assert.Equal(t, 2, posterRowCells.Length())
-				assert.Equal(t, "Poster", posterRowCells.Nodes[0].FirstChild.Data) // in case of comment shadow copies, the first field should be 'Poster'
+				assert.Equal(t, "Poster", posterRowCells.First().Text()) // in case of comment shadow copies, the first field should be 'Poster'
 				// For reports of deleted comments, in case the poster was also deleted
 				// the value of 'Poster' field cannot contain a link to the poster profile but only their ID.
-				poster = htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr:first-of-type td:last-of-type a")
+				poster = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:first-of-type dd a")
 				assert.Equal(t, 0, poster.Length())
-				poster = htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr:first-of-type td:last-of-type")
+				poster = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:first-of-type dd")
 				assert.Equal(t, 1, poster.Length())
 				assert.Equal(t, "9999", poster.Text())
 
@@ -210,23 +210,23 @@ func TestAdminModerationViewReports(t *testing.T) {
 				htmlDoc = NewHTMLParser(t, resp.Body)
 
 				// Check the title (content reference); no URL in case of deleted content.
-				title = htmlDoc.Find(".admin-setting-content .flex-item-main .flex-item-title a")
+				title = htmlDoc.Find(".ds-settings-body .adm-who-name a")
 				assert.Equal(t, 0, title.Length()) // no anchor because the reported content was deleted
-				title = htmlDoc.Find(".admin-setting-content .flex-item-main .flex-item-title em")
+				title = htmlDoc.Find(".ds-settings-body .adm-who-name em")
 				assert.Equal(t, 1, title.Length()) // a generic emphasised title is shown for deleted content
 				assert.Equal(t, "Reported content with type 3 and id 9991 no longer exists", title.Text())
 
 				// Check shadow copies for deleted issue when poster still exists.
-				reports = htmlDoc.Find(".admin-setting-content .flex-list .flex-item")
+				reports = htmlDoc.Find(".ds-settings-body ul.adm-sec > li")
 				assert.Equal(t, 1, reports.Length()) // there is only one report for this content
-				shadowCopyRows = htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr")
+				shadowCopyRows = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div")
 				assert.Equal(t, 8, shadowCopyRows.Length()) // a shadow copy was created and it has 8 fields
-				posterRowCells = htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr:nth-of-type(3) td")
+				posterRowCells = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:nth-of-type(3) :is(dt, dd)")
 				assert.Equal(t, 2, posterRowCells.Length())
-				assert.Equal(t, "Poster", posterRowCells.Nodes[0].FirstChild.Data) // in case of issue shadow copies, the third field should be 'Poster'
+				assert.Equal(t, "Poster", posterRowCells.First().Text()) // in case of issue shadow copies, the third field should be 'Poster'
 				// For reports of deleted issues, in case the poster still exists
 				// the value of 'Poster' field should contain a link to the poster profile.
-				poster = htmlDoc.Find(".admin-setting-content .flex-list .flex-item:first-of-type details table tr:nth-of-type(3) td:last-of-type a")
+				poster = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:nth-of-type(3) dd a")
 				assert.Equal(t, 1, poster.Length())
 				assert.Equal(t, "frank", poster.Text())
 				href, exists = poster.Attr("href")
