@@ -2023,3 +2023,14 @@ body.ds-lock {
   border-radius: 50%;
   background: #059669;
 }
+
+/* "How others see you" sits inside the public profile card */
+.wk-preview-inline {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.wk-preview-inline .ds-card-b {
+  padding: 0;
+}
