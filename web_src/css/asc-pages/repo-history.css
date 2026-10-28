@@ -260,3 +260,13 @@ a.rp-who:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* the graph rows are wide (lane, id, subject, refs, stats): they scroll inside their box, never the page */
+.rp-graph-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.rp-graph-scroll .asc-graph-row {
+  min-width: max-content;
+}
