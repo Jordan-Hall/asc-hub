@@ -86,12 +86,18 @@ func ascGateStatsOf(r *ascv1.GetGateStatsResponse) ascGateStats {
 	if len(days) > 90 {
 		days = days[len(days)-90:]
 	}
+	valid := func(d *ascv1.GateDay) bool {
+		_, err := time.Parse(time.DateOnly, d.GetDay())
+		return err == nil
+	}
 	for _, d := range days {
-		peak = max(peak, d.GetChecked())
+		if valid(d) {
+			peak = max(peak, d.GetChecked())
+		}
 	}
 	for _, d := range days {
 		day := d.GetDay()
-		if _, err := time.Parse(time.DateOnly, day); err != nil {
+		if !valid(d) {
 			continue
 		}
 		s.Days = append(s.Days, ascGateDay{Day: day, Checked: d.GetChecked(), Held: d.GetHeld(),
