@@ -1,0 +1,6 @@
+{{/* The views of the monitor: queues and scheduled tasks, counts, stack traces. Props: Active ("queues", "stats" or "trace"). */}}
+<nav class="ds-tabs adm-tabs" aria-label="{{ctx.Locale.Tr "asc_admin.monitor"}}">
+	{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "asc_admin.monitor_tab_queues") "Href" (print AppSubUrl "/admin/monitor/queue") "Active" (eq .Active "queues"))}}
+	{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "asc_admin.monitor_tab_stats") "Href" (print AppSubUrl "/admin/monitor/stats") "Active" (eq .Active "stats"))}}
+	{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "asc_admin.monitor_tab_trace") "Href" (print AppSubUrl "/admin/monitor/stacktrace") "Active" (eq .Active "trace"))}}
+</nav>

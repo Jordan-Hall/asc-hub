@@ -1,0 +1,5 @@
+{{/* A terminal block with a copy button. Props: Title, Text. */}}
+<div class="ds-term">
+	<div class="ds-term-hd"><span>{{.Title}}</span><button type="button" class="ds-copy" data-clipboard-text="{{.Text}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_admin.copy"}}</button></div>
+	<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{.Title}}">{{.Text}}</div>
+</div>

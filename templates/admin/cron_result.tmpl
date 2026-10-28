@@ -1,0 +1,2 @@
+{{/* The result of the last run of a scheduled task as a chip with words; the message is the title. Pass the task. */}}
+{{if eq .Status "finished"}}<span class="ds-chip ds-chip-ok" title="{{.FormatLastMessage ctx.Locale}}">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_admin.cron_result_ok"}}</span>{{else}}<span class="ds-chip ds-chip-err" title="{{.FormatLastMessage ctx.Locale}}">{{svg "dsi-x-circle" 14}}{{ctx.Locale.Tr "asc_admin.cron_result_failed"}}</span>{{end}}

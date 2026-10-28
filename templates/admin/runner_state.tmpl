@@ -1,0 +1,4 @@
+{{/* The state of a runner as a chip with words. Pass the runner. */}}
+{{if .IsActive}}<span class="ds-chip ds-chip-info"><span class="ds-dot ds-dot-info" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_admin.runners_status_active"}}</span>
+{{else if .IsIdle}}<span class="ds-chip ds-chip-ok"><span class="ds-dot ds-dot-ok" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_admin.runners_status_idle"}}</span>
+{{else}}<span class="ds-chip ds-chip-err"><span class="ds-dot ds-dot-err" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_admin.runners_status_offline"}}</span>{{end}}

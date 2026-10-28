@@ -1,0 +1,12 @@
+{{/*
+The title block of an admin page: eyebrow, h1, one line, and (after this partial, before admin/head_close) the page's actions.
+Props: Title, Desc (optional).
+*/}}
+<header class="ds-page-head adm-head">
+	<div class="ds-page-head-row">
+		<div class="ds-min0">
+			<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_admin.eyebrow"}}</p>
+			<h1 class="ds-page-title">{{.Title}}</h1>
+			{{if .Desc}}<p class="ds-page-desc">{{.Desc}}</p>{{end}}
+		</div>
+		<div class="ds-page-actions">

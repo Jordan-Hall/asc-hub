@@ -1,71 +1,60 @@
-{{/* The site administration menu: the same shell as the account settings (user/settings/navbar). */}}
+{{/* The site administration menu: the same shell as the account settings (user/settings/navbar). One entry per page of the boards (H1 to H16). */}}
 {{$base := print AppSubUrl "/admin"}}
-<nav class="ds-settings-nav" id="settings-menu" aria-label="{{ctx.Locale.Tr "admin.settings"}}">
-	{{template "shared/ds/snav_bar" (dict "Title" (ctx.Locale.Tr "admin.settings"))}}
+<nav class="ds-settings-nav" id="settings-menu" aria-label="{{ctx.Locale.Tr "asc_admin.menu"}}">
+	{{template "shared/ds/snav_bar" (dict "Title" (ctx.Locale.Tr "asc_admin.site_admin"))}}
 	<div class="ds-settings-nav-in">
-		{{template "shared/ds/snav_who" (dict "Icon" "shield-check" "Name" (ctx.Locale.Tr "admin.settings") "Sub" (ctx.Locale.Tr "asc_shell.sn_admin_sub"))}}
+		{{template "shared/ds/snav_who" (dict "Icon" "shield-check" "Name" (ctx.Locale.Tr "asc_admin.site_admin") "Sub" AppDomain)}}
 
-		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_overview"}}</h2>
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_admin.grp_overview"}}</h2>
 		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" $base "Label" (ctx.Locale.Tr "admin.dashboard") "Icon" "grid" "Active" .PageIsAdminDashboard)}}
-			{{if .DatabaseType.IsMySQL}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/self_check") "Label" (ctx.Locale.Tr "admin.self_check") "Icon" "activity" "Active" .PageIsAdminSelfCheck)}}
-			{{end}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/notices") "Label" (ctx.Locale.Tr "admin.notices") "Icon" "bell" "Active" .PageIsAdminNotices)}}
+			{{template "shared/ds/snav_item" (dict "Href" $base "Label" (ctx.Locale.Tr "asc_admin.dashboard") "Icon" "gauge" "Active" .PageIsAdminDashboard)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/self_check") "Label" (ctx.Locale.Tr "asc_admin.health") "Icon" "activity" "Active" .PageIsAdminSelfCheck)}}
 		</ul>
 
-		<h2 class="ds-settings-group">{{ctx.Locale.Tr "admin.identity_access"}}</h2>
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_admin.grp_people"}}</h2>
 		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/users") "Label" (ctx.Locale.Tr "admin.users") "Icon" "users" "Active" .PageIsAdminUsers)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/orgs") "Label" (ctx.Locale.Tr "admin.organizations") "Icon" "building" "Active" .PageIsAdminOrganizations)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/emails") "Label" (ctx.Locale.Tr "admin.emails") "Icon" "mail" "Active" .PageIsAdminEmails)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/auths") "Label" (ctx.Locale.Tr "admin.authentication") "Icon" "key" "Active" .PageIsAdminAuthentications)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/users") "Label" (ctx.Locale.Tr "asc_admin.users") "Icon" "users" "Active" (or .PageIsAdminUsers .PageIsAdminEmails))}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/orgs") "Label" (ctx.Locale.Tr "asc_admin.organizations") "Icon" "building" "Active" .PageIsAdminOrganizations)}}
 			{{if .EnableModeration}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/moderation/reports") "Label" (ctx.Locale.Tr "admin.moderation.moderation_reports") "Icon" "flag" "Active" .PageIsAdminModerationReports)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/moderation/reports") "Label" (ctx.Locale.Tr "asc_admin.moderation") "Icon" "flag" "Active" .PageIsAdminModerationReports)}}
 			{{end}}
 		</ul>
 
-		<h2 class="ds-settings-group">{{ctx.Locale.Tr "admin.assets"}}</h2>
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_admin.grp_content"}}</h2>
 		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/repos") "Label" (ctx.Locale.Tr "admin.repositories") "Icon" "book" "Active" .PageIsAdminRepositories)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/repos") "Label" (ctx.Locale.Tr "asc_admin.repositories") "Icon" "file" "Active" .PageIsAdminRepositories)}}
 			{{if .EnablePackages}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/packages") "Label" (ctx.Locale.Tr "packages.title") "Icon" "package" "Active" .PageIsAdminPackages)}}
-			{{end}}
-		</ul>
-
-		<h2 class="ds-settings-group">{{ctx.Locale.Tr "admin.integrations"}}</h2>
-		<ul class="ds-settings-list">
-			{{if .EnableOAuth2}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/applications") "Label" (ctx.Locale.Tr "settings.applications") "Icon" "puzzle" "Active" .PageIsAdminApplications)}}
-			{{end}}
-			{{if not DisableWebhooks}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/hooks") "Label" (ctx.Locale.Tr "admin.hooks") "Icon" "link" "Active" (or .PageIsAdminDefaultHooks .PageIsAdminSystemHooks))}}
-			{{end}}
-			{{if .EnableActions}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/runners") "Label" (ctx.Locale.Tr "actions.runners") "Icon" "cpu" "Active" .PageIsSharedSettingsRunners)}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/variables") "Label" (ctx.Locale.Tr "actions.variables") "Icon" "hash" "Active" .PageIsSharedSettingsVariables)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/packages") "Label" (ctx.Locale.Tr "asc_admin.packages") "Icon" "package" "Active" .PageIsAdminPackages)}}
 			{{end}}
 			{{if .EnableFederation}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/federation/hosts") "Label" (ctx.Locale.Tr "admin.federation.hosts") "Icon" "globe" "Active" .PageIsAdminFederationHosts)}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/federation/users") "Label" (ctx.Locale.Tr "admin.federation.users") "Icon" "users" "Active" .PageIsAdminFederationUsers)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/federation/hosts") "Label" (ctx.Locale.Tr "asc_admin.federation") "Icon" "globe" "Active" (or .PageIsAdminFederationHosts .PageIsAdminFederationUsers))}}
 			{{end}}
 		</ul>
 
-		<h2 class="ds-settings-group">{{ctx.Locale.Tr "admin.config"}}</h2>
+		{{if or .EnableActions (not DisableWebhooks) .EnableOAuth2}}
+			<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_admin.grp_automation"}}</h2>
+			<ul class="ds-settings-list">
+				{{if .EnableActions}}
+					{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/runners") "Label" (ctx.Locale.Tr "asc_admin.runners") "Icon" "cpu" "Active" (or .PageIsSharedSettingsRunners .PageIsSharedSettingsVariables))}}
+				{{end}}
+				{{if not DisableWebhooks}}
+					{{template "shared/ds/snav_item" (dict "Href" (print $base "/hooks") "Label" (ctx.Locale.Tr "asc_admin.hooks_apps") "Icon" "link" "Active" (or .PageIsAdminDefaultHooks .PageIsAdminSystemHooks .PageIsAdminApplications))}}
+				{{else if .EnableOAuth2}}
+					{{template "shared/ds/snav_item" (dict "Href" (print $base "/applications") "Label" (ctx.Locale.Tr "asc_admin.hooks_apps") "Icon" "link" "Active" .PageIsAdminApplications)}}
+				{{end}}
+			</ul>
+		{{end}}
+
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_admin.grp_system"}}</h2>
 		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/config") "Label" (ctx.Locale.Tr "admin.config_summary") "Icon" "list" "Active" .PageIsAdminConfigSummary)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/config/settings") "Label" (ctx.Locale.Tr "admin.config_settings") "Icon" "sliders" "Active" .PageIsAdminConfigSettings)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/config") "Label" (ctx.Locale.Tr "asc_admin.configuration") "Icon" "sliders" "Active" (or .PageIsAdminConfig .PageIsAdminConfigSummary .PageIsAdminConfigSettings))}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/monitor/queue") "Label" (ctx.Locale.Tr "asc_admin.monitor") "Icon" "server" "Active" (or .PageIsAdminMonitor .PageIsAdminMonitorStats .PageIsAdminMonitorCron .PageIsAdminMonitorQueue .PageIsAdminMonitorStacktrace))}}
 			{{if .AscEnabled}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_shell.sn_audit_log") "Icon" "history" "Active" .PageIsAdminAscAudit)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_admin.audit") "Icon" "history" "Active" .PageIsAdminAscAudit)}}
 			{{end}}
-		</ul>
-
-		<h2 class="ds-settings-group">{{ctx.Locale.Tr "admin.monitor"}}</h2>
-		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/monitor/stats") "Label" (ctx.Locale.Tr "admin.monitor.stats") "Icon" "chart" "Active" .PageIsAdminMonitorStats)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/monitor/cron") "Label" (ctx.Locale.Tr "admin.monitor.cron") "Icon" "clock" "Active" .PageIsAdminMonitorCron)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/monitor/queue") "Label" (ctx.Locale.Tr "admin.monitor.queues") "Icon" "queue" "Active" .PageIsAdminMonitorQueue)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/monitor/stacktrace") "Label" (ctx.Locale.Tr "admin.monitor.stacktrace") "Icon" "layers" "Active" .PageIsAdminMonitorStacktrace)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/backups") "Label" (ctx.Locale.Tr "asc_admin.backups") "Icon" "cloud-download" "Active" .PageIsAdminBackups)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/auths") "Label" (ctx.Locale.Tr "asc_admin.authentication") "Icon" "lock" "Active" .PageIsAdminAuthentications)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/notices") "Label" (ctx.Locale.Tr "asc_admin.notices") "Icon" "bell" "Active" .PageIsAdminNotices)}}
 		</ul>
 	</div>
 </nav>

@@ -1,5 +1,35 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin runners")}}
-<div class="admin-setting-content">
-	{{template "shared/actions/runner_setup" .}}
-</div>
+	{{template "admin/head_open" (dict "Title" (ctx.Locale.Tr "actions.runners.runner_setup.title" .Runner.Name) "Desc" (ctx.Locale.Tr "actions.runners.runner_setup.last_chance_copying_token"))}}
+		<a class="ds-btn ds-btn-secondary" href="{{.RunnersListLink}}">{{ctx.Locale.Tr "actions.runners.runner_setup.list_of_runners_link"}}</a>
+	{{template "admin/head_close" .}}
+
+	<section class="ds-card runner-container" aria-labelledby="adm-setup-h">
+		<div class="ds-card-h"><h2 id="adm-setup-h">{{ctx.Locale.Tr "asc_admin.register_runner"}}</h2></div>
+		<dl class="adm-kv">
+			<div>
+				<dt>{{ctx.Locale.Tr "actions.runners.uuid"}}</dt>
+				<dd class="adm-copyline"><span class="adm-mono ds-break">{{.Runner.UUID}}</span> <button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" aria-label="{{ctx.Locale.Tr "actions.runners.runner_setup.button_copy_uuid_aria"}}" data-clipboard-text="{{.Runner.UUID}}">{{svg "dsi-copy" 14}}{{ctx.Locale.Tr "asc_admin.copy"}}</button></dd>
+			</div>
+			<div>
+				<dt>{{ctx.Locale.Tr "actions.runners.token"}}</dt>
+				<dd class="adm-copyline"><span class="adm-mono ds-break">{{.Runner.Token}}</span> <button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" aria-label="{{ctx.Locale.Tr "actions.runners.runner_setup.button_copy_token_aria"}}" data-clipboard-text="{{.Runner.Token}}">{{svg "dsi-copy" 14}}{{ctx.Locale.Tr "asc_admin.copy"}}</button></dd>
+			</div>
+		</dl>
+	</section>
+
+	<section class="ds-card adm-sec" aria-labelledby="adm-setup-cfg">
+		<div class="ds-card-h"><h2 id="adm-setup-cfg">{{ctx.Locale.Tr "actions.runners.runner_setup.heading_using_configuration"}}</h2></div>
+		<div class="ds-card-b ds-stack ds-stack-12">
+			{{template "admin/term" (dict "Title" (ctx.Locale.Tr "actions.runners.runner_setup.configuration_snippet_aria") "Text" (printf "server:\n  connections:\n    forgejo:\n      url: %s\n      uuid: %s\n      token: %s\n" .AppURL .Runner.UUID .Runner.Token))}}
+			<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "actions.runners.runner_setup.instruction_replace_connection_name"}}</p>
+		</div>
+	</section>
+
+	<section class="ds-card adm-sec" aria-labelledby="adm-setup-opt">
+		<div class="ds-card-h"><h2 id="adm-setup-opt">{{ctx.Locale.Tr "actions.runners.runner_setup.heading_using_options"}}</h2></div>
+		<div class="ds-card-b ds-stack ds-stack-12">
+			{{template "admin/term" (dict "Title" (ctx.Locale.Tr "actions.runners.runner_setup.program_options_snippet_aria") "Text" (printf "$ echo -n \"%s\" > /path/to/runner-token\n$ forgejo-runner daemon \\\n  --url %s \\\n  --uuid %s \\\n  --token-url file:///path/to/runner-token \\\n  --label docker:docker://node:lts\n" .Runner.Token .AppURL .Runner.UUID))}}
+			<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "actions.runners.runner_setup.instruction_advanced_configurations" "https://forgejo.org/docs/latest/admin/actions/"}}</p>
+		</div>
+	</section>
 {{template "admin/layout_footer" .}}
