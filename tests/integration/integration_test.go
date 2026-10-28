@@ -533,7 +533,7 @@ func assertAccessToken(t testing.TB, session *TestSession) string {
 	req := NewRequest(t, "GET", "/user/settings/applications")
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	token := htmlDoc.doc.Find(".ui.info p").Text()
+	token := htmlDoc.doc.Find(".flash-info p").Text()
 	assert.NotEmpty(t, token)
 	return token
 }
