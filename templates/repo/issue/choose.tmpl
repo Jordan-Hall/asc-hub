@@ -15,7 +15,7 @@
 						<br>{{.About}}
 					</div>
 					<div class="column right aligned">
-						<a href="{{$.RepoLink}}/issues/new?template={{.FileName}}{{if $.milestone}}&milestone={{$.milestone}}{{end}}{{if $.project}}&project={{$.project}}{{end}}" class="ui primary button">{{ctx.Locale.Tr "repo.issues.choose.get_started"}}</a>
+						<a href="{{$.RepoLink}}/issues/new?template={{.FileName}}{{if $.milestone}}&milestone={{$.milestone}}{{end}}{{if $.project}}&project={{$.project}}{{end}}" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.issues.choose.get_started"}}</a>
 					</div>
 				</div>
 			</div>
@@ -28,7 +28,7 @@
 						<br>{{.About}}
 					</div>
 					<div class="column right aligned">
-						<a href="{{.URL}}" class="ui primary button">{{svg "octicon-link-external"}} {{ctx.Locale.Tr "repo.issues.choose.open_external_link"}}</a>
+						<a href="{{.URL}}" class="ds-btn ds-btn-primary">{{svg "octicon-link-external"}} {{ctx.Locale.Tr "repo.issues.choose.open_external_link"}}</a>
 					</div>
 				</div>
 			</div>
@@ -41,13 +41,13 @@
 						<br/>{{ctx.Locale.Tr "repo.issues.choose.blank_about"}}
 					</div>
 					<div class="column right aligned">
-						<a href="{{.RepoLink}}/issues/new?{{if .milestone}}&milestone={{.milestone}}{{end}}{{if $.project}}&project={{$.project}}{{end}}" class="ui primary button">{{ctx.Locale.Tr "repo.issues.choose.get_started"}}</a>
+						<a href="{{.RepoLink}}/issues/new?{{if .milestone}}&milestone={{.milestone}}{{end}}{{if $.project}}&project={{$.project}}{{end}}" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.issues.choose.get_started"}}</a>
 					</div>
 				</div>
 			</div>
 		{{end}}
 		{{- if .IssueConfigError}}{{/* normal warning flash makes problems here*/}}
-			<div class="ui warning message">
+			<div class="ds-banner ds-banner-warn">
 				<div class="text left">
 					<div>{{ctx.Locale.Tr "repo.issues.choose.invalid_config"}}</div>
 					<div>{{.IssueConfigError}}</div>

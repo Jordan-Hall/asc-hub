@@ -1,7 +1,7 @@
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings edit")}}
 	<div class="repo-setting-content">
 		{{if .Repository.IsArchived}}
-			<div class="ui warning message tw-text-center">
+			<div class="ds-banner ds-banner-warn">
 				{{ctx.Locale.Tr "repo.settings.archive.branchsettings_unavailable"}}
 			</div>
 		{{else}}
@@ -25,7 +25,7 @@
 								{{end}}
 							</div>
 						</div>
-						<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.branches.update_default_branch"}}</button>
+						<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.branches.update_default_branch"}}</button>
 					{{end}}
 				</form>
 			</div>
@@ -33,7 +33,7 @@
 			<h4 class="ui top attached header">
 				{{ctx.Locale.Tr "repo.settings.protected_branch"}}
 				<div class="ui right">
-					<a class="ui primary tiny button" href="{{$.Repository.Link}}/settings/branches/edit">{{ctx.Locale.Tr "repo.settings.branches.add_new_rule"}}</a>
+					<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{$.Repository.Link}}/settings/branches/edit">{{ctx.Locale.Tr "repo.settings.branches.add_new_rule"}}</a>
 				</div>
 			</h4>
 
@@ -43,12 +43,12 @@
 						<div class="flex-item tw-items-center">
 							<div class="flex-item-main">
 								<div class="flex-item-title">
-									<div class="ui basic primary label">{{.RuleName}}</div>
+									<div class="ds-chip ds-chip-outline primary">{{.RuleName}}</div>
 								</div>
 							</div>
 							<div class="flex-item-trailing">
-								<a class="rm ui tiny button" href="{{$.Repository.Link}}/settings/branches/edit?rule_name={{.RuleName}}">{{ctx.Locale.Tr "repo.settings.edit_protected_branch"}}</a>
-								<button class="ui red tiny button delete-button" data-url="{{$.Repository.Link}}/settings/branches/{{.ID}}/delete" data-id="{{.ID}}" data-modal-id="delete-protected-branch">
+								<a class="ds-btn ds-btn-secondary ds-btn-sm rm" href="{{$.Repository.Link}}/settings/branches/edit?rule_name={{.RuleName}}">{{ctx.Locale.Tr "repo.settings.edit_protected_branch"}}</a>
+								<button class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-url="{{$.Repository.Link}}/settings/branches/{{.ID}}/delete" data-id="{{.ID}}" data-modal-id="delete-protected-branch">
 									{{ctx.Locale.Tr "repo.settings.protected_branch.delete_rule"}}
 								</button>
 							</div>

@@ -3,8 +3,8 @@
 		<h4 class="ui top attached header">
 			{{ctx.Locale.Tr "repo.settings.lfs_filelist"}} ({{ctx.Locale.Tr "admin.total" .Total}})
 			<div class="ui right">
-				<a class="ui tiny button" href="{{.Link}}/locks">{{ctx.Locale.Tr "repo.settings.lfs_locks"}}</a>
-				<a class="ui primary tiny button" href="{{.Link}}/pointers">&nbsp;{{ctx.Locale.Tr "repo.settings.lfs_findpointerfiles"}}</a>
+				<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Link}}/locks">{{ctx.Locale.Tr "repo.settings.lfs_locks"}}</a>
+				<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.Link}}/pointers">&nbsp;{{ctx.Locale.Tr "repo.settings.lfs_findpointerfiles"}}</a>
 			</div>
 		</h4>
 		<table id="lfs-files-table" class="ui attached segment single line table">
@@ -12,15 +12,15 @@
 				{{range .LFSFiles}}
 					<tr>
 						<td>
-							<a href="{{$.Link}}/show/{{.Oid}}" title="{{.Oid}}" class="ui brown button tw-font-mono">
+							<a href="{{$.Link}}/show/{{.Oid}}" title="{{.Oid}}" class="ds-btn ds-btn-secondary tw-font-mono">
 								{{ShortSha .Oid}}
 							</a>
 						</td>
 						<td>{{ctx.Locale.TrSize .Size}}</td>
 						<td>{{DateUtils.TimeSince .CreatedUnix}}</td>
 						<td class="right aligned">
-							<a class="ui primary button" href="{{$.Link}}/find?oid={{.Oid}}&size={{.Size}}">{{ctx.Locale.Tr "repo.settings.lfs_findcommits"}}</a>
-							<button class="ui basic show-modal icon button red" data-modal="#delete-{{.Oid}}">
+							<a class="ds-btn ds-btn-primary" href="{{$.Link}}/find?oid={{.Oid}}&size={{.Size}}">{{ctx.Locale.Tr "repo.settings.lfs_findcommits"}}</a>
+							<button class="ds-btn ds-btn-danger show-modal" data-modal="#delete-{{.Oid}}">
 								<span class="btn-octicon btn-octicon-danger" data-tooltip-content="{{ctx.Locale.Tr "repo.editor.delete_this_file"}}">{{svg "octicon-trash"}}</span>
 							</button>
 						</td>
