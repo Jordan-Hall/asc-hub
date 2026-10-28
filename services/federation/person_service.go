@@ -5,6 +5,7 @@ package federation
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"forgejo.org/models/user"
@@ -51,6 +52,9 @@ func FollowRemoteActor(ctx *app_context.APIContext, localUser *user.User, actorU
 		return err
 	}
 
+	if deliveryQueue == nil {
+		return errors.New("the federation delivery queue is not running")
+	}
 	hostURL := federationHost.AsURL()
 	return deliveryQueue.Push(deliveryQueueItem{
 		InboxURL: hostURL.JoinPath(federatedUser.InboxPath).String(),
