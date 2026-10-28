@@ -358,19 +358,6 @@
   margin-top: 8px;
 }
 
-.repository.view.issue .issue-title .button-row .button {
-  min-height: var(--touch);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@media (min-width: 768px) {
-  .repository.view.issue .issue-title .button-row .button {
-    min-height: 0;
-  }
-}
-
 .repository.view.issue .issue-title-meta .time-desc a,
 .repository.view.issue .issue-title-meta .pull-desc a {
   text-decoration: underline;

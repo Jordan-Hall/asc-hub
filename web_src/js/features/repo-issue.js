@@ -789,7 +789,7 @@ export function initRepoIssueTitleEdit() {
     }
     issueTitleInput.focus();
   });
-  issueTitleEditor.querySelector('.ui.cancel.button').addEventListener('click', () => {
+  issueTitleEditor.querySelector('.cancel').addEventListener('click', () => {
     hideElem(issueTitleEditor);
     hideElem('#pull-desc-editor');
     for (const element of normalModeElements) {
@@ -800,7 +800,7 @@ export function initRepoIssueTitleEdit() {
   const pullDescEditor = document.querySelector('#pull-desc-editor'); // it may not exist for a merged PR
   const prTargetUpdateUrl = pullDescEditor?.getAttribute('data-target-update-url');
 
-  const editSaveButton = issueTitleEditor.querySelector('.ui.primary.button');
+  const editSaveButton = issueTitleEditor.querySelector('[data-update-url]');
   const saveAndRefresh = async () => {
     const newTitle = issueTitleInput.value.trim();
     try {

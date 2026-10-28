@@ -11,21 +11,21 @@
 		</h1>
 		<div class="button-row">
 			{{if $canEditIssueTitle}}
-			<button id="issue-title-edit-show" class="ui small basic button">{{ctx.Locale.Tr "repo.issues.edit"}}</button>
+			<button id="issue-title-edit-show" class="ds-btn ds-btn-secondary ds-btn-sm" type="button">{{ctx.Locale.Tr "repo.issues.edit"}}</button>
 			{{end}}
 			{{if and (not .Issue.IsPull) (not .Repository.IsArchived)}}
-			<a role="button" class="ui small primary button" href="{{.RepoLink}}/issues/new{{if .NewIssueChooseTemplate}}/choose{{end}}">{{ctx.Locale.Tr "repo.issues.new"}}</a>
+			<a role="button" class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/issues/new{{if .NewIssueChooseTemplate}}/choose{{end}}">{{ctx.Locale.Tr "repo.issues.new"}}</a>
 			{{end}}
 		</div>
 	</div>
 	{{if $canEditIssueTitle}}
-	<div class="ui form issue-title tw-hidden" id="issue-title-editor">
-		<div class="ui input tw-flex-1">
-			<input value="{{.Issue.Title}}" data-old-title="{{.Issue.Title}}" maxlength="245" autocomplete="off" class="js-quick-submit">
+	<div class="ds-form issue-title tw-hidden" id="issue-title-editor">
+		<div class="ds-grow ds-min0">
+			<input value="{{.Issue.Title}}" data-old-title="{{.Issue.Title}}" aria-label="{{ctx.Locale.Tr "repo.issues.title_label"}}" maxlength="245" autocomplete="off" class="ds-input js-quick-submit">
 		</div>
 		<div class="button-row">
-			<button class="ui small basic cancel button">{{ctx.Locale.Tr "repo.issues.cancel"}}</button>
-			<button class="ui small primary button"
+			<button class="ds-btn ds-btn-secondary ds-btn-sm cancel" type="button">{{ctx.Locale.Tr "repo.issues.cancel"}}</button>
+			<button class="ds-btn ds-btn-primary ds-btn-sm" type="button"
 					data-update-url="{{$.RepoLink}}/issues/{{.Issue.Index}}/title">
 				{{ctx.Locale.Tr "repo.issues.save"}}
 			</button>
@@ -34,17 +34,17 @@
 	{{end}}
 	<div class="issue-title-meta">
 		{{if .HasMerged}}
-			<div class="ui purple label issue-state-label">{{svg "octicon-git-merge" 16 "tw-mr-1"}} {{if eq .Issue.PullRequest.Status 3}}{{ctx.Locale.Tr "repo.pulls.manually_merged"}}{{else}}{{ctx.Locale.Tr "repo.pulls.merged"}}{{end}}</div>
+			<div class="ds-chip ds-chip-info ds-chip-lg issue-state-label">{{svg "octicon-git-merge" 16 "tw-mr-1"}} {{if eq .Issue.PullRequest.Status 3}}{{ctx.Locale.Tr "repo.pulls.manually_merged"}}{{else}}{{ctx.Locale.Tr "repo.pulls.merged"}}{{end}}</div>
 		{{else if .Issue.IsClosed}}
-			<div class="ui red label issue-state-label">{{if .Issue.IsPull}}{{svg "octicon-git-pull-request-closed"}}{{else}}{{svg "octicon-issue-closed"}}{{end}} {{ctx.Locale.Tr "repo.issues.closed_title"}}</div>
+			<div class="ds-chip ds-chip-err ds-chip-lg issue-state-label">{{if .Issue.IsPull}}{{svg "octicon-git-pull-request-closed"}}{{else}}{{svg "octicon-issue-closed"}}{{end}} {{ctx.Locale.Tr "repo.issues.closed_title"}}</div>
 		{{else if .Issue.IsPull}}
 			{{if .IsPullWorkInProgress}}
-				<div class="ui grey label issue-state-label">{{svg "octicon-git-pull-request-draft"}} {{ctx.Locale.Tr "repo.issues.draft_title"}}</div>
+				<div class="ds-chip ds-chip-outline ds-chip-lg issue-state-label">{{svg "octicon-git-pull-request-draft"}} {{ctx.Locale.Tr "repo.issues.draft_title"}}</div>
 			{{else}}
-				<div class="ui green label issue-state-label">{{svg "octicon-git-pull-request"}} {{ctx.Locale.Tr "repo.issues.open_title"}}</div>
+				<div class="ds-chip ds-chip-ok ds-chip-lg issue-state-label">{{svg "octicon-git-pull-request"}} {{ctx.Locale.Tr "repo.issues.open_title"}}</div>
 			{{end}}
 		{{else}}
-			<div class="ui green label issue-state-label">{{svg "octicon-issue-opened"}} {{ctx.Locale.Tr "repo.issues.open_title"}}</div>
+			<div class="ds-chip ds-chip-ok ds-chip-lg issue-state-label">{{svg "octicon-issue-opened"}} {{ctx.Locale.Tr "repo.issues.open_title"}}</div>
 		{{end}}
 		<div class="tw-ml-2 tw-flex-1 tw-break-anywhere">
 			{{if .Issue.IsPull}}
@@ -72,7 +72,7 @@
 						{{/* TODO: Move documentation link to the instructions at the bottom of the PR, show instructions when clicking label */}}
 						{{/* Note: #agit-label is necessary for testing whether the label appears when it should in tests/integration/git_test.go */}}
 						<a target="_blank" rel="noopener" href="https://forgejo.org/docs/latest/user/agit-support/">
-							<span id="agit-label" data-tooltip-content="{{ctx.Locale.Tr "repo.pulls.agit_explanation"}}" class="ui small label">
+							<span id="agit-label" data-tooltip-content="{{ctx.Locale.Tr "repo.pulls.agit_explanation"}}" class="ds-chip ds-chip-outline">
 								{{ctx.Locale.Tr "repo.pulls.made_using_agit"}}
 							</span>
 						</a>
@@ -90,25 +90,25 @@
 						{{/* TODO: Move documentation link to the instructions at the bottom of the PR, show instructions when clicking label */}}
 						{{/* Note: #agit-label is necessary for testing whether the label appears when it should in tests/integration/git_test.go */}}
 						<a target="_blank" rel="noopener" href="https://forgejo.org/docs/latest/user/agit-support/">
-							<span id="agit-label" data-tooltip-content="{{ctx.Locale.Tr "repo.pulls.agit_explanation"}}" class="ui small label">
+							<span id="agit-label" data-tooltip-content="{{ctx.Locale.Tr "repo.pulls.agit_explanation"}}" class="ds-chip ds-chip-outline">
 								{{ctx.Locale.Tr "repo.pulls.made_using_agit"}}
 							</span>
 						</a>
 					{{end}}
 					{{if and .Issue.PullRequest.AllowMaintainerEdit .CanWriteCode}}
-						<span id="editable-label" data-tooltip-content="{{ctx.Locale.Tr "repo.pulls.editable_explanation"}}" class="ui small label">
+						<span id="editable-label" data-tooltip-content="{{ctx.Locale.Tr "repo.pulls.editable_explanation"}}" class="ds-chip ds-chip-outline">
 							{{ctx.Locale.Tr "repo.pulls.editable"}}
 						</span>
 					{{end}}
 					<span id="pull-desc-editor" class="tw-hidden flex-text-block" data-target-update-url="{{$.RepoLink}}/pull/{{.Issue.Index}}/target_branch">
 						<div class="ui floating filter dropdown">
-							<div class="ui basic small button tw-mr-0">
+							<div class="ds-btn ds-btn-secondary ds-btn-sm">
 								<span class="text">{{ctx.Locale.Tr "repo.pulls.compare_compare"}}: {{$.HeadTarget}}</span>
 							</div>
 						</div>
 						{{svg "octicon-arrow-right"}}
 						<div class="ui floating filter dropdown" data-no-results="{{ctx.Locale.Tr "repo.pulls.no_results"}}">
-							<div class="ui basic small button">
+							<div class="ds-btn ds-btn-secondary ds-btn-sm">
 								<span class="text" id="pull-target-branch" data-basename="{{$.BaseName}}" data-branch="{{$.BaseBranch}}">{{ctx.Locale.Tr "repo.pulls.compare_base"}}: {{$.BaseName}}:{{$.BaseBranch}}</span>
 								{{svg "octicon-triangle-down" 14 "dropdown icon"}}
 							</div>
