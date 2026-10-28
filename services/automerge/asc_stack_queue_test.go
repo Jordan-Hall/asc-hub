@@ -491,3 +491,69 @@ func TestAscStackQueueManyStacksLandOnceEach(t *testing.T) {
 		assert.True(t, unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: p.ID}).HasMerged, "pull %d lost", p.ID)
 	}
 }
+
+// A cancel takes out only what the doer may take out: the entries below the pull request that other people
+// queued stay, an administrator takes all, and a user cannot cancel an entry of another user or one that has
+// the entry of another user above it.
+func TestAscStackQueueCancelOnlyWhatTheDoerMay(t *testing.T) {
+	f := newQFixture(t)
+	ctx := t.Context()
+	other, mine := qUser(t, 5), qUser(t, 4) // ordinary users: neither administers the repository
+	_, err := AscQueueEnqueue(ctx, other, f.bottom)
+	require.NoError(t, err)
+	_, err = AscQueueEnqueue(ctx, mine, f.top) // queues the top only: the bottom is queued already
+	require.NoError(t, err)
+	require.Equal(t, map[int64]string{f.bottom.ID: AscQueueQueued, f.top.ID: AscQueueQueued}, qStates(t, f))
+
+	// The page of the cancel names exactly what the cancel does.
+	plan, err := AscQueueCancelSet(ctx, mine, f.top)
+	require.NoError(t, err)
+	require.Len(t, plan.Cancelled, 1)
+	assert.Equal(t, f.top.ID, plan.Cancelled[0].PullID)
+	require.Len(t, plan.Skipped, 1)
+	assert.Equal(t, f.bottom.ID, plan.Skipped[0].PullID)
+
+	// Cancelling one's own entry above the entry of another user leaves that one.
+	res, err := AscQueueCancelEntries(ctx, mine, f.top)
+	require.NoError(t, err)
+	require.Len(t, res.Cancelled, 1)
+	assert.Equal(t, f.top.ID, res.Cancelled[0].PullID)
+	require.Len(t, res.Skipped, 1)
+	assert.Equal(t, f.bottom.ID, res.Skipped[0].PullID)
+	assert.Equal(t, map[int64]string{f.bottom.ID: AscQueueQueued, f.top.ID: AscQueueCancelled}, qStates(t, f))
+
+	// Nothing waits any more for the entry that is cancelled: a second cancel does nothing.
+	res, err = AscQueueCancelEntries(ctx, mine, f.top)
+	require.NoError(t, err)
+	assert.Empty(t, res.Cancelled)
+
+	// A user who is not the owner of the entry and not an administrator is refused, and nothing changes.
+	_, err = AscQueueEnqueue(ctx, mine, f.top)
+	require.NoError(t, err)
+	_, err = AscQueueCancelSet(ctx, other, f.top)
+	require.ErrorIs(t, err, ErrAscQueueNotAllowed)
+	_, err = AscQueueCancelEntries(ctx, other, f.top)
+	require.ErrorIs(t, err, ErrAscQueueNotAllowed)
+	// The owner of the bottom cannot cancel it either while the entry of another user stands above it.
+	_, err = AscQueueCancelEntries(ctx, other, f.bottom)
+	require.ErrorIs(t, err, ErrAscQueueNotAllowed)
+	assert.Equal(t, map[int64]string{f.bottom.ID: AscQueueQueued, f.top.ID: AscQueueQueued}, qStates(t, f))
+
+	// A site administrator cancels all of it.
+	res, err = AscQueueCancelEntries(ctx, qUser(t, 1), f.top)
+	require.NoError(t, err)
+	assert.Len(t, res.Cancelled, 2)
+	assert.Empty(t, res.Skipped)
+	assert.Equal(t, map[int64]string{f.bottom.ID: AscQueueCancelled, f.top.ID: AscQueueCancelled}, qStates(t, f))
+}
+
+// Merge now asks the merge right itself before the lander is called, whatever the lander checks.
+func TestAscQueueLandNowChecksTheMergeRight(t *testing.T) {
+	f := newQFixture(t)
+	ascQueueMayMerge = func(context.Context, *issues_model.PullRequest, access_model.Permission, *user_model.User) (bool, error) {
+		return false, nil
+	}
+	_, err := AscQueueLandNow(t.Context(), qUser(t, 5), f.top)
+	require.ErrorIs(t, err, ErrAscQueueNotAllowed)
+	assert.Empty(t, f.lander.lands)
+}

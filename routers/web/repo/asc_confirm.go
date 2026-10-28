@@ -162,13 +162,13 @@ func ascConfirmMerge(ctx *context.Context, pr *issues_model.PullRequest, now boo
 // ascConfirmUnqueue shows the pull requests the removal takes out of the queue: the entries AscQueueCancel
 // cancels, which are this pull request and the queued ones above it.
 func ascConfirmUnqueue(ctx *context.Context, pr *issues_model.PullRequest) bool {
-	set, err := automerge.AscQueueCancelSet(ctx, pr)
+	set, err := automerge.AscQueueCancelSet(ctx, ctx.Doer, pr)
 	if err != nil {
-		ctx.ServerError("AscQueueCancelSet", err)
-		return true
+		return ascConfirmFail(ctx, err)
 	}
+	ctx.Data["AscSkippedCount"] = len(set.Skipped)
 	var rows []AscConfirmRow
-	for _, e := range set {
+	for _, e := range set.Cancelled {
 		queued, err := issues_model.GetPullRequestByID(ctx, e.PullID)
 		if err != nil {
 			continue

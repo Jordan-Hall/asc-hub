@@ -59,6 +59,9 @@ Every text comes from the locale or from the handler; pull request titles are es
 			<div class="rv-banner rv-banner-warn rv-gap asc-op-message" role="status" data-testid="asc-content-merge"><div>{{svg "octicon-alert" 16}} {{ctx.Locale.Tr "repo.pulls.asc_op.content_merge_note"}}</div></div>
 			{{end}}
 
+			{{if .AscSkippedCount}}
+			<div class="rv-banner rv-banner-warn rv-gap asc-op-message" role="status" data-testid="asc-skipped"><div>{{svg "octicon-alert" 16}} {{ctx.Locale.Tr "repo.pulls.asc_op.dequeued_others" .AscSkippedCount}}</div></div>
+			{{end}}
 			{{if .AscRows}}
 			<section class="rv-card rv-gap" aria-label="{{ctx.Locale.Tr "asc_review.rev_dry_run"}}">
 				<div class="rv-tablewrap">
