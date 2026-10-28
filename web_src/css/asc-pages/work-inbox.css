@@ -176,6 +176,83 @@
   margin-top: 8px;
 }
 
+.wk-irow-end {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* controls on a row sit above the link that covers the whole row */
+.wk-irow-check,
+.wk-irow-acts {
+  position: relative;
+  z-index: 1;
+}
+
+.wk-irow-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: -4px -6px 0 0;
+  cursor: pointer;
+}
+
+.wk-irow-check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--fill);
+}
+
+@media (pointer: coarse) {
+  .wk-irow-check {
+    width: 44px;
+    height: 44px;
+    margin: -12px -14px 0 0;
+  }
+}
+
+.wk-irow.is-checked {
+  background: var(--primary-tint);
+}
+
+.wk-irow-acts {
+  display: none;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (hover: hover) and (min-width: 1024px) {
+  .wk-irow:hover .wk-irow-acts,
+  .wk-irow:focus-within .wk-irow-acts {
+    display: flex;
+  }
+}
+
+.wk-bulkbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px var(--gutter);
+  border-bottom: 1px solid var(--primary-line);
+  background: var(--primary-tint);
+}
+
+.wk-bulkbar[hidden] {
+  display: none;
+}
+
+.wk-bulkbar-count {
+  flex: 1 1 auto;
+  font-weight: 600;
+}
+
 .wk-irow-go {
   color: var(--ok);
   font-size: 13px;

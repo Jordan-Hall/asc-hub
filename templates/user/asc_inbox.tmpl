@@ -39,6 +39,13 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 			</div>
 
 			{{if $p.Rows}}
+				<div data-bulk>
+				<div class="wk-bulkbar" data-bulk-bar hidden>
+					<span class="wk-bulkbar-count" data-bulk-count role="status" aria-live="polite" data-one="{{ctx.Locale.Tr "asc_work.bulk_one"}}" data-n="{{ctx.Locale.Tr "asc_work.bulk_n"}}"></span>
+					<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-bulk-do data-bulk-url="{{AppSubUrl}}/-/asc/inbox/state" data-bulk-field="pull" data-bulk-fields='{"do":"snooze","for":"4h","tab":"{{$p.Tab}}"}' data-failed="{{ctx.Locale.Tr "asc_work.bulk_failed"}}">{{ctx.Locale.Tr "user.asc_inbox.snooze"}}</button>
+					<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-bulk-do data-bulk-url="{{AppSubUrl}}/-/asc/inbox/state" data-bulk-field="pull" data-bulk-fields='{"do":"pin","tab":"{{$p.Tab}}"}' data-failed="{{ctx.Locale.Tr "asc_work.bulk_failed"}}">{{ctx.Locale.Tr "user.asc_inbox.pin"}}</button>
+					<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-bulk-clear>{{ctx.Locale.Tr "asc_work.bulk_clear"}}</button>
+				</div>
 				<ul class="wk-ilist" data-asc-list>
 					{{$day := ""}}
 					{{range $p.Rows}}
@@ -46,7 +53,7 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 							{{$day = .Day}}
 							<li class="wk-iday">{{.Day}}</li>
 						{{end}}
-						<li class="wk-irow{{if .Selected}} is-selected{{end}}">
+						<li class="wk-irow{{if .Selected}} is-selected{{end}}"{{if .Entry}} data-bulk-row{{end}}>
 							<span class="ds-dot ds-dot-{{if eq .Dash.Tone "amber"}}warn{{else if eq .Dash.Tone "red"}}err{{else if eq .Dash.Tone "green"}}ok{{else if eq .Dash.Tone "violet"}}agent{{end}} wk-irow-dot" aria-hidden="true"></span>
 							<div class="wk-irow-main">
 								<a class="wk-irow-link" href="{{.URL}}" data-asc-row{{if .Entry}} data-section="{{.Entry.Section}}"{{else}} data-section="agent"{{end}}{{if .Selected}} aria-current="true"{{end}}>{{.Dash.Title}}</a>
@@ -56,20 +63,38 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 										{{range .Dash.Chips}}<span class="ds-chip{{if eq .Tone "amber"}} ds-chip-warn{{else if eq .Tone "green"}} ds-chip-ok{{else if eq .Tone "red"}} ds-chip-err{{else if eq .Tone "violet"}} ds-chip-agent{{end}}">{{.Text}}</span>{{end}}
 									</div>
 								{{end}}
+								{{if .Entry}}
+									<div class="wk-irow-acts">
+										<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Entry.Link}}">{{ctx.Locale.Tr "user.asc_inbox.open_review"}}</a>
+										<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state">
+											{{$.CsrfTokenHtml}}
+											<input type="hidden" name="pull" value="{{.Entry.PullID}}">
+											<input type="hidden" name="tab" value="{{$p.Tab}}">
+											<input type="hidden" name="do" value="snooze">
+											<input type="hidden" name="for" value="4h">
+											<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{ctx.Locale.Tr "user.asc_inbox.snooze"}}</button>
+										</form>
+									</div>
+								{{end}}
 							</div>
-							{{if .Dash.Action}}<span class="wk-irow-go">{{.Dash.Action}}</span>{{else if and .Entry (not .Entry.Updated.IsZero)}}<span class="wk-when">{{DateUtils.TimeSince .Entry.Updated}}</span>{{end}}
+							<span class="wk-irow-end">
+								{{if .Dash.Action}}<span class="wk-irow-go">{{.Dash.Action}}</span>{{else if and .Entry (not .Entry.Updated.IsZero)}}<span class="wk-when">{{DateUtils.TimeSince .Entry.Updated}}</span>{{end}}
+								{{if .Entry}}<label class="wk-irow-check"><input type="checkbox" data-bulk-item value="{{.Entry.PullID}}"><span class="ds-sr">{{ctx.Locale.Tr "asc_work.bulk_select" .Dash.Title}}</span></label>{{end}}
+							</span>
 						</li>
 					{{end}}
 				</ul>
+				</div>
 			{{else}}
 				<div class="ds-empty wk-empty-in">
 					<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-inbox" 32}}</span>
 					<h3>{{ctx.Locale.Tr (printf "asc_work.inbox_empty_title_%s" $p.Tab)}}</h3>
 					<p>{{ctx.Locale.Tr (printf "user.asc_inbox.empty.%s" $p.Tab)}}</p>
+					<div class="ds-empty-acts"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/notifications/subscriptions">{{ctx.Locale.Tr "asc_work.inbox_watch_more"}}</a></div>
 				</div>
 			{{end}}
 			<p class="wk-hintbar">
-				{{ctx.Locale.Tr "user.asc_inbox.count" $p.Total}}
+				{{if gt $p.Total (len $p.Rows)}}{{ctx.Locale.Tr "asc_work.inbox_showing" (len $p.Rows) $p.Total}}{{else}}{{ctx.Locale.Tr "user.asc_inbox.count" $p.Total}}{{end}}
 				<span class="ds-hide-md"><kbd class="ds-kbd">j</kbd> <kbd class="ds-kbd">k</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_move"}} &middot; <kbd class="ds-kbd">s</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_snooze"}} &middot; <kbd class="ds-kbd">p</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_pin"}}</span>
 			</p>
 			{{if .AscInboxSnoozed}}<p class="wk-hintbar">{{ctx.Locale.Tr "user.asc_inbox.snoozed" .AscInboxSnoozed}}</p>{{end}}
