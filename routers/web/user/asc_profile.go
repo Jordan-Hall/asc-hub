@@ -172,17 +172,22 @@ type AscProfileRepo struct {
 
 // ascProfileWork lists the open pull requests of user that viewer may read, newest change first.
 func ascProfileWork(ctx gocontext.Context, user, viewer *user_model.User, l translation.Locale) []AscProfileWork {
+	return ascProfileWorkN(ctx, user, viewer, l, ascProfileWorkMax)
+}
+
+// ascProfileWorkN is ascProfileWork with the number of rows to find.
+func ascProfileWorkN(ctx gocontext.Context, user, viewer *user_model.User, l translation.Locale, limit int) []AscProfileWork {
 	var issues []*issues_model.Issue
 	err := db.GetEngine(ctx).
 		Where("is_pull = ? AND poster_id = ? AND is_closed = ?", true, user.ID, false).
-		OrderBy("updated_unix DESC").Limit(ascProfileScan).Find(&issues)
+		OrderBy("updated_unix DESC").Limit(max(ascProfileScan, limit*4)).Find(&issues)
 	if err != nil {
 		log.Error("asc profile: pull requests of user %d: %v", user.ID, err)
 		return nil
 	}
 	var out []AscProfileWork
 	for _, issue := range issues {
-		if len(out) == ascProfileWorkMax {
+		if len(out) >= limit {
 			break
 		}
 		if issue.LoadRepo(ctx) != nil || issue.LoadPullRequest(ctx) != nil {
@@ -285,4 +290,5 @@ func ascProfileOverview(ctx *context.Context) {
 	ctx.Data["Feeds"] = feeds
 	ctx.Data["AscProfileWork"] = ascProfileWork(ctx, person, ctx.Doer, ctx.Locale)
 	ctx.Data["AscProfileRepos"] = ascProfileRepos(ctx, person, ctx.Doer)
+	ctx.Data["AscPins"] = ascProfilePins(ctx, person, ctx.Doer)
 }

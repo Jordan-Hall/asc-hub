@@ -2,6 +2,8 @@
 <nav class="ds-tabs wk-pf-tabs" aria-label="{{ctx.Locale.Tr "asc_work.pf_tabs"}}">
 	{{if .ContextUser.IsIndividual}}
 		<a class="ds-tab" href="{{.ContextUser.HomeLink}}?tab=overview"{{if eq .TabName "overview"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "user.overview"}}</a>
+		<a class="ds-tab" href="{{.ContextUser.HomeLink}}?tab=work"{{if eq .TabName "work"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_work.pf_work"}}{{if .AscWorkCount}} <span class="ds-count">{{.AscWorkCount}}</span>{{end}}</a>
+		<a class="ds-tab" href="{{.ContextUser.HomeLink}}?tab=reviews"{{if eq .TabName "reviews"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_work.pf_reviews"}}{{if .AscReviewCount}} <span class="ds-count">{{.AscReviewCount}}</span>{{end}}</a>
 	{{end}}
 	<a class="ds-tab" href="{{.ContextUser.HomeLink}}?tab=repositories"{{if eq .TabName "repositories"}} aria-current="page"{{end}}>{{ctx.Locale.Tr "user.repositories"}}{{if .RepoCount}} <span class="ds-count">{{.RepoCount}}</span>{{end}}<span hidden test-name="repository-count">{{.RepoCount}}</span></a>
 	{{if or .ContextUser.IsIndividual .CanReadProjects}}
