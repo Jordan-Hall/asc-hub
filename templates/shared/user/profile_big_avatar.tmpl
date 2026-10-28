@@ -1,6 +1,6 @@
 {{/*
-The head of a person's profile (design board "Profile"): avatar, name, the facts about the person, follow and the
-actions menu. The element #profile-avatar-card is what the follow and block buttons swap in place (htmx), so
+The head of a person's profile (design boards "Profile" and "Mobile-Profile"): avatar, name, the facts about the person, follow and
+the actions sheet. The element #profile-avatar-card is what the follow and block buttons swap in place (htmx), so
 routers/web/user/profile.go answers those actions with this same template.
 */}}
 {{if .IsHTMX}}
@@ -9,70 +9,56 @@ routers/web/user/profile.go answers those actions with this same template.
 
 {{$showFollow := and .IsSigned (ne .SignedUserID .ContextUser.ID)}}
 
-<div id="profile-avatar-card" class="ap-pfcard" hx-swap="morph">
-	{{if eq .SignedUserID .ContextUser.ID}}
-		<a class="avatar" href="{{AppSubUrl}}/user/settings#avatar-settings" data-tooltip-content="{{ctx.Locale.Tr "user.change_avatar"}}">{{ctx.AvatarUtils.Avatar .ContextUser 88}}</a>
-	{{else}}
-		<span class="avatar">{{ctx.AvatarUtils.Avatar .ContextUser 88}}</span>
-	{{end}}
-	<div class="info tw-break-anywhere">
-		<div class="line1">
-			<h1>{{if .ContextUser.FullName}}{{.ContextUser.FullName}}{{else}}{{.ContextUser.Name}}{{end}}</h1>
-			{{if .ContextUser.Visibility.IsPrivate}}<span class="ap-pill grey">{{ctx.Locale.Tr "org.settings.visibility.private_shortname"}}</span>{{end}}
+<div id="profile-avatar-card" class="wk-pf-card" hx-swap="morph">
+	<div class="wk-pf-av">
+		{{if eq .SignedUserID .ContextUser.ID}}
+			<a href="{{AppSubUrl}}/user/settings#avatar-settings" data-tooltip-content="{{ctx.Locale.Tr "user.change_avatar"}}" aria-label="{{ctx.Locale.Tr "user.change_avatar"}}">{{ctx.AvatarUtils.Avatar .ContextUser 96}}</a>
+		{{else}}
+			{{ctx.AvatarUtils.Avatar .ContextUser 96}}
+		{{end}}
+	</div>
+	<div class="wk-pf-info tw-break-anywhere">
+		<div class="wk-pf-line1">
+			<h1 class="wk-pf-name">{{if .ContextUser.FullName}}{{.ContextUser.FullName}}{{else}}{{.ContextUser.Name}}{{end}}</h1>
+			{{if .ContextUser.Visibility.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "org.settings.visibility.private_shortname"}}</span>{{end}}
 		</div>
-		<div class="line2">
+		<div class="wk-pf-line2">
 			<span>@{{.ContextUser.Name}}</span>
 			{{with .ContextUser.GetPronouns .IsSigned}}<span>{{.}}</span>{{end}}
 			{{if .ContextUser.Location}}
-				<span>{{.ContextUser.Location}}{{if .ContextUserLocationMapURL}} <a href="{{.ContextUserLocationMapURL}}" rel="nofollow noreferrer" data-tooltip-content="{{ctx.Locale.Tr "user.show_on_map"}}" aria-label="{{ctx.Locale.Tr "user.show_on_map"}}">{{svg "octicon-link-external" 12}}</a>{{end}}</span>
+				<span>{{.ContextUser.Location}}{{if .ContextUserLocationMapURL}} <a href="{{.ContextUserLocationMapURL}}" rel="nofollow noreferrer" data-tooltip-content="{{ctx.Locale.Tr "user.show_on_map"}}" aria-label="{{ctx.Locale.Tr "user.show_on_map"}}">{{svg "dsi-external" 12}}</a>{{end}}</span>
 			{{end}}
+		</div>
+		{{if $.RenderedDescription}}<div class="wk-pf-desc render-content markup">{{$.RenderedDescription}}</div>{{end}}
+		<div class="wk-pf-stats">
+			<a href="{{.ContextUser.HomeLink}}?tab=followers">{{ctx.Locale.TrN .NumFollowers "user.followers_one" "user.followers_few" .NumFollowers}}</a>
+			<a href="{{.ContextUser.HomeLink}}?tab=following">{{ctx.Locale.TrN .NumFollowing "user.following_one" "user.following_few" .NumFollowing}}</a>
 			<span>{{ctx.Locale.Tr "user.joined_on" (DateUtils.AbsoluteShort .ContextUser.CreatedUnix)}}</span>
-		</div>
-		{{if $.RenderedDescription}}<div class="desc render-content markup">{{$.RenderedDescription}}</div>{{end}}
-		<div class="line3">
-			<a class="muted" href="{{.ContextUser.HomeLink}}?tab=followers">{{ctx.Locale.TrN .NumFollowers "user.followers_one" "user.followers_few" .NumFollowers}}</a>
-			<a class="muted" href="{{.ContextUser.HomeLink}}?tab=following">{{ctx.Locale.TrN .NumFollowing "user.following_one" "user.following_few" .NumFollowing}}</a>
 			{{if .ShowUserEmail}}
-				<span><a href="mailto:{{.ContextUser.Email}}" rel="nofollow">{{.ContextUser.Email}}</a>{{if (eq .SignedUserID .ContextUser.ID)}} <a href="{{AppSubUrl}}/user/settings#privacy-user-settings" aria-label="{{ctx.Locale.Tr "user.email_visibility.limited"}}" data-tooltip-content="{{ctx.Locale.Tr "user.email_visibility.limited"}}">{{svg "octicon-unlock" 12}}</a>{{end}}</span>
+				<span><a href="mailto:{{.ContextUser.Email}}" rel="nofollow">{{.ContextUser.Email}}</a>{{if (eq .SignedUserID .ContextUser.ID)}} <a href="{{AppSubUrl}}/user/settings#privacy-user-settings" aria-label="{{ctx.Locale.Tr "user.email_visibility.limited"}}" data-tooltip-content="{{ctx.Locale.Tr "user.email_visibility.limited"}}">{{svg "dsi-eye" 12}}</a>{{end}}</span>
 			{{end}}
-			{{if .ContextUser.Website}}<a target="_blank" rel="noopener noreferrer me" href="{{.ContextUser.Website}}">{{.ContextUser.Website}}</a>{{end}}
-			{{range .OpenIDs}}{{if .Show}}<a target="_blank" rel="noopener noreferrer" href="{{.URI}}">{{svg "fontawesome-openid" 12}} {{.URI}}</a>{{end}}{{end}}
+			{{if .ContextUser.Website}}<a class="ds-mono" target="_blank" rel="noopener noreferrer me" href="{{.ContextUser.Website}}">{{.ContextUser.Website}}</a>{{end}}
+			{{range .OpenIDs}}{{if .Show}}<a target="_blank" rel="noopener noreferrer" href="{{.URI}}">{{.URI}}</a>{{end}}{{end}}
 		</div>
-		{{if or (and .Orgs .HasOrgsVisible) .Badges}}
-			<div class="line4">
-				{{if and .Orgs .HasOrgsVisible}}
-					<ul class="user-orgs">
-						{{range .Orgs}}
-							{{if (or .Visibility.IsPublic (and ($.SignedUser) (or .Visibility.IsLimited (and (.HasMemberWithUserID ctx $.SignedUserID) .Visibility.IsPrivate) ($.IsAdmin))))}}
-								<li><a href="{{.HomeLink}}" data-tooltip-content="{{.Name}}" aria-label="{{.Name}}">{{ctx.AvatarUtils.Avatar . 28}}</a></li>
-							{{end}}
-						{{end}}
-					</ul>
+		{{if .Badges}}
+			<ul class="wk-pf-badges">
+				{{range .Badges}}
+					<li><img width="32" height="32" src="{{.ImageURL}}" alt="{{.Description}}" data-tooltip-content="{{.Description}}"></li>
 				{{end}}
-				{{if .Badges}}
-					<ul class="user-badges">
-						{{range .Badges}}
-							<li><img width="32" height="32" src="{{.ImageURL}}" alt="{{.Description}}" data-tooltip-content="{{.Description}}"></li>
-						{{end}}
-					</ul>
-				{{end}}
-			</div>
+			</ul>
 		{{end}}
 	</div>
-	<div class="actions">
+	<div class="wk-pf-actions">
 		{{if $showFollow}}
-			<div class="primary-action" hx-target="#profile-avatar-card" hx-indicator="#profile-avatar-card">
+			<div class="wk-pf-primary" hx-target="#profile-avatar-card" hx-indicator="#profile-avatar-card">
 				{{if .IsFollowing}}
-					<button hx-post="{{.ContextUser.HomeLink}}?action=unfollow" class="ap-btn">
-						{{svg "octicon-person"}} {{ctx.Locale.Tr "user.unfollow"}}
-					</button>
+					<button hx-post="{{.ContextUser.HomeLink}}?action=unfollow" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "user.unfollow"}}</button>
 				{{else}}
-					<button hx-post="{{.ContextUser.HomeLink}}?action=follow" class="ap-btn primary">
-						{{svg "octicon-person"}} {{ctx.Locale.Tr "user.follow"}}
-					</button>
+					<button hx-post="{{.ContextUser.HomeLink}}?action=follow" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "user.follow"}}</button>
 				{{end}}
 			</div>
 		{{end}}
-		{{template "shared/user/actions_menu" .}}
+		<button type="button" class="ds-btn ds-btn-secondary show-modal" data-modal="#profile-actions" aria-haspopup="dialog">{{ctx.Locale.Tr "asc_work.pf_more"}}</button>
 	</div>
+	{{template "shared/user/actions_menu" .}}
 </div>

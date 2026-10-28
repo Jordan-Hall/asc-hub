@@ -1,35 +1,35 @@
-<div class="user-cards">
+{{/* A list of people: followers, following, watchers. Cards: the users, CardsTitle (optional), CardsNoneMsg (the empty text). */}}
+<div class="wk-people">
 	{{if .CardsTitle}}
-		<h2>
-			{{.CardsTitle}}
-		</h2>
+		<h2 class="ds-t-h3 wk-people-title">{{.CardsTitle}}</h2>
 	{{end}}
 	{{if .Cards}}
-		<ul class="list">
-			{{range .Cards}}
-				<li class="card">
-					<a href="{{.HomeLink}}">
-						{{ctx.AvatarUtils.Avatar .}}
-					</a>
-					<div class="content">
-						<h3 class="name">
-							<a href="{{.HomeLink}}">{{.DisplayName}}</a>
-						</h3>
-						<div class="meta">
-							{{if .Website}}
-								{{svg "octicon-link"}} <a href="{{.Website}}" target="_blank" rel="noopener noreferrer">{{.Website}}</a>
-							{{else if .Location}}
-								{{svg "octicon-location"}} {{.Location}}
-							{{else}}
-								{{svg "octicon-calendar"}} {{ctx.Locale.Tr "user.joined_on" (DateUtils.AbsoluteShort .CreatedUnix)}}
-							{{end}}
+		<div class="ds-card">
+			<ul class="ds-list">
+				{{range .Cards}}
+					<li class="ds-li wk-person">
+						<span class="ds-li-av"><a href="{{.HomeLink}}" tabindex="-1" aria-hidden="true">{{ctx.AvatarUtils.Avatar . 40}}</a></span>
+						<div class="ds-li-main">
+							<div class="ds-li-title"><a href="{{.HomeLink}}">{{.DisplayName}}</a></div>
+							<div class="ds-li-sub">
+								{{if .Website}}
+									<a class="ds-link" href="{{.Website}}" target="_blank" rel="noopener noreferrer">{{.Website}}</a>
+								{{else if .Location}}
+									{{.Location}}
+								{{else}}
+									{{ctx.Locale.Tr "user.joined_on" (DateUtils.AbsoluteShort .CreatedUnix)}}
+								{{end}}
+							</div>
 						</div>
-					</div>
-				</li>
-			{{end}}
-		</ul>
+					</li>
+				{{end}}
+			</ul>
+		</div>
 	{{else if .CardsNoneMsg}}
-		<div>{{.CardsNoneMsg}}</div>
+		<div class="ds-empty ds-card">
+			<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-users" 32}}</span>
+			<p>{{.CardsNoneMsg}}</p>
+		</div>
 	{{end}}
 
 	{{template "base/paginate" .}}

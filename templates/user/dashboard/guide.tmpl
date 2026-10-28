@@ -1,16 +1,15 @@
-<div id="empty-feed" class="tw-text-center tw-p-8">
-	{{svg "octicon-inbox" 64 "tw-text-placeholder-text"}}
-	<h2>{{ctx.Locale.Tr "home.welcome.no_activity"}}</h2>
-	<p class="help">{{ctx.Locale.Tr "home.welcome.activity_hint"}}</p>
-	<div>
-		<a href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "home.explore_repos"}}</a>
+{{/* The empty state of the activity of a person: nothing happened yet, here is where to look. */}}
+<div id="empty-feed" class="ds-empty ds-card">
+	<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-inbox" 32}}</span>
+	<h2 class="ds-t-h3">{{ctx.Locale.Tr "home.welcome.no_activity"}}</h2>
+	<p>{{ctx.Locale.Tr "home.welcome.activity_hint"}}</p>
+	<div class="ds-empty-acts">
+		<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "home.explore_repos"}}</a>
 		{{if not .UsersPageIsDisabled}}
-			<span>·</span>
-			<a href="{{AppSubUrl}}/explore/users">{{ctx.Locale.Tr "home.explore_users"}}</a>
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/users">{{ctx.Locale.Tr "home.explore_users"}}</a>
 		{{end}}
 		{{if not .OrganizationsPageIsDisabled}}
-			<span>·</span>
-			<a href="{{AppSubUrl}}/explore/organizations">{{ctx.Locale.Tr "home.explore_orgs"}}</a>
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/organizations">{{ctx.Locale.Tr "home.explore_orgs"}}</a>
 		{{end}}
 	</div>
 </div>

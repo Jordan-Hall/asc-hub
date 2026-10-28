@@ -87,3 +87,98 @@
 .wk-empty-in {
   border: 0;
 }
+
+/* activity feed (profile, organization and classic dashboard) */
+.wk-activity .ds-li {
+  align-items: flex-start;
+}
+
+.wk-act-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.wk-act-sentence a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+
+.wk-act-sentence a:hover {
+  color: var(--link);
+  text-decoration-color: currentcolor;
+}
+
+.wk-act-commits {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13.5px;
+}
+
+.wk-act-commits li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.wk-act-msg {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wk-act-title {
+  color: var(--text-b);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+a.wk-act-title {
+  text-decoration: none;
+}
+
+a.wk-act-title:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.wk-act-comment {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.wk-act-ic {
+  flex: none;
+  color: var(--text-3);
+}
+
+.wk-feed a,
+.wk-feed li a {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+
+.wk-pf-body .ds-container,
+.wk-org-body .ds-container {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.wk-pf-body .ds-filterbar,
+.wk-org-body .ds-filterbar {
+  border: 0;
+  background: transparent;
+}

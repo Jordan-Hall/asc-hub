@@ -1,25 +1,29 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content user profile asc-profile">
+<div role="main" aria-label="{{.Title}}" class="ds-main user profile wk-profile">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "explore.users") "BackHref" (print AppSubUrl "/explore/users") "BackLabel" (ctx.Locale.Tr "explore.users"))}}
 	{{template "shared/user/asc_profile_band" .}}
-	<div class="ap-pfwrap ap-pfbody">
+	<div class="ds-container ds-container-wide wk-pf-body">
 		{{template "base/alert" .}}
 		{{$activityVisible := or .IsAdmin (eq .SignedUserID .ContextUser.ID) (not .ContextUser.KeepActivityPrivate)}}
 		{{if eq .TabName "overview"}}
-			<div class="ap-pfgrid">
-				<div class="ap-main">
+			<div class="ds-split wk-pf-split">
+				<div class="ds-min0 wk-pf-main">
 					{{if .AscProfileWork}}
-						<section class="ap-panel padded" aria-labelledby="ap-work-title">
-							<div class="ap-sechead"><h2 id="ap-work-title">{{ctx.Locale.Tr "user.asc_profile.working_now"}}</h2><span>{{ctx.Locale.Tr "user.asc_profile.resume" (or .ContextUser.FullName .ContextUser.Name)}}</span></div>
-							<ul class="ap-work">
+						<section class="ds-card" aria-labelledby="wk-work-title">
+							<div class="ds-card-h">
+								<h2 id="wk-work-title">{{ctx.Locale.Tr "user.asc_profile.working_now"}}</h2>
+								<span class="ds-card-sub">{{ctx.Locale.Tr "user.asc_profile.resume" (or .ContextUser.FullName .ContextUser.Name)}}</span>
+							</div>
+							<ul class="wk-pf-work">
 								{{range .AscProfileWork}}
 									<li>
 										<a href="{{.Link}}">
-											<span class="ap-dot {{.Tone}}" aria-hidden="true"></span>
-											<span class="body">
-												<span class="title">{{.Title}}</span>
-												<span class="where">{{.Repo}}{{if .Detail}} &middot; {{.Detail}}{{end}} &middot; {{DateUtils.TimeSince .Updated}}</span>
+											<span class="ds-dot ds-dot-{{if eq .Tone "amber"}}warn{{else if eq .Tone "red"}}err{{else if eq .Tone "green"}}ok{{end}}" aria-hidden="true"></span>
+											<span class="wk-pf-work-body">
+												<span class="wk-pf-work-title">{{.Title}}</span>
+												<span class="wk-pf-work-where">{{.Repo}}{{if .Detail}} &middot; {{.Detail}}{{end}} &middot; {{DateUtils.TimeSince .Updated}}</span>
 											</span>
-											{{if .State}}<span class="ap-pill {{.StateTone}}">{{.State}}</span>{{end}}
+											{{if .State}}<span class="ds-chip{{if eq .StateTone "green"}} ds-chip-ok{{else if eq .StateTone "red"}} ds-chip-err{{end}}">{{.State}}</span>{{end}}
 										</a>
 									</li>
 								{{end}}
@@ -27,7 +31,7 @@
 						</section>
 					{{end}}
 					{{if .ProfileReadme}}
-						<div id="readme_profile" class="{{if not .IsProfileReadmePlain}}markup{{end}}">
+						<div id="readme_profile" class="ds-card wk-pf-readme {{if not .IsProfileReadmePlain}}markup{{end}}">
 						{{if .IsProfileReadmePlain}}
 							<pre>{{.ProfileReadme}}</pre>
 						{{else}}
@@ -37,30 +41,40 @@
 					{{end}}
 					{{if $activityVisible}}
 						{{if .AscHeat}}
-							<section class="ap-panel padded" aria-labelledby="ap-heat-title">
-								<div class="ap-sechead"><h2 id="ap-heat-title">{{ctx.Locale.Tr "user.asc_profile.contributions"}}</h2><span>{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_one" "user.asc_profile.total_n" .AscHeat.Total}}</span></div>
-								{{template "user/asc_heatmap" .AscHeat}}
+							<section class="ds-card" aria-labelledby="wk-heat-title">
+								<div class="ds-card-h">
+									<h2 id="wk-heat-title">{{ctx.Locale.Tr "user.asc_profile.contributions"}}</h2>
+									<span class="ds-card-sub">{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_one" "user.asc_profile.total_n" .AscHeat.Total}}</span>
+								</div>
+								<div class="ds-card-b">{{template "user/asc_heatmap" .AscHeat}}</div>
 							</section>
 						{{end}}
-						<section class="ap-panel" aria-labelledby="ap-recent-title">
-							<div class="ap-panel-head"><h2 id="ap-recent-title">{{ctx.Locale.Tr "user.asc_profile.recent_activity"}}</h2><span class="hint"><a href="{{.ContextUser.HomeLink}}?tab=activity">{{ctx.Locale.Tr "user.asc_profile.all_activity"}}</a></span></div>
+						<section class="ds-card" aria-labelledby="wk-recent-title">
+							<div class="ds-card-h">
+								<h2 id="wk-recent-title">{{ctx.Locale.Tr "user.asc_profile.recent_activity"}}</h2>
+								<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{.ContextUser.HomeLink}}?tab=activity">{{ctx.Locale.Tr "user.asc_profile.all_activity"}}</a>
+							</div>
 							{{if .Feeds}}
-								<ul class="ap-recent">
-									{{range .Feeds}}<li><span class="ap-dot" aria-hidden="true"></span><span>{{template "user/dashboard/feed_sentence" .}}</span></li>{{end}}
+								<ul class="wk-feed">
+									{{range .Feeds}}<li>{{template "user/dashboard/feed_sentence" .}}</li>{{end}}
 								</ul>
 							{{else}}
-								<p class="ap-empty">{{ctx.Locale.Tr "user.asc_profile.activity_empty"}}</p>
+								<div class="ds-empty wk-empty-in">
+									<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-activity" 32}}</span>
+									<h3>{{ctx.Locale.Tr "asc_work.pf_no_activity"}}</h3>
+									<p>{{ctx.Locale.Tr "user.asc_profile.activity_empty"}}</p>
+								</div>
 							{{end}}
 						</section>
 					{{else}}
-						<p class="ap-quiet" id="visibility-hint">{{ctx.Locale.Tr "user.disabled_public_activity"}}</p>
+						<p class="ds-callout" id="visibility-hint">{{ctx.Locale.Tr "user.disabled_public_activity"}}</p>
 					{{end}}
 				</div>
-				<aside class="ap-aside" aria-label="{{ctx.Locale.Tr "user.asc_profile.about"}}">
+				<aside class="ds-rail" aria-label="{{ctx.Locale.Tr "user.asc_profile.about"}}">
 					{{if .AscProfileRepos}}
-						<section class="ap-panel padded" aria-labelledby="ap-prepos-title">
-							<h2 id="ap-prepos-title">{{ctx.Locale.Tr "user.repositories"}}</h2>
-							<ul class="ap-pfrepos">
+						<section class="ds-card" aria-labelledby="wk-prepos-title">
+							<div class="ds-card-h"><h2 id="wk-prepos-title">{{ctx.Locale.Tr "user.repositories"}}</h2></div>
+							<ul class="wk-pf-repos">
 								{{range .AscProfileRepos}}
 									<li><a href="{{.Link}}">{{.FullName}}</a><span>{{ctx.Locale.TrN .Changes "user.asc_profile.changes_one" "user.asc_profile.changes_n" .Changes}}</span></li>
 								{{end}}
@@ -68,29 +82,29 @@
 						</section>
 					{{end}}
 					{{if and .Orgs .HasOrgsVisible}}
-						<section class="ap-panel padded" aria-labelledby="ap-porgs-title">
-							<h2 id="ap-porgs-title">{{ctx.Locale.Tr "user.asc_profile.organizations"}}</h2>
-							<div class="ap-pills">
+						<section class="ds-card" aria-labelledby="wk-porgs-title">
+							<div class="ds-card-h"><h2 id="wk-porgs-title">{{ctx.Locale.Tr "user.asc_profile.organizations"}}</h2></div>
+							<ul class="wk-pf-orgs">
 								{{range .Orgs}}
 									{{if (or .Visibility.IsPublic (and ($.SignedUser) (or .Visibility.IsLimited (and (.HasMemberWithUserID ctx $.SignedUserID) .Visibility.IsPrivate) ($.IsAdmin))))}}
-										<a class="ap-pill" href="{{.HomeLink}}">{{.DisplayName}}</a>
+										<li><a href="{{.HomeLink}}">{{ctx.AvatarUtils.Avatar . 32}}<span>{{.DisplayName}}</span></a></li>
 									{{end}}
 								{{end}}
-							</div>
+							</ul>
 						</section>
 					{{end}}
-					<section class="ap-panel padded ap-note">
+					<p class="ds-callout">
 						{{if eq .SignedUserID .ContextUser.ID}}
 							{{ctx.Locale.Tr "user.asc_profile.visible_self" (print AppSubUrl "/user/settings#keep-activity-private")}}
 						{{else}}
 							{{ctx.Locale.Tr "user.asc_profile.visible_other" (or .ContextUser.FullName .ContextUser.Name)}}
 						{{end}}
-					</section>
+					</p>
 				</aside>
 			</div>
 		{{else if eq .TabName "activity"}}
 			{{if eq .SignedUserID .ContextUser.ID}}
-			<p id="visibility-hint">
+			<p class="ds-callout ds-mb-16" id="visibility-hint">
 				{{if .ContextUser.KeepActivityPrivate}}
 					{{ctx.Locale.Tr "user.public_activity.visibility_hint.self_private" (print AppSubUrl "/user/settings#keep-activity-private")}}
 				{{else}}
@@ -103,24 +117,29 @@
 			</p>
 			{{else}}
 				{{if .IsAdmin}}
-				<div id="visibility-hint" class="ui info message">
+				<div id="visibility-hint" class="ds-banner ds-mb-16" role="status">
+					<div class="ds-banner-body">
 					{{if or .ContextUser.KeepActivityPrivate (eq .ContextUser.Visibility 2)}}
 						{{ctx.Locale.Tr "user.public_activity.visibility_hint.admin_private"}}
 					{{else}}
 						{{ctx.Locale.Tr "user.public_activity.visibility_hint.admin_public"}}
 					{{end}}
+					</div>
 				</div>
 				{{else}}
 					{{if .ContextUser.KeepActivityPrivate}}
-						<p id="visibility-hint">{{ctx.Locale.Tr "user.disabled_public_activity"}}</p>
+						<p class="ds-callout ds-mb-16" id="visibility-hint">{{ctx.Locale.Tr "user.disabled_public_activity"}}</p>
 					{{end}}
 				{{end}}
 			{{end}}
 			{{if $activityVisible}}
 				{{if .AscHeat}}
-					<section class="ap-panel padded" aria-labelledby="ap-heat-title">
-						<div class="ap-sechead"><h2 id="ap-heat-title">{{ctx.Locale.Tr "user.asc_profile.contributions"}}</h2><span>{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_one" "user.asc_profile.total_n" .AscHeat.Total}}</span></div>
-						{{template "user/asc_heatmap" .AscHeat}}
+					<section class="ds-card ds-mb-16" aria-labelledby="wk-heat-title">
+						<div class="ds-card-h">
+							<h2 id="wk-heat-title">{{ctx.Locale.Tr "user.asc_profile.contributions"}}</h2>
+							<span class="ds-card-sub">{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_one" "user.asc_profile.total_n" .AscHeat.Total}}</span>
+						</div>
+						<div class="ds-card-b">{{template "user/asc_heatmap" .AscHeat}}</div>
 					</section>
 				{{end}}
 				{{template "user/dashboard/feeds" .}}
