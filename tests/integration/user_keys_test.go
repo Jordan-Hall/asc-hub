@@ -23,13 +23,13 @@ func TestVerifySSHkeyPage(t *testing.T) {
 	session := loginUser(t, "user2")
 
 	page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user/settings/keys"), http.StatusOK).Body)
-	link, exists := page.Find("#keys-ssh a.button[href^='?verify_ssh=']").Attr("href")
+	link, exists := page.Find("#keys-ssh a.ds-btn[href^='?verify_ssh=']").Attr("href")
 	assert.True(t, exists)
 
 	page = NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", fmt.Sprintf("/user/settings/keys%s", link)), http.StatusOK).Body)
 
 	// The hint contains a link to the same page the user is at now to get it reloaded if followed
-	linkShown, exists := page.Find("#keys-ssh form[action='/user/settings/keys'] .help a").Attr("href")
+	linkShown, exists := page.Find("#keys-ssh form[action='/user/settings/keys'] .ds-hint a").Attr("href")
 	assert.True(t, exists)
 	// QueryUnescape links before comparison, because they contain "%3a" versus "%3A", both unescaping to ":"
 	linkUnescaped, err := url.QueryUnescape(link)

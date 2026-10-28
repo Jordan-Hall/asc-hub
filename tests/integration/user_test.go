@@ -340,7 +340,7 @@ func findLatestTokenID(t *testing.T, session *TestSession) (string, int) {
 		id, err := strconv.Atoi(tokenID)
 		require.NoError(t, err)
 		if id > latestTokenID {
-			latestTokenName = s.Parent().Parent().Find(".flex-item-title").Text()
+			latestTokenName = s.Closest("li").Find(".ds-li-title").Text()
 			latestTokenID = id
 		}
 	})
