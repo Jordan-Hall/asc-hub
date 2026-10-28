@@ -651,6 +651,9 @@ func registerRoutes(m *web.Route) {
 
 	m.Post("/-/asc/rpc/{service}/{method}", ignSignIn, repo.AscRPCProxy)
 	m.Get("/download", ignSignIn, Download)
+	m.Get("/-/about", ignSignIn, AscAbout)
+	m.Get("/-/docs", ignSignIn, AscDocs)
+	m.Get("/-/get-started", reqSignIn, AscGetStarted)
 	m.Get("/user/welcome", reqSignIn, Welcome)
 	m.Methods("GET, HEAD", "/-/download/*", ignSignIn, DownloadFile)
 
@@ -908,9 +911,8 @@ func registerRoutes(m *web.Route) {
 		m.Get("/system_status", admin.SystemStatus)
 		m.Post("", web.Bind(forms.AdminDashboardForm{}), admin.DashboardPost)
 
-		if setting.Database.Type.IsMySQL() {
-			m.Get("/self_check", admin.SelfCheck)
-		}
+		m.Get("/self_check", admin.SelfCheck)
+		m.Get("/asc/backups", admin.Backups)
 
 		m.Group("/config", func() {
 			m.Get("", admin.Config)

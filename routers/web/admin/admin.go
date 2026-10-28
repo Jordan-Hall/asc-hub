@@ -17,6 +17,7 @@ import (
 	"forgejo.org/modules/cache"
 	"forgejo.org/modules/graceful"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/queue"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/updatechecker"
 	"forgejo.org/modules/web"
@@ -31,7 +32,6 @@ const (
 	tplDashboard    base.TplName = "admin/dashboard"
 	tplSystemStatus base.TplName = "admin/system_status"
 	tplSelfCheck    base.TplName = "admin/self_check"
-	tplCron         base.TplName = "admin/cron"
 	tplQueue        base.TplName = "admin/queue"
 	tplStacktrace   base.TplName = "admin/stacktrace"
 	tplQueueManage  base.TplName = "admin/queue_manage"
@@ -167,6 +167,7 @@ func Dashboard(ctx *context.Context) {
 	}...)
 	ctx.Data["Entries"] = entries
 
+	dashboardFacts(ctx)
 	prepareDeprecatedWarningsAlert(ctx)
 	ctx.HTML(http.StatusOK, tplDashboard)
 }
@@ -220,6 +221,7 @@ func DashboardPost(ctx *context.Context) {
 }
 
 func SelfCheck(ctx *context.Context) {
+	ctx.Data["Title"] = ctx.Tr("asc_admin.health")
 	ctx.Data["PageIsAdminSelfCheck"] = true
 	r, err := db.CheckCollationsDefaultEngine()
 	if err != nil {
@@ -251,14 +253,17 @@ func SelfCheck(ctx *context.Context) {
 		ctx.Data["CacheSlow"] = fmt.Sprint(elapsed)
 	}
 
+	healthFacts(ctx)
 	ctx.HTML(http.StatusOK, tplSelfCheck)
 }
 
 func CronTasks(ctx *context.Context) {
-	ctx.Data["Title"] = ctx.Tr("admin.monitor.cron")
+	// the scheduled tasks share a page with the queues
+	ctx.Data["Title"] = ctx.Tr("asc_admin.monitor")
 	ctx.Data["PageIsAdminMonitorCron"] = true
 	ctx.Data["Entries"] = cron.ListTasks()
-	ctx.HTML(http.StatusOK, tplCron)
+	ctx.Data["Queues"] = queue.GetManager().ManagedQueues()
+	ctx.HTML(http.StatusOK, tplQueue)
 }
 
 func MonitorStats(ctx *context.Context) {
