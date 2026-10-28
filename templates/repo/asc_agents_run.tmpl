@@ -87,7 +87,7 @@ The page works without the script: the log shows what existed when it was drawn,
 			</section>
 			{{end}}
 			<div class="rv-banner rv-banner-err{{if not .AscAgentRun.Failure}} tw-hidden{{end}}" role="alert" data-run-failure>{{.AscAgentRun.Failure}}</div>
-			<div class="rv-banner rv-banner-warn{{if not .AscAgentRunWaiting}} tw-hidden{{end}}" role="status" data-run-waiting><div>{{ctx.Locale.Tr "asc_review.run_waiting"}} <a href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer_link"}}</a></div></div>
+			<div class="rv-banner rv-banner-warn{{if or (not .AscAgentRunWaiting) .AscAgentRequest}} tw-hidden{{end}}" role="status" data-run-waiting><div>{{ctx.Locale.Tr "asc_review.run_waiting"}} <a href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer_link"}}</a></div></div>
 
 			{{if and .AscAgentCanAct (not .AscAgentRun.State.Active) .AscAgentRun.Failure}}
 			<details class="rv-disclose ar-continue" data-testid="asc-agent-continue">

@@ -513,7 +513,7 @@
     padding: 0;
   }
 
-  .ar-rail a {
+  .ar-rail li a {
     display: block;
     padding: 11px 14px;
     border-bottom: 1px solid var(--line-3);
@@ -521,16 +521,16 @@
     text-decoration: none;
   }
 
-  .ar-rail a[aria-current] {
+  .ar-rail li a[aria-current] {
     background: var(--primary-tint);
   }
 
-  .ar-rail a b {
+  .ar-rail li a b {
     display: block;
     font-size: 13.5px;
   }
 
-  .ar-rail a span {
+  .ar-rail li a span {
     font-size: 12.5px;
     color: var(--text-2);
   }
@@ -727,4 +727,70 @@
   gap: 12px;
   align-items: center;
   padding: 8px 16px;
+}
+
+[data-run-waiting] a,
+.ar-ask a:not(.rv-btn) {
+  text-decoration: underline;
+}
+
+.sp-days,
+.sp-agents,
+.rv-stats .rv-stat {
+  min-width: 0;
+}
+
+.rv-stat .rv-row {
+  flex-wrap: wrap;
+}
+
+.sp-agents .rv-tablewrap,
+.sp-days .rv-tablewrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.ar-wrap {
+  margin-top: 16px;
+}
+
+.ar-rail-h .rv-btn {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}
+
+.rv-stat .rv-row .rv-input {
+  min-width: 0;
+  flex: 1 1 120px;
+}
+
+.rv-stat .rv-btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 639px) {
+  .sp-agents th:nth-child(3),
+  .sp-agents td:nth-child(3),
+  .sp-agents th:nth-child(4),
+  .sp-agents td:nth-child(4) {
+    display: none;
+  }
+
+  .sp-agents .rv-tbl th,
+  .sp-agents .rv-tbl td {
+    padding-inline: 8px;
+  }
+
+  .sp-cap-in {
+    width: 64px;
+  }
+
+  .sp-agents .rv-av {
+    display: none;
+  }
+}
+
+.ag-recent-row .rv-btn {
+  white-space: nowrap;
 }
