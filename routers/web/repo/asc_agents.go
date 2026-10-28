@@ -68,6 +68,18 @@ type ascAgentRunRow struct {
 	Link      string
 	// Initials is the mark of the agent avatar: its first letter and its trailing number ("c2" for coder-2).
 	Initials string
+	// Progress is "3 of 4 steps"; TokensPct the share of the token limit used (0 without a limit).
+	Progress    ascagentui.Progress
+	TokensLimit string
+	TokensPct   int
+	TokensWarn  bool
+	Duration    string
+	Paused      bool
+	Pending     int
+	Task        string
+	ByInitials  string
+	Workflow    uint64
+	Active      bool
 }
 
 // ascAgentInitials draws the avatar mark of an agent name: the first letter and a trailing number, else the first two letters.
@@ -106,6 +118,21 @@ func ascAgentRunOf(run *ascv1.AgentRun, name, runsLink string, wantID uint64) (a
 		Link:      runsLink + "/runs/" + strconv.FormatUint(run.GetId(), 10),
 	}
 	row.Initials = ascAgentInitials(row.Agent)
+	row.Progress = ascagentui.ProgressOf(run.GetProgress())
+	if lim := run.GetLimits().GetMaxTokens(); lim > 0 {
+		row.TokensLimit = ascagentui.FormatCount(lim)
+		row.TokensPct = ascagentui.Percent(run.GetUsage().GetTokens(), lim)
+		row.TokensWarn = row.TokensPct >= 80
+	}
+	if sec := run.GetUsage().GetRuntimeSeconds(); sec > 0 {
+		row.Duration = ascagentui.FormatDuration(uint64(sec))
+	}
+	row.Paused = run.GetPaused()
+	row.Pending = int(min(run.GetPendingRequests(), 1000))
+	row.Task = ascagentui.CleanLine(run.GetTask(), 300)
+	row.ByInitials = ascAgentInitials(row.CreatedBy)
+	row.Workflow = run.GetWorkflowRunId()
+	row.Active = row.State.Active
 	if row.Title == "" {
 		row.Title = "Run " + strconv.FormatUint(row.ID, 10)
 	}
@@ -159,6 +186,11 @@ func AscAgents(ctx *context.Context) {
 	ctx.Data["AscAgentsFilterMine"] = mine
 	ctx.Data["AscAgentsFilterAgent"] = agent
 	ctx.Data["AscAgentsStateFilters"] = ascagentui.RunStateSlugs
+	q := ctx.FormTrim("q")
+	if len(q) > 80 || strings.ContainsAny(q, "\x00\r\n") {
+		q = ""
+	}
+	ctx.Data["AscAgentsFilterQ"] = q
 
 	req := &ascv1.ListAgentRunsRequest{Repo: env.ref(), States: states, Agent: agent, Limit: ascAgentsPageSize, PageToken: token}
 	if mine {
@@ -197,7 +229,10 @@ func AscAgents(ctx *context.Context) {
 		}
 		rows = append(rows, row)
 	}
-	ctx.Data["AscAgentsRuns"] = rows
+	ascAgentsLoadBoard(ctx, env, callCtx, conn)
+	shown := ascAgentsFilterRows(rows, q)
+	ctx.Data["AscAgentsRuns"] = shown
+	ctx.Data["AscAgentsLoaded"] = len(rows)
 	ctx.Data["AscAgentsActive"] = active
 	ctx.Data["AscAgentsWaiting"] = waiting
 	ctx.Data["AscAgentsDone"] = done
@@ -212,6 +247,9 @@ func AscAgents(ctx *context.Context) {
 		}
 		if agent != "" {
 			q.Set("agent", agent)
+		}
+		if search := ctx.FormTrim("q"); search != "" && len(search) <= 80 {
+			q.Set("q", search)
 		}
 		q.Set("page", next)
 		ctx.Data["AscAgentsNext"] = env.runsLink() + "?" + q.Encode()
@@ -230,6 +268,7 @@ type ascAgentForm struct {
 	Key     string
 	Model   string
 	Paths   string
+	PlanFirst bool
 	Budget  ascagentui.BudgetInput
 	OpID    string
 	Errors  map[string]string
@@ -416,6 +455,7 @@ func ascAgentsRenderForm(ctx *context.Context, env *ascAgentsEnv, form *ascAgent
 		defer done()
 		keys := ascAgentKeyOptions(ctx, uctx, ascv1.NewAiProvidersClient(conn))
 		ctx.Data["AscAgentKeys"] = keys
+		ascAgentsLoadNewExtras(ctx, env, readCtx, uctx, form)
 		models := map[string][]string{}
 		for _, k := range keys {
 			if len(k.Models) > 0 {
@@ -455,6 +495,7 @@ func AscAgentsCreate(ctx *context.Context) {
 		Key:    ctx.FormTrim("key"),
 		Model:  ctx.FormTrim("model"),
 		Paths:  ctx.FormString("paths"),
+		PlanFirst: ctx.FormBool("plan_first"),
 		OpID:   ctx.FormTrim("op"),
 		Budget: ascagentui.BudgetInput{
 			Changes: ctx.FormTrim(ascagentui.BudgetFields.Changes),
@@ -475,7 +516,7 @@ func AscAgentsCreate(ctx *context.Context) {
 		form.Target = ctx.Repo.Repository.DefaultBranch
 	}
 
-	req := &ascv1.CreateAgentRunRequest{Repo: env.ref(), Agent: form.Agent}
+	req := &ascv1.CreateAgentRunRequest{Repo: env.ref(), Agent: form.Agent, PlanFirst: form.PlanFirst}
 	if t, ok := ascagentui.CheckFreeText(form.Task, ascagentui.MaxTaskBytes); ok {
 		req.Task = t
 	} else {
@@ -566,7 +607,12 @@ func AscAgentsCreate(ctx *context.Context) {
 		ascAgentsRenderForm(ctx, env, &form, http.StatusBadGateway)
 		return
 	}
-	ctx.Flash.Success("Run " + strconv.FormatUint(row.ID, 10) + " started.")
+	started := "Run " + strconv.FormatUint(row.ID, 10) + " started."
+	if len(resp.GetLowered()) > 0 {
+		ctx.Flash.Warning(ascAgentsLoweredText(started+" A limit was above the policy cap.", resp.GetLowered()))
+	} else {
+		ctx.Flash.Success(started)
+	}
 	ctx.Redirect(row.Link)
 }
 
@@ -650,6 +696,16 @@ func AscAgentsRun(ctx *context.Context) {
 	ctx.Data["AscAgentCanAct"] = ctx.Repo.CanWrite(unit.TypeCode)
 	ctx.Data["AscAgentsMaxInput"] = ascagentui.MaxInputBytes
 	ctx.Data["AscAgentsPollURL"] = env.runsLink() + "/runs/" + strconv.FormatUint(id, 10) + "/events"
+	ctx.Data["AscAgentRunTask"] = ascagentui.CleanText(run.GetTask(), 1200)
+	ctx.Data["AscAgentRunPaused"] = run.GetPaused()
+	ctx.Data["AscAgentRunTokensLimit"] = run.GetLimits().GetMaxTokens()
+	ctx.Data["AscAgentRunCostLimit"] = ascAgentsUSDField(run.GetLimits().GetMaxCostMicroUsd())
+	ctx.Data["AscAgentRunMinutesLimit"] = run.GetLimits().GetMaxRuntimeSeconds() / 60
+	ctx.Data["AscAgentRunChangesLimit"] = run.GetLimits().GetMaxChanges()
+	ctx.Data["AscAgentRunSummaryTokens"] = ascagentui.FormatCount(run.GetUsage().GetTokens())
+	ctx.Data["AscAgentRunSummaryCost"] = ascagentui.FormatUSD(run.GetUsage().GetCostMicroUsd())
+	ctx.Data["AscAgentRunSummaryTime"] = ascagentui.FormatDuration(uint64(run.GetUsage().GetRuntimeSeconds()))
+	ascAgentsLoadRunBoard(ctx, env, callCtx, conn, run)
 	ctx.HTML(http.StatusOK, tplAscAgentsRun)
 }
 
@@ -780,6 +836,9 @@ func AscAgentsCancel(ctx *context.Context) {
 	}
 	ascAgentsLimitBody(ctx)
 	back := env.runsLink() + "/runs/" + strconv.FormatUint(id, 10)
+	if ctx.FormString("next") == "list" {
+		back = env.runsLink()
+	}
 	reason, ok := ascagentui.CheckLine(ctx.FormString("reason"), ascagentui.MaxReasonBytes, true)
 	if !ok {
 		ctx.Flash.Error("The reason is at most 256 characters on one line.")
@@ -849,4 +908,12 @@ func AscAgentsInput(ctx *context.Context) {
 	}
 	ctx.Flash.Success("Sent to the agent.")
 	ctx.Redirect(back)
+}
+
+// ascAgentsUSDField writes micro-USD as the dollars a form field takes: 5000000 is "5", 1500000 is "1.5". 0 is "".
+func ascAgentsUSDField(micro uint64) string {
+	if micro == 0 {
+		return ""
+	}
+	return strconv.FormatFloat(float64(micro)/1e6, 'f', -1, 64)
 }

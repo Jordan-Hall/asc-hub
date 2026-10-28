@@ -425,3 +425,78 @@ func TestIsFetchFirst(t *testing.T) {
 	assert.False(t, isFetchFirst("! [rejected] refs/pull/1/head (already exists)"))
 	assert.False(t, isFetchFirst("fetch first"))
 }
+
+func TestImportPushForAnImporterNamesTheUserAndUsesTheBulkClient(t *testing.T) {
+	fx := newFixture(t)
+	c1 := fx.commit("one")
+	refs := []PushRef{{Name: "refs/heads/main", Old: zeroID, New: c1}}
+
+	ctx := WithImporter(WithBulkImport(t.Context()), 42)
+	require.NoError(t, ImportPush(ctx, ImportRequest{Repo: fx.repo, Refs: refs}))
+	require.Len(t, fx.fake.imports, 1)
+	assert.Equal(t, int64(42), fx.fake.imports[0].GetPusherId(), "the importing user is the pusher")
+
+	// A request that names a pusher keeps it; the importer fills the gap only.
+	require.NoError(t, ImportPush(WithImporter(t.Context(), 42), ImportRequest{Repo: fx.repo, PusherID: 7, Refs: refs}))
+	assert.Equal(t, int64(7), fx.fake.imports[1].GetPusherId())
+
+	// No importer, no pusher.
+	require.NoError(t, ImportPush(t.Context(), ImportRequest{Repo: fx.repo, Refs: refs}))
+	assert.Equal(t, int64(0), fx.fake.imports[2].GetPusherId())
+}
+
+func TestBulkImportAllowsALongerCall(t *testing.T) {
+	assert.False(t, isBulk(t.Context()))
+	assert.True(t, isBulk(WithBulkImport(t.Context())))
+	assert.Greater(t, BulkImportTimeout, ImportTimeout)
+	assert.Equal(t, int64(0), importerOf(t.Context()))
+	assert.Equal(t, int64(0), importerOf(WithImporter(t.Context(), -3)), "the Actions user is no importer")
+}
+
+func TestImportHistoryImportsOnceAndRepeatsAsNoOp(t *testing.T) {
+	fx := newFixture(t)
+	c1 := fx.commit("one")
+	c2 := fx.commit("two", c1)
+	want := []PushRef{
+		{Name: "refs/heads/main", New: c2},
+		{Name: "refs/tags/v1", New: c1},
+		{Name: "refs/heads/gone", New: zeroID}, // nothing to import
+	}
+	ctx := WithImporter(WithBulkImport(t.Context()), 9)
+	require.NoError(t, ImportHistory(ctx, fx.repo, want))
+	require.Len(t, fx.fake.imports, 1)
+	req := fx.fake.imports[0]
+	assert.Equal(t, filepath.Join(fx.bridge, "objects"), req.GetObjectDir())
+	assert.Equal(t, int64(9), req.GetPusherId())
+	require.Len(t, req.GetUpdates(), 2)
+	assert.Equal(t, "refs/heads/main", req.GetUpdates()[0].GetName())
+	assert.Equal(t, mustHex(zeroID), req.GetUpdates()[0].GetOldGit(), "a ref asc lacks is created")
+	assert.Equal(t, mustHex(c2), req.GetUpdates()[0].GetNewGit())
+
+	// Run again: asc holds every ref, so nothing is sent.
+	require.NoError(t, ImportHistory(ctx, fx.repo, want))
+	assert.Len(t, fx.fake.imports, 1)
+
+	// A branch that moved on is sent as a fast-forward from where asc has it, never forced.
+	c3 := fx.commit("three", c2)
+	require.NoError(t, ImportHistory(ctx, fx.repo, []PushRef{{Name: "refs/heads/main", New: c3}}))
+	require.Len(t, fx.fake.imports, 2)
+	u := fx.fake.imports[1].GetUpdates()[0]
+	assert.Equal(t, mustHex(c2), u.GetOldGit())
+	assert.Equal(t, mustHex(c3), u.GetNewGit())
+}
+
+func TestImportHistoryStopsAtARefusal(t *testing.T) {
+	fx := newFixture(t)
+	c1 := fx.commit("one")
+	fx.fake.importErr = status.Error(codes.InvalidArgument, "path policy: .env is not allowed")
+	err := ImportHistory(t.Context(), fx.repo, []PushRef{{Name: "refs/heads/main", New: c1}})
+	msg, ok := RejectMessage(err)
+	require.True(t, ok)
+	assert.Equal(t, "path policy: .env is not allowed", msg)
+	assert.Len(t, fx.fake.imports, 1, "a refused import is not retried with force")
+
+	other := *fx.repo
+	other.StorageBackend = "git"
+	require.ErrorIs(t, ImportHistory(t.Context(), &other, nil), ErrNotAsc)
+}

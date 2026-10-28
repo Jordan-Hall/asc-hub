@@ -54,6 +54,52 @@ The text of the policy file and every text from asc was cleaned by services/asct
 				{{with $.AscQuarantine}}{{if not .Problem}}<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_stat_quar"}}</div><div class="rv-stat-v">{{len .Rows}}{{if .More}}+{{end}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_stat_quar_d"}}</div></div>{{end}}{{end}}
 			</div>
 
+			{{with .Stats}}
+			<div class="rv-stats rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.gate_hist_label"}}" data-testid="asc-gate-history">
+				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_checked"}}</div><div class="rv-stat-v">{{.Checked}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_versions"}}{{if .Truncated}} · {{ctx.Locale.Tr "asc_review.gate_hist_truncated"}}{{end}}</div></div>
+				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_first"}}</div><div class="rv-stat-v ag-v-ok">{{.FirstTime}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_first_pct" .FirstPct}}</div></div>
+				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_held"}}</div><div class="rv-stat-v ag-v-warn">{{.Held}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_held_d" .HeldCleared .HeldOpen}}</div></div>
+				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_median"}}</div><div class="rv-stat-v">{{if .Median}}{{.Median}}{{else}}&mdash;{{end}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_median_d"}}</div></div>
+			</div>
+			<section class="rv-card rv-gap" aria-labelledby="asc-gate-days" data-testid="asc-gate-days">
+				<div class="rv-card-h"><h2 id="asc-gate-days">{{ctx.Locale.Tr "asc_review.gate_days"}}</h2></div>
+				{{if .Days}}
+				<div class="sp-bars gt-bars" role="img" aria-label="{{ctx.Locale.Tr "asc_review.gate_days_alt"}}">{{range .Days}}<span class="gt-bar" title="{{.Day}}: {{.Checked}} / {{.Held}}"><i class="gt-c" style="height:{{if .CheckedPct}}{{.CheckedPct}}{{else}}2{{end}}%"></i><i class="gt-h" style="height:{{.HeldPct}}%"></i></span>{{end}}</div>
+				<details class="sp-table"><summary>{{ctx.Locale.Tr "asc_review.spend_table"}}</summary>
+					<div class="rv-tablewrap"><table class="rv-tbl"><thead><tr><th scope="col">{{ctx.Locale.Tr "asc_review.spend_day"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.gate_hist_checked"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.gate_hist_held"}}</th></tr></thead><tbody>{{range .Days}}<tr><th scope="row">{{.Day}}</th><td class="rv-num">{{.Checked}}</td><td class="rv-num">{{.Held}}</td></tr>{{end}}</tbody></table></div>
+				</details>
+				{{else}}<div class="rv-card-b"><p class="rv-muted">{{ctx.Locale.Tr "asc_review.gate_days_none"}}</p></div>{{end}}
+			</section>
+			{{if .Rules}}
+			<section class="rv-card rv-gap" aria-labelledby="asc-gate-perrule" data-testid="asc-gate-perrule">
+				<div class="rv-card-h"><h2 id="asc-gate-perrule">{{ctx.Locale.Tr "asc_review.gate_perrule"}}</h2></div>
+				<ul class="rv-list">{{range .Rules}}<li class="gt-rule"><span>{{.Rule}}</span><span class="rv-num">{{ctx.Locale.Tr "asc_review.gate_held_of" .Held .Checked}}</span></li>{{end}}</ul>
+			</section>
+			{{end}}
+			<section class="rv-card rv-gap" aria-labelledby="asc-gate-over" data-testid="asc-gate-overrides">
+				<div class="rv-card-h"><h2 id="asc-gate-over">{{ctx.Locale.Tr "asc_review.gate_over_title"}}</h2><span class="rv-count rv-end">{{.Active}}</span></div>
+				<p class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.gate_over_lead"}}</p>
+				{{if .Overrides}}
+				<ul class="rv-list">{{range .Overrides}}
+					<li class="gt-rule gt-over"><div><b>{{.Rule}}</b> <code>{{.Change}}</code><div class="rv-li-sub">{{.Reason}}</div><div class="rv-li-sub">{{ctx.Locale.Tr "asc_review.gate_over_by" .GrantedBy}} {{DateUtils.TimeSince .GrantedAt}}{{if .Proof}} · {{ctx.Locale.Tr "asc_review.gate_over_proof"}} <code>{{.Proof}}</code>{{end}}</div></div>
+					{{if .Active}}{{if $.AscGate.Stats.CanOverride}}<form method="post" action="{{$.AscGate.Stats.OverrideURL}}/{{.ID}}/revoke">{{$.CsrfTokenHtml}}<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.gate_over_revoke"}}</button></form>{{else}}<span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_review.gate_over_active"}}</span>{{end}}{{else}}<span class="rv-pill">{{ctx.Locale.Tr "asc_review.gate_over_revoked" .RevokedBy}}</span>{{end}}</li>
+				{{end}}</ul>
+				{{else}}<p class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.gate_over_none"}}</p>{{end}}
+				{{if .CanOverride}}
+				<form class="rv-card-b rv-form gt-over-form" method="post" action="{{.OverrideURL}}">
+					{{$.CsrfTokenHtml}}
+					<div class="rv-formgrid rv-formgrid-3">
+						<div class="rv-field"><label class="rv-label" for="gt-ov-change">{{ctx.Locale.Tr "asc_review.gate_over_change"}}</label><input class="rv-input rv-mono" id="gt-ov-change" name="change" required maxlength="32" pattern="[k-z]{32}" autocomplete="off" spellcheck="false"></div>
+						<div class="rv-field"><label class="rv-label" for="gt-ov-rule">{{ctx.Locale.Tr "asc_review.gate_over_rule"}}</label><input class="rv-input" id="gt-ov-rule" name="rule" required maxlength="120" autocomplete="off"></div>
+						<div class="rv-field"><label class="rv-label" for="gt-ov-reason">{{ctx.Locale.Tr "asc_review.gate_over_reason"}}</label><input class="rv-input" id="gt-ov-reason" name="reason" required maxlength="500" autocomplete="off"></div>
+					</div>
+					<p class="rv-hint">{{ctx.Locale.Tr "asc_review.gate_over_help"}}</p>
+					<button class="rv-btn rv-btn-primary rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.gate_over_grant"}}</button>
+				</form>
+				{{end}}
+			</section>
+			{{end}}
+
 			<div class="rv-cols rv-cols-gate rv-gap">
 					{{if .HeldShown}}
 					<section class="rv-card" aria-labelledby="asc-gate-held">

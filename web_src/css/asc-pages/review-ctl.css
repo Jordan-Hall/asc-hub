@@ -1,0 +1,796 @@
+/* stylelint-disable scale-unlimited/declaration-strict-value, csstools/value-no-unknown-custom-properties -- the tokens of the review pages are defined in review-kit.css */
+/* Agent and trust boards, second layer: the runs list with its side column, the needs-you card, spend, checkpoints,
+   the merge queue ETAs, gate statistics and the operation log panel. Mobile first. */
+
+.ag-v-warn {
+  color: var(--warn);
+}
+
+.ag-v-ok {
+  color: var(--ok);
+}
+
+.ag-stats .rv-stat {
+  position: relative;
+}
+
+.ag-spark {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 72px;
+  height: 24px;
+  color: var(--ok-dot);
+}
+
+.ag-needs .rv-list,
+.ag-roster .rv-list,
+.ag-runs-card .rv-list {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  margin: 0;
+}
+
+@media (max-width: 639px) {
+  .ag-spark {
+    display: none;
+  }
+}
+
+@media (max-width: 1099px) {
+  .ag-cols {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ag-side {
+    display: contents;
+  }
+
+  .ag-needs {
+    order: -1;
+  }
+
+  .ag-roster {
+    order: 2;
+  }
+}
+
+.ag-bar {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ag-search {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ag-search .rv-input,
+.ag-search .rv-select {
+  min-height: 40px;
+}
+
+.ag-q {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.ag-agent-select {
+  flex: 0 1 160px;
+}
+
+.ag-cols {
+  margin-top: 16px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ag-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.ag-runs-card {
+  overflow: visible;
+}
+
+.ag-runs {
+  margin-top: 0;
+}
+
+.rv-runs .ag-run {
+  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-areas:
+    "av main"
+    "av prog"
+    "av state"
+    "av by"
+    "av acts"
+    "fail fail";
+  gap: 6px 12px;
+  align-items: start;
+  padding: 16px;
+}
+
+.ag-run .ag-av {
+  grid-area: av;
+  align-self: start;
+}
+
+.ag-run-main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.ag-run .rv-run-title {
+  margin: 0 !important;
+  font-size: 15px;
+}
+
+.ag-run-sub {
+  margin-top: 2px;
+}
+
+.ag-run-ids {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+
+.ag-run-prog {
+  grid-area: prog;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ag-steps {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.ag-steps i {
+  display: block;
+  width: 14px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--line-2);
+}
+
+.ag-steps i.is-done {
+  background: var(--fill);
+}
+
+.ag-steps-t {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.ag-tokbar {
+  width: 56px;
+}
+
+.ag-run-state {
+  grid-area: state;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ag-run-by {
+  grid-area: by;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ag-run-acts {
+  grid-area: acts;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.ag-run .rv-run-fail {
+  grid-area: fail;
+}
+
+.ag-pop {
+  position: relative;
+}
+
+.ag-pop > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.ag-pop > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ag-pop-b {
+  position: absolute;
+  z-index: 20;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-start: 0;
+  width: min(300px, 80vw);
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--rv-shadow-menu);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ag-pager {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ag-need {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ag-need:last-child {
+  border-bottom: 0;
+}
+
+.ag-need-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ag-need-t {
+  font-size: 13.5px;
+  color: var(--text-1);
+}
+
+.ag-need-detail {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  background: var(--surface-3);
+  padding: 1px 6px;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.ag-need-acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ag-need-status:empty {
+  display: none;
+}
+
+.ag-need.is-done {
+  opacity: .7;
+}
+
+.ag-roster-sub {
+  padding: 8px 16px 0;
+}
+
+.ag-roster-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.ag-roster-row:last-child {
+  border-bottom: 0;
+}
+
+.ag-roster-n {
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .ag-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .ag-bar .rv-chips {
+    margin: 0;
+    padding: 2px 0;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .ag-search {
+    flex: 1 1 280px;
+    flex-wrap: nowrap;
+  }
+
+  .ag-bar .rv-density {
+    margin-inline-start: auto;
+  }
+
+  .rv-runs .ag-run {
+    grid-template-columns: 44px minmax(0, 1fr) minmax(120px, 170px) auto;
+    grid-template-areas:
+      "av main prog state"
+      "av main by acts"
+      "fail fail fail fail";
+    padding: 16px 18px;
+    gap: 6px 18px;
+    align-items: center;
+  }
+
+  .ag-run-acts {
+    justify-self: end;
+    align-items: center;
+  }
+
+  .ag-run-acts {
+    min-height: 32px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .ag-cols {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+}
+
+/* ---------- one run: rail, task, ask, plan, checkpoints ---------- */
+.ar-wrap {
+  display: block;
+}
+
+.ar-rail {
+  display: none;
+}
+
+.ar-task {
+  margin-top: 8px;
+  color: var(--text-2);
+  font-size: 14.5px;
+}
+
+.ar-task q {
+  quotes: "\201C" "\201D";
+  color: var(--text-1);
+}
+
+.ar-acts {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.ar-ask {
+  margin-top: 14px;
+}
+
+.ar-ask-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 6px;
+}
+
+.ar-steps {
+  list-style: none;
+  margin: 0;
+  padding: 4px 16px 8px;
+}
+
+.ar-steps li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.ar-steps li:last-child {
+  border-bottom: 0;
+}
+
+.ar-steps .rv-li-sub {
+  display: block;
+}
+
+.ar-steps .is-done .ar-mark {
+  color: var(--ok);
+}
+
+.ar-plan-acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ar-cp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.ar-cp:last-child {
+  border-bottom: 0;
+}
+
+.ar-edit {
+  margin-top: 12px;
+}
+
+.ar-edit form,
+.ar-continue .rv-disclose-b {
+  margin-top: 10px;
+}
+
+.ar-limits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ar-stopped {
+  background: var(--inv-bg);
+  color: var(--inv-text);
+  border-color: var(--inv-bg);
+}
+
+.ar-audit {
+  margin-top: 16px;
+}
+
+.rv-area-policy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 1200px) {
+  .ar-wrap {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .ar-rail {
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .ar-rail-h {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .ar-rail ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ar-rail li a {
+    display: block;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line-3);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .ar-rail li a[aria-current] {
+    background: var(--primary-tint);
+  }
+
+  .ar-rail li a b {
+    display: block;
+    font-size: 13.5px;
+  }
+
+  .ar-rail li a span {
+    font-size: 12.5px;
+    color: var(--text-2);
+  }
+}
+
+/* ---------- new task ---------- */
+.ag-switch {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 4px 0 8px;
+}
+
+.ag-switch input[role="switch"] {
+  appearance: none;
+  flex: none;
+  width: 40px;
+  height: 22px;
+  margin-top: 2px;
+  border-radius: 99px;
+  background: var(--line-strong);
+  position: relative;
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.ag-switch input[role="switch"]::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-start: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .12s;
+}
+
+.ag-switch input[role="switch"]:checked {
+  background: var(--fill);
+}
+
+.ag-switch input[role="switch"]:checked::after {
+  transform: translateX(18px);
+}
+
+.ag-switch input[role="switch"]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.ag-recent-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.ag-recent-row:last-child {
+  border-bottom: 0;
+}
+
+.ag-estimate,
+.ag-recent {
+  margin-top: 16px;
+}
+
+.ag-recent .rv-list {
+  border: 0;
+  margin: 0;
+  background: none;
+}
+
+/* ---------- spend ---------- */
+.sp-days,
+.sp-agents {
+  margin-top: 16px;
+}
+
+.sp-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 120px;
+  padding: 16px;
+}
+
+.sp-bars i {
+  flex: 1 1 0;
+  min-width: 3px;
+  max-width: 28px;
+  background: var(--fill);
+  border-radius: 3px 3px 0 0;
+}
+
+.sp-table {
+  padding: 0 16px 14px;
+}
+
+.sp-table summary {
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--link);
+}
+
+.sp-cap-in {
+  width: 96px;
+  min-height: 32px;
+}
+
+/* ---------- merge queue ---------- */
+.rv-queue-row.is-checking .rv-pill {
+  animation: ag-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes ag-pulse {
+  50% {
+    opacity: .6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-queue-row.is-checking .rv-pill {
+    animation: none;
+  }
+}
+
+.ag-q-eta {
+  color: var(--text-2);
+}
+
+/* ---------- gate history ---------- */
+.gt-bars {
+  gap: 4px;
+}
+
+.gt-bar {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 4px;
+  max-width: 24px;
+  height: 100%;
+  display: block;
+}
+
+.gt-bar i {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  border-radius: 3px 3px 0 0;
+}
+
+.gt-bar .gt-c {
+  background: var(--primary-line);
+}
+
+.gt-bar .gt-h {
+  background: var(--warn-dot);
+}
+
+.gt-rule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.gt-rule:last-child {
+  border-bottom: 0;
+}
+
+.gt-over-form {
+  border-top: 1px solid var(--line-2);
+}
+
+/* ---------- operation log ---------- */
+.ag-ops-chips {
+  margin-top: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ag-ops-export {
+  margin-inline-start: auto;
+}
+
+.ag-actors li {
+  display: grid;
+  grid-template-columns: minmax(80px, 140px) minmax(0, 1fr) 36px;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 16px;
+}
+
+[data-run-waiting] a,
+.ar-ask a:not(.rv-btn) {
+  text-decoration: underline;
+}
+
+.sp-days,
+.sp-agents,
+.rv-stats .rv-stat {
+  min-width: 0;
+}
+
+.rv-stat .rv-row {
+  flex-wrap: wrap;
+}
+
+.sp-agents .rv-tablewrap,
+.sp-days .rv-tablewrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.ar-wrap {
+  margin-top: 16px;
+}
+
+.ar-rail-h .rv-btn {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}
+
+.rv-stat .rv-row .rv-input {
+  min-width: 0;
+  flex: 1 1 120px;
+}
+
+.rv-stat .rv-btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 639px) {
+  .sp-agents th:nth-child(3),
+  .sp-agents td:nth-child(3),
+  .sp-agents th:nth-child(4),
+  .sp-agents td:nth-child(4) {
+    display: none;
+  }
+
+  .sp-agents .rv-tbl th,
+  .sp-agents .rv-tbl td {
+    padding-inline: 8px;
+  }
+
+  .sp-cap-in {
+    width: 64px;
+  }
+
+  .sp-agents .rv-av {
+    display: none;
+  }
+}
+
+.ag-recent-row .rv-btn {
+  white-space: nowrap;
+}

@@ -246,7 +246,7 @@ func TestAscAgentsList(t *testing.T) {
 	assert.Contains(t, p.body, `data-state="failed"`)
 	assert.Contains(t, p.body, "the limit was reached")
 	assert.NotContains(t, p.body, rloChar)
-	assert.Contains(t, p.body, `<div class="rv-run-name">coder</div>`)
+	assert.Contains(t, p.body, `<span class="rv-mono">coder</span>`)
 	assert.Contains(t, p.body, "state=active")
 	assert.Contains(t, p.body, "page=tok_A-b%3D1", "the next page keeps the filter")
 	assert.Contains(t, p.body, `href="/user2/repo1/asc/agents/new"`)
@@ -864,4 +864,21 @@ func TestAscAgentsCancelAndInput(t *testing.T) {
 		}
 		assert.Equal(t, before, hub.total())
 	})
+}
+
+func TestAgentsReadAllowedMatrix(t *testing.T) {
+	// signedIn, hasDoer, code, actions, features
+	for _, c := range []struct {
+		name                                         string
+		signed, doer, code, actions, features, allow bool
+	}{
+		{"anonymous", false, false, true, true, true, false},
+		{"signed in, no Actions access", true, true, true, false, true, false},
+		{"signed in, no code access", true, true, false, true, true, false},
+		{"Actions access, features off", true, true, true, true, false, false},
+		{"signed in without a user", true, false, true, true, true, false},
+		{"full access", true, true, true, true, true, true},
+	} {
+		assert.Equal(t, c.allow, agentsReadAllowed(c.signed, c.doer, c.code, c.actions, c.features), c.name)
+	}
 }

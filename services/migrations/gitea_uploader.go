@@ -32,6 +32,7 @@ import (
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/uri"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascsync"
 	"forgejo.org/services/migrations/allowlist"
 	"forgejo.org/services/pull"
 	repo_service "forgejo.org/services/repository"
@@ -123,7 +124,8 @@ func (g *GiteaLocalUploader) CreateRepo(repo *base.Repository, opts base.Migrate
 	r.Description = repo.Description
 	r.Website = repo.Website
 
-	r, err = repo_service.MigrateRepositoryGitData(g.ctx, owner, r, base.MigrateOptions{
+	// An import into an asc repository is made for the user who migrates.
+	r, err = repo_service.MigrateRepositoryGitData(ascsync.WithImporter(g.ctx, g.doer.ID), owner, r, base.MigrateOptions{
 		CloneAddr:      repo.CloneURL, // SECURITY: we will assume that this has already been checked
 		LFS:            opts.LFS,
 		LFSEndpoint:    opts.LFSEndpoint,
@@ -563,6 +565,39 @@ func (g *GiteaLocalUploader) CreatePullRequests(prs ...*base.PullRequest) error 
 	return nil
 }
 
+// ascStored reports whether the repository being migrated is stored in asc.
+func (g *GiteaLocalUploader) ascStored() bool {
+	stored, err := ascsync.BackedBy(g.repo)
+	return err == nil && stored
+}
+
+// setPullHead points the pull request head ref at sha: git writes it in the clone, and in an asc repository asc then
+// takes it over (SetPullHead).
+func (g *GiteaLocalUploader) setPullHead(ref, sha string) error {
+	_, _, err := git.NewCommand(g.ctx, "update-ref", "--no-deref").AddDynamicArguments(ref, sha).RunStdString(&git.RunOpts{Dir: g.repo.RepoPath()})
+	if err != nil || !g.ascStored() {
+		return err
+	}
+	// The clone is the bridge, and git has written the ref there, as a push does. asc imports the commit from it and
+	// takes the ref; a commit asc does not know yet is imported by ImportGitPush, which does not promote the bridge, so
+	// the bridge must already hold the ref for SetPullHead to see it follow.
+	return ascsync.SetPullHead(g.ctx, g.repo, ref, sha)
+}
+
+// importBranchIntoAsc hands a branch that the migration fetched into the clone (the head branch of a fork pull
+// request) to asc, so asc holds every branch the database will list. It does nothing for a git repository.
+func (g *GiteaLocalUploader) importBranchIntoAsc(branch string) error {
+	if !g.ascStored() {
+		return nil
+	}
+	sha, _, err := git.NewCommand(g.ctx, "rev-parse", "--verify").AddDynamicArguments(git.BranchPrefix + branch).RunStdString(&git.RunOpts{Dir: g.repo.RepoPath()})
+	if err != nil {
+		return err
+	}
+	return ascsync.ImportHistory(ascsync.WithBulkImport(ascsync.WithImporter(g.ctx, g.doer.ID)), g.repo,
+		[]ascsync.PushRef{{Name: git.BranchPrefix + branch, New: strings.TrimSpace(sha)}})
+}
+
 func (g *GiteaLocalUploader) updateGitForPullRequest(pr *base.PullRequest) (head string, err error) {
 	// SECURITY: this pr must have been must have been ensured safe
 	if !pr.EnsuredSafe {
@@ -669,6 +704,10 @@ func (g *GiteaLocalUploader) updateGitForPullRequest(pr *base.PullRequest) (head
 				log.Error("Fetch branch from %s failed: %v", pr.Head.CloneURL, err)
 				return head, nil
 			}
+			if err := g.importBranchIntoAsc(localRef); err != nil {
+				log.Error("Importing branch %s of PR #%d into asc failed: %v", localRef, pr.Number, err)
+				return head, nil
+			}
 			g.prHeadCache[pr.Head.CloneURL+":"+pr.Head.Ref] = localRef
 			head = localRef
 		}
@@ -683,8 +722,7 @@ func (g *GiteaLocalUploader) updateGitForPullRequest(pr *base.PullRequest) (head
 			pr.Head.SHA = headSha
 		}
 
-		_, _, err = git.NewCommand(g.ctx, "update-ref", "--no-deref").AddDynamicArguments(pr.GetGitRefName(), pr.Head.SHA).RunStdString(&git.RunOpts{Dir: g.repo.RepoPath()})
-		if err != nil {
+		if err = g.setPullHead(pr.GetGitRefName(), pr.Head.SHA); err != nil {
 			return "", err
 		}
 
@@ -706,7 +744,7 @@ func (g *GiteaLocalUploader) updateGitForPullRequest(pr *base.PullRequest) (head
 			log.Warn("Deprecated local head %s for PR #%d in %s/%s, removing  %s", pr.Head.SHA, pr.Number, g.repoOwner, g.repoName, pr.GetGitRefName())
 		} else {
 			// set head information
-			_, _, err = git.NewCommand(g.ctx, "update-ref", "--no-deref").AddDynamicArguments(pr.GetGitRefName(), pr.Head.SHA).RunStdString(&git.RunOpts{Dir: g.repo.RepoPath()})
+			err = g.setPullHead(pr.GetGitRefName(), pr.Head.SHA)
 			if err != nil {
 				log.Error("unable to set %s as the local head for PR #%d from %s in %s/%s. Error: %v", pr.Head.SHA, pr.Number, pr.Head.Ref, g.repoOwner, g.repoName, err)
 			}

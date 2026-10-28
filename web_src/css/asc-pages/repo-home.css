@@ -1243,3 +1243,83 @@
 .rp-policy-lines li + li {
   margin-top: 2px;
 }
+
+/* ---- activity: the number landed and a sparkline of the weeks ---- */
+.rp-activity-n {
+  margin: 0;
+  font-size: 14px;
+}
+
+.rp-activity-n b {
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.rp-spark {
+  display: block;
+  width: 100%;
+  height: 40px;
+  color: var(--link);
+}
+
+/* ---- contributors: a name, the number of changes and a bar ---- */
+.rp-contrib-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-contrib-list > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  align-items: center;
+}
+
+.rp-contrib-who {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rp-contrib-who a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.rp-contrib-n {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.rp-contrib-bar {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 4px;
+  border: 0;
+  border-radius: 2px;
+  appearance: none;
+  background: var(--surface-3);
+  accent-color: var(--link);
+}
+
+.rp-contrib-bar::-webkit-progress-bar {
+  background: var(--surface-3);
+  border-radius: 2px;
+}
+
+.rp-contrib-bar::-webkit-progress-value {
+  background: var(--link);
+  border-radius: 2px;
+}
+
+.rp-contrib-bar::-moz-progress-bar {
+  background: var(--link);
+  border-radius: 2px;
+}

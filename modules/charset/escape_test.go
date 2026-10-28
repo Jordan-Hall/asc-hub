@@ -192,3 +192,32 @@ func TestAmbiguousUnicodeDetectionContext(t *testing.T) {
 	_, out = EscapeControlHTML(input, &translation.MockLocale{}, testContext)
 	assert.Equal(t, input, out)
 }
+
+func TestEscapeControlHTMLFastPathKeepsTheResult(t *testing.T) {
+	defer test.MockVariableValue(&setting.UI.AmbiguousUnicodeDetection, true)()
+	locale := &translation.MockLocale{}
+	for _, in := range []template.HTML{
+		`<span class="k">pub</span> <span class="nf">f</span>(a: u32) -&gt; u32 { a + 1 } // x`,
+		"plain\ttext\r\n",
+		``,
+	} {
+		slow := &strings.Builder{}
+		wantStatus, _ := EscapeControlReader(strings.NewReader(string(in)), slow, locale, testContext)
+		gotStatus, got := EscapeControlHTML(in, locale, testContext)
+		assert.Equal(t, slow.String(), string(got), "the output of the full scan and of the fast path agree for %q", in)
+		assert.Equal(t, wantStatus.Escaped, gotStatus.Escaped)
+		assert.False(t, gotStatus.Escaped)
+	}
+}
+
+func TestEscapeControlHTMLStillFindsWhatIsNotPlainASCII(t *testing.T) {
+	defer test.MockVariableValue(&setting.UI.AmbiguousUnicodeDetection, true)()
+	locale := &translation.MockLocale{}
+	for _, in := range []template.HTML{"a‮b", "aаb", "a\x1bb", "ok​ok"} {
+		status, _ := EscapeControlHTML(in, locale, testContext)
+		assert.True(t, status.Escaped, "%q is flagged", in)
+	}
+	assert.True(t, isPlainASCII("abc \t\r\n~"))
+	assert.False(t, isPlainASCII("a\x7fb"))
+	assert.False(t, isPlainASCII("é"))
+}

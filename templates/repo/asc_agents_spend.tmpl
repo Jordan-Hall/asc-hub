@@ -1,0 +1,58 @@
+{{/*
+What agents spent this month (routers/web/repo/asc_agents_spend.go).
+Template Attributes: AscAgentSpend (ascagentui.Spend), AscAgentsCanBudget, AscAgentsBase, CsrfTokenHtml, AscAgentsFailure
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository rv-agents">
+	{{template "repo/header" .}}
+	<div class="rv rv-page">
+		{{template "base/alert" .}}
+		<div class="rv-area">{{template "repo/asc_agents_nav" .}}</div>
+		<header class="rv-head"><div class="rv-head-main">
+			<div class="rv-eyebrow">{{.Repository.FullName}} · {{ctx.Locale.Tr "asc_review.agents_eyebrow"}}</div>
+			<h1 class="rv-title">{{ctx.Locale.Tr "asc_review.spend_title"}}</h1>
+			<p class="rv-lead">{{ctx.Locale.Tr "asc_review.spend_lead"}}</p>
+		</div></header>
+		{{template "repo/asc_agents_notice" .}}
+		{{with .AscAgentSpend}}
+		<div class="rv-stats rv-stats-3">
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.spend_month" .Month}}</div><div class="rv-stat-v">{{.Cost}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.spend_tokens" .Tokens}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.spend_cap"}}</div><div class="rv-stat-v{{if .Over}} ag-v-warn{{end}}">{{if .Cap}}{{.Cap}}{{else}}&mdash;{{end}}</div>
+				<div class="rv-stat-d">{{if .Cap}}<span class="rv-bar{{if .Over}} rv-bar-err{{end}}" role="img" aria-label="{{ctx.Locale.Tr "asc_review.spend_cap_pct" .CapPct}}"><i style="width:{{.CapPct}}%"></i></span> {{ctx.Locale.Tr "asc_review.spend_cap_pct" .CapPct}}{{else}}{{ctx.Locale.Tr "asc_review.spend_nocap"}}{{end}}</div></div>
+			{{if $.AscAgentsCanBudget}}
+			<form class="rv-card rv-stat" method="post" action="{{$.AscAgentsBase}}/spend/budget">
+				{{$.CsrfTokenHtml}}
+				<label class="rv-stat-l" for="sp-cap">{{ctx.Locale.Tr "asc_review.spend_set_cap"}}</label>
+				<div class="rv-row"><input class="rv-input" id="sp-cap" name="cap_usd" inputmode="decimal" autocomplete="off" placeholder="{{if .Cap}}{{.Cap}}{{else}}400{{end}}"><button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_review.spend_save"}}</button></div>
+				<div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.spend_set_cap_help"}}</div>
+			</form>
+			{{end}}
+		</div>
+
+		<section class="rv-card sp-days" aria-labelledby="sp-days-h" data-testid="asc-agent-spend-days">
+			<div class="rv-card-h"><h2 id="sp-days-h">{{ctx.Locale.Tr "asc_review.spend_daily"}}</h2></div>
+			{{if .Days}}
+			<div class="sp-bars" role="img" aria-label="{{ctx.Locale.Tr "asc_review.spend_daily_alt"}}">{{range .Days}}<i style="height:{{if .Pct}}{{.Pct}}{{else}}2{{end}}%" title="{{.Day}} {{.Cost}}"></i>{{end}}</div>
+			<details class="sp-table"><summary>{{ctx.Locale.Tr "asc_review.spend_table"}}</summary>
+				<div class="rv-tablewrap"><table class="rv-tbl"><thead><tr><th scope="col">{{ctx.Locale.Tr "asc_review.spend_day"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.spend_col_cost"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.spend_col_tokens"}}</th></tr></thead>
+				<tbody>{{range .Days}}<tr><th scope="row">{{.Day}}</th><td class="rv-num">{{.Cost}}</td><td class="rv-num">{{.Tokens}}</td></tr>{{end}}</tbody></table></div>
+			</details>
+			{{else}}<div class="rv-card-b"><p class="rv-muted">{{ctx.Locale.Tr "asc_review.spend_none"}}</p></div>{{end}}
+		</section>
+
+		<section class="rv-card sp-agents" aria-labelledby="sp-agents-h" data-testid="asc-agent-spend-agents">
+			<div class="rv-card-h"><h2 id="sp-agents-h">{{ctx.Locale.Tr "asc_review.spend_per_agent"}}</h2></div>
+			{{if .Agents}}
+			<div class="rv-tablewrap"><table class="rv-tbl"><thead><tr><th scope="col">{{ctx.Locale.Tr "asc_review.new_agent"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.spend_col_cost"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.spend_col_tokens"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.spend_col_requests"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.spend_cap"}}</th>{{if $.AscAgentsCanBudget}}<th scope="col"><span class="rv-sr">{{ctx.Locale.Tr "asc_review.spend_set_cap"}}</span></th>{{end}}</tr></thead>
+			<tbody>{{range .Agents}}<tr>
+				<th scope="row"><span class="rv-av rv-av-agent rv-av-24" aria-hidden="true">{{.Initials}}</span> {{.Name}}</th>
+				<td class="rv-num">{{.Cost}}</td><td class="rv-num">{{.Tokens}}</td><td class="rv-num">{{.Requests}}</td>
+				<td class="rv-num">{{if .Cap}}{{.Cap}} ({{.CapPct}}%){{else}}&mdash;{{end}}</td>
+				{{if $.AscAgentsCanBudget}}<td><form class="rv-inline-form" method="post" action="{{$.AscAgentsBase}}/spend/budget">{{$.CsrfTokenHtml}}<input type="hidden" name="agent" value="{{.Name}}"><label class="rv-sr" for="sp-cap-{{.Name}}">{{ctx.Locale.Tr "asc_review.spend_set_cap"}} {{.Name}}</label><input class="rv-input sp-cap-in" id="sp-cap-{{.Name}}" name="cap_usd" inputmode="decimal" autocomplete="off"><button class="rv-btn rv-btn-ghost rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.spend_save"}}</button></form></td>{{end}}
+			</tr>{{end}}</tbody></table></div>
+			{{else}}<div class="rv-card-b"><p class="rv-muted">{{ctx.Locale.Tr "asc_review.spend_none"}}</p></div>{{end}}
+		</section>
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

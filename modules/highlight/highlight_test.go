@@ -249,7 +249,7 @@ func TestFileBudgetedCachesAndSkips(t *testing.T) {
 	res, err := FileBudgeted("big.go", "", big)
 	require.NoError(t, err)
 	assert.True(t, res.Skipped, "a file over the size limit is plain text")
-	assert.Empty(t, res.Lexer)
+	assert.Positive(t, res.Window, "the start of a large file is still highlighted")
 	assert.NotEmpty(t, res.Lines)
 }
 
@@ -323,4 +323,45 @@ func TestCachedViewIsMuchFasterThanTheFirst(t *testing.T) {
 	}
 	t.Logf("100 KB of Go: first view %s, cached view %s", cold.Round(time.Microsecond), warm.Round(time.Microsecond))
 	assert.Less(t, warm*10, cold, "a cached view must cost a tenth of the first one")
+}
+
+func TestLargeFileHighlightsItsStart(t *testing.T) {
+	line := "func f(a int) int { return a + 1 }\n"
+	big := []byte(strings.Repeat(line, highlightMaxBytes/len(line)+500)) // a little over the limit
+	res, err := FileBudgeted("big.go", "", big)
+	require.NoError(t, err)
+	assert.True(t, res.Skipped, "the file is partly plain text")
+	assert.Positive(t, res.Window, "its start is highlighted")
+	assert.Equal(t, "Go", res.Lexer)
+	assert.Equal(t, strings.Count(string(big), "\n"), len(res.Lines), "every line is there")
+	assert.Contains(t, string(res.Lines[0]), "<span", "a line of the window has tokens")
+	assert.NotContains(t, string(res.Lines[len(res.Lines)-1]), "<span", "a line after the window is plain")
+
+	huge := []byte(strings.Repeat(line, highlightWindowMaxBytes/len(line)+10))
+	res, err = FileBudgeted("huge.go", "", huge)
+	require.NoError(t, err)
+	assert.Zero(t, res.Window, "a file over the window limit is plain text")
+	assert.True(t, res.Skipped)
+}
+
+func TestManyLinesGetAWindow(t *testing.T) {
+	line := "let a = 1;\n"
+	src := []byte(strings.Repeat(line, highlightFullLines+100)) // small in bytes, long in lines
+	res, err := FileBudgeted("many.rs", "", src)
+	require.NoError(t, err)
+	assert.True(t, res.Skipped)
+	assert.Equal(t, highlightWindowLines, res.Window, "the first lines are highlighted")
+	assert.Equal(t, highlightFullLines+100, len(res.Lines))
+
+	fit := []byte(strings.Repeat(line, highlightFullLines))
+	res, err = FileBudgeted("fits.rs", "", fit)
+	require.NoError(t, err)
+	assert.False(t, res.Skipped, "a file of up to highlightFullLines lines is highlighted whole")
+}
+
+func TestWindowEnd(t *testing.T) {
+	assert.Equal(t, -1, windowEnd([]byte("no newline")))
+	assert.Equal(t, 1, windowEnd([]byte("a\nb")))
+	big := []byte(strings.Repeat("x\n", highlightWindowLines+50))
+	assert.Equal(t, highlightWindowLines*2-1, windowEnd(big), "the newline that ends line highlightWindowLines")
 }

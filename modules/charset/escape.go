@@ -36,6 +36,15 @@ const (
 
 // EscapeControlHTML escapes the unicode control sequences in a provided html document
 func EscapeControlHTML(html template.HTML, locale translation.Locale, context escapeContext, allowed ...rune) (escaped *EscapeStatus, output template.HTML) {
+	if isPlainASCII(string(html)) {
+		// nothing to find: no ambiguous, invisible or control character can be in printable ASCII, and a line of
+		// code is that almost always. The scan of the HTML is the slowest part of showing a large file.
+		if strings.IndexByte(string(html), 0x0d) >= 0 {
+			// the scan of the HTML reads a carriage return as a line feed: so does the fast path
+			html = template.HTML(strings.ReplaceAll(strings.ReplaceAll(string(html), "\r\n", "\n"), "\r", "\n"))
+		}
+		return &EscapeStatus{}, html
+	}
 	sb := &strings.Builder{}
 	escaped, _ = EscapeControlReader(strings.NewReader(string(html)), sb, locale, context, allowed...) // err has been handled in EscapeControlReader
 	return escaped, template.HTML(sb.String())
@@ -55,4 +64,15 @@ func EscapeControlReader(reader io.Reader, writer io.Writer, locale translation.
 		log.Error("Error whilst escaping: %v", err)
 	}
 	return streamer.escaped, err
+}
+
+// isPlainASCII is true when every byte is printable ASCII or a tab, a line feed or a carriage return.
+func isPlainASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c >= 0x7f || (c < 0x20 && c != '\t' && c != '\n' && c != '\r') {
+			return false
+		}
+	}
+	return true
 }

@@ -63,9 +63,10 @@ A finding never carries a value: the preview was cut to two characters before it
 			</nav>
 
 			{{if .Data.Findings.Rows}}
+			<div class="rv-field rv-gap ag-sec-filter"><label class="rv-label" for="asc-sec-filter">{{ctx.Locale.Tr "asc_review.sec_filter"}}</label><input class="rv-input" id="asc-sec-filter" type="search" maxlength="120" autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_review.sec_filter_ph"}}" data-asc-filter="[data-testid=asc-findings]"></div>
 			<ul class="rv-list rv-gap" data-testid="asc-findings">
 				{{range .Data.Findings.Rows}}
-				<li class="rv-li rv-finding">
+				<li class="rv-li rv-finding" data-asc-row data-asc-key="{{.Location}}">
 					<div class="rv-li-main">
 						<div class="rv-li-title"><span class="rv-pill {{if eq .StateKey "open"}}rv-pill-err{{else if eq .StateKey "revoked"}}rv-pill-ok{{else if eq .StateKey "accepted_risk"}}rv-pill-warn{{else}}rv-pill-outline{{end}}">{{ctx.Locale.Tr (printf "asc_review.sec_state_%s" .StateKey)}}</span><span class="rv-pill rv-pill-{{.Tone}}">{{ctx.Locale.Tr (printf "asc_review.sec_sev_%s" .Severity)}}</span><span class="rv-faint rv-end rv-finding-when">{{DateUtils.TimeSince .LastSeen}}</span></div>
 						<div class="rv-finding-where"><code>{{.Location}}</code></div>

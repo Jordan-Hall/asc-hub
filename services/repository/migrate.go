@@ -148,14 +148,26 @@ func MigrateRepositoryGitData(ctx context.Context, u *user_model.User,
 	}
 
 	if !repo.IsEmpty {
-		if len(repo.DefaultBranch) == 0 {
+		if len(repo.DefaultBranch) == 0 || !gitRepo.IsBranchExist(repo.DefaultBranch) {
 			// Try to get HEAD branch and set it as default branch.
 			headBranch, err := gitRepo.GetHEADBranch()
-			if err != nil {
+			if err != nil && len(repo.DefaultBranch) == 0 {
 				return repo, fmt.Errorf("GetHEADBranch: %w", err)
 			}
-			if headBranch != nil {
+			if err == nil && headBranch != nil {
 				repo.DefaultBranch = headBranch.Name
+			}
+		}
+
+		// A repository stored in asc holds its history in asc: the clone is handed over, and nothing is written to
+		// the database until asc holds it. A failure fails the migration with asc's reason.
+		stored, err := isAscStored(repo)
+		if err != nil {
+			return repo, err
+		}
+		if stored {
+			if err := importMigratedIntoAsc(ctx, repo, repo.DefaultBranch); err != nil {
+				return repo, err
 			}
 		}
 
