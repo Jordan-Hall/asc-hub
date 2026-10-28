@@ -473,7 +473,7 @@
 }
 
 /* ---- shortcuts card and the collapsed folder list ---- */
-.rp-keys-list {
+.rp-codekeys-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -484,9 +484,9 @@
   color: var(--text-1);
 }
 
-.rp-keys-list a,
-.rp-keys-list > li > span,
-.rp-keys-btn {
+.rp-codekeys-list a,
+.rp-codekeys-list > li > span,
+.rp-codekeys-btn {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -503,17 +503,17 @@
   cursor: pointer;
 }
 
-.rp-keys-list > li > span {
+.rp-codekeys-list > li > span {
   cursor: default;
 }
 
-.rp-keys-list a:hover,
-.rp-keys-btn:hover {
+.rp-codekeys-list a:hover,
+.rp-codekeys-btn:hover {
   background: var(--hover);
   color: var(--link);
 }
 
-.rp-keys-btn[aria-pressed="true"] {
+.rp-codekeys-btn[aria-pressed="true"] {
   background: var(--surface-3);
 }
 

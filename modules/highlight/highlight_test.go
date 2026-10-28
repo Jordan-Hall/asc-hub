@@ -299,3 +299,28 @@ func TestBudgetedHighlightTimeIsBounded(t *testing.T) {
 	assert.Less(t, time.Since(start), highlightBudget+2*time.Second)
 	assert.NotEmpty(t, res.Lines)
 }
+
+// The cache turns a second view of a file into a lookup: this measures both and keeps the gap from closing.
+func TestCachedViewIsMuchFasterThanTheFirst(t *testing.T) {
+	src := []byte(strings.Repeat("func f(a int) int { return a + 1 } // x\n", 100<<10/41))
+	resultCache = newByteLRU(memoryCacheBytes)
+
+	start := time.Now()
+	first, err := FileBudgeted("f.go", "", src)
+	require.NoError(t, err)
+	cold := time.Since(start)
+	require.False(t, first.Cached)
+
+	var warm time.Duration
+	for i := 0; i < 20; i++ {
+		start = time.Now()
+		again, err := FileBudgeted("f.go", "", src)
+		require.NoError(t, err)
+		require.True(t, again.Cached)
+		if d := time.Since(start); i == 0 || d < warm {
+			warm = d
+		}
+	}
+	t.Logf("100 KB of Go: first view %s, cached view %s", cold.Round(time.Microsecond), warm.Round(time.Microsecond))
+	assert.Less(t, warm*10, cold, "a cached view must cost a tenth of the first one")
+}
