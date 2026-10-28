@@ -72,7 +72,8 @@ func PrivacyBlock(ctx *context.Context) {
 	case err != nil:
 		ctx.ServerError("GetUserByName", err)
 		return
-	case u.IsOrganization():
+	case u.IsOrganization() || !user_model.IsUserVisibleToViewer(ctx, u, ctx.Doer):
+		// an organization and an account the person cannot see answer exactly like a name that does not exist
 		ctx.Flash.Error(ctx.Tr("asc_work.sp_block_not_found", name))
 	case u.ID == ctx.Doer.ID:
 		ctx.Flash.Error(ctx.Tr("settings.user_block_yourself"))

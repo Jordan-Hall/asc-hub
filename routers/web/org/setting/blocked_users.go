@@ -43,16 +43,16 @@ func BlockedUsers(ctx *context.Context) {
 func BlockedUsersBlock(ctx *context.Context) {
 	uname := strings.ToLower(ctx.FormString("uname"))
 	u, err := user_model.GetUserByName(ctx, uname)
-	if err != nil {
+	if err != nil && !user_model.IsErrUserNotExist(err) {
 		ctx.ServerError("GetUserByName", err)
 		return
 	}
-
-	if u.IsOrganization() {
-		ctx.ServerError("IsOrganization", fmt.Errorf("%s is an organization not a user", u.Name))
+	if err != nil || u.IsOrganization() || !user_model.IsUserVisibleToViewer(ctx, u, ctx.Doer) {
+		// a name that does not exist, an organization and an account the person cannot see answer the same way
+		ctx.Flash.Error(ctx.Tr("asc_work.sp_block_not_found", uname))
+		ctx.Redirect(ctx.Org.OrgLink + "/settings/blocked_users")
 		return
 	}
-
 	if u.ID == ctx.Doer.ID {
 		ctx.Flash.Error(ctx.Tr("settings.user_block_yourself"))
 		ctx.Redirect(ctx.Org.OrgLink + "/settings/blocked_users")
