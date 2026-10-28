@@ -5,6 +5,8 @@
 		{{template "base/alert" .}}
 		{{template "repo/release_tag_header" .}}
 		{{if .Releases}}
+		<div class="ds-split">
+		<div class="ds-min0">
 		<ul id="release-list" class="rp-rels">
 			{{range $idx, $info := .Releases}}
 				{{$release := $info.Release}}
@@ -68,40 +70,79 @@
 									<span class="rp-assets-t">{{ctx.Locale.Tr "repo.release.downloads"}}</span>
 									{{svg "dsi-chevron-down" 16}}
 								</summary>
-								<ul class="list rp-assets-list">
+								<div class="ds-table-wrap rp-asset-wrap">
+								<table class="ds-table rp-asset-table">
+									<caption class="ds-sr">{{ctx.Locale.Tr "repo.release.downloads"}}</caption>
+									<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_rp.asset_name"}}</th><th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_rp.asset_size"}}</th><th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_rp.asset_downloads"}}</th></tr></thead>
+									<tbody>
 									{{if $hasArchiveLinks}}
-										<li>
-											<a class="archive-link rp-asset-name" href="{{$.RepoLink}}/archive/{{$release.TagName | PathEscapeSegments}}.zip" rel="nofollow" type="application/zip">
-												{{svg "dsi-download" 16}}{{ctx.Locale.Tr "repo.release.source_code"}} (ZIP)
-											</a>
-											<span class="rp-asset-meta">{{ctx.Locale.TrPluralString .Release.ArchiveDownloadCount.Zip "release.n_downloads" (ctx.Locale.PrettyNumber .Release.ArchiveDownloadCount.Zip)}} · {{ctx.Locale.Tr "repo.release.system_generated"}}</span>
-										</li>
-										<li>
-											<a class="archive-link rp-asset-name" href="{{$.RepoLink}}/archive/{{$release.TagName | PathEscapeSegments}}.tar.gz" rel="nofollow" type="application/gzip">
-												{{svg "dsi-download" 16}}{{ctx.Locale.Tr "repo.release.source_code"}} (TAR.GZ)
-											</a>
-											<span class="rp-asset-meta">{{ctx.Locale.TrPluralString .Release.ArchiveDownloadCount.TarGz "release.n_downloads" (ctx.Locale.PrettyNumber .Release.ArchiveDownloadCount.TarGz)}} · {{ctx.Locale.Tr "repo.release.system_generated"}}</span>
-										</li>
+										<tr>
+											<td data-label="{{ctx.Locale.Tr "asc_rp.asset_name"}}"><a class="archive-link rp-asset-name" href="{{$.RepoLink}}/archive/{{$release.TagName | PathEscapeSegments}}.zip" rel="nofollow" type="application/zip">{{svg "dsi-download" 16}}{{ctx.Locale.Tr "repo.release.source_code"}} (ZIP)</a> <span class="rp-asset-meta">{{ctx.Locale.Tr "repo.release.system_generated"}}</span></td>
+											<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_size"}}">&mdash;</td>
+											<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_downloads"}}">{{ctx.Locale.PrettyNumber .Release.ArchiveDownloadCount.Zip}}</td>
+										</tr>
+										<tr>
+											<td data-label="{{ctx.Locale.Tr "asc_rp.asset_name"}}"><a class="archive-link rp-asset-name" href="{{$.RepoLink}}/archive/{{$release.TagName | PathEscapeSegments}}.tar.gz" rel="nofollow" type="application/gzip">{{svg "dsi-download" 16}}{{ctx.Locale.Tr "repo.release.source_code"}} (TAR.GZ)</a> <span class="rp-asset-meta">{{ctx.Locale.Tr "repo.release.system_generated"}}</span></td>
+											<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_size"}}">&mdash;</td>
+											<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_downloads"}}">{{ctx.Locale.PrettyNumber .Release.ArchiveDownloadCount.TarGz}}</td>
+										</tr>
 									{{end}}
 									{{range $release.Attachments}}
 										{{if .ExternalURL}}
-											<li>
-												<a class="rp-asset-name" target="_blank" rel="nofollow noopener" href="{{.DownloadURL}}">{{svg "dsi-external" 16}}{{.Name}}</a>
-											</li>
+											<tr>
+												<td data-label="{{ctx.Locale.Tr "asc_rp.asset_name"}}"><a class="rp-asset-name" target="_blank" rel="nofollow noopener" href="{{.DownloadURL}}">{{svg "dsi-external" 16}}{{.Name}}</a></td>
+												<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_size"}}">&mdash;</td>
+												<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_downloads"}}">&mdash;</td>
+											</tr>
 										{{else}}
-											<li class="attachment">
-												<a class="rp-asset-name" target="_blank" rel="nofollow" href="{{.DownloadURL}}" download>{{svg "dsi-package" 16}}{{.Name}}</a>
-												<span class="rp-asset-meta">{{ctx.Locale.TrPluralString .DownloadCount "release.n_downloads" (ctx.Locale.PrettyNumber .DownloadCount)}} · {{DateUtils.TimeSince .CreatedUnix}} · {{.Size | ctx.Locale.TrSize}}</span>
-											</li>
+											<tr class="attachment">
+												<td data-label="{{ctx.Locale.Tr "asc_rp.asset_name"}}"><a class="rp-asset-name" target="_blank" rel="nofollow" href="{{.DownloadURL}}" download>{{svg "dsi-package" 16}}{{.Name}}</a></td>
+												<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_size"}}">{{.Size | ctx.Locale.TrSize}}</td>
+												<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_downloads"}}">{{ctx.Locale.PrettyNumber .DownloadCount}}</td>
+											</tr>
 										{{end}}
 									{{end}}
-								</ul>
+									</tbody>
+								</table>
+								</div>
 							</details>
 						{{end}}
 					</article>
 				</li>
 			{{end}}
 		</ul>
+		</div>
+		<aside class="ds-rail rp-rel-rail" aria-label="{{ctx.Locale.Tr "asc_rp.rel_rail"}}">
+			{{with .LatestStable}}
+			<section class="rp-card" aria-labelledby="rp-next-h" data-testid="release-next">
+				<p class="ds-t-micro">{{ctx.Locale.Tr "asc_rp.rel_next"}}</p>
+				<h2 class="rp-rail-title" id="rp-next-h">{{ctx.Locale.TrN .Release.NumCommitsBehind "asc_rp.rel_since_one" "asc_rp.rel_since_other" .Release.NumCommitsBehind .Release.TagName}}</h2>
+				{{if and $.CanCreateRelease ($.Permission.CanRead $.UnitTypeCode)}}
+				<div class="ds-row ds-row-wrap">
+					<a class="ds-btn ds-btn-primary" href="{{$.RepoLink}}/releases/new">{{ctx.Locale.Tr "repo.release.new_release"}}</a>
+					<a class="ds-btn ds-btn-secondary" href="{{$.RepoLink}}/compare/{{.Release.TagName | PathEscapeSegments}}...{{.Release.TargetBehind | PathEscapeSegments}}">{{ctx.Locale.Tr "asc_rp.rel_view"}}</a>
+				</div>
+				{{end}}
+			</section>
+			<section class="rp-card" aria-labelledby="rp-dl-h" data-testid="release-download">
+				<h2 class="rp-rail-title" id="rp-dl-h">{{ctx.Locale.Tr "asc_rp.rel_download"}}</h2>
+				<p class="rp-rel-line"><a class="rp-rel-name" href="{{$.RepoLink}}/releases/tag/{{.Release.TagName | PathEscapeSegments}}">{{.Release.TagName}}</a></p>
+				{{if .Release.Attachments}}
+				<ul class="rp-rail-list">
+					{{range .Release.Attachments}}{{if not .ExternalURL}}<li><a href="{{.DownloadURL}}" download>{{.Name}}</a><span class="ds-num ds-c-2">{{.Size | ctx.Locale.TrSize}}</span></li>{{end}}{{end}}
+				</ul>
+				{{else}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.rel_no_assets"}}</p>{{end}}
+			</section>
+			{{end}}
+			{{if .EnableFeed}}
+			<section class="rp-card" aria-labelledby="rp-notify-h">
+				<h2 class="rp-rail-title" id="rp-notify-h">{{ctx.Locale.Tr "asc_rp.rel_notify"}}</h2>
+				<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.rel_notify_body"}}</p>
+				<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/releases.atom">{{ctx.Locale.Tr "asc_rp.rel_atom"}}</a>
+			</section>
+			{{end}}
+		</aside>
+		</div>
 		{{else}}
 			<div class="rp-sec rp-sec-b">
 				{{template "shared/ds/empty" (dict "Icon" "package" "Title" (ctx.Locale.Tr "asc_rp.no_releases_title") "Body" (ctx.Locale.Tr "asc_rp.no_releases_body"))}}

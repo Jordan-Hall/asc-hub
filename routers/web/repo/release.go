@@ -220,6 +220,7 @@ func Releases(ctx *context.Context) {
 	}
 
 	ctx.Data["Releases"] = releases
+	ctx.Data["LatestStable"] = latestStable(releases)
 	addVerifyTagToContext(ctx)
 
 	pager := context.NewPagination(int(releasesCount), listOptions.PageSize, listOptions.Page, 5)
@@ -946,4 +947,14 @@ func releaseChannelCounts(ctx *context.Context, repoID int64, keyword string, ca
 		out = append(out, ReleaseChannelCount{Key: ch, Count: n})
 	}
 	return out
+}
+
+// latestStable is the newest release of the page that is neither a draft, a pre-release nor a bare tag, or nil.
+func latestStable(releases []*ReleaseInfo) *ReleaseInfo {
+	for _, r := range releases {
+		if r.Release != nil && !r.Release.IsDraft && !r.Release.IsPrerelease && !r.Release.IsTag {
+			return r
+		}
+	}
+	return nil
 }

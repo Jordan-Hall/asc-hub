@@ -202,3 +202,13 @@ func TestApplyReleaseChannel(t *testing.T) {
 	applyReleaseChannel(opts, "all")
 	assert.Equal(t, optional.None[bool](), opts.IsDraft)
 }
+
+func TestLatestStable(t *testing.T) {
+	mk := func(tag string, draft, pre, isTag bool) *ReleaseInfo {
+		return &ReleaseInfo{Release: &repo_model.Release{TagName: tag, IsDraft: draft, IsPrerelease: pre, IsTag: isTag}}
+	}
+	list := []*ReleaseInfo{mk("v3", true, false, false), mk("v2rc", false, true, false), mk("bare", false, false, true), mk("v2", false, false, false), mk("v1", false, false, false)}
+	assert.Equal(t, "v2", latestStable(list).Release.TagName)
+	assert.Nil(t, latestStable(list[:3]))
+	assert.Nil(t, latestStable(nil))
+}
