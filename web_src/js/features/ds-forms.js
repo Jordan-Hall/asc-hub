@@ -45,3 +45,38 @@ export function initImagePreview() {
     });
   }
 }
+
+// List and Grid: <div data-layout-toggle data-layout-target=".css-selector" hidden> with two buttons
+// data-layout-set="list|grid". The target list gets the class is-grid; the choice is kept in this browser and
+// shared by every directory page. The toggle stays hidden without script (the list is the only layout then).
+const layoutKey = 'asc-layout';
+
+export function readLayout() {
+  try {
+    return window.localStorage.getItem(layoutKey) === 'grid' ? 'grid' : 'list';
+  } catch {
+    return 'list';
+  }
+}
+
+export function initLayoutToggle() {
+  for (const toggle of document.querySelectorAll('[data-layout-toggle]')) {
+    const apply = (layout) => {
+      for (const target of document.querySelectorAll(toggle.getAttribute('data-layout-target') || '')) target.classList.toggle('is-grid', layout === 'grid');
+      for (const btn of toggle.querySelectorAll('[data-layout-set]')) btn.setAttribute('aria-pressed', String(btn.getAttribute('data-layout-set') === layout));
+    };
+    toggle.hidden = false;
+    apply(readLayout());
+    toggle.addEventListener('click', (e) => {
+      const btn = e.target instanceof Element ? e.target.closest('[data-layout-set]') : null;
+      if (!btn) return;
+      const layout = btn.getAttribute('data-layout-set') === 'grid' ? 'grid' : 'list';
+      try {
+        window.localStorage.setItem(layoutKey, layout);
+      } catch {
+        // storage is blocked: the choice holds for this page only
+      }
+      apply(layout);
+    });
+  }
+}

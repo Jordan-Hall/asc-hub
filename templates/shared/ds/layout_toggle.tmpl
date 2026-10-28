@@ -1,0 +1,8 @@
+{{/*
+The List and Grid switch of a directory (explore repositories, people, organizations). The choice is kept in this browser.
+Props: Target (a CSS selector of the list that gets the grid class). The buttons only show once the script runs.
+*/}}
+<div class="ds-seg ds-layout-toggle" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.layout_label"}}" data-layout-toggle data-layout-target="{{.Target}}" hidden>
+	<button type="button" data-layout-set="list" aria-pressed="true">{{svg "dsi-list" 16}}<span>{{ctx.Locale.Tr "asc_shell.layout_list"}}</span></button>
+	<button type="button" data-layout-set="grid" aria-pressed="false">{{svg "dsi-grid" 16}}<span>{{ctx.Locale.Tr "asc_shell.layout_grid"}}</span></button>
+</div>

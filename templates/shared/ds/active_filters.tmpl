@@ -1,0 +1,11 @@
+{{/*
+The filters a directory is narrowed by, each with a remove link, and Clear filters. Nothing renders when no filter is active.
+Props: Keyword, Language (optional), Sort (kept in every link).
+*/}}
+{{if or .Keyword .Language}}
+<div class="ds-active-filters" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.filters_active"}}">
+	{{if .Keyword}}<a class="ds-chip-btn" href="?sort={{QueryEscape .Sort}}&language={{QueryEscape .Language}}" aria-label="{{ctx.Locale.Tr "asc_shell.filter_remove" .Keyword}}">{{.Keyword}} <span aria-hidden="true">&times;</span></a>{{end}}
+	{{if .Language}}<a class="ds-chip-btn" href="?q={{QueryEscape .Keyword}}&sort={{QueryEscape .Sort}}" aria-label="{{ctx.Locale.Tr "asc_shell.filter_remove" .Language}}">{{.Language}} <span aria-hidden="true">&times;</span></a>{{end}}
+	<a class="ds-link-quiet" href="?sort={{QueryEscape .Sort}}">{{ctx.Locale.Tr "asc_shell.filters_clear"}}</a>
+</div>
+{{end}}

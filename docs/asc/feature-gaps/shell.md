@@ -142,7 +142,7 @@ Open rows by size: S 45, M 64, L 23.
 | Explore | Filter bar: search, Sort, Visibility, kind pills; `/` focuses search | done | `shared/repo_search.tmpl`, `repo-search.js` | - |
 | Explore | Language filter menu | ui-only-missing | `.Language` is read from the query but no menu lists languages. Menu from language stats (`models/repo/language_stats.go`) in `repo_search.tmpl` | M |
 | Explore | Quick chips All, Has open stacks, Agent activity, Starred, Templates, Archived | needs-hub-backend | `repo_search` has fork, mirror, template, archived pills only. "Has open stacks" needs an option on `repo_model.SearchRepoOptions` (`routers/web/explore/repo.go`); "Agent activity" needs the agent flag below; "Starred" a per-user filter | M |
-| Explore | List and Grid layout toggle; layout persists per person | ui-only-missing | No layout toggle anywhere (density exists in the account menu). Toggle, grid CSS, `localStorage` in `repo_search.tmpl`, `repo_list.tmpl` | M |
+| Explore | List and Grid layout toggle; layout persists per person | done | No layout toggle anywhere (density exists in the account menu). Toggle, grid CSS, `localStorage` in `repo_search.tmpl`, `repo_list.tmpl` | M |
 | Explore | Row: owner avatar, name, visibility chip, description, topics, language, stars, updated, open-stacks chip | done | `explore/repo_list.tmpl` | - |
 | Explore | Agent activity chip on a row | needs-both | Not in `repo_list.tmpl`. Needs agent runs per repo over a recent window: asc `ListRuns` batched for a page, or a hub cache table fed by `services/ascsync` | M |
 | Explore | Changeset count on a row ("3,812 changesets") | needs-both | Row shows stars and forks only. asc has per-repo change data but no batch stats RPC; add `RepoStats` or cache in `services/ascsync` | M |
@@ -168,7 +168,7 @@ Open rows by size: S 45, M 64, L 23.
 | ExploreUsers | Activity sparkline (12 weeks, text equivalent), counts "changesets, reviews" | needs-hub-backend | No sparkline component anywhere. Weekly series from `models/activities/user_heatmap.go` or pull and review tables, cached; partial `shared/ds/sparkline.tmpl` with a text label | M |
 | ExploreUsers | Hover action Follow; View runs for agents | ui-only-missing | Follow endpoint exists (profile htmx); row button in `user_list.tmpl` | S |
 | ExploreUsers | Rail "Who is active now" with presence and current activity | needs-both | No presence model. Hub: last-seen heartbeat (`models/user`); asc: run state for agents (`GetRun`) | L |
-| ExploreUsers | Grid layout | ui-only-missing | With the layout toggle (Explore) | M |
+| ExploreUsers | Grid layout | done | With the layout toggle (Explore) | M |
 | ExploreUsers | States: loading, no people match, filter chips, error | ui-only-missing | Empty text exists; rest as in Explore | S |
 | Mobile-ExploreUsers | Chips filter People, Agents, Maintainers, Online now; Follow inside the row at 44 px | needs-both | As above | M |
 
