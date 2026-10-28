@@ -16,12 +16,12 @@ import (
 const tplAscAgentsSpend base.TplName = "repo/asc_agents_spend"
 
 // The spend page of the agents area: what agents spent this month, the cap of the repository and of each agent, the
-// daily series with a table that says the same. Reading needs code read access (as the run list); setting a cap needs
+// daily series with a table that says the same. Reading needs code write access (asc shows spend to writers only); setting a cap needs
 // repository admin and is made as the person, so asc decides again and records who changed it.
 
 // AscAgentsSpend serves `GET /{owner}/{repo}/asc/agents/spend?month=YYYY-MM`.
 func AscAgentsSpend(ctx *context.Context) {
-	env, ok := ascAgentsGate(ctx, ascAgentsOpts{level: ascAgentsRead})
+	env, ok := ascAgentsGate(ctx, ascAgentsOpts{level: ascAgentsWrite})
 	if !ok {
 		return
 	}

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"forgejo.org/models/unit"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/log"
 	"forgejo.org/services/ascagentui"
@@ -68,7 +69,9 @@ func ascAgentsLoadBoard(ctx *context.Context, env *ascAgentsEnv, callCtx goconte
 		ctx.Data["AscAgentsRoster"] = roster
 	}
 
-	if resp, err := api.GetSpend(callCtx, &ascv1.GetAgentSpendRequest{Repo: env.ref()}); err != nil {
+	if !ctx.Repo.CanWrite(unit.TypeCode) {
+		// asc shows spend to people who can write; a reader sees no spend card, and no note about it.
+	} else if resp, err := api.GetSpend(callCtx, &ascv1.GetAgentSpendRequest{Repo: env.ref()}); err != nil {
 		log.Warn("asc agents: GetSpend failed: %s", ascagentuiLogLine(ascagentui.Classify(err)))
 		partial = true
 	} else {
