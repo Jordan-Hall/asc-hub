@@ -10,6 +10,7 @@ import (
 	admin_model "forgejo.org/models/admin"
 	"forgejo.org/modules/json"
 	"forgejo.org/services/context"
+	repo_service "forgejo.org/services/repository"
 )
 
 // TaskStatus returns task's status
@@ -33,7 +34,7 @@ func TaskStatus(ctx *context.Context) {
 	if task.Message != "" && task.Message[0] == '{' {
 		// assume message is actually a translatable string
 		var translatableMessage admin_model.TranslatableMessage
-		if err := json.Unmarshal([]byte(message), &translatableMessage); err != nil {
+		if err := json.Unmarshal([]byte(task.Message), &translatableMessage); err != nil {
 			translatableMessage = admin_model.TranslatableMessage{
 				Format: "repo.migrate.migrating_failed.error",
 				Args:   []any{task.Message},
@@ -51,8 +52,9 @@ func TaskStatus(ctx *context.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, map[string]any{
-		"status":    task.Status,
-		"message":   message,
+		"status": task.Status,
+		// The reason of a failure may name remote addresses and internals of the instance.
+		"message":   repo_service.RedactMigrationMessage(message),
 		"repo-id":   task.RepoID,
 		"repo-name": opts.RepoName,
 		"start":     task.StartTime,
