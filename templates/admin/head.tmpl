@@ -1,0 +1,4 @@
+{{/* The title block of an admin page with at most one link as its action. Props: Title, Desc, ActionLabel, ActionHref, ActionIcon, Secondary (true: not the primary look). */}}
+{{template "admin/head_open" .}}
+	{{if .ActionHref}}<a class="ds-btn {{if .Secondary}}ds-btn-secondary{{else}}ds-btn-primary{{end}}" href="{{.ActionHref}}">{{if .ActionIcon}}{{svg (print "dsi-" .ActionIcon) 16}}{{end}}{{.ActionLabel}}</a>{{end}}
+{{template "admin/head_close" .}}

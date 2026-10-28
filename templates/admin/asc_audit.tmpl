@@ -1,5 +1,132 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin asc-trust-page")}}
-<div class="admin-setting-content">
-	{{template "repo/asc_audit_table" .}}
-</div>
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.audit") "Desc" (ctx.Locale.Tr "asc_admin.audit_lead"))}}
+	{{with .AscAudit}}
+		<div data-testid="asc-audit">
+			{{if .Unsupported}}
+				<div class="ds-banner ds-banner-warn" role="status">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "asc_trust.audit.unsupported"}}</p></div>
+			{{else}}
+				{{if .Problems}}
+					<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-audit-problems">{{svg "dsi-x-circle" 18}}<ul class="ds-banner-body">{{range .Problems}}<li>{{.}}</li>{{end}}</ul></div>
+				{{end}}
+				{{if .Error}}
+					<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-audit-error">{{svg "dsi-x-circle" 18}}<p class="ds-banner-body">{{.Error}}</p></div>
+				{{end}}
+				{{if .Chain}}
+					{{if .Chain.OK}}
+						<div class="ds-banner ds-banner-ok" role="status" data-testid="asc-audit-chain">{{svg "dsi-shield-check" 18}}<p class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_admin.audit_tamper"}}</strong> {{ctx.Locale.Tr "asc_trust.audit.chain_ok" .Chain.Checked}}</p></div>
+					{{else}}
+						<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-audit-chain">{{svg "dsi-x-circle" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "asc_trust.audit.chain_broken" .Chain.FirstBad}}{{if .Chain.Reason}}: {{.Chain.Reason}}{{end}}</p></div>
+					{{end}}
+				{{end}}
+
+				<form class="adm-audit-filter" method="get" action="{{.Base}}" data-testid="asc-audit-filters">
+					<details class="ds-details"{{if or .Query.Actor .Query.Action .Query.Outcome .Query.Target .Query.Since .Query.Until}} open{{end}}>
+						<summary>{{svg "dsi-sliders" 16}}&nbsp;{{ctx.Locale.Tr "asc_trust.audit.filter"}}</summary>
+						<div class="ds-form adm-audit-grid">
+							<div class="ds-field">
+								<label class="ds-label" for="asc-audit-actor">{{ctx.Locale.Tr "asc_trust.audit.who"}}</label>
+								<input class="ds-input" id="asc-audit-actor" name="actor" type="text" maxlength="2048" value="{{.Query.Actor}}" placeholder="{{ctx.Locale.TrString "asc_trust.audit.who_hint"}}" autocomplete="off">
+							</div>
+							<div class="ds-field">
+								<label class="ds-label" for="asc-audit-action">{{ctx.Locale.Tr "asc_trust.audit.what"}}</label>
+								<input class="ds-input" id="asc-audit-action" name="action" type="text" maxlength="520" value="{{.Query.Action}}" placeholder="storage.* or repo.ref.update" list="asc-audit-actions" autocomplete="off">
+								<datalist id="asc-audit-actions">{{range .Actions}}<option value="{{.Action}}">{{.Description}}</option>{{end}}</datalist>
+							</div>
+							<div class="ds-field">
+								<label class="ds-label" for="asc-audit-outcome">{{ctx.Locale.Tr "asc_trust.audit.outcome"}}</label>
+								<select class="ds-select" id="asc-audit-outcome" name="outcome">
+									<option value=""{{if eq .Query.Outcome ""}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.any"}}</option>
+									<option value="success"{{if eq .Query.Outcome "success"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_ok"}}</option>
+									<option value="denied"{{if eq .Query.Outcome "denied"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_no"}}</option>
+									<option value="failed"{{if eq .Query.Outcome "failed"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_wn"}}</option>
+								</select>
+							</div>
+							<div class="ds-field">
+								<label class="ds-label" for="asc-audit-target">{{ctx.Locale.Tr "asc_trust.audit.target_starts"}}</label>
+								<input class="ds-input" id="asc-audit-target" name="target" type="text" maxlength="256" value="{{.Query.Target}}" autocomplete="off">
+							</div>
+							<div class="ds-field">
+								<label class="ds-label" for="asc-audit-since">{{ctx.Locale.Tr "asc_trust.audit.from"}}</label>
+								<input class="ds-input" id="asc-audit-since" name="since" type="date" value="{{.Query.Since}}">
+							</div>
+							<div class="ds-field">
+								<label class="ds-label" for="asc-audit-until">{{ctx.Locale.Tr "asc_trust.audit.to"}}</label>
+								<input class="ds-input" id="asc-audit-until" name="until" type="date" value="{{.Query.Until}}">
+							</div>
+							<div class="ds-field">
+								<label class="ds-label" for="asc-audit-order">{{ctx.Locale.Tr "asc_trust.audit.order"}}</label>
+								<select class="ds-select" id="asc-audit-order" name="order">
+									<option value=""{{if not .Query.OldestFirst}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.newest_first"}}</option>
+									<option value="oldest"{{if .Query.OldestFirst}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.oldest_first"}}</option>
+								</select>
+							</div>
+							<div class="ds-field">
+								<label class="ds-label" for="asc-audit-limit">{{ctx.Locale.Tr "asc_trust.audit.rows"}}</label>
+								<select class="ds-select" id="asc-audit-limit" name="limit">
+									<option value="25"{{if eq .Query.Limit 25}} selected{{end}}>25</option>
+									<option value="50"{{if eq .Query.Limit 50}} selected{{end}}>50</option>
+									<option value="100"{{if eq .Query.Limit 100}} selected{{end}}>100</option>
+									<option value="200"{{if eq .Query.Limit 200}} selected{{end}}>200</option>
+								</select>
+							</div>
+						</div>
+						<div class="ds-row ds-row-wrap ds-gap-8 adm-audit-acts">
+							<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "asc_trust.audit.filter"}}</button>
+							<a class="ds-btn ds-btn-secondary" href="{{.Base}}">{{ctx.Locale.Tr "asc_trust.audit.clear"}}</a>
+						</div>
+					</details>
+				</form>
+
+				<div class="adm-audit-bar">
+					<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.ExportJSONL}}" data-testid="asc-audit-export-jsonl" download>{{svg "dsi-download" 16}}{{ctx.Locale.Tr "asc_trust.audit.export_jsonl"}}</a>
+					<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.ExportCSV}}" data-testid="asc-audit-export-csv" download>{{svg "dsi-download" 16}}{{ctx.Locale.Tr "asc_trust.audit.export_csv"}}</a>
+					<form class="ds-ml-auto" method="post" action="{{.Base}}/verify">
+						{{$.CsrfTokenHtml}}
+						<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit" data-testid="asc-audit-verify" aria-describedby="adm-verify-hint">{{svg "dsi-shield-check" 16}}{{ctx.Locale.Tr "asc_trust.audit.verify"}}</button>
+					</form>
+				</div>
+				<p class="ds-hint" id="adm-verify-hint">{{ctx.Locale.Tr "asc_trust.audit.verify_hint"}}</p>
+
+				{{if .Searched}}
+					{{if .Rows}}
+						<ul class="ds-list adm-sec" data-testid="asc-audit-table" aria-label="{{ctx.Locale.Tr "asc_trust.audit.events"}}">
+							{{range .Rows}}
+								<li class="ds-li ds-li-wrap" data-seq="{{.Seq}}">
+									<span class="adm-tile {{if eq .Tone "ok"}}adm-tile-ok{{else if eq .Tone "no"}}adm-tile-warn{{else if eq .Tone "wn"}}adm-tile-err{{end}}" aria-hidden="true">{{if eq .ActorKind "agent"}}{{svg "dsi-agent" 18}}{{else}}{{svg "dsi-user" 18}}{{end}}</span>
+									<div class="ds-li-main">
+										<div class="ds-li-title">
+											<span>{{.Actor}}</span>{{if .OnBehalf}} <span class="ds-c-2">{{ctx.Locale.Tr "asc_trust.audit.for" .OnBehalf}}</span>{{end}}
+											<span>{{.What}}</span>
+											<span class="ds-chip {{if eq .Tone "ok"}}ds-chip-ok{{else if eq .Tone "no"}}ds-chip-warn{{else if eq .Tone "wn"}}ds-chip-err{{end}}">{{ctx.Locale.Tr (printf "asc_trust.audit.outcome_%s" .Tone)}}</span>
+										</div>
+										<div class="ds-li-sub ds-break">{{if .Repo}}<span>{{.Repo}}</span>{{end}}{{if and .Repo .Target}} &middot; {{end}}{{if .Target}}<code class="adm-mono">{{.Target}}</code>{{end}} <code class="adm-mono ds-c-2">{{.Action}}</code></div>
+										<div class="ds-li-meta"><span>{{DateUtils.AbsoluteShort .Time}}</span>{{if .Remote}}<span class="adm-mono">{{.Remote}}</span>{{end}}</div>
+										{{if .Details}}
+											<details class="ds-details adm-details">
+												<summary>{{ctx.Locale.Tr "asc_trust.audit.details"}}</summary>
+												<dl class="adm-kv adm-kv-cfg">{{range .Details}}<div><dt>{{.Key}}</dt><dd class="adm-mono">{{.Value}}</dd></div>{{end}}</dl>
+											</details>
+										{{end}}
+									</div>
+								</li>
+							{{end}}
+						</ul>
+						<div class="adm-table-foot">
+							<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.shown_count" (len .Rows)}}</p>
+							{{if .NextURL}}
+								<div class="ds-row ds-row-wrap ds-gap-8">
+									<a class="ds-btn ds-btn-secondary" href="{{.NextURL}}" rel="next" data-testid="asc-audit-next">{{ctx.Locale.Tr "asc_trust.audit.older"}}</a>
+									<a class="ds-btn ds-btn-ghost" href="{{.FirstURL}}">{{ctx.Locale.Tr "asc_trust.audit.first_page"}}</a>
+								</div>
+							{{end}}
+						</div>
+					{{else}}
+						<div class="ds-card adm-sec" data-testid="asc-audit-empty">
+							{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_admin.no_results_title") "Body" (ctx.Locale.Tr "asc_trust.audit.empty") "PrimaryLabel" (ctx.Locale.Tr "asc_admin.clear_filters") "PrimaryHref" .Base)}}
+						</div>
+					{{end}}
+				{{end}}
+			{{end}}
+		</div>
+	{{end}}
 {{template "admin/layout_footer" .}}

@@ -1,28 +1,22 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin new authentication")}}
-	<div class="admin-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.auths.new"}}
-		</h4>
-		<div class="ui attached segment">
-			<form class="ui form" action="{{.Link}}" method="post">
-				{{template "base/disable_form_autofill"}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "admin.auths.new") "Desc" (ctx.Locale.Tr "asc_admin.auth_new_lead"))}}
+
+	<form class="adm-form adm-form-card" action="{{.Link}}" method="post">
+		{{.CsrfTokenHtml}}
+		{{template "base/disable_form_autofill"}}
+		<section class="ds-card"><div class="ds-card-b ds-form">
 				<!-- Types and name -->
-				<div class="inline required field {{if .Err_Type}}error{{end}}">
-					<label>{{ctx.Locale.Tr "admin.auths.auth_type"}}</label>
-					<div class="ui selection type dropdown">
-						<input type="hidden" id="auth_type" name="type" value="{{.type}}">
-						<div class="text">{{.CurrentTypeName}}</div>
-						{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-						<div class="menu">
+				<div class="required {{if .Err_Type}}error{{end}} ds-field">
+					<label class="ds-label" for="auth_type">{{ctx.Locale.Tr "admin.auths.auth_type"}}</label>
+					<select class="ds-select" id="auth_type" name="type">
 							{{range .AuthSources}}
-								<div class="item" data-value="{{.Type.Int}}">{{.Name}}</div>
+								<option value="{{.Type.Int}}"{{if eq (print $.type) (print .Type.Int)}} selected{{end}}>{{.Name}}</option>
 							{{end}}
-						</div>
-					</div>
+						</select>
 				</div>
-				<div class="required inline field {{if .Err_Name}}error{{end}}">
-					<label for="auth_name">{{ctx.Locale.Tr "admin.auths.auth_name"}}</label>
-					<input id="auth_name" name="name" value="{{.name}}" autofocus required>
+				<div class="required {{if .Err_Name}}error{{end}} ds-field">
+					<label class="ds-label" for="auth_name">{{ctx.Locale.Tr "admin.auths.auth_name"}}</label>
+					<input class="ds-input" id="auth_name" name="name" value="{{.name}}" autofocus required>
 				</div>
 
 				<!-- LDAP and DLDAP -->
@@ -32,87 +26,74 @@
 				{{template "admin/auth/source/smtp" .}}
 
 				<!-- PAM -->
-				<div class="pam required field {{if not (eq .type 4)}}tw-hidden{{end}}">
-					<label for="pam_service_name">{{ctx.Locale.Tr "admin.auths.pam_service_name"}}</label>
-					<input id="pam_service_name" name="pam_service_name" value="{{.pam_service_name}}">
-					<label for="pam_email_domain">{{ctx.Locale.Tr "admin.auths.pam_email_domain"}}</label>
-					<input id="pam_email_domain" name="pam_email_domain" value="{{.pam_email_domain}}">
+				<div class="pam required {{if not (eq .type 4)}}tw-hidden{{end}} ds-field">
+					<label class="ds-label" for="pam_service_name">{{ctx.Locale.Tr "admin.auths.pam_service_name"}}</label>
+					<input class="ds-input" id="pam_service_name" name="pam_service_name" value="{{.pam_service_name}}">
+					<label class="ds-label" for="pam_email_domain">{{ctx.Locale.Tr "admin.auths.pam_email_domain"}}</label>
+					<input class="ds-input" id="pam_email_domain" name="pam_email_domain" value="{{.pam_email_domain}}">
 				</div>
-				<div class="pam optional field {{if not (eq .type 4)}}tw-hidden{{end}}">
-					<div class="ui checkbox">
-						<label for="skip_local_two_fa"><strong>{{ctx.Locale.Tr "admin.auths.skip_local_two_fa"}}</strong></label>
-						<input id="skip_local_two_fa" name="skip_local_two_fa" type="checkbox" {{if .skip_local_two_fa}}checked{{end}}>
-						<p class="help">{{ctx.Locale.Tr "admin.auths.skip_local_two_fa_helper"}}</p>
-					</div>
+				<div class="pam optional {{if not (eq .type 4)}}tw-hidden{{end}} ds-field">
+					<div class="ds-check"><input id="skip_local_two_fa" name="skip_local_two_fa" type="checkbox" {{if .skip_local_two_fa}}checked{{end}}><label for="skip_local_two_fa">{{ctx.Locale.Tr "admin.auths.skip_local_two_fa"}}</label></div>
+<p class="ds-hint">{{ctx.Locale.Tr "admin.auths.skip_local_two_fa_helper"}}</p>
 				</div>
 
 				<!-- OAuth2 -->
 				{{template "admin/auth/source/oauth" .}}
 
-				<div class="ldap field">
-					<div class="ui checkbox">
-						<label><strong>{{ctx.Locale.Tr "admin.auths.attributes_in_bind"}}</strong></label>
-						<input name="attributes_in_bind" type="checkbox" {{if .attributes_in_bind}}checked{{end}}>
-					</div>
+				<div class="ldap ds-field">
+					<div class="ds-check"><input id="chk-attributes_in_bind" name="attributes_in_bind" type="checkbox" {{if .attributes_in_bind}}checked{{end}}><label for="chk-attributes_in_bind">{{ctx.Locale.Tr "admin.auths.attributes_in_bind"}}</label></div>
 				</div>
-				<div class="ldap inline field {{if not (eq .type 2)}}tw-hidden{{end}}">
-					<div class="ui checkbox">
-						<label><strong>{{ctx.Locale.Tr "admin.auths.syncenabled"}}</strong></label>
-						<input name="is_sync_enabled" type="checkbox" {{if .is_sync_enabled}}checked{{end}}>
-					</div>
+				<div class="ldap {{if not (eq .type 2)}}tw-hidden{{end}} ds-field">
+					<div class="ds-check"><input id="chk-is_sync_enabled" name="is_sync_enabled" type="checkbox" {{if .is_sync_enabled}}checked{{end}}><label for="chk-is_sync_enabled">{{ctx.Locale.Tr "admin.auths.syncenabled"}}</label></div>
 				</div>
-				<div class="inline field">
-					<div class="ui checkbox">
-						<label><strong>{{ctx.Locale.Tr "admin.auths.activated"}}</strong></label>
-						<input name="is_active" type="checkbox" {{if .is_active}}checked{{end}}>
-					</div>
+				<div class="ds-field">
+					<div class="ds-check"><input id="chk-is_active" name="is_active" type="checkbox" {{if .is_active}}checked{{end}}><label for="chk-is_active">{{ctx.Locale.Tr "admin.auths.activated"}}</label></div>
 				</div>
-
-				<div class="field">
-					<button class="ui primary button">{{ctx.Locale.Tr "admin.auths.new"}}</button>
-				</div>
-			</form>
+			</div></section>
+		<div class="ds-sticky-actions">
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/auths">{{ctx.Locale.Tr "cancel"}}</a>
+			<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "admin.auths.new"}}</button>
 		</div>
+	</form>
 
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.auths.tips"}}
-		</h4>
-		<div class="ui attached segment">
-			<h5>{{ctx.Locale.Tr "admin.auths.tips.gmail_settings"}}</h5>
+		<section class="ds-card adm-sec" aria-labelledby="adm-auth-tips">
+			<div class="ds-card-h"><h2 id="adm-auth-tips">{{ctx.Locale.Tr "admin.auths.tips"}}</h2></div>
+			<div class="ds-card-b ds-stack ds-stack-12">
+			<h3 class="ds-t-h4">{{ctx.Locale.Tr "admin.auths.tips.gmail_settings"}}</h3>
 			<p>Host: smtp.gmail.com, Port: 587, Enable TLS Encryption: true</p>
 
-			<h5 class="oauth2">{{ctx.Locale.Tr "admin.auths.tips.oauth2.general"}}:</h5>
+			<h3 class="ds-t-h4 oauth2">{{ctx.Locale.Tr "admin.auths.tips.oauth2.general"}}:</h3>
 			<p class="oauth2">{{ctx.Locale.Tr "admin.auths.tips.oauth2.general.tip"}} <b id="oauth2-callback-url"></b></p>
 
-			<h5 class="ui top attached header">{{ctx.Locale.Tr "admin.auths.tip.oauth2_provider"}}</h5>
-			<div class="ui attached segment">
-				<li>Bitbucket</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.bitbucket" "https://bitbucket.org/account/user/{your-username}/oauth-consumers/new"}}</span>
-				<li>Dropbox</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.dropbox" "https://www.dropbox.com/developers/apps"}}</span>
-				<li>Facebook</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.facebook" "https://developers.facebook.com/apps"}}</span>
-				<li>GitHub</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.github" "https://github.com/settings/applications/new"}}</span>
-				<li>GitLab</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.gitlab_new" "https://gitlab.com/-/profile/applications"}}</span>
-				<li>Google</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.google_plus" "https://console.developers.google.com/"}}</span>
-				<li>OpenID Connect</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.openid_connect"}}</span>
-				<li>Twitter</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.twitter" "https://dev.twitter.com/apps"}}</span>
-				<li>Discord</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.discord" "https://discordapp.com/developers/applications/me"}}</span>
-				<li>Gitea</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.gitea" "https://forgejo.org/docs/latest/user/oauth2-provider"}}</span>
-				<li>Nextcloud</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.nextcloud"}}</span>
-				<li>Yandex</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.yandex" "https://oauth.yandex.com/client/new"}}</span>
-				<li>Mastodon</li>
-				<span>{{ctx.Locale.Tr "admin.auths.tip.mastodon"}}</span>
+			<h3 class="ds-t-h4">{{ctx.Locale.Tr "admin.auths.tip.oauth2_provider"}}</h3>
+			<dl class="adm-tips">
+				<dt>Bitbucket</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.bitbucket" "https://bitbucket.org/account/user/{your-username}/oauth-consumers/new"}}</dd>
+				<dt>Dropbox</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.dropbox" "https://www.dropbox.com/developers/apps"}}</dd>
+				<dt>Facebook</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.facebook" "https://developers.facebook.com/apps"}}</dd>
+				<dt>GitHub</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.github" "https://github.com/settings/applications/new"}}</dd>
+				<dt>GitLab</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.gitlab_new" "https://gitlab.com/-/profile/applications"}}</dd>
+				<dt>Google</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.google_plus" "https://console.developers.google.com/"}}</dd>
+				<dt>OpenID Connect</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.openid_connect"}}</dd>
+				<dt>Twitter</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.twitter" "https://dev.twitter.com/apps"}}</dd>
+				<dt>Discord</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.discord" "https://discordapp.com/developers/applications/me"}}</dd>
+				<dt>Gitea</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.gitea" "https://forgejo.org/docs/latest/user/oauth2-provider"}}</dd>
+				<dt>Nextcloud</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.nextcloud"}}</dd>
+				<dt>Yandex</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.yandex" "https://oauth.yandex.com/client/new"}}</dd>
+				<dt>Mastodon</dt>
+				<dd>{{ctx.Locale.Tr "admin.auths.tip.mastodon"}}</dd>
+			</dl>
 			</div>
-		</div>
-	</div>
+		</section>
 {{template "admin/layout_footer" .}}

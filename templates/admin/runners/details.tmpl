@@ -1,5 +1,67 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin runners")}}
-<div class="admin-setting-content">
-	{{template "shared/actions/runner_details" .}}
-</div>
+	{{template "admin/head_open" (dict "Title" (ctx.Locale.Tr "actions.runners.runner_title" .Runner.Name) "Desc" (ctx.Locale.Tr "asc_admin.runners_lead"))}}
+		<a class="ds-btn ds-btn-secondary" href="{{.RunnersListLink}}">{{ctx.Locale.Tr "asc_admin.runners"}}</a>
+		{{if .Runner.Editable $.RunnerOwnerID $.RunnerRepoID}}<a class="ds-btn ds-btn-primary" href="{{$.Link}}/edit">{{svg "dsi-pencil" 16}}{{ctx.Locale.Tr "actions.runners.edit_runner_button"}}</a>{{end}}
+	{{template "admin/head_close" .}}
+
+	<section class="ds-card runner-container" aria-labelledby="adm-run-props">
+		<div class="ds-card-h"><h2 id="adm-run-props">{{ctx.Locale.Tr "actions.runners.edit_runner.properties_fieldset"}}</h2>{{template "admin/runner_state" .Runner}}</div>
+		<dl class="adm-kv">
+			<div><dt>{{ctx.Locale.Tr "actions.runners.uuid"}}</dt><dd class="adm-mono">{{.Runner.UUID}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "actions.runners.owner_type"}}</dt><dd>{{.Runner.BelongsToOwnerType.LocaleString ctx.Locale}}</dd></div>
+			{{if and $.PageIsAdmin .Runner.BelongsToOwnerName}}<div><dt>{{.Runner.BelongsToOwnerType.LocaleString ctx.Locale}}</dt><dd>{{.Runner.BelongsToOwnerName}}</dd></div>{{end}}
+			<div><dt>{{ctx.Locale.Tr "actions.runners.labels"}}</dt><dd>{{if gt (len .Runner.AgentLabels) 0}}<span class="ds-chips">{{range .Runner.AgentLabels}}<span class="ds-chip ds-chip-outline adm-mono">{{.}}</span>{{end}}</span>{{else}}&mdash;{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "actions.runners.last_online"}}</dt><dd>{{if .Runner.LastOnline}}{{DateUtils.TimeSince .Runner.LastOnline}}{{else}}{{ctx.Locale.Tr "never"}}{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "actions.runners.ephemeral"}}</dt><dd>{{if .Runner.Ephemeral}}{{ctx.Locale.Tr "actions.runners.ephemeral.yes"}}{{else}}{{ctx.Locale.Tr "actions.runners.ephemeral.no"}}{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "actions.runners.version"}}</dt><dd class="adm-mono">{{if .Runner.Version}}{{.Runner.Version}}{{else}}&mdash;{{end}}</dd></div>
+			<div><dt>{{ctx.Locale.Tr "actions.runners.description"}}</dt><dd>{{if .Runner.Description}}{{.Runner.Description}}{{else}}&mdash;{{end}}</dd></div>
+		</dl>
+		<div class="ds-card-f"><p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "actions.runners.runner_details.labels_note"}}</p></div>
+	</section>
+
+	<section class="adm-sec" aria-labelledby="adm-run-tasks">
+		<div class="adm-sec-h">
+			<h2 id="adm-run-tasks">{{if .IsRepo}}{{ctx.Locale.Tr "actions.runners.task_list_repo"}}{{else if .IsOrg}}{{ctx.Locale.Tr "actions.runners.task_list_org"}}{{else if .IsAdmin}}{{ctx.Locale.Tr "actions.runners.task_list_admin"}}{{else if .IsUser}}{{ctx.Locale.Tr "actions.runners.task_list_user"}}{{end}}</h2>
+		</div>
+		{{if .Tasks}}
+			<div class="ds-table-wrap adm-only-md">
+				<table class="ds-table">
+					<thead>
+						<tr>
+							<th scope="col">{{ctx.Locale.Tr "actions.runners.task_list.run"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "actions.runners.task_list.status"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "actions.runners.task_list.repository"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "actions.runners.task_list.commit"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "actions.runners.task_list.done_at"}}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{{range .Tasks}}
+							<tr>
+								<td><a class="ds-link adm-mono" href="{{.GetRunLink}}">#{{.ID}}</a></td>
+								<td><span class="ds-chip task-status-{{.Status.String}}">{{.Status.LocaleString ctx.Locale}}</span></td>
+								<td><a class="ds-link" href="{{.GetRepoLink}}">{{.GetRepoName}}</a></td>
+								<td><a class="ds-link adm-mono" href="{{.GetCommitLink}}">{{ShortSha .CommitSHA}}</a></td>
+								<td>{{if .IsStopped}}{{DateUtils.TimeSince .Stopped}}{{else}}&mdash;{{end}}</td>
+							</tr>
+						{{end}}
+					</tbody>
+				</table>
+			</div>
+			<ul class="ds-list adm-only-sm">
+				{{range .Tasks}}
+					<li class="ds-li">
+						<div class="ds-li-main">
+							<div class="ds-li-title"><a href="{{.GetRunLink}}">#{{.ID}}</a> <span class="ds-chip task-status-{{.Status.String}}">{{.Status.LocaleString ctx.Locale}}</span></div>
+							<div class="ds-li-sub"><a class="ds-link" href="{{.GetRepoLink}}">{{.GetRepoName}}</a> · <a class="ds-link adm-mono" href="{{.GetCommitLink}}">{{ShortSha .CommitSHA}}</a></div>
+							<div class="ds-li-meta"><span>{{if .IsStopped}}{{DateUtils.TimeSince .Stopped}}{{else}}&mdash;{{end}}</span></div>
+						</div>
+					</li>
+				{{end}}
+			</ul>
+			{{template "base/paginate" .}}
+		{{else}}
+			<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "workflow" "Title" (ctx.Locale.Tr "actions.runners.task_list.no_tasks"))}}</div>
+		{{end}}
+	</section>
 {{template "admin/layout_footer" .}}

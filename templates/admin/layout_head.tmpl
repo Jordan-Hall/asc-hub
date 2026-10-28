@@ -1,8 +1,13 @@
 {{template "base/head" .ctxData}}
-<div role="main" aria-label="{{.ctxData.Title}}" class="page-content {{.pageClass}}">
-	{{template "shared/ds/subbar" (dict "Data" .ctxData "Title" .ctxData.Title "BackHref" "#settings-menu" "BackLabel" (ctx.Locale.Tr "admin.settings"))}}
+<div role="main" aria-label="{{.ctxData.Title}}" class="page-content ds-main admin {{.pageClass}}">
+	{{template "shared/ds/subbar" (dict "Data" .ctxData "Title" .ctxData.Title "BackHref" "#settings-menu" "BackLabel" (ctx.Locale.Tr "asc_admin.menu"))}}
 	<div class="ds-container ds-settings">
 		{{template "admin/navbar" .ctxData}}
 		<div class="ds-settings-body">
+			<div class="ds-banner ds-banner-warn adm-banner">
+				{{svg "dsi-shield-check" 18}}
+				<p class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_admin.banner_title"}}</strong> {{ctx.Locale.Tr "asc_admin.banner_text" AppDomain}}</p>
+				<span class="ds-chip ds-chip-outline ds-mono ds-nowrap">{{if eq AppVerNoMetadata "development"}}{{AppVerNoMetadata}}{{else}}v{{AppVerNoMetadata}}{{end}}</span>
+			</div>
 			{{template "base/alert" .ctxData}}
 			{{/* block: admin-setting-content */}}

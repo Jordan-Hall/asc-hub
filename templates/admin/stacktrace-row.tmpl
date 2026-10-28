@@ -1,68 +1,37 @@
-<div class="item">
-	<div class="tw-flex tw-items-center">
-		<div class="icon tw-ml-2 tw-mr-2">
-			{{if eq .Process.Type "request"}}
-				{{svg "octicon-globe" 16}}
-			{{else if eq .Process.Type "system"}}
-				{{svg "octicon-cpu" 16}}
-			{{else if eq .Process.Type "normal"}}
-				{{svg "octicon-terminal" 16}}
-			{{else if eq .Process.Type "git"}}
-				{{svg "octicon-git-branch" 16}}
-			{{else}}
-				{{svg "octicon-code" 16}}
-			{{end}}
-		</div>
-		<div class="content tw-flex-1">
-			<div class="header">{{.Process.Description}}</div>
-			<div class="description">{{if ne .Process.Type "none"}}{{DateUtils.TimeSince .Process.Start}}{{end}}</div>
-		</div>
-		<div>
-			{{if or (eq .Process.Type "request") (eq .Process.Type "normal")}}
-				<a class="delete-button icon" href="" data-url="{{.root.Link}}/cancel/{{.Process.PID}}" data-id="{{.Process.PID}}" data-name="{{.Process.Description}}" data-modal-id="cancel-process">{{svg "octicon-trash" 16 "text-red"}}</a>
-			{{end}}
-		</div>
-	</div>
-	{{if .Process.Stacks}}
-		<div class="divided list tw-ml-2">
-			{{range .Process.Stacks}}
-				<div class="item">
-					<details>
+{{/* One process of the stack trace page, with its goroutine stacks and its child processes. Props: Process, root (the page data). */}}
+<li class="ds-li ds-li-wrap adm-proc">
+	<span class="adm-tile" aria-hidden="true">
+		{{if eq .Process.Type "request"}}{{svg "dsi-globe" 18}}{{else if eq .Process.Type "system"}}{{svg "dsi-cpu" 18}}{{else if eq .Process.Type "normal"}}{{svg "dsi-terminal" 18}}{{else if eq .Process.Type "git"}}{{svg "dsi-branch" 18}}{{else}}{{svg "dsi-code" 18}}{{end}}
+	</span>
+	<div class="ds-li-main">
+		<div class="ds-li-title"><span class="ds-break">{{.Process.Description}}</span></div>
+		{{if ne .Process.Type "none"}}<div class="ds-li-meta"><span>{{DateUtils.TimeSince .Process.Start}}</span></div>{{end}}
+		{{if .Process.Stacks}}
+			<div class="adm-stacks">
+				{{range .Process.Stacks}}
+					<details class="adm-stack">
 						<summary>
-							<div class="flex-text-inline">
-								<div class="header tw-ml-2">
-									<span class="icon tw-mr-2">{{svg "octicon-code" 16}}</span>{{.Description}}{{if gt .Count 1}} * {{.Count}}{{end}}
-								</div>
-								<div class="description">
-									{{range .Labels}}
-										<div class="ui label">{{.Name}}<div class="detail">{{.Value}}</div></div>
-									{{end}}
-								</div>
-							</div>
+							<span class="ds-break">{{.Description}}{{if gt .Count 1}} &times; {{.Count}}{{end}}</span>
+							{{range .Labels}}<span class="ds-chip ds-chip-outline">{{.Name}}: {{.Value}}</span>{{end}}
 						</summary>
-						<div class="list">
+						<ol class="adm-frames">
 							{{range .Entry}}
-								<div class="item tw-flex tw-items-center">
-									<span class="icon tw-mr-4">{{svg "octicon-dot-fill" 16}}</span>
-									<div class="content tw-flex-1">
-										<div class="header"><code>{{.Function}}</code></div>
-										<div class="description"><code>{{.File}}:{{.Line}}</code></div>
-									</div>
-								</div>
+								<li><code class="ds-break">{{.Function}}</code><span class="adm-mono ds-c-2 ds-break">{{.File}}:{{.Line}}</span></li>
 							{{end}}
-						</div>
+						</ol>
 					</details>
-				</div>
-			{{end}}
-		</div>
+				{{end}}
+			</div>
+		{{end}}
+		{{if .Process.Children}}
+			<ul class="adm-rows adm-children">
+				{{range .Process.Children}}
+					{{template "admin/stacktrace-row" dict "Process" . "root" $.root}}
+				{{end}}
+			</ul>
+		{{end}}
+	</div>
+	{{if or (eq .Process.Type "request") (eq .Process.Type "normal")}}
+		<div class="adm-row-side"><button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-url="{{.root.Link}}/cancel/{{.Process.PID}}" data-id="{{.Process.PID}}" data-name="{{.Process.Description}}" data-modal-id="cancel-process" aria-label="{{ctx.Locale.Tr "asc_admin.trace_cancel"}}: {{.Process.Description}}">{{svg "dsi-x" 16}}{{ctx.Locale.Tr "asc_admin.cancel"}}</button></div>
 	{{end}}
-
-	{{if .Process.Children}}
-		<div class="divided list">
-			{{range .Process.Children}}
-				{{template "admin/stacktrace-row" dict "Process" . "root" $.root}}
-			{{end}}
-		</div>
-	{{end}}
-
-</div>
+</li>

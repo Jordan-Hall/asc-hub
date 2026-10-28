@@ -1,5 +1,29 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin runners")}}
-<div class="admin-setting-content">
-	{{template "shared/actions/runner_edit" .}}
-</div>
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "actions.runners.edit_runner.title" .Runner.Name) "Desc" (ctx.Locale.Tr "asc_admin.runners_lead"))}}
+	<form class="adm-form adm-form-card runner-container" action="{{.Link}}" method="post">
+		{{.CsrfTokenHtml}}
+		<section class="ds-card">
+			<div class="ds-card-h"><h2>{{ctx.Locale.Tr "actions.runners.edit_runner.properties_fieldset"}}</h2></div>
+			<div class="ds-card-b ds-form">
+				<div class="ds-field">
+					<label class="ds-label" for="name">{{ctx.Locale.Tr "actions.runners.edit_runner.name_label"}}</label>
+					<input class="ds-input{{if .Err_RunnerName}} is-err{{end}}" id="name" name="runner_name" type="text" value="{{.Runner.Name}}" required>
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="description">{{ctx.Locale.Tr "actions.runners.edit_runner.description_label"}} <span class="ds-opt">({{ctx.Locale.Tr "asc_shell.optional"}})</span></label>
+					<textarea class="ds-textarea{{if .Err_RunnerDescription}} is-err{{end}}" id="description" name="runner_description">{{.Runner.Description}}</textarea>
+				</div>
+			</div>
+		</section>
+		<section class="ds-card">
+			<div class="ds-card-h"><h2>{{ctx.Locale.Tr "actions.runners.edit_runner.properties_options"}}</h2></div>
+			<div class="ds-card-b ds-form">
+				{{template "admin/check" (dict "ID" "regenerate_token" "Name" "regenerate_token" "Label" (ctx.Locale.Tr "actions.runners.edit_runner.regenerate_token_label") "Hint" (ctx.Locale.Tr "actions.runners.edit_runner.regenerate_token_help"))}}
+			</div>
+		</section>
+		<div class="ds-sticky-actions">
+			<a class="ds-btn ds-btn-secondary" href="{{$.RunnersListLink}}">{{ctx.Locale.Tr "actions.runners.edit_runner.cancel_button"}}</a>
+			<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "actions.runners.edit_runner.save_button"}}</button>
+		</div>
+	</form>
 {{template "admin/layout_footer" .}}

@@ -1,65 +1,46 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin")}}
-<div class="admin-setting-content">
-	<h4 class="ui top attached header">
-		{{ctx.Locale.Tr "admin.moderation.reports"}}
-	</h4>
+	{{template "admin/head_open" (dict "Title" (ctx.Locale.Tr "asc_admin.moderation") "Desc" (ctx.Locale.Tr "asc_admin.mod_lead"))}}
+		<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/moderation/reports">{{svg "dsi-arrow-left" 16}}{{ctx.Locale.Tr "asc_admin.mod_back"}}</a>
+	{{template "admin/head_close" .}}
+
 	{{if .Reports}}
-	<div class="ui attached segment">
-		<div class="flex-item tw-items-center">
-			<div class="flex-item-leading">
-				{{svg .ContentTypeIconName 24}}
-			</div>
-			<div class="flex-item-main">
-				<div class="flex-item-title">
-					{{if .ContentURL}}<a href="{{.ContentURL}}">{{.ContentReference}}</a>{{else}}<em>{{.ContentReference}}</em>{{end}}
-					{{if .Poster}}<span> — {{if .PosterURL}}<a href="{{.PosterURL}}">{{.Poster}}</a>{{else}}<em>{{.Poster}}</em>{{end}}</span>{{end}}
+		<section class="ds-card" aria-labelledby="adm-rep-target">
+			<div class="ds-card-b adm-who">
+				<span class="adm-tile adm-tile-warn" aria-hidden="true">{{svg .ContentTypeIconName 18}}</span>
+				<div class="adm-who-text">
+					<h2 id="adm-rep-target" class="adm-who-name">{{if .ContentURL}}<a class="ds-link" href="{{.ContentURL}}">{{.ContentReference}}</a>{{else}}<em>{{.ContentReference}}</em>{{end}}</h2>
+					{{if .Poster}}<span class="adm-who-sub">{{if .PosterURL}}<a class="ds-link" href="{{.PosterURL}}">{{.Poster}}</a>{{else}}<em>{{.Poster}}</em>{{end}}</span>{{end}}
 				</div>
 			</div>
-		</div>
-	</div>
-	{{end}}
-	<div class="ui attached segment">
-		{{if .Reports}}
-		<div class="flex-list">
+		</section>
+
+		<ul class="ds-list adm-sec">
 			{{range .Reports}}
-			<div class="flex-item">
-				<div class="flex-item-main">
-					<div class="flex-items-inline">
-						<span class="item tw-mr-2">
-							{{svg "octicon-calendar"}}
-							{{DateUtils.AbsoluteShort .CreatedUnix}}
-						</span>
-						<span class="item tw-mr-2">
-							{{svg "octicon-report"}}
-							{{if .ReporterName}}<a href="/{{.ReporterName}}">{{.ReporterName}}</a>{{else}}{{$.GhostUserName}}{{end}}
-						</span>
-						<span class="item ui label">
-							{{svg "octicon-tag" 12}}
-							{{ctx.Locale.Tr (index $.AbuseCategories .Category)}}
-						</span>
+				<li class="ds-li">
+					<div class="ds-li-main">
+						<div class="ds-li-title">
+							<span>{{if .ReporterName}}<a href="{{AppSubUrl}}/{{.ReporterName}}">{{.ReporterName}}</a>{{else}}{{$.GhostUserName}}{{end}}</span>
+							<span class="ds-chip ds-chip-warn">{{svg "dsi-flag" 14}}{{ctx.Locale.Tr (index $.AbuseCategories .Category)}}</span>
+						</div>
+						<div class="ds-li-meta"><span>{{DateUtils.AbsoluteShort .CreatedUnix}}</span></div>
+						<pre class="adm-pre">{{.Remarks}}</pre>
+						{{if .ShadowCopyID.Valid}}
+							<details class="ds-details adm-details">
+								<summary>{{ctx.Locale.Tr "asc_admin.mod_shadow"}}: {{DateUtils.FullTime .ShadowCopyDate}}</summary>
+								<dl class="adm-kv adm-kv-cfg">
+									{{range $scField := (call $.GetShadowCopyMap $.Context .)}}
+										<div><dt>{{$scField.Key}}</dt><dd>{{$scField.Value}}{{if and $.AbuserURL (eq $scField.Key "Poster")}} (<a class="ds-link" href="{{$.AbuserURL}}">{{$.AbuserName}}</a>){{end}}</dd></div>
+									{{end}}
+								</dl>
+							</details>
+						{{end}}
 					</div>
-
-					<pre>{{.Remarks}}</pre>
-
-					{{if .ShadowCopyID.Valid}}
-						<details><summary>{{DateUtils.FullTime .ShadowCopyDate}} shadow copy</summary>
-						<table class="ui very basic striped table unstackable">
-							{{range $scField := (call $.GetShadowCopyMap $.Context .)}}
-							<tr>
-								<td>{{$scField.Key}}</td>
-								<td>{{$scField.Value}}{{if and $.AbuserURL (eq $scField.Key "Poster")}} (<a href="{{$.AbuserURL}}">{{$.AbuserName}}</a>){{end}}</td>
-							</tr>
-							{{end}}
-						</table>
-						</details>
-					{{end}}
-				</div>
-			</div>
+				</li>
 			{{end}}
+		</ul>
+	{{else}}
+		<div class="ds-card">
+			{{template "shared/ds/empty" (dict "Icon" "check-circle" "Title" (ctx.Locale.Tr "asc_admin.mod_none_title") "Body" (ctx.Locale.Tr "admin.moderation.no_open_reports"))}}
 		</div>
-		{{else}}
-		<p class="tw-text-center">{{ctx.Locale.Tr "admin.moderation.no_open_reports"}}</p>
-		{{end}}
-	</div>
-</div>
+	{{end}}
 {{template "admin/layout_footer" .}}

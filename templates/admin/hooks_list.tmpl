@@ -1,0 +1,41 @@
+{{/* One set of webhooks (system or default) as a card with its "add" dialog. Props: Set (the webhooks and their links), Scope, Desc, I (a number for the ids), Link (the delete address). */}}
+<section class="ds-card adm-sec" aria-labelledby="adm-hooks-{{.I}}">
+	<div class="ds-card-h">
+		<h2 id="adm-hooks-{{.I}}">{{.Set.Title}}</h2>
+		<span class="ds-card-sub">{{.Desc}}</span>
+		<span class="adm-card-h-end"><button type="button" class="ds-btn ds-btn-secondary ds-btn-sm show-modal" data-modal="#adm-add-hook-{{.I}}">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "asc_admin.hooks_add"}}</button></span>
+	</div>
+	{{if .Set.Webhooks}}
+		<ul class="adm-rows">
+			{{range .Set.Webhooks}}
+				<li class="ds-li ds-li-wrap">
+					<span class="ds-dot {{if eq .LastStatus 1}}ds-dot-ok{{else if eq .LastStatus 2}}ds-dot-err{{end}}" aria-hidden="true"></span>
+					<div class="ds-li-main">
+						<div class="ds-li-title"><a class="adm-mono ds-break" href="{{$.Set.BaseLink}}/{{.ID}}">{{.URL}}</a> <span class="ds-chip ds-chip-outline">{{$.Scope}}</span>{{if not .IsActive}} <span class="ds-chip">{{ctx.Locale.Tr "asc_admin.hooks_inactive"}}</span>{{end}}</div>
+						<div class="ds-li-sub">{{if eq .LastStatus 1}}{{ctx.Locale.Tr "asc_admin.hooks_status_ok"}}{{else if eq .LastStatus 2}}{{ctx.Locale.Tr "asc_admin.hooks_status_fail"}}{{else}}{{ctx.Locale.Tr "asc_admin.hooks_status_none"}}{{end}}</div>
+					</div>
+					<div class="adm-row-side">
+						<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Set.BaseLink}}/{{.ID}}" aria-label="{{ctx.Locale.Tr "edit"}}: {{.URL}}">{{ctx.Locale.Tr "edit"}}</a>
+						<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-url="{{$.Link}}/delete" data-id="{{.ID}}" data-modal-id="delete-webhook" aria-label="{{ctx.Locale.Tr "asc_admin.delete"}}: {{.URL}}">{{svg "dsi-trash" 16}}</button>
+					</div>
+				</li>
+			{{end}}
+		</ul>
+	{{else}}
+		{{template "shared/ds/empty" (dict "Icon" "link" "Title" (ctx.Locale.Tr "asc_admin.hooks_none_title") "Body" (ctx.Locale.Tr "asc_admin.hooks_none_text"))}}
+	{{end}}
+</section>
+
+<dialog id="adm-add-hook-{{.I}}">
+	<article>
+		<header>{{ctx.Locale.Tr "repo.settings.add_webhook"}}: {{.Set.Title}}</header>
+		<div class="content">
+			<ul class="ds-list">
+				{{range .Set.WebhookList}}
+					<li class="ds-li ds-li-link"><a class="ds-li-main adm-hook-type" href="{{$.Set.BaseLinkNew}}/{{.Type}}/new">{{.Icon 20}}<span>{{ctx.Locale.Tr (print "repo.settings.web_hook_name_" .Type)}}</span></a></li>
+				{{end}}
+			</ul>
+		</div>
+		<div class="actions"><button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button></div>
+	</article>
+</dialog>

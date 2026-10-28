@@ -1,39 +1,27 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin config")}}
-	<div class="admin-setting-content">
-		{{if .Host}}
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.federation.hosts.details_panel"}}
-		</h4>
-		<div class="ui attached table segment">
-			<dl class="admin-dl-horizontal">
-				<dt>{{ctx.Locale.Tr "admin.federation.host.id"}}</dt>
-				<dd>{{.Host.ID}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.federation.host.fqdn"}}</dt>
-				<dd>{{.Host.HostFqdn}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.federation.host.port"}}</dt>
-				<dd>{{.Host.HostPort}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.federation.host.schema"}}</dt>
-				<dd>{{.Host.HostSchema}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.federation.host.software_name"}}</dt>
-				<dd>{{.Host.NodeInfo.SoftwareName}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.federation.host.created"}}</dt>
-				<dd>{{DateUtils.AbsoluteShort .Host.Created}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.federation.host.updated"}}</dt>
-				<dd>{{DateUtils.AbsoluteShort .Host.Updated}}</dd>
-				<dt>{{ctx.Locale.Tr "admin.federation.host.latest_activity"}}</dt>
-				<dd>{{DateUtils.FullTime .Host.LatestActivity}}</dd>
+	{{template "admin/head_open" (dict "Title" (ctx.Locale.Tr "asc_admin.federation") "Desc" (ctx.Locale.Tr "asc_admin.fed_lead"))}}
+		<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/federation/hosts">{{svg "dsi-arrow-left" 16}}{{ctx.Locale.Tr "asc_admin.fed_hosts_tab"}}</a>
+	{{template "admin/head_close" .}}
+
+	{{if .Host}}
+		<section class="ds-card" aria-labelledby="adm-host-h">
+			<div class="ds-card-h"><h2 id="adm-host-h">{{ctx.Locale.Tr "admin.federation.hosts.details_panel"}}</h2></div>
+			<dl class="adm-kv adm-kv-cfg">
+				<div><dt>{{ctx.Locale.Tr "admin.federation.host.id"}}</dt><dd>{{.Host.ID}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.federation.host.fqdn"}}</dt><dd class="adm-mono">{{.Host.HostFqdn}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.federation.host.port"}}</dt><dd class="adm-mono">{{.Host.HostPort}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.federation.host.schema"}}</dt><dd class="adm-mono">{{.Host.HostSchema}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.federation.host.software_name"}}</dt><dd>{{.Host.NodeInfo.SoftwareName}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.federation.host.created"}}</dt><dd>{{DateUtils.AbsoluteShort .Host.Created}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.federation.host.updated"}}</dt><dd>{{DateUtils.AbsoluteShort .Host.Updated}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.federation.host.latest_activity"}}</dt><dd>{{DateUtils.FullTime .Host.LatestActivity}}</dd></div>
 			</dl>
-		</div>
-		{{end}}
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.federation.users.manage_panel"}}
-			<div class="ui right">
-				{{.UsersTotal}}
-			</div>
-		</h4>
-		<div class="ui attached table segment">
-			{{template "admin/federation/user_list" .}}
-		</div>
+		</section>
+	{{end}}
+
+	<section class="adm-sec" aria-labelledby="adm-host-users">
+		<div class="adm-sec-h"><h2 id="adm-host-users">{{ctx.Locale.Tr "admin.federation.users.manage_panel"}} <span class="ds-count">{{.UsersTotal}}</span></h2></div>
+		{{template "admin/federation/user_list" .}}
 		{{template "base/paginate" .}}
-	</div>
+	</section>
 {{template "admin/layout_footer" .}}
