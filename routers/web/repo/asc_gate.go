@@ -39,6 +39,7 @@ type ascGatePage struct {
 	HeldProblem string
 	Problem     string
 	Unsupported bool
+	Stats       *ascGateStats
 
 	ProtectionsOn    int
 	ProtectionsTotal int
@@ -117,6 +118,7 @@ func AscGate(ctx *context.Context) {
 		}
 	}
 	ctx.Data["AscQuarantine"] = ascQueueQuarantine(ctx)
+	ascGateLoadStats(ctx, p, callCtx, conn, name, days)
 
 	if ctx.Repo.IsAdmin() && asctrust.HasFeature(ctx, asctrust.FeatureAudit) {
 		p.HeldShown = true

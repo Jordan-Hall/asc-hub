@@ -8,14 +8,17 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	issues_model "forgejo.org/models/issues"
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/routers/web/shared/trustweb"
+	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/ascbridge"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/automerge"
@@ -286,6 +289,7 @@ func AscQueuePage(ctx *context.Context) {
 	ctx.Data["AscQueueBranch"] = branch
 	ctx.Data["AscQueueRevalidate"] = automerge.AscQueueNoContentMerge()
 	ctx.Data["AscQuarantine"] = ascQueueQuarantine(ctx)
+	ascQueueStats(ctx, repo, branch, view)
 	ctx.HTML(http.StatusOK, tplAscQueue)
 }
 
@@ -368,3 +372,41 @@ func AscQueuePause(ctx *context.Context) { ascQueueSetPaused(ctx, true) }
 
 // AscQueueResume resumes the queue of a branch and asks for a run. Only an administrator may.
 func AscQueueResume(ctx *context.Context) { ascQueueSetPaused(ctx, false) }
+
+// ascQueueStats fills the stat cards and the estimates. The counts come from the hub's own entries; the timing and the
+// median come from asc and are left out when asc does not answer or does not know an entry.
+func ascQueueStats(ctx *context.Context, repo *repo_model.Repository, branch string, view *automerge.AscQueueView) {
+	now := time.Now()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
+	landedToday, refused := 0, 0
+	for _, r := range view.Recent {
+		if r.Entry.State == automerge.AscQueueMerged && r.Entry.UpdatedUnix >= startOfDay {
+			landedToday++
+		}
+	}
+	for _, r := range view.Active {
+		if r.Entry.State == automerge.AscQueueBlocked {
+			refused++
+		}
+	}
+	ctx.Data["AscQueueLandedToday"] = landedToday
+	ctx.Data["AscQueueRefused"] = refused
+	timings := map[string]ascQueueTiming{}
+	if name, err := ascGraphRepoName(repo); err == nil {
+		if snap, err := ascQueueRead(ctx.Req.Context(), name, branch); err == nil {
+			for _, t := range snap.Entries {
+				timings[t.Change] = t
+			}
+			ctx.Data["AscQueueMedian"] = snap.Median
+			ctx.Data["AscQueueLiveURL"] = ctx.Repo.RepoLink + "/asc/queue/live?branch=" + url.QueryEscape(branch)
+			if len(view.Active) > 0 {
+				if first, ok := timings[view.Active[0].Entry.AscChange]; ok && first.ETA != "" {
+					ctx.Data["AscQueueNext"] = first.ETA
+				}
+			}
+		} else {
+			log.Warn("asc queue: timing not available: %s", ascagentuiLogLine(ascagentui.Classify(err)))
+		}
+	}
+	ctx.Data["AscQueueTimings"] = timings
+}

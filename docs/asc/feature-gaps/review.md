@@ -165,7 +165,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Agents | 'Needs you' panel: permission request (Allow once / Deny) and plan approval (Review plan), applied in place | done | asc: permission-request and plan events + decision RPC missing (agents.proto has WAITING_INPUT only); hub: asc_agents.tmpl panel + routes (today a link list of waiting runs) (Allow once/Deny and Review plan, decided as the person via Agents.DecideRequest) | L |
 | Agents | 'Agents on this repository' card (scope, status, changes landed in 30 days, Manage access) | done | asc: per-agent landed count; hub: ListTokens + ListRuns aggregation in asc_agents.go (Agents.ListAgents) | M |
 | Agents | Numbered pagination and 'Showing 5 of 24' | done | templates/repo/asc_agents.tmpl (only an 'Older runs' cursor link) (Showing N of T and Older runs; asc pages by cursor so there are no numbers) | S |
-| Agents | Sub-navigation Runs / Workflows / Access / Spend | ui-only-missing | templates/repo/asc_agents_nav.tmpl (has Runs, Workflows, New task, Access; no Spend page) | S |
+| Agents | Sub-navigation Runs / Workflows / Access / Spend | done | templates/repo/asc_agents_nav.tmpl (has Runs, Workflows, New task, Access; no Spend page) (Spend tab) | S |
 | Agents | Agent features off state with 'Turn on agent features' | done | templates/repo/asc_agents_notice.tmpl, POST /-/asc/agents/features | - |
 | Agents | Empty state; loading skeleton | ui-only-missing | templates/repo/asc_agents.tmpl (empty done; skeleton missing) | S |
 | Agents | Header pill 'N agents running' on every page | done | templates/repo/asc_agents_pill.tmpl | - |
@@ -174,36 +174,36 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
-| AgentRun | Runs side list / switcher (runs 214, 213, 212 ...) with New task | ui-only-missing | templates/repo/asc_agents_run.tmpl | S |
-| AgentRun | Task quote ('Task by Maya Okafor: ...') on the run page | needs-asc-backend | asc: AgentRun lacks the task text, only the title (proto/asc/v1/agents.proto message AgentRun); hub shows the title only | S |
+| AgentRun | Runs side list / switcher (runs 214, 213, 212 ...) with New task | done | templates/repo/asc_agents_run.tmpl (rail) | S |
+| AgentRun | Task quote ('Task by Maya Okafor: ...') on the run page | done | asc: AgentRun lacks the task text, only the title (proto/asc/v1/agents.proto message AgentRun); hub shows the title only (AgentRun.task) | S |
 | AgentRun | Header: state chip, model, started-by, age, target, workflow link | done | templates/repo/asc_agents_run.tmpl | - |
-| AgentRun | Pause (holds the run at the next tool call) | needs-both | asc: no PauseRun RPC or state; hub: route + button | M |
-| AgentRun | Stop with confirmation and reason; keeps work as drafts | ui-only-missing | templates/repo/asc_agents_run.tmpl (Stop posts directly; CancelRun accepts a reason) | S |
-| AgentRun | Plan block with step states and 'You approved at 10:02' | needs-both | asc: plan events/state missing; hub: plan card | L |
-| AgentRun | Permission request banner: Allow once / Deny and continue / Answer in own words; records who and why | needs-both | asc: structured permission request + decision RPC; hub: asc_agents_run.tmpl (free-text SendInput answer exists) | L |
+| AgentRun | Pause (holds the run at the next tool call) | done | asc: no PauseRun RPC or state; hub: route + button (Agents.PauseRun) | M |
+| AgentRun | Stop with confirmation and reason; keeps work as drafts | done | templates/repo/asc_agents_run.tmpl (Stop posts directly; CancelRun accepts a reason) (reason popover) | S |
+| AgentRun | Plan block with step states and 'You approved at 10:02' | done | asc: plan events/state missing; hub: plan card (plan request steps, decided as the person) | L |
+| AgentRun | Permission request banner: Allow once / Deny and continue / Answer in own words; records who and why | done | asc: structured permission request + decision RPC; hub: asc_agents_run.tmpl (free-text SendInput answer exists) (Agents.DecideRequest records who and why) | L |
 | AgentRun | Live activity log: poll, follow unless scrolled, 'Show everything' toggle, error handling | done | web_src/js/features/asc-agent-run.ts, asc_agents_events.tmpl, routers/web/repo/asc_agents_feed.go | - |
-| AgentRun | 'Reconnecting: showing the log as of 10:14' banner | ui-only-missing | asc-agent-run.ts (maxFailures logic exists, no banner) | S |
+| AgentRun | 'Reconnecting: showing the log as of 10:14' banner | done | asc-agent-run.ts (maxFailures logic exists, no banner) (banner) | S |
 | AgentRun | Steer this run / answer the agent | done | templates/repo/asc_agents_run.tmpl, POST runs/{id}/input | - |
 | AgentRun | Result: stack of changes with state and Review links; 'agent cannot merge' note | done | templates/repo/asc_agents_run.tmpl, services/ascagentui/links.go | - |
 | AgentRun | Budget meters: tokens, cost, time, changes with numbers | done | templates/repo/asc_agents_meters.tmpl, services/ascagentui/budget.go | - |
-| AgentRun | Budget 'Edit limits' on a live run | needs-both | asc: only token-level SetBudget; need a run-level limit RPC; hub: dialog + route | M |
-| AgentRun | Access for this run: can/cannot list, token id and expiry, signed by run key | needs-hub-backend | templates/repo/asc_agents_policy.tmpl (repo policy card only); use AgentRun.token_id + AgentTokens.GetToken | S |
-| AgentRun | Checkpoints list with Roll back (logged) | needs-both | asc: checkpoint + rollback RPC missing; hub: card + route | L |
-| AgentRun | Audit note and 'Download the audit log' (90 days, linked from each change) | needs-both | asc: per-run audit export (Audit.Export filtered by run); hub: link + route | M |
-| AgentRun | Failed state 'hit its model token limit' with 'Raise the limit and continue' and Review the 3 changes | needs-both | failure text done (services/ascagentui/failure.go); continue needs an asc resume RPC | M |
-| AgentRun | Done summary (38 tool calls, 11 min, $2.31) and Stopped notes | ui-only-missing | templates/repo/asc_agents_run.tmpl (data in AgentBudgetUsage) | S |
+| AgentRun | Budget 'Edit limits' on a live run | done | asc: only token-level SetBudget; need a run-level limit RPC; hub: dialog + route (Agents.SetRunLimits) | M |
+| AgentRun | Access for this run: can/cannot list, token id and expiry, signed by run key | done | templates/repo/asc_agents_policy.tmpl (repo policy card only); use AgentRun.token_id + AgentTokens.GetToken (policy card) | S |
+| AgentRun | Checkpoints list with Roll back (logged) | done | asc: checkpoint + rollback RPC missing; hub: card + route (ListCheckpoints and RollbackRun, run must be paused) | L |
+| AgentRun | Audit note and 'Download the audit log' (90 days, linked from each change) | done | asc: per-run audit export (Audit.Export filtered by run); hub: link + route (GetRunLog download) | M |
+| AgentRun | Failed state 'hit its model token limit' with 'Raise the limit and continue' and Review the 3 changes | done | failure text done (services/ascagentui/failure.go); continue needs an asc resume RPC (ContinueRun) | M |
+| AgentRun | Done summary (38 tool calls, 11 min, $2.31) and Stopped notes | done | templates/repo/asc_agents_run.tmpl (data in AgentBudgetUsage) (banner with time, cost, tokens) | S |
 
 ### AgentNew
 
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | AgentNew | Task, target branch, model/key, limits (changes, tokens, cost, minutes), narrow write scope, start, validation | done | templates/repo/asc_agents_new.tmpl, routers/web/repo/asc_agents.go AscAgentsCreate | - |
-| AgentNew | Agent picker showing each agent's scope (coder-2 src/**, tests/**) | ui-only-missing | templates/repo/asc_agents_new.tmpl (free-text agent name) | S |
-| AgentNew | 'Ask me to approve the plan first' switch | needs-both | asc: CreateAgentRunRequest has no plan_first; plan flow missing | L |
-| AgentNew | Right rail 'What this run may do', computed from token and policy, updates as scope narrows | needs-hub-backend | Policy.Evaluate RUN/WRITE (proto/asc/v1/policy.proto); asc_agents_new.tmpl + JS fetch | M |
-| AgentNew | Estimate 'About 10 min and $1.60' from similar runs | needs-asc-backend | asc: run statistics query (new RPC) + hub display | M |
-| AgentNew | Recent tasks with Reuse | needs-both | asc: AgentRun lacks task text; hub: list on asc_agents_new.tmpl | S |
-| AgentNew | Limits above the policy cap are lowered with a message, not rejected | needs-both | asc budget handling vs hub message in asc_agents.go (no 'lowered' text exists) | S |
+| AgentNew | Agent picker showing each agent's scope (coder-2 src/**, tests/**) | done | templates/repo/asc_agents_new.tmpl (free-text agent name) (datalist of the roster with scopes) | S |
+| AgentNew | 'Ask me to approve the plan first' switch | done | asc: CreateAgentRunRequest has no plan_first; plan flow missing (CreateRun.plan_first) | L |
+| AgentNew | Right rail 'What this run may do', computed from token and policy, updates as scope narrows | done | Policy.Evaluate RUN/WRITE (proto/asc/v1/policy.proto); asc_agents_new.tmpl + JS fetch (policy card) | M |
+| AgentNew | Estimate 'About 10 min and $1.60' from similar runs | done | asc: run statistics query (new RPC) + hub display (Agents.GetEstimate, updates as you type) | M |
+| AgentNew | Recent tasks with Reuse | done | asc: AgentRun lacks task text; hub: list on asc_agents_new.tmpl (Agents.RecentTasks as the person) | S |
+| AgentNew | Limits above the policy cap are lowered with a message, not rejected | done | asc budget handling vs hub message in asc_agents.go (no 'lowered' text exists) (CreateRun.lowered shown as a warning) | S |
 | AgentNew | Started toast 'Run 216 started' with Open; can-start right required | done | redirect to run page + writer check (asc_agents_common.go) | - |
 
 ### AgentAccess
@@ -215,7 +215,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | AgentAccess | Spend this month per token ($58 of $120) as a monthly budget | needs-both | asc: token budgets are per run or lifetime, no monthly window or month spend (AgentBudgetLimits/Usage); hub: column | M |
 | AgentAccess | Approvals log (permission and plan requests with decision and decider) | needs-both | depends on the permission/plan feature (see AgentRun); asc audit events + hub list | L |
 | AgentAccess | Policy defaults card: write scope, never trunk, changes per run, cost cap, token lifetime, who may decide, link to Policy | ui-only-missing | templates/repo/asc_agents_policy.tmpl (can/cannot and limits shown; cost cap, lifetime, deciders missing) | M |
-| AgentAccess | Spend this month panel: cap, daily spend chart, per-agent totals, 'people using AI keys' | needs-both | asc: spend history aggregates; hub AI-key usage (services/ascbyo); new Spend page | L |
+| AgentAccess | Spend this month panel: cap, daily spend chart, per-agent totals, 'people using AI keys' | done | asc: spend history aggregates; hub AI-key usage (services/ascbyo); new Spend page (Spend page: cap, daily bars with table, per agent, SetMonthlyBudget) | L |
 | AgentAccess | Revoke confirm dialog naming the agent; Budget dialog | done | templates/repo/asc_agents_tokens.tmpl (disclosure forms with reason, not modal dialogs) | - |
 | AgentAccess | Empty state 'No tokens yet' | done | templates/repo/asc_agents_tokens.tmpl | - |
 
@@ -268,12 +268,12 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | Policy | Header: policy valid pill, 'Edit the rules' link to Settings, 7/30 day window | done | templates/repo/asc_gate.tmpl, routers/web/repo/asc_gate.go | - |
-| Policy | Stat cards: Changes checked, Passed first time, Held by the gate (cleared/open), Median time to clear | needs-both | asc: gate decision history (no RPC); hub today shows held/rules/protections/quarantine counts (asc_gate.tmpl:50) | L |
+| Policy | Stat cards: Changes checked, Passed first time, Held by the gate (cleared/open), Median time to clear | done | asc: gate decision history (no RPC); hub today shows held/rules/protections/quarantine counts (asc_gate.tmpl:50) (GetGateStats) | L |
 | Policy | Held-by-the-gate list: change, reason, rule, who, how cleared, time later, Open change | done | templates/repo/asc_gate.tmpl (from audit refusals) | - |
 | Policy | Policy file view, 'What this means', 'Who can write here' table | done | templates/repo/asc_gate.tmpl | - |
-| Policy | 'Checked and held, per day' chart with table equivalent | needs-both | asc: per-day gate counts; hub chart in asc_gate.tmpl | M |
-| Policy | Rules in force with 'N held of M' per rule | needs-both | asc: held counts per rule from audit/gate events; asc_gate.tmpl rule list (no counts) | M |
-| Policy | Maintainer overrides (signed, logged exception, reason) | needs-asc-backend | asc: override mechanism and event (none in proto/asc/v1/policy.proto); hub list | L |
+| Policy | 'Checked and held, per day' chart with table equivalent | done | asc: per-day gate counts; hub chart in asc_gate.tmpl (GetGateStats per_day with table) | M |
+| Policy | Rules in force with 'N held of M' per rule | done | asc: held counts per rule from audit/gate events; asc_gate.tmpl rule list (no counts) (GetGateStats per_rule) | M |
+| Policy | Maintainer overrides (signed, logged exception, reason) | done | asc: override mechanism and event (none in proto/asc/v1/policy.proto); hub list (GrantOverride, RevokeOverride, ListOverrides) | L |
 | Policy | Quarantined checks summary with link to the queue | done | templates/repo/asc_gate.tmpl | - |
 | Policy | Invalid-file fallback, nothing-held state | done | templates/repo/asc_gate.tmpl | - |
 | Policy | Loading skeleton | ui-only-missing | templates/repo/asc_gate.tmpl | S |
@@ -285,10 +285,10 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Ops | Operation list: kind pill, ref, actor, age, hash pair, Undo | done | templates/repo/asc_ops.tmpl, routers/web/repo/asc_ops.go (Stacks.ListRefLog) | - |
 | Ops | Blocked reasons beside a lock icon (not yours, branch changed, too old, protected needs maintainer) | done | templates/repo/asc_ops.tmpl (asc_trust.ops.blocked.*) | - |
 | Ops | Branch filter, Only my operations; filters in URL; older operations pager | done | templates/repo/asc_ops.tmpl | - |
-| Ops | Kind filter chips (Push, Landed, Restack, Undo, Agent) and '6 of 214' count | ui-only-missing | templates/repo/asc_ops.tmpl (ViaKey exists per row) | S |
+| Ops | Kind filter chips (Push, Landed, Restack, Undo, Agent) and '6 of 214' count | done | templates/repo/asc_ops.tmpl (ViaKey exists per row) (counts of the page shown) | S |
 | Ops | Restack banner with 'See what changed' and 'Undo restack' | ui-only-missing | templates/repo/asc_ops.tmpl | M |
-| Ops | Export of operations | needs-hub-backend | routers/web/repo/asc_ops.go (stream ListRefLog as JSONL/CSV) | M |
-| Ops | 'Who changed branches this week' actor bars with 7/30 window | needs-hub-backend | asc_ops.go aggregation of ListRefLog | M |
+| Ops | Export of operations | done | routers/web/repo/asc_ops.go (stream ListRefLog as JSONL/CSV) (JSONL) | M |
+| Ops | 'Who changed branches this week' actor bars with 7/30 window | done | asc_ops.go aggregation of ListRefLog (bars of the rows shown) | M |
 | Ops | Selecting a row loads the undo preview in a right panel without navigating | ui-only-missing | templates/repo/asc_ops.tmpl, asc_ops_undo.tmpl (separate page today); web_src/js | M |
 | Ops | Undo preview (now at / goes back to / who / reason) and undo is itself logged | done | templates/repo/asc_ops_undo.tmpl, AscOpsUndo (Stacks.UndoRef) | - |
 | Ops | Preview lines '4 changes go back', 'approvals on 2 unchanged diffs are kept' | needs-both | UndoRef/preview must report affected changes and kept approvals; asc_ops_undo.tmpl | S |
@@ -301,16 +301,16 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | Queue | Branch, running/paused chip, revalidate on/off, Pause/Resume confirm dialogs | done | templates/repo/asc_queue.tmpl, routers/web/repo/asc_queue.go | - |
-| Queue | Stats: Waiting, Landed today, Median wait (was 9 min last week), Refused after dry run | needs-hub-backend | queue DB aggregates in asc_queue.go; stat cards (today: waiting/recent/quarantine counts) | M |
+| Queue | Stats: Waiting, Landed today, Median wait (was 9 min last week), Refused after dry run | done | queue DB aggregates in asc_queue.go; stat cards (today: waiting/recent/quarantine counts) (waiting, landed today, median from asc, blocked) | M |
 | Queue | Waiting list: position, title, state chip (Checking/Queued), queued-by, Remove | done | templates/repo/asc_queue.tmpl | - |
-| Queue | Row detail: 'unit running on merged trunk, about 3 min' and 'starts about 6 min' ETAs | needs-both | asc: ETA and check progress per entry (mergequeue.proto QueueEntry has state/detail/position only); hub display | M |
-| Queue | Merge now per row (hover/focus) with confirm | ui-only-missing | templates/repo/asc_queue.tmpl (POST /merge exists) | S |
+| Queue | Row detail: 'unit running on merged trunk, about 3 min' and 'starts about 6 min' ETAs | done | asc: ETA and check progress per entry (mergequeue.proto QueueEntry has state/detail/position only); hub display (MergeQueue.List timing joined by change id) | M |
+| Queue | Merge now per row (hover/focus) with confirm | done | templates/repo/asc_queue.tmpl (POST /merge exists) (link to the confirm page, next entry only) | S |
 | Queue | Queue reordering (not on the board: order is queue order, no reorder RPC in mergequeue.proto) | done | nothing to build | - |
 | Queue | Quarantined checks with reason, owner, review date | done | templates/repo/asc_queue.tmpl, services/asctrust queue quarantine | - |
 | Queue | Recently finished (merged / removed with who and when) | done | templates/repo/asc_queue.tmpl | - |
 | Queue | 'Merge a stack' panel: scope radios, dry run, Add to queue / Merge now | ui-only-missing | templates/repo/asc_queue.tmpl; reuse asc_confirm.tmpl | M |
 | Queue | 'How landing stays safe' card; paused and empty states | done | templates/repo/asc_queue.tmpl | - |
-| Queue | Live update: list slides when an item lands, Checking pulses | needs-both | asc: MergeQueue.Watch stream exists; hub poll/SSE endpoint + script | M |
+| Queue | Live update: list slides when an item lands, Checking pulses | done | asc: MergeQueue.Watch stream exists; hub poll/SSE endpoint + script (MergeQueue.Watch long poll with a reload when the set changes) | M |
 
 ### Audit
 
@@ -331,7 +331,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Security | Scan main now with inline progress | ui-only-missing | templates/repo/settings/asc_security.tmpl (POST then reload; Scan RPC is unary) | M |
 | Security | Findings list: file:line, rule, who, age, severity, state tabs | done | templates/repo/settings/asc_security.tmpl, routers/web/repo/setting/asc_security.go (SecretScan.ListFindings) | - |
 | Security | Set state Revoked / False positive / Accept risk with Undo toast | ui-only-missing | templates/repo/settings/asc_security.tmpl (state buttons with note exist; no toast) | S |
-| Security | 'File starts with...' filter | ui-only-missing | templates/repo/settings/asc_security.tmpl | S |
+| Security | 'File starts with...' filter | done | templates/repo/settings/asc_security.tmpl (client filter by path start) | S |
 | Security | Pushes refused list from the audit log | done | templates/repo/settings/asc_security.tmpl | - |
 | Security | Allowlist saved as a proposed change | done | templates/repo/settings/asc_security.tmpl, AscSecurityAllowlist (Policy.Propose) | - |
 | Security | Rules table with source and 'Show all 142' | done | templates/repo/settings/asc_security.tmpl | - |

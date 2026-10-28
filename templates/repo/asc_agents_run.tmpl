@@ -16,6 +16,17 @@ The page works without the script: the log shows what existed when it was drawn,
 		<div class="rv-area">{{template "repo/asc_agents_nav" .}}</div>
 		{{template "repo/asc_agents_notice" .}}
 		{{if .AscAgentRun}}
+		<div class="ar-wrap">
+		{{if .AscAgentRunRail}}
+		<nav class="ar-rail" aria-label="{{ctx.Locale.Tr "asc_review.run_rail_label"}}" data-testid="asc-agent-rail">
+			<div class="ar-rail-h"><span>{{ctx.Locale.Tr "asc_review.agents_nav_runs"}}</span>{{if .AscAgentsCanStart}}<a class="rv-btn rv-btn-primary rv-btn-sm" href="{{.AscAgentsBase}}/new">{{ctx.Locale.Tr "asc_review.run_rail_new"}}</a>{{end}}</div>
+			<ul>
+				{{range .AscAgentRunRail}}
+				<li><a href="{{.Link}}"{{if eq .ID $.AscAgentRun.ID}} aria-current="page"{{end}}><b>{{ctx.Locale.Tr "asc_review.agents_run_n" .ID}} · {{.Title}}</b><span>{{.Agent}} · {{.State.Label}}{{if .Paused}} · {{ctx.Locale.Tr "asc_review.agents_paused"}}{{end}}{{if .Pending}} · {{ctx.Locale.Tr "asc_review.agents_roster_waiting"}}{{end}}</span></a></li>
+				{{end}}
+			</ul>
+		</nav>
+		{{end}}
 		<div id="asc-agent-run"
 			class="rv-run-page"
 			data-asc-agent-run
@@ -38,14 +49,64 @@ The page works without the script: the log shows what existed when it was drawn,
 					</p>
 				</div>
 				{{if and .AscAgentCanAct .AscAgentRun.State.Active}}
-					<form class="rv-acts" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/cancel" data-run-cancel>
-						{{.CsrfTokenHtml}}
-						<button class="rv-btn rv-btn-danger" type="submit">{{ctx.Locale.Tr "asc_review.run_stop"}}</button>
-					</form>
+					<div class="rv-acts ar-acts">
+						<form method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/pause">
+							{{.CsrfTokenHtml}}
+							<input type="hidden" name="paused" value="{{if .AscAgentRunPaused}}0{{else}}1{{end}}">
+							<button class="rv-btn rv-btn-secondary" type="submit" title="{{ctx.Locale.Tr "asc_review.run_pause_help"}}">{{if .AscAgentRunPaused}}{{ctx.Locale.Tr "asc_review.run_resume"}}{{else}}{{ctx.Locale.Tr "asc_review.run_pause"}}{{end}}</button>
+						</form>
+						<details class="ag-pop ar-stop">
+							<summary class="rv-btn rv-btn-danger">{{ctx.Locale.Tr "asc_review.run_stop"}}</summary>
+							<form class="ag-pop-b rv-form" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/cancel" data-run-cancel>
+								{{.CsrfTokenHtml}}
+								<p class="rv-hint">{{ctx.Locale.Tr "asc_review.agents_stop_help"}}</p>
+								<label class="rv-label" for="ar-stop-reason">{{ctx.Locale.Tr "asc_review.agents_stop_reason"}}</label>
+								<input class="rv-input" id="ar-stop-reason" name="reason" maxlength="256" autocomplete="off">
+								<button class="rv-btn rv-btn-danger rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.agents_stop_confirm"}}</button>
+							</form>
+						</details>
+					</div>
 				{{end}}
 			</header>
+			{{if .AscAgentRunTask}}<p class="ar-task" data-testid="asc-agent-task">{{ctx.Locale.Tr "asc_review.run_task_by" .AscAgentRun.CreatedBy}} <q>{{.AscAgentRunTask}}</q></p>{{end}}
+			{{with .AscAgentRequest}}
+			<section class="rv-banner rv-banner-warn ar-ask" role="status" aria-labelledby="ar-ask-h" data-testid="asc-agent-permission">
+				<div class="ar-ask-b">
+					<p id="ar-ask-h"><b>{{ctx.Locale.Tr "asc_review.run_ask_waiting" .Agent}}</b> {{.Summary}}{{if .Detail}} <code>{{.Detail}}</code>{{end}}</p>
+					{{if $.AscAgentCanAct}}
+					<form class="ar-ask-acts" method="post" action="{{$.AscAgentsBase}}/requests/{{.ID}}/decide">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="run" value="{{.RunID}}">
+						<button class="rv-btn rv-btn-primary rv-btn-sm" type="submit" name="decision" value="allow">{{ctx.Locale.Tr "asc_review.run_allow_once"}}</button>
+						<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" name="decision" value="deny">{{ctx.Locale.Tr "asc_review.run_deny_continue"}}</button>
+						<a class="rv-btn rv-btn-ghost rv-btn-sm" href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer_own"}}</a>
+					</form>
+					{{end}}
+					<p class="rv-hint">{{ctx.Locale.Tr "asc_review.run_only_person"}}</p>
+				</div>
+			</section>
+			{{end}}
 			<div class="rv-banner rv-banner-err{{if not .AscAgentRun.Failure}} tw-hidden{{end}}" role="alert" data-run-failure>{{.AscAgentRun.Failure}}</div>
 			<div class="rv-banner rv-banner-warn{{if not .AscAgentRunWaiting}} tw-hidden{{end}}" role="status" data-run-waiting><div>{{ctx.Locale.Tr "asc_review.run_waiting"}} <a href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer_link"}}</a></div></div>
+
+			{{if and .AscAgentCanAct (not .AscAgentRun.State.Active) .AscAgentRun.Failure}}
+			<details class="rv-disclose ar-continue" data-testid="asc-agent-continue">
+				<summary class="rv-btn rv-btn-primary">{{ctx.Locale.Tr "asc_review.run_continue"}}</summary>
+				<form class="rv-disclose-b rv-form" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/continue">
+					{{.CsrfTokenHtml}}
+					<p class="rv-hint">{{ctx.Locale.Tr "asc_review.run_continue_help"}}</p>
+					{{template "repo/asc_agents_limits_fields" .}}
+					<button class="rv-btn rv-btn-primary rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.run_continue_go"}}</button>
+				</form>
+			</details>
+			{{end}}
+			{{if eq .AscAgentRun.State.Slug "succeeded"}}
+			<div class="rv-banner rv-banner-ok" role="status" data-testid="asc-agent-done"><div><b>{{ctx.Locale.Tr "asc_review.run_done_title"}}</b> {{ctx.Locale.TrN .AscAgentRun.Changes "asc_review.run_done_changes_one" "asc_review.run_done_changes_other" .AscAgentRun.Changes}} {{ctx.Locale.Tr "asc_review.run_done_summary" .AscAgentRunSummaryTime .AscAgentRunSummaryCost .AscAgentRunSummaryTokens}}</div></div>
+			{{end}}
+			{{if eq .AscAgentRun.State.Slug "cancelled"}}
+			<div class="rv-banner ar-stopped" role="status" data-testid="asc-agent-stopped"><div><b>{{ctx.Locale.Tr "asc_review.run_stopped_title"}}</b> {{ctx.Locale.Tr "asc_review.run_stopped_help" .AscAgentRun.Agent}}</div></div>
+			{{end}}
+			<p class="rv-feed-status tw-hidden" role="status" data-reconnect>{{ctx.Locale.Tr "asc_review.run_reconnecting"}}</p>
 
 			<div class="rv-cols rv-run-cols">
 				<section class="rv-card rv-area-budget" aria-labelledby="rv-budget-title">
@@ -53,10 +114,40 @@ The page works without the script: the log shows what existed when it was drawn,
 					<div class="rv-card-b">
 						<div class="rv-meters" data-meters>{{template "repo/asc_agents_meters" .AscAgentMeters}}</div>
 						<p class="rv-hint">{{ctx.Locale.Tr "asc_review.run_budget_help"}}</p>
+						{{if and .AscAgentCanAct .AscAgentRun.State.Active}}
+						<details class="ar-edit" data-testid="asc-agent-limits">
+							<summary class="rv-btn rv-btn-secondary rv-btn-sm">{{ctx.Locale.Tr "asc_review.run_edit_limits"}}</summary>
+							<form class="rv-form" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/limits">
+								{{.CsrfTokenHtml}}
+								<p class="rv-hint">{{ctx.Locale.Tr "asc_review.run_edit_limits_help"}}</p>
+								{{template "repo/asc_agents_limits_fields" .}}
+								<button class="rv-btn rv-btn-primary rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.run_edit_limits_save"}}</button>
+							</form>
+						</details>
+						{{end}}
 					</div>
 				</section>
 
 				<div class="rv-area-main rv-stack">
+					{{with .AscAgentPlan}}
+					<section class="rv-card ar-plan" id="ag-plan" aria-labelledby="ar-plan-h" data-testid="asc-agent-plan">
+						<div class="rv-card-h"><h2 id="ar-plan-h">{{ctx.Locale.Tr "asc_review.run_plan"}}</h2>
+							{{if .Approved}}<span class="rv-pill rv-pill-ok rv-end">{{if .DecidedAt}}{{ctx.Locale.Tr "asc_review.run_plan_approved_at" .DecidedBy .DecidedAt}}{{else}}{{ctx.Locale.Tr "asc_review.run_plan_approved"}}{{end}}</span>
+							{{else if .Rejected}}<span class="rv-pill rv-pill-err rv-end">{{ctx.Locale.Tr "asc_review.run_plan_rejected" .DecidedBy}}</span>
+							{{else if .Pending}}<span class="rv-pill rv-pill-warn rv-end">{{ctx.Locale.Tr "asc_review.run_plan_waiting"}}</span>{{end}}</div>
+						<ol class="ar-steps">
+							{{range .Request.Steps}}<li class="is-{{.State}}"><span class="ar-mark" aria-hidden="true">{{if eq .State "done"}}&#10003;{{else if eq .State "doing"}}&bull;{{end}}</span><div><b>{{.Index}} {{.Text}}</b><span class="rv-li-sub">{{if eq .State "done"}}{{ctx.Locale.Tr "asc_review.run_step_done"}}{{else if eq .State "doing"}}{{ctx.Locale.Tr "asc_review.run_step_doing"}}{{else}}{{ctx.Locale.Tr "asc_review.run_step_todo"}}{{end}}</span></div></li>{{end}}
+						</ol>
+						{{if and .Pending $.AscAgentCanAct}}
+						<form class="rv-card-f ar-plan-acts" method="post" action="{{$.AscAgentsBase}}/requests/{{.Request.ID}}/decide">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="run" value="{{.Request.RunID}}">
+							<button class="rv-btn rv-btn-primary rv-btn-sm" type="submit" name="decision" value="approve">{{ctx.Locale.Tr "asc_review.run_plan_approve"}}</button>
+							<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" name="decision" value="reject">{{ctx.Locale.Tr "asc_review.run_plan_reject"}}</button>
+						</form>
+						{{end}}
+					</section>
+					{{end}}
 					<section class="rv-card" aria-labelledby="rv-activity-title">
 						<div class="rv-card-h">
 							<h2 id="rv-activity-title">{{ctx.Locale.Tr "asc_review.run_activity"}}</h2>
@@ -107,7 +198,31 @@ The page works without the script: the log shows what existed when it was drawn,
 					</section>
 				</div>
 
-				<div class="rv-area-policy">{{template "repo/asc_agents_policy" .}}</div>
+				<div class="rv-area-policy">
+					{{template "repo/asc_agents_policy" .}}
+					{{if .AscAgentCheckpoints}}
+					<section class="rv-card ar-cps" aria-labelledby="ar-cps-h" data-testid="asc-agent-checkpoints">
+						<div class="rv-card-h"><h2 id="ar-cps-h">{{ctx.Locale.Tr "asc_review.run_checkpoints"}}</h2></div>
+						<ul class="rv-list">
+							{{range .AscAgentCheckpoints}}
+							<li class="ar-cp">
+								<span>{{.Label}}{{if .RolledBack}} <span class="rv-pill">{{ctx.Locale.Tr "asc_review.run_cp_rolled" .RolledBy}}</span>{{end}}</span>
+								{{if and $.AscAgentCanAct (not .RolledBack)}}
+								<form method="post" action="{{$.AscAgentsBase}}/runs/{{$.AscAgentRun.ID}}/rollback">
+									{{$.CsrfTokenHtml}}
+									<input type="hidden" name="checkpoint" value="{{.ID}}">
+									<button class="rv-btn rv-btn-ghost rv-btn-sm" type="submit"{{if not $.AscAgentRunPaused}} disabled title="{{ctx.Locale.Tr "asc_review.run_cp_pause_first"}}"{{end}}>{{ctx.Locale.Tr "asc_review.run_cp_rollback"}}</button>
+								</form>
+								{{end}}
+							</li>
+							{{end}}
+						</ul>
+						{{if not .AscAgentRunPaused}}<p class="rv-card-f rv-hint">{{ctx.Locale.Tr "asc_review.run_cp_help"}}</p>{{end}}
+					</section>
+					{{end}}
+					<section class="rv-card rv-card-agent ar-audit" data-testid="asc-agent-audit"><div class="rv-card-b"><p><b>{{ctx.Locale.Tr "asc_review.run_audit_title"}}</b> {{ctx.Locale.Tr "asc_review.run_audit_text"}}</p><p><a href="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/log" download>{{ctx.Locale.Tr "asc_review.run_audit_download"}}</a></p></div></section>
+				</div>
+			</div>
 			</div>
 			{{if and .AscAgentCanAct .AscAgentRunWaiting}}<div class="rv-sticky rv-mob"><a class="rv-btn rv-btn-primary" href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer"}}</a></div>{{end}}
 		</div>
