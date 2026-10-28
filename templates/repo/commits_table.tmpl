@@ -1,45 +1,47 @@
+{{/* The commit list with its search and count. Used by History, a pull request's commits and the compare page. */}}
 {{if .PageIsCommits}}
-	<h4 class="ui top attached header commits-table tw-flex tw-items-center tw-justify-between">
-		<div class="commits-table-left tw-flex tw-items-center">
-			{{if or .PageIsCommits (gt .CommitCount 0)}}
-				{{ctx.Locale.TrPluralString .CommitCount "counters.n_commits" (ctx.Locale.PrettyNumber .CommitCount)}}
-			{{else if .IsNothingToCompare}}
-				{{ctx.Locale.Tr "repo.commits.nothing_to_compare"}}
-			{{else}}
-				{{ctx.Locale.Tr "repo.commits.no_commits" $.BaseBranch $.HeadBranch}}
-			{{end}}
+	<form class="rp-filters ignore-dirty" action="{{.RepoLink}}/commits/{{.BranchNameSubURL}}/search" role="search">
+		<div class="ds-inwrap rp-search">
+			<label class="ds-sr" for="commit-search-q">{{ctx.Locale.Tr "search.commit_kind"}}</label>
+			{{svg "dsi-search" 16}}
+			<input class="ds-input" id="commit-search-q" type="search" spellcheck="false" name="q" maxlength="255" placeholder="{{ctx.Locale.Tr "search.commit_kind"}}" value="{{.Keyword}}">
 		</div>
-		{{if .IsDiffCompare}}
-			<div class="commits-table-right tw-whitespace-nowrap">
-				<a href="{{$.CommitRepoLink}}/commit/{{.BeforeCommitID | PathEscape}}" class="ui green sha label tw-mx-0">{{if not .BaseIsCommit}}{{if .BaseIsBranch}}{{svg "octicon-git-branch"}}{{else if .BaseIsTag}}{{svg "octicon-tag"}}{{end}}{{.BaseBranch}}{{else}}{{ShortSha .BaseBranch}}{{end}}</a>
-				...
-				<a href="{{$.CommitRepoLink}}/commit/{{.AfterCommitID | PathEscape}}" class="ui green sha label tw-mx-0">{{if not .HeadIsCommit}}{{if .HeadIsBranch}}{{svg "octicon-git-branch"}}{{else if .HeadIsTag}}{{svg "octicon-tag"}}{{end}}{{.HeadBranch}}{{else}}{{ShortSha .HeadBranch}}{{end}}</a>
-			</div>
-		{{end}}
-	</h4>
-	<div class="ui attached segment">
-		<form class="ignore-dirty" action="{{.RepoLink}}/commits/{{.BranchNameSubURL}}/search">
-			<div class="ui small fluid action input">
-				{{template "shared/search/input" dict "Value" .Keyword "Placeholder" (ctx.Locale.Tr "search.commit_kind")}}
-				{{template "repo/commits_search_dropdown" .}}
-				{{template "shared/search/button" dict "Tooltip" (ctx.Locale.Tr "repo.commits.search.tooltip")}}
-			</div>
-		</form>
-	</div>
+		{{template "repo/commits_search_dropdown" .}}
+		<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "search.search"}}</button>
+	</form>
 {{end}}
 
-{{if and .Commits (gt .CommitCount 0)}}
-	{{if .PageIsPullCommits}}
-		{{template "repo/pulls/commits_list" .}}
+<div class="rp-sec-note rp-count">
+	{{if or .PageIsCommits (gt .CommitCount 0)}}
+		{{ctx.Locale.TrPluralString .CommitCount "counters.n_commits" (ctx.Locale.PrettyNumber .CommitCount)}}
+	{{else if .IsNothingToCompare}}
+		{{ctx.Locale.Tr "repo.commits.nothing_to_compare"}}
 	{{else}}
-		{{template "repo/commits_list" .}}
+		{{ctx.Locale.Tr "repo.commits.no_commits" $.BaseBranch $.HeadBranch}}
 	{{end}}
+	{{if .IsDiffCompare}}
+		<span class="rp-range">
+			<a class="rp-hash" href="{{$.CommitRepoLink}}/commit/{{.BeforeCommitID | PathEscape}}">{{if not .BaseIsCommit}}{{.BaseBranch}}{{else}}{{ShortSha .BaseBranch}}{{end}}</a>
+			<span aria-hidden="true">&hellip;</span>
+			<a class="rp-hash" href="{{$.CommitRepoLink}}/commit/{{.AfterCommitID | PathEscape}}">{{if not .HeadIsCommit}}{{.HeadBranch}}{{else}}{{ShortSha .HeadBranch}}{{end}}</a>
+		</span>
+	{{end}}
+</div>
+
+{{if and .Commits (gt .CommitCount 0)}}
+	<div class="rp-sec rp-histcard">
+		{{if .PageIsPullCommits}}
+			{{template "repo/pulls/commits_list" .}}
+		{{else}}
+			{{template "repo/commits_list" .}}
+		{{end}}
+	</div>
+{{else if .PageIsCommits}}
+	<div class="rp-sec">{{template "shared/ds/empty" (dict "Icon" "history" "Title" (ctx.Locale.Tr "asc_rp.no_commits_title") "Body" (ctx.Locale.Tr "asc_rp.no_commits_body"))}}</div>
 {{end}}
 
 {{if .OldFilename}}
-	<div class="ui bottom attached header">
-		<span>{{ctx.Locale.Tr "repo.commits.renamed_from" .OldFilename}} (<a href="{{.OldFilenameHistory}}">{{ctx.Locale.Tr "repo.commits.browse_further"}}</a>)</span>
-	</div>
+	<p class="rp-quiet ds-mt-12">{{ctx.Locale.Tr "repo.commits.renamed_from" .OldFilename}} (<a class="ds-link" href="{{.OldFilenameHistory}}">{{ctx.Locale.Tr "repo.commits.browse_further"}}</a>)</p>
 {{end}}
 
 {{template "base/paginate" .}}

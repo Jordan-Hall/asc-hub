@@ -1,6 +1,7 @@
 {{range .RecentlyPushedNewBranches}}
-	<div class="ui positive message tw-flex tw-items-center tw-gap-2">
-		<div class="tw-flex-1 tw-break-anywhere">
+	<div class="ds-banner ds-banner-ok rp-banner" role="status">
+		{{svg "dsi-branch" 18}}
+		<div class="ds-banner-body">
 			{{$timeSince := DateUtils.TimeSince .CommitTime}}
 			{{$repo := .GetRepo $.Context}}
 			{{$name := .Name}}
@@ -10,8 +11,6 @@
 			{{$branchLink := (print ($repo.Link) "/src/branch/" (PathEscapeSegments .Name))}}
 			{{ctx.Locale.Tr "repo.pulls.recently_pushed_new_branches" $name $timeSince $branchLink}}
 		</div>
-		<a role="button" class="ui compact positive button tw-m-0" href="{{$.Repository.ComposeBranchCompareURL $.Repository.BaseRepo $name}}">
-			{{ctx.Locale.Tr "repo.pulls.compare_changes"}}
-		</a>
+		<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{$.Repository.ComposeBranchCompareURL $.Repository.BaseRepo $name}}">{{ctx.Locale.Tr "repo.pulls.compare_changes"}}</a>
 	</div>
 {{end}}

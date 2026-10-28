@@ -1,0 +1,80 @@
+{{/* The tab strip of a repository: pills on a phone, an underline from 1024. The less used tabs live in "More". */}}
+{{$isAsc := eq .Repository.GetStorageBackend "asc"}}
+{{$codeActive := and (not .PageIsRepoSearch) (or .PageIsViewCode .PageIsCommits .PageIsBranches .PageIsTagList .PageIsDiff .PageIsAscGraph .PageIsComparePull)}}
+{{$relActive := and .PageIsReleaseList (not .PageIsTagList)}}
+{{$moreActive := or .PageIsActivity .PageIsWiki .IsProjectsPage .IsPackagesPage .PageIsActions .PageIsAscOps .IsRepoFlagsPage}}
+{{$canCode := .Permission.CanRead $.UnitTypeCode}}
+<nav class="rp-tabs" aria-label="{{ctx.Locale.Tr "asc_rp.nav_label"}}">
+	<div class="rp-tabs-in">
+		{{if not (or .Repository.IsBeingCreated .Repository.IsBroken)}}
+			{{if $canCode}}
+				<a class="rp-tab" href="{{.RepoLink}}{{if and (ne .BranchName .Repository.DefaultBranch) (not $.PageIsWiki) .BranchName}}/src/{{.BranchNameSubURL}}{{end}}"{{if $codeActive}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.code"}}</a>
+			{{end}}
+			{{if and .Repository.CanEnablePulls (.Permission.CanRead $.UnitTypePullRequests)}}
+				<a class="rp-tab" href="{{.RepoLink}}/pulls"{{if .PageIsPullList}} aria-current="page"{{end}}>{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.tab_stacks"}}{{else}}{{ctx.Locale.Tr "repo.pulls"}}{{end}}{{if (.Repository.NumOpenPulls ctx)}}<span class="ds-count">{{CountFmt (.Repository.NumOpenPulls ctx)}}</span>{{end}}</a>
+			{{end}}
+			{{if and .SignedUser $isAsc $canCode}}
+				<a class="rp-tab" href="{{.RepoLink}}/asc/agents"{{if .PageIsAscAgentArea}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_rp.tab_agent_runs"}}</a>
+			{{end}}
+			{{if and $isAsc $canCode}}
+				<a class="rp-tab" href="{{.RepoLink}}/asc/checks"{{if .PageIsAscChecks}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_trust.nav_checks"}}</a>
+			{{end}}
+			{{if and $isAsc $canCode (not .Repository.IsEmpty)}}
+				<a class="rp-tab" href="{{.RepoLink}}/asc/search"{{if .PageIsAscSearch}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.asc_tab.search"}}</a>
+			{{end}}
+			{{if and (not $isAsc) $canCode (not .Repository.IsEmpty)}}
+				<a class="rp-tab" href="{{.RepoLink}}/search"{{if .PageIsRepoSearch}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.asc_tab.search"}}</a>
+			{{end}}
+			{{if and $isAsc $canCode .SignedUser}}
+				<a class="rp-tab" href="{{.RepoLink}}/asc/deps"{{if .PageIsAscDeps}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_trust.nav_deps"}}</a>
+			{{end}}
+			{{if and (.Permission.CanRead $.UnitTypeReleases) (not .IsEmptyRepo)}}
+				<a class="rp-tab" href="{{.RepoLink}}/releases"{{if $relActive}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.releases"}}{{if .NumReleases}}<span class="ds-count">{{CountFmt .NumReleases}}</span>{{end}}</a>
+			{{end}}
+			{{if .Permission.CanRead $.UnitTypeIssues}}
+				<a class="rp-tab" href="{{.RepoLink}}/issues"{{if .PageIsIssueList}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.issues"}}{{if (.Repository.NumOpenIssues ctx)}}<span class="ds-count">{{CountFmt (.Repository.NumOpenIssues ctx)}}</span>{{end}}</a>
+			{{end}}
+			{{if .Permission.CanRead $.UnitTypeExternalTracker}}
+				<a class="rp-tab" href="{{.RepoExternalIssuesLink}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "repo.issues"}}{{svg "dsi-external" 14}}</a>
+			{{end}}
+			{{if .Permission.IsAdmin}}
+				<a id="settings-btn" class="rp-tab" href="{{.RepoLink}}/settings"{{if .PageIsRepoSettings}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.settings"}}</a>
+			{{end}}
+			<details class="dropdown rp-dd rp-more">
+				<summary class="rp-tab{{if $moreActive}} is-on{{end}}"{{if $moreActive}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.tab_more"}}{{svg "dsi-chevron-down" 14}}</summary>
+				<div class="content rp-pop rp-more-pop">
+					<ul>
+						{{if and (.Permission.CanReadAny $.UnitTypeCode $.UnitTypePullRequests $.UnitTypeIssues $.UnitTypeReleases)}}
+							<li><a href="{{.RepoLink}}/activity"{{if .PageIsActivity}} aria-current="page"{{end}}>{{svg "dsi-activity" 18}}{{ctx.Locale.Tr "asc_rp.tab_insights"}}</a></li>
+						{{end}}
+						{{if and (not .UnitProjectsGlobalDisabled) (.Permission.CanRead $.UnitTypeProjects)}}
+							<li><a href="{{.RepoLink}}/projects"{{if .IsProjectsPage}} aria-current="page"{{end}}>{{svg "dsi-columns" 18}}{{ctx.Locale.Tr "repo.project"}}{{if .Repository.NumOpenProjects}}<span class="ds-count">{{CountFmt .Repository.NumOpenProjects}}</span>{{end}}</a></li>
+						{{end}}
+						{{if .Permission.CanRead $.UnitTypePackages}}
+							<li><a href="{{.RepoLink}}/packages"{{if .IsPackagesPage}} aria-current="page"{{end}}>{{svg "dsi-package" 18}}{{ctx.Locale.Tr "packages.title"}}{{if .NumPackages}}<span class="ds-count">{{CountFmt .NumPackages}}</span>{{end}}</a></li>
+						{{end}}
+						{{if .Permission.CanRead $.UnitTypeWiki}}
+							<li><a href="{{.RepoLink}}/wiki"{{if .PageIsWiki}} aria-current="page"{{end}}>{{svg "dsi-book" 18}}{{ctx.Locale.Tr "repo.wiki"}}</a></li>
+						{{end}}
+						{{if .Permission.CanRead $.UnitTypeExternalWiki}}
+							<li><a href="{{(.Repository.MustGetUnit $.Context $.UnitTypeExternalWiki).ExternalWikiConfig.ExternalWikiURL}}" target="_blank" rel="noopener noreferrer">{{svg "dsi-external" 18}}{{ctx.Locale.Tr "repo.wiki"}}</a></li>
+						{{end}}
+						{{if and .EnableActions (not .UnitActionsGlobalDisabled) (.Permission.CanRead $.UnitTypeActions)}}
+							<li><a href="{{.RepoLink}}/actions"{{if .PageIsActions}} aria-current="page"{{end}}>{{svg "dsi-play" 18}}{{ctx.Locale.Tr "actions.actions"}}{{if .NumOpenActionRuns}}<span class="ds-count">{{CountFmt .NumOpenActionRuns}}</span>{{end}}</a></li>
+						{{end}}
+						{{if and .SignedUser $isAsc $canCode}}
+							<li><a href="{{.RepoLink}}/asc/workflows"{{if .PageIsAscAgentArea}} aria-current="page"{{end}}>{{svg "dsi-workflow" 18}}{{ctx.Locale.Tr "asc_trust.nav_workflows"}}</a></li>
+							<li><a href="{{.RepoLink}}/asc/ops"{{if .PageIsAscOps}} aria-current="page"{{end}}>{{svg "dsi-history" 18}}{{ctx.Locale.Tr "asc_trust.nav_ops"}}</a></li>
+						{{end}}
+						{{template "custom/extra_tabs" .}}
+						{{if and RepoFlagsEnabled .SignedUser.IsAdmin}}
+							<li><a href="{{.RepoLink}}/flags"{{if .IsRepoFlagsPage}} aria-current="page"{{end}}>{{svg "dsi-flag" 18}}{{ctx.Locale.Tr "repo.admin.manage_flags"}}</a></li>
+						{{end}}
+					</ul>
+				</div>
+			</details>
+		{{else if .Permission.IsAdmin}}
+			<a id="settings-btn" class="rp-tab" href="{{.RepoLink}}/settings"{{if .PageIsRepoSettings}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.settings"}}</a>
+		{{end}}
+	</div>
+</nav>

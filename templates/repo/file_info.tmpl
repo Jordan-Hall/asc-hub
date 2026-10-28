@@ -1,53 +1,13 @@
-<div class="file-info tw-font-mono">
-	{{if .FileIsSymlink}}
-		<div class="file-info-entry">
-			{{ctx.Locale.Tr "repo.symbolic_link"}}
-		</div>
-	{{end}}
-	{{if .NumLinesSet}}{{/* Explicit attribute needed to show 0 line changes */}}
-		<div class="file-info-entry">
-			{{.NumLines}} {{ctx.Locale.TrN .NumLines "repo.line" "repo.lines"}}
-		</div>
-	{{end}}
-	{{if .HasNoTrailingEOL}}
-		<div class="file-info-entry" data-tooltip-content="{{ctx.Locale.Tr "repo.no_eol.tooltip"}}">
-			{{ctx.Locale.Tr "repo.no_eol.text"}}
-		</div>
-	{{end}}
-	{{if .FileSize}}
-		<div class="file-info-entry">
-			{{ctx.Locale.TrSize .FileSize}}{{if .IsLFSFile}} ({{ctx.Locale.Tr "repo.stored_lfs"}}){{end}}
-		</div>
-	{{end}}
-	{{if .LFSLock}}
-		<div class="file-info-entry ui" data-tooltip-content="{{.LFSLockHint}}">
-			{{svg "octicon-lock" 16 "tw-mr-1"}}
-			<a href="{{.LFSLockOwnerHomeLink}}">{{.LFSLockOwner}}</a>
-		</div>
-	{{end}}
-	{{if .LexerName}}
-		<div class="file-info-entry">
-			{{.LexerName}}
-		</div>
-	{{end}}
-	{{if .IsExecutable}}
-		<div class="file-info-entry">
-			{{ctx.Locale.Tr "repo.executable_file"}}
-		</div>
-	{{end}}
-	{{if .IsVendored}}
-		<div class="file-info-entry">
-			{{ctx.Locale.Tr "repo.vendored"}}
-		</div>
-	{{end}}
-	{{if .IsGenerated}}
-		<div class="file-info-entry">
-			{{ctx.Locale.Tr "repo.generated"}}
-		</div>
-	{{end}}
-	{{if .ImageSize}}
-		<div class="file-info-entry">
-			{{.ImageSize}}
-		</div>
-	{{end}}
-</div>
+{{/* Facts about the file that is shown: size, lines, language and flags. Each fact is one entry; the list is empty for a directory. */}}
+<ul class="file-info rp-facts">
+	{{if .FileIsSymlink}}<li class="file-info-entry">{{ctx.Locale.Tr "repo.symbolic_link"}}</li>{{end}}
+	{{if .NumLinesSet}}<li class="file-info-entry">{{.NumLines}} {{ctx.Locale.TrN .NumLines "repo.line" "repo.lines"}}</li>{{end}}
+	{{if .HasNoTrailingEOL}}<li class="file-info-entry" title="{{ctx.Locale.Tr "repo.no_eol.tooltip"}}">{{ctx.Locale.Tr "repo.no_eol.text"}}</li>{{end}}
+	{{if .FileSize}}<li class="file-info-entry">{{ctx.Locale.TrSize .FileSize}}{{if .IsLFSFile}} ({{ctx.Locale.Tr "repo.stored_lfs"}}){{end}}</li>{{end}}
+	{{if .LFSLock}}<li class="file-info-entry" title="{{.LFSLockHint}}">{{svg "octicon-lock" 14}} <a href="{{.LFSLockOwnerHomeLink}}">{{.LFSLockOwner}}</a></li>{{end}}
+	{{if .LexerName}}<li class="file-info-entry">{{.LexerName}}</li>{{end}}
+	{{if .IsExecutable}}<li class="file-info-entry">{{ctx.Locale.Tr "repo.executable_file"}}</li>{{end}}
+	{{if .IsVendored}}<li class="file-info-entry">{{ctx.Locale.Tr "repo.vendored"}}</li>{{end}}
+	{{if .IsGenerated}}<li class="file-info-entry">{{ctx.Locale.Tr "repo.generated"}}</li>{{end}}
+	{{if .ImageSize}}<li class="file-info-entry">{{.ImageSize}}</li>{{end}}
+</ul>

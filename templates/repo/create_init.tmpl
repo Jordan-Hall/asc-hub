@@ -1,13 +1,16 @@
-<label>
-	<input name="auto_init" type="checkbox" {{if .auto_init}}checked{{end}}>
-	{{ctx.Locale.Tr "repo.auto_init"}}
-	<span class="help">{{ctx.Locale.Tr "repo.auto_init_description"}}</span>
+<label class="ds-switch rp-new-switch">
+	<input name="auto_init" type="checkbox" role="switch" {{if .auto_init}}checked{{end}}>
+	<span class="ds-switch-track"></span>
+	<span>
+		<strong>{{ctx.Locale.Tr "repo.auto_init"}}</strong>
+		<span class="ds-hint">{{ctx.Locale.Tr "repo.auto_init_description"}}</span>
+	</span>
 </label>
 
-<div class="hide-unless-checked">
-	<label>
-		{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.ignore_file"}}{{else}}.gitignore{{end}}
-		<div class="ui multiple search selection dropdown tw-flex-wrap">
+<div class="hide-unless-checked ds-stack ds-stack-16">
+	<div class="ds-field">
+		<span class="ds-label" id="gitignores_label">{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.ignore_file"}}{{else}}.gitignore{{end}}</span>
+		<div class="ui multiple search selection dropdown tw-flex-wrap" aria-labelledby="gitignores_label">
 			<input type="hidden" name="gitignores" value="{{.gitignores}}">
 			<div class="default text">{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.repo_ignore_helper"}}{{else}}{{ctx.Locale.Tr "repo.repo_gitignore_helper"}}{{end}}</div>
 			<div class="menu">
@@ -16,40 +19,32 @@
 				{{end}}
 			</div>
 		</div>
-		<span class="help">{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.repo_ignore_helper_desc"}}{{else}}{{ctx.Locale.Tr "repo.repo_gitignore_helper_desc"}}{{end}}</span>
-	</label>
+		<div class="ds-hint">{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.repo_ignore_helper_desc"}}{{else}}{{ctx.Locale.Tr "repo.repo_gitignore_helper_desc"}}{{end}}</div>
+	</div>
 
-	<label>
-		{{ctx.Locale.Tr "repo.license"}}
-		<div class="ui search selection dropdown">
-			<input type="hidden" name="license" value="{{.license}}">
-			<div class="default text">{{ctx.Locale.Tr "repo.license_helper"}}</div>
-			<div class="menu">
-				<div class="item" data-value="">{{ctx.Locale.Tr "repo.license_helper"}}</div>
-				{{range .Licenses}}
-					<div class="item" data-value="{{.}}">{{.}}</div>
-				{{end}}
-			</div>
-		</div>
-		<span class="help">{{ctx.Locale.Tr "repo.license_helper_desc" "https://choosealicense.com/"}}</span>
-	</label>
+	<div class="ds-field">
+		<label class="ds-label" for="license">{{ctx.Locale.Tr "repo.license"}}</label>
+		<select id="license" class="ds-select" name="license">
+			<option value="">{{ctx.Locale.Tr "repo.license_helper"}}</option>
+			{{range .Licenses}}
+				<option value="{{.}}"{{if eq $.license .}} selected{{end}}>{{.}}</option>
+			{{end}}
+		</select>
+		<div class="ds-hint">{{ctx.Locale.Tr "repo.license_helper_desc" "https://choosealicense.com/"}}</div>
+	</div>
 
 	{{$supportedReadmesLength := len .Readmes}}
 	{{/* Only offer README selection if there is an actual choice */}}
 	{{if ge $supportedReadmesLength 2}}
-		<label>
-			{{ctx.Locale.Tr "repo.readme"}}
-			<div class="ui selection dropdown">
-				<input type="hidden" name="readme" value="{{.readme}}">
-				<div class="default text">{{ctx.Locale.Tr "repo.readme_helper"}}</div>
-				<div class="menu">
-					{{range .Readmes}}
-						<div class="item" data-value="{{.}}">{{.}}</div>
-					{{end}}
-				</div>
-			</div>
-			<span class="help">{{ctx.Locale.Tr "repo.readme_helper_desc"}}</span>
-		</label>
+		<div class="ds-field">
+			<label class="ds-label" for="readme">{{ctx.Locale.Tr "repo.readme"}}</label>
+			<select id="readme" class="ds-select" name="readme">
+				{{range .Readmes}}
+					<option value="{{.}}"{{if eq $.readme .}} selected{{end}}>{{.}}</option>
+				{{end}}
+			</select>
+			<div class="ds-hint">{{ctx.Locale.Tr "repo.readme_helper_desc"}}</div>
+		</div>
 	{{else}}
 		<input type="hidden" name="readme" value="Default">
 	{{end}}

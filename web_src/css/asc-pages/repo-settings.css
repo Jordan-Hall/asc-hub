@@ -1,0 +1,423 @@
+/* Repository settings (boards RepoSettings*): the pages that still use Fomantic markup (ui segment, ui form, ui button)
+   read as design-system cards, fields and buttons inside the settings shell. Scoped to `.repository.settings`, so no
+   other settings area changes. Pages rebuilt on the system (ds-card, ds-form) need none of this. Mobile first. */
+
+:is(.repository.settings .ds-settings-body, .rp-skin) > h2,
+:is(.repository.settings .ds-settings-body, .rp-skin) > .rp-set-head {
+  margin: 0 0 4px;
+}
+
+.rp-set-head {
+  padding-bottom: 14px;
+}
+
+.rp-set-head .rp-h1 {
+  font-size: 26px;
+}
+
+/* ---- cards: a header and a body ---- */
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.top.attached.header,
+:is(.repository.settings .ds-settings-body, .rp-skin) > h4.ui.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-2);
+  border-radius: var(--r-card) var(--r-card) 0 0;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  box-shadow: none;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.top.attached.header:first-child {
+  margin-top: 0;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.attached.segment,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.attached.table.segment {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text-b);
+  box-shadow: none;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.attached.segment:last-child,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.attached.segment + :not(.ui.attached):not(.ui.header) {
+  border-radius: 0 0 var(--r-card) var(--r-card);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.attached.table.segment {
+  padding: 0;
+  overflow-x: auto;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.segment:not(.attached) {
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+/* the danger zone card is outlined in red and says what it does in words */
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.top.attached.header.error,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.red.header,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.top.attached.red.header {
+  background: var(--err-soft);
+  border-color: var(--err-line);
+  color: var(--err);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.attached.error.segment,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.attached.red.segment {
+  border-color: var(--err-line);
+}
+
+/* ---- fields ---- */
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form .field {
+  margin: 0 0 16px;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form .field > label,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form label:not(.ds-check label) {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form .inline.field > label {
+  display: inline-block;
+  margin-right: 12px;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form select,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form textarea {
+  width: 100%;
+  min-height: var(--input-h);
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form textarea {
+  min-height: 88px;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form .field.error input,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form .field.error select,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form .field.error textarea {
+  border-color: var(--err);
+  background: var(--surface);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form .help,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form .field > .help {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.checkbox,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.form .ui.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: var(--touch);
+  padding: 8px 0;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.checkbox input[type="checkbox"],
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.checkbox input[type="radio"] {
+  position: static;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  opacity: 1;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.checkbox label {
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.checkbox label::before,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.checkbox label::after {
+  display: none;
+}
+
+/* ---- buttons ---- */
+:is(.repository.settings .ds-settings-body, .rp-skin) .button,
+:is(.repository.settings .ds-settings-body, .rp-skin) button.button,
+:is(.repository.settings .ds-settings-body, .rp-skin) a.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--touch);
+  margin: 0;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: none;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .button:hover {
+  background: var(--surface-3);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .primary.button,
+:is(.repository.settings .ds-settings-body, .rp-skin) .green.button,
+:is(.repository.settings .ds-settings-body, .rp-skin) button.primary.button {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--on-fill);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .primary.button:hover,
+:is(.repository.settings .ds-settings-body, .rp-skin) .green.button:hover {
+  background: var(--fill-hover);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .red.button,
+:is(.repository.settings .ds-settings-body, .rp-skin) .negative.button,
+:is(.repository.settings .ds-settings-body, .rp-skin) button.danger.button,
+:is(.repository.settings .ds-settings-body, .rp-skin) .danger.button {
+  border-color: var(--err-line);
+  background: var(--surface);
+  color: var(--err);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .red.button:hover,
+:is(.repository.settings .ds-settings-body, .rp-skin) .negative.button:hover {
+  background: var(--err-soft);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .button.disabled,
+:is(.repository.settings .ds-settings-body, .rp-skin) .button:disabled {
+  opacity: 0.55;
+}
+
+/* ---- tables inside cards: a stack of rows on a phone ---- */
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.table {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-b);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.table thead th {
+  padding: 10px 16px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line-2);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.table td {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-3);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.table.striped tbody tr:nth-child(2n) {
+  background: transparent;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.divider,
+:is(.repository.settings .ds-settings-body, .rp-skin) .divider {
+  margin: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--line-2);
+  height: 0;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.message,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.warning.message,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.info.message {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--primary-line);
+  border-radius: var(--r-row);
+  background: var(--primary-tint);
+  color: var(--text-b);
+  box-shadow: none;
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.warning.message {
+  border-color: var(--warn-line);
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.negative.message,
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.error.message {
+  border-color: var(--err-line);
+  background: var(--err-soft);
+  color: var(--err);
+}
+
+:is(.repository.settings .ds-settings-body, .rp-skin) .ui.label {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  color: var(--text-b);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* the sticky bar of a settings form: Save stays above the bottom navigation on a phone */
+.rp-set-actions {
+  position: sticky;
+  bottom: calc(var(--bnav-h) + 8px + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+
+.rp-set-actions .ds-btn-primary {
+  flex: 1;
+}
+
+.rp-set-card {
+  margin-bottom: 20px;
+}
+
+.rp-set-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-top: 1px solid var(--line-3);
+}
+
+.rp-set-row:first-child {
+  border-top: 0;
+}
+
+.rp-set-row-t {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rp-set-row-d {
+  margin: 2px 0 0;
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.rp-set-danger {
+  border-color: var(--err-line);
+}
+
+.rp-set-danger > .rp-sec-h {
+  background: var(--err-soft);
+  border-bottom-color: var(--err-line);
+}
+
+.rp-set-danger > .rp-sec-h .rp-sec-title {
+  color: var(--err);
+}
+
+@media (min-width: 768px) {
+  .rp-set-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .rp-set-row > :last-child {
+    flex: none;
+  }
+
+  .rp-set-actions {
+    position: static;
+    border: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .rp-set-actions .ds-btn-primary {
+    flex: none;
+  }
+
+  :is(.repository.settings .ds-settings-body, .rp-skin) .button,
+  :is(.repository.settings .ds-settings-body, .rp-skin) button.button,
+  :is(.repository.settings .ds-settings-body, .rp-skin) a.button {
+    min-height: 38px;
+    font-size: 14px;
+  }
+
+  :is(.repository.settings .ds-settings-body, .rp-skin) .ui.form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+  :is(.repository.settings .ds-settings-body, .rp-skin) .ui.form select,
+  :is(.repository.settings .ds-settings-body, .rp-skin) .ui.form textarea {
+    font-size: 14px;
+  }
+}
+
+/* a page of legacy form markup under the skin: the title sits above the form, not in a card */
+.rp-skin .rp-form-title.ui.header {
+  display: block;
+  margin: 8px 0 16px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.rp-skin .rp-form-title .sub.header {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text-2);
+}
+
+.rp-skin .ui.form .inline.field > input,
+.rp-skin .ui.form .inline.field > .ui.dropdown {
+  width: auto;
+  max-width: 100%;
+}

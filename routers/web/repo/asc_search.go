@@ -191,7 +191,7 @@ func AscSearch(ctx *context.Context) {
 		ctx.NotFound("AscSearch", nil)
 		return
 	}
-	ctx.Data["Title"] = "Search"
+	ctx.Data["Title"] = ctx.Tr("asc_rp.s_label")
 	ctx.Data["AscSearchDefaultBranch"] = repo.DefaultBranch
 	ctx.Data["PageIsAscSearch"] = true
 

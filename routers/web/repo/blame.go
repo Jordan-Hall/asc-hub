@@ -78,6 +78,7 @@ func RefBlame(ctx *context.Context) {
 	// larger than what is configured as the maximum.
 	if blob.Size() >= setting.UI.MaxDisplayFileSize {
 		ctx.Data["IsFileTooLarge"] = true
+		prepareAscTree(ctx, false)
 		ctx.HTML(http.StatusOK, tplRepoHome)
 		return
 	}
@@ -104,6 +105,7 @@ func RefBlame(ctx *context.Context) {
 	}
 
 	renderBlame(ctx, result.Parts, commitNames)
+	prepareAscTree(ctx, false)
 
 	ctx.HTML(http.StatusOK, tplRepoHome)
 }

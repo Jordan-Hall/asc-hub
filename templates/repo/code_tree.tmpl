@@ -1,0 +1,16 @@
+{{/* One level of the folder rail (recursive). Data: the nodes. */}}
+<ul class="rp-tree-list">
+	{{range .}}
+		<li>
+			{{if .IsDir}}
+				<a class="rp-tree-item rp-tree-dir{{if .Open}} is-open{{end}}" href="{{.Link}}"{{if .Current}} aria-current="page"{{end}}>
+					<span class="rp-tree-caret" aria-hidden="true">{{if .Open}}{{svg "dsi-chevron-down" 12}}{{else}}{{svg "dsi-chevron-right" 12}}{{end}}</span>
+					<span class="rp-tree-name">{{.Name}}</span>
+				</a>
+				{{if and .Open .Children}}{{template "repo/code_tree" .Children}}{{end}}
+			{{else}}
+				<a class="rp-tree-item rp-tree-file" href="{{.Link}}"{{if .Current}} aria-current="page"{{end}}><span class="rp-tree-caret" aria-hidden="true"></span><span class="rp-tree-name">{{.Name}}</span></a>
+			{{end}}
+		</li>
+	{{end}}
+</ul>

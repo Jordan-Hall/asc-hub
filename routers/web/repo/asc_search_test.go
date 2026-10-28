@@ -202,12 +202,12 @@ func TestAscSearchLexical(t *testing.T) {
 	assert.Contains(t, page.body, "<mark>")
 	// A redacted file shows its path but none of its text, even when the message carried some.
 	assert.Contains(t, page.body, "config/secrets.env")
-	assert.Contains(t, page.body, "hidden because it may hold secrets")
+	assert.Contains(t, page.body, "asc_rp.s_hidden_file")
 	assert.NotContains(t, page.body, "hunter2")
-	assert.Contains(t, page.body, "More results exist")
+	assert.Contains(t, page.body, "asc_rp.s_more")
 	// Coverage note: the files index of the mode, not the others.
-	assert.Contains(t, page.body, "does not cover all of this scope yet")
-	assert.Contains(t, page.body, "files 75%, 12 s behind")
+	assert.Contains(t, page.body, "asc_rp.s_cov_part")
+	assert.Contains(t, page.body, "files 75%")
 	assert.NotContains(t, page.body, "vectors 10%")
 	// The form shows the query again.
 	assert.Contains(t, page.body, `value="needle"`)
@@ -231,8 +231,8 @@ func TestAscSearchLexicalModesAndScope(t *testing.T) {
 	assert.Equal(t, sha, req.GetScope().GetRev())
 	assert.Empty(t, req.GetScope().GetPaths())
 	assert.Empty(t, req.GetScope().GetLangs())
-	assert.Contains(t, page.body, "Nothing found")
-	assert.Contains(t, page.body, "The index covers all of this scope")
+	assert.Contains(t, page.body, "asc_rp.s_nothing")
+	assert.Contains(t, page.body, "asc_rp.s_cov_all")
 
 	page = getAscSearch(t, "?q=x&match=nonsense")
 	require.Equal(t, http.StatusOK, page.status, page.body)
@@ -264,7 +264,7 @@ func TestAscSearchSymbolMode(t *testing.T) {
 	assert.NotContains(t, page.body, "<script>alert")
 	// IndexStatus is unimplemented in this fake: the coverage of the answer's scope stands in for it.
 	assert.Contains(t, page.body, "files 50%")
-	assert.Contains(t, page.body, "does not cover all of this scope yet")
+	assert.Contains(t, page.body, "asc_rp.s_cov_part")
 }
 
 func TestAscSearchSemanticMode(t *testing.T) {
@@ -302,11 +302,11 @@ func TestAscSearchSemanticMode(t *testing.T) {
 	assert.NotContains(t, page.body, "<script>x")
 	assert.NotContains(t, page.body, "\x1b")
 	assert.NotContains(t, page.body, "hunter2")
-	assert.Contains(t, page.body, "hidden because it may hold secrets")
+	assert.Contains(t, page.body, "asc_rp.s_hidden_file")
 	// The semantic mode reports the vectors index.
 	assert.Contains(t, page.body, "vectors 100%")
 	assert.NotContains(t, page.body, "files 20%")
-	assert.Contains(t, page.body, "The index covers all of this scope")
+	assert.Contains(t, page.body, "asc_rp.s_cov_all")
 }
 
 func TestAscSearchCoverageUnknown(t *testing.T) {
@@ -318,7 +318,7 @@ func TestAscSearchCoverageUnknown(t *testing.T) {
 	// No IndexStatus and no scope in the answer.
 	page := getAscSearch(t, "?mode=symbol&q=x")
 	require.Equal(t, http.StatusOK, page.status, page.body)
-	assert.Contains(t, page.body, "is not known, so the results may be incomplete")
+	assert.Contains(t, page.body, "asc_rp.s_cov_unknown")
 }
 
 func TestAscSearchEmptyFormMakesNoCall(t *testing.T) {

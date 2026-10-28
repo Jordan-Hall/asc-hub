@@ -1,10 +1,11 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository diff asc-repo-page asc-review-page {{if .PageIsComparePull}}compare pull{{end}}">
-	{{template "repo/header" .}}
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository diff asc-repo-page asc-review-page rp-page rp-compare {{if .PageIsComparePull}}compare pull{{end}}">
+	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "asc_rp.compare") "SubBack" .RepoLink)}}
 	{{$showDiffBox := false}}
 	{{$canReadPullRequests := .Permission.CanRead $.UnitTypePullRequests}}
-	<div class="ui container">
-	<h2 class="ui header asc-compare-title">
+	<div class="ds-container rp-body">
+	{{template "base/alert" .}}
+	<h2 class="ui header asc-compare-title rp-h1 rp-cmp-title">
 		{{if and $.PageIsComparePull $.IsSigned (not .Repository.IsArchived)}}
 			{{if $canReadPullRequests}}
 				{{ctx.Locale.Tr "repo.pulls.compare_changes"}}
@@ -32,10 +33,10 @@
 			{{- $HeadCompareName = printf "%s/%s" $.HeadRepo.OwnerName $.HeadRepo.Name -}}
 		{{- end -}}
 	{{- end -}}
-	<div class="ui segment choose branch">
+	<div class="ui segment choose branch rp-cmp-choose">
 		<a class="tw-mr-2" href="{{$.HeadRepo.Link}}/compare/{{PathEscapeSegments $.HeadBranch}}{{$.CompareSeparator}}{{if not $.PullRequestCtx.SameRepo}}{{PathEscape $.BaseName}}/{{PathEscape $.Repository.Name}}:{{end}}{{PathEscapeSegments $.BaseBranch}}" title="{{ctx.Locale.Tr "repo.pulls.switch_head_and_base"}}">{{svg "octicon-git-compare"}}</a>
 		<div class="ui floating filter dropdown" data-no-results="{{ctx.Locale.Tr "repo.pulls.no_results"}}">
-			<div class="ui basic small button">
+			<div class="ui basic small button rp-cmp-pick">
 				<span class="text">{{if $.PageIsComparePull}}{{ctx.Locale.Tr "repo.pulls.compare_base"}}{{else}}{{ctx.Locale.Tr "repo.compare.compare_base"}}{{end}}: {{$BaseCompareName}}:{{$.BaseBranch}}</span>
 				{{svg "octicon-triangle-down" 14 "dropdown icon"}}
 			</div>
@@ -96,7 +97,7 @@
 		</div>
 		<a href="{{.RepoLink}}/compare/{{PathEscapeSegments .BaseBranch}}{{.OtherCompareSeparator}}{{if not $.PullRequestCtx.SameRepo}}{{PathEscape $.HeadUser.Name}}/{{PathEscape $.HeadRepo.Name}}:{{end}}{{PathEscapeSegments $.HeadBranch}}" title="{{ctx.Locale.Tr "repo.pulls.switch_comparison_type"}}">{{svg "octicon-arrow-left" 16}}<div class="compare-separator">{{.CompareSeparator}}</div></a>
 		<div class="ui floating filter dropdown">
-			<div class="ui basic small button">
+			<div class="ui basic small button rp-cmp-pick">
 				<span class="text">{{if $.PageIsComparePull}}{{ctx.Locale.Tr "repo.pulls.compare_compare"}}{{else}}{{ctx.Locale.Tr "repo.compare.compare_head"}}{{end}}: {{$HeadCompareName}}:{{$.HeadBranch}}</span>
 				{{svg "octicon-triangle-down" 14 "dropdown icon"}}
 			</div>
@@ -159,7 +160,7 @@
 
 	{{if .IsNothingToCompare}}
 		{{if and $.IsSigned $.AllowEmptyPr (not .Repository.IsArchived) .PageIsComparePull}}
-			<div class="ui segment">{{ctx.Locale.Tr "repo.pulls.nothing_to_compare_and_allow_empty_pr"}}</div>
+			<div class="ds-callout">{{ctx.Locale.Tr "repo.pulls.nothing_to_compare_and_allow_empty_pr"}}</div>
 			<div class="ui info message show-form-container {{if .Flash}}tw-hidden{{end}}">
 				<button class="ui button primary show-form">{{ctx.Locale.Tr "repo.pulls.new"}}</button>
 			</div>
@@ -167,9 +168,9 @@
 				{{template "repo/issue/new_form" .}}
 			</div>
 		{{else if and .HeadIsBranch .BaseIsBranch}}
-			<div class="ui segment">{{ctx.Locale.Tr "repo.pulls.nothing_to_compare"}}</div>
+			{{template "shared/ds/empty" (dict "Icon" "inbox" "Title" (ctx.Locale.Tr "asc_rp.nothing_to_compare") "Body" (ctx.Locale.Tr "repo.pulls.nothing_to_compare"))}}
 		{{else}}
-			<div class="ui segment">{{ctx.Locale.Tr "repo.pulls.nothing_to_compare_have_tag"}}</div>
+			{{template "shared/ds/empty" (dict "Icon" "inbox" "Title" (ctx.Locale.Tr "asc_rp.nothing_to_compare") "Body" (ctx.Locale.Tr "repo.pulls.nothing_to_compare_have_tag"))}}
 		{{end}}
 	{{else if and .PageIsComparePull (gt .CommitCount 0) $canReadPullRequests}}
 		{{if .HasPullRequest}}
@@ -222,7 +223,7 @@
 	</div>
 
 	{{if $showDiffBox}}
-	<div class="ui container fluid padded">
+	<div class="ds-container rp-body rp-cmp-diff">
 		{{template "repo/commits_table" .}}
 		{{template "repo/diff/box" .}}
 	</div>

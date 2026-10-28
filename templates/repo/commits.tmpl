@@ -1,19 +1,40 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository commits asc-repo-page">
-	{{template "repo/header" .}}
-	<div class="ui container">
-		{{template "repo/sub_menu" .}}
-		<div class="repo-button-row">
-			<div class="tw-flex tw-items-center">
-				{{template "repo/branch_dropdown" dict "root" . "ContainerClasses" "tw-mr-1"}}
-				<a href="{{.RepoLink}}/graph" class="ui basic small compact button">
-					{{svg "octicon-git-branch"}}
-					{{ctx.Locale.Tr "repo.commit_graph"}}
-				</a>
-				{{template "repo/filepath" .}}
+{{$isAsc := eq .Repository.GetStorageBackend "asc"}}
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository commits rp-page">
+	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "asc_rp.history_of" .BranchName) "SubBack" .RepoLink)}}
+	<div class="ds-container rp-body">
+		{{template "base/alert" .}}
+		<div class="rp-band">
+			<div class="rp-band-main">
+				<p class="rp-eyebrow">{{ctx.Locale.Tr "asc_rp.history"}}</p>
+				<h2 class="rp-h1 ds-mono">{{if .TreePath}}{{.TreePath}}{{else if .IsViewTag}}{{.TagName}}{{else if .IsViewBranch}}{{.BranchName}}{{else}}{{ShortSha .CommitID}}{{end}}</h2>
+				<p class="rp-sub">{{ctx.Locale.TrPluralString .CommitCount "counters.n_commits" (ctx.Locale.PrettyNumber .CommitCount)}}</p>
+			</div>
+			<div class="rp-band-acts">
+				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.history_view"}}">
+					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}" aria-current="true">{{ctx.Locale.Tr "asc_rp.view_list"}}</a>
+					<a href="{{.RepoLink}}/{{if $isAsc}}asc/graph{{else}}graph{{end}}">{{ctx.Locale.Tr "repo.commit_graph"}}</a>
+				</div>
 			</div>
 		</div>
-		{{template "repo/commits_table" .}}
+		<div class="rp-histbar">
+			{{template "repo/branch_dropdown" dict "root" . "ContainerClasses" "rp-ref"}}
+			{{template "repo/filepath" .}}
+		</div>
+		<div class="ds-split">
+			<div class="ds-min0">
+				{{template "repo/commits_table" .}}
+			</div>
+			<aside class="ds-rail">
+				{{if $isAsc}}
+				<section class="rp-card">
+					<h2 class="rp-rail-title">{{ctx.Locale.Tr "asc_rp.undo_title"}}</h2>
+					<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.undo_body"}}</p>
+					<a class="ds-btn ds-btn-secondary ds-btn-block" href="{{.RepoLink}}/asc/ops">{{ctx.Locale.Tr "asc_rp.undo_open"}}</a>
+				</section>
+				{{end}}
+			</aside>
+		</div>
 	</div>
 </div>
 {{template "base/footer" .}}

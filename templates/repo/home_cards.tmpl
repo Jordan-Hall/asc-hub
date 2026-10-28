@@ -1,0 +1,58 @@
+{{/* The two lists of the repository home: what is in flight and what landed (board Repo). */}}
+{{$isAsc := eq .Repository.GetStorageBackend "asc"}}
+{{if and .Repository.CanEnablePulls (.Permission.CanRead $.UnitTypePullRequests)}}
+<section class="rp-sec" aria-labelledby="rp-flight-title">
+	<div class="rp-sec-h">
+		<div>
+			<h2 class="rp-sec-title" id="rp-flight-title">{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.flight_title"}}{{else}}{{ctx.Locale.Tr "asc_rp.flight_title_pulls"}}{{end}}</h2>
+			<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.flight_sub"}}</p>
+		</div>
+		<a class="rp-sec-act" href="{{.RepoLink}}/pulls">{{ctx.Locale.TrN (.Repository.NumOpenPulls ctx) "asc_rp.all_stacks_one" "asc_rp.all_stacks_other" (ctx.Locale.PrettyNumber (.Repository.NumOpenPulls ctx))}}</a>
+	</div>
+	{{if .HomePulls}}
+		<ul class="rp-rows">
+			{{range .HomePulls}}
+				<li class="rp-flight">
+					<span class="ds-dot {{if .PullRequest.IsWorkInProgress ctx}}ds-dot-warn{{else}}ds-dot-info{{end}}" aria-hidden="true"></span>
+					<div class="rp-flight-main">
+						<div class="rp-flight-title">
+							<a href="{{.Link}}">{{.Title | RenderEmoji $.Context}}</a>
+							{{if .PullRequest.IsWorkInProgress ctx}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.pulls.draft"}}</span>{{else}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "repo.issues.open_title"}}</span>{{end}}
+						</div>
+						<div class="rp-flight-meta">
+							{{if .Poster}}<a href="{{.Poster.HomeLink}}">{{.Poster.GetDisplayName}}</a><span class="rp-sep-dot"></span>{{end}}<span class="rp-hash">#{{.Index}}</span><span class="rp-sep-dot"></span><span class="rp-hash">{{.PullRequest.HeadBranch}}</span><span class="rp-sep-dot"></span>{{DateUtils.TimeSince .UpdatedUnix}}
+						</div>
+					</div>
+				</li>
+			{{end}}
+		</ul>
+	{{else}}
+		<div class="rp-sec-b rp-quiet">{{ctx.Locale.Tr "asc_rp.flight_none"}}</div>
+	{{end}}
+</section>
+{{end}}
+{{if .HomeCommits}}
+<section class="rp-sec" aria-labelledby="rp-landed-title">
+	<div class="rp-sec-h">
+		<div>
+			<h2 class="rp-sec-title" id="rp-landed-title">{{ctx.Locale.Tr "asc_rp.landed_title" .BranchName}}</h2>
+			<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.landed_sub"}}</p>
+		</div>
+		<a class="rp-sec-act" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "repo.file_history"}}</a>
+	</div>
+	<ul class="rp-rows">
+		{{range .HomeCommits}}
+			<li class="rp-flight">
+				<span class="ds-dot ds-dot-ok" aria-hidden="true"></span>
+				<div class="rp-flight-main">
+					<div class="rp-flight-title"><a href="{{$.RepoLink}}/commit/{{PathEscape .ID.String}}">{{.Summary | RenderEmoji $.Context}}</a></div>
+					<div class="rp-flight-meta">
+						{{if .User}}<a href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>{{else}}<span>{{.Author.Name}}</span>{{end}}<span class="rp-sep-dot"></span><a class="rp-hash" href="{{$.RepoLink}}/commit/{{PathEscape .ID.String}}">{{ShortSha .ID.String}}</a>
+					</div>
+				</div>
+				<time class="rp-flight-when">{{DateUtils.TimeSince .Committer.When}}</time>
+			</li>
+		{{end}}
+	</ul>
+</section>
+{{end}}

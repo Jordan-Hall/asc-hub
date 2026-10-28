@@ -1,0 +1,46 @@
+{{$ready := not (or .Repository.IsBeingCreated .Repository.IsBroken)}}
+<div class="rp-top">
+	<div class="ds-container rp-top-in">
+		{{with .Repository}}
+		<div class="rp-head">
+			<div class="rp-head-main">
+				<div class="rp-title-row">
+					<h1 class="rp-title"><a class="rp-owner" href="{{.Owner.HomeLink}}">{{.Owner.Name}}</a><span class="rp-sep" aria-hidden="true">/</span><a class="rp-name" href="{{$.RepoLink}}">{{.Name}}</a></h1>
+					{{if .IsPrivate}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "repo.desc.private"}}</span>
+					{{else if .Owner.Visibility.IsPrivate}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "repo.desc.internal"}}</span>{{end}}
+					{{if .IsArchived}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.desc.archived"}}</span>{{end}}
+					{{if .IsTemplate}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "repo.desc.template"}}</span>{{end}}
+					{{if eq .ObjectFormatName "sha256"}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "repo.desc.sha256"}}</span>{{end}}
+				</div>
+				{{if .IsFork}}<p class="rp-flag">{{ctx.Locale.Tr "repo.forked_from"}} <a href="{{.BaseRepo.Link}}">{{.BaseRepo.FullName}}</a></p>{{end}}
+				{{if .IsGenerated}}<p class="rp-flag">{{ctx.Locale.Tr "repo.generated_from"}} <a href="{{(.TemplateRepo ctx).Link}}">{{(.TemplateRepo ctx).FullName}}</a></p>{{end}}
+				{{if $.PullMirror}}
+					{{$address := MirrorRemoteAddress $.Context $.PullMirror}}
+					<p class="rp-flag">{{ctx.Locale.Tr "repo.mirror_from"}} <a target="_blank" rel="noopener noreferrer" href="{{$address.Address}}">{{$address.Address}}</a>{{if $.PullMirror.UpdatedUnix}} {{ctx.Locale.Tr "repo.mirror_sync"}} {{DateUtils.TimeSince $.PullMirror.UpdatedUnix}}{{end}}</p>
+				{{end}}
+				{{if .Description}}<p class="rp-desc ds-only-mobile">{{.Description}}</p>{{end}}
+			</div>
+			{{if $ready}}
+			<div class="rp-acts">
+				{{if $.RepoTransfer}}
+					<form method="post" action="{{$.RepoLink}}/action/accept_transfer?redirect_to={{$.RepoLink}}">
+						<button type="submit" class="ds-btn ds-btn-primary ds-btn-sm"{{if not $.CanUserAcceptTransfer}} disabled title="{{ctx.Locale.Tr "repo.transfer.no_permission_to_accept"}}"{{end}}>{{ctx.Locale.Tr "repo.transfer.accept"}}</button>
+					</form>
+					<form method="post" action="{{$.RepoLink}}/action/reject_transfer?redirect_to={{$.RepoLink}}">
+						<button type="submit" class="ds-btn ds-btn-danger ds-btn-sm"{{if not $.CanUserAcceptTransfer}} disabled title="{{ctx.Locale.Tr "repo.transfer.no_permission_to_reject"}}"{{end}}>{{ctx.Locale.Tr "repo.transfer.reject"}}</button>
+					</form>
+				{{end}}
+				{{template "repo/watch_unwatch" $}}
+				{{if not $.DisableStars}}{{template "repo/star_unstar" $}}{{end}}
+				{{if not $.DisableForks}}{{template "repo/header_fork" $}}{{end}}
+				{{if $.EnableFeed}}<a class="rp-act rp-act-icon ds-hide-xs" href="{{$.RepoLink}}.rss" aria-label="{{ctx.Locale.Tr "rss_feed"}}" title="{{ctx.Locale.Tr "rss_feed"}}">{{svg "octicon-rss" 16}}</a>{{end}}
+				{{if and $.IsModerationEnabled $.IsSigned (not $.IsRepositoryAdmin)}}
+					<a class="rp-act rp-act-icon" href="{{AppSubUrl}}/report_abuse?type=repo&id={{$.Repository.ID}}" aria-label="{{ctx.Locale.Tr "moderation.report_content"}}" title="{{ctx.Locale.Tr "moderation.report_content"}}">{{svg "dsi-flag" 16}}</a>
+				{{end}}
+			</div>
+			{{end}}
+		</div>
+		{{end}}
+		{{template "repo/header_tabs" .}}
+	</div>
+</div>

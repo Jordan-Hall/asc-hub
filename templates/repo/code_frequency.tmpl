@@ -1,4 +1,12 @@
 {{if .Permission.CanRead $.UnitTypeCode}}
+	<div class="rp-band rp-pulse-band">
+		<div class="rp-band-main">
+			<h2 class="rp-h1">{{ctx.Locale.Tr "repo.activity.navbar.code_frequency"}}</h2>
+			<p class="rp-sub">{{ctx.Locale.Tr "asc_rp.code_frequency_sub"}}</p>
+		</div>
+	</div>
+	<section class="rp-sec rp-chart-card" aria-label="{{ctx.Locale.Tr "repo.activity.navbar.code_frequency"}}">
+	<div class="rp-sec-b">
 	<div id="repo-code-frequency-chart"
 		data-locale-loading-title="{{ctx.Locale.Tr "graphs.component_loading" (ctx.Locale.Tr "graphs.code_frequency.what")}}"
 		data-locale-loading-title-failed="{{ctx.Locale.Tr "graphs.component_loading_failed" (ctx.Locale.Tr "graphs.code_frequency.what")}}"
@@ -7,4 +15,6 @@
 		data-locale-component-failed-to-load="{{ctx.Locale.Tr "graphs.component_failed_to_load"}}"
 	>
 	</div>
+	</div>
+	</section>
 {{end}}

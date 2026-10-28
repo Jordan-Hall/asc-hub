@@ -1,64 +1,63 @@
-{{/* The side column of the repository home (design board Repo): About, topics, repository numbers, languages. */}}
-<aside class="asc-repo-aside" aria-label="{{ctx.Locale.Tr "repo.asc_home.about"}}">
-	<section class="asc-aside-block" id="repo-desc-block">
-		<h2 class="asc-aside-title">{{ctx.Locale.Tr "repo.asc_home.about"}}</h2>
-		<div id="repo-desc" class="asc-about-text tw-break-anywhere">
+{{/* The right column of the repository home (board Repo): About, repository numbers, languages, latest release. */}}
+<aside class="ds-rail rp-rail" aria-label="{{ctx.Locale.Tr "repo.asc_home.about"}}">
+	<section class="rp-about" id="repo-desc-block" aria-labelledby="rp-about-title">
+		<h2 class="rp-rail-title" id="rp-about-title">{{ctx.Locale.Tr "repo.asc_home.about"}}</h2>
+		<div id="repo-desc" class="rp-about-text">
 			{{$description := .Repository.DescriptionHTML $.Context}}
-			{{if $description}}<span class="description">{{$description | RenderCodeBlock}}</span>{{else}}<span class="no-description text-italic">{{ctx.Locale.Tr "repo.no_desc"}}</span>{{end}}
-			{{if .Repository.Website}}<a class="link" href="{{.Repository.Website}}" rel="noopener noreferrer">{{.Repository.Website}}</a>{{end}}
+			{{if $description}}<span class="description">{{$description | RenderCodeBlock}}</span>{{else}}<span class="no-description">{{ctx.Locale.Tr "repo.no_desc"}}</span>{{end}}
 		</div>
-		<div class="repo-topics asc-topics" id="repo-topics">
+		<div class="rp-topics" id="repo-topics">
 			{{range .Topics}}
-				<a class="repo-topic asc-topic" href="{{AppSubUrl}}/explore/repos?q={{.Name}}&topic=1">{{.Name}}</a>
+				<a class="repo-topic ds-chip ds-chip-info" href="{{AppSubUrl}}/explore/repos?q={{.Name}}&topic=1">{{.Name}}</a>
 			{{end}}
 			{{if and .Permission.IsAdmin (not .Repository.IsArchived)}}
-				<button id="manage_topic" class="btn interact-fg asc-topic-manage">{{ctx.Locale.Tr "repo.topic.manage_topics"}}</button>
+				<button type="button" id="manage_topic" class="rp-topic-manage">{{ctx.Locale.Tr "repo.topic.manage_topics"}}</button>
 			{{end}}
 		</div>
 		{{if and .Permission.IsAdmin (not .Repository.IsArchived)}}
-		<div class="ui form tw-hidden tw-flex tw-gap-2 tw-my-2" id="topic_edit">
+		<div class="ui form tw-hidden tw-flex tw-gap-2 tw-my-2 rp-topic-edit" id="topic_edit">
 			<div class="ui fluid multiple search selection dropdown tw-flex-wrap tw-flex-1">
 				<input type="hidden" name="topics" value="{{range $i, $v := .Topics}}{{.Name}}{{if Eval $i "+" 1 "<" (len $.Topics)}},{{end}}{{end}}">
 				{{range .Topics}}
-					{{/* keep the same layout as Fomantic UI generated labels */}}
 					<a class="ui label transition visible tw-cursor-default tw-inline-block" data-value="{{.Name}}">{{.Name}}{{svg "octicon-x" 16 "delete icon"}}</a>
 				{{end}}
 				<div class="text"></div>
 			</div>
-			<div>
-				<button class="ui basic button" id="cancel_topic_edit">{{ctx.Locale.Tr "cancel"}}</button>
-				<button class="ui primary button" id="save_topic" data-link="{{.RepoLink}}/topics">{{ctx.Locale.Tr "save"}}</button>
+			<div class="ds-row ds-gap-8">
+				<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" id="cancel_topic_edit">{{ctx.Locale.Tr "cancel"}}</button>
+				<button type="button" class="ds-btn ds-btn-primary ds-btn-sm" id="save_topic" data-link="{{.RepoLink}}/topics">{{ctx.Locale.Tr "save"}}</button>
 			</div>
 		</div>
 		{{end}}
+		{{if .Repository.Website}}<a class="rp-about-site" href="{{.Repository.Website}}" rel="noopener noreferrer">{{.Repository.Website}}</a>{{end}}
+		{{if and (.Permission.CanRead $.UnitTypeCode) (not .IsEmptyRepo)}}
+		<ul class="rp-numbers">
+			<li><a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.TrPluralString .CommitsCount "counters.n_commits" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .CommitsCount) | TrustHTML)}}</a></li>
+			<li><a href="{{.RepoLink}}/branches">{{ctx.Locale.TrPluralString .BranchesCount "counters.n_branches" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .BranchesCount) | TrustHTML)}}</a></li>
+			<li><a href="{{.RepoLink}}/tags">{{ctx.Locale.TrPluralString .NumTags "counters.n_tags" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .NumTags) | TrustHTML)}}</a></li>
+			<li><span {{if not (eq .Repository.Size 0)}}title="{{.Repository.SizeDetailsString ctx.Locale}}"{{end}}>{{$fileSizeFields := ctx.Locale.TrSize .Repository.Size}}<b>{{$fileSizeFields.PrettyNumber}}</b> {{$fileSizeFields.TranslatedUnit}}</span></li>
+			<li><a href="{{.RepoLink}}/activity">{{ctx.Locale.Tr "asc_rp.tab_insights"}}</a></li>
+		</ul>
+		{{end}}
 	</section>
-	{{if and (.Permission.CanRead $.UnitTypeCode) (not .IsEmptyRepo)}}
-	<section class="asc-aside-block">
-		<h2 class="asc-aside-title">{{ctx.Locale.Tr "repo.asc_home.numbers"}}</h2>
-		<ul class="asc-numbers">
-			<li><a class="muted" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{svg "octicon-history" 16}}{{ctx.Locale.TrPluralString .CommitsCount "counters.n_commits" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .CommitsCount) | TrustHTML)}}</a></li>
-			<li><a class="muted" href="{{.RepoLink}}/branches">{{svg "octicon-git-branch" 16}}{{ctx.Locale.TrPluralString .BranchesCount "counters.n_branches" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .BranchesCount) | TrustHTML)}}</a></li>
-			<li><a class="muted" href="{{.RepoLink}}/tags">{{svg "octicon-tag" 16}}{{ctx.Locale.TrPluralString .NumTags "counters.n_tags" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .NumTags) | TrustHTML)}}</a></li>
-			<li><span {{if not (eq .Repository.Size 0)}}data-tooltip-content="{{.Repository.SizeDetailsString ctx.Locale}}"{{end}}>
-				{{$fileSizeFields := ctx.Locale.TrSize .Repository.Size}}
-				{{svg "octicon-database" 16}}<b>{{$fileSizeFields.PrettyNumber}}</b> {{$fileSizeFields.TranslatedUnit}}
-			</span></li>
+	{{if and (.Permission.CanRead $.UnitTypeCode) (not .IsEmptyRepo) .LanguageStats}}
+	<section class="rp-card" id="language-stats" aria-labelledby="rp-lang-title">
+		<h2 class="rp-rail-title" id="rp-lang-title">{{ctx.Locale.Tr "repo.asc_home.languages"}}</h2>
+		<div class="rp-lang-bar" role="img" aria-label="{{range .LanguageStats}}{{if eq .Language "other"}}{{ctx.Locale.Tr "repo.language_other"}}{{else}}{{.Language}}{{end}} {{.Percentage}}%, {{end}}">
+			{{range .LanguageStats}}<svg class="rp-slice" width="{{.Percentage}}%" height="8" aria-hidden="true" focusable="false"><rect width="100%" height="100%" fill="{{.Color}}"/></svg>{{end}}
+		</div>
+		<ul class="rp-lang-legend">
+			{{range .LanguageStats}}
+				<li><svg class="rp-lang-dot" width="10" height="10" aria-hidden="true" focusable="false"><circle cx="5" cy="5" r="5" fill="{{.Color}}"/></svg>{{if eq .Language "other"}}{{ctx.Locale.Tr "repo.language_other"}}{{else}}{{.Language}}{{end}} <span class="rp-dim">{{.Percentage}}%</span></li>
+			{{end}}
 		</ul>
 	</section>
 	{{end}}
-	{{if and (.Permission.CanRead $.UnitTypeCode) (not .IsEmptyRepo) .LanguageStats}}
-	<section class="asc-aside-block" id="language-stats">
-		<h2 class="asc-aside-title">{{ctx.Locale.Tr "repo.asc_home.languages"}}</h2>
-		<stats-bar class="asc-lang-bar" role="img" aria-label="{{ctx.Locale.Tr "repo.asc_home.languages"}}">
-			{{range .LanguageStats}}
-				<div class="slice" style="width: {{.Percentage}}%; background-color: {{.Color}}"></div>
-			{{end}}
-		</stats-bar>
-		<ul class="asc-lang-legend">
-			{{range .LanguageStats}}
-				<li><i class="color-icon" style="background-color: {{.Color}}" aria-hidden="true"></i>{{if eq .Language "other"}}{{ctx.Locale.Tr "repo.language_other"}}{{else}}{{.Language}}{{end}} {{.Percentage}}%</li>
-			{{end}}
-		</ul>
+	{{if .HomeRelease}}
+	<section class="rp-card" aria-labelledby="rp-rel-title">
+		<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-rel-title">{{ctx.Locale.Tr "asc_rp.latest_release"}}</h2><a class="rp-sec-act" href="{{.RepoLink}}/releases">{{ctx.Locale.Tr "asc_rp.all_n" (ctx.Locale.PrettyNumber .NumReleases)}}</a></div>
+		<p class="rp-rel-line"><a class="rp-rel-name" href="{{.RepoLink}}/releases/tag/{{PathEscapeSegments .HomeRelease.TagName}}">{{if .HomeRelease.Title}}{{.HomeRelease.Title}}{{else}}{{.HomeRelease.TagName}}{{end}}</a>{{if not .HomeRelease.IsPrerelease}} <span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "repo.release.stable"}}</span>{{else}} <span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.release.prerelease"}}</span>{{end}}</p>
+		<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.published" (DateUtils.TimeSince .HomeRelease.CreatedUnix)}}</p>
 	</section>
 	{{end}}
 </aside>

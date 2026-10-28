@@ -1,0 +1,138 @@
+/* Insights (boards Insights, InsightsPeople): a menu of views beside the page; the menu is a row of pills on a phone. */
+
+.rp-insights {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rp-insights-main {
+  min-width: 0;
+}
+
+.rp-insights-group {
+  margin: 0 0 8px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rp-insights-list {
+  display: flex;
+  gap: 8px;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 0 var(--gutter) 4px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.rp-insights-list::-webkit-scrollbar {
+  display: none;
+}
+
+.rp-insights-list a {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-height: var(--touch);
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-b);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.rp-insights-list a[aria-current="page"] {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--on-fill);
+}
+
+.rp-insights-group {
+  display: none;
+}
+
+.rp-pulse-periods {
+  margin-bottom: 16px;
+}
+
+.rp-pulse-band {
+  padding-top: 4px;
+}
+
+.rp-activity .activity-header {
+  margin: 4px 0 0;
+  padding: 0;
+  border: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-2);
+}
+
+.rp-activity #repo-contributors-chart,
+.rp-activity #repo-code-frequency-chart,
+.rp-activity #repo-activity-top-authors-chart {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (min-width: 1024px) {
+  .rp-insights {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+  }
+
+  .rp-insights-nav {
+    flex: 0 0 220px;
+    position: sticky;
+    top: calc(var(--header-h) + 16px);
+  }
+
+  .rp-insights-group {
+    display: block;
+    padding: 4px 12px;
+  }
+
+  .rp-insights-list {
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .rp-insights-list a {
+    min-height: 40px;
+    border: 0;
+    border-radius: var(--r-btn);
+    background: transparent;
+    font-weight: 500;
+  }
+
+  .rp-insights-list a:hover {
+    background: var(--surface-3);
+  }
+
+  .rp-insights-list a[aria-current="page"] {
+    background: var(--primary-soft);
+    color: var(--text);
+    font-weight: 700;
+  }
+}
+
+.rp-chart-card {
+  margin-bottom: 20px;
+}
+
+.rp-chart-card .rp-sec-b {
+  overflow-x: auto;
+}

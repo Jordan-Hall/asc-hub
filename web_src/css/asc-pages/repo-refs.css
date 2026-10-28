@@ -1,0 +1,365 @@
+/* Refs and tags (board Refs): cards of rows, each with the ref name, chips, a line of meta and its actions. Mobile first:
+   the actions sit under the row on a phone and beside it from 768. */
+
+.rp-refcard {
+  margin-bottom: 20px;
+}
+
+.rp-reflist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-ref {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--line-3);
+}
+
+.rp-reflist > .rp-ref:first-child {
+  border-top: 0;
+}
+
+.rp-ref-main {
+  min-width: 0;
+}
+
+.rp-ref-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+}
+
+.rp-ref-name {
+  min-width: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+a.rp-ref-name:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-ref-copy {
+  margin-left: -4px;
+}
+
+.rp-ref-sub {
+  margin: 4px 0 0;
+  color: var(--text-b);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.rp-ref-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 6px 0 0;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.rp-ref-who {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rp-ref-who a {
+  color: var(--text-b);
+}
+
+.rp-ref-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-ref-side > .ds-btn,
+.rp-ref-side > .rp-ref-more > summary {
+  min-height: var(--touch);
+}
+
+.rp-ref-side > .rp-ref-more {
+  margin-left: auto;
+  position: relative;
+}
+
+.rp-ref-more > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.rp-ref-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rp-ref-side > .rp-ref-more > summary.ds-btn-icon {
+  min-width: var(--touch);
+}
+
+.rp-ref-meta .rp-ref-div {
+  color: var(--text-2);
+}
+
+.rp-tagrow-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+@media (min-width: 768px) {
+  .rp-ref {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .rp-ref-side {
+    flex: none;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+
+  .rp-ref-side > .ds-btn,
+  .rp-ref-side > .rp-ref-more > summary {
+    min-height: 36px;
+  }
+
+  .rp-ref-side > .rp-ref-more > summary.ds-btn-icon {
+    min-width: 36px;
+  }
+
+  .rp-ref-side > .rp-ref-more {
+    margin-left: 0;
+  }
+}
+
+.rp-refpills {
+  margin-bottom: 16px;
+}
+
+/* ---- releases: a timeline of cards, newest first ---- */
+.rp-rels {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-rel {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.rp-rel-date {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rp-rel-node {
+  display: none;
+}
+
+.rp-rel-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.rp-rel-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 14px 16px 0;
+}
+
+.rp-rel-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.rp-rel-tag {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.rp-rel-tag a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.rp-rel-tag a:hover {
+  color: var(--link);
+}
+
+.rp-rel-acts {
+  display: flex;
+  gap: 8px;
+}
+
+.rp-rel-acts .ds-btn {
+  min-height: var(--touch);
+}
+
+.rp-rel-body {
+  padding: 8px 16px 14px;
+}
+
+.rp-rel-name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.rp-rel-name a {
+  color: var(--text);
+}
+
+.rp-rel-notes {
+  margin-top: 12px;
+  color: var(--text-b);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.rp-assets {
+  border-top: 1px solid var(--line-2);
+}
+
+.rp-assets > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--touch);
+  padding: 0 16px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rp-assets > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rp-assets[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.rp-assets-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-assets-list > li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line-3);
+}
+
+.rp-asset-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--link);
+  overflow-wrap: anywhere;
+}
+
+.rp-asset-meta {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+@media (min-width: 768px) {
+  .rp-rel {
+    grid-template-columns: 96px 20px minmax(0, 1fr);
+    gap: 0 12px;
+    align-items: start;
+  }
+
+  .rp-rel-date {
+    padding-top: 16px;
+    text-align: right;
+  }
+
+  .rp-rel-node {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 14px;
+    height: 14px;
+    margin: 20px 0 0 3px;
+    border: 3px solid var(--fill);
+    border-radius: 50%;
+    background: var(--bg);
+  }
+
+  .rp-rel-node.is-pre {
+    border-color: var(--warn-dot, var(--warn));
+  }
+
+  .rp-rel::before {
+    content: "";
+    position: absolute;
+    top: 30px;
+    bottom: -16px;
+    left: 117px;
+    width: 2px;
+    background: var(--line);
+  }
+
+  .rp-rel:last-child::before {
+    display: none;
+  }
+
+  .rp-rel-acts .ds-btn {
+    min-height: 36px;
+  }
+
+  .rp-assets-list > li {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+}
