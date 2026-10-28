@@ -14,6 +14,7 @@ import (
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
+	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/services/ascsync"
 )
 
@@ -53,6 +54,24 @@ func pruneNonBranchRefs(ctx context.Context, repoPath string) error {
 		return fmt.Errorf("drop the forge refs of the clone: %w", err)
 	}
 	return nil
+}
+
+// syncBranchesOfMigration writes the branches of the clone to the database. For a repository stored in asc the
+// import made asc fan out the pushed refs, and the hub's own handling of that writes the same branch rows at the
+// same time: a unique-constraint failure then only means the row is there, so the sync is repeated, which finds
+// the row and updates it.
+func syncBranchesOfMigration(ctx context.Context, repo *repo_model.Repository, gitRepo *git.Repository, doerID int64, ascStored bool) (int64, error) {
+	for attempt := 0; ; attempt++ {
+		n, err := repo_module.SyncRepoBranchesWithRepo(ctx, repo, gitRepo, doerID)
+		if err == nil || !ascStored || attempt >= 4 || !strings.Contains(strings.ToLower(err.Error()), "unique constraint") {
+			return n, err
+		}
+		select {
+		case <-ctx.Done():
+			return n, ctx.Err()
+		case <-time.After(time.Duration(attempt+1) * 200 * time.Millisecond):
+		}
+	}
 }
 
 // scrubBridgeConfig removes the [http] section that the clone left in the config of the bridge directory
