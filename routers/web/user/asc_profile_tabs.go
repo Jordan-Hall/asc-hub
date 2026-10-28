@@ -64,7 +64,7 @@ func ascProfileReviews(ctx gocontext.Context, user, viewer *user_model.User, lim
 		}
 		seen[r.IssueID] = true
 		issue, err := issues_model.GetIssueByID(ctx, r.IssueID)
-		if err != nil || !issue.IsPull || issue.LoadRepo(ctx) != nil || issue.LoadPullRequest(ctx) != nil {
+		if err != nil || !issue.IsPull || issue.LoadRepo(ctx) != nil || issue.LoadPullRequest(ctx) != nil || issue.PullRequest.LoadBaseRepo(ctx) != nil {
 			continue
 		}
 		if !ascCanReadPulls(ctx, viewer, issue.Repo) {
@@ -118,7 +118,7 @@ func ascProfilePins(ctx gocontext.Context, person, viewer *user_model.User) []As
 // whose activity the viewer may not read.
 func ascProfileTabData(ctx *context.Context, tab string) {
 	person := ctx.ContextUser
-	if !person.IsIndividual() {
+	if !person.IsIndividual() || !activities_model.ActivityReadable(person, ctx.Doer) {
 		return
 	}
 	loc := ctx.Locale
