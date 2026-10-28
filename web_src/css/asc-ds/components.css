@@ -1552,6 +1552,34 @@ ul.ds-list {
   }
 }
 
+/* the keyboard shortcuts list of the dialog (?) */
+.ds-keys {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.ds-keys > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.ds-keys dt {
+  display: inline-flex;
+  gap: 4px;
+  flex: none;
+}
+
+.ds-keys dd {
+  margin: 0;
+  color: var(--text-2);
+  text-align: end;
+}
+
 /* ================================================================ tooltip */
 .ds-tip {
   display: inline-block;

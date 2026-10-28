@@ -11,8 +11,8 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 {{end}}
 {{$inboxHref := print AppSubUrl "/notifications"}}
 {{if AscEnabled}}{{$inboxHref = print AppSubUrl "/-/asc/inbox"}}{{end}}
-{{$docsURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/README.md"}}
-{{$aboutURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/WHY.md"}}
+{{$docsURL := print AppSubUrl "/-/docs"}}
+{{$aboutURL := print AppSubUrl "/-/about"}}
 {{$exploreHref := print AppSubUrl "/explore/repos"}}
 {{if and (not .IsSigned) .IsLandingPageOrganizations}}{{$exploreHref = print AppSubUrl "/explore/organizations"}}{{end}}
 
@@ -41,8 +41,8 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 				{{if AscDownloadAvailable}}
 					<a href="{{AppSubUrl}}/download"{{if .PageIsAscDownload}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_download.nav"}}</a>
 				{{end}}
-				<a href="{{$docsURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "docs"}}</a>
-				<a href="{{$aboutURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_shell.nav_about"}}</a>
+				<a href="{{$docsURL}}">{{ctx.Locale.Tr "docs"}}</a>
+				<a href="{{$aboutURL}}">{{ctx.Locale.Tr "asc_shell.nav_about"}}</a>
 			{{end}}
 			{{template "custom/extra_links" .}}
 		</nav>
@@ -163,9 +163,9 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 		{{if AscDownloadAvailable}}
 			<a class="ds-mi" href="{{AppSubUrl}}/download"{{if .PageIsAscDownload}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_download.nav"}}</a>
 		{{end}}
-		<a class="ds-mi" href="{{$docsURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "docs"}}</a>
+		<a class="ds-mi" href="{{$docsURL}}">{{ctx.Locale.Tr "docs"}}</a>
 		{{if not .IsSigned}}
-			<a class="ds-mi" href="{{$aboutURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_shell.nav_about"}}</a>
+			<a class="ds-mi" href="{{$aboutURL}}">{{ctx.Locale.Tr "asc_shell.nav_about"}}</a>
 		{{end}}
 		{{if .IsSigned}}
 			<div class="ds-mi-label">{{ctx.Locale.Tr "asc_shell.group_account"}}</div>
@@ -234,7 +234,7 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 			</div>
 		{{end}}
 		<hr>
-		<a class="ds-mi" target="_blank" rel="noopener noreferrer" href="{{$docsURL}}">{{svg "dsi-book" 18}}{{ctx.Locale.Tr "asc_shell.documentation"}}{{svg "dsi-external" 14 "ds-ml-auto ds-c-3"}}</a>
+		<a class="ds-mi" href="{{$docsURL}}">{{svg "dsi-book" 18}}{{ctx.Locale.Tr "asc_shell.documentation"}}</a>
 		{{if not .RunModeIsProd}}
 			<a class="ds-mi" href="{{AppSubUrl}}/-/demo">{{svg "dsi-flask" 18}}{{ctx.Locale.Tr "asc_shell.demo_pages"}}</a>
 		{{end}}
@@ -254,6 +254,9 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 		{{if .SignedUser.CanCreateOrganization}}
 			<a class="ds-mi" href="{{AppSubUrl}}/org/create">{{svg "dsi-building" 18}}{{ctx.Locale.Tr "new_org.link"}}</a>
 		{{end}}
+		{{if AscEnabled}}
+			<a class="ds-mi" href="{{AppSubUrl}}/-/asc/agents">{{svg "dsi-agent" 18}}{{ctx.Locale.Tr "asc_shell.create_agent_run"}}</a>
+		{{end}}
 	</div>
 </div>
 {{end}}
@@ -268,43 +271,85 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 			<label class="ds-palette-field">
 				{{svg "dsi-search" 16}}
 				<span class="ds-sr">{{ctx.Locale.Tr "asc_shell.search_label"}}</span>
-				<input type="search" name="q" data-asc-search autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "asc_shell.search_or_command"}}">
+				<input type="search" name="q" data-asc-search role="combobox" aria-expanded="true" aria-controls="ds-palette-list" aria-autocomplete="list" aria-activedescendant="" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "asc_shell.search_or_command"}}">
 			</label>
 			<button type="button" class="ds-palette-cancel" data-ds-close>{{ctx.Locale.Tr "cancel"}}</button>
 		</form>
-		<div class="ds-palette-list" data-ds-palette-list>
-			<div data-ds-palette-dynamic></div>
-			<div class="ds-palette-group" data-ds-group>{{ctx.Locale.Tr "asc_shell.palette_go_to"}}</div>
-			{{if .IsSigned}}
-				{{if AscEnabled}}
-					<a class="ds-palette-item" href="{{$inboxHref}}" data-ds-text="{{ctx.Locale.Tr "user.asc_inbox"}}">{{svg "dsi-inbox" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "user.asc_inbox"}}<small>{{ctx.Locale.Tr "asc_shell.palette_inbox_sub"}}</small></span></a>
-				{{end}}
-				<a class="ds-palette-item" href="{{AppSubUrl}}/pulls" data-ds-text="{{ctx.Locale.Tr "asc_shell.nav_changes"}}">{{svg "dsi-changes" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "asc_shell.nav_changes"}}<small>{{ctx.Locale.Tr "asc_shell.palette_changes_sub"}}</small></span></a>
-				{{if AscEnabled}}
-					<a class="ds-palette-item" href="{{AppSubUrl}}/-/asc/agents" data-ds-text="{{ctx.Locale.Tr "asc_shell.nav_agents"}}">{{svg "dsi-agent" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "asc_shell.nav_agents"}}<small>{{ctx.Locale.Tr "asc_shell.palette_agents_sub"}}</small></span></a>
-				{{end}}
-			{{end}}
-			<a class="ds-palette-item" href="{{$exploreHref}}" data-ds-text="{{ctx.Locale.Tr "explore"}}">{{svg "dsi-globe" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "explore"}}<small>{{ctx.Locale.Tr "asc_shell.palette_explore_sub"}}</small></span></a>
-			{{if AscDownloadAvailable}}
-				<a class="ds-palette-item" href="{{AppSubUrl}}/download" data-ds-text="{{ctx.Locale.Tr "asc_download.nav"}}">{{svg "dsi-download" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "asc_download.nav"}}<small>{{ctx.Locale.Tr "asc_shell.palette_download_sub"}}</small></span></a>
-			{{end}}
-			{{if .IsSigned}}
-				<a class="ds-palette-item" href="{{AppSubUrl}}/user/settings" data-ds-text="{{ctx.Locale.Tr "your_settings"}}">{{svg "dsi-sliders" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "your_settings"}}<small>{{ctx.Locale.Tr "asc_shell.palette_settings_sub"}}</small></span></a>
-				<div class="ds-palette-group" data-ds-group>{{ctx.Locale.Tr "asc_shell.palette_commands"}}</div>
-				<a class="ds-palette-item" href="{{AppSubUrl}}/repo/create" data-ds-text="{{ctx.Locale.Tr "new_repo.link"}}">{{svg "dsi-plus" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "new_repo.link"}}<small>{{ctx.Locale.Tr "asc_shell.palette_new_repo_sub"}}</small></span></a>
-				{{if .SignedUser.CanCreateOrganization}}
-					<a class="ds-palette-item" href="{{AppSubUrl}}/org/create" data-ds-text="{{ctx.Locale.Tr "new_org.link"}}">{{svg "dsi-building" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "new_org.link"}}<small>{{ctx.Locale.Tr "asc_shell.palette_new_org_sub"}}</small></span></a>
-				{{end}}
-			{{end}}
+		<div class="ds-palette-scopes" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.palette_scopes"}}">
+			<button type="button" class="ds-chip-btn" data-ds-scope="all" aria-pressed="true" tabindex="-1">{{ctx.Locale.Tr "asc_shell.palette_scope_all"}}</button>
+			{{if .IsSigned}}<button type="button" class="ds-chip-btn" data-ds-scope="changes" aria-pressed="false" tabindex="-1">{{ctx.Locale.Tr "asc_shell.palette_scope_changes"}}</button>{{end}}
+			<button type="button" class="ds-chip-btn" data-ds-scope="code" aria-pressed="false" tabindex="-1">{{ctx.Locale.Tr "asc_shell.palette_scope_code"}}</button>
+			<button type="button" class="ds-chip-btn" data-ds-scope="people" aria-pressed="false" tabindex="-1">{{ctx.Locale.Tr "asc_shell.palette_scope_people"}}</button>
+			<button type="button" class="ds-chip-btn" data-ds-scope="commands" aria-pressed="false" tabindex="-1">{{ctx.Locale.Tr "asc_shell.palette_scope_commands"}}</button>
 		</div>
-		<div class="ds-palette-empty" data-ds-palette-empty hidden>{{ctx.Locale.Tr "asc_shell.palette_empty"}}</div>
+		<div class="ds-palette-list" id="ds-palette-list" role="listbox" aria-label="{{ctx.Locale.Tr "asc_shell.search_label"}}" data-ds-palette-list>
+			<div data-ds-palette-dynamic role="presentation"></div>
+			<div class="ds-palette-group" data-ds-group data-ds-scope="all" data-ds-when="empty" role="presentation" data-ds-recent-group hidden>{{ctx.Locale.Tr "asc_shell.palette_recent"}}</div>
+			<div data-ds-palette-recent role="presentation"></div>
+			<div class="ds-palette-group" data-ds-group role="presentation">{{ctx.Locale.Tr "asc_shell.palette_go_to"}}</div>
+			{{if .IsSigned}}
+				{{if AscEnabled}}
+					<a class="ds-palette-item" href="{{$inboxHref}}" data-ds-scope="changes" data-ds-text="{{ctx.Locale.Tr "user.asc_inbox"}}">{{svg "dsi-inbox" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "user.asc_inbox"}}<small>{{ctx.Locale.Tr "asc_shell.palette_inbox_sub"}}</small></span></a>
+				{{end}}
+				<a class="ds-palette-item" href="{{AppSubUrl}}/pulls" data-ds-scope="changes" data-ds-text="{{ctx.Locale.Tr "asc_shell.nav_changes"}}">{{svg "dsi-changes" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "asc_shell.nav_changes"}}<small>{{ctx.Locale.Tr "asc_shell.palette_changes_sub"}}</small></span></a>
+				{{if AscEnabled}}
+					<a class="ds-palette-item" href="{{AppSubUrl}}/-/asc/agents" data-ds-scope="changes" data-ds-text="{{ctx.Locale.Tr "asc_shell.nav_agents"}}">{{svg "dsi-agent" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "asc_shell.nav_agents"}}<small>{{ctx.Locale.Tr "asc_shell.palette_agents_sub"}}</small></span></a>
+				{{end}}
+			{{end}}
+			<a class="ds-palette-item" href="{{$exploreHref}}" data-ds-scope="code" data-ds-text="{{ctx.Locale.Tr "explore"}}">{{svg "dsi-globe" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "explore"}}<small>{{ctx.Locale.Tr "asc_shell.palette_explore_sub"}}</small></span></a>
+			{{if AscDownloadAvailable}}
+				<a class="ds-palette-item" href="{{AppSubUrl}}/download" data-ds-scope="commands" data-ds-text="{{ctx.Locale.Tr "asc_download.nav"}}">{{svg "dsi-download" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "asc_download.nav"}}<small>{{ctx.Locale.Tr "asc_shell.palette_download_sub"}}</small></span></a>
+			{{end}}
+			{{if .IsSigned}}
+				<a class="ds-palette-item" href="{{AppSubUrl}}/user/settings" data-ds-scope="commands" data-ds-text="{{ctx.Locale.Tr "your_settings"}}">{{svg "dsi-sliders" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "your_settings"}}<small>{{ctx.Locale.Tr "asc_shell.palette_settings_sub"}}</small></span></a>
+				<div class="ds-palette-group" data-ds-group role="presentation">{{ctx.Locale.Tr "asc_shell.palette_commands"}}</div>
+				<a class="ds-palette-item" href="{{AppSubUrl}}/repo/create" data-ds-scope="commands" data-ds-text="{{ctx.Locale.Tr "new_repo.link"}}">{{svg "dsi-plus" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "new_repo.link"}}<small>{{ctx.Locale.Tr "asc_shell.palette_new_repo_sub"}}</small></span></a>
+				{{if .SignedUser.CanCreateOrganization}}
+					<a class="ds-palette-item" href="{{AppSubUrl}}/org/create" data-ds-scope="commands" data-ds-text="{{ctx.Locale.Tr "new_org.link"}}">{{svg "dsi-building" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "new_org.link"}}<small>{{ctx.Locale.Tr "asc_shell.palette_new_org_sub"}}</small></span></a>
+				{{end}}
+			{{end}}
+			<div class="ds-palette-group" data-ds-group data-ds-scope="all" data-ds-when="empty" role="presentation">{{ctx.Locale.Tr "asc_shell.palette_shortcuts"}}</div>
+			{{if and .IsSigned AscEnabled}}
+				<a class="ds-palette-item" href="{{$inboxHref}}" data-ds-scope="all" data-ds-when="empty">{{svg "dsi-inbox" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "asc_shell.palette_go_inbox"}}</span><span class="ds-pi-keys" aria-hidden="true"><span class="ds-kbd">g</span> <span class="ds-kbd">i</span></span></a>
+			{{end}}
+			<button type="button" class="ds-palette-item" data-ds-scope="all" data-ds-when="empty" data-ds-shortcuts>{{svg "dsi-sliders" 17}}<span class="ds-pi-main">{{ctx.Locale.Tr "asc_shell.palette_all_shortcuts"}}</span><span class="ds-pi-keys" aria-hidden="true"><span class="ds-kbd">?</span></span></button>
+		</div>
+		<div class="ds-palette-empty" data-ds-palette-empty hidden>
+			<strong data-ds-palette-empty-title data-t-title="{{ctx.Locale.Tr "asc_shell.palette_nothing_for" "%s"}}"></strong>
+			<span>{{ctx.Locale.Tr "asc_shell.palette_nothing_hint"}}</span>
+		</div>
+		<template data-ds-recent-icons>{{svg "dsi-book" 17}}{{svg "dsi-changes" 17}}</template>
 		<div class="ds-palette-foot" aria-hidden="true">
 			<span><span class="ds-kbd">&uarr;</span> <span class="ds-kbd">&darr;</span> {{ctx.Locale.Tr "asc_shell.palette_move"}}</span>
+			<span><span class="ds-kbd">Tab</span> {{ctx.Locale.Tr "asc_shell.palette_next_scope"}}</span>
 			<span><span class="ds-kbd">&crarr;</span> {{ctx.Locale.Tr "asc_shell.palette_open"}}</span>
 			<span><span class="ds-kbd">Esc</span> {{ctx.Locale.Tr "asc_shell.palette_close"}}</span>
 		</div>
 	</div>
 </div>
+
+{{/* the keyboard shortcuts of this page (the ? key, and the last row of the palette) */}}
+<dialog id="ds-shortcuts" aria-labelledby="ds-shortcuts-title" data-ds-shortcuts-dialog>
+	<article>
+		<header id="ds-shortcuts-title">{{ctx.Locale.Tr "asc_shell.shortcuts_title"}}</header>
+		<div class="content">
+			<dl class="ds-keys">
+				<div><dt><span class="ds-kbd">/</span> <span class="ds-kbd">Ctrl</span> <span class="ds-kbd">K</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_palette"}}</dd></div>
+				<div><dt><span class="ds-kbd">?</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_help"}}</dd></div>
+				<div><dt><span class="ds-kbd">Esc</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_close"}}</dd></div>
+				{{if and .IsSigned AscEnabled}}
+					<div><dt><span class="ds-kbd">g</span> <span class="ds-kbd">i</span></dt><dd>{{ctx.Locale.Tr "asc_shell.palette_go_inbox"}}</dd></div>
+					<div><dt><span class="ds-kbd">j</span> <span class="ds-kbd">k</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_rows"}}</dd></div>
+					<div><dt><span class="ds-kbd">s</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_snooze"}}</dd></div>
+					<div><dt><span class="ds-kbd">p</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_pin"}}</dd></div>
+				{{end}}
+			</dl>
+		</div>
+		<div class="actions">
+			<form method="dialog"><button class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_shell.shortcuts_done"}}</button></form>
+		</div>
+	</article>
+</dialog>
 
 {{/* the bottom navigation of a phone: Inbox, Changes, Explore, Search, Me */}}
 {{if and .IsSigned (not .HideNavbarLinks)}}
