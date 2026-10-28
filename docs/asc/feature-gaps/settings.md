@@ -103,9 +103,9 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsKeys | Delete confirm that lists what stops working | ui-only-missing | keys_ssh.tmpl modal text | S |
 | UserSettingsApps | OAuth2 apps, authorized apps with revoke, client secret shown once, regenerate | done | templates/user/settings/applications_oauth2*.tmpl, grants_oauth2.tmpl | - |
 | UserSettingsApps | Webhooks table: events column, last delivery status text and time, Replay from the list | ui-only-missing | templates/repo/settings/webhook/base_list.tmpl is old markup (dot + URL only); data from hook_task | M |
-| UserSettingsOrgs | Organization rows with role chip, "38 people - 14 repositories", Settings for owners | ui-only-missing | templates/user/settings/organization.tmpl (only avatar, description, Open, Leave) | S |
+| UserSettingsOrgs | Organization rows with role chip, "38 people - 14 repositories", Settings for owners | done | templates/user/settings/organization.tmpl (only avatar, description, Open, Leave) | S |
 | UserSettingsOrgs | Pending invitations with Accept and Decline | needs-hub-backend | team invites are token mails (routers/web/org TeamInvite); add listing by user email + accept/decline | M |
-| UserSettingsOrgs | Last owner cannot leave (explains transfer first) | ui-only-missing | org members leave action message and organization.tmpl modal | S |
+| UserSettingsOrgs | Last owner cannot leave (explains transfer first) | done | org members leave action message and organization.tmpl modal | S |
 | UserSettingsRepos | Owned repositories list, unadopted adopt/delete | done | templates/user/settings/repos.tmpl | - |
 | UserSettingsRepos | Stack count and storage target per row; Transfer dialog (new owner + repository name) | needs-both | hub: repos.tmpl (repo transfer exists in repo settings); asc: stack counts (Stacks service) and Storage.AssignRepo target | M |
 | UserSettingsStorage | Targets list and state chips, add form (name, region, endpoint, bucket, prefix, addressing, keys), enable, disable, delete | done | routers/web/shared/byoweb/storage.go, templates/shared/asc/byo_storage*.tmpl | - |
