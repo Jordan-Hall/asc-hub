@@ -1,47 +1,96 @@
-{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin dashboard")}}
-	<div class="admin-setting-content">
-		{{if .NeedMajorUpdate}}
-			<div class="ui negative message flash-error">
-				<p>{{ctx.Locale.Tr "admin.dashboard.new_major_version_hint" .RemoteVersion AppVer "https://forgejo.org/releases/"}}</p>
-			</div>
-		{{else if .NeedMinorUpdate}}
-			<div class="ui negative message flash-error">
-				<p>{{ctx.Locale.Tr "admin.dashboard.new_minor_version_hint" .RemoteVersion AppVer "https://forgejo.org/releases/"}}</p>
-			</div>
-		{{else if .UpdateCheckerError}}
-			<div class="ui negative message flash-error">
-				<p>{{ctx.Locale.Tr "admin.dashboard.update_checker_error" .UpdateCheckerError "https://forgejo.org/releases/"}}</p>
-			</div>
-		{{end}}
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.dashboard.operations"}}
-		</h4>
-		<div class="ui attached table segment">
-			<form method="post" action="{{AppSubUrl}}/admin">
-				<table class="ui very basic table tw-mt-0 tw-px-4">
-					<tbody>
-						{{range .Entries}}
-							<tr>
-								<td>{{ctx.Locale.Tr (printf "admin.dashboard.%s" .)}}</td>
-								<td class="text right">
-									<button type="submit" class="primary button" name="op" value="{{.}}">
-										{{svg "octicon-play"}} {{ctx.Locale.Tr "admin.dashboard.operation_run"}}
-									</button>
-								</td>
-							</tr>
-						{{end}}
-					</tbody>
-				</table>
-			</form>
-		</div>
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin-dashboard")}}
+	{{if .NeedMajorUpdate}}
+		<div class="ds-banner ds-banner-err flash-error ds-mt-12" role="alert">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.dashboard.new_major_version_hint" .RemoteVersion AppVer "https://forgejo.org/releases/"}}</p></div>
+	{{else if .NeedMinorUpdate}}
+		<div class="ds-banner ds-banner-warn flash-error ds-mt-12" role="alert">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.dashboard.new_minor_version_hint" .RemoteVersion AppVer "https://forgejo.org/releases/"}}</p></div>
+	{{else if .UpdateCheckerError}}
+		<div class="ds-banner ds-banner-warn flash-error ds-mt-12" role="alert">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.dashboard.update_checker_error" .UpdateCheckerError "https://forgejo.org/releases/"}}</p></div>
+	{{end}}
 
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.dashboard.system_status"}}
-		</h4>
-		{{/* TODO: make these stats work in multi-server deployments, likely needs per-server stats in DB */}}
-		<div class="no-loading-indicator tw-hidden"></div>
-		<div hx-get="{{$.Link}}/system_status" hx-swap="morph:innerHTML" hx-trigger="every 5s" hx-indicator=".no-loading-indicator" class="ui attached table segment">
-			{{template "admin/system_status" .}}
-		</div>
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "admin.dashboard") "Desc" (ctx.Locale.Tr "asc_admin.dashboard_lead") "ActionLabel" (ctx.Locale.Tr "asc_admin.run_self_check") "ActionHref" (print AppSubUrl "/admin/self_check") "ActionIcon" "activity" "Secondary" true)}}
+
+	<div class="ds-grid-stats adm-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_admin.figures"}}">
+		<a class="ds-stat" href="{{AppSubUrl}}/admin/users">
+			<div class="ds-stat-label">{{svg "dsi-users" 16}}{{ctx.Locale.Tr "asc_admin.stat_people"}}</div>
+			<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .StatUsers}}</div>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.stat_people_sub" .StatOrgs}}</div>
+		</a>
+		<a class="ds-stat" href="{{AppSubUrl}}/admin/repos">
+			<div class="ds-stat-label">{{svg "dsi-file" 16}}{{ctx.Locale.Tr "asc_admin.stat_repos"}}</div>
+			<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .StatRepos}}</div>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.stat_repos_sub" .StatIssuesOpen}}</div>
+		</a>
+		<a class="ds-stat" href="{{AppSubUrl}}/admin/orgs">
+			<div class="ds-stat-label">{{svg "dsi-building" 16}}{{ctx.Locale.Tr "asc_admin.stat_orgs"}}</div>
+			<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .StatOrgs}}</div>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.stat_orgs_sub"}}</div>
+		</a>
+		<a class="ds-stat" href="{{AppSubUrl}}/admin/monitor/stats">
+			<div class="ds-stat-label">{{svg "dsi-message" 16}}{{ctx.Locale.Tr "asc_admin.stat_issues"}}</div>
+			<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .StatIssuesOpen}}</div>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.stat_issues_sub" .StatIssuesClosed}}</div>
+		</a>
 	</div>
+
+	<div class="adm-two">
+		<section class="ds-card" aria-labelledby="adm-att">
+			<div class="ds-card-h">
+				<h2 id="adm-att">{{ctx.Locale.Tr "asc_admin.attention"}}</h2>
+				{{if .Attention}}<span class="ds-count ds-count-hot">{{len .Attention}}</span>{{end}}
+			</div>
+			{{if .Attention}}
+				<ul class="adm-rows">
+					{{range .Attention}}
+						<li class="ds-li ds-li-wrap">
+							<span class="adm-tile adm-tile-{{.Tone}}" aria-hidden="true">{{svg (print "dsi-" .Icon) 18}}</span>
+							<div class="ds-li-main">
+								<div class="ds-li-title"><span>{{.Title}}</span> <span class="ds-chip ds-chip-{{.Tone}}">{{.Tag}}</span></div>
+								<div class="ds-li-sub">{{.Text}}</div>
+							</div>
+							<div class="adm-row-side"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Link}}">{{.Action}}</a></div>
+						</li>
+					{{end}}
+				</ul>
+			{{else}}
+				{{template "shared/ds/empty" (dict "Icon" "check-circle" "Title" (ctx.Locale.Tr "asc_admin.attention_none_title") "Body" (ctx.Locale.Tr "asc_admin.attention_none_text"))}}
+			{{end}}
+		</section>
+
+		<section class="ds-card" aria-labelledby="adm-sys">
+			<div class="ds-card-h">
+				<h2 id="adm-sys">{{ctx.Locale.Tr "asc_admin.system"}}</h2>
+				<span class="adm-card-h-end"><a href="{{AppSubUrl}}/admin/self_check">{{ctx.Locale.Tr "asc_admin.health"}} {{svg "dsi-arrow-right" 16}}</a></span>
+			</div>
+			<ul class="adm-rows">
+				{{range .SystemRows}}
+					<li class="ds-li">
+						<span class="ds-dot ds-dot-{{.State}}" aria-hidden="true"></span>
+						<div class="ds-li-main">
+							<div class="ds-li-title">{{.Name}}</div>
+							<div class="ds-li-sub">{{.Text}}</div>
+						</div>
+						<div class="adm-row-side"><span class="ds-chip ds-chip-{{.State}}">{{.Label}}</span></div>
+					</li>
+				{{end}}
+			</ul>
+		</section>
+	</div>
+
+	<section class="adm-sec" aria-labelledby="adm-ops">
+		<div class="adm-sec-h">
+			<h2 id="adm-ops">{{ctx.Locale.Tr "admin.dashboard.operations"}}</h2>
+			<span class="adm-card-sub">{{ctx.Locale.Tr "asc_admin.operations_note"}}</span>
+		</div>
+		<form method="post" action="{{AppSubUrl}}/admin">
+			{{.CsrfTokenHtml}}
+			<ul class="ds-list">
+				{{range .Entries}}
+					<li class="ds-li">
+						<div class="ds-li-main"><div class="ds-li-title">{{ctx.Locale.Tr (printf "admin.dashboard.%s" .)}}</div></div>
+						<div class="adm-row-side"><button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm" name="op" value="{{.}}">{{svg "dsi-play" 16}}{{ctx.Locale.Tr "admin.dashboard.operation_run"}}</button></div>
+					</li>
+				{{end}}
+			</ul>
+		</form>
+	</section>
 {{template "admin/layout_footer" .}}

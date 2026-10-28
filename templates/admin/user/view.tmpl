@@ -1,48 +1,89 @@
-{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin view user")}}
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin-user")}}
+	{{template "admin/head" (dict "Title" .User.DisplayName "Desc" (ctx.Locale.Tr "asc_admin.person_lead"))}}
 
-<div class="admin-setting-content">
-	<div class="admin-responsive-columns">
-		<div class="tw-flex-1">
-			<h4 class="ui top attached header">
-				{{.Title}}
-				<div class="ui right">
-					<a class="ui primary tiny button" href="{{.Link}}/edit">{{ctx.Locale.Tr "admin.users.edit"}}</a>
+	{{if .User.ProhibitLogin}}
+		<div class="ds-banner ds-banner-err" role="status">{{svg "dsi-ban" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "asc_admin.person_suspended_banner"}}</p></div>
+	{{else if not .User.IsActive}}
+		<div class="ds-banner ds-banner-warn" role="status">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "asc_admin.person_pending_banner"}}</p></div>
+	{{end}}
+
+	<section class="ds-card adm-person" aria-label="{{.User.DisplayName}}">
+		<div class="ds-card-b adm-person-in">
+			<div class="adm-person-av">{{ctx.AvatarUtils.Avatar .User 72}}</div>
+			<div class="adm-person-main ds-min0">
+				<div class="adm-person-name">
+					<h2>{{.User.DisplayName}}</h2>
+					<span class="adm-mono ds-c-2">@{{.User.Name}}</span>
+					{{template "admin/user/role_chip" .User}}
+					{{template "admin/user/twofa_chip" (dict "On" .TwoFactorEnabled)}}
 				</div>
-			</h4>
-			<div class="ui attached segment">
-				{{template "admin/user/view_details" .}}
+				<p class="ds-t-small ds-c-2 ds-break">{{.User.Email}} · {{ctx.Locale.Tr "asc_admin.joined_on" (DateUtils.AbsoluteShort .User.CreatedUnix)}} · {{if .User.LastLoginUnix}}{{ctx.Locale.Tr "asc_admin.last_active" (DateUtils.AbsoluteShort .User.LastLoginUnix)}}{{else}}{{ctx.Locale.Tr "admin.users.never_login"}}{{end}}</p>
+			</div>
+			<div class="adm-person-acts">
+				<a class="ds-btn ds-btn-secondary" href="{{.Link}}/edit">{{svg "dsi-pencil" 16}}{{ctx.Locale.Tr "admin.users.edit"}}</a>
 			</div>
 		</div>
-		<div class="tw-flex-1">
-			<h4 class="ui top attached header">
-				{{ctx.Locale.Tr "admin.emails"}}
-				<div class="ui right">
-					{{.EmailsTotal}}
-				</div>
-			</h4>
-			<div class="ui attached segment">
-				{{template "admin/user/view_emails" .}}
-			</div>
-		</div>
-	</div>
-	<h4 class="ui top attached header">
-		{{ctx.Locale.Tr "admin.repositories"}}
-		<div class="ui right">
-			{{.ReposTotal}}
-		</div>
-	</h4>
-	<div class="ui attached segment">
-		{{template "explore/repo_list" .}}
-	</div>
-	<h4 class="ui top attached header">
-		{{ctx.Locale.Tr "settings.organization"}}
-		<div class="ui right">
-			{{.OrgsTotal}}
-		</div>
-	</h4>
-	<div class="ui attached segment">
-		{{template "explore/user_list" .}}
-	</div>
-</div>
+	</section>
 
+	<div class="adm-two adm-two-even">
+		<section class="ds-card" aria-labelledby="adm-acct">
+			<div class="ds-card-h"><h2 id="adm-acct">{{ctx.Locale.Tr "asc_admin.section_account"}}</h2></div>
+			<dl class="adm-kv">
+				<div><dt>{{ctx.Locale.Tr "asc_admin.col_role"}}</dt><dd>{{template "admin/user/role_chip" .User}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.users.auth_source"}}</dt><dd>{{if eq .LoginSource.ID 0}}{{ctx.Locale.Tr "admin.users.local"}}{{else}}{{.LoginSource.Name}}{{end}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.users.activated"}}</dt><dd>{{if .User.IsActive}}{{ctx.Locale.Tr "asc_admin.yes"}}{{else}}{{ctx.Locale.Tr "asc_admin.no"}}{{end}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.users.restricted"}}</dt><dd>{{if .User.IsRestricted}}{{ctx.Locale.Tr "asc_admin.yes"}}{{else}}{{ctx.Locale.Tr "asc_admin.no"}}{{end}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "admin.users.2fa"}}</dt><dd>{{template "admin/user/twofa_chip" (dict "On" .TwoFactorEnabled)}}</dd></div>
+				<div><dt>{{ctx.Locale.Tr "settings.visibility"}}</dt><dd>{{if .User.Visibility.IsPublic}}{{ctx.Locale.Tr "settings.visibility.public"}}{{end}}{{if .User.Visibility.IsLimited}}{{ctx.Locale.Tr "settings.visibility.limited"}}{{end}}{{if .User.Visibility.IsPrivate}}{{ctx.Locale.Tr "settings.visibility.private"}}{{end}}</dd></div>
+				{{if .User.Language}}<div><dt>{{ctx.Locale.Tr "settings.language"}}</dt><dd>{{range .AllLangs}}{{if eq $.User.Language .Lang}}{{.Name}}{{end}}{{end}}</dd></div>{{end}}
+				{{if .User.Location}}<div><dt>{{ctx.Locale.Tr "settings.location"}}</dt><dd>{{.User.Location}}</dd></div>{{end}}
+				{{if .User.Website}}<div><dt>{{ctx.Locale.Tr "settings.website"}}</dt><dd><a class="ds-link" target="_blank" rel="noopener noreferrer" href="{{.User.Website}}">{{.User.Website}}</a></dd></div>{{end}}
+			</dl>
+		</section>
+
+		<section class="ds-card" aria-labelledby="adm-mails">
+			<div class="ds-card-h">
+				<h2 id="adm-mails">{{ctx.Locale.Tr "admin.emails"}}</h2>
+				<span class="ds-count">{{.EmailsTotal}}</span>
+				<span class="adm-card-h-end"><a href="{{AppSubUrl}}/admin/emails?q={{QueryEscape .User.Name}}">{{ctx.Locale.Tr "asc_admin.manage_emails"}} {{svg "dsi-arrow-right" 16}}</a></span>
+			</div>
+			<ul class="adm-rows">
+				{{range .Emails}}
+					<li class="ds-li">
+						<span class="adm-tile" aria-hidden="true">{{svg "dsi-mail" 18}}</span>
+						<div class="ds-li-main">
+							<div class="ds-li-title"><a href="mailto:{{.Email}}">{{.Email}}</a></div>
+							<div class="ds-chips adm-chip-row">
+								{{if .IsPrimary}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "settings.primary"}}</span>{{end}}
+								{{if .IsActivated}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "settings.activated"}}</span>{{else}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "settings.requires_activation"}}</span>{{end}}
+							</div>
+						</div>
+					</li>
+				{{end}}
+			</ul>
+		</section>
+	</div>
+
+	<section class="adm-sec" aria-labelledby="adm-repos">
+		<div class="adm-sec-h"><h2 id="adm-repos">{{ctx.Locale.Tr "admin.repositories"}} <span class="ds-count">{{.ReposTotal}}</span></h2></div>
+		{{if .Repos}}{{template "explore/repo_list" .}}{{else}}<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "file" "Title" (ctx.Locale.Tr "asc_admin.person_no_repos"))}}</div>{{end}}
+	</section>
+
+	<section class="adm-sec" aria-labelledby="adm-orgs">
+		<div class="adm-sec-h"><h2 id="adm-orgs">{{ctx.Locale.Tr "settings.organization"}} <span class="ds-count">{{.OrgsTotal}}</span></h2></div>
+		{{if .Users}}{{template "explore/user_list" .}}{{else}}<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "building" "Title" (ctx.Locale.Tr "asc_admin.person_no_orgs"))}}</div>{{end}}
+	</section>
+
+	{{if ne .User.ID .SignedUserID}}
+		<section class="ds-card adm-danger adm-sec" aria-labelledby="adm-del">
+			<div class="ds-card-b adm-danger-in">
+				<div class="ds-min0">
+					<h2 id="adm-del" class="ds-t-h4">{{ctx.Locale.Tr "asc_admin.delete_person"}}</h2>
+					<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.delete_person_text"}}</p>
+				</div>
+				<button type="button" class="ds-btn ds-btn-danger show-modal" data-modal="#adm-delete-user">{{ctx.Locale.Tr "asc_admin.delete"}}</button>
+			</div>
+		</section>
+		{{template "shared/ds/confirm" (dict "Data" . "ID" "adm-delete-user" "Title" (ctx.Locale.Tr "settings.delete_account_title") "Body" (ctx.Locale.Tr "settings.delete_account_desc") "Action" (print .Link "/delete") "Confirm" (ctx.Locale.Tr "asc_admin.delete") "Danger" true)}}
+	{{end}}
 {{template "admin/layout_footer" .}}

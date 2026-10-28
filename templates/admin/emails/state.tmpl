@@ -1,0 +1,8 @@
+{{/* The state of one address: Primary, and Activated or Not activated. A changeable state is a button that opens the confirmation dialog (web_src/js/features/admin/emails.js). Props: Mail, Q (the page data). */}}
+{{$m := .Mail}}
+{{if $m.IsPrimary}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "admin.emails.primary"}}</span>{{end}}
+{{if $m.CanChange}}
+	<button type="button" class="ds-chip ds-chip-btn link-email-action {{if $m.IsActivated}}ds-chip-ok{{else}}ds-chip-warn{{end}}" data-uid="{{$m.UID}}" data-email="{{$m.Email}}" data-primary="{{if $m.IsPrimary}}1{{else}}0{{end}}" data-activate="{{if $m.IsActivated}}0{{else}}1{{end}}">{{if $m.IsActivated}}{{svg "dsi-check" 14}}{{ctx.Locale.Tr "admin.emails.activated"}}{{else}}{{svg "dsi-alert" 14}}{{ctx.Locale.Tr "asc_admin.not_activated"}}{{end}}</button>
+{{else}}
+	{{if $m.IsActivated}}<span class="ds-chip ds-chip-ok">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "admin.emails.activated"}}</span>{{else}}<span class="ds-chip ds-chip-warn">{{svg "dsi-alert" 14}}{{ctx.Locale.Tr "asc_admin.not_activated"}}</span>{{end}}
+{{end}}
