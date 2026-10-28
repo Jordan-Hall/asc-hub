@@ -237,7 +237,7 @@ func TestGlobalTwoFactorRequirement(t *testing.T) {
 			req = NewRequest(t, "GET", "/user/settings/security")
 			resp = session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc = NewHTMLParser(t, resp.Body)
-			assert.Equal(t, locale.TrString("settings.must_enable_2fa"), htmlDoc.Find(".ui.red.message").Text())
+			assert.Equal(t, locale.TrString("settings.must_enable_2fa"), strings.TrimSpace(htmlDoc.Find(".ds-banner-err .ds-banner-body").Text()))
 			assert.Equal(t, 1, htmlDoc.Find(".navbar-left > a.item").Length()) // only show the Logo, no other links
 
 			userLinks = htmlDoc.Find(".navbar-right details.dropdown a")
@@ -246,7 +246,7 @@ func TestGlobalTwoFactorRequirement(t *testing.T) {
 
 			assert.Equal(t, 0, htmlDoc.FindByText("a", locale.TrString("settings.twofa_reenroll")).Length())
 
-			headings := htmlDoc.Find(".user-setting-content h4.attached.header")
+			headings := htmlDoc.Find("#sp-twofa, #sp-webauthn")
 			assert.Equal(t, 2, headings.Length())
 			assert.Equal(t, locale.TrString("settings.twofa"), strings.TrimSpace(headings.First().Text()))
 			assert.Equal(t, locale.TrString("settings.webauthn"), strings.TrimSpace(headings.Last().Text()))

@@ -305,7 +305,7 @@ func TestAccessTokenResourceRepos(t *testing.T) {
 	req := NewRequest(t, "GET", "/user/settings/applications")
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertSelection(t, htmlDoc.FindByText(".user-setting-content p", repoAccess), false)
+	htmlDoc.AssertSelection(t, htmlDoc.FindByText(".wk-sp p", repoAccess), false)
 
 	// Then we create a repo-specific access token.  We give it access to two repos, user2/repo2, but also user30/empty,
 	// a private repo owned by someone else...  We'll pretend user2 used to be a collaborator on this repo and
@@ -319,9 +319,9 @@ func TestAccessTokenResourceRepos(t *testing.T) {
 	req = NewRequest(t, "GET", "/user/settings/applications")
 	resp = session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertSelection(t, htmlDoc.FindByText(".user-setting-content p", repoAccess), true)
-	htmlDoc.AssertSelection(t, htmlDoc.FindByText(".user-setting-content a", "user2/repo2"), true)   // link to repo
-	htmlDoc.AssertSelection(t, htmlDoc.FindByText(".user-setting-content a", "user30/empty"), false) // missing - user2 has no visibility
+	htmlDoc.AssertSelection(t, htmlDoc.FindByText(".wk-sp p", repoAccess), true)
+	htmlDoc.AssertSelection(t, htmlDoc.FindByText(".wk-sp a", "user2/repo2"), true)   // link to repo
+	htmlDoc.AssertSelection(t, htmlDoc.FindByText(".wk-sp a", "user30/empty"), false) // missing - user2 has no visibility
 }
 
 func findLatestTokenID(t *testing.T, session *TestSession) (string, int) {
@@ -340,7 +340,7 @@ func findLatestTokenID(t *testing.T, session *TestSession) (string, int) {
 		id, err := strconv.Atoi(tokenID)
 		require.NoError(t, err)
 		if id > latestTokenID {
-			latestTokenName = s.Closest("li").Find(".ds-li-title").Text()
+			latestTokenName = s.Closest("li").Find(".ds-li-title > span").First().Text()
 			latestTokenID = id
 		}
 	})
