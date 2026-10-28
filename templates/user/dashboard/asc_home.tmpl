@@ -132,6 +132,15 @@ Template Attributes:
 					</ul>
 				</section>
 			{{end}}
+			{{if .AscHeat}}
+				<section class="ds-card wk-card" aria-labelledby="wk-heat-title">
+					<div class="ds-card-h">
+						<h2 id="wk-heat-title">{{ctx.Locale.Tr "user.asc_profile.contributions"}}</h2>
+						<span class="ds-card-sub">{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_one" "user.asc_profile.total_n" .AscHeat.Total}}</span>
+					</div>
+					<div class="ds-card-b">{{template "user/asc_heatmap" .AscHeat}}</div>
+				</section>
+			{{end}}
 			<section class="ds-card wk-card" aria-labelledby="wk-today-title">
 				<div class="ds-card-h"><h2 id="wk-today-title">{{ctx.Locale.Tr "user.asc_dash.today"}}</h2></div>
 				{{if .AscDashToday}}

@@ -143,6 +143,9 @@ func Dashboard(ctx *context.Context) {
 		now := time.Now()
 		ctx.Data["AscDash"] = ascDashBuild(ctx, now)
 		ctx.Data["AscDashToday"] = ascDashToday(feeds, now)
+		if heat, ok := ctx.Data["HeatmapData"].([]*activities_model.UserHeatmapData); ok {
+			ctx.Data["AscHeat"] = ascHeatBuild(heat, now, setting.DefaultUILocation, ctx.Locale)
+		}
 	}
 
 	ctx.HTML(http.StatusOK, tplDashboard)
