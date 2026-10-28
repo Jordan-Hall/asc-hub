@@ -106,7 +106,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 |---|---|---|---|---|
 | NewChange | Open-change form: title, description, reviewers, draft | done | templates/repo/diff/compare.tmpl (Forgejo pull creation) | - |
 | NewChange | Compare bar: base/head, +212 -48 in 9 files, no-conflict chip, ahead/behind, stack of N | ui-only-missing | templates/repo/diff/compare.tmpl; asc_compare.tmpl is a separate page | M |
-| NewChange | Title counter '68 of 120', 'Start with a verb' hint, inline validation | ui-only-missing | templates/repo/diff/compare.tmpl | S |
+| NewChange | Title counter '68 of 120', 'Start with a verb' hint, inline validation | done | templates/repo/diff/compare.tmpl | S |
 | NewChange | Intent editor with What/Why/How to check/Risk template and Write/Preview | ui-only-missing | templates/repo/diff/compare.tmpl (description template) | S |
 | NewChange | 'Draft from the diff' (AI writes What/Why/How/Risk from the diff) | needs-both | hub: new route using BYO AI key (services/ascbyo); asc: diff + Classify | L |
 | NewChange | 'Where to look' pointers editor | needs-both | same as the Review intent block | M |
