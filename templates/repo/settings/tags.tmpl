@@ -5,22 +5,22 @@
 				{{ctx.Locale.Tr "repo.settings.archive.tagsettings_unavailable"}}
 			</div>
 		{{else}}
-			<h4 class="ui top attached header">
+			<h4 class="ds-card-top">
 				{{ctx.Locale.Tr "repo.settings.tags.protection"}}
 			</h4>
 
-			<div class="ui attached segment">
-				<div class="ui grid">
-					<div class="sixteen wide column">
+			<div class="ds-card ds-card-b ds-card-attach">
+				<div>
+					<div>
 						<div class="ds-card ds-card-b">
-							<form class="ui form" action="{{.Link}}" method="post">
+							<form class="ui form ds-form" action="{{.Link}}" method="post">
 								<div class="ds-field">
 									<label>{{ctx.Locale.Tr "repo.settings.tags.protection.pattern"}}</label>
 									<div id="search-tag-box" class="ui search">
 										<div class="ui input">
 											<input class="prompt" name="name_pattern" autocomplete="off" value="{{.name_pattern}}" placeholder="v*" autofocus required>
 										</div>
-										<div class="help">{{ctx.Locale.Tr "repo.settings.tags.protection.pattern.description" "https://forgejo.org/docs/latest/user/protection/#protected-tags"}}</div>
+										<div class="ds-hint">{{ctx.Locale.Tr "repo.settings.tags.protection.pattern.description" "https://forgejo.org/docs/latest/user/protection/#protected-tags"}}</div>
 									</div>
 								</div>
 								<div class="whitelist ds-field">
@@ -72,8 +72,8 @@
 						</div>
 					</div>
 
-					<div class="sixteen wide column">
-						<table class="ui single line table">
+					<div>
+						<table class="ds-table">
 							<thead>
 								<th>{{ctx.Locale.Tr "repo.settings.tags.protection.pattern"}}</th>
 								<th>{{ctx.Locale.Tr "repo.settings.tags.protection.allowed"}}</th>

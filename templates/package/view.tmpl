@@ -1,7 +1,7 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository view issue packages wk-pkg-page">
 	{{template "shared/user/org_profile_avatar" .}}
-	<div class="ui container wk-pkg-view">
+	<div class="ds-container wk-pkg-view">
 		{{template "user/overview/header" .}}
 		<div class="wk-head wk-pkg-head">
 			<div class="wk-head-text">
@@ -47,7 +47,7 @@
 			</div>
 			<div class="ds-card ds-card-b issue-content-right wk-pkg-side">
 				<strong>{{ctx.Locale.Tr "packages.details"}}</strong>
-				<div class="ui relaxed list">
+				<div class="ds-stack ds-stack-8 ds-meta-list">
 					<div class="item">{{svg .PackageDescriptor.Package.Type.SVGName 16 "tw-mr-2"}} {{.PackageDescriptor.Package.Type.Name}}</div>
 					{{if .HasRepositoryAccess}}
 					<div class="item">{{svg "octicon-repo" 16 "tw-mr-2"}} <a href="{{.PackageDescriptor.Repository.Link}}">{{.PackageDescriptor.Repository.FullName}}</a></div>
@@ -83,7 +83,7 @@
 				{{if not (eq .PackageDescriptor.Package.Type "container")}}
 					<div class="divider"></div>
 					<strong>{{ctx.Locale.Tr "packages.assets"}} ({{len .PackageDescriptor.Files}})</strong>
-					<div class="ui relaxed list">
+					<div class="ds-stack ds-stack-8 ds-meta-list">
 					{{range .PackageDescriptor.Files}}
 						<div class="item">
 							<a href="{{$.Link}}/files/{{.File.ID}}">{{.File.Name}}</a>
@@ -95,7 +95,7 @@
 				<div class="divider"></div>
 				<strong>{{ctx.Locale.Tr "packages.versions"}} ({{.TotalVersionCount}})</strong>
 				<a class="tw-float-right" href="{{$.PackageDescriptor.PackageWebLink}}/versions">{{ctx.Locale.Tr "packages.versions.view_all"}}</a>
-				<div class="ui relaxed list">
+				<div class="ds-stack ds-stack-8 ds-meta-list">
 				{{range .LatestVersions}}
 					<div class="item tw-flex">
 						<a class="tw-flex-1 gt-ellipsis" title="{{.Version}}" href="{{$.PackageDescriptor.PackageWebLink}}/{{PathEscape .LowerVersion}}">{{.Version}}</a>
@@ -105,7 +105,7 @@
 				</div>
 				{{if or .CanWritePackages .HasRepositoryAccess}}
 					<div class="divider"></div>
-					<div class="ui relaxed list">
+					<div class="ds-stack ds-stack-8 ds-meta-list">
 						{{if .HasRepositoryAccess}}
 						<div class="item">{{svg "octicon-issue-opened" 16 "tw-mr-2"}} <a href="{{.PackageDescriptor.Repository.Link}}/issues">{{ctx.Locale.Tr "repo.issues"}}</a></div>
 						{{end}}

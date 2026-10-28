@@ -249,7 +249,7 @@
   border-radius: 10px;
 }
 
-.asc-review-page .ui.attached.header.comment-header {
+.asc-review-page .ds-card-top.comment-header {
   background: var(--color-box-header);
 }
 

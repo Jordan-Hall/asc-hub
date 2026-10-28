@@ -136,3 +136,34 @@
 .rp-chart-card .rp-sec-b {
   overflow-x: auto;
 }
+
+/* Pulse: the overview bars, the counters and the git sentence (these were Fomantic grids and segments) */
+.ds-pulse-2 {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.ds-pulse-row {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+}
+
+.ds-pulse-cell {
+  flex: 1 1 140px;
+  padding: 14px 16px;
+  text-align: center;
+  color: var(--text);
+  border-inline-start: 1px solid var(--line);
+}
+
+.ds-pulse-cell:first-child {
+  border-inline-start: 0;
+}
+
+.ds-pulse-text {
+  flex: 1 1 100%;
+  padding: 16px;
+  line-height: 1.6;
+}

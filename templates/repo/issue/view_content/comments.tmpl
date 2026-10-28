@@ -25,7 +25,7 @@
 				</a>
 			{{end}}
 				<div class="content comment-container">
-					<div class="ui top attached header comment-header tw-flex tw-items-center tw-justify-between" role="heading" aria-level="3">
+					<div class="ds-card-top comment-header tw-flex tw-items-center tw-justify-between" role="heading" aria-level="3">
 						<div class="comment-header-left tw-flex tw-items-center">
 							{{if .OriginalAuthor}}
 								<span class="text black tw-font-semibold tw-mr-1">
@@ -58,7 +58,7 @@
 							{{template "repo/issue/view_content/context_menu" dict "ctxData" $ "item" . "delete" true "issue" true "diff" false "IsCommentPoster" (and $.IsSigned (eq $.SignedUserID .PosterID))}}
 						</div>
 					</div>
-					<div class="ui attached segment comment-body" role="article">
+					<div class="ds-card ds-card-b ds-card-attach comment-body" role="article">
 						<div id="issuecomment-{{.ID}}-content" class="render-content markup" {{if or $.Permission.IsAdmin $.HasIssuesOrPullsWritePermission (and $.IsSigned (eq $.SignedUserID .PosterID))}}data-can-edit="true"{{end}}>
 							{{if .RenderedContent}}
 								{{.RenderedContent}}
@@ -425,7 +425,7 @@
 				{{if or .Content .Attachments}}
 				<div class="timeline-item comment">
 					<div class="content comment-container">
-						<div class="ui top attached header comment-header tw-flex tw-items-center tw-justify-between">
+						<div class="ds-card-top comment-header tw-flex tw-items-center tw-justify-between">
 							<div class="comment-header-left tw-flex tw-items-center">
 								{{if gt .Poster.ID 0}}
 									<a class="inline-timeline-avatar" href="{{.Poster.HomeLink}}" aria-label="{{.Poster.GetDisplayName}}">
@@ -455,7 +455,7 @@
 								{{end}}
 							</div>
 						</div>
-						<div class="ui attached segment comment-body">
+						<div class="ds-card ds-card-b ds-card-attach comment-body">
 							<div id="issuecomment-{{.ID}}-content" class="render-content markup" {{if or $.Permission.IsAdmin $.HasIssuesOrPullsWritePermission (and $.IsSigned (eq $.SignedUserID .PosterID))}}data-can-edit="true"{{end}}>
 								{{if .RenderedContent}}
 									{{.RenderedContent}}
@@ -654,7 +654,7 @@
 				{{if .Content}}
 					<div class="timeline-item comment">
 						<div class="content">
-							<div class="ui top attached header comment-header-left tw-flex tw-items-center arrow-top">
+							<div class="ds-card-top comment-header-left tw-flex tw-items-center arrow-top">
 								{{if gt .Poster.ID 0}}
 									<a class="inline-timeline-avatar" href="{{.Poster.HomeLink}}" aria-label="{{.Poster.GetDisplayName}}">
 										{{ctx.AvatarUtils.Avatar .Poster 24}}
@@ -664,7 +664,7 @@
 									{{ctx.Locale.Tr "action.review_dismissed_reason"}}
 								</span>
 							</div>
-							<div class="ui attached segment">
+							<div class="ds-card ds-card-b ds-card-attach">
 								<div class="render-content markup">
 									{{if .RenderedContent}}
 										{{.RenderedContent}}

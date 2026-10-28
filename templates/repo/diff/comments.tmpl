@@ -8,7 +8,7 @@
 		{{template "shared/user/avatarlink" dict "user" .Poster}}
 	{{end}}
 	<div class="content comment-container">
-		<div class="ui top attached header comment-header tw-flex tw-items-center tw-justify-between">
+		<div class="ds-card-top comment-header tw-flex tw-items-center tw-justify-between">
 			<div class="comment-header-left tw-flex tw-items-center">
 				{{if .OriginalAuthor}}
 					<span class="text black tw-font-semibold tw-mr-1">
@@ -51,7 +51,7 @@
 				{{template "repo/issue/view_content/context_menu" dict "ctxData" $.root "item" . "delete" true "issue" false "diff" true "IsCommentPoster" (and $.root.IsSigned (eq $.root.SignedUserID .PosterID))}}
 			</div>
 		</div>
-		<div class="ui attached segment comment-body">
+		<div class="ds-card ds-card-b ds-card-attach comment-body">
 			<div id="issuecomment-{{.ID}}-content" class="render-content markup" {{if or $.Permission.IsAdmin $.HasIssuesOrPullsWritePermission (and $.root.IsSigned (eq $.root.SignedUserID .PosterID))}}data-can-edit="true"{{end}}>
 			{{if .RenderedContent}}
 				{{.RenderedContent}}

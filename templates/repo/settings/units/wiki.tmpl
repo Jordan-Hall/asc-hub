@@ -8,14 +8,14 @@
 	{{$isBothWikiGlobalDisabled := and $isWikiGlobalDisabled $isExternalWikiGlobalDisabled}}
 	<div class="inline ds-field">
 		<label>{{ctx.Locale.Tr "repo.wiki"}}</label>
-		<div class="ui checkbox{{if $isBothWikiGlobalDisabled}} disabled{{end}}"{{if $isBothWikiGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
+		<div class="ds-check{{if $isBothWikiGlobalDisabled}} disabled{{end}}"{{if $isBothWikiGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
 			<input class="enable-system" name="enable_wiki" type="checkbox" data-target="#wiki_box" {{if $isWikiEnabled}}checked{{end}}>
 			<label>{{ctx.Locale.Tr "repo.settings.wiki_desc"}}</label>
 		</div>
 	</div>
 	<div class="field{{if not $isWikiEnabled}} disabled{{end}}" id="wiki_box">
 		<div class="ds-field">
-			<div class="ui radio checkbox{{if $isWikiGlobalDisabled}} disabled{{end}}"{{if $isWikiGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
+			<div class="ds-check{{if $isWikiGlobalDisabled}} disabled{{end}}"{{if $isWikiGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
 				<input class="enable-system-radio" name="enable_external_wiki" type="radio" value="false" data-context="#globally_writeable_checkbox" data-target="#external_wiki_box" {{if not (.Repository.UnitEnabled $.Context $.UnitTypeExternalWiki)}}checked{{end}}>
 				<label>{{ctx.Locale.Tr "repo.settings.use_internal_wiki"}}</label>
 			</div>
@@ -23,7 +23,7 @@
 		{{if (not .Repository.IsPrivate)}}
 			<div class="ds-field {{if (.Repository.UnitEnabled $.Context $.UnitTypeExternalWiki)}}disabled{{end}}" id="globally_writeable_checkbox">
 				<div class="ds-field tw-pl-4">
-					<div class="ui checkbox">
+					<div class="ds-check">
 						<input name="globally_writeable_wiki" type="checkbox" {{if .Permission.IsGloballyWriteable $.UnitTypeWiki}}checked{{end}}>
 						<label>{{ctx.Locale.Tr "repo.settings.wiki_globally_editable"}}</label>
 					</div>
@@ -31,7 +31,7 @@
 			</div>
 		{{end}}
 		<div class="ds-field">
-			<div class="ui radio checkbox{{if $isExternalWikiGlobalDisabled}} disabled{{end}}"{{if $isExternalWikiGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
+			<div class="ds-check{{if $isExternalWikiGlobalDisabled}} disabled{{end}}"{{if $isExternalWikiGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
 				<input class="enable-system-radio" name="enable_external_wiki" type="radio" value="true" data-context="#globally_writeable_checkbox" data-target="#external_wiki_box" {{if .Repository.UnitEnabled $.Context $.UnitTypeExternalWiki}}checked{{end}}>
 				<label>{{ctx.Locale.Tr "repo.settings.use_external_wiki"}}</label>
 			</div>

@@ -2542,3 +2542,12 @@ a.ds-stat:hover {
 .ds-card-top + .ds-card-attach {
   border-top: 1px solid var(--line);
 }
+
+/* a plain list of facts (package details): an icon and a value per line */
+.ds-meta-list > .item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

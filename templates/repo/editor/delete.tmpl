@@ -1,7 +1,7 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository file editor delete">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="ds-container">
 		{{template "base/alert" .}}
 		<form class="ui form ds-form" method="post">
 			<input type="hidden" name="last_commit" value="{{.last_commit}}">
