@@ -403,89 +403,153 @@ func UseAscQueueBacked(f func(*repo_model.Repository) (bool, error)) (restore fu
 // AscQueueBackedBy reports whether the repository is stored in asc, so the queue applies to it.
 func AscQueueBackedBy(repo *repo_model.Repository) (bool, error) { return ascQueueBacked(repo) }
 
-// AscQueueCancel removes the stack of pr from the queue: the queued pull requests from the bottom up to pr, and every
-// queued pull request above it (they would land it).
-// The user who enqueued the entry and an administrator may cancel.
+// AscQueueCancelResult is what a cancel took out of the queue and what it left, so the answer names both.
+type AscQueueCancelResult struct {
+	// Cancelled are the entries that were taken out, in stack order.
+	Cancelled []*AscStackQueueEntry
+	// Skipped are queued entries of the stack that belong to someone else and stay queued: the ones below the
+	// pull request, which queued their own prefix. A cancel never removes what the doer may not remove.
+	Skipped []*AscStackQueueEntry
+}
+
+// AscQueueCancel removes the stack of pr from the queue; see AscQueueCancelEntries.
 func AscQueueCancel(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest) error {
+	_, err := AscQueueCancelEntries(ctx, doer, pr)
+	return err
+}
+
+// AscQueueCancelEntries removes pr from the queue together with the queued pull requests above it (they would
+// land it) and answers with exactly what it removed. The entry of pr must be waiting (queued or blocked; a land
+// in flight answers ErrAscQueueBusy). The user who enqueued an entry and an administrator may cancel it:
+//   - the entry of pr: another user gets ErrAscQueueNotAllowed;
+//   - an entry above pr that belongs to someone else: the cancel is refused with ErrAscQueueNotAllowed, because
+//     leaving it would land pr anyway;
+//   - an entry below pr that belongs to someone else: it stays queued and is returned in Skipped.
+func AscQueueCancelEntries(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest) (*AscQueueCancelResult, error) {
 	if doer == nil || !doer.IsActive || doer.ProhibitLogin {
-		return ErrAscQueueNotAllowed
+		return nil, ErrAscQueueNotAllowed
 	}
+	res := &AscQueueCancelResult{}
 	ent := &AscStackQueueEntry{}
 	has, err := db.GetEngine(ctx).Where("pull_id = ?", pr.ID).Get(ent)
 	if err != nil || !has {
-		return err
+		return res, err
 	}
 	if err := pr.LoadBaseRepo(ctx); err != nil {
-		return err
+		return nil, err
 	}
-	if ent.DoerID != doer.ID {
-		ok, err := mayAdminAscQueue(ctx, doer, pr.BaseRepo)
-		if err != nil {
-			return err
-		}
-		if !ok {
-			return ErrAscQueueNotAllowed
-		}
+	admin, err := mayAdminAscQueue(ctx, doer, pr.BaseRepo)
+	if err != nil {
+		return nil, err
 	}
-	var cancelled []*AscStackQueueEntry
+	if ent.DoerID != doer.ID && !admin {
+		return nil, ErrAscQueueNotAllowed
+	}
+	switch ent.State {
+	case AscQueueQueued, AscQueueBlocked:
+	case AscQueueLanding:
+		return nil, ErrAscQueueBusy
+	default:
+		return res, nil // cancelled, merged or failed already: nothing waits
+	}
 	err = db.WithTx(ctx, func(ctx context.Context) error {
-		cancelled = nil
-		cancelled, err = ascQueueCancelSet(ctx, ent, pr)
-		if err != nil {
+		var err error
+		res, err = ascQueueCancelPlan(ctx, doer, admin, ent, pr)
+		if err != nil || len(res.Cancelled) == 0 {
 			return err
 		}
-		ids := make([]int64, len(cancelled))
-		for i, c := range cancelled {
+		ids := make([]int64, len(res.Cancelled))
+		for i, c := range res.Cancelled {
 			ids[i] = c.ID
 		}
-		if len(ids) == 0 {
-			return nil
+		if _, err := db.GetEngine(ctx).In("id", ids).Cols("state", "reason").
+			Update(&AscStackQueueEntry{State: AscQueueCancelled, Reason: "cancelled by " + doer.Name}); err != nil {
+			return err
 		}
-		_, err = db.GetEngine(ctx).In("id", ids).Cols("state", "reason").
-			Update(&AscStackQueueEntry{State: AscQueueCancelled, Reason: "cancelled by " + doer.Name})
-		if err == nil {
-			log.Info("asc audit: merge queue: repository %d, branch %q: user %d removed %d entries from pull request %d up",
-				ent.RepoID, ent.Branch, doer.ID, len(ids), pr.ID)
-		}
-		return err
+		log.Info("asc audit: merge queue: repository %d, branch %q: user %d removed %d entries (%d left to other users) for pull request %d",
+			ent.RepoID, ent.Branch, doer.ID, len(ids), len(res.Skipped), pr.ID)
+		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	for _, c := range cancelled {
+	for _, c := range res.Cancelled {
 		ascQueueNote(ctx, c.PullID, doer, false)
 		ascQueueTell(ctx, c, doer.ID)
 	}
-	return nil
+	return res, nil
 }
 
-// AscQueueCancelSet returns the entries AscQueueCancel would take out of the queue for pr, in stack order: the
-// queued entries from the bottom of the stack up to pr (what "merge when ready" on pr queued) and the queued
-// entries above pr, which would land it. The confirmation page lists exactly these.
-func AscQueueCancelSet(ctx context.Context, pr *issues_model.PullRequest) ([]*AscStackQueueEntry, error) {
+// AscQueueCancelSet returns what AscQueueCancelEntries would do for doer on pr, in stack order, without writing:
+// the entries it would cancel and the entries of others it would leave. The confirmation page lists exactly
+// these. A cancel that is refused answers the same error.
+func AscQueueCancelSet(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest) (*AscQueueCancelResult, error) {
+	res := &AscQueueCancelResult{}
+	if doer == nil {
+		return nil, ErrAscQueueNotAllowed
+	}
 	ent := &AscStackQueueEntry{}
 	has, err := db.GetEngine(ctx).Where("pull_id = ?", pr.ID).Get(ent)
 	if err != nil || !has {
+		return res, err
+	}
+	if err := pr.LoadBaseRepo(ctx); err != nil {
 		return nil, err
 	}
-	return ascQueueCancelSet(ctx, ent, pr)
-}
-
-func ascQueueCancelSet(ctx context.Context, ent *AscStackQueueEntry, pr *issues_model.PullRequest) ([]*AscStackQueueEntry, error) {
-	entries, err := ascQueueEntries(ctx, ent.RepoID, ent.Branch, AscQueueQueued, AscQueueBlocked)
+	admin, err := mayAdminAscQueue(ctx, doer, pr.BaseRepo)
 	if err != nil {
 		return nil, err
 	}
-	below := map[int64]bool{pr.ID: true}
-	if prefix, err := pull_service.AscStackPrefix(ctx, pr); err == nil {
-		for _, it := range prefix {
-			below[it.PR.ID] = true
+	if ent.DoerID != doer.ID && !admin {
+		return nil, ErrAscQueueNotAllowed
+	}
+	if ent.State != AscQueueQueued && ent.State != AscQueueBlocked {
+		return res, nil
+	}
+	return ascQueueCancelPlan(ctx, doer, admin, ent, pr)
+}
+
+// ascQueueCancelPlan decides which waiting entries a cancel of pr by doer takes out and which it leaves.
+func ascQueueCancelPlan(ctx context.Context, doer *user_model.User, admin bool, ent *AscStackQueueEntry, pr *issues_model.PullRequest) (*AscQueueCancelResult, error) {
+	below, above, err := ascQueueCancelSet(ctx, ent, pr)
+	if err != nil {
+		return nil, err
+	}
+	res := &AscQueueCancelResult{}
+	for _, c := range above {
+		if c.DoerID != doer.ID && !admin {
+			return nil, fmt.Errorf("%w: the entry of pull request %d above it was queued by someone else", ErrAscQueueNotAllowed, c.PullID)
 		}
 	}
-	var set []*AscStackQueueEntry
+	for _, c := range below {
+		if c.DoerID == doer.ID || admin {
+			res.Cancelled = append(res.Cancelled, c)
+		} else {
+			res.Skipped = append(res.Skipped, c)
+		}
+	}
+	res.Cancelled = append(res.Cancelled, above...)
+	slices.SortFunc(res.Cancelled, func(a, b *AscStackQueueEntry) int { return int(a.ID - b.ID) })
+	return res, nil
+}
+
+// ascQueueCancelSet splits the waiting entries a cancel of pr concerns: below are the entries from the bottom of
+// the stack up to and including pr (what "merge when ready" on pr queued), above are the entries of the pull
+// requests above pr, which would land it.
+func ascQueueCancelSet(ctx context.Context, ent *AscStackQueueEntry, pr *issues_model.PullRequest) (below, above []*AscStackQueueEntry, err error) {
+	entries, err := ascQueueEntries(ctx, ent.RepoID, ent.Branch, AscQueueQueued, AscQueueBlocked)
+	if err != nil {
+		return nil, nil, err
+	}
+	inBelow := map[int64]bool{pr.ID: true}
+	if prefix, err := pull_service.AscStackPrefix(ctx, pr); err == nil {
+		for _, it := range prefix {
+			inBelow[it.PR.ID] = true
+		}
+	}
 	for _, c := range entries {
-		if below[c.PullID] {
-			set = append(set, c)
+		if inBelow[c.PullID] {
+			below = append(below, c)
 			continue
 		}
 		cp, err := issues_model.GetPullRequestByID(ctx, c.PullID)
@@ -497,11 +561,10 @@ func ascQueueCancelSet(ctx context.Context, ent *AscStackQueueEntry, pr *issues_
 			continue
 		}
 		if slices.ContainsFunc(prefix, func(it *pull_service.AscStackItem) bool { return it.PR.ID == pr.ID }) {
-			set = append(set, c)
+			above = append(above, c)
 		}
 	}
-	slices.SortFunc(set, func(a, b *AscStackQueueEntry) int { return int(a.ID - b.ID) })
-	return set, nil
+	return below, above, nil
 }
 
 // AscQueueList returns the entries of a branch in enqueue order.

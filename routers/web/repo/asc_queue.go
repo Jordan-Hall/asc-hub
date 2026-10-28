@@ -203,11 +203,15 @@ func AscQueueDequeue(ctx *context.Context) {
 	if !ok {
 		return
 	}
-	if err := automerge.AscQueueCancel(ctx, ctx.Doer, pr); err != nil {
+	res, err := automerge.AscQueueCancelEntries(ctx, ctx.Doer, pr)
+	if err != nil {
 		ascOpFlashFail(ctx, ascOpUnqueue, issue, err)
 		return
 	}
 	ctx.Flash.Success(ctx.Tr("repo.pulls.asc_op.dequeued"))
+	if len(res.Skipped) > 0 {
+		ctx.Flash.Warning(ctx.Tr("repo.pulls.asc_op.dequeued_others", len(res.Skipped)))
+	}
 	ctx.Redirect(issue.Link())
 }
 
