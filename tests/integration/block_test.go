@@ -245,7 +245,7 @@ func TestBlockActions(t *testing.T) {
 			req = NewRequest(t, "GET", issue10URL)
 			resp = session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			msg := htmlDoc.doc.Find("div .warning").Text()
+			msg := htmlDoc.doc.Find(".ds-banner-warn").Text()
 			assert.Contains(t, msg, expectedMessage)
 		})
 
@@ -271,7 +271,7 @@ func TestBlockActions(t *testing.T) {
 			req = NewRequest(t, "GET", issue10URL)
 			resp = session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			msg := htmlDoc.doc.Find("div .warning").Text()
+			msg := htmlDoc.doc.Find(".ds-banner-warn").Text()
 			assert.Contains(t, msg, expectedMessage)
 		})
 	})

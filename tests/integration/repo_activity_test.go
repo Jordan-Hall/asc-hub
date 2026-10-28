@@ -67,7 +67,7 @@ func TestRepoActivity(t *testing.T) {
 		var labels []string
 		var titles []string
 		list.Each(func(i int, s *goquery.Selection) {
-			labels = append(labels, s.Find(".label").Text())
+			labels = append(labels, s.Find(".ds-chip").Text())
 			titles = append(titles, s.Find(".title").Text())
 		})
 		sort.Strings(labels)
@@ -76,20 +76,20 @@ func TestRepoActivity(t *testing.T) {
 		assert.Equal(t, []string{"", "v0.1 Pre-release", "v1 Release"}, titles)
 
 		// Active pull requests
-		assert.Contains(t, htmlDoc.Find(".grid .column:first-child").Text(), "3 active pull requests")
+		assert.Contains(t, htmlDoc.Find(".ds-pulse-2 .column:first-child").Text(), "3 active pull requests")
 
 		// Should be 1 merged pull request
 		list = htmlDoc.doc.Find("#merged-pull-requests").Next().Find("p.desc")
 		assert.Len(t, list.Nodes, 1)
-		assert.Equal(t, "Merged", list.Find(".label").Text())
+		assert.Equal(t, "Merged", list.Find(".ds-chip").Text())
 
 		// Should be 2 proposed pull requests
 		list = htmlDoc.doc.Find("#proposed-pull-requests").Next().Find("p.desc")
 		assert.Len(t, list.Nodes, 2)
-		assert.Equal(t, "Proposed", list.Find(".label").First().Text())
+		assert.Equal(t, "Proposed", list.Find(".ds-chip").First().Text())
 
 		// Active issues
-		assert.Contains(t, htmlDoc.Find(".grid .column:last-child").Text(), "3 active issues")
+		assert.Contains(t, htmlDoc.Find(".ds-pulse-2 .column:last-child").Text(), "3 active issues")
 
 		// Should be 0 closed issues
 		list = htmlDoc.doc.Find("#closed-issues").Next().Find("p.desc")
@@ -98,7 +98,7 @@ func TestRepoActivity(t *testing.T) {
 		// Should be 3 new issues
 		list = htmlDoc.doc.Find("#new-issues").Next().Find("p.desc")
 		assert.Len(t, list.Nodes, 3)
-		assert.Equal(t, "Opened", list.Find(".label").First().Text())
+		assert.Equal(t, "Opened", list.Find(".ds-chip").First().Text())
 	})
 }
 

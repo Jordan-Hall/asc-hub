@@ -27,5 +27,5 @@ func TestAdminViewRepos(t *testing.T) {
 	// Check for a specific repo link to see if it is rendered correctly
 	link := htmlDoc.Find("table tbody tr td a[href='/user27/repo49']")
 	assert.Equal(t, 1, link.Length())
-	assert.Equal(t, "repo49", link.Text())
+	assert.Equal(t, "user27/repo49", link.Text())
 }

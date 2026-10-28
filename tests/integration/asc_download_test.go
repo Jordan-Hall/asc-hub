@@ -50,7 +50,7 @@ func TestAscDownloadHiddenWithoutRelease(t *testing.T) {
 	visitor := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
 	assert.Equal(t, 1, visitor.doc.Find(`[data-testid="asc-no-release"]`).Length(), "the page says no release has been published")
 	assert.Contains(t, visitor.doc.Find(`[data-testid="asc-no-release"]`).Text(), "cargo build --release -p asc")
-	assert.Zero(t, visitor.doc.Find(".ui.warning.message").Length(), "an ordinary visitor sees no setting advice")
+	assert.Zero(t, visitor.doc.Find(".ds-banner-warn").Length(), "an ordinary visitor sees no setting advice")
 	assert.Zero(t, visitor.doc.Find("a.hub-dl-button").Length(), "no download button")
 	MakeRequest(t, NewRequest(t, "GET", "/-/download/manifest.json"), http.StatusNotFound)
 	home := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/"), http.StatusOK).Body)
@@ -60,13 +60,13 @@ func TestAscDownloadHiddenWithoutRelease(t *testing.T) {
 	// an administrator is told what to set
 	admin := loginUser(t, "user1")
 	doc := NewHTMLParser(t, admin.MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
-	note := doc.doc.Find(".ui.warning.message").Text()
+	note := doc.doc.Find(".ds-banner-warn").Text()
 	assert.Contains(t, note, "DOWNLOAD_DIR")
 
 	// an ordinary user is not
 	user := loginUser(t, "user2")
 	ordinary := NewHTMLParser(t, user.MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
-	assert.Zero(t, ordinary.doc.Find(".ui.warning.message").Length())
+	assert.Zero(t, ordinary.doc.Find(".ds-banner-warn").Length())
 	assert.Equal(t, 1, ordinary.doc.Find(`[data-testid="asc-no-release"]`).Length())
 }
 
@@ -196,7 +196,7 @@ func TestAscDownloadBrokenManifestFailsClosed(t *testing.T) {
 
 	admin := loginUser(t, "user1")
 	doc := NewHTMLParser(t, admin.MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
-	assert.Contains(t, doc.doc.Find(".ui.warning.message").Text(), "install.sh")
+	assert.Contains(t, doc.doc.Find(".ds-banner-warn").Text(), "install.sh")
 
 	// a manifest with a traversal name is refused
 	bad := strings.Replace(string(data), `"name":"install.sh"`, `"name":"../install.sh"`, 1)
@@ -215,5 +215,5 @@ func assertNoReleasePage(t *testing.T) {
 	page := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
 	assert.Equal(t, 1, page.doc.Find(`[data-testid="asc-no-release"]`).Length())
 	assert.Zero(t, page.doc.Find("a.hub-dl-button").Length(), "a release that fails its checks offers no download")
-	assert.Zero(t, page.doc.Find(".ui.warning.message").Length())
+	assert.Zero(t, page.doc.Find(".ds-banner-warn").Length())
 }

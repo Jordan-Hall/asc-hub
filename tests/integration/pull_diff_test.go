@@ -123,6 +123,6 @@ func TestPullDiff_AGitNotEditable(t *testing.T) {
 
 		doc := NewHTMLParser(t, resp.Body)
 		// There is no edit button on any changed file
-		doc.AssertElement(t, "h4.diff-file-header a.button[href^=\"/"+repo.FullName()+"/_edit\"]", false)
+		doc.AssertElement(t, "h4.diff-file-header a[href^=\"/"+repo.FullName()+"/_edit\"]", false)
 	})
 }

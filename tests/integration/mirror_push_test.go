@@ -322,7 +322,7 @@ func TestSSHPushMirror(t *testing.T) {
 				resp := sess.MakeRequest(t, req, http.StatusOK)
 				htmlDoc := NewHTMLParser(t, resp.Body)
 
-				publickey = htmlDoc.Find(".ui.table td a[data-clipboard-text]").AttrOr("data-clipboard-text", "")
+				publickey = htmlDoc.Find(".ds-table td a[data-clipboard-text]").AttrOr("data-clipboard-text", "")
 				assert.Equal(t, publickey, pushMirror.GetPublicKey())
 			})
 

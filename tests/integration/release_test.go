@@ -214,7 +214,7 @@ func TestEditReleaseDraft(t *testing.T) {
 	// Buttons that should be present
 	page.AssertElement(t, `form a.ds-btn-danger[data-modal-id="delete-release"]`, true)
 	page.AssertElement(t, `form a.ds-btn[href$="/releases"]`, true) // Cancel
-	page.AssertElement(t, `form .button[name="draft"]`, true)       // Save draft
+	page.AssertElement(t, `form .ds-btn[name="draft"]`, true)       // Save draft
 	assert.Contains(t, page.Find(`form .ds-btn-primary`).Text(), "Publish release")
 
 	// Buttons that should not be present
