@@ -237,7 +237,7 @@ func TestGlobalTwoFactorRequirement(t *testing.T) {
 			req = NewRequest(t, "GET", "/user/settings/security")
 			resp = session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc = NewHTMLParser(t, resp.Body)
-			assert.Equal(t, locale.TrString("settings.must_enable_2fa"), strings.TrimSpace(htmlDoc.Find(".ds-banner-err .ds-banner-body").Text()))
+			assert.Equal(t, locale.TrString("settings.must_enable_2fa"), strings.TrimSpace(htmlDoc.Find(".ds-banner-err .ds-banner-body").First().Text()))
 			assert.Equal(t, 0, htmlDoc.Find(".ds-hdr-nav a").Length()) // only show the Logo, no other links
 
 			userLinks = htmlDoc.Find("#ds-account a.ds-mi")

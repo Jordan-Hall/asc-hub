@@ -66,7 +66,7 @@ func doTestRepoCommitWithStatus(t *testing.T, state string, classes ...string) {
 
 	doc = NewHTMLParser(t, resp.Body)
 	// Check if commit status is displayed in message column (.tippy-target to ignore the tippy trigger)
-	sel := doc.doc.Find("#commits-table .rp-commit .commit-status")
+	sel := doc.doc.Find("#commits-table .rp-commit .commit-status").First()
 	assert.Equal(t, 1, sel.Length())
 	for _, class := range classes {
 		assert.True(t, sel.HasClass(class))
