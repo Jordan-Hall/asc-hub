@@ -1094,3 +1094,16 @@
 .rp-page .rp-files .rp-ico {
   margin: 0;
 }
+
+/* the code search of the directory (path scoped) */
+.rp-codesearch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.rp-codesearch .ds-inwrap {
+  flex: 1 1 220px;
+  min-width: 0;
+}

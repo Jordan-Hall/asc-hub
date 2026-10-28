@@ -79,6 +79,27 @@
 					</div>
 				</div>
 
+				{{$isCommit := StringUtils.HasPrefix .BranchNameSubURL "commit"}}
+				{{if and (not $isCommit) .CodeSearchOptions (or .CodeIndexerDisabled (and (not .TagName) (eq .Repository.DefaultBranch .BranchName)))}}
+					{{/* search the code of this directory: the path stays in the form */}}
+					<form class="rp-codesearch ignore-dirty" role="search" action="{{.RepoLink}}/search/{{if .CodeIndexerDisabled}}{{.BranchNameSubURL}}{{end}}" method="get" data-test-tag="codesearch">
+						<input type="hidden" name="path" value="{{.TreePath | PathEscapeSegments}}">
+						<div class="ds-inwrap">
+							{{svg "dsi-search" 16}}
+							<label class="ds-sr" for="rp-codesearch-q">{{ctx.Locale.Tr "search.code_kind"}}</label>
+							<input id="rp-codesearch-q" class="ds-input" type="search" name="q" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "search.code_kind"}}"{{with .Keyword}} value="{{.}}"{{end}}{{if .CodeIndexerUnavailable}} disabled{{end}}>
+						</div>
+						<label class="ds-selectpill">
+							<span class="ds-sr">{{ctx.Locale.Tr "search.type_tooltip"}}</span>
+							<select name="mode" data-test-tag="fuzzy-dropdown"{{if .CodeIndexerUnavailable}} disabled{{end}}>
+								{{range $opt := .CodeSearchOptions}}<option value="{{$opt}}"{{if eq $opt (index $.CodeSearchOptions 0)}} selected{{end}}>{{ctx.Locale.Tr (printf "search.%s" $opt)}}</option>{{end}}
+							</select>
+							{{svg "dsi-chevron-down" 16}}
+						</label>
+						<button type="submit" class="ds-btn ds-btn-secondary"{{if .CodeIndexerUnavailable}} disabled{{end}}>{{ctx.Locale.Tr "search.search"}}</button>
+					</form>
+				{{end}}
+
 				{{template "repo/view_list" .}}
 
 				{{if $isHomepage}}
