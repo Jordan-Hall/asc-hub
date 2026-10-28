@@ -1,9 +1,9 @@
-{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "organization settings options")}}
-			<div class="org-setting-content">
-				<h4 class="ui top attached header">
-					{{ctx.Locale.Tr "settings.applications"}}
-				</h4>
-
-				{{template "user/settings/applications_oauth2_list" .}}
-			</div>
+{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main organization settings options wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.applications") "Lead" (ctx.Locale.Tr "settings.oauth2_application_create_description"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-oauth">
+		<div class="ds-card-h"><h2 id="sp-oauth">{{ctx.Locale.Tr "settings.manage_oauth2_applications"}}</h2></div>
+		{{template "user/settings/applications_oauth2_list" .}}
+	</section>
+</div>
 {{template "org/settings/layout_footer" .}}

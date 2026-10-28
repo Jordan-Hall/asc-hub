@@ -1,78 +1,62 @@
-{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings applications")}}
-	<div class="user-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "settings.manage_access_token"}}
-			<div class="ui right">
-				<a class="ui primary tiny button" href="{{AppSubUrl}}/user/settings/applications/tokens/new">{{ctx.Locale.Tr "settings.new_access_token"}}</a>
-			</div>
-		</h4>
-		<div class="ui attached segment">
-			<div class="flex-list">
-				<div class="flex-item">
-					{{ctx.Locale.Tr "settings.tokens_desc"}}
-				</div>
-				{{range .TokensWithResources}}
-					<div class="flex-item">
-						<div class="flex-item-leading">
-							<span class="text {{if .Token.HasRecentActivity}}green{{end}}" {{if .Token.HasRecentActivity}}data-tooltip-content="{{ctx.Locale.Tr "settings.token_state_desc"}}"{{end}}>
-								{{svg "fontawesome-send" 32}}
-							</span>
-						</div>
-						<div class="flex-item-main">
-							<details>
-								<summary><span class="flex-item-title">{{.Token.Name}}</span></summary>
-								{{if .Token.ResourceAllRepos}}
-									<p class="tw-my-1">{{ctx.Locale.Tr "settings.repo_and_org_access"}}:</p>
-									{{if .Token.DisplayPublicOnly}}
-										{{ctx.Locale.Tr "settings.permissions_public_only"}}
-									{{else}}
-										{{ctx.Locale.Tr "settings.permissions_access_all"}}
-									{{end}}
-								{{else}}
-									<p class="tw-my-1">{{ctx.Locale.Tr "settings.specific_repo_access"}}:</p>
-									<ul class="tw-my-1">
-										{{range .Repositories}}
-											<li><a href="{{.HTMLURL}}">{{.FullName}}</a></li>
-										{{end}}
-									</ul>
-								{{end}}
-								<p class="tw-my-1">{{ctx.Locale.Tr "settings.permissions_list"}}</p>
-								<ul class="tw-my-1">
-								{{range .Token.Scope.StringSlice}}
-									{{if (ne . $.AccessTokenScopePublicOnly)}}
-										<li>{{.}}</li>
-									{{end}}
-								{{end}}
-								</ul>
-							</details>
-							<div class="flex-item-body">
-								<p>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .Token.CreatedUnix)}} — {{svg "octicon-info"}} {{if .Token.HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} <span {{if .Token.HasRecentActivity}}class="text green"{{end}}>{{DateUtils.AbsoluteShort .Token.UpdatedUnix}}</span>{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</p>
-							</div>
-						</div>
-						<div class="flex-item-trailing">
-								<button class="ui primary tiny button delete-button" data-modal-id="regenerate-token" data-url="{{$.Link}}/tokens/regenerate" data-id="{{.Token.ID}}">
-									{{svg "octicon-issue-reopened" 16 "tw-mr-1"}}
-									{{ctx.Locale.Tr "settings.regenerate_token"}}
-								</button>
-								<button class="ui red tiny button delete-button" data-modal-id="delete-token" data-url="{{$.Link}}/tokens/delete" data-id="{{.Token.ID}}">
-									{{svg "octicon-trash" 16 "tw-mr-1"}}
-									{{ctx.Locale.Tr "settings.delete_token"}}
-								</button>
-						</div>
-					</div>
-				{{end}}
-			</div>
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings applications wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.applications") "Lead" (ctx.Locale.Tr "asc_work.sp_apps_lead"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-tokens">
+		<div class="ds-card-h">
+			<h2 id="sp-tokens">{{ctx.Locale.Tr "settings.manage_access_token"}}</h2>
+			<span class="ds-card-sub">{{ctx.Locale.Tr "settings.tokens_desc"}}</span>
+			<a class="ds-btn ds-btn-primary ds-btn-sm ds-ml-auto" href="{{AppSubUrl}}/user/settings/applications/tokens/new">{{ctx.Locale.Tr "settings.new_access_token"}}</a>
 		</div>
-
-		{{if .EnableOAuth2}}
-			{{template "user/settings/grants_oauth2" .}}
-			{{template "user/settings/applications_oauth2" .}}
+		{{if .TokensWithResources}}
+		<ul class="ds-list wk-rows">
+			{{range .TokensWithResources}}
+				<li class="ds-li wk-row">
+					<div class="ds-li-main">
+						<div class="ds-li-title"><span class="ds-break">{{.Token.Name}}</span>
+							{{if .Token.HasRecentActivity}}<span class="ds-chip ds-chip-ok" title="{{ctx.Locale.Tr "settings.token_state_desc"}}">{{ctx.Locale.Tr "asc_work.sp_recently_used"}}</span>{{end}}
+						</div>
+						<div class="ds-li-meta">
+							<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .Token.CreatedUnix)}}</span>
+							<span>{{if .Token.HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} {{DateUtils.AbsoluteShort .Token.UpdatedUnix}}{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</span>
+						</div>
+						<details class="wk-details">
+							<summary>{{ctx.Locale.Tr "settings.permissions_list"}}</summary>
+							{{if .Token.ResourceAllRepos}}
+								<p class="ds-hint">{{ctx.Locale.Tr "settings.repo_and_org_access"}}: {{if .Token.DisplayPublicOnly}}{{ctx.Locale.Tr "settings.permissions_public_only"}}{{else}}{{ctx.Locale.Tr "settings.permissions_access_all"}}{{end}}</p>
+							{{else}}
+								<p class="ds-hint">{{ctx.Locale.Tr "settings.specific_repo_access"}}:</p>
+								<ul class="wk-plain">
+									{{range .Repositories}}<li><a href="{{.HTMLURL}}">{{.FullName}}</a></li>{{end}}
+								</ul>
+							{{end}}
+							<div class="wk-chips">
+								{{range .Token.Scope.StringSlice}}
+									{{if (ne . $.AccessTokenScopePublicOnly)}}<span class="ds-chip ds-mono">{{.}}</span>{{end}}
+								{{end}}
+							</div>
+						</details>
+					</div>
+					<div class="wk-row-acts">
+						<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm delete-button" data-modal-id="regenerate-token" data-url="{{$.Link}}/tokens/regenerate" data-id="{{.Token.ID}}">{{ctx.Locale.Tr "settings.regenerate_token"}}</button>
+						<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="delete-token" data-url="{{$.Link}}/tokens/delete" data-id="{{.Token.ID}}">{{ctx.Locale.Tr "settings.delete_token"}}</button>
+					</div>
+				</li>
+			{{end}}
+		</ul>
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "key" "Title" (ctx.Locale.Tr "asc_work.sp_tokens_empty") "Body" (ctx.Locale.Tr "asc_work.sp_tokens_empty_body") "PrimaryHref" (print AppSubUrl "/user/settings/applications/tokens/new") "PrimaryLabel" (ctx.Locale.Tr "settings.new_access_token"))}}
 		{{end}}
-	</div>
+	</section>
+
+	{{if .EnableOAuth2}}
+		{{template "user/settings/grants_oauth2" .}}
+		{{template "user/settings/applications_oauth2" .}}
+	{{end}}
+</div>
 
 <div class="ui g-modal-confirm delete modal" id="regenerate-token">
 	<div class="header">
-		{{svg "octicon-issue-reopened" 16 "tw-mr-1"}}
+		{{svg "dsi-refresh" 16 "tw-mr-1"}}
 		{{ctx.Locale.Tr "settings.access_token_regeneration"}}
 	</div>
 	<div class="content">
@@ -83,7 +67,7 @@
 
 <div class="ui g-modal-confirm delete modal" id="delete-token">
 	<div class="header">
-		{{svg "octicon-trash"}}
+		{{svg "dsi-trash" 16}}
 		{{ctx.Locale.Tr "settings.access_token_deletion"}}
 	</div>
 	<div class="content">

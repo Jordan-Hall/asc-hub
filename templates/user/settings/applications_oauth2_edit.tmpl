@@ -1,6 +1,6 @@
-{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings applications")}}
-	<div class="user-setting-content">
-
-		{{template "user/settings/applications_oauth2_edit_form" .}}
-	</div>
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings applications wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.edit_oauth2_application") "Lead" (ctx.Locale.Tr "settings.oauth2_application_create_description"))}}
+<div class="wk-sp">
+	{{template "user/settings/applications_oauth2_edit_form" .}}
+</div>
 {{template "user/settings/layout_footer" .}}

@@ -1,6 +1,4 @@
-<h4 class="ui top attached header">
-	{{ctx.Locale.Tr "settings.manage_oauth2_applications"}}
-</h4>
-
-{{template "user/settings/applications_oauth2_list" .}}
-
+<section class="ds-card" aria-labelledby="sp-oauth">
+	<div class="ds-card-h"><h2 id="sp-oauth">{{ctx.Locale.Tr "settings.manage_oauth2_applications"}}</h2></div>
+	{{template "user/settings/applications_oauth2_list" .}}
+</section>
