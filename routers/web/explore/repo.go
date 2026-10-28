@@ -10,6 +10,7 @@ import (
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -81,6 +82,15 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 	language := ctx.FormTrim("language")
 	ctx.Data["Language"] = language
 	ctx.Data["ExploreLanguages"] = exploreLanguages(ctx, language)
+	if topics, _, err := repo_model.FindTopics(ctx, &repo_model.FindTopicOptions{ListOptions: db.ListOptions{PageSize: 12, Page: 1}}); err == nil {
+		names := make([]string, 0, len(topics))
+		for _, t := range topics {
+			if t.RepoCount > 0 {
+				names = append(names, t.Name)
+			}
+		}
+		ctx.Data["PopularTopics"] = names
+	}
 
 	archived := ctx.FormOptionalBool("archived")
 	ctx.Data["IsArchived"] = archived
@@ -196,12 +206,17 @@ func Repos(ctx *context.Context) {
 	})
 }
 
-// exploreLanguages lists the primary languages of public repositories for the Language filter, with the language the
-// visitor already chose kept in the list. At most 60 names; the names of languages only used by private repositories
-// are not listed.
+// exploreLanguages lists the primary languages of the repositories the viewer can see, for the Language filter, with
+// the language the visitor already chose kept in the list. It uses the access rule of the repository search itself
+// (public repositories of public owners, plus what the signed-in viewer is allowed to read), so a language that only
+// a hidden repository has is never offered. At most 60 names.
 func exploreLanguages(ctx *context.Context, chosen string) []string {
 	var names []string
-	err := db.GetEngine(ctx).SQL("SELECT DISTINCT ls.language FROM language_stat ls JOIN repository r ON r.id = ls.repo_id WHERE ls.is_primary = ? AND ls.language != ? AND r.is_private = ? ORDER BY ls.language LIMIT 60", true, "other", false).Find(&names)
+	err := db.GetEngine(ctx).Table("language_stat").
+		Join("INNER", "repository", "`repository`.id = `language_stat`.repo_id").
+		Where(repo_model.AccessibleRepositoryCondition(ctx.Doer, unit.TypeInvalid)).
+		And("`language_stat`.is_primary = ? AND `language_stat`.language != ?", true, "other").
+		Distinct("`language_stat`.language").OrderBy("`language_stat`.language").Limit(60).Find(&names)
 	if err != nil {
 		log.Error("listing the languages of the explore filter: %v", err)
 		return nil

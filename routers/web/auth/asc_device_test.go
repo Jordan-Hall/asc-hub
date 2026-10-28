@@ -118,10 +118,11 @@ func TestAscDeviceCodeIsRateLimited(t *testing.T) {
 
 func TestAscClientIPIgnoresThePort(t *testing.T) {
 	for addr, want := range map[string]string{
-		"203.0.113.7:51000": "203.0.113.7",
-		"203.0.113.7:51001": "203.0.113.7",
-		"[2001:db8::1]:443": "2001:db8::1",
-		"203.0.113.7":       "203.0.113.7",
+		"203.0.113.7:51000":                      "203.0.113.7",
+		"203.0.113.7:51001":                      "203.0.113.7",
+		"[2001:db8:1:2:aaaa:bbbb:cccc:dddd]:443": "2001:db8:1:2::/64",
+		"[2001:db8:1:2:1::9]:80":                 "2001:db8:1:2::/64",
+		"203.0.113.7":                            "203.0.113.7",
 	} {
 		ctx, _ := contexttest.MockContext(t, "POST /login/device/code")
 		ctx.Req.RemoteAddr = addr

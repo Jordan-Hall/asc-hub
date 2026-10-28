@@ -1,0 +1,112 @@
+{{/* Notifications (board UserSettingsNotifications): what reaches you, email, quiet hours, the repositories you watch. Every control is its own form and saves when it changes. */}}
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings notifications wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_work.sn_notifications") "Lead" (ctx.Locale.Tr "asc_work.sp_notify_lead"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-reach">
+		<div class="ds-card-h"><h2 id="sp-reach">{{ctx.Locale.Tr "asc_work.sp_reach"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_reach_hint"}}</span></div>
+		<table class="wk-matrix">
+			<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_work.sp_reach"}}</caption>
+			<thead>
+				<tr><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_event"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_inbox"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_email"}}</th></tr>
+			</thead>
+			<tbody>
+				{{range .NotifyEvents}}
+				<tr>
+					<th scope="row"><b>{{ctx.Locale.Tr (printf "asc_work.ev_%s" .Key)}}</b><span class="ds-hint">{{ctx.Locale.Tr (printf "asc_work.ev_%s_hint" .Key)}}</span></th>
+					<td data-label="{{ctx.Locale.Tr "asc_work.sp_col_inbox"}}">
+						<label class="ds-switch"><input type="checkbox" role="switch" checked disabled aria-label="{{ctx.Locale.Tr (printf "asc_work.ev_%s" .Key)}}, {{ctx.Locale.Tr "asc_work.sp_col_inbox"}}: {{ctx.Locale.Tr "asc_work.sp_inbox_always"}}"><span class="ds-switch-track"></span></label>
+					</td>
+					<td data-label="{{ctx.Locale.Tr "asc_work.sp_col_email"}}">
+						{{if .EmailReady}}
+						<form action="{{$.NotificationsLink}}" method="post">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="section" value="email_event">
+							<input type="hidden" name="event" value="{{.Key}}">
+							<input type="hidden" name="value" value="0">
+							<label class="ds-switch"><input type="checkbox" role="switch" name="value" value="1" data-asc-autosubmit{{if .EmailOn}} checked{{end}} aria-label="{{ctx.Locale.Tr (printf "asc_work.ev_%s" .Key)}}, {{ctx.Locale.Tr "asc_work.sp_col_email"}}"><span class="ds-switch-track"></span></label>
+						</form>
+						{{else}}
+						<label class="ds-switch"><input type="checkbox" role="switch" disabled aria-label="{{ctx.Locale.Tr (printf "asc_work.ev_%s" .Key)}}, {{ctx.Locale.Tr "asc_work.sp_col_email"}}: {{ctx.Locale.Tr "asc_work.sp_email_not_yet"}}"><span class="ds-switch-track"></span></label>
+						{{end}}
+					</td>
+				</tr>
+				{{end}}
+			</tbody>
+		</table>
+		<p class="ds-hint ds-card-b">{{ctx.Locale.Tr "asc_work.sp_matrix_note"}}</p>
+	</section>
+
+	<section class="ds-card" aria-labelledby="sp-email">
+		<div class="ds-card-h"><h2 id="sp-email">{{ctx.Locale.Tr "asc_work.sp_email_h"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_email_h_hint"}}</span></div>
+		<form class="ds-card-b ds-form" action="{{.NotificationsLink}}" method="post">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="section" value="email_mode">
+			<div class="ds-field">
+				<label class="ds-label" for="n-pref">{{ctx.Locale.Tr "asc_work.sp_email_me"}}</label>
+				<select class="ds-select" id="n-pref" name="preference" data-asc-autosubmit>
+					<option value="enabled"{{if or (eq .EmailPreference "enabled") (eq .EmailPreference "andyourown")}} selected{{end}}>{{ctx.Locale.Tr "asc_work.sp_email_all"}}</option>
+					<option value="onmention"{{if eq .EmailPreference "onmention"}} selected{{end}}>{{ctx.Locale.Tr "asc_work.sp_email_mention"}}</option>
+					<option value="disabled"{{if eq .EmailPreference "disabled"}} selected{{end}}>{{ctx.Locale.Tr "asc_work.sp_email_none"}}</option>
+				</select>
+			</div>
+		</form>
+	</section>
+
+	<section class="ds-card" aria-labelledby="sp-quiet">
+		<div class="ds-card-h"><h2 id="sp-quiet">{{ctx.Locale.Tr "asc_work.sp_quiet"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_quiet_hint"}}</span></div>
+		<form class="ds-card-b ds-form ds-stack-16" action="{{.NotificationsLink}}" method="post">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="section" value="quiet">
+			<input type="hidden" name="on" value="0">
+			<label class="ds-switch wk-switch-row">
+				<input type="checkbox" role="switch" name="on" value="1" data-asc-autosubmit{{if .QuietOn}} checked{{end}}>
+				<span class="ds-switch-track"></span>
+				<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.sp_quiet"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_quiet_switch_hint"}}</span></span>
+			</label>
+			<div class="wk-two">
+				<div class="ds-field">
+					<label class="ds-label" for="n-from">{{ctx.Locale.Tr "asc_work.sp_quiet_from"}}</label>
+					<select class="ds-select" id="n-from" name="from" data-asc-autosubmit>{{range .QuietHours}}<option{{if eq . $.QuietFrom}} selected{{end}}>{{.}}</option>{{end}}</select>
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="n-until">{{ctx.Locale.Tr "asc_work.sp_quiet_until"}}</label>
+					<select class="ds-select" id="n-until" name="until" data-asc-autosubmit>{{range .QuietHours}}<option{{if eq . $.QuietUntil}} selected{{end}}>{{.}}</option>{{end}}</select>
+				</div>
+			</div>
+			<div class="ds-field">
+				<label class="ds-label" for="n-tz">{{ctx.Locale.Tr "asc_work.sp_tz"}}</label>
+				<select class="ds-select" id="n-tz" name="tz" data-asc-autosubmit>
+					<option value=""{{if not .TimeZone}} selected{{end}}>UTC</option>
+					{{range .TimeZones}}{{if ne . "UTC"}}<option{{if eq . $.TimeZone}} selected{{end}}>{{.}}</option>{{end}}{{end}}
+				</select>
+			</div>
+		</form>
+	</section>
+
+	<section class="ds-card" aria-labelledby="sp-watch">
+		<div class="ds-card-h"><h2 id="sp-watch">{{ctx.Locale.Tr "asc_work.sp_watching"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_watching_hint"}}</span></div>
+		{{if .WatchedRepos}}
+		<table class="wk-matrix wk-watch">
+			<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_repo"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_level"}}</th><th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "actions"}}</span></th></tr></thead>
+			<tbody>
+				{{range .WatchedRepos}}
+				<tr>
+					<th scope="row"><a class="ds-link" href="{{.Link}}">{{.FullName}}</a></th>
+					<td><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_work.sp_all_activity"}}</span></td>
+					<td>
+						<form action="{{.Link}}/action/unwatch" method="post">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="redirect_to" value="{{$.NotificationsLink}}">
+							<button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm" aria-label="{{ctx.Locale.Tr "repo.unwatch"}} {{.FullName}}">{{ctx.Locale.Tr "repo.unwatch"}}</button>
+						</form>
+					</td>
+				</tr>
+				{{end}}
+			</tbody>
+		</table>
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "eye" "Title" (ctx.Locale.Tr "asc_work.sp_watching_none") "Body" (ctx.Locale.Tr "asc_work.sp_watching_none_body"))}}
+		{{end}}
+	</section>
+</div>
+{{template "user/settings/layout_footer" .}}

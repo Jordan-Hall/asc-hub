@@ -95,6 +95,7 @@ function initDownload() {
 export function initAscUi() {
   initDownload();
   initAscInstallPills();
+  initDocsFilter();
 }
 
 // The install pills of the landing page: one pressed pill shows its command, the others stay hidden.
@@ -109,4 +110,24 @@ export function initAscInstallPills(root = document) {
       });
     }
   }
+}
+
+// The search field of the docs start page narrows the guide cards to those whose title or text has the typed words.
+export function initDocsFilter(root = document) {
+  const input = root.querySelector('input[data-docs-filter]');
+  if (!input) return;
+  const cards = Array.from(root.querySelectorAll('.site-doccards > li'));
+  const none = root.querySelector('[data-docs-none]');
+  const apply = () => {
+    const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    for (const li of cards) {
+      const text = li.textContent.toLowerCase();
+      const match = words.every((w) => text.includes(w));
+      li.hidden = !match;
+      if (match) shown++;
+    }
+    if (none) none.hidden = shown !== 0;
+  };
+  input.addEventListener('input', apply);
 }

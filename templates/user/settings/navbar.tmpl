@@ -15,14 +15,15 @@ Entries use shared/ds/snav_item; groups are headings, never colour.
 			{{template "shared/ds/snav_item" (dict "Href" $base "Label" (ctx.Locale.Tr "settings.profile") "Icon" "user" "Active" .PageIsSettingsProfile)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/account") "Label" (ctx.Locale.Tr "settings.account") "Icon" "mail" "Active" .PageIsSettingsAccount)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/appearance") "Label" (ctx.Locale.Tr "settings.appearance") "Icon" "palette" "Active" .PageIsSettingsAppearance)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/blocked_users") "Label" (ctx.Locale.Tr "settings.blocked_users") "Icon" "eye" "Active" .PageIsBlockedUsers)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/notifications") "Label" (ctx.Locale.Tr "asc_work.sn_notifications") "Icon" "bell" "Active" .PageIsSettingsNotifications)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/privacy") "Label" (ctx.Locale.Tr "asc_work.sn_privacy") "Icon" "eye" "Active" (or .PageIsSettingsPrivacy .PageIsBlockedUsers))}}
 		</ul>
 
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_security"}}</h2>
 		<ul class="ds-settings-list">
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/security") "Label" (ctx.Locale.Tr "settings.security") "Icon" "shield-check" "Active" .PageIsSettingsSecurity)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/authorized-integrations") "Label" (ctx.Locale.Tr "settings.authorized_integrations") "Icon" "key" "Active" .PageIsSettingsAuthorizedIntegrations)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/keys") "Label" $keysLabel "Icon" "terminal" "Active" .PageIsSettingsKeys)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/applications") "Label" (ctx.Locale.Tr "asc_work.sn_tokens") "Icon" "key" "Active" .PageIsSettingsApplications)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/keys") "Label" (ctx.Locale.Tr "asc_work.sn_ssh_signing") "Icon" "terminal" "Active" .PageIsSettingsKeys)}}
 			{{if .AscEnabled}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/keys") "Label" (ctx.Locale.Tr "asc_shell.sn_signing_keys") "Icon" "fingerprint" "Active" .PageIsSettingsAscKeys)}}
 			{{end}}
@@ -30,7 +31,7 @@ Entries use shared/ds/snav_item; groups are headings, never colour.
 
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_integrations"}}</h2>
 		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/applications") "Label" (ctx.Locale.Tr "settings.applications") "Icon" "puzzle" "Active" .PageIsSettingsApplications)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/authorized-integrations") "Label" (ctx.Locale.Tr "asc_work.sn_applications") "Icon" "puzzle" "Active" .PageIsSettingsAuthorizedIntegrations)}}
 			{{if not DisableWebhooks}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/hooks") "Label" (ctx.Locale.Tr "repo.settings.hooks") "Icon" "link" "Active" .PageIsSettingsHooks)}}
 			{{end}}

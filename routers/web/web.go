@@ -882,8 +882,17 @@ func registerRoutes(m *web.Route) {
 			})
 		}, webhooksEnabled)
 
+		m.Group("/notifications", func() {
+			m.Get("", user_setting.Notifications)
+			m.Post("", user_setting.NotificationsPost)
+		})
+		m.Group("/privacy", func() {
+			m.Get("", user_setting.Privacy)
+			m.Post("", user_setting.PrivacyPost)
+			m.Post("/block", user_setting.PrivacyBlock)
+		})
 		m.Group("/blocked_users", func() {
-			m.Get("", user_setting.BlockedUsers)
+			m.Get("", func(ctx *context.Context) { ctx.Redirect(setting.AppSubURL + "/user/settings/privacy") })
 			m.Post("/unblock", user_setting.UnblockUser)
 		})
 		m.Get("/storage_overview", user_setting.StorageOverview)

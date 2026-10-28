@@ -42,5 +42,5 @@ func UnblockUser(ctx *context.Context) {
 	}
 
 	ctx.Flash.Success(ctx.Tr("settings.user_unblock_success"))
-	ctx.Redirect(setting.AppSubURL + "/user/settings/blocked_users")
+	ctx.Redirect(setting.AppSubURL + "/user/settings/privacy")
 }

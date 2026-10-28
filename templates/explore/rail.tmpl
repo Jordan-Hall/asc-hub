@@ -8,3 +8,13 @@
 	</div>
 </aside>
 {{end}}
+{{if .PopularTopics}}
+<aside class="ds-rail ds-only-desktop" aria-label="{{ctx.Locale.Tr "explore.popular_topics"}}">
+	<div class="ds-callout">
+		<h2 class="ds-t-h4">{{ctx.Locale.Tr "explore.popular_topics"}}</h2>
+		<div class="ds-rail-topics">
+			{{range .PopularTopics}}<a class="ds-chip ds-chip-outline" href="{{AppSubUrl}}/explore/repos?q={{QueryEscape .}}&topic=1">{{.}}</a>{{end}}
+		</div>
+	</div>
+</aside>
+{{end}}

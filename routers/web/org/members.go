@@ -68,16 +68,24 @@ func Members(ctx *context.Context) {
 		return
 	}
 	isOwner := organization.IsUserOrgOwner(ctx, everyone, org.ID)
-	twoFA := everyone.GetTwoFaStatus(ctx)
+	// 2FA status of members is for owners and site administrators only: the status, its count and the filter
+	canSee2FA := ctx.Org.IsOwner && !opts.PublicOnly()
+	twoFA := map[int64]bool{}
+	if canSee2FA {
+		twoFA = everyone.GetTwoFaStatus(ctx)
+	}
 	query := strings.ToLower(ctx.FormTrim("q"))
 	filter := ctx.FormString("filter")
+	if filter == "2fa_off" && !canSee2FA {
+		filter = ""
+	}
 	var ownersCount, twoFAOffCount int
 	members := make(user_model.UserList, 0, len(everyone))
 	for _, m := range everyone {
 		if isOwner[m.ID] {
 			ownersCount++
 		}
-		if !twoFA[m.ID] {
+		if canSee2FA && !twoFA[m.ID] {
 			twoFAOffCount++
 		}
 		if query != "" && !strings.Contains(strings.ToLower(m.Name), query) && !strings.Contains(strings.ToLower(m.FullName), query) {
@@ -92,7 +100,10 @@ func Members(ctx *context.Context) {
 	ctx.Data["PeopleFilter"] = filter
 	ctx.Data["PeopleCountAll"] = len(everyone)
 	ctx.Data["PeopleCountOwners"] = ownersCount
-	ctx.Data["PeopleCountTwoFAOff"] = twoFAOffCount
+	ctx.Data["CanSee2FA"] = canSee2FA
+	if canSee2FA {
+		ctx.Data["PeopleCountTwoFAOff"] = twoFAOffCount
+	}
 	ctx.Data["PeopleShown"] = len(members)
 
 	pager := context.NewPagination(len(members), setting.UI.MembersPagingNum, page, 5)
@@ -113,7 +124,9 @@ func Members(ctx *context.Context) {
 	ctx.Data["Teams"] = teams
 	ctx.Data["MembersIsPublicMember"] = membersIsPublic
 	ctx.Data["MembersIsUserOrgOwner"] = isOwner
-	ctx.Data["MembersTwoFaStatus"] = twoFA
+	if canSee2FA {
+		ctx.Data["MembersTwoFaStatus"] = twoFA
+	}
 	ctx.Data["AddMembersByInvitations"] = setting.Service.AddMembersByInvitations
 
 	ctx.HTML(http.StatusOK, tplMembers)
