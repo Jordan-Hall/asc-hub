@@ -38,7 +38,7 @@ function moveRow(step) {
 let keyHandler = null;
 
 export function initAscKeys() {
-  for (const select of document.querySelectorAll('select[data-asc-autosubmit]')) {
+  for (const select of document.querySelectorAll('select[data-asc-autosubmit], input[data-asc-autosubmit]')) {
     select.addEventListener('change', () => select.form?.requestSubmit());
   }
 
