@@ -733,6 +733,15 @@ func registerRoutes(m *web.Route) {
 
 	m.Any("/user/events", routing.MarkLongPolling, events.Events)
 
+	// the device authorisation of the asc command line (RFC 8628): the terminal's two calls carry no session and no
+	// CSRF token; the person's page and answer need a signed-in session and the CSRF token
+	m.Group("/login/device", func() {
+		m.Post("/code", auth.AscDeviceCode)
+		m.Post("/token", auth.AscDeviceToken)
+	}, ignoreCSRF)
+	m.Get("/login/device", reqSignIn, auth.AscDevicePage)
+	m.Post("/login/device", reqSignIn, auth.AscDevicePost)
+
 	m.Group("/login/oauth", func() {
 		m.Group("", func() {
 			m.Get("/authorize", web.Bind(forms.AuthorizationForm{}), auth.AuthorizeOAuth)

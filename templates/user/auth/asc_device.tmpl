@@ -1,0 +1,45 @@
+{{/*
+Authorise the CLI (board Onboarding, "CLI device approval"): the person types the code the terminal printed, or arrives with it, sees which terminal asked and approves or denies. Steps: enter, confirm, approved, denied.
+Routes: GET and POST /login/device.
+*/}}
+{{template "base/head" .}}
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user asc-device" "Eyebrow" (ctx.Locale.Tr "asc_device.eyebrow") "Title" (ctx.Locale.Tr (printf "asc_device.title_%s" .DeviceStep)) "NoAlert" false)}}
+	{{if eq .DeviceStep "enter"}}
+		<form class="ds-form ignore-dirty" action="{{AppSubUrl}}/login/device" method="get">
+			{{if .DeviceProblem}}
+				<div class="ds-banner ds-banner-err" role="alert">{{svg "dsi-alert" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr (printf "asc_device.problem_%s" .DeviceProblem)}}</div></div>
+			{{end}}
+			<p class="ds-t-body">{{ctx.Locale.Tr "asc_device.enter_lead"}}</p>
+			{{template "shared/ds/field" (dict "ID" "user_code" "Name" "user_code" "Label" (ctx.Locale.Tr "asc_device.code_label") "Value" .DeviceTyped "Placeholder" "WDJB-MJHT" "Autofocus" true "Required" true "Autocomplete" "off" "Mono" true "Extra" "off" "MaxLength" 12 "Hint" (ctx.Locale.Tr "asc_device.code_hint"))}}
+			<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block">{{ctx.Locale.Tr "asc_device.continue"}}</button>
+			<p class="ds-t-small ds-muted">{{ctx.Locale.Tr "asc_device.signed_in_as" .SignedUser.Name}}</p>
+		</form>
+	{{else if eq .DeviceStep "confirm"}}
+		<form class="ds-form ignore-dirty" action="{{AppSubUrl}}/login/device" method="post">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="user_code" value="{{.DeviceCode}}">
+			<p class="ds-t-body">
+				{{if .DeviceName}}{{ctx.Locale.Tr "asc_device.confirm_named" .DeviceName}}{{else}}{{ctx.Locale.Tr "asc_device.confirm_unnamed"}}{{end}}
+			</p>
+			<p class="ds-device-code" aria-label="{{ctx.Locale.Tr "asc_device.code_label"}}"><code class="ds-mono" id="asc-device-code">{{.DeviceCode}}</code></p>
+			<div class="ds-banner">{{svg "dsi-info" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "asc_device.grants" .SignedUser.Name}} {{ctx.Locale.Tr "asc_device.expires" .DeviceMinutes}}</div></div>
+			<div class="ds-auth-actions">
+				<button type="submit" name="action" value="approve" class="ds-btn ds-btn-primary ds-btn-lg">{{ctx.Locale.Tr "asc_device.approve"}}</button>
+				<button type="submit" name="action" value="deny" class="ds-btn ds-btn-secondary ds-btn-lg">{{ctx.Locale.Tr "asc_device.deny"}}</button>
+			</div>
+			<p class="ds-t-small ds-muted">{{ctx.Locale.Tr "asc_device.not_you"}}</p>
+		</form>
+	{{else if eq .DeviceStep "approved"}}
+		<div class="ds-stack-16">
+			<div class="ds-banner ds-banner-ok" role="status">{{svg "dsi-check" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "asc_device.approved_text"}}</div></div>
+			<p class="ds-t-small ds-muted">{{ctx.Locale.Tr "asc_device.approved_revoke"}} <a class="ds-link" href="{{AppSubUrl}}/user/settings/applications">{{ctx.Locale.Tr "settings.applications"}}</a>.</p>
+			<a class="ds-btn ds-btn-secondary ds-btn-lg" href="{{AppSubUrl}}/">{{ctx.Locale.Tr "asc_device.to_dashboard"}}</a>
+		</div>
+	{{else if eq .DeviceStep "denied"}}
+		<div class="ds-stack-16">
+			<div class="ds-banner" role="status">{{svg "dsi-info" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "asc_device.denied_text"}}</div></div>
+			<a class="ds-btn ds-btn-secondary ds-btn-lg" href="{{AppSubUrl}}/">{{ctx.Locale.Tr "asc_device.to_dashboard"}}</a>
+		</div>
+	{{end}}
+{{template "user/auth/shell_end" (dict "Data" .)}}
+{{template "base/footer" .}}
