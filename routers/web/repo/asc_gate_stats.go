@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	"forgejo.org/modules/log"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/log"
 	"forgejo.org/routers/web/shared/trustweb"
 	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/asctrust"
@@ -26,11 +26,11 @@ import (
 
 // ascGateDay is one bar of the chart "Checked and held, per day".
 type ascGateDay struct {
-	Day         string
-	Checked     uint32
-	Held        uint32
-	CheckedPct  int
-	HeldPct     int
+	Day        string
+	Checked    uint32
+	Held       uint32
+	CheckedPct int
+	HeldPct    int
 }
 
 // ascGateRuleCount is "N held of M" for one rule.
