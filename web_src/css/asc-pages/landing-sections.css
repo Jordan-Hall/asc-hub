@@ -1,0 +1,321 @@
+/* Landing page sections after the first screen: stacked changes, review, operation log, workflows, bring your own
+   (board Main, Mobile-Landing). They reuse the landing pieces of asc-ds/landing.css; only the arrangement and the
+   static previews are here. Mobile first: one column at 320, two from 768, three from 1024. */
+
+.ds-land .ls-two {
+  display: grid;
+  gap: 24px;
+  align-items: center;
+}
+
+.ds-land .ls-two > * {
+  min-width: 0;
+}
+
+.ds-land .ls-two-flip > .ls-preview-col {
+  order: 2;
+}
+
+.ds-land .ls-h2 {
+  max-width: 22ch;
+}
+
+.ds-land .ls-h3 {
+  margin-top: 8px;
+}
+
+.ds-land .ls-checks {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.ds-land .ls-checks li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--text-1);
+}
+
+.ds-land .ls-checks li > span {
+  flex: none;
+  margin-top: 2px;
+  color: var(--ok);
+}
+
+.ds-land .ls-preview {
+  padding: 8px 20px;
+}
+
+.ds-land .ls-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ds-land .ls-tl {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 14px 0 14px 28px;
+}
+
+.ds-land .ls-tl::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--line);
+}
+
+.ds-land .ls-tl:first-child::before {
+  top: 50%;
+}
+
+.ds-land .ls-tl:last-child::before {
+  bottom: 50%;
+}
+
+.ds-land .ls-tl::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+
+.ds-land .ls-tl.is-base::after {
+  background: var(--fill);
+}
+
+.ds-land .ls-tl.is-ok::after {
+  background: var(--ok);
+}
+
+.ds-land .ls-tl.is-turn::after {
+  background: var(--warn);
+}
+
+.ds-land .ls-tl > span {
+  font-size: 13px;
+}
+
+.ds-land .ls-cards2,
+.ds-land .ls-cards3 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.ds-land .ls-more {
+  margin-top: 16px;
+}
+
+.ds-land .ls-query {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  color: var(--text-1);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.ds-land .ls-blocked {
+  margin: 16px 0 0;
+}
+
+.ds-land .ls-preview-col {
+  display: grid;
+  gap: 12px;
+}
+
+.ds-land .ls-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ds-land .ls-log li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-3);
+  font-size: 14px;
+}
+
+.ds-land .ls-log li > span {
+  grid-column: 2;
+  color: var(--text-1);
+}
+
+.ds-land .ls-log code {
+  overflow-wrap: anywhere;
+}
+
+.ds-land .ls-queue .ds-card-b {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+}
+
+.ds-land .ls-queue p {
+  margin: 2px 0 0;
+}
+
+.ds-land .ls-cmd2 {
+  margin-top: 12px;
+}
+
+.ds-land .ls-flow {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 16px;
+  display: grid;
+  gap: 16px;
+}
+
+.ds-land .ls-flow li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.ds-land .ls-flow li > div {
+  display: grid;
+  gap: 2px;
+  font-size: 14px;
+}
+
+.ds-land .ls-flow li > div > span {
+  color: var(--text-2);
+}
+
+.ds-land .ls-num {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--on-fill);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ds-land .ls-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.ds-land .ls-keys {
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+}
+
+.ds-land .ls-keys .ds-li-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.ds-land .ls-s3 {
+  margin: 16px 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+.ds-land .ls-s3 dt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.ds-land .ls-s3 dd {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 768px) {
+  .ds-land .ls-cards2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .ds-land .ls-flow {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 20px;
+  }
+
+  .ds-land .ls-log li {
+    grid-template-columns: auto minmax(0, 11rem) minmax(0, 1fr);
+    align-items: baseline;
+  }
+
+  .ds-land .ls-log li > span {
+    grid-column: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ds-land .ls-two {
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+  }
+
+  .ds-land .ls-cards3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .ds-land .ls-two-flip > .ls-preview-col {
+    order: 0;
+  }
+}
+
+/* the download band: a long command scrolls inside its terminal */
+.ds-land .ds-land-dl > *,
+.ds-land .ds-land-dl-cmds > * {
+  min-width: 0;
+}
+
+.ds-land .ds-land-dl .ds-term-bd {
+  overflow-x: auto;
+}
+
+.ds-land .ls-after {
+  margin: 24px 0 0;
+}
+
+.ds-land .ds-land-card > .ds-t-eyebrow {
+  margin: 0;
+  color: var(--link);
+  font-size: 12px;
+}
