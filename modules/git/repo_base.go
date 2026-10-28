@@ -34,6 +34,8 @@ type Repository struct {
 
 	// backend serves the object, ref, history, diff and bulk reads (Seam A, see backend.go).
 	backend Backend
+	// backendName is the name the backend was bound under.
+	backendName string
 }
 
 // openRepositoryWithDefaultContext opens the repository at the given path with DefaultContext.
