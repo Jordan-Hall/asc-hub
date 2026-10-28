@@ -3,19 +3,20 @@
 	{{template "repo/header" .}}
 	{{$showDiffBox := false}}
 	{{$canReadPullRequests := .Permission.CanRead $.UnitTypePullRequests}}
-	<div class="ui container">
-	<h2 class="ui header asc-compare-title">
-		{{if and $.PageIsComparePull $.IsSigned (not .Repository.IsArchived)}}
-			{{if $canReadPullRequests}}
-				{{ctx.Locale.Tr "repo.pulls.compare_changes"}}
-				<div class="sub header">{{ctx.Locale.Tr "repo.pulls.compare_changes_desc"}}</div>
-			{{else}}
-				{{ctx.Locale.Tr "compare.branches.title"}}
-			{{end}}
-		{{else}}
-			{{ctx.Locale.Tr "action.compare_commits_general"}}
-		{{end}}
-	</h2>
+	<div class="rv rv-page rv-compare" data-testid="asc-compare-page">
+	{{template "base/alert" .}}
+	<header class="rv-head">
+		<div class="rv-head-main">
+			<h1 class="rv-title asc-compare-title">
+				{{- if and $.PageIsComparePull $.IsSigned (not .Repository.IsArchived) -}}
+					{{- if $canReadPullRequests}}{{ctx.Locale.Tr "repo.pulls.compare_changes"}}{{else}}{{ctx.Locale.Tr "compare.branches.title"}}{{end -}}
+				{{- else -}}
+					{{- ctx.Locale.Tr "action.compare_commits_general" -}}
+				{{- end -}}
+			</h1>
+			{{if and $.PageIsComparePull $.IsSigned (not .Repository.IsArchived) $canReadPullRequests}}<p class="rv-lead">{{ctx.Locale.Tr "repo.pulls.compare_changes_desc"}}</p>{{end}}
+		</div>
+	</header>
 	{{$BaseCompareName := $.BaseName -}}
 	{{- $HeadCompareName := $.HeadRepo.OwnerName -}}
 	{{- if and (eq $.BaseName $.HeadRepo.OwnerName) (ne $.Repository.Name $.HeadRepo.Name) -}}
@@ -32,12 +33,12 @@
 			{{- $HeadCompareName = printf "%s/%s" $.HeadRepo.OwnerName $.HeadRepo.Name -}}
 		{{- end -}}
 	{{- end -}}
-	<div class="ui segment choose branch">
-		<a class="tw-mr-2" href="{{$.HeadRepo.Link}}/compare/{{PathEscapeSegments $.HeadBranch}}{{$.CompareSeparator}}{{if not $.PullRequestCtx.SameRepo}}{{PathEscape $.BaseName}}/{{PathEscape $.Repository.Name}}:{{end}}{{PathEscapeSegments $.BaseBranch}}" title="{{ctx.Locale.Tr "repo.pulls.switch_head_and_base"}}">{{svg "octicon-git-compare"}}</a>
-		<div class="ui floating filter dropdown" data-no-results="{{ctx.Locale.Tr "repo.pulls.no_results"}}">
-			<div class="ui basic small button">
+	<div class="rv-card rv-chooser choose branch">
+		<a class="rv-btn rv-btn-secondary rv-btn-icon rv-chooser-swap" href="{{$.HeadRepo.Link}}/compare/{{PathEscapeSegments $.HeadBranch}}{{$.CompareSeparator}}{{if not $.PullRequestCtx.SameRepo}}{{PathEscape $.BaseName}}/{{PathEscape $.Repository.Name}}:{{end}}{{PathEscapeSegments $.BaseBranch}}" title="{{ctx.Locale.Tr "repo.pulls.switch_head_and_base"}}" aria-label="{{ctx.Locale.Tr "repo.pulls.switch_head_and_base"}}">{{svg "octicon-git-compare"}}</a>
+		<div class="ui floating filter dropdown rv-chooser-dd" data-no-results="{{ctx.Locale.Tr "repo.pulls.no_results"}}">
+			<div class="rv-btn rv-btn-secondary rv-chooser-btn">
 				<span class="text">{{if $.PageIsComparePull}}{{ctx.Locale.Tr "repo.pulls.compare_base"}}{{else}}{{ctx.Locale.Tr "repo.compare.compare_base"}}{{end}}: {{$BaseCompareName}}:{{$.BaseBranch}}</span>
-				{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+				{{svg "octicon-triangle-down" 14 "rv-chooser-caret"}}
 			</div>
 			<div class="menu">
 				<div class="ui icon search input">
@@ -94,11 +95,11 @@
 				</div>
 			</div>
 		</div>
-		<a href="{{.RepoLink}}/compare/{{PathEscapeSegments .BaseBranch}}{{.OtherCompareSeparator}}{{if not $.PullRequestCtx.SameRepo}}{{PathEscape $.HeadUser.Name}}/{{PathEscape $.HeadRepo.Name}}:{{end}}{{PathEscapeSegments $.HeadBranch}}" title="{{ctx.Locale.Tr "repo.pulls.switch_comparison_type"}}">{{svg "octicon-arrow-left" 16}}<div class="compare-separator">{{.CompareSeparator}}</div></a>
-		<div class="ui floating filter dropdown">
-			<div class="ui basic small button">
+		<a class="rv-chooser-sep" href="{{.RepoLink}}/compare/{{PathEscapeSegments .BaseBranch}}{{.OtherCompareSeparator}}{{if not $.PullRequestCtx.SameRepo}}{{PathEscape $.HeadUser.Name}}/{{PathEscape $.HeadRepo.Name}}:{{end}}{{PathEscapeSegments $.HeadBranch}}" title="{{ctx.Locale.Tr "repo.pulls.switch_comparison_type"}}" aria-label="{{ctx.Locale.Tr "repo.pulls.switch_comparison_type"}}">{{svg "octicon-arrow-left" 16}}<span class="compare-separator">{{.CompareSeparator}}</span></a>
+		<div class="ui floating filter dropdown rv-chooser-dd">
+			<div class="rv-btn rv-btn-secondary rv-chooser-btn">
 				<span class="text">{{if $.PageIsComparePull}}{{ctx.Locale.Tr "repo.pulls.compare_compare"}}{{else}}{{ctx.Locale.Tr "repo.compare.compare_head"}}{{end}}: {{$HeadCompareName}}:{{$.HeadBranch}}</span>
-				{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+				{{svg "octicon-triangle-down" 14 "rv-chooser-caret"}}
 			</div>
 			<div class="menu">
 				<div class="ui icon search input">
@@ -159,55 +160,46 @@
 
 	{{if .IsNothingToCompare}}
 		{{if and $.IsSigned $.AllowEmptyPr (not .Repository.IsArchived) .PageIsComparePull}}
-			<div class="ui segment">{{ctx.Locale.Tr "repo.pulls.nothing_to_compare_and_allow_empty_pr"}}</div>
-			<div class="ui info message show-form-container {{if .Flash}}tw-hidden{{end}}">
-				<button class="ui button primary show-form">{{ctx.Locale.Tr "repo.pulls.new"}}</button>
+			<div class="rv-banner rv-gap" role="status"><div>{{ctx.Locale.Tr "repo.pulls.nothing_to_compare_and_allow_empty_pr"}}</div></div>
+			<div class="rv-banner rv-gap show-form-container {{if .Flash}}tw-hidden{{end}}">
+				<button class="rv-btn rv-btn-primary show-form">{{ctx.Locale.Tr "repo.pulls.new"}}</button>
 			</div>
 			<div class="pullrequest-form {{if not .Flash}}tw-hidden{{end}}">
 				{{template "repo/issue/new_form" .}}
 			</div>
 		{{else if and .HeadIsBranch .BaseIsBranch}}
-			<div class="ui segment">{{ctx.Locale.Tr "repo.pulls.nothing_to_compare"}}</div>
+			<div class="rv-empty rv-gap" data-testid="asc-compare-nothing"><span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-search" 24}}</span><h2>{{ctx.Locale.Tr "asc_review.nc_nothing_title"}}</h2><p>{{ctx.Locale.Tr "repo.pulls.nothing_to_compare"}}</p></div>
 		{{else}}
-			<div class="ui segment">{{ctx.Locale.Tr "repo.pulls.nothing_to_compare_have_tag"}}</div>
+			<div class="rv-empty rv-gap" data-testid="asc-compare-nothing"><span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-search" 24}}</span><h2>{{ctx.Locale.Tr "asc_review.nc_nothing_title"}}</h2><p>{{ctx.Locale.Tr "repo.pulls.nothing_to_compare_have_tag"}}</p></div>
 		{{end}}
 	{{else if and .PageIsComparePull (gt .CommitCount 0) $canReadPullRequests}}
 		{{if .HasPullRequest}}
-			<div class="ui segment grid title">
-				<div class="twelve wide column issue-title">
-					{{ctx.Locale.Tr "repo.pulls.has_pull_request" (print $.RepoLink "/pulls/" .PullRequest.Issue.Index) $.RepoRelPath .PullRequest.Index}}
-					<h1>
-						<span id="issue-title">{{RenderIssueTitle $.Context .PullRequest.Issue.Title ($.Repository.ComposeMetas ctx)}}</span>
-						<span class="index">#{{.PullRequest.Issue.Index}}</span>
-					</h1>
+			<section class="rv-card rv-gap rv-haspr" data-testid="asc-compare-has-pr">
+				<div class="rv-card-b rv-row rv-row-wrap">
+					<div class="rv-grow issue-title">
+						<div class="rv-muted">{{ctx.Locale.Tr "repo.pulls.has_pull_request" (print $.RepoLink "/pulls/" .PullRequest.Issue.Index) $.RepoRelPath .PullRequest.Index}}</div>
+						<h2 class="rv-h3"><span id="issue-title">{{RenderIssueTitle $.Context .PullRequest.Issue.Title ($.Repository.ComposeMetas ctx)}}</span> <span class="index rv-faint">#{{.PullRequest.Issue.Index}}</span></h2>
+					</div>
+					<a href="{{$.RepoLink}}/pulls/{{.PullRequest.Issue.Index}}" class="rv-btn rv-btn-primary show-form">{{ctx.Locale.Tr "repo.pulls.view"}}</a>
 				</div>
-				<div class="four wide column middle aligned text right">
-				{{- if .PullRequest.HasMerged -}}
-				<a href="{{$.RepoLink}}/pulls/{{.PullRequest.Issue.Index}}" class="ui button purple show-form">{{svg "octicon-git-merge" 16}} {{ctx.Locale.Tr "repo.pulls.view"}}</a>
-				{{else if .Issue.IsClosed}}
-				<a href="{{$.RepoLink}}/pulls/{{.PullRequest.Issue.Index}}" class="ui button red show-form">{{svg "octicon-issue-closed" 16}} {{ctx.Locale.Tr "repo.pulls.view"}}</a>
-				{{else}}
-				<a href="{{$.RepoLink}}/pulls/{{.PullRequest.Issue.Index}}" class="ui button primary show-form">{{svg "octicon-git-pull-request" 16}} {{ctx.Locale.Tr "repo.pulls.view"}}</a>
-				{{end}}
-				</div>
-			</div>
+			</section>
 		{{else}}
 			{{if and $.IsSigned (not .Repository.IsArchived)}}
-				<div class="ui info message show-form-container tw-hidden">
-					<button class="ui button primary show-form">{{ctx.Locale.Tr "repo.pulls.new"}}</button>
+				<div class="rv-banner rv-gap show-form-container tw-hidden">
+					<button class="rv-btn rv-btn-primary show-form">{{ctx.Locale.Tr "repo.pulls.new"}}</button>
 				</div>
 			{{else if .Repository.IsArchived}}
-				<div class="ui warning message tw-text-center">
+				<div class="rv-banner rv-banner-warn rv-gap" role="status"><div>
 					{{if .Repository.ArchivedUnix.IsZero}}
 						{{ctx.Locale.Tr "repo.archive.title"}}
 					{{else}}
 						{{ctx.Locale.Tr "repo.archive.title_date" (DateUtils.AbsoluteLong .Repository.ArchivedUnix)}}
 					{{end}}
-				</div>
+				</div></div>
 			{{else}}
-				<div class="ui warning message tw-mb-4">
+				<div class="rv-banner rv-banner-warn rv-gap" role="status"><div>
 					{{ctx.Locale.Tr "repo.pulls.sign_in_require" .SignInLink}}
-				</div>
+				</div></div>
 			{{end}}
 			{{if $.IsSigned}}
 				<div class="pullrequest-form">
@@ -222,7 +214,7 @@
 	</div>
 
 	{{if $showDiffBox}}
-	<div class="ui container fluid padded">
+	<div class="rv rv-page rv-page-wide">
 		{{template "repo/commits_table" .}}
 		{{template "repo/diff/box" .}}
 	</div>

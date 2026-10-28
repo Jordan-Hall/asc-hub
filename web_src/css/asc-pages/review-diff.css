@@ -1,0 +1,821 @@
+/* stylelint-disable scale-unlimited/declaration-strict-value, csstools/value-no-unknown-custom-properties -- the tokens of the review pages are defined in review-kit.css */
+
+/* The review page: stack rail, tabs, versions panel, diff toolbar, file boxes and the diff itself. Mobile first.
+   The diff keeps the class names the page script works with (diff-file-box, code-diff, lines-num, add-code-comment, ...);
+   this sheet only skins them. */
+
+/* ---------- page frame ---------- */
+.rv-review {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "title"
+    "stack"
+    "main"
+    "panel";
+  align-items: start;
+}
+
+.rv-review-title {
+  grid-area: title;
+  min-width: 0;
+}
+
+.rv-review-stack {
+  grid-area: stack;
+  min-width: 0;
+}
+
+.rv-review-main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.rv-review-panel {
+  grid-area: panel;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .rv-review-rail {
+    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-areas:
+      "title title"
+      "stack main"
+      "panel main";
+    gap: 16px 24px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .rv-review-rail {
+    grid-template-columns: 260px minmax(0, 1fr) 300px;
+    grid-template-areas:
+      "stack title panel"
+      "stack main panel";
+  }
+
+  .rv-review-rail .rv-review-stack,
+  .rv-review-rail .rv-review-panel {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+/* the title block comes from the shared issue title partial: keep it compact */
+.rv-review-title .issue-title-header {
+  margin-bottom: 8px;
+}
+
+.rv-review-title .issue-title h1 {
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+@media (min-width: 900px) {
+  .rv-review-title .issue-title h1 {
+    font-size: 26px;
+  }
+}
+
+/* ---------- tabs ---------- */
+.rv-tabsbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+
+.rv-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-inline: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+
+.rv-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.rv-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.rv-tab:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.rv-tab[aria-current="page"] {
+  color: var(--text);
+  border-bottom-color: var(--fill);
+}
+
+.rv-tabs-size {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .rv-tabs-size {
+    display: inline-flex;
+  }
+}
+
+.rv-add {
+  color: var(--ok);
+}
+
+.rv-del {
+  color: var(--err);
+}
+
+/* ---------- stack rail ---------- */
+.rv-stackpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rv-stackpanel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rv-stackpanel-queue {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rv-stn-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rv-stn-link {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.rv-stn-link:hover {
+  border-color: var(--primary-line);
+  text-decoration: none;
+}
+
+.rv-stn.is-current .rv-stn-link {
+  background: var(--primary-soft);
+  border: 2px solid var(--fill);
+  padding: 9px 11px;
+}
+
+.rv-stn-tick {
+  display: grid;
+  place-items: center;
+  height: 20px;
+}
+
+.rv-stn-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--warn-dot);
+}
+
+.rv-stn-merged .rv-stn-dot {
+  background: var(--ok-dot);
+}
+
+.rv-stn-closed .rv-stn-dot {
+  background: var(--err-dot);
+}
+
+.rv-stn-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rv-stn-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rv-stn-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 12.5px;
+}
+
+.rv-stack-note {
+  margin: 0;
+}
+
+.rv-stack-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.rv-stack-cmd {
+  margin-top: 2px;
+}
+
+.rv-sidepanel .rv-gr a {
+  font-weight: 600;
+}
+
+/* ---------- menus that open without a script: details with a panel ---------- */
+.rv-menu {
+  position: relative;
+}
+
+.rv-menu > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.rv-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rv-menu[open] > summary .rv-caret {
+  transform: rotate(180deg);
+}
+
+.rv-menu-panel {
+  margin-top: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px -8px rgb(15 23 42 / 25%);
+  z-index: 20;
+}
+
+@media (min-width: 900px) {
+  .rv-menu-panel {
+    position: absolute;
+    inset-inline-start: 0;
+    min-width: 520px;
+    max-width: 640px;
+  }
+}
+
+/* ---------- versions ---------- */
+.rv-vers {
+  margin-bottom: 16px;
+}
+
+.rv-vers-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rv-vers-sum {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.rv-vers-steps {
+  margin: 0;
+  padding: 0;
+  flex: 1 1 100%;
+}
+
+@media (min-width: 640px) {
+  .rv-vers-steps {
+    flex: 0 1 auto;
+  }
+}
+
+.rv-vers-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rv-vlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rv-vrow {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 6px 10px;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-2);
+}
+
+.rv-vrow.is-current {
+  background: var(--primary-tint);
+}
+
+.rv-vnum {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.rv-vtitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-weight: 600;
+}
+
+.rv-vpick {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.rv-vrow > .rv-btn {
+  grid-column: 2;
+  justify-self: start;
+}
+
+@media (min-width: 640px) {
+  .rv-vrow {
+    grid-template-columns: 40px minmax(0, 1fr) auto auto;
+  }
+
+  .rv-vpick {
+    grid-column: auto;
+  }
+
+  .rv-vrow > .rv-btn {
+    grid-column: auto;
+  }
+}
+
+.rv-menu-panel {
+  overflow: hidden;
+}
+
+.rv-overlaps,
+.rv-badge-paths {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rv-overlap {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-2);
+}
+
+.rv-badge-paths {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rv-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* ---------- diff toolbar ---------- */
+.rv-diff {
+  --color-diff-added-row-bg: var(--add-bg);
+  --color-diff-removed-row-bg: var(--del-bg);
+  --color-diff-added-row-border: var(--add-gut);
+  --color-diff-removed-row-border: var(--del-gut);
+}
+
+.rv-diffbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.rv-diffbar-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rv-diffbar-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rv-diffbar-acts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rv-viewed-sum {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.rv-viewed-sum progress {
+  width: 140px;
+  height: 6px;
+  accent-color: var(--fill);
+}
+
+.rv-dd.ui.dropdown {
+  position: relative;
+}
+
+.rv-dd.ui.dropdown > .menu {
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.rv-dd.ui.dropdown > .menu > .item {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 639.98px) {
+  .rv-dd.ui.dropdown > .menu {
+    position: fixed !important;
+    inset: auto 0 0 !important;
+    width: 100% !important;
+    max-height: 70vh;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    z-index: 40;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* the review button stays within reach on a phone */
+@media (max-width: 899.98px) {
+  .rv-diff #review-box {
+    position: fixed;
+    inset-inline-end: 16px;
+    bottom: calc(var(--rv-bottom-bar) + 16px + env(safe-area-inset-bottom));
+    z-index: 30;
+  }
+
+  .rv-diff #review-box .js-btn-review {
+    box-shadow: 0 6px 20px -6px rgb(15 23 42 / 55%);
+  }
+}
+
+.rv-reviewpanel {
+  width: min(520px, calc(100vw - 32px));
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.rv-reviewpanel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rv-reviewpanel-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ---------- file boxes ---------- */
+.rv-file {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin: 0 0 16px;
+  overflow: clip;
+}
+
+.rv-fhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 6px 10px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.rv-fname {
+  display: flex;
+  flex: 1 1 280px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  min-width: 0;
+}
+
+.rv-fstats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--fonts-monospace, "JetBrains Mono", ui-monospace, monospace);
+  font-weight: 700;
+}
+
+.rv-fpath {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  flex: 1 1 200px;
+  min-width: 0;
+  font-family: var(--fonts-monospace, "JetBrains Mono", ui-monospace, monospace);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.rv-fpath a {
+  color: var(--text);
+}
+
+.rv-fmode {
+  margin-inline: 6px;
+  font-family: var(--fonts-monospace, "JetBrains Mono", ui-monospace, monospace);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.rv-fhead-acts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rv-fview {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.rv-fview .active {
+  background: var(--primary-soft);
+}
+
+.rv-fhead .viewed-file-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding-inline: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rv-fhead .viewed-file-form input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--fill);
+}
+
+.rv-fbar {
+  display: inline-block;
+  width: 36px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--del-gut);
+  overflow: hidden;
+}
+
+.rv-fbar .diff-stats-add-bar {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+}
+
+.rv-fbody {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  overflow-inline: auto;
+  background: var(--surface);
+}
+
+/* ---------- the diff table ---------- */
+.rv-diff table.chroma {
+  font-family: var(--fonts-monospace, "JetBrains Mono", ui-monospace, monospace);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.repository .rv-diff .diff-file-box .code-diff table {
+  table-layout: auto;
+  min-width: 100%;
+  width: max-content;
+}
+
+.repository .rv-diff .diff-file-box .code-diff-split table,
+.repository .rv-diff .diff-file-box .code-diff-split tbody {
+  width: max-content;
+}
+
+.repository .rv-diff .code-diff td.lines-code,
+.repository .rv-diff .code-diff td.lines-code .code-inner {
+  white-space: pre !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.rv-diff .code-diff .lines-num {
+  min-width: 40px;
+  color: var(--text-3);
+  user-select: none;
+}
+
+.rv-diff .code-diff-unified .add-code .lines-num,
+.rv-diff .code-diff-split .add-code .lines-num-new {
+  background: var(--add-gut);
+  color: var(--add-ink);
+}
+
+.rv-diff .code-diff-unified .del-code .lines-num,
+.rv-diff .code-diff-split .del-code .lines-num-old {
+  background: var(--del-gut);
+  color: var(--del-ink);
+}
+
+.rv-diff .code-diff tr.tag-code td {
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+/* a line can be commented on a touch screen too: there is no hover, so the button shows */
+@media (hover: none) {
+  .rv-diff .ui.button.add-code-comment {
+    opacity: .85;
+  }
+
+  .rv-diff .code-diff .lines-num {
+    min-width: 36px;
+  }
+}
+
+.rv-diff .add-code-comment,
+.rv-diff .code-expander-button {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+@media (hover: none) {
+  .rv-diff .code-expander-button {
+    min-width: 44px;
+    min-height: 32px;
+  }
+}
+
+/* ---------- comment threads in the diff ---------- */
+.rv-diff .conversation-holder {
+  background: var(--note-bg);
+  border-block: 1px solid var(--note-line);
+  color: var(--text);
+}
+
+.rv-diff .conversation-holder .comment .content,
+.rv-diff .conversation-holder .comment-container {
+  border-radius: 10px;
+}
+
+.rv-diff .conversation-holder .ui.button,
+.rv-diff .conversation-holder .ui.basic.button {
+  min-height: 44px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+/* ---------- the file tree ---------- */
+.rv-filetree {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px;
+}
+
+#diff-container {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+#diff-content-container {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#diff-file-tree {
+  flex: 0 0 280px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  position: sticky;
+  top: 16px;
+}
+
+.rv-comment-form {
+  margin: 0;
+}
+
+/* the stats line stays on a phone; the toolbar scrolls away there instead of sticking */
+.repository .rv-diff .diff-detail-box .diff-detail-stats {
+  display: flex !important;
+}
+
+@media (max-width: 899.98px) {
+  .repository .rv-diff .diff-detail-box {
+    position: static;
+    margin: 0 0 12px;
+    padding: 0;
+  }
+}
+
+.rv-fhead .rv-btn-sm {
+  padding-inline: 10px;
+  font-size: 13px;
+}
+
+.rv-fpath a,
+.rv-fpath .file-link {
+  display: inline-flex;
+  align-items: center;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.repository .rv-diff .ui.button.add-code-comment {
+  min-width: 24px;
+  min-height: 24px;
+}

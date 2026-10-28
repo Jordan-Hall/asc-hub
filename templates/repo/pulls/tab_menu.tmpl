@@ -1,28 +1,29 @@
-<div class="ui pull tabs container">
-	<div class="ui top attached pull tabular menu">
-		<a class="item {{if .PageIsPullConversation}}active{{end}}" href="{{.Issue.Link}}">
-			{{svg "octicon-comment-discussion"}}
+{{/*
+The tabs of a pull request: conversation, commits and files changed, with the size of the change at the end.
+Template Attributes: PageIsPullConversation, PageIsPullCommits, PageIsPullFiles, Issue, NumCommits, NumFiles, Diff
+*/}}
+<div class="rv rv-tabsbar">
+	<nav class="rv-tabs" aria-label="{{ctx.Locale.Tr "asc_review.rev_tabs"}}">
+		<a class="rv-tab" href="{{.Issue.Link}}"{{if .PageIsPullConversation}} aria-current="page"{{end}}>
 			{{ctx.Locale.Tr "repo.pulls.tab_conversation"}}
-			<span class="ui small label">{{.Issue.NumComments}}</span>
+			<span class="rv-count">{{.Issue.NumComments}}</span>
 		</a>
-		<a class="item {{if .PageIsPullCommits}}active{{end}}" {{if .NumCommits}}href="{{.Issue.Link}}/commits"{{end}}>
-			{{svg "octicon-git-commit"}}
+		<a class="rv-tab" {{if .NumCommits}}href="{{.Issue.Link}}/commits"{{end}}{{if .PageIsPullCommits}} aria-current="page"{{end}}>
 			{{ctx.Locale.Tr "repo.pulls.tab_commits"}}
-			<span class="ui small label">{{if .NumCommits}}{{.NumCommits}}{{else}}-{{end}}</span>
+			<span class="rv-count">{{if .NumCommits}}{{.NumCommits}}{{else}}-{{end}}</span>
 		</a>
-		<a class="item {{if .PageIsPullFiles}}active{{end}}" href="{{.Issue.Link}}/files">
-			{{svg "octicon-diff"}}
+		<a class="rv-tab" href="{{.Issue.Link}}/files"{{if .PageIsPullFiles}} aria-current="page"{{end}}>
 			{{ctx.Locale.Tr "repo.pulls.tab_files"}}
-			<span class="ui small label">{{if .NumFiles}}{{.NumFiles}}{{else}}-{{end}}</span>
+			<span class="rv-count">{{if .NumFiles}}{{.NumFiles}}{{else}}-{{end}}</span>
 		</a>
-		{{if or .Diff.TotalAddition .Diff.TotalDeletion}}
-		<span class="tw-ml-auto tw-pl-3 tw-whitespace-nowrap tw-pr-0 tw-font-bold tw-flex tw-items-center tw-gap-2">
-			<span><span class="text green">{{if .Diff.TotalAddition}}+{{.Diff.TotalAddition}}{{end}}</span> <span class="text red">{{if .Diff.TotalDeletion}}-{{.Diff.TotalDeletion}}{{end}}</span></span>
-			<span class="diff-stats-bar">
-				<div class="diff-stats-add-bar" style="width: {{Eval 100 "*" .Diff.TotalAddition "/" "(" .Diff.TotalAddition "+" .Diff.TotalDeletion "+" 0.0 ")"}}%"></div>
-			</span>
+	</nav>
+	{{if or .Diff.TotalAddition .Diff.TotalDeletion}}
+	<div class="rv-tabs-size" aria-label="{{ctx.Locale.Tr "repo.diff.stats_desc" .NumFiles .Diff.TotalAddition .Diff.TotalDeletion}}">
+		<span class="rv-add">{{if .Diff.TotalAddition}}+{{.Diff.TotalAddition}}{{end}}</span>
+		<span class="rv-del">{{if .Diff.TotalDeletion}}&minus;{{.Diff.TotalDeletion}}{{end}}</span>
+		<span class="diff-stats-bar" aria-hidden="true">
+			<span class="diff-stats-add-bar" style="width: {{Eval 100 "*" .Diff.TotalAddition "/" "(" .Diff.TotalAddition "+" .Diff.TotalDeletion "+" 0.0 ")"}}%"></span>
 		</span>
-		{{end}}
 	</div>
-	<div class="ui tabs divider"></div>
+	{{end}}
 </div>

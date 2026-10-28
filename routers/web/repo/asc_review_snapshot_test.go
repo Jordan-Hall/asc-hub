@@ -5,18 +5,24 @@ package repo
 
 import (
 	gocontext "context"
+	"html/template"
 	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
 
+	issues_model "forgejo.org/models/issues"
 	perm_model "forgejo.org/models/perm"
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/base"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/templates"
 	"forgejo.org/modules/translation"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
+	"forgejo.org/services/contexttest"
+	pull_service "forgejo.org/services/pull"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -51,6 +57,14 @@ func withLocale(h func(*context.Context)) func(*context.Context) {
 		}
 		h(c)
 	}
+}
+
+func initSnapshotLocales() {
+	if len(setting.Langs) == 0 || setting.Langs[0] != "en-US" {
+		setting.Langs = []string{"en-US"}
+		setting.Names = []string{"English"}
+	}
+	translation.InitLocales(gocontext.Background())
 }
 
 func writeSnapshot(t *testing.T, dir, name, body string) {
@@ -304,4 +318,106 @@ func TestAscReviewSnapshotGate(t *testing.T) {
 	}
 	p = gatePage(t, "", 2, adminAccess)
 	writeSnapshot(t, dir, "gate-error", p.body)
+}
+
+func TestAscReviewSnapshotCompare(t *testing.T) {
+	dir := snapshotDir(t)
+	require.NoError(t, unittest.PrepareTestDatabase())
+	setStorageBackend(t, 1, "asc")
+	f := startFakeBadges(t)
+	sha := func(b byte) []byte {
+		out := make([]byte, 20)
+		for i := range out {
+			out[i] = b
+		}
+		return out
+	}
+	f.compare = func(r *ascv1.CompareRequest) (*ascv1.CompareResponse, error) {
+		return &ascv1.CompareResponse{
+			MergeBase: sha(0xab), Ahead: 3, Behind: 1,
+			AheadEntries: []*ascv1.LogEntry{
+				{Git: sha(0x11), Message: []byte("Reject duplicate refund requests that reuse a key\n\nbody"), Author: &ascv1.Signature{Name: []byte("Maya Okafor")}},
+				{Git: sha(0x22), Message: []byte("Add idempotency key column"), Author: &ascv1.Signature{Name: []byte("Diego Alvarez")}},
+				{Git: sha(0x33), Message: []byte("Define the key type"), Author: &ascv1.Signature{Name: []byte("Diego Alvarez")}},
+			},
+			BehindEntries: []*ascv1.LogEntry{{Git: sha(0x44), Message: []byte("Bump the toolchain"), Author: &ascv1.Signature{Name: []byte("Priya Raman")}}},
+			Files:         []*ascv1.PathChange{{Path: []byte("src/refunds/handler.rs"), Status: "M"}, {Path: []byte("src/refunds/keys.rs"), Status: "A"}, {Path: []byte("tests/refunds.rs"), Status: "M"}, {Path: []byte("docs/old.md"), Status: "D"}},
+		}, nil
+	}
+	get := func(query string) string {
+		ctx, resp := contexttest.MockContext(t, "/user2/repo1/asc/compare"+query)
+		ctx.Render = templates.HTMLRenderer()
+		contexttest.LoadRepo(t, ctx, 1)
+		ctx.Data["RepoLink"] = ctx.Repo.RepoLink
+		withLocale(AscCompare)(ctx)
+		return resp.Body.String()
+	}
+	writeSnapshot(t, dir, "asc-compare", get("?a=main&b=idempotency-keys"))
+	f.compare = func(*ascv1.CompareRequest) (*ascv1.CompareResponse, error) {
+		return &ascv1.CompareResponse{MergeBase: sha(0xab)}, nil
+	}
+	writeSnapshot(t, dir, "asc-compare-nothing", get("?a=main&b=main"))
+	writeSnapshot(t, dir, "asc-compare-form", get(""))
+	writeSnapshot(t, dir, "asc-compare-bad", get("?a=--bad&b=main"))
+}
+
+// renderFragment renders one template with the given data and the real messages, and writes it as frag-<name>.html.
+func renderFragment(t *testing.T, dir, name, tpl string, data map[string]any) {
+	t.Helper()
+	ctx, resp := contexttest.MockContext(t, "/user2/repo1/pulls/2/files")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadRepo(t, ctx, 1)
+	ctx.Base.Locale = translation.NewLocale("en-US")
+	if ctx.TemplateContext != nil {
+		ctx.TemplateContext.Locale = ctx.Base.Locale
+	}
+	issue := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 2})
+	require.NoError(t, issue.LoadRepo(gocontext.Background()))
+	ctx.Data["Issue"] = issue
+	ctx.Data["RepoLink"] = ctx.Repo.RepoLink
+	ctx.Data["CsrfTokenHtml"] = template.HTML(`<input type="hidden" name="_csrf" value="csrf-token-for-tests">`)
+	for k, v := range data {
+		ctx.Data[k] = v
+	}
+	ctx.HTML(200, base.TplName(tpl))
+	require.Equal(t, 200, resp.Code, resp.Body.String())
+	writeSnapshot(t, dir, "frag-"+name, resp.Body.String())
+}
+
+func TestAscReviewSnapshotChangeParts(t *testing.T) {
+	dir := snapshotDir(t)
+	require.NoError(t, unittest.PrepareTestDatabase())
+	initSnapshotLocales()
+	panel := &pull_service.AscStackPanel{
+		Entries: []pull_service.AscStackEntry{
+			{Index: 11, Title: "Add the retry policy type", State: "merged", Link: "/user2/repo1/pulls/11", Position: 1},
+			{Index: 12, Title: "Backoff with jitter", State: "open", Link: "/user2/repo1/pulls/12", Position: 2},
+			{Index: 13, Title: "Wire the retry policy into the client", State: "open", Link: "/user2/repo1/pulls/13", Position: 3, Current: true},
+			{Index: 14, Title: "Docs and retry metrics", State: "open", Link: "/user2/repo1/pulls/14", Position: 4},
+		},
+		NeedsRestack: true, MergeBlocked: true,
+	}
+	panel.Parent = &panel.Entries[1]
+	actions := &AscStackActions{CanQueue: true, CanMerge: true, CanRestack: true, CanRevert: false, ConfirmURL: "/user2/repo1/pulls/13/asc/confirm", QueueURL: "/user2/repo1/asc/queue"}
+	renderFragment(t, dir, "stack", "repo/pulls/asc_stack", map[string]any{"AscStackPanel": panel, "AscActions": actions, "AscQueueStates": map[int64]string{14: "queued"}})
+	panel2 := *panel
+	panel2.NeedsRestack, panel2.MergeBlocked = false, false
+	renderFragment(t, dir, "stack-plain", "repo/pulls/asc_stack", map[string]any{"AscStackPanel": &panel2, "AscActions": &AscStackActions{CanUnqueue: true, CanRevert: true, ConfirmURL: "/x", QueueURL: "/q"}})
+
+	versions := &pull_service.AscVersionList{Versions: []pull_service.AscVersion{
+		{N: 1, At: 1_700_000_000, Actor: "coder-2"}, {N: 2, At: 1_700_100_000, Actor: "ASC, automatic"},
+		{N: 3, At: 1_700_200_000, Actor: "coder-2"}, {N: 4, At: 1_700_300_000, Actor: "coder-2"},
+	}}
+	sigs := map[uint32]asctrust.Badge{
+		1: {Label: "Verified", Tone: "ok", Title: "Signed by key mo_41c9"}, 2: {Label: "Unsigned", Tone: "ro", Title: "Made by the server"},
+		3: {Label: "Verified", Tone: "ok", Title: "Signed"}, 4: {Label: "Unverified", Tone: "wn", Title: "The key is not known"},
+	}
+	vdata := map[string]any{"AscVersions": versions, "AscVersionFrom": uint32(3), "AscVersionTo": uint32(4), "AscHeadVersion": uint32(4), "AscCanRestore": true, "AscSignatures": sigs, "AscSinceVersion": uint32(2)}
+	renderFragment(t, dir, "versions", "repo/pulls/asc_versions", vdata)
+
+	renderFragment(t, dir, "badges", "repo/pulls/asc_badges", map[string]any{"AscBadges": &AscBadges{
+		Merge:    &AscMergeBadge{State: AscMergeConflicts, Conflicts: []string{"docs/retries.md", "src/policy.rs"}, MoreConflicts: 3},
+		Overlaps: []AscOverlapBadge{{Change: "mmmmmmmm", PullIndex: 12, PullLink: "/user2/repo1/pulls/12", ReviewState: "open", Approvals: 1, Paths: []string{"src/payments/client.rs", "src/payments/refund.rs"}, MorePaths: 2}},
+	}})
+	renderFragment(t, dir, "panel", "repo/pulls/asc_panel", map[string]any{"AscStackPanel": panel})
 }
