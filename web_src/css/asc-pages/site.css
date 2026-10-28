@@ -680,3 +680,128 @@
     width: auto;
   }
 }
+
+/* first run setup */
+.ins .ins-head {
+  padding: 24px 0 12px;
+}
+
+.ins .ins-head .ds-t-lead {
+  margin: 8px 0 0;
+  max-width: 62ch;
+}
+
+.ins .ins-main {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.ins .ins-card .ds-card-h {
+  align-items: flex-start;
+}
+
+.ins .ins-card .ds-card-h h2 {
+  margin: 0;
+}
+
+.ins .ins-card .ds-card-h p {
+  margin: 4px 0 0;
+}
+
+.ins .ins-card .ds-card-b {
+  padding: 16px;
+}
+
+.ins .ins-acc-body {
+  padding: 4px 0 16px;
+}
+
+.ins .ds-acc > summary {
+  justify-content: space-between;
+}
+
+.ins .ds-acc > summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-2);
+  border-bottom: 2px solid var(--text-2);
+  transform: rotate(45deg);
+  margin-right: 4px;
+}
+
+.ins .ds-acc[open] > summary::after {
+  transform: rotate(-135deg);
+}
+
+.ins .ins-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+
+.ins .ins-steps {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.ins .ins-steps a {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.ins .ins-steps a:hover {
+  background: var(--hover);
+}
+
+.ins .ins-steps span {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.ins .ins-rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .ins .ins-rail {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+    position: sticky;
+    top: calc(var(--header-h) + 16px);
+  }
+
+  .ins .ins-card .ds-card-b {
+    padding: 20px;
+  }
+}
+
+.ins-bar .ds-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ins-bar .ins-bar-sub {
+  color: var(--navy-text-2);
+  font-size: 14px;
+}
+
+.ins .ins-wait {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: 8px;
+}
