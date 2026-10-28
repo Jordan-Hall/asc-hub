@@ -23,6 +23,12 @@ Status words: **done**, **ui-only-missing** (data and routes exist, markup or sc
 
 Rules: permissions and row-level visibility exactly the platform's; tokens are the platform's personal access tokens (extend them with expiry and new scopes where a board shows them, never a second token system); no TODO, stub, fake data or hidden control.
 
+## Release cadence
+
+- When Phase 1 (UI) is complete: cut a release (tag, signed artifacts, images, downloads published) and deploy it to staging.
+- After that, every full feature (a finished feature family with its backend, UI, tests and docs) gets its own release and deploy, in the phase order above.
+- A release needs: green CI on the tag, the signing key (`ASC_MINISIGN_KEY` secret, `ASC_RELEASE_PUBKEY` variable), GitHub Actions able to run (billing), and the deploy script (`scratchpad/deploy-asc.sh` pattern: wait for the asc image, pin `ASC_SERVE_IMAGE`, rebuild the hub image, pin the tag in Coolify, restart, wait for 200).
+
 ## Phase 1 rows (ui-only-missing)
 
 ### shell
