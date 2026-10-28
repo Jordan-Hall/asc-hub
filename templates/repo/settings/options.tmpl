@@ -1,21 +1,21 @@
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings options")}}
 	<div class="user-main-content twelve wide column">
-		<h4 class="ui top attached header">
+		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "repo.settings.basic_settings"}}
 		</h4>
-		<div class="ui attached segment">
-			<form class="ui form" action="{{.Link}}" method="post">
+		<div class="ds-card ds-card-b ds-card-attach">
+			<form class="ui form ds-form" action="{{.Link}}" method="post">
 				{{template "base/disable_form_autofill"}}
 				<input type="hidden" name="action" value="update">
-				<div class="required field {{if .Err_RepoName}}error{{end}}">
-					<label>{{ctx.Locale.Tr "repo.repo_name"}}</label>
-					<input name="repo_name" value="{{.Repository.Name}}" data-repo-name="{{.Repository.Name}}" autofocus required autocorrect="off" autocapitalize="none" spellcheck="false">
+				<div class="required ds-field {{if .Err_RepoName}}error{{end}}">
+					<label for="repo_name">{{ctx.Locale.Tr "repo.repo_name"}}</label>
+					<input class="ds-input" id="repo_name" name="repo_name" value="{{.Repository.Name}}" data-repo-name="{{.Repository.Name}}" autofocus required autocorrect="off" autocapitalize="none" spellcheck="false">
 				</div>
-				<div class="inline field">
+				<div class="inline ds-field">
 					<label>{{ctx.Locale.Tr "repo.repo_size"}}</label>
 					<span {{if not (eq .Repository.Size 0)}} data-tooltip-content="{{.Repository.SizeDetailsString ctx.Locale}}"{{end}}>{{ctx.Locale.TrSize .Repository.Size}}</span>
 				</div>
-				<div class="inline field">
+				<div class="inline ds-field">
 					<label>{{ctx.Locale.Tr "repo.template"}}</label>
 					<div class="ui checkbox">
 						<input name="template" type="checkbox" {{if .Repository.IsTemplate}}checked{{end}}>
@@ -23,7 +23,7 @@
 					</div>
 				</div>
 				{{if not .Repository.IsFork}}
-					<div class="inline field">
+					<div class="inline ds-field">
 						<label>{{ctx.Locale.Tr "repo.visibility"}}</label>
 						<div class="ui checkbox" {{if and (not .Repository.IsPrivate) (gt .Repository.NumStars 0)}}data-tooltip-content="{{ctx.Locale.Tr "repo.stars_remove_warning"}}"{{end}}>
 							{{if .IsAdmin}}
@@ -36,28 +36,28 @@
 						</div>
 					</div>
 				{{end}}
-				<div class="field {{if .Err_Description}}error{{end}}">
+				<div class="ds-field {{if .Err_Description}}error{{end}}">
 					<label for="description">{{ctx.Locale.Tr "repo.repo_desc"}}</label>
-					<textarea id="description" name="description" rows="2" maxlength="2048">{{.Repository.Description}}</textarea>
+					<textarea class="ds-textarea" id="description" name="description" rows="2" maxlength="2048">{{.Repository.Description}}</textarea>
 				</div>
-				<div class="field {{if .Err_Website}}error{{end}}">
+				<div class="ds-field {{if .Err_Website}}error{{end}}">
 					<label for="website">{{ctx.Locale.Tr "repo.settings.site"}}</label>
-					<input id="website" name="website" type="url" maxlength="1024" pattern="{{.ValidSiteURLPattern}}" value="{{.Repository.Website}}">
+					<input class="ds-input" id="website" name="website" type="url" maxlength="1024" pattern="{{.ValidSiteURLPattern}}" value="{{.Repository.Website}}">
 					<span class="ds-hint">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</span>
 				</div>
-				<div class="field">
-					<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
+				<div class="ds-field">
+					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
 				</div>
 			</form>
 
 			<div class="divider"></div>
-			<form class="ui form" action="{{.Link}}/avatar" method="post" enctype="multipart/form-data">
-				<div class="inline field">
+			<form class="ui form ds-form" action="{{.Link}}/avatar" method="post" enctype="multipart/form-data">
+				<div class="inline ds-field">
 					<label for="avatar">{{ctx.Locale.Tr "settings.choose_new_avatar"}}</label>
-					<input name="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+					<input id="avatar" name="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
 					<br/><span class=help>{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</span>
 				</div>
-				<div class="field button-sequence">
+				<div class="ds-field button-sequence">
 					<button class="primary button">{{ctx.Locale.Tr "settings.update_avatar"}}</button>
 					<button class="danger button link-action" data-url="{{.Link}}/avatar/delete">{{ctx.Locale.Tr "settings.delete_current_avatar"}}</button>
 				</div>
@@ -65,21 +65,21 @@
 		</div>
 
 		{{if FederationEnabled}}
-			<h4 class="ui top attached header">
+			<h4 class="ds-card-top">
 				{{ctx.Locale.Tr "repo.settings.federation_settings"}}
 			</h4>
-			<div class="ui attached segment">
-				<form class="ui form" method="post">
+			<div class="ds-card ds-card-b ds-card-attach">
+				<form class="ui form ds-form" method="post">
 					<input type="hidden" name="action" value="federation">
-					<div class="field {{if .Err_FollowingRepos}}error{{end}}">
+					<div class="ds-field {{if .Err_FollowingRepos}}error{{end}}">
 						<p>{{ctx.Locale.Tr "repo.settings.federation_apapiurl"}}</p>
 						<p><b>{{.RepositoryAPActorID}}</b></p>
 						<div class="divider"></div>
 						<label for="following_repos">{{ctx.Locale.Tr "repo.settings.federation_following_repos"}}</label>
-						<input id="following_repos" name="following_repos" value="{{.FollowingRepos}}">
+						<input class="ds-input" id="following_repos" name="following_repos" value="{{.FollowingRepos}}">
 					</div>
-					<div class="field">
-						<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
+					<div class="ds-field">
+						<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
 					</div>
 				</form>
 			</div>
@@ -97,12 +97,12 @@
 		{{$isWorkingPullMirror := .PullMirror}}
 
 		{{if $showMirrorSettings}}
-			<h4 class="ui top attached header">
+			<h4 class="ds-card-top">
 				{{ctx.Locale.Tr "repo.settings.mirror_settings"}}
 			</h4>
-			<div class="ui attached segment">
+			<div class="ds-card ds-card-b ds-card-attach">
 				{{if .Repository.IsArchived}}
-					<div class="ui warning message tw-text-center">
+					<div class="ds-banner ds-banner-warn">
 						{{ctx.Locale.Tr "repo.settings.archive.mirrors_unavailable"}}
 					</div>
 				{{else}}
@@ -129,7 +129,7 @@
 					{{end}}
 
 					{{if .Repository.IsMirror}}
-					<table class="ui table">
+					<div class="ds-table-wrap"><table class="ds-table">
 						<thead>
 							<tr>
 								<th class="tw-w-2/5">{{ctx.Locale.Tr "repo.settings.mirror_settings.mirrored_repository"}}</th>
@@ -158,13 +158,13 @@
 								<td class="right aligned">
 									<form method="post" class="tw-inline-block">
 										<input type="hidden" name="action" value="mirror-sync">
-										<button class="ui primary tiny button inline">{{ctx.Locale.Tr "repo.settings.sync_mirror"}}</button>
+										<button class="ds-btn ds-btn-primary ds-btn-sm inline">{{ctx.Locale.Tr "repo.settings.sync_mirror"}}</button>
 									</form>
 								</td>
 							</tr>
 							<tr>
 								<td colspan="4">
-									<form class="ui form" method="post">
+									<form class="ui form ds-form" method="post">
 										{{template "base/disable_form_autofill"}}
 										<input type="hidden" name="action" value="mirror">
 										<div class="inline field {{if .Err_EnablePrune}}error{{end}}">
@@ -176,56 +176,56 @@
 										</div>
 										<div class="inline field {{if .Err_Interval}}error{{end}}">
 											<label for="interval">{{ctx.Locale.Tr "repo.mirror_interval" .MinimumMirrorInterval}}</label>
-											<input id="interval" name="interval" value="{{.PullMirror.Interval}}">
+											<input class="ds-input" id="interval" name="interval" value="{{.PullMirror.Interval}}">
 										</div>
-										<div class="field {{if .Err_MirrorAddress}}error{{end}}">
+										<div class="ds-field {{if .Err_MirrorAddress}}error{{end}}">
 											<label for="mirror_address">{{ctx.Locale.Tr "repo.mirror_address"}}</label>
-											<input id="mirror_address" name="mirror_address" value="{{$address.Address}}" required>
+											<input class="ds-input" id="mirror_address" name="mirror_address" value="{{$address.Address}}" required>
 											<p class="help">{{ctx.Locale.Tr "repo.mirror_address_desc"}}</p>
 										</div>
-										<details class="ui optional field" {{if or .Err_Auth $address.Username}}open{{end}}>
+										<details class="ds-field" {{if or .Err_Auth $address.Username}}open{{end}}>
 											<summary class="tw-p-1">
 												{{ctx.Locale.Tr "repo.need_auth"}}
 											</summary>
 											<div class="tw-p-1">
 												<div class="inline field {{if .Err_Auth}}error{{end}}">
 													<label for="mirror_username">{{ctx.Locale.Tr "username"}}</label>
-													<input id="mirror_username" name="mirror_username" value="{{$address.Username}}" {{if not .mirror_username}}data-need-clear="true"{{end}}>
+													<input class="ds-input" id="mirror_username" name="mirror_username" value="{{$address.Username}}" {{if not .mirror_username}}data-need-clear="true"{{end}}>
 												</div>
 												<div class="inline field {{if .Err_Auth}}error{{end}}">
 													<label for="mirror_password">{{ctx.Locale.Tr "password"}}</label>
-													<input id="mirror_password" name="mirror_password" type="password" placeholder="{{if $address.Password}}{{ctx.Locale.Tr "repo.mirror_password_placeholder"}}{{else}}{{ctx.Locale.Tr "repo.mirror_password_blank_placeholder"}}{{end}}" value="" {{if not .mirror_password}}data-need-clear="true"{{end}} autocomplete="off">
+													<input class="ds-input" id="mirror_password" name="mirror_password" type="password" placeholder="{{if $address.Password}}{{ctx.Locale.Tr "repo.mirror_password_placeholder"}}{{else}}{{ctx.Locale.Tr "repo.mirror_password_blank_placeholder"}}{{end}}" value="" {{if not .mirror_password}}data-need-clear="true"{{end}} autocomplete="off">
 												</div>
 												<p class="help">{{ctx.Locale.Tr "repo.mirror_password_help"}}</p>
 											</div>
 										</details>
 
 										{{if .LFSStartServer}}
-										<div class="inline field">
+										<div class="inline ds-field">
 											<label>{{ctx.Locale.Tr "repo.mirror_lfs"}}</label>
 											<div class="ui checkbox">
 												<input id="mirror_lfs" name="mirror_lfs" type="checkbox" {{if .PullMirror.LFS}}checked{{end}}>
 												<label>{{ctx.Locale.Tr "repo.mirror_lfs_desc"}}</label>
 											</div>
 										</div>
-										<div class="field {{if .Err_LFSEndpoint}}error{{end}}">
+										<div class="ds-field {{if .Err_LFSEndpoint}}error{{end}}">
 											<label for="mirror_lfs_endpoint">{{ctx.Locale.Tr "repo.mirror_lfs_endpoint"}}</label>
-											<input id="mirror_lfs_endpoint" name="mirror_lfs_endpoint" value="{{.PullMirror.LFSEndpoint}}" placeholder="{{ctx.Locale.Tr "repo.migrate_options_lfs_endpoint.placeholder"}}">
+											<input class="ds-input" id="mirror_lfs_endpoint" name="mirror_lfs_endpoint" value="{{.PullMirror.LFSEndpoint}}" placeholder="{{ctx.Locale.Tr "repo.migrate_options_lfs_endpoint.placeholder"}}">
 											<p class="help">{{ctx.Locale.Tr "repo.mirror_lfs_endpoint_desc" "https://github.com/git-lfs/git-lfs/blob/main/docs/api/server-discovery.md#server-discovery"}}</p>
 										</div>
 										{{end}}
-										<div class="field">
-											<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.update_mirror_settings"}}</button>
+										<div class="ds-field">
+											<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.update_mirror_settings"}}</button>
 										</div>
 									</form>
 								</td>
 							</tr>
 						</tbody>
 						{{end}}{{/* end if: $modifyBrokenPullMirror / $isWorkingPullMirror */}}
-					</table>
+					</table></div>
 					{{end}}{{/* end if .Repository.IsMirror */}}
 
-					<table class="ui table">
+					<div class="ds-table-wrap"><table class="ds-table">
 						<thead>
 							<tr>
 								<th class="tw-w-2/5">{{ctx.Locale.Tr "repo.settings.mirror_settings.pushed_repository"}}</th>
@@ -240,11 +240,11 @@
 							<tr>
 								<td class="tw-break-anywhere">{{.RemoteAddress}}</td>
 								<td>{{ctx.Locale.Tr "repo.settings.mirror_settings.direction.push"}}</td>
-								<td>{{if .LastUpdateUnix}}{{DateUtils.FullTime .LastUpdateUnix}}{{else}}{{ctx.Locale.Tr "never"}}{{end}} {{if .LastError}}<div class="ui red label" data-tooltip-content="{{.LastError}}">{{ctx.Locale.Tr "error"}}</div>{{end}}</td>
+								<td>{{if .LastUpdateUnix}}{{DateUtils.FullTime .LastUpdateUnix}}{{else}}{{ctx.Locale.Tr "never"}}{{end}} {{if .LastError}}<div class="ds-chip ds-chip-err" data-tooltip-content="{{.LastError}}">{{ctx.Locale.Tr "error"}}</div>{{end}}</td>
 								<td>{{if not (eq (len .GetPublicKey) 0)}}<a data-clipboard-text="{{.GetPublicKey}}">{{ctx.Locale.Tr "repo.settings.mirror_settings.push_mirror.copy_public_key"}}</a>{{else}}{{ctx.Locale.Tr "repo.settings.mirror_settings.push_mirror.none_ssh"}}{{end}}</td>
 								<td class="right aligned">
 									<button
-										class="ui tiny button show-modal"
+										class="ds-btn ds-btn-secondary ds-btn-sm show-modal"
 										data-modal="#push-mirror-edit-modal"
 										data-tooltip-content="{{ctx.Locale.Tr "repo.settings.mirror_settings.push_mirror.edit_sync_time"}}"
 										data-modal-push-mirror-edit-id="{{.ID}}"
@@ -257,12 +257,12 @@
 									<form method="post" class="tw-inline-block">
 										<input type="hidden" name="action" value="push-mirror-sync">
 										<input type="hidden" name="push_mirror_id" value="{{.ID}}">
-										<button class="ui primary tiny button" data-tooltip-content="{{ctx.Locale.Tr "repo.settings.sync_mirror"}}">{{svg "octicon-sync" 14}}</button>
+										<button class="ds-btn ds-btn-primary ds-btn-sm" data-tooltip-content="{{ctx.Locale.Tr "repo.settings.sync_mirror"}}">{{svg "octicon-sync" 14}}</button>
 									</form>
 									<form method="post" class="tw-inline-block">
 										<input type="hidden" name="action" value="push-mirror-remove">
 										<input type="hidden" name="push_mirror_id" value="{{.ID}}">
-										<button class="ui basic red tiny button" data-tooltip-content="{{ctx.Locale.Tr "remove"}}">{{svg "octicon-trash" 14}}</button>
+										<button class="ds-btn ds-btn-danger ds-btn-sm" data-tooltip-content="{{ctx.Locale.Tr "remove"}}">{{svg "octicon-trash" 14}}</button>
 									</form>
 								</td>
 							</tr>
@@ -274,31 +274,31 @@
 							{{if (not .DisableNewPushMirrors)}}
 								<tr>
 									<td colspan="5">
-										<form class="ui form" method="post">
+										<form class="ui form ds-form" method="post">
 											{{template "base/disable_form_autofill"}}
 											<input type="hidden" name="action" value="push-mirror-add">
-											<div class="field {{if .Err_PushMirrorAddress}}error{{end}}">
+											<div class="ds-field {{if .Err_PushMirrorAddress}}error{{end}}">
 												<label for="push_mirror_address">{{ctx.Locale.Tr "repo.settings.mirror_settings.push_mirror.remote_url"}}</label>
-												<input id="push_mirror_address" name="push_mirror_address" value="{{.push_mirror_address}}" required>
+												<input class="ds-input" id="push_mirror_address" name="push_mirror_address" value="{{.push_mirror_address}}" required>
 												<p class="help">{{ctx.Locale.Tr "repo.mirror_address_desc"}}</p>
 											</div>
-											<div class="field {{if .Err_PushMirrorBranchFilter}}error{{end}}">
+											<div class="ds-field {{if .Err_PushMirrorBranchFilter}}error{{end}}">
 												<label for="push_mirror_branch_filter">{{ctx.Locale.Tr "repo.settings.push_mirror.branch_filter.label"}}</label>
-												<input id="push_mirror_branch_filter" name="push_mirror_branch_filter" value="{{.push_mirror_branch_filter}}" maxlength="2048">
+												<input class="ds-input" id="push_mirror_branch_filter" name="push_mirror_branch_filter" value="{{.push_mirror_branch_filter}}" maxlength="2048">
 												<p class="help">{{ctx.Locale.Tr "repo.settings.push_mirror.branch_filter.description" "https://forgejo.org/docs/latest/user/repo-mirror/#branch-filter" "Forgejo"}}</p>
 											</div>
-											<details class="ui optional field" {{if or .Err_PushMirrorAuth .push_mirror_username}}open{{end}}>
+											<details class="ds-field" {{if or .Err_PushMirrorAuth .push_mirror_username}}open{{end}}>
 												<summary class="tw-p-1">
 													{{ctx.Locale.Tr "repo.need_auth"}}
 												</summary>
 												<div class="tw-p-1">
 													<div class="inline field {{if .Err_PushMirrorAuth}}error{{end}}">
 														<label for="push_mirror_username">{{ctx.Locale.Tr "username"}}</label>
-														<input id="push_mirror_username" name="push_mirror_username" value="{{.push_mirror_username}}">
+														<input class="ds-input" id="push_mirror_username" name="push_mirror_username" value="{{.push_mirror_username}}">
 													</div>
 													<div class="inline field {{if .Err_PushMirrorAuth}}error{{end}}">
 														<label for="push_mirror_password">{{ctx.Locale.Tr "password"}}</label>
-														<input id="push_mirror_password" name="push_mirror_password" type="password" value="{{.push_mirror_password}}" autocomplete="off">
+														<input class="ds-input" id="push_mirror_password" name="push_mirror_password" type="password" value="{{.push_mirror_password}}" autocomplete="off">
 													</div>
 													{{if .CanUseSSHMirroring}}
 													<div class="inline field {{if .Err_PushMirrorUseSSH}}error{{end}}">
@@ -311,7 +311,7 @@
 													{{end}}
 												</div>
 											</details>
-											<div class="field">
+											<div class="ds-field">
 												<div class="ui checkbox">
 													<input id="push_mirror_sync_on_commit" name="push_mirror_sync_on_commit" type="checkbox" {{if .push_mirror_sync_on_commit}}checked{{end}}>
 													<label for="push_mirror_sync_on_commit">{{ctx.Locale.Tr "repo.mirror_sync_on_commit"}}</label>
@@ -319,52 +319,52 @@
 											</div>
 											<div class="inline field {{if .Err_PushMirrorInterval}}error{{end}}">
 												<label for="push_mirror_interval">{{ctx.Locale.Tr "repo.mirror_interval" .MinimumMirrorInterval}}</label>
-												<input id="push_mirror_interval" name="push_mirror_interval" value="{{if .push_mirror_interval}}{{.push_mirror_interval}}{{else}}{{.DefaultMirrorInterval}}{{end}}">
+												<input class="ds-input" id="push_mirror_interval" name="push_mirror_interval" value="{{if .push_mirror_interval}}{{.push_mirror_interval}}{{else}}{{.DefaultMirrorInterval}}{{end}}">
 											</div>
-											<div class="field">
-												<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.mirror_settings.push_mirror.add"}}</button>
+											<div class="ds-field">
+												<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.mirror_settings.push_mirror.add"}}</button>
 											</div>
 										</form>
 									</td>
 								</tr>
 							{{end}}
 						</tbody>
-					</table>
+					</table></div>
 				{{end}}
 			</div>
 		{{end}}
 
-		<h4 class="ui top attached header">
+		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "repo.settings.signing_settings"}}
 		</h4>
-		<div class="ui attached segment">
-			<form class="ui form" method="post">
+		<div class="ds-card ds-card-b ds-card-attach">
+			<form class="ui form ds-form" method="post">
 				<input type="hidden" name="action" value="signing">
-				<div class="field">
+				<div class="ds-field">
 					<label>{{ctx.Locale.Tr "repo.settings.trust_model"}}</label><br>
-					<div class="field">
-						<div class="ui radio checkbox">
+					<div class="ds-field">
+						<div class="ds-check">
 							<input type="radio" id="trust_model_default" name="trust_model" {{if eq .Repository.TrustModel.String "default"}}checked="checked"{{end}} value="default">
 							<label for="trust_model_default">{{ctx.Locale.Tr "repo.settings.trust_model.default"}}</label>
 							<p class="help">{{ctx.Locale.Tr "repo.settings.trust_model.default.desc"}}</p>
 						</div>
 					</div>
-					<div class="field">
-						<div class="ui radio checkbox">
+					<div class="ds-field">
+						<div class="ds-check">
 							<input type="radio" id="trust_model_collaborator" name="trust_model" {{if eq .Repository.TrustModel.String "collaborator"}}checked="checked"{{end}} value="collaborator">
 							<label for="trust_model_collaborator">{{ctx.Locale.Tr "repo.settings.trust_model.collaborator.long"}}</label>
 							<p class="help">{{ctx.Locale.Tr "repo.settings.trust_model.collaborator.desc"}}</p>
 						</div>
 					</div>
-					<div class="field">
-						<div class="ui radio checkbox">
+					<div class="ds-field">
+						<div class="ds-check">
 							<input type="radio" name="trust_model" id="trust_model_committer" {{if eq .Repository.TrustModel.String "committer"}}checked="checked"{{end}} value="committer">
 							<label for="trust_model_committer">{{ctx.Locale.Tr "repo.settings.trust_model.committer.long"}}</label>
 							<p class="help">{{ctx.Locale.Tr "repo.settings.trust_model.committer.desc"}}</p>
 						</div>
 					</div>
-					<div class="field">
-						<div class="ui radio checkbox">
+					<div class="ds-field">
+						<div class="ds-check">
 							<input type="radio" name="trust_model" id="trust_model_collaboratorcommitter" {{if eq .Repository.TrustModel.String "collaboratorcommitter"}}checked="checked"{{end}} value="collaboratorcommitter">
 							<label for="trust_model_collaboratorcommitter">{{ctx.Locale.Tr "repo.settings.trust_model.collaboratorcommitter.long"}}</label>
 							<p class="help">{{ctx.Locale.Tr "repo.settings.trust_model.collaboratorcommitter.desc"}}</p>
@@ -373,39 +373,39 @@
 				</div>
 
 				<div class="divider"></div>
-				<div class="field">
-					<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
+				<div class="ds-field">
+					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
 				</div>
 			</form>
 		</div>
 
 		{{if .IsAdmin}}
-		<h4 class="ui top attached header">
+		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "repo.settings.admin_settings"}}
 		</h4>
-		<div class="ui attached segment">
-			<form class="ui form" method="post">
+		<div class="ds-card ds-card-b ds-card-attach">
+			<form class="ui form ds-form" method="post">
 				<input type="hidden" name="action" value="admin">
-				<div class="field">
+				<div class="ds-field">
 					<div class="ui checkbox">
 						<input name="enable_health_check" type="checkbox" {{if .Repository.IsFsckEnabled}}checked{{end}}>
 						<label>{{ctx.Locale.Tr "repo.settings.admin_enable_health_check"}}</label>
 					</div>
 				</div>
 
-				<div class="field">
-					<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
+				<div class="ds-field">
+					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
 				</div>
 			</form>
 
 			<div class="divider"></div>
-			<form class="ui form" method="post">
+			<form class="ui form ds-form" method="post">
 				<input type="hidden" name="action" value="admin_index">
 				{{if .CodeIndexerEnabled}}
 					<h4 class="ui header">{{ctx.Locale.Tr "repo.settings.admin_code_indexer"}}</h4>
 					<div class="inline fields">
 						<label>{{ctx.Locale.Tr "repo.settings.admin_indexer_commit_sha"}}</label>
-						<span class="field">
+						<span class="ds-field">
 							{{if .CodeIndexerStatus}}
 								<a rel="nofollow" class="sha label" href="{{.RepoLink}}/commit/{{.CodeIndexerStatus.CommitSha}}">
 									<span class="shortsha">{{ShortSha .CodeIndexerStatus.CommitSha}}</span>
@@ -414,16 +414,16 @@
 									<span>{{ctx.Locale.Tr "repo.settings.admin_indexer_unindexed"}}</span>
 							{{end}}
 						</span>
-						<div class="field">
-							<button class="ui primary button" name="request_reindex_type" value="code">{{ctx.Locale.Tr "repo.settings.reindex_button"}}</button>
+						<div class="ds-field">
+							<button class="ds-btn ds-btn-primary" name="request_reindex_type" value="code">{{ctx.Locale.Tr "repo.settings.reindex_button"}}</button>
 						</div>
 					</div>
 				{{end}}
 
 				<h4 class="ui header">{{ctx.Locale.Tr "repo.issue_indexer.title"}}</h4>
 				<div class="inline fields">
-					<div class="field">
-						<button class="ui primary button" name="request_reindex_type" value="issues">{{ctx.Locale.Tr "repo.settings.reindex_button"}}</button>
+					<div class="ds-field">
+						<button class="ds-btn ds-btn-primary" name="request_reindex_type" value="issues">{{ctx.Locale.Tr "repo.settings.reindex_button"}}</button>
 					</div>
 				</div>
 
@@ -432,7 +432,7 @@
 					{{if and .StatsIndexerStatus .StatsIndexerStatus.CommitSha}}
 						<label>{{ctx.Locale.Tr "repo.settings.admin_indexer_commit_sha"}}</label>
 					{{end}}
-					<span class="field">
+					<span class="ds-field">
 						{{if and .StatsIndexerStatus .StatsIndexerStatus.CommitSha}}
 							<a rel="nofollow" class="sha label" href="{{.RepoLink}}/commit/{{.StatsIndexerStatus.CommitSha}}">
 								<span class="shortsha">{{ShortSha .StatsIndexerStatus.CommitSha}}</span>
@@ -441,8 +441,8 @@
 							<span>{{ctx.Locale.Tr "repo.settings.admin_indexer_unindexed"}}</span>
 						{{end}}
 					</span>
-					<div class="field">
-						<button class="ui primary button" name="request_reindex_type" value="stats">{{ctx.Locale.Tr "repo.settings.reindex_button"}}</button>
+					<div class="ds-field">
+						<button class="ds-btn ds-btn-primary" name="request_reindex_type" value="stats">{{ctx.Locale.Tr "repo.settings.reindex_button"}}</button>
 					</div>
 				</div>
 			</form>
@@ -450,10 +450,10 @@
 		{{end}}
 
 		{{if .Permission.IsOwner}}
-		<h4 class="ui top attached error header">
+		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "repo.settings.danger_zone"}}
 		</h4>
-		<div class="ui attached error danger segment">
+		<div class="ds-card ds-card-b ds-card-attach danger">
 			<div class="flex-list">
 				{{if .Repository.IsMirror}}
 					<div class="flex-item">
@@ -490,9 +490,9 @@
 					</div>
 					<div class="flex-item-trailing">
 						{{if .RepoTransfer}}
-							<form class="ui form" action="{{.Link}}" method="post">
+							<form class="ui form ds-form" action="{{.Link}}" method="post">
 								<input type="hidden" name="action" value="cancel_transfer">
-								<button class="ui red button">{{ctx.Locale.Tr "repo.settings.transfer_abort"}}</button>
+								<button class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "repo.settings.transfer_abort"}}</button>
 							</form>
 						{{else}}
 							<button class="danger button show-modal" data-modal="#transfer-repo-modal">{{ctx.Locale.Tr "repo.settings.transfer.button"}}</button>
@@ -564,27 +564,27 @@
 			<article>
 				<header>{{ctx.Locale.Tr "repo.settings.convert"}}</header>
 				<div class="content">
-					<div class="ui warning message">
+					<div class="ds-banner ds-banner-warn">
 						{{ctx.Locale.Tr "repo.settings.convert_notices_1"}}
 					</div>
 				</div>
-				<form class="ui form" action="{{.Link}}" method="post">
+				<form class="ui form ds-form" action="{{.Link}}" method="post">
 					<div class="content">
 						<input type="hidden" name="action" value="convert">
-						<div class="field">
+						<div class="ds-field">
 							<label>
 								{{ctx.Locale.Tr "repo.settings.enter_repo_name"}}
 								<span class="text red">{{.Repository.FullName}}</span>
 							</label>
 						</div>
-						<div class="required field">
+						<div class="required ds-field">
 							<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-							<input name="repo_name" required maxlength="100" autocorrect="off" autocapitalize="none" spellcheck="false">
+							<input class="ds-input" name="repo_name" required maxlength="100" autocorrect="off" autocapitalize="none" spellcheck="false">
 						</div>
 					</div>
 					<div class="actions">
 						<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-						<button type="submit" class="ui red button">{{ctx.Locale.Tr "repo.settings.convert_confirm"}}</button>
+						<button type="submit" class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "repo.settings.convert_confirm"}}</button>
 					</div>
 				</form>
 			</article>
@@ -595,27 +595,27 @@
 			<article>
 				<header>{{ctx.Locale.Tr "repo.settings.convert_fork"}}</header>
 				<div class="content">
-					<div class="ui warning message">
+					<div class="ds-banner ds-banner-warn">
 						{{ctx.Locale.Tr "repo.settings.convert_fork_notices_1"}}
 					</div>
 				</div>
-				<form class="ui form" action="{{.Link}}" method="post">
+				<form class="ui form ds-form" action="{{.Link}}" method="post">
 					<div class="content">
 						<input type="hidden" name="action" value="convert_fork">
-						<div class="field">
+						<div class="ds-field">
 							<label>
 								{{ctx.Locale.Tr "repo.settings.enter_repo_name"}}
 								<span class="text red">{{.Repository.FullName}}</span>
 							</label>
 						</div>
-						<div class="required field">
+						<div class="required ds-field">
 							<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-							<input name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
+							<input class="ds-input" name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
 						</div>
 					</div>
 					<div class="actions">
 						<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-						<button type="submit" class="ui red button">{{ctx.Locale.Tr "repo.settings.convert_fork_confirm"}}</button>
+						<button type="submit" class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "repo.settings.convert_fork_confirm"}}</button>
 					</div>
 				</form>
 			</article>
@@ -625,33 +625,33 @@
 		<article>
 			<header>{{ctx.Locale.Tr "repo.settings.transfer.modal.title"}}</header>
 			<div class="content">
-				<div class="ui warning message">
+				<div class="ds-banner ds-banner-warn">
 					{{ctx.Locale.Tr "repo.settings.transfer_notices_1"}} <br>
 					{{ctx.Locale.Tr "repo.settings.transfer_notices_2"}} <br>
 					{{ctx.Locale.Tr "repo.settings.transfer_notices_3"}}
 				</div>
 			</div>
-			<form class="ui form" action="{{.Link}}" method="post">
+			<form class="ui form ds-form" action="{{.Link}}" method="post">
 				<div class="content">
 					<input type="hidden" name="action" value="transfer">
-					<div class="field">
+					<div class="ds-field">
 						<label>
 							{{ctx.Locale.Tr "repo.settings.enter_repo_name"}}
 							<span class="text red">{{.Repository.FullName}}</span>
 						</label>
 					</div>
-					<div class="required field">
+					<div class="required ds-field">
 						<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-						<input name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
+						<input class="ds-input" name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
 					</div>
-					<div class="required field">
+					<div class="required ds-field">
 						<label for="new_owner_name">{{ctx.Locale.Tr "repo.settings.transfer_owner"}}</label>
-						<input id="new_owner_name" name="new_owner_name" required>
+						<input class="ds-input" id="new_owner_name" name="new_owner_name" required>
 					</div>
 				</div>
 				<div class="actions">
 					<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-					<button type="submit" class="ui red button">{{ctx.Locale.Tr "repo.settings.transfer_perform"}}</button>
+					<button type="submit" class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "repo.settings.transfer_perform"}}</button>
 				</div>
 			</form>
 		</article>
@@ -661,7 +661,7 @@
 		<article>
 			<header>{{ctx.Locale.Tr "repo.settings.delete"}}</header>
 			<div class="content">
-				<div class="ui warning message">
+				<div class="ds-banner ds-banner-warn">
 					{{ctx.Locale.Tr "repo.settings.delete_notices_1"}}<br>
 					{{ctx.Locale.Tr "repo.settings.delete_notices_2" .Repository.FullName}}
 					{{if .Repository.NumForks}}<br>
@@ -669,23 +669,23 @@
 					{{end}}
 				</div>
 			</div>
-			<form class="ui form" action="{{.Link}}" method="post">
+			<form class="ui form ds-form" action="{{.Link}}" method="post">
 				<div class="content">
 					<input type="hidden" name="action" value="delete">
-					<div class="field">
+					<div class="ds-field">
 						<label>
 							{{ctx.Locale.Tr "repo.settings.enter_repo_name"}}
 							<span class="text red">{{.Repository.FullName}}</span>
 						</label>
 					</div>
-					<div class="required field">
+					<div class="required ds-field">
 						<label for="repo_name_to_delete">{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-						<input id="repo_name_to_delete" name="repo_name" autocorrect="off" autocapitalize="none" spellcheck="false" required>
+						<input class="ds-input" id="repo_name_to_delete" name="repo_name" autocorrect="off" autocapitalize="none" spellcheck="false" required>
 					</div>
 				</div>
 				<div class="actions">
 					<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-					<button type="submit" class="ui red button">{{ctx.Locale.Tr "repo.settings.confirm_delete"}}</button>
+					<button type="submit" class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "repo.settings.confirm_delete"}}</button>
 				</div>
 			</form>
 		</article>
@@ -696,28 +696,28 @@
 		<article>
 			<header>{{ctx.Locale.Tr "repo.settings.wiki_delete"}}</header>
 			<div class="content">
-				<div class="ui warning message">
+				<div class="ds-banner ds-banner-warn">
 					{{ctx.Locale.Tr "repo.settings.delete_notices_1"}}<br>
 					{{ctx.Locale.Tr "repo.settings.wiki_delete_notices_1" .Repository.Name}}
 				</div>
 			</div>
-			<form class="ui form" action="{{.Link}}" method="post">
+			<form class="ui form ds-form" action="{{.Link}}" method="post">
 				<div class="content">
 					<input type="hidden" name="action" value="delete-wiki">
-					<div class="field">
+					<div class="ds-field">
 						<label>
 							{{ctx.Locale.Tr "repo.settings.enter_repo_name"}}
 							<span class="text red">{{.Repository.FullName}}</span>
 						</label>
 					</div>
-					<div class="required field">
+					<div class="required ds-field">
 						<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-						<input name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
+						<input class="ds-input" name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
 					</div>
 				</div>
 				<div class="actions">
 					<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-					<button type="submit" class="ui red button">{{ctx.Locale.Tr "repo.settings.confirm_wiki_delete"}}</button>
+					<button type="submit" class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "repo.settings.confirm_wiki_delete"}}</button>
 				</div>
 			</form>
 		</article>
@@ -727,30 +727,30 @@
 			<article>
 				<header>{{ctx.Locale.Tr "repo.settings.wiki_rename_branch_main"}}</header>
 				<div class="content">
-					<div class="ui warning message">
+					<div class="ds-banner ds-banner-warn">
 						<ul>
 							<li>{{ctx.Locale.Tr "repo.settings.wiki_rename_branch_main_notices_1"}}</li>
 							<li>{{ctx.Locale.Tr "repo.settings.wiki_rename_branch_main_notices_2" .Repository.Name}}</li>
 						</ul>
 					</div>
 				</div>
-				<form class="ui form" action="{{.Link}}" method="post">
+				<form class="ui form ds-form" action="{{.Link}}" method="post">
 					<div class="content">
 						<input type="hidden" name="action" value="rename-wiki-branch">
-						<div class="field">
+						<div class="ds-field">
 							<label>
 								{{ctx.Locale.Tr "repo.settings.enter_repo_name"}}
 								<span class="text red">{{.Repository.FullName}}</span>
 							</label>
 						</div>
-						<div class="required field">
+						<div class="required ds-field">
 							<label>{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
-							<input name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
+							<input class="ds-input" name="repo_name" required autocorrect="off" autocapitalize="none" spellcheck="false">
 						</div>
 					</div>
 					<div class="actions">
 						<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-						<button type="submit" class="ui red button">{{ctx.Locale.Tr "repo.settings.confirm_wiki_branch_rename"}}</button>
+						<button type="submit" class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "repo.settings.confirm_wiki_branch_rename"}}</button>
 					</div>
 				</form>
 			</article>
@@ -769,7 +769,7 @@
 					{{end}}
 				</header>
 				<div class="content">
-					<div class="ui warning message">
+					<div class="ds-banner ds-banner-warn">
 						{{if .Repository.IsArchived}}
 							{{ctx.Locale.Tr "repo.settings.unarchive.text"}}
 						{{else}}
@@ -782,7 +782,7 @@
 					<input type="hidden" name="repo_id" value="{{.Repository.ID}}">
 					<div class="text right actions">
 						<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-						<button type="submit" class="ui red button">
+						<button type="submit" class="ds-btn ds-btn-danger">
 							{{if .Repository.IsArchived}}
 								{{ctx.Locale.Tr "repo.settings.unarchive.button"}}
 							{{else}}
