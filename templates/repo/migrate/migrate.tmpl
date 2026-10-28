@@ -1,7 +1,7 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository new migrate">
-	<div class="ui container">
-		<h2 class="tw-mt-4">{{ctx.Locale.Tr "migrate.select.title"}}</h1>
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository new migrate rp-page">
+	<div class="ds-container rp-body">
+		<h2 class="rp-h1 ds-mb-8">{{ctx.Locale.Tr "migrate.select.title"}}</h2>
 		{{template "repo/migrate/helper" .}}
 		<p class="help">{{ctx.Locale.Tr "repo.migrate.select_help"}}</p>
 		<div class="migrate-entries">
