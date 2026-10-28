@@ -222,7 +222,7 @@ func TestAscOpsUndoAppliesWhatWasShown(t *testing.T) {
 	page := postUndo(t, nil)
 
 	require.Equal(t, http.StatusSeeOther, page.status, page.body)
-	assert.Equal(t, "/user2/repo1/asc/ops", page.loc)
+	assert.Equal(t, "/user2/repo1/asc/ops?redo=10&redo_ref=refs%2Fheads%2Ffeature", page.loc, "the log offers the redo of the undo it has just made")
 	undo := f.callsOf("UndoRef")
 	require.Len(t, undo, 1)
 	req := undo[0].Req.(*ascv1.UndoRefRequest)
@@ -290,4 +290,20 @@ func TestAscOpsUndoBadInputAndServerRefusals(t *testing.T) {
 		return &ascv1.UndoRefResponse{Result: &ascv1.RefResult{Name: "refs/heads/elsewhere", Old: opsTarget(2), New: opsTarget(1)}, Applied: true}, nil
 	}
 	assert.Equal(t, http.StatusSeeOther, postUndo(t, nil).status)
+}
+
+func TestAscOpsOffersTheRedoOfAnUndo(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureStacks)
+	f.listRefLog = func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) { return &ascv1.ListRefLogResponse{}, nil }
+	page := opsGet(t, "/user2/repo1/asc/ops?redo=12&redo_ref=refs%2Fheads%2Fmain", 2, perm_model.AccessModeWrite, AscOps)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.Contains(t, page.body, "asc-ops-redo")
+	assert.Contains(t, page.body, "seq=12")
+	for _, bad := range []string{"?redo=0", "?redo=-1", "?redo=abc"} {
+		page = opsGet(t, "/user2/repo1/asc/ops"+bad, 2, perm_model.AccessModeWrite, AscOps)
+		assert.NotContains(t, page.body, "asc-ops-redo", bad)
+	}
+	page = opsGet(t, "/user2/repo1/asc/ops?redo=12&redo_ref=refs%2Fheads%2Fmain", 2, perm_model.AccessModeRead, AscOps)
+	assert.NotContains(t, page.body, "asc-ops-redo", "a reader who cannot undo is not offered a redo")
 }
