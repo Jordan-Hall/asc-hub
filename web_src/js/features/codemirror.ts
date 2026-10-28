@@ -195,6 +195,8 @@ export async function createCodemirror(
       ),
       language.of(code ? await code.load() : []),
       codemirrorView.EditorView.updateListener.of(onContentChange),
+      // the editable area needs a name for assistive technology: the textarea it replaces carries it
+      codemirrorView.EditorView.contentAttributes.of({'aria-label': textarea.getAttribute('aria-label') ?? ''}),
       theme,
     ],
   });

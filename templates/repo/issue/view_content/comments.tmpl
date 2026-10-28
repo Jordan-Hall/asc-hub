@@ -33,7 +33,7 @@
 									{{.OriginalAuthor}}
 								</span>
 								<span class="text grey muted-links">
-									{{ctx.Locale.Tr "repo.issues.commented_at" .HashTag $createdStr}} {{if $.Repository.OriginalURL}}
+									{{ctx.Locale.Tr "repo.issues.commented_at_anchored" .HashTag $createdStr}} {{if $.Repository.OriginalURL}}
 								</span>
 								<span class="text migrate">
 									({{ctx.Locale.Tr "repo.migrated_from" $.Repository.OriginalURL $.Repository.GetOriginalURLHostname}}){{end}}
@@ -46,7 +46,7 @@
 								{{end}}
 								<span class="text grey muted-links">
 									{{template "shared/user/authorlink" .Poster}}
-									{{ctx.Locale.Tr "repo.issues.commented_at" .HashTag $createdStr}}
+									{{ctx.Locale.Tr "repo.issues.commented_at_anchored" .HashTag $createdStr}}
 								</span>
 							{{end}}
 						</div>

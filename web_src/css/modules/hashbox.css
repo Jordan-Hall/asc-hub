@@ -23,6 +23,9 @@
 }
 
 .sha.label .shortsha {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px; /* a target is at least 24 px (WCAG 2.2) */
   padding: 0.1rem 0.5rem;
 }
 

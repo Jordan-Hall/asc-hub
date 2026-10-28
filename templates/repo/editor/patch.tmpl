@@ -22,10 +22,10 @@
 					<div class="switch" data-write="write">
 						<button type="button" class="active item" data-tab="write">{{svg "octicon-code" 16 "tw-mr-1"}}{{ctx.Locale.Tr "repo.editor.new_patch"}}</button>
 					</div>
-					<button class="secondary button" id="editor-find" type="button">{{svg "octicon-search"}}<span class="text not-mobile">Search</span></button>
+					<button class="ds-btn ds-btn-secondary ds-btn-sm" id="editor-find" type="button" aria-label="{{ctx.Locale.Tr "search.search"}}">{{svg "octicon-search"}}<span class="text not-mobile">{{ctx.Locale.Tr "search.search"}}</span></button>
 				</div>
 				<div class="ui bottom attached active tab segment" data-tab="write">
-					<textarea id="edit_area" name="content" class="tw-hidden" data-id="repo-{{.Repository.Name}}-patch"
+					<textarea id="edit_area" name="content" aria-label="{{ctx.Locale.Tr "repo.editor.edit_file"}}" class="tw-hidden" data-id="repo-{{.Repository.Name}}-patch"
 						data-context="{{.RepoLink}}"
 						data-line-wrap-extensions="{{.LineWrapExtensions}}">
 {{.FileContent}}</textarea>
