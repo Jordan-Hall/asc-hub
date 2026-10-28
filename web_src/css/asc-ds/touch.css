@@ -1,0 +1,129 @@
+/* Touch targets: on a phone every control is at least 44 px high (WCAG 2.2 target size, and the design boards). */
+@media (max-width: 767.98px) {
+  .ds-topbar .ds-hdr-av,
+  .ds-subbar .ds-hdr-av {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    background: transparent;
+  }
+
+  .ds-topbar .ds-hdr-av img,
+  .ds-subbar .ds-hdr-av img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+  }
+
+  .rp-act,
+  .rp-act-icon,
+  summary.rp-act {
+    min-height: 44px;
+  }
+
+  .rp-act-icon {
+    width: 44px;
+  }
+
+  .rp-crumb-copy {
+    width: 44px;
+    height: 44px;
+  }
+
+  .rp-topic-manage,
+  .rp-codesearch .ds-btn,
+  .ds-btn-sm,
+  .ds-seg > a,
+  .ds-seg > button,
+  .ds-chip-btn,
+  .ds-pager a,
+  select.ds-select,
+  .ds-selectpill select {
+    min-height: 44px;
+  }
+
+  .ds-btn-icon {
+    min-width: 44px;
+  }
+
+  .ds-check > input[type="checkbox"],
+  .ds-check > input[type="radio"] {
+    width: 24px;
+    height: 24px;
+  }
+
+  .ds-check > label {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .markdown-toolbar-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .rv-btn,
+  button.item,
+  summary.tw-p-1,
+  summary.tw-py-2,
+  .show-modal,
+  .ui.dropdown > .text {
+    min-height: 44px;
+  }
+
+  .ui.dropdown .menu > .item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .combo-markdown-editor button.item,
+  .combo-markdown-editor .dz-button,
+  .dropzone .dz-button,
+  .rv-btn,
+  .item.action,
+  button.btn.interact-fg,
+  button.btn.interact-bg,
+  summary.border {
+    min-height: 44px !important;
+    min-width: 44px;
+  }
+
+  .rp-pop li > a,
+  .rp-pop li > button {
+    min-height: 44px !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .ds-input,
+  .ds-select,
+  .ui.dropdown input.search,
+  .ui.search input {
+    min-height: 44px;
+  }
+
+  .item.action {
+    min-width: 44px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* the editor toolbar is one row that scrolls sideways, not ten rows of 44 px buttons */
+  .combo-markdown-editor .markdown-toolbar-groups,
+  .combo-markdown-editor markdown-toolbar {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+  }
+
+  .combo-markdown-editor .markdown-toolbar-button,
+  .combo-markdown-editor .markdown-toolbar-group {
+    flex: none;
+  }
+
+  .conversation-holder .button-sequence,
+  .rv-diff .button-sequence {
+    flex-wrap: wrap;
+  }
+}
