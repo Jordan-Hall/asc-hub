@@ -2806,3 +2806,20 @@ a.ds-stat:hover {
   color: var(--text);
   font-weight: 600;
 }
+
+/* Compact rows of the repository directory: one line of name and numbers, no description or topics */
+.ds-repolist[data-density="compact"] .ds-li {
+  padding-block: 8px;
+}
+
+.ds-repolist[data-density="compact"] .ds-repo-desc,
+.ds-repolist[data-density="compact"] .ds-repo-topics {
+  display: none;
+}
+
+.ds-rail-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}

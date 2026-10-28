@@ -9,7 +9,11 @@
 				<div class="ds-card ds-card-b content">
 					<div class="ds-field">
 						<label class="ds-label" for="issue_title">{{ctx.Locale.Tr "repo.milestones.title"}}</label>
-						<input name="title" class="ds-input js-autofocus-end" id="issue_title" placeholder="{{ctx.Locale.Tr "repo.milestones.title"}}" value="{{if .TitleQuery}}{{.TitleQuery}}{{else if .IssueTemplateTitle}}{{.IssueTemplateTitle}}{{else}}{{.title}}{{end}}" required maxlength="255" autocomplete="off">
+						<input name="title" class="ds-input js-autofocus-end" id="issue_title" placeholder="{{ctx.Locale.Tr "repo.milestones.title"}}" value="{{if .TitleQuery}}{{.TitleQuery}}{{else if .IssueTemplateTitle}}{{.IssueTemplateTitle}}{{else}}{{.title}}{{end}}" required maxlength="255" autocomplete="off"{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}} aria-describedby="issue_title_count issue_title_hint" data-asc-count="issue_title_count" data-asc-count-max="120" data-asc-count-template="{{ctx.Locale.Tr "asc_rp.title_count"}}" data-asc-count-over="{{ctx.Locale.Tr "asc_rp.title_over"}}"{{end}}>
+						{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}}
+							<div class="ds-hint" id="issue_title_hint">{{ctx.Locale.Tr "asc_rp.title_hint"}}</div>
+							<div class="ds-hint" id="issue_title_count" aria-live="polite"></div>
+						{{end}}
 						{{if .PageIsComparePull}}
 							<div class="title_wip_desc" data-wip-prefixes="{{JsonUtils.EncodeToString .PullRequestWorkInProgressPrefixes}}">{{ctx.Locale.Tr "repo.pulls.title_wip_desc" (index .PullRequestWorkInProgressPrefixes 0)}}</div>
 						{{end}}

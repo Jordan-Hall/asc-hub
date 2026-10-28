@@ -29,7 +29,7 @@
 			{{$q := QueryEscape .PeopleQuery}}
 			{{template "shared/ds/pill" (dict "Label" (printf "%s %d" (ctx.Locale.TrString "asc_work.people_all") .PeopleCountAll) "Href" (print $.OrgLink "/members?q=" $q) "Active" (not .PeopleFilter))}}
 			{{template "shared/ds/pill" (dict "Label" (printf "%s %d" (ctx.Locale.TrString "org.members.owner") .PeopleCountOwners) "Href" (print $.OrgLink "/members?filter=owners&q=" $q) "Active" (eq .PeopleFilter "owners"))}}
-			{{template "shared/ds/pill" (dict "Label" (printf "%s %d" (ctx.Locale.TrString "asc_work.people_2fa_off") .PeopleCountTwoFAOff) "Href" (print $.OrgLink "/members?filter=2fa_off&q=" $q) "Active" (eq .PeopleFilter "2fa_off"))}}
+			{{if $.CanSee2FA}}{{template "shared/ds/pill" (dict "Label" (printf "%s %d" (ctx.Locale.TrString "asc_work.people_2fa_off") .PeopleCountTwoFAOff) "Href" (print $.OrgLink "/members?filter=2fa_off&q=" $q) "Active" (eq .PeopleFilter "2fa_off"))}}{{end}}
 		</div>
 		</div>
 		<div class="ds-card">
@@ -45,7 +45,7 @@
 									{{if index $.MembersIsUserOrgOwner .ID}}<span class="ds-chip">{{ctx.Locale.Tr "org.members.owner"}}</span>{{else}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "org.members.member"}}</span>{{end}}
 								{{end}}
 								{{if not $isPublic}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "org.members.private"}}</span>{{end}}
-								{{if and (not $.PublicOnly) $.IsOrganizationOwner}}
+								{{if and $.CanSee2FA (not $.PublicOnly)}}
 									{{if index $.MembersTwoFaStatus .ID}}
 										<span class="ds-chip ds-chip-ok">{{svg "dsi-check" 12}} {{ctx.Locale.Tr "asc_work.org_2fa_on"}}</span>
 									{{else}}

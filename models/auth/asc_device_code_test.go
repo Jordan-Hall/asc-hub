@@ -132,13 +132,6 @@ func TestAscDeviceCodeCapsPending(t *testing.T) {
 	_, _, err = auth_model.CreateAscDeviceCode(ctx, "", "203.0.113.8")
 	require.NoError(t, err)
 
-	// the hub-wide cap holds for every address
-	for i := range 2 {
-		_, _, err = auth_model.CreateAscDeviceCode(ctx, "", "198.51.100."+string(rune('1'+i)))
-		require.NoError(t, err)
-	}
-	_, _, err = auth_model.CreateAscDeviceCode(ctx, "", "198.51.100.9")
-	require.ErrorIs(t, err, auth_model.ErrAscDeviceCodeTooMany)
 }
 
 func TestDeleteExpiredAscDeviceCodes(t *testing.T) {
@@ -159,4 +152,44 @@ func TestDeleteExpiredAscDeviceCodes(t *testing.T) {
 	assert.EqualValues(t, 1, n)
 	unittest.AssertNotExistsBean(t, &auth_model.AscDeviceCode{ID: old.ID})
 	unittest.AssertExistsAndLoadBean(t, &auth_model.AscDeviceCode{ID: recent.ID})
+}
+
+func TestAscDeviceCodeFullHubEvictsTheOldestInsteadOfLockingOthersOut(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx := t.Context()
+	oldTotal, oldIP := auth_model.AscDeviceCodeMaxPending, auth_model.AscDeviceCodeMaxPendingPerIP
+	t.Cleanup(func() { auth_model.AscDeviceCodeMaxPending, auth_model.AscDeviceCodeMaxPendingPerIP = oldTotal, oldIP })
+	auth_model.AscDeviceCodeMaxPending, auth_model.AscDeviceCodeMaxPendingPerIP = 3, 3
+
+	// an approved code that is in use, then waiting codes from attackers that fill the hub
+	used, _, err := auth_model.CreateAscDeviceCode(ctx, "in use", "192.0.2.1")
+	require.NoError(t, err)
+	require.NoError(t, used.Decide(ctx, 2, true))
+	var first *auth_model.AscDeviceCode
+	for i, ip := range []string{"198.51.100.1", "198.51.100.2", "198.51.100.3"} {
+		row, _, err := auth_model.CreateAscDeviceCode(ctx, "", ip)
+		require.NoError(t, err)
+		if i == 0 {
+			first = row
+		}
+	}
+
+	// a different address still gets a code; the oldest waiting code goes, the approved one stays
+	_, _, err = auth_model.CreateAscDeviceCode(ctx, "", "203.0.113.50")
+	require.NoError(t, err)
+	unittest.AssertNotExistsBean(t, &auth_model.AscDeviceCode{ID: first.ID})
+	unittest.AssertExistsAndLoadBean(t, &auth_model.AscDeviceCode{ID: used.ID})
+
+	// an address over its own cap is refused without pushing anyone out
+	for range 3 {
+		_, _, err = auth_model.CreateAscDeviceCode(ctx, "", "198.51.100.77")
+		require.NoError(t, err)
+	}
+	before, err := db.GetEngine(ctx).Count(new(auth_model.AscDeviceCode))
+	require.NoError(t, err)
+	_, _, err = auth_model.CreateAscDeviceCode(ctx, "", "198.51.100.77")
+	require.ErrorIs(t, err, auth_model.ErrAscDeviceCodeTooMany)
+	after, err := db.GetEngine(ctx).Count(new(auth_model.AscDeviceCode))
+	require.NoError(t, err)
+	assert.Equal(t, before, after)
 }

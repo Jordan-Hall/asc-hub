@@ -6,6 +6,7 @@ package repo
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	issues_model "forgejo.org/models/issues"
 	"forgejo.org/models/unittest"
@@ -37,4 +38,19 @@ func TestHomeStackOfNeedsPullAccess(t *testing.T) {
 
 	name, _ = homeStackOf(t.Context(), pr.BaseRepoID, "/user2/repo1", "0000000000000000000000000000000000000000", true)
 	assert.Empty(t, name, "a commit that landed through no pull request has no stack")
+}
+
+func TestWeeklyCounts(t *testing.T) {
+	now := time.Unix(10_000_000, 0)
+	const week = int64(7 * 24 * 3600)
+	times := []int64{now.Unix() - 10, now.Unix() - week - 5, now.Unix() - week - 6, now.Unix() - 11*week - 1, now.Unix() - 12*week - 1, now.Unix() + 100}
+	counts := weeklyCounts(times, now, 12)
+	assert.Equal(t, []int{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1}, counts, "the oldest week first, a time out of the window is ignored")
+	assert.Equal(t, make([]int, 4), weeklyCounts(nil, now, 4))
+}
+
+func TestSparkPoints(t *testing.T) {
+	assert.Equal(t, "0.0,23.0 50.0,1.0 100.0,12.0", sparkPoints([]int{0, 4, 2}))
+	assert.Equal(t, "0.0,23.0 100.0,23.0", sparkPoints([]int{0, 0}), "a flat series is a flat line")
+	assert.Empty(t, sparkPoints([]int{3}))
 }

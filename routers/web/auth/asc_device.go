@@ -116,15 +116,21 @@ var (
 	ascDeviceBadByIP  = newAscLimiter(30, 5*time.Minute) // per client address
 )
 
-// ascClientIP is the address of the client without its port. The proxy middleware has already replaced the remote
+// ascClientIP is the address of the client without its port (an IPv6 address stands for its /64). The proxy middleware has already replaced the remote
 // address with the forwarded one when the request came from a trusted proxy, so this is the real client, and one
 // client's connections (each with its own port) share one bucket.
 func ascClientIP(ctx *context.Context) string {
 	addr := ctx.RemoteAddr()
-	if host, _, err := net.SplitHostPort(addr); err == nil {
+	host := strings.Trim(addr, "[]")
+	if h, _, err := net.SplitHostPort(addr); err == nil {
+		host = h
+	}
+	ip := net.ParseIP(host)
+	if ip == nil || ip.To4() != nil {
 		return host
 	}
-	return strings.Trim(addr, "[]")
+	// A person or a host controls a whole IPv6 /64, so one address of a /64 must not be a fresh bucket each time.
+	return ip.Mask(net.CIDRMask(64, 128)).String() + "/64"
 }
 
 func ascDeviceError(ctx *context.Context, status int, code, description string) {

@@ -6,13 +6,16 @@ package repo
 import (
 	gocontext "context"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"forgejo.org/models/db"
 	git_model "forgejo.org/models/git"
 	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
+	"forgejo.org/modules/git"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
@@ -31,6 +34,81 @@ type homeLanded struct {
 	HasStat              bool
 	StackName            string
 	StackLink            string
+}
+
+// homeActivityWeeks is how many weeks the Activity card covers.
+const homeActivityWeeks = 12
+
+// HomeActivity is the Activity card: the changes landed per week on the viewed ref, oldest week first.
+type HomeActivity struct {
+	Total  int
+	Counts []int
+	Points string // the points of the sparkline in a 0..100 by 0..24 box
+}
+
+// weeklyCounts buckets unix times into weeks of seven days that end at now; the last bucket is the current week. A time
+// outside the window is ignored.
+func weeklyCounts(times []int64, now time.Time, weeks int) []int {
+	counts := make([]int, weeks)
+	const week = 7 * 24 * 3600
+	for _, t := range times {
+		age := now.Unix() - t
+		if age < 0 || age >= int64(weeks)*week {
+			continue
+		}
+		counts[weeks-1-int(age/week)]++
+	}
+	return counts
+}
+
+// sparkPoints turns counts into the points attribute of a polyline in a 100 by 24 box; a flat series is a flat line.
+func sparkPoints(counts []int) string {
+	if len(counts) < 2 {
+		return ""
+	}
+	most := 0
+	for _, c := range counts {
+		most = max(most, c)
+	}
+	var sb strings.Builder
+	for i, c := range counts {
+		x := float64(i) * 100 / float64(len(counts)-1)
+		y := 23.0
+		if most > 0 {
+			y = 23 - float64(c)*22/float64(most)
+		}
+		if i > 0 {
+			sb.WriteByte(' ')
+		}
+		fmt.Fprintf(&sb, "%.1f,%.1f", x, y)
+	}
+	return sb.String()
+}
+
+// prepareHomeActivity counts the changes landed per week on the viewed ref with one git log. It needs only code
+// access, like the list of changes beside it; a failure leaves the card out.
+func prepareHomeActivity(ctx *context.Context) {
+	if ctx.Repo.GitRepo == nil || ctx.Repo.Commit == nil {
+		return
+	}
+	since := time.Now().Add(-time.Duration(homeActivityWeeks) * 7 * 24 * time.Hour)
+	out, _, err := git.NewCommand(ctx, "log", "--format=%ct").AddOptionFormat("--since=%d", since.Unix()).AddDynamicArguments(ctx.Repo.Commit.ID.String()).
+		RunStdString(&git.RunOpts{Dir: ctx.Repo.GitRepo.Path})
+	if err != nil {
+		return
+	}
+	var times []int64
+	for _, line := range strings.Fields(out) {
+		if v, err := strconv.ParseInt(line, 10, 64); err == nil {
+			times = append(times, v)
+		}
+	}
+	counts := weeklyCounts(times, time.Now(), homeActivityWeeks)
+	total := 0
+	for _, c := range counts {
+		total += c
+	}
+	ctx.Data["HomeActivity"] = &HomeActivity{Total: total, Counts: counts, Points: sparkPoints(counts)}
 }
 
 // licenseFileName returns the name of the licence file among the names of a root tree, or "". The match is the
@@ -122,6 +200,7 @@ func prepareHomeCards(ctx *context.Context) {
 		ctx.Data["HomeLicenseFile"] = licenseFileName(names)
 	}
 
+	prepareHomeActivity(ctx)
 	prepareHomePolicy(ctx, repo)
 
 	if ctx.Repo.CanRead(unit.TypeReleases) {

@@ -27,6 +27,7 @@ import (
 	"forgejo.org/modules/web"
 	"forgejo.org/modules/web/middleware"
 	"forgejo.org/services/ascagentui"
+	"forgejo.org/services/ascnotify"
 	"forgejo.org/services/context"
 	"forgejo.org/services/forms"
 	user_service "forgejo.org/services/user"
@@ -45,6 +46,9 @@ var commonPronouns = []string{"he/him", "she/her", "they/them", "it/its", "any p
 func profileContext(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings.profile")
 	ctx.Data["PageIsSettingsProfile"] = true
+	prefs := ascnotify.Load(ctx, ctx.Doer.ID)
+	ctx.Data["TimeZone"] = prefs.TZ
+	ctx.Data["TimeZones"] = ascTimeZonesWith(prefs.TZ)
 	ctx.Data["AllowedUserVisibilityModes"] = setting.Service.AllowedUserVisibilityModesSlice.ToVisibleTypeSlice()
 	ctx.Data["DisableGravatar"] = setting.Config().Picture.DisableGravatar.Value(ctx)
 	ctx.Data["CooldownPeriod"] = setting.Service.UsernameCooldownPeriod
@@ -117,6 +121,16 @@ func ProfilePost(ctx *context.Context) {
 	if err := user_service.UpdateUser(ctx, ctx.Doer, opts); err != nil {
 		ctx.ServerError("UpdateUser", err)
 		return
+	}
+
+	if ctx.Req.PostForm.Has("tz") {
+		prefs := ascnotify.Load(ctx, ctx.Doer.ID)
+		prefs.TZ = ctx.FormString("tz")
+		if err := ascnotify.Save(ctx, ctx.Doer.ID, prefs); err != nil {
+			ctx.Flash.Error(err.Error())
+			ctx.Redirect(setting.AppSubURL + "/user/settings")
+			return
+		}
 	}
 
 	log.Trace("User settings updated: %s", ctx.Doer.Name)
@@ -437,6 +451,16 @@ func UpdateUserLang(ctx *context.Context) {
 	// Update the language to the one we just set
 	middleware.SetLocaleCookie(ctx.Resp, ctx.Doer.Language, 0)
 
+	if ctx.Req.PostForm.Has("tz") {
+		prefs := ascnotify.Load(ctx, ctx.Doer.ID)
+		prefs.TZ = ctx.FormString("tz")
+		if err := ascnotify.Save(ctx, ctx.Doer.ID, prefs); err != nil {
+			ctx.Flash.Error(err.Error())
+			ctx.Redirect(setting.AppSubURL + "/user/settings")
+			return
+		}
+	}
+
 	log.Trace("User settings updated: %s", ctx.Doer.Name)
 	ctx.Flash.Success(translation.NewLocale(ctx.Doer.Language).TrString("settings.update_language_success"))
 	ctx.Redirect(setting.AppSubURL + "/user/settings/appearance")
@@ -457,6 +481,16 @@ func UpdateUserHints(ctx *context.Context) {
 		return
 	}
 
+	if ctx.Req.PostForm.Has("tz") {
+		prefs := ascnotify.Load(ctx, ctx.Doer.ID)
+		prefs.TZ = ctx.FormString("tz")
+		if err := ascnotify.Save(ctx, ctx.Doer.ID, prefs); err != nil {
+			ctx.Flash.Error(err.Error())
+			ctx.Redirect(setting.AppSubURL + "/user/settings")
+			return
+		}
+	}
+
 	log.Trace("User settings updated: %s", ctx.Doer.Name)
 	ctx.Flash.Success(translation.NewLocale(ctx.Doer.Language).TrString("settings.update_hints_success"))
 	ctx.Redirect(setting.AppSubURL + "/user/settings/appearance")
@@ -468,6 +502,16 @@ func UpdateUserHiddenComments(ctx *context.Context) {
 	if err != nil {
 		ctx.ServerError("SetUserSetting", err)
 		return
+	}
+
+	if ctx.Req.PostForm.Has("tz") {
+		prefs := ascnotify.Load(ctx, ctx.Doer.ID)
+		prefs.TZ = ctx.FormString("tz")
+		if err := ascnotify.Save(ctx, ctx.Doer.ID, prefs); err != nil {
+			ctx.Flash.Error(err.Error())
+			ctx.Redirect(setting.AppSubURL + "/user/settings")
+			return
+		}
 	}
 
 	log.Trace("User settings updated: %s", ctx.Doer.Name)

@@ -865,3 +865,20 @@ func TestAscAgentsCancelAndInput(t *testing.T) {
 		assert.Equal(t, before, hub.total())
 	})
 }
+
+func TestAgentsReadAllowedMatrix(t *testing.T) {
+	// signedIn, hasDoer, code, actions, features
+	for _, c := range []struct {
+		name                                         string
+		signed, doer, code, actions, features, allow bool
+	}{
+		{"anonymous", false, false, true, true, true, false},
+		{"signed in, no Actions access", true, true, true, false, true, false},
+		{"signed in, no code access", true, true, false, true, true, false},
+		{"Actions access, features off", true, true, true, true, false, false},
+		{"signed in without a user", true, false, true, true, true, false},
+		{"full access", true, true, true, true, true, true},
+	} {
+		assert.Equal(t, c.allow, agentsReadAllowed(c.signed, c.doer, c.code, c.actions, c.features), c.name)
+	}
+}
