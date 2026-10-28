@@ -818,12 +818,12 @@ a.rp-hash:hover {
 }
 
 /* ---- the title row on a phone: Watch, Star and Fork fold into one "..." menu ---- */
-.rp-more {
+.rp-acts-more {
   position: relative;
   min-width: 0;
 }
 
-.rp-more-btn {
+.rp-acts-more-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -833,11 +833,11 @@ a.rp-hash:hover {
   list-style: none;
 }
 
-.rp-more-btn::-webkit-details-marker {
+.rp-acts-more-btn::-webkit-details-marker {
   display: none;
 }
 
-.rp-more-body {
+.rp-acts-more-body {
   position: absolute;
   inset-inline-end: 0;
   top: calc(100% + 6px);
@@ -865,11 +865,11 @@ a.rp-hash:hover {
 }
 
 @media (min-width: 640px) {
-  .rp-more-btn {
+  .rp-acts-more-btn {
     display: none;
   }
 
-  .rp-more-body {
+  .rp-acts-more-body {
     position: static;
     flex-direction: row;
     align-items: center;
@@ -883,7 +883,7 @@ a.rp-hash:hover {
 }
 
 @media (min-width: 640px) {
-  .rp-more::details-content {
+  .rp-acts-more::details-content {
     content-visibility: visible;
     display: contents;
   }

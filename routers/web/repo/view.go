@@ -593,8 +593,10 @@ func renderFile(ctx *context.Context, entry *git.TreeEntry) {
 				log.Error("Unable to get file language for %-v:%s. Error: %v", ctx.Repo.Repository, ctx.Repo.TreePath, err)
 			}
 
-			fileContent, lexerName, err := highlight.File(blob.Name(), language, buf)
+			highlighted, err := highlight.FileBudgeted(blob.Name(), language, buf)
+			fileContent, lexerName := highlighted.Lines, highlighted.Lexer
 			ctx.Data["LexerName"] = lexerName
+			ctx.Data["HighlightSkipped"] = highlighted.Skipped
 			if err != nil {
 				log.Error("highlight.File failed, fallback to plain text: %v", err)
 				fileContent = highlight.PlainText(buf)

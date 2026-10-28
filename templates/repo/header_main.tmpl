@@ -30,9 +30,9 @@
 						<button type="submit" class="ds-btn ds-btn-danger ds-btn-sm"{{if not $.CanUserAcceptTransfer}} disabled title="{{ctx.Locale.Tr "repo.transfer.no_permission_to_reject"}}"{{end}}>{{ctx.Locale.Tr "repo.transfer.reject"}}</button>
 					</form>
 				{{end}}
-				<details class="rp-more" data-asc-open-from="640">
-					<summary class="rp-act rp-act-icon rp-more-btn" aria-label="{{ctx.Locale.Tr "repo.more_operations"}}">{{svg "dsi-dots" 18}}</summary>
-					<div class="rp-more-body">
+				<details class="rp-acts-more" data-asc-open-from="640">
+					<summary class="rp-act rp-act-icon rp-acts-more-btn" aria-label="{{ctx.Locale.Tr "repo.more_operations"}}">{{svg "dsi-dots" 18}}</summary>
+					<div class="rp-acts-more-body">
 						{{template "repo/watch_unwatch" $}}
 						{{if not $.DisableStars}}{{template "repo/star_unstar" $}}{{end}}
 						{{if not $.DisableForks}}{{template "repo/header_fork" $}}{{end}}

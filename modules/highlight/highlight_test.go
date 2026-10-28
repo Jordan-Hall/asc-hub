@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -225,4 +226,76 @@ func TestTSRX(t *testing.T) {
 
 	_, lexerName := Code("", "tsrx", src)
 	assert.Equal(t, "TSRX", lexerName)
+}
+
+func TestFileBudgetedCachesAndSkips(t *testing.T) {
+	src := []byte("package main\n\nfunc main() {}\n")
+	first, err := FileBudgeted("main.go", "", src)
+	require.NoError(t, err)
+	assert.False(t, first.Cached)
+	assert.False(t, first.Skipped)
+	assert.Equal(t, "Go", first.Lexer)
+
+	second, err := FileBudgeted("main.go", "", src)
+	require.NoError(t, err)
+	assert.True(t, second.Cached, "the same content and lexer is served from the cache")
+	assert.Equal(t, first.Lines, second.Lines)
+
+	other, err := FileBudgeted("main.go", "", append([]byte("// x\n"), src...))
+	require.NoError(t, err)
+	assert.False(t, other.Cached, "other content is another key")
+
+	big := []byte(strings.Repeat("x := 1\n", highlightMaxBytes/7+10))
+	res, err := FileBudgeted("big.go", "", big)
+	require.NoError(t, err)
+	assert.True(t, res.Skipped, "a file over the size limit is plain text")
+	assert.Empty(t, res.Lexer)
+	assert.NotEmpty(t, res.Lines)
+}
+
+func TestPersistentCacheRoundTrip(t *testing.T) {
+	store := map[string]string{}
+	oldGet, oldPut := persistentGet, persistentPut
+	t.Cleanup(func() { persistentGet, persistentPut = oldGet, oldPut })
+	persistentGet = func(k string) (string, bool) { v, ok := store[k]; return v, ok }
+	persistentPut = func(k, v string) { store[k] = v }
+
+	src := []byte(strings.Repeat("let a = 1;\n", persistentMinBytes/10))
+	first, err := FileBudgeted("a.ts", "", src)
+	require.NoError(t, err)
+	require.Len(t, store, 1, "a file over the minimum is written to the persistent cache")
+
+	resultCache = newByteLRU(memoryCacheBytes) // a fresh process: only the persistent tier knows the file
+	second, err := FileBudgeted("a.ts", "", src)
+	require.NoError(t, err)
+	assert.True(t, second.Cached)
+	assert.Equal(t, first.Lines, second.Lines)
+	assert.Equal(t, first.Lexer, second.Lexer)
+}
+
+func TestByteLRUEvictsByBytes(t *testing.T) {
+	c := newByteLRU(1000)
+	line := template.HTML(strings.Repeat("a", 100))
+	for i := 0; i < 20; i++ {
+		c.put(strings.Repeat("k", i+1), []template.HTML{line, line}, "Go")
+	}
+	assert.LessOrEqual(t, c.size, 1000)
+	_, newest := c.get(strings.Repeat("k", 20))
+	_, oldest := c.get("k")
+	assert.True(t, newest)
+	assert.False(t, oldest)
+	c.put("huge", []template.HTML{template.HTML(strings.Repeat("b", 500))}, "Go")
+	_, ok := c.get("huge")
+	assert.False(t, ok, "one file never takes a quarter of the cache")
+}
+
+func TestBudgetedHighlightTimeIsBounded(t *testing.T) {
+	// 200 KB of Go at the largest size allowed: it is highlighted or skipped, in either case within the budget
+	// plus the time to format.
+	src := []byte(strings.Repeat("func f(a int) int { return a + 1 } // x\n", 200<<10/41))
+	start := time.Now()
+	res, err := FileBudgeted("f.go", "", src)
+	require.NoError(t, err)
+	assert.Less(t, time.Since(start), highlightBudget+2*time.Second)
+	assert.NotEmpty(t, res.Lines)
 }
