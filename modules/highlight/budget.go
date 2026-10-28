@@ -166,6 +166,13 @@ func decodeLines(s string) (lexer string, lines []template.HTML, ok bool) {
 	return parts[0], lines, true
 }
 
+// Warm highlights code the way File does and keeps the result in the caches, and says whether it did. A file that is
+// too large, too slow or already cached is left as it is; the caller is the push queue and has no use for the lines.
+func Warm(fileName string, code []byte) bool {
+	res, err := FileBudgeted(fileName, "", code)
+	return err == nil && !res.Skipped && !res.Cached
+}
+
 // tokensWithin reads the tokens of an iterator until it ends or the deadline passes. The clock is read every 512
 // tokens, so the check costs nothing and a slow file stops within a few milliseconds of the deadline.
 func tokensWithin(it chroma.Iterator, deadline time.Time) ([]chroma.Token, bool) {
