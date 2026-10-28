@@ -61,6 +61,20 @@
 		<svg class="rp-spark" viewBox="0 0 100 24" preserveAspectRatio="none" role="img" aria-label="{{ctx.Locale.Tr "asc_rp.activity_label" .HomeActivity.Total 12}}"><polyline points="{{.HomeActivity.Points}}" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>
 	</section>
 	{{end}}
+	{{if .HomeContributors}}
+	<section class="rp-card rp-contrib" aria-labelledby="rp-contrib-title" data-testid="home-contributors">
+		<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-contrib-title">{{ctx.Locale.Tr "asc_rp.contrib_title"}}</h2><span class="rp-dim">{{ctx.Locale.Tr "asc_rp.activity_last_weeks" 12}}</span></div>
+		<ul class="rp-contrib-list">
+			{{range .HomeContributors}}
+			<li>
+				<span class="rp-contrib-who">{{if .User}}{{ctx.AvatarUtils.Avatar .User 24 "ds-avatar"}}<a href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>{{else}}{{ctx.AvatarUtils.AvatarByEmail .Email .Name 24 "ds-avatar"}}<span>{{.Name}}</span>{{end}}</span>
+				<span class="rp-contrib-n">{{.Count}}</span>
+				<progress class="rp-contrib-bar" max="100" value="{{.Pct}}" aria-label="{{ctx.Locale.TrN .Count "asc_rp.n_changes_one" "asc_rp.n_changes_other" .Count}}">{{.Pct}}%</progress>
+			</li>
+			{{end}}
+		</ul>
+	</section>
+	{{end}}
 	{{if .HomePolicy}}
 	<section class="rp-card rp-policy" aria-labelledby="rp-policy-title">
 		<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-policy-title">{{ctx.Locale.Tr "asc_rp.policy_title"}}</h2>
