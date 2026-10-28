@@ -4,6 +4,7 @@
 package web
 
 import (
+	"html/template"
 	"net/http"
 	"net/url"
 	"strings"
@@ -66,4 +67,14 @@ func TestAscServiceWorkerIsScriptForTheWholeHub(t *testing.T) {
 	body := resp.Body.String()
 	assert.Contains(t, body, `addEventListener("push"`)
 	assert.Contains(t, body, `startsWith("//")`, "a click opens a path of this site only")
+}
+
+func TestAscDocsPageTablesScrollAndAreReachable(t *testing.T) {
+	ctx, resp := contexttest.MockContext(t, "GET /-/docs/stacks-and-operations")
+	ctx.SetParams(":slug", "stacks-and-operations")
+	AscDocsPage(ctx)
+	require.Equal(t, http.StatusOK, resp.Code)
+	html := string(ctx.Data["DocsHTML"].(template.HTML))
+	assert.Contains(t, html, `<div class="site-table" role="region" tabindex="0"`)
+	assert.Equal(t, strings.Count(html, "<table"), strings.Count(html, "</table></div>"))
 }
