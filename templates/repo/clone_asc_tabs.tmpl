@@ -15,4 +15,6 @@
 		<input type="text" class="js-clone-url ds-sr" id="rp-git-clone-url" data-clone-prefix="git clone " value="git clone {{$.CloneButtonOriginLink.HTTPS}}" readonly tabindex="-1" aria-hidden="true">
 	</div>
 </details>
+{{else}}
+<p class="rp-quiet rp-gitnote-off" data-testid="gitnote-off">{{svg "dsi-link" 14}} {{ctx.Locale.Tr "asc_rp.gitnote_off"}}</p>
 {{end}}
