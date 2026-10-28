@@ -1,0 +1,1096 @@
+/* Repository home and directory view (boards Repo and Code, directory view). Mobile first. */
+
+.rp-banner {
+  margin-bottom: 16px;
+}
+
+.rp-main {
+  min-width: 0;
+}
+
+/* ---- toolbar: ref, meta, go to file, clone ---- */
+.rp-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 8px;
+  align-items: center;
+}
+
+.rp-toolbar-l {
+  display: contents;
+}
+
+.rp-toolbar-l > .rp-ref {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.rp-toolbar-l > .rp-meta,
+.rp-toolbar-l > .rp-crumbs {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.rp-toolbar-l > #new-pull-request {
+  display: none;
+}
+
+.rp-toolbar-r {
+  display: flex;
+  grid-column: 2;
+  grid-row: 1;
+  gap: 8px;
+  align-items: center;
+}
+
+.rp-toolbar-r .rp-add,
+.rp-toolbar-r .rp-more-ops {
+  display: none;
+}
+
+.rp-toolbar-r .ds-only-desktop {
+  display: none;
+}
+
+.rp-meta {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.rp-sep-dot::before {
+  content: "\00b7";
+  margin: 0 6px;
+  color: var(--text-3);
+}
+
+.rp-find .ds-kbd {
+  margin-left: 6px;
+}
+
+/* the branch and tag selector (a Vue component that keeps the fomantic markup) */
+.rp-ref {
+  position: relative;
+  min-width: 0;
+}
+
+.rp-ref .ui.dropdown.custom {
+  position: relative;
+  display: block;
+}
+
+.rp-ref .ui.dropdown.custom > .branch-dropdown-button.ui.button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: var(--ctl-h);
+  min-width: 0;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.rp-ref .ui.dropdown.custom > .branch-dropdown-button.ui.button:hover {
+  background: var(--surface-2);
+}
+
+.rp-ref .branch-dropdown-button .text {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+
+.rp-ref .branch-dropdown-button .text svg {
+  display: none;
+}
+
+.rp-ref .branch-dropdown-button svg {
+  flex: none;
+  color: var(--text-2);
+}
+
+.rp-ref .branch-dropdown-button strong {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.rp-ref .ui.dropdown.custom > .menu {
+  position: fixed;
+  z-index: var(--z-pop);
+  inset: auto 0 0 0;
+  width: auto;
+  max-width: none;
+  max-height: 78vh;
+  margin: 0;
+  padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-dialog) var(--r-dialog) 0 0;
+  background: var(--surface);
+  box-shadow: 0 -12px 40px -12px rgba(0, 0, 0, 0.45);
+}
+
+.rp-ref .ui.dropdown.custom > .menu.visible {
+  display: flex;
+}
+
+.rp-ref .ui.dropdown.custom > .menu .ui.search.input {
+  position: relative;
+  margin: 0 16px 8px;
+}
+
+.rp-ref .ui.dropdown.custom > .menu .ui.search.input > input {
+  width: 100%;
+  height: var(--input-h);
+  padding: 0 12px 0 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+
+.rp-ref .ui.dropdown.custom > .menu .ui.search.input > i.icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--text-2);
+  pointer-events: none;
+}
+
+.rp-ref .branch-tag-tab {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px 6px;
+}
+
+.rp-ref .branch-tag-tab .branch-tag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  color: var(--text-b);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rp-ref .branch-tag-tab .branch-tag-item.active {
+  background: var(--primary-soft);
+  color: var(--link);
+}
+
+.rp-ref .branch-tag-divider {
+  height: 1px;
+  background: var(--line-2);
+}
+
+.rp-ref .ui.dropdown.custom > .menu .scrolling.menu {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 8px;
+}
+
+.rp-ref .ui.dropdown.custom > .menu .item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.rp-ref .ui.dropdown.custom > .menu .item:hover,
+.rp-ref .ui.dropdown.custom > .menu .item.active {
+  background: var(--surface-3);
+}
+
+.rp-ref .ui.dropdown.custom > .menu .item.selected {
+  background: var(--primary-soft);
+  color: var(--link);
+  font-weight: 700;
+}
+
+.rp-ref .ui.dropdown.custom > .menu .ui.label {
+  margin-left: auto;
+  padding: 2px 9px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--primary-soft);
+  color: var(--link);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rp-ref .ui.dropdown.custom > .menu .message {
+  padding: 12px 18px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+/* ---- breadcrumb of a path ---- */
+.rp-crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.rp-crumbs a {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.rp-crumbs a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-crumbs b {
+  color: var(--text);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.rp-crumb-sep {
+  color: var(--text-3);
+}
+
+.rp-crumb-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.rp-crumb-copy:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* ---- the code search field above the files ---- */
+.rp-codesearch {
+  min-width: 0;
+}
+
+/* ---- the files card ---- */
+.rp-files-card {
+  overflow: hidden;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-collapse: collapse;
+  background: transparent;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files > tbody,
+.rp-page.repository.file.list #repo-files-table.rp-files > thead {
+  display: block;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name age" "msg msg";
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line-3);
+  background: transparent;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files tr:first-child,
+.rp-page.repository.file.list #repo-files-table.rp-files thead tr {
+  border-top: 0;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td.name {
+  grid-area: name;
+  font-weight: 600;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td.name a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td.name a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td.message {
+  grid-area: msg;
+  padding-left: 28px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td.message a {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td.message a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td.age {
+  grid-area: age;
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files .truncate {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td.name .truncate {
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.rp-ico {
+  flex: none;
+}
+
+.rp-ico-dir {
+  color: #f59e0b;
+}
+
+.rp-ico-file {
+  color: var(--text-3);
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files tr:hover:not(.rp-files-last) {
+  background: var(--surface-2);
+}
+
+.rp-files-up {
+  grid-column: 1 / -1;
+}
+
+.rp-files-up a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files tr.rp-files-last {
+  display: block;
+  padding: 0;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line-2);
+}
+
+.rp-files-last > td {
+  display: block;
+  padding: 12px 16px;
+}
+
+.rp-files-last-in {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rp-latest {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rp-latest .rp-commit-msg {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rp-latest .rp-commit-msg .rp-commit-body {
+  white-space: pre-wrap;
+}
+
+.rp-latest .rp-author {
+  flex: none;
+}
+
+.rp-latest .ds-avatar,
+.rp-latest img.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.rp-author {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.rp-commit-msg {
+  display: inline;
+  min-width: 0;
+  color: var(--text-b);
+  font-size: 14px;
+}
+
+.rp-commit-msg a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.rp-commit-msg a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-commit-body {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-b);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+}
+
+.rp-ellipsis {
+  min-width: 28px;
+  min-height: 24px;
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-2);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rp-files-last-meta {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.rp-files-last-meta a {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.rp-files-last-meta a:hover {
+  color: var(--link);
+}
+
+/* the sha chip of the hub is a quiet mono link */
+.rp-page a.sha.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.rp-page a.sha.label:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+/* ---- skeleton ---- */
+.rp-sk {
+  display: inline-block;
+  min-width: 60px;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--surface-3);
+  animation: rp-pulse 1.4s ease-in-out infinite;
+}
+
+.rp-sk-line {
+  width: 70%;
+  max-width: 340px;
+}
+
+@keyframes rp-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-sk {
+    animation: none;
+  }
+}
+
+/* ---- lists of stacks and landed changes ---- */
+.rp-flight {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.rp-flight > .ds-dot {
+  margin-top: 7px;
+}
+
+.rp-flight-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.rp-flight-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.rp-flight-title a {
+  color: var(--text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.rp-flight-title a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-flight-meta {
+  margin-top: 3px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.rp-flight-meta a {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.rp-flight-meta a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-flight-when {
+  flex: none;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.rp-quiet {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+/* ---- the right column ---- */
+.rp-rail-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rp-rail-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.rp-about {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+
+.rp-about-text {
+  color: var(--text-b);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.rp-about-text .no-description {
+  color: var(--text-2);
+  font-style: italic;
+}
+
+.rp-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rp-topics:empty {
+  display: none;
+}
+
+.rp-topic-manage {
+  min-height: 28px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--link);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rp-about-site {
+  color: var(--link);
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.rp-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.rp-numbers a {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.rp-numbers a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.rp-numbers b {
+  color: var(--text);
+}
+
+.rp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+
+.rp-card > p {
+  margin: 0;
+}
+
+.rp-lang-bar {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--line-2);
+}
+
+.rp-slice {
+  display: block;
+  flex: none;
+  height: 8px;
+}
+
+.rp-lang-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13.5px;
+  color: var(--text-b);
+}
+
+.rp-lang-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rp-lang-dot {
+  flex: none;
+}
+
+.rp-rel-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rp-rel-name {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.rp-rel-name:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+/* ---- the sticky bar of a phone ---- */
+.rp-sticky-m {
+  margin-top: 8px;
+}
+
+@media (min-width: 1024px) {
+  .rp-sticky-m {
+    display: none;
+  }
+}
+
+.rp-sticky-m {
+  padding: 10px 0;
+  background: linear-gradient(to top, var(--canvas) 70%, transparent);
+}
+
+/* ---- clone sheet ---- */
+.rp-clone-dialog .ds-term-bd {
+  font-size: 13px;
+}
+
+.rp-clone-btns:empty {
+  display: none;
+}
+
+.rp-clone-archives {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
+
+.rp-clone-archives a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--touch);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rp-clone-proto {
+  align-self: flex-start;
+}
+
+.rp-clone-proto .ds-btn.primary,
+.rp-clone-proto .ds-btn[aria-pressed="true"] {
+  background: var(--fill);
+  color: var(--on-fill);
+}
+
+/* ---- git compatibility note ---- */
+.rp-gitnote {
+  border-top: 1px dashed var(--line-strong);
+  padding-top: 8px;
+}
+
+.rp-gitnote > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch);
+  list-style: none;
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.rp-gitnote > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rp-gitnote-lead {
+  flex: 1;
+  min-width: 0;
+}
+
+.rp-gitnote-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--link);
+  font-weight: 700;
+}
+
+.rp-gitnote[open] .rp-gitnote-toggle svg {
+  transform: rotate(180deg);
+}
+
+.rp-gitnote-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface-3);
+  color: var(--text-b);
+  font-size: 14px;
+}
+
+.rp-gitnote-body > p {
+  margin: 0;
+}
+
+/* ---- desktop ---- */
+@media (min-width: 768px) {
+  .rp-toolbar-r .rp-add,
+  .rp-toolbar-r .rp-more-ops {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .rp-toolbar-l {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    min-width: 0;
+  }
+
+  .rp-toolbar-l > .rp-ref {
+    flex: none;
+  }
+
+  .rp-toolbar-l > #new-pull-request {
+    display: inline-flex;
+  }
+
+  .rp-ref .ui.dropdown.custom > .branch-dropdown-button.ui.button {
+    width: auto;
+    min-width: 110px;
+    gap: 14px;
+  }
+
+  .rp-ref .ui.dropdown.custom > .menu {
+    position: absolute;
+    inset: calc(100% + 6px) auto auto 0;
+    width: 340px;
+    max-height: 420px;
+    padding: 10px 0;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px -8px rgba(15, 23, 42, 0.28);
+  }
+
+  .rp-toolbar-r {
+    flex: none;
+  }
+
+  .rp-toolbar-r .ds-only-desktop {
+    display: inline-flex;
+  }
+
+  .rp-page.repository.file.list #repo-files-table.rp-files tr {
+    grid-template-columns: minmax(150px, 0.8fr) minmax(0, 2fr) 80px;
+    grid-template-areas: "name msg age";
+    padding: 0 18px;
+    min-height: 42px;
+  }
+
+  .rp-page.repository.file.list #repo-files-table.rp-files td.message {
+    padding-left: 0;
+    font-size: 14px;
+  }
+
+  .rp-page.repository.file.list #repo-files-table.rp-files tr.rp-files-last {
+    display: block;
+    padding: 0;
+  }
+
+  .rp-flight {
+    padding: 14px 18px;
+  }
+}
+
+/* repo.css still sizes #repo-files-table for the old table: neutralise its widths, paddings and icon margins */
+.rp-page.repository.file.list #repo-files-table.rp-files td,
+.rp-page.repository.file.list #repo-files-table.rp-files td.name,
+.rp-page.repository.file.list #repo-files-table.rp-files td.message,
+.rp-page.repository.file.list #repo-files-table.rp-files td.age {
+  width: auto;
+  max-width: none;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td a:not(.sha, .author-wrapper),
+.rp-page.repository.file.list #repo-files-table.rp-files td .truncate,
+.rp-page.repository.file.list #repo-files-table.rp-files tr.has-parent a {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files td .truncate {
+  width: auto;
+  max-width: 100%;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files tr.has-parent a {
+  width: auto;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files tbody .svg {
+  margin: 0;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files tbody .svg.octicon-file-directory-fill,
+.rp-page.repository.file.list #repo-files-table.rp-files tbody .svg.octicon-file-submodule {
+  color: var(--text-3);
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files tr:hover {
+  background-color: transparent;
+}
+
+.rp-page.repository.file.list #repo-files-table.rp-files tr.rp-files-last > td {
+  padding: 12px 16px;
+  overflow: hidden;
+}
+
+/* the legacy phone rules of #repo-files-table (repo.css) hide the message column and turn rows into flex boxes */
+@media (max-width: 767.98px) {
+  .repository.file.list.rp-page #repo-files-table tr.entry {
+    display: grid !important;
+    align-items: center;
+    padding: 10px 16px;
+  }
+
+  .repository.file.list.rp-page #repo-files-table tr.rp-files-last {
+    display: block !important;
+    padding: 0;
+  }
+
+  .repository.file.list.rp-page #repo-files-table tr.entry td.message {
+    display: block !important;
+  }
+
+  .repository.file.list.rp-page #repo-files-table tr.entry td.age {
+    margin-inline-start: 0;
+  }
+
+  .repository.file.list.rp-page #repo-files-table tr.entry td.name {
+    width: auto;
+    max-width: none;
+  }
+}
+
+.rp-page .rp-files td a {
+  padding: 0;
+}
+
+.rp-page .rp-files .rp-ico {
+  margin: 0;
+}

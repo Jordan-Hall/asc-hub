@@ -1,0 +1,91 @@
+{{/* The file viewer and blame (board Code): folder rail, the file, and what is known about it. */}}
+{{$n := len .TreeNames}}
+{{$dirLink := .BranchLink}}
+{{if gt $n 1}}{{$dirLink = print .BranchLink "/" (PathEscapeSegments (index .Paths (Eval $n "-" 2)))}}{{end}}
+{{$treeRel := PathEscapeSegments .TreePath}}
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository file list rp-page rp-codepage {{if .IsBlame}}blame{{end}}">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" .FileName "BackHref" $dirLink "BackLabel" .Repository.Name)}}
+	<div class="ds-container ds-container-xl rp-codegrid">
+		<aside class="rp-tree" id="rp-tree" aria-label="{{ctx.Locale.Tr "asc_rp.files"}}">
+			<div class="rp-tree-h">
+				<h2 class="rp-tree-title">{{ctx.Locale.Tr "asc_rp.files"}}</h2>
+				<a class="ds-btn ds-btn-ghost ds-btn-icon rp-tree-close" href="#" aria-label="{{ctx.Locale.Tr "asc_shell.close"}}">{{svg "dsi-x" 20}}</a>
+			</div>
+			<div class="rp-tree-b">
+				{{if .AscTree}}
+					<nav aria-label="{{ctx.Locale.Tr "asc_rp.files"}}">{{template "repo/code_tree" .AscTree}}</nav>
+					{{if .AscTreeCut}}<p class="rp-tree-hint">{{ctx.Locale.Tr "asc_rp.tree_cut"}}</p>{{end}}
+				{{end}}
+				<p class="rp-tree-hint"><a href="{{.BranchLink}}">{{.Repository.FullName}}</a></p>
+			</div>
+		</aside>
+		<div class="rp-codemain">
+			{{template "base/alert" .}}
+			<div class="rp-crumbbar">
+				{{template "repo/filepath" .}}
+			</div>
+			<div class="rp-codebar">
+				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.file_view"}}">
+					<a href="{{.RepoLink}}/src/{{.BranchNameSubURL}}/{{$treeRel}}"{{if .IsViewFile}} aria-current="true"{{end}}>{{ctx.Locale.Tr "repo.code"}}</a>
+					{{if or .IsBlame .IsRepresentableAsText}}<a href="{{.RepoLink}}/blame/{{.BranchNameSubURL}}/{{$treeRel}}"{{if .IsBlame}} aria-current="true"{{end}}>{{ctx.Locale.Tr "repo.blame"}}</a>{{end}}
+					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}/{{$treeRel}}">{{ctx.Locale.Tr "repo.file_history"}}</a>
+				</div>
+				{{template "repo/branch_dropdown" dict "root" . "ContainerClasses" "rp-ref"}}
+				<a class="ds-btn ds-btn-secondary ds-btn-icon rp-files-btn" href="#rp-tree" aria-label="{{ctx.Locale.Tr "asc_rp.files"}}" aria-haspopup="dialog">{{svg "dsi-folder" 18}}</a>
+				<div class="rp-codebar-acts">
+					<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.RawFileLink}}">{{ctx.Locale.Tr "repo.file_raw"}}</a>
+					{{if and .IsViewFile .Repository.CanEnableEditor}}
+						{{if .CanEditFile}}<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}" title="{{.EditFileTooltip}}">{{ctx.Locale.Tr "asc_rp.edit_file"}}</a>{{end}}
+					{{end}}
+					{{if .IsViewFile}}
+					<details class="dropdown rp-dd rp-fileops">
+						<summary class="ds-btn ds-btn-secondary ds-btn-sm ds-btn-icon" aria-label="{{ctx.Locale.Tr "repo.more_operations"}}">{{svg "dsi-dots" 18}}</summary>
+						<div class="content rp-pop">
+							<ul>
+								<li><a download href="{{$.RawFileLink}}">{{svg "dsi-download" 18}}{{ctx.Locale.Tr "repo.download_file"}}</a></li>
+								<li><a href="#" id="copy-content" class="{{if not .CanCopyContent}}disabled{{end}}"{{if or .IsImageFile (and .HasSourceRenderedToggle (not .IsDisplayingSource))}} data-link="{{$.RawFileLink}}"{{end}} title="{{if .CanCopyContent}}{{ctx.Locale.Tr "copy_content"}}{{else}}{{ctx.Locale.Tr "copy_type_unsupported"}}{{end}}">{{svg "dsi-copy" 18}}{{ctx.Locale.Tr "copy_content"}}</a></li>
+								{{if not .IsViewCommit}}<li><a href="{{.RepoLink}}/src/commit/{{PathEscape .CommitID}}/{{PathEscapeSegments .TreePath}}">{{svg "dsi-link" 18}}{{ctx.Locale.Tr "repo.file_permalink"}}</a></li>{{end}}
+								{{if and .EnableFeed .IsViewBranch}}<li><a href="{{$.FeedURL}}/rss/{{$.BranchNameSubURL}}/{{PathEscapeSegments .TreePath}}">{{svg "octicon-rss" 18}}{{ctx.Locale.Tr "rss_feed"}}</a></li>{{end}}
+								{{if .SymlinkURL}}<li><a href="{{$.SymlinkURL}}" data-kind="follow-symlink">{{svg "dsi-arrow-right" 18}}{{ctx.Locale.Tr "repo.file_follow"}}</a></li>{{end}}
+								{{if and .Repository.CanEnableEditor .CanDeleteFile}}<li><a class="rp-danger" href="{{.RepoLink}}/_delete/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}">{{svg "dsi-trash" 18}}{{ctx.Locale.Tr "repo.editor.delete_this_file"}}</a></li>{{end}}
+							</ul>
+						</div>
+					</details>
+					{{end}}
+					{{if .EscapeStatus.Escaped}}
+						<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm unescape-button tw-hidden">{{ctx.Locale.Tr "repo.unescape_control_characters"}}</button>
+						<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm escape-button">{{ctx.Locale.Tr "repo.escape_control_characters"}}</button>
+					{{end}}
+				</div>
+			</div>
+			{{if .LatestCommit}}
+			<div id="repo-file-commit-box" class="rp-sec rp-commitbar">
+				<div class="latest-commit rp-latest">{{template "repo/latest_commit" .}}</div>
+				<div class="rp-files-last-meta">
+					<span class="ds-hide-xs">{{template "repo/shabox" (dict "sha1" .LatestCommit.ID.String "commitLink" (printf "%s/commit/%s" .RepoLink (.LatestCommit.ID.String|PathEscape)) "signature" .LatestCommit.Signature "verification" .LatestCommitVerification)}}</span>
+					{{template "repo/commit_statuses" dict "Status" .LatestCommitStatus "Statuses" .LatestCommitStatuses}}
+					{{if .LatestCommit.Committer}}<span>{{DateUtils.TimeSince .LatestCommit.Committer.When}}</span>{{end}}
+				</div>
+			</div>
+			{{end}}
+			{{if .IsViewFile}}
+				{{template "repo/view_file" .}}
+			{{else}}
+				{{template "repo/blame" .}}
+			{{end}}
+			{{if and .IsViewFile .CanEditFile .Repository.CanEnableEditor}}
+			<div class="ds-banner rp-editnote">
+				{{svg "dsi-pencil" 18}}
+				<div class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_rp.edit_note_title"}}</b> {{ctx.Locale.Tr "asc_rp.edit_note_body" .BranchName}}</div>
+				<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}">{{ctx.Locale.Tr "asc_rp.edit_file"}}</a>
+			</div>
+			{{end}}
+		</div>
+		<aside class="rp-codeside" aria-label="{{ctx.Locale.Tr "asc_rp.about_file"}}">
+			<section class="rp-card">
+				<h2 class="rp-rail-title">{{ctx.Locale.Tr "asc_rp.about_file"}}</h2>
+				{{template "repo/file_info" .}}
+			</section>
+		</aside>
+	</div>
+</div>

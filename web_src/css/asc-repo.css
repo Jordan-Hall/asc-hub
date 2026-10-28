@@ -796,3 +796,8 @@
   border-radius: 8px;
   min-height: 44px;
 }
+
+/* the rebuilt repository pages (boards C1 to C15, D1, F1 to F8) */
+@import "./asc-pages/repo-kit.css";
+@import "./asc-pages/repo-home.css";
+@import "./asc-pages/repo-code.css";

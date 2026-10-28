@@ -1,0 +1,54 @@
+{{/* The clone sheet of the repository home: the asc commands first, git as one collapsed note (boards Repo "Popover: clone" and GitNote). A dialog from 640, a bottom sheet under. */}}
+{{$isAsc := eq .Repository.GetStorageBackend "asc"}}
+<dialog id="rp-clone-dialog" class="rp-clone-dialog" aria-labelledby="rp-clone-title">
+	<article>
+		<header id="rp-clone-title">{{ctx.Locale.Tr "asc_rp.clone_title" .Repository.FullName}}</header>
+		<div class="content ds-stack-12">
+			{{if or .CloneButtonShowSSH}}
+				<div class="ds-seg rp-clone-proto" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.clone_protocol"}}">
+					{{if $.CloneButtonShowHTTPS}}<button type="button" class="ds-btn ds-btn-sm" id="repo-clone-https" data-link="{{$.CloneButtonOriginLink.HTTPS}}">HTTPS</button>{{end}}
+					<button type="button" class="ds-btn ds-btn-sm" id="repo-clone-ssh" data-link="{{$.CloneButtonOriginLink.SSH}}">SSH</button>
+				</div>
+			{{else if $.CloneButtonShowHTTPS}}
+				<button type="button" hidden id="repo-clone-https" data-link="{{$.CloneButtonOriginLink.HTTPS}}">HTTPS</button>
+			{{end}}
+			{{if $isAsc}}
+				{{if AscDownloadAvailable}}<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "repo.clone_signin_help" (print AppSubUrl "/user/settings/applications")}}</p>{{end}}
+				<div class="ds-term">
+					<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_rp.terminal"}}</span><button type="button" class="ds-copy" data-clipboard-target="#repo-clone-url">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+					<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_rp.terminal"}}"><span class="ds-pr">$</span> asc auth login --host {{AscHubHost}}
+<span class="ds-pr">$</span> asc clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></div>
+				</div>
+				<input type="text" class="js-clone-url ds-sr" id="repo-clone-url" data-clone-prefix="asc clone " value="asc clone {{$.CloneButtonOriginLink.HTTPS}}" readonly tabindex="-1" aria-hidden="true">
+				<div class="ds-grid ds-grid-2 rp-clone-btns">
+					{{if AscDownloadAvailable}}<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_rp.install_asc"}}</a>{{end}}
+					{{range .OpenWithEditorApps}}
+						<a class="ds-btn ds-btn-secondary js-clone-url-editor" data-href-template="{{.OpenURL}}">{{ctx.Locale.Tr "repo.open_with_editor" .DisplayName}}</a>
+					{{end}}
+				</div>
+				{{template "repo/clone_asc_tabs" .}}
+			{{else}}
+				<div class="ds-term">
+					<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_rp.terminal"}}</span><button type="button" class="ds-copy" data-clipboard-target="#repo-clone-url">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+					<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_rp.terminal"}}"><span class="ds-pr">$</span> git clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></div>
+				</div>
+				<input type="text" class="js-clone-url ds-sr" id="repo-clone-url" value="{{$.CloneButtonOriginLink.HTTPS}}" readonly tabindex="-1" aria-hidden="true">
+				<div class="ds-grid ds-grid-2 rp-clone-btns">
+					{{range .OpenWithEditorApps}}
+						<a class="ds-btn ds-btn-secondary js-clone-url-editor" data-href-template="{{.OpenURL}}">{{ctx.Locale.Tr "repo.open_with_editor" .DisplayName}}</a>
+					{{end}}
+				</div>
+			{{end}}
+			{{if not $.DisableDownloadSourceArchives}}
+				<ul class="rp-clone-archives rp-plain-list">
+					<li><a class="archive-link ds-link" href="{{$.RepoLink}}/archive/{{PathEscapeSegments $.RefName}}.zip" rel="nofollow">{{svg "octicon-file-zip" 16}} {{ctx.Locale.Tr "repo.download_zip"}}</a></li>
+					<li><a class="archive-link ds-link" href="{{$.RepoLink}}/archive/{{PathEscapeSegments $.RefName}}.tar.gz" rel="nofollow">{{svg "octicon-file-zip" 16}} {{ctx.Locale.Tr "repo.download_tar"}}</a></li>
+					<li><a class="archive-link ds-link" href="{{$.RepoLink}}/archive/{{PathEscapeSegments $.RefName}}.bundle" rel="nofollow">{{svg "octicon-package" 16}} {{ctx.Locale.Tr "repo.download_bundle"}}</a></li>
+					{{if .CitationFile}}<li><a class="citation-link ds-link" href="{{$.RepoLink}}/src/branch/{{$.BranchName}}/{{$.CitationFile}}">{{svg "octicon-cross-reference" 16}} {{ctx.Locale.Tr "repo.cite_this_repo"}}</a></li>{{end}}
+				</ul>
+			{{end}}
+		</div>
+		<div class="actions"><button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "asc_shell.close"}}</button></div>
+	</article>
+</dialog>
+{{template "repo/clone_script" .}}

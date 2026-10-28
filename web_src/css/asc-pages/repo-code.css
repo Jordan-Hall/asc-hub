@@ -1,0 +1,473 @@
+/* Code: the file viewer, blame and the README card (board Code). Mobile first. */
+
+.rp-codegrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  padding-top: 12px;
+  padding-bottom: 40px;
+}
+
+.rp-codemain {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rp-crumbbar {
+  min-width: 0;
+}
+
+.rp-crumbbar:empty {
+  display: none;
+}
+
+.rp-codebar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rp-codebar > .rp-ref {
+  flex: 1;
+  min-width: 76px;
+}
+
+.rp-codebar .rp-ref .ui.dropdown.custom > .branch-dropdown-button.ui.button {
+  padding: 0 10px;
+  font-size: 13.5px;
+}
+
+.rp-codebar .rp-ref .branch-dropdown-button .dropdown.icon {
+  display: none;
+}
+
+.rp-codebar .ds-seg {
+  gap: 6px;
+}
+
+.rp-codebar .ds-seg > a {
+  padding: 0 12px;
+  font-size: 13.5px;
+}
+
+.rp-codebar-acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.rp-codebar-acts .ds-btn {
+  min-height: var(--touch);
+}
+
+.rp-files-btn {
+  flex: none;
+}
+
+/* ---- folder rail: a column from 1024, a full screen list under ---- */
+.rp-tree {
+  display: none;
+}
+
+.rp-tree:target {
+  position: fixed;
+  z-index: var(--z-sheet);
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+.rp-tree-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--header-h);
+  padding: 0 8px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.rp-tree-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.rp-tree-b {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 8px 24px;
+}
+
+.rp-tree-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-tree-list .rp-tree-list {
+  padding-left: 14px;
+}
+
+.rp-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--touch);
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--text-b);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.rp-tree-item:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.rp-tree-item[aria-current="page"] {
+  background: var(--primary-soft);
+  color: var(--link);
+  font-weight: 700;
+}
+
+.rp-tree-caret {
+  display: inline-flex;
+  flex: none;
+  width: 14px;
+  color: var(--text-3);
+}
+
+.rp-tree-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rp-tree-hint {
+  margin: 12px 10px 0;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.rp-codeside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rp-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.rp-facts:empty {
+  display: none;
+}
+
+/* ---- the file card ---- */
+.rp-commitbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+}
+
+.rp-filecard {
+  overflow: hidden;
+}
+
+.rp-filehead {
+  align-items: center;
+  background: var(--surface-2);
+}
+
+.rp-filehead-l {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rp-filehead-r {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-filename {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.rp-filebody {
+  min-width: 0;
+}
+
+.rp-filebody .file-view {
+  min-width: 0;
+}
+
+.rp-filebody .file-view.markup {
+  padding: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.rp-filebody .file-view.plain-text,
+.rp-filebody .file-view .view-raw {
+  padding: 16px;
+}
+
+.rp-filebody .file-view .view-raw img {
+  max-width: 100%;
+  height: auto;
+}
+
+.rp-filebody .file-view.markup pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.rp-filebody .file-view.markup table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.rp-codescroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.rp-codescroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.rp-filebody .code-view {
+  background: var(--surface);
+}
+
+.rp-filebody .code-view table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rp-filebody .lines-num {
+  width: 1%;
+  min-width: 44px;
+  padding: 0;
+  border-right: 1px solid var(--line-3);
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 12.5px;
+  user-select: none;
+}
+
+.rp-filebody .lines-num span::after {
+  padding: 0 8px;
+  line-height: 22px !important;
+}
+
+.rp-filebody .lines-code {
+  padding: 0 14px;
+  font-size: 12.5px;
+  line-height: 22px;
+}
+
+.rp-filebody .code-inner {
+  font: 12.5px/22px var(--font-mono);
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.rp-filebody .blame .code-inner,
+.blame .rp-filebody .code-inner {
+  white-space: pre;
+}
+
+.rp-filebody .file-view tr.active .lines-code,
+.rp-filebody .file-view tr.active .lines-num {
+  background: var(--note-bg);
+}
+
+.rp-filemsg {
+  margin: 12px;
+}
+
+/* ---- blame ---- */
+.blame .rp-filebody .lines-commit {
+  width: 1%;
+  border-right: 1px solid var(--line-3);
+  background: var(--surface);
+}
+
+.blame .rp-filebody .lines-commit .blame-info {
+  width: 44px;
+  padding: 0 4px;
+}
+
+.blame .rp-filebody .blame-data {
+  align-items: center;
+  gap: 8px;
+}
+
+.blame .rp-filebody .blame-message,
+.blame .rp-filebody .blame-time,
+.blame .rp-filebody .blame-sha {
+  display: none;
+}
+
+.blame .rp-filebody .blame-avatar img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+
+.blame .rp-filebody .lines-commit .blame-info {
+  line-height: 22px;
+}
+
+.blame .rp-filebody .blame-avatar {
+  margin: 0;
+}
+
+.blame .rp-filebody tr.top-line-blame {
+  border-top: 1px solid var(--line-3);
+}
+
+.blame .rp-filebody .lines-blame-btn {
+  display: none;
+}
+
+.rp-editnote {
+  align-items: center;
+}
+
+.rp-editnote .ds-banner-body {
+  flex: 1;
+}
+
+.rp-keys {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.rp-danger {
+  color: var(--err) !important;
+}
+
+/* ---- desktop ---- */
+@media (min-width: 1024px) {
+  .rp-codebar .rp-ref .branch-dropdown-button .dropdown.icon {
+    display: inline;
+  }
+
+  .rp-codegrid {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 24px;
+    padding-top: 20px;
+  }
+
+  .rp-tree {
+    display: block;
+    position: sticky;
+    top: calc(var(--header-h) + 16px);
+    align-self: start;
+    max-height: calc(100vh - var(--header-h) - 32px);
+    overflow-y: auto;
+  }
+
+  .rp-tree-h {
+    display: none;
+  }
+
+  .rp-tree-b {
+    padding: 0;
+    overflow: visible;
+  }
+
+  .rp-tree-item {
+    min-height: 32px;
+    font-size: 14px;
+  }
+
+  .rp-codebar > .rp-ref {
+    flex: none;
+    width: 200px;
+  }
+
+  .rp-codebar .rp-files-btn {
+    display: none;
+  }
+
+  .rp-codeside {
+    grid-column: 1 / -1;
+  }
+
+  .blame .rp-filebody .lines-commit .blame-info {
+    width: 260px;
+  }
+
+  .blame .rp-filebody .blame-message {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    font-size: 12.5px;
+  }
+
+  .blame .rp-filebody .blame-message a {
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .blame .rp-filebody .blame-sha,
+  .blame .rp-filebody .blame-time {
+    display: block;
+    font-size: 12px;
+    color: var(--text-2);
+  }
+}
+
+@media (min-width: 1280px) {
+  .rp-codegrid {
+    grid-template-columns: 240px minmax(0, 1fr) 280px;
+  }
+
+  .rp-codeside {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .rp-tree:target {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .rp-codeside {
+    order: 3;
+  }
+}

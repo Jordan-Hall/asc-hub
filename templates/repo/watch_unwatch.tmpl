@@ -1,61 +1,37 @@
+{{/* The watch control of the repository title row. htmx swaps #watch-button with this template after a change. */}}
 {{if $.IsSigned}}
-	<details class="dropdown" id="watch-button">
-		<summary class="ui labeled small button">
-			<div class="ui compact small button">
-				{{svg "octicon-eye" 16}}
-				<span class="text not-mobile">{{if $.RepoWatchSelection.IsWatching}}{{ctx.Locale.Tr "repo.watching"}}{{else}}{{ctx.Locale.Tr "repo.watch"}}{{end}}</span>
-				{{svg "octicon-triangle-down" 14}}
-			</div>
-			{{/* The count is text here, not a link: a summary is a button, and a button must not hold a link. The list of
-			watchers is the first entry of the menu. */}}
-			<span class="ui basic label">{{CountFmt .Repository.NumWatches}}</span>
+	<details class="dropdown rp-dd rp-actg" id="watch-button">
+		<summary class="rp-act" aria-label="{{if $.RepoWatchSelection.IsWatching}}{{ctx.Locale.Tr "repo.watching"}}{{else}}{{ctx.Locale.Tr "repo.watch"}}{{end}}">
+			{{svg "dsi-eye" 16}}
+			<span class="rp-act-text">{{if $.RepoWatchSelection.IsWatching}}{{ctx.Locale.Tr "repo.watching"}}{{else}}{{ctx.Locale.Tr "repo.watch"}}{{end}}</span>
+			<span class="ds-count">{{CountFmt .Repository.NumWatches}}</span>
 		</summary>
-		<div class="content">
-			<a class="tw-block tw-px-3 tw-pt-3" href="{{.RepoLink}}/watchers"
-				aria-label="{{ctx.Locale.TrPluralString .Repository.NumWatches "watch.n_watchers" (printf "%d" .Repository.NumWatches)}}"
-				>
-				{{ctx.Locale.TrPluralString .Repository.NumWatches "watch.n_watchers" (printf "%d" .Repository.NumWatches)}}
-			</a>
-			<form class="ui form tw-p-3" hx-target="#watch-button" method="post" hx-post="{{$.RepoLink}}/action/watch/select" action="{{$.RepoLink}}/action/watch/select" hx-swap="outerHTML">
-				<fieldset>
-					<label>
-						<input type="checkbox" name="watch_issues" value="true" {{if $.RepoWatchSelection.Issues}}checked{{end}}>
-						{{svg "octicon-issue-opened"}}
-						{{ctx.Locale.Tr "repo.watch.issues"}}
-					</label>
-					<label>
-						<input type="checkbox" name="watch_pull_requests" value="true" {{if $.RepoWatchSelection.PullRequests}}checked{{end}}>
-						{{svg "octicon-git-pull-request"}}
-						{{ctx.Locale.Tr "repo.watch.pull_requests"}}
-					</label>
-					<label>
-						<input type="checkbox" name="watch_releases" value="true" {{if $.RepoWatchSelection.Releases}}checked{{end}}>
-						{{svg "octicon-tag"}}
-						{{ctx.Locale.Tr "repo.watch.releases"}}
-						<span class="help">{{ctx.Locale.Tr "repo.watch.releases.hint"}}</span>
-					</label>
-					<div class="small button-sequence tw-mt-3">
-						<button type="submit" class="primary button">{{ctx.Locale.Tr "save"}}</button>
-						{{if $.RepoWatchSelection.IsWatching}}
-							<button type="button" class="secondary button" hx-post="{{$.RepoLink}}/action/unwatch" hx-target="#watch-button" hx-swap="outerHTML">
-								{{ctx.Locale.Tr "repo.unwatch"}}
-							</button>
-						{{end}}
-					</div>
+		<div class="content rp-pop rp-watch-pop">
+			<div class="rp-pop-h">
+				<a href="{{.RepoLink}}/watchers" aria-label="{{ctx.Locale.TrPluralString .Repository.NumWatches "watch.n_watchers" (printf "%d" .Repository.NumWatches)}}">{{ctx.Locale.TrPluralString .Repository.NumWatches "watch.n_watchers" (printf "%d" .Repository.NumWatches)}}</a>
+			</div>
+			<form class="rp-pop-b ds-stack-12" hx-target="#watch-button" method="post" hx-post="{{$.RepoLink}}/action/watch/select" action="{{$.RepoLink}}/action/watch/select" hx-swap="outerHTML">
+				<fieldset class="ds-fieldset">
+					<legend class="ds-sr">{{ctx.Locale.Tr "repo.watch"}}</legend>
+					<div class="ds-check"><input type="checkbox" id="watch-issues" name="watch_issues" value="true" {{if $.RepoWatchSelection.Issues}}checked{{end}}><label for="watch-issues">{{ctx.Locale.Tr "repo.watch.issues"}}</label></div>
+					<div class="ds-check"><input type="checkbox" id="watch-pulls" name="watch_pull_requests" value="true" {{if $.RepoWatchSelection.PullRequests}}checked{{end}}><label for="watch-pulls">{{ctx.Locale.Tr "repo.watch.pull_requests"}}</label></div>
+					<div class="ds-check"><input type="checkbox" id="watch-releases" name="watch_releases" value="true" {{if $.RepoWatchSelection.Releases}}checked{{end}}><label for="watch-releases">{{ctx.Locale.Tr "repo.watch.releases"}}</label></div>
+					<p class="ds-hint">{{ctx.Locale.Tr "repo.watch.releases.hint"}}</p>
 				</fieldset>
+				<div class="ds-row ds-row-wrap">
+					<button type="submit" class="ds-btn ds-btn-primary ds-btn-sm">{{ctx.Locale.Tr "save"}}</button>
+					{{if $.RepoWatchSelection.IsWatching}}
+						<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" hx-post="{{$.RepoLink}}/action/unwatch" hx-target="#watch-button" hx-swap="outerHTML">{{ctx.Locale.Tr "repo.unwatch"}}</button>
+					{{end}}
+				</div>
 			</form>
 		</div>
 	</details>
 {{else}}
-	{{/* not logged-in user */}}
-	<div class="ui disabled labeled button" aria-disabled="true" data-tooltip-content="{{ctx.Locale.Tr "repo.watch_guest_user"}}">
-		<div class="ui compact small basic button">
-			{{svg "octicon-eye"}}<span class="text not-mobile">{{ctx.Locale.Tr "repo.watch"}}</span>
-		</div>
-		<a class="ui basic label" href="{{.RepoLink}}/watchers"
-			aria-label="{{ctx.Locale.TrPluralString .Repository.NumWatches "watch.n_watchers" (printf "%d" .Repository.NumWatches)}}"
-			>
-			{{CountFmt .Repository.NumWatches}}
+	<div class="rp-actg rp-actg-off" id="watch-button">
+		<a class="rp-act" href="{{AppSubUrl}}/user/login?redirect_to={{.RepoLink}}" title="{{ctx.Locale.Tr "repo.watch_guest_user"}}">
+			{{svg "dsi-eye" 16}}<span class="rp-act-text">{{ctx.Locale.Tr "repo.watch"}}</span>
 		</a>
+		<a class="ds-count" href="{{.RepoLink}}/watchers" aria-label="{{ctx.Locale.TrPluralString .Repository.NumWatches "watch.n_watchers" (printf "%d" .Repository.NumWatches)}}">{{CountFmt .Repository.NumWatches}}</a>
 	</div>
 {{end}}

@@ -1,23 +1,18 @@
-{{/* The clone commands of an asc repository: the asc command line first, always. Git is one collapsed compatibility note for tools that only speak git while the git bridge is on. Needs CloneButtonOriginLink and AscGitAccess. */}}
-<div class="asc-clone-tabs">
-	<div class="ui active tab segment" data-tab="asc-clone-with-asc">
-		{{if AscDownloadAvailable}}<p class="help"><a href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "repo.clone_install_asc"}}</a></p>{{end}}
-		<p class="help">{{ctx.Locale.Tr "repo.clone_signin_help" (print AppSubUrl "/user/settings/applications")}}</p>
-		<div class="markup">
-			<pre><code>asc auth login --host {{AscHubHost}} --prompt
-asc clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></code></pre>
+{{/* The git compatibility note (board GitNote): one collapsed disclosure after the asc commands. Needs AscGitAccess and CloneButtonOriginLink. */}}
+{{if $.AscGitAccess}}
+<details class="asc-git-compat rp-gitnote">
+	<summary>
+		<span class="rp-gitnote-ic" aria-hidden="true">{{svg "dsi-link" 16}}</span>
+		<span class="rp-gitnote-lead">{{ctx.Locale.Tr "asc_rp.gitnote_lead"}}</span>
+		<span class="rp-gitnote-toggle">{{ctx.Locale.Tr "asc_rp.gitnote_toggle"}}{{svg "dsi-chevron-down" 14}}</span>
+	</summary>
+	<div class="rp-gitnote-body">
+		<p>{{ctx.Locale.Tr "repo.clone_with_git_help"}}{{if not SSHEnabled}} {{ctx.Locale.Tr "repo.clone_https_only_help"}}{{end}}</p>
+		<div class="ds-term">
+			<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_rp.terminal"}}</span><button type="button" class="ds-copy" data-clipboard-target="#rp-git-clone-url">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+			<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_rp.terminal"}}"><span class="ds-pr">$</span> git clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></div>
 		</div>
+		<input type="text" class="js-clone-url ds-sr" id="rp-git-clone-url" data-clone-prefix="git clone " value="git clone {{$.CloneButtonOriginLink.HTTPS}}" readonly tabindex="-1" aria-hidden="true">
 	</div>
-	{{if $.AscGitAccess}}
-	<details class="asc-git-compat tw-mt-2">
-		<summary>{{ctx.Locale.Tr "repo.clone_with_git"}}</summary>
-		<div class="ui segment" data-tab="asc-clone-with-git">
-			<p class="help">{{ctx.Locale.Tr "repo.clone_with_git_help"}}{{if not SSHEnabled}} {{ctx.Locale.Tr "repo.clone_https_only_help"}}{{end}}</p>
-			<div class="markup">
-				<pre><code>git clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></code></pre>
-			</div>
-		</div>
-	</details>
-	{{end}}
-</div>
-{{template "repo/clone_script" .}}
+</details>
+{{end}}
