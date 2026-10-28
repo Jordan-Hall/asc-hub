@@ -1,16 +1,19 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content ui {{if .IsRepo}}repository{{end}}">
+<div role="main" aria-label="{{.Title}}" class="ds-main st-main{{if .IsRepo}} repository{{end}}">
 	{{if .IsRepo}}{{template "repo/header" .}}{{end}}
-	<div class="hub-status">
-		<p class="error-code" aria-hidden="true">404</p>
-		<h1 class="hub-status-title">{{ctx.Locale.Tr "asc_status.not_found_title"}}</h1>
-		<p class="hub-status-text">{{if .NotFoundPrompt}}{{.NotFoundPrompt}}{{else}}{{ctx.Locale.Tr "error404"}}{{end}}</p>
-		<div class="hub-status-actions">
-			{{if .NotFoundGoBackURL}}<a class="hub-btn hub-btn-primary-solid" href="{{.NotFoundGoBackURL}}">{{ctx.Locale.Tr "go_back"}}</a>{{end}}
-			<a class="hub-btn hub-btn-outline" href="{{AppSubUrl}}/">{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}</a>
-			<a class="hub-btn hub-btn-outline" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a>
-		</div>
-		{{if .ShowFooterVersion}}<p class="hub-status-meta">{{ctx.Locale.Tr "admin.config.app_ver"}}: {{AppVerNoMetadata}}</p>{{end}}
+	<div class="ds-container st-wrap">
+		<section class="st-card" aria-labelledby="st-title">
+			<span class="st-ic" aria-hidden="true">{{svg "dsi-search" 40}}</span>
+			<p class="st-code ds-mono">404</p>
+			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_err.title404"}}</h1>
+			<p class="st-text">{{if .NotFoundPrompt}}{{.NotFoundPrompt}}{{else}}{{ctx.Locale.Tr "asc_err.text404"}}{{end}}</p>
+			<div class="st-actions">
+				{{if .NotFoundGoBackURL}}<a class="ds-btn ds-btn-primary" href="{{.NotFoundGoBackURL}}">{{ctx.Locale.Tr "go_back"}}</a>{{end}}
+				<a class="ds-btn {{if .NotFoundGoBackURL}}ds-btn-secondary{{else}}ds-btn-primary{{end}}" href="{{AppSubUrl}}/">{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}</a>
+				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "asc_err.search_hub"}}</a>
+			</div>
+			{{if .ShowFooterVersion}}<p class="st-meta ds-mono">{{ctx.Locale.Tr "admin.config.app_ver"}}: {{AppVerNoMetadata}}</p>{{end}}
+		</section>
 	</div>
 </div>
 {{template "base/footer" .}}
