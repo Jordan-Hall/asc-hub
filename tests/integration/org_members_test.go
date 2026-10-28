@@ -32,8 +32,8 @@ func TestOrgMembersPage(t *testing.T) {
 
 		doc := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
 		/* No interactive buttons - though such evaluation is easy to break in rename */
-		assert.Equal(t, 0, doc.Find(".members .list .link-action").Length())
-		assert.Equal(t, 0, doc.Find(".members .list .delete-button").Length())
+		assert.Equal(t, 0, doc.Find(".members .ds-list .link-action").Length())
+		assert.Equal(t, 0, doc.Find(".members .ds-list .delete-button").Length())
 		/* Guests cannot add members to organizations */
 		doc.AssertElement(t, "#add-org-member-button", false)
 	})
@@ -44,8 +44,8 @@ func TestOrgMembersPage(t *testing.T) {
 		session := loginUser(t, "user4") // user4 is a member of org3
 		doc := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
 		/* Interactive buttons are only available for own entry in the list */
-		assert.Equal(t, 1, doc.Find(".members .list .link-action").Length())
-		assert.Equal(t, 1, doc.Find(".members .list .delete-button").Length())
+		assert.Equal(t, 1, doc.Find(".members .ds-list .link-action").Length())
+		assert.Equal(t, 1, doc.Find(".members .ds-list .delete-button").Length())
 		/* Adding new members is not possible, as the member isn't an owner */
 		doc.AssertElement(t, "#add-org-member-button", false)
 	})
@@ -56,8 +56,8 @@ func TestOrgMembersPage(t *testing.T) {
 		session := loginUser(t, "user2") // user2 owns org3
 		doc := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
 		/* Interactive buttons are available for all entries in the list (> 2) */
-		assert.Less(t, 2, doc.Find(".members .list .link-action").Length())
-		assert.Less(t, 2, doc.Find(".members .list .delete-button").Length())
+		assert.Less(t, 2, doc.Find(".members .ds-list .link-action").Length())
+		assert.Less(t, 2, doc.Find(".members .ds-list .delete-button").Length())
 		/* Adding new members is possible */
 		assert.Equal(t, "Add member", strings.TrimSpace(doc.Find("#add-org-member-button").Text()))
 	})

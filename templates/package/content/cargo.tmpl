@@ -2,7 +2,7 @@
 	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
 	<div class="ui attached segment">
 		<div class="ui form">
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.cargo.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>[registries.forgejo]
 index = "sparse+<origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/cargo/"></origin-url>" # Sparse index
@@ -11,11 +11,11 @@ index = "sparse+<origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescr
 [net]
 git-fetch-with-cli = true</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.cargo.install"}}</label>
 				<div class="markup"><pre class="code-block"><code>cargo add {{.PackageDescriptor.Package.Name}}@{{.PackageDescriptor.Version.Version}} --registry forgejo</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{ctx.Locale.Tr "packages.registry.documentation" "Cargo" "https://forgejo.org/docs/latest/user/packages/cargo/"}}</label>
 			</div>
 		</div>

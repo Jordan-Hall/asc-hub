@@ -2,7 +2,7 @@
 	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
 	<div class="ui attached segment">
 		<div class="ui form">
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.maven.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>&lt;repositories&gt;
 	&lt;repository&gt;
@@ -24,7 +24,7 @@
 &lt;/distributionManagement&gt;</code></pre></div>
 			</div>
 			{{if .PackageDescriptor.Metadata}}
-				<div class="field">
+				<div class="ds-field">
 					<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.maven.install"}}</label>
 					<div class="markup"><pre class="code-block"><code>&lt;dependency&gt;
 	&lt;groupId&gt;{{.PackageDescriptor.Metadata.GroupID}}&lt;/groupId&gt;
@@ -32,15 +32,15 @@
 	&lt;version&gt;{{.PackageDescriptor.Version.Version}}&lt;/version&gt;
 &lt;/dependency&gt;</code></pre></div>
 				</div>
-				<div class="field">
+				<div class="ds-field">
 					<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.maven.install2"}}</label>
 					<div class="markup"><pre class="code-block"><code>mvn install</code></pre></div>
 				</div>
-				<div class="field">
+				<div class="ds-field">
 					<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.maven.download"}}</label>
 					<div class="markup"><pre class="code-block"><code>mvn dependency:get -DremoteRepositories=<origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/maven"></origin-url> -Dartifact={{.PackageDescriptor.Metadata.GroupID}}:{{.PackageDescriptor.Metadata.ArtifactID}}:{{.PackageDescriptor.Version.Version}}</code></pre></div>
 				</div>
-				<div class="field">
+				<div class="ds-field">
 					<label>{{ctx.Locale.Tr "packages.registry.documentation" "Maven" "https://forgejo.org/docs/latest/user/packages/maven/"}}</label>
 				</div>
 			{{end}}

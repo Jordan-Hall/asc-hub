@@ -45,7 +45,7 @@ func TestOrgRepos(t *testing.T) {
 
 				htmlDoc := NewHTMLParser(t, resp.Body)
 
-				sel := htmlDoc.doc.Find("a.name")
+				sel := htmlDoc.doc.Find(".ds-repolist .ds-li-name")
 				assert.Len(t, repos, len(sel.Nodes))
 				for i := range repos {
 					assert.Equal(t, repos[i], strings.TrimSpace(sel.Eq(i).Text()))
@@ -60,7 +60,7 @@ func TestPublicOrgHome(t *testing.T) {
 
 	// Verify that in org pages, default theme get properly assigned to guest users
 	page := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/org41"), http.StatusOK).Body)
-	page.AssertElement(t, "html head link[rel='stylesheet'][href^='/assets/css/theme-asc-auto.css']", true)
+	page.AssertElement(t, "html head link#asc-theme-light[href^='/assets/css/theme-asc-light.css']", true)
 }
 
 func TestLimitedOrg(t *testing.T) {

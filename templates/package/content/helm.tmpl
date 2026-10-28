@@ -2,16 +2,16 @@
 	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
 	<div class="ui attached segment">
 		<div class="ui form">
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.common.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>helm repo add {{AppDomain}} <origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/helm"></origin-url>
 helm repo update</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.common.install"}}</label>
 				<div class="markup"><pre class="code-block"><code>helm install {{.PackageDescriptor.Package.Name}} {{AppDomain}}/{{.PackageDescriptor.Package.Name}}</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{ctx.Locale.Tr "packages.registry.documentation" "Helm" "https://forgejo.org/docs/latest/user/packages/helm/"}}</label>
 			</div>
 		</div>

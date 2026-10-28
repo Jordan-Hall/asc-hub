@@ -61,7 +61,7 @@ func testRepoPagination(t *testing.T, session *TestSession, repo, kind string, m
 		resp := session.MakeRequest(t, req, http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
-		paginationButton := htmlDoc.Find(".item.navigation[href='/" + path.Join(repo, kind) + "?page=2']")
+		paginationButton := htmlDoc.Find(".ds-pager a[href='/" + path.Join(repo, kind) + "?page=2']")
 		// Next and Last button.
 		assert.Equal(t, 2, paginationButton.Length())
 	})
@@ -73,6 +73,6 @@ func testRepoPagination(t *testing.T, session *TestSession, repo, kind string, m
 		resp := session.MakeRequest(t, req, http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
-		htmlDoc.AssertElement(t, ".item.navigation[href='/"+path.Join(repo, kind)+"?page=2']", false)
+		htmlDoc.AssertElement(t, ".ds-pager a[href='/"+path.Join(repo, kind)+"?page=2']", false)
 	})
 }

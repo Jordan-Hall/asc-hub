@@ -2,7 +2,7 @@
 	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
 	<div class="ui attached segment">
 		<div class="ui form">
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.conda.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>channel_alias: <origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/conda"></origin-url>
 channels:
@@ -10,12 +10,12 @@ channels:
 default_channels:
 &#32;&#32;- <origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/conda"></origin-url></code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.conda.install"}}</label>
 				{{$channel := .PackageDescriptor.PackageProperties.GetByName "conda.channel"}}
 				<div class="markup"><pre class="code-block"><code>conda install{{if $channel}} -c {{$channel}}{{end}} {{.PackageDescriptor.PackageProperties.GetByName "conda.name"}}={{.PackageDescriptor.Version.Version}}</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{ctx.Locale.Tr "packages.registry.documentation" "Conda" "https://forgejo.org/docs/latest/user/packages/conda/"}}</label>
 			</div>
 		</div>

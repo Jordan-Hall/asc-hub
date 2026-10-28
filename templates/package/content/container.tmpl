@@ -2,7 +2,7 @@
 	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
 	<div class="ui attached segment">
 		<div class="ui form">
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.container.pull"}}</label>
 				{{if eq .PackageDescriptor.Metadata.Type "helm"}}
 				<div class="markup"><pre class="code-block"><code>helm pull oci://{{.PackageRegistryHost}}/{{.PackageDescriptor.Owner.LowerName}}/{{.PackageDescriptor.Package.LowerName}} --version {{.PackageDescriptor.Version.LowerVersion}}</code></pre></div>
@@ -14,11 +14,11 @@
 					<div class="markup"><pre class="code-block"><code>docker pull {{.PackageRegistryHost}}/{{.PackageDescriptor.Owner.LowerName}}/{{.PackageDescriptor.Package.LowerName}}{{$separator}}{{.PackageDescriptor.Version.LowerVersion}}</code></pre></div>
 				{{end}}
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.container.digest"}}</label>
 				<div class="markup"><pre class="code-block"><code>{{range .PackageDescriptor.Files}}{{if eq .File.LowerName "manifest.json"}}{{.Properties.GetByName "container.digest"}}{{end}}{{end}}</code></pre></div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label>{{ctx.Locale.Tr "packages.registry.documentation" "Container" "https://forgejo.org/docs/latest/user/packages/container/"}}</label>
 			</div>
 		</div>

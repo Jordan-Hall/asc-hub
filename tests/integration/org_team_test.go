@@ -44,7 +44,7 @@ func TestPaginatedMembers(t *testing.T) {
 	teamURL := fmt.Sprintf("/org/%s/teams/%s", org.Name, team.LowerName)
 	newVar := session.MakeRequest(t, NewRequest(t, "GET", teamURL), http.StatusOK).Body
 	doc := NewHTMLParser(t, newVar)
-	assert.Contains(t, strings.TrimSpace(doc.Find("a.item.navigation:contains('Next')").AttrOr("href", "")), fmt.Sprintf("%s?page=2", teamURL))
+	assert.Contains(t, strings.TrimSpace(doc.Find("a.ds-pager-nav[rel='next']").AttrOr("href", "")), fmt.Sprintf("%s?page=2", teamURL))
 }
 
 func TestPaginatedRepos(t *testing.T) {
@@ -70,7 +70,7 @@ func TestPaginatedRepos(t *testing.T) {
 	teamURL := fmt.Sprintf("/org/%s/teams/%s/repositories", org.Name, team.LowerName)
 	body := session.MakeRequest(t, NewRequest(t, "GET", teamURL), http.StatusOK).Body
 	doc := NewHTMLParser(t, body)
-	assert.Contains(t, strings.TrimSpace(doc.Find("a.item.navigation:contains('Next')").AttrOr("href", "")), fmt.Sprintf("%s?page=2", teamURL))
+	assert.Contains(t, strings.TrimSpace(doc.Find("a.ds-pager-nav[rel='next']").AttrOr("href", "")), fmt.Sprintf("%s?page=2", teamURL))
 }
 
 func TestDisplayInvites(t *testing.T) {
@@ -89,7 +89,7 @@ func TestDisplayInvites(t *testing.T) {
 
 	// the two invited users are shown
 	assert.Equal(t, "/user31", doc.Find("a:contains('user31')").AttrOr("href", ""))
-	assert.Equal(t, 1, doc.Find("div.flex-item-main:contains('external_user@example.com')").Length())
+	assert.Equal(t, 1, doc.Find("li.ds-li:contains('external_user@example.com')").Length())
 }
 
 func TestAddMembersByInvitations(t *testing.T) {
@@ -107,7 +107,7 @@ func TestAddMembersByInvitations(t *testing.T) {
 
 	// the button to add a team member says "invite"
 	doc := NewHTMLParser(t, body)
-	doc.AssertElement(t, "button.primary:contains('Invite to team')", true)
+	doc.AssertElement(t, "button.ds-btn-primary:contains('Invite to team')", true)
 
 	// invite user "user31" to the team
 	req := NewRequestWithValues(t, "POST", fmt.Sprintf("%s/action/add", teamURL), map[string]string{
