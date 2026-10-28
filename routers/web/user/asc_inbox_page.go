@@ -112,6 +112,8 @@ type AscInboxPage struct {
 	Tabs     []AscInboxTab
 	Repo     string
 	Repos    []string
+	Kind     string // "", "humans" or "agents"
+	Sort     string // "", "oldest" or "repo"
 	Rows     []AscInboxRow
 	Detail   *AscInboxDetail
 	AgentRow *AscDashAgent // the selected agent run on the agents tab
@@ -139,6 +141,11 @@ func ascInboxDay(l translation.Locale, t, now time.Time) string {
 
 // ascInboxURL builds the address of the page with the given parts.
 func ascInboxURL(tab, repo string, pull int64) string {
+	return ascInboxURLF(tab, repo, pull, "", "")
+}
+
+// ascInboxURLF is ascInboxURL that keeps the filters kind and sort.
+func ascInboxURLF(tab, repo string, pull int64, kind, sort string) string {
 	q := url.Values{}
 	if tab != "" && tab != ascInboxTabNeeds {
 		q.Set("tab", tab)
@@ -148,6 +155,12 @@ func ascInboxURL(tab, repo string, pull int64) string {
 	}
 	if pull > 0 {
 		q.Set("pull", strconv.FormatInt(pull, 10))
+	}
+	if kind != "" {
+		q.Set("kind", kind)
+	}
+	if sort != "" {
+		q.Set("sort", sort)
 	}
 	u := setting.AppSubURL + "/-/asc/inbox"
 	if len(q) > 0 {
@@ -188,6 +201,7 @@ func ascInboxBuild(ctx *context.Context, now time.Time, tabName, repoFilter stri
 	groups, snoozed := ascInboxGroup(entries, states, now)
 
 	p := &AscInboxPage{Tab: tab, Snoozed: snoozed, Return: tab}
+	p.Kind, p.Sort = ascInboxFilterOf(ctx.FormString("kind"), []string{"humans", "agents"}), ascInboxFilterOf(ctx.FormString("sort"), []string{"oldest", "repo"})
 	repoSet := map[string]bool{}
 	counts := map[string]int{}
 	var inTab []*AscInboxEntry
@@ -233,7 +247,7 @@ func ascInboxBuild(ctx *context.Context, now time.Time, tabName, repoFilter stri
 		if key == ascInboxTabDrafts && counts[key] == 0 && tab != key {
 			continue
 		}
-		p.Tabs = append(p.Tabs, AscInboxTab{Key: key, Label: ascInboxTabLabel(l, key), Count: counts[key], Active: key == tab, URL: ascInboxURL(key, p.Repo, 0)})
+		p.Tabs = append(p.Tabs, AscInboxTab{Key: key, Label: ascInboxTabLabel(l, key), Count: counts[key], Active: key == tab, URL: ascInboxURLF(key, p.Repo, 0, p.Kind, p.Sort)})
 	}
 	if tab == ascInboxTabAgents && !agentsOn {
 		tab, p.Tab = ascInboxTabNeeds, ascInboxTabNeeds
@@ -256,7 +270,7 @@ func ascInboxBuild(ctx *context.Context, now time.Time, tabName, repoFilter stri
 		if len(p.Rows) < ascInboxInfoRows {
 			info = ascInboxInfoLoad(ctx, e)
 		}
-		p.Rows = append(p.Rows, AscInboxRow{Entry: e, Dash: ascDashRowFor(l, e, info), URL: ascInboxURL(tab, p.Repo, e.PullID), Day: ascInboxDay(l, e.Updated, now)})
+		p.Rows = append(p.Rows, AscInboxRow{Entry: e, Dash: ascDashRowFor(l, e, info), URL: ascInboxURLF(tab, p.Repo, e.PullID, p.Kind, p.Sort), Day: ascInboxDay(l, e.Updated, now)})
 	}
 	if tab == ascInboxTabNeeds && agentsOn {
 		for i := range agents {
@@ -267,6 +281,7 @@ func ascInboxBuild(ctx *context.Context, now time.Time, tabName, repoFilter stri
 			p.Rows = append(p.Rows, AscInboxRow{Agent: &a, Dash: ascAgentDashRow(l, &a), URL: a.Link})
 		}
 	}
+	p.Rows = ascInboxFilterRows(p.Rows, p.Kind, p.Sort)
 	p.Total = len(p.Rows)
 
 	// the selected row: the one asked for when it is listed, else the first pull request
@@ -531,4 +546,50 @@ func AscInboxCount(ctx *context.Context) {
 		}
 	}
 	ctx.JSON(http.StatusOK, map[string]int{"count": count})
+}
+
+// ascInboxFilterOf returns v when it is one of the allowed values, else "" (the default).
+func ascInboxFilterOf(v string, allowed []string) string {
+	if slices.Contains(allowed, v) {
+		return v
+	}
+	return ""
+}
+
+// ascInboxFilterRows keeps the rows of people ("humans": pull requests) or of agents, and sorts them: by default
+// the newest first as loaded, "oldest" the oldest first, "repo" by repository. A sorted list has no day headings,
+// they would be out of order.
+func ascInboxFilterRows(rows []AscInboxRow, kind, sort string) []AscInboxRow {
+	switch kind {
+	case "humans":
+		rows = slices.DeleteFunc(slices.Clone(rows), func(r AscInboxRow) bool { return r.Entry == nil })
+	case "agents":
+		rows = slices.DeleteFunc(slices.Clone(rows), func(r AscInboxRow) bool { return r.Entry != nil })
+	}
+	if sort == "" {
+		return rows
+	}
+	rows = slices.Clone(rows)
+	repoOf := func(r AscInboxRow) string {
+		if r.Entry != nil {
+			return strings.ToLower(r.Entry.RepoFullName)
+		}
+		return strings.ToLower(r.Dash.Where)
+	}
+	updated := func(r AscInboxRow) time.Time {
+		if r.Entry != nil {
+			return r.Entry.Updated
+		}
+		return time.Time{}
+	}
+	slices.SortStableFunc(rows, func(a, b AscInboxRow) int {
+		if sort == "repo" {
+			return strings.Compare(repoOf(a), repoOf(b))
+		}
+		return updated(a).Compare(updated(b))
+	})
+	for i := range rows {
+		rows[i].Day = ""
+	}
+	return rows
 }

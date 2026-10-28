@@ -2869,3 +2869,32 @@ a.ds-stat:hover {
 .wk-scope {
   margin: 0 0 16px;
 }
+
+.ds-signup-handle {
+  min-height: 20px;
+  margin: -8px 0 8px;
+}
+
+.ds-signup-handle.is-err {
+  color: var(--err, #b91c1c);
+}
+
+/* a one-time code as six boxes */
+.ds-codeboxes {
+  display: flex;
+  gap: 8px;
+}
+
+.ds-codebox {
+  width: 48px;
+  min-width: 0;
+  padding: 0;
+  font-size: 20px;
+  text-align: center;
+}
+
+@media (max-width: 400px) {
+  .ds-codebox {
+    width: 100%;
+  }
+}

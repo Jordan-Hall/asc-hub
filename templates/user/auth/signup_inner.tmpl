@@ -1,4 +1,4 @@
-{{/* The sign up form: username, email, password and a retyped password. Also used by the account linking page. */}}
+{{/* The sign up form: username, email and password (it can be shown, so it is not asked twice). Also used by the account linking page. */}}
 {{$alertOn := or (not .LinkAccountMode) .LinkAccountModeRegister}}
 {{if $alertOn}}<div class="ds-auth-flash">{{template "base/alert" .}}</div>{{end}}
 {{if .LinkAccountMode}}<h2 class="ds-t-h3 ds-mb-16">{{ctx.Locale.Tr "auth.oauth_signup_title"}}</h2>{{end}}
@@ -8,10 +8,10 @@
 <form class="ds-form" action="{{.SignUpLink}}" method="post">
 	{{template "custom/signup_top"}}
 	{{template "shared/ds/field" (dict "ID" "user_name" "Name" "user_name" "Label" (ctx.Locale.Tr "username") "Value" .user_name "Autofocus" true "Required" true "Extra" "off" "Autocomplete" "username" "Error" (and .Err_UserName $alertOn))}}
+	<p class="ds-hint ds-signup-handle" id="user_name-handle" aria-live="polite" data-signup-handle data-url="{{AppSubUrl}}/user/sign_up/name" data-t-handle="{{ctx.Locale.Tr "asc_shell.handle"}}" data-t-ok="{{ctx.Locale.Tr "asc_shell.handle_ok"}}" data-t-taken="{{ctx.Locale.Tr "asc_shell.handle_taken"}}" data-t-invalid="{{ctx.Locale.Tr "asc_shell.handle_invalid"}}" data-t-reserved="{{ctx.Locale.Tr "asc_shell.handle_reserved"}}"></p>
 	{{template "shared/ds/field" (dict "ID" "email" "Name" "email" "Type" "email" "Label" (ctx.Locale.Tr "email") "Value" .email "Required" true "Autocomplete" "email" "Error" .Err_Email)}}
 	{{if not .DisablePassword}}
 		{{template "shared/ds/field" (dict "ID" "password" "Name" "password" "Type" "password" "Label" (ctx.Locale.Tr "password") "Value" .password "Autocomplete" "new-password" "Required" true "Reveal" true "Error" (and .Err_Password $alertOn))}}
-		{{template "shared/ds/field" (dict "ID" "retype" "Name" "retype" "Type" "password" "Label" (ctx.Locale.Tr "re_type") "Value" .retype "Autocomplete" "new-password" "Required" true "Error" (and .Err_Password $alertOn))}}
 	{{end}}
 
 	{{template "user/auth/captcha" .}}

@@ -126,6 +126,7 @@ func AscDocsPage(ctx *context.Context) {
 	ctx.Data["Title"] = page.Title + " - " + ctx.Locale.TrString("asc_site.docs_title")
 	ctx.Data["PageIsAscDocs"] = true
 	ctx.Data["DocsPage"] = page
+	ctx.Data["DocsEditURL"] = ascdocs.EditURL(page)
 	// a table that is wider than the page scrolls, and a keyboard can reach it
 	wrapped := strings.ReplaceAll(html, "<table", `<div class="site-table" role="region" tabindex="0" aria-label="`+htmlpkg.EscapeString(ctx.Locale.TrString("asc_site.docs_table"))+`"><table`)
 	wrapped = strings.ReplaceAll(wrapped, "</table>", "</table></div>")
