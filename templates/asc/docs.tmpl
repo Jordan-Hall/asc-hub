@@ -1,0 +1,46 @@
+{{/* The documentation start page (board Docs, Mobile-Docs). Route GET /-/docs. The guides live in docs/asc of the source. */}}
+{{template "base/head" .}}
+{{$base := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/"}}
+<div role="main" aria-label="{{.Title}}" class="ds-main ds-land site site-docs">
+	<section class="ds-land-hero site-hero" aria-labelledby="docs-title">
+		<div class="ds-container">
+			<p class="ds-t-eyebrow ds-land-eyebrow-dark">{{ctx.Locale.Tr "asc_site.docs_eyebrow"}}</p>
+			<h1 class="ds-land-title" id="docs-title">{{ctx.Locale.Tr "asc_site.docs_h1"}}</h1>
+			<p class="ds-land-lead">{{ctx.Locale.Tr "asc_site.docs_lead"}}</p>
+		</div>
+	</section>
+
+	<section class="ds-land-sec" aria-label="{{ctx.Locale.Tr "asc_site.docs_title"}}">
+		<div class="ds-container">
+			<ul class="site-doccards">
+				<li><a class="ds-card ds-card-link site-doccard" href="{{$base}}README.md" target="_blank" rel="noopener noreferrer"><span class="ds-card-b"><b class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_c1_h"}}</b><span class="ds-c-2">{{ctx.Locale.Tr "asc_site.docs_c1_t"}}</span></span></a></li>
+				<li><a class="ds-card ds-card-link site-doccard" href="{{$base}}STACK-OPERATIONS.md" target="_blank" rel="noopener noreferrer"><span class="ds-card-b"><b class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_c2_h"}}</b><span class="ds-c-2">{{ctx.Locale.Tr "asc_site.docs_c2_t"}}</span></span></a></li>
+				<li><a class="ds-card ds-card-link site-doccard" href="{{$base}}AGENTS-UI.md" target="_blank" rel="noopener noreferrer"><span class="ds-card-b"><b class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_c3_h"}}</b><span class="ds-c-2">{{ctx.Locale.Tr "asc_site.docs_c3_t"}}</span></span></a></li>
+				<li><a class="ds-card ds-card-link site-doccard" href="{{$base}}STORAGE-AND-KEYS.md" target="_blank" rel="noopener noreferrer"><span class="ds-card-b"><b class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_c4_h"}}</b><span class="ds-c-2">{{ctx.Locale.Tr "asc_site.docs_c4_t"}}</span></span></a></li>
+				<li><a class="ds-card ds-card-link site-doccard" href="{{$base}}OPERATIONS.md" target="_blank" rel="noopener noreferrer"><span class="ds-card-b"><b class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_c5_h"}}</b><span class="ds-c-2">{{ctx.Locale.Tr "asc_site.docs_c5_t"}}</span></span></a></li>
+				<li><a class="ds-card ds-card-link site-doccard" href="{{$base}}ARCHITECTURE.md" target="_blank" rel="noopener noreferrer"><span class="ds-card-b"><b class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_c6_h"}}</b><span class="ds-c-2">{{ctx.Locale.Tr "asc_site.docs_c6_t"}}</span></span></a></li>
+			</ul>
+		</div>
+	</section>
+
+	<section class="ds-land-sec ds-land-sec-flush" aria-label="{{ctx.Locale.Tr "asc_site.docs_install_h"}}">
+		<div class="ds-container site-two site-two-wide">
+			<article class="ds-card">
+				<div class="ds-card-b">
+					<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_site.docs_install_h"}}</h2>
+					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_site.docs_install_t"}}</p>
+					<div class="ds-row ds-row-wrap ds-gap-8 ds-mt-16">
+						<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_site.about_download"}}</a>
+						<a class="ds-btn ds-btn-secondary" href="{{$base}}WHY.md" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_site.docs_why_h"}}</a>
+					</div>
+				</div>
+			</article>
+			<aside class="ds-callout site-help" aria-labelledby="docs-help">
+				<h2 class="ds-t-h4" id="docs-help">{{ctx.Locale.Tr "asc_site.docs_help_h"}}</h2>
+				<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_site.docs_help_t"}}</p>
+				<p class="ds-mt-12"><a class="ds-btn ds-btn-secondary" href="https://github.com/Jordan-Hall/asc-hub/issues" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_site.docs_help_issue"}}</a></p>
+			</aside>
+		</div>
+	</section>
+</div>
+{{template "base/footer" .}}
