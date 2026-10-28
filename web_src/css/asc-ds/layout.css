@@ -1943,3 +1943,83 @@ body.ds-lock {
 .wk-pin p {
   margin: 4px 0 0;
 }
+
+/* documentation: popular searches, results, the article with its table of contents */
+.site-popular {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.site-popular .ds-chip {
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.site-hits {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-article-grid {
+  display: grid;
+  gap: 32px;
+  padding-block: 24px 48px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.site-article-body {
+  min-width: 0;
+  max-width: 78ch;
+}
+
+.site-toc ul {
+  margin: 8px 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.site-toc li a {
+  display: block;
+  padding: 4px 0;
+}
+
+.site-toc a[aria-current="page"] {
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .site-article-grid {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+
+  .site-toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+  }
+}
+
+/* the green dot of a person who is online (they can switch it off on the Privacy page) */
+.wk-pf-av {
+  position: relative;
+}
+
+.wk-pf-online {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  background: #059669;
+}

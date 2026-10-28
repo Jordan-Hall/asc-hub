@@ -13,6 +13,7 @@ import (
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
+	"forgejo.org/services/ascpresence"
 	"forgejo.org/services/context"
 	user_service "forgejo.org/services/user"
 )
@@ -29,6 +30,7 @@ func Privacy(ctx *context.Context) {
 	ctx.Data["PrivacyLink"] = privacyLink()
 	ctx.Data["ShowActivity"] = !ctx.Doer.KeepActivityPrivate
 	ctx.Data["HideEmail"] = ctx.Doer.KeepEmailPrivate
+	ctx.Data["ShowOnline"] = ascpresence.ShowOnline(ctx, ctx.Doer.ID)
 	ctx.Data["NoreplyEmail"] = ctx.Doer.GetPlaceholderEmail()
 
 	blocked, err := user_model.ListBlockedUsers(ctx, ctx.Doer.ID, db.ListOptions{})
@@ -48,6 +50,14 @@ func PrivacyPost(ctx *context.Context) {
 	switch ctx.FormString("setting") {
 	case "show_activity":
 		opts.KeepActivityPrivate = optional.Some(!on)
+	case "show_online":
+		if err := ascpresence.SetShowOnline(ctx, ctx.Doer.ID, on); err != nil {
+			ctx.ServerError("SetShowOnline", err)
+			return
+		}
+		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
+		ctx.Redirect(privacyLink())
+		return
 	case "hide_email":
 		opts.KeepEmailPrivate = optional.Some(on)
 	default:

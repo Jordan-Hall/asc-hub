@@ -265,6 +265,9 @@ func registerCleanupAscDeviceCodes() {
 		RunAtStart: true,
 		Schedule:   "@every 6h",
 	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		if _, err := user_model.DeleteOldAscNotifyLog(ctx); err != nil {
+			return err
+		}
 		_, err := auth_model.DeleteExpiredAscDeviceCodes(ctx)
 		return err
 	})
