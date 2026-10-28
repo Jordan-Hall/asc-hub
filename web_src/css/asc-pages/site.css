@@ -808,12 +808,12 @@
 
 .st-reqid {
   margin: 16px 0 0;
-  color: var(--c-2, #475569);
+  color: var(--text-2);
   font-size: 12px;
 }
 
 .st-reqid-v {
-  color: var(--c-1, inherit);
+  color: var(--text-b, inherit);
   user-select: all;
 }
 
@@ -822,4 +822,12 @@
   gap: 4px;
   margin: 16px 0 0;
   text-align: left;
+}
+
+.st-meta dd {
+  margin: 0;
+}
+
+.st-meta dt {
+  font-weight: 600;
 }

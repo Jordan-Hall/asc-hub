@@ -48,3 +48,9 @@ func TestSaveAndLoad(t *testing.T) {
 	require.NoError(t, Save(t.Context(), State{}))
 	assert.False(t, Load(t.Context()).On)
 }
+
+func TestUntilText(t *testing.T) {
+	assert.Equal(t, "2026-10-29 23:00 UTC", State{Until: "2026-10-29T23:00:00Z"}.UntilText())
+	assert.Equal(t, "2026-10-29 22:00 UTC", State{Until: "2026-10-30T00:00:00+02:00"}.UntilText())
+	assert.Empty(t, State{}.UntilText())
+}

@@ -5,6 +5,7 @@ package admin
 
 import (
 	"net/http"
+	"slices"
 	"time"
 
 	"forgejo.org/modules/base"
@@ -31,8 +32,9 @@ func Maintenance(ctx *context.Context) {
 
 // MaintenancePost saves the page. The time is read as UTC.
 func MaintenancePost(ctx *context.Context) {
+	_ = ctx.Req.ParseForm()
 	st := ascmaintenance.State{
-		On:        ctx.FormString("on") == "1",
+		On:        slices.Contains(ctx.Req.Form["on"], "1"),
 		Message:   ctx.FormTrim("message"),
 		Window:    ctx.FormTrim("window"),
 		StatusURL: ctx.FormTrim("status_url"),
