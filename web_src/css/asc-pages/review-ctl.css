@@ -1,0 +1,366 @@
+/* stylelint-disable scale-unlimited/declaration-strict-value, csstools/value-no-unknown-custom-properties -- the tokens of the review pages are defined in review-kit.css */
+/* Agent and trust boards, second layer: the runs list with its side column, the needs-you card, spend, checkpoints,
+   the merge queue ETAs, gate statistics and the operation log panel. Mobile first. */
+
+.ag-v-warn {
+  color: var(--warn);
+}
+
+.ag-v-ok {
+  color: var(--ok);
+}
+
+.ag-stats .rv-stat {
+  position: relative;
+}
+
+.ag-spark {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 72px;
+  height: 24px;
+  color: var(--ok-dot);
+}
+
+.ag-needs .rv-list,
+.ag-roster .rv-list,
+.ag-runs-card .rv-list {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  margin: 0;
+}
+
+@media (max-width: 639px) {
+  .ag-spark {
+    display: none;
+  }
+}
+
+@media (max-width: 1099px) {
+  .ag-cols {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ag-side {
+    display: contents;
+  }
+
+  .ag-needs {
+    order: -1;
+  }
+
+  .ag-roster {
+    order: 2;
+  }
+}
+
+.ag-bar {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ag-search {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ag-search .rv-input,
+.ag-search .rv-select {
+  min-height: 40px;
+}
+
+.ag-q {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.ag-agent-select {
+  flex: 0 1 160px;
+}
+
+.ag-cols {
+  margin-top: 16px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ag-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.ag-runs-card {
+  overflow: visible;
+}
+
+.ag-runs {
+  margin-top: 0;
+}
+
+.rv-runs .ag-run {
+  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-areas:
+    "av main"
+    "av prog"
+    "av state"
+    "av by"
+    "av acts"
+    "fail fail";
+  gap: 6px 12px;
+  align-items: start;
+  padding: 16px;
+}
+
+.ag-run .ag-av {
+  grid-area: av;
+  align-self: start;
+}
+
+.ag-run-main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.ag-run .rv-run-title {
+  margin: 0 !important;
+  font-size: 15px;
+}
+
+.ag-run-sub {
+  margin-top: 2px;
+}
+
+.ag-run-ids {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+
+.ag-run-prog {
+  grid-area: prog;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ag-steps {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.ag-steps i {
+  display: block;
+  width: 14px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--line-2);
+}
+
+.ag-steps i.is-done {
+  background: var(--fill);
+}
+
+.ag-steps-t {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.ag-tokbar {
+  width: 56px;
+}
+
+.ag-run-state {
+  grid-area: state;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ag-run-by {
+  grid-area: by;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ag-run-acts {
+  grid-area: acts;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.ag-run .rv-run-fail {
+  grid-area: fail;
+}
+
+.ag-pop {
+  position: relative;
+}
+
+.ag-pop > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.ag-pop > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ag-pop-b {
+  position: absolute;
+  z-index: 20;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-start: 0;
+  width: min(300px, 80vw);
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--rv-shadow-menu);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ag-pager {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ag-need {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ag-need:last-child {
+  border-bottom: 0;
+}
+
+.ag-need-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ag-need-t {
+  font-size: 13.5px;
+  color: var(--text-1);
+}
+
+.ag-need-detail {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  background: var(--surface-3);
+  padding: 1px 6px;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.ag-need-acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ag-need-status:empty {
+  display: none;
+}
+
+.ag-need.is-done {
+  opacity: .7;
+}
+
+.ag-roster-sub {
+  padding: 8px 16px 0;
+}
+
+.ag-roster-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.ag-roster-row:last-child {
+  border-bottom: 0;
+}
+
+.ag-roster-n {
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .ag-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .ag-bar .rv-chips {
+    margin: 0;
+    padding: 2px 0;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .ag-search {
+    flex: 1 1 280px;
+    flex-wrap: nowrap;
+  }
+
+  .ag-bar .rv-density {
+    margin-inline-start: auto;
+  }
+
+  .rv-runs .ag-run {
+    grid-template-columns: 44px minmax(0, 1fr) minmax(120px, 170px) auto;
+    grid-template-areas:
+      "av main prog state"
+      "av main by acts"
+      "fail fail fail fail";
+    padding: 16px 18px;
+    gap: 6px 18px;
+    align-items: center;
+  }
+
+  .ag-run-acts {
+    justify-self: end;
+    align-items: center;
+  }
+
+  .ag-run-acts {
+    min-height: 32px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .ag-cols {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+}

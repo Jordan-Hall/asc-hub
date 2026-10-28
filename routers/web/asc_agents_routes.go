@@ -34,6 +34,7 @@ func registerAscAgentsRepoRoutes(m *web.Route, reqSignIn, reqRepoCodeReader any)
 				m.Post("/cancel", repo.AscAgentsCancel)
 				m.Post("/input", repo.AscAgentsInput)
 			})
+			m.Post("/requests/{id}/decide", repo.AscAgentsDecide)
 			m.Group("/tokens", func() {
 				m.Combo("").Get(repo.AscAgentsTokens).Post(repo.AscAgentsTokenCreate)
 				m.Post("/{id}/revoke", repo.AscAgentsTokenRevoke)

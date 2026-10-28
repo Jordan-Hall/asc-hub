@@ -156,15 +156,15 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | Agents | Stats: Running now, Waiting on you | done | templates/repo/asc_agents.tmpl (counts are of the loaded page only) | - |
-| Agents | Stats: Landed this week (31% of changes), Spend this month ($142 of $400 cap) | needs-both | asc: spend and landed aggregates (no RPC in proto/asc/v1/agents.proto); hub: asc_agents.go | M |
-| Agents | State chips with counts, agent filter, text search over runs | ui-only-missing | templates/repo/asc_agents.tmpl (chips exist without counts; no search; ListRuns has no text filter) | M |
+| Agents | Stats: Landed this week (31% of changes), Spend this month ($142 of $400 cap) | done | asc: spend and landed aggregates (no RPC in proto/asc/v1/agents.proto); hub: asc_agents.go (Agents.ListAgents and GetSpend; landed is a 30-day figure) | M |
+| Agents | State chips with counts, agent filter, text search over runs | done | templates/repo/asc_agents.tmpl (chips exist without counts; no search; ListRuns has no text filter) (chips with counts; text search filters the loaded page (asc has no run text search)) | M |
 | Agents | Comfortable/Compact density, persisted per person | done | templates/repo/asc_agents.tmpl + user preference | S |
-| Agents | Run row: title, 'for stack', run id, agent, tokens used/limit with bar, duration, starter avatar | ui-only-missing | templates/repo/asc_agents.tmpl (tokens and cost text only, no bar or duration) | S |
-| Agents | Run row progress '3 of 4 steps' with bar | needs-asc-backend | asc: AgentRun has no plan or step counts (proto/asc/v1/agents.proto) | M |
-| Agents | Row actions Open run and Stop (confirm + reason logged) on hover/focus | ui-only-missing | templates/repo/asc_agents.tmpl; POST runs/{id}/cancel exists | S |
-| Agents | 'Needs you' panel: permission request (Allow once / Deny) and plan approval (Review plan), applied in place | needs-both | asc: permission-request and plan events + decision RPC missing (agents.proto has WAITING_INPUT only); hub: asc_agents.tmpl panel + routes (today a link list of waiting runs) | L |
-| Agents | 'Agents on this repository' card (scope, status, changes landed in 30 days, Manage access) | needs-both | asc: per-agent landed count; hub: ListTokens + ListRuns aggregation in asc_agents.go | M |
-| Agents | Numbered pagination and 'Showing 5 of 24' | ui-only-missing | templates/repo/asc_agents.tmpl (only an 'Older runs' cursor link) | S |
+| Agents | Run row: title, 'for stack', run id, agent, tokens used/limit with bar, duration, starter avatar | done | templates/repo/asc_agents.tmpl (tokens and cost text only, no bar or duration) (progress bar, tokens used/limit, duration, starter) | S |
+| Agents | Run row progress '3 of 4 steps' with bar | done | asc: AgentRun has no plan or step counts (proto/asc/v1/agents.proto) (progress from AgentRun.progress) | M |
+| Agents | Row actions Open run and Stop (confirm + reason logged) on hover/focus | done | templates/repo/asc_agents.tmpl; POST runs/{id}/cancel exists | S |
+| Agents | 'Needs you' panel: permission request (Allow once / Deny) and plan approval (Review plan), applied in place | done | asc: permission-request and plan events + decision RPC missing (agents.proto has WAITING_INPUT only); hub: asc_agents.tmpl panel + routes (today a link list of waiting runs) (Allow once/Deny and Review plan, decided as the person via Agents.DecideRequest) | L |
+| Agents | 'Agents on this repository' card (scope, status, changes landed in 30 days, Manage access) | done | asc: per-agent landed count; hub: ListTokens + ListRuns aggregation in asc_agents.go (Agents.ListAgents) | M |
+| Agents | Numbered pagination and 'Showing 5 of 24' | done | templates/repo/asc_agents.tmpl (only an 'Older runs' cursor link) (Showing N of T and Older runs; asc pages by cursor so there are no numbers) | S |
 | Agents | Sub-navigation Runs / Workflows / Access / Spend | ui-only-missing | templates/repo/asc_agents_nav.tmpl (has Runs, Workflows, New task, Access; no Spend page) | S |
 | Agents | Agent features off state with 'Turn on agent features' | done | templates/repo/asc_agents_notice.tmpl, POST /-/asc/agents/features | - |
 | Agents | Empty state; loading skeleton | ui-only-missing | templates/repo/asc_agents.tmpl (empty done; skeleton missing) | S |

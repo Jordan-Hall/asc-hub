@@ -246,7 +246,7 @@ func TestAscAgentsList(t *testing.T) {
 	assert.Contains(t, p.body, `data-state="failed"`)
 	assert.Contains(t, p.body, "the limit was reached")
 	assert.NotContains(t, p.body, rloChar)
-	assert.Contains(t, p.body, `<div class="rv-run-name">coder</div>`)
+	assert.Contains(t, p.body, `<span class="rv-mono">coder</span>`)
 	assert.Contains(t, p.body, "state=active")
 	assert.Contains(t, p.body, "page=tok_A-b%3D1", "the next page keeps the filter")
 	assert.Contains(t, p.body, `href="/user2/repo1/asc/agents/new"`)
