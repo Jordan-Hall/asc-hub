@@ -35,7 +35,7 @@ import (
 // The call is made as the person (UserCall), so asc applies its own rules to the same request.
 const (
 	// FeatureStacks is the Version.features string of the stack operations, the ref log and the undo.
-	FeatureStacks = "stacks.v1"
+	FeatureStacks = "stacks.undo.v1"
 
 	// MaxOpLogPage bounds the rows of one page, and so the rows asc may send for one request.
 	MaxOpLogPage = 100
