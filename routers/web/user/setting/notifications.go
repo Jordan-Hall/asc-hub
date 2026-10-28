@@ -143,3 +143,11 @@ func NotificationsPost(ctx *context.Context) {
 	}
 	ctx.Redirect(notificationsLink())
 }
+
+// ascTimeZonesWith is the list of the time zone selects, with the zone the person has already chosen kept in it.
+func ascTimeZonesWith(chosen string) []string {
+	if chosen != "" && !slices.Contains(ascTimeZones, chosen) {
+		return append([]string{chosen}, ascTimeZones...)
+	}
+	return ascTimeZones
+}
