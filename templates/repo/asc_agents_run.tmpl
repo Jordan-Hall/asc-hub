@@ -32,7 +32,7 @@ The page works without the script: the log shows what existed when it was drawn,
 			data-asc-agent-run
 			data-poll-url="{{.AscAgentsPollURL}}"
 			data-last-seq="{{.AscAgentLastSeq}}"
-			data-active="{{if .AscAgentRun.State.Active}}true{{else}}false{{end}}"
+			data-active="{{if and .AscAgentLive .AscAgentRun.State.Active}}true{{else}}false{{end}}"
 			data-done="{{if .AscAgentFeedDone}}true{{else}}false{{end}}">
 			<header class="rv-head rv-run-head">
 				<span class="rv-av rv-av-agent rv-av-lg" aria-hidden="true">{{.AscAgentRun.Initials}}</span>
@@ -68,6 +68,7 @@ The page works without the script: the log shows what existed when it was drawn,
 					</div>
 				{{end}}
 			</header>
+			{{if .AscAgentRunTaskHidden}}<p class="ar-task rv-faint" data-testid="asc-task-hidden">{{ctx.Locale.Tr "asc_review.agents_task_hidden"}}</p>{{end}}
 			{{if .AscAgentRunTask}}<p class="ar-task" data-testid="asc-agent-task">{{ctx.Locale.Tr "asc_review.run_task_by" .AscAgentRun.CreatedBy}} <q>{{.AscAgentRunTask}}</q></p>{{end}}
 			{{with .AscAgentRequest}}
 			<section class="rv-banner rv-banner-warn ar-ask" role="status" aria-labelledby="ar-ask-h" data-testid="asc-agent-permission">
@@ -155,6 +156,7 @@ The page works without the script: the log shows what existed when it was drawn,
 						</div>
 						<p class="rv-feed-status" data-feed-status role="status">{{if .AscAgentFeedDone}}{{ctx.Locale.Tr "asc_review.run_feed_done"}}{{else if .AscAgentRun.State.Active}}{{ctx.Locale.Tr "asc_review.run_feed_following"}}{{else}}{{ctx.Locale.Tr "asc_review.run_feed_over"}}{{end}}</p>
 						{{if .AscAgentEventsHidden}}<p class="rv-feed-status">{{ctx.Locale.Tr "asc_review.run_events_hidden" .AscAgentEventsHidden}}</p>{{end}}
+						{{if not .AscAgentRunSee}}<p class="rv-feed-status" data-testid="asc-log-hidden">{{ctx.Locale.Tr "asc_review.agents_log_hidden"}}</p>{{end}}
 						<ol class="asc-log rv-log" data-log aria-live="off" data-testid="asc-agent-log">
 							{{template "repo/asc_agents_events" .AscAgentEvents}}
 						</ol>
@@ -220,7 +222,7 @@ The page works without the script: the log shows what existed when it was drawn,
 						{{if not .AscAgentRunPaused}}<p class="rv-card-f rv-hint">{{ctx.Locale.Tr "asc_review.run_cp_help"}}</p>{{end}}
 					</section>
 					{{end}}
-					<section class="rv-card rv-card-agent ar-audit" data-testid="asc-agent-audit"><div class="rv-card-b"><p><b>{{ctx.Locale.Tr "asc_review.run_audit_title"}}</b> {{ctx.Locale.Tr "asc_review.run_audit_text"}}</p><p><a href="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/log" download>{{ctx.Locale.Tr "asc_review.run_audit_download"}}</a></p></div></section>
+					{{if .AscAgentRunSee}}<section class="rv-card rv-card-agent ar-audit" data-testid="asc-agent-audit"><div class="rv-card-b"><p><b>{{ctx.Locale.Tr "asc_review.run_audit_title"}}</b> {{ctx.Locale.Tr "asc_review.run_audit_text"}}</p><p><a href="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/log" download>{{ctx.Locale.Tr "asc_review.run_audit_download"}}</a></p></div></section>{{end}}
 				</div>
 			</div>
 			</div>

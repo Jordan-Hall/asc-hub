@@ -589,7 +589,8 @@ func TestAscAgentsRunPage(t *testing.T) {
 	t.Run("a reader sees the run but cannot stop or steer it", func(t *testing.T) {
 		p := runAgents(t, agentsReq{path: testRunsPath + "/runs/7", user: agentsReader, features: true, params: map[string]string{":id": "7"}}, AscAgentsRun)
 		require.Equal(t, http.StatusOK, p.status)
-		assert.Contains(t, p.body, "I will start with")
+		assert.NotContains(t, p.body, "I will start with", "the log of a run is private to its creator and the administrators")
+		assert.Contains(t, p.body, "asc_review.agents_log_hidden")
 		assert.NotContains(t, p.body, "/runs/7/cancel")
 		assert.NotContains(t, p.body, "/runs/7/input")
 	})
