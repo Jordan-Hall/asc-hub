@@ -268,6 +268,7 @@ type QueueEntry struct {
 	LandedAs      []byte                 `protobuf:"bytes,11,opt,name=landed_as,json=landedAs,proto3" json:"landed_as,omitempty"`
 	LandedAt      int64                  `protobuf:"varint,12,opt,name=landed_at,json=landedAt,proto3" json:"landed_at,omitempty"`
 	RemovedReason string                 `protobuf:"bytes,13,opt,name=removed_reason,json=removedReason,proto3" json:"removed_reason,omitempty"`
+	Timing        *QueueEntryTiming      `protobuf:"bytes,14,opt,name=timing,proto3" json:"timing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -391,6 +392,13 @@ func (x *QueueEntry) GetRemovedReason() string {
 		return x.RemovedReason
 	}
 	return ""
+}
+
+func (x *QueueEntry) GetTiming() *QueueEntryTiming {
+	if x != nil {
+		return x.Timing
+	}
+	return nil
 }
 
 // `target` empty means the repository default branch. `now` asks to land at once when the entry is first and ready.
@@ -704,13 +712,14 @@ func (x *ListQueueRequest) GetPageToken() string {
 }
 
 type ListQueueResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Entries       []*QueueEntry          `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
-	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
-	Paused        bool                   `protobuf:"varint,3,opt,name=paused,proto3" json:"paused,omitempty"`
-	PausedReason  string                 `protobuf:"bytes,4,opt,name=paused_reason,json=pausedReason,proto3" json:"paused_reason,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Entries           []*QueueEntry          `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	NextPageToken     string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	Paused            bool                   `protobuf:"varint,3,opt,name=paused,proto3" json:"paused,omitempty"`
+	PausedReason      string                 `protobuf:"bytes,4,opt,name=paused_reason,json=pausedReason,proto3" json:"paused_reason,omitempty"`
+	MedianLandSeconds uint32                 `protobuf:"varint,5,opt,name=median_land_seconds,json=medianLandSeconds,proto3" json:"median_land_seconds,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ListQueueResponse) Reset() {
@@ -769,6 +778,13 @@ func (x *ListQueueResponse) GetPausedReason() string {
 		return x.PausedReason
 	}
 	return ""
+}
+
+func (x *ListQueueResponse) GetMedianLandSeconds() uint32 {
+	if x != nil {
+		return x.MedianLandSeconds
+	}
+	return 0
 }
 
 type GetQueueEntryRequest struct {
@@ -1196,6 +1212,430 @@ func (x *QueueEvent) GetResume() []byte {
 	return nil
 }
 
+type QueueEntryTiming struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	EtaSeconds        uint32                 `protobuf:"varint,1,opt,name=eta_seconds,json=etaSeconds,proto3" json:"eta_seconds,omitempty"`                        // until it has landed, 0 when landed or not queued
+	StartsInSeconds   uint32                 `protobuf:"varint,2,opt,name=starts_in_seconds,json=startsInSeconds,proto3" json:"starts_in_seconds,omitempty"`       // until it starts landing, 0 when it already has
+	Stage             string                 `protobuf:"bytes,3,opt,name=stage,proto3" json:"stage,omitempty"`                                                     // waiting, checking, landing or done
+	ProgressPercent   uint32                 `protobuf:"varint,4,opt,name=progress_percent,json=progressPercent,proto3" json:"progress_percent,omitempty"`         // of the current stage, as the host reported it
+	Detail            string                 `protobuf:"bytes,5,opt,name=detail,proto3" json:"detail,omitempty"`                                                   // "unit running on merged trunk", as the host reported it
+	MedianLandSeconds uint32                 `protobuf:"varint,6,opt,name=median_land_seconds,json=medianLandSeconds,proto3" json:"median_land_seconds,omitempty"` // the figure the estimate used
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *QueueEntryTiming) Reset() {
+	*x = QueueEntryTiming{}
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QueueEntryTiming) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueueEntryTiming) ProtoMessage() {}
+
+func (x *QueueEntryTiming) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QueueEntryTiming.ProtoReflect.Descriptor instead.
+func (*QueueEntryTiming) Descriptor() ([]byte, []int) {
+	return file_asc_v1_mergequeue_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *QueueEntryTiming) GetEtaSeconds() uint32 {
+	if x != nil {
+		return x.EtaSeconds
+	}
+	return 0
+}
+
+func (x *QueueEntryTiming) GetStartsInSeconds() uint32 {
+	if x != nil {
+		return x.StartsInSeconds
+	}
+	return 0
+}
+
+func (x *QueueEntryTiming) GetStage() string {
+	if x != nil {
+		return x.Stage
+	}
+	return ""
+}
+
+func (x *QueueEntryTiming) GetProgressPercent() uint32 {
+	if x != nil {
+		return x.ProgressPercent
+	}
+	return 0
+}
+
+func (x *QueueEntryTiming) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *QueueEntryTiming) GetMedianLandSeconds() uint32 {
+	if x != nil {
+		return x.MedianLandSeconds
+	}
+	return 0
+}
+
+type QueuePreview struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Stack         [][]byte               `protobuf:"bytes,1,rep,name=stack,proto3" json:"stack,omitempty"` // the changes an Enqueue of `change` would add, bottom to top
+	AlreadyQueued [][]byte               `protobuf:"bytes,2,rep,name=already_queued,json=alreadyQueued,proto3" json:"already_queued,omitempty"`
+	Position      uint32                 `protobuf:"varint,3,opt,name=position,proto3" json:"position,omitempty"` // the position the entry would take
+	Timing        *QueueEntryTiming      `protobuf:"bytes,4,opt,name=timing,proto3" json:"timing,omitempty"`
+	Paused        bool                   `protobuf:"varint,5,opt,name=paused,proto3" json:"paused,omitempty"`
+	PausedReason  string                 `protobuf:"bytes,6,opt,name=paused_reason,json=pausedReason,proto3" json:"paused_reason,omitempty"`
+	WouldWaitFor  []RevalidationReason   `protobuf:"varint,7,rep,packed,name=would_wait_for,json=wouldWaitFor,proto3,enum=asc.v1.RevalidationReason" json:"would_wait_for,omitempty"` // what Revalidate says now
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QueuePreview) Reset() {
+	*x = QueuePreview{}
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QueuePreview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueuePreview) ProtoMessage() {}
+
+func (x *QueuePreview) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QueuePreview.ProtoReflect.Descriptor instead.
+func (*QueuePreview) Descriptor() ([]byte, []int) {
+	return file_asc_v1_mergequeue_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *QueuePreview) GetStack() [][]byte {
+	if x != nil {
+		return x.Stack
+	}
+	return nil
+}
+
+func (x *QueuePreview) GetAlreadyQueued() [][]byte {
+	if x != nil {
+		return x.AlreadyQueued
+	}
+	return nil
+}
+
+func (x *QueuePreview) GetPosition() uint32 {
+	if x != nil {
+		return x.Position
+	}
+	return 0
+}
+
+func (x *QueuePreview) GetTiming() *QueueEntryTiming {
+	if x != nil {
+		return x.Timing
+	}
+	return nil
+}
+
+func (x *QueuePreview) GetPaused() bool {
+	if x != nil {
+		return x.Paused
+	}
+	return false
+}
+
+func (x *QueuePreview) GetPausedReason() string {
+	if x != nil {
+		return x.PausedReason
+	}
+	return ""
+}
+
+func (x *QueuePreview) GetWouldWaitFor() []RevalidationReason {
+	if x != nil {
+		return x.WouldWaitFor
+	}
+	return nil
+}
+
+type PreviewEnqueueRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Target        string                 `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewEnqueueRequest) Reset() {
+	*x = PreviewEnqueueRequest{}
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewEnqueueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewEnqueueRequest) ProtoMessage() {}
+
+func (x *PreviewEnqueueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewEnqueueRequest.ProtoReflect.Descriptor instead.
+func (*PreviewEnqueueRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_mergequeue_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *PreviewEnqueueRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *PreviewEnqueueRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *PreviewEnqueueRequest) GetTarget() string {
+	if x != nil {
+		return x.Target
+	}
+	return ""
+}
+
+type PreviewEnqueueResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Preview       *QueuePreview          `protobuf:"bytes,1,opt,name=preview,proto3" json:"preview,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewEnqueueResponse) Reset() {
+	*x = PreviewEnqueueResponse{}
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewEnqueueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewEnqueueResponse) ProtoMessage() {}
+
+func (x *PreviewEnqueueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewEnqueueResponse.ProtoReflect.Descriptor instead.
+func (*PreviewEnqueueResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_mergequeue_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *PreviewEnqueueResponse) GetPreview() *QueuePreview {
+	if x != nil {
+		return x.Preview
+	}
+	return nil
+}
+
+type ReportQueueEntryRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Repo            *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Id              uint64                 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	State           QueueEntryState        `protobuf:"varint,3,opt,name=state,proto3,enum=asc.v1.QueueEntryState" json:"state,omitempty"` // LANDING, LANDED, BLOCKED or REMOVED
+	LandedAs        []byte                 `protobuf:"bytes,4,opt,name=landed_as,json=landedAs,proto3" json:"landed_as,omitempty"`        // LANDED: the changeset that landed
+	Stage           string                 `protobuf:"bytes,5,opt,name=stage,proto3" json:"stage,omitempty"`
+	ProgressPercent uint32                 `protobuf:"varint,6,opt,name=progress_percent,json=progressPercent,proto3" json:"progress_percent,omitempty"` // 0 to 100
+	Detail          string                 `protobuf:"bytes,7,opt,name=detail,proto3" json:"detail,omitempty"`                                           // at most 200 bytes
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ReportQueueEntryRequest) Reset() {
+	*x = ReportQueueEntryRequest{}
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportQueueEntryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportQueueEntryRequest) ProtoMessage() {}
+
+func (x *ReportQueueEntryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportQueueEntryRequest.ProtoReflect.Descriptor instead.
+func (*ReportQueueEntryRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_mergequeue_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ReportQueueEntryRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *ReportQueueEntryRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *ReportQueueEntryRequest) GetState() QueueEntryState {
+	if x != nil {
+		return x.State
+	}
+	return QueueEntryState_QUEUE_ENTRY_STATE_UNSPECIFIED
+}
+
+func (x *ReportQueueEntryRequest) GetLandedAs() []byte {
+	if x != nil {
+		return x.LandedAs
+	}
+	return nil
+}
+
+func (x *ReportQueueEntryRequest) GetStage() string {
+	if x != nil {
+		return x.Stage
+	}
+	return ""
+}
+
+func (x *ReportQueueEntryRequest) GetProgressPercent() uint32 {
+	if x != nil {
+		return x.ProgressPercent
+	}
+	return 0
+}
+
+func (x *ReportQueueEntryRequest) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+type ReportQueueEntryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entry         *QueueEntry            `protobuf:"bytes,1,opt,name=entry,proto3" json:"entry,omitempty"`
+	Timing        *QueueEntryTiming      `protobuf:"bytes,2,opt,name=timing,proto3" json:"timing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportQueueEntryResponse) Reset() {
+	*x = ReportQueueEntryResponse{}
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportQueueEntryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportQueueEntryResponse) ProtoMessage() {}
+
+func (x *ReportQueueEntryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_mergequeue_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportQueueEntryResponse.ProtoReflect.Descriptor instead.
+func (*ReportQueueEntryResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_mergequeue_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ReportQueueEntryResponse) GetEntry() *QueueEntry {
+	if x != nil {
+		return x.Entry
+	}
+	return nil
+}
+
+func (x *ReportQueueEntryResponse) GetTiming() *QueueEntryTiming {
+	if x != nil {
+		return x.Timing
+	}
+	return nil
+}
+
 var File_asc_v1_mergequeue_proto protoreflect.FileDescriptor
 
 const file_asc_v1_mergequeue_proto_rawDesc = "" +
@@ -1210,7 +1650,7 @@ const file_asc_v1_mergequeue_proto_rawDesc = "" +
 	"\x04head\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\x04head\x12\x1d\n" +
 	"\n" +
 	"checked_at\x18\x06 \x01(\x03R\tcheckedAt\x12\x16\n" +
-	"\x06detail\x18\a \x01(\tR\x06detail\"\xcb\x03\n" +
+	"\x06detail\x18\a \x01(\tR\x06detail\"\xfd\x03\n" +
 	"\n" +
 	"QueueEntry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x16\n" +
@@ -1228,7 +1668,8 @@ const file_asc_v1_mergequeue_proto_rawDesc = "" +
 	" \x01(\v2\x19.asc.v1.QueueRevalidationR\frevalidation\x12!\n" +
 	"\tlanded_as\x18\v \x01(\fB\x04\xa8\xbb\x18\x01R\blandedAs\x12\x1b\n" +
 	"\tlanded_at\x18\f \x01(\x03R\blandedAt\x12%\n" +
-	"\x0eremoved_reason\x18\r \x01(\tR\rremovedReason\"\xa7\x01\n" +
+	"\x0eremoved_reason\x18\r \x01(\tR\rremovedReason\x120\n" +
+	"\x06timing\x18\x0e \x01(\v2\x18.asc.v1.QueueEntryTimingR\x06timing\"\xa7\x01\n" +
 	"\x0eEnqueueRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x16\n" +
@@ -1250,12 +1691,13 @@ const file_asc_v1_mergequeue_proto_rawDesc = "" +
 	"\x10include_finished\x18\x04 \x01(\bR\x0fincludeFinished\x12\x14\n" +
 	"\x05limit\x18\x05 \x01(\rR\x05limit\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x06 \x01(\tR\tpageToken\"\xa6\x01\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken\"\xd6\x01\n" +
 	"\x11ListQueueResponse\x12,\n" +
 	"\aentries\x18\x01 \x03(\v2\x12.asc.v1.QueueEntryR\aentries\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x16\n" +
 	"\x06paused\x18\x03 \x01(\bR\x06paused\x12#\n" +
-	"\rpaused_reason\x18\x04 \x01(\tR\fpausedReason\"K\n" +
+	"\rpaused_reason\x18\x04 \x01(\tR\fpausedReason\x12.\n" +
+	"\x13median_land_seconds\x18\x05 \x01(\rR\x11medianLandSeconds\"K\n" +
 	"\x14GetQueueEntryRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\x04R\x02id\"A\n" +
@@ -1281,7 +1723,40 @@ const file_asc_v1_mergequeue_proto_rawDesc = "" +
 	"QueueEvent\x12(\n" +
 	"\x05entry\x18\x01 \x01(\v2\x12.asc.v1.QueueEntryR\x05entry\x12\x16\n" +
 	"\x06paused\x18\x02 \x01(\bR\x06paused\x12\x1c\n" +
-	"\x06resume\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x06resume*\x8f\x02\n" +
+	"\x06resume\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x06resume\"\xe8\x01\n" +
+	"\x10QueueEntryTiming\x12\x1f\n" +
+	"\veta_seconds\x18\x01 \x01(\rR\n" +
+	"etaSeconds\x12*\n" +
+	"\x11starts_in_seconds\x18\x02 \x01(\rR\x0fstartsInSeconds\x12\x14\n" +
+	"\x05stage\x18\x03 \x01(\tR\x05stage\x12)\n" +
+	"\x10progress_percent\x18\x04 \x01(\rR\x0fprogressPercent\x12\x16\n" +
+	"\x06detail\x18\x05 \x01(\tR\x06detail\x12.\n" +
+	"\x13median_land_seconds\x18\x06 \x01(\rR\x11medianLandSeconds\"\xa4\x02\n" +
+	"\fQueuePreview\x12\x1a\n" +
+	"\x05stack\x18\x01 \x03(\fB\x04\xa8\xbb\x18\x02R\x05stack\x12+\n" +
+	"\x0ealready_queued\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x02R\ralreadyQueued\x12\x1a\n" +
+	"\bposition\x18\x03 \x01(\rR\bposition\x120\n" +
+	"\x06timing\x18\x04 \x01(\v2\x18.asc.v1.QueueEntryTimingR\x06timing\x12\x16\n" +
+	"\x06paused\x18\x05 \x01(\bR\x06paused\x12#\n" +
+	"\rpaused_reason\x18\x06 \x01(\tR\fpausedReason\x12@\n" +
+	"\x0ewould_wait_for\x18\a \x03(\x0e2\x1a.asc.v1.RevalidationReasonR\fwouldWaitFor\"r\n" +
+	"\x15PreviewEnqueueRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x16\n" +
+	"\x06target\x18\x03 \x01(\tR\x06target\"H\n" +
+	"\x16PreviewEnqueueResponse\x12.\n" +
+	"\apreview\x18\x01 \x01(\v2\x14.asc.v1.QueuePreviewR\apreview\"\xf9\x01\n" +
+	"\x17ReportQueueEntryRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x04R\x02id\x12-\n" +
+	"\x05state\x18\x03 \x01(\x0e2\x17.asc.v1.QueueEntryStateR\x05state\x12!\n" +
+	"\tlanded_as\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\blandedAs\x12\x14\n" +
+	"\x05stage\x18\x05 \x01(\tR\x05stage\x12)\n" +
+	"\x10progress_percent\x18\x06 \x01(\rR\x0fprogressPercent\x12\x16\n" +
+	"\x06detail\x18\a \x01(\tR\x06detail\"v\n" +
+	"\x18ReportQueueEntryResponse\x12(\n" +
+	"\x05entry\x18\x01 \x01(\v2\x12.asc.v1.QueueEntryR\x05entry\x120\n" +
+	"\x06timing\x18\x02 \x01(\v2\x18.asc.v1.QueueEntryTimingR\x06timing*\x8f\x02\n" +
 	"\x0fQueueEntryState\x12!\n" +
 	"\x1dQUEUE_ENTRY_STATE_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19QUEUE_ENTRY_STATE_WAITING\x10\x01\x12\"\n" +
@@ -1304,7 +1779,7 @@ const file_asc_v1_mergequeue_proto_rawDesc = "" +
 	"\"REVALIDATION_REASON_SECRET_FINDING\x10\t\x12$\n" +
 	" REVALIDATION_REASON_TARGET_MOVED\x10\n" +
 	"\x12'\n" +
-	"#REVALIDATION_REASON_CHANGE_DIVERGED\x10\v2\xd0\x03\n" +
+	"#REVALIDATION_REASON_CHANGE_DIVERGED\x10\v2\xec\x04\n" +
 	"\n" +
 	"MergeQueue\x12:\n" +
 	"\aEnqueue\x12\x16.asc.v1.EnqueueRequest\x1a\x17.asc.v1.EnqueueResponse\x12:\n" +
@@ -1314,7 +1789,9 @@ const file_asc_v1_mergequeue_proto_rawDesc = "" +
 	"\n" +
 	"Revalidate\x12\x19.asc.v1.RevalidateRequest\x1a\x1a.asc.v1.RevalidateResponse\x12J\n" +
 	"\tSetPaused\x12\x1d.asc.v1.SetQueuePausedRequest\x1a\x1e.asc.v1.SetQueuePausedResponse\x128\n" +
-	"\x05Watch\x12\x19.asc.v1.WatchQueueRequest\x1a\x12.asc.v1.QueueEvent0\x01Bz\n" +
+	"\x05Watch\x12\x19.asc.v1.WatchQueueRequest\x1a\x12.asc.v1.QueueEvent0\x01\x12H\n" +
+	"\aPreview\x12\x1d.asc.v1.PreviewEnqueueRequest\x1a\x1e.asc.v1.PreviewEnqueueResponse\x12P\n" +
+	"\vReportEntry\x12\x1f.asc.v1.ReportQueueEntryRequest\x1a .asc.v1.ReportQueueEntryResponseBz\n" +
 	"\n" +
 	"com.asc.v1B\x0fMergequeueProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -1331,68 +1808,87 @@ func file_asc_v1_mergequeue_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_mergequeue_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_asc_v1_mergequeue_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_asc_v1_mergequeue_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_asc_v1_mergequeue_proto_goTypes = []any{
-	(QueueEntryState)(0),           // 0: asc.v1.QueueEntryState
-	(RevalidationReason)(0),        // 1: asc.v1.RevalidationReason
-	(*QueueRevalidation)(nil),      // 2: asc.v1.QueueRevalidation
-	(*QueueEntry)(nil),             // 3: asc.v1.QueueEntry
-	(*EnqueueRequest)(nil),         // 4: asc.v1.EnqueueRequest
-	(*EnqueueResponse)(nil),        // 5: asc.v1.EnqueueResponse
-	(*DequeueRequest)(nil),         // 6: asc.v1.DequeueRequest
-	(*DequeueResponse)(nil),        // 7: asc.v1.DequeueResponse
-	(*ListQueueRequest)(nil),       // 8: asc.v1.ListQueueRequest
-	(*ListQueueResponse)(nil),      // 9: asc.v1.ListQueueResponse
-	(*GetQueueEntryRequest)(nil),   // 10: asc.v1.GetQueueEntryRequest
-	(*GetQueueEntryResponse)(nil),  // 11: asc.v1.GetQueueEntryResponse
-	(*RevalidateRequest)(nil),      // 12: asc.v1.RevalidateRequest
-	(*RevalidateResponse)(nil),     // 13: asc.v1.RevalidateResponse
-	(*SetQueuePausedRequest)(nil),  // 14: asc.v1.SetQueuePausedRequest
-	(*SetQueuePausedResponse)(nil), // 15: asc.v1.SetQueuePausedResponse
-	(*WatchQueueRequest)(nil),      // 16: asc.v1.WatchQueueRequest
-	(*QueueEvent)(nil),             // 17: asc.v1.QueueEvent
-	(MergeStyle)(0),                // 18: asc.v1.MergeStyle
-	(*RepoRef)(nil),                // 19: asc.v1.RepoRef
+	(QueueEntryState)(0),             // 0: asc.v1.QueueEntryState
+	(RevalidationReason)(0),          // 1: asc.v1.RevalidationReason
+	(*QueueRevalidation)(nil),        // 2: asc.v1.QueueRevalidation
+	(*QueueEntry)(nil),               // 3: asc.v1.QueueEntry
+	(*EnqueueRequest)(nil),           // 4: asc.v1.EnqueueRequest
+	(*EnqueueResponse)(nil),          // 5: asc.v1.EnqueueResponse
+	(*DequeueRequest)(nil),           // 6: asc.v1.DequeueRequest
+	(*DequeueResponse)(nil),          // 7: asc.v1.DequeueResponse
+	(*ListQueueRequest)(nil),         // 8: asc.v1.ListQueueRequest
+	(*ListQueueResponse)(nil),        // 9: asc.v1.ListQueueResponse
+	(*GetQueueEntryRequest)(nil),     // 10: asc.v1.GetQueueEntryRequest
+	(*GetQueueEntryResponse)(nil),    // 11: asc.v1.GetQueueEntryResponse
+	(*RevalidateRequest)(nil),        // 12: asc.v1.RevalidateRequest
+	(*RevalidateResponse)(nil),       // 13: asc.v1.RevalidateResponse
+	(*SetQueuePausedRequest)(nil),    // 14: asc.v1.SetQueuePausedRequest
+	(*SetQueuePausedResponse)(nil),   // 15: asc.v1.SetQueuePausedResponse
+	(*WatchQueueRequest)(nil),        // 16: asc.v1.WatchQueueRequest
+	(*QueueEvent)(nil),               // 17: asc.v1.QueueEvent
+	(*QueueEntryTiming)(nil),         // 18: asc.v1.QueueEntryTiming
+	(*QueuePreview)(nil),             // 19: asc.v1.QueuePreview
+	(*PreviewEnqueueRequest)(nil),    // 20: asc.v1.PreviewEnqueueRequest
+	(*PreviewEnqueueResponse)(nil),   // 21: asc.v1.PreviewEnqueueResponse
+	(*ReportQueueEntryRequest)(nil),  // 22: asc.v1.ReportQueueEntryRequest
+	(*ReportQueueEntryResponse)(nil), // 23: asc.v1.ReportQueueEntryResponse
+	(MergeStyle)(0),                  // 24: asc.v1.MergeStyle
+	(*RepoRef)(nil),                  // 25: asc.v1.RepoRef
 }
 var file_asc_v1_mergequeue_proto_depIdxs = []int32{
 	1,  // 0: asc.v1.QueueRevalidation.reasons:type_name -> asc.v1.RevalidationReason
 	0,  // 1: asc.v1.QueueEntry.state:type_name -> asc.v1.QueueEntryState
-	18, // 2: asc.v1.QueueEntry.style:type_name -> asc.v1.MergeStyle
+	24, // 2: asc.v1.QueueEntry.style:type_name -> asc.v1.MergeStyle
 	2,  // 3: asc.v1.QueueEntry.revalidation:type_name -> asc.v1.QueueRevalidation
-	19, // 4: asc.v1.EnqueueRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 5: asc.v1.EnqueueRequest.style:type_name -> asc.v1.MergeStyle
-	3,  // 6: asc.v1.EnqueueResponse.entry:type_name -> asc.v1.QueueEntry
-	19, // 7: asc.v1.DequeueRequest.repo:type_name -> asc.v1.RepoRef
-	3,  // 8: asc.v1.DequeueResponse.entry:type_name -> asc.v1.QueueEntry
-	19, // 9: asc.v1.ListQueueRequest.repo:type_name -> asc.v1.RepoRef
-	0,  // 10: asc.v1.ListQueueRequest.states:type_name -> asc.v1.QueueEntryState
-	3,  // 11: asc.v1.ListQueueResponse.entries:type_name -> asc.v1.QueueEntry
-	19, // 12: asc.v1.GetQueueEntryRequest.repo:type_name -> asc.v1.RepoRef
-	3,  // 13: asc.v1.GetQueueEntryResponse.entry:type_name -> asc.v1.QueueEntry
-	19, // 14: asc.v1.RevalidateRequest.repo:type_name -> asc.v1.RepoRef
-	3,  // 15: asc.v1.RevalidateResponse.entry:type_name -> asc.v1.QueueEntry
-	19, // 16: asc.v1.SetQueuePausedRequest.repo:type_name -> asc.v1.RepoRef
-	19, // 17: asc.v1.WatchQueueRequest.repo:type_name -> asc.v1.RepoRef
-	3,  // 18: asc.v1.QueueEvent.entry:type_name -> asc.v1.QueueEntry
-	4,  // 19: asc.v1.MergeQueue.Enqueue:input_type -> asc.v1.EnqueueRequest
-	6,  // 20: asc.v1.MergeQueue.Dequeue:input_type -> asc.v1.DequeueRequest
-	8,  // 21: asc.v1.MergeQueue.List:input_type -> asc.v1.ListQueueRequest
-	10, // 22: asc.v1.MergeQueue.Get:input_type -> asc.v1.GetQueueEntryRequest
-	12, // 23: asc.v1.MergeQueue.Revalidate:input_type -> asc.v1.RevalidateRequest
-	14, // 24: asc.v1.MergeQueue.SetPaused:input_type -> asc.v1.SetQueuePausedRequest
-	16, // 25: asc.v1.MergeQueue.Watch:input_type -> asc.v1.WatchQueueRequest
-	5,  // 26: asc.v1.MergeQueue.Enqueue:output_type -> asc.v1.EnqueueResponse
-	7,  // 27: asc.v1.MergeQueue.Dequeue:output_type -> asc.v1.DequeueResponse
-	9,  // 28: asc.v1.MergeQueue.List:output_type -> asc.v1.ListQueueResponse
-	11, // 29: asc.v1.MergeQueue.Get:output_type -> asc.v1.GetQueueEntryResponse
-	13, // 30: asc.v1.MergeQueue.Revalidate:output_type -> asc.v1.RevalidateResponse
-	15, // 31: asc.v1.MergeQueue.SetPaused:output_type -> asc.v1.SetQueuePausedResponse
-	17, // 32: asc.v1.MergeQueue.Watch:output_type -> asc.v1.QueueEvent
-	26, // [26:33] is the sub-list for method output_type
-	19, // [19:26] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	18, // 4: asc.v1.QueueEntry.timing:type_name -> asc.v1.QueueEntryTiming
+	25, // 5: asc.v1.EnqueueRequest.repo:type_name -> asc.v1.RepoRef
+	24, // 6: asc.v1.EnqueueRequest.style:type_name -> asc.v1.MergeStyle
+	3,  // 7: asc.v1.EnqueueResponse.entry:type_name -> asc.v1.QueueEntry
+	25, // 8: asc.v1.DequeueRequest.repo:type_name -> asc.v1.RepoRef
+	3,  // 9: asc.v1.DequeueResponse.entry:type_name -> asc.v1.QueueEntry
+	25, // 10: asc.v1.ListQueueRequest.repo:type_name -> asc.v1.RepoRef
+	0,  // 11: asc.v1.ListQueueRequest.states:type_name -> asc.v1.QueueEntryState
+	3,  // 12: asc.v1.ListQueueResponse.entries:type_name -> asc.v1.QueueEntry
+	25, // 13: asc.v1.GetQueueEntryRequest.repo:type_name -> asc.v1.RepoRef
+	3,  // 14: asc.v1.GetQueueEntryResponse.entry:type_name -> asc.v1.QueueEntry
+	25, // 15: asc.v1.RevalidateRequest.repo:type_name -> asc.v1.RepoRef
+	3,  // 16: asc.v1.RevalidateResponse.entry:type_name -> asc.v1.QueueEntry
+	25, // 17: asc.v1.SetQueuePausedRequest.repo:type_name -> asc.v1.RepoRef
+	25, // 18: asc.v1.WatchQueueRequest.repo:type_name -> asc.v1.RepoRef
+	3,  // 19: asc.v1.QueueEvent.entry:type_name -> asc.v1.QueueEntry
+	18, // 20: asc.v1.QueuePreview.timing:type_name -> asc.v1.QueueEntryTiming
+	1,  // 21: asc.v1.QueuePreview.would_wait_for:type_name -> asc.v1.RevalidationReason
+	25, // 22: asc.v1.PreviewEnqueueRequest.repo:type_name -> asc.v1.RepoRef
+	19, // 23: asc.v1.PreviewEnqueueResponse.preview:type_name -> asc.v1.QueuePreview
+	25, // 24: asc.v1.ReportQueueEntryRequest.repo:type_name -> asc.v1.RepoRef
+	0,  // 25: asc.v1.ReportQueueEntryRequest.state:type_name -> asc.v1.QueueEntryState
+	3,  // 26: asc.v1.ReportQueueEntryResponse.entry:type_name -> asc.v1.QueueEntry
+	18, // 27: asc.v1.ReportQueueEntryResponse.timing:type_name -> asc.v1.QueueEntryTiming
+	4,  // 28: asc.v1.MergeQueue.Enqueue:input_type -> asc.v1.EnqueueRequest
+	6,  // 29: asc.v1.MergeQueue.Dequeue:input_type -> asc.v1.DequeueRequest
+	8,  // 30: asc.v1.MergeQueue.List:input_type -> asc.v1.ListQueueRequest
+	10, // 31: asc.v1.MergeQueue.Get:input_type -> asc.v1.GetQueueEntryRequest
+	12, // 32: asc.v1.MergeQueue.Revalidate:input_type -> asc.v1.RevalidateRequest
+	14, // 33: asc.v1.MergeQueue.SetPaused:input_type -> asc.v1.SetQueuePausedRequest
+	16, // 34: asc.v1.MergeQueue.Watch:input_type -> asc.v1.WatchQueueRequest
+	20, // 35: asc.v1.MergeQueue.Preview:input_type -> asc.v1.PreviewEnqueueRequest
+	22, // 36: asc.v1.MergeQueue.ReportEntry:input_type -> asc.v1.ReportQueueEntryRequest
+	5,  // 37: asc.v1.MergeQueue.Enqueue:output_type -> asc.v1.EnqueueResponse
+	7,  // 38: asc.v1.MergeQueue.Dequeue:output_type -> asc.v1.DequeueResponse
+	9,  // 39: asc.v1.MergeQueue.List:output_type -> asc.v1.ListQueueResponse
+	11, // 40: asc.v1.MergeQueue.Get:output_type -> asc.v1.GetQueueEntryResponse
+	13, // 41: asc.v1.MergeQueue.Revalidate:output_type -> asc.v1.RevalidateResponse
+	15, // 42: asc.v1.MergeQueue.SetPaused:output_type -> asc.v1.SetQueuePausedResponse
+	17, // 43: asc.v1.MergeQueue.Watch:output_type -> asc.v1.QueueEvent
+	21, // 44: asc.v1.MergeQueue.Preview:output_type -> asc.v1.PreviewEnqueueResponse
+	23, // 45: asc.v1.MergeQueue.ReportEntry:output_type -> asc.v1.ReportQueueEntryResponse
+	37, // [37:46] is the sub-list for method output_type
+	28, // [28:37] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_mergequeue_proto_init() }
@@ -1408,7 +1904,7 @@ func file_asc_v1_mergequeue_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_mergequeue_proto_rawDesc), len(file_asc_v1_mergequeue_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   16,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
