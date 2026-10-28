@@ -4,18 +4,18 @@
 		</h4>
 		<div class="ui attached bottom segment">
 
-			<div class="field">
+			<div class="ds-field">
 				<fieldset>
 					<label>{{ctx.Locale.Tr "settings.repo_and_org_access"}}</label>
-					<div class="field">
-						<div class="field ui radio checkbox">
+					<div class="ds-field">
+						<div class="ds-field ui radio checkbox">
 							<input id="resource-all" class="enable-system" type="radio" name="resource" value="all" {{if eq .Form.Resource "all"}}checked{{end}}>
 							<label for="resource-all">{{ctx.Locale.Tr "settings.permissions_access_all"}}</label>
 							<p class="help">{{ctx.Locale.Tr "settings.access_token.resource_all_help"}}</p>
 						</div>
 					</div>
-					<div class="field">
-						<div class="field ui radio checkbox">
+					<div class="ds-field">
+						<div class="ds-field ui radio checkbox">
 							<input id="resource-public-only" class="enable-system" type="radio" name="resource" value="public-only" {{if eq .Form.Resource "public-only"}}checked{{end}}>
 							<label for="resource-public-only">{{ctx.Locale.Tr "settings.permissions_public_only"}}</label>
 							<p class="help">
@@ -24,7 +24,7 @@
 							</p>
 						</div>
 					</div>
-					<div class="field">
+					<div class="ds-field">
 						<div class="field ui radio checkbox {{if .Err_SelectedRepo}}error{{end}}">
 							<input id="resource-repo-specific" class="enable-system" type="radio" name="resource" value="repo-specific" {{if eq .Form.Resource "repo-specific"}}checked{{end}}>
 							<label for="resource-repo-specific">{{ctx.Locale.Tr "settings.permissions_access_specific_repositories"}}</label>
@@ -36,7 +36,7 @@
 					</div>
 				</fieldset>
 			</div>
-			<div id="repo-selector-wrapper" role="group" class="field tw-mt-4">
+			<div id="repo-selector-wrapper" role="group" class="ds-field tw-mt-4">
 				<div id="repo-selector" class="tw-flex tw-flex-wrap tw-gap-8">
 
 					<!-- left-hand side: repo list from a search -->
@@ -46,9 +46,9 @@
 						</h5>
 
 						<div class="ui small fluid action left icon input tw-mb-3">
-							<input type="search" name="repo_search" spellcheck="false" {{if eq .Autofocus "search"}}autofocus{{end}} placeholder="{{ctx.Locale.Tr "search.repo_kind"}}" value="{{.Form.RepoSearch}}">
+							<input class="ds-input" type="search" name="repo_search" spellcheck="false" {{if eq .Autofocus "search"}}autofocus{{end}} placeholder="{{ctx.Locale.Tr "search.repo_kind"}}" value="{{.Form.RepoSearch}}">
 							<i class="icon">{{svg "octicon-search" 16}}</i>
-							<button class="ui small icon button" aria-label="{{ctx.Locale.Tr "search.search"}}" type="submit" name="set_page" value="1" formnovalidate="true" formmethod="get" formaction="#resource-repo-specific">
+							<button class="ds-btn ds-btn-secondary ds-btn-sm" aria-label="{{ctx.Locale.Tr "search.search"}}" type="submit" name="set_page" value="1" formnovalidate="true" formmethod="get" formaction="#resource-repo-specific">
 								{{svg "octicon-search" 16}}
 							</button>
 						</div>
@@ -62,7 +62,7 @@
 									<div class="text truncate">
 										{{.FullName}}
 									</div>
-									<button class="ui primary button tw-ml-2 tw-my-1 tiny" type="submit" aria-label="{{ctx.Locale.Tr "repo.editor.add" .FullName}}" formnovalidate="true" name="add_selected_repo" value="{{.FullName}}" formmethod="get" formaction="#resource-repo-specific">
+									<button class="ds-btn ds-btn-primary ds-btn-sm tw-ml-2 tw-my-1" type="submit" aria-label="{{ctx.Locale.Tr "repo.editor.add" .FullName}}" formnovalidate="true" name="add_selected_repo" value="{{.FullName}}" formmethod="get" formaction="#resource-repo-specific">
 										{{ctx.Locale.Tr "add"}}
 									</button>
 								{{end}}
@@ -125,7 +125,7 @@
 									<div class="text tw-text-nowrap"> <!-- nowrap, !truncate, ensures that this can be fully seen and ensures this side of the control has an appropriate min-width -->
 										{{.FullName}}
 									</div>
-									<button class="ui button tw-ml-2 tw-my-1 tiny" type="submit" aria-label="{{ctx.Locale.Tr "settings.access_token.remove" .FullName}}" formnovalidate="true" name="remove_selected_repo" value="{{.FullName}}" formmethod="get" formaction="#resource-repo-specific">
+									<button class="ds-btn ds-btn-secondary ds-btn-sm tw-ml-2 tw-my-1" type="submit" aria-label="{{ctx.Locale.Tr "settings.access_token.remove" .FullName}}" formnovalidate="true" name="remove_selected_repo" value="{{.FullName}}" formmethod="get" formaction="#resource-repo-specific">
 										{{ctx.Locale.Tr "remove"}}
 									</button>
 								{{end}}
@@ -137,7 +137,7 @@
 			</div>
 
 
-			<div class="field {{if .Err_Scope}}error{{end}}">
+			<div class="ds-field {{if .Err_Scope}}error{{end}}">
 				<label>
 					{{ctx.Locale.Tr "settings.select_permissions"}}
 				</label>
@@ -146,7 +146,7 @@
 				</p>
 
 				{{range .Categories}}
-					<div class="field tw-pl-1 tw-pb-1">
+					<div class="ds-field tw-pl-1 tw-pb-1">
 						<label for="scope-{{.}}">
 							{{.}}
 						</label>
@@ -169,8 +169,8 @@
 
 		</div>
 
-		<div class="ui segment">
-			<button class="ui primary button">
+		<div class="ds-card ds-card-b">
+			<button class="ds-btn ds-btn-primary">
 				{{if .IsNew}}
 					{{ctx.Locale.Tr "settings.authorized_integration.create"}}
 				{{else}}

@@ -2,9 +2,9 @@
 <div role="main" aria-label="{{.Title}}" class="page-content repository asc-repo-page">
 	{{template "repo/header" .}}
 	<div class="ui container">
-		<div id="asc-symbols-container" class="ui segment">
+		<div id="asc-symbols-container" class="ds-card ds-card-b">
 			{{if .AscSymbolsError}}
-				<div class="ui warning message" role="alert">
+				<div class="ds-banner ds-banner-warn" role="alert">
 					<p>{{ctx.Locale.Tr "repo.asc_symbols.error.unavailable"}}</p>
 				</div>
 			{{else}}
@@ -22,22 +22,22 @@
 						{{else}}{{ctx.Locale.Tr "repo.asc_symbols.section.usages" $sec.Name}}{{end}}
 					</h3>
 					{{if not $sec.Rows}}
-						<div class="ui info message">{{ctx.Locale.Tr "repo.asc_symbols.none"}}</div>
+						<div class="ds-banner">{{ctx.Locale.Tr "repo.asc_symbols.none"}}</div>
 					{{else}}
 						<ul class="asc-symbols-list tw-list-none tw-p-0">
 							{{range $r := $sec.Rows}}
 								<li class="asc-symbol tw-flex tw-flex-wrap tw-gap-2 tw-items-baseline">
-									<span class="ui basic mini label">{{$r.Kind}}</span>
+									<span class="ds-chip ds-chip-outline">{{$r.Kind}}</span>
 									<a class="tw-font-mono" href="{{$r.Link}}">{{$r.Path}}{{if $r.Line}}:{{$r.Line}}{{end}}</a>
 									<span class="tw-font-mono">{{$r.Name}}</span>
 									{{if $r.Signature}}<code class="gt-ellipsis">{{$r.Signature}}</code>{{end}}
 									{{if $r.Container}}<span class="text grey">{{ctx.Locale.Tr "repo.asc_symbols.in" $r.Container}}</span>{{end}}
-									<span class="ui mini label asc-confidence-{{$r.Confidence}}" title="{{ctx.Locale.Tr "repo.asc_symbols.confidence"}}">{{$r.Confidence}}</span>
+									<span class="ds-chip asc-confidence-{{$r.Confidence}}" title="{{ctx.Locale.Tr "repo.asc_symbols.confidence"}}">{{$r.Confidence}}</span>
 									{{if $r.Doc}}<span class="text grey">{{$r.Doc}}</span>{{end}}
 								</li>
 							{{end}}
 						</ul>
-						{{if $sec.Truncated}}<div class="ui info message">{{ctx.Locale.Tr "repo.asc_symbols.truncated"}}</div>{{end}}
+						{{if $sec.Truncated}}<div class="ds-banner">{{ctx.Locale.Tr "repo.asc_symbols.truncated"}}</div>{{end}}
 					{{end}}
 				{{end}}
 			{{end}}

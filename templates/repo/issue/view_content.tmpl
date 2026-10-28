@@ -80,15 +80,15 @@
 			{{end}}
 
 			{{if .Repository.IsArchived}}
-				<div class="ui warning message tw-text-center">
+				<div class="ds-banner ds-banner-warn">
 					{{ctx.Locale.Tr "repo.archive.nocomment"}}
 				</div>
 			{{else if .IsBlocked}}
-				<div class="ui warning message">
+				<div class="ds-banner ds-banner-warn">
 					{{ctx.Locale.Tr "repo.comment.blocked_by_user"}}
 				</div>
 			{{else if and .Issue.IsLocked (not (or .IsRepoAdmin .HasIssuesOrPullsWritePermission))}}
-				<div class="ui warning message">
+				<div class="ds-banner ds-banner-warn">
 					{{ctx.Locale.Tr "discussion.locked"}}
 				</div>
 			{{else if .IsSigned}}
@@ -99,7 +99,7 @@
 					<div class="content">
 						<form class="ui segment form form-fetch-action" id="comment-form" action="{{$.RepoLink}}/issues/{{.Issue.Index}}/comments" method="post">
 							{{template "repo/issue/comment_tab" .}}
-							<div class="field footer">
+							<div class="ds-field footer">
 								<div class="button-sequence tw-justify-end">
 									{{if and (or .HasIssuesOrPullsWritePermission .IsIssuePoster) (not .DisableStatusChange)}}
 										{{if .Issue.IsClosed}}
@@ -131,7 +131,7 @@
 					</div>
 				</div>
 			{{else}} {{/* not .IsSigned */}}
-				<div class="ui warning message">
+				<div class="ds-banner ds-banner-warn">
 					{{ctx.Locale.Tr "repo.issues.sign_in_require_desc" .SignInLink}}
 				</div>
 			{{end}}
@@ -143,7 +143,7 @@
 
 <template id="issue-comment-editor-template">
 	<div class="ui comment form">
-		<div class="field">
+		<div class="ds-field">
 			{{template "shared/combomarkdowneditor" (dict
 				"MarkdownPreviewUrl" (print .Repository.Link "/markup")
 				"MarkdownPreviewContext" .RepoLink
@@ -153,15 +153,15 @@
 		</div>
 
 		{{if .IsAttachmentEnabled}}
-			<div class="field">
+			<div class="ds-field">
 				{{template "repo/upload" .}}
 			</div>
 		{{end}}
 
-		<div class="field">
+		<div class="ds-field">
 			<div class="text right edit">
 				<button class="ui basic cancel button" data-button-name="cancel-edit">{{ctx.Locale.Tr "repo.issues.cancel"}}</button>
-				<button class="ui primary save button" data-button-name="save-edit">{{ctx.Locale.Tr "repo.issues.save"}}</button>
+				<button class="ds-btn ds-btn-primary save" data-button-name="save-edit">{{ctx.Locale.Tr "repo.issues.save"}}</button>
 			</div>
 		</div>
 	</div>

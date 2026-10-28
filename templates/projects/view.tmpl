@@ -25,22 +25,22 @@
 				<header>{{ctx.Locale.Tr "repo.projects.column.new"}}</header>
 				<form class="ui form">
 					<div class="content">
-						<div class="required field">
+						<div class="required ds-field">
 							<label for="new_project_column">{{ctx.Locale.Tr "repo.projects.column.new_title"}}</label>
 							<input class="new-project-column" id="new_project_column" name="title" required>
 						</div>
 
-						<div class="field color-field">
+						<div class="ds-field color-field">
 							<label for="new_project_column_color_picker">{{ctx.Locale.Tr "repo.projects.column.color"}}</label>
 							<div class="js-color-picker-input column">
-								<input maxlength="7" placeholder="#c320f6" id="new_project_column_color_picker" name="color">
+								<input class="ds-input" maxlength="7" placeholder="#c320f6" id="new_project_column_color_picker" name="color">
 								{{template "repo/issue/label_precolors"}}
 							</div>
 						</div>
 					</div>
 					<div class="actions">
 						<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-						<button data-url="{{$.Link}}" class="ui primary button" id="new_project_column_submit">{{ctx.Locale.Tr "repo.projects.column.new_submit"}}</button>
+						<button data-url="{{$.Link}}" class="ds-btn ds-btn-primary" id="new_project_column_submit">{{ctx.Locale.Tr "repo.projects.column.new_submit"}}</button>
 					</div>
 				</form>
 			</article>
@@ -54,8 +54,8 @@
 		{{range .Columns}}
 			<div class="project-column"{{if .Color}} style="background: {{.Color}} !important; color: {{ContrastColor .Color}} !important"{{end}} data-id="{{.ID}}" data-sorting="{{.Sorting}}" data-url="{{$.Link}}/{{.ID}}">
 				<div class="project-column-header{{if $canWriteProject}} tw-cursor-grab{{end}}">
-					<div class="ui large label project-column-title tw-py-1">
-						<div class="ui small circular grey label project-column-issue-count">
+					<div class="ds-chip project-column-title tw-py-1">
+						<div class="ds-chip ds-chip-outline project-column-issue-count">
 							{{len (index $.IssuesMap .ID)}}
 						</div>
 						<span class="project-column-title-label">{{.Title}}</span>
@@ -92,15 +92,15 @@
 										<header>{{ctx.Locale.Tr "repo.projects.column.edit"}}</header>
 										<form class="ui form">
 											<div class="content">
-												<div class="required field">
+												<div class="required ds-field">
 													<label for="new_project_column_title">{{ctx.Locale.Tr "repo.projects.column.edit_title"}}</label>
 													<input class="project-column-title-input" id="new_project_column_title" name="title" value="{{.Title}}" required>
 												</div>
 
-												<div class="field color-field">
+												<div class="ds-field color-field">
 													<label for="new_project_column_color">{{ctx.Locale.Tr "repo.projects.column.color"}}</label>
 													<div class="js-color-picker-input column">
-														<input maxlength="7" placeholder="#c320f6" id="new_project_column_color" name="color" value="{{.Color}}">
+														<input class="ds-input" maxlength="7" placeholder="#c320f6" id="new_project_column_color" name="color" value="{{.Color}}">
 														{{template "repo/issue/label_precolors"}}
 													</div>
 												</div>
@@ -108,7 +108,7 @@
 											</div>
 											<div class="actions">
 												<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-												<button data-url="{{$.Link}}/{{.ID}}" class="ui primary button edit-project-column-button">{{ctx.Locale.Tr "repo.projects.column.edit"}}</button>
+												<button data-url="{{$.Link}}/{{.ID}}" class="ds-btn ds-btn-primary edit-project-column-button">{{ctx.Locale.Tr "repo.projects.column.edit"}}</button>
 											</div>
 										</form>
 									</article>

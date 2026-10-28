@@ -19,21 +19,21 @@
 									<article>
 										<header>{{ctx.Locale.Tr "repo.issues.dismiss_review"}}</header>
 										<div class="content">
-											<div class="ui warning message">
+											<div class="ds-banner ds-banner-warn">
 												{{ctx.Locale.Tr "repo.issues.dismiss_review_warning"}}
 											</div>
 										</div>
 										<form class="ui form dismiss-review-form" id="dismiss-review-{{.Review.ID}}" action="{{$.RepoLink}}/issues/dismiss_review" method="post">
 											<div class="content">
 												<input type="hidden" name="review_id" value="{{.Review.ID}}">
-												<div class="field">
+												<div class="ds-field">
 													<label for="message">{{ctx.Locale.Tr "action.review_dismissed_reason"}}</label>
-													<input id="message" name="message">
+													<input class="ds-input" id="message" name="message">
 												</div>
 											</div>
 											<div class="actions">
 												<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
-												<button type="submit" class="ui red button">{{ctx.Locale.Tr "ok"}}</button>
+												<button type="submit" class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "ok"}}</button>
 											</div>
 										</form>
 									</article>

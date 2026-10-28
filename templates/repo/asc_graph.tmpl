@@ -2,45 +2,45 @@
 <div role="main" aria-label="{{.Title}}" class="page-content repository commits asc-repo-page">
 	{{template "repo/header" .}}
 	<div class="ui container">
-		<div id="asc-graph-container" class="ui segment">
+		<div id="asc-graph-container" class="ds-card ds-card-b">
 			<h2>{{ctx.Locale.Tr "repo.asc_graph"}}</h2>
 			<form class="ui form tw-mb-4" method="get" action="{{.RepoLink}}/asc/graph">
 				<div class="tw-flex tw-flex-wrap tw-gap-3 tw-items-end">
-					<div class="field">
+					<div class="ds-field">
 						<label for="asc-graph-preset">{{ctx.Locale.Tr "repo.asc_graph.preset"}}</label>
-						<select id="asc-graph-preset" name="preset">
+						<select class="ds-select" id="asc-graph-preset" name="preset">
 							{{range $p := .AscGraphPresets}}
 								<option value="{{$p}}"{{if eq $p $.AscGraphPreset}} selected{{end}}>{{ctx.Locale.Tr (printf "repo.asc_graph.preset.%s" $p)}}</option>
 							{{end}}
 						</select>
 					</div>
-					<div class="field">
+					<div class="ds-field">
 						<label for="asc-graph-refs">{{ctx.Locale.Tr "repo.asc_graph.refs"}}</label>
-						<input id="asc-graph-refs" name="refs" type="text" maxlength="4096" value="{{.AscGraphInclude}}" placeholder="{{ctx.Locale.Tr "repo.asc_graph.refs_placeholder"}}">
+						<input class="ds-input" id="asc-graph-refs" name="refs" type="text" maxlength="4096" value="{{.AscGraphInclude}}" placeholder="{{ctx.Locale.Tr "repo.asc_graph.refs_placeholder"}}">
 					</div>
-					<div class="field">
+					<div class="ds-field">
 						<label for="asc-graph-exclude">{{ctx.Locale.Tr "repo.asc_graph.exclude"}}</label>
-						<input id="asc-graph-exclude" name="exclude" type="text" maxlength="4096" value="{{.AscGraphExclude}}">
+						<input class="ds-input" id="asc-graph-exclude" name="exclude" type="text" maxlength="4096" value="{{.AscGraphExclude}}">
 					</div>
-					<div class="field">
+					<div class="ds-field">
 						<div class="ui checkbox">
 							<input id="asc-graph-stats" name="stats" type="checkbox" value="1"{{if .AscGraphStats}} checked{{end}}>
 							<label for="asc-graph-stats">{{ctx.Locale.Tr "repo.asc_graph.stats"}}</label>
 						</div>
 					</div>
-					<div class="field">
-						<button class="ui primary button" type="submit">{{ctx.Locale.Tr "repo.asc_graph.apply"}}</button>
+					<div class="ds-field">
+						<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "repo.asc_graph.apply"}}</button>
 					</div>
 				</div>
 			</form>
 
 			{{if .AscGraphError}}
-				<div class="ui warning message" role="alert">
+				<div class="ds-banner ds-banner-warn" role="alert">
 					<p>{{ctx.Locale.Tr .AscGraphError}}</p>
 					<p><a href="{{.AscGraphFirstURL}}">{{ctx.Locale.Tr "repo.asc_graph.restart"}}</a></p>
 				</div>
 			{{else if not .AscGraphRows}}
-				<div class="ui info message">{{ctx.Locale.Tr "repo.asc_graph.empty"}}</div>
+				<div class="ds-banner">{{ctx.Locale.Tr "repo.asc_graph.empty"}}</div>
 			{{else}}
 				<ol id="asc-graph-rows" class="tw-list-none tw-p-0 tw-m-0">
 					{{range $row := .AscGraphRows}}
@@ -54,14 +54,14 @@
 							<span class="tw-flex tw-gap-1 tw-shrink-0">
 								{{range $row.Refs}}
 									{{if .IsTag}}
-										<a class="ui basic mini label" href="{{$.RepoLink}}/src/tag/{{.Name|PathEscapeSegments}}">{{svg "octicon-tag" 12}} {{.Name}}</a>
+										<a class="ds-chip ds-chip-outline" href="{{$.RepoLink}}/src/tag/{{.Name|PathEscapeSegments}}">{{svg "octicon-tag" 12}} {{.Name}}</a>
 									{{else}}
-										<a class="ui basic mini label" href="{{$.RepoLink}}/src/branch/{{.Name|PathEscapeSegments}}">{{svg "octicon-git-branch" 12}} {{.Name}}</a>
+										<a class="ds-chip ds-chip-outline" href="{{$.RepoLink}}/src/branch/{{.Name|PathEscapeSegments}}">{{svg "octicon-git-branch" 12}} {{.Name}}</a>
 									{{end}}
 								{{end}}
-								{{if $row.MoreRefs}}<span class="ui basic mini label">+{{$row.MoreRefs}}</span>{{end}}
+								{{if $row.MoreRefs}}<span class="ds-chip ds-chip-outline">+{{$row.MoreRefs}}</span>{{end}}
 								{{with $row.Review}}
-									<span class="ui mini label">{{svg "octicon-git-pull-request" 12}} #{{.Number}}{{if .Draft}} {{ctx.Locale.Tr "repo.asc_graph.draft"}}{{else if .State}} {{.State}}{{end}}</span>
+									<span class="ds-chip">{{svg "octicon-git-pull-request" 12}} #{{.Number}}{{if .Draft}} {{ctx.Locale.Tr "repo.asc_graph.draft"}}{{else if .State}} {{.State}}{{end}}</span>
 								{{end}}
 							</span>
 							{{if $row.HasStats}}
@@ -73,8 +73,8 @@
 					{{end}}
 				</ol>
 				<div class="tw-flex tw-justify-between tw-mt-4">
-					{{if .AscGraphIsFirst}}<span></span>{{else}}<a class="ui basic button" href="{{.AscGraphFirstURL}}">{{ctx.Locale.Tr "repo.asc_graph.first"}}</a>{{end}}
-					{{if .AscGraphNextURL}}<a class="ui basic button" rel="next" href="{{.AscGraphNextURL}}">{{ctx.Locale.Tr "repo.asc_graph.older"}}</a>{{end}}
+					{{if .AscGraphIsFirst}}<span></span>{{else}}<a class="ds-btn ds-btn-secondary" href="{{.AscGraphFirstURL}}">{{ctx.Locale.Tr "repo.asc_graph.first"}}</a>{{end}}
+					{{if .AscGraphNextURL}}<a class="ds-btn ds-btn-secondary" rel="next" href="{{.AscGraphNextURL}}">{{ctx.Locale.Tr "repo.asc_graph.older"}}</a>{{end}}
 				</div>
 			{{end}}
 		</div>

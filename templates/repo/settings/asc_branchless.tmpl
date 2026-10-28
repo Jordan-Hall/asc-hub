@@ -3,7 +3,7 @@
 		<h4 class="ui top attached header">{{ctx.Locale.Tr "repo.settings.asc_branchless"}}</h4>
 		<div class="ui attached segment">
 			{{if .AscBranchlessError}}
-				<div class="ui warning message" role="alert">{{ctx.Locale.Tr "repo.settings.asc_branchless.error"}}</div>
+				<div class="ds-banner ds-banner-warn" role="alert">{{ctx.Locale.Tr "repo.settings.asc_branchless.error"}}</div>
 			{{else}}
 				<p>{{ctx.Locale.Tr "repo.settings.asc_branchless.desc"}}</p>
 				<dl class="tw-grid tw-grid-cols-1 tw-gap-2">

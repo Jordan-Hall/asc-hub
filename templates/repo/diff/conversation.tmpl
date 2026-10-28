@@ -14,7 +14,7 @@
 					We only handle the case $resolved=true and $invalid=true in this template because if the comment is not resolved it has the outdated label in the comments area (not the header above).
 					The case $resolved=false and $invalid=true is handled in repo/diff/comments.tmpl
 					-->
-					<a href="{{AppSubUrl}}{{$referenceUrl}}" class="ui label tw-ml-2" data-tooltip-content="{{ctx.Locale.Tr "repo.issues.review.outdated_description"}}">
+					<a href="{{AppSubUrl}}{{$referenceUrl}}" class="ds-chip tw-ml-2" data-tooltip-content="{{ctx.Locale.Tr "repo.issues.review.outdated_description"}}">
 						{{ctx.Locale.Tr "repo.issues.review.outdated"}}
 					</a>
 				{{end}}
@@ -31,7 +31,7 @@
 			</div>
 		</div>
 	{{end}}
-	<div id="code-comments-{{(index  .comments 0).ID}}" class="field comment-code-cloud {{if $resolved}}tw-hidden{{end}}">
+	<div id="code-comments-{{(index  .comments 0).ID}}" class="ds-field comment-code-cloud {{if $resolved}}tw-hidden{{end}}">
 		<div class="comment-list">
 			<ui class="ui comments">
 				{{template "repo/diff/comments" dict "root" $ "comments" .comments}}
@@ -39,15 +39,15 @@
 		</div>
 		<div class="button-row tw-flex tw-justify-end tw-items-center tw-flex-wrap tw-mt-2">
 			<div class="ui buttons">
-				<button class="ui icon tiny basic button previous-conversation">
+				<button class="ds-btn ds-btn-secondary ds-btn-sm previous-conversation">
 					{{svg "octicon-arrow-up" 12 "icon"}} {{ctx.Locale.Tr "repo.issues.previous"}}
 				</button>
-				<button class="ui icon tiny basic button next-conversation">
+				<button class="ds-btn ds-btn-secondary ds-btn-sm next-conversation">
 					{{svg "octicon-arrow-down" 12 "icon"}} {{ctx.Locale.Tr "repo.issues.next"}}
 				</button>
 			</div>
 			{{if and $.CanMarkConversation $isNotPending}}
-				<button class="ui icon tiny basic button resolve-conversation" data-origin="diff" data-action="{{if not $resolved}}Resolve{{else}}UnResolve{{end}}" data-comment-id="{{(index .comments 0).ID}}" data-update-url="{{$.RepoLink}}/issues/resolve_conversation">
+				<button class="ds-btn ds-btn-secondary ds-btn-sm resolve-conversation" data-origin="diff" data-action="{{if not $resolved}}Resolve{{else}}UnResolve{{end}}" data-comment-id="{{(index .comments 0).ID}}" data-update-url="{{$.RepoLink}}/issues/resolve_conversation">
 					{{if $resolved}}
 						{{ctx.Locale.Tr "repo.issues.review.un_resolve_conversation"}}
 					{{else}}
@@ -56,7 +56,7 @@
 				</button>
 			{{end}}
 			{{if and $.SignedUserID (not $.Repository.IsArchived)}}
-				<button class="comment-form-reply ui primary tiny labeled icon button">
+				<button class="ds-btn ds-btn-primary ds-btn-sm comment-form-reply">
 					{{svg "octicon-reply" 16 "reply icon tw-mr-1"}}{{ctx.Locale.Tr "repo.diff.comment.reply"}}
 				</button>
 			{{end}}

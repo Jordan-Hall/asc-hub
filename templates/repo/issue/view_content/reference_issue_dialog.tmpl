@@ -4,23 +4,23 @@
 	</div>
 	<div class="content">
 		<form class="ui form form-fetch-action" action="{{.Repository.Link}}/issues/new" method="post">
-			<div class="field">
+			<div class="ds-field">
 				<label><strong>{{ctx.Locale.Tr "repository"}}</strong></label>
 				<div class="ui search selection dropdown issue_reference_repository_search">
 					<div class="default text gt-ellipsis">{{.Repository.FullName}}</div>
 					<div class="menu"></div>
 				</div>
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label><strong>{{ctx.Locale.Tr "repo.milestones.title"}}</strong></label>
-				<input name="title" value="" autofocus required maxlength="255" autocomplete="off">
+				<input class="ds-input" name="title" value="" autofocus required maxlength="255" autocomplete="off">
 			</div>
-			<div class="field">
+			<div class="ds-field">
 				<label><strong>{{ctx.Locale.Tr "repo.issues.reference_issue.body"}}</strong></label>
-				<textarea name="content"></textarea>
+				<textarea class="ds-textarea" name="content"></textarea>
 			</div>
 			<div class="text right">
-				<button class="ui primary button">{{ctx.Locale.Tr "repo.issues.create"}}</button>
+				<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.issues.create"}}</button>
 			</div>
 		</form>
 	</div>

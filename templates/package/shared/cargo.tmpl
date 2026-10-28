@@ -3,21 +3,21 @@
 </h4>
 <div class="ui attached segment">
 	<div class="ui form">
-		<div class="field">
+		<div class="ds-field">
 			<label>{{ctx.Locale.Tr "packages.registry.documentation" "Cargo" "https://forgejo.org/docs/latest/user/packages/cargo/"}}</label>
 		</div>
 		{{if .CargoIndexExists}}
-		<form class="field" action="{{.Link}}/cargo/rebuild" method="post">
-			<button class="ui primary button">{{ctx.Locale.Tr "packages.owner.settings.cargo.rebuild"}}</button>
+		<form class="ds-field" action="{{.Link}}/cargo/rebuild" method="post">
+			<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "packages.owner.settings.cargo.rebuild"}}</button>
 		</form>
-		<div class="field">
+		<div class="ds-field">
 			<label>{{ctx.Locale.Tr "packages.owner.settings.cargo.rebuild.description"}}</label>
 		</div>
 		{{else}}
-		<form class="field" action="{{.Link}}/cargo/initialize" method="post">
-			<button class="ui primary button">{{ctx.Locale.Tr "packages.owner.settings.cargo.initialize"}}</button>
+		<form class="ds-field" action="{{.Link}}/cargo/initialize" method="post">
+			<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "packages.owner.settings.cargo.initialize"}}</button>
 		</form>
-		<div class="field">
+		<div class="ds-field">
 			<label>{{ctx.Locale.Tr "packages.owner.settings.cargo.initialize.description"}}</label>
 		</div>
 		{{end}}

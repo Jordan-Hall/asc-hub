@@ -8,21 +8,21 @@
 			<form method="post" action="{{.Issue.Link}}/times/stopwatch/cancel" id="cancel_stopwatch_form">
 			</form>
 			{{if $.IsStopwatchRunning}}
-				<button class="ui fluid button issue-stop-time">
+				<button class="ds-btn ds-btn-secondary ds-btn-block issue-stop-time">
 					{{svg "octicon-stopwatch" 16 "tw-mr-2"}}
 					{{ctx.Locale.Tr "repo.issues.stop_tracking"}}
 				</button>
-				<button class="ui fluid button issue-cancel-time tw-mt-2">
+				<button class="ds-btn ds-btn-secondary ds-btn-block issue-cancel-time tw-mt-2">
 					{{svg "octicon-trash" 16 "tw-mr-2"}}
 					{{ctx.Locale.Tr "repo.issues.cancel_tracking"}}
 				</button>
 			{{else}}
 				{{if .HasUserStopwatch}}
-					<div class="ui warning message">
+					<div class="ds-banner ds-banner-warn">
 						{{ctx.Locale.Tr "repo.issues.tracking_already_started" .OtherStopwatchURL}}
 					</div>
 				{{end}}
-				<button class="ui fluid button issue-start-time" data-tooltip-content='{{ctx.Locale.Tr "repo.issues.start_tracking"}}'>
+				<button class="ds-btn ds-btn-secondary ds-btn-block issue-start-time" data-tooltip-content='{{ctx.Locale.Tr "repo.issues.start_tracking"}}'>
 					{{svg "octicon-stopwatch" 16 "tw-mr-2"}}
 					{{ctx.Locale.Tr "repo.issues.start_tracking_short"}}
 				</button>
@@ -30,7 +30,7 @@
 					<div class="header">{{ctx.Locale.Tr "repo.issues.add_time"}}</div>
 					<div class="content">
 						<form method="post" id="add_time_manual_form" action="{{.Issue.Link}}/times/add" class="ui input fluid tw-gap-2">
-							<input placeholder='{{ctx.Locale.Tr "repo.issues.add_time_hours"}}' type="number" name="hours">
+							<input class="ds-input" placeholder='{{ctx.Locale.Tr "repo.issues.add_time_hours"}}' type="number" name="hours">
 							<input placeholder='{{ctx.Locale.Tr "repo.issues.add_time_minutes"}}' type="number" name="minutes" class="ui compact">
 						</form>
 					</div>
@@ -39,7 +39,7 @@
 						<button class="ui cancel button">{{ctx.Locale.Tr "repo.issues.add_time_cancel"}}</button>
 					</div>
 				</div>
-				<button class="ui fluid button issue-add-time tw-mt-2" data-tooltip-content='{{ctx.Locale.Tr "repo.issues.add_time"}}'>
+				<button class="ds-btn ds-btn-secondary ds-btn-block issue-add-time tw-mt-2" data-tooltip-content='{{ctx.Locale.Tr "repo.issues.add_time"}}'>
 					{{svg "octicon-plus" 16 "tw-mr-2"}}
 					{{ctx.Locale.Tr "repo.issues.add_time_short"}}
 				</button>

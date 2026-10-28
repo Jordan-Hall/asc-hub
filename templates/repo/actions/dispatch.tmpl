@@ -1,15 +1,15 @@
-<div class="ui info message tw-flex tw-items-center">
+<div class="ds-banner tw-flex tw-items-center">
 	<span>
 		{{ctx.Locale.Tr "actions.workflow.dispatch.trigger_found"}}
 	</span>
 	<div class="ui dropdown custom tw-ml-4" id="workflow_dispatch_dropdown">
-		<button class="ui compact small basic button tw-flex">
+		<button class="ds-btn ds-btn-secondary ds-btn-sm tw-flex">
 			<span class="text">{{ctx.Locale.Tr "actions.workflow.dispatch.run"}}</span>
 			{{svg "octicon-triangle-down" 14 "dropdown icon"}}
 		</button>
 		<div class="menu">
 			<div class="message ui form">
-				<div class="field">
+				<div class="ds-field">
 					<label>{{ctx.Locale.Tr "actions.workflow.dispatch.use_from"}}</label>
 					{{template "repo/branch_dropdown" dict
 						"root" (dict
@@ -40,9 +40,9 @@
 							{{else}}
 								<label>{{if $val.Description}}{{$val.Description}}{{else}}{{$key}}{{end}}</label>
 								{{if eq $val.Type "number"}}
-									<input {{if $val.Required}}required{{end}} type="number" name="inputs[{{$key}}]" {{if $val.Default}}value="{{$val.Default}}"{{end}}>
+									<input class="ds-input" {{if $val.Required}}required{{end}} type="number" name="inputs[{{$key}}]" {{if $val.Default}}value="{{$val.Default}}"{{end}}>
 								{{else if eq $val.Type "string"}}
-									<input {{if $val.Required}}required{{end}} type="text" name="inputs[{{$key}}]" {{if $val.Default}}value="{{$val.Default}}"{{end}}>
+									<input class="ds-input" {{if $val.Required}}required{{end}} type="text" name="inputs[{{$key}}]" {{if $val.Default}}value="{{$val.Default}}"{{end}}>
 								{{else if eq $val.Type "choice"}}
 									<div class="ui selection dropdown">
 										<input name="inputs[{{$key}}]" type="hidden" value="{{$val.Default}}">
@@ -71,7 +71,7 @@
 					<input type="hidden" name="workflow" value="{{$.CurWorkflow}}">
 					<input type="hidden" name="actor" value="{{$.CurActor}}">
 					<input type="hidden" name="status" value="{{$.CurStatus}}">
-					<button type="submit" id="workflow-dispatch-submit" class="ui primary small compact button">{{ctx.Locale.Tr "actions.workflow.dispatch.run"}}</button>
+					<button type="submit" id="workflow-dispatch-submit" class="ds-btn ds-btn-primary ds-btn-sm">{{ctx.Locale.Tr "actions.workflow.dispatch.run"}}</button>
 				</form>
 			</div>
 		</div>

@@ -10,9 +10,9 @@
 			<div class="ui attached segment">
 				<form class="ui form" action="{{.Link}}" method="post">
 					<strong>{{ctx.Locale.Tr "repo.admin.enabled_flags"}}</strong>
-					<div class="ui segment tw-pl-4">
+					<div class="ds-card ds-card-b tw-pl-4">
 						{{range $flag, $checked := .Flags}}
-							<div class="field">
+							<div class="ds-field">
 								<div class="ui checkbox{{if $checked}} checked{{end}}">
 									<input name="flags" type="checkbox" value="{{$flag}}" {{if $checked}}checked{{end}}>
 									<label>{{$flag}}</label>
@@ -21,8 +21,8 @@
 						{{end}}
 					</div>
 
-					<div class="field">
-						<button class="ui primary button">{{ctx.Locale.Tr "repo.admin.update_flags"}}</button>
+					<div class="ds-field">
+						<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.admin.update_flags"}}</button>
 					</div>
 				</form>
 			</div>

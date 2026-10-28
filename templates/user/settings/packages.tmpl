@@ -8,13 +8,13 @@
 		</h4>
 		<div class="ui attached segment">
 			<div class="ui form">
-				<div class="field">
+				<div class="ds-field">
 					<label>{{ctx.Locale.Tr "packages.registry.documentation" "Chef" "https://forgejo.org/docs/latest/user/packages/chef/"}}</label>
 				</div>
-				<form class="field" action="{{.Link}}/chef/regenerate_keypair" method="post">
-					<button class="ui primary button">{{ctx.Locale.Tr "packages.owner.settings.chef.keypair"}}</button>
+				<form class="ds-field" action="{{.Link}}/chef/regenerate_keypair" method="post">
+					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "packages.owner.settings.chef.keypair"}}</button>
 				</form>
-				<div class="field">
+				<div class="ds-field">
 					<label>{{ctx.Locale.Tr "packages.owner.settings.chef.keypair.description"}}</label>
 				</div>
 			</div>

@@ -2,7 +2,7 @@
 <div class="ui attached segment">
 	<form class="ui form" action="{{.Link}}" method="post">
 		<input name="id" type="hidden" value="{{.CleanupRule.ID}}">
-		<div class="field">
+		<div class="ds-field">
 			<div class="ui checkbox">
 				<label>{{ctx.Locale.Tr "enabled"}}</label>
 				<input type="checkbox" name="enabled" {{if .CleanupRule.Enabled}}checked{{end}}>
@@ -16,7 +16,7 @@
 				{{end}}
 			</select>
 		</div>
-		<div class="field">
+		<div class="ds-field">
 			<div class="ui checkbox">
 				<label>{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.pattern_full_match"}}</label>
 				<input type="checkbox" name="match_full_name" {{if .CleanupRule.MatchFullName}}checked{{end}}>
@@ -24,7 +24,7 @@
 		</div>
 		<div class="divider"></div>
 		<p>{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.keep.title"}}</p>
-		<div class="field {{if .Err_KeepCount}}error{{end}}">
+		<div class="ds-field {{if .Err_KeepCount}}error{{end}}">
 			<label>{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.keep.count"}}:</label>
 			<select class="ui selection dropdown" name="keep_count">
 				<option{{if eq .CleanupRule.KeepCount 0}} selected="selected"{{end}} value="0"></option>
@@ -36,14 +36,14 @@
 				<option{{if eq .CleanupRule.KeepCount 100}} selected="selected"{{end}} value="100">{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.keep.count.n" 100}}</option>
 			</select>
 		</div>
-		<div class="field {{if .Err_KeepPattern}}error{{end}}">
+		<div class="ds-field {{if .Err_KeepPattern}}error{{end}}">
 			<label>{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.keep.pattern"}}:</label>
-			<input name="keep_pattern" type="text" value="{{.CleanupRule.KeepPattern}}">
+			<input class="ds-input" name="keep_pattern" type="text" value="{{.CleanupRule.KeepPattern}}">
 			<p>{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.keep.pattern.container"}}</p>
 		</div>
 		<div class="divider"></div>
 		<p>{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.remove.title"}}</p>
-		<div class="field {{if .Err_RemoveDays}}error{{end}}">
+		<div class="ds-field {{if .Err_RemoveDays}}error{{end}}">
 			<label>{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.remove.days"}}:</label>
 			<select class="ui selection dropdown" name="remove_days">
 				<option{{if eq .CleanupRule.RemoveDays 0}} selected="selected"{{end}} value="0"></option>
@@ -55,17 +55,17 @@
 				<option{{if eq .CleanupRule.RemoveDays 180}} selected="selected"{{end}} value="180">{{ctx.Locale.Tr "tool.days" 180}}</option>
 			</select>
 		</div>
-		<div class="field {{if .Err_RemovePattern}}error{{end}}">
+		<div class="ds-field {{if .Err_RemovePattern}}error{{end}}">
 			<label>{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.remove.pattern"}}:</label>
-			<input name="remove_pattern" type="text" value="{{.CleanupRule.RemovePattern}}">
+			<input class="ds-input" name="remove_pattern" type="text" value="{{.CleanupRule.RemovePattern}}">
 		</div>
-		<div class="field">
+		<div class="ds-field">
 			{{if .IsEditRule}}
-			<button class="ui primary button" name="action" value="save">{{ctx.Locale.Tr "save"}}</button>
-			<button class="ui red button" name="action" value="remove">{{ctx.Locale.Tr "remove"}}</button>
-			<a class="ui button" href="{{.Link}}/preview">{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.preview"}}</a>
+			<button class="ds-btn ds-btn-primary" name="action" value="save">{{ctx.Locale.Tr "save"}}</button>
+			<button class="ds-btn ds-btn-danger" name="action" value="remove">{{ctx.Locale.Tr "remove"}}</button>
+			<a class="ds-btn ds-btn-secondary" href="{{.Link}}/preview">{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.preview"}}</a>
 			{{else}}
-			<button class="ui primary button" name="action" value="save">{{ctx.Locale.Tr "add"}}</button>
+			<button class="ds-btn ds-btn-primary" name="action" value="save">{{ctx.Locale.Tr "add"}}</button>
 			{{end}}
 		</div>
 	</form>
