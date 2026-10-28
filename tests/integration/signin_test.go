@@ -32,7 +32,7 @@ func testLoginFailed(t *testing.T, username, password, message string) {
 	resp := session.MakeRequest(t, req, http.StatusOK)
 
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	resultMsg := htmlDoc.doc.Find(".ui.message>p").Text()
+	resultMsg := htmlDoc.doc.Find("#flash-message p").Text()
 
 	assert.Equal(t, message, resultMsg)
 }

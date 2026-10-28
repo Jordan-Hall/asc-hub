@@ -73,7 +73,7 @@ func TestRepoMigrateCredentials(t *testing.T) {
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assert.Contains(t,
-			htmlDoc.doc.Find(".ui.negative.message").Text(),
+			htmlDoc.doc.Find(".flash-error").Text(),
 			translation.NewLocale("en-US").Tr("migrate.form.error.url_credentials"),
 		)
 	})

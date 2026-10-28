@@ -411,7 +411,7 @@ func TestBlockActions(t *testing.T) {
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assert.Contains(t,
-			htmlDoc.doc.Find(".ui.negative.message").Text(),
+			htmlDoc.doc.Find(".flash-error").Text(),
 			translation.NewLocale("en-US").Tr("repo.settings.new_owner_blocked_doer"),
 		)
 	})

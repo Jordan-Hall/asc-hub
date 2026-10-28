@@ -108,7 +108,7 @@ func TestRenameInvalidUsername(t *testing.T) {
 		resp := session.MakeRequest(t, req, http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assert.Contains(t,
-			htmlDoc.doc.Find(".ui.negative.message").Text(),
+			htmlDoc.doc.Find(".flash-error").Text(),
 			translation.NewLocale("en-US").TrString("form.username_error"),
 		)
 
@@ -162,7 +162,7 @@ func TestRenameReservedUsername(t *testing.T) {
 		resp = session.MakeRequest(t, req, http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assert.Contains(t,
-			htmlDoc.doc.Find(".ui.negative.message").Text(),
+			htmlDoc.doc.Find(".flash-error").Text(),
 			translation.NewLocale("en-US").TrString("user.form.name_reserved", reservedUsername),
 		)
 
@@ -1266,7 +1266,7 @@ func TestUserPasswordResetOAuth2(t *testing.T) {
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assert.Contains(t,
-			htmlDoc.doc.Find(".ui.negative.message").Text(),
+			htmlDoc.doc.Find(".flash-error").Text(),
 			translation.NewLocale("en-US").TrString("auth.non_local_account"),
 		)
 	})
@@ -1301,7 +1301,7 @@ func TestUserPasswordResetOAuth2(t *testing.T) {
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		assert.Contains(t,
-			htmlDoc.doc.Find(".ui.negative.message").Text(),
+			htmlDoc.doc.Find(".flash-error").Text(),
 			translation.NewLocale("en-US").TrString("auth.non_local_account"),
 		)
 	})

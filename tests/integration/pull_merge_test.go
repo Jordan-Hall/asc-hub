@@ -240,7 +240,7 @@ func TestPullCleanUpAfterMerge(t *testing.T) {
 		resp = session.MakeRequest(t, req, http.StatusOK)
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
-		resultMsg := htmlDoc.doc.Find(".ui.message>p").Text()
+		resultMsg := htmlDoc.doc.Find("#flash-message p").Text()
 
 		assert.Equal(t, "Branch \"user1/repo1:feature/test\" has been deleted.", resultMsg)
 	})
