@@ -717,7 +717,7 @@
 
 /* a line can be commented on a touch screen too: there is no hover, so the button shows */
 @media (hover: none) {
-  .rv-diff .ui.button.add-code-comment {
+  .rv-diff .add-code-comment {
     opacity: .85;
   }
 
@@ -828,7 +828,7 @@
   min-height: 24px;
 }
 
-.repository .rv-diff .ui.button.add-code-comment {
+.repository .rv-diff .add-code-comment {
   min-width: 24px;
   min-height: 24px;
 }

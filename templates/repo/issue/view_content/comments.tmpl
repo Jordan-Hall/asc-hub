@@ -118,9 +118,9 @@
 					{{template "repo/issue/view_content/comments_authorlink" dict "ctxData" $ "comment" .}}
 					{{$link := printf "%s/commit/%s" $.Repository.Link ($.Issue.PullRequest.MergedCommitID|PathEscape)}}
 					{{if eq $.Issue.PullRequest.Status 3}}
-						{{ctx.Locale.Tr "repo.issues.comment_manually_pull_merged_at" (HTMLFormat `<a class="ui sha" href="%[1]s"><b>%[2]s</b></a>` $link (ShortSha $.Issue.PullRequest.MergedCommitID)) (HTMLFormat "<b>%[1]s</b>" $.BaseTarget) $createdStr}}
+						{{ctx.Locale.Tr "repo.issues.comment_manually_pull_merged_at" (HTMLFormat `<a class="ds-chip ds-chip-outline ds-mono" href="%[1]s"><b>%[2]s</b></a>` $link (ShortSha $.Issue.PullRequest.MergedCommitID)) (HTMLFormat "<b>%[1]s</b>" $.BaseTarget) $createdStr}}
 					{{else}}
-						{{ctx.Locale.Tr "repo.issues.comment_pull_merged_at" (HTMLFormat `<a class="ui sha" href="%[1]s"><b>%[2]s</b></a>` $link (ShortSha $.Issue.PullRequest.MergedCommitID)) (HTMLFormat "<b>%[1]s</b>" $.BaseTarget) $createdStr}}
+						{{ctx.Locale.Tr "repo.issues.comment_pull_merged_at" (HTMLFormat `<a class="ds-chip ds-chip-outline ds-mono" href="%[1]s"><b>%[2]s</b></a>` $link (ShortSha $.Issue.PullRequest.MergedCommitID)) (HTMLFormat "<b>%[1]s</b>" $.BaseTarget) $createdStr}}
 					{{end}}
 				</span>
 			</div>
@@ -418,7 +418,7 @@
 							{{ctx.Locale.Tr "repo.issues.review.comment" $createdStr}}
 						{{end}}
 						{{if .Review.Dismissed}}
-							<div class="ui small label">{{ctx.Locale.Tr "repo.issues.review.dismissed_label"}}</div>
+							<div class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "repo.issues.review.dismissed_label"}}</div>
 						{{end}}
 					</span>
 				</div>
@@ -581,7 +581,7 @@
 							</span>
 							{{if $.Issue.PullRequest.BaseRepo.Name}}
 								<span class="compare">
-									<a href="{{$.Issue.PullRequest.BaseRepo.Link}}/compare/{{PathEscape .OldCommit}}..{{PathEscape .NewCommit}}" rel="nofollow" class="ui compare label">{{ctx.Locale.Tr "repo.issues.force_push_compare"}}</a>
+									<a href="{{$.Issue.PullRequest.BaseRepo.Link}}/compare/{{PathEscape .OldCommit}}..{{PathEscape .NewCommit}}" rel="nofollow" class="ds-chip ds-chip-outline compare">{{ctx.Locale.Tr "repo.issues.force_push_compare"}}</a>
 								</span>
 							{{end}}
 						</span>

@@ -2569,3 +2569,26 @@ a.ds-stat:hover {
   padding: 0;
   border: 0;
 }
+
+/* parts of the comment thread and the merge box (these were attached Fomantic segments) */
+.ds-card-fit {
+  padding: 0;
+}
+
+.ds-code-preview {
+  padding: 0;
+  overflow-x: auto;
+  border-top: 1px solid var(--line);
+}
+
+.conversation-holder.ds-card {
+  overflow: hidden;
+}
+
+.conversation-holder > .ds-card-b + .ds-card-b {
+  border-top: 1px solid var(--line);
+}
+
+.collapsible-comment-box .ds-chip {
+  min-width: unset;
+}

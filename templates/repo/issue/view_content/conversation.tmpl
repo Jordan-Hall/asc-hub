@@ -2,19 +2,19 @@
 {{$resolved := (index .comments 0).IsResolved}}
 {{$resolveDoer := (index .comments 0).ResolveDoer}}
 {{$isNotPending := (not (eq (index .comments 0).Review.Type 0))}}
-<div class="ui segments conversation-holder">
-	<div class="ui segment collapsible-comment-box tw-py-2 tw-gap-2 tw-flex tw-items-center tw-justify-between">
+<div class="ds-card conversation-holder">
+	<div class="collapsible-comment-box ds-card-b tw-py-2 tw-gap-2 tw-flex tw-items-center tw-justify-between">
 		<div class="tw-flex tw-items-center tw-gap-2">
 			<a href="{{(index .comments 0).CodeCommentLink ctx}}" class="file-comment tw-break-anywhere">{{(index .comments 0).TreePath}}</a>
 			{{if $invalid}}
-				<span class="ui label" data-tooltip-content="{{ctx.Locale.Tr "repo.issues.review.outdated_description"}}">
+				<span class="ds-chip ds-chip-outline" data-tooltip-content="{{ctx.Locale.Tr "repo.issues.review.outdated_description"}}">
 					{{ctx.Locale.Tr "repo.issues.review.outdated"}}
 				</span>
 			{{end}}
 		</div>
 		<div class="tw-flex tw-items-center tw-gap-2">
 			{{if gt (index .comments 0).ExtraLinesCount 0}}
-				<span class="ui label">Lines {{(index .comments 0).UnsignedLine}}-{{(index .comments 0).UnsignedDisplayLine}}</span>
+				<span class="ds-chip ds-chip-outline">Lines {{(index .comments 0).UnsignedLine}}-{{(index .comments 0).UnsignedDisplayLine}}</span>
 			{{end}}
 			{{if or $invalid $resolved}}
 				<button id="show-outdated-{{(index .comments 0).ID}}" data-comment="{{(index .comments 0).ID}}" class="{{if not $resolved}}tw-hidden {{end}}show-outdated">
@@ -39,7 +39,7 @@
 	{{$diff := (CommentMustAsDiff ctx (index .comments 0))}}
 	{{if $diff}}
 		{{$file := (index $diff.Files 0)}}
-		<div id="code-preview-{{(index .comments 0).ID}}" class="ui table segment{{if $resolved}} tw-hidden{{end}}">
+		<div id="code-preview-{{(index .comments 0).ID}}" class="ds-card-b ds-code-preview{{if $resolved}} tw-hidden{{end}}">
 			<div class="diff-file-box diff-box file-content {{TabSizeClass $.Editorconfig $file.Name}}">
 				<div class="file-body file-code code-view code-diff code-diff-unified unicode-escaped">
 					<table>
@@ -51,7 +51,7 @@
 			</div>
 		</div>
 	{{end}}
-	<div id="code-comments-{{(index .comments 0).ID}}" class="comment-code-cloud ui segment{{if $resolved}} tw-hidden{{end}}">
+	<div id="code-comments-{{(index .comments 0).ID}}" class="comment-code-cloud ds-card-b{{if $resolved}} tw-hidden{{end}}">
 		{{range .comments}}
 			{{$createdSubStr:= DateUtils.TimeSince .CreatedUnix}}
 			<div class="comment code-comment" id="{{.HashTag}}">
@@ -110,7 +110,7 @@
 		<div class="tw-flex tw-items-center tw-flex-wrap tw-mt-2">
 			<div class="tw-flex-1">
 				{{if $resolved}}
-					<div class="ui grey text">
+					<div class="ds-c-2">
 						{{svg "octicon-check" 16 "tw-mr-1"}}
 						<b>{{$resolveDoer.Name}}</b> {{ctx.Locale.Tr "repo.issues.review.resolved_by"}}
 					</div>
@@ -118,7 +118,7 @@
 			</div>
 			<div class="button-sequence tw-justify-end">
 				{{if and $.CanMarkConversation $isNotPending}}
-					<button class="ui tiny basic button resolve-conversation" data-origin="timeline" data-action="{{if not $resolved}}Resolve{{else}}UnResolve{{end}}" data-comment-id="{{(index .comments 0).ID}}" data-update-url="{{$.RepoLink}}/issues/resolve_conversation">
+					<button class="ds-btn ds-btn-secondary ds-btn-sm resolve-conversation" data-origin="timeline" data-action="{{if not $resolved}}Resolve{{else}}UnResolve{{end}}" data-comment-id="{{(index .comments 0).ID}}" data-update-url="{{$.RepoLink}}/issues/resolve_conversation">
 						{{if $resolved}}
 							{{ctx.Locale.Tr "repo.issues.review.un_resolve_conversation"}}
 						{{else}}
@@ -127,8 +127,8 @@
 					</button>
 				{{end}}
 				{{if and $.SignedUserID (not $.Repository.IsArchived)}}
-					<button class="comment-form-reply ui primary tiny labeled icon button">
-						{{svg "octicon-reply" 16 "reply icon tw-mr-1"}}{{ctx.Locale.Tr "repo.diff.comment.reply"}}
+					<button class="comment-form-reply ds-btn ds-btn-primary ds-btn-sm">
+						{{svg "octicon-reply" 16 "tw-mr-1"}}{{ctx.Locale.Tr "repo.diff.comment.reply"}}
 					</button>
 				{{end}}
 			</div>
