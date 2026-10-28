@@ -4,7 +4,7 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 */}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}" class="ds-main ds-land home">
-	<section class="ds-land-hero" aria-labelledby="hub-hero-title">
+	<section class="ds-land-hero ds-land-home" aria-labelledby="hub-hero-title">
 		<div class="ds-container">
 			<p class="ds-land-pill"><i aria-hidden="true"></i>{{ctx.Locale.Tr "startpage.pill"}}</p>
 			<h1 class="ds-land-title" id="hub-hero-title">{{ctx.Locale.Tr "startpage.headline"}}</h1>

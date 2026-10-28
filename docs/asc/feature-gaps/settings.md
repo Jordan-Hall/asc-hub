@@ -137,7 +137,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | OrgSettings | Owner-only banner and disabled fields for non-owners (settings routes require owner today) | ui-only-missing | routers/web/web.go org settings group, options.tmpl | S |
 | OrgSettings | Left menu: AI keys, Storage, Audit, Packages, Webhooks, Applications, Runners, Blocked users, Usage | done | templates/org/settings/navbar.tmpl | - |
 | OrgPeople | Member rows with avatar, owner/member chips, 2FA chip, remove/leave, public/private toggle | done | templates/org/member/members.tmpl | - |
-| OrgPeople | Search box, filter chips with counts (Everyone, Owners, 2FA off, Pending), pagination | ui-only-missing | members.tmpl + routers/web/org/members.go query params | M |
+| OrgPeople | Search box, filter chips with counts (Everyone, Owners, 2FA off done; Pending needs the invitation list), pagination | ui-only-missing | members.tmpl + routers/web/org/members.go query params | M |
 | OrgPeople | Change role menu with Maintainer role and undo toast; last owner cannot be demoted | needs-hub-backend | org members are owner/member only (teams carry access); new role model or Maintainer team mapping in routers/web/org/members.go | M |
 | OrgPeople | Row detail: teams list, last active, changesets count | needs-both | hub: teams and last login; asc: authored-changeset count per person (no stats RPC) | M |
 | OrgPeople | Agents section (agent identity, run by, scoped to paths, Manage) | needs-both | asc: org-owned agent identities (only per-repo AgentTokens exist); hub: members.tmpl section | L |

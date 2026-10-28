@@ -7,6 +7,7 @@ package org
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"forgejo.org/models"
 	"forgejo.org/models/organization"
@@ -47,7 +48,7 @@ func Members(ctx *context.Context) {
 	}
 	ctx.Data["PublicOnly"] = opts.PublicOnly()
 
-	total, err := organization.CountOrgMembers(ctx, opts)
+	_, err := organization.CountOrgMembers(ctx, opts)
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "CountOrgMembers")
 		return
@@ -59,13 +60,48 @@ func Members(ctx *context.Context) {
 		return
 	}
 
-	pager := context.NewPagination(int(total), setting.UI.MembersPagingNum, page, 5)
-	opts.Page = page
-	opts.PageSize = setting.UI.MembersPagingNum
-	members, membersIsPublic, err := organization.FindOrgMembers(ctx, opts)
+	// People page (board OrgPeople): the whole list is read, filtered by the search text and the chosen chip, then
+	// paged, so the chip counts and the pager agree with what is shown.
+	everyone, membersIsPublic, err := organization.FindOrgMembers(ctx, &organization.FindOrgMembersOpts{Doer: opts.Doer, IsDoerMember: opts.IsDoerMember, OrgID: org.ID})
 	if err != nil {
 		ctx.ServerError("GetMembers", err)
 		return
+	}
+	isOwner := organization.IsUserOrgOwner(ctx, everyone, org.ID)
+	twoFA := everyone.GetTwoFaStatus(ctx)
+	query := strings.ToLower(ctx.FormTrim("q"))
+	filter := ctx.FormString("filter")
+	var ownersCount, twoFAOffCount int
+	members := make(user_model.UserList, 0, len(everyone))
+	for _, m := range everyone {
+		if isOwner[m.ID] {
+			ownersCount++
+		}
+		if !twoFA[m.ID] {
+			twoFAOffCount++
+		}
+		if query != "" && !strings.Contains(strings.ToLower(m.Name), query) && !strings.Contains(strings.ToLower(m.FullName), query) {
+			continue
+		}
+		if (filter == "owners" && !isOwner[m.ID]) || (filter == "2fa_off" && twoFA[m.ID]) {
+			continue
+		}
+		members = append(members, m)
+	}
+	ctx.Data["PeopleQuery"] = ctx.FormTrim("q")
+	ctx.Data["PeopleFilter"] = filter
+	ctx.Data["PeopleCountAll"] = len(everyone)
+	ctx.Data["PeopleCountOwners"] = ownersCount
+	ctx.Data["PeopleCountTwoFAOff"] = twoFAOffCount
+	ctx.Data["PeopleShown"] = len(members)
+
+	pager := context.NewPagination(len(members), setting.UI.MembersPagingNum, page, 5)
+	pager.AddParam(ctx, "q", "PeopleQuery")
+	pager.AddParam(ctx, "filter", "PeopleFilter")
+	if from := (page - 1) * setting.UI.MembersPagingNum; from < len(members) {
+		members = members[from:min(from+setting.UI.MembersPagingNum, len(members))]
+	} else {
+		members = nil
 	}
 	teams, err := organization.FindOrgTeams(ctx, org.ID)
 	if err != nil {
@@ -76,8 +112,8 @@ func Members(ctx *context.Context) {
 	ctx.Data["Members"] = members
 	ctx.Data["Teams"] = teams
 	ctx.Data["MembersIsPublicMember"] = membersIsPublic
-	ctx.Data["MembersIsUserOrgOwner"] = organization.IsUserOrgOwner(ctx, members, org.ID)
-	ctx.Data["MembersTwoFaStatus"] = members.GetTwoFaStatus(ctx)
+	ctx.Data["MembersIsUserOrgOwner"] = isOwner
+	ctx.Data["MembersTwoFaStatus"] = twoFA
 	ctx.Data["AddMembersByInvitations"] = setting.Service.AddMembersByInvitations
 
 	ctx.HTML(http.StatusOK, tplMembers)

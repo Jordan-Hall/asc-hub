@@ -18,7 +18,7 @@ Under 768 a "Sort and filter" button opens a sheet with the same choices; from 7
 	<div class="ds-container ds-container-wide">
 		<div class="ds-filterbar-row">
 			<form id="repo-search-form" class="ds-filterbar-form" role="search" method="get">
-				{{if .Language}}<input type="hidden" name="language" value="{{.Language}}">{{end}}
+				{{if and .Language (not .ExploreLanguages)}}<input type="hidden" name="language" value="{{.Language}}">{{end}}
 				{{if .TopicOnly}}<input type="hidden" name="topic" value="{{.TopicOnly}}">{{end}}
 				{{if $pageIsExplore}}<input type="hidden" name="only_show_relevant" value="{{.OnlyShowRelevant}}">{{else if .TabName}}<input type="hidden" name="tab" value="{{.TabName}}">{{end}}
 				{{if $archived}}<input type="hidden" name="archived" value="{{$archived}}">{{end}}
@@ -59,6 +59,16 @@ Under 768 a "Sort and filter" button opens a sheet with the same choices; from 7
 					</select>
 					{{svg "dsi-chevron-down" 16}}
 				</label>
+				{{if .ExploreLanguages}}
+				<label class="ds-selectpill ds-hide-sm">
+					<span>{{ctx.Locale.Tr "explore.language_label"}}</span>
+					<select name="language" data-asc-autosubmit aria-label="{{ctx.Locale.Tr "explore.language_label"}}">
+						<option value=""{{if not .Language}} selected{{end}}>{{ctx.Locale.Tr "explore.language_any"}}</option>
+						{{range .ExploreLanguages}}<option value="{{.}}"{{if eq . $.Language}} selected{{end}}>{{.}}</option>{{end}}
+					</select>
+					{{svg "dsi-chevron-down" 16}}
+				</label>
+				{{end}}
 			</form>
 		</div>
 		<div class="ds-filterbar-pills">
