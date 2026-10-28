@@ -268,3 +268,13 @@ form .wk-choice > input[type="checkbox"]:checked::after {
   width: 100%;
   border-radius: var(--r-btn);
 }
+
+/* the Storage and AI keys pages show their title in the page head */
+.wk-settings .asc-byo > .asc-byo-title,
+.wk-settings .asc-byo > .asc-byo-lead {
+  display: none;
+}
+
+.wk-settings .asc-byo {
+  max-width: none;
+}

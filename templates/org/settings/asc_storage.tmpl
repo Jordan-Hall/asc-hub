@@ -1,5 +1,6 @@
-{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "organization settings asc-byo-page")}}
-	<div class="org-setting-content">
-		{{template "shared/asc/byo_storage_page" .}}
-	</div>
+{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main organization settings asc-byo-page wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "ascbyo.storage.title") "Lead" (ctx.Locale.Tr "ascbyo.storage.lead"))}}
+<div class="wk-sp">
+	{{template "shared/asc/byo_storage_page" .}}
+</div>
 {{template "org/settings/layout_footer" .}}
