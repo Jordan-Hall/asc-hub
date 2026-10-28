@@ -348,3 +348,89 @@
   flex: none;
   white-space: nowrap;
 }
+
+/* ---- one issue: title block, timeline, comment box, sidebar (phones first) ---- */
+.repository.view.issue .issue-title-header {
+  margin-top: 8px;
+}
+
+.repository.view.issue .issue-title .button-row .button {
+  min-height: var(--touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .repository.view.issue .issue-title .button-row .button {
+    min-height: 0;
+  }
+}
+
+.repository.view.issue .issue-title-meta .time-desc a,
+.repository.view.issue .issue-title-meta .pull-desc a {
+  text-decoration: underline;
+}
+
+.repository.view.issue .timeline-item.event {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.repository.view.issue .timeline-item.event a {
+  color: var(--text-1);
+}
+
+.repository.view.issue .timeline-item.event .detail,
+.repository.view.issue .timeline-item.event .text {
+  overflow-wrap: anywhere;
+}
+
+.repository.view.issue .ui.timeline .timeline-item .comment-header {
+  min-height: var(--touch);
+}
+
+.repository.view.issue .issue-content-right.ui.segment {
+  border-radius: var(--r-card);
+}
+
+@media (max-width: 767.98px) {
+  .repository.view.issue .issue-content {
+    gap: 20px;
+  }
+
+  .repository.view.issue .timeline-item.event {
+    font-size: 13px;
+  }
+
+  /* the comment box keeps its buttons in reach: they stick above the bottom bar */
+  .repository.view.issue .comment.form .field.footer {
+    position: sticky;
+    bottom: var(--bnav-h, 56px);
+    z-index: var(--z-sticky, 5);
+    margin: 0 calc(var(--gutter, 16px) * -1);
+    padding: 10px var(--gutter, 16px);
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .repository.view.issue .comment.form .field.footer .button {
+    min-height: var(--touch);
+  }
+
+  .repository.view.issue .comment.form .field.footer .button-sequence {
+    flex: 1;
+    gap: 8px;
+  }
+
+  .repository.view.issue .comment.form .field.footer .button-sequence .button {
+    flex: 1;
+  }
+}
+
+.repository.view.issue .timeline-item.event a[id^="event-"] {
+  display: inline-block;
+  min-height: 24px;
+  line-height: 24px;
+}
