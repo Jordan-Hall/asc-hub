@@ -53,7 +53,7 @@
 				</ul>
 			{{else}}
 				<div class="rp-sec-b">
-					{{if and .Keyword (eq .Repository.GetStorageBackend "asc")}}{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_rp.no_ref_title") "Body" (ctx.Locale.Tr "asc_rp.no_ref_body") "PrimaryLabel" (ctx.Locale.Tr "asc_rp.search_stacks") "PrimaryHref" (printf "%s/pulls?q=%s" .RepoLink (QueryEscape .Keyword)))}}{{else}}{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_rp.no_ref_title") "Body" (ctx.Locale.Tr "asc_rp.no_ref_body"))}}{{end}}
+					{{if and .Keyword (eq .Repository.GetStorageBackend "asc") (.Permission.CanRead $.UnitTypePullRequests)}}{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_rp.no_ref_title") "Body" (ctx.Locale.Tr "asc_rp.no_ref_body") "PrimaryLabel" (ctx.Locale.Tr "asc_rp.search_stacks") "PrimaryHref" (printf "%s/pulls?q=%s" .RepoLink (QueryEscape .Keyword)))}}{{else}}{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_rp.no_ref_title") "Body" (ctx.Locale.Tr "asc_rp.no_ref_body"))}}{{end}}
 				</div>
 			{{end}}
 		</section>

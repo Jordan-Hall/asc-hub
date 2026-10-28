@@ -6,6 +6,7 @@
 {{$signingBlocksAllMergeStyles := and .AllowMerge .RequireSigned (not .WillSign) (not $hasUnsignedMergeStyle)}}
 {{if not (and .PageIsPullConversation .AscStackPanel)}}{{template "repo/pulls/asc_stack" .}}{{end}}
 {{template "repo/pulls/asc_badges" .}}
+{{template "repo/pulls/asc_brief" .}}
 {{template "repo/pulls/asc_versions" .}}
 {{if or (not .Issue.PullRequest.HasMerged) .IsPullBranchDeletable .SomePullRequestRunsNeedApproval}}
 <div class="timeline-item comment merge box">

@@ -158,7 +158,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Agents | Stats: Running now, Waiting on you | done | templates/repo/asc_agents.tmpl (counts are of the loaded page only) | - |
 | Agents | Stats: Landed this week (31% of changes), Spend this month ($142 of $400 cap) | needs-both | asc: spend and landed aggregates (no RPC in proto/asc/v1/agents.proto); hub: asc_agents.go | M |
 | Agents | State chips with counts, agent filter, text search over runs | ui-only-missing | templates/repo/asc_agents.tmpl (chips exist without counts; no search; ListRuns has no text filter) | M |
-| Agents | Comfortable/Compact density, persisted per person | ui-only-missing | templates/repo/asc_agents.tmpl + user preference | S |
+| Agents | Comfortable/Compact density, persisted per person | done | templates/repo/asc_agents.tmpl + user preference | S |
 | Agents | Run row: title, 'for stack', run id, agent, tokens used/limit with bar, duration, starter avatar | ui-only-missing | templates/repo/asc_agents.tmpl (tokens and cost text only, no bar or duration) | S |
 | Agents | Run row progress '3 of 4 steps' with bar | needs-asc-backend | asc: AgentRun has no plan or step counts (proto/asc/v1/agents.proto) | M |
 | Agents | Row actions Open run and Stop (confirm + reason logged) on hover/focus | ui-only-missing | templates/repo/asc_agents.tmpl; POST runs/{id}/cancel exists | S |

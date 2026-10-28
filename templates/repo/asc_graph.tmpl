@@ -48,6 +48,7 @@
 			{{else if not .AscGraphRows}}
 				<div class="ds-banner">{{ctx.Locale.Tr "repo.asc_graph.empty"}}</div>
 			{{else}}
+				<div class="rp-graph-scroll" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "repo.asc_graph"}}">
 				<ol id="asc-graph-rows" class="tw-list-none tw-p-0 tw-m-0" data-asc-list>
 					{{range $row := .AscGraphRows}}
 						<li class="asc-graph-row tw-flex tw-items-center tw-gap-2 tw-h-7" id="asc-commit-{{$row.ID}}" data-asc-row tabindex="-1" data-asc-id="{{$row.ID}}">
@@ -78,6 +79,7 @@
 						</li>
 					{{end}}
 				</ol>
+				</div>
 				<details class="ds-acc ds-mt-16" id="asc-graph-key">
 					<summary>{{ctx.Locale.Tr "asc_rp.graph_key_title"}}</summary>
 					<ul class="rp-graph-key">
