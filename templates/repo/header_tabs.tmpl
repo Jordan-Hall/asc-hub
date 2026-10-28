@@ -13,10 +13,10 @@
 			{{if and .Repository.CanEnablePulls (.Permission.CanRead $.UnitTypePullRequests)}}
 				<a class="rp-tab" href="{{.RepoLink}}/pulls"{{if .PageIsPullList}} aria-current="page"{{end}}>{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.tab_stacks"}}{{else}}{{ctx.Locale.Tr "repo.pulls"}}{{end}}{{if (.Repository.NumOpenPulls ctx)}}<span class="ds-count">{{CountFmt (.Repository.NumOpenPulls ctx)}}</span>{{end}}</a>
 			{{end}}
-			{{if and .SignedUser $isAsc $canCode}}
+			{{if and .SignedUser $isAsc $canCode .AscAgentFeatures (not .Repository.IsEmpty)}}
 				<a class="rp-tab" href="{{.RepoLink}}/asc/agents"{{if .PageIsAscAgentArea}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_rp.tab_agent_runs"}}</a>
 			{{end}}
-			{{if and $isAsc $canCode}}
+			{{if and $isAsc $canCode (not .Repository.IsEmpty)}}
 				<a class="rp-tab" href="{{.RepoLink}}/asc/checks"{{if .PageIsAscChecks}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_trust.nav_checks"}}</a>
 			{{end}}
 			{{if and $isAsc $canCode (not .Repository.IsEmpty)}}
@@ -25,7 +25,7 @@
 			{{if and (not $isAsc) $canCode (not .Repository.IsEmpty)}}
 				<a class="rp-tab" href="{{.RepoLink}}/search"{{if .PageIsRepoSearch}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.asc_tab.search"}}</a>
 			{{end}}
-			{{if and $isAsc $canCode .SignedUser}}
+			{{if and $isAsc $canCode .SignedUser (not .Repository.IsEmpty)}}
 				<a class="rp-tab" href="{{.RepoLink}}/asc/deps"{{if .PageIsAscDeps}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_trust.nav_deps"}}</a>
 			{{end}}
 			{{if and (.Permission.CanRead $.UnitTypeReleases) (not .IsEmptyRepo)}}
@@ -63,7 +63,7 @@
 						{{if and .EnableActions (not .UnitActionsGlobalDisabled) (.Permission.CanRead $.UnitTypeActions)}}
 							<li><a href="{{.RepoLink}}/actions"{{if .PageIsActions}} aria-current="page"{{end}}>{{svg "dsi-play" 18}}{{ctx.Locale.Tr "actions.actions"}}{{if .NumOpenActionRuns}}<span class="ds-count">{{CountFmt .NumOpenActionRuns}}</span>{{end}}</a></li>
 						{{end}}
-						{{if and .SignedUser $isAsc $canCode}}
+						{{if and .SignedUser $isAsc $canCode .AscAgentFeatures (not .Repository.IsEmpty)}}
 							<li><a href="{{.RepoLink}}/asc/workflows"{{if .PageIsAscAgentArea}} aria-current="page"{{end}}>{{svg "dsi-workflow" 18}}{{ctx.Locale.Tr "asc_trust.nav_workflows"}}</a></li>
 							<li><a href="{{.RepoLink}}/asc/ops"{{if .PageIsAscOps}} aria-current="page"{{end}}>{{svg "dsi-history" 18}}{{ctx.Locale.Tr "asc_trust.nav_ops"}}</a></li>
 						{{end}}
