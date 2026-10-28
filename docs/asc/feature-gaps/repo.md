@@ -152,7 +152,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Refs | Stack cleanup note ("clean themselves up 7 days after the last change lands") | needs-asc-backend | the setting does not exist (see Rules) | S |
 | Refs | Tags section with release title, change count, author, date | ui-only-missing | `H:templates/repo/tag/list.tmpl` is a separate page | M |
 | Refs | Row More menu names its target; no delete on protected refs | done | `branch/row.tmpl` | S |
-| Refs | State: nothing matches with "Search stacks" link | ui-only-missing | `list.tmpl` empty state has no stack search action | S |
+| Refs | State: nothing matches with "Search stacks" link | done | `list.tmpl` empty state has no stack search action | S |
 | Refs | State: delete protected ref refused with "Open rule" | ui-only-missing | `H:routers/web/repo/branch.go` flash message and link to `settings/branches` | S |
 
 ## Compare
@@ -160,9 +160,9 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Compare | From / To, swap, "only what the stack adds" checkbox, ahead / behind chips, common ancestor | done | `H:templates/repo/asc_compare.tmpl`, `H:routers/web/repo/asc_compare.go` | S |
-| Compare | From / To as labelled selects listing shared refs, stacks and tags (text inputs today) | ui-only-missing | `asc_compare.tmpl`; options from refs/pulls | S |
+| Compare | From / To as labelled selects listing shared refs, stacks and tags (text inputs today) | done | `asc_compare.tmpl`; options from refs/pulls | S |
 | Compare | Per-change and per-file +/- counts and avatars | needs-hub-backend | `AscCompareCommit`/`AscCompareFile` carry no stats; `Repo.Compare` returns `PathChange` and `LogEntry`; add numstat (`Repo.Diff`) | M |
-| Compare | Same version state ("Both sides are main@a41f9c2") | ui-only-missing | `asc_compare.tmpl` shows "Nothing to compare" without the ref | S |
+| Compare | Same version state ("Both sides are main@a41f9c2") | done | `asc_compare.tmpl` shows "Nothing to compare" without the ref | S |
 | Compare | Unknown ref with "Did you mean retry-with-backoff?" | needs-hub-backend | resolve error in `asc_compare.go`; suggest nearest ref name | S |
 | Compare | Open any change or file from the lists, both sides kept in the address | done | links and query string | S |
 
