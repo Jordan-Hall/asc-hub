@@ -1,4 +1,4 @@
-import {archFromHints, osFromPlatform, initAscInstallPills} from './asc-ui.js';
+import {archFromHints, osFromPlatform, initAscInstallPills, initDocsFilter} from './asc-ui.js';
 
 test('archFromHints names only the builds asc ships', () => {
   expect(archFromHints({architecture: 'arm', bitness: '64'})).toBe('arm64');
@@ -26,4 +26,17 @@ test('install pills press one pill and show only its command', () => {
   document.querySelector('[data-install-key="scoop"].ds-install-pill').click();
   expect(Array.from(document.querySelectorAll('.ds-install-pill'), (p) => p.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
   expect(Array.from(document.querySelectorAll('.ds-cmd'), (c) => c.hidden)).toEqual([true, false]);
+});
+
+test('docs filter hides the guide cards that do not match', () => {
+  document.body.innerHTML = `<input data-docs-filter><p data-docs-none hidden></p><ul class="site-doccards"><li>Stacks and operations undo</li><li>Storage and keys</li></ul>`;
+  initDocsFilter();
+  const input = document.querySelector('input');
+  input.value = 'keys';
+  input.dispatchEvent(new Event('input'));
+  expect(Array.from(document.querySelectorAll('li'), (li) => li.hidden)).toEqual([true, false]);
+  expect(document.querySelector('[data-docs-none]').hidden).toBe(true);
+  input.value = 'zzz';
+  input.dispatchEvent(new Event('input'));
+  expect(document.querySelector('[data-docs-none]').hidden).toBe(false);
 });

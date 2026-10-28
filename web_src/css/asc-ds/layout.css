@@ -1884,3 +1884,32 @@ body.ds-lock {
 .wk-inline-form .ds-inwrap {
   flex: 1;
 }
+
+.site-docsearch {
+  max-width: 520px;
+  margin: 24px auto 0;
+  text-align: start;
+}
+
+.site-docsearch .ds-input {
+  width: 100%;
+}
+
+.site-docs-none {
+  margin: 0 0 16px;
+  color: var(--text-2);
+}
+
+.site-docsearch .ds-input {
+  border-color: #1e293b;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.site-docsearch .ds-input::placeholder {
+  color: #94a3b8;
+}
+
+.site-docsearch svg {
+  color: #94a3b8;
+}

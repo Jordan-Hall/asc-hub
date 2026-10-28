@@ -7,11 +7,17 @@
 			<p class="ds-t-eyebrow ds-land-eyebrow-dark">{{ctx.Locale.Tr "asc_site.docs_eyebrow"}}</p>
 			<h1 class="ds-land-title" id="docs-title">{{ctx.Locale.Tr "asc_site.docs_h1"}}</h1>
 			<p class="ds-land-lead">{{ctx.Locale.Tr "asc_site.docs_lead"}}</p>
+			<div class="site-docsearch ds-inwrap">
+				{{svg "dsi-search" 16}}
+				<label class="ds-sr" for="docs-filter">{{ctx.Locale.Tr "asc_site.docs_search"}}</label>
+				<input id="docs-filter" class="ds-input" type="search" data-docs-filter autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_site.docs_search"}}">
+			</div>
 		</div>
 	</section>
 
 	<section class="ds-land-sec" aria-label="{{ctx.Locale.Tr "asc_site.docs_title"}}">
 		<div class="ds-container">
+			<p class="ds-t-body site-docs-none" data-docs-none hidden role="status">{{ctx.Locale.Tr "asc_site.docs_none"}}</p>
 			<ul class="site-doccards">
 				<li><a class="ds-card ds-card-link site-doccard" href="{{$base}}README.md" target="_blank" rel="noopener noreferrer"><span class="ds-card-b"><b class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_c1_h"}}</b><span class="ds-c-2">{{ctx.Locale.Tr "asc_site.docs_c1_t"}}</span></span></a></li>
 				<li><a class="ds-card ds-card-link site-doccard" href="{{$base}}STACK-OPERATIONS.md" target="_blank" rel="noopener noreferrer"><span class="ds-card-b"><b class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_c2_h"}}</b><span class="ds-c-2">{{ctx.Locale.Tr "asc_site.docs_c2_t"}}</span></span></a></li>
