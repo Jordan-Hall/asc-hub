@@ -63,7 +63,7 @@
 							old values from before the change, but not new updates. */}}
 							{{with .Page.Paginater}}
 								<input type="hidden" name="page" value="{{.Current}}">
-								<nav class="ds-row ds-row-wrap wk-pager" aria-label="{{ctx.Locale.Tr "pagination"}}">
+								<nav class="ds-row ds-row-wrap wk-pager" aria-label="{{ctx.Locale.Tr "asc_shell.pagination"}}">
 									<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit" {{if not .HasPrevious}}disabled{{end}} formnovalidate="true" name="set_page" value="{{.Previous}}" formmethod="get">{{ctx.Locale.Tr "repo.issues.previous"}}</button>
 									{{range .Pages}}
 										{{if eq .Num -1}}
