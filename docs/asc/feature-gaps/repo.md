@@ -85,7 +85,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Code | Segment Code / Blame / History on the file | done | `H:templates/repo/code_view.tmpl` | S |
 | Code | Blame cell shows author avatar, intent, change id, age | done | `H:templates/repo/blame.tmpl` | S |
 | Code | Blame hover and focus card (intent as "Why", stack, approver, size, Open change, Blame before this); 150 ms delay, 120 ms fade | needs-hub-backend | `H:templates/repo/blame.tmpl` rows carry no stack or approver data; new endpoint returning change summary (pull lookup by commit, `Changes.ResolveChanges`) and popover script (`H:web_src/js/features/contextpopup.js` is for issue refs only) | L |
-| Code | Heat bar paired with age text (recency scale) | ui-only-missing | `H:routers/web/repo/blame.go` (compute age rank per row), `blame.tmpl`, CSS | S |
+| Code | Heat bar paired with age text (recency scale) | done | `H:routers/web/repo/blame.go` (compute age rank per row), `blame.tmpl`, CSS | S |
 | Code | Agent author carries the violet agent mark in blame | needs-hub-backend | author kind from agent identity (`H:services/ascidentity`) in blame row struct | S |
 | Code | Click a line number selects and shares a range; selected lines flash once | done | Forgejo `repo-code.ts` range select; flash not verified | S |
 | Code | Shortcuts `b` toggle blame, `y` permalink, `l` go to line, `e` propose change, `t` find file, `[` collapse tree | ui-only-missing | none bound in `H:web_src/js`; add to a repo keymap module | M |
@@ -185,7 +185,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | "The other two kinds of search" teaser (Text and Symbol hits for the same query) | ui-only-missing | run two cheap queries in `asc_search.go`; fragment | M |
 | Search | First-visit state with example queries | ui-only-missing | `asc_search.tmpl` | S |
 | Search | No-results state with "Search all branches / All repositories" actions | done | `asc_search.tmpl` shows a plain banner | S |
-| Search | Not available (503) for meaning search with "Use Text search" and "Open storage settings" | ui-only-missing | `s_err_503` banner exists; add actions | S |
+| Search | Not available (503) for meaning search with "Use Text search" and "Open storage settings" | done | `s_err_503` banner exists; add actions | S |
 | Search | Rate limited (429) keeps the query | done | `s_err_429` | S |
 | Search | Loading state | ui-only-missing | skeleton | S |
 | Search | `/` focuses search in the repository | done | `ds-shell.js` | S |
