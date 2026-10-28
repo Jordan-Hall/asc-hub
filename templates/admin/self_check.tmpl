@@ -1,41 +1,80 @@
-{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin config")}}
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin-health")}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.health") "Desc" (ctx.Locale.Tr "asc_admin.health_lead"))}}
 
-<div class="admin-setting-content">
-	<h4 class="ui top attached header">
-		{{ctx.Locale.Tr "admin.self_check"}}
-	</h4>
-	<div class="ui attached segment">
-		{{if .DatabaseCheckHasProblems}}
-			{{if .DatabaseType.IsMySQL}}
-				<div class="tw-p-2">{{ctx.Locale.Tr "admin.self_check.database_fix_mysql"}}</div>
-			{{end}}
-			{{if .DatabaseCheckCollationMismatch}}
-				<div class="ui red message">{{ctx.Locale.Tr "admin.self_check.database_collation_mismatch" .DatabaseCheckResult.ExpectedCollation}}</div>
-			{{end}}
-			{{if .DatabaseCheckCollationCaseInsensitive}}
-				<div class="ui warning message">{{ctx.Locale.Tr "admin.self_check.database_collation_case_insensitive" .DatabaseCheckResult.DatabaseCollation}}</div>
-			{{end}}
-			{{if .DatabaseCheckInconsistentCollationColumns}}
-				<div class="ui red message">
-					{{ctx.Locale.Tr "admin.self_check.database_inconsistent_collation_columns" .DatabaseCheckResult.DatabaseCollation}}
-					<ul class="tw-w-full">
-					{{range .DatabaseCheckInconsistentCollationColumns}}
-						<li>{{.}}</li>
-					{{end}}
-					</ul>
-				</div>
-			{{end}}
-		{{else}}
-			<div class="tw-p-2">{{ctx.Locale.Tr "admin.self_check.no_problem_found"}}</div>
-		{{end}}
-
-		{{if .CacheError}}
-			<div class="ui red message">{{ctx.Locale.Tr "admin.config.cache_test_failed" .CacheError}}</div>
-		{{end}}
-		{{if .CacheSlow}}
-			<div class="ui warning message">{{ctx.Locale.Tr "admin.config.cache_test_slow" .CacheSlow}}</div>
-		{{end}}
+	<div class="ds-grid-stats adm-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_admin.figures"}}">
+		<div class="ds-stat">
+			<div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.gauge_uptime"}}</div>
+			<div class="ds-stat-value"><relative-time format="duration" datetime="{{.SysStatus.StartTime}}">{{.SysStatus.StartTime}}</relative-time></div>
+		</div>
+		<div class="ds-stat">
+			<div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.gauge_memory"}}</div>
+			<div class="ds-stat-value">{{.MemPercent}}%</div>
+			<progress class="adm-meter {{if ge .MemPercent 85}}adm-meter-err{{else if ge .MemPercent 70}}adm-meter-warn{{else}}adm-meter-ok{{end}}" max="100" value="{{.MemPercent}}" aria-label="{{ctx.Locale.Tr "asc_admin.gauge_memory"}}">{{.MemPercent}}%</progress>
+			<div class="ds-stat-sub">{{ctx.Locale.TrSize .SysStatus.MemAllocated}} / {{ctx.Locale.TrSize .SysStatus.MemSys}}</div>
+		</div>
+		<div class="ds-stat">
+			<div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.gauge_goroutines"}}</div>
+			<div class="ds-stat-value">{{.SysStatus.NumGoroutine}}</div>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.gauge_goroutines_sub"}}</div>
+		</div>
+		<div class="ds-stat">
+			<div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.gauge_gc"}}</div>
+			<div class="ds-stat-value">{{.SysStatus.NumGC}}</div>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.gauge_gc_sub" .SysStatus.PauseNs}}</div>
+		</div>
 	</div>
-</div>
 
+	<section class="ds-card adm-sec" aria-labelledby="adm-chk">
+		<div class="ds-card-h">
+			<h2 id="adm-chk">{{ctx.Locale.Tr "admin.self_check"}}</h2>
+			<span class="ds-chip {{if .ChecksFail}}ds-chip-err{{else if .ChecksWarn}}ds-chip-warn{{else}}ds-chip-ok{{end}}">{{ctx.Locale.Tr "asc_admin.check_summary" .ChecksOK .ChecksWarn .ChecksFail}}</span>
+			<div class="ds-ml-auto ds-row ds-gap-8">
+				<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{AppSubUrl}}/admin/self_check">{{svg "dsi-refresh" 16}}{{ctx.Locale.Tr "asc_admin.run_again"}}</a>
+				<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-clipboard-text="{{.HealthReport}}">{{svg "dsi-copy" 16}}{{ctx.Locale.Tr "asc_admin.copy_report"}}</button>
+			</div>
+		</div>
+		<ul class="adm-rows">
+			{{range .Checks}}
+				<li class="ds-li ds-li-wrap">
+					<span class="adm-tile adm-tile-{{.State}}" aria-hidden="true">{{if eq .State "ok"}}{{svg "dsi-check-circle" 18}}{{else if eq .State "warn"}}{{svg "dsi-alert" 18}}{{else}}{{svg "dsi-x-circle" 18}}{{end}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title">{{.Name}}</div>
+						<div class="ds-li-sub">{{.Text}}</div>
+					</div>
+					<div class="adm-row-side">
+						<span class="ds-chip ds-chip-{{.State}}">{{.Label}}</span>
+						{{if .Fix}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Fix}}">{{ctx.Locale.Tr "asc_admin.fix"}}</a>{{end}}
+					</div>
+				</li>
+			{{end}}
+		</ul>
+	</section>
+
+	{{if .DatabaseCheckHasProblems}}
+		<section class="ds-card adm-sec" aria-labelledby="adm-dbp">
+			<div class="ds-card-h"><h2 id="adm-dbp">{{ctx.Locale.Tr "asc_admin.check_db_problems"}}</h2></div>
+			<div class="ds-card-b ds-stack ds-stack-12">
+				{{if .DatabaseType.IsMySQL}}<p>{{ctx.Locale.Tr "admin.self_check.database_fix_mysql"}}</p>{{end}}
+				{{if .DatabaseCheckCollationMismatch}}<div class="ds-banner ds-banner-err" role="alert">{{svg "dsi-x-circle" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.self_check.database_collation_mismatch" .DatabaseCheckResult.ExpectedCollation}}</p></div>{{end}}
+				{{if .DatabaseCheckCollationCaseInsensitive}}<div class="ds-banner ds-banner-warn" role="status">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.self_check.database_collation_case_insensitive" .DatabaseCheckResult.DatabaseCollation}}</p></div>{{end}}
+				{{if .DatabaseCheckInconsistentCollationColumns}}
+					<div class="ds-banner ds-banner-err" role="alert">
+						{{svg "dsi-x-circle" 18}}
+						<div class="ds-banner-body">
+							<p>{{ctx.Locale.Tr "admin.self_check.database_inconsistent_collation_columns" .DatabaseCheckResult.DatabaseCollation}}</p>
+							<ul>{{range .DatabaseCheckInconsistentCollationColumns}}<li><code>{{.}}</code></li>{{end}}</ul>
+						</div>
+					</div>
+				{{end}}
+			</div>
+		</section>
+	{{end}}
+
+	<details class="ds-details adm-sec" id="adm-runtime">
+		<summary>{{ctx.Locale.Tr "admin.dashboard.system_status"}}</summary>
+		<div class="no-loading-indicator tw-hidden"></div>
+		<div hx-get="{{AppSubUrl}}/admin/system_status" hx-swap="morph:innerHTML" hx-trigger="every 5s" hx-indicator=".no-loading-indicator">
+			{{template "admin/system_status" .}}
+		</div>
+	</details>
 {{template "admin/layout_footer" .}}

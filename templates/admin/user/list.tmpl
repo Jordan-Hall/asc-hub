@@ -1,126 +1,112 @@
-{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin user")}}
-	<div class="admin-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.users.user_manage_panel"}} ({{ctx.Locale.Tr "admin.total" .Total}})
-			<div class="ui right">
-				<a class="ui primary tiny button" href="{{AppSubUrl}}/admin/users/new">{{ctx.Locale.Tr "admin.users.new_account"}}</a>
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin-users")}}
+	{{$f := .AdminUserFilter}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.people") "Desc" (ctx.Locale.Tr "asc_admin.people_lead") "ActionLabel" (ctx.Locale.Tr "asc_admin.new_person") "ActionHref" (print AppSubUrl "/admin/users/new") "ActionIcon" "plus")}}
+
+	<div class="adm-filter">
+		<form class="ds-filterbar-form ignore-dirty" id="user-list-search-form" role="search" method="get" action="{{AppSubUrl}}/admin/users">
+			<div class="ds-inwrap">
+				{{svg "dsi-search" 16}}
+				<label class="ds-sr" for="adm-user-q">{{ctx.Locale.Tr "asc_admin.people_search"}}</label>
+				<input id="adm-user-q" class="ds-input" type="search" name="q" value="{{.Keyword}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "asc_admin.people_search"}}">
 			</div>
-		</h4>
-		<div class="ui attached segment">
-			<form class="ui form ignore-dirty" id="user-list-search-form">
+			{{range $k, $v := $f}}{{if $v}}<input type="hidden" name="status_filter[{{$k}}]" value="{{$v}}">{{end}}{{end}}
+			<label class="ds-selectpill">
+				<span class="ds-sr">{{ctx.Locale.Tr "repo.issues.filter_sort"}}</span>
+				<select name="sort">
+					<option value="alphabetically"{{if eq .SortType "alphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</option>
+					<option value="reversealphabetically"{{if eq .SortType "reversealphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</option>
+					<option value="newest"{{if eq .SortType "newest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.latest"}}</option>
+					<option value="oldest"{{if eq .SortType "oldest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</option>
+					<option value="lastlogin"{{if eq .SortType "lastlogin"}} selected{{end}}>{{ctx.Locale.Tr "admin.users.last_login"}}</option>
+					<option value="reverselastlogin"{{if eq .SortType "reverselastlogin"}} selected{{end}}>{{ctx.Locale.Tr "asc_admin.sort_login_old"}}</option>
+				</select>
+				{{svg "dsi-chevron-down" 16}}
+			</label>
+			<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_shell.search_label"}}</button>
+		</form>
+		{{$q := QueryEscape .Keyword}}
+		<nav class="ds-scrollx" aria-label="{{ctx.Locale.Tr "asc_admin.views"}}">
+			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_all") "Href" (print AppSubUrl "/admin/users?q=" $q) "Active" (not .AdminUserFiltered))}}
+			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_admins") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_admin%5D=1") "Active" (eq (index $f "is_admin") "1"))}}
+			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_2fa_off") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_2fa_enabled%5D=0") "Active" (eq (index $f "is_2fa_enabled") "0"))}}
+			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_inactive") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_active%5D=0") "Active" (eq (index $f "is_active") "0"))}}
+			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_suspended") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_prohibit_login%5D=1") "Active" (eq (index $f "is_prohibit_login") "1"))}}
+			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "admin.users.list_status_filter.is_restricted") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_restricted%5D=1") "Active" (eq (index $f "is_restricted") "1"))}}
+		</nav>
+	</div>
 
-				<!-- Right Menu -->
-				<div class="ui right floated secondary filter menu">
-					<!-- Status Filter Menu Item -->
-					<div class="ui dropdown type jump item">
-						<span class="text">{{ctx.Locale.Tr "admin.users.list_status_filter.menu_text"}}</span>
-						{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-						<div class="menu">
-							<a class="item j-reset-status-filter">{{ctx.Locale.Tr "admin.users.list_status_filter.reset"}}</a>
-							<div class="divider"></div>
-							<label class="item"><input type="radio" name="status_filter[is_admin]" value="1"> {{ctx.Locale.Tr "admin.users.list_status_filter.is_admin"}}</label>
-							<label class="item"><input type="radio" name="status_filter[is_admin]" value="0"> {{ctx.Locale.Tr "admin.users.list_status_filter.not_admin"}}</label>
-							<div class="divider"></div>
-							<label class="item"><input type="radio" name="status_filter[is_active]" value="1"> {{ctx.Locale.Tr "admin.users.list_status_filter.is_active"}}</label>
-							<label class="item"><input type="radio" name="status_filter[is_active]" value="0"> {{ctx.Locale.Tr "admin.users.list_status_filter.not_active"}}</label>
-							<div class="divider"></div>
-							<label class="item"><input type="radio" name="status_filter[is_restricted]" value="0"> {{ctx.Locale.Tr "admin.users.list_status_filter.not_restricted"}}</label>
-							<label class="item"><input type="radio" name="status_filter[is_restricted]" value="1"> {{ctx.Locale.Tr "admin.users.list_status_filter.is_restricted"}}</label>
-							<div class="divider"></div>
-							<label class="item"><input type="radio" name="status_filter[is_prohibit_login]" value="0"> {{ctx.Locale.Tr "admin.users.list_status_filter.not_prohibit_login"}}</label>
-							<label class="item"><input type="radio" name="status_filter[is_prohibit_login]" value="1"> {{ctx.Locale.Tr "admin.users.list_status_filter.is_prohibit_login"}}</label>
-							<div class="divider"></div>
-							<label class="item"><input type="radio" name="status_filter[is_2fa_enabled]" value="1"> {{ctx.Locale.Tr "admin.users.list_status_filter.is_2fa_enabled"}}</label>
-							<label class="item"><input type="radio" name="status_filter[is_2fa_enabled]" value="0"> {{ctx.Locale.Tr "admin.users.list_status_filter.not_2fa_enabled"}}</label>
-							<div class="divider"></div>
-							<label class="item"><input type="radio" name="status_filter[account_type]" value="0"> {{ctx.Locale.Tr "admin.users.local"}}</label>
-							<label class="item"><input type="radio" name="status_filter[account_type]" value="2"> {{ctx.Locale.Tr "admin.users.reserved"}}</label>
-							<label class="item"><input type="radio" name="status_filter[account_type]" value="4"> {{ctx.Locale.Tr "admin.users.bot"}}</label>
-							<label class="item"><input type="radio" name="status_filter[account_type]" value="5"> {{ctx.Locale.Tr "admin.users.remote"}}</label>
-						</div>
-					</div>
-
-					<!-- Sort Menu Item -->
-					<div class="ui dropdown type jump item">
-						<span class="text">
-							{{ctx.Locale.Tr "repo.issues.filter_sort"}}
-						</span>
-						{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-						<div class="menu">
-							<button class="item" name="sort" value="oldest">{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</button>
-							<button class="item" name="sort" value="newest">{{ctx.Locale.Tr "repo.issues.filter_sort.latest"}}</button>
-							<button class="item" name="sort" value="alphabetically">{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</button>
-							<button class="item" name="sort" value="reversealphabetically">{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</button>
-							<button class="item" name="sort" value="recentupdate">{{ctx.Locale.Tr "repo.issues.filter_sort.recentupdate"}}</button>
-							<button class="item" name="sort" value="leastupdate">{{ctx.Locale.Tr "repo.issues.filter_sort.leastupdate"}}</button>
-						</div>
-					</div>
-				</div>
-
-				{{template "shared/search/combo" dict "Value" .Keyword "Placeholder" (ctx.Locale.Tr "search.user_kind")}}
-			</form>
-		</div>
-		<div class="ui attached table segment">
-			<table class="ui very basic striped table unstackable">
+	{{if .Users}}
+		<div class="ds-table-wrap adm-only-md">
+			<table class="ds-table">
+				<caption class="ds-sr">{{ctx.Locale.Tr "admin.users.user_manage_panel"}}</caption>
 				<thead>
 					<tr>
-						<th data-sortt-asc="oldest" data-sortt-desc="newest">ID{{SortArrow "oldest" "newest" .SortType false}}</th>
-						<th data-sortt-asc="alphabetically" data-sortt-desc="reversealphabetically" data-sortt-default="true">
-							{{ctx.Locale.Tr "admin.users.name"}}
-							{{SortArrow "alphabetically" "reversealphabetically" $.SortType true}}
-						</th>
-						<th>{{ctx.Locale.Tr "email"}}</th>
-						<th>{{ctx.Locale.Tr "admin.users.activated"}}</th>
-						<th>{{ctx.Locale.Tr "admin.users.restricted"}}</th>
-						<th>{{ctx.Locale.Tr "admin.users.2fa"}}</th>
-						<th>{{ctx.Locale.Tr "admin.users.created"}}</th>
-						<th data-sortt-asc="lastlogin" data-sortt-desc="reverselastlogin">
-							{{ctx.Locale.Tr "admin.users.last_login"}}
-							{{SortArrow "lastlogin" "reverselastlogin" $.SortType false}}
-						</th>
-						<th></th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_person"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_role"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "admin.users.2fa"}}</th>
+						<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_admin.col_repos"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_last_active"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_joined"}}</th>
+						<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.col_actions"}}</span></th>
 					</tr>
 				</thead>
 				<tbody>
 					{{range .Users}}
 						<tr>
-							<td>{{.ID}}</td>
 							<td>
-								<a href="{{.HomeLink}}">{{.Name}}</a>
-								{{if .IsAdmin}}
-									<span class="ui mini label">{{ctx.Locale.Tr "admin.users.admin"}}</span>
-								{{else if eq 2 .Type}}{{/* Reserved user */}}
-									<span class="ui mini label">{{ctx.Locale.Tr "admin.users.reserved"}}</span>
-								{{else if eq 4 .Type}}{{/* Bot "user" */}}
-									<span class="ui mini label">{{ctx.Locale.Tr "admin.users.bot"}}</span>
-								{{else if eq 5 .Type}}{{/* Remote user */}}
-									<span class="ui mini label">{{ctx.Locale.Tr "admin.users.remote"}}</span>
-								{{end}}
-							</td>
-							<td class="gt-ellipsis tw-max-w-48">{{.Email}}</td>
-							<td>{{if .IsActive}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</td>
-							<td>{{if .IsRestricted}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</td>
-							<td>{{if index $.UsersTwoFaStatus .ID}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</td>
-							<td>{{DateUtils.AbsoluteShort .CreatedUnix}}</td>
-							{{if .LastLoginUnix}}
-								<td>{{DateUtils.AbsoluteShort .LastLoginUnix}}</td>
-							{{else}}
-								<td><span>{{ctx.Locale.Tr "admin.users.never_login"}}</span></td>
-							{{end}}
-							<td>
-								<div class="tw-flex tw-gap-2">
-									<a href="{{$.Link}}/{{.ID}}" data-tooltip-content="{{ctx.Locale.Tr "admin.users.details"}}">{{svg "octicon-person"}}</a>
-									<a href="{{$.Link}}/{{.ID}}/edit" data-tooltip-content="{{ctx.Locale.Tr "edit"}}">{{svg "octicon-pencil"}}</a>
+								<div class="adm-who">
+									{{ctx.AvatarUtils.Avatar . 40}}
+									<div class="adm-who-text">
+										<a class="adm-who-name" href="{{$.Link}}/{{.ID}}">{{if .FullName}}{{.FullName}} {{end}}<span class="adm-mono ds-c-2">@{{.Name}}</span></a>
+										<span class="adm-who-sub">{{.Email}}</span>
+									</div>
 								</div>
 							</td>
+							<td>{{template "admin/user/role_chip" .}}</td>
+							<td>{{template "admin/user/twofa_chip" (dict "On" (index $.UsersTwoFaStatus .ID))}}</td>
+							<td class="ds-r ds-num">{{.NumRepos}}</td>
+							<td>{{if .LastLoginUnix}}{{DateUtils.AbsoluteShort .LastLoginUnix}}{{else}}<span class="ds-c-2">{{ctx.Locale.Tr "admin.users.never_login"}}</span>{{end}}</td>
+							<td>{{DateUtils.AbsoluteShort .CreatedUnix}}</td>
+							<td class="ds-r"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Link}}/{{.ID}}/edit" aria-label="{{ctx.Locale.Tr "edit"}}: {{.Name}}">{{ctx.Locale.Tr "edit"}}</a></td>
 						</tr>
-					{{else}}
-						<tr class="no-results-row"><td class="tw-text-center" colspan="9">{{ctx.Locale.Tr "repo.pulls.no_results"}}</td></tr>
 					{{end}}
 				</tbody>
 			</table>
 		</div>
 
-		{{template "base/paginate" .}}
-	</div>
+		<ul class="ds-list adm-only-sm">
+			{{range .Users}}
+				<li class="ds-li">
+					<span class="ds-li-av">{{ctx.AvatarUtils.Avatar . 40}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title"><a href="{{$.Link}}/{{.ID}}">{{if .FullName}}{{.FullName}}{{else}}{{.Name}}{{end}}</a>{{if .FullName}} <span class="adm-mono ds-c-2">@{{.Name}}</span>{{end}}</div>
+						<div class="ds-li-sub ds-break">{{.Email}}</div>
+						<div class="ds-chips adm-chip-row">
+							{{template "admin/user/role_chip" .}}
+							{{template "admin/user/twofa_chip" (dict "On" (index $.UsersTwoFaStatus .ID))}}
+						</div>
+						<div class="ds-li-meta">
+							<span>{{ctx.Locale.TrN .NumRepos "asc_admin.repos_one" "asc_admin.repos_other" .NumRepos}}</span>
+							<span>{{if .LastLoginUnix}}{{ctx.Locale.Tr "asc_admin.last_active" (DateUtils.AbsoluteShort .LastLoginUnix)}}{{else}}{{ctx.Locale.Tr "admin.users.never_login"}}{{end}}</span>
+							<span>{{ctx.Locale.Tr "asc_admin.joined_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>
+						</div>
+						<div class="ds-li-actions"><a class="ds-btn ds-btn-secondary" href="{{$.Link}}/{{.ID}}/edit" aria-label="{{ctx.Locale.Tr "edit"}}: {{.Name}}">{{ctx.Locale.Tr "edit"}}</a></div>
+					</div>
+				</li>
+			{{end}}
+		</ul>
+
+		<div class="adm-table-foot">
+			<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.shown_of" (len .Users) .Total}}</p>
+			{{template "base/paginate" .}}
+		</div>
+	{{else if or .Keyword .AdminUserFiltered}}
+		<div class="ds-card">
+			{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_admin.no_results_title") "Body" (ctx.Locale.Tr "asc_admin.people_no_results") "PrimaryLabel" (ctx.Locale.Tr "asc_admin.clear_filters") "PrimaryHref" (print AppSubUrl "/admin/users"))}}
+		</div>
+	{{else}}
+		<div class="ds-card">
+			{{template "shared/ds/empty" (dict "Icon" "users" "Title" (ctx.Locale.Tr "asc_admin.people_empty_title") "Body" (ctx.Locale.Tr "asc_admin.people_empty_text") "PrimaryLabel" (ctx.Locale.Tr "asc_admin.new_person") "PrimaryHref" (print AppSubUrl "/admin/users/new"))}}
+		</div>
+	{{end}}
 {{template "admin/layout_footer" .}}

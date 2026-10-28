@@ -1,11 +1,8 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin user")}}
-	<div class="admin-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.federation.users.manage_panel"}} ({{ctx.Locale.Tr "admin.total" .TotalCount}})
-		</h4>
-		<div class="ui attached table segment">
-			{{template "admin/federation/user_list" .}}
-		</div>
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.federation") "Desc" (ctx.Locale.Tr "asc_admin.fed_lead"))}}
+	{{template "admin/federation_tabs" (dict "Active" "users")}}
+	<div class="adm-sec">
+		{{template "admin/federation/user_list" .}}
 		{{template "base/paginate" .}}
 	</div>
 {{template "admin/layout_footer" .}}

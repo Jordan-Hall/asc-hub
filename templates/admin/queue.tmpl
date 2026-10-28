@@ -1,36 +1,105 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin monitor")}}
-<div class="admin-setting-content">
-	<h4 class="ui top attached header">
-		{{ctx.Locale.Tr "admin.monitor.queues"}}
-	</h4>
-	<div class="ui attached table segment">
-		<table class="ui very basic striped table unstackable">
-			<thead>
-			<tr>
-				<th>{{ctx.Locale.Tr "admin.monitor.queue.name"}}</th>
-				<th>{{ctx.Locale.Tr "admin.monitor.queue.type"}}</th>
-				<th>{{ctx.Locale.Tr "admin.monitor.queue.exemplar"}}</th>
-				<th>{{ctx.Locale.Tr "admin.monitor.queue.numberworkers"}}</th>
-				<th>{{ctx.Locale.Tr "admin.monitor.queue.activeworkers"}}</th>
-				<th>{{ctx.Locale.Tr "admin.monitor.queue.numberinqueue"}}</th>
-				<th></th>
-			</tr>
-			</thead>
-			<tbody>
-			{{range $qid, $q := .Queues}}
-			<tr>
-				<td>{{$q.GetName}}</td>
-				<td>{{$q.GetType}}</td>
-				<td>{{$q.GetItemTypeName}}</td>
-				<td>{{$q.GetWorkerNumber}}</td>
-				<td>{{$q.GetWorkerActiveNumber}}</td>
-				<td>{{$sum := $q.GetQueueItemNumber}}{{if lt $sum 0}}-{{else}}{{$sum}}{{end}}</td>
-				<td><a href="{{$.Link}}/{{$qid}}" class="button">{{ctx.Locale.Tr "admin.monitor.queue.review_add"}}</a></td>
-			</tr>
-			{{end}}
-			</tbody>
-		</table>
-	</div>
-</div>
-{{template "admin/layout_footer" .}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.monitor") "Desc" (ctx.Locale.Tr "asc_admin.monitor_lead"))}}
+	{{template "admin/monitor_tabs" (dict "Active" "queues")}}
 
+	<section class="ds-card adm-sec" aria-labelledby="adm-queues">
+		<div class="ds-card-h"><h2 id="adm-queues">{{ctx.Locale.Tr "asc_admin.monitor_tab_queues"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_admin.queues_note"}}</span></div>
+		{{if .Queues}}
+			<div class="ds-table-wrap adm-only-md adm-flat">
+				<table class="ds-table">
+					<caption class="ds-sr">{{ctx.Locale.Tr "admin.monitor.queues"}}</caption>
+					<thead>
+						<tr>
+							<th scope="col">{{ctx.Locale.Tr "asc_admin.col_queue"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_admin.col_workers"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_admin.col_active"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_admin.col_waiting"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "asc_admin.col_status"}}</th>
+							<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.col_actions"}}</span></th>
+						</tr>
+					</thead>
+					<tbody>
+						{{range $qid, $q := .Queues}}
+							{{$sum := $q.GetQueueItemNumber}}
+							<tr>
+								<td><span class="adm-who-name">{{$q.GetName}}</span><span class="adm-who-sub">{{$q.GetType}} · {{$q.GetItemTypeName}}</span></td>
+								<td class="ds-r ds-num">{{$q.GetWorkerNumber}}</td>
+								<td class="ds-r ds-num">{{$q.GetWorkerActiveNumber}}</td>
+								<td class="ds-r ds-num">{{if lt $sum 0}}&mdash;{{else}}{{$sum}}{{end}}</td>
+								<td>{{if gt $sum 100}}<span class="ds-chip ds-chip-warn">{{svg "dsi-alert" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_backed"}}</span>{{else if gt ($q.GetWorkerActiveNumber) 0}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_admin.queue_status_busy"}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_idle"}}</span>{{end}}</td>
+								<td class="ds-r"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Link}}/{{$qid}}" aria-label="{{ctx.Locale.Tr "asc_admin.queue_review"}}: {{$q.GetName}}">{{ctx.Locale.Tr "asc_admin.queue_review"}}</a></td>
+							</tr>
+						{{end}}
+					</tbody>
+				</table>
+			</div>
+			<ul class="adm-rows adm-only-sm">
+				{{range $qid, $q := .Queues}}
+					{{$sum := $q.GetQueueItemNumber}}
+					<li class="ds-li ds-li-wrap">
+						<div class="ds-li-main">
+							<div class="ds-li-title"><span>{{$q.GetName}}</span> {{if gt $sum 100}}<span class="ds-chip ds-chip-warn">{{svg "dsi-alert" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_backed"}}</span>{{else if gt ($q.GetWorkerActiveNumber) 0}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_admin.queue_status_busy"}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_idle"}}</span>{{end}}</div>
+							<div class="ds-li-meta">
+								<span>{{ctx.Locale.Tr "asc_admin.queue_waiting" (printf "%d" $sum)}}</span>
+								<span>{{ctx.Locale.Tr "asc_admin.queue_workers" $q.GetWorkerActiveNumber $q.GetWorkerNumber}}</span>
+							</div>
+						</div>
+						<div class="adm-row-side"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Link}}/{{$qid}}" aria-label="{{ctx.Locale.Tr "asc_admin.queue_review"}}: {{$q.GetName}}">{{ctx.Locale.Tr "asc_admin.queue_review"}}</a></div>
+					</li>
+				{{end}}
+			</ul>
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "queue" "Title" (ctx.Locale.Tr "asc_admin.queue_none"))}}
+		{{end}}
+	</section>
+
+	<section class="ds-card adm-sec" aria-labelledby="adm-cron">
+		<div class="ds-card-h"><h2 id="adm-cron">{{ctx.Locale.Tr "asc_admin.monitor_tab_cron"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_admin.cron_note"}}</span></div>
+		<form method="post" action="{{AppSubUrl}}/admin">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="from" value="monitor">
+			<div class="ds-table-wrap adm-only-md adm-flat">
+				<table class="ds-table">
+					<caption class="ds-sr">{{ctx.Locale.Tr "admin.monitor.cron"}}</caption>
+					<thead>
+						<tr>
+							<th scope="col">{{ctx.Locale.Tr "asc_admin.col_task"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "asc_admin.col_schedule"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "asc_admin.col_next"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "asc_admin.col_last"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_admin.col_runs"}}</th>
+							<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.col_actions"}}</span></th>
+						</tr>
+					</thead>
+					<tbody>
+						{{range .Entries}}
+							<tr>
+								<td><span class="adm-who-name">{{ctx.Locale.Tr (printf "admin.dashboard.%s" .Name)}}</span></td>
+								<td class="adm-mono">{{.Spec}}</td>
+								<td>{{DateUtils.FullTime .Next}}</td>
+								<td>{{if gt .Prev.Year 1}}{{DateUtils.FullTime .Prev}}{{else}}<span class="ds-c-2">{{ctx.Locale.Tr "asc_admin.cron_never"}}</span>{{end}}{{if .Status}} {{template "admin/cron_result" .}}{{end}}</td>
+								<td class="ds-r ds-num">{{.ExecTimes}}</td>
+								<td class="ds-r"><button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm" name="op" value="{{.Name}}" aria-label="{{ctx.Locale.Tr "asc_admin.cron_run_now"}}: {{ctx.Locale.Tr (printf "admin.dashboard.%s" .Name)}}">{{ctx.Locale.Tr "asc_admin.cron_run_now"}}</button></td>
+							</tr>
+						{{end}}
+					</tbody>
+				</table>
+			</div>
+			<ul class="adm-rows adm-only-sm">
+				{{range .Entries}}
+					<li class="ds-li ds-li-wrap">
+						<div class="ds-li-main">
+							<div class="ds-li-title"><span>{{ctx.Locale.Tr (printf "admin.dashboard.%s" .Name)}}</span>{{if .Status}} {{template "admin/cron_result" .}}{{end}}</div>
+							<div class="ds-li-sub adm-mono">{{.Spec}}</div>
+							<div class="ds-li-meta">
+								<span>{{ctx.Locale.Tr "asc_admin.cron_next" (DateUtils.FullTime .Next)}}</span>
+								<span>{{if gt .Prev.Year 1}}{{ctx.Locale.Tr "asc_admin.cron_prev" (DateUtils.FullTime .Prev)}}{{else}}{{ctx.Locale.Tr "asc_admin.cron_never"}}{{end}}</span>
+							</div>
+						</div>
+						<div class="adm-row-side"><button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm" name="op" value="{{.Name}}">{{ctx.Locale.Tr "asc_admin.cron_run_now"}}</button></div>
+					</li>
+				{{end}}
+			</ul>
+		</form>
+	</section>
+{{template "admin/layout_footer" .}}

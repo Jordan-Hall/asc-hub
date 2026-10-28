@@ -1,42 +1,50 @@
+{{/* The download page (board Download, Mobile-Download). Route GET /download. Hooks kept for the tabs script and the tests: data-asc-download, .hub-dl-panel, .hub-dl-arch, .hub-dl-badge, .hub-dl-tab, .hub-dl-button, .hub-dl-detected. */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content hub-download">
-	<div class="hub-container">
-		<header class="hub-page-head">
-			<h1 class="hub-page-title">{{ctx.Locale.Tr "asc_download.title"}}</h1>
-			<p class="hub-page-lead">{{ctx.Locale.Tr "asc_download.lead"}}</p>
+<div role="main" aria-label="{{.Title}}" class="ds-main site site-dl">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "asc_download.nav") "BackHref" (print AppSubUrl "/"))}}
+	<div class="ds-container">
+		<header class="site-dl-head">
+			<h1 class="ds-t-h1">{{ctx.Locale.Tr "asc_download.title"}}</h1>
+			<p class="ds-t-lead ds-c-2">{{ctx.Locale.Tr "asc_download.lead"}}</p>
+			{{with .AscDownload}}{{$m := .Offers.Manifest}}
+			<p class="site-dl-meta">
+				<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_download.version" $m.Version}}</span>
+				{{if $m.ReleasedAt}}<span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_download.released" $m.ReleasedAt}}</span>{{end}}
+				{{if $m.ReleaseNotesURL}}<a class="ds-link ds-t-small" href="{{$m.ReleaseNotesURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_download.release_notes"}}</a>{{end}}
+			</p>
+			{{end}}
 		</header>
 
 		{{if .AscDownloadAdminNote}}
-			<div class="ui warning message" role="note">
-				<div class="header">{{ctx.Locale.Tr "asc_download.admin_note_title"}}</div>
-				<p>{{.AscDownloadAdminNote}}</p>
+			<div class="ds-banner ds-banner-warn ui warning message" role="note">
+				<span class="ds-banner-ic" aria-hidden="true">{{svg "dsi-alert" 18}}</span>
+				<div class="ds-banner-body"><b class="header">{{ctx.Locale.Tr "asc_download.admin_note_title"}}</b> {{.AscDownloadAdminNote}}</div>
 			</div>
 		{{end}}
 
 		{{if .AscNoRelease}}
-		<section class="hub-panel" aria-labelledby="asc-norelease-title" data-testid="asc-no-release">
-			<h2 class="hub-panel-title" id="asc-norelease-title">{{ctx.Locale.Tr "asc_download.no_release_title"}}</h2>
-			<p class="hub-panel-text">{{ctx.Locale.Tr "asc_download.no_release_text"}}</p>
-			<h3 class="hub-dl-arch-title">{{ctx.Locale.Tr "asc_download.source_title"}}</h3>
-			<p class="hub-panel-text">{{ctx.Locale.Tr "asc_download.source_text"}}</p>
-			<div class="hub-dl-command">
-				<div class="hub-dl-command-head">
-					<span class="hub-dl-command-shell">{{ctx.Locale.Tr "asc_download.terminal"}}</span>
-					<button type="button" class="ui basic compact button hub-copy" data-clipboard-text="cargo build --release -p asc&#10;target/release/asc --version">{{svg "octicon-copy" 16}} <span>{{ctx.Locale.Tr "asc_download.copy"}}</span></button>
+		<section class="ds-card site-dl-card" aria-labelledby="asc-norelease-title" data-testid="asc-no-release">
+			<div class="ds-card-b ds-stack ds-stack-16">
+				<div>
+					<h2 class="ds-t-h3" id="asc-norelease-title">{{ctx.Locale.Tr "asc_download.no_release_title"}}</h2>
+					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_download.no_release_text"}}</p>
 				</div>
-				<pre class="hub-code" tabindex="0"><code>cargo build --release -p asc
-target/release/asc --version</code></pre>
-			</div>
-			<h3 class="hub-dl-arch-title">{{ctx.Locale.Tr "asc_download.connect_title"}}</h3>
-			<p class="hub-panel-text">{{ctx.Locale.Tr "asc_download.connect_desc"}}</p>
-			<div class="hub-dl-command">
-				<div class="hub-dl-command-head">
-					<span class="hub-dl-command-shell">{{ctx.Locale.Tr "asc_download.terminal"}}</span>
-					<button type="button" class="ui basic compact button hub-copy" data-clipboard-text="{{.AscConnectCommand}}">{{svg "octicon-copy" 16}} <span>{{ctx.Locale.Tr "asc_download.copy"}}</span></button>
+				<div>
+					<h3 class="ds-t-h4">{{ctx.Locale.Tr "asc_download.source_title"}}</h3>
+					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_download.source_text"}}</p>
+					<div class="ds-term ds-mt-12">
+						<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_download.terminal"}}</span><button type="button" class="ds-copy" data-clipboard-text="cargo build --release -p asc&#10;target/release/asc --version">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+						<div class="ds-term-bd" tabindex="0">cargo build --release -p asc
+target/release/asc --version</div>
+					</div>
 				</div>
-				<pre class="hub-code" tabindex="0"><code>{{.AscConnectCommand}}</code></pre>
+				<div>
+					<h3 class="ds-t-h4">{{ctx.Locale.Tr "asc_download.connect_title"}}</h3>
+					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_download.connect_desc"}}</p>
+					<div class="ds-cmd ds-cmd-scroll ds-mt-12"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.AscConnectCommand}}</code><button type="button" class="ds-copy" data-clipboard-text="{{.AscConnectCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+					<p class="ds-mt-12"><a class="ds-link" href="{{AppSubUrl}}/user/settings/applications">{{ctx.Locale.Tr "asc_download.create_token"}}</a></p>
+				</div>
 			</div>
-			<a class="hub-panel-link" href="{{AppSubUrl}}/user/settings/applications">{{ctx.Locale.Tr "asc_download.create_token"}}</a>
 		</section>
 		{{end}}
 
@@ -44,132 +52,125 @@ target/release/asc --version</code></pre>
 		{{$view := .}}
 		{{$offers := .Offers}}
 		{{$m := .Offers.Manifest}}
-		<div class="hub-dl-meta">
-			<span class="hub-chip hub-chip-accent">{{ctx.Locale.Tr "asc_download.version" $m.Version}}</span>
-			{{if $m.ReleasedAt}}<span class="hub-dl-meta-text">{{ctx.Locale.Tr "asc_download.released" $m.ReleasedAt}}</span>{{end}}
-			{{if $m.ReleaseNotesURL}}<a class="hub-dl-meta-link" href="{{$m.ReleaseNotesURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_download.release_notes"}}</a>{{end}}
-		</div>
-
-		<div class="hub-dl-layout">
-			<div class="hub-dl hub-dl-main" data-asc-download data-active-os="{{$view.ActiveOS}}" data-active-arch="{{$view.ActiveArch}}">
-				{{if $view.Detected}}<p class="hub-dl-detected">{{ctx.Locale.Tr "asc_download.detected"}}</p>{{end}}
-				<div class="hub-dl-tabs" role="tablist" aria-label="{{ctx.Locale.Tr "asc_download.choose_system"}}" hidden>
-					{{range $offers.OSes}}
-						<button type="button" role="tab" class="hub-dl-tab" id="asc-dl-tab-{{.OS}}" data-os="{{.OS}}" aria-controls="asc-dl-{{.OS}}" aria-selected="{{if eq .OS $view.ActiveOS}}true{{else}}false{{end}}" tabindex="{{if eq .OS $view.ActiveOS}}0{{else}}-1{{end}}">{{.Label}}</button>
+		<div class="ds-split site-dl-split">
+			<div class="ds-min0 hub-dl hub-dl-main" data-asc-download data-active-os="{{$view.ActiveOS}}" data-active-arch="{{$view.ActiveArch}}">
+				{{with $view.ActiveArchOffer}}
+				<section class="ds-callout site-dl-hero" aria-labelledby="asc-dl-hero-title">
+					{{if $view.Detected}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_site.dl_recommended"}}</span>{{end}}
+					<h2 class="ds-t-h2" id="asc-dl-hero-title">{{ctx.Locale.Tr "asc_site.dl_hero_for" $m.Version $view.ActiveOSOffer.Label}}</h2>
+					<p class="ds-c-2 ds-t-small">{{.Label}}{{with .Primary}} &middot; {{ctx.Locale.TrSize .Size}}{{end}}</p>
+					{{if $view.Detected}}<p class="hub-dl-detected ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_download.detected"}}</p>{{end}}
+					{{with .Primary}}
+					<a class="ds-btn ds-btn-primary ds-btn-lg hub-dl-button" href="{{.URL}}" download="{{.Name}}">{{svg "dsi-download" 18}} <span>{{ctx.Locale.Tr "asc_download.download_for" $view.ActiveOSOffer.Label}}</span></a>
 					{{end}}
+					<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_site.dl_not_yours"}}</p>
+				</section>
+				{{end}}
+
+				<div class="site-dl-tabbar">
+					<div class="hub-dl-tabs" role="tablist" aria-label="{{ctx.Locale.Tr "asc_download.choose_system"}}" hidden>
+						{{range $offers.OSes}}
+							<button type="button" role="tab" class="ds-chip-btn hub-dl-tab" id="asc-dl-tab-{{.OS}}" data-os="{{.OS}}" aria-controls="asc-dl-{{.OS}}" aria-selected="{{if eq .OS $view.ActiveOS}}true{{else}}false{{end}}" tabindex="{{if eq .OS $view.ActiveOS}}0{{else}}-1{{end}}">{{.Label}}</button>
+						{{end}}
+					</div>
+					<p class="ds-t-small ds-c-2 site-dl-allfmt">{{ctx.Locale.Tr "asc_site.dl_all_formats"}}</p>
 				</div>
 
 				{{range $os := $offers.OSes}}
-				<section class="hub-dl-panel" id="asc-dl-{{$os.OS}}" data-os="{{$os.OS}}" role="tabpanel" aria-labelledby="asc-dl-tab-{{$os.OS}}">
-					<h2 class="hub-dl-panel-title">{{$os.Label}}</h2>
+				<section class="hub-dl-panel site-dl-os" id="asc-dl-{{$os.OS}}" data-os="{{$os.OS}}" role="tabpanel" aria-labelledby="asc-dl-tab-{{$os.OS}}">
+					<h2 class="ds-t-h2">{{$os.Label}}{{if and (eq $os.OS $view.ActiveOS) $view.Detected}} <span class="ds-chip">{{ctx.Locale.Tr "asc_site.dl_detected_chip"}}</span>{{end}}</h2>
+
+					{{if $os.PackageCommands}}
+					<h3 class="ds-t-micro ds-c-3">{{ctx.Locale.Tr "asc_download.package_managers"}}</h3>
+					<ul class="ds-list site-dl-pm">
+						{{range $os.PackageCommands}}
+						<li class="ds-li site-dl-pmrow">
+							<div class="ds-li-main"><span class="ds-li-title">{{.Title}}</span></div>
+							<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.Text}}</code><button type="button" class="ds-copy" data-clipboard-text="{{.Text}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}: {{.Title}}">{{svg "dsi-copy" 14}} <span class="ds-hide-xs">{{ctx.Locale.Tr "asc_download.copy"}}</span></button></div>
+						</li>
+						{{end}}
+					</ul>
+					{{end}}
+
 					{{range $arch := $os.Arches}}
 					{{$recommended := and (eq $os.OS $view.ActiveOS) (eq $arch.Arch $view.ActiveArch) $view.Detected}}
-					<article class="hub-dl-arch" data-arch="{{$arch.Arch}}"{{if $recommended}} data-recommended{{end}}>
-						<header class="hub-dl-arch-head">
-							<h3 class="hub-dl-arch-title">{{$arch.Label}}</h3>
-							<span class="hub-chip hub-chip-accent hub-dl-badge"{{if not $recommended}} hidden{{end}}>{{ctx.Locale.Tr "asc_download.recommended"}}</span>
+					<article class="hub-dl-arch site-dl-arch" data-arch="{{$arch.Arch}}"{{if $recommended}} data-recommended{{end}}>
+						<header class="site-dl-archh">
+							<h3 class="ds-t-h4">{{$arch.Label}}</h3>
+							<span class="ds-chip ds-chip-ok hub-dl-badge"{{if not $recommended}} hidden{{end}}>{{ctx.Locale.Tr "asc_download.recommended"}}</span>
 						</header>
-						{{with $arch.Primary}}
-							<a class="ui primary button hub-dl-button" href="{{.URL}}" download="{{.Name}}">
-								{{svg "octicon-download" 18}}
-								<span>{{ctx.Locale.Tr "asc_download.download_for" $os.Label}}</span>
-								<span class="hub-dl-button-size">{{ctx.Locale.TrSize .Size}}</span>
-							</a>
-						{{end}}
-
-						<ul class="hub-dl-files">
-							{{range $arch.Files}}
-							<li class="hub-dl-file">
-								<div class="hub-dl-file-head">
-									<a class="hub-dl-file-name" href="{{.URL}}" download="{{.Name}}">{{.Name}}</a>
-									<span class="hub-dl-file-meta">{{ctx.Locale.Tr (printf "asc_download.kind_%s" .Kind)}} &middot; {{ctx.Locale.TrSize .Size}}</span>
-								</div>
-								<div class="hub-dl-hash">
-									<span class="hub-dl-hash-label">{{ctx.Locale.Tr "asc_download.sha256"}}</span>
-									<code class="hub-hash">{{.SHA256}}</code>
-									<button type="button" class="ui basic compact icon button hub-copy" data-clipboard-text="{{.SHA256}}" aria-label="{{ctx.Locale.Tr "asc_download.copy_hash"}}">{{svg "octicon-copy" 16}}</button>
-								</div>
-								{{if .SignatureURL}}<a class="hub-dl-file-sig" href="{{.SignatureURL}}" download="{{.Signature}}">{{svg "octicon-verified" 16}} {{ctx.Locale.Tr "asc_download.signature"}} ({{.Signature}})</a>{{end}}
-							</li>
-							{{end}}
-						</ul>
-
+						<h4 class="ds-t-micro ds-c-3">{{ctx.Locale.Tr "asc_site.dl_files"}}</h4>
+						<div class="ds-table-wrap">
+							<table class="ds-table ds-table-stack">
+								<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_site.col_file"}}</th><th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_site.col_size"}}</th><th scope="col">{{ctx.Locale.Tr "asc_download.sha256"}}</th><th scope="col">{{ctx.Locale.Tr "asc_download.signature"}}</th><th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_site.dl_download"}}</span></th></tr></thead>
+								<tbody>
+								{{range $arch.Files}}
+									<tr>
+										<td class="site-dl-file"><a class="ds-mono ds-link ds-break" href="{{.URL}}" download="{{.Name}}">{{.Name}}</a><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr (printf "asc_download.kind_%s" .Kind)}}</span></td>
+										<td class="ds-r ds-num" data-label="{{ctx.Locale.Tr "asc_site.col_size"}}">{{ctx.Locale.TrSize .Size}}</td>
+										<td data-label="{{ctx.Locale.Tr "asc_download.sha256"}}"><span class="site-dl-hash"><code class="ds-mono ds-t-small">{{.SHA256}}</code><button type="button" class="ds-btn ds-btn-ghost ds-btn-icon" data-clipboard-text="{{.SHA256}}" aria-label="{{ctx.Locale.Tr "asc_download.copy_hash"}}">{{svg "dsi-copy" 16}}</button></span></td>
+										<td data-label="{{ctx.Locale.Tr "asc_download.signature"}}">{{if .SignatureURL}}<a class="ds-link ds-t-small" href="{{.SignatureURL}}" download="{{.Signature}}">{{.Signature}}</a>{{end}}</td>
+										<td class="site-dl-act"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.URL}}" download="{{.Name}}">{{ctx.Locale.Tr "asc_site.dl_download"}}<span class="ds-sr">: {{.Name}}</span></a></td>
+									</tr>
+								{{end}}
+								</tbody>
+							</table>
+						</div>
 						{{range $arch.Commands}}
-						<div class="hub-dl-command">
-							<div class="hub-dl-command-head">
-								<h4 class="hub-dl-command-title">{{svg "octicon-terminal" 16}} {{ctx.Locale.Tr "asc_download.install_title"}} <span class="hub-dl-command-shell">{{.Title}}</span></h4>
-								<button type="button" class="ui basic compact button hub-copy" data-clipboard-text="{{.Text}}">{{svg "octicon-copy" 16}} <span>{{ctx.Locale.Tr "asc_download.copy"}}</span></button>
-							</div>
-							<pre class="hub-code" tabindex="0"><code>{{.Text}}</code></pre>
+						<div class="ds-term site-dl-term">
+							<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_download.install_title"}} &middot; {{.Title}}</span><button type="button" class="ds-copy" data-clipboard-text="{{.Text}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+							<div class="ds-term-bd" tabindex="0">{{.Text}}</div>
 						</div>
 						{{end}}
 					</article>
 					{{end}}
+				</section>
+				{{end}}
+				<p class="ds-t-small ds-c-2 site-dl-note">{{svg "dsi-shield-check" 16}} {{ctx.Locale.Tr "asc_download.install_check_note"}}</p>
+			</div>
 
-					{{if $os.PackageCommands}}
-					<div class="hub-dl-packages">
-						<h3 class="hub-dl-arch-title">{{ctx.Locale.Tr "asc_download.package_managers"}}</h3>
-						{{range $os.PackageCommands}}
-						<div class="hub-dl-command">
-							<div class="hub-dl-command-head">
-								<h4 class="hub-dl-command-title">{{svg "octicon-package" 16}} {{.Title}}</h4>
-								<button type="button" class="ui basic compact button hub-copy" data-clipboard-text="{{.Text}}">{{svg "octicon-copy" 16}} <span>{{ctx.Locale.Tr "asc_download.copy"}}</span></button>
-							</div>
-							<pre class="hub-code" tabindex="0"><code>{{.Text}}</code></pre>
+			<aside class="ds-rail site-dl-rail" aria-label="{{ctx.Locale.Tr "asc_site.dl_side"}}">
+				<section class="ds-card" aria-labelledby="asc-connect-title">
+					<div class="ds-card-h"><h2 class="ds-t-h4" id="asc-connect-title">{{ctx.Locale.Tr "asc_download.connect_title"}}</h2></div>
+					<div class="ds-card-b ds-stack ds-stack-12">
+						<p class="ds-c-2 ds-t-small">{{ctx.Locale.Tr "asc_download.connect_desc"}}</p>
+						<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{$offers.ConnectCommand}}</code><button type="button" class="ds-copy" data-clipboard-text="{{$offers.ConnectCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+						<a class="ds-link ds-t-small" href="{{AppSubUrl}}/user/settings/applications">{{ctx.Locale.Tr "asc_download.create_token"}}</a>
+					</div>
+				</section>
+
+				{{if $offers.Checksums}}
+				<section class="ds-card" aria-labelledby="asc-verify-title">
+					<div class="ds-card-h"><h2 class="ds-t-h4" id="asc-verify-title">{{ctx.Locale.Tr "asc_download.checksums_title"}}</h2></div>
+					<div class="ds-card-b ds-stack ds-stack-12">
+						<p class="ds-c-2 ds-t-small">{{ctx.Locale.Tr "asc_download.checksums_desc"}}</p>
+						<ul class="site-dl-links">
+							<li><a class="ds-link" href="{{$offers.Checksums.URL}}" download="{{$offers.Checksums.Name}}">{{ctx.Locale.Tr "asc_download.checksums_file"}} ({{$offers.Checksums.Name}})</a></li>
+							{{if $offers.ChecksumsSig}}<li><a class="ds-link" href="{{$offers.ChecksumsSig.URL}}" download="{{$offers.ChecksumsSig.Name}}">{{ctx.Locale.Tr "asc_download.checksums_signature"}} ({{$offers.ChecksumsSig.Name}})</a></li>{{end}}
+						</ul>
+						{{if $m.MinisignPublicKey}}
+						<div>
+							<p class="ds-t-micro ds-c-3">{{ctx.Locale.Tr "asc_download.public_key"}}</p>
+							<code class="ds-mono ds-t-small ds-break site-dl-key" tabindex="0">{{$m.MinisignPublicKey}}</code>
+						</div>
+						{{end}}
+						{{if $offers.VerifyCommand}}
+						<div class="ds-term">
+							<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_download.verify_command"}}</span><button type="button" class="ds-copy" data-clipboard-text="{{$offers.VerifyCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+							<div class="ds-term-bd" tabindex="0">{{$offers.VerifyCommand}}</div>
 						</div>
 						{{end}}
 					</div>
-					{{end}}
 				</section>
 				{{end}}
-				<p class="hub-dl-note">{{svg "octicon-shield-check" 16}} {{ctx.Locale.Tr "asc_download.install_check_note"}}</p>
-			</div>
-
-			<aside class="hub-dl-side">
-				<section class="hub-panel" aria-labelledby="asc-connect-title">
-					<h2 class="hub-panel-title" id="asc-connect-title">{{ctx.Locale.Tr "asc_download.connect_title"}}</h2>
-					<p class="hub-panel-text">{{ctx.Locale.Tr "asc_download.connect_desc"}}</p>
-					<div class="hub-dl-command">
-						<div class="hub-dl-command-head">
-							<span class="hub-dl-command-shell">{{ctx.Locale.Tr "asc_download.terminal"}}</span>
-							<button type="button" class="ui basic compact button hub-copy" data-clipboard-text="{{$offers.ConnectCommand}}">{{svg "octicon-copy" 16}} <span>{{ctx.Locale.Tr "asc_download.copy"}}</span></button>
-						</div>
-						<pre class="hub-code" tabindex="0"><code>{{$offers.ConnectCommand}}</code></pre>
-					</div>
-					<a class="hub-panel-link" href="{{AppSubUrl}}/user/settings/applications">{{ctx.Locale.Tr "asc_download.create_token"}}</a>
-				</section>
 
 				{{if or $m.Extensions.VSCode $m.Extensions.JetBrains}}
-				<section class="hub-panel" aria-labelledby="asc-editors-title">
-					<h2 class="hub-panel-title" id="asc-editors-title">{{ctx.Locale.Tr "asc_download.extensions_title"}}</h2>
-					<ul class="hub-link-list">
-						{{if $m.Extensions.VSCode}}<li><a href="{{$m.Extensions.VSCode}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_download.extension_vscode"}}</a></li>{{end}}
-						{{if $m.Extensions.JetBrains}}<li><a href="{{$m.Extensions.JetBrains}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_download.extension_jetbrains"}}</a></li>{{end}}
+				<section class="ds-card" aria-labelledby="asc-editors-title">
+					<div class="ds-card-h"><h2 class="ds-t-h4" id="asc-editors-title">{{ctx.Locale.Tr "asc_download.extensions_title"}}</h2></div>
+					<ul class="site-dl-ext">
+						{{if $m.Extensions.VSCode}}<li><a class="ds-li-link" href="{{$m.Extensions.VSCode}}" target="_blank" rel="noopener noreferrer"><span>{{ctx.Locale.Tr "asc_download.extension_vscode"}}</span>{{svg "dsi-external" 16}}</a></li>{{end}}
+						{{if $m.Extensions.JetBrains}}<li><a class="ds-li-link" href="{{$m.Extensions.JetBrains}}" target="_blank" rel="noopener noreferrer"><span>{{ctx.Locale.Tr "asc_download.extension_jetbrains"}}</span>{{svg "dsi-external" 16}}</a></li>{{end}}
 					</ul>
-				</section>
-				{{end}}
-
-				{{if $offers.Checksums}}
-				<section class="hub-panel" aria-labelledby="asc-verify-title">
-					<h2 class="hub-panel-title" id="asc-verify-title">{{ctx.Locale.Tr "asc_download.checksums_title"}}</h2>
-					<p class="hub-panel-text">{{ctx.Locale.Tr "asc_download.checksums_desc"}}</p>
-					<ul class="hub-link-list">
-						<li><a href="{{$offers.Checksums.URL}}" download="{{$offers.Checksums.Name}}">{{ctx.Locale.Tr "asc_download.checksums_file"}} ({{$offers.Checksums.Name}})</a></li>
-						{{if $offers.ChecksumsSig}}<li><a href="{{$offers.ChecksumsSig.URL}}" download="{{$offers.ChecksumsSig.Name}}">{{ctx.Locale.Tr "asc_download.checksums_signature"}} ({{$offers.ChecksumsSig.Name}})</a></li>{{end}}
-					</ul>
-					{{if $m.MinisignPublicKey}}
-					<p class="hub-panel-text hub-panel-label">{{ctx.Locale.Tr "asc_download.public_key"}}</p>
-					<code class="hub-hash">{{$m.MinisignPublicKey}}</code>
-					{{end}}
-					{{if $offers.VerifyCommand}}
-					<div class="hub-dl-command">
-						<div class="hub-dl-command-head">
-							<span class="hub-dl-command-shell">{{ctx.Locale.Tr "asc_download.verify_command"}}</span>
-							<button type="button" class="ui basic compact button hub-copy" data-clipboard-text="{{$offers.VerifyCommand}}">{{svg "octicon-copy" 16}} <span>{{ctx.Locale.Tr "asc_download.copy"}}</span></button>
-						</div>
-						<pre class="hub-code" tabindex="0"><code>{{$offers.VerifyCommand}}</code></pre>
-					</div>
-					{{end}}
 				</section>
 				{{end}}
 			</aside>

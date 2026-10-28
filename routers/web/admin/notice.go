@@ -58,6 +58,11 @@ func DeleteNotices(ctx *context.Context) {
 		ctx.Status(http.StatusInternalServerError)
 	} else {
 		ctx.Flash.Success(ctx.Tr("admin.notices.delete_success"))
+		if ctx.FormBool("dismiss") {
+			// the dismiss button of the notices page posts a form, not a fetch request
+			ctx.Redirect(setting.AppSubURL + "/admin/notices")
+			return
+		}
 		ctx.Status(http.StatusOK)
 	}
 }

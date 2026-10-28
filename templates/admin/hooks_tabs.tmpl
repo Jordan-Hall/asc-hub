@@ -1,0 +1,5 @@
+{{/* The two views of "Hooks and applications": webhooks and OAuth applications. Props: Active ("hooks" or "apps"), Data (the page data). */}}
+<nav class="ds-tabs adm-tabs" aria-label="{{ctx.Locale.Tr "asc_admin.hooks_apps"}}">
+	{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "asc_admin.hooks_tab") "Href" (print AppSubUrl "/admin/hooks") "Active" (eq .Active "hooks"))}}
+	{{if .Data.EnableOAuth2}}{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "asc_admin.apps_tab") "Href" (print AppSubUrl "/admin/applications") "Active" (eq .Active "apps"))}}{{end}}
+</nav>

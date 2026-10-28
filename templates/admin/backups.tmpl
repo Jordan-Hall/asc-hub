@@ -1,0 +1,42 @@
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin backups")}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.backups") "Desc" (ctx.Locale.Tr "asc_admin.backups_lead"))}}
+
+	<div class="ds-banner ds-banner-warn" role="note">
+		{{svg "dsi-alert" 18}}
+		<p class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_admin.backups_state_title"}}.</strong> {{ctx.Locale.Tr "asc_admin.backups_state_text"}}</p>
+	</div>
+
+	<div class="ds-grid-stats adm-stats adm-stats-3 adm-sec" role="group" aria-label="{{ctx.Locale.Tr "asc_admin.figures"}}">
+		<div class="ds-stat"><div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.backups_where"}}</div><div class="ds-stat-sub adm-mono ds-break">{{.AppDataPath}}</div></div>
+		<div class="ds-stat"><div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.backups_database"}}</div><div class="ds-stat-value ds-t-h4">{{.DatabaseType}}</div></div>
+		<div class="ds-stat"><div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.backups_holds_title"}}</div><div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.backups_holds_text"}}</div></div>
+	</div>
+
+	<ol class="adm-steps">
+		<li class="ds-card">
+			<div class="ds-card-h"><span class="adm-step-n" aria-hidden="true">1</span><h2>{{ctx.Locale.Tr "asc_admin.backups_step_stop"}}</h2></div>
+			<div class="ds-card-b">{{template "admin/term" (dict "Title" (ctx.Locale.Tr "asc_admin.terminal") "Text" "$ docker compose stop hub")}}</div>
+		</li>
+		<li class="ds-card">
+			<div class="ds-card-h"><span class="adm-step-n" aria-hidden="true">2</span><h2>{{ctx.Locale.Tr "asc_admin.backups_step_create"}}</h2></div>
+			<div class="ds-card-b">{{template "admin/term" (dict "Title" (ctx.Locale.Tr "asc_admin.terminal") "Text" "$ docker run --rm -v PROJECT_hub-data:/var/lib/gitea \\\n    --entrypoint asc-hub-backup IMAGE \\\n    create --data /var/lib/gitea --out - \\\n    > hub-backup-$(date +%F).tar.gz")}}</div>
+		</li>
+		<li class="ds-card">
+			<div class="ds-card-h"><span class="adm-step-n" aria-hidden="true">3</span><h2>{{ctx.Locale.Tr "asc_admin.backups_step_verify"}}</h2></div>
+			<div class="ds-card-b">{{template "admin/term" (dict "Title" (ctx.Locale.Tr "asc_admin.terminal") "Text" "$ docker run --rm -i --entrypoint asc-hub-backup IMAGE \\\n    verify --in - < hub-backup.tar.gz")}}</div>
+		</li>
+		<li class="ds-card">
+			<div class="ds-card-h"><span class="adm-step-n" aria-hidden="true">4</span><h2>{{ctx.Locale.Tr "asc_admin.backups_step_start"}}</h2></div>
+			<div class="ds-card-b">{{template "admin/term" (dict "Title" (ctx.Locale.Tr "asc_admin.terminal") "Text" "$ docker compose start hub")}}</div>
+		</li>
+	</ol>
+
+	<section class="ds-card adm-sec" aria-labelledby="adm-bk-restore">
+		<div class="ds-card-h"><h2 id="adm-bk-restore">{{ctx.Locale.Tr "asc_admin.backups_step_restore"}}</h2></div>
+		<div class="ds-card-b ds-stack ds-stack-12">
+			{{template "admin/term" (dict "Title" (ctx.Locale.Tr "asc_admin.terminal") "Text" "$ docker run --rm -i -v PROJECT_hub-data-restored:/var/lib/gitea \\\n    --entrypoint asc-hub-backup IMAGE \\\n    restore --data /var/lib/gitea --in - < hub-backup.tar.gz")}}
+			<div class="ds-callout"><strong>{{ctx.Locale.Tr "asc_admin.backups_keep_title"}}.</strong> {{ctx.Locale.Tr "asc_admin.backups_keep_text"}}</div>
+			<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.backups_docs"}}: <code class="adm-mono">docs/asc/OPERATIONS.md</code></p>
+		</div>
+	</section>
+{{template "admin/layout_footer" .}}

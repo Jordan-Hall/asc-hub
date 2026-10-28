@@ -10,15 +10,17 @@ import (
 	"forgejo.org/modules/queue"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/context"
+	"forgejo.org/services/cron"
 )
 
 func Queues(ctx *context.Context) {
 	if !setting.IsProd {
 		initTestQueueOnce()
 	}
-	ctx.Data["Title"] = ctx.Tr("admin.monitor.queues")
+	ctx.Data["Title"] = ctx.Tr("asc_admin.monitor")
 	ctx.Data["PageIsAdminMonitorQueue"] = true
 	ctx.Data["Queues"] = queue.GetManager().ManagedQueues()
+	ctx.Data["Entries"] = cron.ListTasks()
 	ctx.HTML(http.StatusOK, tplQueue)
 }
 

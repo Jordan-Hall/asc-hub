@@ -1,10 +1,94 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin actions")}}
-	<div class="admin-setting-content">
 	{{if eq .PageType "runners"}}
-		{{template "shared/actions/runner_list" .}}
+		{{template "admin/head_open" (dict "Title" (ctx.Locale.Tr "asc_admin.runners") "Desc" (ctx.Locale.Tr "asc_admin.runners_lead"))}}
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/actions/variables">{{svg "dsi-hash" 16}}{{ctx.Locale.Tr "actions.variables"}}</a>
+			<a class="ds-btn ds-btn-primary" href="{{.Link}}/new">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "asc_admin.register_runner"}}</a>
+		{{template "admin/head_close" .}}
+
+		<div class="adm-split">
+			<div class="ds-min0">
+				<div class="adm-filter">
+					<form class="ds-filterbar-form ignore-dirty" id="user-list-search-form" role="search" method="get" action="{{.Link}}">
+						<div class="ds-inwrap">
+							{{svg "dsi-search" 16}}
+							<label class="ds-sr" for="adm-runner-q">{{ctx.Locale.Tr "search.runner_kind"}}</label>
+							<input id="adm-runner-q" class="ds-input" type="search" name="q" value="{{.Keyword}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "search.runner_kind"}}">
+						</div>
+						<label class="ds-selectpill">
+							<span class="ds-sr">{{ctx.Locale.Tr "repo.issues.filter_sort"}}</span>
+							<select name="sort">
+								<option value="alphabetically"{{if or (eq .SortType "alphabetically") (not .SortType)}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</option>
+								<option value="reversealphabetically"{{if eq .SortType "reversealphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</option>
+								<option value="online"{{if eq .SortType "online"}} selected{{end}}>{{ctx.Locale.Tr "asc_admin.runners_status_idle"}}</option>
+								<option value="offline"{{if eq .SortType "offline"}} selected{{end}}>{{ctx.Locale.Tr "asc_admin.runners_status_offline"}}</option>
+							</select>
+							{{svg "dsi-chevron-down" 16}}
+						</label>
+						<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_shell.search_label"}}</button>
+					</form>
+				</div>
+
+				{{if .Runners}}
+					<ul class="ds-list runner-list">
+						{{range .Runners}}
+							<li class="ds-li ds-li-wrap">
+								<span class="adm-tile {{if .IsActive}}adm-tile-info{{else if .IsIdle}}adm-tile-ok{{else}}adm-tile-err{{end}}" aria-hidden="true">{{svg "dsi-cpu" 18}}</span>
+								<div class="ds-li-main">
+									<div class="ds-li-title"><a href="{{$.Link}}/{{.ID}}" class="runner-action-link">{{.Name}}</a> {{template "admin/runner_state" .}}</div>
+									<div class="ds-li-sub adm-mono ds-break">{{if gt (len .AgentLabels) 0}}{{range $i, $l := .AgentLabels}}{{if $i}}, {{end}}{{$l}}{{end}}{{else}}{{ctx.Locale.Tr "asc_admin.runners_labels_none"}}{{end}}</div>
+									<div class="ds-li-meta">
+										{{if .Version}}<span class="adm-mono">{{.Version}}</span>{{end}}
+										<span>{{.BelongsToOwnerType.LocaleString ctx.Locale}}{{if and $.PageIsAdmin .BelongsToOwnerName}}: {{.BelongsToOwnerName}}{{end}}</span>
+										<span>{{if .LastOnline}}{{ctx.Locale.Tr "asc_admin.runners_last_seen" (DateUtils.TimeSince .LastOnline)}}{{else}}{{ctx.Locale.Tr "never"}}{{end}}</span>
+									</div>
+								</div>
+								<div class="adm-row-side">
+									<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Link}}/{{.ID}}" aria-label="{{ctx.Locale.Tr "asc_admin.runners_details"}}: {{.Name}}">{{ctx.Locale.Tr "asc_admin.runners_details"}}</a>
+									{{if .Editable $.RunnerOwnerID $.RunnerRepoID}}
+										<a class="ds-btn ds-btn-ghost ds-btn-sm runner-action-link" href="{{$.Link}}/{{.ID}}/edit" aria-label="{{ctx.Locale.Tr "actions.runners.list_runners.edit_button_aria" .Name}}">{{svg "dsi-pencil" 16}}</a>
+										<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button runner-delete-link" aria-label="{{ctx.Locale.Tr "actions.runners.list_runners.delete_button_aria" .Name}}" data-url="{{$.Link}}/{{.ID}}/delete" data-modal-id="runner-delete-modal">{{svg "dsi-trash" 16}}</button>
+									{{end}}
+								</div>
+							</li>
+						{{end}}
+					</ul>
+					{{template "base/paginate" .}}
+				{{else if .Keyword}}
+					<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_admin.no_results_title") "Body" (ctx.Locale.Tr "search.no_results") "PrimaryLabel" (ctx.Locale.Tr "asc_admin.clear_filters") "PrimaryHref" .Link)}}</div>
+				{{else}}
+					<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "cpu" "Title" (ctx.Locale.Tr "asc_admin.runners_none_title") "Body" (ctx.Locale.Tr "asc_admin.runners_none_text"))}}</div>
+				{{end}}
+			</div>
+
+			<aside class="ds-card adm-reg" aria-labelledby="adm-reg-h">
+				<div class="ds-card-h"><h2 id="adm-reg-h">{{ctx.Locale.Tr "asc_admin.register_runner"}}</h2></div>
+				<div class="ds-card-b ds-stack ds-stack-12">
+					<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.register_runner_text"}}</p>
+					{{template "admin/term" (dict "Title" (ctx.Locale.Tr "asc_admin.terminal") "Text" (printf "forgejo-runner register --instance %s --token %s" AppUrl .RegistrationToken))}}
+					<div class="ds-row ds-row-wrap ds-gap-8">
+						<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Link}}/new">{{ctx.Locale.Tr "asc_admin.register_runner_new"}}</a>
+						<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.Link}}/reset_registration_token">{{ctx.Locale.Tr "asc_admin.runners_reset_token"}}</a>
+					</div>
+					<p class="ds-t-small"><a class="ds-link adm-tap" href="https://forgejo.org/docs/next/admin/actions/#forgejo-runner" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "actions.runners.new_notice"}}</a></p>
+				</div>
+			</aside>
+		</div>
+
+		<div class="ui g-modal-confirm delete modal" id="runner-delete-modal">
+			<div class="header">
+				{{svg "octicon-trash"}}
+				{{ctx.Locale.Tr "actions.runners.delete_runner.header"}}
+			</div>
+			<div class="content">
+				<p>{{ctx.Locale.Tr "actions.runners.delete_runner.notice"}}</p>
+			</div>
+			{{template "base/modal_actions_confirm" .}}
+		</div>
 	{{end}}
 	{{if eq .PageType "variables"}}
+		{{template "admin/head_open" (dict "Title" (ctx.Locale.Tr "actions.variables") "Desc" (ctx.Locale.Tr "asc_admin.variables_lead"))}}
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/actions/runners">{{svg "dsi-cpu" 16}}{{ctx.Locale.Tr "asc_admin.runners"}}</a>
+		{{template "admin/head_close" .}}
 		{{template "shared/variables/variable_list" .}}
 	{{end}}
-	</div>
 {{template "admin/layout_footer" .}}

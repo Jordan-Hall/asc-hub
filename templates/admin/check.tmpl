@@ -1,0 +1,8 @@
+{{/* One checkbox of an admin form with its help text. Props: ID, Name, Label, Checked, Disabled, Hint, Value (optional). */}}
+<div class="ds-field adm-check-field">
+	<div class="ds-check">
+		<input type="checkbox" id="{{.ID}}" name="{{.Name}}"{{if .Value}} value="{{.Value}}"{{end}}{{if .Checked}} checked{{end}}{{if .Disabled}} disabled{{end}}{{if .Hint}} aria-describedby="{{.ID}}-hint"{{end}}>
+		<label for="{{.ID}}">{{.Label}}</label>
+	</div>
+	{{if .Hint}}<p class="ds-hint" id="{{.ID}}-hint">{{.Hint}}</p>{{end}}
+</div>

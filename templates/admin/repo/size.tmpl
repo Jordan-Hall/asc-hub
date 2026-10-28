@@ -1,0 +1,2 @@
+{{/* The size of a repository: git data, and the LFS part when there is one. Pass the repository. */}}
+{{ctx.Locale.TrSize .GitSize}}{{if .LFSSize}} <span class="ds-c-2">+ {{ctx.Locale.TrSize .LFSSize}} {{ctx.Locale.Tr "admin.repos.lfs_size"}}</span>{{end}}

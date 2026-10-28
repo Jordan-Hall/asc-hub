@@ -1,0 +1,2 @@
+{{/* Two-factor state as a chip with words. Props: On (bool). */}}
+{{if .On}}<span class="ds-chip ds-chip-ok">{{svg "dsi-shield-check" 14}}{{ctx.Locale.Tr "asc_admin.on"}}</span>{{else}}<span class="ds-chip ds-chip-warn">{{svg "dsi-alert" 14}}{{ctx.Locale.Tr "asc_admin.off"}}</span>{{end}}
