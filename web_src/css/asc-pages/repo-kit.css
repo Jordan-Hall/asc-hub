@@ -513,7 +513,9 @@ details.dropdown.rp-dd[open] > .content.rp-pop::before {
 /* an eyebrow, a title and a sentence: the band that opens a repository sub page (History, Refs, Pulse) */
 .rp-band {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 12px;
   padding-top: 16px;
   padding-bottom: 12px;
@@ -690,9 +692,21 @@ a.rp-hash:hover {
 /* a bar of filters under a band: a search field and a scrolling row of pills */
 .rp-filters {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 10px;
   padding-bottom: 16px;
+}
+
+.rp-filters .rp-search {
+  flex: 1 1 100%;
+}
+
+.rp-filters .rp-select {
+  flex: 1 1 140px;
+}
+
+.rp-filters .rp-select .ds-select {
+  width: 100%;
 }
 
 .rp-pills {
@@ -712,9 +726,11 @@ a.rp-hash:hover {
 
 @media (min-width: 768px) {
   .rp-filters {
-    flex-direction: row;
     align-items: center;
-    flex-wrap: wrap;
+  }
+
+  .rp-filters .rp-select {
+    flex: none;
   }
 
   .rp-pills {
@@ -732,8 +748,8 @@ a.rp-hash:hover {
 }
 
 @media (min-width: 768px) {
-  .rp-search {
-    flex: 0 1 320px;
+  .rp-filters .rp-search {
+    flex: 0 1 360px;
   }
 }
 

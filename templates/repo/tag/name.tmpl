@@ -1,3 +1,1 @@
-<a class="ui label basic tag-label {{if .IsRelease}}IsRelease{{end}}" href="{{.RepoLink}}/src/tag/{{.TagName|PathEscape}}">
-	{{svg "octicon-tag" 14}} {{.TagName}}
-</a>
+<a class="ds-chip ds-chip-outline rp-tagchip {{if .IsRelease}}IsRelease{{end}}" href="{{.RepoLink}}/src/tag/{{.TagName|PathEscape}}">{{svg "octicon-tag" 12}} {{.TagName}}</a>
