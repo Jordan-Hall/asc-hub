@@ -785,3 +785,34 @@ a.rp-hash:hover {
 .ds-banner a.ds-btn-primary {
   color: var(--on-fill);
 }
+
+/* ---- stack list rows: 44 px targets, the keyboard row, a slide-in of the hovered row ---- */
+[data-asc-row]:focus-visible,
+[data-asc-row]:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+[data-asc-row][data-asc-copied="true"] {
+  background: var(--ok-soft);
+}
+
+@media (max-width: 639px) {
+  .wk-issue-list > .wk-issue {
+    min-height: 44px;
+  }
+
+  .rv-area {
+    overflow-x: auto;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .wk-issue-list > .wk-issue > .ds-li-main {
+    transition: transform 120ms ease-out;
+  }
+
+  .wk-issue-list > .wk-issue:hover > .ds-li-main {
+    transform: translateX(3px);
+  }
+}

@@ -259,19 +259,19 @@ Size: S = under a day, M = one to three days, L = more than three days.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| Stacks | Area sub-navigation Stacks / Merge queue / Policy gate / Operation log | ui-only-missing | `H:templates/repo/asc_stack_nav.tmpl` is used on queue, gate and ops pages; the `/pulls` list does not include it | S |
+| Stacks | Area sub-navigation Stacks / Merge queue / Policy gate / Operation log | done | `H:templates/repo/asc_stack_nav.tmpl` is used on queue, gate and ops pages; the `/pulls` list does not include it | S |
 | Stacks | Merge queue page with pause and resume | done | `H:routers/web/repo/asc_queue.go`, `asc_queue.tmpl` | S |
 | Stacks | Stack row: avatar, title, stack name, author, change count, +/- size, checks, age, status chip (Needs your review, Queued to merge, Checks failing, Agent writing, Waiting on author), reviewers | needs-hub-backend | `/pulls` renders the Forgejo issue list (`H:templates/repo/issue/list.tmpl`, `shared/issuelist.tmpl`); build a stack-grouped list from stacked pulls (`H:services/pull`, `BuildAscStackPanel`) | L |
 | Stacks | Rail with segments per change and text alternative "Stack of 4 changes"; legend (Landed, Approved ready, Waiting, Agent writing, Draft) | needs-hub-backend | same data as the Repo progress rail; one shared template | M |
 | Stacks | Filters Open / Mine / Agents / Needs me / Closed with counts; sticky filter bar | needs-hub-backend | Needs me = review requested or queue-ready for the viewer; Agents needs an agent flag; `H:routers/web/repo/issue.go` (`Pulls`) | M |
 | Stacks | Sort Newest / Needs attention | needs-hub-backend | attention score from status | S |
 | Stacks | "Your turn" card with jump to the exact change | needs-hub-backend | pulls awaiting the viewer's review or enqueue | M |
-| Stacks | "From your terminal" card (`asc stack list`, `asc stack submit`) | ui-only-missing | template | S |
+| Stacks | "From your terminal" card (`asc stack list`, `asc stack submit`) | done | template | S |
 | Stacks | New stack button | needs-hub-backend | no web create-stack flow; `H:routers/web/repo/pull.go` creates pulls by compare; agents or terminal create stacks | M |
-| Stacks | Keyboard `j`/`k` and Enter | ui-only-missing | list-nav helper | S |
-| Stacks | States: empty (Nothing is in flight, New stack, Open history), skeleton, error with request id | ui-only-missing | list template | S |
-| Stacks | Row hover slide-in, status chip pulses once on change | ui-only-missing | CSS + SSE event (`H:services/ascinbox` / `eventsource.sharedworker.js`) | S |
-| Stacks | Mobile: 44 px rows, chips scroll | ui-only-missing | list template | S |
+| Stacks | Keyboard `j`/`k` and Enter | done | list-nav helper | S |
+| Stacks | States: empty (Nothing is in flight, New stack, Open history), skeleton, error with request id | ui-only-missing (empty state done; skeleton and error with request id remain) | list template | S |
+| Stacks | Row hover slide-in, status chip pulses once on change | ui-only-missing (slide-in done; chip pulse on SSE change remains) | CSS + SSE event (`H:services/ascinbox` / `eventsource.sharedworker.js`) | S |
+| Stacks | Mobile: 44 px rows, chips scroll | done | list template | S |
 
 ## RepoSettingsMenu (mobile) and the shared settings shell
 

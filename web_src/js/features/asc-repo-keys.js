@@ -70,12 +70,33 @@ export function toggleTarget(btn) {
   return on;
 }
 
+// A wrapper with data-asc-enhance-list="<selector of a ul>" makes the rows of that list reachable with j, k and
+// Enter: the list gets data-asc-list, each row gets data-asc-row and tabindex -1, and the row's title link
+// (a.issue-title, or the first link) is the one Enter opens. Used where a template shared with other pages draws the list.
+export function enhanceLists(root = document) {
+  let count = 0;
+  for (const wrap of root.querySelectorAll('[data-asc-enhance-list]')) {
+    const list = wrap.querySelector(wrap.getAttribute('data-asc-enhance-list') || '');
+    if (!list) continue;
+    list.setAttribute('data-asc-list', '');
+    for (const row of list.children) {
+      if (row.tagName !== 'LI') continue;
+      row.setAttribute('data-asc-row', '');
+      row.setAttribute('tabindex', '-1');
+      (row.querySelector('a.issue-title') || row.querySelector('a[href]'))?.setAttribute('data-asc-open', '');
+      count++;
+    }
+  }
+  return count;
+}
+
 let keyHandler = null;
 let clickHandler = null;
 
 export function initAscRepoKeys() {
   if (keyHandler) document.removeEventListener('keydown', keyHandler);
   if (clickHandler) document.removeEventListener('click', clickHandler);
+  enhanceLists();
   clickHandler = (e) => {
     const btn = e.target instanceof Element ? e.target.closest('[data-asc-toggle]') : null;
     if (btn) toggleTarget(btn);
