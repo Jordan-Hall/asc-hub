@@ -363,3 +363,72 @@ a.rp-ref-name:hover {
     gap: 16px;
   }
 }
+
+/* Release form (board Releases): cards, one file row per download, actions that stick above the bottom bar on a phone. */
+.rp-rel-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rp-rel-file {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rp-rel-file.tw-hidden {
+  display: none;
+}
+
+.rp-rel-file-ic {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: var(--input-h);
+  color: var(--text-2);
+}
+
+.rp-rel-file-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rp-rel-file > .ds-btn {
+  flex: none;
+}
+
+.rp-rel-actions {
+  flex-wrap: wrap;
+}
+
+.rp-rel-form .ds-check .ds-hint {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .rp-rel-file-main {
+    flex-direction: row;
+  }
+
+  .rp-rel-file-main > .ds-input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.rp-rel-form .ui.dropzone {
+  min-height: 96px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r-row);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.rp-form-title + .ds-c-2 {
+  margin-bottom: 16px;
+}
