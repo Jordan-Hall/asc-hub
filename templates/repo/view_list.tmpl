@@ -14,7 +14,7 @@
 			<td colspan="3">
 				<div class="rp-files-last-in">
 					<div class="latest-commit rp-latest">{{template "repo/latest_commit" .}}</div>
-					<div class="rp-files-last-meta">{{if .LatestCommit}}{{template "repo/shabox" (dict "sha1" .LatestCommit.ID.String "commitLink" (printf "%s/commit/%s" .RepoLink (.LatestCommit.ID.String|PathEscape)) "signature" .LatestCommit.Signature "verification" .LatestCommitVerification)}}{{template "repo/commit_statuses" dict "Status" .LatestCommitStatus "Statuses" .LatestCommitStatuses}}{{if .LatestCommit.Committer}}<span class="ds-hide-xs">{{DateUtils.TimeSince .LatestCommit.Committer.When}}</span>{{end}}{{end}}{{if and .CommitsCount (not .TreePath)}}<a class="ds-hide-xs" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.TrPluralString .CommitsCount "counters.n_commits" (ctx.Locale.PrettyNumber .CommitsCount)}}</a>{{end}}</div>
+					<div class="rp-files-last-meta">{{if .LatestCommit}}{{template "repo/shabox" (dict "sha1" .LatestCommit.ID.String "commitLink" (printf "%s/commit/%s" .RepoLink (.LatestCommit.ID.String|PathEscape)) "signature" .LatestCommit.Signature "verification" .LatestCommitVerification)}}{{template "repo/commit_statuses" dict "Status" .LatestCommitStatus "Statuses" .LatestCommitStatuses}}{{if .LatestCommit.Committer}}<span class="ds-hide-xs">{{DateUtils.TimeSince .LatestCommit.Committer.When}}</span>{{end}}{{end}}{{if and .CommitsCount (not .TreePath)}}<a class="ds-hide-xs" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.TrN .CommitsCount "asc_rp.n_changes_one" "asc_rp.n_changes_other" (ctx.Locale.PrettyNumber .CommitsCount)}}</a>{{end}}</div>
 				</div>
 			</td>
 		</tr>

@@ -30,9 +30,10 @@
 		</div>
 		{{end}}
 		{{if .Repository.Website}}<a class="rp-about-site" href="{{.Repository.Website}}" rel="noopener noreferrer">{{.Repository.Website}}</a>{{end}}
+		{{if .HomeLicenseFile}}<a class="rp-about-license" href="{{.RepoLink}}/src/{{.BranchNameSubURL}}/{{PathEscapeSegments .HomeLicenseFile}}">{{svg "dsi-shield" 14}} {{ctx.Locale.Tr "asc_rp.license_file" .HomeLicenseFile}}</a>{{end}}
 		{{if and (.Permission.CanRead $.UnitTypeCode) (not .IsEmptyRepo)}}
 		<ul class="rp-numbers">
-			<li><a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.TrPluralString .CommitsCount "counters.n_commits" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .CommitsCount) | TrustHTML)}}</a></li>
+			<li><a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.TrN .CommitsCount "asc_rp.n_changes_on_one" "asc_rp.n_changes_on_other" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .CommitsCount) | TrustHTML) .BranchName}}</a></li>
 			<li><a href="{{.RepoLink}}/branches">{{ctx.Locale.TrPluralString .BranchesCount "counters.n_branches" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .BranchesCount) | TrustHTML)}}</a></li>
 			<li><a href="{{.RepoLink}}/tags">{{ctx.Locale.TrPluralString .NumTags "counters.n_tags" (printf "<b>%s</b>" (ctx.Locale.PrettyNumber .NumTags) | TrustHTML)}}</a></li>
 			<li><span {{if not (eq .Repository.Size 0)}}title="{{.Repository.SizeDetailsString ctx.Locale}}"{{end}}>{{$fileSizeFields := ctx.Locale.TrSize .Repository.Size}}<b>{{$fileSizeFields.PrettyNumber}}</b> {{$fileSizeFields.TranslatedUnit}}</span></li>
@@ -51,6 +52,17 @@
 				<li><svg class="rp-lang-dot" width="10" height="10" aria-hidden="true" focusable="false"><circle cx="5" cy="5" r="5" fill="{{.Color}}"/></svg>{{if eq .Language "other"}}{{ctx.Locale.Tr "repo.language_other"}}{{else}}{{.Language}}{{end}} <span class="rp-dim">{{.Percentage}}%</span></li>
 			{{end}}
 		</ul>
+	</section>
+	{{end}}
+	{{if .HomePolicy}}
+	<section class="rp-card rp-policy" aria-labelledby="rp-policy-title">
+		<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-policy-title">{{ctx.Locale.Tr "asc_rp.policy_title"}}</h2>
+			{{if not .HomePolicy.Present}}<span class="ds-chip">{{ctx.Locale.Tr "asc_rp.policy_none"}}</span>
+			{{else if .HomePolicy.Usable}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.policy_valid"}}</span>
+			{{else}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_rp.policy_invalid"}}</span>{{end}}
+		</div>
+		{{if .HomePolicy.Lines}}<ul class="rp-policy-lines">{{range .HomePolicy.Lines}}<li>{{.}}</li>{{end}}</ul>{{end}}
+		<a class="rp-sec-act" href="{{.RepoLink}}/src/{{.BranchNameSubURL}}/.asc/policy.toml">{{ctx.Locale.Tr "asc_rp.policy_open"}}</a>
 	</section>
 	{{end}}
 	{{if .HomeRelease}}

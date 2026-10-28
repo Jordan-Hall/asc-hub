@@ -12,7 +12,7 @@
 	{{if .HomePulls}}
 		<ul class="rp-rows">
 			{{range .HomePulls}}
-				<li class="rp-flight">
+				<li class="rp-flight rp-flight-link">
 					<span class="ds-dot {{if .PullRequest.IsWorkInProgress ctx}}ds-dot-warn{{else}}ds-dot-info{{end}}" aria-hidden="true"></span>
 					<div class="rp-flight-main">
 						<div class="rp-flight-title">
@@ -23,6 +23,7 @@
 							{{if .Poster}}<a href="{{.Poster.HomeLink}}">{{.Poster.GetDisplayName}}</a><span class="rp-sep-dot"></span>{{end}}<span class="rp-hash">#{{.Index}}</span><span class="rp-sep-dot"></span><span class="rp-hash">{{.PullRequest.HeadBranch}}</span><span class="rp-sep-dot"></span>{{DateUtils.TimeSince .UpdatedUnix}}
 						</div>
 					</div>
+					<span class="rp-open" aria-hidden="true">{{ctx.Locale.Tr "asc_rp.open"}}</span>
 				</li>
 			{{end}}
 		</ul>
@@ -31,7 +32,7 @@
 	{{end}}
 </section>
 {{end}}
-{{if .HomeCommits}}
+{{if .HomeLanded}}
 <section class="rp-sec" aria-labelledby="rp-landed-title">
 	<div class="rp-sec-h">
 		<div>
@@ -41,16 +42,26 @@
 		<a class="rp-sec-act" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "repo.file_history"}}</a>
 	</div>
 	<ul class="rp-rows">
-		{{range .HomeCommits}}
-			<li class="rp-flight">
+		{{range .HomeLanded}}
+			<li class="rp-flight rp-flight-link">
 				<span class="ds-dot ds-dot-ok" aria-hidden="true"></span>
 				<div class="rp-flight-main">
 					<div class="rp-flight-title"><a href="{{$.RepoLink}}/commit/{{PathEscape .ID.String}}">{{.Summary | RenderEmoji $.Context}}</a></div>
 					<div class="rp-flight-meta">
-						{{if .User}}<a href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>{{else}}<span>{{.Author.Name}}</span>{{end}}<span class="rp-sep-dot"></span><a class="rp-hash" href="{{$.RepoLink}}/commit/{{PathEscape .ID.String}}">{{ShortSha .ID.String}}</a>
+						{{if .User}}<a href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>{{else}}<span>{{.Author.Name}}</span>{{end}}<span class="rp-sep-dot"></span><a class="rp-hash" href="{{$.RepoLink}}/commit/{{PathEscape .ID.String}}" title="{{ctx.Locale.Tr "asc_rp.change_id"}}">{{ShortSha .ID.String}}</a>{{if .StackName}}<span class="rp-sep-dot"></span><a class="rp-hash" href="{{.StackLink}}" title="{{ctx.Locale.Tr "asc_rp.stack_name"}}">{{.StackName}}</a>{{end}}
 					</div>
 				</div>
-				<time class="rp-flight-when">{{DateUtils.TimeSince .Committer.When}}</time>
+				<div class="rp-flight-side">
+					{{if .HasStat}}<span class="rp-delta"><span class="rp-add">+{{.Additions}}</span> <span class="rp-del">&minus;{{.Deletions}}</span></span>{{end}}
+					{{if .Status}}
+						{{if .Status.State.IsSuccess}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.checks_ok"}}</span>
+						{{else if .Status.State.IsPending}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_rp.checks_pending"}}</span>
+						{{else if .Status.State.IsSkipped}}<span class="ds-chip">{{ctx.Locale.Tr "asc_rp.checks_skipped"}}</span>
+						{{else}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_rp.checks_failing"}}</span>{{end}}
+					{{end}}
+					<time class="rp-flight-when">{{DateUtils.TimeSince .Committer.When}}</time>
+				</div>
+				<span class="rp-open" aria-hidden="true">{{ctx.Locale.Tr "asc_rp.open"}}</span>
 			</li>
 		{{end}}
 	</ul>

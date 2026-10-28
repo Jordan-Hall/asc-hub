@@ -26,8 +26,8 @@
 			</div>
 			<div class="rp-codebar">
 				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.file_view"}}">
-					<a href="{{.RepoLink}}/src/{{.BranchNameSubURL}}/{{$treeRel}}"{{if .IsViewFile}} aria-current="true"{{end}}>{{ctx.Locale.Tr "repo.code"}}</a>
-					{{if or .IsBlame .IsRepresentableAsText}}<a href="{{.RepoLink}}/blame/{{.BranchNameSubURL}}/{{$treeRel}}"{{if .IsBlame}} aria-current="true"{{end}}>{{ctx.Locale.Tr "repo.blame"}}</a>{{end}}
+					<a href="{{.RepoLink}}/src/{{.BranchNameSubURL}}/{{$treeRel}}"{{if .IsViewFile}} aria-current="true"{{else}} data-asc-key="b"{{end}}>{{ctx.Locale.Tr "repo.code"}}</a>
+					{{if or .IsBlame .IsRepresentableAsText}}<a href="{{.RepoLink}}/blame/{{.BranchNameSubURL}}/{{$treeRel}}"{{if .IsBlame}} aria-current="true"{{else}} data-asc-key="b"{{end}}>{{ctx.Locale.Tr "repo.blame"}}</a>{{end}}
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}/{{$treeRel}}">{{ctx.Locale.Tr "repo.file_history"}}</a>
 				</div>
 				{{template "repo/branch_dropdown" dict "root" . "ContainerClasses" "rp-ref"}}
@@ -35,7 +35,7 @@
 				<div class="rp-codebar-acts">
 					<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.RawFileLink}}">{{ctx.Locale.Tr "repo.file_raw"}}</a>
 					{{if and .IsViewFile .Repository.CanEnableEditor}}
-						{{if .CanEditFile}}<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}" title="{{.EditFileTooltip}}">{{ctx.Locale.Tr "asc_rp.edit_file"}}</a>{{end}}
+						{{if .CanEditFile}}<a class="ds-btn ds-btn-primary ds-btn-sm" data-asc-key="e" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}" title="{{.EditFileTooltip}}">{{ctx.Locale.Tr "asc_rp.edit_file"}}</a>{{end}}
 					{{end}}
 					{{if .IsViewFile}}
 					<details class="dropdown rp-dd rp-fileops">
@@ -44,7 +44,7 @@
 							<ul>
 								<li><a download href="{{$.RawFileLink}}">{{svg "dsi-download" 18}}{{ctx.Locale.Tr "repo.download_file"}}</a></li>
 								<li><a href="#" id="copy-content" class="{{if not .CanCopyContent}}disabled{{end}}"{{if or .IsImageFile (and .HasSourceRenderedToggle (not .IsDisplayingSource))}} data-link="{{$.RawFileLink}}"{{end}} title="{{if .CanCopyContent}}{{ctx.Locale.Tr "copy_content"}}{{else}}{{ctx.Locale.Tr "copy_type_unsupported"}}{{end}}">{{svg "dsi-copy" 18}}{{ctx.Locale.Tr "copy_content"}}</a></li>
-								{{if not .IsViewCommit}}<li><a href="{{.RepoLink}}/src/commit/{{PathEscape .CommitID}}/{{PathEscapeSegments .TreePath}}">{{svg "dsi-link" 18}}{{ctx.Locale.Tr "repo.file_permalink"}}</a></li>{{end}}
+								{{if not .IsViewCommit}}<li><a data-asc-key="y" href="{{.RepoLink}}/src/commit/{{PathEscape .CommitID}}/{{PathEscapeSegments .TreePath}}">{{svg "dsi-link" 18}}{{ctx.Locale.Tr "repo.file_permalink"}}</a></li>{{end}}
 								{{if and .EnableFeed .IsViewBranch}}<li><a href="{{$.FeedURL}}/rss/{{$.BranchNameSubURL}}/{{PathEscapeSegments .TreePath}}">{{svg "octicon-rss" 18}}{{ctx.Locale.Tr "rss_feed"}}</a></li>{{end}}
 								{{if .SymlinkURL}}<li><a href="{{$.SymlinkURL}}" data-kind="follow-symlink">{{svg "dsi-arrow-right" 18}}{{ctx.Locale.Tr "repo.file_follow"}}</a></li>{{end}}
 								{{if and .Repository.CanEnableEditor .CanDeleteFile}}<li><a class="rp-danger" href="{{.RepoLink}}/_delete/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}">{{svg "dsi-trash" 18}}{{ctx.Locale.Tr "repo.editor.delete_this_file"}}</a></li>{{end}}
@@ -82,6 +82,17 @@
 			{{end}}
 		</div>
 		<aside class="rp-codeside" aria-label="{{ctx.Locale.Tr "asc_rp.about_file"}}">
+			<section class="rp-card rp-keys" aria-labelledby="rp-keys-title">
+				<h2 class="rp-rail-title" id="rp-keys-title">{{ctx.Locale.Tr "asc_rp.keys_title"}}</h2>
+				<ul class="rp-keys-list">
+					<li><a href="{{.RepoLink}}/find/{{.BranchNameSubURL}}" data-asc-key="t"><kbd class="ds-kbd">t</kbd><span>{{ctx.Locale.Tr "asc_rp.go_to_file"}}</span></a></li>
+					{{if or .IsBlame .IsRepresentableAsText}}<li><span><kbd class="ds-kbd">b</kbd><span>{{ctx.Locale.Tr "asc_rp.key_blame"}}</span></span></li>{{end}}
+					{{if and .IsViewFile (not .IsViewCommit)}}<li><span><kbd class="ds-kbd">y</kbd><span>{{ctx.Locale.Tr "repo.file_permalink"}}</span></span></li>{{end}}
+					{{if and .IsViewFile .CanEditFile .Repository.CanEnableEditor}}<li><span><kbd class="ds-kbd">e</kbd><span>{{ctx.Locale.Tr "asc_rp.edit_file"}}</span></span></li>{{end}}
+					<li><button type="button" class="rp-keys-btn" data-asc-key="[" data-asc-toggle="rp-tree-off" data-asc-toggle-target=".rp-codegrid" aria-pressed="false"><kbd class="ds-kbd">[</kbd><span>{{ctx.Locale.Tr "asc_rp.key_tree"}}</span></button></li>
+					<li><span><kbd class="ds-kbd">g</kbd> <kbd class="ds-kbd">c</kbd><span>{{ctx.Locale.Tr "asc_rp.key_code"}}</span></span></li>
+				</ul>
+			</section>
 			<section class="rp-card">
 				<h2 class="rp-rail-title">{{ctx.Locale.Tr "asc_rp.about_file"}}</h2>
 				{{template "repo/file_info" .}}

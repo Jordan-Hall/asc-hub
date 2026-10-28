@@ -58,6 +58,7 @@ import {initAscByoMigration} from './features/asc-byo.js';
 import {initAscUi} from './features/asc-ui.js';
 import {initDsShell} from './features/ds-shell.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
+import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {
   initRepoSettingGitHook,
   initRepoSettingsCollaboration,
@@ -175,6 +176,7 @@ onDomReady(() => {
   initAscUi();
   initDsShell();
   initAscKeys();
+  initAscRepoKeys();
   initAscInboxBadge();
   initRepoProject();
   initRepoPullRequestAllowMaintainerEdit();

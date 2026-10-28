@@ -65,6 +65,40 @@ func LoadPolicyPage(ctx context.Context, conn grpc.ClientConnInterface, repoName
 	return &PolicyPage{View: BuildPolicyView(in), Base: src.GetSource()}, nil
 }
 
+// PolicySummary is the short form of the policy for the repository home: whether the file is present and valid and
+// the first sentences of what it means. It is built from the source alone (one call), so the home stays cheap.
+type PolicySummary struct {
+	Present bool
+	Usable  bool
+	Lines   []string
+}
+
+// maxSummaryLines is how many sentences of the meaning the home card shows.
+const maxSummaryLines = 4
+
+// LoadPolicySummary reads the policy source of a repository and condenses it to a PolicySummary.
+func LoadPolicySummary(ctx context.Context, conn grpc.ClientConnInterface, repoName string) (*PolicySummary, error) {
+	cctx, cancel := context.WithTimeout(ctx, CallTimeout)
+	defer cancel()
+	src, err := ascv1.NewPolicyClient(conn).GetSource(cctx, &ascv1.GetPolicySourceRequest{Repo: RepoRef(repoName)})
+	if err != nil {
+		return nil, err
+	}
+	if len(src.GetText()) > MaxPolicyBytes {
+		return nil, fmt.Errorf("%w: policy text", ErrBadAnswer)
+	}
+	parsed := src.GetParsed()
+	sum := &PolicySummary{Present: src.GetPresent()}
+	sum.Usable = sum.Present && parsed != nil && parsed.GetError() == ""
+	if sum.Usable {
+		sum.Lines = Meaning(parsed, CleanBlock(string(src.GetText()), MaxPolicyBytes), nil, nil, true)
+		if len(sum.Lines) > maxSummaryLines {
+			sum.Lines = sum.Lines[:maxSummaryLines]
+		}
+	}
+	return sum, nil
+}
+
 // Preview is the answer to "check this draft".
 type Preview struct {
 	Valid       bool

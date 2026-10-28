@@ -43,7 +43,7 @@
 					</div>
 					<div class="rp-toolbar-r">
 						{{if $isHomepage}}
-							<a class="ds-btn ds-btn-secondary rp-find" href="{{.Repository.Link}}/find/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "asc_rp.go_to_file"}}</a>
+							<a class="ds-btn ds-btn-secondary rp-find" data-asc-key="t" href="{{.Repository.Link}}/find/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "asc_rp.go_to_file"}}</a>
 						{{end}}
 						{{if and .CanWriteCode .IsViewBranch (not .Repository.IsMirror) (not .Repository.IsArchived)}}
 							<details class="dropdown rp-dd rp-add">
