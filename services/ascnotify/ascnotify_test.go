@@ -39,7 +39,8 @@ func TestQuietHoursCrossMidnightInTheTimeZoneOfThePerson(t *testing.T) {
 func TestValidate(t *testing.T) {
 	require.NoError(t, ascnotify.Prefs{}.Validate())
 	require.NoError(t, ascnotify.Prefs{EmailOff: []string{"mentioned"}, TZ: "Europe/London", Quiet: ascnotify.QuietHours{On: true, From: "20:00", Until: "07:30"}}.Validate())
-	require.Error(t, ascnotify.Prefs{EmailOff: []string{"agent_question"}}.Validate(), "an event with no email cannot be switched")
+	require.NoError(t, ascnotify.Prefs{EmailOff: []string{"agent_question"}}.Validate())
+	require.Error(t, ascnotify.Prefs{EmailOff: []string{"nope"}}.Validate(), "an event the page does not have cannot be switched")
 	require.Error(t, ascnotify.Prefs{TZ: "Mars/Olympus"}.Validate())
 	require.Error(t, ascnotify.Prefs{Quiet: ascnotify.QuietHours{On: true, From: "25:00", Until: "07:30"}}.Validate())
 }

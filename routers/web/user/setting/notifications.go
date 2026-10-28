@@ -84,6 +84,13 @@ func Notifications(ctx *context.Context) {
 		return
 	}
 	ctx.Data["WatchedRepos"] = repos
+	ids := make([]int64, 0, len(repos))
+	for _, r := range repos {
+		ids = append(ids, r.ID)
+	}
+	if last, err := user_model.LastAscNotified(ctx, ctx.Doer.ID, ids); err == nil {
+		ctx.Data["LastNotified"] = last
+	}
 	ctx.HTML(http.StatusOK, tplSettingsNotifications)
 }
 

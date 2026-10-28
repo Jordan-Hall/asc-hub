@@ -1,0 +1,25 @@
+{{/* One documentation page: the article in a calm column with "On this page" beside it. Route GET /-/docs/{slug}. */}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="ds-main site site-docs site-article">
+	<div class="ds-container">
+		<nav class="ds-breadcrumb" aria-label="{{ctx.Locale.Tr "asc_site.docs_title"}}"><a href="{{AppSubUrl}}/-/docs">{{ctx.Locale.Tr "asc_site.docs_title"}}</a> <span aria-hidden="true">/</span> <span>{{.DocsPage.Section}}</span> <span aria-hidden="true">/</span> <b aria-current="page">{{.DocsPage.Title}}</b></nav>
+		<div class="site-article-grid">
+			<article class="site-article-body markup">
+				<h1 class="ds-t-h1">{{.DocsPage.Title}}</h1>
+				{{.DocsHTML}}
+			</article>
+			<aside class="site-toc" aria-label="{{ctx.Locale.Tr "asc_site.docs_on_page"}}">
+				<form class="site-docsearch" role="search" method="get" action="{{AppSubUrl}}/-/docs">
+					<div class="ds-inwrap">{{svg "dsi-search" 16}}<label class="ds-sr" for="docs-q">{{ctx.Locale.Tr "asc_site.docs_search"}}</label><input id="docs-q" class="ds-input" type="search" name="q" maxlength="100" autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_site.docs_search"}}"></div>
+				</form>
+				{{if .DocsTOC}}
+				<h2 class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.docs_on_page"}}</h2>
+				<ul>{{range .DocsTOC}}<li><a href="#{{.ID}}">{{.Text}}</a></li>{{end}}</ul>
+				{{end}}
+				<h2 class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.docs_all"}}</h2>
+				<ul>{{range .DocsPages}}<li><a href="{{AppSubUrl}}/-/docs/{{.Slug}}"{{if eq .Slug $.DocsPage.Slug}} aria-current="page"{{end}}>{{.Title}}</a></li>{{end}}</ul>
+			</aside>
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}

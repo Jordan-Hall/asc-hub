@@ -26,7 +26,10 @@ const (
 // EmailEvents can be switched for email, because the hub sends no email for the others yet.
 var (
 	Events      = []string{"review_requested", "mentioned", "agent_question", "agent_finished", "checks_failed", "restack_conflict", "merge_queue", "policy_changed"}
-	EmailEvents = []string{EventReviewRequested, EventMentioned}
+	// EmailEvents are the events a person can switch for email: the hub sends mail for every one of them, review requests
+	// and mentions from its own mailer, the other six when asc serve reports them (IngestEvents).
+	EmailEvents  = Events
+	IngestEvents = []string{"agent_question", "agent_finished", "checks_failed", "restack_conflict", "merge_queue", "policy_changed"}
 )
 
 const settingKey = "asc.notify"
@@ -144,3 +147,6 @@ func EmailAllowed(ctx context.Context, userID int64, event string, now time.Time
 	}
 	return event == "" || p.EmailOn(event)
 }
+
+// IsIngestEvent reports whether asc serve may report the event to the hub.
+func IsIngestEvent(event string) bool { return slices.Contains(IngestEvents, event) }

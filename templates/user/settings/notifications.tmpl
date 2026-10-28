@@ -87,12 +87,13 @@
 		<div class="ds-card-h"><h2 id="sp-watch">{{ctx.Locale.Tr "asc_work.sp_watching"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_watching_hint"}}</span></div>
 		{{if .WatchedRepos}}
 		<table class="wk-matrix wk-watch">
-			<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_repo"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_level"}}</th><th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "actions"}}</span></th></tr></thead>
+			<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_repo"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_level"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_last"}}</th><th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "actions"}}</span></th></tr></thead>
 			<tbody>
 				{{range .WatchedRepos}}
 				<tr>
 					<th scope="row"><a class="ds-link" href="{{.Link}}">{{.FullName}}</a></th>
 					<td><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_work.sp_all_activity"}}</span></td>
+					<td>{{with index $.LastNotified .ID}}{{DateUtils.TimeSince .}}{{else}}<span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_never"}}</span>{{end}}</td>
 					<td>
 						<form action="{{.Link}}/action/unwatch" method="post">
 							{{$.CsrfTokenHtml}}

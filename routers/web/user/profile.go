@@ -30,6 +30,7 @@ import (
 	"forgejo.org/routers/web/feed"
 	"forgejo.org/routers/web/org"
 	shared_user "forgejo.org/routers/web/shared/user"
+	"forgejo.org/services/ascpresence"
 	"forgejo.org/services/context"
 	user_service "forgejo.org/services/user"
 )
@@ -155,6 +156,9 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 	ctx.Data["IsPrivate"] = private
 
 	ascProfileCounts(ctx)
+	if ctx.ContextUser.IsIndividual() {
+		ctx.Data["AscOnline"] = ascpresence.Online(ctx, ctx.ContextUser.ID)
+	}
 	switch tab {
 	case "followers":
 		ctx.Data["Cards"] = followers
