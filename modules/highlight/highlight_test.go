@@ -206,3 +206,23 @@ c=2`),
 		})
 	}
 }
+
+func TestTSRX(t *testing.T) {
+	src := "function A() @{\n  @if (ok) {\n    <p class=\"x\">{y}</p>\n  }\n}\n"
+
+	// by file name, by the language the file view passes (the detected "TSRX") and by a Markdown fence "tsrx"
+	for _, c := range []struct{ file, lang string }{{"a.tsrx", ""}, {"a", "TSRX"}, {"", "tsrx"}} {
+		out, lexerName, err := File(c.file, c.lang, []byte(src))
+		require.NoError(t, err, "%+v", c)
+		assert.Equal(t, "TSRX", lexerName, "%+v", c)
+		joined := ""
+		for _, l := range out {
+			joined += string(l)
+		}
+		assert.Contains(t, joined, `>@if</span>`, "%+v: the control flow keyword is a token of its own", c)
+		assert.Contains(t, joined, `>p</span>`, "%+v: the tag name is a token of its own", c)
+	}
+
+	_, lexerName := Code("", "tsrx", src)
+	assert.Equal(t, "TSRX", lexerName)
+}

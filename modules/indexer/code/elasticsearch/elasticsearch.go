@@ -24,7 +24,6 @@ import (
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/typesniffer"
 
-	"github.com/go-enry/go-enry/v2"
 	"github.com/olivere/elastic/v7"
 )
 
@@ -302,7 +301,7 @@ func convertResult(searchResult *elastic.SearchResult, kw string, pageSize int) 
 			Language:    language,
 			StartIndex:  startIndex,
 			EndIndex:    endIndex - 9, // remove the length <em></em> since we give Content the original data
-			Color:       enry.GetColor(language),
+			Color:       analyze.GetColor(language),
 		})
 	}
 
@@ -318,7 +317,7 @@ func extractAggs(searchResult *elastic.SearchResult) []*internal.SearchResultLan
 		for _, bucket := range agg.Buckets {
 			searchResultLanguages = append(searchResultLanguages, &internal.SearchResultLanguages{
 				Language: bucket.Key.(string),
-				Color:    enry.GetColor(bucket.Key.(string)),
+				Color:    analyze.GetColor(bucket.Key.(string)),
 				Count:    int(bucket.DocCount),
 			})
 		}

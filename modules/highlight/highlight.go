@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"forgejo.org/modules/analyze"
+	_ "forgejo.org/modules/highlight/tsrx" // registers the TSRX lexer
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"

@@ -11,9 +11,8 @@ import (
 	"strings"
 
 	"forgejo.org/models/db"
+	"forgejo.org/modules/analyze"
 	"forgejo.org/modules/timeutil"
-
-	"github.com/go-enry/go-enry/v2"
 )
 
 // LanguageStat describes language statistics of a repository
@@ -35,7 +34,7 @@ func init() {
 
 // LoadAttributes loads attributes
 func (stat *LanguageStat) LoadAttributes() {
-	stat.Color = enry.GetColor(stat.Language)
+	stat.Color = analyze.GetColor(stat.Language)
 }
 
 // LanguageStatList defines a list of language statistics
