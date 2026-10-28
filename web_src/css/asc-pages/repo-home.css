@@ -1247,6 +1247,10 @@
 /* ---- activity: the number landed and a sparkline of the weeks ---- */
 .rp-activity-n {
   margin: 0;
+  font-size: 14px;
+}
+
+.rp-activity-n b {
   font-size: 28px;
   line-height: 1.1;
 }
