@@ -37,12 +37,12 @@ var sshEntries = []string{
 // Check cron options on /admin, including those that are available conditionally
 func testAssertAdminDashboardOptions(t *testing.T, page *HTMLDoc, locale translation.Locale, expectSSH bool) {
 	for _, entry := range commonEntries {
-		page.AssertSelection(t, page.FindByText("table tr td", locale.TrString(fmt.Sprintf("admin.dashboard.%s", entry))), true)
-		page.AssertSelection(t, page.Find(fmt.Sprintf("table tr td button[value='%s']", entry)), true)
+		page.AssertSelection(t, page.FindByText(".ds-list .ds-li-title", locale.TrString(fmt.Sprintf("admin.dashboard.%s", entry))), true)
+		page.AssertSelection(t, page.Find(fmt.Sprintf(".ds-list .ds-li button[value='%s']", entry)), true)
 	}
 	for _, entry := range sshEntries {
-		page.AssertSelection(t, page.FindByText("table tr td", locale.TrString(fmt.Sprintf("admin.dashboard.%s", entry))), expectSSH)
-		page.AssertSelection(t, page.Find(fmt.Sprintf("table tr td button[value='%s']", entry)), expectSSH)
+		page.AssertSelection(t, page.FindByText(".ds-list .ds-li-title", locale.TrString(fmt.Sprintf("admin.dashboard.%s", entry))), expectSSH)
+		page.AssertSelection(t, page.Find(fmt.Sprintf(".ds-list .ds-li button[value='%s']", entry)), expectSSH)
 	}
 }
 

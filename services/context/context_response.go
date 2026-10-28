@@ -69,6 +69,7 @@ func (ctx *Context) RedirectToFirst(location ...string) string {
 }
 
 const (
+	tplStatus403 base.TplName = "status/403"
 	tplStatus404 base.TplName = "status/404"
 	tplStatus500 base.TplName = "status/500"
 )
@@ -175,6 +176,30 @@ func (ctx *Context) notFoundInternal(logMsg string, logErr error) {
 	ctx.Data["IsRepo"] = ctx.Repo.Repository != nil
 	ctx.Data["Title"] = ctx.Locale.TrString("error.not_found.title")
 	ctx.HTML(http.StatusNotFound, tplStatus404)
+}
+
+// Error answers with the status. A 403 asked by a browser (Accept: text/html) gets the status page; every other
+// answer is the short plain text it always was.
+func (ctx *Context) Error(status int, contents ...string) {
+	if status != http.StatusForbidden || ctx.Written() || !ctx.acceptsHTML() {
+		ctx.Base.Error(status, contents...)
+		return
+	}
+	if len(contents) > 0 {
+		ctx.Data["ForbiddenPrompt"] = contents[0]
+	}
+	ctx.Data["IsRepo"] = ctx.Repo != nil && ctx.Repo.Repository != nil
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_err.title403")
+	ctx.HTML(http.StatusForbidden, tplStatus403)
+}
+
+func (ctx *Context) acceptsHTML() bool {
+	for _, part := range ctx.Req.Header["Accept"] {
+		if strings.Contains(part, "text/html") {
+			return true
+		}
+	}
+	return false
 }
 
 // ServerError displays a 500 (Internal Server Error) page and prints the given error, if any.

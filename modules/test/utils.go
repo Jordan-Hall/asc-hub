@@ -32,7 +32,7 @@ func RedirectURL(resp http.ResponseWriter) string {
 }
 
 func IsNormalPageCompleted(s string) bool {
-	return strings.Contains(s, `<footer class="page-footer"`) && strings.Contains(s, `</html>`)
+	return strings.Contains(s, `<footer class="ds-footer`) && strings.Contains(s, `</html>`)
 }
 
 // use for global variables only

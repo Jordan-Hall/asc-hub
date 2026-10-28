@@ -2,33 +2,29 @@
 <div role="main" aria-label="{{.Title}}" class="ds-main page-content repository new release rp-page">
 	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "repo.release.new_release") "SubBack" (print .RepoLink "/releases"))}}
 	<div class="ds-container ds-container-form rp-body rp-skin">
-		<h2 class="ui dividing header rp-h1 rp-form-title">
-			{{if .PageIsEditRelease}}
-				{{ctx.Locale.Tr "repo.release.edit_release"}}
-				<div class="sub header">{{ctx.Locale.Tr "repo.release.edit_subheader"}}</div>
-			{{else}}
-				{{ctx.Locale.Tr "repo.release.new_release"}}
-				<div class="sub header">{{ctx.Locale.Tr "repo.release.new_subheader"}}</div>
-			{{end}}
-		</h2>
+		<h1 class="ds-t-h2 rp-h1 rp-form-title">{{if .PageIsEditRelease}}{{ctx.Locale.Tr "repo.release.edit_release"}}{{else}}{{ctx.Locale.Tr "repo.release.new_release"}}{{end}}</h1>
+		<p class="ds-c-2 ds-mt-0">{{if .PageIsEditRelease}}{{ctx.Locale.Tr "repo.release.edit_subheader"}}{{else}}{{ctx.Locale.Tr "repo.release.new_subheader"}}{{end}}</p>
 		{{template "base/alert" .}}
-		<form class="ui form" action="{{.Link}}" method="post">
-			<div class="ui seven wide target">
-				<div class="inline field {{if .Err_TagName}}error{{end}}">
-					{{if .PageIsEditRelease}}
-						<b>{{.tag_name}}</b><span class="at">@</span><strong>{{.tag_target}}</strong>
-					{{else}}
-						<input id="tag-name" name="tag_name" value="{{.tag_name}}" aria-label="{{ctx.Locale.Tr "repo.release.tag_name"}}" placeholder="{{ctx.Locale.Tr "repo.release.tag_name"}}" autofocus required maxlength="255">
-						<input id="tag-name-editor" type="hidden" data-existing-tags="{{JsonUtils.EncodeToString .Tags}}" data-tag-helper="{{ctx.Locale.Tr "repo.release.tag_helper"}}" data-tag-helper-new="{{ctx.Locale.Tr "repo.release.tag_helper_new"}}" data-tag-helper-existing="{{ctx.Locale.Tr "repo.release.tag_helper_existing"}}">
-						<div id="tag-target-selector" class="tw-inline-block">
-							<span class="at">@</span>
-							<div class="ui selection dropdown">
+		<form class="ds-form rp-rel-form" action="{{.Link}}" method="post">
+			<section class="ds-card" aria-label="{{ctx.Locale.Tr "repo.release.tag_name"}}">
+				<div class="ds-card-b ds-stack-16">
+					<div class="ds-field{{if .Err_TagName}} is-err{{end}}">
+						{{if .PageIsEditRelease}}
+							<p class="ds-mono ds-sb ds-break">{{.tag_name}} <span class="at ds-c-2">@</span> {{.tag_target}}</p>
+						{{else}}
+							<label class="ds-label" for="tag-name">{{ctx.Locale.Tr "repo.release.tag_name"}}</label>
+							<input class="ds-input ds-mono{{if .Err_TagName}} is-err{{end}}" id="tag-name" name="tag_name" value="{{.tag_name}}" placeholder="v1.0.0" autofocus required maxlength="255" autocomplete="off" autocapitalize="off" spellcheck="false">
+							<input id="tag-name-editor" type="hidden" data-existing-tags="{{JsonUtils.EncodeToString .Tags}}" data-tag-helper="{{ctx.Locale.Tr "repo.release.tag_helper"}}" data-tag-helper-new="{{ctx.Locale.Tr "repo.release.tag_helper_new"}}" data-tag-helper-existing="{{ctx.Locale.Tr "repo.release.tag_helper_existing"}}">
+							<p class="ds-hint help" id="tag-helper">{{ctx.Locale.Tr "repo.release.tag_helper"}}</p>
+						{{end}}
+					</div>
+					{{if not .PageIsEditRelease}}
+						<div class="ds-field" id="tag-target-selector">
+							<span class="ds-label" id="rel-target-label">{{ctx.Locale.Tr "repo.release.target"}}</span>
+							<div class="ui selection dropdown" role="combobox" aria-labelledby="rel-target-label">
 								<input type="hidden" name="tag_target" value="{{.tag_target}}">
 								{{svg "octicon-git-branch"}}
-								<div class="text">
-									{{ctx.Locale.Tr "repo.release.target"}} :
-									<strong id="repo-branch-current">{{.Repository.DefaultBranch}}</strong>
-								</div>
+								<div class="text"><strong id="repo-branch-current">{{.Repository.DefaultBranch}}</strong></div>
 								{{svg "octicon-triangle-down" 14 "dropdown icon"}}
 								<div class="menu">
 									{{range .Branches}}
@@ -37,17 +33,17 @@
 								</div>
 							</div>
 						</div>
-						<div>
-							<span id="tag-helper" class="help tw-mt-2 tw-pb-0">{{ctx.Locale.Tr "repo.release.tag_helper"}}</span>
-						</div>
 					{{end}}
+					<div class="ds-field{{if .Err_Title}} is-err{{end}}">
+						<label class="ds-label" for="release-title">{{ctx.Locale.Tr "repo.release.title"}}</label>
+						<input class="ds-input{{if .Err_Title}} is-err{{end}}" id="release-title" name="title" placeholder="{{ctx.Locale.Tr "repo.release.title"}}" value="{{if .PageIsEditRelease}}{{.title}}{{else}}{{.tag_name}}{{end}}" maxlength="255">
+					</div>
 				</div>
-			</div>
-			<div class="eleven wide tw-pt-0">
-				<div class="field {{if .Err_Title}}error{{end}}">
-					<input id="release-title" name="title" aria-label="{{ctx.Locale.Tr "repo.release.title"}}" placeholder="{{ctx.Locale.Tr "repo.release.title"}}" value="{{if .PageIsEditRelease}}{{.title}}{{else}}{{.tag_name}}{{end}}" autofocus maxlength="255">
-				</div>
-				<div class="field">
+			</section>
+
+			<section class="ds-card" aria-labelledby="rel-notes-title">
+				<div class="ds-card-h"><h2 id="rel-notes-title">{{ctx.Locale.Tr "repo.release.message"}}</h2></div>
+				<div class="ds-card-b">
 					{{template "shared/combomarkdowneditor" (dict
 						"MarkdownPreviewUrl" (print .Repository.Link "/markup")
 						"MarkdownPreviewContext" .RepoLink
@@ -59,117 +55,76 @@
 						"EasyMDE" true
 					)}}
 				</div>
-				{{range .attachments}}
-					<div class="field flex-text-block" id="attachment-{{.ID}}">
-						<div class="flex-text-inline tw-flex-1">
-							<div class="flex-text-inline tw-shrink-0" title="{{ctx.Locale.Tr "repo.release.type_attachment"}}">
-								{{if .ExternalURL}}
-									{{svg "octicon-link-external" 16 "tw-mr-2"}}
-								{{else}}
-									{{svg "octicon-package" 16 "tw-mr-2"}}
-								{{end}}
-							</div>
-							<input name="attachment-edit-name-{{.UUID}}" placeholder="{{ctx.Locale.Tr "repo.release.asset_name"}}" class="attachment_edit" required value="{{.Name}}">
-							<input name="attachment-del-{{.UUID}}" type="hidden"
-							value="false">
-							{{if .ExternalURL}}
-								<input name="attachment-edit-exturl-{{.UUID}}" placeholder="{{ctx.Locale.Tr "repo.release.asset_external_url"}}" class="attachment_edit" required value="{{.ExternalURL}}">
-							{{else}}
-								<span class="ui text grey tw-whitespace-nowrap tw-ml-auto tw-pl-3">{{ctx.Locale.TrPluralString
-								.DownloadCount "release.n_downloads" (ctx.Locale.PrettyNumber .DownloadCount)}} · {{.Size | ctx.Locale.TrSize}}</span>
-							{{end}}
-						</div>
-						<a class="ui mini red button remove-rel-attach tw-ml-3" data-id="{{.ID}}" data-uuid="{{.UUID}}">
-							{{ctx.Locale.Tr "remove"}}
-						</a>
-					</div>
-				{{end}}
-				<div class="field flex-text-block tw-hidden" id="attachment-template">
-					<div class="flex-text-inline tw-flex-1">
-						<div class="flex-text-inline tw-shrink-0" title="{{ctx.Locale.Tr "repo.release.type_external_asset"}}">
-							{{svg "octicon-link-external" 16 "tw-mr-2"}}
-						</div>
-						<input name="attachment-template-new-name" placeholder="{{ctx.Locale.Tr "repo.release.asset_name"}}" class="attachment_edit">
-						<input name="attachment-template-new-exturl" placeholder="{{ctx.Locale.Tr "repo.release.asset_external_url"}}" class="attachment_edit">
-					</div>
-					<a class="ui mini red button remove-rel-attach tw-ml-3">
-						{{ctx.Locale.Tr "remove"}}
-					</a>
+			</section>
+
+			<section class="ds-card" aria-labelledby="rel-files-title">
+				<div class="ds-card-h">
+					<h2 id="rel-files-title">{{ctx.Locale.Tr "repo.release.downloads"}}</h2>
+					<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm ds-ml-auto" id="add-external-link">{{ctx.Locale.Tr "repo.release.add_external_asset"}}</button>
 				</div>
-				<button type="button" class="ui mini button tw-float-right tw-mb-4 tw-mt-2" id="add-external-link">
-					{{ctx.Locale.Tr "repo.release.add_external_asset"}}
-				</button>
-				{{if .IsAttachmentEnabled}}
-					<div class="field">
-						{{template "repo/upload" .}}
-					</div>
-				{{end}}
-			</div>
-			<div class="divider"></div>
-			<div class="ui">
-				<div>
-					<fieldset>
-						{{if not .PageIsEditRelease}}
-							<label>
-								<input type="checkbox" name="add_tag_msg">
-								{{ctx.Locale.Tr "repo.release.add_tag_msg"}}
-							</label>
-						{{else}}
-							<input type="hidden" name="add_tag_msg" value="false">
-						{{end}}
-						<label>
-							<input type="checkbox" name="prerelease" {{if .prerelease}}checked{{end}}>
-							{{ctx.Locale.Tr "repo.release.prerelease_desc"}}
-							<span class="help">{{ctx.Locale.Tr "repo.release.prerelease_helper"}}</span>
-						</label>
-						{{if not .DisableDownloadSourceArchives}}
-							<label>
-								<input type="checkbox" name="hide_archive_links" {{if .hide_archive_links}}checked{{end}}>
-								{{ctx.Locale.Tr "repo.release.hide_archive_links"}}
-								<span class="help">{{ctx.Locale.Tr "repo.release.hide_archive_links_helper"}}</span>
-							</label>
-						{{end}}
-					</fieldset>
-					<div class="divider tw-mt-0"></div>
-					{{if .PageIsEditRelease}}
-						<div class="button-sequence tw-justify-between">
-							<a class="danger button delete-button" data-url="{{$.RepoLink}}/releases/delete" data-id="{{.ID}}" data-modal-id="delete-release">
-								{{ctx.Locale.Tr "repo.release.delete_release"}}
-							</a>
-							<div class="button-sequence">
-								<a class="secondary button" href="{{.RepoLink}}/releases">
-									{{ctx.Locale.Tr "repo.release.cancel"}}
-								</a>
-								{{if .IsDraft}}
-									<button class="secondary button" type="submit" name="draft" value="{{ctx.Locale.Tr "repo.release.save_draft"}}">
-										{{ctx.Locale.Tr "repo.release.save_draft"}}
-									</button>
-									<button class="primary button">
-										{{ctx.Locale.Tr "repo.release.publish"}}
-									</button>
+				<div class="ds-card-b ds-stack-12">
+					{{range .attachments}}
+						<div class="rp-rel-file" id="attachment-{{.ID}}">
+							<span class="rp-rel-file-ic" title="{{ctx.Locale.Tr "repo.release.type_attachment"}}" aria-hidden="true">{{if .ExternalURL}}{{svg "octicon-link-external" 16}}{{else}}{{svg "octicon-package" 16}}{{end}}</span>
+							<div class="rp-rel-file-main">
+								<input class="ds-input attachment_edit" name="attachment-edit-name-{{.UUID}}" aria-label="{{ctx.Locale.Tr "repo.release.asset_name"}}" placeholder="{{ctx.Locale.Tr "repo.release.asset_name"}}" required value="{{.Name}}">
+								<input name="attachment-del-{{.UUID}}" type="hidden" value="false">
+								{{if .ExternalURL}}
+									<input class="ds-input attachment_edit" name="attachment-edit-exturl-{{.UUID}}" aria-label="{{ctx.Locale.Tr "repo.release.asset_external_url"}}" placeholder="{{ctx.Locale.Tr "repo.release.asset_external_url"}}" required value="{{.ExternalURL}}">
 								{{else}}
-									<button class="primary button">
-										{{ctx.Locale.Tr "repo.release.edit_release"}}
-									</button>
+									<span class="ds-t-small ds-c-2">{{ctx.Locale.TrPluralString .DownloadCount "release.n_downloads" (ctx.Locale.PrettyNumber .DownloadCount)}} &middot; {{.Size | ctx.Locale.TrSize}}</span>
 								{{end}}
 							</div>
-						</div>
-					{{else}}
-						<div class="button-sequence tw-justify-end">
-							{{if not .tag_name}}
-								<button class="secondary button" name="tag_only" value="1">
-									{{ctx.Locale.Tr "repo.release.add_tag"}}
-								</button>
-							{{end}}
-							<button class="secondary button" name="draft" value="1">
-								{{ctx.Locale.Tr "repo.release.save_draft"}}
-							</button>
-							<button class="primary button">
-								{{ctx.Locale.Tr "repo.release.publish"}}
-							</button>
+							<button type="button" class="ds-btn ds-btn-danger ds-btn-sm remove-rel-attach" data-id="{{.ID}}" data-uuid="{{.UUID}}">{{ctx.Locale.Tr "remove"}}</button>
 						</div>
 					{{end}}
+					<div class="rp-rel-file tw-hidden" id="attachment-template">
+						<span class="rp-rel-file-ic" title="{{ctx.Locale.Tr "repo.release.type_external_asset"}}" aria-hidden="true">{{svg "octicon-link-external" 16}}</span>
+						<div class="rp-rel-file-main">
+							<input class="ds-input attachment_edit" name="attachment-template-new-name" aria-label="{{ctx.Locale.Tr "repo.release.asset_name"}}" placeholder="{{ctx.Locale.Tr "repo.release.asset_name"}}">
+							<input class="ds-input attachment_edit" name="attachment-template-new-exturl" aria-label="{{ctx.Locale.Tr "repo.release.asset_external_url"}}" placeholder="{{ctx.Locale.Tr "repo.release.asset_external_url"}}">
+						</div>
+						<button type="button" class="ds-btn ds-btn-danger ds-btn-sm remove-rel-attach">{{ctx.Locale.Tr "remove"}}</button>
+					</div>
+					{{if .IsAttachmentEnabled}}
+						{{template "repo/upload" .}}
+					{{end}}
 				</div>
+			</section>
+
+			<section class="ds-card" aria-labelledby="rel-opts-title">
+				<div class="ds-card-h"><h2 id="rel-opts-title">{{ctx.Locale.Tr "repo.release.options"}}</h2></div>
+				<div class="ds-card-b ds-stack-16">
+					{{if not .PageIsEditRelease}}
+						<div class="ds-check"><input type="checkbox" id="rel-add-tag-msg" name="add_tag_msg"><label for="rel-add-tag-msg">{{ctx.Locale.Tr "repo.release.add_tag_msg"}}</label></div>
+					{{else}}
+						<input type="hidden" name="add_tag_msg" value="false">
+					{{end}}
+					<div class="ds-check"><input type="checkbox" id="rel-prerelease" name="prerelease" {{if .prerelease}}checked{{end}}><label for="rel-prerelease">{{ctx.Locale.Tr "repo.release.prerelease_desc"}}<span class="ds-hint help">{{ctx.Locale.Tr "repo.release.prerelease_helper"}}</span></label></div>
+					{{if not .DisableDownloadSourceArchives}}
+						<div class="ds-check"><input type="checkbox" id="rel-hide-archives" name="hide_archive_links" {{if .hide_archive_links}}checked{{end}}><label for="rel-hide-archives">{{ctx.Locale.Tr "repo.release.hide_archive_links"}}<span class="ds-hint help">{{ctx.Locale.Tr "repo.release.hide_archive_links_helper"}}</span></label></div>
+					{{end}}
+				</div>
+			</section>
+
+			<div class="ds-sticky-actions rp-rel-actions">
+				{{if .PageIsEditRelease}}
+					<a class="ds-btn ds-btn-danger delete-button" role="button" href="#" data-url="{{$.RepoLink}}/releases/delete" data-id="{{.ID}}" data-modal-id="delete-release">{{ctx.Locale.Tr "repo.release.delete_release"}}</a>
+					<span class="ds-grow"></span>
+					<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/releases">{{ctx.Locale.Tr "repo.release.cancel"}}</a>
+					{{if .IsDraft}}
+						<button class="ds-btn ds-btn-secondary" type="submit" name="draft" value="{{ctx.Locale.Tr "repo.release.save_draft"}}">{{ctx.Locale.Tr "repo.release.save_draft"}}</button>
+						<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.release.publish"}}</button>
+					{{else}}
+						<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.release.edit_release"}}</button>
+					{{end}}
+				{{else}}
+					{{if not .tag_name}}
+						<button class="ds-btn ds-btn-secondary" name="tag_only" value="1">{{ctx.Locale.Tr "repo.release.add_tag"}}</button>
+					{{end}}
+					<button class="ds-btn ds-btn-secondary" name="draft" value="1">{{ctx.Locale.Tr "repo.release.save_draft"}}</button>
+					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.release.publish"}}</button>
+				{{end}}
 			</div>
 		</form>
 	</div>
