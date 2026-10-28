@@ -349,10 +349,23 @@
 }
 
 .wk-segs li {
+  position: relative;
   flex: 1;
   height: 5px;
   border-radius: 99px;
   background: var(--line-strong);
+}
+
+/* the whole 44 px band around a bar opens that change */
+.wk-seg-link {
+  position: absolute;
+  inset: -20px 0;
+  border-radius: 6px;
+}
+
+.wk-seg-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -4px;
 }
 
 .wk-segs li.wk-seg-green { background: var(--ok); }
