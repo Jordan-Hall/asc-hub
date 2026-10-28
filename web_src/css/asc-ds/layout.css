@@ -1809,3 +1809,13 @@ body.ds-lock {
   font-weight: 700;
   letter-spacing: 0.12em;
 }
+
+/* a small icon that is a link keeps a 24 px target */
+.ds-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  vertical-align: middle;
+}

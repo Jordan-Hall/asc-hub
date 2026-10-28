@@ -1,21 +1,21 @@
-{{/* The tabs of an organization: views of one organization (settings are a separate area). */}}
+{{/* The tabs of an organization (board OrgProfile): Repositories, People, Teams, Packages, Projects. Settings are a separate area. */}}
 <nav class="ds-tabs wk-pf-tabs" aria-label="{{ctx.Locale.Tr "asc_work.org_tabs"}}">
 	<a class="ds-tab" href="{{$.Org.HomeLink}}"{{if .PageIsViewRepositories}} aria-current="page"{{end}}>{{ctx.Locale.Tr "user.repositories"}}{{if .RepoCount}} <span class="ds-count">{{.RepoCount}}</span>{{end}}<span hidden test-name="repository-count">{{.RepoCount}}</span></a>
-	{{if .CanReadProjects}}
-		<a class="ds-tab" href="{{$.Org.HomeLink}}/-/projects"{{if .PageIsViewProjects}} aria-current="page"{{end}}>{{ctx.Locale.Tr "user.projects"}}{{if .ProjectCount}} <span class="ds-count">{{.ProjectCount}}</span>{{end}}<span hidden test-name="project-count">{{.ProjectCount}}</span></a>
-	{{end}}
-	{{if and .IsPackageEnabled .CanReadPackages}}
-		<a class="ds-tab" href="{{$.Org.HomeLink}}/-/packages"{{if .IsPackagesPage}} aria-current="page"{{end}}>{{ctx.Locale.Tr "packages.title"}}{{if .PackageCount}} <span class="ds-count">{{.PackageCount}}</span>{{end}}<span hidden test-name="package-count">{{.PackageCount}}</span></a>
-	{{end}}
-	{{if and .IsRepoIndexerEnabled .CanReadCode}}
-		<a class="ds-tab" href="{{$.Org.HomeLink}}/-/code"{{if .IsCodePage}} aria-current="page"{{end}}>{{ctx.Locale.Tr "org.code"}}</a>
-	{{end}}
 	{{if .NumMembers}}
-		<a class="ds-tab" href="{{$.OrgLink}}/members"{{if $.PageIsOrgMembers}} aria-current="page"{{end}}>{{ctx.Locale.Tr "org.members"}} <span class="ds-count">{{.NumMembers}}</span></a>
+		<a class="ds-tab" href="{{$.OrgLink}}/members"{{if $.PageIsOrgMembers}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_admin.people"}} <span class="ds-count">{{.NumMembers}}</span></a>
 	{{end}}
 	<span hidden test-name="member-count">{{.NumMembers}}</span>
 	{{if .IsOrganizationMember}}
 		<a class="ds-tab" href="{{$.OrgLink}}/teams"{{if $.PageIsOrgTeams}} aria-current="page"{{end}}>{{ctx.Locale.Tr "org.teams"}}{{if .NumTeams}} <span class="ds-count">{{.NumTeams}}</span>{{end}}</a>
 	{{end}}
 	<span hidden test-name="team-count">{{.NumTeams}}</span>
+	{{if and .IsPackageEnabled .CanReadPackages}}
+		<a class="ds-tab" href="{{$.Org.HomeLink}}/-/packages"{{if .IsPackagesPage}} aria-current="page"{{end}}>{{ctx.Locale.Tr "packages.title"}}{{if .PackageCount}} <span class="ds-count">{{.PackageCount}}</span>{{end}}<span hidden test-name="package-count">{{.PackageCount}}</span></a>
+	{{end}}
+	{{if .CanReadProjects}}
+		<a class="ds-tab" href="{{$.Org.HomeLink}}/-/projects"{{if .PageIsViewProjects}} aria-current="page"{{end}}>{{ctx.Locale.Tr "user.projects"}}{{if .ProjectCount}} <span class="ds-count">{{.ProjectCount}}</span>{{end}}<span hidden test-name="project-count">{{.ProjectCount}}</span></a>
+	{{end}}
+	{{if and .IsRepoIndexerEnabled .CanReadCode}}
+		<a class="ds-tab" href="{{$.Org.HomeLink}}/-/code"{{if .IsCodePage}} aria-current="page"{{end}}>{{ctx.Locale.Tr "org.code"}}</a>
+	{{end}}
 </nav>
