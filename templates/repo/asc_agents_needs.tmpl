@@ -1,0 +1,41 @@
+{{/*
+The "Needs you" card: permission and plan requests that wait for a person.
+Template Attributes:
+* AscAgentsNeeds: []ascagentui.Request (pending only)
+* AscAgentsCanStart: the person may decide (code write, not archived)
+* AscAgentsBase, CsrfTokenHtml
+Each decision form posts to {{AscAgentsBase}}/requests/{id}/decide; web_src/js/features/asc-agent-needs.ts sends it in place.
+*/}}
+<section class="rv-card ag-needs" aria-labelledby="ag-needs-h" data-testid="asc-agents-needs-you" data-asc-needs>
+	<div class="rv-card-h">
+		<h2 id="ag-needs-h">{{ctx.Locale.Tr "asc_review.agents_needs_title"}}</h2>
+		<span class="rv-pill rv-pill-warn ag-needs-n" data-asc-needs-count>{{len .AscAgentsNeeds}}</span>
+	</div>
+	{{if .AscAgentsNeeds}}
+	<ul class="rv-list ag-needs-list" role="list">
+		{{range .AscAgentsNeeds}}
+		<li class="ag-need" data-asc-need data-request="{{.ID}}">
+			<div class="ag-need-h"><b>{{ctx.Locale.Tr "asc_review.agents_run_n" .RunID}}</b> <span class="rv-pill {{if eq .Kind "plan"}}rv-pill-info{{else}}rv-pill-warn{{end}}">{{if eq .Kind "plan"}}{{ctx.Locale.Tr "asc_review.agents_kind_plan"}}{{else}}{{ctx.Locale.Tr "asc_review.agents_kind_permission"}}{{end}}</span></div>
+			<p class="ag-need-t"><span class="rv-mono ag-agent-name">{{.Agent}}</span> {{.Summary}}{{if .Detail}} <code class="ag-need-detail">{{.Detail}}</code>{{end}}</p>
+			{{if $.AscAgentsCanStart}}
+			<form class="ag-need-acts" method="post" action="{{$.AscAgentsBase}}/requests/{{.ID}}/decide" data-asc-decide>
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="run" value="{{.RunID}}">
+				{{if eq .Kind "plan"}}
+					<a class="rv-btn rv-btn-primary rv-btn-sm" href="{{$.AscAgentsBase}}/runs/{{.RunID}}#ag-plan">{{ctx.Locale.Tr "asc_review.agents_review_plan"}}</a>
+				{{else}}
+					<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" name="decision" value="allow">{{ctx.Locale.Tr "asc_review.agents_allow_once"}}</button>
+					<button class="rv-btn rv-btn-ghost rv-btn-sm" type="submit" name="decision" value="deny">{{ctx.Locale.Tr "asc_review.agents_deny"}}</button>
+				{{end}}
+			</form>
+			{{else}}
+			<p class="rv-hint">{{ctx.Locale.Tr "asc_review.agents_need_readonly"}}</p>
+			{{end}}
+			<p class="rv-hint ag-need-status" role="status" data-asc-need-status></p>
+		</li>
+		{{end}}
+	</ul>
+	{{else}}
+	<div class="rv-card-b"><p class="rv-muted">{{ctx.Locale.Tr "asc_review.agents_needs_none"}}</p></div>
+	{{end}}
+</section>

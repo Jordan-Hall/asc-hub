@@ -1,10 +1,10 @@
 {{/*
-The agent runs of a repository (routers/web/repo/asc_agents.go).
+The agent runs of a repository (routers/web/repo/asc_agents.go, asc_agents_board.go).
 Template Attributes:
 * AscAgentsRuns: []ascAgentRunRow, AscAgentsActive / AscAgentsWaiting / AscAgentsDone: how many of them are in that state
-* AscAgentsWaitingRuns: the runs of the page that wait for a person
+* AscAgentStats: the four cards; AscAgentsNeeds: the pending requests; AscAgentsRoster: the agents of the repository
 * AscAgentsNext: the link to the next page, if any
-* AscAgentsFilterState / AscAgentsFilterMine / AscAgentsFilterAgent, AscAgentsStateFilters
+* AscAgentsFilterState / AscAgentsFilterMine / AscAgentsFilterAgent / AscAgentsFilterQ, AscAgentsStateFilters
 * AscAgentsFailure / AscAgentsDisabled: see repo/asc_agents_notice
 */}}
 {{template "base/head" .}}
@@ -25,72 +25,120 @@ Template Attributes:
 
 		{{if not .AscAgentsDisabled}}
 			{{if and .AscAgentFeatures (not .AscAgentsFailure)}}
-			<div class="rv-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_review.agents_stats_label"}}">
-				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_active"}}</div><div class="rv-stat-v">{{.AscAgentsActive}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}</div></div>
-				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_waiting"}}</div><div class="rv-stat-v">{{.AscAgentsWaiting}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}</div></div>
-				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_done"}}</div><div class="rv-stat-v">{{.AscAgentsDone}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}</div></div>
-				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_shown"}}</div><div class="rv-stat-v">{{len .AscAgentsRuns}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}</div></div>
+			{{$st := .AscAgentStats}}
+			<div class="rv-stats ag-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_review.agents_stats_label"}}" data-testid="asc-agents-stats">
+				<div class="rv-card rv-stat">
+					<div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_running"}}</div>
+					<div class="rv-stat-v">{{if $st.HasTotal}}{{$st.Running}}{{else}}{{.AscAgentsActive}}{{end}}</div>
+					<div class="rv-stat-d">{{if $st.HasTotal}}{{ctx.Locale.TrN $st.ActiveAgents "asc_review.agents_stat_agents_one" "asc_review.agents_stat_agents_other" $st.ActiveAgents}}{{else}}{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}{{end}}</div>
+				</div>
+				<div class="rv-card rv-stat">
+					<div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_waiting"}}</div>
+					<div class="rv-stat-v ag-v-warn">{{$st.Waiting}}</div>
+					<div class="rv-stat-d">{{ctx.Locale.TrN $st.Permissions "asc_review.agents_stat_perm_one" "asc_review.agents_stat_perm_other" $st.Permissions}}, {{ctx.Locale.TrN $st.Plans "asc_review.agents_stat_plan_one" "asc_review.agents_stat_plan_other" $st.Plans}}</div>
+				</div>
+				<div class="rv-card rv-stat">
+					<div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_landed"}}</div>
+					{{if $st.HasLanded}}
+						<div class="rv-stat-v ag-v-ok">{{$st.Landed}}</div>
+						<div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_landed_pct" $st.LandedPct}}</div>
+					{{else}}
+						<div class="rv-stat-v">{{.AscAgentsDone}}</div>
+						<div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}</div>
+					{{end}}
+				</div>
+				<div class="rv-card rv-stat">
+					<div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_spend"}}</div>
+					{{if $st.HasSpend}}
+						<div class="rv-stat-v">{{$st.Spend.Cost}}</div>
+						<div class="rv-stat-d">{{if $st.Spend.Cap}}{{ctx.Locale.Tr "asc_review.agents_stat_cap" $st.Spend.Cap $st.SpendDay}}{{else}}{{ctx.Locale.Tr "asc_review.agents_stat_nocap" $st.SpendDay}}{{end}}</div>
+						{{if $st.Spend.Spark}}<svg class="ag-spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true" focusable="false"><polyline points="{{$st.Spend.Spark}}" fill="none" stroke="currentColor" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>{{end}}
+					{{else}}
+						<div class="rv-stat-v">&mdash;</div>
+						<div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_unavailable"}}</div>
+					{{end}}
+				</div>
 			</div>
+			{{if .AscAgentsPartial}}<p class="rv-hint" role="note" data-testid="asc-agents-partial">{{ctx.Locale.Tr "asc_review.agents_partial"}}</p>{{end}}
 			{{end}}
 
-			{{if .AscAgentsWaitingRuns}}
-				<section class="rv-banner rv-banner-warn rv-needs" aria-labelledby="rv-needs-h" data-testid="asc-agents-needs-you">
-					<div>
-						<h2 id="rv-needs-h" class="rv-h4">{{ctx.Locale.Tr "asc_review.agents_needs_you" (len .AscAgentsWaitingRuns)}}</h2>
-						<ul class="rv-needs-list">
-							{{range .AscAgentsWaitingRuns}}
-								<li><span><b>{{.Agent}}</b> · {{ctx.Locale.Tr "asc_review.agents_run_n" .ID}} · {{.Title}}</span> <a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.Link}}">{{ctx.Locale.Tr "asc_review.agents_open_run"}}</a></li>
-							{{end}}
-						</ul>
-					</div>
-				</section>
-			{{end}}
-
-			<form class="rv-filters" method="get" action="{{.AscAgentsBase}}" role="search" aria-label="{{ctx.Locale.Tr "asc_review.agents_filter_label"}}">
+			<div class="rv-nav-filters ag-bar">
 				<div class="rv-chips" role="group" aria-label="{{ctx.Locale.Tr "asc_review.agents_filter_state"}}">
-					<a class="rv-chip-btn" href="{{.AscAgentsBase}}{{if .AscAgentsFilterMine}}?mine=1{{end}}"{{if not .AscAgentsFilterState}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.agents_filter_all"}}</a>
-					{{range .AscAgentsStateFilters}}<a class="rv-chip-btn" href="{{$.AscAgentsBase}}?state={{.Slug}}{{if $.AscAgentsFilterMine}}&amp;mine=1{{end}}{{if $.AscAgentsFilterAgent}}&amp;agent={{$.AscAgentsFilterAgent}}{{end}}"{{if eq $.AscAgentsFilterState .Slug}} aria-current="true"{{end}}>{{ctx.Locale.Tr (print "asc_review.run_filter_" .Slug)}}</a>{{end}}
+					<a class="rv-chip-btn" href="{{.AscAgentsBase}}{{if .AscAgentsFilterMine}}?mine=1{{end}}"{{if not .AscAgentsFilterState}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.agents_filter_all"}}{{if .AscAgentStats.HasTotal}} <span class="rv-count">{{.AscAgentStats.Total}}</span>{{end}}</a>
+					{{range .AscAgentsStateFilters}}<a class="rv-chip-btn" href="{{$.AscAgentsBase}}?state={{.Slug}}{{if $.AscAgentsFilterMine}}&amp;mine=1{{end}}{{if $.AscAgentsFilterAgent}}&amp;agent={{$.AscAgentsFilterAgent}}{{end}}"{{if eq $.AscAgentsFilterState .Slug}} aria-current="true"{{end}}>{{.Label}}{{if and (eq .Slug "active") $.AscAgentStats.HasTotal}} <span class="rv-count">{{$.AscAgentStats.Running}}</span>{{end}}{{if eq .Slug "waiting"}} <span class="rv-count">{{$.AscAgentStats.Waiting}}</span>{{end}}</a>{{end}}
 				</div>
-				<div class="rv-filter-fields">
+				<form class="ag-search" method="get" action="{{.AscAgentsBase}}" role="search" aria-label="{{ctx.Locale.Tr "asc_review.agents_filter_label"}}">
 					{{if .AscAgentsFilterState}}<input type="hidden" name="state" value="{{.AscAgentsFilterState}}">{{end}}
-					<div class="rv-field">
-						<label class="rv-label" for="rv-ag-agent">{{ctx.Locale.Tr "asc_review.agents_filter_agent"}}</label>
-						<input class="rv-input" id="rv-ag-agent" type="text" name="agent" maxlength="40" value="{{.AscAgentsFilterAgent}}" placeholder="{{ctx.Locale.Tr "asc_review.agents_filter_any"}}" autocomplete="off" autocapitalize="none" spellcheck="false">
-					</div>
-					<label class="rv-check"><input type="checkbox" name="mine" value="1"{{if .AscAgentsFilterMine}} checked{{end}}> {{ctx.Locale.Tr "asc_review.agents_filter_mine"}}</label>
-					<button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_review.agents_filter_apply"}}</button>
-				</div>
-			</form>
-
-			{{if .AscAgentsRuns}}
+					{{if .AscAgentsFilterMine}}<input type="hidden" name="mine" value="1">{{end}}
+					<label class="rv-sr" for="rv-ag-agent">{{ctx.Locale.Tr "asc_review.agents_filter_agent"}}</label>
+					<select class="rv-select ag-agent-select" id="rv-ag-agent" name="agent" data-submit-on-change>
+						<option value="">{{ctx.Locale.Tr "asc_review.agents_filter_agent_any"}}</option>
+						{{range .AscAgentsRoster}}<option value="{{.Name}}"{{if eq $.AscAgentsFilterAgent .Name}} selected{{end}}>{{ctx.Locale.Tr "asc_review.agents_filter_agent_is" .Name}}</option>{{end}}
+					</select>
+					<label class="rv-sr" for="rv-ag-q">{{ctx.Locale.Tr "asc_review.agents_search_label"}}</label>
+					<input class="rv-input ag-q" id="rv-ag-q" type="search" name="q" maxlength="80" value="{{.AscAgentsFilterQ}}" placeholder="{{ctx.Locale.Tr "asc_review.agents_search_ph"}}" autocomplete="off" data-asc-filter="#rv-runs">
+					<button class="rv-sr" type="submit">{{ctx.Locale.Tr "asc_review.agents_filter_apply"}}</button>
+				</form>
 				<div class="rv-density">
 					<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.density_label"}}" data-asc-density="#rv-runs">
 						<button type="button" data-density="comfy" aria-pressed="true">{{ctx.Locale.Tr "asc_rp.density_comfy"}}</button>
 						<button type="button" data-density="compact" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.density_compact"}}</button>
 					</div>
 				</div>
-				<ul class="rv-list rv-runs" id="rv-runs" data-density="comfy" data-asc-list data-testid="asc-agent-runs">
+			</div>
+
+			<div class="ag-cols">
+				<div class="ag-main">
+			{{if .AscAgentsRuns}}
+				<div class="rv-card ag-runs-card">
+				<ul class="rv-list rv-runs ag-runs" id="rv-runs" data-density="comfy" data-asc-list data-testid="asc-agent-runs">
 					{{range .AscAgentsRuns}}
-						<li class="rv-run" data-asc-row tabindex="-1" data-asc-id="{{.ID}}">
-							<span class="rv-av rv-av-agent" aria-hidden="true">{{.Initials}}</span>
-							<div class="rv-run-who">
-								<div class="rv-run-name">{{if .Agent}}{{.Agent}}{{else}}{{ctx.Locale.Tr "asc_review.agents_unnamed"}}{{end}}</div>
-								<div class="rv-li-sub">{{ctx.Locale.Tr "asc_review.agents_run_n" .ID}}{{if not .Created.IsZero}} · {{DateUtils.TimeSince .Created}}{{end}}{{if .CreatedBy}} · {{ctx.Locale.Tr "asc_review.agents_by" .CreatedBy}}{{end}}</div>
+						<li class="rv-run ag-run" data-asc-row tabindex="-1" data-asc-id="{{.ID}}">
+							<span class="rv-av rv-av-agent ag-av" aria-hidden="true">{{.Initials}}</span>
+							<div class="ag-run-main">
+								<h2 class="rv-run-title"><a href="{{.Link}}">{{.Title}}</a></h2>
+								<div class="rv-li-sub ag-run-sub">{{if .Pending}}{{ctx.Locale.Tr "asc_review.agents_row_asks"}}{{else if .Task}}{{.Task}}{{else if .Workflow}}{{ctx.Locale.Tr "asc_review.agents_row_workflow" .Workflow}}{{else if .Changes}}{{ctx.Locale.TrN .Changes "asc_review.agents_row_ready_one" "asc_review.agents_row_ready_other" .Changes}}{{end}}</div>
+								<div class="rv-li-sub ag-run-ids"><span class="rv-mono">{{ctx.Locale.Tr "asc_review.agents_run_n" .ID}}</span> <span class="rv-mono">{{if .Agent}}{{.Agent}}{{else}}{{ctx.Locale.Tr "asc_review.agents_unnamed"}}{{end}}</span>{{if .Tokens}} <span class="rv-num ag-tok">{{.Tokens}}{{if .TokensLimit}} / {{.TokensLimit}}{{end}} {{ctx.Locale.Tr "asc_review.agents_row_tokens"}}</span>{{end}}{{if .Duration}} <span class="rv-num">{{.Duration}}</span>{{end}}</div>
 							</div>
-							<div class="rv-run-state">{{template "repo/asc_agents_pill" .State}}</div>
-							<h2 class="rv-run-title"><a href="{{.Link}}">{{.Title}}</a></h2>
-							<div class="rv-li-meta">
-								<span>{{ctx.Locale.TrN .Changes "asc_review.agents_changes_one" "asc_review.agents_changes_other" .Changes}}</span>
-								<span class="rv-num">{{ctx.Locale.Tr "asc_review.agents_usage" .Tokens .Cost}}</span>
+							<div class="ag-run-prog">
+								{{if .Progress.Known}}
+									<span class="ag-steps" role="img" aria-label="{{ctx.Locale.Tr "asc_review.agents_row_steps" .Progress.Done .Progress.Total}}">{{range .Progress.Segments}}<i{{if .}} class="is-done"{{end}}></i>{{end}}</span>
+									<span class="ag-steps-t rv-num">{{ctx.Locale.Tr "asc_review.agents_row_steps" .Progress.Done .Progress.Total}}</span>
+								{{else if .TokensLimit}}
+									<span class="rv-bar{{if .TokensWarn}} rv-bar-warn{{end}} ag-tokbar" role="img" aria-label="{{ctx.Locale.Tr "asc_review.agents_row_tokpct" .TokensPct}}"><i style="width:{{.TokensPct}}%"></i></span>
+									<span class="ag-steps-t rv-num">{{ctx.Locale.Tr "asc_review.agents_row_tokpct" .TokensPct}}</span>
+								{{end}}
+							</div>
+							<div class="rv-run-state ag-run-state">{{template "repo/asc_agents_pill" .State}}{{if .Paused}} <span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_review.agents_paused"}}</span>{{end}}</div>
+							<div class="ag-run-by"><span class="rv-av rv-av-24" aria-hidden="true">{{.ByInitials}}</span> <span>{{if .CreatedBy}}{{.CreatedBy}}{{end}}</span>{{if not .Created.IsZero}} <span class="rv-faint">{{DateUtils.TimeSince .Created}}</span>{{end}}</div>
+							<div class="ag-run-acts">
+								<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.Link}}">{{ctx.Locale.Tr "asc_review.agents_open_run"}}</a>
+								{{if and .Active $.AscAgentsCanStart}}
+								<details class="ag-pop">
+									<summary class="rv-btn rv-btn-danger rv-btn-sm">{{ctx.Locale.Tr "asc_review.agents_stop"}}</summary>
+									<form class="ag-pop-b rv-form" method="post" action="{{.Link}}/cancel">
+										{{$.CsrfTokenHtml}}
+										<input type="hidden" name="next" value="list">
+										<p class="rv-hint">{{ctx.Locale.Tr "asc_review.agents_stop_help"}}</p>
+										<label class="rv-label" for="ag-stop-{{.ID}}">{{ctx.Locale.Tr "asc_review.agents_stop_reason"}}</label>
+										<input class="rv-input" id="ag-stop-{{.ID}}" name="reason" maxlength="256" autocomplete="off">
+										<button class="rv-btn rv-btn-danger rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.agents_stop_confirm"}}</button>
+									</form>
+								</details>
+								{{end}}
 							</div>
 							{{if .Failure}}<div class="rv-run-fail" role="note">{{.Failure}}</div>{{end}}
 						</li>
 					{{end}}
 				</ul>
-				{{if .AscAgentsNext}}<p class="rv-more"><a class="rv-btn rv-btn-secondary" href="{{.AscAgentsNext}}">{{ctx.Locale.Tr "asc_review.agents_older"}}</a></p>{{end}}
+				</div>
+				<div class="ag-pager">
+					<p class="rv-muted" data-testid="asc-agents-showing">{{if and .AscAgentStats.HasTotal (not .AscAgentsFilterState) (not .AscAgentsFilterAgent) (not .AscAgentsFilterMine)}}{{ctx.Locale.Tr "asc_review.agents_showing_of" (len .AscAgentsRuns) .AscAgentStats.Total}}{{else}}{{ctx.Locale.Tr "asc_review.agents_showing" (len .AscAgentsRuns)}}{{end}}</p>
+					{{if .AscAgentsNext}}<a class="rv-btn rv-btn-secondary" rel="next" href="{{.AscAgentsNext}}">{{ctx.Locale.Tr "asc_review.agents_older"}}</a>{{end}}
+				</div>
 			{{else if not .AscAgentsFailure}}
 				<div class="rv-empty" data-testid="asc-agent-runs-empty">
-					{{if or .AscAgentsFilterState .AscAgentsFilterMine .AscAgentsFilterAgent}}
+					{{if or .AscAgentsFilterState .AscAgentsFilterMine .AscAgentsFilterAgent .AscAgentsFilterQ}}
 						<h2>{{ctx.Locale.Tr "asc_review.agents_none_match"}}</h2>
 						<p>{{ctx.Locale.Tr "asc_review.agents_none_match_help"}}</p>
 						<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.AscAgentsBase}}">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></div>
@@ -101,6 +149,28 @@ Template Attributes:
 					{{end}}
 				</div>
 			{{end}}
+				</div>
+
+				<aside class="ag-side" aria-label="{{ctx.Locale.Tr "asc_review.agents_side_label"}}">
+					{{template "repo/asc_agents_needs" .}}
+					{{if .AscAgentsRoster}}
+					<section class="rv-card ag-roster" aria-labelledby="ag-roster-h" data-testid="asc-agents-roster">
+						<div class="rv-card-h"><h2 id="ag-roster-h">{{ctx.Locale.Tr "asc_review.agents_roster_title"}}</h2></div>
+						<p class="rv-hint ag-roster-sub">{{ctx.Locale.Tr "asc_review.agents_roster_sub"}}</p>
+						<ul class="rv-list">
+							{{range .AscAgentsRoster}}
+							<li class="ag-roster-row">
+								<span class="rv-av rv-av-agent ag-av" aria-hidden="true">{{.Initials}}</span>
+								<div class="ag-roster-main"><b>{{.Name}}</b><div class="rv-li-sub">{{.Scope}} · {{if eq .Status "running"}}{{ctx.Locale.Tr "asc_review.agents_roster_running"}}{{else if eq .Status "waiting"}}{{ctx.Locale.Tr "asc_review.agents_roster_waiting"}}{{else}}{{ctx.Locale.Tr "asc_review.agents_roster_idle"}}{{end}}</div></div>
+								<span class="rv-num ag-roster-n" aria-label="{{ctx.Locale.Tr "asc_review.agents_roster_landed" .Landed}}">{{if .Landed}}{{.Landed}}{{else}}&mdash;{{end}}</span>
+							</li>
+							{{end}}
+						</ul>
+						{{if .AscAgentsCanAdmin}}<div class="rv-card-f"><a href="{{.AscAgentsBase}}/tokens">{{ctx.Locale.Tr "asc_review.agents_roster_manage"}}</a></div>{{end}}
+					</section>
+					{{end}}
+				</aside>
+			</div>
 			{{if .AscAgentsCanStart}}<div class="rv-sticky rv-mob"><a class="rv-btn rv-btn-primary" href="{{.AscAgentsBase}}/new">{{ctx.Locale.Tr "asc_review.agents_new"}}</a></div>{{end}}
 		{{else}}
 			<div class="rv-empty" data-testid="asc-agents-disabled">

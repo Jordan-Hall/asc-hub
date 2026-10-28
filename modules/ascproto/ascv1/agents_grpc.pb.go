@@ -19,12 +19,25 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Agents_CreateRun_FullMethodName = "/asc.v1.Agents/CreateRun"
-	Agents_ListRuns_FullMethodName  = "/asc.v1.Agents/ListRuns"
-	Agents_GetRun_FullMethodName    = "/asc.v1.Agents/GetRun"
-	Agents_CancelRun_FullMethodName = "/asc.v1.Agents/CancelRun"
-	Agents_SendInput_FullMethodName = "/asc.v1.Agents/SendInput"
-	Agents_WatchRun_FullMethodName  = "/asc.v1.Agents/WatchRun"
+	Agents_CreateRun_FullMethodName        = "/asc.v1.Agents/CreateRun"
+	Agents_ListRuns_FullMethodName         = "/asc.v1.Agents/ListRuns"
+	Agents_GetRun_FullMethodName           = "/asc.v1.Agents/GetRun"
+	Agents_CancelRun_FullMethodName        = "/asc.v1.Agents/CancelRun"
+	Agents_SendInput_FullMethodName        = "/asc.v1.Agents/SendInput"
+	Agents_WatchRun_FullMethodName         = "/asc.v1.Agents/WatchRun"
+	Agents_ListRequests_FullMethodName     = "/asc.v1.Agents/ListRequests"
+	Agents_DecideRequest_FullMethodName    = "/asc.v1.Agents/DecideRequest"
+	Agents_PauseRun_FullMethodName         = "/asc.v1.Agents/PauseRun"
+	Agents_ListCheckpoints_FullMethodName  = "/asc.v1.Agents/ListCheckpoints"
+	Agents_RollbackRun_FullMethodName      = "/asc.v1.Agents/RollbackRun"
+	Agents_SetRunLimits_FullMethodName     = "/asc.v1.Agents/SetRunLimits"
+	Agents_ContinueRun_FullMethodName      = "/asc.v1.Agents/ContinueRun"
+	Agents_GetEstimate_FullMethodName      = "/asc.v1.Agents/GetEstimate"
+	Agents_RecentTasks_FullMethodName      = "/asc.v1.Agents/RecentTasks"
+	Agents_GetRunLog_FullMethodName        = "/asc.v1.Agents/GetRunLog"
+	Agents_ListAgents_FullMethodName       = "/asc.v1.Agents/ListAgents"
+	Agents_GetSpend_FullMethodName         = "/asc.v1.Agents/GetSpend"
+	Agents_SetMonthlyBudget_FullMethodName = "/asc.v1.Agents/SetMonthlyBudget"
 )
 
 // AgentsClient is the client API for Agents service.
@@ -37,6 +50,22 @@ type AgentsClient interface {
 	CancelRun(ctx context.Context, in *CancelAgentRunRequest, opts ...grpc.CallOption) (*CancelAgentRunResponse, error)
 	SendInput(ctx context.Context, in *SendAgentInputRequest, opts ...grpc.CallOption) (*SendAgentInputResponse, error)
 	WatchRun(ctx context.Context, in *WatchAgentRunRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[AgentRunEvent], error)
+	// Control of a live run and the data of the run boards. Deciding, pausing, rolling back, editing limits and continuing need repo
+	// write and either that the caller started the run, a policy maintainer, or repo admin. A call the hub makes for a person carries
+	// the forwarded claim of that person (see review.proto) and is audited with the host as relay. All of them are additive.
+	ListRequests(ctx context.Context, in *ListAgentRequestsRequest, opts ...grpc.CallOption) (*ListAgentRequestsResponse, error)
+	DecideRequest(ctx context.Context, in *DecideAgentRequestRequest, opts ...grpc.CallOption) (*DecideAgentRequestResponse, error)
+	PauseRun(ctx context.Context, in *PauseAgentRunRequest, opts ...grpc.CallOption) (*PauseAgentRunResponse, error)
+	ListCheckpoints(ctx context.Context, in *ListAgentCheckpointsRequest, opts ...grpc.CallOption) (*ListAgentCheckpointsResponse, error)
+	RollbackRun(ctx context.Context, in *RollbackAgentRunRequest, opts ...grpc.CallOption) (*RollbackAgentRunResponse, error)
+	SetRunLimits(ctx context.Context, in *SetAgentRunLimitsRequest, opts ...grpc.CallOption) (*SetAgentRunLimitsResponse, error)
+	ContinueRun(ctx context.Context, in *ContinueAgentRunRequest, opts ...grpc.CallOption) (*ContinueAgentRunResponse, error)
+	GetEstimate(ctx context.Context, in *GetAgentEstimateRequest, opts ...grpc.CallOption) (*GetAgentEstimateResponse, error)
+	RecentTasks(ctx context.Context, in *RecentAgentTasksRequest, opts ...grpc.CallOption) (*RecentAgentTasksResponse, error)
+	GetRunLog(ctx context.Context, in *GetAgentRunLogRequest, opts ...grpc.CallOption) (*GetAgentRunLogResponse, error)
+	ListAgents(ctx context.Context, in *ListRepoAgentsRequest, opts ...grpc.CallOption) (*ListRepoAgentsResponse, error)
+	GetSpend(ctx context.Context, in *GetAgentSpendRequest, opts ...grpc.CallOption) (*GetAgentSpendResponse, error)
+	SetMonthlyBudget(ctx context.Context, in *SetMonthlyBudgetRequest, opts ...grpc.CallOption) (*SetMonthlyBudgetResponse, error)
 }
 
 type agentsClient struct {
@@ -116,6 +145,136 @@ func (c *agentsClient) WatchRun(ctx context.Context, in *WatchAgentRunRequest, o
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Agents_WatchRunClient = grpc.ServerStreamingClient[AgentRunEvent]
 
+func (c *agentsClient) ListRequests(ctx context.Context, in *ListAgentRequestsRequest, opts ...grpc.CallOption) (*ListAgentRequestsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAgentRequestsResponse)
+	err := c.cc.Invoke(ctx, Agents_ListRequests_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) DecideRequest(ctx context.Context, in *DecideAgentRequestRequest, opts ...grpc.CallOption) (*DecideAgentRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DecideAgentRequestResponse)
+	err := c.cc.Invoke(ctx, Agents_DecideRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) PauseRun(ctx context.Context, in *PauseAgentRunRequest, opts ...grpc.CallOption) (*PauseAgentRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PauseAgentRunResponse)
+	err := c.cc.Invoke(ctx, Agents_PauseRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) ListCheckpoints(ctx context.Context, in *ListAgentCheckpointsRequest, opts ...grpc.CallOption) (*ListAgentCheckpointsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAgentCheckpointsResponse)
+	err := c.cc.Invoke(ctx, Agents_ListCheckpoints_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) RollbackRun(ctx context.Context, in *RollbackAgentRunRequest, opts ...grpc.CallOption) (*RollbackAgentRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RollbackAgentRunResponse)
+	err := c.cc.Invoke(ctx, Agents_RollbackRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) SetRunLimits(ctx context.Context, in *SetAgentRunLimitsRequest, opts ...grpc.CallOption) (*SetAgentRunLimitsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetAgentRunLimitsResponse)
+	err := c.cc.Invoke(ctx, Agents_SetRunLimits_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) ContinueRun(ctx context.Context, in *ContinueAgentRunRequest, opts ...grpc.CallOption) (*ContinueAgentRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ContinueAgentRunResponse)
+	err := c.cc.Invoke(ctx, Agents_ContinueRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) GetEstimate(ctx context.Context, in *GetAgentEstimateRequest, opts ...grpc.CallOption) (*GetAgentEstimateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAgentEstimateResponse)
+	err := c.cc.Invoke(ctx, Agents_GetEstimate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) RecentTasks(ctx context.Context, in *RecentAgentTasksRequest, opts ...grpc.CallOption) (*RecentAgentTasksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecentAgentTasksResponse)
+	err := c.cc.Invoke(ctx, Agents_RecentTasks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) GetRunLog(ctx context.Context, in *GetAgentRunLogRequest, opts ...grpc.CallOption) (*GetAgentRunLogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAgentRunLogResponse)
+	err := c.cc.Invoke(ctx, Agents_GetRunLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) ListAgents(ctx context.Context, in *ListRepoAgentsRequest, opts ...grpc.CallOption) (*ListRepoAgentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRepoAgentsResponse)
+	err := c.cc.Invoke(ctx, Agents_ListAgents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) GetSpend(ctx context.Context, in *GetAgentSpendRequest, opts ...grpc.CallOption) (*GetAgentSpendResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAgentSpendResponse)
+	err := c.cc.Invoke(ctx, Agents_GetSpend_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentsClient) SetMonthlyBudget(ctx context.Context, in *SetMonthlyBudgetRequest, opts ...grpc.CallOption) (*SetMonthlyBudgetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetMonthlyBudgetResponse)
+	err := c.cc.Invoke(ctx, Agents_SetMonthlyBudget_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentsServer is the server API for Agents service.
 // All implementations should embed UnimplementedAgentsServer
 // for forward compatibility.
@@ -126,6 +285,22 @@ type AgentsServer interface {
 	CancelRun(context.Context, *CancelAgentRunRequest) (*CancelAgentRunResponse, error)
 	SendInput(context.Context, *SendAgentInputRequest) (*SendAgentInputResponse, error)
 	WatchRun(*WatchAgentRunRequest, grpc.ServerStreamingServer[AgentRunEvent]) error
+	// Control of a live run and the data of the run boards. Deciding, pausing, rolling back, editing limits and continuing need repo
+	// write and either that the caller started the run, a policy maintainer, or repo admin. A call the hub makes for a person carries
+	// the forwarded claim of that person (see review.proto) and is audited with the host as relay. All of them are additive.
+	ListRequests(context.Context, *ListAgentRequestsRequest) (*ListAgentRequestsResponse, error)
+	DecideRequest(context.Context, *DecideAgentRequestRequest) (*DecideAgentRequestResponse, error)
+	PauseRun(context.Context, *PauseAgentRunRequest) (*PauseAgentRunResponse, error)
+	ListCheckpoints(context.Context, *ListAgentCheckpointsRequest) (*ListAgentCheckpointsResponse, error)
+	RollbackRun(context.Context, *RollbackAgentRunRequest) (*RollbackAgentRunResponse, error)
+	SetRunLimits(context.Context, *SetAgentRunLimitsRequest) (*SetAgentRunLimitsResponse, error)
+	ContinueRun(context.Context, *ContinueAgentRunRequest) (*ContinueAgentRunResponse, error)
+	GetEstimate(context.Context, *GetAgentEstimateRequest) (*GetAgentEstimateResponse, error)
+	RecentTasks(context.Context, *RecentAgentTasksRequest) (*RecentAgentTasksResponse, error)
+	GetRunLog(context.Context, *GetAgentRunLogRequest) (*GetAgentRunLogResponse, error)
+	ListAgents(context.Context, *ListRepoAgentsRequest) (*ListRepoAgentsResponse, error)
+	GetSpend(context.Context, *GetAgentSpendRequest) (*GetAgentSpendResponse, error)
+	SetMonthlyBudget(context.Context, *SetMonthlyBudgetRequest) (*SetMonthlyBudgetResponse, error)
 }
 
 // UnimplementedAgentsServer should be embedded to have
@@ -152,6 +327,45 @@ func (UnimplementedAgentsServer) SendInput(context.Context, *SendAgentInputReque
 }
 func (UnimplementedAgentsServer) WatchRun(*WatchAgentRunRequest, grpc.ServerStreamingServer[AgentRunEvent]) error {
 	return status.Error(codes.Unimplemented, "method WatchRun not implemented")
+}
+func (UnimplementedAgentsServer) ListRequests(context.Context, *ListAgentRequestsRequest) (*ListAgentRequestsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRequests not implemented")
+}
+func (UnimplementedAgentsServer) DecideRequest(context.Context, *DecideAgentRequestRequest) (*DecideAgentRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DecideRequest not implemented")
+}
+func (UnimplementedAgentsServer) PauseRun(context.Context, *PauseAgentRunRequest) (*PauseAgentRunResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PauseRun not implemented")
+}
+func (UnimplementedAgentsServer) ListCheckpoints(context.Context, *ListAgentCheckpointsRequest) (*ListAgentCheckpointsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCheckpoints not implemented")
+}
+func (UnimplementedAgentsServer) RollbackRun(context.Context, *RollbackAgentRunRequest) (*RollbackAgentRunResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RollbackRun not implemented")
+}
+func (UnimplementedAgentsServer) SetRunLimits(context.Context, *SetAgentRunLimitsRequest) (*SetAgentRunLimitsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetRunLimits not implemented")
+}
+func (UnimplementedAgentsServer) ContinueRun(context.Context, *ContinueAgentRunRequest) (*ContinueAgentRunResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ContinueRun not implemented")
+}
+func (UnimplementedAgentsServer) GetEstimate(context.Context, *GetAgentEstimateRequest) (*GetAgentEstimateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEstimate not implemented")
+}
+func (UnimplementedAgentsServer) RecentTasks(context.Context, *RecentAgentTasksRequest) (*RecentAgentTasksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecentTasks not implemented")
+}
+func (UnimplementedAgentsServer) GetRunLog(context.Context, *GetAgentRunLogRequest) (*GetAgentRunLogResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRunLog not implemented")
+}
+func (UnimplementedAgentsServer) ListAgents(context.Context, *ListRepoAgentsRequest) (*ListRepoAgentsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAgents not implemented")
+}
+func (UnimplementedAgentsServer) GetSpend(context.Context, *GetAgentSpendRequest) (*GetAgentSpendResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSpend not implemented")
+}
+func (UnimplementedAgentsServer) SetMonthlyBudget(context.Context, *SetMonthlyBudgetRequest) (*SetMonthlyBudgetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetMonthlyBudget not implemented")
 }
 func (UnimplementedAgentsServer) testEmbeddedByValue() {}
 
@@ -274,6 +488,240 @@ func _Agents_WatchRun_Handler(srv interface{}, stream grpc.ServerStream) error {
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Agents_WatchRunServer = grpc.ServerStreamingServer[AgentRunEvent]
 
+func _Agents_ListRequests_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAgentRequestsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).ListRequests(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_ListRequests_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).ListRequests(ctx, req.(*ListAgentRequestsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_DecideRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DecideAgentRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).DecideRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_DecideRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).DecideRequest(ctx, req.(*DecideAgentRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_PauseRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PauseAgentRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).PauseRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_PauseRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).PauseRun(ctx, req.(*PauseAgentRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_ListCheckpoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAgentCheckpointsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).ListCheckpoints(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_ListCheckpoints_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).ListCheckpoints(ctx, req.(*ListAgentCheckpointsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_RollbackRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RollbackAgentRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).RollbackRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_RollbackRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).RollbackRun(ctx, req.(*RollbackAgentRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_SetRunLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAgentRunLimitsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).SetRunLimits(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_SetRunLimits_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).SetRunLimits(ctx, req.(*SetAgentRunLimitsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_ContinueRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContinueAgentRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).ContinueRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_ContinueRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).ContinueRun(ctx, req.(*ContinueAgentRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_GetEstimate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentEstimateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).GetEstimate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_GetEstimate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).GetEstimate(ctx, req.(*GetAgentEstimateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_RecentTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecentAgentTasksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).RecentTasks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_RecentTasks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).RecentTasks(ctx, req.(*RecentAgentTasksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_GetRunLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentRunLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).GetRunLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_GetRunLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).GetRunLog(ctx, req.(*GetAgentRunLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_ListAgents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRepoAgentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).ListAgents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_ListAgents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).ListAgents(ctx, req.(*ListRepoAgentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_GetSpend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentSpendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).GetSpend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_GetSpend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).GetSpend(ctx, req.(*GetAgentSpendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agents_SetMonthlyBudget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetMonthlyBudgetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).SetMonthlyBudget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_SetMonthlyBudget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).SetMonthlyBudget(ctx, req.(*SetMonthlyBudgetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Agents_ServiceDesc is the grpc.ServiceDesc for Agents service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -300,6 +748,58 @@ var Agents_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendInput",
 			Handler:    _Agents_SendInput_Handler,
+		},
+		{
+			MethodName: "ListRequests",
+			Handler:    _Agents_ListRequests_Handler,
+		},
+		{
+			MethodName: "DecideRequest",
+			Handler:    _Agents_DecideRequest_Handler,
+		},
+		{
+			MethodName: "PauseRun",
+			Handler:    _Agents_PauseRun_Handler,
+		},
+		{
+			MethodName: "ListCheckpoints",
+			Handler:    _Agents_ListCheckpoints_Handler,
+		},
+		{
+			MethodName: "RollbackRun",
+			Handler:    _Agents_RollbackRun_Handler,
+		},
+		{
+			MethodName: "SetRunLimits",
+			Handler:    _Agents_SetRunLimits_Handler,
+		},
+		{
+			MethodName: "ContinueRun",
+			Handler:    _Agents_ContinueRun_Handler,
+		},
+		{
+			MethodName: "GetEstimate",
+			Handler:    _Agents_GetEstimate_Handler,
+		},
+		{
+			MethodName: "RecentTasks",
+			Handler:    _Agents_RecentTasks_Handler,
+		},
+		{
+			MethodName: "GetRunLog",
+			Handler:    _Agents_GetRunLog_Handler,
+		},
+		{
+			MethodName: "ListAgents",
+			Handler:    _Agents_ListAgents_Handler,
+		},
+		{
+			MethodName: "GetSpend",
+			Handler:    _Agents_GetSpend_Handler,
+		},
+		{
+			MethodName: "SetMonthlyBudget",
+			Handler:    _Agents_SetMonthlyBudget_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

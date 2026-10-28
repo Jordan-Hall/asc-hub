@@ -69,6 +69,8 @@ const (
 	tplWatchers     base.TplName = "repo/watchers"
 	tplForks        base.TplName = "repo/forks"
 	tplMigrating    base.TplName = "repo/migrate/migrating"
+	// tplRepoUnavailable is the page of a repository whose default branch cannot be read.
+	tplRepoUnavailable base.TplName = "repo/unavailable"
 )
 
 // locate a README for a tree in one of the supported paths.
@@ -594,9 +596,11 @@ func renderFile(ctx *context.Context, entry *git.TreeEntry) {
 			}
 
 			highlighted, err := highlight.FileBudgeted(blob.Name(), language, buf)
-			fileContent, lexerName := highlighted.Lines, highlighted.Lexer
+			// the lines of a cached result are shared: work on a copy
+			fileContent, lexerName := append([]template.HTML(nil), highlighted.Lines...), highlighted.Lexer
 			ctx.Data["LexerName"] = lexerName
 			ctx.Data["HighlightSkipped"] = highlighted.Skipped
+			ctx.Data["HighlightWindow"] = highlighted.Window
 			if err != nil {
 				log.Error("highlight.File failed, fallback to plain text: %v", err)
 				fileContent = highlight.PlainText(buf)
@@ -982,6 +986,65 @@ func prepareOpenWithEditorApps(ctx *context.Context) {
 	ctx.Data["OpenWithEditorApps"] = tmplApps
 }
 
+// homeState is what the home page of a repository does when the repository looks empty, broken or unreadable.
+type homeState int
+
+const (
+	// homeRender shows the code: the repository is readable.
+	homeRender homeState = iota
+	// homeEmpty shows the quick guide of an empty repository.
+	homeEmpty
+	// homeUnavailable shows the "repository unavailable" page (409). Nothing about it can be fixed by a redirect.
+	homeUnavailable
+	// homeFixEmptyFlag corrects the database flag (the repository holds commits though it is marked empty) and
+	// redirects once. It is chosen only while the flag is still set, so it can never repeat.
+	homeFixEmptyFlag
+)
+
+// homeStateOf decides what the home page does. hasCommit is whether the default branch commit was read, and
+// storageEmpty whether the storage itself reports no refs. The rules that keep the page from redirecting to
+// itself: a repository marked broken (its default branch commit could not be read) is unavailable, never fixed
+// by a redirect; the redirect happens only for a repository whose database flag says empty although it holds
+// commits, and that flag is cleared before the redirect.
+func homeStateOf(repo *repo_model.Repository, hasCommit, storageEmpty bool) homeState {
+	switch {
+	case repo.IsBroken():
+		return homeUnavailable
+	case storageEmpty:
+		return homeEmpty
+	case repo.IsEmpty:
+		return homeFixEmptyFlag
+	case !hasCommit:
+		return homeUnavailable
+	}
+	return homeRender
+}
+
+// renderRepoUnavailable renders the "repository unavailable" page: the repository exists, but the hub cannot read
+// its default branch. The page says why and, for the owners, offers to retry the import (a migrated repository)
+// or to delete the repository. It answers 409 and never redirects.
+func renderRepoUnavailable(ctx *context.Context) {
+	repo := ctx.Repo.Repository
+	ctx.Data["Title"] = ctx.Tr("repo.unavailable.title")
+	ctx.Data["Repo"] = ctx.Repo
+	ctx.Data["UnavailableBranch"] = ctx.Repo.BranchName
+	reason := ctx.Locale.TrString("repo.unavailable.reason_branch", ctx.Repo.BranchName) // the template escapes it
+	if task, err := admin_model.GetMigratingTask(ctx, repo.ID); err == nil {
+		ctx.Data["MigrateTask"] = task
+		ctx.Data["CanRetryImport"] = task.Status != structs.TaskStatusQueued && task.Status != structs.TaskStatusRunning
+		if cfg, err := task.MigrateConfig(); err == nil {
+			ctx.Data["CloneAddr"], _ = util.SanitizeURL(cfg.CloneAddr)
+		}
+		if task.Status == structs.TaskStatusFailed && task.Message != "" {
+			reason = task.Message
+		}
+	} else if !admin_model.IsErrTaskDoesNotExist(err) {
+		log.Error("GetMigratingTask for %-v: %v", repo, err)
+	}
+	ctx.Data["UnavailableReason"] = reason
+	ctx.HTML(http.StatusConflict, tplRepoUnavailable)
+}
+
 func renderHomeCode(ctx *context.Context) {
 	ctx.Data["PageIsViewCode"] = true
 	ctx.Data["RepositoryUploadEnabled"] = setting.Repository.Upload.Enabled
@@ -999,34 +1062,40 @@ func renderHomeCode(ctx *context.Context) {
 				ctx.Flash.Error(ctx.Tr("error.occurred"), true)
 			}
 		}
-		if showEmpty {
+		switch homeStateOf(ctx.Repo.Repository, ctx.Repo.Commit != nil, showEmpty) {
+		case homeUnavailable:
+			renderRepoUnavailable(ctx)
+			return
+		case homeEmpty:
 			ctx.HTML(http.StatusOK, tplRepoEMPTY)
 			return
-		}
+		case homeFixEmptyFlag:
+			// The repository is not really empty, so we should update the model in the database.
+			// Such a problem may be caused by:
+			// 1) an error occurs during pushing/receiving.  2) the user replaces an empty git repo manually
+			// and even more: the IsEmpty flag is deeply broken and should be removed with the UI changed to manage to cope with empty repos.
+			// It's possible for a repository to be non-empty by that flag but still 500
+			// because there are no branches - only tags -or the default branch is non-extant as it has been 0-pushed.
+			ctx.Repo.Repository.IsEmpty = false
+			if err = repo_model.UpdateRepositoryCols(ctx, ctx.Repo.Repository, "is_empty"); err != nil {
+				ctx.ServerError("UpdateRepositoryCols", err)
+				return
+			}
+			if err = repo_module.UpdateRepoSize(ctx, ctx.Repo.Repository); err != nil {
+				ctx.ServerError("UpdateRepoSize", err)
+				return
+			}
 
-		// the repo is not really empty, so we should update the modal in database
-		// such problem may be caused by:
-		// 1) an error occurs during pushing/receiving.  2) the user replaces an empty git repo manually
-		// and even more: the IsEmpty flag is deeply broken and should be removed with the UI changed to manage to cope with empty repos.
-		// it's possible for a repository to be non-empty by that flag but still 500
-		// because there are no branches - only tags -or the default branch is non-extant as it has been 0-pushed.
-		ctx.Repo.Repository.IsEmpty = false
-		if err = repo_model.UpdateRepositoryCols(ctx, ctx.Repo.Repository, "is_empty"); err != nil {
-			ctx.ServerError("UpdateRepositoryCols", err)
+			// The repo's IsEmpty has been updated, redirect to this page to make sure middlewares can get the
+			// correct values. This happens once: the flag is false from now on, so the next request does not come here.
+			link := ctx.Link
+			if ctx.Req.URL.RawQuery != "" {
+				link += "?" + ctx.Req.URL.RawQuery
+			}
+			ctx.Redirect(link)
 			return
+		case homeRender:
 		}
-		if err = repo_module.UpdateRepoSize(ctx, ctx.Repo.Repository); err != nil {
-			ctx.ServerError("UpdateRepoSize", err)
-			return
-		}
-
-		// the repo's IsEmpty has been updated, redirect to this page to make sure middlewares can get the correct values
-		link := ctx.Link
-		if ctx.Req.URL.RawQuery != "" {
-			link += "?" + ctx.Req.URL.RawQuery
-		}
-		ctx.Redirect(link)
-		return
 	}
 
 	title := ctx.Repo.Repository.Owner.Name + "/" + ctx.Repo.Repository.Name

@@ -32,6 +32,15 @@ const (
 
 	// highlightMaxBytes is the largest file that is highlighted at all.
 	highlightMaxBytes = 256 * 1024
+	// highlightWindowBytes is how much of the start of a file larger than highlightMaxBytes is still highlighted (cut
+	// at a line), and highlightWindowMaxBytes is the largest file that gets this window; beyond it the file is plain text.
+	highlightWindowBytes    = 128 * 1024
+	highlightWindowMaxBytes = 4 * 1024 * 1024
+	// A highlighted line is a row with a span per token: a file of thousands of lines costs the browser seconds of
+	// style and layout (measured: 6000 lines took 2.2 s to show, 0.13 s of it on the server). A file of more than
+	// highlightFullLines lines is therefore shown with its first highlightWindowLines lines highlighted.
+	highlightFullLines   = 2500
+	highlightWindowLines = 800
 	// highlightBudget is the time one file may take to tokenize.
 	highlightBudget = 1500 * time.Millisecond
 
@@ -50,6 +59,9 @@ type Result struct {
 	Lexer string
 	// Skipped is true when the file is plain text because it is too large or took too long to highlight.
 	Skipped bool
+	// Window is the number of lines at the start of the file that are highlighted when a large file got only its start
+	// highlighted (Skipped is true then, and the rest of the file is plain text); 0 otherwise.
+	Window int
 	// Cached is true when the lines came from a cache.
 	Cached bool
 }
@@ -164,6 +176,13 @@ func decodeLines(s string) (lexer string, lines []template.HTML, ok bool) {
 		lines = append(lines, template.HTML(p))
 	}
 	return parts[0], lines, true
+}
+
+// Warm highlights code the way File does and keeps the result in the caches, and says whether it did. A file that is
+// too large, too slow or already cached is left as it is; the caller is the push queue and has no use for the lines.
+func Warm(fileName string, code []byte) bool {
+	res, err := FileBudgeted(fileName, "", code)
+	return err == nil && !res.Skipped && !res.Cached
 }
 
 // tokensWithin reads the tokens of an iterator until it ends or the deadline passes. The clock is read every 512

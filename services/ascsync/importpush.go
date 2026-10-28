@@ -13,6 +13,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/log"
 )
 
 // PushRef is one ref command of a git push: the ref and its old and new object ids as 40 hex digits.
@@ -78,10 +79,33 @@ func ImportPush(ctx context.Context, req ImportRequest) error {
 		return err
 	}
 	pusher := max(req.PusherID, 0)
+	accepted := false
+	if importer := importerOf(ctx); pusher == 0 && importer > 0 {
+		// An import the hub makes for a user (a migration, a first mirror run) names that user. The push is
+		// remembered like a hook push, so asc's fan-out of it is attributed to the user, and a refused or failed
+		// import can never be claimed later. (A hook push has been remembered by pre-receive already.)
+		pusher = importer
+		token, rerr := RememberPusher(req.Repo, pusher, req.Refs)
+		if rerr != nil {
+			log.Debug("the pusher of an import to %-v is not remembered: %v", req.Repo, rerr)
+		}
+		defer func() {
+			if !accepted {
+				token.Forget()
+			}
+		}()
+	}
 
-	cctx, cancel := system(ctx, ImportTimeout)
+	timeout, api := ImportTimeout, h.api
+	if isBulk(ctx) {
+		timeout = BulkImportTimeout
+		if api, err = bulkAPI(); err != nil {
+			return err
+		}
+	}
+	cctx, cancel := system(ctx, timeout)
 	defer cancel()
-	resp, err := h.api.ImportGitPush(cctx, &ascv1.ImportGitPushRequest{
+	resp, err := api.ImportGitPush(cctx, &ascv1.ImportGitPushRequest{
 		Repo:          &ascv1.RepoRef{Name: h.name, IdMode: ascv1.IdMode_ID_MODE_ASC},
 		GitDir:        h.bridge,
 		ObjectDir:     objectDir,
@@ -96,6 +120,7 @@ func ImportPush(ctx context.Context, req ImportRequest) error {
 	if len(resp.GetResults()) != len(updates) {
 		return fmt.Errorf("%w: %d results for %d commands", ErrBadAnswer, len(resp.GetResults()), len(updates))
 	}
+	accepted = true
 	return nil
 }
 

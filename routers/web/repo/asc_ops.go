@@ -47,6 +47,12 @@ type ascOpsPage struct {
 	CanUndo     bool
 	Problem     string
 	Unsupported bool
+	Kind        string
+	Total       int
+	Chips       []ascOpsKindChip
+	Actors      []ascOpsActorBar
+	AllURL      string
+	ExportURL   string
 }
 
 // ascUndoPage is the template data under .AscUndo.
@@ -113,7 +119,23 @@ func AscOps(ctx *context.Context) {
 		ctx.HTML(f.Status, tplAscOps)
 		return
 	}
-	p.Rows = page.Rows
+	kind := strings.TrimSpace(ctx.FormString("kind"))
+	if !ascOpsKindKnown(kind) {
+		ctx.NotFound("asc ops", nil)
+		return
+	}
+	p.Rows = ascOpsBoard(p, kind, page.Rows)
+	p.ExportURL = p.OpsURL + "/export"
+	if p.Ref != "" || p.Mine {
+		eq := url.Values{}
+		if p.Ref != "" {
+			eq.Set("ref", p.Ref)
+		}
+		if p.Mine {
+			eq.Set("mine", "1")
+		}
+		p.ExportURL += "?" + eq.Encode()
+	}
 	if page.Next != "" {
 		q := url.Values{"page": {page.Next}}
 		if p.Ref != "" {
@@ -121,6 +143,9 @@ func AscOps(ctx *context.Context) {
 		}
 		if p.Mine {
 			q.Set("mine", "1")
+		}
+		if kind != "" {
+			q.Set("kind", kind)
 		}
 		p.NextURL = p.OpsURL + "?" + q.Encode()
 	}
