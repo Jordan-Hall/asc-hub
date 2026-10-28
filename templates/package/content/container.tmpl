@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "container"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.container.pull"}}</label>
 				{{if eq .PackageDescriptor.Metadata.Type "helm"}}
@@ -24,9 +24,9 @@
 		</div>
 	</div>
 	{{if .PackageDescriptor.Metadata.Manifests}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.container.images.title"}}</h4>
-		<div class="ui attached segment">
-			<table class="ui very basic compact table">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.container.images.title"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
+			<table class="ds-table">
 				<thead>
 					<tr>
 						<th>{{ctx.Locale.Tr "packages.container.digest"}}</th>
@@ -49,15 +49,15 @@
 		</div>
 	{{end}}
 	{{if .PackageDescriptor.Metadata.Description}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{.PackageDescriptor.Metadata.Description}}
 		</div>
 	{{end}}
 	{{if .PackageDescriptor.Metadata.ImageLayers}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.container.layers"}}</h4>
-		<div class="ui attached segment tw-break-anywhere">
-			<table class="ui very basic compact table">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.container.layers"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach tw-break-anywhere">
+			<table class="ds-table">
 				<tbody>
 					{{range .PackageDescriptor.Metadata.ImageLayers}}
 						<tr>
@@ -69,9 +69,9 @@
 		</div>
 	{{end}}
 	{{if .PackageDescriptor.Metadata.Labels}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.container.labels"}}</h4>
-		<div class="ui attached segment">
-			<table class="ui very basic compact table">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.container.labels"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
+			<table class="ds-table">
 				<thead>
 					<tr>
 						<th>{{ctx.Locale.Tr "packages.container.labels.key"}}</th>

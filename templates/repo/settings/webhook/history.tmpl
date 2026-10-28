@@ -1,6 +1,6 @@
 {{$isNew:=or .PageIsSettingsHooksNew .PageIsAdminDefaultHooksNew .PageIsAdminSystemHooksNew}}
 {{if .PageIsSettingsHooksEdit}}
-	<h4 class="ui top attached header">
+	<h4 class="ds-card-top">
 		{{ctx.Locale.Tr "repo.settings.recent_deliveries"}}
 		{{if .Permission.IsAdmin}}
 			<div class="ui right">
@@ -13,7 +13,7 @@
 			</div>
 		{{end}}
 	</h4>
-	<div class="ui attached segment">
+	<div class="ds-card ds-card-b ds-card-attach">
 		<div class="ui list">
 			{{range .History}}
 				<div class="item">

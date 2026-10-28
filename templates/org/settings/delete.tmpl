@@ -1,10 +1,10 @@
 {{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "organization settings delete")}}
 
 			<div class="org-setting-content">
-				<h4 class="ui top attached error header">
+				<h4 class="ds-card-top">
 					{{ctx.Locale.Tr "org.settings.delete_account"}}
 				</h4>
-				<div class="ui attached error segment">
+				<div class="ds-card ds-card-b ds-card-attach">
 					<div class="ds-banner ds-banner-err">
 						<p class="text left">{{svg "octicon-alert"}} {{ctx.Locale.Tr "org.settings.delete_prompt"}}</p>
 					</div>

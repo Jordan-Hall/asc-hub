@@ -10,14 +10,14 @@ Top of every Storage and AI keys page. The settings menu is the only navigation 
 	{{else}}{{ctx.Locale.Tr "ascbyo.scope.repo" $a.ScopeLabel}}{{end}}
 </p>
 {{with $a.Problem}}
-	<div class="ui negative message asc-byo-problem" role="alert" data-testid="asc-byo-problem">
+	<div class="ds-banner ds-banner-err asc-byo-problem" role="alert" data-testid="asc-byo-problem">
 		<p>{{.Message}}</p>
 		{{if .Reason}}<p>{{.Reason}}</p>{{end}}
 		{{if .Detail}}<p class="asc-byo-detail">{{.Detail}}</p>{{end}}
 	</div>
 {{end}}
 {{if $a.Unsupported}}
-	<div class="ui warning message" role="status" data-testid="asc-byo-unsupported"><p>{{ctx.Locale.Tr "ascbyo.unsupported"}}</p></div>
+	<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-byo-unsupported"><p>{{ctx.Locale.Tr "ascbyo.unsupported"}}</p></div>
 {{else if $a.Unavailable}}
-	<div class="ui warning message" role="status" data-testid="asc-byo-unavailable"><p>{{ctx.Locale.Tr "ascbyo.unavailable"}}</p></div>
+	<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-byo-unavailable"><p>{{ctx.Locale.Tr "ascbyo.unavailable"}}</p></div>
 {{end}}

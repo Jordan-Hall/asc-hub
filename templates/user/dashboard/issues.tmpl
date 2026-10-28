@@ -65,29 +65,29 @@
 					{{svg "octicon-triangle-down" 14 "dropdown icon"}}
 					<div class="ui menu">
 						<a class="{{if eq .ViewType "created_by"}}active{{end}} item" href="?type=created_by&sort={{$.SortType}}&project={{$.ProjectID}}&state={{.State}}&q={{$.Keyword}}">
-							<div class="ui circular mini label tw-ml-0">{{CountFmt .IssueStats.CreateCount}}</div>
+							<div class="ds-chip tw-ml-0">{{CountFmt .IssueStats.CreateCount}}</div>
 							{{ctx.Locale.Tr "repo.issues.filter_type.created_by_you"}}
 						</a>
 						<a class="{{if eq .ViewType "your_repositories"}}active{{end}} item" href="?type=your_repositories&sort={{$.SortType}}&project={{$.ProjectID}}&state={{.State}}&q={{$.Keyword}}">
-							<div class="ui circular mini label tw-ml-0">{{CountFmt .IssueStats.YourRepositoriesCount}}</div>
+							<div class="ds-chip tw-ml-0">{{CountFmt .IssueStats.YourRepositoriesCount}}</div>
 							{{ctx.Locale.Tr "home.issues.in_your_repos"}}
 						</a>
 						<a class="{{if eq .ViewType "assigned"}}active{{end}} item" href="?type=assigned&sort={{$.SortType}}&project={{$.ProjectID}}&state={{.State}}&q={{$.Keyword}}">
-							<div class="ui circular mini label tw-ml-0">{{CountFmt .IssueStats.AssignCount}}</div>
+							<div class="ds-chip tw-ml-0">{{CountFmt .IssueStats.AssignCount}}</div>
 							{{ctx.Locale.Tr "repo.issues.filter_type.assigned_to_you"}}
 						</a>
 						{{if .PageIsPulls}}
 							<a class="{{if eq .ViewType "review_requested"}}active{{end}} item" href="?type=review_requested&sort={{$.SortType}}&project={{$.ProjectID}}&state={{.State}}&q={{$.Keyword}}">
-								<div class="ui circular mini label tw-ml-0">{{CountFmt .IssueStats.ReviewRequestedCount}}</div>
+								<div class="ds-chip tw-ml-0">{{CountFmt .IssueStats.ReviewRequestedCount}}</div>
 								{{ctx.Locale.Tr "repo.issues.filter_type.review_requested"}}
 							</a>
 							<a class="{{if eq .ViewType "reviewed_by"}}active{{end}} item" href="?type=reviewed_by&sort={{$.SortType}}&project={{$.ProjectID}}&state={{.State}}&q={{$.Keyword}}">
-								<div class="ui circular mini label tw-ml-0">{{CountFmt .IssueStats.ReviewedCount}}</div>
+								<div class="ds-chip tw-ml-0">{{CountFmt .IssueStats.ReviewedCount}}</div>
 								{{ctx.Locale.Tr "repo.issues.filter_type.reviewed_by_you"}}
 							</a>
 						{{end}}
 						<a class="{{if eq .ViewType "mentioned"}}active{{end}} item" href="?type=mentioned&sort={{$.SortType}}&project={{$.ProjectID}}&state={{.State}}&q={{$.Keyword}}">
-							<div class="ui circular mini label tw-ml-0">{{CountFmt .IssueStats.MentionCount}}</div>
+							<div class="ds-chip tw-ml-0">{{CountFmt .IssueStats.MentionCount}}</div>
 							{{ctx.Locale.Tr "repo.issues.filter_type.mentioning_you"}}
 						</a>
 					</div>

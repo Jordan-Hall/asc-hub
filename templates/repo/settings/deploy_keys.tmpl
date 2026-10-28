@@ -1,6 +1,6 @@
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings")}}
 	<div class="repo-setting-content">
-		<h4 class="ui top attached header">
+		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "repo.settings.deploy_keys"}}
 			<div class="ui right">
 			{{if not .DisableSSH}}
@@ -10,9 +10,9 @@
 			{{end}}
 			</div>
 		</h4>
-		<div class="ui attached segment">
+		<div class="ds-card ds-card-b ds-card-attach">
 			<div class="{{if not .HasError}}tw-hidden{{end}} tw-mb-4" id="add-deploy-key-panel">
-				<form class="ui form" action="{{.Link}}" method="post">
+				<form class="ui form ds-form" action="{{.Link}}" method="post">
 					<div class="ds-field">
 						{{ctx.Locale.Tr "repo.settings.deploy_key_desc"}}
 					</div>

@@ -1,6 +1,6 @@
-<h4 class="ui top attached header">{{if .IsEditRule}}{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.edit"}}{{else}}{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.add"}}{{end}}</h4>
-<div class="ui attached segment">
-	<form class="ui form" action="{{.Link}}" method="post">
+<h4 class="ds-card-top">{{if .IsEditRule}}{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.edit"}}{{else}}{{ctx.Locale.Tr "packages.owner.settings.cleanuprules.add"}}{{end}}</h4>
+<div class="ds-card ds-card-b ds-card-attach">
+	<form class="ui form ds-form" action="{{.Link}}" method="post">
 		<input name="id" type="hidden" value="{{.CleanupRule.ID}}">
 		<div class="ds-field">
 			<div class="ui checkbox">

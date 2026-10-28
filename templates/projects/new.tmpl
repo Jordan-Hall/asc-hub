@@ -8,7 +8,7 @@
 	{{end}}
 </h2>
 {{template "base/alert" .}}
-<form class="ui form" action="{{.Link}}" method="post">
+<form class="ui form ds-form" action="{{.Link}}" method="post">
 	<div>
 		<input type="hidden" id="redirect" name="redirect" value="{{.redirect}}">
 		<div class="ds-field {{if .Err_Title}}error{{end}}">

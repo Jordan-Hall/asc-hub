@@ -46,7 +46,7 @@
 				{{.CsrfTokenHtml}}
 				<input type="hidden" name="op_id" value="{{$a.Op "create"}}">
 				{{template "shared/asc/byo_storage_fields" (dict "Root" . "Edit" false "Pfx" "asc-new")}}
-				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.add_button"}}</button>
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.add_button"}}</button>
 			</form>
 		</section>
 

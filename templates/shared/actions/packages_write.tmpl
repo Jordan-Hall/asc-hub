@@ -1,7 +1,7 @@
-<h4 class="ui top attached header">
+<h4 class="ds-card-top">
 	{{ctx.Locale.Tr "actions.permissions.packages_write.title"}}
 </h4>
-<div class="ui attached segment">
+<div class="ds-card ds-card-b ds-card-attach">
 	<p>
 		{{if .PackagesWriteForOrg}}
 			{{ctx.Locale.Tr "actions.permissions.packages_write.org_desc"}}
@@ -12,7 +12,7 @@
 	{{if .PackagesWriteOrgOff}}
 		<div class="ds-banner ds-banner-warn">{{ctx.Locale.Tr "actions.permissions.packages_write.org_off"}}</div>
 	{{end}}
-	<form class="ui form" action="{{.Link}}" method="post">
+	<form class="ui form ds-form" action="{{.Link}}" method="post">
 		<div class="ds-field">
 			<div class="ui checkbox">
 				<input name="allow_packages_write" type="checkbox" {{if .PackagesWriteOn}}checked{{end}} {{if .PackagesWriteOrgOff}}disabled{{end}}>

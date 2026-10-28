@@ -27,7 +27,7 @@
 									{{- end -}}
 								]&sort={{$.SortType}}&state={{$.State}}&q={{$.Keyword}}" title="{{.FullName}}">
 								<span class="text truncate">{{$Repo.FullName}}</span>
-								<div class="ui {{if $.IsShowClosed}}red{{else}}green{{end}} label">{{index $.Counts $Repo.ID}}</div>
+								<div class="ds-chip {{if $.IsShowClosed}}red {{else}}green {{end}}">{{index $.Counts $Repo.ID}}</div>
 							</a>
 						{{end}}
 					{{end}}
@@ -76,7 +76,7 @@
 						<li class="milestone-card">
 							<div class="milestone-header">
 								<h3>
-									<span class="ui large label">
+									<span class="ds-chip">
 										{{.Repo.FullName}}
 									</span>
 									{{svg "octicon-milestone" 16}}

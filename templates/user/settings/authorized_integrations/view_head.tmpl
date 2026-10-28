@@ -1,16 +1,16 @@
 {{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings applications authorized-integrations")}}
 
 <div class="user-setting-content">
-	<form id="scoped-access-form" class="ui form" action="{{.Link}}" method="post">
+	<form id="scoped-access-form" class="ui form ds-form" action="{{.Link}}" method="post">
 
-		<h4 class="ui top attached header">
+		<h4 class="ds-card-top">
 			{{if .IsNew}}
 				{{ctx.Locale.Tr "settings.authorized_integration.create_page_title"}}
 			{{else}}
 				{{ctx.Locale.Tr "settings.authorized_integration.edit_page_title" .Form.Name}}
 			{{end}}
 		</h4>
-		<div class="ui attached bottom segment">
+		<div class="ds-card ds-card-b ds-card-attach">
 			<div class="required ds-field {{if .Err_Name}}error{{end}}">
 				<label for="name">{{ctx.Locale.Tr "settings.authorized_integration.field.name"}}</label>
 				<input class="ds-input" id="name" name="name" value="{{.Form.Name}}" required maxlength="255">

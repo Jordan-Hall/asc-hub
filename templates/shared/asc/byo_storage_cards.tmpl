@@ -25,23 +25,23 @@ The cards of a list of storage targets.
 				<div class="asc-byo-actions">
 					<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/verify">
 						{{$root.CsrfTokenHtml}}
-						<button class="ui {{if .NeedsVerify}}primary{{else}}basic{{end}} button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.verify"}}</button>
+						<button class="ds-btn ds-btn-secondary {{if .NeedsVerify}}primary {{else}}basic {{end}}" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.verify"}}</button>
 					</form>
 					{{if .CanEnable}}
 						<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/enable">
 							{{$root.CsrfTokenHtml}}
 							<input type="hidden" name="return" value="list">
-							<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.enable"}}</button>
+							<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.enable"}}</button>
 						</form>
 					{{end}}
 					{{if .CanDisable}}
 						<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/disable">
 							{{$root.CsrfTokenHtml}}
 							<input type="hidden" name="return" value="list">
-							<button class="ui basic button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.disable"}}</button>
+							<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.disable"}}</button>
 						</form>
 					{{end}}
-					<a class="ui basic button" href="{{$a.StorageURL}}/targets/{{.ID}}">{{ctx.Locale.Tr "ascbyo.storage.card.details"}}</a>
+					<a class="ds-btn ds-btn-secondary" href="{{$a.StorageURL}}/targets/{{.ID}}">{{ctx.Locale.Tr "ascbyo.storage.card.details"}}</a>
 				</div>
 			{{end}}
 		</article>

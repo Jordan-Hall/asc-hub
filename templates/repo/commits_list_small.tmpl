@@ -25,7 +25,7 @@
 		</span>
 
 		{{if IsMultilineCommitMessage .Message}}
-			<button class="ui button ellipsis-button show-panel toggle" data-panel="[data-singular-commit-body-for='{{$tag}}']">...</button>
+			<button class="ds-btn ds-btn-secondary ellipsis-button show-panel" data-panel="[data-singular-commit-body-for='{{$tag}}']">...</button>
 		{{end}}
 
 		<span class="shabox tw-flex tw-items-center tw-gap-2">

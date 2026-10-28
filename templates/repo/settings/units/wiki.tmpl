@@ -1,7 +1,7 @@
-<h4 class="ui top attached header" id="wiki">
+<h4 class="ds-card-top" id="wiki">
 	{{ctx.Locale.Tr "repo.wiki"}}
 </h4>
-<div class="ui attached segment">
+<div class="ds-card ds-card-b ds-card-attach">
 	{{$isWikiEnabled := or (.Repository.UnitEnabled $.Context $.UnitTypeWiki) (.Repository.UnitEnabled $.Context $.UnitTypeExternalWiki)}}
 	{{$isWikiGlobalDisabled := .UnitTypeWiki.UnitGlobalDisabled}}
 	{{$isExternalWikiGlobalDisabled := .UnitTypeExternalWiki.UnitGlobalDisabled}}

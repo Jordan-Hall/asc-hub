@@ -17,13 +17,13 @@ Template Attributes:
 			<form method="post" action="{{AppSubUrl}}/-/asc/agents/features">
 				{{.CsrfTokenHtml}}
 				<input type="hidden" name="enabled" value="{{if .AscAgentFeatures}}0{{else}}1{{end}}">
-				<button class="ui {{if .AscAgentFeatures}}basic{{else}}primary{{end}} button" type="submit">{{if .AscAgentFeatures}}Turn agent features off{{else}}Turn agent features on{{end}}</button>
+				<button class="ds-btn ds-btn-secondary {{if .AscAgentFeatures}}basic {{else}}primary {{end}}" type="submit">{{if .AscAgentFeatures}}Turn agent features off{{else}}Turn agent features on{{end}}</button>
 			</form>
 		</section>
 
 		{{if .AscAgentFeatures}}
-			{{if .AscAgentsError}}<div class="ui warning message" role="alert">{{.AscAgentsError}}</div>{{end}}
-			{{if .AscAgentsAnyFailed}}<div class="ui warning message" role="alert">Some repositories could not be read.</div>{{end}}
+			{{if .AscAgentsError}}<div class="ds-banner ds-banner-warn" role="alert">{{.AscAgentsError}}</div>{{end}}
+			{{if .AscAgentsAnyFailed}}<div class="ds-banner ds-banner-warn" role="alert">Some repositories could not be read.</div>{{end}}
 
 			<section class="asc-card" aria-labelledby="asc-myruns-title">
 				<h3 id="asc-myruns-title" class="asc-card-title">Your recent runs</h3>

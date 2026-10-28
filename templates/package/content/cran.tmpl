@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "cran"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.cran.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>options("repos" = c(getOption("repos"), c(forgejo="<origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/cran"></origin-url>")))</code></pre></div>
@@ -17,16 +17,16 @@
 	</div>
 
 	{{if or .PackageDescriptor.Metadata.Description .PackageDescriptor.Metadata.Title}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{if .PackageDescriptor.Metadata.Description}}{{.PackageDescriptor.Metadata.Description}}{{.PackageDescriptor.Metadata.Title}}{{else}}{{end}}
 		</div>
 	{{end}}
 
 	{{if or .PackageDescriptor.Metadata.Imports .PackageDescriptor.Metadata.Depends .PackageDescriptor.Metadata.LinkingTo .PackageDescriptor.Metadata.Suggests}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ui attached segment">
-			<table class="ui single line very basic table">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
+			<table class="ds-table">
 				<tbody>
 					{{if .PackageDescriptor.Metadata.Imports}}
 						<tr>

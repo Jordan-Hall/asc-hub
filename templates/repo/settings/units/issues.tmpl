@@ -1,7 +1,7 @@
-<h4 class="ui top attached header" id="issues">
+<h4 class="ds-card-top" id="issues">
 	{{ctx.Locale.Tr "repo.issues"}}
 </h4>
-<div class="ui attached segment">
+<div class="ds-card ds-card-b ds-card-attach">
 	{{$isIssuesEnabled := or (.Repository.UnitEnabled $.Context $.UnitTypeIssues) (.Repository.UnitEnabled $.Context $.UnitTypeExternalTracker)}}
 	{{$isIssuesGlobalDisabled := .UnitTypeIssues.UnitGlobalDisabled}}
 	{{$isExternalTrackerGlobalDisabled := .UnitTypeExternalTracker.UnitGlobalDisabled}}

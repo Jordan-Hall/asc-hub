@@ -1,4 +1,4 @@
-<h4 class="ui top attached header">
+<h4 class="ds-card-top">
 	{{.CustomHeaderTitle}}
 	<div class="ui right type dropdown">
 		<div class="text tw-flex tw-items-center">
@@ -9,7 +9,7 @@
 		{{template "repo/settings/webhook/link_menu" .ctxData}}
 	</div>
 </h4>
-<div class="ui attached segment">
+<div class="ds-card ds-card-b ds-card-attach">
 	{{with .ctxData}}
 		<!-- the template argument cannot be dynamic  -->
 		{{if eq .HookType "forgejo"}}

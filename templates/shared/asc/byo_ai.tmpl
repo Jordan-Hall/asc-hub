@@ -49,23 +49,23 @@
 							<div class="asc-byo-actions">
 								<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/test">
 									{{$.CsrfTokenHtml}}
-									<button class="ui {{if .NeedsTest}}primary{{else}}basic{{end}} button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.test"}}</button>
+									<button class="ds-btn ds-btn-secondary {{if .NeedsTest}}primary {{else}}basic {{end}}" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.test"}}</button>
 								</form>
 								{{if .CanEnable}}
 									<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/enable">
 										{{$.CsrfTokenHtml}}
 										<input type="hidden" name="return" value="list">
-										<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.enable"}}</button>
+										<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.enable"}}</button>
 									</form>
 								{{end}}
 								{{if .CanDisable}}
 									<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/disable">
 										{{$.CsrfTokenHtml}}
 										<input type="hidden" name="return" value="list">
-										<button class="ui basic button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.disable"}}</button>
+										<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.disable"}}</button>
 									</form>
 								{{end}}
-								<a class="ui basic button" href="{{$a.AIURL}}/keys/{{.ID}}">{{ctx.Locale.Tr "ascbyo.ai.card.details"}}</a>
+								<a class="ds-btn ds-btn-secondary" href="{{$a.AIURL}}/keys/{{.ID}}">{{ctx.Locale.Tr "ascbyo.ai.card.details"}}</a>
 							</div>
 						</article>
 					{{end}}
@@ -84,7 +84,7 @@
 				{{.CsrfTokenHtml}}
 				<input type="hidden" name="op_id" value="{{$a.Op "create"}}">
 				{{template "shared/asc/byo_ai_fields" (dict "Root" . "Edit" false "Pfx" "asc-new")}}
-				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.add_button"}}</button>
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.ai.add_button"}}</button>
 			</form>
 		</section>
 	{{end}}

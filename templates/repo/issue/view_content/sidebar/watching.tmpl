@@ -7,7 +7,7 @@
 		{{end}}
 	{{end}}>
 	<input type="hidden" name="watch" value="{{if $.IssueWatch.IsWatching}}0{{else}}1{{end}}">
-	<button class="fluid ui button {{if not $.IsSigned}}disabled{{end}}">
+	<button class="ds-btn ds-btn-secondary ds-btn-block {{if not $.IsSigned}}disabled {{end}}">
 		{{if $.IssueWatch.IsWatching}}
 			{{svg "octicon-mute" 16 "tw-mr-2"}}
 			{{ctx.Locale.Tr "repo.issues.unsubscribe"}}

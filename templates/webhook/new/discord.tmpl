@@ -1,16 +1,16 @@
 <p>{{ctx.Locale.Tr "repo.settings.add_web_hook_desc" "https://discord.com" (ctx.Locale.Tr "repo.settings.web_hook_name_discord")}}</p>
-<form class="ui form" action="{{.BaseLink}}/{{or .Webhook.ID "discord/new"}}" method="post">
-	<div class="required field {{if .Err_PayloadURL}}error{{end}}">
+<form class="ui form ds-form" action="{{.BaseLink}}/{{or .Webhook.ID "discord/new"}}" method="post">
+	<div class="required ds-field {{if .Err_PayloadURL}}error{{end}}">
 		<label for="payload_url">{{ctx.Locale.Tr "repo.settings.payload_url"}}</label>
-		<input id="payload_url" name="payload_url" type="url" value="{{.Webhook.URL}}" autofocus required>
+		<input class="ds-input" id="payload_url" name="payload_url" type="url" value="{{.Webhook.URL}}" autofocus required>
 	</div>
-	<div class="required field {{if .Err_PayloadURL}}error{{end}}">
+	<div class="required ds-field {{if .Err_PayloadURL}}error{{end}}">
 		<label for="username">{{ctx.Locale.Tr "repo.settings.discord_username"}}</label>
-		<input id="username" name="username" value="{{.HookMetadata.Username}}" autofocus required placeholder="ASC Hub">
+		<input class="ds-input" id="username" name="username" value="{{.HookMetadata.Username}}" autofocus required placeholder="ASC Hub">
 	</div>
-	<div class="field">
+	<div class="ds-field">
 		<label for="icon_url">{{ctx.Locale.Tr "repo.settings.discord_icon_url"}}</label>
-		<input id="icon_url" name="icon_url" value="{{.HookMetadata.IconURL}}" placeholder="https://example.com/assets/img/logo.svg">
+		<input class="ds-input" id="icon_url" name="icon_url" value="{{.HookMetadata.IconURL}}" placeholder="https://example.com/assets/img/logo.svg">
 	</div>
 	{{template "webhook/shared-settings" .}}
 </form>

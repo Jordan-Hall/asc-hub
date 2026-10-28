@@ -1,7 +1,7 @@
-<div class="ui attached segment reactions" data-action-url="{{$.ActionURL}}">
+<div class="ds-card ds-card-b ds-card-attach reactions" data-action-url="{{$.ActionURL}}">
 {{range $key, $value := .Reactions}}
 	{{$hasReacted := $value.HasUser $.ctxData.SignedUserID}}
-	<a role="button" class="ui label basic{{if $hasReacted}} primary{{end}}{{if not $.ctxData.IsSigned}} disabled{{end}} comment-reaction-button"
+	<a role="button" class="ds-chip comment-reaction-button basic{{if $hasReacted}} primary{{end}}{{if not $.ctxData.IsSigned}} disabled{{end}}"
 		title="{{$value.GetFirstUsers}}"
 		aria-label="
 			{{if eq ($value.GetMoreUserCount) 0}}

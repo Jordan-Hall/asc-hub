@@ -1,7 +1,7 @@
-<h4 class="ui top attached header" id="pulls">
+<h4 class="ds-card-top" id="pulls">
 	{{ctx.Locale.Tr "repo.pulls"}}
 </h4>
-<div class="ui attached segment">
+<div class="ds-card ds-card-b ds-card-attach">
 	{{$pullRequestEnabled := .Repository.UnitEnabled $.Context $.UnitTypePullRequests}}
 	{{$pullRequestGlobalDisabled := .UnitTypePullRequests.UnitGlobalDisabled}}
 	{{$prUnit := .Repository.MustGetUnit $.Context $.UnitTypePullRequests}}

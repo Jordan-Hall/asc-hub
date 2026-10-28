@@ -1,10 +1,10 @@
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings lfs")}}
 	<div class="user-main-content twelve wide column content repository file list">
 		<div class="tab-size-8 non-diff-file-content">
-			<h4 class="ui top attached header">
+			<h4 class="ds-card-top">
 				<a href="{{.LFSFilesLink}}">{{ctx.Locale.Tr "repo.settings.lfs"}}</a> / {{ctx.Locale.Tr "repo.settings.lfs_locks"}} ({{ctx.Locale.Tr "admin.total" .Total}})
 			</h4>
-			<div class="ui attached segment">
+			<div class="ds-card ds-card-b ds-card-attach">
 				<form class="ui form ignore-dirty" method="post">
 					<div class="ui fluid action input">
 						<input class="ds-input" name="path" value="" placeholder="{{ctx.Locale.Tr "repo.settings.lfs_lock_path"}}" autofocus>
@@ -12,7 +12,7 @@
 					</div>
 				</form>
 			</div>
-			<table id="lfs-files-locks-table" class="ui attached segment single line table">
+			<table id="lfs-files-locks-table" class="ds-card ds-card-b ds-card-attach single line table">
 				<tbody>
 					{{range $index, $lock := .LFSLocks}}
 						<tr>

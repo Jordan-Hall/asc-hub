@@ -1,10 +1,10 @@
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings collaboration")}}
 	<div class="repo-setting-content">
-		<h4 class="ui top attached header">
+		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "repo.settings.collaboration"}}
 		</h4>
 		{{if .Collaborators}}
-		<div class="ui attached segment">
+		<div class="ds-card ds-card-b ds-card-attach">
 			<div class="flex-list">
 				{{range .Collaborators}}
 					<div class="flex-item tw-items-center">
@@ -38,8 +38,8 @@
 			</div>
 		</div>
 		{{end}}
-		<div class="ui bottom attached segment">
-			<form class="ui form" id="repo-collab-form" action="{{.Link}}" method="post">
+		<div class="ds-card ds-card-b ds-card-attach">
+			<form class="ui form ds-form" id="repo-collab-form" action="{{.Link}}" method="post">
 				<div id="search-user-box" class="ui search input tw-align-middle">
 					<input class="prompt" name="collaborator" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" autofocus required>
 				</div>
@@ -48,12 +48,12 @@
 		</div>
 
 		{{if .RepoOwnerIsOrganization}}
-		<h4 class="ui top attached header">
+		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "repo.settings.teams"}}
 		</h4>
 		{{$allowedToChangeTeams := (or (.Org.RepoAdminChangeTeamAccess) (.Permission.IsOwner))}}
 		{{if .Teams}}
-		<div class="ui attached segment">
+		<div class="ds-card ds-card-b ds-card-attach">
 			<div class="flex-list">
 				{{range $t, $team := .Teams}}
 					<div class="flex-item">
@@ -84,9 +84,9 @@
 			</div>
 		</div>
 		{{end}}
-		<div class="ui bottom attached segment">
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{if $allowedToChangeTeams}}
-				<form class="ui form" id="repo-collab-team-form" action="{{.Link}}/team" method="post">
+				<form class="ui form ds-form" id="repo-collab-team-form" action="{{.Link}}/team" method="post">
 					<div id="search-team-box" class="ui search input tw-align-middle" data-org-name="{{.OrgName}}">
 						<input class="prompt" name="team" placeholder="{{ctx.Locale.Tr "search.team_kind"}}" autocomplete="off" autofocus required>
 					</div>

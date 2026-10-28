@@ -5,10 +5,10 @@
 				{{ctx.Locale.Tr "repo.settings.archive.branchsettings_unavailable"}}
 			</div>
 		{{else}}
-			<h4 class="ui top attached header">
+			<h4 class="ds-card-top">
 				{{ctx.Locale.Tr "repo.default_branch"}}
 			</h4>
-			<div class="ui attached segment">
+			<div class="ds-card ds-card-b ds-card-attach">
 				<p>
 					{{ctx.Locale.Tr "repo.settings.default_branch_desc"}}
 				</p>
@@ -30,14 +30,14 @@
 				</form>
 			</div>
 
-			<h4 class="ui top attached header">
+			<h4 class="ds-card-top">
 				{{ctx.Locale.Tr "repo.settings.protected_branch"}}
 				<div class="ui right">
 					<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{$.Repository.Link}}/settings/branches/edit">{{ctx.Locale.Tr "repo.settings.branches.add_new_rule"}}</a>
 				</div>
 			</h4>
 
-			<div class="ui attached segment">
+			<div class="ds-card ds-card-b ds-card-attach">
 				<div class="flex-list">
 					{{range .ProtectedBranches}}
 						<div class="flex-item tw-items-center">

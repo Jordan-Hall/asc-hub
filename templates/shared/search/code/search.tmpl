@@ -10,7 +10,7 @@
 </form>
 <div class="ui user list">
 	{{if .CodeIndexerUnavailable}}
-		<div class="ui error message">
+		<div class="ds-banner ds-banner-err">
 			<p>{{ctx.Locale.Tr "search.code_search_unavailable"}}</p>
 		</div>
 	{{else}}

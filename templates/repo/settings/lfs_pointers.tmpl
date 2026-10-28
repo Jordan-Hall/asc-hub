@@ -1,10 +1,10 @@
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings lfs")}}
 	<div class="repo-setting-content">
-		<h4 class="ui top attached header">
+		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "repo.settings.lfs_pointers.found" .NumPointers .NumAssociated .NumNotAssociated .NumNoExist}}
 			{{if gt .NumAssociatable 0}}
 				<div class="ui right">
-					<form class="ui form" method="post" action="{{$.Link}}/associate">
+					<form class="ui form ds-form" method="post" action="{{$.Link}}/associate">
 						{{range .Pointers}}
 							{{if .Associatable}}
 								<input type="hidden" name="oid" value="{{.Oid}} {{.Size}}">
@@ -15,8 +15,8 @@
 				</div>
 			{{end}}
 		</h4>
-		<div class="ui attached segment">
-			<table id="lfs-files-table" class="ui fixed single line table">
+		<div class="ds-card ds-card-b ds-card-attach">
+			<table id="lfs-files-table" class="ds-table">
 				<thead>
 					<tr>
 						<th class="three wide">{{ctx.Locale.Tr "repo.settings.lfs_pointers.sha"}}</th>
