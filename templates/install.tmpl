@@ -34,12 +34,12 @@
 						</div>
 
 						<div class="tw-hidden ds-form" data-db-setting-for="common-host">
-							{{template "shared/ds/field" (dict "ID" "db_host" "Name" "db_host" "Label" (ctx.Locale.Tr "install.host") "Value" .db_host "Required" true "Error" .Err_DbSetting "Extra" "off")}}
+							{{template "shared/ds/field" (dict "ID" "db_host" "Name" "db_host" "Label" (ctx.Locale.Tr "install.host") "Value" .db_host "Error" .Err_DbSetting "Extra" "off")}}
 							<div class="ds-form-row ds-form-row-2">
-								{{template "shared/ds/field" (dict "ID" "db_name" "Name" "db_name" "Label" (ctx.Locale.Tr "install.db_name") "Value" .db_name "Required" true "Error" .Err_DbSetting "Extra" "off")}}
-								{{template "shared/ds/field" (dict "ID" "db_user" "Name" "db_user" "Label" (ctx.Locale.Tr "install.user") "Value" .db_user "Required" true "Error" .Err_DbSetting "Extra" "off")}}
+								{{template "shared/ds/field" (dict "ID" "db_name" "Name" "db_name" "Label" (ctx.Locale.Tr "install.db_name") "Value" .db_name "Error" .Err_DbSetting "Extra" "off")}}
+								{{template "shared/ds/field" (dict "ID" "db_user" "Name" "db_user" "Label" (ctx.Locale.Tr "install.user") "Value" .db_user "Error" .Err_DbSetting "Extra" "off")}}
 							</div>
-							{{template "shared/ds/field" (dict "ID" "db_passwd" "Name" "db_passwd" "Label" (ctx.Locale.Tr "install.password") "Type" "password" "Value" .db_passwd "Required" true "Error" .Err_DbSetting "Autocomplete" "off" "Reveal" true)}}
+							{{template "shared/ds/field" (dict "ID" "db_passwd" "Name" "db_passwd" "Label" (ctx.Locale.Tr "install.password") "Type" "password" "Value" .db_passwd "Error" .Err_DbSetting "Autocomplete" "off" "Reveal" true)}}
 						</div>
 
 						<div class="tw-hidden ds-form" data-db-setting-for="postgres">
@@ -55,7 +55,7 @@
 						</div>
 
 						<div class="tw-hidden ds-form" data-db-setting-for="sqlite3">
-							{{template "shared/ds/field" (dict "ID" "db_path" "Name" "db_path" "Label" (ctx.Locale.Tr "install.path") "Value" .db_path "Required" true "Error" (or .Err_DbPath .Err_DbSetting) "Hint" (ctx.Locale.Tr "install.sqlite_helper") "Extra" "off" "Mono" true)}}
+							{{template "shared/ds/field" (dict "ID" "db_path" "Name" "db_path" "Label" (ctx.Locale.Tr "install.path") "Value" .db_path "Error" (or .Err_DbPath .Err_DbSetting) "Hint" (ctx.Locale.Tr "install.sqlite_helper") "Extra" "off" "Mono" true)}}
 						</div>
 
 						{{if .Err_DbInstalledBefore}}
