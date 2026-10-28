@@ -258,6 +258,9 @@ func pushUpdates(optsList []*repo_module.PushUpdateOptions) error {
 
 				notify_service.PushCommits(ctx, pusher, repo, opts, commits)
 
+				// highlight what the push changed, so the first view finds it ready
+				warmHighlights(ctx, gitRepo, newCommit, oldCommitID)
+
 				// Cache for big repository
 				if err := CacheRef(graceful.GetManager().HammerContext(), repo, gitRepo, opts.RefFullName); err != nil {
 					log.Error("repo_module.CacheRef %s/%s failed: %v", repo.ID, branch, err)

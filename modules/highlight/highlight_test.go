@@ -249,7 +249,7 @@ func TestFileBudgetedCachesAndSkips(t *testing.T) {
 	res, err := FileBudgeted("big.go", "", big)
 	require.NoError(t, err)
 	assert.True(t, res.Skipped, "a file over the size limit is plain text")
-	assert.Empty(t, res.Lexer)
+	assert.Positive(t, res.Window, "the start of a large file is still highlighted")
 	assert.NotEmpty(t, res.Lines)
 }
 
@@ -323,4 +323,23 @@ func TestCachedViewIsMuchFasterThanTheFirst(t *testing.T) {
 	}
 	t.Logf("100 KB of Go: first view %s, cached view %s", cold.Round(time.Microsecond), warm.Round(time.Microsecond))
 	assert.Less(t, warm*10, cold, "a cached view must cost a tenth of the first one")
+}
+
+func TestLargeFileHighlightsItsStart(t *testing.T) {
+	line := "func f(a int) int { return a + 1 }\n"
+	big := []byte(strings.Repeat(line, highlightMaxBytes/len(line)+500)) // a little over the limit
+	res, err := FileBudgeted("big.go", "", big)
+	require.NoError(t, err)
+	assert.True(t, res.Skipped, "the file is partly plain text")
+	assert.Positive(t, res.Window, "its start is highlighted")
+	assert.Equal(t, "Go", res.Lexer)
+	assert.Equal(t, strings.Count(string(big), "\n"), len(res.Lines), "every line is there")
+	assert.Contains(t, string(res.Lines[0]), "<span", "a line of the window has tokens")
+	assert.NotContains(t, string(res.Lines[len(res.Lines)-1]), "<span", "a line after the window is plain")
+
+	huge := []byte(strings.Repeat(line, highlightWindowMaxBytes/len(line)+10))
+	res, err = FileBudgeted("huge.go", "", huge)
+	require.NoError(t, err)
+	assert.Zero(t, res.Window, "a file over the window limit is plain text")
+	assert.True(t, res.Skipped)
 }
