@@ -80,6 +80,17 @@ Template Attributes:
 							</li>
 						{{end}}
 					</ul>
+				{{else if not $d.Repos}}
+					<div class="ds-empty wk-empty-in">
+						<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-book" 32}}</span>
+						<h3>{{ctx.Locale.Tr "asc_work.dash_new_title"}}</h3>
+						<p>{{ctx.Locale.Tr "asc_work.dash_new_text"}}</p>
+						<div class="ds-empty-acts">
+							<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a>
+							<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/repo/migrate">{{ctx.Locale.Tr "asc_work.dash_import"}}</a>
+							<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/-/get-started">{{ctx.Locale.Tr "asc_work.dash_get_started"}}</a>
+						</div>
+					</div>
 				{{else}}
 					<div class="ds-empty wk-empty-in">
 						<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-check-circle" 32}}</span>
