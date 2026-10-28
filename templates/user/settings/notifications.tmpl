@@ -7,7 +7,7 @@
 		<table class="wk-matrix">
 			<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_work.sp_reach"}}</caption>
 			<thead>
-				<tr><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_event"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_inbox"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_email"}}</th></tr>
+				<tr><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_event"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_inbox"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_email"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_push"}}</th></tr>
 			</thead>
 			<tbody>
 				{{range .NotifyEvents}}
@@ -29,11 +29,44 @@
 						<label class="ds-switch"><input type="checkbox" role="switch" disabled aria-label="{{ctx.Locale.Tr (printf "asc_work.ev_%s" .Key)}}, {{ctx.Locale.Tr "asc_work.sp_col_email"}}: {{ctx.Locale.Tr "asc_work.sp_email_not_yet"}}"><span class="ds-switch-track"></span></label>
 						{{end}}
 					</td>
+					<td data-label="{{ctx.Locale.Tr "asc_work.sp_col_push"}}">
+						<form action="{{$.NotificationsLink}}" method="post">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="section" value="push_event">
+							<input type="hidden" name="event" value="{{.Key}}">
+							<input type="hidden" name="value" value="0">
+							<label class="ds-switch"><input type="checkbox" role="switch" name="value" value="1" data-asc-autosubmit{{if .PushOn}} checked{{end}} aria-label="{{ctx.Locale.Tr (printf "asc_work.ev_%s" .Key)}}, {{ctx.Locale.Tr "asc_work.sp_col_push"}}"><span class="ds-switch-track"></span></label>
+						</form>
+					</td>
 				</tr>
 				{{end}}
 			</tbody>
 		</table>
 		<p class="ds-hint ds-card-b">{{ctx.Locale.Tr "asc_work.sp_matrix_note"}}</p>
+	</section>
+
+	<section class="ds-card" aria-labelledby="sp-push">
+		<div class="ds-card-h"><h2 id="sp-push">{{ctx.Locale.Tr "asc_work.sp_push_h"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_push_hint"}}</span></div>
+		<div class="ds-card-b ds-stack-16" data-asc-push data-vapid="{{.PushKey}}" data-sw="{{AppSubUrl}}/-/asc-sw.js" data-scope="{{AppSubUrl}}/" data-subscribe-url="{{.NotificationsLink}}/push" data-unsubscribe-url="{{.NotificationsLink}}/push/remove"
+			data-t-unsupported="{{ctx.Locale.Tr "asc_work.sp_push_unsupported"}}" data-t-denied="{{ctx.Locale.Tr "asc_work.sp_push_denied"}}" data-t-on="{{ctx.Locale.Tr "asc_work.sp_push_on"}}" data-t-off="{{ctx.Locale.Tr "asc_work.sp_push_off"}}" data-t-error="{{ctx.Locale.Tr "asc_work.sp_push_error"}}">
+			<p class="ds-t-body" data-push-status role="status">{{ctx.Locale.Tr "asc_work.sp_push_off"}}</p>
+			<div class="ds-row"><button type="button" class="ds-btn ds-btn-primary" data-push-enable>{{ctx.Locale.Tr "asc_work.sp_push_enable"}}</button><button type="button" class="ds-btn ds-btn-secondary" data-push-disable hidden>{{ctx.Locale.Tr "asc_work.sp_push_disable"}}</button></div>
+			<p class="ds-hint">{{ctx.Locale.TrN .PushDevices "asc_work.sp_push_devices_one" "asc_work.sp_push_devices_n" .PushDevices}}</p>
+		</div>
+	</section>
+
+	<section class="ds-card" aria-labelledby="sp-digest">
+		<div class="ds-card-h"><h2 id="sp-digest">{{ctx.Locale.Tr "asc_work.sp_digest_h"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_digest_hint"}}</span></div>
+		<form class="ds-card-b ds-form" action="{{.NotificationsLink}}" method="post">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="section" value="digest">
+			<input type="hidden" name="on" value="0">
+			<label class="ds-switch wk-switch-row">
+				<input type="checkbox" role="switch" name="on" value="1" data-asc-autosubmit{{if .DigestOn}} checked{{end}}>
+				<span class="ds-switch-track"></span>
+				<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.sp_digest_switch"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_digest_switch_hint"}}</span></span>
+			</label>
+		</form>
 	</section>
 
 	<section class="ds-card" aria-labelledby="sp-email">
@@ -87,12 +120,13 @@
 		<div class="ds-card-h"><h2 id="sp-watch">{{ctx.Locale.Tr "asc_work.sp_watching"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_watching_hint"}}</span></div>
 		{{if .WatchedRepos}}
 		<table class="wk-matrix wk-watch">
-			<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_repo"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_level"}}</th><th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "actions"}}</span></th></tr></thead>
+			<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_repo"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_level"}}</th><th scope="col">{{ctx.Locale.Tr "asc_work.sp_col_last"}}</th><th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "actions"}}</span></th></tr></thead>
 			<tbody>
 				{{range .WatchedRepos}}
 				<tr>
 					<th scope="row"><a class="ds-link" href="{{.Link}}">{{.FullName}}</a></th>
 					<td><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_work.sp_all_activity"}}</span></td>
+					<td>{{with index $.LastNotified .ID}}{{DateUtils.TimeSince .}}{{else}}<span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_never"}}</span>{{end}}</td>
 					<td>
 						<form action="{{.Link}}/action/unwatch" method="post">
 							{{$.CsrfTokenHtml}}

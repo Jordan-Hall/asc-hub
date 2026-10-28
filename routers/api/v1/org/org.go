@@ -580,6 +580,10 @@ func BlockUser(ctx *context.APIContext) {
 		return
 	}
 
+	if !user_model.IsUserVisibleToViewer(ctx, ctx.User(), ctx.Doer()) {
+		ctx.NotFound() // the same answer as for a user that does not exist
+		return
+	}
 	utils.BlockUser(ctx, ctx.Org().Organization.AsUser(), ctx.User())
 }
 

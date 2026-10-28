@@ -1,0 +1,5 @@
+[
+  {"date": "2026-10-28", "kind": "Docs", "title": "The documentation lives in the hub", "summary": "Read and search the guides without leaving the hub; they always match the version that runs.", "slug": "overview"},
+  {"date": "2026-10-27", "kind": "Agents", "title": "Agent runs and their budgets", "summary": "Scope, budget and a full audit for every run.", "slug": "agents"},
+  {"date": "2026-10-27", "kind": "Queue", "title": "Merge queue for stacks", "summary": "A stack is tested on the latest trunk before it lands.", "slug": "stacks-and-operations"}
+]

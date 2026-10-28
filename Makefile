@@ -1065,3 +1065,8 @@ endif
 # specify exact dependencies like 'backend' which does currently not depend
 # on 'frontend' to enable Node.js-less builds from source tarballs.
 .NOTPARALLEL:
+
+# Copy the user documentation of docs/asc into the pages the hub ships (services/ascdocs/content); a test fails when they differ
+.PHONY: docs-sync
+docs-sync:
+	for f in README STACK-OPERATIONS AGENTS-UI STORAGE-AND-KEYS OPERATIONS ARCHITECTURE WHY; do cp docs/asc/$$f.md services/ascdocs/content/$$f.md; done

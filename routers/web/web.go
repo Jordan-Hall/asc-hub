@@ -411,7 +411,7 @@ func Routes() *web.Route {
 		func() {
 			registerRoutes(routes)
 		},
-		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()),
+		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence,
 		// TODO: GetNotificationCount & GetActiveStopwatch really seem like things that could be folded into Contexter or as helper functions
 		user.GetNotificationCount, repo.GetActiveStopwatch,
 		goGet)
@@ -438,7 +438,7 @@ func Routes() *web.Route {
 		auth.InfoOAuth)
 
 	routes.NotFound(
-		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()),
+		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence,
 		// TODO: GetNotificationCount & GetActiveStopwatch really seem like things that could be folded into Contexter or as helper functions
 		user.GetNotificationCount, repo.GetActiveStopwatch,
 		goGet,
@@ -653,6 +653,8 @@ func registerRoutes(m *web.Route) {
 	m.Get("/download", ignSignIn, Download)
 	m.Get("/-/about", ignSignIn, AscAbout)
 	m.Get("/-/docs", ignSignIn, AscDocs)
+	m.Get("/-/docs/{slug}", ignSignIn, AscDocsPage)
+	m.Get("/-/asc-sw.js", AscServiceWorker)
 	m.Get("/-/offline", ignSignIn, AscOffline)
 	m.Get("/-/get-started", reqSignIn, AscGetStarted)
 	m.Get("/user/welcome", reqSignIn, Welcome)
@@ -885,7 +887,11 @@ func registerRoutes(m *web.Route) {
 		m.Group("/notifications", func() {
 			m.Get("", user_setting.Notifications)
 			m.Post("", user_setting.NotificationsPost)
+			m.Post("/push", user_setting.PushSubscribe)
+			m.Post("/push/remove", user_setting.PushUnsubscribe)
 		})
+		m.Get("/pins", user.AscPinSettings)
+		m.Post("/pins", user.AscPinSettingsPost)
 		m.Group("/privacy", func() {
 			m.Get("", user_setting.Privacy)
 			m.Post("", user_setting.PrivacyPost)

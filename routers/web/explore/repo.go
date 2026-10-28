@@ -82,6 +82,17 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 	language := ctx.FormTrim("language")
 	ctx.Data["Language"] = language
 	ctx.Data["ExploreLanguages"] = exploreLanguages(ctx, language)
+	if rows, trending, err := repo_model.ListAscTrending(ctx, ctx.Doer, 5); err == nil && len(rows) > 0 {
+		type trend struct {
+			Repo  *repo_model.Repository
+			Count int64
+		}
+		list := make([]trend, 0, len(rows))
+		for i, r := range rows {
+			list = append(list, trend{Repo: trending[i], Count: r.Stars + r.Forks + r.Activity})
+		}
+		ctx.Data["TrendingRepos"] = list
+	}
 	if topics, _, err := repo_model.FindTopics(ctx, &repo_model.FindTopicOptions{ListOptions: db.ListOptions{PageSize: 12, Page: 1}}); err == nil {
 		names := make([]string, 0, len(topics))
 		for _, t := range topics {
@@ -148,6 +159,13 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 	ctx.Data["Keyword"] = keyword
 	ctx.Data["Total"] = count
 	ctx.Data["Repos"] = repos
+	if ctx.Doer != nil && !setting.Repository.DisableStars {
+		starred := make(map[int64]bool, len(repos))
+		for _, r := range repos {
+			starred[r.ID] = repo_model.IsStaring(ctx, ctx.Doer.ID, r.ID)
+		}
+		ctx.Data["StarredRepos"] = starred
+	}
 	ctx.Data["IsRepoIndexerEnabled"] = setting.Indexer.RepoIndexerEnabled
 
 	pager := context.NewPagination(int(count), opts.PageSize, page, 5)

@@ -1,0 +1,23 @@
+{{/* Customize the repositories pinned to the profile (board Profile, Pinned). At most six, only repositories the person owns. */}}
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings pins wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_work.pins_title") "Lead" (ctx.Locale.Tr "asc_work.pins_lead" .PinMax))}}
+<div class="wk-sp">
+	<form class="ds-form" action="{{.Link}}" method="post">
+		{{.CsrfTokenHtml}}
+		<section class="ds-card" aria-labelledby="sp-pins">
+			<div class="ds-card-h"><h2 id="sp-pins">{{ctx.Locale.Tr "asc_work.pf_pinned"}}</h2></div>
+			{{if .PinRows}}
+				<fieldset class="ds-card-b ds-stack-12">
+					<legend class="tw-sr-only">{{ctx.Locale.Tr "asc_work.pins_title"}}</legend>
+					{{range .PinRows}}
+						<div class="ds-check"><input id="pin-{{.ID}}" type="checkbox" name="repo" value="{{.ID}}"{{if .Pinned}} checked{{end}}><label for="pin-{{.ID}}">{{.FullName}}</label></div>
+					{{end}}
+				</fieldset>
+			{{else}}
+				{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "asc_work.pins_none"))}}
+			{{end}}
+		</section>
+		<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button><a class="ds-btn ds-btn-secondary" href="{{.SignedUser.HomeLink}}">{{ctx.Locale.Tr "cancel"}}</a></div>
+	</form>
+</div>
+{{template "user/settings/layout_footer" .}}

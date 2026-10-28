@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 82 |
-| ui-only-missing | 43 |
+| done | 85 |
+| ui-only-missing | 40 |
 | needs-hub-backend | 44 |
 | needs-asc-backend | 0 |
 | needs-both | 26 |
@@ -148,7 +148,7 @@ Open rows by size: S 45, M 64, L 23.
 | Explore | Agent activity chip on a row | needs-both | Not in `repo_list.tmpl`. Needs agent runs per repo over a recent window: asc `ListRuns` batched for a page, or a hub cache table fed by `services/ascsync` | M |
 | Explore | Changeset count on a row ("3,812 changesets") | needs-both | Row shows stars and forks only. asc has per-repo change data but no batch stats RPC; add `RepoStats` or cache in `services/ascsync` | M |
 | Explore | Contributor avatar stack on a row (people and agents) | needs-hub-backend | Not present. Top contributors from `models/activities` or `repo_model.GetContributors`, cached per repo; agents depend on the agent directory below | M |
-| Explore | Row actions on hover or focus-within: Copy clone command, Star | ui-only-missing | Neither on the row. Buttons with `data-clipboard-text` (`asc clone host/owner/name`) and the existing star action | S |
+| Explore | Row actions on hover or focus-within: Copy clone command, Star | done | Neither on the row. Buttons with `data-clipboard-text` (`asc clone host/owner/name`) and the existing star action | S |
 | Explore | Right rail: Trending this week (changesets this week), Popular topics, Clone anything you can see | needs-hub-backend | `explore/rail.tmpl` has only the clone card. Trending: weekly merged pull count per repo (`models/issues/pull.go` query, cached); topics: `repo_model.FindTopics` (`routers/web/explore/topic.go`) | M |
 | Explore | States: loading skeleton, empty hub (New repository, Import), no results with removable filter chips and Clear filters, error with request id and Try again | ui-only-missing | Empty and no-results text exist (`shared/ds/empty`); removable chips, skeleton and error card missing (request id: see Errors) | M |
 | Explore | Pagination "Showing 1 to 8 of 128" | done | `base/paginate.tmpl` | - |
@@ -188,7 +188,7 @@ Open rows by size: S 45, M 64, L 23.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| Docs | Docs home: search, Popular chips, six entry cards, "New in ASC 1.4" list, Need a person card | ui-only-missing | `templates/asc/docs.tmpl` has six cards and a help block; no search, popular or what's new | M |
+| Docs | Docs home: search, Popular chips, six entry cards, "New in ASC 1.4" list, Need a person card | done | `templates/asc/docs.tmpl` has six cards and a help block; no search, popular or what's new | M |
 | Docs | Docs search with grouped results (Commands, Guides), did-you-mean, no results, loading; Ctrl K or `/` opens it | needs-hub-backend | Index over `docs/asc/*.md` and the CLI reference built at start (new `modules/ascdocs`) plus `GET /-/docs/search?q=`; JS list | L |
 | Docs | Article layout: sidebar tree, 720 px column, breadcrumb, steps, callouts, Previous and Next | needs-hub-backend | Docs live on GitHub (`$docsURL`). Render `docs/asc/**` with the hub markdown renderer: `AscDocs` in `routers/web/asc_public.go`, new `templates/asc/docs_article.tmpl`, sidebar manifest | L |
 | Docs | OS code tabs remembered; Copy without the prompt | ui-only-missing | Reuse the `initDownload` tab code; `localStorage` key | M |
@@ -268,7 +268,7 @@ Open rows by size: S 45, M 64, L 23.
 | Profile | Presence pill ("Online, local time 14:20") | needs-hub-backend | None. Last-seen model plus the person's time zone; pill in `header.tmpl` with text | M |
 | Profile | Role line ("Staff engineer · Payments team · London") | ui-only-missing | Combine existing description, location and team names | S |
 | Profile | Request a review (picker with repository and change) and Mention | needs-both | Absent. Hub: picker modal of the viewer's open pull requests (`routers/web/user/profile.go`) and POST to asc `RequestReview` (exists in `review.proto`) via `asc_rpc_proxy.go`; Mention opens a comment composer | L |
-| Profile | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | ui-only-missing | Tabs today: Overview, Repositories, Projects, Packages, Code, Activity, Stars (`overview/header.tmpl`). Add Work (`ascProfileWork`) and Reviews with counts | M |
+| Profile | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | done | Tabs today: Overview, Repositories, Projects, Packages, Code, Activity, Stars (`overview/header.tmpl`). Add Work (`ascProfileWork`) and Reviews with counts | M |
 | Profile | Working-now list (stack, draft, ready) | done | `profile.tmpl`, `ascProfileWork` | - |
 | Profile | Pinned repositories (up to six) with Customize dialog and drag reorder | needs-hub-backend | None. Pin table, `POST /user/settings/pins`, keyboard dialog, htmx | M |
 | Profile | Contributions: year switch, summary (changes, reviews, median turnaround), violet cells for agent-authored changes, cell opens the day, table alternative | needs-both | One-colour grid exists (`asc_heatmap.tmpl`) with a text total. Agent attribution needs asc (changeset author kind via `changes.proto`); turnaround from review timestamps | L |
