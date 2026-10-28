@@ -26,7 +26,7 @@ Open rows by size: S 45, M 64, L 23.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Shell | Signed-out header: Explore, Download, Docs, About, quiet Sign in, cyan Create account | done | `templates/base/head_navbar.tmpl` | - |
-| Shell | Docs and About links (header and footer) open the hub's own pages (`/-/docs`, `/-/about`, both routed and templated) instead of GitHub blobs | ui-only-missing | `head_navbar.tmpl` (`$docsURL`, `$aboutURL`), `footer_content.tmpl`; board maps About to `GET /-/about` | S |
+| Shell | Docs and About links (header and footer) open the hub's own pages (`/-/docs`, `/-/about`, both routed and templated) instead of GitHub blobs | done | `head_navbar.tmpl` (`$docsURL`, `$aboutURL`), `footer_content.tmpl`; board maps About to `GET /-/about` | S |
 | Shell | Signed-in header: Changes, Agents, Explore, Download, search field with `/` and Ctrl K hints, Inbox, Create, Account | done | `head_navbar.tmpl` | - |
 | Shell | Active link: white label, 2px cyan marker, `aria-current=page` | done | `head_navbar.tmpl`, `web_src/css/asc-ds` | - |
 | Shell | Inbox amber count from `/-/asc/inbox/count`, cached 60 s | done | `asc-keys.js` `initAscInboxBadge` | - |
@@ -37,13 +37,13 @@ Open rows by size: S 45, M 64, L 23.
 | Shell | Create menu: New repository, Import a project, New organization, New changeset, Start an agent run | ui-only-missing | `#ds-create` has the first three. Add "New changeset" (repo and stack picker) and "Start an agent run" (`/-/asc/agents`) when `AscEnabled` | S |
 | Shell | Menus close on Esc or outside click, return focus to trigger, fade and rise, reduced motion | done | `ds-shell.js`, `asc-ds/components.css` | - |
 | Shell | Command palette opens from `/`, Ctrl K, header search, mobile search; Esc, arrows, Enter | done | `ds-shell.js`, `#ds-palette` | - |
-| Shell | Palette is a combobox: `role=combobox` input, listbox results, `aria-activedescendant` | ui-only-missing | Today `role=dialog` plus `role=search` form and an `.is-sel` class. Change markup in `head_navbar.tmpl` and `select()` in `ds-shell.js` | S |
-| Shell | Palette scope chips All, Changes, Code, People, Commands; Tab cycles the scope | ui-only-missing | `ds-palette-bar` has input and Cancel only. Chips in `head_navbar.tmpl`, Tab handling in `onPaletteKeydown` | S |
+| Shell | Palette is a combobox: `role=combobox` input, listbox results, `aria-activedescendant` | done | Today `role=dialog` plus `role=search` form and an `.is-sel` class. Change markup in `head_navbar.tmpl` and `select()` in `ds-shell.js` | S |
+| Shell | Palette scope chips All, Changes, Code, People, Commands; Tab cycles the scope | done | `ds-palette-bar` has input and Cancel only. Chips in `head_navbar.tmpl`, Tab handling in `onPaletteKeydown` | S |
 | Shell | Palette results grouped Changes (title, repo and number), Code (path, symbol), People, fetched as you type | needs-both | Today only static destinations plus "search for ..." links (`filterPalette`). Hub: JSON route (for example `GET /-/asc/palette?q=&scope=`) in `routers/web/explore/asc_search.go` merging pull requests (`issues_model`), users (`user_model.SearchUsers`) and symbols (asc `CrossSearch.Search`, `LookupSymbol`; `services/ascsearch`), read-checked per repo. JS: debounce, abort, render, live count | L |
 | Shell | Command verbs (undo, restack, merge) switch the list to actions; Commands group with Undo last operation (Cmd Z) and Ask an agent to change this... | needs-hub-backend | Static Commands group has New repository and New organization only. asc RPCs exist: `UndoRef`, `Restack`, `RequestMerge`, `CreateRun`. Hub needs a context (current repo, stack) and POST handlers (`routers/web/repo/asc_ops.go`, `asc_restack.go`, `asc_stack_actions.go`, `asc_agents.go`) callable from the palette with a confirm step | L |
-| Shell | Empty query shows Recent items and Shortcuts (Go to inbox: g i) | ui-only-missing | Recents in `localStorage` (visited repos and changes), static shortcuts; `ds-shell.js`, `head_navbar.tmpl` | M |
-| Shell | No-results text names the query and suggests a symbol, handle or title | ui-only-missing | `asc_shell.palette_empty` is a different sentence ("Press Enter to search this text") | S |
-| Shell | Keyboard shortcuts overlay (`?`, "All shortcuts") | ui-only-missing | No handler in `asc-keys.js`; dialog listing the keys of the page | S |
+| Shell | Empty query shows Recent items and Shortcuts (Go to inbox: g i) | done | Recents in `localStorage` (visited repos and changes), static shortcuts; `ds-shell.js`, `head_navbar.tmpl` | M |
+| Shell | No-results text names the query and suggests a symbol, handle or title | done | `asc_shell.palette_empty` is a different sentence ("Press Enter to search this text") | S |
+| Shell | Keyboard shortcuts overlay (`?`, "All shortcuts") | done | No handler in `asc-keys.js`; dialog listing the keys of the page | S |
 | Shell | Footer: full footer on public pages (four groups, version, Based on Forgejo, language, theme switch), one-line footer when signed in | done | `templates/base/footer_content.tmpl` | - |
 | Shell | Footer links: Stacks and changes, Agent runs, Changelog, CLI reference, REST API, MCP server, Status, Security, Contact, Privacy, Terms, Acceptable use, Subprocessors, Cookies | ui-only-missing | Today: Download, Explore, Users, Organizations, Docs, Operations, API, Why, Licenses. Add links (docs pages or `[asc]` settings URLs) in `footer_content.tmpl` | S |
 | Shell | "All systems operational" status in the footer | needs-hub-backend | Not present. Cached value from `/healthcheck` plus asc serve health, or a configured status URL; `footer_content.tmpl` | M |
@@ -200,7 +200,7 @@ Open rows by size: S 45, M 64, L 23.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | About | Hero, story with before and after table, principles, open source chips, data ownership, contact | done | `templates/asc/about.tmpl`, route `GET /-/about` (`web.go` line 654) | - |
-| About | Header About and footer link go to `/-/about` | ui-only-missing | Header still links to the GitHub copy of `WHY.md` (see Shell) | S |
+| About | Header About and footer link go to `/-/about` | done | Header still links to the GitHub copy of `WHY.md` (see Shell) | S |
 | About | Source code, Security policy and Contact targets | ui-only-missing | Targets come from `[asc]` settings; confirm they are set | S |
 
 ## Errors
@@ -298,7 +298,7 @@ Open rows by size: S 45, M 64, L 23.
 | Mobile-Menu | Swipe from the left edge opens the drawer | ui-only-missing | No touch handler in `ds-shell.js` | S |
 | Mobile-Menu | Create as a bottom sheet (drawer footer and list headers) | ui-only-missing | `#ds-create` is a popover; sheet variant on phones | S |
 | Mobile-Menu | Notifications sheet | needs-hub-backend | With the popover (Shell) | M |
-| Mobile-Menu | Palette filter chips scroll horizontally | ui-only-missing | With the scope chips | S |
+| Mobile-Menu | Palette filter chips scroll horizontally | done | With the scope chips | S |
 
 ## Cross-group notes
 

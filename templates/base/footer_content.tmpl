@@ -1,6 +1,6 @@
 {{/* The footer (board A2, part 05): the full footer with four link groups on public pages and for visitors, one line in the signed-in application. */}}
-{{$docsURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/README.md"}}
-{{$whyURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/WHY.md"}}
+{{$docsURL := print AppSubUrl "/-/docs"}}
+{{$whyURL := print AppSubUrl "/-/about"}}
 {{$opsURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/OPERATIONS.md"}}
 {{$compact := or (and .IsSigned (not .FooterFull)) .PageIsSignIn .PageIsSignUp}}
 <footer class="ds-footer{{if $compact}} ds-footer-compact{{end}}" role="group" aria-label="{{ctx.Locale.Tr "aria.footer"}}">
@@ -28,7 +28,7 @@
 			<details class="ds-footer-group" open>
 				<summary><h4>{{ctx.Locale.Tr "asc_shell.footer_developers"}}</h4>{{svg "dsi-chevron-down" 18}}</summary>
 				<ul>
-					<li><a target="_blank" rel="noopener noreferrer" href="{{$docsURL}}">{{ctx.Locale.Tr "docs"}}</a></li>
+					<li><a href="{{$docsURL}}">{{ctx.Locale.Tr "docs"}}</a></li>
 					<li><a target="_blank" rel="noopener noreferrer" href="{{$opsURL}}">{{ctx.Locale.Tr "asc_shell.footer_operations"}}</a></li>
 					{{if .EnableSwagger}}<li><a href="{{AppSubUrl}}/api/swagger">API</a></li>{{end}}
 				</ul>
@@ -36,7 +36,7 @@
 			<details class="ds-footer-group" open>
 				<summary><h4>{{ctx.Locale.Tr "asc_shell.footer_company"}}</h4>{{svg "dsi-chevron-down" 18}}</summary>
 				<ul>
-					<li><a target="_blank" rel="noopener noreferrer" href="{{$whyURL}}">{{ctx.Locale.Tr "why_asc_hub"}}</a></li>
+					<li><a href="{{$whyURL}}">{{ctx.Locale.Tr "why_asc_hub"}}</a></li>
 					{{if ShowFooterPoweredBy}}<li><a target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "based_on" "Forgejo"}}</a></li>{{end}}
 				</ul>
 			</details>
@@ -69,8 +69,8 @@
 				</details>
 				{{if $compact}}
 					{{if AscDownloadAvailable}}<a href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_download.nav"}}</a>{{end}}
-					<a target="_blank" rel="noopener noreferrer" href="{{$docsURL}}">{{ctx.Locale.Tr "docs"}}</a>
-					<a target="_blank" rel="noopener noreferrer" href="{{$whyURL}}">{{ctx.Locale.Tr "why_asc_hub"}}</a>
+					<a href="{{$docsURL}}">{{ctx.Locale.Tr "docs"}}</a>
+					<a href="{{$whyURL}}">{{ctx.Locale.Tr "why_asc_hub"}}</a>
 					<a href="{{AssetUrlPrefix}}/licenses.txt">{{ctx.Locale.Tr "licenses"}}</a>
 					{{if .EnableSwagger}}<a href="{{AppSubUrl}}/api/swagger">API</a>{{end}}
 					{{template "custom/extra_links_footer" .}}

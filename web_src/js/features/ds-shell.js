@@ -130,6 +130,65 @@ function onKeydown(e) {
 
 // ---- the command palette ----
 
+export const paletteScopes = ['all', 'changes', 'code', 'people', 'commands'];
+const recentKey = 'asc-palette-recent';
+const recentMax = 5;
+
+// The scope after (or before, with back) the current one; the list wraps.
+export function cycleScope(current, back = false) {
+  const at = Math.max(0, paletteScopes.indexOf(current));
+  const next = (at + (back ? paletteScopes.length - 1 : 1)) % paletteScopes.length;
+  return paletteScopes[next];
+}
+
+// Reads the saved recent items; anything that is not a list of {href, label} with a path on this host is dropped.
+export function parseRecents(raw) {
+  let list;
+  try {
+    list = JSON.parse(raw || '[]');
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(list)) return [];
+  return list.filter((r) => r && typeof r.href === 'string' && typeof r.label === 'string' && /^\/(?!\/)/.test(r.href)).slice(0, recentMax)
+    .map((r) => ({href: r.href, label: r.label, sub: typeof r.sub === 'string' ? r.sub : '', kind: r.kind === 'change' ? 'change' : 'repo'}));
+}
+
+// Puts an entry first, without a duplicate, and keeps the newest few.
+export function pushRecent(list, entry) {
+  return [entry, ...list.filter((r) => r.href !== entry.href)].slice(0, recentMax);
+}
+
+const notOwners = ['-', 'user', 'org', 'repo', 'admin', 'explore', 'api', 'assets', 'notifications', 'pulls', 'issues', 'milestones'];
+
+// What a page path names: a repository home, or one change, as {kind, href, name, number}; null for any other page.
+export function visitFromPath(pathname, appSubUrl = '') {
+  let path = pathname;
+  if (appSubUrl && path.startsWith(appSubUrl)) path = path.slice(appSubUrl.length);
+  const m = /^\/([^/]+)\/([^/]+)(?:\/(pulls|issues)\/(\d+))?\/?$/.exec(path);
+  if (!m || notOwners.includes(m[1])) return null;
+  if (m[3]) return {kind: 'change', href: `${appSubUrl}/${m[1]}/${m[2]}/${m[3]}/${m[4]}`, name: `${m[1]}/${m[2]}`, number: m[4]};
+  return {kind: 'repo', href: `${appSubUrl}/${m[1]}/${m[2]}`, name: `${m[1]}/${m[2]}`, number: ''};
+}
+
+function recordVisit() {
+  if (!document.querySelector('.page-content.repository')) return;
+  const visit = visitFromPath(window.location.pathname, window.config?.appSubUrl || '');
+  if (!visit) return;
+  const title = document.querySelector('#issue-title-display, .issue-title h1')?.textContent.trim().replace(/\s+#\d+$/, '') || `#${visit.number}`;
+  const entry = visit.kind === 'change' ?
+    {href: visit.href, kind: 'change', label: title, sub: `${visit.name} #${visit.number}`} :
+    {href: visit.href, kind: 'repo', label: visit.name, sub: ''};
+  try {
+    localStorage.setItem(recentKey, JSON.stringify(pushRecent(parseRecents(localStorage.getItem(recentKey)), entry)));
+  } catch {
+    // storage is blocked: the palette just shows no recent items
+  }
+}
+
+let scope = 'all';
+let itemSeq = 0;
+
 function paletteParts() {
   const root = byId('ds-palette');
   if (!root) return null;
@@ -138,6 +197,7 @@ function paletteParts() {
     input: root.querySelector('input[data-asc-search]'),
     list: root.querySelector('[data-ds-palette-list]'),
     dynamic: root.querySelector('[data-ds-palette-dynamic]'),
+    recent: root.querySelector('[data-ds-palette-recent]'),
     empty: root.querySelector('[data-ds-palette-empty]'),
     form: root.querySelector('form'),
   };
@@ -149,16 +209,32 @@ function visibleItems(p) {
 
 function select(p, index) {
   const items = visibleItems(p);
-  for (const it of items) it.classList.remove('is-sel');
-  if (index < 0 || index >= items.length) return;
+  for (const it of items) {
+    it.classList.remove('is-sel');
+    it.setAttribute('aria-selected', 'false');
+  }
+  if (index < 0 || index >= items.length) {
+    p.input?.setAttribute('aria-activedescendant', '');
+    return;
+  }
   items[index].classList.add('is-sel');
+  items[index].setAttribute('aria-selected', 'true');
+  p.input?.setAttribute('aria-activedescendant', items[index].id);
   items[index].scrollIntoView({block: 'nearest'});
 }
 
-function dynamicItem(href, label, query) {
+// every option of the listbox has an id (aria-activedescendant points at it) and the option role
+function prepareItem(el) {
+  if (!el.id) el.id = `ds-pi-${++itemSeq}`;
+  el.setAttribute('role', 'option');
+  if (!el.hasAttribute('aria-selected')) el.setAttribute('aria-selected', 'false');
+}
+
+function dynamicItem(href, label, query, itemScope) {
   const a = document.createElement('a');
   a.className = 'ds-palette-item';
   a.href = href;
+  a.dataset.dsScope = itemScope;
   const main = document.createElement('span');
   main.className = 'ds-pi-main';
   main.textContent = `${label} `;
@@ -166,6 +242,7 @@ function dynamicItem(href, label, query) {
   strong.textContent = `“${query}”`;
   main.append(strong);
   a.append(searchIcon(), main);
+  prepareItem(a);
   return a;
 }
 
@@ -185,12 +262,66 @@ function searchIcon() {
   return svg;
 }
 
+// the recent repositories and changes of this browser, as options of the listbox (empty query only)
+function renderRecents(p) {
+  p.recent.replaceChildren();
+  let list = [];
+  try {
+    list = parseRecents(localStorage.getItem(recentKey));
+  } catch {
+    // no storage
+  }
+  const icons = p.root.querySelector('template[data-ds-recent-icons]')?.content.querySelectorAll('svg') || [];
+  for (const r of list) {
+    const a = document.createElement('a');
+    a.className = 'ds-palette-item';
+    a.href = r.href;
+    a.dataset.dsScope = 'all';
+    a.dataset.dsWhen = 'empty';
+    const icon = icons[r.kind === 'change' ? 1 : 0];
+    if (icon) a.append(icon.cloneNode(true));
+    const main = document.createElement('span');
+    main.className = 'ds-pi-main';
+    main.textContent = r.label;
+    if (r.sub) {
+      const small = document.createElement('small');
+      small.textContent = r.sub;
+      main.append(small);
+    }
+    a.append(main);
+    prepareItem(a);
+    p.recent.append(a);
+  }
+}
+
+function setScope(p, next) {
+  scope = next;
+  for (const chip of p.root.querySelectorAll('[data-ds-scope][aria-pressed]')) {
+    chip.setAttribute('aria-pressed', String(chip.dataset.dsScope === scope));
+  }
+  filterPalette();
+}
+
 function filterPalette() {
   const p = paletteParts();
   if (!p || !p.input) return;
   const q = p.input.value.trim();
   const needle = q.toLowerCase();
-  // the static destinations and commands
+  const searching = q !== '';
+  // what to search for (typed text only)
+  p.dynamic.replaceChildren();
+  if (searching) {
+    const d = p.root.dataset;
+    const enc = encodeURIComponent(q);
+    const hasAsc = d.ascSearchUrl !== d.exploreReposUrl;
+    p.dynamic.append(dynamicItem(`${d.ascSearchUrl}?q=${enc}`, hasAsc ? d.tCode : d.tRepos, q, 'code'));
+    if (hasAsc) p.dynamic.append(dynamicItem(`${d.exploreReposUrl}?q=${enc}`, d.tRepos, q, 'code'));
+    p.dynamic.append(dynamicItem(`${d.exploreUsersUrl}?q=${enc}`, d.tPeople, q, 'people'));
+  }
+  for (const el of p.dynamic.children) el.hidden = scope !== 'all' && el.dataset.dsScope !== scope;
+  renderRecents(p);
+  const emptyView = !searching && scope === 'all';
+  // the destinations and commands, the recent items and the shortcuts
   let group = null;
   let groupVisible = 0;
   const flush = () => {
@@ -198,44 +329,56 @@ function filterPalette() {
   };
   for (const node of Array.from(p.list.children)) {
     if (node === p.dynamic) continue;
-    if (node.hasAttribute('data-ds-group')) {
-      flush();
-      group = node;
-      groupVisible = 0;
-    } else if (node.classList.contains('ds-palette-item')) {
-      const text = (node.getAttribute('data-ds-text') || node.textContent).toLowerCase();
-      const hit = needle === '' || text.includes(needle);
-      node.hidden = !hit;
-      if (hit) groupVisible++;
+    const nodes = node === p.recent ? Array.from(p.recent.children) : [node];
+    for (const n of nodes) {
+      if (n.hasAttribute('data-ds-group')) {
+        flush();
+        group = n;
+        groupVisible = 0;
+      } else if (n.classList.contains('ds-palette-item')) {
+        prepareItem(n);
+        const text = (n.getAttribute('data-ds-text') || n.textContent).toLowerCase();
+        const hit = n.dataset.dsWhen === 'empty' ? emptyView : (scope === 'all' || n.dataset.dsScope === scope) && (needle === '' || text.includes(needle));
+        n.hidden = !hit;
+        if (hit) groupVisible++;
+      }
     }
   }
   flush();
-  // what to search for
-  p.dynamic.replaceChildren();
-  if (q !== '') {
-    const d = p.root.dataset;
-    const enc = encodeURIComponent(q);
-    const hasAsc = d.ascSearchUrl !== d.exploreReposUrl;
-    p.dynamic.append(dynamicItem(`${d.ascSearchUrl}?q=${enc}`, hasAsc ? d.tCode : d.tRepos, q));
-    if (hasAsc) p.dynamic.append(dynamicItem(`${d.exploreReposUrl}?q=${enc}`, d.tRepos, q));
-    p.dynamic.append(dynamicItem(`${d.exploreUsersUrl}?q=${enc}`, d.tPeople, q));
-  }
   const any = visibleItems(p).length > 0;
-  if (p.empty) p.empty.hidden = any;
-  select(p, -1);
+  if (p.empty) {
+    p.empty.hidden = any;
+    const title = p.empty.querySelector('[data-ds-palette-empty-title]');
+    if (title) title.textContent = (title.dataset.tTitle || '').replace('%s', q);
+  }
+  select(p, any && searching ? 0 : -1);
 }
 
 function resetPalette() {
   const p = paletteParts();
   if (!p || !p.input) return;
   p.input.value = '';
-  filterPalette();
+  setScope(p, 'all');
+}
+
+function openShortcuts() {
+  const dlg = byId('ds-shortcuts');
+  if (!dlg || typeof dlg.showModal !== 'function' || dlg.open) return;
+  closeOverlay({restoreFocus: false});
+  dlg.showModal();
 }
 
 function onPaletteKeydown(e) {
   if (openId !== 'ds-palette') return;
   const p = paletteParts();
   if (!p) return;
+  if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey && e.target === p.input) {
+    // Tab cycles the scope chip; Escape and the Cancel button leave the palette
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    setScope(p, cycleScope(scope, e.shiftKey));
+    return;
+  }
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') return;
   const items = visibleItems(p);
   const cur = items.findIndex((el) => el.classList.contains('is-sel'));
@@ -264,6 +407,11 @@ function onGlobalKey(e) {
   if ((isCtrlK || isSlash) && byId('ds-palette')) {
     e.preventDefault();
     if (openId !== 'ds-palette') openOverlay('ds-palette', document.activeElement);
+    return;
+  }
+  if (e.key === '?' && !e.ctrlKey && !e.metaKey && !isTyping(e.target) && byId('ds-shortcuts')) {
+    e.preventDefault();
+    openShortcuts();
   }
 }
 
@@ -321,6 +469,20 @@ export function initDsShell() {
   }
   const p = paletteParts();
   if (p?.input) p.input.addEventListener('input', filterPalette);
+  if (p) {
+    p.root.addEventListener('click', (e) => {
+      const target = e.target instanceof Element ? e.target : null;
+      const chip = target?.closest('[data-ds-scope][aria-pressed]');
+      if (chip) {
+        setScope(p, chip.dataset.dsScope);
+        p.input.focus();
+      } else if (target?.closest('[data-ds-shortcuts]')) {
+        openShortcuts();
+      }
+    });
+    filterPalette();
+  }
+  recordVisit();
   initFooterGroups();
   initLangMenu();
 }
