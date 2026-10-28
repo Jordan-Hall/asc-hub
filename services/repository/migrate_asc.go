@@ -55,6 +55,19 @@ func pruneNonBranchRefs(ctx context.Context, repoPath string) error {
 	return nil
 }
 
+// scrubBridgeConfig removes the [http] section that the clone left in the config of the bridge directory
+// (git clone -c http.followRedirects=false and -c http.sslVerify=false write the options into the new repository).
+// asc serves the directory only while its config holds what git init and git clone --mirror write, and refuses
+// to promote refs into it otherwise ("the repository config has [http]"): without this, nothing asc writes
+// would ever reach the bridge again.
+func scrubBridgeConfig(ctx context.Context, repoPath string) error {
+	_, stderr, err := git.NewCommand(ctx, "config", "--local", "--remove-section", "http").RunStdString(&git.RunOpts{Dir: repoPath})
+	if err != nil && !strings.Contains(stderr, "no such section") && !strings.Contains(strings.ToLower(stderr), "no such section") {
+		return fmt.Errorf("clean the config of the clone: %w", err)
+	}
+	return nil
+}
+
 // importMigratedIntoAsc hands the history that the migration cloned into the bridge directory of an asc
 // repository to asc, and returns only when the hub can read the default branch back from asc. Until then the
 // hub database must not learn of any branch or commit: the clone alone is not the repository.
@@ -64,6 +77,9 @@ func pruneNonBranchRefs(ctx context.Context, repoPath string) error {
 // streams: asc reads the objects from the bridge directory, nothing is held in memory. It is idempotent: a run
 // repeated over a repository that holds part of the history imports what is missing and moves nothing else.
 func importMigratedIntoAsc(ctx context.Context, repo *repo_model.Repository, defaultBranch string) error {
+	if err := scrubBridgeConfig(ctx, repo.RepoPath()); err != nil {
+		return err
+	}
 	if err := pruneNonBranchRefs(ctx, repo.RepoPath()); err != nil {
 		return err
 	}
