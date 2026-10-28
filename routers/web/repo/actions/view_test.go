@@ -14,6 +14,8 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	"forgejo.org/modules/json"
+	"forgejo.org/modules/setting"
+	"forgejo.org/modules/test"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/translation"
 	"forgejo.org/modules/web"
@@ -226,6 +228,8 @@ func baseExpectedViewResponse() *ViewResponse {
 
 func TestActionsViewViewPost(t *testing.T) {
 	unittest.PrepareTestEnv(t)
+	// the times are rendered in the UI location; the expectations are UTC whatever the TZ of the host is
+	defer test.MockVariableValue(&setting.DefaultUILocation, time.UTC)()
 
 	tests := []struct {
 		name           string
@@ -397,6 +401,7 @@ func TestActionsViewViewPost_Logs(t *testing.T) {
 
 	translation.InitLocales(t.Context())
 
+	defer test.MockVariableValue(&setting.DefaultUILocation, time.UTC)()
 	timeutil.MockSet(time.Unix(1788695891, 0))
 	defer timeutil.MockUnset()
 
