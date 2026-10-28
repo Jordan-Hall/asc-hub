@@ -127,3 +127,17 @@
     flex-wrap: wrap;
   }
 }
+
+/* On a phone the detail pages of a repository start with their own title (the bar above names the repository and goes back):
+   the repository title row with watch, star, fork and the tab strip would push the content down by 270 px. */
+@media (max-width: 767.98px) {
+  .repository.view.issue .rp-top,
+  .repository.new.release .rp-top,
+  .repository.compare .rp-top,
+  .repository.editor .rp-top,
+  .repository.new.issue .rp-top,
+  .rp-commit-page .rp-top,
+  .repository.file.editor .rp-top {
+    display: none;
+  }
+}
