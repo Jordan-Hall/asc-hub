@@ -1,12 +1,6 @@
-<overflow-menu class="ui secondary pointing tabular top attached borderless menu secondary-nav">
-	<div class="overflow-menu-items tw-justify-center">
-		<a class="{{if .PageIsOpenIDConnect}}active {{end}}item" href="{{AppSubUrl}}/user/openid/connect">
-			{{ctx.Locale.Tr "auth.openid_connect_title"}}
-		</a>
-		{{if and .EnableOpenIDSignUp (not .AllowOnlyInternalRegistration)}}
-			<a class="{{if .PageIsOpenIDRegister}}active {{end}}item" href="{{AppSubUrl}}/user/openid/register">
-				{{ctx.Locale.Tr "auth.openid_register_title"}}
-			</a>
-		{{end}}
-	</div>
-</overflow-menu>
+<nav class="ds-tabs ds-auth-tabs" aria-label="{{ctx.Locale.Tr "auth.openid_connect_title"}}">
+	{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "auth.openid_connect_title") "Href" (print AppSubUrl "/user/openid/connect") "Active" .PageIsOpenIDConnect)}}
+	{{if and .EnableOpenIDSignUp (not .AllowOnlyInternalRegistration)}}
+		{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "auth.openid_register_title") "Href" (print AppSubUrl "/user/openid/register") "Active" .PageIsOpenIDRegister)}}
+	{{end}}
+</nav>

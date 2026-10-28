@@ -1,33 +1,40 @@
-<div class="flex-list">
+{{/* A list of people or organizations (boards A9 and A10). Also used by the admin user page. */}}
+{{if .Users}}
+<ul class="ds-list ds-userlist">
 	{{range .Users}}
-		<div class="flex-item tw-items-center">
-			<div class="flex-item-leading">
-				{{ctx.AvatarUtils.Avatar . 48}}
-			</div>
-			<div class="flex-item-main">
-				<div class="flex-item-title">
-					{{template "shared/user/name" .}}
-					{{if .Visibility.IsPrivate}}
-						<span class="ui label">{{ctx.Locale.Tr "repo.desc.private"}}</span>
-					{{end}}
+		<li class="ds-li ds-user-row">
+			<a class="ds-user-av" href="{{.HomeLink}}" tabindex="-1" aria-hidden="true">{{if .IsOrganization}}{{ctx.AvatarUtils.Avatar . 48 "ds-avatar-org"}}{{else}}{{ctx.AvatarUtils.Avatar . 48}}{{end}}</a>
+			<div class="ds-li-main">
+				<div class="ds-li-title">
+					<a href="{{.HomeLink}}">{{.Name}}</a>
+					{{if .FullName}}<span class="ds-li-owner ds-hide-xs">{{.FullName}}</span>{{end}}
+					{{if .Visibility.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>{{end}}
 				</div>
-				<div class="flex-item-body">
-					{{if .Location}}
-						<span class="flex-text-inline">{{svg "octicon-location"}}{{.Location}}</span>
-					{{end}}
+				{{if .Description}}<div class="ds-li-sub ds-clamp-2">{{.Description}}</div>{{end}}
+				<div class="ds-li-meta">
+					{{if .Location}}<span>{{svg "octicon-location" 14}}{{.Location}}</span>{{end}}
 					{{if and .Email (or (and $.ShowUserEmail $.IsSigned (not .KeepEmailPrivate)) $.PageIsAdminUsers)}}
-						<span class="flex-text-inline">
-							{{svg "octicon-mail"}}
-							<a href="mailto:{{.Email}}">{{.Email}}</a>
-						</span>
+						<span>{{svg "octicon-mail" 14}}<a href="mailto:{{.Email}}">{{.Email}}</a></span>
 					{{end}}
-					<span class="flex-text-inline">{{svg "octicon-calendar"}}{{ctx.Locale.Tr "user.joined_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>
+					<span>{{svg "octicon-calendar" 14}}{{ctx.Locale.Tr "user.joined_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>
 				</div>
 			</div>
-		</div>
-	{{else}}
-		<div class="flex-item">
-			{{ctx.Locale.Tr "search.no_results"}}
-		</div>
+			{{if .IsOrganization}}
+				<div class="ds-li-stats ds-hide-xs">
+					<div class="ds-li-stat"><b>{{.NumRepos}}</b><span>{{ctx.Locale.Tr "explore.stat_repos"}}</span></div>
+					<div class="ds-li-stat"><b>{{.NumMembers}}</b><span>{{ctx.Locale.Tr "explore.stat_people"}}</span></div>
+				</div>
+			{{else}}
+				<div class="ds-li-stats ds-hide-xs">
+					<div class="ds-li-stat"><b>{{.NumRepos}}</b><span>{{ctx.Locale.Tr "explore.stat_repos"}}</span></div>
+					<div class="ds-li-stat"><b>{{.NumFollowers}}</b><span>{{ctx.Locale.Tr "explore.stat_followers"}}</span></div>
+				</div>
+			{{end}}
+		</li>
 	{{end}}
+</ul>
+{{else}}
+<div class="ds-card">
+	{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_users_title") "Body" (ctx.Locale.Tr "search.no_results"))}}
 </div>
+{{end}}

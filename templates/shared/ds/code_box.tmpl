@@ -1,0 +1,14 @@
+{{/*
+A card for code, a file or a log that scrolls inside itself (never the page).
+Props: Title (the path or name, mono), Meta (optional short text on the header line), Body (pre-rendered HTML of the content; use
+the markup of the page itself), Kind (optional, "diff" for a diff: the body then holds .ds-l rows, see THEME.md "Code and diff").
+*/}}
+<div class="{{if eq .Kind "diff"}}ds-diff{{else}}ds-codebox{{end}}">
+	{{if or .Title .Meta}}
+		<div class="ds-codebox-hd">
+			{{if .Title}}<span class="ds-truncate">{{.Title}}</span>{{end}}
+			{{if .Meta}}<span class="ds-ml-auto">{{.Meta}}</span>{{end}}
+		</div>
+	{{end}}
+	<pre class="ds-codebox-bd" tabindex="0" role="region" aria-label="{{.Title}}"><code>{{.Body}}</code></pre>
+</div>

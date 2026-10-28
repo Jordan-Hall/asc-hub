@@ -1,0 +1,25 @@
+{{/*
+A confirmation dialog: a centred dialog on a desktop, a bottom sheet on a phone (native <dialog>, styled by .ds-app dialog).
+Open it the way every dialog of the hub opens: <button class="show-modal" data-modal="#ID">; the Cancel button closes it.
+Props:
+* ID (required), Title (required), Body (the sentence; say what happens and whether it can be undone)
+* Action + Method: the form posts here (default method "post"); Confirm (the label of the button, required), Danger (red button)
+* Fields: optional name -> value hidden inputs the form carries (an id, a type)
+CSRF: the form carries the page's token; pass the page data (.) as Data.
+*/}}
+<dialog id="{{.ID}}">
+	<article>
+		<header>{{.Title}}</header>
+		<form action="{{.Action}}" method="{{if .Method}}{{.Method}}{{else}}post{{end}}">
+			{{.Data.CsrfTokenHtml}}
+			{{range $k, $v := .Fields}}<input type="hidden" name="{{$k}}" value="{{$v}}">{{end}}
+			<div class="content">
+				{{if .Body}}<p>{{.Body}}</p>{{end}}
+			</div>
+			<div class="actions">
+				<button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button>
+				<button type="submit" class="ds-btn {{if .Danger}}ds-btn-danger-fill{{else}}ds-btn-primary{{end}}">{{.Confirm}}</button>
+			</div>
+		</form>
+	</article>
+</dialog>

@@ -1,13 +1,9 @@
 {{/*
-Top of every Storage and AI keys page.
+Top of every Storage and AI keys page. The settings menu is the only navigation between the two: no tab strip here.
   .Root    the page data (.)
   .Active  "storage" or "ai"
 */}}
 {{$a := .Root.Asc}}
-<nav class="asc-byo-tabs" aria-label="{{ctx.Locale.Tr "ascbyo.nav_storage"}} / {{ctx.Locale.Tr "ascbyo.nav_ai"}}">
-	<a class="asc-byo-tab{{if eq .Active "storage"}} active{{end}}" href="{{$a.StorageURL}}"{{if eq .Active "storage"}} aria-current="page"{{end}}>{{svg "octicon-database" 16}} {{ctx.Locale.Tr "ascbyo.nav_storage"}}</a>
-	<a class="asc-byo-tab{{if eq .Active "ai"}} active{{end}}" href="{{$a.AIURL}}"{{if eq .Active "ai"}} aria-current="page"{{end}}>{{svg "octicon-key" 16}} {{ctx.Locale.Tr "ascbyo.nav_ai"}}</a>
-</nav>
 <p class="asc-byo-scope">
 	{{if eq $a.Kind "user"}}{{ctx.Locale.Tr "ascbyo.scope.user"}}
 	{{else if eq $a.Kind "org"}}{{ctx.Locale.Tr "ascbyo.scope.org" $a.ScopeLabel}}

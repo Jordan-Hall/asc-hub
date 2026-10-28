@@ -14,16 +14,16 @@
 	<link rel="alternate icon" href="{{AssetUrlPrefix}}/img/favicon.png" type="image/png">
 	{{template "base/head_style" .}}
 </head>
-<body>
-	<div class="full height">
-		<nav id="navbar" class="navbar-site" aria-label="{{ctx.Locale.Tr "aria.navbar"}}">
-			<div class="navbar-left ui secondary menu">
-				<a class="item" id="navbar-logo" href="{{AppSubUrl}}/" aria-label="{{ctx.Locale.Tr "home"}}">
+<body class="no-js ds-app ds-has-no-bnav">
+	<div class="ds-shell">
+		<header id="navbar" class="ds-hdr ds-hdr-lg" role="banner">
+			<div class="ds-topbar ds-topbar-static">
+				<a class="ds-brand" href="{{AppSubUrl}}/" aria-label="{{ctx.Locale.Tr "home"}}">
 					{{template "base/brand_tile" .}}
-					<span class="navbar-brand-name">{{AppName}}</span>
+					<span>{{AppName}}</span>
 				</a>
 			</div>
-		</nav>
+		</header>
 
 		<div role="main" class="page-content status-page-500">
 			<div class="ui container" >

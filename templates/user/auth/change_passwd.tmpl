@@ -1,7 +1,5 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content user signin{{if .LinkAccountMode}} icon{{end}}">
-	<div class="ui container">
-		{{template "user/auth/change_passwd_inner" .}}
-	</div>
-</div>
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user signin" "Title" (ctx.Locale.Tr "settings.update_password") "NoAlert" true)}}
+	{{template "user/auth/change_passwd_inner" .}}
+{{template "user/auth/shell_end" (dict "Data" .)}}
 {{template "base/footer" .}}

@@ -1,0 +1,274 @@
+/* ASC Hub design system, base.
+   Applies to body.ds-app (templates/base/head.tmpl). Type scale, links, focus, forms reset, icons, motion.
+   Mobile first: the values here are for 320 to 390 px; min-width queries in the other files widen them. */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body.ds-app {
+  display: block;
+  height: auto;
+  min-height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-wrap: break-word;
+  /* the bottom navigation is fixed on a phone: keep the last line of the page above it */
+  padding-bottom: var(--bnav-space);
+}
+
+body.ds-app.ds-has-no-bnav {
+  padding-bottom: 0;
+}
+
+/* the page sits in a column so a short page still pushes the footer down */
+.ds-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.ds-main {
+  flex: 1 0 auto;
+  min-width: 0;
+}
+
+/* ---- text ---- */
+.ds-app :is(h1, h2, h3, h4, h5, h6) {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+}
+
+.ds-app p {
+  margin: 0;
+}
+
+.ds-mono {
+  font-family: var(--font-mono);
+}
+
+.ds-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-t-display {
+  font-size: 38px;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+
+.ds-t-h1 {
+  font-size: 30px;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  font-weight: 800;
+}
+
+.ds-t-h2 {
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.ds-t-h3 {
+  font-size: 19px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+.ds-t-h4 {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.ds-t-lead {
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.ds-t-body {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.ds-t-small {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ds-t-micro {
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ds-t-eyebrow {
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--link);
+}
+
+@media (min-width: 768px) {
+  .ds-t-display { font-size: 52px; }
+  .ds-t-h1 { font-size: 36px; }
+  .ds-t-lead { font-size: 18px; line-height: 1.6; }
+}
+
+@media (min-width: 1024px) {
+  .ds-t-display { font-size: 68px; line-height: 1.04; }
+  .ds-t-h1 { font-size: 42px; line-height: 1.1; }
+}
+
+.ds-c-2 { color: var(--text-2); }
+.ds-c-3 { color: var(--text-3); }
+.ds-c-link { color: var(--link); }
+.ds-c-ok { color: var(--ok); }
+.ds-c-warn { color: var(--warn); }
+.ds-c-err { color: var(--err); }
+.ds-c-agent { color: var(--agent); }
+.ds-b { font-weight: 700; }
+.ds-sb { font-weight: 600; }
+
+/* ---- links ---- */
+.ds-link,
+.ds-prose a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.ds-link:hover,
+.ds-prose a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.ds-link-quiet {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ds-link-quiet:hover {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ds-prose {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-b);
+}
+
+.ds-prose > * + * {
+  margin-top: 12px;
+}
+
+/* ---- focus: always visible, 2px ring with a 2px gap ---- */
+.ds-app :focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.ds-hdr :focus-visible,
+.ds-topbar :focus-visible,
+.ds-term :focus-visible {
+  outline-color: var(--accent);
+}
+
+.ds-skip {
+  position: absolute;
+  left: 12px;
+  top: -80px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: var(--r-btn);
+  background: var(--fill);
+  color: var(--on-fill);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ds-skip:focus {
+  top: 8px;
+}
+
+.ds-sr {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- icons ---- */
+svg.svg[class*=" dsi-"],
+svg.svg[class^="dsi-"] {
+  fill: none;
+  stroke: currentcolor;
+  flex: none;
+  vertical-align: middle;
+}
+
+.ds-ic {
+  flex: none;
+}
+
+/* ---- scrollbars on the inner scroll areas: thin and calm ---- */
+.ds-scroll {
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+/* ---- motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .ds-app *,
+  .ds-app *::before,
+  .ds-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- print: no chrome ---- */
+@media print {
+  .ds-hdr,
+  .ds-bnav,
+  .ds-footer,
+  .ds-drawer,
+  .ds-scrim {
+    display: none !important;
+  }
+}
+
+/* the hidden attribute always wins over a component's display value */
+.ds-app [hidden] {
+  display: none !important;
+}

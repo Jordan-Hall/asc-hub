@@ -25,20 +25,9 @@ export function initGlobalFormDirtyLeaveConfirm() {
   }
 }
 
-export function initHeadNavbarContentToggle() {
-  const navbar = document.getElementById('navbar');
-  const btn = document.getElementById('navbar-expand-toggle');
-  if (!navbar || !btn) return;
-
-  btn.addEventListener('click', () => {
-    const isExpanded = btn.classList.contains('active');
-    navbar.classList.toggle('navbar-menu-open', !isExpanded);
-    btn.classList.toggle('active', !isExpanded);
-  });
-}
-
 export function initFootLanguageMenu() {
-  async function linkLanguageAction() {
+  async function linkLanguageAction(e) {
+    e.preventDefault(); // the link works without script too
     const $this = $(this);
     await GET($this.data('url'));
     window.location.reload();

@@ -45,7 +45,6 @@ import {
   initGlobalEnterQuickSubmit,
   initGlobalFormDirtyLeaveConfirm,
   initGlobalLinkActions,
-  initHeadNavbarContentToggle,
 } from './features/common-global.js';
 import {initRepoTopicBar} from './features/repo-home.js';
 import {initAdminEmails} from './features/admin/emails.js';
@@ -57,6 +56,7 @@ import {initRepoArchiveLinks} from './features/repo-common.js';
 import {initRepoMigrationStatusChecker} from './features/repo-migrate.js';
 import {initAscByoMigration} from './features/asc-byo.js';
 import {initAscUi} from './features/asc-ui.js';
+import {initDsShell} from './features/ds-shell.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {
   initRepoSettingGitHook,
@@ -122,7 +122,6 @@ onDomReady(() => {
 
   initInstall();
 
-  initHeadNavbarContentToggle();
   initFootLanguageMenu();
 
   initCommentContent();
@@ -173,6 +172,7 @@ onDomReady(() => {
   initRepoMigrationStatusChecker();
   initAscByoMigration();
   initAscUi();
+  initDsShell();
   initAscKeys();
   initAscInboxBadge();
   initRepoProject();

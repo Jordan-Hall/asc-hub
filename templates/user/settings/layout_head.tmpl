@@ -1,13 +1,8 @@
 {{template "base/head" .ctxData}}
 <div role="main" aria-label="{{.ctxData.Title}}" class="page-content {{.pageClass}}">
-	<div class="ui container flex-container">
+	{{template "shared/ds/subbar" (dict "Data" .ctxData "Title" .ctxData.Title "BackHref" "#settings-menu" "BackLabel" (ctx.Locale.Tr "user.settings"))}}
+	<div class="ds-container ds-settings">
 		{{template "user/settings/navbar" .ctxData}}
-		<div class="flex-container-main">
+		<div class="ds-settings-body">
 			{{template "base/alert" .ctxData}}
 			{{/* block: user-setting-content */}}
-
-{{if false}}{{/* to make html structure "likely" complete to prevent IDE warnings */}}
-		</div>
-	</div>
-</div>
-{{end}}
