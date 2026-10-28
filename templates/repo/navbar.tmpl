@@ -1,18 +1,13 @@
+{{/* The Insights menu (boards Insights, InsightsPeople): a scrolling row of pills on a phone, a list in the left column from 1024. */}}
 {{$canReadCode := $.Permission.CanRead $.UnitTypeCode}}
-
-<div class="ui fluid vertical menu">
-	<a class="{{if .PageIsPulse}}active {{end}}item" href="{{.RepoLink}}/activity">
-		{{ctx.Locale.Tr "repo.activity.navbar.pulse"}}
-	</a>
-	{{if $canReadCode}}
-		<a class="{{if .PageIsContributors}}active {{end}}item" href="{{.RepoLink}}/activity/contributors">
-			{{ctx.Locale.Tr "repo.activity.navbar.contributors"}}
-		</a>
-		<a class="{{if .PageIsCodeFrequency}}active{{end}} item" href="{{.RepoLink}}/activity/code-frequency">
-			{{ctx.Locale.Tr "repo.activity.navbar.code_frequency"}}
-		</a>
-		<a class="{{if .PageIsRecentCommits}}active{{end}} item" href="{{.RepoLink}}/activity/recent-commits">
-			{{ctx.Locale.Tr "repo.activity.navbar.recent_commits"}}
-		</a>
-	{{end}}
-</div>
+<nav class="rp-insights-menu" aria-label="{{ctx.Locale.Tr "asc_rp.insights"}}">
+	<p class="rp-insights-group" id="rp-insights-group">{{ctx.Locale.Tr "asc_rp.insights"}}</p>
+	<ul class="rp-insights-list" aria-labelledby="rp-insights-group">
+		<li><a href="{{.RepoLink}}/activity"{{if .PageIsPulse}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.activity.navbar.pulse"}}</a></li>
+		{{if $canReadCode}}
+			<li><a href="{{.RepoLink}}/activity/contributors"{{if .PageIsContributors}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.activity.navbar.contributors"}}</a></li>
+			<li><a href="{{.RepoLink}}/activity/code-frequency"{{if .PageIsCodeFrequency}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.activity.navbar.code_frequency"}}</a></li>
+			<li><a href="{{.RepoLink}}/activity/recent-commits"{{if .PageIsRecentCommits}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.activity.navbar.recent_commits"}}</a></li>
+		{{end}}
+	</ul>
+</nav>
