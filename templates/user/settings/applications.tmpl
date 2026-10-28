@@ -1,6 +1,21 @@
 {{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings applications wk-settings")}}
 {{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.applications") "Lead" (ctx.Locale.Tr "asc_work.sp_apps_lead"))}}
 <div class="wk-sp">
+	{{if .NewAccessToken}}
+	<section class="ds-card wk-token-once" aria-labelledby="sp-token-once" role="status">
+		<div class="ds-card-h"><h2 id="sp-token-once">{{ctx.Locale.Tr "asc_work.sp_token_once_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_token_once_hint"}}</span></div>
+		<div class="ds-card-b ds-stack-12">
+			<div class="ds-cmd ds-cmd-scroll"><code tabindex="0" id="new-token-value">{{.NewAccessToken}}</code><button type="button" class="ds-copy" data-clipboard-text="{{.NewAccessToken}}" data-ds-toast-copied="{{ctx.Locale.Tr "asc_work.sp_token_copied"}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+		</div>
+	</section>
+	{{end}}
+	<section class="ds-card" aria-labelledby="sp-no-tokens">
+		<div class="ds-card-h"><h2 id="sp-no-tokens">{{ctx.Locale.Tr "asc_work.sp_no_tokens_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_no_tokens_hint"}}</span></div>
+		<div class="ds-card-b ds-stack-12">
+			<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{AppUrl}} --prompt</code><button type="button" class="ds-copy" data-clipboard-text="asc auth login --host {{AppUrl}} --prompt" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}">{{svg "dsi-copy" 14}}</button></div>
+			<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth status</code><button type="button" class="ds-copy" data-clipboard-text="asc auth status" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}">{{svg "dsi-copy" 14}}</button></div>
+		</div>
+	</section>
 	<section class="ds-card" aria-labelledby="sp-tokens">
 		<div class="ds-card-h">
 			<h2 id="sp-tokens">{{ctx.Locale.Tr "settings.manage_access_token"}}</h2>
