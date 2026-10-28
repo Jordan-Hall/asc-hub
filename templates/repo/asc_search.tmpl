@@ -1,64 +1,64 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository asc-repo-page asc-search">
-	{{template "repo/header" .}}
-	<div class="ui container">
-		<h1 class="tw-sr-only">Search this repository</h1>
-		<form id="asc-search-form" class="asc-search-form" method="get" action="{{.RepoLink}}/asc/search" role="search">
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository asc-repo-page asc-search rp-page rp-searchpage">
+	{{template "repo/header" (dict "HdrData" . "SubTitle" {{ctx.Locale.Tr "asc_rp.s_title"}} "SubBack" .RepoLink)}}
+	<div class="ds-container rp-body">
+		<h1 class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.s_title"}}</h1>
+		<form id="asc-search-form" class="asc-search-form ds-form" method="get" action="{{.RepoLink}}/asc/search" role="search">
 			<div class="asc-search-bar">
-				<label class="tw-sr-only" for="asc-search-q">Search</label>
-				<input id="asc-search-q" name="q" type="search" maxlength="4096" value="{{.AscSearchText}}" autocomplete="off" placeholder="Search code, symbols or ideas" required>
-				<button class="ui primary button" type="submit">Search</button>
+				<label class="tw-sr-only" for="asc-search-q">{{ctx.Locale.Tr "asc_rp.s_label"}}</label>
+				<input id="asc-search-q" name="q" type="search" maxlength="4096" value="{{.AscSearchText}}" autocomplete="off" placeholder="{{ctx.Locale.Tr "asc_rp.s_placeholder"}}" required>
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "asc_rp.s_label"}}</button>
 			</div>
-			<div class="asc-search-modes" role="radiogroup" aria-label="Kind of search">
-				<label class="asc-mode"><input type="radio" name="mode" value="lexical"{{if eq .AscSearchMode "lexical"}} checked{{end}}><span>Text</span></label>
-				<label class="asc-mode"><input type="radio" name="mode" value="symbol"{{if eq .AscSearchMode "symbol"}} checked{{end}}><span>Symbol</span></label>
-				<label class="asc-mode"><input type="radio" name="mode" value="semantic"{{if eq .AscSearchMode "semantic"}} checked{{end}}><span>Meaning</span></label>
+			<div class="asc-search-modes" role="radiogroup" aria-label="{{ctx.Locale.Tr "asc_rp.s_kind"}}">
+				<label class="asc-mode"><input type="radio" name="mode" value="lexical"{{if eq .AscSearchMode "lexical"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_text"}}</span></label>
+				<label class="asc-mode"><input type="radio" name="mode" value="symbol"{{if eq .AscSearchMode "symbol"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_symbol"}}</span></label>
+				<label class="asc-mode"><input type="radio" name="mode" value="semantic"{{if eq .AscSearchMode "semantic"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_meaning"}}</span></label>
 			</div>
 			<fieldset id="asc-search-scope" class="asc-scope">
-				<legend>Scope</legend>
-				<label class="asc-scope-option"><input type="radio" name="scope" value="version"{{if eq .AscSearchScope "version"}} checked{{end}}><span>This version{{if .AscSearchDefaultBranch}} ({{.AscSearchDefaultBranch}}){{end}}</span></label>
-				<label class="asc-scope-option"><input type="radio" name="scope" value="change"{{if eq .AscSearchScope "change"}} checked{{end}}><span>A change</span></label>
-				<label class="asc-scope-option"><input type="radio" name="scope" value="stack"{{if eq .AscSearchScope "stack"}} checked{{end}}><span>A stack</span></label>
-				<label class="asc-scope-option"><input type="radio" name="scope" value="branches"{{if eq .AscSearchScope "branches"}} checked{{end}}><span>All branches</span></label>
-				<label class="asc-scope-option"><input type="radio" name="scope" value="repos"{{if eq .AscSearchScope "repos"}} checked{{end}}><span>All repositories</span></label>
+				<legend>{{ctx.Locale.Tr "asc_rp.s_scope"}}</legend>
+				<label class="asc-scope-option"><input type="radio" name="scope" value="version"{{if eq .AscSearchScope "version"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_scope_version"}}{{if .AscSearchDefaultBranch}} ({{.AscSearchDefaultBranch}}){{end}}</span></label>
+				<label class="asc-scope-option"><input type="radio" name="scope" value="change"{{if eq .AscSearchScope "change"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_scope_change"}}</span></label>
+				<label class="asc-scope-option"><input type="radio" name="scope" value="stack"{{if eq .AscSearchScope "stack"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_scope_stack"}}</span></label>
+				<label class="asc-scope-option"><input type="radio" name="scope" value="branches"{{if eq .AscSearchScope "branches"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_scope_branches"}}</span></label>
+				<label class="asc-scope-option"><input type="radio" name="scope" value="repos"{{if eq .AscSearchScope "repos"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_scope_repos"}}</span></label>
 			</fieldset>
 			<details class="asc-search-options"{{if or .AscSearchRefInput .AscSearchPullInput .AscSearchPathInput .AscSearchLangInput .AscSearchError}} open{{end}}>
-				<summary>Narrow the search</summary>
+				<summary>{{ctx.Locale.Tr "asc_rp.s_narrow"}}</summary>
 				<div class="asc-search-fields">
-					<div class="field">
-						<label for="asc-search-ref">Branch or commit (this version)</label>
-						<input id="asc-search-ref" name="ref" type="text" maxlength="255" value="{{.AscSearchRefInput}}" placeholder="{{.AscSearchDefaultBranch}}">
+					<div class="ds-field">
+						<label class="ds-label" for="asc-search-ref">{{ctx.Locale.Tr "asc_rp.s_ref"}}</label>
+						<input id="asc-search-ref" class="ds-input" name="ref" type="text" maxlength="255" value="{{.AscSearchRefInput}}" placeholder="{{.AscSearchDefaultBranch}}">
 					</div>
-					<div class="field">
-						<label for="asc-search-pull">Pull request (a change or a stack)</label>
-						<input id="asc-search-pull" name="pull" type="text" inputmode="numeric" maxlength="12" value="{{.AscSearchPullInput}}" placeholder="number">
+					<div class="ds-field">
+						<label class="ds-label" for="asc-search-pull">{{ctx.Locale.Tr "asc_rp.s_pull"}}</label>
+						<input id="asc-search-pull" class="ds-input" name="pull" type="text" inputmode="numeric" maxlength="12" value="{{.AscSearchPullInput}}" placeholder="{{ctx.Locale.Tr "asc_rp.s_number"}}">
 					</div>
-					<div class="field asc-search-case">
-						<div class="ui checkbox">
+					<div class="ds-field asc-search-case">
+						<div class="ds-check">
 							<input id="asc-search-diff" name="diff" type="checkbox" value="1"{{if .AscSearchStackDiff}} checked{{end}}>
-							<label for="asc-search-diff">Only the files the stack changes</label>
+							<label for="asc-search-diff">{{ctx.Locale.Tr "asc_rp.s_diff_only"}}</label>
 						</div>
 					</div>
-					<div class="field">
-						<label for="asc-search-path">Path prefix</label>
-						<input id="asc-search-path" name="path" type="text" maxlength="4096" value="{{.AscSearchPathInput}}" placeholder="the whole repository">
+					<div class="ds-field">
+						<label class="ds-label" for="asc-search-path">{{ctx.Locale.Tr "asc_rp.s_path_prefix"}}</label>
+						<input id="asc-search-path" class="ds-input" name="path" type="text" maxlength="4096" value="{{.AscSearchPathInput}}" placeholder="{{ctx.Locale.Tr "asc_rp.s_whole_repo"}}">
 					</div>
-					<div class="field">
-						<label for="asc-search-lang">Language</label>
-						<input id="asc-search-lang" name="lang" type="text" maxlength="40" value="{{.AscSearchLangInput}}" placeholder="any">
+					<div class="ds-field">
+						<label class="ds-label" for="asc-search-lang">{{ctx.Locale.Tr "asc_rp.s_language"}}</label>
+						<input id="asc-search-lang" class="ds-input" name="lang" type="text" maxlength="40" value="{{.AscSearchLangInput}}" placeholder="{{ctx.Locale.Tr "asc_rp.s_any"}}">
 					</div>
-					<div class="field">
-						<label for="asc-search-match">Text match</label>
-						<select id="asc-search-match" name="match">
-							<option value="literal"{{if eq .AscSearchMatch "literal"}} selected{{end}}>Literal</option>
-							<option value="word"{{if eq .AscSearchMatch "word"}} selected{{end}}>Whole word</option>
-							<option value="regex"{{if eq .AscSearchMatch "regex"}} selected{{end}}>Regular expression</option>
+					<div class="ds-field">
+						<label class="ds-label" for="asc-search-match">{{ctx.Locale.Tr "asc_rp.s_match"}}</label>
+						<select id="asc-search-match" class="ds-select" name="match">
+							<option value="literal"{{if eq .AscSearchMatch "literal"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.s_match_literal"}}</option>
+							<option value="word"{{if eq .AscSearchMatch "word"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.s_match_word"}}</option>
+							<option value="regex"{{if eq .AscSearchMatch "regex"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.s_match_regex"}}</option>
 						</select>
 					</div>
-					<div class="field asc-search-case">
-						<div class="ui checkbox">
+					<div class="ds-field asc-search-case">
+						<div class="ds-check">
 							<input id="asc-search-case" name="case" type="checkbox" value="1"{{if .AscSearchCase}} checked{{end}}>
-							<label for="asc-search-case">Match case</label>
+							<label for="asc-search-case">{{ctx.Locale.Tr "asc_rp.s_case"}}</label>
 						</div>
 					</div>
 				</div>
@@ -66,20 +66,20 @@
 		</form>
 
 		{{if .AscSearchError}}
-			<div class="ui warning message" role="alert">
-				{{if eq .AscSearchError 400}}<p>This search is not valid. Check the query, the path, the language, the branch and the pull request.</p>
-				{{else if eq .AscSearchError 404}}<p>The branch, the pull request, or the repository in the code index, was not found. A change or a stack needs a stacked pull request of this repository.</p>
-				{{else if eq .AscSearchError 429}}<p>Too many searches right now. Try again in a moment.</p>
-				{{else if eq .AscSearchError 503}}<p>This kind of search is not available for this repository yet.</p>
-				{{else if eq .AscSearchError 504}}<p>The search took too long.</p>
-				{{else}}<p>Search is not available right now.</p>{{end}}
+			<div class="ds-banner ds-banner-warn" role="alert">
+				{{if eq .AscSearchError 400}}<p>{{ctx.Locale.Tr "asc_rp.s_err_400"}}</p>
+				{{else if eq .AscSearchError 404}}<p>{{ctx.Locale.Tr "asc_rp.s_err_404"}}</p>
+				{{else if eq .AscSearchError 429}}<p>{{ctx.Locale.Tr "asc_rp.s_err_429"}}</p>
+				{{else if eq .AscSearchError 503}}<p>{{ctx.Locale.Tr "asc_rp.s_err_503"}}</p>
+				{{else if eq .AscSearchError 504}}<p>{{ctx.Locale.Tr "asc_rp.s_err_504"}}</p>
+				{{else}}<p>{{ctx.Locale.Tr "asc_rp.s_err_other"}}</p>{{end}}
 			</div>
 		{{else if .AscSearchDone}}
 			<div class="asc-search-layout">
-				<div class="asc-search-facets" role="group" aria-label="Filters">
+				<div class="asc-search-facets" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.s_filters"}}">
 					{{if .AscSearchLangFacets}}
 						<section>
-							<h2 class="asc-facet-title">Language</h2>
+							<h2 class="asc-facet-title">{{ctx.Locale.Tr "asc_rp.s_language"}}</h2>
 							<ul class="asc-facet-list">
 								{{range .AscSearchLangFacets}}
 									<li><a class="asc-chip{{if .Active}} active{{end}}" href="{{.URL}}"{{if .Active}} aria-current="true"{{end}}><span>{{.Name}}</span><span class="asc-count">{{.Count}}</span></a></li>
@@ -89,7 +89,7 @@
 					{{end}}
 					{{if .AscSearchDirFacets}}
 						<section>
-							<h2 class="asc-facet-title">Path</h2>
+							<h2 class="asc-facet-title">{{ctx.Locale.Tr "asc_rp.s_path"}}</h2>
 							<ul class="asc-facet-list">
 								{{range .AscSearchDirFacets}}
 									<li><a class="asc-chip tw-font-mono{{if .Active}} active{{end}}" href="{{.URL}}"{{if .Active}} aria-current="true"{{end}}><span>{{.Name}}</span><span class="asc-count">{{.Count}}</span></a></li>
@@ -101,18 +101,18 @@
 
 				<div class="asc-search-results">
 					<p class="asc-search-where" id="asc-search-where" role="status">
-						<b>{{.AscSearchCount}} result{{if ne .AscSearchCount 1}}s{{end}}</b> at <span class="tw-font-mono">{{.AscSearchRev}}</span>
-						{{if eq .AscSearchMode "semantic"}}{{if .AscSearchModel}} using model <span class="tw-font-mono">{{.AscSearchModel}}</span>{{end}}{{end}}
+						<b>{{ctx.Locale.TrN .AscSearchCount "asc_rp.s_result_1" "asc_rp.s_result_n" .AscSearchCount}}</b> {{ctx.Locale.Tr "asc_rp.s_at"}} <span class="tw-font-mono">{{.AscSearchRev}}</span>
+						{{if eq .AscSearchMode "semantic"}}{{if .AscSearchModel}} {{ctx.Locale.Tr "asc_rp.s_using_model"}} <span class="tw-font-mono">{{.AscSearchModel}}</span>{{end}}{{end}}
 					</p>
 					{{if .AscSearchFailed}}
-						<div class="ui warning message" role="status">{{.AscSearchFailed}} of {{.AscSearchTargets}} branches could not be searched, so the results may be incomplete.</div>
+						<div class="ds-banner ds-banner-warn" role="status">{{ctx.Locale.Tr "asc_rp.s_failed" .AscSearchFailed .AscSearchTargets}}</div>
 					{{end}}
 					{{if .AscSearchBranchesCut}}
-						<div class="ui info message" role="status">Only the first 20 branches, the default branch first, were searched.</div>
+						<div class="ds-banner" role="status">{{ctx.Locale.Tr "asc_rp.s_cut"}}</div>
 					{{end}}
 
 					{{if eq .AscSearchCount 0}}
-						<div class="ui info message">Nothing found.</div>
+						<div class="ds-banner">{{ctx.Locale.Tr "asc_rp.s_nothing"}}</div>
 					{{end}}
 
 					{{if .AscSearchFiles}}
@@ -124,7 +124,7 @@
 										{{if $f.Lang}}<span class="asc-pill asc-pill-lang">{{$f.Lang}}</span>{{end}}
 									</div>
 									{{if $f.Redacted}}
-										<p class="asc-redacted">The content of this file is hidden because it may hold secrets.</p>
+										<p class="asc-redacted">{{ctx.Locale.Tr "asc_rp.s_hidden_file"}}</p>
 									{{else}}
 										<div class="asc-lines">
 											{{range $l := $f.Lines}}
@@ -133,10 +133,10 @@
 										</div>
 									{{end}}
 									{{if $f.Also}}
-										<p class="asc-also">Same file also at {{range $a := $f.Also}}<a class="tw-font-mono" href="{{$a.Link}}">{{$a.Path}}</a> {{end}}</p>
+										<p class="asc-also">{{ctx.Locale.Tr "asc_rp.s_same_file"}} {{range $a := $f.Also}}<a class="tw-font-mono" href="{{$a.Link}}">{{$a.Path}}</a> {{end}}</p>
 									{{end}}
 									{{if $f.Branches}}{{if (index $f.Branches 0).Name}}
-										<p class="asc-also asc-branches">On {{range $b := $f.Branches}}<a class="tw-font-mono" href="{{$b.Link}}">{{$b.Name}}</a> {{end}}</p>
+										<p class="asc-also asc-branches">{{ctx.Locale.Tr "asc_rp.s_on"}} {{range $b := $f.Branches}}<a class="tw-font-mono" href="{{$b.Link}}">{{$b.Name}}</a> {{end}}</p>
 									{{end}}{{end}}
 								</article>
 							{{end}}
@@ -151,14 +151,14 @@
 										<span class="asc-pill asc-pill-lang">{{$r.Kind}}</span>
 										<a class="tw-font-mono" href="{{$r.Link}}">{{$r.Path}}{{if $r.Line}}:{{$r.Line}}{{end}}</a>
 										<span class="tw-font-mono">{{$r.Name}}</span>
-										{{if $r.IsDef}}<span class="asc-pill asc-pill-def">Definition</span>{{end}}
-										<span class="asc-pill asc-confidence asc-confidence-{{$r.Confidence}}" title="How this match was found">{{$r.Confidence}}</span>
+										{{if $r.IsDef}}<span class="asc-pill asc-pill-def">{{ctx.Locale.Tr "asc_rp.s_definition"}}</span>{{end}}
+										<span class="asc-pill asc-confidence asc-confidence-{{$r.Confidence}}" title="{{ctx.Locale.Tr "asc_rp.s_how_found"}}">{{$r.Confidence}}</span>
 									</div>
 									<p class="asc-symbol-body">
-										{{if $r.Container}}<span class="asc-muted">in {{$r.Container}}</span>{{end}}
+										{{if $r.Container}}<span class="asc-muted">{{ctx.Locale.Tr "asc_rp.s_in" $r.Container}}</span>{{end}}
 										{{if $r.Signature}}<code class="asc-signature">{{$r.Signature}}</code>{{end}}
 										{{if $r.Doc}}<span class="asc-muted">{{$r.Doc}}</span>{{end}}
-										{{if $r.Branches}}{{if (index $r.Branches 0).Name}}<span class="asc-muted">On {{range $b := $r.Branches}}<a class="tw-font-mono" href="{{$b.Link}}">{{$b.Name}}</a> {{end}}</span>{{end}}{{end}}
+										{{if $r.Branches}}{{if (index $r.Branches 0).Name}}<span class="asc-muted">{{ctx.Locale.Tr "asc_rp.s_on"}} {{range $b := $r.Branches}}<a class="tw-font-mono" href="{{$b.Link}}">{{$b.Name}}</a> {{end}}</span>{{end}}{{end}}
 									</p>
 								</li>
 							{{end}}
@@ -172,38 +172,38 @@
 									<div class="asc-card-head">
 										<a class="asc-path" href="{{$c.Link}}">{{$c.Path}}{{if $c.StartLine}}:{{$c.StartLine}}{{if gt $c.EndLine $c.StartLine}}-{{$c.EndLine}}{{end}}{{end}}</a>
 										{{if $c.Symbol}}<span class="tw-font-mono">{{$c.Symbol}}</span>{{end}}
-										<span class="asc-pill asc-pill-lang" title="Relevance score">{{$c.Score}}</span>
+										<span class="asc-pill asc-pill-lang" title="{{ctx.Locale.Tr "asc_rp.s_score"}}">{{$c.Score}}</span>
 										{{range $s := $c.Sources}}<span class="asc-pill asc-pill-lang">{{$s}}</span>{{end}}
 									</div>
 									{{if $c.Redacted}}
-										<p class="asc-redacted">The content of this chunk is hidden because it may hold secrets.</p>
+										<p class="asc-redacted">{{ctx.Locale.Tr "asc_rp.s_hidden_chunk"}}</p>
 									{{else if $c.Text}}
 										<pre class="asc-chunk-text">{{$c.Text}}</pre>
 									{{end}}
 									{{if $c.Branches}}{{if (index $c.Branches 0).Name}}
-										<p class="asc-also asc-branches">On {{range $b := $c.Branches}}<a class="tw-font-mono" href="{{$b.Link}}">{{$b.Name}}</a> {{end}}</p>
+										<p class="asc-also asc-branches">{{ctx.Locale.Tr "asc_rp.s_on"}} {{range $b := $c.Branches}}<a class="tw-font-mono" href="{{$b.Link}}">{{$b.Name}}</a> {{end}}</p>
 									{{end}}{{end}}
 								</article>
 							{{end}}
 						</div>
 					{{end}}
 
-					{{if .AscSearchTruncated}}<div class="ui info message">More results exist than are shown. Narrow the scope or the query.</div>{{end}}
+					{{if .AscSearchTruncated}}<div class="ds-banner">{{ctx.Locale.Tr "asc_rp.s_more"}}</div>{{end}}
 				</div>
 
 				<div class="asc-search-coverage" id="asc-search-coverage" role="status">
-					<b>Coverage.</b>
+					<b>{{ctx.Locale.Tr "asc_rp.s_coverage"}}</b>
 					{{if not .AscSearchCoverageKnown}}
-						How much of this scope is indexed is not known, so the results may be incomplete.
+						{{ctx.Locale.Tr "asc_rp.s_cov_unknown"}}
 					{{else if .AscSearchComplete}}
-						The index covers all of this scope.
+						{{ctx.Locale.Tr "asc_rp.s_cov_all"}}
 					{{else}}
-						The index does not cover all of this scope yet, so the results may be incomplete.
+						{{ctx.Locale.Tr "asc_rp.s_cov_part"}}
 					{{end}}
 					{{range $c := .AscSearchCoverage}}
-						<span class="asc-pill asc-search-index">{{$c.Index}} {{$c.Percent}}%{{if $c.Lag}}, {{$c.Lag}} s behind{{end}}</span>
+						<span class="asc-pill asc-search-index">{{$c.Index}} {{$c.Percent}}%{{if $c.Lag}}, {{ctx.Locale.Tr "asc_rp.s_lag" $c.Lag}}{{end}}</span>
 					{{end}}
-					{{if gt .AscSearchTargets 1}}<span class="asc-muted">Read for {{.AscSearchCoverageOf}}.</span>{{end}}
+					{{if gt .AscSearchTargets 1}}<span class="asc-muted">{{ctx.Locale.Tr "asc_rp.s_read_for" .AscSearchCoverageOf}}</span>{{end}}
 				</div>
 			</div>
 		{{end}}
