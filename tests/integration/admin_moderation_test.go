@@ -46,12 +46,12 @@ func testReportDetails(t *testing.T, htmlDoc *HTMLDoc, reportID, contentIcon, co
 	assert.Equal(t, category, strings.TrimSpace(cat.Text()))
 
 	// Check number of reports for the same content
-	count := htmlDoc.Find("#report-" + reportID + " .ds-li-meta a")
+	count := htmlDoc.Find("#report-" + reportID + " .ds-li-meta a[href*='/moderation/reports/type/']")
 	assert.Equal(t, 1, count.Length())
 	assert.Equal(t, "Reported "+reportsNo+" times", strings.TrimSpace(count.Text()))
 
 	// Check 'More actions' (⋯) dropdown
-	htmlDoc.AssertElement(t, "#report-"+reportID+" .ds-li-actions .ds-btn-danger", hasMoreActions)
+	assert.Equal(t, hasMoreActions, htmlDoc.Find("#report-"+reportID+" .ds-li-actions .ds-btn-danger").Length() > 0)
 }
 
 func TestAdminModerationViewReports(t *testing.T) {
@@ -164,7 +164,7 @@ func TestAdminModerationViewReports(t *testing.T) {
 				assert.Equal(t, 1, reports.Length()) // there is only one report for this content
 				shadowCopyRows := htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div")
 				assert.Equal(t, 6, shadowCopyRows.Length()) // a shadow copy was created and it has 6 fields
-				posterRowCells := htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:first-of-type :is(dt, dd)")
+				posterRowCells := htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:first-of-type").Find("dt, dd")
 				assert.Equal(t, 2, posterRowCells.Length())
 				assert.Equal(t, "Poster", posterRowCells.First().Text()) // in case of comment shadow copies, the first field should be 'Poster'
 				// For reports of deleted comments, in case the poster still exists
@@ -193,7 +193,7 @@ func TestAdminModerationViewReports(t *testing.T) {
 				assert.Equal(t, 1, reports.Length()) // there is only one report for this content
 				shadowCopyRows = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div")
 				assert.Equal(t, 6, shadowCopyRows.Length()) // a shadow copy was created and it has 6 fields
-				posterRowCells = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:first-of-type :is(dt, dd)")
+				posterRowCells = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:first-of-type").Find("dt, dd")
 				assert.Equal(t, 2, posterRowCells.Length())
 				assert.Equal(t, "Poster", posterRowCells.First().Text()) // in case of comment shadow copies, the first field should be 'Poster'
 				// For reports of deleted comments, in case the poster was also deleted
@@ -221,7 +221,7 @@ func TestAdminModerationViewReports(t *testing.T) {
 				assert.Equal(t, 1, reports.Length()) // there is only one report for this content
 				shadowCopyRows = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div")
 				assert.Equal(t, 8, shadowCopyRows.Length()) // a shadow copy was created and it has 8 fields
-				posterRowCells = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:nth-of-type(3) :is(dt, dd)")
+				posterRowCells = htmlDoc.Find(".ds-settings-body ul.adm-sec > li:first-of-type details dl > div:nth-of-type(3)").Find("dt, dd")
 				assert.Equal(t, 2, posterRowCells.Length())
 				assert.Equal(t, "Poster", posterRowCells.First().Text()) // in case of issue shadow copies, the third field should be 'Poster'
 				// For reports of deleted issues, in case the poster still exists

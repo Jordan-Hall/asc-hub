@@ -48,7 +48,7 @@ func TestRepoStarUnstarUI(t *testing.T) {
 
 	// Verify that "user5" is among the stargazers
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElement(t, ".wk-people .ds-li a[href='/user5']", true)
+	htmlDoc.AssertElement(t, ".wk-people .ds-li-title a[href='/user5']", true)
 
 	// Verify which user-cards elements are present
 	htmlDoc.AssertElement(t, ".wk-people .ds-list", true)
@@ -75,7 +75,7 @@ func TestRepoStarUnstarUI(t *testing.T) {
 
 	// Verify that "user5" is not among the stargazers
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElement(t, ".wk-people .ds-li a[href='/user2']", false)
+	htmlDoc.AssertElement(t, ".wk-people .ds-li-title a[href='/user2']", false)
 
 	// Verify which user-cards elements are present
 	htmlDoc.AssertElement(t, ".wk-people .ds-list", false)
@@ -118,7 +118,7 @@ func TestRepoWatchUnwatchUI(t *testing.T) {
 
 	// Verify that "user5" is among the watchers
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElement(t, ".wk-people .ds-li a[href='/user5']", true)
+	htmlDoc.AssertElement(t, ".wk-people .ds-li-title a[href='/user5']", true)
 
 	// Unwatch the repo as user5
 	req = NewRequest(t, "POST", "/user2/repo1/action/unwatch")
@@ -141,7 +141,7 @@ func TestRepoWatchUnwatchUI(t *testing.T) {
 
 	// Verify that "user5" is not among the watchers
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElement(t, ".wk-people .ds-li a[href='/user2']", false)
+	htmlDoc.AssertElement(t, ".wk-people .ds-li-title a[href='/user2']", false)
 }
 
 func TestDisabledStars(t *testing.T) {

@@ -1027,7 +1027,7 @@ func TestRepoFollowSymlink(t *testing.T) {
 		resp := session.MakeRequest(t, req, http.StatusOK)
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
-		symlinkURL, ok := htmlDoc.Find(".file-actions a[data-kind='follow-symlink']").Attr("href")
+		symlinkURL, ok := htmlDoc.Find("a[data-kind='follow-symlink']").Attr("href")
 		if shouldExist {
 			assert.True(t, ok)
 			assert.Equal(t, expectedSymlinkURL, symlinkURL)
