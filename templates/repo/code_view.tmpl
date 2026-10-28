@@ -82,14 +82,14 @@
 			{{end}}
 		</div>
 		<aside class="rp-codeside" aria-label="{{ctx.Locale.Tr "asc_rp.about_file"}}">
-			<section class="rp-card rp-keys" aria-labelledby="rp-keys-title">
+			<section class="rp-card rp-codekeys" aria-labelledby="rp-keys-title">
 				<h2 class="rp-rail-title" id="rp-keys-title">{{ctx.Locale.Tr "asc_rp.keys_title"}}</h2>
-				<ul class="rp-keys-list">
+				<ul class="rp-codekeys-list">
 					<li><a href="{{.RepoLink}}/find/{{.BranchNameSubURL}}" data-asc-key="t"><kbd class="ds-kbd">t</kbd><span>{{ctx.Locale.Tr "asc_rp.go_to_file"}}</span></a></li>
 					{{if or .IsBlame .IsRepresentableAsText}}<li><span><kbd class="ds-kbd">b</kbd><span>{{ctx.Locale.Tr "asc_rp.key_blame"}}</span></span></li>{{end}}
 					{{if and .IsViewFile (not .IsViewCommit)}}<li><span><kbd class="ds-kbd">y</kbd><span>{{ctx.Locale.Tr "repo.file_permalink"}}</span></span></li>{{end}}
 					{{if and .IsViewFile .CanEditFile .Repository.CanEnableEditor}}<li><span><kbd class="ds-kbd">e</kbd><span>{{ctx.Locale.Tr "asc_rp.edit_file"}}</span></span></li>{{end}}
-					<li><button type="button" class="rp-keys-btn" data-asc-key="[" data-asc-toggle="rp-tree-off" data-asc-toggle-target=".rp-codegrid" aria-pressed="false"><kbd class="ds-kbd">[</kbd><span>{{ctx.Locale.Tr "asc_rp.key_tree"}}</span></button></li>
+					<li><button type="button" class="rp-codekeys-btn" data-asc-key="[" data-asc-toggle="rp-tree-off" data-asc-toggle-target=".rp-codegrid" aria-pressed="false"><kbd class="ds-kbd">[</kbd><span>{{ctx.Locale.Tr "asc_rp.key_tree"}}</span></button></li>
 					<li><span><kbd class="ds-kbd">g</kbd> <kbd class="ds-kbd">c</kbd><span>{{ctx.Locale.Tr "asc_rp.key_code"}}</span></span></li>
 				</ul>
 			</section>
