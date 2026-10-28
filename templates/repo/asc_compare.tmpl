@@ -1,59 +1,101 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content repository commits asc-repo-page">
-	{{template "repo/header" .}}
-	<div class="ui container">
-		<div id="asc-compare-container" class="ui segment">
-			<h2>{{ctx.Locale.Tr "repo.asc_compare"}}</h2>
-			<form class="ui form tw-mb-4" method="get" action="{{.RepoLink}}/asc/compare">
-				<div class="tw-flex tw-flex-wrap tw-gap-3 tw-items-end">
-					<div class="field">
-						<label for="asc-compare-a">{{ctx.Locale.Tr "repo.asc_compare.a"}}</label>
-						<input id="asc-compare-a" name="a" type="text" maxlength="255" value="{{.AscCompareA}}">
-					</div>
-					<div class="field">
-						<label for="asc-compare-b">{{ctx.Locale.Tr "repo.asc_compare.b"}}</label>
-						<input id="asc-compare-b" name="b" type="text" maxlength="255" value="{{.AscCompareB}}">
-					</div>
-					<div class="field">
-						<div class="ui checkbox">
-							<input id="asc-compare-three" name="three_dot" type="checkbox" value="1"{{if .AscCompareThreeDot}} checked{{end}}>
-							<label for="asc-compare-three">{{ctx.Locale.Tr "repo.asc_compare.three_dot"}}</label>
-						</div>
-					</div>
-					<button class="ui primary button" type="submit">{{ctx.Locale.Tr "repo.asc_compare.show"}}</button>
-				</div>
-			</form>
-			{{if .AscCompareError}}
-				<div class="ui negative message" data-testid="asc-compare-error">{{ctx.Locale.Tr .AscCompareError}}</div>
-			{{else}}
-				{{with .AscCompare}}
-				<p data-testid="asc-compare-summary">
-					{{ctx.Locale.Tr "repo.asc_compare.summary" .Ahead .Behind}}
-					{{if .MergeBase}}<code>{{.MergeBase}}</code>{{end}}
-				</p>
-				<div class="ui two column stackable grid">
-					<div class="column">
-						<h4>{{ctx.Locale.Tr "repo.asc_compare.ahead"}}</h4>
-						<ul class="tw-list-none tw-p-0">
-							{{range .AheadList}}<li><a href="{{$.RepoLink}}/commit/{{.SHA}}"><code>{{slice .SHA 0 10}}</code></a> {{.Subject}} <span class="tw-text-sm">{{.Author}}</span></li>{{end}}
-							{{if .AheadMore}}<li>{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
-						</ul>
-					</div>
-					<div class="column">
-						<h4>{{ctx.Locale.Tr "repo.asc_compare.behind"}}</h4>
-						<ul class="tw-list-none tw-p-0">
-							{{range .BehindList}}<li><a href="{{$.RepoLink}}/commit/{{.SHA}}"><code>{{slice .SHA 0 10}}</code></a> {{.Subject}} <span class="tw-text-sm">{{.Author}}</span></li>{{end}}
-							{{if .BehindMore}}<li>{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
-						</ul>
-					</div>
-				</div>
-				<h4>{{ctx.Locale.Tr "repo.asc_compare.files"}}</h4>
-				<ul class="tw-list-none tw-p-0">
-					{{range .Files}}<li><span class="ui mini label">{{.Status}}</span> <code>{{.Path}}</code></li>{{end}}
-				</ul>
-				{{end}}
-			{{end}}
+<div role="main" aria-label="{{.Title}}" class="ds-main page-content repository commits asc-repo-page rp-page rp-compare">
+	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "asc_rp.compare") "SubBack" .RepoLink)}}
+	<div class="ds-container rp-body" id="asc-compare-container">
+		{{template "base/alert" .}}
+		<div class="rp-band">
+			<div class="rp-band-main">
+				<p class="rp-eyebrow">{{ctx.Locale.Tr "asc_rp.compare"}}</p>
+				<h2 class="rp-h1">{{ctx.Locale.Tr "asc_rp.compare_title"}}</h2>
+				<p class="rp-sub">{{ctx.Locale.Tr "repo.asc_compare"}}</p>
+			</div>
 		</div>
+		<form class="rp-sec rp-cmp-form ds-form" method="get" action="{{.RepoLink}}/asc/compare">
+			<div class="rp-cmp-fields">
+				<div class="ds-field">
+					<label class="ds-label" for="asc-compare-a">{{ctx.Locale.Tr "repo.asc_compare.a"}}</label>
+					<input id="asc-compare-a" class="ds-input ds-mono" name="a" type="text" maxlength="255" value="{{.AscCompareA}}" autocomplete="off" autocapitalize="none" spellcheck="false"{{if .AscCompareError}} aria-invalid="true"{{end}}>
+				</div>
+				<a class="ds-btn ds-btn-secondary ds-btn-icon rp-cmp-swap" href="{{.RepoLink}}/asc/compare?a={{.AscCompareB}}&b={{.AscCompareA}}{{if .AscCompareThreeDot}}&three_dot=1{{end}}" aria-label="{{ctx.Locale.Tr "asc_rp.swap_sides"}}">{{svg "dsi-sort" 18}}</a>
+				<div class="ds-field">
+					<label class="ds-label" for="asc-compare-b">{{ctx.Locale.Tr "repo.asc_compare.b"}}</label>
+					<input id="asc-compare-b" class="ds-input ds-mono" name="b" type="text" maxlength="255" value="{{.AscCompareB}}" autocomplete="off" autocapitalize="none" spellcheck="false"{{if .AscCompareError}} aria-invalid="true"{{end}}>
+				</div>
+			</div>
+			<div class="rp-cmp-go">
+				<label class="ds-check">
+					<input id="asc-compare-three" name="three_dot" type="checkbox" value="1"{{if .AscCompareThreeDot}} checked{{end}}>
+					<span>{{ctx.Locale.Tr "repo.asc_compare.three_dot"}}</span>
+				</label>
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "repo.asc_compare.show"}}</button>
+			</div>
+		</form>
+		{{if .AscCompareError}}
+			<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-compare-error">{{svg "dsi-alert" 16}}<span>{{ctx.Locale.Tr .AscCompareError}}</span></div>
+		{{else}}
+			{{with .AscCompare}}
+			<p class="rp-cmp-sum" data-testid="asc-compare-summary">
+				<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.n_ahead" .Ahead}}</span>
+				<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_rp.n_behind" .Behind}}</span>
+				{{if .MergeBase}}<span class="rp-dim">{{ctx.Locale.Tr "asc_rp.common_ancestor"}} <code class="rp-hash">{{.MergeBase}}</code></span>{{end}}
+			</p>
+			<div class="rp-cmp-cols">
+				<section class="rp-sec" aria-labelledby="rp-cmp-ahead">
+					<div class="rp-sec-h">
+						<h3 class="rp-sec-title" id="rp-cmp-ahead">{{ctx.Locale.Tr "repo.asc_compare.ahead"}}</h3>
+						<span class="ds-count">{{.Ahead}}</span>
+					</div>
+					{{if .AheadList}}
+					<ul class="rp-rows">
+						{{range .AheadList}}
+						<li class="rp-cmp-commit">
+							<a class="rp-cmp-subject" href="{{$.RepoLink}}/commit/{{.SHA}}">{{.Subject}}</a>
+							<span class="rp-ref-meta"><code class="rp-hash">{{slice .SHA 0 10}}</code><span>{{.Author}}</span></span>
+						</li>
+						{{end}}
+						{{if .AheadMore}}<li class="rp-cmp-commit rp-dim">{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
+					</ul>
+					{{else}}
+					<div class="rp-sec-b rp-dim">{{ctx.Locale.Tr "asc_rp.nothing_here"}}</div>
+					{{end}}
+				</section>
+				<section class="rp-sec" aria-labelledby="rp-cmp-behind">
+					<div class="rp-sec-h">
+						<h3 class="rp-sec-title" id="rp-cmp-behind">{{ctx.Locale.Tr "repo.asc_compare.behind"}}</h3>
+						<span class="ds-count">{{.Behind}}</span>
+					</div>
+					{{if .BehindList}}
+					<ul class="rp-rows">
+						{{range .BehindList}}
+						<li class="rp-cmp-commit">
+							<a class="rp-cmp-subject" href="{{$.RepoLink}}/commit/{{.SHA}}">{{.Subject}}</a>
+							<span class="rp-ref-meta"><code class="rp-hash">{{slice .SHA 0 10}}</code><span>{{.Author}}</span></span>
+						</li>
+						{{end}}
+						{{if .BehindMore}}<li class="rp-cmp-commit rp-dim">{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
+					</ul>
+					{{else}}
+					<div class="rp-sec-b rp-dim">{{ctx.Locale.Tr "asc_rp.nothing_here"}}</div>
+					{{end}}
+				</section>
+			</div>
+			<section class="rp-sec rp-cmp-files" aria-labelledby="rp-cmp-files">
+				<div class="rp-sec-h">
+					<h3 class="rp-sec-title" id="rp-cmp-files">{{ctx.Locale.Tr "repo.asc_compare.files"}}</h3>
+					<span class="ds-count">{{len .Files}}</span>
+				</div>
+				{{if .Files}}
+				<ul class="rp-rows">
+					{{range .Files}}<li class="rp-cmp-file">{{if eq .Status "A"}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.st_added"}}</span>{{else if eq .Status "D"}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_rp.st_deleted"}}</span>{{else if eq .Status "R"}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_rp.st_renamed"}}</span>{{else if eq .Status "M"}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_rp.st_modified"}}</span>{{else}}<span class="ds-chip">{{.Status}}</span>{{end}} <code class="rp-cmp-path">{{.Path}}</code></li>{{end}}
+				</ul>
+				{{else}}
+				<div class="rp-sec-b">
+					{{template "shared/ds/empty" (dict "Icon" "inbox" "Title" (ctx.Locale.Tr "asc_rp.nothing_to_compare") "Body" (ctx.Locale.Tr "asc_rp.nothing_to_compare_body"))}}
+				</div>
+				{{end}}
+			</section>
+			{{end}}
+		{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}
