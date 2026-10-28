@@ -1,0 +1,109 @@
+/* Repository search (board Search): the older asc-search.css rules, read through the design tokens. */
+
+.rp-searchpage .asc-search-bar input[type="search"] {
+  border-color: var(--fill);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.rp-searchpage .asc-search-bar .ds-btn {
+  min-height: 48px;
+  flex: none;
+}
+
+.rp-searchpage .asc-search-modes {
+  background: var(--surface-3);
+  border-radius: var(--r-btn);
+}
+
+.rp-searchpage .asc-mode span {
+  color: var(--text-b);
+}
+
+.rp-searchpage .asc-mode input:checked + span {
+  background: var(--surface);
+  border-color: var(--fill);
+  color: var(--link);
+}
+
+.rp-searchpage .asc-chip {
+  color: var(--text-b);
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.rp-searchpage .asc-chip.active {
+  color: var(--on-fill);
+  border-color: var(--fill);
+  background: var(--fill);
+}
+
+.rp-searchpage .asc-chip .asc-count {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.rp-searchpage .asc-card {
+  background: var(--surface);
+  border-color: var(--line);
+  border-radius: var(--r-card);
+}
+
+.rp-searchpage .asc-card-head {
+  background: var(--surface-2);
+  border-bottom-color: var(--line-2);
+}
+
+.rp-searchpage .asc-path {
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+
+.rp-searchpage .asc-pill {
+  color: var(--text-b);
+  background: var(--surface-3);
+  border: 1px solid var(--line-2);
+}
+
+.rp-searchpage .asc-pill-def {
+  color: var(--ok);
+  background: var(--ok-soft);
+  border-color: var(--ok-line);
+}
+
+.rp-searchpage .asc-lines,
+.rp-searchpage .asc-chunk-text {
+  font-family: var(--font-mono);
+}
+
+.rp-searchpage .asc-line .n {
+  color: var(--text-3);
+}
+
+.rp-searchpage .asc-line.match {
+  background: var(--warn-soft);
+}
+
+.rp-searchpage.asc-search mark {
+  color: var(--note-ink);
+  background: var(--note-bg);
+  box-shadow: 0 0 0 1px var(--note-line);
+}
+
+.rp-searchpage .asc-search-coverage {
+  color: var(--text-2);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+}
+
+.rp-searchpage .asc-search-options > summary {
+  min-height: var(--touch);
+  color: var(--link);
+}
+
+.rp-searchpage .asc-search-fields input,
+.rp-searchpage .asc-search-fields select {
+  width: 100%;
+}
