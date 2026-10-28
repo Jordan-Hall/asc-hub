@@ -832,3 +832,10 @@
   min-width: 24px;
   min-height: 24px;
 }
+
+/* a table cell with nothing in it is left out of a stacked row */
+@media (max-width: 639.98px) {
+  .rv-tbl-stack td.rv-cell-empty {
+    display: none;
+  }
+}
