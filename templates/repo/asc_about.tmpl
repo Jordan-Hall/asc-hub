@@ -69,7 +69,7 @@
 			{{else}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_rp.policy_invalid"}}</span>{{end}}
 		</div>
 		{{if .HomePolicy.Lines}}<ul class="rp-policy-lines">{{range .HomePolicy.Lines}}<li>{{.}}</li>{{end}}</ul>{{end}}
-		<a class="rp-sec-act" href="{{.RepoLink}}/src/{{.BranchNameSubURL}}/.asc/policy.toml">{{ctx.Locale.Tr "asc_rp.policy_open"}}</a>
+		{{if .HomePolicy.Present}}<a class="rp-sec-act" href="{{.RepoLink}}/src/{{.BranchNameSubURL}}/.asc/policy.toml">{{ctx.Locale.Tr "asc_rp.policy_open"}}</a>{{end}}
 	</section>
 	{{end}}
 	{{if .HomeRelease}}
