@@ -144,9 +144,6 @@ func CreateAscDeviceCode(ctx context.Context, deviceName, clientIP string) (row 
 	if err != nil {
 		return nil, "", err
 	}
-	if total >= AscDeviceCodeMaxPending {
-		return nil, "", ErrAscDeviceCodeTooMany
-	}
 	if clientIP != "" {
 		mine, err := db.GetEngine(ctx).Where("status = ? AND expires_unix > ? AND creator_ip = ?", AscDeviceCodePending, now, clientIP).Count(new(AscDeviceCode))
 		if err != nil {
@@ -154,6 +151,21 @@ func CreateAscDeviceCode(ctx context.Context, deviceName, clientIP string) (row 
 		}
 		if mine >= AscDeviceCodeMaxPendingPerIP {
 			return nil, "", ErrAscDeviceCodeTooMany
+		}
+	}
+	if total >= AscDeviceCodeMaxPending {
+		// The hub is full: the oldest waiting codes make room, so nobody can lock everyone else out by filling the
+		// table. Codes that were approved are never removed here. One client address (or IPv6 /64) is still limited to
+		// AscDeviceCodeMaxPendingPerIP waiting codes (checked first), so one client cannot push others out.
+		var oldest []int64
+		if err := db.GetEngine(ctx).Table("asc_device_code").Cols("id").Where("status = ?", AscDeviceCodePending).
+			OrderBy("created_unix ASC, id ASC").Limit(int(total-AscDeviceCodeMaxPending) + 1).Find(&oldest); err != nil {
+			return nil, "", err
+		}
+		if len(oldest) > 0 {
+			if _, err := db.GetEngine(ctx).In("id", oldest).Delete(new(AscDeviceCode)); err != nil {
+				return nil, "", err
+			}
 		}
 	}
 	if deviceName, err = CleanAscDeviceName(deviceName); err != nil {
