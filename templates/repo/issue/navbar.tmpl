@@ -1,4 +1,2 @@
-<div class="switch issue-list-navbar">
-	<a class="{{if .PageIsLabels}}active {{end}}item" href="{{.RepoLink}}/labels">{{ctx.Locale.Tr "repo.labels"}}</a>
-	<a class="{{if .PageIsMilestones}}active {{end}}item" href="{{.RepoLink}}/milestones">{{ctx.Locale.Tr "repo.milestones"}}</a>
-</div>
+<a class="ds-btn ds-btn-secondary{{if .PageIsLabels}} is-on{{end}}" {{if .PageIsLabels}}aria-current="page"{{end}} href="{{.RepoLink}}/labels">{{ctx.Locale.Tr "repo.labels"}}</a>
+<a class="ds-btn ds-btn-secondary{{if .PageIsMilestones}} is-on{{end}}" {{if .PageIsMilestones}}aria-current="page"{{end}} href="{{.RepoLink}}/milestones">{{ctx.Locale.Tr "repo.milestones"}}</a>
