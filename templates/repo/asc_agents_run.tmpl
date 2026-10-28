@@ -88,7 +88,7 @@ The page works without the script: the log shows what existed when it was drawn,
 			</section>
 			{{end}}
 			<div class="rv-banner rv-banner-err{{if not .AscAgentRun.Failure}} tw-hidden{{end}}" role="alert" data-run-failure>{{.AscAgentRun.Failure}}</div>
-			<div class="rv-banner rv-banner-warn{{if or (not .AscAgentRunWaiting) .AscAgentRequest}} tw-hidden{{end}}" role="status" data-run-waiting><div>{{ctx.Locale.Tr "asc_review.run_waiting"}} <a href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer_link"}}</a></div></div>
+			<div class="rv-banner rv-banner-warn{{if or (not .AscAgentRunWaiting) .AscAgentRequest (not .AscAgentRunSee)}} tw-hidden{{end}}" role="status" data-run-waiting><div>{{ctx.Locale.Tr "asc_review.run_waiting"}} <a href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer_link"}}</a></div></div>
 
 			{{if and .AscAgentCanAct (not .AscAgentRun.State.Active) .AscAgentRun.Failure}}
 			<details class="rv-disclose ar-continue" data-testid="asc-agent-continue">
@@ -160,7 +160,7 @@ The page works without the script: the log shows what existed when it was drawn,
 						<ol class="asc-log rv-log" data-log aria-live="off" data-testid="asc-agent-log">
 							{{template "repo/asc_agents_events" .AscAgentEvents}}
 						</ol>
-						<p class="rv-feed-status{{if .AscAgentEvents}} tw-hidden{{end}}" data-log-empty>{{ctx.Locale.Tr "asc_review.run_log_empty"}}</p>
+						<p class="rv-feed-status{{if or .AscAgentEvents (not .AscAgentRunSee)}} tw-hidden{{end}}" data-log-empty>{{ctx.Locale.Tr "asc_review.run_log_empty"}}</p>
 					</section>
 
 					{{if .AscAgentCanAct}}
