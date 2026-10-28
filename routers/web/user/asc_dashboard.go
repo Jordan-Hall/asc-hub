@@ -71,6 +71,7 @@ type AscDashRow struct {
 type AscDashSeg struct {
 	Tone  string // green, amber, red or grey
 	Label string
+	Link  string // the review of this change, so a click on the bar opens it
 }
 
 // AscDashStack is one of the person's stacks.
@@ -428,23 +429,24 @@ func ascDashStackFrom(ctx gocontext.Context, doer *user_model.User, rootID int64
 		seg := AscDashSeg{Tone: "amber", Label: l.TrString("user.asc_dash.seg_review", pr.Issue.Title)}
 		switch {
 		case pr.HasMerged:
-			seg = AscDashSeg{"green", l.TrString("user.asc_dash.seg_merged", pr.Issue.Title)}
+			seg = AscDashSeg{Tone: "green", Label: l.TrString("user.asc_dash.seg_merged", pr.Issue.Title)}
 		case pr.IsWorkInProgress(ctx):
-			seg = AscDashSeg{"grey", l.TrString("user.asc_dash.seg_draft", pr.Issue.Title)}
+			seg = AscDashSeg{Tone: "grey", Label: l.TrString("user.asc_dash.seg_draft", pr.Issue.Title)}
 		case pr.Status == issues_model.PullRequestStatusConflict:
-			seg = AscDashSeg{"red", l.TrString("user.asc_dash.seg_conflict", pr.Issue.Title)}
+			seg = AscDashSeg{Tone: "red", Label: l.TrString("user.asc_dash.seg_conflict", pr.Issue.Title)}
 		default:
 			if rv, err := issues_model.GetAscInboxReviewers(ctx, pr.IssueID); err == nil {
 				for _, r := range rv {
 					if r.Type == issues_model.ReviewTypeReject && r.Official {
-						seg = AscDashSeg{"red", l.TrString("user.asc_dash.seg_rejected", pr.Issue.Title)}
+						seg = AscDashSeg{Tone: "red", Label: l.TrString("user.asc_dash.seg_rejected", pr.Issue.Title)}
 					}
 				}
 				if seg.Tone == "amber" && ascInboxApproved(ctx, pr) {
-					seg = AscDashSeg{"green", l.TrString("user.asc_dash.seg_approved", pr.Issue.Title)}
+					seg = AscDashSeg{Tone: "green", Label: l.TrString("user.asc_dash.seg_approved", pr.Issue.Title)}
 				}
 			}
 		}
+		seg.Link = ascPullLink(pr)
 		st.Segs = append(st.Segs, seg)
 		if !pr.HasMerged {
 			st.Link = ascPullLink(pr)

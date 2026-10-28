@@ -125,7 +125,7 @@ Template Attributes:
 								<a class="wk-stack-name ds-mono" href="{{.Link}}">{{.Name}}</a>
 								<div class="ds-t-small ds-c-2">{{ctx.Locale.TrN (len .Segs) "asc_work.dash_changes_one" "asc_work.dash_changes_n" (len .Segs)}}</div>
 								<ul class="wk-segs">
-									{{range .Segs}}<li class="wk-seg-{{.Tone}}" title="{{.Label}}"><span class="ds-sr">{{.Label}}</span></li>{{end}}
+									{{range .Segs}}<li class="wk-seg-{{.Tone}}" title="{{.Label}}"><a class="wk-seg-link" href="{{.Link}}"><span class="ds-sr">{{.Label}}</span></a></li>{{end}}
 								</ul>
 							</li>
 						{{end}}

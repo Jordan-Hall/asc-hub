@@ -229,7 +229,7 @@ Open rows by size: S 45, M 64, L 23.
 | Dashboard | Row kinds: reply from a person, agent question, ready to merge with queue position and estimate, trunk moved with restack summary | needs-both | Kinds come from inbox sections; reply quote, "about 4 min" and "ASC restacked 2 of 3" need asc data (`mergequeue.proto` `List`, `stacks.proto` restack result); `services/ascinbox` | L |
 | Dashboard | Keys j k, Enter, e (done), g then i, `/` | needs-hub-backend | j, k, g i, `/` done in `asc-keys.js`; `e` needs the done state (Inbox) | S |
 | Dashboard | Agents working now with budget bar, paused state, All runs | done | `asc_home.tmpl`, `ascDashAgentsFromServe` | - |
-| Dashboard | Stack bars: click a segment opens the review at that segment | ui-only-missing | `wk-segs` items are not links; `ascDashStackFrom` has the pull link per segment | S |
+| Dashboard | Stack bars: click a segment opens the review at that segment | done | `wk-segs` items are not links; `ascDashStackFrom` has the pull link per segment | S |
 | Dashboard | Merge queue card (Running, median wait, positions, "2 of 3 checks", Open) | needs-both | No such card. Hub aggregates the person's queue entries (`routers/web/repo/asc_queue.go`; asc `mergequeue.proto` `List`, `Get`, `Watch`); median wait needs an asc statistic | L |
 | Dashboard | Today feed with Filter | ui-only-missing | Feed present; filter menu missing | S |
 | Dashboard | From your terminal card with Copy; g i tip | done | `asc_home.tmpl` | - |
