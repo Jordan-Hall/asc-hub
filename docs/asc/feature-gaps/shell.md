@@ -12,12 +12,12 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 77 |
-| ui-only-missing | 47 |
+| done | 81 |
+| ui-only-missing | 44 |
 | needs-hub-backend | 44 |
 | needs-asc-backend | 0 |
 | needs-both | 26 |
-| total | 194 |
+| total | 195 |
 
 Open rows by size: S 45, M 64, L 23.
 
@@ -55,8 +55,8 @@ Open rows by size: S 45, M 64, L 23.
 | --- | --- | --- | --- | --- |
 | Main | Hero: announcement pill, headline, lead, Download ASC / Create account / Sign in | done | `templates/home.tmpl` | - |
 | Main | Download ASC goes to `/download` and preselects the detected OS | done | Hero button is `href="#download"`, a section on the same page | S |
-| Main | Install method pills (Homebrew, Scoop, winget, curl, PowerShell, .deb .rpm) as a labelled group with `aria-pressed`; the command swaps; Copy raises a toast; "1 Install ASC / 2 Connect to this hub" cards | ui-only-missing | Hero has only the connect command. Data exists in `modules/ascdownload/offer.go` (`Command` list per OS). Add pills and swap script (`home.tmpl`, `asc-ui.js`, pattern of `initDownload`) | M |
-| Main | Product window in the hero (stack rail, change with intent, comment, whose turn) | ui-only-missing | No such markup in `home.tmpl`; static preview with a text equivalent | M |
+| Main | Install method pills (Homebrew, Scoop, winget, curl, PowerShell, .deb .rpm) as a labelled group with `aria-pressed`; the command swaps; Copy raises a toast; "1 Install ASC / 2 Connect to this hub" cards | done | Hero has only the connect command. Data exists in `modules/ascdownload/offer.go` (`Command` list per OS). Add pills and swap script (`home.tmpl`, `asc-ui.js`, pattern of `initDownload`) | M |
+| Main | Product window in the hero (stack rail, change with intent, comment, whose turn) | done | No such markup in `home.tmpl`; static preview with a text equivalent | M |
 | Main | Works-with strip | done | `home.tmpl` `ds-land-strip` | - |
 | Main | Why ASC, stacks, review, code intelligence, policy cards | done | `home.tmpl` | - |
 | Main | Operation log and merge queue demo | done | `home.tmpl` `ls-log` | - |
@@ -64,7 +64,7 @@ Open rows by size: S 45, M 64, L 23.
 | Main | Workflow cards (dependency upgrade, flaky triage, large migration) | done | `home.tmpl` `ls-wf` | - |
 | Main | Bring your own keys and storage (provider rows, S3 endpoint, bucket, region) | done | `home.tmpl` `ls-byo` | - |
 | Main | Final call to action and footer | done | `home.tmpl` `hub-cta` | - |
-| Mobile-Landing | Sticky bottom bar with Download ASC and Sign in; install pills scroll sideways; workflow cards snap | ui-only-missing | No sticky bar in `home.tmpl`; `asc-ds/touch.css` | S |
+| Mobile-Landing | Sticky bottom bar with Download ASC and Sign in; install pills scroll sideways; workflow cards snap | done | No sticky bar in `home.tmpl`; `asc-ds/touch.css` | S |
 
 ## Onboarding (sign in, sign up, recovery, device)
 
@@ -81,6 +81,7 @@ Open rows by size: S 45, M 64, L 23.
 | Onboarding | Sign up: "I agree to the Terms and the Privacy policy" | needs-hub-backend | Not in the form. Needs Terms and Privacy URLs, a required checkbox and a stored acceptance | M |
 | Onboarding | Sign up has no retyped password on the board; the hub form asks for one | ui-only-missing | Drop the retype field (Show replaces it); relax `forms.RegisterForm` | S |
 | Onboarding | Two-factor: six boxes act as one input and auto-advance; recovery code link; "Use a security key instead" | ui-only-missing | `twofa.tmpl` has one field and the scratch link. Six-box component in `user-auth.js` (one real input for screen readers); key link when keys exist | M |
+| Onboarding | CLI device approval: code entry, confirm with device name, Authorise or Deny, expiry, wrong-code and rate-limit states; hub device-code store and `POST /login/device/code`, `POST /login/device/token` (RFC 8628) | done | `models/auth/asc_device_code.go`, `routers/web/auth/asc_device.go`, `templates/user/auth/asc_device.tmpl`; asc side is Phase 3 | - |
 | Onboarding | Security key waiting screen with spinner and "Try another way" | done | `webauthn.tmpl` | - |
 | Onboarding | Authorise the CLI (device): code, terminal and OS, Authorise and Deny | needs-both | Not present. The CLI signs in with a pasted token (`crates/asc/src/cli/auth.rs`: `--token-stdin`, `--prompt`), no device flow. Hub: device-code endpoints, template, token minting (`models/auth/access_token.go`). asc: `asc auth login` device grant with polling | L |
 | Onboarding | Forgot password: sent page, lifetime, resend limit, no account disclosure | done | `forgot_passwd.tmpl` | - |

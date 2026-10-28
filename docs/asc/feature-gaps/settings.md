@@ -18,8 +18,8 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 66 |
-| ui-only-missing | 32 |
+| done | 68 |
+| ui-only-missing | 30 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 36 |
@@ -62,13 +62,13 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsProfile | Loading skeleton inputs | ui-only-missing | profile.tmpl + CSS (page is server rendered, low value) | S |
 | UserSettingsAccount | Email list, primary, verify/resend, add, delete | done | templates/user/settings/account.tmpl, routers/web/user/setting/account.go | - |
 | UserSettingsAccount | Resend rate limit that says when to retry | needs-hub-backend | routers/web/user/setting/account.go (EmailPost SENDACTIVATION) | S |
-| UserSettingsAccount | Sign-in methods card (SSO connected, link to Security for passkeys/password) | ui-only-missing | account.tmpl; data already in security/accountlinks.tmpl (AccountLinks) | S |
+| UserSettingsAccount | Sign-in methods card (SSO connected, link to Security for passkeys/password) | done | account.tmpl; data already in security/accountlinks.tmpl (AccountLinks) | S |
 | UserSettingsAccount | Export your data (changesets, reviews, comments, settings; emailed link; requested/ready states) | needs-both | hub: new job + route /user/settings/account/export + mail; asc: new export RPC (no export RPC exists in proto/asc/v1) | L |
 | UserSettingsAccount | Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus return | ui-only-missing | account.tmpl asks for the password; routers/web/user/setting/account.go DeleteAccount | S |
 | UserSettingsAppearance | Theme cards (light, dark, system) with preview | done | templates/user/settings/appearance.tmpl | - |
 | UserSettingsAppearance | Density (comfortable, compact) | done | appearance.tmpl, templates/base/head_style.tmpl (kept in localStorage, not per account; board says every device) | S |
 | UserSettingsAppearance | Language select; hints switch; hidden comment types | done | appearance.tmpl | - |
-| UserSettingsAppearance | Show agent features switch on this page (exists on /-/asc/agents only) | ui-only-missing | appearance.tmpl; handler routers/web/user AscAgentsFeaturesPost | S |
+| UserSettingsAppearance | Show agent features switch on this page (exists on /-/asc/agents only) | done | appearance.tmpl; handler routers/web/user AscAgentsFeaturesPost | S |
 | UserSettingsAppearance | Reduce motion and Keyboard shortcuts switches | done | appearance.tmpl; gate in asc-keys.js and asc-ds/base.css (only the media query exists) | S |
 | UserSettingsAppearance | Hide resolved comments switch | needs-hub-backend | user setting + templates/repo/issue/view_content/conversation.tmpl | S |
 | UserSettingsAppearance | Date and time format (12/24 h, order) | needs-hub-backend | user column, modules/timeutil, DateUtils in modules/templates | M |
