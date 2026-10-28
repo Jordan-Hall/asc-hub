@@ -1,54 +1,39 @@
-<details class="dropdown dir-auto">
-	<summary class="border" data-tooltip-content="{{ctx.Locale.Tr "profile.actions.tooltip"}}">
-		{{svg "octicon-kebab-horizontal"}}
-	</summary>
-	<div class="content">
-		<ul>
-			{{if eq .SignedUserID .ContextUser.ID}}
-				<li>
-					<a href="{{AppSubUrl}}/user/settings">{{svg "octicon-pencil"}}{{ctx.Locale.Tr "profile.edit.link"}}</a>
-				</li>
-			{{end}}
-			{{if .IsAdmin}}
-				<li>
-					<a href="{{AppSubUrl}}/admin/users/{{.ContextUser.ID}}">{{svg "octicon-gear"}}{{ctx.Locale.Tr "admin.users.details"}}</a>
-				</li>
-			{{end}}
-			{{if and .EnableFeed (or .IsAdmin (eq .SignedUserID .ContextUser.ID) (not .ContextUser.KeepActivityPrivate))}}
-				<li>
-					<a href="{{.ContextUser.HomeLink}}.rss">{{svg "octicon-rss"}}{{ctx.Locale.Tr "rss_feed"}}</a>
-				</li>
-				<li>
-					<a href="{{.ContextUser.HomeLink}}.atom">{{svg "octicon-rss"}}{{ctx.Locale.Tr "feed.atom.link"}}</a>
-				</li>
-			{{end}}
-			<li>
-				<a href="{{.ContextUser.HomeLink}}.keys">{{svg "octicon-key"}}{{ctx.Locale.Tr "keys.ssh.link"}}</a>
-			</li>
-			<li>
-				<a href="{{.ContextUser.HomeLink}}.gpg">{{svg "octicon-key"}}{{ctx.Locale.Tr "keys.gpg.link"}}</a>
-			</li>
-		</ul>
-		{{if and .IsSigned (ne .SignedUserID .ContextUser.ID)}}
-			<hr>
-			<ul>
-				<li hx-target="#profile-avatar-card" hx-indicator="#profile-avatar-card" id="action-block">
-					{{if .IsBlocked}}
-						<button class="orange text" hx-post="{{.ContextUser.HomeLink}}?action=unblock">
-							{{svg "octicon-person"}} {{ctx.Locale.Tr "user.unblock"}}
-						</button>
-					{{else}}
-						<button class="orange text" data-modal-id="block-user" hx-post="{{.ContextUser.HomeLink}}?action=block" hx-confirm="-">
-							{{svg "octicon-blocked"}} {{ctx.Locale.Tr "user.block"}}
-						</button>
-					{{end}}
-				</li>
-				{{if .IsModerationEnabled}}
-					<li>
-						<a href="{{AppSubUrl}}/report_abuse?type=user&id={{.ContextUser.ID}}" class="orange text">{{svg "octicon-stop"}}{{ctx.Locale.Tr "moderation.report_abuse"}}</a>
+{{/*
+The actions of a person's profile as a sheet: a bottom sheet on a phone, a dialog from 640 (native <dialog>, opened by
+<button class="show-modal" data-modal="#profile-actions">). Lives inside #profile-avatar-card so a follow or block answer redraws it.
+*/}}
+<dialog id="profile-actions" class="wk-sheet-menu">
+	<article>
+		<header>{{ctx.Locale.Tr "profile.actions.tooltip"}}</header>
+		<div class="content">
+			<ul class="wk-sheet-list">
+				{{if eq .SignedUserID .ContextUser.ID}}
+					<li><a href="{{AppSubUrl}}/user/settings">{{svg "dsi-pencil" 18}}<span>{{ctx.Locale.Tr "profile.edit.link"}}</span></a></li>
+				{{end}}
+				{{if .IsAdmin}}
+					<li><a href="{{AppSubUrl}}/admin/users/{{.ContextUser.ID}}">{{svg "dsi-sliders" 18}}<span>{{ctx.Locale.Tr "admin.users.details"}}</span></a></li>
+				{{end}}
+				{{if and .EnableFeed (or .IsAdmin (eq .SignedUserID .ContextUser.ID) (not .ContextUser.KeepActivityPrivate))}}
+					<li><a href="{{.ContextUser.HomeLink}}.rss">{{svg "dsi-activity" 18}}<span>{{ctx.Locale.Tr "rss_feed"}}</span></a></li>
+					<li><a href="{{.ContextUser.HomeLink}}.atom">{{svg "dsi-activity" 18}}<span>{{ctx.Locale.Tr "feed.atom.link"}}</span></a></li>
+				{{end}}
+				<li><a href="{{.ContextUser.HomeLink}}.keys">{{svg "dsi-key" 18}}<span>{{ctx.Locale.Tr "keys.ssh.link"}}</span></a></li>
+				<li><a href="{{.ContextUser.HomeLink}}.gpg">{{svg "dsi-key" 18}}<span>{{ctx.Locale.Tr "keys.gpg.link"}}</span></a></li>
+				{{if and .IsSigned (ne .SignedUserID .ContextUser.ID)}}
+					<li class="wk-sheet-sep" role="presentation"></li>
+					<li hx-target="#profile-avatar-card" hx-indicator="#profile-avatar-card" id="action-block">
+						{{if .IsBlocked}}
+							<button type="button" class="is-danger" hx-post="{{.ContextUser.HomeLink}}?action=unblock">{{svg "dsi-ban" 18}}<span>{{ctx.Locale.Tr "user.unblock"}}</span></button>
+						{{else}}
+							<button type="button" class="is-danger" data-modal-id="block-user" hx-post="{{.ContextUser.HomeLink}}?action=block" hx-confirm="-">{{svg "dsi-ban" 18}}<span>{{ctx.Locale.Tr "user.block"}}</span></button>
+						{{end}}
 					</li>
+					{{if .IsModerationEnabled}}
+						<li><a class="is-danger" href="{{AppSubUrl}}/report_abuse?type=user&id={{.ContextUser.ID}}">{{svg "dsi-flag" 18}}<span>{{ctx.Locale.Tr "moderation.report_abuse"}}</span></a></li>
+					{{end}}
 				{{end}}
 			</ul>
-		{{end}}
-	</div>
-</details>
+		</div>
+		<div class="actions"><button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button></div>
+	</article>
+</dialog>

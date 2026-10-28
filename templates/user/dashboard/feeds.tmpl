@@ -1,59 +1,56 @@
-<div id="activity-feed" class="flex-list">
-	{{range .Feeds}}
-		<div class="flex-item">
-			<div class="flex-item-leading">
-				{{ctx.AvatarUtils.AvatarByAction .}}
-			</div>
-			<div class="flex-item-main tw-gap-2">
-				<div>
-					{{template "user/dashboard/feed_sentence" .}}
-				</div>
-				{{if .GetOpType.InActions "commit_repo" "mirror_sync_push"}}
-					{{$push := ActionContent2Commits ctx .}}
-					{{$repoLink := (.GetRepoLink ctx)}}
-					{{$repo := .Repo}}
-					<div class="tw-flex tw-flex-col tw-gap-1">
-						{{range $push.Commits}}
-							<div class="flex-text-block">
-								<img class="ui avatar" src="{{$push.AvatarLink $.Context .AuthorEmail}}" alt="" title="{{.AuthorName}}" width="16" height="16" loading="lazy">
-								{{template "repo/shabox" (dict
-									"sha1" .Sha1
-									"commitLink" (printf "%s/commit/%s" $repoLink .Sha1)
-									"signature" .Signature
-									"verification" .Verification
-								)}}
-								<span class="text truncate">
-									{{RenderCommitMessage $.Context .Message ($repo.ComposeMetas ctx)}}
-								</span>
-							</div>
-						{{end}}
+{{/* The activity of a person or an organization: one row per action with who, what, where and when, and the detail of the action. */}}
+<div id="activity-feed" class="ds-card wk-activity">
+	<ul class="ds-list">
+		{{range .Feeds}}
+			<li class="ds-li">
+				<span class="ds-li-av">{{ctx.AvatarUtils.AvatarByAction .}}</span>
+				<div class="ds-li-main wk-act-main">
+					<div class="wk-act-sentence">
+						{{template "user/dashboard/feed_sentence" .}}
 					</div>
-					{{if and (gt $push.Len 1) $push.CompareURL}}
-						<a href="{{AppSubUrl}}/{{$push.CompareURL}}">{{ctx.Locale.Tr "action.compare_commits" $push.Len}} »</a>
+					{{if .GetOpType.InActions "commit_repo" "mirror_sync_push"}}
+						{{$push := ActionContent2Commits ctx .}}
+						{{$repoLink := (.GetRepoLink ctx)}}
+						{{$repo := .Repo}}
+						<ul class="wk-act-commits">
+							{{range $push.Commits}}
+								<li>
+									<img class="ui avatar" src="{{$push.AvatarLink $.Context .AuthorEmail}}" alt="" title="{{.AuthorName}}" width="16" height="16" loading="lazy">
+									{{template "repo/shabox" (dict
+										"sha1" .Sha1
+										"commitLink" (printf "%s/commit/%s" $repoLink .Sha1)
+										"signature" .Signature
+										"verification" .Verification
+									)}}
+									<span class="wk-act-msg">{{RenderCommitMessage $.Context .Message ($repo.ComposeMetas ctx)}}</span>
+								</li>
+							{{end}}
+						</ul>
+						{{if and (gt $push.Len 1) $push.CompareURL}}
+							<a class="ds-link ds-t-small" href="{{AppSubUrl}}/{{$push.CompareURL}}">{{ctx.Locale.Tr "action.compare_commits" $push.Len}} »</a>
+						{{end}}
+					{{else if .GetOpType.InActions "create_issue"}}
+						<span class="wk-act-title">{{RenderIssueTitle ctx (index .GetIssueInfos 1) (.Repo.ComposeMetas ctx)}}</span>
+					{{else if .GetOpType.InActions "create_pull_request"}}
+						<span class="wk-act-title">{{RenderIssueTitle ctx (index .GetIssueInfos 1) (.Repo.ComposeMetas ctx)}}</span>
+					{{else if .GetOpType.InActions "comment_issue" "approve_pull_request" "reject_pull_request" "comment_pull"}}
+						<a href="{{.GetCommentLink ctx}}" class="wk-act-title">{{RenderRefIssueTitle $.Context (.GetIssueTitle ctx)}}</a>
+						{{$comment := index .GetIssueInfos 1}}
+						{{if $comment}}
+							<div class="markup wk-act-comment">{{RenderMarkdownToHtml ctx $comment}}</div>
+						{{end}}
+					{{else if .GetOpType.InActions "merge_pull_request"}}
+						<div class="wk-act-title">{{index .GetIssueInfos 1}}</div>
+					{{else if .GetOpType.InActions "close_issue" "reopen_issue" "close_pull_request" "reopen_pull_request"}}
+						<span class="wk-act-title">{{RenderIssueTitle ctx (.GetIssueTitle ctx) (.Repo.ComposeMetas ctx)}}</span>
+					{{else if .GetOpType.InActions "pull_review_dismissed"}}
+						<div class="wk-act-title">{{ctx.Locale.Tr "action.review_dismissed_reason"}}</div>
+						<div class="wk-act-title">{{index .GetIssueInfos 2 | RenderEmoji $.Context}}</div>
 					{{end}}
-				{{else if .GetOpType.InActions "create_issue"}}
-					<span class="text truncate issue title">{{RenderIssueTitle ctx (index .GetIssueInfos 1) (.Repo.ComposeMetas ctx)}}</span>
-				{{else if .GetOpType.InActions "create_pull_request"}}
-					<span class="text truncate issue title">{{RenderIssueTitle ctx (index .GetIssueInfos 1) (.Repo.ComposeMetas ctx)}}</span>
-				{{else if .GetOpType.InActions "comment_issue" "approve_pull_request" "reject_pull_request" "comment_pull"}}
-					<a href="{{.GetCommentLink ctx}}" class="text truncate issue title">{{RenderRefIssueTitle $.Context (.GetIssueTitle ctx)}}</a>
-					{{$comment := index .GetIssueInfos 1}}
-					{{if $comment}}
-						<div class="markup tw-text-14">{{RenderMarkdownToHtml ctx $comment}}</div>
-					{{end}}
-				{{else if .GetOpType.InActions "merge_pull_request"}}
-					<div class="flex-item-body text black">{{index .GetIssueInfos 1}}</div>
-				{{else if .GetOpType.InActions "close_issue" "reopen_issue" "close_pull_request" "reopen_pull_request"}}
-					<span class="text truncate issue title">{{RenderIssueTitle ctx (.GetIssueTitle ctx) (.Repo.ComposeMetas ctx)}}</span>
-				{{else if .GetOpType.InActions "pull_review_dismissed"}}
-					<div class="flex-item-body text black">{{ctx.Locale.Tr "action.review_dismissed_reason"}}</div>
-					<div class="flex-item-body text black">{{index .GetIssueInfos 2 | RenderEmoji $.Context}}</div>
-				{{end}}
-			</div>
-			<div class="flex-item-trailing">
-				{{svg (printf "octicon-%s" (ActionIcon .GetOpType)) 32 "text grey tw-mr-1"}}
-			</div>
-		</div>
-	{{end}}
+				</div>
+				<span class="wk-act-ic" aria-hidden="true">{{svg (printf "octicon-%s" (ActionIcon .GetOpType)) 20}}</span>
+			</li>
+		{{end}}
+	</ul>
 	{{template "base/paginate" .}}
 </div>
