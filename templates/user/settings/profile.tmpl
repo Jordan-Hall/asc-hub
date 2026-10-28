@@ -4,34 +4,33 @@
 	<form id="avatar-settings" class="ui form ds-form wk-sp-form" action="{{.Link}}/avatar" method="post" enctype="multipart/form-data">
 		{{.CsrfTokenHtml}}
 		<section class="ds-card" aria-labelledby="sp-photo">
-			<div class="ds-card-h"><h2 id="sp-photo">{{ctx.Locale.Tr "settings.avatar"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_photo_hint"}}</span></div>
+			<div class="ds-card-h"><h2 id="sp-photo">{{ctx.Locale.Tr "asc_work.sp_photo"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_photo_hint"}}</span></div>
 			<div class="ds-card-b ds-stack-16">
 				<div class="wk-avatar-row">
 					<span class="wk-avatar-now wk-avatar-round" id="avatar-now">{{ctx.AvatarUtils.Avatar .SignedUser 96}}</span>
 					<div class="ds-stack-12 ds-grow ds-min0">
-						{{if not .DisableGravatar}}
-							<div class="ds-check"><input id="avatar-lookup" name="source" value="lookup" type="radio" {{if not .SignedUser.UseCustomAvatar}}checked{{end}}><label for="avatar-lookup">{{ctx.Locale.Tr "settings.lookup_avatar_by_mail"}}</label></div>
-							<div class="ds-field {{if .Err_Gravatar}}error{{end}}">
-								<label class="ds-label" for="gravatar">{{ctx.Locale.Tr "asc_work.sp_avatar_email"}}</label>
-								<input id="gravatar" class="ds-input{{if .Err_Gravatar}} is-err{{end}}" name="gravatar" value="{{.SignedUser.AvatarEmail}}">
-							</div>
-						{{end}}
-						<div class="ds-check"><input id="avatar-local" name="source" value="local" type="radio" {{if .SignedUser.UseCustomAvatar}}checked{{end}}><label for="avatar-local">{{ctx.Locale.Tr "settings.enable_custom_avatar"}}</label></div>
-						<div class="ds-field">
-							<label class="ds-label" for="new-avatar">{{ctx.Locale.Tr "settings.choose_new_avatar"}}</label>
-							<input id="new-avatar" class="wk-file" name="avatar" type="file" data-image-preview="avatar-now" accept="image/png,image/jpeg,image/gif,image/webp">
-							<p class="ds-hint">{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</p>
+						<input type="hidden" name="source" value="local">
+						<div class="ds-row ds-row-wrap">
+							<label class="ds-btn ds-btn-secondary" for="new-avatar">{{svg "dsi-upload" 16}} {{ctx.Locale.Tr "asc_work.sp_photo_upload"}}</label>
+							<input id="new-avatar" class="tw-sr-only" name="avatar" type="file" data-asc-autosubmit data-image-preview="avatar-now" accept="image/png,image/jpeg,image/gif,image/webp">
+							{{if .SignedUser.UseCustomAvatar}}<button class="ds-btn ds-btn-ghost link-action" type="button" data-url="{{.Link}}/avatar/delete">{{ctx.Locale.Tr "asc_work.sp_photo_remove"}}</button>{{end}}
 						</div>
+						<p class="ds-hint">{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</p>
+						{{if not .DisableGravatar}}
+							<details>
+								<summary class="ds-link">{{ctx.Locale.Tr "settings.lookup_avatar_by_mail"}}</summary>
+								<div class="ds-field {{if .Err_Gravatar}}error{{end}}">
+									<label class="ds-label" for="gravatar">{{ctx.Locale.Tr "asc_work.sp_avatar_email"}}</label>
+									<input id="gravatar" class="ds-input{{if .Err_Gravatar}} is-err{{end}}" name="gravatar" value="{{.SignedUser.AvatarEmail}}">
+								</div>
+								<button class="ds-btn ds-btn-secondary" name="source" value="lookup">{{ctx.Locale.Tr "settings.update_avatar"}}</button>
+							</details>
+						{{end}}
 					</div>
-				</div>
-				<div class="ds-row ds-row-wrap">
-					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.update_avatar"}}</button>
-					<button class="ds-btn ds-btn-danger link-action" type="button" data-url="{{.Link}}/avatar/delete">{{ctx.Locale.Tr "settings.delete_current_avatar"}}</button>
 				</div>
 			</div>
 		</section>
 	</form>
-
 	<form id="profile-form" class="ui form ds-form wk-sp-form" action="{{.Link}}" method="post">
 		{{.CsrfTokenHtml}}
 		<section class="ds-card wk-preview" aria-labelledby="sp-preview" data-preview-form="profile-form">
@@ -52,7 +51,7 @@
 			<div class="ds-card-b ds-stack-16">
 				<div class="ds-form-row ds-form-row-2">
 					<div class="ds-field {{if .Err_FullName}}error{{end}}">
-						<label class="ds-label" for="full_name">{{ctx.Locale.Tr "settings.full_name"}}</label>
+						<label class="ds-label" for="full_name">{{ctx.Locale.Tr "asc_work.sp_display_name"}}</label>
 						<input id="full_name" class="ds-input" name="full_name" value="{{.SignedUser.FullName}}" maxlength="100">
 					</div>
 					<div class="ds-field {{if .Err_Name}}error{{end}}">
@@ -99,6 +98,28 @@
 			</div>
 		</section>
 
+		<section class="ds-card" aria-labelledby="sp-contact">
+			<div class="ds-card-h"><h2 id="sp-contact">{{ctx.Locale.Tr "asc_work.sp_contact"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_contact_hint"}}</span></div>
+			<div class="ds-card-b ds-stack-16">
+				<div class="ds-field">
+					<label class="ds-label" for="public-email">{{ctx.Locale.Tr "asc_work.sp_public_email"}}</label>
+					<select class="ds-select" id="public-email" name="keep_email_private">
+						<option value="on"{{if .SignedUser.KeepEmailPrivate}} selected{{end}}>{{ctx.Locale.Tr "asc_work.sp_email_hidden"}}</option>
+						<option value=""{{if not .SignedUser.KeepEmailPrivate}} selected{{end}}>{{.SignedUser.Email}}</option>
+					</select>
+					<div class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_public_email_hint"}}</div>
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="profile-tz">{{ctx.Locale.Tr "asc_work.sp_tz"}}</label>
+					<select class="ds-select" id="profile-tz" name="tz">
+						<option value=""{{if not .TimeZone}} selected{{end}}>UTC</option>
+						{{range .TimeZones}}{{if ne . "UTC"}}<option{{if eq . $.TimeZone}} selected{{end}}>{{.}}</option>{{end}}{{end}}
+					</select>
+					<div class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_tz_hint"}}</div>
+				</div>
+			</div>
+		</section>
+
 		<section class="ds-card" aria-labelledby="privacy-user-settings">
 			<div class="ds-card-h"><h2 id="privacy-user-settings">{{ctx.Locale.Tr "settings.privacy"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_visibility_hint"}}</span></div>
 			<div class="ds-card-b ds-stack-16">
@@ -119,16 +140,7 @@
 				</fieldset>
 
 				<div class="wk-switch-rows">
-					<label class="ds-switch wk-switch-row">
-						<input name="keep_email_private" type="checkbox" role="switch" {{if .SignedUser.KeepEmailPrivate}}checked{{end}}>
-						<span class="ds-switch-track"></span>
-						<span class="wk-switch-text"><b>{{ctx.Locale.Tr "settings.keep_email_private"}}</b><span class="ds-hint">{{ctx.Locale.Tr "settings.keep_email_private_popup" .SignedUser.GetPlaceholderEmail}}</span></span>
-					</label>
-					<label class="ds-switch wk-switch-row" id="keep-activity-private">
-						<input name="keep_activity_private" type="checkbox" role="switch" {{if .SignedUser.KeepActivityPrivate}}checked{{end}}>
-						<span class="ds-switch-track"></span>
-						<span class="wk-switch-text"><b>{{ctx.Locale.Tr "settings.keep_activity_private"}}</b><span class="ds-hint">{{ctx.Locale.Tr "settings.keep_activity_private.description" (printf "/%s?tab=activity" .SignedUser.Name)}}</span></span>
-					</label>
+					{{if .SignedUser.KeepActivityPrivate}}<input type="hidden" name="keep_activity_private" value="on">{{end}}
 					<label class="ds-switch wk-switch-row">
 						<input name="keep_pronouns_private" type="checkbox" role="switch" {{if .SignedUser.KeepPronounsPrivate}}checked{{end}}>
 						<span class="ds-switch-track"></span>
