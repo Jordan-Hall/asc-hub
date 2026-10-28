@@ -6,6 +6,7 @@ package web
 import (
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -96,6 +97,7 @@ func prepareAscDownload(ctx *context.Context) bool {
 	view.ActiveOS, view.ActiveArch, view.Detected = osOffer.OS, archOffer.Arch, ok
 	view.ActiveOSOffer, view.ActiveArchOffer = osOffer, archOffer
 	ctx.Data["AscDownload"] = view
+	ctx.Data["AscInstallMethods"] = ascInstallMethods(offers)
 	return true
 }
 
@@ -152,4 +154,53 @@ func DownloadFile(ctx *context.Context) {
 		opts.Disposition = "inline"
 	}
 	ctx.ServeContent(f, opts)
+}
+
+// ascInstallMethod is one way to install asc that the landing page offers as a pill: a package manager of the
+// manifest, the install script, or the PowerShell command of the Windows build.
+type ascInstallMethod struct {
+	Key     string
+	Label   string
+	Command string
+}
+
+// ascInstallMethods lists the install methods the release really has, in the order of the landing page: package
+// managers first, then the script, then PowerShell. A method the manifest does not carry is not listed.
+func ascInstallMethods(o *ascdownload.Offers) []ascInstallMethod {
+	var out []ascInstallMethod
+	seen := map[string]bool{}
+	add := func(key, label, command string) {
+		if command != "" && !seen[key] {
+			seen[key] = true
+			out = append(out, ascInstallMethod{Key: key, Label: label, Command: command})
+		}
+	}
+	titled := func(title string) (string, bool) {
+		for _, os := range o.OSes {
+			for _, c := range os.PackageCommands {
+				if c.Title == title {
+					return c.Text, true
+				}
+			}
+		}
+		return "", false
+	}
+	for _, title := range []string{"Homebrew", "Scoop", "winget"} {
+		if text, ok := titled(title); ok {
+			add(strings.ToLower(title), title, text)
+		}
+	}
+	for _, os := range o.OSes {
+		for _, arch := range os.Arches {
+			for _, f := range arch.Files {
+				if f.Kind == ascdownload.KindScript && os.OS != ascdownload.OSWindows {
+					add("curl", "curl", "curl -fsSL "+f.URL+" | sh")
+				}
+			}
+			if os.OS == ascdownload.OSWindows && len(arch.Commands) > 0 {
+				add("powershell", "PowerShell", arch.Commands[0].Text)
+			}
+		}
+	}
+	return out
 }
