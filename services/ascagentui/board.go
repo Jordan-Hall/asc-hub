@@ -71,6 +71,14 @@ type Request struct {
 	DecidedBy string
 	DecidedAt time.Time
 	Reason    string
+	// Hidden is true when the viewer may not see the text of the request: only its kind, agent and run remain.
+	Hidden bool
+}
+
+// Redact removes the text of a request (what the agent wants to run, the plan, the words of the decider).
+func (r *Request) Redact() {
+	r.Summary, r.Detail, r.Reason, r.Steps = "", "", "", nil
+	r.Hidden = true
 }
 
 var requestStates = map[ascv1.AgentRequestState]string{

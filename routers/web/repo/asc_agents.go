@@ -77,6 +77,7 @@ type ascAgentRunRow struct {
 	Paused      bool
 	Pending     int
 	Task        string
+	TaskHidden  bool
 	ByInitials  string
 	Workflow    uint64
 	Active      bool
@@ -129,7 +130,8 @@ func ascAgentRunOf(run *ascv1.AgentRun, name, runsLink string, wantID uint64) (a
 	}
 	row.Paused = run.GetPaused()
 	row.Pending = int(min(run.GetPendingRequests(), 1000))
-	row.Task = ascagentui.CleanLine(run.GetTask(), 300)
+	// The task text and the failure message are private to the creator and the administrators (ascAgentsReveal).
+	row.TaskHidden = run.GetTask() != ""
 	row.ByInitials = ascAgentInitials(row.CreatedBy)
 	row.Workflow = run.GetWorkflowRunId()
 	row.Active = row.State.Active
@@ -137,12 +139,21 @@ func ascAgentRunOf(run *ascv1.AgentRun, name, runsLink string, wantID uint64) (a
 		row.Title = "Run " + strconv.FormatUint(row.ID, 10)
 	}
 	if run.GetFailureMessage() != "" || run.GetFailureCode() != "" {
-		row.Failure = ascagentui.CleanLine(run.GetFailureMessage(), 300)
-		if c := ascagentui.SafeCode(run.GetFailureCode()); c != "" && row.Failure == "" {
-			row.Failure = c
-		}
+		row.Failure = ascagentui.SafeCode(run.GetFailureCode())
 	}
 	return row, true
+}
+
+// ascAgentsReveal puts the private text of a run into its row when the viewer may see it (ascAgentsMaySeeRun).
+func ascAgentsReveal(ctx *context.Context, row *ascAgentRunRow, run *ascv1.AgentRun) {
+	if !ascAgentsMaySeeRun(ctx, run.GetCreatedBy()) {
+		return
+	}
+	row.Task = ascagentui.CleanLine(run.GetTask(), 300)
+	row.TaskHidden = false
+	if m := ascagentui.CleanLine(run.GetFailureMessage(), 300); m != "" {
+		row.Failure = m
+	}
 }
 
 // ascAgentWaitingRows are the runs on the page that wait for a person: the "Needs you" panel.
@@ -210,6 +221,7 @@ func AscAgents(ctx *context.Context) {
 		return
 	}
 	rows := make([]ascAgentRunRow, 0, len(resp.GetRuns()))
+	creators := map[uint64]string{}
 	active, waiting, done := 0, 0, 0
 	for _, run := range resp.GetRuns() {
 		row, ok := ascAgentRunOf(run, env.name, env.runsLink(), 0)
@@ -218,6 +230,8 @@ func AscAgents(ctx *context.Context) {
 			ascAgentsFail(ctx, tplAscAgents, "ListRuns", errAscAgentsBadAnswer)
 			return
 		}
+		ascAgentsReveal(ctx, &row, run)
+		creators[row.ID] = run.GetCreatedBy()
 		if row.State.Active {
 			active++
 		}
@@ -229,7 +243,7 @@ func AscAgents(ctx *context.Context) {
 		}
 		rows = append(rows, row)
 	}
-	ascAgentsLoadBoard(ctx, env, callCtx, conn)
+	ascAgentsLoadBoard(ctx, env, callCtx, conn, creators)
 	shown := ascAgentsFilterRows(rows, q)
 	ctx.Data["AscAgentsRuns"] = shown
 	ctx.Data["AscAgentsLoaded"] = len(rows)
@@ -650,6 +664,9 @@ func AscAgentsRun(ctx *context.Context) {
 	}
 	run := resp.GetRun()
 	row, ok := ascAgentRunOf(run, env.name, env.runsLink(), id)
+	ascAgentsReveal(ctx, &row, run)
+	see := ascAgentsMaySeeRun(ctx, run.GetCreatedBy())
+	ctx.Data["AscAgentRunSee"] = see
 	if !ok {
 		log.Error("asc agents: GetRun answered a run that is not the one asked for")
 		ascAgentsFail(ctx, tplAscAgentsRun, "GetRun", errAscAgentsBadAnswer)
@@ -663,7 +680,10 @@ func AscAgentsRun(ctx *context.Context) {
 	}
 
 	// The first render holds the newest events; the script continues from the last sequence number.
-	batch, err := ascAgentsCollect(callCtx, api, env.ref(), id, 0, ascAgentsBacklogWait, ascAgentsBacklogDrain, ascAgentsBacklogMaxEvents, ascAgentsBacklogMaxBytes)
+	batch := &ascAgentFeedBatch{ended: !row.State.Active}
+	if see { // the log holds what the agent read and wrote: its creator and the administrators only
+		batch, err = ascAgentsCollect(callCtx, api, env.ref(), id, 0, ascAgentsBacklogWait, ascAgentsBacklogDrain, ascAgentsBacklogMaxEvents, ascAgentsBacklogMaxBytes)
+	}
 	if err != nil {
 		ascAgentsFail(ctx, tplAscAgentsRun, "WatchRun", err)
 		return
@@ -692,11 +712,15 @@ func AscAgentsRun(ctx *context.Context) {
 	ctx.Data["AscAgentEventsHidden"] = hidden
 	ctx.Data["AscAgentLastSeq"] = last
 	ctx.Data["AscAgentFeedDone"] = batch.ended && !row.State.Active
+	ctx.Data["AscAgentLive"] = see
 	ctx.Data["AscAgentPolicy"] = ascAgentPolicyOf(callCtx, env.ref())
 	ctx.Data["AscAgentCanAct"] = ctx.Repo.CanWrite(unit.TypeCode)
 	ctx.Data["AscAgentsMaxInput"] = ascagentui.MaxInputBytes
 	ctx.Data["AscAgentsPollURL"] = env.runsLink() + "/runs/" + strconv.FormatUint(id, 10) + "/events"
-	ctx.Data["AscAgentRunTask"] = ascagentui.CleanText(run.GetTask(), 1200)
+	if see {
+		ctx.Data["AscAgentRunTask"] = ascagentui.CleanText(run.GetTask(), 1200)
+	}
+	ctx.Data["AscAgentRunTaskHidden"] = !see && run.GetTask() != ""
 	ctx.Data["AscAgentRunPaused"] = run.GetPaused()
 	ctx.Data["AscAgentRunTokensLimit"] = run.GetLimits().GetMaxTokens()
 	ctx.Data["AscAgentRunCostLimit"] = ascAgentsUSDField(run.GetLimits().GetMaxCostMicroUsd())
@@ -705,7 +729,7 @@ func AscAgentsRun(ctx *context.Context) {
 	ctx.Data["AscAgentRunSummaryTokens"] = ascagentui.FormatCount(run.GetUsage().GetTokens())
 	ctx.Data["AscAgentRunSummaryCost"] = ascagentui.FormatUSD(run.GetUsage().GetCostMicroUsd())
 	ctx.Data["AscAgentRunSummaryTime"] = ascagentui.FormatDuration(uint64(run.GetUsage().GetRuntimeSeconds()))
-	ascAgentsLoadRunBoard(ctx, env, callCtx, conn, run)
+	ascAgentsLoadRunBoard(ctx, env, callCtx, conn, run, see)
 	ctx.HTML(http.StatusOK, tplAscAgentsRun)
 }
 
@@ -772,7 +796,10 @@ func AscAgentsEvents(ctx *context.Context) {
 	if !row.State.Active {
 		wait = time.Second // a finished run only has its tail left
 	}
-	batch, err := ascAgentsCollect(callCtx, api, env.ref(), id, after, wait, ascAgentsDrainWait, ascAgentsPollMaxEvents, ascAgentsPollMaxBytes)
+	batch := &ascAgentFeedBatch{ended: !row.State.Active}
+	if ascAgentsMaySeeRun(ctx, run.GetCreatedBy()) {
+		batch, err = ascAgentsCollect(callCtx, api, env.ref(), id, after, wait, ascAgentsDrainWait, ascAgentsPollMaxEvents, ascAgentsPollMaxBytes)
+	}
 	if err != nil {
 		ascAgentsFeedFail(ctx, "WatchRun", err)
 		return

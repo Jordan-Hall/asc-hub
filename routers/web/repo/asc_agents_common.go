@@ -6,6 +6,7 @@ package repo
 import (
 	gocontext "context"
 	"net/http"
+	"strings"
 	"time"
 
 	"forgejo.org/models/unit"
@@ -254,6 +255,20 @@ func ascAgentsParseID(s string) (uint64, bool) {
 		return 0, false
 	}
 	return n, true
+}
+
+// ascAgentsMaySeeRun is the rule for what a person typed or an agent wrote on a run: the task text, the plan, the
+// requests, the checkpoints, the log and the failure text. The creator of the run and an administrator of the repository
+// see them; everyone else who may read the code sees the run's metadata (state, agent, counts, meters) and a neutral
+// label. It fails closed: an unknown creator, or no signed-in person, sees nothing.
+func ascAgentsMaySeeRun(ctx *context.Context, createdBy string) bool {
+	if ctx.Doer == nil || !ctx.IsSigned {
+		return false
+	}
+	if ctx.Repo.IsAdmin() {
+		return true
+	}
+	return createdBy != "" && strings.EqualFold(createdBy, ctx.Doer.Name)
 }
 
 func ascAgentsNoStore(ctx *context.Context) {

@@ -16,8 +16,10 @@ Each decision form posts to {{AscAgentsBase}}/requests/{id}/decide; web_src/js/f
 		{{range .AscAgentsNeeds}}
 		<li class="ag-need" data-asc-need data-request="{{.ID}}">
 			<div class="ag-need-h"><b>{{ctx.Locale.Tr "asc_review.agents_run_n" .RunID}}</b> <span class="rv-pill {{if eq .Kind "plan"}}rv-pill-info{{else}}rv-pill-warn{{end}}">{{if eq .Kind "plan"}}{{ctx.Locale.Tr "asc_review.agents_kind_plan"}}{{else}}{{ctx.Locale.Tr "asc_review.agents_kind_permission"}}{{end}}</span></div>
-			<p class="ag-need-t"><span class="rv-mono ag-agent-name">{{.Agent}}</span> {{.Summary}}{{if .Detail}} <code class="ag-need-detail">{{.Detail}}</code>{{end}}</p>
-			{{if $.AscAgentsCanStart}}
+			<p class="ag-need-t"><span class="rv-mono ag-agent-name">{{.Agent}}</span> {{if .Hidden}}<span class="rv-faint" data-testid="asc-request-hidden">{{ctx.Locale.Tr "asc_review.agents_request_hidden"}}</span>{{else}}{{.Summary}}{{if .Detail}} <code class="ag-need-detail">{{.Detail}}</code>{{end}}{{end}}</p>
+			{{if .Hidden}}
+			<p class="rv-hint">{{ctx.Locale.Tr "asc_review.agents_need_hidden_help"}} <a href="{{$.AscAgentsBase}}/runs/{{.RunID}}">{{ctx.Locale.Tr "asc_review.agents_open_run"}}</a></p>
+			{{else if $.AscAgentsCanStart}}
 			<form class="ag-need-acts" method="post" action="{{$.AscAgentsBase}}/requests/{{.ID}}/decide" data-asc-decide>
 				{{$.CsrfTokenHtml}}
 				<input type="hidden" name="run" value="{{.RunID}}">
