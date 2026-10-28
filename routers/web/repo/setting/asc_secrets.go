@@ -67,7 +67,7 @@ func ascSecurityPageFor(ctx *context.Context, repo *repo_model.Repository) *ascS
 	p := &ascSecurityPage{AllowOp: asctrust.NewOpID(), Ops: map[uint64]string{}, Branch: repo.DefaultBranch}
 	p.PolicyURL, p.SecurityURL, p.AuditURL, _ = ascPolicyLinks(repo)
 	p.SecurityURL = setting.AppSubURL + "/" + repo.OwnerName + "/" + repo.Name + "/settings/asc/security"
-	ctx.Data["Title"] = "Secret scanning"
+	ctx.Data["Title"] = ctx.Tr("asc_shell.sn_secret_scanning")
 	ctx.Data["PageIsSettingsAscSecurity"] = true
 	ctx.Data["AscSecurity"] = p
 	trustweb.NoStore(ctx)

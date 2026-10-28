@@ -5,5 +5,6 @@
 	<div class="ds-container ds-settings">
 		{{template "repo/settings/navbar" .ctxData}}
 		<div class="ds-settings-body">
+			<div class="rp-set-head ds-only-desktop"><h2 class="rp-h1">{{.ctxData.Title}}</h2></div>
 			{{template "base/alert" .ctxData}}
 			{{/* block: repo-setting-content */}}

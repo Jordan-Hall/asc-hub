@@ -318,7 +318,7 @@ func TestAscSearchCoverageUnknown(t *testing.T) {
 	// No IndexStatus and no scope in the answer.
 	page := getAscSearch(t, "?mode=symbol&q=x")
 	require.Equal(t, http.StatusOK, page.status, page.body)
-	assert.Contains(t, page.body, "is not known, so the results may be incomplete")
+	assert.Contains(t, page.body, "asc_rp.s_cov_unknown")
 }
 
 func TestAscSearchEmptyFormMakesNoCall(t *testing.T) {

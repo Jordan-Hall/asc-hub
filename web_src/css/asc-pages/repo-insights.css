@@ -128,3 +128,11 @@
     font-weight: 700;
   }
 }
+
+.rp-chart-card {
+  margin-bottom: 20px;
+}
+
+.rp-chart-card .rp-sec-b {
+  overflow-x: auto;
+}

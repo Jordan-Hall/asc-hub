@@ -3,39 +3,39 @@
 {{with .AscSecurity}}
 <div class="asc-trust" data-testid="asc-security">
 	<div class="asc-trust-head">
-		<h2 class="asc-trust-title">Secret scanning</h2>
+		<h2 class="asc-trust-title">{{ctx.Locale.Tr "asc_rp.p_secret"}}</h2>
 	</div>
-	<p class="asc-trust-lead">Every push that lands on trunk is scanned before the branch moves. A push that contains a secret is refused, and the answer names the file, the line and the rule, never the secret. A finding here shows at most two characters of the value.</p>
-	<nav class="asc-trust-links" aria-label="Trust pages">
-		<a href="{{.PolicyURL}}">Policy and trust</a>
-		<a href="{{.AuditURL}}">Audit log</a>
+	<p class="asc-trust-lead">{{ctx.Locale.Tr "asc_rp.x_lead"}}</p>
+	<nav class="asc-trust-links" aria-label="{{ctx.Locale.Tr "asc_rp.p_pages"}}">
+		<a href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_rp.p_title"}}</a>
+		<a href="{{.AuditURL}}">{{ctx.Locale.Tr "asc_rp.p_audit"}}</a>
 	</nav>
 
 	{{if .Unsupported}}
-		<div class="ui warning message" role="status" data-testid="asc-security-unsupported">This ASC server does not have secret scanning yet.</div>
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-security-unsupported">{{ctx.Locale.Tr "asc_rp.x_unsupported"}}</div>
 	{{else}}
-		{{if .Problem}}<div class="ui negative message" role="alert" data-testid="asc-security-problem">{{.Problem}}</div>{{end}}
+		{{if .Problem}}<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-security-problem">{{.Problem}}</div>{{end}}
 
 		{{if .Data}}
 		<section class="ast-card" aria-labelledby="asc-sec-state">
 			<div class="ast-card-head">
-				<h3 id="asc-sec-state" class="ast-card-title">Scanning</h3>
-				{{if .Data.Rules.BlockOnPush}}<span class="ast-pill ast-pill-ok" data-testid="asc-security-block">Blocks pushes</span>{{else}}<span class="ast-pill ast-pill-wn" data-testid="asc-security-block">Records only</span>{{end}}
+				<h3 id="asc-sec-state" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_scanning"}}</h3>
+				{{if .Data.Rules.BlockOnPush}}<span class="ast-pill ast-pill-ok" data-testid="asc-security-block">{{ctx.Locale.Tr "asc_rp.x_blocks"}}</span>{{else}}<span class="ast-pill ast-pill-wn" data-testid="asc-security-block">{{ctx.Locale.Tr "asc_rp.x_records"}}</span>{{end}}
 				<form class="ast-inline-form" method="post" action="{{.SecurityURL}}/scan">
 					{{$.CsrfTokenHtml}}
-					<button class="ui basic button" type="submit" data-testid="asc-security-scan">Scan {{.Branch}} now</button>
+					<button class="ds-btn ds-btn-secondary" type="submit" data-testid="asc-security-scan">{{ctx.Locale.Tr "asc_rp.x_scan_now" .Branch}}</button>
 				</form>
 			</div>
-			<p class="asc-trust-sub">Whether a push is refused or only recorded is set in the policy file (<code class="asc-trust-code">[secrets] block_on_push</code>). Change it on the <a href="{{.PolicyURL}}">policy page</a>.</p>
+			<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.x_where_set" .PolicyURL}}</p>
 		</section>
 
 		{{if .Blocked}}
 		<section class="ast-card" aria-labelledby="asc-sec-blocked">
-			<div class="ast-card-head"><h3 id="asc-sec-blocked" class="ast-card-title">Pushes that were refused</h3><span class="ast-card-aside">From the audit log</span></div>
+			<div class="ast-card-head"><h3 id="asc-sec-blocked" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_refused"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_rp.x_from_audit"}}</span></div>
 			<ul class="ast-blocked" data-testid="asc-security-blocked">
 				{{range .Blocked}}
 				<li>
-					<b>Blocked {{DateUtils.TimeSince .Time}}.</b> A push by {{.Actor}}{{if .Target}} to <code class="asc-trust-code">{{.Target}}</code>{{end}} was refused.
+					<b>{{ctx.Locale.Tr "asc_rp.x_blocked" (DateUtils.TimeSince .Time)}}</b> {{ctx.Locale.Tr "asc_rp.x_push_by" .Actor}}{{if .Target}} {{ctx.Locale.Tr "asc_rp.x_to"}} <code class="asc-trust-code">{{.Target}}</code>{{end}} {{ctx.Locale.Tr "asc_rp.x_was_refused"}}
 					{{range .Details}}<span class="asc-trust-code">{{.Key}}: {{.Value}}</span> {{end}}
 				</li>
 				{{end}}
@@ -44,78 +44,78 @@
 		{{end}}
 
 		<section class="ast-card" aria-labelledby="asc-sec-findings">
-			<div class="ast-card-head"><h3 id="asc-sec-findings" class="ast-card-title">Findings</h3></div>
-			<div class="ast-tabs" role="navigation" aria-label="Finding state">
+			<div class="ast-card-head"><h3 id="asc-sec-findings" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_findings"}}</h3></div>
+			<div class="ast-tabs" role="navigation" aria-label="{{ctx.Locale.Tr "asc_rp.x_finding_state"}}">
 				{{range .States}}
 				<a class="ast-tab{{if .Active}} active{{end}}" href="{{$.AscSecurity.SecurityURL}}?state={{.Key}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-findings-tab-{{.Key}}">{{.Label}} <span class="ast-count">{{.Count}}</span></a>
 				{{end}}
 			</div>
 			<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 				<table class="ui very basic table asc-trust-table" data-testid="asc-findings">
-					<caption class="tw-sr-only">Findings</caption>
-					<thead><tr><th scope="col">Where</th><th scope="col">Rule</th><th scope="col">Seen</th><th scope="col">State</th><th scope="col"><span class="tw-sr-only">Actions</span></th></tr></thead>
+					<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.x_findings"}}</caption>
+					<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_rp.x_where"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_rule"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_seen"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_state"}}</th><th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.x_actions"}}</span></th></tr></thead>
 					<tbody>
 						{{range .Data.Findings.Rows}}
 						<tr>
-							<td><code class="asc-trust-code">{{.Location}}</code><div class="asc-trust-sub">starts with <code class="asc-trust-code">{{.Preview}}</code>{{if .Change}} in change <code class="asc-trust-code">{{.Change}}</code>{{end}}</div></td>
+							<td><code class="asc-trust-code">{{.Location}}</code><div class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.x_starts_with"}} <code class="asc-trust-code">{{.Preview}}</code>{{if .Change}} {{ctx.Locale.Tr "asc_rp.x_in_change"}} <code class="asc-trust-code">{{.Change}}</code>{{end}}</div></td>
 							<td><span class="ast-pill ast-pill-{{.Tone}}">{{.Severity}}</span> <code class="asc-trust-code">{{.Rule}}</code></td>
 							<td class="asc-trust-nowrap">{{DateUtils.TimeSince .LastSeen}}</td>
-							<td>{{.State}}{{if .ResolvedBy}}<div class="asc-trust-sub">by {{.ResolvedBy}}</div>{{end}}{{if .Note}}<div class="asc-trust-sub">{{.Note}}</div>{{end}}</td>
+							<td>{{.State}}{{if .ResolvedBy}}<div class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.x_by" .ResolvedBy}}</div>{{end}}{{if .Note}}<div class="asc-trust-sub">{{.Note}}</div>{{end}}</td>
 							<td>
-								<form class="ui form ast-finding-form" method="post" action="{{$.AscSecurity.SecurityURL}}/finding">
+								<form class="ds-form ast-finding-form" method="post" action="{{$.AscSecurity.SecurityURL}}/finding">
 									{{$.CsrfTokenHtml}}
 									<input type="hidden" name="id" value="{{.ID}}">
 									<input type="hidden" name="back" value="{{$.AscSecurity.State}}">
 									<input type="hidden" name="op" value="{{index $.AscSecurity.Ops .ID}}">
-									<label class="tw-sr-only" for="asc-finding-state-{{.ID}}">New state of this finding</label>
-									<select id="asc-finding-state-{{.ID}}" name="state">
-										<option value="open"{{if eq .StateKey "open"}} selected{{end}}>Open</option>
-										<option value="revoked"{{if eq .StateKey "revoked"}} selected{{end}}>Revoked</option>
-										<option value="false_positive"{{if eq .StateKey "false_positive"}} selected{{end}}>False positive</option>
-										<option value="accepted_risk"{{if eq .StateKey "accepted_risk"}} selected{{end}}>Accepted risk</option>
+									<label class="tw-sr-only" for="asc-finding-state-{{.ID}}">{{ctx.Locale.Tr "asc_rp.x_new_state"}}</label>
+									<select id="asc-finding-state-{{.ID}}" class="ds-select" name="state">
+										<option value="open"{{if eq .StateKey "open"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.x_open"}}</option>
+										<option value="revoked"{{if eq .StateKey "revoked"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.x_revoked"}}</option>
+										<option value="false_positive"{{if eq .StateKey "false_positive"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.x_false_positive"}}</option>
+										<option value="accepted_risk"{{if eq .StateKey "accepted_risk"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.x_accepted_risk"}}</option>
 									</select>
-									<label class="tw-sr-only" for="asc-finding-note-{{.ID}}">Note</label>
-									<input id="asc-finding-note-{{.ID}}" name="note" type="text" maxlength="1024" placeholder="Note" autocomplete="off">
-									<button class="ui basic button" type="submit">Save</button>
+									<label class="tw-sr-only" for="asc-finding-note-{{.ID}}">{{ctx.Locale.Tr "asc_rp.x_note"}}</label>
+									<input id="asc-finding-note-{{.ID}}" class="ds-input" name="note" type="text" maxlength="1024" placeholder="{{ctx.Locale.Tr "asc_rp.x_note"}}" autocomplete="off">
+									<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_rp.x_save"}}</button>
 								</form>
 							</td>
 						</tr>
 						{{else}}
-						<tr><td colspan="5" class="center aligned text grey" data-testid="asc-findings-empty">No findings in this state.</td></tr>
+						<tr><td colspan="5" class="center aligned text grey" data-testid="asc-findings-empty">{{ctx.Locale.Tr "asc_rp.x_no_findings"}}</td></tr>
 						{{end}}
 					</tbody>
 				</table>
 			</div>
-			{{if .NextURL}}<div class="asc-trust-actions"><a class="ui basic button" href="{{.NextURL}}" rel="next">More findings</a></div>{{end}}
+			{{if .NextURL}}<div class="asc-trust-actions"><a class="ds-btn ds-btn-secondary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_rp.x_more"}}</a></div>{{end}}
 		</section>
 
 		<section class="ast-card" aria-labelledby="asc-sec-allow">
-			<div class="ast-card-head"><h3 id="asc-sec-allow" class="ast-card-title">Allowlist</h3><span class="ast-card-aside">Reviewed like code</span></div>
-			<p class="asc-trust-sub">Paths that secret scanning skips, for example test fixtures that hold fake keys. One pattern per line. Saving proposes a change to <code class="asc-trust-code">[secrets] allow_paths</code> in the policy file; the allowlist takes effect when a maintainer lands that change.</p>
-			<form class="ui form" method="post" action="{{.SecurityURL}}/allowlist" data-testid="asc-allowlist-form">
+			<div class="ast-card-head"><h3 id="asc-sec-allow" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_allowlist"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_rp.x_reviewed"}}</span></div>
+			<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.x_allow_help"}}</p>
+			<form class="ds-form" method="post" action="{{.SecurityURL}}/allowlist" data-testid="asc-allowlist-form">
 				{{$.CsrfTokenHtml}}
 				<input type="hidden" name="op" value="{{.AllowOp}}">
-				<div class="field">
-					<label for="asc-allow-paths">Paths</label>
-					<textarea id="asc-allow-paths" name="paths" rows="5" spellcheck="false" autocomplete="off" wrap="off" placeholder="tests/fixtures/**">{{.Allowlist}}</textarea>
+				<div class="ds-field">
+					<label for="asc-allow-paths">{{ctx.Locale.Tr "asc_rp.x_paths"}}</label>
+					<textarea id="asc-allow-paths" class="ds-textarea ds-mono" name="paths" rows="5" spellcheck="false" autocomplete="off" wrap="off" placeholder="tests/fixtures/**">{{.Allowlist}}</textarea>
 				</div>
-				<button class="ui primary button" type="submit" data-testid="asc-allowlist-save">Propose this allowlist</button>
+				<button class="ds-btn ds-btn-primary" type="submit" data-testid="asc-allowlist-save">{{ctx.Locale.Tr "asc_rp.x_propose_allow"}}</button>
 			</form>
 		</section>
 
 		<section class="ast-card" aria-labelledby="asc-sec-rules">
-			<div class="ast-card-head"><h3 id="asc-sec-rules" class="ast-card-title">Rules</h3><span class="ast-card-aside">Built-in rules and the custom ones of the policy</span></div>
+			<div class="ast-card-head"><h3 id="asc-sec-rules" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.x_rules"}}</h3><span class="ast-card-aside">{{ctx.Locale.Tr "asc_rp.x_rules_aside"}}</span></div>
 			<div class="asc-trust-table-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 				<table class="ui very basic table asc-trust-table" data-testid="asc-rules">
-					<caption class="tw-sr-only">Scanning rules</caption>
-					<thead><tr><th scope="col">Rule</th><th scope="col">Severity</th><th scope="col">Detector</th><th scope="col">On</th></tr></thead>
+					<caption class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.x_scan_rules"}}</caption>
+					<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_rp.x_rule"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_severity"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.x_detector"}}</th><th scope="col">{{ctx.Locale.Tr "asc_rp.p_on"}}</th></tr></thead>
 					<tbody>
 						{{range .Data.Rules.Rules}}
 						<tr>
-							<td><b>{{.Name}}</b> <code class="asc-trust-code">{{.ID}}</code>{{if not .Builtin}} <span class="ast-pill ast-pill-ro">Custom</span>{{end}}<div class="asc-trust-sub">{{.Description}}</div></td>
+							<td><b>{{.Name}}</b> <code class="asc-trust-code">{{.ID}}</code>{{if not .Builtin}} <span class="ast-pill ast-pill-ro">{{ctx.Locale.Tr "asc_rp.x_custom"}}</span>{{end}}<div class="asc-trust-sub">{{.Description}}</div></td>
 							<td><span class="ast-pill ast-pill-{{.Tone}}">{{.Severity}}</span></td>
 							<td>{{.Detector}}</td>
-							<td>{{if .Enabled}}Yes{{else}}No{{end}}</td>
+							<td>{{if .Enabled}}{{ctx.Locale.Tr "asc_rp.x_yes"}}{{else}}{{ctx.Locale.Tr "asc_rp.x_no"}}{{end}}</td>
 						</tr>
 						{{end}}
 					</tbody>

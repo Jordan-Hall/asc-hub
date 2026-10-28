@@ -58,14 +58,14 @@ func TestAscSearchAllBranches(t *testing.T) {
 	}
 	assert.ElementsMatch(t, []string{"refs/heads/master", "refs/heads/branch2"}, revs, "every live branch, and no deleted one (foo, bar)")
 	assert.Contains(t, page.body, "2 branches")
-	assert.Contains(t, page.body, "4 results", "the same file on two branches is listed once: 4 distinct files")
+	assert.Contains(t, page.body, "4 asc_rp.s_result_n", "the same file on two branches is listed once: 4 distinct files")
 	text := strings.NewReplacer("<mark>", "", "</mark>", "").Replace(page.body) // the matched word is marked
 	assert.Equal(t, 1, strings.Count(text, "needle one"))
 	assert.Contains(t, text, "needle changed")
 	assert.Contains(t, page.body, `href="/user2/repo1/src/branch/branch2/docs/b2.md"`)
 	// The shared file says which branches have it, with a link to each.
-	assert.Contains(t, page.body, `On <a class="tw-font-mono" href="/user2/repo1/src/branch/master">master</a> <a class="tw-font-mono" href="/user2/repo1/src/branch/branch2">branch2</a>`)
-	assert.Contains(t, page.body, "Read for master.", "the coverage note names the place it was read for")
+	assert.Contains(t, page.body, `asc_rp.s_on <a class="tw-font-mono" href="/user2/repo1/src/branch/master">master</a> <a class="tw-font-mono" href="/user2/repo1/src/branch/branch2">branch2</a>`)
+	assert.Contains(t, page.body, "asc_rp.s_read_for", "the coverage note names the place it was read for")
 	assert.Equal(t, "refs/heads/master", fake.statuses[0].GetScope().GetRev(), "the coverage is read for the first branch, the default one")
 
 	t.Run("a branch asc does not know adds nothing and is no failure", func(t *testing.T) {
@@ -77,8 +77,8 @@ func TestAscSearchAllBranches(t *testing.T) {
 		}
 		page := getAscSearch(t, "?q=needle&scope=branches")
 		require.Equal(t, http.StatusOK, page.status, page.body)
-		assert.NotContains(t, page.body, "could not be searched")
-		assert.Contains(t, page.body, "1 result")
+		assert.NotContains(t, page.body, "asc_rp.s_failed")
+		assert.Contains(t, page.body, "1 asc_rp.s_result_1")
 	})
 
 	t.Run("a failing branch is reported, and all failing is an error", func(t *testing.T) {
@@ -90,9 +90,9 @@ func TestAscSearchAllBranches(t *testing.T) {
 		}
 		page := getAscSearch(t, "?q=needle&scope=branches")
 		require.Equal(t, http.StatusOK, page.status, page.body)
-		assert.Contains(t, page.body, "1 of 2 branches could not be searched")
+		assert.Contains(t, page.body, "asc_rp.s_failed")
 		assert.NotContains(t, page.body, "/srv/secret")
-		assert.Contains(t, page.body, "The index does not cover all of this scope yet", "an incomplete search is not complete")
+		assert.Contains(t, page.body, "asc_rp.s_cov_part", "an incomplete search is not complete")
 
 		fake.search = func(*ascv1.SearchRequest) ([]*ascv1.SearchResponse, error) {
 			return nil, status.Error(codes.Internal, "boom /srv/secret")
@@ -231,7 +231,7 @@ func TestAscSearchFacetsAndForm(t *testing.T) {
 	}
 	assert.Contains(t, page.body, `id="asc-search-pull"`)
 	assert.Contains(t, page.body, `id="asc-search-diff"`)
-	assert.Contains(t, page.body, "This version (master)")
+	assert.Contains(t, page.body, "asc_rp.s_scope_version (master)")
 }
 
 func TestAscSearchURLs(t *testing.T) {

@@ -73,7 +73,7 @@ func ascPolicyPageFor(ctx *context.Context, repo *repo_model.Repository) *ascPol
 		p.ToggleOps[key] = asctrust.NewOpID()
 	}
 	p.PolicyURL, p.SecurityURL, p.AuditURL, p.ChecksURL = ascPolicyLinks(repo)
-	ctx.Data["Title"] = "Policy and trust"
+	ctx.Data["Title"] = ctx.Tr("asc_shell.sn_policy_trust")
 	ctx.Data["PageIsSettingsAscPolicy"] = true
 	ctx.Data["AscPolicy"] = p
 	trustweb.NoStore(ctx)
