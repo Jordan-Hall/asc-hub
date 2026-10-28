@@ -1,49 +1,42 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin monitor")}}
-<div class="admin-setting-content">
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.monitor") "Desc" (ctx.Locale.Tr "asc_admin.trace_note"))}}
+	{{template "admin/monitor_tabs" (dict "Active" "trace")}}
 
-	<div class="tw-flex tw-items-center">
-		<div class="tw-flex-1">
-			<div class="ui compact small menu">
-				<a class="{{if eq .ShowGoroutineList "process"}}active {{end}}item" href="?show=process">{{ctx.Locale.Tr "admin.monitor.process"}}</a>
-				<a class="{{if eq .ShowGoroutineList "stacktrace"}}active {{end}}item" href="?show=stacktrace">{{ctx.Locale.Tr "admin.monitor.stacktrace"}}</a>
-			</div>
+	<div class="adm-sec adm-trace-bar">
+		<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_admin.monitor_tab_trace"}}">
+			<a class="ds-chip-btn" href="?show=process"{{if eq .ShowGoroutineList "process"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "admin.monitor.process"}}</a>
+			<a class="ds-chip-btn" href="?show=stacktrace"{{if eq .ShowGoroutineList "stacktrace"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "admin.monitor.stacktrace"}}</a>
 		</div>
-		<form target="_blank" action="{{AppSubUrl}}/admin/monitor/diagnosis" class="ui form tw-flex tw-gap-3">
-			<label class="tw-flex tw-gap-2 tw-items-center tw-whitespace-nowrap">
-				{{ctx.Locale.Tr "admin.monitor.duration"}}
-				<input type="number" name="seconds" max="300" min="0" value="10">
-			</label>
-			<button class="ui primary small button">{{ctx.Locale.Tr "admin.monitor.download_diagnosis_report"}}</button>
+		<form class="adm-inline-form" target="_blank" action="{{AppSubUrl}}/admin/monitor/diagnosis">
+			<label class="ds-label" for="adm-diag-sec">{{ctx.Locale.Tr "admin.monitor.duration"}}</label>
+			<input class="ds-input adm-num" id="adm-diag-sec" type="number" name="seconds" max="300" min="0" value="10">
+			<button class="ds-btn ds-btn-secondary" type="submit">{{svg "dsi-download" 16}}{{ctx.Locale.Tr "admin.monitor.download_diagnosis_report"}}</button>
 		</form>
 	</div>
 
-	<div class="divider"></div>
-
-	<h4 class="ui top attached header">
-		{{printf "%d Goroutines" .GoroutineCount}}{{/* Goroutine is non-translatable*/}}
-		{{- if .ProcessCount -}}, {{ctx.Locale.Tr "admin.monitor.processes_count" .ProcessCount}}{{- end -}}
-	</h4>
-
-	{{if .ProcessStacks}}
-	<div class="ui attached segment">
-		<div class="ui relaxed divided list">
-			{{range .ProcessStacks}}
-				{{template "admin/stacktrace-row" dict "Process" . "root" $}}
-			{{end}}
+	<section class="ds-card adm-sec" aria-labelledby="adm-trace-h">
+		<div class="ds-card-h">
+			<h2 id="adm-trace-h">{{printf "%d Goroutines" .GoroutineCount}}{{if .ProcessCount}}, {{ctx.Locale.Tr "admin.monitor.processes_count" .ProcessCount}}{{end}}</h2>
 		</div>
-	</div>
-	{{end}}
-</div>
+		{{if .ProcessStacks}}
+			<ul class="adm-rows">
+				{{range .ProcessStacks}}
+					{{template "admin/stacktrace-row" dict "Process" . "root" $}}
+				{{end}}
+			</ul>
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "terminal" "Title" (ctx.Locale.Tr "asc_admin.trace_none"))}}
+		{{end}}
+	</section>
 
-<div class="ui g-modal-confirm delete modal" id="cancel-process">
-	<div class="header">
-		{{ctx.Locale.Tr "admin.monitor.process.cancel"}}
+	<div class="ui g-modal-confirm delete modal" id="cancel-process">
+		<div class="header">
+			{{ctx.Locale.Tr "admin.monitor.process.cancel"}}
+		</div>
+		<div class="content">
+			<p>{{ctx.Locale.Tr "admin.monitor.process.cancel_notices" (`<span class="name"></span>`|TrustHTML)}}</p>
+			<p>{{ctx.Locale.Tr "admin.monitor.process.cancel_desc"}}</p>
+		</div>
+		{{template "base/modal_actions_confirm" .}}
 	</div>
-	<div class="content">
-		<p>{{ctx.Locale.Tr "admin.monitor.process.cancel_notices" (`<span class="name"></span>`|TrustHTML)}}</p>
-		<p>{{ctx.Locale.Tr "admin.monitor.process.cancel_desc"}}</p>
-	</div>
-	{{template "base/modal_actions_confirm" .}}
-</div>
-
 {{template "admin/layout_footer" .}}

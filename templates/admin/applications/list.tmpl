@@ -1,8 +1,61 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin config")}}
-	<div class="admin-setting-content">
-		<h4 class="ui top attached header">
-				{{ctx.Locale.Tr "settings.applications"}}
-		</h4>
-		{{template "user/settings/applications_oauth2_list" .}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.hooks_apps") "Desc" (ctx.Locale.Tr "asc_admin.apps_lead"))}}
+	{{if not DisableWebhooks}}{{template "admin/hooks_tabs" (dict "Active" "apps" "Data" .)}}{{end}}
+
+	<section class="ds-card adm-sec" aria-labelledby="adm-apps">
+		<div class="ds-card-h">
+			<h2 id="adm-apps">{{ctx.Locale.Tr "asc_admin.apps_tab"}}</h2>
+			<span class="ds-card-sub">{{ctx.Locale.Tr "settings.oauth2_application_create_description"}}</span>
+		</div>
+		{{if .Applications}}
+			<ul class="adm-rows">
+				{{range .Applications}}
+					{{$isBuiltin := and $.BuiltinApplications (index $.BuiltinApplications .ClientID)}}
+					<li class="ds-li ds-li-wrap">
+						<span class="adm-tile" aria-hidden="true">{{svg "dsi-puzzle" 18}}</span>
+						<div class="ds-li-main">
+							<div class="ds-li-title"><span>{{.Name}}</span>{{if $isBuiltin}} <span class="ds-chip">{{svg "dsi-lock" 14}}{{ctx.Locale.Tr "asc_admin.apps_locked"}}</span>{{end}}</div>
+							<div class="ds-li-sub">{{ctx.Locale.Tr "settings.oauth2_client_id"}}: <span class="adm-mono ds-break">{{.ClientID}}</span></div>
+						</div>
+						{{if not $isBuiltin}}
+							<div class="adm-row-side">
+								<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Link}}/oauth2/{{.ID}}" aria-label="{{ctx.Locale.Tr "settings.oauth2_application_edit"}}: {{.Name}}">{{svg "dsi-pencil" 16}}{{ctx.Locale.Tr "settings.oauth2_application_edit"}}</a>
+								<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="remove-gitea-oauth2-application" data-url="{{$.Link}}/oauth2/{{.ID}}/delete" aria-label="{{ctx.Locale.Tr "settings.delete_key"}}: {{.Name}}">{{svg "dsi-trash" 16}}</button>
+							</div>
+						{{end}}
+					</li>
+				{{end}}
+			</ul>
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "puzzle" "Title" (ctx.Locale.Tr "asc_admin.apps_none_title") "Body" (ctx.Locale.Tr "asc_admin.apps_none_text"))}}
+		{{end}}
+	</section>
+
+	<section class="ds-card adm-sec" aria-labelledby="adm-app-new">
+		<div class="ds-card-h"><h2 id="adm-app-new">{{ctx.Locale.Tr "asc_admin.apps_create"}}</h2></div>
+		<form class="ds-card-b ds-form ignore-dirty" action="{{.Link}}/oauth2" method="post">
+			{{.CsrfTokenHtml}}
+			<div class="ds-field">
+				<label class="ds-label" for="application-name">{{ctx.Locale.Tr "settings.oauth2_application_name"}}</label>
+				<input class="ds-input{{if .Err_AppName}} is-err{{end}}" id="application-name" name="application_name" value="{{.application_name}}" required maxlength="255">
+			</div>
+			<div class="ds-field">
+				<label class="ds-label" for="redirect-uris">{{ctx.Locale.Tr "settings.oauth2_redirect_uris"}}</label>
+				<textarea class="ds-textarea{{if .Err_RedirectURI}} is-err{{end}}" name="redirect_uris" id="redirect-uris" required></textarea>
+			</div>
+			<div class="ds-check"><input type="checkbox" id="confidential-client" name="confidential_client" checked><label for="confidential-client">{{ctx.Locale.Tr "settings.oauth2_confidential_client"}}</label></div>
+			<div><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "settings.create_oauth2_application_button"}}</button></div>
+		</form>
+	</section>
+
+	<div class="ui g-modal-confirm delete modal" id="remove-gitea-oauth2-application">
+		<div class="header">
+			{{svg "octicon-trash"}}
+			{{ctx.Locale.Tr "settings.remove_oauth2_application"}}
+		</div>
+		<div class="content">
+			<p>{{ctx.Locale.Tr "settings.oauth2_application_remove_description"}}</p>
+		</div>
+		{{template "base/modal_actions_confirm" .}}
 	</div>
 {{template "admin/layout_footer" .}}

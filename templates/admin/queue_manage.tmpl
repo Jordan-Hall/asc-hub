@@ -1,59 +1,39 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin monitor")}}
-	<div class="admin-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.monitor.queue" .Queue.GetName}}
-		</h4>
-		<div class="ui attached table segment">
-			<table class="ui very basic striped table">
-				<thead>
-					<tr>
-						<th>{{ctx.Locale.Tr "admin.monitor.queue.name"}}</th>
-						<th>{{ctx.Locale.Tr "admin.monitor.queue.type"}}</th>
-						<th>{{ctx.Locale.Tr "admin.monitor.queue.exemplar"}}</th>
-						<th>{{ctx.Locale.Tr "admin.monitor.queue.numberworkers"}}</th>
-						<th>{{ctx.Locale.Tr "admin.monitor.queue.activeworkers"}}</th>
-						<th>{{ctx.Locale.Tr "admin.monitor.queue.maxnumberworkers"}}</th>
-						<th>{{ctx.Locale.Tr "admin.monitor.queue.numberinqueue"}}</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>{{.Queue.GetName}}</td>
-						<td>{{.Queue.GetType}}</td>
-						<td>{{.Queue.GetItemTypeName}}</td>
-						<td>{{.Queue.GetWorkerNumber}}</td>
-						<td>{{.Queue.GetWorkerActiveNumber}}</td>
-						<td>{{.Queue.GetWorkerMaxNumber}}</td>
-						<td>
-							{{$sum := .Queue.GetQueueItemNumber}}
-							{{if lt $sum 0}}
-								-
-							{{else}}
-								{{$sum}}
-								<form action="{{$.Link}}/remove-all-items" method="post" class="tw-inline-block tw-ml-4">
-									<button class="ui tiny basic red button">{{ctx.Locale.Tr "admin.monitor.queue.settings.remove_all_items"}}</button>
-								</form>
-							{{end}}
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+	{{template "admin/head_open" (dict "Title" (ctx.Locale.Tr "admin.monitor.queue" .Queue.GetName) "Desc" (ctx.Locale.Tr "asc_admin.queues_note"))}}
+		<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/monitor/queue">{{svg "dsi-arrow-left" 16}}{{ctx.Locale.Tr "asc_admin.monitor_tab_queues"}}</a>
+	{{template "admin/head_close" .}}
 
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.monitor.queue.settings.title"}}
-		</h4>
-		<div class="ui attached segment">
-			<p>{{ctx.Locale.Tr "admin.monitor.queue.settings.description"}}</p>
-			<form method="post" action="{{.Link}}/set">
-				<div class="ui form">
-					<div class="inline field">
-						<label for="max-number">{{ctx.Locale.Tr "admin.monitor.queue.settings.maxnumberworkers"}}</label>
-						<input name="max-number" type="text" placeholder="{{ctx.Locale.Tr "admin.monitor.queue.settings.maxnumberworkers.placeholder" .Queue.GetWorkerMaxNumber}}">
-					</div>
-					<button class="ui submit button">{{ctx.Locale.Tr "admin.monitor.queue.settings.submit"}}</button>
-				</div>
-			</form>
-		</div>
+	{{$sum := .Queue.GetQueueItemNumber}}
+	<div class="ds-grid-stats adm-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_admin.figures"}}">
+		<div class="ds-stat"><div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.col_workers"}}</div><div class="ds-stat-value">{{.Queue.GetWorkerNumber}}</div><div class="ds-stat-sub">{{ctx.Locale.Tr "admin.monitor.queue.maxnumberworkers"}}: {{.Queue.GetWorkerMaxNumber}}</div></div>
+		<div class="ds-stat"><div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.col_active"}}</div><div class="ds-stat-value">{{.Queue.GetWorkerActiveNumber}}</div></div>
+		<div class="ds-stat"><div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.col_waiting"}}</div><div class="ds-stat-value">{{if lt $sum 0}}&mdash;{{else}}{{$sum}}{{end}}</div></div>
+		<div class="ds-stat"><div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.col_type"}}</div><div class="ds-stat-value ds-t-h4">{{.Queue.GetType}}</div><div class="ds-stat-sub adm-mono ds-break">{{.Queue.GetItemTypeName}}</div></div>
 	</div>
+
+	<section class="ds-card adm-sec" aria-labelledby="adm-q-set">
+		<div class="ds-card-h"><h2 id="adm-q-set">{{ctx.Locale.Tr "admin.monitor.queue.settings.title"}}</h2></div>
+		<form class="ds-card-b ds-form" method="post" action="{{.Link}}/set">
+			{{.CsrfTokenHtml}}
+			<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "admin.monitor.queue.settings.description"}}</p>
+			<div class="ds-field">
+				<label class="ds-label" for="max-number">{{ctx.Locale.Tr "admin.monitor.queue.settings.maxnumberworkers"}}</label>
+				<input class="ds-input" id="max-number" name="max-number" type="text" inputmode="numeric" placeholder="{{ctx.Locale.Tr "admin.monitor.queue.settings.maxnumberworkers.placeholder" .Queue.GetWorkerMaxNumber}}">
+			</div>
+			<div><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "admin.monitor.queue.settings.submit"}}</button></div>
+		</form>
+	</section>
+
+	{{if gt $sum 0}}
+		<section class="ds-card adm-danger adm-sec" aria-labelledby="adm-q-flush">
+			<div class="ds-card-b adm-danger-in">
+				<div class="ds-min0">
+					<h2 id="adm-q-flush" class="ds-t-h4">{{ctx.Locale.Tr "admin.monitor.queue.settings.remove_all_items"}}</h2>
+					<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.queue_flush_text" $sum}}</p>
+				</div>
+				<button type="button" class="ds-btn ds-btn-danger show-modal" data-modal="#adm-q-flush-confirm">{{ctx.Locale.Tr "admin.monitor.queue.settings.remove_all_items"}}</button>
+			</div>
+		</section>
+		{{template "shared/ds/confirm" (dict "Data" . "ID" "adm-q-flush-confirm" "Title" (ctx.Locale.Tr "admin.monitor.queue.settings.remove_all_items") "Body" (ctx.Locale.Tr "asc_admin.queue_flush_text" $sum) "Action" (print .Link "/remove-all-items") "Confirm" (ctx.Locale.Tr "admin.monitor.queue.settings.remove_all_items") "Danger" true)}}
+	{{end}}
 {{template "admin/layout_footer" .}}

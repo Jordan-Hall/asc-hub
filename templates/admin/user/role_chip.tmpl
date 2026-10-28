@@ -1,0 +1,7 @@
+{{/* The role of an account as a chip with words: Suspended, Admin, Reserved, Bot, Remote or Member. Pass the user. */}}
+{{if .ProhibitLogin}}<span class="ds-chip ds-chip-err">{{svg "dsi-ban" 14}}{{ctx.Locale.Tr "asc_admin.suspended"}}</span>
+{{else if .IsAdmin}}<span class="ds-chip ds-chip-warn">{{svg "dsi-shield-check" 14}}{{ctx.Locale.Tr "admin.users.admin"}}</span>
+{{else if eq 2 .Type}}<span class="ds-chip">{{ctx.Locale.Tr "admin.users.reserved"}}</span>
+{{else if eq 4 .Type}}<span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "admin.users.bot"}}</span>
+{{else if eq 5 .Type}}<span class="ds-chip">{{ctx.Locale.Tr "admin.users.remote"}}</span>
+{{else}}<span class="ds-chip">{{ctx.Locale.Tr "asc_admin.member"}}</span>{{end}}

@@ -1,0 +1,98 @@
+{{/* The about page (board About, Mobile-About). Route GET /-/about. */}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="ds-main ds-land site site-about">
+	<section class="ds-land-hero site-hero" aria-labelledby="about-title">
+		<div class="ds-container">
+			<p class="ds-t-eyebrow ds-land-eyebrow-dark">{{ctx.Locale.Tr "asc_site.about_eyebrow"}}</p>
+			<h1 class="ds-land-title" id="about-title">{{ctx.Locale.Tr "asc_site.about_h1"}}</h1>
+			<p class="ds-land-lead">{{ctx.Locale.Tr "asc_site.about_lead"}}</p>
+			<div class="ds-land-actions site-actions">
+				<a class="ds-btn ds-btn-accent" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_site.about_download"}}</a>
+				<a class="ds-btn ds-btn-ondark-outline" href="{{AppSubUrl}}/-/docs">{{ctx.Locale.Tr "asc_site.about_docs"}}</a>
+			</div>
+		</div>
+	</section>
+
+	<section class="ds-land-sec" aria-labelledby="about-why">
+		<div class="ds-container site-two">
+			<div>
+				<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.about_why_eyebrow"}}</p>
+				<h2 class="ds-land-h2" id="about-why">{{ctx.Locale.Tr "asc_site.about_why_h"}}</h2>
+				<p class="ds-land-p">{{ctx.Locale.Tr "asc_site.about_why_text"}}</p>
+			</div>
+			<div class="ds-card site-ba">
+				<div class="ds-card-b">
+					<div class="ds-table-wrap" role="region" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_site.about_ba_caption"}}">
+						<table class="ds-table ds-table-stack">
+							<caption class="ds-t-micro site-caption">{{ctx.Locale.Tr "asc_site.about_ba_caption"}}</caption>
+							<thead><tr><th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_site.about_ba_caption"}}</span></th><th scope="col">{{ctx.Locale.Tr "asc_site.about_ba_col_before"}}</th><th scope="col">{{ctx.Locale.Tr "asc_site.about_ba_col_after"}}</th></tr></thead>
+							<tbody>
+								<tr><th scope="row">{{ctx.Locale.Tr "asc_site.about_ba_review"}}</th><td class="ds-c-2" data-label="{{ctx.Locale.Tr "asc_site.about_ba_col_before"}}">{{ctx.Locale.Tr "asc_site.about_ba_review_before"}}</td><td data-label="{{ctx.Locale.Tr "asc_site.about_ba_col_after"}}">{{ctx.Locale.Tr "asc_site.about_ba_review_after"}}</td></tr>
+								<tr><th scope="row">{{ctx.Locale.Tr "asc_site.about_ba_why"}}</th><td class="ds-c-2" data-label="{{ctx.Locale.Tr "asc_site.about_ba_col_before"}}">{{ctx.Locale.Tr "asc_site.about_ba_why_before"}}</td><td data-label="{{ctx.Locale.Tr "asc_site.about_ba_col_after"}}">{{ctx.Locale.Tr "asc_site.about_ba_why_after"}}</td></tr>
+								<tr><th scope="row">{{ctx.Locale.Tr "asc_site.about_ba_merge"}}</th><td class="ds-c-2" data-label="{{ctx.Locale.Tr "asc_site.about_ba_col_before"}}">{{ctx.Locale.Tr "asc_site.about_ba_merge_before"}}</td><td data-label="{{ctx.Locale.Tr "asc_site.about_ba_col_after"}}"><span class="ds-mono">{{ctx.Locale.Tr "asc_site.about_ba_merge_after"}}</span></td></tr>
+								<tr><th scope="row">{{ctx.Locale.Tr "asc_site.about_ba_agent"}}</th><td class="ds-c-2" data-label="{{ctx.Locale.Tr "asc_site.about_ba_col_before"}}">{{ctx.Locale.Tr "asc_site.about_ba_agent_before"}}</td><td data-label="{{ctx.Locale.Tr "asc_site.about_ba_col_after"}}">{{ctx.Locale.Tr "asc_site.about_ba_agent_after"}}</td></tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="ds-land-sec" aria-labelledby="about-principles">
+		<div class="ds-container">
+			<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.about_pr_eyebrow"}}</p>
+			<h2 class="ds-land-h2" id="about-principles">{{ctx.Locale.Tr "asc_site.about_pr_h"}}</h2>
+			<div class="ds-land-cards site-four">
+				<article class="ds-land-card"><h3>{{ctx.Locale.Tr "asc_site.about_pr1_h"}}</h3><p>{{ctx.Locale.Tr "asc_site.about_pr1_t"}}</p></article>
+				<article class="ds-land-card"><h3>{{ctx.Locale.Tr "asc_site.about_pr2_h"}}</h3><p>{{ctx.Locale.Tr "asc_site.about_pr2_t"}}</p></article>
+				<article class="ds-land-card"><h3>{{ctx.Locale.Tr "asc_site.about_pr3_h"}}</h3><p>{{ctx.Locale.Tr "asc_site.about_pr3_t"}}</p></article>
+				<article class="ds-land-card"><h3>{{ctx.Locale.Tr "asc_site.about_pr4_h"}}</h3><p>{{ctx.Locale.Tr "asc_site.about_pr4_t"}}</p></article>
+			</div>
+		</div>
+	</section>
+
+	<section class="ds-land-sec ds-land-sec-flush" aria-label="{{ctx.Locale.Tr "asc_site.about_open_h"}}">
+		<div class="ds-container site-two site-two-wide">
+			<article class="ds-card">
+				<div class="ds-card-b">
+					<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_site.about_open_h"}}</h2>
+					<p class="ds-c-2 ds-mt-12">{{ctx.Locale.Tr "asc_site.about_open_t"}}</p>
+					<p class="site-chips">
+						<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_site.about_chip_open"}}</span>
+						<span class="ds-chip">{{ctx.Locale.Tr "asc_site.about_chip_forgejo"}}</span>
+						<span class="ds-chip">{{ctx.Locale.Tr "asc_site.about_chip_self"}}</span>
+						<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_site.about_chip_signed"}}</span>
+					</p>
+					<p class="site-links">
+						<a class="ds-link" href="{{AppSubUrl}}/assets/licenses.txt">{{ctx.Locale.Tr "asc_site.about_licenses"}}</a>
+						<a class="ds-link" href="https://github.com/Jordan-Hall/asc-hub" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_site.about_source"}}</a>
+					</p>
+				</div>
+			</article>
+			<article class="ds-card">
+				<div class="ds-card-b">
+					<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_site.about_data_h"}}</h2>
+					<ul class="site-checks">
+						<li><span class="ds-c-link" aria-hidden="true">{{svg "dsi-check" 16}}</span><div><b>{{ctx.Locale.Tr "asc_site.about_data1_h"}}</b><p class="ds-c-2 ds-t-small">{{ctx.Locale.Tr "asc_site.about_data1_t"}}</p></div></li>
+						<li><span class="ds-c-link" aria-hidden="true">{{svg "dsi-check" 16}}</span><div><b>{{ctx.Locale.Tr "asc_site.about_data2_h"}}</b><p class="ds-c-2 ds-t-small">{{ctx.Locale.Tr "asc_site.about_data2_t"}}</p></div></li>
+						<li><span class="ds-c-link" aria-hidden="true">{{svg "dsi-check" 16}}</span><div><b>{{ctx.Locale.Tr "asc_site.about_data3_h"}}</b><p class="ds-c-2 ds-t-small">{{ctx.Locale.Tr "asc_site.about_data3_t"}}</p></div></li>
+					</ul>
+				</div>
+			</article>
+		</div>
+	</section>
+
+	<section class="ds-land-sec ds-land-sec-flush" aria-labelledby="about-contact">
+		<div class="ds-container">
+			<div class="ds-callout site-contact">
+				<div>
+					<h2 class="ds-t-h2" id="about-contact">{{ctx.Locale.Tr "asc_site.about_contact_h"}}</h2>
+					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_site.about_contact_t"}}</p>
+				</div>
+				<a class="ds-btn ds-btn-primary" href="https://github.com/Jordan-Hall/asc-hub/issues" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_site.about_contact"}}</a>
+			</div>
+		</div>
+	</section>
+</div>
+{{template "base/footer" .}}

@@ -1,0 +1,108 @@
+{{/* The get started checklist (board GetStarted, Mobile-GetStarted). Route GET /-/get-started. */}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="ds-main site site-started">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" .Title)}}
+	<div class="ds-container ds-split site-started-split">
+		<div class="ds-min0">
+			<header class="site-started-head">
+				<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.started_eyebrow" .SignedUser.Name}}</p>
+				<h1 class="ds-t-h1">{{ctx.Locale.Tr "asc_site.started_h1"}}</h1>
+				<p class="ds-t-lead ds-c-2">{{ctx.Locale.Tr "asc_site.started_lead"}}</p>
+			</header>
+
+			<div class="site-progress-top">
+			<section class="ds-card">
+				<div class="ds-card-b">
+					<div class="ds-row ds-justify-between"><h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_site.started_progress"}}</h2><span class="ds-t-small ds-c-2 ds-num">{{ctx.Locale.Tr "asc_site.started_of" .GSDone .GSTotal}}</span></div>
+					<progress class="ds-bar site-progress" aria-label="{{ctx.Locale.Tr "asc_site.started_progress"}}" max="{{.GSTotal}}" value="{{.GSDone}}">{{.GSPercent}}%</progress>
+				</div>
+			</section>
+			</div>
+
+			<ol class="site-steps">
+				{{/* 1: the command line is installed once it has signed in */}}
+				<li class="site-step{{if .GSConnected}} is-done{{end}}">
+					<div class="site-step-h">
+						<span class="site-step-num" aria-hidden="true">{{if .GSConnected}}{{svg "dsi-check" 16}}{{else}}1{{end}}</span>
+						<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_site.started_s1_h"}}</h2>
+						{{if .GSConnected}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_site.started_done"}}</span>{{end}}
+					</div>
+					{{if not .GSConnected}}
+					<p class="ds-c-2">{{ctx.Locale.Tr "asc_site.started_s1_t"}}</p>
+					<div class="ds-row ds-row-wrap ds-gap-8">
+						<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/download">{{svg "dsi-download" 18}} {{ctx.Locale.Tr "asc_site.dl_download"}}</a>
+					</div>
+					{{end}}
+				</li>
+				{{/* 2: connect */}}
+				<li class="site-step{{if .GSConnected}} is-done{{else}} is-current{{end}}"{{if not .GSConnected}} aria-current="step"{{end}}>
+					<div class="site-step-h">
+						<span class="site-step-num" aria-hidden="true">{{if .GSConnected}}{{svg "dsi-check" 16}}{{else}}2{{end}}</span>
+						<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_site.started_s2_h"}}</h2>
+						{{if .GSConnected}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_site.started_done"}}</span>{{else}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_site.started_next"}}</span>{{end}}
+					</div>
+					{{if not .GSConnected}}
+					<p class="ds-c-2">{{ctx.Locale.Tr "asc_site.started_s2_t"}}</p>
+					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.GSConnectCommand}}</code><button type="button" class="ds-copy" data-clipboard-text="{{.GSConnectCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+					<p class="ds-t-small ds-c-2 site-wait"><span class="ds-dot ds-dot-info" aria-hidden="true"></span> {{ctx.Locale.Tr "asc_site.started_s2_wait"}}</p>
+					{{end}}
+				</li>
+				{{/* 3: first repository */}}
+				<li class="site-step{{if .GSHasRepo}} is-done{{else if .GSConnected}} is-current{{end}}"{{if and .GSConnected (not .GSHasRepo)}} aria-current="step"{{end}}>
+					<div class="site-step-h">
+						<span class="site-step-num" aria-hidden="true">{{if .GSHasRepo}}{{svg "dsi-check" 16}}{{else}}3{{end}}</span>
+						<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_site.started_s3_h"}}</h2>
+						{{if .GSHasRepo}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_site.started_done"}}</span>{{end}}
+					</div>
+					{{if not .GSHasRepo}}
+					<p class="ds-c-2">{{ctx.Locale.Tr "asc_site.started_s3_t"}}</p>
+					<div class="ds-row ds-row-wrap ds-gap-8">
+						<a class="ds-btn {{if .GSConnected}}ds-btn-primary{{else}}ds-btn-secondary{{end}}" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "asc_site.started_s3_new"}}</a>
+						{{if .GSMigrations}}<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/repo/migrate">{{ctx.Locale.Tr "asc_site.started_s3_import"}}</a>{{end}}
+					</div>
+					{{end}}
+				</li>
+				{{/* 4: team and agents */}}
+				<li class="site-step">
+					<div class="site-step-h">
+						<span class="site-step-num" aria-hidden="true">4</span>
+						<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_site.started_s4_h"}}</h2>
+					</div>
+					<p class="ds-c-2">{{ctx.Locale.Tr "asc_site.started_s4_t"}}</p>
+					<div class="ds-row ds-row-wrap ds-gap-8">
+						<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/org/create">{{ctx.Locale.Tr "asc_site.started_s4_team"}}</a>
+						<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/user/settings/asc/ai">{{ctx.Locale.Tr "asc_site.started_s4_ai"}}</a>
+					</div>
+				</li>
+			</ol>
+
+			<p class="site-skip"><a class="ds-btn ds-btn-ghost" href="{{AppSubUrl}}/">{{ctx.Locale.Tr "asc_site.started_skip"}}</a></p>
+		</div>
+
+		<aside class="ds-rail site-rail" aria-label="{{ctx.Locale.Tr "asc_site.started_check_h"}}">
+			<div class="site-progress-side">
+			<section class="ds-card">
+				<div class="ds-card-b">
+					<div class="ds-row ds-justify-between"><h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_site.started_progress"}}</h2><span class="ds-t-small ds-c-2 ds-num">{{ctx.Locale.Tr "asc_site.started_of" .GSDone .GSTotal}}</span></div>
+					<progress class="ds-bar site-progress" aria-label="{{ctx.Locale.Tr "asc_site.started_progress"}}" max="{{.GSTotal}}" value="{{.GSDone}}">{{.GSPercent}}%</progress>
+				</div>
+			</section>
+			</div>
+			<section class="ds-card">
+				<div class="ds-card-b">
+					<h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_site.started_check_h"}}</h2>
+					<dl class="site-checkl">
+						<div><dt>{{ctx.Locale.Tr "asc_site.started_check_ssh"}}</dt><dd class="{{if .GSKeys}}ds-c-ok{{else}}ds-c-warn{{end}}">{{if .GSKeys}}{{ctx.Locale.Tr "asc_site.started_yes"}}{{else}}<a class="ds-link" href="{{AppSubUrl}}/user/settings/keys">{{ctx.Locale.Tr "asc_site.started_no"}}</a>{{end}}</dd></div>
+						<div><dt>{{ctx.Locale.Tr "asc_site.started_check_token"}}</dt><dd class="{{if .GSConnected}}ds-c-ok{{else}}ds-c-warn{{end}}">{{if .GSConnected}}{{ctx.Locale.Tr "asc_site.started_yes"}}{{else}}{{ctx.Locale.Tr "asc_site.started_no"}}{{end}}</dd></div>
+						<div><dt>{{ctx.Locale.Tr "asc_site.started_check_repo"}}</dt><dd class="{{if .GSHasRepo}}ds-c-ok{{else}}ds-c-warn{{end}}">{{if .GSHasRepo}}{{ctx.Locale.Tr "asc_site.started_yes"}}{{else}}{{ctx.Locale.Tr "asc_site.started_no"}}{{end}}</dd></div>
+					</dl>
+				</div>
+			</section>
+			<aside class="ds-callout">
+				<h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_site.started_help_h"}}</h2>
+				<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_site.started_help_t"}} <a class="ds-link" href="{{AppSubUrl}}/-/docs">{{ctx.Locale.Tr "asc_site.started_help_link"}}</a></p>
+			</aside>
+		</aside>
+	</div>
+</div>
+{{template "base/footer" .}}

@@ -1,0 +1,745 @@
+/* Site administration: the pieces the admin pages share. They compose the design system (asc-ds); nothing here
+   restyles a component. Mobile first: the base rules are for 320 to 390 px, min-width queries add columns. */
+
+.admin .adm-banner {
+  align-items: center;
+  margin-top: 4px;
+}
+
+.admin .adm-banner .ds-banner-body {
+  line-height: 1.45;
+}
+
+.admin .adm-banner .ds-chip {
+  flex: none;
+}
+
+.admin .adm-head {
+  padding-top: 18px;
+}
+
+.admin .adm-head .ds-page-title {
+  font-size: 28px;
+}
+
+@media (min-width: 768px) {
+  .admin .adm-head .ds-page-title {
+    font-size: 32px;
+  }
+}
+
+/* a section below the head: a card, a list or a table, with a heading row above it */
+.adm-sec {
+  margin-top: 20px;
+}
+
+.adm-sec-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 10px;
+}
+
+.adm-sec-h h2 {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.adm-sec-h a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--touch);
+  color: var(--link);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.adm-sec-h a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* two cards side by side from 1024 */
+.adm-two {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 16px;
+}
+
+@media (min-width: 1024px) {
+  .adm-two {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .adm-two-even {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.adm-stats {
+  margin-top: 4px;
+}
+
+.adm-stats .ds-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-stats .ds-stat-label svg {
+  flex: none;
+  color: var(--text-2);
+}
+
+@media (min-width: 768px) {
+  .adm-stats.ds-grid-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .adm-stats-3.ds-grid-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* a coloured square holding an icon: the lead of a row */
+.adm-tile {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+
+.adm-tile-ok { background: var(--ok-soft); color: var(--ok); }
+.adm-tile-warn { background: var(--warn-soft); color: var(--warn); }
+.adm-tile-err { background: var(--err-soft); color: var(--err); }
+.adm-tile-info { background: var(--primary-soft); color: var(--link); }
+.adm-tile-agent { background: var(--agent-soft); color: var(--agent); }
+
+/* rows inside a card: no frame of their own */
+.adm-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.adm-rows > .ds-li {
+  align-items: center;
+}
+
+.adm-rows .ds-li-title {
+  justify-content: flex-start;
+}
+
+.adm-rows .adm-row-side {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-when {
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* rows that wrap on a phone: the action drops below the text */
+@media (max-width: 639.98px) {
+  .adm-rows > .ds-li-wrap {
+    flex-wrap: wrap;
+  }
+
+  .adm-rows > .ds-li-wrap .adm-row-side {
+    flex-basis: 100%;
+    padding-left: 48px;
+  }
+}
+
+.adm-card-sub {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.adm-card-h-end {
+  margin-left: auto;
+}
+
+.adm-card-h-end a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  color: var(--link);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* a gauge: a native progress element so the value is read as text and as a bar */
+.adm-meter {
+  display: block;
+  width: 100%;
+  height: 7px;
+  margin-top: 10px;
+  border: 0;
+  border-radius: 99px;
+  background: var(--line-2);
+  overflow: hidden;
+  appearance: none;
+  accent-color: var(--fill);
+}
+
+.adm-meter::-webkit-progress-bar {
+  background: var(--line-2);
+  border-radius: 99px;
+}
+
+.adm-meter::-webkit-progress-value {
+  background: var(--fill);
+  border-radius: 99px;
+}
+
+.adm-meter::-moz-progress-bar {
+  background: var(--fill);
+  border-radius: 99px;
+}
+
+.adm-meter-ok::-webkit-progress-value { background: var(--ok-dot); }
+.adm-meter-ok::-moz-progress-bar { background: var(--ok-dot); }
+.adm-meter-warn::-webkit-progress-value { background: var(--warn-dot); }
+.adm-meter-warn::-moz-progress-bar { background: var(--warn-dot); }
+.adm-meter-err::-webkit-progress-value { background: var(--err-dot); }
+.adm-meter-err::-moz-progress-bar { background: var(--err-dot); }
+.adm-meter-agent::-webkit-progress-value { background: var(--agent-dot); }
+.adm-meter-agent::-moz-progress-bar { background: var(--agent-dot); }
+
+/* a definition list in a card: label left, value right */
+.adm-kv {
+  margin: 0;
+}
+
+.adm-kv > div {
+  display: grid;
+  gap: 2px 16px;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.adm-kv > div:last-child {
+  border-bottom: 0;
+}
+
+.adm-kv dt {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.adm-kv dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+@media (min-width: 640px) {
+  .adm-kv > div {
+    grid-template-columns: 200px minmax(0, 1fr);
+    padding: 12px 18px;
+  }
+}
+
+/* a table cell that holds a person or a thing: avatar, name, small line */
+.adm-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.adm-who-text {
+  min-width: 0;
+}
+
+.adm-who-name {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a.adm-who-name:hover {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.adm-who-sub {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.adm-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* table cell actions */
+.adm-acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.adm-table-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-top: 12px;
+}
+
+.adm-table-foot .ds-pager-wrap {
+  margin: 0;
+}
+
+/* a state shown on a card: the loading skeleton */
+.adm-skel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.adm-skel .ds-sk {
+  height: 14px;
+}
+
+.adm-skel .ds-sk:first-child {
+  width: 40%;
+}
+
+/* forms in admin pages: the design system form, with the sticky save bar */
+.adm-form {
+  display: grid;
+  gap: 16px;
+}
+
+.adm-form-card .ds-card-b {
+  display: grid;
+  gap: 16px;
+}
+
+.adm-danger {
+  border-color: var(--err-line);
+}
+
+.adm-danger .ds-card-h {
+  border-bottom-color: var(--err-line);
+}
+
+.adm-danger h2,
+.adm-danger h3 {
+  color: var(--err);
+}
+
+/* a list page's search row and the pills under it */
+.adm-filter {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.adm-filter .ds-filterbar-form {
+  align-items: stretch;
+}
+
+.adm-filter .ds-filterbar-form .ds-btn {
+  flex: none;
+}
+
+@media (max-width: 767.98px) {
+  .adm-filter .ds-filterbar-form {
+    flex-wrap: wrap;
+  }
+
+  .adm-filter .ds-filterbar-form .ds-inwrap {
+    flex-basis: 100%;
+  }
+}
+
+.adm-chip-row {
+  margin-top: 8px;
+  gap: 6px;
+}
+
+/* the same rows as a table from 768 and as a list under it */
+.adm-only-sm { display: block; }
+.adm-only-md { display: none; }
+
+@media (min-width: 768px) {
+  .adm-only-sm { display: none; }
+  .adm-only-md { display: block; }
+}
+
+/* one person: the header card */
+.adm-person {
+  margin-top: 4px;
+}
+
+.adm-person-in {
+  display: grid;
+  gap: 14px 18px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.adm-person-av .ds-avatar,
+.adm-person-av img {
+  width: 56px;
+  height: 56px;
+}
+
+.adm-person-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.adm-person-name h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.adm-person-main > p {
+  margin-top: 4px;
+}
+
+.adm-person-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .adm-person-in {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .adm-person-av .ds-avatar,
+  .adm-person-av img {
+    width: 72px;
+    height: 72px;
+  }
+
+  .adm-person-acts {
+    grid-column: auto;
+  }
+}
+
+/* the destructive card at the end of a page: text left, one button right */
+.adm-danger-in {
+  display: grid;
+  gap: 12px 16px;
+  align-items: center;
+}
+
+@media (min-width: 640px) {
+  .adm-danger-in {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+.adm-check-field .ds-hint {
+  margin-top: 4px;
+  padding-left: 32px;
+}
+
+/* provider tips of the authentication forms */
+.adm-tips {
+  display: grid;
+  gap: 4px 0;
+  margin: 0;
+}
+
+.adm-tips dt {
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+.adm-tips dd {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.adm-inset {
+  padding: 14px;
+}
+
+/* tabs under a page head: the views of one object */
+.adm-tabs {
+  margin-top: 4px;
+}
+
+.adm-split {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .adm-split {
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+    align-items: start;
+  }
+}
+
+.adm-reg .ds-term {
+  min-width: 0;
+}
+
+.adm-copyline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.adm-flat {
+  border: 0;
+  border-radius: 0;
+}
+
+/* a runtime setting: the words left, the switch or the field right */
+.adm-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.adm-setting:last-child {
+  border-bottom: 0;
+}
+
+.adm-setting-col {
+  display: grid;
+  align-items: start;
+}
+
+.adm-setting-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.adm-setting-text {
+  min-width: 0;
+}
+
+.adm-setting-text p {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+@media (min-width: 640px) {
+  .adm-setting {
+    padding: 14px 18px;
+  }
+}
+
+.adm-pre {
+  margin: 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.adm-details {
+  margin-top: 8px;
+}
+
+/* read-only configuration: monospace values */
+.adm-kv-cfg dd {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.adm-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-inline-form .ds-input {
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 320px;
+}
+
+.adm-inline-form .adm-num {
+  flex: 0 0 96px;
+  max-width: 96px;
+}
+
+/* numbered steps (backups) */
+.adm-steps {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.adm-steps .ds-card-h {
+  gap: 10px;
+}
+
+.adm-step-n {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--on-fill);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* audit log */
+.adm-audit-filter {
+  margin: 12px 0;
+}
+
+.adm-audit-grid {
+  display: grid;
+  gap: 12px 16px;
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: 4px;
+}
+
+@media (min-width: 640px) {
+  .adm-audit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .adm-audit-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.adm-audit-acts {
+  margin-top: 12px;
+}
+
+.adm-audit-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* stack traces */
+.adm-trace-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.adm-stacks {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.adm-stack > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-height: var(--touch);
+  cursor: pointer;
+}
+
+.adm-frames {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 8px;
+  padding: 0 0 0 20px;
+}
+
+.adm-frames code {
+  font-size: 12.5px;
+}
+
+.adm-frames li {
+  display: grid;
+}
+
+.adm-children {
+  margin-top: 8px;
+  padding-left: 8px;
+  border-left: 2px solid var(--line-2);
+}
+
+.adm-hook-type {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* a text link that must be a 44 px target on its own line */
+.adm-tap {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* a long action label wraps instead of widening the page at 320 */
+.admin .ds-sticky-actions > .ds-btn {
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
+}

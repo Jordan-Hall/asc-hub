@@ -1,9 +1,9 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin hooks")}}
-	<div class="admin-setting-content">
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.hooks_apps") "Desc" (ctx.Locale.Tr "asc_admin.hooks_lead"))}}
+	{{template "admin/hooks_tabs" (dict "Active" "hooks" "Data" .)}}
 
-		{{template "repo/settings/webhook/base_list" .SystemWebhooks}}
-		{{template "repo/settings/webhook/base_list" .DefaultWebhooks}}
+	{{template "admin/hooks_list" (dict "Set" .SystemWebhooks "Scope" (ctx.Locale.Tr "asc_admin.hooks_scope_system") "Desc" (ctx.Locale.Tr "asc_admin.hooks_sys_desc") "I" 0 "Link" .Link)}}
+	{{template "admin/hooks_list" (dict "Set" .DefaultWebhooks "Scope" (ctx.Locale.Tr "asc_admin.hooks_scope_default") "Desc" (ctx.Locale.Tr "asc_admin.hooks_def_desc") "I" 1 "Link" .Link)}}
 
-		{{template "repo/settings/webhook/delete_modal" .}}
-	</div>
+	{{template "repo/settings/webhook/delete_modal" .}}
 {{template "admin/layout_footer" .}}

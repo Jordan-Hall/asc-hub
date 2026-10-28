@@ -1,13 +1,16 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content ui {{if .IsRepo}}repository{{end}}">
+<div role="main" aria-label="{{.Title}}" class="ds-main st-main{{if .IsRepo}} repository{{end}}">
 	{{if .IsRepo}}{{template "repo/header" .}}{{end}}
-	<div class="hub-status">
-		<p class="error-code" aria-hidden="true">413</p>
-		<h1 class="hub-status-title">{{ctx.Locale.Tr "asc_status.quota_title"}}</h1>
-		<p class="hub-status-text">{{ctx.Locale.Tr "error413"}}</p>
-		<div class="hub-status-actions">
-			<a class="hub-btn hub-btn-outline" href="{{AppSubUrl}}/">{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}</a>
-		</div>
+	<div class="ds-container st-wrap">
+		<section class="st-card" aria-labelledby="st-title">
+			<span class="st-ic" aria-hidden="true">{{svg "dsi-package" 40}}</span>
+			<p class="st-code ds-mono">413</p>
+			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_status.quota_title"}}</h1>
+			<p class="st-text">{{ctx.Locale.Tr "error413"}}</p>
+			<div class="st-actions">
+				<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/">{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}</a>
+			</div>
+		</section>
 	</div>
 </div>
 {{template "base/footer" .}}

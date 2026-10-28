@@ -62,6 +62,79 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 		</div>
 	</section>
 
+	<section class="ds-land-sec" aria-labelledby="ls-stack-title">
+		<div class="ds-container ls-two">
+			<div>
+				<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_land.stack_eyebrow"}}</p>
+				<h2 class="ds-land-h2 ls-h2" id="ls-stack-title">{{ctx.Locale.Tr "asc_land.stack_h"}}</h2>
+				<p class="ds-land-p">{{ctx.Locale.Tr "asc_land.stack_p"}}</p>
+				<ul class="ls-checks">
+					<li><span aria-hidden="true">{{svg "dsi-check" 16}}</span>{{ctx.Locale.Tr "asc_land.stack_c1"}}</li>
+					<li><span aria-hidden="true">{{svg "dsi-check" 16}}</span>{{ctx.Locale.Tr "asc_land.stack_c2"}}</li>
+					<li><span aria-hidden="true">{{svg "dsi-check" 16}}</span>{{ctx.Locale.Tr "asc_land.stack_c3"}}</li>
+				</ul>
+				<p class="ls-after"><a class="ds-btn ds-btn-secondary" href="https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/STACK-OPERATIONS.md" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_land.stack_link"}}</a></p>
+			</div>
+			<div class="ds-card ls-preview" role="group" aria-label="{{ctx.Locale.Tr "asc_land.stack_preview"}}">
+				<ol class="ls-timeline">
+					<li class="ls-tl is-base"><b class="ds-mono">main</b><span>{{ctx.Locale.Tr "asc_land.stack_t0"}}</span></li>
+					<li class="ls-tl is-ok"><b>{{ctx.Locale.Tr "asc_land.stack_t1"}}</b><span class="ds-c-ok">{{ctx.Locale.Tr "asc_land.stack_t1s"}}</span></li>
+					<li class="ls-tl is-ok"><b>{{ctx.Locale.Tr "asc_land.stack_t2"}}</b><span class="ds-c-ok">{{ctx.Locale.Tr "asc_land.stack_t2s"}}</span></li>
+					<li class="ls-tl is-turn"><b>{{ctx.Locale.Tr "asc_land.stack_t3"}}</b><span class="ds-c-warn">{{ctx.Locale.Tr "asc_land.stack_t3s"}}</span></li>
+					<li class="ls-tl is-wait"><b>{{ctx.Locale.Tr "asc_land.stack_t4"}}</b><span class="ds-c-2">{{ctx.Locale.Tr "asc_land.stack_t4s"}}</span></li>
+				</ol>
+			</div>
+		</div>
+	</section>
+	<section class="ds-land-sec ds-land-sec-tint" aria-labelledby="ls-review-title">
+		<div class="ds-container">
+			<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_land.rev_eyebrow"}}</p>
+			<h2 class="ds-land-h2 ls-h2" id="ls-review-title">{{ctx.Locale.Tr "asc_land.rev_h"}}</h2>
+			<div class="ds-land-cards ls-cards2">
+				<article class="ds-land-card"><h3>{{ctx.Locale.Tr "asc_land.rev1_h"}}</h3><p>{{ctx.Locale.Tr "asc_land.rev1_p"}}</p></article>
+				<article class="ds-land-card"><h3>{{ctx.Locale.Tr "asc_land.rev2_h"}}</h3><p>{{ctx.Locale.Tr "asc_land.rev2_p"}}</p></article>
+				<article class="ds-land-card"><h3>{{ctx.Locale.Tr "asc_land.rev3_h"}}</h3><p>{{ctx.Locale.Tr "asc_land.rev3_p"}}</p></article>
+				<article class="ds-land-card"><h3>{{ctx.Locale.Tr "asc_land.rev4_h"}}</h3><p>{{ctx.Locale.Tr "asc_land.rev4_p"}}</p></article>
+			</div>
+			<div class="ds-land-cards ls-cards2 ls-more">
+				<article class="ds-land-card">
+					<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_land.intel_eyebrow"}}</p>
+					<h3 class="ls-h3">{{ctx.Locale.Tr "asc_land.intel_h"}}</h3>
+					<p>{{ctx.Locale.Tr "asc_land.intel_p"}}</p>
+					<p class="ls-query ds-mono"><span aria-hidden="true">&rsaquo;</span> {{ctx.Locale.Tr "asc_land.intel_q"}}</p>
+				</article>
+				<article class="ds-land-card">
+					<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_land.pol_eyebrow"}}</p>
+					<h3 class="ls-h3">{{ctx.Locale.Tr "asc_land.pol_h"}}</h3>
+					<p>{{ctx.Locale.Tr "asc_land.pol_p"}}</p>
+					<p class="ds-banner ds-banner-warn ls-blocked"><span class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_land.pol_b"}}</b> {{ctx.Locale.Tr "asc_land.pol_t"}}</span></p>
+				</article>
+			</div>
+		</div>
+	</section>
+	<section class="ds-land-sec" aria-labelledby="ls-log-title">
+		<div class="ds-container ls-two ls-two-flip">
+			<div class="ls-preview-col" role="group" aria-label="{{ctx.Locale.Tr "asc_land.log_preview"}}">
+				<div class="ds-card">
+					<div class="ds-card-h"><h3 class="ds-t-h4">{{ctx.Locale.Tr "asc_land.log_title"}}</h3><span class="ds-chip ds-chip-info">acme/payments</span><span class="ds-t-small ds-c-2 ds-ml-auto">{{ctx.Locale.Tr "asc_land.log_sub"}}</span></div>
+					<ol class="ls-log">
+						<li><time class="ds-mono ds-c-2">10:42</time><code class="ds-mono">stack submit</code><span>{{ctx.Locale.Tr "asc_land.log_1"}}</span></li>
+						<li><time class="ds-mono ds-c-2">10:44</time><code class="ds-mono">restack</code><span>{{ctx.Locale.Tr "asc_land.log_2"}}</span></li>
+						<li><time class="ds-mono ds-c-2">10:51</time><code class="ds-mono">agent run 214 &middot; apply</code><span>{{ctx.Locale.Tr "asc_land.log_3"}}</span></li>
+						<li><time class="ds-mono ds-c-2">10:58</time><code class="ds-mono">merge --bottom 2</code><span>{{ctx.Locale.Tr "asc_land.log_4"}}</span></li>
+					</ol>
+				</div>
+				<div class="ds-card ls-queue"><div class="ds-card-b"><div><b>{{ctx.Locale.Tr "asc_land.q_title"}}</b><p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_land.q_sub"}}</p></div><span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_land.q_chip"}}</span></div></div>
+			</div>
+			<div>
+				<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_land.log_eyebrow"}}</p>
+				<h2 class="ds-land-h2 ls-h2" id="ls-log-title">{{ctx.Locale.Tr "asc_land.log_h"}}</h2>
+				<p class="ds-land-p">{{ctx.Locale.Tr "asc_land.log_p"}}</p>
+				<div class="ds-cmd ds-cmd-scroll ls-cmd2"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc log</code></div>
+				<div class="ds-cmd ds-cmd-scroll ls-cmd2"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc undo  # {{ctx.Locale.Tr "asc_land.log_undo"}}</code></div>
+			</div>
+		</div>
+	</section>
 	<section class="ds-land-sec ds-land-sec-tint" aria-labelledby="asc-how-title">
 		<div class="ds-container">
 			<p class="ds-t-eyebrow">{{ctx.Locale.Tr "startpage.how_eyebrow"}}</p>
@@ -105,6 +178,24 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 		</div>
 	</section>
 
+	<section class="ds-land-sec" aria-labelledby="ls-wf-title">
+		<div class="ds-container">
+			<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_land.wf_eyebrow"}}</p>
+			<h2 class="ds-land-h2 ls-h2" id="ls-wf-title">{{ctx.Locale.Tr "asc_land.wf_h"}}</h2>
+			<ol class="ds-card ls-flow">
+				<li><span class="ls-num" aria-hidden="true">1</span><div><b>{{ctx.Locale.Tr "asc_land.wf1"}}</b><span>{{ctx.Locale.Tr "asc_land.wf1s"}}</span></div></li>
+				<li><span class="ls-num" aria-hidden="true">2</span><div><b>{{ctx.Locale.Tr "asc_land.wf2"}}</b><span>{{ctx.Locale.Tr "asc_land.wf2s"}}</span></div></li>
+				<li><span class="ls-num" aria-hidden="true">3</span><div><b>{{ctx.Locale.Tr "asc_land.wf3"}}</b><span>{{ctx.Locale.Tr "asc_land.wf3s"}}</span></div></li>
+				<li><span class="ls-num" aria-hidden="true">4</span><div><b>{{ctx.Locale.Tr "asc_land.wf4"}}</b><span>{{ctx.Locale.Tr "asc_land.wf4s"}}</span></div></li>
+				<li><span class="ls-num" aria-hidden="true">5</span><div><b>{{ctx.Locale.Tr "asc_land.wf5"}}</b><span>{{ctx.Locale.Tr "asc_land.wf5s"}}</span></div></li>
+			</ol>
+			<div class="ds-land-cards ls-cards3">
+				<article class="ds-land-card"><span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_land.wf_tag"}}</span><h3>{{ctx.Locale.Tr "asc_land.wfa_h"}}</h3><p>{{ctx.Locale.Tr "asc_land.wfa_p"}}</p><p class="ls-tags"><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_land.wfa_t1"}}</span><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_land.wfa_t2"}}</span></p></article>
+				<article class="ds-land-card"><span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_land.wf_tag"}}</span><h3>{{ctx.Locale.Tr "asc_land.wfb_h"}}</h3><p>{{ctx.Locale.Tr "asc_land.wfb_p"}}</p><p class="ls-tags"><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_land.wfb_t1"}}</span><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_land.wfb_t2"}}</span></p></article>
+				<article class="ds-land-card"><span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_land.wf_tag"}}</span><h3>{{ctx.Locale.Tr "asc_land.wfc_h"}}</h3><p>{{ctx.Locale.Tr "asc_land.wfc_p"}}</p><p class="ls-tags"><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_land.wfc_t1"}}</span><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_land.wfc_t2"}}</span></p></article>
+			</div>
+		</div>
+	</section>
 	<section class="ds-land-sec" aria-label="{{ctx.Locale.Tr "startpage.git_label"}}">
 		<div class="ds-container">
 			<div class="ds-land-cards ds-land-cards-2">
@@ -120,6 +211,34 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 						<p>{{ctx.Locale.Tr "startpage.git_text"}}</p>
 						<div class="ds-cmd ds-cmd-scroll ds-mt-12"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">git clone {{.AscHubURL}}/OWNER/REPOSITORY</code></div>
 					</details>
+				</article>
+			</div>
+		</div>
+	</section>
+
+	<section class="ds-land-sec" aria-labelledby="ls-byo-title">
+		<div class="ds-container">
+			<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_land.byo_eyebrow"}}</p>
+			<h2 class="ds-land-h2 ls-h2" id="ls-byo-title">{{ctx.Locale.Tr "asc_land.byo_h"}}</h2>
+			<p class="ds-land-p">{{ctx.Locale.Tr "asc_land.byo_p"}}</p>
+			<div class="ds-land-cards ls-cards2 ls-more">
+				<article class="ds-land-card">
+					<h3>{{ctx.Locale.Tr "asc_land.byo_ai_h"}}</h3>
+					<p>{{ctx.Locale.Tr "asc_land.byo_ai_p"}}</p>
+					<ul class="ds-list ls-keys">
+						<li class="ds-li"><div class="ds-li-main"><span class="ds-li-title">Anthropic <span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_land.byo_on"}}</span></span></div><span class="ds-mono ds-c-2">sk-ant-&bull;&bull;&bull;&bull;&bull;a91f</span></li>
+						<li class="ds-li"><div class="ds-li-main"><span class="ds-li-title">OpenAI <span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_land.byo_on"}}</span></span></div><span class="ds-mono ds-c-2">sk-&bull;&bull;&bull;&bull;&bull;77c2</span></li>
+						<li class="ds-li"><div class="ds-li-main"><span class="ds-li-title">{{ctx.Locale.Tr "asc_land.byo_local"}} <span class="ds-chip">{{ctx.Locale.Tr "asc_land.byo_off"}}</span></span></div></li>
+					</ul>
+				</article>
+				<article class="ds-land-card">
+					<h3>{{ctx.Locale.Tr "asc_land.byo_s3_h"}}</h3>
+					<p>{{ctx.Locale.Tr "asc_land.byo_s3_p"}}</p>
+					<dl class="ls-s3">
+						<div><dt>{{ctx.Locale.Tr "asc_land.byo_endpoint"}}</dt><dd class="ds-mono">https://s3.eu-west-1.amazonaws.com</dd></div>
+						<div><dt>{{ctx.Locale.Tr "asc_land.byo_bucket"}}</dt><dd class="ds-mono">acme-asc-artifacts</dd></div>
+						<div><dt>{{ctx.Locale.Tr "asc_land.byo_region"}}</dt><dd class="ds-mono">eu-west-1</dd></div>
+					</dl>
 				</article>
 			</div>
 		</div>

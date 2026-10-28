@@ -1,0 +1,5 @@
+{{/* The two views of federation: the servers and the people known from them. Props: Active ("hosts" or "users"). */}}
+<nav class="ds-tabs adm-tabs" aria-label="{{ctx.Locale.Tr "asc_admin.federation"}}">
+	{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "asc_admin.fed_hosts_tab") "Href" (print AppSubUrl "/admin/federation/hosts") "Active" (eq .Active "hosts"))}}
+	{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "asc_admin.fed_users_tab") "Href" (print AppSubUrl "/admin/federation/users") "Active" (eq .Active "users"))}}
+</nav>

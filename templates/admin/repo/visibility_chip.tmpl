@@ -1,0 +1,7 @@
+{{/* The visibility of a repository as a chip with an icon and words, then the flags that matter to an administrator. Pass the repository. */}}
+{{if .IsPrivate}}<span class="ds-chip ds-chip-outline">{{svg "dsi-lock" 14}}{{ctx.Locale.Tr "repo.desc.private"}}</span>
+{{else if .Owner.Visibility.IsPrivate}}<span class="ds-chip ds-chip-outline">{{svg "dsi-lock" 14}}{{ctx.Locale.Tr "repo.desc.internal"}}</span>
+{{else}}<span class="ds-chip ds-chip-outline">{{svg "dsi-globe" 14}}{{ctx.Locale.Tr "explore.public"}}</span>{{end}}
+{{if .IsArchived}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.archived"}}</span>{{end}}
+{{if .IsTemplate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.template"}}</span>{{end}}
+{{if .IsMirror}}<span class="ds-chip">{{ctx.Locale.Tr "asc_admin.mirror"}}</span>{{else if .IsFork}}<span class="ds-chip">{{ctx.Locale.Tr "repo.fork"}}</span>{{end}}

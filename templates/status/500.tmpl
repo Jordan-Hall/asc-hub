@@ -25,18 +25,21 @@
 			</div>
 		</header>
 
-		<div role="main" class="page-content status-page-500">
+		<div role="main" class="page-content ds-main status-page-500">
 			<div class="ui container" >
 				<style> .ui.message.flash-message { text-align: left; } </style>
 				{{template "base/alert" .}}
 			</div>
-			<div class="hub-status">
-				<p class="error-code" aria-hidden="true">500</p>
-				<h1 class="hub-status-title">{{ctx.Locale.Tr "error.server_internal"}}</h1>
-				<p class="hub-status-text">{{ctx.Locale.Tr "asc_status.server_text"}}</p>
-				<div class="hub-status-actions">
-					<a class="hub-btn hub-btn-outline" href="{{AppSubUrl}}/">{{ctx.Locale.Tr "home"}}</a>
-				</div>
+			<div class="ds-container st-wrap">
+				<section class="st-card st-card-err" aria-labelledby="st-title">
+					<span class="st-ic st-ic-err" aria-hidden="true">{{svg "dsi-alert" 40}}</span>
+					<p class="st-code ds-mono">500</p>
+					<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_err.title500"}}</h1>
+					<p class="st-text">{{ctx.Locale.Tr "asc_status.server_text"}}</p>
+					<div class="st-actions">
+						<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/">{{ctx.Locale.Tr "home"}}</a>
+					</div>
+				</section>
 			</div>
 			<div class="ui container tw-my-8">
 				{{if .ErrorMsg}}

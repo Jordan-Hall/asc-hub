@@ -1,247 +1,175 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin edit user")}}
-	<div class="admin-setting-content">
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "admin.users.edit_account"}}
-		</h4>
-		<div class="ui attached segment">
-			<form class="ui form" action="./edit" method="post">
-				{{template "base/disable_form_autofill"}}
-				<div class="field {{if .Err_UserName}}error{{end}}">
-					<label for="user_name">{{ctx.Locale.Tr "username"}}</label>
-					<input id="user_name" name="user_name" value="{{.User.Name}}" autofocus {{if not .User.IsLocal}}disabled{{end}} maxlength="40" autocorrect="off" autocapitalize="none">
-				</div>
-				<!-- Types and name -->
-				<div class="inline required field {{if .Err_LoginType}}error{{end}}">
-					<label>{{ctx.Locale.Tr "admin.users.auth_source"}}</label>
-					<div class="ui selection type dropdown">
-						<input type="hidden" id="login_type" name="login_type" value="{{.LoginSource.Type.Int}}-{{.LoginSource.ID}}" required>
-						<div class="text">{{ctx.Locale.Tr "admin.users.local"}}</div>
-						{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-						<div class="menu">
-							<div class="item" data-value="0-0">{{ctx.Locale.Tr "admin.users.local"}}</div>
-							{{range .Sources}}
-								<div class="item" data-value="{{.Type.Int}}-{{.ID}}">{{.Name}}</div>
-							{{end}}
-						</div>
+	{{template "admin/head_open" (dict "Title" (ctx.Locale.Tr "admin.users.edit_account") "Desc" (ctx.Locale.Tr "asc_admin.edit_person_lead"))}}
+		<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/users/{{.User.ID}}">{{svg "dsi-user" 16}}{{ctx.Locale.Tr "admin.users.details"}}</a>
+	{{template "admin/head_close" .}}
+
+	<form class="adm-form adm-form-card" action="./edit" method="post">
+		{{.CsrfTokenHtml}}
+		{{template "base/disable_form_autofill"}}
+		<section class="ds-card" aria-labelledby="adm-e-acct">
+			<div class="ds-card-h"><h2 id="adm-e-acct">{{ctx.Locale.Tr "asc_admin.section_account"}}</h2></div>
+			<div class="ds-card-b ds-form">
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field">
+						<label class="ds-label" for="user_name">{{ctx.Locale.Tr "username"}}</label>
+						<input class="ds-input{{if .Err_UserName}} is-err{{end}}" id="user_name" name="user_name" value="{{.User.Name}}" autofocus{{if not .User.IsLocal}} disabled{{end}} maxlength="40" autocorrect="off" autocapitalize="none" spellcheck="false">
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="email">{{ctx.Locale.Tr "email"}}</label>
+						<input class="ds-input{{if .Err_Email}} is-err{{end}}" id="email" name="email" type="email" value="{{.User.Email}}" required>
 					</div>
 				</div>
-
-				<div class="inline field {{if .Err_Visibility}}error{{end}}">
-					<span class="inline required field"><label for="visibility">{{ctx.Locale.Tr "settings.visibility"}}</label></span>
-					<div class="ui selection type dropdown">
-						{{if .User.Visibility.IsPublic}}<input type="hidden" id="visibility" name="visibility" value="0">{{end}}
-						{{if .User.Visibility.IsLimited}}<input type="hidden" id="visibility" name="visibility" value="1">{{end}}
-						{{if .User.Visibility.IsPrivate}}<input type="hidden" id="visibility" name="visibility" value="2">{{end}}
-						<div class="text">
-							{{if .User.Visibility.IsPublic}}{{ctx.Locale.Tr "settings.visibility.public"}}{{end}}
-							{{if .User.Visibility.IsLimited}}{{ctx.Locale.Tr "settings.visibility.limited"}}{{end}}
-							{{if .User.Visibility.IsPrivate}}{{ctx.Locale.Tr "settings.visibility.private"}}{{end}}
-						</div>
-						{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-						<div class="menu">
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field">
+						<label class="ds-label" for="login_type">{{ctx.Locale.Tr "admin.users.auth_source"}}</label>
+						<select class="ds-select{{if .Err_LoginType}} is-err{{end}}" id="login_type" name="login_type" required>
+							<option value="0-0"{{if eq .LoginSource.ID 0}} selected{{end}}>{{ctx.Locale.Tr "admin.users.local"}}</option>
+							{{range .Sources}}<option value="{{.Type.Int}}-{{.ID}}"{{if eq $.LoginSource.ID .ID}} selected{{end}}>{{.Name}}</option>{{end}}
+						</select>
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="visibility">{{ctx.Locale.Tr "settings.visibility"}}</label>
+						<select class="ds-select{{if .Err_Visibility}} is-err{{end}}" id="visibility" name="visibility">
 							{{range $mode := .AllowedUserVisibilityModes}}
-								{{if $mode.IsPublic}}
-									<div class="item" data-tooltip-content="{{ctx.Locale.Tr "settings.visibility.public_tooltip"}}" data-value="0">{{ctx.Locale.Tr "settings.visibility.public"}}</div>
-								{{else if $mode.IsLimited}}
-									<div class="item" data-tooltip-content="{{ctx.Locale.Tr "settings.visibility.limited_tooltip"}}" data-value="1">{{ctx.Locale.Tr "settings.visibility.limited"}}</div>
-								{{else if $mode.IsPrivate}}
-									<div class="item" data-tooltip-content="{{ctx.Locale.Tr "settings.visibility.private_tooltip"}}" data-value="2">{{ctx.Locale.Tr "settings.visibility.private"}}</div>
-								{{end}}
+								{{if $mode.IsPublic}}<option value="0"{{if $.User.Visibility.IsPublic}} selected{{end}}>{{ctx.Locale.Tr "settings.visibility.public"}}</option>
+								{{else if $mode.IsLimited}}<option value="1"{{if $.User.Visibility.IsLimited}} selected{{end}}>{{ctx.Locale.Tr "settings.visibility.limited"}}</option>
+								{{else if $mode.IsPrivate}}<option value="2"{{if $.User.Visibility.IsPrivate}} selected{{end}}>{{ctx.Locale.Tr "settings.visibility.private"}}</option>{{end}}
 							{{end}}
-						</div>
+						</select>
 					</div>
 				</div>
+				<div class="ds-field required non-local {{if eq .User.LoginSource 0}}tw-hidden{{end}}">
+					<label class="ds-label" for="login_name">{{ctx.Locale.Tr "admin.users.auth_login_name"}}</label>
+					<input class="ds-input{{if .Err_LoginName}} is-err{{end}}" id="login_name" name="login_name" value="{{.User.LoginName}}">
+				</div>
+				<div class="ds-field local {{if not (or (.User.IsLocal) (.User.IsOAuth2))}}tw-hidden{{end}}">
+					<label class="ds-label" for="password">{{ctx.Locale.Tr "password"}} <span class="ds-opt">({{ctx.Locale.Tr "asc_shell.optional"}})</span></label>
+					<input class="ds-input{{if .Err_Password}} is-err{{end}}" id="password" name="password" type="password" autocomplete="new-password" aria-describedby="adm-pw-help">
+					<p class="ds-hint" id="adm-pw-help">{{ctx.Locale.Tr "admin.users.password_helper"}}</p>
+				</div>
+			</div>
+		</section>
 
-				<div class="required non-local field {{if .Err_LoginName}}error{{end}} {{if eq .User.LoginSource 0}}tw-hidden{{end}}">
-					<label for="login_name">{{ctx.Locale.Tr "admin.users.auth_login_name"}}</label>
-					<input id="login_name" name="login_name" value="{{.User.LoginName}}" autofocus>
-				</div>
-				<div class="field {{if .Err_FullName}}error{{end}}">
-					<label for="full_name">{{ctx.Locale.Tr "settings.full_name"}}</label>
-					<input id="full_name" name="full_name" value="{{.User.FullName}}" maxlength="100">
-				</div>
-				<div class="field">
-					<label for="pronouns">{{ctx.Locale.Tr "settings.pronouns"}}</label>
-					<input id="pronouns" name="pronouns" value="{{.User.Pronouns}}" maxlength="50">
-				</div>
-				<div class="required field {{if .Err_Email}}error{{end}}">
-					<label for="email">{{ctx.Locale.Tr "email"}}</label>
-					<input id="email" name="email" type="email" value="{{.User.Email}}" autofocus required>
-				</div>
-				<div class="inline field">
-					<div class="ui checkbox">
-						<label>{{ctx.Locale.Tr "settings.keep_email_private"}}</label>
-						<input name="hide_email" type="checkbox" {{if .User.KeepEmailPrivate}}checked{{end}}>
+		<section class="ds-card" aria-labelledby="adm-e-prof">
+			<div class="ds-card-h"><h2 id="adm-e-prof">{{ctx.Locale.Tr "asc_admin.section_profile"}}</h2></div>
+			<div class="ds-card-b ds-form">
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field">
+						<label class="ds-label" for="full_name">{{ctx.Locale.Tr "settings.full_name"}}</label>
+						<input class="ds-input{{if .Err_FullName}} is-err{{end}}" id="full_name" name="full_name" value="{{.User.FullName}}" maxlength="100">
 					</div>
-					<span class="help">{{ctx.Locale.Tr "settings.keep_email_private_popup" .User.GetPlaceholderEmail}}</span>
+					<div class="ds-field">
+						<label class="ds-label" for="pronouns">{{ctx.Locale.Tr "settings.pronouns"}}</label>
+						<input class="ds-input" id="pronouns" name="pronouns" value="{{.User.Pronouns}}" maxlength="50">
+					</div>
 				</div>
-				<div class="local field {{if .Err_Password}}error{{end}} {{if not (or (.User.IsLocal) (.User.IsOAuth2))}}tw-hidden{{end}}">
-					<label for="password">{{ctx.Locale.Tr "password"}}</label>
-					<input id="password" name="password" type="password" autocomplete="new-password">
-					<p class="help">{{ctx.Locale.Tr "admin.users.password_helper"}}</p>
+				{{template "admin/check" (dict "ID" "hide_email" "Name" "hide_email" "Label" (ctx.Locale.Tr "settings.keep_email_private") "Checked" .User.KeepEmailPrivate "Hint" (ctx.Locale.Tr "settings.keep_email_private_popup" .User.GetPlaceholderEmail))}}
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field">
+						<label class="ds-label" for="language">{{ctx.Locale.Tr "settings.language"}}</label>
+						<select class="ds-select{{if .Err_Language}} is-err{{end}}" id="language" name="language">
+							{{range .AllLangs}}<option value="{{.Lang}}"{{if eq $.User.Language .Lang}} selected{{end}}>{{.Name}}</option>{{end}}
+						</select>
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="location">{{ctx.Locale.Tr "settings.location"}}</label>
+						<input class="ds-input{{if .Err_Location}} is-err{{end}}" id="location" name="location" value="{{.User.Location}}" maxlength="50">
+					</div>
 				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="website">{{ctx.Locale.Tr "settings.website"}}</label>
+					<input class="ds-input{{if .Err_Website}} is-err{{end}}" id="website" name="website" type="url" value="{{.User.Website}}" maxlength="255" pattern="{{.ValidSiteURLPattern}}" aria-describedby="adm-web-help">
+					<p class="ds-hint" id="adm-web-help">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</p>
+				</div>
+			</div>
+		</section>
 
-				<div class="field {{if .Err_Language}}error{{end}}">
-					<label for="language">{{ctx.Locale.Tr "settings.language"}}</label>
-					<div class="ui selection dropdown">
-						<input name="language" type="hidden" value="{{.User.Language}}">
-						{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-						<div class="text">{{range .AllLangs}}{{if eq $.User.Language .Lang}}{{.Name}}{{end}}{{end}}</div>
-						<div class="menu">
-						{{range .AllLangs}}
-							<div class="item{{if eq $.User.Language .Lang}} active selected{{end}}" data-value="{{.Lang}}">{{.Name}}</div>
-						{{end}}
-						</div>
-					</div>
+		<section class="ds-card" aria-labelledby="adm-e-perm">
+			<div class="ds-card-h"><h2 id="adm-e-perm">{{ctx.Locale.Tr "asc_admin.section_permissions"}}</h2></div>
+			<div class="ds-card-b ds-form">
+				<div class="ds-field">
+					<label class="ds-label" for="max_repo_creation">{{ctx.Locale.Tr "admin.users.max_repo_creation"}}</label>
+					<input class="ds-input{{if .Err_MaxRepoCreation}} is-err{{end}}" id="max_repo_creation" name="max_repo_creation" type="number" min="-1" value="{{.User.MaxRepoCreation}}" aria-describedby="adm-max-help">
+					<p class="ds-hint" id="adm-max-help">{{ctx.Locale.Tr "admin.users.max_repo_creation_desc"}}</p>
 				</div>
-
-				<div class="field {{if .Err_Website}}error{{end}}">
-					<label for="website">{{ctx.Locale.Tr "settings.website"}}</label>
-					<input id="website" name="website" type="url" value="{{.User.Website}}" maxlength="255" pattern="{{.ValidSiteURLPattern}}">
-					<span class="help">{{ctx.Locale.Tr "form.website.valid_url_schemes" (StringUtils.Join .ValidSiteURLSchemes ", ")}}</span>
-				</div>
-				<div class="field {{if .Err_Location}}error{{end}}">
-					<label for="location">{{ctx.Locale.Tr "settings.location"}}</label>
-					<input id="location" name="location" value="{{.User.Location}}" maxlength="50">
-				</div>
-
-				<div class="divider"></div>
-
-				<div class="inline field {{if .Err_MaxRepoCreation}}error{{end}}">
-					<label for="max_repo_creation">{{ctx.Locale.Tr "admin.users.max_repo_creation"}}</label>
-					<input id="max_repo_creation" name="max_repo_creation" type="number" min="-1" value="{{.User.MaxRepoCreation}}">
-					<p class="help">{{ctx.Locale.Tr "admin.users.max_repo_creation_desc"}}</p>
-				</div>
-
-				<div class="divider"></div>
-
-				<div class="inline field">
-					<div class="ui checkbox">
-						<label>{{ctx.Locale.Tr "admin.users.is_activated"}}</label>
-						<input name="active" type="checkbox" {{if .User.IsActive}}checked{{end}}>
-					</div>
-					<span class="help tw-block">{{ctx.Locale.Tr "admin.users.activated.description"}}</span>
-				</div>
-				<div class="inline field">
-					<div class="ui checkbox">
-						<label>{{ctx.Locale.Tr "admin.users.prohibit_login"}}</label>
-						<input name="prohibit_login" type="checkbox" {{if .User.ProhibitLogin}}checked{{end}} {{if (eq .User.ID .SignedUserID)}}disabled{{end}}>
-					</div>
-					<span class="help tw-block">{{ctx.Locale.Tr "admin.users.block.description"}}</span>
-				</div>
-				<div class="inline field">
-					<div class="ui checkbox">
-						<label>{{ctx.Locale.Tr "admin.users.is_admin"}}</label>
-						<input name="admin" type="checkbox" {{if .User.IsAdmin}}checked{{end}}>
-					</div>
-					<span class="help tw-block">{{ctx.Locale.Tr "admin.users.admin.description"}}</span>
-				</div>
-				<div class="inline field">
-					<div class="ui checkbox">
-						<label>{{ctx.Locale.Tr "admin.users.is_restricted"}}</label>
-						<input name="restricted" type="checkbox" {{if .User.IsRestricted}}checked{{end}}>
-					</div>
-					<span class="help tw-block">{{ctx.Locale.Tr "admin.users.restricted.description"}}</span>
-				</div>
-				<div class="inline field {{if DisableGitHooks}}tw-hidden{{end}}">
-					<div class="ui checkbox">
-						<label>{{ctx.Locale.Tr "admin.users.allow_git_hook"}}</label>
-						<input name="allow_git_hook" type="checkbox" {{if .User.CanEditGitHook}}checked{{end}} {{if DisableGitHooks}}disabled{{end}}>
-					</div>
-					<span class="help tw-block">{{ctx.Locale.Tr "admin.users.allow_git_hook_tooltip"}}</span>
-				</div>
-				<div class="inline field {{if or (DisableImportLocal) (.DisableMigrations)}}tw-hidden{{end}}">
-					<div class="ui checkbox">
-						<label>{{ctx.Locale.Tr "admin.users.allow_import_local"}}</label>
-						<input name="allow_import_local" type="checkbox" {{if .User.CanImportLocal}}checked{{end}} {{if DisableImportLocal}}disabled{{end}}>
-					</div>
-					<span class="help tw-block">{{ctx.Locale.Tr "admin.users.local_import.description"}}</span>
-				</div>
+				{{template "admin/check" (dict "ID" "active" "Name" "active" "Label" (ctx.Locale.Tr "admin.users.is_activated") "Checked" .User.IsActive "Hint" (ctx.Locale.Tr "admin.users.activated.description"))}}
+				{{template "admin/check" (dict "ID" "prohibit_login" "Name" "prohibit_login" "Label" (ctx.Locale.Tr "admin.users.prohibit_login") "Checked" .User.ProhibitLogin "Disabled" (eq .User.ID .SignedUserID) "Hint" (ctx.Locale.Tr "admin.users.block.description"))}}
+				{{template "admin/check" (dict "ID" "admin" "Name" "admin" "Label" (ctx.Locale.Tr "admin.users.is_admin") "Checked" .User.IsAdmin "Hint" (ctx.Locale.Tr "admin.users.admin.description"))}}
+				{{template "admin/check" (dict "ID" "restricted" "Name" "restricted" "Label" (ctx.Locale.Tr "admin.users.is_restricted") "Checked" .User.IsRestricted "Hint" (ctx.Locale.Tr "admin.users.restricted.description"))}}
+				{{if not DisableGitHooks}}
+					{{template "admin/check" (dict "ID" "allow_git_hook" "Name" "allow_git_hook" "Label" (ctx.Locale.Tr "admin.users.allow_git_hook") "Checked" .User.CanEditGitHook "Hint" (ctx.Locale.Tr "admin.users.allow_git_hook_tooltip"))}}
+				{{end}}
+				{{if not (or (DisableImportLocal) (.DisableMigrations))}}
+					{{template "admin/check" (dict "ID" "allow_import_local" "Name" "allow_import_local" "Label" (ctx.Locale.Tr "admin.users.allow_import_local") "Checked" .User.CanImportLocal "Hint" (ctx.Locale.Tr "admin.users.local_import.description"))}}
+				{{end}}
 				{{if not .DisableRegularOrgCreation}}
-				<div class="inline field">
-					<div class="ui checkbox">
-						<label>{{ctx.Locale.Tr "admin.users.allow_create_organization"}}</label>
-						<input name="allow_create_organization" type="checkbox" {{if .User.CanCreateOrganization}}checked{{end}}>
-					</div>
-					<span class="help tw-block">{{ctx.Locale.Tr "admin.users.organization_creation.description"}}</span>
-				</div>
+					{{template "admin/check" (dict "ID" "allow_create_organization" "Name" "allow_create_organization" "Label" (ctx.Locale.Tr "admin.users.allow_create_organization") "Checked" .User.CanCreateOrganization "Hint" (ctx.Locale.Tr "admin.users.organization_creation.description"))}}
 				{{end}}
-
 				{{if .TwoFactorEnabled}}
-				<div class="divider"></div>
-				<div class="inline field">
-					<div class="ui checkbox">
-						<label><strong>{{ctx.Locale.Tr "admin.users.reset_2fa"}}</strong></label>
-						<input name="reset_2fa" type="checkbox">
-					</div>
-				</div>
+					{{template "admin/check" (dict "ID" "reset_2fa" "Name" "reset_2fa" "Label" (ctx.Locale.Tr "admin.users.reset_2fa"))}}
 				{{end}}
+			</div>
+		</section>
 
-				<div class="divider"></div>
-
-				<div class="field">
-					<button class="ui primary button">{{ctx.Locale.Tr "admin.users.update_profile"}}</button>
-					<button class="ui red button show-modal" data-modal="#delete-user-modal">{{ctx.Locale.Tr "admin.users.delete_account"}}</button>
-				</div>
-			</form>
+		<div class="ds-sticky-actions">
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/users">{{ctx.Locale.Tr "cancel"}}</a>
+			<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "admin.users.update_profile"}}</button>
 		</div>
+	</form>
 
-		<h4 class="ui top attached header">
-			{{ctx.Locale.Tr "settings.avatar"}}
-		</h4>
-		<div class="ui attached segment">
-			<form class="ui form" action="./avatar" method="post" enctype="multipart/form-data">
-				{{if not .DisableGravatar}}
-				<div class="inline field">
-					<div class="ui radio checkbox">
-						<input name="source" value="lookup" type="radio" {{if not .User.UseCustomAvatar}}checked{{end}}>
-						<label>{{ctx.Locale.Tr "settings.lookup_avatar_by_mail"}}</label>
-					</div>
+	<section class="ds-card adm-sec" aria-labelledby="adm-e-avatar">
+		<div class="ds-card-h"><h2 id="adm-e-avatar">{{ctx.Locale.Tr "settings.avatar"}}</h2></div>
+		<form class="ds-card-b ds-form" action="./avatar" method="post" enctype="multipart/form-data">
+			{{.CsrfTokenHtml}}
+			<div class="adm-who">{{ctx.AvatarUtils.Avatar .User 72}}</div>
+			{{if not .DisableGravatar}}
+				<div class="ds-field">
+					<div class="ds-check"><input type="radio" id="avatar-lookup" name="source" value="lookup"{{if not .User.UseCustomAvatar}} checked{{end}}><label for="avatar-lookup">{{ctx.Locale.Tr "settings.lookup_avatar_by_mail"}}</label></div>
 				</div>
-				<div class="field tw-pl-4 {{if .Err_Gravatar}}error{{end}}">
-					<label for="gravatar">Avatar {{ctx.Locale.Tr "email"}}</label>
-					<input id="gravatar" name="gravatar" value="{{.User.AvatarEmail}}">
+				<div class="ds-field">
+					<label class="ds-label" for="gravatar">{{ctx.Locale.Tr "asc_admin.avatar_email"}}</label>
+					<input class="ds-input{{if .Err_Gravatar}} is-err{{end}}" id="gravatar" name="gravatar" value="{{.User.AvatarEmail}}">
 				</div>
-				{{end}}
+			{{end}}
+			<div class="ds-field">
+				<div class="ds-check"><input type="radio" id="avatar-local" name="source" value="local"{{if .User.UseCustomAvatar}} checked{{end}}><label for="avatar-local">{{ctx.Locale.Tr "settings.enable_custom_avatar"}}</label></div>
+			</div>
+			<div class="ds-field">
+				<label class="ds-label" for="avatar">{{ctx.Locale.Tr "settings.choose_new_avatar"}}</label>
+				<input class="ds-input" id="avatar" name="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp" aria-describedby="adm-av-help">
+				<p class="ds-hint" id="adm-av-help">{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</p>
+			</div>
+			<div class="ds-row ds-row-wrap ds-gap-8">
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "settings.update_avatar"}}</button>
+				<button class="ds-btn ds-btn-danger link-action" type="button" data-url="./avatar/delete">{{ctx.Locale.Tr "settings.delete_current_avatar"}}</button>
+			</div>
+		</form>
+	</section>
 
-				<div class="inline field">
-					<div class="ui radio checkbox">
-						<input name="source" value="local" type="radio" {{if .User.UseCustomAvatar}}checked{{end}}>
-						<label>{{ctx.Locale.Tr "settings.enable_custom_avatar"}}</label>
-					</div>
-				</div>
-
-				<div class="inline field tw-pl-4">
-					<label for="avatar">{{ctx.Locale.Tr "settings.choose_new_avatar"}}</label>
-					<input name="avatar" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
-					<br/><span class=help>{{ctx.Locale.Tr "avatar.constraints_hint" (ctx.Locale.TrSize .MaxAvatarFileSize) .MaxAvatarWidth .MaxAvatarHeight}}</span>
-				</div>
-
-				<div class="field button-sequence">
-					<button class="primary button">{{ctx.Locale.Tr "settings.update_avatar"}}</button>
-					<button class="danger button link-action" data-url="./avatar/delete">{{ctx.Locale.Tr "settings.delete_current_avatar"}}</button>
-				</div>
-			</form>
+	<section class="ds-card adm-danger adm-sec" aria-labelledby="adm-e-del">
+		<div class="ds-card-b adm-danger-in">
+			<div class="ds-min0">
+				<h2 id="adm-e-del" class="ds-t-h4">{{ctx.Locale.Tr "asc_admin.delete_person"}}</h2>
+				<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.delete_person_text"}}</p>
+			</div>
+			<button type="button" class="ds-btn ds-btn-danger show-modal" data-modal="#delete-user-modal">{{ctx.Locale.Tr "admin.users.delete_account"}}</button>
 		</div>
-	</div>
+	</section>
 
 <dialog id="delete-user-modal">
 	<article>
-		<header>{{svg "octicon-trash"}} {{ctx.Locale.Tr "settings.delete_account_title"}}</header>
-		<form class="ui form" method="post" action="./delete">
-			<div class="content">
+		<header>{{ctx.Locale.Tr "settings.delete_account_title"}}</header>
+		<form method="post" action="./delete">
+			{{.CsrfTokenHtml}}
+			<div class="content ds-form">
 				<p>{{ctx.Locale.Tr "settings.delete_account_desc"}}</p>
-				<div class="field">
-					<div class="ui checkbox">
-						<label for="purge">{{ctx.Locale.Tr "admin.users.purge"}}</label>
-						<input name="purge" type="checkbox">
-					</div>
-					<p class="help">{{ctx.Locale.Tr "admin.users.purge_help"}}</p>
-				</div>
+				{{template "admin/check" (dict "ID" "purge" "Name" "purge" "Label" (ctx.Locale.Tr "admin.users.purge") "Hint" (ctx.Locale.Tr "admin.users.purge_help"))}}
 			</div>
-			{{template "base/modal_actions_confirm" .}}
+			<div class="actions">
+				<button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button>
+				<button type="submit" class="ds-btn ds-btn-danger-fill">{{ctx.Locale.Tr "modal.confirm"}}</button>
+			</div>
 		</form>
 	</article>
 </dialog>
-
 {{template "admin/layout_footer" .}}
