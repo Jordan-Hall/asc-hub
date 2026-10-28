@@ -82,6 +82,15 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 	language := ctx.FormTrim("language")
 	ctx.Data["Language"] = language
 	ctx.Data["ExploreLanguages"] = exploreLanguages(ctx, language)
+	if topics, _, err := repo_model.FindTopics(ctx, &repo_model.FindTopicOptions{ListOptions: db.ListOptions{PageSize: 12, Page: 1}}); err == nil {
+		names := make([]string, 0, len(topics))
+		for _, t := range topics {
+			if t.RepoCount > 0 {
+				names = append(names, t.Name)
+			}
+		}
+		ctx.Data["PopularTopics"] = names
+	}
 
 	archived := ctx.FormOptionalBool("archived")
 	ctx.Data["IsArchived"] = archived

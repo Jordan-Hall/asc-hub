@@ -7,6 +7,10 @@
 			<div class="ds-min0">
 				<div class="ds-results-bar">
 					<p class="ds-results-line ds-hide-sm">{{ctx.Locale.TrPluralString .Total "explore.count_repos" (ctx.Locale.PrettyNumber .Total)}}</p>
+					<div class="ds-seg ds-hide-xs" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.density_label"}}" data-asc-density=".ds-repolist">
+						<button type="button" data-density="comfy" aria-pressed="true">{{ctx.Locale.Tr "asc_rp.density_comfy"}}</button>
+						<button type="button" data-density="compact" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.density_compact"}}</button>
+					</div>
 					{{template "shared/ds/layout_toggle" (dict "Target" ".ds-repolist")}}
 				</div>
 				{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" .Language "Sort" .SortType)}}
