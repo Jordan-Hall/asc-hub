@@ -4,6 +4,7 @@
 // every key has a button or link on the page that does the same, so nothing depends on the keyboard.
 
 import {openOverlay} from './ds-shell.js';
+import {shortcutsEnabled} from './ds-prefs.js';
 
 const chordMs = 1200;
 
@@ -58,7 +59,7 @@ export function initAscKeys() {
       return;
     }
     if (e.ctrlKey || e.metaKey || e.shiftKey) return;
-    if (isTypingTarget(e.target)) return;
+    if (isTypingTarget(e.target) || !shortcutsEnabled()) return;
     const now = Date.now();
     switch (e.key) {
       case 'j':

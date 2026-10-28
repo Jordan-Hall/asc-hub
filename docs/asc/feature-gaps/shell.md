@@ -124,7 +124,7 @@ Open rows by size: S 45, M 64, L 23.
 | Download | Detected system card, recommended file, size, truncated sha256, "Not your system?" and OS sections | done | `templates/download.tmpl`, `asc-ui.js` (client hints), `modules/ascdownload` | - |
 | Download | Package manager cards per OS with Copy | done | `offer.go` `PackageCommands`, `download.tmpl` | - |
 | Download | Files table with size, sha256 (copy whole, full value in title), `.minisig` link | done | `download.tmpl` | - |
-| Download | Copy confirms with an inverse-surface toast ("SHA-256 copied") | ui-only-missing | `clipboard.js` shows a tooltip; board uses a toast. Restyle `modules/toast.js` to the board and use it here and on Main, GetStarted, Docs | S |
+| Download | Copy confirms with an inverse-surface toast ("SHA-256 copied") | done | `clipboard.js` shows a tooltip; board uses a toast. Restyle `modules/toast.js` to the board and use it here and on Main, GetStarted, Docs | S |
 | Download | Connect card, access-token alternative, Verify your download, release key | done | `download.tmpl` aside | - |
 | Download | Editor extensions | done | `download.tmpl` | - |
 | Download | System requirements card | ui-only-missing | No `system_req` string; add to the aside | S |

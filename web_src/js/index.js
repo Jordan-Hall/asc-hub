@@ -59,6 +59,7 @@ import {initAscUi} from './features/asc-ui.js';
 import {initDsShell} from './features/ds-shell.js';
 import {initDsToast} from './features/ds-toast.js';
 import {initLivePreview, initImagePreview} from './features/ds-forms.js';
+import {initPrefs} from './features/ds-prefs.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {
   initRepoSettingGitHook,
@@ -179,6 +180,7 @@ onDomReady(() => {
   initDsToast();
   initLivePreview();
   initImagePreview();
+  initPrefs();
   initAscKeys();
   initAscInboxBadge();
   initRepoProject();

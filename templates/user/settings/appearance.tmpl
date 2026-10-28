@@ -38,6 +38,23 @@
 		</div>
 	</section>
 
+	<!-- Motion and keys: browser choices that apply at once, with an undo toast -->
+	<section class="ds-card" aria-labelledby="sp-browser">
+		<div class="ds-card-h"><h2 id="sp-browser">{{ctx.Locale.Tr "asc_work.sp_browser"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_browser_hint"}}</span></div>
+		<div class="ds-card-b wk-switch-rows">
+			<label class="ds-switch wk-switch-row">
+				<input type="checkbox" role="switch" data-pref="motion" data-pref-default="0" data-toast-on="{{ctx.Locale.Tr "asc_work.sp_motion_on"}}" data-toast-off="{{ctx.Locale.Tr "asc_work.sp_motion_off"}}" data-toast-undo="{{ctx.Locale.Tr "asc_work.undo"}}">
+				<span class="ds-switch-track"></span>
+				<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.sp_motion"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_motion_hint"}}</span></span>
+			</label>
+			<label class="ds-switch wk-switch-row">
+				<input type="checkbox" role="switch" data-pref="keys" data-pref-default="1" checked data-toast-on="{{ctx.Locale.Tr "asc_work.sp_keys_on"}}" data-toast-off="{{ctx.Locale.Tr "asc_work.sp_keys_off"}}" data-toast-undo="{{ctx.Locale.Tr "asc_work.undo"}}">
+				<span class="ds-switch-track"></span>
+				<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.sp_keys"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_keys_hint"}}</span></span>
+			</label>
+		</div>
+	</section>
+
 	<!-- Language -->
 	<form class="ui form ds-form wk-sp-form" action="{{.Link}}/language" method="post">
 		{{.CsrfTokenHtml}}
