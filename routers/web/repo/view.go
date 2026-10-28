@@ -594,7 +594,8 @@ func renderFile(ctx *context.Context, entry *git.TreeEntry) {
 			}
 
 			highlighted, err := highlight.FileBudgeted(blob.Name(), language, buf)
-			fileContent, lexerName := highlighted.Lines, highlighted.Lexer
+			// the lines of a cached result are shared: work on a copy
+			fileContent, lexerName := append([]template.HTML(nil), highlighted.Lines...), highlighted.Lexer
 			ctx.Data["LexerName"] = lexerName
 			ctx.Data["HighlightSkipped"] = highlighted.Skipped
 			ctx.Data["HighlightWindow"] = highlighted.Window
