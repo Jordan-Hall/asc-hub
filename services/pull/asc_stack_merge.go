@@ -204,6 +204,9 @@ func AscStackPrefix(ctx context.Context, pr *issues_model.PullRequest) ([]*AscSt
 }
 
 func checkAscStackItem(ctx context.Context, doer *user_model.User, perm access_model.Permission, first *issues_model.PullRequest, it *AscStackItem) error {
+	// The gate decides rule by rule, in this order. What it reports to asc (RecordGateDecision) is the rules it got to
+	// look at and the one that held the change, so the history and the per-rule counts of the policy page are real.
+	g := ascGateRun{item: it}
 	pr := it.PR
 	if err := pr.LoadIssue(ctx); err != nil {
 		return err
@@ -211,34 +214,44 @@ func checkAscStackItem(ctx context.Context, doer *user_model.User, perm access_m
 	if err := pr.LoadBaseRepo(ctx); err != nil {
 		return err
 	}
+	g.repo = pr.BaseRepo.FullName()
 	switch {
 	case pr.HasMerged:
-		return fmt.Errorf("%w: #%d is merged already", ErrAscStackNotMergable, pr.Index)
+		return g.hold(ctx, ascGateRuleOpen, fmt.Errorf("%w: #%d is merged already", ErrAscStackNotMergable, pr.Index))
 	case pr.Issue.IsClosed:
-		return fmt.Errorf("%w: #%d is closed", ErrAscStackNotMergable, pr.Index)
-	case pr.IsWorkInProgress(ctx):
-		return fmt.Errorf("%w: #%d is a draft", ErrAscStackNotMergable, pr.Index)
-	case pr.BaseRepoID != first.BaseRepoID || pr.BaseBranch != first.BaseBranch:
-		return fmt.Errorf("%w: #%d targets another branch", ErrAscStackNotMergable, pr.Index)
+		return g.hold(ctx, ascGateRuleOpen, fmt.Errorf("%w: #%d is closed", ErrAscStackNotMergable, pr.Index))
 	}
+	g.pass(ascGateRuleOpen)
+	if pr.IsWorkInProgress(ctx) {
+		return g.hold(ctx, ascGateRuleReady, fmt.Errorf("%w: #%d is a draft", ErrAscStackNotMergable, pr.Index))
+	}
+	g.pass(ascGateRuleReady)
+	if pr.BaseRepoID != first.BaseRepoID || pr.BaseBranch != first.BaseBranch {
+		return g.hold(ctx, ascGateRuleBranch, fmt.Errorf("%w: #%d targets another branch", ErrAscStackNotMergable, pr.Index))
+	}
+	g.pass(ascGateRuleBranch)
 	ok, err := IsUserAllowedToMerge(ctx, pr, perm, doer)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("%w: #%d", ErrAscStackNotAllowed, pr.Index)
+		return g.hold(ctx, ascGateRuleMayMerge, fmt.Errorf("%w: #%d", ErrAscStackNotAllowed, pr.Index))
 	}
+	g.pass(ascGateRuleMayMerge)
 	if _, err := CheckPullBranchProtections(ctx, pr, false); err != nil {
-		return fmt.Errorf("%w: #%d: %w", ErrAscStackNotMergable, pr.Index, err)
+		return g.hold(ctx, ascGateRuleProtections, fmt.Errorf("%w: #%d: %w", ErrAscStackNotMergable, pr.Index, err))
 	}
+	g.pass(ascGateRuleProtections)
 	head, err := ascStackHead(ctx, pr)
 	if err != nil {
 		return err
 	}
 	if pr.HeadCommitID != "" && pr.HeadCommitID != head {
-		return fmt.Errorf("%w: #%d", ErrAscStackHeadMoved, pr.Index)
+		return g.hold(ctx, ascGateRuleHead, fmt.Errorf("%w: #%d", ErrAscStackHeadMoved, pr.Index))
 	}
+	g.pass(ascGateRuleHead)
 	it.Head = head
+	g.report(ctx)
 	return nil
 }
 
@@ -509,6 +522,7 @@ func InitAscStack() error {
 		return nil
 	}
 	ascStackBackend = b
+	installAscGateReporter()
 	return nil
 }
 
