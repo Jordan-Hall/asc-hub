@@ -112,6 +112,20 @@ func newAscMigrationFixture(t *testing.T) *ascMigrationFixture {
 	return &ascMigrationFixture{repo: repo, fake: fake, commit: commit}
 }
 
+func TestScrubBridgeConfig(t *testing.T) {
+	fx := newAscMigrationFixture(t)
+	path := fx.repo.RepoPath()
+	gitIn(t, path, "", "config", "--local", "http.followRedirects", "false")
+	gitIn(t, path, "", "config", "--local", "http.sslVerify", "false")
+	gitIn(t, path, "", "config", "--local", "remote.origin.url", "https://example.org/x.git")
+	require.NoError(t, scrubBridgeConfig(t.Context(), path))
+	conf := gitIn(t, path, "", "config", "--local", "--list")
+	assert.NotContains(t, conf, "http.")
+	assert.Contains(t, conf, "remote.origin.url=", "what git clone --mirror writes stays")
+	// Nothing to remove is no error.
+	require.NoError(t, scrubBridgeConfig(t.Context(), path))
+}
+
 func TestPruneNonBranchRefs(t *testing.T) {
 	fx := newAscMigrationFixture(t)
 	path := fx.repo.RepoPath()
@@ -127,8 +141,10 @@ func TestImportMigratedIntoAscSendsBranchesAndTagsForTheImporter(t *testing.T) {
 	restore := stubAscHolds(func(context.Context, *repo_model.Repository, string, string) error { return nil })
 	defer restore()
 
+	gitIn(t, fx.repo.RepoPath(), "", "config", "--local", "http.followRedirects", "false")
 	ctx := ascsync.WithImporter(t.Context(), 42)
 	require.NoError(t, importMigratedIntoAsc(ctx, fx.repo, "main"))
+	assert.NotContains(t, gitIn(t, fx.repo.RepoPath(), "", "config", "--local", "--list"), "http.", "asc refuses a bridge with an [http] section")
 
 	require.Len(t, fx.fake.imports, 1)
 	req := fx.fake.imports[0]
