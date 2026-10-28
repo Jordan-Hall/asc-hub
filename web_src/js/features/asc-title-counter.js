@@ -12,7 +12,7 @@ export function describeCount(n, max, template) {
 }
 
 export function updateCounter(input, out) {
-  const max = Number.parseInt(input.getAttribute('data-asc-count-max') || '', 10);
+  const max = Number.parseInt(input.getAttribute('data-asc-count-max') || '');
   if (!Number.isFinite(max) || max <= 0) return null;
   const n = countChars(input.value);
   const over = n > max;
