@@ -24,6 +24,7 @@ const (
 func Applications(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings.applications")
 	ctx.Data["PageIsSettingsApplications"] = true
+	ctx.Data["NewAccessToken"] = takeNewAccessToken(ctx)
 
 	loadApplicationsData(ctx)
 

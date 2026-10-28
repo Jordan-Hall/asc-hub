@@ -93,9 +93,9 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsTokens | Token list (name, scopes, created, last used) with revoke and regenerate | done | templates/user/settings/applications.tmpl, routers/web/user/setting/access_token.go | - |
 | UserSettingsTokens | Expiry per token (30 days etc.), Expires column, Expired chip | needs-hub-backend | models/auth/access_token.go has no expiry; migration + access_token_edit.tmpl + check in services/auth | M |
 | UserSettingsTokens | ASC scope set (Repositories, Changesets and stacks, Agent runs, Organizations, Profile) as None/Read/Write segmented group; hub shows Forgejo categories in selects | needs-both | hub: models/auth/access_token_scope.go + access_token_edit.tmpl; asc: crates/asc-serve/src/authn.rs must accept and enforce them | L |
-| UserSettingsTokens | Token created: copy-once card with Copy and "shown once" text (today a flash message) | ui-only-missing | routers/web/user/setting/access_token.go lines 313 and 341, applications.tmpl | S |
+| UserSettingsTokens | Token created: copy-once card with Copy and "shown once" text (today a flash message) | done | routers/web/user/setting/access_token.go lines 313 and 341, applications.tmpl | S |
 | UserSettingsTokens | Workload identity (issuer, subject, last used, remove, add) | done | templates/user/settings/authorized_integrations.tmpl | - |
-| UserSettingsTokens | "Prefer no tokens" card with asc auth login commands | ui-only-missing | applications.tmpl static card | S |
+| UserSettingsTokens | "Prefer no tokens" card with asc auth login commands | done | applications.tmpl static card | S |
 | UserSettingsKeys | SSH keys (fingerprint, added, last used, delete) and GPG keys | done | templates/user/settings/keys_ssh.tmpl, keys_gpg.tmpl | - |
 | UserSettingsKeys | ASC signing keys list, add, revoke with state chips | done | templates/user/settings/asc_keys.tmpl, routers/web/user/setting/asc_keys.go | - |
 | UserSettingsKeys | Rotate action that keeps the old key verifying past signatures | ui-only-missing | asc_keys.go: add new key then revoke old in one flow (Signing.AddKey and RevokeKey exist) | S |

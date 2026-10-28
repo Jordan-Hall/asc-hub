@@ -311,9 +311,30 @@ func AccessTokenCreatePost(ctx *context.Context) {
 	}
 
 	ctx.Flash.Success(ctx.Tr("settings.generate_token_success"))
-	ctx.Flash.Info(t.Token)
+	rememberNewAccessToken(ctx, t.Token)
 
 	ctx.Redirect(setting.AppSubURL + "/user/settings/applications")
+}
+
+// newAccessTokenKey is the session key that carries a token from the page that made it to the next page view of
+// the applications settings, which shows it once in a copy card.
+const newAccessTokenKey = "new_access_token"
+
+func rememberNewAccessToken(ctx *context.Context, token string) {
+	if err := ctx.Session.Set(newAccessTokenKey, token); err != nil {
+		// without the session the token would be lost after the redirect: fall back to the message
+		ctx.Flash.Info(token)
+	}
+}
+
+// takeNewAccessToken returns the token made during the last request (once) or "".
+func takeNewAccessToken(ctx *context.Context) string {
+	token, _ := ctx.Session.Get(newAccessTokenKey).(string)
+	if token == "" {
+		return ""
+	}
+	_ = ctx.Session.Delete(newAccessTokenKey)
+	return token
 }
 
 // DeleteAccessToken response for delete user access token
@@ -338,7 +359,7 @@ func RegenerateAccessToken(ctx *context.Context) {
 		}
 	} else {
 		ctx.Flash.Success(ctx.Tr("settings.regenerate_token_success"))
-		ctx.Flash.Info(t.Token)
+		rememberNewAccessToken(ctx, t.Token)
 	}
 
 	ctx.JSONRedirect(setting.AppSubURL + "/user/settings/applications")
