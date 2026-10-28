@@ -70,5 +70,11 @@ func SleepTillNextSecond() {
 // When this is called, sleep until the truncated unix time to a minute was
 // increased by one.
 func SleepTillNextMinute() {
-	time.Sleep(time.Minute - time.Since(time.Now().Truncate(time.Minute)))
+	start := time.Now().Truncate(time.Minute)
+	time.Sleep(time.Minute - time.Since(start))
+	// the monotonic clock of the sleep and the wall clock that decides the minute can drift apart (a virtual machine
+	// that corrects its clock): wait until the wall clock really is in the next minute
+	for !time.Now().Truncate(time.Minute).After(start) {
+		time.Sleep(50 * time.Millisecond)
+	}
 }
