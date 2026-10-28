@@ -43,7 +43,7 @@
 					</div>
 					{{if not .GSConnected}}
 					<p class="ds-c-2">{{ctx.Locale.Tr "asc_site.started_s2_t"}}</p>
-					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.GSConnectCommand}}</code><button type="button" class="ds-copy" data-clipboard-text="{{.GSConnectCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+					<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.GSConnectCommand}}</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{.GSConnectCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 					<p class="ds-t-small ds-c-2 site-wait"><span class="ds-dot ds-dot-info" aria-hidden="true"></span> {{ctx.Locale.Tr "asc_site.started_s2_wait"}}</p>
 					{{end}}
 				</li>

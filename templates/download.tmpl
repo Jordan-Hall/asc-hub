@@ -33,7 +33,7 @@
 					<h3 class="ds-t-h4">{{ctx.Locale.Tr "asc_download.source_title"}}</h3>
 					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_download.source_text"}}</p>
 					<div class="ds-term ds-mt-12">
-						<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_download.terminal"}}</span><button type="button" class="ds-copy" data-clipboard-text="cargo build --release -p asc&#10;target/release/asc --version">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+						<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_download.terminal"}}</span><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="cargo build --release -p asc&#10;target/release/asc --version">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 						<div class="ds-term-bd" tabindex="0">cargo build --release -p asc
 target/release/asc --version</div>
 					</div>
@@ -41,7 +41,7 @@ target/release/asc --version</div>
 				<div>
 					<h3 class="ds-t-h4">{{ctx.Locale.Tr "asc_download.connect_title"}}</h3>
 					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_download.connect_desc"}}</p>
-					<div class="ds-cmd ds-cmd-scroll ds-mt-12"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.AscConnectCommand}}</code><button type="button" class="ds-copy" data-clipboard-text="{{.AscConnectCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+					<div class="ds-cmd ds-cmd-scroll ds-mt-12"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.AscConnectCommand}}</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{.AscConnectCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 					<p class="ds-mt-12"><a class="ds-link" href="{{AppSubUrl}}/user/settings/applications">{{ctx.Locale.Tr "asc_download.create_token"}}</a></p>
 				</div>
 			</div>
@@ -86,7 +86,7 @@ target/release/asc --version</div>
 						{{range $os.PackageCommands}}
 						<li class="ds-li site-dl-pmrow">
 							<div class="ds-li-main"><span class="ds-li-title">{{.Title}}</span></div>
-							<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.Text}}</code><button type="button" class="ds-copy" data-clipboard-text="{{.Text}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}: {{.Title}}">{{svg "dsi-copy" 14}} <span class="ds-hide-xs">{{ctx.Locale.Tr "asc_download.copy"}}</span></button></div>
+							<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.Text}}</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{.Text}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}: {{.Title}}">{{svg "dsi-copy" 14}} <span class="ds-hide-xs">{{ctx.Locale.Tr "asc_download.copy"}}</span></button></div>
 						</li>
 						{{end}}
 					</ul>
@@ -108,7 +108,7 @@ target/release/asc --version</div>
 									<tr>
 										<td class="site-dl-file"><a class="ds-mono ds-link ds-break" href="{{.URL}}" download="{{.Name}}">{{.Name}}</a><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr (printf "asc_download.kind_%s" .Kind)}}</span></td>
 										<td class="ds-r ds-num" data-label="{{ctx.Locale.Tr "asc_site.col_size"}}">{{ctx.Locale.TrSize .Size}}</td>
-										<td data-label="{{ctx.Locale.Tr "asc_download.sha256"}}"><span class="site-dl-hash"><code class="ds-mono ds-t-small">{{.SHA256}}</code><button type="button" class="ds-btn ds-btn-ghost ds-btn-icon" data-clipboard-text="{{.SHA256}}" aria-label="{{ctx.Locale.Tr "asc_download.copy_hash"}}">{{svg "dsi-copy" 16}}</button></span></td>
+										<td data-label="{{ctx.Locale.Tr "asc_download.sha256"}}"><span class="site-dl-hash"><code class="ds-mono ds-t-small">{{.SHA256}}</code><button type="button" class="ds-btn ds-btn-ghost ds-btn-icon" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_hash_toast"}}" data-clipboard-text="{{.SHA256}}" aria-label="{{ctx.Locale.Tr "asc_download.copy_hash"}}">{{svg "dsi-copy" 16}}</button></span></td>
 										<td data-label="{{ctx.Locale.Tr "asc_download.signature"}}">{{if .SignatureURL}}<a class="ds-link ds-t-small" href="{{.SignatureURL}}" download="{{.Signature}}">{{.Signature}}</a>{{end}}</td>
 										<td class="site-dl-act"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.URL}}" download="{{.Name}}">{{ctx.Locale.Tr "asc_site.dl_download"}}<span class="ds-sr">: {{.Name}}</span></a></td>
 									</tr>
@@ -118,7 +118,7 @@ target/release/asc --version</div>
 						</div>
 						{{range $arch.Commands}}
 						<div class="ds-term site-dl-term">
-							<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_download.install_title"}} &middot; {{.Title}}</span><button type="button" class="ds-copy" data-clipboard-text="{{.Text}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+							<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_download.install_title"}} &middot; {{.Title}}</span><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{.Text}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 							<div class="ds-term-bd" tabindex="0">{{.Text}}</div>
 						</div>
 						{{end}}
@@ -134,7 +134,7 @@ target/release/asc --version</div>
 					<div class="ds-card-h"><h2 class="ds-t-h4" id="asc-connect-title">{{ctx.Locale.Tr "asc_download.connect_title"}}</h2></div>
 					<div class="ds-card-b ds-stack ds-stack-12">
 						<p class="ds-c-2 ds-t-small">{{ctx.Locale.Tr "asc_download.connect_desc"}}</p>
-						<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{$offers.ConnectCommand}}</code><button type="button" class="ds-copy" data-clipboard-text="{{$offers.ConnectCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+						<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{$offers.ConnectCommand}}</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{$offers.ConnectCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 						<a class="ds-link ds-t-small" href="{{AppSubUrl}}/user/settings/applications">{{ctx.Locale.Tr "asc_download.create_token"}}</a>
 					</div>
 				</section>
@@ -156,7 +156,7 @@ target/release/asc --version</div>
 						{{end}}
 						{{if $offers.VerifyCommand}}
 						<div class="ds-term">
-							<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_download.verify_command"}}</span><button type="button" class="ds-copy" data-clipboard-text="{{$offers.VerifyCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+							<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_download.verify_command"}}</span><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{$offers.VerifyCommand}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 							<div class="ds-term-bd" tabindex="0">{{$offers.VerifyCommand}}</div>
 						</div>
 						{{end}}
