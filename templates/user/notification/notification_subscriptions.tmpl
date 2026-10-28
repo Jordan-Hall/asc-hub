@@ -1,73 +1,50 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content user notification">
-	<div class="ui container">
-		<div class="tw-flex tw-items-center tw-justify-between tw-mb-4 tw-gap-2">
-			<div class="switch">
-				<a href="{{AppSubUrl}}/notifications/subscriptions" class="{{if eq .Status 1}}active {{end}}item">
-					{{ctx.Locale.Tr "notification.subscriptions"}}
-				</a>
-				<a href="{{AppSubUrl}}/notifications/watching" class="{{if eq .Status 2}}active {{end}}item">
-					{{ctx.Locale.Tr "notification.watching"}}
-				</a>
+<div role="main" aria-label="{{.Title}}" class="page-content user notification wk-issues-page">
+	<div class="ds-container wk-issues">
+		<div class="wk-head">
+			<div class="wk-head-text">
+				<h1 class="ds-t-h1 wk-title">{{ctx.Locale.Tr "notification.subscriptions"}}</h1>
+				<p class="ds-c-2 wk-sub">{{ctx.Locale.Tr "asc_work.ns_lead"}}</p>
 			</div>
-			<a class="secondary button" href="{{AppSubUrl}}/notifications">
-				{{ctx.Locale.Tr "notifications"}}
-			</a>
+			<div class="wk-head-btns"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/notifications">{{ctx.Locale.Tr "notifications"}}</a></div>
 		</div>
-		<div class="ui bottom active tab segment">
+		<nav class="ds-tabs wk-ns-tabs" aria-label="{{ctx.Locale.Tr "notification.subscriptions"}}">
+			{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "notification.subscriptions") "Href" (print AppSubUrl "/notifications/subscriptions") "Active" (eq .Status 1))}}
+			{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "notification.watching") "Href" (print AppSubUrl "/notifications/watching") "Active" (eq .Status 2))}}
+		</nav>
+		<div class="wk-ns-body">
 			{{if eq .Status 1}}
-				<div class="tw-flex tw-justify-between tw-flex-wrap tw-gap-y-4 tw-gap-x-2">
-					<div class="switch">
-						<a class="{{if eq .State "all"}}active {{end}}item" href="?sort={{$.SortType}}&state=all&issueType={{$.IssueType}}&labels={{$.Labels}}">
-							{{ctx.Locale.Tr "all"}}
-						</a>
-						<a class="{{if eq .State "open"}}active {{end}}item" href="?sort={{$.SortType}}&state=open&issueType={{$.IssueType}}&labels={{$.Labels}}">
-							{{svg "octicon-issue-opened" 16}}
-							{{ctx.Locale.Tr "repo.issues.open_title"}}
-						</a>
-						<a class="{{if eq .State "closed"}}active {{end}}item" href="?sort={{$.SortType}}&state=closed&issueType={{$.IssueType}}&labels={{$.Labels}}">
-							{{svg "octicon-issue-closed" 16}}
-							{{ctx.Locale.Tr "repo.issues.closed_title"}}
-						</a>
+				<div class="wk-dash-list-header">
+					<div class="ds-scrollx wk-states" role="group" aria-label="{{ctx.Locale.Tr "asc_work.is_state"}}">
+						<a class="ds-chip-btn{{if eq .State "all"}} is-on{{end}}" {{if eq .State "all"}}aria-current="true"{{end}} href="?sort={{$.SortType}}&state=all&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "all"}}</a>
+						<a class="ds-chip-btn{{if eq .State "open"}} is-on{{end}}" {{if eq .State "open"}}aria-current="true"{{end}} href="?sort={{$.SortType}}&state=open&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.open_title"}}</a>
+						<a class="ds-chip-btn{{if eq .State "closed"}} is-on{{end}}" {{if eq .State "closed"}}aria-current="true"{{end}} href="?sort={{$.SortType}}&state=closed&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.closed_title"}}</a>
 					</div>
-					<div class="tw-flex">
-						<div class="ui right aligned secondary filter menu">
-							<!-- Type -->
-								<div class="ui dropdown type jump item">
-									<span class="text">
-										{{ctx.Locale.Tr "repo.issues.filter_type"}}
-									</span>
-									{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-									<div class="menu">
-										<a class="{{if or (eq .IssueType "all") (not .IssueType)}}active {{end}}item" href="?sort={{$.SortType}}&state={{$.State}}&issueType=all&labels={{$.Labels}}">{{ctx.Locale.Tr "all"}}</a>
-										<a class="{{if eq .IssueType "issues"}}active {{end}}item" href="?sort={{$.SortType}}&state={{$.State}}&issueType=issues&labels={{$.Labels}}">{{ctx.Locale.Tr "issues"}}</a>
-										<a class="{{if eq .IssueType "pulls"}}active {{end}}item" href="?sort={{$.SortType}}&state={{$.State}}&issueType=pulls&labels={{$.Labels}}">{{ctx.Locale.Tr "pull_requests"}}</a>
-									</div>
-								</div>
-
-							<!-- Sort -->
-							<div class="ui dropdown type jump item">
-								<span class="text">
-									{{ctx.Locale.Tr "repo.issues.filter_sort"}}
-								</span>
-								{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-								<div class="menu">
-									<a class="{{if or (eq .SortType "latest") (not .SortType)}}active {{end}}item" href="?sort=latest&state={{$.State}}&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.filter_sort.latest"}}</a>
-									<a class="{{if eq .SortType "oldest"}}active {{end}}item" href="?sort=oldest&state={{$.State}}&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</a>
-									<a class="{{if eq .SortType "recentupdate"}}active {{end}}item" href="?sort=recentupdate&state={{$.State}}&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.filter_sort.recentupdate"}}</a>
-									<a class="{{if eq .SortType "leastupdate"}}active {{end}}item" href="?sort=leastupdate&state={{$.State}}&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.filter_sort.leastupdate"}}</a>
-									<a class="{{if eq .SortType "mostcomment"}}active {{end}}item" href="?sort=mostcomment&state={{$.State}}&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.filter_sort.mostcomment"}}</a>
-									<a class="{{if eq .SortType "leastcomment"}}active {{end}}item" href="?sort=leastcomment&state={{$.State}}&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.filter_sort.leastcomment"}}</a>
-									<a class="{{if eq .SortType "nearduedate"}}active {{end}}item" href="?sort=nearduedate&state={{$.State}}&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.filter_sort.nearduedate"}}</a>
-									<a class="{{if eq .SortType "farduedate"}}active {{end}}item" href="?sort=farduedate&state={{$.State}}&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr "repo.issues.filter_sort.farduedate"}}</a>
-								</div>
+					<div class="wk-toolbar"><div class="issue-list-toolbar-right"><div class="ui secondary filter menu">
+						<!-- Type -->
+						<div class="ui dropdown type jump item">
+							<span class="text">{{ctx.Locale.Tr "repo.issues.filter_type"}}</span>
+							{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+							<div class="menu">
+								<a class="{{if or (eq .IssueType "all") (not .IssueType)}}active {{end}}item" href="?sort={{$.SortType}}&state={{$.State}}&issueType=all&labels={{$.Labels}}">{{ctx.Locale.Tr "all"}}</a>
+								<a class="{{if eq .IssueType "issues"}}active {{end}}item" href="?sort={{$.SortType}}&state={{$.State}}&issueType=issues&labels={{$.Labels}}">{{ctx.Locale.Tr "issues"}}</a>
+								<a class="{{if eq .IssueType "pulls"}}active {{end}}item" href="?sort={{$.SortType}}&state={{$.State}}&issueType=pulls&labels={{$.Labels}}">{{ctx.Locale.Tr "pull_requests"}}</a>
 							</div>
 						</div>
-					</div>
+						<!-- Sort -->
+						<div class="ui dropdown type jump item">
+							<span class="text">{{ctx.Locale.Tr "repo.issues.filter_sort"}}</span>
+							{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+							<div class="menu">
+								{{range $opt := StringUtils.Make "latest" "oldest" "recentupdate" "leastupdate" "mostcomment" "leastcomment" "nearduedate" "farduedate"}}
+									<a class="{{if or (eq $.SortType $opt) (and (eq $opt "latest") (not $.SortType))}}active {{end}}item" href="?sort={{$opt}}&state={{$.State}}&issueType={{$.IssueType}}&labels={{$.Labels}}">{{ctx.Locale.Tr (printf "repo.issues.filter_sort.%s" $opt)}}</a>
+								{{end}}
+							</div>
+						</div>
+					</div></div></div>
 				</div>
-				<div class="divider"></div>
 				{{if not .Issues}}
-					{{ctx.Locale.Tr "notification.no_subscriptions"}}
+					{{template "shared/ds/empty" (dict "Icon" "bell" "Title" (ctx.Locale.Tr "notification.no_subscriptions"))}}
 				{{else}}
 					{{template "shared/issuelist" dict "." . "listType" "dashboard"}}
 				{{end}}

@@ -582,3 +582,11 @@
 .wk-issue .issue-meta a.ref {
   min-height: 24px;
 }
+
+.wk-ns-tabs {
+  margin-bottom: 12px;
+}
+
+.wk-ns-body .wk-dash-list-header {
+  margin-bottom: 12px;
+}
