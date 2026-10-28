@@ -46,12 +46,12 @@ func TestDataSizeTranslation(t *testing.T) {
 		resp := session.MakeRequest(t, req, http.StatusOK)
 
 		// Check if repo size is translated
-		repos := NewHTMLParser(t, resp.Body).Find(".user-setting-content .list .item .content")
+		repos := NewHTMLParser(t, resp.Body).Find(".wk-sp .ds-li-main")
 		assert.Positive(t, repos.Length())
 		repos.Each(func(i int, repo *goquery.Selection) {
-			repoName := repo.Find("a.name").Text()
+			repoName := repo.Find(".ds-li-title a").Text()
 			if repoName == path.Join(user.Name, testRepo.Name) {
-				repoSize := repo.Find("span").Text()
+				repoSize := repo.Find(".ds-li-meta span").First().Text()
 				repoSize = noDigits.ReplaceAllString(repoSize, "")
 				assert.Equal(t, " КиБ", repoSize)
 			}

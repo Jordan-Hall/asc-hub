@@ -46,7 +46,7 @@ func TestVerifySSHkeyPage(t *testing.T) {
 	assert.True(t, exists)
 
 	page = NewHTMLParser(t, session.MakeRequest(t, NewRequestf(t, "GET", "/user/settings/keys%s", linkShown), http.StatusOK).Body)
-	otherToken, exists := page.Find("#keys-ssh form .field input[readonly]").Attr("value")
+	otherToken, exists := page.Find("#keys-ssh form .ds-field input[readonly]").Attr("value")
 	assert.True(t, exists)
 	assert.NotEqual(t, token, otherToken)
 }
