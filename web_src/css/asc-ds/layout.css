@@ -1643,6 +1643,11 @@ button.ds-palette-item {
   margin-right: 8px;
 }
 
+a.ds-btn-accent.ds-topbar-signin,
+a.ds-btn-accent.ds-topbar-signin:hover {
+  color: #04222b;
+}
+
 .ds-drawer-search {
   display: flex;
   align-items: center;

@@ -18,9 +18,54 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 					<a class="ds-btn ds-btn-ondark-outline" rel="nofollow" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>
 				</div>
 			{{end}}
+			{{if .AscInstallMethods}}
+				<div class="ds-land-install" data-ds-install>
+					<div class="ds-install-pills" role="group" aria-label="{{ctx.Locale.Tr "asc_land.install_method"}}">
+						{{range $i, $m := .AscInstallMethods}}
+							<button type="button" class="ds-install-pill" data-install-key="{{$m.Key}}" aria-pressed="{{if eq $i 0}}true{{else}}false{{end}}">{{$m.Label}}</button>
+						{{end}}
+					</div>
+					<div class="ds-install-card">
+						<p class="ds-install-step"><b>1</b> {{ctx.Locale.Tr "asc_land.install_step1"}} <span class="ds-install-ok">{{ctx.Locale.Tr "asc_land.install_signed"}}</span></p>
+						{{range $i, $m := .AscInstallMethods}}
+							<div class="ds-cmd ds-cmd-scroll" data-install-key="{{$m.Key}}"{{if ne $i 0}} hidden{{end}}><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{$m.Command}}</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{$m.Command}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+						{{end}}
+					</div>
+					<div class="ds-install-card">
+						<p class="ds-install-step"><b>2</b> {{ctx.Locale.Tr "asc_land.install_step2"}}</p>
+						<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{.AscHubURL}} --prompt</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="asc auth login --host {{.AscHubURL}} --prompt">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+					</div>
+					<p class="ds-land-meta">{{ctx.Locale.Tr "asc_land.install_note"}}</p>
+				</div>
+			{{else}}
 			<div class="ds-land-install" role="group" aria-label="{{ctx.Locale.Tr "startpage.connect_label"}}">
 				<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{.AscHubURL}} --prompt</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="asc auth login --host {{.AscHubURL}} --prompt">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 			</div>
+			{{end}}
+			<figure class="ds-land-window">
+				<figcaption class="tw-sr-only">{{ctx.Locale.Tr "asc_land.window_alt"}}</figcaption>
+				<div class="ds-win" aria-hidden="true">
+					<div class="ds-win-bar"><i></i><i></i><i></i><span>{{ctx.Locale.Tr "asc_land.window_path"}}</span></div>
+					<div class="ds-win-body">
+						<ol class="ds-win-rail">
+							<li class="ok"><b>{{ctx.Locale.Tr "asc_land.window_c1"}}</b><small>{{ctx.Locale.Tr "asc_land.window_c1s"}}</small></li>
+							<li class="ok"><b>{{ctx.Locale.Tr "asc_land.window_c2"}}</b><small>{{ctx.Locale.Tr "asc_land.window_c2s"}}</small></li>
+							<li class="on"><b>{{ctx.Locale.Tr "asc_land.window_c3"}}</b><small>{{ctx.Locale.Tr "asc_land.window_c3s"}}</small></li>
+							<li><b>{{ctx.Locale.Tr "asc_land.window_c4"}}</b><small>{{ctx.Locale.Tr "asc_land.window_c4s"}}</small></li>
+						</ol>
+						<div class="ds-win-main">
+							<p class="ds-win-h">{{ctx.Locale.Tr "asc_land.window_c3"}} <span>{{ctx.Locale.Tr "asc_land.window_agent"}}</span></p>
+							<p class="ds-win-intent"><b>{{ctx.Locale.Tr "asc_land.window_intent"}}</b> {{ctx.Locale.Tr "asc_land.window_intent_text"}}</p>
+							<p class="ds-win-comment"><b>{{ctx.Locale.Tr "asc_land.window_you"}}</b> {{ctx.Locale.Tr "asc_land.window_comment"}}</p>
+						</div>
+						<ul class="ds-win-turn">
+							<li><b>{{ctx.Locale.Tr "asc_land.window_turn1"}}</b><small>{{ctx.Locale.Tr "asc_land.window_turn1s"}}</small></li>
+							<li><b>{{ctx.Locale.Tr "asc_land.window_turn2"}}</b><small>{{ctx.Locale.Tr "asc_land.window_turn2s"}}</small></li>
+							<li><b>{{ctx.Locale.Tr "asc_land.window_turn3"}}</b><small>{{ctx.Locale.Tr "asc_land.window_turn3s"}}</small></li>
+						</ul>
+					</div>
+				</div>
+			</figure>
 		</div>
 	</section>
 
@@ -303,6 +348,12 @@ Sections: hero with the install command, the tools strip, why, three benefits, t
 			</div>
 		</div>
 	</section>
+	{{end}}
+	{{if and (not .IsSigned) .AscDownload}}
+		<div class="ds-land-sticky">
+			<a class="ds-btn ds-btn-accent" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_download.home_cta"}}</a>
+			<a class="ds-btn ds-btn-ondark-outline" rel="nofollow" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>
+		</div>
 	{{end}}
 </div>
 {{template "base/footer" .}}
