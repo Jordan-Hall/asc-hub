@@ -64,6 +64,7 @@ import {initBulk} from './features/ds-bulk.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {initAscPush} from './features/asc-push.js';
 import {initAscSignup} from './features/asc-signup.js';
+import {initAscDrafts} from './features/asc-drafts.js';
 import {initAscDocs} from './features/asc-docs.js';
 import {initAscCodeBoxes} from './features/asc-codeboxes.js';
 import {initAscOffline} from './features/asc-offline.js';
@@ -199,6 +200,7 @@ onDomReady(() => {
   initAscKeys();
   initAscPush();
   initAscSignup();
+  initAscDrafts();
   initAscDocs();
   initAscCodeBoxes();
   initAscOffline();
