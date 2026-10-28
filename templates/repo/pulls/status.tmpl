@@ -9,7 +9,7 @@ Template Attributes:
 
 {{if .CommitStatus}}
 <div class="commit-status-panel">
-	<div class="ui top attached header commit-status-header">
+	<div class="ds-card-top commit-status-header">
 		{{if or (eq .CommitStatus.State "pending") (.MissingRequiredChecks)}}
 			{{ctx.Locale.Tr "repo.pulls.status_checking"}}
 		{{else if eq .CommitStatus.State "success"}}
@@ -43,7 +43,7 @@ Template Attributes:
 				<div class="status-context gt-ellipsis">{{.Context}} <span class="text light-2">{{.Description}}</span></div>
 				<div class="ui status-details">
 					{{if $.is_context_required}}
-						{{if (call $.is_context_required .Context)}}<div class="ui label">{{ctx.Locale.Tr "repo.pulls.status_checks_requested"}}</div>{{end}}
+						{{if (call $.is_context_required .Context)}}<div class="ds-chip">{{ctx.Locale.Tr "repo.pulls.status_checks_requested"}}</div>{{end}}
 					{{end}}
 					<span>{{if .TargetURL}}<a href="{{.TargetURL}}">{{ctx.Locale.Tr "repo.pulls.status_checks_details"}}</a>{{end}}</span>
 				</div>
@@ -53,7 +53,7 @@ Template Attributes:
 			<div class="commit-status-item">
 				{{svg "octicon-dot-fill" 18 "commit-status icon text yellow"}}
 				<div class="status-context gt-ellipsis">{{.}}</div>
-				<div class="ui label">{{ctx.Locale.Tr "repo.pulls.status_checks_requested"}}</div>
+				<div class="ds-chip">{{ctx.Locale.Tr "repo.pulls.status_checks_requested"}}</div>
 			</div>
 		{{end}}
 	</div>

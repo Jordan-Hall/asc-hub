@@ -1,6 +1,6 @@
 <div class="flex-text-block tw-flex-wrap">
 	{{range $term := .SearchResultLanguages}}
-	<a class="ui {{if eq $.Language $term.Language}}primary{{end}} basic label tw-m-0"
+	<a class="ds-chip ds-chip-outline tw-m-0 {{if eq $.Language $term.Language}}primary {{end}}"
 		href="?q={{$.Keyword}}{{if ne $.Language $term.Language}}&l={{$term.Language}}{{end}}&mode={{$.CodeSearchMode}}&path={{$.CodeSearchPath}}">
 		<i class="color-icon tw-mr-2" style="background-color: {{$term.Color}}"></i>
 		{{$term.Language}}
@@ -13,7 +13,7 @@
 		{{$repo := or $.Repo (index $.RepoMaps .RepoID)}}
 		<details class="tw-group diff-file-box diff-box file-content non-diff-file-content repo-search-result" open>
 			<summary class="tw-list-none">
-				<h4 class="ui top attached header tw-font-normal tw-flex tw-items-center tw-flex-wrap tw-transform-reset">
+				<h4 class="ds-card-top tw-font-normal tw-flex tw-items-center tw-flex-wrap tw-transform-reset">
 					<span class="tw-h-4 tw-transition -tw-rotate-90 group-open:tw-rotate-0">
 						{{svg "octicon-chevron-down"}}
 					</span>
@@ -21,7 +21,7 @@
 						<span class="file tw-flex-1 tw-ml-2">
 							<a rel="nofollow" href="{{$repo.Link}}">{{$repo.FullName}}</a>
 							{{if $repo.IsArchived}}
-								<span class="ui basic label">{{ctx.Locale.Tr "repo.desc.archived"}}</span>
+								<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "repo.desc.archived"}}</span>
 							{{end}}
 							- {{.Filename}}
 						</span>
@@ -31,10 +31,10 @@
 							*/}}{{.Filename}}</a>
 						</span>
 					{{end}}
-					<a role="button" class="ui basic tiny button" rel="nofollow" href="{{$repo.Link}}/src/commit/{{$result.CommitID | PathEscape}}/{{.Filename | PathEscapeSegments}}">{{ctx.Locale.Tr "repo.diff.view_file"}}</a>
+					<a role="button" class="ds-btn ds-btn-secondary ds-btn-sm" rel="nofollow" href="{{$repo.Link}}/src/commit/{{$result.CommitID | PathEscape}}/{{.Filename | PathEscapeSegments}}">{{ctx.Locale.Tr "repo.diff.view_file"}}</a>
 				</h4>
 			</summary>
-			<div class="ui attached table segment">
+			<div class="ds-card ds-card-b ds-card-attach table">
 				{{template "shared/searchfile" dict "RepoLink" $repo.Link "SearchResult" .}}
 			</div>
 			{{template "shared/searchbottom" dict "root" $ "result" .}}

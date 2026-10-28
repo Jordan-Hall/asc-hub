@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "debian"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.common.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>sudo curl <origin-url data-url="{{AppSubUrl}}/api/packages/{{$.PackageDescriptor.Owner.Name}}/debian/repository.key"></origin-url> -o /etc/apt/keyrings/forgejo-{{$.PackageDescriptor.Owner.Name}}.asc
@@ -21,9 +21,9 @@ sudo apt update</code></pre></div>
 		</div>
 	</div>
 
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.common.repository"}}</h4>
-	<div class="ui attached segment">
-		<table class="ui single line very basic table">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.common.repository"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<table class="ds-table">
 			<tbody>
 				<tr>
 					<td class="collapsing"><h5>{{ctx.Locale.Tr "packages.debian.repository.distributions"}}</h5></td>
@@ -42,16 +42,16 @@ sudo apt update</code></pre></div>
 	</div>
 
 	{{if .PackageDescriptor.Metadata.Description}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{.PackageDescriptor.Metadata.Description}}
 		</div>
 	{{end}}
 
 	{{if .PackageDescriptor.Metadata.Dependencies}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ui attached segment">
-			<table class="ui single line very basic table">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
+			<table class="ds-table">
 				<tbody>
 					{{range .PackageDescriptor.Metadata.Dependencies}}
 						<tr>

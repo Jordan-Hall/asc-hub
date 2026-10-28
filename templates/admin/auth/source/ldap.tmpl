@@ -80,7 +80,7 @@
 	<div class="ds-field">
 		<div class="ds-check"><input id="chk-groups_enabled" type="checkbox" name="groups_enabled" class="js-ldap-group-toggle" {{if .groups_enabled}}checked{{end}}><label for="chk-groups_enabled">{{ctx.Locale.Tr "admin.auths.enable_ldap_groups"}}</label></div>
 	</div>
-	<div id="ldap-group-options" class="ui segment secondary">
+	<div id="ldap-group-options" class="ds-card ds-card-b">
 		<div class="ds-field">
 			<label class="ds-label">{{ctx.Locale.Tr "admin.auths.group_search_base"}}</label>
 			<input class="ds-input" name="group_dn" value="{{.group_dn}}" placeholder="ou=group,dc=mydomain,dc=com">

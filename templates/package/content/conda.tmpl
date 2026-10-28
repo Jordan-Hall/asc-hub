@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "conda"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.conda.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>channel_alias: <origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/conda"></origin-url>
@@ -22,8 +22,8 @@ default_channels:
 	</div>
 
 	{{if or .PackageDescriptor.Metadata.Description .PackageDescriptor.Metadata.Summary}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{if .PackageDescriptor.Metadata.Description}}{{.PackageDescriptor.Metadata.Description}}{{else}}{{.PackageDescriptor.Metadata.Summary}}{{end}}
 		</div>
 	{{end}}

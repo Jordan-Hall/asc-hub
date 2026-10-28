@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "conan"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.common.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>conan remote add forgejo <origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/conan"></origin-url></code></pre></div>
@@ -17,15 +17,15 @@
 	</div>
 
 	{{if .PackageDescriptor.Metadata.Description}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{if .PackageDescriptor.Metadata.Description}}{{.PackageDescriptor.Metadata.Description}}{{end}}
 		</div>
 	{{end}}
 
 	{{if or .PackageDescriptor.Metadata.Keywords}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.keywords"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.keywords"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{range .PackageDescriptor.Metadata.Keywords}}
 				{{.}}
 			{{end}}

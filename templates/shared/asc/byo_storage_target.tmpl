@@ -25,7 +25,7 @@
 			<h3 id="asc-verify-h">{{ctx.Locale.Tr "ascbyo.storage.detail.verify_title"}}</h3>
 			<p>{{ctx.Locale.Tr "ascbyo.storage.detail.verify_help"}}</p>
 			{{with $a.Verify}}
-				<div class="ui {{if .OK}}positive{{else}}negative{{end}} message" role="status" data-testid="asc-verify-result">
+				<div class="ds-banner {{if .OK}}positive {{else}}negative {{end}}" role="status" data-testid="asc-verify-result">
 					<p>{{if .OK}}{{ctx.Locale.Tr "ascbyo.storage.detail.verify_ok"}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.detail.verify_failed"}}{{end}}</p>
 				</div>
 				{{if .Checks}}
@@ -43,18 +43,18 @@
 			<div class="asc-byo-actions">
 				<form method="post" action="{{$a.StorageURL}}/targets/{{$t.ID}}/verify">
 					{{$.CsrfTokenHtml}}
-					<button class="ui {{if $t.NeedsVerify}}primary{{else}}basic{{end}} button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.verify"}}</button>
+					<button class="ds-btn ds-btn-secondary {{if $t.NeedsVerify}}primary {{else}}basic {{end}}" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.verify"}}</button>
 				</form>
 				{{if $t.CanEnable}}
 					<form method="post" action="{{$a.StorageURL}}/targets/{{$t.ID}}/enable">
 						{{$.CsrfTokenHtml}}
-						<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.enable"}}</button>
+						<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.enable"}}</button>
 					</form>
 				{{end}}
 				{{if $t.CanDisable}}
 					<form method="post" action="{{$a.StorageURL}}/targets/{{$t.ID}}/disable">
 						{{$.CsrfTokenHtml}}
-						<button class="ui basic button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.disable"}}</button>
+						<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.disable"}}</button>
 					</form>
 				{{end}}
 			</div>
@@ -67,7 +67,7 @@
 				{{$.CsrfTokenHtml}}
 				<input type="hidden" name="op_id" value="{{$a.Op "update"}}">
 				{{template "shared/asc/byo_storage_fields" (dict "Root" $ "Edit" true "Pfx" "asc-edit")}}
-				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.save"}}</button>
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.save"}}</button>
 			</form>
 		</section>
 
@@ -81,7 +81,7 @@
 					<div class="asc-field asc-field-check">
 						<label><input type="checkbox" name="confirm" value="on" required> {{ctx.Locale.Tr "ascbyo.storage.detail.delete_confirm"}}</label>
 					</div>
-					<button class="ui red button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.detail.delete_button"}}</button>
+					<button class="ds-btn ds-btn-danger" type="submit">{{ctx.Locale.Tr "ascbyo.storage.detail.delete_button"}}</button>
 				</form>
 			</details>
 		</section>

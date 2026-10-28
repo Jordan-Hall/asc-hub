@@ -33,7 +33,7 @@
 			<h3 id="asc-test-h">{{ctx.Locale.Tr "ascbyo.ai.detail.test_title"}}</h3>
 			<p>{{ctx.Locale.Tr "ascbyo.ai.detail.test_help"}}</p>
 			{{with $a.Test}}
-				<div class="ui {{if .OK}}positive{{else}}negative{{end}} message" role="status" data-testid="asc-test-result">
+				<div class="ds-banner {{if .OK}}positive {{else}}negative {{end}}" role="status" data-testid="asc-test-result">
 					<p>{{if .OK}}{{ctx.Locale.Tr "ascbyo.ai.detail.test_ok" .Latency}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.detail.test_failed" (ctx.Locale.Tr (print "ascbyo.ai.test_status." .Status))}}{{end}}</p>
 					{{if .Message}}<p class="asc-byo-detail">{{.Message}}</p>{{end}}
 				</div>
@@ -41,18 +41,18 @@
 			<div class="asc-byo-actions">
 				<form method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/test">
 					{{$.CsrfTokenHtml}}
-					<button class="ui {{if $k.NeedsTest}}primary{{else}}basic{{end}} button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.test"}}</button>
+					<button class="ds-btn ds-btn-secondary {{if $k.NeedsTest}}primary {{else}}basic {{end}}" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.test"}}</button>
 				</form>
 				{{if $k.CanEnable}}
 					<form method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/enable">
 						{{$.CsrfTokenHtml}}
-						<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.enable"}}</button>
+						<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.enable"}}</button>
 					</form>
 				{{end}}
 				{{if $k.CanDisable}}
 					<form method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/disable">
 						{{$.CsrfTokenHtml}}
-						<button class="ui basic button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.disable"}}</button>
+						<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.disable"}}</button>
 					</form>
 				{{end}}
 			</div>
@@ -95,7 +95,7 @@
 				{{$.CsrfTokenHtml}}
 				<input type="hidden" name="op_id" value="{{$a.Op "update"}}">
 				{{template "shared/asc/byo_ai_fields" (dict "Root" $ "Edit" true "Pfx" "asc-edit")}}
-				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.save"}}</button>
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.save"}}</button>
 			</form>
 			{{if $a.Models}}
 				<datalist id="asc-models">{{range $a.Models}}<option value="{{.ID}}">{{end}}</datalist>
@@ -112,7 +112,7 @@
 					<div class="asc-field asc-field-check">
 						<label><input type="checkbox" name="confirm" value="on" required> {{ctx.Locale.Tr "ascbyo.ai.detail.delete_confirm"}}</label>
 					</div>
-					<button class="ui red button" type="submit">{{ctx.Locale.Tr "ascbyo.ai.detail.delete_button"}}</button>
+					<button class="ds-btn ds-btn-danger" type="submit">{{ctx.Locale.Tr "ascbyo.ai.detail.delete_button"}}</button>
 				</form>
 			</details>
 		</section>

@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "maven"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.maven.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>&lt;repositories&gt;
@@ -49,15 +49,15 @@
 
 	{{if .PackageDescriptor.Metadata}}
 		{{if .PackageDescriptor.Metadata.Description}}
-			<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-			<div class="ui attached segment">
+			<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+			<div class="ds-card ds-card-b ds-card-attach">
 				{{.PackageDescriptor.Metadata.Description}}
 			</div>
 		{{end}}
 
 		{{if .PackageDescriptor.Metadata.Dependencies}}
-			<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-			<div class="ui attached segment">
+			<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
+			<div class="ds-card ds-card-b ds-card-attach">
 				<div class="ui list">
 					{{range .PackageDescriptor.Metadata.Dependencies}}
 						<div class="item">

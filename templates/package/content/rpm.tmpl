@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "rpm"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.common.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>{{- if gt (len .Groups) 1 -}}
@@ -36,9 +36,9 @@ zypper install {{$.PackageDescriptor.Package.Name}}</code></pre>
 		</div>
 	</div>
 
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.common.repository"}}</h4>
-	<div class="ui attached segment">
-		<table class="ui single line very basic table">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.common.repository"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<table class="ds-table">
 			<tbody>
 				<tr>
 					<td class="collapsing"><h5>{{ctx.Locale.Tr "packages.rpm.repository.architectures"}}</h5></td>
@@ -49,8 +49,8 @@ zypper install {{$.PackageDescriptor.Package.Name}}</code></pre>
 	</div>
 
 	{{if or .PackageDescriptor.Metadata.Summary .PackageDescriptor.Metadata.Description}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-		{{if .PackageDescriptor.Metadata.Summary}}<div class="ui attached segment">{{.PackageDescriptor.Metadata.Summary}}</div>{{end}}
-		{{if .PackageDescriptor.Metadata.Description}}<div class="ui attached segment">{{.PackageDescriptor.Metadata.Description}}</div>{{end}}
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+		{{if .PackageDescriptor.Metadata.Summary}}<div class="ds-card ds-card-b ds-card-attach">{{.PackageDescriptor.Metadata.Summary}}</div>{{end}}
+		{{if .PackageDescriptor.Metadata.Description}}<div class="ds-card ds-card-b ds-card-attach">{{.PackageDescriptor.Metadata.Description}}</div>{{end}}
 	{{end}}
 {{end}}

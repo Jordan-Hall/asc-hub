@@ -8,7 +8,7 @@
 					<div class="header">{{ctx.Locale.Tr "repo.issues.del_time"}}</div>
 					{{template "base/modal_actions_confirm"}}
 				</div>
-				<button class="ui icon button compact mini issue-delete-time" data-id="{{.comment.Time.ID}}" data-tooltip-content="{{ctx.Locale.Tr "repo.issues.del_time"}}">
+				<button class="ds-btn ds-btn-secondary ds-btn-sm issue-delete-time" data-id="{{.comment.Time.ID}}" data-tooltip-content="{{ctx.Locale.Tr "repo.issues.del_time"}}">
 					{{svg "octicon-trash"}}
 				</button>
 			</span>

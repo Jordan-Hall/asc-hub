@@ -9,7 +9,7 @@
 				<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/wiki?action=_new">{{ctx.Locale.Tr "repo.wiki.new_page_button"}}</a>
 			{{end}}
 		</div>
-		<form class="ui form" action="?action={{if .PageIsWikiEdit}}_edit{{else}}_new{{end}}" method="post">
+		<form class="ui form ds-form" action="?action={{if .PageIsWikiEdit}}_edit{{else}}_new{{end}}" method="post">
 			<div class="ds-field {{if .Err_Title}}error{{end}}">
 				<input class="ds-input" name="title" value="{{.title}}" aria-label="{{ctx.Locale.Tr "repo.wiki.page_title"}}" placeholder="{{ctx.Locale.Tr "repo.wiki.page_title"}}" autofocus required>
 			</div>

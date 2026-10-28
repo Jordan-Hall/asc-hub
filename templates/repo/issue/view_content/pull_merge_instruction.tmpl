@@ -13,7 +13,7 @@
 			<h3 class="tw-flex tw-items-center tw-gap-2">{{svg "octicon-info" 16}} {{ctx.Locale.Tr "pulls.manual_merge.helper"}}</h3>
 			<p class="tw-mb-2">{{ctx.Locale.Tr "pulls.manual_merge.helpder.description"}}</p>
 			<div class="ds-card ds-card-b tw-space-y-3">
-				<div class="ui form">
+				<div class="ui form ds-form">
 					<div class="ds-field">
 						<label for="{{$titleID}}">{{ctx.Locale.Tr "pulls.manual_merge.commit.title"}}</label>
 						<textarea class="ds-textarea" id="{{$titleID}}" readonly rows="1">{{- .DefaultMergeMessage -}}</textarea>

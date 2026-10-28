@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "npm"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-code"}} {{ctx.Locale.Tr "packages.npm.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>{{if .PackageDescriptor.Metadata.Scope}}{{.PackageDescriptor.Metadata.Scope}}:{{end}}registry=<origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/npm/"></origin-url></code></pre></div>
@@ -21,8 +21,8 @@
 	</div>
 
 	{{if or .PackageDescriptor.Metadata.Description .PackageDescriptor.Metadata.Readme}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{if .PackageDescriptor.Metadata.Readme}}
 			<div class="markup markdown">
 				{{RenderMarkdownToHtml $.Context .PackageDescriptor.Metadata.Readme}}
@@ -34,8 +34,8 @@
 	{{end}}
 
 	{{if or .PackageDescriptor.Metadata.Dependencies .PackageDescriptor.Metadata.DevelopmentDependencies .PackageDescriptor.Metadata.PeerDependencies .PackageDescriptor.Metadata.OptionalDependencies}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			<div class="ui list">
 				{{template "package/content/npm_dependencies" dict "root" $ "dependencies" .PackageDescriptor.Metadata.Dependencies "title" (ctx.Locale.Tr "packages.dependencies")}}
 				{{template "package/content/npm_dependencies" dict "root" $ "dependencies" .PackageDescriptor.Metadata.DevelopmentDependencies "title" (ctx.Locale.Tr "packages.npm.dependencies.development")}}
@@ -46,8 +46,8 @@
 	{{end}}
 
 	{{if .PackageDescriptor.Metadata.BundleDependencies}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.npm.dependencies.bundle"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.npm.dependencies.bundle"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{range .PackageDescriptor.Metadata.BundleDependencies}}
 				{{.}}
 			{{end}}
@@ -55,8 +55,8 @@
 	{{end}}
 
 	{{if .PackageDescriptor.Metadata.Keywords}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.keywords"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.keywords"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{range .PackageDescriptor.Metadata.Keywords}}
 				{{.}}
 			{{end}}

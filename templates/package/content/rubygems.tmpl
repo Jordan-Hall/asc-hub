@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "rubygems"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.rubygems.install"}}:</label>
 				<div class="markup"><pre class="code-block"><code>gem install {{.PackageDescriptor.Package.Name}} --version &quot;{{.PackageDescriptor.Version.Version}}&quot; --source &quot;<origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/rubygems"></origin-url>&quot;</code></pre></div>
@@ -18,19 +18,19 @@ end</code></pre></div>
 		</div>
 	</div>
 	{{if .PackageDescriptor.Metadata.Description}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-		<div class="ui attached segment">{{.PackageDescriptor.Metadata.Description}}</div>
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">{{.PackageDescriptor.Metadata.Description}}</div>
 	{{end}}
 	{{if or .PackageDescriptor.Metadata.RequiredRubyVersion .PackageDescriptor.Metadata.RequiredRubygemsVersion}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.requirements"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.requirements"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{if .PackageDescriptor.Metadata.RequiredRubyVersion}}<p>{{ctx.Locale.Tr "packages.rubygems.required.ruby"}}: {{range $i, $v := .PackageDescriptor.Metadata.RequiredRubyVersion}}{{if gt $i 0}}, {{end}}{{$v.Restriction}}{{$v.Version}}{{end}}</p>{{end}}
 			{{if .PackageDescriptor.Metadata.RequiredRubygemsVersion}}<p>{{ctx.Locale.Tr "packages.rubygems.required.rubygems"}}: {{range $i, $v := .PackageDescriptor.Metadata.RequiredRubygemsVersion}}{{if gt $i 0}}, {{end}}{{$v.Restriction}}{{$v.Version}}{{end}}</p>{{end}}
 		</div>
 	{{end}}
 	{{if or .PackageDescriptor.Metadata.RuntimeDependencies .PackageDescriptor.Metadata.DevelopmentDependencies}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			<div class="ui list">
 				{{template "package/content/rubygems_dependencies" dict "root" $ "dependencies" .PackageDescriptor.Metadata.RuntimeDependencies "title" (ctx.Locale.Tr "packages.rubygems.dependencies.runtime")}}
 				{{template "package/content/rubygems_dependencies" dict "root" $ "dependencies" .PackageDescriptor.Metadata.DevelopmentDependencies "title" (ctx.Locale.Tr "packages.rubygems.dependencies.development")}}

@@ -59,7 +59,7 @@
 		<div class="content">
 			<span>{{ctx.Locale.Tr "org.teams.add_all_repos_desc"}}</span>
 		</div>
-		<form class="ui form" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/addall" method="post">
+		<form class="ui form ds-form" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/addall" method="post">
 			{{.CsrfTokenHtml}}
 			{{template "base/modal_actions_confirm" .}}
 		</form>
@@ -72,7 +72,7 @@
 		<div class="content">
 			<span>{{ctx.Locale.Tr "org.teams.remove_all_repos_desc"}}</span>
 		</div>
-		<form class="ui form" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/removeall" method="post">
+		<form class="ui form ds-form" action="{{$.OrgLink}}/teams/{{$.Team.LowerName | PathEscape}}/action/repo/removeall" method="post">
 			{{.CsrfTokenHtml}}
 			{{template "base/modal_actions_confirm" .}}
 		</form>

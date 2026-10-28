@@ -1,7 +1,7 @@
-<h4 class="ui top attached header" id="overview">
+<h4 class="ds-card-top" id="overview">
 	{{ctx.Locale.Tr "repo.settings.units.overview"}}
 </h4>
-<div class="ui attached segment">
+<div class="ds-card ds-card-b ds-card-attach">
 	{{$isCodeEnabled := .Repository.UnitEnabled $.Context $.UnitTypeCode}}
 	{{$isCodeGlobalDisabled := .UnitTypeCode.UnitGlobalDisabled}}
 	<div class="inline ds-field">

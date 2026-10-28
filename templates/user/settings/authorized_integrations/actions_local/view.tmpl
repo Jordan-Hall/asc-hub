@@ -1,9 +1,9 @@
 {{template "user/settings/authorized_integrations/view_head" .}}
 
-<h4 class="ui top attached header {{if .Err_SourceRepo}}error{{end}}">
+<h4 class="ds-card-top {{if .Err_SourceRepo}}error {{end}}">
 	{{ctx.Locale.Tr "settings.authorized_integration.ui.forgejo_actions_local"}}
 </h4>
-<div class="ui attached bottom segment">
+<div class="ds-card ds-card-b ds-card-attach">
 	<p>{{ctx.Locale.Tr "settings.authorized_integration.forgejo_actions_local.description"}}</p>
 
 	{{if eq .Form.SourceRepo ""}}
@@ -15,9 +15,9 @@
 				</h5>
 
 				<div class="ui small fluid action left icon input tw-mb-3">
-					<input type="search" name="action_repo_search" spellcheck="false" placeholder="{{ctx.Locale.Tr "search.repo_kind"}}" value="{{.Form.ActionRepoSearch}}">
+					<input class="ds-input" type="search" name="action_repo_search" spellcheck="false" placeholder="{{ctx.Locale.Tr "search.repo_kind"}}" value="{{.Form.ActionRepoSearch}}">
 					<i class="icon">{{svg "octicon-search" 16}}</i>
-					<button class="ui small icon button" aria-label="{{ctx.Locale.Tr "search.search"}}" type="submit" name="action_set_page" value="1" formnovalidate="true" formmethod="get">
+					<button class="ds-btn ds-btn-secondary ds-btn-sm" aria-label="{{ctx.Locale.Tr "search.search"}}" type="submit" name="action_set_page" value="1" formnovalidate="true" formmethod="get">
 						{{svg "octicon-search" 16}}
 					</button>
 				</div>
@@ -31,7 +31,7 @@
 							<div class="text truncate">
 								{{.FullName}}
 							</div>
-							<button class="ui primary button tw-ml-2 tw-my-1 tiny" type="submit" aria-label="{{ctx.Locale.Tr "repo.editor.add" .FullName}}" formnovalidate="true" name="source_repo" value="{{.FullName}}" formmethod="get">
+							<button class="ds-btn ds-btn-primary ds-btn-sm tw-ml-2 tw-my-1" type="submit" aria-label="{{ctx.Locale.Tr "repo.editor.add" .FullName}}" formnovalidate="true" name="source_repo" value="{{.FullName}}" formmethod="get">
 								{{ctx.Locale.Tr "settings.authorized_integration.forgejo_actions_local.select_repo"}}
 							</button>
 						{{end}}
@@ -80,32 +80,32 @@
 			</div>
 		</div>
 	{{else}}
-		<div class="field tw-flex tw-items-center">
+		<div class="ds-field tw-flex tw-items-center">
 			<div class="tw-mr-2">Source Repository:</div>
 			{{template "user/settings/repo_icon" .SourceRepo}}
 			<div class="text truncate">
 				{{.SourceRepo.FullName}}
 			</div>
-			<button class="ui primary button tw-ml-2 tw-my-1 tiny" formnovalidate="true" formmethod="get" name="source_repo" value="">
+			<button class="ds-btn ds-btn-primary ds-btn-sm tw-ml-2 tw-my-1" formnovalidate="true" formmethod="get" name="source_repo" value="">
 				Change
 			</button>
 			<input type="hidden" name="source_repo" value="{{.Form.SourceRepo}}">
 		</div>
 	{{end}}
 
-	<div class="field {{if .Err_WorkflowFile}}error{{end}}">
+	<div class="ds-field {{if .Err_WorkflowFile}}error{{end}}">
 		<label for="workflow_file">{{ctx.Locale.Tr "settings.authorized_integration.forgejo_actions_local.workflow_file.label"}}</label>
-		<input id="workflow_file" name="workflow_file" value="{{.Form.WorkflowFile}}">
+		<input class="ds-input" id="workflow_file" name="workflow_file" value="{{.Form.WorkflowFile}}">
 		<span class="help">{{ctx.Locale.Tr "settings.authorized_integration.forgejo_actions_local.workflow_file.help" "https://pkg.go.dev/github.com/gobwas/glob#Compile" "github.com/gobwas/glob"}}</span>
 	</div>
 
-	<div class="field {{if .Err_GitRef}}error{{end}}">
+	<div class="ds-field {{if .Err_GitRef}}error{{end}}">
 		<label for="git_ref">{{ctx.Locale.Tr "settings.authorized_integration.forgejo_actions_local.git_ref.label"}}</label>
-		<input id="git_ref" name="git_ref" value="{{.Form.GitRef}}">
+		<input class="ds-input" id="git_ref" name="git_ref" value="{{.Form.GitRef}}">
 		<span class="help">{{ctx.Locale.Tr "settings.authorized_integration.forgejo_actions_local.git_ref.help" "https://pkg.go.dev/github.com/gobwas/glob#Compile" "github.com/gobwas/glob"}}</span>
 	</div>
 
-	<div class="field">
+	<div class="ds-field">
 		<label for="event">{{ctx.Locale.Tr "settings.authorized_integration.forgejo_actions_local.event.label"}}</label>
 		<select id="event" name="event" multiple class="ui selection dropdown">
 			<option value="pull_request" {{if (SliceUtils.Contains .Form.Event "pull_request")}}selected{{end}}>pull_request</option>

@@ -9,12 +9,12 @@
 			<input type="hidden" name="op_id" value="{{$a.Op "assign"}}">
 			<div class="asc-field">
 				<label for="asc-assign-target">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_field"}}</label>
-				<select id="asc-assign-target" name="target_id">
+				<select class="ds-select" id="asc-assign-target" name="target_id">
 					<option value="">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_default"}}</option>
 					{{range $a.Usable}}<option value="{{.ID}}">{{.Label}}</option>{{end}}
 				</select>
 			</div>
-			<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_button"}}</button>
+			<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_button"}}</button>
 		</form>
 	{{else}}
 		<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.repo.no_usable"}}</p>
@@ -32,7 +32,7 @@
 			{{if .Cancellable}}
 				<form method="post" action="{{$a.StorageURL}}/migrations/{{.ID}}/cancel">
 					{{$.CsrfTokenHtml}}
-					<button class="ui basic red button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.cancel"}}</button>
+					<button class="ds-btn ds-btn-danger" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.cancel"}}</button>
 				</form>
 			{{end}}
 		</div>
@@ -44,7 +44,7 @@
 				<input type="hidden" name="op_id" value="{{$a.Op "migrate"}}">
 				<div class="asc-field">
 					<label for="asc-migrate-target">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_field"}}</label>
-					<select id="asc-migrate-target" name="target_id">
+					<select class="ds-select" id="asc-migrate-target" name="target_id">
 						<option value="">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_default"}}</option>
 						{{range $a.Usable}}<option value="{{.ID}}">{{.Label}}</option>{{end}}
 					</select>
@@ -57,7 +57,7 @@
 					<label><input type="checkbox" name="confirm_delete_source" value="on"{{if $a.Errors.confirm_delete_source}} aria-invalid="true" aria-describedby="asc-confirm-err"{{end}}> {{ctx.Locale.Tr "ascbyo.storage.repo.migrate_confirm_delete"}}</label>
 					{{if $a.Errors.confirm_delete_source}}<p class="asc-field-error" id="asc-confirm-err" role="alert">{{ctx.Locale.Tr $a.Errors.confirm_delete_source}}</p>{{end}}
 				</div>
-				<button class="ui primary button" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_button"}}</button>
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_button"}}</button>
 			</form>
 		{{else}}
 			<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.repo.no_usable"}}</p>
@@ -68,7 +68,7 @@
 <section class="asc-byo-section" aria-labelledby="asc-history-h">
 	<h3 id="asc-history-h">{{ctx.Locale.Tr "ascbyo.storage.repo.history_title"}}</h3>
 	{{if $a.Migrations}}
-		<table class="ui table asc-stack" data-testid="asc-migration-history">
+		<table class="ds-table asc-stack" data-testid="asc-migration-history">
 			<thead>
 				<tr>
 					<th>{{ctx.Locale.Tr "ascbyo.storage.repo.history_state"}}</th>

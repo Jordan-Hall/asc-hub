@@ -3,11 +3,11 @@
 		{{template "package/shared/cleanup_rules/list" .}}
 		{{template "package/shared/cargo" .}}
 
-		<h4 class="ui top attached header">
+		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "packages.owner.settings.chef.title"}}
 		</h4>
-		<div class="ui attached segment">
-			<div class="ui form">
+		<div class="ds-card ds-card-b ds-card-attach">
+			<div class="ui form ds-form">
 				<div class="ds-field">
 					<label>{{ctx.Locale.Tr "packages.registry.documentation" "Chef" "https://forgejo.org/docs/latest/user/packages/chef/"}}</label>
 				</div>

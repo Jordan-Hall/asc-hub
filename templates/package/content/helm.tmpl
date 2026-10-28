@@ -1,7 +1,7 @@
 {{if eq .PackageDescriptor.Package.Type "helm"}}
-	<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.installation"}}</h4>
-	<div class="ui attached segment">
-		<div class="ui form">
+	<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.installation"}}</h4>
+	<div class="ds-card ds-card-b ds-card-attach">
+		<div class="ui form ds-form">
 			<div class="ds-field">
 				<label>{{svg "octicon-terminal"}} {{ctx.Locale.Tr "packages.common.registry"}}</label>
 				<div class="markup"><pre class="code-block"><code>helm repo add {{AppDomain}} <origin-url data-url="{{AppSubUrl}}/api/packages/{{.PackageDescriptor.Owner.Name}}/helm"></origin-url>
@@ -18,16 +18,16 @@ helm repo update</code></pre></div>
 	</div>
 
 	{{if .PackageDescriptor.Metadata.Description}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.about"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.about"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{.PackageDescriptor.Metadata.Description}}
 		</div>
 	{{end}}
 
 	{{if .PackageDescriptor.Metadata.Dependencies}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ui attached segment">
-			<table class="ui single line very basic table">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
+			<table class="ds-table">
 				<thead>
 					<tr>
 						<th class="ten wide">{{ctx.Locale.Tr "packages.dependency.id"}}</th>
@@ -47,8 +47,8 @@ helm repo update</code></pre></div>
 	{{end}}
 
 	{{if .PackageDescriptor.Metadata.Keywords}}
-		<h4 class="ui top attached header">{{ctx.Locale.Tr "packages.keywords"}}</h4>
-		<div class="ui attached segment">
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.keywords"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
 			{{range .PackageDescriptor.Metadata.Keywords}}
 				{{.}}
 			{{end}}
