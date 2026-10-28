@@ -149,6 +149,14 @@ export function languages(codemirrorLanguage: CodeMirrorLanguage): LanguageDescr
       },
     }),
     codemirrorLanguage.LanguageDescription.of({
+      name: 'TSRX',
+      alias: ['tsrx'],
+      extensions: ['tsrx'],
+      async load() {
+        return (await import('./codemirror-tsrx.ts')).tsrx();
+      },
+    }),
+    codemirrorLanguage.LanguageDescription.of({
       name: 'TypeScript',
       alias: ['ts'],
       extensions: ['ts', 'mts', 'cts'],

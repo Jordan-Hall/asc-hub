@@ -29,10 +29,10 @@ TSRX (https://tsrx.dev/) is a TypeScript extension for declarative UIs, files `.
 
 | Area | Requirement | Where | Phase |
 |---|---|---|---|
-| Hub | `.tsrx` detected as TSRX (language stats, linguist overrides, `.gitattributes` `linguist-language`) | modules/analyze, modules/highlight | 1 |
-| Hub | Syntax highlighting in file view, blame, diffs, review, search results, markdown fences (```tsrx) with the `@{}` container, `@for`/`@if`, scoped style (CSS) and TS/JSX inside | server-side highlighter and the web editor | 1 |
-| Hub | Web editor (Monaco or equivalent): TSRX language registration, tokenizer, bracket and indent rules, comments | web_src/js/features/codeeditor | 1 |
-| Hub | Search facet "language: tsrx" and the language chip | repo search, explore | 1 |
+| Hub | **done** `.tsrx` detected as TSRX (language stats, linguist overrides, `.gitattributes` `linguist-language`) | modules/analyze, modules/highlight | 1 |
+| Hub | **done** (chroma lexer `modules/highlight/tsrx`, golden tests; review and search results use the same highlighter) Syntax highlighting in file view, blame, diffs, review, search results, markdown fences (```tsrx) with the `@{}` container, `@for`/`@if`, scoped style (CSS) and TS/JSX inside | server-side highlighter and the web editor | 1 |
+| Hub | **done** (CodeMirror 6 stream language `codemirror-tsrx.ts`; the hub editor is CodeMirror) Web editor (Monaco or equivalent): TSRX language registration, tokenizer, bracket and indent rules, comments | web_src/js/features/codeeditor | 1 |
+| Hub | **done** (chip colour and statistics type; the facet lists whatever language the indexer reports) Search facet "language: tsrx" and the language chip | repo search, explore | 1 |
 | asc | Code intelligence: parse `.tsrx` (components, functions, props types, imports/exports, `@for`/`@if` scopes), symbols and references, outline, blame hover and "used in" | crates/asc-codeintel | 3 |
 | asc | Semantic/text search chunking for `.tsrx`; dependency scanning treats `.tsrx` imports like TS imports | crates/asc-serve codeintel, deps | 3 |
 | asc | Diff and review: syntax-aware hunks and the "where to look" block for `.tsrx` | review | 3 |

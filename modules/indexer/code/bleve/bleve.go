@@ -33,7 +33,6 @@ import (
 	"github.com/blevesearch/bleve/v2/analysis/tokenizer/unicode"
 	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/blevesearch/bleve/v2/search/query"
-	"github.com/go-enry/go-enry/v2"
 )
 
 const (
@@ -349,7 +348,7 @@ func (b *Indexer) Search(ctx context.Context, opts *internal.SearchOptions) (int
 			CommitID:    hit.Fields["CommitID"].(string),
 			UpdatedUnix: updatedUnix,
 			Language:    language,
-			Color:       enry.GetColor(language),
+			Color:       analyze.GetColor(language),
 		}
 	}
 
@@ -372,7 +371,7 @@ func (b *Indexer) Search(ctx context.Context, opts *internal.SearchOptions) (int
 		}
 		searchResultLanguages = append(searchResultLanguages, &internal.SearchResultLanguages{
 			Language: term.Term,
-			Color:    enry.GetColor(term.Term),
+			Color:    analyze.GetColor(term.Term),
 			Count:    term.Count,
 		})
 	}
