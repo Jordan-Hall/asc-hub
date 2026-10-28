@@ -204,10 +204,45 @@ func Organization(ctx *context.Context) {
 	}
 
 	ctx.Data["Orgs"] = orgs
+	rows, err := settingsOrgRows(ctx, orgs, ctx.Doer.ID)
+	if err != nil {
+		ctx.ServerError("settingsOrgRows", err)
+		return
+	}
+	ctx.Data["OrgRows"] = rows
 	pager := context.NewPagination(int(total), opts.PageSize, opts.Page, 5)
 	pager.SetDefaultParams(ctx)
 	ctx.Data["Page"] = pager
 	ctx.HTML(http.StatusOK, tplSettingsOrganization)
+}
+
+// SettingsOrgRow is one organization of the settings list with the role of the person in it: an owner gets a
+// Settings link, and the last owner cannot leave (ownership has to move first).
+type SettingsOrgRow struct {
+	Org       *organization.Organization
+	IsOwner   bool
+	LastOwner bool
+}
+
+func settingsOrgRows(ctx *context.Context, orgs []*organization.Organization, uid int64) ([]SettingsOrgRow, error) {
+	rows := make([]SettingsOrgRow, 0, len(orgs))
+	for _, org := range orgs {
+		row := SettingsOrgRow{Org: org}
+		isOwner, err := org.IsOwnedBy(ctx, uid)
+		if err != nil {
+			return nil, err
+		}
+		row.IsOwner = isOwner
+		if isOwner {
+			team, err := org.GetOwnerTeam(ctx)
+			if err != nil {
+				return nil, err
+			}
+			row.LastOwner = team.NumMembers <= 1
+		}
+		rows = append(rows, row)
+	}
+	return rows, nil
 }
 
 // Repos display a list of all repositories of the user
