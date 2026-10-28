@@ -1,81 +1,84 @@
-{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings asc-trust-page")}}
-<div class="user-setting-content">
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings asc-trust-page wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_shell.sn_signing_keys") "Lead" (ctx.Locale.Tr "asc_work.sk_lead"))}}
+<div class="wk-sp">
 {{with .AscKeys}}
-<div class="asc-trust" data-testid="asc-keys">
-	<div class="asc-trust-head">
-		<h2 class="asc-trust-title">Signing keys</h2>
-	</div>
-	<p class="asc-trust-lead">A change you sign shows a <b>Verified</b> badge when the signature was made with a live key of yours. Only the public half of a key is ever sent here. A repository can require signed changes before anything lands on trunk.</p>
-
+<div class="ds-stack-16" data-testid="asc-keys">
 	{{if .Unsupported}}
-		<div class="ui warning message" role="status" data-testid="asc-keys-unsupported">This ASC server does not have signed changes yet.</div>
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-keys-unsupported"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_work.sk_unsupported"}}</div></div>
 	{{else}}
-		{{if .Problem}}<div class="ui negative message" role="alert" data-testid="asc-keys-problem">{{.Problem}}</div>{{end}}
-
-		<section class="ast-card" aria-labelledby="asc-keys-add">
-			<div class="ast-card-head"><h3 id="asc-keys-add" class="ast-card-title">Add a key</h3><span class="ast-card-aside">ed25519, ecdsa-p256 or rsa of 3072 bits or more</span></div>
-			<form class="ui form" method="post" action="{{.KeysURL}}" data-testid="asc-keys-form">
-				{{$.CsrfTokenHtml}}
-				<input type="hidden" name="op" value="{{.AddOp}}">
-				<div class="field">
-					<label for="asc-key-title">Title</label>
-					<input id="asc-key-title" name="title" type="text" maxlength="100" value="{{.Title}}" placeholder="Laptop" required autocomplete="off">
-				</div>
-				<div class="field">
-					<label for="asc-key-public">Public key</label>
-					<textarea id="asc-key-public" class="ast-key-text" name="public_key" rows="4" spellcheck="false" autocomplete="off" wrap="soft" placeholder="ssh-ed25519 AAAAC3Nza..." required></textarea>
-					<div class="help">One line, as in <code>~/.ssh/id_ed25519.pub</code>. Never paste a private key. Options such as <code>command=</code> are not accepted.</div>
-				</div>
-				<div class="field">
-					<label for="asc-key-expires">Expires (optional)</label>
-					<input id="asc-key-expires" name="expires" type="date" value="{{.Expires}}">
-					<div class="help">At most ten years ahead. Leave it empty for a key that does not expire.</div>
-				</div>
-				<button class="ui primary button" type="submit" data-testid="asc-keys-add">Add the key</button>
-			</form>
-		</section>
+		{{if .Problem}}<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-keys-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Problem}}</div></div>{{end}}
 
 		{{if .Page}}
-		<section class="ast-card" aria-labelledby="asc-keys-list">
-			<div class="ast-card-head"><h3 id="asc-keys-list" class="ast-card-title">Your keys</h3></div>
-			<ul class="ast-keys" data-testid="asc-keys-list">
+		<section class="ds-card" aria-labelledby="asc-keys-list">
+			<div class="ds-card-h"><h2 id="asc-keys-list">{{ctx.Locale.Tr "asc_work.sk_your_keys"}}</h2></div>
+			<ul class="ds-list wk-rows" data-testid="asc-keys-list">
 				{{range .Page.Keys}}
-				<li class="ast-key" data-state="{{.State}}">
-					<div class="ast-key-main">
-						<b>{{.Title}}</b>
-						<span class="ast-pill ast-pill-{{if eq .State "live"}}ok{{else if eq .State "expired"}}wn{{else}}no{{end}}">{{if eq .State "live"}}Live{{else if eq .State "expired"}}Expired{{else}}Revoked{{end}}</span>
-						<span class="ast-pill ast-pill-ro">{{.Kind}}</span>
-						<div class="asc-trust-code ast-key-fp">{{.Fingerprint}}</div>
-						<div class="asc-trust-sub">
-							Added {{DateUtils.TimeSince .Created}}
-							{{if not .Expires.IsZero}} · expires {{DateUtils.AbsoluteShort .Expires}}{{end}}
-							{{if not .LastUsed.IsZero}} · last used {{DateUtils.TimeSince .LastUsed}}{{end}}
-							{{if not .Revoked.IsZero}} · revoked {{DateUtils.TimeSince .Revoked}}{{if .RevokedReason}}: {{.RevokedReason}}{{end}}{{end}}
+				<li class="ds-li wk-row" data-state="{{.State}}">
+					<span class="ds-li-av" aria-hidden="true">{{svg "dsi-fingerprint" 20}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title"><span class="ds-break">{{.Title}}</span>
+							<span class="ds-chip {{if eq .State "live"}}ds-chip-ok{{else if eq .State "expired"}}ds-chip-warn{{else}}ds-chip-err{{end}}">{{if eq .State "live"}}{{ctx.Locale.Tr "asc_work.sk_live"}}{{else if eq .State "expired"}}{{ctx.Locale.Tr "asc_work.sp_expired"}}{{else}}{{ctx.Locale.Tr "asc_work.sk_revoked"}}{{end}}</span>
+							<span class="ds-chip">{{.Kind}}</span>
+						</div>
+						<div class="ds-li-sub ds-mono ds-break">{{.Fingerprint}}</div>
+						<div class="ds-li-meta">
+							<span>{{ctx.Locale.Tr "asc_work.sk_added" (DateUtils.TimeSince .Created)}}</span>
+							{{if not .Expires.IsZero}}<span>{{ctx.Locale.Tr "asc_work.sk_expires" (DateUtils.AbsoluteShort .Expires)}}</span>{{end}}
+							{{if not .LastUsed.IsZero}}<span>{{ctx.Locale.Tr "asc_work.sk_last_used" (DateUtils.TimeSince .LastUsed)}}</span>{{end}}
+							{{if not .Revoked.IsZero}}<span>{{ctx.Locale.Tr "asc_work.sk_revoked_at" (DateUtils.TimeSince .Revoked)}}{{if .RevokedReason}}: {{.RevokedReason}}{{end}}</span>{{end}}
 						</div>
 					</div>
 					{{if eq .State "live"}}
-					<form class="ui form ast-key-revoke" method="post" action="{{$.AscKeys.KeysURL}}/revoke">
+					<form class="ui form ds-form wk-row-acts ast-key-revoke" method="post" action="{{$.AscKeys.KeysURL}}/revoke">
 						{{$.CsrfTokenHtml}}
 						<input type="hidden" name="id" value="{{.ID}}">
 						<input type="hidden" name="op" value="{{index $.AscKeys.RevokeOps .ID}}">
-						<label class="tw-sr-only" for="asc-key-reason-{{.ID}}">Reason to revoke {{.Title}}</label>
-						<input id="asc-key-reason-{{.ID}}" name="reason" type="text" maxlength="256" placeholder="Reason (optional)" autocomplete="off">
-						<button class="ui basic red button" type="submit">Revoke</button>
+						<label class="ds-sr" for="asc-key-reason-{{.ID}}">{{ctx.Locale.Tr "asc_work.sk_reason_for" .Title}}</label>
+						<input id="asc-key-reason-{{.ID}}" class="ds-input" name="reason" type="text" maxlength="256" placeholder="{{ctx.Locale.Tr "asc_work.sk_reason"}}" autocomplete="off">
+						<button class="ds-btn ds-btn-danger" type="submit">{{ctx.Locale.Tr "asc_work.sk_revoke"}}</button>
 					</form>
 					{{end}}
 				</li>
 				{{else}}
-				<li class="ast-key-empty text grey" data-testid="asc-keys-empty">You have no signing keys yet.</li>
+				<li class="ds-li" data-testid="asc-keys-empty"><p class="ds-hint">{{ctx.Locale.Tr "asc_work.sk_none"}}</p></li>
 				{{end}}
 			</ul>
 		</section>
+		{{end}}
 
-		<section class="ast-card" aria-labelledby="asc-keys-how">
-			<div class="ast-card-head"><h3 id="asc-keys-how" class="ast-card-title">Sign a change</h3></div>
-			<p class="asc-trust-sub">With the <code>asc</code> client: <code class="asc-trust-code">asc sign</code>, or <code class="asc-trust-code">--sign</code> on <code>commit</code> and <code>modify</code>. It uses your ssh-agent or a key file. By hand, a signature is an SSH signature in the namespace <code class="asc-trust-code">{{.Namespace}}</code> over the text <code class="asc-trust-code">asc-changeset-v1</code>, a line break, the 64 hex digits of the changeset id and a line break.</p>
-			{{if .Page.Server.Configured}}
-			<p class="asc-trust-sub" data-testid="asc-keys-server">Commits that the server makes itself are signed with its own key: <code class="asc-trust-code">{{.Page.Server.Fingerprint}}</code> ({{.Page.Server.Kind}}).</p>
-			{{end}}
+		<section class="ds-card" aria-labelledby="asc-keys-add">
+			<div class="ds-card-h"><h2 id="asc-keys-add">{{ctx.Locale.Tr "asc_work.sk_add"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sk_kinds"}}</span></div>
+			<form class="ui form ds-form wk-card-form" method="post" action="{{.KeysURL}}" data-testid="asc-keys-form">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="op" value="{{.AddOp}}">
+				<div class="required field ds-field">
+					<label class="ds-label" for="asc-key-title">{{ctx.Locale.Tr "asc_work.sk_title"}}</label>
+					<input id="asc-key-title" class="ds-input" name="title" type="text" maxlength="100" value="{{.Title}}" placeholder="{{ctx.Locale.Tr "asc_work.sk_title_ph"}}" required autocomplete="off">
+				</div>
+				<div class="required field ds-field">
+					<label class="ds-label" for="asc-key-public">{{ctx.Locale.Tr "asc_work.sk_public"}}</label>
+					<textarea id="asc-key-public" class="ds-textarea ds-mono ast-key-text" name="public_key" rows="4" spellcheck="false" autocomplete="off" wrap="soft" placeholder="ssh-ed25519 AAAAC3Nza..." required></textarea>
+					<p class="ds-hint">{{ctx.Locale.Tr "asc_work.sk_public_hint"}}</p>
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="asc-key-expires">{{ctx.Locale.Tr "asc_work.sk_expires_label"}}</label>
+					<input id="asc-key-expires" class="ds-input" name="expires" type="date" value="{{.Expires}}">
+					<p class="ds-hint">{{ctx.Locale.Tr "asc_work.sk_expires_hint"}}</p>
+				</div>
+				<div><button class="ds-btn ds-btn-primary" type="submit" data-testid="asc-keys-add">{{ctx.Locale.Tr "asc_work.sk_add_button"}}</button></div>
+			</form>
+		</section>
+
+		{{if .Page}}
+		<section class="ds-card" aria-labelledby="asc-keys-how">
+			<div class="ds-card-h"><h2 id="asc-keys-how">{{ctx.Locale.Tr "asc_work.sk_sign"}}</h2></div>
+			<div class="ds-card-b ds-stack-12">
+				<p class="ds-hint">{{ctx.Locale.Tr "asc_work.sk_sign_body" .Namespace}}</p>
+				<div class="ds-codebox"><pre class="ds-codebox-bd" tabindex="0" role="region" aria-label="asc sign"><code>asc sign</code></pre></div>
+				{{if .Page.Server.Configured}}
+				<p class="ds-hint" data-testid="asc-keys-server">{{ctx.Locale.Tr "asc_work.sk_server_key"}} <code class="ds-mono ds-break">{{.Page.Server.Fingerprint}}</code> ({{.Page.Server.Kind}}).</p>
+				{{end}}
+			</div>
 		</section>
 		{{end}}
 	{{end}}

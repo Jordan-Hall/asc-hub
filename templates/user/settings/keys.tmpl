@@ -1,14 +1,15 @@
-{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "user settings sshkeys")}}
-	<div class="user-setting-content">
-		{{/* SSH keys and principals are for git over SSH; with SSH off (the ASC Hub default) only signing keys are managed. */}}
-		{{if and SSHEnabled (not ($.UserDisabledFeatures.Contains "manage_ssh_keys"))}}
-			{{template "user/settings/keys_ssh" .}}
-		{{end}}
-		{{if SSHEnabled}}
-			{{template "user/settings/keys_principal" .}}
-		{{end}}
-		{{if not ($.UserDisabledFeatures.Contains "manage_gpg_keys")}}
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings sshkeys wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_work.sp_keys_title") "Lead" (ctx.Locale.Tr "asc_work.sp_keys_lead"))}}
+<div class="wk-sp">
+	{{/* SSH keys and principals are for git over SSH; with SSH off (the ASC Hub default) only signing keys are managed. */}}
+	{{if and SSHEnabled (not ($.UserDisabledFeatures.Contains "manage_ssh_keys"))}}
+		{{template "user/settings/keys_ssh" .}}
+	{{end}}
+	{{if SSHEnabled}}
+		{{template "user/settings/keys_principal" .}}
+	{{end}}
+	{{if not ($.UserDisabledFeatures.Contains "manage_gpg_keys")}}
 		{{template "user/settings/keys_gpg" .}}
-		{{end}}
-	</div>
+	{{end}}
+</div>
 {{template "user/settings/layout_footer" .}}

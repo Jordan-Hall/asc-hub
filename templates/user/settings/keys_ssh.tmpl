@@ -1,119 +1,100 @@
-<h4 class="ui top attached header">
-	{{ctx.Locale.Tr "settings.manage_ssh_keys"}}
-	<div class="ui right">
-		<button id="add-ssh-button" class="ui primary tiny show-panel toggle button" data-panel="#add-ssh-key-panel">
-			{{ctx.Locale.Tr "settings.add_key"}}
-		</button>
+<section class="ds-card" aria-labelledby="sp-ssh">
+	<div class="ds-card-h">
+		<h2 id="sp-ssh">{{ctx.Locale.Tr "settings.manage_ssh_keys"}}</h2>
+		<span class="ds-card-sub">{{ctx.Locale.Tr "settings.ssh_desc"}} {{ctx.Locale.Tr "settings.ssh_helper" "https://docs.codeberg.org/security/ssh-key/" "https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/troubleshooting-ssh"}}</span>
+		<button id="add-ssh-button" type="button" class="ds-btn ds-btn-primary ds-btn-sm ds-ml-auto show-panel toggle" data-panel="#add-ssh-key-panel">{{ctx.Locale.Tr "settings.add_key"}}</button>
 	</div>
-</h4>
-<div class="ui attached segment">
-	<div class="{{if not .HasSSHError}}tw-hidden{{end}} tw-mb-4" id="add-ssh-key-panel">
-		<form class="ui form" action="{{.Link}}" method="post">
-			<div class="field {{if .Err_Title}}error{{end}}">
-				<label for="ssh-key-title">{{ctx.Locale.Tr "settings.key_name"}}</label>
-				<input id="ssh-key-title" name="title" value="{{.title}}" autofocus required maxlength="50">
+	<div class="{{if not .HasSSHError}}tw-hidden{{end}}" id="add-ssh-key-panel">
+		<form class="ui form ds-form wk-card-form" action="{{.Link}}" method="post">
+			{{.CsrfTokenHtml}}
+			<div class="required field ds-field {{if .Err_Title}}error{{end}}">
+				<label class="ds-label" for="ssh-key-title">{{ctx.Locale.Tr "settings.key_name"}}</label>
+				<input id="ssh-key-title" class="ds-input{{if .Err_Title}} is-err{{end}}" name="title" value="{{.title}}" autofocus required maxlength="50">
 			</div>
-			<div class="field {{if .Err_Content}}error{{end}}">
-				<label for="ssh-key-content">{{ctx.Locale.Tr "settings.key_content"}}</label>
-				<textarea id="ssh-key-content" name="content" class="js-quick-submit" placeholder="{{ctx.Locale.Tr "settings.key_content_ssh_placeholder"}}" required>{{.content}}</textarea>
+			<div class="required field ds-field {{if .Err_Content}}error{{end}}">
+				<label class="ds-label" for="ssh-key-content">{{ctx.Locale.Tr "settings.key_content"}}</label>
+				<textarea id="ssh-key-content" name="content" class="ds-textarea ds-mono js-quick-submit{{if .Err_Content}} is-err{{end}}" rows="4" spellcheck="false" placeholder="{{ctx.Locale.Tr "settings.key_content_ssh_placeholder"}}" required>{{.content}}</textarea>
 			</div>
 			<input name="type" type="hidden" value="ssh">
-			<button class="ui primary button">
-				{{ctx.Locale.Tr "settings.add_key"}}
-			</button>
-			<button id="cancel-ssh-button" class="ui hide-panel button" data-panel="#add-ssh-key-panel">
-				{{ctx.Locale.Tr "cancel"}}
-			</button>
+			<div class="ds-row ds-row-wrap">
+				<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.add_key"}}</button>
+				<button type="button" id="cancel-ssh-button" class="ds-btn ds-btn-secondary hide-panel" data-panel="#add-ssh-key-panel">{{ctx.Locale.Tr "cancel"}}</button>
+			</div>
 		</form>
 	</div>
-	<div id="keys-ssh" class="flex-list">
-		<div class="flex-item">
-			<p>
-				{{ctx.Locale.Tr "settings.ssh_desc"}}<br>
-				{{ctx.Locale.Tr "settings.ssh_helper" "https://docs.codeberg.org/security/ssh-key/" "https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/troubleshooting-ssh"}}
-			</p>
-		</div>
+	<div id="keys-ssh">
 		{{if .DisableSSH}}
-			<div class="flex-item">
-				{{ctx.Locale.Tr "settings.ssh_signonly"}}
-			</div>
+			<div class="ds-card-b"><div class="ds-banner ds-banner-warn" role="note"><div class="ds-banner-body">{{ctx.Locale.Tr "settings.ssh_signonly"}}</div></div></div>
 		{{end}}
-		{{range $index, $key := .Keys}}
-			<div class="flex-item">
-				<div class="flex-item-leading">
-					<span class="text {{if .HasRecentActivity}}green{{end}}" {{if .HasRecentActivity}}data-tooltip-content="{{ctx.Locale.Tr "settings.key_state_desc"}}"{{end}}>{{svg "octicon-key" 32}}</span>
-				</div>
-				<div class="flex-item-main">
-						{{if .Verified}}
-							<div class="flex-item-title flex-text-block" data-tooltip-content="{{ctx.Locale.Tr "settings.ssh_key_verified_long"}}">{{svg "octicon-verified"}}{{ctx.Locale.Tr "settings.ssh_key_verified"}}</div>
+		{{if .Keys}}
+		<ul class="ds-list wk-rows">
+			{{range $index, $key := .Keys}}
+				<li class="ds-li wk-row">
+					<span class="ds-li-av" aria-hidden="true">{{svg "dsi-key" 20}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title"><span class="ds-break">{{.Name}}</span>
+							{{if .Verified}}<span class="ds-chip ds-chip-ok" data-tooltip-content="{{ctx.Locale.Tr "settings.ssh_key_verified_long"}}">{{ctx.Locale.Tr "settings.ssh_key_verified"}}</span>{{end}}
+							{{if .HasRecentActivity}}<span class="ds-chip" data-tooltip-content="{{ctx.Locale.Tr "settings.key_state_desc"}}">{{ctx.Locale.Tr "asc_work.sp_recently_used"}}</span>{{end}}
+						</div>
+						<div class="ds-li-sub ds-mono ds-break">{{.Fingerprint}}</div>
+						<div class="ds-li-meta">
+							<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>
+							<span>{{if .HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} {{DateUtils.AbsoluteShort .UpdatedUnix}}{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</span>
+						</div>
+					</div>
+					<div class="wk-row-acts">
+						{{if and (not .Verified) (ne $.VerifyingFingerprint .Fingerprint)}}
+							<a class="ds-btn ds-btn-secondary ds-btn-sm" href="?verify_ssh={{.Fingerprint}}">{{ctx.Locale.Tr "settings.ssh_key_verify"}}</a>
 						{{end}}
-						<div class="flex-item-title">{{.Name}}</div>
-						<div class="flex-item-body">
-								{{.Fingerprint}}
-						</div>
-						<div class="flex-item-body">
-								<p>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}} —	{{svg "octicon-info"}} {{if .HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} <span {{if .HasRecentActivity}}class="text green"{{end}}>{{DateUtils.AbsoluteShort .UpdatedUnix}}</span>{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</p>
-						</div>
-				</div>
-				<div class="flex-item-trailing">
-					<button class="ui red tiny button delete-button{{if index $.ExternalKeys $index}} disabled{{end}}" data-modal-id="delete-ssh" data-url="{{$.Link}}/delete?type=ssh" data-id="{{.ID}}"{{if index $.ExternalKeys $index}} title="{{ctx.Locale.Tr "settings.ssh_externally_managed"}}"{{end}}>
-						{{ctx.Locale.Tr "settings.delete_key"}}
-					</button>
-					{{if and (not .Verified) (ne $.VerifyingFingerprint .Fingerprint)}}
-						<a class="ui primary tiny button" href="?verify_ssh={{.Fingerprint}}">{{ctx.Locale.Tr "settings.ssh_key_verify"}}</a>
-					{{end}}
-				</div>
-			</div>
-			{{if and (not .Verified) (eq $.VerifyingFingerprint .Fingerprint)}}
-				<div class="ui segment">
-					<h4>{{ctx.Locale.Tr "settings.ssh_token_required"}}</h4>
-					<form class="ui form{{if $.HasSSHVerifyError}} error{{end}}" action="{{$.Link}}" method="post">
+						<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button{{if index $.ExternalKeys $index}} disabled{{end}}" data-modal-id="delete-ssh" data-url="{{$.Link}}/delete?type=ssh" data-id="{{.ID}}"{{if index $.ExternalKeys $index}} title="{{ctx.Locale.Tr "settings.ssh_externally_managed"}}"{{end}}>{{ctx.Locale.Tr "settings.delete_key"}}</button>
+					</div>
+				</li>
+				{{if and (not .Verified) (eq $.VerifyingFingerprint .Fingerprint)}}
+				<li class="ds-li">
+					<form class="ui form ds-form ds-stack-16 ds-grow ds-min0{{if $.HasSSHVerifyError}} error{{end}}" action="{{$.Link}}" method="post">
+						{{$.CsrfTokenHtml}}
+						<h3 class="ds-t-h3">{{ctx.Locale.Tr "settings.ssh_token_required"}}</h3>
 						<input type="hidden" name="title" value="none">
 						<input type="hidden" name="content" value="{{.Content}}">
 						<input type="hidden" name="fingerprint" value="{{.Fingerprint}}">
-						<div class="field">
-							<label for="token">{{ctx.Locale.Tr "settings.ssh_token"}}</label>
-							<input readonly="" value="{{$.TokenToSign}}">
-							<span class="help">{{ctx.Locale.Tr "keys.verify.token.hint" (printf "?verify_ssh=%s" (QueryEscape .Fingerprint))}}</span>
-							<div class="help">
-								<br>
-								<p>{{ctx.Locale.Tr "settings.ssh_token_help"}}</p>
-								<div class="markup"><pre class="code-block"><code>echo -n '{{$.TokenToSign}}' | ssh-keygen -Y sign -n {{AppDomain}} -f ~/.ssh/id_ed25519 # or the path to the private key if it is different.</code></pre></div>
-								<br>
-								<p>{{ctx.Locale.Tr "settings.ssh_token_help_ssh_agent"}}</p>
-								<div class="markup"><pre class="code-block"><code>bash -c "echo -n '{{$.TokenToSign}}' | ssh-keygen -Y sign -n {{AppDomain}} -f <(echo '{{.OmitEmail}}')"</code></pre></div>
-								<br>
-								<details>
-									<summary>Windows PowerShell</summary>
-									<div class="markup"><pre class="code-block"><code>cmd /c "&lt;NUL set /p=`"{{$.TokenToSign}}`"| ssh-keygen -Y sign -n {{AppDomain}} -f /path_to_PrivateKey_or_RelatedPublicKey"</code></pre></div>
-								</details>
-								<br>
-								<details>
-									<summary>Windows CMD</summary>
-									<div class="markup"><pre class="code-block"><code>&lt;NUL set /p="{{$.TokenToSign}}"| ssh-keygen -Y sign -n {{AppDomain}} -f /path_to_PrivateKey_or_RelatedPublicKey</code></pre></div>
-								</details>
-							</div>
-							<br>
+						<div class="ds-field">
+							<label class="ds-label" for="ssh-token">{{ctx.Locale.Tr "settings.ssh_token"}}</label>
+							<input id="ssh-token" class="ds-input ds-mono" readonly value="{{$.TokenToSign}}">
+							<p class="ds-hint">{{ctx.Locale.Tr "keys.verify.token.hint" (printf "?verify_ssh=%s" (QueryEscape .Fingerprint))}}</p>
 						</div>
-						<div class="field">
-							<label for="signature">{{ctx.Locale.Tr "settings.ssh_token_signature"}}</label>
-							<textarea id="ssh-key-signature" name="signature" class="js-quick-submit" placeholder="{{ctx.Locale.Tr "settings.key_signature_ssh_placeholder"}}" required>{{$.signature}}</textarea>
+						<p class="ds-hint">{{ctx.Locale.Tr "settings.ssh_token_help"}}</p>
+						<div class="markup"><pre class="code-block"><code>echo -n '{{$.TokenToSign}}' | ssh-keygen -Y sign -n {{AppDomain}} -f ~/.ssh/id_ed25519 # or the path to the private key if it is different.</code></pre></div>
+						<p class="ds-hint">{{ctx.Locale.Tr "settings.ssh_token_help_ssh_agent"}}</p>
+						<div class="markup"><pre class="code-block"><code>bash -c "echo -n '{{$.TokenToSign}}' | ssh-keygen -Y sign -n {{AppDomain}} -f <(echo '{{.OmitEmail}}')"</code></pre></div>
+						<details class="wk-details">
+							<summary>Windows PowerShell</summary>
+							<div class="markup"><pre class="code-block"><code>cmd /c "&lt;NUL set /p=`"{{$.TokenToSign}}`"| ssh-keygen -Y sign -n {{AppDomain}} -f /path_to_PrivateKey_or_RelatedPublicKey"</code></pre></div>
+						</details>
+						<details class="wk-details">
+							<summary>Windows CMD</summary>
+							<div class="markup"><pre class="code-block"><code>&lt;NUL set /p="{{$.TokenToSign}}"| ssh-keygen -Y sign -n {{AppDomain}} -f /path_to_PrivateKey_or_RelatedPublicKey</code></pre></div>
+						</details>
+						<div class="required field ds-field">
+							<label class="ds-label" for="ssh-key-signature">{{ctx.Locale.Tr "settings.ssh_token_signature"}}</label>
+							<textarea id="ssh-key-signature" name="signature" class="ds-textarea ds-mono js-quick-submit" rows="4" spellcheck="false" placeholder="{{ctx.Locale.Tr "settings.key_signature_ssh_placeholder"}}" required>{{$.signature}}</textarea>
 						</div>
 						<input name="type" type="hidden" value="verify_ssh">
-						<button class="ui primary button">
-							{{ctx.Locale.Tr "settings.ssh_key_verify"}}
-						</button>
-						<a class="ui red button" href="{{$.Link}}">
-							{{ctx.Locale.Tr "settings.cancel"}}
-						</a>
+						<div class="ds-row ds-row-wrap">
+							<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.ssh_key_verify"}}</button>
+							<a class="ds-btn ds-btn-secondary" href="{{$.Link}}">{{ctx.Locale.Tr "settings.cancel"}}</a>
+						</div>
 					</form>
-				</div>
+				</li>
+				{{end}}
 			{{end}}
+		</ul>
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "key" "Title" (ctx.Locale.Tr "asc_work.sp_ssh_empty") "Body" (ctx.Locale.Tr "asc_work.sp_ssh_empty_body"))}}
 		{{end}}
 	</div>
 	<div class="ui g-modal-confirm delete modal" id="delete-ssh">
 		<div class="header">
-			{{svg "octicon-trash"}}
+			{{svg "dsi-trash" 16}}
 			{{ctx.Locale.Tr "settings.ssh_key_deletion"}}
 		</div>
 		<div class="content">
@@ -121,4 +102,4 @@
 		</div>
 		{{template "base/modal_actions_confirm" .}}
 	</div>
-</div>
+</section>
