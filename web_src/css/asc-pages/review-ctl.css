@@ -794,3 +794,21 @@
 .ag-recent-row .rv-btn {
   white-space: nowrap;
 }
+
+@media (max-width: 1099px) {
+  .ag-cols > .ag-side {
+    display: contents;
+  }
+
+  .ag-cols > .ag-main {
+    order: 1;
+  }
+
+  .ag-cols > .ag-side > .ag-needs {
+    order: 0;
+  }
+
+  .ag-cols > .ag-side > .ag-roster {
+    order: 2;
+  }
+}
