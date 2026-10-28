@@ -2,37 +2,37 @@
 <div role="main" aria-label="{{.Title}}" class="ds-main page-content repository new migrate rp-page">
 	<div class="ds-container ds-container-form rp-body rp-skin">
 		<div class="rp-new-col">
-			<form class="ui form" action="{{.Link}}" method="post">
+			<form class="ui form ds-form" action="{{.Link}}" method="post">
 				{{template "base/disable_form_autofill"}}
-				<h3 class="ui top attached header">
+				<h2 class="ds-t-h3 ds-card-title">
 					{{ctx.Locale.Tr "repo.migrate.git_title"}}
 					<input id="service_type" type="hidden" name="service" value="{{.service}}">
-				</h3>
-				<div class="ui attached segment">
+				</h2>
+				<div class="ds-card ds-card-b ds-stack-16">
 					{{template "base/alert" .}}
 					<p class="help">{{ctx.Locale.Tr "repo.migrate.git_help"}}</p>
-					<div class="inline required field {{if .Err_CloneAddr}}error{{end}}">
-						<label for="clone_addr">{{ctx.Locale.Tr "repo.migrate.git_clone_address"}}</label>
-						<input id="clone_addr" name="clone_addr" value="{{.clone_addr}}" autofocus required autocomplete="url">
-						<span class="help">
+					<div class="ds-required ds-field {{if .Err_CloneAddr}}is-err{{end}}">
+						<label class="ds-label" for="clone_addr">{{ctx.Locale.Tr "repo.migrate.git_clone_address"}}</label>
+						<input class="ds-input" id="clone_addr" name="clone_addr" value="{{.clone_addr}}" autofocus required autocomplete="url">
+						<span class="ds-hint">
 						{{ctx.Locale.Tr "repo.migrate.git_clone_address_desc"}}{{if .ContextUser.CanImportLocal}} {{ctx.Locale.Tr "repo.migrate.clone_local_path"}}{{end}}
 						</span>
 					</div>
-					<div class="inline field {{if .Err_Auth}}error{{end}}">
-						<label for="auth_username">{{ctx.Locale.Tr "username"}}</label>
-						<input id="auth_username" name="auth_username" value="{{.auth_username}}" {{if not .auth_username}}data-need-clear="true"{{end}}>
+					<div class="ds-field {{if .Err_Auth}}is-err{{end}}">
+						<label class="ds-label" for="auth_username">{{ctx.Locale.Tr "username"}}</label>
+						<input class="ds-input" id="auth_username" name="auth_username" value="{{.auth_username}}" {{if not .auth_username}}data-need-clear="true"{{end}}>
 					</div>
-					<div class="inline field {{if .Err_Auth}}error{{end}}">
-						<label for="auth_password">{{ctx.Locale.Tr "password"}}</label>
-						<input id="auth_password" name="auth_password" type="password" value="{{.auth_password}}">
+					<div class="ds-field {{if .Err_Auth}}is-err{{end}}">
+						<label class="ds-label" for="auth_password">{{ctx.Locale.Tr "password"}}</label>
+						<input class="ds-input" id="auth_password" name="auth_password" type="password" value="{{.auth_password}}">
 					</div>
 
 					{{template "repo/migrate/options" .}}
 
-					<div class="divider"></div>
+					<hr class="ds-hr">
 
-					<div class="inline required field {{if .Err_Owner}}error{{end}}">
-						<label>{{ctx.Locale.Tr "repo.owner"}}</label>
+					<div class="ds-required ds-field {{if .Err_Owner}}is-err{{end}}">
+						<label class="ds-label">{{ctx.Locale.Tr "repo.owner"}}</label>
 						<div class="ui selection owner dropdown">
 							<input type="hidden" id="uid" name="uid" value="{{.ContextUser.ID}}" required>
 							<span class="text truncated-item-container" title="{{.ContextUser.Name}}">
@@ -55,34 +55,33 @@
 						</div>
 					</div>
 
-					<div class="inline required field {{if .Err_RepoName}}error{{end}}">
-						<label for="repo_name">{{ctx.Locale.Tr "repo.repo_name"}}</label>
-						<input id="repo_name" name="repo_name" value="{{.repo_name}}" required maxlength="100" autocorrect="off" autocapitalize="none" spellcheck="false">
+					<div class="ds-required ds-field {{if .Err_RepoName}}is-err{{end}}">
+						<label class="ds-label" for="repo_name">{{ctx.Locale.Tr "repo.repo_name"}}</label>
+						<input class="ds-input" id="repo_name" name="repo_name" value="{{.repo_name}}" required maxlength="100" autocorrect="off" autocapitalize="none" spellcheck="false">
 					</div>
-					<div class="inline field">
-						<label>{{ctx.Locale.Tr "repo.visibility"}}</label>
-						<div class="ui checkbox">
-							<input name="private" type="checkbox"
+					<div class="ds-field">
+						<label class="ds-label">{{ctx.Locale.Tr "repo.visibility"}}</label>
+						<div class="ds-check">
+							<input id="chk-private" name="private" type="checkbox"
 								{{if .IsForcedPrivate}}
 									checked disabled
 								{{else}}
 									{{if .private}}checked{{end}}
 								{{end}}>
-							<label>{{ctx.Locale.Tr "repo.visibility_helper"}}</label>
+							<label for="chk-private">{{ctx.Locale.Tr "repo.visibility_helper"}}</label>
 						</div>
 						{{if .IsForcedPrivate}}
-							<span class="help">{{ctx.Locale.Tr "repo.visibility_helper_forced"}}</span>
+							<span class="ds-hint">{{ctx.Locale.Tr "repo.visibility_helper_forced"}}</span>
 						{{end}}
-						<span class="help">{{ctx.Locale.Tr "repo.visibility_description"}}</span>
+						<span class="ds-hint">{{ctx.Locale.Tr "repo.visibility_description"}}</span>
 					</div>
-					<div class="inline field {{if .Err_Description}}error{{end}}">
-						<label for="description">{{ctx.Locale.Tr "repo.repo_desc"}}</label>
-						<textarea id="description" name="description" maxlength="2048">{{.description}}</textarea>
+					<div class="ds-field {{if .Err_Description}}is-err{{end}}">
+						<label class="ds-label" for="description">{{ctx.Locale.Tr "repo.repo_desc"}}</label>
+						<textarea class="ds-textarea" id="description" name="description" maxlength="2048">{{.description}}</textarea>
 					</div>
 
-					<div class="inline field">
-						<label></label>
-						<button class="ui primary button">
+					<div class="ds-field">
+						<button class="ds-btn ds-btn-primary">
 							{{ctx.Locale.Tr "repo.migrate_repo"}}
 						</button>
 					</div>

@@ -4,7 +4,7 @@
 <div class="ui attached segment">
 	{{$isCodeEnabled := .Repository.UnitEnabled $.Context $.UnitTypeCode}}
 	{{$isCodeGlobalDisabled := .UnitTypeCode.UnitGlobalDisabled}}
-	<div class="inline field">
+	<div class="inline ds-field">
 		<label>{{ctx.Locale.Tr "repo.code"}}</label>
 		<div class="ui checkbox{{if $isCodeGlobalDisabled}} disabled{{end}}"{{if $isCodeGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
 			<input class="enable-system" name="enable_code" type="checkbox"{{if $isCodeEnabled}} checked{{end}}>
@@ -14,7 +14,7 @@
 
 	{{$isProjectsEnabled := .Repository.UnitEnabled $.Context $.UnitTypeProjects}}
 	{{$isProjectsGlobalDisabled := .UnitTypeProjects.UnitGlobalDisabled}}
-	<div class="inline field">
+	<div class="inline ds-field">
 		<label>{{ctx.Locale.Tr "repo.projects"}}</label>
 		<div class="ui checkbox{{if $isProjectsGlobalDisabled}} disabled{{end}}"{{if $isProjectsGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
 			<input class="enable-system" name="enable_projects" type="checkbox" {{if $isProjectsEnabled}}checked{{end}}>
@@ -24,7 +24,7 @@
 
 	{{$isReleasesEnabled := .Repository.UnitEnabled $.Context $.UnitTypeReleases}}
 	{{$isReleasesGlobalDisabled := .UnitTypeReleases.UnitGlobalDisabled}}
-	<div class="inline field">
+	<div class="inline ds-field">
 		<label>{{ctx.Locale.Tr "repo.releases"}}</label>
 		<div class="ui checkbox{{if $isReleasesGlobalDisabled}} disabled{{end}}"{{if $isReleasesGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
 			<input class="enable-system" name="enable_releases" type="checkbox" {{if $isReleasesEnabled}}checked{{end}}>
@@ -34,14 +34,14 @@
 
 	{{$isPackagesEnabled := .Repository.UnitEnabled $.Context $.UnitTypePackages}}
 	{{$isPackagesGlobalDisabled := .UnitTypePackages.UnitGlobalDisabled}}
-	<div class="inline field">
+	<div class="inline ds-field">
 		<label>{{ctx.Locale.Tr "repo.packages"}}</label>
 		<div class="ui checkbox{{if $isPackagesGlobalDisabled}} disabled{{end}}"{{if $isPackagesGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
 			<input class="enable-system" name="enable_packages" type="checkbox" {{if $isPackagesEnabled}}checked{{end}}>
 			<label>{{ctx.Locale.Tr "repo.settings.packages_desc"}}</label>
 		</div>
 		{{if (and .Repository.IsPrivate .Repository.Owner.Visibility.IsPublic)}}
-			<span class="ui yellow label warning">
+			<span class="ds-chip ds-chip-warn warning">
 				{{svg "octicon-alert"}}
 				{{ctx.Locale.Tr "repo.packages.visibility_warning" .Repository.OwnerName}}
 			</span>
@@ -51,7 +51,7 @@
 	{{if .EnableActions}}
 		{{$isActionsEnabled := .Repository.UnitEnabled $.Context $.UnitTypeActions}}
 		{{$isActionsGlobalDisabled := .UnitTypeActions.UnitGlobalDisabled}}
-		<div class="inline field">
+		<div class="inline ds-field">
 			<label>{{ctx.Locale.Tr "actions.actions"}}</label>
 			<div class="ui checkbox{{if $isActionsGlobalDisabled}} disabled{{end}}"{{if $isActionsGlobalDisabled}} data-tooltip-content="{{ctx.Locale.Tr "repo.unit_disabled"}}"{{end}}>
 				<input class="enable-system" name="enable_actions" type="checkbox" {{if $isActionsEnabled}}checked{{end}}>
@@ -62,7 +62,7 @@
 
 	<div class="divider"></div>
 
-	<div class="field">
-		<button class="ui primary button">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
+	<div class="ds-field">
+		<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
 	</div>
 </div>

@@ -7,7 +7,7 @@
 			<div class="sixteen wide column content">
 				{{template "base/alert" .}}
 				{{if .Repository.IsArchived}}
-					<div class="ui warning message tw-text-center">
+					<div class="ds-banner ds-banner-warn">
 						{{if .Repository.ArchivedUnix.IsZero}}
 							{{ctx.Locale.Tr "repo.archive.title"}}
 						{{else}}
@@ -16,7 +16,7 @@
 					</div>
 				{{end}}
 				{{if .Repository.IsBroken}}
-						<div class="ui segment center">
+						<div class="ds-card ds-card-b center">
 							{{if $isAsc}}{{ctx.Locale.Tr "repo.broken_message_asc"}}{{else}}{{ctx.Locale.Tr "repo.broken_message"}}{{end}}
 						</div>
 				{{else if .CanWriteCode}}
@@ -29,11 +29,11 @@
 
 							<div class="repo-button-row">
 								{{if and .CanWriteCode (not .Repository.IsArchived)}}
-									<a class="ui small button" href="{{.RepoLink}}/_new/{{.BranchName | PathEscapeSegments}}/">
+									<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.RepoLink}}/_new/{{.BranchName | PathEscapeSegments}}/">
 										{{ctx.Locale.Tr "repo.editor.new_file"}}
 									</a>
 									{{if .RepositoryUploadEnabled}}
-									<a class="ui small button" href="{{.RepoLink}}/_upload/{{.BranchName | PathEscapeSegments}}/">
+									<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.RepoLink}}/_upload/{{.BranchName | PathEscapeSegments}}/">
 										{{ctx.Locale.Tr "repo.editor.upload_file"}}
 									</a>
 									{{end}}
@@ -91,7 +91,7 @@ git push -u origin {{.Repository.DefaultBranch}}</code></pre>
 							</div>
 						{{end}}
 					{{else}}
-						<div class="ui segment center">
+						<div class="ds-card ds-card-b center">
 							{{ctx.Locale.Tr "repo.empty_message"}}
 						</div>
 					{{end}}

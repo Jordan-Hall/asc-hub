@@ -11,17 +11,17 @@
 <form class="ui form" action="{{.Link}}" method="post">
 	<div>
 		<input type="hidden" id="redirect" name="redirect" value="{{.redirect}}">
-		<div class="field {{if .Err_Title}}error{{end}}">
+		<div class="ds-field {{if .Err_Title}}error{{end}}">
 			<label>{{ctx.Locale.Tr "repo.projects.title"}}</label>
-			<input name="title" placeholder="{{ctx.Locale.Tr "repo.projects.title"}}" value="{{.title}}" autofocus required>
+			<input class="ds-input" name="title" placeholder="{{ctx.Locale.Tr "repo.projects.title"}}" value="{{.title}}" autofocus required>
 		</div>
-		<div class="field">
+		<div class="ds-field">
 			<label>{{ctx.Locale.Tr "repo.projects.description"}}</label>
-			<textarea name="content" placeholder="{{ctx.Locale.Tr "repo.projects.description_placeholder"}}">{{.content}}</textarea>
+			<textarea class="ds-textarea" name="content" placeholder="{{ctx.Locale.Tr "repo.projects.description_placeholder"}}">{{.content}}</textarea>
 		</div>
 
 		{{if not .PageIsEditProjects}}
-			<div class="field">
+			<div class="ds-field">
 				<label>{{ctx.Locale.Tr "repo.projects.template.desc"}}</label>
 				<div class="ui selection dropdown">
 					<input type="hidden" name="template_type" value="{{.type}}">
@@ -35,7 +35,7 @@
 			</div>
 		{{end}}
 
-		<div class="field">
+		<div class="ds-field">
 			<label>{{ctx.Locale.Tr "repo.projects.card_type.desc"}}</label>
 			<div class="ui selection dropdown">
 				{{svg "octicon-triangle-down" 14 "dropdown icon"}}
@@ -58,7 +58,7 @@
 		<a class="ui cancel button" href="{{$.CancelLink}}">
 			{{ctx.Locale.Tr "repo.milestones.cancel"}}
 		</a>
-		<button class="ui primary button">
+		<button class="ds-btn ds-btn-primary">
 			{{if .PageIsEditProjects}}{{ctx.Locale.Tr "repo.projects.modify"}}{{else}}{{ctx.Locale.Tr "repo.projects.create"}}{{end}}
 		</button>
 	</div>

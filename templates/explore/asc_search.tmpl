@@ -6,8 +6,8 @@
 		<form id="asc-search-form" class="asc-search-form" method="get" action="{{AppSubUrl}}/explore/code" role="search">
 			<div class="asc-search-bar">
 				<label class="tw-sr-only" for="asc-search-q">Search the code of every repository you can read</label>
-				<input id="asc-search-q" name="q" type="search" value="{{.AscText}}" maxlength="4096" autocomplete="off" placeholder="Search code, symbols or ideas" required>
-				<button class="ui primary button" type="submit">Search</button>
+				<input class="ds-input" id="asc-search-q" name="q" type="search" value="{{.AscText}}" maxlength="4096" autocomplete="off" placeholder="Search code, symbols or ideas" required>
+				<button class="ds-btn ds-btn-primary" type="submit">Search</button>
 			</div>
 			<div class="asc-search-modes" role="radiogroup" aria-label="Kind of search">
 				<label class="asc-mode"><input type="radio" name="mode" value="text"{{if eq .AscMode "text"}} checked{{end}}><span>Text</span></label>
@@ -19,27 +19,27 @@
 					In: {{if .AscOwner}}repositories of <span class="tw-font-mono">{{.AscOwner}}</span>{{else}}all repositories{{end}}
 				</summary>
 				<div class="asc-search-fields">
-					<div class="field">
+					<div class="ds-field">
 						<label for="asc-search-owner">Owner</label>
-						<input id="asc-search-owner" name="owner" type="text" value="{{.AscOwner}}" maxlength="255" placeholder="every owner">
+						<input class="ds-input" id="asc-search-owner" name="owner" type="text" value="{{.AscOwner}}" maxlength="255" placeholder="every owner">
 					</div>
-					<div class="field">
+					<div class="ds-field">
 						<label for="asc-search-lang">Language</label>
-						<input id="asc-search-lang" name="lang" type="text" value="{{.AscLang}}" maxlength="40" placeholder="any">
+						<input class="ds-input" id="asc-search-lang" name="lang" type="text" value="{{.AscLang}}" maxlength="40" placeholder="any">
 					</div>
-					<div class="field">
+					<div class="ds-field">
 						<label for="asc-search-path">Path</label>
-						<input id="asc-search-path" name="path" type="text" value="{{.AscPath}}" maxlength="1024" placeholder="the whole repository">
+						<input class="ds-input" id="asc-search-path" name="path" type="text" value="{{.AscPath}}" maxlength="1024" placeholder="the whole repository">
 					</div>
-					<div class="field">
+					<div class="ds-field">
 						<label for="asc-search-match">Text match</label>
-						<select id="asc-search-match" name="match">
+						<select class="ds-select" id="asc-search-match" name="match">
 							<option value="literal"{{if eq .AscMatch "literal"}} selected{{end}}>Literal</option>
 							<option value="word"{{if eq .AscMatch "word"}} selected{{end}}>Whole word</option>
 							<option value="regex"{{if eq .AscMatch "regex"}} selected{{end}}>Regular expression</option>
 						</select>
 					</div>
-					<div class="field asc-search-case">
+					<div class="ds-field asc-search-case">
 						<div class="ui checkbox">
 							<input id="asc-search-case" name="case" type="checkbox" value="1"{{if .AscCase}} checked{{end}}>
 							<label for="asc-search-case">Match case</label>
@@ -51,7 +51,7 @@
 		</form>
 
 		{{if .AscError}}
-			<div class="ui {{if eq .AscError 400}}warning{{else}}error{{end}} message" role="alert" id="asc-search-error">
+			<div class="ds-banner {{if eq .AscError 400}}warning {{else}}error {{end}}" role="alert" id="asc-search-error">
 				<p>{{.AscErrorText}}</p>
 			</div>
 		{{else if .AscDone}}
@@ -90,7 +90,7 @@
 
 				<div class="asc-search-results" id="asc-search-results">
 					{{if eq .AscReposTotal 0}}
-						<div class="ui info message" role="status">No repository you can read is stored in asc, so there is no code to search yet.</div>
+						<div class="ds-banner" role="status">No repository you can read is stored in asc, so there is no code to search yet.</div>
 					{{else}}
 						<p class="asc-search-summary" role="status">
 							{{if eq .AscMode "symbol"}}
@@ -106,17 +106,17 @@
 						</p>
 
 						{{if .AscReposTruncated}}
-							<div class="ui info message" role="status">
+							<div class="ds-banner" role="status">
 								{{if eq .AscMode "meaning"}}A search by meaning covers the {{.AscReposSearched}} most recently updated of the {{.AscReposTotal}} repositories you can read, because each one costs a model call. Set an owner to search others.
 								{{else}}Searched the {{.AscReposSearched}} most recently updated of the {{.AscReposTotal}} repositories you can read. Set an owner to search the others.{{end}}
 							</div>
 						{{end}}
 						{{if .AscFailed}}
-							<div class="ui warning message" role="status">{{.AscFailed}} repositor{{if eq .AscFailed 1}}y{{else}}ies{{end}} could not be searched, so the results may be incomplete.</div>
+							<div class="ds-banner ds-banner-warn" role="status">{{.AscFailed}} repositor{{if eq .AscFailed 1}}y{{else}}ies{{end}} could not be searched, so the results may be incomplete.</div>
 						{{end}}
 
 						{{if eq .AscCount 0}}
-							<div class="ui info message" role="status">Nothing found.</div>
+							<div class="ds-banner" role="status">Nothing found.</div>
 						{{end}}
 
 						{{range $g := .AscGroups}}
@@ -184,9 +184,9 @@
 						{{end}}
 
 						{{if .AscMore}}
-							<p><a class="ui basic button" id="asc-search-more" href="{{.AscMore}}">More results</a></p>
+							<p><a class="ds-btn ds-btn-secondary" id="asc-search-more" href="{{.AscMore}}">More results</a></p>
 						{{else if .AscTruncated}}
-							<div class="ui info message" role="status">More results exist than are shown. Narrow the search with an owner, a language or a path.</div>
+							<div class="ds-banner" role="status">More results exist than are shown. Narrow the search with an owner, a language or a path.</div>
 						{{end}}
 
 						{{if and (eq .AscMode "text") .AscGroups}}

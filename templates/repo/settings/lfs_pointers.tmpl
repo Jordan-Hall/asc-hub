@@ -10,7 +10,7 @@
 								<input type="hidden" name="oid" value="{{.Oid}} {{.Size}}">
 							{{end}}
 						{{end}}
-						<button class="ui primary tiny button">{{ctx.Locale.Tr "repo.settings.lfs_pointers.associateAccessible" $.NumAssociatable}}</button>
+						<button class="ds-btn ds-btn-primary ds-btn-sm">{{ctx.Locale.Tr "repo.settings.lfs_pointers.associateAccessible" $.NumAssociatable}}</button>
 					</form>
 				</div>
 			{{end}}
@@ -31,12 +31,12 @@
 					{{range .Pointers}}
 						<tr>
 							<td>
-								<a href="{{$.RepoLink}}/raw/blob/{{.SHA}}" rel="nofollow" target="_blank" title="{{.SHA}}" class="ui button tw-font-mono">
+								<a href="{{$.RepoLink}}/raw/blob/{{.SHA}}" rel="nofollow" target="_blank" title="{{.SHA}}" class="ds-btn ds-btn-secondary tw-font-mono">
 									{{ShortSha .SHA}}
 								</a>
 							</td>
 							<td>
-								<a {{if and .Exists .InRepo}}href="{{$.LFSFilesLink}}/show/{{.Oid}}" rel="nofollow" target="_blank"{{end}} title="{{.Oid}}" class="ui brown button tw-font-mono">
+								<a {{if and .Exists .InRepo}}href="{{$.LFSFilesLink}}/show/{{.Oid}}" rel="nofollow" target="_blank"{{end}} title="{{.Oid}}" class="ds-btn ds-btn-secondary tw-font-mono">
 									{{ShortSha .Oid}}
 								</a>
 							</td>
@@ -44,7 +44,7 @@
 							<td>{{if .Exists}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</td>
 							<td>{{if .Accessible}}{{svg "octicon-check"}}{{else}}{{svg "octicon-x"}}{{end}}</td>
 							<td class="tw-text-right">
-								<a class="ui primary button" href="{{$.LFSFilesLink}}/find?oid={{.Oid}}&size={{.Size}}&sha={{.SHA}}">{{ctx.Locale.Tr "repo.settings.lfs_findcommits"}}</a>
+								<a class="ds-btn ds-btn-primary" href="{{$.LFSFilesLink}}/find?oid={{.Oid}}&size={{.Size}}&sha={{.SHA}}">{{ctx.Locale.Tr "repo.settings.lfs_findcommits"}}</a>
 							</td>
 						</tr>
 					{{end}}

@@ -6,7 +6,7 @@
 			{{template "repo/issue/navbar" .}}
 			{{if and (or .CanWriteIssues .CanWritePulls) .PageIsEditMilestone}}
 				<div class="ui right floated secondary menu">
-					<a class="ui primary button" href="{{$.RepoLink}}/milestones/new">{{ctx.Locale.Tr "repo.milestones.new"}}</a>
+					<a class="ds-btn ds-btn-primary" href="{{$.RepoLink}}/milestones/new">{{ctx.Locale.Tr "repo.milestones.new"}}</a>
 				</div>
 			{{end}}
 		</div>
@@ -22,18 +22,18 @@
 		</h2>
 		{{template "base/alert" .}}
 		<form class="ui form" action="{{.Link}}" method="post">
-				<div class="field {{if .Err_Title}}error{{end}}">
+				<div class="ds-field {{if .Err_Title}}error{{end}}">
 					<label>{{ctx.Locale.Tr "repo.milestones.title"}}</label>
-					<input name="title" placeholder="{{ctx.Locale.Tr "repo.milestones.title"}}" value="{{.title}}" autofocus required maxlength="50">
+					<input class="ds-input" name="title" placeholder="{{ctx.Locale.Tr "repo.milestones.title"}}" value="{{.title}}" autofocus required maxlength="50">
 				</div>
-				<div class="field {{if .Err_Deadline}}error{{end}}">
+				<div class="ds-field {{if .Err_Deadline}}error{{end}}">
 					<label>
 						{{ctx.Locale.Tr "repo.milestones.due_date"}}
 						<a id="clear-date">{{ctx.Locale.Tr "repo.milestones.clear"}}</a>
 					</label>
-					<input type="date" id="deadline" name="deadline" value="{{.deadline}}" placeholder="{{ctx.Locale.Tr "repo.issues.due_date_form"}}">
+					<input class="ds-input" type="date" id="deadline" name="deadline" value="{{.deadline}}" placeholder="{{ctx.Locale.Tr "repo.issues.due_date_form"}}">
 				</div>
-				<div class="field">
+				<div class="ds-field">
 					{{template "shared/combomarkdowneditor" (dict
 						"MarkdownPreviewUrl" (print .Repository.Link "/markup")
 						"MarkdownPreviewContext" .RepoLink
@@ -47,14 +47,14 @@
 				<div class="divider"></div>
 				<div class="tw-text-right">
 					{{if .PageIsEditMilestone}}
-						<a class="ui primary basic button" href="{{.RepoLink}}/milestones">
+						<a class="ds-btn ds-btn-primary" href="{{.RepoLink}}/milestones">
 							{{ctx.Locale.Tr "repo.milestones.cancel"}}
 						</a>
-						<button class="ui primary button">
+						<button class="ds-btn ds-btn-primary">
 							{{ctx.Locale.Tr "repo.milestones.modify"}}
 						</button>
 					{{else}}
-						<button class="ui primary button">
+						<button class="ds-btn ds-btn-primary">
 							{{ctx.Locale.Tr "repo.milestones.create"}}
 						</button>
 					{{end}}

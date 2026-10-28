@@ -6,7 +6,7 @@
 		<div class="repo-button-row">
 			<div class="tw-flex tw-items-center">
 				<div class="ui floating filter dropdown" data-no-results="{{ctx.Locale.Tr "repo.pulls.no_results"}}">
-					<div class="ui basic small button">
+					<div class="ds-btn ds-btn-secondary ds-btn-sm">
 						<span class="text">
 							{{ctx.Locale.Tr "repo.wiki.page"}}:
 							<strong>{{$title}}</strong>
@@ -16,7 +16,7 @@
 					<div class="menu">
 						<div class="ui icon search input">
 							<i class="icon">{{svg "octicon-filter" 16}}</i>
-							<input name="search" placeholder="{{ctx.Locale.Tr "repo.wiki.filter_page"}}...">
+							<input class="ds-input" name="search" placeholder="{{ctx.Locale.Tr "repo.wiki.filter_page"}}...">
 						</div>
 						<div class="scrolling menu">
 							<a class="item muted" href="{{.RepoLink}}/wiki/?action=_pages">{{ctx.Locale.Tr "repo.wiki.pages"}}</a>
@@ -35,7 +35,7 @@
 			<div class="ui floating dropdown jump tw-ml-auto">
 				<div class="ui icon search input">
 					<i class="icon">{{svg "octicon-search"}}</i>
-					<input type="search" name="q" hx-get="{{$.RepoLink}}/wiki/search" hx-target="#wiki-search" hx-swap="innerHTML" hx-trigger="keyup changed delay:.5s" placeholder="{{ctx.Locale.Tr "repo.wiki.search"}}..." />
+					<input class="ds-input" type="search" name="q" hx-get="{{$.RepoLink}}/wiki/search" hx-target="#wiki-search" hx-swap="innerHTML" hx-trigger="keyup changed delay:.5s" placeholder="{{ctx.Locale.Tr "repo.wiki.search"}}..." />
 				</div>
 				<div id="wiki-search" class="menu tw-absolute tw-max-h-[65dvh] tw-overflow-y-auto tw-mt-3 tw-rounded left">
 					<div class="item muted">{{ctx.Locale.Tr "repo.wiki.no_search_results"}}</div>
@@ -45,7 +45,7 @@
 		<div class="ui dividing header">
 			<div class="ui stackable grid">
 				<div class="eight wide column">
-					<a class="file-revisions-btn ui basic button" title="{{ctx.Locale.Tr "repo.wiki.file_revision"}}" href="{{.RepoLink}}/wiki/{{.PageURL}}?action=_revision" >{{if .CommitCount}}<span>{{.CommitCount}}</span> {{end}}{{svg "octicon-history"}}</a>
+					<a class="ds-btn ds-btn-secondary file-revisions-btn" title="{{ctx.Locale.Tr "repo.wiki.file_revision"}}" href="{{.RepoLink}}/wiki/{{.PageURL}}?action=_revision" >{{if .CommitCount}}<span>{{.CommitCount}}</span> {{end}}{{svg "octicon-history"}}</a>
 					{{$title}}
 					<div class="ui sub header">
 						{{$timeSince := DateUtils.TimeSince .Author.When}}
@@ -55,20 +55,20 @@
 				<div class="eight wide right aligned column">
 					<div class="ui right">
 						{{if .EscapeStatus.Escaped}}
-							<a class="ui small button unescape-button tw-hidden">{{ctx.Locale.Tr "repo.unescape_control_characters"}}</a>
-							<a class="ui small button escape-button">{{ctx.Locale.Tr "repo.escape_control_characters"}}</a>
+							<a class="ds-btn ds-btn-secondary ds-btn-sm unescape-button tw-hidden">{{ctx.Locale.Tr "repo.unescape_control_characters"}}</a>
+							<a class="ds-btn ds-btn-secondary ds-btn-sm escape-button">{{ctx.Locale.Tr "repo.escape_control_characters"}}</a>
 						{{end}}
 						{{if and .CanWriteWiki (not .Repository.IsMirror)}}
-							<a class="ui small button" href="{{.RepoLink}}/wiki/{{.PageURL}}?action=_edit">{{ctx.Locale.Tr "repo.wiki.edit_page_button"}}</a>
-							<a class="ui small primary button" href="{{.RepoLink}}/wiki?action=_new">{{ctx.Locale.Tr "repo.wiki.new_page_button"}}</a>
-							<a class="ui small red button delete-button" href="" data-url="{{.RepoLink}}/wiki/{{.PageURL}}?action=_delete" data-id="{{.PageURL}}" data-modal-id="delete-wiki-page">{{ctx.Locale.Tr "repo.wiki.delete_page_button"}}</a>
+							<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.RepoLink}}/wiki/{{.PageURL}}?action=_edit">{{ctx.Locale.Tr "repo.wiki.edit_page_button"}}</a>
+							<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/wiki?action=_new">{{ctx.Locale.Tr "repo.wiki.new_page_button"}}</a>
+							<a class="ds-btn ds-btn-danger ds-btn-sm delete-button" href="" data-url="{{.RepoLink}}/wiki/{{.PageURL}}?action=_delete" data-id="{{.PageURL}}" data-modal-id="delete-wiki-page">{{ctx.Locale.Tr "repo.wiki.delete_page_button"}}</a>
 						{{end}}
 					</div>
 				</div>
 			</div>
 		</div>
 		{{if .FormatWarning}}
-			<div class="ui negative message">
+			<div class="ds-banner ds-banner-err">
 				<p>{{.FormatWarning}}</p>
 			</div>
 		{{end}}

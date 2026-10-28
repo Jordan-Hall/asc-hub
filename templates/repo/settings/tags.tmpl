@@ -1,7 +1,7 @@
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings edit")}}
 	<div class="repo-setting-content">
 		{{if .Repository.IsArchived}}
-			<div class="ui warning message tw-text-center">
+			<div class="ds-banner ds-banner-warn">
 				{{ctx.Locale.Tr "repo.settings.archive.tagsettings_unavailable"}}
 			</div>
 		{{else}}
@@ -12,9 +12,9 @@
 			<div class="ui attached segment">
 				<div class="ui grid">
 					<div class="sixteen wide column">
-						<div class="ui segment">
+						<div class="ds-card ds-card-b">
 							<form class="ui form" action="{{.Link}}" method="post">
-								<div class="field">
+								<div class="ds-field">
 									<label>{{ctx.Locale.Tr "repo.settings.tags.protection.pattern"}}</label>
 									<div id="search-tag-box" class="ui search">
 										<div class="ui input">
@@ -23,7 +23,7 @@
 										<div class="help">{{ctx.Locale.Tr "repo.settings.tags.protection.pattern.description" "https://forgejo.org/docs/latest/user/protection/#protected-tags"}}</div>
 									</div>
 								</div>
-								<div class="whitelist field">
+								<div class="whitelist ds-field">
 									<label>{{ctx.Locale.Tr "repo.settings.tags.protection.allowed.users"}}</label>
 									<div class="ui multiple search selection dropdown">
 										<input type="hidden" name="allowlist_users" value="{{.allowlist_users}}">
@@ -38,7 +38,7 @@
 									</div>
 								</div>
 								{{if .Owner.IsOrganization}}
-									<div class="whitelist field">
+									<div class="whitelist ds-field">
 										<label>{{ctx.Locale.Tr "repo.settings.tags.protection.allowed.teams"}}</label>
 										<div class="ui multiple search selection dropdown">
 											<input type="hidden" name="allowlist_teams" value="{{.allowlist_teams}}">
@@ -54,16 +54,16 @@
 										</div>
 									</div>
 								{{end}}
-								<div class="field">
+								<div class="ds-field">
 									{{if .PageIsEditProtectedTag}}
-									<button class="ui primary button">
+									<button class="ds-btn ds-btn-primary">
 										{{ctx.Locale.Tr "save"}}
 									</button>
-									<a class="ui primary button" href="{{$.RepoLink}}/settings/tags">
+									<a class="ds-btn ds-btn-primary" href="{{$.RepoLink}}/settings/tags">
 										{{ctx.Locale.Tr "cancel"}}
 									</a>
 									{{else}}
-									<button class="ui primary button">
+									<button class="ds-btn ds-btn-primary">
 										{{ctx.Locale.Tr "repo.settings.tags.protection.create"}}
 									</button>
 									{{end}}
@@ -88,14 +88,14 @@
 												{{$userIDs := .AllowlistUserIDs}}
 												{{range $.Users}}
 													{{if SliceUtils.Contains $userIDs .ID}}
-														<a class="ui basic label" href="{{.HomeLink}}">{{ctx.AvatarUtils.Avatar . 26}} {{.GetDisplayName}}</a>
+														<a class="ds-chip ds-chip-outline" href="{{.HomeLink}}">{{ctx.AvatarUtils.Avatar . 26}} {{.GetDisplayName}}</a>
 													{{end}}
 												{{end}}
 												{{if $.Owner.IsOrganization}}
 													{{$teamIDs := .AllowlistTeamIDs}}
 													{{range $.Teams}}
 														{{if SliceUtils.Contains $teamIDs .ID}}
-															<a class="ui basic label" href="{{$.Owner.OrganisationLink}}/teams/{{PathEscape .LowerName}}">{{.Name}}</a>
+															<a class="ds-chip ds-chip-outline" href="{{$.Owner.OrganisationLink}}/teams/{{PathEscape .LowerName}}">{{.Name}}</a>
 														{{end}}
 													{{end}}
 												{{end}}
@@ -104,10 +104,10 @@
 											{{end}}
 										</td>
 										<td class="right aligned">
-											<a class="ui tiny primary button" href="{{$.RepoLink}}/settings/tags/{{.ID}}">{{ctx.Locale.Tr "edit"}}</a>
+											<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{$.RepoLink}}/settings/tags/{{.ID}}">{{ctx.Locale.Tr "edit"}}</a>
 											<form class="tw-inline-block" action="{{$.RepoLink}}/settings/tags/delete" method="post">
 												<input type="hidden" name="id" value="{{.ID}}">
-												<button class="ui tiny red button">{{ctx.Locale.Tr "remove"}}</button>
+												<button class="ds-btn ds-btn-danger ds-btn-sm">{{ctx.Locale.Tr "remove"}}</button>
 											</form>
 										</td>
 									</tr>

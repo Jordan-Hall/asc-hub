@@ -2495,3 +2495,26 @@ a.ds-stat:hover {
 }
 
 
+
+/* a field that must be filled in: the label carries a red star (aria: the input has `required`) */
+.ds-required > .ds-label::after {
+  content: " *";
+  color: var(--err);
+}
+
+.ds-field.is-err > :is(.ds-input, .ds-select, .ds-textarea) {
+  border-color: var(--err);
+}
+
+.ds-hr {
+  height: 0;
+  margin: 8px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.ds-card-title {
+  margin: 0;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}

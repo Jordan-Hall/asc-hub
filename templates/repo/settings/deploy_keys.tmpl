@@ -4,27 +4,27 @@
 			{{ctx.Locale.Tr "repo.settings.deploy_keys"}}
 			<div class="ui right">
 			{{if not .DisableSSH}}
-				<button class="ui primary tiny show-panel toggle button" data-panel="#add-deploy-key-panel">{{ctx.Locale.Tr "repo.settings.add_deploy_key"}}</button>
+				<button class="ds-btn ds-btn-primary ds-btn-sm show-panel" data-panel="#add-deploy-key-panel">{{ctx.Locale.Tr "repo.settings.add_deploy_key"}}</button>
 			{{else}}
-				<button class="ui primary tiny button disabled">{{ctx.Locale.Tr "settings.ssh_disabled"}}</button>
+				<button class="ds-btn ds-btn-primary ds-btn-sm disabled">{{ctx.Locale.Tr "settings.ssh_disabled"}}</button>
 			{{end}}
 			</div>
 		</h4>
 		<div class="ui attached segment">
 			<div class="{{if not .HasError}}tw-hidden{{end}} tw-mb-4" id="add-deploy-key-panel">
 				<form class="ui form" action="{{.Link}}" method="post">
-					<div class="field">
+					<div class="ds-field">
 						{{ctx.Locale.Tr "repo.settings.deploy_key_desc"}}
 					</div>
-					<div class="field {{if .Err_Title}}error{{end}}">
+					<div class="ds-field {{if .Err_Title}}error{{end}}">
 						<label for="ssh-key-title">{{ctx.Locale.Tr "repo.settings.title"}}</label>
-						<input id="ssh-key-title" name="title" value="{{.title}}" autofocus required>
+						<input class="ds-input" id="ssh-key-title" name="title" value="{{.title}}" autofocus required>
 					</div>
-					<div class="field {{if .Err_Content}}error{{end}}">
+					<div class="ds-field {{if .Err_Content}}error{{end}}">
 						<label for="ssh-key-content">{{ctx.Locale.Tr "repo.settings.deploy_key_content"}}</label>
-						<textarea id="ssh-key-content" name="content" placeholder="{{ctx.Locale.Tr "settings.key_content_ssh_placeholder"}}" required>{{.content}}</textarea>
+						<textarea class="ds-textarea" id="ssh-key-content" name="content" placeholder="{{ctx.Locale.Tr "settings.key_content_ssh_placeholder"}}" required>{{.content}}</textarea>
 					</div>
-					<div class="field">
+					<div class="ds-field">
 						<div class="ui checkbox {{if .Err_IsWritable}}error{{end}}">
 							<input id="ssh-key-is-writable" name="is_writable" type="checkbox" value="1">
 							<label for="ssh-key-is-writable">
@@ -33,10 +33,10 @@
 							<small class="tw-pl-[26px]">{{ctx.Locale.Tr "repo.settings.is_writable_info"}}</small>
 						</div>
 					</div>
-					<button class="ui primary button">
+					<button class="ds-btn ds-btn-primary">
 						{{ctx.Locale.Tr "repo.settings.add_deploy_key"}}
 					</button>
-					<button class="ui hide-panel button" data-panel="#add-deploy-key-panel">
+					<button class="ds-btn ds-btn-secondary hide-panel" data-panel="#add-deploy-key-panel">
 						{{ctx.Locale.Tr "cancel"}}
 					</button>
 				</form>
@@ -58,7 +58,7 @@
 								</div>
 							</div>
 							<div class="flex-item-trailing">
-								<button class="ui red tiny button delete-button" data-url="{{$.Link}}/delete" data-id="{{.ID}}" data-modal-id="delete-deploy-key">
+								<button class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-url="{{$.Link}}/delete" data-id="{{.ID}}" data-modal-id="delete-deploy-key">
 									{{ctx.Locale.Tr "settings.delete_key"}}
 								</button>
 							</div>
