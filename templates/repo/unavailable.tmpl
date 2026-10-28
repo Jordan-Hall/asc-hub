@@ -1,0 +1,70 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository" data-test-id="repo-unavailable">
+	{{template "repo/header" .}}
+	<div class="ds-container ds-container-narrow rp-body">
+		{{template "base/alert" .}}
+		<section class="ds-card" aria-live="polite">
+			<div class="ds-card-b ds-stack-16 rp-migrating">
+				<div class="rp-migrating-img">
+					<span class="rp-migrating-err">{{svg "octicon-alert" 96}}</span>
+				</div>
+				<h2>{{ctx.Locale.Tr "repo.unavailable.title"}}</h2>
+				<p>{{ctx.Locale.Tr "repo.unavailable.body"}}</p>
+				<p id="repo_unavailable_reason" class="tw-break-anywhere"><strong>{{ctx.Locale.Tr "repo.unavailable.reason"}}</strong> {{.UnavailableReason}}</p>
+				{{if .Permission.IsAdmin}}
+					<div class="ds-row ds-gap-8 ds-row-wrap">
+						{{if .CanRetryImport}}
+							<form action="{{.Link}}/settings/migrate/retry" method="post">
+								{{.CsrfTokenHtml}}
+								<input type="hidden" name="redirect" value="1">
+								<button type="submit" class="ds-btn ds-btn-secondary" id="repo_unavailable_retry">{{ctx.Locale.Tr "repo.unavailable.retry_import"}}</button>
+							</form>
+						{{end}}
+						<button type="button" class="ds-btn ds-btn-danger show-modal" data-modal="#delete-repo-modal">{{ctx.Locale.Tr "repo.settings.delete"}}</button>
+					</div>
+				{{else}}
+					<p>{{ctx.Locale.Tr "repo.unavailable.ask_owner"}}</p>
+				{{end}}
+			</div>
+		</section>
+	</div>
+</div>
+
+{{if .Permission.IsAdmin}}
+<dialog id="delete-repo-modal">
+	<article>
+		<header>{{ctx.Locale.Tr "repo.settings.delete"}}</header>
+		<div class="content">
+			<div class="ds-banner ds-banner-warn">
+				{{ctx.Locale.Tr "repo.settings.delete_notices_1"}}<br>
+				{{ctx.Locale.Tr "repo.settings.delete_notices_2" .Repository.FullName}}
+				{{if .Repository.NumForks}}<br>
+				{{ctx.Locale.Tr "repo.settings.delete_notices_fork_1"}}
+				{{end}}
+			</div>
+		</div>
+		<form class="ui form ds-form" action="{{.Link}}/settings" method="post">
+			<div class="content">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="action" value="delete">
+				<div class="ds-field">
+					<label>
+						{{ctx.Locale.Tr "repo.settings.enter_repo_name"}}
+						<span class="ds-c-err">{{.Repository.FullName}}</span>
+					</label>
+				</div>
+				<div class="ds-required ds-field">
+					<label for="repo_name_to_delete">{{ctx.Locale.Tr "repo.settings.confirmation_string"}}</label>
+					<input class="ds-input" id="repo_name_to_delete" name="repo_name" autocorrect="off" autocapitalize="none" spellcheck="false" required>
+				</div>
+			</div>
+			<div class="actions">
+				<button type="button" class="ui cancel button ds-btn ds-btn-secondary">{{ctx.Locale.Tr "settings.cancel"}}</button>
+				<button type="submit" class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "repo.settings.confirm_delete"}}</button>
+			</div>
+		</form>
+	</article>
+</dialog>
+{{end}}
+
+{{template "base/footer" .}}
