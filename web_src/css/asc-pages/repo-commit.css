@@ -1,0 +1,370 @@
+/* A single change (board Changeset): the header with title, who and when, the operations sheet, signature and note
+   callouts, and the files below as bordered cards. Mobile first. */
+
+.rp-crumbs {
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.rp-chead {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.rp-chead-top {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rp-chead-main {
+  min-width: 0;
+}
+
+.rp-chead-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.rp-chead-title .commit-summary {
+  font: inherit;
+  color: inherit;
+}
+
+.rp-chead-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.rp-chead-chips:empty {
+  display: none;
+}
+
+.rp-chead-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-chead-acts > .ds-btn,
+.rp-chead-acts > details > summary {
+  min-height: var(--touch);
+}
+
+.rp-chead-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.rp-chead-who,
+.rp-chead-sha {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rp-chead-who strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.rp-chead-body {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  color: var(--text-b);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rp-chead .branch-and-tag-area {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.rp-commit-ops {
+  position: relative;
+}
+
+.rp-commit-ops > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.rp-commit-ops > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* signature row */
+.rp-sig {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+  background: var(--surface);
+  color: var(--text-b);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.rp-sig.isVerified {
+  border-color: var(--ok-line);
+  background: var(--ok-soft);
+}
+
+.rp-sig.isVerifiedUntrusted,
+.rp-sig.isVerifiedUnmatched,
+.rp-sig.isWarning {
+  border-color: var(--warn-line);
+  background: var(--warn-soft);
+}
+
+.rp-sig > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+/* git note */
+.rp-note {
+  margin: 0 0 16px;
+  border: 1px solid var(--note-line);
+  border-radius: var(--r-card);
+  background: var(--note-bg);
+  color: var(--note-ink);
+  overflow: hidden;
+}
+
+.rp-note-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--note-line);
+  font-size: 14px;
+}
+
+.rp-note-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.rp-note-acts {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.rp-note-b {
+  padding: 12px 14px;
+}
+
+.rp-note-b pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* ---- the diff: a summary bar and one bordered card per file ---- */
+.rp-commit-page .diff-detail-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+  margin: 0 0 12px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.rp-commit-page .diff-detail-stats {
+  gap: 6px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.rp-commit-page .diff-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rp-commit-page .diff-detail-actions .ui.button,
+.rp-commit-page .diff-detail-actions .ui.dropdown.button {
+  min-height: var(--touch);
+  min-width: var(--touch);
+  margin: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.rp-commit-page .diff-file-box {
+  margin: 0 0 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.rp-commit-page .diff-file-box .diff-file-header.ui.header {
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line-2);
+  border-radius: 0;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.rp-commit-page .diff-file-box .diff-file-header .file-link {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.rp-commit-page .diff-file-box .diff-file-body.ui.segment {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rp-commit-page .diff-file-box .code-diff {
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.rp-commit-page .code-diff tr.add-code,
+.rp-commit-page .code-diff tr.add-code td {
+  background: var(--add-bg);
+}
+
+.rp-commit-page .code-diff tr.add-code td.lines-num {
+  background: var(--add-gut);
+}
+
+.rp-commit-page .code-diff tr.del-code,
+.rp-commit-page .code-diff tr.del-code td {
+  background: var(--del-bg);
+}
+
+.rp-commit-page .code-diff tr.del-code td.lines-num {
+  background: var(--del-gut);
+}
+
+.rp-commit-page .code-diff td.lines-num {
+  color: var(--text-3);
+}
+
+.rp-commit-page .diff-file-box .ui.label,
+.rp-commit-page .diff-file-box .ui.basic.label {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-b);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rp-commit-page .diff-file-box .fold-file,
+.rp-commit-page .diff-file-box [data-clipboard-text] {
+  min-width: 36px;
+  min-height: 36px;
+}
+
+@media (min-width: 768px) {
+  .rp-chead-top {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .rp-chead-title {
+    font-size: 30px;
+  }
+
+  .rp-chead-acts {
+    flex: none;
+    padding-top: 6px;
+  }
+
+  .rp-chead-acts > .ds-btn,
+  .rp-chead-acts > details > summary {
+    min-height: 36px;
+  }
+
+  .rp-sig {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .rp-commit-page .diff-detail-actions .ui.button,
+  .rp-commit-page .diff-detail-actions .ui.dropdown.button {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+/* the old label classes stay on the hashes for scripts and tests; the look is the plain mono hash */
+.rp-chead .sha.label {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 400;
+}
+
+.rp-chead a.sha.label:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
