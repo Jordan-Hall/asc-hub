@@ -55,7 +55,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | Clone popover: asc login and clone, Install asc, Open in IDE, Copy | done | `H:templates/repo/clone_dialog.tmpl` | S |
 | Repo | Git compatibility note collapsed and expanded in the clone sheet | done | `H:templates/repo/clone_asc_tabs.tmpl` | S |
 | Repo | "Switch version" popover that lists shared refs, stacks and tags with labels | needs-hub-backend | `H:web_src/js/components/RepoBranchTagSelector.vue` and `H:templates/repo/branch_dropdown.tmpl` list branches and tags only; add stacks (`Stacks`/open pulls) and a "Shared ref" label | M |
-| Repo | Pull to refresh and sticky Clone / New stack buttons (Mobile-Repo) | ui-only-missing | sticky buttons exist (`rp-sticky-m` in `home_dir.tmpl`); pull to refresh is not implemented anywhere in `H:web_src/js` | S |
+| Repo | Pull to refresh and sticky Clone / New stack buttons (Mobile-Repo) | done | sticky buttons exist (`rp-sticky-m` in `home_dir.tmpl`); pull to refresh is not implemented anywhere in `H:web_src/js` | S |
 | Repo | Clone card shown before first clone ("Work on it locally", `asc stack new fix-refund-timeout`) | ui-only-missing | `H:templates/repo/home_dir.tmpl` / `clone_dialog.tmpl` | S |
 
 ## NewRepo
