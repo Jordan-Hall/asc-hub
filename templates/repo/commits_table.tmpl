@@ -41,7 +41,7 @@
 {{end}}
 
 {{if .OldFilename}}
-	<p class="rp-quiet ds-mt-12">{{ctx.Locale.Tr "repo.commits.renamed_from" .OldFilename}} (<a class="ds-link" href="{{.OldFilenameHistory}}">{{ctx.Locale.Tr "repo.commits.browse_further"}}</a>)</p>
+	<p class="rp-quiet rp-rename ds-mt-12">{{ctx.Locale.Tr "repo.commits.renamed_from" .OldFilename}} (<a class="ds-link" href="{{.OldFilenameHistory}}">{{ctx.Locale.Tr "repo.commits.browse_further"}}</a>)</p>
 {{end}}
 
 {{template "base/paginate" .}}

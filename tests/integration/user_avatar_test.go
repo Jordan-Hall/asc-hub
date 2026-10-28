@@ -131,9 +131,9 @@ func TestAvatarAnchorDestination(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		profilePage := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/user2"), http.StatusOK).Body)
-		profilePage.AssertElement(t, "#profile-avatar", true)
+		profilePage.AssertElement(t, ".wk-pf-av", true)
 		// When viewing another user's profile, there shouldn't be a link to user settings
-		profilePage.AssertElement(t, "#profile-avatar a", false)
+		profilePage.AssertElement(t, ".wk-pf-av a", false)
 	})
 
 	t.Run("viewing own profile", func(t *testing.T) {
@@ -142,8 +142,8 @@ func TestAvatarAnchorDestination(t *testing.T) {
 		session := loginUser(t, "user2")
 
 		profilePage := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user2"), http.StatusOK).Body)
-		profilePage.AssertElement(t, "#profile-avatar a", true)
-		href, has := profilePage.Find("#profile-avatar a").Attr("href")
+		profilePage.AssertElement(t, ".wk-pf-av a", true)
+		href, has := profilePage.Find(".wk-pf-av a").Attr("href")
 		assert.True(t, has)
 
 		settingsURL, err := url.Parse(href)

@@ -42,11 +42,11 @@ func TestVerifySSHkeyPage(t *testing.T) {
 	test.SleepTillNextMinute()
 
 	// Verify that if you refresh it via the link another token is shown.
-	token, exists := page.Find("#keys-ssh form input[readonly]").Attr("value")
+	token, exists := page.Find("#keys-ssh form #ssh-token").Attr("value")
 	assert.True(t, exists)
 
 	page = NewHTMLParser(t, session.MakeRequest(t, NewRequestf(t, "GET", "/user/settings/keys%s", linkShown), http.StatusOK).Body)
-	otherToken, exists := page.Find("#keys-ssh form .ds-field input[readonly]").Attr("value")
+	otherToken, exists := page.Find("#keys-ssh form #ssh-token").Attr("value")
 	assert.True(t, exists)
 	assert.NotEqual(t, token, otherToken)
 }

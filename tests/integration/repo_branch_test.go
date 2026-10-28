@@ -165,7 +165,7 @@ func TestDatabaseMissingABranch(t *testing.T) {
 		req := NewRequest(t, "GET", "/user2/repo1/branches")
 		resp := session.MakeRequest(t, req, http.StatusOK)
 		doc := NewHTMLParser(t, resp.Body)
-		firstBranchCount, _ := strconv.Atoi(doc.Find(".repository-menu a[href*='/branches'] b").Text())
+		firstBranchCount, _ := strconv.Atoi(doc.Find(".ds-chip-btn[href$='/branches'] .ds-count").Text())
 		assert.GreaterOrEqual(t, firstBranchCount, 3)
 
 		// Run the repo branch sync again
@@ -181,7 +181,7 @@ func TestDatabaseMissingABranch(t *testing.T) {
 		req = NewRequest(t, "GET", "/user2/repo1/branches")
 		resp = session.MakeRequest(t, req, http.StatusOK)
 		doc = NewHTMLParser(t, resp.Body)
-		secondBranchCount, _ := strconv.Atoi(doc.Find(".repository-menu a[href*='/branches'] b").Text())
+		secondBranchCount, _ := strconv.Atoi(doc.Find(".ds-chip-btn[href$='/branches'] .ds-count").Text())
 		assert.Equal(t, firstBranchCount-1, secondBranchCount)
 	})
 }

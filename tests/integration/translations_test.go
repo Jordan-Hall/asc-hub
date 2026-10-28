@@ -62,13 +62,13 @@ func TestDataSizeTranslation(t *testing.T) {
 		resp = session.MakeRequest(t, req, http.StatusOK)
 
 		// Check if repo size in repo summary is translated
-		repo := NewHTMLParser(t, resp.Body).Find(".repository-summary span")
+		repo := NewHTMLParser(t, resp.Body).Find(".rp-numbers span[title]")
 		repoSize := strings.TrimSpace(repo.Text())
 		repoSize = noDigits.ReplaceAllString(repoSize, "")
 		assert.Equal(t, " КиБ", repoSize)
 
 		// Check if repo sizes in the tooltip are translated
-		fullSize, exists := repo.Attr("data-tooltip-content")
+		fullSize, exists := repo.Attr("title")
 		assert.True(t, exists)
 		fullSize = noDigits.ReplaceAllString(fullSize, "")
 		assert.Equal(t, "git:  КиБ; lfs:  Б", fullSize)

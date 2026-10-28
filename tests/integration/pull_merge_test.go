@@ -1200,7 +1200,7 @@ func TestRebaseWhenNecessary(t *testing.T) {
 
 			resp = session.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1"), http.StatusOK)
 			htmlDoc = NewHTMLParser(t, resp.Body)
-			commitLinkAfter, ok := htmlDoc.Find(".latest-commit a.sha").Attr("href")
+			commitLinkAfter, ok := htmlDoc.Find(".rp-files-last a.sha").Attr("href")
 			assert.True(t, ok)
 			commitAfter := commitLinkAfter[strings.LastIndexByte(commitLinkAfter, '/'):]
 
@@ -1235,7 +1235,7 @@ func TestRebaseWhenNecessary(t *testing.T) {
 
 			resp = session.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1"), http.StatusOK)
 			htmlDoc = NewHTMLParser(t, resp.Body)
-			commitLinkAfter, ok := htmlDoc.Find(".latest-commit a.sha").Attr("href")
+			commitLinkAfter, ok := htmlDoc.Find(".rp-files-last a.sha").Attr("href")
 			assert.True(t, ok)
 			commitAfter := commitLinkAfter[strings.LastIndexByte(commitLinkAfter, '/'):]
 

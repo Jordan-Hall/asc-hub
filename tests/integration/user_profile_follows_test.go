@@ -30,9 +30,9 @@ func TestUserProfileFollows(t *testing.T) {
 
 	followersLink := "#profile-avatar-card a[href='/user1?tab=followers']"
 	followingLink := "#profile-avatar-card a[href='/user1?tab=following']"
-	listHeader := ".user-cards h2"
-	listItems := ".user-cards .list"
-	listMsg := ".user-cards > div"
+	listHeader := ".wk-people h2"
+	listItems := ".wk-people .ds-list"
+	listMsg := ".wk-people .ds-empty"
 
 	// = No follows =
 

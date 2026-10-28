@@ -188,7 +188,7 @@ func testSearchPagination(t *testing.T, rawURL string, doc *HTMLDoc) {
 	require.NoError(t, err)
 
 	hrefs := doc.
-		Find(".pagination.menu a[href]:not(.disabled)").
+		Find(".ds-pager a[href]").
 		Map(func(i int, el *goquery.Selection) string {
 			attr, ok := el.Attr("href")
 			require.True(t, ok)

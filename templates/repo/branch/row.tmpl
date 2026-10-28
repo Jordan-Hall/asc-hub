@@ -21,7 +21,7 @@
 			<p class="rp-ref-meta">
 				{{if $b.DBBranch.Pusher}}<span class="rp-ref-who">{{template "shared/user/avatarlink" dict "user" $b.DBBranch.Pusher}}{{template "shared/user/namelink" $b.DBBranch.Pusher}}</span>{{end}}
 				<a class="rp-hash" href="{{$root.RepoLink}}/commit/{{PathEscape $b.DBBranch.CommitID}}">{{ShortSha $b.DBBranch.CommitID}}</a>
-				<span>{{DateUtils.TimeSince $b.DBBranch.CommitTime}}</span>
+				<span>{{ctx.Locale.Tr "org.repo_updated" (DateUtils.TimeSince $b.DBBranch.CommitTime)}}</span>
 				{{if and (not $isDefault) $root.DefaultBranchBranch}}<span class="rp-ref-div ds-num">{{ctx.Locale.Tr "asc_rp.ahead_behind" $b.CommitsAhead $b.CommitsBehind}}</span>{{end}}
 			</p>
 		{{end}}

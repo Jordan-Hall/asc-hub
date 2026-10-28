@@ -176,12 +176,8 @@ func TestCommitListActions(t *testing.T) {
 			htmlDoc.AssertElement(t, fmt.Sprintf(".commit-list a[href='/%s/src/commit/%s/test/test.sh']", repo.FullName(), commitID), true)
 			htmlDoc.AssertElement(t, fileDiffSelector, true)
 
-			htmlDoc.AssertElement(t, ".repo-path", true)
-			htmlDoc.AssertElement(t, fmt.Sprintf(".repo-path a[href='/%s/src/branch/main'][title='%s']", repo.FullName(), repo.Name), true)
-			assert.Equal(t, 2, htmlDoc.Find(".repo-path .breadcrumb-divider").Length())
-			htmlDoc.AssertElement(t, fmt.Sprintf(".repo-path .section a[href='/%s/src/branch/main/test'][title='test']", repo.FullName()), true)
-			htmlDoc.AssertElement(t, ".repo-path .active[title='test.sh']", true)
-			htmlDoc.AssertElement(t, ".repo-path button[data-clipboard-text='test/test.sh']", true)
+			// The path of the file is the heading of the history band.
+			assert.Equal(t, "test/test.sh", strings.TrimSpace(htmlDoc.Find(".rp-band h2.ds-mono").Text()))
 		})
 	})
 }
@@ -197,7 +193,7 @@ func TestHomeDisplayName(t *testing.T) {
 	req := NewRequest(t, "GET", "/")
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	assert.Equal(t, "Source control for people and their agents", strings.TrimSpace(htmlDoc.Find("h1.asc-hero-title").Text()))
+	assert.Equal(t, "Review code at the speed your agents write it.", strings.TrimSpace(htmlDoc.Find("h1.ds-land-title").Text()))
 }
 
 func TestOpenGraphDisplayName(t *testing.T) {

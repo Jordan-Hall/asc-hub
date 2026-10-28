@@ -35,7 +35,7 @@ func TestLFSRender(t *testing.T) {
 
 		doc := NewHTMLParser(t, resp.Body).doc
 
-		fileInfo := doc.Find("div.file-info-entry").First().Text()
+		fileInfo := doc.Find(".file-info-entry").Text()
 		assert.Contains(t, fileInfo, "Stored with Git LFS")
 
 		content := doc.Find("div.file-view").Text()
@@ -51,7 +51,7 @@ func TestLFSRender(t *testing.T) {
 
 		doc := NewHTMLParser(t, resp.Body).doc
 
-		fileInfo := doc.Find("div.file-info-entry").First().Text()
+		fileInfo := doc.Find(".file-info-entry").Text()
 		assert.Contains(t, fileInfo, "Stored with Git LFS")
 
 		src, exists := doc.Find(".file-view img").Attr("src")
@@ -68,10 +68,10 @@ func TestLFSRender(t *testing.T) {
 
 		doc := NewHTMLParser(t, resp.Body).doc
 
-		fileInfo := doc.Find("div.file-info-entry").First().Text()
+		fileInfo := doc.Find(".file-info-entry").Text()
 		assert.Contains(t, fileInfo, "Stored with Git LFS")
 
-		rawLink, exists := doc.Find("div.file-view > div.view-raw > a").Attr("href")
+		rawLink, exists := doc.Find("div.file-view .ds-empty a.ds-btn-primary").Attr("href")
 		assert.True(t, exists, "Download link should render instead of content because this is a binary file")
 		assert.Equal(t, "/user2/lfs/media/branch/master/crypt.bin", rawLink, "The download link should use the proper /media link because it's in LFS")
 	})
@@ -99,7 +99,7 @@ func TestLFSRender(t *testing.T) {
 		// follow the first link to /user2/lfs/settings/lfs/find?oid=....
 		filesTable := NewHTMLParser(t, resp.Body).doc.Find("#lfs-files-table")
 		assert.Contains(t, filesTable.Text(), "Find commits")
-		lfsFind := filesTable.Find(`.primary.button[href^="/user2"]`)
+		lfsFind := filesTable.Find(`.ds-btn-primary[href^="/user2"]`)
 		assert.Positive(t, lfsFind.Length())
 		lfsFindPath, exists := lfsFind.First().Attr("href")
 		assert.True(t, exists)

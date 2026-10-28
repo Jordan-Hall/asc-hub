@@ -57,7 +57,7 @@ func testPrivateActivityHelperEnablePrivateActivity(t *testing.T) {
 }
 
 func testPrivateActivityHelperHasVisibleActivitiesInHTMLDoc(htmlDoc *HTMLDoc) bool {
-	return htmlDoc.doc.Find("#activity-feed").Find(".flex-item").Length() > 0
+	return htmlDoc.doc.Find("#activity-feed").Find(".ds-li").Length() > 0
 }
 
 func testPrivateActivityHelperHasVisibleActivitiesFromSession(t *testing.T, session *TestSession) bool {
@@ -81,7 +81,7 @@ func testPrivateActivityHelperHasVisibleActivitiesFromPublic(t *testing.T) bool 
 // heatmap UI helpers
 
 func testPrivateActivityHelperHasVisibleHeatmapInHTMLDoc(htmlDoc *HTMLDoc) bool {
-	return htmlDoc.doc.Find("#user-heatmap").Length() > 0
+	return htmlDoc.doc.Find(".wk-hm").Length() > 0
 }
 
 func testPrivateActivityHelperHasVisibleProfileHeatmapFromSession(t *testing.T, session *TestSession) bool {
@@ -94,7 +94,8 @@ func testPrivateActivityHelperHasVisibleProfileHeatmapFromSession(t *testing.T, 
 }
 
 func testPrivateActivityHelperHasVisibleDashboardHeatmapFromSession(t *testing.T, session *TestSession) bool {
-	req := NewRequest(t, "GET", "/")
+	// The dashboard of the hub has no contribution grid; the person's own profile page carries it.
+	req := NewRequestf(t, "GET", "/%s?tab=activity", privateActivityTestUser)
 	resp := session.MakeRequest(t, req, http.StatusOK)
 
 	htmlDoc := NewHTMLParser(t, resp.Body)

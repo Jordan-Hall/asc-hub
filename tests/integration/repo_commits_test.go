@@ -31,7 +31,7 @@ func TestRepoCommits(t *testing.T) {
 	resp := session.MakeRequest(t, req, http.StatusOK)
 
 	doc := NewHTMLParser(t, resp.Body)
-	commitURL, exists := doc.doc.Find("#commits-table tbody tr td.sha a").Attr("href")
+	commitURL, exists := doc.doc.Find("#commits-table .rp-commit .sha.label").Attr("href")
 	assert.True(t, exists)
 	assert.NotEmpty(t, commitURL)
 	doc.AssertElement(t, ".repo-path", false)
@@ -48,7 +48,7 @@ func doTestRepoCommitWithStatus(t *testing.T, state string, classes ...string) {
 
 	doc := NewHTMLParser(t, resp.Body)
 	// Get first commit URL
-	commitURL, exists := doc.doc.Find("#commits-table tbody tr td.sha a").Attr("href")
+	commitURL, exists := doc.doc.Find("#commits-table .rp-commit .sha.label").Attr("href")
 	assert.True(t, exists)
 	assert.NotEmpty(t, commitURL)
 
@@ -66,7 +66,7 @@ func doTestRepoCommitWithStatus(t *testing.T, state string, classes ...string) {
 
 	doc = NewHTMLParser(t, resp.Body)
 	// Check if commit status is displayed in message column (.tippy-target to ignore the tippy trigger)
-	sel := doc.doc.Find("#commits-table tbody tr td.message .tippy-target .commit-status")
+	sel := doc.doc.Find("#commits-table .rp-commit .commit-status")
 	assert.Equal(t, 1, sel.Length())
 	for _, class := range classes {
 		assert.True(t, sel.HasClass(class))
@@ -142,7 +142,7 @@ func TestRepoCommitsStatusParallel(t *testing.T) {
 
 	doc := NewHTMLParser(t, resp.Body)
 	// Get first commit URL
-	commitURL, exists := doc.doc.Find("#commits-table tbody tr td.sha a").Attr("href")
+	commitURL, exists := doc.doc.Find("#commits-table .rp-commit .sha.label").Attr("href")
 	assert.True(t, exists)
 	assert.NotEmpty(t, commitURL)
 
@@ -177,7 +177,7 @@ func TestRepoCommitsStatusMultiple(t *testing.T) {
 
 	doc := NewHTMLParser(t, resp.Body)
 	// Get first commit URL
-	commitURL, exists := doc.doc.Find("#commits-table tbody tr td.sha a").Attr("href")
+	commitURL, exists := doc.doc.Find("#commits-table .rp-commit .sha.label").Attr("href")
 	assert.True(t, exists)
 	assert.NotEmpty(t, commitURL)
 

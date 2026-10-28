@@ -200,11 +200,11 @@ func TestRunnerVisibility(t *testing.T) {
 
 				htmlDoc := NewHTMLParser(t, response.Body)
 				for _, expectedRunner := range testCase.expectedRunners {
-					selector := fmt.Sprintf("td:contains('%s')", expectedRunner.Name)
+					selector := fmt.Sprintf(".runner-action-link:not([aria-label]):contains('%s')", expectedRunner.Name)
 					assert.Equal(t, 1, htmlDoc.Find(selector).Length(), "runner '%s' could not be found", expectedRunner.Name)
 				}
 				for _, unexpectedRunner := range testCase.unexpectedRunners {
-					selector := fmt.Sprintf("td:contains('%s')", unexpectedRunner.Name)
+					selector := fmt.Sprintf(".runner-action-link:not([aria-label]):contains('%s')", unexpectedRunner.Name)
 					assert.Zero(t, htmlDoc.Find(selector).Length(), "runner '%s' is unexpectedly present", unexpectedRunner.Name)
 				}
 			})

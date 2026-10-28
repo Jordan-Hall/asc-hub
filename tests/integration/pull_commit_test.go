@@ -164,7 +164,7 @@ func TestPullCommitSignature(t *testing.T) {
 			resp := testCtx.Session.MakeRequest(t, req, http.StatusOK)
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			htmlDoc.AssertElement(t, "#diff-commit-header .signature-row.message.isSigned.isVerified", true)
+			htmlDoc.AssertElement(t, "#diff-commit-header .signature-row.isSigned.isVerified", true)
 		})
 	})
 }

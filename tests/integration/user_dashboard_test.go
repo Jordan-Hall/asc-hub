@@ -26,18 +26,18 @@ func TestUserDashboardFeedWelcome(t *testing.T) {
 
 	// User2 has some activity in feed
 	session := loginUser(t, "user2")
-	page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/"), http.StatusOK).Body)
+	page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user2?tab=activity"), http.StatusOK).Body)
 	testUserDashboardFeedType(t, page, false)
 
 	// User1 doesn't have any activity in feed
 	session = loginUser(t, "user1")
-	page = NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/"), http.StatusOK).Body)
+	page = NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user1?tab=activity"), http.StatusOK).Body)
 	testUserDashboardFeedType(t, page, true)
 }
 
 func testUserDashboardFeedType(t *testing.T, page *HTMLDoc, isEmpty bool) {
-	page.AssertElement(t, "#activity-feed", !isEmpty)
-	page.AssertElement(t, "#empty-feed", isEmpty)
+	// The activity list lives on the activity tab of the profile; the hub home shows only today.
+	assert.Equal(t, isEmpty, page.Find("#activity-feed .ds-li").Length() == 0)
 }
 
 func TestDashboardTitleRendering(t *testing.T) {
@@ -64,11 +64,11 @@ func TestDashboardTitleRendering(t *testing.T) {
 		testIssueClose(t, sess, repo.OwnerName, repo.Name, strconv.Itoa(int(issue.Index)), false)
 		testIssueClose(t, sess, repo.OwnerName, repo.Name, strconv.Itoa(int(pr.Issue.Index)), true)
 
-		response := sess.MakeRequest(t, NewRequest(t, "GET", "/"), http.StatusOK)
+		response := sess.MakeRequest(t, NewRequest(t, "GET", "/"+user.Name+"?tab=activity"), http.StatusOK)
 		htmlDoc := NewHTMLParser(t, response.Body)
 
 		count := 0
-		htmlDoc.doc.Find("#activity-feed .flex-item-main .title").Each(func(i int, s *goquery.Selection) {
+		htmlDoc.doc.Find("#activity-feed .wk-act-title").Each(func(i int, s *goquery.Selection) {
 			count++
 			if s.IsMatcher(goquery.Single("a")) {
 				assert.Equal(t, ":exclamation: not rendered #1", s.Text())
@@ -99,15 +99,15 @@ func TestDashboardActionEscaping(t *testing.T) {
 
 		testIssueClose(t, sess, repo.OwnerName, repo.Name, strconv.Itoa(int(issue.Index)), false)
 
-		response := sess.MakeRequest(t, NewRequest(t, "GET", "/"), http.StatusOK)
+		response := sess.MakeRequest(t, NewRequest(t, "GET", "/"+user.Name+"?tab=activity"), http.StatusOK)
 		htmlDoc := NewHTMLParser(t, response.Body)
 
 		count := 0
-		htmlDoc.doc.Find("#activity-feed .flex-item-main .title").Each(func(i int, s *goquery.Selection) {
+		htmlDoc.doc.Find("#activity-feed .wk-act-title").Each(func(i int, s *goquery.Selection) {
 			count++
 			assert.Equal(t, "Issue with | in title", s.Text())
 		})
-		htmlDoc.doc.Find("#activity-feed .flex-item-main .markup").Each(func(i int, s *goquery.Selection) {
+		htmlDoc.doc.Find("#activity-feed .wk-act-comment").Each(func(i int, s *goquery.Selection) {
 			count++
 			assert.Equal(t, "Comment with a | in it\n", s.Text())
 		})
@@ -136,15 +136,15 @@ func TestDashboardReviewWorkflows(t *testing.T) {
 		_, err = pull_service.DismissReview(t.Context(), review.ID, repo.ID, "Come on, give the newbie a break!", user, true, true)
 		require.NoError(t, err)
 
-		response := sess.MakeRequest(t, NewRequest(t, "GET", "/"), http.StatusOK)
+		response := sess.MakeRequest(t, NewRequest(t, "GET", "/"+user.Name+"?tab=activity"), http.StatusOK)
 		htmlDoc := NewHTMLParser(t, response.Body)
 
 		count := 0
-		htmlDoc.doc.Find("#activity-feed .flex-item-main .title").Each(func(i int, s *goquery.Selection) {
+		htmlDoc.doc.Find("#activity-feed a.wk-act-title, #activity-feed span.wk-act-title").Each(func(i int, s *goquery.Selection) {
 			count++
 			assert.Equal(t, "My very first PR!", s.Text())
 		})
-		htmlDoc.doc.Find("#activity-feed .flex-item-main .flex-item-body").Each(func(i int, s *goquery.Selection) {
+		htmlDoc.doc.Find("#activity-feed div.wk-act-title").Each(func(i int, s *goquery.Selection) {
 			count++
 			if s.Text() != "Reason:" && s.Text() != "Come on, give the newbie a break!" {
 				assert.Fail(t, "Unexpected feed text", "Expected 'Reason:' and reason explanation, but found: %q", s.Text())

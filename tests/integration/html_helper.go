@@ -101,6 +101,10 @@ func (doc *HTMLDoc) AssertDropdown(t testing.TB, name string) *goquery.Selection
 func (doc *HTMLDoc) AssertDropdownHasOptions(t testing.TB, dropdownName string) {
 	t.Helper()
 
+	if native := doc.Find(fmt.Sprintf("select[name='%s']", dropdownName)); native.Length() == 1 {
+		assert.Positive(t, native.Find("option:not([value=''])").Length(), "%s select has no options", dropdownName)
+		return
+	}
 	options := doc.AssertDropdown(t, dropdownName).Find(".menu [data-value]:not([data-value=''])")
 	assert.Positive(t, options.Length(), "%s dropdown has no options", dropdownName)
 }
@@ -108,6 +112,11 @@ func (doc *HTMLDoc) AssertDropdownHasOptions(t testing.TB, dropdownName string) 
 func (doc *HTMLDoc) AssertDropdownHasSelectedOption(t testing.TB, dropdownName, expectedValue string) {
 	t.Helper()
 
+	if native := doc.Find(fmt.Sprintf("select[name='%s']", dropdownName)); native.Length() == 1 {
+		selectedValue, _ := native.Find("option[selected]").Attr("value")
+		assert.Equal(t, expectedValue, selectedValue, "%s select doesn't have expected value selected", dropdownName)
+		return
+	}
 	dropdownGroup := doc.AssertDropdown(t, dropdownName)
 
 	selectedValue, _ := dropdownGroup.Find(fmt.Sprintf("input[name='%s']", dropdownName)).Attr("value")

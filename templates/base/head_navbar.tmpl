@@ -170,7 +170,7 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 		{{if .IsSigned}}
 			<div class="ds-mi-label">{{ctx.Locale.Tr "asc_shell.group_account"}}</div>
 			<a class="ds-mi" href="{{.SignedUser.HomeLink}}">{{ctx.Locale.Tr "your_profile"}}</a>
-			<a class="ds-mi" href="{{AppSubUrl}}/user/settings#settings-menu">{{ctx.Locale.Tr "your_settings"}}</a>
+			<a class="ds-mi" href="{{AppSubUrl}}/user/settings#settings-menu"{{if .PageIsUserSettings}} aria-current="page"{{end}}>{{ctx.Locale.Tr "your_settings"}}</a>
 		{{end}}
 	</nav>
 	<div class="ds-drawer-foot">
@@ -205,6 +205,7 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 			<a class="ds-ti ds-ti-light ds-only-mobile" href="#main-content" data-ds-close aria-label="{{ctx.Locale.Tr "asc_shell.close"}}">{{svg "dsi-x" 20}}</a>
 		</div>
 		<hr>
+		{{if not .HideNavbarLinks}}
 		<a class="ds-mi" href="{{.SignedUser.HomeLink}}">{{svg "dsi-user" 18}}{{ctx.Locale.Tr "your_profile"}}</a>
 		{{if not .DisableStars}}
 			<a class="ds-mi" href="{{.SignedUser.HomeLink}}?tab=stars">{{svg "octicon-star" 18}}{{ctx.Locale.Tr "your_starred"}}</a>
@@ -214,9 +215,9 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 			<a class="ds-mi" href="{{AppSubUrl}}/-/asc/agents">{{svg "dsi-agent" 18}}{{ctx.Locale.Tr "asc_shell.your_agents"}}</a>
 		{{end}}
 		<a class="ds-mi" href="{{AppSubUrl}}/notifications/subscriptions">{{svg "dsi-bell" 18}}{{ctx.Locale.Tr "asc_shell.subscriptions"}}</a>
-		<a class="ds-mi" href="{{AppSubUrl}}/user/settings#settings-menu">{{svg "dsi-sliders" 18}}{{ctx.Locale.Tr "your_settings"}}</a>
+		<a class="ds-mi" href="{{AppSubUrl}}/user/settings#settings-menu"{{if .PageIsUserSettings}} aria-current="page"{{end}}>{{svg "dsi-sliders" 18}}{{ctx.Locale.Tr "your_settings"}}</a>
 		{{if .IsAdmin}}
-			<a class="ds-mi" href="{{AppSubUrl}}/admin">{{svg "dsi-shield-check" 18}}{{ctx.Locale.Tr "admin_panel"}}</a>
+			<a class="ds-mi" href="{{AppSubUrl}}/admin"{{if .PageIsAdmin}} aria-current="page"{{end}}>{{svg "dsi-shield-check" 18}}{{ctx.Locale.Tr "admin_panel"}}</a>
 		{{end}}
 		{{if StringUtils.HasPrefix (ThemeName .SignedUser) "asc-"}}
 			<hr>
@@ -236,6 +237,7 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 		<a class="ds-mi" target="_blank" rel="noopener noreferrer" href="{{$docsURL}}">{{svg "dsi-book" 18}}{{ctx.Locale.Tr "asc_shell.documentation"}}{{svg "dsi-external" 14 "ds-ml-auto ds-c-3"}}</a>
 		{{if not .RunModeIsProd}}
 			<a class="ds-mi" href="{{AppSubUrl}}/-/demo">{{svg "dsi-flask" 18}}{{ctx.Locale.Tr "asc_shell.demo_pages"}}</a>
+		{{end}}
 		{{end}}
 		<a class="ds-mi link-action" href data-url="{{AppSubUrl}}/user/logout">{{svg "dsi-sign-out" 18}}{{ctx.Locale.Tr "sign_out"}}</a>
 	</div>

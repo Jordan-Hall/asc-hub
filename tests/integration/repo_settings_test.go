@@ -174,7 +174,7 @@ func TestRepoAddMoreUnitsHighlighting(t *testing.T) {
 		resp := session.MakeRequest(t, req, http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
-		htmlDoc.AssertElement(t, fmt.Sprintf(".overflow-menu-items a[href='%s'].active", fmt.Sprintf("%s/settings%s", repo.Link(), uri)), highlighted)
+		htmlDoc.AssertElement(t, fmt.Sprintf("a.rp-tab[href='%s'][aria-current='page']", fmt.Sprintf("%s/settings%s", repo.Link(), uri)), highlighted)
 	}
 
 	t.Run("hints enabled", func(t *testing.T) {

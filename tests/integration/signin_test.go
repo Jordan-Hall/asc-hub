@@ -142,7 +142,7 @@ func TestDisableSignin(t *testing.T) {
 			resp := MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 			htmlDoc.AssertElement(t, "form[action='/user/login']", false)
-			htmlDoc.AssertElement(t, ".divider-text", false)
+			htmlDoc.AssertElement(t, ".ds-or", false)
 		})
 
 		t.Run("Signin", func(t *testing.T) {
@@ -162,7 +162,7 @@ func TestDisableSignin(t *testing.T) {
 			resp := MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 			htmlDoc.AssertElement(t, "form[action='/user/login']", true)
-			htmlDoc.AssertElement(t, ".divider-text", true)
+			htmlDoc.AssertElement(t, ".ds-or", true)
 		})
 
 		t.Run("Signin", func(t *testing.T) {
@@ -198,8 +198,8 @@ func TestGlobalTwoFactorRequirement(t *testing.T) {
 			req.Header.Add("Accept", "text/html")
 			resp := session.MakeRequest(t, req, http.StatusNotFound)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			assert.Greater(t, htmlDoc.Find(".navbar-left > a.item").Length(), 1) // show the Logo, and other links
-			assert.Greater(t, htmlDoc.Find(".navbar-right details.dropdown a").Length(), 1)
+			assert.Greater(t, htmlDoc.Find(".ds-hdr-desktop > a.ds-brand, .ds-hdr-nav a").Length(), 1) // show the Logo, and other links
+			assert.Greater(t, htmlDoc.Find("#ds-account a").Length(), 1)
 
 			// demo pages are using ignSignIn and are expected to be accessible with loginAllowed
 			reset := enableDemoPages()
@@ -207,8 +207,8 @@ func TestGlobalTwoFactorRequirement(t *testing.T) {
 			req.Header.Add("Accept", "text/html")
 			resp = session.MakeRequest(t, req, http.StatusInternalServerError)
 			htmlDoc = NewHTMLParser(t, resp.Body)
-			assert.Equal(t, 1, htmlDoc.Find(".navbar-left > a.item").Length())
-			htmlDoc.AssertElement(t, ".navbar-right", false)
+			assert.Equal(t, 0, htmlDoc.Find(".ds-hdr-nav a").Length())
+			htmlDoc.AssertElement(t, ".ds-hdr-right", false)
 			reset()
 		} else {
 			resp := session.MakeRequest(t, req, http.StatusSeeOther)
@@ -219,9 +219,9 @@ func TestGlobalTwoFactorRequirement(t *testing.T) {
 			req.Header.Add("Accept", "text/html")
 			resp = session.MakeRequest(t, req, http.StatusNotFound)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			assert.Equal(t, 1, htmlDoc.Find(".navbar-left > a.item").Length()) // only show the Logo, no other links
+			assert.Equal(t, 0, htmlDoc.Find(".ds-hdr-nav a").Length()) // only show the Logo, no other links
 
-			userLinks := htmlDoc.Find(".navbar-right details.dropdown a")
+			userLinks := htmlDoc.Find("#ds-account a.ds-mi")
 			assert.Equal(t, 1, userLinks.Length()) // only logout link
 			assert.Equal(t, "Sign out", strings.TrimSpace(userLinks.Text()))
 
@@ -238,9 +238,9 @@ func TestGlobalTwoFactorRequirement(t *testing.T) {
 			resp = session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc = NewHTMLParser(t, resp.Body)
 			assert.Equal(t, locale.TrString("settings.must_enable_2fa"), strings.TrimSpace(htmlDoc.Find(".ds-banner-err .ds-banner-body").Text()))
-			assert.Equal(t, 1, htmlDoc.Find(".navbar-left > a.item").Length()) // only show the Logo, no other links
+			assert.Equal(t, 0, htmlDoc.Find(".ds-hdr-nav a").Length()) // only show the Logo, no other links
 
-			userLinks = htmlDoc.Find(".navbar-right details.dropdown a")
+			userLinks = htmlDoc.Find("#ds-account a.ds-mi")
 			assert.Equal(t, 1, userLinks.Length()) // only logout link
 			assert.Equal(t, "Sign out", strings.TrimSpace(userLinks.Text()))
 

@@ -32,7 +32,7 @@ func TestNavbarItems(t *testing.T) {
 		defer test.MockVariableValue(&setting.Repository.DisableMigrations, true)()
 
 		page := NewHTMLParser(t, regularUser.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
-		page.AssertElement(t, `details.dropdown a[href="/repo/migrate"]`, false)
+		page.AssertElement(t, `#ds-create a[href="/repo/migrate"]`, false)
 	})
 
 	t.Run(`"Create..." dropdown - creating orgs disallowed`, func(t *testing.T) {
@@ -41,11 +41,11 @@ func TestNavbarItems(t *testing.T) {
 
 		// The restriction applies to a regular user
 		page := NewHTMLParser(t, regularUser.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
-		page.AssertElement(t, `details.dropdown a[href="/org/create"]`, false)
+		page.AssertElement(t, `#ds-create a[href="/org/create"]`, false)
 
 		// The restriction does not apply to an admin
 		page = NewHTMLParser(t, adminUser.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
-		page.AssertElement(t, `details.dropdown a[href="/org/create"]`, true)
+		page.AssertElement(t, `#ds-create a[href="/org/create"]`, true)
 	})
 
 	t.Run(`"Create..." dropdown - default conditions`, func(t *testing.T) {
@@ -54,7 +54,7 @@ func TestNavbarItems(t *testing.T) {
 		// Assert that items are present and their contents
 		assertItems := func(t *testing.T, session *TestSession) {
 			page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
-			links := page.Find(`#navbar .dropdown:has(summary[data-tooltip-content="Create…"]) .content`)
+			links := page.Find(`#ds-create`)
 			assert.Equal(t, locale.TrString("new_repo.link"), strings.TrimSpace(links.Find(`a[href="/repo/create"]`).Text()))
 			assert.Equal(t, locale.TrString("new_migrate.link"), strings.TrimSpace(links.Find(`a[href="/repo/migrate"]`).Text()))
 			assert.Equal(t, locale.TrString("new_org.link"), strings.TrimSpace(links.Find(`a[href="/org/create"]`).Text()))
@@ -68,7 +68,7 @@ func TestNavbarItems(t *testing.T) {
 		defer test.MockVariableValue(&setting.Repository.DisableStars, true)()
 
 		page := NewHTMLParser(t, regularUser.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
-		page.AssertElement(t, `details.dropdown a[href$="?tab=stars"]`, false)
+		page.AssertElement(t, `#ds-account a[href$="?tab=stars"]`, false)
 	})
 
 	t.Run(`User dropdown - instance in dev mode`, func(t *testing.T) {
@@ -76,7 +76,7 @@ func TestNavbarItems(t *testing.T) {
 		defer test.MockVariableValue(&setting.IsProd, false)()
 
 		page := NewHTMLParser(t, regularUser.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
-		page.AssertElement(t, `details.dropdown a[href="/-/demo"]`, true)
+		page.AssertElement(t, `#ds-account a[href="/-/demo"]`, true)
 
 		testNavbarUserMenuActiveItem(t, regularUser, "/user/settings")
 		testNavbarUserMenuActiveItem(t, adminUser, "/admin")
@@ -90,14 +90,14 @@ func TestNavbarItems(t *testing.T) {
 			selector string
 			exists   bool
 		}{
-			{`details.dropdown a[href="/user2"]`, true},
-			{`details.dropdown a[href="/user2?tab=stars"]`, true},
-			{`details.dropdown a[href="/notifications/subscriptions"]`, true},
-			{`details.dropdown a[href="/user/settings"]`, true},
-			{`details.dropdown a[href="/admin"]`, false},
-			{`details.dropdown a[href="/-/demo"]`, false},
-			{`details.dropdown a[href="https://forgejo.org/docs/latest/"]`, true},
-			{`details.dropdown a[data-url="/user/logout"]`, true},
+			{`#ds-account a[href="/user2"]`, true},
+			{`#ds-account a[href="/user2?tab=stars"]`, true},
+			{`#ds-account a[href="/notifications/subscriptions"]`, true},
+			{`#ds-account a[href^="/user/settings"]`, true},
+			{`#ds-account a[href="/admin"]`, false},
+			{`#ds-account a[href="/-/demo"]`, false},
+			{`#ds-account a[href$="docs/asc/README.md"]`, true},
+			{`#ds-account a[data-url="/user/logout"]`, true},
 		}
 		page := NewHTMLParser(t, regularUser.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
 		for _, assertion := range assertions {
@@ -109,14 +109,14 @@ func TestNavbarItems(t *testing.T) {
 			selector string
 			exists   bool
 		}{
-			{`details.dropdown a[href="/user1"]`, true},
-			{`details.dropdown a[href="/user1?tab=stars"]`, true},
-			{`details.dropdown a[href="/notifications/subscriptions"]`, true},
-			{`details.dropdown a[href="/user/settings"]`, true},
-			{`details.dropdown a[href="/admin"]`, true},
-			{`details.dropdown a[href="/-/demo"]`, false},
-			{`details.dropdown a[href="https://forgejo.org/docs/latest/"]`, true},
-			{`details.dropdown a[data-url="/user/logout"]`, true},
+			{`#ds-account a[href="/user1"]`, true},
+			{`#ds-account a[href="/user1?tab=stars"]`, true},
+			{`#ds-account a[href="/notifications/subscriptions"]`, true},
+			{`#ds-account a[href^="/user/settings"]`, true},
+			{`#ds-account a[href="/admin"]`, true},
+			{`#ds-account a[href="/-/demo"]`, false},
+			{`#ds-account a[href$="docs/asc/README.md"]`, true},
+			{`#ds-account a[data-url="/user/logout"]`, true},
 		}
 		page = NewHTMLParser(t, adminUser.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
 		for _, assertion := range assertions {
@@ -132,5 +132,5 @@ func TestNavbarItems(t *testing.T) {
 func testNavbarUserMenuActiveItem(t *testing.T, session *TestSession, url string) {
 	page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
 	// AssertElement will only pass if there's just one such element
-	page.AssertElement(t, "#navbar details.dropdown li > .active", true)
+	page.AssertElement(t, "#ds-account a.ds-mi[aria-current='page']", true)
 }

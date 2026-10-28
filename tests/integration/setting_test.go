@@ -32,7 +32,7 @@ func TestSettingShowUserEmailExplore(t *testing.T) {
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc := NewHTMLParser(t, resp.Body)
 	assert.Contains(t,
-		htmlDoc.doc.Find(".explore.users").Text(),
+		htmlDoc.doc.Find(".ds-explore.users").Text(),
 		"user34@example.com",
 	)
 
@@ -42,7 +42,7 @@ func TestSettingShowUserEmailExplore(t *testing.T) {
 	resp = session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc = NewHTMLParser(t, resp.Body)
 	assert.NotContains(t,
-		htmlDoc.doc.Find(".explore.users").Text(),
+		htmlDoc.doc.Find(".ds-explore.users").Text(),
 		"user34@example.com",
 	)
 
@@ -247,7 +247,7 @@ func TestRepoAvatarSizeNotice(t *testing.T) {
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc := NewHTMLParser(t, resp.Body)
 	assert.Contains(t,
-		htmlDoc.doc.Find("form div:has(input[name=\"avatar\"]) .help").Text(),
+		htmlDoc.doc.Find("form div:has(input[name=\"avatar\"]) .ds-hint").Text(),
 		"Custom avatar may not exceed 1 MiB in size or be larger than 4096x4096 pixels")
 }
 
@@ -271,6 +271,6 @@ func TestAdminAvatarSizeNotice(t *testing.T) {
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc := NewHTMLParser(t, resp.Body)
 	assert.Contains(t,
-		htmlDoc.doc.Find("form div:has(input[name=\"avatar\"]) .help").Text(),
+		htmlDoc.doc.Find("form div:has(input[name=\"avatar\"]) .ds-hint").Text(),
 		"Custom avatar may not exceed 1 MiB in size or be larger than 4096x4096 pixels")
 }

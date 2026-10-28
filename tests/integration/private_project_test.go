@@ -33,7 +33,7 @@ func TestPrivateIssueProject(t *testing.T) {
 		resp := sess.MakeRequest(t, req, http.StatusOK)
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
-		openCloseStats := htmlDoc.Find(".milestone-toolbar .group").First().Text()
+		openCloseStats := htmlDoc.Find(".wk-project-list .ds-li-meta").First().Text()
 		if hasAccess {
 			assert.Contains(t, openCloseStats, "2\u00a0Open")
 		} else {
