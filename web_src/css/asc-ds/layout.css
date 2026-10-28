@@ -2057,3 +2057,13 @@ body.ds-lock {
   max-width: none;
   overflow: visible;
 }
+
+.site-toc [aria-current="location"] {
+  color: var(--brand-ink, #1d4ed8);
+  font-weight: 600;
+}
+
+.site-edit {
+  margin: 0 0 16px;
+  font-size: 13px;
+}

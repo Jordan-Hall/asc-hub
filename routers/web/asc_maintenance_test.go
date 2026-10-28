@@ -40,7 +40,7 @@ func TestMaintenanceStopsChangesButNotReadingAdminsOrSignIn(t *testing.T) {
 	assert.Equal(t, http.StatusOK, call("GET", "/user2/repo1", false), "reading goes on")
 	assert.Equal(t, http.StatusOK, call("POST", "/user2/repo1/issues/new", true), "administrators are not stopped")
 	assert.Equal(t, http.StatusOK, call("POST", "/user/login", false), "an administrator can sign in")
-	assert.Equal(t, http.StatusOK, call("POST", "/-/admin/maintenance", false))
+	assert.Equal(t, http.StatusOK, call("POST", "/admin/maintenance", false))
 
 	on = ascmaintenance.State{}
 	assert.Equal(t, http.StatusOK, call("POST", "/user2/repo1/issues/new", false), "off means off")

@@ -25,7 +25,7 @@ func Maintenance(ctx *context.Context) {
 	if t, ok := st.UntilTime(); ok {
 		ctx.Data["MaintenanceUntilInput"] = t.UTC().Format("2006-01-02T15:04")
 	}
-	ctx.Data["MaintenanceLink"] = setting.AppSubURL + "/-/admin/maintenance"
+	ctx.Data["MaintenanceLink"] = setting.AppSubURL + "/admin/maintenance"
 	ctx.HTML(http.StatusOK, tplMaintenance)
 }
 
@@ -41,7 +41,7 @@ func MaintenancePost(ctx *context.Context) {
 		t, err := time.Parse("2006-01-02T15:04", v)
 		if err != nil {
 			ctx.Flash.Error(ctx.Tr("asc_admin.maintenance_bad_time"))
-			ctx.Redirect(setting.AppSubURL + "/-/admin/maintenance")
+			ctx.Redirect(setting.AppSubURL + "/admin/maintenance")
 			return
 		}
 		st.Until = t.UTC().Format(time.RFC3339)
@@ -52,5 +52,5 @@ func MaintenancePost(ctx *context.Context) {
 		log.Info("maintenance mode set to %v by %s", st.On, ctx.Doer.Name)
 		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
 	}
-	ctx.Redirect(setting.AppSubURL + "/-/admin/maintenance")
+	ctx.Redirect(setting.AppSubURL + "/admin/maintenance")
 }

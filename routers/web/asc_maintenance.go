@@ -12,7 +12,7 @@ import (
 )
 
 // ascMaintenanceOpen lists the writes that stay possible during maintenance, so an administrator can sign in and switch it off.
-var ascMaintenanceOpen = []string{"/user/login", "/user/two_factor", "/user/webauthn", "/user/logout", "/user/recover_account", "/-/admin/maintenance"}
+var ascMaintenanceOpen = []string{"/user/login", "/user/two_factor", "/user/webauthn", "/user/logout", "/user/recover_account", "/admin/maintenance"}
 
 // ascMaintenanceState reads the state; tests replace it.
 var ascMaintenanceState = func(ctx *context.Context) ascmaintenance.State { return ascmaintenance.Load(ctx) }
