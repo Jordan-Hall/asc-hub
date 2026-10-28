@@ -160,9 +160,18 @@ Template Attributes:
 			<section class="ds-card wk-card" aria-labelledby="wk-today-title">
 				<div class="ds-card-h"><h2 id="wk-today-title">{{ctx.Locale.Tr "user.asc_dash.today"}}</h2></div>
 				{{if .AscDashToday}}
-					<ul class="wk-feed">
-						{{range .AscDashToday}}
-							<li>{{template "user/dashboard/feed_sentence" .}}</li>
+					<div class="wk-feedbar">
+						<div class="ds-chips" data-feed-filter="#wk-feed" role="group" aria-label="{{ctx.Locale.Tr "asc_work.dash_feed_filter"}}">
+							<button type="button" class="ds-chip-filter is-on" data-kind="" aria-pressed="true">{{ctx.Locale.Tr "asc_work.dash_feed_all"}}</button>
+							<button type="button" class="ds-chip-filter" data-kind="push" aria-pressed="false">{{ctx.Locale.Tr "asc_work.dash_feed_push"}}</button>
+							<button type="button" class="ds-chip-filter" data-kind="change" aria-pressed="false">{{ctx.Locale.Tr "asc_work.dash_feed_change"}}</button>
+							<button type="button" class="ds-chip-filter" data-kind="comment" aria-pressed="false">{{ctx.Locale.Tr "asc_work.dash_feed_comment"}}</button>
+						</div>
+						<p class="ds-sr" role="status" data-feed-count data-template="{{ctx.Locale.Tr "asc_work.dash_feed_shown" "%d"}}"></p>
+					</div>
+					<ul class="wk-feed" id="wk-feed">
+						{{range $i, $a := .AscDashToday}}
+							<li data-feed-item data-kind="{{index $.AscDashTodayKinds $i}}">{{template "user/dashboard/feed_sentence" $a}}</li>
 						{{end}}
 					</ul>
 				{{else}}
