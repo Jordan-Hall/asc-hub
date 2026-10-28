@@ -35,3 +35,29 @@ test('only a repository home or one change is a visit', () => {
   expect(visitFromPath('/user/settings')).toBeNull();
   expect(visitFromPath('/-/asc')).toBeNull();
 });
+
+test('live results: a query needs two characters and at most eighty', async () => {
+  const {liveQuery} = await import('./ds-shell.js');
+  expect(liveQuery('a')).toBe('');
+  expect(liveQuery(' ab ')).toBe('ab');
+  expect(liveQuery('x'.repeat(81))).toBe('');
+  expect(liveQuery(null)).toBe('');
+});
+
+test('live results: groups become options, a link that leaves the site is dropped', async () => {
+  const {renderLive} = await import('./ds-shell.js');
+  document.body.innerHTML = '<div id="ds-palette"><div data-ds-palette-list><div data-ds-palette-dynamic></div></div></div>';
+  const list = document.querySelector('[data-ds-palette-list]');
+  const p = {list, dynamic: list.querySelector('[data-ds-palette-dynamic]')};
+  renderLive(p, [
+    {key: 'changes', label: 'Changes', items: [{title: 'Add fee', sub: 'acme/pay #3', href: '/acme/pay/pulls/3'}, {title: 'Evil', href: 'https://evil.example/x'}, {title: 'Evil2', href: '//evil.example'}, {title: 'js', href: `${'java'}script:alert(1)`}]},
+    {key: 'unknown', label: 'X', items: [{title: 'x', href: '/x'}]},
+    {key: 'people', label: 'People', items: []},
+  ]);
+  const items = list.querySelectorAll('.ds-palette-item');
+  expect(items).toHaveLength(1);
+  expect(items[0].getAttribute('href')).toBe('/acme/pay/pulls/3');
+  expect(items[0].getAttribute('role')).toBe('option');
+  expect(items[0].querySelector('small').textContent).toBe('acme/pay #3');
+  expect(list.querySelectorAll('.ds-palette-group')).toHaveLength(1);
+});
