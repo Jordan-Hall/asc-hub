@@ -2898,3 +2898,7 @@ a.ds-stat:hover {
     width: 100%;
   }
 }
+
+.wk-verified {
+  vertical-align: middle;
+}

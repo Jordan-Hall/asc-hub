@@ -1154,6 +1154,7 @@ func registerRoutes(m *web.Route) {
 					Post(web.Bind(forms.UpdateOrgSettingForm{}), org.SettingsPost)
 				m.Post("/avatar", web.Bind(forms.AvatarForm{}), org.SettingsAvatar)
 				m.Post("/avatar/delete", org.SettingsDeleteAvatar)
+				m.Combo("/domain").Get(org.SettingsDomain).Post(org.SettingsDomainPost)
 				m.Group("/applications", func() {
 					m.Get("", org.Applications)
 					m.Post("/oauth2", web.Bind(forms.EditOAuth2ApplicationForm{}), org.OAuthApplicationsPost)
