@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"forgejo.org/models/unittest"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +16,6 @@ import (
 )
 
 func TestAscDocsHomeAndSearch(t *testing.T) {
-	unittest.PrepareTestEnv(t)
 
 	ctx, resp := contexttest.MockContext(t, "GET /-/docs")
 	AscDocs(ctx)
@@ -42,7 +40,6 @@ func TestAscDocsHomeAndSearch(t *testing.T) {
 }
 
 func TestAscDocsPage(t *testing.T) {
-	unittest.PrepareTestEnv(t)
 
 	ctx, resp := contexttest.MockContext(t, "GET /-/docs/overview")
 	ctx.SetParams(":slug", "overview")
@@ -57,4 +54,16 @@ func TestAscDocsPage(t *testing.T) {
 		AscDocsPage(ctx)
 		assert.Equal(t, http.StatusNotFound, resp.Code, slug)
 	}
+}
+
+func TestAscServiceWorkerIsScriptForTheWholeHub(t *testing.T) {
+	ctx, resp := contexttest.MockContext(t, "GET /-/asc-sw.js")
+	AscServiceWorker(ctx)
+	require.Equal(t, http.StatusOK, resp.Code)
+	assert.Contains(t, resp.Header().Get("Content-Type"), "javascript")
+	assert.Equal(t, "/", resp.Header().Get("Service-Worker-Allowed"))
+	assert.Equal(t, "nosniff", resp.Header().Get("X-Content-Type-Options"))
+	body := resp.Body.String()
+	assert.Contains(t, body, `addEventListener("push"`)
+	assert.Contains(t, body, `startsWith("//")`, "a click opens a path of this site only")
 }
