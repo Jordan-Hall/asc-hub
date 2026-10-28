@@ -18,6 +18,7 @@
 			mode = account === 'asc-light' ? 'light' : account === 'asc-dark' ? 'dark' : 'system';
 		}
 		if (density !== 'compact') { density = 'comfy'; }
+		try { if (window.localStorage.getItem('asc-pref-motion') === '1') { root.setAttribute('data-pref-motion', 'on'); } } catch (e) { /* storage can be blocked */ }
 		function press(sel, attr, value) {
 			var all = document.querySelectorAll(sel);
 			for (var i = 0; i < all.length; i++) {

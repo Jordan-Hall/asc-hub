@@ -6,6 +6,8 @@
 // close on a click outside. Everything the script does is also reachable without it: the drawer opens through
 // :target, the search trigger is a link to the explore page.
 
+import {shortcutsEnabled} from './ds-prefs.js';
+
 const desktopQuery = '(min-width: 1024px)';
 const footerQuery = '(max-width: 767.98px)';
 
@@ -409,7 +411,7 @@ function onGlobalKey(e) {
     if (openId !== 'ds-palette') openOverlay('ds-palette', document.activeElement);
     return;
   }
-  if (e.key === '?' && !e.ctrlKey && !e.metaKey && !isTyping(e.target) && byId('ds-shortcuts')) {
+  if (e.key === '?' && !e.ctrlKey && !e.metaKey && !isTyping(e.target) && shortcutsEnabled() && byId('ds-shortcuts')) {
     e.preventDefault();
     openShortcuts();
   }

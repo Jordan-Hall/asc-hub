@@ -257,6 +257,16 @@ svg.svg[class^="dsi-"] {
   }
 }
 
+/* the same, when the person turned Reduce motion on in Settings, Appearance (a choice of this browser) */
+:root[data-pref-motion="on"] .ds-app *,
+:root[data-pref-motion="on"] .ds-app *::before,
+:root[data-pref-motion="on"] .ds-app *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 /* ---- print: no chrome ---- */
 @media print {
   .ds-hdr,
