@@ -70,6 +70,7 @@ func (ctx *Context) RedirectToFirst(location ...string) string {
 
 const (
 	tplStatus403 base.TplName = "status/403"
+	tplStatus503 base.TplName = "status/503"
 	tplStatus404 base.TplName = "status/404"
 	tplStatus500 base.TplName = "status/500"
 )
@@ -178,19 +179,23 @@ func (ctx *Context) notFoundInternal(logMsg string, logErr error) {
 	ctx.HTML(http.StatusNotFound, tplStatus404)
 }
 
-// Error answers with the status. A 403 asked by a browser (Accept: text/html) gets the status page; every other
-// answer is the short plain text it always was.
+// Error answers with the status. A 403 or 503 asked by a browser (Accept: text/html) gets the status page; every
+// other answer is the short plain text it always was.
 func (ctx *Context) Error(status int, contents ...string) {
-	if status != http.StatusForbidden || ctx.Written() || !ctx.acceptsHTML() {
+	if (status != http.StatusForbidden && status != http.StatusServiceUnavailable) || ctx.Written() || !ctx.acceptsHTML() {
 		ctx.Base.Error(status, contents...)
 		return
+	}
+	tpl, key := tplStatus403, "asc_err.title403"
+	if status == http.StatusServiceUnavailable {
+		tpl, key = tplStatus503, "asc_err.title503"
 	}
 	if len(contents) > 0 {
 		ctx.Data["ForbiddenPrompt"] = contents[0]
 	}
 	ctx.Data["IsRepo"] = ctx.Repo != nil && ctx.Repo.Repository != nil
-	ctx.Data["Title"] = ctx.Locale.TrString("asc_err.title403")
-	ctx.HTML(http.StatusForbidden, tplStatus403)
+	ctx.Data["Title"] = ctx.Locale.TrString(key)
+	ctx.HTML(status, tpl)
 }
 
 func (ctx *Context) acceptsHTML() bool {
