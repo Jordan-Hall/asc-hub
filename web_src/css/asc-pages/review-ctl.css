@@ -860,3 +860,12 @@
 .wf-chain code {
   font-size: 12.5px;
 }
+
+.rv-cols > .wf-flowcard {
+  grid-column: 1 / -1;
+}
+
+.wf-dot {
+  display: inline-block;
+  flex: none;
+}
