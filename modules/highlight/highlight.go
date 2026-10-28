@@ -161,7 +161,7 @@ func FileBudgeted(fileName, language string, code []byte) (Result, error) {
 	NewContext()
 
 	if len(code) > highlightMaxBytes {
-		return Result{Lines: PlainText(code), Skipped: true}, nil
+		return largeFile(fileName, language, code), nil
 	}
 
 	var lexer chroma.Lexer
@@ -268,4 +268,22 @@ func formatLexerName(name string) string {
 	}
 
 	return util.ToTitleCaseNoLower(name)
+}
+
+// largeFile is the result for a file over highlightMaxBytes: the start of the file (cut at a line) is highlighted
+// when the file is not larger than highlightWindowMaxBytes, the rest is plain text, and Skipped says so. A larger
+// file, or one whose start cannot be cut at a line, is plain text.
+func largeFile(fileName, language string, code []byte) Result {
+	if len(code) <= highlightWindowMaxBytes {
+		if cut := bytes.LastIndexByte(code[:highlightWindowBytes], '\n'); cut > 0 {
+			head, err := FileBudgeted(fileName, language, code[:cut+1])
+			if err == nil && !head.Skipped && len(head.Lines) > 0 {
+				lines := make([]template.HTML, 0, len(head.Lines)+bytes.Count(code[cut+1:], []byte{'\n'})+1)
+				lines = append(lines, head.Lines...)
+				lines = append(lines, PlainText(code[cut+1:])...)
+				return Result{Lines: lines, Lexer: head.Lexer, Skipped: true, Window: len(head.Lines)}
+			}
+		}
+	}
+	return Result{Lines: PlainText(code), Skipped: true}
 }

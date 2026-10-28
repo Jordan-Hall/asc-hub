@@ -77,6 +77,23 @@ const (
 	ascAgentsMaxFormBytes = ascagentui.MaxTaskBytes + 8192
 )
 
+// agentsReadAllowed is the rule for seeing anything about an agent run, as a function of its inputs so that it can be
+// tested over every case: a signed-in person who can read the code and the Actions of the repository and for whom the
+// agent features are on.
+func agentsReadAllowed(signedIn, hasDoer, canReadCode, canReadActions, features bool) bool {
+	return signedIn && hasDoer && canReadCode && canReadActions && features
+}
+
+// ascAgentsCanReadRuns says whether the viewer may see the agent runs of the repository: the agents pages and every
+// card that shows data of a run (the brief of a change names the run behind it) use this one rule, so they cannot
+// drift apart.
+func ascAgentsCanReadRuns(ctx *context.Context) bool {
+	if ctx.Doer == nil {
+		return false
+	}
+	return agentsReadAllowed(ctx.IsSigned, true, ctx.Repo.CanRead(unit.TypeCode), ctx.Repo.CanRead(unit.TypeActions), ascagentui.FeaturesEnabled(ctx, ctx.Doer))
+}
+
 // ascAgentsGate checks who may use the page and returns the repository's asc name. It answers the request itself
 // (and returns false) when the check fails. Every refusal that could tell a stranger something exists is a 404.
 func ascAgentsGate(ctx *context.Context, o ascAgentsOpts) (*ascAgentsEnv, bool) {
@@ -91,6 +108,11 @@ func ascAgentsGate(ctx *context.Context, o ascAgentsOpts) (*ascAgentsEnv, bool) 
 	}
 	features := ascagentui.FeaturesEnabled(ctx, ctx.Doer)
 	if !features && !o.noFeatures {
+		ctx.NotFound("asc agents", nil)
+		return nil, false
+	}
+	if features && !ascAgentsCanReadRuns(ctx) {
+		// the agents area shows runs, which belong to the Actions unit
 		ctx.NotFound("asc agents", nil)
 		return nil, false
 	}

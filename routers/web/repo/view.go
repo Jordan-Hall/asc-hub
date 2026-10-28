@@ -597,6 +597,7 @@ func renderFile(ctx *context.Context, entry *git.TreeEntry) {
 			fileContent, lexerName := highlighted.Lines, highlighted.Lexer
 			ctx.Data["LexerName"] = lexerName
 			ctx.Data["HighlightSkipped"] = highlighted.Skipped
+			ctx.Data["HighlightWindow"] = highlighted.Window
 			if err != nil {
 				log.Error("highlight.File failed, fallback to plain text: %v", err)
 				fileContent = highlight.PlainText(buf)
