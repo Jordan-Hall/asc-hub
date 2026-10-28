@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -39,11 +40,11 @@ func createNewReleaseTarget(t *testing.T, session *TestSession, repoURL, tag, ti
 	// Buttons that should be present
 	page.AssertElement(t, `form button[name="tag_only"]`, true) // Create tag
 	page.AssertElement(t, `form button[name="draft"]`, true)    // Save draft
-	assert.Contains(t, page.Find(`form .primary.button`).Text(), "Publish release")
+	assert.Contains(t, page.Find(`form .ds-btn-primary`).Text(), "Publish release")
 
 	// Buttons that should not be present
-	page.AssertElement(t, `form a.danger.button[data-modal-id="delete-release"]`, false)
-	page.AssertElement(t, `form a.button[href$="/releases"]`, false) // Cancel
+	page.AssertElement(t, `form a.ds-btn-danger[data-modal-id="delete-release"]`, false)
+	page.AssertElement(t, `form a.ds-btn[href$="/releases"]`, false) // Cancel
 
 	link, exists := page.Find("form[action$='/releases/new']").Attr("action")
 	assert.True(t, exists, "The template has changed")
@@ -72,15 +73,15 @@ func checkLatestReleaseAndCount(t *testing.T, session *TestSession, repoURL, ver
 	resp := session.MakeRequest(t, req, http.StatusOK)
 
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	labelText := htmlDoc.doc.Find("#release-list > li > .release-title-wrap .label").First().Text()
+	labelText := htmlDoc.doc.Find("#release-list > li .rp-rel-title .ds-chip").First().Text()
 	assert.Equal(t, label, labelText)
-	titleText := htmlDoc.doc.Find("#release-list > li > .release-title-wrap h4 a").First().Text()
+	titleText := htmlDoc.doc.Find("#release-list > li .rp-rel-name a").First().Text()
 	assert.Equal(t, version, titleText)
 
 	// Check release count in the counter on the Release/Tag switch, as well as that the tab is highlighted
 	if count < 10 { // Only check values less than 10, should be enough attempts before this test cracks
 		// 10 is the pagination limit, but the counter can have more than that
-		releaseTab := htmlDoc.doc.Find(".repository.releases .switch a.active.item[href$='/releases']")
+		releaseTab := htmlDoc.doc.Find(".switch a.active.item[href$='/releases']")
 		assert.Contains(t, releaseTab.Text(), strconv.Itoa(count)+" release") // Could be "1 release" or "4 releases"
 	}
 
@@ -195,9 +196,9 @@ func TestEditRelease(t *testing.T) {
 	page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/releases/edit/v1.0"), http.StatusOK).Body)
 
 	// Buttons that should be present
-	page.AssertElement(t, `form .danger.button[data-modal-id="delete-release"]`, true)
-	page.AssertElement(t, `form a.button[href$="/releases"]`, true) // Cancel
-	assert.Contains(t, page.Find(`form .primary.button`).Text(), "Update release")
+	page.AssertElement(t, `form .ds-btn-danger[data-modal-id="delete-release"]`, true)
+	page.AssertElement(t, `form a.ds-btn[href$="/releases"]`, true) // Cancel
+	assert.Contains(t, page.Find(`form .ds-btn-primary`).Text(), "Update release")
 
 	// Buttons that should not be present
 	page.AssertElement(t, `form button[name="draft"]`, false)    // Save draft
@@ -211,10 +212,10 @@ func TestEditReleaseDraft(t *testing.T) {
 	page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/releases/edit/draft-release"), http.StatusOK).Body)
 
 	// Buttons that should be present
-	page.AssertElement(t, `form a.danger.button[data-modal-id="delete-release"]`, true)
-	page.AssertElement(t, `form a.button[href$="/releases"]`, true) // Cancel
+	page.AssertElement(t, `form a.ds-btn-danger[data-modal-id="delete-release"]`, true)
+	page.AssertElement(t, `form a.ds-btn[href$="/releases"]`, true) // Cancel
 	page.AssertElement(t, `form .button[name="draft"]`, true)       // Save draft
-	assert.Contains(t, page.Find(`form .primary.button`).Text(), "Publish release")
+	assert.Contains(t, page.Find(`form .ds-btn-primary`).Text(), "Publish release")
 
 	// Buttons that should not be present
 	page.AssertElement(t, `form button[name="tag_only"]`, false) // Create tag
@@ -261,7 +262,7 @@ func TestViewReleaseListNoLogin(t *testing.T) {
 	links := make([]string, 0, 5)
 	commitsToMain := make([]string, 0, 5)
 	releases.Each(func(i int, s *goquery.Selection) {
-		link, exist := s.Find(".release-title-wrap h4 a").Attr("href")
+		link, exist := s.Find(".rp-rel-name a").Attr("href")
 		if !exist {
 			return
 		}
@@ -316,7 +317,7 @@ func TestViewReleaseListLogin(t *testing.T) {
 
 	links := make([]string, 0, 5)
 	releases.Each(func(i int, s *goquery.Selection) {
-		link, exist := s.Find(".release-title-wrap h4 a").Attr("href")
+		link, exist := s.Find(".rp-rel-name a").Attr("href")
 		if !exist {
 			return
 		}
@@ -347,7 +348,7 @@ func TestViewReleaseListKeyword(t *testing.T) {
 
 	links := make([]string, 0, 5)
 	releases.Each(func(i int, s *goquery.Selection) {
-		link, exist := s.Find(".release-title-wrap h4 a").Attr("href")
+		link, exist := s.Find(".rp-rel-name a").Attr("href")
 		if !exist {
 			return
 		}
@@ -398,12 +399,12 @@ func TestViewTagsList(t *testing.T) {
 	rsp := session.MakeRequest(t, req, http.StatusOK)
 
 	htmlDoc := NewHTMLParser(t, rsp.Body)
-	tags := htmlDoc.Find(".tag-list tr")
+	tags := htmlDoc.Find(".rp-ref.tag")
 	assert.Equal(t, 3, tags.Length())
 
 	tagNames := make([]string, 0, 5)
 	tags.Each(func(i int, s *goquery.Selection) {
-		tagNames = append(tagNames, s.Find(".tag a.tw-flex.tw-items-center").Text())
+		tagNames = append(tagNames, strings.TrimSpace(s.Find(".release-tag-name").Text()))
 	})
 
 	assert.Equal(t, []string{"v1.0", "delete-tag", "v1.1"}, tagNames)

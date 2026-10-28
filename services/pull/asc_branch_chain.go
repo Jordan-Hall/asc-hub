@@ -69,6 +69,10 @@ func AscBranchChainChildren(ctx context.Context, parent *issues_model.PullReques
 		if err := c.LoadIssue(ctx); err != nil {
 			return nil, err
 		}
+		// the retarget writes a comment, which needs the repository (and its owner) of the issue
+		if err := c.Issue.LoadRepo(ctx); err != nil {
+			return nil, err
+		}
 		if c.Issue.IsClosed {
 			continue
 		}

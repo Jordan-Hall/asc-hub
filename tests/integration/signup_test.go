@@ -222,7 +222,7 @@ func TestSignupFormUI(t *testing.T) {
 			resp := MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 			htmlDoc.AssertElement(t, "form[action='/user/sign_up'] input#user_name", true)
-			htmlDoc.AssertElement(t, ".divider-text", true)
+			htmlDoc.AssertElement(t, ".ds-or", true)
 		})
 		t.Run("Internal registration disabled", func(t *testing.T) {
 			defer test.MockVariableValue(&setting.Service.AllowOnlyExternalRegistration, true)()
@@ -230,7 +230,7 @@ func TestSignupFormUI(t *testing.T) {
 			resp := MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 			htmlDoc.AssertElement(t, "form[action='/user/sign_up'] input#user_name", false)
-			htmlDoc.AssertElement(t, ".divider-text", false)
+			htmlDoc.AssertElement(t, ".ds-or", false)
 		})
 	})
 }

@@ -522,7 +522,7 @@ func TestUserHints(t *testing.T) {
 			resp = session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc = NewHTMLParser(t, resp.Body)
 
-			htmlDoc.AssertElement(t, ".user-main-content a[href='/user/settings/appearance#hints']", present)
+			htmlDoc.AssertElement(t, ".ds-settings-body a[href='/user/settings/appearance#hints']", present)
 		}
 
 		t.Run("hints enabled", func(t *testing.T) {
@@ -673,7 +673,7 @@ func TestUserPronouns(t *testing.T) {
 			resp := MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			userNameAndPronouns := strings.TrimSpace(htmlDoc.Find(".profile-avatar-name .username").Text())
+			userNameAndPronouns := strings.TrimSpace(htmlDoc.Find("#profile-avatar-card .wk-pf-name").Text())
 			assert.NotContains(t, userNameAndPronouns, pronouns)
 		})
 
@@ -745,7 +745,7 @@ func TestUserPronouns(t *testing.T) {
 		resp := MakeRequest(t, req, http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
-		userName := strings.TrimSpace(htmlDoc.Find(".profile-avatar-name .username").Text())
+		userName := strings.TrimSpace(htmlDoc.Find("#profile-avatar-card .wk-pf-name").Text())
 		assert.Equal(t, "user2", userName)
 	})
 }
@@ -1100,12 +1100,12 @@ func TestUserRepos(t *testing.T) {
 
 	session := loginUser(t, "user10")
 	for sortBy, repos := range cases {
-		req := NewRequest(t, "GET", "/user10?sort="+sortBy)
+		req := NewRequest(t, "GET", "/user10?tab=repositories&sort="+sortBy)
 		resp := session.MakeRequest(t, req, http.StatusOK)
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
-		sel := htmlDoc.doc.Find("a.name")
+		sel := htmlDoc.doc.Find(".ds-repolist .ds-li-name")
 		assert.Len(t, repos, len(sel.Nodes))
 		for i := range repos {
 			assert.Equal(t, repos[i], strings.TrimSpace(sel.Eq(i).Text()))

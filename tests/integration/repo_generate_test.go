@@ -27,7 +27,7 @@ import (
 )
 
 func assertRepoCreateForm(t *testing.T, htmlDoc *HTMLDoc, owner *user_model.User, templateID string) {
-	_, exists := htmlDoc.doc.Find("form.ui.form[action^='/repo/create']").Attr("action")
+	_, exists := htmlDoc.doc.Find("form.ds-form[action^='/repo/create']").Attr("action")
 	assert.True(t, exists, "Expected the repo creation form")
 	locale := translation.NewLocale("en-US")
 
@@ -36,7 +36,7 @@ func assertRepoCreateForm(t *testing.T, htmlDoc *HTMLDoc, owner *user_model.User
 	assert.Contains(t, title, locale.TrString("new_repo.title"))
 
 	// Verify form header
-	header := strings.TrimSpace(htmlDoc.doc.Find(".form[action='/repo/create'] .header").Text())
+	header := strings.TrimSpace(htmlDoc.doc.Find(".rp-new h1.rp-h1").Text())
 	assert.Equal(t, locale.TrString("new_repo.title"), header)
 
 	htmlDoc.AssertDropdownHasSelectedOption(t, "uid", strconv.FormatInt(owner.ID, 10))
@@ -64,7 +64,7 @@ func testRepoGenerateCommon(t *testing.T, session *TestSession, templateID, temp
 
 	// Step2: click the "Use this template" button
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	link, exists := htmlDoc.doc.Find("a.ui.button[href^=\"/repo/create\"]").Attr("href")
+	link, exists := htmlDoc.doc.Find("a.ds-btn[href^=\"/repo/create?template_id=\"]").Attr("href")
 	assert.True(t, exists, "The template has changed")
 	req = NewRequest(t, "GET", link)
 	resp = session.MakeRequest(t, req, http.StatusOK)

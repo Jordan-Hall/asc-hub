@@ -35,7 +35,7 @@ func TestRepoStarUnstarUI(t *testing.T) {
 	htmlDoc := NewHTMLParser(t, resp.Body)
 	actionButton := htmlDoc.Find("form[action='/user2/repo1/action/unstar']")
 	assert.Equal(t, 1, actionButton.Length())
-	text := strings.ToLower(actionButton.Find("button span.text").Text())
+	text := strings.ToLower(actionButton.Find("button .rp-act-text").Text())
 	assert.Equal(t, "unstar", text)
 
 	listLink := htmlDoc.Find("a[href$='/stars']")
@@ -48,11 +48,11 @@ func TestRepoStarUnstarUI(t *testing.T) {
 
 	// Verify that "user5" is among the stargazers
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElement(t, ".user-cards .list .card > a[href='/user5']", true)
+	htmlDoc.AssertElement(t, ".wk-people .ds-li a[href='/user5']", true)
 
 	// Verify which user-cards elements are present
-	htmlDoc.AssertElement(t, ".user-cards > .list", true)
-	htmlDoc.AssertElement(t, ".user-cards > div", false)
+	htmlDoc.AssertElement(t, ".wk-people .ds-list", true)
+	htmlDoc.AssertElement(t, ".wk-people .ds-empty", false)
 
 	// Unstar the repo as user5
 	req = NewRequest(t, "POST", "/user2/repo1/action/unstar")
@@ -66,7 +66,7 @@ func TestRepoStarUnstarUI(t *testing.T) {
 	htmlDoc = NewHTMLParser(t, resp.Body)
 	actionButton = htmlDoc.Find("form[action='/user2/repo1/action/star']")
 	assert.Equal(t, 1, actionButton.Length())
-	text = strings.ToLower(actionButton.Find("button span.text").Text())
+	text = strings.ToLower(actionButton.Find("button .rp-act-text").Text())
 	assert.Equal(t, "star", text)
 
 	// Load stargazers as user5
@@ -75,11 +75,11 @@ func TestRepoStarUnstarUI(t *testing.T) {
 
 	// Verify that "user5" is not among the stargazers
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElement(t, ".user-cards .list .item.ui.segment > a[href='/user2']", false)
+	htmlDoc.AssertElement(t, ".wk-people .ds-li a[href='/user2']", false)
 
 	// Verify which user-cards elements are present
-	htmlDoc.AssertElement(t, ".user-cards > .list", false)
-	htmlDoc.AssertElement(t, ".user-cards > div", true)
+	htmlDoc.AssertElement(t, ".wk-people .ds-list", false)
+	htmlDoc.AssertElement(t, ".wk-people .ds-empty", true)
 }
 
 func TestRepoWatchUnwatchUI(t *testing.T) {
@@ -103,7 +103,7 @@ func TestRepoWatchUnwatchUI(t *testing.T) {
 
 	// Verify that the watch dropdown shows "Watching"
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	watchButton := htmlDoc.Find("details.dropdown#watch-button summary span.text")
+	watchButton := htmlDoc.Find("details.dropdown#watch-button summary .rp-act-text")
 	assert.Equal(t, 1, watchButton.Length())
 	text := strings.TrimSpace(watchButton.Text())
 	assert.Equal(t, "Watching", text)
@@ -118,7 +118,7 @@ func TestRepoWatchUnwatchUI(t *testing.T) {
 
 	// Verify that "user5" is among the watchers
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElement(t, ".user-cards .list .card > a[href='/user5']", true)
+	htmlDoc.AssertElement(t, ".wk-people .ds-li a[href='/user5']", true)
 
 	// Unwatch the repo as user5
 	req = NewRequest(t, "POST", "/user2/repo1/action/unwatch")
@@ -130,7 +130,7 @@ func TestRepoWatchUnwatchUI(t *testing.T) {
 
 	// Verify that the watch dropdown shows "Watch"
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	watchButton = htmlDoc.Find("details.dropdown#watch-button summary span.text")
+	watchButton = htmlDoc.Find("details.dropdown#watch-button summary .rp-act-text")
 	assert.Equal(t, 1, watchButton.Length())
 	text = strings.TrimSpace(watchButton.Text())
 	assert.Equal(t, "Watch", text)
@@ -141,7 +141,7 @@ func TestRepoWatchUnwatchUI(t *testing.T) {
 
 	// Verify that "user5" is not among the watchers
 	htmlDoc = NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElement(t, ".user-cards .list .item.ui.segment > a[href='/user2']", false)
+	htmlDoc.AssertElement(t, ".wk-people .ds-li a[href='/user2']", false)
 }
 
 func TestDisabledStars(t *testing.T) {

@@ -31,7 +31,7 @@ func TestDatabaseCollationSelfCheckUI(t *testing.T) {
 	session := loginUser(t, "user1")
 	resp := session.MakeRequest(t, NewRequest(t, "GET", "/admin/self_check"), http.StatusOK)
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	htmlDoc.AssertElement(t, "a[href*='/admin/self_check']", true)
+	htmlDoc.AssertElement(t, ".ds-settings-list a[href$='/admin/self_check']", true)
 }
 
 func TestDatabaseCollation(t *testing.T) {

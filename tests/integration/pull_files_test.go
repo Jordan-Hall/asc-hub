@@ -58,12 +58,12 @@ func TestPullFilesCommitHeader(t *testing.T) {
 			resp := MakeRequest(t, req, http.StatusOK)
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			buttons := htmlDoc.doc.Find(".commit-header-buttons a.small.button")
+			buttons := htmlDoc.doc.Find(".commit-header .ds-seg a")
 
 			assert.Equal(t, 2, buttons.Length(), "expected two buttons in commit header")
 
-			assert.True(t, buttons.First().HasClass("disabled"), "'prev' button should be disabled")
-			assert.False(t, buttons.Last().HasClass("disabled"), "'next' button should not be disabled")
+			assert.True(t, (buttons.First().AttrOr("aria-disabled", "") == "true"), "'prev' button should be disabled")
+			assert.False(t, (buttons.Last().AttrOr("aria-disabled", "") == "true"), "'next' button should not be disabled")
 
 			href, _ := buttons.Last().Attr("href")
 			assert.Equal(t, "/user2/commitsonpr/pulls/1/commits/96cef4a7b72b3c208340ae6f0cf55a93e9077c93", href)
@@ -74,12 +74,12 @@ func TestPullFilesCommitHeader(t *testing.T) {
 			resp := MakeRequest(t, req, http.StatusOK)
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			buttons := htmlDoc.doc.Find(".commit-header-buttons a.small.button")
+			buttons := htmlDoc.doc.Find(".commit-header .ds-seg a")
 
 			assert.Equal(t, 2, buttons.Length(), "expected two buttons in commit header")
 
-			assert.False(t, buttons.First().HasClass("disabled"), "'prev' button should not be disabled")
-			assert.True(t, buttons.Last().HasClass("disabled"), "'next' button should be disabled")
+			assert.False(t, (buttons.First().AttrOr("aria-disabled", "") == "true"), "'prev' button should not be disabled")
+			assert.True(t, (buttons.Last().AttrOr("aria-disabled", "") == "true"), "'next' button should be disabled")
 
 			href, _ := buttons.First().Attr("href")
 			assert.Equal(t, "/user2/commitsonpr/pulls/1/commits/2d65d92dc800c6f448541240c18e82bf36b954bb", href)
@@ -90,12 +90,12 @@ func TestPullFilesCommitHeader(t *testing.T) {
 			resp := MakeRequest(t, req, http.StatusOK)
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			buttons := htmlDoc.doc.Find(".commit-header-buttons a.small.button")
+			buttons := htmlDoc.doc.Find(".commit-header .ds-seg a")
 
 			assert.Equal(t, 2, buttons.Length(), "expected two buttons in commit header")
 
-			assert.False(t, buttons.First().HasClass("disabled"), "'prev' button should not be disabled")
-			assert.False(t, buttons.Last().HasClass("disabled"), "'next' button should not be disabled")
+			assert.False(t, (buttons.First().AttrOr("aria-disabled", "") == "true"), "'prev' button should not be disabled")
+			assert.False(t, (buttons.Last().AttrOr("aria-disabled", "") == "true"), "'next' button should not be disabled")
 
 			href, _ := buttons.First().Attr("href")
 			assert.Equal(t, "/user2/commitsonpr/pulls/1/commits/96cef4a7b72b3c208340ae6f0cf55a93e9077c93", href)

@@ -35,7 +35,7 @@ func TestXSSUserFullName(t *testing.T) {
 	htmlDoc := NewHTMLParser(t, resp.Body)
 	assert.Equal(t, 0, htmlDoc.doc.Find("script.evil").Length())
 	assert.Equal(t, fullName,
-		htmlDoc.doc.Find("div.content").Find(".header.text.center").Text(),
+		htmlDoc.doc.Find("#profile-avatar-card h1.wk-pf-name").Text(),
 	)
 }
 

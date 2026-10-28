@@ -114,7 +114,7 @@ func testUser2ActivityVisibility(t *testing.T, session *TestSession, hint string
 
 	// Check that the current tab is displayed and is active regardless of it's actual availability
 	// For example, on /<user> it wouldn't be available to guest, but it should be still present on /<user>?tab=activity
-	assert.Positive(t, page.Find("overflow-menu .active.item[href='/sub/user2?tab=activity']").Length())
+	assert.Positive(t, page.Find(".wk-pf-tabs a[aria-current='page'][href='/sub/user2?tab=activity']").Length())
 	if hintLinkExists {
 		return hintLink
 	}
@@ -128,7 +128,7 @@ func testUser2ActivityLinksAvailability(t *testing.T, session *TestSession, acti
 	t.Helper()
 	response := session.MakeRequest(t, NewRequest(t, "GET", "/user2"), http.StatusOK)
 	page := NewHTMLParser(t, response.Body)
-	page.AssertElement(t, "overflow-menu .item[href='/sub/user2?tab=activity']", activity)
+	page.AssertElement(t, ".wk-pf-tabs a[href='/sub/user2?tab=activity']", activity)
 
 	// User details - for admins only
 	page.AssertElement(t, "#profile-avatar-card a[href='/sub/admin/users/2']", adminLink)

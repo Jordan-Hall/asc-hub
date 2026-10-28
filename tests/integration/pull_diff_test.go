@@ -62,7 +62,7 @@ func doTestPRDiff(t *testing.T, prDiffURL string, expectedFilenames []string, ed
 	fileContents.Each(func(i int, s *goquery.Selection) {
 		filename, _ := s.Attr("data-old-filename")
 		assert.Equal(t, expectedFilenames[i], filename)
-		doc.AssertElement(t, "h4.diff-file-header a.button[href=\"/user2/commitsonpr/_edit/branch1/"+filename+"\"]", editable)
+		doc.AssertElement(t, ".diff-file-header a[href=\"/user2/commitsonpr/_edit/branch1/"+filename+"\"]", editable)
 	})
 }
 

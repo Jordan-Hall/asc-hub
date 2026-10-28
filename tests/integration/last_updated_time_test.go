@@ -20,7 +20,7 @@ func TestRepoLastUpdatedTime(t *testing.T) {
 	req := NewRequest(t, "GET", "/explore/repos?q=repo1")
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	doc := NewHTMLParser(t, resp.Body)
-	node := doc.doc.Find(".flex-item-main:has(a[href='/user2/repo1']) .flex-item-body").First()
+	node := doc.doc.Find(".ds-repolist > li:has(a[href='/user2/repo1']) .ds-li-meta > span:has(relative-time)").First()
 	{
 		buf := ""
 		findTextNonNested(t, node, &buf)
@@ -40,7 +40,7 @@ func TestBranchLastUpdatedTime(t *testing.T) {
 	req := NewRequest(t, "GET", path.Join(user, repo, "branches"))
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	doc := NewHTMLParser(t, resp.Body)
-	node := doc.doc.Find("p:has(span.commit-message)")
+	node := doc.doc.Find(".rp-ref-meta > span:has(relative-time)")
 
 	{
 		buf := ""

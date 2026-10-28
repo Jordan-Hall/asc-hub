@@ -352,8 +352,8 @@ func TestRecentlyPushed(t *testing.T) {
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			message := strings.TrimSpace(htmlDoc.Find(".ui.message").Text())
-			link, _ := htmlDoc.Find(".ui.message a").Attr("href")
+			message := strings.TrimSpace(htmlDoc.Find(".rp-banner").Text())
+			link, _ := htmlDoc.Find(".rp-banner a").Attr("href")
 			expectedMessage := "You pushed on branch recent-push"
 
 			assert.Contains(t, message, expectedMessage)
@@ -407,7 +407,7 @@ func TestRecentlyPushed(t *testing.T) {
 			req := NewRequest(t, "GET", "/user1/repo1")
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			htmlDoc.AssertElement(t, ".ui.message", false)
+			htmlDoc.AssertElement(t, ".rp-banner", false)
 		})
 
 		// Test that visiting the base repo has the banner too, and includes
@@ -419,13 +419,13 @@ func TestRecentlyPushed(t *testing.T) {
 			req := NewRequest(t, "GET", "/user1/repo1")
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			htmlDoc.AssertElement(t, ".ui.message", true)
+			htmlDoc.AssertElement(t, ".rp-banner", true)
 
 			// Count recently pushed branches on the base repo
 			req = NewRequest(t, "GET", "/user2/repo1")
 			resp = session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc = NewHTMLParser(t, resp.Body)
-			messageCountOnBase := htmlDoc.Find(".ui.message").Length()
+			messageCountOnBase := htmlDoc.Find(".rp-banner").Length()
 
 			// We have two messages on the base: one from the fork, one on the
 			// base itself.
@@ -443,9 +443,9 @@ func TestRecentlyPushed(t *testing.T) {
 			req := NewRequest(t, "GET", "/user2/repo1")
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			messages := htmlDoc.Find(".ui.message")
+			messages := htmlDoc.Find(".rp-banner")
 
-			prButtons := messages.Find("a[role='button']")
+			prButtons := messages.Find("a.ds-btn-primary")
 			branchLinks := messages.Find("a[href*='/src/branch/']")
 
 			// ** base repo tests **
@@ -519,8 +519,8 @@ func TestRecentlyPushed(t *testing.T) {
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			htmlDoc.AssertElement(t, ".ui.message", true)
-			link, _ := htmlDoc.Find(".ui.message a[href*='/src/branch/']").Attr("href")
+			htmlDoc.AssertElement(t, ".rp-banner", true)
+			link, _ := htmlDoc.Find(".rp-banner a[href*='/src/branch/']").Attr("href")
 			assert.Equal(t, "/user1/repo1/src/branch/recent-push", link)
 		})
 
@@ -548,7 +548,7 @@ func TestRecentlyPushed(t *testing.T) {
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			messages := htmlDoc.Find(".ui.message")
+			messages := htmlDoc.Find(".rp-banner")
 
 			// None of the branches should be shown, as they have either already been merged already,
 			// or have an open PR, so it doesn't make sense to make a new PR for any of them.

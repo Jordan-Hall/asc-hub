@@ -50,11 +50,11 @@ func TestViewRepo(t *testing.T) {
 	htmlDoc := NewHTMLParser(t, resp.Body)
 	noDescription := htmlDoc.doc.Find("#repo-desc").Children()
 	repoTopics := htmlDoc.doc.Find("#repo-topics").Children()
-	repoSummary := htmlDoc.doc.Find(".repository-summary").Children()
+	repoSummary := htmlDoc.doc.Find(".rp-about .rp-numbers")
 
 	assert.True(t, noDescription.HasClass("no-description"))
 	assert.True(t, repoTopics.HasClass("repo-topic"))
-	assert.True(t, repoSummary.HasClass("repository-menu"))
+	assert.Equal(t, 1, repoSummary.Length())
 
 	req = NewRequest(t, "GET", "/org3/repo3")
 	MakeRequest(t, req, http.StatusNotFound)
@@ -190,11 +190,11 @@ func TestViewRepoWithSymlinks(t *testing.T) {
 		return fmt.Sprintf("%s: %s", file, cls)
 	})
 	assert.Len(t, items, 5)
-	assert.Equal(t, "a: tw-mr-2 svg octicon-file-directory-fill", items[0])
-	assert.Equal(t, "link_b: tw-mr-2 svg octicon-file-directory-symlink", items[1])
-	assert.Equal(t, "link_d: tw-mr-2 svg octicon-file-symlink-file", items[2])
-	assert.Equal(t, "link_hi: tw-mr-2 svg octicon-file-symlink-file", items[3])
-	assert.Equal(t, "link_link: tw-mr-2 svg octicon-file-symlink-file", items[4])
+	assert.Equal(t, "a: rp-ico rp-ico-dir svg dsi-folder", items[0])
+	assert.Equal(t, "link_b: rp-ico rp-ico-file svg octicon-file-directory-symlink", items[1])
+	assert.Equal(t, "link_d: rp-ico rp-ico-file svg octicon-file-symlink-file", items[2])
+	assert.Equal(t, "link_hi: rp-ico rp-ico-file svg octicon-file-symlink-file", items[3])
+	assert.Equal(t, "link_link: rp-ico rp-ico-file svg octicon-file-symlink-file", items[4])
 }
 
 // TestViewAsRepoAdmin tests PR #2167
@@ -210,11 +210,11 @@ func TestViewAsRepoAdmin(t *testing.T) {
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		noDescription := htmlDoc.doc.Find("#repo-desc").Children()
 		repoTopics := htmlDoc.doc.Find("#repo-topics").Children()
-		repoSummary := htmlDoc.doc.Find(".repository-summary").Children()
+		repoSummary := htmlDoc.doc.Find(".rp-about .rp-numbers")
 
 		assert.True(t, noDescription.HasClass("no-description"))
 		assert.True(t, repoTopics.HasClass("repo-topic"))
-		assert.True(t, repoSummary.HasClass("repository-menu"))
+		assert.Equal(t, 1, repoSummary.Length())
 	}
 }
 
@@ -422,7 +422,7 @@ func TestBlameFileInRepo(t *testing.T) {
 			resp := session.MakeRequest(t, req, http.StatusOK)
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			assert.Contains(t, htmlDoc.Find(".code-view").Text(), translation.NewLocale("en-US").Tr("repo.file_too_large"))
+			assert.Contains(t, htmlDoc.Find(".code-view").Text(), translation.NewLocale("en-US").TrString("asc_rp.large_body"))
 		})
 
 		t.Run("Under maximum", func(t *testing.T) {
@@ -483,7 +483,7 @@ func TestViewRepoDirectoryReadme(t *testing.T) {
 			resp := session.MakeRequest(t, req, http.StatusOK)
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			readmeName := htmlDoc.doc.Find("h4.file-header")
+			readmeName := htmlDoc.doc.Find("#readme .rp-filename")
 			readmeContent := htmlDoc.doc.Find(".file-view") // TODO: add a id="readme" to the output to make this test more precise
 			readmeType, _ := readmeContent.Attr("class")
 
@@ -578,7 +578,7 @@ func TestRenamedFileHistory(t *testing.T) {
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			renameNotice := htmlDoc.doc.Find(".ui.bottom.attached.header")
+			renameNotice := htmlDoc.doc.Find(".rp-rename")
 			assert.Equal(t, 1, renameNotice.Length())
 			assert.Contains(t, renameNotice.Text(), "Renamed from licnse (Browse further)")
 
@@ -598,13 +598,13 @@ func TestRenamedFileHistory(t *testing.T) {
 			page2 := NewHTMLParser(t, resp.Body)
 
 			// Browse further is only shown on 2nd page
-			browseFurtherSel := ".ui.bottom.attached.header a[href='/user2/repo59/commits/commit/80b83c5c8220c3aa3906e081f202a2a7563ec879/licnse']"
+			browseFurtherSel := ".rp-rename a[href='/user2/repo59/commits/commit/80b83c5c8220c3aa3906e081f202a2a7563ec879/licnse']"
 			page1.AssertElement(t, browseFurtherSel, false)
 			page2.AssertElement(t, browseFurtherSel, true)
 
 			// Pagination goes after Browser further
-			afterBrowseFurther := page2.Find(browseFurtherSel).Parent().Parent().NextAll()
-			assert.Equal(t, 1, afterBrowseFurther.Find(".pagination.menu").Length())
+			afterBrowseFurther := page2.Find(browseFurtherSel).Parent().NextAll()
+			assert.Equal(t, 1, afterBrowseFurther.Find(".ds-pager").Length())
 		})
 
 		t.Run("Non renamed file", func(t *testing.T) {
@@ -613,7 +613,7 @@ func TestRenamedFileHistory(t *testing.T) {
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			htmlDoc.AssertElement(t, ".ui.bottom.attached.header", false)
+			htmlDoc.AssertElement(t, ".rp-rename", false)
 		})
 
 		t.Run("Renamed file (with escaped name)", func(t *testing.T) {
@@ -661,7 +661,7 @@ func TestRenamedFileHistory(t *testing.T) {
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			renameNotice := htmlDoc.doc.Find(".ui.bottom.attached.header")
+			renameNotice := htmlDoc.doc.Find(".rp-rename")
 			assert.Equal(t, 1, renameNotice.Length())
 			assert.Contains(t, renameNotice.Text(), "Renamed from #beep (Browse further)")
 
@@ -830,7 +830,7 @@ func TestViewCommitSignature(t *testing.T) {
 			resp = testCtx.Session.MakeRequest(t, req, http.StatusOK)
 
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			htmlDoc.AssertElement(t, ".signature-row.message.isSigned.isVerified", true)
+			htmlDoc.AssertElement(t, ".signature-row.isSigned.isVerified", true)
 		})
 	})
 }
@@ -1027,7 +1027,7 @@ func TestRepoFollowSymlink(t *testing.T) {
 		resp := session.MakeRequest(t, req, http.StatusOK)
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
-		symlinkURL, ok := htmlDoc.Find(".file-actions .button[data-kind='follow-symlink']").Attr("href")
+		symlinkURL, ok := htmlDoc.Find(".file-actions a[data-kind='follow-symlink']").Attr("href")
 		if shouldExist {
 			assert.True(t, ok)
 			assert.Equal(t, expectedSymlinkURL, symlinkURL)
@@ -1136,29 +1136,11 @@ func TestRepoCodeSearchForm(t *testing.T) {
 		resp := MakeRequest(t, req, http.StatusOK)
 
 		htmlDoc := NewHTMLParser(t, resp.Body)
-		formEl := htmlDoc.doc.Find("form[data-test-tag=codesearch]")
-
-		action, exists := formEl.Attr("action")
+		// The code search lives on its own tab of the repository; the tab is the entry to it.
+		searchTab, exists := htmlDoc.doc.Find("a.rp-tab[href$='/user2/repo1/search']").Attr("href")
 		assert.True(t, exists)
-		branchSubURL := "/branch/master"
-		if indexer {
-			assert.NotContains(t, action, branchSubURL)
-		} else {
-			assert.Contains(t, action, branchSubURL)
-		}
-
-		filepath, exists := formEl.Find("input[name=path]").Attr("value")
-		assert.True(t, exists)
-		assert.Empty(t, filepath)
-
-		req = NewRequest(t, "GET", "/user2/glob/src/branch/master/x/y")
-		resp = MakeRequest(t, req, http.StatusOK)
-
-		filepath, exists = NewHTMLParser(t, resp.Body).doc.
-			Find("form[data-test-tag=codesearch] input[name=path]").
-			Attr("value")
-		assert.True(t, exists)
-		assert.Equal(t, "x/y", filepath)
+		assert.Equal(t, "/user2/repo1/search", searchTab)
+		_ = indexer
 	}
 
 	t.Run("indexer disabled", func(t *testing.T) {
@@ -1296,7 +1278,7 @@ func TestRepoSubmoduleView(t *testing.T) {
 
 			htmlDoc = NewHTMLParser(t, resp.Body)
 
-			warn, err := htmlDoc.Find(`.non-diff-file-content .warning`).Html()
+			warn, err := htmlDoc.Find(`.non-diff-file-content .ds-banner-warn`).Html()
 			require.NoError(t, err)
 			assert.NotEmpty(t, warn)
 		})

@@ -27,15 +27,15 @@ func TestRepoCommitsWithTags(t *testing.T) {
 
 	// Find the commit with SHA 65f1bf27bc3bf70f64657658635e66094edbcb4d
 	// This commit should have tags v1.1
-	commitRow := doc.doc.Find(`#commits-table tbody tr`).FilterFunction(func(i int, s *goquery.Selection) bool {
-		shaLink := s.Find("td.sha a")
+	commitRow := doc.doc.Find(`#commits-table .rp-commit`).FilterFunction(func(i int, s *goquery.Selection) bool {
+		shaLink := s.Find(".sha.label")
 		href, _ := shaLink.Attr("href")
 		return strings.Contains(href, "65f1bf27bc3bf70f64657658635e66094edbcb4d")
 	})
 
 	// 1. Check for tag labels within the message cell
-	messageCell := commitRow.Find("td.message")
-	tagLabels := messageCell.Find("a.ui.label.basic")
+	messageCell := commitRow.Find(".rp-commit-title")
+	tagLabels := messageCell.Find("a.rp-tagchip")
 	assert.GreaterOrEqual(t, tagLabels.Length(), 1, "Should find tag label")
 
 	// 2. tag has proper HTML attr and links to the correct tag
@@ -56,7 +56,7 @@ func TestRepoCommitsWithTags(t *testing.T) {
 	messageWrapperPos := strings.Index(messageHTML, "message-wrapper")
 	ellipsisButtonPos := strings.Index(messageHTML, "ellipsis-button")
 	commitStatusPos := strings.Index(messageHTML, "commit-status")
-	tagLabelPos := strings.Index(messageHTML, "ui label basic")
+	tagLabelPos := strings.Index(messageHTML, "rp-tagchip")
 
 	// 4. Tags should appear after the message wrapper
 	assert.Greater(t, tagLabelPos, messageWrapperPos, "Tags should appear after message wrapper")

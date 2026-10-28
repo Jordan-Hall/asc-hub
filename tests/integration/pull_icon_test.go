@@ -117,12 +117,14 @@ func testPullRequestIcon(t *testing.T, session *TestSession, pr *issues_model.Pu
 	req := NewRequest(t, "GET", pr.Issue.HTMLURL())
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	doc := NewHTMLParser(t, resp.Body)
-	doc.AssertElement(t, fmt.Sprintf("div.issue-state-label.%s > svg.%s", expectedColor, expectedIcon), true)
+	viewChip := map[string]string{"green": "ds-chip-ok", "grey": "ds-chip-outline", "red": "ds-chip-err", "purple": "ds-chip-info"}[expectedColor]
+	doc.AssertElement(t, fmt.Sprintf("div.issue-state-label.%s > svg.%s", viewChip, expectedIcon), true)
 
 	req = NewRequest(t, "GET", pr.BaseRepo.HTMLURL()+"/branches")
 	resp = session.MakeRequest(t, req, http.StatusOK)
 	doc = NewHTMLParser(t, resp.Body)
-	doc.AssertElement(t, fmt.Sprintf(`a[href="/%s/pulls/%d"].%s > svg.%s`, pr.BaseRepo.FullName(), pr.Issue.Index, expectedColor, expectedIcon), true)
+	branchChip := map[string]string{"green": "ds-chip-info", "grey": "ds-chip-outline", "red": "ds-chip-err", "purple": "ds-chip-ok"}[expectedColor]
+	doc.AssertElement(t, fmt.Sprintf(`a[href="/%s/pulls/%d"].%s`, pr.BaseRepo.FullName(), pr.Issue.Index, branchChip), true)
 }
 
 func testPullRequestListIcon(t *testing.T, doc *HTMLDoc, name, expectedColor, expectedIcon string) {

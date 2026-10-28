@@ -51,7 +51,7 @@ func TestTagViewWithoutRelease(t *testing.T) {
 	assert.False(t, releaseLink.HasClass("active"))
 
 	// Test that the title is displayed
-	releaseTitle := strings.TrimSpace(htmlDoc.Find(".release-title-wrap h4 > a").Text())
+	releaseTitle := strings.TrimSpace(htmlDoc.Find(".rp-rel-name a").Text())
 	assert.Equal(t, "no-release", releaseTitle)
 
 	// Test that there is no "Stable" link
@@ -148,7 +148,7 @@ func TestCreateNewTagProtected(t *testing.T) {
 			req := NewRequestf(t, "GET", "/%s/releases/tag/v-1.1", repo.FullName())
 			resp := MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
-			tagsTab := htmlDoc.Find(".release-title-wrap h4")
+			tagsTab := htmlDoc.Find(".rp-rel-name")
 			assert.Contains(t, tagsTab.Text(), "force update v2")
 		})
 	})
@@ -180,7 +180,7 @@ func TestSyncRepoTags(t *testing.T) {
 				req := NewRequestf(t, "GET", "/%s/releases/tag/v2", repo.FullName())
 				resp := MakeRequest(t, req, http.StatusOK)
 				htmlDoc := NewHTMLParser(t, resp.Body)
-				tagsTab := htmlDoc.Find(".release-title-wrap h4")
+				tagsTab := htmlDoc.Find(".rp-rel-name")
 				assert.Contains(t, tagsTab.Text(), "this is an annotated tag")
 			}
 

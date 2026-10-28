@@ -53,7 +53,7 @@
 									{{- end -}}
 								</a>
 							{{else}}
-								<a href="{{$.TreeLink}}/{{PathEscapeSegments $entry.Name}}" title="{{$entry.Name}}">{{svg "dsi-file" 18 "rp-ico rp-ico-file"}}{{$entry.Name}}</a>
+								<a href="{{$.TreeLink}}/{{PathEscapeSegments $entry.Name}}" title="{{$entry.Name}}">{{svg (printf "octicon-%s" (EntryIcon $entry)) 18 "rp-ico rp-ico-file"}}{{$entry.Name}}</a>
 							{{end}}
 						{{end}}
 					</span>
