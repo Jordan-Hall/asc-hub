@@ -1,10 +1,24 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content explore users">
+<div role="main" aria-label="{{.Title}}" class="ds-main ds-explore users">
 	{{template "explore/navbar" .}}
-	<div class="ui container">
-		{{template "explore/search" .}}
-		{{template "explore/user_list" .}}
-		{{template "base/paginate" .}}
+	{{template "explore/search" .}}
+	<div class="ds-container ds-container-wide ds-explore-body">
+		<div class="ds-split">
+			<div class="ds-min0">
+				<p class="ds-results-line ds-hide-sm">{{ctx.Locale.TrPluralString .Total "explore.count_users" (ctx.Locale.PrettyNumber .Total)}}</p>
+				{{template "explore/user_list" .}}
+				{{template "base/paginate" .}}
+			</div>
+			{{if and .PageIsExploreOrganizations .IsSigned .SignedUser.CanCreateOrganization}}
+				<aside class="ds-rail ds-only-desktop" aria-label="{{ctx.Locale.Tr "new_org.link"}}">
+					<div class="ds-callout">
+						<h2 class="ds-t-h4">{{ctx.Locale.Tr "explore.start_org_title"}}</h2>
+						<p class="ds-t-small ds-c-2 ds-mt-8">{{ctx.Locale.Tr "explore.start_org_lead"}}</p>
+						<a class="ds-btn ds-btn-primary ds-mt-12" href="{{AppSubUrl}}/org/create">{{ctx.Locale.Tr "new_org.link"}}</a>
+					</div>
+				</aside>
+			{{end}}
+		</div>
 	</div>
 </div>
 {{template "base/footer" .}}

@@ -1,0 +1,25 @@
+{{/*
+Closes user/auth/shell_start. Props: Data (pass "."), Brand ("signin" or "signup": the navy panel from 1024 on; empty for a plain card).
+*/}}
+		</div>
+	</div>
+	{{if .Brand}}
+	<aside class="ds-auth-brand ds-only-desktop" aria-label="{{AppName}}">
+		<div class="ds-auth-brand-in">
+			<div class="ds-t-eyebrow ds-auth-brand-eyebrow">{{AppName}}</div>
+			<p class="ds-auth-brand-title">{{if eq .Brand "signup"}}{{ctx.Locale.Tr "asc_auth.brand_signup_title"}}{{else}}{{ctx.Locale.Tr "asc_auth.brand_signin_title"}}{{end}}</p>
+			<ul class="ds-auth-points">
+				{{if eq .Brand "signup"}}
+					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signup_p1_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signup_p1_text"}}</span></div></li>
+					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signup_p2_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signup_p2_text"}}</span></div></li>
+					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signup_p3_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signup_p3_text"}}</span></div></li>
+				{{else}}
+					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signin_p1_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signin_p1_text"}}</span></div></li>
+					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signin_p2_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signin_p2_text"}}</span></div></li>
+					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signin_p3_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signin_p3_text"}}</span></div></li>
+				{{end}}
+			</ul>
+		</div>
+	</aside>
+	{{end}}
+</div>

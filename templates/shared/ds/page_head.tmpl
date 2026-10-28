@@ -1,0 +1,23 @@
+{{/*
+The title block of a page: an optional prefix ("Explore /"), the title, one line of description and up to two actions.
+Props:
+* Title (required), Prefix (optional crumb before the title), Description (optional)
+* PrimaryLabel + PrimaryHref (optional): the one primary action
+* SecondaryLabel + SecondaryHref (optional)
+* HideOnMobile (optional): the title is read by screen readers but not drawn under 1024 (the .ds-subbar carries it)
+The heading is the page's h1.
+*/}}
+<div class="ds-page-head{{if .HideOnMobile}} ds-page-head-desk{{end}}">
+	<div class="ds-page-head-row">
+		<div class="ds-min0">
+			<h1 class="ds-page-title{{if .Prefix}} ds-page-title-crumb{{end}}">{{if .Prefix}}<span class="ds-crumb-prefix">{{.Prefix}}</span><span class="ds-crumb-sep" aria-hidden="true">/</span>{{end}}<span>{{.Title}}</span></h1>
+			{{if .Description}}<p class="ds-page-desc">{{.Description}}</p>{{end}}
+		</div>
+		{{if or .PrimaryHref .SecondaryHref}}
+			<div class="ds-page-actions">
+				{{if .SecondaryHref}}<a class="ds-btn ds-btn-secondary" href="{{.SecondaryHref}}">{{.SecondaryLabel}}</a>{{end}}
+				{{if .PrimaryHref}}<a class="ds-btn ds-btn-primary" href="{{.PrimaryHref}}">{{.PrimaryLabel}}</a>{{end}}
+			</div>
+		{{end}}
+	</div>
+</div>

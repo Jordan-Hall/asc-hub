@@ -1,23 +1,40 @@
-<overflow-menu class="ui secondary pointing tabular top attached borderless menu secondary-nav">
-	<div class="overflow-menu-items tw-justify-center">
-		<a class="{{if .PageIsExploreRepositories}}active {{end}}item" href="{{AppSubUrl}}/explore/repos">
-			{{svg "octicon-repo"}} {{ctx.Locale.Tr "explore.repos"}}
-		</a>
-		{{if not .UsersPageIsDisabled}}
-			<a class="{{if .PageIsExploreUsers}}active {{end}}item" href="{{AppSubUrl}}/explore/users">
-				{{svg "octicon-person"}} {{ctx.Locale.Tr "explore.users"}}
-			</a>
-		{{end}}
-		{{if not .OrganizationsPageIsDisabled}}
-		<a class="{{if .PageIsExploreOrganizations}}active {{end}}item" href="{{AppSubUrl}}/explore/organizations">
-			{{svg "octicon-organization"}} {{ctx.Locale.Tr "explore.organizations"}}
-		</a>
-		{{end}}
-
-		{{if and (not $.UnitTypeCode.UnitGlobalDisabled) .IsRepoIndexerEnabled (not .CodePageIsDisabled)}}
-		<a class="{{if .PageIsExploreCode}}active {{end}}item" href="{{AppSubUrl}}/explore/code">
-			{{svg "octicon-code"}} {{ctx.Locale.Tr "explore.code"}}
-		</a>
-		{{end}}
+{{/* The head of every Explore page: the phone bar, the title block and the tabs (boards A8, A9, A10). The page content comes after it. */}}
+{{$title := ctx.Locale.Tr "explore.repos"}}
+{{$lead := ctx.Locale.Tr "explore.lead_repos"}}
+{{$primaryHref := ""}}
+{{$primaryLabel := ""}}
+{{if .PageIsExploreUsers}}
+	{{$title = ctx.Locale.Tr "explore.users"}}
+	{{$lead = ctx.Locale.Tr "explore.lead_users"}}
+{{else if .PageIsExploreOrganizations}}
+	{{$title = ctx.Locale.Tr "explore.organizations"}}
+	{{$lead = ctx.Locale.Tr "explore.lead_organizations"}}
+	{{if and .IsSigned .SignedUser.CanCreateOrganization}}
+		{{$primaryHref = print AppSubUrl "/org/create"}}
+		{{$primaryLabel = ctx.Locale.Tr "new_org.link"}}
+	{{end}}
+{{else if .PageIsExploreCode}}
+	{{$title = ctx.Locale.Tr "explore.code"}}
+	{{$lead = ctx.Locale.Tr "explore.lead_code"}}
+{{else if .IsSigned}}
+	{{$primaryHref = print AppSubUrl "/repo/create"}}
+	{{$primaryLabel = ctx.Locale.Tr "new_repo.link"}}
+{{end}}
+{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "explore"))}}
+<div class="ds-band ds-pagehead-band">
+	<div class="ds-container ds-container-wide">
+		{{template "shared/ds/page_head" (dict "Prefix" (ctx.Locale.Tr "explore") "Title" $title "Description" $lead "PrimaryHref" $primaryHref "PrimaryLabel" $primaryLabel "HideOnMobile" true)}}
+		<nav class="ds-tabs" aria-label="{{ctx.Locale.Tr "explore"}}">
+			{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "explore.repos") "ShortLabel" (ctx.Locale.Tr "explore.repos_short") "Href" (print AppSubUrl "/explore/repos") "Active" .PageIsExploreRepositories "Count" (and .PageIsExploreRepositories .Total))}}
+			{{if not .UsersPageIsDisabled}}
+				{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "explore.users") "Href" (print AppSubUrl "/explore/users") "Active" .PageIsExploreUsers "Count" (and .PageIsExploreUsers .Total))}}
+			{{end}}
+			{{if not .OrganizationsPageIsDisabled}}
+				{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "explore.organizations") "ShortLabel" (ctx.Locale.Tr "explore.orgs_short") "Href" (print AppSubUrl "/explore/organizations") "Active" .PageIsExploreOrganizations "Count" (and .PageIsExploreOrganizations .Total))}}
+			{{end}}
+			{{if and (not $.UnitTypeCode.UnitGlobalDisabled) .IsRepoIndexerEnabled (not .CodePageIsDisabled)}}
+				{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "explore.code") "Href" (print AppSubUrl "/explore/code") "Active" .PageIsExploreCode)}}
+			{{end}}
+		</nav>
 	</div>
-</overflow-menu>
+</div>

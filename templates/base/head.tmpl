@@ -2,6 +2,7 @@
 <html lang="{{ctx.Locale.Lang}}" data-theme="{{ThemeName .SignedUser}}">
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<meta name="theme-color" content="#0b1220">
 	{{/* Display `- .Repository.FullName` only if `.Title` does not already start with that. */}}
 	<title>{{if .Title}}{{.Title}} - {{end}}{{if and (.Repository.Name) (not (StringUtils.HasPrefix .Title .Repository.FullName))}}{{.Repository.FullName}} - {{else}}{{if and (.ContextUser.IsOrganization) (.ContextUser.Name) (not (StringUtils.HasPrefix .Title .ContextUser.Name)) (not (StringUtils.HasPrefix .Title .ContextUser.FullName))}}{{.ContextUser.Name}} - {{end}}{{end}}{{AppName}}</title>
 	<link rel="manifest" href="{{AppSubUrl}}/manifest.json">
@@ -28,13 +29,13 @@
 	{{template "base/head_style" .}}
 	{{template "custom/header" .}}
 </head>
-<body class="no-js" hx-swap="outerHTML" hx-ext="morph" hx-push-url="false">
+<body class="no-js ds-app{{if or .PageIsInstall (not .IsSigned)}} ds-has-no-bnav{{end}}" hx-swap="outerHTML" hx-ext="morph" hx-push-url="false">
 	{{template "custom/body_outer_pre" .}}
 
-	<div class="full height">
-		{{if not .PageIsInstall}}<a class="skip-link" href="#main-content">{{ctx.Locale.Tr "aria.skip_to_content"}}</a>{{end}}
+	<div class="ds-shell">
+		{{if not .PageIsInstall}}<a class="ds-skip" href="#main-content">{{ctx.Locale.Tr "aria.skip_to_content"}}</a>{{end}}
 		<noscript>
-			<div class="tw-ml-2 tw-mr-2 tw-text-center tw-text-text-light-2">{{ctx.Locale.Tr "enable_javascript"}}</div>
+			<div class="ds-banner ds-banner-warn ds-noscript">{{ctx.Locale.Tr "enable_javascript"}}</div>
 		</noscript>
 
 		{{template "custom/body_inner_pre" .}}

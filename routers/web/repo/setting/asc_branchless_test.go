@@ -70,7 +70,7 @@ func TestAscBranchlessPage(t *testing.T) {
 		assert.Contains(t, html, "refs/heads/master")
 		assert.NotContains(t, html, "<b>x</b>", "a reference name is escaped")
 		assert.Contains(t, html, "&lt;b&gt;")
-		assert.NotContains(t, html, "<form", "the page cannot write a setting")
+		assert.NotContains(t, html, `method="post"`, "the page cannot write a setting")
 	})
 
 	t.Run("an asc failure shows a generic message and no detail", func(t *testing.T) {

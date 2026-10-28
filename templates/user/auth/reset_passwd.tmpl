@@ -1,64 +1,32 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content user reset password">
-	<div class="ui middle very relaxed page grid">
-		<div class="column">
-			<form class="ui form ignore-dirty" action="{{.Link}}" method="post">
-				<input name="code" type="hidden" value="{{.Code}}">
-				<h2 class="ui top attached header">
-					{{ctx.Locale.Tr "auth.reset_password"}}
-				</h2>
-				<div class="ui attached segment">
-					{{template "base/alert" .}}
-					{{if .user_email}}
-						<div class="inline field">
-							<label for="user_name">{{ctx.Locale.Tr "email"}}</label>
-							<input id="user_name" type="text" value="{{.user_email}}" disabled autocorrect="off" autocapitalize="none">
-						</div>
-					{{end}}
-					{{if .IsResetForm}}
-						<div class="required field {{if .Err_Password}}error{{end}}">
-							<label for="password">{{ctx.Locale.Tr "settings.new_password"}}</label>
-							<input id="password" name="password" type="password"  value="{{.password}}" autocomplete="new-password" autofocus required>
-						</div>
-						{{if not .user_signed_in}}
-						<div class="inline field">
-							<div class="ui checkbox">
-								<label>{{ctx.Locale.Tr "auth.remember_me"}}</label>
-								<input name="remember" type="checkbox">
-							</div>
-						</div>
-						{{end}}
-						{{if .has_two_factor}}
-						<h4 class="ui dividing header">
-							{{ctx.Locale.Tr "twofa"}}
-						</h4>
-						<div class="ui warning visible message">{{ctx.Locale.Tr "settings.twofa_is_enrolled"}}</div>
-						{{if .scratch_code}}
-						<div class="required inline field {{if .Err_Token}}error{{end}}">
-							<label for="token">{{ctx.Locale.Tr "auth.scratch_code"}}</label>
-							<input id="token" name="token" type="text" autocomplete="off" autofocus required>
-						</div>
-						<input type="hidden" name="scratch_code" value="true">
-						{{else}}
-						<div class="required field {{if .Err_Passcode}}error{{end}}">
-							<label for="passcode">{{ctx.Locale.Tr "passcode"}}</label>
-							<input id="passcode" name="passcode" type="number" autocomplete="off" autofocus required>
-						</div>
-						{{end}}
-						{{end}}
-						<div class="divider"></div>
-						<div class="inline field">
-							<button class="ui primary button">{{ctx.Locale.Tr "auth.reset_password_helper"}}</button>
-							{{if and .has_two_factor (not .scratch_code)}}
-								<a href="?code={{.Code}}&scratch_code=true">{{ctx.Locale.Tr "auth.use_scratch_code"}}</a>
-							{{end}}
-						</div>
-					{{else}}
-						<p class="center">{{ctx.Locale.Tr "auth.invalid_code_forgot_password" (printf "%s/user/forgot_password" AppSubUrl)}}</p>
-					{{end}}
-				</div>
-			</form>
-		</div>
-	</div>
-</div>
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user reset password" "Title" (ctx.Locale.Tr "auth.reset_password"))}}
+	<form class="ds-form ignore-dirty" action="{{.Link}}" method="post">
+		<input name="code" type="hidden" value="{{.Code}}">
+		{{if .user_email}}
+			{{template "shared/ds/field" (dict "ID" "user_name" "Name" "user_name_shown" "Label" (ctx.Locale.Tr "email") "Value" .user_email "Disabled" true "Extra" "off")}}
+		{{end}}
+		{{if .IsResetForm}}
+			{{template "shared/ds/field" (dict "ID" "password" "Name" "password" "Type" "password" "Label" (ctx.Locale.Tr "settings.new_password") "Value" .password "Autocomplete" "new-password" "Autofocus" true "Required" true "Reveal" true "Error" .Err_Password)}}
+			{{if not .user_signed_in}}
+				<div class="ds-check"><input id="remember" name="remember" type="checkbox"><label for="remember">{{ctx.Locale.Tr "auth.remember_me"}}</label></div>
+			{{end}}
+			{{if .has_two_factor}}
+				<h2 class="ds-t-h4">{{ctx.Locale.Tr "twofa"}}</h2>
+				<div class="ds-banner ds-banner-warn">{{svg "dsi-info" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "settings.twofa_is_enrolled"}}</div></div>
+				{{if .scratch_code}}
+					{{template "shared/ds/field" (dict "ID" "token" "Name" "token" "Label" (ctx.Locale.Tr "auth.scratch_code") "Autocomplete" "off" "Autofocus" true "Required" true "Extra" "off" "Mono" true "Error" .Err_Token)}}
+					<input type="hidden" name="scratch_code" value="true">
+				{{else}}
+					{{template "shared/ds/field" (dict "ID" "passcode" "Name" "passcode" "Type" "number" "Label" (ctx.Locale.Tr "passcode") "Autocomplete" "off" "Autofocus" true "Required" true "Mono" true "Error" .Err_Passcode)}}
+				{{end}}
+			{{end}}
+			<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block">{{ctx.Locale.Tr "auth.reset_password_helper"}}</button>
+			{{if and .has_two_factor (not .scratch_code)}}
+				<p class="ds-auth-alt"><a class="ds-link" href="?code={{.Code}}&scratch_code=true">{{ctx.Locale.Tr "auth.use_scratch_code"}}</a></p>
+			{{end}}
+		{{else}}
+			<p class="ds-t-body">{{ctx.Locale.Tr "auth.invalid_code_forgot_password" (printf "%s/user/forgot_password" AppSubUrl)}}</p>
+		{{end}}
+	</form>
+{{template "user/auth/shell_end" (dict "Data" .)}}
 {{template "base/footer" .}}

@@ -1,0 +1,459 @@
+/* ================================================================
+   Landing page (board A3, Main and Mobile-Landing): templates/home.tmpl
+   Mobile first: one column at 320; two and three columns from 768 and 1024.
+   ================================================================ */
+.ds-app .ds-land {
+  display: block;
+}
+
+.ds-app .ds-land-hero {
+  background: var(--navy);
+  color: var(--navy-text);
+  text-align: center;
+  padding: 40px 0 44px;
+  overflow: hidden;
+}
+
+.ds-app .ds-land-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  margin: 0 0 20px;
+  padding: 6px 14px;
+  border: 1px solid #164e63;
+  border-radius: 999px;
+  background: #0c2a35;
+  color: #67e8f9;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ds-app .ds-land-pill i {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.ds-app .ds-land-title {
+  margin: 0 auto;
+  max-width: 14ch;
+  color: #fff;
+  font-size: 40px;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.ds-app .ds-land-lead {
+  margin: 20px auto 0;
+  max-width: 62ch;
+  color: var(--navy-text-2);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.ds-app .ds-land-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 28px auto 0;
+  max-width: 420px;
+}
+
+.ds-app .ds-land-actions .ds-btn {
+  width: 100%;
+  min-height: 48px;
+}
+
+.ds-app .ds-land-install {
+  margin: 28px auto 0;
+  max-width: 640px;
+  text-align: start;
+}
+
+.ds-app .ds-land-meta {
+  margin: 12px 0 0;
+  color: var(--navy-text-2);
+  font-size: 13px;
+  text-align: center;
+}
+
+.ds-app .ds-btn-ondark-outline {
+  border-color: #334155;
+  background: transparent;
+  color: #fff;
+}
+
+.ds-app .ds-btn-ondark-outline:hover {
+  background: var(--navy-hover);
+  color: #fff;
+}
+
+/* works with: a quiet strip under the hero */
+.ds-app .ds-land-strip {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.ds-app .ds-land-strip-in {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.ds-app .ds-land-strip ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-b);
+  font-weight: 600;
+}
+
+.ds-app .ds-land-strip-in p {
+  margin: 0;
+}
+
+.ds-app .ds-land-sec {
+  padding: 44px 0;
+}
+
+.ds-app .ds-land-sec-flush {
+  padding-top: 0;
+}
+
+.ds-app .ds-land-eyebrow-dark {
+  color: var(--accent);
+}
+
+.ds-app .ds-land-cards-2 {
+  margin-top: 0;
+}
+
+@media (min-width: 768px) {
+  .ds-app .ds-land-cards-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ds-app .ds-land-sec-tint {
+  background: var(--surface-3);
+}
+
+.ds-app .ds-land-sec-dark {
+  background: var(--navy);
+  color: var(--navy-text);
+}
+
+.ds-app .ds-land-h2 {
+  margin: 8px 0 0;
+  max-width: 24ch;
+  font-size: 28px;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  font-weight: 800;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.ds-app .ds-land-sec-dark .ds-land-h2 {
+  color: #fff;
+}
+
+.ds-app .ds-land-p {
+  margin: 14px 0 0;
+  max-width: 64ch;
+  color: var(--text-2);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.ds-app .ds-land-sec-dark .ds-land-p {
+  color: var(--navy-text-2);
+}
+
+.ds-app .ds-land-cards {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ds-app .ds-land-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+
+.ds-app .ds-land-card h3 {
+  margin: 12px 0 0;
+  font-size: 17px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.ds-app .ds-land-card p {
+  margin: 8px 0 0;
+  color: var(--text-2);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.ds-app .ds-land-ic {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--link);
+}
+
+.ds-app .ds-land-steps {
+  display: grid;
+  gap: 14px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ds-app .ds-land-step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+
+.ds-app .ds-land-step h3 {
+  margin: 4px 0 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.ds-app .ds-land-step p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.ds-app .ds-land-num {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--on-fill);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ds-app .ds-land-step .ds-cmd {
+  margin-top: auto;
+}
+
+.ds-app .ds-land-split {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ds-app .ds-land-mini {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ds-app .ds-land-mini li {
+  padding: 16px;
+  border: 1px solid var(--navy-line);
+  border-radius: var(--r-row);
+  background: #0f1a2e;
+}
+
+.ds-app .ds-land-mini h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ds-app .ds-land-mini p {
+  margin: 6px 0 0;
+  color: var(--navy-text-2);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.ds-app .ds-land-compat > summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--touch);
+  list-style: none;
+  cursor: pointer;
+}
+
+.ds-app .ds-land-compat[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.ds-app .ds-land-compat > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ds-app .ds-land-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.ds-app .ds-land-cta {
+  padding: 36px 20px;
+  border-radius: 18px;
+  background: var(--navy);
+  color: var(--navy-text);
+  text-align: center;
+}
+
+.ds-app .ds-land-cta h2 {
+  margin: 0 auto;
+  max-width: 18ch;
+  color: #fff;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.ds-app .ds-land-cta p {
+  margin: 14px auto 0;
+  max-width: 46ch;
+  color: var(--navy-text-2);
+}
+
+.ds-app .ds-land-cta .ds-land-actions {
+  margin-top: 24px;
+}
+
+.ds-app .ds-land-dl {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.ds-app .ds-land-dl-cmds {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .ds-app .ds-land-hero {
+    padding: 64px 0;
+  }
+
+  .ds-app .ds-land-title {
+    font-size: 56px;
+    max-width: 16ch;
+  }
+
+  .ds-app .ds-land-lead {
+    font-size: 18px;
+  }
+
+  .ds-app .ds-land-actions {
+    flex-direction: row;
+    justify-content: center;
+    max-width: none;
+  }
+
+  .ds-app .ds-land-actions .ds-btn {
+    width: auto;
+    min-width: 150px;
+  }
+
+  .ds-app .ds-land-strip-in {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ds-app .ds-land-sec {
+    padding: 72px 0;
+  }
+
+  .ds-app .ds-land-h2 {
+    font-size: 34px;
+  }
+
+  .ds-app .ds-land-cards,
+  .ds-app .ds-land-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ds-app .ds-land-mini {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ds-app .ds-land-cta {
+    padding: 56px 32px;
+  }
+
+  .ds-app .ds-land-cta h2 {
+    font-size: 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ds-app .ds-land-hero {
+    padding: 88px 0 84px;
+  }
+
+  .ds-app .ds-land-title {
+    font-size: 68px;
+    max-width: 15ch;
+  }
+
+  .ds-app .ds-land-split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+  }
+
+  .ds-app .ds-land-dl {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 48px;
+  }
+
+  .ds-app .ds-land-h2 {
+    font-size: 42px;
+  }
+}

@@ -1,0 +1,16 @@
+{{/*
+Opens an account page (sign in, sign up, second factor, recovery, activation, authorization): the page wrapper, the form column with its eyebrow, title and lead, and the page's flash messages. Close it with user/auth/shell_end.
+Props:
+* Data: the page data (pass ".")
+* Hook: extra classes the page scripts look for, e.g. "user signin" (kept: the dirty-form guard and the webauthn script use them)
+* Eyebrow (optional small caps line), Title (required h1), Lead (optional)
+* Split (bool): the form sits beside the navy brand panel (sign in and sign up), otherwise it is one card
+* NoAlert (bool): the page shows its own flash
+*/}}
+<div role="main" aria-label="{{.Data.Title}}" class="ds-main ds-auth{{if .Split}} ds-auth-split{{end}} {{.Hook}}">
+	<div class="ds-auth-pane">
+		<div class="ds-auth-form">
+			{{if .Eyebrow}}<div class="ds-t-eyebrow">{{.Eyebrow}}</div>{{end}}
+			<h1 class="ds-auth-title">{{.Title}}</h1>
+			{{if .Lead}}<p class="ds-auth-lead">{{.Lead}}</p>{{end}}
+			{{if not .NoAlert}}<div class="ds-auth-flash">{{template "base/alert" .Data}}</div>{{end}}

@@ -33,6 +33,16 @@ export default {
       },
     },
     {
+      // the design system declares and reads its own tokens (tokens.css), uses plain font weights and sizes, and lays out with physical sides
+      files: ['**/asc-ds/*'],
+      rules: {
+        'csstools/value-no-unknown-custom-properties': null,
+        'scale-unlimited/declaration-strict-value': null,
+        'logical-css/require-logical-properties': null,
+        'logical-css/require-logical-keywords': null,
+      },
+    },
+    {
       files: ['**/*.vue'],
       customSyntax: 'postcss-html',
     },

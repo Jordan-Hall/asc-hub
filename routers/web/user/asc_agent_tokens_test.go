@@ -138,7 +138,7 @@ func TestAscAgentsHomeRuns(t *testing.T) {
 	assert.Contains(t, body, `href="/user2/repo1/asc/agents/runs/5"`)
 	assert.Contains(t, body, "older &lt;b&gt;run&lt;/b&gt;")
 	assert.NotContains(t, body, "<b>run</b>")
-	assert.Less(t, strings.Index(body, "newer run"), strings.Index(body, "older"), "newest first")
+	assert.Less(t, strings.Index(body, "newer run"), strings.Index(body, "older &lt;b&gt;"), "newest first")
 	assert.NotContains(t, body, "STRANGER-RUN", "a run of another repository is not shown")
 	assert.NotContains(t, body, "NO-ID")
 	// The repository list links to the pages of the repository.

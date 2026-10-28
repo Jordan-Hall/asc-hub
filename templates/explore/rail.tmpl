@@ -1,0 +1,10 @@
+{{/* The right rail of the repository list (from 1024 on): how to clone what is listed, with the asc command. */}}
+{{with index .Repos 0}}
+<aside class="ds-rail ds-only-desktop" aria-label="{{ctx.Locale.Tr "explore.clone_title"}}">
+	<div class="ds-callout ds-rail-clone">
+		<h2 class="ds-t-h4">{{ctx.Locale.Tr "explore.clone_title"}}</h2>
+		<p class="ds-t-small ds-c-2 ds-mt-8">{{ctx.Locale.Tr "explore.clone_lead"}}</p>
+		<div class="ds-cmd ds-mt-12"><span class="ds-pr" aria-hidden="true">$</span><code>asc clone {{AscHubHost}}/{{.FullName}}</code><button type="button" class="ds-copy" data-clipboard-text="asc clone {{AscHubHost}}/{{.FullName}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+	</div>
+</aside>
+{{end}}

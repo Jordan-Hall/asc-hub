@@ -1,0 +1,9 @@
+{{/*
+One tab of a .ds-tabs bar (views of ONE object only; never a second navigation for the same area).
+Props: Label, Href, Active (bool), Count (optional, shown in a count pill), ShortLabel (optional, drawn instead of Label under 1024).
+Wrap the tabs in <nav class="ds-tabs" aria-label="...">.
+*/}}
+<a class="ds-tab" href="{{.Href}}"{{if .Active}} aria-current="page"{{end}}>
+	{{if .ShortLabel}}<span class="ds-hide-md">{{.Label}}</span><span class="ds-only-mobile">{{.ShortLabel}}</span>{{else}}{{.Label}}{{end}}
+	{{if .Count}}<span class="ds-count">{{.Count}}</span>{{end}}
+</a>
