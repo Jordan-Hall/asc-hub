@@ -18,6 +18,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/updatechecker"
 	"forgejo.org/services/ascdigest"
+	"forgejo.org/services/ascorgverify"
 	moderation_service "forgejo.org/services/moderation"
 	repo_service "forgejo.org/services/repository"
 	archiver_service "forgejo.org/services/repository/archiver"
@@ -255,6 +256,7 @@ func initExtendedTasks() {
 	registerCleanupAscDeviceCodes()
 	registerRefreshAscTrending()
 	registerSendAscDigest()
+	registerRecheckAscOrgDomains()
 	if setting.Moderation.Enabled {
 		registerRemoveResolvedReports()
 	}
@@ -295,6 +297,19 @@ func registerSendAscDigest() {
 		Schedule:   "5 * * * *",
 	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
 		_, err := ascdigest.Run(ctx, time.Now())
+		return err
+	})
+}
+
+// registerRecheckAscOrgDomains looks again at the DNS records of the verified organizations, so a domain that was sold or a
+// record that was removed takes the badge away.
+func registerRecheckAscOrgDomains() {
+	RegisterTaskFatal("recheck_asc_org_domains", &BaseConfig{
+		Enabled:    true,
+		RunAtStart: false,
+		Schedule:   "@every 6h",
+	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		_, err := ascorgverify.RecheckDue(ctx)
 		return err
 	})
 }

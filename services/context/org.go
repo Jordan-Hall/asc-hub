@@ -187,6 +187,9 @@ func HandleOrgAssignment(ctx *Context, args ...bool) {
 
 	ctx.Org.OrgLink = org.AsUser().OrganisationLink()
 	ctx.Data["OrgLink"] = ctx.Org.OrgLink
+	if doms, err := user_model.VerifiedAscOrgDomains(ctx, []int64{org.ID}); err == nil {
+		ctx.Data["AscOrgDomain"] = doms[org.ID]
+	}
 
 	// Member
 	opts := &organization.FindOrgMembersOpts{
