@@ -5466,10 +5466,9 @@ type InitOp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DefaultBranch string                 `protobuf:"bytes,1,opt,name=default_branch,json=defaultBranch,proto3" json:"default_branch,omitempty"`
 	WindowsSafe   bool                   `protobuf:"varint,2,opt,name=windows_safe,json=windowsSafe,proto3" json:"windows_safe,omitempty"`
-	Mode          string                 `protobuf:"bytes,3,opt,name=mode,proto3" json:"mode,omitempty"`
-	// "primary"|"mirror"
-	MirrorUrl     string   `protobuf:"bytes,4,opt,name=mirror_url,json=mirrorUrl,proto3" json:"mirror_url,omitempty"`
-	LandBranches  []string `protobuf:"bytes,5,rep,name=land_branches,json=landBranches,proto3" json:"land_branches,omitempty"`
+	Mode          string                 `protobuf:"bytes,3,opt,name=mode,proto3" json:"mode,omitempty"` // "primary"|"mirror"
+	MirrorUrl     string                 `protobuf:"bytes,4,opt,name=mirror_url,json=mirrorUrl,proto3" json:"mirror_url,omitempty"`
+	LandBranches  []string               `protobuf:"bytes,5,rep,name=land_branches,json=landBranches,proto3" json:"land_branches,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
