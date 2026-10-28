@@ -100,7 +100,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsKeys | ASC signing keys list, add, revoke with state chips | done | templates/user/settings/asc_keys.tmpl, routers/web/user/setting/asc_keys.go | - |
 | UserSettingsKeys | Rotate action that keeps the old key verifying past signatures | ui-only-missing | asc_keys.go: add new key then revoke old in one flow (Signing.AddKey and RevokeKey exist) | S |
 | UserSettingsKeys | Sign my changesets by default switch | needs-both | hub pref + asc config the CLI reads (no field in proto/asc/v1/signing.proto) | M |
-| UserSettingsKeys | Delete confirm that lists what stops working | ui-only-missing | keys_ssh.tmpl modal text | S |
+| UserSettingsKeys | Delete confirm that lists what stops working | done | keys_ssh.tmpl modal text | S |
 | UserSettingsApps | OAuth2 apps, authorized apps with revoke, client secret shown once, regenerate | done | templates/user/settings/applications_oauth2*.tmpl, grants_oauth2.tmpl | - |
 | UserSettingsApps | Webhooks table: events column, last delivery status text and time, Replay from the list | ui-only-missing | templates/repo/settings/webhook/base_list.tmpl is old markup (dot + URL only); data from hook_task | M |
 | UserSettingsOrgs | Organization rows with role chip, "38 people - 14 repositories", Settings for owners | done | templates/user/settings/organization.tmpl (only avatar, description, Open, Leave) | S |

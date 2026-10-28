@@ -99,6 +99,11 @@
 		</div>
 		<div class="content">
 			<p>{{ctx.Locale.Tr "settings.ssh_key_deletion_desc"}}</p>
+			<p class="ds-label">{{ctx.Locale.Tr "asc_work.sp_key_stops"}}</p>
+			<ul class="wk-stops">
+				<li>{{ctx.Locale.Tr "asc_work.sp_key_stops_ssh"}}</li>
+				<li>{{ctx.Locale.Tr "asc_work.sp_key_stops_sign"}}</li>
+			</ul>
 		</div>
 		{{template "base/modal_actions_confirm" .}}
 	</div>
