@@ -1790,3 +1790,22 @@ body.ds-lock {
 .ds-brand-ink {
   color: var(--text);
 }
+
+.ds-muted {
+  color: var(--text-2);
+}
+
+.ds-device-code {
+  margin: 12px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.ds-device-code code {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
