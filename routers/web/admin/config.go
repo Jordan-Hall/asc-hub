@@ -28,7 +28,6 @@ import (
 
 const (
 	tplConfig         base.TplName = "admin/config"
-	tplConfigSettings base.TplName = "admin/config_settings"
 )
 
 // SendTestMail send test mail to confirm mail service is OK
@@ -186,18 +185,16 @@ func Config(ctx *context.Context) {
 	ctx.Data["LogSQL"] = setting.Database.LogSQL
 
 	ctx.Data["Loggers"] = log.GetManager().DumpLoggers()
+	ctx.Data["DefaultOpenWithEditorAppsString"] = setting.DefaultOpenWithEditorApps().ToTextareaString()
 	config.GetDynGetter().InvalidateCache()
 	prepareDeprecatedWarningsAlert(ctx)
 
 	ctx.HTML(http.StatusOK, tplConfig)
 }
 
+// ConfigSettings used to be a page of its own. The runtime settings are the first card of the configuration page.
 func ConfigSettings(ctx *context.Context) {
-	ctx.Data["Title"] = ctx.Tr("admin.config_settings")
-	ctx.Data["PageIsAdminConfig"] = true
-	ctx.Data["PageIsAdminConfigSettings"] = true
-	ctx.Data["DefaultOpenWithEditorAppsString"] = setting.DefaultOpenWithEditorApps().ToTextareaString()
-	ctx.HTML(http.StatusOK, tplConfigSettings)
+	ctx.Redirect(setting.AppSubURL + "/admin/config#adm-rt")
 }
 
 func ChangeConfig(ctx *context.Context) {

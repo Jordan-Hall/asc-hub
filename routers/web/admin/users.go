@@ -77,6 +77,14 @@ func Users(ctx *context.Context) {
 		sortType = UserSearchDefaultAdminSort
 		ctx.SetFormString("sort", sortType)
 	}
+	ctx.Data["AdminUserFilter"] = statusFilterMap
+	filtered := false
+	for _, v := range statusFilterMap {
+		if v != "" {
+			filtered = true
+		}
+	}
+	ctx.Data["AdminUserFiltered"] = filtered
 	ctx.PageData["adminUserListSearchForm"] = map[string]any{
 		"StatusFilterMap": statusFilterMap,
 		"SortType":        sortType,
