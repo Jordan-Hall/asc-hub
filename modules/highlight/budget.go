@@ -36,6 +36,11 @@ const (
 	// at a line), and highlightWindowMaxBytes is the largest file that gets this window; beyond it the file is plain text.
 	highlightWindowBytes    = 128 * 1024
 	highlightWindowMaxBytes = 4 * 1024 * 1024
+	// A highlighted line is a row with a span per token: a file of thousands of lines costs the browser seconds of
+	// style and layout (measured: 6000 lines took 2.2 s to show, 0.13 s of it on the server). A file of more than
+	// highlightFullLines lines is therefore shown with its first highlightWindowLines lines highlighted.
+	highlightFullLines   = 2500
+	highlightWindowLines = 800
 	// highlightBudget is the time one file may take to tokenize.
 	highlightBudget = 1500 * time.Millisecond
 
