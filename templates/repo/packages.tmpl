@@ -1,7 +1,7 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository packages">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="ds-container">
 		{{if (and .Repository.IsPrivate .Repository.Owner.Visibility.IsPublic)}}
 			<div class="ds-banner ds-banner-warn flash-message flash-warning">
 				{{svg "octicon-alert"}}

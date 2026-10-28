@@ -1,10 +1,10 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository commits asc-repo-page">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="ds-container">
 		<div id="asc-graph-container" class="ds-card ds-card-b">
 			<h2>{{ctx.Locale.Tr "repo.asc_graph"}}</h2>
-			<form class="ui form tw-mb-4" method="get" action="{{.RepoLink}}/asc/graph">
+			<form class="ui form ds-form tw-mb-4" method="get" action="{{.RepoLink}}/asc/graph">
 				<div class="tw-flex tw-flex-wrap tw-gap-3 tw-items-end">
 					<div class="ds-field">
 						<label for="asc-graph-preset">{{ctx.Locale.Tr "repo.asc_graph.preset"}}</label>

@@ -2,7 +2,7 @@
 {{if .ContextUser.IsOrganization}}
 	<div role="main" aria-label="{{.Title}}" class="page-content organization projects">
 		{{template "org/header" .}}
-		<div class="ui container">
+		<div class="ds-container">
 			{{template "projects/list" .}}
 		</div>
 	</div>

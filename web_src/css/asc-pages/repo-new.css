@@ -66,3 +66,17 @@
     flex: none;
   }
 }
+
+/* the page of a migration that runs */
+.rp-migrating {
+  text-align: center;
+}
+
+.rp-migrating-img {
+  display: grid;
+  place-items: center;
+}
+
+.rp-migrating-err {
+  color: var(--err);
+}

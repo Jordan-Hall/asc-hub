@@ -1,7 +1,7 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository commits">
 	{{template "repo/header" .}}
-	<div class="ui container">
+	<div class="ds-container">
 		<div id="git-graph-container" class="ui segment{{if eq .Mode "monochrome"}} monochrome{{end}}">
 			<div id="git-graph-heading">
 				<div id="git-graph-heading-left">

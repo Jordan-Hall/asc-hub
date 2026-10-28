@@ -16,8 +16,8 @@
 
 
 {{if (or (.Permission.CanRead $.UnitTypeIssues) (.Permission.CanRead $.UnitTypePullRequests))}}
-<h4 class="ui top attached header">{{ctx.Locale.Tr "repo.activity.overview"}}</h4>
-<div class="ui attached segment two column grid">
+<h4 class="ds-card-top">{{ctx.Locale.Tr "repo.activity.overview"}}</h4>
+<div class="ds-card ds-card-b ds-card-attach ds-pulse-2">
 	{{if .Permission.CanRead $.UnitTypePullRequests}}
 		<div class="column">
 			{{if gt .Activity.ActivePRCount 0}}
@@ -53,23 +53,23 @@
 		</div>
 	{{end}}
 </div>
-<div class="ui attached segment horizontal segments">
+<div class="ds-card ds-card-attach ds-pulse-row">
 	{{if .Permission.CanRead $.UnitTypePullRequests}}
-		<a href="#merged-pull-requests" class="ui attached segment text center">
+		<a href="#merged-pull-requests" class="ds-pulse-cell">
 			<span class="text purple">{{svg "octicon-git-pull-request"}}</span> <strong>{{.Activity.MergedPRCount}}</strong><br>
 			{{ctx.Locale.TrN .Activity.MergedPRCount "repo.activity.merged_prs_count_1" "repo.activity.merged_prs_count_n"}}
 		</a>
-		<a href="#proposed-pull-requests" class="ui attached segment text center">
+		<a href="#proposed-pull-requests" class="ds-pulse-cell">
 			<span class="text green">{{svg "octicon-git-branch"}}</span> <strong>{{.Activity.OpenedPRCount}}</strong><br>
 			{{ctx.Locale.TrN .Activity.OpenedPRCount "repo.activity.opened_prs_count_1" "repo.activity.opened_prs_count_n"}}
 		</a>
 	{{end}}
 	{{if .Permission.CanRead $.UnitTypeIssues}}
-		<a href="#closed-issues" class="ui attached segment text center">
+		<a href="#closed-issues" class="ds-pulse-cell">
 			<span class="text red">{{svg "octicon-issue-closed"}}</span> <strong>{{.Activity.ClosedIssueCount}}</strong><br>
 			{{ctx.Locale.TrN .Activity.ClosedIssueCount "repo.activity.closed_issues_count_1" "repo.activity.closed_issues_count_n"}}
 		</a>
-		<a href="#new-issues" class="ui attached segment text center">
+		<a href="#new-issues" class="ds-pulse-cell">
 			<span class="text green">{{svg "octicon-issue-opened"}}</span> <strong>{{.Activity.OpenedIssueCount}}</strong><br>
 			{{ctx.Locale.TrN .Activity.OpenedIssueCount "repo.activity.new_issues_count_1" "repo.activity.new_issues_count_n"}}
 		</a>
@@ -80,12 +80,12 @@
 {{if .Permission.CanRead $.UnitTypeCode}}
 	{{if eq .Activity.Code.CommitCountInAllBranches 0}}
 		<div class="ds-card ds-card-b center aligned">
-		<h4 class="ui header">{{ctx.Locale.Tr "repo.activity.no_git_activity"}}</h4>
+		<h4 class="ds-t-h3">{{ctx.Locale.Tr "repo.activity.no_git_activity"}}</h4>
 		</div>
 	{{end}}
 	{{if gt .Activity.Code.CommitCountInAllBranches 0}}
-		<div class="ui attached segment horizontal segments">
-			<div class="ui attached segment text">
+		<div class="ds-card ds-card-attach ds-pulse-row">
+			<div class="ds-card-b ds-pulse-text">
 				{{ctx.Locale.Tr "repo.activity.git_stats_exclude_merges"}}
 				<strong>{{ctx.Locale.TrN .Activity.Code.AuthorCount "repo.activity.git_stats_author_1" "repo.activity.git_stats_author_n" .Activity.Code.AuthorCount}}</strong>
 				{{ctx.Locale.TrN .Activity.Code.AuthorCount "repo.activity.git_stats_pushed_1" "repo.activity.git_stats_pushed_n"}}
@@ -101,7 +101,7 @@
 				{{ctx.Locale.Tr "repo.activity.git_stats_and_deletions"}}
 				<strong class="text red">{{ctx.Locale.TrN .Activity.Code.Deletions "repo.activity.git_stats_deletion_1" "repo.activity.git_stats_deletion_n" .Activity.Code.Deletions}}</strong>.
 			</div>
-			<div class="ui attached segment">
+			<div class="ds-card ds-card-b ds-card-attach">
 				<div id="repo-activity-top-authors-chart" data-locale-commit-activity="{{ctx.Locale.Tr "repo.activity.commit"}}"></div>
 			</div>
 		</div>

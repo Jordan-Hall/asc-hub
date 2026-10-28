@@ -20,7 +20,7 @@
 				</a>
 				{{end}}
 				<div class="content comment-container">
-					<div class="ui top attached header comment-header tw-flex tw-items-center tw-justify-between" role="heading" aria-level="3">
+					<div class="ds-card-top comment-header tw-flex tw-items-center tw-justify-between" role="heading" aria-level="3">
 						<div class="comment-header-left tw-flex tw-items-center">
 							{{if .Issue.OriginalAuthor}}
 								<span class="text black tw-font-semibold">
@@ -51,7 +51,7 @@
 							{{template "repo/issue/view_content/context_menu" dict "ctxData" $ "item" .Issue "delete" false "issue" true "diff" false "IsCommentPoster" $.IsIssuePoster}}
 						</div>
 					</div>
-					<div class="ui attached segment comment-body" role="article">
+					<div class="ds-card ds-card-b ds-card-attach comment-body" role="article">
 						<div id="issue-{{.Issue.ID}}-content" class="render-content markup" {{if or $.Permission.IsAdmin $.HasIssuesOrPullsWritePermission $.IsIssuePoster}}data-can-edit="true"{{end}}>
 							{{if .Issue.RenderedContent}}
 								{{.Issue.RenderedContent}}
