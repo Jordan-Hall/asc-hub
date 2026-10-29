@@ -1323,3 +1323,208 @@
   background: var(--link);
   border-radius: 2px;
 }
+
+/* ---- a stack row: status chip, intent, people, progress rail (boards Repo and Stacks) ---- */
+.rp-stack {
+  align-items: flex-start;
+}
+
+.rp-stack > .ds-dot {
+  margin-top: 7px;
+}
+
+.rp-stack-intent {
+  margin-top: 2px;
+  color: var(--text-b);
+  font-size: 13.5px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.rp-stack .rp-flight-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+
+.rp-with {
+  margin: 0 4px;
+  color: var(--text-3);
+}
+
+.rp-agent-chip {
+  margin-left: 6px;
+}
+
+.rp-stkrail {
+  flex: none;
+  width: 170px;
+  text-align: right;
+}
+
+.rp-segs {
+  display: flex;
+  gap: 4px;
+  width: 150px;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.rp-seg {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line-strong);
+}
+
+.rp-seg-landed {
+  background: var(--link);
+}
+
+.rp-seg-ok {
+  background: var(--ok-dot);
+}
+
+.rp-seg-warn {
+  background: var(--warn-dot);
+}
+
+.rp-seg-agent {
+  background: var(--agent-dot);
+}
+
+.rp-seg-err {
+  background: var(--err-dot);
+}
+
+.rp-stkrail-line {
+  margin-top: 6px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rp-stkrail-sub {
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+
+.rp-stack-filter {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 16px 0;
+}
+
+.rp-count {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.rp-stack-none {
+  padding: 16px;
+}
+
+.rp-stacks-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+@media (max-width: 639px) {
+  .rp-stack {
+    flex-wrap: wrap;
+  }
+
+  .rp-stack .rp-flight-main {
+    flex-basis: calc(100% - 28px);
+  }
+
+  .rp-stkrail {
+    width: 100%;
+    margin-left: 22px;
+    text-align: left;
+  }
+
+  .rp-stkrail .rp-segs {
+    margin-left: 0;
+  }
+
+  .rp-stack-filter {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+}
+
+.rp-stack-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 12px;
+}
+
+.rp-stack-bar .rp-stack-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+}
+
+.rp-stack-card {
+  padding: 0;
+}
+
+.rp-yourturn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+}
+
+.rp-yourturn-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.rp-yourturn-h {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rp-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+
+.rp-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rp-legend .rp-seg {
+  flex: none;
+  width: 18px;
+}
+
+@media (max-width: 639px) {
+  .rp-yourturn {
+    flex-wrap: wrap;
+  }
+}

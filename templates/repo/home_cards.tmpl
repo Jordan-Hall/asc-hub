@@ -1,7 +1,7 @@
 {{/* The two lists of the repository home: what is in flight and what landed (board Repo). */}}
 {{$isAsc := eq .Repository.GetStorageBackend "asc"}}
 {{if and .Repository.CanEnablePulls (.Permission.CanRead $.UnitTypePullRequests)}}
-<section class="rp-sec" aria-labelledby="rp-flight-title">
+<section class="rp-sec" aria-labelledby="rp-flight-title" data-stack-scope>
 	<div class="rp-sec-h">
 		<div>
 			<h2 class="rp-sec-title" id="rp-flight-title">{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.flight_title"}}{{else}}{{ctx.Locale.Tr "asc_rp.flight_title_pulls"}}{{end}}</h2>
@@ -9,24 +9,26 @@
 		</div>
 		<a class="rp-sec-act" href="{{.RepoLink}}/pulls">{{ctx.Locale.TrN (.Repository.NumOpenPulls ctx) "asc_rp.all_stacks_one" "asc_rp.all_stacks_other" (ctx.Locale.PrettyNumber (.Repository.NumOpenPulls ctx))}}</a>
 	</div>
-	{{if .HomePulls}}
-		<ul class="rp-rows">
-			{{range .HomePulls}}
-				<li class="rp-flight rp-flight-link">
-					<span class="ds-dot {{if .PullRequest.IsWorkInProgress ctx}}ds-dot-warn{{else}}ds-dot-info{{end}}" aria-hidden="true"></span>
-					<div class="rp-flight-main">
-						<div class="rp-flight-title">
-							<a href="{{.Link}}">{{.Title | RenderEmoji $.Context}}</a>
-							{{if .PullRequest.IsWorkInProgress ctx}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.pulls.draft"}}</span>{{else}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "repo.issues.open_title"}}</span>{{end}}
-						</div>
-						<div class="rp-flight-meta">
-							{{if .Poster}}<a href="{{.Poster.HomeLink}}">{{.Poster.GetDisplayName}}</a><span class="rp-sep-dot"></span>{{end}}<span class="rp-hash">#{{.Index}}</span><span class="rp-sep-dot"></span><span class="rp-hash">{{.PullRequest.HeadBranch}}</span><span class="rp-sep-dot"></span>{{DateUtils.TimeSince .UpdatedUnix}}
-						</div>
-					</div>
-					<span class="rp-open" aria-hidden="true">{{ctx.Locale.Tr "asc_rp.open"}}</span>
-				</li>
+	{{if .HomeStacksFailed}}
+		<div class="rp-sec-b rp-stacks-error" role="alert">
+			<strong>{{ctx.Locale.Tr "asc_rp.stacks_failed"}}</strong>
+			<span class="rp-quiet">{{ctx.Locale.Tr "asc_rp.stacks_failed_id" .HomeStacksRequestID}}</span>
+			<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}">{{ctx.Locale.Tr "asc_rp.try_again"}}</a>
+		</div>
+	{{else if .HomeStacks}}
+		<div class="rp-stack-filter" data-stack-filter>
+			<div class="ds-seg ds-seg-mini" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.stacks_filter"}}">
+				<button type="button" data-stack-show="all" aria-pressed="true">{{ctx.Locale.Tr "asc_rp.f_open"}} <span class="rp-count">{{.HomeStackCounts.Open}}</span></button>
+				{{if .IsSigned}}<button type="button" data-stack-show="mine" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.f_mine"}} <span class="rp-count">{{.HomeStackCounts.Mine}}</span></button>{{end}}
+				<button type="button" data-stack-show="agent" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.f_agents"}} <span class="rp-count">{{.HomeStackCounts.Agents}}</span></button>
+			</div>
+		</div>
+		<ul class="rp-rows" data-stack-rows>
+			{{range .HomeStacks}}
+				{{template "repo/stack_row" .}}
 			{{end}}
 		</ul>
+		<p class="rp-quiet rp-stack-none" data-stack-none hidden>{{ctx.Locale.Tr "asc_rp.f_none"}}</p>
 	{{else}}
 		<div class="rp-sec-b rp-quiet">{{ctx.Locale.Tr "asc_rp.flight_none"}}</div>
 	{{end}}

@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"forgejo.org/models/db"
 	git_model "forgejo.org/models/git"
 	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
@@ -19,7 +18,6 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/log"
-	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
@@ -226,18 +224,7 @@ func prepareHomeCards(ctx *context.Context) {
 	repo := ctx.Repo.Repository
 
 	if repo.CanEnablePulls() && ctx.Repo.CanRead(unit.TypePullRequests) {
-		pulls, err := issues_model.Issues(ctx, &issues_model.IssuesOptions{
-			Paginator: &db.ListOptions{Page: 1, PageSize: homeCardLimit},
-			RepoIDs:   []int64{repo.ID},
-			IsPull:    optional.Some(true),
-			IsClosed:  optional.Some(false),
-			SortType:  "recentupdate",
-		})
-		if err != nil {
-			log.Error("home: open pulls of %s: %v", repo.FullName(), err)
-		} else {
-			ctx.Data["HomePulls"] = pulls
-		}
+		prepareHomeStacks(ctx, repo)
 	}
 
 	commits, err := ctx.Repo.Commit.CommitsByRange(1, homeCardLimit, "")
@@ -297,4 +284,25 @@ func prepareHomePolicy(ctx *context.Context, repo *repo_model.Repository) {
 		return
 	}
 	ctx.Data["HomePolicy"] = sum
+}
+
+// homeStackRows is how many stacks the repository home lists; the filter counts are taken over these rows.
+const homeStackRows = 12
+
+// prepareHomeStacks adds the "Stacks in flight" rows. The caller has checked read access to the pull request unit.
+// A failure shows the error state with the request id, never an empty list that would read as "nothing in flight".
+func prepareHomeStacks(ctx *context.Context, repo *repo_model.Repository) {
+	changes, landed, err := loadStackChanges(ctx, repo, ctx.Repo.GitRepo, ctx.Doer)
+	if err != nil {
+		log.Error("home: stacks of %s: %v", repo.FullName(), err)
+		ctx.Data["HomeStacksFailed"] = true
+		ctx.Data["HomeStacksRequestID"] = requestID(ctx.Req)
+		return
+	}
+	rows := buildStackRows(changes, landed, repo.Link(), ctx.Doer)
+	if len(rows) > homeStackRows {
+		rows = rows[:homeStackRows]
+	}
+	ctx.Data["HomeStacks"] = rows
+	ctx.Data["HomeStackCounts"] = stackFilterCounts(rows)
 }

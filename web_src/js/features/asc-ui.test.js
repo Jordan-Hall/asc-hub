@@ -1,4 +1,4 @@
-import {archFromHints, osFromPlatform, initAscInstallPills, initDocsFilter} from './asc-ui.js';
+import {archFromHints, osFromPlatform, initAscInstallPills, initDocsFilter, initStackFilter} from './asc-ui.js';
 
 test('archFromHints names only the builds asc ships', () => {
   expect(archFromHints({architecture: 'arm', bitness: '64'})).toBe('arm64');
@@ -39,4 +39,27 @@ test('docs filter hides the guide cards that do not match', () => {
   input.value = 'zzz';
   input.dispatchEvent(new Event('input'));
   expect(document.querySelector('[data-docs-none]').hidden).toBe(false);
+});
+
+test('stack filter shows the rows of the pressed button and a note when none match', () => {
+  document.body.innerHTML = `<section><div data-stack-filter>
+    <button type="button" data-stack-show="all" aria-pressed="true"></button>
+    <button type="button" data-stack-show="mine" aria-pressed="false"></button>
+    <button type="button" data-stack-show="agent" aria-pressed="false"></button></div>
+    <ul><li data-stack-row data-mine="true" data-agent="false"></li><li data-stack-row data-mine="false" data-agent="true"></li></ul>
+    <p data-stack-none hidden></p></section>`;
+  initStackFilter();
+  const [all, mine, agent] = document.querySelectorAll('button');
+  const hidden = () => Array.from(document.querySelectorAll('li'), (li) => li.hidden);
+  mine.click();
+  expect(hidden()).toEqual([false, true]);
+  expect([all, mine, agent].map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'true', 'false']);
+  agent.click();
+  expect(hidden()).toEqual([true, false]);
+  all.click();
+  expect(hidden()).toEqual([false, false]);
+  document.querySelectorAll('li')[0].setAttribute('data-agent', 'false');
+  document.querySelectorAll('li')[1].setAttribute('data-agent', 'false');
+  agent.click();
+  expect(document.querySelector('[data-stack-none]').hidden).toBe(false);
 });
