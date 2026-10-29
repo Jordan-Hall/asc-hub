@@ -27,14 +27,32 @@ the asc address are removed) and only to repository administrators and the user 
 
 ## Policy, gates and secret scanning on imported history
 
-`ImportGitPush` is a host call (internal token). asc applies its **import path rules** (SPEC 2.8, 25.4) to every added path and refuses the import with the reason when a path
-breaks them; this is what a failed migration shows. asc moves the refs with `UpdateRefs` in fast-forward mode and
-`HOOK_MODE_SKIP_PRE`: the pre-update hooks (gates, push-time secret scanning) are the caller's own pre-receive, which for a
-migration is the migration itself. So imported history is **not scanned for secrets and not held to gates**: a source
-that holds a key is imported (checked with a repository holding an AWS key, a private key and a token: no
-`POLICY_DENIED`). The import is a system action attributed to the importing user. It changes nothing about later pushes:
-the next push goes through pre-receive and asc's gates as for any repository (a push of the same files later is
-judged by the policy of the repository at that time).
+asc's gate (`policy::gate`, run by `UpdateRefs` before a ref moves; `SKIP_PRE` does **not** skip it, it only skips the
+hub's own pre-receive hook) protects **trunk** (the default branch), `release/*` and the land branches: path rules,
+secret scanning (on by default, blocking, no policy file needed), review and signing. A branch that is none of these
+is not scanned, whoever pushes it. asc learns the trunk when the repository is made (`InitOp.default_branch`), and
+from `RepoAdmin set_default_branch`.
+
+What a migration does with that:
+
+1. The repository is made in asc with a **placeholder** default branch (`asc-import-pending`), so the imported
+   branches are ordinary branches and the import is not held to the gate: a history that once held a key is imported,
+   not refused (a refusal would fail the migration of every old repository). Path import rules (SPEC 2.8, 25.4) still
+   apply and a refusal is shown as the reason of the failed task.
+2. After the import the tip of every branch (the default branch first, at most 20) is scanned with
+   `SecretScan.Scan`. What it finds is recorded as open findings with the note **found in imported history** on the
+   secret scanning page (Settings, ASC, Secrets). Nothing blocks. A scan that fails is logged.
+3. Only then `set_default_branch` makes the real default branch the trunk. From that moment every push to it is
+   judged by the policy of the repository (a secret in it is refused, with the path, line and rule in the message),
+   exactly as in a repository that was never imported. The same call follows every change of the default branch in
+   the hub (settings, branch rename), so the protected branch is always the default branch.
+
+A migration whose asc cannot set the default branch (an asc without `set_default_branch`) fails, with that reason:
+leaving the real default branch unprotected is not an option.
+
+Pushes through the hub (`git push` to the hub URL) go through the same gate: the pre-receive hook imports the push
+with `ImportGitPush`, which runs the gate. A push of an AWS key to trunk is refused; the refusal text reaches the
+pusher (asc sends it as `Internal` with the status in the text; the hub reads it out, see `unwrapStatusMismatch`).
 
 ## What else is migrated
 
@@ -49,5 +67,7 @@ judged by the policy of the repository at that time).
 
 - asc needs about 5 times the pack size on disk and about 1.1 GB of memory to take a 160 MB history (5k commits)
   (measured with asc 0.1.0, debug build).
-- The size of the repository (`RepoAdmin.size`) can time out right after a very large import; it is logged and filled in
-  later.
+- The size of the repository (`RepoAdmin.size`) is asked for in the background when it takes more than five seconds
+  (`modules/repository/size_asc.go`); the page shows the size stored before until the answer arrives.
+- Only the tips of branches are scanned after an import, not every commit of the history, and only the first 20
+  branches.

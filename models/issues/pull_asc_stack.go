@@ -79,6 +79,20 @@ func GetOpenPullRequestByAscChange(ctx context.Context, repoID int64, change str
 	return pr, nil
 }
 
+// ListOpenAscPullRequests returns the open, stacked pull requests of repoID, newest first, at most limit.
+func ListOpenAscPullRequests(ctx context.Context, repoID int64, limit int) ([]*PullRequest, error) {
+	var prs []*PullRequest
+	err := db.GetEngine(ctx).
+		Table("pull_request").
+		Join("INNER", "pull_request_asc_stack", "pull_request_asc_stack.pull_id = pull_request.id").
+		Join("INNER", "issue", "issue.id = pull_request.issue_id").
+		Where("pull_request_asc_stack.repo_id = ? AND pull_request.has_merged = ? AND issue.is_closed = ?", repoID, false, false).
+		OrderBy("pull_request.id DESC").
+		Limit(limit).
+		Find(&prs)
+	return prs, err
+}
+
 // SetPullRequestAscStack records (or updates) the link of pr to change and to the pull request stackParentID
 // (0 for the bottom of a stack). A pull request has one change: relinking it to another is refused.
 func SetPullRequestAscStack(ctx context.Context, pr *PullRequest, change string, stackParentID int64) error {
@@ -110,4 +124,18 @@ func SetPullRequestAscStack(ctx context.Context, pr *PullRequest, change string,
 func GetAscStackChildren(ctx context.Context, parentID int64) ([]*PullRequestAscStack, error) {
 	var rows []*PullRequestAscStack
 	return rows, db.GetEngine(ctx).Where("stack_parent_id = ?", parentID).OrderBy("id").Find(&rows)
+}
+
+// ListAscStackBottoms returns the stack rows of repoID that have no parent pull request: the bottoms of the stacks,
+// and the changes whose parent has not been linked (yet).
+func ListAscStackBottoms(ctx context.Context, repoID int64) ([]*PullRequestAscStack, error) {
+	var rows []*PullRequestAscStack
+	err := db.GetEngine(ctx).Where("repo_id = ? AND stack_parent_id = 0", repoID).OrderBy("id").Find(&rows)
+	return rows, err
+}
+
+// SetAscStackParent sets the parent pull request of the stack row of pullID.
+func SetAscStackParent(ctx context.Context, pullID, parentID int64) error {
+	_, err := db.GetEngine(ctx).Where("pull_id = ?", pullID).Cols("stack_parent_id").Update(&PullRequestAscStack{StackParentID: parentID})
+	return err
 }

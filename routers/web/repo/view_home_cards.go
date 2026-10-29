@@ -44,8 +44,9 @@ type HomeContributor struct {
 	Name  string
 	Email string
 	Count int
-	Pct   int // of the most active contributor, for the bar
-	User  *user_model.User
+	Pct   int              // of the most active contributor, for the bar
+	Agent bool             // an agent made the changes, not a person
+	User  *user_model.User `json:"-"`
 }
 
 // homeContributorLimit is how many people the Contributors card lists.
@@ -196,7 +197,11 @@ func homeStackOf(ctx gocontext.Context, repoID int64, repoLink, sha string, canP
 	if err != nil || pr.HeadBranch == "" {
 		return "", ""
 	}
-	return pr.HeadBranch, fmt.Sprintf("%s/pulls/%d", repoLink, pr.Index)
+	title := ""
+	if pr.LoadIssue(ctx) == nil && pr.Issue != nil {
+		title = pr.Issue.Title
+	}
+	return ascStackLabel(pr.HeadBranch, title), fmt.Sprintf("%s/pulls/%d", repoLink, pr.Index)
 }
 
 // buildHomeLanded decorates commits with their size and stack. Each lookup that fails leaves its field empty.
@@ -247,6 +252,7 @@ func prepareHomeCards(ctx *context.Context) {
 	}
 
 	prepareHomeActivity(ctx)
+	prepareHomeInsights(ctx)
 	prepareHomePolicy(ctx, repo)
 
 	if ctx.Repo.CanRead(unit.TypeReleases) {

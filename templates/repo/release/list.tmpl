@@ -21,7 +21,7 @@
 								</h3>
 								{{if $release.IsDraft}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.release.draft"}}</span>
 								{{else if $release.IsPrerelease}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.release.prerelease"}}</span>
-								{{else if (not $release.IsTag)}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "repo.release.stable"}}</span>{{end}}
+								{{else if (not $release.IsTag)}}<span class="ds-chip ds-chip-ok">{{if and $.LatestStable (eq $.LatestStable.Release.ID $release.ID)}}{{ctx.Locale.Tr "repo.release.latest"}}{{else}}{{ctx.Locale.Tr "repo.release.stable"}}{{end}}</span>{{end}}
 								{{template "repo/commit_statuses" dict "Status" $info.CommitStatus "Statuses" $info.CommitStatuses "AdditionalClasses" "tw-flex"}}
 							</div>
 							<div class="rp-rel-acts">
@@ -52,7 +52,7 @@
 									<a class="rp-hash" href="{{$.RepoLink}}/src/commit/{{$release.Sha1}}" rel="nofollow">{{ShortSha $release.Sha1}}</a>
 								{{end}}
 								{{if and (not $release.IsDraft) ($.Permission.CanRead $.UnitTypeCode)}}
-									<span class="ahead"><a href="{{$.RepoLink}}/compare/{{$release.TagName | PathEscapeSegments}}...{{$release.TargetBehind | PathEscapeSegments}}">{{ctx.Locale.Tr "repo.release.ahead.commits" $release.NumCommitsBehind}}</a> {{ctx.Locale.Tr "repo.release.ahead.target" $release.TargetBehind}}</span>
+									<span class="ahead"><a href="{{$.RepoLink}}/compare/{{$release.TagName | PathEscapeSegments}}...{{$release.TargetBehind | PathEscapeSegments}}">{{ctx.Locale.TrN $release.NumCommitsBehind "repo.release.ahead.commits_one" "repo.release.ahead.commits" $release.NumCommitsBehind}}</a> {{ctx.Locale.Tr "repo.release.ahead.target" $release.TargetBehind}}</span>
 								{{end}}
 							</p>
 							{{template "repo/tag/verification_line" (dict "ctxData" $ "release" $release)}}

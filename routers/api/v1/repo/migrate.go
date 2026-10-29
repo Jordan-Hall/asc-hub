@@ -132,7 +132,11 @@ func Migrate(ctx *context.APIContext) {
 		return
 	}
 
-	form.LFS = form.LFS && setting.LFS.StartServer
+	if form.LFS && !setting.LFS.StartServer {
+		// Asked for and not possible: say so, instead of migrating a repository whose LFS files are only pointers.
+		ctx.Error(http.StatusUnprocessableEntity, "LFSDisabled", errors.New("LFS objects were asked for, but Git LFS is not enabled on this server ([server] LFS_START_SERVER)"))
+		return
+	}
 
 	if form.LFS && len(form.LFSEndpoint) > 0 {
 		ep := lfs.DetermineEndpoint("", form.LFSEndpoint)

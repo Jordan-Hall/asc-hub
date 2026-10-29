@@ -76,6 +76,7 @@ import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {initAscDensity} from './features/asc-density.js';
 import {initAscBoard} from './features/asc-board.js';
 import {initAscMeters} from './features/asc-meters.js';
+import {initAscIntent} from './features/asc-intent.js';
 import {initAscTitleCounter} from './features/asc-title-counter.js';
 import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
 import {
@@ -216,6 +217,7 @@ onDomReady(() => {
   initAscDensity();
   initAscBoard();
   initAscMeters();
+  initAscIntent();
   initAscTitleCounter();
   initAscResponsiveDetails();
   initAscInboxBadge();

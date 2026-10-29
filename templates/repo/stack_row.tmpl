@@ -12,7 +12,8 @@
 		</div>
 	</div>
 	<div class="rp-stkrail">
-		<span class="rp-segs" role="img" aria-label="{{ctx.Locale.TrN .Changes "asc_rp.stack_of_one" "asc_rp.stack_of_other" .Changes}}">
+		<span class="ds-sr">{{ctx.Locale.TrN .Changes "asc_rp.stack_of_one" "asc_rp.stack_of_other" .Changes}}</span>
+		<span class="rp-segs" aria-hidden="true">
 			{{range .Segments}}{{if .Link}}<a class="rp-seg rp-seg-{{.State}}" href="{{.Link}}" title="{{.Title}}" tabindex="-1" aria-hidden="true"></a>{{else}}<span class="rp-seg rp-seg-{{.State}}"></span>{{end}}{{end}}
 		</span>
 		<div class="rp-stkrail-line">{{ctx.Locale.Tr "asc_rp.n_of_n_landed" .Landed .Changes}}</div>
