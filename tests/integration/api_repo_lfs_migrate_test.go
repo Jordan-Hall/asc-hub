@@ -68,13 +68,12 @@ func TestAPIRepoLFSMigrateWithoutLFSServerIsRefused(t *testing.T) {
 	}()
 
 	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
-	token := getTokenForLoggedInUser(t, loginUser(t, user.Name), auth_model.AccessTokenScopeWriteRepository)
 	req := NewRequestWithJSON(t, "POST", "/api/v1/repos/migrate", &api.MigrateRepoOptions{
 		CloneAddr:   path.Join(setting.RepoRootPath, "migration/lfs-test.git"),
 		RepoOwnerID: user.ID,
 		RepoName:    "lfs-without-server",
 		LFS:         true,
-	}).AddTokenAuth(token)
+	}).AddBasicAuth(user.Name)
 	resp := MakeRequest(t, req, http.StatusUnprocessableEntity)
 	assert.Contains(t, resp.Body.String(), "LFS_START_SERVER")
 }
