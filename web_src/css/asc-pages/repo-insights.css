@@ -280,3 +280,10 @@
   font-size: 13px;
   font-weight: 700;
 }
+
+.rp-spark {
+  display: block;
+  width: 96px;
+  height: 24px;
+  color: var(--link);
+}
