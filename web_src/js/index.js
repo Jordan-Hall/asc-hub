@@ -65,6 +65,7 @@ import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {initAscPush} from './features/asc-push.js';
 import {initAscSignup} from './features/asc-signup.js';
 import {initAscFeedFilter} from './features/asc-feed-filter.js';
+import {initAscScrollFocus} from './features/asc-scroll-focus.js';
 import {initAscDrafts} from './features/asc-drafts.js';
 import {initAscDocs} from './features/asc-docs.js';
 import {initAscCodeBoxes} from './features/asc-codeboxes.js';
@@ -202,6 +203,7 @@ onDomReady(() => {
   initAscPush();
   initAscSignup();
   initAscFeedFilter();
+  initAscScrollFocus();
   initAscDrafts();
   initAscDocs();
   initAscCodeBoxes();
