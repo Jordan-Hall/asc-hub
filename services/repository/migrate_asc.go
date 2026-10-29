@@ -28,10 +28,40 @@ var (
 	ascImportVisiblePoll = time.Second
 )
 
+// ascImportTrunk is the default branch a repository stored in asc is made with for a migration. asc's gate protects
+// the default branch (and the land branches, which start as the same name), so an import into a repository made
+// with the real default branch would be held to the gate: a secret in the history would refuse the import. The
+// placeholder is not a branch of any source; the real default branch is set once the history is in (setAscTrunk).
+const ascImportTrunk = "asc-import-pending"
+
+// MigrationInitBranch is the default branch a repository made for a migration starts with: the placeholder for
+// a repository that will be stored in asc, and none (the instance default) for any other.
+func MigrationInitBranch(isMirror bool) string {
+	if newRepoStorageBackend(CreateRepoOptions{IsMirror: isMirror, ObjectFormatName: git.Sha1ObjectFormat.Name()}) == string(gitrepo.StorageBackendAsc) {
+		return ascImportTrunk
+	}
+	return ""
+}
+
 // isAscStored reports whether the migrated repository lives in asc. A bad storage value is an error, so a
 // repository that is not plainly git is never imported through git alone.
 func isAscStored(repo *repo_model.Repository) (bool, error) {
 	return ascsync.BackedBy(repo)
+}
+
+// setAscTrunk tells asc which branch is the default branch of a repository stored in asc. asc protects that branch
+// (path rules, secret scanning, review) and no other, and it learns the name only when the repository is made or
+// here, so every change of the default branch in the hub, and every import, has to come through here. It does
+// nothing for a repository that is not stored in asc.
+func setAscTrunk(ctx context.Context, repo *repo_model.Repository, branch string) error {
+	stored, err := isAscStored(repo)
+	if err != nil || !stored {
+		return err
+	}
+	if err := ascsync.SetDefaultBranch(ctx, repo, branch); err != nil {
+		return fmt.Errorf("asc does not take %q as the default branch: %w", branch, err)
+	}
+	return nil
 }
 
 // pruneNonBranchRefs deletes every ref of the bridge that is not a branch or a tag. A mirror clone of a forge
@@ -118,7 +148,25 @@ func importMigratedIntoAsc(ctx context.Context, repo *repo_model.Repository, def
 		}
 		return fmt.Errorf("importing the history into asc: %w", err)
 	}
-	return waitAscHoldsBranch(ctx, repo, defaultBranch)
+	if err := waitAscHoldsBranch(ctx, repo, defaultBranch); err != nil {
+		return err
+	}
+	// The import skipped asc's gate (a history is not a push); this is where the history is looked at. It never
+	// blocks, and what it finds shows on the secret scanning page as found in imported history.
+	var branches []string
+	for _, r := range refs {
+		if name, ok := strings.CutPrefix(r.Name, git.BranchPrefix); ok {
+			branches = append(branches, name)
+		}
+	}
+	if n, err := ascsync.ScanImportedHistory(ctx, repo, defaultBranch, branches); err != nil {
+		log.Warn("migration of %-v: the secret scan of the imported history: %v", repo, err)
+	} else if n > 0 {
+		log.Info("migration of %-v: %d secrets found in the imported history", repo, n)
+	}
+	// Only now is the default branch the trunk asc protects: until here the import went in as history, and from
+	// here every push is judged by the policy, secret scan included.
+	return setAscTrunk(ctx, repo, defaultBranch)
 }
 
 // ensureAscRepo is ensureAscRepository; tests replace it.
@@ -127,7 +175,7 @@ var ensureAscRepo = ensureAscRepository
 // ensureAscRepository makes sure asc has the repository. A first migration made it when the repository was created;
 // a retry deleted it from asc together with the files (the task is kept, the repository is made again), so asc
 // has none and the import would fail with "no such repository".
-func ensureAscRepository(ctx context.Context, repo *repo_model.Repository, defaultBranch string) error {
+func ensureAscRepository(ctx context.Context, repo *repo_model.Repository, _ string) error {
 	writer, err := repostore.Default()
 	if err != nil {
 		return err
@@ -137,7 +185,7 @@ func ensureAscRepository(ctx context.Context, repo *repo_model.Repository, defau
 	if ref.ObjectFormat == "" {
 		ref.ObjectFormat = git.Sha1ObjectFormat.Name()
 	}
-	err = writer.Init(ctx, repostore.InitRequest{Repo: ref, DefaultBranch: defaultBranch})
+	err = writer.Init(ctx, repostore.InitRequest{Repo: ref, DefaultBranch: ascImportTrunk})
 	if err != nil && !errors.Is(err, repostore.ErrExists) {
 		return fmt.Errorf("making the repository in asc: %w", err)
 	}
