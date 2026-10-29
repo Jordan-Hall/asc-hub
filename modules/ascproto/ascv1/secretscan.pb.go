@@ -496,6 +496,199 @@ func (*ScanSecretsRequest_Change) isScanSecretsRequest_At() {}
 
 func (*ScanSecretsRequest_Range) isScanSecretsRequest_At() {}
 
+// What `Scan` takes, for a person who is about to open a change: the findings are returned and not recorded, and the call
+// needs write access, not administration. `blocks` is what the push gate would do with them under the policy in force:
+// true when `[secrets] enabled` and `block_on_push` hold and the scan found a secret or stopped before reading every file.
+type CheckSecretsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Repo  *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	// Types that are valid to be assigned to At:
+	//
+	//	*CheckSecretsRequest_Rev
+	//	*CheckSecretsRequest_Change
+	//	*CheckSecretsRequest_Range
+	At            isCheckSecretsRequest_At `protobuf_oneof:"at"`
+	Paths         []string                 `protobuf:"bytes,5,rep,name=paths,proto3" json:"paths,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckSecretsRequest) Reset() {
+	*x = CheckSecretsRequest{}
+	mi := &file_asc_v1_secretscan_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckSecretsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckSecretsRequest) ProtoMessage() {}
+
+func (x *CheckSecretsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_secretscan_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckSecretsRequest.ProtoReflect.Descriptor instead.
+func (*CheckSecretsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CheckSecretsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *CheckSecretsRequest) GetAt() isCheckSecretsRequest_At {
+	if x != nil {
+		return x.At
+	}
+	return nil
+}
+
+func (x *CheckSecretsRequest) GetRev() string {
+	if x != nil {
+		if x, ok := x.At.(*CheckSecretsRequest_Rev); ok {
+			return x.Rev
+		}
+	}
+	return ""
+}
+
+func (x *CheckSecretsRequest) GetChange() []byte {
+	if x != nil {
+		if x, ok := x.At.(*CheckSecretsRequest_Change); ok {
+			return x.Change
+		}
+	}
+	return nil
+}
+
+func (x *CheckSecretsRequest) GetRange() *SecretScanRange {
+	if x != nil {
+		if x, ok := x.At.(*CheckSecretsRequest_Range); ok {
+			return x.Range
+		}
+	}
+	return nil
+}
+
+func (x *CheckSecretsRequest) GetPaths() []string {
+	if x != nil {
+		return x.Paths
+	}
+	return nil
+}
+
+type isCheckSecretsRequest_At interface {
+	isCheckSecretsRequest_At()
+}
+
+type CheckSecretsRequest_Rev struct {
+	Rev string `protobuf:"bytes,2,opt,name=rev,proto3,oneof"`
+}
+
+type CheckSecretsRequest_Change struct {
+	Change []byte `protobuf:"bytes,3,opt,name=change,proto3,oneof"`
+}
+
+type CheckSecretsRequest_Range struct {
+	Range *SecretScanRange `protobuf:"bytes,4,opt,name=range,proto3,oneof"`
+}
+
+func (*CheckSecretsRequest_Rev) isCheckSecretsRequest_At() {}
+
+func (*CheckSecretsRequest_Change) isCheckSecretsRequest_At() {}
+
+func (*CheckSecretsRequest_Range) isCheckSecretsRequest_At() {}
+
+type CheckSecretsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Findings      []*SecretFinding       `protobuf:"bytes,1,rep,name=findings,proto3" json:"findings,omitempty"` // `id` is 0 and `state` OPEN: nothing is stored
+	FilesScanned  uint32                 `protobuf:"varint,2,opt,name=files_scanned,json=filesScanned,proto3" json:"files_scanned,omitempty"`
+	Truncated     bool                   `protobuf:"varint,3,opt,name=truncated,proto3" json:"truncated,omitempty"`
+	Blocks        bool                   `protobuf:"varint,4,opt,name=blocks,proto3" json:"blocks,omitempty"`
+	BlockOnPush   bool                   `protobuf:"varint,5,opt,name=block_on_push,json=blockOnPush,proto3" json:"block_on_push,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckSecretsResponse) Reset() {
+	*x = CheckSecretsResponse{}
+	mi := &file_asc_v1_secretscan_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckSecretsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckSecretsResponse) ProtoMessage() {}
+
+func (x *CheckSecretsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_secretscan_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckSecretsResponse.ProtoReflect.Descriptor instead.
+func (*CheckSecretsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CheckSecretsResponse) GetFindings() []*SecretFinding {
+	if x != nil {
+		return x.Findings
+	}
+	return nil
+}
+
+func (x *CheckSecretsResponse) GetFilesScanned() uint32 {
+	if x != nil {
+		return x.FilesScanned
+	}
+	return 0
+}
+
+func (x *CheckSecretsResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
+func (x *CheckSecretsResponse) GetBlocks() bool {
+	if x != nil {
+		return x.Blocks
+	}
+	return false
+}
+
+func (x *CheckSecretsResponse) GetBlockOnPush() bool {
+	if x != nil {
+		return x.BlockOnPush
+	}
+	return false
+}
+
 type SecretFinding struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -520,7 +713,7 @@ type SecretFinding struct {
 
 func (x *SecretFinding) Reset() {
 	*x = SecretFinding{}
-	mi := &file_asc_v1_secretscan_proto_msgTypes[5]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -532,7 +725,7 @@ func (x *SecretFinding) String() string {
 func (*SecretFinding) ProtoMessage() {}
 
 func (x *SecretFinding) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_secretscan_proto_msgTypes[5]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -545,7 +738,7 @@ func (x *SecretFinding) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecretFinding.ProtoReflect.Descriptor instead.
 func (*SecretFinding) Descriptor() ([]byte, []int) {
-	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{5}
+	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SecretFinding) GetId() uint64 {
@@ -671,7 +864,7 @@ type ScanSecretsResponse struct {
 
 func (x *ScanSecretsResponse) Reset() {
 	*x = ScanSecretsResponse{}
-	mi := &file_asc_v1_secretscan_proto_msgTypes[6]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -683,7 +876,7 @@ func (x *ScanSecretsResponse) String() string {
 func (*ScanSecretsResponse) ProtoMessage() {}
 
 func (x *ScanSecretsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_secretscan_proto_msgTypes[6]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -696,7 +889,7 @@ func (x *ScanSecretsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScanSecretsResponse.ProtoReflect.Descriptor instead.
 func (*ScanSecretsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{6}
+	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ScanSecretsResponse) GetFindings() []*SecretFinding {
@@ -735,7 +928,7 @@ type ListSecretFindingsRequest struct {
 
 func (x *ListSecretFindingsRequest) Reset() {
 	*x = ListSecretFindingsRequest{}
-	mi := &file_asc_v1_secretscan_proto_msgTypes[7]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -747,7 +940,7 @@ func (x *ListSecretFindingsRequest) String() string {
 func (*ListSecretFindingsRequest) ProtoMessage() {}
 
 func (x *ListSecretFindingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_secretscan_proto_msgTypes[7]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -760,7 +953,7 @@ func (x *ListSecretFindingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSecretFindingsRequest.ProtoReflect.Descriptor instead.
 func (*ListSecretFindingsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{7}
+	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListSecretFindingsRequest) GetRepo() *RepoRef {
@@ -816,7 +1009,7 @@ type ListSecretFindingsResponse struct {
 
 func (x *ListSecretFindingsResponse) Reset() {
 	*x = ListSecretFindingsResponse{}
-	mi := &file_asc_v1_secretscan_proto_msgTypes[8]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -828,7 +1021,7 @@ func (x *ListSecretFindingsResponse) String() string {
 func (*ListSecretFindingsResponse) ProtoMessage() {}
 
 func (x *ListSecretFindingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_secretscan_proto_msgTypes[8]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -841,7 +1034,7 @@ func (x *ListSecretFindingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSecretFindingsResponse.ProtoReflect.Descriptor instead.
 func (*ListSecretFindingsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{8}
+	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListSecretFindingsResponse) GetFindings() []*SecretFinding {
@@ -878,7 +1071,7 @@ type UpdateSecretFindingRequest struct {
 
 func (x *UpdateSecretFindingRequest) Reset() {
 	*x = UpdateSecretFindingRequest{}
-	mi := &file_asc_v1_secretscan_proto_msgTypes[9]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -890,7 +1083,7 @@ func (x *UpdateSecretFindingRequest) String() string {
 func (*UpdateSecretFindingRequest) ProtoMessage() {}
 
 func (x *UpdateSecretFindingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_secretscan_proto_msgTypes[9]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -903,7 +1096,7 @@ func (x *UpdateSecretFindingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSecretFindingRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSecretFindingRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{9}
+	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdateSecretFindingRequest) GetRepo() *RepoRef {
@@ -943,7 +1136,7 @@ type UpdateSecretFindingResponse struct {
 
 func (x *UpdateSecretFindingResponse) Reset() {
 	*x = UpdateSecretFindingResponse{}
-	mi := &file_asc_v1_secretscan_proto_msgTypes[10]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -955,7 +1148,7 @@ func (x *UpdateSecretFindingResponse) String() string {
 func (*UpdateSecretFindingResponse) ProtoMessage() {}
 
 func (x *UpdateSecretFindingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_secretscan_proto_msgTypes[10]
+	mi := &file_asc_v1_secretscan_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -968,7 +1161,7 @@ func (x *UpdateSecretFindingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSecretFindingResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSecretFindingResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{10}
+	return file_asc_v1_secretscan_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UpdateSecretFindingResponse) GetFinding() *SecretFinding {
@@ -1008,7 +1201,20 @@ const file_asc_v1_secretscan_proto_rawDesc = "" +
 	"\x06change\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x02H\x00R\x06change\x12/\n" +
 	"\x05range\x18\x04 \x01(\v2\x17.asc.v1.SecretScanRangeH\x00R\x05range\x12\x14\n" +
 	"\x05paths\x18\x05 \x03(\tR\x05pathsB\x04\n" +
-	"\x02at\"\xf4\x03\n" +
+	"\x02at\"\xbb\x01\n" +
+	"\x13CheckSecretsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x03rev\x18\x02 \x01(\tH\x00R\x03rev\x12\x1e\n" +
+	"\x06change\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x02H\x00R\x06change\x12/\n" +
+	"\x05range\x18\x04 \x01(\v2\x17.asc.v1.SecretScanRangeH\x00R\x05range\x12\x14\n" +
+	"\x05paths\x18\x05 \x03(\tR\x05pathsB\x04\n" +
+	"\x02at\"\xc8\x01\n" +
+	"\x14CheckSecretsResponse\x121\n" +
+	"\bfindings\x18\x01 \x03(\v2\x15.asc.v1.SecretFindingR\bfindings\x12#\n" +
+	"\rfiles_scanned\x18\x02 \x01(\rR\ffilesScanned\x12\x1c\n" +
+	"\ttruncated\x18\x03 \x01(\bR\ttruncated\x12\x16\n" +
+	"\x06blocks\x18\x04 \x01(\bR\x06blocks\x12\"\n" +
+	"\rblock_on_push\x18\x05 \x01(\bR\vblockOnPush\"\xf4\x03\n" +
 	"\rSecretFinding\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x17\n" +
 	"\arule_id\x18\x02 \x01(\tR\x06ruleId\x122\n" +
@@ -1067,13 +1273,14 @@ const file_asc_v1_secretscan_proto_rawDesc = "" +
 	"\x19SECRET_FINDING_STATE_OPEN\x10\x01\x12 \n" +
 	"\x1cSECRET_FINDING_STATE_REVOKED\x10\x02\x12'\n" +
 	"#SECRET_FINDING_STATE_FALSE_POSITIVE\x10\x03\x12&\n" +
-	"\"SECRET_FINDING_STATE_ACCEPTED_RISK\x10\x042\xcc\x02\n" +
+	"\"SECRET_FINDING_STATE_ACCEPTED_RISK\x10\x042\x90\x03\n" +
 	"\n" +
 	"SecretScan\x12L\n" +
 	"\tListRules\x12\x1e.asc.v1.ListSecretRulesRequest\x1a\x1f.asc.v1.ListSecretRulesResponse\x12?\n" +
 	"\x04Scan\x12\x1a.asc.v1.ScanSecretsRequest\x1a\x1b.asc.v1.ScanSecretsResponse\x12U\n" +
 	"\fListFindings\x12!.asc.v1.ListSecretFindingsRequest\x1a\".asc.v1.ListSecretFindingsResponse\x12X\n" +
-	"\rUpdateFinding\x12\".asc.v1.UpdateSecretFindingRequest\x1a#.asc.v1.UpdateSecretFindingResponseBz\n" +
+	"\rUpdateFinding\x12\".asc.v1.UpdateSecretFindingRequest\x1a#.asc.v1.UpdateSecretFindingResponse\x12B\n" +
+	"\x05Check\x12\x1b.asc.v1.CheckSecretsRequest\x1a\x1c.asc.v1.CheckSecretsResponseBz\n" +
 	"\n" +
 	"com.asc.v1B\x0fSecretscanProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -1090,7 +1297,7 @@ func file_asc_v1_secretscan_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_secretscan_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_asc_v1_secretscan_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_asc_v1_secretscan_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_asc_v1_secretscan_proto_goTypes = []any{
 	(SecretSeverity)(0),                 // 0: asc.v1.SecretSeverity
 	(SecretFindingState)(0),             // 1: asc.v1.SecretFindingState
@@ -1099,45 +1306,52 @@ var file_asc_v1_secretscan_proto_goTypes = []any{
 	(*ListSecretRulesResponse)(nil),     // 4: asc.v1.ListSecretRulesResponse
 	(*SecretScanRange)(nil),             // 5: asc.v1.SecretScanRange
 	(*ScanSecretsRequest)(nil),          // 6: asc.v1.ScanSecretsRequest
-	(*SecretFinding)(nil),               // 7: asc.v1.SecretFinding
-	(*ScanSecretsResponse)(nil),         // 8: asc.v1.ScanSecretsResponse
-	(*ListSecretFindingsRequest)(nil),   // 9: asc.v1.ListSecretFindingsRequest
-	(*ListSecretFindingsResponse)(nil),  // 10: asc.v1.ListSecretFindingsResponse
-	(*UpdateSecretFindingRequest)(nil),  // 11: asc.v1.UpdateSecretFindingRequest
-	(*UpdateSecretFindingResponse)(nil), // 12: asc.v1.UpdateSecretFindingResponse
-	nil,                                 // 13: asc.v1.ListSecretFindingsResponse.CountsByStateEntry
-	(*RepoRef)(nil),                     // 14: asc.v1.RepoRef
+	(*CheckSecretsRequest)(nil),         // 7: asc.v1.CheckSecretsRequest
+	(*CheckSecretsResponse)(nil),        // 8: asc.v1.CheckSecretsResponse
+	(*SecretFinding)(nil),               // 9: asc.v1.SecretFinding
+	(*ScanSecretsResponse)(nil),         // 10: asc.v1.ScanSecretsResponse
+	(*ListSecretFindingsRequest)(nil),   // 11: asc.v1.ListSecretFindingsRequest
+	(*ListSecretFindingsResponse)(nil),  // 12: asc.v1.ListSecretFindingsResponse
+	(*UpdateSecretFindingRequest)(nil),  // 13: asc.v1.UpdateSecretFindingRequest
+	(*UpdateSecretFindingResponse)(nil), // 14: asc.v1.UpdateSecretFindingResponse
+	nil,                                 // 15: asc.v1.ListSecretFindingsResponse.CountsByStateEntry
+	(*RepoRef)(nil),                     // 16: asc.v1.RepoRef
 }
 var file_asc_v1_secretscan_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.SecretRule.severity:type_name -> asc.v1.SecretSeverity
-	14, // 1: asc.v1.ListSecretRulesRequest.repo:type_name -> asc.v1.RepoRef
+	16, // 1: asc.v1.ListSecretRulesRequest.repo:type_name -> asc.v1.RepoRef
 	2,  // 2: asc.v1.ListSecretRulesResponse.rules:type_name -> asc.v1.SecretRule
-	14, // 3: asc.v1.ScanSecretsRequest.repo:type_name -> asc.v1.RepoRef
+	16, // 3: asc.v1.ScanSecretsRequest.repo:type_name -> asc.v1.RepoRef
 	5,  // 4: asc.v1.ScanSecretsRequest.range:type_name -> asc.v1.SecretScanRange
-	0,  // 5: asc.v1.SecretFinding.severity:type_name -> asc.v1.SecretSeverity
-	1,  // 6: asc.v1.SecretFinding.state:type_name -> asc.v1.SecretFindingState
-	7,  // 7: asc.v1.ScanSecretsResponse.findings:type_name -> asc.v1.SecretFinding
-	14, // 8: asc.v1.ListSecretFindingsRequest.repo:type_name -> asc.v1.RepoRef
-	1,  // 9: asc.v1.ListSecretFindingsRequest.states:type_name -> asc.v1.SecretFindingState
-	0,  // 10: asc.v1.ListSecretFindingsRequest.min_severity:type_name -> asc.v1.SecretSeverity
-	7,  // 11: asc.v1.ListSecretFindingsResponse.findings:type_name -> asc.v1.SecretFinding
-	13, // 12: asc.v1.ListSecretFindingsResponse.counts_by_state:type_name -> asc.v1.ListSecretFindingsResponse.CountsByStateEntry
-	14, // 13: asc.v1.UpdateSecretFindingRequest.repo:type_name -> asc.v1.RepoRef
-	1,  // 14: asc.v1.UpdateSecretFindingRequest.state:type_name -> asc.v1.SecretFindingState
-	7,  // 15: asc.v1.UpdateSecretFindingResponse.finding:type_name -> asc.v1.SecretFinding
-	3,  // 16: asc.v1.SecretScan.ListRules:input_type -> asc.v1.ListSecretRulesRequest
-	6,  // 17: asc.v1.SecretScan.Scan:input_type -> asc.v1.ScanSecretsRequest
-	9,  // 18: asc.v1.SecretScan.ListFindings:input_type -> asc.v1.ListSecretFindingsRequest
-	11, // 19: asc.v1.SecretScan.UpdateFinding:input_type -> asc.v1.UpdateSecretFindingRequest
-	4,  // 20: asc.v1.SecretScan.ListRules:output_type -> asc.v1.ListSecretRulesResponse
-	8,  // 21: asc.v1.SecretScan.Scan:output_type -> asc.v1.ScanSecretsResponse
-	10, // 22: asc.v1.SecretScan.ListFindings:output_type -> asc.v1.ListSecretFindingsResponse
-	12, // 23: asc.v1.SecretScan.UpdateFinding:output_type -> asc.v1.UpdateSecretFindingResponse
-	20, // [20:24] is the sub-list for method output_type
-	16, // [16:20] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	16, // 5: asc.v1.CheckSecretsRequest.repo:type_name -> asc.v1.RepoRef
+	5,  // 6: asc.v1.CheckSecretsRequest.range:type_name -> asc.v1.SecretScanRange
+	9,  // 7: asc.v1.CheckSecretsResponse.findings:type_name -> asc.v1.SecretFinding
+	0,  // 8: asc.v1.SecretFinding.severity:type_name -> asc.v1.SecretSeverity
+	1,  // 9: asc.v1.SecretFinding.state:type_name -> asc.v1.SecretFindingState
+	9,  // 10: asc.v1.ScanSecretsResponse.findings:type_name -> asc.v1.SecretFinding
+	16, // 11: asc.v1.ListSecretFindingsRequest.repo:type_name -> asc.v1.RepoRef
+	1,  // 12: asc.v1.ListSecretFindingsRequest.states:type_name -> asc.v1.SecretFindingState
+	0,  // 13: asc.v1.ListSecretFindingsRequest.min_severity:type_name -> asc.v1.SecretSeverity
+	9,  // 14: asc.v1.ListSecretFindingsResponse.findings:type_name -> asc.v1.SecretFinding
+	15, // 15: asc.v1.ListSecretFindingsResponse.counts_by_state:type_name -> asc.v1.ListSecretFindingsResponse.CountsByStateEntry
+	16, // 16: asc.v1.UpdateSecretFindingRequest.repo:type_name -> asc.v1.RepoRef
+	1,  // 17: asc.v1.UpdateSecretFindingRequest.state:type_name -> asc.v1.SecretFindingState
+	9,  // 18: asc.v1.UpdateSecretFindingResponse.finding:type_name -> asc.v1.SecretFinding
+	3,  // 19: asc.v1.SecretScan.ListRules:input_type -> asc.v1.ListSecretRulesRequest
+	6,  // 20: asc.v1.SecretScan.Scan:input_type -> asc.v1.ScanSecretsRequest
+	11, // 21: asc.v1.SecretScan.ListFindings:input_type -> asc.v1.ListSecretFindingsRequest
+	13, // 22: asc.v1.SecretScan.UpdateFinding:input_type -> asc.v1.UpdateSecretFindingRequest
+	7,  // 23: asc.v1.SecretScan.Check:input_type -> asc.v1.CheckSecretsRequest
+	4,  // 24: asc.v1.SecretScan.ListRules:output_type -> asc.v1.ListSecretRulesResponse
+	10, // 25: asc.v1.SecretScan.Scan:output_type -> asc.v1.ScanSecretsResponse
+	12, // 26: asc.v1.SecretScan.ListFindings:output_type -> asc.v1.ListSecretFindingsResponse
+	14, // 27: asc.v1.SecretScan.UpdateFinding:output_type -> asc.v1.UpdateSecretFindingResponse
+	8,  // 28: asc.v1.SecretScan.Check:output_type -> asc.v1.CheckSecretsResponse
+	24, // [24:29] is the sub-list for method output_type
+	19, // [19:24] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_secretscan_proto_init() }
@@ -1152,13 +1366,18 @@ func file_asc_v1_secretscan_proto_init() {
 		(*ScanSecretsRequest_Change)(nil),
 		(*ScanSecretsRequest_Range)(nil),
 	}
+	file_asc_v1_secretscan_proto_msgTypes[5].OneofWrappers = []any{
+		(*CheckSecretsRequest_Rev)(nil),
+		(*CheckSecretsRequest_Change)(nil),
+		(*CheckSecretsRequest_Range)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_secretscan_proto_rawDesc), len(file_asc_v1_secretscan_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

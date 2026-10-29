@@ -146,7 +146,7 @@ func ascAgentRunOf(run *ascv1.AgentRun, name, runsLink string, wantID uint64) (a
 
 // ascAgentsReveal puts the private text of a run into its row when the viewer may see it (ascAgentsMaySeeRun).
 func ascAgentsReveal(ctx *context.Context, row *ascAgentRunRow, run *ascv1.AgentRun) {
-	if !ascAgentsMaySeeRun(ctx, run.GetId(), run.GetCreatedBy()) {
+	if !ascAgentsMaySeeRun(ctx, run.GetCreatedById()) {
 		return
 	}
 	row.Task = ascagentui.CleanLine(run.GetTask(), 300)
@@ -221,7 +221,7 @@ func AscAgents(ctx *context.Context) {
 		return
 	}
 	rows := make([]ascAgentRunRow, 0, len(resp.GetRuns()))
-	creators := map[uint64]string{}
+	creators := map[uint64]uint64{}
 	active, waiting, done := 0, 0, 0
 	for _, run := range resp.GetRuns() {
 		row, ok := ascAgentRunOf(run, env.name, env.runsLink(), 0)
@@ -231,7 +231,7 @@ func AscAgents(ctx *context.Context) {
 			return
 		}
 		ascAgentsReveal(ctx, &row, run)
-		creators[row.ID] = run.GetCreatedBy()
+		creators[row.ID] = run.GetCreatedById()
 		if row.State.Active {
 			active++
 		}
@@ -621,9 +621,6 @@ func AscAgentsCreate(ctx *context.Context) {
 		ascAgentsRenderForm(ctx, env, &form, http.StatusBadGateway)
 		return
 	}
-	if err := ascagentui.RecordRunOwner(ctx, ctx.Repo.Repository.ID, row.ID, ctx.Doer.ID); err != nil {
-		log.Error("asc agents: recording the owner of run %d: %v", row.ID, err)
-	}
 	started := "Run " + strconv.FormatUint(row.ID, 10) + " started."
 	if len(resp.GetLowered()) > 0 {
 		ctx.Flash.Warning(ascAgentsLoweredText(started+" A limit was above the policy cap.", resp.GetLowered()))
@@ -668,7 +665,7 @@ func AscAgentsRun(ctx *context.Context) {
 	run := resp.GetRun()
 	row, ok := ascAgentRunOf(run, env.name, env.runsLink(), id)
 	ascAgentsReveal(ctx, &row, run)
-	see := ascAgentsMaySeeRun(ctx, run.GetId(), run.GetCreatedBy())
+	see := ascAgentsMaySeeRun(ctx, run.GetCreatedById())
 	ctx.Data["AscAgentRunSee"] = see
 	if !ok {
 		log.Error("asc agents: GetRun answered a run that is not the one asked for")
@@ -800,7 +797,7 @@ func AscAgentsEvents(ctx *context.Context) {
 		wait = time.Second // a finished run only has its tail left
 	}
 	batch := &ascAgentFeedBatch{ended: !row.State.Active}
-	if ascAgentsMaySeeRun(ctx, run.GetId(), run.GetCreatedBy()) {
+	if ascAgentsMaySeeRun(ctx, run.GetCreatedById()) {
 		batch, err = ascAgentsCollect(callCtx, api, env.ref(), id, after, wait, ascAgentsDrainWait, ascAgentsPollMaxEvents, ascAgentsPollMaxBytes)
 	}
 	if err != nil {

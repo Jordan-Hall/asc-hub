@@ -1004,13 +1004,20 @@ func (x *UndoRefRequest) GetReason() string {
 	return ""
 }
 
+// A dry run (`dry_run`) also says what the undo would do to the changes: those that leave the ref go back (they are not lost,
+// their versions stay), and an approval of the newest version of such a change is kept. `changes_back` counts every change,
+// `changes` lists at most 100 of them, and `preview_truncated` says the walk stopped at its bound (counts then are lower bounds).
 type UndoRefResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Result        *RefResult             `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
-	NewSeq        uint64                 `protobuf:"varint,2,opt,name=new_seq,json=newSeq,proto3" json:"new_seq,omitempty"`
-	Applied       bool                   `protobuf:"varint,3,opt,name=applied,proto3" json:"applied,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Result           *RefResult             `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+	NewSeq           uint64                 `protobuf:"varint,2,opt,name=new_seq,json=newSeq,proto3" json:"new_seq,omitempty"`
+	Applied          bool                   `protobuf:"varint,3,opt,name=applied,proto3" json:"applied,omitempty"`
+	ChangesBack      uint32                 `protobuf:"varint,4,opt,name=changes_back,json=changesBack,proto3" json:"changes_back,omitempty"`
+	Changes          [][]byte               `protobuf:"bytes,5,rep,name=changes,proto3" json:"changes,omitempty"`
+	ApprovalsKept    uint32                 `protobuf:"varint,6,opt,name=approvals_kept,json=approvalsKept,proto3" json:"approvals_kept,omitempty"`
+	PreviewTruncated bool                   `protobuf:"varint,7,opt,name=preview_truncated,json=previewTruncated,proto3" json:"preview_truncated,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *UndoRefResponse) Reset() {
@@ -1060,6 +1067,34 @@ func (x *UndoRefResponse) GetNewSeq() uint64 {
 func (x *UndoRefResponse) GetApplied() bool {
 	if x != nil {
 		return x.Applied
+	}
+	return false
+}
+
+func (x *UndoRefResponse) GetChangesBack() uint32 {
+	if x != nil {
+		return x.ChangesBack
+	}
+	return 0
+}
+
+func (x *UndoRefResponse) GetChanges() [][]byte {
+	if x != nil {
+		return x.Changes
+	}
+	return nil
+}
+
+func (x *UndoRefResponse) GetApprovalsKept() uint32 {
+	if x != nil {
+		return x.ApprovalsKept
+	}
+	return 0
+}
+
+func (x *UndoRefResponse) GetPreviewTruncated() bool {
+	if x != nil {
+		return x.PreviewTruncated
 	}
 	return false
 }
@@ -1143,11 +1178,15 @@ const file_asc_v1_stacks_proto_rawDesc = "" +
 	"\x03ref\x18\x02 \x01(\tR\x03ref\x12\x10\n" +
 	"\x03seq\x18\x03 \x01(\x04R\x03seq\x12\x17\n" +
 	"\adry_run\x18\x04 \x01(\bR\x06dryRun\x12\x16\n" +
-	"\x06reason\x18\x05 \x01(\tR\x06reason\"o\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\"\x86\x02\n" +
 	"\x0fUndoRefResponse\x12)\n" +
 	"\x06result\x18\x01 \x01(\v2\x11.asc.v1.RefResultR\x06result\x12\x17\n" +
 	"\anew_seq\x18\x02 \x01(\x04R\x06newSeq\x12\x18\n" +
-	"\aapplied\x18\x03 \x01(\bR\aapplied*\x89\x02\n" +
+	"\aapplied\x18\x03 \x01(\bR\aapplied\x12!\n" +
+	"\fchanges_back\x18\x04 \x01(\rR\vchangesBack\x12\x1e\n" +
+	"\achanges\x18\x05 \x03(\fB\x04\xa8\xbb\x18\x02R\achanges\x12%\n" +
+	"\x0eapprovals_kept\x18\x06 \x01(\rR\rapprovalsKept\x12+\n" +
+	"\x11preview_truncated\x18\a \x01(\bR\x10previewTruncated*\x89\x02\n" +
 	"\x10RestackItemState\x12\"\n" +
 	"\x1eRESTACK_ITEM_STATE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cRESTACK_ITEM_STATE_REWRITTEN\x10\x01\x12 \n" +
