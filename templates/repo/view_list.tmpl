@@ -6,12 +6,14 @@
 		<tr>
 			<th>{{ctx.Locale.Tr "repo.files.filename"}}</th>
 			<th>{{ctx.Locale.Tr "repo.files.last_commit_message"}}</th>
+			<th>{{ctx.Locale.Tr "asc_rp.col_author"}}</th>
+			<th>{{ctx.Locale.Tr "asc_rp.col_size"}}</th>
 			<th>{{ctx.Locale.Tr "repo.files.last_commit_date"}}</th>
 		</tr>
 	</thead>
 	<tbody>
 		<tr class="commit-list rp-files-last">
-			<td colspan="3">
+			<td colspan="5">
 				<div class="rp-files-last-in">
 					<div class="latest-commit rp-latest">{{template "repo/latest_commit" .}}</div>
 					<div class="rp-files-last-meta">{{if .LatestCommit}}{{template "repo/shabox" (dict "sha1" .LatestCommit.ID.String "commitLink" (printf "%s/commit/%s" .RepoLink (.LatestCommit.ID.String|PathEscape)) "signature" .LatestCommit.Signature "verification" .LatestCommitVerification)}}{{template "repo/commit_statuses" dict "Status" .LatestCommitStatus "Statuses" .LatestCommitStatuses}}{{if .LatestCommit.Committer}}<span class="ds-hide-xs">{{DateUtils.TimeSince .LatestCommit.Committer.When}}</span>{{end}}{{end}}{{if and .CommitsCount (not .TreePath)}}<a class="ds-hide-xs" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.TrN .CommitsCount "asc_rp.n_changes_one" "asc_rp.n_changes_other" (ctx.Locale.PrettyNumber .CommitsCount)}}</a>{{end}}</div>
@@ -20,7 +22,7 @@
 		</tr>
 		{{if .HasParentPath}}
 			<tr class="has-parent entry">
-				<td colspan="3" class="rp-files-up">{{$n := len .TreeNames}}<a href="{{.BranchLink}}{{if gt $n 1}}/{{PathEscapeSegments (index .Paths (Eval $n "-" 2))}}{{end}}">{{svg "dsi-arrow-left" 16}}<span aria-hidden="true">..</span><span class="ds-sr">{{ctx.Locale.Tr "asc_rp.parent_dir"}}</span></a></td>
+				<td colspan="5" class="rp-files-up">{{$n := len .TreeNames}}<a href="{{.BranchLink}}{{if gt $n 1}}/{{PathEscapeSegments (index .Paths (Eval $n "-" 2))}}{{end}}">{{svg "dsi-arrow-left" 16}}<span aria-hidden="true">..</span><span class="ds-sr">{{ctx.Locale.Tr "asc_rp.parent_dir"}}</span></a></td>
 			</tr>
 		{{end}}
 		{{range $item := .Files}}
@@ -68,6 +70,8 @@
 						{{end}}
 					</span>
 				</td>
+				<td class="author rp-col-opt">{{if $commit}}<span class="truncate">{{$commit.Author.Name}}</span>{{end}}</td>
+				<td class="size rp-col-opt ds-num">{{if and (not $entry.IsDir) (not $entry.IsSubmodule)}}{{ctx.Locale.TrSize $entry.Size}}{{end}}</td>
 				<td class="age">{{if $commit}}{{DateUtils.TimeSince $commit.Committer.When}}{{end}}</td>
 			</tr>
 		{{end}}
