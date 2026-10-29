@@ -166,7 +166,7 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 			}
 
 			if ascChange != "" {
-				if err := recordAscStack(ctx, repo, pr, ascChange); err != nil {
+				if err := recordAscStack(ctx, repo, pushed, pr, ascChange); err != nil {
 					logAscStack(err, ascChange)
 					return nil, fmt.Errorf("failed to record the stack of change %s: %w", shortChange(ascChange), err)
 				}
@@ -249,7 +249,7 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 		}
 		if ascChange != "" {
 			// A new version may have a new parent (a restack): refresh the link and the merge base.
-			if err := recordAscStack(ctx, repo, pr, ascChange); err != nil {
+			if err := recordAscStack(ctx, repo, pushed, pr, ascChange); err != nil {
 				logAscStack(err, ascChange)
 				return nil, fmt.Errorf("failed to record the stack of change %s: %w", shortChange(ascChange), err)
 			}

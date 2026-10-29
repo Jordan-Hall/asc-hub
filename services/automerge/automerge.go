@@ -30,6 +30,7 @@ import (
 
 // Init runs the task queue to that handles auto merges
 func Init() error {
+	InitAscQueueMirror()
 	notify_service.RegisterNotifier(NewNotifier())
 
 	shared_automerge.PRAutoMergeQueue = queue.CreateUniqueQueue(graceful.GetManager().ShutdownContext(), "pr_auto_merge", handler)

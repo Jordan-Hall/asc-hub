@@ -229,7 +229,9 @@ func ascWorkflowDefOf(d *ascv1.WorkflowDefinition, workflowsLink string, showPro
 }
 
 type ascWorkflowStepRun struct {
-	ID         string
+	ID string
+	// Private is true when the step is an agent step whose run the viewer may not read: its log and failure text are hidden.
+	Private    bool
 	State      ascagentui.State
 	AgentRunID uint64
 	AgentLink  string
@@ -244,23 +246,25 @@ type ascWorkflowStepRun struct {
 }
 
 type ascWorkflowRunRow struct {
-	ID         uint64
-	Workflow   string
-	State      ascagentui.State
-	Trigger    string
-	StartedBy  string
-	Change     string
-	ChangeText string
-	ChangeURL  string
-	Source     string
-	Created    time.Time
-	Finished   time.Time
-	Error      string
-	Inputs     []ascWorkflowInputValue
-	Steps      []ascWorkflowStepRun
-	Meters     []ascagentui.Meter
-	Link       string
-	Done       int
+	ID uint64
+	// ErrorPrivate is true when the failure text of the run was left out because an agent step of it is private to others.
+	ErrorPrivate bool
+	Workflow     string
+	State        ascagentui.State
+	Trigger      string
+	StartedBy    string
+	Change       string
+	ChangeText   string
+	ChangeURL    string
+	Source       string
+	Created      time.Time
+	Finished     time.Time
+	Error        string
+	Inputs       []ascWorkflowInputValue
+	Steps        []ascWorkflowStepRun
+	Meters       []ascagentui.Meter
+	Link         string
+	Done         int
 }
 
 type ascWorkflowInputValue struct{ Name, Value string }
@@ -773,8 +777,9 @@ func AscWorkflowRun(ctx *context.Context) {
 			row.ChangeURL = links[0].URL
 		}
 	}
+	agents := ascv1.NewAgentsClient(conn)
+	ascWorkflowHidePrivate(ctx, callCtx, env, agents, &row)
 	if env.features {
-		agents := ascv1.NewAgentsClient(conn)
 		logged := 0
 		for i := range row.Steps {
 			s := &row.Steps[i]
@@ -796,6 +801,9 @@ func AscWorkflowRun(ctx *context.Context) {
 // ascWorkflowStepLog fills the log of one agent step. The agent run must be this repository's run (GetRun checks
 // the id against the repository named in the request, and the answer's repository is compared again).
 func ascWorkflowStepLog(ctx *context.Context, callCtx gocontext.Context, env *ascAgentsEnv, api ascv1.AgentsClient, s *ascWorkflowStepRun, canPulls bool) {
+	if s.Private {
+		return
+	}
 	got, err := api.GetRun(callCtx, &ascv1.GetAgentRunRequest{Repo: env.ref(), Id: s.AgentRunID})
 	if err != nil {
 		return
@@ -864,6 +872,7 @@ func AscWorkflowRunState(ctx *context.Context) {
 		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(errAscAgentsBadAnswer).Message})
 		return
 	}
+	ascWorkflowHidePrivate(ctx, callCtx, env, ascv1.NewAgentsClient(conn), &row)
 	out := ascWorkflowStateJSON{State: row.State.Slug, Label: row.State.Label, Tone: row.State.Tone, Active: row.State.Active, Error: row.Error, Meters: row.Meters}
 	for _, s := range row.Steps {
 		out.Steps = append(out.Steps, ascWorkflowStepJSON{ID: s.ID, State: s.State.Slug, Label: s.State.Label, Tone: s.State.Tone, Error: s.Error})

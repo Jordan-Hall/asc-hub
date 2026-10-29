@@ -44,7 +44,7 @@ type ascAgentStats struct {
 }
 
 // ascAgentsLoadBoard fills the stat cards, the needs panel and the roster for the runs page.
-func ascAgentsLoadBoard(ctx *context.Context, env *ascAgentsEnv, callCtx gocontext.Context, conn grpc.ClientConnInterface, creators map[uint64]string) {
+func ascAgentsLoadBoard(ctx *context.Context, env *ascAgentsEnv, callCtx gocontext.Context, conn grpc.ClientConnInterface, creators map[uint64]uint64) {
 	api := ascv1.NewAgentsClient(conn)
 	var st ascAgentStats
 	partial := false

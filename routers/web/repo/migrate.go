@@ -193,7 +193,10 @@ func MigratePost(ctx *context.Context) {
 		return
 	}
 
-	form.LFS = form.LFS && setting.LFS.StartServer
+	if form.LFS && !setting.LFS.StartServer {
+		ctx.RenderWithErr(ctx.Tr("repo.migrate.lfs_disabled"), tpl, form)
+		return
+	}
 
 	if form.LFS && len(form.LFSEndpoint) > 0 {
 		ep := lfs.DetermineEndpoint("", form.LFSEndpoint)

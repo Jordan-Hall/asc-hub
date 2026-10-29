@@ -11,7 +11,7 @@
 				<a class="rp-tab" data-asc-key="g c" href="{{.RepoLink}}{{if and (ne .BranchName .Repository.DefaultBranch) (not $.PageIsWiki) .BranchName}}/src/{{.BranchNameSubURL}}{{end}}"{{if $codeActive}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.code"}}</a>
 			{{end}}
 			{{if and .Repository.CanEnablePulls (.Permission.CanRead $.UnitTypePullRequests) (not .Repository.IsEmpty)}}
-				<a class="rp-tab" href="{{.RepoLink}}/pulls"{{if .PageIsPullList}} aria-current="page"{{end}}>{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.tab_stacks"}}{{else}}{{ctx.Locale.Tr "repo.pulls"}}{{end}}{{if (.Repository.NumOpenPulls ctx)}}<span class="ds-count">{{CountFmt (.Repository.NumOpenPulls ctx)}}</span>{{end}}</a>
+				<a class="rp-tab" href="{{.RepoLink}}/pulls"{{if .PageIsPullList}} aria-current="page"{{end}}>{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.tab_stacks"}}{{else}}{{ctx.Locale.Tr "repo.pulls"}}{{end}}{{$nPulls := .Repository.NumOpenPulls ctx}}{{if $isAsc}}{{$nPulls = .Repository.NumOpenAscStacks ctx}}{{end}}{{if $nPulls}}<span class="ds-count">{{CountFmt $nPulls}}</span>{{end}}</a>
 			{{end}}
 			{{if and .SignedUser $isAsc $canCode .AscAgentFeatures (not .Repository.IsEmpty)}}
 				<a class="rp-tab" href="{{.RepoLink}}/asc/agents"{{if .PageIsAscAgentArea}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_rp.tab_agent_runs"}}</a>
