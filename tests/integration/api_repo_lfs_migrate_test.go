@@ -53,3 +53,24 @@ func TestAPIRepoLFSMigrateLocal(t *testing.T) {
 	setting.Migrations.AllowLocalNetworks = oldAllowLocalNetworks
 	require.NoError(t, migrations_allowlist.Init()) // reset old migration settings
 }
+
+// LFS asked for on a server that does not run LFS is an error. It used to be dropped, and the repository came
+// out with pointer files and no word about it.
+func TestAPIRepoLFSMigrateWithoutLFSServerIsRefused(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	old := setting.LFS.StartServer
+	setting.LFS.StartServer = false
+	defer func() { setting.LFS.StartServer = old }()
+
+	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
+	token := getTokenForLoggedInUser(t, loginUser(t, user.Name), auth_model.AccessTokenScopeWriteRepository)
+	req := NewRequestWithJSON(t, "POST", "/api/v1/repos/migrate", &api.MigrateRepoOptions{
+		CloneAddr:   path.Join(setting.RepoRootPath, "migration/lfs-test.git"),
+		RepoOwnerID: user.ID,
+		RepoName:    "lfs-without-server",
+		LFS:         true,
+	}).AddTokenAuth(token)
+	resp := MakeRequest(t, req, http.StatusUnprocessableEntity)
+	assert.Contains(t, resp.Body.String(), "LFS_START_SERVER")
+}
