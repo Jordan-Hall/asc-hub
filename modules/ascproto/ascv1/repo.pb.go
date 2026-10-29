@@ -5466,9 +5466,10 @@ type InitOp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DefaultBranch string                 `protobuf:"bytes,1,opt,name=default_branch,json=defaultBranch,proto3" json:"default_branch,omitempty"`
 	WindowsSafe   bool                   `protobuf:"varint,2,opt,name=windows_safe,json=windowsSafe,proto3" json:"windows_safe,omitempty"`
-	Mode          string                 `protobuf:"bytes,3,opt,name=mode,proto3" json:"mode,omitempty"` // "primary"|"mirror"
-	MirrorUrl     string                 `protobuf:"bytes,4,opt,name=mirror_url,json=mirrorUrl,proto3" json:"mirror_url,omitempty"`
-	LandBranches  []string               `protobuf:"bytes,5,rep,name=land_branches,json=landBranches,proto3" json:"land_branches,omitempty"`
+	Mode          string                 `protobuf:"bytes,3,opt,name=mode,proto3" json:"mode,omitempty"`
+	// "primary"|"mirror"
+	MirrorUrl     string   `protobuf:"bytes,4,opt,name=mirror_url,json=mirrorUrl,proto3" json:"mirror_url,omitempty"`
+	LandBranches  []string `protobuf:"bytes,5,rep,name=land_branches,json=landBranches,proto3" json:"land_branches,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -7926,6 +7927,7 @@ type PolicyTrunk struct {
 	RequireApprovals uint32                 `protobuf:"varint,2,opt,name=require_approvals,json=requireApprovals,proto3" json:"require_approvals,omitempty"`
 	RequireChecks    []string               `protobuf:"bytes,3,rep,name=require_checks,json=requireChecks,proto3" json:"require_checks,omitempty"`
 	AllowForce       bool                   `protobuf:"varint,4,opt,name=allow_force,json=allowForce,proto3" json:"allow_force,omitempty"`
+	RequireSigned    bool                   `protobuf:"varint,5,opt,name=require_signed,json=requireSigned,proto3" json:"require_signed,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -7988,14 +7990,25 @@ func (x *PolicyTrunk) GetAllowForce() bool {
 	return false
 }
 
+func (x *PolicyTrunk) GetRequireSigned() bool {
+	if x != nil {
+		return x.RequireSigned
+	}
+	return false
+}
+
 type PolicyAgents struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	DefaultScope     []string               `protobuf:"bytes,1,rep,name=default_scope,json=defaultScope,proto3" json:"default_scope,omitempty"`
-	DeniedPaths      []string               `protobuf:"bytes,2,rep,name=denied_paths,json=deniedPaths,proto3" json:"denied_paths,omitempty"`
-	MaxChangesPerRun uint32                 `protobuf:"varint,3,opt,name=max_changes_per_run,json=maxChangesPerRun,proto3" json:"max_changes_per_run,omitempty"`
-	MaxPathsPerRun   uint32                 `protobuf:"varint,4,opt,name=max_paths_per_run,json=maxPathsPerRun,proto3" json:"max_paths_per_run,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	DefaultScope      []string               `protobuf:"bytes,1,rep,name=default_scope,json=defaultScope,proto3" json:"default_scope,omitempty"`
+	DeniedPaths       []string               `protobuf:"bytes,2,rep,name=denied_paths,json=deniedPaths,proto3" json:"denied_paths,omitempty"`
+	MaxChangesPerRun  uint32                 `protobuf:"varint,3,opt,name=max_changes_per_run,json=maxChangesPerRun,proto3" json:"max_changes_per_run,omitempty"`
+	MaxPathsPerRun    uint32                 `protobuf:"varint,4,opt,name=max_paths_per_run,json=maxPathsPerRun,proto3" json:"max_paths_per_run,omitempty"` // 0 = no limit
+	Enabled           bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	MaxRuntimeSeconds uint32                 `protobuf:"varint,6,opt,name=max_runtime_seconds,json=maxRuntimeSeconds,proto3" json:"max_runtime_seconds,omitempty"`
+	MaxTokens         uint64                 `protobuf:"varint,7,opt,name=max_tokens,json=maxTokens,proto3" json:"max_tokens,omitempty"`
+	MaxCostMicroUsd   uint64                 `protobuf:"varint,8,opt,name=max_cost_micro_usd,json=maxCostMicroUsd,proto3" json:"max_cost_micro_usd,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *PolicyAgents) Reset() {
@@ -8056,6 +8069,233 @@ func (x *PolicyAgents) GetMaxPathsPerRun() uint32 {
 	return 0
 }
 
+func (x *PolicyAgents) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *PolicyAgents) GetMaxRuntimeSeconds() uint32 {
+	if x != nil {
+		return x.MaxRuntimeSeconds
+	}
+	return 0
+}
+
+func (x *PolicyAgents) GetMaxTokens() uint64 {
+	if x != nil {
+		return x.MaxTokens
+	}
+	return 0
+}
+
+func (x *PolicyAgents) GetMaxCostMicroUsd() uint64 {
+	if x != nil {
+		return x.MaxCostMicroUsd
+	}
+	return 0
+}
+
+// `[review]`: who may approve and when an approval stands.
+type PolicyReview struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	AuthorMayApprove       bool                   `protobuf:"varint,1,opt,name=author_may_approve,json=authorMayApprove,proto3" json:"author_may_approve,omitempty"`
+	HumanApproval          bool                   `protobuf:"varint,2,opt,name=human_approval,json=humanApproval,proto3" json:"human_approval,omitempty"`
+	KeepApprovalsOnRestack bool                   `protobuf:"varint,3,opt,name=keep_approvals_on_restack,json=keepApprovalsOnRestack,proto3" json:"keep_approvals_on_restack,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *PolicyReview) Reset() {
+	*x = PolicyReview{}
+	mi := &file_asc_v1_repo_proto_msgTypes[106]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyReview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyReview) ProtoMessage() {}
+
+func (x *PolicyReview) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[106]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyReview.ProtoReflect.Descriptor instead.
+func (*PolicyReview) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{106}
+}
+
+func (x *PolicyReview) GetAuthorMayApprove() bool {
+	if x != nil {
+		return x.AuthorMayApprove
+	}
+	return false
+}
+
+func (x *PolicyReview) GetHumanApproval() bool {
+	if x != nil {
+		return x.HumanApproval
+	}
+	return false
+}
+
+func (x *PolicyReview) GetKeepApprovalsOnRestack() bool {
+	if x != nil {
+		return x.KeepApprovalsOnRestack
+	}
+	return false
+}
+
+// `[merge]` besides the strategy.
+type PolicyMerge struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Queue           bool                   `protobuf:"varint,1,opt,name=queue,proto3" json:"queue,omitempty"`
+	Revalidate      bool                   `protobuf:"varint,2,opt,name=revalidate,proto3" json:"revalidate,omitempty"`
+	Batch           uint32                 `protobuf:"varint,3,opt,name=batch,proto3" json:"batch,omitempty"`
+	PostMergeChecks bool                   `protobuf:"varint,4,opt,name=post_merge_checks,json=postMergeChecks,proto3" json:"post_merge_checks,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *PolicyMerge) Reset() {
+	*x = PolicyMerge{}
+	mi := &file_asc_v1_repo_proto_msgTypes[107]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyMerge) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyMerge) ProtoMessage() {}
+
+func (x *PolicyMerge) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[107]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyMerge.ProtoReflect.Descriptor instead.
+func (*PolicyMerge) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{107}
+}
+
+func (x *PolicyMerge) GetQueue() bool {
+	if x != nil {
+		return x.Queue
+	}
+	return false
+}
+
+func (x *PolicyMerge) GetRevalidate() bool {
+	if x != nil {
+		return x.Revalidate
+	}
+	return false
+}
+
+func (x *PolicyMerge) GetBatch() uint32 {
+	if x != nil {
+		return x.Batch
+	}
+	return 0
+}
+
+func (x *PolicyMerge) GetPostMergeChecks() bool {
+	if x != nil {
+		return x.PostMergeChecks
+	}
+	return false
+}
+
+// `[stacks]`; 0 in `max_depth` and `cleanup_days` means no limit and the server's setting.
+type PolicyStacks struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	MaxDepth             uint32                 `protobuf:"varint,1,opt,name=max_depth,json=maxDepth,proto3" json:"max_depth,omitempty"`
+	CleanupDays          uint32                 `protobuf:"varint,2,opt,name=cleanup_days,json=cleanupDays,proto3" json:"cleanup_days,omitempty"`
+	RestackOnMainMove    bool                   `protobuf:"varint,3,opt,name=restack_on_main_move,json=restackOnMainMove,proto3" json:"restack_on_main_move,omitempty"`
+	CollaboratorsMayPush bool                   `protobuf:"varint,4,opt,name=collaborators_may_push,json=collaboratorsMayPush,proto3" json:"collaborators_may_push,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *PolicyStacks) Reset() {
+	*x = PolicyStacks{}
+	mi := &file_asc_v1_repo_proto_msgTypes[108]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyStacks) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyStacks) ProtoMessage() {}
+
+func (x *PolicyStacks) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[108]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyStacks.ProtoReflect.Descriptor instead.
+func (*PolicyStacks) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{108}
+}
+
+func (x *PolicyStacks) GetMaxDepth() uint32 {
+	if x != nil {
+		return x.MaxDepth
+	}
+	return 0
+}
+
+func (x *PolicyStacks) GetCleanupDays() uint32 {
+	if x != nil {
+		return x.CleanupDays
+	}
+	return 0
+}
+
+func (x *PolicyStacks) GetRestackOnMainMove() bool {
+	if x != nil {
+		return x.RestackOnMainMove
+	}
+	return false
+}
+
+func (x *PolicyStacks) GetCollaboratorsMayPush() bool {
+	if x != nil {
+		return x.CollaboratorsMayPush
+	}
+	return false
+}
+
 type PolicyDecision struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
@@ -8067,7 +8307,7 @@ type PolicyDecision struct {
 
 func (x *PolicyDecision) Reset() {
 	*x = PolicyDecision{}
-	mi := &file_asc_v1_repo_proto_msgTypes[106]
+	mi := &file_asc_v1_repo_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8079,7 +8319,7 @@ func (x *PolicyDecision) String() string {
 func (*PolicyDecision) ProtoMessage() {}
 
 func (x *PolicyDecision) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[106]
+	mi := &file_asc_v1_repo_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8092,7 +8332,7 @@ func (x *PolicyDecision) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyDecision.ProtoReflect.Descriptor instead.
 func (*PolicyDecision) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{106}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *PolicyDecision) GetPath() []byte {
@@ -8130,13 +8370,16 @@ type GetPolicyResponse struct {
 	Agents        *PolicyAgents          `protobuf:"bytes,10,opt,name=agents,proto3" json:"agents,omitempty"`
 	MergeStrategy string                 `protobuf:"bytes,11,opt,name=merge_strategy,json=mergeStrategy,proto3" json:"merge_strategy,omitempty"` // rebase, rebase-disjoint or fast-forward
 	Decisions     []*PolicyDecision      `protobuf:"bytes,12,rep,name=decisions,proto3" json:"decisions,omitempty"`                              // one per requested path, in order
+	Review        *PolicyReview          `protobuf:"bytes,13,opt,name=review,proto3" json:"review,omitempty"`
+	Merge         *PolicyMerge           `protobuf:"bytes,14,opt,name=merge,proto3" json:"merge,omitempty"`
+	Stacks        *PolicyStacks          `protobuf:"bytes,15,opt,name=stacks,proto3" json:"stacks,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetPolicyResponse) Reset() {
 	*x = GetPolicyResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[107]
+	mi := &file_asc_v1_repo_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8148,7 +8391,7 @@ func (x *GetPolicyResponse) String() string {
 func (*GetPolicyResponse) ProtoMessage() {}
 
 func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[107]
+	mi := &file_asc_v1_repo_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8161,7 +8404,7 @@ func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{107}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *GetPolicyResponse) GetPresent() bool {
@@ -8244,6 +8487,27 @@ func (x *GetPolicyResponse) GetMergeStrategy() string {
 func (x *GetPolicyResponse) GetDecisions() []*PolicyDecision {
 	if x != nil {
 		return x.Decisions
+	}
+	return nil
+}
+
+func (x *GetPolicyResponse) GetReview() *PolicyReview {
+	if x != nil {
+		return x.Review
+	}
+	return nil
+}
+
+func (x *GetPolicyResponse) GetMerge() *PolicyMerge {
+	if x != nil {
+		return x.Merge
+	}
+	return nil
+}
+
+func (x *GetPolicyResponse) GetStacks() *PolicyStacks {
+	if x != nil {
+		return x.Stacks
 	}
 	return nil
 }
@@ -8850,22 +9114,44 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\amembers\x18\x02 \x03(\tR\amembers\":\n" +
 	"\x0ePolicyPathRule\x12\x12\n" +
 	"\x04glob\x18\x01 \x01(\tR\x04glob\x12\x14\n" +
-	"\x05write\x18\x02 \x03(\tR\x05write\"\x9a\x01\n" +
+	"\x05write\x18\x02 \x03(\tR\x05write\"\xc1\x01\n" +
 	"\vPolicyTrunk\x12\x16\n" +
 	"\x06branch\x18\x01 \x01(\tR\x06branch\x12+\n" +
 	"\x11require_approvals\x18\x02 \x01(\rR\x10requireApprovals\x12%\n" +
 	"\x0erequire_checks\x18\x03 \x03(\tR\rrequireChecks\x12\x1f\n" +
 	"\vallow_force\x18\x04 \x01(\bR\n" +
-	"allowForce\"\xb0\x01\n" +
+	"allowForce\x12%\n" +
+	"\x0erequire_signed\x18\x05 \x01(\bR\rrequireSigned\"\xc6\x02\n" +
 	"\fPolicyAgents\x12#\n" +
 	"\rdefault_scope\x18\x01 \x03(\tR\fdefaultScope\x12!\n" +
 	"\fdenied_paths\x18\x02 \x03(\tR\vdeniedPaths\x12-\n" +
 	"\x13max_changes_per_run\x18\x03 \x01(\rR\x10maxChangesPerRun\x12)\n" +
-	"\x11max_paths_per_run\x18\x04 \x01(\rR\x0emaxPathsPerRun\"\\\n" +
+	"\x11max_paths_per_run\x18\x04 \x01(\rR\x0emaxPathsPerRun\x12\x18\n" +
+	"\aenabled\x18\x05 \x01(\bR\aenabled\x12.\n" +
+	"\x13max_runtime_seconds\x18\x06 \x01(\rR\x11maxRuntimeSeconds\x12\x1d\n" +
+	"\n" +
+	"max_tokens\x18\a \x01(\x04R\tmaxTokens\x12+\n" +
+	"\x12max_cost_micro_usd\x18\b \x01(\x04R\x0fmaxCostMicroUsd\"\x9e\x01\n" +
+	"\fPolicyReview\x12,\n" +
+	"\x12author_may_approve\x18\x01 \x01(\bR\x10authorMayApprove\x12%\n" +
+	"\x0ehuman_approval\x18\x02 \x01(\bR\rhumanApproval\x129\n" +
+	"\x19keep_approvals_on_restack\x18\x03 \x01(\bR\x16keepApprovalsOnRestack\"\x85\x01\n" +
+	"\vPolicyMerge\x12\x14\n" +
+	"\x05queue\x18\x01 \x01(\bR\x05queue\x12\x1e\n" +
+	"\n" +
+	"revalidate\x18\x02 \x01(\bR\n" +
+	"revalidate\x12\x14\n" +
+	"\x05batch\x18\x03 \x01(\rR\x05batch\x12*\n" +
+	"\x11post_merge_checks\x18\x04 \x01(\bR\x0fpostMergeChecks\"\xb5\x01\n" +
+	"\fPolicyStacks\x12\x1b\n" +
+	"\tmax_depth\x18\x01 \x01(\rR\bmaxDepth\x12!\n" +
+	"\fcleanup_days\x18\x02 \x01(\rR\vcleanupDays\x12/\n" +
+	"\x14restack_on_main_move\x18\x03 \x01(\bR\x11restackOnMainMove\x124\n" +
+	"\x16collaborators_may_push\x18\x04 \x01(\bR\x14collaboratorsMayPush\"\\\n" +
 	"\x0ePolicyDecision\x12\x18\n" +
 	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x18\n" +
 	"\aallowed\x18\x02 \x01(\bR\aallowed\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reason\"\xd0\x03\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"\xd7\x04\n" +
 	"\x11GetPolicyResponse\x12\x18\n" +
 	"\apresent\x18\x01 \x01(\bR\apresent\x12\x14\n" +
 	"\x05error\x18\x02 \x01(\tR\x05error\x12\x18\n" +
@@ -8881,7 +9167,10 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x06agents\x18\n" +
 	" \x01(\v2\x14.asc.v1.PolicyAgentsR\x06agents\x12%\n" +
 	"\x0emerge_strategy\x18\v \x01(\tR\rmergeStrategy\x124\n" +
-	"\tdecisions\x18\f \x03(\v2\x16.asc.v1.PolicyDecisionR\tdecisions**\n" +
+	"\tdecisions\x18\f \x03(\v2\x16.asc.v1.PolicyDecisionR\tdecisions\x12,\n" +
+	"\x06review\x18\r \x01(\v2\x14.asc.v1.PolicyReviewR\x06review\x12)\n" +
+	"\x05merge\x18\x0e \x01(\v2\x13.asc.v1.PolicyMergeR\x05merge\x12,\n" +
+	"\x06stacks\x18\x0f \x01(\v2\x14.asc.v1.PolicyStacksR\x06stacks**\n" +
 	"\x06IdMode\x12\x0f\n" +
 	"\vID_MODE_ASC\x10\x00\x12\x0f\n" +
 	"\vID_MODE_GIT\x10\x01*\xe0\x01\n" +
@@ -9004,7 +9293,7 @@ func file_asc_v1_repo_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_repo_proto_enumTypes = make([]protoimpl.EnumInfo, 10)
-var file_asc_v1_repo_proto_msgTypes = make([]protoimpl.MessageInfo, 111)
+var file_asc_v1_repo_proto_msgTypes = make([]protoimpl.MessageInfo, 114)
 var file_asc_v1_repo_proto_goTypes = []any{
 	(IdMode)(0),                   // 0: asc.v1.IdMode
 	(ObjKind)(0),                  // 1: asc.v1.ObjKind
@@ -9122,11 +9411,14 @@ var file_asc_v1_repo_proto_goTypes = []any{
 	(*PolicyPathRule)(nil),        // 113: asc.v1.PolicyPathRule
 	(*PolicyTrunk)(nil),           // 114: asc.v1.PolicyTrunk
 	(*PolicyAgents)(nil),          // 115: asc.v1.PolicyAgents
-	(*PolicyDecision)(nil),        // 116: asc.v1.PolicyDecision
-	(*GetPolicyResponse)(nil),     // 117: asc.v1.GetPolicyResponse
-	nil,                           // 118: asc.v1.LastCommitsResponse.ByNameEntry
-	nil,                           // 119: asc.v1.ReadChangesetResponse.ExtraEntry
-	nil,                           // 120: asc.v1.AttrValues.ValuesEntry
+	(*PolicyReview)(nil),          // 116: asc.v1.PolicyReview
+	(*PolicyMerge)(nil),           // 117: asc.v1.PolicyMerge
+	(*PolicyStacks)(nil),          // 118: asc.v1.PolicyStacks
+	(*PolicyDecision)(nil),        // 119: asc.v1.PolicyDecision
+	(*GetPolicyResponse)(nil),     // 120: asc.v1.GetPolicyResponse
+	nil,                           // 121: asc.v1.LastCommitsResponse.ByNameEntry
+	nil,                           // 122: asc.v1.ReadChangesetResponse.ExtraEntry
+	nil,                           // 123: asc.v1.AttrValues.ValuesEntry
 }
 var file_asc_v1_repo_proto_depIdxs = []int32{
 	0,   // 0: asc.v1.RepoRef.id_mode:type_name -> asc.v1.IdMode
@@ -9170,11 +9462,11 @@ var file_asc_v1_repo_proto_depIdxs = []int32{
 	36,  // 38: asc.v1.BlameResponse.commits:type_name -> asc.v1.LogEntry
 	95,  // 39: asc.v1.BlameResponse.reviews:type_name -> asc.v1.ReviewState
 	10,  // 40: asc.v1.LastCommitsRequest.repo:type_name -> asc.v1.RepoRef
-	118, // 41: asc.v1.LastCommitsResponse.by_name:type_name -> asc.v1.LastCommitsResponse.ByNameEntry
+	121, // 41: asc.v1.LastCommitsResponse.by_name:type_name -> asc.v1.LastCommitsResponse.ByNameEntry
 	10,  // 42: asc.v1.ReadChangesetRequest.repo:type_name -> asc.v1.RepoRef
 	36,  // 43: asc.v1.ReadChangesetResponse.header:type_name -> asc.v1.LogEntry
 	43,  // 44: asc.v1.ReadChangesetResponse.changes:type_name -> asc.v1.PathChange
-	119, // 45: asc.v1.ReadChangesetResponse.extra:type_name -> asc.v1.ReadChangesetResponse.ExtraEntry
+	122, // 45: asc.v1.ReadChangesetResponse.extra:type_name -> asc.v1.ReadChangesetResponse.ExtraEntry
 	10,  // 46: asc.v1.ReadTreeRequest.repo:type_name -> asc.v1.RepoRef
 	53,  // 47: asc.v1.ReadTreeResponse.entries:type_name -> asc.v1.TreeEntryInfo
 	10,  // 48: asc.v1.ReadFileRequest.repo:type_name -> asc.v1.RepoRef
@@ -9182,7 +9474,7 @@ var file_asc_v1_repo_proto_depIdxs = []int32{
 	11,  // 50: asc.v1.StatRequest.objects:type_name -> asc.v1.ObjKey
 	53,  // 51: asc.v1.StatResponse.entries:type_name -> asc.v1.TreeEntryInfo
 	10,  // 52: asc.v1.CheckAttrRequest.repo:type_name -> asc.v1.RepoRef
-	120, // 53: asc.v1.AttrValues.values:type_name -> asc.v1.AttrValues.ValuesEntry
+	123, // 53: asc.v1.AttrValues.values:type_name -> asc.v1.AttrValues.ValuesEntry
 	60,  // 54: asc.v1.CheckAttrResponse.per_path:type_name -> asc.v1.AttrValues
 	10,  // 55: asc.v1.GrepRequest.repo:type_name -> asc.v1.RepoRef
 	63,  // 56: asc.v1.GrepResponse.matches:type_name -> asc.v1.GrepMatch
@@ -9252,87 +9544,90 @@ var file_asc_v1_repo_proto_depIdxs = []int32{
 	114, // 120: asc.v1.GetPolicyResponse.trunk:type_name -> asc.v1.PolicyTrunk
 	113, // 121: asc.v1.GetPolicyResponse.paths:type_name -> asc.v1.PolicyPathRule
 	115, // 122: asc.v1.GetPolicyResponse.agents:type_name -> asc.v1.PolicyAgents
-	116, // 123: asc.v1.GetPolicyResponse.decisions:type_name -> asc.v1.PolicyDecision
-	36,  // 124: asc.v1.LastCommitsResponse.ByNameEntry.value:type_name -> asc.v1.LogEntry
-	16,  // 125: asc.v1.Repo.Version:input_type -> asc.v1.VersionRequest
-	18,  // 126: asc.v1.Repo.HasObjects:input_type -> asc.v1.HasObjectsRequest
-	20,  // 127: asc.v1.Repo.GetObjects:input_type -> asc.v1.GetObjectsRequest
-	22,  // 128: asc.v1.Repo.PutObjects:input_type -> asc.v1.PutObjectsRequest
-	24,  // 129: asc.v1.Repo.ListRefs:input_type -> asc.v1.ListRefsRequest
-	27,  // 130: asc.v1.Repo.UpdateRefs:input_type -> asc.v1.UpdateRefsRequest
-	31,  // 131: asc.v1.Repo.Resolve:input_type -> asc.v1.ResolveRequest
-	33,  // 132: asc.v1.Repo.GitMap:input_type -> asc.v1.GitMapRequest
-	35,  // 133: asc.v1.Repo.Log:input_type -> asc.v1.LogRequest
-	38,  // 134: asc.v1.Repo.MergeBase:input_type -> asc.v1.MergeBaseRequest
-	40,  // 135: asc.v1.Repo.IsAncestor:input_type -> asc.v1.IsAncestorRequest
-	42,  // 136: asc.v1.Repo.Diff:input_type -> asc.v1.DiffRequest
-	45,  // 137: asc.v1.Repo.Blame:input_type -> asc.v1.BlameRequest
-	48,  // 138: asc.v1.Repo.LastCommits:input_type -> asc.v1.LastCommitsRequest
-	50,  // 139: asc.v1.Repo.ReadChangeset:input_type -> asc.v1.ReadChangesetRequest
-	52,  // 140: asc.v1.Repo.ReadTree:input_type -> asc.v1.ReadTreeRequest
-	55,  // 141: asc.v1.Repo.ReadFile:input_type -> asc.v1.ReadFileRequest
-	57,  // 142: asc.v1.Repo.Stat:input_type -> asc.v1.StatRequest
-	59,  // 143: asc.v1.Repo.CheckAttr:input_type -> asc.v1.CheckAttrRequest
-	62,  // 144: asc.v1.Repo.Grep:input_type -> asc.v1.GrepRequest
-	65,  // 145: asc.v1.Repo.Archive:input_type -> asc.v1.ArchiveRequest
-	68,  // 146: asc.v1.Repo.Commit:input_type -> asc.v1.CommitRequest
-	70,  // 147: asc.v1.Repo.Merge:input_type -> asc.v1.MergeRequest
-	73,  // 148: asc.v1.Repo.Apply:input_type -> asc.v1.ApplyRequest
-	75,  // 149: asc.v1.Repo.CopyClosure:input_type -> asc.v1.CopyClosureRequest
-	77,  // 150: asc.v1.Repo.RepoAdmin:input_type -> asc.v1.RepoAdminRequest
-	82,  // 151: asc.v1.Repo.ImportGitPush:input_type -> asc.v1.ImportGitPushRequest
-	84,  // 152: asc.v1.Repo.Ingest:input_type -> asc.v1.IngestRequest
-	86,  // 153: asc.v1.Repo.FindLanding:input_type -> asc.v1.FindLandingRequest
-	88,  // 154: asc.v1.Repo.Classify:input_type -> asc.v1.ClassifyRequest
-	92,  // 155: asc.v1.Repo.Rebase:input_type -> asc.v1.RebaseRequest
-	98,  // 156: asc.v1.Repo.CommitGraph:input_type -> asc.v1.CommitGraphRequest
-	103, // 157: asc.v1.Repo.LineHistory:input_type -> asc.v1.LineHistoryRequest
-	104, // 158: asc.v1.Repo.Compare:input_type -> asc.v1.CompareRequest
-	107, // 159: asc.v1.Repo.RepoConfig:input_type -> asc.v1.RepoConfigRequest
-	111, // 160: asc.v1.Repo.GetPolicy:input_type -> asc.v1.GetPolicyRequest
-	109, // 161: asc.v1.Repo.WatchRefs:input_type -> asc.v1.WatchRefsRequest
-	17,  // 162: asc.v1.Repo.Version:output_type -> asc.v1.VersionResponse
-	19,  // 163: asc.v1.Repo.HasObjects:output_type -> asc.v1.HasObjectsResponse
-	21,  // 164: asc.v1.Repo.GetObjects:output_type -> asc.v1.GetObjectsResponse
-	23,  // 165: asc.v1.Repo.PutObjects:output_type -> asc.v1.PutObjectsResponse
-	25,  // 166: asc.v1.Repo.ListRefs:output_type -> asc.v1.ListRefsResponse
-	30,  // 167: asc.v1.Repo.UpdateRefs:output_type -> asc.v1.UpdateRefsResponse
-	32,  // 168: asc.v1.Repo.Resolve:output_type -> asc.v1.ResolveResponse
-	34,  // 169: asc.v1.Repo.GitMap:output_type -> asc.v1.GitMapResponse
-	37,  // 170: asc.v1.Repo.Log:output_type -> asc.v1.LogResponse
-	39,  // 171: asc.v1.Repo.MergeBase:output_type -> asc.v1.MergeBaseResponse
-	41,  // 172: asc.v1.Repo.IsAncestor:output_type -> asc.v1.IsAncestorResponse
-	44,  // 173: asc.v1.Repo.Diff:output_type -> asc.v1.DiffResponse
-	47,  // 174: asc.v1.Repo.Blame:output_type -> asc.v1.BlameResponse
-	49,  // 175: asc.v1.Repo.LastCommits:output_type -> asc.v1.LastCommitsResponse
-	51,  // 176: asc.v1.Repo.ReadChangeset:output_type -> asc.v1.ReadChangesetResponse
-	54,  // 177: asc.v1.Repo.ReadTree:output_type -> asc.v1.ReadTreeResponse
-	56,  // 178: asc.v1.Repo.ReadFile:output_type -> asc.v1.ReadFileResponse
-	58,  // 179: asc.v1.Repo.Stat:output_type -> asc.v1.StatResponse
-	61,  // 180: asc.v1.Repo.CheckAttr:output_type -> asc.v1.CheckAttrResponse
-	64,  // 181: asc.v1.Repo.Grep:output_type -> asc.v1.GrepResponse
-	66,  // 182: asc.v1.Repo.Archive:output_type -> asc.v1.ArchiveResponse
-	69,  // 183: asc.v1.Repo.Commit:output_type -> asc.v1.CommitResponse
-	72,  // 184: asc.v1.Repo.Merge:output_type -> asc.v1.MergeResponse
-	74,  // 185: asc.v1.Repo.Apply:output_type -> asc.v1.ApplyResponse
-	76,  // 186: asc.v1.Repo.CopyClosure:output_type -> asc.v1.CopyClosureResponse
-	80,  // 187: asc.v1.Repo.RepoAdmin:output_type -> asc.v1.RepoAdminResponse
-	83,  // 188: asc.v1.Repo.ImportGitPush:output_type -> asc.v1.ImportGitPushResponse
-	85,  // 189: asc.v1.Repo.Ingest:output_type -> asc.v1.IngestResponse
-	87,  // 190: asc.v1.Repo.FindLanding:output_type -> asc.v1.FindLandingResponse
-	90,  // 191: asc.v1.Repo.Classify:output_type -> asc.v1.ClassifyResponse
-	93,  // 192: asc.v1.Repo.Rebase:output_type -> asc.v1.RebaseResponse
-	102, // 193: asc.v1.Repo.CommitGraph:output_type -> asc.v1.CommitGraphResponse
-	37,  // 194: asc.v1.Repo.LineHistory:output_type -> asc.v1.LogResponse
-	105, // 195: asc.v1.Repo.Compare:output_type -> asc.v1.CompareResponse
-	108, // 196: asc.v1.Repo.RepoConfig:output_type -> asc.v1.RepoConfigResponse
-	117, // 197: asc.v1.Repo.GetPolicy:output_type -> asc.v1.GetPolicyResponse
-	110, // 198: asc.v1.Repo.WatchRefs:output_type -> asc.v1.RefEvent
-	162, // [162:199] is the sub-list for method output_type
-	125, // [125:162] is the sub-list for method input_type
-	125, // [125:125] is the sub-list for extension type_name
-	125, // [125:125] is the sub-list for extension extendee
-	0,   // [0:125] is the sub-list for field type_name
+	119, // 123: asc.v1.GetPolicyResponse.decisions:type_name -> asc.v1.PolicyDecision
+	116, // 124: asc.v1.GetPolicyResponse.review:type_name -> asc.v1.PolicyReview
+	117, // 125: asc.v1.GetPolicyResponse.merge:type_name -> asc.v1.PolicyMerge
+	118, // 126: asc.v1.GetPolicyResponse.stacks:type_name -> asc.v1.PolicyStacks
+	36,  // 127: asc.v1.LastCommitsResponse.ByNameEntry.value:type_name -> asc.v1.LogEntry
+	16,  // 128: asc.v1.Repo.Version:input_type -> asc.v1.VersionRequest
+	18,  // 129: asc.v1.Repo.HasObjects:input_type -> asc.v1.HasObjectsRequest
+	20,  // 130: asc.v1.Repo.GetObjects:input_type -> asc.v1.GetObjectsRequest
+	22,  // 131: asc.v1.Repo.PutObjects:input_type -> asc.v1.PutObjectsRequest
+	24,  // 132: asc.v1.Repo.ListRefs:input_type -> asc.v1.ListRefsRequest
+	27,  // 133: asc.v1.Repo.UpdateRefs:input_type -> asc.v1.UpdateRefsRequest
+	31,  // 134: asc.v1.Repo.Resolve:input_type -> asc.v1.ResolveRequest
+	33,  // 135: asc.v1.Repo.GitMap:input_type -> asc.v1.GitMapRequest
+	35,  // 136: asc.v1.Repo.Log:input_type -> asc.v1.LogRequest
+	38,  // 137: asc.v1.Repo.MergeBase:input_type -> asc.v1.MergeBaseRequest
+	40,  // 138: asc.v1.Repo.IsAncestor:input_type -> asc.v1.IsAncestorRequest
+	42,  // 139: asc.v1.Repo.Diff:input_type -> asc.v1.DiffRequest
+	45,  // 140: asc.v1.Repo.Blame:input_type -> asc.v1.BlameRequest
+	48,  // 141: asc.v1.Repo.LastCommits:input_type -> asc.v1.LastCommitsRequest
+	50,  // 142: asc.v1.Repo.ReadChangeset:input_type -> asc.v1.ReadChangesetRequest
+	52,  // 143: asc.v1.Repo.ReadTree:input_type -> asc.v1.ReadTreeRequest
+	55,  // 144: asc.v1.Repo.ReadFile:input_type -> asc.v1.ReadFileRequest
+	57,  // 145: asc.v1.Repo.Stat:input_type -> asc.v1.StatRequest
+	59,  // 146: asc.v1.Repo.CheckAttr:input_type -> asc.v1.CheckAttrRequest
+	62,  // 147: asc.v1.Repo.Grep:input_type -> asc.v1.GrepRequest
+	65,  // 148: asc.v1.Repo.Archive:input_type -> asc.v1.ArchiveRequest
+	68,  // 149: asc.v1.Repo.Commit:input_type -> asc.v1.CommitRequest
+	70,  // 150: asc.v1.Repo.Merge:input_type -> asc.v1.MergeRequest
+	73,  // 151: asc.v1.Repo.Apply:input_type -> asc.v1.ApplyRequest
+	75,  // 152: asc.v1.Repo.CopyClosure:input_type -> asc.v1.CopyClosureRequest
+	77,  // 153: asc.v1.Repo.RepoAdmin:input_type -> asc.v1.RepoAdminRequest
+	82,  // 154: asc.v1.Repo.ImportGitPush:input_type -> asc.v1.ImportGitPushRequest
+	84,  // 155: asc.v1.Repo.Ingest:input_type -> asc.v1.IngestRequest
+	86,  // 156: asc.v1.Repo.FindLanding:input_type -> asc.v1.FindLandingRequest
+	88,  // 157: asc.v1.Repo.Classify:input_type -> asc.v1.ClassifyRequest
+	92,  // 158: asc.v1.Repo.Rebase:input_type -> asc.v1.RebaseRequest
+	98,  // 159: asc.v1.Repo.CommitGraph:input_type -> asc.v1.CommitGraphRequest
+	103, // 160: asc.v1.Repo.LineHistory:input_type -> asc.v1.LineHistoryRequest
+	104, // 161: asc.v1.Repo.Compare:input_type -> asc.v1.CompareRequest
+	107, // 162: asc.v1.Repo.RepoConfig:input_type -> asc.v1.RepoConfigRequest
+	111, // 163: asc.v1.Repo.GetPolicy:input_type -> asc.v1.GetPolicyRequest
+	109, // 164: asc.v1.Repo.WatchRefs:input_type -> asc.v1.WatchRefsRequest
+	17,  // 165: asc.v1.Repo.Version:output_type -> asc.v1.VersionResponse
+	19,  // 166: asc.v1.Repo.HasObjects:output_type -> asc.v1.HasObjectsResponse
+	21,  // 167: asc.v1.Repo.GetObjects:output_type -> asc.v1.GetObjectsResponse
+	23,  // 168: asc.v1.Repo.PutObjects:output_type -> asc.v1.PutObjectsResponse
+	25,  // 169: asc.v1.Repo.ListRefs:output_type -> asc.v1.ListRefsResponse
+	30,  // 170: asc.v1.Repo.UpdateRefs:output_type -> asc.v1.UpdateRefsResponse
+	32,  // 171: asc.v1.Repo.Resolve:output_type -> asc.v1.ResolveResponse
+	34,  // 172: asc.v1.Repo.GitMap:output_type -> asc.v1.GitMapResponse
+	37,  // 173: asc.v1.Repo.Log:output_type -> asc.v1.LogResponse
+	39,  // 174: asc.v1.Repo.MergeBase:output_type -> asc.v1.MergeBaseResponse
+	41,  // 175: asc.v1.Repo.IsAncestor:output_type -> asc.v1.IsAncestorResponse
+	44,  // 176: asc.v1.Repo.Diff:output_type -> asc.v1.DiffResponse
+	47,  // 177: asc.v1.Repo.Blame:output_type -> asc.v1.BlameResponse
+	49,  // 178: asc.v1.Repo.LastCommits:output_type -> asc.v1.LastCommitsResponse
+	51,  // 179: asc.v1.Repo.ReadChangeset:output_type -> asc.v1.ReadChangesetResponse
+	54,  // 180: asc.v1.Repo.ReadTree:output_type -> asc.v1.ReadTreeResponse
+	56,  // 181: asc.v1.Repo.ReadFile:output_type -> asc.v1.ReadFileResponse
+	58,  // 182: asc.v1.Repo.Stat:output_type -> asc.v1.StatResponse
+	61,  // 183: asc.v1.Repo.CheckAttr:output_type -> asc.v1.CheckAttrResponse
+	64,  // 184: asc.v1.Repo.Grep:output_type -> asc.v1.GrepResponse
+	66,  // 185: asc.v1.Repo.Archive:output_type -> asc.v1.ArchiveResponse
+	69,  // 186: asc.v1.Repo.Commit:output_type -> asc.v1.CommitResponse
+	72,  // 187: asc.v1.Repo.Merge:output_type -> asc.v1.MergeResponse
+	74,  // 188: asc.v1.Repo.Apply:output_type -> asc.v1.ApplyResponse
+	76,  // 189: asc.v1.Repo.CopyClosure:output_type -> asc.v1.CopyClosureResponse
+	80,  // 190: asc.v1.Repo.RepoAdmin:output_type -> asc.v1.RepoAdminResponse
+	83,  // 191: asc.v1.Repo.ImportGitPush:output_type -> asc.v1.ImportGitPushResponse
+	85,  // 192: asc.v1.Repo.Ingest:output_type -> asc.v1.IngestResponse
+	87,  // 193: asc.v1.Repo.FindLanding:output_type -> asc.v1.FindLandingResponse
+	90,  // 194: asc.v1.Repo.Classify:output_type -> asc.v1.ClassifyResponse
+	93,  // 195: asc.v1.Repo.Rebase:output_type -> asc.v1.RebaseResponse
+	102, // 196: asc.v1.Repo.CommitGraph:output_type -> asc.v1.CommitGraphResponse
+	37,  // 197: asc.v1.Repo.LineHistory:output_type -> asc.v1.LogResponse
+	105, // 198: asc.v1.Repo.Compare:output_type -> asc.v1.CompareResponse
+	108, // 199: asc.v1.Repo.RepoConfig:output_type -> asc.v1.RepoConfigResponse
+	120, // 200: asc.v1.Repo.GetPolicy:output_type -> asc.v1.GetPolicyResponse
+	110, // 201: asc.v1.Repo.WatchRefs:output_type -> asc.v1.RefEvent
+	165, // [165:202] is the sub-list for method output_type
+	128, // [128:165] is the sub-list for method input_type
+	128, // [128:128] is the sub-list for extension type_name
+	128, // [128:128] is the sub-list for extension extendee
+	0,   // [0:128] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_repo_proto_init() }
@@ -9374,7 +9669,7 @@ func file_asc_v1_repo_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_repo_proto_rawDesc), len(file_asc_v1_repo_proto_rawDesc)),
 			NumEnums:      10,
-			NumMessages:   111,
+			NumMessages:   114,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
