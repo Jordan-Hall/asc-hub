@@ -105,9 +105,9 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | NewChange | Open-change form: title, description, reviewers, draft | done | templates/repo/diff/compare.tmpl (Forgejo pull creation) | - |
-| NewChange | Compare bar: base/head, +212 -48 in 9 files, no-conflict chip, ahead/behind, stack of N | ui-only-missing | templates/repo/diff/compare.tmpl; asc_compare.tmpl is a separate page | M |
+| NewChange | Compare bar: base/head, +212 -48 in 9 files, no-conflict chip, ahead/behind, stack of N | ui-only-missing (size, files and changes ahead are shown; the no-conflict chip and behind count remain) | templates/repo/diff/compare.tmpl; asc_compare.tmpl is a separate page | M |
 | NewChange | Title counter '68 of 120', 'Start with a verb' hint, inline validation | done | templates/repo/diff/compare.tmpl | S |
-| NewChange | Intent editor with What/Why/How to check/Risk template and Write/Preview | ui-only-missing | templates/repo/diff/compare.tmpl (description template) | S |
+| NewChange | Intent editor with What/Why/How to check/Risk template and Write/Preview | done | templates/repo/diff/compare.tmpl (description template) | S |
 | NewChange | 'Draft from the diff' (AI writes What/Why/How/Risk from the diff) | needs-both | hub: new route using BYO AI key (services/ascbyo); asc: diff + Classify | L |
 | NewChange | 'Where to look' pointers editor | needs-both | same as the Review intent block | M |
 | NewChange | Reviewer suggestions from ownership and review history, out-of-office note, agent reviewers labelled | needs-both | asc: code owner / review history query; hub: reviewer panel in compare.tmpl | L |
@@ -115,7 +115,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | NewChange | Local checks start on open; 'signed with your key' note | ui-only-missing | templates/repo/diff/compare.tmpl; asc signing (proto/asc/v1/signing.proto) | S |
 | NewChange | Draft autosave on blur (1 s debounce), 'Save as draft', Ctrl+Enter opens | needs-hub-backend | routers/web/user (drafts page exists); form autosave handler; key handler | M |
 | NewChange | Right rail: stack after this change, file list with Show all, 'What policy will ask for' preview | needs-hub-backend | routers/web/repo/compare.go + Changes.Stack and Policy.Evaluate LAND | M |
-| NewChange | 'Review my diff first' self-review shortcut | ui-only-missing | templates/repo/diff/compare.tmpl | S |
+| NewChange | 'Review my diff first' self-review shortcut | done | templates/repo/diff/compare.tmpl | S |
 | NewChange | Blocked-by-secret-scan banner before open; nothing-to-compare; opened/draft toasts | needs-both | nothing-to-compare exists (repo.pulls.nothing_to_compare); secret block needs secretscan.Scan on head (proto/asc/v1/secretscan.proto) + hub gate | M |
 
 ### Checks
