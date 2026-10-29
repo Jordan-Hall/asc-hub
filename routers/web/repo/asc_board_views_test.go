@@ -97,3 +97,9 @@ func TestAscWorkflowFilter(t *testing.T) {
 	assert.Empty(t, ascWorkflowFilter(defs, "on", "nightly"))
 	assert.Equal(t, []string{"a", "b"}, ascWorkflowChain([]ascWorkflowStep{{ID: "a"}, {ID: "b"}}))
 }
+
+func TestAscQueueTarget(t *testing.T) {
+	assert.Equal(t, "refs/heads/main", ascQueueTarget("main"))
+	assert.Equal(t, "refs/heads/feature/x", ascQueueTarget("feature/x"))
+	assert.Equal(t, "refs/heads/main", ascQueueTarget("refs/heads/main"))
+}

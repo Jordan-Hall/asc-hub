@@ -381,6 +381,7 @@ func AscQueueEnqueue(ctx context.Context, doer *user_model.User, pr *issues_mode
 	for _, id := range fresh {
 		ascQueueNote(ctx, id, doer, true)
 	}
+	ascQueueMirrorState(ctx, AscQueueQueued, fresh)
 	log.Info("asc audit: merge queue: repository %d, branch %q: user %d queued %d pull requests up to pull request %d",
 		first.BaseRepoID, first.BaseBranch, doer.ID, len(res.Queued), pr.ID)
 	AscQueueKick(first.BaseRepoID, first.BaseBranch)
@@ -605,6 +606,7 @@ func ascQueueSetState(ctx context.Context, state, reason, blockedHead string, pu
 		return err
 	}
 	ascQueueAnnounceStopped(ctx, stopped, state)
+	ascQueueMirrorState(ctx, state, pullIDs)
 	return nil
 }
 
