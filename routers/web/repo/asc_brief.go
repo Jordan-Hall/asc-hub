@@ -25,11 +25,12 @@ import (
 // the card says so and still shows the size, the risk and the provenance it knows.
 
 const (
-	ascBriefTimeout  = 4 * time.Second
-	ascBriefMaxText  = 8 << 10
-	ascBriefMaxWhere = 20
-	ascBriefMaxFiles = 500
-	ascBriefMaxLines = 1 << 24
+	ascBriefTimeout      = 4 * time.Second
+	ascBriefMaxText      = 8 << 10
+	ascBriefMaxWhere     = 20
+	ascBriefMaxFiles     = 500
+	ascBriefMaxApprovals = 50
+	ascBriefMaxLines     = 1 << 24
 )
 
 // AscBriefWhere is one pointer of "where to look": a path, a line (0 for the whole file) and a note.
@@ -53,6 +54,16 @@ type AscBriefProvenance struct {
 	Minutes   int64 // 0 when the run has not finished
 }
 
+// AscApproval is one verdict a person gave, as asc counts it for the newest version.
+type AscApproval struct {
+	Reviewer         string
+	Version          uint32
+	ChangesRequested bool
+	Applies          bool   // still counts for the newest version
+	Carried          bool   // counts although it was given on an earlier version
+	UnchangedFiles   uint32 // files the newest version did not change since the verdict
+}
+
 // AscBrief is what the review page shows of Review.GetBrief.
 type AscBrief struct {
 	Written  bool // the author wrote a brief
@@ -70,6 +81,7 @@ type AscBrief struct {
 
 	Provenance *AscBriefProvenance
 
+	Approvals                 []AscApproval
 	OpenThreads, TotalThreads uint32
 	ApprovalsCurrent          uint32
 	ApprovalsCarried          uint32
@@ -133,6 +145,19 @@ func ascBriefOf(resp *ascv1.GetBriefResponse, runLink func(uint64) string, fileL
 			prov.Minutes = (p.GetFinished() - p.GetStarted() + 59) / 60
 		}
 		out.Provenance = prov
+	}
+	for i, a := range resp.GetApprovals() {
+		if i >= ascBriefMaxApprovals {
+			break
+		}
+		state := a.GetState()
+		if state != ascv1.ApprovalState_APPROVAL_STATE_APPROVED && state != ascv1.ApprovalState_APPROVAL_STATE_CHANGES_REQUESTED {
+			continue
+		}
+		out.Approvals = append(out.Approvals, AscApproval{
+			Reviewer: asctrust.CleanText(a.GetReviewer(), 80), Version: a.GetVersion(), ChangesRequested: state == ascv1.ApprovalState_APPROVAL_STATE_CHANGES_REQUESTED,
+			Applies: a.GetApplies(), Carried: a.GetCarried(), UnchangedFiles: a.GetUnchangedFiles(),
+		})
 	}
 	if g := resp.GetGate(); g != nil {
 		out.OpenThreads, out.TotalThreads = g.GetOpenThreads(), g.GetTotalThreads()

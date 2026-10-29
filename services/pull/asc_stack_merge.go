@@ -628,6 +628,9 @@ func (b *ascClientBackend) Land(ctx context.Context, req AscLandRequest) (*AscLa
 		if ascclient.ErrorCode(err) == ascCodeNeedsContentMerge {
 			return nil, ErrAscLandNeedsContentMerge
 		}
+		if r := ascRefusalOf(err); r != nil {
+			return nil, r
+		}
 		return nil, fmt.Errorf("UpdateRefs LAND: %w", err)
 	}
 	rewritten := map[string][]byte{}

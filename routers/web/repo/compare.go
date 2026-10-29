@@ -628,6 +628,9 @@ func PrepareCompareDiff(
 	commits := git_model.ParseCommitsWithStatus(ctx, ci.CompareInfo.Commits, ctx.Repo.Repository)
 	ctx.Data["Commits"] = commits
 	ctx.Data["CommitCount"] = len(commits)
+	if ci.HeadRepo != nil && ci.HeadRepo.ID == ctx.Repo.Repository.ID && len(commits) > 0 {
+		prepareCompareState(ctx, ctx.Repo.GitRepo.Path, ci.CompareInfo.BaseCommitID, headCommitID)
+	}
 
 	if len(commits) == 1 {
 		c := commits[0]
