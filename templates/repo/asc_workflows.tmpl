@@ -22,6 +22,22 @@ Template Attributes:
 		{{template "repo/asc_agents_notice" .}}
 
 		{{if not .AscAgentsDisabled}}
+			{{if or .AscWorkflowDefs .AscWorkflowState .AscWorkflowQ}}
+			<div class="ag-bar" data-testid="asc-workflow-filters">
+				<div class="rv-chips" role="group" aria-label="{{ctx.Locale.Tr "asc_review.wf_filter_state"}}">
+					<a class="rv-chip-btn" href="{{.AscWorkflowsBase}}"{{if not .AscWorkflowState}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.agents_filter_all"}} <span class="rv-count">{{.AscWorkflowCountAll}}</span></a>
+					<a class="rv-chip-btn" href="{{.AscWorkflowsBase}}?state=on"{{if eq .AscWorkflowState "on"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.wf_on"}} <span class="rv-count">{{.AscWorkflowCountOn}}</span></a>
+					<a class="rv-chip-btn" href="{{.AscWorkflowsBase}}?state=off"{{if eq .AscWorkflowState "off"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.wf_off"}} <span class="rv-count">{{.AscWorkflowCountOff}}</span></a>
+					<a class="rv-chip-btn" href="{{.AscWorkflowsBase}}?state=invalid"{{if eq .AscWorkflowState "invalid"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.wf_not_valid"}} <span class="rv-count">{{.AscWorkflowCountInvalid}}</span></a>
+				</div>
+				<form class="ag-search" method="get" action="{{.AscWorkflowsBase}}" role="search">
+					{{if .AscWorkflowState}}<input type="hidden" name="state" value="{{.AscWorkflowState}}">{{end}}
+					<label class="rv-sr" for="wf-q">{{ctx.Locale.Tr "asc_review.wf_search"}}</label>
+					<input class="rv-input ag-q" id="wf-q" type="search" name="q" maxlength="80" value="{{.AscWorkflowQ}}" placeholder="{{ctx.Locale.Tr "asc_review.wf_search"}}" autocomplete="off">
+					<button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_review.agents_filter_apply"}}</button>
+				</form>
+			</div>
+			{{end}}
 			{{if .AscWorkflowDefs}}
 				<ul class="rv-list rv-wf-defs" data-testid="asc-workflow-defs">
 					{{range .AscWorkflowDefs}}
@@ -34,13 +50,30 @@ Template Attributes:
 								<ul class="rv-wf-triggers" aria-label="{{ctx.Locale.Tr "asc_review.wf_starts_when"}}">
 									{{range .Triggers}}<li class="rv-pill rv-pill-outline">{{.Label}}</li>{{end}}
 								</ul>
+								{{if .Steps}}<p class="rv-li-sub wf-chain" aria-label="{{ctx.Locale.Tr "asc_review.wf_chain"}}">{{range $i, $s := .Steps}}{{if $i}} <span aria-hidden="true">&gt;</span> {{end}}<code class="rv-bare">{{$s.ID}}</code>{{end}}</p>{{end}}
 								<p class="rv-li-meta">
 									<span>{{ctx.Locale.TrN (len .Steps) "asc_review.wf_steps_one" "asc_review.wf_steps_other" (len .Steps)}}</span>
 									{{if .Path}}<span><code>{{.Path}}</code></span>{{end}}
 								</p>
 								{{if .Error}}<div class="rv-run-fail" role="note">{{.Error}}</div>{{end}}
 							</div>
-							<div class="rv-wf-act"><a class="rv-btn rv-btn-secondary" href="{{.Link}}">{{if .Valid}}{{ctx.Locale.Tr "asc_review.wf_open"}}{{else}}{{ctx.Locale.Tr "asc_review.wf_fix"}}{{end}}</a></div>
+							<div class="rv-wf-act">
+								{{if and .Valid $.CanChangeWorkflows}}
+								<form method="post" action="{{.Link}}/enable" class="wf-switch-form">
+									{{$.CsrfTokenHtml}}
+									<input type="hidden" name="enabled" value="{{if .Enabled}}0{{else}}1{{end}}">
+									<input type="hidden" name="next" value="list">
+									<button class="wf-switch" type="submit" role="switch" aria-checked="{{if .Enabled}}true{{else}}false{{end}}" aria-label="{{ctx.Locale.Tr "asc_review.wf_switch" .Name}}"><span></span></button>
+								</form>
+								{{if and .Enabled (not .Inputs)}}
+								<form method="post" action="{{.Link}}/trigger">
+									{{$.CsrfTokenHtml}}
+									<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.wf_run_now"}}</button>
+								</form>
+								{{end}}
+								{{end}}
+								<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.Link}}">{{if .Valid}}{{ctx.Locale.Tr "asc_review.wf_open"}}{{else}}{{ctx.Locale.Tr "asc_review.wf_fix"}}{{end}}</a>
+							</div>
 						</li>
 					{{end}}
 				</ul>
@@ -49,6 +82,7 @@ Template Attributes:
 				<div class="rv-empty" data-testid="asc-workflow-defs-empty">
 					<h2>{{ctx.Locale.Tr "asc_review.wf_none"}}</h2>
 					<p>{{ctx.Locale.Tr "asc_review.wf_none_help"}} <code>.asc/workflows/review.toml</code></p>
+					{{if or .AscWorkflowState .AscWorkflowQ}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.AscWorkflowsBase}}">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></div>{{end}}
 				</div>
 			{{end}}
 

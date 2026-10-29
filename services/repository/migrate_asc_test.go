@@ -79,7 +79,10 @@ func newAscMigrationFixture(t *testing.T) *ascMigrationFixture {
 	setting.RepoRootPath, setting.Asc.Enabled, setting.InternalToken = t.TempDir(), true, "internal-token-for-tests"
 	oldWait, oldPoll := ascImportVisibleWait, ascImportVisiblePoll
 	ascImportVisibleWait, ascImportVisiblePoll = 300*time.Millisecond, 10*time.Millisecond
+	oldEnsure := ensureAscRepo
+	ensureAscRepo = func(context.Context, *repo_model.Repository, string) error { return nil }
 	t.Cleanup(func() {
+		ensureAscRepo = oldEnsure
 		setting.RepoRootPath, setting.Asc.Enabled, setting.InternalToken = oldRoot, oldEnabled, oldToken
 		ascImportVisibleWait, ascImportVisiblePoll = oldWait, oldPoll
 	})

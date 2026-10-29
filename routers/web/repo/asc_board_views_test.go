@@ -80,3 +80,20 @@ func TestAscQueueTimingOf(t *testing.T) {
 	tm, _ = ascQueueTimingOf(&ascv1.QueueEntry{Change: raw, State: ascv1.QueueEntryState_QUEUE_ENTRY_STATE_WAITING, Timing: &ascv1.QueueEntryTiming{Stage: "<script>"}})
 	assert.Empty(t, tm.Stage, "a stage outside the fixed set is not passed on")
 }
+
+func TestAscWorkflowFilter(t *testing.T) {
+	defs := []ascWorkflowDef{
+		{Name: "review", Valid: true, Enabled: true, Description: "Review every change", Path: ".asc/workflows/review.toml"},
+		{Name: "nightly", Valid: true, Description: "Nightly dependency check"},
+		{Name: "broken", Valid: false},
+	}
+	c := ascWorkflowCounts(defs)
+	assert.Equal(t, ascWorkflowCount{All: 3, On: 1, Off: 1, Invalid: 1}, c)
+	assert.Len(t, ascWorkflowFilter(defs, "", ""), 3)
+	assert.Equal(t, "review", ascWorkflowFilter(defs, "on", "")[0].Name)
+	assert.Equal(t, "nightly", ascWorkflowFilter(defs, "off", "")[0].Name)
+	assert.Equal(t, "broken", ascWorkflowFilter(defs, "invalid", "")[0].Name)
+	assert.Len(t, ascWorkflowFilter(defs, "", "DEPENDENCY"), 1, "the search ignores case and reads the description")
+	assert.Empty(t, ascWorkflowFilter(defs, "on", "nightly"))
+	assert.Equal(t, []string{"a", "b"}, ascWorkflowChain([]ascWorkflowStep{{ID: "a"}, {ID: "b"}}))
+}
