@@ -1,7 +1,7 @@
 {{template "base/head" .}}
 {{template "user/auth/shell_start" (dict "Data" . "Hook" "user signin" "Title" (ctx.Locale.Tr "twofa") "Lead" (ctx.Locale.Tr "asc_auth.twofa_lead"))}}
 	<form class="ds-form ignore-dirty" action="{{.Link}}" method="post">
-		{{template "shared/ds/field" (dict "ID" "passcode" "Name" "passcode" "Label" (ctx.Locale.Tr "passcode") "Autocomplete" "one-time-code" "InputMode" "numeric" "Pattern" "[0-9]*" "Autofocus" true "Required" true "Extra" "off" "Mono" true)}}
+		{{template "shared/ds/field" (dict "ID" "passcode" "Name" "passcode" "Label" (ctx.Locale.Tr "passcode") "Autocomplete" "one-time-code" "InputMode" "numeric" "Pattern" "[0-9]*" "Autofocus" true "CodeField" true "Required" true "Extra" "off" "Mono" true)}}
 		<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block">{{ctx.Locale.Tr "auth.verify"}}</button>
 		<p class="ds-auth-alt"><a class="ds-link" href="{{AppSubUrl}}/user/two_factor/scratch">{{ctx.Locale.Tr "auth.use_scratch_code"}}</a></p>
 	</form>

@@ -278,7 +278,7 @@ func AscAgentsLog(ctx *context.Context) {
 		ctx.NotFound("asc agent run", nil)
 		return
 	}
-	if !ascAgentsMaySeeRun(ctx, got.GetRun().GetCreatedBy()) {
+	if !ascAgentsMaySeeRun(ctx, got.GetRun().GetCreatedById()) {
 		ctx.Error(http.StatusForbidden) // the log holds what the agent read and wrote
 		return
 	}

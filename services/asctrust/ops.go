@@ -99,6 +99,19 @@ func LoadPolicySummary(ctx context.Context, conn grpc.ClientConnInterface, repoN
 	return sum, nil
 }
 
+// QuarantineAllowed says whether the policy of the repository allows a failing check to be quarantined
+// ([ci] allow_quarantine = true). It fails closed: a policy that is missing, cannot be read or cannot be used is "no".
+func QuarantineAllowed(ctx context.Context, conn grpc.ClientConnInterface, repoName string) bool {
+	cctx, cancel := context.WithTimeout(ctx, CallTimeout)
+	defer cancel()
+	src, err := ascv1.NewPolicyClient(conn).GetSource(cctx, &ascv1.GetPolicySourceRequest{Repo: RepoRef(repoName)})
+	if err != nil || !src.GetPresent() || src.GetParsed().GetError() != "" || len(src.GetText()) > MaxPolicyBytes {
+		return false
+	}
+	allowed, _ := TomlBool(string(src.GetText()), "ci", "allow_quarantine")
+	return allowed
+}
+
 // Preview is the answer to "check this draft".
 type Preview struct {
 	Valid       bool

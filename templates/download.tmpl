@@ -164,6 +164,14 @@ target/release/asc --version</div>
 				</section>
 				{{end}}
 
+				<section class="ds-card" aria-labelledby="asc-req-title">
+					<div class="ds-card-h"><h2 class="ds-t-h4" id="asc-req-title">{{ctx.Locale.Tr "asc_site.dl_requirements"}}</h2></div>
+					<ul class="site-dl-links ds-card-b">
+						<li>{{ctx.Locale.Tr "asc_download.req_platforms"}}</li>
+						<li>{{ctx.Locale.Tr "asc_download.req_hub"}}</li>
+					</ul>
+				</section>
+
 				{{if or $m.Extensions.VSCode $m.Extensions.JetBrains}}
 				<section class="ds-card" aria-labelledby="asc-editors-title">
 					<div class="ds-card-h"><h2 class="ds-t-h4" id="asc-editors-title">{{ctx.Locale.Tr "asc_download.extensions_title"}}</h2></div>

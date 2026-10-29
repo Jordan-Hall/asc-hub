@@ -125,3 +125,17 @@ func GetAscStackChildren(ctx context.Context, parentID int64) ([]*PullRequestAsc
 	var rows []*PullRequestAscStack
 	return rows, db.GetEngine(ctx).Where("stack_parent_id = ?", parentID).OrderBy("id").Find(&rows)
 }
+
+// ListAscStackBottoms returns the stack rows of repoID that have no parent pull request: the bottoms of the stacks,
+// and the changes whose parent has not been linked (yet).
+func ListAscStackBottoms(ctx context.Context, repoID int64) ([]*PullRequestAscStack, error) {
+	var rows []*PullRequestAscStack
+	err := db.GetEngine(ctx).Where("repo_id = ? AND stack_parent_id = 0", repoID).OrderBy("id").Find(&rows)
+	return rows, err
+}
+
+// SetAscStackParent sets the parent pull request of the stack row of pullID.
+func SetAscStackParent(ctx context.Context, pullID, parentID int64) error {
+	_, err := db.GetEngine(ctx).Where("pull_id = ?", pullID).Cols("stack_parent_id").Update(&PullRequestAscStack{StackParentID: parentID})
+	return err
+}

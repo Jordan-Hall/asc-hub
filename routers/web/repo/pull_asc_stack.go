@@ -5,6 +5,7 @@ package repo
 
 import (
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/services/agit"
 	"forgejo.org/services/context"
 	pull_service "forgejo.org/services/pull"
 )
@@ -15,6 +16,12 @@ import (
 // prepareAscStackPanel puts the stack panel of a stacked pull request into ctx.Data. It does nothing for a
 // pull request that is not stacked, and reports false after it has answered with an error.
 func prepareAscStackPanel(ctx *context.Context, pull *issues_model.PullRequest) bool {
+	if pull != nil && pull.BaseRepo == nil {
+		_ = pull.LoadBaseRepo(ctx)
+	}
+	if pull != nil && pull.BaseRepo != nil {
+		agit.RelinkAscStack(ctx, pull.BaseRepo, pull)
+	}
 	panel, err := pull_service.BuildAscStackPanel(ctx, pull)
 	if err != nil {
 		ctx.ServerError("BuildAscStackPanel", err)

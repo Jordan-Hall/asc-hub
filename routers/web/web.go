@@ -411,7 +411,7 @@ func Routes() *web.Route {
 		func() {
 			registerRoutes(routes)
 		},
-		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence,
+		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence, ascMaintenanceGuard,
 		// TODO: GetNotificationCount & GetActiveStopwatch really seem like things that could be folded into Contexter or as helper functions
 		user.GetNotificationCount, repo.GetActiveStopwatch,
 		goGet)
@@ -438,7 +438,7 @@ func Routes() *web.Route {
 		auth.InfoOAuth)
 
 	routes.NotFound(
-		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence,
+		gzipMid, sessioner, context.Contexter(), webAuth(buildAuthGroup()), ascTouchPresence, ascMaintenanceGuard,
 		// TODO: GetNotificationCount & GetActiveStopwatch really seem like things that could be folded into Contexter or as helper functions
 		user.GetNotificationCount, repo.GetActiveStopwatch,
 		goGet,
@@ -655,6 +655,7 @@ func registerRoutes(m *web.Route) {
 	m.Get("/-/docs", ignSignIn, AscDocs)
 	m.Get("/-/docs/{slug}", ignSignIn, AscDocsPage)
 	m.Get("/-/asc-sw.js", AscServiceWorker)
+	m.Get("/-/asc/palette", ignSignIn, AscPalette)
 	m.Get("/-/offline", ignSignIn, AscOffline)
 	m.Get("/-/get-started", reqSignIn, AscGetStarted)
 	m.Get("/user/welcome", reqSignIn, Welcome)
@@ -716,6 +717,7 @@ func registerRoutes(m *web.Route) {
 			}, openIDSignUpEnabled)
 		}, openIDSignInEnabled)
 		m.Get("/sign_up", auth.SignUp)
+		m.Get("/sign_up/name", auth.SignUpNameAvailable)
 		m.Post("/sign_up", web.Bind(forms.RegisterForm{}), auth.SignUpPost)
 		m.Get("/link_account", linkAccountEnabled, auth.LinkAccount)
 		m.Post("/link_account_signin", linkAccountEnabled, web.Bind(forms.SignInForm{}), auth.LinkAccountPostSignIn)
@@ -938,6 +940,8 @@ func registerRoutes(m *web.Route) {
 
 		m.Get("/self_check", admin.SelfCheck)
 		m.Get("/asc/backups", admin.Backups)
+		m.Get("/maintenance", admin.Maintenance)
+		m.Post("/maintenance", admin.MaintenancePost)
 
 		m.Group("/config", func() {
 			m.Get("", admin.Config)
@@ -1151,6 +1155,7 @@ func registerRoutes(m *web.Route) {
 					Post(web.Bind(forms.UpdateOrgSettingForm{}), org.SettingsPost)
 				m.Post("/avatar", web.Bind(forms.AvatarForm{}), org.SettingsAvatar)
 				m.Post("/avatar/delete", org.SettingsDeleteAvatar)
+				m.Combo("/domain").Get(org.SettingsDomain).Post(org.SettingsDomainPost)
 				m.Group("/applications", func() {
 					m.Get("", org.Applications)
 					m.Post("/oauth2", web.Bind(forms.EditOAuth2ApplicationForm{}), org.OAuthApplicationsPost)
