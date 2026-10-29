@@ -47,6 +47,10 @@ TSRX (https://tsrx.dev/) is a TypeScript extension for declarative UIs, files `.
 | asc | Diff and review: syntax-aware hunks and the "where to look" block for `.tsrx` | review | 3 |
 | Tooling | `asc` formatter/lint hooks: allow Prettier and ESLint TSRX plugins in workflow templates; document language server use | docs | 3 |
 
+## CLI authentication model (user requirement)
+
+Authentication is per repository (per host and path), not a separate up-front step. `asc clone <url>` of a public repository needs no sign-in. When the server answers that the repository needs credentials, the client asks right there, the way git does: it tries a stored credential for that host and path (credential store / git credential helpers), else starts the device sign-in inline (shows the code and link, waits for approval) or prompts for a token when there is no browser, then retries the clone and stores the credential scoped to that host (and path when the user chooses). Push, fetch and submit behave the same on a 401. `asc auth login` remains for scripted setup but is never required before a first clone. Non-interactive runs (no TTY, CI) never prompt: they fail with a clear message naming `ASC_TOKEN` / credential helper options.
+
 ## Release cadence
 
 - When Phase 1 (UI) is complete: cut a release (tag, signed artifacts, images, downloads published) and deploy it to staging.
