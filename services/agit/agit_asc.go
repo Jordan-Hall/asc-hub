@@ -259,12 +259,15 @@ func logAscStack(err error, change string) {
 // change that is a bottom, and on any error.
 func RelinkAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues_model.PullRequest) {
 	row, err := issues_model.GetPullRequestAscStack(ctx, pr.ID)
-	if err != nil || row == nil || row.StackParentID != 0 {
+	if err != nil || row == nil {
 		return
 	}
 	// the changes above this one may be unlinked too: look at them from here
 	if err := adoptAscChildren(ctx, repo, pr, row.AscChange); err != nil {
 		log.Warn("asc stack: adopting the children of pull request %d: %v", pr.ID, err)
+	}
+	if row.StackParentID != 0 {
+		return
 	}
 	parent, err := ascParentOf(ctx, repo, row.AscChange)
 	if err != nil || parent == "" {
