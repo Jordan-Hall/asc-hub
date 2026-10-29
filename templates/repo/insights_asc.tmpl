@@ -1,5 +1,5 @@
 {{/* The Insights board of an asc repository: tiles, landings per day, review time, recent and waiting stacks. Dot: page data. */}}
-{{with .AscInsights}}
+{{if .AscInsights}}{{with .AscInsights}}
 <div class="rp-ins" data-testid="asc-insights">
 	<div class="rp-ins-head">
 		<div>
@@ -20,6 +20,7 @@
 		</div>
 	</div>
 
+	{{if .Truncated}}<div class="ds-banner ds-banner-warn" role="status">{{ctx.Locale.Tr "asc_rp.ins_truncated"}}</div>{{end}}
 	<dl class="rp-ins-tiles">
 		<div class="ds-card rp-ins-tile">
 			<dt>{{ctx.Locale.Tr "asc_rp.ins_landed"}}</dt>
@@ -107,6 +108,7 @@
 		</div>
 	</div>
 </div>
+{{end}}
 {{else if .AscInsightsFailed}}
 <div class="ds-card rp-stacks-error" role="alert">
 	<strong>{{ctx.Locale.Tr "asc_rp.ins_failed"}}</strong>

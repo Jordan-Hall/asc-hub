@@ -142,6 +142,7 @@ type insPage struct {
 	Recent                  []insStack
 	Waiting                 []*stackRow
 	Trend                   string // faster, slower or ""
+	Truncated               bool   // asc cut the data: the numbers are lower bounds
 }
 
 // insMedian is the median of minutes (the mean of the two middle values for an even count); ok is false for none.
@@ -517,6 +518,9 @@ func prepareAscInsights(ctx *context.Context) {
 		}
 	}
 	pg.Sizes = insSizes(mine)
+	if r := fetchInsightsStats(ctx, repo, who, days); r != nil {
+		applyInsightsStats(pg, r)
+	}
 	pg.Recent = insRecentStacks(mine, now.AddDate(0, 0, -14), 5)
 
 	if changes, landed, err := loadStackChanges(ctx, repo, ctx.Repo.GitRepo, ctx.Doer); err == nil {
