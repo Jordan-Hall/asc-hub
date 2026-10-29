@@ -59,9 +59,13 @@ func TestAPIRepoLFSMigrateLocal(t *testing.T) {
 func TestAPIRepoLFSMigrateWithoutLFSServerIsRefused(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 
-	old := setting.LFS.StartServer
-	setting.LFS.StartServer = false
-	defer func() { setting.LFS.StartServer = old }()
+	old, oldLocal, oldNet := setting.LFS.StartServer, setting.ImportLocalPaths, setting.Migrations.AllowLocalNetworks
+	setting.LFS.StartServer, setting.ImportLocalPaths, setting.Migrations.AllowLocalNetworks = false, true, true
+	require.NoError(t, migrations_allowlist.Init())
+	defer func() {
+		setting.LFS.StartServer, setting.ImportLocalPaths, setting.Migrations.AllowLocalNetworks = old, oldLocal, oldNet
+		require.NoError(t, migrations_allowlist.Init())
+	}()
 
 	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
 	token := getTokenForLoggedInUser(t, loginUser(t, user.Name), auth_model.AccessTokenScopeWriteRepository)
