@@ -81,8 +81,9 @@ const (
 	WatchEvent_KIND_OP_FINISHED WatchEvent_Kind = 5
 	WatchEvent_KIND_SWITCH_DONE WatchEvent_Kind = 6
 	WatchEvent_KIND_RESYNC      WatchEvent_Kind = 7
-	WatchEvent_KIND_STACK       WatchEvent_Kind = 8 // C31; emitted by C49
-	WatchEvent_KIND_CLOUD       WatchEvent_Kind = 9
+	WatchEvent_KIND_STACK       WatchEvent_Kind = 8
+	// C31; emitted by C49
+	WatchEvent_KIND_CLOUD WatchEvent_Kind = 9 // cloud events go to the workspace owner only (§21.3.7)
 )
 
 // Enum value maps for WatchEvent_Kind.
@@ -412,13 +413,14 @@ func (x *WsStatusResponse) GetToken() string {
 }
 
 type WsDiffRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
-	From          string                 `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
-	To            string                 `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"` // "index" | "worktree" | revspec
-	Paths         [][]byte               `protobuf:"bytes,4,rep,name=paths,proto3" json:"paths,omitempty"`
-	Format        DiffFormat             `protobuf:"varint,5,opt,name=format,proto3,enum=asc.v1.DiffFormat" json:"format,omitempty"`
-	Context       uint32                 `protobuf:"varint,6,opt,name=context,proto3" json:"context,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	WsId  string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	From  string                 `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
+	To    string                 `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
+	// "index" | "worktree" | revspec
+	Paths         [][]byte   `protobuf:"bytes,4,rep,name=paths,proto3" json:"paths,omitempty"`
+	Format        DiffFormat `protobuf:"varint,5,opt,name=format,proto3,enum=asc.v1.DiffFormat" json:"format,omitempty"`
+	Context       uint32     `protobuf:"varint,6,opt,name=context,proto3" json:"context,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -804,7 +806,7 @@ type WatchEvent struct {
 	New           []byte                 `protobuf:"bytes,5,opt,name=new,proto3" json:"new,omitempty"`
 	Op            string                 `protobuf:"bytes,6,opt,name=op,proto3" json:"op,omitempty"`
 	Token         string                 `protobuf:"bytes,7,opt,name=token,proto3" json:"token,omitempty"`
-	Change        []byte                 `protobuf:"bytes,8,opt,name=change,proto3" json:"change,omitempty"`
+	Change        []byte                 `protobuf:"bytes,8,opt,name=change,proto3" json:"change,omitempty"` // KIND_STACK: the change id (C31)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -900,7 +902,7 @@ type WsStageRequest struct {
 	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
 	Add           [][]byte               `protobuf:"bytes,2,rep,name=add,proto3" json:"add,omitempty"`
 	Remove        [][]byte               `protobuf:"bytes,3,rep,name=remove,proto3" json:"remove,omitempty"`
-	Patch         []byte                 `protobuf:"bytes,4,opt,name=patch,proto3" json:"patch,omitempty"`
+	Patch         []byte                 `protobuf:"bytes,4,opt,name=patch,proto3" json:"patch,omitempty"` // git apply --cached format
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

@@ -35,6 +35,9 @@ const (
 	Review_GrantOverride_FullMethodName         = "/asc.v1.Review/GrantOverride"
 	Review_RevokeOverride_FullMethodName        = "/asc.v1.Review/RevokeOverride"
 	Review_ListOverrides_FullMethodName         = "/asc.v1.Review/ListOverrides"
+	Review_HunkContext_FullMethodName           = "/asc.v1.Review/HunkContext"
+	Review_GetConflicts_FullMethodName          = "/asc.v1.Review/GetConflicts"
+	Review_DraftContext_FullMethodName          = "/asc.v1.Review/DraftContext"
 )
 
 // ReviewClient is the client API for Review service.
@@ -65,6 +68,9 @@ type ReviewClient interface {
 	GrantOverride(ctx context.Context, in *GrantOverrideRequest, opts ...grpc.CallOption) (*GrantOverrideResponse, error)
 	RevokeOverride(ctx context.Context, in *RevokeOverrideRequest, opts ...grpc.CallOption) (*RevokeOverrideResponse, error)
 	ListOverrides(ctx context.Context, in *ListOverridesRequest, opts ...grpc.CallOption) (*ListOverridesResponse, error)
+	HunkContext(ctx context.Context, in *HunkContextRequest, opts ...grpc.CallOption) (*HunkContextResponse, error)
+	GetConflicts(ctx context.Context, in *GetChangeConflictsRequest, opts ...grpc.CallOption) (*GetChangeConflictsResponse, error)
+	DraftContext(ctx context.Context, in *DraftContextRequest, opts ...grpc.CallOption) (*DraftContextResponse, error)
 }
 
 type reviewClient struct {
@@ -235,6 +241,36 @@ func (c *reviewClient) ListOverrides(ctx context.Context, in *ListOverridesReque
 	return out, nil
 }
 
+func (c *reviewClient) HunkContext(ctx context.Context, in *HunkContextRequest, opts ...grpc.CallOption) (*HunkContextResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HunkContextResponse)
+	err := c.cc.Invoke(ctx, Review_HunkContext_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) GetConflicts(ctx context.Context, in *GetChangeConflictsRequest, opts ...grpc.CallOption) (*GetChangeConflictsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetChangeConflictsResponse)
+	err := c.cc.Invoke(ctx, Review_GetConflicts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewClient) DraftContext(ctx context.Context, in *DraftContextRequest, opts ...grpc.CallOption) (*DraftContextResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DraftContextResponse)
+	err := c.cc.Invoke(ctx, Review_DraftContext_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReviewServer is the server API for Review service.
 // All implementations should embed UnimplementedReviewServer
 // for forward compatibility.
@@ -263,6 +299,9 @@ type ReviewServer interface {
 	GrantOverride(context.Context, *GrantOverrideRequest) (*GrantOverrideResponse, error)
 	RevokeOverride(context.Context, *RevokeOverrideRequest) (*RevokeOverrideResponse, error)
 	ListOverrides(context.Context, *ListOverridesRequest) (*ListOverridesResponse, error)
+	HunkContext(context.Context, *HunkContextRequest) (*HunkContextResponse, error)
+	GetConflicts(context.Context, *GetChangeConflictsRequest) (*GetChangeConflictsResponse, error)
+	DraftContext(context.Context, *DraftContextRequest) (*DraftContextResponse, error)
 }
 
 // UnimplementedReviewServer should be embedded to have
@@ -319,6 +358,15 @@ func (UnimplementedReviewServer) RevokeOverride(context.Context, *RevokeOverride
 }
 func (UnimplementedReviewServer) ListOverrides(context.Context, *ListOverridesRequest) (*ListOverridesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOverrides not implemented")
+}
+func (UnimplementedReviewServer) HunkContext(context.Context, *HunkContextRequest) (*HunkContextResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HunkContext not implemented")
+}
+func (UnimplementedReviewServer) GetConflicts(context.Context, *GetChangeConflictsRequest) (*GetChangeConflictsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetConflicts not implemented")
+}
+func (UnimplementedReviewServer) DraftContext(context.Context, *DraftContextRequest) (*DraftContextResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DraftContext not implemented")
 }
 func (UnimplementedReviewServer) testEmbeddedByValue() {}
 
@@ -628,6 +676,60 @@ func _Review_ListOverrides_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Review_HunkContext_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HunkContextRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).HunkContext(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_HunkContext_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).HunkContext(ctx, req.(*HunkContextRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_GetConflicts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChangeConflictsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).GetConflicts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_GetConflicts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).GetConflicts(ctx, req.(*GetChangeConflictsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Review_DraftContext_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DraftContextRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).DraftContext(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_DraftContext_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).DraftContext(ctx, req.(*DraftContextRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Review_ServiceDesc is the grpc.ServiceDesc for Review service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -698,6 +800,18 @@ var Review_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOverrides",
 			Handler:    _Review_ListOverrides_Handler,
+		},
+		{
+			MethodName: "HunkContext",
+			Handler:    _Review_HunkContext_Handler,
+		},
+		{
+			MethodName: "GetConflicts",
+			Handler:    _Review_GetConflicts_Handler,
+		},
+		{
+			MethodName: "DraftContext",
+			Handler:    _Review_DraftContext_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
