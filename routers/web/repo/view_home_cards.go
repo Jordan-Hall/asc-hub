@@ -196,7 +196,11 @@ func homeStackOf(ctx gocontext.Context, repoID int64, repoLink, sha string, canP
 	if err != nil || pr.HeadBranch == "" {
 		return "", ""
 	}
-	return pr.HeadBranch, fmt.Sprintf("%s/pulls/%d", repoLink, pr.Index)
+	title := ""
+	if pr.LoadIssue(ctx) == nil && pr.Issue != nil {
+		title = pr.Issue.Title
+	}
+	return ascStackLabel(pr.HeadBranch, title), fmt.Sprintf("%s/pulls/%d", repoLink, pr.Index)
 }
 
 // buildHomeLanded decorates commits with their size and stack. Each lookup that fails leaves its field empty.
