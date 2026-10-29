@@ -8,7 +8,6 @@ import (
 	"path"
 	"testing"
 
-	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/lfs"
@@ -31,15 +30,13 @@ func TestAPIRepoLFSMigrateLocal(t *testing.T) {
 	require.NoError(t, migrations_allowlist.Init())
 
 	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
-	session := loginUser(t, user.Name)
-	token := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeWriteRepository)
 
 	req := NewRequestWithJSON(t, "POST", "/api/v1/repos/migrate", &api.MigrateRepoOptions{
 		CloneAddr:   path.Join(setting.RepoRootPath, "migration/lfs-test.git"),
 		RepoOwnerID: user.ID,
 		RepoName:    "lfs-test-local",
 		LFS:         true,
-	}).AddTokenAuth(token)
+	}).AddBasicAuth(user.Name)
 	resp := MakeRequest(t, req, NoExpectedStatus)
 	assert.Equal(t, http.StatusCreated, resp.Code)
 
@@ -52,4 +49,28 @@ func TestAPIRepoLFSMigrateLocal(t *testing.T) {
 	setting.ImportLocalPaths = oldImportLocalPaths
 	setting.Migrations.AllowLocalNetworks = oldAllowLocalNetworks
 	require.NoError(t, migrations_allowlist.Init()) // reset old migration settings
+}
+
+// LFS asked for on a server that does not run LFS is an error. It used to be dropped, and the repository came
+// out with pointer files and no word about it.
+func TestAPIRepoLFSMigrateWithoutLFSServerIsRefused(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	old, oldLocal, oldNet := setting.LFS.StartServer, setting.ImportLocalPaths, setting.Migrations.AllowLocalNetworks
+	setting.LFS.StartServer, setting.ImportLocalPaths, setting.Migrations.AllowLocalNetworks = false, true, true
+	require.NoError(t, migrations_allowlist.Init())
+	defer func() {
+		setting.LFS.StartServer, setting.ImportLocalPaths, setting.Migrations.AllowLocalNetworks = old, oldLocal, oldNet
+		require.NoError(t, migrations_allowlist.Init())
+	}()
+
+	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
+	req := NewRequestWithJSON(t, "POST", "/api/v1/repos/migrate", &api.MigrateRepoOptions{
+		CloneAddr:   path.Join(setting.RepoRootPath, "migration/lfs-test.git"),
+		RepoOwnerID: user.ID,
+		RepoName:    "lfs-without-server",
+		LFS:         true,
+	}).AddBasicAuth(user.Name)
+	resp := MakeRequest(t, req, http.StatusUnprocessableEntity)
+	assert.Contains(t, resp.Body.String(), "LFS_START_SERVER")
 }

@@ -31,7 +31,44 @@ type fakeAscImport struct {
 	ascv1.UnimplementedRepoServer
 	mu      sync.Mutex
 	imports []*ascv1.ImportGitPushRequest
+	trunks  []string
 	refuse  error
+}
+
+// fakeSecretScan answers every scan with one finding, and records the notes it is given.
+type fakeSecretScan struct {
+	ascv1.UnimplementedSecretScanServer
+	mu      sync.Mutex
+	revs    []string
+	noted   map[uint64]string
+	findOne bool
+}
+
+func (f *fakeSecretScan) Scan(_ context.Context, req *ascv1.ScanSecretsRequest) (*ascv1.ScanSecretsResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.revs = append(f.revs, req.GetRev())
+	if !f.findOne {
+		return &ascv1.ScanSecretsResponse{}, nil
+	}
+	return &ascv1.ScanSecretsResponse{Findings: []*ascv1.SecretFinding{{Id: 7, State: ascv1.SecretFindingState_SECRET_FINDING_STATE_OPEN}}}, nil
+}
+
+func (f *fakeSecretScan) UpdateFinding(_ context.Context, req *ascv1.UpdateSecretFindingRequest) (*ascv1.UpdateSecretFindingResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.noted[req.GetId()] = req.GetNote()
+	return &ascv1.UpdateSecretFindingResponse{}, nil
+}
+
+// RepoAdmin records the default branches asc is told.
+func (f *fakeAscImport) RepoAdmin(_ context.Context, req *ascv1.RepoAdminRequest) (*ascv1.RepoAdminResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if b := req.GetSetDefaultBranch(); b != "" {
+		f.trunks = append(f.trunks, b)
+	}
+	return &ascv1.RepoAdminResponse{}, nil
 }
 
 func (f *fakeAscImport) ListRefs(context.Context, *ascv1.ListRefsRequest) (*ascv1.ListRefsResponse, error) {
@@ -70,6 +107,7 @@ func gitIn(t *testing.T, dir, stdin string, args ...string) string {
 type ascMigrationFixture struct {
 	repo   *repo_model.Repository
 	fake   *fakeAscImport
+	secret *fakeSecretScan
 	commit string
 }
 
@@ -106,13 +144,16 @@ func newAscMigrationFixture(t *testing.T) *ascMigrationFixture {
 	conn, err := grpc.NewClient(l.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	api := ascv1.NewRepoClient(conn)
-	restoreSync := ascsync.UseClient(api)
+	secret := &fakeSecretScan{noted: map[uint64]string{}, findOne: true}
+	ascv1.RegisterSecretScanServer(srv, secret)
+	restoreSync, restoreSecret := ascsync.UseClient(api), ascsync.UseSecretClient(ascv1.NewSecretScanClient(conn))
 	t.Cleanup(func() {
 		restoreSync()
+		restoreSecret()
 		_ = conn.Close()
 		srv.Stop()
 	})
-	return &ascMigrationFixture{repo: repo, fake: fake, commit: commit}
+	return &ascMigrationFixture{repo: repo, fake: fake, secret: secret, commit: commit}
 }
 
 func TestScrubBridgeConfig(t *testing.T) {
@@ -159,6 +200,12 @@ func TestImportMigratedIntoAscSendsBranchesAndTagsForTheImporter(t *testing.T) {
 	}
 	assert.Equal(t, []string{"refs/heads/main", "refs/tags/v1"}, names, "forge namespaces are not imported")
 	assert.Empty(t, gitIn(t, fx.repo.RepoPath(), "", "for-each-ref", "refs/pull", "refs/merge-requests"))
+
+	// The history is looked at after the import, the findings say where they come from, and the default branch
+	// becomes the trunk asc protects only at the end.
+	assert.Equal(t, []string{"refs/heads/main"}, fx.secret.revs)
+	assert.Equal(t, map[uint64]string{7: ascsync.ImportedHistoryNote}, fx.secret.noted)
+	assert.Equal(t, []string{"main"}, fx.fake.trunks)
 }
 
 func TestImportMigratedIntoAscSurfacesTheRefusal(t *testing.T) {
@@ -174,6 +221,8 @@ func TestImportMigratedIntoAscSurfacesTheRefusal(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "asc refused the imported history")
 	assert.Contains(t, err.Error(), "path policy: .env is not allowed")
+	assert.Empty(t, fx.secret.revs, "nothing is scanned after a refusal")
+	assert.Empty(t, fx.fake.trunks, "the default branch is not made the trunk after a refusal")
 }
 
 func TestImportMigratedIntoAscFailsWhenAscIsOff(t *testing.T) {
