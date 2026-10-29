@@ -6,11 +6,14 @@ package asctrust
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/git"
 
 	"google.golang.org/grpc"
 )
@@ -85,12 +88,16 @@ type StatusRow struct {
 
 // Cause is one reason for failing, from one failure group.
 type Cause struct {
-	Index    int
-	GroupID  uint64
-	Title    string
-	Tests    int
-	IsNew    bool
-	Excerpt  string
+	Index   int
+	GroupID uint64
+	Title   string
+	Tests   int
+	IsNew   bool
+	Excerpt string
+	// Where is the first "path:line" the excerpt names, with the anchor of that line in the Files page of the pull
+	// request ("" when there is none): "Open the line" jumps to it.
+	Where    string
+	Anchor   string
 	RunURL   string
 	StateKey string
 	State    string
@@ -258,6 +265,7 @@ func BuildPullChecks(in PullChecksIn) *PullChecks {
 			Excerpt: CleanBlock(c.Occurrences[0].Message, maxExcerptBytes), RunURL: runURL[c.Occurrences[0].RunID],
 			StateKey: c.Group.StateKey, State: c.Group.State,
 		}
+		cause.Where, cause.Anchor = ExcerptLocation(cause.Excerpt)
 		if cause.Title == "" {
 			if cause.Title = firstNonEmpty(c.Group.TestName, c.Group.JobName); cause.Title == "" {
 				cause.Title, cause.titleKey = "a failing check", "asc_trust.pull.cause_fallback_title"
@@ -465,4 +473,24 @@ func PullCauses(ctx context.Context, conn grpc.ClientConnInterface, repoName str
 		out = append(out, c)
 	}
 	return out, nil
+}
+
+// excerptLocation finds a source location in a log: a path with an extension, a colon and a line number.
+var excerptLocation = regexp.MustCompile(`(?:^|[\s(\[\x60'"])((?:[A-Za-z0-9_.@-]+/)*[A-Za-z0-9_.@-]+\.[A-Za-z0-9]{1,8}):(\d{1,6})(?::\d+)?`)
+
+// ExcerptLocation returns the first "path:line" of a log excerpt as shown ("src/client.rs:41") and the anchor of that line
+// in the diff of the pull request ("diff-<hash of the path>R<line>"), or two empty strings. A path that climbs out of the
+// repository ("..") or starts at the root of the machine is not a location of the change.
+func ExcerptLocation(excerpt string) (where, anchor string) {
+	for _, m := range excerptLocation.FindAllStringSubmatch(excerpt, 20) {
+		path, line := m[1], m[2]
+		if strings.Contains(path, "..") || strings.HasPrefix(path, "/") || strings.HasPrefix(path, ".git/") {
+			continue
+		}
+		if n, err := strconv.Atoi(line); err != nil || n < 1 {
+			continue
+		}
+		return path + ":" + line, "diff-" + git.HashFilePathForWebUI(path) + "R" + line
+	}
+	return "", ""
 }
