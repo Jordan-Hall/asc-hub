@@ -941,3 +941,35 @@ a.rp-hash:hover {
 .rp-cmpbar .ds-btn {
   margin-inline-start: auto;
 }
+
+/* ---- the policy gate card: a mark and a sentence per rule ---- */
+.rv-gate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rv-gate-rule {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 14px;
+}
+
+.rv-gate-mark {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.rv-gate-rule.is-held .rv-gate-mark {
+  color: var(--warn);
+}
+
+.rv-gate-names {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+}
