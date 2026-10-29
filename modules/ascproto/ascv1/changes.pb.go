@@ -132,7 +132,7 @@ type ChangeInfo struct {
 	ParentCurrent bool                   `protobuf:"varint,6,opt,name=parent_current,json=parentCurrent,proto3" json:"parent_current,omitempty"`
 	LandedAs      []byte                 `protobuf:"bytes,7,opt,name=landed_as,json=landedAs,proto3" json:"landed_as,omitempty"`
 	Review        *ReviewState           `protobuf:"bytes,8,opt,name=review,proto3" json:"review,omitempty"`
-	Visible       [][]byte               `protobuf:"bytes,9,rep,name=visible,proto3" json:"visible,omitempty"`
+	Visible       [][]byte               `protobuf:"bytes,9,rep,name=visible,proto3" json:"visible,omitempty"` // >1 = divergent
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -452,7 +452,7 @@ type StackResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Trunk         string                 `protobuf:"bytes,1,opt,name=trunk,proto3" json:"trunk,omitempty"`
 	Base          []byte                 `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty"`
-	Changes       []*ChangeInfo          `protobuf:"bytes,3,rep,name=changes,proto3" json:"changes,omitempty"`
+	Changes       []*ChangeInfo          `protobuf:"bytes,3,rep,name=changes,proto3" json:"changes,omitempty"` // bottom → top, forks included
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
