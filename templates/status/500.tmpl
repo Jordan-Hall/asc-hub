@@ -40,6 +40,7 @@
 						<a class="ds-btn ds-btn-primary" href="">{{ctx.Locale.Tr "asc_err.try_again"}}</a>
 						<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/">{{ctx.Locale.Tr "home"}}</a>
 					</div>
+					{{if .RequestID}}<p class="st-reqid ds-mono">{{ctx.Locale.Tr "asc_err.request_id"}} <span class="st-reqid-v">{{.RequestID}}</span> &middot; {{.RequestTime}} UTC</p>{{end}}
 				</section>
 			</div>
 			<div class="ds-container tw-my-8">

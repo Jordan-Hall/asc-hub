@@ -14,8 +14,9 @@
 				</form>
 				{{if .DocsTOC}}
 				<h2 class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.docs_on_page"}}</h2>
-				<ul>{{range .DocsTOC}}<li><a href="#{{.ID}}">{{.Text}}</a></li>{{end}}</ul>
+				<ul data-toc>{{range .DocsTOC}}<li><a href="#{{.ID}}">{{.Text}}</a></li>{{end}}</ul>
 				{{end}}
+				<p class="site-edit"><a class="ds-link" href="{{.DocsEditURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_site.docs_edit"}}</a></p>
 				<h2 class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.docs_all"}}</h2>
 				<ul>{{range .DocsPages}}<li><a href="{{AppSubUrl}}/-/docs/{{.Slug}}"{{if eq .Slug $.DocsPage.Slug}} aria-current="page"{{end}}>{{.Title}}</a></li>{{end}}</ul>
 			</aside>

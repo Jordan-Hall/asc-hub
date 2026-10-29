@@ -25,6 +25,7 @@
 
 		<div class="{{if or .PageIsIssueList $ascStacks}}ds-split{{end}}">
 		<div class="ds-min0">
+		{{if not .StackList}}
 		<div class="list-header list-header-issues">
 			{{template "repo/issue/navbar" .}}
 			{{template "repo/issue/search" .}}
@@ -43,6 +44,10 @@
 
 		{{template "repo/issue/filters" .}}
 
+		{{end}}
+		{{if .StackList}}
+			{{template "repo/stack_board" .}}
+		{{else}}
 		<div id="issue-actions" class="issue-list-toolbar tw-hidden">
 			<div class="issue-list-toolbar-left">
 				{{template "repo/issue/openclose" .}}
@@ -68,6 +73,7 @@
 		<div {{if $ascStacks}}data-asc-enhance-list="#issue-list"{{end}}>
 		{{template "shared/issuelist" dict "." . "listType" "repo"}}
 		</div>
+		{{end}}
 		{{end}}
 		</div>
 		{{if $ascStacks}}

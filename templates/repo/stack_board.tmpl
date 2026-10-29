@@ -1,0 +1,57 @@
+{{/* The board Stacks: filters with counts, sort, the "Your turn" card, one row per stack and a legend. Dot: the page data. */}}
+{{if .StackListFailed}}
+	<div class="ds-card rp-stacks-error" role="alert">
+		<strong>{{ctx.Locale.Tr "asc_rp.stacks_failed"}}</strong>
+		<span class="rp-quiet">{{ctx.Locale.Tr "asc_rp.stacks_failed_id" .StackRequestID}}</span>
+		<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/pulls">{{ctx.Locale.Tr "asc_rp.try_again"}}</a>
+	</div>
+{{else}}
+	<div class="rp-stack-bar">
+		<div class="rp-stack-filter" data-stack-filter>
+			<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.stacks_filter"}}">
+				<button type="button" data-stack-show="all" aria-pressed="true">{{ctx.Locale.Tr "asc_rp.f_open"}} <span class="rp-count">{{.StackCounts.Open}}</span></button>
+				{{if .IsSigned}}
+					<button type="button" data-stack-show="mine" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.f_mine"}} <span class="rp-count">{{.StackCounts.Mine}}</span></button>
+				{{end}}
+				<button type="button" data-stack-show="agent" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.f_agents"}} <span class="rp-count">{{.StackCounts.Agents}}</span></button>
+				{{if .IsSigned}}
+					<button type="button" data-stack-show="needsme" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.f_needs_me"}} <span class="rp-count">{{.StackCounts.NeedsMe}}</span></button>
+				{{end}}
+			</div>
+			<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/pulls?state=closed">{{ctx.Locale.Tr "asc_rp.f_closed"}}</a>
+		</div>
+		<div class="ds-seg ds-seg-mini" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.sort_label"}}">
+			<a href="{{.RepoLink}}/pulls?sort=attention"{{if eq .StackSort "attention"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.sort_attention"}}</a>
+			<a href="{{.RepoLink}}/pulls?sort=newest"{{if eq .StackSort "newest"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.sort_newest"}}</a>
+		</div>
+	</div>
+	{{with .StackYourTurn}}
+		<section class="ds-card rp-yourturn" aria-labelledby="rp-yourturn-h">
+			<span class="ds-dot ds-dot-warn" aria-hidden="true"></span>
+			<div class="rp-yourturn-main">
+				<h2 class="rp-yourturn-h" id="rp-yourturn-h">{{ctx.Locale.Tr "asc_rp.your_turn"}}</h2>
+				<p class="rp-quiet"><span class="mono">{{.Name}}</span> &middot; {{.Title}}</p>
+			</div>
+			<a class="ds-btn ds-btn-primary" href="{{.Link}}">{{ctx.Locale.Tr "asc_rp.open_change"}}</a>
+		</section>
+	{{end}}
+	{{if .StackRows}}
+		<div class="ds-card rp-stack-card">
+			<ul class="rp-rows" data-stack-rows>
+				{{range .StackRows}}{{template "repo/stack_row" .}}{{end}}
+			</ul>
+			<p class="rp-quiet rp-stack-none" data-stack-none hidden>{{ctx.Locale.Tr "asc_rp.f_none"}}</p>
+		</div>
+		<ul class="rp-legend" aria-label="{{ctx.Locale.Tr "asc_rp.legend"}}">
+			<li><span class="rp-seg rp-seg-landed" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_rp.legend_landed"}}</li>
+			<li><span class="rp-seg rp-seg-ok" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_rp.legend_approved"}}</li>
+			<li><span class="rp-seg rp-seg-warn" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_rp.legend_review"}}</li>
+			<li><span class="rp-seg rp-seg-agent" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_rp.legend_agent"}}</li>
+			<li><span class="rp-seg rp-seg-err" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_rp.legend_failing"}}</li>
+		</ul>
+	{{else}}
+		<div class="ds-card" data-testid="asc-stacks-empty">
+			{{template "shared/ds/empty" (dict "Icon" "layers" "Title" (ctx.Locale.Tr "asc_rp.stacks_empty_title") "Body" (ctx.Locale.Tr "asc_rp.stacks_empty_body") "PrimaryLabel" (ctx.Locale.Tr "asc_rp.stacks_new") "PrimaryHref" (printf "%s/compare/%s" .Repository.Link (PathEscapeSegments .Repository.DefaultBranch)) "SecondaryLabel" (ctx.Locale.Tr "asc_rp.stacks_open_history") "SecondaryHref" (printf "%s/commits/%s" .RepoLink (.Repository.DefaultBranch | PathEscapeSegments)))}}
+		</div>
+	{{end}}
+{{end}}

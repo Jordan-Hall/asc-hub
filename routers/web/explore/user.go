@@ -96,6 +96,12 @@ func RenderUserSearch(ctx *context.Context, opts *user_model.SearchUserOptions, 
 	ctx.Data["Keyword"] = opts.Keyword
 	ctx.Data["Total"] = count
 	ctx.Data["Users"] = users
+	ctx.Data["AscVerifiedOrgs"] = map[int64]string{}
+	if ids := orgIDs(users); len(ids) > 0 {
+		if doms, err := user_model.VerifiedAscOrgDomains(ctx, ids); err == nil {
+			ctx.Data["AscVerifiedOrgs"] = doms
+		}
+	}
 	if opts.Load2FAStatus {
 		ctx.Data["UsersTwoFaStatus"] = user_model.UserList(users).GetTwoFaStatus(ctx)
 	}
@@ -184,4 +190,15 @@ func MapSortOrder(sortOrder string) db.SearchOrderBy {
 	default:
 		return ""
 	}
+}
+
+// orgIDs returns the ids of the organizations among users.
+func orgIDs(users []*user_model.User) []int64 {
+	var ids []int64
+	for _, u := range users {
+		if u.IsOrganization() {
+			ids = append(ids, u.ID)
+		}
+	}
+	return ids
 }

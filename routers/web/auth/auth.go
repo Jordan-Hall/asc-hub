@@ -514,7 +514,8 @@ func SignUpPost(ctx *context.Context) {
 		return
 	}
 
-	if form.Password != form.Retype {
+	// the sign up form has no second password field (the password can be shown); a client that sends one still gets it checked
+	if form.Retype != "" && form.Password != form.Retype {
 		ctx.Data["Err_Password"] = true
 		ctx.RenderWithErr(ctx.Tr("form.password_not_match"), tplSignUp, &form)
 		return

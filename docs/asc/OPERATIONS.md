@@ -18,7 +18,7 @@ ASC Hub is one container. The image (`ghcr.io/<owner>/asc-hub`, built from `Dock
 | Hub, web and API | 3000 | yes, behind your TLS proxy |
 | `asc serve` | 127.0.0.1:7890 in the container | no |
 
-HTTPS is the only inbound port a hub needs. The image starts no SSH server and exposes only port 3000; git over SSH is an opt-in ([Git over SSH](#git-over-ssh-optional)). Clients use `asc auth login --host <this hub>` with an access token, and `git` over HTTPS through the git-compatible endpoint.
+HTTPS is the only inbound port a hub needs. The image starts no SSH server and exposes only port 3000; git over SSH is an opt-in ([Git over SSH](#git-over-ssh-optional)). Clients use `asc auth login --host <this hub>` with an access token, and `git` over HTTPS through the git-compatible endpoint. If a `git clone` with `https://TOKEN@<hub>/...` answers 401 (seen with git 2.55 and libcurl 8.5), put a colon after the token: `https://TOKEN:@<hub>/<owner>/<repo>.git`. Or use a credential helper, or `git -c http.proactiveAuth=basic clone ...`.
 
 The hub and `asc serve` meet on loopback inside the container, so the hub's client needs no TLS to reach it, and `asc serve` has no route or published port of its own. Clients reach the ASC API through the hub's address: `GET /.well-known/asc` announces `[asc] PUBLIC_URL`, which defaults to your `ROOT_URL`.
 

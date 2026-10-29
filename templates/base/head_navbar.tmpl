@@ -263,6 +263,7 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 
 {{/* the command palette: search and jump, with the destinations of this hub */}}
 <div class="ds-palette" id="ds-palette" role="dialog" aria-modal="true" aria-label="{{ctx.Locale.Tr "asc_shell.search_label"}}" data-ds-palette
+	data-live-url="{{AppSubUrl}}/-/asc/palette"
 	data-asc-search-url="{{if AscEnabled}}{{AppSubUrl}}/-/asc/search{{else}}{{AppSubUrl}}/explore/repos{{end}}"
 	data-explore-repos-url="{{AppSubUrl}}/explore/repos" data-explore-users-url="{{AppSubUrl}}/explore/users"
 	data-t-repos="{{ctx.Locale.Tr "asc_shell.palette_search_repos"}}" data-t-people="{{ctx.Locale.Tr "asc_shell.palette_search_people"}}" data-t-code="{{ctx.Locale.Tr "asc_shell.palette_search_code"}}">

@@ -542,6 +542,9 @@ func Issues(ctx *context.Context) {
 	}
 
 	ctx.Data["CanWriteIssuesOrPulls"] = ctx.Repo.CanWriteIssuesOrPulls(isPullList)
+	if isPullList {
+		prepareAscStackList(ctx)
+	}
 
 	ctx.HTML(http.StatusOK, tplIssues)
 }

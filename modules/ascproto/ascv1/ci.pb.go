@@ -966,6 +966,450 @@ func (x *AppendJobLogResponse) GetDropped() bool {
 	return false
 }
 
+// Repo read. `Stats` counts the runs that finished (success or failure) in the last `days` days (0 means 14, at most 90) and the
+// window before it, for the pass rate against the previous period. `CompareWithMain` compares the newest finished run of a change with
+// the newest finished run that belongs to no change (a run of the default branch): the failing tests that are new, and the slowest
+// test now against the same test on main. Per-test timing comes from CiInsights.ReportTestCases.
+type CiStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Days          uint32                 `protobuf:"varint,2,opt,name=days,proto3" json:"days,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CiStatsRequest) Reset() {
+	*x = CiStatsRequest{}
+	mi := &file_asc_v1_ci_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CiStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CiStatsRequest) ProtoMessage() {}
+
+func (x *CiStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_ci_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CiStatsRequest.ProtoReflect.Descriptor instead.
+func (*CiStatsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *CiStatsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *CiStatsRequest) GetDays() uint32 {
+	if x != nil {
+		return x.Days
+	}
+	return 0
+}
+
+type CiStatsResponse struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Days                  uint32                 `protobuf:"varint,1,opt,name=days,proto3" json:"days,omitempty"`
+	Runs                  uint32                 `protobuf:"varint,2,opt,name=runs,proto3" json:"runs,omitempty"`
+	Passed                uint32                 `protobuf:"varint,3,opt,name=passed,proto3" json:"passed,omitempty"`
+	Failed                uint32                 `protobuf:"varint,4,opt,name=failed,proto3" json:"failed,omitempty"`
+	PassPermille          uint32                 `protobuf:"varint,5,opt,name=pass_permille,json=passPermille,proto3" json:"pass_permille,omitempty"` // passed / runs * 1000
+	PreviousRuns          uint32                 `protobuf:"varint,6,opt,name=previous_runs,json=previousRuns,proto3" json:"previous_runs,omitempty"`
+	PreviousPassPermille  uint32                 `protobuf:"varint,7,opt,name=previous_pass_permille,json=previousPassPermille,proto3" json:"previous_pass_permille,omitempty"`
+	FailureGroupsOpen     uint32                 `protobuf:"varint,8,opt,name=failure_groups_open,json=failureGroupsOpen,proto3" json:"failure_groups_open,omitempty"`
+	FlakyTests            uint32                 `protobuf:"varint,9,opt,name=flaky_tests,json=flakyTests,proto3" json:"flaky_tests,omitempty"`
+	MedianDurationSeconds uint32                 `protobuf:"varint,10,opt,name=median_duration_seconds,json=medianDurationSeconds,proto3" json:"median_duration_seconds,omitempty"`
+	SlowestJob            string                 `protobuf:"bytes,11,opt,name=slowest_job,json=slowestJob,proto3" json:"slowest_job,omitempty"` // by the median duration of its jobs in the window
+	SlowestJobSeconds     uint32                 `protobuf:"varint,12,opt,name=slowest_job_seconds,json=slowestJobSeconds,proto3" json:"slowest_job_seconds,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *CiStatsResponse) Reset() {
+	*x = CiStatsResponse{}
+	mi := &file_asc_v1_ci_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CiStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CiStatsResponse) ProtoMessage() {}
+
+func (x *CiStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_ci_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CiStatsResponse.ProtoReflect.Descriptor instead.
+func (*CiStatsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CiStatsResponse) GetDays() uint32 {
+	if x != nil {
+		return x.Days
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetRuns() uint32 {
+	if x != nil {
+		return x.Runs
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetPassed() uint32 {
+	if x != nil {
+		return x.Passed
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetFailed() uint32 {
+	if x != nil {
+		return x.Failed
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetPassPermille() uint32 {
+	if x != nil {
+		return x.PassPermille
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetPreviousRuns() uint32 {
+	if x != nil {
+		return x.PreviousRuns
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetPreviousPassPermille() uint32 {
+	if x != nil {
+		return x.PreviousPassPermille
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetFailureGroupsOpen() uint32 {
+	if x != nil {
+		return x.FailureGroupsOpen
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetFlakyTests() uint32 {
+	if x != nil {
+		return x.FlakyTests
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetMedianDurationSeconds() uint32 {
+	if x != nil {
+		return x.MedianDurationSeconds
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetSlowestJob() string {
+	if x != nil {
+		return x.SlowestJob
+	}
+	return ""
+}
+
+func (x *CiStatsResponse) GetSlowestJobSeconds() uint32 {
+	if x != nil {
+		return x.SlowestJobSeconds
+	}
+	return 0
+}
+
+type TestRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Job           string                 `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TestRef) Reset() {
+	*x = TestRef{}
+	mi := &file_asc_v1_ci_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TestRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TestRef) ProtoMessage() {}
+
+func (x *TestRef) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_ci_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TestRef.ProtoReflect.Descriptor instead.
+func (*TestRef) Descriptor() ([]byte, []int) {
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *TestRef) GetJob() string {
+	if x != nil {
+		return x.Job
+	}
+	return ""
+}
+
+func (x *TestRef) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type TestTiming struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Job            string                 `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
+	Name           string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	DurationMs     uint64                 `protobuf:"varint,3,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
+	MainDurationMs uint64                 `protobuf:"varint,4,opt,name=main_duration_ms,json=mainDurationMs,proto3" json:"main_duration_ms,omitempty"` // 0 when main has no such test
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *TestTiming) Reset() {
+	*x = TestTiming{}
+	mi := &file_asc_v1_ci_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TestTiming) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TestTiming) ProtoMessage() {}
+
+func (x *TestTiming) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_ci_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TestTiming.ProtoReflect.Descriptor instead.
+func (*TestTiming) Descriptor() ([]byte, []int) {
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *TestTiming) GetJob() string {
+	if x != nil {
+		return x.Job
+	}
+	return ""
+}
+
+func (x *TestTiming) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *TestTiming) GetDurationMs() uint64 {
+	if x != nil {
+		return x.DurationMs
+	}
+	return 0
+}
+
+func (x *TestTiming) GetMainDurationMs() uint64 {
+	if x != nil {
+		return x.MainDurationMs
+	}
+	return 0
+}
+
+type CompareWithMainRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompareWithMainRequest) Reset() {
+	*x = CompareWithMainRequest{}
+	mi := &file_asc_v1_ci_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompareWithMainRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompareWithMainRequest) ProtoMessage() {}
+
+func (x *CompareWithMainRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_ci_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompareWithMainRequest.ProtoReflect.Descriptor instead.
+func (*CompareWithMainRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CompareWithMainRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *CompareWithMainRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+type CompareWithMainResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Compared        bool                   `protobuf:"varint,1,opt,name=compared,proto3" json:"compared,omitempty"`                                            // the change has a finished run with test results
+	MainStatus      CiStatus               `protobuf:"varint,2,opt,name=main_status,json=mainStatus,proto3,enum=asc.v1.CiStatus" json:"main_status,omitempty"` // unspecified when main has no finished run
+	Failing         uint32                 `protobuf:"varint,3,opt,name=failing,proto3" json:"failing,omitempty"`                                              // failing tests of the change's run
+	NewFailureCount uint32                 `protobuf:"varint,4,opt,name=new_failure_count,json=newFailureCount,proto3" json:"new_failure_count,omitempty"`     // of those, not failing on main
+	NewFailures     []*TestRef             `protobuf:"bytes,5,rep,name=new_failures,json=newFailures,proto3" json:"new_failures,omitempty"`                    // at most 100
+	SlowestTest     *TestTiming            `protobuf:"bytes,6,opt,name=slowest_test,json=slowestTest,proto3" json:"slowest_test,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *CompareWithMainResponse) Reset() {
+	*x = CompareWithMainResponse{}
+	mi := &file_asc_v1_ci_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompareWithMainResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompareWithMainResponse) ProtoMessage() {}
+
+func (x *CompareWithMainResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_ci_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompareWithMainResponse.ProtoReflect.Descriptor instead.
+func (*CompareWithMainResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *CompareWithMainResponse) GetCompared() bool {
+	if x != nil {
+		return x.Compared
+	}
+	return false
+}
+
+func (x *CompareWithMainResponse) GetMainStatus() CiStatus {
+	if x != nil {
+		return x.MainStatus
+	}
+	return CiStatus_CI_STATUS_UNSPECIFIED
+}
+
+func (x *CompareWithMainResponse) GetFailing() uint32 {
+	if x != nil {
+		return x.Failing
+	}
+	return 0
+}
+
+func (x *CompareWithMainResponse) GetNewFailureCount() uint32 {
+	if x != nil {
+		return x.NewFailureCount
+	}
+	return 0
+}
+
+func (x *CompareWithMainResponse) GetNewFailures() []*TestRef {
+	if x != nil {
+		return x.NewFailures
+	}
+	return nil
+}
+
+func (x *CompareWithMainResponse) GetSlowestTest() *TestTiming {
+	if x != nil {
+		return x.SlowestTest
+	}
+	return nil
+}
+
 var File_asc_v1_ci_proto protoreflect.FileDescriptor
 
 const file_asc_v1_ci_proto_rawDesc = "" +
@@ -1047,7 +1491,47 @@ const file_asc_v1_ci_proto_rawDesc = "" +
 	"\x04data\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x04R\x04data\"D\n" +
 	"\x14AppendJobLogResponse\x12\x12\n" +
 	"\x04size\x18\x01 \x01(\x04R\x04size\x12\x18\n" +
-	"\adropped\x18\x02 \x01(\bR\adropped*\xb0\x01\n" +
+	"\adropped\x18\x02 \x01(\bR\adropped\"I\n" +
+	"\x0eCiStatsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x04days\x18\x02 \x01(\rR\x04days\"\xc3\x03\n" +
+	"\x0fCiStatsResponse\x12\x12\n" +
+	"\x04days\x18\x01 \x01(\rR\x04days\x12\x12\n" +
+	"\x04runs\x18\x02 \x01(\rR\x04runs\x12\x16\n" +
+	"\x06passed\x18\x03 \x01(\rR\x06passed\x12\x16\n" +
+	"\x06failed\x18\x04 \x01(\rR\x06failed\x12#\n" +
+	"\rpass_permille\x18\x05 \x01(\rR\fpassPermille\x12#\n" +
+	"\rprevious_runs\x18\x06 \x01(\rR\fpreviousRuns\x124\n" +
+	"\x16previous_pass_permille\x18\a \x01(\rR\x14previousPassPermille\x12.\n" +
+	"\x13failure_groups_open\x18\b \x01(\rR\x11failureGroupsOpen\x12\x1f\n" +
+	"\vflaky_tests\x18\t \x01(\rR\n" +
+	"flakyTests\x126\n" +
+	"\x17median_duration_seconds\x18\n" +
+	" \x01(\rR\x15medianDurationSeconds\x12\x1f\n" +
+	"\vslowest_job\x18\v \x01(\tR\n" +
+	"slowestJob\x12.\n" +
+	"\x13slowest_job_seconds\x18\f \x01(\rR\x11slowestJobSeconds\"/\n" +
+	"\aTestRef\x12\x10\n" +
+	"\x03job\x18\x01 \x01(\tR\x03job\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"}\n" +
+	"\n" +
+	"TestTiming\x12\x10\n" +
+	"\x03job\x18\x01 \x01(\tR\x03job\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
+	"\vduration_ms\x18\x03 \x01(\x04R\n" +
+	"durationMs\x12(\n" +
+	"\x10main_duration_ms\x18\x04 \x01(\x04R\x0emainDurationMs\"[\n" +
+	"\x16CompareWithMainRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\"\x99\x02\n" +
+	"\x17CompareWithMainResponse\x12\x1a\n" +
+	"\bcompared\x18\x01 \x01(\bR\bcompared\x121\n" +
+	"\vmain_status\x18\x02 \x01(\x0e2\x10.asc.v1.CiStatusR\n" +
+	"mainStatus\x12\x18\n" +
+	"\afailing\x18\x03 \x01(\rR\afailing\x12*\n" +
+	"\x11new_failure_count\x18\x04 \x01(\rR\x0fnewFailureCount\x122\n" +
+	"\fnew_failures\x18\x05 \x03(\v2\x0f.asc.v1.TestRefR\vnewFailures\x125\n" +
+	"\fslowest_test\x18\x06 \x01(\v2\x12.asc.v1.TestTimingR\vslowestTest*\xb0\x01\n" +
 	"\bCiStatus\x12\x19\n" +
 	"\x15CI_STATUS_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10CI_STATUS_QUEUED\x10\x01\x12\x15\n" +
@@ -1055,12 +1539,14 @@ const file_asc_v1_ci_proto_rawDesc = "" +
 	"\x11CI_STATUS_SUCCESS\x10\x03\x12\x15\n" +
 	"\x11CI_STATUS_FAILURE\x10\x04\x12\x17\n" +
 	"\x13CI_STATUS_CANCELLED\x10\x05\x12\x15\n" +
-	"\x11CI_STATUS_SKIPPED\x10\x062\x89\x02\n" +
+	"\x11CI_STATUS_SKIPPED\x10\x062\x97\x03\n" +
 	"\x02Ci\x12=\n" +
 	"\bListRuns\x12\x17.asc.v1.ListRunsRequest\x1a\x18.asc.v1.ListRunsResponse\x127\n" +
 	"\x06JobLog\x12\x15.asc.v1.JobLogRequest\x1a\x16.asc.v1.JobLogResponse\x12@\n" +
 	"\tReportRun\x12\x18.asc.v1.ReportRunRequest\x1a\x19.asc.v1.ReportRunResponse\x12I\n" +
-	"\fAppendJobLog\x12\x1b.asc.v1.AppendJobLogRequest\x1a\x1c.asc.v1.AppendJobLogResponseBr\n" +
+	"\fAppendJobLog\x12\x1b.asc.v1.AppendJobLogRequest\x1a\x1c.asc.v1.AppendJobLogResponse\x128\n" +
+	"\x05Stats\x12\x16.asc.v1.CiStatsRequest\x1a\x17.asc.v1.CiStatsResponse\x12R\n" +
+	"\x0fCompareWithMain\x12\x1e.asc.v1.CompareWithMainRequest\x1a\x1f.asc.v1.CompareWithMainResponseBr\n" +
 	"\n" +
 	"com.asc.v1B\aCiProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -1077,49 +1563,64 @@ func file_asc_v1_ci_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_ci_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_asc_v1_ci_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_asc_v1_ci_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_asc_v1_ci_proto_goTypes = []any{
-	(CiStatus)(0),                // 0: asc.v1.CiStatus
-	(*CiJob)(nil),                // 1: asc.v1.CiJob
-	(*CiRun)(nil),                // 2: asc.v1.CiRun
-	(*ListRunsRequest)(nil),      // 3: asc.v1.ListRunsRequest
-	(*ListRunsResponse)(nil),     // 4: asc.v1.ListRunsResponse
-	(*JobLogRequest)(nil),        // 5: asc.v1.JobLogRequest
-	(*JobLogResponse)(nil),       // 6: asc.v1.JobLogResponse
-	(*ReportJob)(nil),            // 7: asc.v1.ReportJob
-	(*ReportRunRequest)(nil),     // 8: asc.v1.ReportRunRequest
-	(*ReportRunResponse)(nil),    // 9: asc.v1.ReportRunResponse
-	(*AppendJobLogRequest)(nil),  // 10: asc.v1.AppendJobLogRequest
-	(*AppendJobLogResponse)(nil), // 11: asc.v1.AppendJobLogResponse
-	(*RepoRef)(nil),              // 12: asc.v1.RepoRef
+	(CiStatus)(0),                   // 0: asc.v1.CiStatus
+	(*CiJob)(nil),                   // 1: asc.v1.CiJob
+	(*CiRun)(nil),                   // 2: asc.v1.CiRun
+	(*ListRunsRequest)(nil),         // 3: asc.v1.ListRunsRequest
+	(*ListRunsResponse)(nil),        // 4: asc.v1.ListRunsResponse
+	(*JobLogRequest)(nil),           // 5: asc.v1.JobLogRequest
+	(*JobLogResponse)(nil),          // 6: asc.v1.JobLogResponse
+	(*ReportJob)(nil),               // 7: asc.v1.ReportJob
+	(*ReportRunRequest)(nil),        // 8: asc.v1.ReportRunRequest
+	(*ReportRunResponse)(nil),       // 9: asc.v1.ReportRunResponse
+	(*AppendJobLogRequest)(nil),     // 10: asc.v1.AppendJobLogRequest
+	(*AppendJobLogResponse)(nil),    // 11: asc.v1.AppendJobLogResponse
+	(*CiStatsRequest)(nil),          // 12: asc.v1.CiStatsRequest
+	(*CiStatsResponse)(nil),         // 13: asc.v1.CiStatsResponse
+	(*TestRef)(nil),                 // 14: asc.v1.TestRef
+	(*TestTiming)(nil),              // 15: asc.v1.TestTiming
+	(*CompareWithMainRequest)(nil),  // 16: asc.v1.CompareWithMainRequest
+	(*CompareWithMainResponse)(nil), // 17: asc.v1.CompareWithMainResponse
+	(*RepoRef)(nil),                 // 18: asc.v1.RepoRef
 }
 var file_asc_v1_ci_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.CiJob.status:type_name -> asc.v1.CiStatus
 	0,  // 1: asc.v1.CiRun.status:type_name -> asc.v1.CiStatus
 	1,  // 2: asc.v1.CiRun.jobs:type_name -> asc.v1.CiJob
-	12, // 3: asc.v1.ListRunsRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 3: asc.v1.ListRunsRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 4: asc.v1.ListRunsRequest.status:type_name -> asc.v1.CiStatus
 	2,  // 5: asc.v1.ListRunsResponse.runs:type_name -> asc.v1.CiRun
-	12, // 6: asc.v1.JobLogRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 6: asc.v1.JobLogRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 7: asc.v1.ReportJob.status:type_name -> asc.v1.CiStatus
-	12, // 8: asc.v1.ReportRunRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 8: asc.v1.ReportRunRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 9: asc.v1.ReportRunRequest.status:type_name -> asc.v1.CiStatus
 	7,  // 10: asc.v1.ReportRunRequest.jobs:type_name -> asc.v1.ReportJob
 	2,  // 11: asc.v1.ReportRunResponse.run:type_name -> asc.v1.CiRun
-	12, // 12: asc.v1.AppendJobLogRequest.repo:type_name -> asc.v1.RepoRef
-	3,  // 13: asc.v1.Ci.ListRuns:input_type -> asc.v1.ListRunsRequest
-	5,  // 14: asc.v1.Ci.JobLog:input_type -> asc.v1.JobLogRequest
-	8,  // 15: asc.v1.Ci.ReportRun:input_type -> asc.v1.ReportRunRequest
-	10, // 16: asc.v1.Ci.AppendJobLog:input_type -> asc.v1.AppendJobLogRequest
-	4,  // 17: asc.v1.Ci.ListRuns:output_type -> asc.v1.ListRunsResponse
-	6,  // 18: asc.v1.Ci.JobLog:output_type -> asc.v1.JobLogResponse
-	9,  // 19: asc.v1.Ci.ReportRun:output_type -> asc.v1.ReportRunResponse
-	11, // 20: asc.v1.Ci.AppendJobLog:output_type -> asc.v1.AppendJobLogResponse
-	17, // [17:21] is the sub-list for method output_type
-	13, // [13:17] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	18, // 12: asc.v1.AppendJobLogRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 13: asc.v1.CiStatsRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 14: asc.v1.CompareWithMainRequest.repo:type_name -> asc.v1.RepoRef
+	0,  // 15: asc.v1.CompareWithMainResponse.main_status:type_name -> asc.v1.CiStatus
+	14, // 16: asc.v1.CompareWithMainResponse.new_failures:type_name -> asc.v1.TestRef
+	15, // 17: asc.v1.CompareWithMainResponse.slowest_test:type_name -> asc.v1.TestTiming
+	3,  // 18: asc.v1.Ci.ListRuns:input_type -> asc.v1.ListRunsRequest
+	5,  // 19: asc.v1.Ci.JobLog:input_type -> asc.v1.JobLogRequest
+	8,  // 20: asc.v1.Ci.ReportRun:input_type -> asc.v1.ReportRunRequest
+	10, // 21: asc.v1.Ci.AppendJobLog:input_type -> asc.v1.AppendJobLogRequest
+	12, // 22: asc.v1.Ci.Stats:input_type -> asc.v1.CiStatsRequest
+	16, // 23: asc.v1.Ci.CompareWithMain:input_type -> asc.v1.CompareWithMainRequest
+	4,  // 24: asc.v1.Ci.ListRuns:output_type -> asc.v1.ListRunsResponse
+	6,  // 25: asc.v1.Ci.JobLog:output_type -> asc.v1.JobLogResponse
+	9,  // 26: asc.v1.Ci.ReportRun:output_type -> asc.v1.ReportRunResponse
+	11, // 27: asc.v1.Ci.AppendJobLog:output_type -> asc.v1.AppendJobLogResponse
+	13, // 28: asc.v1.Ci.Stats:output_type -> asc.v1.CiStatsResponse
+	17, // 29: asc.v1.Ci.CompareWithMain:output_type -> asc.v1.CompareWithMainResponse
+	24, // [24:30] is the sub-list for method output_type
+	18, // [18:24] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_ci_proto_init() }
@@ -1135,7 +1636,7 @@ func file_asc_v1_ci_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_ci_proto_rawDesc), len(file_asc_v1_ci_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

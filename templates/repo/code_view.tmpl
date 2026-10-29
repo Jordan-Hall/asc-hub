@@ -95,6 +95,27 @@
 					<li><span><kbd class="ds-kbd">g</kbd> <kbd class="ds-kbd">c</kbd><span>{{ctx.Locale.Tr "asc_rp.key_code"}}</span></span></li>
 				</ul>
 			</section>
+			{{if .AscOutline}}
+			<section class="rp-card rp-outline" aria-labelledby="rp-outline-h" data-testid="code-outline">
+				<h2 class="rp-rail-title" id="rp-outline-h">{{ctx.Locale.Tr "asc_rp.outline_title"}}</h2>
+				<ul class="rp-outline-list">
+					{{range .AscOutline}}
+					<li><span class="ds-chip ds-chip-outline">{{.Kind}}</span><a class="ds-mono" href="{{.Link}}">{{.Name}}</a>{{if .Line}}<span class="ds-num ds-c-2">{{.Line}}</span>{{end}}</li>
+					{{end}}
+				</ul>
+				{{if .AscOutlineMore}}<p class="rp-quiet">{{ctx.Locale.Tr "repo.asc_symbols.truncated"}}</p>{{end}}
+			</section>
+			{{end}}
+			{{if .AscUsedIn}}
+			<section class="rp-card rp-outline" aria-labelledby="rp-usedin-h" data-testid="code-used-in">
+				<h2 class="rp-rail-title" id="rp-usedin-h">{{ctx.Locale.Tr "asc_rp.used_in_title"}}</h2>
+				<ul class="rp-outline-list">
+					{{range .AscUsedIn}}
+					<li><a class="ds-mono" href="{{.Link}}">{{.Name}}</a><span class="ds-num ds-c-2">{{ctx.Locale.TrN .Count "asc_rp.refs_one" "asc_rp.refs_other" .Count}}</span></li>
+					{{end}}
+				</ul>
+			</section>
+			{{end}}
 			<section class="rp-card">
 				<h2 class="rp-rail-title">{{ctx.Locale.Tr "asc_rp.about_file"}}</h2>
 				{{template "repo/file_info" .}}

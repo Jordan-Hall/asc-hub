@@ -33,7 +33,24 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 							{{svg "dsi-chevron-down" 14}}
 						</label>
 						<noscript><button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "user.asc_inbox.apply"}}</button></noscript>
-						<span class="wk-sort ds-hide-xs">{{ctx.Locale.Tr "user.asc_inbox.sorted_by"}}</span>
+						<label class="ds-selectpill">
+							<span class="ds-sr">{{ctx.Locale.Tr "user.asc_inbox.filter_kind"}}</span>
+							<select name="kind" data-asc-autosubmit>
+								<option value="">{{ctx.Locale.Tr "user.asc_inbox.kind_all"}}</option>
+								<option value="humans"{{if eq $p.Kind "humans"}} selected{{end}}>{{ctx.Locale.Tr "user.asc_inbox.kind_humans"}}</option>
+								<option value="agents"{{if eq $p.Kind "agents"}} selected{{end}}>{{ctx.Locale.Tr "user.asc_inbox.kind_agents"}}</option>
+							</select>
+							{{svg "dsi-chevron-down" 14}}
+						</label>
+						<label class="ds-selectpill">
+							<span class="ds-sr">{{ctx.Locale.Tr "user.asc_inbox.sorted_by"}}</span>
+							<select name="sort" data-asc-autosubmit>
+								<option value="">{{ctx.Locale.Tr "user.asc_inbox.sort_new"}}</option>
+								<option value="oldest"{{if eq $p.Sort "oldest"}} selected{{end}}>{{ctx.Locale.Tr "user.asc_inbox.sort_oldest"}}</option>
+								<option value="repo"{{if eq $p.Sort "repo"}} selected{{end}}>{{ctx.Locale.Tr "user.asc_inbox.sort_repo"}}</option>
+							</select>
+							{{svg "dsi-chevron-down" 14}}
+						</label>
 					</form>
 				{{end}}
 			</div>

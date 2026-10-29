@@ -6,6 +6,7 @@ package user
 import (
 	gocontext "context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -121,6 +122,9 @@ type AscDash struct {
 	StackCount   int
 	Repos        []AscDashRepo
 	Teams        []AscDashTeam
+	Scopes       []AscDashScope
+	Queue        []AscDashQueueRow
+	Scope        string
 }
 
 // ascDashAgentsLoad returns the agents working now. Tests replace it.
@@ -255,6 +259,24 @@ func ascDashBuild(ctx *context.Context, now time.Time) *AscDash {
 	if err != nil {
 		log.Error("asc dashboard: inbox of user %d: %v", doer.ID, err)
 	}
+	// the scope chips: the owners the person works with, from the pull requests, the repositories and the teams
+	repos := ascDashRepos(ctx, doer)
+	teams := ascDashTeams(ctx, doer)
+	owners := make([]string, 0, len(entries)+len(repos)+len(teams))
+	for _, e := range entries {
+		owners = append(owners, ascOwnerOf(e.RepoFullName))
+	}
+	for _, r := range repos {
+		owners = append(owners, ascOwnerOf(r.FullName))
+	}
+	for _, tm := range teams {
+		owners = append(owners, tm.Org)
+	}
+	var scope string
+	d.Scopes, scope = ascDashScopes(ctx, doer, owners, ctx.Locale)
+	d.Scope = scope
+	entries = slices.DeleteFunc(slices.Clone(entries), func(e *AscInboxEntry) bool { return !ascScopeKeep(scope, doer.Name, ascOwnerOf(e.RepoFullName)) })
+
 	ids := make([]int64, 0, len(entries))
 	for _, e := range entries {
 		ids = append(ids, e.PullID)
@@ -279,9 +301,11 @@ func ascDashBuild(ctx *context.Context, now time.Time) *AscDash {
 		actionable = append(actionable, g.Entries...)
 	}
 	d.NeedsCount = len(actionable)
+	d.Queue = ascDashQueue(ctx, doer, entries, ctx.Locale)
 
 	if d.AgentsOn {
 		agents, waiting, err := ascDashAgentsLoad(ctx, doer)
+		agents = slices.DeleteFunc(slices.Clone(agents), func(a AscDashAgent) bool { return !ascScopeKeep(scope, doer.Name, ascOwnerOf(a.Repo)) })
 		if err != nil {
 			log.Warn("asc dashboard: agents of user %d: %v", doer.ID, err)
 		}
@@ -299,8 +323,10 @@ func ascDashBuild(ctx *context.Context, now time.Time) *AscDash {
 		d.Rows = append(d.Rows, ascDashRowFor(ctx.Locale, e, ascInboxInfoLoad(ctx, e)))
 	}
 	d.Stacks, d.StackCount = ascDashStacks(ctx, doer, ctx.Locale)
-	d.Repos = ascDashRepos(ctx, doer)
-	d.Teams = ascDashTeams(ctx, doer)
+	d.Stacks = slices.DeleteFunc(d.Stacks, func(s AscDashStack) bool { return !ascScopeKeep(scope, doer.Name, ascOwnerOf(s.Link)) })
+	d.StackCount = len(d.Stacks)
+	d.Repos = slices.DeleteFunc(repos, func(r AscDashRepo) bool { return !ascScopeKeep(scope, doer.Name, ascOwnerOf(r.FullName)) })
+	d.Teams = teams
 	return d
 }
 
@@ -563,4 +589,28 @@ func ascDashAgentFrom(repo *repo_model.Repository, run *ascv1.AgentRun) AscDashA
 		a.Meter = fmt.Sprintf("%d%% of %s: %s of %s", fullest.Percent, strings.ToLower(fullest.Label), fullest.Used, fullest.Limit)
 	}
 	return a
+}
+
+// ascFeedKind groups an activity for the filter of the Today feed: a push, a change (a pull request or an issue
+// opened, merged or closed), a comment or review, else "other".
+func ascFeedKind(a *activities_model.Action) string {
+	switch a.OpType {
+	case activities_model.ActionCommitRepo, activities_model.ActionPushTag, activities_model.ActionDeleteTag, activities_model.ActionDeleteBranch, activities_model.ActionMirrorSyncPush, activities_model.ActionMirrorSyncCreate, activities_model.ActionMirrorSyncDelete:
+		return "push"
+	case activities_model.ActionCreatePullRequest, activities_model.ActionMergePullRequest, activities_model.ActionClosePullRequest, activities_model.ActionReopenPullRequest, activities_model.ActionAutoMergePullRequest,
+		activities_model.ActionCreateIssue, activities_model.ActionCloseIssue, activities_model.ActionReopenIssue:
+		return "change"
+	case activities_model.ActionCommentIssue, activities_model.ActionCommentPull, activities_model.ActionApprovePullRequest, activities_model.ActionRejectPullRequest:
+		return "comment"
+	}
+	return "other"
+}
+
+// ascFeedKinds returns the kind of each activity of the list, in the same order.
+func ascFeedKinds(list activities_model.ActionList) []string {
+	out := make([]string, len(list))
+	for i, a := range list {
+		out[i] = ascFeedKind(a)
+	}
+	return out
 }

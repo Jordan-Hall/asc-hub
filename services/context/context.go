@@ -146,6 +146,7 @@ func Contexter() func(next http.Handler) http.Handler {
 			ctx.Data["Context"] = ctx // TODO: use "ctx" in template and remove this
 			ctx.Data["CurrentURL"] = setting.AppSubURL + req.URL.RequestURI()
 			ctx.Data["Link"] = ctx.Link
+			ctx.setRequestID()
 			ctx.Data["ValidSiteURLSchemes"] = setting.Service.ValidSiteURLSchemes
 			ctx.Data["ValidSiteURLPattern"] = setting.ValidSiteURLPattern()
 

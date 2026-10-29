@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Ci_ListRuns_FullMethodName     = "/asc.v1.Ci/ListRuns"
-	Ci_JobLog_FullMethodName       = "/asc.v1.Ci/JobLog"
-	Ci_ReportRun_FullMethodName    = "/asc.v1.Ci/ReportRun"
-	Ci_AppendJobLog_FullMethodName = "/asc.v1.Ci/AppendJobLog"
+	Ci_ListRuns_FullMethodName        = "/asc.v1.Ci/ListRuns"
+	Ci_JobLog_FullMethodName          = "/asc.v1.Ci/JobLog"
+	Ci_ReportRun_FullMethodName       = "/asc.v1.Ci/ReportRun"
+	Ci_AppendJobLog_FullMethodName    = "/asc.v1.Ci/AppendJobLog"
+	Ci_Stats_FullMethodName           = "/asc.v1.Ci/Stats"
+	Ci_CompareWithMain_FullMethodName = "/asc.v1.Ci/CompareWithMain"
 )
 
 // CiClient is the client API for Ci service.
@@ -37,6 +39,8 @@ type CiClient interface {
 	JobLog(ctx context.Context, in *JobLogRequest, opts ...grpc.CallOption) (*JobLogResponse, error)
 	ReportRun(ctx context.Context, in *ReportRunRequest, opts ...grpc.CallOption) (*ReportRunResponse, error)
 	AppendJobLog(ctx context.Context, in *AppendJobLogRequest, opts ...grpc.CallOption) (*AppendJobLogResponse, error)
+	Stats(ctx context.Context, in *CiStatsRequest, opts ...grpc.CallOption) (*CiStatsResponse, error)
+	CompareWithMain(ctx context.Context, in *CompareWithMainRequest, opts ...grpc.CallOption) (*CompareWithMainResponse, error)
 }
 
 type ciClient struct {
@@ -87,6 +91,26 @@ func (c *ciClient) AppendJobLog(ctx context.Context, in *AppendJobLogRequest, op
 	return out, nil
 }
 
+func (c *ciClient) Stats(ctx context.Context, in *CiStatsRequest, opts ...grpc.CallOption) (*CiStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CiStatsResponse)
+	err := c.cc.Invoke(ctx, Ci_Stats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ciClient) CompareWithMain(ctx context.Context, in *CompareWithMainRequest, opts ...grpc.CallOption) (*CompareWithMainResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompareWithMainResponse)
+	err := c.cc.Invoke(ctx, Ci_CompareWithMain_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CiServer is the server API for Ci service.
 // All implementations should embed UnimplementedCiServer
 // for forward compatibility.
@@ -99,6 +123,8 @@ type CiServer interface {
 	JobLog(context.Context, *JobLogRequest) (*JobLogResponse, error)
 	ReportRun(context.Context, *ReportRunRequest) (*ReportRunResponse, error)
 	AppendJobLog(context.Context, *AppendJobLogRequest) (*AppendJobLogResponse, error)
+	Stats(context.Context, *CiStatsRequest) (*CiStatsResponse, error)
+	CompareWithMain(context.Context, *CompareWithMainRequest) (*CompareWithMainResponse, error)
 }
 
 // UnimplementedCiServer should be embedded to have
@@ -119,6 +145,12 @@ func (UnimplementedCiServer) ReportRun(context.Context, *ReportRunRequest) (*Rep
 }
 func (UnimplementedCiServer) AppendJobLog(context.Context, *AppendJobLogRequest) (*AppendJobLogResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AppendJobLog not implemented")
+}
+func (UnimplementedCiServer) Stats(context.Context, *CiStatsRequest) (*CiStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Stats not implemented")
+}
+func (UnimplementedCiServer) CompareWithMain(context.Context, *CompareWithMainRequest) (*CompareWithMainResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompareWithMain not implemented")
 }
 func (UnimplementedCiServer) testEmbeddedByValue() {}
 
@@ -212,6 +244,42 @@ func _Ci_AppendJobLog_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Ci_Stats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CiStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CiServer).Stats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Ci_Stats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CiServer).Stats(ctx, req.(*CiStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Ci_CompareWithMain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompareWithMainRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CiServer).CompareWithMain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Ci_CompareWithMain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CiServer).CompareWithMain(ctx, req.(*CompareWithMainRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Ci_ServiceDesc is the grpc.ServiceDesc for Ci service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -234,6 +302,14 @@ var Ci_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AppendJobLog",
 			Handler:    _Ci_AppendJobLog_Handler,
+		},
+		{
+			MethodName: "Stats",
+			Handler:    _Ci_Stats_Handler,
+		},
+		{
+			MethodName: "CompareWithMain",
+			Handler:    _Ci_CompareWithMain_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

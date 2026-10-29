@@ -126,6 +126,7 @@ func AscDocsPage(ctx *context.Context) {
 	ctx.Data["Title"] = page.Title + " - " + ctx.Locale.TrString("asc_site.docs_title")
 	ctx.Data["PageIsAscDocs"] = true
 	ctx.Data["DocsPage"] = page
+	ctx.Data["DocsEditURL"] = ascdocs.EditURL(page)
 	// a table that is wider than the page scrolls, and a keyboard can reach it
 	wrapped := strings.ReplaceAll(html, "<table", `<div class="site-table" role="region" tabindex="0" aria-label="`+htmlpkg.EscapeString(ctx.Locale.TrString("asc_site.docs_table"))+`"><table`)
 	wrapped = strings.ReplaceAll(wrapped, "</table>", "</table></div>")
@@ -138,8 +139,44 @@ func AscDocsPage(ctx *context.Context) {
 // ascServiceWorker is the script that shows the notifications of the hub and opens the page a click is for. It reads
 // the message the hub sent (title, body, a path of the hub), and opens only a path on this site.
 const ascServiceWorker = `"use strict";
-self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+const CACHE = "asc-offline-v1";
+const OFFLINE = new URL("-/offline", self.registration.scope).href;
+
+// The offline page and its style sheets are kept when the worker is installed, so a hub that cannot be reached shows
+// a page that looks like the hub and not an error of the browser.
+async function precache() {
+  const cache = await caches.open(CACHE);
+  const res = await fetch(OFFLINE, {credentials: "omit"});
+  if (!res.ok) return;
+  const html = await res.clone().text();
+  await cache.put(OFFLINE, res);
+  const hrefs = [];
+  for (const tag of html.match(/<link[^>]*>/g) || []) {
+    if (/rel=["']stylesheet["']/.test(tag)) {
+      const m = tag.match(/href=["']([^"']+)["']/);
+      if (m) hrefs.push(new URL(m[1], OFFLINE).href);
+    }
+  }
+  await Promise.all(hrefs.filter((h) => new URL(h).origin === self.location.origin).map((h) => cache.add(h).catch(() => {})));
+}
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(precache().catch(() => {}).then(() => self.skipWaiting()));
+});
+self.addEventListener("activate", (event) => {
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+});
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  if (req.method !== "GET") return;
+  if (req.mode === "navigate") {
+    event.respondWith(fetch(req).catch(() => caches.match(OFFLINE).then((hit) => hit || Response.error())));
+    return;
+  }
+  if (new URL(req.url).origin === self.location.origin && new URL(req.url).pathname.includes("/assets/")) {
+    event.respondWith(fetch(req).catch(() => caches.match(req).then((hit) => hit || Response.error())));
+  }
+});
 self.addEventListener("push", (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
