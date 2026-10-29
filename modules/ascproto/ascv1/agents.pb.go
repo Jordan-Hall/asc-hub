@@ -566,6 +566,7 @@ type AgentRun struct {
 	PendingRequests uint32                 `protobuf:"varint,25,opt,name=pending_requests,json=pendingRequests,proto3" json:"pending_requests,omitempty"` // permission or plan requests waiting for a decision
 	ContinuesRun    uint64                 `protobuf:"varint,26,opt,name=continues_run,json=continuesRun,proto3" json:"continues_run,omitempty"`          // the run this one continues, or 0
 	ForChange       []byte                 `protobuf:"bytes,27,opt,name=for_change,json=forChange,proto3" json:"for_change,omitempty"`                    // the change the run was started for (checks babysitting), or empty
+	CreatedById     uint64                 `protobuf:"varint,28,opt,name=created_by_id,json=createdById,proto3" json:"created_by_id,omitempty"`           // the hub's immutable id of the person who created the run; 0 when the caller had none (a token); names can be renamed
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -787,6 +788,13 @@ func (x *AgentRun) GetForChange() []byte {
 		return x.ForChange
 	}
 	return nil
+}
+
+func (x *AgentRun) GetCreatedById() uint64 {
+	if x != nil {
+		return x.CreatedById
+	}
+	return 0
 }
 
 // `steps_total` is the length of the approved plan, 0 without one; `steps_done` counts the finished plan steps, or the model turns
@@ -4596,6 +4604,154 @@ func (x *SetMonthlyBudgetRequest) GetCapMicroUsd() uint64 {
 	return 0
 }
 
+// The profile of a person (name, bio, location, website, pronouns) for an agent that must know who it works with. asc keeps no
+// profiles: it asks the hub, which answers only for a person who allows agents to read their profile, and the answer is
+// `allowed` false with nothing else when the person does not, does not exist, is not public, or the hub cannot be asked.
+// An email address and an avatar are never part of it. Every call is audited with the caller and the answer.
+type GetAgentPersonRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Login         string                 `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentPersonRequest) Reset() {
+	*x = GetAgentPersonRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentPersonRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentPersonRequest) ProtoMessage() {}
+
+func (x *GetAgentPersonRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentPersonRequest.ProtoReflect.Descriptor instead.
+func (*GetAgentPersonRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *GetAgentPersonRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GetAgentPersonRequest) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
+type GetAgentPersonResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Allowed       bool                   `protobuf:"varint,1,opt,name=allowed,proto3" json:"allowed,omitempty"`
+	Login         string                 `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
+	FullName      string                 `protobuf:"bytes,3,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	Location      string                 `protobuf:"bytes,5,opt,name=location,proto3" json:"location,omitempty"`
+	Website       string                 `protobuf:"bytes,6,opt,name=website,proto3" json:"website,omitempty"`
+	Pronouns      string                 `protobuf:"bytes,7,opt,name=pronouns,proto3" json:"pronouns,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentPersonResponse) Reset() {
+	*x = GetAgentPersonResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentPersonResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentPersonResponse) ProtoMessage() {}
+
+func (x *GetAgentPersonResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentPersonResponse.ProtoReflect.Descriptor instead.
+func (*GetAgentPersonResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{62}
+}
+
+func (x *GetAgentPersonResponse) GetAllowed() bool {
+	if x != nil {
+		return x.Allowed
+	}
+	return false
+}
+
+func (x *GetAgentPersonResponse) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
+func (x *GetAgentPersonResponse) GetFullName() string {
+	if x != nil {
+		return x.FullName
+	}
+	return ""
+}
+
+func (x *GetAgentPersonResponse) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *GetAgentPersonResponse) GetLocation() string {
+	if x != nil {
+		return x.Location
+	}
+	return ""
+}
+
+func (x *GetAgentPersonResponse) GetWebsite() string {
+	if x != nil {
+		return x.Website
+	}
+	return ""
+}
+
+func (x *GetAgentPersonResponse) GetPronouns() string {
+	if x != nil {
+		return x.Pronouns
+	}
+	return ""
+}
+
 type SetMonthlyBudgetResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Agent         string                 `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
@@ -4606,7 +4762,7 @@ type SetMonthlyBudgetResponse struct {
 
 func (x *SetMonthlyBudgetResponse) Reset() {
 	*x = SetMonthlyBudgetResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[61]
+	mi := &file_asc_v1_agents_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4618,7 +4774,7 @@ func (x *SetMonthlyBudgetResponse) String() string {
 func (*SetMonthlyBudgetResponse) ProtoMessage() {}
 
 func (x *SetMonthlyBudgetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[61]
+	mi := &file_asc_v1_agents_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4631,7 +4787,7 @@ func (x *SetMonthlyBudgetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMonthlyBudgetResponse.ProtoReflect.Descriptor instead.
 func (*SetMonthlyBudgetResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{61}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *SetMonthlyBudgetResponse) GetAgent() string {
@@ -4667,7 +4823,7 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\x0ecost_micro_usd\x18\x03 \x01(\x04R\fcostMicroUsd\x12\x14\n" +
 	"\x05paths\x18\x04 \x01(\rR\x05paths\x12'\n" +
 	"\x0fruntime_seconds\x18\x05 \x01(\rR\x0eruntimeSeconds\x12\x1a\n" +
-	"\brequests\x18\x06 \x01(\x04R\brequests\"\xe8\x06\n" +
+	"\brequests\x18\x06 \x01(\x04R\brequests\"\x8c\a\n" +
 	"\bAgentRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
 	"\x04repo\x18\x02 \x01(\tR\x04repo\x12\x14\n" +
@@ -4698,7 +4854,8 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\x10pending_requests\x18\x19 \x01(\rR\x0fpendingRequests\x12#\n" +
 	"\rcontinues_run\x18\x1a \x01(\x04R\fcontinuesRun\x12#\n" +
 	"\n" +
-	"for_change\x18\x1b \x01(\fB\x04\xa8\xbb\x18\x02R\tforChange\"\x8b\x01\n" +
+	"for_change\x18\x1b \x01(\fB\x04\xa8\xbb\x18\x02R\tforChange\x12\"\n" +
+	"\rcreated_by_id\x18\x1c \x01(\x04R\vcreatedById\"\x8b\x01\n" +
 	"\x10AgentRunProgress\x12\x1d\n" +
 	"\n" +
 	"steps_done\x18\x01 \x01(\rR\tstepsDone\x12\x1f\n" +
@@ -4996,7 +5153,18 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\x17SetMonthlyBudgetRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\"\n" +
-	"\rcap_micro_usd\x18\x03 \x01(\x04R\vcapMicroUsd\"T\n" +
+	"\rcap_micro_usd\x18\x03 \x01(\x04R\vcapMicroUsd\"R\n" +
+	"\x15GetAgentPersonRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
+	"\x05login\x18\x02 \x01(\tR\x05login\"\xd9\x01\n" +
+	"\x16GetAgentPersonResponse\x12\x18\n" +
+	"\aallowed\x18\x01 \x01(\bR\aallowed\x12\x14\n" +
+	"\x05login\x18\x02 \x01(\tR\x05login\x12\x1b\n" +
+	"\tfull_name\x18\x03 \x01(\tR\bfullName\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x1a\n" +
+	"\blocation\x18\x05 \x01(\tR\blocation\x12\x18\n" +
+	"\awebsite\x18\x06 \x01(\tR\awebsite\x12\x1a\n" +
+	"\bpronouns\x18\a \x01(\tR\bpronouns\"T\n" +
 	"\x18SetMonthlyBudgetResponse\x12\x14\n" +
 	"\x05agent\x18\x01 \x01(\tR\x05agent\x12\"\n" +
 	"\rcap_micro_usd\x18\x02 \x01(\x04R\vcapMicroUsd*\xa8\x02\n" +
@@ -5043,7 +5211,7 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\x19AGENT_DECISION_ALLOW_ONCE\x10\x01\x12\x17\n" +
 	"\x13AGENT_DECISION_DENY\x10\x02\x12\x1f\n" +
 	"\x1bAGENT_DECISION_APPROVE_PLAN\x10\x03\x12\x1e\n" +
-	"\x1aAGENT_DECISION_REJECT_PLAN\x10\x042\xe5\v\n" +
+	"\x1aAGENT_DECISION_REJECT_PLAN\x10\x042\xb1\f\n" +
 	"\x06Agents\x12J\n" +
 	"\tCreateRun\x12\x1d.asc.v1.CreateAgentRunRequest\x1a\x1e.asc.v1.CreateAgentRunResponse\x12G\n" +
 	"\bListRuns\x12\x1c.asc.v1.ListAgentRunsRequest\x1a\x1d.asc.v1.ListAgentRunsResponse\x12A\n" +
@@ -5064,7 +5232,8 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\n" +
 	"ListAgents\x12\x1d.asc.v1.ListRepoAgentsRequest\x1a\x1e.asc.v1.ListRepoAgentsResponse\x12G\n" +
 	"\bGetSpend\x12\x1c.asc.v1.GetAgentSpendRequest\x1a\x1d.asc.v1.GetAgentSpendResponse\x12U\n" +
-	"\x10SetMonthlyBudget\x12\x1f.asc.v1.SetMonthlyBudgetRequest\x1a .asc.v1.SetMonthlyBudgetResponse2\xf1\x03\n" +
+	"\x10SetMonthlyBudget\x12\x1f.asc.v1.SetMonthlyBudgetRequest\x1a .asc.v1.SetMonthlyBudgetResponse\x12J\n" +
+	"\tGetPerson\x12\x1d.asc.v1.GetAgentPersonRequest\x1a\x1e.asc.v1.GetAgentPersonResponse2\xf1\x03\n" +
 	"\vAgentTokens\x12P\n" +
 	"\vCreateToken\x12\x1f.asc.v1.CreateAgentTokenRequest\x1a .asc.v1.CreateAgentTokenResponse\x12M\n" +
 	"\n" +
@@ -5089,7 +5258,7 @@ func file_asc_v1_agents_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_agents_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_asc_v1_agents_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
+var file_asc_v1_agents_proto_msgTypes = make([]protoimpl.MessageInfo, 64)
 var file_asc_v1_agents_proto_goTypes = []any{
 	(AgentRunState)(0),                   // 0: asc.v1.AgentRunState
 	(AgentRunEventKind)(0),               // 1: asc.v1.AgentRunEventKind
@@ -5158,138 +5327,143 @@ var file_asc_v1_agents_proto_goTypes = []any{
 	(*GetAgentSpendRequest)(nil),         // 64: asc.v1.GetAgentSpendRequest
 	(*GetAgentSpendResponse)(nil),        // 65: asc.v1.GetAgentSpendResponse
 	(*SetMonthlyBudgetRequest)(nil),      // 66: asc.v1.SetMonthlyBudgetRequest
-	(*SetMonthlyBudgetResponse)(nil),     // 67: asc.v1.SetMonthlyBudgetResponse
-	(*RepoRef)(nil),                      // 68: asc.v1.RepoRef
+	(*GetAgentPersonRequest)(nil),        // 67: asc.v1.GetAgentPersonRequest
+	(*GetAgentPersonResponse)(nil),       // 68: asc.v1.GetAgentPersonResponse
+	(*SetMonthlyBudgetResponse)(nil),     // 69: asc.v1.SetMonthlyBudgetResponse
+	(*RepoRef)(nil),                      // 70: asc.v1.RepoRef
 }
 var file_asc_v1_agents_proto_depIdxs = []int32{
-	0,  // 0: asc.v1.AgentRun.state:type_name -> asc.v1.AgentRunState
-	6,  // 1: asc.v1.AgentRun.limits:type_name -> asc.v1.AgentBudgetLimits
-	7,  // 2: asc.v1.AgentRun.usage:type_name -> asc.v1.AgentBudgetUsage
-	9,  // 3: asc.v1.AgentRun.progress:type_name -> asc.v1.AgentRunProgress
-	68, // 4: asc.v1.CreateAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	6,  // 5: asc.v1.CreateAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	8,  // 6: asc.v1.CreateAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	68, // 7: asc.v1.ListAgentRunsRequest.repo:type_name -> asc.v1.RepoRef
-	0,  // 8: asc.v1.ListAgentRunsRequest.states:type_name -> asc.v1.AgentRunState
-	8,  // 9: asc.v1.ListAgentRunsResponse.runs:type_name -> asc.v1.AgentRun
-	68, // 10: asc.v1.GetAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	8,  // 11: asc.v1.GetAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	68, // 12: asc.v1.CancelAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	8,  // 13: asc.v1.CancelAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	68, // 14: asc.v1.SendAgentInputRequest.repo:type_name -> asc.v1.RepoRef
-	8,  // 15: asc.v1.SendAgentInputResponse.run:type_name -> asc.v1.AgentRun
-	1,  // 16: asc.v1.AgentRunEvent.kind:type_name -> asc.v1.AgentRunEventKind
-	0,  // 17: asc.v1.AgentRunEvent.state:type_name -> asc.v1.AgentRunState
-	7,  // 18: asc.v1.AgentRunEvent.usage:type_name -> asc.v1.AgentBudgetUsage
-	68, // 19: asc.v1.WatchAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	2,  // 20: asc.v1.AgentToken.state:type_name -> asc.v1.AgentTokenState
-	6,  // 21: asc.v1.AgentToken.limits:type_name -> asc.v1.AgentBudgetLimits
-	7,  // 22: asc.v1.AgentToken.usage:type_name -> asc.v1.AgentBudgetUsage
-	68, // 23: asc.v1.CreateAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
-	6,  // 24: asc.v1.CreateAgentTokenRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	22, // 25: asc.v1.CreateAgentTokenResponse.token:type_name -> asc.v1.AgentToken
-	68, // 26: asc.v1.ListAgentTokensRequest.repo:type_name -> asc.v1.RepoRef
-	2,  // 27: asc.v1.ListAgentTokensRequest.states:type_name -> asc.v1.AgentTokenState
-	22, // 28: asc.v1.ListAgentTokensResponse.tokens:type_name -> asc.v1.AgentToken
-	68, // 29: asc.v1.GetAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
-	22, // 30: asc.v1.GetAgentTokenResponse.token:type_name -> asc.v1.AgentToken
-	7,  // 31: asc.v1.GetAgentTokenResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
-	68, // 32: asc.v1.RevokeAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
-	22, // 33: asc.v1.RevokeAgentTokenResponse.token:type_name -> asc.v1.AgentToken
-	68, // 34: asc.v1.SetAgentTokenBudgetRequest.repo:type_name -> asc.v1.RepoRef
-	6,  // 35: asc.v1.SetAgentTokenBudgetRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	22, // 36: asc.v1.SetAgentTokenBudgetResponse.token:type_name -> asc.v1.AgentToken
-	68, // 37: asc.v1.ReportAgentUsageRequest.repo:type_name -> asc.v1.RepoRef
-	7,  // 38: asc.v1.ReportAgentUsageResponse.usage:type_name -> asc.v1.AgentBudgetUsage
-	7,  // 39: asc.v1.ReportAgentUsageResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
-	3,  // 40: asc.v1.AgentRequest.kind:type_name -> asc.v1.AgentRequestKind
-	4,  // 41: asc.v1.AgentRequest.state:type_name -> asc.v1.AgentRequestState
-	35, // 42: asc.v1.AgentRequest.plan:type_name -> asc.v1.AgentPlanStep
-	68, // 43: asc.v1.ListAgentRequestsRequest.repo:type_name -> asc.v1.RepoRef
-	4,  // 44: asc.v1.ListAgentRequestsRequest.states:type_name -> asc.v1.AgentRequestState
-	36, // 45: asc.v1.ListAgentRequestsResponse.requests:type_name -> asc.v1.AgentRequest
-	68, // 46: asc.v1.DecideAgentRequestRequest.repo:type_name -> asc.v1.RepoRef
-	5,  // 47: asc.v1.DecideAgentRequestRequest.decision:type_name -> asc.v1.AgentDecision
-	36, // 48: asc.v1.DecideAgentRequestResponse.request:type_name -> asc.v1.AgentRequest
-	8,  // 49: asc.v1.DecideAgentRequestResponse.run:type_name -> asc.v1.AgentRun
-	68, // 50: asc.v1.PauseAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	8,  // 51: asc.v1.PauseAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	68, // 52: asc.v1.ListAgentCheckpointsRequest.repo:type_name -> asc.v1.RepoRef
-	43, // 53: asc.v1.ListAgentCheckpointsResponse.checkpoints:type_name -> asc.v1.AgentCheckpoint
-	68, // 54: asc.v1.RollbackAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	8,  // 55: asc.v1.RollbackAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	43, // 56: asc.v1.RollbackAgentRunResponse.checkpoint:type_name -> asc.v1.AgentCheckpoint
-	68, // 57: asc.v1.SetAgentRunLimitsRequest.repo:type_name -> asc.v1.RepoRef
-	6,  // 58: asc.v1.SetAgentRunLimitsRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	8,  // 59: asc.v1.SetAgentRunLimitsResponse.run:type_name -> asc.v1.AgentRun
-	68, // 60: asc.v1.ContinueAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	6,  // 61: asc.v1.ContinueAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	8,  // 62: asc.v1.ContinueAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	68, // 63: asc.v1.GetAgentEstimateRequest.repo:type_name -> asc.v1.RepoRef
-	68, // 64: asc.v1.RecentAgentTasksRequest.repo:type_name -> asc.v1.RepoRef
-	54, // 65: asc.v1.RecentAgentTasksResponse.tasks:type_name -> asc.v1.AgentTaskRef
-	68, // 66: asc.v1.GetAgentRunLogRequest.repo:type_name -> asc.v1.RepoRef
-	68, // 67: asc.v1.ListRepoAgentsRequest.repo:type_name -> asc.v1.RepoRef
-	59, // 68: asc.v1.ListRepoAgentsResponse.agents:type_name -> asc.v1.RepoAgentInfo
-	68, // 69: asc.v1.GetAgentSpendRequest.repo:type_name -> asc.v1.RepoRef
-	62, // 70: asc.v1.GetAgentSpendResponse.days:type_name -> asc.v1.SpendDay
-	63, // 71: asc.v1.GetAgentSpendResponse.agents:type_name -> asc.v1.AgentSpend
-	68, // 72: asc.v1.SetMonthlyBudgetRequest.repo:type_name -> asc.v1.RepoRef
-	10, // 73: asc.v1.Agents.CreateRun:input_type -> asc.v1.CreateAgentRunRequest
-	12, // 74: asc.v1.Agents.ListRuns:input_type -> asc.v1.ListAgentRunsRequest
-	14, // 75: asc.v1.Agents.GetRun:input_type -> asc.v1.GetAgentRunRequest
-	16, // 76: asc.v1.Agents.CancelRun:input_type -> asc.v1.CancelAgentRunRequest
-	18, // 77: asc.v1.Agents.SendInput:input_type -> asc.v1.SendAgentInputRequest
-	21, // 78: asc.v1.Agents.WatchRun:input_type -> asc.v1.WatchAgentRunRequest
-	37, // 79: asc.v1.Agents.ListRequests:input_type -> asc.v1.ListAgentRequestsRequest
-	39, // 80: asc.v1.Agents.DecideRequest:input_type -> asc.v1.DecideAgentRequestRequest
-	41, // 81: asc.v1.Agents.PauseRun:input_type -> asc.v1.PauseAgentRunRequest
-	44, // 82: asc.v1.Agents.ListCheckpoints:input_type -> asc.v1.ListAgentCheckpointsRequest
-	46, // 83: asc.v1.Agents.RollbackRun:input_type -> asc.v1.RollbackAgentRunRequest
-	48, // 84: asc.v1.Agents.SetRunLimits:input_type -> asc.v1.SetAgentRunLimitsRequest
-	50, // 85: asc.v1.Agents.ContinueRun:input_type -> asc.v1.ContinueAgentRunRequest
-	52, // 86: asc.v1.Agents.GetEstimate:input_type -> asc.v1.GetAgentEstimateRequest
-	55, // 87: asc.v1.Agents.RecentTasks:input_type -> asc.v1.RecentAgentTasksRequest
-	57, // 88: asc.v1.Agents.GetRunLog:input_type -> asc.v1.GetAgentRunLogRequest
-	60, // 89: asc.v1.Agents.ListAgents:input_type -> asc.v1.ListRepoAgentsRequest
-	64, // 90: asc.v1.Agents.GetSpend:input_type -> asc.v1.GetAgentSpendRequest
-	66, // 91: asc.v1.Agents.SetMonthlyBudget:input_type -> asc.v1.SetMonthlyBudgetRequest
-	23, // 92: asc.v1.AgentTokens.CreateToken:input_type -> asc.v1.CreateAgentTokenRequest
-	25, // 93: asc.v1.AgentTokens.ListTokens:input_type -> asc.v1.ListAgentTokensRequest
-	27, // 94: asc.v1.AgentTokens.GetToken:input_type -> asc.v1.GetAgentTokenRequest
-	29, // 95: asc.v1.AgentTokens.RevokeToken:input_type -> asc.v1.RevokeAgentTokenRequest
-	31, // 96: asc.v1.AgentTokens.SetBudget:input_type -> asc.v1.SetAgentTokenBudgetRequest
-	33, // 97: asc.v1.AgentTokens.ReportUsage:input_type -> asc.v1.ReportAgentUsageRequest
-	11, // 98: asc.v1.Agents.CreateRun:output_type -> asc.v1.CreateAgentRunResponse
-	13, // 99: asc.v1.Agents.ListRuns:output_type -> asc.v1.ListAgentRunsResponse
-	15, // 100: asc.v1.Agents.GetRun:output_type -> asc.v1.GetAgentRunResponse
-	17, // 101: asc.v1.Agents.CancelRun:output_type -> asc.v1.CancelAgentRunResponse
-	19, // 102: asc.v1.Agents.SendInput:output_type -> asc.v1.SendAgentInputResponse
-	20, // 103: asc.v1.Agents.WatchRun:output_type -> asc.v1.AgentRunEvent
-	38, // 104: asc.v1.Agents.ListRequests:output_type -> asc.v1.ListAgentRequestsResponse
-	40, // 105: asc.v1.Agents.DecideRequest:output_type -> asc.v1.DecideAgentRequestResponse
-	42, // 106: asc.v1.Agents.PauseRun:output_type -> asc.v1.PauseAgentRunResponse
-	45, // 107: asc.v1.Agents.ListCheckpoints:output_type -> asc.v1.ListAgentCheckpointsResponse
-	47, // 108: asc.v1.Agents.RollbackRun:output_type -> asc.v1.RollbackAgentRunResponse
-	49, // 109: asc.v1.Agents.SetRunLimits:output_type -> asc.v1.SetAgentRunLimitsResponse
-	51, // 110: asc.v1.Agents.ContinueRun:output_type -> asc.v1.ContinueAgentRunResponse
-	53, // 111: asc.v1.Agents.GetEstimate:output_type -> asc.v1.GetAgentEstimateResponse
-	56, // 112: asc.v1.Agents.RecentTasks:output_type -> asc.v1.RecentAgentTasksResponse
-	58, // 113: asc.v1.Agents.GetRunLog:output_type -> asc.v1.GetAgentRunLogResponse
-	61, // 114: asc.v1.Agents.ListAgents:output_type -> asc.v1.ListRepoAgentsResponse
-	65, // 115: asc.v1.Agents.GetSpend:output_type -> asc.v1.GetAgentSpendResponse
-	67, // 116: asc.v1.Agents.SetMonthlyBudget:output_type -> asc.v1.SetMonthlyBudgetResponse
-	24, // 117: asc.v1.AgentTokens.CreateToken:output_type -> asc.v1.CreateAgentTokenResponse
-	26, // 118: asc.v1.AgentTokens.ListTokens:output_type -> asc.v1.ListAgentTokensResponse
-	28, // 119: asc.v1.AgentTokens.GetToken:output_type -> asc.v1.GetAgentTokenResponse
-	30, // 120: asc.v1.AgentTokens.RevokeToken:output_type -> asc.v1.RevokeAgentTokenResponse
-	32, // 121: asc.v1.AgentTokens.SetBudget:output_type -> asc.v1.SetAgentTokenBudgetResponse
-	34, // 122: asc.v1.AgentTokens.ReportUsage:output_type -> asc.v1.ReportAgentUsageResponse
-	98, // [98:123] is the sub-list for method output_type
-	73, // [73:98] is the sub-list for method input_type
-	73, // [73:73] is the sub-list for extension type_name
-	73, // [73:73] is the sub-list for extension extendee
-	0,  // [0:73] is the sub-list for field type_name
+	0,   // 0: asc.v1.AgentRun.state:type_name -> asc.v1.AgentRunState
+	6,   // 1: asc.v1.AgentRun.limits:type_name -> asc.v1.AgentBudgetLimits
+	7,   // 2: asc.v1.AgentRun.usage:type_name -> asc.v1.AgentBudgetUsage
+	9,   // 3: asc.v1.AgentRun.progress:type_name -> asc.v1.AgentRunProgress
+	70,  // 4: asc.v1.CreateAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	6,   // 5: asc.v1.CreateAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	8,   // 6: asc.v1.CreateAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	70,  // 7: asc.v1.ListAgentRunsRequest.repo:type_name -> asc.v1.RepoRef
+	0,   // 8: asc.v1.ListAgentRunsRequest.states:type_name -> asc.v1.AgentRunState
+	8,   // 9: asc.v1.ListAgentRunsResponse.runs:type_name -> asc.v1.AgentRun
+	70,  // 10: asc.v1.GetAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,   // 11: asc.v1.GetAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	70,  // 12: asc.v1.CancelAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,   // 13: asc.v1.CancelAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	70,  // 14: asc.v1.SendAgentInputRequest.repo:type_name -> asc.v1.RepoRef
+	8,   // 15: asc.v1.SendAgentInputResponse.run:type_name -> asc.v1.AgentRun
+	1,   // 16: asc.v1.AgentRunEvent.kind:type_name -> asc.v1.AgentRunEventKind
+	0,   // 17: asc.v1.AgentRunEvent.state:type_name -> asc.v1.AgentRunState
+	7,   // 18: asc.v1.AgentRunEvent.usage:type_name -> asc.v1.AgentBudgetUsage
+	70,  // 19: asc.v1.WatchAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	2,   // 20: asc.v1.AgentToken.state:type_name -> asc.v1.AgentTokenState
+	6,   // 21: asc.v1.AgentToken.limits:type_name -> asc.v1.AgentBudgetLimits
+	7,   // 22: asc.v1.AgentToken.usage:type_name -> asc.v1.AgentBudgetUsage
+	70,  // 23: asc.v1.CreateAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
+	6,   // 24: asc.v1.CreateAgentTokenRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	22,  // 25: asc.v1.CreateAgentTokenResponse.token:type_name -> asc.v1.AgentToken
+	70,  // 26: asc.v1.ListAgentTokensRequest.repo:type_name -> asc.v1.RepoRef
+	2,   // 27: asc.v1.ListAgentTokensRequest.states:type_name -> asc.v1.AgentTokenState
+	22,  // 28: asc.v1.ListAgentTokensResponse.tokens:type_name -> asc.v1.AgentToken
+	70,  // 29: asc.v1.GetAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
+	22,  // 30: asc.v1.GetAgentTokenResponse.token:type_name -> asc.v1.AgentToken
+	7,   // 31: asc.v1.GetAgentTokenResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
+	70,  // 32: asc.v1.RevokeAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
+	22,  // 33: asc.v1.RevokeAgentTokenResponse.token:type_name -> asc.v1.AgentToken
+	70,  // 34: asc.v1.SetAgentTokenBudgetRequest.repo:type_name -> asc.v1.RepoRef
+	6,   // 35: asc.v1.SetAgentTokenBudgetRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	22,  // 36: asc.v1.SetAgentTokenBudgetResponse.token:type_name -> asc.v1.AgentToken
+	70,  // 37: asc.v1.ReportAgentUsageRequest.repo:type_name -> asc.v1.RepoRef
+	7,   // 38: asc.v1.ReportAgentUsageResponse.usage:type_name -> asc.v1.AgentBudgetUsage
+	7,   // 39: asc.v1.ReportAgentUsageResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
+	3,   // 40: asc.v1.AgentRequest.kind:type_name -> asc.v1.AgentRequestKind
+	4,   // 41: asc.v1.AgentRequest.state:type_name -> asc.v1.AgentRequestState
+	35,  // 42: asc.v1.AgentRequest.plan:type_name -> asc.v1.AgentPlanStep
+	70,  // 43: asc.v1.ListAgentRequestsRequest.repo:type_name -> asc.v1.RepoRef
+	4,   // 44: asc.v1.ListAgentRequestsRequest.states:type_name -> asc.v1.AgentRequestState
+	36,  // 45: asc.v1.ListAgentRequestsResponse.requests:type_name -> asc.v1.AgentRequest
+	70,  // 46: asc.v1.DecideAgentRequestRequest.repo:type_name -> asc.v1.RepoRef
+	5,   // 47: asc.v1.DecideAgentRequestRequest.decision:type_name -> asc.v1.AgentDecision
+	36,  // 48: asc.v1.DecideAgentRequestResponse.request:type_name -> asc.v1.AgentRequest
+	8,   // 49: asc.v1.DecideAgentRequestResponse.run:type_name -> asc.v1.AgentRun
+	70,  // 50: asc.v1.PauseAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,   // 51: asc.v1.PauseAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	70,  // 52: asc.v1.ListAgentCheckpointsRequest.repo:type_name -> asc.v1.RepoRef
+	43,  // 53: asc.v1.ListAgentCheckpointsResponse.checkpoints:type_name -> asc.v1.AgentCheckpoint
+	70,  // 54: asc.v1.RollbackAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,   // 55: asc.v1.RollbackAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	43,  // 56: asc.v1.RollbackAgentRunResponse.checkpoint:type_name -> asc.v1.AgentCheckpoint
+	70,  // 57: asc.v1.SetAgentRunLimitsRequest.repo:type_name -> asc.v1.RepoRef
+	6,   // 58: asc.v1.SetAgentRunLimitsRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	8,   // 59: asc.v1.SetAgentRunLimitsResponse.run:type_name -> asc.v1.AgentRun
+	70,  // 60: asc.v1.ContinueAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	6,   // 61: asc.v1.ContinueAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	8,   // 62: asc.v1.ContinueAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	70,  // 63: asc.v1.GetAgentEstimateRequest.repo:type_name -> asc.v1.RepoRef
+	70,  // 64: asc.v1.RecentAgentTasksRequest.repo:type_name -> asc.v1.RepoRef
+	54,  // 65: asc.v1.RecentAgentTasksResponse.tasks:type_name -> asc.v1.AgentTaskRef
+	70,  // 66: asc.v1.GetAgentRunLogRequest.repo:type_name -> asc.v1.RepoRef
+	70,  // 67: asc.v1.ListRepoAgentsRequest.repo:type_name -> asc.v1.RepoRef
+	59,  // 68: asc.v1.ListRepoAgentsResponse.agents:type_name -> asc.v1.RepoAgentInfo
+	70,  // 69: asc.v1.GetAgentSpendRequest.repo:type_name -> asc.v1.RepoRef
+	62,  // 70: asc.v1.GetAgentSpendResponse.days:type_name -> asc.v1.SpendDay
+	63,  // 71: asc.v1.GetAgentSpendResponse.agents:type_name -> asc.v1.AgentSpend
+	70,  // 72: asc.v1.SetMonthlyBudgetRequest.repo:type_name -> asc.v1.RepoRef
+	70,  // 73: asc.v1.GetAgentPersonRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 74: asc.v1.Agents.CreateRun:input_type -> asc.v1.CreateAgentRunRequest
+	12,  // 75: asc.v1.Agents.ListRuns:input_type -> asc.v1.ListAgentRunsRequest
+	14,  // 76: asc.v1.Agents.GetRun:input_type -> asc.v1.GetAgentRunRequest
+	16,  // 77: asc.v1.Agents.CancelRun:input_type -> asc.v1.CancelAgentRunRequest
+	18,  // 78: asc.v1.Agents.SendInput:input_type -> asc.v1.SendAgentInputRequest
+	21,  // 79: asc.v1.Agents.WatchRun:input_type -> asc.v1.WatchAgentRunRequest
+	37,  // 80: asc.v1.Agents.ListRequests:input_type -> asc.v1.ListAgentRequestsRequest
+	39,  // 81: asc.v1.Agents.DecideRequest:input_type -> asc.v1.DecideAgentRequestRequest
+	41,  // 82: asc.v1.Agents.PauseRun:input_type -> asc.v1.PauseAgentRunRequest
+	44,  // 83: asc.v1.Agents.ListCheckpoints:input_type -> asc.v1.ListAgentCheckpointsRequest
+	46,  // 84: asc.v1.Agents.RollbackRun:input_type -> asc.v1.RollbackAgentRunRequest
+	48,  // 85: asc.v1.Agents.SetRunLimits:input_type -> asc.v1.SetAgentRunLimitsRequest
+	50,  // 86: asc.v1.Agents.ContinueRun:input_type -> asc.v1.ContinueAgentRunRequest
+	52,  // 87: asc.v1.Agents.GetEstimate:input_type -> asc.v1.GetAgentEstimateRequest
+	55,  // 88: asc.v1.Agents.RecentTasks:input_type -> asc.v1.RecentAgentTasksRequest
+	57,  // 89: asc.v1.Agents.GetRunLog:input_type -> asc.v1.GetAgentRunLogRequest
+	60,  // 90: asc.v1.Agents.ListAgents:input_type -> asc.v1.ListRepoAgentsRequest
+	64,  // 91: asc.v1.Agents.GetSpend:input_type -> asc.v1.GetAgentSpendRequest
+	66,  // 92: asc.v1.Agents.SetMonthlyBudget:input_type -> asc.v1.SetMonthlyBudgetRequest
+	67,  // 93: asc.v1.Agents.GetPerson:input_type -> asc.v1.GetAgentPersonRequest
+	23,  // 94: asc.v1.AgentTokens.CreateToken:input_type -> asc.v1.CreateAgentTokenRequest
+	25,  // 95: asc.v1.AgentTokens.ListTokens:input_type -> asc.v1.ListAgentTokensRequest
+	27,  // 96: asc.v1.AgentTokens.GetToken:input_type -> asc.v1.GetAgentTokenRequest
+	29,  // 97: asc.v1.AgentTokens.RevokeToken:input_type -> asc.v1.RevokeAgentTokenRequest
+	31,  // 98: asc.v1.AgentTokens.SetBudget:input_type -> asc.v1.SetAgentTokenBudgetRequest
+	33,  // 99: asc.v1.AgentTokens.ReportUsage:input_type -> asc.v1.ReportAgentUsageRequest
+	11,  // 100: asc.v1.Agents.CreateRun:output_type -> asc.v1.CreateAgentRunResponse
+	13,  // 101: asc.v1.Agents.ListRuns:output_type -> asc.v1.ListAgentRunsResponse
+	15,  // 102: asc.v1.Agents.GetRun:output_type -> asc.v1.GetAgentRunResponse
+	17,  // 103: asc.v1.Agents.CancelRun:output_type -> asc.v1.CancelAgentRunResponse
+	19,  // 104: asc.v1.Agents.SendInput:output_type -> asc.v1.SendAgentInputResponse
+	20,  // 105: asc.v1.Agents.WatchRun:output_type -> asc.v1.AgentRunEvent
+	38,  // 106: asc.v1.Agents.ListRequests:output_type -> asc.v1.ListAgentRequestsResponse
+	40,  // 107: asc.v1.Agents.DecideRequest:output_type -> asc.v1.DecideAgentRequestResponse
+	42,  // 108: asc.v1.Agents.PauseRun:output_type -> asc.v1.PauseAgentRunResponse
+	45,  // 109: asc.v1.Agents.ListCheckpoints:output_type -> asc.v1.ListAgentCheckpointsResponse
+	47,  // 110: asc.v1.Agents.RollbackRun:output_type -> asc.v1.RollbackAgentRunResponse
+	49,  // 111: asc.v1.Agents.SetRunLimits:output_type -> asc.v1.SetAgentRunLimitsResponse
+	51,  // 112: asc.v1.Agents.ContinueRun:output_type -> asc.v1.ContinueAgentRunResponse
+	53,  // 113: asc.v1.Agents.GetEstimate:output_type -> asc.v1.GetAgentEstimateResponse
+	56,  // 114: asc.v1.Agents.RecentTasks:output_type -> asc.v1.RecentAgentTasksResponse
+	58,  // 115: asc.v1.Agents.GetRunLog:output_type -> asc.v1.GetAgentRunLogResponse
+	61,  // 116: asc.v1.Agents.ListAgents:output_type -> asc.v1.ListRepoAgentsResponse
+	65,  // 117: asc.v1.Agents.GetSpend:output_type -> asc.v1.GetAgentSpendResponse
+	69,  // 118: asc.v1.Agents.SetMonthlyBudget:output_type -> asc.v1.SetMonthlyBudgetResponse
+	68,  // 119: asc.v1.Agents.GetPerson:output_type -> asc.v1.GetAgentPersonResponse
+	24,  // 120: asc.v1.AgentTokens.CreateToken:output_type -> asc.v1.CreateAgentTokenResponse
+	26,  // 121: asc.v1.AgentTokens.ListTokens:output_type -> asc.v1.ListAgentTokensResponse
+	28,  // 122: asc.v1.AgentTokens.GetToken:output_type -> asc.v1.GetAgentTokenResponse
+	30,  // 123: asc.v1.AgentTokens.RevokeToken:output_type -> asc.v1.RevokeAgentTokenResponse
+	32,  // 124: asc.v1.AgentTokens.SetBudget:output_type -> asc.v1.SetAgentTokenBudgetResponse
+	34,  // 125: asc.v1.AgentTokens.ReportUsage:output_type -> asc.v1.ReportAgentUsageResponse
+	100, // [100:126] is the sub-list for method output_type
+	74,  // [74:100] is the sub-list for method input_type
+	74,  // [74:74] is the sub-list for extension type_name
+	74,  // [74:74] is the sub-list for extension extendee
+	0,   // [0:74] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_agents_proto_init() }
@@ -5305,7 +5479,7 @@ func file_asc_v1_agents_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_agents_proto_rawDesc), len(file_asc_v1_agents_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   62,
+			NumMessages:   64,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

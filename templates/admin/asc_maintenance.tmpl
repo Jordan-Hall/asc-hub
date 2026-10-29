@@ -1,0 +1,43 @@
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin maintenance")}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.maintenance") "Desc" (ctx.Locale.Tr "asc_admin.maintenance_lead"))}}
+
+	{{if .Maintenance.On}}
+	<div class="ds-banner ds-banner-warn" role="status">
+		{{svg "dsi-alert" 18}}
+		<p class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_admin.maintenance_on_title"}}.</strong> {{ctx.Locale.Tr "asc_admin.maintenance_on_text"}}</p>
+	</div>
+	{{end}}
+
+	<form class="ds-card adm-sec ds-form" action="{{.MaintenanceLink}}" method="post">
+		{{.CsrfTokenHtml}}
+		<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_admin.maintenance"}}</h2></div>
+		<div class="ds-card-b ds-stack-16">
+			<input type="hidden" name="on" value="0">
+			<label class="ds-switch wk-switch-row">
+				<input type="checkbox" role="switch" name="on" value="1"{{if .Maintenance.On}} checked{{end}}>
+				<span class="ds-switch-track"></span>
+				<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_admin.maintenance_switch"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_admin.maintenance_switch_hint"}}</span></span>
+			</label>
+			<div class="ds-field">
+				<label class="ds-label" for="m-message">{{ctx.Locale.Tr "asc_admin.maintenance_message"}}</label>
+				<input id="m-message" class="ds-input" name="message" maxlength="300" value="{{.Maintenance.Message}}" placeholder="{{ctx.Locale.Tr "asc_admin.maintenance_message_ph"}}">
+			</div>
+			<div class="ds-form-row ds-form-row-2">
+				<div class="ds-field">
+					<label class="ds-label" for="m-window">{{ctx.Locale.Tr "asc_admin.maintenance_window"}}</label>
+					<input id="m-window" class="ds-input" name="window" maxlength="80" value="{{.Maintenance.Window}}" placeholder="22:00 - 23:00 UTC">
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="m-until">{{ctx.Locale.Tr "asc_admin.maintenance_until"}}</label>
+					<input id="m-until" class="ds-input" type="datetime-local" name="until" value="{{.MaintenanceUntilInput}}">
+					<p class="ds-hint">{{ctx.Locale.Tr "asc_admin.maintenance_until_hint"}}</p>
+				</div>
+			</div>
+			<div class="ds-field">
+				<label class="ds-label" for="m-status">{{ctx.Locale.Tr "asc_admin.maintenance_status"}}</label>
+				<input id="m-status" class="ds-input" type="url" name="status_url" maxlength="300" value="{{.Maintenance.StatusURL}}" placeholder="https://status.example.org">
+			</div>
+			<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
+		</div>
+	</form>
+{{template "admin/layout_footer" .}}

@@ -342,12 +342,19 @@ type AscCompareCommit struct {
 	SHA     string
 	Subject string
 	Author  string
+	// Add and Del are the lines the commit adds and removes, when the hub could count them (HasStat).
+	Add, Del int
+	HasStat  bool
 }
 
 // AscCompareFile is one changed file.
 type AscCompareFile struct {
 	Path   string
 	Status string // one letter from the fixed set, or "?"
+	// Add and Del are the lines the file adds and removes; Binary marks a file git does not count (HasStat).
+	Add, Del int
+	Binary   bool
+	HasStat  bool
 }
 
 // AscCompareResult is the checked answer of Repo.Compare.
@@ -481,8 +488,33 @@ func AscCompare(ctx *context.Context) {
 		ascCompareFail(ctx, http.StatusBadGateway, "repo.asc_compare.error.bad_answer")
 		return
 	}
+	addCompareStats(ctx, res, a, b, three)
 	ctx.Data["AscCompare"] = res
 	ctx.HTML(http.StatusOK, tplAscCompare)
+}
+
+// ascCompareStatCommits is how many commits of each side get a size; the lists are short, and git is asked once each.
+const ascCompareStatCommits = 30
+
+// addCompareStats adds the sizes of the files and of the first commits of each side from the repository the hub keeps.
+func addCompareStats(ctx *context.Context, res *AscCompareResult, a, b string, three bool) {
+	if files := compareFileStats(ctx, a, b, three); files != nil {
+		for i := range res.Files {
+			if st, ok := files[res.Files[i].Path]; ok {
+				res.Files[i].Add, res.Files[i].Del, res.Files[i].Binary, res.Files[i].HasStat = st.Add, st.Del, st.Binary, true
+			}
+		}
+	}
+	for _, list := range [][]AscCompareCommit{res.AheadList, res.BehindList} {
+		for i := range list {
+			if i >= ascCompareStatCommits {
+				break
+			}
+			if st, ok := commitStat(ctx, list[i].SHA); ok {
+				list[i].Add, list[i].Del, list[i].HasStat = st.Add, st.Del, true
+			}
+		}
+	}
 }
 
 // ascRefGroup is one group of the From and To selects of the compare page.
@@ -595,6 +627,11 @@ func ascCompareMapError(ctx *context.Context, err error) {
 	}
 	switch st.Code() {
 	case codes.NotFound:
+		if groups, ok := ctx.Data["AscCompareGroups"].([]ascRefGroup); ok {
+			a, _ := ctx.Data["AscCompareA"].(string)
+			b, _ := ctx.Data["AscCompareB"].(string)
+			ctx.Data["AscCompareHints"] = compareHints(a, b, groups)
+		}
 		ascCompareFail(ctx, http.StatusNotFound, "repo.asc_compare.error.not_found")
 	case codes.InvalidArgument:
 		ascCompareFail(ctx, http.StatusBadRequest, "repo.asc_compare.error.bad_request")

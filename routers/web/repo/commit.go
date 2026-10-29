@@ -429,6 +429,10 @@ func Diff(ctx *context.Context) {
 		}
 	}
 
+	if ctx.Data["PageIsWiki"] == nil {
+		prepareAscChange(ctx, commit, statuses, diff.TotalAddition, diff.TotalDeletion, diff.NumFiles)
+	}
+
 	ctx.Data["OpenGraphTitle"] = commit.Summary() + " · " + base.ShortSha(commitID)
 	ctx.Data["OpenGraphURL"] = fmt.Sprintf("%s/commit/%s", ctx.Repo.Repository.HTMLURL(), commitID)
 	_, ctx.Data["OpenGraphDescription"], _ = strings.Cut(commit.Message(), "\n")

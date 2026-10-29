@@ -368,3 +368,90 @@
   color: var(--link);
   text-decoration: underline;
 }
+
+/* ---- the intent, facts strip, stack position, review and "where it is now" of a change (board Changeset) ---- */
+.rp-facts {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.rp-why {
+  padding: 14px 16px;
+}
+
+.rp-why-text {
+  margin: 8px 0 0;
+  color: var(--text-b);
+  font-size: 14.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rp-factstrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+  padding: 0;
+}
+
+.rp-factstrip > div {
+  display: grid;
+  gap: 2px;
+}
+
+.rp-factstrip dt {
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rp-factstrip dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rp-stackpos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.rp-stackpos-t {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.rp-stackpos [aria-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.rp-facts-grid {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .rp-facts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.rp-fact-card {
+  padding: 14px 16px;
+}
+
+.rp-fact-big {
+  margin: 6px 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+}

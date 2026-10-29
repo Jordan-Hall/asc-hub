@@ -167,3 +167,123 @@
   padding: 16px;
   line-height: 1.6;
 }
+
+/* ---- Insights of an asc repository: tiles, chart, review time, recent and waiting stacks (board Insights) ---- */
+.rp-ins {
+  display: grid;
+  gap: 16px;
+}
+
+.rp-ins-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+.rp-ins-segs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.rp-ins-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+@media (min-width: 1024px) {
+  .rp-ins-tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.rp-ins-tile {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+}
+
+.rp-ins-tile dt {
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.rp-ins-tile dd {
+  margin: 0;
+}
+
+.rp-ins-tile .ds-num {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.rp-ins-card {
+  padding: 14px 16px;
+}
+
+.rp-ins-chart {
+  width: 100%;
+  height: 160px;
+  margin-top: 8px;
+}
+
+.rp-bar-people {
+  fill: var(--link);
+}
+
+.rp-bar-agent {
+  fill: var(--agent-dot);
+}
+
+.rp-legend-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+
+.rp-legend-inline .rp-seg {
+  flex: none;
+  width: 14px;
+}
+
+.rp-ins-table {
+  margin-top: 10px;
+}
+
+.rp-ins-cols {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 1024px) {
+  .rp-ins-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.rp-ins-stack {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.rp-ins-sub {
+  margin: 14px 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rp-spark {
+  display: block;
+  width: 96px;
+  height: 24px;
+  color: var(--link);
+}

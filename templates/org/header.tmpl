@@ -6,6 +6,7 @@
 			<div class="wk-pf-info tw-break-anywhere">
 				<div class="wk-pf-line1">
 					<h1 class="wk-pf-name">{{.Org.DisplayName}}</h1>
+					{{if .AscOrgDomain}}<span class="ds-chip ds-chip-ok wk-verified" data-tooltip-content="{{ctx.Locale.Tr "asc_work.org_verified_tip" .AscOrgDomain}}">{{svg "dsi-shield-check" 14}} {{ctx.Locale.Tr "asc_work.org_verified"}}</span>{{end}}
 					{{if .Org.Visibility.IsLimited}}<span class="ds-chip">{{ctx.Locale.Tr "org.settings.visibility.limited_shortname"}}</span>{{end}}
 					{{if .Org.Visibility.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "org.settings.visibility.private_shortname"}}</span>{{end}}
 				</div>

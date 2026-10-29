@@ -58,8 +58,8 @@
 								<li>
 									<a class="wk-org-team-name" href="{{$.OrgLink}}/teams/{{.LowerName | PathEscape}}">{{.Name}}</a>
 									<span class="wk-org-team-meta">
-										<a href="{{$.OrgLink}}/teams/{{.LowerName | PathEscape}}"><b>{{.NumMembers}}</b> {{ctx.Locale.Tr "org.lower_members"}}</a>
-										<a href="{{$.OrgLink}}/teams/{{.LowerName | PathEscape}}/repositories"><b>{{.NumRepos}}</b> {{ctx.Locale.Tr "org.lower_repositories"}}</a>
+										<a href="{{$.OrgLink}}/teams/{{.LowerName | PathEscape}}">{{ctx.Locale.TrN .NumMembers "asc_work.org_member_one" "asc_work.org_member_n" .NumMembers}}</a>
+										<a href="{{$.OrgLink}}/teams/{{.LowerName | PathEscape}}/repositories">{{ctx.Locale.TrN .NumRepos "asc_work.org_repo_one" "asc_work.org_repo_n" .NumRepos}}</a>
 									</span>
 								</li>
 							{{end}}

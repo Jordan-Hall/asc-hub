@@ -19,11 +19,21 @@
 				<label class="ds-sr" for="rp-ref-q">{{ctx.Locale.Tr "search.branch_kind"}}</label>
 				<input id="rp-ref-q" class="ds-input" type="search" name="q" value="{{.Keyword}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{ctx.Locale.Tr "search.branch_kind"}}">
 			</div>
+			{{if or .RefStacks .RefTags}}
+			<div class="rp-pills" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.ref_kinds"}}" data-ref-filter>
+				<button type="button" class="ds-chip-btn" data-ref-show="all" aria-pressed="true">{{ctx.Locale.Tr "asc_rp.rail_all"}}</button>
+				<button type="button" class="ds-chip-btn" data-ref-show="shared" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.ref_shared"}} <span class="ds-count">{{.BranchesCount}}</span></button>
+				{{if .RefStacks}}<button type="button" class="ds-chip-btn" data-ref-show="stacks" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.tab_stacks"}} <span class="ds-count">{{.RefStackTotal}}</span></button>{{end}}
+				{{if .RefTags}}<button type="button" class="ds-chip-btn" data-ref-show="tags" aria-pressed="false">{{ctx.Locale.Tr "repo.release.tags"}} <span class="ds-count">{{.NumTags}}</span></button>{{end}}
+			</div>
+			{{else}}
 			<div class="rp-pills" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.ref_kinds"}}">
 				<a class="ds-chip-btn" href="{{.RepoLink}}/branches" aria-current="true">{{ctx.Locale.Tr "repo.branches"}} <span class="ds-count">{{.BranchesCount}}</span></a>
 				{{if .Permission.CanRead $.UnitTypeCode}}<a class="ds-chip-btn" href="{{.RepoLink}}/tags">{{ctx.Locale.Tr "repo.release.tags"}} <span class="ds-count">{{.NumTags}}</span></a>{{end}}
 			</div>
+			{{end}}
 		</form>
+		<div data-ref-kind="shared">
 		{{if .DefaultBranchBranch}}
 			<section class="rp-sec rp-refcard" aria-labelledby="rp-default-branch">
 				<div class="rp-sec-h">
@@ -57,6 +67,48 @@
 				</div>
 			{{end}}
 		</section>
+		</div>
+		{{if .RefStacksFailed}}
+			<section class="rp-sec rp-refcard" data-ref-kind="stacks"><div class="rp-sec-b rp-stacks-error" role="alert"><strong>{{ctx.Locale.Tr "asc_rp.stacks_failed"}}</strong> <a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/branches">{{ctx.Locale.Tr "asc_rp.try_again"}}</a></div></section>
+		{{end}}
+		{{if .RefStacks}}
+			<section class="rp-sec rp-refcard" aria-labelledby="rp-ref-stacks" data-ref-kind="stacks">
+				<div class="rp-sec-h">
+					<div>
+						<h3 class="rp-sec-title" id="rp-ref-stacks">{{ctx.Locale.Tr "asc_rp.ref_stacks_title"}}</h3>
+						<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.ref_stacks_sub"}}</p>
+					</div>
+					<a class="rp-sec-act" href="{{.RepoLink}}/pulls">{{ctx.Locale.Tr "asc_rp.rail_all"}}</a>
+				</div>
+				<ul class="rp-rows">
+					{{range .RefStacks}}{{template "repo/stack_row" .}}{{end}}
+				</ul>
+			</section>
+		{{end}}
+		{{if .RefTags}}
+			<section class="rp-sec rp-refcard" aria-labelledby="rp-ref-tags" data-ref-kind="tags">
+				<div class="rp-sec-h">
+					<div>
+						<h3 class="rp-sec-title" id="rp-ref-tags">{{ctx.Locale.Tr "repo.release.tags"}}</h3>
+						<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.ref_tags_sub"}}</p>
+					</div>
+					<a class="rp-sec-act" href="{{.RepoLink}}/tags">{{ctx.Locale.Tr "asc_rp.rail_all"}}</a>
+				</div>
+				<ul class="rp-rows">
+					{{range .RefTags}}
+					<li class="rp-flight">
+						<div class="rp-flight-main">
+							<div class="rp-flight-title"><a class="ds-mono" href="{{$.RepoLink}}/releases/tag/{{.Name | PathEscapeSegments}}">{{.Name}}</a></div>
+							{{if .Title}}<div class="rp-stack-intent">{{.Title}}</div>{{end}}
+						</div>
+						<div class="rp-flight-meta">
+							{{if .Release.Publisher}}<a href="{{.Release.Publisher.HomeLink}}">{{.Release.Publisher.GetDisplayName}}</a><span class="rp-sep-dot"></span>{{end}}<time>{{DateUtils.TimeSince .Release.CreatedUnix}}</time>
+						</div>
+					</li>
+					{{end}}
+				</ul>
+			</section>
+		{{end}}
 		{{template "base/paginate" .}}
 	</div>
 </div>

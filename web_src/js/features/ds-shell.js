@@ -7,6 +7,7 @@
 // :target, the search trigger is a link to the explore page.
 
 import {shortcutsEnabled} from './ds-prefs.js';
+import {GET} from '../modules/fetch.js';
 
 const desktopQuery = '(min-width: 1024px)';
 const footerQuery = '(max-width: 767.98px)';
@@ -488,3 +489,92 @@ export function initDsShell() {
   initFooterGroups();
   initLangMenu();
 }
+
+// ---- live results of the palette: changes, people and repositories that match what is typed ----
+
+const liveMinLength = 2;
+const liveDelay = 180;
+let liveTimer = 0;
+let liveAbort = null;
+
+// groupScope says in which scope chip a group of the live results shows
+export const liveGroupScopes = {changes: 'changes', people: 'people', repos: 'all'};
+
+export function liveQuery(raw) {
+  const q = String(raw ?? '').trim();
+  return q.length >= liveMinLength && q.length <= 80 ? q : '';
+}
+
+function liveContainer(p) {
+  let box = p.list.querySelector('[data-ds-palette-live]');
+  if (!box) {
+    box = document.createElement('div');
+    box.setAttribute('data-ds-palette-live', '');
+    box.setAttribute('role', 'presentation');
+    p.dynamic.after(box);
+  }
+  return box;
+}
+
+export function renderLive(p, groups) {
+  const box = liveContainer(p);
+  box.replaceChildren();
+  for (const g of groups ?? []) {
+    if (!Array.isArray(g.items) || g.items.length === 0 || !(g.key in liveGroupScopes)) continue;
+    const head = document.createElement('div');
+    head.className = 'ds-palette-group';
+    head.setAttribute('role', 'presentation');
+    head.dataset.dsScope = liveGroupScopes[g.key];
+    head.textContent = g.label ?? '';
+    box.append(head);
+    for (const it of g.items) {
+      // only paths of this site: a result never leads away from the hub
+      if (typeof it.href !== 'string' || !it.href.startsWith('/') || it.href.startsWith('//')) continue;
+      const a = document.createElement('a');
+      a.className = 'ds-palette-item';
+      a.href = it.href;
+      a.dataset.dsScope = liveGroupScopes[g.key];
+      const main = document.createElement('span');
+      main.className = 'ds-pi-main';
+      main.textContent = it.title ?? '';
+      if (it.sub) {
+        const small = document.createElement('small');
+        small.textContent = it.sub;
+        main.append(small);
+      }
+      a.append(main);
+      prepareItem(a);
+      box.append(a);
+    }
+  }
+  for (const el of box.children) el.hidden = scope !== 'all' && el.dataset.dsScope !== scope;
+}
+
+function scheduleLive() {
+  const p = paletteParts();
+  if (!p || !p.input || !p.root.dataset.liveUrl) return;
+  clearTimeout(liveTimer);
+  liveAbort?.abort();
+  const q = liveQuery(p.input.value);
+  if (!q) {
+    liveContainer(p).replaceChildren();
+    return;
+  }
+  liveTimer = setTimeout(async () => {
+    liveAbort = new AbortController();
+    try {
+      const res = await GET(`${p.root.dataset.liveUrl}?q=${encodeURIComponent(q)}`, {signal: liveAbort.signal});
+      if (!res.ok || liveQuery(p.input.value) !== q) return;
+      renderLive(p, (await res.json()).groups);
+      const any = visibleItems(p).length > 0;
+      if (p.empty) p.empty.hidden = any;
+      if (any && !p.list.querySelector('.is-sel')) select(p, 0);
+    } catch {
+      // aborted or offline: the static results stay
+    }
+  }, liveDelay);
+}
+
+document.addEventListener('input', (e) => {
+  if (e.target instanceof HTMLInputElement && e.target.matches('#ds-palette input[data-asc-search]')) scheduleLive();
+});

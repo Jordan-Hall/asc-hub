@@ -10,7 +10,7 @@
 				</div>
 			{{end}}
 			<div class="rp-insights-main">
-				{{if .PageIsPulse}}{{template "repo/pulse" .}}{{end}}
+				{{if .PageIsPulse}}{{if or .AscInsights .AscInsightsFailed}}{{template "repo/insights_asc" .}}{{else}}{{template "repo/pulse" .}}{{end}}{{end}}
 				{{if .PageIsContributors}}{{template "repo/contributors" .}}{{end}}
 				{{if .PageIsCodeFrequency}}{{template "repo/code_frequency" .}}{{end}}
 				{{if .PageIsRecentCommits}}{{template "repo/recent_commits" .}}{{end}}

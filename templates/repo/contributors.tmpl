@@ -1,4 +1,6 @@
-{{if .Permission.CanRead $.UnitTypeCode}}
+{{if .AscPeople}}
+	{{template "repo/insights_people" .}}
+{{else if .Permission.CanRead $.UnitTypeCode}}
 	<div class="rp-band rp-pulse-band">
 		<div class="rp-band-main">
 			<h2 class="rp-h1">{{ctx.Locale.Tr "repo.activity.navbar.contributors"}}</h2>

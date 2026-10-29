@@ -77,6 +77,11 @@ type ReleaseInfo struct {
 	Release        *repo_model.Release
 	CommitStatus   *git_model.CommitStatus
 	CommitStatuses []*git_model.CommitStatus
+	// Changes is the grouped list of changes since the release before; nil when it cannot be read or the viewer
+	// may not read the code.
+	Changes *relChanges
+	// ChecksPass and ChecksTotal are the results of the checks of the release commit.
+	ChecksPass, ChecksTotal int
 }
 
 func getReleaseInfos(ctx *context.Context, opts *repo_model.FindReleasesOptions) ([]*ReleaseInfo, int64, error) {
@@ -110,6 +115,7 @@ func getReleaseInfos(ctx *context.Context, opts *repo_model.FindReleasesOptions)
 	var ok bool
 
 	canReadActions := ctx.Repo.CanRead(unit.TypeActions)
+	canReadCode := ctx.Repo.CanRead(unit.TypeCode)
 
 	releaseInfos := make([]*ReleaseInfo, 0, len(releases))
 	for _, r := range releases {
@@ -160,6 +166,10 @@ func getReleaseInfos(ctx *context.Context, opts *repo_model.FindReleasesOptions)
 
 			info.CommitStatus = git_model.CalcCommitStatus(statuses)
 			info.CommitStatuses = statuses
+			info.ChecksPass, info.ChecksTotal = relChecks(statuses)
+		}
+		if canReadCode {
+			info.Changes = releaseChangesOf(ctx, r)
 		}
 
 		releaseInfos = append(releaseInfos, info)

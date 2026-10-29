@@ -56,10 +56,36 @@
 								{{end}}
 							</p>
 							{{template "repo/tag/verification_line" (dict "ctxData" $ "release" $release)}}
+							{{if $info.ChecksTotal}}
+								<p class="rp-rel-prov" data-testid="release-provenance">{{ctx.Locale.Tr "asc_rp.rel_prov" (ShortSha $release.Sha1) $info.ChecksPass $info.ChecksTotal}}</p>
+							{{end}}
 							{{if $release.RenderedNote}}
 								<div class="markup desc rp-rel-notes">
 									{{$release.RenderedNote}}
 								</div>
+							{{end}}
+							{{with $info.Changes}}
+								{{if .Total}}
+								<details class="rp-rel-changes" data-testid="release-changes"{{if eq $idx 0}} open{{end}}>
+									<summary>
+										<span class="rp-assets-t">{{ctx.Locale.TrN .Total "asc_rp.rel_changes_one" "asc_rp.rel_changes_other" (ctx.Locale.PrettyNumber .Total)}}{{if .Agents}} &middot; {{ctx.Locale.Tr "asc_rp.rel_by_agents" .Agents}}{{end}}</span>
+										{{svg "dsi-chevron-down" 16}}
+									</summary>
+									<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.rel_written_from"}}{{if .Previous}} {{ctx.Locale.Tr "asc_rp.rel_since_tag" .Previous}}{{end}}</p>
+									{{range .Groups}}
+										<h5 class="rp-rel-group">{{ctx.Locale.Tr (print "asc_rp.rel_cat_" .Category)}}</h5>
+										<ul class="rp-rel-list">
+											{{range .Changes}}
+												<li>
+													<a href="{{$.RepoLink}}/commit/{{PathEscape .Sha}}">{{.Summary}}</a>
+													<span class="rp-rel-who">{{if .User}}{{.User.GetDisplayName}}{{else}}{{.Author}}{{end}}{{if .Agent}} <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}</span>
+													<a class="rp-hash" href="{{$.RepoLink}}/commit/{{PathEscape .Sha}}">{{ShortSha .Sha}}</a>
+												</li>
+											{{end}}
+										</ul>
+									{{end}}
+								</details>
+								{{end}}
 							{{end}}
 						</div>
 						{{$hasReleaseAttachment := gt (len $release.Attachments) 0}}
