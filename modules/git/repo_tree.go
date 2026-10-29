@@ -68,6 +68,9 @@ func (repo *Repository) CommitTree(author, committer *Signature, tree *Tree, opt
 }
 
 func (repo *Repository) getTree(id ObjectID) (*Tree, error) {
+	if repo.backend != nil && repo.backendName != DefaultBackendName {
+		return repo.getTreeFromBackend(id)
+	}
 	wr, rd, cancel, err := repo.CatFileBatch(repo.Ctx)
 	if err != nil {
 		return nil, err
@@ -153,4 +156,40 @@ func (repo *Repository) GetTree(idStr string) (*Tree, error) {
 	}
 
 	return repo.getTree(id)
+}
+
+// getTreeFromBackend finds a tree, or the root tree of a commit or annotated tag, through the backend of a
+// repository that has no git objects to ask (asc). Going through the backend is what teaches it where the tree
+// is: it can list a tree it did not find through a commit or a parent listing only by remembering that place.
+func (repo *Repository) getTreeFromBackend(id ObjectID) (*Tree, error) {
+	be := repo.backend
+	infos, err := be.StatObjects(repo.Ctx, []ObjectID{id})
+	if err != nil {
+		return nil, err
+	}
+	if len(infos) != 1 || infos[0].Missing {
+		return nil, ErrNotExist{ID: id.String()}
+	}
+	switch infos[0].Type {
+	case ObjectCommit:
+		data, err := be.ReadCommit(repo.Ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		commit := repo.commitFromData(data)
+		commit.ResolvedID = data.ID
+		return &commit.Tree, nil
+	case ObjectTree:
+	default:
+		return nil, ErrNotExist{ID: id.String()}
+	}
+	entries, err := be.ReadTree(repo.Ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	tree := NewTree(repo, id)
+	tree.ResolvedID = id
+	tree.entries = tree.entriesFromData(entries)
+	tree.entriesParsed = true
+	return tree, nil
 }

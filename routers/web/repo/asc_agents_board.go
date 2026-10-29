@@ -44,7 +44,7 @@ type ascAgentStats struct {
 }
 
 // ascAgentsLoadBoard fills the stat cards, the needs panel and the roster for the runs page.
-func ascAgentsLoadBoard(ctx *context.Context, env *ascAgentsEnv, callCtx gocontext.Context, conn grpc.ClientConnInterface) {
+func ascAgentsLoadBoard(ctx *context.Context, env *ascAgentsEnv, callCtx gocontext.Context, conn grpc.ClientConnInterface, creators map[uint64]string) {
 	api := ascv1.NewAgentsClient(conn)
 	var st ascAgentStats
 	partial := false
@@ -89,6 +89,13 @@ func ascAgentsLoadBoard(ctx *context.Context, env *ascAgentsEnv, callCtx goconte
 		needs := ascagentui.Requests(resp.GetRequests())
 		st.Permissions, st.Plans = ascagentui.RequestCounts(needs)
 		st.Waiting = st.Permissions + st.Plans
+		// The text of a request (what the agent wants to run, the plan) is private to the run's creator and the
+		// administrators. A run that is not on this page has an unknown creator: only an administrator sees it.
+		for i := range needs {
+			if !ascAgentsMaySeeRun(ctx, creators[needs[i].RunID]) {
+				needs[i].Redact()
+			}
+		}
 		ctx.Data["AscAgentsNeeds"] = needs
 	}
 	ctx.Data["AscAgentStats"] = st

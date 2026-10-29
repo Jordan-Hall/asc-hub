@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"forgejo.org/models/unit"
@@ -367,6 +368,20 @@ func AscWorkflows(ctx *context.Context) {
 		}
 		rows = append(rows, row)
 	}
+	// The state chips count every definition; the filter and the search narrow what is listed.
+	counts := ascWorkflowCounts(rows)
+	state := ctx.FormString("state")
+	if state != "" && state != "on" && state != "off" && state != "invalid" {
+		state = ""
+	}
+	q := ctx.FormTrim("q")
+	if len(q) > 80 || strings.ContainsAny(q, "\x00\r\n") {
+		q = ""
+	}
+	rows = ascWorkflowFilter(rows, state, q)
+	ctx.Data["AscWorkflowCountAll"], ctx.Data["AscWorkflowCountOn"], ctx.Data["AscWorkflowCountOff"], ctx.Data["AscWorkflowCountInvalid"] = counts.All, counts.On, counts.Off, counts.Invalid
+	ctx.Data["AscWorkflowState"] = state
+	ctx.Data["AscWorkflowQ"] = q
 	ctx.Data["AscWorkflowDefs"] = rows
 	ctx.Data["AscWorkflowSkipped"] = skipped
 
@@ -565,6 +580,9 @@ func AscWorkflowEnable(ctx *context.Context) {
 	}
 	ascAgentsLimitBody(ctx)
 	back := env.workflowsLink() + "/" + name
+	if ctx.FormString("next") == "list" {
+		back = env.workflowsLink()
+	}
 	var enabled bool
 	switch ctx.FormString("enabled") {
 	case "1":

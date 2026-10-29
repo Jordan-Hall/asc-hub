@@ -1020,6 +1020,15 @@ func homeStateOf(repo *repo_model.Repository, hasCommit, storageEmpty bool) home
 	return homeRender
 }
 
+// canSeeMigrationReason reports whether the viewer may read the reason of a failed migration: a repository
+// administrator, or the user who started the migration.
+func canSeeMigrationReason(ctx *context.Context, task *admin_model.Task) bool {
+	if ctx.Repo.Permission.IsAdmin() {
+		return true
+	}
+	return ctx.Doer != nil && ctx.Doer.ID == task.DoerID
+}
+
 // renderRepoUnavailable renders the "repository unavailable" page: the repository exists, but the hub cannot read
 // its default branch. The page says why and, for the owners, offers to retry the import (a migrated repository)
 // or to delete the repository. It answers 409 and never redirects.
@@ -1035,8 +1044,10 @@ func renderRepoUnavailable(ctx *context.Context) {
 		if cfg, err := task.MigrateConfig(); err == nil {
 			ctx.Data["CloneAddr"], _ = util.SanitizeURL(cfg.CloneAddr)
 		}
-		if task.Status == structs.TaskStatusFailed && task.Message != "" {
-			reason = task.Message
+		// The reason of a failed migration may name remote addresses and internals of the instance: the owners and
+		// the user who started the migration see it, redacted; everyone else sees the generic text.
+		if task.Status == structs.TaskStatusFailed && task.Message != "" && canSeeMigrationReason(ctx, task) {
+			reason = repo_service.RedactMigrationMessage(task.Message)
 		}
 	} else if !admin_model.IsErrTaskDoesNotExist(err) {
 		log.Error("GetMigratingTask for %-v: %v", repo, err)
