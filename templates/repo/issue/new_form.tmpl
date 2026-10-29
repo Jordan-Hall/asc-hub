@@ -34,6 +34,12 @@
 							{{end}}
 						{{end}}
 					{{else}}
+						{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}}
+						<div class="ds-row ds-row-wrap">
+							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-asc-intent data-asc-intent-target="textarea[name=content]" data-what="{{ctx.Locale.Tr "asc_rp.intent_what"}}" data-why="{{ctx.Locale.Tr "asc_rp.intent_why"}}" data-how="{{ctx.Locale.Tr "asc_rp.intent_how"}}" data-risk="{{ctx.Locale.Tr "asc_rp.intent_risk"}}">{{ctx.Locale.Tr "asc_rp.intent_button"}}</button>
+							<span class="ds-hint">{{ctx.Locale.Tr "asc_rp.intent_hint"}}</span>
+						</div>
+						{{end}}
 						{{template "repo/issue/comment_tab" .}}
 					{{end}}
 					<div class="ds-row ds-justify-end">

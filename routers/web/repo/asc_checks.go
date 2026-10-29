@@ -261,8 +261,10 @@ type ascGroupPage struct {
 	NextURL     string
 	CanWrite    bool
 	CanRerun    bool
-	Window      uint32
-	IssueQuery  string
+	// AllowQuarantine is the policy flag [ci] allow_quarantine; without it the quarantine button is not offered.
+	AllowQuarantine bool
+	Window          uint32
+	IssueQuery      string
 }
 
 type ascOccurrenceView struct {
@@ -327,6 +329,7 @@ func AscCheckGroup(ctx *context.Context) {
 		return
 	}
 	p.Detail, p.History = detail, hist
+	p.AllowQuarantine = p.CanWrite && asctrust.QuarantineAllowed(callCtx, conn, name)
 	p.IssueQuery = "title=" + url.QueryEscape(ctx.Locale.TrString("asc_trust.checks.issue_title", firstNonEmptyString(detail.Group.TestName, detail.Group.Title)))
 	for _, o := range detail.Occurrences {
 		view := ascOccurrenceView{OccurrenceRow: o}
@@ -382,6 +385,11 @@ func AscCheckGroupState(ctx *context.Context) {
 		return
 	}
 	defer release()
+	if ctx.Req.PostFormValue("state") == "quarantined" && !asctrust.QuarantineAllowed(callCtx, conn, name) {
+		ctx.Flash.Error(ctx.Locale.TrString("asc_trust.checks.quarantine_not_allowed"))
+		ctx.Redirect(back)
+		return
+	}
 	g, err := asctrust.SetGroupState(callCtx, conn, name, uint64(id), ctx.Req.PostFormValue("state"), trustweb.Lines(ctx.Req.PostFormValue("note")), ctx.Req.PostFormValue("op"))
 	if err != nil {
 		ctx.Flash.Error(trustweb.FailureOf("checks state", err).Localized(ctx))

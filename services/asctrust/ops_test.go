@@ -345,3 +345,26 @@ func TestRepoNameNeedsAscAndAnAscRepository(t *testing.T) {
 	_, err = RepoName(repo)
 	assert.ErrorIs(t, err, ErrDisabled, "[asc] off")
 }
+
+func TestQuarantineAllowedFailsClosed(t *testing.T) {
+	f, c := startFake(t)
+	serve := func(text string, present bool, parseErr string) {
+		f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+			return &ascv1.GetPolicySourceResponse{Present: present, Text: []byte(text), Parsed: &ascv1.GetPolicyResponse{Error: parseErr}}, nil
+		}
+	}
+	serve("version = 1\n[ci]\nallow_quarantine = true\n", true, "")
+	assert.True(t, QuarantineAllowed(userCtx(t, "t"), c, "acme/payments"))
+	serve("version = 1\n[ci]\nallow_quarantine = false\n", true, "")
+	assert.False(t, QuarantineAllowed(userCtx(t, "t"), c, "acme/payments"))
+	serve("version = 1\n", true, "")
+	assert.False(t, QuarantineAllowed(userCtx(t, "t"), c, "acme/payments"), "not set means no")
+	serve("version = 1\n[ci]\nallow_quarantine = true\n", false, "")
+	assert.False(t, QuarantineAllowed(userCtx(t, "t"), c, "acme/payments"), "no policy file")
+	serve("version = 1\n[ci]\nallow_quarantine = true\n", true, "bad file")
+	assert.False(t, QuarantineAllowed(userCtx(t, "t"), c, "acme/payments"), "a policy that cannot be used")
+	f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+		return nil, status.Error(codes.Unavailable, "down")
+	}
+	assert.False(t, QuarantineAllowed(userCtx(t, "t"), c, "acme/payments"), "an error is no")
+}

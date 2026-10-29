@@ -1587,3 +1587,35 @@
   color: var(--text-2);
   font-size: 12.5px;
 }
+/* ---- who writes the code: people and agents as one bar, agents in the agent colour ---- */
+.rp-who-bar progress {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border: 0;
+  border-radius: 4px;
+  appearance: none;
+  background: var(--agent, #7c3aed);
+}
+
+.rp-who-bar progress::-webkit-progress-bar {
+  background: var(--agent, #7c3aed);
+  border-radius: 4px;
+}
+
+.rp-who-bar progress::-webkit-progress-value {
+  background: var(--ok);
+  border-radius: 4px 0 0 4px;
+}
+
+.rp-who-bar progress::-moz-progress-bar {
+  background: var(--ok);
+}
+
+.rp-who-split {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+}
