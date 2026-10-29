@@ -97,6 +97,24 @@ export function initAscUi() {
   initAscInstallPills();
   initDocsFilter();
   initStackFilter();
+  initRefFilter();
+}
+
+// The pills of the Refs page (All, Shared, Stacks, Tags) show the sections of one kind without a page load. The first
+// pill shows every section.
+export function initRefFilter(root = document) {
+  for (const group of root.querySelectorAll('[data-ref-filter]')) {
+    const buttons = Array.from(group.querySelectorAll('button[data-ref-show]'));
+    for (const btn of buttons) {
+      btn.addEventListener('click', () => {
+        const want = btn.getAttribute('data-ref-show');
+        for (const b of buttons) b.setAttribute('aria-pressed', String(b === btn));
+        for (const sec of root.querySelectorAll('[data-ref-kind]')) {
+          sec.hidden = want !== 'all' && sec.getAttribute('data-ref-kind') !== want;
+        }
+      });
+    }
+  }
 }
 
 // The Open / Mine / Agents / Needs me buttons over the stack rows of the repository home and of the Stacks list: a

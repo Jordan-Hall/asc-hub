@@ -1,4 +1,4 @@
-import {archFromHints, osFromPlatform, initAscInstallPills, initDocsFilter, initStackFilter} from './asc-ui.js';
+import {archFromHints, osFromPlatform, initAscInstallPills, initDocsFilter, initStackFilter, initRefFilter} from './asc-ui.js';
 
 test('archFromHints names only the builds asc ships', () => {
   expect(archFromHints({architecture: 'arm', bitness: '64'})).toBe('arm64');
@@ -62,4 +62,21 @@ test('stack filter shows the rows of the pressed button and a note when none mat
   document.querySelectorAll('li')[1].setAttribute('data-agent', 'false');
   agent.click();
   expect(document.querySelector('[data-stack-none]').hidden).toBe(false);
+});
+
+test('ref pills show the sections of one kind and All shows every section', () => {
+  document.body.innerHTML = `<div data-ref-filter>
+    <button type="button" data-ref-show="all" aria-pressed="true"></button>
+    <button type="button" data-ref-show="stacks" aria-pressed="false"></button>
+    <button type="button" data-ref-show="tags" aria-pressed="false"></button></div>
+    <section data-ref-kind="shared"></section><section data-ref-kind="stacks"></section><section data-ref-kind="tags"></section>`;
+  initRefFilter();
+  const [all, stacks] = document.querySelectorAll('button');
+  const hidden = () => Array.from(document.querySelectorAll('section'), (s) => s.hidden);
+  stacks.click();
+  expect(hidden()).toEqual([true, false, true]);
+  expect(stacks.getAttribute('aria-pressed')).toBe('true');
+  expect(all.getAttribute('aria-pressed')).toBe('false');
+  all.click();
+  expect(hidden()).toEqual([false, false, false]);
 });
