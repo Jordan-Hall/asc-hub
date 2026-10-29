@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"forgejo.org/models/db"
 	git_model "forgejo.org/models/git"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/graceful"
@@ -60,13 +61,18 @@ func updateAscRepoSize(ctx context.Context, repo *repo_model.Repository) error {
 		}
 		done <- answer{size, err}
 	}()
+	wait := ascSizeWait
+	if db.InTransaction(ctx) {
+		// The caller holds a transaction the answer has to wait for to be stored: waiting here would only delay it.
+		wait = 0
+	}
 	select {
 	case a := <-done:
 		if a.err != nil {
 			return fmt.Errorf("updateSize: %w", a.err)
 		}
-	case <-time.After(ascSizeWait):
-		log.Debug("updateSize of %-v takes longer than %v: it finishes in the background", repo, ascSizeWait)
+	case <-time.After(wait):
+		log.Debug("updateSize of %-v takes longer than %v: it finishes in the background", repo, wait)
 	case <-ctx.Done():
 	}
 	return nil
