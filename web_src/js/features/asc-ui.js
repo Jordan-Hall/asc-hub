@@ -98,6 +98,35 @@ export function initAscUi() {
   initDocsFilter();
   initStackFilter();
   initRefFilter();
+  initDocTabs();
+}
+
+// The README / AGENTS.md / License tabs of the repository home: the pressed tab shows its panel and hides the others.
+// Arrow keys move between the tabs.
+export function initDocTabs(root = document) {
+  for (const list of root.querySelectorAll('[data-doc-tabs]')) {
+    const tabs = Array.from(list.querySelectorAll('[data-doc-tab]'));
+    const select = (tab) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = root.querySelector(`[data-doc-panel="${t.getAttribute('data-doc-tab')}"]`);
+        if (panel) panel.hidden = !on;
+      }
+    };
+    for (const [i, tab] of tabs.entries()) {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const step = {ArrowRight: 1, ArrowLeft: -1}[e.key];
+        if (!step) return;
+        const next = tabs[(i + step + tabs.length) % tabs.length];
+        select(next);
+        next.focus();
+        e.preventDefault();
+      });
+    }
+  }
 }
 
 // The pills of the Refs page (All, Shared, Stacks, Tags) show the sections of one kind without a page load. The first

@@ -1,4 +1,4 @@
-import {archFromHints, osFromPlatform, initAscInstallPills, initDocsFilter, initStackFilter, initRefFilter} from './asc-ui.js';
+import {archFromHints, osFromPlatform, initAscInstallPills, initDocsFilter, initStackFilter, initRefFilter, initDocTabs} from './asc-ui.js';
 
 test('archFromHints names only the builds asc ships', () => {
   expect(archFromHints({architecture: 'arm', bitness: '64'})).toBe('arm64');
@@ -79,4 +79,20 @@ test('ref pills show the sections of one kind and All shows every section', () =
   expect(all.getAttribute('aria-pressed')).toBe('false');
   all.click();
   expect(hidden()).toEqual([false, false, false]);
+});
+
+test('doc tabs show the panel of the pressed tab and move with the arrow keys', () => {
+  document.body.innerHTML = `<div data-doc-tabs>
+    <button type="button" data-doc-tab="readme" aria-selected="true"></button>
+    <button type="button" data-doc-tab="agents" aria-selected="false"></button></div>
+    <section data-doc-panel="readme"></section><section data-doc-panel="agents" hidden></section>`;
+  initDocTabs();
+  const [readme, agents] = document.querySelectorAll('button');
+  const hidden = () => Array.from(document.querySelectorAll('section'), (s) => s.hidden);
+  agents.click();
+  expect(hidden()).toEqual([true, false]);
+  expect(agents.getAttribute('aria-selected')).toBe('true');
+  expect(readme.getAttribute('aria-selected')).toBe('false');
+  agents.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight'}));
+  expect(hidden()).toEqual([false, true]);
 });
