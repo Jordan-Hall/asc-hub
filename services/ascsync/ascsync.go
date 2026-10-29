@@ -35,6 +35,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -305,14 +306,40 @@ func callError(op string, err error) error {
 	if !ok {
 		return fmt.Errorf("ascsync: %s failed", op)
 	}
-	msg := clean(st.Message(), MaxRejectBytes)
-	if userFacing(st.Code()) {
+	code, text := st.Code(), st.Message()
+	if c, m, ok := unwrapStatusMismatch(code, text); ok {
+		code, text = c, m
+	}
+	msg := clean(text, MaxRejectBytes)
+	if userFacing(code) {
 		if msg == "" {
 			msg = "asc refused the request (" + st.Code().String() + ")"
 		}
 		return &RejectError{Message: msg}
 	}
-	return fmt.Errorf("ascsync: %s: asc answered %s: %s", op, st.Code(), clean(st.Message(), MaxLogMessageBytes))
+	return fmt.Errorf("ascsync: %s: asc answered %s: %s", op, code, clean(text, MaxLogMessageBytes))
+}
+
+// statusMismatch matches the text a gRPC transport gives to a refusal whose status details do not agree with its
+// status ("grpc-status-details-bin mismatch: grpc-status=FailedPrecondition, grpc-message=\"SECRET_DETECTED: ...\"").
+var statusMismatch = regexp.MustCompile(`grpc-status=(\w+), grpc-message="((?:[^"\\]|\\.)*)"`)
+
+// unwrapStatusMismatch reads the status and message asc meant from an Internal answer that carries them as text.
+// Without it a refusal of a push (a secret in it) reaches the pusher as "try again later".
+func unwrapStatusMismatch(code codes.Code, text string) (codes.Code, string, bool) {
+	if code != codes.Internal || !strings.Contains(text, "grpc-status-details-bin mismatch") {
+		return code, text, false
+	}
+	m := statusMismatch.FindStringSubmatch(text)
+	if m == nil {
+		return code, text, false
+	}
+	for c := codes.Canceled; c <= codes.Unauthenticated; c++ {
+		if c.String() == m[1] {
+			return c, strings.NewReplacer(`\"`, `"`, `\\`, `\`).Replace(m[2]), true
+		}
+	}
+	return code, text, false
 }
 
 // clean makes s one line of printable text of at most limit bytes: control characters become spaces,
