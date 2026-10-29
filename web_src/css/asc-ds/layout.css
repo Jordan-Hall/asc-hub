@@ -2067,3 +2067,12 @@ body.ds-lock {
   margin: 0 0 16px;
   font-size: 13px;
 }
+
+/* documentation articles: links are underlined (they sit in running text) and the code of a guide has one readable colour */
+.site-article-body a:not(.ds-btn) {
+  text-decoration: underline;
+}
+
+.site-article-body .chroma span {
+  color: inherit;
+}
