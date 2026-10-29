@@ -168,6 +168,9 @@ func CreateRepositoryByExample(ctx context.Context, doer, u *user_model.User, re
 
 // UpdateRepoSize updates the repository size, as reported by the repository writer
 func UpdateRepoSize(ctx context.Context, repo *repo_model.Repository) error {
+	if repo.GetStorageBackend() == "asc" {
+		return updateAscRepoSize(ctx, repo)
+	}
 	writer, err := repostore.Default()
 	if err != nil {
 		return fmt.Errorf("updateSize: %w", err)
