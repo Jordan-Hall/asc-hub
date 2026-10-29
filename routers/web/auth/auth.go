@@ -541,11 +541,7 @@ func SignUpPost(ctx *context.Context) {
 		return
 	}
 
-	u := &user_model.User{
-		Name:   form.UserName,
-		Email:  form.Email,
-		Passwd: form.Password,
-	}
+	u := newSignUpUser(form)
 
 	if !createAndHandleCreatedUser(ctx, tplSignUp, form, u, nil, nil, false) {
 		// error already handled

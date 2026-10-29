@@ -15,6 +15,7 @@ import (
 	"forgejo.org/modules/structs"
 	"forgejo.org/modules/test"
 	"forgejo.org/services/contexttest"
+	"forgejo.org/services/forms"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -117,4 +118,12 @@ func TestSignUpNameIsLimitedPerAddress(t *testing.T) {
 	}
 	code, _ := nameState(t, "someone-new")
 	assert.Equal(t, http.StatusTooManyRequests, code)
+}
+
+func TestSignUpUserTakesTheOptionalFullName(t *testing.T) {
+	u := newSignUpUser(&forms.RegisterForm{UserName: "ada", FullName: "  Ada Lovelace ", Email: "ada@example.com", Password: "x"})
+	assert.Equal(t, "Ada Lovelace", u.FullName)
+	assert.Equal(t, "ada", u.Name)
+	u = newSignUpUser(&forms.RegisterForm{UserName: "bob", Email: "bob@example.com"})
+	assert.Empty(t, u.FullName, "the full name is optional")
 }
