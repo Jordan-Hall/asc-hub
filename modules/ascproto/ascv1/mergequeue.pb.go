@@ -269,6 +269,7 @@ type QueueEntry struct {
 	LandedAt      int64                  `protobuf:"varint,12,opt,name=landed_at,json=landedAt,proto3" json:"landed_at,omitempty"`
 	RemovedReason string                 `protobuf:"bytes,13,opt,name=removed_reason,json=removedReason,proto3" json:"removed_reason,omitempty"`
 	Timing        *QueueEntryTiming      `protobuf:"bytes,14,opt,name=timing,proto3" json:"timing,omitempty"`
+	QueuedById    uint64                 `protobuf:"varint,15,opt,name=queued_by_id,json=queuedById,proto3" json:"queued_by_id,omitempty"` // the hub's immutable id of the person who queued it; 0 when the caller had none (`enqueued_by` can be renamed)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -399,6 +400,13 @@ func (x *QueueEntry) GetTiming() *QueueEntryTiming {
 		return x.Timing
 	}
 	return nil
+}
+
+func (x *QueueEntry) GetQueuedById() uint64 {
+	if x != nil {
+		return x.QueuedById
+	}
+	return 0
 }
 
 // `target` empty means the repository default branch. `now` asks to land at once when the entry is first and ready.
@@ -1650,7 +1658,7 @@ const file_asc_v1_mergequeue_proto_rawDesc = "" +
 	"\x04head\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\x04head\x12\x1d\n" +
 	"\n" +
 	"checked_at\x18\x06 \x01(\x03R\tcheckedAt\x12\x16\n" +
-	"\x06detail\x18\a \x01(\tR\x06detail\"\xfd\x03\n" +
+	"\x06detail\x18\a \x01(\tR\x06detail\"\x9f\x04\n" +
 	"\n" +
 	"QueueEntry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x16\n" +
@@ -1669,7 +1677,9 @@ const file_asc_v1_mergequeue_proto_rawDesc = "" +
 	"\tlanded_as\x18\v \x01(\fB\x04\xa8\xbb\x18\x01R\blandedAs\x12\x1b\n" +
 	"\tlanded_at\x18\f \x01(\x03R\blandedAt\x12%\n" +
 	"\x0eremoved_reason\x18\r \x01(\tR\rremovedReason\x120\n" +
-	"\x06timing\x18\x0e \x01(\v2\x18.asc.v1.QueueEntryTimingR\x06timing\"\xa7\x01\n" +
+	"\x06timing\x18\x0e \x01(\v2\x18.asc.v1.QueueEntryTimingR\x06timing\x12 \n" +
+	"\fqueued_by_id\x18\x0f \x01(\x04R\n" +
+	"queuedById\"\xa7\x01\n" +
 	"\x0eEnqueueRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x16\n" +

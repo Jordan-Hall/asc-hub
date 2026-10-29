@@ -223,6 +223,63 @@ func (ApprovalState) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_review_proto_rawDescGZIP(), []int{3}
 }
 
+// The conflicts of `change` (its newest version) with `target` (a branch name; empty means the default branch). The change
+// stays open and nothing is written. `main` is the target's side and `change` the change's side; `base` is the common
+// ancestor's text, empty when the merge has none to show. Each hunk lists the lines between the markers with the line numbers
+// they start at in the file of that side; at most 50 files and 20 hunks of 200 lines per file are returned (`truncated`).
+// `held_back` lists the changes stacked on this one, which wait for it; every other change is unaffected.
+type ConflictCheck int32
+
+const (
+	ConflictCheck_CONFLICT_CHECK_UNSPECIFIED   ConflictCheck = 0
+	ConflictCheck_CONFLICT_CHECK_CLEAN         ConflictCheck = 1 // merges with nothing to resolve, or has nothing to merge
+	ConflictCheck_CONFLICT_CHECK_CONFLICTS     ConflictCheck = 2
+	ConflictCheck_CONFLICT_CHECK_NEEDS_RESTACK ConflictCheck = 3 // sits on an older version of its parent, or shares no history with the target
+)
+
+// Enum value maps for ConflictCheck.
+var (
+	ConflictCheck_name = map[int32]string{
+		0: "CONFLICT_CHECK_UNSPECIFIED",
+		1: "CONFLICT_CHECK_CLEAN",
+		2: "CONFLICT_CHECK_CONFLICTS",
+		3: "CONFLICT_CHECK_NEEDS_RESTACK",
+	}
+	ConflictCheck_value = map[string]int32{
+		"CONFLICT_CHECK_UNSPECIFIED":   0,
+		"CONFLICT_CHECK_CLEAN":         1,
+		"CONFLICT_CHECK_CONFLICTS":     2,
+		"CONFLICT_CHECK_NEEDS_RESTACK": 3,
+	}
+)
+
+func (x ConflictCheck) Enum() *ConflictCheck {
+	p := new(ConflictCheck)
+	*p = x
+	return p
+}
+
+func (x ConflictCheck) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ConflictCheck) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_review_proto_enumTypes[4].Descriptor()
+}
+
+func (ConflictCheck) Type() protoreflect.EnumType {
+	return &file_asc_v1_review_proto_enumTypes[4]
+}
+
+func (x ConflictCheck) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ConflictCheck.Descriptor instead.
+func (ConflictCheck) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{4}
+}
+
 // Where a thread sits. An empty `path` is a thread on the change as a whole. Lines are 1-based and inclusive;
 // `end_line` 0 means `start_line`.
 type ThreadAnchor struct {
@@ -311,6 +368,7 @@ type ReviewComment struct {
 	Suggestion     string                 `protobuf:"bytes,6,opt,name=suggestion,proto3" json:"suggestion,omitempty"`                                // replacement text for the lines of the thread; empty when the comment suggests nothing
 	AppliedVersion uint32                 `protobuf:"varint,7,opt,name=applied_version,json=appliedVersion,proto3" json:"applied_version,omitempty"` // the version that applied the suggestion, 0 while it is not applied
 	AppliedBy      string                 `protobuf:"bytes,8,opt,name=applied_by,json=appliedBy,proto3" json:"applied_by,omitempty"`
+	AuthorId       uint64                 `protobuf:"varint,9,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"` // the hub's immutable id of the author; 0 when the caller had none (a token); `author` can be renamed
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -399,6 +457,13 @@ func (x *ReviewComment) GetAppliedBy() string {
 		return x.AppliedBy
 	}
 	return ""
+}
+
+func (x *ReviewComment) GetAuthorId() uint64 {
+	if x != nil {
+		return x.AuthorId
+	}
+	return 0
 }
 
 type ReviewThread struct {
@@ -1520,6 +1585,7 @@ type ApprovalInfo struct {
 	Carried        bool                   `protobuf:"varint,6,opt,name=carried,proto3" json:"carried,omitempty"` // applies although the version is not the newest
 	UnchangedFiles uint32                 `protobuf:"varint,7,opt,name=unchanged_files,json=unchangedFiles,proto3" json:"unchanged_files,omitempty"`
 	ChangedFiles   [][]byte               `protobuf:"bytes,8,rep,name=changed_files,json=changedFiles,proto3" json:"changed_files,omitempty"`
+	ReviewerId     uint64                 `protobuf:"varint,9,opt,name=reviewer_id,json=reviewerId,proto3" json:"reviewer_id,omitempty"` // the hub's immutable id of the reviewer; 0 when the caller had none
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1608,6 +1674,13 @@ func (x *ApprovalInfo) GetChangedFiles() [][]byte {
 		return x.ChangedFiles
 	}
 	return nil
+}
+
+func (x *ApprovalInfo) GetReviewerId() uint64 {
+	if x != nil {
+		return x.ReviewerId
+	}
+	return 0
 }
 
 // What the policy gate card of the review page shows, as far as asc knows it. Checks and the rules of the policy are evaluated by
@@ -3728,6 +3801,684 @@ func (x *ListOverridesResponse) GetNextPageToken() string {
 	return ""
 }
 
+// For each line a hunk starts at, the chain of definitions around it, outermost first: `["UserList", "@for (const user of users)",
+// "@if (user.bio)"]` in a TSRX file, `["Parser", "parse"]` in Rust. Repo read. `version` 0 means the newest. At most 200 lines. A
+// file with no grammar answers empty chains. (Git's own hunk header rule stays in `asc diff`, so its output matches git's.)
+type HunkContextRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Version       uint32                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	Path          []byte                 `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
+	Lines         []uint32               `protobuf:"varint,5,rep,packed,name=lines,proto3" json:"lines,omitempty"` // 1-based lines of the version
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HunkContextRequest) Reset() {
+	*x = HunkContextRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HunkContextRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HunkContextRequest) ProtoMessage() {}
+
+func (x *HunkContextRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HunkContextRequest.ProtoReflect.Descriptor instead.
+func (*HunkContextRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *HunkContextRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *HunkContextRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *HunkContextRequest) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *HunkContextRequest) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *HunkContextRequest) GetLines() []uint32 {
+	if x != nil {
+		return x.Lines
+	}
+	return nil
+}
+
+type HunkContextEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"` // function, method, class, module, component, scope, ...
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HunkContextEntry) Reset() {
+	*x = HunkContextEntry{}
+	mi := &file_asc_v1_review_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HunkContextEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HunkContextEntry) ProtoMessage() {}
+
+func (x *HunkContextEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HunkContextEntry.ProtoReflect.Descriptor instead.
+func (*HunkContextEntry) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *HunkContextEntry) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *HunkContextEntry) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+type HunkContextLine struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Line          uint32                 `protobuf:"varint,1,opt,name=line,proto3" json:"line,omitempty"`
+	Chain         []*HunkContextEntry    `protobuf:"bytes,2,rep,name=chain,proto3" json:"chain,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HunkContextLine) Reset() {
+	*x = HunkContextLine{}
+	mi := &file_asc_v1_review_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HunkContextLine) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HunkContextLine) ProtoMessage() {}
+
+func (x *HunkContextLine) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HunkContextLine.ProtoReflect.Descriptor instead.
+func (*HunkContextLine) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *HunkContextLine) GetLine() uint32 {
+	if x != nil {
+		return x.Line
+	}
+	return 0
+}
+
+func (x *HunkContextLine) GetChain() []*HunkContextEntry {
+	if x != nil {
+		return x.Chain
+	}
+	return nil
+}
+
+type GetChangeConflictsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Target        string                 `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetChangeConflictsRequest) Reset() {
+	*x = GetChangeConflictsRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetChangeConflictsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetChangeConflictsRequest) ProtoMessage() {}
+
+func (x *GetChangeConflictsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetChangeConflictsRequest.ProtoReflect.Descriptor instead.
+func (*GetChangeConflictsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *GetChangeConflictsRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GetChangeConflictsRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *GetChangeConflictsRequest) GetTarget() string {
+	if x != nil {
+		return x.Target
+	}
+	return ""
+}
+
+type ConflictHunk struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MainStart     uint32                 `protobuf:"varint,1,opt,name=main_start,json=mainStart,proto3" json:"main_start,omitempty"`
+	ChangeStart   uint32                 `protobuf:"varint,2,opt,name=change_start,json=changeStart,proto3" json:"change_start,omitempty"`
+	Main          []string               `protobuf:"bytes,3,rep,name=main,proto3" json:"main,omitempty"`
+	Base          []string               `protobuf:"bytes,4,rep,name=base,proto3" json:"base,omitempty"`
+	Change        []string               `protobuf:"bytes,5,rep,name=change,proto3" json:"change,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConflictHunk) Reset() {
+	*x = ConflictHunk{}
+	mi := &file_asc_v1_review_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConflictHunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConflictHunk) ProtoMessage() {}
+
+func (x *ConflictHunk) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConflictHunk.ProtoReflect.Descriptor instead.
+func (*ConflictHunk) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *ConflictHunk) GetMainStart() uint32 {
+	if x != nil {
+		return x.MainStart
+	}
+	return 0
+}
+
+func (x *ConflictHunk) GetChangeStart() uint32 {
+	if x != nil {
+		return x.ChangeStart
+	}
+	return 0
+}
+
+func (x *ConflictHunk) GetMain() []string {
+	if x != nil {
+		return x.Main
+	}
+	return nil
+}
+
+func (x *ConflictHunk) GetBase() []string {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *ConflictHunk) GetChange() []string {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+type ConflictFile struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Kind          ConflictKind           `protobuf:"varint,2,opt,name=kind,proto3,enum=asc.v1.ConflictKind" json:"kind,omitempty"`
+	Hunks         []*ConflictHunk        `protobuf:"bytes,3,rep,name=hunks,proto3" json:"hunks,omitempty"`
+	Binary        bool                   `protobuf:"varint,4,opt,name=binary,proto3" json:"binary,omitempty"` // nothing to show line by line: pick a side
+	Truncated     bool                   `protobuf:"varint,5,opt,name=truncated,proto3" json:"truncated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConflictFile) Reset() {
+	*x = ConflictFile{}
+	mi := &file_asc_v1_review_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConflictFile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConflictFile) ProtoMessage() {}
+
+func (x *ConflictFile) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConflictFile.ProtoReflect.Descriptor instead.
+func (*ConflictFile) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *ConflictFile) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *ConflictFile) GetKind() ConflictKind {
+	if x != nil {
+		return x.Kind
+	}
+	return ConflictKind_CONFLICT_KIND_CONTENT
+}
+
+func (x *ConflictFile) GetHunks() []*ConflictHunk {
+	if x != nil {
+		return x.Hunks
+	}
+	return nil
+}
+
+func (x *ConflictFile) GetBinary() bool {
+	if x != nil {
+		return x.Binary
+	}
+	return false
+}
+
+func (x *ConflictFile) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
+type GetChangeConflictsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         ConflictCheck          `protobuf:"varint,1,opt,name=state,proto3,enum=asc.v1.ConflictCheck" json:"state,omitempty"`
+	Files         []*ConflictFile        `protobuf:"bytes,2,rep,name=files,proto3" json:"files,omitempty"`
+	HeldBack      [][]byte               `protobuf:"bytes,3,rep,name=held_back,json=heldBack,proto3" json:"held_back,omitempty"`
+	Truncated     bool                   `protobuf:"varint,4,opt,name=truncated,proto3" json:"truncated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetChangeConflictsResponse) Reset() {
+	*x = GetChangeConflictsResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetChangeConflictsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetChangeConflictsResponse) ProtoMessage() {}
+
+func (x *GetChangeConflictsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetChangeConflictsResponse.ProtoReflect.Descriptor instead.
+func (*GetChangeConflictsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *GetChangeConflictsResponse) GetState() ConflictCheck {
+	if x != nil {
+		return x.State
+	}
+	return ConflictCheck_CONFLICT_CHECK_UNSPECIFIED
+}
+
+func (x *GetChangeConflictsResponse) GetFiles() []*ConflictFile {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+func (x *GetChangeConflictsResponse) GetHeldBack() [][]byte {
+	if x != nil {
+		return x.HeldBack
+	}
+	return nil
+}
+
+func (x *GetChangeConflictsResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
+// What a draft of a new change (title, what, why, how, risk) is written from: the subjects of the changesets in
+// `base..head`, the files they touch with line counts, the size and the risk with its reasons. The patch text is read
+// with `Repo.Diff`. `base` empty means the default branch and `head` empty means HEAD.
+type DraftContextRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Base          string                 `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty"`
+	Head          string                 `protobuf:"bytes,3,opt,name=head,proto3" json:"head,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DraftContextRequest) Reset() {
+	*x = DraftContextRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DraftContextRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DraftContextRequest) ProtoMessage() {}
+
+func (x *DraftContextRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DraftContextRequest.ProtoReflect.Descriptor instead.
+func (*DraftContextRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *DraftContextRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *DraftContextRequest) GetBase() string {
+	if x != nil {
+		return x.Base
+	}
+	return ""
+}
+
+func (x *DraftContextRequest) GetHead() string {
+	if x != nil {
+		return x.Head
+	}
+	return ""
+}
+
+type DraftContextResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Messages         []string               `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"` // newest first, at most 50, each at most 200 bytes, one line
+	Files            []*ChangeFileStat      `protobuf:"bytes,2,rep,name=files,proto3" json:"files,omitempty"`       // at most 200
+	Added            uint32                 `protobuf:"varint,3,opt,name=added,proto3" json:"added,omitempty"`
+	Removed          uint32                 `protobuf:"varint,4,opt,name=removed,proto3" json:"removed,omitempty"`
+	Changesets       uint32                 `protobuf:"varint,5,opt,name=changesets,proto3" json:"changesets,omitempty"`
+	Risk             *ChangeRisk            `protobuf:"bytes,6,opt,name=risk,proto3" json:"risk,omitempty"`
+	NothingToCompare bool                   `protobuf:"varint,7,opt,name=nothing_to_compare,json=nothingToCompare,proto3" json:"nothing_to_compare,omitempty"` // head holds nothing that base does not
+	Truncated        bool                   `protobuf:"varint,8,opt,name=truncated,proto3" json:"truncated,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *DraftContextResponse) Reset() {
+	*x = DraftContextResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DraftContextResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DraftContextResponse) ProtoMessage() {}
+
+func (x *DraftContextResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DraftContextResponse.ProtoReflect.Descriptor instead.
+func (*DraftContextResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *DraftContextResponse) GetMessages() []string {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+func (x *DraftContextResponse) GetFiles() []*ChangeFileStat {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+func (x *DraftContextResponse) GetAdded() uint32 {
+	if x != nil {
+		return x.Added
+	}
+	return 0
+}
+
+func (x *DraftContextResponse) GetRemoved() uint32 {
+	if x != nil {
+		return x.Removed
+	}
+	return 0
+}
+
+func (x *DraftContextResponse) GetChangesets() uint32 {
+	if x != nil {
+		return x.Changesets
+	}
+	return 0
+}
+
+func (x *DraftContextResponse) GetRisk() *ChangeRisk {
+	if x != nil {
+		return x.Risk
+	}
+	return nil
+}
+
+func (x *DraftContextResponse) GetNothingToCompare() bool {
+	if x != nil {
+		return x.NothingToCompare
+	}
+	return false
+}
+
+func (x *DraftContextResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
+type HunkContextResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Language      string                 `protobuf:"bytes,1,opt,name=language,proto3" json:"language,omitempty"`
+	Lines         []*HunkContextLine     `protobuf:"bytes,2,rep,name=lines,proto3" json:"lines,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HunkContextResponse) Reset() {
+	*x = HunkContextResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HunkContextResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HunkContextResponse) ProtoMessage() {}
+
+func (x *HunkContextResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HunkContextResponse.ProtoReflect.Descriptor instead.
+func (*HunkContextResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *HunkContextResponse) GetLanguage() string {
+	if x != nil {
+		return x.Language
+	}
+	return ""
+}
+
+func (x *HunkContextResponse) GetLines() []*HunkContextLine {
+	if x != nil {
+		return x.Lines
+	}
+	return nil
+}
+
 var File_asc_v1_review_proto protoreflect.FileDescriptor
 
 const file_asc_v1_review_proto_rawDesc = "" +
@@ -3739,7 +4490,7 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\x04side\x18\x03 \x01(\x0e2\x10.asc.v1.DiffSideR\x04side\x12\x1d\n" +
 	"\n" +
 	"start_line\x18\x04 \x01(\rR\tstartLine\x12\x19\n" +
-	"\bend_line\x18\x05 \x01(\rR\aendLine\"\xee\x01\n" +
+	"\bend_line\x18\x05 \x01(\rR\aendLine\"\x8b\x02\n" +
 	"\rReviewComment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x16\n" +
 	"\x06author\x18\x02 \x01(\tR\x06author\x12\x12\n" +
@@ -3752,7 +4503,8 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"suggestion\x12'\n" +
 	"\x0fapplied_version\x18\a \x01(\rR\x0eappliedVersion\x12\x1d\n" +
 	"\n" +
-	"applied_by\x18\b \x01(\tR\tappliedBy\"\xde\x02\n" +
+	"applied_by\x18\b \x01(\tR\tappliedBy\x12\x1b\n" +
+	"\tauthor_id\x18\t \x01(\x04R\bauthorId\"\xde\x02\n" +
 	"\fReviewThread\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1c\n" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12,\n" +
@@ -3850,7 +4602,7 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\x05paths\x18\n" +
 	" \x03(\tR\x05paths\x12\x18\n" +
 	"\astarted\x18\v \x01(\x03R\astarted\x12\x1a\n" +
-	"\bfinished\x18\f \x01(\x03R\bfinished\"\x89\x02\n" +
+	"\bfinished\x18\f \x01(\x03R\bfinished\"\xaa\x02\n" +
 	"\fApprovalInfo\x12\x1a\n" +
 	"\breviewer\x18\x01 \x01(\tR\breviewer\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\rR\aversion\x12+\n" +
@@ -3859,7 +4611,9 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\aapplies\x18\x05 \x01(\bR\aapplies\x12\x18\n" +
 	"\acarried\x18\x06 \x01(\bR\acarried\x12'\n" +
 	"\x0funchanged_files\x18\a \x01(\rR\x0eunchangedFiles\x12)\n" +
-	"\rchanged_files\x18\b \x03(\fB\x04\xa8\xbb\x18\x03R\fchangedFiles\"\xbb\x02\n" +
+	"\rchanged_files\x18\b \x03(\fB\x04\xa8\xbb\x18\x03R\fchangedFiles\x12\x1f\n" +
+	"\vreviewer_id\x18\t \x01(\x04R\n" +
+	"reviewerId\"\xbb\x02\n" +
 	"\x0eReviewGateData\x12!\n" +
 	"\fopen_threads\x18\x01 \x01(\rR\vopenThreads\x12#\n" +
 	"\rtotal_threads\x18\x02 \x01(\rR\ftotalThreads\x12+\n" +
@@ -4032,7 +4786,59 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"page_token\x18\x05 \x01(\tR\tpageToken\"s\n" +
 	"\x15ListOverridesResponse\x122\n" +
 	"\toverrides\x18\x01 \x03(\v2\x14.asc.v1.GateOverrideR\toverrides\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken*a\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xa1\x01\n" +
+	"\x12HunkContextRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\rR\aversion\x12\x18\n" +
+	"\x04path\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x14\n" +
+	"\x05lines\x18\x05 \x03(\rR\x05lines\":\n" +
+	"\x10HunkContextEntry\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04kind\x18\x02 \x01(\tR\x04kind\"U\n" +
+	"\x0fHunkContextLine\x12\x12\n" +
+	"\x04line\x18\x01 \x01(\rR\x04line\x12.\n" +
+	"\x05chain\x18\x02 \x03(\v2\x18.asc.v1.HunkContextEntryR\x05chain\"v\n" +
+	"\x19GetChangeConflictsRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x16\n" +
+	"\x06target\x18\x03 \x01(\tR\x06target\"\x90\x01\n" +
+	"\fConflictHunk\x12\x1d\n" +
+	"\n" +
+	"main_start\x18\x01 \x01(\rR\tmainStart\x12!\n" +
+	"\fchange_start\x18\x02 \x01(\rR\vchangeStart\x12\x12\n" +
+	"\x04main\x18\x03 \x03(\tR\x04main\x12\x12\n" +
+	"\x04base\x18\x04 \x03(\tR\x04base\x12\x16\n" +
+	"\x06change\x18\x05 \x03(\tR\x06change\"\xb4\x01\n" +
+	"\fConflictFile\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12(\n" +
+	"\x04kind\x18\x02 \x01(\x0e2\x14.asc.v1.ConflictKindR\x04kind\x12*\n" +
+	"\x05hunks\x18\x03 \x03(\v2\x14.asc.v1.ConflictHunkR\x05hunks\x12\x16\n" +
+	"\x06binary\x18\x04 \x01(\bR\x06binary\x12\x1c\n" +
+	"\ttruncated\x18\x05 \x01(\bR\ttruncated\"\xb6\x01\n" +
+	"\x1aGetChangeConflictsResponse\x12+\n" +
+	"\x05state\x18\x01 \x01(\x0e2\x15.asc.v1.ConflictCheckR\x05state\x12*\n" +
+	"\x05files\x18\x02 \x03(\v2\x14.asc.v1.ConflictFileR\x05files\x12!\n" +
+	"\theld_back\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x02R\bheldBack\x12\x1c\n" +
+	"\ttruncated\x18\x04 \x01(\bR\ttruncated\"b\n" +
+	"\x13DraftContextRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x04base\x18\x02 \x01(\tR\x04base\x12\x12\n" +
+	"\x04head\x18\x03 \x01(\tR\x04head\"\xa4\x02\n" +
+	"\x14DraftContextResponse\x12\x1a\n" +
+	"\bmessages\x18\x01 \x03(\tR\bmessages\x12,\n" +
+	"\x05files\x18\x02 \x03(\v2\x16.asc.v1.ChangeFileStatR\x05files\x12\x14\n" +
+	"\x05added\x18\x03 \x01(\rR\x05added\x12\x18\n" +
+	"\aremoved\x18\x04 \x01(\rR\aremoved\x12\x1e\n" +
+	"\n" +
+	"changesets\x18\x05 \x01(\rR\n" +
+	"changesets\x12&\n" +
+	"\x04risk\x18\x06 \x01(\v2\x12.asc.v1.ChangeRiskR\x04risk\x12,\n" +
+	"\x12nothing_to_compare\x18\a \x01(\bR\x10nothingToCompare\x12\x1c\n" +
+	"\ttruncated\x18\b \x01(\bR\ttruncated\"`\n" +
+	"\x13HunkContextResponse\x12\x1a\n" +
+	"\blanguage\x18\x01 \x01(\tR\blanguage\x12-\n" +
+	"\x05lines\x18\x02 \x03(\v2\x17.asc.v1.HunkContextLineR\x05lines*a\n" +
 	"\fThreadStatus\x12\x1d\n" +
 	"\x19THREAD_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12THREAD_STATUS_OPEN\x10\x01\x12\x1a\n" +
@@ -4050,8 +4856,12 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\x1aAPPROVAL_STATE_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17APPROVAL_STATE_APPROVED\x10\x01\x12$\n" +
 	" APPROVAL_STATE_CHANGES_REQUESTED\x10\x02\x12\x1c\n" +
-	"\x18APPROVAL_STATE_DISMISSED\x10\x032\x80\n" +
-	"\n" +
+	"\x18APPROVAL_STATE_DISMISSED\x10\x03*\x89\x01\n" +
+	"\rConflictCheck\x12\x1e\n" +
+	"\x1aCONFLICT_CHECK_UNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14CONFLICT_CHECK_CLEAN\x10\x01\x12\x1c\n" +
+	"\x18CONFLICT_CHECK_CONFLICTS\x10\x02\x12 \n" +
+	"\x1cCONFLICT_CHECK_NEEDS_RESTACK\x10\x032\xea\v\n" +
 	"\x06Review\x12F\n" +
 	"\vListThreads\x12\x1a.asc.v1.ListThreadsRequest\x1a\x1b.asc.v1.ListThreadsResponse\x12C\n" +
 	"\n" +
@@ -4069,7 +4879,10 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\fGetGateStats\x12\x1b.asc.v1.GetGateStatsRequest\x1a\x1c.asc.v1.GetGateStatsResponse\x12L\n" +
 	"\rGrantOverride\x12\x1c.asc.v1.GrantOverrideRequest\x1a\x1d.asc.v1.GrantOverrideResponse\x12O\n" +
 	"\x0eRevokeOverride\x12\x1d.asc.v1.RevokeOverrideRequest\x1a\x1e.asc.v1.RevokeOverrideResponse\x12L\n" +
-	"\rListOverrides\x12\x1c.asc.v1.ListOverridesRequest\x1a\x1d.asc.v1.ListOverridesResponseBv\n" +
+	"\rListOverrides\x12\x1c.asc.v1.ListOverridesRequest\x1a\x1d.asc.v1.ListOverridesResponse\x12F\n" +
+	"\vHunkContext\x12\x1a.asc.v1.HunkContextRequest\x1a\x1b.asc.v1.HunkContextResponse\x12U\n" +
+	"\fGetConflicts\x12!.asc.v1.GetChangeConflictsRequest\x1a\".asc.v1.GetChangeConflictsResponse\x12I\n" +
+	"\fDraftContext\x12\x1b.asc.v1.DraftContextRequest\x1a\x1c.asc.v1.DraftContextResponseBv\n" +
 	"\n" +
 	"com.asc.v1B\vReviewProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -4085,151 +4898,180 @@ func file_asc_v1_review_proto_rawDescGZIP() []byte {
 	return file_asc_v1_review_proto_rawDescData
 }
 
-var file_asc_v1_review_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_asc_v1_review_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
+var file_asc_v1_review_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_asc_v1_review_proto_msgTypes = make([]protoimpl.MessageInfo, 59)
 var file_asc_v1_review_proto_goTypes = []any{
 	(ThreadStatus)(0),                     // 0: asc.v1.ThreadStatus
 	(DiffSide)(0),                         // 1: asc.v1.DiffSide
 	(RiskLevel)(0),                        // 2: asc.v1.RiskLevel
 	(ApprovalState)(0),                    // 3: asc.v1.ApprovalState
-	(*ThreadAnchor)(nil),                  // 4: asc.v1.ThreadAnchor
-	(*ReviewComment)(nil),                 // 5: asc.v1.ReviewComment
-	(*ReviewThread)(nil),                  // 6: asc.v1.ReviewThread
-	(*ListThreadsRequest)(nil),            // 7: asc.v1.ListThreadsRequest
-	(*ListThreadsResponse)(nil),           // 8: asc.v1.ListThreadsResponse
-	(*AddCommentRequest)(nil),             // 9: asc.v1.AddCommentRequest
-	(*AddCommentResponse)(nil),            // 10: asc.v1.AddCommentResponse
-	(*ResolveThreadRequest)(nil),          // 11: asc.v1.ResolveThreadRequest
-	(*ResolveThreadResponse)(nil),         // 12: asc.v1.ResolveThreadResponse
-	(*RequestReviewRequest)(nil),          // 13: asc.v1.RequestReviewRequest
-	(*ReviewRequestInfo)(nil),             // 14: asc.v1.ReviewRequestInfo
-	(*RequestReviewResponse)(nil),         // 15: asc.v1.RequestReviewResponse
-	(*WhereToLook)(nil),                   // 16: asc.v1.WhereToLook
-	(*ReviewBrief)(nil),                   // 17: asc.v1.ReviewBrief
-	(*ChangeFileStat)(nil),                // 18: asc.v1.ChangeFileStat
-	(*ChangeRisk)(nil),                    // 19: asc.v1.ChangeRisk
-	(*ChangeProvenance)(nil),              // 20: asc.v1.ChangeProvenance
-	(*ApprovalInfo)(nil),                  // 21: asc.v1.ApprovalInfo
-	(*ReviewGateData)(nil),                // 22: asc.v1.ReviewGateData
-	(*GetBriefRequest)(nil),               // 23: asc.v1.GetBriefRequest
-	(*GetBriefResponse)(nil),              // 24: asc.v1.GetBriefResponse
-	(*SetBriefRequest)(nil),               // 25: asc.v1.SetBriefRequest
-	(*SetBriefResponse)(nil),              // 26: asc.v1.SetBriefResponse
-	(*RecordApprovalRequest)(nil),         // 27: asc.v1.RecordApprovalRequest
-	(*RecordApprovalResponse)(nil),        // 28: asc.v1.RecordApprovalResponse
-	(*CompareVersionsRequest)(nil),        // 29: asc.v1.CompareVersionsRequest
-	(*VersionFile)(nil),                   // 30: asc.v1.VersionFile
-	(*CompareVersionsResponse)(nil),       // 31: asc.v1.CompareVersionsResponse
-	(*PrepareSuggestionRequest)(nil),      // 32: asc.v1.PrepareSuggestionRequest
-	(*PrepareSuggestionResponse)(nil),     // 33: asc.v1.PrepareSuggestionResponse
-	(*MarkSuggestionAppliedRequest)(nil),  // 34: asc.v1.MarkSuggestionAppliedRequest
-	(*MarkSuggestionAppliedResponse)(nil), // 35: asc.v1.MarkSuggestionAppliedResponse
-	(*SuggestReviewersRequest)(nil),       // 36: asc.v1.SuggestReviewersRequest
-	(*SuggestedReviewer)(nil),             // 37: asc.v1.SuggestedReviewer
-	(*SuggestReviewersResponse)(nil),      // 38: asc.v1.SuggestReviewersResponse
-	(*GateRuleResult)(nil),                // 39: asc.v1.GateRuleResult
-	(*RecordGateDecisionRequest)(nil),     // 40: asc.v1.RecordGateDecisionRequest
-	(*RecordGateDecisionResponse)(nil),    // 41: asc.v1.RecordGateDecisionResponse
-	(*GetGateStatsRequest)(nil),           // 42: asc.v1.GetGateStatsRequest
-	(*GateDay)(nil),                       // 43: asc.v1.GateDay
-	(*GateRuleCount)(nil),                 // 44: asc.v1.GateRuleCount
-	(*GetGateStatsResponse)(nil),          // 45: asc.v1.GetGateStatsResponse
-	(*GateOverride)(nil),                  // 46: asc.v1.GateOverride
-	(*GrantOverrideRequest)(nil),          // 47: asc.v1.GrantOverrideRequest
-	(*GrantOverrideResponse)(nil),         // 48: asc.v1.GrantOverrideResponse
-	(*RevokeOverrideRequest)(nil),         // 49: asc.v1.RevokeOverrideRequest
-	(*RevokeOverrideResponse)(nil),        // 50: asc.v1.RevokeOverrideResponse
-	(*ListOverridesRequest)(nil),          // 51: asc.v1.ListOverridesRequest
-	(*ListOverridesResponse)(nil),         // 52: asc.v1.ListOverridesResponse
-	(*RepoRef)(nil),                       // 53: asc.v1.RepoRef
+	(ConflictCheck)(0),                    // 4: asc.v1.ConflictCheck
+	(*ThreadAnchor)(nil),                  // 5: asc.v1.ThreadAnchor
+	(*ReviewComment)(nil),                 // 6: asc.v1.ReviewComment
+	(*ReviewThread)(nil),                  // 7: asc.v1.ReviewThread
+	(*ListThreadsRequest)(nil),            // 8: asc.v1.ListThreadsRequest
+	(*ListThreadsResponse)(nil),           // 9: asc.v1.ListThreadsResponse
+	(*AddCommentRequest)(nil),             // 10: asc.v1.AddCommentRequest
+	(*AddCommentResponse)(nil),            // 11: asc.v1.AddCommentResponse
+	(*ResolveThreadRequest)(nil),          // 12: asc.v1.ResolveThreadRequest
+	(*ResolveThreadResponse)(nil),         // 13: asc.v1.ResolveThreadResponse
+	(*RequestReviewRequest)(nil),          // 14: asc.v1.RequestReviewRequest
+	(*ReviewRequestInfo)(nil),             // 15: asc.v1.ReviewRequestInfo
+	(*RequestReviewResponse)(nil),         // 16: asc.v1.RequestReviewResponse
+	(*WhereToLook)(nil),                   // 17: asc.v1.WhereToLook
+	(*ReviewBrief)(nil),                   // 18: asc.v1.ReviewBrief
+	(*ChangeFileStat)(nil),                // 19: asc.v1.ChangeFileStat
+	(*ChangeRisk)(nil),                    // 20: asc.v1.ChangeRisk
+	(*ChangeProvenance)(nil),              // 21: asc.v1.ChangeProvenance
+	(*ApprovalInfo)(nil),                  // 22: asc.v1.ApprovalInfo
+	(*ReviewGateData)(nil),                // 23: asc.v1.ReviewGateData
+	(*GetBriefRequest)(nil),               // 24: asc.v1.GetBriefRequest
+	(*GetBriefResponse)(nil),              // 25: asc.v1.GetBriefResponse
+	(*SetBriefRequest)(nil),               // 26: asc.v1.SetBriefRequest
+	(*SetBriefResponse)(nil),              // 27: asc.v1.SetBriefResponse
+	(*RecordApprovalRequest)(nil),         // 28: asc.v1.RecordApprovalRequest
+	(*RecordApprovalResponse)(nil),        // 29: asc.v1.RecordApprovalResponse
+	(*CompareVersionsRequest)(nil),        // 30: asc.v1.CompareVersionsRequest
+	(*VersionFile)(nil),                   // 31: asc.v1.VersionFile
+	(*CompareVersionsResponse)(nil),       // 32: asc.v1.CompareVersionsResponse
+	(*PrepareSuggestionRequest)(nil),      // 33: asc.v1.PrepareSuggestionRequest
+	(*PrepareSuggestionResponse)(nil),     // 34: asc.v1.PrepareSuggestionResponse
+	(*MarkSuggestionAppliedRequest)(nil),  // 35: asc.v1.MarkSuggestionAppliedRequest
+	(*MarkSuggestionAppliedResponse)(nil), // 36: asc.v1.MarkSuggestionAppliedResponse
+	(*SuggestReviewersRequest)(nil),       // 37: asc.v1.SuggestReviewersRequest
+	(*SuggestedReviewer)(nil),             // 38: asc.v1.SuggestedReviewer
+	(*SuggestReviewersResponse)(nil),      // 39: asc.v1.SuggestReviewersResponse
+	(*GateRuleResult)(nil),                // 40: asc.v1.GateRuleResult
+	(*RecordGateDecisionRequest)(nil),     // 41: asc.v1.RecordGateDecisionRequest
+	(*RecordGateDecisionResponse)(nil),    // 42: asc.v1.RecordGateDecisionResponse
+	(*GetGateStatsRequest)(nil),           // 43: asc.v1.GetGateStatsRequest
+	(*GateDay)(nil),                       // 44: asc.v1.GateDay
+	(*GateRuleCount)(nil),                 // 45: asc.v1.GateRuleCount
+	(*GetGateStatsResponse)(nil),          // 46: asc.v1.GetGateStatsResponse
+	(*GateOverride)(nil),                  // 47: asc.v1.GateOverride
+	(*GrantOverrideRequest)(nil),          // 48: asc.v1.GrantOverrideRequest
+	(*GrantOverrideResponse)(nil),         // 49: asc.v1.GrantOverrideResponse
+	(*RevokeOverrideRequest)(nil),         // 50: asc.v1.RevokeOverrideRequest
+	(*RevokeOverrideResponse)(nil),        // 51: asc.v1.RevokeOverrideResponse
+	(*ListOverridesRequest)(nil),          // 52: asc.v1.ListOverridesRequest
+	(*ListOverridesResponse)(nil),         // 53: asc.v1.ListOverridesResponse
+	(*HunkContextRequest)(nil),            // 54: asc.v1.HunkContextRequest
+	(*HunkContextEntry)(nil),              // 55: asc.v1.HunkContextEntry
+	(*HunkContextLine)(nil),               // 56: asc.v1.HunkContextLine
+	(*GetChangeConflictsRequest)(nil),     // 57: asc.v1.GetChangeConflictsRequest
+	(*ConflictHunk)(nil),                  // 58: asc.v1.ConflictHunk
+	(*ConflictFile)(nil),                  // 59: asc.v1.ConflictFile
+	(*GetChangeConflictsResponse)(nil),    // 60: asc.v1.GetChangeConflictsResponse
+	(*DraftContextRequest)(nil),           // 61: asc.v1.DraftContextRequest
+	(*DraftContextResponse)(nil),          // 62: asc.v1.DraftContextResponse
+	(*HunkContextResponse)(nil),           // 63: asc.v1.HunkContextResponse
+	(*RepoRef)(nil),                       // 64: asc.v1.RepoRef
+	(ConflictKind)(0),                     // 65: asc.v1.ConflictKind
 }
 var file_asc_v1_review_proto_depIdxs = []int32{
 	1,  // 0: asc.v1.ThreadAnchor.side:type_name -> asc.v1.DiffSide
-	4,  // 1: asc.v1.ReviewThread.anchor:type_name -> asc.v1.ThreadAnchor
+	5,  // 1: asc.v1.ReviewThread.anchor:type_name -> asc.v1.ThreadAnchor
 	0,  // 2: asc.v1.ReviewThread.status:type_name -> asc.v1.ThreadStatus
-	5,  // 3: asc.v1.ReviewThread.comments:type_name -> asc.v1.ReviewComment
-	53, // 4: asc.v1.ListThreadsRequest.repo:type_name -> asc.v1.RepoRef
+	6,  // 3: asc.v1.ReviewThread.comments:type_name -> asc.v1.ReviewComment
+	64, // 4: asc.v1.ListThreadsRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 5: asc.v1.ListThreadsRequest.status:type_name -> asc.v1.ThreadStatus
-	6,  // 6: asc.v1.ListThreadsResponse.threads:type_name -> asc.v1.ReviewThread
-	53, // 7: asc.v1.AddCommentRequest.repo:type_name -> asc.v1.RepoRef
-	4,  // 8: asc.v1.AddCommentRequest.anchor:type_name -> asc.v1.ThreadAnchor
-	6,  // 9: asc.v1.AddCommentResponse.thread:type_name -> asc.v1.ReviewThread
-	53, // 10: asc.v1.ResolveThreadRequest.repo:type_name -> asc.v1.RepoRef
-	6,  // 11: asc.v1.ResolveThreadResponse.thread:type_name -> asc.v1.ReviewThread
-	53, // 12: asc.v1.RequestReviewRequest.repo:type_name -> asc.v1.RepoRef
-	14, // 13: asc.v1.RequestReviewResponse.requests:type_name -> asc.v1.ReviewRequestInfo
-	16, // 14: asc.v1.ReviewBrief.where_to_look:type_name -> asc.v1.WhereToLook
+	7,  // 6: asc.v1.ListThreadsResponse.threads:type_name -> asc.v1.ReviewThread
+	64, // 7: asc.v1.AddCommentRequest.repo:type_name -> asc.v1.RepoRef
+	5,  // 8: asc.v1.AddCommentRequest.anchor:type_name -> asc.v1.ThreadAnchor
+	7,  // 9: asc.v1.AddCommentResponse.thread:type_name -> asc.v1.ReviewThread
+	64, // 10: asc.v1.ResolveThreadRequest.repo:type_name -> asc.v1.RepoRef
+	7,  // 11: asc.v1.ResolveThreadResponse.thread:type_name -> asc.v1.ReviewThread
+	64, // 12: asc.v1.RequestReviewRequest.repo:type_name -> asc.v1.RepoRef
+	15, // 13: asc.v1.RequestReviewResponse.requests:type_name -> asc.v1.ReviewRequestInfo
+	17, // 14: asc.v1.ReviewBrief.where_to_look:type_name -> asc.v1.WhereToLook
 	2,  // 15: asc.v1.ChangeRisk.level:type_name -> asc.v1.RiskLevel
 	3,  // 16: asc.v1.ApprovalInfo.state:type_name -> asc.v1.ApprovalState
-	53, // 17: asc.v1.GetBriefRequest.repo:type_name -> asc.v1.RepoRef
-	17, // 18: asc.v1.GetBriefResponse.brief:type_name -> asc.v1.ReviewBrief
-	18, // 19: asc.v1.GetBriefResponse.file_stats:type_name -> asc.v1.ChangeFileStat
-	19, // 20: asc.v1.GetBriefResponse.risk:type_name -> asc.v1.ChangeRisk
-	20, // 21: asc.v1.GetBriefResponse.provenance:type_name -> asc.v1.ChangeProvenance
-	21, // 22: asc.v1.GetBriefResponse.approvals:type_name -> asc.v1.ApprovalInfo
-	22, // 23: asc.v1.GetBriefResponse.gate:type_name -> asc.v1.ReviewGateData
-	53, // 24: asc.v1.SetBriefRequest.repo:type_name -> asc.v1.RepoRef
-	17, // 25: asc.v1.SetBriefRequest.brief:type_name -> asc.v1.ReviewBrief
-	17, // 26: asc.v1.SetBriefResponse.brief:type_name -> asc.v1.ReviewBrief
-	53, // 27: asc.v1.RecordApprovalRequest.repo:type_name -> asc.v1.RepoRef
+	64, // 17: asc.v1.GetBriefRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 18: asc.v1.GetBriefResponse.brief:type_name -> asc.v1.ReviewBrief
+	19, // 19: asc.v1.GetBriefResponse.file_stats:type_name -> asc.v1.ChangeFileStat
+	20, // 20: asc.v1.GetBriefResponse.risk:type_name -> asc.v1.ChangeRisk
+	21, // 21: asc.v1.GetBriefResponse.provenance:type_name -> asc.v1.ChangeProvenance
+	22, // 22: asc.v1.GetBriefResponse.approvals:type_name -> asc.v1.ApprovalInfo
+	23, // 23: asc.v1.GetBriefResponse.gate:type_name -> asc.v1.ReviewGateData
+	64, // 24: asc.v1.SetBriefRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 25: asc.v1.SetBriefRequest.brief:type_name -> asc.v1.ReviewBrief
+	18, // 26: asc.v1.SetBriefResponse.brief:type_name -> asc.v1.ReviewBrief
+	64, // 27: asc.v1.RecordApprovalRequest.repo:type_name -> asc.v1.RepoRef
 	3,  // 28: asc.v1.RecordApprovalRequest.state:type_name -> asc.v1.ApprovalState
-	21, // 29: asc.v1.RecordApprovalResponse.approvals:type_name -> asc.v1.ApprovalInfo
-	53, // 30: asc.v1.CompareVersionsRequest.repo:type_name -> asc.v1.RepoRef
-	30, // 31: asc.v1.CompareVersionsResponse.files:type_name -> asc.v1.VersionFile
-	21, // 32: asc.v1.CompareVersionsResponse.approvals:type_name -> asc.v1.ApprovalInfo
-	53, // 33: asc.v1.PrepareSuggestionRequest.repo:type_name -> asc.v1.RepoRef
-	53, // 34: asc.v1.MarkSuggestionAppliedRequest.repo:type_name -> asc.v1.RepoRef
-	6,  // 35: asc.v1.MarkSuggestionAppliedResponse.thread:type_name -> asc.v1.ReviewThread
-	53, // 36: asc.v1.SuggestReviewersRequest.repo:type_name -> asc.v1.RepoRef
-	37, // 37: asc.v1.SuggestReviewersResponse.reviewers:type_name -> asc.v1.SuggestedReviewer
-	53, // 38: asc.v1.RecordGateDecisionRequest.repo:type_name -> asc.v1.RepoRef
-	39, // 39: asc.v1.RecordGateDecisionRequest.rules:type_name -> asc.v1.GateRuleResult
-	53, // 40: asc.v1.GetGateStatsRequest.repo:type_name -> asc.v1.RepoRef
-	43, // 41: asc.v1.GetGateStatsResponse.per_day:type_name -> asc.v1.GateDay
-	44, // 42: asc.v1.GetGateStatsResponse.per_rule:type_name -> asc.v1.GateRuleCount
-	53, // 43: asc.v1.GrantOverrideRequest.repo:type_name -> asc.v1.RepoRef
-	46, // 44: asc.v1.GrantOverrideResponse.override:type_name -> asc.v1.GateOverride
-	53, // 45: asc.v1.RevokeOverrideRequest.repo:type_name -> asc.v1.RepoRef
-	46, // 46: asc.v1.RevokeOverrideResponse.override:type_name -> asc.v1.GateOverride
-	53, // 47: asc.v1.ListOverridesRequest.repo:type_name -> asc.v1.RepoRef
-	46, // 48: asc.v1.ListOverridesResponse.overrides:type_name -> asc.v1.GateOverride
-	7,  // 49: asc.v1.Review.ListThreads:input_type -> asc.v1.ListThreadsRequest
-	9,  // 50: asc.v1.Review.AddComment:input_type -> asc.v1.AddCommentRequest
-	11, // 51: asc.v1.Review.ResolveThread:input_type -> asc.v1.ResolveThreadRequest
-	13, // 52: asc.v1.Review.RequestReview:input_type -> asc.v1.RequestReviewRequest
-	23, // 53: asc.v1.Review.GetBrief:input_type -> asc.v1.GetBriefRequest
-	25, // 54: asc.v1.Review.SetBrief:input_type -> asc.v1.SetBriefRequest
-	27, // 55: asc.v1.Review.RecordApproval:input_type -> asc.v1.RecordApprovalRequest
-	29, // 56: asc.v1.Review.CompareVersions:input_type -> asc.v1.CompareVersionsRequest
-	32, // 57: asc.v1.Review.PrepareSuggestion:input_type -> asc.v1.PrepareSuggestionRequest
-	34, // 58: asc.v1.Review.MarkSuggestionApplied:input_type -> asc.v1.MarkSuggestionAppliedRequest
-	36, // 59: asc.v1.Review.SuggestReviewers:input_type -> asc.v1.SuggestReviewersRequest
-	40, // 60: asc.v1.Review.RecordGateDecision:input_type -> asc.v1.RecordGateDecisionRequest
-	42, // 61: asc.v1.Review.GetGateStats:input_type -> asc.v1.GetGateStatsRequest
-	47, // 62: asc.v1.Review.GrantOverride:input_type -> asc.v1.GrantOverrideRequest
-	49, // 63: asc.v1.Review.RevokeOverride:input_type -> asc.v1.RevokeOverrideRequest
-	51, // 64: asc.v1.Review.ListOverrides:input_type -> asc.v1.ListOverridesRequest
-	8,  // 65: asc.v1.Review.ListThreads:output_type -> asc.v1.ListThreadsResponse
-	10, // 66: asc.v1.Review.AddComment:output_type -> asc.v1.AddCommentResponse
-	12, // 67: asc.v1.Review.ResolveThread:output_type -> asc.v1.ResolveThreadResponse
-	15, // 68: asc.v1.Review.RequestReview:output_type -> asc.v1.RequestReviewResponse
-	24, // 69: asc.v1.Review.GetBrief:output_type -> asc.v1.GetBriefResponse
-	26, // 70: asc.v1.Review.SetBrief:output_type -> asc.v1.SetBriefResponse
-	28, // 71: asc.v1.Review.RecordApproval:output_type -> asc.v1.RecordApprovalResponse
-	31, // 72: asc.v1.Review.CompareVersions:output_type -> asc.v1.CompareVersionsResponse
-	33, // 73: asc.v1.Review.PrepareSuggestion:output_type -> asc.v1.PrepareSuggestionResponse
-	35, // 74: asc.v1.Review.MarkSuggestionApplied:output_type -> asc.v1.MarkSuggestionAppliedResponse
-	38, // 75: asc.v1.Review.SuggestReviewers:output_type -> asc.v1.SuggestReviewersResponse
-	41, // 76: asc.v1.Review.RecordGateDecision:output_type -> asc.v1.RecordGateDecisionResponse
-	45, // 77: asc.v1.Review.GetGateStats:output_type -> asc.v1.GetGateStatsResponse
-	48, // 78: asc.v1.Review.GrantOverride:output_type -> asc.v1.GrantOverrideResponse
-	50, // 79: asc.v1.Review.RevokeOverride:output_type -> asc.v1.RevokeOverrideResponse
-	52, // 80: asc.v1.Review.ListOverrides:output_type -> asc.v1.ListOverridesResponse
-	65, // [65:81] is the sub-list for method output_type
-	49, // [49:65] is the sub-list for method input_type
-	49, // [49:49] is the sub-list for extension type_name
-	49, // [49:49] is the sub-list for extension extendee
-	0,  // [0:49] is the sub-list for field type_name
+	22, // 29: asc.v1.RecordApprovalResponse.approvals:type_name -> asc.v1.ApprovalInfo
+	64, // 30: asc.v1.CompareVersionsRequest.repo:type_name -> asc.v1.RepoRef
+	31, // 31: asc.v1.CompareVersionsResponse.files:type_name -> asc.v1.VersionFile
+	22, // 32: asc.v1.CompareVersionsResponse.approvals:type_name -> asc.v1.ApprovalInfo
+	64, // 33: asc.v1.PrepareSuggestionRequest.repo:type_name -> asc.v1.RepoRef
+	64, // 34: asc.v1.MarkSuggestionAppliedRequest.repo:type_name -> asc.v1.RepoRef
+	7,  // 35: asc.v1.MarkSuggestionAppliedResponse.thread:type_name -> asc.v1.ReviewThread
+	64, // 36: asc.v1.SuggestReviewersRequest.repo:type_name -> asc.v1.RepoRef
+	38, // 37: asc.v1.SuggestReviewersResponse.reviewers:type_name -> asc.v1.SuggestedReviewer
+	64, // 38: asc.v1.RecordGateDecisionRequest.repo:type_name -> asc.v1.RepoRef
+	40, // 39: asc.v1.RecordGateDecisionRequest.rules:type_name -> asc.v1.GateRuleResult
+	64, // 40: asc.v1.GetGateStatsRequest.repo:type_name -> asc.v1.RepoRef
+	44, // 41: asc.v1.GetGateStatsResponse.per_day:type_name -> asc.v1.GateDay
+	45, // 42: asc.v1.GetGateStatsResponse.per_rule:type_name -> asc.v1.GateRuleCount
+	64, // 43: asc.v1.GrantOverrideRequest.repo:type_name -> asc.v1.RepoRef
+	47, // 44: asc.v1.GrantOverrideResponse.override:type_name -> asc.v1.GateOverride
+	64, // 45: asc.v1.RevokeOverrideRequest.repo:type_name -> asc.v1.RepoRef
+	47, // 46: asc.v1.RevokeOverrideResponse.override:type_name -> asc.v1.GateOverride
+	64, // 47: asc.v1.ListOverridesRequest.repo:type_name -> asc.v1.RepoRef
+	47, // 48: asc.v1.ListOverridesResponse.overrides:type_name -> asc.v1.GateOverride
+	64, // 49: asc.v1.HunkContextRequest.repo:type_name -> asc.v1.RepoRef
+	55, // 50: asc.v1.HunkContextLine.chain:type_name -> asc.v1.HunkContextEntry
+	64, // 51: asc.v1.GetChangeConflictsRequest.repo:type_name -> asc.v1.RepoRef
+	65, // 52: asc.v1.ConflictFile.kind:type_name -> asc.v1.ConflictKind
+	58, // 53: asc.v1.ConflictFile.hunks:type_name -> asc.v1.ConflictHunk
+	4,  // 54: asc.v1.GetChangeConflictsResponse.state:type_name -> asc.v1.ConflictCheck
+	59, // 55: asc.v1.GetChangeConflictsResponse.files:type_name -> asc.v1.ConflictFile
+	64, // 56: asc.v1.DraftContextRequest.repo:type_name -> asc.v1.RepoRef
+	19, // 57: asc.v1.DraftContextResponse.files:type_name -> asc.v1.ChangeFileStat
+	20, // 58: asc.v1.DraftContextResponse.risk:type_name -> asc.v1.ChangeRisk
+	56, // 59: asc.v1.HunkContextResponse.lines:type_name -> asc.v1.HunkContextLine
+	8,  // 60: asc.v1.Review.ListThreads:input_type -> asc.v1.ListThreadsRequest
+	10, // 61: asc.v1.Review.AddComment:input_type -> asc.v1.AddCommentRequest
+	12, // 62: asc.v1.Review.ResolveThread:input_type -> asc.v1.ResolveThreadRequest
+	14, // 63: asc.v1.Review.RequestReview:input_type -> asc.v1.RequestReviewRequest
+	24, // 64: asc.v1.Review.GetBrief:input_type -> asc.v1.GetBriefRequest
+	26, // 65: asc.v1.Review.SetBrief:input_type -> asc.v1.SetBriefRequest
+	28, // 66: asc.v1.Review.RecordApproval:input_type -> asc.v1.RecordApprovalRequest
+	30, // 67: asc.v1.Review.CompareVersions:input_type -> asc.v1.CompareVersionsRequest
+	33, // 68: asc.v1.Review.PrepareSuggestion:input_type -> asc.v1.PrepareSuggestionRequest
+	35, // 69: asc.v1.Review.MarkSuggestionApplied:input_type -> asc.v1.MarkSuggestionAppliedRequest
+	37, // 70: asc.v1.Review.SuggestReviewers:input_type -> asc.v1.SuggestReviewersRequest
+	41, // 71: asc.v1.Review.RecordGateDecision:input_type -> asc.v1.RecordGateDecisionRequest
+	43, // 72: asc.v1.Review.GetGateStats:input_type -> asc.v1.GetGateStatsRequest
+	48, // 73: asc.v1.Review.GrantOverride:input_type -> asc.v1.GrantOverrideRequest
+	50, // 74: asc.v1.Review.RevokeOverride:input_type -> asc.v1.RevokeOverrideRequest
+	52, // 75: asc.v1.Review.ListOverrides:input_type -> asc.v1.ListOverridesRequest
+	54, // 76: asc.v1.Review.HunkContext:input_type -> asc.v1.HunkContextRequest
+	57, // 77: asc.v1.Review.GetConflicts:input_type -> asc.v1.GetChangeConflictsRequest
+	61, // 78: asc.v1.Review.DraftContext:input_type -> asc.v1.DraftContextRequest
+	9,  // 79: asc.v1.Review.ListThreads:output_type -> asc.v1.ListThreadsResponse
+	11, // 80: asc.v1.Review.AddComment:output_type -> asc.v1.AddCommentResponse
+	13, // 81: asc.v1.Review.ResolveThread:output_type -> asc.v1.ResolveThreadResponse
+	16, // 82: asc.v1.Review.RequestReview:output_type -> asc.v1.RequestReviewResponse
+	25, // 83: asc.v1.Review.GetBrief:output_type -> asc.v1.GetBriefResponse
+	27, // 84: asc.v1.Review.SetBrief:output_type -> asc.v1.SetBriefResponse
+	29, // 85: asc.v1.Review.RecordApproval:output_type -> asc.v1.RecordApprovalResponse
+	32, // 86: asc.v1.Review.CompareVersions:output_type -> asc.v1.CompareVersionsResponse
+	34, // 87: asc.v1.Review.PrepareSuggestion:output_type -> asc.v1.PrepareSuggestionResponse
+	36, // 88: asc.v1.Review.MarkSuggestionApplied:output_type -> asc.v1.MarkSuggestionAppliedResponse
+	39, // 89: asc.v1.Review.SuggestReviewers:output_type -> asc.v1.SuggestReviewersResponse
+	42, // 90: asc.v1.Review.RecordGateDecision:output_type -> asc.v1.RecordGateDecisionResponse
+	46, // 91: asc.v1.Review.GetGateStats:output_type -> asc.v1.GetGateStatsResponse
+	49, // 92: asc.v1.Review.GrantOverride:output_type -> asc.v1.GrantOverrideResponse
+	51, // 93: asc.v1.Review.RevokeOverride:output_type -> asc.v1.RevokeOverrideResponse
+	53, // 94: asc.v1.Review.ListOverrides:output_type -> asc.v1.ListOverridesResponse
+	63, // 95: asc.v1.Review.HunkContext:output_type -> asc.v1.HunkContextResponse
+	60, // 96: asc.v1.Review.GetConflicts:output_type -> asc.v1.GetChangeConflictsResponse
+	62, // 97: asc.v1.Review.DraftContext:output_type -> asc.v1.DraftContextResponse
+	79, // [79:98] is the sub-list for method output_type
+	60, // [60:79] is the sub-list for method input_type
+	60, // [60:60] is the sub-list for extension type_name
+	60, // [60:60] is the sub-list for extension extendee
+	0,  // [0:60] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_review_proto_init() }
@@ -4244,8 +5086,8 @@ func file_asc_v1_review_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_review_proto_rawDesc), len(file_asc_v1_review_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   49,
+			NumEnums:      5,
+			NumMessages:   59,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

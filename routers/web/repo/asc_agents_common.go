@@ -261,18 +261,17 @@ func ascAgentsParseID(s string) (uint64, bool) {
 // repository see them; everyone else who may read the code sees the run's metadata (state, agent, counts, meters) and a
 // neutral label.
 //
-// The creator is bound to the immutable user id (ascagentui.RunOwnerID), never to a user name: a renamed person keeps their
-// runs, and a new person who takes the old name does not get them. It fails closed: no signed-in person, a creator the hub
-// cannot resolve, or a record it cannot read, sees nothing.
-func ascAgentsMaySeeRun(ctx *context.Context, runID uint64, createdBy string) bool {
+// The creator is the hub's immutable user id that asc keeps on the run (AgentRun.created_by_id), never a user name: a renamed
+// person keeps their runs, and a new person who takes the old name does not get them. It fails closed: no signed-in person,
+// or a run without an id (one a token started), is seen by administrators only.
+func ascAgentsMaySeeRun(ctx *context.Context, createdByID uint64) bool {
 	if ctx.Doer == nil || !ctx.IsSigned || ctx.Repo.Repository == nil {
 		return false
 	}
-	owner := ascagentui.RunOwnerID(ctx, ctx.Repo.Repository.ID, runID, createdBy) // also records a run seen for the first time
 	if ctx.Repo.IsAdmin() {
 		return true
 	}
-	return owner != 0 && owner == ctx.Doer.ID
+	return createdByID != 0 && ctx.Doer.ID > 0 && createdByID == uint64(ctx.Doer.ID)
 }
 
 func ascAgentsNoStore(ctx *context.Context) {

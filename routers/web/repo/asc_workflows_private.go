@@ -27,7 +27,7 @@ func ascWorkflowHidePrivate(ctx *context.Context, callCtx gocontext.Context, env
 			checked++
 			if got, err := api.GetRun(callCtx, &ascv1.GetAgentRunRequest{Repo: env.ref(), Id: s.AgentRunID}); err == nil {
 				if run := got.GetRun(); run != nil && run.GetRepo() == env.name && run.GetId() == s.AgentRunID {
-					see = ascAgentsMaySeeRun(ctx, run.GetId(), run.GetCreatedBy())
+					see = ascAgentsMaySeeRun(ctx, run.GetCreatedById())
 				}
 			}
 		}

@@ -11,7 +11,6 @@ import (
 	"forgejo.org/models/db"
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
-	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/context"
 
 	"github.com/stretchr/testify/assert"
@@ -33,6 +32,7 @@ const (
 func visibilityRun(by string) *ascv1.AgentRun {
 	r := sampleRun(7, ascv1.AgentRunState_AGENT_RUN_STATE_FAILED)
 	r.CreatedBy = by
+	r.CreatedById = map[string]uint64{"user2": 2, "user4": 4}[by]
 	r.Task = secretTask
 	r.FailureCode = "BUDGET_EXCEEDED"
 	r.FailureMessage = secretFailure
@@ -168,18 +168,17 @@ func TestAscAgentsPrivateTextAfterADecision(t *testing.T) {
 	assertNoSecrets(t, p.body)
 }
 
-// The creator of a run is bound to the immutable user id. A person who is renamed keeps their runs; a new person who takes
-// the old name does not get them.
-func TestAscAgentsRunOwnerIsBoundToTheUserIDNotTheName(t *testing.T) {
-	visibilityHub(t, "user4") // the run was started by user4, who only reads repo1
+// The creator of a run is the hub's immutable user id that asc keeps on the run. A person who is renamed keeps their runs; a
+// new person who takes the old name does not get them.
+func TestAscAgentsRunOwnerIsTheUserIDNotTheName(t *testing.T) {
+	visibilityHub(t, "user4") // started by user 4, who only reads repo1; asc says created_by = "user4", created_by_id = 4
 	list := func(user int64) string {
 		return runAgents(t, agentsReq{path: testRunsPath, user: user, features: true}, AscAgents).body
 	}
-	// user4 looks at the list first: the hub records user 4 as the owner of run 7.
 	assert.Contains(t, list(4), "rotate the key")
 	assert.NotContains(t, list(5), "rotate the key", "another reader never sees it")
 
-	// user4 is renamed, and user5 takes the old name.
+	// user 4 is renamed, and user 5 takes the old name. asc still says created_by = "user4", created_by_id = 4.
 	_, err := db.GetEngine(t.Context()).Exec("UPDATE `user` SET name = ?, lower_name = ? WHERE id = ?", "user4_renamed", "user4_renamed", 4)
 	require.NoError(t, err)
 	_, err = db.GetEngine(t.Context()).Exec("UPDATE `user` SET name = ?, lower_name = ? WHERE id = ?", "user4", "user4", 5)
@@ -195,17 +194,14 @@ func TestAscAgentsRunOwnerIsBoundToTheUserIDNotTheName(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, p.status)
 }
 
-// A run started through the hub is recorded for the person who started it, before any name can change.
-func TestAscAgentsRecordsTheOwnerOfARunItStarts(t *testing.T) {
-	require.NoError(t, unittest.PrepareTestDatabase())
-	setStorageBackend(t, 1, "asc")
-	hub := startFakeHub(t)
-	hub.ok("Agents.CreateRun", &ascv1.CreateAgentRunResponse{Run: sampleRun(31, ascv1.AgentRunState_AGENT_RUN_STATE_QUEUED)})
-	p := runAgents(t, agentsReq{method: "POST", path: testRunsPath + "/new", user: agentsOwner, features: true,
-		form: url.Values{"task": {"Add retries"}, "agent": {"coder"}, "target": {"master"}}}, AscAgentsCreate)
-	require.Equal(t, http.StatusSeeOther, p.status, p.body)
-	assert.EqualValues(t, 2, ascagentui.RunOwnerID(t.Context(), 1, 31, "someone-else"), "the record wins over the name asc gives")
-	assert.Zero(t, ascagentui.RunOwnerID(t.Context(), 1, 999, "no-such-person"), "a name that belongs to nobody gives no owner")
+// A run without an id (a token started it) is seen by administrators only, whatever name it carries.
+func TestAscAgentsRunWithoutAnIDIsForAdministratorsOnly(t *testing.T) {
+	hub := visibilityHub(t, "user4")
+	run := visibilityRun("user4")
+	run.CreatedById = 0
+	hub.ok("Agents.ListRuns", &ascv1.ListAgentRunsResponse{Runs: []*ascv1.AgentRun{run}})
+	assert.NotContains(t, runAgents(t, agentsReq{path: testRunsPath, user: agentsReader, features: true}, AscAgents).body, "rotate the key")
+	assert.Contains(t, runAgents(t, agentsReq{path: testRunsPath, user: agentsOwner, features: true}, AscAgents).body, "rotate the key")
 }
 
 func TestAscWorkflowStepOfAnAgentRunIsPrivateToItsCreatorAndAdmins(t *testing.T) {
@@ -218,6 +214,7 @@ func TestAscWorkflowStepOfAnAgentRunIsPrivateToItsCreatorAndAdmins(t *testing.T)
 	hub.ok("Workflows.GetRun", &ascv1.GetWorkflowRunResponse{Run: run})
 	agent := sampleRun(7, ascv1.AgentRunState_AGENT_RUN_STATE_FAILED)
 	agent.CreatedBy = "user2"
+	agent.CreatedById = 2
 	hub.ok("Agents.GetRun", &ascv1.GetAgentRunResponse{Run: agent})
 	hub.watch = func(*ascv1.WatchAgentRunRequest) ([]*ascv1.AgentRunEvent, bool) {
 		return []*ascv1.AgentRunEvent{{RunId: 7, Seq: 1, Kind: ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_MESSAGE, Text: secretTask}}, false
