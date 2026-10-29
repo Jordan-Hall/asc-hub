@@ -6,7 +6,6 @@ package repo
 import (
 	gocontext "context"
 	"net/http"
-	"strings"
 	"time"
 
 	"forgejo.org/models/unit"
@@ -258,17 +257,21 @@ func ascAgentsParseID(s string) (uint64, bool) {
 }
 
 // ascAgentsMaySeeRun is the rule for what a person typed or an agent wrote on a run: the task text, the plan, the
-// requests, the checkpoints, the log and the failure text. The creator of the run and an administrator of the repository
-// see them; everyone else who may read the code sees the run's metadata (state, agent, counts, meters) and a neutral
-// label. It fails closed: an unknown creator, or no signed-in person, sees nothing.
-func ascAgentsMaySeeRun(ctx *context.Context, createdBy string) bool {
-	if ctx.Doer == nil || !ctx.IsSigned {
+// requests, the checkpoints, the log and the failure text. The person who started the run and an administrator of the
+// repository see them; everyone else who may read the code sees the run's metadata (state, agent, counts, meters) and a
+// neutral label.
+//
+// The creator is the hub's immutable user id that asc keeps on the run (AgentRun.created_by_id), never a user name: a renamed
+// person keeps their runs, and a new person who takes the old name does not get them. It fails closed: no signed-in person,
+// or a run without an id (one a token started), is seen by administrators only.
+func ascAgentsMaySeeRun(ctx *context.Context, createdByID uint64) bool {
+	if ctx.Doer == nil || !ctx.IsSigned || ctx.Repo.Repository == nil {
 		return false
 	}
 	if ctx.Repo.IsAdmin() {
 		return true
 	}
-	return createdBy != "" && strings.EqualFold(createdBy, ctx.Doer.Name)
+	return createdByID != 0 && ctx.Doer.ID > 0 && createdByID == uint64(ctx.Doer.ID)
 }
 
 func ascAgentsNoStore(ctx *context.Context) {
