@@ -107,6 +107,10 @@ func ascLandTarget(ctx *context.Context) (*issues_model.Issue, *issues_model.Pul
 		ctx.ServerError("LoadIssue", err)
 		return nil, nil, false
 	}
+	if err := target.Issue.LoadRepo(ctx); err != nil {
+		ctx.ServerError("LoadRepo", err)
+		return nil, nil, false
+	}
 	target.Issue.PullRequest = target
 	return target.Issue, target, true
 }
