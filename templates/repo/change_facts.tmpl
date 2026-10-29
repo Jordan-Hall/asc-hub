@@ -19,29 +19,5 @@
 		{{if .Next}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Next.Link}}" rel="next">{{ctx.Locale.Tr "repo.diff.commit.next-short"}}{{svg "dsi-chevron-right" 16}}</a>{{else}}<span class="ds-btn ds-btn-secondary ds-btn-sm" aria-disabled="true">{{ctx.Locale.Tr "repo.diff.commit.next-short"}}{{svg "dsi-chevron-right" 16}}</span>{{end}}
 	</nav>
 	{{end}}
-	{{if or .ChangeReview .ChangeWhere}}
-	<div class="rp-facts-grid">
-		{{with .ChangeReview}}
-		<section class="ds-card rp-fact-card" aria-labelledby="rp-rv-h">
-			<h2 class="rp-rail-title" id="rp-rv-h">{{ctx.Locale.Tr "asc_rp.review_block"}}</h2>
-			<p class="rp-fact-big ds-num">{{if .Required}}{{ctx.Locale.Tr "asc_rp.approvals_of" (len .Approvals) .Required}}{{else}}{{ctx.Locale.TrN (len .Approvals) "asc_rp.approvals_one" "asc_rp.approvals_other" (len .Approvals)}}{{end}}</p>
-			{{if .Approvals}}
-			<ul class="rp-rail-list">
-				{{range .Approvals}}<li><a href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>{{if .User.IsBot}} <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}<span class="ds-c-2">{{DateUtils.TimeSince .When}}</span></li>{{end}}
-			</ul>
-			{{end}}
-		</section>
-		{{end}}
-		{{with .ChangeWhere}}
-		<section class="ds-card rp-fact-card" aria-labelledby="rp-wh-h">
-			<h2 class="rp-rail-title" id="rp-wh-h">{{ctx.Locale.Tr "asc_rp.where_now"}}</h2>
-			<ul class="rp-rail-list">
-				<li>{{if .OnDefault}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.on_branch" .Branch}}</span>{{else}}<span class="ds-chip">{{ctx.Locale.Tr "asc_rp.not_on_branch" .Branch}}</span>{{end}}</li>
-				{{range .Tags}}<li><a href="{{$.RepoLink}}/releases/tag/{{. | PathEscapeSegments}}" class="ds-mono">{{ctx.Locale.Tr "asc_rp.in_release" .}}</a></li>{{end}}
-			</ul>
-		</section>
-		{{end}}
-	</div>
-	{{end}}
 </div>
 {{end}}

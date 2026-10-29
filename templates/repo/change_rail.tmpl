@@ -1,0 +1,47 @@
+{{/* The right rail of the change page (board Changeset): review, checks, where it is now, undo. Dot: page data. */}}
+{{if and .ChangeFacts (not .PageIsWiki)}}
+<aside class="rp-commit-rail" aria-label="{{ctx.Locale.Tr "asc_rp.change_rail"}}" data-testid="change-rail">
+	{{with .ChangeReview}}
+	<section class="ds-card rp-fact-card" aria-labelledby="rp-rv-h">
+		<h2 class="rp-rail-title" id="rp-rv-h">{{ctx.Locale.Tr "asc_rp.review_block"}}</h2>
+		<p class="rp-fact-big ds-num">{{if .Required}}{{ctx.Locale.Tr "asc_rp.approvals_of" (len .Approvals) .Required}}{{else}}{{ctx.Locale.TrN (len .Approvals) "asc_rp.approvals_one" "asc_rp.approvals_other" (len .Approvals)}}{{end}}</p>
+		{{if .Approvals}}
+		<ul class="rp-rail-list">
+			{{range .Approvals}}<li><a href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>{{if .User.IsBot}} <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}<span class="ds-c-2">{{DateUtils.TimeSince .When}}</span></li>{{end}}
+		</ul>
+		{{end}}
+	</section>
+	{{end}}
+	{{if .ChangeChecks}}
+	<section class="ds-card rp-fact-card" aria-labelledby="rp-ck-h">
+		<h2 class="rp-rail-title" id="rp-ck-h">{{ctx.Locale.Tr "asc_rp.fact_checks"}}{{if .ChangeFacts.ChecksTotal}} <span class="ds-chip ds-chip-{{if eq .ChangeFacts.ChecksPass .ChangeFacts.ChecksTotal}}ok{{else}}warn{{end}}">{{ctx.Locale.Tr "asc_rp.checks_n_of_n" .ChangeFacts.ChecksPass .ChangeFacts.ChecksTotal}}</span>{{end}}</h2>
+		<ul class="rp-rail-list rp-checks">
+			{{range .ChangeChecks}}
+			<li><span class="ds-dot ds-dot-{{.Tone}}" aria-hidden="true"></span>{{if .Target}}<a href="{{.Target}}" rel="noopener noreferrer">{{.Name}}</a>{{else}}<span>{{.Name}}</span>{{end}}<span class="ds-c-2">{{ctx.Locale.Tr (print "asc_rp.check_" .State)}}{{if .Note}}: {{.Note}}{{end}}</span></li>
+			{{end}}
+		</ul>
+	</section>
+	{{end}}
+	{{with .ChangeWhere}}
+	<section class="ds-card rp-fact-card" aria-labelledby="rp-wh-h">
+		<h2 class="rp-rail-title" id="rp-wh-h">{{ctx.Locale.Tr "asc_rp.where_now"}}</h2>
+		<ul class="rp-rail-list">
+			<li>{{if .OnDefault}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.on_branch" .Branch}}</span>{{else}}<span class="ds-chip">{{ctx.Locale.Tr "asc_rp.not_on_branch" .Branch}}</span>{{end}}</li>
+			{{range .Tags}}<li><a href="{{$.RepoLink}}/releases/tag/{{. | PathEscapeSegments}}" class="ds-mono">{{ctx.Locale.Tr "asc_rp.in_release" .}}</a></li>{{end}}
+			{{with $.ChangeStack}}<li><a href="{{.PullLink}}">{{ctx.Locale.Tr "asc_rp.stack_pos" .Position .Name}}</a></li>{{end}}
+		</ul>
+	</section>
+	{{end}}
+	{{if .ChangeRevertLink}}
+	<section class="ds-card rp-fact-card" aria-labelledby="rp-undo-h">
+		<h2 class="rp-rail-title" id="rp-undo-h">{{ctx.Locale.Tr "asc_rp.undo_title"}}</h2>
+		<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.undo_body"}}</p>
+		<form method="post" action="{{.ChangeRevertLink}}">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="scope" value="this">
+			<button type="submit" class="ds-btn ds-btn-secondary rp-undo-btn">{{ctx.Locale.Tr "asc_rp.undo_button"}}</button>
+		</form>
+	</section>
+	{{end}}
+</aside>
+{{end}}

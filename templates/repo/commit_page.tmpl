@@ -8,9 +8,14 @@
 			<span aria-hidden="true">/</span>
 			<span class="ds-mono" aria-current="page">{{ShortSha .CommitID}}</span>
 		</nav>
-		{{template "repo/commit_header" .}}
-		{{template "repo/change_facts" .}}
-		{{template "repo/diff/box" .}}
+		<div class="rp-commit-grid">
+			<div class="rp-commit-main">
+				{{template "repo/commit_header" .}}
+				{{template "repo/change_facts" .}}
+				{{template "repo/diff/box" .}}
+			</div>
+			{{template "repo/change_rail" .}}
+		</div>
 	</div>
 </div>
 {{template "base/footer" .}}

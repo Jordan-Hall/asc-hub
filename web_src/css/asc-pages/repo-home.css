@@ -1659,3 +1659,45 @@
   font-family: var(--font-mono);
   font-size: 13px;
 }
+
+/* Stacks list: search field, avatar column and underlined area tabs (board Stacks). */
+.rp-stack-search {
+  margin-bottom: 12px;
+}
+
+.rp-stack-search .ds-input {
+  width: 100%;
+}
+
+.rp-band-act {
+  align-self: flex-end;
+}
+
+.rp-stack .rp-stack-av {
+  flex: none;
+}
+
+.rv-seg.rv-area-nav {
+  margin: 0 0 16px;
+  padding: 0;
+  gap: 2px;
+  border-bottom: 1px solid var(--line);
+}
+
+.rv-seg.rv-area-nav a {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  margin-bottom: -1px;
+  padding: 0 14px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.rv-seg.rv-area-nav a[aria-current="page"] {
+  border-bottom-color: var(--fill);
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+}
