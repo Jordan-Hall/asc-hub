@@ -37,7 +37,7 @@
 							<a id="new-pull-request" class="ds-btn ds-btn-secondary ds-btn-icon" href="{{$compareLink}}" aria-label="{{if .PullRequestCtx.Allowed}}{{ctx.Locale.Tr "repo.pulls.compare_changes"}}{{else}}{{ctx.Locale.Tr "action.compare_branch"}}{{end}}" title="{{if .PullRequestCtx.Allowed}}{{ctx.Locale.Tr "repo.pulls.compare_changes"}}{{else}}{{ctx.Locale.Tr "action.compare_branch"}}{{end}}">{{svg "octicon-git-pull-request" 16}}</a>
 						{{end}}
 						{{if $isHomepage}}
-							<p class="rp-meta">{{ctx.Locale.TrPluralString (.Repository.NumOpenPulls ctx) "repo.asc_home.open_pulls" (ctx.Locale.PrettyNumber (.Repository.NumOpenPulls ctx))}}{{if .BranchesCount}}<span class="rp-sep-dot"></span>{{ctx.Locale.TrPluralString .BranchesCount "counters.n_branches" (ctx.Locale.PrettyNumber .BranchesCount)}}{{end}}{{if .LatestCommit}}<span class="rp-sep-dot"></span><span class="rp-hash">{{ShortSha .LatestCommit.ID.String}}</span> {{ctx.Locale.Tr "asc_rp.landed"}} {{DateUtils.TimeSince .LatestCommit.Committer.When}}{{end}}</p>
+							<p class="rp-meta">{{if eq .Repository.GetStorageBackend "asc"}}{{ctx.Locale.TrN (.Repository.NumOpenAscStacks ctx) "asc_rp.open_stacks_one" "asc_rp.open_stacks_other" (ctx.Locale.PrettyNumber (.Repository.NumOpenAscStacks ctx))}}{{else}}{{ctx.Locale.TrPluralString (.Repository.NumOpenPulls ctx) "repo.asc_home.open_pulls" (ctx.Locale.PrettyNumber (.Repository.NumOpenPulls ctx))}}{{end}}{{if .BranchesCount}}<span class="rp-sep-dot"></span>{{ctx.Locale.TrPluralString .BranchesCount "counters.n_branches" (ctx.Locale.PrettyNumber .BranchesCount)}}{{end}}{{if .LatestCommit}}<span class="rp-sep-dot"></span><span class="rp-hash">{{ShortSha .LatestCommit.ID.String}}</span> {{ctx.Locale.Tr "asc_rp.landed"}} {{DateUtils.TimeSince .LatestCommit.Committer.When}}{{end}}</p>
 						{{end}}
 						{{template "repo/filepath" .}}
 					</div>
@@ -106,7 +106,19 @@
 					{{template "repo/home_cards" .}}
 				{{end}}
 				{{if and .ReadmeExist (or .IsMarkup .IsPlainText)}}
-					{{template "repo/view_file" .}}
+					{{if .HomeDocTabs}}
+					<div class="rp-doctabs" role="tablist" aria-label="{{ctx.Locale.Tr "asc_rp.doc_tabs"}}" data-doc-tabs>
+						<button type="button" role="tab" id="rp-doctab-readme" aria-controls="rp-docpanel-readme" aria-selected="true" data-doc-tab="readme">README</button>
+						{{range .HomeDocTabs}}<button type="button" role="tab" id="rp-doctab-{{.ID}}" aria-controls="rp-docpanel-{{.ID}}" aria-selected="false" tabindex="-1" data-doc-tab="{{.ID}}">{{.Label}}</button>{{end}}
+					</div>
+					{{end}}
+					<div id="rp-docpanel-readme"{{if .HomeDocTabs}} role="tabpanel" aria-labelledby="rp-doctab-readme"{{end}} data-doc-panel="readme">{{template "repo/view_file" .}}</div>
+					{{range .HomeDocTabs}}
+					<section id="rp-docpanel-{{.ID}}" role="tabpanel" aria-labelledby="rp-doctab-{{.ID}}" class="rp-sec rp-filecard" data-doc-panel="{{.ID}}" hidden>
+						<div class="rp-sec-h rp-filehead"><div class="rp-filehead-l">{{svg "dsi-book" 18}}<b><a class="rp-filename" href="{{$.RepoLink}}/src/{{$.BranchNameSubURL}}/{{PathEscape .File}}">{{.File}}</a></b></div></div>
+						<div class="file-view{{if eq .ID "agents"}} markup{{else}} plain-text{{end}}">{{.Content}}</div>
+					</section>
+					{{end}}
 				{{end}}
 			</div>
 			{{if $hasAside}}

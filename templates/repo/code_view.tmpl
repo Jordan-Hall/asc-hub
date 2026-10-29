@@ -116,6 +116,16 @@
 				</ul>
 			</section>
 			{{end}}
+			{{if .AscFileChanges}}
+			<section class="rp-card" aria-labelledby="rp-filechanges-h" data-testid="code-open-changes">
+				<h2 class="rp-rail-title" id="rp-filechanges-h">{{ctx.Locale.Tr "asc_rp.open_changes_file"}}</h2>
+				<ul class="rp-outline-list">
+					{{range .AscFileChanges}}
+					<li><a href="{{.Link}}">{{.Title}}</a><span class="ds-chip ds-chip-outline ds-mono">{{.Stack}}</span></li>
+					{{end}}
+				</ul>
+			</section>
+			{{end}}
 			<section class="rp-card">
 				<h2 class="rp-rail-title">{{ctx.Locale.Tr "asc_rp.about_file"}}</h2>
 				{{template "repo/file_info" .}}
