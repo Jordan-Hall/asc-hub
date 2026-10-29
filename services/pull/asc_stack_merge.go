@@ -83,6 +83,12 @@ type AscLandRequest struct {
 	// NoContentMerge sets UpdateRefsRequest.no_content_merge: a land that would need a content merge is refused
 	// with ErrAscLandNeedsContentMerge instead of merging.
 	NoContentMerge bool
+	// Doer is the person who lands and PullRequestID the pull request at the top of the prefix. The hub tells
+	// itself whose write this is before it calls asc (ascsync.RememberWriter), as the web editor and the branch
+	// operations do: asc runs the hub's pre-receive hook for the land under the service credential and names
+	// nobody, and the hook takes the person back from that record and checks the land as them.
+	Doer          *user_model.User
+	PullRequestID int64
 }
 
 // AscLandResult says what asc landed. Landed[i] is the git id the change of Heads[i] has on the target.
@@ -325,7 +331,7 @@ func MergeAscStackWith(ctx context.Context, doer *user_model.User, perm access_m
 	for i, it := range items {
 		heads[i] = it.Head
 	}
-	landed, err := backend.Land(ctx, AscLandRequest{Repo: name, Target: git.BranchPrefix + items[0].PR.BaseBranch, Heads: heads, NoContentMerge: opt.NoContentMerge})
+	landed, err := backend.Land(ctx, AscLandRequest{Repo: name, Target: git.BranchPrefix + items[0].PR.BaseBranch, Heads: heads, NoContentMerge: opt.NoContentMerge, Doer: doer, PullRequestID: items[len(items)-1].PR.ID})
 	if err != nil {
 		return nil, err
 	}
@@ -616,6 +622,15 @@ func (b *ascClientBackend) Land(ctx context.Context, req AscLandRequest) (*AscLa
 			return nil, fmt.Errorf("%w: the heads of the stack are not a chain", ErrAscStackNotMergable)
 		}
 	}
+	// Tell the hub whose land this is before asc calls the hub's hooks for it. The land moves the target to the
+	// top of the prefix; when the target has moved since the heads were made asc rewrites them, so the commit is
+	// the one the chain ends with when nothing moved.
+	var note ascsync.PushToken
+	if owner, name, ok := strings.Cut(req.Repo, "/"); ok && req.Doer != nil && len(req.Heads) > 0 {
+		if repo, rerr := repo_model.GetRepositoryByOwnerAndName(ctx, owner, name); rerr == nil {
+			note = ascsync.RememberWriter(repo, req.Doer.ID, req.PullRequestID, []ascsync.PushRef{{Name: req.Target, New: req.Heads[len(req.Heads)-1]}})
+		}
+	}
 	resp, err := b.repo.UpdateRefs(ctx, &ascv1.UpdateRefsRequest{
 		Repo: ref, Mode: ascv1.UpdateMode_UPDATE_MODE_LAND,
 		Updates: []*ascv1.RefUpdate{{
@@ -625,6 +640,7 @@ func (b *ascClientBackend) Land(ctx context.Context, req AscLandRequest) (*AscLa
 		NoContentMerge: req.NoContentMerge,
 	})
 	if err != nil {
+		note.Forget() // nothing landed: the record must not be claimed by a later call
 		if ascclient.ErrorCode(err) == ascCodeNeedsContentMerge {
 			return nil, ErrAscLandNeedsContentMerge
 		}
