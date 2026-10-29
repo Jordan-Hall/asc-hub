@@ -138,14 +138,14 @@ func newAscMigrationFixture(t *testing.T) *ascMigrationFixture {
 	fake := &fakeAscImport{}
 	srv := grpc.NewServer()
 	ascv1.RegisterRepoServer(srv, fake)
+	secret := &fakeSecretScan{noted: map[uint64]string{}, findOne: true}
+	ascv1.RegisterSecretScanServer(srv, secret) // before Serve: a service registered after it starts is a fatal error
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()
 	conn, err := grpc.NewClient(l.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	api := ascv1.NewRepoClient(conn)
-	secret := &fakeSecretScan{noted: map[uint64]string{}, findOne: true}
-	ascv1.RegisterSecretScanServer(srv, secret)
 	restoreSync, restoreSecret := ascsync.UseClient(api), ascsync.UseSecretClient(ascv1.NewSecretScanClient(conn))
 	t.Cleanup(func() {
 		restoreSync()
@@ -258,4 +258,60 @@ func TestImportMigratedIntoAscFailsWhenTheHubNeverReadsTheBranch(t *testing.T) {
 	err := importMigratedIntoAsc(t.Context(), fx.repo, "main")
 	require.ErrorIs(t, err, assert.AnError)
 	assert.Contains(t, err.Error(), `asc does not hold the imported branch "main"`)
+}
+
+// However a migration into asc ends, the repository must not keep the placeholder as the branch asc protects: its
+// real default branch (or the instance's) becomes the trunk, so a secret pushed afterwards is judged by asc's gate.
+func TestAscMigrationNeverLeavesThePlaceholderTrunk(t *testing.T) {
+	oldDefault := setting.Repository.DefaultBranch
+	setting.Repository.DefaultBranch = "main"
+	t.Cleanup(func() { setting.Repository.DefaultBranch = oldDefault })
+
+	t.Run("empty source", func(t *testing.T) {
+		fx := newAscMigrationFixture(t)
+		fx.repo.DefaultBranch = ascImportTrunk
+		require.NoError(t, settleEmptyAscMigration(t.Context(), fx.repo))
+		assert.Equal(t, "main", fx.repo.DefaultBranch, "the placeholder is not a default branch")
+		assert.Equal(t, []string{"main"}, fx.fake.trunks)
+
+		fx = newAscMigrationFixture(t)
+		fx.repo.DefaultBranch = "trunk"
+		require.NoError(t, settleEmptyAscMigration(t.Context(), fx.repo))
+		assert.Equal(t, []string{"trunk"}, fx.fake.trunks, "the branch the source names")
+	})
+
+	t.Run("a refused import", func(t *testing.T) {
+		fx := newAscMigrationFixture(t)
+		fx.fake.refuse = status.Error(codes.InvalidArgument, "path policy: .env is not allowed")
+		fx.repo.DefaultBranch = "trunk"
+		ctx, tracker := withTrunkTracker(t.Context())
+		require.Error(t, importMigratedIntoAsc(ctx, fx.repo, "main"))
+		assert.False(t, tracker.set)
+		settleAscTrunk(ctx, fx.repo, tracker)
+		assert.Equal(t, []string{"trunk"}, fx.fake.trunks)
+		assert.True(t, tracker.set)
+	})
+
+	t.Run("a cancelled migration", func(t *testing.T) {
+		fx := newAscMigrationFixture(t)
+		fx.repo.DefaultBranch = ascImportTrunk
+		ctx, cancel := context.WithCancel(t.Context())
+		ctx, tracker := withTrunkTracker(ctx)
+		cancel()
+		settleAscTrunk(ctx, fx.repo, tracker)
+		assert.Equal(t, []string{"main"}, fx.fake.trunks, "the repair does not stop with the migration")
+	})
+
+	t.Run("a finished migration is left alone", func(t *testing.T) {
+		fx := newAscMigrationFixture(t)
+		stubHolds := stubAscHolds(func(context.Context, *repo_model.Repository, string, string) error { return nil })
+		defer stubHolds()
+		ctx, tracker := withTrunkTracker(t.Context())
+		require.NoError(t, importMigratedIntoAsc(ctx, fx.repo, "main"))
+		assert.True(t, tracker.set)
+		before := len(fx.fake.trunks)
+		settleAscTrunk(ctx, fx.repo, tracker)
+		assert.Len(t, fx.fake.trunks, before, "the real trunk was set once")
+		assert.Equal(t, []string{"main"}, fx.fake.trunks)
+	})
 }

@@ -10,13 +10,17 @@ import (
 	"strings"
 	"time"
 
+	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/modules/repostore"
+	"forgejo.org/modules/setting"
 	"forgejo.org/services/ascsync"
+
+	"xorm.io/builder"
 )
 
 // How long a migration waits for the hub's own view of an asc repository to hold the imported default branch, and
@@ -61,7 +65,57 @@ func setAscTrunk(ctx context.Context, repo *repo_model.Repository, branch string
 	if err := ascsync.SetDefaultBranch(ctx, repo, branch); err != nil {
 		return fmt.Errorf("asc does not take %q as the default branch: %w", branch, err)
 	}
+	if t, ok := ctx.Value(trunkTrackerKey{}).(*trunkTracker); ok {
+		t.set = true
+	}
 	return nil
+}
+
+// trunkTracker records that a migration made the real default branch the trunk of its asc repository.
+type trunkTracker struct{ set bool }
+
+type trunkTrackerKey struct{}
+
+// withTrunkTracker returns a context whose setAscTrunk calls are recorded in the returned tracker.
+func withTrunkTracker(ctx context.Context) (context.Context, *trunkTracker) {
+	t := &trunkTracker{}
+	return context.WithValue(ctx, trunkTrackerKey{}, t), t
+}
+
+// settleEmptyAscMigration gives a migrated repository stored in asc that has no history its real default branch (the
+// one the source names, or the instance's) and makes it the trunk, before anything else can happen to it.
+func settleEmptyAscMigration(ctx context.Context, repo *repo_model.Repository) error {
+	stored, err := isAscStored(repo)
+	if err != nil || !stored {
+		return err
+	}
+	if repo.DefaultBranch == "" || repo.DefaultBranch == ascImportTrunk {
+		repo.DefaultBranch = setting.Repository.DefaultBranch
+	}
+	return setAscTrunk(ctx, repo, repo.DefaultBranch)
+}
+
+// settleAscTrunk makes sure that a repository made for a migration does not keep the placeholder trunk, whatever
+// way the migration ends: it is run when the migration ends (success, an empty source, a failure, a cancel), and
+// does nothing once the migration has made the real trunk. The placeholder is an ordinary branch name to asc, so a
+// repository that keeps it has no gate on the branch people push to. The default branch of the repository is the
+// trunk; when it is unknown or still the placeholder, the instance's default branch is.
+func settleAscTrunk(ctx context.Context, repo *repo_model.Repository, t *trunkTracker) {
+	stored, err := isAscStored(repo)
+	if err != nil || !stored || t == nil || t.set {
+		return
+	}
+	branch := repo.DefaultBranch
+	if branch == "" || branch == ascImportTrunk {
+		branch = setting.Repository.DefaultBranch
+		repo.DefaultBranch = branch
+	}
+	// The migration may have ended by a cancel: this call must not.
+	if err := ascsync.SetDefaultBranch(context.WithoutCancel(ctx), repo, branch); err != nil {
+		log.Error("migration of %-v: asc keeps the placeholder %q as the default branch (the repository has no gate on %q until it is repaired: forgejo doctor check --run asc-default-branch --fix): %v", repo, ascImportTrunk, branch, err)
+		return
+	}
+	t.set = true
 }
 
 // pruneNonBranchRefs deletes every ref of the bridge that is not a branch or a tag. A mirror clone of a forge
@@ -268,4 +322,37 @@ func readBranchThroughBackend(ctx context.Context, repo *repo_model.Repository, 
 		return errors.New("the commit does not load")
 	}
 	return nil
+}
+
+// RepairAscTrunks is run when the server starts. A repository whose asc trunk is the migration placeholder, or is not
+// its default branch, has no gate on the branch people push to; the ones that are in use (ready, with content) are
+// told their default branch. An asc that does not report its trunk gives nothing to compare, and nothing is changed:
+// forgejo doctor check --run asc-default-branch --fix does it for every repository then.
+func RepairAscTrunks(ctx context.Context) {
+	fixed := 0
+	err := db.Iterate(ctx, builder.Gt{"id": 0}, func(ctx context.Context, repo *repo_model.Repository) error {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		if stored, err := isAscStored(repo); err != nil || !stored || repo.IsEmpty || repo.DefaultBranch == "" || repo.Status != repo_model.RepositoryReady {
+			return nil
+		}
+		trunk, err := ascsync.TrunkOf(ctx, repo)
+		if err != nil || trunk == "" || trunk == repo.DefaultBranch {
+			return nil
+		}
+		if err := ascsync.SetDefaultBranch(ctx, repo, repo.DefaultBranch); err != nil {
+			log.Error("asc protects %q in %-v, whose default branch is %q, and did not take it: %v", trunk, repo, repo.DefaultBranch, err)
+			return nil
+		}
+		log.Warn("asc protected %q in %-v: it is %q now", trunk, repo, repo.DefaultBranch)
+		fixed++
+		return nil
+	})
+	if err != nil {
+		log.Error("checking the default branches asc protects: %v", err)
+	}
+	if fixed > 0 {
+		log.Info("%d asc repositories were told their default branch", fixed)
+	}
 }

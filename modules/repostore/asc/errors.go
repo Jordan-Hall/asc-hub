@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/repostore"
@@ -122,7 +123,13 @@ func publishErr(op string, err error) error {
 	}
 	msg := sanitize(st.Message())
 	code := ""
-	if d := detailOf(st); d != nil {
+	stCode := st.Code()
+	shown := ""
+	if r, ok := ascclient.RefusalOf(err); ok {
+		// The typed refusal (native Any in the status details, or the text form of an older asc). The text of asc
+		// stays as it is for the codes this function knows; any other gate refusal is shown with its code and files.
+		code, stCode, msg, shown = r.Code, r.Status, sanitize(r.Message), sanitize(r.Text())
+	} else if d := detailOf(st); d != nil {
 		code = d.GetCode()
 	}
 	switch code {
@@ -130,6 +137,11 @@ func publishErr(op string, err error) error {
 		return &git.ErrPushOutOfDate{StdErr: msg, Err: err}
 	case "HOOK_REJECTED", "REF_NOT_SHARED", "QUOTA_EXCEEDED", "USER_REFS_LIMIT", "MIRROR_MODE", "PATH_POLICY":
 		return &git.ErrPushRejected{Message: msg, StdErr: "remote: " + msg, Err: err}
+	}
+	if code != "" && (stCode == codes.FailedPrecondition || stCode == codes.PermissionDenied) {
+		// Any other typed refusal of the gate (SECRET_DETECTED, a missing review, a signature, ...) is a rejected
+		// push too, with its reason.
+		return &git.ErrPushRejected{Message: shown, StdErr: "remote: " + shown, Err: err}
 	}
 	if st.Code() == codes.FailedPrecondition && strings.Contains(strings.ToLower(st.Message()), "fast-forward") {
 		return &git.ErrPushOutOfDate{StdErr: msg, Err: err}
