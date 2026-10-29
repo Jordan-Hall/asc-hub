@@ -35,7 +35,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -312,17 +311,11 @@ func callError(op string, err error) error {
 		return fmt.Errorf("ascsync: %s failed", op)
 	}
 	code, text := st.Code(), st.Message()
-	var detail *ascv1.ErrorDetail
-	for _, d := range st.Details() {
-		// Native form: the details are a google.rpc.Status holding the asc.v1.ErrorDetail as an Any.
-		if ed, ok := d.(*ascv1.ErrorDetail); ok {
-			detail = ed
-			break
-		}
-	}
-	if c, m, ok := unwrapStatusMismatch(code, text); ok {
-		// Older asc: the refusal arrives as Internal with the real status in the text.
-		code, text = c, m
+	var typed ascclient.Refusal
+	hasDetail := false
+	if r, ok := ascclient.RefusalOf(err); ok {
+		// The typed refusal of asc, read natively from the status details (or, for an older asc, out of the text).
+		code, text, typed, hasDetail = r.Status, r.Message, r, true
 	}
 	msg := clean(text, MaxRejectBytes)
 	if userFacing(code) {
@@ -330,37 +323,15 @@ func callError(op string, err error) error {
 			msg = "asc refused the request (" + code.String() + ")"
 		}
 		rej := &RejectError{Message: msg}
-		if detail != nil {
-			rej.Code, rej.Paths = clean(detail.GetCode(), 64), cleanAll(detail.GetPaths())
-			rej.Message = withDetail(msg, rej.Code, rej.Paths)
-		} else if c := codeInText(msg); c != "" {
-			rej.Code = c
+		if hasDetail {
+			typed.Message = msg
+			rej.Code, rej.Paths = clean(typed.Code, 64), cleanAll(typed.Paths)
+			typed.Code, typed.Paths = rej.Code, rej.Paths
+			rej.Message = clean(typed.Text(), MaxRejectBytes)
 		}
 		return rej
 	}
 	return fmt.Errorf("ascsync: %s: asc answered %s: %s", op, code, clean(text, MaxLogMessageBytes))
-}
-
-// statusMismatch matches the text a gRPC transport gives to a refusal whose status details do not agree with its
-// status ("grpc-status-details-bin mismatch: grpc-status=FailedPrecondition, grpc-message=\"SECRET_DETECTED: ...\"").
-var statusMismatch = regexp.MustCompile(`grpc-status=(\w+), grpc-message="((?:[^"\\]|\\.)*)"`)
-
-// unwrapStatusMismatch reads the status and message asc meant from an Internal answer that carries them as text.
-// Without it a refusal of a push (a secret in it) reaches the pusher as "try again later".
-func unwrapStatusMismatch(code codes.Code, text string) (codes.Code, string, bool) {
-	if code != codes.Internal || !strings.Contains(text, "grpc-status-details-bin mismatch") {
-		return code, text, false
-	}
-	m := statusMismatch.FindStringSubmatch(text)
-	if m == nil {
-		return code, text, false
-	}
-	for c := codes.Canceled; c <= codes.Unauthenticated; c++ {
-		if c.String() == m[1] {
-			return c, strings.NewReplacer(`\"`, `"`, `\\`, `\`).Replace(m[2]), true
-		}
-	}
-	return code, text, false
 }
 
 // cleanAll is clean for every path, at most a few of them.
@@ -373,38 +344,6 @@ func cleanAll(paths []string) []string {
 		out = append(out, clean(p, 256))
 	}
 	return out
-}
-
-// withDetail adds the typed code and the paths of a refusal to its text where the text lacks them, so the pusher
-// reads which rule refused which file.
-func withDetail(msg, code string, paths []string) string {
-	if code != "" && !strings.Contains(msg, code) {
-		msg = code + ": " + msg
-	}
-	var missing []string
-	for _, p := range paths {
-		if p != "" && !strings.Contains(msg, p) {
-			missing = append(missing, p)
-		}
-	}
-	if len(missing) > 0 {
-		msg += " (" + strings.Join(missing, ", ") + ")"
-	}
-	return clean(msg, MaxRejectBytes)
-}
-
-// codeInText reads a leading typed code ("SECRET_DETECTED: ...") out of a refusal text.
-func codeInText(msg string) string {
-	code, _, ok := strings.Cut(msg, ":")
-	if !ok || code == "" || len(code) > 64 {
-		return ""
-	}
-	for _, r := range code {
-		if (r < 'A' || r > 'Z') && r != '_' && (r < '0' || r > '9') {
-			return ""
-		}
-	}
-	return code
 }
 
 // clean makes s one line of printable text of at most limit bytes: control characters become spaces,

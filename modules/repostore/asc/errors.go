@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/repostore"
@@ -122,13 +123,23 @@ func publishErr(op string, err error) error {
 	}
 	msg := sanitize(st.Message())
 	code := ""
-	if d := detailOf(st); d != nil {
+	stCode := st.Code()
+	if r, ok := ascclient.RefusalOf(err); ok {
+		// The typed refusal (native Any in the status details, or the text form of an older asc): the pusher is
+		// shown the code, asc's text and the files together.
+		code, stCode, msg = r.Code, r.Status, sanitize(r.Text())
+	} else if d := detailOf(st); d != nil {
 		code = d.GetCode()
 	}
 	switch code {
 	case "NOT_FAST_FORWARD", "REF_CONFLICT":
 		return &git.ErrPushOutOfDate{StdErr: msg, Err: err}
 	case "HOOK_REJECTED", "REF_NOT_SHARED", "QUOTA_EXCEEDED", "USER_REFS_LIMIT", "MIRROR_MODE", "PATH_POLICY":
+		return &git.ErrPushRejected{Message: msg, StdErr: "remote: " + msg, Err: err}
+	}
+	if code != "" && (stCode == codes.FailedPrecondition || stCode == codes.PermissionDenied) {
+		// Any other typed refusal of the gate (SECRET_DETECTED, a missing review, a signature, ...) is a rejected
+		// push too, with its reason.
 		return &git.ErrPushRejected{Message: msg, StdErr: "remote: " + msg, Err: err}
 	}
 	if st.Code() == codes.FailedPrecondition && strings.Contains(strings.ToLower(st.Message()), "fast-forward") {
