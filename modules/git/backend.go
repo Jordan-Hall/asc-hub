@@ -258,6 +258,7 @@ func (repo *Repository) bindBackend(name string) error {
 		return err
 	}
 	repo.backend = be
+	repo.backendName = name
 	return nil
 }
 

@@ -14,14 +14,18 @@ import (
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
+	repo_module "forgejo.org/modules/repository"
+	"forgejo.org/modules/repostore"
 	"forgejo.org/services/ascsync"
 )
 
-// How long a migration waits for the hub's own view of an asc repository to hold the imported default branch,
-// and how often it looks.
+// How long a migration waits for the hub's own view of an asc repository to hold the imported default branch, and
+// how often it looks. asc has just taken a whole history and is still busy deriving from it (a repository of
+// 160 MB made its first reads after the import take minutes), so the wait is long; the import itself is complete
+// and a failure here only means the hub cannot read it yet.
 var (
-	ascImportVisibleWait = 30 * time.Second
-	ascImportVisiblePoll = 250 * time.Millisecond
+	ascImportVisibleWait = 10 * time.Minute
+	ascImportVisiblePoll = time.Second
 )
 
 // isAscStored reports whether the migrated repository lives in asc. A bad storage value is an error, so a
@@ -55,6 +59,24 @@ func pruneNonBranchRefs(ctx context.Context, repoPath string) error {
 	return nil
 }
 
+// syncBranchesOfMigration writes the branches of the clone to the database. For a repository stored in asc the
+// import made asc fan out the pushed refs, and the hub's own handling of that writes the same branch rows at the
+// same time: a unique-constraint failure then only means the row is there, so the sync is repeated, which finds
+// the row and updates it.
+func syncBranchesOfMigration(ctx context.Context, repo *repo_model.Repository, gitRepo *git.Repository, doerID int64, ascStored bool) (int64, error) {
+	for attempt := 0; ; attempt++ {
+		n, err := repo_module.SyncRepoBranchesWithRepo(ctx, repo, gitRepo, doerID)
+		if err == nil || !ascStored || attempt >= 4 || !strings.Contains(strings.ToLower(err.Error()), "unique constraint") {
+			return n, err
+		}
+		select {
+		case <-ctx.Done():
+			return n, ctx.Err()
+		case <-time.After(time.Duration(attempt+1) * 200 * time.Millisecond):
+		}
+	}
+}
+
 // scrubBridgeConfig removes the [http] section that the clone left in the config of the bridge directory
 // (git clone -c http.followRedirects=false and -c http.sslVerify=false write the options into the new repository).
 // asc serves the directory only while its config holds what git init and git clone --mirror write, and refuses
@@ -77,6 +99,9 @@ func scrubBridgeConfig(ctx context.Context, repoPath string) error {
 // streams: asc reads the objects from the bridge directory, nothing is held in memory. It is idempotent: a run
 // repeated over a repository that holds part of the history imports what is missing and moves nothing else.
 func importMigratedIntoAsc(ctx context.Context, repo *repo_model.Repository, defaultBranch string) error {
+	if err := ensureAscRepo(ctx, repo, defaultBranch); err != nil {
+		return err
+	}
 	if err := scrubBridgeConfig(ctx, repo.RepoPath()); err != nil {
 		return err
 	}
@@ -94,6 +119,29 @@ func importMigratedIntoAsc(ctx context.Context, repo *repo_model.Repository, def
 		return fmt.Errorf("importing the history into asc: %w", err)
 	}
 	return waitAscHoldsBranch(ctx, repo, defaultBranch)
+}
+
+// ensureAscRepo is ensureAscRepository; tests replace it.
+var ensureAscRepo = ensureAscRepository
+
+// ensureAscRepository makes sure asc has the repository. A first migration made it when the repository was created;
+// a retry deleted it from asc together with the files (the task is kept, the repository is made again), so asc
+// has none and the import would fail with "no such repository".
+func ensureAscRepository(ctx context.Context, repo *repo_model.Repository, defaultBranch string) error {
+	writer, err := repostore.Default()
+	if err != nil {
+		return err
+	}
+	ref := repo.StoreRef()
+	ref.ObjectFormat = repo.ObjectFormatName
+	if ref.ObjectFormat == "" {
+		ref.ObjectFormat = git.Sha1ObjectFormat.Name()
+	}
+	err = writer.Init(ctx, repostore.InitRequest{Repo: ref, DefaultBranch: defaultBranch})
+	if err != nil && !errors.Is(err, repostore.ErrExists) {
+		return fmt.Errorf("making the repository in asc: %w", err)
+	}
+	return nil
 }
 
 // cloneRefs lists the branches and tags of the clone with the object each points at.
