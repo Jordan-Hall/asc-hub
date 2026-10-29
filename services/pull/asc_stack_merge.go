@@ -523,6 +523,7 @@ func InitAscStack() error {
 	}
 	ascStackBackend = b
 	installAscGateReporter()
+	installAscApprovalReporter()
 	return nil
 }
 
