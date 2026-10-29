@@ -40,6 +40,7 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 				</form>
 
 
+				{{if .RedoSeq}}<div class="rv-banner rv-banner-ok rv-gap" role="status" data-testid="asc-ops-redo"><div>{{ctx.Locale.Tr "asc_review.ops_undone_note"}} <a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.OpsURL}}/undo?ref={{.RedoRef | QueryEscape}}&amp;seq={{.RedoSeq}}">{{ctx.Locale.Tr "asc_review.ops_redo"}}</a></div></div>{{end}}
 				<div class="rv-chips ag-ops-chips" role="group" aria-label="{{ctx.Locale.Tr "asc_review.ops_kind_label"}}" data-testid="asc-ops-kinds">
 					<a class="rv-chip-btn" href="{{.AllURL}}"{{if not .Kind}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.agents_filter_all"}} <span class="rv-count">{{.Total}}</span></a>
 					{{range .Chips}}<a class="rv-chip-btn" href="{{.URL}}"{{if .On}} aria-current="true"{{end}}>{{ctx.Locale.Tr (printf "asc_trust.ops.via.%s" .Key)}} <span class="rv-count">{{.Count}}</span></a>{{end}}

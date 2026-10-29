@@ -46,6 +46,7 @@ Template Attributes:
 				{{end}}
 			</header>
 			<div class="rv-banner rv-banner-err{{if not .Error}} tw-hidden{{end}}" role="alert" data-run-failure>{{.Error}}</div>
+			{{if .ErrorPrivate}}<div class="rv-banner" role="note" data-testid="asc-wf-error-private"><div>{{ctx.Locale.Tr "asc_review.wf_private_error"}}</div></div>{{end}}
 
 			<div class="rv-cols rv-cols-main-side rv-gap">
 				<section class="rv-card wf-flowcard" aria-label="{{ctx.Locale.Tr "asc_review.wf_flow"}}" data-testid="asc-wf-flow">
@@ -71,6 +72,7 @@ Template Attributes:
 									</div>
 									{{if .Comment}}<div class="rv-quote">“{{.Comment}}”</div>{{end}}
 									<div class="rv-run-fail{{if not .Error}} tw-hidden{{end}}" data-step-error>{{.Error}}</div>
+									{{if .Private}}<p class="rv-hint" data-testid="asc-wf-step-private">{{ctx.Locale.Tr "asc_review.wf_step_private"}}</p>{{end}}
 									{{if and .Waiting $.AscWorkflowCanAct}}
 										<form class="rv-form rv-approval" method="post" action="{{$.AscWorkflowRun.Link}}/decide" data-testid="asc-workflow-approval">
 											{{$.CsrfTokenHtml}}
