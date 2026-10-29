@@ -4,7 +4,7 @@
 			{{template "repo/commit_status" .Status}}
 		</a>
 	{{else}}
-		<span class="tw-align-middle {{.AdditionalClasses}}" data-tippy="commit-statuses" tabindex="0" role="button">
+		<span class="tw-align-middle {{.AdditionalClasses}}" data-tippy="commit-statuses" tabindex="0" role="button" aria-label="{{ctx.Locale.Tr "asc_rp.fact_checks"}}">
 			{{template "repo/commit_status" .Status}}
 		</span>
 	{{end}}
