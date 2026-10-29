@@ -48,11 +48,14 @@ type ascOpsPage struct {
 	Problem     string
 	Unsupported bool
 	Kind        string
-	Total       int
-	Chips       []ascOpsKindChip
-	Actors      []ascOpsActorBar
-	AllURL      string
-	ExportURL   string
+	// RedoSeq and RedoRef name the undo the person has just made: undoing it is the redo.
+	RedoSeq   uint64
+	RedoRef   string
+	Total     int
+	Chips     []ascOpsKindChip
+	Actors    []ascOpsActorBar
+	AllURL    string
+	ExportURL string
 }
 
 // ascUndoPage is the template data under .AscUndo.
@@ -118,6 +121,11 @@ func AscOps(ctx *context.Context) {
 		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscOps)
 		return
+	}
+	if seq, err := strconv.ParseUint(ctx.FormString("redo"), 10, 53); err == nil && seq > 0 && p.CanUndo {
+		if ref := ctx.FormString("redo_ref"); len(ref) <= 1024 && !strings.ContainsAny(ref, "\x00\r\n") {
+			p.RedoSeq, p.RedoRef = seq, ref
+		}
 	}
 	kind := strings.TrimSpace(ctx.FormString("kind"))
 	if !ascOpsKindKnown(kind) {
@@ -256,5 +264,10 @@ func AscOpsUndo(ctx *context.Context) {
 		return
 	}
 	ctx.Flash.Success(ctx.Tr("asc_trust.ops.undone", done.Ref))
+	if done.NewSeq > 0 {
+		// The undo is itself an operation, so undoing it is a redo: the log offers it once, as a link to the preview.
+		ctx.Redirect(ascOpsURL(repo) + "?redo=" + strconv.FormatUint(done.NewSeq, 10) + "&redo_ref=" + url.QueryEscape(done.Ref))
+		return
+	}
 	ctx.Redirect(ascOpsURL(repo))
 }

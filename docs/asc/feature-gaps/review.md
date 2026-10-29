@@ -268,11 +268,11 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | Policy | Header: policy valid pill, 'Edit the rules' link to Settings, 7/30 day window | done | templates/repo/asc_gate.tmpl, routers/web/repo/asc_gate.go | - |
-| Policy | Stat cards: Changes checked, Passed first time, Held by the gate (cleared/open), Median time to clear | needs-both | asc: gate decision history (no RPC); hub today shows held/rules/protections/quarantine counts (asc_gate.tmpl:50) | L |
+| Policy | Stat cards: Changes checked, Passed first time, Held by the gate (cleared/open), Median time to clear | done | asc: gate decision history (no RPC); hub today shows held/rules/protections/quarantine counts (asc_gate.tmpl:50) (GetGateStats filled by the hub's own gate reports; seen on the dev hub with a real stack (changes checked, passed first time, per-rule counts)) | L |
 | Policy | Held-by-the-gate list: change, reason, rule, who, how cleared, time later, Open change | done | templates/repo/asc_gate.tmpl (from audit refusals) | - |
 | Policy | Policy file view, 'What this means', 'Who can write here' table | done | templates/repo/asc_gate.tmpl | - |
 | Policy | 'Checked and held, per day' chart with table equivalent | needs-both | asc: per-day gate counts; hub chart in asc_gate.tmpl | M |
-| Policy | Rules in force with 'N held of M' per rule | needs-both | asc: held counts per rule from audit/gate events; asc_gate.tmpl rule list (no counts) | M |
+| Policy | Rules in force with 'N held of M' per rule | done | asc: held counts per rule from audit/gate events; asc_gate.tmpl rule list (no counts) (per-rule counts from the hub's gate reports; seen on the dev hub) | M |
 | Policy | Maintainer overrides (signed, logged exception, reason) | needs-asc-backend | asc: override mechanism and event (none in proto/asc/v1/policy.proto); hub list | L |
 | Policy | Quarantined checks summary with link to the queue | done | templates/repo/asc_gate.tmpl | - |
 | Policy | Invalid-file fallback, nothing-held state | done | templates/repo/asc_gate.tmpl | - |
@@ -303,7 +303,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Queue | Branch, running/paused chip, revalidate on/off, Pause/Resume confirm dialogs | done | templates/repo/asc_queue.tmpl, routers/web/repo/asc_queue.go | - |
 | Queue | Stats: Waiting, Landed today, Median wait (was 9 min last week), Refused after dry run | done | queue DB aggregates in asc_queue.go; stat cards (today: waiting/recent/quarantine counts) (waiting, landed today, median from asc (live), blocked; seen on the dev hub at 390 and 1440) | M |
 | Queue | Waiting list: position, title, state chip (Checking/Queued), queued-by, Remove | done | templates/repo/asc_queue.tmpl | - |
-| Queue | Row detail: 'unit running on merged trunk, about 3 min' and 'starts about 6 min' ETAs | needs-both | asc: ETA and check progress per entry (mergequeue.proto QueueEntry has state/detail/position only); hub display | M |
+| Queue | Row detail: 'unit running on merged trunk, about 3 min' and 'starts about 6 min' ETAs | done | asc: ETA and check progress per entry (mergequeue.proto QueueEntry has state/detail/position only); hub display (MergeQueue.List timing joined by change id; seen on the dev hub with a real 3-stack (waiting, lands in about 3 min); landing/ready stages need an approved stack) | M |
 | Queue | Merge now per row (hover/focus) with confirm | ui-only-missing | templates/repo/asc_queue.tmpl (POST /merge exists) | S |
 | Queue | Queue reordering (not on the board: order is queue order, no reorder RPC in mergequeue.proto) | done | nothing to build | - |
 | Queue | Quarantined checks with reason, owner, review date | done | templates/repo/asc_queue.tmpl, services/asctrust queue quarantine | - |
