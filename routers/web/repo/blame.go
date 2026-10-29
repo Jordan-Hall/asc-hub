@@ -26,6 +26,8 @@ import (
 type blameRow struct {
 	RowNumber      int
 	Avatar         gotemplate.HTML
+	AuthorName     string
+	IsAgent        bool // the author is an agent (a bot account): the row carries the agent mark
 	RepoLink       string
 	PartSha        string
 	PreviousSha    string
@@ -289,6 +291,11 @@ func renderBlame(ctx *context.Context, blameParts []*git.BlamePart, commitNames 
 				}
 
 				br.Avatar = gotemplate.HTML(avatar)
+				br.AuthorName = commit.Author.Name
+				if commit.User != nil {
+					br.AuthorName = commit.User.GetDisplayName()
+					br.IsAgent = commit.User.IsBot()
+				}
 				br.RepoLink = repoLink
 				br.PartSha = part.Sha
 				br.PreviousSha = part.PreviousSha
