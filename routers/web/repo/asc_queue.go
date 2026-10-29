@@ -160,6 +160,11 @@ func ascOpError(err error) ascOpFailure {
 			return ascOpFailure{Key: "repo.pulls.asc_op.err." + e.key, Status: e.status, Known: true}
 		}
 	}
+	// A refusal of asc (the policy, the gate) carries asc's own sentence: the person is told what to do.
+	var refusal *pull_service.AscRefusal
+	if errors.As(err, &refusal) {
+		return ascOpFailure{Key: "repo.pulls.asc_op.err.refused", Args: []any{refusal.Message}, Known: true}
+	}
 	// Not ready and not queueable carry our own text (a pull request number and a reason).
 	if errors.Is(err, pull_service.ErrAscStackNotMergable) || errors.Is(err, automerge.ErrAscQueueNotQueueable) {
 		return ascOpFailure{Key: "repo.pulls.asc_op.err.not_ready", Args: []any{err.Error()}, Known: true}
