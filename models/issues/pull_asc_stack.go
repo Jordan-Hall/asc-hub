@@ -79,6 +79,20 @@ func GetOpenPullRequestByAscChange(ctx context.Context, repoID int64, change str
 	return pr, nil
 }
 
+// ListOpenAscPullRequests returns the open, stacked pull requests of repoID, newest first, at most limit.
+func ListOpenAscPullRequests(ctx context.Context, repoID int64, limit int) ([]*PullRequest, error) {
+	var prs []*PullRequest
+	err := db.GetEngine(ctx).
+		Table("pull_request").
+		Join("INNER", "pull_request_asc_stack", "pull_request_asc_stack.pull_id = pull_request.id").
+		Join("INNER", "issue", "issue.id = pull_request.issue_id").
+		Where("pull_request_asc_stack.repo_id = ? AND pull_request.has_merged = ? AND issue.is_closed = ?", repoID, false, false).
+		OrderBy("pull_request.id DESC").
+		Limit(limit).
+		Find(&prs)
+	return prs, err
+}
+
 // SetPullRequestAscStack records (or updates) the link of pr to change and to the pull request stackParentID
 // (0 for the bottom of a stack). A pull request has one change: relinking it to another is refused.
 func SetPullRequestAscStack(ctx context.Context, pr *PullRequest, change string, stackParentID int64) error {
