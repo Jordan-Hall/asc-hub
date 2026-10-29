@@ -222,7 +222,7 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 
 	var rollbackRepo *repo_model.Repository
 
-	if err := db.WithTx(ctx, func(ctx context.Context) error {
+	create := func(ctx context.Context) error {
 		if err := repo_module.CreateRepositoryByExample(ctx, doer, u, repo, false, false); err != nil {
 			return err
 		}
@@ -290,7 +290,20 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 			return fmt.Errorf("CreateRepository(git update-server-info): %w", err)
 		}
 		return nil
-	}); err != nil {
+	}
+	var err error
+	if repo.GetStorageBackend() == string(gitrepo.StorageBackendAsc) {
+		// asc runs the hooks of the first commit as a call back to this hub, through a connection of its own, which
+		// sees the repository only once its row is committed; so the row is committed first and a failure removes it.
+		err = create(ctx)
+		if err != nil && repo.ID != 0 && rollbackRepo == nil {
+			rollbackRepo = repo
+			rollbackRepo.OwnerID = u.ID
+		}
+	} else {
+		err = db.WithTx(ctx, create)
+	}
+	if err != nil {
 		if rollbackRepo != nil {
 			if errDelete := DeleteRepositoryDirectly(ctx, rollbackRepo.ID, DeleteRepositoryOpts{}); errDelete != nil {
 				log.Error("Rollback deleteRepository: %v", errDelete)
