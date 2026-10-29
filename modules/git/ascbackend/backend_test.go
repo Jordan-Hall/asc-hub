@@ -289,8 +289,13 @@ func TestResolve(t *testing.T) {
 		assert.Equal(t, fx.id(name).String(), got.String())
 		assert.Equal(t, typ, gotType)
 	}
-	// Nothing, junk, and an abbreviated id (which asc serve refuses) do not exist.
-	for _, rev := range []string{"nope", "", "bad\nrev", fx.id("c2").String()[:10], "0123456789012345678901234567890123456789"} {
+	// An abbreviated id, which asc serve refuses, is expanded from the history.
+	abbrev, abbrevType, err := fx.asc.Resolve(ctx, fx.id("c2").String()[:10])
+	require.NoError(t, err)
+	assert.Equal(t, fx.id("c2").String(), abbrev.String())
+	assert.Equal(t, git.ObjectCommit, abbrevType)
+	// Nothing, junk, and an id that is in no commit do not exist.
+	for _, rev := range []string{"nope", "", "bad\nrev", "ffffffffff", "0123456789012345678901234567890123456789"} {
 		_, _, err := fx.asc.Resolve(ctx, rev)
 		assert.True(t, git.IsErrNotExist(err), "%q: %v", rev, err)
 	}
