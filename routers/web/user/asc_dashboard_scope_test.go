@@ -6,6 +6,8 @@ package user
 import (
 	"testing"
 
+	activities_model "forgejo.org/models/activities"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,4 +31,15 @@ func TestDashboardScopeKeepsOnlyWhatIsInIt(t *testing.T) {
 	} {
 		assert.Equal(t, c.want, ascScopeKeep(c.scope, "jordan", c.owner), "%+v", c)
 	}
+}
+
+func TestFeedKinds(t *testing.T) {
+	kind := func(op activities_model.ActionType) string { return ascFeedKind(&activities_model.Action{OpType: op}) }
+	assert.Equal(t, "push", kind(activities_model.ActionCommitRepo))
+	assert.Equal(t, "change", kind(activities_model.ActionMergePullRequest))
+	assert.Equal(t, "change", kind(activities_model.ActionCreateIssue))
+	assert.Equal(t, "comment", kind(activities_model.ActionCommentPull))
+	assert.Equal(t, "comment", kind(activities_model.ActionApprovePullRequest))
+	assert.Equal(t, "other", kind(activities_model.ActionCreateRepo))
+	assert.Equal(t, []string{"push", "other"}, ascFeedKinds(activities_model.ActionList{{OpType: activities_model.ActionCommitRepo}, {OpType: activities_model.ActionCreateRepo}}))
 }

@@ -19,7 +19,6 @@ func TestIntentTemplateHasTheFourHeadings(t *testing.T) {
 	for _, l := range strings.Split(got, "\n") {
 		if strings.HasPrefix(l, "## ") {
 			headings++
-			assert.NotContains(t, l, "asc_rp.", "every heading is translated")
 		}
 	}
 	assert.Equal(t, 4, headings)

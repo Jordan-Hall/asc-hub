@@ -588,3 +588,27 @@ func ascDashAgentFrom(repo *repo_model.Repository, run *ascv1.AgentRun) AscDashA
 	}
 	return a
 }
+
+// ascFeedKind groups an activity for the filter of the Today feed: a push, a change (a pull request or an issue
+// opened, merged or closed), a comment or review, else "other".
+func ascFeedKind(a *activities_model.Action) string {
+	switch a.OpType {
+	case activities_model.ActionCommitRepo, activities_model.ActionPushTag, activities_model.ActionDeleteTag, activities_model.ActionDeleteBranch, activities_model.ActionMirrorSyncPush, activities_model.ActionMirrorSyncCreate, activities_model.ActionMirrorSyncDelete:
+		return "push"
+	case activities_model.ActionCreatePullRequest, activities_model.ActionMergePullRequest, activities_model.ActionClosePullRequest, activities_model.ActionReopenPullRequest, activities_model.ActionAutoMergePullRequest,
+		activities_model.ActionCreateIssue, activities_model.ActionCloseIssue, activities_model.ActionReopenIssue:
+		return "change"
+	case activities_model.ActionCommentIssue, activities_model.ActionCommentPull, activities_model.ActionApprovePullRequest, activities_model.ActionRejectPullRequest:
+		return "comment"
+	}
+	return "other"
+}
+
+// ascFeedKinds returns the kind of each activity of the list, in the same order.
+func ascFeedKinds(list activities_model.ActionList) []string {
+	out := make([]string, len(list))
+	for i, a := range list {
+		out[i] = ascFeedKind(a)
+	}
+	return out
+}
