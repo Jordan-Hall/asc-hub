@@ -201,4 +201,5 @@ func prepareAscBrief(ctx *context.Context, pull *issues_model.PullRequest) {
 		brief.Provenance = nil
 	}
 	ctx.Data["AscBrief"] = brief
+	prepareAscGate(ctx, pull, brief, name, change)
 }
