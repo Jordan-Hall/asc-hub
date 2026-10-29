@@ -398,5 +398,7 @@ func mergeErr(style repostore.MergeStyle, err error) error {
 			return &repostore.ConflictError{Style: style, Diverging: true, StdErr: sanitize(msg), Err: err}
 		}
 	}
-	return callErr("Merge", err)
+	// A typed refusal of the gate (a secret, a missing review, a signature) is a rejected push with its reason, as for
+	// any other write.
+	return publishErr("Merge", err)
 }

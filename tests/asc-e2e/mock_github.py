@@ -22,19 +22,27 @@ def release(i, tag, name, assets):
             "prerelease": tag.startswith("v2"), "created_at": T, "published_at": T, "assets": assets,
             "author": {"id": 1, "login": "mockdev", "avatar_url": ""}, "html_url": f"{BASE}/mock/proj/releases/tag/{tag}"}
 
-ROUTES = {
-    "/api/v3/repos/mock/proj": {"id": 9, "name": "proj", "full_name": "mock/proj", "private": False, "description": "a mock project",
-        "html_url": f"{BASE}/mock/proj", "clone_url": CLONE, "default_branch": "master", "homepage": "", "topics": ["mock", "asc"]},
-    "/api/v3/repos/mock/proj/milestones": [
-        {"number": 1, "title": "v1 goals", "description": "first", "state": "closed", "created_at": T, "updated_at": T, "closed_at": T, "due_on": T},
-        {"number": 2, "title": "v2 goals", "description": "second", "state": "open", "created_at": T, "updated_at": T, "due_on": "2030-01-01T00:00:00Z"}],
-    "/api/v3/repos/mock/proj/labels": [
-        {"id": 1, "name": "bug", "color": "d73a4a", "description": "a bug"}, {"id": 2, "name": "docs", "color": "0075ca", "description": ""}],
-    "/api/v3/repos/mock/proj/releases": [
-        release(1, "v1.0", "First", [asset(101, "proj-1.0.tar.gz")]), release(2, "v2.0", "Second", [asset(102, "proj-2.0.tar.gz")])],
-}
-for k in ("issues", "pulls"):
-    ROUTES[f"/api/v3/repos/mock/proj/{k}"] = []
+def routes_for(name, clone):
+    r = {
+        f"/api/v3/repos/mock/{name}": {"id": 9, "name": name, "full_name": f"mock/{name}", "private": False, "description": f"a mock project {name}",
+            "html_url": f"{BASE}/mock/{name}", "clone_url": clone, "default_branch": "master", "homepage": "", "topics": ["mock", "asc"]},
+        f"/api/v3/repos/mock/{name}/milestones": [
+            {"number": 1, "title": "v1 goals", "description": "first", "state": "closed", "created_at": T, "updated_at": T, "closed_at": T, "due_on": T},
+            {"number": 2, "title": "v2 goals", "description": "second", "state": "open", "created_at": T, "updated_at": T, "due_on": "2030-01-01T00:00:00Z"}],
+        f"/api/v3/repos/mock/{name}/labels": [
+            {"id": 1, "name": "bug", "color": "d73a4a", "description": "a bug"}, {"id": 2, "name": "docs", "color": "0075ca", "description": ""}],
+        f"/api/v3/repos/mock/{name}/releases": [
+            release(1, "v1.0", "First", [asset(101, "proj-1.0.tar.gz")]), release(2, "v2.0", "Second", [asset(102, "proj-2.0.tar.gz")])],
+    }
+    for k in ("issues", "pulls"):
+        r[f"/api/v3/repos/mock/{name}/{k}"] = []
+    return r
+
+# proj is served from the clone url given on the command line; late and broken point to repositories that may not exist (yet)
+ROUTES = {}
+ROUTES.update(routes_for("proj", CLONE))
+ROUTES.update(routes_for("late", "http://127.0.0.1:8099/src-late.git"))
+ROUTES.update(routes_for("broken", "http://127.0.0.1:8099/does-not-exist.git"))
 
 class H(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
@@ -46,7 +54,7 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         path = self.path.split("?")[0]
         if path in ROUTES: return self.send(200, ROUTES[path])
-        if path.startswith("/api/v3/repos/mock/proj/releases/assets/"):
+        if "/releases/assets/" in path:
             return self.send(200, ASSETS[int(path.rsplit("/", 1)[1])], "application/octet-stream")
         if path == "/lfs/obj/" + LFS_OID: return self.send(200, LFS_BODY, "application/octet-stream")
         self.send(404, {"message": "Not Found"})
