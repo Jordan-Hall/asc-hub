@@ -194,7 +194,7 @@ Open rows by size: S 45, M 64, L 23.
 | Docs | OS code tabs remembered; Copy without the prompt | ui-only-missing | Reuse the `initDownload` tab code; `localStorage` key | M |
 | Docs | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | Intersection observer in a new `docs.js`; links to the repository file view | M |
 | Docs | "Was this page helpful?" Yes and No | needs-hub-backend | `POST /-/docs/feedback`, stored (new table or issue on the docs repo), rate limited | M |
-| Mobile-Docs | Docs menu drawer, sticky "On this page" row, sticky next-page bar | ui-only-missing | Same templates under 768 px | M |
+| Mobile-Docs | Docs menu drawer, sticky "On this page" row, sticky next-page bar | ui-only-missing | "On this page" row and a next-guide link exist on a phone; the docs menu drawer is missing (the guide list sits under the article) | M |
 
 ## About
 
