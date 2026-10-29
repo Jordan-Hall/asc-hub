@@ -26,6 +26,8 @@ Entries use shared/ds/snav_item; groups are headings, never colour.
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/keys") "Label" (ctx.Locale.Tr "asc_work.sn_ssh_signing") "Icon" "terminal" "Active" .PageIsSettingsKeys)}}
 			{{if .AscEnabled}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/keys") "Label" (ctx.Locale.Tr "asc_shell.sn_signing_keys") "Icon" "fingerprint" "Active" .PageIsSettingsAscKeys)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/sessions") "Label" (ctx.Locale.Tr "asc_shell.sn_sessions") "Icon" "monitor" "Active" .PageIsSettingsAscSessions)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/export") "Label" (ctx.Locale.Tr "asc_shell.sn_export") "Icon" "download" "Active" .PageIsSettingsAscExport)}}
 			{{end}}
 		</ul>
 
