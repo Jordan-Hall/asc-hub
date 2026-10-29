@@ -561,7 +561,7 @@ func SignUpPost(ctx *context.Context) {
 		return
 	}
 	if !hadRedirect {
-		redirect = setting.AppSubURL + "/user/welcome"
+		redirect = setting.AppSubURL + "/-/get-started"
 	}
 	ctx.Redirect(redirect)
 }
