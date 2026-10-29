@@ -1710,3 +1710,50 @@
   border-radius: 50%;
   background: var(--accent);
 }
+
+/* ---- the brief and the policy gate cards of a stacked change ---- */
+.rv-brief,
+.rv-gate {
+  margin: 12px 0;
+}
+
+.rv-brief-dl {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.rv-brief-dl dt {
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rv-brief-dl dd {
+  margin: 2px 0 0;
+  white-space: pre-line;
+}
+
+.rv-brief-h {
+  margin: 14px 0 4px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rv-brief-where {
+  margin: 0;
+  padding-inline-start: 18px;
+  font-size: 14px;
+}
+
+.rv-brief-made,
+.rv-brief-gate {
+  margin: 4px 0 0;
+  font-size: 14px;
+}
