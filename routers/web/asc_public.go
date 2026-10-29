@@ -132,7 +132,17 @@ func AscDocsPage(ctx *context.Context) {
 	wrapped = strings.ReplaceAll(wrapped, "</table>", "</table></div>")
 	ctx.Data["DocsHTML"] = template.HTML(wrapped)
 	ctx.Data["DocsTOC"] = toc
-	ctx.Data["DocsPages"] = ascdocs.Pages()
+	pages := ascdocs.Pages()
+	ctx.Data["DocsPages"] = pages
+	for i, p := range pages {
+		if p.Slug != page.Slug {
+			continue
+		}
+		if i+1 < len(pages) {
+			ctx.Data["DocsNext"] = pages[i+1]
+		}
+		break
+	}
 	ctx.HTML(http.StatusOK, "asc/docs_page")
 }
 

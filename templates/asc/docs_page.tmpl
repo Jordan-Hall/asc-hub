@@ -4,17 +4,26 @@
 	<div class="ds-container">
 		<nav class="ds-breadcrumb" aria-label="{{ctx.Locale.Tr "asc_site.docs_title"}}"><a href="{{AppSubUrl}}/-/docs">{{ctx.Locale.Tr "asc_site.docs_title"}}</a> <span aria-hidden="true">/</span> <span>{{.DocsPage.Section}}</span> <span aria-hidden="true">/</span> <b aria-current="page">{{.DocsPage.Title}}</b></nav>
 		<div class="site-article-grid">
+			{{if .DocsTOC}}
+			<details class="site-toc-m">
+				<summary>{{svg "dsi-list" 16}} {{ctx.Locale.Tr "asc_site.docs_on_page"}}{{svg "dsi-chevron-down" 14}}</summary>
+				<ul>{{range .DocsTOC}}<li><a href="#{{.ID}}">{{.Text}}</a></li>{{end}}</ul>
+			</details>
+			{{end}}
 			<article class="site-article-body markup">
 				<h1 class="ds-t-h1">{{.DocsPage.Title}}</h1>
 				{{.DocsHTML}}
+				{{with .DocsNext}}<nav class="site-next" aria-label="{{ctx.Locale.Tr "asc_site.docs_next"}}"><a href="{{AppSubUrl}}/-/docs/{{.Slug}}"><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_site.docs_next"}}</span><b>{{.Title}}</b>{{svg "dsi-chevron-right" 16}}</a></nav>{{end}}
 			</article>
 			<aside class="site-toc" aria-label="{{ctx.Locale.Tr "asc_site.docs_on_page"}}">
 				<form class="site-docsearch" role="search" method="get" action="{{AppSubUrl}}/-/docs">
 					<div class="ds-inwrap">{{svg "dsi-search" 16}}<label class="ds-sr" for="docs-q">{{ctx.Locale.Tr "asc_site.docs_search"}}</label><input id="docs-q" class="ds-input" type="search" name="q" maxlength="100" autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_site.docs_search"}}"></div>
 				</form>
 				{{if .DocsTOC}}
+				<div class="ds-hide-md">
 				<h2 class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.docs_on_page"}}</h2>
 				<ul data-toc>{{range .DocsTOC}}<li><a href="#{{.ID}}">{{.Text}}</a></li>{{end}}</ul>
+				</div>
 				{{end}}
 				<p class="site-edit"><a class="ds-link" href="{{.DocsEditURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_site.docs_edit"}}</a></p>
 				<h2 class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.docs_all"}}</h2>
