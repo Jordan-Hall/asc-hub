@@ -1587,3 +1587,117 @@
   color: var(--text-2);
   font-size: 12.5px;
 }
+/* ---- who writes the code: people and agents as one bar, agents in the agent colour ---- */
+.rp-who-bar progress {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border: 0;
+  border-radius: 4px;
+  appearance: none;
+  background: var(--agent, #7c3aed);
+}
+
+.rp-who-bar progress::-webkit-progress-bar {
+  background: var(--agent, #7c3aed);
+  border-radius: 4px;
+}
+
+.rp-who-bar progress::-webkit-progress-value {
+  background: var(--ok);
+  border-radius: 4px 0 0 4px;
+}
+
+.rp-who-bar progress::-moz-progress-bar {
+  background: var(--ok);
+}
+
+.rp-who-split {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+}
+
+/* README / AGENTS.md / License tabs of the repository home (board Repo). */
+.rp-doctabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line-2);
+  margin-top: 16px;
+}
+
+.rp-doctabs [role="tab"] {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  min-height: var(--touch, 44px);
+  color: var(--text-2);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rp-doctabs [role="tab"][aria-selected="true"] {
+  color: var(--text);
+  border-bottom-color: var(--link);
+}
+
+.rp-doctabs [role="tab"]:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: -2px;
+}
+
+.rp-doc-plain {
+  margin: 0;
+  padding: 16px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* Stacks list: search field, avatar column and underlined area tabs (board Stacks). */
+.rp-stack-search {
+  margin-bottom: 12px;
+}
+
+.rp-stack-search .ds-input {
+  width: 100%;
+}
+
+.rp-band-act {
+  align-self: flex-end;
+}
+
+.rp-stack .rp-stack-av {
+  flex: none;
+}
+
+.rv-seg.rv-area-nav {
+  margin: 0 0 16px;
+  padding: 0;
+  gap: 2px;
+  border-bottom: 1px solid var(--line);
+}
+
+.rv-seg.rv-area-nav a {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  margin-bottom: -1px;
+  padding: 0 14px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.rv-seg.rv-area-nav a[aria-current="page"] {
+  border-bottom-color: var(--fill);
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+}

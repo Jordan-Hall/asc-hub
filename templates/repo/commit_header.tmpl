@@ -19,6 +19,8 @@
 		<div class="rp-chead-main">
 			<h3 class="rp-chead-title"><span class="commit-summary" title="{{.Commit.Summary}}">{{RenderCommitMessage $.Context .Commit.Message ($.Repository.ComposeMetas ctx)}}</span></h3>
 			<div class="rp-chead-chips">
+				{{if and .ChangeWhere .ChangeWhere.OnDefault}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.landed_chip"}}</span>{{end}}
+				{{with .ChangeStack}}<a class="ds-chip" href="{{.PullLink}}">{{.Name}} {{.Position}} / {{.Total}}</a>{{end}}
 				{{template "repo/commit_statuses" dict "Status" .CommitStatus "Statuses" .CommitStatuses}}
 				{{if .Commit.Signature}}
 					{{if .Verification.Verified}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.verified"}}</span>

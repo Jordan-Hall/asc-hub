@@ -251,6 +251,9 @@ func loadPullFacts(ctx context.Context, pr *issues_model.PullRequest) (*PullFact
 	if err := pr.LoadIssue(ctx); err != nil {
 		return nil, err
 	}
+	if pr.Issue.Repo == nil {
+		pr.Issue.Repo = pr.BaseRepo
+	}
 	f := &PullFacts{
 		Repo:   pr.BaseRepo,
 		Index:  pr.Issue.Index,

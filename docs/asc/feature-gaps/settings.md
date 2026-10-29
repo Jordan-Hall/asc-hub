@@ -18,8 +18,8 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 75 |
-| ui-only-missing | 27 |
+| done | 76 |
+| ui-only-missing | 26 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 2 |
 | needs-both | 36 |
@@ -156,7 +156,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminDashboard | Needs attention: backup overdue with "Back up now" | needs-both | asc: backup status RPC (only CLI asc serve backup exists, crates/asc-serve/src/backup.rs); hub: attention item | M |
 | AdminDashboard | System card rows: object storage usage and mail queue age (database, queues, runners exist) | needs-both | asc: storage usage; hub: overview.go system rows | M |
 | AdminDashboard | Recent audit entries card | needs-hub-backend | call Audit.List via asctrust.CallInstance (as admin/asc_audit.go) from dashboardFacts + template | S |
-| AdminDashboard | Numbers refresh every 30 s without layout shift | ui-only-missing | dashboard.tmpl + htmx polling on /admin | S |
+| AdminDashboard | Numbers refresh every 30 s without layout shift | done | dashboard.tmpl + htmx polling on /admin | S |
 | AdminHealth | Self check list with passed/warn/fail chips, Copy report, Run again | done | templates/admin/self_check.tmpl, overview.go healthFacts | - |
 | AdminHealth | Checks for disk fill rate, object storage probe, signing key validity, outgoing mail queue, time sync, TLS expiry (hub checks only DB, collation, cache, runners, notices) | needs-both | hub: overview.go healthFacts; asc: health RPC (object store probe, signing key expiry) | M |
 | AdminHealth | Gauges CPU, Memory, Disk, Object storage with percent text (hub shows uptime, memory, goroutines, GC) | needs-hub-backend | overview.go healthFacts (add disk/CPU), self_check.tmpl | S |

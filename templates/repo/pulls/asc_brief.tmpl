@@ -14,7 +14,7 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 			<span class="rp-delta" title="{{ctx.Locale.Tr "asc_review.brief_size_title"}}"><span class="rp-add">+{{.Added}}</span> <span class="rp-del">&minus;{{.Removed}}</span> <span class="rp-dim">{{ctx.Locale.TrN .Files "asc_review.brief_files_one" "asc_review.brief_files_other" .Files}}{{if .StatsTruncated}}+{{end}}</span></span>
 		</div>
 	</div>
-	<div class="rv-brief-b">
+	<div class="rv-card-b rv-brief-b">
 		{{if .Written}}
 			<dl class="rv-brief-dl">
 				{{if .What}}<div><dt>{{ctx.Locale.Tr "asc_review.brief_what"}}</dt><dd>{{.What}}</dd></div>{{end}}
@@ -44,10 +44,44 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 			<span class="rp-dim">{{ctx.Locale.Tr "asc_review.how_made_counts" .ToolCalls .FilesRead .Versions}}{{if .Minutes}} · {{ctx.Locale.Tr "asc_review.how_made_minutes" .Minutes}}{{end}}</span>
 		</p>
 		{{end}}
+		{{if .Approvals}}
+		<h3 class="rv-brief-h">{{ctx.Locale.Tr "asc_review.approvals_title"}}</h3>
+		<ul class="rv-brief-where" data-testid="asc-approvals">
+			{{range .Approvals}}<li>{{if .ChangesRequested}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_review.approvals_requested"}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_review.approvals_approved"}}</span>{{end}} <b>{{.Reviewer}}</b> <span class="rp-dim">{{ctx.Locale.Tr "asc_review.approvals_on_version" .Version}}{{if .Carried}} · {{ctx.Locale.Tr "asc_review.approvals_carried" .UnchangedFiles}}{{else if not .Applies}} · {{ctx.Locale.Tr "asc_review.approvals_stale"}}{{end}}</span></li>{{end}}
+		</ul>
+		{{end}}
 		<p class="rv-brief-gate rp-dim" data-testid="asc-brief-gate">
 			{{ctx.Locale.Tr "asc_review.gate_line" .OpenThreads .TotalThreads .ApprovalsCurrent .ChangesRequested}}
 			{{if .ApprovalsCarried}} · {{ctx.Locale.Tr "asc_review.gate_carried" .ApprovalsCarried}}{{end}}
 		</p>
+	</div>
+</section>
+{{end}}
+{{with .AscGate}}
+<section class="rv-card rv-gate" aria-labelledby="asc-gate-title" data-testid="asc-gate">
+	<div class="rv-card-h">
+		<h2 id="asc-gate-title">{{ctx.Locale.Tr "asc_review.gate_title"}}</h2>
+		{{if $.AscGateToClear}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_review.gate_to_clear" $.AscGateToClear}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_review.gate_clear"}}</span>{{end}}
+	</div>
+	<div class="rv-card-b">
+	<ul class="rv-gate-list">
+		{{range .}}
+		<li class="rv-gate-rule{{if .Held}} is-held{{end}}" data-rule="{{.Kind}}">
+			<span class="rv-gate-mark" aria-hidden="true">{{if .Held}}{{if .Pending}}&#9719;{{else}}&#9675;{{end}}{{else}}&#10003;{{end}}</span>
+			<div>
+				<b>{{ctx.Locale.Tr (printf "asc_review.gate_rule_%s" .Kind)}}</b>
+				<span class="rp-dim">
+				{{if eq .Kind "approvals"}}{{ctx.Locale.Tr "asc_review.gate_approvals" .Have .Need}}
+				{{else if eq .Kind "checks"}}{{if .Held}}{{if .Pending}}{{ctx.Locale.Tr "asc_review.gate_checks_pending" .Have .Need}}{{else}}{{ctx.Locale.Tr "asc_review.gate_checks_failing" .Have .Need}}{{end}}{{else}}{{ctx.Locale.Tr "asc_review.gate_checks_ok" .Need}}{{end}}
+				{{else if eq .Kind "order"}}{{if .Held}}{{ctx.Locale.Tr "asc_review.gate_order_held"}}{{else}}{{ctx.Locale.Tr "asc_review.gate_order_ok"}}{{end}}
+				{{else if eq .Kind "threads"}}{{ctx.Locale.Tr "asc_review.gate_threads" .Have}}{{end}}
+				</span>
+				{{if .Names}}<span class="rv-gate-names">{{range $i, $n := .Names}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}</span>{{end}}
+			</div>
+		</li>
+		{{end}}
+	</ul>
+	<p class="rp-quiet ds-mt-12">{{if $.AscGateRules}}{{ctx.Locale.Tr "asc_review.gate_note"}}{{else}}{{ctx.Locale.Tr "asc_review.gate_no_policy"}}{{end}}</p>
 	</div>
 </section>
 {{end}}

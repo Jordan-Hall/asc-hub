@@ -82,7 +82,7 @@ func ascConfirmFail(ctx *context.Context, err error) bool {
 
 // AscConfirm renders the dry run of an operation on the stack of a pull request.
 func AscConfirm(ctx *context.Context) {
-	issue, pr, ok := ascStackTarget(ctx)
+	issue, pr, ok := ascLandTarget(ctx)
 	if !ok {
 		return
 	}
@@ -92,6 +92,15 @@ func AscConfirm(ctx *context.Context) {
 	ctx.Data["AscBack"] = issue.Link()
 	ctx.Data["AscCanConfirm"] = true
 	ctx.Data["AscPull"] = pr
+	if op == ascOpMerge || op == ascOpQueue {
+		// the scope of the land: the prefix of the stack that ends at the chosen pull request
+		if panel, err := pull_service.BuildAscStackPanel(ctx, pr); err == nil {
+			scopes := ascLandScopes(panel, issue.Index)
+			ctx.Data["AscLandScopes"] = scopes
+			ctx.Data["AscLandChoice"] = len(scopes) > 1
+		}
+		ctx.Data["AscLandTo"] = issue.Index
+	}
 
 	var written bool
 	switch op {

@@ -1,4 +1,4 @@
-import {archFromHints, osFromPlatform, initAscInstallPills, initDocsFilter, initStackFilter, initRefFilter} from './asc-ui.js';
+import {archFromHints, osFromPlatform, initAscInstallPills, initDocsFilter, initStackFilter, initRefFilter, initDocTabs, initStackSearch} from './asc-ui.js';
 
 test('archFromHints names only the builds asc ships', () => {
   expect(archFromHints({architecture: 'arm', bitness: '64'})).toBe('arm64');
@@ -79,4 +79,39 @@ test('ref pills show the sections of one kind and All shows every section', () =
   expect(all.getAttribute('aria-pressed')).toBe('false');
   all.click();
   expect(hidden()).toEqual([false, false, false]);
+});
+
+test('doc tabs show the panel of the pressed tab and move with the arrow keys', () => {
+  document.body.innerHTML = `<div data-doc-tabs>
+    <button type="button" data-doc-tab="readme" aria-selected="true"></button>
+    <button type="button" data-doc-tab="agents" aria-selected="false"></button></div>
+    <section data-doc-panel="readme"></section><section data-doc-panel="agents" hidden></section>`;
+  initDocTabs();
+  const [readme, agents] = document.querySelectorAll('button');
+  const hidden = () => Array.from(document.querySelectorAll('section'), (s) => s.hidden);
+  agents.click();
+  expect(hidden()).toEqual([true, false]);
+  expect(agents.getAttribute('aria-selected')).toBe('true');
+  expect(readme.getAttribute('aria-selected')).toBe('false');
+  agents.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight'}));
+  expect(hidden()).toEqual([false, true]);
+});
+
+test('stack search and filter hide rows together', () => {
+  document.body.innerHTML = `<div data-stack-scope><div data-stack-filter><button type="button" data-stack-show="all" aria-pressed="true"></button>
+    <button type="button" data-stack-show="mine" aria-pressed="false"></button></div><input data-stack-search>
+    <ul><li data-stack-row data-mine="true">retry backoff</li><li data-stack-row data-mine="false">refund idempotency</li></ul><p data-stack-none hidden></p></div>`;
+  initStackFilter();
+  initStackSearch();
+  const rows = () => Array.from(document.querySelectorAll('li'), (r) => r.hidden);
+  const input = document.querySelector('input');
+  input.value = 'refund';
+  input.dispatchEvent(new Event('input'));
+  expect(rows()).toEqual([true, false]);
+  document.querySelector('[data-stack-show=mine]').click();
+  expect(rows()).toEqual([true, true]);
+  expect(document.querySelector('[data-stack-none]').hidden).toBe(false);
+  input.value = '';
+  input.dispatchEvent(new Event('input'));
+  expect(rows()).toEqual([false, true]);
 });

@@ -11,8 +11,14 @@
 			<h1 class="ds-t-h2" id="ins-post-h">{{ctx.Locale.Tr "asc_install.post_h"}}</h1>
 			<p class="st-text">{{ctx.Locale.Tr "asc_install.post_t"}}</p>
 			<progress class="ds-bar ins-wait" aria-label="{{ctx.Locale.Tr "asc_install.post_h"}}"></progress>
+			<div class="ds-stack ds-stack-8" data-testid="post-install-connect">
+				<h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_install.post_connect_h"}}</h2>
+				<p class="st-text">{{ctx.Locale.Tr "asc_install.post_connect_t"}}</p>
+				<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.AscConnectCommand}}</code><button type="button" class="ds-copy" data-clipboard-text="{{.AscConnectCommand}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}">{{svg "dsi-copy" 14}}</button></div>
+			</div>
 			<div class="st-actions">
 				<a class="ds-btn ds-btn-primary" id="goto-user-login" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "asc_install.post_link"}}</a>
+				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_install.post_download"}}</a>
 			</div>
 		</section>
 	</div>

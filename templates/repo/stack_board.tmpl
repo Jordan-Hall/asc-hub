@@ -6,6 +6,10 @@
 		<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/pulls">{{ctx.Locale.Tr "asc_rp.try_again"}}</a>
 	</div>
 {{else}}
+	<div class="rp-stack-search">
+		<label class="ds-sr" for="rp-stack-q">{{ctx.Locale.Tr "asc_rp.stack_search"}}</label>
+		<input id="rp-stack-q" class="ds-input" type="search" data-stack-search placeholder="{{ctx.Locale.Tr "asc_rp.stack_search"}}" autocomplete="off">
+	</div>
 	<div class="rp-stack-bar">
 		<div class="rp-stack-filter" data-stack-filter>
 			<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.stacks_filter"}}">
@@ -36,7 +40,7 @@
 		</section>
 	{{end}}
 	{{if .StackRows}}
-		<div class="ds-card rp-stack-card">
+		<div class="ds-card rp-stack-card" data-stack-scope>
 			<ul class="rp-rows" data-stack-rows>
 				{{range .StackRows}}{{template "repo/stack_row" .}}{{end}}
 			</ul>

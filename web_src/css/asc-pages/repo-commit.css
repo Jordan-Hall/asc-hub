@@ -455,3 +455,45 @@
   font-size: 18px;
   font-weight: 700;
 }
+
+/* The change page in two columns (board Changeset): the change and its diff on the left, the rail on the right. */
+.rp-commit-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.rp-commit-main {
+  min-width: 0;
+}
+
+.rp-commit-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rp-commit-rail .rp-checks li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-commit-rail .rp-undo-btn {
+  width: 100%;
+  min-height: 44px;
+}
+
+@media (min-width: 1024px) {
+  .rp-commit-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  .rp-commit-rail {
+    position: sticky;
+    top: 72px;
+  }
+}

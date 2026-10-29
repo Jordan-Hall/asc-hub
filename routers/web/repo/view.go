@@ -188,6 +188,7 @@ func renderDirectory(ctx *context.Context) {
 	}
 
 	renderReadmeFile(ctx, subfolder, readmeFile)
+	prepareHomeDocTabs(ctx, entries)
 }
 
 // localizedExtensions prepends the provided language code with and without a
@@ -475,6 +476,7 @@ func renderFile(ctx *context.Context, entry *git.TreeEntry) {
 	ctx.Data["IsRepresentableAsText"] = isRepresentableAsText
 	if isRepresentableAsText {
 		prepareAscOutline(ctx)
+		prepareAscFileChanges(ctx)
 	}
 	ctx.Data["IsDisplayingSource"] = isDisplayingSource
 	ctx.Data["IsDisplayingRendered"] = isDisplayingRendered

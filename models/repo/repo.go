@@ -1021,6 +1021,21 @@ func (repo *Repository) NumOpenPulls(ctx context.Context) int {
 	return repo.NumPulls(ctx) - repo.NumClosedPulls(ctx)
 }
 
+// NumOpenAscStacks is the number of open stacks of an asc repository: the open pull requests that have no open child
+// (a stack is a chain of pull requests linked through pull_request_asc_stack). A failed count falls back to the
+// number of open pull requests.
+func (repo *Repository) NumOpenAscStacks(ctx context.Context) int {
+	var withChild int64
+	_, err := db.GetEngine(ctx).SQL(`SELECT COUNT(DISTINCT c.stack_parent_id) FROM pull_request_asc_stack c
+		INNER JOIN pull_request cp ON cp.id = c.pull_id INNER JOIN issue ci ON ci.id = cp.issue_id
+		INNER JOIN pull_request pp ON pp.id = c.stack_parent_id INNER JOIN issue pi ON pi.id = pp.issue_id
+		WHERE c.repo_id = ? AND c.stack_parent_id <> 0 AND ci.is_closed = ? AND pi.is_closed = ?`, repo.ID, false, false).Get(&withChild)
+	if err != nil {
+		return repo.NumOpenPulls(ctx)
+	}
+	return max(repo.NumOpenPulls(ctx)-int(withChild), 0)
+}
+
 // UpdateRepoIssueNumbers triggers a recalculation of the number of (open|closed) (issues|PRs) on a repo.  It
 // invalidates a cache which will cause this value to be calculated when accessed.
 func UpdateRepoIssueNumbers(ctx context.Context, repoID int64, isPull, isClosed bool) error {

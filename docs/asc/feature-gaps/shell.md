@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 97 |
-| ui-only-missing | 32 |
-| needs-hub-backend | 40 |
+| done | 101 |
+| ui-only-missing | 29 |
+| needs-hub-backend | 39 |
 | needs-asc-backend | 2 |
 | needs-both | 24 |
 | total | 195 |
@@ -76,7 +76,7 @@ Open rows by size: S 45, M 64, L 23.
 | Onboarding | Single sign-on button under the primary action | done | `oauth_container.tmpl` renders configured sources | - |
 | Onboarding | Rate limit ("after 5 attempts we wait 5 minutes") | needs-hub-backend | No login throttle in `routers/web/auth/auth.go` or `modules/setting`. Counter per user and IP in cache, message with the wait | M |
 | Onboarding | Sign up: username with live "Your handle: @name" and blur validation | done | `signup_inner.tmpl` has a plain field. Add handler in `web_src/js/features/user-auth.js`; a name-availability route does not exist, add one in `routers/web/auth/auth.go` (then needs-hub-backend S) | M |
-| Onboarding | Sign up: optional Full name | needs-hub-backend | Not in `signup_inner.tmpl` or `forms.RegisterForm`; set `User.FullName` in `SignUpPost` | S |
+| Onboarding | Sign up: optional Full name | done | Not in `signup_inner.tmpl` or `forms.RegisterForm`; set `User.FullName` in `SignUpPost` | S |
 | Onboarding | Sign up: strength meter and three live rules (12 characters, letters and numbers, not found in breaches) | needs-hub-backend | No meter in `web_src`. Rules and meter in `user-auth.js`; breach rule is server side: `PASSWORD_CHECK_PWN` exists (`modules/setting/security.go`, default off, runs on submit only). Add `POST /user/password/check` (k-anonymity range query), default it on | M |
 | Onboarding | Sign up: "I agree to the Terms and the Privacy policy" | needs-hub-backend | Not in the form. Needs Terms and Privacy URLs, a required checkbox and a stored acceptance | M |
 | Onboarding | Sign up has no retyped password on the board; the hub form asks for one | done | Drop the retype field (Show replaces it); relax `forms.RegisterForm` | S |
@@ -109,12 +109,12 @@ Open rows by size: S 45, M 64, L 23.
 | --- | --- | --- | --- | --- |
 | GetStarted | Four-step checklist with `aria-current=step`, done as a word | done | `templates/asc/get_started.tmpl` at `/-/get-started` | - |
 | GetStarted | Shown on `GET /` for a signed-in person with no repositories; dismissible; returns while none exist | needs-hub-backend | Nothing links to `/-/get-started` or `/user/welcome`; `routers/web/home.go` and `asc_dashboard.go` do not branch on `NumRepos == 0`. Branch there; dismiss flag as a user setting | M |
-| GetStarted | Two parallel first-run pages (`asc/get_started.tmpl`, `user/asc_welcome.tmpl` with old `hub-` classes) | ui-only-missing | Merge into one page that follows the board; delete `user/asc_welcome.tmpl` and `routers/web/asc_welcome.go` | S |
+| GetStarted | Two parallel first-run pages (`asc/get_started.tmpl`, `user/asc_welcome.tmpl` with old `hub-` classes) | done | Merge into one page that follows the board; delete `user/asc_welcome.tmpl` and `routers/web/asc_welcome.go` | S |
 | GetStarted | Step 2 ticks by itself when the first CLI sign-in arrives, no reload | needs-hub-backend | `GSConnected` is "has an access token" at render time. Add a status route (token last used by the asc CLI) and a poll in a new `asc-welcome.js`; progress bar updates | M |
 | GetStarted | Import step with source tabs and progress "Reading history 12,408 commits" | needs-hub-backend | Links to `/repo/migrate` today. Inline form plus migration-task polling (`routers/web/repo/migrate.go`, `services/migrations`) | L |
 | GetStarted | Health check (Git found, signed in, SSH key, shell shim; `asc doctor` on machine and server) | needs-both | Hub card lists email, SSH key and token only. `asc doctor` exists (`crates/asc/src/cli/doctor.rs`) but never reports to the hub: add a report call or show server checks only | L |
-| GetStarted | "This hub" card: Storage, AI providers, Email with Change and Add | ui-only-missing | Data exists (`services/ascbyo`, settings); card missing | S |
-| GetStarted | Shortcuts card | ui-only-missing | Static card; `t` and `?` need handlers (see Shell) | S |
+| GetStarted | "This hub" card: Storage, AI providers, Email with Change and Add | done | Data exists (`services/ascbyo`, settings); card missing | S |
+| GetStarted | Shortcuts card | done | Static card; `t` and `?` need handlers (see Shell) | S |
 | GetStarted | "Open the sample project" read-only | needs-hub-backend | No sample repository; seed one at first start (`routers/init.go`, `services/repository`) | M |
 | GetStarted | Empty-area cards: inbox zero on day one, no repositories, "just you" with Invite | ui-only-missing | `asc_home.tmpl` has an inbox-zero block; add the other two | S |
 
@@ -194,7 +194,7 @@ Open rows by size: S 45, M 64, L 23.
 | Docs | OS code tabs remembered; Copy without the prompt | ui-only-missing | Reuse the `initDownload` tab code; `localStorage` key | M |
 | Docs | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | Intersection observer in a new `docs.js`; links to the repository file view | M |
 | Docs | "Was this page helpful?" Yes and No | needs-hub-backend | `POST /-/docs/feedback`, stored (new table or issue on the docs repo), rate limited | M |
-| Mobile-Docs | Docs menu drawer, sticky "On this page" row, sticky next-page bar | ui-only-missing | Same templates under 768 px | M |
+| Mobile-Docs | Docs menu drawer, sticky "On this page" row, sticky next-page bar | ui-only-missing | "On this page" row and a next-guide link exist on a phone; the docs menu drawer is missing (the guide list sits under the article) | M |
 
 ## About
 

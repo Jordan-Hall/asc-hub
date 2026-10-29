@@ -9,6 +9,7 @@ import (
 	"time"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/git"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -226,4 +227,19 @@ func TestPullCausesKeepsTheGroupsSeenInTheseRuns(t *testing.T) {
 	none, err := PullCauses(System(t.Context()), c, "acme/payments", nil, since)
 	require.NoError(t, err)
 	assert.Empty(t, none, "no runs, no call")
+}
+
+func TestExcerptLocation(t *testing.T) {
+	where, anchor := ExcerptLocation("thread 'refund::retry' panicked at src/client.rs:41:9:\nassertion failed")
+	assert.Equal(t, "src/client.rs:41", where)
+	assert.Equal(t, "diff-"+git.HashFilePathForWebUI("src/client.rs")+"R41", anchor)
+
+	where, _ = ExcerptLocation("at (tests/retry.rs:7)")
+	assert.Equal(t, "tests/retry.rs:7", where, "a location in parentheses")
+
+	for _, none := range []string{"", "no location here", "elapsed 12:30", "/usr/lib/x.so:12", "../outside/x.rs:3", "version 1.2:3"} {
+		where, anchor = ExcerptLocation(none)
+		assert.Empty(t, where, none)
+		assert.Empty(t, anchor, none)
+	}
 }

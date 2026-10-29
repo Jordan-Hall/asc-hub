@@ -31,6 +31,9 @@
 					<div class="ds-li-stat"><b>{{.NumFollowers}}</b><span>{{ctx.Locale.Tr "explore.stat_followers"}}</span></div>
 				</div>
 			{{end}}
+			{{if .IsOrganization}}
+			<div class="ds-row-acts"><a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.HomeLink}}" aria-label="{{ctx.Locale.Tr "asc_shell.row_view_for" .Name}}">{{ctx.Locale.Tr "asc_shell.row_view"}}</a></div>
+			{{end}}
 		</li>
 	{{end}}
 </ul>
