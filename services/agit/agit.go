@@ -45,6 +45,10 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 	}
 	defer closePushed()
 
+	// the heads of the stacked pull requests this push made or moved: the parents are linked from git when the loop
+	// ends, because asc may not know the parent change yet and the refs of a batch are not in stack order
+	stackedHeads := map[int64]string{}
+
 	for i := range opts.OldCommitIDs {
 		// Avoid processing this change if the new commit is empty.
 		if opts.NewCommitIDs[i] == objectFormat.EmptyObjectID().String() {
@@ -173,6 +177,7 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 					logAscStack(err, ascChange)
 					return nil, fmt.Errorf("failed to record the stack of change %s: %w", shortChange(ascChange), err)
 				}
+				stackedHeads[pr.ID] = opts.NewCommitIDs[i]
 			}
 
 			log.Trace("Pull request created: %d/%d", repo.ID, prIssue.ID)
@@ -256,6 +261,7 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 				logAscStack(err, ascChange)
 				return nil, fmt.Errorf("failed to record the stack of change %s: %w", shortChange(ascChange), err)
 			}
+			stackedHeads[pr.ID] = opts.NewCommitIDs[i]
 		}
 
 		// TODO: refactor to unify with `pull_service.AddTestPullRequestTask`
@@ -290,6 +296,8 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 			IsForcePush: isForcePush,
 		})
 	}
+
+	linkAscStackedPushes(ctx, repo, pushed, stackedHeads)
 
 	return results, nil
 }
