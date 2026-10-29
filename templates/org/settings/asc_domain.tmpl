@@ -1,0 +1,46 @@
+{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "organization settings asc-domain")}}
+<div class="org-setting-content">
+	<section class="ds-card" aria-labelledby="od-title">
+		<div class="ds-card-h">
+			<h2 id="od-title">{{ctx.Locale.Tr "asc_work.org_domain"}}</h2>
+			{{if .DomainVerified}}<span class="ds-chip ds-chip-ok">{{svg "dsi-shield-check" 14}} {{ctx.Locale.Tr "asc_work.org_verified"}}</span>{{end}}
+		</div>
+		<div class="ds-card-b ds-stack-16">
+			<p class="ds-hint">{{ctx.Locale.Tr "asc_work.org_domain_lead"}}</p>
+			{{if .Domain}}
+				<p><b class="ds-mono">{{.Domain.Domain}}</b></p>
+				{{if not .DomainVerified}}
+					<p>{{ctx.Locale.Tr "asc_work.org_domain_step"}}</p>
+					<dl class="st-meta">
+						<div><dt class="ds-hint">{{ctx.Locale.Tr "asc_work.org_domain_type"}}</dt><dd class="ds-mono">TXT</dd></div>
+						<div><dt class="ds-hint">{{ctx.Locale.Tr "asc_work.org_domain_name"}}</dt><dd class="ds-mono ds-break">{{.RecordName}}</dd></div>
+						<div><dt class="ds-hint">{{ctx.Locale.Tr "asc_work.org_domain_value"}}</dt><dd class="ds-mono ds-break">{{.RecordValue}}</dd></div>
+					</dl>
+					<form action="{{.OrgLink}}/settings/domain" method="post" class="ds-row">
+						{{.CsrfTokenHtml}}
+						<input type="hidden" name="do" value="verify">
+						<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "asc_work.org_domain_check"}}</button>
+					</form>
+				{{else}}
+					<p class="ds-hint">{{ctx.Locale.Tr "asc_work.org_domain_keep"}}</p>
+				{{end}}
+				<form action="{{.OrgLink}}/settings/domain" method="post" class="ds-row">
+					{{.CsrfTokenHtml}}
+					<input type="hidden" name="do" value="remove">
+					<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_work.org_domain_remove"}}</button>
+				</form>
+			{{else}}
+				<form action="{{.OrgLink}}/settings/domain" method="post" class="ds-form">
+					{{.CsrfTokenHtml}}
+					<input type="hidden" name="do" value="claim">
+					<div class="ds-field">
+						<label class="ds-label" for="od-domain">{{ctx.Locale.Tr "asc_work.org_domain_label"}}</label>
+						<input id="od-domain" class="ds-input" name="domain" placeholder="example.org" maxlength="253" autocomplete="off" required>
+					</div>
+					<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "asc_work.org_domain_start"}}</button></div>
+				</form>
+			{{end}}
+		</div>
+	</section>
+</div>
+{{template "org/settings/layout_footer" .}}

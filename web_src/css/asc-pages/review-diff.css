@@ -946,3 +946,9 @@
     line-height: 1;
   }
 }
+
+.rv-stackpanel-queue {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}

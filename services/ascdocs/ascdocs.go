@@ -221,3 +221,8 @@ func snippet(body, word string) string {
 	}
 	return s
 }
+
+// EditURL is where the source of a page can be edited: the file in the repository of ASC Hub.
+func EditURL(p Page) string {
+	return strings.Replace(sourceBase, "/blob/", "/edit/", 1) + p.File
+}

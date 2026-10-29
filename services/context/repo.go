@@ -429,6 +429,13 @@ func repoAssignment(ctx *Context, repo *repo_model.Repository) {
 	ctx.Repo.Repository = repo
 	ctx.Data["RepoName"] = ctx.Repo.Repository.Name
 	ctx.Data["IsEmptyRepo"] = ctx.Repo.Repository.IsEmpty
+	// the Agents tab of the repository is shown to a person who switched agent features on
+	ctx.Data["AscAgentFeatures"] = false
+	if setting.Asc.Enabled && ctx.Doer != nil {
+		// the key of ascagentui.FeaturesKey (that package cannot be imported here: it would be a cycle)
+		v, err := user_model.GetUserSetting(ctx, ctx.Doer.ID, "asc.agent_features", "false")
+		ctx.Data["AscAgentFeatures"] = err == nil && v == "true"
+	}
 	ctx.Data["DefaultWikiBranchName"] = setting.Repository.DefaultBranch
 }
 
