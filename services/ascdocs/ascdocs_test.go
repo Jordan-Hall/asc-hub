@@ -68,3 +68,12 @@ func TestLinksBetweenPagesStayInTheDocumentation(t *testing.T) {
 	assert.NotContains(t, body, "](STACK-OPERATIONS.md")
 	assert.NotContains(t, body, "](OPERATIONS.md")
 }
+
+func TestEditURLPointsAtTheSourceFile(t *testing.T) {
+	p, _, ok := ascdocs.Get("overview")
+	require.True(t, ok)
+	u := ascdocs.EditURL(p)
+	assert.True(t, strings.HasPrefix(u, "https://"))
+	assert.Contains(t, u, "/edit/")
+	assert.True(t, strings.HasSuffix(u, "/docs/asc/README.md"))
+}

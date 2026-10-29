@@ -8,6 +8,7 @@
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_general"}}</h2>
 		<ul class="ds-settings-list">
 			{{template "shared/ds/snav_item" (dict "Href" $base "Label" (ctx.Locale.Tr "org.settings.options") "Icon" "sliders" "Active" .PageIsSettingsOptions)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/domain") "Label" (ctx.Locale.Tr "asc_work.org_domain") "Icon" "shield-check" "Active" .PageIsSettingsDomain)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/labels") "Label" (ctx.Locale.Tr "repo.labels") "Icon" "tag" "Active" .PageIsOrgSettingsLabels)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/blocked_users") "Label" (ctx.Locale.Tr "settings.blocked_users") "Icon" "eye" "Active" .PageIsSettingsBlockedUsers)}}
 			{{if .EnableQuota}}

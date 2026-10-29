@@ -18,8 +18,8 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 74 |
-| ui-only-missing | 28 |
+| done | 75 |
+| ui-only-missing | 27 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 2 |
 | needs-both | 36 |
@@ -210,7 +210,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | IssueView | Agent chip on comments and assignees; agents cannot approve or merge | needs-both | asc agent identity surfaced to hub users (no agent principal in hub models/user); view_content/show_role.tmpl | M |
 | IssueView | Linked stacks rail ("1 of 4 landed") and timeline event "coder-2 opened stack" | needs-hub-backend | same link table; templates/repo/issue/view_content/sidebar, comments.tmpl | M |
 | IssueView | Closed by a landed stack banner with Reopen | needs-hub-backend | view_content.tmpl + close reason on the issue | S |
-| IssueView | Comment draft kept; Cmd+Enter posts | ui-only-missing | ComboMarkdownEditor.js has Ctrl+Enter but no draft store | S |
+| IssueView | Comment draft kept; Cmd+Enter posts | done | ComboMarkdownEditor.js has Ctrl+Enter but no draft store | S |
 | Projects | Kanban board with columns, drag, edit/close/delete | done | templates/projects/view.tmpl | - |
 | Projects | Cards that are stacks following real state; Landed column by stack state | needs-hub-backend | project_issue model holds issues/PRs; map PullRequestAscStack state to a column, issue/card.tmpl | L |
 | Projects | Move menu (keyboard alternative) announcing the new column | ui-only-missing | view.tmpl + web_src/js/features/repo-projects.js | M |

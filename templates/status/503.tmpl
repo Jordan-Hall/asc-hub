@@ -5,12 +5,27 @@
 		<section class="st-card" aria-labelledby="st-title">
 			<span class="st-ic" aria-hidden="true">{{svg "dsi-alert" 40}}</span>
 			<p class="st-code ds-mono">503</p>
-			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_err.title503"}}</h1>
-			<p class="st-text">{{if .ForbiddenPrompt}}{{.ForbiddenPrompt}}{{else}}{{ctx.Locale.Tr "asc_err.text503"}}{{end}}</p>
+			{{if .AscMaintenance}}
+				<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_err.title_maintenance"}}</h1>
+				<p class="st-text">{{if .AscMaintenance.Message}}{{.AscMaintenance.Message}}{{else}}{{ctx.Locale.Tr "asc_err.text_maintenance"}}{{end}}</p>
+				<dl class="st-meta">
+					{{if .AscMaintenance.Window}}<div><dt class="ds-hint">{{ctx.Locale.Tr "asc_err.maintenance_window"}}</dt><dd>{{.AscMaintenance.Window}}</dd></div>{{end}}
+					{{if .AscMaintenance.Until}}<div><dt class="ds-hint">{{ctx.Locale.Tr "asc_err.maintenance_back"}}</dt><dd><time datetime="{{.AscMaintenance.Until}}">{{.AscMaintenance.UntilText}}</time></dd></div>{{end}}
+					<div><dt class="ds-hint">{{ctx.Locale.Tr "asc_err.maintenance_reads"}}</dt><dd>{{ctx.Locale.Tr "asc_err.maintenance_reads_text"}}</dd></div>
+				</dl>
+			{{else}}
+				<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_err.title503"}}</h1>
+				<p class="st-text">{{if .ForbiddenPrompt}}{{.ForbiddenPrompt}}{{else}}{{ctx.Locale.Tr "asc_err.text503"}}{{end}}</p>
+			{{end}}
 			<div class="st-actions">
 				<a class="ds-btn {{if .IsSigned}}ds-btn-primary{{else}}ds-btn-secondary{{end}}" href="{{AppSubUrl}}/">{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}</a>
-				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "asc_err.search_hub"}}</a>
+				{{if and .AscMaintenance .AscMaintenance.StatusURL}}
+					<a class="ds-btn ds-btn-secondary" href="{{.AscMaintenance.StatusURL}}" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_err.status_page"}}</a>
+				{{else}}
+					<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "asc_err.search_hub"}}</a>
+				{{end}}
 			</div>
+			{{if .RequestID}}<p class="st-reqid ds-mono">{{ctx.Locale.Tr "asc_err.request_id"}} <span class="st-reqid-v">{{.RequestID}}</span> &middot; {{.RequestTime}} UTC</p>{{end}}
 		</section>
 	</div>
 </div>

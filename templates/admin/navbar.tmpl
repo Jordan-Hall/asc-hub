@@ -52,6 +52,7 @@
 			{{if .AscEnabled}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_admin.audit") "Icon" "history" "Active" .PageIsAdminAscAudit)}}
 			{{end}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/maintenance") "Label" (ctx.Locale.Tr "asc_admin.maintenance") "Icon" "alert" "Active" .PageIsAdminMaintenance)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/backups") "Label" (ctx.Locale.Tr "asc_admin.backups") "Icon" "cloud-download" "Active" .PageIsAdminBackups)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/auths") "Label" (ctx.Locale.Tr "asc_admin.authentication") "Icon" "lock" "Active" .PageIsAdminAuthentications)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/notices") "Label" (ctx.Locale.Tr "asc_admin.notices") "Icon" "bell" "Active" .PageIsAdminNotices)}}

@@ -806,6 +806,14 @@ func CompareDiff(ctx *context.Context) {
 		ctx.Flash.Warning(renderErrorOfTemplates(ctx, templateErrs), true)
 	}
 
+	// a repository that keeps its history in asc opens a change with the intent headings (what, why, how to check, risk)
+	// when it has no template of its own and the message of the commit gave no text
+	if _, has := ctx.Data[pullRequestTemplateKey].(string); !has && ctx.Repo.Repository.GetStorageBackend() == "asc" {
+		if content, _ := ctx.Data["content"].(string); content == "" {
+			ctx.Data[pullRequestTemplateKey] = ascIntentTemplate(ctx)
+		}
+	}
+
 	if content, ok := ctx.Data["content"].(string); ok && content != "" {
 		// If a template content is set, prepend the "content". In this case that's only
 		// applicable if you have one commit to compare and that commit has a message.
@@ -973,4 +981,13 @@ func getExcerptLines(commit *git.Commit, filePath string, idxLeft, idxRight, chu
 		return nil, fmt.Errorf("getExcerptLines scan: %w", err)
 	}
 	return diffLines, nil
+}
+
+// ascIntentTemplate is the text a new change starts with: the four headings of an intent, in the language of the person.
+func ascIntentTemplate(ctx *context.Context) string {
+	var b strings.Builder
+	for _, key := range []string{"what", "why", "check", "risk"} {
+		b.WriteString("## " + ctx.Locale.TrString("asc_rp.intent_"+key) + "\n\n\n")
+	}
+	return b.String()
 }

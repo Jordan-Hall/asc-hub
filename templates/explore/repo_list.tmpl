@@ -49,12 +49,12 @@
 			{{if $open}}
 				<div class="ds-li-aside ds-hide-md"><a class="ds-chip ds-chip-info" href="{{.Link}}/pulls">{{ctx.Locale.TrPluralString $open "explore.open_stacks_n" (ctx.Locale.PrettyNumber $open)}}</a></div>
 			{{end}}
-			{{if or AscEnabled (and $.IsSigned (not $.DisableStars))}}
+			{{if or AscEnabled (and $.IsSigned (not $.DisableStars) $.StarredRepos)}}
 			<div class="ds-row-acts">
 				{{if AscEnabled}}
 				<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-clipboard-text="asc clone {{AscHubHost}}/{{.FullName}}" data-ds-toast-copied="{{ctx.Locale.Tr "asc_shell.clone_copied"}}" aria-label="{{ctx.Locale.Tr "asc_shell.row_copy_clone_for" .FullName}}">{{svg "dsi-copy" 16}}<span class="ds-row-act-text">{{ctx.Locale.Tr "asc_shell.row_copy_clone"}}</span></button>
 				{{end}}
-				{{if and $.IsSigned (not $.DisableStars)}}
+				{{if and $.IsSigned (not $.DisableStars) $.StarredRepos}}
 					{{$starred := index $.StarredRepos .ID}}
 					<form action="{{.Link}}/action/{{if $starred}}unstar{{else}}star{{end}}" method="post">
 						{{$.CsrfTokenHtml}}
