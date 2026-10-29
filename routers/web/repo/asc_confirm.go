@@ -95,7 +95,9 @@ func AscConfirm(ctx *context.Context) {
 	if op == ascOpMerge || op == ascOpQueue {
 		// the scope of the land: the prefix of the stack that ends at the chosen pull request
 		if panel, err := pull_service.BuildAscStackPanel(ctx, pr); err == nil {
-			ctx.Data["AscLandScopes"] = ascLandScopes(panel, issue.Index)
+			scopes := ascLandScopes(panel, issue.Index)
+			ctx.Data["AscLandScopes"] = scopes
+			ctx.Data["AscLandChoice"] = len(scopes) > 1
 		}
 		ctx.Data["AscLandTo"] = issue.Index
 	}
