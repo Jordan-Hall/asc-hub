@@ -476,7 +476,7 @@ func PullCauses(ctx context.Context, conn grpc.ClientConnInterface, repoName str
 }
 
 // excerptLocation finds a source location in a log: a path with an extension, a colon and a line number.
-var excerptLocation = regexp.MustCompile(`(?:^|[\s(\[\x60'"])((?:[A-Za-z0-9_.@-]+/)*[A-Za-z0-9_.@-]+\.[A-Za-z0-9]{1,8}):(\d{1,6})(?::\d+)?`)
+var excerptLocation = regexp.MustCompile(`(?:^|[\s(\[\x60'"])((?:[A-Za-z0-9_.@-]+/)*[A-Za-z0-9_.@-]+\.[A-Za-z][A-Za-z0-9]{0,7}):(\d{1,6})(?::\d+)?`)
 
 // ExcerptLocation returns the first "path:line" of a log excerpt as shown ("src/client.rs:41") and the anchor of that line
 // in the diff of the pull request ("diff-<hash of the path>R<line>"), or two empty strings. A path that climbs out of the
