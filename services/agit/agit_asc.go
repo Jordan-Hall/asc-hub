@@ -248,3 +248,29 @@ func ascDeniedMessage(change string) string {
 func logAscStack(err error, change string) {
 	log.Error("asc stack for change %s: %v", shortChange(change), err)
 }
+
+// RelinkAscStack links a stacked pull request to the pull request of its parent change when the link was not made
+// at push time: asc may not know the parent of a change at the moment the push hook asks (the metadata of a batch
+// arrives with it), so the stack page asks again. It does nothing for a pull request that has a parent, for a
+// change that is a bottom, and on any error.
+func RelinkAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues_model.PullRequest) {
+	row, err := issues_model.GetPullRequestAscStack(ctx, pr.ID)
+	if err != nil || row == nil || row.StackParentID != 0 {
+		return
+	}
+	parent, err := ascParentOf(ctx, repo, row.AscChange)
+	if err != nil || parent == "" {
+		return
+	}
+	pp, err := issues_model.GetOpenPullRequestByAscChange(ctx, repo.ID, parent)
+	if err != nil || pp.ID == pr.ID {
+		return
+	}
+	if err := issues_model.SetAscStackParent(ctx, pr.ID, pp.ID); err != nil {
+		log.Error("asc stack: relinking pull request %d: %v", pr.ID, err)
+		return
+	}
+	if err := pull_service.RecomputeAscStackBase(ctx, pr); err != nil {
+		log.Error("asc stack: base of pull request %d: %v", pr.ID, err)
+	}
+}
