@@ -26,6 +26,7 @@ type adminAndScan struct {
 	mu       sync.Mutex
 	trunks   []string
 	trunkErr error
+	head     string
 	revs     []string
 	failRev  string
 	findings map[string][]*ascv1.SecretFinding
@@ -40,6 +41,12 @@ func (s *adminAndScan) RepoAdmin(_ context.Context, req *ascv1.RepoAdminRequest)
 	}
 	s.trunks = append(s.trunks, req.GetSetDefaultBranch())
 	return &ascv1.RepoAdminResponse{}, nil
+}
+
+func (s *adminAndScan) ListRefs(context.Context, *ascv1.ListRefsRequest) (*ascv1.ListRefsResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return &ascv1.ListRefsResponse{Head: s.head}, nil
 }
 
 func (s *adminAndScan) Scan(_ context.Context, req *ascv1.ScanSecretsRequest) (*ascv1.ScanSecretsResponse, error) {
@@ -120,4 +127,18 @@ func TestScanImportedHistoryScansTipsAndMarksFindings(t *testing.T) {
 	_, err = ScanImportedHistory(t.Context(), fx.repo, "main", []string{"main", "dev"})
 	require.Error(t, err)
 	assert.Equal(t, []string{"refs/heads/main", "refs/heads/dev"}, s.revs)
+}
+
+func TestTrunkOfReadsTheBranchAscProtects(t *testing.T) {
+	fx := newFixture(t)
+	s := &adminAndScan{noted: map[uint64]string{}, head: "refs/heads/main"}
+	serveAdminAndScan(t, s)
+
+	got, err := TrunkOf(t.Context(), fx.repo)
+	require.NoError(t, err)
+	assert.Equal(t, "main", got)
+
+	s.head = ""
+	_, err = TrunkOf(t.Context(), fx.repo)
+	require.ErrorIs(t, err, ErrBadAnswer)
 }

@@ -289,3 +289,22 @@ By hand:
 - `curl -fsS https://hub.example.org/.well-known/asc` returns `{"server":"...","repos":"*"}`; a 404 means `[asc] ENABLED` is false or `SERVER_URL` is empty.
 - Look in the container log for `asc-hub:` lines and for `[asc]` validation errors; an invalid `[asc]` value stops the start.
 - `asc clone https://hub.example.org/<owner>/<repo>` with the `asc` CLI, for the ASC-native path that the smoke test does not use.
+
+## The default branch asc protects
+
+asc protects one branch of each repository (path rules, secret scanning, review, signing): the trunk it holds. The hub
+tells asc the trunk when a repository is made, when a migration finishes importing, and whenever the default branch
+changes in the hub (settings or a rename). A repository imported by an older hub, or whose default branch changed
+before the hub told asc, can have a different branch protected than the one people push to, and the real default
+branch is then unscanned.
+
+Find and repair them (needs an asc that has `RepoAdmin set_default_branch`; the check changes nothing without `--fix`):
+
+```sh
+forgejo doctor check --run asc-default-branch            # lists the repositories that protect the wrong branch
+forgejo doctor check --run asc-default-branch --fix      # tells asc the hub's default branch for each of them
+```
+
+The check is idempotent: a repository whose trunk is right is not touched, and every change asc makes is in its audit
+log as `repo.default_branch` (with `from` and `to`). Empty repositories and repositories still being migrated are
+skipped. Run it once after updating the hub and asc together; new repositories need nothing.
