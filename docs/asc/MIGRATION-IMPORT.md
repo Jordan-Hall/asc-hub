@@ -47,6 +47,15 @@ What a migration does with that:
    exactly as in a repository that was never imported. The same call follows every change of the default branch in
    the hub (settings, branch rename), so the protected branch is always the default branch.
 
+The placeholder never survives the migration (`settleAscTrunk`, `settleEmptyAscMigration`): an empty source gets
+its real default branch (the source's, else the instance's) as trunk right after the clone; a failed, refused or
+cancelled migration sets it before the task ends (the repair does not stop with the cancel); and when the server
+starts, `RepairAscTrunks` tells asc the default branch of every ready repository whose trunk asc reports as
+something else (an asc that does not report its trunk is repaired with `forgejo doctor check --run
+asc-default-branch --fix`). A repository that is still being migrated cannot be pushed to. The first branch pushed
+to an empty repository becomes its default branch, and pre-receive tells asc before asc judges that push, so the
+first push is gated too.
+
 A migration whose asc cannot set the default branch (an asc without `set_default_branch`) fails, with that reason:
 leaving the real default branch unprotected is not an option.
 
@@ -62,6 +71,17 @@ pusher (asc sends it as `Internal` with the status in the text; the hub reads it
 - The wiki is a plain git repository next to the bridge (as for every asc repository) and is cloned as for git.
 - LFS objects are fetched into the hub's LFS store after the import, reading the pointers from the clone, as for a
   git repository (the code path does not depend on the storage; not run against an LFS server in this check).
+
+## What was checked against real sources, and what was not
+
+GitHub itself was used for the code, tags, issues, labels and pull requests of public repositories. Releases with
+assets, milestones and LFS were checked against a mock of the GitHub API, the Git LFS batch API and release asset
+downloads (`tests/asc-e2e/mock_github.py`, run by `import_mock.sh`): two milestones, two labels, two releases with an
+asset each and an LFS object of 1850 bytes arrived in an asc repository. Not checked: GitHub's own redirects for
+release assets (objects.githubusercontent.com), the rate limits of the real API with a token, Git LFS servers that
+need authentication or the `lock` API, GitLab, Gitea and Gogs sources. LFS asked for on a server that does not run
+LFS is refused with a message (API 422, web form error); an LFS object the source does not hold fails the migration
+with that object named. Nothing is skipped silently.
 
 ## Known limits
 

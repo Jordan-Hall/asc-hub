@@ -302,6 +302,21 @@ func (ctx *preReceiveContext) importIntoAsc() bool {
 	for i, name := range ctx.opts.RefFullNames {
 		refs[i] = ascsync.PushRef{Name: string(name), Old: ctx.opts.OldCommitIDs[i], New: ctx.opts.NewCommitIDs[i]}
 	}
+	// The first branch pushed to an empty repository becomes its default branch (post-receive does that). asc
+	// protects the branch it holds as trunk (path rules, secret scanning), so it has to hold this one before it
+	// judges this push: otherwise the first push, the one most likely to carry a forgotten key, goes in ungated.
+	if repo.IsEmpty {
+		if branch := firstPushedDefaultBranch(refs); branch != "" && branch != repo.DefaultBranch {
+			if err := ascsync.SetDefaultBranch(ctx, repo, branch); err != nil {
+				log.Error("asc did not take %q as the default branch of %-v: %v", branch, repo, err)
+				ctx.JSON(http.StatusInternalServerError, private.Response{
+					UserMsg: "asc could not set the default branch of this repository; the push was refused. Try again later.",
+					Err:     "asc default branch",
+				})
+				return false
+			}
+		}
+	}
 	// asc's outbox can call post-receive before this call returns, and names the hub itself as the pusher, so
 	// the pusher is recorded first (services/ascsync/fanout.go).
 	// The memory of the push is forgotten on every path that does not end with the push accepted, so a refused or
@@ -739,3 +754,25 @@ func (ctx *preReceiveContext) loadPusherAndPermission() bool {
 	ctx.loadedPusher = true
 	return true
 }
+
+// firstPushedDefaultBranch is the branch of a push to an empty repository that becomes its default branch, by the
+// rule post-receive applies: master or main when pushed, else the first new branch. "" when the push creates none.
+func firstPushedDefaultBranch(refs []ascsync.PushRef) string {
+	first := ""
+	for _, r := range refs {
+		name := git.RefName(r.Name)
+		if !name.IsBranch() || isZeroCommit(r.New) || !isZeroCommit(r.Old) {
+			continue
+		}
+		b := name.BranchName()
+		if b == "master" || b == "main" {
+			return b
+		}
+		if first == "" {
+			first = b
+		}
+	}
+	return first
+}
+
+func isZeroCommit(id string) bool { return strings.Trim(id, "0") == "" }
