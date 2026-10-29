@@ -13,8 +13,13 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 )
+
+// ImportTrunkPlaceholder is the default branch a repository made for a migration starts with, so that its import is not
+// held to the gate. It is no branch of any source, and no state in which a repository may be used.
+const ImportTrunkPlaceholder = "asc-import-pending"
 
 // ImportedHistoryNote is the note a secret found in imported history carries on the secret scanning page.
 const ImportedHistoryNote = "found in imported history"
@@ -191,4 +196,38 @@ func TrunkOf(ctx context.Context, repo *repo_model.Repository) (string, error) {
 		return "", fmt.Errorf("%w: asc reports the default branch %q", ErrBadAnswer, resp.GetHead())
 	}
 	return head, nil
+}
+
+// TakeTrunk makes branch the trunk asc protects, for the push that is about to be judged, and returns the function
+// that puts the previous trunk back. It compares with the trunk asc reports, not with what the hub believes: the two
+// drift (a placeholder left by a migration, a change that never reached asc), and a comparison with the hub's own
+// value would leave the wrong branch protected whenever they happen to agree. An asc that does not report its trunk
+// is told in any case. restore is never nil; it does nothing when the trunk was right already.
+func TakeTrunk(ctx context.Context, repo *repo_model.Repository, branch string) (restore func(), err error) {
+	restore = func() {}
+	current, err := TrunkOf(ctx, repo)
+	if err != nil {
+		return restore, err
+	}
+	if current != "" && current == branch {
+		return restore, nil
+	}
+	if err := SetDefaultBranch(ctx, repo, branch); err != nil {
+		return restore, err
+	}
+	previous := current
+	if previous == "" || previous == ImportTrunkPlaceholder {
+		// asc did not say, or it kept the placeholder: going back to that would leave the repository ungated, so the
+		// hub's value is what comes back.
+		previous = repo.DefaultBranch
+	}
+	return func() {
+		if previous == "" || previous == branch {
+			return
+		}
+		// The push was refused: the trunk goes back, whatever happened to the request that made the push.
+		if err := SetDefaultBranch(context.WithoutCancel(ctx), repo, previous); err != nil {
+			log.Error("asc keeps %q as the trunk of %-v after a refused push (it was %q): %v", branch, repo, previous, err)
+		}
+	}, nil
 }

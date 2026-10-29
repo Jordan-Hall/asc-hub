@@ -110,11 +110,18 @@ func repoInitFiles(repo *repo_model.Repository, opts CreateRepoOptions) ([]repos
 	return ops, nil
 }
 
-// InitRepository initializes README and .gitignore if needed.
-func initRepository(ctx context.Context, repoPath string, u *user_model.User, repo *repo_model.Repository, opts CreateRepoOptions) (err error) {
+// initRepository makes the store of a new repository (the git directory, or the repository in asc) and fills it as asked.
+// created says whether this call made the store: when it did not (the store exists already, which is somebody else's
+// repository, or it could not be made) nothing at its path or in asc is this call's to remove.
+func initRepository(ctx context.Context, repoPath string, u *user_model.User, repo *repo_model.Repository, opts CreateRepoOptions) (created bool, err error) {
 	if err = repo_module.CheckInitRepositoryFor(ctx, repo, opts.ObjectFormatName); err != nil {
-		return err
+		return false, err
 	}
+	return true, fillRepository(ctx, repoPath, u, repo, opts)
+}
+
+// fillRepository initializes README and .gitignore if needed, in the store initRepository made.
+func fillRepository(ctx context.Context, repoPath string, u *user_model.User, repo *repo_model.Repository, opts CreateRepoOptions) (err error) {
 
 	// Initialize repository according to user's choice.
 	if opts.AutoInit {
@@ -221,6 +228,10 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 	}
 
 	var rollbackRepo *repo_model.Repository
+	// storeIsOurs is true only once this call made the store of the repository (the git directory, or the repository
+	// in asc). Until then a failure removes the new database rows and nothing else: the files at the path, and the
+	// repository of that name in asc, belong to somebody else.
+	storeIsOurs := false
 
 	create := func(ctx context.Context) error {
 		if err := repo_module.CreateRepositoryByExample(ctx, doer, u, repo, false, false); err != nil {
@@ -253,9 +264,15 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 			}
 		}
 
-		if err = initRepository(ctx, repoPath, doer, repo, opts); err != nil {
+		created, err := initRepository(ctx, repoPath, doer, repo, opts)
+		storeIsOurs = created
+		if err != nil {
+			if !created {
+				// The store was there already (or could not be made): it is not ours to delete.
+				return fmt.Errorf("initRepository: %w", err)
+			}
 			if repo.GetStorageBackend() == string(gitrepo.StorageBackendAsc) {
-				// The repository may exist in asc already; Delete drops it and its bridge, and a missing one is no error.
+				// This call made the repository in asc; Delete drops it and its bridge.
 				if writer, werr := repostore.Default(); werr == nil {
 					_ = writer.Delete(ctx, repo.StoreRef())
 				}
@@ -265,6 +282,7 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 				return fmt.Errorf(
 					"delete repo directory %s/%s failed(2): %v", u.Name, repo.Name, err2)
 			}
+			storeIsOurs = false // removed
 			return fmt.Errorf("initRepository: %w", err)
 		}
 
@@ -305,7 +323,9 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 	}
 	if err != nil {
 		if rollbackRepo != nil {
-			if errDelete := DeleteRepositoryDirectly(ctx, rollbackRepo.ID, DeleteRepositoryOpts{}); errDelete != nil {
+			// The files are removed only when this call made them: a repository that failed because the files of
+			// another one were in its way loses its rows and nothing else.
+			if errDelete := DeleteRepositoryDirectly(ctx, rollbackRepo.ID, DeleteRepositoryOpts{KeepFiles: !storeIsOurs}); errDelete != nil {
 				log.Error("Rollback deleteRepository: %v", errDelete)
 			}
 		}

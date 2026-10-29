@@ -148,3 +148,47 @@ func TestTrunkOfReadsTheBranchAscProtects(t *testing.T) {
 	_, err = TrunkOf(t.Context(), fx.repo)
 	require.ErrorIs(t, err, ErrBadAnswer)
 }
+
+// The first push to an empty repository is judged by the branch it creates: asc is told that branch whenever the trunk
+// asc reports is another one (the hub's own value does not matter), and when asc refuses the push the trunk goes back.
+func TestTakeTrunkComparesWithTheTrunkAscReportsAndRestoresIt(t *testing.T) {
+	fx := newFixture(t)
+	fx.repo.DefaultBranch = "main"
+	s := &adminAndScan{noted: map[uint64]string{}, head: "refs/heads/" + ImportTrunkPlaceholder}
+	serveAdminAndScan(t, s)
+
+	// asc kept the placeholder while the hub says main, and the push creates main: asc is told, though hub and branch agree.
+	restore, err := TakeTrunk(t.Context(), fx.repo, "main")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"main"}, s.trunks)
+	// The push is refused: the trunk does not go back to the placeholder (which would leave the repository ungated); it
+	// stays the hub's default branch, which is the branch it was just made.
+	restore()
+	assert.Equal(t, []string{"main"}, s.trunks)
+
+	// The trunk is the branch already: nothing is said, and nothing is restored.
+	s.trunks, s.head = nil, "refs/heads/trunk"
+	restore, err = TakeTrunk(t.Context(), fx.repo, "trunk")
+	require.NoError(t, err)
+	restore()
+	assert.Empty(t, s.trunks)
+
+	// A first push to another branch while asc protects main: the new branch is the trunk for this push, and a refusal puts main back.
+	s.head = "refs/heads/main"
+	restore, err = TakeTrunk(t.Context(), fx.repo, "other")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"other"}, s.trunks)
+	restore()
+	assert.Equal(t, []string{"other", "main"}, s.trunks)
+
+	// An asc that does not report a trunk is told in any case.
+	s.trunks, s.head = nil, ""
+	_, err = TakeTrunk(t.Context(), fx.repo, "main")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"main"}, s.trunks)
+
+	// asc does not take it: the caller refuses the push.
+	s.trunkErr = status.Error(codes.Unavailable, "down")
+	_, err = TakeTrunk(t.Context(), fx.repo, "zzz")
+	require.Error(t, err)
+}

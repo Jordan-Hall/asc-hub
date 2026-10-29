@@ -77,6 +77,13 @@
   place-items: center;
 }
 
+.rp-migrating-bar {
+  width: 100%;
+  max-width: 24rem;
+  height: 0.5rem;
+  accent-color: var(--accent, currentcolor);
+}
+
 .rp-migrating-err {
   color: var(--err);
 }
