@@ -101,6 +101,10 @@ func Init(ctx context.Context) error {
 	if err := initPushQueue(); err != nil {
 		return err
 	}
+	if setting.Asc.Enabled {
+		// A migration that was cut short (a crash, a stop of the server) can have left the placeholder trunk behind.
+		go RepairAscTrunks(graceful.GetManager().ShutdownContext())
+	}
 	return initBranchSyncQueue(graceful.GetManager().ShutdownContext())
 }
 
