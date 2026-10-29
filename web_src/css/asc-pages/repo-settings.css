@@ -428,3 +428,8 @@
   width: auto;
   max-width: 100%;
 }
+
+/* Links inside running text are underlined, so they do not rely on colour alone. */
+.repo-setting-content a[target="_blank"] {
+  text-decoration: underline;
+}
