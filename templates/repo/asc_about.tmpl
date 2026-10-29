@@ -90,6 +90,7 @@
 	<section class="rp-card" aria-labelledby="rp-rel-title">
 		<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-rel-title">{{ctx.Locale.Tr "asc_rp.latest_release"}}</h2><a class="rp-sec-act" href="{{.RepoLink}}/releases">{{ctx.Locale.Tr "asc_rp.all_n" (ctx.Locale.PrettyNumber .NumReleases)}}</a></div>
 		<p class="rp-rel-line"><a class="rp-rel-name" href="{{.RepoLink}}/releases/tag/{{PathEscapeSegments .HomeRelease.TagName}}">{{if .HomeRelease.Title}}{{.HomeRelease.Title}}{{else}}{{.HomeRelease.TagName}}{{end}}</a>{{if not .HomeRelease.IsPrerelease}} <span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "repo.release.stable"}}</span>{{else}} <span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.release.prerelease"}}</span>{{end}}</p>
+		{{with .HomeReleaseChanges}}{{if .Total}}<p class="rp-quiet" data-testid="home-release-changes">{{ctx.Locale.TrN .Total "asc_rp.n_changes_one" "asc_rp.n_changes_other" (ctx.Locale.PrettyNumber .Total)}}{{if .Agents}}, {{ctx.Locale.Tr "asc_rp.rel_by_agents" .Agents}}{{end}}</p>{{end}}{{end}}
 		<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.published" (DateUtils.TimeSince .HomeRelease.CreatedUnix)}}</p>
 	</section>
 	{{end}}

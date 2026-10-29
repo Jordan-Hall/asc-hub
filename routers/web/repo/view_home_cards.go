@@ -253,6 +253,9 @@ func prepareHomeCards(ctx *context.Context) {
 		rel, err := repo_model.GetLatestReleaseByRepoID(ctx, repo.ID)
 		if err == nil {
 			ctx.Data["HomeRelease"] = rel
+			if ctx.Repo.CanRead(unit.TypeCode) {
+				ctx.Data["HomeReleaseChanges"] = releaseChangesOf(ctx, rel)
+			}
 		} else if !repo_model.IsErrReleaseNotExist(err) {
 			log.Error("home: latest release of %s: %v", repo.FullName(), err)
 		}

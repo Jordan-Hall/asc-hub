@@ -1528,3 +1528,62 @@
     flex-wrap: wrap;
   }
 }
+
+/* ---- a release card: provenance line and the changes grouped by kind (board Releases) ---- */
+.rp-rel-prov {
+  margin: 6px 0 0;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.rp-rel-changes {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.rp-rel-changes > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--touch);
+  cursor: pointer;
+  list-style: none;
+}
+
+.rp-rel-group {
+  margin: 12px 0 4px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rp-rel-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-rel-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 5px 0;
+  font-size: 14px;
+}
+
+.rp-rel-list li > a:first-child {
+  flex: 1 1 14rem;
+  min-width: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.rp-rel-who {
+  color: var(--text-2);
+  font-size: 12.5px;
+}
