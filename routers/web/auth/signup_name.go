@@ -14,6 +14,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/structs"
 	"forgejo.org/services/context"
+	"forgejo.org/services/forms"
 )
 
 // States of the answer of SignUpNameAvailable.
@@ -77,4 +78,14 @@ func signUpNameState(ctx *context.Context, name string) string {
 		return signUpNameTaken
 	}
 	return signUpNameOK
+}
+
+// newSignUpUser is the account a sign up form asks for: the user name, the optional full name, the address and the password.
+func newSignUpUser(form *forms.RegisterForm) *user_model.User {
+	return &user_model.User{
+		Name:     form.UserName,
+		FullName: strings.TrimSpace(form.FullName),
+		Email:    form.Email,
+		Passwd:   form.Password,
+	}
 }
