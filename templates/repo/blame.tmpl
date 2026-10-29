@@ -24,7 +24,7 @@
 										<div class="blame-avatar">{{$row.Avatar}}</div>
 										{{if $row.IsAgent}}<span class="ds-chip ds-chip-agent rp-agent-chip">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}
 										<div class="blame-message">
-											<a class="suppressed" href="{{$row.CommitURL}}" title="{{$row.CommitMessage}}">{{$row.CommitMessage}}</a>
+											{{if $row.CommitMessage}}<a class="suppressed" href="{{$row.CommitURL}}" title="{{$row.CommitMessage}}">{{$row.CommitMessage}}</a>{{end}}
 										</div>
 										{{if $row.CommitMessage}}<a class="blame-sha rp-hash" href="{{$row.CommitURL}}">{{ShortSha $row.PartSha}}</a>{{end}}
 										<div class="blame-time">{{$row.CommitSince}}</div>
