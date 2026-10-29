@@ -44,7 +44,7 @@ func TestAscBriefOfTheWrittenBrief(t *testing.T) {
 	require.NotNil(t, b.Provenance)
 	assert.Equal(t, "/o/r/asc/agents/runs/214", b.Provenance.RunLink)
 	assert.EqualValues(t, 11, b.Provenance.Minutes)
-	assert.EqualValues(t, 3, b.OpenThreads+2)
+	assert.EqualValues(t, 1, b.OpenThreads)
 }
 
 func TestAscBriefOfWithoutABrief(t *testing.T) {
@@ -65,4 +65,18 @@ func TestAscBriefOfRefusesAnAbsurdAnswer(t *testing.T) {
 	stats := make([]*ascv1.ChangeFileStat, 501)
 	_, err = ascBriefOf(&ascv1.GetBriefResponse{FileStats: stats}, run, file)
 	assert.Error(t, err)
+}
+
+func TestAscBriefOfApprovals(t *testing.T) {
+	run, file := briefLinks()
+	b, err := ascBriefOf(&ascv1.GetBriefResponse{Approvals: []*ascv1.ApprovalInfo{
+		{Reviewer: "priya", Version: 3, State: ascv1.ApprovalState_APPROVAL_STATE_APPROVED, Applies: true, Carried: true, UnchangedFiles: 4},
+		{Reviewer: "diego", Version: 4, State: ascv1.ApprovalState_APPROVAL_STATE_CHANGES_REQUESTED, Applies: true},
+		{Reviewer: "hannah", Version: 1, State: ascv1.ApprovalState_APPROVAL_STATE_DISMISSED},
+	}}, run, file)
+	require.NoError(t, err)
+	require.Len(t, b.Approvals, 2, "a dismissed verdict is not shown")
+	assert.True(t, b.Approvals[0].Carried)
+	assert.EqualValues(t, 4, b.Approvals[0].UnchangedFiles)
+	assert.True(t, b.Approvals[1].ChangesRequested)
 }
