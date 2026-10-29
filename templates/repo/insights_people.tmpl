@@ -1,0 +1,70 @@
+{{/* The People board of an asc repository: who landed, who reviewed, who writes the code. Dot: page data. */}}
+{{with .AscPeople}}
+<div class="rp-ins" data-testid="asc-people">
+	<div class="rp-ins-head">
+		<div>
+			<h2 class="rp-h1">{{ctx.Locale.Tr "repo.activity.navbar.contributors"}}</h2>
+			<p class="rp-sub">{{ctx.Locale.Tr "asc_rp.people_sub"}}</p>
+		</div>
+		<div class="ds-seg ds-seg-mini" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.ins_range"}}">
+			<a href="?range=7d"{{if eq .Range "7d"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_7d"}}</a>
+			<a href="?range=30d"{{if eq .Range "30d"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_30d"}}</a>
+			<a href="?range=year"{{if eq .Range "year"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_year"}}</a>
+		</div>
+	</div>
+	{{if .Truncated}}<div class="ds-banner ds-banner-warn" role="status">{{ctx.Locale.Tr "asc_rp.ins_truncated"}}</div>{{end}}
+	{{if .HasAgentPct}}
+	<section class="ds-card rp-ins-card" aria-labelledby="rp-who-h">
+		<h3 class="rp-sec-title" id="rp-who-h">{{ctx.Locale.Tr "asc_rp.who_writes"}}</h3>
+		<p class="rp-fact-big ds-num">{{ctx.Locale.Tr "asc_rp.who_split" .PeoplePct .AgentPct}}</p>
+		<progress class="wk-progress" max="100" value="{{.AgentPct}}" aria-label="{{.AgentPct}}%">{{.AgentPct}}%</progress>
+		{{if .AllApproved}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.ins_all_approved"}}</p>{{end}}
+	</section>
+	{{end}}
+	{{if .Rows}}
+	<section class="ds-card rp-ins-card" aria-labelledby="rp-people-h">
+		<h3 class="rp-sec-title" id="rp-people-h">{{ctx.Locale.Tr "repo.activity.navbar.contributors"}}</h3>
+		<div class="ds-table-wrap">
+			<table class="ds-table">
+				<caption class="ds-sr">{{ctx.Locale.Tr "repo.activity.navbar.contributors"}}</caption>
+				<thead><tr>
+					<th scope="col">{{ctx.Locale.Tr "asc_rp.people_who"}}</th>
+					<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_rp.people_landed"}}</th>
+					<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_rp.people_reviews"}}</th>
+					<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_rp.ins_median"}}</th>
+					<th scope="col">{{ctx.Locale.Tr "asc_rp.people_weeks"}}</th>
+					<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_rp.people_share"}}</th>
+				</tr></thead>
+				<tbody>
+					{{range .Rows}}
+					<tr>
+						<th scope="row">
+							{{if .Agent}}<a class="ds-mono" href="{{$.RepoLink}}/asc/agents">{{.Name}}</a> <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{if .RunBy}}<span class="rp-quiet"> {{ctx.Locale.Tr "asc_rp.run_by" .RunBy}}</span>{{end}}
+							{{else if .User}}<a href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>
+							{{else}}{{.Name}}{{end}}
+						</th>
+						<td class="ds-r ds-num">{{.Landed}}</td>
+						<td class="ds-r ds-num">{{if .Agent}}&mdash;{{else}}{{.Reviews}}{{end}}</td>
+						<td class="ds-r ds-num">{{if .HasMedian}}{{ctx.Locale.Tr "asc_rp.ins_minutes" .MedianMin}}{{else}}&mdash;{{end}}</td>
+						<td>{{if .Spark}}<svg class="rp-spark" viewBox="0 0 100 24" role="img" aria-label="{{ctx.Locale.Tr "asc_rp.people_weeks"}}" preserveAspectRatio="none"><polyline points="{{.Spark}}" fill="none" stroke="currentColor" stroke-width="1.5"></polyline></svg>{{end}}</td>
+						<td class="ds-r ds-num">{{.SharePct}}%</td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+		</div>
+	</section>
+	<section class="ds-card rp-ins-card" aria-labelledby="rp-load-h">
+		<h3 class="rp-sec-title" id="rp-load-h">{{ctx.Locale.Tr "asc_rp.review_load"}}</h3>
+		<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.agents_never_review"}}</p>
+		{{if .ReviewLoad}}
+		<ul class="rp-rail-list">
+			{{range .ReviewLoad}}<li>{{if .User}}<a href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>{{else}}<span>{{.Name}}</span>{{end}}<span class="ds-num">{{ctx.Locale.TrN .Reviews "asc_rp.reviews_one" "asc_rp.reviews_other" .Reviews}}</span></li>{{end}}
+		</ul>
+		{{else}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.ins_no_reviews"}}</p>{{end}}
+	</section>
+	{{else}}
+	<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "users" "Title" (ctx.Locale.Tr "asc_rp.ins_empty_title") "Body" (ctx.Locale.Tr "asc_rp.ins_empty_body"))}}</div>
+	{{end}}
+</div>
+{{end}}
