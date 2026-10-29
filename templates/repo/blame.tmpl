@@ -22,12 +22,20 @@
 								<div class="blame-info">
 									<div class="blame-data">
 										<div class="blame-avatar">{{$row.Avatar}}</div>
+										{{if $row.IsAgent}}<span class="ds-chip ds-chip-agent rp-agent-chip">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}
 										<div class="blame-message">
 											<a class="suppressed" href="{{$row.CommitURL}}" title="{{$row.CommitMessage}}">{{$row.CommitMessage}}</a>
 										</div>
 										{{if $row.CommitMessage}}<a class="blame-sha rp-hash" href="{{$row.CommitURL}}">{{ShortSha $row.PartSha}}</a>{{end}}
 										<div class="blame-time">{{$row.CommitSince}}</div>
 									</div>
+									{{if $row.CommitMessage}}
+									<div class="rp-blame-card" role="tooltip">
+										<strong class="rp-blame-card-t">{{$row.CommitMessage}}</strong>
+										<span class="rp-blame-card-m">{{$row.AuthorName}}{{if $row.IsAgent}} <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}} <span class="rp-sep-dot"></span> <span class="rp-hash">{{ShortSha $row.PartSha}}</span> <span class="rp-sep-dot"></span> {{$row.CommitSince}}</span>
+										<span class="rp-blame-card-a"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$row.CommitURL}}">{{ctx.Locale.Tr "asc_rp.open_change"}}</a>{{if $row.PreviousSha}} <a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{$row.PreviousShaURL}}">{{ctx.Locale.Tr "repo.blame_prior"}}</a>{{end}}</span>
+									</div>
+									{{end}}
 								</div>
 							</td>
 							<td class="lines-blame-btn">
