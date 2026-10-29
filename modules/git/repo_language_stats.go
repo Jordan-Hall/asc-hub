@@ -58,40 +58,21 @@ func mergeLanguageStats(stats map[string]int64) map[string]int64 {
 
 // GetLanguageStats calculates language stats for git repository at specified commit
 func (repo *Repository) GetLanguageStats(commitID string) (map[string]int64, error) {
-	// We will feed the commit IDs in order into cat-file --batch, followed by blobs as necessary.
-	// so let's create a batch stdin and stdout
-	batchStdinWriter, batchReader, cancel, err := repo.CatFileBatch(repo.Ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer cancel()
-
-	writeID := func(id string) error {
-		_, err := batchStdinWriter.Write([]byte(id + "\n"))
-		return err
-	}
-
-	if err := writeID(commitID); err != nil {
-		return nil, err
-	}
-	shaBytes, typ, size, err := ReadBatchLine(batchReader)
-	if typ != "commit" {
-		log.Debug("Unable to get commit for: %s. Err: %v", commitID, err)
-		return nil, ErrNotExist{commitID, ""}
-	}
-
-	sha, err := NewIDFromString(string(shaBytes))
+	// The commit, its tree and the blobs are read through the backend of the repository: a repository stored in asc
+	// has no object a cat-file process could be asked for, and a tree the backend did not list itself has no known
+	// place in it.
+	id, err := repo.ConvertToGitID(commitID)
 	if err != nil {
 		log.Debug("Unable to get commit for: %s. Err: %v", commitID, err)
 		return nil, ErrNotExist{commitID, ""}
 	}
-
-	commit, err := CommitFromReader(repo, sha, io.LimitReader(batchReader, size))
+	commit, err := repo.getCommit(id)
 	if err != nil {
 		log.Debug("Unable to get commit for: %s. Err: %v", commitID, err)
 		return nil, err
 	}
-	if _, err = batchReader.Discard(1); err != nil {
+	be, err := repo.Backend()
+	if err != nil {
 		return nil, err
 	}
 
@@ -189,30 +170,17 @@ func (repo *Repository) GetLanguageStats(commitID string) (map[string]int64, err
 		// If content can not be read or file is too big just do detection by filename
 
 		if f.Size() <= bigFileSize {
-			if err := writeID(f.ID.String()); err != nil {
-				return nil, err
-			}
-			_, _, size, err := ReadBatchLine(batchReader)
+			rc, _, err := be.OpenBlob(repo.Ctx, f.ID, fileSizeLimit)
 			if err != nil {
 				log.Debug("Error reading blob: %s Err: %v", f.ID.String(), err)
 				return nil, err
 			}
-
-			sizeToRead := size
-			discard := int64(1)
-			if size > fileSizeLimit {
-				sizeToRead = fileSizeLimit
-				discard = size - fileSizeLimit + 1
-			}
-
-			_, err = contentBuf.ReadFrom(io.LimitReader(batchReader, sizeToRead))
+			_, err = contentBuf.ReadFrom(io.LimitReader(rc, fileSizeLimit))
+			rc.Close()
 			if err != nil {
 				return nil, err
 			}
 			content = contentBuf.Bytes()
-			if err := DiscardFull(batchReader, discard); err != nil {
-				return nil, err
-			}
 		}
 
 		// We consider three cases:
