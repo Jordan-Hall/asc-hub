@@ -1617,7 +1617,8 @@
   justify-content: space-between;
   gap: 8px;
   margin: 0;
-
+  font-size: 13px;
+}
 
 /* README / AGENTS.md / License tabs of the repository home (board Repo). */
 .rp-doctabs {
