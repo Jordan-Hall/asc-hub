@@ -2059,7 +2059,7 @@ body.ds-lock {
 }
 
 .site-toc [aria-current="location"] {
-  color: var(--brand-ink, #1d4ed8);
+  color: var(--link);
   font-weight: 600;
 }
 
