@@ -61,7 +61,7 @@
 						</div>
 						<div class="rv-acts">
 							{{if ne .Detail.Group.StateKey "acknowledged"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="acknowledged">{{ctx.Locale.Tr "asc_trust.checks.acknowledge"}}</button>{{end}}
-							{{if ne .Detail.Group.StateKey "quarantined"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="quarantined" data-testid="asc-group-quarantine">{{ctx.Locale.Tr "asc_trust.checks.quarantine"}}</button>{{end}}
+							{{if and $.AscCheckGroup.AllowQuarantine (ne .Detail.Group.StateKey "quarantined")}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="quarantined" data-testid="asc-group-quarantine">{{ctx.Locale.Tr "asc_trust.checks.quarantine"}}</button>{{end}}
 							{{if ne .Detail.Group.StateKey "resolved"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="resolved">{{ctx.Locale.Tr "asc_trust.checks.resolve"}}</button>{{end}}
 							{{if ne .Detail.Group.StateKey "open"}}<button class="rv-btn rv-btn-secondary" type="submit" name="state" value="open">{{ctx.Locale.Tr "asc_trust.checks.reopen"}}</button>{{end}}
 							<a class="rv-btn rv-btn-secondary" href="{{$.RepoLink}}/issues/new?{{.IssueQuery}}">{{ctx.Locale.Tr "asc_trust.checks.open_issue"}}</a>
