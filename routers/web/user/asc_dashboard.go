@@ -123,6 +123,7 @@ type AscDash struct {
 	Repos        []AscDashRepo
 	Teams        []AscDashTeam
 	Scopes       []AscDashScope
+	Queue        []AscDashQueueRow
 	Scope        string
 }
 
@@ -300,6 +301,7 @@ func ascDashBuild(ctx *context.Context, now time.Time) *AscDash {
 		actionable = append(actionable, g.Entries...)
 	}
 	d.NeedsCount = len(actionable)
+	d.Queue = ascDashQueue(ctx, doer, entries, ctx.Locale)
 
 	if d.AgentsOn {
 		agents, waiting, err := ascDashAgentsLoad(ctx, doer)

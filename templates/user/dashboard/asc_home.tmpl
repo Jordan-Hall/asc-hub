@@ -101,6 +101,22 @@ Template Attributes:
 				{{end}}
 			</section>
 
+			{{if $d.Queue}}
+				<section class="ds-card wk-card" aria-labelledby="wk-queue-title">
+					<div class="ds-card-h"><h2 id="wk-queue-title">{{ctx.Locale.Tr "asc_work.dash_queue"}}</h2><span class="ds-chip">{{len $d.Queue}}</span></div>
+					<ul class="wk-needs">
+						{{range $d.Queue}}
+							<li class="wk-need">
+								<span class="ds-dot ds-dot-{{if eq .State "blocked"}}err{{else if eq .State "landing"}}ok{{else}}warn{{end}} wk-need-dot" aria-hidden="true"></span>
+								<div class="wk-need-main">
+									<div class="wk-need-title"><a href="{{.Link}}">{{.Title}}</a></div>
+									<div class="wk-need-where">{{.Where}} &middot; {{.Label}}</div>
+								</div>
+							</li>
+						{{end}}
+					</ul>
+				</section>
+			{{end}}
 			{{if and $d.AgentsOn $d.Agents}}
 				<section class="ds-card wk-card" aria-labelledby="wk-agents-title">
 					<div class="ds-card-h">
