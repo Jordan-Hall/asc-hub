@@ -1,0 +1,116 @@
+{{/* The Insights board of an asc repository: tiles, landings per day, review time, recent and waiting stacks. Dot: page data. */}}
+{{with .AscInsights}}
+<div class="rp-ins" data-testid="asc-insights">
+	<div class="rp-ins-head">
+		<div>
+			<h2 class="rp-h1">{{ctx.Locale.Tr "asc_rp.ins_title"}}</h2>
+			<p class="rp-sub">{{ctx.Locale.Tr "asc_rp.ins_sub"}}</p>
+		</div>
+		<div class="rp-ins-segs">
+			<div class="ds-seg ds-seg-mini" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.ins_who"}}">
+				<a href="{{$.AscInsightsLink}}?who=everyone&amp;range={{.Range}}"{{if eq .Who "everyone"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_everyone"}}</a>
+				<a href="{{$.AscInsightsLink}}?who=people&amp;range={{.Range}}"{{if eq .Who "people"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_people"}}</a>
+				<a href="{{$.AscInsightsLink}}?who=agents&amp;range={{.Range}}"{{if eq .Who "agents"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.f_agents"}}</a>
+			</div>
+			<div class="ds-seg ds-seg-mini" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.ins_range"}}">
+				<a href="{{$.AscInsightsLink}}?who={{.Who}}&amp;range=7d"{{if eq .Range "7d"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_7d"}}</a>
+				<a href="{{$.AscInsightsLink}}?who={{.Who}}&amp;range=30d"{{if eq .Range "30d"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_30d"}}</a>
+				<a href="{{$.AscInsightsLink}}?who={{.Who}}&amp;range=year"{{if eq .Range "year"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_year"}}</a>
+			</div>
+		</div>
+	</div>
+
+	<dl class="rp-ins-tiles">
+		<div class="ds-card rp-ins-tile">
+			<dt>{{ctx.Locale.Tr "asc_rp.ins_landed"}}</dt>
+			<dd class="ds-num">{{ctx.Locale.PrettyNumber .Landed}}</dd>
+			{{if .HasLandedDelta}}<dd class="rp-quiet">{{ctx.Locale.Tr "asc_rp.ins_vs_prev" .LandedDelta}}</dd>{{end}}
+		</div>
+		<div class="ds-card rp-ins-tile">
+			<dt>{{ctx.Locale.Tr "asc_rp.ins_opened"}}</dt>
+			<dd class="ds-num">{{ctx.Locale.PrettyNumber .Opened}}</dd>
+			{{if .PrevOpened}}<dd class="rp-quiet">{{ctx.Locale.Tr "asc_rp.ins_was" .PrevOpened}}</dd>{{end}}
+		</div>
+		<div class="ds-card rp-ins-tile">
+			<dt>{{ctx.Locale.Tr "asc_rp.ins_median"}}</dt>
+			{{if .HasMedian}}<dd class="ds-num">{{ctx.Locale.Tr "asc_rp.ins_minutes" .MedianMin}}</dd>{{else}}<dd class="rp-quiet">{{ctx.Locale.Tr "asc_rp.ins_no_reviews"}}</dd>{{end}}
+		</div>
+		<div class="ds-card rp-ins-tile">
+			<dt>{{ctx.Locale.Tr "asc_rp.ins_agents"}}</dt>
+			{{if .HasAgentPct}}<dd class="ds-num">{{.AgentPct}}%</dd>{{if .AllAgentsApproved}}<dd class="rp-quiet">{{ctx.Locale.Tr "asc_rp.ins_all_approved"}}</dd>{{end}}{{else}}<dd class="rp-quiet">&mdash;</dd>{{end}}
+		</div>
+	</dl>
+
+	<section class="ds-card rp-ins-card" aria-labelledby="rp-ins-chart-h">
+		<div class="rp-sec-h">
+			<h3 class="rp-sec-title" id="rp-ins-chart-h">{{ctx.Locale.Tr "asc_rp.ins_per_day"}}</h3>
+			<span class="rp-legend-inline"><span class="rp-seg rp-seg-landed" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_rp.ins_people"}} {{.TotalPeople}} <span class="rp-seg rp-seg-agent" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_rp.f_agents"}} {{.TotalAgent}}</span>
+		</div>
+		{{if or .TotalPeople .TotalAgent}}
+		<svg class="rp-ins-chart" viewBox="0 0 600 130" role="img" aria-label="{{ctx.Locale.Tr "asc_rp.ins_chart_label" .TotalAll .Days}}" preserveAspectRatio="none">
+			{{range .Bars}}
+				{{if .PH}}<rect class="rp-bar-people" x="{{.X}}" y="{{.PY}}" width="{{.W}}" height="{{.PH}}"></rect>{{end}}
+				{{if .AH}}<rect class="rp-bar-agent" x="{{.X}}" y="{{.AY}}" width="{{.W}}" height="{{.AH}}"></rect>{{end}}
+			{{end}}
+		</svg>
+		<details class="rp-ins-table">
+			<summary class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "asc_rp.ins_table"}}</summary>
+			<div class="ds-table-wrap">
+				<table class="ds-table">
+					<caption class="ds-sr">{{ctx.Locale.Tr "asc_rp.ins_per_day"}}</caption>
+					<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_rp.ins_date"}}</th><th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_rp.ins_people"}}</th><th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_rp.f_agents"}}</th></tr></thead>
+					<tbody>
+						{{range .Bars}}{{if or .People .Agents}}<tr><th scope="row">{{DateUtils.AbsoluteShort .Start}}</th><td class="ds-r ds-num">{{.People}}</td><td class="ds-r ds-num">{{.Agents}}</td></tr>{{end}}{{end}}
+					</tbody>
+				</table>
+			</div>
+		</details>
+		{{else}}
+		<div class="rp-sec-b">{{template "shared/ds/empty" (dict "Icon" "chart" "Title" (ctx.Locale.Tr "asc_rp.ins_empty_title") "Body" (ctx.Locale.Tr "asc_rp.ins_empty_body"))}}</div>
+		{{end}}
+	</section>
+
+	<div class="rp-ins-cols">
+		<section class="ds-card rp-ins-card" aria-labelledby="rp-ins-time-h">
+			<h3 class="rp-sec-title" id="rp-ins-time-h">{{ctx.Locale.Tr "asc_rp.ins_median"}}{{if eq .Trend "faster"}} <span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.ins_faster"}}</span>{{else if eq .Trend "slower"}} <span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_rp.ins_slower"}}</span>{{end}}</h3>
+			<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.ins_by_week"}}</p>
+			{{if .Weeks}}
+			<ul class="rp-rail-list">
+				{{range .Weeks}}<li><span>{{DateUtils.AbsoluteShort .Start}}</span><span class="ds-num">{{ctx.Locale.Tr "asc_rp.ins_minutes" .Minutes}}</span></li>{{end}}
+			</ul>
+			{{else}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.ins_no_reviews"}}</p>{{end}}
+			{{if .Sizes}}
+			<h4 class="rp-ins-sub">{{ctx.Locale.Tr "asc_rp.ins_wait_by_size"}}</h4>
+			<ul class="rp-rail-list">
+				{{range .Sizes}}<li><span>{{ctx.Locale.Tr (print "asc_rp.ins_size_" .Key)}}</span><span class="ds-num">{{ctx.Locale.Tr "asc_rp.ins_minutes" .Minutes}}</span></li>{{end}}
+			</ul>
+			{{end}}
+		</section>
+		<div class="rp-ins-stack">
+			<section class="ds-card rp-ins-card" aria-labelledby="rp-ins-recent-h">
+				<h3 class="rp-sec-title" id="rp-ins-recent-h">{{ctx.Locale.Tr "asc_rp.ins_recent"}}</h3>
+				{{if .Recent}}
+				<ul class="rp-rail-list">
+					{{range .Recent}}<li><span class="ds-mono">{{.Name}}</span><span class="rp-quiet">{{ctx.Locale.TrN .Changes "asc_rp.n_changes_one" "asc_rp.n_changes_other" (ctx.Locale.PrettyNumber .Changes)}} &middot; {{DateUtils.TimeSince .When}}</span></li>{{end}}
+				</ul>
+				{{else}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.ins_none_recent"}}</p>{{end}}
+			</section>
+			<section class="ds-card rp-ins-card" aria-labelledby="rp-ins-wait-h">
+				<h3 class="rp-sec-title" id="rp-ins-wait-h">{{ctx.Locale.Tr "asc_rp.ins_waiting"}}</h3>
+				<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.ins_since_activity"}}</p>
+				{{if .Waiting}}
+				<ul class="rp-rail-list">
+					{{range .Waiting}}<li><a class="ds-mono" href="{{.Link}}">{{.Name}}</a><span class="rp-quiet">{{DateUtils.TimeSince .Updated}}</span></li>{{end}}
+				</ul>
+				{{else}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.flight_none"}}</p>{{end}}
+			</section>
+		</div>
+	</div>
+</div>
+{{else if .AscInsightsFailed}}
+<div class="ds-card rp-stacks-error" role="alert">
+	<strong>{{ctx.Locale.Tr "asc_rp.ins_failed"}}</strong>
+	<span class="rp-quiet">{{ctx.Locale.Tr "asc_rp.stacks_failed_id" .AscInsightsRequestID}}</span>
+	<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/activity">{{ctx.Locale.Tr "asc_rp.try_again"}}</a>
+</div>
+{{end}}

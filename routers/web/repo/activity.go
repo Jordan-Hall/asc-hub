@@ -67,6 +67,8 @@ func Activity(ctx *context.Context) {
 		return
 	}
 
+	prepareAscInsights(ctx)
+
 	ctx.HTML(http.StatusOK, tplActivity)
 }
 
