@@ -77,6 +77,80 @@ func ascStackTarget(ctx *context.Context) (*issues_model.Issue, *issues_model.Pu
 	return issue, issue.PullRequest, true
 }
 
+// ascLandTarget is ascStackTarget for the operations that land a prefix of the stack (queue and merge): the form field
+// "to" names another pull request of the same stack (by its number) as the top of the prefix to land. "To" that is
+// not a member of the stack of the pull request is a 404, so a number cannot reach another stack or repository.
+func ascLandTarget(ctx *context.Context) (*issues_model.Issue, *issues_model.PullRequest, bool) {
+	issue, pr, ok := ascStackTarget(ctx)
+	if !ok {
+		return nil, nil, false
+	}
+	to := ctx.FormInt64("to")
+	if to == 0 || to == issue.Index {
+		return issue, pr, true
+	}
+	panel, err := pull_service.BuildAscStackPanel(ctx, pr)
+	if err != nil {
+		ctx.ServerError("BuildAscStackPanel", err)
+		return nil, nil, false
+	}
+	if !ascStackHasIndex(panel, to) {
+		ctx.NotFound("asc stack operation", nil)
+		return nil, nil, false
+	}
+	target, err := issues_model.GetPullRequestByIndex(ctx, pr.BaseRepoID, to)
+	if err != nil {
+		ctx.NotFound("asc stack operation", err)
+		return nil, nil, false
+	}
+	if err := target.LoadIssue(ctx); err != nil {
+		ctx.ServerError("LoadIssue", err)
+		return nil, nil, false
+	}
+	target.Issue.PullRequest = target
+	return target.Issue, target, true
+}
+
+// ascStackHasIndex says whether the pull request with this number is in the panel.
+func ascStackHasIndex(panel *pull_service.AscStackPanel, index int64) bool {
+	if panel == nil {
+		return false
+	}
+	for _, e := range panel.Entries {
+		if e.Index == index {
+			return true
+		}
+	}
+	return false
+}
+
+// AscLandScope is one choice of how much of the stack to land: the prefix that ends at the pull request Index.
+type AscLandScope struct {
+	Index   int64
+	Count   int // changes landed by this choice
+	Total   int
+	Title   string
+	Checked bool
+}
+
+// ascLandScopes lists the prefixes of the stack that can be landed, bottom first, and marks the one that ends at current.
+func ascLandScopes(panel *pull_service.AscStackPanel, current int64) []AscLandScope {
+	if panel == nil {
+		return nil
+	}
+	open := make([]pull_service.AscStackEntry, 0, len(panel.Entries))
+	for _, e := range panel.Entries {
+		if e.State == "open" || e.State == "draft" || e.Current {
+			open = append(open, e)
+		}
+	}
+	scopes := make([]AscLandScope, 0, len(open))
+	for i, e := range open {
+		scopes = append(scopes, AscLandScope{Index: e.Index, Count: i + 1, Total: len(open), Title: e.Title, Checked: e.Index == current})
+	}
+	return scopes
+}
+
 // ascValidBranch reports whether name can be a branch name taken from a request: not empty, bounded, valid
 // UTF-8, no control character.
 func ascValidBranch(name string) bool {
@@ -192,7 +266,7 @@ func ascOpFlashFail(ctx *context.Context, op string, issue *issues_model.Issue, 
 
 // AscQueueEnqueue handles "Merge when ready" for the stack from the bottom up to this pull request.
 func AscQueueEnqueue(ctx *context.Context) {
-	issue, pr, ok := ascStackTarget(ctx)
+	issue, pr, ok := ascLandTarget(ctx)
 	if !ok {
 		return
 	}
@@ -226,7 +300,7 @@ func AscQueueDequeue(ctx *context.Context) {
 // AscQueueMergeNow merges the stack from the bottom up to this pull request at once, under the lease of the
 // branch so no other land runs beside it.
 func AscQueueMergeNow(ctx *context.Context) {
-	issue, pr, ok := ascStackTarget(ctx)
+	issue, pr, ok := ascLandTarget(ctx)
 	if !ok {
 		return
 	}
