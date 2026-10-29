@@ -43,6 +43,7 @@ func paletteGroups(t *testing.T, q string, doer *user_model.User) (int, map[stri
 func TestPaletteShowsPeopleOnlyWhereTheExplorePageDoes(t *testing.T) {
 	unittest.PrepareTestEnv(t)
 	ascPaletteLimiter = ascratelimit.New(1000, time.Second)
+	ascPaletteUserLimiter = ascratelimit.New(1000, time.Second)
 
 	code, keys := paletteGroups(t, "user", nil)
 	assert.Equal(t, http.StatusOK, code)
@@ -70,6 +71,7 @@ func TestPaletteShowsPeopleOnlyWhereTheExplorePageDoes(t *testing.T) {
 func TestPaletteHidesPrivateAndLimitedPeopleFromAVisitor(t *testing.T) {
 	unittest.PrepareTestEnv(t)
 	ascPaletteLimiter = ascratelimit.New(1000, time.Second)
+	ascPaletteUserLimiter = ascratelimit.New(1000, time.Second)
 	ctx, resp := contexttest.MockContext(t, "GET /-/asc/palette?q=user31")
 	ctx.Req.Form = map[string][]string{"q": {"user31"}}
 	AscPalette(ctx)
@@ -83,6 +85,7 @@ func TestPaletteHidesPrivateAndLimitedPeopleFromAVisitor(t *testing.T) {
 func TestPaletteIsLimitedAndCapped(t *testing.T) {
 	unittest.PrepareTestEnv(t)
 	ascPaletteLimiter = ascratelimit.New(3, time.Minute)
+	ascPaletteUserLimiter = ascratelimit.New(3, time.Minute)
 	for i := 0; i < 3; i++ {
 		code, _ := paletteGroups(t, "user", nil)
 		assert.Equal(t, http.StatusOK, code)
@@ -92,10 +95,23 @@ func TestPaletteIsLimitedAndCapped(t *testing.T) {
 	assert.Empty(t, keys, "a refused call shows nothing")
 
 	ascPaletteLimiter = ascratelimit.New(1000, time.Minute)
+	ascPaletteUserLimiter = ascratelimit.New(1000, time.Minute)
 	long := make([]byte, ascPaletteMaxQuery+1)
 	for i := range long {
 		long[i] = 'u'
 	}
 	_, keys = paletteGroups(t, string(long), nil)
 	assert.Empty(t, keys, "a long query is not searched")
+}
+
+func TestPaletteLimitOfVisitorsDoesNotTouchSignedInPeople(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	ascPaletteLimiter = ascratelimit.New(1, time.Minute)
+	ascPaletteUserLimiter = ascratelimit.New(1000, time.Minute)
+	paletteGroups(t, "user", nil)
+	code, _ := paletteGroups(t, "user", nil)
+	assert.Equal(t, http.StatusTooManyRequests, code, "a visitor over the limit is refused")
+	doer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	code, _ = paletteGroups(t, "user", doer)
+	assert.Equal(t, http.StatusOK, code, "a signed in person has a table of their own")
 }

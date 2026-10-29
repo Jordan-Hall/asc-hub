@@ -20,26 +20,39 @@ type AscProfileTeam struct {
 // ascProfileTeamsMax caps the teams of the profile card.
 const ascProfileTeamsMax = 12
 
-// AscProfileTeams lists the teams of person in the organizations the viewer may see (those in orgs, which the caller
-// has already narrowed to the viewer), so the card never names an organization the profile does not show. The owners
-// team is listed too. viewer is nil for a visitor who is not signed in.
+// AscProfileTeams lists the teams of person that viewer may know about. The teams of an organization are for its own
+// members: the person themself, a site administrator and a member of that organization see them; a visitor, and a
+// person who is not a member of that organization, see none, also where the organization is public and also where the
+// person made their membership public (the organization card of the profile shows that, the teams are more). orgs are
+// the organizations the profile already lists for the viewer; the owners team is listed like any other.
 func AscProfileTeams(ctx context.Context, person *user_model.User, orgs []*organization.Organization, viewer *user_model.User) ([]AscProfileTeam, error) {
-	if len(orgs) == 0 {
+	if viewer == nil || len(orgs) == 0 {
+		return nil, nil
+	}
+	allowed := map[int64]*organization.Organization{}
+	for _, o := range orgs {
+		if viewer.IsAdmin || viewer.ID == person.ID {
+			allowed[o.ID] = o
+			continue
+		}
+		member, err := organization.IsOrganizationMember(ctx, o.ID, viewer.ID)
+		if err != nil {
+			return nil, err
+		}
+		if member {
+			allowed[o.ID] = o
+		}
+	}
+	if len(allowed) == 0 {
 		return nil, nil
 	}
 	teams, err := organization.GetUserTeams(ctx, person.ID)
 	if err != nil {
 		return nil, err
 	}
-	byOrg := map[int64]*organization.Organization{}
-	for _, o := range orgs {
-		if o.Visibility.IsPublic() || (viewer != nil && (o.Visibility.IsLimited() || viewer.IsAdmin || person.ID == viewer.ID)) {
-			byOrg[o.ID] = o
-		}
-	}
 	var out []AscProfileTeam
 	for _, t := range teams {
-		o := byOrg[t.OrgID]
+		o := allowed[t.OrgID]
 		if o == nil {
 			continue
 		}
