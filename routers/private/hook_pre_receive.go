@@ -305,9 +305,11 @@ func (ctx *preReceiveContext) importIntoAsc() bool {
 	// The first branch pushed to an empty repository becomes its default branch (post-receive does that). asc
 	// protects the branch it holds as trunk (path rules, secret scanning), so it has to hold this one before it
 	// judges this push: otherwise the first push, the one most likely to carry a forgotten key, goes in ungated.
+	accepted := false
 	if repo.IsEmpty {
-		if branch := firstPushedDefaultBranch(refs); branch != "" && branch != repo.DefaultBranch {
-			if err := ascsync.SetDefaultBranch(ctx, repo, branch); err != nil {
+		if branch := firstPushedDefaultBranch(refs); branch != "" {
+			restore, err := ascsync.TakeTrunk(ctx, repo, branch)
+			if err != nil {
 				log.Error("asc did not take %q as the default branch of %-v: %v", branch, repo, err)
 				ctx.JSON(http.StatusInternalServerError, private.Response{
 					UserMsg: "asc could not set the default branch of this repository; the push was refused. Try again later.",
@@ -315,6 +317,12 @@ func (ctx *preReceiveContext) importIntoAsc() bool {
 				})
 				return false
 			}
+			// asc judges the push as to the trunk it holds now; when it does not take the push, the trunk goes back.
+			defer func() {
+				if !accepted {
+					restore()
+				}
+			}()
 		}
 	}
 	// asc's outbox can call post-receive before this call returns, and names the hub itself as the pusher, so
@@ -325,7 +333,6 @@ func (ctx *preReceiveContext) importIntoAsc() bool {
 	if rerr != nil {
 		log.Warn("the pusher of a push to %-v is not remembered: %v", repo, rerr)
 	}
-	accepted := false
 	defer func() {
 		if !accepted {
 			token.Forget()
