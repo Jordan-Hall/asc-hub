@@ -59,6 +59,50 @@ var stackStatusTone = map[string]string{
 // stackLoadLimit bounds the open pull requests read for one page of rows.
 const stackLoadLimit = 300
 
+// ascStackLabel is the name a stack goes by in lists. A stacked pull request has a head branch like
+// "<user>/asc-<change id>", which says nothing to a reader, so the label is the title of the change in words joined by
+// dashes ("add-a-processing-fee"); any other head branch is shown as it is.
+func ascStackLabel(headBranch, title string) string {
+	_, topic, ok := strings.Cut(headBranch, "/")
+	if !ok {
+		topic = headBranch
+	}
+	rest, isAsc := strings.CutPrefix(topic, "asc-")
+	if !isAsc || !issues_model.IsAscChange(rest) {
+		return headBranch
+	}
+	var words []string
+	var cur []rune
+	flush := func() {
+		if len(cur) > 0 {
+			words = append(words, string(cur))
+			cur = cur[:0]
+		}
+	}
+	for _, r := range strings.ToLower(title) {
+		if r >= 'a' && r <= 'z' || r >= '0' && r <= '9' {
+			cur = append(cur, r)
+		} else {
+			flush()
+		}
+	}
+	flush()
+	label := ""
+	for _, w := range words {
+		if len(label)+len(w) > 40 {
+			break
+		}
+		if label != "" {
+			label += "-"
+		}
+		label += w
+	}
+	if label == "" {
+		return rest[:min(12, len(rest))]
+	}
+	return label
+}
+
 // stackSegment is one change of a stack in the progress rail. State is landed, ok, warn, agent, err or draft.
 type stackSegment struct {
 	State string
@@ -206,7 +250,7 @@ func buildStackRows(changes []*stackChange, landedBelow map[int64]int, repoLink 
 		}
 		bottom := chain[0]
 		row := &stackRow{
-			Name:   bottom.pr.HeadBranch,
+			Name:   ascStackLabel(bottom.pr.HeadBranch, bottom.pr.Issue.Title),
 			Title:  tip.pr.Issue.Title,
 			Landed: landedBelow[bottom.pr.ID],
 			Open:   len(chain),
