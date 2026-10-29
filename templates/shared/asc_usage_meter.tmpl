@@ -1,0 +1,13 @@
+{{/*
+One measure of the usage board. Props: Label, M (asctrust.Meter), Unit (a word after the figure, or empty), Id.
+*/}}
+<div class="ds-stat" data-testid="asc-usage-{{.Id}}"{{if .M.Over}} data-over="true"{{end}}>
+	<div class="ds-stat-label">{{.Label}}</div>
+	<div class="ds-stat-value">{{.M.UsedText}}{{if .Unit}} <span class="ds-stat-sub">{{.Unit}}</span>{{end}}</div>
+	{{if .M.Limit}}
+		<progress class="ds-bar" max="100" value="{{.M.Pct}}" aria-label="{{ctx.Locale.Tr "asc_shell.usage_of" .Label .M.LimitText}}">{{.M.Pct}}%</progress>
+		<div class="ds-stat-sub">{{if .M.Over}}<strong>{{ctx.Locale.Tr "asc_shell.usage_over_limit" .M.LimitText}}</strong>{{else}}{{ctx.Locale.Tr "asc_shell.usage_of_limit" .M.LimitText}}{{end}}</div>
+	{{else}}
+		<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}</div>
+	{{end}}
+</div>
