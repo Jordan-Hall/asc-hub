@@ -8,6 +8,7 @@ import (
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/repostore"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,4 +36,18 @@ func TestPublishErrShowsTheTypedRefusal(t *testing.T) {
 	var stale *git.ErrPushOutOfDate
 	require.ErrorAs(t, publishErr("UpdateRefs", st.Err()), &stale)
 	assert.NotErrorAs(t, publishErr("UpdateRefs", status.Error(codes.Internal, "internal error")), &rejected)
+}
+
+// The merge of a pull request that asc's gate refuses shows the reason, like a push does.
+func TestMergeErrShowsTheTypedRefusal(t *testing.T) {
+	st, err := status.New(codes.FailedPrecondition, "a secret was found").
+		WithDetails(&ascv1.ErrorDetail{Code: "SECRET_DETECTED", Paths: []string{"creds.txt"}})
+	require.NoError(t, err)
+	var rejected *git.ErrPushRejected
+	require.ErrorAs(t, mergeErr(repostore.MergeStyleMerge, st.Err()), &rejected)
+	assert.Equal(t, "SECRET_DETECTED: a secret was found (creds.txt)", rejected.Message)
+
+	// A conflict is still a conflict.
+	var conflict *repostore.ConflictError
+	require.ErrorAs(t, mergeErr(repostore.MergeStyleMerge, status.Error(codes.FailedPrecondition, "not a fast-forward")), &conflict)
 }
