@@ -1617,5 +1617,44 @@
   justify-content: space-between;
   gap: 8px;
   margin: 0;
+
+
+/* README / AGENTS.md / License tabs of the repository home (board Repo). */
+.rp-doctabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line-2);
+  margin-top: 16px;
+}
+
+.rp-doctabs [role="tab"] {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  min-height: var(--touch, 44px);
+  color: var(--text-2);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rp-doctabs [role="tab"][aria-selected="true"] {
+  color: var(--text);
+  border-bottom-color: var(--link);
+}
+
+.rp-doctabs [role="tab"]:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: -2px;
+}
+
+.rp-doc-plain {
+  margin: 0;
+  padding: 16px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
   font-size: 13px;
 }

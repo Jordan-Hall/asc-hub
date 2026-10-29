@@ -18,6 +18,7 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/git"
 	"forgejo.org/modules/git/ascbackend"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -178,12 +179,20 @@ func findAgitPullRequest(ctx context.Context, repo *repo_model.Repository, stack
 
 // recordAscStack links pr to change and sets stack_parent_id from the parent change's pull request, then
 // applies the merge_base rule.
-func recordAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues_model.PullRequest, change string) error {
+//
+// The asc server records the versions of a push only after the push was accepted, so the parent it answers
+// while the hook runs can be empty for a change that has one. The git parent of the head commit is the head of
+// the parent change (a change is committed on its parent), so a change without a parent from the server is
+// linked to the open pull request whose head is the git parent of its own head.
+func recordAscStack(ctx context.Context, repo *repo_model.Repository, pushed *git.Repository, pr *issues_model.PullRequest, change string) error {
 	parent, err := ascParentOf(ctx, repo, change)
 	if err != nil {
 		return err
 	}
 	var parentID int64
+	if parent == "" && pushed != nil {
+		parentID = ascParentByGit(ctx, repo, pushed, pr)
+	}
 	if parent != "" {
 		pp, err := issues_model.GetOpenPullRequestByAscChange(ctx, repo.ID, parent)
 		switch {
@@ -203,6 +212,38 @@ func recordAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues
 	}
 	return pull_service.RecomputeAscStackBase(ctx, pr)
 }
+
+// ascParentByGit returns the id of the open stacked pull request whose head is the first parent of the head of pr,
+// or 0.
+func ascParentByGit(ctx context.Context, repo *repo_model.Repository, pushed *git.Repository, pr *issues_model.PullRequest) int64 {
+	if pr.HeadCommitID == "" {
+		return 0
+	}
+	commit, err := pushed.GetCommit(pr.HeadCommitID)
+	if err != nil || commit.ParentCount() != 1 {
+		return 0
+	}
+	parentSHA, err := commit.ParentID(0)
+	if err != nil {
+		return 0
+	}
+	open, err := issues_model.ListOpenAscPullRequests(ctx, repo.ID, ascParentScan)
+	if err != nil {
+		return 0
+	}
+	for _, p := range open {
+		if p.ID == pr.ID {
+			continue
+		}
+		if head, err := pushed.GetRefCommitID(p.GetGitRefName()); err == nil && head == parentSHA.String() {
+			return p.ID
+		}
+	}
+	return 0
+}
+
+// ascParentScan bounds the open stacked pull requests compared by head when the server names no parent.
+const ascParentScan = 300
 
 // ascAdoptLimit bounds how many unlinked changes one look asks asc about.
 const ascAdoptLimit = 20

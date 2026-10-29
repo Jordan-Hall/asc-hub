@@ -137,3 +137,15 @@ func TestRequestIDIsPrintable(t *testing.T) {
 	assert.Len(t, got, 39, "capped at 40 bytes before control characters are dropped")
 	assert.True(t, strings.HasPrefix(got, "abc<b>"))
 }
+
+func TestAscStackLabel(t *testing.T) {
+	change := "nkluoplpuwrovtpsqtxttnorprzlnzrk"
+	assert.Equal(t, "add-a-processing-fee-to-charges", ascStackLabel("qa/asc-"+change, "Add a processing fee to charges"))
+	assert.Equal(t, "fix-payments-v2-refund", ascStackLabel("asc-"+change, "Fix: payments (v2) refund!"))
+	assert.Equal(t, "nkluoplpuwro", ascStackLabel("qa/asc-"+change, "   "))
+	assert.Equal(t, "qa/feature", ascStackLabel("qa/feature", "Anything"))
+	assert.Equal(t, "qa/asc-nope", ascStackLabel("qa/asc-nope", "Anything"))
+	long := ascStackLabel("qa/asc-"+change, "an extremely long title that keeps going on and on and on forever")
+	assert.LessOrEqual(t, len(long), 40)
+	assert.NotContains(t, long, "--")
+}

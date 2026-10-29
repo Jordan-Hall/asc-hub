@@ -132,7 +132,7 @@ func prepareAscChange(ctx *context.Context, commit *git.Commit, statuses []*git_
 	if panel, err := pull_service.BuildAscStackPanel(ctx, pr); err != nil {
 		log.Error("change page: stack of %s#%d: %v", repo.FullName(), pr.Index, err)
 	} else if panel != nil {
-		pos := &changeStackPos{Name: pr.HeadBranch, Total: len(panel.Entries), PullLink: fmt.Sprintf("%s/pulls/%d", ctx.Repo.RepoLink, pr.Index)}
+		pos := &changeStackPos{Name: ascStackLabel(pr.HeadBranch, pr.Issue.Title), Total: len(panel.Entries), PullLink: fmt.Sprintf("%s/pulls/%d", ctx.Repo.RepoLink, pr.Index)}
 		for i := range panel.Entries {
 			e := panel.Entries[i]
 			if e.Current {

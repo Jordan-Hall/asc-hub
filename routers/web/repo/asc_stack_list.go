@@ -69,6 +69,7 @@ func prepareAscStackList(ctx *context.Context) {
 	}
 	sortStackRows(rows, sortBy)
 	ctx.Data["StackList"] = true
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_rp.tab_stacks")
 	ctx.Data["StackRows"] = rows
 	ctx.Data["StackCounts"] = stackFilterCounts(rows)
 	ctx.Data["StackSort"] = sortBy
