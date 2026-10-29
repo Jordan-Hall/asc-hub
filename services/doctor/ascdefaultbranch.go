@@ -7,10 +7,10 @@ import (
 	"context"
 
 	repo_model "forgejo.org/models/repo"
-	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/ascsync"
+	repo_service "forgejo.org/services/repository"
 )
 
 // asc protects one branch (path rules, secret scanning, review): the trunk it holds for the repository. A repository
@@ -25,17 +25,17 @@ func checkAscDefaultBranches(ctx context.Context, logger log.Logger, autofix boo
 	}
 	checked, wrong, unknown, fixed, failed := 0, 0, 0, 0, 0
 	err := iterateRepositories(ctx, func(repo *repo_model.Repository) error {
-		if repo.GetStorageBackend() != string(gitrepo.StorageBackendAsc) || repo.IsEmpty || repo.DefaultBranch == "" || repo.Status != repo_model.RepositoryReady {
+		trunk, want, ok, err := repo_service.AscTrunkCheck(ctx, repo)
+		if !ok {
 			return nil
 		}
 		checked++
-		trunk, err := ascsync.TrunkOf(ctx, repo)
 		if err != nil {
 			failed++
 			logger.Warn("%s/%s: cannot read the trunk from asc: %v", repo.OwnerName, repo.Name, err)
 			return nil
 		}
-		if trunk == repo.DefaultBranch {
+		if trunk == want {
 			return nil
 		}
 		if trunk == "" {
@@ -44,14 +44,14 @@ func checkAscDefaultBranches(ctx context.Context, logger log.Logger, autofix boo
 			unknown++
 		} else {
 			wrong++
-			logger.Warn("%s/%s: asc protects %q but the default branch is %q", repo.OwnerName, repo.Name, trunk, repo.DefaultBranch)
+			logger.Warn("%s/%s: asc protects %q but the default branch is %q", repo.OwnerName, repo.Name, trunk, want)
 		}
 		if !autofix {
 			return nil
 		}
-		if err := ascsync.SetDefaultBranch(ctx, repo, repo.DefaultBranch); err != nil {
+		if err := ascsync.SetDefaultBranch(ctx, repo, want); err != nil {
 			failed++
-			logger.Warn("%s/%s: asc did not take %q as the default branch: %v", repo.OwnerName, repo.Name, repo.DefaultBranch, err)
+			logger.Warn("%s/%s: asc did not take %q as the default branch: %v", repo.OwnerName, repo.Name, want, err)
 			return nil
 		}
 		fixed++
