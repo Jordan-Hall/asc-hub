@@ -12,11 +12,11 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 85 |
-| ui-only-missing | 40 |
-| needs-hub-backend | 44 |
-| needs-asc-backend | 0 |
-| needs-both | 26 |
+| done | 97 |
+| ui-only-missing | 32 |
+| needs-hub-backend | 40 |
+| needs-asc-backend | 2 |
+| needs-both | 24 |
 | total | 195 |
 
 Open rows by size: S 45, M 64, L 23.
@@ -39,7 +39,7 @@ Open rows by size: S 45, M 64, L 23.
 | Shell | Command palette opens from `/`, Ctrl K, header search, mobile search; Esc, arrows, Enter | done | `ds-shell.js`, `#ds-palette` | - |
 | Shell | Palette is a combobox: `role=combobox` input, listbox results, `aria-activedescendant` | done | Today `role=dialog` plus `role=search` form and an `.is-sel` class. Change markup in `head_navbar.tmpl` and `select()` in `ds-shell.js` | S |
 | Shell | Palette scope chips All, Changes, Code, People, Commands; Tab cycles the scope | done | `ds-palette-bar` has input and Cancel only. Chips in `head_navbar.tmpl`, Tab handling in `onPaletteKeydown` | S |
-| Shell | Palette results grouped Changes (title, repo and number), Code (path, symbol), People, fetched as you type | needs-both | Today only static destinations plus "search for ..." links (`filterPalette`). Hub: JSON route (for example `GET /-/asc/palette?q=&scope=`) in `routers/web/explore/asc_search.go` merging pull requests (`issues_model`), users (`user_model.SearchUsers`) and symbols (asc `CrossSearch.Search`, `LookupSymbol`; `services/ascsearch`), read-checked per repo. JS: debounce, abort, render, live count | L |
+| Shell | Palette results grouped Changes (title, repo and number), Code (path, symbol), People, fetched as you type | needs-asc-backend | Today only static destinations plus "search for ..." links (`filterPalette`). Hub: JSON route (for example `GET /-/asc/palette?q=&scope=`) in `routers/web/explore/asc_search.go` merging pull requests (`issues_model`), users (`user_model.SearchUsers`) and symbols (asc `CrossSearch.Search`, `LookupSymbol`; `services/ascsearch`), read-checked per repo. JS: debounce, abort, render, live count | L |
 | Shell | Command verbs (undo, restack, merge) switch the list to actions; Commands group with Undo last operation (Cmd Z) and Ask an agent to change this... | needs-hub-backend | Static Commands group has New repository and New organization only. asc RPCs exist: `UndoRef`, `Restack`, `RequestMerge`, `CreateRun`. Hub needs a context (current repo, stack) and POST handlers (`routers/web/repo/asc_ops.go`, `asc_restack.go`, `asc_stack_actions.go`, `asc_agents.go`) callable from the palette with a confirm step | L |
 | Shell | Empty query shows Recent items and Shortcuts (Go to inbox: g i) | done | Recents in `localStorage` (visited repos and changes), static shortcuts; `ds-shell.js`, `head_navbar.tmpl` | M |
 | Shell | No-results text names the query and suggests a symbol, handle or title | done | `asc_shell.palette_empty` is a different sentence ("Press Enter to search this text") | S |
@@ -75,12 +75,12 @@ Open rows by size: S 45, M 64, L 23.
 | Onboarding | "Sign in with a passkey" (discoverable credentials) | needs-hub-backend | Only 2FA security keys exist (`webauthn.tmpl`); no passkey login route anywhere in `routers`. Add begin and finish routes in `routers/web/auth/webauthn.go` and the button in `signin_inner.tmpl` | M |
 | Onboarding | Single sign-on button under the primary action | done | `oauth_container.tmpl` renders configured sources | - |
 | Onboarding | Rate limit ("after 5 attempts we wait 5 minutes") | needs-hub-backend | No login throttle in `routers/web/auth/auth.go` or `modules/setting`. Counter per user and IP in cache, message with the wait | M |
-| Onboarding | Sign up: username with live "Your handle: @name" and blur validation | ui-only-missing | `signup_inner.tmpl` has a plain field. Add handler in `web_src/js/features/user-auth.js`; a name-availability route does not exist, add one in `routers/web/auth/auth.go` (then needs-hub-backend S) | M |
+| Onboarding | Sign up: username with live "Your handle: @name" and blur validation | done | `signup_inner.tmpl` has a plain field. Add handler in `web_src/js/features/user-auth.js`; a name-availability route does not exist, add one in `routers/web/auth/auth.go` (then needs-hub-backend S) | M |
 | Onboarding | Sign up: optional Full name | needs-hub-backend | Not in `signup_inner.tmpl` or `forms.RegisterForm`; set `User.FullName` in `SignUpPost` | S |
 | Onboarding | Sign up: strength meter and three live rules (12 characters, letters and numbers, not found in breaches) | needs-hub-backend | No meter in `web_src`. Rules and meter in `user-auth.js`; breach rule is server side: `PASSWORD_CHECK_PWN` exists (`modules/setting/security.go`, default off, runs on submit only). Add `POST /user/password/check` (k-anonymity range query), default it on | M |
 | Onboarding | Sign up: "I agree to the Terms and the Privacy policy" | needs-hub-backend | Not in the form. Needs Terms and Privacy URLs, a required checkbox and a stored acceptance | M |
-| Onboarding | Sign up has no retyped password on the board; the hub form asks for one | ui-only-missing | Drop the retype field (Show replaces it); relax `forms.RegisterForm` | S |
-| Onboarding | Two-factor: six boxes act as one input and auto-advance; recovery code link; "Use a security key instead" | ui-only-missing | `twofa.tmpl` has one field and the scratch link. Six-box component in `user-auth.js` (one real input for screen readers); key link when keys exist | M |
+| Onboarding | Sign up has no retyped password on the board; the hub form asks for one | done | Drop the retype field (Show replaces it); relax `forms.RegisterForm` | S |
+| Onboarding | Two-factor: six boxes act as one input and auto-advance; recovery code link; "Use a security key instead" | done | `twofa.tmpl` has one field and the scratch link. Six-box component in `user-auth.js` (one real input for screen readers); key link when keys exist | M |
 | Onboarding | CLI device approval: code entry, confirm with device name, Authorise or Deny, expiry, wrong-code and rate-limit states; hub device-code store and `POST /login/device/code`, `POST /login/device/token` (RFC 8628) | done | `models/auth/asc_device_code.go`, `routers/web/auth/asc_device.go`, `templates/user/auth/asc_device.tmpl`; asc side is Phase 3 | - |
 | Onboarding | Security key waiting screen with spinner and "Try another way" | done | `webauthn.tmpl` | - |
 | Onboarding | Authorise the CLI (device): code, terminal and OS, Authorise and Deny | needs-both | Not present. The CLI signs in with a pasted token (`crates/asc/src/cli/auth.rs`: `--token-stdin`, `--prompt`), no device flow. Hub: device-code endpoints, template, token minting (`models/auth/access_token.go`). asc: `asc auth login` device grant with polling | L |
@@ -128,7 +128,7 @@ Open rows by size: S 45, M 64, L 23.
 | Download | Copy confirms with an inverse-surface toast ("SHA-256 copied") | done | `clipboard.js` shows a tooltip; board uses a toast. Restyle `modules/toast.js` to the board and use it here and on Main, GetStarted, Docs | S |
 | Download | Connect card, access-token alternative, Verify your download, release key | done | `download.tmpl` aside | - |
 | Download | Editor extensions | done | `download.tmpl` | - |
-| Download | System requirements card | ui-only-missing | No `system_req` string; add to the aside | S |
+| Download | System requirements card | done | No `system_req` string; add to the aside | S |
 | Download | Release notes link, Older releases | ui-only-missing | Release notes and build-from-source exist. "Older releases" missing: `modules/ascdownload/manifest.go` holds one manifest, add a release index | M |
 | Download | States: No release yet (build from source, admin note), system not detected | done | `download.tmpl` | - |
 | Download | Loading releases skeleton | ui-only-missing | Page is server rendered; only needed if offers load client side | S |
@@ -178,7 +178,7 @@ Open rows by size: S 45, M 64, L 23.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | ExploreOrgs | Org row: avatar, name, description, repositories and people counts | done | `explore/user_list.tmpl` (`IsOrganization`) | - |
-| ExploreOrgs | Verified badge (domain proof) and explainer card | needs-hub-backend | No flag. Add a verified field and domain proof (DNS TXT or well-known file) in `models/user`, migration under `models/migrations`, owner settings, a check job; chip in `user_list.tmpl` | L |
+| ExploreOrgs | Verified badge (domain proof) and explainer card | done | No flag. Add a verified field and domain proof (DNS TXT or well-known file) in `models/user`, migration under `models/migrations`, owner settings, a check job; chip in `user_list.tmpl` | L |
 | ExploreOrgs | Agents count; member stack with up to four avatars and +N | needs-both | Members: `organization.GetOrgUsersByOrgID` (hub). Agents count: asc, as for Explore users | M |
 | ExploreOrgs | 12-week sparkline and "Active 12 min ago" | needs-hub-backend | Sparkline partial; org activity from the `action` table | M |
 | ExploreOrgs | Chips All, Verified, Has agents, I am a member; Size filter; Sort most active | needs-hub-backend | `routers/web/explore/org.go`; membership filter is simple, the others depend on rows above | M |
@@ -192,7 +192,7 @@ Open rows by size: S 45, M 64, L 23.
 | Docs | Docs search with grouped results (Commands, Guides), did-you-mean, no results, loading; Ctrl K or `/` opens it | needs-hub-backend | Index over `docs/asc/*.md` and the CLI reference built at start (new `modules/ascdocs`) plus `GET /-/docs/search?q=`; JS list | L |
 | Docs | Article layout: sidebar tree, 720 px column, breadcrumb, steps, callouts, Previous and Next | needs-hub-backend | Docs live on GitHub (`$docsURL`). Render `docs/asc/**` with the hub markdown renderer: `AscDocs` in `routers/web/asc_public.go`, new `templates/asc/docs_article.tmpl`, sidebar manifest | L |
 | Docs | OS code tabs remembered; Copy without the prompt | ui-only-missing | Reuse the `initDownload` tab code; `localStorage` key | M |
-| Docs | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | ui-only-missing | Intersection observer in a new `docs.js`; links to the repository file view | M |
+| Docs | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | Intersection observer in a new `docs.js`; links to the repository file view | M |
 | Docs | "Was this page helpful?" Yes and No | needs-hub-backend | `POST /-/docs/feedback`, stored (new table or issue on the docs repo), rate limited | M |
 | Mobile-Docs | Docs menu drawer, sticky "On this page" row, sticky next-page bar | ui-only-missing | Same templates under 768 px | M |
 
@@ -209,13 +209,13 @@ Open rows by size: S 45, M 64, L 23.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Errors | 404, 403, 413, 500, 503, offline cards with header and footer | done | `templates/status/*.tmpl` | - |
-| Errors | Request id ("Request id 7f3a91c2 · date UTC", selectable) | needs-hub-backend | No id in any status template. Generate per request in `services/context`, log it, show in `500.tmpl`, `503.tmpl`, error JSON | M |
-| Errors | 500 actions: Try again (same request id) and Status page | ui-only-missing | `500.tmpl` offers Home only | S |
+| Errors | Request id ("Request id 7f3a91c2 · date UTC", selectable) | done | No id in any status template. Generate per request in `services/context`, log it, show in `500.tmpl`, `503.tmpl`, error JSON | M |
+| Errors | 500 actions: Try again (same request id) and Status page | done | `500.tmpl` offers Home only | S |
 | Errors | 403 actions: Request access and Switch account | needs-hub-backend | `403.tmpl` has Sign in, Dashboard, Search. Request access needs an access-request flow to the owners of the org | L |
 | Errors | 404 actions: dashboard, search the hub | done | `404.tmpl` | - |
 | Errors | 413 card with limit, artifact storage link and Back | done | `413.tmpl` | - |
-| Errors | 503 maintenance: version being upgraded, reads continue through the CLI, window, expected back, status link | needs-both | `503.tmpl` is a generic card and nothing serves it for maintenance. Hub: maintenance setting with window text and a middleware returning 503 for writes (`routers/common/middleware.go`); asc: read-only flag on serve | L |
-| Errors | Offline page: "your edit is saved on this device", Retry now, served by a service worker | needs-hub-backend | `/-/offline` page exists but no service worker is registered anywhere in `web_src` or `public`. Add `public/assets/sw.js`, registration in `index.js`, draft saving in editors | L |
+| Errors | 503 maintenance: version being upgraded, reads continue through the CLI, window, expected back, status link | needs-asc-backend | `503.tmpl` is a generic card and nothing serves it for maintenance. Hub: maintenance setting with window text and a middleware returning 503 for writes (`routers/common/middleware.go`); asc: read-only flag on serve | L |
+| Errors | Offline page: "your edit is saved on this device", Retry now, served by a service worker | done | `/-/offline` page exists but no service worker is registered anywhere in `web_src` or `public`. Add `public/assets/sw.js`, registration in `index.js`, draft saving in editors | L |
 
 ## Dashboard
 
@@ -224,7 +224,7 @@ Open rows by size: S 45, M 64, L 23.
 | Dashboard | Greeting by time of day and summary line | done | `routers/web/user/asc_dashboard.go` | - |
 | Dashboard | Work list with counts (Inbox, My stacks, Review requests, Agent runs), repositories, teams | done | `templates/user/dashboard/asc_home.tmpl` | - |
 | Dashboard | Pinned repositories per person; counts update live | needs-hub-backend | `ascDashRepos` takes the five latest. Pin table (`models/user`) and a star-like action; counts need the live update below | M |
-| Dashboard | Scope chips Everything / org / Personal filter the whole page, remembered | needs-hub-backend | None in the template. `?scope=` in `ascDashBuild` filtering inbox rows, agents, stacks; persist as a user setting | M |
+| Dashboard | Scope chips Everything / org / Personal filter the whole page, remembered | done | None in the template. `?scope=` in `ascDashBuild` filtering inbox rows, agents, stacks; persist as a user setting | M |
 | Dashboard | Needs-you rows with chips (Agent, checks, Touches billing), diff size, age | done | `asc_home.tmpl`, `ascDashRowFor` | - |
 | Dashboard | Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | needs-both | Buttons are links (`aria-hidden`, tabindex -1) to the review. Hub: POST handlers for approve (review in `routers/web/repo/pull.go`), queue (`asc_queue.go`, asc `Enqueue`), answer (asc `SendInput`), htmx row swap | L |
 | Dashboard | Row kinds: reply from a person, agent question, ready to merge with queue position and estimate, trunk moved with restack summary | needs-both | Kinds come from inbox sections; reply quote, "about 4 min" and "ASC restacked 2 of 3" need asc data (`mergequeue.proto` `List`, `stacks.proto` restack result); `services/ascinbox` | L |
@@ -232,7 +232,7 @@ Open rows by size: S 45, M 64, L 23.
 | Dashboard | Agents working now with budget bar, paused state, All runs | done | `asc_home.tmpl`, `ascDashAgentsFromServe` | - |
 | Dashboard | Stack bars: click a segment opens the review at that segment | done | `wk-segs` items are not links; `ascDashStackFrom` has the pull link per segment | S |
 | Dashboard | Merge queue card (Running, median wait, positions, "2 of 3 checks", Open) | needs-both | No such card. Hub aggregates the person's queue entries (`routers/web/repo/asc_queue.go`; asc `mergequeue.proto` `List`, `Get`, `Watch`); median wait needs an asc statistic | L |
-| Dashboard | Today feed with Filter | ui-only-missing | Feed present; filter menu missing | S |
+| Dashboard | Today feed with Filter | done | Feed present; filter menu missing | S |
 | Dashboard | From your terminal card with Copy; g i tip | done | `asc_home.tmpl` | - |
 | Dashboard | Live updates | needs-both | Counts load once. Hub: poll `/-/asc/inbox/count` or reuse `eventsource.sharedworker.js`; asc `WatchRefs` / queue `Watch` for pushes | L |
 | Dashboard | States: loading skeleton, new account, offline error with retry countdown | ui-only-missing | Inbox zero exists; the others missing | M |
@@ -245,7 +245,7 @@ Open rows by size: S 45, M 64, L 23.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Inbox | Tabs Needs you, Waiting on others, Agents, Done with counts (hub adds Drafts) | done | `routers/web/user/asc_inbox_page.go`, `asc_inbox.tmpl` | - |
-| Inbox | Filters: All repos, Humans and agents, Sorted by | ui-only-missing | Repo select works; "Humans and agents" missing; "Sorted by" is static text (`wk-sort`). Add `kind` and `sort` in `ascInboxBuild` | S |
+| Inbox | Filters: All repos, Humans and agents, Sorted by | done | Repo select works; "Humans and agents" missing; "Sorted by" is static text (`wk-sort`). Add `kind` and `sort` in `ascInboxBuild` | S |
 | Inbox | Unread dot plus bold title | needs-hub-backend | No unread state (no `unread` in the template). `last_seen` per pull and user in `models/issues/asc_inbox_state.go` (migration) | M |
 | Inbox | Row hover actions (Review, Answer, Mark done, Snooze) | ui-only-missing | Rows are a link only; actions posting to `/-/asc/inbox/state` | S |
 | Inbox | Select rows (x, checkbox); bulk bar "2 selected: Mark done, Snooze, Unwatch" in a live region | needs-hub-backend | None. `AscInboxStatePost` takes one pull; accept many, add `unwatch`, selection JS in `asc-keys.js` | M |
