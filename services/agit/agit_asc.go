@@ -198,7 +198,46 @@ func recordAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues
 	if err := issues_model.SetPullRequestAscStack(ctx, pr, change, parentID); err != nil {
 		return err
 	}
+	if err := adoptAscChildren(ctx, repo, pr, change); err != nil {
+		log.Error("asc stack: adopting the children of change %s: %v", shortChange(change), err)
+	}
 	return pull_service.RecomputeAscStackBase(ctx, pr)
+}
+
+// adoptAscChildren links the open pull requests of the changes that sit on change, whose parent was not linked
+// because their pull requests were made before this one (a stack is pushed as one batch and the order of the
+// refs is not the order of the stack). A row whose parent is not this change is left alone.
+func adoptAscChildren(ctx context.Context, repo *repo_model.Repository, pr *issues_model.PullRequest, change string) error {
+	rows, err := issues_model.ListAscStackBottoms(ctx, repo.ID)
+	if err != nil {
+		return err
+	}
+	for _, row := range rows {
+		if row.PullID == pr.ID || row.AscChange == change {
+			continue
+		}
+		child, err := issues_model.GetPullRequestByID(ctx, row.PullID)
+		if err != nil {
+			if issues_model.IsErrPullRequestNotExist(err) {
+				continue
+			}
+			return err
+		}
+		if err := child.LoadIssue(ctx); err != nil || child.Issue.IsClosed || child.HasMerged {
+			continue
+		}
+		parent, err := ascParentOf(ctx, repo, row.AscChange)
+		if err != nil || parent != change {
+			continue
+		}
+		if err := issues_model.SetAscStackParent(ctx, child.ID, pr.ID); err != nil {
+			return err
+		}
+		if err := pull_service.RecomputeAscStackBase(ctx, child); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ascDeniedMessage is what the pusher sees when the update authorisation fails.
