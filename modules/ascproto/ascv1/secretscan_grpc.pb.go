@@ -23,6 +23,7 @@ const (
 	SecretScan_Scan_FullMethodName          = "/asc.v1.SecretScan/Scan"
 	SecretScan_ListFindings_FullMethodName  = "/asc.v1.SecretScan/ListFindings"
 	SecretScan_UpdateFinding_FullMethodName = "/asc.v1.SecretScan/UpdateFinding"
+	SecretScan_Check_FullMethodName         = "/asc.v1.SecretScan/Check"
 )
 
 // SecretScanClient is the client API for SecretScan service.
@@ -41,6 +42,7 @@ type SecretScanClient interface {
 	Scan(ctx context.Context, in *ScanSecretsRequest, opts ...grpc.CallOption) (*ScanSecretsResponse, error)
 	ListFindings(ctx context.Context, in *ListSecretFindingsRequest, opts ...grpc.CallOption) (*ListSecretFindingsResponse, error)
 	UpdateFinding(ctx context.Context, in *UpdateSecretFindingRequest, opts ...grpc.CallOption) (*UpdateSecretFindingResponse, error)
+	Check(ctx context.Context, in *CheckSecretsRequest, opts ...grpc.CallOption) (*CheckSecretsResponse, error)
 }
 
 type secretScanClient struct {
@@ -91,6 +93,16 @@ func (c *secretScanClient) UpdateFinding(ctx context.Context, in *UpdateSecretFi
 	return out, nil
 }
 
+func (c *secretScanClient) Check(ctx context.Context, in *CheckSecretsRequest, opts ...grpc.CallOption) (*CheckSecretsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckSecretsResponse)
+	err := c.cc.Invoke(ctx, SecretScan_Check_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SecretScanServer is the server API for SecretScan service.
 // All implementations should embed UnimplementedSecretScanServer
 // for forward compatibility.
@@ -107,6 +119,7 @@ type SecretScanServer interface {
 	Scan(context.Context, *ScanSecretsRequest) (*ScanSecretsResponse, error)
 	ListFindings(context.Context, *ListSecretFindingsRequest) (*ListSecretFindingsResponse, error)
 	UpdateFinding(context.Context, *UpdateSecretFindingRequest) (*UpdateSecretFindingResponse, error)
+	Check(context.Context, *CheckSecretsRequest) (*CheckSecretsResponse, error)
 }
 
 // UnimplementedSecretScanServer should be embedded to have
@@ -127,6 +140,9 @@ func (UnimplementedSecretScanServer) ListFindings(context.Context, *ListSecretFi
 }
 func (UnimplementedSecretScanServer) UpdateFinding(context.Context, *UpdateSecretFindingRequest) (*UpdateSecretFindingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateFinding not implemented")
+}
+func (UnimplementedSecretScanServer) Check(context.Context, *CheckSecretsRequest) (*CheckSecretsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Check not implemented")
 }
 func (UnimplementedSecretScanServer) testEmbeddedByValue() {}
 
@@ -220,6 +236,24 @@ func _SecretScan_UpdateFinding_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SecretScan_Check_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckSecretsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecretScanServer).Check(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SecretScan_Check_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecretScanServer).Check(ctx, req.(*CheckSecretsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SecretScan_ServiceDesc is the grpc.ServiceDesc for SecretScan service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -242,6 +276,10 @@ var SecretScan_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateFinding",
 			Handler:    _SecretScan_UpdateFinding_Handler,
+		},
+		{
+			MethodName: "Check",
+			Handler:    _SecretScan_Check_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

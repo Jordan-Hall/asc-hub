@@ -132,7 +132,9 @@ type ChangeInfo struct {
 	ParentCurrent bool                   `protobuf:"varint,6,opt,name=parent_current,json=parentCurrent,proto3" json:"parent_current,omitempty"`
 	LandedAs      []byte                 `protobuf:"bytes,7,opt,name=landed_as,json=landedAs,proto3" json:"landed_as,omitempty"`
 	Review        *ReviewState           `protobuf:"bytes,8,opt,name=review,proto3" json:"review,omitempty"`
-	Visible       [][]byte               `protobuf:"bytes,9,rep,name=visible,proto3" json:"visible,omitempty"`
+	Visible       [][]byte               `protobuf:"bytes,9,rep,name=visible,proto3" json:"visible,omitempty"` // >1 = divergent
+	ByAgent       bool                   `protobuf:"varint,10,opt,name=by_agent,json=byAgent,proto3" json:"by_agent,omitempty"`
+	AgentRun      uint64                 `protobuf:"varint,11,opt,name=agent_run,json=agentRun,proto3" json:"agent_run,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -228,6 +230,20 @@ func (x *ChangeInfo) GetVisible() [][]byte {
 		return x.Visible
 	}
 	return nil
+}
+
+func (x *ChangeInfo) GetByAgent() bool {
+	if x != nil {
+		return x.ByAgent
+	}
+	return false
+}
+
+func (x *ChangeInfo) GetAgentRun() uint64 {
+	if x != nil {
+		return x.AgentRun
+	}
+	return 0
 }
 
 type ResolveChangesRequest struct {
@@ -1564,7 +1580,7 @@ var File_asc_v1_changes_proto protoreflect.FileDescriptor
 
 const file_asc_v1_changes_proto_rawDesc = "" +
 	"\n" +
-	"\x14asc/v1/changes.proto\x12\x06asc.v1\x1a\x14asc/v1/options.proto\x1a\x11asc/v1/repo.proto\"\xb8\x02\n" +
+	"\x14asc/v1/changes.proto\x12\x06asc.v1\x1a\x14asc/v1/options.proto\x1a\x11asc/v1/repo.proto\"\xf0\x02\n" +
 	"\n" +
 	"ChangeInfo\x12\x1c\n" +
 	"\x06change\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x18\n" +
@@ -1575,7 +1591,10 @@ const file_asc_v1_changes_proto_rawDesc = "" +
 	"\x0eparent_current\x18\x06 \x01(\bR\rparentCurrent\x12!\n" +
 	"\tlanded_as\x18\a \x01(\fB\x04\xa8\xbb\x18\x01R\blandedAs\x12+\n" +
 	"\x06review\x18\b \x01(\v2\x13.asc.v1.ReviewStateR\x06review\x12\x1e\n" +
-	"\avisible\x18\t \x03(\fB\x04\xa8\xbb\x18\x02R\avisible\"p\n" +
+	"\avisible\x18\t \x03(\fB\x04\xa8\xbb\x18\x02R\avisible\x12\x19\n" +
+	"\bby_agent\x18\n" +
+	" \x01(\bR\abyAgent\x12\x1b\n" +
+	"\tagent_run\x18\v \x01(\x04R\bagentRun\"p\n" +
 	"\x15ResolveChangesRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1e\n" +
 	"\achanges\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x02R\achanges\x12\x12\n" +
