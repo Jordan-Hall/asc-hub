@@ -34,6 +34,9 @@
 			<div class="ds-banner ds-banner-info" role="status" data-testid="asc-compare-same">{{svg "dsi-info" 16}}<span>{{ctx.Locale.Tr "asc_rp.cmp_same" .AscCompareA}}</span></div>
 		{{else if .AscCompareError}}
 			<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-compare-error">{{svg "dsi-alert" 16}}<span>{{ctx.Locale.Tr .AscCompareError}}</span></div>
+			{{range .AscCompareHints}}
+				<p class="rp-cmp-hint" data-testid="asc-compare-hint">{{ctx.Locale.Tr "asc_rp.did_you_mean" .Given}} <a class="ds-mono" href="{{$.RepoLink}}/asc/compare?{{if eq .Side "a"}}a={{.Hint | QueryEscape}}&b={{$.AscCompareB | QueryEscape}}{{else}}a={{$.AscCompareA | QueryEscape}}&b={{.Hint | QueryEscape}}{{end}}{{if $.AscCompareThreeDot}}&three_dot=1{{end}}">{{.Hint}}</a>?</p>
+			{{end}}
 		{{else}}
 			{{with .AscCompare}}
 			<p class="rp-cmp-sum" data-testid="asc-compare-summary">
@@ -52,7 +55,7 @@
 						{{range .AheadList}}
 						<li class="rp-cmp-commit">
 							<a class="rp-cmp-subject" href="{{$.RepoLink}}/commit/{{.SHA}}">{{.Subject}}</a>
-							<span class="rp-ref-meta"><code class="rp-hash">{{slice .SHA 0 10}}</code><span>{{.Author}}</span></span>
+							<span class="rp-ref-meta"><code class="rp-hash">{{slice .SHA 0 10}}</code><span>{{.Author}}</span>{{if .HasStat}}<span class="rp-delta"><span class="rp-add">+{{.Add}}</span> <span class="rp-del">&minus;{{.Del}}</span></span>{{end}}</span>
 						</li>
 						{{end}}
 						{{if .AheadMore}}<li class="rp-cmp-commit rp-dim">{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
@@ -71,7 +74,7 @@
 						{{range .BehindList}}
 						<li class="rp-cmp-commit">
 							<a class="rp-cmp-subject" href="{{$.RepoLink}}/commit/{{.SHA}}">{{.Subject}}</a>
-							<span class="rp-ref-meta"><code class="rp-hash">{{slice .SHA 0 10}}</code><span>{{.Author}}</span></span>
+							<span class="rp-ref-meta"><code class="rp-hash">{{slice .SHA 0 10}}</code><span>{{.Author}}</span>{{if .HasStat}}<span class="rp-delta"><span class="rp-add">+{{.Add}}</span> <span class="rp-del">&minus;{{.Del}}</span></span>{{end}}</span>
 						</li>
 						{{end}}
 						{{if .BehindMore}}<li class="rp-cmp-commit rp-dim">{{ctx.Locale.Tr "repo.asc_compare.more"}}</li>{{end}}
@@ -88,7 +91,7 @@
 				</div>
 				{{if .Files}}
 				<ul class="rp-rows">
-					{{range .Files}}<li class="rp-cmp-file">{{if eq .Status "A"}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.st_added"}}</span>{{else if eq .Status "D"}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_rp.st_deleted"}}</span>{{else if eq .Status "R"}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_rp.st_renamed"}}</span>{{else if eq .Status "M"}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_rp.st_modified"}}</span>{{else}}<span class="ds-chip">{{.Status}}</span>{{end}} <code class="rp-cmp-path">{{.Path}}</code></li>{{end}}
+					{{range .Files}}<li class="rp-cmp-file">{{if eq .Status "A"}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.st_added"}}</span>{{else if eq .Status "D"}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_rp.st_deleted"}}</span>{{else if eq .Status "R"}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_rp.st_renamed"}}</span>{{else if eq .Status "M"}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_rp.st_modified"}}</span>{{else}}<span class="ds-chip">{{.Status}}</span>{{end}} <code class="rp-cmp-path">{{.Path}}</code>{{if .HasStat}}{{if .Binary}} <span class="rp-dim">{{ctx.Locale.Tr "asc_rp.binary"}}</span>{{else}} <span class="rp-delta"><span class="rp-add">+{{.Add}}</span> <span class="rp-del">&minus;{{.Del}}</span></span>{{end}}{{end}}</li>{{end}}
 				</ul>
 				{{else}}
 				<div class="rp-sec-b">
