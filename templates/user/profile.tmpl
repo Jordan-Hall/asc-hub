@@ -125,6 +125,7 @@
 				</aside>
 			</div>
 		{{else if eq .TabName "work"}}
+			{{if not $activityVisible}}{{template "shared/ds/empty" (dict "Icon" "changes" "Title" (ctx.Locale.Tr "asc_work.pf_private"))}}{{else}}
 			<section class="ds-card" aria-labelledby="wk-work-tab">
 				<div class="ds-card-h"><h2 id="wk-work-tab">{{ctx.Locale.Tr "asc_work.pf_work"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.pf_work_hint" (or .ContextUser.FullName .ContextUser.Name)}}</span></div>
 				{{if .AscProfileWork}}
@@ -141,7 +142,9 @@
 					{{template "shared/ds/empty" (dict "Icon" "changes" "Title" (ctx.Locale.Tr "asc_work.pf_work_none"))}}
 				{{end}}
 			</section>
+			{{end}}
 		{{else if eq .TabName "reviews"}}
+			{{if not $activityVisible}}{{template "shared/ds/empty" (dict "Icon" "message" "Title" (ctx.Locale.Tr "asc_work.pf_private"))}}{{else}}
 			<section class="ds-card" aria-labelledby="wk-reviews-tab">
 				<div class="ds-card-h"><h2 id="wk-reviews-tab">{{ctx.Locale.Tr "asc_work.pf_reviews"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.pf_reviews_hint" (or .ContextUser.FullName .ContextUser.Name)}}</span></div>
 				{{if .AscProfileReviews}}
@@ -158,6 +161,7 @@
 					{{template "shared/ds/empty" (dict "Icon" "message" "Title" (ctx.Locale.Tr "asc_work.pf_reviews_none"))}}
 				{{end}}
 			</section>
+			{{end}}
 		{{else if eq .TabName "activity"}}
 			{{if eq .SignedUserID .ContextUser.ID}}
 			<p class="ds-callout ds-mb-16" id="visibility-hint">

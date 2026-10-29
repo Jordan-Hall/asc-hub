@@ -142,7 +142,9 @@ func Dashboard(ctx *context.Context) {
 	if !ctxUser.IsOrganization() {
 		now := time.Now()
 		ctx.Data["AscDash"] = ascDashBuild(ctx, now)
-		ctx.Data["AscDashToday"] = ascDashToday(feeds, now)
+		today := ascDashToday(feeds, now)
+		ctx.Data["AscDashToday"] = today
+		ctx.Data["AscDashTodayKinds"] = ascFeedKinds(today)
 		if heat, ok := ctx.Data["HeatmapData"].([]*activities_model.UserHeatmapData); ok {
 			ctx.Data["AscHeat"] = ascHeatBuild(heat, now, setting.DefaultUILocation, ctx.Locale)
 		}
