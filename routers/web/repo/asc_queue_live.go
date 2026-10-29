@@ -92,6 +92,14 @@ func ascQueueSnapshotOf(r *ascv1.ListQueueResponse) ascQueueSnapshot {
 	return snap
 }
 
+// ascQueueTarget is the name asc gives a branch in its queue: the full ref name.
+func ascQueueTarget(branch string) string {
+	if strings.HasPrefix(branch, "refs/") {
+		return branch
+	}
+	return "refs/heads/" + branch
+}
+
 // ascQueueRead lists the live entries of branch as the internal credential (the caller has passed the page's checks).
 func ascQueueRead(ctx gocontext.Context, name, branch string) (*ascQueueSnapshot, error) {
 	conn, err := ascRPCConn()
@@ -100,7 +108,7 @@ func ascQueueRead(ctx gocontext.Context, name, branch string) (*ascQueueSnapshot
 	}
 	callCtx, cancel := gocontext.WithTimeout(ascclient.WithSystem(ctx), ascAgentsCallTimeout)
 	defer cancel()
-	resp, err := ascv1.NewMergeQueueClient(conn).List(callCtx, &ascv1.ListQueueRequest{Repo: &ascv1.RepoRef{Name: name}, Target: branch, Limit: 200})
+	resp, err := ascv1.NewMergeQueueClient(conn).List(callCtx, &ascv1.ListQueueRequest{Repo: &ascv1.RepoRef{Name: name}, Target: ascQueueTarget(branch), Limit: 200})
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +162,7 @@ func AscQueueLive(ctx *context.Context) {
 	// Wait for one event first (or the timeout), then read the whole list, so a reply is always the full truth.
 	if conn, err := ascRPCConn(); err == nil {
 		wctx, cancel := gocontext.WithTimeout(ascclient.WithSystem(ctx.Req.Context()), ascQueueLiveWait)
-		stream, err := ascv1.NewMergeQueueClient(conn).Watch(wctx, &ascv1.WatchQueueRequest{Repo: &ascv1.RepoRef{Name: name}, Target: branch})
+		stream, err := ascv1.NewMergeQueueClient(conn).Watch(wctx, &ascv1.WatchQueueRequest{Repo: &ascv1.RepoRef{Name: name}, Target: ascQueueTarget(branch)})
 		if err == nil {
 			_, _ = stream.Recv() // an event, an end or the timeout: all mean "read again"
 		}

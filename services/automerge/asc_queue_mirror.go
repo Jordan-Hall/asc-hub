@@ -9,11 +9,13 @@ import (
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/git/ascbackend"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	"forgejo.org/services/asctrust"
 
 	"github.com/google/uuid"
 )
@@ -61,8 +63,23 @@ func InitAscQueueMirror() {
 		defer cancel()
 		target := "refs/heads/" + e.Branch
 		if state == AscQueueQueued {
+			// An entry has a person who queued it: asc records that person's immutable id, so this call is made as them
+			// (a one-use claim for the repository), never as the hub. Forgejo has authorised them already.
+			doer, err := user_model.GetUserByID(ctx, e.DoerID)
+			if err != nil {
+				log.Warn("asc queue mirror: the person who queued entry %d is gone: %v", e.ID, err)
+				return
+			}
+			uctx, release, err := asctrust.UserCall(ctx, doer, asctrust.CallRepoWrite, repo)
+			if err != nil {
+				log.Warn("asc queue mirror: no credential for user %d: %v", doer.ID, err)
+				return
+			}
+			defer release()
 			opID := uuid.NewSHA1(uuid.NameSpaceURL, []byte("asc-queue-mirror|"+name+"|"+e.AscChange+"|"+time.Unix(int64(e.CreatedUnix), 0).UTC().Format(time.RFC3339Nano)))
-			if _, err := api.Enqueue(ascclient.WithOpID(cctx, opID), &ascv1.EnqueueRequest{Repo: ref, Change: change, Target: target}); err != nil {
+			uctx, ucancel := context.WithTimeout(ascclient.WithOpID(uctx, opID), ascQueueMirrorTimeout)
+			defer ucancel()
+			if _, err := api.Enqueue(uctx, &ascv1.EnqueueRequest{Repo: ref, Change: change, Target: target}); err != nil {
 				log.Warn("asc queue mirror: Enqueue failed: %v", err)
 			}
 			return
