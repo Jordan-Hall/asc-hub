@@ -2115,3 +2115,94 @@ body.ds-lock {
     padding-inline-start: 60px;
   }
 }
+
+/* documentation on a phone: "On this page" is one row that stays under the header, and the next guide is one tap at the end */
+.site-toc-m {
+  display: none;
+}
+
+.site-next a {
+  display: grid;
+  gap: 2px;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  margin-top: 32px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.site-next a > span {
+  grid-column: 1;
+}
+
+.site-next a > b {
+  grid-column: 1;
+}
+
+.site-next a > svg {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+@media (max-width: 1023.98px) {
+  .site-toc-m {
+    display: block;
+    position: sticky;
+    top: var(--header-h);
+    z-index: 5;
+    margin: 0 -16px 8px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .site-toc-m > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    cursor: pointer;
+    font-weight: 600;
+    list-style: none;
+  }
+
+  .site-toc-m > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .site-toc-m > summary svg:last-child {
+    margin-inline-start: auto;
+  }
+
+  .site-toc-m[open] > summary svg:last-child {
+    transform: rotate(180deg);
+  }
+
+  .site-toc-m ul {
+    max-height: 50vh;
+    margin: 0;
+    padding: 0 16px 8px;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  .site-toc-m li a {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .site-article-body {
+    padding-bottom: 16px;
+  }
+}
+
+.site-edit .ds-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
