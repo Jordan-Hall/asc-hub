@@ -291,6 +291,7 @@ func SubmitReview(ctx *context.Context) {
 		}
 		return
 	}
+	reportAscApproval(ctx, issue, reviewType)
 	ctx.JSONRedirect(fmt.Sprintf("%s/pulls/%d#%s", ctx.Repo.RepoLink, issue.Index, comm.HashTag()))
 }
 
