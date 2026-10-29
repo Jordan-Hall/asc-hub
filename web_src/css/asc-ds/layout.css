@@ -2076,3 +2076,18 @@ body.ds-lock {
 .site-article-body .chroma span {
   color: inherit;
 }
+
+/* the teams of a person on the profile: chips that wrap */
+.wk-pf-teams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 16px;
+  list-style: none;
+}
+
+.wk-pf-teams .ds-chip {
+  min-height: 32px;
+  text-decoration: none;
+}
