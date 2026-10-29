@@ -163,6 +163,9 @@
 		<span class="rp-delta"><span class="rp-add">+{{.Diff.TotalAddition}}</span> <span class="rp-del">&minus;{{.Diff.TotalDeletion}}</span></span>
 		<span>{{ctx.Locale.TrN .Diff.NumFiles "asc_rp.cmp_in_files_one" "asc_rp.cmp_in_files_other" .Diff.NumFiles}}</span>
 		<span class="rp-dim">{{ctx.Locale.TrN .CommitCount "asc_rp.cmp_ahead_one" "asc_rp.cmp_ahead_other" .CommitCount}}</span>
+		{{if .CompareBehind}}<span class="rp-dim">{{ctx.Locale.TrN .CompareBehind "asc_rp.cmp_behind_one" "asc_rp.cmp_behind_other" .CompareBehind}}</span>{{end}}
+		{{if eq .CompareMergeState "clean"}}<span class="ds-chip ds-chip-ok" data-testid="compare-clean">{{ctx.Locale.Tr "asc_rp.cmp_no_conflict"}}</span>
+		{{else if eq .CompareMergeState "conflicts"}}<span class="ds-chip ds-chip-err" data-testid="compare-conflicts">{{ctx.Locale.Tr "asc_rp.cmp_conflicts"}}</span>{{end}}
 		<a class="ds-btn ds-btn-secondary ds-btn-sm" href="#rp-cmp-diff">{{ctx.Locale.Tr "asc_rp.cmp_review_first"}}</a>
 	</div>
 	{{end}}
