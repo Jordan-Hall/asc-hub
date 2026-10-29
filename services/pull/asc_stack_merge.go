@@ -174,6 +174,7 @@ func AscStackPrefix(ctx context.Context, pr *issues_model.PullRequest) ([]*AscSt
 	seen := map[int64]bool{}
 	var rev []*AscStackItem
 	cur := pr
+	healed := false
 	for range ascStackMaxDepth {
 		if seen[cur.ID] {
 			return nil, fmt.Errorf("%w: cycle", ErrAscStackNotMergable)
@@ -185,6 +186,20 @@ func AscStackPrefix(ctx context.Context, pr *issues_model.PullRequest) ([]*AscSt
 		}
 		if row == nil {
 			return nil, ErrAscStackNotStacked
+		}
+		if row.StackParentID == 0 && !healed {
+			// A change without a parent is the bottom of a stack, or its parent was not linked when it was pushed
+			// (asc did not know it yet): look at git once before the walk stops.
+			healed = true
+			if err := cur.LoadBaseRepo(ctx); err == nil {
+				if n, herr := RepairAscStackLinks(ctx, cur.BaseRepo); herr != nil {
+					log.Trace("asc stack: repairing the links of %s: %v", cur.BaseRepo.FullName(), herr)
+				} else if n > 0 {
+					if row, err = issues_model.GetPullRequestAscStack(ctx, cur.ID); err != nil || row == nil {
+						return nil, ErrAscStackNotStacked
+					}
+				}
+			}
 		}
 		rev = append(rev, &AscStackItem{PR: cur, Change: row.AscChange})
 		if row.StackParentID == 0 {

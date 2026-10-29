@@ -139,3 +139,23 @@ func SetAscStackParent(ctx context.Context, pullID, parentID int64) error {
 	_, err := db.GetEngine(ctx).Where("pull_id = ?", pullID).Cols("stack_parent_id").Update(&PullRequestAscStack{StackParentID: parentID})
 	return err
 }
+
+// ListOpenAscStackPulls returns the open pull requests of repoID that are changes of a stack, oldest first. The
+// pull request of a merged or closed change is not listed.
+func ListOpenAscStackPulls(ctx context.Context, repoID int64) ([]*PullRequest, error) {
+	var prs []*PullRequest
+	err := db.GetEngine(ctx).
+		Table("pull_request").
+		Join("INNER", "pull_request_asc_stack", "pull_request_asc_stack.pull_id = pull_request.id").
+		Join("INNER", "issue", "issue.id = pull_request.issue_id").
+		Where("pull_request_asc_stack.repo_id = ? AND pull_request.has_merged = ? AND issue.is_closed = ?", repoID, false, false).
+		OrderBy("pull_request.id").
+		Find(&prs)
+	return prs, err
+}
+
+// ListAscStackRepoIDs returns the repositories that have a pull request that is a change of a stack.
+func ListAscStackRepoIDs(ctx context.Context) ([]int64, error) {
+	var ids []int64
+	return ids, db.GetEngine(ctx).Table("pull_request_asc_stack").Distinct("repo_id").Find(&ids)
+}
