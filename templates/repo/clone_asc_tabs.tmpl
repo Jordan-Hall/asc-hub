@@ -13,6 +13,7 @@
 			<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_rp.terminal"}}"><span class="ds-pr">$</span> git clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></div>
 		</div>
 		<input type="text" class="js-clone-url ds-sr" id="rp-git-clone-url" data-clone-prefix="git clone " value="git clone {{$.CloneButtonOriginLink.HTTPS}}" readonly tabindex="-1" aria-hidden="true">
+		<p class="rp-quiet" data-testid="gitnote-token-hint">{{ctx.Locale.Tr "asc_rp.gitnote_token_hint"}}</p>
 	</div>
 </details>
 {{else}}
