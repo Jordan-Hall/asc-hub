@@ -83,6 +83,37 @@ type changeReview struct {
 	Required  int
 }
 
+// changeCheck is one check result of the change: its name, the state word and where it links.
+type changeCheck struct {
+	Name   string
+	State  string // success, pending or failure
+	Tone   string
+	Target string
+	Note   string
+}
+
+// changeChecksOf turns the latest status of each context into the rows of the Checks card.
+func changeChecksOf(statuses []*git_model.CommitStatus) []*changeCheck {
+	rows := make([]*changeCheck, 0, len(statuses))
+	for _, s := range statuses {
+		c := &changeCheck{Name: s.Context, Target: s.TargetURL, Note: s.Description}
+		switch {
+		case s.State.IsSuccess() || s.State.IsSkipped():
+			c.State, c.Tone = "success", "ok"
+		case s.State.IsPending():
+			c.State, c.Tone = "pending", "warn"
+		default:
+			c.State, c.Tone = "failure", "err"
+		}
+		// a target that is not a web link is not drawn as one
+		if !strings.HasPrefix(c.Target, "https://") && !strings.HasPrefix(c.Target, "http://") {
+			c.Target = ""
+		}
+		rows = append(rows, c)
+	}
+	return rows
+}
+
 // changeWhere is "where it is now": the default branch if it holds the change, the releases (tags) that contain it.
 type changeWhere struct {
 	OnDefault bool
@@ -100,6 +131,10 @@ func prepareAscChange(ctx *context.Context, commit *git.Commit, statuses []*git_
 	ctx.Data["ChangeFacts"] = &struct {
 		Additions, Deletions, Files, ChecksPass, ChecksTotal int
 	}{additions, deletions, files, pass, total}
+
+	if rows := changeChecksOf(statuses); len(rows) > 0 {
+		ctx.Data["ChangeChecks"] = rows
+	}
 
 	repo := ctx.Repo.Repository
 	if ctx.Repo.GitRepo != nil && !repo.IsEmpty {
@@ -128,11 +163,14 @@ func prepareAscChange(ctx *context.Context, commit *git.Commit, statuses []*git_
 		return
 	}
 	ctx.Data["ChangePull"] = fmt.Sprintf("%s/pulls/%d", ctx.Repo.RepoLink, pr.Index)
+	if ctx.IsSigned && ctx.Repo.CanWrite(unit.TypeCode) && !repo.IsArchived {
+		ctx.Data["ChangeRevertLink"] = fmt.Sprintf("%s/pulls/%d/asc/revert", ctx.Repo.RepoLink, pr.Index)
+	}
 
 	if panel, err := pull_service.BuildAscStackPanel(ctx, pr); err != nil {
 		log.Error("change page: stack of %s#%d: %v", repo.FullName(), pr.Index, err)
 	} else if panel != nil {
-		pos := &changeStackPos{Name: pr.HeadBranch, Total: len(panel.Entries), PullLink: fmt.Sprintf("%s/pulls/%d", ctx.Repo.RepoLink, pr.Index)}
+		pos := &changeStackPos{Name: ascStackLabel(pr.HeadBranch, pr.Issue.Title), Total: len(panel.Entries), PullLink: fmt.Sprintf("%s/pulls/%d", ctx.Repo.RepoLink, pr.Index)}
 		for i := range panel.Entries {
 			e := panel.Entries[i]
 			if e.Current {

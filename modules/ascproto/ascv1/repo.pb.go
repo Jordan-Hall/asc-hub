@@ -5319,6 +5319,7 @@ type RepoAdminRequest struct {
 	//	*RepoAdminRequest_RenameTo
 	//	*RepoAdminRequest_Size
 	//	*RepoAdminRequest_Verify
+	//	*RepoAdminRequest_SetDefaultBranch
 	Op            isRepoAdminRequest_Op `protobuf_oneof:"op"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -5422,6 +5423,15 @@ func (x *RepoAdminRequest) GetVerify() bool {
 	return false
 }
 
+func (x *RepoAdminRequest) GetSetDefaultBranch() string {
+	if x != nil {
+		if x, ok := x.Op.(*RepoAdminRequest_SetDefaultBranch); ok {
+			return x.SetDefaultBranch
+		}
+	}
+	return ""
+}
+
 type isRepoAdminRequest_Op interface {
 	isRepoAdminRequest_Op()
 }
@@ -5450,6 +5460,10 @@ type RepoAdminRequest_Verify struct {
 	Verify bool `protobuf:"varint,7,opt,name=verify,proto3,oneof"`
 }
 
+type RepoAdminRequest_SetDefaultBranch struct {
+	SetDefaultBranch string `protobuf:"bytes,8,opt,name=set_default_branch,json=setDefaultBranch,proto3,oneof"` // trunk: the branch the gate protects (secret scan, path rules, review)
+}
+
 func (*RepoAdminRequest_Init) isRepoAdminRequest_Op() {}
 
 func (*RepoAdminRequest_Fork) isRepoAdminRequest_Op() {}
@@ -5461,6 +5475,8 @@ func (*RepoAdminRequest_RenameTo) isRepoAdminRequest_Op() {}
 func (*RepoAdminRequest_Size) isRepoAdminRequest_Op() {}
 
 func (*RepoAdminRequest_Verify) isRepoAdminRequest_Op() {}
+
+func (*RepoAdminRequest_SetDefaultBranch) isRepoAdminRequest_Op() {}
 
 type InitOp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -8903,7 +8919,7 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"changesets\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x01R\n" +
 	"changesets\"-\n" +
 	"\x13CopyClosureResponse\x12\x16\n" +
-	"\x06copied\x18\x01 \x01(\x04R\x06copied\"\xf2\x01\n" +
+	"\x06copied\x18\x01 \x01(\x04R\x06copied\"\xa2\x02\n" +
 	"\x10RepoAdminRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12$\n" +
 	"\x04init\x18\x02 \x01(\v2\x0e.asc.v1.InitOpH\x00R\x04init\x12$\n" +
@@ -8911,7 +8927,8 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x06delete\x18\x04 \x01(\bH\x00R\x06delete\x12\x1d\n" +
 	"\trename_to\x18\x05 \x01(\tH\x00R\brenameTo\x12\x14\n" +
 	"\x04size\x18\x06 \x01(\bH\x00R\x04size\x12\x18\n" +
-	"\x06verify\x18\a \x01(\bH\x00R\x06verifyB\x04\n" +
+	"\x06verify\x18\a \x01(\bH\x00R\x06verify\x12.\n" +
+	"\x12set_default_branch\x18\b \x01(\tH\x00R\x10setDefaultBranchB\x04\n" +
 	"\x02op\"\xaa\x01\n" +
 	"\x06InitOp\x12%\n" +
 	"\x0edefault_branch\x18\x01 \x01(\tR\rdefaultBranch\x12!\n" +
@@ -9662,6 +9679,7 @@ func file_asc_v1_repo_proto_init() {
 		(*RepoAdminRequest_RenameTo)(nil),
 		(*RepoAdminRequest_Size)(nil),
 		(*RepoAdminRequest_Verify)(nil),
+		(*RepoAdminRequest_SetDefaultBranch)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

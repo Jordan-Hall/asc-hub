@@ -29,6 +29,8 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 	_, forcePush := opts.GetGitPushOptions().GetString(pushoptions.AgitForcePush)
 	title, hasTitle := opts.GetGitPushOptions().GetString(pushoptions.AgitTitle)
 	description, hasDesc := opts.GetGitPushOptions().GetString(pushoptions.AgitDescription)
+	// what the push options said: every ref of the push starts from these, and takes what they leave empty from its own commit
+	optTitle, optDescription := title, description
 
 	objectFormat := git.ObjectFormatFromName(repo.ObjectFormatName)
 
@@ -122,6 +124,7 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 				continue
 			}
 
+			title, description = optTitle, optDescription
 			// Automatically fill out the title and the description from the first commit.
 			shouldGetCommit := len(title) == 0 || len(description) == 0
 
@@ -166,7 +169,7 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 			}
 
 			if ascChange != "" {
-				if err := recordAscStack(ctx, repo, pr, ascChange); err != nil {
+				if err := recordAscStack(ctx, repo, pushed, pr, ascChange); err != nil {
 					logAscStack(err, ascChange)
 					return nil, fmt.Errorf("failed to record the stack of change %s: %w", shortChange(ascChange), err)
 				}
@@ -249,7 +252,7 @@ func ProcReceive(ctx context.Context, repo *repo_model.Repository, gitRepo *git.
 		}
 		if ascChange != "" {
 			// A new version may have a new parent (a restack): refresh the link and the merge base.
-			if err := recordAscStack(ctx, repo, pr, ascChange); err != nil {
+			if err := recordAscStack(ctx, repo, pushed, pr, ascChange); err != nil {
 				logAscStack(err, ascChange)
 				return nil, fmt.Errorf("failed to record the stack of change %s: %w", shortChange(ascChange), err)
 			}

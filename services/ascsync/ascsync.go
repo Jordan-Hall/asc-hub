@@ -107,8 +107,13 @@ var (
 
 // RejectError is a refusal by asc whose text is meant for the pusher.
 type RejectError struct {
-	// Message is asc's text, without control characters, at most MaxRejectBytes long.
+	// Message is asc's text, without control characters, at most MaxRejectBytes long. It names the typed code
+	// and the paths of the refusal when asc's own text does not.
 	Message string
+	// Code is the typed code of the refusal (SECRET_DETECTED, PATH_POLICY, REF_CONFLICT, ...), when asc sent one.
+	Code string
+	// Paths are the files (or refs) the refusal is about, as asc sent them.
+	Paths []string
 }
 
 func (e *RejectError) Error() string { return "ascsync: asc refused: " + e.Message }
@@ -305,14 +310,40 @@ func callError(op string, err error) error {
 	if !ok {
 		return fmt.Errorf("ascsync: %s failed", op)
 	}
-	msg := clean(st.Message(), MaxRejectBytes)
-	if userFacing(st.Code()) {
-		if msg == "" {
-			msg = "asc refused the request (" + st.Code().String() + ")"
-		}
-		return &RejectError{Message: msg}
+	code, text := st.Code(), st.Message()
+	var typed ascclient.Refusal
+	hasDetail := false
+	if r, ok := ascclient.RefusalOf(err); ok {
+		// The typed refusal of asc, read natively from the status details (or, for an older asc, out of the text).
+		code, text, typed, hasDetail = r.Status, r.Message, r, true
 	}
-	return fmt.Errorf("ascsync: %s: asc answered %s: %s", op, st.Code(), clean(st.Message(), MaxLogMessageBytes))
+	msg := clean(text, MaxRejectBytes)
+	if userFacing(code) {
+		if msg == "" {
+			msg = "asc refused the request (" + code.String() + ")"
+		}
+		rej := &RejectError{Message: msg}
+		if hasDetail {
+			typed.Message = msg
+			rej.Code, rej.Paths = clean(typed.Code, 64), cleanAll(typed.Paths)
+			typed.Code, typed.Paths = rej.Code, rej.Paths
+			rej.Message = clean(typed.Text(), MaxRejectBytes)
+		}
+		return rej
+	}
+	return fmt.Errorf("ascsync: %s: asc answered %s: %s", op, code, clean(text, MaxLogMessageBytes))
+}
+
+// cleanAll is clean for every path, at most a few of them.
+func cleanAll(paths []string) []string {
+	var out []string
+	for _, p := range paths {
+		if len(out) == 8 {
+			break
+		}
+		out = append(out, clean(p, 256))
+	}
+	return out
 }
 
 // clean makes s one line of printable text of at most limit bytes: control characters become spaces,

@@ -113,6 +113,9 @@ func (g *GiteaLocalUploader) CreateRepo(repo *base.Repository, opts base.Migrate
 			IsPrivate:      opts.Private || setting.Repository.ForcePrivate,
 			IsMirror:       opts.Mirror,
 			Status:         repo_model.RepositoryBeingMigrated,
+			// A repository stored in asc starts with a placeholder default branch, so the import is not held to asc's
+			// gate; MigrateRepositoryGitData sets the real one once the history is in.
+			DefaultBranch: repo_service.MigrationInitBranch(opts.Mirror),
 		})
 	} else {
 		r, err = repo_model.GetRepositoryByID(g.ctx, opts.MigrateToRepoID)

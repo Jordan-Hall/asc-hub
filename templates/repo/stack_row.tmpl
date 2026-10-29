@@ -1,6 +1,6 @@
 {{/* One stack of the repository home and of the Stacks list (boards Repo and Stacks). Dot: a *stackRow */}}
 <li class="rp-flight rp-flight-link rp-stack" data-stack-row data-mine="{{.Mine}}" data-agent="{{.Agent}}" data-needsme="{{.NeedsMe}}" data-status="{{.Status}}">
-	<span class="ds-dot{{if .Tone}} ds-dot-{{.Tone}}{{end}}" aria-hidden="true"></span>
+	{{if .Avatar}}{{ctx.AvatarUtils.Avatar (index .People 0) 32 "ds-av ds-av-32 rp-stack-av"}}{{else}}<span class="ds-dot{{if .Tone}} ds-dot-{{.Tone}}{{end}}" aria-hidden="true"></span>{{end}}
 	<div class="rp-flight-main">
 		<div class="rp-flight-title">
 			<a class="mono" href="{{.Link}}">{{.Name}}</a>
@@ -12,7 +12,8 @@
 		</div>
 	</div>
 	<div class="rp-stkrail">
-		<span class="rp-segs" role="img" aria-label="{{ctx.Locale.TrN .Changes "asc_rp.stack_of_one" "asc_rp.stack_of_other" .Changes}}">
+		<span class="ds-sr">{{ctx.Locale.TrN .Changes "asc_rp.stack_of_one" "asc_rp.stack_of_other" .Changes}}</span>
+		<span class="rp-segs" aria-hidden="true">
 			{{range .Segments}}{{if .Link}}<a class="rp-seg rp-seg-{{.State}}" href="{{.Link}}" title="{{.Title}}" tabindex="-1" aria-hidden="true"></a>{{else}}<span class="rp-seg rp-seg-{{.State}}"></span>{{end}}{{end}}
 		</span>
 		<div class="rp-stkrail-line">{{ctx.Locale.Tr "asc_rp.n_of_n_landed" .Landed .Changes}}</div>

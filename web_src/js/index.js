@@ -65,6 +65,9 @@ import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {initAscPush} from './features/asc-push.js';
 import {initAscSignup} from './features/asc-signup.js';
 import {initAscFeedFilter} from './features/asc-feed-filter.js';
+import {initAscScrollFocus} from './features/asc-scroll-focus.js';
+import {initAscDevice} from './features/asc-device.js';
+import {initAscDocsToc} from './features/asc-docs-toc.js';
 import {initAscDrafts} from './features/asc-drafts.js';
 import {initAscDocs} from './features/asc-docs.js';
 import {initAscCodeBoxes} from './features/asc-codeboxes.js';
@@ -73,6 +76,7 @@ import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {initAscDensity} from './features/asc-density.js';
 import {initAscBoard} from './features/asc-board.js';
 import {initAscMeters} from './features/asc-meters.js';
+import {initAscIntent} from './features/asc-intent.js';
 import {initAscTitleCounter} from './features/asc-title-counter.js';
 import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
 import {
@@ -202,6 +206,9 @@ onDomReady(() => {
   initAscPush();
   initAscSignup();
   initAscFeedFilter();
+  initAscScrollFocus();
+  initAscDevice();
+  initAscDocsToc();
   initAscDrafts();
   initAscDocs();
   initAscCodeBoxes();
@@ -210,6 +217,7 @@ onDomReady(() => {
   initAscDensity();
   initAscBoard();
   initAscMeters();
+  initAscIntent();
   initAscTitleCounter();
   initAscResponsiveDetails();
   initAscInboxBadge();

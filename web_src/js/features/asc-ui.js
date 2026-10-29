@@ -97,7 +97,37 @@ export function initAscUi() {
   initAscInstallPills();
   initDocsFilter();
   initStackFilter();
+  initStackSearch();
   initRefFilter();
+  initDocTabs();
+}
+
+// The README / AGENTS.md / License tabs of the repository home: the pressed tab shows its panel and hides the others.
+// Arrow keys move between the tabs.
+export function initDocTabs(root = document) {
+  for (const list of root.querySelectorAll('[data-doc-tabs]')) {
+    const tabs = Array.from(list.querySelectorAll('[data-doc-tab]'));
+    const select = (tab) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = root.querySelector(`[data-doc-panel="${t.getAttribute('data-doc-tab')}"]`);
+        if (panel) panel.hidden = !on;
+      }
+    };
+    for (const [i, tab] of tabs.entries()) {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const step = {ArrowRight: 1, ArrowLeft: -1}[e.key];
+        if (!step) return;
+        const next = tabs[(i + step + tabs.length) % tabs.length];
+        select(next);
+        next.focus();
+        e.preventDefault();
+      });
+    }
+  }
 }
 
 // The pills of the Refs page (All, Shared, Stacks, Tags) show the sections of one kind without a page load. The first
@@ -123,24 +153,45 @@ export function initRefFilter(root = document) {
 export function initStackFilter(root = document) {
   for (const group of root.querySelectorAll('[data-stack-filter]')) {
     const scope = group.closest('[data-stack-scope]') ?? root;
-    const rows = Array.from(scope.querySelectorAll('[data-stack-row]'));
-    const none = scope.querySelector('[data-stack-none]');
     const buttons = Array.from(group.querySelectorAll('button[data-stack-show]'));
     const attr = {mine: 'data-mine', agent: 'data-agent', needsme: 'data-needsme'};
     for (const btn of buttons) {
       btn.addEventListener('click', () => {
         const want = btn.getAttribute('data-stack-show');
         for (const b of buttons) b.setAttribute('aria-pressed', String(b === btn));
-        let shown = 0;
-        for (const row of rows) {
-          const match = want === 'all' || row.getAttribute(attr[want]) === 'true';
-          row.hidden = !match;
-          if (match) shown++;
+        for (const row of scope.querySelectorAll('[data-stack-row]')) {
+          row.toggleAttribute('data-filter-miss', !(want === 'all' || row.getAttribute(attr[want]) === 'true'));
         }
-        if (none) none.hidden = shown !== 0;
+        refreshStackRows(scope);
       });
     }
   }
+}
+
+// Shows the rows no filter and no search hides, and the note when none is left.
+function refreshStackRows(scope) {
+  let shown = 0;
+  for (const row of scope.querySelectorAll('[data-stack-row]')) {
+    row.hidden = row.hasAttribute('data-filter-miss') || row.hasAttribute('data-search-miss');
+    if (!row.hidden) shown++;
+  }
+  const none = scope.querySelector('[data-stack-none]');
+  if (none) none.hidden = shown !== 0;
+}
+
+// The search field over the stack rows: every typed word must appear in the text of the row (name, intent, people).
+export function initStackSearch(root = document) {
+  const input = root.querySelector('input[data-stack-search]');
+  if (!input) return;
+  const scope = input.closest('[data-stack-scope]') ?? root;
+  input.addEventListener('input', () => {
+    const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+    for (const row of scope.querySelectorAll('[data-stack-row]')) {
+      const text = row.textContent.toLowerCase();
+      row.toggleAttribute('data-search-miss', !words.every((w) => text.includes(w)));
+    }
+    refreshStackRows(scope);
+  });
 }
 
 // The install pills of the landing page: one pressed pill shows its command, the others stay hidden.

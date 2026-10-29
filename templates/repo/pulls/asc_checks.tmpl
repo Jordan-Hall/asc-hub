@@ -42,6 +42,7 @@
 						</div>
 						{{if .Excerpt}}<pre class="rv-log-block rv-flat" tabindex="0">{{.Excerpt}}</pre>{{end}}
 						<div class="rv-card-f rv-acts">
+							{{if .Anchor}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscPullChecks.PullURL}}/files#{{.Anchor}}" data-testid="asc-open-line">{{ctx.Locale.Tr "asc_trust.pull.open_line" .Where}}</a>{{end}}
 							{{if .RunURL}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.RunURL}}">{{ctx.Locale.Tr "asc_trust.pull.full_log"}}</a>{{end}}
 							<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">{{ctx.Locale.Tr "asc_trust.pull.open_group"}}</a>
 						</div>

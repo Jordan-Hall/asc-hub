@@ -115,6 +115,14 @@
 							</ul>
 						</section>
 					{{end}}
+					{{if .AscProfileTeams}}
+						<section class="ds-card" aria-labelledby="wk-pteams-title">
+							<div class="ds-card-h"><h2 id="wk-pteams-title">{{ctx.Locale.Tr "user.asc_profile.teams"}}</h2></div>
+							<ul class="wk-pf-teams">
+								{{range .AscProfileTeams}}<li><a class="ds-chip ds-chip-outline" href="{{.Link}}">{{.Name}} <span class="ds-hint">{{.Org}}</span></a></li>{{end}}
+							</ul>
+						</section>
+					{{end}}
 					<p class="ds-callout">
 						{{if eq .SignedUserID .ContextUser.ID}}
 							{{ctx.Locale.Tr "user.asc_profile.visible_self" (print AppSubUrl "/user/settings#keep-activity-private")}}

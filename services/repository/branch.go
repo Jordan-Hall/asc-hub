@@ -414,6 +414,9 @@ func RenameBranch(ctx context.Context, repo *repo_model.Repository, doer *user_m
 			if err2 != nil {
 				return err2
 			}
+			if err2 = setAscTrunk(ctx, repo, to); err2 != nil {
+				return err2
+			}
 		}
 
 		return nil
@@ -611,7 +614,10 @@ func SetRepoDefaultBranch(ctx context.Context, repo *repo_model.Repository, gitR
 			log.Error("CancelPreviousJobs: %v", err)
 		}
 
-		return gitrepo.SetDefaultBranch(ctx, repo, newBranchName)
+		if err := gitrepo.SetDefaultBranch(ctx, repo, newBranchName); err != nil {
+			return err
+		}
+		return setAscTrunk(ctx, repo, newBranchName)
 	}); err != nil {
 		return err
 	}

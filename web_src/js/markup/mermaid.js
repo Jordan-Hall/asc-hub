@@ -46,6 +46,7 @@ export async function renderMermaid() {
 
       const iframe = document.createElement('iframe');
       iframe.classList.add('markup-render', 'tw-invisible');
+      iframe.title = 'Diagram';
       iframe.srcdoc = `<html><head><style>${iframeCss}</style></head><body>${svg}</body></html>`;
 
       const mermaidBlock = document.createElement('div');

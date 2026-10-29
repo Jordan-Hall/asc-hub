@@ -758,6 +758,47 @@ func isFullHexID(s string) bool {
 	return err == nil
 }
 
+// abbrevScanLimit bounds the commits read to expand an abbreviated id.
+const abbrevScanLimit = 5000
+
+// isShortHexID reports whether s looks like an abbreviated commit id: 4 to 39 hex digits.
+func isShortHexID(s string) bool {
+	if len(s) < 4 || len(s) >= 40 {
+		return false
+	}
+	_, err := hex.DecodeString(s + strings.Repeat("0", len(s)%2))
+	return err == nil
+}
+
+// resolveAbbrev expands an abbreviated commit id. The asc server resolves revisions and full ids, not
+// abbreviations, so the commits reachable from every reference are scanned (bounded) for the one id with this
+// prefix. An abbreviation that matches no commit or more than one is a missing revision, as with git.
+func (b *Backend) resolveAbbrev(ctx context.Context, short string) (git.ObjectID, git.ObjectType, error) {
+	prefix := strings.ToLower(short)
+	var found git.ObjectID
+	for e, err := range b.logEntries(ctx, git.LogQuery{All: true, Limit: abbrevScanLimit}) {
+		if err != nil {
+			return nil, "", err
+		}
+		id, err := idFromWire(e.GetGit())
+		if err != nil {
+			return nil, "", err
+		}
+		if !strings.HasPrefix(id.String(), prefix) {
+			continue
+		}
+		if found != nil && found.String() != id.String() {
+			return nil, "", git.ErrNotExist{ID: short}
+		}
+		found = id
+	}
+	if found == nil {
+		return nil, "", git.ErrNotExist{ID: short}
+	}
+	b.facts.putCommit(found)
+	return found, git.ObjectCommit, nil
+}
+
 // Resolve resolves a ref, a full id, "id^" or "id~n" to a commit id. A tag is peeled. A revision the
 // server refuses (an abbreviated id, a message search) is reported as not existing.
 func (b *Backend) Resolve(ctx context.Context, rev string) (git.ObjectID, git.ObjectType, error) {
@@ -782,6 +823,9 @@ func (b *Backend) Resolve(ctx context.Context, rev string) (git.ObjectID, git.Ob
 	if err != nil {
 		if isCode(err, codes.InvalidArgument) {
 			log.Debug("ascbackend: revision refused by asc serve: %v", err)
+			if isShortHexID(rev) {
+				return b.resolveAbbrev(ctx, rev)
+			}
 			return nil, "", git.ErrNotExist{ID: rev}
 		}
 		if isMissing(err) && isFullHexID(rev) {
@@ -795,6 +839,9 @@ func (b *Backend) Resolve(ctx context.Context, rev string) (git.ObjectID, git.Ob
 	if len(resp.GetIds()[0]) == 0 {
 		if isFullHexID(rev) {
 			return b.resolveObject(ctx, rev)
+		}
+		if isShortHexID(rev) {
+			return b.resolveAbbrev(ctx, rev)
 		}
 		return nil, "", git.ErrNotExist{ID: rev}
 	}

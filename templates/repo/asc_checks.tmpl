@@ -85,7 +85,7 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 									<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_last_seen"}}" class="rv-nowrap">{{DateUtils.TimeSince .LastSeen}}</td>
 								</tr>
 								{{else}}
-								<tr><td colspan="5" class="rv-center rv-muted" data-testid="asc-groups-empty">{{ctx.Locale.Tr "asc_trust.checks.groups_empty"}}</td></tr>
+								<tr><td colspan="5" class="rv-center rv-muted" data-testid="asc-groups-empty">{{if and (eq .State "open") (not .Job) (not .Test) (not .Flaky)}}{{template "shared/ds/empty" (dict "Icon" "check" "Title" (ctx.Locale.Tr "asc_trust.checks.nothing_title") "Body" (ctx.Locale.Tr "asc_trust.checks.nothing_body"))}}{{else}}{{ctx.Locale.Tr "asc_trust.checks.groups_empty"}}{{end}}</td></tr>
 								{{end}}
 							</tbody>
 						</table>
