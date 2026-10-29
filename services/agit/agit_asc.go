@@ -18,6 +18,7 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/git"
 	"forgejo.org/modules/git/ascbackend"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -269,6 +270,13 @@ func RelinkAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues
 	if row.StackParentID != 0 {
 		return
 	}
+	if n, err := pull_service.RepairAscStackLinks(ctx, repo); err != nil {
+		log.Warn("asc stack: linking from git for %s: %v", repo.FullName(), err)
+	} else if n > 0 {
+		if row, err = issues_model.GetPullRequestAscStack(ctx, pr.ID); err != nil || row == nil || row.StackParentID != 0 {
+			return
+		}
+	}
 	parent, err := ascParentOf(ctx, repo, row.AscChange)
 	if err != nil || parent == "" {
 		return
@@ -283,5 +291,24 @@ func RelinkAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues
 	}
 	if err := pull_service.RecomputeAscStackBase(ctx, pr); err != nil {
 		log.Error("asc stack: base of pull request %d: %v", pr.ID, err)
+	}
+}
+
+// linkAscStackedPushes links the parents of the stacked pull requests a push made or moved from git: the parent of a
+// change is the open stacked pull request whose head is the git parent of its head. asc's own answer
+// (ascParentOf) is missing while the hook runs for a batch, and the refs of a batch come in any order, so this runs
+// once after every ref of the push has its pull request. A failure is logged: the pull requests exist, and the
+// stack page and the merge look again.
+func linkAscStackedPushes(ctx context.Context, repo *repo_model.Repository, bridge *git.Repository, heads map[int64]string) {
+	if len(heads) == 0 {
+		return
+	}
+	prs, err := issues_model.ListOpenAscStackPulls(ctx, repo.ID)
+	if err != nil {
+		log.Error("asc stack: listing the stacked pull requests of %s: %v", repo.FullName(), err)
+		return
+	}
+	if _, err := pull_service.LinkAscStackByGit(ctx, bridge, heads, prs); err != nil {
+		log.Error("asc stack: linking the pull requests of a push to %s: %v", repo.FullName(), err)
 	}
 }
