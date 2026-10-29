@@ -22,6 +22,7 @@ import (
 	"forgejo.org/models/gitea_migrations"
 	system_model "forgejo.org/models/system"
 	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/ascdownload"
 	"forgejo.org/modules/auth/password/hash"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/generate"
@@ -611,5 +612,7 @@ func SubmitInstall(ctx *context.Context) {
 // InstallDone shows the "post-install" page, makes it easier to develop the page.
 // The name is not called as "PostInstall" to avoid misinterpretation as a handler for "POST /install"
 func InstallDone(ctx *context.Context) { //nolint
+	// the command that connects a terminal to the hub that has just been set up
+	ctx.Data["AscConnectCommand"] = ascdownload.ConnectCommand(setting.AppURL)
 	ctx.HTML(http.StatusOK, tplPostInstall)
 }

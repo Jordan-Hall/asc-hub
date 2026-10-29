@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/ascratelimit"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
@@ -42,6 +44,11 @@ type AscPaletteGroup struct {
 // those the person may read, people are those the person may see; a visitor who is not signed in gets the public ones.
 func AscPalette(ctx *context.Context) {
 	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
+	if !ascPaletteLimiter.Allow(ascPaletteKey(ctx)) {
+		ctx.Resp.Header().Set("Retry-After", "10")
+		ctx.JSON(http.StatusTooManyRequests, map[string]any{"groups": []AscPaletteGroup{}})
+		return
+	}
 	q := strings.TrimSpace(ctx.FormString("q"))
 	if len(q) < ascPaletteMinQuery || len(q) > ascPaletteMaxQuery {
 		ctx.JSON(http.StatusOK, map[string]any{"groups": []AscPaletteGroup{}})
@@ -51,13 +58,34 @@ func AscPalette(ctx *context.Context) {
 	if g := ascPaletteChanges(ctx, q); len(g.Items) > 0 {
 		groups = append(groups, g)
 	}
-	if g := ascPaletteRepos(ctx, q); len(g.Items) > 0 {
-		groups = append(groups, g)
-	}
-	if g := ascPalettePeople(ctx, q); len(g.Items) > 0 {
-		groups = append(groups, g)
+	// A visitor who is not signed in gets the groups the explore pages would show, no more.
+	if ascPaletteExploreOpen(ctx) {
+		if g := ascPaletteRepos(ctx, q); len(g.Items) > 0 {
+			groups = append(groups, g)
+		}
+		if !setting.Service.Explore.DisableUsersPage {
+			if g := ascPalettePeople(ctx, q); len(g.Items) > 0 {
+				groups = append(groups, g)
+			}
+		}
 	}
 	ctx.JSON(http.StatusOK, map[string]any{"groups": groups})
+}
+
+// ascPaletteLimiter bounds the calls of one person (or one address) while they type: the client waits before it asks,
+// this is the limit that holds when a client does not.
+var ascPaletteLimiter = ascratelimit.New(40, 10*time.Second)
+
+func ascPaletteKey(ctx *context.Context) string {
+	if ctx.IsSigned {
+		return "u" + strconv.FormatInt(ctx.Doer.ID, 10)
+	}
+	return "ip" + ascratelimit.ClientKey(ctx.RemoteAddr())
+}
+
+// ascPaletteExploreOpen is false for a visitor who is not signed in where the explore pages ask for a sign in.
+func ascPaletteExploreOpen(ctx *context.Context) bool {
+	return ctx.IsSigned || !(setting.Service.RequireSignInView || setting.Service.Explore.RequireSigninView)
 }
 
 func ascPaletteChanges(ctx *context.Context, q string) AscPaletteGroup {
