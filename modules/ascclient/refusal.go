@@ -76,7 +76,7 @@ func (r Refusal) Text() string {
 	return msg
 }
 
-var statusMismatch = regexp.MustCompile(`grpc-status=(\w+), grpc-message="((?:[^"\]|\.)*)"`)
+var statusMismatch = regexp.MustCompile(`grpc-status=(\w+), grpc-message="((?:[^"\\]|\\.)*)"`)
 
 func unwrapStatusMismatch(code codes.Code, text string) (codes.Code, string, bool) {
 	if code != codes.Internal || !strings.Contains(text, "grpc-status-details-bin mismatch") {
@@ -88,7 +88,7 @@ func unwrapStatusMismatch(code codes.Code, text string) (codes.Code, string, boo
 	}
 	for c := codes.Canceled; c <= codes.Unauthenticated; c++ {
 		if c.String() == m[1] {
-			return c, strings.NewReplacer(`\"`, `"`, `\`, `\`).Replace(m[2]), true
+			return c, strings.NewReplacer(`\"`, `"`, `\\`, `\`).Replace(m[2]), true
 		}
 	}
 	return code, text, false
