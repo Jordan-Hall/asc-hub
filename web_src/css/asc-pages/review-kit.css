@@ -1757,3 +1757,10 @@
   margin: 4px 0 0;
   font-size: 14px;
 }
+
+/* a primary button that is a link keeps the colour of a button on a filled ground: some link rules of the review page
+   (the Gitea link colour inside a stack panel) were stronger than .rv-btn-primary and left it unreadable */
+a.rv-btn.rv-btn-primary,
+a.rv-btn.rv-btn-primary:hover {
+  color: var(--on-fill);
+}
