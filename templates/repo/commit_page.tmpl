@@ -9,6 +9,7 @@
 			<span class="ds-mono" aria-current="page">{{ShortSha .CommitID}}</span>
 		</nav>
 		{{template "repo/commit_header" .}}
+		{{template "repo/change_facts" .}}
 		{{template "repo/diff/box" .}}
 	</div>
 </div>
