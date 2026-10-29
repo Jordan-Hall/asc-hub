@@ -204,6 +204,9 @@ func recordAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues
 	return pull_service.RecomputeAscStackBase(ctx, pr)
 }
 
+// ascAdoptLimit bounds how many unlinked changes one look asks asc about.
+const ascAdoptLimit = 20
+
 // adoptAscChildren links the open pull requests of the changes that sit on change, whose parent was not linked
 // because their pull requests were made before this one (a stack is pushed as one batch and the order of the
 // refs is not the order of the stack). A row whose parent is not this change is left alone.
@@ -212,6 +215,7 @@ func adoptAscChildren(ctx context.Context, repo *repo_model.Repository, pr *issu
 	if err != nil {
 		return err
 	}
+	rows = rows[:min(len(rows), ascAdoptLimit)]
 	for _, row := range rows {
 		if row.PullID == pr.ID || row.AscChange == change {
 			continue
@@ -257,6 +261,10 @@ func RelinkAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues
 	row, err := issues_model.GetPullRequestAscStack(ctx, pr.ID)
 	if err != nil || row == nil || row.StackParentID != 0 {
 		return
+	}
+	// the changes above this one may be unlinked too: look at them from here
+	if err := adoptAscChildren(ctx, repo, pr, row.AscChange); err != nil {
+		log.Warn("asc stack: adopting the children of pull request %d: %v", pr.ID, err)
 	}
 	parent, err := ascParentOf(ctx, repo, row.AscChange)
 	if err != nil || parent == "" {
