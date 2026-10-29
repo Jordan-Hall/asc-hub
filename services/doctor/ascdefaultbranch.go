@@ -23,7 +23,7 @@ func checkAscDefaultBranches(ctx context.Context, logger log.Logger, autofix boo
 		logger.Info("asc is not enabled: nothing to check")
 		return nil
 	}
-	checked, wrong, fixed, failed := 0, 0, 0, 0
+	checked, wrong, unknown, fixed, failed := 0, 0, 0, 0, 0
 	err := iterateRepositories(ctx, func(repo *repo_model.Repository) error {
 		if repo.GetStorageBackend() != string(gitrepo.StorageBackendAsc) || repo.IsEmpty || repo.DefaultBranch == "" || repo.Status != repo_model.RepositoryReady {
 			return nil
@@ -38,8 +38,14 @@ func checkAscDefaultBranches(ctx context.Context, logger log.Logger, autofix boo
 		if trunk == repo.DefaultBranch {
 			return nil
 		}
-		wrong++
-		logger.Warn("%s/%s: asc protects %q but the default branch is %q", repo.OwnerName, repo.Name, trunk, repo.DefaultBranch)
+		if trunk == "" {
+			// This asc does not report its trunk, so there is nothing to compare: setting it is the only way to be sure,
+			// and it is harmless (asc changes nothing when the branch is the trunk already).
+			unknown++
+		} else {
+			wrong++
+			logger.Warn("%s/%s: asc protects %q but the default branch is %q", repo.OwnerName, repo.Name, trunk, repo.DefaultBranch)
+		}
 		if !autofix {
 			return nil
 		}
@@ -56,12 +62,14 @@ func checkAscDefaultBranches(ctx context.Context, logger log.Logger, autofix boo
 		return err
 	}
 	switch {
-	case wrong == 0 && failed == 0:
+	case wrong == 0 && unknown == 0 && failed == 0:
 		logger.Info("All %d asc repositories protect their default branch", checked)
 	case autofix:
-		logger.Info("Out of %d asc repositories, %d protected the wrong branch: %d are fixed, %d could not be checked or fixed", checked, wrong, fixed, failed)
+		logger.Info("Out of %d asc repositories, %d protected the wrong branch and %d could not be compared (asc does not report its trunk): %d were told the default branch, %d failed", checked, wrong, unknown, fixed, failed)
+	case wrong == 0 && failed == 0:
+		logger.Warn("This asc does not report the branch it protects, so %d asc repositories cannot be compared: run with --fix to tell asc the default branch of each (harmless when it is right already)", unknown)
 	default:
-		logger.Critical("Out of %d asc repositories, %d protect a branch that is not their default branch (run with --fix), %d could not be checked", checked, wrong, failed)
+		logger.Critical("Out of %d asc repositories, %d protect a branch that is not their default branch (run with --fix), %d cannot be compared, %d could not be read", checked, wrong, unknown, failed)
 	}
 	return nil
 }

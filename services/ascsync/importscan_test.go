@@ -138,7 +138,13 @@ func TestTrunkOfReadsTheBranchAscProtects(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "main", got)
 
+	// An asc that reports none leaves the caller unable to tell, which is not an error.
 	s.head = ""
+	got, err = TrunkOf(t.Context(), fx.repo)
+	require.NoError(t, err)
+	assert.Empty(t, got)
+
+	s.head = "refs/tags/v1"
 	_, err = TrunkOf(t.Context(), fx.repo)
 	require.ErrorIs(t, err, ErrBadAnswer)
 }
