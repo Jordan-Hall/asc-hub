@@ -473,6 +473,9 @@ func renderFile(ctx *context.Context, entry *git.TreeEntry) {
 	ctx.Data["FileSize"] = fInfo.fileSize
 	ctx.Data["IsTextFile"] = fInfo.isTextFile
 	ctx.Data["IsRepresentableAsText"] = isRepresentableAsText
+	if isRepresentableAsText {
+		prepareAscOutline(ctx)
+	}
 	ctx.Data["IsDisplayingSource"] = isDisplayingSource
 	ctx.Data["IsDisplayingRendered"] = isDisplayingRendered
 	ctx.Data["IsExecutable"] = entry.IsExecutable()
