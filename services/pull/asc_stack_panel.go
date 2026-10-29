@@ -114,13 +114,25 @@ func BuildAscStackPanel(ctx context.Context, pr *issues_model.PullRequest) (*Asc
 	seen := map[int64]bool{pr.ID: true}
 	chain := []*issues_model.PullRequest{pr}
 
-	// Down to the bottom.
+	// Down to the bottom. A change without a recorded parent may still sit on one (asc did not know it when it was
+	// pushed): git says so, worked out here for the page and never written.
 	row := own
-	for range ascStackMaxDepth {
-		if row.StackParentID == 0 {
+	walk := pr
+	ownParentID := own.StackParentID
+	for depth := range ascStackMaxDepth {
+		parentID := row.StackParentID
+		if parentID == 0 {
+			if p, _ := ascViewParent(ctx, walk); p != nil {
+				parentID = p.ID
+			}
+		}
+		if depth == 0 {
+			ownParentID = parentID
+		}
+		if parentID == 0 {
 			break
 		}
-		parent, err := issues_model.GetPullRequestByID(ctx, row.StackParentID)
+		parent, err := issues_model.GetPullRequestByID(ctx, parentID)
 		if err != nil {
 			if issues_model.IsErrPullRequestNotExist(err) {
 				break
@@ -132,6 +144,7 @@ func BuildAscStackPanel(ctx context.Context, pr *issues_model.PullRequest) (*Asc
 		}
 		seen[parent.ID] = true
 		chain = append([]*issues_model.PullRequest{parent}, chain...)
+		walk = parent
 		if row, err = issues_model.GetPullRequestAscStack(ctx, parent.ID); err != nil {
 			return nil, err
 		}
@@ -180,8 +193,8 @@ func BuildAscStackPanel(ctx context.Context, pr *issues_model.PullRequest) (*Asc
 		panel.Entries = append(panel.Entries, e)
 	}
 
-	if own.StackParentID != 0 {
-		parent, err := issues_model.GetPullRequestByID(ctx, own.StackParentID)
+	if ownParentID != 0 {
+		parent, err := issues_model.GetPullRequestByID(ctx, ownParentID)
 		if err != nil && !issues_model.IsErrPullRequestNotExist(err) {
 			return nil, err
 		}
