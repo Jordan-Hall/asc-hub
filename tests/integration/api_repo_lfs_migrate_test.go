@@ -8,7 +8,6 @@ import (
 	"path"
 	"testing"
 
-	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/lfs"
@@ -31,15 +30,13 @@ func TestAPIRepoLFSMigrateLocal(t *testing.T) {
 	require.NoError(t, migrations_allowlist.Init())
 
 	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
-	session := loginUser(t, user.Name)
-	token := getTokenForLoggedInUser(t, session, auth_model.AccessTokenScopeWriteRepository)
 
 	req := NewRequestWithJSON(t, "POST", "/api/v1/repos/migrate", &api.MigrateRepoOptions{
 		CloneAddr:   path.Join(setting.RepoRootPath, "migration/lfs-test.git"),
 		RepoOwnerID: user.ID,
 		RepoName:    "lfs-test-local",
 		LFS:         true,
-	}).AddTokenAuth(token)
+	}).AddBasicAuth(user.Name)
 	resp := MakeRequest(t, req, NoExpectedStatus)
 	assert.Equal(t, http.StatusCreated, resp.Code)
 
