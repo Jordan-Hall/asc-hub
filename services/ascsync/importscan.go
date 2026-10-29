@@ -165,3 +165,26 @@ func SetDefaultBranch(ctx context.Context, repo *repo_model.Repository, branch s
 	}
 	return nil
 }
+
+// TrunkOf returns the default branch asc protects for the repository, as asc reports it (the HEAD of ListRefs).
+func TrunkOf(ctx context.Context, repo *repo_model.Repository) (string, error) {
+	h, err := open(repo)
+	if err != nil {
+		return "", err
+	}
+	cctx, cancel := system(ctx, CallTimeout)
+	defer cancel()
+	resp, err := h.api.ListRefs(cctx, &ascv1.ListRefsRequest{
+		Repo:   &ascv1.RepoRef{Name: h.name, IdMode: ascv1.IdMode_ID_MODE_ASC},
+		Prefix: "refs/heads/",
+		Limit:  1,
+	})
+	if err != nil {
+		return "", callError("list refs", err)
+	}
+	head, ok := strings.CutPrefix(resp.GetHead(), "refs/heads/")
+	if !ok || head == "" {
+		return "", fmt.Errorf("%w: asc reports no default branch", ErrBadAnswer)
+	}
+	return head, nil
+}
