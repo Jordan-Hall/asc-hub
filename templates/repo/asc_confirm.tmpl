@@ -46,7 +46,7 @@ Every text comes from the locale or from the handler; pull request titles are es
 			</form>
 			{{end}}
 
-			{{if and (gt (len .AscLandScopes) 1) (or (eq .AscOp "merge") (eq .AscOp "queue"))}}
+			{{if .AscLandChoice}}
 			<form class="rv-form rv-card rv-gap asc-land-scope" method="get" action="{{.AscBack}}/asc/confirm" data-testid="asc-land-scope">
 				<input type="hidden" name="op" value="{{.AscOp}}">
 				<fieldset class="rv-card-b rv-stack">
