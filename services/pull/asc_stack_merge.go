@@ -625,12 +625,7 @@ func (b *ascClientBackend) Land(ctx context.Context, req AscLandRequest) (*AscLa
 	// Tell the hub whose land this is before asc calls the hub's hooks for it. The land moves the target to the
 	// top of the prefix; when the target has moved since the heads were made asc rewrites them, so the commit is
 	// the one the chain ends with when nothing moved.
-	var note ascsync.PushToken
-	if owner, name, ok := strings.Cut(req.Repo, "/"); ok && req.Doer != nil && len(req.Heads) > 0 {
-		if repo, rerr := repo_model.GetRepositoryByOwnerAndName(ctx, owner, name); rerr == nil {
-			note = ascsync.RememberWriter(repo, req.Doer.ID, req.PullRequestID, []ascsync.PushRef{{Name: req.Target, New: req.Heads[len(req.Heads)-1]}})
-		}
-	}
+	note := noteAscLand(ctx, req)
 	resp, err := b.repo.UpdateRefs(ctx, &ascv1.UpdateRefsRequest{
 		Repo: ref, Mode: ascv1.UpdateMode_UPDATE_MODE_LAND,
 		Updates: []*ascv1.RefUpdate{{
@@ -739,4 +734,19 @@ func ascChangeBytes(change string) ([]byte, error) {
 		out[i] = (('z' - change[2*i]) << 4) | ('z' - change[2*i+1])
 	}
 	return out, nil
+}
+
+// noteAscLand tells the hub whose write a land is, before asc calls the hub's hooks for it: the target moves to the
+// head at the top of the prefix. The returned token forgets the record when nothing landed. A land without a doer, or
+// of a repository the hub does not know, records nothing (the hook then refuses the call as it always did).
+func noteAscLand(ctx context.Context, req AscLandRequest) ascsync.PushToken {
+	owner, name, ok := strings.Cut(req.Repo, "/")
+	if !ok || req.Doer == nil || len(req.Heads) == 0 {
+		return ascsync.PushToken{}
+	}
+	repo, err := repo_model.GetRepositoryByOwnerAndName(ctx, owner, name)
+	if err != nil {
+		return ascsync.PushToken{}
+	}
+	return ascsync.RememberWriter(repo, req.Doer.ID, req.PullRequestID, []ascsync.PushRef{{Name: req.Target, New: req.Heads[len(req.Heads)-1]}})
 }
