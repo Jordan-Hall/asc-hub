@@ -27,6 +27,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/ascsync"
 	notify_service "forgejo.org/services/notify"
 )
@@ -83,6 +84,10 @@ type AscLandRequest struct {
 	// NoContentMerge sets UpdateRefsRequest.no_content_merge: a land that would need a content merge is refused
 	// with ErrAscLandNeedsContentMerge instead of merging.
 	NoContentMerge bool
+	// Doer is the person who lands. The call to asc carries the claim about them (their immutable ids, the role
+	// the hub gives them), so asc names them to the hub's pre-receive hook and in its history. Without a doer the
+	// call is the hub's own and the hook cannot say who pushed.
+	Doer *user_model.User
 }
 
 // AscLandResult says what asc landed. Landed[i] is the git id the change of Heads[i] has on the target.
@@ -325,7 +330,7 @@ func MergeAscStackWith(ctx context.Context, doer *user_model.User, perm access_m
 	for i, it := range items {
 		heads[i] = it.Head
 	}
-	landed, err := backend.Land(ctx, AscLandRequest{Repo: name, Target: git.BranchPrefix + items[0].PR.BaseBranch, Heads: heads, NoContentMerge: opt.NoContentMerge})
+	landed, err := backend.Land(ctx, AscLandRequest{Repo: name, Target: git.BranchPrefix + items[0].PR.BaseBranch, Heads: heads, NoContentMerge: opt.NoContentMerge, Doer: doer})
 	if err != nil {
 		return nil, err
 	}
@@ -600,6 +605,12 @@ func (b *ascClientBackend) Land(ctx context.Context, req AscLandRequest) (*AscLa
 	op := opID("land", req.Repo, req.Target, strings.Join(req.Heads, ","), fmt.Sprint(req.NoContentMerge))
 	ctx, cancel := b.system(ctx, op)
 	defer cancel()
+	if req.Doer != nil {
+		var err error
+		if ctx, err = ascidentity.AttachDoer(ctx, req.Doer, ascidentity.RoleWrite, req.Repo); err != nil {
+			return nil, fmt.Errorf("the claim about the person who lands: %w", err)
+		}
+	}
 	asc, err := b.gitToAsc(ctx, req.Repo, req.Heads...)
 	if err != nil {
 		return nil, err
