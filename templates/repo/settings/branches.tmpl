@@ -30,6 +30,25 @@
 				</form>
 			</div>
 
+			{{if .AscRules}}
+			<h4 class="ds-card-top">{{ctx.Locale.Tr "repo.settings.asc_rules.title"}}</h4>
+			<div class="ds-card ds-card-b ds-card-attach" data-testid="asc-rules">
+				<p>{{ctx.Locale.Tr "repo.settings.asc_rules.desc" .AscRules.PolicyURL}}</p>
+				{{if .AscRules.Problem}}<div class="ds-banner ds-banner-warn" role="status">{{.AscRules.Problem}}</div>{{end}}
+				{{with .AscRules.Protection}}
+				<dl class="rp-factstrip">
+					<div><dt>{{ctx.Locale.Tr "repo.settings.asc_rules.branch"}}</dt><dd class="ds-mono">{{.Branch}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "repo.settings.asc_rules.approvals"}}</dt><dd class="ds-num">{{.RequiredApprovals}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "repo.settings.asc_rules.checks"}}</dt><dd>{{if .StatusChecks}}{{range $i, $c := .StatusChecks}}{{if $i}}, {{end}}<span class="ds-mono">{{$c}}</span>{{end}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_rules.none"}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "repo.settings.asc_rules.signed"}}</dt><dd>{{if .RequireSigned}}{{ctx.Locale.Tr "repo.settings.asc_rules.on"}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_rules.off"}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "repo.settings.asc_rules.force"}}</dt><dd>{{if .AllowForcePush}}{{ctx.Locale.Tr "repo.settings.asc_rules.on"}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_rules.off"}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "repo.settings.asc_rules.queue"}}</dt><dd>{{if .QueueOnly}}{{ctx.Locale.Tr "repo.settings.asc_rules.on"}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_rules.off"}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "repo.settings.asc_rules.paths"}}</dt><dd>{{if .ProtectedPaths}}{{range $i, $c := .ProtectedPaths}}{{if $i}}, {{end}}<span class="ds-mono">{{$c}}</span>{{end}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_rules.none"}}{{end}}</dd></div>
+				</dl>
+				{{end}}
+				<a class="ds-btn ds-btn-primary" href="{{.AscRules.PolicyURL}}">{{ctx.Locale.Tr "repo.settings.asc_rules.edit"}}</a>
+			</div>
+			{{else}}
 			<h4 class="ds-card-top">
 				{{ctx.Locale.Tr "repo.settings.protected_branch"}}
 				<div class="ui right">
@@ -60,6 +79,7 @@
 					{{end}}
 				</div>
 			</div>
+			{{end}}
 		{{end}}
 	</div>
 
