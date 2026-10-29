@@ -44,6 +44,12 @@ func MigrateRepositoryGitData(ctx context.Context, u *user_model.User,
 
 	migrateTimeout := time.Duration(setting.Git.Timeout.Migrate) * time.Second
 
+	// A repository stored in asc is made with a placeholder default branch (so the import is not held to the gate).
+	// However this function ends (an empty source, an error, a cancel), it must not leave the placeholder as the
+	// branch asc protects.
+	ctx, trunk := withTrunkTracker(ctx)
+	defer func() { settleAscTrunk(ctx, repo, trunk) }()
+
 	var err error
 	if err = util.RemoveAll(repoPath); err != nil {
 		return repo, fmt.Errorf("Failed to remove %s: %w", repoPath, err)
@@ -145,6 +151,13 @@ func MigrateRepositoryGitData(ctx context.Context, u *user_model.User,
 	repo.IsEmpty, err = gitRepo.IsEmpty()
 	if err != nil {
 		return repo, fmt.Errorf("git.IsEmpty: %w", err)
+	}
+
+	if repo.IsEmpty {
+		// Nothing to import: the repository must not keep the placeholder trunk.
+		if err := settleEmptyAscMigration(ctx, repo); err != nil {
+			return repo, err
+		}
 	}
 
 	if !repo.IsEmpty {
