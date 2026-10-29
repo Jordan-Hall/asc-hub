@@ -83,6 +83,32 @@ need authentication or the `lock` API, GitLab, Gitea and Gogs sources. LFS asked
 LFS is refused with a message (API 422, web form error); an LFS object the source does not hold fails the migration
 with that object named. Nothing is skipped silently.
 
+## The trunk after a first push, and how it is compared
+
+The first branch pushed to an empty repository becomes its default branch. Before asc judges that push, the hub asks asc
+which trunk it holds (`ListRefs` reports it as `head`) and tells asc the pushed branch whenever the two differ, whatever
+the hub's own value is: the hub's value and asc's drift (a placeholder a migration left, a change that never reached
+asc), and a comparison against the hub's own value would fail open. When asc refuses the push, the trunk goes back (to
+the hub's default branch when asc held the placeholder). The same comparison drives `RepairAscTrunks` at start and
+`forgejo doctor check --run asc-default-branch`; both cover empty repositories. An asc that does not report `head`
+(older than the fix that makes ListRefs report it for every repository) cannot be compared: `--fix` then tells asc the
+default branch of every asc repository.
+
+## Typed refusals
+
+A refusal of asc's gate arrives as a gRPC status whose details carry an `asc.v1.ErrorDetail` (code and files) as an Any.
+`ascclient.RefusalOf` is the one reader (older asc servers sent it in a form a Go client cannot read; the status and text
+are then read out of the error text). Pushes, merges, imports, the review and queue pages show the code, asc's sentence
+and the files. Not covered: `asc submit` from the browser goes through the RPC proxy, which passes the status on as it is.
+
+## Design and accessibility of the import pages
+
+The form, the progress page and the failure page were checked at 390 and 1440 px, light and dark, with axe (WCAG 2.2 AA):
+no violations and no horizontal overflow in any of the 16 captures (`tests/asc-e2e/design_pass.mjs`). The NewRepo board
+shows the progress as "N of M history entries" with a bar; git reports no such count, so the page shows an indeterminate
+bar (it says the import runs, not how far), "Run in the background" and Cancel. The board has no failure state: the page
+shows asc's or git's reason, Retry and Delete.
+
 ## Known limits
 
 - asc needs about 5 times the pack size on disk and about 1.1 GB of memory to take a 160 MB history (5k commits)
