@@ -456,7 +456,7 @@ func DismissApprovalReviews(ctx context.Context, doer *user_model.User, pull *is
 		return err
 	}
 
-	return db.WithTx(ctx, func(ctx context.Context) error {
+	err = db.WithTx(ctx, func(ctx context.Context) error {
 		for _, review := range reviews {
 			if err := issues_model.DismissReview(ctx, review, true); err != nil {
 				return err
@@ -482,6 +482,18 @@ func DismissApprovalReviews(ctx context.Context, doer *user_model.User, pull *is
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	// The approvals are gone in the hub; tell asc, after the transaction, once per reviewer.
+	told := make(map[int64]bool, len(reviews))
+	for _, review := range reviews {
+		if !told[review.ReviewerID] {
+			told[review.ReviewerID] = true
+			ascReportDismissal(ctx, doer, pull, review)
+		}
+	}
+	return nil
 }
 
 // DismissReview dismissing stale review by repo admin
@@ -524,6 +536,7 @@ func DismissReview(ctx context.Context, reviewID, repoID int64, message string, 
 		return nil, err
 	}
 
+	var dismissedPriors []*issues_model.Review
 	if dismissPriors {
 		reviews, err := issues_model.FindReviews(ctx, issues_model.FindReviewOptions{
 			IssueID:    review.IssueID,
@@ -537,6 +550,7 @@ func DismissReview(ctx context.Context, reviewID, repoID int64, message string, 
 			if err = issues_model.DismissReview(ctx, oldReview, true); err != nil {
 				return nil, err
 			}
+			dismissedPriors = append(dismissedPriors, oldReview)
 		}
 	}
 
@@ -563,6 +577,15 @@ func DismissReview(ctx context.Context, reviewID, repoID int64, message string, 
 	comment.Review = review
 	comment.Poster = doer
 	comment.Issue = review.Issue
+
+	if issue.IsPull && issue.PullRequest != nil {
+		ascReportDismissal(ctx, doer, issue.PullRequest, review)
+		if dismissPriors {
+			for _, prior := range dismissedPriors {
+				ascReportDismissal(ctx, doer, issue.PullRequest, prior)
+			}
+		}
+	}
 
 	notify_service.PullReviewDismiss(ctx, doer, review, comment)
 
