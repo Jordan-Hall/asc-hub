@@ -77,6 +77,12 @@ func PrepareContextForProfileBigAvatar(ctx *context.Context) {
 	}
 	ctx.Data["Orgs"] = orgs
 	ctx.Data["HasOrgsVisible"] = organization.HasOrgsVisible(ctx, orgs, ctx.Doer)
+	teams, err := AscProfileTeams(ctx, ctx.ContextUser, orgs, ctx.Doer)
+	if err != nil {
+		ctx.ServerError("AscProfileTeams", err)
+		return
+	}
+	ctx.Data["AscProfileTeams"] = teams
 
 	badges, _, err := user_model.GetUserBadges(ctx, ctx.ContextUser)
 	if err != nil {
