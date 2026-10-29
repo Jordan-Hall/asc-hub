@@ -37,7 +37,10 @@ await p.screenshot({ path: `${out}-3-success-jsuccess.png` });
 console.log('success page:', p.url(), (await p.title()));
 await p.goto('/Jordan/jsuccess' + sfx + '/releases'); await p.screenshot({ path: `${out}-3b-releases-jsuccess.png` });
 console.log('releases:', (await p.locator('li.rp-rel, .release-list-title, .rp-rel-title').allInnerTexts()).slice(0, 4).join(' | '));
-await p.goto('/Jordan/jsuccess' + sfx + '/milestones'); console.log('milestones text has v1 goals:', /v1 goals/.test(await p.locator('body').innerText()));
+await p.goto('/Jordan/jsuccess' + sfx + '/milestones?state=open'); const open = await p.locator('body').innerText();
+await p.goto('/Jordan/jsuccess' + sfx + '/milestones?state=closed'); const closed = await p.locator('body').innerText();
+await p.screenshot({ path: `${out}-3c-milestones-jsuccess.png` });
+console.log('milestones: open has v2 goals:', /v2 goals/.test(open), '| closed has v1 goals:', /v1 goals/.test(closed));
 
 // 2. a failure (the source repository does not exist yet), its reason, Retry, then success
 execSync('wsl.exe -d Ubuntu -- rm -rf /tmp/src-late.git', { stdio: 'ignore' });
