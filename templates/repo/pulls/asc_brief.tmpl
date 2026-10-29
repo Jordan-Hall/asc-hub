@@ -14,7 +14,7 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 			<span class="rp-delta" title="{{ctx.Locale.Tr "asc_review.brief_size_title"}}"><span class="rp-add">+{{.Added}}</span> <span class="rp-del">&minus;{{.Removed}}</span> <span class="rp-dim">{{ctx.Locale.TrN .Files "asc_review.brief_files_one" "asc_review.brief_files_other" .Files}}{{if .StatsTruncated}}+{{end}}</span></span>
 		</div>
 	</div>
-	<div class="rv-brief-b">
+	<div class="rv-card-b rv-brief-b">
 		{{if .Written}}
 			<dl class="rv-brief-dl">
 				{{if .What}}<div><dt>{{ctx.Locale.Tr "asc_review.brief_what"}}</dt><dd>{{.What}}</dd></div>{{end}}
@@ -57,6 +57,7 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 		<h2 id="asc-gate-title">{{ctx.Locale.Tr "asc_review.gate_title"}}</h2>
 		{{if $.AscGateToClear}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_review.gate_to_clear" $.AscGateToClear}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_review.gate_clear"}}</span>{{end}}
 	</div>
+	<div class="rv-card-b">
 	<ul class="rv-gate-list">
 		{{range .}}
 		<li class="rv-gate-rule{{if .Held}} is-held{{end}}" data-rule="{{.Kind}}">
@@ -74,6 +75,7 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 		</li>
 		{{end}}
 	</ul>
-	<p class="rp-quiet">{{if $.AscGateRules}}{{ctx.Locale.Tr "asc_review.gate_note"}}{{else}}{{ctx.Locale.Tr "asc_review.gate_no_policy"}}{{end}}</p>
+	<p class="rp-quiet ds-mt-12">{{if $.AscGateRules}}{{ctx.Locale.Tr "asc_review.gate_note"}}{{else}}{{ctx.Locale.Tr "asc_review.gate_no_policy"}}{{end}}</p>
+	</div>
 </section>
 {{end}}
