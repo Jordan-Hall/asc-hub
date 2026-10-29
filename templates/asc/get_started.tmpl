@@ -98,6 +98,25 @@
 					</dl>
 				</div>
 			</section>
+			<section class="ds-card" aria-labelledby="gs-hub-title">
+				<div class="ds-card-b">
+					<h2 class="ds-t-h4" id="gs-hub-title">{{ctx.Locale.Tr "asc_site.started_hub_h"}}</h2>
+					<dl class="site-hubl">
+						<div><dt>{{ctx.Locale.Tr "asc_site.started_hub_email"}}</dt><dd>{{if .SignedUser.IsActive}}{{ctx.Locale.Tr "asc_site.started_hub_email_ok" .SignedUser.Email}} <a class="ds-link" href="{{AppSubUrl}}/user/settings/account">{{ctx.Locale.Tr "asc_site.started_hub_change"}}</a>{{else}}{{ctx.Locale.Tr "asc_site.started_hub_email_none"}} <a class="ds-link" href="{{AppSubUrl}}/user/settings/account">{{ctx.Locale.Tr "asc_site.started_hub_add"}}</a>{{end}}</dd></div>
+						<div><dt>{{ctx.Locale.Tr "asc_site.started_hub_storage"}}</dt><dd>{{ctx.Locale.Tr "asc_site.started_hub_storage_t"}} <a class="ds-link" href="{{AppSubUrl}}/user/settings/asc/storage">{{ctx.Locale.Tr "asc_site.started_hub_add"}}</a></dd></div>
+						<div><dt>{{ctx.Locale.Tr "asc_site.started_hub_ai"}}</dt><dd>{{ctx.Locale.Tr "asc_site.started_hub_ai_t"}} <a class="ds-link" href="{{AppSubUrl}}/user/settings/asc/ai">{{ctx.Locale.Tr "asc_site.started_hub_add"}}</a></dd></div>
+					</dl>
+				</div>
+			</section>
+			<section class="ds-card" aria-labelledby="gs-keys-title">
+				<div class="ds-card-b">
+					<h2 class="ds-t-h4" id="gs-keys-title">{{ctx.Locale.Tr "asc_site.started_keys_h"}}</h2>
+					<dl class="site-checkl">
+						<div><dt>{{ctx.Locale.Tr "asc_site.started_keys_palette"}}</dt><dd><kbd class="ds-kbd">/</kbd> <kbd class="ds-kbd">Ctrl K</kbd></dd></div>
+						<div><dt>{{ctx.Locale.Tr "asc_site.started_keys_help"}}</dt><dd><kbd class="ds-kbd">?</kbd></dd></div>
+					</dl>
+				</div>
+			</section>
 			<aside class="ds-callout">
 				<h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_site.started_help_h"}}</h2>
 				<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_site.started_help_t"}} <a class="ds-link" href="{{AppSubUrl}}/-/docs">{{ctx.Locale.Tr "asc_site.started_help_link"}}</a></p>

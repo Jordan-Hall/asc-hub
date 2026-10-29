@@ -658,7 +658,9 @@ func registerRoutes(m *web.Route) {
 	m.Get("/-/asc/palette", ignSignIn, AscPalette)
 	m.Get("/-/offline", ignSignIn, AscOffline)
 	m.Get("/-/get-started", reqSignIn, AscGetStarted)
-	m.Get("/user/welcome", reqSignIn, Welcome)
+	m.Get("/user/welcome", reqSignIn, func(ctx *context.Context) {
+		ctx.Redirect(setting.AppSubURL + "/-/get-started")
+	})
 	m.Methods("GET, HEAD", "/-/download/*", ignSignIn, DownloadFile)
 
 	m.Group("/explore", func() {

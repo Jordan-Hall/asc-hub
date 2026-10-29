@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 97 |
-| ui-only-missing | 32 |
+| done | 100 |
+| ui-only-missing | 29 |
 | needs-hub-backend | 40 |
 | needs-asc-backend | 2 |
 | needs-both | 24 |
@@ -109,12 +109,12 @@ Open rows by size: S 45, M 64, L 23.
 | --- | --- | --- | --- | --- |
 | GetStarted | Four-step checklist with `aria-current=step`, done as a word | done | `templates/asc/get_started.tmpl` at `/-/get-started` | - |
 | GetStarted | Shown on `GET /` for a signed-in person with no repositories; dismissible; returns while none exist | needs-hub-backend | Nothing links to `/-/get-started` or `/user/welcome`; `routers/web/home.go` and `asc_dashboard.go` do not branch on `NumRepos == 0`. Branch there; dismiss flag as a user setting | M |
-| GetStarted | Two parallel first-run pages (`asc/get_started.tmpl`, `user/asc_welcome.tmpl` with old `hub-` classes) | ui-only-missing | Merge into one page that follows the board; delete `user/asc_welcome.tmpl` and `routers/web/asc_welcome.go` | S |
+| GetStarted | Two parallel first-run pages (`asc/get_started.tmpl`, `user/asc_welcome.tmpl` with old `hub-` classes) | done | Merge into one page that follows the board; delete `user/asc_welcome.tmpl` and `routers/web/asc_welcome.go` | S |
 | GetStarted | Step 2 ticks by itself when the first CLI sign-in arrives, no reload | needs-hub-backend | `GSConnected` is "has an access token" at render time. Add a status route (token last used by the asc CLI) and a poll in a new `asc-welcome.js`; progress bar updates | M |
 | GetStarted | Import step with source tabs and progress "Reading history 12,408 commits" | needs-hub-backend | Links to `/repo/migrate` today. Inline form plus migration-task polling (`routers/web/repo/migrate.go`, `services/migrations`) | L |
 | GetStarted | Health check (Git found, signed in, SSH key, shell shim; `asc doctor` on machine and server) | needs-both | Hub card lists email, SSH key and token only. `asc doctor` exists (`crates/asc/src/cli/doctor.rs`) but never reports to the hub: add a report call or show server checks only | L |
-| GetStarted | "This hub" card: Storage, AI providers, Email with Change and Add | ui-only-missing | Data exists (`services/ascbyo`, settings); card missing | S |
-| GetStarted | Shortcuts card | ui-only-missing | Static card; `t` and `?` need handlers (see Shell) | S |
+| GetStarted | "This hub" card: Storage, AI providers, Email with Change and Add | done | Data exists (`services/ascbyo`, settings); card missing | S |
+| GetStarted | Shortcuts card | done | Static card; `t` and `?` need handlers (see Shell) | S |
 | GetStarted | "Open the sample project" read-only | needs-hub-backend | No sample repository; seed one at first start (`routers/init.go`, `services/repository`) | M |
 | GetStarted | Empty-area cards: inbox zero on day one, no repositories, "just you" with Invite | ui-only-missing | `asc_home.tmpl` has an inbox-zero block; add the other two | S |
 

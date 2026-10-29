@@ -2091,3 +2091,27 @@ body.ds-lock {
   min-height: 32px;
   text-decoration: none;
 }
+
+/* "This hub" on the first run page: a label above its sentence, as the sentences are long */
+.site-hubl {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 0;
+}
+
+.site-hubl dt {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.site-hubl dd {
+  margin: 2px 0 0;
+}
+
+@media (max-width: 1023.98px) {
+  .ds-user-row .ds-row-acts {
+    justify-content: flex-start;
+    padding-inline-start: 60px;
+  }
+}
