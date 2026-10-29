@@ -12,7 +12,9 @@ import (
 	"testing"
 	"time"
 
+	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/setting"
@@ -32,6 +34,7 @@ type fakeAscImport struct {
 	mu      sync.Mutex
 	imports []*ascv1.ImportGitPushRequest
 	trunks  []string
+	head    string // the trunk asc reports
 	refuse  error
 }
 
@@ -72,7 +75,9 @@ func (f *fakeAscImport) RepoAdmin(_ context.Context, req *ascv1.RepoAdminRequest
 }
 
 func (f *fakeAscImport) ListRefs(context.Context, *ascv1.ListRefsRequest) (*ascv1.ListRefsResponse, error) {
-	return &ascv1.ListRefsResponse{}, nil
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return &ascv1.ListRefsResponse{Head: f.head}, nil
 }
 
 func (f *fakeAscImport) ImportGitPush(_ context.Context, req *ascv1.ImportGitPushRequest) (*ascv1.ImportGitPushResponse, error) {
@@ -314,4 +319,27 @@ func TestAscMigrationNeverLeavesThePlaceholderTrunk(t *testing.T) {
 		assert.Len(t, fx.fake.trunks, before, "the real trunk was set once")
 		assert.Equal(t, []string{"main"}, fx.fake.trunks)
 	})
+}
+
+// At start the repositories whose asc trunk is the placeholder or another branch are told their default branch, the
+// empty ones too (the first branch pushed to one is gated only if asc holds the right trunk), and nothing else is touched.
+func TestRepairAscTrunksCoversEmptyRepositories(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	fx := newAscMigrationFixture(t)
+	repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
+	repo.StorageBackend, repo.IsEmpty, repo.Status = "asc", true, repo_model.RepositoryReady
+	_, err := db.GetEngine(t.Context()).ID(repo.ID).Cols("storage_backend", "is_empty", "status").Update(repo)
+	require.NoError(t, err)
+
+	fx.fake.head = "refs/heads/" + ascImportTrunk
+	RepairAscTrunks(t.Context())
+	assert.Equal(t, []string{repo.DefaultBranch}, fx.fake.trunks, "an empty repository that kept the placeholder is repaired")
+
+	fx.fake.trunks, fx.fake.head = nil, "refs/heads/"+repo.DefaultBranch
+	RepairAscTrunks(t.Context())
+	assert.Empty(t, fx.fake.trunks, "a right trunk is left alone")
+
+	fx.fake.head = ""
+	RepairAscTrunks(t.Context())
+	assert.Empty(t, fx.fake.trunks, "an asc that does not report its trunk gives nothing to compare")
 }
