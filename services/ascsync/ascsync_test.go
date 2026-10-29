@@ -500,3 +500,21 @@ func TestImportHistoryStopsAtARefusal(t *testing.T) {
 	other.StorageBackend = "git"
 	require.ErrorIs(t, ImportHistory(t.Context(), &other, nil), ErrNotAsc)
 }
+
+// A refusal whose status details disagree with its status reaches the hub as Internal with the real status in the
+// text. The pusher must still read why (a secret was found), not "try again later".
+func TestCallErrorReadsTheRefusalOutOfAStatusMismatch(t *testing.T) {
+	err := callError("import push", status.Error(codes.Internal,
+		`grpc-status-details-bin mismatch: grpc-status=FailedPrecondition, grpc-message="SECRET_DETECTED: creds.txt:1 aws-access-key-id, creds.txt:2 aws-secret-access-key", grpc-status-details-bin=message:"x"`))
+	msg, ok := RejectMessage(err)
+	require.True(t, ok, "%v", err)
+	assert.Equal(t, "SECRET_DETECTED: creds.txt:1 aws-access-key-id, creds.txt:2 aws-secret-access-key", msg)
+
+	// An Internal error that is only that stays internal.
+	_, ok = RejectMessage(callError("import push", status.Error(codes.Internal, "boom")))
+	assert.False(t, ok)
+	// So does a mismatch that names a status the pusher is not to read.
+	_, ok = RejectMessage(callError("import push", status.Error(codes.Internal,
+		`grpc-status-details-bin mismatch: grpc-status=Unavailable, grpc-message="down"`)))
+	assert.False(t, ok)
+}
