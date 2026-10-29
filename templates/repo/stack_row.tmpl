@@ -1,0 +1,22 @@
+{{/* One stack of the repository home and of the Stacks list (boards Repo and Stacks). Dot: a *stackRow */}}
+<li class="rp-flight rp-flight-link rp-stack" data-stack-row data-mine="{{.Mine}}" data-agent="{{.Agent}}" data-needsme="{{.NeedsMe}}" data-status="{{.Status}}">
+	<span class="ds-dot{{if .Tone}} ds-dot-{{.Tone}}{{end}}" aria-hidden="true"></span>
+	<div class="rp-flight-main">
+		<div class="rp-flight-title">
+			<a class="mono" href="{{.Link}}">{{.Name}}</a>
+			<span class="ds-chip{{if .Tone}} ds-chip-{{.Tone}}{{end}}">{{ctx.Locale.Tr (print "asc_rp.st_" .Status)}}</span>
+		</div>
+		<div class="rp-stack-intent">{{.Title}}</div>
+		<div class="rp-flight-meta">
+			{{range $i, $u := .People}}{{if $i}}{{if eq $i 1}}<span class="rp-with">{{ctx.Locale.Tr "asc_rp.stack_with"}}</span>{{else}}, {{end}}{{end}}<a href="{{$u.HomeLink}}">{{$u.GetDisplayName}}</a>{{if $u.IsBot}}<span class="ds-chip ds-chip-agent rp-agent-chip">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}{{end}}<span class="rp-sep-dot"></span>{{ctx.Locale.TrN .Changes "asc_rp.n_changes_one" "asc_rp.n_changes_other" (ctx.Locale.PrettyNumber .Changes)}}{{if .HasSize}}<span class="rp-sep-dot"></span><span class="rp-delta"><span class="rp-add">+{{.Additions}}</span> <span class="rp-del">&minus;{{.Deletions}}</span></span>{{end}}<span class="rp-sep-dot"></span>{{DateUtils.TimeSince .Updated}}
+		</div>
+	</div>
+	<div class="rp-stkrail">
+		<span class="rp-segs" role="img" aria-label="{{ctx.Locale.TrN .Changes "asc_rp.stack_of_one" "asc_rp.stack_of_other" .Changes}}">
+			{{range .Segments}}{{if .Link}}<a class="rp-seg rp-seg-{{.State}}" href="{{.Link}}" title="{{.Title}}" tabindex="-1" aria-hidden="true"></a>{{else}}<span class="rp-seg rp-seg-{{.State}}"></span>{{end}}{{end}}
+		</span>
+		<div class="rp-stkrail-line">{{ctx.Locale.Tr "asc_rp.n_of_n_landed" .Landed .Changes}}</div>
+		<div class="rp-stkrail-sub">{{if .ChecksFail}}{{ctx.Locale.Tr "asc_rp.checks_n_failing" .ChecksFail .ChecksTotal}}{{else if .ChecksPending}}{{ctx.Locale.Tr "asc_rp.checks_running"}}{{else if .ChecksTotal}}{{ctx.Locale.Tr "asc_rp.checks_n_of_n" .ChecksPass .ChecksTotal}}{{else}}{{ctx.Locale.Tr "asc_rp.checks_none"}}{{end}}</div>
+	</div>
+	<span class="rp-open" aria-hidden="true">{{ctx.Locale.Tr "asc_rp.open"}}</span>
+</li>

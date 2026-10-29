@@ -96,6 +96,33 @@ export function initAscUi() {
   initDownload();
   initAscInstallPills();
   initDocsFilter();
+  initStackFilter();
+}
+
+// The Open / Mine / Agents / Needs me buttons over the stack rows of the repository home and of the Stacks list: a
+// button shows the rows whose data attribute says so, without a page load. The pressed button is the only truth of
+// the filter; with no match a note says so.
+export function initStackFilter(root = document) {
+  for (const group of root.querySelectorAll('[data-stack-filter]')) {
+    const scope = group.closest('[data-stack-scope]') ?? root;
+    const rows = Array.from(scope.querySelectorAll('[data-stack-row]'));
+    const none = scope.querySelector('[data-stack-none]');
+    const buttons = Array.from(group.querySelectorAll('button[data-stack-show]'));
+    const attr = {mine: 'data-mine', agent: 'data-agent', needsme: 'data-needsme'};
+    for (const btn of buttons) {
+      btn.addEventListener('click', () => {
+        const want = btn.getAttribute('data-stack-show');
+        for (const b of buttons) b.setAttribute('aria-pressed', String(b === btn));
+        let shown = 0;
+        for (const row of rows) {
+          const match = want === 'all' || row.getAttribute(attr[want]) === 'true';
+          row.hidden = !match;
+          if (match) shown++;
+        }
+        if (none) none.hidden = shown !== 0;
+      });
+    }
+  }
 }
 
 // The install pills of the landing page: one pressed pill shows its command, the others stay hidden.
