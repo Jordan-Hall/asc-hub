@@ -108,8 +108,13 @@ var (
 
 // RejectError is a refusal by asc whose text is meant for the pusher.
 type RejectError struct {
-	// Message is asc's text, without control characters, at most MaxRejectBytes long.
+	// Message is asc's text, without control characters, at most MaxRejectBytes long. It names the typed code
+	// and the paths of the refusal when asc's own text does not.
 	Message string
+	// Code is the typed code of the refusal (SECRET_DETECTED, PATH_POLICY, REF_CONFLICT, ...), when asc sent one.
+	Code string
+	// Paths are the files (or refs) the refusal is about, as asc sent them.
+	Paths []string
 }
 
 func (e *RejectError) Error() string { return "ascsync: asc refused: " + e.Message }
@@ -307,15 +312,31 @@ func callError(op string, err error) error {
 		return fmt.Errorf("ascsync: %s failed", op)
 	}
 	code, text := st.Code(), st.Message()
+	var detail *ascv1.ErrorDetail
+	for _, d := range st.Details() {
+		// Native form: the details are a google.rpc.Status holding the asc.v1.ErrorDetail as an Any.
+		if ed, ok := d.(*ascv1.ErrorDetail); ok {
+			detail = ed
+			break
+		}
+	}
 	if c, m, ok := unwrapStatusMismatch(code, text); ok {
+		// Older asc: the refusal arrives as Internal with the real status in the text.
 		code, text = c, m
 	}
 	msg := clean(text, MaxRejectBytes)
 	if userFacing(code) {
 		if msg == "" {
-			msg = "asc refused the request (" + st.Code().String() + ")"
+			msg = "asc refused the request (" + code.String() + ")"
 		}
-		return &RejectError{Message: msg}
+		rej := &RejectError{Message: msg}
+		if detail != nil {
+			rej.Code, rej.Paths = clean(detail.GetCode(), 64), cleanAll(detail.GetPaths())
+			rej.Message = withDetail(msg, rej.Code, rej.Paths)
+		} else if c := codeInText(msg); c != "" {
+			rej.Code = c
+		}
+		return rej
 	}
 	return fmt.Errorf("ascsync: %s: asc answered %s: %s", op, code, clean(text, MaxLogMessageBytes))
 }
@@ -340,6 +361,50 @@ func unwrapStatusMismatch(code codes.Code, text string) (codes.Code, string, boo
 		}
 	}
 	return code, text, false
+}
+
+// cleanAll is clean for every path, at most a few of them.
+func cleanAll(paths []string) []string {
+	var out []string
+	for _, p := range paths {
+		if len(out) == 8 {
+			break
+		}
+		out = append(out, clean(p, 256))
+	}
+	return out
+}
+
+// withDetail adds the typed code and the paths of a refusal to its text where the text lacks them, so the pusher
+// reads which rule refused which file.
+func withDetail(msg, code string, paths []string) string {
+	if code != "" && !strings.Contains(msg, code) {
+		msg = code + ": " + msg
+	}
+	var missing []string
+	for _, p := range paths {
+		if p != "" && !strings.Contains(msg, p) {
+			missing = append(missing, p)
+		}
+	}
+	if len(missing) > 0 {
+		msg += " (" + strings.Join(missing, ", ") + ")"
+	}
+	return clean(msg, MaxRejectBytes)
+}
+
+// codeInText reads a leading typed code ("SECRET_DETECTED: ...") out of a refusal text.
+func codeInText(msg string) string {
+	code, _, ok := strings.Cut(msg, ":")
+	if !ok || code == "" || len(code) > 64 {
+		return ""
+	}
+	for _, r := range code {
+		if (r < 'A' || r > 'Z') && r != '_' && (r < '0' || r > '9') {
+			return ""
+		}
+	}
+	return code
 }
 
 // clean makes s one line of printable text of at most limit bytes: control characters become spaces,

@@ -518,3 +518,31 @@ func TestCallErrorReadsTheRefusalOutOfAStatusMismatch(t *testing.T) {
 		`grpc-status-details-bin mismatch: grpc-status=Unavailable, grpc-message="down"`)))
 	assert.False(t, ok)
 }
+
+// The refusal of asc in its two forms: the typed ErrorDetail as an Any in the status details (native), and the
+// Internal answer with the status in its text (older asc). Both must give the pusher the code, the text and the files.
+func TestCallErrorReadsTypedRefusalsInBothForms(t *testing.T) {
+	native, err := status.New(codes.FailedPrecondition, "a secret was found").
+		WithDetails(&ascv1.ErrorDetail{Code: "SECRET_DETECTED", Paths: []string{"creds.txt", "deploy/key.pem"}})
+	require.NoError(t, err)
+	err = callError("import push", native.Err())
+	var rej *RejectError
+	require.ErrorAs(t, err, &rej)
+	assert.Equal(t, "SECRET_DETECTED", rej.Code)
+	assert.Equal(t, []string{"creds.txt", "deploy/key.pem"}, rej.Paths)
+	assert.Equal(t, "SECRET_DETECTED: a secret was found (creds.txt, deploy/key.pem)", rej.Message)
+
+	// A text that names the code and the files already is not told twice.
+	native, err = status.New(codes.FailedPrecondition, "SECRET_DETECTED: creds.txt:1 aws-access-key-id").
+		WithDetails(&ascv1.ErrorDetail{Code: "SECRET_DETECTED", Paths: []string{"creds.txt"}})
+	require.NoError(t, err)
+	require.ErrorAs(t, callError("import push", native.Err()), &rej)
+	assert.Equal(t, "SECRET_DETECTED: creds.txt:1 aws-access-key-id", rej.Message)
+
+	// Older asc.
+	legacy := callError("import push", status.Error(codes.Internal,
+		`grpc-status-details-bin mismatch: grpc-status=FailedPrecondition, grpc-message="SECRET_DETECTED: creds.txt:1 aws-access-key-id", grpc-status-details-bin=message:"x"`))
+	require.ErrorAs(t, legacy, &rej)
+	assert.Equal(t, "SECRET_DETECTED", rej.Code)
+	assert.Equal(t, "SECRET_DETECTED: creds.txt:1 aws-access-key-id", rej.Message)
+}

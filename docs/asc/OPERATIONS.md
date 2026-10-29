@@ -301,7 +301,7 @@ branch is then unscanned.
 Find and repair them (needs an asc that has `RepoAdmin set_default_branch`; the check changes nothing without `--fix`):
 
 ```sh
-forgejo doctor check --run asc-default-branch            # lists the repositories that protect the wrong branch
+forgejo doctor check --run asc-default-branch            # lists the repositories that protect the wrong branch (or says asc does not report it)
 forgejo doctor check --run asc-default-branch --fix      # tells asc the hub's default branch for each of them
 ```
 
