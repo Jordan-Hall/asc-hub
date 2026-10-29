@@ -175,3 +175,108 @@
 .rp-ref-meta a {
   text-decoration: underline;
 }
+
+/* the list of watched repositories: on a phone each row is a small card, not a table wider than the screen */
+@media (max-width: 767.98px) {
+  .wk-watch thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .wk-watch,
+  .wk-watch tbody {
+    display: block;
+  }
+
+  .wk-watch tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .wk-watch th,
+  .wk-watch td {
+    display: block;
+    padding: 0;
+    border: 0;
+    width: auto !important;
+  }
+
+  .wk-watch tbody th {
+    flex: 1 0 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .wk-watch tr > td:last-child {
+    margin-inline-start: auto;
+  }
+
+  .wk-watch .ds-btn {
+    min-height: 44px;
+  }
+}
+
+/* footer links and filter chips are tapped with a thumb */
+@media (max-width: 767.98px) {
+  .ds-footer-group a,
+  .ds-footer-base > span a,
+  .ds-footer-end > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .ds-chip-filter {
+    min-height: 40px;
+  }
+
+  .ds-icon-link {
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+  }
+}
+
+/* the stats of a profile, the actions in a card heading and the short footer links are tapped with a thumb: they get room
+   above and below without moving the text */
+@media (max-width: 767.98px) {
+  .wk-pf-stats a,
+  .ds-card-h a.ds-link,
+  .ds-card-h a.ds-ml-auto {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .ds-footer-group a,
+  .ds-footer-base > span a,
+  .ds-footer-end > a {
+    padding-inline: 6px;
+  }
+
+  .ds-breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+}
+
+/* links that are the whole point of a table cell or a list row are at least 32 px tall */
+@media (max-width: 767.98px) {
+  td > a,
+  th > a,
+  .ds-li-title,
+  .ds-break,
+  .ds-card-b li > a.ds-link,
+  .wk-pf-stats a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+  }
+}

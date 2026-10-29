@@ -2860,9 +2860,9 @@ a.ds-stat:hover {
 }
 
 .ds-chip-filter.is-on {
-  border-color: var(--brand, #2563eb);
-  background: var(--brand-soft, #eff6ff);
-  color: var(--brand-ink, #1d4ed8);
+  border-color: var(--fill);
+  background: var(--primary-soft);
+  color: var(--link);
   font-weight: 600;
 }
 

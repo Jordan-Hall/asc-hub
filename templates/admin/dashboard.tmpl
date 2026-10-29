@@ -9,7 +9,7 @@
 
 	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "admin.dashboard") "Desc" (ctx.Locale.Tr "asc_admin.dashboard_lead") "ActionLabel" (ctx.Locale.Tr "asc_admin.run_self_check") "ActionHref" (print AppSubUrl "/admin/self_check") "ActionIcon" "activity" "Secondary" true)}}
 
-	<div class="ds-grid-stats adm-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_admin.figures"}}">
+	<div class="ds-grid-stats adm-stats" hx-get="{{AppSubUrl}}/admin" hx-trigger="every 30s [document.visibilityState==='visible']" hx-select=".adm-stats" hx-target="this" hx-swap="morph:outerHTML" role="group" aria-label="{{ctx.Locale.Tr "asc_admin.figures"}}">
 		<a class="ds-stat" href="{{AppSubUrl}}/admin/users">
 			<div class="ds-stat-label">{{svg "dsi-users" 16}}{{ctx.Locale.Tr "asc_admin.stat_people"}}</div>
 			<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .StatUsers}}</div>

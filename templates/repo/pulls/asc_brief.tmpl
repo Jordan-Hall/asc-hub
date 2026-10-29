@@ -44,6 +44,12 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 			<span class="rp-dim">{{ctx.Locale.Tr "asc_review.how_made_counts" .ToolCalls .FilesRead .Versions}}{{if .Minutes}} · {{ctx.Locale.Tr "asc_review.how_made_minutes" .Minutes}}{{end}}</span>
 		</p>
 		{{end}}
+		{{if .Approvals}}
+		<h3 class="rv-brief-h">{{ctx.Locale.Tr "asc_review.approvals_title"}}</h3>
+		<ul class="rv-brief-where" data-testid="asc-approvals">
+			{{range .Approvals}}<li>{{if .ChangesRequested}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_review.approvals_requested"}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_review.approvals_approved"}}</span>{{end}} <b>{{.Reviewer}}</b> <span class="rp-dim">{{ctx.Locale.Tr "asc_review.approvals_on_version" .Version}}{{if .Carried}} · {{ctx.Locale.Tr "asc_review.approvals_carried" .UnchangedFiles}}{{else if not .Applies}} · {{ctx.Locale.Tr "asc_review.approvals_stale"}}{{end}}</span></li>{{end}}
+		</ul>
+		{{end}}
 		<p class="rv-brief-gate rp-dim" data-testid="asc-brief-gate">
 			{{ctx.Locale.Tr "asc_review.gate_line" .OpenThreads .TotalThreads .ApprovalsCurrent .ChangesRequested}}
 			{{if .ApprovalsCarried}} · {{ctx.Locale.Tr "asc_review.gate_carried" .ApprovalsCarried}}{{end}}
