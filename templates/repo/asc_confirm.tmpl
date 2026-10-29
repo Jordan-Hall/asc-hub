@@ -46,6 +46,23 @@ Every text comes from the locale or from the handler; pull request titles are es
 			</form>
 			{{end}}
 
+			{{if and (gt (len .AscLandScopes) 1) (or (eq .AscOp "merge") (eq .AscOp "queue"))}}
+			<form class="rv-form rv-card rv-gap asc-land-scope" method="get" action="{{.AscBack}}/asc/confirm" data-testid="asc-land-scope">
+				<input type="hidden" name="op" value="{{.AscOp}}">
+				<fieldset class="rv-card-b rv-stack">
+					<legend class="rv-h4">{{ctx.Locale.Tr "repo.pulls.asc_op.scope_legend"}}</legend>
+					{{range .AscLandScopes}}
+					<label class="rv-check" for="asc-to-{{.Index}}">
+						<input id="asc-to-{{.Index}}" type="radio" name="to" value="{{.Index}}"{{if .Checked}} checked{{end}} data-asc-autosubmit>
+						<span>{{if eq .Count 1}}{{ctx.Locale.Tr "repo.pulls.asc_op.scope_bottom" .Index}}{{else if eq .Count .Total}}{{ctx.Locale.Tr "repo.pulls.asc_op.scope_all" .Total}}{{else}}{{ctx.Locale.Tr "repo.pulls.asc_op.scope_to" .Count .Index}}{{end}}</span>
+						<span class="rp-dim">{{.Title}}</span>
+					</label>
+					{{end}}
+				</fieldset>
+				<div class="rv-card-f"><button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "repo.pulls.asc_op.preview"}}</button></div>
+			</form>
+			{{end}}
+
 			{{if .AscFailure}}
 			<div class="rv-banner rv-banner-err rv-gap asc-op-message" role="alert" data-testid="asc-failure"><div>{{svg "octicon-x-circle" 16}} {{.AscFailure}}</div></div>
 			{{end}}
