@@ -4,7 +4,7 @@
 			{{ctx.Locale.Tr "repo.settings.basic_settings"}}
 		</h4>
 		<div class="ds-card ds-card-b ds-card-attach">
-			<form class="ui form ds-form" action="{{.Link}}" method="post">
+			<form class="ui form ds-form" action="{{.Link}}" method="post" data-visibility-form>
 				{{template "base/disable_form_autofill"}}
 				<input type="hidden" name="action" value="update">
 				<div class="ds-required ds-field {{if .Err_RepoName}}is-err{{end}}">
@@ -43,7 +43,7 @@
 			</form>
 
 			<hr class="ds-hr">
-			<form class="ds-form" action="{{.RepoLink}}/topics" method="post" data-topics-form data-topics-saved="{{ctx.Locale.Tr "asc_rp.topics_saved"}}" data-topics-failed="{{ctx.Locale.Tr "asc_rp.topics_failed"}}" data-testid="repo-topics-form">
+			<form class="ds-form" action="{{.RepoLink}}/topics" method="post" data-topics-form data-topics-remove="{{ctx.Locale.Tr "asc_rp.topics_remove"}}" data-topics-saved="{{ctx.Locale.Tr "asc_rp.topics_saved"}}" data-topics-failed="{{ctx.Locale.Tr "asc_rp.topics_failed"}}" data-testid="repo-topics-form">
 				{{.CsrfTokenHtml}}
 				<div class="ds-field">
 					<label class="ds-label" for="repo-topics-input">{{ctx.Locale.Tr "asc_rp.topics_label"}}</label>

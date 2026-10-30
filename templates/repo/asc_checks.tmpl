@@ -36,7 +36,7 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 
 				{{if eq .View "failures"}}
 				<nav class="rv-chips" aria-label="{{ctx.Locale.TrString "asc_trust.checks.state_aria"}}">
-					{{range .States}}<a class="rv-chip-btn" href="{{$.AscChecks.ChecksURL}}{{if .Key}}?state={{.Key}}{{end}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-checks-tab-{{if .Key}}{{.Key}}{{else}}open{{end}}">{{ctx.Locale.Tr (printf "asc_trust.checks.state.%s" .Label)}}</a>{{end}}
+					{{range .States}}<a class="rv-chip-btn" href="{{$.AscChecks.ChecksURL}}{{if .Key}}?state={{.Key}}{{end}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-checks-tab-{{if .Key}}{{.Key}}{{else}}open{{end}}">{{ctx.Locale.Tr (printf "asc_trust.checks.state.%s" .Label)}}{{if .Count}} <span class="rv-count" data-testid="asc-checks-count-{{.Key}}">{{.Count}}</span>{{end}}</a>{{end}}
 				</nav>
 				<form class="rv-filters" method="get" action="{{.ChecksURL}}" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.checks.filter"}}">
 					{{if .State}}<input type="hidden" name="state" value="{{.State}}">{{end}}
@@ -49,6 +49,24 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 				</form>
 
 				{{if .Data}}
+				{{if or .Main .Side}}
+				<div class="rv-sidecards rv-gap" data-testid="asc-checks-side">
+					{{if .Main}}
+					<section class="rv-card" aria-labelledby="asc-main-state">
+						<div class="rv-card-h"><h2 id="asc-main-state">{{ctx.Locale.Tr "asc_trust.checks.main_title"}}</h2></div>
+						<div class="rv-card-b"><span class="rv-pill rv-pill-{{if eq .Main "green"}}ok{{else if eq .Main "failing"}}err{{else}}warn{{end}}" data-testid="asc-main-state">{{ctx.Locale.Tr (printf "asc_trust.checks.main_%s" .Main)}}</span></div>
+					</section>
+					{{end}}
+					{{with .Side}}{{if .Quarantined}}
+					<section class="rv-card" aria-labelledby="asc-quarantined">
+						<div class="rv-card-h"><h2 id="asc-quarantined">{{ctx.Locale.Tr "asc_trust.checks.state.quarantined"}}</h2><a href="{{$.AscChecks.ChecksURL}}?state=quarantined" data-testid="asc-quarantined-manage">{{ctx.Locale.Tr "asc_trust.checks.manage"}}</a></div>
+						<ul class="rv-checklist" data-testid="asc-quarantined-list">
+							{{range .Quarantined}}<li><a href="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}">{{if .TestName}}{{.TestName}}{{else}}{{.Title}}{{end}}</a><span class="rv-faint">{{DateUtils.TimeSince .LastSeen}}</span></li>{{end}}
+						</ul>
+					</section>
+					{{end}}{{end}}
+				</div>
+				{{end}}
 				{{if .Jobs}}
 				<section class="rv-card rv-gap" aria-labelledby="asc-jobs">
 					<div class="rv-card-h"><h2 id="asc-jobs">{{ctx.Locale.Tr "asc_trust.checks.jobs_title"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_trust.checks.jobs_aside"}}</span></div>
@@ -59,7 +77,7 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 							<tbody>
 								{{range .Jobs}}
 								<tr>
-									<th scope="row" class="rv-cell-main">{{if .Job}}<a href="{{$.AscChecks.ChecksURL}}?job={{.Job | QueryEscape}}">{{.Job}}</a>{{else}}<span class="rv-muted">{{ctx.Locale.Tr "asc_trust.checks.no_job"}}</span>{{end}}{{if .Flaky}} <span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_trust.checks.flaky"}}</span>{{end}}</th>
+									<th scope="row" class="rv-cell-main">{{if .Job}}<a href="{{$.AscChecks.ChecksURL}}?job={{.Job | QueryEscape}}">{{.Job}}</a>{{else}}<span class="rv-muted">{{ctx.Locale.Tr "asc_trust.checks.no_job"}}</span>{{end}}{{if .Flaky}} <span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_trust.checks.flaky"}}</span>{{end}}<span class="ds-bar rv-jobbar" aria-hidden="true"><i style="width: {{.Share}}%"></i></span></th>
 									<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_causes"}}">{{.Groups}}</td>
 									<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_failures"}}">{{.Occurrences}}</td>
 									<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_changes"}}">{{.Changes}}</td>

@@ -5,10 +5,12 @@ package repo
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	actions_model "forgejo.org/models/actions"
@@ -21,6 +23,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/routers/web/shared/trustweb"
+	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 	pull_service "forgejo.org/services/pull"
@@ -74,11 +77,55 @@ type ascChecksPage struct {
 	ChecksURL   string
 	CanWrite    bool
 	CanRerun    bool
+	// Side is the number of groups in each state and the quarantined groups (nil: not read).
+	Side *asctrust.ChecksSide
+	// Main is the state of the default branch: green, failing, running or "" when it has no result.
+	Main     string
+	MainName string
 }
 
 type ascChecksState struct {
 	Key, Label string
 	Active     bool
+	// Count is the number of groups in the state, "" when it is not known; a long list reads "100+".
+	Count string
+}
+
+// ascCountLabel is the text of a group count: "3", or "100+" when there are more.
+func ascCountLabel(c asctrust.GroupCount) string {
+	if c.More {
+		return strconv.Itoa(c.N) + "+"
+	}
+	return strconv.Itoa(c.N)
+}
+
+// ascMainState is the state of the newest commit of the default branch: green, failing, running, or "" when it has
+// no result or cannot be read.
+func ascMainState(ctx *context.Context, repo *repo_model.Repository) string {
+	if ctx.Repo.GitRepo == nil || repo.DefaultBranch == "" {
+		return ""
+	}
+	sha, err := ctx.Repo.GitRepo.GetBranchCommitID(repo.DefaultBranch)
+	if err != nil {
+		return ""
+	}
+	statuses, _, err := git_model.GetLatestCommitStatus(ctx, repo.ID, sha, db.ListOptionsAll)
+	if err != nil {
+		return ""
+	}
+	worst := git_model.CalcCommitStatus(statuses)
+	if worst == nil {
+		return ""
+	}
+	switch {
+	case worst.State.IsSuccess():
+		return "green"
+	case worst.State.IsFailure() || worst.State.IsError():
+		return "failing"
+	case worst.State.IsPending():
+		return "running"
+	}
+	return ""
 }
 
 // ascChecksView is one tab of the CI failures page.
@@ -205,14 +252,27 @@ func AscChecks(ctx *context.Context) {
 		}
 		p.Trends = trends
 	default:
-		data, err := asctrust.LoadChecks(callCtx, conn, name, asctrust.ChecksQuery{
+		query := asctrust.ChecksQuery{
 			State: p.State, FlakyOnly: p.Flaky, Job: p.Job, Test: p.Test, PageToken: ctx.FormString("page"), SkipFlaky: true,
-		}, window)
+		}
+		data, err := asctrust.LoadChecks(callCtx, conn, name, query, window)
 		if err != nil {
 			fail("checks load", err)
 			return
 		}
 		p.Data = data
+		// The counts on the state tabs and the side cards are advice: a failure leaves them out.
+		if side, err := asctrust.LoadChecksSide(callCtx, conn, name, query); err != nil {
+			log.Warn("asc checks: state counts of %s: %v", repo.FullName(), err)
+		} else {
+			p.Side = side
+			for i := range p.States {
+				if c, ok := side.Counts[p.States[i].Key]; ok {
+					p.States[i].Count = ascCountLabel(c)
+				}
+			}
+		}
+		p.Main = ascMainState(ctx, repo)
 		p.Jobs = asctrust.JobStats(data.Groups.Rows)
 		if data.Groups.Next != "" {
 			q := url.Values{"page": {data.Groups.Next}}
@@ -588,6 +648,11 @@ type ascPullChecksPage struct {
 	Version uint32
 	Ops     map[uint64]string
 	Index   int64
+	// History is what each version of the change said, newest version first (nil: not known).
+	History []AscVersionHistoryRow
+	// Asks maps the group of a failing check to the address of the agent form filled in for it; empty when the viewer may
+	// not start an agent run.
+	Asks map[uint64]string
 }
 
 // AscPullChecks serves GET /{owner}/{repo}/pulls/{index}/asc/checks.
@@ -670,8 +735,14 @@ func AscPullChecks(ctx *context.Context) {
 	if asctrust.HasFeature(ctx, asctrust.FeaturePolicy) || asctrust.HasFeature(ctx, asctrust.FeatureCiInsights) {
 		ascPullAdvice(ctx, repo, name, &in, p, runIDs, earliest)
 	}
+	if ctx.IsSigned && ctx.Repo.CanRead(unit.TypeActions) {
+		if runs := ascChangeRuns(ctx, pull); runs != nil {
+			p.History = ascVersionHistoryOf(runs)
+		}
+	}
 	p.Checks = asctrust.BuildPullChecks(in)
 	p.Checks.Localize(ctx.Locale.TrString)
+	p.Asks = ascAskLinks(ctx, repo, pull, p.Checks)
 	if p.CanWrite && len(p.Checks.Flaky) > 0 {
 		// Quarantine is offered only where the policy allows it; the state handler asks the policy again.
 		if conn, err := asctrust.Conn(); err == nil {
@@ -685,6 +756,48 @@ func AscPullChecks(ctx *context.Context) {
 		p.Ops[card.GroupID] = asctrust.NewOpID()
 	}
 	ctx.HTML(http.StatusOK, tplAscPullChecks)
+}
+
+// ascAskLinks builds, for each failing cause of the checks, the link to the agent form with the failure as the task.
+// The form checks everything again when it is sent; the link starts nothing.
+func ascAskLinks(ctx *context.Context, repo *repo_model.Repository, pull *issues_model.PullRequest, checks *asctrust.PullChecks) map[uint64]string {
+	if checks == nil || len(checks.Causes) == 0 || !setting.Asc.Enabled || ctx.Doer == nil || repo.IsArchived ||
+		repo.GetStorageBackend() != "asc" || !ctx.Repo.CanWrite(unit.TypeCode) || !ascagentui.FeaturesEnabled(ctx, ctx.Doer) {
+		return nil
+	}
+	out := map[uint64]string{}
+	for _, c := range checks.Causes {
+		if c.GroupID == 0 {
+			continue
+		}
+		task := ascAskTask(pull.Index, checks.Version, c.Title, c.Excerpt)
+		q := url.Values{"title": {ascAskTitle(c.Title)}, "task": {task}, "target": {pull.HeadBranch}}
+		out[c.GroupID] = repo.Link() + "/asc/agents/new?" + q.Encode()
+	}
+	return out
+}
+
+// ascAskTitle is the title of the run asked for: "Fix: " and the cause, cut to fit.
+func ascAskTitle(cause string) string {
+	t := "Fix: " + strings.Join(strings.Fields(cause), " ")
+	if len(t) > ascagentui.MaxTitleBytes {
+		t = strings.ToValidUTF8(t[:ascagentui.MaxTitleBytes], "")
+	}
+	return t
+}
+
+// ascAskTask is the text the agent starts from: which change, which version, what failed and the log excerpt.
+func ascAskTask(index int64, version uint32, cause, excerpt string) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "A check fails on change #%d", index)
+	if version > 0 {
+		fmt.Fprintf(&b, " (version %d)", version)
+	}
+	b.WriteString(". Find the cause and fix it.\n\nFailure: " + cause)
+	if excerpt != "" {
+		b.WriteString("\n\nLog excerpt:\n" + excerpt)
+	}
+	return b.String()
 }
 
 var ascStatusRunRe = regexp.MustCompile(`/actions/runs/(\d+)(?:/|$)`)

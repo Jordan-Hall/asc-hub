@@ -79,6 +79,13 @@ Every text comes from the locale or from the handler; pull request titles are es
 			{{if .AscSkippedCount}}
 			<div class="rv-banner rv-banner-warn rv-gap asc-op-message" role="status" data-testid="asc-skipped"><div>{{svg "octicon-alert" 16}} {{ctx.Locale.Tr "repo.pulls.asc_op.dequeued_others" .AscSkippedCount}}</div></div>
 			{{end}}
+			{{with .AscMergeFacts}}
+			<dl class="rv-facts rv-gap" data-testid="asc-merge-facts">
+				<div><dt>{{ctx.Locale.Tr "asc_review.merge_branch"}}</dt><dd><code>{{.Branch}}</code></dd></div>
+				{{if .Current}}<div><dt>{{ctx.Locale.Tr "asc_review.merge_current"}}</dt><dd><code>{{.Current}}</code></dd></div>{{end}}
+				{{if .Result}}<div><dt>{{ctx.Locale.Tr "asc_review.merge_result"}}</dt><dd><code>{{.Result}}</code></dd></div>{{end}}
+			</dl>
+			{{end}}
 			{{if .AscRows}}
 			<section class="rv-card rv-gap" aria-label="{{ctx.Locale.Tr "asc_review.rev_dry_run"}}">
 				<div class="rv-tablewrap">
@@ -120,7 +127,7 @@ Every text comes from the locale or from the handler; pull request titles are es
 				{{end}}
 				<div class="rv-sticky asc-op-buttons">
 					<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-confirm-button"{{if not .AscCanConfirm}} disabled aria-disabled="true"{{end}}>{{ctx.Locale.Tr (printf "repo.pulls.asc_op.confirm.%s" .AscOp)}}</button>
-					<a class="rv-btn rv-btn-secondary" href="{{.AscBack}}">{{ctx.Locale.Tr "repo.pulls.asc_op.cancel"}}</a>
+					<a class="rv-btn rv-btn-secondary" href="{{.AscBack}}"{{if or (eq .AscOp "merge") (eq .AscOp "revert")}} autofocus data-testid="asc-confirm-cancel"{{end}}>{{ctx.Locale.Tr "repo.pulls.asc_op.cancel"}}</a>
 				</div>
 			</form>
 		</div>

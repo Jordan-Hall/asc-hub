@@ -20,6 +20,12 @@ Template Attributes:
 		</div>
 	</div>
 	{{end}}
+	{{with $.AscRestackLine}}
+	<p class="rv-hint rv-stack-note" data-testid="asc-restacked">
+		{{if .Mine}}{{ctx.Locale.Tr "asc_review.restacked_mine" .Base}}{{else}}{{ctx.Locale.Tr "asc_review.restacked_by" .Base .Actor}}{{end}}, {{DateUtils.TimeSince .At}}.
+		{{if .UndoURL}}<a href="{{.UndoURL}}" data-testid="asc-restacked-undo">{{ctx.Locale.Tr "asc_trust.ops.undo"}}</a>{{end}}
+	</p>
+	{{end}}
 	<ol class="rv-stn-list">
 		{{range .Entries}}
 		<li class="rv-stn rv-stn-{{.State}}{{if .Current}} is-current{{end}}"{{if .Current}} aria-current="step"{{end}}>
@@ -28,8 +34,11 @@ Template Attributes:
 				<span class="rv-stn-body">
 					<span class="rv-stn-title">{{.Title}}</span>
 					<span class="rv-stn-meta">
+						{{if .Poster}}<span class="rv-stn-who" data-testid="asc-rail-author">{{ctx.AvatarUtils.Avatar .Poster 18}}{{if .Poster.IsBot}}<span class="ds-chip ds-chip-agent" data-testid="agent-mark">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}</span>{{end}}
 						<span class="rv-mono rv-faint">{{.Position}}/{{len $.AscStackPanel.Entries}} #{{.Index}}</span>
+						{{if .HasSize}}<span class="rv-nowrap" data-testid="asc-rail-size"><span class="rv-add">+{{.Additions}}</span> <span class="rv-del">&minus;{{.Deletions}}</span></span>{{end}}
 						<span class="rv-pill {{if eq .State "merged"}}rv-pill-ok{{else if eq .State "closed"}}rv-pill-err{{else}}rv-pill-warn{{end}}">{{ctx.Locale.Tr (printf "repo.pulls.asc_stack_state_%s" .State)}}</span>
+						{{if .Review}}<span class="rv-faint" data-testid="asc-rail-review">{{ctx.Locale.Tr (printf "asc_review.rail_%s" .Review)}}</span>{{end}}
 						{{if $.AscQueueStates}}{{with index $.AscQueueStates .Index}}<span class="rv-pill rv-pill-info asc-state asc-state-queued_{{.}}" data-testid="asc-queue-state">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.queued_%s" .)}}</span>{{end}}{{end}}
 					</span>
 				</span>

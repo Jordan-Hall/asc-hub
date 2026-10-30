@@ -209,6 +209,7 @@ The page works without the script: the log shows what existed when it was drawn,
 
 				<div class="rv-area-policy">
 					{{template "repo/asc_agents_policy" .}}
+					{{template "repo/asc_agents_run_token" .}}
 					{{if .AscAgentCheckpoints}}
 					<section class="rv-card ar-cps" aria-labelledby="ar-cps-h" data-testid="asc-agent-checkpoints">
 						<div class="rv-card-h"><h2 id="ar-cps-h">{{ctx.Locale.Tr "asc_review.run_checkpoints"}}</h2></div>
