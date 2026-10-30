@@ -19,6 +19,8 @@ type PolicyForm struct {
 	RequireApprovals int64
 	RequireChecks    []string
 	AllowForce       bool
+	AuthorMayApprove bool // [review] author_may_approve, off by default
+	KeepApprovals    bool // [review] keep_approvals_on_restack, on by default
 	RequireSigned    bool
 	MergeStrategy    string // rebase | rebase-disjoint | fast-forward, "" for the default
 	MergeQueue       bool
@@ -48,6 +50,11 @@ func FormOfText(text string) PolicyForm {
 	f.RequireApprovals = n("trunk", "require_approvals")
 	f.RequireChecks, _ = TomlStrings(text, "trunk", "require_checks")
 	f.AllowForce, _ = TomlBool(text, "trunk", "allow_force")
+	f.AuthorMayApprove, _ = TomlBool(text, "review", "author_may_approve")
+	f.KeepApprovals = true
+	if v, ok := TomlBool(text, "review", "keep_approvals_on_restack"); ok {
+		f.KeepApprovals = v
+	}
 	if v, ok := TomlBool(text, "signing", "require_signed"); ok {
 		f.RequireSigned = v
 	} else {
@@ -128,6 +135,12 @@ func ApplyForm(text string, f PolicyForm) (string, error) {
 	// A key at its default is not written into a file that does not have it, so a review shows only what changed.
 	if f.AllowForce || hasKey(text, "trunk", "allow_force") {
 		text = TomlSetBool(text, "trunk", "allow_force", f.AllowForce)
+	}
+	if f.AuthorMayApprove || hasKey(text, "review", "author_may_approve") {
+		text = TomlSetBool(text, "review", "author_may_approve", f.AuthorMayApprove)
+	}
+	if !f.KeepApprovals || hasKey(text, "review", "keep_approvals_on_restack") {
+		text = TomlSetBool(text, "review", "keep_approvals_on_restack", f.KeepApprovals)
 	}
 	// `[trunk] require_signed` is a synonym of `[signing] require_signed` and the two are ORed by asc, so a form that
 	// turns signing off must turn both off; one that turns it on writes the section the file already uses.

@@ -65,6 +65,8 @@
 						<div class="ds-field"><label for="pf-approvals">{{ctx.Locale.Tr "asc_rp.pf_approvals"}}</label><input id="pf-approvals" class="ds-input" name="approvals" type="number" min="0" max="64" inputmode="numeric" value="{{.Form.RequireApprovals}}"></div>
 						<div class="ds-field"><label for="pf-checks">{{ctx.Locale.Tr "asc_rp.pf_checks"}}</label><textarea id="pf-checks" class="ds-textarea ds-mono" name="checks" rows="3" spellcheck="false">{{range .Form.RequireChecks}}{{.}}
 {{end}}</textarea><p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_one_per_line"}}</p></div>
+						<label class="ds-check"><input type="checkbox" name="author_may_approve"{{if .Form.AuthorMayApprove}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_author_approves"}}</label>
+						<label class="ds-check"><input type="checkbox" name="keep_approvals"{{if .Form.KeepApprovals}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_keep_approvals"}}</label>
 						<label class="ds-check"><input type="checkbox" name="require_signed"{{if .Form.RequireSigned}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_signed"}}</label>
 						<label class="ds-check"><input type="checkbox" name="allow_force"{{if .Form.AllowForce}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_force"}}</label>
 					</fieldset>
