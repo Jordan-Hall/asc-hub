@@ -55,6 +55,8 @@ type ascSecurityPage struct {
 	AuditURL    string
 	Branch      string
 	Proposed    *ascProposed
+	// AllRules is set when the rules table shows every rule; by default it shows the first few.
+	AllRules bool
 }
 
 type ascStateOption struct {
@@ -98,6 +100,7 @@ func ascSecurityRender(ctx *context.Context, repo *repo_model.Repository, name s
 		state = "open"
 	}
 	p.State = state
+	p.AllRules = ctx.FormString("rules") == "all"
 	conn, err := asctrust.Conn()
 	if err != nil {
 		log.Error("asc security: no connection to asc serve: %v", err)
@@ -160,11 +163,23 @@ func AscSecurityFinding(ctx *context.Context) {
 	p := ascSecurityPageFor(ctx, repo)
 	id, err := strconv.ParseUint(ctx.Req.PostFormValue("id"), 10, 64)
 	if err != nil || id == 0 {
+		if ascWantsJSON(ctx) {
+			ctx.JSON(http.StatusUnprocessableEntity, map[string]any{"ok": false, "message": "That finding does not exist."})
+			return
+		}
 		p.Problem = "That finding does not exist."
 		ascSecurityRender(ctx, repo, name, p, "", "")
 		return
 	}
 	problem := ascSecurityUpdate(ctx, repo, name, id)
+	if ascWantsJSON(ctx) {
+		if problem != "" {
+			ctx.JSON(http.StatusUnprocessableEntity, map[string]any{"ok": false, "message": problem})
+			return
+		}
+		ctx.JSON(http.StatusOK, map[string]any{"ok": true})
+		return
+	}
 	back := p.SecurityURL
 	if s := ctx.Req.PostFormValue("back"); s != "" {
 		if _, known := asctrust.SecretStateOf(s); known {
@@ -205,38 +220,52 @@ func AscSecurityScan(ctx *context.Context) {
 		return
 	}
 	p := ascSecurityPageFor(ctx, repo)
+	msg, problem := ascSecurityScanRun(ctx, repo, name)
+	if ascWantsJSON(ctx) {
+		if problem != "" {
+			ctx.JSON(http.StatusUnprocessableEntity, map[string]any{"ok": false, "message": problem})
+			return
+		}
+		ctx.JSON(http.StatusOK, map[string]any{"ok": true, "message": msg})
+		return
+	}
+	if problem != "" {
+		ctx.Flash.Error(problem)
+	} else {
+		ctx.Flash.Success(msg)
+	}
+	ctx.Redirect(p.SecurityURL)
+}
+
+// ascWantsJSON is true for the script of the page, which shows the answer in place instead of reloading.
+func ascWantsJSON(ctx *context.Context) bool {
+	return strings.Contains(ctx.Req.Header.Get("Accept"), "application/json")
+}
+
+// ascSecurityScanRun scans the default branch of repo and says how it went, or what went wrong.
+func ascSecurityScanRun(ctx *context.Context, repo *repo_model.Repository, name string) (msg, problem string) {
 	conn, err := asctrust.Conn()
 	if err != nil {
-		ctx.Flash.Error("The ASC server is not reachable right now.")
-		ctx.Redirect(p.SecurityURL)
-		return
+		return "", "The ASC server is not reachable right now."
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoWrite, repo)
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("security credential", err).Message)
-		ctx.Redirect(p.SecurityURL)
-		return
+		return "", trustweb.FailureOf("security credential", err).Message
 	}
 	defer release()
 	// The revision is always the default branch of the repository, never a value of the request.
 	if repo.DefaultBranch == "" {
-		ctx.Flash.Error("This repository has no branch to scan yet.")
-		ctx.Redirect(p.SecurityURL)
-		return
+		return "", "This repository has no branch to scan yet."
 	}
-	rev := "refs/heads/" + repo.DefaultBranch
-	sum, err := asctrust.ScanRev(callCtx, conn, name, rev)
+	sum, err := asctrust.ScanRev(callCtx, conn, name, "refs/heads/"+repo.DefaultBranch)
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("security scan", err).Message)
-		ctx.Redirect(p.SecurityURL)
-		return
+		return "", trustweb.FailureOf("security scan", err).Message
 	}
-	msg := "Scanned " + strconv.FormatUint(uint64(sum.FilesScanned), 10) + " files: " + strconv.Itoa(sum.Findings) + " findings."
+	msg = "Scanned " + strconv.FormatUint(uint64(sum.FilesScanned), 10) + " files: " + strconv.Itoa(sum.Findings) + " findings."
 	if sum.Truncated {
 		msg += " The scan reached its limit, so some files were not read."
 	}
-	ctx.Flash.Success(msg)
-	ctx.Redirect(p.SecurityURL)
+	return msg, ""
 }
 
 // AscSecurityAllowlist serves POST /{owner}/{repo}/settings/asc/security/allowlist: the paths that secret scanning

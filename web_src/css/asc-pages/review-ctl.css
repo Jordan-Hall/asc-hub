@@ -869,3 +869,99 @@
   display: inline-block;
   flex: none;
 }
+
+/* WorkflowDef: the chain of steps above the list, and Starts when beside Run it now. */
+.wf-chain {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 14px 16px 4px;
+  overflow-x: auto;
+  list-style: none;
+}
+
+.wf-link {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 140px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-top: 3px solid var(--line-2);
+  border-radius: 8px;
+}
+
+.wf-link + .wf-link::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  inset-inline-start: -13px;
+  width: 12px;
+  height: 2px;
+  background: var(--line-2);
+}
+
+.wf-link.wf-succeeded { border-top-color: var(--ok, #16845b); }
+.wf-link.wf-failed { border-top-color: var(--err, #c0392b); }
+.wf-link.wf-running,
+.wf-link.wf-waiting { border-top-color: var(--warn, #d9a21b); }
+
+.wf-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.wf-run-link {
+  margin-inline-end: 8px;
+}
+
+/* WorkflowRun: the flow, one card to a step with a connector between them. */
+.wf-flow {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  padding: 14px 16px 16px;
+  overflow-x: auto;
+  list-style: none;
+}
+
+.wf-node {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 140px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-top: 3px solid var(--line-2);
+  border-radius: 8px;
+}
+
+.wf-node + .wf-node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  inset-inline-start: -15px;
+  width: 14px;
+  height: 2px;
+  background: var(--line-2);
+}
+
+.wf-node.wf-tone-ok { border-top-color: var(--ok, #16845b); }
+.wf-node.wf-tone-bad { border-top-color: var(--err, #c0392b); }
+.wf-node.wf-tone-warn,
+.wf-node.wf-tone-wait,
+.wf-node.wf-tone-run,
+.wf-node.is-active { border-top-color: var(--warn, #d9a21b); }
+.wf-node .asc-pill,
+.wf-link .asc-pill,
+.wf-link .rv-pill {
+  align-self: flex-start;
+}
