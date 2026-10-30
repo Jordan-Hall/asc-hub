@@ -17,6 +17,7 @@ import (
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/web"
 	"forgejo.org/routers/api/v1/utils"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 	"forgejo.org/services/convert"
 	release_service "forgejo.org/services/release"
@@ -187,6 +188,9 @@ func ListReleases(ctx *context.APIContext) {
 		ctx.InternalServerError(err)
 		return
 	}
+
+	// The releases made with `asc release create` are listed with the hub's, matched by tag, the hub's row winning.
+	rels, filteredCount = mergeAscReleases(ctx, &opts, rels, filteredCount, listOptions.PageSize, listOptions.Page, asctrust.ListReleaseRecords(ctx, ctx.Repo().Repository))
 
 	ctx.SetLinkHeader(int(filteredCount), listOptions.PageSize)
 	ctx.SetTotalCountHeader(filteredCount)
