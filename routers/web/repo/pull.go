@@ -1550,6 +1550,11 @@ func MergePullRequest(ctx *context.Context) {
 				ctx.Flash.Error(flashError)
 			}
 			ctx.JSONRedirect(issue.Link())
+		} else if refusal, ok := ascRefusalFlash(err); ok {
+			// asc refused the landing for the repository's policy: the person is told why.
+			log.Debug("MergeAscPolicyRefusal error: %v", err)
+			ctx.Flash.Error(refusal)
+			ctx.JSONRedirect(issue.Link())
 		} else {
 			ctx.ServerError("Merge", err)
 		}
