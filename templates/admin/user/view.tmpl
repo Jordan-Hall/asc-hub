@@ -21,27 +21,42 @@
 			</div>
 			<div class="adm-person-acts">
 				<a class="ds-btn ds-btn-secondary" href="{{.Link}}/edit">{{svg "dsi-pencil" 16}}{{ctx.Locale.Tr "admin.users.edit"}}</a>
+				{{if ne .User.ID .SignedUserID}}
+					{{if .TwoFactorEnabled}}
+					<details class="wk-menu wk-menu-end adm-reason">
+						<summary class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_admin.person_reset_2fa"}}</summary>
+						<form class="wk-menu-list ds-form" method="post" action="{{.Link}}/reset_2fa">
+							{{.CsrfTokenHtml}}
+							<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.person_reset_2fa_text" .User.DisplayName}}</p>
+							<label class="ds-label" for="adm-2fa-reason">{{ctx.Locale.Tr "asc_admin.person_reason"}}</label>
+							<textarea id="adm-2fa-reason" class="ds-textarea" name="reason" rows="2" maxlength="500" required></textarea>
+							<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "asc_admin.person_reset_2fa"}}</button>
+						</form>
+					</details>
+					{{end}}
+					<details class="wk-menu wk-menu-end adm-reason">
+						<summary class="ds-btn {{if .User.ProhibitLogin}}ds-btn-secondary{{else}}ds-btn-danger{{end}}">{{if .User.ProhibitLogin}}{{ctx.Locale.Tr "asc_admin.person_unsuspend"}}{{else}}{{ctx.Locale.Tr "asc_admin.person_suspend"}}{{end}}</summary>
+						<form class="wk-menu-list ds-form" method="post" action="{{.Link}}/{{if .User.ProhibitLogin}}unsuspend{{else}}suspend{{end}}">
+							{{.CsrfTokenHtml}}
+							<p class="ds-t-small ds-c-2">{{if .User.ProhibitLogin}}{{ctx.Locale.Tr "asc_admin.person_unsuspend_text" .User.DisplayName}}{{else}}{{ctx.Locale.Tr "asc_admin.person_suspend_text" .User.DisplayName}}{{end}}</p>
+							<label class="ds-label" for="adm-susp-reason">{{ctx.Locale.Tr "asc_admin.person_reason"}}</label>
+							<textarea id="adm-susp-reason" class="ds-textarea" name="reason" rows="2" maxlength="500" required></textarea>
+							<button class="ds-btn {{if .User.ProhibitLogin}}ds-btn-primary{{else}}ds-btn-danger{{end}}" type="submit">{{if .User.ProhibitLogin}}{{ctx.Locale.Tr "asc_admin.person_unsuspend"}}{{else}}{{ctx.Locale.Tr "asc_admin.person_suspend"}}{{end}}</button>
+						</form>
+					</details>
+				{{end}}
 			</div>
 		</div>
 	</section>
 
-	<div class="adm-two adm-two-even">
-		<section class="ds-card" aria-labelledby="adm-acct">
-			<div class="ds-card-h"><h2 id="adm-acct">{{ctx.Locale.Tr "asc_admin.section_account"}}</h2></div>
-			<dl class="adm-kv">
-				<div><dt>{{ctx.Locale.Tr "asc_admin.col_role"}}</dt><dd>{{template "admin/user/role_chip" .User}}</dd></div>
-				<div><dt>{{ctx.Locale.Tr "admin.users.auth_source"}}</dt><dd>{{if eq .LoginSource.ID 0}}{{ctx.Locale.Tr "admin.users.local"}}{{else}}{{.LoginSource.Name}}{{end}}</dd></div>
-				<div><dt>{{ctx.Locale.Tr "admin.users.activated"}}</dt><dd>{{if .User.IsActive}}{{ctx.Locale.Tr "asc_admin.yes"}}{{else}}{{ctx.Locale.Tr "asc_admin.no"}}{{end}}</dd></div>
-				<div><dt>{{ctx.Locale.Tr "admin.users.restricted"}}</dt><dd>{{if .User.IsRestricted}}{{ctx.Locale.Tr "asc_admin.yes"}}{{else}}{{ctx.Locale.Tr "asc_admin.no"}}{{end}}</dd></div>
-				<div><dt>{{ctx.Locale.Tr "admin.users.2fa"}}</dt><dd>{{template "admin/user/twofa_chip" (dict "On" .TwoFactorEnabled)}}</dd></div>
-				<div><dt>{{ctx.Locale.Tr "settings.visibility"}}</dt><dd>{{if .User.Visibility.IsPublic}}{{ctx.Locale.Tr "settings.visibility.public"}}{{end}}{{if .User.Visibility.IsLimited}}{{ctx.Locale.Tr "settings.visibility.limited"}}{{end}}{{if .User.Visibility.IsPrivate}}{{ctx.Locale.Tr "settings.visibility.private"}}{{end}}</dd></div>
-				{{if .User.Language}}<div><dt>{{ctx.Locale.Tr "settings.language"}}</dt><dd>{{range .AllLangs}}{{if eq $.User.Language .Lang}}{{.Name}}{{end}}{{end}}</dd></div>{{end}}
-				{{if .User.Location}}<div><dt>{{ctx.Locale.Tr "settings.location"}}</dt><dd>{{.User.Location}}</dd></div>{{end}}
-				{{if .User.Website}}<div><dt>{{ctx.Locale.Tr "settings.website"}}</dt><dd><a class="ds-link" target="_blank" rel="noopener noreferrer" href="{{.User.Website}}">{{.User.Website}}</a></dd></div>{{end}}
-			</dl>
-		</section>
+	<nav class="ds-tabs adm-person-tabs" aria-label="{{ctx.Locale.Tr "asc_admin.person_tabs"}}">
+		{{range $t := .Tabs}}
+			{{template "shared/ds/tab" (dict "Label" (ctx.Locale.TrString (print "asc_admin.person_tab_" $t)) "Href" (print $.Link "?tab=" $t) "Active" (eq $.Tab $t))}}
+		{{end}}
+	</nav>
 
-		<section class="ds-card" aria-labelledby="adm-mails">
+	{{if eq .Tab "emails"}}
+		<section class="ds-card adm-sec" aria-labelledby="adm-mails">
 			<div class="ds-card-h">
 				<h2 id="adm-mails">{{ctx.Locale.Tr "admin.emails"}}</h2>
 				<span class="ds-count">{{.EmailsTotal}}</span>
@@ -62,17 +77,112 @@
 				{{end}}
 			</ul>
 		</section>
-	</div>
-
-	<section class="adm-sec" aria-labelledby="adm-repos">
-		<div class="adm-sec-h"><h2 id="adm-repos">{{ctx.Locale.Tr "admin.repositories"}} <span class="ds-count">{{.ReposTotal}}</span></h2></div>
-		{{if .Repos}}{{template "explore/repo_list" .}}{{else}}<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "file" "Title" (ctx.Locale.Tr "asc_admin.person_no_repos"))}}</div>{{end}}
-	</section>
-
-	<section class="adm-sec" aria-labelledby="adm-orgs">
-		<div class="adm-sec-h"><h2 id="adm-orgs">{{ctx.Locale.Tr "settings.organization"}} <span class="ds-count">{{.OrgsTotal}}</span></h2></div>
-		{{if .Users}}{{template "explore/user_list" .}}{{else}}<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "building" "Title" (ctx.Locale.Tr "asc_admin.person_no_orgs"))}}</div>{{end}}
-	</section>
+	{{else if eq .Tab "keys"}}
+		<section class="ds-card adm-sec" aria-labelledby="adm-ssh">
+			<div class="ds-card-h"><h2 id="adm-ssh">{{ctx.Locale.Tr "asc_admin.person_ssh_keys"}}</h2><span class="ds-count">{{len .SSHKeys}}</span></div>
+			<ul class="adm-rows">
+				{{range .SSHKeys}}
+					<li class="ds-li">
+						<span class="adm-tile" aria-hidden="true">{{svg "dsi-key" 18}}</span>
+						<div class="ds-li-main">
+							<div class="ds-li-title">{{.Name}}</div>
+							<div class="ds-li-sub adm-mono ds-break">{{.Fingerprint}}</div>
+							<div class="ds-li-meta"><span>{{ctx.Locale.Tr "asc_admin.person_added" (DateUtils.AbsoluteShort .CreatedUnix)}}</span></div>
+						</div>
+					</li>
+				{{else}}
+					<li class="wk-empty-li"><p class="ds-c-2 adm-pad">{{ctx.Locale.Tr "asc_admin.person_no_ssh"}}</p></li>
+				{{end}}
+			</ul>
+		</section>
+		<section class="ds-card adm-sec" aria-labelledby="adm-gpg">
+			<div class="ds-card-h"><h2 id="adm-gpg">{{ctx.Locale.Tr "asc_admin.person_gpg_keys"}}</h2><span class="ds-count">{{len .GPGKeys}}</span></div>
+			<ul class="adm-rows">
+				{{range .GPGKeys}}
+					<li class="ds-li">
+						<span class="adm-tile" aria-hidden="true">{{svg "dsi-key" 18}}</span>
+						<div class="ds-li-main">
+							<div class="ds-li-title adm-mono">{{.KeyID}}</div>
+							<div class="ds-li-meta"><span>{{ctx.Locale.Tr "asc_admin.person_added" (DateUtils.AbsoluteShort .AddedUnix)}}</span></div>
+						</div>
+					</li>
+				{{else}}
+					<li class="wk-empty-li"><p class="ds-c-2 adm-pad">{{ctx.Locale.Tr "asc_admin.person_no_gpg"}}</p></li>
+				{{end}}
+			</ul>
+		</section>
+	{{else if eq .Tab "sessions"}}
+		{{with .UserSessions}}
+			{{if .Unsupported}}
+				<div class="ds-banner ds-banner-warn" role="status">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "asc_admin.person_sessions_unsupported"}}</p></div>
+			{{else if .Problem}}
+				<div class="ds-banner ds-banner-err" role="alert">{{svg "dsi-x-circle" 18}}<p class="ds-banner-body">{{.Problem}}</p></div>
+			{{else}}
+				<section class="ds-card adm-sec" aria-labelledby="adm-sess">
+					<div class="ds-card-h"><h2 id="adm-sess">{{ctx.Locale.Tr "asc_admin.person_tab_sessions"}}</h2><span class="ds-count">{{len .Rows}}</span></div>
+					<ul class="adm-rows" data-testid="admin-user-sessions">
+						{{range .Rows}}
+							<li class="ds-li">
+								<span class="adm-tile" aria-hidden="true">{{svg "dsi-key" 18}}</span>
+								<div class="ds-li-main">
+									<div class="ds-li-title">{{.Label}} <span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr (print "asc_admin.person_session_" .Kind)}}</span></div>
+									<div class="ds-li-meta">
+										{{if .Scope}}<span class="adm-mono">{{.Scope}}</span>{{end}}
+										<span>{{ctx.Locale.Tr "asc_admin.person_added" (DateUtils.AbsoluteShort .Created)}}</span>
+										{{if not .LastUsed.IsZero}}<span>{{ctx.Locale.Tr "asc_admin.last_active" (DateUtils.AbsoluteShort .LastUsed)}}</span>{{end}}
+									</div>
+								</div>
+								<form method="post" action="{{$.Link}}/sessions/revoke">
+									{{$.CsrfTokenHtml}}
+									<input type="hidden" name="id" value="{{.ID}}">
+									<button class="ds-btn ds-btn-ghost ds-btn-sm" type="submit">{{ctx.Locale.Tr "asc_admin.person_session_revoke"}}</button>
+								</form>
+							</li>
+						{{else}}
+							<li class="wk-empty-li"><p class="ds-c-2 adm-pad">{{ctx.Locale.Tr "asc_admin.person_no_sessions"}}</p></li>
+						{{end}}
+					</ul>
+				</section>
+			{{end}}
+		{{end}}
+	{{else if eq .Tab "activity"}}
+		{{if .Feeds}}{{template "user/dashboard/feeds" .}}{{else}}<div class="ds-card adm-sec">{{template "shared/ds/empty" (dict "Icon" "activity" "Title" (ctx.Locale.Tr "asc_admin.person_no_activity"))}}</div>{{end}}
+	{{else}}
+		<div class="adm-two adm-two-even">
+			<section class="ds-card" aria-labelledby="adm-acct">
+				<div class="ds-card-h"><h2 id="adm-acct">{{ctx.Locale.Tr "asc_admin.section_account"}}</h2></div>
+				<dl class="adm-kv">
+					<div><dt>{{ctx.Locale.Tr "asc_admin.col_role"}}</dt><dd>{{template "admin/user/role_chip" .User}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "settings.organization"}}</dt><dd>{{if .OrgNames}}<a class="ds-link" href="{{AppSubUrl}}/admin/orgs?q={{QueryEscape .User.Name}}">{{.OrgNames}}</a>{{else}}{{ctx.Locale.Tr "asc_admin.person_no_orgs"}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "admin.repositories"}}</dt><dd><a class="ds-link" href="{{AppSubUrl}}/admin/repos?q={{QueryEscape .User.Name}}">{{ctx.Locale.Tr "asc_admin.person_repos_count" .ReposOwned .ReposCollab}}</a></dd></div>
+					<div><dt>{{ctx.Locale.Tr "asc_admin.person_signin"}}</dt><dd>{{if .HasPassword}}{{ctx.Locale.Tr "asc_admin.person_signin_password"}}{{else}}{{ctx.Locale.Tr "asc_admin.person_signin_external"}}{{end}}{{if .Passkeys}}, {{ctx.Locale.TrN .Passkeys "asc_admin.person_passkey_one" "asc_admin.person_passkey_n" .Passkeys}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "admin.users.auth_source"}}</dt><dd>{{if eq .LoginSource.ID 0}}{{ctx.Locale.Tr "admin.users.local"}}{{else}}{{.LoginSource.Name}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "admin.users.activated"}}</dt><dd>{{if .User.IsActive}}{{ctx.Locale.Tr "asc_admin.yes"}}{{else}}{{ctx.Locale.Tr "asc_admin.no"}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "admin.users.restricted"}}</dt><dd>{{if .User.IsRestricted}}{{ctx.Locale.Tr "asc_admin.yes"}}{{else}}{{ctx.Locale.Tr "asc_admin.no"}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "admin.users.2fa"}}</dt><dd>{{template "admin/user/twofa_chip" (dict "On" .TwoFactorEnabled)}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "settings.visibility"}}</dt><dd>{{if .User.Visibility.IsPublic}}{{ctx.Locale.Tr "settings.visibility.public"}}{{end}}{{if .User.Visibility.IsLimited}}{{ctx.Locale.Tr "settings.visibility.limited"}}{{end}}{{if .User.Visibility.IsPrivate}}{{ctx.Locale.Tr "settings.visibility.private"}}{{end}}</dd></div>
+					{{if .User.Language}}<div><dt>{{ctx.Locale.Tr "settings.language"}}</dt><dd>{{range .AllLangs}}{{if eq $.User.Language .Lang}}{{.Name}}{{end}}{{end}}</dd></div>{{end}}
+					{{if .User.Location}}<div><dt>{{ctx.Locale.Tr "settings.location"}}</dt><dd>{{.User.Location}}</dd></div>{{end}}
+					{{if .User.Website}}<div><dt>{{ctx.Locale.Tr "settings.website"}}</dt><dd><a class="ds-link" target="_blank" rel="noopener noreferrer" href="{{.User.Website}}">{{.User.Website}}</a></dd></div>{{end}}
+				</dl>
+			</section>
+			{{with .UserUsage}}{{with .Usage}}
+			<section class="ds-card adm-usage" aria-labelledby="adm-usage" data-testid="admin-user-usage">
+				<div class="ds-card-h"><h2 id="adm-usage">{{ctx.Locale.Tr "asc_admin.person_usage"}}</h2></div>
+				<div class="ds-card-b ds-stack ds-stack-12">
+					<div>
+						<div class="adm-meter-h"><span>{{ctx.Locale.Tr "asc_shell.usage_storage"}}</span><strong>{{if .Storage.Limit}}{{ctx.Locale.Tr "asc_admin.person_usage_of" .Storage.UsedText .Storage.LimitText}}{{else}}{{.Storage.UsedText}}{{end}}</strong></div>
+						<progress class="ds-bar{{if .Storage.Over}} is-over{{end}}" max="100" value="{{.Storage.Pct}}" aria-label="{{ctx.Locale.Tr "asc_shell.usage_storage"}}">{{.Storage.Pct}}%</progress>
+					</div>
+					<div>
+						<div class="adm-meter-h"><span>{{ctx.Locale.Tr "asc_shell.usage_minutes"}}</span><strong>{{if .Minutes.Limit}}{{ctx.Locale.Tr "asc_admin.person_usage_of" .Minutes.UsedText .Minutes.LimitText}}{{else}}{{.Minutes.UsedText}}{{end}}</strong></div>
+						<progress class="ds-bar ds-bar-agent{{if .Minutes.Over}} is-over{{end}}" max="100" value="{{.Minutes.Pct}}" aria-label="{{ctx.Locale.Tr "asc_shell.usage_minutes"}}">{{.Minutes.Pct}}%</progress>
+					</div>
+				</div>
+			</section>
+			{{end}}{{end}}
+		</div>
+	{{end}}
 
 	{{if ne .User.ID .SignedUserID}}
 		<section class="ds-card adm-danger adm-sec" aria-labelledby="adm-del">
