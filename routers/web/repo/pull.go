@@ -572,6 +572,7 @@ func PrepareViewPullInfo(ctx *context.Context, issue *issues_model.Issue) *git.C
 	prepareAscBadges(ctx, pull)
 	prepareAscBrief(ctx, pull)
 	prepareAscRunPull(ctx, pull)
+	prepareAscChangeHeader(ctx, pull)
 
 	pb, err := git_model.GetFirstMatchProtectedBranchRule(ctx, repo.ID, pull.BaseBranch)
 	if err != nil {

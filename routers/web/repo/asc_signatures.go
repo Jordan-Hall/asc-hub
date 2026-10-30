@@ -22,20 +22,26 @@ import (
 
 // prepareAscSignatures puts AscSignatures (version number to asctrust.Badge) into ctx.Data for the templates.
 func prepareAscSignatures(ctx *context.Context, versions *pull_service.AscVersionList) {
-	ctx.Data["AscSignatures"] = map[uint32]asctrust.Badge{}
+	ctx.Data["AscSignatures"] = ascVersionBadges(ctx, versions)
+}
+
+// ascVersionBadges is the badge of each version of versions that has one, by version number. A version asc cannot
+// say anything about, and every version when asc cannot be asked, is left out.
+func ascVersionBadges(ctx *context.Context, versions *pull_service.AscVersionList) map[uint32]asctrust.Badge {
+	byVersion := map[uint32]asctrust.Badge{}
 	if !setting.Asc.Enabled || versions == nil || len(versions.Versions) == 0 || ctx.Repo.Repository == nil {
-		return
+		return byVersion
 	}
 	name, err := asctrust.RepoName(ctx.Repo.Repository)
 	if err != nil {
-		return
+		return byVersion
 	}
 	if !asctrust.HasFeature(ctx, asctrust.FeatureSigning) {
-		return
+		return byVersion
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		return
+		return byVersion
 	}
 	sys := asctrust.System(ctx.Req.Context())
 	commits := make([]string, 0, len(versions.Versions))
@@ -47,13 +53,12 @@ func prepareAscSignatures(ctx *context.Context, versions *pull_service.AscVersio
 	badges, err := asctrust.VerifyCommits(cctx, conn, name, commits, asctrust.RequireSigned(sys, conn, name))
 	if err != nil {
 		log.Warn("asc signatures of %s: %v", ctx.Repo.Repository.FullName(), asctrust.Classify(err))
-		return
+		return byVersion
 	}
-	byVersion := make(map[uint32]asctrust.Badge, len(versions.Versions))
 	for _, v := range versions.Versions {
 		if b, ok := badges[v.GitCommit]; ok && b.Label != "" {
 			byVersion[v.N] = b
 		}
 	}
-	ctx.Data["AscSignatures"] = byVersion
+	return byVersion
 }
