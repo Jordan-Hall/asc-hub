@@ -29,6 +29,50 @@
 			</div>
 			{{if .View.Error}}<div class="ds-banner ds-banner-warn" role="alert">{{.View.Error}}</div>{{end}}
 
+			<div class="rp-doctabs" role="tablist" aria-label="{{ctx.Locale.Tr "asc_rp.pf_views"}}" data-doc-tabs data-testid="asc-policy-views">
+				<button type="button" role="tab" id="pf-tab-form" aria-controls="pf-form" aria-selected="{{if not .Dirty}}true{{else}}false{{end}}" data-doc-tab="pf-form">{{ctx.Locale.Tr "asc_rp.pf_form"}}</button>
+				<button type="button" role="tab" id="pf-tab-toml" aria-controls="pf-toml" aria-selected="false" tabindex="-1" data-doc-tab="pf-toml">TOML</button>
+				<button type="button" role="tab" id="pf-tab-changes" aria-controls="pf-changes" aria-selected="{{if .Dirty}}true{{else}}false{{end}}" data-doc-tab="pf-changes">{{ctx.Locale.Tr "asc_rp.pf_changes"}}{{if .Dirty}} <span class="ds-count">{{len .Diff}}</span>{{end}}</button>
+			</div>
+			<section id="pf-form" role="tabpanel" aria-labelledby="pf-tab-form" data-doc-panel="pf-form"{{if .Dirty}} hidden{{end}}>
+				<form class="ds-form ast-policy-form" method="post" action="{{.PolicyURL}}/form" data-testid="asc-policy-fields">
+					{{$.CsrfTokenHtml}}
+					<fieldset class="ds-fieldset"><legend>{{ctx.Locale.Tr "asc_rp.pf_landing"}}</legend>
+						<div class="ds-field"><label for="pf-approvals">{{ctx.Locale.Tr "asc_rp.pf_approvals"}}</label><input id="pf-approvals" class="ds-input" name="approvals" type="number" min="0" max="64" inputmode="numeric" value="{{.Form.RequireApprovals}}"></div>
+						<div class="ds-field"><label for="pf-checks">{{ctx.Locale.Tr "asc_rp.pf_checks"}}</label><textarea id="pf-checks" class="ds-textarea ds-mono" name="checks" rows="3" spellcheck="false">{{range .Form.RequireChecks}}{{.}}
+{{end}}</textarea><p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_one_per_line"}}</p></div>
+						<label class="ds-check"><input type="checkbox" name="require_signed"{{if .Form.RequireSigned}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_signed"}}</label>
+						<label class="ds-check"><input type="checkbox" name="allow_force"{{if .Form.AllowForce}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_force"}}</label>
+					</fieldset>
+					<fieldset class="ds-fieldset"><legend>{{ctx.Locale.Tr "asc_rp.pf_queue"}}</legend>
+						<div class="ds-field"><label for="pf-strategy">{{ctx.Locale.Tr "asc_rp.pf_strategy"}}</label><select id="pf-strategy" class="ds-select" name="strategy"><option value=""{{if not .Form.MergeStrategy}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.pf_default"}}</option>{{range $.AscPolicy.Strategies}}<option value="{{.}}"{{if eq . $.AscPolicy.Form.MergeStrategy}} selected{{end}}>{{.}}</option>{{end}}</select></div>
+						<label class="ds-check"><input type="checkbox" name="queue"{{if .Form.MergeQueue}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_use_queue"}}</label>
+					</fieldset>
+					<fieldset class="ds-fieldset"><legend>{{ctx.Locale.Tr "asc_rp.pf_agents"}}</legend>
+						<label class="ds-check"><input type="checkbox" name="agents_enabled"{{if .Form.AgentsEnabled}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_agents_on"}}</label>
+						<div class="ds-field"><label for="pf-scope">{{ctx.Locale.Tr "asc_rp.pf_scope"}}</label><textarea id="pf-scope" class="ds-textarea ds-mono" name="agent_scope" rows="3" spellcheck="false">{{range .Form.AgentScope}}{{.}}
+{{end}}</textarea></div>
+						<div class="ds-field"><label for="pf-denied">{{ctx.Locale.Tr "asc_rp.pf_denied"}}</label><textarea id="pf-denied" class="ds-textarea ds-mono" name="agent_denied" rows="3" spellcheck="false">{{range .Form.AgentDenied}}{{.}}
+{{end}}</textarea></div>
+						<div class="ds-field"><label for="pf-runtime">{{ctx.Locale.Tr "asc_rp.pf_runtime"}}</label><input id="pf-runtime" class="ds-input" name="max_runtime" type="number" min="0" inputmode="numeric" value="{{.Form.MaxRuntimeSecs}}"></div>
+						<div class="ds-field"><label for="pf-changes-run">{{ctx.Locale.Tr "asc_rp.pf_changes_run"}}</label><input id="pf-changes-run" class="ds-input" name="max_changes" type="number" min="0" inputmode="numeric" value="{{.Form.MaxChangesPerRun}}"></div>
+						<div class="ds-field"><label for="pf-tokens">{{ctx.Locale.Tr "asc_rp.pf_tokens"}}</label><input id="pf-tokens" class="ds-input" name="max_tokens" type="number" min="0" inputmode="numeric" value="{{.Form.MaxTokens}}"></div>
+						<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_human_approves"}}</p>
+					</fieldset>
+					<div class="asc-trust-actions"><button class="ds-btn ds-btn-primary" type="submit" data-testid="asc-policy-review">{{ctx.Locale.Tr "asc_rp.pf_review"}}</button></div>
+				</form>
+			</section>
+			<section id="pf-changes" role="tabpanel" aria-labelledby="pf-tab-changes" data-doc-panel="pf-changes"{{if not .Dirty}} hidden{{end}} data-testid="asc-policy-changes">
+				{{if .Diff}}
+				<pre class="ast-diff" aria-label="{{ctx.Locale.Tr "asc_rp.pf_changes"}}">{{range .Diff}}<span class="ast-diff-{{if eq .Op "+"}}add{{else if eq .Op "-"}}del{{else}}ctx{{end}}"><span aria-hidden="true">{{.Op}} </span>{{.Text}}
+</span>{{end}}</pre>
+				<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_is_change"}}</p>
+				<p><button type="button" class="ds-btn ds-btn-primary" data-doc-goto="pf-toml">{{ctx.Locale.Tr "asc_rp.pf_go_propose"}}</button></p>
+				{{else}}
+				<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_nothing"}}</p>
+				{{end}}
+			</section>
+			<div id="pf-toml" role="tabpanel" aria-labelledby="pf-tab-toml" data-doc-panel="pf-toml" hidden>
 			<div class="ast-split">
 				<form class="ds-form ast-policy-form" method="post" action="{{.PolicyURL}}/propose" data-testid="asc-policy-form">
 					{{$.CsrfTokenHtml}}
@@ -58,6 +102,7 @@
 					{{end}}
 					{{if .View.MergeNote}}<p class="asc-trust-sub">{{.View.MergeNote}}</p>{{end}}
 				</div>
+			</div>
 			</div>
 
 			{{if .Preview}}

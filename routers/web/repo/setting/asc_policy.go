@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	repo_model "forgejo.org/models/repo"
@@ -47,6 +48,9 @@ type ascPolicyPage struct {
 	Message     string
 	Problem     string
 	Unsupported bool
+	Form        asctrust.PolicyForm
+	Strategies  []string
+	Diff        []asctrust.DiffLine
 	Op          string
 	ToggleOps   map[string]string
 	Base        string
@@ -143,7 +147,71 @@ func ascPolicyLoad(ctx *context.Context, repo *repo_model.Repository, name strin
 	}
 	p.Dirty = strings.TrimSpace(trustweb.Lines(p.Draft)) != strings.TrimSpace(trustweb.Lines(page.View.Text))
 	p.Preview = preview
+	p.Form = asctrust.FormOfText(p.Draft)
+	p.Strategies = asctrust.MergeStrategies
+	if p.Dirty {
+		p.Diff = asctrust.LineDiff(page.View.Text, p.Draft)
+	}
 	return http.StatusOK, true
+}
+
+// AscPolicyForm serves POST /{owner}/{repo}/settings/asc/policy/form: the fields of the Form view are put into the
+// policy text in force and the page is drawn with that draft, checked by asc, in the TOML and Changes views.
+// Nothing is stored; proposing is the same step as for a typed draft.
+func AscPolicyForm(ctx *context.Context) {
+	repo, name, ok := trustweb.AdminRepo(ctx)
+	if !ok {
+		return
+	}
+	if !trustweb.ParseForm(ctx, maxPolicyForm) {
+		return
+	}
+	p := ascPolicyPageFor(ctx, repo)
+	p.Message = trustweb.Lines(ctx.Req.PostFormValue("message"))
+	cur := ascPolicyPageFor(ctx, repo)
+	status, ok := ascPolicyLoad(ctx, repo, name, cur, "", nil)
+	if !ok {
+		return
+	}
+	if status != http.StatusOK || cur.View == nil {
+		p.Problem = cur.Problem
+		ascPolicyRender(ctx, repo, name, p, "", nil)
+		return
+	}
+	text := cur.View.Text
+	if !cur.View.Present {
+		text = cur.Draft
+	}
+	num := func(key string) int64 {
+		v := strings.TrimSpace(ctx.Req.PostFormValue(key))
+		if v == "" {
+			return 0
+		}
+		n, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			n = -1
+		}
+		return n
+	}
+	flag := func(key string) bool { return ctx.Req.PostFormValue(key) == "on" }
+	f := asctrust.PolicyForm{
+		RequireApprovals: num("approvals"), RequireChecks: asctrust.SplitLines(ctx.Req.PostFormValue("checks")),
+		AllowForce: flag("allow_force"), RequireSigned: flag("require_signed"),
+		MergeStrategy: ctx.Req.PostFormValue("strategy"), MergeQueue: flag("queue"),
+		AgentsEnabled: flag("agents_enabled"), AgentScope: asctrust.SplitLines(ctx.Req.PostFormValue("agent_scope")),
+		AgentDenied: asctrust.SplitLines(ctx.Req.PostFormValue("agent_denied")), MaxRuntimeSecs: num("max_runtime"),
+		MaxChangesPerRun: num("max_changes"), MaxTokens: num("max_tokens"),
+	}
+	draft, err := asctrust.ApplyForm(text, f)
+	if err != nil {
+		p.Problem = trustweb.FailureOf("policy form", err).Message
+		ascPolicyRender(ctx, repo, name, p, "", nil)
+		return
+	}
+	draft = trustweb.Lines(draft)
+	preview, problem := ascPolicyPreview(ctx, repo, name, draft)
+	p.Problem = problem
+	ascPolicyRender(ctx, repo, name, p, draft, preview)
 }
 
 // AscPolicyCheck serves POST /{owner}/{repo}/settings/asc/policy/check: asc validates the draft and the page

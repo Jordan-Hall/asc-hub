@@ -116,6 +116,15 @@ export function initDocTabs(root = document) {
         if (panel) panel.hidden = !on;
       }
     };
+    for (const go of root.querySelectorAll('[data-doc-goto]')) {
+      go.addEventListener('click', () => {
+        const target = tabs.find((t) => t.getAttribute('data-doc-tab') === go.getAttribute('data-doc-goto'));
+        if (target) {
+          select(target);
+          target.focus();
+        }
+      });
+    }
     for (const [i, tab] of tabs.entries()) {
       tab.addEventListener('click', () => select(tab));
       tab.addEventListener('keydown', (e) => {
