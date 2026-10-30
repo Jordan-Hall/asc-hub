@@ -34,8 +34,8 @@
 	{{end}}
 	{{if .ChangeRevertLink}}
 	<section class="ds-card rp-fact-card" aria-labelledby="rp-undo-h">
-		<h2 class="rp-rail-title" id="rp-undo-h">{{ctx.Locale.Tr "asc_rp.undo_title"}}</h2>
-		<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.undo_body"}}</p>
+		<h2 class="rp-rail-title" id="rp-undo-h">{{ctx.Locale.Tr "asc_rp.change_undo_title"}}</h2>
+		<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.change_undo_body"}}</p>
 		<form method="post" action="{{.ChangeRevertLink}}">
 			{{.CsrfTokenHtml}}
 			<input type="hidden" name="scope" value="this">

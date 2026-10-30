@@ -1849,6 +1849,8 @@ func registerRoutes(m *web.Route) {
 			m.Get("/*", context.RepoRefByType(context.RepoRefLegacy), repo.RefCommits)
 		}, repo.MustBeNotEmpty, reqRepoCodeReader)
 
+		m.Get("/commits-export/branch/*", context.RepoRefByType(context.RepoRefBranch), repo.MustBeNotEmpty, reqRepoCodeReader, repo.ExportCommits)
+
 		m.Group("/blame", func() {
 			m.Get("/branch/*", context.RepoRefByType(context.RepoRefBranch), repo.RefBlame)
 			m.Get("/tag/*", context.RepoRefByType(context.RepoRefTag), repo.RefBlame)

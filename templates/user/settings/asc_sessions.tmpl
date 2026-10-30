@@ -1,0 +1,53 @@
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings asc-trust-page wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_shell.sess_title") "Lead" (ctx.Locale.Tr "asc_shell.sess_lead"))}}
+<div class="wk-sp">
+{{with .AscSessions}}
+<div class="ds-stack-16" data-testid="asc-sessions">
+	{{if .Unsupported}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-sessions-unsupported"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.sess_unsupported"}}</div></div>
+	{{else}}
+		{{if .Problem}}<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-sessions-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Problem}}</div></div>{{else}}
+		<section class="ds-card" aria-labelledby="asc-sessions-list">
+			<div class="ds-card-h">
+				<h2 id="asc-sessions-list">{{ctx.Locale.Tr "asc_shell.sess_title"}}</h2>
+				{{if .Rows}}
+				<form class="ds-ml-auto" method="post" action="{{.URL}}/revoke-all" data-testid="asc-sessions-revoke-all">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="op" value="{{.RevokeAllOp}}">
+					<button class="ds-btn ds-btn-danger" type="submit" title="{{ctx.Locale.Tr "asc_shell.sess_revoke_all_hint"}}">{{ctx.Locale.Tr "asc_shell.sess_revoke_all"}}</button>
+				</form>
+				{{end}}
+			</div>
+			<ul class="ds-list wk-rows" data-testid="asc-sessions-list">
+				{{range .Rows}}
+				<li class="ds-li wk-row" data-kind="{{.Kind}}">
+					<span class="ds-li-av" aria-hidden="true">{{if eq .Kind "ssh"}}{{svg "dsi-terminal" 20}}{{else}}{{svg "dsi-key" 20}}{{end}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title"><span class="ds-break">{{.Label}}</span>
+							<span class="ds-chip">{{if eq .Kind "ssh"}}{{ctx.Locale.Tr "asc_shell.sess_kind_ssh"}}{{else if eq .Kind "agent"}}{{ctx.Locale.Tr "asc_shell.sess_kind_agent"}}{{else}}{{ctx.Locale.Tr "asc_shell.sess_kind_token"}}{{end}}</span>
+						</div>
+						{{if .Scope}}<div class="ds-li-sub ds-mono ds-break">{{.Scope}}</div>{{end}}
+						<div class="ds-li-meta">
+							{{if not .Created.IsZero}}<span>{{ctx.Locale.Tr "asc_shell.sess_created" (DateUtils.TimeSince .Created)}}</span>{{end}}
+							<span>{{if .LastUsed.IsZero}}{{ctx.Locale.Tr "asc_shell.sess_never_used"}}{{else}}{{ctx.Locale.Tr "asc_shell.sess_last_used" (DateUtils.TimeSince .LastUsed)}}{{end}}</span>
+							<span>{{if .Expires.IsZero}}{{ctx.Locale.Tr "asc_shell.sess_no_expiry"}}{{else}}{{ctx.Locale.Tr "asc_shell.sess_expires" (DateUtils.AbsoluteShort .Expires)}}{{end}}</span>
+						</div>
+					</div>
+					<form class="wk-row-acts" method="post" action="{{$.AscSessions.URL}}/revoke">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="id" value="{{.ID}}">
+						<input type="hidden" name="op" value="{{index $.AscSessions.RevokeOps .ID}}">
+						<button class="ds-btn ds-btn-danger" type="submit" aria-label="{{ctx.Locale.Tr "asc_shell.sess_revoke_for" .Label}}">{{ctx.Locale.Tr "asc_shell.sess_revoke"}}</button>
+					</form>
+				</li>
+				{{else}}
+				<li class="ds-li" data-testid="asc-sessions-empty"><p class="ds-hint">{{ctx.Locale.Tr "asc_shell.sess_none"}}</p></li>
+				{{end}}
+			</ul>
+		</section>
+		{{end}}
+	{{end}}
+</div>
+{{end}}
+</div>
+{{template "user/settings/layout_footer" .}}

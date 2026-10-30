@@ -72,6 +72,7 @@ type ascChecksPage struct {
 	Unsupported bool
 	ChecksURL   string
 	CanWrite    bool
+	CanRerun    bool
 }
 
 type ascChecksState struct {
@@ -128,6 +129,7 @@ func AscChecks(ctx *context.Context) {
 		Job: ctx.FormString("job"), Test: ctx.FormString("test"), Windows: ascChecksWindows,
 	}
 	p.CanWrite = ctx.IsSigned && ctx.Repo.CanWrite(unit.TypeCode)
+	p.CanRerun = ctx.IsSigned && ctx.Repo.CanWrite(unit.TypeActions)
 	ctx.Data["AscChecks"] = p
 
 	if p.View == "" {
@@ -489,6 +491,79 @@ func AscChecksRerun(ctx *context.Context) {
 		return
 	}
 	ctx.Redirect(repo.Link() + "/actions/runs/" + strconv.FormatInt(run.Index, 10))
+}
+
+// ascRerunFailedScan is how many of the newest runs of the repository the "Re-run failed" button looks at, and
+// ascRerunFailedMax how many runs it starts again at most.
+const (
+	ascRerunFailedScan = 100
+	ascRerunFailedMax  = 10
+)
+
+// ascLatestFailedRuns returns, newest first, the runs of runs that are the latest of their workflow on their ref and
+// failed: a failure that a later run of the same workflow on the same ref has not already answered.
+func ascLatestFailedRuns(runs []*actions_model.ActionRun, limit int) []*actions_model.ActionRun {
+	seen := map[string]bool{}
+	var out []*actions_model.ActionRun
+	for _, run := range runs {
+		key := run.WorkflowID + "|" + run.Ref
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		if run.Status.IsFailure() {
+			out = append(out, run)
+			if len(out) == limit {
+				break
+			}
+		}
+	}
+	return out
+}
+
+// AscChecksRerunFailed serves POST /{owner}/{repo}/asc/checks/rerun_failed: it starts again the failed jobs of the
+// latest failed run of each workflow and ref (at most ascRerunFailedMax runs). Whoever may write Actions may do it.
+func AscChecksRerunFailed(ctx *context.Context) {
+	repo, _, ok := trustweb.WriterRepo(ctx)
+	if !ok {
+		return
+	}
+	if !ctx.Repo.CanWrite(unit.TypeActions) {
+		ctx.Error(http.StatusForbidden)
+		return
+	}
+	if !trustweb.ParseForm(ctx, maxChecksForm) {
+		return
+	}
+	back := ascChecksURL(repo)
+	runs, err := db.Find[actions_model.ActionRun](ctx, actions_model.FindRunOptions{RepoID: repo.ID, ListOptions: db.ListOptions{Page: 1, PageSize: ascRerunFailedScan}})
+	if err != nil {
+		ctx.ServerError("FindRuns", err)
+		return
+	}
+	started := 0
+	var firstErr error
+	for _, run := range ascLatestFailedRuns(runs, ascRerunFailedMax) {
+		n, err := ascRerunRun(ctx, run, true)
+		started += n
+		if err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	if firstErr != nil {
+		if msg, known := ascRerunMessage(ctx, firstErr); known {
+			ctx.Flash.Error(msg)
+		} else {
+			log.Error("asc checks: re-run of the failed runs of %s: %v", repo.FullName(), firstErr)
+			ctx.Flash.Error(ctx.Locale.TrString("asc_trust.checks.rerun_some_failed"))
+		}
+	}
+	if started > 0 {
+		ctx.Flash.Success(ctx.Locale.TrString("asc_trust.checks.rerun_started", started))
+	} else if firstErr == nil {
+		ctx.Flash.Info(ctx.Locale.TrString("asc_trust.checks.rerun_nothing"))
+	}
+	ctx.Redirect(back)
 }
 
 // ------------------------------------------------------------------------------------------------ one version

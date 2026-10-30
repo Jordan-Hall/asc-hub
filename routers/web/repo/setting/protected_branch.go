@@ -41,6 +41,7 @@ func ProtectedBranchRules(ctx *context.Context) {
 		return
 	}
 	ctx.Data["ProtectedBranches"] = rules
+	prepareAscRules(ctx)
 
 	repo.PrepareBranchList(ctx)
 	if ctx.Written() {
@@ -52,6 +53,10 @@ func ProtectedBranchRules(ctx *context.Context) {
 
 // SettingsProtectedBranch renders the protected branch setting page
 func SettingsProtectedBranch(c *context.Context) {
+	if ascRulesRepo(c) {
+		c.Redirect(c.Repo.RepoLink + "/settings/asc/policy")
+		return
+	}
 	ruleName := c.FormString("rule_name")
 	var rule *git_model.ProtectedBranch
 	if ruleName != "" {
@@ -103,6 +108,11 @@ func SettingsProtectedBranch(c *context.Context) {
 
 // SettingsProtectedBranchPost updates the protected branch settings
 func SettingsProtectedBranchPost(ctx *context.Context) {
+	if ascRulesRepo(ctx) {
+		ctx.Flash.Error(ctx.Tr("repo.settings.asc_rules.managed"))
+		ctx.Redirect(ctx.Repo.RepoLink + "/settings/asc/policy")
+		return
+	}
 	f := web.GetForm(ctx).(*forms.ProtectBranchForm)
 	var protectBranch *git_model.ProtectedBranch
 	if f.RuleName == "" {
@@ -275,6 +285,11 @@ func SettingsProtectedBranchPost(ctx *context.Context) {
 
 // DeleteProtectedBranchRulePost delete protected branch rule by id
 func DeleteProtectedBranchRulePost(ctx *context.Context) {
+	if ascRulesRepo(ctx) {
+		ctx.Flash.Error(ctx.Tr("repo.settings.asc_rules.managed"))
+		ctx.JSONRedirect(ctx.Repo.RepoLink + "/settings/asc/policy")
+		return
+	}
 	ruleID := ctx.ParamsInt64("id")
 	if ruleID <= 0 {
 		ctx.Flash.Error(ctx.Tr("repo.settings.remove_protected_branch_failed", fmt.Sprintf("%d", ruleID)))

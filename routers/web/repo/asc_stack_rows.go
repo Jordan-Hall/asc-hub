@@ -113,7 +113,7 @@ type stackSegment struct {
 // stackRow is one stack of the list.
 type stackRow struct {
 	Name     string
-	Avatar   bool // the list draws the avatar of the first person before the row
+	Avatar   bool   // the list draws the avatar of the first person before the row
 	Title    string // the intent of the top change
 	Link     string // where the row opens: the change that needs the viewer, else the bottom open change
 	Status   string

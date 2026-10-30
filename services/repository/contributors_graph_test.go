@@ -5,6 +5,7 @@
 package repository
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 	"time"
@@ -123,6 +124,11 @@ func TestGetContributorStats(t *testing.T) {
 		Interval: 24 * 60,
 	})
 	require.NoError(t, err)
+	// The memory cache is one for the process, whoever makes it: what this test stores would be found by its next run
+	// (go test -count) as an answer that needs no generation. It leaves the key as it found it.
+	key := fmt.Sprintf(contributorStatsCacheKey, repo.FullName(), "65f1bf27bc3bf70f64657658635e66094edbcb4d")
+	require.NoError(t, mockCache.Delete(key))
+	t.Cleanup(func() { _ = mockCache.Delete(key) })
 
 	data, err := GetContributorStats(t.Context(), mockCache, repo, "65f1bf27bc3bf70f64657658635e66094edbcb4d")
 	assert.Nil(t, data)

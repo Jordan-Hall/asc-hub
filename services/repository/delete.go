@@ -44,6 +44,10 @@ type DeleteRepositoryOpts struct {
 	// Keep migration-related beans. Should only be used to cleanup data to
 	// start another migration.
 	KeepMigrationBeans bool
+	// KeepFiles deletes the database rows only: the files of the repository and of its wiki, and the repository in
+	// asc, are left as they are. For the failure of a repository that was never given a store, whose path or asc
+	// name belongs to another repository.
+	KeepFiles bool
 }
 
 // DeleteRepository deletes a repository for a user or organization.
@@ -350,12 +354,14 @@ func DeleteRepositoryDirectly(ctx context.Context, repoID int64, opts DeleteRepo
 	// We should always delete the files after the database transaction succeed. If
 	// we delete the file but the database rollback, the repository will be broken.
 
-	// Remove repository files.
-	RemoveFilesWithNotice(ctx, "Delete repository files", repo.StoreRef())
+	if !opts.KeepFiles {
+		// Remove repository files.
+		RemoveFilesWithNotice(ctx, "Delete repository files", repo.StoreRef())
 
-	// Remove wiki files
-	if repo.HasWiki() {
-		RemoveFilesWithNotice(ctx, "Delete repository wiki", repo.WikiStoreRef())
+		// Remove wiki files
+		if repo.HasWiki() {
+			RemoveFilesWithNotice(ctx, "Delete repository wiki", repo.WikiStoreRef())
+		}
 	}
 
 	// Remove archives

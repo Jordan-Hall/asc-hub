@@ -241,7 +241,12 @@ func ascOpError(err error) ascOpFailure {
 	// A refusal of asc (the policy, the gate) carries asc's own sentence: the person is told what to do.
 	var refusal *pull_service.AscRefusal
 	if errors.As(err, &refusal) {
-		return ascOpFailure{Key: "repo.pulls.asc_op.err.refused", Args: []any{refusal.Message}, Known: true}
+		// The typed code goes with asc's sentence, and the files it names are in the sentence.
+		text := refusal.Message
+		if refusal.Code != "" {
+			text = refusal.Code + ": " + text
+		}
+		return ascOpFailure{Key: "repo.pulls.asc_op.err.refused", Args: []any{text}, Known: true}
 	}
 	// Not ready and not queueable carry our own text (a pull request number and a reason).
 	if errors.Is(err, pull_service.ErrAscStackNotMergable) || errors.Is(err, automerge.ErrAscQueueNotQueueable) {

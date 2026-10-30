@@ -294,35 +294,23 @@ func logAscStack(err error, change string) {
 	log.Error("asc stack for change %s: %v", shortChange(change), err)
 }
 
-// RelinkAscStack links a stacked pull request to the pull request of its parent change when the link was not made
-// at push time: asc may not know the parent of a change at the moment the push hook asks (the metadata of a batch
-// arrives with it), so the stack page asks again. It does nothing for a pull request that has a parent, for a
-// change that is a bottom, and on any error.
-func RelinkAscStack(ctx context.Context, repo *repo_model.Repository, pr *issues_model.PullRequest) {
-	row, err := issues_model.GetPullRequestAscStack(ctx, pr.ID)
-	if err != nil || row == nil {
+// linkAscStackedPushes links the parents of the stacked pull requests a push made or moved from git: the parent of a
+// change is the open stacked pull request whose head is the git parent of its head. asc's own answer
+// (ascParentOf) is missing while the hook runs for a batch, and the refs of a batch come in any order, so this runs
+// once after every ref of the push has its pull request. A failure is logged: the pull requests exist, and the
+// stack page and the merge look again.
+func linkAscStackedPushes(ctx context.Context, repo *repo_model.Repository, bridge *git.Repository, heads map[int64]string) {
+	if len(heads) == 0 {
 		return
 	}
-	// the changes above this one may be unlinked too: look at them from here
-	if err := adoptAscChildren(ctx, repo, pr, row.AscChange); err != nil {
-		log.Warn("asc stack: adopting the children of pull request %d: %v", pr.ID, err)
+	if _, err := pull_service.LinkAscStackPush(ctx, bridge, heads); err != nil {
+		log.Error("asc stack: linking the pull requests of a push to %s: %v", repo.FullName(), err)
 	}
-	if row.StackParentID != 0 {
-		return
-	}
-	parent, err := ascParentOf(ctx, repo, row.AscChange)
-	if err != nil || parent == "" {
-		return
-	}
-	pp, err := issues_model.GetOpenPullRequestByAscChange(ctx, repo.ID, parent)
-	if err != nil || pp.ID == pr.ID {
-		return
-	}
-	if err := issues_model.SetAscStackParent(ctx, pr.ID, pp.ID); err != nil {
-		log.Error("asc stack: relinking pull request %d: %v", pr.ID, err)
-		return
-	}
-	if err := pull_service.RecomputeAscStackBase(ctx, pr); err != nil {
-		log.Error("asc stack: base of pull request %d: %v", pr.ID, err)
+}
+
+func init() {
+	// asc's answer for the parent change confirms a link that git suggests between pull requests of two people
+	pull_service.AscParentChange = func(ctx context.Context, repo *repo_model.Repository, change string) (string, error) {
+		return ascParentOf(ctx, repo, change)
 	}
 }
