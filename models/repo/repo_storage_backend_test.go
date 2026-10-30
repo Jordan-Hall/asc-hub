@@ -9,6 +9,7 @@ import (
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
+	"forgejo.org/modules/git/ascbackend"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/test"
@@ -68,6 +69,8 @@ func TestOpenRepositoryFollowsStorageBackend(t *testing.T) {
 
 	setting.Asc.Enabled = true
 	require.NoError(t, open("dual"))
-	require.NoError(t, open("asc"))
+	// asc reads need the asc client (ascbackend.Init); without one the backend refuses and never falls back to the
+	// git directory
+	require.ErrorIs(t, open("asc"), ascbackend.ErrNotConfigured)
 	require.ErrorIs(t, open("bogus"), gitrepo.ErrUnknownStorageBackend)
 }
