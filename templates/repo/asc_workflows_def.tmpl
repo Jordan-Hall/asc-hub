@@ -28,7 +28,7 @@ Template Attributes:
 					<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_trunk_tip"}}</p>
 				</div>
 				{{if and $.CanChangeWorkflows .Valid}}
-					<form class="rv-acts" method="post" action="{{.Link}}/enable">
+					<form class="rv-acts rv-desk" method="post" action="{{.Link}}/enable">
 						{{$.CsrfTokenHtml}}
 						<a class="rv-btn rv-btn-primary rv-end wf-run-link" href="#rv-wf-run" data-testid="asc-workflow-run-link">{{ctx.Locale.Tr "asc_review.wf_run_now"}}</a>
 						<input type="hidden" name="enabled" value="{{if .Enabled}}0{{else}}1{{end}}">
@@ -154,6 +154,14 @@ Template Attributes:
 					</section>
 				</aside>
 			</div>
+			{{if and $.CanChangeWorkflows .Valid}}
+			<form class="rv-sticky rv-mob" method="post" action="{{.Link}}/enable" data-testid="asc-workflow-pinned">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="enabled" value="{{if .Enabled}}0{{else}}1{{end}}">
+				<button class="rv-btn rv-btn-secondary" type="submit">{{if .Enabled}}{{ctx.Locale.Tr "asc_review.wf_switch_off"}}{{else}}{{ctx.Locale.Tr "asc_review.wf_switch_on"}}{{end}}</button>
+				<a class="rv-btn rv-btn-primary" href="#rv-wf-run">{{ctx.Locale.Tr "asc_review.wf_run_button"}}</a>
+			</form>
+			{{end}}
 		{{end}}
 	</div>
 </div>
