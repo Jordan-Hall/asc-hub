@@ -140,6 +140,7 @@ func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
 		m.Get("/groups/{id}", repo.AscCheckGroup)
 		m.Post("/groups/{id}/state", reqSignIn, context.RepoMustNotBeArchived(), repo.AscCheckGroupState)
 		m.Post("/rerun", reqSignIn, context.RepoMustNotBeArchived(), repo.AscChecksRerun)
+		m.Post("/rerun_failed", reqSignIn, context.RepoMustNotBeArchived(), repo.AscChecksRerunFailed)
 	})
 }
 

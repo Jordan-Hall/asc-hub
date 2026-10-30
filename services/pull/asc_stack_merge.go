@@ -27,6 +27,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/ascsync"
 	notify_service "forgejo.org/services/notify"
 )
@@ -73,6 +74,8 @@ type AscStackItem struct {
 	PR     *issues_model.PullRequest
 	Change string // 32 letters k-z
 	Head   string // git id of the head that was checked
+	// Derived says the link to the item below was worked out from git and is not stored yet (PersistAscStackLinks).
+	Derived bool
 }
 
 // AscLandRequest asks the backend to land Items[len-1].Head onto Target. Heads are bottom to top.
@@ -174,7 +177,6 @@ func AscStackPrefix(ctx context.Context, pr *issues_model.PullRequest) ([]*AscSt
 	seen := map[int64]bool{}
 	var rev []*AscStackItem
 	cur := pr
-	healed := false
 	for range ascStackMaxDepth {
 		if seen[cur.ID] {
 			return nil, fmt.Errorf("%w: cycle", ErrAscStackNotMergable)
@@ -187,25 +189,22 @@ func AscStackPrefix(ctx context.Context, pr *issues_model.PullRequest) ([]*AscSt
 		if row == nil {
 			return nil, ErrAscStackNotStacked
 		}
-		if row.StackParentID == 0 && !healed {
-			// A change without a parent is the bottom of a stack, or its parent was not linked when it was pushed
-			// (asc did not know it yet): look at git once before the walk stops.
-			healed = true
-			if err := cur.LoadBaseRepo(ctx); err == nil {
-				if n, herr := RepairAscStackLinks(ctx, cur.BaseRepo); herr != nil {
-					log.Trace("asc stack: repairing the links of %s: %v", cur.BaseRepo.FullName(), herr)
-				} else if n > 0 {
-					if row, err = issues_model.GetPullRequestAscStack(ctx, cur.ID); err != nil || row == nil {
-						return nil, ErrAscStackNotStacked
-					}
-				}
+		// A change without a parent is the bottom of a stack, or its parent was not linked when it was pushed (asc
+		// did not know it yet): git says which. This is worked out here and written only after the doer was allowed
+		// to merge (PersistAscStackLinks).
+		parentID, derived := row.StackParentID, false
+		var head string
+		if parentID == 0 {
+			var p *issues_model.PullRequest
+			if p, head = ascViewParent(ctx, cur); p != nil {
+				parentID, derived = p.ID, true
 			}
 		}
-		rev = append(rev, &AscStackItem{PR: cur, Change: row.AscChange})
-		if row.StackParentID == 0 {
+		rev = append(rev, &AscStackItem{PR: cur, Change: row.AscChange, Derived: derived, Head: head})
+		if parentID == 0 {
 			break
 		}
-		parent, err := issues_model.GetPullRequestByID(ctx, row.StackParentID)
+		parent, err := issues_model.GetPullRequestByID(ctx, parentID)
 		if err != nil {
 			if issues_model.IsErrPullRequestNotExist(err) {
 				break
@@ -338,6 +337,10 @@ func MergeAscStackWith(ctx context.Context, doer *user_model.User, perm access_m
 		if err := checkAscStackItem(ctx, doer, perm, items[0].PR, it); err != nil {
 			return nil, err
 		}
+	}
+	// the doer may merge every item: the links worked out from git can be stored now
+	if err := PersistAscStackLinks(ctx, items); err != nil {
+		return nil, err
 	}
 	repo := items[0].PR.BaseRepo
 	name := repo.FullName()
@@ -622,6 +625,15 @@ func (b *ascClientBackend) Land(ctx context.Context, req AscLandRequest) (*AscLa
 	op := opID("land", req.Repo, req.Target, strings.Join(req.Heads, ","), fmt.Sprint(req.NoContentMerge))
 	ctx, cancel := b.system(ctx, op)
 	defer cancel()
+	if req.Doer != nil {
+		// the claim about the person who lands: asc names them to the hub's hooks (it forwards their id), so the
+		// pre-receive hook checks the land as them even when the commit it announces is one the hub could not
+		// know before (a land onto a moved trunk rewrites the heads)
+		var cerr error
+		if ctx, cerr = ascidentity.AttachDoer(ctx, req.Doer, ascidentity.RoleWrite, req.Repo); cerr != nil {
+			return nil, fmt.Errorf("the claim about the person who lands: %w", cerr)
+		}
+	}
 	asc, err := b.gitToAsc(ctx, req.Repo, req.Heads...)
 	if err != nil {
 		return nil, err
