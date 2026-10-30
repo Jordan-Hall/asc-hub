@@ -40,6 +40,42 @@ export function initRepoSettingsSaveBar() {
   }
 }
 
+// Changing the visibility of an existing repository asks first: the dialog names the new level and what it means. It is
+// on the settings form only (data-visibility-form); the create form has nothing to change from. Without
+// <dialog>.showModal (an old browser) the browser's own confirm asks the same question.
+export function initVisibilityConfirm() {
+  for (const form of document.querySelectorAll('[data-visibility-form]')) {
+    const dialog = form.querySelector('[data-visibility-dialog]');
+    const radios = [...form.querySelectorAll('input[type=radio][name=visibility]')];
+    if (!dialog || radios.length === 0) continue;
+    const initial = radios.find((r) => r.defaultChecked)?.value;
+    let confirmed = false;
+    form.addEventListener('submit', (e) => {
+      const now = radios.find((r) => r.checked);
+      if (confirmed || !now || now.value === initial) return;
+      e.preventDefault();
+      const title = now.getAttribute('data-confirm-title') || '';
+      const body = now.getAttribute('data-confirm-body') || '';
+      dialog.querySelector('[data-visibility-title]').textContent = title;
+      dialog.querySelector('[data-visibility-body]').textContent = body;
+      const go = () => {
+        confirmed = true;
+        form.requestSubmit();
+      };
+      if (typeof dialog.showModal !== 'function') {
+        if (window.confirm(`${title} ${body}`)) go();
+        return;
+      }
+      dialog.querySelector('[data-visibility-confirm]').onclick = () => {
+        dialog.close();
+        go();
+      };
+      dialog.querySelector('[data-visibility-cancel]').onclick = () => dialog.close();
+      dialog.showModal();
+    });
+  }
+}
+
 // The Topics field of General: the comma separated list is posted to the topics endpoint and the answer is said in
 // words next to the button; the page is not reloaded.
 export function initRepoSettingsTopics() {
