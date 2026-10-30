@@ -4,11 +4,13 @@
 package setting
 
 import (
+	gocontext "context"
 	"encoding/hex"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/base"
@@ -17,6 +19,8 @@ import (
 	"forgejo.org/routers/web/shared/trustweb"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
+
+	"google.golang.org/grpc"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 )
@@ -57,6 +61,12 @@ type ascSecurityPage struct {
 	Proposed    *ascProposed
 	// AllRules is set when the rules table shows every rule; by default it shows the first few.
 	AllRules bool
+	// LastScan is when an administrator last scanned the repository (zero when never); RefusedSpark and RefusedMonth are the pushes
+	// refused in the last 30 days, a point to a day; NewToday counts the open findings first seen today on this page.
+	LastScan     time.Time
+	RefusedSpark string
+	RefusedMonth uint32
+	NewToday     int
 }
 
 type ascStateOption struct {
@@ -148,7 +158,38 @@ func ascSecurityRender(ctx *context.Context, repo *repo_model.Repository, name s
 		&ascv1.AuditFilter{Actions: []string{"secret.push.blocked"}}); err == nil {
 		p.Blocked = res.Page.Rows
 	}
+	ascSecurityHistory(callCtx, conn, name, p)
 	ctx.HTML(status, tplAscSecurity)
+}
+
+// ascSecurityHistory reads what the audit log says about the repository's scanning: when it was last scanned and how many pushes were
+// refused each day of the last 30. Both are advice for the page, so a failure leaves them out.
+func ascSecurityHistory(ctx gocontext.Context, conn grpc.ClientConnInterface, name string, p *ascSecurityPage) {
+	scope := &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_REPO, Name: name}
+	if res, err := asctrust.ListAudit(ctx, conn, scope, asctrust.AuditQuery{Limit: 1}, &ascv1.AuditFilter{Actions: []string{"secret.scan.run"}}); err == nil && len(res.Page.Rows) > 0 {
+		p.LastScan = res.Page.Rows[0].Time
+	}
+	now := time.Now().UTC()
+	first := now.AddDate(0, 0, -29)
+	if res, err := asctrust.ListAudit(ctx, conn, scope, asctrust.AuditQuery{Limit: 200, Since: first.Format(time.DateOnly)}, &ascv1.AuditFilter{Actions: []string{"secret.push.blocked"}}); err == nil {
+		perDay := make([]uint32, 30)
+		for _, r := range res.Page.Rows {
+			days := int(r.Time.UTC().Sub(first.Truncate(24*time.Hour)).Hours() / 24)
+			if days >= 0 && days < len(perDay) {
+				perDay[days]++
+				p.RefusedMonth++
+			}
+		}
+		p.RefusedSpark = asctrust.Sparkline(perDay, 80, 28)
+	}
+	if p.State == "open" && p.Data != nil && p.Data.Findings != nil {
+		midnight := now.Truncate(24 * time.Hour)
+		for _, f := range p.Data.Findings.Rows {
+			if !f.FirstSeen.Before(midnight) {
+				p.NewToday++
+			}
+		}
+	}
 }
 
 // AscSecurityFinding serves POST /{owner}/{repo}/settings/asc/security/finding with the fields id, state, note, op.

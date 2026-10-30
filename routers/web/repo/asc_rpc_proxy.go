@@ -27,6 +27,7 @@ import (
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/context"
 
 	"google.golang.org/grpc"
@@ -58,6 +59,9 @@ import (
 // Nothing from the browser except the checked request message reaches asc: no header, no cookie and no
 // credential is forwarded. The proxy never calls a method that writes, and every write to asc from
 // the web goes through Forgejo's own handlers.
+//
+// A signed-in person's call also carries the hub's signed claim about them (ascidentity.AttachDoer, role read, for the
+// one repository of the request), so asc decides it as that person; see the note on draft refs below.
 //
 // Failures that happen before a gRPC call exists (a disabled proxy, an unknown method, a bad
 // content type, an over-long body) are plain HTTP errors. Everything after that is a gRPC-Web
@@ -240,7 +244,7 @@ func AscRPCProxy(ctx *context.Context) {
 		return
 	}
 
-	req, err := ascRPCPrepare(ctx, name, allowEmpty, msg)
+	req, subject, err := ascRPCPrepare(ctx, name, allowEmpty, msg)
 	if err != nil {
 		ascRPCFinish(ctx, nil, err)
 		return
@@ -252,8 +256,19 @@ func AscRPCProxy(ctx *context.Context) {
 		return
 	}
 
-	// The call outlives nothing: it ends when the browser goes away.
+	// The call outlives nothing: it ends when the browser goes away. A signed-in person's call carries their claim, so
+	// asc decides it as that person: their own draft refs resolve and no one else's do. A visitor's call is the
+	// service credential alone, for which no draft ref resolves. A signed-in person whose claim cannot be made gets
+	// no call: the hub does not fall back to the service credential for them.
 	callCtx := ascclient.WithSystem(ctx.Req.Context())
+	if subject != "" && ctx.Doer != nil && ctx.IsSigned {
+		var cerr error
+		if callCtx, cerr = ascidentity.AttachDoer(callCtx, ctx.Doer, ascidentity.RoleRead, subject); cerr != nil {
+			log.Error("asc rpc proxy: the claim about the person: %v", cerr)
+			ascRPCFinish(ctx, nil, &ascRPCStatusError{codes.Unavailable, "asc is unavailable"})
+			return
+		}
+	}
 	method := "/" + name
 	md, _ := ascRPCMethod(name)
 	if md.IsStreamingServer() {
@@ -316,71 +331,188 @@ func ascRPCUnitOf(method string) unit.Type {
 	return unit.TypeCode
 }
 
-// ascRPCUserRefs is what a name of a ref of another person's drafts starts with. The internal credential could read
-// such a ref, which asc shows only to its owner, so no string of a request may name one.
-const ascRPCUserRefs = "refs/users/"
+// Draft refs. A person's drafts are the refs refs/users/<user id>/heads/... and only that person reads them. asc
+// enforces this: a call that carries the claim of the signed-in person (ascidentity.AttachDoer) is decided as that
+// person, whose own drafts resolve and no one else's, and a call without a claim is the hub's service credential, for
+// which no draft ref resolves at all. The proxy always attaches the claim of a signed-in person.
+//
+// The checks below are defence in depth and never the only barrier. They look at the fields that carry revisions
+// and refs (names in ascRPCNeutralFields are paths, patterns, search text, tokens and project selectors; any other
+// string field is treated as a revision, so a field added to asc later is screened until someone decides otherwise)
+// and accept a name only in these forms:
+//
+//   - a hex object id, or HEAD;
+//   - a fully qualified ref under refs/heads/ or refs/tags/, written exactly like that;
+//   - a fully qualified draft ref of the signed-in person, refs/users/<their id>/;
+//   - a short branch name that is no alias for anything else: asc resolves the short forms users/<id>/heads/<name>
+//     and heads/<name> as refs too, so a short name that starts with users/ or refs/, or that is written with a
+//     doubled, leading, trailing or backslash separator, a dot segment or a control character, is refused.
+//
+// A revision expression (A..B, A...B, ^A, A~2, A^{tree}, A@{u}, A:path) is split at its operators and each name in it
+// is screened. Bytes fields are ids or paths: an id must be 20 or 32 bytes, and bytes that could be a name are
+// screened as a name.
+var ascRPCNeutralFields = map[protoreflect.Name]bool{
+	"paths": true, "exclude_paths": true, "path": true, "def_path": true, "langs": true, "kinds": true, "pattern": true,
+	"query": true, "name": true, "author": true, "grep": true, "pickaxe": true, "select": true,
+	"page_token": true, "resume_token": true, "ahead_page_token": true, "behind_page_token": true,
+}
 
-// ascRPCNamesUserRef reports whether s names a ref in the namespace of the user refs.
-func ascRPCNamesUserRef(s string) bool {
-	return strings.Contains(strings.ToLower(s), ascRPCUserRefs)
+// ascRPCIDFields are the bytes fields that hold a change, file or tree id.
+var ascRPCIDFields = map[protoreflect.Name]bool{"change": true, "changes": true, "stack_top": true, "file_id": true}
+
+const (
+	ascRPCTrunkIDLen = 20 // a git object id
+	ascRPCAscIDLen   = 32 // an asc id
+)
+
+var errAscRPCUserRef = ascRPCInvalid("refs of other users are not readable here")
+
+// ascRPCScreen reports whether a revision expression, a field of a request, names nothing but what the person may
+// read. doer is the signed-in person's id, 0 for a visitor.
+func ascRPCScreen(expr string, doer int64) bool {
+	if len(expr) > ascRPCMaxRepoNameBytes*8 {
+		return false
+	}
+	for _, r := range expr {
+		if r < 0x20 || r == 0x7f || r == '\\' || r == 0xfffd {
+			return false
+		}
+	}
+	// Split at the operators of the revision syntax. ".." and "..." first, so a dot is only ever part of a name.
+	e := strings.ReplaceAll(expr, "...", " ")
+	e = strings.ReplaceAll(e, "..", " ")
+	for name := range strings.FieldsFuncSeq(e, ascRPCIsOperator) {
+		if !ascRPCScreenName(name, doer) {
+			return false
+		}
+	}
+	return true
+}
+
+// ascRPCIsOperator is a character that ends a name in a revision expression: the space and the operators ^ ~ : @ ! { }
+// ( ) and the comma. Other white space and control characters were refused before.
+func ascRPCIsOperator(r rune) bool {
+	return strings.ContainsRune(" ^~:@!{}(),", r)
+}
+
+func ascRPCScreenName(name string, doer int64) bool {
+	if name == "" || name == "HEAD" || name == "-" {
+		return true
+	}
+	if ascRPCIsDigits(name) { // the count of ~N and ^N
+		return true
+	}
+	if ascRPCIsHex(name) {
+		return true
+	}
+	// Separators: no empty, dot or dot-dot segment, no leading or trailing slash.
+	if strings.HasPrefix(name, "/") || strings.HasSuffix(name, "/") {
+		return false
+	}
+	for seg := range strings.SplitSeq(name, "/") {
+		if seg == "" || seg == "." || seg == ".." {
+			return false
+		}
+	}
+	lower := strings.ToLower(name)
+	if strings.Contains(lower, "refs/users") || strings.Contains(lower, "refs/pull") || strings.Contains(lower, "refs/snapshots") {
+		// Only the exact fully qualified spellings below name such a ref.
+		return doer > 0 && strings.HasPrefix(name, "refs/users/"+strconv.FormatInt(doer, 10)+"/") && !strings.Contains(name[len("refs/"):], "refs/")
+	}
+	switch {
+	case strings.HasPrefix(name, "refs/heads/"), strings.HasPrefix(name, "refs/tags/"):
+		return true
+	case strings.HasPrefix(lower, "refs/"), lower == "refs", lower == "users", strings.HasPrefix(lower, "users/"):
+		return false // every other namespace, and the short alias of the user refs
+	}
+	return true
+}
+
+func ascRPCPrintable(b []byte) bool {
+	for _, c := range b {
+		if c < 0x20 || c > 0x7e {
+			return false
+		}
+	}
+	return true
+}
+
+func ascRPCIsDigits(s string) bool {
+	return s != "" && strings.Trim(s, "0123456789") == ""
+}
+
+func ascRPCIsHex(s string) bool {
+	return len(s) >= 4 && len(s) <= 64 && strings.Trim(s, "0123456789abcdefABCDEF") == ""
 }
 
 // ascRPCPrepare validates the request message, checks read access to every repository it names and
-// returns the message to send to asc, with canonical repository names.
-func ascRPCPrepare(ctx *context.Context, name string, allowEmpty bool, raw []byte) ([]byte, error) {
+// returns the message to send to asc, with canonical repository names, and the one repository (canonical name) it is
+// about; the subject is empty for a request that names none.
+func ascRPCPrepare(ctx *context.Context, name string, allowEmpty bool, raw []byte) (out []byte, subject string, err error) {
 	md, ok := ascRPCMethod(name)
 	if !ok {
-		return nil, &ascRPCStatusError{codes.Unimplemented, "unknown method"}
+		return nil, "", &ascRPCStatusError{codes.Unimplemented, "unknown method"}
 	}
 	msg := dynamicpb.NewMessage(md.Input())
 	if err := (proto.UnmarshalOptions{RecursionLimit: ascRPCMaxDepth}).Unmarshal(raw, msg); err != nil {
-		return nil, ascRPCInvalid("malformed request")
+		return nil, "", ascRPCInvalid("malformed request")
+	}
+	var doer int64
+	if ctx.Doer != nil && ctx.IsSigned {
+		doer = ctx.Doer.ID
 	}
 	var refs []protoreflect.Message
-	if err := ascRPCCollectRefs(msg, 0, &refs); err != nil {
-		return nil, err
+	if err := ascRPCCollectRefs(msg, 0, &refs, doer); err != nil {
+		return nil, "", err
 	}
 	if len(refs) == 0 {
 		if !allowEmpty {
-			return nil, ascRPCInvalid("a repository is required")
+			return nil, "", ascRPCInvalid("a repository is required")
 		}
-		return raw, nil
+		return raw, "", nil
 	}
 
 	canon := make(map[string]string, len(refs))
 	for _, ref := range refs {
 		nameFD := ref.Descriptor().Fields().ByName("name")
 		if nameFD == nil || nameFD.Kind() != protoreflect.StringKind {
-			return nil, &ascRPCStatusError{codes.Internal, "internal error"}
+			return nil, "", &ascRPCStatusError{codes.Internal, "internal error"}
 		}
 		given := ref.Get(nameFD).String()
 		c, seen := canon[given]
 		if !seen {
 			var err error
 			if c, err = ascRPCCanonicalName(ctx, given, ascRPCUnitOf(name)); err != nil {
-				return nil, err
+				return nil, "", err
 			}
 			canon[given] = c
 		}
+		// The claim of a call is made for one repository, and so is every RPC the proxy serves.
+		if subject != "" && subject != c {
+			return nil, "", ascRPCInvalid("one repository per request")
+		}
+		subject = c
 		ref.Set(nameFD, protoreflect.ValueOfString(c))
 	}
-	out, err := (proto.MarshalOptions{Deterministic: true}).Marshal(msg)
+	out, err = (proto.MarshalOptions{Deterministic: true}).Marshal(msg)
 	if err != nil || len(out) > ascRPCMaxRequestBytes {
-		return nil, ascRPCInvalid("malformed request")
+		return nil, "", ascRPCInvalid("malformed request")
 	}
-	return out, nil
+	return out, subject, nil
 }
 
-// ascRPCCollectRefs gathers every RepoRef message under m. It refuses a message that holds a field
-// this build does not know: such a field could be one that asc reads as a repository.
-func ascRPCCollectRefs(m protoreflect.Message, depth int, refs *[]protoreflect.Message) error {
+// ascRPCCollectRefs gathers every RepoRef message under m and screens every revision, ref and id it holds for the
+// person doer (0 for a visitor). It refuses a message that holds a field this build does not know: such a field could
+// be one that asc reads as a repository.
+func ascRPCCollectRefs(m protoreflect.Message, depth int, refs *[]protoreflect.Message, doer int64) error {
 	if depth > ascRPCMaxDepth {
 		return ascRPCInvalid("request is nested too deeply")
 	}
 	if len(m.GetUnknown()) > 0 {
 		return ascRPCInvalid("unknown field in request")
 	}
-	if m.Descriptor().FullName() == ascRPCRepoRefName {
+	isRepoRef := m.Descriptor().FullName() == ascRPCRepoRefName
+	if isRepoRef {
 		if len(*refs) >= ascRPCMaxRepoRefs {
 			return ascRPCInvalid("too many repositories in request")
 		}
@@ -388,41 +520,69 @@ func ascRPCCollectRefs(m protoreflect.Message, depth int, refs *[]protoreflect.M
 	}
 	var err error
 	m.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+		if isRepoRef && fd.Name() == "name" {
+			return true // rewritten to the canonical name by the caller
+		}
 		switch {
-		case fd.Kind() == protoreflect.StringKind && !fd.IsMap():
-			if fd.IsList() {
-				l := v.List()
-				for i := range l.Len() {
-					if ascRPCNamesUserRef(l.Get(i).String()) {
-						err = ascRPCInvalid("refs of other users are not readable here")
-						break
-					}
-				}
-			} else if ascRPCNamesUserRef(v.String()) {
-				err = ascRPCInvalid("refs of other users are not readable here")
-			}
 		case fd.IsMap():
-			if k := fd.MapValue().Kind(); k == protoreflect.MessageKind || k == protoreflect.GroupKind {
-				v.Map().Range(func(_ protoreflect.MapKey, mv protoreflect.Value) bool {
-					err = ascRPCCollectRefs(mv.Message(), depth+1, refs)
-					return err == nil
-				})
-			}
+			mv := fd.MapValue()
+			v.Map().Range(func(k protoreflect.MapKey, val protoreflect.Value) bool {
+				// A map is screened by key and value alike, under the name of the map.
+				if err = ascRPCScreenValue(fd.Name(), fd.MapKey(), k.Value(), doer); err != nil {
+					return false
+				}
+				err = ascRPCScreenOrWalk(fd.Name(), mv, val, depth, refs, doer)
+				return err == nil
+			})
 		case fd.IsList():
-			if k := fd.Kind(); k == protoreflect.MessageKind || k == protoreflect.GroupKind {
-				l := v.List()
-				for i := range l.Len() {
-					if err = ascRPCCollectRefs(l.Get(i).Message(), depth+1, refs); err != nil {
-						break
-					}
+			l := v.List()
+			for i := range l.Len() {
+				if err = ascRPCScreenOrWalk(fd.Name(), fd, l.Get(i), depth, refs, doer); err != nil {
+					break
 				}
 			}
-		case fd.Kind() == protoreflect.MessageKind || fd.Kind() == protoreflect.GroupKind:
-			err = ascRPCCollectRefs(v.Message(), depth+1, refs)
+		default:
+			err = ascRPCScreenOrWalk(fd.Name(), fd, v, depth, refs, doer)
 		}
 		return err == nil
 	})
 	return err
+}
+
+// ascRPCScreenOrWalk descends into a message value and screens a string or bytes value.
+func ascRPCScreenOrWalk(name protoreflect.Name, fd protoreflect.FieldDescriptor, v protoreflect.Value, depth int, refs *[]protoreflect.Message, doer int64) error {
+	if k := fd.Kind(); k == protoreflect.MessageKind || k == protoreflect.GroupKind {
+		return ascRPCCollectRefs(v.Message(), depth+1, refs, doer)
+	}
+	return ascRPCScreenValue(name, fd, v, doer)
+}
+
+// ascRPCScreenValue applies the rules of the draft refs to one scalar of a request.
+func ascRPCScreenValue(name protoreflect.Name, fd protoreflect.FieldDescriptor, v protoreflect.Value, doer int64) error {
+	switch fd.Kind() {
+	case protoreflect.StringKind:
+		if !ascRPCNeutralFields[name] && !ascRPCScreen(v.String(), doer) {
+			return errAscRPCUserRef
+		}
+	case protoreflect.BytesKind:
+		b := v.Bytes()
+		switch {
+		case ascRPCIDFields[name]:
+			if len(b) != ascRPCTrunkIDLen && len(b) != ascRPCAscIDLen {
+				return ascRPCInvalid("malformed request")
+			}
+			// An id is never a name, but 20 or 32 readable bytes could be one: screen those as a name.
+			if ascRPCPrintable(b) && !ascRPCScreen(string(b), doer) {
+				return errAscRPCUserRef
+			}
+		case ascRPCNeutralFields[name]:
+		default:
+			if !ascRPCScreen(string(b), doer) {
+				return errAscRPCUserRef
+			}
+		}
+	}
+	return nil
 }
 
 // ascRPCCanonicalName resolves "owner/repo" to the repository the asc backend names with

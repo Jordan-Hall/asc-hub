@@ -75,6 +75,7 @@ func renderSettingsPage(t *testing.T, dir, name string, tpl base.TplName, data m
 func securityFixture(state string, rows []asctrust.FindingRow) *ascSecurityPage {
 	p := &ascSecurityPage{
 		AllowOp: "op-allow", Branch: "main", State: state,
+		LastScan: time.Now().Add(-4 * time.Minute), RefusedSpark: asctrust.Sparkline([]uint32{0, 1, 0, 0, 2, 1, 0, 3, 0, 1}, 80, 28), RefusedMonth: 8, NewToday: 1,
 		PolicyURL: "/user2/repo1/settings/asc/policy", SecurityURL: "/user2/repo1/settings/asc/security", AuditURL: "/user2/repo1/settings/asc/audit",
 		Ops: map[uint64]string{},
 		Data: &asctrust.SecretsPage{

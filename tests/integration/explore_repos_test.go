@@ -60,7 +60,13 @@ func TestExploreRepos(t *testing.T) {
 		resp := MakeRequest(t, req, http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body).Find("#repo-search-form")
 
-		assert.Equal(t, "Go", htmlDoc.Find("input[name='language']").AttrOr("value", "not found"))
+		// The filter bar keeps the language as a hidden field, or as the chosen option of the language menu when the
+		// page offers one.
+		language := htmlDoc.Find("input[name='language']").AttrOr("value", "")
+		if language == "" {
+			language = htmlDoc.Find("select[name='language'] option[selected]").AttrOr("value", "not found")
+		}
+		assert.Equal(t, "Go", language)
 		assert.Equal(t, "true", htmlDoc.Find("input[name='topic']").AttrOr("value", "not found"))
 	})
 }
