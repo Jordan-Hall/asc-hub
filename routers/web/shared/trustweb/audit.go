@@ -58,6 +58,8 @@ type AuditView struct {
 	Unsupported bool
 	Chain       *asctrust.ChainResult
 	Searched    bool
+	// PageNo is the number of the page (1 is the newest, or the oldest with the order reversed): the pager counts the pages it has shown.
+	PageNo int
 	// RetentionDays is how long events are kept, as asc says (0: not said, or kept for ever).
 	RetentionDays uint32
 }
@@ -104,7 +106,7 @@ func (v *AuditView) EventURL(seq uint64) string {
 
 func (lvl *AuditLevel) view(q asctrust.AuditQuery) *AuditView {
 	return &AuditView{
-		Base: lvl.Base, Label: lvl.Label, Query: q,
+		Base: lvl.Base, Label: lvl.Label, Query: q, PageNo: 1,
 		FirstURL:    lvl.link(q, "", "", nil),
 		ExportJSONL: lvl.link(q, "", "/export", map[string]string{"format": "jsonl"}),
 		ExportCSV:   lvl.link(q, "", "/export", map[string]string{"format": "csv"}),
@@ -117,6 +119,12 @@ func ServeAudit(ctx *app_context.Context, lvl *AuditLevel) {
 	ctx.Data["Title"] = ctx.Locale.TrString("asc_trust.audit.title")
 	q, filter, problems := asctrust.AuditQueryOf(ctx.FormString)
 	v := lvl.view(q)
+	v.PageNo = 1
+	if q.PageToken != "" {
+		if n := ctx.FormInt("n"); n > 1 && n < 100000 {
+			v.PageNo = n
+		}
+	}
 	ctx.Data[AuditData] = v
 
 	if !asctrust.HasFeature(ctx, asctrust.FeatureAudit) {
@@ -162,7 +170,7 @@ func ServeAudit(ctx *app_context.Context, lvl *AuditLevel) {
 	v.Actions = res.Actions
 	v.RetentionDays = res.RetentionDays
 	if res.Page.Next != "" {
-		v.NextURL = lvl.link(q, res.Page.Next, "", nil)
+		v.NextURL = lvl.link(q, res.Page.Next, "", map[string]string{"n": strconv.Itoa(v.PageNo + 1)})
 	}
 	ctx.HTML(http.StatusOK, lvl.Tpl)
 }
