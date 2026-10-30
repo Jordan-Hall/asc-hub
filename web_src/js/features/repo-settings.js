@@ -78,8 +78,69 @@ export function initVisibilityConfirm() {
 
 // The Topics field of General: the comma separated list is posted to the topics endpoint and the answer is said in
 // words next to the button; the page is not reloaded.
+// The topics as chips: the typed text becomes a chip at a comma or Enter, a chip is removed with its button, and the field
+// that is posted (name="topics") holds the comma separated list. At most `max` chips.
+export function enhanceTopicChips(form, max = 20) {
+  const input = form.querySelector('input[name=topics]');
+  if (!input || input.dataset.chips) return;
+  input.dataset.chips = '1';
+  const hidden = document.createElement('input');
+  hidden.type = 'hidden';
+  hidden.name = 'topics';
+  input.removeAttribute('name');
+  input.after(hidden);
+  const list = document.createElement('ul');
+  list.className = 'rp-chips';
+  list.setAttribute('aria-label', input.getAttribute('aria-label') || 'Topics');
+  input.before(list);
+  const topics = [];
+  const sync = () => {
+    hidden.value = topics.join(',');
+    list.textContent = '';
+    for (const t of topics) {
+      const li = document.createElement('li');
+      li.className = 'rp-chip';
+      li.append(document.createTextNode(t));
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'rp-chip-x';
+      rm.setAttribute('aria-label', `${form.getAttribute('data-topics-remove') || 'Remove'} ${t}`);
+      rm.textContent = '×';
+      rm.addEventListener('click', () => {
+        topics.splice(topics.indexOf(t), 1);
+        sync();
+        input.focus();
+      });
+      li.append(rm);
+      list.append(li);
+    }
+    input.disabled = topics.length >= max;
+  };
+  const add = (text) => {
+    for (const raw of text.split(',')) {
+      const t = raw.trim().toLowerCase();
+      if (t && !topics.includes(t) && topics.length < max) topics.push(t);
+    }
+    input.value = '';
+    sync();
+  };
+  add(input.value);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      add(input.value);
+    } else if (e.key === 'Backspace' && input.value === '' && topics.length > 0) {
+      topics.pop();
+      sync();
+    }
+  });
+  input.addEventListener('blur', () => add(input.value));
+  form.addEventListener('submit', () => add(input.value), true);
+}
+
 export function initRepoSettingsTopics() {
   for (const form of document.querySelectorAll('[data-topics-form]')) {
+    enhanceTopicChips(form);
     const status = form.querySelector('[data-topics-status]');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
