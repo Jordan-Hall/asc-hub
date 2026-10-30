@@ -4,6 +4,15 @@ Template Attributes:
 * AscBadges: *repo.AscBadges (nil: nothing is shown)
 Every text below comes from the checked answer of asc and is escaped by the Go template. No link comes from asc.
 */}}
+{{with .AscRunPull}}
+<div class="rv rv-badges" data-testid="asc-run-pull">
+	<div class="rv-banner" role="status">
+		<div>
+			{{if .URL}}<a href="{{.URL}}"><b>{{ctx.Locale.Tr "asc_review.pull_opened_for_run" .RunID .Agent}}</b></a>{{else}}<b>{{ctx.Locale.Tr "asc_review.pull_opened_for_run" .RunID .Agent}}</b>{{end}}{{if .StartedBy}} &middot; {{ctx.Locale.Tr "asc_review.pull_opened_for_run_by" .StartedBy}}{{end}}
+		</div>
+	</div>
+</div>
+{{end}}
 {{with .AscBadges}}
 <div class="rv rv-badges" data-testid="asc-badges">
 	{{with .Merge}}

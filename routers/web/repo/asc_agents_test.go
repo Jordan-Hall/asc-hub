@@ -132,6 +132,7 @@ func TestAscAgentsGate(t *testing.T) {
 		{"create", "POST", testRunsPath + "/new", AscAgentsCreate, nil},
 		{"cancel", "POST", testRunsPath + "/runs/1/cancel", AscAgentsCancel, id},
 		{"input", "POST", testRunsPath + "/runs/1/input", AscAgentsInput, id},
+		{"open for review", "POST", testRunsPath + "/runs/1/pulls", AscAgentsOpenPulls, id},
 	}
 	admins := []route{
 		{"tokens", "GET", testRunsPath + "/tokens", AscAgentsTokens, nil},

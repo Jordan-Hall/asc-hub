@@ -196,6 +196,13 @@ The page works without the script: the log shows what existed when it was drawn,
 								{{end}}
 							</ol>
 						{{end}}
+						{{if .AscAgentCanOpen}}
+							<form class="rv-card-b" method="post" action="{{.AscAgentsBase}}/runs/{{.AscAgentRun.ID}}/pulls" data-testid="asc-agent-open-review">
+								{{.CsrfTokenHtml}}
+								<button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "asc_review.run_open_review"}}</button>
+								<p class="rv-hint">{{ctx.Locale.Tr "asc_review.run_open_review_help" .AscAgentRun.Agent}}</p>
+							</form>
+						{{end}}
 						<p class="rv-card-f rv-hint">{{ctx.Locale.Tr "asc_review.run_result_help"}}</p>
 					</section>
 				</div>
