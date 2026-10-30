@@ -533,7 +533,11 @@ func assertAccessToken(t testing.TB, session *TestSession) string {
 	req := NewRequest(t, "GET", "/user/settings/applications")
 	resp := session.MakeRequest(t, req, http.StatusOK)
 	htmlDoc := NewHTMLParser(t, resp.Body)
-	token := htmlDoc.doc.Find(".flash-info p").Text()
+	// The new token is shown once in a copy card (applications.tmpl); an older page showed it in a flash message.
+	token := htmlDoc.doc.Find("#new-token-value").Text()
+	if token == "" {
+		token = htmlDoc.doc.Find(".flash-info p").Text()
+	}
 	assert.NotEmpty(t, token)
 	return token
 }
