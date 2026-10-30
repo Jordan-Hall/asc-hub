@@ -8,9 +8,9 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 147 |
+| done | 148 |
 | ui-only-missing | 35 |
-| needs-hub-backend | 15 |
+| needs-hub-backend | 14 |
 | needs-asc-backend | 0 |
 | needs-both | 17 |
 | total | 214 |
@@ -71,7 +71,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Review | Suggested change block in a comment, 'Apply as v5' (creates a version, undoable op, resets approvals), 'Ask coder-2 to apply', '/' suggestions | needs-both | asc: no suggestion field in review.proto and no amend RPC; hub: composer + apply handler in pull_review.go; Audit 2026-10-30 (part built): a suggestion fence in a hub comment is sent to asc as the suggestion of the thread and shown with Applied in vN; Apply as vN (PrepareSuggestion and MarkSuggestionApplied) is not built because the hub has no way to make a new asc version: restore only moves the pull head, asc makes versions on push | L |
 | Review | Keyboard review shortcuts j/k file, a approve, r request changes, c comment, v viewed, n next change; shortcut list; can be turned off | done | web_src/js/features/asc-keys.js: j/k go from file to file, v marks the file viewed (seen live); a, r and c open the review panel at Approve, Request changes or the comment field (Enter sends; a key never submits), n goes to the next change of the stack rail; the shortcut list (? key) names them on a diff; the switch in the preferences turns them off (tests in asc-keys.test.js; not yet seen on a live hub) | - |
 | Review | 'Your review' checklist (read intent, opened 2 of 3 files, N open comments) with Approve / Request changes / comment in a sticky card | done | templates/repo/pulls/asc_panel.tmpl 'Your review' card: read the intent (kept in localStorage), files opened, open comments (live, from the page), Approve, Request changes, Comment; the last two open the review box (tests: TestAscYourReviewCard, asc-review.test.js) | - |
-| Review | Activity timeline: version pushed, comment, approval carried, restacked (14 events, Show all) | needs-hub-backend | routers/web/repo/issue_view timeline + asc ListRefLog (proto/asc/v1/stacks.proto) merged in | M |
+| Review | Activity timeline: version pushed, comment, approval carried, restacked (14 events, Show all) | done | templates/repo/pulls/asc_activity.tmpl (+ asc_activity_item.tmpl) after the brief card; routers/web/repo/asc_activity.go merges the hub's comments and reviews with asc's versions, the carried approvals of Review.GetBrief and the restack, undo and revert rows of Stacks.ListRefLog for the change's branch (asc_undo_links.go ascRefOps); newest first, six open and the rest behind Show all (a details element), at most 100; tests: TestAscActivityMergesSourcesNewestFirst, TestAscActivityLocalReadsCommentsAndVerdicts, TestAscActivityTemplate | - |
 | Review | Checks on v4 summary card (unit, lint, integration running, security scan stale) with 'Open checks on v4' | done | templates/repo/pulls/asc_panel.tmpl: chips of the version being read (AscVersionChecks) with 'Open checks on vN'; a stale mark is not shown (asc does not say which result is stale) (test: TestAscPanelChecksCard) | - |
 | Review | Policy gate card: approvals 1 of 2, carried approval note, required checks, signed with run key, secret scan, stack order, rules link | done | templates/repo/asc_gate.tmpl; templates/repo/pulls/asc_brief.tmpl (data-testid asc-gate, asc-brief-gate; seen on a live pull request) | - |
 | Review | Approval carry-over: approval on an unchanged diff survives a new version and says so | done | templates/repo/pulls/asc_brief.tmpl and asc_versions.tmpl (verdicts, carried-over note, Approved by on the version; seen live) | - |
