@@ -157,7 +157,7 @@ The page works without the script: the log shows what existed when it was drawn,
 						<p class="rv-feed-status" data-feed-status role="status">{{if .AscAgentFeedDone}}{{ctx.Locale.Tr "asc_review.run_feed_done"}}{{else if .AscAgentRun.State.Active}}{{ctx.Locale.Tr "asc_review.run_feed_following"}}{{else}}{{ctx.Locale.Tr "asc_review.run_feed_over"}}{{end}}</p>
 						{{if .AscAgentEventsHidden}}<p class="rv-feed-status">{{ctx.Locale.Tr "asc_review.run_events_hidden" .AscAgentEventsHidden}}</p>{{end}}
 						{{if not .AscAgentRunSee}}<p class="rv-feed-status" data-testid="asc-log-hidden">{{ctx.Locale.Tr "asc_review.agents_log_hidden"}}</p>{{end}}
-						<ol class="asc-log rv-log" data-log aria-live="off" data-testid="asc-agent-log">
+						<ol class="asc-log rv-log" data-log tabindex="0" aria-live="off" data-testid="asc-agent-log">
 							{{template "repo/asc_agents_events" .AscAgentEvents}}
 						</ol>
 						<p class="rv-feed-status{{if or .AscAgentEvents (not .AscAgentRunSee)}} tw-hidden{{end}}" data-log-empty>{{ctx.Locale.Tr "asc_review.run_log_empty"}}</p>
