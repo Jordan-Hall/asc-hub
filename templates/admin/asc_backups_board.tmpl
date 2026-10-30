@@ -31,7 +31,7 @@ Template data: AscBackups (nil without asc), CsrfTokenHtml
 			{{$.CsrfTokenHtml}}
 			<input type="hidden" name="op" value="{{$.AscBackups.RunOp}}">
 			<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_shell.bk_run_title"}}</h2></div>
-			<div class="ds-card-b ds-row ds-wrap">
+			<div class="ds-card-b ds-row ds-row-wrap">
 				<div class="ds-field">
 					<label class="ds-label" for="bk-run-target">{{ctx.Locale.Tr "asc_shell.bk_target"}}</label>
 					<select id="bk-run-target" class="ds-select" name="target">
@@ -125,7 +125,7 @@ Template data: AscBackups (nil without asc), CsrfTokenHtml
 							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.bk_col_size"}}">{{.SizeText}}</td>
 							<td data-label="{{ctx.Locale.Tr "asc_shell.bk_col_check"}}"><span class="ds-chip {{if eq .Verify "verified"}}ds-chip-ok{{else if eq .Verify "failed"}}ds-chip-err{{end}}">{{if eq .Verify "verified"}}{{ctx.Locale.Tr "asc_shell.bk_verified"}}{{else if eq .Verify "failed"}}{{ctx.Locale.Tr "asc_shell.bk_verify_failed"}}{{else if eq .Verify "running"}}{{ctx.Locale.Tr "asc_shell.bk_verifying"}}{{else}}{{ctx.Locale.Tr "asc_shell.bk_not_verified"}}{{end}}</span></td>
 							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_admin.col_actions"}}">
-								<div class="ds-row ds-wrap">
+								<div class="ds-row ds-row-wrap">
 								{{if .CanVerify}}
 								<form method="post" action="{{$.AscBackups.Base}}/{{.ID}}/verify">
 									{{$.CsrfTokenHtml}}

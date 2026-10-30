@@ -165,7 +165,7 @@ func shareAction(ctx *context.Context, lvl *Level, run func(callCtx gocontext.Co
 		ctx.Redirect(back)
 		return
 	}
-	ctx.Flash.Success(ctx.Locale.TrString(done))
+	ctx.Flash.Success(done)
 	ctx.Redirect(back)
 }
 
@@ -174,14 +174,14 @@ func AIShare(ctx *context.Context, lvl *Level) {
 	shareAction(ctx, lvl, func(callCtx gocontext.Context, conn grpc.ClientConnInterface, id string) (string, error) {
 		f := form{ctx}
 		_, err := asctrust.ShareKey(callCtx, conn, id, f.str("kind", 8), f.str("name", 200), f.on("allow_use"), f.on("see_spend"), f.op())
-		return "asc_shell.ks_shared", err
+		return ctx.Locale.TrString("asc_shell.ks_shared"), err
 	})
 }
 
 // AIShareRevoke is POST .../asc/ai/keys/{id}/shares/{share}/revoke.
 func AIShareRevoke(ctx *context.Context, lvl *Level) {
 	shareAction(ctx, lvl, func(callCtx gocontext.Context, conn grpc.ClientConnInterface, id string) (string, error) {
-		return "asc_shell.ks_revoked", asctrust.RevokeShare(callCtx, conn, id, ctx.Params(":share"), form{ctx}.op())
+		return ctx.Locale.TrString("asc_shell.ks_revoked"), asctrust.RevokeShare(callCtx, conn, id, ctx.Params(":share"), form{ctx}.op())
 	})
 }
 
@@ -190,6 +190,6 @@ func AICaps(ctx *context.Context, lvl *Level) {
 	shareAction(ctx, lvl, func(callCtx gocontext.Context, conn grpc.ClientConnInterface, id string) (string, error) {
 		f := form{ctx}
 		_, err := asctrust.SetKeyCaps(callCtx, conn, id, f.str("warn_percent", 8), f.on("stop_at_cap"), f.op())
-		return "asc_shell.ks_caps_saved", err
+		return ctx.Locale.TrString("asc_shell.ks_caps_saved"), err
 	})
 }

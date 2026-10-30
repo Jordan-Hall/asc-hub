@@ -32,7 +32,7 @@ Template data: AscUsage (usageweb.View), CsrfTokenHtml
 		{{end}}
 
 		{{with .Usage}}
-			<div class="ds-row ds-wrap">
+			<div class="ds-row ds-row-wrap">
 				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.usage_period"}}">
 					{{range $.AscUsage.Periods}}<a href="{{.URL}}"{{if .Active}} aria-current="page"{{end}}>{{.Name}}</a>{{end}}
 				</div>
