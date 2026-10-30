@@ -109,6 +109,25 @@ func Members(ctx *context.Context) {
 	}
 	ctx.Data["PeopleShown"] = len(members)
 
+	teams, err := organization.FindOrgTeams(ctx, org.ID)
+	if err != nil {
+		ctx.ServerError("GetTeams", err)
+		return
+	}
+	// the role of each person, read from their teams, and the teams for the second line of the row. Teams and roles are for the
+	// members of the organization: a visitor who is not one sees the people the organization made public and nothing of its
+	// teams (the names of private teams and who administers them are not public). The owners come first, as on the board.
+	if !opts.PublicOnly() {
+		roles, teamNames, err := rolesAndTeams(ctx, org, teams)
+		if err != nil {
+			ctx.ServerError("rolesAndTeams", err)
+			return
+		}
+		sortByRole(members, roles)
+		ctx.Data["MembersRole"] = roles
+		ctx.Data["MembersTeams"] = teamNames
+	}
+
 	pager := context.NewPagination(len(members), setting.UI.MembersPagingNum, page, 5)
 	pager.AddParam(ctx, "q", "PeopleQuery")
 	pager.AddParam(ctx, "filter", "PeopleFilter")
@@ -117,28 +136,8 @@ func Members(ctx *context.Context) {
 	} else {
 		members = nil
 	}
-	teams, err := organization.FindOrgTeams(ctx, org.ID)
-	if err != nil {
-		ctx.ServerError("GetTeams", err)
-		return
-	}
-	// the role of each person on this page, read from their teams, and the teams for the second line of the row. Teams and roles
-	// are for the members of the organization: a visitor who is not one sees the people the organization made public and nothing
-	// of its teams (the names of private teams and who administers them are not public).
-	if !opts.PublicOnly() {
-		roles, teamNames := map[int64]string{}, map[int64]string{}
-		for _, m := range members {
-			mt, err := organization.GetUserOrgTeams(ctx, org.ID, m.ID)
-			if err != nil {
-				ctx.ServerError("GetUserOrgTeams", err)
-				return
-			}
-			roles[m.ID], teamNames[m.ID] = roleOfTeams(mt), teamNamesOf(mt)
-		}
-		ctx.Data["MembersRole"] = roles
-		ctx.Data["MembersTeams"] = teamNames
-	}
 	if ctx.Org.IsOwner {
+		ctx.Data["RoleUndo"] = roleUndoOf(ctx, org, ctx.FormString("undo"))
 		ctx.Data["RoleChoices"] = []string{roleOwner, roleMaintainer, roleMember}
 	}
 	// what asc knows: the changes each person landed in the last year, and the agents of the organisation

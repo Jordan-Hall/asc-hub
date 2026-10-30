@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -506,7 +507,8 @@ func validRole(role string) bool {
 	return role == roleOwner || role == roleMaintainer || role == roleMember
 }
 
-// changeRole serves the role action: an owner changes the role of another member.
+// changeRole serves the role action: an owner changes the role of another member. The page it sends the owner back to says
+// what changed and offers Undo (a role change back, made with the same action); an Undo itself offers nothing.
 func changeRole(ctx *context.Context, org *organization.Organization, uid int64, role string) {
 	if !ctx.Org.IsOwner || !validRole(role) {
 		ctx.Error(http.StatusNotFound)
@@ -517,6 +519,12 @@ func changeRole(ctx *context.Context, org *organization.Organization, uid int64,
 		ctx.Error(http.StatusNotFound)
 		return
 	}
+	teams, err := organization.GetUserOrgTeams(ctx, org.ID, uid)
+	if err != nil {
+		ctx.ServerError("GetUserOrgTeams", err)
+		return
+	}
+	was := roleOfTeams(teams)
 	if err := setRole(ctx, org, uid, role); err != nil {
 		switch {
 		case organization.IsErrLastOrgOwner(err):
@@ -530,7 +538,37 @@ func changeRole(ctx *context.Context, org *organization.Organization, uid int64,
 		ctx.JSONRedirect(back)
 		return
 	}
+	if was != role && ctx.FormString("undo") == "" {
+		back += fmt.Sprintf("?undo=%d-%s-%s", uid, was, role)
+	}
 	ctx.JSONRedirect(back)
+}
+
+// roleUndo is the line the People page shows after a role changed.
+type roleUndo struct {
+	User *user_model.User
+	Now  string
+	Was  string
+}
+
+// roleUndoOf reads the undo of the address (uid-was-now) and returns it when it is about a member and two roles that exist.
+func roleUndoOf(ctx *context.Context, org *organization.Organization, raw string) *roleUndo {
+	parts := strings.Split(raw, "-")
+	if len(parts) != 3 || !validRole(parts[1]) || !validRole(parts[2]) || parts[1] == parts[2] {
+		return nil
+	}
+	uid, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return nil
+	}
+	if member, err := org.IsOrgMember(ctx, uid); err != nil || !member {
+		return nil
+	}
+	u, err := user_model.GetUserByID(ctx, uid)
+	if err != nil {
+		return nil
+	}
+	return &roleUndo{User: u, Was: parts[1], Now: parts[2]}
 }
 
 // inviteSeveral serves the add action of the invite dialog: invitees (names and addresses), a role and, optionally, more teams.
@@ -580,4 +618,40 @@ func inviteSeveral(ctx *context.Context) {
 		back += "?filter=pending"
 	}
 	ctx.Redirect(back)
+}
+
+// rolesAndTeams reads the role and the teams of everybody in the organization with one query: the people of every team.
+func rolesAndTeams(ctx gocontext.Context, org *organization.Organization, teams []*organization.Team) (roles, names map[int64]string, err error) {
+	var rows []*organization.TeamUser
+	if err = db.GetEngine(ctx).Where("org_id = ?", org.ID).Find(&rows); err != nil {
+		return nil, nil, err
+	}
+	byID := make(map[int64]*organization.Team, len(teams))
+	for _, t := range teams {
+		byID[t.ID] = t
+	}
+	of := map[int64][]*organization.Team{}
+	for _, r := range rows {
+		if t, ok := byID[r.TeamID]; ok {
+			of[r.UID] = append(of[r.UID], t)
+		}
+	}
+	roles, names = make(map[int64]string, len(of)), make(map[int64]string, len(of))
+	for uid, ts := range of {
+		slices.SortFunc(ts, func(a, b *organization.Team) int {
+			return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
+		})
+		roles[uid], names[uid] = roleOfTeams(ts), teamNamesOf(ts)
+	}
+	return roles, names, nil
+}
+
+// sortByRole puts owners first, then maintainers, then members, each group by name, as the board lists them.
+func sortByRole(members user_model.UserList, roles map[int64]string) {
+	slices.SortStableFunc(members, func(a, b *user_model.User) int {
+		if d := rank(roles[b.ID]) - rank(roles[a.ID]); d != 0 {
+			return d
+		}
+		return strings.Compare(strings.ToLower(a.DisplayName()), strings.ToLower(b.DisplayName()))
+	})
 }
