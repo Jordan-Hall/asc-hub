@@ -22,6 +22,9 @@ const FeatureAuditAppend = "audit.append.v1"
 const (
 	AuditHostSettingUpdated     = "host.setting.updated"
 	AuditHostMaintenanceUpdated = "host.maintenance.updated"
+	AuditHostUserSuspended      = "host.user.suspended"
+	AuditHostUserUnsuspended    = "host.user.unsuspended"
+	AuditHostUser2FAReset       = "host.user.2fa_reset"
 )
 
 const auditAppendTimeout = 5 * time.Second

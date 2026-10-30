@@ -8,9 +8,11 @@ import (
 	"net/url"
 	"testing"
 
+	"forgejo.org/models/unittest"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
 	"forgejo.org/services/asctrust"
+	"forgejo.org/services/context"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -102,4 +104,46 @@ func TestMaintenanceChangesAreAppendedToTheAuditLogOfAsc(t *testing.T) {
 	assert.Equal(t, "true", got.GetDetails()["enabled"])
 	assert.Equal(t, "Back at noon", got.GetDetails()["message"])
 	assert.Equal(t, "2026-11-01T12:00:00Z", got.GetDetails()["until"])
+}
+
+func postUserAction(t *testing.T, handler func(*context.Context), userID, what, reason string) int {
+	t.Helper()
+	ctx, rec := contexttest.MockContext(t, "POST /admin/users/"+userID+"/"+what)
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadUser(t, ctx, 1)
+	ctx.IsSigned = true
+	ctx.SetParams(":userid", userID)
+	ctx.SetParams(":what", what)
+	ctx.Req.RemoteAddr = "203.0.113.9:4455"
+	form := url.Values{"reason": {reason}}
+	ctx.Req.Form, ctx.Req.PostForm = form, form
+	handler(ctx)
+	return rec.Code
+}
+
+func TestSuspendAndResetAreAppendedToTheAuditLogOfAscWithTheReason(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	f := startInstanceAgents(t, asctrust.FeatureAuditAppend)
+
+	require.Equal(t, http.StatusSeeOther, postUserAction(t, UserSuspend, "2", "suspend", "Spam"))
+	require.Equal(t, http.StatusSeeOther, postUserAction(t, UserSuspend, "2", "unsuspend", "Cleared"))
+	require.Equal(t, http.StatusSeeOther, postUserAction(t, UserReset2FA, "24", "reset_2fa", "Lost the phone"))
+	require.Len(t, f.appends, 3)
+	for i, want := range []struct{ action, target, reason string }{
+		{asctrust.AuditHostUserSuspended, "user2", "Spam"},
+		{asctrust.AuditHostUserUnsuspended, "user2", "Cleared"},
+		{asctrust.AuditHostUser2FAReset, "user24", "Lost the phone"},
+	} {
+		got := f.appends[i]
+		assert.Equal(t, want.action, got.GetAction())
+		assert.Equal(t, "user1", got.GetActor(), "the administrator, as the hub verified")
+		assert.Equal(t, want.target, got.GetTarget())
+		assert.Equal(t, want.reason, got.GetDetails()["reason"])
+		assert.Equal(t, "203.0.113.9", got.GetRemoteAddr())
+	}
+
+	// Refused (no reason, or yourself): nothing is appended.
+	postUserAction(t, UserSuspend, "2", "suspend", " ")
+	postUserAction(t, UserSuspend, "1", "suspend", "me")
+	assert.Len(t, f.appends, 3)
 }
