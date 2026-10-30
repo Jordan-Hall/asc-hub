@@ -78,6 +78,27 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 					{{end}}
 				</section>
 
+				{{if .AscQueueStacks}}
+				<section class="rv-card" aria-labelledby="asc-queue-stacks-title" data-testid="asc-queue-stacks">
+					<div class="rv-card-h"><h2 id="asc-queue-stacks-title">{{ctx.Locale.Tr "repo.asc_queue.merge_stack_title"}}</h2><span class="rv-count rv-end">{{len .AscQueueStacks}}</span></div>
+					<p class="rv-card-b rv-muted">{{ctx.Locale.Tr "repo.asc_queue.merge_stack_lead"}}</p>
+					<ul class="rv-recent">
+						{{range .AscQueueStacks}}
+						<li class="rv-recent-row">
+							<div class="rv-queue-main">
+								<div class="rv-queue-title"><a href="{{.Top.Issue.Link}}">#{{.Top.Issue.Index}} {{.Top.Issue.Title}}</a></div>
+								<div class="rv-li-sub">{{ctx.Locale.TrN .Changes "repo.asc_queue.merge_stack_n_one" "repo.asc_queue.merge_stack_n_other" .Changes}}</div>
+							</div>
+							<div class="rv-queue-act">
+								{{if .Queued}}<span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "repo.asc_queue.merge_stack_queued"}}</span>{{else}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.QueueURL}}">{{ctx.Locale.Tr "repo.pulls.asc_op.queue"}}</a>{{end}}
+								<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.MergeURL}}">{{ctx.Locale.Tr "asc_review.queue_merge_now"}}</a>
+							</div>
+						</li>
+						{{end}}
+					</ul>
+				</section>
+				{{end}}
+
 				{{with .AscQuarantine}}
 				<section class="rv-card" aria-labelledby="asc-queue-quarantine-title">
 					<div class="rv-card-h"><h2 id="asc-queue-quarantine-title">{{ctx.Locale.Tr "asc_trust.queue.quarantine_title"}}</h2>{{if .ChecksURL}}<a class="rv-end" href="{{.ChecksURL}}?state=quarantined">{{ctx.Locale.Tr "asc_review.queue_manage_checks"}}</a>{{end}}</div>
