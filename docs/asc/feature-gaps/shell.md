@@ -12,12 +12,14 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 103 |
-| ui-only-missing | 27 |
+| done | 96 |
+| ui-only-missing | 35 |
 | needs-hub-backend | 39 |
 | needs-asc-backend | 2 |
-| needs-both | 24 |
+| needs-both | 23 |
 | total | 195 |
+
+Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
 Open rows by size: S 21, M 50, L 21.
 
@@ -39,7 +41,7 @@ Open rows by size: S 21, M 50, L 21.
 | Shell | Command palette opens from `/`, Ctrl K, header search, mobile search; Esc, arrows, Enter | done | `ds-shell.js`, `#ds-palette` | - |
 | Shell | Palette is a combobox: `role=combobox` input, listbox results, `aria-activedescendant` | done | Today `role=dialog` plus `role=search` form and an `.is-sel` class. Change markup in `head_navbar.tmpl` and `select()` in `ds-shell.js` | S |
 | Shell | Palette scope chips All, Changes, Code, People, Commands; Tab cycles the scope | done | `ds-palette-bar` has input and Cancel only. Chips in `head_navbar.tmpl`, Tab handling in `onPaletteKeydown` | S |
-| Shell | Palette results grouped Changes (title, repo and number), Code (path, symbol), People, fetched as you type | needs-asc-backend | Today only static destinations plus "search for ..." links (`filterPalette`). Hub: JSON route (for example `GET /-/asc/palette?q=&scope=`) in `routers/web/explore/asc_search.go` merging pull requests (`issues_model`), users (`user_model.SearchUsers`) and symbols (asc `CrossSearch.Search`, `LookupSymbol`; `services/ascsearch`), read-checked per repo. JS: debounce, abort, render, live count | L |
+| Shell | Palette results grouped Changes (title, repo and number), Code (path, symbol), People, fetched as you type | needs-asc-backend | Today only static destinations plus "search for ..." links (`filterPalette`). Hub: JSON route (for example `GET /-/asc/palette?q=&scope=`) in `routers/web/explore/asc_search.go` merging pull requests (`issues_model`), users (`user_model.SearchUsers`) and symbols (asc `CrossSearch.Search`, `LookupSymbol`; `services/ascsearch`), read-checked per repo. JS: debounce, abort, render, live count;; Audit 2026-10-30 (part built): Server results exist for Changes, People and repositories; the Code group (path, symbol from asc CrossSearch) was not found. | L |
 | Shell | Command verbs (undo, restack, merge) switch the list to actions; Commands group with Undo last operation (Cmd Z) and Ask an agent to change this... | needs-hub-backend | Static Commands group has New repository and New organization only. asc RPCs exist: `UndoRef`, `Restack`, `RequestMerge`, `CreateRun`. Hub needs a context (current repo, stack) and POST handlers (`routers/web/repo/asc_ops.go`, `asc_restack.go`, `asc_stack_actions.go`, `asc_agents.go`) callable from the palette with a confirm step | L |
 | Shell | Empty query shows Recent items and Shortcuts (Go to inbox: g i) | done | Recents in `localStorage` (visited repos and changes), static shortcuts; `ds-shell.js`, `head_navbar.tmpl` | M |
 | Shell | No-results text names the query and suggests a symbol, handle or title | done | `asc_shell.palette_empty` is a different sentence ("Press Enter to search this text") | S |
@@ -53,17 +55,17 @@ Open rows by size: S 21, M 50, L 21.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| Main | Hero: announcement pill, headline, lead, Download ASC / Create account / Sign in | done | `templates/home.tmpl` | - |
-| Main | Download ASC goes to `/download` and preselects the detected OS | done | Hero button is `href="#download"`, a section on the same page | S |
+| Main | Hero: announcement pill, headline, lead, Download ASC / Create account / Sign in | ui-only-missing | `templates/home.tmpl`;; Audit 2026-10-30 (was marked done, part missing): Pill copy differs: hub Built for teams where agents write a lot of the code, board ASC 1.4: agent runs and the merge queue are here. | - |
+| Main | Download ASC goes to `/download` and preselects the detected OS | done | Hero button is `href="#download"`, a section on the same page;; Audit 2026-10-30 (built): templates/home.tmpl:14,305 (href /download, detected OS in routers/web/asc_download.go) | S |
 | Main | Install method pills (Homebrew, Scoop, winget, curl, PowerShell, .deb .rpm) as a labelled group with `aria-pressed`; the command swaps; Copy raises a toast; "1 Install ASC / 2 Connect to this hub" cards | done | Hero has only the connect command. Data exists in `modules/ascdownload/offer.go` (`Command` list per OS). Add pills and swap script (`home.tmpl`, `asc-ui.js`, pattern of `initDownload`) | M |
 | Main | Product window in the hero (stack rail, change with intent, comment, whose turn) | done | No such markup in `home.tmpl`; static preview with a text equivalent | M |
-| Main | Works-with strip | done | `home.tmpl` `ds-land-strip` | - |
-| Main | Why ASC, stacks, review, code intelligence, policy cards | done | `home.tmpl` | - |
+| Main | Works-with strip | ui-only-missing | `home.tmpl` `ds-land-strip`;; Audit 2026-10-30 (was marked done, part missing): Heading differs: hub Works with the tools your team already uses, board Works with the editors and agents your team already uses. | - |
+| Main | Why ASC, stacks, review, code intelligence, policy cards | ui-only-missing | `home.tmpl`;; Audit 2026-10-30 (was marked done, part missing): The board's Why ASC block (Agents write faster than people can read, three problem cards) is not there; the hub has an older Why block with three benefits, and extra How it works, Compatibility and Public repositories sections that the board does not have. | - |
 | Main | Operation log and merge queue demo | done | `home.tmpl` `ls-log` | - |
 | Main | Agents band and run preview | done | `home.tmpl` `asc-agents-title` | - |
 | Main | Workflow cards (dependency upgrade, flaky triage, large migration) | done | `home.tmpl` `ls-wf` | - |
 | Main | Bring your own keys and storage (provider rows, S3 endpoint, bucket, region) | done | `home.tmpl` `ls-byo` | - |
-| Main | Final call to action and footer | done | `home.tmpl` `hub-cta` | - |
+| Main | Final call to action and footer | ui-only-missing | `home.tmpl` `hub-cta`;; Audit 2026-10-30 (was marked done, part missing): CTA copy differs (Import a repository in a minute... vs Install ASC in a minute, import a repository with its history...); footer groups Product, Developers, Company, Legal and the status line are not the board's. | - |
 | Mobile-Landing | Sticky bottom bar with Download ASC and Sign in; install pills scroll sideways; workflow cards snap | done | No sticky bar in `home.tmpl`; `asc-ds/touch.css` | S |
 
 ## Onboarding (sign in, sign up, recovery, device)
@@ -71,7 +73,7 @@ Open rows by size: S 21, M 50, L 21.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Onboarding | Split layout: form card plus navy brand panel with promise and quote | done | `templates/user/auth/shell_start.tmpl`, `shell_end.tmpl` | - |
-| Onboarding | Sign in form: username or email, Forgot password, password with Show toggle, Keep me signed in, CLI hint | done | `signin_inner.tmpl`, `ds-shell.js` `onRevealClick` | - |
+| Onboarding | Sign in form: username or email, Forgot password, password with Show toggle, Keep me signed in, CLI hint | ui-only-missing | `signin_inner.tmpl`, `ds-shell.js` `onRevealClick`;; Audit 2026-10-30 (was marked done, part missing): Form is there; the CLI hint teaches the up-front asc auth login --prompt with a pasted token, not on-demand per-repository sign-in or the device approval the board names. | - |
 | Onboarding | "Sign in with a passkey" (discoverable credentials) | needs-hub-backend | Only 2FA security keys exist (`webauthn.tmpl`); no passkey login route anywhere in `routers`. Add begin and finish routes in `routers/web/auth/webauthn.go` and the button in `signin_inner.tmpl` | M |
 | Onboarding | Single sign-on button under the primary action | done | `oauth_container.tmpl` renders configured sources | - |
 | Onboarding | Rate limit ("after 5 attempts we wait 5 minutes") | needs-hub-backend | No login throttle in `routers/web/auth/auth.go` or `modules/setting`. Counter per user and IP in cache, message with the wait | M |
@@ -80,10 +82,10 @@ Open rows by size: S 21, M 50, L 21.
 | Onboarding | Sign up: strength meter and three live rules (12 characters, letters and numbers, not found in breaches) | needs-hub-backend | No meter in `web_src`. Rules and meter in `user-auth.js`; breach rule is server side: `PASSWORD_CHECK_PWN` exists (`modules/setting/security.go`, default off, runs on submit only). Add `POST /user/password/check` (k-anonymity range query), default it on | M |
 | Onboarding | Sign up: "I agree to the Terms and the Privacy policy" | needs-hub-backend | Not in the form. Needs Terms and Privacy URLs, a required checkbox and a stored acceptance | M |
 | Onboarding | Sign up has no retyped password on the board; the hub form asks for one | done | Drop the retype field (Show replaces it); relax `forms.RegisterForm` | S |
-| Onboarding | Two-factor: six boxes act as one input and auto-advance; recovery code link; "Use a security key instead" | done | `twofa.tmpl` has one field and the scratch link. Six-box component in `user-auth.js` (one real input for screen readers); key link when keys exist | M |
+| Onboarding | Two-factor: six boxes act as one input and auto-advance; recovery code link; "Use a security key instead" | ui-only-missing | `twofa.tmpl` has one field and the scratch link. Six-box component in `user-auth.js` (one real input for screen readers); key link when keys exist;; Audit 2026-10-30 (was marked done, part missing): Six boxes and recovery link exist; the link Use a security key instead is not in twofa.tmpl. | M |
 | Onboarding | CLI device approval: code entry, confirm with device name, Authorise or Deny, expiry, wrong-code and rate-limit states; hub device-code store and `POST /login/device/code`, `POST /login/device/token` (RFC 8628) | done | `models/auth/asc_device_code.go`, `routers/web/auth/asc_device.go`, `templates/user/auth/asc_device.tmpl`; asc side is Phase 3 | - |
-| Onboarding | Security key waiting screen with spinner and "Try another way" | done | `webauthn.tmpl` | - |
-| Onboarding | Authorise the CLI (device): code, terminal and OS, Authorise and Deny | needs-both | Not present. The CLI signs in with a pasted token (`crates/asc/src/cli/auth.rs`: `--token-stdin`, `--prompt`), no device flow. Hub: device-code endpoints, template, token minting (`models/auth/access_token.go`). asc: `asc auth login` device grant with polling | L |
+| Onboarding | Security key waiting screen with spinner and "Try another way" | ui-only-missing | `webauthn.tmpl`;; Audit 2026-10-30 (was marked done, part missing): Marked done; Try another way is not in the template. | - |
+| Onboarding | Authorise the CLI (device): code, terminal and OS, Authorise and Deny | done | Not present. The CLI signs in with a pasted token (`crates/asc/src/cli/auth.rs`: `--token-stdin`, `--prompt`), no device flow. Hub: device-code endpoints, template, token minting (`models/auth/access_token.go`). asc: `asc auth login` device grant with polling;; Audit 2026-10-30 (built): Gap file says not present; the device page and RFC 8628 routes exist (the token it mints is full-scope and has no expiry, see section 2). | L |
 | Onboarding | Forgot password: sent page, lifetime, resend limit, no account disclosure | done | `forgot_passwd.tmpl` | - |
 | Onboarding | Reset password: new and confirm | done | `reset_passwd.tmpl` | - |
 | Onboarding | Registration closed (invite only) and awaiting approval | done | `signup_inner.tmpl` `DisableRegistration`; `RegisterManualConfirm` setting | - |
@@ -215,7 +217,7 @@ Open rows by size: S 21, M 50, L 21.
 | Errors | 404 actions: dashboard, search the hub | done | `404.tmpl` | - |
 | Errors | 413 card with limit, artifact storage link and Back | done | `413.tmpl` | - |
 | Errors | 503 maintenance: version being upgraded, reads continue through the CLI, window, expected back, status link | needs-asc-backend | `503.tmpl` is a generic card and nothing serves it for maintenance. Hub: maintenance setting with window text and a middleware returning 503 for writes (`routers/common/middleware.go`); asc: read-only flag on serve | L |
-| Errors | Offline page: "your edit is saved on this device", Retry now, served by a service worker | done | `/-/offline` page exists but no service worker is registered anywhere in `web_src` or `public`. Add `public/assets/sw.js`, registration in `index.js`, draft saving in editors | L |
+| Errors | Offline page: "your edit is saved on this device", Retry now, served by a service worker | ui-only-missing | `/-/offline` page exists but no service worker is registered anywhere in `web_src` or `public`. Add `public/assets/sw.js`, registration in `index.js`, draft saving in editors;; Audit 2026-10-30 (was marked done, part missing): Service worker and offline page exist; draft saving in editors and the copy your edit is saved on this device were not found. | L |
 
 ## Dashboard
 
