@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	access_model "forgejo.org/models/perm/access"
 	"forgejo.org/models/unit"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
@@ -500,6 +501,7 @@ func AscWorkflows(ctx *context.Context) {
 		}
 	}
 	ctx.Data["AscWorkflowSecretsUsed"] = used
+	ctx.Data["AscWorkflowSecretsManage"] = ascWorkflowSecretsManage(ctx)
 	rows = ascWorkflowFilter(rows, state, q)
 	ctx.Data["AscWorkflowCountAll"], ctx.Data["AscWorkflowCountOn"], ctx.Data["AscWorkflowCountOff"], ctx.Data["AscWorkflowCountInvalid"] = counts.All, counts.On, counts.Off, counts.Invalid
 	ctx.Data["AscWorkflowState"] = state
@@ -605,6 +607,7 @@ func ascWorkflowDefPage(ctx *context.Context, env *ascAgentsEnv, form *ascWorkfl
 			}
 		}
 	}
+	ctx.Data["AscWorkflowSecretsManage"] = ascWorkflowSecretsManage(ctx)
 	ascWorkflowSecretsCard(ctx, conn, env, &def)
 	ctx.Data["AscWorkflowDef"] = def
 	ctx.HTML(status, tplAscWorkflowsDef)
@@ -1182,6 +1185,15 @@ func AscWorkflowRunRerun(ctx *context.Context) {
 // ascWorkflowSecretsCard marks which of the secrets the workflow reads are set in the repository. Only an administrator of the
 // repository may list its secrets (asc checks again); for anyone else the card still names what the workflow reads and says nothing
 // about whether it is set. A value is never asked for.
+// ascWorkflowSecretsManage says whether the viewer may open the page of the repository's workflow secrets: only an administrator may.
+func ascWorkflowSecretsManage(ctx *context.Context) bool {
+	if ctx.Doer == nil {
+		return false
+	}
+	perm, err := access_model.GetUserRepoPermission(ctx, ctx.Repo.Repository, ctx.Doer)
+	return err == nil && (perm.IsAdmin() || ctx.Doer.IsAdmin)
+}
+
 func ascWorkflowSecretsCard(ctx *context.Context, conn grpc.ClientConnInterface, env *ascAgentsEnv, def *ascWorkflowDef) {
 	if ctx.Doer == nil || len(def.SecretsUsed) == 0 {
 		return

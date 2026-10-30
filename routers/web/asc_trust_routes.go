@@ -100,6 +100,9 @@ func registerAscTrustAdminRoutes(m *web.Route) {
 //	POST .../settings/asc/security/finding       set the state of a finding
 //	POST .../settings/asc/security/scan          scan the default branch now
 //	POST .../settings/asc/security/allowlist     propose a new allowlist
+//	GET  .../settings/asc/workflow-secrets       the secrets the workflows read: names, set and delete
+//	POST .../settings/asc/workflow-secrets       set one (the value goes to asc once)
+//	POST .../settings/asc/workflow-secrets/delete  delete one
 //	GET  .../settings/asc/audit                  the audit log of the repository
 //	GET  .../settings/asc/audit/export           its export
 //	POST .../settings/asc/audit/verify           the check of its hash chain
@@ -117,6 +120,11 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 			m.Post("/finding", context.RepoMustNotBeArchived(), repo_setting.AscSecurityFinding)
 			m.Post("/scan", context.RepoMustNotBeArchived(), repo_setting.AscSecurityScan)
 			m.Post("/allowlist", context.RepoMustNotBeArchived(), repo_setting.AscSecurityAllowlist)
+		})
+		m.Group("/workflow-secrets", func() {
+			m.Get("", repo_setting.AscWorkflowSecrets)
+			m.Post("", context.RepoMustNotBeArchived(), repo_setting.AscWorkflowSecretSet)
+			m.Post("/delete", context.RepoMustNotBeArchived(), repo_setting.AscWorkflowSecretDelete)
 		})
 		m.Group("/audit", func() {
 			m.Get("", repo.AscAudit)
