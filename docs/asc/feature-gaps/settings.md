@@ -18,12 +18,14 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 87 |
-| ui-only-missing | 23 |
+| done | 86 |
+| ui-only-missing | 24 |
 | needs-hub-backend | 35 |
 | needs-asc-backend | 2 |
 | needs-both | 26 |
 | total | 173 |
+
+Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
 Open rows by size: S 23, M 52, L 11.
 
@@ -81,7 +83,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsNotifications | Watching table with level and last notified, Unwatch with undo | done | exists as /notifications/subscriptions (Forgejo); move into the settings page, add level and last-notified columns | M |
 | UserSettingsPrivacy | Page itself; Show activity and Hide email switches live on Profile instead | done | navbar.tmpl, new privacy.tmpl, move keep_activity_private and keep_email_private out of profile.tmpl | S |
 | UserSettingsPrivacy | Show when I am online (green presence dot) | done | user column + presence from session activity; avatar template | M |
-| UserSettingsPrivacy | Allow agents to read my profile | needs-both | hub user column; asc must honour it when agents read profile data | S |
+| UserSettingsPrivacy | Allow agents to read my profile | needs-both | hub user column; asc must honour it when agents read profile data;; Audit 2026-10-30 (part built): Switch exists; asc honouring it when an agent reads the profile was not found. | S |
 | UserSettingsPrivacy | Blocked people list, block by username, unblock | done | templates/user/settings/blocked_users.tmpl, routers/web/user/setting/blocked_users.go | - |
 | UserSettingsPrivacy | Block confirm dialog, 10 s undo on unblock; blocking also drops pending review requests (only follows are removed today) | needs-hub-backend | services/user/block.go, blocked_users.tmpl, toast component | S |
 | UserSettingsSecurity | Change password | done | templates/user/settings/account.tmpl (password lives on Account, not Security) | - |
@@ -95,7 +97,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsTokens | ASC scope set (Repositories, Changesets and stacks, Agent runs, Organizations, Profile) as None/Read/Write segmented group; hub shows Forgejo categories in selects | needs-both | hub: models/auth/access_token_scope.go + access_token_edit.tmpl; asc: crates/asc-serve/src/authn.rs must accept and enforce them | L |
 | UserSettingsTokens | Token created: copy-once card with Copy and "shown once" text (today a flash message) | done | routers/web/user/setting/access_token.go lines 313 and 341, applications.tmpl | S |
 | UserSettingsTokens | Workload identity (issuer, subject, last used, remove, add) | done | templates/user/settings/authorized_integrations.tmpl | - |
-| UserSettingsTokens | "Prefer no tokens" card with asc auth login commands | done | applications.tmpl static card | S |
+| UserSettingsTokens | "Prefer no tokens" card with asc auth login commands | ui-only-missing | applications.tmpl static card;; Audit 2026-10-30 (was marked done, part missing): Card exists; copy differs from the board (no Prefer no tokens heading, no asc auth token --scope line). | S |
 | UserSettingsKeys | SSH keys (fingerprint, added, last used, delete) and GPG keys | done | templates/user/settings/keys_ssh.tmpl, keys_gpg.tmpl | - |
 | UserSettingsKeys | ASC signing keys list, add, revoke with state chips | done | templates/user/settings/asc_keys.tmpl, routers/web/user/setting/asc_keys.go | - |
 | UserSettingsKeys | Rotate action that keeps the old key verifying past signatures | done | services/asctrust/rotate.go RotateKey (add, then revoke with its own op id), routers/web/user/setting/asc_keys.go AscKeysRotate, asc_keys.tmpl details form | - |
