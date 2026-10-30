@@ -140,3 +140,20 @@
     transition: none;
   }
 }
+
+.rp-searchpage .asc-line .n {
+  display: inline-block;
+  min-width: 24px;
+  min-height: 24px;
+  text-align: right;
+}
+
+.asc-first-examples {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 16px 20px;
+  list-style: none;
+}

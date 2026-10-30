@@ -65,6 +65,17 @@
 			</details>
 		</form>
 
+		{{if and (not .AscSearchDone) (not .AscSearchError)}}
+		<section class="ds-card asc-first-visit" data-testid="asc-search-first-visit" aria-labelledby="asc-first-h">
+			{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_rp.s_first_title") "Body" (ctx.Locale.Tr "asc_rp.s_first_body"))}}
+			<ul class="asc-first-examples" aria-label="{{ctx.Locale.Tr "asc_rp.s_first_examples"}}">
+				{{range $q := (StringUtils.Split (print (ctx.Locale.Tr "asc_rp.s_first_queries")) "|")}}
+				<li><a class="asc-chip" href="{{$.RepoLink}}/asc/search?mode=semantic&q={{QueryEscape $q}}">{{$q}}</a></li>
+				{{end}}
+			</ul>
+		</section>
+		{{end}}
+
 		{{if .AscSearchError}}
 			<div class="ds-banner ds-banner-warn" role="alert">
 				{{if eq .AscSearchError 400}}<p>{{ctx.Locale.Tr "asc_rp.s_err_400"}}</p>
