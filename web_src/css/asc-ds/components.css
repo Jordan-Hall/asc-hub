@@ -2424,9 +2424,22 @@ a.ds-stat:hover {
   background: var(--surface);
 }
 
+.ds-auth-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 14px;
+  border: 1px solid var(--primary-line);
+  border-radius: var(--r-row);
+  background: var(--primary-tint);
+  color: var(--link);
+}
+
 .ds-auth-title {
   margin-top: 4px;
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1.2;
   letter-spacing: -0.02em;
   font-weight: 700;
@@ -2470,6 +2483,13 @@ a.ds-stat:hover {
   text-underline-offset: 3px;
 }
 
+/* a link that stands alone in its line is a target of its own */
+.ds-auth-alt > a:only-child {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
 .ds-or {
   display: flex;
   align-items: center;
@@ -2493,25 +2513,233 @@ a.ds-stat:hover {
   gap: 8px;
 }
 
+/* the note for people who arrive from a terminal: under the sign in form below 1024, in the brand panel from there */
 .ds-auth-cli {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
-  background: var(--surface-2);
-  border-color: var(--line-2);
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-2);
+}
+
+.ds-auth-cli-title {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ds-auth-cli-text {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 13px;
+  line-height: 1.55;
   color: var(--text-2);
+}
+
+.ds-auth-brand .ds-auth-cli {
+  margin-top: 28px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ds-auth-brand .ds-auth-cli-title {
+  color: var(--navy-text);
+}
+
+.ds-auth-brand .ds-auth-cli-text {
+  color: var(--navy-text-2);
+}
+
+/* the strength meter and rules under a new password. Its rows are always there, so ticking them moves nothing. */
+.ds-pw {
+  margin-top: -6px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-row);
+  background: var(--surface-2);
+}
+
+.ds-pw-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   font-size: 13px;
 }
 
-.ds-auth-cli .ds-pr {
-  color: var(--link);
-  font-family: var(--font-mono);
-  font-weight: 700;
+.ds-pw-title {
+  color: var(--text-2);
 }
 
-.ds-auth-cli code {
+.ds-pw-level {
+  min-height: 20px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.ds-pw-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.ds-pw-bar i {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.ds-pw[data-level="1"] .ds-pw-bar i:nth-child(-n + 1) {
+  background: var(--err-dot);
+}
+
+.ds-pw[data-level="2"] .ds-pw-bar i:nth-child(-n + 2) {
+  background: var(--warn-dot);
+}
+
+.ds-pw[data-level="3"] .ds-pw-bar i:nth-child(-n + 3),
+.ds-pw[data-level="4"] .ds-pw-bar i {
+  background: var(--ok-dot);
+}
+
+.ds-pw[data-level="1"] .ds-pw-level {
+  color: var(--err);
+}
+
+.ds-pw[data-level="2"] .ds-pw-level {
+  color: var(--warn);
+}
+
+.ds-pw[data-level="3"] .ds-pw-level,
+.ds-pw[data-level="4"] .ds-pw-level {
+  color: var(--ok);
+}
+
+.ds-pw-rules {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ds-pw-rules li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ds-pw-mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 50%;
+  color: transparent;
+}
+
+.ds-pw-rules .is-met {
+  color: var(--text);
+}
+
+.ds-pw-rules .is-met .ds-pw-mark {
+  border-color: var(--ok-dot);
+  background: var(--ok-dot);
+  color: var(--surface);
+}
+
+.ds-auth-cli-form {
+  display: block;
+}
+
+.ds-auth-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-auth-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+  border: 1px solid var(--navy-field-line);
+  border-radius: 999px;
+  background: var(--navy-field);
+  color: var(--navy-text);
+  font-size: 13px;
+}
+
+.ds-auth-chips svg {
+  color: var(--accent);
+}
+
+/* the authorise-an-app card */
+.ds-grant-app {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+  background: var(--surface-2);
+}
+
+.ds-grant-app b {
+  display: block;
+  font-size: 15px;
   overflow-wrap: anywhere;
+}
+
+.ds-grant-app span {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ds-grant-app .ds-grant-ic {
+  color: var(--link);
+}
+
+.ds-grant-ic {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-row);
+  background: var(--primary-soft);
+}
+
+.ds-grant-scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-grant-scopes code {
+  display: inline-block;
+  padding: 3px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface-3);
   font-size: 12.5px;
+  overflow-wrap: anywhere;
 }
 
 .ds-auth-actions {
@@ -2522,6 +2750,11 @@ a.ds-stat:hover {
 
 .ds-auth-actions > .ds-btn {
   flex: 1 1 140px;
+}
+
+.ds-auth-actions > .ds-btn-primary {
+  flex-grow: 2;
+  flex-basis: 200px;
 }
 
 .ds-auth-key {
@@ -2558,6 +2791,10 @@ a.ds-stat:hover {
   .ds-auth:not(.ds-auth-split) .ds-auth-form {
     padding: 28px 28px 30px;
   }
+
+  .ds-auth-title {
+    font-size: 30px;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -2570,65 +2807,245 @@ a.ds-stat:hover {
     flex: 1 1 50%;
     align-items: center;
     padding: 48px;
+    background: var(--surface);
+  }
+
+  .ds-auth-cli-form {
+    display: none;
   }
 
   .ds-auth-split .ds-auth-brand {
     display: flex;
     flex: 1 1 50%;
     align-items: center;
-    padding: 64px;
+    min-width: 0;
+    padding: 56px 0 56px 56px;
+    overflow: hidden;
     background: var(--navy);
     color: #fff;
   }
 
   .ds-auth-brand-in {
     width: 100%;
-    max-width: 447px;
-  }
-
-  .ds-auth-brand-eyebrow {
-    color: var(--accent);
+    max-width: 560px;
   }
 
   .ds-auth-brand-title {
-    margin: 12px 0 0;
+    margin: 0;
+    max-width: 20ch;
     font-size: 36px;
     line-height: 1.1;
     letter-spacing: -0.025em;
     font-weight: 800;
   }
 
-  .ds-auth-points {
-    margin: 28px 0 0;
-    padding: 0;
-    list-style: none;
+  .ds-auth-brand-lead {
+    margin: 16px 0 0;
+    max-width: 44ch;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--navy-text-2);
   }
 
-  .ds-auth-points li {
+  .ds-auth-chips,
+  .ds-auth-brand .ds-auth-cli {
+    max-width: 480px;
+    padding-right: 56px;
+  }
+
+  /* the stack in review: drawn with the dark tokens in both themes, and running off the right edge of the panel */
+  .ds-pv {
+    --pv-surface: #151f33;
+    --pv-surface-2: #121b2d;
+    --pv-line: #2a3750;
+    --pv-text: #e6edf6;
+    --pv-text-2: #9fb0c6;
+    --pv-gutter: #8a9bb3;
+    --pv-ok: #34d399;
+    --pv-ok-soft: #0f3a2b;
+    --pv-ok-line: #14513b;
+    --pv-warn: #fbbf24;
+    --pv-warn-soft: #3b2d0f;
+    --pv-warn-line: #5a4515;
+    --pv-agent: #c4b5fd;
+    --pv-agent-line: #3d3170;
+    --pv-agent-tint: #1d1838;
+    --pv-add-bg: #0d3325;
+    --pv-add-gut: #14513b;
+    --pv-add-ink: #6ee7b7;
+    --pv-del-bg: #3a171b;
+    --pv-del-gut: #5a2226;
+    --pv-del-ink: #fca5a5;
+    margin: 32px 0 0;
+    border: 1px solid var(--pv-line);
+    border-right: 0;
+    border-radius: var(--r-card) 0 0 var(--r-card);
+    background: var(--pv-surface);
+    color: var(--pv-text);
+    font-size: 13.5px;
+    user-select: none;
+  }
+
+  .ds-pv-hd {
     display: flex;
-    gap: 14px;
-  }
-
-  .ds-auth-points li + li {
-    margin-top: 24px;
-  }
-
-  .ds-auth-points svg {
-    margin-top: 2px;
-    color: var(--accent);
-  }
-
-  .ds-auth-points b {
-    display: block;
-    font-size: 14.5px;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--pv-line);
     font-weight: 600;
   }
 
-  .ds-auth-points span {
-    display: block;
-    margin-top: 2px;
-    font-size: 13.5px;
-    color: var(--navy-text-2);
+  .ds-pv-hd svg {
+    color: var(--accent);
+  }
+
+  .ds-pv-stack {
+    margin: 0;
+    padding: 6px 0;
+    list-style: none;
+  }
+
+  .ds-pv-stack li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-left: 2px solid transparent;
+  }
+
+  .ds-pv-stack li.is-on {
+    border-left-color: var(--accent);
+    background: var(--pv-surface-2);
+  }
+
+  .ds-pv-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--pv-text-2);
+    border-radius: 50%;
+  }
+
+  .ds-pv-dot.is-ok {
+    border-color: var(--pv-ok);
+    background: var(--pv-ok);
+  }
+
+  .ds-pv-dot.is-warn {
+    border-color: var(--pv-warn);
+  }
+
+  .ds-pv-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ds-pv-pill {
+    flex: none;
+    padding: 1px 9px;
+    border: 1px solid var(--pv-line);
+    border-radius: 999px;
+    color: var(--pv-text-2);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .ds-pv-pill.is-ok {
+    border-color: var(--pv-ok-line);
+    background: var(--pv-ok-soft);
+    color: var(--pv-ok);
+  }
+
+  .ds-pv-pill.is-warn {
+    border-color: var(--pv-warn-line);
+    background: var(--pv-warn-soft);
+    color: var(--pv-warn);
+  }
+
+  .ds-pv-diff {
+    border-top: 1px solid var(--pv-line);
+    border-bottom: 1px solid var(--pv-line);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.75;
+    overflow: hidden;
+  }
+
+  .ds-pv-ln {
+    display: flex;
+    white-space: pre;
+    color: var(--pv-text-2);
+  }
+
+  .ds-pv-ln b {
+    flex: none;
+    width: 40px;
+    padding-right: 10px;
+    text-align: right;
+    font-weight: 400;
+    color: var(--pv-gutter);
+  }
+
+  .ds-pv-ln code {
+    padding: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+  }
+
+  .ds-pv-ln.is-del {
+    background: var(--pv-del-bg);
+    color: var(--pv-del-ink);
+  }
+
+  .ds-pv-ln.is-del b {
+    background: var(--pv-del-gut);
+    color: var(--pv-del-ink);
+  }
+
+  .ds-pv-ln.is-add {
+    background: var(--pv-add-bg);
+    color: var(--pv-add-ink);
+  }
+
+  .ds-pv-ln.is-add b {
+    background: var(--pv-add-gut);
+    color: var(--pv-add-ink);
+  }
+
+  .ds-pv-note {
+    margin: 12px 16px;
+    padding: 10px 12px;
+    border: 1px solid var(--pv-agent-line);
+    border-radius: var(--r-row);
+    background: var(--pv-agent-tint);
+  }
+
+  .ds-pv-who {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--pv-agent);
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .ds-pv-note p {
+    margin: 4px 0 0;
+    line-height: 1.5;
+  }
+
+  .ds-pv-ft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px 12px;
+    border-top: 1px solid var(--pv-line);
+    color: var(--pv-ok);
+    font-size: 13px;
   }
 }
 

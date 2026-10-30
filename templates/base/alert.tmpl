@@ -1,5 +1,5 @@
 {{if .Flash.ErrorMsg}}
-	<div id="flash-message" class="ds-banner ds-banner-err flash-message flash-error" hx-swap-oob="true">
+	<div id="flash-message" class="ds-banner ds-banner-err flash-message flash-error" role="alert" hx-swap-oob="true">
 		<p>{{.Flash.ErrorMsg | SanitizeHTML}}</p>
 	</div>
 {{end}}

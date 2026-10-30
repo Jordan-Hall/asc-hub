@@ -16,7 +16,45 @@ function say(hint, key, name) {
   hint.classList.toggle('is-err', key === 'invalid' || key === 'taken' || key === 'reserved');
 }
 
+// An address needs something before and after one @ and a dot in the part after it. The hub decides what it accepts;
+// this only catches a slip before the form is sent.
+export function emailLooksValid(value) {
+  return /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(value);
+}
+
+// The message under the email field once the person leaves it with something that is not an address; it goes away as
+// soon as the field is edited. The text is data-t-email-invalid of the form.
+function initEmailCheck() {
+  const input = document.querySelector('form [data-signup-email], form input#email[type="email"]');
+  const form = input?.closest('form');
+  const text = form?.getAttribute('data-t-email-invalid');
+  if (!input || !text) return;
+  const field = input.closest('.ds-field');
+  const clear = () => {
+    field.querySelector('[data-email-error]')?.remove();
+    input.removeAttribute('aria-invalid');
+    input.classList.remove('is-err');
+    input.removeAttribute('aria-describedby');
+  };
+  input.addEventListener('input', clear);
+  input.addEventListener('blur', () => {
+    clear();
+    const value = input.value.trim();
+    if (value === '' || emailLooksValid(value)) return;
+    const message = document.createElement('div');
+    message.className = 'ds-err-msg';
+    message.id = 'email-error';
+    message.setAttribute('data-email-error', '');
+    message.textContent = text;
+    field.append(message);
+    input.setAttribute('aria-invalid', 'true');
+    input.setAttribute('aria-describedby', message.id);
+    input.classList.add('is-err');
+  });
+}
+
 export function initAscSignup() {
+  initEmailCheck();
   const hint = document.querySelector('[data-signup-handle]');
   const input = document.querySelector('#user_name');
   if (!hint || !input) return;

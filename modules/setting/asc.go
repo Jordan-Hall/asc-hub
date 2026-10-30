@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
@@ -47,6 +48,10 @@ var Asc = struct {
 	// files it lists. It is served read-only under /-/download/. Empty means the hub offers no download.
 	// Unlike the rest of [asc] it works with ENABLED false.
 	DownloadDir string `ini:"DOWNLOAD_DIR"`
+	// ReleaseRepo is the public GitHub repository (owner/name) whose latest release /download and the landing page link
+	// to when DOWNLOAD_DIR is empty. The release is read through the GitHub API (cached) and the files are linked on
+	// GitHub, never copied. Set it empty to turn this off. Default Jordan-Hall/asc.
+	ReleaseRepo string `ini:"RELEASE_REPO"`
 	// DownloadBaseURL is the base the download links point at. Empty means this hub's own /-/download/ mount.
 	// It must be https (http only for a loopback host), with no credentials, query or fragment.
 	DownloadBaseURL string `ini:"DOWNLOAD_BASE_URL"`
@@ -83,6 +88,11 @@ const (
 	AscBridgeEager = "eager"
 )
 
+// DefaultAscReleaseRepo is the default of [asc] RELEASE_REPO.
+const DefaultAscReleaseRepo = "Jordan-Hall/asc"
+
+var ascReleaseRepoRe = regexp.MustCompile(`^[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}$`)
+
 // DefaultAscShadowSamplePercent is the default of [asc] SHADOW_SAMPLE_PERCENT.
 const DefaultAscShadowSamplePercent = 10
 
@@ -97,6 +107,7 @@ func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.NewRepositories = AscWriterGit
 	Asc.BridgeWorkspaces = ""
 	Asc.DownloadDir = ""
+	Asc.ReleaseRepo = DefaultAscReleaseRepo
 	Asc.DownloadBaseURL = ""
 	Asc.DownloadSourceURL = ""
 	Asc.DownloadSourceToken = ""
@@ -226,6 +237,10 @@ func validateAscServerURL(raw string) (string, error) {
 // normaliseAscDownload checks [asc] DOWNLOAD_DIR and DOWNLOAD_BASE_URL and stores them in their final form:
 // the directory cleaned and absolute, the base URL with exactly one trailing slash.
 func normaliseAscDownload() error {
+	Asc.ReleaseRepo = strings.TrimSpace(Asc.ReleaseRepo)
+	if Asc.ReleaseRepo != "" && !ascReleaseRepoRe.MatchString(Asc.ReleaseRepo) {
+		return fmt.Errorf("RELEASE_REPO must be a GitHub repository like owner/name")
+	}
 	Asc.DownloadDir = strings.TrimSpace(Asc.DownloadDir)
 	if Asc.DownloadDir != "" {
 		if strings.IndexFunc(Asc.DownloadDir, unicode.IsControl) >= 0 {

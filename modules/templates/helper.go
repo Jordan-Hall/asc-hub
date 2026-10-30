@@ -134,12 +134,17 @@ func NewFuncMap() template.FuncMap {
 		"AscEnabled": func() bool { // the asc integration is on: the inbox, stacks and the cross repository search exist
 			return setting.Asc.Enabled
 		},
-		"AscDownloadAvailable": func() bool { // a valid asc release is published on this hub
+		"AscDownloadAvailable": func() bool { // the hub has an asc download page: a valid local release, or a GitHub repository to read
+			if setting.Asc.DownloadDir == "" && setting.Asc.ReleaseRepo != "" {
+				return true // /download says "no release yet" when GitHub has none; it never links to a dead file
+			}
 			_, err := ascdownload.Cached(setting.Asc.DownloadDir, setting.Asc.DownloadBaseURL == "")
 			return err == nil
 		},
 		// SSHEnabled: git over SSH is offered; false on an ASC Hub unless [asc] SSH_ENABLED is true.
 		"SSHEnabled": setting.SSHEnabled,
+		// PasswordPolicy: the minimum length and required character classes, for the strength meter of the account pages.
+		"PasswordPolicy": passwordPolicy,
 		// AscHubHost: the address of this hub for `asc auth login --host`, without a trailing slash.
 		"AscHubHost": func() string {
 			return strings.TrimRight(setting.AppURL, "/")

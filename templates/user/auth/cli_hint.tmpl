@@ -1,0 +1,6 @@
+{{/* The note for people who arrive from a terminal: cloning needs no login step, a private repository asks for a device code. Shown under the sign in form below 1024 and in the brand panel above. */}}
+<section class="ds-auth-cli" aria-labelledby="auth-cli-title-{{.Where}}">
+	<h2 class="ds-auth-cli-title" id="auth-cli-title-{{.Where}}">{{ctx.Locale.Tr "asc_auth.cli_title"}}</h2>
+	<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc clone {{AscHubHost}}/owner/repo</code></div>
+	<p class="ds-auth-cli-text">{{ctx.Locale.Tr "asc_auth.cli_text"}}</p>
+</section>
