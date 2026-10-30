@@ -370,6 +370,17 @@ func AscQueuePage(ctx *context.Context) {
 	ctx.Data["AscQueueUsers"] = users
 	ctx.Data["AscQueueCanAdmin"] = canAdmin
 	ctx.Data["AscQueueBranch"] = branch
+	if ctx.Doer != nil && ctx.Repo.CanWrite(unit.TypePullRequests) {
+		queued := map[int64]bool{}
+		for _, r := range view.Active {
+			queued[r.Entry.PullID] = true
+		}
+		if stacks, err := ascQueueStacksOf(ctx, repo, branch, queued); err != nil {
+			log.Warn("asc queue: the open stacks: %v", err)
+		} else {
+			ctx.Data["AscQueueStacks"] = stacks
+		}
+	}
 	ctx.Data["AscQueueRevalidate"] = automerge.AscQueueNoContentMerge()
 	ctx.Data["AscQuarantine"] = ascQueueQuarantine(ctx)
 	ascQueueStats(ctx, repo, branch, view)
