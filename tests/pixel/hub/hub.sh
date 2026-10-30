@@ -24,6 +24,14 @@ BOOT="$RUN/boot"
 ASC_DIR="$RUN/asc"
 SERVE_CFG="$ASC_DIR/asc-serve.toml"
 PASSWORD="${PIXEL_PASSWORD:-Pixel-Passw0rd-9137}"
+# the state directory is a Linux path: a Windows path that went through a shell's path conversion (D:/..., C:/...) is a relative path
+# for bash, and the hub would write its tokens and configuration into the directory the script was started from
+case "$RUN" in
+  /*) ;;
+  *) echo "PIXEL_RUN must be an absolute Linux path (got '$RUN'); in Git Bash set MSYS_NO_PATHCONV=1" >&2; exit 2 ;;
+esac
+# a random string of $1 characters (of the set $2), for the secrets of one run: nothing the hub of a run holds is the same twice
+rand() { LC_ALL=C tr -dc "${2:-A-Za-z0-9}" </dev/urandom | head -c "$1" || true; }
 HUBENV="env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=$RUN/home TZ=UTC GITEA_WORK_DIR=$RUN GITEA_CUSTOM=$RUN/custom"
 as_user() { if [ "$(id -u)" = 0 ]; then su -s /bin/bash nobody -c "$1"; else bash -c "$1"; fi; }
 
@@ -137,7 +145,7 @@ up() {
   down
   mkdir -p "$RUN"/{custom/conf,data,repos,log,home}
   if [ "$ASC_MODE" = serve ]; then : "${PIXEL_ASC_BIN:?set PIXEL_ASC_BIN to the asc binary}"; mkdir -p "$BOOT"; chmod 0700 "$BOOT"; fi
-  INTERNAL_TOKEN_LINE='INTERNAL_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3MDAwMDAwMDB9.pixelharnessinternaltoken0123456789ABC'
+  INTERNAL_TOKEN_LINE="INTERNAL_TOKEN = $(rand 64)"
   if [ "$ASC_MODE" = serve ]; then
     # the secrets first: the hub reads the shared token from a file (it refuses a literal token next to a file)
     prepare_asc_secrets
@@ -164,10 +172,10 @@ PATH = $RUN/data/hub.db
 ROOT = $RUN/repos
 [security]
 INSTALL_LOCK = true
-SECRET_KEY = pixel-harness-secret-key-0123456789abcdef
+SECRET_KEY = $(rand 40)
 $INTERNAL_TOKEN_LINE
 [oauth2]
-JWT_SECRET = $(printf 'pixel-harness-jwt-secret-0123456' | base64 | tr '+/' '-_' | tr -d '=')
+JWT_SECRET = $(rand 43 'A-Za-z0-9_-')
 [service]
 DISABLE_REGISTRATION = false
 REQUIRE_SIGNIN_VIEW = false
@@ -202,7 +210,7 @@ INI
 ENABLED = true
 SERVER_URL = http://127.0.0.1:7890
 PUBLIC_URL = http://127.0.0.1:$PORT
-FORWARDED_KEY = 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
+FORWARDED_KEY = $(rand 64 '0-9a-f')
 SSH_ENABLED = false
 DOWNLOAD_DIR = $RUN/download
 INI
