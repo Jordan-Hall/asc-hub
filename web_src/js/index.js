@@ -81,6 +81,7 @@ import {initAscSecurity} from './features/asc-security.js';
 import {initAscMeters} from './features/asc-meters.js';
 import {initAscIntent} from './features/asc-intent.js';
 import {initAscTitleCounter} from './features/asc-title-counter.js';
+import {initAscDraft} from './features/asc-draft.js';
 import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
 import {
   initRepoSettingGitHook,
@@ -226,6 +227,7 @@ onDomReady(() => {
   initAscMeters();
   initAscIntent();
   initAscTitleCounter();
+  initAscDraft();
   initAscResponsiveDetails();
   initAscInboxBadge();
   initRepoProject();

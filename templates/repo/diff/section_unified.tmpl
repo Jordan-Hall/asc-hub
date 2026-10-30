@@ -49,6 +49,7 @@
 			{{if eq .GetType 4}}
 				<td class="chroma lines-code blob-hunk">{{/*
 					*/}}{{template "repo/diff/section_code" dict "diff" $inlineDiff}}{{/*
+					*/}}{{if $line.SectionInfo}}{{if $line.SectionInfo.AscContext}}<span class="asc-hunk-ctx" data-testid="asc-hunk-context">{{$line.SectionInfo.AscContext}}</span>{{end}}{{end}}{{/*
 				*/}}</td>
 			{{else}}
 				<td class="chroma lines-code{{if (not $line.RightIdx)}} lines-code-old{{end}}">{{/*

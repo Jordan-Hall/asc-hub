@@ -66,3 +66,21 @@
 				{{end}}
 			</div>
 		</div>
+{{if .AscSuggestedReviewers}}
+<div class="rv-suggest" data-testid="asc-suggested-reviewers">
+	<h3 class="ds-t-small">{{ctx.Locale.Tr "asc_review.suggest_title"}}</h3>
+	<ul class="ds-list">
+		{{range .AscSuggestedReviewers}}
+		<li class="tw-flex tw-items-center tw-gap-2 tw-py-1">
+			<a class="muted sidebar-item-link tw-flex-1" href="{{.User.HomeLink}}">{{ctx.AvatarUtils.Avatar .User 20 "tw-mr-2"}}{{.User.GetDisplayName}}</a>
+			<span class="rp-dim" title="{{.Reason}}">{{ctx.Locale.Tr "asc_review.suggest_reviews" .Reviews}}{{if .OnSameFiles}} &middot; {{ctx.Locale.Tr "asc_review.suggest_same_files" .OnSameFiles}}{{end}}</span>
+			<form action="{{$.Issue.Link}}/asc/reviewer" method="post">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="user" value="{{.User.ID}}">
+				<button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_review.suggest_ask" .User.GetDisplayName}}">{{ctx.Locale.Tr "asc_review.suggest_request"}}</button>
+			</form>
+		</li>
+		{{end}}
+	</ul>
+</div>
+{{end}}

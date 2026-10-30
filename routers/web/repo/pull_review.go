@@ -190,6 +190,10 @@ func UpdateResolveConversation(ctx *context.Context) {
 			ctx.ServerError("MarkConversation", err)
 			return
 		}
+		// the thread of the change in asc follows (nothing happens for a pull request that is not a stack)
+		if err := comment.Issue.LoadPullRequest(ctx); err == nil {
+			pull_service.AscMirrorResolve(ctx, ctx.Doer, comment.Issue.PullRequest, comment, action == "Resolve")
+		}
 	} else {
 		ctx.Error(http.StatusBadRequest)
 		return

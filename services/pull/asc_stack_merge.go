@@ -551,6 +551,7 @@ func InitAscStack() error {
 	ascStackBackend = b
 	installAscGateReporter()
 	installAscApprovalReporter()
+	installAscReviewMirror()
 	return nil
 }
 

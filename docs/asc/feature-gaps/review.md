@@ -8,11 +8,11 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 131 |
-| ui-only-missing | 45 |
-| needs-hub-backend | 17 |
+| done | 146 |
+| ui-only-missing | 35 |
+| needs-hub-backend | 16 |
 | needs-asc-backend | 0 |
-| needs-both | 21 |
+| needs-both | 17 |
 | total | 214 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -64,11 +64,11 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Review | Files by meaning: group counts and filter above the diff | done | templates/repo/diff/box.tmpl class bar (counts from pull_service.AscFileClassCounts) filtered by asc-review.js; every file box carries data-asc-class (tests: TestAscDiffBoxClassBarAndStates, asc-review.test.js) | - |
 | Review | 'Changed since you looked' count, 'Since my last review v3>v4' selector, 'Changed in v4' badge per file, hide unchanged hunks | done | templates/repo/pulls/asc_versions.tmpl count and 'Show only what changed since my review' toggle (files, not single hunks: the interdiff link shows only the changed hunks); templates/repo/diff/box.tmpl 'Changed in vN' pill on each file of an interdiff; count from ascChangedSinceCount (tests: TestAscVersionsPanelChangedSince, TestAscChangedSinceCount) | - |
 | Review | Unified/Split layout, collapse file, Viewed checkbox with progress | done | templates/repo/diff/box.tmpl (Forgejo native) | - |
-| Review | Hunk header shows enclosing function (impl PaymentsClient > async fn) | needs-hub-backend | services/gitdiff hunk header | S |
+| Review | Hunk header shows enclosing function (impl PaymentsClient > async fn) | done | services/gitdiff hunk header; Audit 2026-10-30 (built): the hunk header shows the chain of definitions from Review.HunkContext (routers/web/repo/asc_hunk_context.go, section_unified.tmpl and section_split.tmpl), also for .tsrx; git's own header stays | S |
 | Review | Inline comment threads: open/resolved, replies, Resolve, markdown composer | done | routers/web/repo/pull_review.go via /files/reviews/comments (Forgejo native, stored in the hub DB) | - |
-| Review | Threads visible to asc clients: hub comments are not written to the asc Review service (ListThreads/AddComment/ResolveThread unused by the hub) | needs-both | proto/asc/v1/review.proto; services/ascsync (new review-thread sync); pull_review.go | L |
+| Review | Threads visible to asc clients: hub comments are not written to the asc Review service (ListThreads/AddComment/ResolveThread unused by the hub) | done | proto/asc/v1/review.proto; services/ascsync (new review-thread sync); pull_review.go; Audit 2026-10-30 (built): hub comments, replies, resolve and review requests are mirrored to asc as the person (services/pull/asc_review_mirror.go: AddComment, ResolveThread, RequestReview); threads started in asc are listed on the review page (ListThreads, asc_threads.go) | L |
 | Review | Agent reply in a thread labelled 'Agent' with avatar | done | templates/shared/user/authorlink.tmpl: every author link of an agent account (type bot) carries the Agent chip, in comments, reviews, timeline and the pull request header (test: author_agent_mark_test.go; an agent that opens pull requests is the bot account agent-<name>, services/ascagentui/runpulls.go) | - |
-| Review | Suggested change block in a comment, 'Apply as v5' (creates a version, undoable op, resets approvals), 'Ask coder-2 to apply', '/' suggestions | needs-both | asc: no suggestion field in review.proto and no amend RPC; hub: composer + apply handler in pull_review.go | L |
+| Review | Suggested change block in a comment, 'Apply as v5' (creates a version, undoable op, resets approvals), 'Ask coder-2 to apply', '/' suggestions | needs-both | asc: no suggestion field in review.proto and no amend RPC; hub: composer + apply handler in pull_review.go; Audit 2026-10-30 (part built): a suggestion fence in a hub comment is sent to asc as the suggestion of the thread and shown with Applied in vN; Apply as vN (PrepareSuggestion and MarkSuggestionApplied) is not built because the hub has no way to make a new asc version: restore only moves the pull head, asc makes versions on push | L |
 | Review | Keyboard review shortcuts j/k file, a approve, r request changes, c comment, v viewed, n next change; shortcut list; can be turned off | done | web_src/js/features/asc-keys.js: j/k go from file to file, v marks the file viewed (seen live); a, r and c open the review panel at Approve, Request changes or the comment field (Enter sends; a key never submits), n goes to the next change of the stack rail; the shortcut list (? key) names them on a diff; the switch in the preferences turns them off (tests in asc-keys.test.js; not yet seen on a live hub) | - |
 | Review | 'Your review' checklist (read intent, opened 2 of 3 files, N open comments) with Approve / Request changes / comment in a sticky card | done | templates/repo/pulls/asc_panel.tmpl 'Your review' card: read the intent (kept in localStorage), files opened, open comments (live, from the page), Approve, Request changes, Comment; the last two open the review box (tests: TestAscYourReviewCard, asc-review.test.js) | - |
 | Review | Activity timeline: version pushed, comment, approval carried, restacked (14 events, Show all) | needs-hub-backend | routers/web/repo/issue_view timeline + asc ListRefLog (proto/asc/v1/stacks.proto) merged in | M |
@@ -94,7 +94,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | ReviewVersions | Restack rows shown as 'ASC, automatic ... no diff change' | done | services/pull/asc_version_details.go (same patch id as the version before) | - |
 | ReviewVersions | Restore as new version (never rewrites history) | done | routers/web/repo/pull_asc_restore.go, route /pulls/{n}/asc/restore_version | - |
 | ReviewVersions | Compare any two versions (interdiff), split/unified | done | routers/web/repo/pull_asc_versions.go (Changes.InterDiff) | - |
-| ReviewVersions | Compare header: '+2 -1 in 1 of 3 files, Priya's approval still applies to the other 2' | needs-both | asc: per-file unchanged set; hub: pulls/asc_versions.tmpl | M |
+| ReviewVersions | Compare header: '+2 -1 in 1 of 3 files, Priya's approval still applies to the other 2' | done | asc: per-file unchanged set; hub: pulls/asc_versions.tmpl; Audit 2026-10-30 (built): Review.CompareVersions gives the +added -removed in N of M files and which approvals still apply (asc_compare_versions.go, asc_versions.tmpl) | M |
 | ReviewVersions | Restack-available banner 'Trunk moved 3 commits since v2' with Restack | done | templates/repo/pulls/asc_stack.tmpl | - |
 | ReviewVersions | Land-the-stack panel: scope radios (Bottom 2 / All 4 / Just 1), dry run re-run on scope change | done | templates/repo/asc_confirm.tmpl; routers/web/repo/asc_queue.go ascLandTarget | - |
 | ReviewVersions | Land panel summary: merge order, signed-by list, queue position and ETA, undo window 30 min | needs-both | templates/repo/asc_confirm.tmpl; ETA as in Review | M |
@@ -110,9 +110,9 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | NewChange | Compare bar: base/head, +212 -48 in 9 files, no-conflict chip, ahead/behind, stack of N | ui-only-missing (size, files and changes ahead are shown; the no-conflict chip and behind count remain) | templates/repo/diff/compare.tmpl; asc_compare.tmpl is a separate page | M |
 | NewChange | Title counter '68 of 120', 'Start with a verb' hint, inline validation | done | templates/repo/diff/compare.tmpl | S |
 | NewChange | Intent editor with What/Why/How to check/Risk template and Write/Preview | done | templates/repo/diff/compare.tmpl (description template) | S |
-| NewChange | 'Draft from the diff' (AI writes What/Why/How/Risk from the diff) | needs-both | hub: new route using BYO AI key (services/ascbyo); asc: diff + Classify | L |
+| NewChange | 'Draft from the diff' (AI writes What/Why/How/Risk from the diff) | ui-only-missing | hub: new route using BYO AI key (services/ascbyo); asc: diff + Classify; Audit 2026-10-30 (part built): the button fills title and description from Review.DraftContext (subjects, files, size, risk) without a model (asc_draft_context.go, asc-draft.js); the AI-written What/Why/How is not built | L |
 | NewChange | 'Where to look' pointers editor | needs-both | same as the Review intent block | M |
-| NewChange | Reviewer suggestions from ownership and review history, out-of-office note, agent reviewers labelled | needs-both | asc: code owner / review history query; hub: reviewer panel in compare.tmpl | L |
+| NewChange | Reviewer suggestions from ownership and review history, out-of-office note, agent reviewers labelled | ui-only-missing | asc: code owner / review history query; hub: reviewer panel in compare.tmpl; Audit 2026-10-30 (part built): the reviewers sidebar of the pull request offers Review.SuggestReviewers with an Ask button (asc_suggested_reviewers.go); the compare page, out-of-office notes and agent reviewers are not built | L |
 | NewChange | Options: open as draft, keep as part of stack, land when approved and green, ask agent to babysit checks | needs-both | draft + auto-merge exist natively; babysit needs Agents.CreateRun trigger + hub option | L |
 | NewChange | Local checks start on open; 'signed with your key' note | done | templates/repo/issue/new_form.tmpl note under the intent for an asc repository: checks start on open, signed with your key when one is added (test: TestAscCompareNotesOnOpen) | - |
 | NewChange | Draft autosave on blur (1 s debounce), 'Save as draft', Ctrl+Enter opens | needs-hub-backend | routers/web/user (drafts page exists); form autosave handler; key handler | M |

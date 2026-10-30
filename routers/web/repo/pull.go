@@ -1091,6 +1091,7 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 			startCommitID, endCommitID = ascView.start, ascView.end
 			ctx.Data["IsShowingAllCommits"] = false
 			ctx.Data["AscVersionFrom"], ctx.Data["AscVersionTo"] = ascView.from, ascView.to
+			prepareAscVersionCompare(ctx, pull, ascView)
 		} else {
 			badges := pull_service.AscFileClassBadges(ctx, ctx.Locale, pull)
 			ctx.Data["AscFileClassBadges"] = badges
@@ -1181,6 +1182,13 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 
 	ctx.Data["Diff"] = diff
 	ctx.Data["DiffNotAvailable"] = diff.NumFiles == 0
+	if ascView == nil || ascView.interdiff == nil {
+		var hunkVersion uint32
+		if ascView != nil {
+			hunkVersion = ascView.to
+		}
+		prepareAscHunkContext(ctx, pull, diff, hunkVersion)
+	}
 	if ctx.IsSigned && ctx.Data["IsShowingAllCommits"] == true {
 		ctx.Data["AscChangedSince"] = ascChangedSinceCount(diff)
 	}

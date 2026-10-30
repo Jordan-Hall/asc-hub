@@ -92,6 +92,14 @@ pickers are plain radio buttons of a GET form, so the panel works without a scri
 			{{end}}
 		</nav>
 		{{end}}
+		{{with .AscCompare}}
+		<div class="rv-vers-compare" data-testid="asc-compare-summary">
+			<p><span class="rp-delta"><span class="rp-add">+{{.Added}}</span> <span class="rp-del">&minus;{{.Removed}}</span></span> {{ctx.Locale.Tr "asc_review.compare_in" .Changed .Total}}{{if .Truncated}} {{ctx.Locale.Tr "asc_review.compare_truncated"}}{{end}}</p>
+			{{range .Approvals}}
+			<p class="rp-dim" data-testid="asc-compare-approval">{{if .ChangesRequested}}{{ctx.Locale.Tr "asc_review.compare_changes_requested" .Reviewer $.AscCompare.From}}{{else if .Applies}}{{if .Carried}}{{ctx.Locale.Tr "asc_review.compare_carried" .Reviewer .UnchangedFiles}}{{else}}{{ctx.Locale.Tr "asc_review.compare_applies" .Reviewer}}{{end}}{{else}}{{ctx.Locale.Tr "asc_review.compare_lost" .Reviewer}}{{end}}</p>
+			{{end}}
+		</div>
+		{{end}}
 		<div class="rv-vers-links">
 			{{if .AscChangedSince}}
 			<span class="rv-pill rv-pill-agent" data-testid="asc-changed-since-count">{{ctx.Locale.TrN .AscChangedSince "asc_review.rev_changed_since_one" "asc_review.rev_changed_since_other" .AscChangedSince}}</span>

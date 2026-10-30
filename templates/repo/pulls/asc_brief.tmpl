@@ -31,6 +31,21 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 		{{else}}
 			<p class="rp-quiet" data-testid="asc-brief-empty">{{ctx.Locale.Tr "asc_review.brief_empty"}}</p>
 		{{end}}
+		{{if $.AscBriefCanEdit}}
+		<details class="rv-brief-edit" data-testid="asc-brief-edit">
+			<summary class="ds-btn ds-btn-secondary ds-btn-sm">{{if .Written}}{{ctx.Locale.Tr "asc_review.brief_edit"}}{{else}}{{ctx.Locale.Tr "asc_review.brief_write"}}{{end}}</summary>
+			<form class="ds-form ds-stack-12" action="{{$.Issue.Link}}/asc/brief" method="post">
+				{{$.CsrfTokenHtml}}
+				<div class="ds-field"><label class="ds-label" for="asc-brief-what">{{ctx.Locale.Tr "asc_review.brief_what"}}</label><textarea id="asc-brief-what" class="ds-textarea" name="what" rows="3" maxlength="8192">{{.What}}</textarea></div>
+				<div class="ds-field"><label class="ds-label" for="asc-brief-why">{{ctx.Locale.Tr "asc_review.brief_why"}}</label><textarea id="asc-brief-why" class="ds-textarea" name="why" rows="3" maxlength="8192">{{.Why}}</textarea></div>
+				<div class="ds-field"><label class="ds-label" for="asc-brief-how">{{ctx.Locale.Tr "asc_review.brief_how"}}</label><textarea id="asc-brief-how" class="ds-textarea" name="how" rows="3" maxlength="8192">{{.How}}</textarea></div>
+				<div class="ds-field"><label class="ds-label" for="asc-brief-risk">{{ctx.Locale.Tr "asc_review.brief_risk_note"}}</label><textarea id="asc-brief-risk" class="ds-textarea" name="risk_note" rows="2" maxlength="8192">{{.RiskNote}}</textarea></div>
+				<div class="ds-field"><label class="ds-label" for="asc-brief-where">{{ctx.Locale.Tr "asc_review.brief_where"}}</label><textarea id="asc-brief-where" class="ds-textarea ds-mono" name="where" rows="3" spellcheck="false" aria-describedby="asc-brief-where-hint">{{range .Where}}{{.Path}}{{if .Line}}:{{.Line}}{{end}}{{if .Note}} {{.Note}}{{end}}
+{{end}}</textarea><span class="ds-hint" id="asc-brief-where-hint">{{ctx.Locale.Tr "asc_review.brief_where_hint"}}</span></div>
+				<div><button type="submit" class="ds-btn ds-btn-primary ds-btn-sm">{{ctx.Locale.Tr "asc_review.brief_save"}}</button></div>
+			</form>
+		</details>
+		{{end}}
 		{{if .RiskReasons}}
 		<h3 class="rv-brief-h">{{ctx.Locale.Tr "asc_review.brief_why_risk"}}</h3>
 		<ul class="rv-brief-where">{{range .RiskReasons}}<li>{{.}}</li>{{end}}</ul>
@@ -54,6 +69,29 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 			{{ctx.Locale.Tr "asc_review.gate_line" .OpenThreads .TotalThreads .ApprovalsCurrent .ChangesRequested}}
 			{{if .ApprovalsCarried}} · {{ctx.Locale.Tr "asc_review.gate_carried" .ApprovalsCarried}}{{end}}
 		</p>
+	</div>
+</section>
+{{end}}
+{{with .AscThreads}}
+<section class="rv-card rv-threads" aria-labelledby="asc-threads-title" data-testid="asc-threads">
+	<div class="rv-card-h"><h2 id="asc-threads-title">{{ctx.Locale.Tr "asc_review.threads_title"}}</h2><span class="rp-dim">{{ctx.Locale.Tr "asc_review.threads_lead"}}</span></div>
+	<div class="rv-card-b ds-stack-12">
+		{{range .}}
+		<article class="rv-thread" data-resolved="{{.Resolved}}">
+			<header class="rv-row rv-row-wrap">
+				{{if .Path}}<code class="rv-mono">{{.Path}}{{if .Lines}}:{{.Lines}}{{end}}</code>{{else}}<span>{{ctx.Locale.Tr "asc_review.threads_whole"}}</span>{{end}}
+				{{if .Version}}<span class="ds-chip ds-chip-outline">v{{.Version}}</span>{{end}}
+				<span class="ds-chip {{if .Resolved}}ds-chip-ok{{else}}ds-chip-warn{{end}}">{{if .Resolved}}{{ctx.Locale.Tr "asc_review.threads_resolved"}}{{else}}{{ctx.Locale.Tr "asc_review.threads_open"}}{{end}}</span>
+			</header>
+			{{range .Comments}}
+			<div class="rv-thread-c">
+				<b>{{.Author}}</b>
+				<p>{{.Body}}</p>
+				{{if .Suggestion}}<pre class="ds-code" data-testid="asc-thread-suggestion"><code>{{.Suggestion}}</code></pre>{{if .Applied}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_review.threads_applied" .Applied}}</span>{{end}}{{end}}
+			</div>
+			{{end}}
+		</article>
+		{{end}}
 	</div>
 </section>
 {{end}}

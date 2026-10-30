@@ -6,6 +6,7 @@ package repo
 import (
 	gocontext "context"
 	"fmt"
+	"forgejo.org/models/unit"
 	"time"
 
 	issues_model "forgejo.org/models/issues"
@@ -226,5 +227,7 @@ func prepareAscBrief(ctx *context.Context, pull *issues_model.PullRequest) {
 		brief.Provenance = nil
 	}
 	ctx.Data["AscBrief"] = brief
+	ctx.Data["AscBriefCanEdit"] = ctx.IsSigned && ctx.Repo.CanWrite(unit.TypeCode) && !pull.HasMerged
 	prepareAscGate(ctx, pull, brief, name, change)
+	prepareAscThreads(ctx, conn, name, change)
 }
