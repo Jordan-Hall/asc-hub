@@ -183,7 +183,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | Coverage line ("Indexed at e91b0d4, 99.2% of files; 4 files too large, listed in settings") | done | `asc_search.tmpl` coverage block (percent and lag); link to settings is missing | S |
 | Search | Sort: best match, pagination "Showing 4 of 38", page links | ui-only-missing | `asc_search.tmpl` has a Truncated banner only | M |
 | Search | "The other two kinds of search" teaser (Text and Symbol hits for the same query) | ui-only-missing | run two cheap queries in `asc_search.go`; fragment | M |
-| Search | First-visit state with example queries | ui-only-missing | `asc_search.tmpl` | S |
+| Search | First-visit state with example queries | done (seen on a live hub (ui28): three example searches that open Meaning search) | `asc_search.tmpl` | S |
 | Search | No-results state with "Search all branches / All repositories" actions | done | `asc_search.tmpl` shows a plain banner | S |
 | Search | Not available (503) for meaning search with "Use Text search" and "Open storage settings" | done | `s_err_503` banner exists; add actions | S |
 | Search | Rate limited (429) keeps the query | done | `s_err_429` | S |
@@ -286,11 +286,11 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | RepoSettingsGeneral | Name, description, one save bar with "2 unsaved changes", Discard, Save | done | `H:templates/repo/settings/options.tmpl`, `H:web_src/js/features/repo-settings.js` | S |
 | RepoSettingsGeneral | Name rename note "redirects the old address for 90 days" and taken-name error | needs-hub-backend | Forgejo keeps redirects without the 90-day limit; `H:models/repo/redirect.go` expiry | M |
-| RepoSettingsGeneral | Topics field in General (chips, up to 20, Add) | ui-only-missing | topics are edited in the About card only; add to `options.tmpl` | S |
+| RepoSettingsGeneral | Topics field in General (chips, up to 20, Add) | done (seen on a live hub (ui28): a comma list saved in place with a spoken answer, up to the hub limit of 20; no chips) | topics are edited in the About card only; add to `options.tmpl` | S |
 | RepoSettingsGeneral | Visibility as radio cards (Private / Internal / Public) with confirmation when changing | needs-hub-backend | `options.tmpl` uses a Private checkbox; Internal does not exist in the model (see NewRepo) | L |
 | RepoSettingsGeneral | Features switches: Stacks and change review (locked, Required), Agent runs, Dependencies, Releases, Meaning search, Wiki | needs-hub-backend | Forgejo units (`H:models/unit/unit.go`, `settings/units/*`) cover releases and wiki; add unit types or repo flags for agent runs, dependencies and meaning search, and the locked row | M |
 | RepoSettingsGeneral | Working mode radio cards and shared refs (`main`, `release/*`), Cloud sync switch | done | `H:templates/repo/settings/asc_branchless.tmpl` (separate page, not inside General) | S |
-| RepoSettingsGeneral | Danger zone: Transfer, Archive, Delete with typed full name `acme/payments` and counts ("Removes 1,204 changes, 14 releases and 23 issues") | done (seen on a live hub (ui26): the delete dialog lists the counts (stacks and pull requests, releases, issues) and asks for the typed name; the count of changes and the 30-day undo are not there) | `options.tmpl` has transfer, archive, delete; typed string is the repo name and the counts are missing | M |
+| RepoSettingsGeneral | Danger zone: Transfer, Archive, Delete with typed full name `acme/payments` and counts ("Removes 1,204 changes, 14 releases and 23 issues") | done (seen on a live hub (ui28): the delete dialog names the changes on the default branch, stacks and pull requests, releases and issues; the 30-day undo is not possible, Forgejo deletes at once) | `options.tmpl` has transfer, archive, delete; typed string is the repo name and the counts are missing | M |
 | RepoSettingsGeneral | "An owner can undo the delete from the operation log for 30 days" | needs-both | soft delete in hub plus restore; asc keeps repo data for the window (`Repo.RepoAdmin`) | L |
 | RepoSettingsGeneral | Saving state, saved toast (5 s), unsaved-bar motion | ui-only-missing | `repo-settings.js` | S |
 
