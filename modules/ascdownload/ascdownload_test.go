@@ -259,3 +259,54 @@ func TestCommandsQuoteTheBase(t *testing.T) {
 	assert.Contains(t, arch.Commands[0].Text, `'https://dl.example.com/it''s/asc-1.2.3-x86_64-pc-windows-msvc.msi'`)
 	assert.Equal(t, "asc auth login --host 'https://hub.example.com/sub path' --prompt", o.ConnectCommand)
 }
+
+// the manifest.json that asc's release process writes (docs/RELEASE.md of asc, scripts/release/assemble.py)
+const ascSchema1 = `{
+  "schema": 1, "name": "asc", "version": "1.2.3", "commit": "0123456789abcdef0123456789abcdef01234567", "released_at": "2026-10-26T12:00:00Z",
+  "files": [
+    {"version": "1.2.3", "kind": "cli", "os": "linux", "arch": "x86_64", "target": "x86_64-unknown-linux-gnu", "format": "tar.gz", "file": "asc-1.2.3-x86_64-unknown-linux-gnu.tar.gz", "sha256": "` + hexA + `", "size": 1000, "signature": "asc-1.2.3-x86_64-unknown-linux-gnu.tar.gz.minisig"},
+    {"version": "1.2.3", "kind": "cli", "os": "linux", "arch": "x86_64", "target": "x86_64-unknown-linux-gnu", "format": "zip", "file": "asc-1.2.3-x86_64-unknown-linux-gnu.zip", "sha256": "` + hexB + `", "size": 1001, "signature": "asc-1.2.3-x86_64-unknown-linux-gnu.zip.minisig"},
+    {"version": "1.2.3", "kind": "cli", "os": "macos", "arch": "aarch64", "target": "aarch64-apple-darwin", "format": "tar.gz", "file": "asc-1.2.3-aarch64-apple-darwin.tar.gz", "sha256": "` + hexA + `", "size": 1002, "signature": "asc-1.2.3-aarch64-apple-darwin.tar.gz.minisig"},
+    {"version": "1.2.3", "kind": "cli", "os": "windows", "arch": "x86_64", "target": "x86_64-pc-windows-msvc", "format": "zip", "file": "asc-1.2.3-x86_64-pc-windows-msvc.zip", "sha256": "` + hexB + `", "size": 1003, "signature": "asc-1.2.3-x86_64-pc-windows-msvc.zip.minisig"},
+    {"version": "1.2.3", "kind": "vscode", "os": "any", "arch": "any", "target": null, "format": "vsix", "file": "asc-vscode-1.2.3.vsix", "sha256": "` + hexA + `", "size": 10, "signature": "asc-vscode-1.2.3.vsix.minisig"},
+    {"version": "1.2.3", "kind": "sbom", "os": "any", "arch": "any", "target": null, "format": "json", "file": "asc-1.2.3.cdx.json", "sha256": "` + hexA + `", "size": 10, "signature": "asc-1.2.3.cdx.json.minisig"},
+    {"version": "1.2.3", "kind": "homebrew", "os": "any", "arch": "any", "target": null, "format": "rb", "file": "asc.rb", "sha256": "` + hexA + `", "size": 10, "signature": "asc.rb.minisig"},
+    {"version": "1.2.3", "kind": "aur", "os": "any", "arch": "any", "target": null, "format": "pkgbuild", "file": "PKGBUILD", "sha256": "` + hexA + `", "size": 10, "signature": "PKGBUILD.minisig"}
+  ]
+}`
+
+func TestParseReadsTheManifestOfAscsReleaseProcess(t *testing.T) {
+	m, err := Parse(strings.NewReader(ascSchema1))
+	require.NoError(t, err)
+	assert.Equal(t, "1.2.3", m.Version)
+	assert.Equal(t, "2026-10-26", m.ReleasedAt, "the day of the release time")
+	require.Len(t, m.Files, 4, "the command line files only: no editor package, SBOM, formula or PKGBUILD")
+	byName := map[string]File{}
+	for _, f := range m.Files {
+		byName[f.Name] = f
+	}
+	mac := byName["asc-1.2.3-aarch64-apple-darwin.tar.gz"]
+	assert.Equal(t, OSMacOS, mac.OS)
+	assert.Equal(t, ArchArm64, mac.Arch, "aarch64 is arm64 on the page")
+	assert.Equal(t, KindArchive, mac.Kind)
+	assert.Equal(t, "asc-1.2.3-aarch64-apple-darwin.tar.gz.minisig", mac.Signature)
+	assert.EqualValues(t, 1002, mac.Size)
+	assert.Equal(t, KindArchive, byName["asc-1.2.3-x86_64-pc-windows-msvc.zip"].Kind)
+	assert.Equal(t, "SHA256SUMS", m.Checksums)
+	assert.Equal(t, "SHA256SUMS.minisig", m.ChecksumsSignature)
+	assert.Empty(t, m.PackageManagers, "nothing is published to a tap, bucket or index, so the page names no package manager")
+
+	// the offers: a page for each of the three systems
+	o := BuildOffers(m, "https://hub.example.com/-/download/", "https://hub.example.com/")
+	require.Len(t, o.OSes, 3)
+	assert.Empty(t, o.OSes[0].PackageCommands)
+
+	// another schema, and a manifest with nothing to offer, are refused
+	_, err = Parse(strings.NewReader(strings.Replace(ascSchema1, `"schema": 1`, `"schema": 2`, 1)))
+	require.ErrorContains(t, err, "schema 2")
+	_, err = Parse(strings.NewReader(`{"schema": 1, "version": "1.2.3", "files": [{"kind": "sbom", "file": "x.json"}]}`))
+	require.ErrorContains(t, err, "no command line files")
+	// the values are checked as for any manifest
+	_, err = Parse(strings.NewReader(strings.Replace(ascSchema1, `"file": "asc-1.2.3-x86_64-pc-windows-msvc.zip"`, `"file": "../x.zip"`, 1)))
+	require.Error(t, err)
+}
