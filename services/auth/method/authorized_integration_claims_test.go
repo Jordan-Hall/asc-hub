@@ -106,9 +106,9 @@ func TestFlexibleClaimsUnmarshal(t *testing.T) {
 		assert.Equal(t, "https://example.org/api/actions", retval.Issuer)
 		assert.Equal(t, "repo:coolguy/test:pull_request", retval.Subject)
 		assert.Equal(t, jwt.ClaimStrings{"https://example.org/-/coolguy/authorized-integration/346e1496"}, retval.Audience)
-		assert.Equal(t, &jwt.NumericDate{Time: time.Date(2026, time.April, 23, 21, 18, 30, 0, time.Local)}, retval.ExpiresAt)
-		assert.Equal(t, &jwt.NumericDate{Time: time.Date(2026, time.April, 23, 20, 18, 30, 0, time.Local)}, retval.NotBefore)
-		assert.Equal(t, &jwt.NumericDate{Time: time.Date(2026, time.April, 23, 20, 18, 30, 0, time.Local)}, retval.IssuedAt)
+		assertInstant(t, time.Date(2026, time.April, 23, 21, 18, 30, 0, time.UTC), retval.ExpiresAt)
+		assertInstant(t, time.Date(2026, time.April, 23, 20, 18, 30, 0, time.UTC), retval.NotBefore)
+		assertInstant(t, time.Date(2026, time.April, 23, 20, 18, 30, 0, time.UTC), retval.IssuedAt)
 		assert.Empty(t, retval.ID)
 		// short check that the 'other' claims were stored as well
 		assert.Equal(t, "d4083cc0f4e7452dc00f7a5f73ec5486a549adb9", retval.other["sha"])
@@ -122,9 +122,9 @@ func TestFlexibleClaimsUnmarshal(t *testing.T) {
 		assert.Equal(t, "https://token.actions.githubusercontent.com", retval.Issuer)
 		assert.Equal(t, "repo:coolguy/forgejo-runner-testrepo:pull_request", retval.Subject)
 		assert.Equal(t, jwt.ClaimStrings{"https://example.org/-/coolguy/authorized-integration/6cc55ba0"}, retval.Audience)
-		assert.Equal(t, &jwt.NumericDate{Time: time.Date(2026, time.April, 23, 21, 41, 36, 0, time.Local)}, retval.ExpiresAt)
-		assert.Equal(t, &jwt.NumericDate{Time: time.Date(2026, time.April, 23, 21, 31, 36, 0, time.Local)}, retval.NotBefore)
-		assert.Equal(t, &jwt.NumericDate{Time: time.Date(2026, time.April, 23, 21, 36, 36, 0, time.Local)}, retval.IssuedAt)
+		assertInstant(t, time.Date(2026, time.April, 23, 21, 41, 36, 0, time.UTC), retval.ExpiresAt)
+		assertInstant(t, time.Date(2026, time.April, 23, 21, 31, 36, 0, time.UTC), retval.NotBefore)
+		assertInstant(t, time.Date(2026, time.April, 23, 21, 36, 36, 0, time.UTC), retval.IssuedAt)
 		assert.Equal(t, "83545042-379e-4328-8e60-3b6d46594a5f", retval.ID)
 		// short check that the 'other' claims were stored as well
 		assert.Equal(t, "62a34e2bf42fda53a0209bfd485dcab3013b1160", retval.other["sha"])
@@ -138,12 +138,20 @@ func TestFlexibleClaimsUnmarshal(t *testing.T) {
 		assert.Equal(t, "https://a103a2cc-b461-473d-84fe-6c4f6d45af88.tokens.sts.global.api.aws", retval.Issuer)
 		assert.Equal(t, "arn:aws:iam::1234567890:role/service-role/forgejo-oidc-accepting-test-role-x7t3fgko", retval.Subject)
 		assert.Equal(t, jwt.ClaimStrings{"https://example.org/-/coolguy/authorized-integration/7895835c"}, retval.Audience)
-		assert.Equal(t, &jwt.NumericDate{Time: time.Date(2026, time.April, 23, 21, 39, 35, 0, time.Local)}, retval.ExpiresAt)
+		assertInstant(t, time.Date(2026, time.April, 23, 21, 39, 35, 0, time.UTC), retval.ExpiresAt)
 		assert.Nil(t, retval.NotBefore)
-		assert.Equal(t, &jwt.NumericDate{Time: time.Date(2026, time.April, 23, 21, 34, 35, 0, time.Local)}, retval.IssuedAt)
+		assertInstant(t, time.Date(2026, time.April, 23, 21, 34, 35, 0, time.UTC), retval.IssuedAt)
 		assert.Equal(t, "0afcbeb7-512d-479f-b596-703c03ae65a5", retval.ID)
 		// short check that the 'other' claims were stored as well
 		assert.Equal(t, "1234567890", retval.other["https://sts.amazonaws.com/"].(map[string]any)["aws_account"])
 		assert.Len(t, retval.other, 1)
 	})
+}
+
+// assertInstant compares a claim with the instant it must name; the time zone of the machine does not matter.
+func assertInstant(t *testing.T, want time.Time, got *jwt.NumericDate) {
+	t.Helper()
+	if assert.NotNil(t, got) {
+		assert.True(t, want.Equal(got.Time), "want %s, got %s", want.UTC(), got.Time.UTC())
+	}
 }
