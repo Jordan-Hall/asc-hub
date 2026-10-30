@@ -39,7 +39,8 @@ func TestAdminConfigRuntimeSwitches(t *testing.T) {
 	}
 
 	anon := emptyTestSession(t)
-	anon.MakeRequest(t, NewRequest(t, "GET", "/user/sign_up"), http.StatusOK)
+	const closed = "Registration is disabled"
+	assert.NotContains(t, anon.MakeRequest(t, NewRequest(t, "GET", "/user/sign_up"), http.StatusOK).Body.String(), closed)
 
 	save := func(key, value string, status int) {
 		req := NewRequestWithValues(t, "POST", "/admin/config", map[string]string{"key": key, "value": value})
@@ -47,13 +48,19 @@ func TestAdminConfigRuntimeSwitches(t *testing.T) {
 	}
 	save("service.allow_registration", "false", http.StatusOK)
 	assert.True(t, setting.Service.DisableRegistration)
-	anon.MakeRequest(t, NewRequest(t, "GET", "/user/sign_up"), http.StatusForbidden)
+	assert.Contains(t, anon.MakeRequest(t, NewRequest(t, "GET", "/user/sign_up"), http.StatusOK).Body.String(), closed)
 
 	save("service.allow_registration", "true", http.StatusOK)
 	assert.False(t, setting.Service.DisableRegistration)
-	anon.MakeRequest(t, NewRequest(t, "GET", "/user/sign_up"), http.StatusOK)
+	assert.NotContains(t, anon.MakeRequest(t, NewRequest(t, "GET", "/user/sign_up"), http.StatusOK).Body.String(), closed)
 
-	// the test server has no mailer, so a confirmation could never be sent
+	// with a mailer the confirmation can be switched on; without one it is refused, because it could never be sent
+	defer test.MockVariableValue(&setting.Service.RegisterEmailConfirm, false)()
+	save("service.require_email_confirm", "true", http.StatusOK)
+	assert.True(t, setting.Service.RegisterEmailConfirm)
+	save("service.require_email_confirm", "false", http.StatusOK)
+	assert.False(t, setting.Service.RegisterEmailConfirm)
+	defer test.MockVariableValue(&setting.MailService, nil)()
 	save("service.require_email_confirm", "true", http.StatusBadRequest)
 	assert.False(t, setting.Service.RegisterEmailConfirm)
 }
