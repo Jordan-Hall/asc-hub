@@ -85,10 +85,30 @@ func Commits(ctx *context.Context) {
 	}
 
 	// Both `git log branchName` and `git log commitId` work.
-	commits, err := ctx.Repo.Commit.CommitsByRange(page, pageSize, "")
-	if err != nil {
-		ctx.ServerError("CommitsByRange", err)
-		return
+	var commits []*git.Commit
+	who := ctx.FormString("who")
+	if who != "people" && who != "agents" {
+		who = ""
+	}
+	ctx.Data["HistoryWho"] = who
+	if who != "" {
+		// the people / agents filter looks at the newest historyFilterMax commits and pages through what it keeps
+		all, err := ctx.Repo.Commit.CommitsByRange(1, historyFilterMax, "")
+		if err != nil {
+			ctx.ServerError("CommitsByRange", err)
+			return
+		}
+		kept := filterCommitsByAuthorKind(ctx, all, who == "agents")
+		commitsCount = int64(len(kept))
+		from := min((page-1)*pageSize, len(kept))
+		commits = kept[from:min(from+pageSize, len(kept))]
+	} else {
+		var err error
+		commits, err = ctx.Repo.Commit.CommitsByRange(page, pageSize, "")
+		if err != nil {
+			ctx.ServerError("CommitsByRange", err)
+			return
+		}
 	}
 	ctx.Data["Commits"] = git_model.ParseCommitsWithStatus(ctx, commits, ctx.Repo.Repository)
 
@@ -109,9 +129,28 @@ func Commits(ctx *context.Context) {
 
 	pager := context.NewPagination(int(commitsCount), pageSize, page, 5)
 	pager.SetDefaultParams(ctx)
+	if who != "" {
+		pager.AddParamString("who", who)
+	}
 	ctx.Data["Page"] = pager
 
 	ctx.HTML(http.StatusOK, tplCommits)
+}
+
+// historyFilterMax bounds the commits the people / agents filter of the history reads.
+const historyFilterMax = 500
+
+// filterCommitsByAuthorKind keeps the commits whose author is an agent (a bot account) or, when agents is false, is not.
+// An author without an account is a person.
+func filterCommitsByAuthorKind(ctx *context.Context, commits []*git.Commit, agents bool) []*git.Commit {
+	withUsers := user_model.ValidateCommitsWithEmails(ctx, commits)
+	kept := make([]*git.Commit, 0, len(commits))
+	for i, uc := range withUsers {
+		if isAgent := uc.User != nil && uc.User.IsBot(); isAgent == agents {
+			kept = append(kept, commits[i])
+		}
+	}
+	return kept
 }
 
 // Graph render commit graph - show commits from all branches.

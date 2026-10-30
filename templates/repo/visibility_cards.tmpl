@@ -4,7 +4,7 @@
 	<div class="rp-vis-cards" role="radiogroup">
 		{{range $v := (StringUtils.Split "private,internal,public" ",")}}
 		<label class="rp-vis-card">
-			<input type="radio" name="visibility" value="{{$v}}"{{if eq $v $.Current}} checked{{end}}{{if and $.Forced (ne $v "private")}} disabled{{end}}>
+			<input type="radio" name="visibility" value="{{$v}}" data-confirm-title="{{ctx.Locale.Tr "repo.visibility_change_to" (ctx.Locale.Tr (print "repo.visibility_" $v))}}" data-confirm-body="{{ctx.Locale.Tr (print "repo.visibility_" $v "_desc")}}"{{if eq $v $.Current}} checked{{end}}{{if and $.Forced (ne $v "private")}} disabled{{end}}>
 			<span class="rp-vis-body">
 				<strong>{{ctx.Locale.Tr (print "repo.visibility_" $v)}}</strong>
 				<span class="ds-hint">{{ctx.Locale.Tr (print "repo.visibility_" $v "_desc")}}</span>
@@ -14,4 +14,14 @@
 	</div>
 	{{if .Forced}}<p class="ds-hint">{{ctx.Locale.Tr "repo.visibility_helper_forced"}}</p>{{end}}
 	{{with .Notice}}<p class="ds-hint">{{.}}</p>{{end}}
+	<dialog class="rp-vis-dialog" data-visibility-dialog aria-labelledby="rp-vis-dialog-h">
+		<article>
+			<header id="rp-vis-dialog-h" data-visibility-title></header>
+			<div class="content"><p data-visibility-body></p></div>
+			<footer class="rp-vis-dialog-actions">
+				<button type="button" class="ds-btn ds-btn-secondary" data-visibility-cancel>{{ctx.Locale.Tr "repo.visibility_change_cancel"}}</button>
+				<button type="button" class="ds-btn ds-btn-primary" data-visibility-confirm>{{ctx.Locale.Tr "repo.visibility_change_confirm"}}</button>
+			</footer>
+		</article>
+	</dialog>
 </fieldset>
