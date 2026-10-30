@@ -9,6 +9,7 @@ import (
 	"io"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -56,6 +57,7 @@ type AuditQuery struct {
 	Action      string
 	Outcome     string
 	Target      string
+	Seq         string
 	Since       string
 	Until       string
 	OldestFirst bool
@@ -80,6 +82,7 @@ func AuditQueryOf(get func(string) string) (AuditQuery, *ascv1.AuditFilter, []st
 		Action:      short("action", maxFilterList*(maxActionLen+1)),
 		Outcome:     short("outcome", 16),
 		Target:      short("target", maxTargetLen),
+		Seq:         short("seq", 20),
 		Since:       short("since", 10),
 		Until:       short("until", 10),
 		OldestFirst: get("order") == "oldest",
@@ -123,6 +126,15 @@ func AuditQueryOf(get func(string) string) (AuditQuery, *ascv1.AuditFilter, []st
 	default:
 		problems = append(problems, "The outcome is success, denied or failed.")
 		q.Outcome = ""
+	}
+	if q.Seq != "" {
+		n, err := strconv.ParseUint(q.Seq, 10, 64)
+		if err != nil || n == 0 {
+			problems = append(problems, "The event number is a whole number from 1.")
+			q.Seq = ""
+		} else {
+			f.Seq = n
+		}
 	}
 	if q.Target != "" {
 		for _, r := range q.Target {
@@ -202,6 +214,7 @@ func (q AuditQuery) Values() map[string]string {
 	set("action", q.Action)
 	set("outcome", q.Outcome)
 	set("target", q.Target)
+	set("seq", q.Seq)
 	set("since", q.Since)
 	set("until", q.Until)
 	if q.OldestFirst {
