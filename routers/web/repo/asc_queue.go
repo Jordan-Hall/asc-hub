@@ -481,7 +481,10 @@ func ascQueueStats(ctx *context.Context, repo *repo_model.Repository, branch str
 				timings[t.Change] = t
 			}
 			ctx.Data["AscQueueMedian"] = snap.Median
-			ctx.Data["AscQueueLiveURL"] = ctx.Repo.RepoLink + "/asc/queue/live?branch=" + url.QueryEscape(branch)
+			if ctx.Doer != nil {
+				// The live answer is for signed-in people; an anonymous visitor would only poll an empty one.
+				ctx.Data["AscQueueLiveURL"] = ctx.Repo.RepoLink + "/asc/queue/live?branch=" + url.QueryEscape(branch)
+			}
 			if len(view.Active) > 0 {
 				if first, ok := timings[view.Active[0].Entry.AscChange]; ok && first.ETA != "" {
 					ctx.Data["AscQueueNext"] = first.ETA
