@@ -1,0 +1,9 @@
+{{/*
+One event of the activity timeline.
+Template Attributes:
+* . : repo.AscActivityEvent
+*/}}
+<li class="rv-activity-item" data-kind="{{.Kind}}">
+	<span class="rv-activity-text">{{if .Link}}<a href="{{.Link}}">{{end}}{{if eq .Kind "version"}}{{ctx.Locale.Tr "asc_review.activity_version" .Actor .Version}}{{else if eq .Kind "carried"}}{{ctx.Locale.Tr "asc_review.activity_carried" .Actor .Version}}{{else}}{{ctx.Locale.Tr (printf "asc_review.activity_%s" .Kind) .Actor}}{{end}}{{if .Link}}</a>{{end}}</span>
+	<span class="rv-activity-when rv-muted">{{DateUtils.TimeSince .At}}</span>
+</li>

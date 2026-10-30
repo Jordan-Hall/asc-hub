@@ -571,6 +571,7 @@ func PrepareViewPullInfo(ctx *context.Context, issue *issues_model.Issue) *git.C
 	prepareAscSuggestions(ctx, pull)
 	prepareAscBadges(ctx, pull)
 	prepareAscBrief(ctx, pull)
+	prepareAscActivity(ctx, pull)
 	prepareAscRunPull(ctx, pull)
 	prepareAscChangeHeader(ctx, pull)
 

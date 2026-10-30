@@ -366,3 +366,23 @@
 .rv-change-header .rv-banner {
   margin: 0;
 }
+
+/* The activity timeline of a stacked change. */
+.rv-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rv-activity-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.rv-activity-more > summary {
+  cursor: pointer;
+  padding: 8px 16px;
+}

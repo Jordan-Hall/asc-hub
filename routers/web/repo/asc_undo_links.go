@@ -39,6 +39,16 @@ func ascUndoURL(repo *repo_model.Repository, row *asctrust.OpRow) string {
 
 // ascNewestOp returns the newest operation on ref, or nil when there is none or it cannot be read.
 func ascNewestOp(ctx *context.Context, repo *repo_model.Repository, ref string) *asctrust.OpRow {
+	rows := ascRefOps(ctx, repo, ref, 1)
+	if len(rows) == 0 {
+		return nil
+	}
+	return &rows[0]
+}
+
+// ascRefOps returns up to limit operations on ref, newest first, as the signed-in person. It returns nothing when asc
+// cannot be asked or the person may not read the log.
+func ascRefOps(ctx *context.Context, repo *repo_model.Repository, ref string, limit uint32) []asctrust.OpRow {
 	if !setting.Asc.Enabled || ctx.Doer == nil || !asctrust.HasFeature(ctx, asctrust.FeatureStacks) {
 		return nil
 	}
@@ -55,15 +65,18 @@ func ascNewestOp(ctx *context.Context, repo *repo_model.Repository, ref string) 
 		return nil
 	}
 	defer release()
-	page, err := asctrust.LoadOpLog(callCtx, conn, name, ascUndoWho(ctx), asctrust.OpLogQuery{Ref: ref, Limit: 1})
+	page, err := asctrust.LoadOpLog(callCtx, conn, name, ascUndoWho(ctx), asctrust.OpLogQuery{Ref: ref, Limit: limit})
 	if err != nil {
-		log.Trace("asc newest operation of %s: %v", ref, asctrust.Classify(err))
+		log.Trace("asc operations of %s: %v", ref, asctrust.Classify(err))
 		return nil
 	}
-	if len(page.Rows) == 0 || page.Rows[0].Ref != ref {
-		return nil
+	rows := make([]asctrust.OpRow, 0, len(page.Rows))
+	for _, r := range page.Rows {
+		if r.Ref == ref {
+			rows = append(rows, r)
+		}
 	}
-	return &page.Rows[0]
+	return rows
 }
 
 // ascRestackLineOf makes the restack line from the newest operation of the change's branch: nil unless that
