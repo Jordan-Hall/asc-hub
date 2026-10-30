@@ -119,6 +119,15 @@ func ToTrustModel(model string) TrustModelType {
 	return DefaultTrustModel
 }
 
+// IsPublicTo reports whether the person may read the repository without being a member: everyone for a public
+// repository, a signed-in person who is not restricted for an internal one.
+func (repo *Repository) IsPublicTo(user *user_model.User) bool {
+	if !repo.IsPrivate {
+		return true
+	}
+	return repo.IsInternal && user != nil && user.ID > 0 && !user.IsRestricted
+}
+
 // IsTrashed reports whether the repository is in the trash: nobody can read or write it until it is restored.
 func (repo *Repository) IsTrashed() bool { return repo.Status == RepositoryTrashed }
 
@@ -160,6 +169,9 @@ type Repository struct {
 	NumOpenProjects     int `xorm:"-"`
 
 	IsPrivate  bool `xorm:"INDEX"`
+	// IsInternal marks a private repository as open to every signed-in, non-restricted person of the instance (the
+	// visibility of a "limited" organisation); it is only meaningful together with IsPrivate.
+	IsInternal bool `xorm:"NOT NULL DEFAULT false"`
 	IsEmpty    bool `xorm:"INDEX"`
 	IsArchived bool `xorm:"INDEX"`
 	IsMirror   bool `xorm:"INDEX"`

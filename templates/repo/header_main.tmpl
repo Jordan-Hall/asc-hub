@@ -6,7 +6,7 @@
 			<div class="rp-head-main">
 				<div class="rp-title-row">
 					<h1 class="rp-title"><a class="rp-owner" href="{{.Owner.HomeLink}}">{{.Owner.Name}}</a><span class="rp-sep" aria-hidden="true">/</span><a class="rp-name" href="{{$.RepoLink}}">{{.Name}}</a></h1>
-					{{if .IsPrivate}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "repo.desc.private"}}</span>
+					{{if .IsPrivate}}<span class="ds-chip ds-chip-outline">{{if .IsInternal}}{{ctx.Locale.Tr "repo.desc.internal"}}{{else}}{{ctx.Locale.Tr "repo.desc.private"}}{{end}}</span>
 					{{else if .Owner.Visibility.IsPrivate}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "repo.desc.internal"}}</span>{{end}}
 					{{if .IsArchived}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "repo.desc.archived"}}</span>{{end}}
 					{{if .IsTemplate}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "repo.desc.template"}}</span>{{end}}

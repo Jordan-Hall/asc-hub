@@ -254,7 +254,7 @@ func innerToRepo(ctx stdCtx.Context, repo *repo_model.Repository, permissionInRe
 		DefaultUpdateStyle:            string(defaultUpdateStyle),
 		DefaultAllowMaintainerEdit:    defaultAllowMaintainerEdit,
 		AvatarURL:                     repo.AvatarLink(ctx),
-		Internal:                      !repo.IsPrivate && repo.Owner.Visibility == api.VisibleTypePrivate,
+		Internal:                      repo.IsInternal || (!repo.IsPrivate && repo.Owner.Visibility == api.VisibleTypePrivate),
 		MirrorInterval:                mirrorInterval,
 		MirrorUpdated:                 mirrorUpdated,
 		RepoTransfer:                  transfer,

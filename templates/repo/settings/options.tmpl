@@ -23,18 +23,8 @@
 					</div>
 				</div>
 				{{if not .Repository.IsFork}}
-					<div class="ds-field">
-						<label class="ds-label">{{ctx.Locale.Tr "repo.visibility"}}</label>
-						<div class="ds-check" {{if and (not .Repository.IsPrivate) (gt .Repository.NumStars 0)}}data-tooltip-content="{{ctx.Locale.Tr "repo.stars_remove_warning"}}"{{end}}>
-							{{if .IsAdmin}}
-								<input id="opt-chk-2" name="private" type="checkbox" {{if .Repository.IsPrivate}}checked{{end}}>
-							{{else}}
-								<input name="private" type="checkbox" {{if .Repository.IsPrivate}}checked{{end}}{{if and $.ForcePrivate .Repository.IsPrivate}} disabled{{end}}>
-								{{if and .Repository.IsPrivate $.ForcePrivate}}<input type="hidden" name="private" value="{{.Repository.IsPrivate}}">{{end}}
-							{{end}}
-							<label for="opt-chk-2">{{ctx.Locale.Tr "repo.visibility_helper"}} {{if .Repository.NumForks}}<span class="ds-c-err">{{ctx.Locale.Tr "repo.visibility_fork_helper"}}</span>{{end}}</label>
-						</div>
-					</div>
+					{{$vis := "public"}}{{if .Repository.IsPrivate}}{{$vis = "private"}}{{if .Repository.IsInternal}}{{$vis = "internal"}}{{end}}{{end}}
+					{{template "repo/visibility_cards" (dict "Current" $vis "Forced" (and $.ForcePrivate (not .IsAdmin) .Repository.IsPrivate))}}
 				{{end}}
 				<div class="ds-field {{if .Err_Description}}is-err{{end}}">
 					<label class="ds-label" for="description">{{ctx.Locale.Tr "repo.repo_desc"}}</label>
