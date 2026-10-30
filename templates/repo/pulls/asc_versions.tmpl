@@ -11,6 +11,7 @@ Template Attributes:
 * AscVersionChecks: map[uint32][]AscVersionCheck (the check chips of each version; nil: none)
 * AscBrief: the brief of the pull request, for the "Approved by" marker (nil: none)
 * AscSinceVersion: uint32, the version of the viewer's last review (0 when there is none or it is the latest)
+* AscChangedSince: int, the files that changed since the viewer's last review (0: no count and no filter is shown)
 * Issue.Link: the pull request link
 Numbers are inserted as they are; the actor name comes from asc and is escaped by the template engine. The base and head
 pickers are plain radio buttons of a GET form, so the panel works without a script.
@@ -21,7 +22,7 @@ pickers are plain radio buttons of a GET form, so the panel works without a scri
 {{$head := $latest}}
 {{if .AscHeadVersion}}{{$head = .AscHeadVersion}}{{$current = .AscHeadVersion}}{{end}}
 {{if .AscVersionTo}}{{$current = .AscVersionTo}}{{end}}
-<section class="rv rv-vers" data-testid="asc-versions" aria-label="{{ctx.Locale.Tr "asc_review.rev_versions"}}">
+<section class="rv rv-vers" id="asc-versions" data-testid="asc-versions" aria-label="{{ctx.Locale.Tr "asc_review.rev_versions"}}">
 	<div class="rv-vers-bar">
 		<details class="rv-menu rv-vers-pick">
 			<summary class="rv-btn rv-btn-secondary rv-vers-sum">
@@ -92,6 +93,10 @@ pickers are plain radio buttons of a GET form, so the panel works without a scri
 		</nav>
 		{{end}}
 		<div class="rv-vers-links">
+			{{if .AscChangedSince}}
+			<span class="rv-pill rv-pill-agent" data-testid="asc-changed-since-count">{{ctx.Locale.TrN .AscChangedSince "asc_review.rev_changed_since_one" "asc_review.rev_changed_since_other" .AscChangedSince}}</span>
+			<button type="button" class="rv-btn rv-btn-secondary" data-asc-changed-only aria-pressed="false" data-on="{{ctx.Locale.Tr "asc_review.rev_changed_all"}}" data-off="{{ctx.Locale.Tr "asc_review.rev_changed_only"}}" data-testid="asc-changed-only">{{ctx.Locale.Tr "asc_review.rev_changed_only"}}</button>
+			{{end}}
 			{{if .AscSinceVersion}}<a class="rv-btn rv-btn-secondary" href="{{.Issue.Link}}/files?asc_from={{.AscSinceVersion}}&asc_to={{.AscVersions.Latest}}" data-testid="asc-since-last-review">{{ctx.Locale.Tr "repo.pulls.asc_versions.since_review" .AscSinceVersion}}</a>{{end}}
 			<a class="rv-btn rv-btn-secondary" href="{{.Issue.Link}}/asc/checks" data-testid="asc-checks-link">{{ctx.Locale.Tr "asc_review.rev_checks"}}</a>
 		</div>
