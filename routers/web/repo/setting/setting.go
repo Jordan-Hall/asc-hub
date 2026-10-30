@@ -378,7 +378,23 @@ func SettingsPost(ctx *context.Context) {
 			form.Private = repo.BaseRepo.IsPrivate || repo.BaseRepo.Owner.Visibility == structs.VisibleTypePrivate
 		}
 
-		visibilityChanged := repo.IsPrivate != form.Private
+		// the level of the visibility form: private, internal (every signed-in person) or public; the old checkbox
+		// still decides when the form does not carry it
+		internal := repo.IsInternal
+		switch form.Visibility {
+		case "private":
+			form.Private, internal = true, false
+		case "internal":
+			form.Private, internal = true, true
+		case "public":
+			form.Private, internal = false, false
+		default:
+			internal = internal && form.Private
+		}
+		if repo.IsFork {
+			internal = repo.BaseRepo.IsInternal && form.Private
+		}
+		visibilityChanged := repo.IsPrivate != form.Private || repo.IsInternal != internal
 		// when ForcePrivate enabled, you could change public repo to private, but only admin users can change private to public
 		if visibilityChanged && setting.Repository.ForcePrivate && !form.Private && !ctx.Doer.IsAdmin {
 			ctx.RenderWithErr(ctx.Tr("form.repository_force_private"), tplSettingsOptions, form)
@@ -386,6 +402,7 @@ func SettingsPost(ctx *context.Context) {
 		}
 
 		repo.IsPrivate = form.Private
+		repo.IsInternal = internal
 		if err := repo_service.UpdateRepository(ctx, repo, visibilityChanged); err != nil {
 			ctx.ServerError("UpdateRepository", err)
 			return

@@ -43,7 +43,7 @@ func accessLevel(ctx context.Context, user *user_model.User, repo *repo_model.Re
 		restricted = user.IsRestricted
 	}
 
-	if !restricted && !repo.IsPrivate {
+	if !restricted && repo.IsPublicTo(user) {
 		mode = perm.AccessModeRead
 	}
 

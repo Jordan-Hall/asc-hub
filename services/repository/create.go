@@ -37,6 +37,7 @@ type CreateRepoOptions struct {
 	Readme           string
 	DefaultBranch    string
 	IsPrivate        bool
+	IsInternal       bool // private to the public and open to every signed-in person; needs IsPrivate
 	IsMirror         bool
 	IsTemplate       bool
 	AutoInit         bool
@@ -213,6 +214,7 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 		OriginalURL:                     opts.OriginalURL,
 		OriginalServiceType:             opts.GitServiceType,
 		IsPrivate:                       opts.IsPrivate,
+		IsInternal:                      opts.IsInternal && opts.IsPrivate,
 		IsFsckEnabled:                   !opts.IsMirror,
 		IsTemplate:                      opts.IsTemplate,
 		CloseIssuesViaCommitInAnyBranch: setting.Repository.DefaultCloseIssuesViaCommitsInAnyBranch,

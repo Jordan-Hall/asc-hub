@@ -30,6 +30,7 @@ type CreateRepoForm struct {
 	UID           int64  `binding:"Required"`
 	RepoName      string `binding:"Required;AlphaDashDot;MaxSize(100)" preprocess:"TrimSpace"`
 	Private       bool
+	Visibility    string // "private", "internal" or "public"; empty keeps what Private says
 	Description   string `binding:"MaxSize(2048)"`
 	DefaultBranch string `binding:"GitRefName;MaxSize(100)"`
 	AutoInit      bool
@@ -147,6 +148,7 @@ type RepoSettingForm struct {
 	PushMirrorUseSSH       bool
 	PushMirrorBranchFilter string `binding:"MaxSize(2048)" preprocess:"TrimSpace"`
 	Private                bool
+	Visibility             string // "private", "internal" or "public"; empty keeps what Private says
 	Template               bool
 	EnablePrune            bool
 

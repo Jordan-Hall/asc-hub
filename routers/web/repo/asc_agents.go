@@ -716,6 +716,7 @@ func AscAgentsRun(ctx *context.Context) {
 	ctx.Data["AscAgentLive"] = see
 	ctx.Data["AscAgentPolicy"] = ascAgentPolicyOf(callCtx, env.ref())
 	ctx.Data["AscAgentCanAct"] = ctx.Repo.CanWrite(unit.TypeCode)
+	ctx.Data["AscAgentCanOpen"] = ascAgentsCanOpenPulls(ctx, changes)
 	ctx.Data["AscAgentsMaxInput"] = ascagentui.MaxInputBytes
 	ctx.Data["AscAgentsPollURL"] = env.runsLink() + "/runs/" + strconv.FormatUint(id, 10) + "/events"
 	if see {
