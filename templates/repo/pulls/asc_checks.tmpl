@@ -45,6 +45,7 @@
 							{{if .Anchor}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscPullChecks.PullURL}}/files#{{.Anchor}}" data-testid="asc-open-line">{{ctx.Locale.Tr "asc_trust.pull.open_line" .Where}}</a>{{end}}
 							{{if .RunURL}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.RunURL}}">{{ctx.Locale.Tr "asc_trust.pull.full_log"}}</a>{{end}}
 							<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscPullChecks.ChecksURL}}/groups/{{.GroupID}}">{{ctx.Locale.Tr "asc_trust.pull.open_group"}}</a>
+							{{with index $.AscPullChecks.Asks .GroupID}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.}}" data-testid="asc-ask-agent">{{ctx.Locale.Tr "asc_trust.pull.ask_agent"}}</a>{{end}}
 							{{if $.AscPullChecks.Repro}}<button type="button" class="rv-btn rv-btn-secondary rv-btn-sm" data-clipboard-text="{{$.AscPullChecks.Repro}}" data-tooltip-content="{{ctx.Locale.Tr "asc_trust.pull.repro_help"}}" data-testid="asc-copy-repro">{{ctx.Locale.Tr "asc_trust.pull.repro"}}</button>{{end}}
 						</div>
 					</section>
@@ -111,6 +112,19 @@
 							{{end}}
 						</ul>
 					</section>
+					{{if .History}}
+					<section class="rv-card" aria-labelledby="asc-history">
+						<div class="rv-card-h"><h2 id="asc-history">{{ctx.Locale.Tr "asc_trust.pull.history"}}</h2></div>
+						<ul class="rv-checklist" data-testid="asc-version-history">
+							{{range .History}}
+							<li>
+								<span><a href="{{$.AscPullChecks.PullURL}}/files?asc_to={{.Version}}">v{{.Version}}</a></span>
+								<b class="rv-tone-{{if .Failing}}no{{else if .Running}}wn{{else}}ok{{end}}">{{if .Failing}}{{ctx.Locale.Tr "asc_trust.pull.history_failing" .Failing}}{{else if .Running}}{{ctx.Locale.Tr "asc_trust.pull.history_running" .Running}}{{else}}{{ctx.Locale.Tr "asc_trust.pull.history_passing"}}{{end}}</b>
+							</li>
+							{{end}}
+						</ul>
+					</section>
+					{{end}}
 					{{if $c.Main}}
 					<section class="rv-card" aria-labelledby="asc-vs-main">
 						<div class="rv-card-h"><h2 id="asc-vs-main">{{ctx.Locale.Tr "asc_trust.pull.vs_main"}}</h2></div>

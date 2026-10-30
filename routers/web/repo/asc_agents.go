@@ -21,6 +21,7 @@ import (
 	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/context"
 
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -443,7 +444,28 @@ func AscAgentsNew(ctx *context.Context) {
 		return
 	}
 	form := ascAgentForm{Agent: ascAgentsDefaultAgent, Target: ctx.Repo.Repository.DefaultBranch, OpID: ascAgentsNewOpID()}
+	ascAgentsPrefill(ctx, &form)
 	ascAgentsRenderForm(ctx, env, &form, http.StatusOK)
+}
+
+// ascAgentsPrefill fills the task form from the address, so a link can start the form for a failing check: title, task,
+// agent and target. Nothing is trusted: the same checks run when the form is sent, and a value that does not fit is left
+// out here.
+func ascAgentsPrefill(ctx *context.Context, form *ascAgentForm) {
+	if t, ok := ascagentui.CheckFreeText(ctx.FormString("task"), ascagentui.MaxTaskBytes); ok {
+		form.Task = t
+	}
+	if t, ok := ascagentui.CheckLine(ctx.FormString("title"), ascagentui.MaxTitleBytes, true); ok {
+		form.Title = t
+	}
+	if a := ctx.FormTrim("agent"); a != "" && ascagentui.ValidAgentName(a) {
+		form.Agent = a
+	}
+	if b := ctx.FormTrim("target"); b != "" {
+		if br, err := git_model.GetBranch(ctx, ctx.Repo.Repository.ID, b); err == nil && !br.IsDeleted {
+			form.Target = b
+		}
+	}
 }
 
 // ascAgentsRenderForm draws the task form with the picker and the policy panel.
@@ -732,7 +754,25 @@ func AscAgentsRun(ctx *context.Context) {
 	ctx.Data["AscAgentRunSummaryCost"] = ascagentui.FormatUSD(run.GetUsage().GetCostMicroUsd())
 	ctx.Data["AscAgentRunSummaryTime"] = ascagentui.FormatDuration(uint64(run.GetUsage().GetRuntimeSeconds()))
 	ascAgentsLoadRunBoard(ctx, env, callCtx, conn, run, see)
+	ascAgentsLoadRunToken(ctx, env, callCtx, conn, run)
 	ctx.HTML(http.StatusOK, tplAscAgentsRun)
+}
+
+// ascAgentsLoadRunToken puts the token the run works with into ctx.Data["AscAgentRunToken"] for the "Access for this
+// run" card: its id, state, expiry and the paths it may write. asc answers GetToken only to a repository administrator,
+// so for anyone else the card shows the repository policy alone. A failed read leaves the card out.
+func ascAgentsLoadRunToken(ctx *context.Context, env *ascAgentsEnv, callCtx gocontext.Context, conn grpc.ClientConnInterface, run *ascv1.AgentRun) {
+	if !ctx.Repo.IsAdmin() || !ascagentui.ValidTokenID(run.GetTokenId()) {
+		return
+	}
+	resp, err := ascv1.NewAgentTokensClient(conn).GetToken(callCtx, &ascv1.GetAgentTokenRequest{Repo: env.ref(), Id: run.GetTokenId()})
+	if err != nil {
+		log.Trace("asc agents: token of run %d: %v", run.GetId(), err)
+		return
+	}
+	if row, ok := ascAgentTokenOf(resp.GetToken(), env.name); ok {
+		ctx.Data["AscAgentRunToken"] = row
+	}
 }
 
 // ascAgentFeedJSON is the answer of a poll.

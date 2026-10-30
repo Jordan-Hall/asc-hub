@@ -26,10 +26,10 @@ func TestJobStatsGroupsByJobAndOrdersByFailures(t *testing.T) {
 	}
 	got := JobStats(rows)
 	require.Len(t, got, 5)
-	assert.Equal(t, JobStat{Job: "e2e", Groups: 1, Occurrences: 20, Changes: 1}, got[0])
-	assert.Equal(t, JobStat{Job: "a", Groups: 1, Occurrences: 8}, got[1], "equal failures are ordered by name")
+	assert.Equal(t, JobStat{Job: "e2e", Groups: 1, Occurrences: 20, Changes: 1, Share: 100}, got[0])
+	assert.Equal(t, JobStat{Job: "a", Groups: 1, Occurrences: 8, Share: 40}, got[1], "equal failures are ordered by name")
 	assert.Equal(t, "b", got[2].Job)
-	assert.Equal(t, JobStat{Job: "unit", Groups: 2, Occurrences: 8, Changes: 4, Flaky: 1}, got[3], "changes are the largest of the groups, not their sum")
+	assert.Equal(t, JobStat{Job: "unit", Groups: 2, Occurrences: 8, Changes: 4, Flaky: 1, Share: 40}, got[3], "changes are the largest of the groups, not their sum")
 	assert.Equal(t, "", got[4].Job)
 
 	var many []GroupRow
