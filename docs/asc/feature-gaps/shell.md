@@ -12,14 +12,14 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 101 |
-| ui-only-missing | 29 |
+| done | 103 |
+| ui-only-missing | 27 |
 | needs-hub-backend | 39 |
 | needs-asc-backend | 2 |
 | needs-both | 24 |
 | total | 195 |
 
-Open rows by size: S 45, M 64, L 23.
+Open rows by size: S 21, M 50, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -34,7 +34,7 @@ Open rows by size: S 45, M 64, L 23.
 | Shell | Notifications bell opens a popover (unread count, Mark all read, items with avatar, text, repo, age, Open inbox) | needs-hub-backend | Bell is a plain link to `/notifications` (`head_navbar.tmpl`). Add a fragment route in `routers/web/user/notification.go` (reuse `NotificationStatusPost` for Mark all read), a popover in `head_navbar.tmpl`, open and close in `ds-shell.js`. Items like "coder-2 finished run 214" need agent and queue events to create hub notifications, which nothing does today | M |
 | Shell | Account menu: identity, profile, inbox with count, agents, settings, Appearance (Light, Dark, Auto), Density (Comfy, Compact), Documentation, Sign out | done | `head_navbar.tmpl` `#ds-account`, `head_style.tmpl` | - |
 | Shell | Theme and density persist per person: localStorage, then the account setting | needs-hub-backend | Only `localStorage` (`asc-theme-mode`, `asc-density`) in `head_style.tmpl`. Add a user setting (`models/user/setting.go`), save on change (fetch to `routers/web/user/setting`), render `data-density` server side | S |
-| Shell | Create menu: New repository, Import a project, New organization, New changeset, Start an agent run | ui-only-missing | `#ds-create` has the first three. Add "New changeset" (repo and stack picker) and "Start an agent run" (`/-/asc/agents`) when `AscEnabled` | S |
+| Shell | Create menu: New repository, Import a project, New organization, New changeset, Start an agent run | ui-only-missing | New repository, Import, New organization and "Start an agent run" are in #ds-create (head_navbar.tmpl). Open: "New changeset" (needs a repository and stack picker page) | S |
 | Shell | Menus close on Esc or outside click, return focus to trigger, fade and rise, reduced motion | done | `ds-shell.js`, `asc-ds/components.css` | - |
 | Shell | Command palette opens from `/`, Ctrl K, header search, mobile search; Esc, arrows, Enter | done | `ds-shell.js`, `#ds-palette` | - |
 | Shell | Palette is a combobox: `role=combobox` input, listbox results, `aria-activedescendant` | done | Today `role=dialog` plus `role=search` form and an `.is-sel` class. Change markup in `head_navbar.tmpl` and `select()` in `ds-shell.js` | S |
@@ -275,7 +275,7 @@ Open rows by size: S 45, M 64, L 23.
 | Profile | "Agents Priya runs" with New agent | needs-both | Not on the profile. Hub must list the person's agents (see Explore users) with scope and counts | L |
 | Profile | Recent activity | done | `profile.tmpl` feed | - |
 | Profile | "Knows best" (path share of changes and reviews, six months) | needs-both | No code. Aggregate asc `LastCommits` / blame data per user: new RPC or hub job | L |
-| Profile | Teams and Focus chips beside Repositories and Organizations | ui-only-missing | Repositories and Organizations cards exist; teams via `organization.GetUserTeams`, focus from repo topics | S |
+| Profile | Teams and Focus chips beside Repositories and Organizations | ui-only-missing | Teams card is on the profile (templates/user/profile.tmpl wk-pteams, members only). Open: Focus chips from repository topics | S |
 | Profile | States: owner view (Edit profile, View as visitor), private-profile banner, empty pins and contributions, loading skeleton | ui-only-missing | "View as visitor", the private banner (name and shared repositories only) and the empty rows missing | M |
 
 ## OrgProfile
@@ -296,8 +296,8 @@ Open rows by size: S 45, M 64, L 23.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Mobile-Menu | Top bar, five-item bottom nav (Inbox, Changes, Explore, Search, Me) with counts in the label, drawer, account sheet, full-screen palette | done | `head_navbar.tmpl` (`.ds-topbar`, `.ds-bnav`, `#ds-drawer`) | - |
-| Mobile-Menu | Swipe from the left edge opens the drawer | ui-only-missing | No touch handler in `ds-shell.js` | S |
-| Mobile-Menu | Create as a bottom sheet (drawer footer and list headers) | ui-only-missing | `#ds-create` is a popover; sheet variant on phones | S |
+| Mobile-Menu | Swipe from the left edge opens the drawer | done | web_src/js/features/ds-shell.js edgeSwipe + touch handlers (test: ds-shell.test.js) | - |
+| Mobile-Menu | Create as a bottom sheet (drawer footer and list headers) | done | web_src/css/asc-ds/layout.css .ds-pop is a bottom sheet under 1024 px; templates/base/head_navbar.tmpl #ds-create | - |
 | Mobile-Menu | Notifications sheet | needs-hub-backend | With the popover (Shell) | M |
 | Mobile-Menu | Palette filter chips scroll horizontally | done | With the scope chips | S |
 

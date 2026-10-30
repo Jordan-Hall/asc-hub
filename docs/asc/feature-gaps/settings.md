@@ -18,14 +18,14 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 86 |
-| ui-only-missing | 24 |
+| done | 87 |
+| ui-only-missing | 23 |
 | needs-hub-backend | 35 |
 | needs-asc-backend | 2 |
 | needs-both | 26 |
 | total | 173 |
 
-Open rows by size: S 24, M 52, L 11.
+Open rows by size: S 23, M 52, L 11.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -64,7 +64,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsAccount | Resend rate limit that says when to retry | needs-hub-backend | routers/web/user/setting/account.go (EmailPost SENDACTIVATION) | S |
 | UserSettingsAccount | Sign-in methods card (SSO connected, link to Security for passkeys/password) | done | account.tmpl; data already in security/accountlinks.tmpl (AccountLinks) | S |
 | UserSettingsAccount | Export your data (changesets, reviews, comments, settings; emailed link; requested/ready states) | needs-hub-backend | done: Sessions-style page /user/settings/asc/export (request, states, download, delete) over DataExport (routers/web/user/setting/asc_account.go). Open: the emailed link when the export is ready (hub mail on state change) | S |
-| UserSettingsAccount | Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus return | ui-only-missing | account.tmpl asks for the password; routers/web/user/setting/account.go DeleteAccount | S |
+| UserSettingsAccount | Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus return | ui-only-missing | Typed username and the blocked-by-repositories state are done (account.go DeleteAccount, account.tmpl). Open: 2FA code step and dialog focus return | S |
 | UserSettingsAppearance | Theme cards (light, dark, system) with preview | done | templates/user/settings/appearance.tmpl | - |
 | UserSettingsAppearance | Density (comfortable, compact) | done | appearance.tmpl, templates/base/head_style.tmpl (kept in localStorage, not per account; board says every device) | S |
 | UserSettingsAppearance | Language select; hints switch; hidden comment types | done | appearance.tmpl | - |
@@ -98,7 +98,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsTokens | "Prefer no tokens" card with asc auth login commands | done | applications.tmpl static card | S |
 | UserSettingsKeys | SSH keys (fingerprint, added, last used, delete) and GPG keys | done | templates/user/settings/keys_ssh.tmpl, keys_gpg.tmpl | - |
 | UserSettingsKeys | ASC signing keys list, add, revoke with state chips | done | templates/user/settings/asc_keys.tmpl, routers/web/user/setting/asc_keys.go | - |
-| UserSettingsKeys | Rotate action that keeps the old key verifying past signatures | ui-only-missing | asc_keys.go: add new key then revoke old in one flow (Signing.AddKey and RevokeKey exist) | S |
+| UserSettingsKeys | Rotate action that keeps the old key verifying past signatures | done | services/asctrust/rotate.go RotateKey (add, then revoke with its own op id), routers/web/user/setting/asc_keys.go AscKeysRotate, asc_keys.tmpl details form | - |
 | UserSettingsKeys | Sign my changesets by default switch | needs-both | hub pref + asc config the CLI reads (no field in proto/asc/v1/signing.proto) | M |
 | UserSettingsKeys | Delete confirm that lists what stops working | done | keys_ssh.tmpl modal text | S |
 | UserSettingsApps | OAuth2 apps, authorized apps with revoke, client secret shown once, regenerate | done | templates/user/settings/applications_oauth2*.tmpl, grants_oauth2.tmpl | - |
