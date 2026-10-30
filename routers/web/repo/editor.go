@@ -206,6 +206,11 @@ func editFile(ctx *context.Context, isNewFile bool) {
 			ctx.Data["FileContent"] = content
 		}
 	} else {
+		// A workflow template ("Start from a template" on the workflows page) is the text of the new file and gives it its name.
+		if t, ok := ascWorkflowTemplate(ctx.FormString("asc_template")); ok && fileName == "" {
+			ctx.Data["FileContent"] = t.Text
+			fileName = t.Name + ".toml"
+		}
 		// Append filename from query, or empty string to allow user name the new file.
 		treeNames = append(treeNames, fileName)
 	}

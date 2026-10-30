@@ -45,6 +45,9 @@ Template Attributes:
 					{{end}}
 				{{end}}
 			</header>
+			{{if $.AscWorkflowCanAct}}{{range .Steps}}{{if .Waiting}}
+			<div class="rv-banner rv-banner-warn" role="alert" data-testid="asc-wf-needs-decision"><div><b>{{ctx.Locale.Tr "asc_review.wf_needs_decision"}}</b> {{ctx.Locale.Tr "asc_review.wf_needs_decision_help" .ID}}</div></div>
+			{{end}}{{end}}{{end}}
 			<div class="rv-banner rv-banner-err{{if not .Error}} tw-hidden{{end}}" role="alert" data-run-failure>{{.Error}}</div>
 			{{if .ErrorPrivate}}<div class="rv-banner" role="note" data-testid="asc-wf-error-private"><div>{{ctx.Locale.Tr "asc_review.wf_private_error"}}</div></div>{{end}}
 
