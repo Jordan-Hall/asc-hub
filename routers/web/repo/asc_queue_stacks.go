@@ -24,6 +24,7 @@ const (
 // ascQueueStack is one open stack of the panel.
 type ascQueueStack struct {
 	Top      *issues_model.PullRequest
+	Link     string
 	Changes  int
 	Queued   bool
 	QueueURL string
@@ -65,8 +66,9 @@ func ascQueueStacksOf(ctx context.Context, repo *repo_model.Repository, branch s
 		if err := pr.LoadIssue(ctx); err != nil {
 			return nil, err
 		}
-		link := repo.Link() + "/pulls/" + strconv.FormatInt(pr.Issue.Index, 10) + "/asc/confirm?op="
-		out = append(out, ascQueueStack{Top: pr, Changes: n, Queued: queued[pr.ID], QueueURL: link + "queue", MergeURL: link + "merge"})
+		page := repo.Link() + "/pulls/" + strconv.FormatInt(pr.Issue.Index, 10)
+		link := page + "/asc/confirm?op="
+		out = append(out, ascQueueStack{Top: pr, Link: page, Changes: n, Queued: queued[pr.ID], QueueURL: link + "queue", MergeURL: link + "merge"})
 		if len(out) >= ascQueueStacksLimit {
 			break
 		}
