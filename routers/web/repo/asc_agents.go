@@ -603,6 +603,7 @@ func AscAgentsCreate(ctx *context.Context) {
 		if f.Unavailable {
 			log.Error("asc agents: CreateRun failed: %s", ascagentuiLogLine(f))
 		}
+		log.Warn("asc agents: CreateRun refused: %v", err)
 		form.Summary = f.Message
 		for _, d := range f.Details {
 			form.Summary += " " + d + "."

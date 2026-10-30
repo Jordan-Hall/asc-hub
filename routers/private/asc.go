@@ -106,6 +106,12 @@ func validateAscAuthzRequest(req *private.AscAuthzRequest) error {
 		_, _, err := parseAscSSHKey(req.SSHKey)
 		return err
 	}
+	if req.AsUserID != 0 {
+		if req.AsUserID < 0 || req.Token != "" || req.User != "" || req.KeyID != 0 {
+			return errors.New("as_user_id excludes token, user and key_id")
+		}
+		return nil
+	}
 	if req.Token != "" && req.KeyID != 0 {
 		return errors.New("token and key_id are mutually exclusive")
 	}
@@ -207,6 +213,8 @@ func ascAuthorize(ctx *context.PrivateContext, req *private.AscAuthzRequest) (*p
 	switch {
 	case req.SSHKey != nil:
 		principal, ok, err = ascPrincipalFromSSHKey(ctx, repo, req.SSHKey, mode)
+	case req.AsUserID != 0:
+		principal, ok, err = ascPrincipalFromUserID(ctx, req.AsUserID)
 	case req.KeyID != 0:
 		principal, ok, err = ascPrincipalFromKey(ctx, repo, req.KeyID, mode)
 	case req.Token != "":
@@ -311,6 +319,22 @@ func ascUserUsable(ctx *context.PrivateContext, user *user_model.User) (bool, er
 		return has, nil
 	}
 	return true, nil
+}
+
+// ascPrincipalFromUserID is the asker behind an agent token: the account of the person it acts for. The account is
+// usable by the same rule as for any other credential; what the person may do in the repository is decided as for them.
+func ascPrincipalFromUserID(ctx *context.PrivateContext, id int64) (*ascPrincipal, bool, error) {
+	user, err := user_model.GetUserByID(ctx, id)
+	if err != nil {
+		if user_model.IsErrUserNotExist(err) {
+			return nil, false, nil
+		}
+		return nil, false, fmt.Errorf("GetUserByID: %w", err)
+	}
+	if usable, err := ascUserUsable(ctx, user); err != nil || !usable {
+		return nil, false, err
+	}
+	return &ascPrincipal{user: user, userID: user.ID, username: user.Name}, true, nil
 }
 
 func ascPrincipalFromKey(ctx *context.PrivateContext, repo *repo_model.Repository, keyID int64, mode perm.AccessMode) (*ascPrincipal, bool, error) {

@@ -85,23 +85,26 @@ func TestAscAuthzBadRequest(t *testing.T) {
 	ascAuthzSetup(t)
 
 	for name, body := range map[string]string{
-		"empty":            ``,
-		"not json":         `nope`,
-		"unknown field":    `{"owner":"user2","repo":"repo1","mode":"read","admin":true}`,
-		"trailing data":    `{"owner":"user2","repo":"repo1","mode":"read"}{}`,
-		"bad mode":         `{"owner":"user2","repo":"repo1","mode":"admin"}`,
-		"no mode":          `{"owner":"user2","repo":"repo1"}`,
-		"no owner":         `{"repo":"repo1","mode":"read"}`,
-		"no repo":          `{"owner":"user2","mode":"read"}`,
-		"long owner":       `{"owner":"` + strings.Repeat("a", 256) + `","repo":"repo1","mode":"read"}`,
-		"long ref":         `{"owner":"user2","repo":"repo1","mode":"read","ref":"` + strings.Repeat("a", 1025) + `"}`,
-		"token and key":    `{"owner":"user2","repo":"repo1","mode":"read","token":"abc","key_id":1}`,
-		"negative key":     `{"owner":"user2","repo":"repo1","mode":"read","key_id":-1}`,
-		"long token":       `{"owner":"user2","repo":"repo1","mode":"read","token":"` + strings.Repeat("a", 4097) + `"}`,
-		"token with space": `{"owner":"user2","repo":"repo1","mode":"read","token":"a b"}`,
-		"token with ctl":   `{"owner":"user2","repo":"repo1","mode":"read","token":"a\r\nb"}`,
-		"user no token":    `{"owner":"user2","repo":"repo1","mode":"read","user":"user2"}`,
-		"user colon":       `{"owner":"user2","repo":"repo1","mode":"read","user":"a:b","token":"abc"}`,
+		"empty":             ``,
+		"not json":          `nope`,
+		"unknown field":     `{"owner":"user2","repo":"repo1","mode":"read","admin":true}`,
+		"trailing data":     `{"owner":"user2","repo":"repo1","mode":"read"}{}`,
+		"bad mode":          `{"owner":"user2","repo":"repo1","mode":"admin"}`,
+		"no mode":           `{"owner":"user2","repo":"repo1"}`,
+		"no owner":          `{"repo":"repo1","mode":"read"}`,
+		"no repo":           `{"owner":"user2","mode":"read"}`,
+		"long owner":        `{"owner":"` + strings.Repeat("a", 256) + `","repo":"repo1","mode":"read"}`,
+		"long ref":          `{"owner":"user2","repo":"repo1","mode":"read","ref":"` + strings.Repeat("a", 1025) + `"}`,
+		"token and key":     `{"owner":"user2","repo":"repo1","mode":"read","token":"abc","key_id":1}`,
+		"negative key":      `{"owner":"user2","repo":"repo1","mode":"read","key_id":-1}`,
+		"as user and token": `{"owner":"user2","repo":"repo1","mode":"read","as_user_id":2,"token":"abc"}`,
+		"as user and key":   `{"owner":"user2","repo":"repo1","mode":"read","as_user_id":2,"key_id":1}`,
+		"negative as user":  `{"owner":"user2","repo":"repo1","mode":"read","as_user_id":-2}`,
+		"long token":        `{"owner":"user2","repo":"repo1","mode":"read","token":"` + strings.Repeat("a", 4097) + `"}`,
+		"token with space":  `{"owner":"user2","repo":"repo1","mode":"read","token":"a b"}`,
+		"token with ctl":    `{"owner":"user2","repo":"repo1","mode":"read","token":"a\r\nb"}`,
+		"user no token":     `{"owner":"user2","repo":"repo1","mode":"read","user":"user2"}`,
+		"user colon":        `{"owner":"user2","repo":"repo1","mode":"read","user":"a:b","token":"abc"}`,
 		"user ctl": `{"owner":"user2","repo":"repo1","mode":"read","user":"a
 b","token":"abc"}`,
 		"user long":     `{"owner":"user2","repo":"repo1","mode":"read","user":"` + strings.Repeat("a", 256) + `","token":"abc"}`,
@@ -514,5 +517,30 @@ func TestAscAuthzRefusalIdentity(t *testing.T) {
 			assert.Equal(t, zero, ascAuthzDo(t, private.AscAuthzRequest{Token: tok, Owner: "user2", Repo: "repo2", Mode: "read"}))
 			assert.Equal(t, zero, ascAuthzDo(t, private.AscAuthzRequest{User: "user2", Token: "password", Owner: "user2", Repo: "repo2", Mode: "read"}))
 		})
+	})
+}
+
+func TestAscAuthzAsUser(t *testing.T) {
+	ascAuthzSetup(t)
+
+	t.Run("the person behind an agent token is asked for as themselves", func(t *testing.T) {
+		for _, mode := range []string{"read", "write"} {
+			resp := ascAuthzDo(t, private.AscAuthzRequest{AsUserID: 2, Owner: "user2", Repo: "repo2", Mode: mode})
+			assert.True(t, resp.Allowed, mode)
+			assert.EqualValues(t, 2, resp.UserID)
+			assert.Equal(t, "user2", resp.Username)
+		}
+	})
+	t.Run("no more than the person may do", func(t *testing.T) {
+		resp := ascAuthzDo(t, private.AscAuthzRequest{AsUserID: 9, Owner: "user2", Repo: "repo2", Mode: "read"})
+		assert.False(t, resp.Allowed, "user 9 has no access to a private repository of user 2")
+	})
+	t.Run("a prohibited or unknown account is refused", func(t *testing.T) {
+		resp := ascAuthzDo(t, private.AscAuthzRequest{AsUserID: 99999, Owner: "user2", Repo: "repo1", Mode: "read"})
+		assert.False(t, resp.Allowed)
+		_, err := db.GetEngine(db.DefaultContext).Exec("UPDATE `user` SET prohibit_login = ? WHERE id = ?", true, 2)
+		require.NoError(t, err)
+		resp = ascAuthzDo(t, private.AscAuthzRequest{AsUserID: 2, Owner: "user2", Repo: "repo1", Mode: "read"})
+		assert.False(t, resp.Allowed)
 	})
 }
