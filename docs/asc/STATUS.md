@@ -1981,3 +1981,18 @@ Order is by effect on the requirement (a visitor sees the board; a person can si
 18. Admin boards lack bulk actions, tabs, gauges, drain, runtime switches, audit card - WU-19.
 19. The gap files and UI-COVERAGE overstate completion; 89 rows are partial, and `done` rows have stale Where text; no pixel report exists - WU-27, WU-28.
 20. TSRX: no enclosing-component hunk header, no `.gitattributes` entry, no end-to-end test of diff and fence - WU-26.
+
+## 9. Pixel run of 2026-10-30 (branch fix/pixel-1, harness fd106da904 plus asc mode)
+
+Seven boards and their Mobile twins, light and dark, against a hub built from this tree (the first report was made by a hub built from an older tree). Mismatch is the share of different pixels.
+
+| Board | Before | After | What decides the rest |
+|---|---|---|---|
+| AdminUser | 0.48 (mobile 0.56) | 0.31 (mobile 0.42) | The page of a person answered 500 in the middle (organizations list took the wrong type): fixed. Open: tabs Overview/Emails/Keys/Sessions/Activity, Usage card, Delete card, Reset 2FA and Suspend as buttons (rows st169-st172) |
+| AdminMonitor | 0.69 | 0.68 | The board shows invented rows (4 queues, 3 tasks); the hub shows its 14 real queues and 35 real tasks. Design differences left: tabs (the board has none), Open versus Flush, the Active and Runs columns |
+| AdminConfig | 0.79 | 0.79 | The board is a curated page (runtime switches, Server, Storage, Mail with copy buttons); the hub prints the whole server configuration (7000 px). Needs the curated sections with the full list behind a disclosure, and the runtime switches for registration, email confirmation, agents and the default budget (rows st182-st184) |
+| Changeset, Review | 0.57, 0.53 | same | The boards are the asc experience (intent, stack position, review rail, versions); the harness hub holds git repositories and has no asc server, so the page that is photographed is the git page. Needs a harness mode with asc serve and a stack seeded through the asc command line |
+| Releases | 0.48 | 0.48 | The seed has 2 releases without assets or changes, the board 14 with assets and change lists. Design differences left: sort control, Release health card, per-release changes list and Draft vX in the Next card |
+| OrgPeople | 0.56 | 0.56 | The board has roles, 2FA chips, changesets, an agents section, pending invitations and an invite dialog; the hub lists members with Make visible and Remove (rows st140-st145) |
+
+What changed in the run itself: the harness hub gets `[asc] ENABLED = true` with `PIXEL_ASC=1` (the header shows Agents and Download as on a real hub), and its root URL is the loopback address the browser uses (the admin pages no longer carry the wrong-address banner that pushed every admin page down by 70 px).
