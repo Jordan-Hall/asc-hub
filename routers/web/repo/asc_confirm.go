@@ -10,6 +10,7 @@ import (
 
 	"forgejo.org/models"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/services/ascinbox"
 	"forgejo.org/services/automerge"
 	"forgejo.org/services/context"
 	pull_service "forgejo.org/services/pull"
@@ -164,8 +165,31 @@ func ascConfirmMerge(ctx *context.Context, pr *issues_model.PullRequest, now boo
 	}
 	if now {
 		ctx.Data["AscCanConfirm"] = d.Ready && !d.Paused
+		ctx.Data["AscMergeFacts"] = ascMergeFactsOf(ctx, pr)
 	}
 	return false
+}
+
+// AscMergeFacts names what "Merge now" will move: the branch, where it is now and where it will be. The hashes are
+// the first 12 letters; Result is the head of the change being merged, which is where the branch ends up when the
+// merge goes through as it is.
+type AscMergeFacts struct {
+	Branch  string
+	Current string
+	Result  string
+}
+
+// ascMergeFactsOf reads the current head of the base branch and the head of pr. A hash that cannot be read is left
+// out.
+func ascMergeFactsOf(ctx *context.Context, pr *issues_model.PullRequest) *AscMergeFacts {
+	f := &AscMergeFacts{Branch: pr.BaseBranch}
+	if ctx.Repo != nil && ctx.Repo.GitRepo != nil {
+		if sha, err := ctx.Repo.GitRepo.GetBranchCommitID(pr.BaseBranch); err == nil {
+			f.Current = ascShortChange(sha)
+		}
+	}
+	f.Result = ascShortChange(ascinbox.HeadCommit(ctx, pr))
+	return f
 }
 
 // ascConfirmUnqueue shows the pull requests the removal takes out of the queue: the entries AscQueueCancel

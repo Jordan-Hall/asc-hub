@@ -318,7 +318,7 @@ func AscQueueMergeNow(ctx *context.Context) {
 		ascOpFlashFail(ctx, ascOpMerge, issue, err)
 		return
 	}
-	ctx.Flash.Success(ctx.Tr("repo.pulls.asc_op.merged", len(merged)))
+	ctx.Flash.Success(ascMergedMessage(ctx, pr, len(merged)))
 	ctx.Redirect(issue.Link())
 }
 

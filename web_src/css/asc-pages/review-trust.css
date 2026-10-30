@@ -680,3 +680,30 @@
   gap: 8px;
   flex: none;
 }
+
+.rv-sidecards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.rv-jobbar {
+  display: block;
+  margin-top: 6px;
+  max-width: 220px;
+}
+
+.rv-facts > div {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.rv-facts dt {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.rv-facts dd {
+  margin: 0;
+}
