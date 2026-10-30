@@ -137,6 +137,18 @@ func checkContextUser(ctx *context.Context, uid int64) *user_model.User {
 	return org
 }
 
+// formPrivate says whether the create form asks for a repository that is not public: the visibility cards decide when
+// the form carries them, the old switch otherwise.
+func formPrivate(form *forms.CreateRepoForm) bool {
+	switch form.Visibility {
+	case "private", "internal":
+		return true
+	case "public":
+		return false
+	}
+	return form.Private
+}
+
 func getRepoPrivate(ctx *context.Context) bool {
 	switch strings.ToLower(setting.Repository.DefaultPrivate) {
 	case setting.RepoCreatingLastUserVisibility:
@@ -168,6 +180,10 @@ func Create(ctx *context.Context) {
 	ctx.Data["Readmes"] = repo_module.Readmes
 	ctx.Data["readme"] = "Default"
 	ctx.Data["private"] = getRepoPrivate(ctx)
+	ctx.Data["visibility"] = "public"
+	if getRepoPrivate(ctx) {
+		ctx.Data["visibility"] = "private"
+	}
 	ctx.Data["IsForcedPrivate"] = setting.Repository.ForcePrivate
 	ctx.Data["default_branch"] = setting.Repository.DefaultBranch
 
@@ -304,7 +320,8 @@ func CreatePost(ctx *context.Context) {
 			IssueLabels:      form.IssueLabels,
 			License:          form.License,
 			Readme:           form.Readme,
-			IsPrivate:        form.Private || setting.Repository.ForcePrivate,
+			IsPrivate:        formPrivate(form) || setting.Repository.ForcePrivate,
+			IsInternal:       form.Visibility == "internal",
 			DefaultBranch:    form.DefaultBranch,
 			AutoInit:         form.AutoInit,
 			IsTemplate:       form.Template,

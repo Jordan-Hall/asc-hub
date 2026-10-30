@@ -314,7 +314,7 @@ func GetUserRepoPermission(ctx context.Context, repo *repo_model.Repository, use
 	if !repo.Owner.IsOrganization() {
 		// for a public repo, different repo units may have different default
 		// permissions for non-restricted users.
-		if !repo.IsPrivate && !user.IsRestricted && len(repo.Units) > 0 {
+		if repo.IsPublicTo(user) && !user.IsRestricted && len(repo.Units) > 0 {
 			perm.UnitsMode = make(map[unit.Type]perm_model.AccessMode)
 			for _, u := range repo.Units {
 				if _, ok := perm.UnitsMode[u.Type]; !ok {
@@ -366,7 +366,7 @@ func GetUserRepoPermission(ctx context.Context, repo *repo_model.Repository, use
 		// for a public repo on an organization, a non-restricted user should
 		// have the same permission on non-team defined units as the default
 		// permissions for the repo unit.
-		if !found && !repo.IsPrivate && !user.IsRestricted {
+		if !found && repo.IsPublicTo(user) && !user.IsRestricted {
 			if _, ok := perm.UnitsMode[u.Type]; !ok {
 				perm.UnitsMode[u.Type] = u.DefaultPermissions.ToAccessMode(perm_model.AccessModeRead)
 			}

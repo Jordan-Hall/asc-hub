@@ -636,6 +636,14 @@ func AccessibleRepositoryCondition(user *user_model.User, unitType unit.Type) bu
 				builder.In("visibility", orgVisibilityLimit)))))
 	}
 
+	if user != nil && user.ID > 0 && !user.IsRestricted {
+		// an internal repository is open to every signed-in person, except in a private organisation or of a private user
+		cond = cond.Or(builder.And(
+			builder.Eq{"`repository`.is_internal": true},
+			builder.NotIn("`repository`.owner_id", builder.Select("id").From("`user`").Where(
+				builder.In("visibility", []structs.VisibleType{structs.VisibleTypePrivate})))))
+	}
+
 	if user != nil {
 		// 2. Be able to see all repositories that we have unit independent access to
 		// 3. Be able to see all repositories through team membership(s)
