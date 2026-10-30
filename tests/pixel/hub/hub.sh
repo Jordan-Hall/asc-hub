@@ -53,8 +53,8 @@ WORK_PATH = $RUN
 [server]
 HTTP_ADDR = 127.0.0.1
 HTTP_PORT = $PORT
-ROOT_URL = http://localhost:$PORT/
-DOMAIN = localhost
+ROOT_URL = http://127.0.0.1:$PORT/
+DOMAIN = 127.0.0.1
 STATIC_ROOT_PATH = $STATIC
 APP_DATA_PATH = $RUN/data
 OFFLINE_MODE = true
@@ -85,6 +85,16 @@ PROVIDER_CONFIG = $RUN/data/sessions
 [ui]
 DEFAULT_THEME = asc-auto
 INI
+  if [ "${PIXEL_ASC:-}" = 1 ]; then
+    cat >> "$RUN/custom/conf/app.ini" <<INI
+[asc]
+ENABLED = true
+SERVER_URL = http://127.0.0.1:7890
+PUBLIC_URL = http://127.0.0.1:$PORT
+FORWARDED_KEY = 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
+SSH_ENABLED = false
+INI
+  fi
   if [ "$(id -u)" = 0 ]; then chown -R nobody "$RUN"; fi
   start # the first start creates the tables; the admin user needs them
   as_user "cd $RUN && $HUBENV $PIXEL_HUB_BIN --config $RUN/custom/conf/app.ini admin user create --admin --username $ADMIN --password '$PASSWORD' --email $ADMIN@acme.test --must-change-password=false" >"$RUN/log/admin.log" 2>&1     || { cat "$RUN/log/admin.log"; exit 1; }

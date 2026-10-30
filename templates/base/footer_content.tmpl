@@ -66,11 +66,11 @@
 		<div class="ds-footer-base">
 			{{if ShowFooterPoweredBy}}
 				<strong>{{AppName}}</strong>
-				<span>{{if or .ShowFooterVersion .PageIsAdmin}}{{if .IsAdmin}}<a href="{{AppSubUrl}}/admin/config">{{AppVerNoMetadata}}</a>{{else}}{{AppVerNoMetadata}}{{end}} &middot; {{end}}<a class="ds-only-desktop" target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "based_on" "Forgejo"}}</a><a class="ds-only-mobile" target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "asc_shell.footer_based_mobile"}}</a></span>
+				<span>{{if or .ShowFooterVersion .PageIsAdmin}}{{if .IsAdmin}}<a href="{{AppSubUrl}}/admin/config">{{AppVerNoMetadata}}</a>{{else}}{{AppVerNoMetadata}}{{end}} &middot; {{end}}{{if $compact}}<a target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "asc_shell.footer_based_mobile"}}</a>{{else}}<a class="ds-only-desktop" target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "based_on" "Forgejo"}}</a><a class="ds-only-mobile" target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "asc_shell.footer_based_mobile"}}</a>{{end}}</span>
 			{{else if or .ShowFooterVersion .PageIsAdmin}}
 				<span>{{ctx.Locale.Tr "version"}}: {{if .IsAdmin}}<a href="{{AppSubUrl}}/admin/config">{{AppVerNoMetadata}}</a>{{else}}{{AppVerNoMetadata}}{{end}}</span>
 			{{end}}
-			{{if not $compact}}<span class="ds-footer-status"><span class="ds-dot ds-dot-ok" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_shell.footer_status_ok"}}</span>{{end}}
+			{{$status := AscSystemStatus}}<span class="ds-footer-status" data-testid="footer-status" data-status="{{$status}}" role="status"><span class="ds-dot {{if eq $status "ok"}}ds-dot-ok{{else}}ds-dot-warn{{end}}" aria-hidden="true"></span>{{if eq $status "ok"}}{{ctx.Locale.Tr "asc_shell.footer_status_ok"}}{{else}}{{ctx.Locale.Tr "asc_shell.footer_status_degraded"}}{{end}}</span>
 			<span class="ds-grow"></span>
 			<div class="ds-footer-end">
 				<details class="ds-lang">
@@ -81,7 +81,7 @@
 						{{end}}
 					</div>
 				</details>
-				{{if $compact}}
+				{{if and $compact (not .IsSigned)}}
 					{{if AscDownloadAvailable}}<a href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_download.nav"}}</a>{{end}}
 					<a href="{{$docsURL}}">{{ctx.Locale.Tr "docs"}}</a>
 					<a href="{{$whyURL}}">{{ctx.Locale.Tr "why_asc_hub"}}</a>

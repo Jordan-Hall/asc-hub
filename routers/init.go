@@ -153,6 +153,7 @@ func InitWebInstalled(ctx context.Context) {
 	mustInitCtx(ctx, auth_model.Init)
 	mustInitCtx(ctx, web_auth.EnsureAscIdeClient)
 	mustInitCtx(ctx, asctrust.PurgeLegacyCallTokens)
+	templates.SetAscStatus(asctrust.FooterStatus)
 	mustInitCtx(ctx, repo_service.Init)
 
 	// Booting long running goroutines.
