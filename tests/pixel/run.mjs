@@ -27,7 +27,7 @@ const WIN = process.platform === 'win32';
 const toWsl = (p) => (WIN ? p.replace(/^([A-Za-z]):[\\/]/, (_, d) => `/mnt/${d.toLowerCase()}/`).replace(/\\/g, '/') : p);
 function hubSh(cmd) {
   const script = toWsl(join(PIXEL_DIR, 'hub', 'hub.sh'));
-  const env = [`PIXEL_HUB_BIN=${toWsl(HUB_BIN)}`, `PIXEL_PORT=${PORT}`, `PIXEL_RUN=${RUN_DIR}`, `PIXEL_HUB_STATIC=${toWsl(REPO_ROOT)}`, `PIXEL_PASSWORD=${PASSWORD}`];
+  const env = [`PIXEL_HUB_BIN=${toWsl(HUB_BIN)}`, `PIXEL_PORT=${PORT}`, `PIXEL_RUN=${RUN_DIR}`, `PIXEL_HUB_STATIC=${toWsl(REPO_ROOT)}`, `PIXEL_PASSWORD=${PASSWORD}`, `PIXEL_ASC=${process.env.PIXEL_ASC || ''}`];
   const [file, argv] = WIN ? ['wsl', ['-e', 'env', ...env, 'bash', script, cmd]] : ['bash', [script, cmd]];
   const r = spawnSync(file, argv, {encoding: 'utf8', env: WIN ? process.env : {...process.env, ...Object.fromEntries(env.map((e) => e.split(/=(.*)/s).slice(0, 2)))}});
   if (r.status !== 0) throw new Error(`hub.sh ${cmd} failed: ${(r.stdout || '') + (r.stderr || '')}`.slice(-1500));

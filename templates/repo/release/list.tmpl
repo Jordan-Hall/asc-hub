@@ -160,6 +160,9 @@
 			<section class="rp-card" aria-labelledby="rp-dl-h" data-testid="release-download">
 				<h2 class="rp-rail-title" id="rp-dl-h">{{ctx.Locale.Tr "asc_rp.rel_download"}}</h2>
 				<p class="rp-rel-line"><a class="rp-rel-name" href="{{$.RepoLink}}/releases/tag/{{.Release.TagName | PathEscapeSegments}}">{{.Release.TagName}}</a></p>
+				{{if AscEnabled}}
+				<div class="ds-cmd ds-cmd-scroll" data-testid="release-asc-command"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc release download {{.Release.TagName}}</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="asc release download {{.Release.TagName}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+				{{end}}
 				{{if .Release.Attachments}}
 				<ul class="rp-rail-list">
 					{{range .Release.Attachments}}{{if not .ExternalURL}}<li><a href="{{.DownloadURL}}" download>{{.Name}}</a><span class="ds-num ds-c-2">{{.Size | ctx.Locale.TrSize}}</span></li>{{end}}{{end}}
