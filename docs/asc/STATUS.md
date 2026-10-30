@@ -1996,3 +1996,19 @@ Seven boards and their Mobile twins, light and dark, against a hub built from th
 | OrgPeople | 0.56 | 0.56 | The board has roles, 2FA chips, changesets, an agents section, pending invitations and an invite dialog; the hub lists members with Make visible and Remove (rows st140-st145) |
 
 What changed in the run itself: the harness hub gets `[asc] ENABLED = true` with `PIXEL_ASC=1` (the header shows Agents and Download as on a real hub), and its root URL is the loopback address the browser uses (the admin pages no longer carry the wrong-address banner that pushed every admin page down by 70 px).
+
+## 10. Harness with asc serve (branch pixel/asc-mode)
+
+`PIXEL_ASC=serve` starts `asc serve` next to the throw-away hub and seeds the cast with the real `asc` client: four stacks by Priya, Diego and Hannah with their changes, review comments and approvals, five releases with files, five workflow definitions (one not valid, one switched off) and a workflow run, over a main with six landed commits. The 54 boards that needed asc now answer (before: 404 or 503 on every route under `asc/`). Light, desktop unless marked, against asc built from master:
+
+| Board | Before | After | What decides the rest |
+|---|---|---|---|
+| Changeset (mobile) | 0.63 (0.70) | 0.22 (0.17) | The seed commit is now the 3-file change the board shows; the live page lacks the intent card, stack navigation, the review rail and the "where it is now" card |
+| Releases | 0.62 | 0.11 | Sort control, release health card, per-release changes list |
+| Review | 0.53 | 0.28 | Review rail and versions on the right; the board lists 4 files, the seed change has 1 |
+| Stacks | 0.31 | 0.31 | Row layout (board 9 stacks, harness 4) |
+| Workflows, WorkflowDef, WorkflowRun | 404 | 0.16, 0.45, 0.26 | Run history and step chain need runs of agent steps |
+
+Left out of the seed, with the reason: agent runs (a key is used only after its provider answered a test call; the harness has no provider, so Agents, AgentRun and their mobile twins show the empty state or 404), check runs (no CI in the harness), the merge queue contents (nothing has landed through it).
+
+Finding: a release made with `asc release create` is a record in asc only. The hub's Releases page lists the hub's own release rows, which are made from tags it knows, so a release made from the terminal does not show on the hub. The seed therefore publishes releases through the hub (draft, files, publish), which the hub mirrors to asc with sizes and SHA-256. Needs a decision: list asc's releases on the hub page, or have asc tell the hub.
