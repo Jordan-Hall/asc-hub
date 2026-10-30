@@ -26,6 +26,8 @@ import (
 //
 // and the account pages of asc serve (see routers/web/user/setting/asc_account.go): sessions and the data export.
 func registerAscTrustUserRoutes(m *web.Route) {
+	m.Get("/repo-trash", user_setting.RepoTrash)
+	m.Post("/repo-trash/{id}/restore", user_setting.RepoTrashRestore)
 	m.Get("/asc/usage", user_setting.AscUsage)
 	m.Group("/asc/sessions", func() {
 		m.Get("", user_setting.AscSessions)
