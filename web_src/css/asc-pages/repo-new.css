@@ -87,3 +87,56 @@
 .rp-migrating-err {
   color: var(--err);
 }
+
+/* The visibility as three cards (board NewRepo, RepoSettingsGeneral). */
+.rp-vis {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.rp-vis-cards {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 640px) {
+  .rp-vis-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.rp-vis-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: var(--touch, 44px);
+  padding: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.rp-vis-card:has(input:checked) {
+  border-color: var(--link);
+  background: var(--surface-3);
+}
+
+.rp-vis-card:has(input:focus-visible) {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.rp-vis-card input {
+  margin-top: 3px;
+  flex: none;
+}
+
+.rp-vis-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

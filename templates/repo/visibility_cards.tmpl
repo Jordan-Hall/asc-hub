@@ -1,0 +1,17 @@
+{{/* The visibility of a repository as three cards (board NewRepo, RepoSettingsGeneral). Dot: dict "Current" ("private", "internal" or "public") "Forced" (bool: only private is allowed) "Notice" (text under the cards). */}}
+<fieldset class="rp-vis" data-testid="visibility-cards">
+	<legend class="ds-label">{{ctx.Locale.Tr "repo.visibility"}}</legend>
+	<div class="rp-vis-cards" role="radiogroup">
+		{{range $v := (StringUtils.Split "private,internal,public" ",")}}
+		<label class="rp-vis-card">
+			<input type="radio" name="visibility" value="{{$v}}"{{if eq $v $.Current}} checked{{end}}{{if and $.Forced (ne $v "private")}} disabled{{end}}>
+			<span class="rp-vis-body">
+				<strong>{{ctx.Locale.Tr (print "repo.visibility_" $v)}}</strong>
+				<span class="ds-hint">{{ctx.Locale.Tr (print "repo.visibility_" $v "_desc")}}</span>
+			</span>
+		</label>
+		{{end}}
+	</div>
+	{{if .Forced}}<p class="ds-hint">{{ctx.Locale.Tr "repo.visibility_helper_forced"}}</p>{{end}}
+	{{with .Notice}}<p class="ds-hint">{{.}}</p>{{end}}
+</fieldset>

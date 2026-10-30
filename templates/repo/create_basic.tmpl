@@ -23,17 +23,4 @@
 	<label class="ds-label" for="repo_desc">{{ctx.Locale.Tr "repo.repo_desc"}} <span class="ds-opt">({{ctx.Locale.Tr "asc_shell.optional"}})</span></label>
 	<textarea id="repo_desc" class="ds-textarea{{if .Err_Description}} is-err{{end}}" rows="2" name="description" placeholder="{{ctx.Locale.Tr "repo.repo_desc_helper"}}" maxlength="2048"{{if .Err_Description}} aria-invalid="true"{{end}}>{{.description}}</textarea>
 </div>
-<label class="ds-switch rp-new-switch">
-	<input name="private" type="checkbox" role="switch"
-		{{if .IsForcedPrivate}}
-			checked disabled
-		{{else}}
-			{{if .private}}checked{{end}}
-		{{end}}>
-	<span class="ds-switch-track"></span>
-	<span>
-		<strong>{{ctx.Locale.Tr "repo.visibility_helper"}}</strong>
-		{{if .IsForcedPrivate}}<span class="ds-hint">{{ctx.Locale.Tr "repo.visibility_helper_forced"}}</span>{{end}}
-		<span class="ds-hint">{{ctx.Locale.Tr "repo.visibility_description"}}</span>
-	</span>
-</label>
+{{template "repo/visibility_cards" (dict "Current" .visibility "Forced" .IsForcedPrivate)}}

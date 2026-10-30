@@ -229,6 +229,8 @@ func NewOpID() string {
 type AuditResult struct {
 	Page    *AuditPage
 	Actions []ActionInfo
+	// RetentionDays is how long events are kept (0 when asc keeps everything or does not say).
+	RetentionDays uint32
 }
 
 // ListAudit asks for one page of the audit log of scope.
@@ -248,7 +250,7 @@ func ListAudit(ctx context.Context, conn grpc.ClientConnInterface, scope *ascv1.
 	if err != nil {
 		return nil, err
 	}
-	return &AuditResult{Page: page, Actions: catalogue}, nil
+	return &AuditResult{Page: page, Actions: catalogue, RetentionDays: resp.GetRetentionDays()}, nil
 }
 
 // StartAuditExport opens the export stream of scope. The caller passes the stream to CopyExport.
