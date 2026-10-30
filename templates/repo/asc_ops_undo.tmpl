@@ -37,6 +37,7 @@ Template Attributes:
 						<dt>{{ctx.Locale.Tr "asc_trust.ops.undo_when"}}</dt>
 						<dd>{{DateUtils.TimeSince .Row.At}}</dd>
 					</dl>
+					{{if .ChangesBack}}<div class="rv-banner rv-gap rv-banner-warn" role="note" data-testid="asc-undo-effects"><div><b>{{ctx.Locale.TrN .ChangesBack "asc_review.ops_back_one" "asc_review.ops_back_other" .ChangesBack}}{{if .Truncated}}+{{end}}</b>{{if .ApprovalsKept}} {{ctx.Locale.Tr "asc_review.ops_approvals_kept" .ApprovalsKept}}{{end}}</div></div>{{end}}
 				</section>
 				<form class="rv-form rv-gap" method="post" action="{{$.AscUndo.OpsURL}}/undo" data-testid="asc-undo-form">
 					{{$.CsrfTokenHtml}}

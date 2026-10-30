@@ -285,6 +285,7 @@ type AuditFilter struct {
 	Target        string                 `protobuf:"bytes,4,opt,name=target,proto3" json:"target,omitempty"`
 	SinceMs       int64                  `protobuf:"varint,5,opt,name=since_ms,json=sinceMs,proto3" json:"since_ms,omitempty"`
 	UntilMs       int64                  `protobuf:"varint,6,opt,name=until_ms,json=untilMs,proto3" json:"until_ms,omitempty"`
+	Seq           uint64                 `protobuf:"varint,7,opt,name=seq,proto3" json:"seq,omitempty"` // one event by its number in this log (the number the hash chain and its check name); 0 = any
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -357,6 +358,13 @@ func (x *AuditFilter) GetSinceMs() int64 {
 func (x *AuditFilter) GetUntilMs() int64 {
 	if x != nil {
 		return x.UntilMs
+	}
+	return 0
+}
+
+func (x *AuditFilter) GetSeq() uint64 {
+	if x != nil {
+		return x.Seq
 	}
 	return 0
 }
@@ -941,14 +949,15 @@ const file_asc_v1_audit_proto_rawDesc = "" +
 	"user_agent\x18\x0f \x01(\tR\tuserAgent\x1a:\n" +
 	"\fDetailsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbd\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xcf\x01\n" +
 	"\vAuditFilter\x12\x16\n" +
 	"\x06actors\x18\x01 \x03(\tR\x06actors\x12\x18\n" +
 	"\aactions\x18\x02 \x03(\tR\aactions\x12.\n" +
 	"\aoutcome\x18\x03 \x01(\x0e2\x14.asc.v1.AuditOutcomeR\aoutcome\x12\x16\n" +
 	"\x06target\x18\x04 \x01(\tR\x06target\x12\x19\n" +
 	"\bsince_ms\x18\x05 \x01(\x03R\asinceMs\x12\x19\n" +
-	"\buntil_ms\x18\x06 \x01(\x03R\auntilMs\"\xbf\x01\n" +
+	"\buntil_ms\x18\x06 \x01(\x03R\auntilMs\x12\x10\n" +
+	"\x03seq\x18\a \x01(\x04R\x03seq\"\xbf\x01\n" +
 	"\x10ListAuditRequest\x12&\n" +
 	"\x05scope\x18\x01 \x01(\v2\x10.asc.v1.OwnerRefR\x05scope\x12+\n" +
 	"\x06filter\x18\x02 \x01(\v2\x13.asc.v1.AuditFilterR\x06filter\x12!\n" +

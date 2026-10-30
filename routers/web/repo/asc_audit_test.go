@@ -124,3 +124,15 @@ func TestAscAuditVerifyChain(t *testing.T) {
 	assert.Contains(t, page.body, `name="_csrf"`, "the verify form carries the CSRF token")
 	assert.Equal(t, "user2/repo1", f.callsOf("VerifyChain")[0].Req.(*ascv1.VerifyAuditChainRequest).GetScope().GetName())
 }
+
+func TestAscAuditVerifyChainBrokenOffersTheEvent(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureAudit)
+	f.auditChain = func(*ascv1.VerifyAuditChainRequest) (*ascv1.VerifyAuditChainResponse, error) {
+		return &ascv1.VerifyAuditChainResponse{Ok: false, Checked: 12, FirstBadSeq: 9, Reason: "hash mismatch"}, nil
+	}
+	page := runTrust(t, trustReq{method: http.MethodPost, path: "/user2/repo1/settings/asc/audit/verify", user: 2, access: adminAccess}, AscAuditVerify)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.Contains(t, page.body, `data-testid="asc-audit-show-event"`)
+	assert.Contains(t, page.body, "?seq=9")
+}

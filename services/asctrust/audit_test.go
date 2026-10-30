@@ -28,7 +28,7 @@ func formOf(m map[string]string) func(string) string {
 func TestAuditQueryOfAcceptsGoodFilters(t *testing.T) {
 	q, f, problems := AuditQueryOf(formOf(map[string]string{
 		"actor": "alice, bob", "action": "storage.*, repo.ref.update", "outcome": "denied", "target": "refs/heads/",
-		"since": "2026-03-01", "until": "2026-03-31", "order": "oldest", "limit": "100",
+		"since": "2026-03-01", "until": "2026-03-31", "order": "oldest", "limit": "100", "seq": "9",
 	}))
 	require.Empty(t, problems)
 	require.NotNil(t, f)
@@ -36,6 +36,8 @@ func TestAuditQueryOfAcceptsGoodFilters(t *testing.T) {
 	assert.Equal(t, []string{"storage.*", "repo.ref.update"}, f.Actions)
 	assert.Equal(t, ascv1.AuditOutcome_AUDIT_OUTCOME_DENIED, f.Outcome)
 	assert.Equal(t, "refs/heads/", f.Target)
+	assert.EqualValues(t, 9, f.Seq, "one event by its number")
+	assert.Equal(t, "9", q.Values()["seq"])
 	assert.Equal(t, time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC).UnixMilli(), f.SinceMs)
 	assert.Equal(t, time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC).UnixMilli()-1, f.UntilMs, "the end date is inclusive")
 	assert.True(t, q.OldestFirst)
