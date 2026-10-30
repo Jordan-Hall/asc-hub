@@ -89,6 +89,7 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 				<div class="rv-field rv-half">
 					<label class="rv-label" for="asc-audit-limit">{{ctx.Locale.Tr "asc_trust.audit.rows"}}</label>
 					<select class="rv-select" id="asc-audit-limit" name="limit">
+						<option value="10"{{if eq .Query.Limit 10}} selected{{end}}>10</option>
 						<option value="25"{{if eq .Query.Limit 25}} selected{{end}}>25</option>
 						<option value="50"{{if eq .Query.Limit 50}} selected{{end}}>50</option>
 						<option value="100"{{if eq .Query.Limit 100}} selected{{end}}>100</option>
@@ -135,10 +136,11 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 					</tbody>
 				</table>
 			</div>
-			{{if .NextURL}}
+			{{if or .NextURL (gt .PageNo 1)}}
 				<div class="rv-acts rv-gap rv-center">
-					<a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next" data-testid="asc-audit-next">{{ctx.Locale.Tr "asc_trust.audit.older"}}</a>
-					<a class="rv-btn rv-btn-ghost" href="{{.FirstURL}}">{{ctx.Locale.Tr "asc_trust.audit.first_page"}}</a>
+					{{if gt .PageNo 1}}<a class="rv-btn rv-btn-ghost" href="{{.FirstURL}}">{{ctx.Locale.Tr "asc_trust.audit.first_page"}}</a>{{end}}
+					<span class="rv-muted" data-testid="asc-audit-page">{{ctx.Locale.Tr "asc_admin.page_n" .PageNo}}</span>
+					{{if .NextURL}}<a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next" data-testid="asc-audit-next">{{ctx.Locale.Tr "asc_trust.audit.older"}}</a>{{end}}
 				</div>
 			{{end}}
 		{{end}}

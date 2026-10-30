@@ -347,3 +347,17 @@ func TestExportOfAScopeTheCallerMayNotSeeIsRefusedBeforeAnyByte(t *testing.T) {
 	}
 	require.Error(t, err)
 }
+
+func TestAuditPageSizeIsTenByDefaultAndTenIsAChoice(t *testing.T) {
+	q, _, problems := AuditQueryOf(formOf(map[string]string{}))
+	assert.Empty(t, problems)
+	assert.EqualValues(t, 10, q.Limit, "a page of the log is short; the person asks for more")
+	assert.Empty(t, q.Values()["limit"], "the default is not written into the links")
+
+	q, _, problems = AuditQueryOf(formOf(map[string]string{"limit": "10"}))
+	assert.Empty(t, problems)
+	assert.EqualValues(t, 10, q.Limit)
+	q, _, problems = AuditQueryOf(formOf(map[string]string{"limit": "50"}))
+	assert.Empty(t, problems)
+	assert.Equal(t, "50", q.Values()["limit"], "a page size other than the default is kept in the links")
+}
