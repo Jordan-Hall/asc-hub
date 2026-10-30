@@ -372,6 +372,9 @@ func MergeAscStackWith(ctx context.Context, doer *user_model.User, perm access_m
 		merged[it.PR.ID] = true
 		res.Merged = append(res.Merged, it.PR)
 	}
+	// The notifications read the landed commits from the hub's git directory (an Actions run starts from the commit of
+	// the merge). When the trunk had moved, asc rewrote the heads and the git bridge has not followed yet: wait for it.
+	ascWaitLanded(ctx, items[0].PR.BaseRepo, git.BranchPrefix+items[0].PR.BaseBranch, landed.Tip)
 	afterAscStackMerge(ctx, doer, res.Merged, opt.Auto)
 
 	children, err := openAscStackChildren(ctx, items, merged)
@@ -777,4 +780,19 @@ func noteAscLand(ctx context.Context, req AscLandRequest) ascsync.PushToken {
 		return ascsync.PushToken{}
 	}
 	return ascsync.RememberWriter(repo, req.Doer.ID, req.PullRequestID, []ascsync.PushRef{{Name: req.Target, New: req.Heads[len(req.Heads)-1]}})
+}
+
+// ascWaitLanded waits, for a bounded time, until the git directory of repo has the branch at the landed tip. It does
+// nothing for a repository that is not stored in asc, and a bridge that stays behind only gets a warning: the stack
+// has landed, and what follows (notifications) is advice.
+var ascWaitLanded = func(ctx context.Context, repo *repo_model.Repository, branchRef, tip string) {
+	if repo == nil || tip == "" {
+		return
+	}
+	if isAsc, err := ascsync.BackedBy(repo); err != nil || !isAsc {
+		return
+	}
+	if err := ascsync.WaitForRefs(ctx, repo, []ascsync.PushRef{{Name: branchRef, New: tip}}); err != nil {
+		log.Warn("asc stack merge: the git directory of %s did not reach %s in time: %v", repo.FullName(), tip, err)
+	}
 }

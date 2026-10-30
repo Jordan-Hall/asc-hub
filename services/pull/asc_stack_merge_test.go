@@ -13,6 +13,7 @@ import (
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
 	access_model "forgejo.org/models/perm/access"
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
@@ -358,4 +359,22 @@ func TestInitAscStackFailsClosed(t *testing.T) {
 	require.NoError(t, InitAscStack())
 	assert.Nil(t, ascStackBackend)
 	assert.False(t, AscStackMergeReady(&issues_model.PullRequest{}))
+}
+
+func TestAscStackMergeWaitsForTheGitDirectoryBeforeNotifying(t *testing.T) {
+	_, top, _ := ascMergeFixture(t)
+	doer, perm := ascMergePerm(t, top, 2)
+	var seen []string
+	prev := ascWaitLanded
+	ascWaitLanded = func(_ context.Context, repo *repo_model.Repository, ref, tip string) {
+		// the pull requests are marked merged with the landed ids asc reported, and the wait names the landed tip
+		seen = append(seen, ref+"="+tip)
+		assert.True(t, unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: top.ID}).HasMerged)
+		assert.NotNil(t, repo)
+	}
+	defer func() { ascWaitLanded = prev }()
+
+	_, err := MergeAscStack(t.Context(), doer, perm, top)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"refs/heads/master=" + landedTop}, seen)
 }
