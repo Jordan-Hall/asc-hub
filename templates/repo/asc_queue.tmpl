@@ -49,10 +49,10 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 
 		<div class="rv-cols rv-cols-main-side rv-gap">
 			<div class="rv-stack">
-				<section class="rv-card" aria-labelledby="rv-queue-waiting">
+				<section class="rv-card" aria-labelledby="rv-queue-waiting" data-testid="asc-queue-waiting"{{if .AscQueueLiveURL}} data-asc-queue-live="{{.AscQueueLiveURL}}"{{end}}>
 					<div class="rv-card-h"><h2 id="rv-queue-waiting">{{ctx.Locale.Tr "repo.asc_queue.waiting"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.queue_in_order"}}</span><span class="rv-count rv-end">{{len .AscQueue.Active}}</span></div>
 					{{if .AscQueue.Active}}
-						<ol class="rv-queue" data-testid="asc-queue-active"{{if .AscQueueLiveURL}} data-asc-queue-live="{{.AscQueueLiveURL}}"{{end}}>
+						<ol class="rv-queue" data-testid="asc-queue-active">
 							{{range .AscQueue.Active}}
 								<li class="rv-queue-row" data-q-change="{{.Entry.AscChange}}">
 									<span class="rv-queue-pos" aria-label="{{ctx.Locale.Tr "repo.asc_queue.col_position"}}">{{.Position}}</span>
