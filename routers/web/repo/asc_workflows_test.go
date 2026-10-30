@@ -204,6 +204,38 @@ func TestAscWorkflowDefinitionPage(t *testing.T) {
 		assert.NotContains(t, p.body, "/enable")
 	})
 
+	t.Run("steps show how they went last time, what a command runs and which secrets it reads", func(t *testing.T) {
+		def := sampleDef("review")
+		def.Steps = append(def.Steps, &ascv1.WorkflowStep{
+			Id: "publish", Kind: ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_COMMAND, Needs: []string{"checks"},
+			Command: []string{"make", "<release>"}, Secrets: map[string]string{"REGISTRY_TOKEN": "registry", "OTHER": "missing-one"},
+		})
+		hub.ok("Workflows.GetDefinition", &ascv1.GetWorkflowDefinitionResponse{Definition: def})
+		hub.ok("Workflows.ListSecrets", &ascv1.ListWorkflowSecretsResponse{Secrets: []*ascv1.WorkflowSecret{{Name: "registry", Hint: "f3a9", Updated: 1_700_000_000}, {Name: "unused-key"}}})
+		p := runAgents(t, agentsReq{path: testWorkflowsPath + "/review", user: agentsOwner, features: true, params: params}, AscWorkflowDef)
+		require.Equal(t, http.StatusOK, p.status, p.body)
+		assert.Contains(t, p.body, `data-testid="asc-step-last-state"`)
+		assert.Contains(t, p.body, "asc_review.step_state_succeeded")
+		assert.Contains(t, p.body, "make &lt;release&gt;")
+		assert.Contains(t, p.body, "<code>REGISTRY_TOKEN</code> asc_review.wf_from_secret <code>registry</code>")
+		assert.Contains(t, p.body, "asc_review.wf_secret_set")
+		assert.Contains(t, p.body, "asc_review.wf_secret_missing")
+		assert.Contains(t, p.body, `data-testid="asc-workflow-secrets"`)
+		assert.Contains(t, p.body, "<code>unused-key</code>")
+		assert.Contains(t, p.body, `data-testid="asc-workflow-copy"`)
+		list := hub.callsOf("Workflows.ListSecrets")
+		require.NotEmpty(t, list)
+		isUserCredential(t, list[len(list)-1])
+
+		// A person who does not administer the repository does not list its secrets; the steps still name them.
+		p = runAgents(t, agentsReq{path: testWorkflowsPath + "/review", user: agentsReader, features: true, params: params}, AscWorkflowDef)
+		require.Equal(t, http.StatusOK, p.status)
+		assert.NotContains(t, p.body, `data-testid="asc-workflow-secrets"`)
+		assert.NotContains(t, p.body, "unused-key")
+		assert.Contains(t, p.body, "<code>REGISTRY_TOKEN</code>")
+		assert.NotContains(t, p.body, "asc_review.wf_secret_set")
+	})
+
 	t.Run("an invalid definition cannot be started or switched on", func(t *testing.T) {
 		bad := sampleDef("review")
 		bad.Valid, bad.Error, bad.Enabled = false, "3: missing id", false
