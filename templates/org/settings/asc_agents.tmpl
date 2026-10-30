@@ -1,0 +1,115 @@
+{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main organization settings asc-trust-page wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_shell.oa_title") "Lead" (ctx.Locale.Tr "asc_shell.oa_lead"))}}
+<div class="wk-sp">
+{{with .AscOrgAgents}}
+<div class="ds-stack-16" data-testid="asc-org-agents">
+	{{if .Unsupported}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-org-agents-unsupported"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.oa_unsupported"}}</div></div>
+	{{else if .Problem}}
+		<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-org-agents-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Problem}}</div></div>
+	{{else}}
+		{{with .Settings}}
+		{{if not .InstanceAllows}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-org-agents-off"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.oa_instance_off"}}</div></div>
+		{{end}}
+		<form class="ds-card ds-form" method="post" action="{{$.AscOrgAgents.Base}}/policy" data-testid="asc-org-agents-policy">
+			{{$.CsrfTokenHtml}}
+			<input type="hidden" name="op" value="{{$.AscOrgAgents.PolicyOp}}">
+			<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_shell.oa_policy"}}</h2></div>
+			<div class="ds-card-b ds-stack-16">
+				<label class="ds-switch wk-switch-row">
+					<input type="checkbox" role="switch" name="allow_agents" value="1"{{if .AllowAgents}} checked{{end}}>
+					<span class="ds-switch-track"></span>
+					<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_shell.oa_allow"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_allow_hint"}}</span></span>
+				</label>
+				<label class="ds-switch wk-switch-row">
+					<input type="checkbox" role="switch" name="need_person" value="1"{{if .NeedPerson}} checked{{end}}>
+					<span class="ds-switch-track"></span>
+					<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_shell.oa_need_person"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_need_person_hint"}}</span></span>
+				</label>
+				<div class="ds-field">
+					<label class="ds-label" for="oa-ceiling">{{ctx.Locale.Tr "asc_shell.oa_ceiling"}}</label>
+					<input id="oa-ceiling" class="ds-input" name="ceiling_usd" inputmode="decimal" autocomplete="off" value="{{.CeilingField}}" placeholder="{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}">
+					<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_ceiling_hint"}}{{if .EffectiveCeilingText}} {{ctx.Locale.Tr "asc_shell.oa_ceiling_effective" .EffectiveCeilingText}}{{end}}</p>
+				</div>
+				<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
+			</div>
+		</form>
+		{{end}}
+
+		<section class="ds-card" aria-labelledby="oa-agents-h">
+			<div class="ds-card-h"><h2 id="oa-agents-h">{{ctx.Locale.Tr "asc_shell.oa_agents"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_shell.oa_agents_count" (len .Agents) .MaxAgents}}</span></div>
+			<ul class="ds-list wk-rows" data-testid="asc-org-agents-list">
+				{{range .Agents}}
+				{{$ops := index $.AscOrgAgents.Ops .Name}}
+				<li class="ds-li wk-row" data-state="{{if .Paused}}paused{{else}}active{{end}}">
+					<span class="ds-li-av" aria-hidden="true">{{svg "dsi-agent" 20}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title"><span class="ds-break">{{.Label}}</span>
+							<span class="ds-chip {{if .Paused}}ds-chip-warn{{else}}ds-chip-ok{{end}}">{{if .Paused}}{{ctx.Locale.Tr "asc_shell.oa_state_paused"}}{{else}}{{ctx.Locale.Tr "asc_shell.oa_state_active"}}{{end}}</span>
+						</div>
+						<div class="ds-li-sub ds-mono ds-break">agent:{{.Name}}</div>
+						<div class="ds-li-meta">
+							{{if .RunBy}}<span>{{ctx.Locale.Tr "asc_shell.oa_run_by" .RunBy}}</span>{{end}}
+							<span>{{if .Repos}}{{ctx.Locale.Tr "asc_shell.oa_in_repos" (len .Repos)}}{{else}}{{ctx.Locale.Tr "asc_shell.oa_in_all"}}{{end}}</span>
+							<span>{{ctx.Locale.Tr "asc_shell.oa_paths_n" (len .Paths)}}</span>
+						</div>
+						<details class="ds-disclosure">
+							<summary>{{ctx.Locale.Tr "asc_shell.oa_edit"}}<span class="ds-sr"> {{.Label}}</span></summary>
+							<form class="ds-form ds-stack-12" method="post" action="{{$.AscOrgAgents.Base}}/{{.Name}}/update">
+								{{$.CsrfTokenHtml}}
+								<input type="hidden" name="op" value="{{$ops.Update}}">
+								<div class="ds-form-row ds-form-row-2">
+									<div class="ds-field"><label class="ds-label" for="oa-dn-{{.Name}}">{{ctx.Locale.Tr "asc_shell.oa_display"}}</label><input id="oa-dn-{{.Name}}" class="ds-input" name="display_name" maxlength="100" value="{{.DisplayName}}"></div>
+									<div class="ds-field"><label class="ds-label" for="oa-rb-{{.Name}}">{{ctx.Locale.Tr "asc_shell.oa_run_by_label"}}</label><input id="oa-rb-{{.Name}}" class="ds-input" name="run_by" maxlength="64" value="{{.RunBy}}" autocomplete="off" spellcheck="false"></div>
+								</div>
+								<div class="ds-form-row ds-form-row-2">
+									<div class="ds-field"><label class="ds-label" for="oa-pa-{{.Name}}">{{ctx.Locale.Tr "asc_shell.oa_paths"}}</label><textarea id="oa-pa-{{.Name}}" class="ds-textarea ds-mono" name="paths" rows="3" spellcheck="false" autocomplete="off">{{.PathsText}}</textarea><p class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_paths_hint"}}</p></div>
+									<div class="ds-field"><label class="ds-label" for="oa-re-{{.Name}}">{{ctx.Locale.Tr "asc_shell.oa_repos"}}</label><textarea id="oa-re-{{.Name}}" class="ds-textarea ds-mono" name="repos" rows="3" spellcheck="false" autocomplete="off">{{.ReposText}}</textarea><p class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_repos_hint"}}</p></div>
+								</div>
+								<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
+							</form>
+						</details>
+					</div>
+					<div class="wk-row-acts">
+						<form method="post" action="{{$.AscOrgAgents.Base}}/{{.Name}}/state">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="op" value="{{$ops.State}}">
+							<input type="hidden" name="state" value="{{if .Paused}}active{{else}}paused{{end}}">
+							<button class="ds-btn ds-btn-secondary" type="submit" aria-label="{{if .Paused}}{{ctx.Locale.Tr "asc_shell.oa_resume_for" .Label}}{{else}}{{ctx.Locale.Tr "asc_shell.oa_pause_for" .Label}}{{end}}">{{if .Paused}}{{ctx.Locale.Tr "asc_shell.oa_resume"}}{{else}}{{ctx.Locale.Tr "asc_shell.oa_pause"}}{{end}}</button>
+						</form>
+						<form method="post" action="{{$.AscOrgAgents.Base}}/{{.Name}}/delete">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="op" value="{{$ops.Delete}}">
+							<button class="ds-btn ds-btn-danger" type="submit" aria-label="{{ctx.Locale.Tr "asc_shell.oa_delete_for" .Label}}">{{ctx.Locale.Tr "asc_shell.oa_delete"}}</button>
+						</form>
+					</div>
+				</li>
+				{{else}}
+				<li class="ds-li" data-testid="asc-org-agents-empty"><p class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_none"}}</p></li>
+				{{end}}
+			</ul>
+		</section>
+
+		<form class="ds-card ds-form" method="post" action="{{.Base}}/new" data-testid="asc-org-agents-new">
+			{{$.CsrfTokenHtml}}
+			<input type="hidden" name="op" value="{{.NewOp}}">
+			<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_shell.oa_new"}}</h2></div>
+			<div class="ds-card-b ds-stack-16">
+				<div class="ds-form-row ds-form-row-2">
+					<div class="required field ds-field"><label class="ds-label" for="oa-name">{{ctx.Locale.Tr "asc_shell.oa_name"}}</label><input id="oa-name" class="ds-input ds-mono" name="name" maxlength="40" pattern="[a-z0-9][a-z0-9-]*" required autocomplete="off" spellcheck="false" placeholder="release-bot"><p class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_name_hint"}}</p></div>
+					<div class="ds-field"><label class="ds-label" for="oa-display">{{ctx.Locale.Tr "asc_shell.oa_display"}}</label><input id="oa-display" class="ds-input" name="display_name" maxlength="100" autocomplete="off"></div>
+					<div class="ds-field"><label class="ds-label" for="oa-runby">{{ctx.Locale.Tr "asc_shell.oa_run_by_label"}}</label><input id="oa-runby" class="ds-input" name="run_by" maxlength="64" autocomplete="off" spellcheck="false"><p class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_run_by_hint"}}</p></div>
+				</div>
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field"><label class="ds-label" for="oa-paths">{{ctx.Locale.Tr "asc_shell.oa_paths"}}</label><textarea id="oa-paths" class="ds-textarea ds-mono" name="paths" rows="3" spellcheck="false" autocomplete="off" placeholder="docs/**"></textarea><p class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_paths_hint"}}</p></div>
+					<div class="ds-field"><label class="ds-label" for="oa-repos">{{ctx.Locale.Tr "asc_shell.oa_repos"}}</label><textarea id="oa-repos" class="ds-textarea ds-mono" name="repos" rows="3" spellcheck="false" autocomplete="off"></textarea><p class="ds-hint">{{ctx.Locale.Tr "asc_shell.oa_repos_hint"}}</p></div>
+				</div>
+				<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "asc_shell.oa_create"}}</button></div>
+			</div>
+		</form>
+	{{end}}
+</div>
+{{end}}
+</div>
+{{template "org/settings/layout_footer" .}}

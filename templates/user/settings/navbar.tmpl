@@ -62,6 +62,9 @@ Entries use shared/ds/snav_item; groups are headings, never colour.
 			{{if .EnableQuota}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/storage_overview") "Label" (ctx.Locale.Tr "settings.storage_overview") "Icon" "gauge" "Active" .PageIsStorageOverview)}}
 			{{end}}
+			{{if .AscEnabled}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/usage") "Label" (ctx.Locale.Tr "asc_shell.sn_usage") "Icon" "dollar" "Active" .PageIsSettingsAscUsage)}}
+			{{end}}
 		</ul>
 
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_other"}}</h2>

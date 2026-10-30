@@ -44,6 +44,7 @@ func renderAIIndex(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, st
 			}
 		} else {
 			p.Keys = svc.KeyViews(ks)
+			loadShared(ctx, lvl, p)
 		}
 	}
 	if (p.Unavailable || p.Unsupported) && status < http.StatusBadRequest {
@@ -95,6 +96,7 @@ func renderAIKey(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, id s
 	} else {
 		log.Debug("asc byo: usage of a key in %s: %v", lvl.Scope, err)
 	}
+	loadSharing(ctx, lvl, p, id)
 	ctx.HTML(status, lvl.AITpl)
 }
 

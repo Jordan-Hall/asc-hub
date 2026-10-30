@@ -41,6 +41,9 @@ type Resolver func(ctx *context.Context) *Level
 //	POST /asc/ai/keys/{id}/enable                  use the key again
 //	POST /asc/ai/keys/{id}/disable                 stop using the key
 //	POST /asc/ai/keys/{id}/delete                  remove the key
+//	POST /asc/ai/keys/{id}/shares                  share the key (account and organization keys; aishares.go)
+//	POST /asc/ai/keys/{id}/shares/{share}/revoke   take a share back
+//	POST /asc/ai/keys/{id}/caps                    warning percentage and stop rule of the cap
 func Routes(m *web.Route, resolve Resolver) {
 	h := func(fn func(*context.Context, *Level)) func(*context.Context) {
 		return func(ctx *context.Context) {
@@ -81,6 +84,9 @@ func Routes(m *web.Route, resolve Resolver) {
 				m.Post("/enable", h(with(AIDisable, false)))
 				m.Post("/disable", h(with(AIDisable, true)))
 				m.Post("/delete", h(AIDelete))
+				m.Post("/shares", h(AIShare))
+				m.Post("/shares/{share}/revoke", h(AIShareRevoke))
+				m.Post("/caps", h(AICaps))
 			})
 		})
 	})

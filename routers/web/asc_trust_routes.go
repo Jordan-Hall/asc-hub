@@ -26,6 +26,7 @@ import (
 //
 // and the account pages of asc serve (see routers/web/user/setting/asc_account.go): sessions and the data export.
 func registerAscTrustUserRoutes(m *web.Route) {
+	m.Get("/asc/usage", user_setting.AscUsage)
 	m.Group("/asc/sessions", func() {
 		m.Get("", user_setting.AscSessions)
 		m.Post("/revoke", user_setting.AscSessionsRevoke)
@@ -48,6 +49,16 @@ func registerAscTrustUserRoutes(m *web.Route) {
 //	GET  /org/{org}/settings/asc/audit/export   its export
 //	POST /org/{org}/settings/asc/audit/verify   the check of its hash chain
 func registerAscTrustOrgRoutes(m *web.Route) {
+	m.Get("/asc/usage", org_setting.AscUsage)
+	m.Group("/asc/agents", func() {
+		m.Get("", org_setting.AscAgents)
+		m.Post("/policy", org_setting.AscAgentsPolicy)
+		m.Post("/new", org_setting.AscAgentsNew)
+		m.Post("/{name}/update", org_setting.AscAgentsUpdate)
+		m.Post("/{name}/state", org_setting.AscAgentsState)
+		m.Post("/{name}/delete", org_setting.AscAgentsDelete)
+	})
+	m.Combo("/asc/merge").Get(org_setting.AscMerge).Post(org_setting.AscMergeSave)
 	m.Group("/asc/audit", func() {
 		m.Get("", org_setting.AscAudit)
 		m.Get("/export", org_setting.AscAuditExport)
@@ -61,6 +72,15 @@ func registerAscTrustOrgRoutes(m *web.Route) {
 //	GET  /admin/asc/audit/export   its export
 //	POST /admin/asc/audit/verify   the check of its hash chain
 func registerAscTrustAdminRoutes(m *web.Route) {
+	m.Get("/asc/usage", admin.AscUsage)
+	m.Post("/asc/usage/quota", admin.AscUsageQuota)
+	m.Combo("/asc/agents").Get(admin.AscAgents).Post(admin.AscAgentsSave)
+	m.Group("/asc/backups", func() {
+		m.Post("/run", admin.AscBackupsRun)
+		m.Post("/schedule", admin.AscBackupsSchedule)
+		m.Post("/{id}/verify", admin.AscBackupsVerify)
+		m.Combo("/{id}/restore").Get(admin.AscBackupsRestoreForm).Post(admin.AscBackupsRestore)
+	})
 	m.Group("/asc/audit", func() {
 		m.Get("", admin.AscAudit)
 		m.Get("/export", admin.AscAuditExport)

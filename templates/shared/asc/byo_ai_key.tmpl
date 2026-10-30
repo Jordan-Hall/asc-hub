@@ -34,7 +34,7 @@
 			<p>{{ctx.Locale.Tr "ascbyo.ai.detail.test_help"}}</p>
 			{{with $a.Test}}
 				<div class="ds-banner {{if .OK}}positive {{else}}negative {{end}}" role="status" data-testid="asc-test-result">
-					<p>{{if .OK}}{{ctx.Locale.Tr "ascbyo.ai.detail.test_ok" .Latency}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.detail.test_failed" (ctx.Locale.Tr (print "ascbyo.ai.test_status." .Status))}}{{end}}</p>
+					<p>{{if .OK}}{{ctx.Locale.Tr "ascbyo.ai.detail.test_ok" .Latency}}{{if $a.Models}} <span data-testid="asc-test-models">{{ctx.Locale.Tr "asc_shell.ai_models_available" (len $a.Models)}}</span>{{end}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.detail.test_failed" (ctx.Locale.Tr (print "ascbyo.ai.test_status." .Status))}}{{end}}</p>
 					{{if .Message}}<p class="asc-byo-detail">{{.Message}}</p>{{end}}
 				</div>
 			{{end}}
@@ -101,6 +101,8 @@
 				<datalist id="asc-models">{{range $a.Models}}<option value="{{.ID}}">{{end}}</datalist>
 			{{end}}
 		</section>
+
+		{{template "shared/asc/byo_ai_sharing" (dict "Root" $ "Key" $k)}}
 
 		<section class="asc-byo-card asc-byo-danger" aria-labelledby="asc-delete-h">
 			<h3 id="asc-delete-h">{{ctx.Locale.Tr "ascbyo.ai.detail.delete_title"}}</h3>

@@ -5,15 +5,20 @@ package setting
 
 import (
 	"net/http"
+	"net/url"
 	"testing"
 
 	"forgejo.org/models/unittest"
+	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/cache"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/templates"
 	"forgejo.org/modules/web"
 	"forgejo.org/services/contexttest"
 	"forgejo.org/services/forms"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestChangePassword(t *testing.T) {
@@ -98,4 +103,22 @@ func TestChangePassword(t *testing.T) {
 			assert.Equal(t, http.StatusSeeOther, ctx.Resp.Status())
 		})
 	}
+}
+
+func TestDeleteAccountAsksForTheUsernameFirst(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	ctx, resp := contexttest.MockContext(t, "POST user/settings/account/delete")
+	ctx.Render = templates.HTMLRenderer()
+	require.NoError(t, cache.Init())
+	ctx.Cache = cache.GetCache()
+	contexttest.LoadUser(t, ctx, 2)
+	ctx.Req.Form = url.Values{"username_confirm": {"somebody-else"}, "password": {"password"}}
+	ctx.Req.PostForm = ctx.Req.Form
+
+	DeleteAccount(ctx)
+
+	assert.Equal(t, "settings.delete_username_mismatch", ctx.Flash.ErrorMsg, "a wrong name stops before the password is looked at")
+	assert.Equal(t, true, ctx.Data["Err_UsernameConfirm"])
+	assert.Equal(t, http.StatusOK, resp.Code)
+	unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 }
