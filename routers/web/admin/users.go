@@ -14,8 +14,6 @@ import (
 	"forgejo.org/models"
 	"forgejo.org/models/auth"
 	"forgejo.org/models/db"
-	org_model "forgejo.org/models/organization"
-	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/auth/password"
 	"forgejo.org/modules/base"
@@ -289,46 +287,9 @@ func ViewUser(ctx *context.Context) {
 		return
 	}
 
-	repos, count, err := repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
-		ListOptions: db.ListOptionsAll,
-		OwnerID:     u.ID,
-		OrderBy:     db.SearchOrderByAlphabetically,
-		Private:     true,
-		Collaborate: optional.Some(false),
-	})
-	if err != nil {
-		ctx.ServerError("SearchRepository", err)
+	if !prepareUserTab(ctx, u, userTabOf(ctx.FormString("tab"))) {
 		return
 	}
-
-	ctx.Data["Repos"] = repos
-	ctx.Data["ReposTotal"] = int(count)
-
-	emails, err := user_model.GetEmailAddresses(ctx, u.ID)
-	if err != nil {
-		ctx.ServerError("GetEmailAddresses", err)
-		return
-	}
-	ctx.Data["Emails"] = emails
-	ctx.Data["EmailsTotal"] = len(emails)
-
-	orgs, err := db.Find[org_model.Organization](ctx, org_model.FindOrgOptions{
-		ListOptions:    db.ListOptionsAll,
-		UserID:         u.ID,
-		IncludePrivate: true,
-	})
-	if err != nil {
-		ctx.ServerError("FindOrgs", err)
-		return
-	}
-
-	// explore/user_list draws users: an organization is a user of that kind, so the list is of users
-	orgUsers := make([]*user_model.User, len(orgs))
-	for i, o := range orgs {
-		orgUsers[i] = o.AsUser()
-	}
-	ctx.Data["Users"] = orgUsers
-	ctx.Data["OrgsTotal"] = len(orgs)
 
 	ctx.HTML(http.StatusOK, tplUserView)
 }
@@ -481,27 +442,9 @@ func EditUserPost(ctx *context.Context) {
 	log.Trace("Account profile updated by admin (%s): %s", ctx.Doer.Name, u.Name)
 
 	if form.Reset2FA {
-		tf, err := auth.GetTwoFactorByUID(ctx, u.ID)
-		if err != nil && !auth.IsErrTwoFactorNotEnrolled(err) {
-			ctx.ServerError("auth.GetTwoFactorByUID", err)
+		if err := reset2FA(ctx, u); err != nil {
+			ctx.ServerError("reset2FA", err)
 			return
-		} else if tf != nil {
-			if err := auth.DeleteTwoFactorByID(ctx, tf.ID, u.ID); err != nil {
-				ctx.ServerError("auth.DeleteTwoFactorByID", err)
-				return
-			}
-		}
-
-		wn, err := auth.GetWebAuthnCredentialsByUID(ctx, u.ID)
-		if err != nil {
-			ctx.ServerError("auth.GetTwoFactorByUID", err)
-			return
-		}
-		for _, cred := range wn {
-			if _, err := auth.DeleteCredential(ctx, cred.ID, u.ID); err != nil {
-				ctx.ServerError("auth.DeleteCredential", err)
-				return
-			}
 		}
 	}
 

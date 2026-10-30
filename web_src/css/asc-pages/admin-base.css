@@ -437,6 +437,32 @@ a.adm-who-name:hover {
   margin-top: 4px;
 }
 
+.adm-person-acts .adm-reason .wk-menu-list {
+  gap: 8px;
+  padding: 12px;
+  min-width: 300px;
+}
+
+.adm-person-tabs {
+  margin: 16px 0 16px;
+}
+
+.adm-meter-h {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.adm-usage progress {
+  display: block;
+  width: 100%;
+}
+
+.adm-pad {
+  padding: 16px;
+}
+
 .adm-person-acts {
   display: flex;
   flex-wrap: wrap;
