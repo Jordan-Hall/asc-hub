@@ -8,6 +8,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,6 +75,13 @@ func (e *CLIExporter) Export(ctx context.Context, repoName, bridgeDir string) er
 	if err := os.MkdirAll(filepath.Dir(ws), 0o750); err != nil {
 		return fmt.Errorf("ascbridge: workspace directory: %w", err)
 	}
+	// One private home for every run of this repository. The workspace the clone makes points at the caches in the
+	// asc home it was made with, so a fetch or an export with another one cannot find its repository ("not a git
+	// repository"). The home is not in the workspace, which does not exist yet when the clone runs.
+	home := filepath.Join(e.Workspaces, ".home", owner, name)
+	if err := os.MkdirAll(home, 0o750); err != nil {
+		return fmt.Errorf("ascbridge: workspace home: %w", err)
+	}
 	ready := filepath.Join(ws, workspaceReady)
 	if _, err := os.Stat(ready); err != nil {
 		if !os.IsNotExist(err) {
@@ -82,16 +91,16 @@ func (e *CLIExporter) Export(ctx context.Context, repoName, bridgeDir string) er
 		if err := util.RemoveAll(ws); err != nil {
 			return fmt.Errorf("ascbridge: workspace: %w", err)
 		}
-		if err := e.run(ctx, filepath.Dir(ws), "clone", "--", strings.TrimRight(e.ServerURL, "/")+"/"+repoName, name); err != nil {
+		if err := e.run(ctx, filepath.Dir(ws), home, "clone", "--", strings.TrimRight(e.ServerURL, "/")+"/"+repoName, name); err != nil {
 			return err
 		}
 		if err := os.WriteFile(ready, nil, 0o600); err != nil {
 			return fmt.Errorf("ascbridge: workspace: %w", err)
 		}
-	} else if err := e.run(ctx, ws, "fetch"); err != nil {
+	} else if err := e.run(ctx, ws, home, "fetch"); err != nil {
 		return err
 	}
-	return e.run(ctx, ws, "export", "--git", bridgeDir, "--refs", "refs/heads/*", "--refs", "refs/tags/*", "--refs", "refs/pull/*")
+	return e.run(ctx, ws, home, "export", "--git", bridgeDir, "--refs", "refs/heads/*", "--refs", "refs/tags/*", "--refs", "refs/pull/*")
 }
 
 // safeElement accepts the characters of owner and repository names, and not a path element that climbs or one that
@@ -110,14 +119,19 @@ func safeElement(s string) bool {
 	return true
 }
 
-func (e *CLIExporter) run(ctx context.Context, dir string, args ...string) error {
+func (e *CLIExporter) run(ctx context.Context, dir, home string, args ...string) error {
 	cmd := exec.CommandContext(ctx, e.Binary, args...)
 	cmd.Dir = dir
 	cmd.Env = []string{
 		"PATH=" + os.Getenv("PATH"),
-		"HOME=" + dir,
-		"ASC_HOME=" + filepath.Join(dir, ".asc-home"),
+		"HOME=" + home,
+		"ASC_HOME=" + filepath.Join(home, ".asc-home"),
 		"ASC_TOKEN=" + e.Token,
+	}
+	if loopbackHTTP(e.ServerURL) {
+		// The hub talks to asc serve over plain http on the same host (as its own client does); asc refuses that
+		// unless it is told the address is the loopback.
+		cmd.Env = append(cmd.Env, "ASC_ALLOW_LOOPBACK_HTTP=1")
 	}
 	var out bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &out, &out
@@ -129,4 +143,18 @@ func (e *CLIExporter) run(ctx context.Context, dir string, args ...string) error
 		return fmt.Errorf("ascbridge: asc %s: %w: %s", args[0], err, strings.TrimSpace(text))
 	}
 	return nil
+}
+
+// loopbackHTTP reports whether rawURL is plain http to a loopback address.
+func loopbackHTTP(rawURL string) bool {
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Scheme != "http" {
+		return false
+	}
+	host := u.Hostname()
+	if host == "localhost" {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }

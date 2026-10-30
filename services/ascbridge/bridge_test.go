@@ -237,3 +237,49 @@ func TestInitConnectsTheLifecycleOnlyWhenAscIsOn(t *testing.T) {
 	t.Cleanup(func() { ascwriter.SetBridge(nil) })
 	require.NoError(t, Init(t.Context()))
 }
+
+func TestRepairRebuildsTheBridgeFromAscOnceInAWhile(t *testing.T) {
+	for _, mode := range []string{setting.AscBridgeEager, setting.AscBridgeLazy} {
+		t.Run(mode, func(t *testing.T) {
+			ForgetRepairs()
+			fx := newFixture(t, mode)
+			exp := &countingExporter{}
+			t.Cleanup(UseExporter(exp))
+			fx.fake.set("refs/heads/main", strings.Repeat("11", 20))
+
+			require.NoError(t, Repair(t.Context(), fx.repo))
+			assert.Equal(t, int32(1), exp.calls.Load(), "the export runs even when an eager bridge is thought to be current")
+			assert.Equal(t, []string{"owner/repo repo.git"}, exp.names)
+			assert.DirExists(t, fx.repo.RepoPath())
+			if mode == setting.AscBridgeLazy {
+				assert.FileExists(t, filepath.Join(fx.repo.RepoPath(), MarkerName), "a lazy bridge records what it was built from")
+			}
+
+			// Asked for again at once (a page that keeps failing): no second export.
+			require.ErrorIs(t, Repair(t.Context(), fx.repo), ErrRepairTooSoon)
+			assert.Equal(t, int32(1), exp.calls.Load())
+
+			ForgetRepairs()
+			require.NoError(t, Repair(t.Context(), fx.repo))
+			assert.Equal(t, int32(2), exp.calls.Load())
+		})
+	}
+}
+
+func TestRepairLeavesAGitRepositoryAlone(t *testing.T) {
+	ForgetRepairs()
+	fx := newFixture(t, setting.AscBridgeEager)
+	fx.repo.StorageBackend = "git"
+	exp := &countingExporter{}
+	t.Cleanup(UseExporter(exp))
+	require.NoError(t, Repair(t.Context(), fx.repo))
+	assert.Zero(t, exp.calls.Load())
+	assert.NoDirExists(t, fx.repo.RepoPath())
+}
+
+func TestRepairReportsAFailedExport(t *testing.T) {
+	ForgetRepairs()
+	fx := newFixture(t, setting.AscBridgeEager)
+	t.Cleanup(UseExporter(&countingExporter{err: errors.New("asc is down")}))
+	require.ErrorContains(t, Repair(t.Context(), fx.repo), "asc is down")
+}
