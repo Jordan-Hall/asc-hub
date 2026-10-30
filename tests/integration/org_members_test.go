@@ -70,7 +70,7 @@ func TestOrgMembersPage(t *testing.T) {
 		doc := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
 
 		/* Inviting new members is possible */
-		assert.Equal(t, "Invite member", strings.TrimSpace(doc.Find("#add-org-member-button").Text()))
+		assert.Equal(t, "Invite people", strings.TrimSpace(doc.Find("#add-org-member-button").Text()))
 	})
 }
 

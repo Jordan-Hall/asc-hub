@@ -64,12 +64,11 @@ test('Add and remove a new member to the org', async ({page}) => {
   // A modal dialog appears
   await expect(page.locator('#add-member-modal')).toBeVisible();
 
-  // Fill in the name of the user to add
-  await page.locator('#search-user-box input').fill('user5');
-  // Pick the auto-complete suggestion
-  await page.locator('#search-user-box .results a.result').click();
+  // Fill in the name of the user to add (names and addresses are separated by commas, spaces or lines)
+  await page.locator('#add-member-user').fill('user5');
 
-  // Choose some teams
+  // Choose some more teams
+  await page.locator('#add-member-modal .wk-team-pick summary').click();
   await page.locator('#add-member-team_2').click();
   await page.locator('#add-member-team_12').click();
 
@@ -77,7 +76,7 @@ test('Add and remove a new member to the org', async ({page}) => {
   await page.locator('#add-member-modal .actions button.ok').click();
 
   // Verify that the user was added
-  await expect(page.locator('.organization.members .list a').getByText('user5 (User Five)')).toBeVisible();
+  await expect(page.locator('.organization.members .list a').getByText('User Five')).toBeVisible();
 
   // Revert for repeatability
   const removeButton = page.locator('.delete-button[data-url="/org/org3/members/action/remove"][data-datauid="5"]');
@@ -87,6 +86,6 @@ test('Add and remove a new member to the org', async ({page}) => {
     await expect(page.locator('.modal#remove-organization-member')).toBeVisible();
     // Proceed removing from the org
     await page.locator('.modal#remove-organization-member .actions button.ok').click();
-    await expect(page.locator('.organization.members .list a').getByText('user5 (User Five)')).toBeHidden();
+    await expect(page.locator('.organization.members .list a').getByText('User Five')).toBeHidden();
   }).toPass();
 });

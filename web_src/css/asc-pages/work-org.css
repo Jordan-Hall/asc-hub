@@ -165,6 +165,150 @@
   list-style: none;
 }
 
+/* the People page: search, chips and the invite button on one line from 900px */
+.wk-people-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+@media (min-width: 900px) {
+  .wk-people-bar {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .wk-people-bar .wk-people-filter {
+    flex: 1 1 auto;
+    min-width: 220px;
+  }
+
+  .wk-people-bar .wk-people-invite {
+    flex: none;
+  }
+}
+
+.wk-member-name {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.wk-member-name:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.wk-member-stat {
+  display: grid;
+  justify-items: end;
+  min-width: 84px;
+  line-height: 1.25;
+}
+
+.wk-member-stat strong {
+  font-size: 16px;
+}
+
+.wk-member-stat span {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.wk-people-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-top: 16px;
+}
+
+.wk-people-sec {
+  margin-top: 28px;
+}
+
+.wk-people-sec > h2 {
+  margin-bottom: 10px;
+}
+
+.wk-agent-av {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--agent-soft);
+  color: var(--agent);
+}
+
+.wk-invite-av {
+  background: var(--warn-soft, rgb(250 204 21 / 18%));
+  color: var(--warn, #9a6700);
+  border-radius: 10px;
+}
+
+/* a menu that opens under its button: Change role and the more-actions button */
+.wk-menu {
+  position: relative;
+}
+
+.wk-menu > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.wk-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wk-menu-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  display: grid;
+  min-width: 220px;
+  padding: 6px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 14%);
+}
+
+.wk-menu-item {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.wk-menu-item:hover,
+.wk-menu-item:focus-visible {
+  background: var(--surface-2);
+}
+
+.wk-menu-item span {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.wk-menu-item.is-current strong::after {
+  content: " \2713";
+  color: var(--link);
+}
+
+.wk-menu-danger {
+  color: var(--danger, #b42318);
+}
+
 .wk-team-pick {
   margin: 14px 0 0;
   padding: 0;

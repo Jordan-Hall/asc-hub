@@ -14,7 +14,7 @@
 	<article>
 		<header>
 			{{if $.AddMembersByInvitations}}
-				{{ctx.Locale.Tr "members.invite_member"}}
+				{{ctx.Locale.Tr "asc_work.invite_dialog_title"}}
 			{{else}}
 				{{ctx.Locale.Tr "members.add_member"}}
 			{{end}}
@@ -23,17 +23,21 @@
 			<input type="hidden" name="uid" value="{{.SignedUser.ID}}">
 			<div class="content">
 				<div class="field ds-field">
-					<label class="ds-label" for="add-member-user">{{ctx.Locale.Tr "members.user"}}</label>
-					<div id="search-user-box" class="ui search"{{if .IsEmailInviteEnabled}} data-allow-email="true" data-allow-email-description="{{ctx.Locale.Tr "org.teams.invite_team_member" $.Team.Name}}"{{end}}>
-						<div class="ui input">
-							<input id="add-member-user" class="prompt ds-input" name="uname" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" required>
-						</div>
-					</div>
+					<label class="ds-label" for="add-member-user">{{ctx.Locale.Tr "asc_work.invite_people_label"}}</label>
+					<textarea id="add-member-user" class="ds-textarea" name="invitees" rows="2" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" spellcheck="false" required></textarea>
+					<p class="ds-hint">{{ctx.Locale.Tr "asc_work.invite_people_hint"}}</p>
+				</div>
+				<div class="field ds-field">
+					<label class="ds-label" for="add-member-role">{{ctx.Locale.Tr "asc_work.invite_role_label"}}</label>
+					<select id="add-member-role" class="ds-select" name="role">
+						<option value="member" selected>{{ctx.Locale.Tr "asc_work.role_member"}}</option>
+						<option value="maintainer">{{ctx.Locale.Tr "asc_work.role_maintainer"}}</option>
+						<option value="owner">{{ctx.Locale.Tr "asc_work.role_owner"}}</option>
+					</select>
 				</div>
 
-				<fieldset class="ds-fieldset wk-team-pick">
-					<legend class="ds-label">{{ctx.Locale.Tr "org.teams"}}</legend>
-					<div class="ds-banner ds-banner-err" id="no-team-selected-message" role="alert" hidden>{{ctx.Locale.Tr "members.no_team_selected"}}</div>
+				<details class="ds-details wk-team-pick">
+					<summary>{{ctx.Locale.Tr "asc_work.invite_teams_more"}}</summary>
 					<div class="team-list">
 						{{range .Teams}}
 							<div class="ds-check">
@@ -43,14 +47,14 @@
 						{{end}}
 						<a class="ds-link" href="{{$.OrgLink}}/teams/new">{{ctx.Locale.Tr "org.create_new_team"}}</a>
 					</div>
-				</fieldset>
+				</details>
 			</div>
 		</form>
 		<div class="actions">
 			<button class="ds-btn ds-btn-secondary cancel" type="button">{{ctx.Locale.Tr "cancel"}}</button>
 			<button class="ds-btn ds-btn-primary ok" type="submit">
 				{{if $.AddMembersByInvitations}}
-					{{ctx.Locale.Tr "members.invite_member"}}
+					{{ctx.Locale.Tr "asc_work.invite_send"}}
 				{{else}}
 					{{ctx.Locale.Tr "members.add_member"}}
 				{{end}}
