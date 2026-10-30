@@ -300,8 +300,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | RepoSettingsAccess | One list of people, teams and agents with role select, last active, Show All / People / Agents | needs-hub-backend | `H:templates/repo/settings/collaboration.tmpl` has separate collaborator and team sections with Forgejo roles read / write / admin; add a Maintain level and an agent flag and merge | L |
 | RepoSettingsAccess | Combined search (people, teams, agents) with role chosen before adding | needs-hub-backend | `collaboration.tmpl` searches users and teams separately | M |
-| RepoSettingsAccess | Role select changes access at once with an Undo toast | ui-only-missing | JS handler on `collaboration.go` POST | M |
-| RepoSettingsAccess | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | needs-hub-backend | policy lookup per agent identity | M |
+| RepoSettingsAccess | Role select changes access at once with an Undo toast | done (seen on a live hub (ui34): the role applies when picked, a toast reports it and Undo puts the old role back (checked: it persisted)) | JS handler on `collaboration.go` POST | M |
+| RepoSettingsAccess | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | done (the Agent chip is drawn for a bot account; "Limited by policy to src/ and tests/" is not drawn) | policy lookup per agent identity | M |
 | RepoSettingsAccess | Remove agent confirm that says the running run stops and open changes stay with the owner | needs-both | `Agents.CancelRun` on removal in `collaboration.go`; confirm dialog text | M |
 | RepoSettingsAccess | Invite that already has access ("Priya Raman already has Maintain access") | done (seen on a live hub (ui26): the invite answers "rev already has Write access to this repository.") | `collaboration.go` error text | S |
 | RepoSettingsAccess | Deploy keys on the same page: title, fingerprint, read-only or read-write, added by, last used, Add dialog | ui-only-missing | `H:templates/repo/settings/deploy_keys.tmpl` is its own page at `/settings/keys`; the board says both routes render one layout | M |
