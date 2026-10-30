@@ -251,7 +251,7 @@ func (failingWriter) Write([]byte) (int, error) { return 0, errDisk }
 func TestListAuditAsksWithTheScopeAndFilter(t *testing.T) {
 	f, c := startFake(t)
 	f.auditList = func(req *ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error) {
-		return &ascv1.ListAuditResponse{Events: []*ascv1.AuditEvent{auditEvent(1, "repo.ref.update")}, NextPageToken: "n2"}, nil
+		return &ascv1.ListAuditResponse{Events: []*ascv1.AuditEvent{auditEvent(1, "repo.ref.update")}, NextPageToken: "n2", RetentionDays: 365}, nil
 	}
 	f.auditActs = func() (*ascv1.ListAuditActionsResponse, error) {
 		return &ascv1.ListAuditActionsResponse{Actions: []*ascv1.AuditActionInfo{{Action: "repo.ref.update", Description: "A ref moved"}}}, nil
@@ -265,6 +265,7 @@ func TestListAuditAsksWithTheScopeAndFilter(t *testing.T) {
 	require.Len(t, res.Page.Rows, 1)
 	assert.Equal(t, "A ref moved", res.Page.Rows[0].What, "the catalogue names the action")
 	assert.Equal(t, "n2", res.Page.Next)
+	assert.EqualValues(t, 365, res.RetentionDays, "how long events are kept, as asc says")
 
 	call := f.last(t, "AuditList")
 	assert.Equal(t, "Bearer tok-person", call.Auth, "the call is made as the person")

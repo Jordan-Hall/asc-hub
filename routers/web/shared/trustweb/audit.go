@@ -57,6 +57,8 @@ type AuditView struct {
 	Unsupported bool
 	Chain       *asctrust.ChainResult
 	Searched    bool
+	// RetentionDays is how long events are kept, as asc says (0: not said, or kept for ever).
+	RetentionDays uint32
 }
 
 // AuditData is the key of the view in the template data.
@@ -152,6 +154,7 @@ func ServeAudit(ctx *app_context.Context, lvl *AuditLevel) {
 	v.Searched = true
 	v.Rows = res.Page.Rows
 	v.Actions = res.Actions
+	v.RetentionDays = res.RetentionDays
 	if res.Page.Next != "" {
 		v.NextURL = lvl.link(q, res.Page.Next, "", nil)
 	}
