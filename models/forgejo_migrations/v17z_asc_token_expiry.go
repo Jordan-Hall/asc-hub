@@ -51,7 +51,7 @@ func addAccessTokenExpiryAndAscScopes(x *xorm.Engine) error {
 		default:
 			continue
 		}
-		if _, err := x.Table("access_token").ID(t.ID).Cols("scope").Update(map[string]any{"scope": scope + "," + add}); err != nil {
+		if _, err := x.Exec("UPDATE `access_token` SET `scope` = ? WHERE `id` = ?", scope+","+add, t.ID); err != nil {
 			return err
 		}
 	}
