@@ -56,6 +56,13 @@
 								{{end}}
 							</p>
 							{{template "repo/tag/verification_line" (dict "ctxData" $ "release" $release)}}
+							{{with $info.Asc}}{{if or .BuildRun .ChecksTotal .SignedBy}}
+								<p class="rp-rel-prov" data-testid="release-asc-provenance">
+									{{if .BuildRun}}{{if .BuildURL}}<a href="{{.BuildURL}}" rel="nofollow noopener">{{ctx.Locale.Tr "asc_rp.rel_built_run" .BuildRun}}</a>{{else}}{{ctx.Locale.Tr "asc_rp.rel_built_run" .BuildRun}}{{end}}{{end}}
+									{{if .ChecksTotal}}{{if .BuildRun}} &middot; {{end}}{{ctx.Locale.Tr "asc_rp.rel_asc_checks" .ChecksPassed .ChecksTotal}}{{end}}
+									{{if .SignedBy}}{{if or .BuildRun .ChecksTotal}} &middot; {{end}}{{if .SignatureOK}}{{ctx.Locale.Tr "asc_rp.rel_signed_by" .SignedBy}}{{else}}{{ctx.Locale.Tr "asc_rp.rel_signature_bad" .SignedBy}}{{end}}{{if .SigningKey}} <code class="rp-hash">{{.SigningKey}}</code>{{end}}{{end}}
+								</p>
+							{{end}}{{end}}
 							{{if $info.ChecksTotal}}
 								<p class="rp-rel-prov" data-testid="release-provenance">{{ctx.Locale.Tr "asc_rp.rel_prov" (ShortSha $release.Sha1) $info.ChecksPass $info.ChecksTotal}}</p>
 							{{end}}
@@ -122,7 +129,7 @@
 											</tr>
 										{{else}}
 											<tr class="attachment">
-												<td data-label="{{ctx.Locale.Tr "asc_rp.asset_name"}}"><a class="rp-asset-name" target="_blank" rel="nofollow" href="{{.DownloadURL}}" download>{{svg "dsi-package" 16}}{{.Name}}</a> <span class="rp-asset-meta">{{DateUtils.TimeSince .CreatedUnix}}</span></td>
+												<td data-label="{{ctx.Locale.Tr "asc_rp.asset_name"}}"><a class="rp-asset-name" target="_blank" rel="nofollow" href="{{.DownloadURL}}" download>{{svg "dsi-package" 16}}{{.Name}}</a> <span class="rp-asset-meta">{{DateUtils.TimeSince .CreatedUnix}}</span>{{$aname := .Name}}{{with $info.Asc}}{{with index .Assets $aname}}<br><code class="rp-asset-sum ds-mono" data-testid="asset-sha256" title="{{ctx.Locale.Tr "asc_rp.asset_sha256"}}">{{.}}</code>{{end}}{{end}}</td>
 												<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_size"}}">{{.Size | ctx.Locale.TrSize}}</td>
 												<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_downloads"}}">{{ctx.Locale.PrettyNumber .DownloadCount}}</td>
 											</tr>

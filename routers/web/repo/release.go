@@ -30,6 +30,7 @@ import (
 	"forgejo.org/modules/util"
 	"forgejo.org/modules/web"
 	"forgejo.org/routers/web/feed"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 	"forgejo.org/services/context/upload"
 	"forgejo.org/services/forms"
@@ -82,6 +83,9 @@ type ReleaseInfo struct {
 	Changes *relChanges
 	// ChecksPass and ChecksTotal are the results of the checks of the release commit.
 	ChecksPass, ChecksTotal int
+	// Asc is the record of the release in asc (where it was built, its checks, the signature, the checksum of each asset);
+	// nil without asc or without a record.
+	Asc *asctrust.ReleaseRecord
 }
 
 func getReleaseInfos(ctx *context.Context, opts *repo_model.FindReleasesOptions) ([]*ReleaseInfo, int64, error) {
@@ -223,6 +227,7 @@ func Releases(ctx *context.Context) {
 		ctx.ServerError("getReleaseInfos", err)
 		return
 	}
+	ascReleaseRecords(ctx, releases)
 	for _, rel := range releases {
 		if rel.Release.IsTag && rel.Release.Title == "" {
 			rel.Release.Title = rel.Release.TagName

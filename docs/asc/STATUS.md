@@ -1967,9 +1967,9 @@ Order is by effect on the requirement (a visitor sees the board; a person can si
 4. DONE on feat/wu03-tokens: device login mints a scoped token that expires after 90 days (WU-04).
 5. The CLI hint and `asc clone` use the up-front sign-in model, not on-demand per-repository auth - WU-05.
 6. No passkey sign-in, no login lockout, no password strength meter, no Terms checkbox - WU-06.
-7. Review threads, suggestions, version compare and reviewer suggestions never reach asc (11 Review RPCs unused) - WU-07.
-8. Stacks board: `/pulls` is still the issue list; no rail, filters, Your turn card, New stack - WU-08.
-9. Releases board runs on Forgejo data; asc Releases service has no hub client (no provenance, checksums, generated notes, `asc release`) - WU-09.
+7. Review threads reach asc now (feat/wu07-review-rpcs): comments, replies, resolves and review requests are mirrored, asc-side threads are listed, version compare, suggested reviewers, hunk context, brief editing and the draft from the diff are wired. Open: Apply as vN (PrepareSuggestion, MarkSuggestionApplied) - the hub cannot make an asc version - WU-07.
+8. Stacks board: built by the repo pages work (stack_board.tmpl: rail, filters with counts, sort, Your turn card, New stack, states); only the row hover slide-in and chip pulse remain - WU-08.
+9. Releases: the hub now has a Releases client (publish on the hub makes the asc record with asset checksums; the list shows provenance and checksums; GET /releases/asc_draft gives the proposed tag and notes). Open: the release dialog that uses the draft endpoint, build run only for releases made through asc - WU-09.
 10. Dashboard and Inbox rows cannot act in place; no unread, done, bulk, live updates - WU-10.
 11. Header agents pill, notification popover, palette results and commands, footer groups and status line are missing - WU-11.
 12. Repository home, History, Explore statistic cards not wired to Insights.GetStats - WU-12.
