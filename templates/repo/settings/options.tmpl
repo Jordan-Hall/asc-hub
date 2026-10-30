@@ -110,7 +110,7 @@
 				{{else}}
 					{{if $newMirrorsEntirelyEnabled}}
 						{{ctx.Locale.Tr "repo.settings.mirror_settings.docs"}}
-						<a target="_blank" rel="noopener noreferrer" href="https://forgejo.org/docs/latest/user/repo-mirror#pushing-to-a-remote-repository">{{ctx.Locale.Tr "repo.settings.mirror_settings.docs.doc_link_title"}}</a><br><br>
+						<a class="rp-link-u" target="_blank" rel="noopener noreferrer" href="https://forgejo.org/docs/latest/user/repo-mirror#pushing-to-a-remote-repository">{{ctx.Locale.Tr "repo.settings.mirror_settings.docs.doc_link_title"}}</a><br><br>
 						{{ctx.Locale.Tr "repo.settings.mirror_settings.docs.pull_mirror_instructions"}}
 						<a target="_blank" rel="noopener noreferrer" href="https://forgejo.org/docs/latest/user/repo-mirror#pulling-from-a-remote-repository">{{ctx.Locale.Tr "repo.settings.mirror_settings.docs.doc_link_pull_section"}}</a><br>
 					{{else if $onlyNewPushMirrorsEnabled}}

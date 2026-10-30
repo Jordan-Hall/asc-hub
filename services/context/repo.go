@@ -436,6 +436,9 @@ func repoAssignment(ctx *Context, repo *repo_model.Repository) {
 		v, err := user_model.GetUserSetting(ctx, ctx.Doer.ID, "asc.agent_features", "false")
 		ctx.Data["AscAgentFeatures"] = err == nil && v == "true"
 	}
+	if setting.Asc.Enabled && repo.GetStorageBackend() == "asc" && !repo.IsEmpty && (ctx.Doer != nil || !repo.IsPrivate) {
+		ctx.Data["AscRunCount"], ctx.Data["AscDepsCount"] = ascTabCounts(ctx, repo)
+	}
 	ctx.Data["DefaultWikiBranchName"] = setting.Repository.DefaultBranch
 }
 

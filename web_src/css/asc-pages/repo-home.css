@@ -1701,3 +1701,48 @@
   color: var(--text);
   font-weight: 600;
 }
+
+/* Directory columns: author and size show when there is room (board Code, directory view). */
+.rp-files .rp-col-opt {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .rp-files .rp-col-opt {
+    display: table-cell;
+    color: var(--text-2);
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .rp-files .size {
+    text-align: right;
+  }
+}
+
+/* Stacks list on a phone: the filters stay on one scrolling line and the avatar sits beside the stack (board Mobile-Stacks). */
+@media (max-width: 639px) {
+  .rp-stack .rp-stack-av + .rp-flight-main {
+    flex-basis: calc(100% - 48px);
+  }
+
+  .rp-stack .rp-stack-av ~ .rp-stkrail {
+    width: calc(100% - 44px);
+    margin-left: 44px;
+  }
+
+  .rp-stack-filter,
+  .rp-stack-filter .ds-seg {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .rp-stack-filter .ds-seg button,
+  .rp-stack-filter > .ds-btn {
+    flex: none;
+    white-space: nowrap;
+  }
+}

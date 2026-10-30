@@ -7,7 +7,10 @@ import (
 	"errors"
 	"testing"
 
+	ascv1 "forgejo.org/modules/ascproto/ascv1"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -55,4 +58,21 @@ func TestAscRefusalOfPlainErrors(t *testing.T) {
 	assert.Nil(t, ascRefusalOf(errors.New("plain")))
 	assert.Nil(t, ascRefusalOf(status.Error(codes.Unavailable, "down")))
 	assert.Nil(t, ascRefusalOf(status.Error(codes.FailedPrecondition, "")))
+}
+
+// The typed ErrorDetail asc sends natively (an Any in the status details) gives the code and the files, with the same
+// reader the pushes and merges use.
+func TestAscRefusalOfTheNativeTypedDetail(t *testing.T) {
+	st, err := status.New(codes.FailedPrecondition, "a secret was found").
+		WithDetails(&ascv1.ErrorDetail{Code: "SECRET_DETECTED", Paths: []string{"creds.txt", "deploy/key.pem"}})
+	require.NoError(t, err)
+	r := ascRefusalOf(st.Err())
+	require.NotNil(t, r)
+	assert.Equal(t, "SECRET_DETECTED", r.Code)
+	assert.Equal(t, "a secret was found (creds.txt, deploy/key.pem)", r.Message)
+
+	// A typed detail on a status that is no refusal (a missing repository, an internal error) is none.
+	st, err = status.New(codes.NotFound, "no such repository").WithDetails(&ascv1.ErrorDetail{Code: "NOT_FOUND"})
+	require.NoError(t, err)
+	assert.Nil(t, ascRefusalOf(st.Err()))
 }

@@ -20,6 +20,7 @@ import (
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/web"
 	"forgejo.org/routers/api/v1/utils"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 	"forgejo.org/services/convert"
 	pull_service "forgejo.org/services/pull"
@@ -496,6 +497,10 @@ func GetBranchProtection(ctx *context.APIContext) {
 
 	repo := ctx.Repo().Repository
 	bpName := ctx.Params(":name")
+	if ascProtectionRepo(repo) {
+		ascProtectionRead(ctx, bpName, false)
+		return
+	}
 	bp, err := git_model.GetProtectedBranchRuleByName(ctx, repo.ID, bpName)
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "GetProtectedBranchByID", err)
@@ -532,6 +537,10 @@ func ListBranchProtections(ctx *context.APIContext) {
 	//     "$ref": "#/responses/BranchProtectionList"
 
 	repo := ctx.Repo().Repository
+	if ascProtectionRepo(repo) {
+		ascProtectionRead(ctx, "", true)
+		return
+	}
 	bps, err := git_model.FindRepoProtectedBranchRules(ctx, repo.ID)
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "GetProtectedBranches", err)
@@ -590,6 +599,12 @@ func CreateBranchProtection(ctx *context.APIContext) {
 	}
 	if len(ruleName) == 0 {
 		ctx.Error(http.StatusBadRequest, "both rule_name and branch_name are empty", "both rule_name and branch_name are empty")
+		return
+	}
+	if ascProtectionRepo(repo) {
+		ascProtectionPropose(ctx, func(cur asctrust.BranchRule) (asctrust.BranchRule, error) {
+			return ascProtectionFromCreate(form, ruleName, cur)
+		}, "policy: protect "+ruleName)
 		return
 	}
 
@@ -795,6 +810,16 @@ func EditBranchProtection(ctx *context.APIContext) {
 	form := web.GetForm(ctx).(*api.EditBranchProtectionOption)
 	repo := ctx.Repo().Repository
 	bpName := ctx.Params(":name")
+	if ascProtectionRepo(repo) {
+		if bpName != repo.DefaultBranch {
+			ctx.NotFound()
+			return
+		}
+		ascProtectionPropose(ctx, func(cur asctrust.BranchRule) (asctrust.BranchRule, error) {
+			return ascProtectionFromEdit(form, cur)
+		}, "policy: change the protection of "+bpName)
+		return
+	}
 	protectBranch, err := git_model.GetProtectedBranchRuleByName(ctx, repo.ID, bpName)
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "GetProtectedBranchByID", err)
@@ -1067,6 +1092,16 @@ func DeleteBranchProtection(ctx *context.APIContext) {
 
 	repo := ctx.Repo().Repository
 	bpName := ctx.Params(":name")
+	if ascProtectionRepo(repo) {
+		if bpName != repo.DefaultBranch {
+			ctx.NotFound()
+			return
+		}
+		ascProtectionPropose(ctx, func(cur asctrust.BranchRule) (asctrust.BranchRule, error) {
+			return ascProtectionFromDelete(cur)
+		}, "policy: lift the protection of "+bpName)
+		return
+	}
 	bp, err := git_model.GetProtectedBranchRuleByName(ctx, repo.ID, bpName)
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "GetProtectedBranchByID", err)

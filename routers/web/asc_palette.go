@@ -44,7 +44,7 @@ type AscPaletteGroup struct {
 // those the person may read, people are those the person may see; a visitor who is not signed in gets the public ones.
 func AscPalette(ctx *context.Context) {
 	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
-	if !ascPaletteLimiter.Allow(ascPaletteKey(ctx)) {
+	if !ascPaletteLimiterFor(ctx).Allow(ascPaletteKey(ctx)) {
 		ctx.Resp.Header().Set("Retry-After", "10")
 		ctx.JSON(http.StatusTooManyRequests, map[string]any{"groups": []AscPaletteGroup{}})
 		return
@@ -74,7 +74,17 @@ func AscPalette(ctx *context.Context) {
 
 // ascPaletteLimiter bounds the calls of one person (or one address) while they type: the client waits before it asks,
 // this is the limit that holds when a client does not.
-var ascPaletteLimiter = ascratelimit.New(40, 10*time.Second)
+var (
+	ascPaletteLimiter     = ascratelimit.New(40, 10*time.Second) // visitors, by address (an IPv6 address by its /64)
+	ascPaletteUserLimiter = ascratelimit.New(40, 10*time.Second) // people who are signed in, by account: a flood of visitors cannot push them out
+)
+
+func ascPaletteLimiterFor(ctx *context.Context) *ascratelimit.Limiter {
+	if ctx.IsSigned {
+		return ascPaletteUserLimiter
+	}
+	return ascPaletteLimiter
+}
 
 func ascPaletteKey(ctx *context.Context) string {
 	if ctx.IsSigned {

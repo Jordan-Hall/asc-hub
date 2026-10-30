@@ -23,7 +23,19 @@ import (
 //	GET  /user/settings/asc/keys          the signing keys of the signed-in person
 //	POST /user/settings/asc/keys          add a key
 //	POST /user/settings/asc/keys/revoke   revoke a key
+//
+// and the account pages of asc serve (see routers/web/user/setting/asc_account.go): sessions and the data export.
 func registerAscTrustUserRoutes(m *web.Route) {
+	m.Group("/asc/sessions", func() {
+		m.Get("", user_setting.AscSessions)
+		m.Post("/revoke", user_setting.AscSessionsRevoke)
+		m.Post("/revoke-all", user_setting.AscSessionsRevokeAll)
+	})
+	m.Group("/asc/export", func() {
+		m.Combo("").Get(user_setting.AscExport).Post(user_setting.AscExportRequest)
+		m.Get("/{id}", user_setting.AscExportDownload)
+		m.Post("/{id}/delete", user_setting.AscExportDelete)
+	})
 	m.Group("/asc/keys", func() {
 		m.Combo("").Get(user_setting.AscKeys).Post(user_setting.AscKeysAdd)
 		m.Post("/revoke", user_setting.AscKeysRevoke)
@@ -75,6 +87,7 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 		m.Group("/policy", func() {
 			m.Get("", repo_setting.AscPolicy)
 			m.Post("/check", context.RepoMustNotBeArchived(), repo_setting.AscPolicyCheck)
+			m.Post("/form", repo_setting.AscPolicyForm)
 			m.Post("/propose", context.RepoMustNotBeArchived(), repo_setting.AscPolicyPropose)
 			m.Post("/protection", context.RepoMustNotBeArchived(), repo_setting.AscPolicyProtection)
 		})
@@ -128,6 +141,7 @@ func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
 		m.Get("/groups/{id}", repo.AscCheckGroup)
 		m.Post("/groups/{id}/state", reqSignIn, context.RepoMustNotBeArchived(), repo.AscCheckGroupState)
 		m.Post("/rerun", reqSignIn, context.RepoMustNotBeArchived(), repo.AscChecksRerun)
+		m.Post("/rerun_failed", reqSignIn, context.RepoMustNotBeArchived(), repo.AscChecksRerunFailed)
 	})
 }
 

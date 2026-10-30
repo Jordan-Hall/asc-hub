@@ -4,9 +4,10 @@
 package pull
 
 import (
-	"regexp"
 	"strings"
 	"unicode"
+
+	"forgejo.org/modules/ascclient"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -25,36 +26,41 @@ func (e *AscRefusal) Error() string { return "asc refused: " + e.Code + ": " + e
 // maxRefusalBytes bounds what is kept of a refusal.
 const maxRefusalBytes = 400
 
-// refusalInDetails finds the refusal in the text of an Internal error that asc sent with a typed-error encoding the
-// client could not read ("grpc-status-details-bin mismatch: grpc-status=FailedPrecondition, grpc-message=\"...\""):
-// the status and the message are still in the text.
-var refusalInDetails = regexp.MustCompile(`grpc-status=(FailedPrecondition|PermissionDenied|InvalidArgument|Aborted), grpc-message="((?:[^"\\]|\\.)*)"`)
-
 // ascRefusalOf extracts the refusal from err, or nil when err is not one. A refusal is a gRPC error whose code is
-// FailedPrecondition, PermissionDenied, InvalidArgument or Aborted and whose message is "CODE: sentence", or the
-// Internal error described at refusalInDetails.
+// FailedPrecondition, PermissionDenied, InvalidArgument or Aborted. The typed code and the files come from asc's
+// ErrorDetail (ascclient.RefusalOf reads it natively from the status details, or out of the text of an older asc);
+// without one, the message is "CODE: sentence".
 func ascRefusalOf(err error) *AscRefusal {
 	st, ok := status.FromError(err)
 	if !ok {
 		return nil
 	}
-	msg := st.Message()
-	switch st.Code() {
-	case codes.FailedPrecondition, codes.PermissionDenied, codes.InvalidArgument, codes.Aborted:
-	case codes.Internal:
-		m := refusalInDetails.FindStringSubmatch(msg)
-		if m == nil {
+	code, msg := "", st.Message()
+	if r, typed := ascclient.RefusalOf(err); typed {
+		switch r.Status {
+		case codes.FailedPrecondition, codes.PermissionDenied, codes.InvalidArgument, codes.Aborted:
+		default:
 			return nil
 		}
-		msg = strings.NewReplacer(`\"`, `"`, `\\`, `\`).Replace(m[2])
-	default:
-		return nil
+		code = r.Code
+		// The files the refusal is about, where its sentence does not name them.
+		msg = ascclient.Refusal{Message: r.Message, Paths: r.Paths}.Text()
+	} else {
+		switch st.Code() {
+		case codes.FailedPrecondition, codes.PermissionDenied, codes.InvalidArgument, codes.Aborted:
+		default:
+			return nil
+		}
 	}
-	code, text, found := strings.Cut(msg, ": ")
-	if !found || code == "" || strings.ContainsAny(code, " \t") || strings.ToUpper(code) != code {
-		code, text = "", msg
+	if code != "" {
+		msg = strings.TrimPrefix(msg, code+": ") // the sentence of asc may carry its own code
+	} else {
+		c, text, found := strings.Cut(msg, ": ")
+		if found && c != "" && !strings.ContainsAny(c, " 	") && strings.ToUpper(c) == c {
+			code, msg = c, text
+		}
 	}
-	text = cleanRefusalText(text)
+	text := cleanRefusalText(msg)
 	if text == "" {
 		return nil
 	}
