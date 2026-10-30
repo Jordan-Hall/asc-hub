@@ -21,6 +21,12 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 					<h1 class="rv-title">{{ctx.Locale.Tr "asc_trust.checks.title"}}</h1>
 					<p class="rv-lead">{{ctx.Locale.Tr "asc_trust.checks.lead"}}</p>
 				</div>
+				{{if and .CanRerun (eq .View "failures") (not .Unsupported)}}
+				<form class="rv-acts" method="post" action="{{.ChecksURL}}/rerun_failed">
+					{{$.CsrfTokenHtml}}
+					<button class="rv-btn rv-btn-secondary" type="submit" data-testid="asc-rerun-failed-repo">{{ctx.Locale.Tr "asc_trust.checks.rerun_failed_repo"}}</button>
+				</form>
+				{{end}}
 			</header>
 
 			{{if .Unsupported}}
