@@ -63,7 +63,7 @@
 							</div>
 							{{if not $.PublicOnly}}
 								{{$teams := index $.MembersTeams .ID}}
-								<div class="ds-li-sub">{{if $teams}}{{ctx.Locale.Tr "asc_work.people_teams" $teams}}{{else}}{{ctx.Locale.Tr "asc_work.people_no_teams"}}{{end}}</div>
+								<div class="ds-li-sub">{{if $teams}}{{ctx.Locale.Tr "asc_work.people_teams" $teams}}{{else if ne $role "owner"}}{{ctx.Locale.Tr "asc_work.people_no_teams"}}{{end}}</div>
 							{{end}}
 							<div class="ds-li-meta">{{if .LastLoginUnix}}{{ctx.Locale.Tr "asc_work.people_active" (DateUtils.TimeSince .LastLoginUnix)}}{{else}}{{ctx.Locale.Tr "asc_work.people_never"}}{{end}}</div>
 						</div>
