@@ -149,6 +149,7 @@ Template Attributes:
 					<section class="rv-card" aria-labelledby="rv-wf-file">
 						<div class="rv-card-h"><h2 id="rv-wf-file">{{ctx.Locale.Tr "asc_review.wf_file"}}</h2><button class="rv-btn rv-btn-secondary rv-btn-sm rv-end" type="button" data-clipboard-text="{{$.AscWorkflowText}}" data-testid="asc-workflow-copy">{{ctx.Locale.Tr "asc_review.wf_copy"}}</button></div>
 						<div class="rv-card-b">
+							{{if and $.CanChangeWorkflows $.AscWorkflowEditURL}}<p><a class="rv-btn rv-btn-secondary" href="{{$.AscWorkflowEditURL}}" data-testid="asc-workflow-edit">{{ctx.Locale.Tr "asc_review.wf_edit_change"}}</a></p><p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_edit_help"}}</p>{{end}}
 							<details class="rv-details">
 								<summary>{{if .Path}}{{ctx.Locale.Tr "asc_review.wf_show_path"}} <code>{{.Path}}</code>{{else}}{{ctx.Locale.Tr "asc_review.wf_show_def"}}{{end}}</summary>
 								<pre class="rv-pre" id="asc-workflow-text" tabindex="0" data-testid="asc-workflow-text">{{$.AscWorkflowText}}</pre>

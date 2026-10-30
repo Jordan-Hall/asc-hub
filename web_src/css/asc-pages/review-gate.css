@@ -191,7 +191,7 @@
 
   .rv-cols-gate > .rv-side {
     grid-column: 2;
-    grid-row: 1 / span 3;
+    grid-row: 1 / span 6;
   }
 
   .rv-cols-gate > :not(.rv-side) {
@@ -313,4 +313,16 @@
 .rv .rv-hint a,
 .rv .rv-li-sub a {
   text-decoration: underline;
+}
+
+/* The policy file and what it means sit side by side where there is room, as on the board. */
+@media (min-width: 1024px) {
+  .gt-file {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+
+  .gt-file > .rv-card-h {
+    grid-column: 1 / -1;
+  }
 }
