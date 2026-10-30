@@ -30,7 +30,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Repo | Title row (owner / name, Private chip, Watch, Star, Fork) and tab bar with Stacks and Releases and Issues counts | done | `H:templates/repo/header*.tmpl` | S |
-| Repo | Tab counts on Agent runs and Dependencies (3, 2) | needs-hub-backend | `H:templates/repo/header_tabs.tmpl` plus a cached count from `Agents.ListRuns` and `DepsService.ListFindings` in the repo header context | S |
+| Repo | Tab counts on Agent runs and Dependencies (3, 2) | done (the counts come from asc (open runs, open findings), cached 30 s, drawn when above 0; the empty hub showed none, so the number itself was not seen) | `H:templates/repo/header_tabs.tmpl` plus a cached count from `Agents.ListRuns` and `DepsService.ListFindings` in the repo header context | S |
 | Repo | Ref meta line ("4 open stacks, 12 branches, a41f9c2 landed 3 h ago"), Go to file button, Clone button | done | `H:templates/repo/home_dir.tmpl` | S |
 | Repo | Shortcuts: `t` go to file, `/` focus search, `g` then `c` jump to Code | done (t, g c, and the key attributes; / was there) | `H:web_src/js/features/ds-shell.js` (`onGlobalKey` handles only Ctrl+K and `/`); add a key-sequence helper | S |
 | Repo | Last-change row: person, intent, change id, age, "1,204 changes" total | done | `H:templates/repo/latest_commit.tmpl`, `view_list.tmpl` (shows commit summary and sha, no change-id or count label) | S |
@@ -132,7 +132,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | History | "Open on top of main" section listing open changes with stack position, "Waiting on Priya Raman", agent run status | needs-hub-backend | open pulls + reviewers + agent runs; `commits.tmpl` | L |
 | History | Comfy / Compact density switch | done | `commits.tmpl` seg + CSS + localStorage | S |
 | History | Filter bar: Everyone / People / Agents, Path, Stack, date range, in the URL, sticky | needs-hub-backend | author kind needs agent identity; path and date filters exist in Forgejo `RefCommits` partly; `commits.tmpl`, `routers/web/repo/commit.go` | M |
-| History | Export | needs-hub-backend | new route (CSV/JSON of the filtered list) in `H:routers/web/repo/commit.go` | S |
+| History | Export | done (seen on a live hub (ui18): Export CSV on the history page, newest first, at most 1000 rows, formula cells quoted) | new route (CSV/JSON of the filtered list) in `H:routers/web/repo/commit.go` | S |
 | History | Keyboard: `j`/`k` move, Enter opens, `c` copies id | done | none bound; list-nav helper in `H:web_src/js` | S |
 | History | Row hover actions (copy id, browse files) and hover lift | done | copy hash and view-at-point buttons in `commits_list.tmpl` | S |
 | History | "Landing rate, last 12 weeks" card with this-week delta | needs-both | statistics RPC (see Insights) | M |
@@ -313,12 +313,12 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | RepoSettingsPolicy | File header: `.asc/policy.toml`, Valid chip, "Last changed by Priya Raman, 5 days ago, in change kz4np" | ui-only-missing | `H:templates/repo/settings/asc_policy.tmpl` has the chip; last-change info via `Repo.Log` path filter | S |
 | RepoSettingsPolicy | TOML editor with Check (validate), diagnostics with line, Propose change | done | `H:routers/web/repo/setting/asc_policy.go` (`/check`, `/propose`) | S |
-| RepoSettingsPolicy | Seg Form / TOML / Changes (three views of one file) | ui-only-missing | `asc_policy.tmpl` has a textarea and a read-only "what it means" table only | L |
+| RepoSettingsPolicy | Seg Form / TOML / Changes (three views of one file) | done (seen on a live hub (ui18): three tabs over one file, arrow keys move; Form fields are approvals, checks, signing, force, merge strategy and queue, agent scope, denied paths and budgets) | `asc_policy.tmpl` has a textarea and a read-only "what it means" table only | L |
 | RepoSettingsPolicy | Form: approvals stepper, check chips with Add, authors-may-approve switch, keep-approvals switch | needs-both | form needs a structured parse (`ValidatePolicyResponse.parsed`); keys `author_may_approve`, `keep_approvals_on_restack` do not exist in `A:crates/asc-core/src/policy.rs` | L |
 | RepoSettingsPolicy | Agents section: write paths, never-touch paths, budget minutes and tokens, locked "A person approves every agent change" | needs-both | schema has `default_scope`, `denied_paths`, `max_runtime_seconds`, `budgets.max_tokens`; no `human_approval`; UI mapping minutes to seconds | L |
 | RepoSettingsPolicy | Merge queue section: use queue, batch size, checks after merge | needs-asc-backend | `[merge] queue` exists; `batch` and `post_merge_checks` do not (`A:crates/asc-serve` merge queue, `proto/asc/v1/mergequeue.proto`) | L |
 | RepoSettingsPolicy | Live file beside the form with changed lines flashing (+/-) | ui-only-missing | client-side diff against `GetSource.text` | M |
-| RepoSettingsPolicy | Changes tab: diff of the one pending edit; "Changing policy is a change" panel naming reviewers (Priya Raman and Diego Alvarez) | ui-only-missing | `Policy.Propose` response and maintainers from `GetPolicy.roles` | M |
+| RepoSettingsPolicy | Changes tab: diff of the one pending edit; "Changing policy is a change" panel naming reviewers (Priya Raman and Diego Alvarez) | done (seen on a live hub (ui18): a line diff of the draft against the policy in force, and the sentence that changing policy is a change; the reviewers are not named) | `Policy.Propose` response and maintainers from `GetPolicy.roles` | M |
 | RepoSettingsPolicy | TOML error state: "Line 11: max_minutes must be a whole number", form disabled while invalid | done | diagnostics list (`asc-policy-diagnostics`); form disable does not apply because there is no form | S |
 | RepoSettingsPolicy | Read-only state for non-maintainers with names to ask | ui-only-missing | route needs repo admin (`registerAscTrustRepoSettingsRoutes`); readers cannot see the page; show read-only for readers with maintainers from `GetPolicy` | M |
 | RepoSettingsPolicy | After-propose state: "Proposed as change kz9fw. Waiting for one approval" with Open change | done | `p_proposed` | S |
