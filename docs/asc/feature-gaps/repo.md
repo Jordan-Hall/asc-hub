@@ -198,15 +198,15 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Releases | Timeline of release cards, tag, stable / pre-release / draft chips, Compare, edit, assets list with downloads | done | `H:templates/repo/release/list.tmpl`, `release_tag_header.tmpl` | S |
 | Releases | Releases / Tags segment, search filter, feed | done | `release_tag_header.tmpl` | S |
 | Releases | Filter pills All 14 / Stable 11 / Pre-release 2 / Draft 1 and Sort (Newest, Most downloaded) | done (seen on a live hub (ui10): pills clicked, sections hide and show) | `release_tag_header.tmpl`; `H:routers/web/repo/release.go` query params | M |
-| Releases | Provenance strip ("Built by run #4218 from main@a41f9c2, 14 of 14 checks passed, signed with release key 7F3A...") | needs-hub-backend | `tag/verification_line.tmpl` gives the signature; add the building Actions run and check summary, link release to run (`H:models/actions`);; Audit 2026-10-30 (part built): Provenance line exists from Forgejo data; the hub has no client for asc Releases, so no run id or release key. | L |
-| Releases | Notes grouped Added / Changed / Fixed, "written from the intent of each change" | needs-hub-backend | generator over landed changes since last tag (`Repo.Log`, `Compare`); category from change class or trailer;; Audit 2026-10-30 (part built): Text exists; notes are not generated through asc Releases.DraftNotes (RPC never called by the hub). | L |
+| Releases | Provenance strip ("Built by run #4218 from main@a41f9c2, 14 of 14 checks passed, signed with release key 7F3A...") | done | `tag/verification_line.tmpl` gives the signature; add the building Actions run and check summary, link release to run (`H:models/actions`);; Audit 2026-10-30 (part built): Provenance line exists from Forgejo data; the hub has no client for asc Releases, so no run id or release key.; Audit 2026-10-30 (built): the release list shows where the release was built, its checks and who signed it from the asc record (Releases.List, services/asctrust/releases.go ListReleaseRecords, release/list.tmpl); a release published on the hub is made in asc as the publisher (MirrorRelease). The build run is empty unless the release was made with asc release or a CI run was named | L |
+| Releases | Notes grouped Added / Changed / Fixed, "written from the intent of each change" | needs-hub-backend | generator over landed changes since last tag (`Repo.Log`, `Compare`); category from change class or trailer;; Audit 2026-10-30 (part built): Text exists; notes are not generated through asc Releases.DraftNotes (RPC never called by the hub).; Audit 2026-10-30 (part built): GET /releases/asc_draft returns the notes grouped Added/Changed/Fixed and the proposed tag from Releases.DraftNotes and Releases.Next (routers/web/repo/asc_release_draft.go); the release form button that uses it belongs to the release dialog work | L |
 | Releases | "N changes in this release" list with author, change id, category | needs-hub-backend | `Repo.Compare(prev tag, tag)` in `release.go`; template block | M |
-| Releases | Asset table: size, SHA-256 checksum (copy on click), downloads | needs-hub-backend | `H:models/repo/attachment.go` has no checksum column; compute at upload; template shows name, count, age only | M |
+| Releases | Asset table: size, SHA-256 checksum (copy on click), downloads | done | `H:models/repo/attachment.go` has no checksum column; compute at upload; template shows name, count, age only; Audit 2026-10-30 (built): the SHA-256 of each asset is computed when the release is published and recorded in asc (Releases.Create); the asset table shows it under the name. Downloads count and size were already there | M |
 | Releases | Next release summary ("6 changes since v2.18.0", Draft v2.19.0 View) | done (seen on a live hub (ui10)) | `Compare(latest tag, default branch)` | M |
 | Releases | "Download the latest" with `asc release download v2.18.0` and per-platform line | ui-only-missing | right rail in `list.tmpl`; the `asc release` CLI command must exist (check `A:crates/asc/src/cli`) | S |
 | Releases | Release health: cadence, rollbacks | needs-hub-backend | derive from release dates; rollbacks need a data source | M |
 | Releases | Get notified: Watch releases, Atom feed | done | watch menu has releases, `.rss` link in header; Atom naming differs | S |
-| Releases | New release dialog: proposes next tag, "Write from the N landed changes", assets drop zone, pre-release, Save draft, Publish | ui-only-missing | `H:templates/repo/release/new.tmpl` is a full page (no dialog, no generated notes, no tag proposal) | L |
+| Releases | New release dialog: proposes next tag, "Write from the N landed changes", assets drop zone, pre-release, Save draft, Publish | ui-only-missing | `H:templates/repo/release/new.tmpl` is a full page (no dialog, no generated notes, no tag proposal); Audit 2026-10-30: the data for it exists (GET /releases/asc_draft: proposed tag, notes written from the landed changes); the dialog itself is not built | L |
 | Releases | States: no releases (shows `asc release create v1.0.0`), loading, storage error with Retry | needs-asc-backend | the command does not exist in the CLI (see above); `list.tmpl` empty state has no command, loading skeleton or storage-error banner | S |
 | Releases | Mobile: new release as bottom sheet, 44 px downloads | ui-only-missing | `new.tmpl` | M |
 
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 139 |
+| done | 141 |
 | ui-only-missing | 60 |
-| needs-hub-backend | 36 |
+| needs-hub-backend | 34 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
 | total | 263 |

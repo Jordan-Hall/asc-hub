@@ -1588,6 +1588,7 @@ func registerRoutes(m *web.Route) {
 			m.Combo("/new", context.EnforceQuotaWeb(quota_model.LimitSubjectSizeReposAll, context.QuotaTargetRepo)).
 				Get(repo.NewRelease).
 				Post(web.Bind(forms.NewReleaseForm{}), repo.NewReleasePost)
+			m.Get("/asc_draft", repo.AscReleaseDraft)
 			m.Post("/delete", repo.DeleteRelease)
 			m.Post("/attachments", context.EnforceQuotaWeb(quota_model.LimitSubjectSizeAssetsAttachmentsReleases, context.QuotaTargetRepo), repo.UploadReleaseAttachment)
 			m.Post("/attachments/remove", repo.DeleteAttachment)
