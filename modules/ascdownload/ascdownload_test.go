@@ -206,7 +206,7 @@ func TestBuildOffersAndPick(t *testing.T) {
 	m := sample()
 	o := BuildOffers(&m, "https://hub.example.com/-/download/", "https://hub.example.com/")
 	require.Len(t, o.OSes, 3)
-	assert.Equal(t, OSWindows, o.OSes[0].OS)
+	assert.Equal(t, []string{OSMacOS, OSLinux, OSWindows}, []string{o.OSes[0].OS, o.OSes[1].OS, o.OSes[2].OS}, "the order of the boards")
 
 	os, arch, ok := o.Pick(Platform{OSLinux, ArchX86_64})
 	require.True(t, ok)
