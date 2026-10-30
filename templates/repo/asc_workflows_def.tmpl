@@ -30,6 +30,7 @@ Template Attributes:
 				{{if and $.CanChangeWorkflows .Valid}}
 					<form class="rv-acts" method="post" action="{{.Link}}/enable">
 						{{$.CsrfTokenHtml}}
+						<a class="rv-btn rv-btn-primary rv-end wf-run-link" href="#rv-wf-run" data-testid="asc-workflow-run-link">{{ctx.Locale.Tr "asc_review.wf_run_now"}}</a>
 						<input type="hidden" name="enabled" value="{{if .Enabled}}0{{else}}1{{end}}">
 						<button class="rv-btn rv-btn-secondary" type="submit">{{if .Enabled}}{{ctx.Locale.Tr "asc_review.wf_switch_off"}}{{else}}{{ctx.Locale.Tr "asc_review.wf_switch_on"}}{{end}}</button>
 					</form>
@@ -41,6 +42,9 @@ Template Attributes:
 				<div class="rv-stack">
 					<section class="rv-card" aria-labelledby="rv-wf-steps">
 						<div class="rv-card-h"><h2 id="rv-wf-steps">{{ctx.Locale.Tr "asc_review.wf_steps"}}</h2></div>
+						{{if .Steps}}<ol class="wf-chain" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_review.wf_chain"}}" data-testid="asc-workflow-chain">
+							{{range .Steps}}<li class="wf-link{{if .HasState}} wf-{{.State.Slug}}{{end}}"><b>{{.ID}}</b><span class="rv-pill rv-pill-outline">{{.Kind}}</span>{{if .HasState}}{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}{{end}}</li>{{end}}
+						</ol>{{end}}
 						<ol class="rv-steps" data-testid="asc-workflow-steps">
 							{{range $i, $s := .Steps}}
 								<li class="rv-step">
@@ -67,6 +71,7 @@ Template Attributes:
 						</ol>
 					</section>
 
+					<div class="wf-pair">
 					<section class="rv-card" aria-labelledby="rv-wf-triggers">
 						<div class="rv-card-h"><h2 id="rv-wf-triggers">{{ctx.Locale.Tr "asc_review.wf_starts_when"}}</h2></div>
 						<ul class="rv-card-b rv-plain">
@@ -108,6 +113,8 @@ Template Attributes:
 						</section>
 					{{end}}{{end}}
 
+					</div>
+
 					<section aria-labelledby="rv-wf-latest">
 						<div class="rv-row rv-section-head"><h2 id="rv-wf-latest" class="rv-h3">{{ctx.Locale.Tr "asc_review.wf_latest"}}</h2>{{if $.AscWorkflowRuns}}<a class="rv-end" href="{{$.AscWorkflowsBase}}/runs?workflow={{.Name}}">{{ctx.Locale.Tr "asc_review.wf_all_runs_of" .Name}}</a>{{end}}</div>
 						{{if $.AscWorkflowRuns}}
@@ -147,13 +154,9 @@ Template Attributes:
 					</section>
 					{{end}}
 					<section class="rv-card" aria-labelledby="rv-wf-file">
-						<div class="rv-card-h"><h2 id="rv-wf-file">{{ctx.Locale.Tr "asc_review.wf_file"}}</h2><button class="rv-btn rv-btn-secondary rv-btn-sm rv-end" type="button" data-clipboard-text="{{$.AscWorkflowText}}" data-testid="asc-workflow-copy">{{ctx.Locale.Tr "asc_review.wf_copy"}}</button></div>
-						<div class="rv-card-b">
-							<details class="rv-details">
-								<summary>{{if .Path}}{{ctx.Locale.Tr "asc_review.wf_show_path"}} <code>{{.Path}}</code>{{else}}{{ctx.Locale.Tr "asc_review.wf_show_def"}}{{end}}</summary>
-								<pre class="rv-pre" id="asc-workflow-text" tabindex="0" data-testid="asc-workflow-text">{{$.AscWorkflowText}}</pre>
-							</details>
-						</div>
+						<div class="rv-card-h"><h2 id="rv-wf-file">{{ctx.Locale.Tr "asc_review.wf_file"}}</h2>{{if .Path}}<code class="rv-bare rv-faint">{{.Path}}</code>{{end}}<button class="rv-btn rv-btn-secondary rv-btn-sm rv-end" type="button" data-clipboard-text="{{$.AscWorkflowText}}" data-testid="asc-workflow-copy">{{ctx.Locale.Tr "asc_review.wf_copy"}}</button></div>
+						<div class="rv-term rv-term-flush"><div class="rv-term-b" id="asc-workflow-text" tabindex="0" role="region" aria-label="{{if .Path}}{{.Path}}{{else}}{{ctx.Locale.Tr "asc_review.wf_show_def"}}{{end}}" data-testid="asc-workflow-text">{{$.AscWorkflowText}}</div></div>
+						{{if and $.CanChangeWorkflows $.AscWorkflowEditURL}}<div class="rv-card-b"><a class="rv-btn rv-btn-secondary" href="{{$.AscWorkflowEditURL}}" data-testid="asc-workflow-edit">{{ctx.Locale.Tr "asc_review.wf_edit_change"}}</a><p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_edit_help"}}</p></div>{{end}}
 					</section>
 				</aside>
 			</div>

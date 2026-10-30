@@ -216,7 +216,8 @@ func editFile(ctx *context.Context, isNewFile bool) {
 	ctx.Data["BranchPath"] = ctx.Repo.BranchNameSubURL()
 	ctx.Data["commit_summary"] = ""
 	ctx.Data["commit_message"] = ""
-	if canCommit {
+	// A link that says the edit is meant as a reviewed change ("Edit as a change" on a workflow) starts on the new-branch choice.
+	if canCommit && ctx.FormString("commit_choice") != frmCommitChoiceNewBranch {
 		ctx.Data["commit_choice"] = frmCommitChoiceDirect
 	} else {
 		ctx.Data["commit_choice"] = frmCommitChoiceNewBranch
