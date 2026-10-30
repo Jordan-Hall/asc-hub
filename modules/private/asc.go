@@ -30,6 +30,13 @@ const (
 	AscSSHKeyKindDeploy = "deploy"
 )
 
+// Areas of an AscAuthzRequest.
+const (
+	AscAuthzAreaRepository = "repository"
+	AscAuthzAreaChanges    = "changes"
+	AscAuthzAreaRuns       = "runs"
+)
+
 // Modes of an AscAuthzRequest.
 const (
 	AscAuthzModeRead  = "read"
@@ -63,6 +70,10 @@ type AscAuthzRequest struct {
 	Repo   string            `json:"repo"`
 	// Mode is "read" or "write".
 	Mode string `json:"mode"`
+	// Area says which part of asc the call is for, so a token is held to the scope of that part: "" or "repository"
+	// (code, refs, objects: the scope repository), "changes" (changesets, stacks, reviews, merge queue: the scope
+	// changes) or "runs" (agent runs: the scope runs). A token that is not a personal access token ignores it.
+	Area string `json:"area,omitempty"`
 	// Ref is an optional branch name; it selects the protected-branch rule
 	// that is reported in BranchRules.
 	Ref string `json:"ref,omitempty"`

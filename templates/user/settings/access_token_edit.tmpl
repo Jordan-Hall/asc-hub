@@ -10,6 +10,14 @@
 					<label class="ds-label" for="name">{{ctx.Locale.Tr "settings.token_name"}}</label>
 					<input id="name" class="ds-input{{if .Err_Name}} is-err{{end}}" name="name" value="{{.name}}" {{if eq .Autofocus "name"}}autofocus{{end}} required maxlength="255">
 				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="expires">{{ctx.Locale.Tr "settings.token_expires"}}</label>
+					<select id="expires" class="ds-select" name="expires">
+						{{range .ExpiryChoices}}<option value="{{.}}"{{if eq (printf "%d" .) $.expires}} selected{{end}}>{{ctx.Locale.Tr "settings.token_expires_in" .}}</option>{{end}}
+						<option value="never"{{if eq $.expires "never"}} selected{{end}}>{{ctx.Locale.Tr "settings.token_expires_never"}}</option>
+					</select>
+					<span class="ds-hint">{{ctx.Locale.Tr "settings.token_expires_help"}}</span>
+				</div>
 			</div>
 		</section>
 
@@ -105,7 +113,7 @@
 				<div class="wk-scope-grid">
 					{{range .Categories}}
 						<div class="ds-field access-token-category">
-							<label class="ds-label category-label" for="access-token-scope-{{.}}">{{.}}</label>
+							<label class="ds-label category-label" for="access-token-scope-{{.}}">{{with index $.CategoryLabels .}}{{.}}{{else}}{{.}}{{end}}</label>
 							<select class="ds-select access-token-select" name="scope" id="access-token-scope-{{.}}">
 								<option value="">{{ctx.Locale.Tr "settings.permission_no_access"}}</option>
 								<option value="read:{{.}}" {{if (SliceUtils.Contains $.scope (printf "read:%s" .))}} selected {{end}}>{{ctx.Locale.Tr "settings.permission_read"}}</option>

@@ -129,6 +129,8 @@ func lookup(service, method string) (protoreflect.MethodDescriptor, bool) {
 
 // Forwarder is the handler.
 type Forwarder struct {
+	// Gate, when set, may refuse a call before it is forwarded: it returns the reason, or "" to let the call through.
+	Gate     func(r *http.Request, service, method string) string
 	upstream *url.URL
 	proxy    *httputil.ReverseProxy
 	sem      chan struct{}
@@ -254,6 +256,12 @@ func (f *Forwarder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !Allowed(service, method) {
 		refuse(w, codeUnimplemented, "this call is not available through the hub")
 		return
+	}
+	if f.Gate != nil {
+		if reason := f.Gate(r, service, method); reason != "" {
+			refuse(w, codePermissionDenied, reason)
+			return
+		}
 	}
 	md, _ := lookup(service, method)
 	streaming := md.IsStreamingClient() || md.IsStreamingServer()
