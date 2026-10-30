@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	hubcache "forgejo.org/modules/cache"
@@ -36,7 +37,8 @@ type HomeAuthors struct {
 	Agents        int
 	PeoplePct     int
 	AgentsPct     int
-	ReviewedPct   int // of the landed agent changes, those a person approved; meaningful when Agents > 0
+	NoReview      bool // the viewer may not read pull requests: the review numbers are left out
+	ReviewedPct   int  // of the landed agent changes, those a person approved; meaningful when Agents > 0
 	MedianMinutes int64
 	Truncated     bool
 }
@@ -146,9 +148,19 @@ func prepareHomeInsights(ctx *context.Context) {
 	applyHomeInsights(ctx, hi)
 }
 
+// homeAuthorsFor is the card as one viewer may see it: who approved and how long a review took are review data, so
+// a viewer who may not read pull requests gets the card without them. The cached card is not changed.
+func homeAuthorsFor(a *HomeAuthors, canReadPulls bool) *HomeAuthors {
+	c := *a
+	if !canReadPulls {
+		c.NoReview, c.ReviewedPct, c.MedianMinutes = true, 0, 0
+	}
+	return &c
+}
+
 func applyHomeInsights(ctx *context.Context, hi *homeInsights) {
 	if hi.Authors != nil {
-		ctx.Data["HomeAuthors"] = hi.Authors
+		ctx.Data["HomeAuthors"] = homeAuthorsFor(hi.Authors, ctx.Repo.CanRead(unit.TypePullRequests))
 	}
 	if len(hi.Contributors) > 0 {
 		rows := make([]HomeContributor, len(hi.Contributors))

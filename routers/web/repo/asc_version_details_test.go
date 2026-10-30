@@ -26,3 +26,9 @@ func TestAscVersionChecksOf(t *testing.T) {
 	assert.Equal(t, []AscVersionCheck{{"security", "ok"}}, got[3])
 	assert.Len(t, got, 3)
 }
+
+func TestAscVersionChecksAreForViewersWhoReadActions(t *testing.T) {
+	assert.True(t, ascVersionChecksAllowed(true, true))
+	assert.False(t, ascVersionChecksAllowed(true, false), "a reader without Actions sees no chips")
+	assert.False(t, ascVersionChecksAllowed(false, true), "a guest sees none")
+}
