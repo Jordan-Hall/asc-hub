@@ -136,3 +136,33 @@ func TestReleaseRecordOfCleansTheAnswer(t *testing.T) {
 	https := releaseRecordOf(&ascv1.Release{Tag: "v2", Provenance: &ascv1.ReleaseProvenance{BuildUrl: "https://ci.example/run/1"}})
 	assert.Equal(t, "https://ci.example/run/1", https.BuildURL)
 }
+
+func TestReleaseRecordCarriesWhatTheListNeeds(t *testing.T) {
+	sum := strings.Repeat("ab", 32)
+	rec := releaseRecordOf(&ascv1.Release{
+		Tag: "v2.0.0", Title: "Two\x00", Notes: "Notes\n\nmore", Channel: ascv1.ReleaseChannel_RELEASE_CHANNEL_PRE_RELEASE,
+		Created: 100, Published: 200, CreatedBy: "alice",
+		Assets: []*ascv1.ReleaseAsset{
+			{Name: "a.tgz", Size: 5, Sha256: sum, Url: "https://dl.example/a.tgz"},
+			{Name: "b.tgz", Size: 6, Sha256: sum, Url: "http://dl.example/b.tgz"},      // not https: listed without an address
+			{Name: "c.tgz", Size: 7, Sha256: sum, Url: "https://u:p@dl.example/c.tgz"}, // credentials: no address
+			{Name: "../d", Size: 8, Sha256: sum, Url: "https://dl.example/d"},          // a path: left out
+			{Name: "e", Size: 9, Sha256: "short", Url: "https://dl.example/e"},         // no checksum: left out
+		},
+	})
+	require.NotNil(t, rec)
+	assert.True(t, rec.Prerelease)
+	assert.False(t, rec.Draft)
+	assert.Equal(t, int64(200), rec.Time())
+	assert.Equal(t, "alice", rec.CreatedBy)
+	assert.NotContains(t, rec.Title, "\x00")
+	assert.Equal(t, []ReleaseAssetInfo{
+		{Name: "a.tgz", Size: 5, SHA256: sum, URL: "https://dl.example/a.tgz"},
+		{Name: "b.tgz", Size: 6, SHA256: sum},
+		{Name: "c.tgz", Size: 7, SHA256: sum},
+	}, rec.AssetList)
+
+	draft := releaseRecordOf(&ascv1.Release{Tag: "v3", Draft: true, Created: 300})
+	assert.True(t, draft.Draft)
+	assert.Equal(t, int64(300), draft.Time(), "a draft is placed by its creation")
+}

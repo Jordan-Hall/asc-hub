@@ -220,14 +220,18 @@ func Releases(ctx *context.Context) {
 	channel := releaseChannel(ctx.FormString("channel"), writeAccess)
 	applyReleaseChannel(findOpts, channel)
 	ctx.Data["ReleaseChannel"] = channel
-	ctx.Data["ReleaseChannels"] = releaseChannelCounts(ctx, ctx.Repo.Repository.ID, keyword, writeAccess)
+	// The releases that exist only in asc are listed with the hub's (asc_release_merge.go).
+	records := asctrust.ListReleaseRecords(ctx, ctx.Repo.Repository)
+	ascOnly := ascOnlyReleases(ctx, records, writeAccess)
+	ctx.Data["ReleaseChannels"] = ascAddChannelCounts(releaseChannelCounts(ctx, ctx.Repo.Repository.ID, keyword, writeAccess), ascOnly, keyword)
 
 	releases, releasesCount, err := getReleaseInfos(ctx, findOpts)
 	if err != nil {
 		ctx.ServerError("getReleaseInfos", err)
 		return
 	}
-	ascReleaseRecords(ctx, releases)
+	ascAttachReleaseRecords(releases, records)
+	releases, releasesCount = mergeAscReleases(ctx, findOpts, releases, releasesCount, ascFilterReleases(ascOnly, channel, keyword), listOptions.PageSize, listOptions.Page)
 	for _, rel := range releases {
 		if rel.Release.IsTag && rel.Release.Title == "" {
 			rel.Release.Title = rel.Release.TagName
@@ -967,7 +971,7 @@ func releaseChannelCounts(ctx *context.Context, repoID int64, keyword string, ca
 // latestStable is the newest release of the page that is neither a draft, a pre-release nor a bare tag, or nil.
 func latestStable(releases []*ReleaseInfo) *ReleaseInfo {
 	for _, r := range releases {
-		if r.Release != nil && !r.Release.IsDraft && !r.Release.IsPrerelease && !r.Release.IsTag {
+		if r.Release != nil && r.Release.ID >= 0 && !r.Release.IsDraft && !r.Release.IsPrerelease && !r.Release.IsTag {
 			return r
 		}
 	}
