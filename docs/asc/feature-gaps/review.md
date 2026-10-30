@@ -17,7 +17,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 |---|---|---|---|---|---|
-| Review | 9 | 7 | 6 | 0 | 7 |
+| Review | 10 | 7 | 6 | 0 | 7 |
 | ReviewVersions | 9 | 0 | 2 | 0 | 2 |
 | NewChange | 4 | 1 | 2 | 0 | 5 |
 | Checks | 6 | 4 | 2 | 0 | 1 |
@@ -26,7 +26,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | AgentRun | 10 | 3 | 1 | 0 | 4 |
 | AgentNew | 6 | 0 | 1 | 0 | 1 |
 | AgentAccess | 5 | 1 | 0 | 0 | 2 |
-| Workflows | 8 | 3 | 0 | 0 | 0 |
+| Workflows | 9 | 2 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 5 | 3 | 1 | 0 | 0 |
 | Policy | 9 | 1 | 0 | 0 | 0 |
@@ -228,7 +228,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Workflows | Step chain 'scan > update > review' on the card | done | templates/repo/asc_workflows.tmpl (shows a step count) (chain of step ids seen on the dev hub) | S |
 | Workflows | Last-12-runs history strip and 'last run' time per workflow | done | templates/repo/asc_workflows.tmpl (strip from ListRuns, 100 newest runs grouped by workflow; last run time) | - |
 | Workflows | State filter (All, On, Off, Not valid), search, counts | done | templates/repo/asc_workflows.tmpl (chips with counts seen on the dev hub; search covered by a Go test) | S |
-| Workflows | 'New workflow' and 'Start from a template' (creates a reviewed change with the file) | ui-only-missing | New workflow is a link to the hub editor on a new branch under .asc/workflows/ (done); Start from a template is not built (no template files under options/) | S |
+| Workflows | 'New workflow' and 'Start from a template' (creates a reviewed change with the file) | done | asc_workflows.go AscWorkflowTemplates (3 templates), editor.go asc_template: the editor opens a new file with the template on a new branch | - |
 | Workflows | Latest runs list (running, passed, needs approval, failed) with link to all runs | done | templates/repo/asc_workflows_runlist.tmpl, asc_workflows_runs.tmpl | - |
 | Workflows | Secrets and variables panel (names per workflow) with link to settings | done | templates/repo/asc_workflows.tmpl (the secrets the workflows read, each with its workflows) and settings/asc/workflow-secrets (set, list names, delete) | - |
 | Workflows | Capacity '3 running of 6 allowed' and shared agent budget line | done | templates/repo/asc_workflows.tmpl (running runs of the newest 100 against the sum of max_parallel_runs of the enabled workflows; the shared agent budget line is not shown) | - |
@@ -308,7 +308,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Queue | Queue reordering (not on the board: order is queue order, no reorder RPC in mergequeue.proto) | done | nothing to build | - |
 | Queue | Quarantined checks with reason, owner, review date | done | templates/repo/asc_queue.tmpl, services/asctrust queue quarantine | - |
 | Queue | Recently finished (merged / removed with who and when) | done | templates/repo/asc_queue.tmpl | - |
-| Queue | 'Merge a stack' panel: scope radios, dry run, Add to queue / Merge now | done | templates/repo/asc_queue.tmpl (side column: each open stack with Merge when ready and Merge now, through asc_confirm for the scope and the dry run); asc_queue_stacks.go | - |
+| Queue | 'Merge a stack' panel: scope radios, dry run, Add to queue / Merge now | done | templates/repo/asc_queue.tmpl (side column; scope chips Just 1, Bottom 2, All N, each with Merge when ready and Merge now through asc_confirm, where the dry run is shown; the dry run is not repeated in the panel) | - |
 | Queue | 'How landing stays safe' card; paused and empty states | done | templates/repo/asc_queue.tmpl | - |
 | Queue | Live update: list slides when an item lands, Checking pulses | done | routers/web/repo/asc_queue_live.go + web_src/js/features/asc-board.js (Watch stream, held open; follows an empty queue too) | - |
 
