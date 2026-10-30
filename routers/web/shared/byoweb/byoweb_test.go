@@ -670,6 +670,8 @@ func TestAIKeysPages(t *testing.T) {
 		assert.Contains(t, r.body(), `data-testid="asc-test-result"`)
 		assert.Contains(t, r.body(), tr(t, "ascbyo.ai.detail.test_ok", 80))
 		assert.Contains(t, r.body(), "claude-sonnet-4-5", "models of a tested key")
+		assert.Contains(t, r.body(), `data-testid="asc-test-models"`, "a good test says how many models the key can use")
+		assert.Contains(t, r.body(), tr(t, "asc_shell.ai_models_available", 1))
 		assert.Contains(t, r.body(), "1,200")
 		assert.Contains(t, r.body(), "$4.20")
 
