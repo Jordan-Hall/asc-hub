@@ -21,7 +21,6 @@ import (
 // Everything a form sends is checked here first, with the same limits asc applies, so a mistake is a sentence on the
 // page and not a refusal from the server; everything that comes back is cleaned.
 
-
 // Limits of asc (crates/asc-serve/src/org).
 const (
 	MaxOrgAgents    = 100
