@@ -224,13 +224,17 @@ func adminUserAction(ctx *context.Context) (*user_model.User, string) {
 	return u, reason
 }
 
-// recordAdminAction writes what an administrator did to a person and why: the server log, and a notice the administrators see
-// under Notices. (asc has no call to add an event to its audit log, so the audit log of asc does not carry it.)
-func recordAdminAction(ctx *context.Context, what string, u *user_model.User, reason string) {
+// recordAdminAction writes what an administrator did to a person and why: the server log, a notice the administrators see under
+// Notices, and the audit log of asc (action is the host.user.* name asc's catalogue holds).
+func recordAdminAction(ctx *context.Context, action, what string, u *user_model.User, reason string) {
 	log.Info("admin %s: %s of %s: %s", ctx.Doer.Name, what, u.Name, reason)
-	if err := system_model.CreateNotice(ctx, system_model.NoticeTask, "%s: %s of %s by %s: %s", what, what, u.Name, ctx.Doer.Name, reason); err != nil {
+	if err := system_model.CreateNotice(ctx, system_model.NoticeTask, "%s of %s by %s: %s", what, u.Name, ctx.Doer.Name, reason); err != nil {
 		log.Error("admin user: the notice of %s of %s could not be written: %v", what, u.Name, err)
 	}
+	asctrust.RecordHostAudit(ctx, asctrust.HostAudit{
+		Action: action, Actor: ctx.Doer.Name, Target: u.Name, Request: ctx.Req,
+		Details: map[string]string{"reason": reason},
+	})
 }
 
 // reset2FA takes away the second factors of a person: the authenticator and the security keys.
@@ -265,7 +269,7 @@ func UserReset2FA(ctx *context.Context) {
 		ctx.ServerError("reset2FA", err)
 		return
 	}
-	recordAdminAction(ctx, "Reset 2FA", u, reason)
+	recordAdminAction(ctx, asctrust.AuditHostUser2FAReset, "Reset 2FA", u, reason)
 	ctx.Flash.Success(ctx.Tr("asc_admin.person_2fa_reset", u.DisplayName()))
 	ctx.Redirect(setting.AppSubURL + "/admin/users/" + url.PathEscape(ctx.Params(":userid")))
 }
@@ -281,12 +285,11 @@ func UserSuspend(ctx *context.Context) {
 		ctx.ServerError("UpdateAuth", err)
 		return
 	}
-	what := "Unsuspend"
-	msg := "asc_admin.person_unsuspended"
+	action, what, msg := asctrust.AuditHostUserUnsuspended, "Unsuspend", "asc_admin.person_unsuspended"
 	if suspend {
-		what, msg = "Suspend", "asc_admin.person_suspended"
+		action, what, msg = asctrust.AuditHostUserSuspended, "Suspend", "asc_admin.person_suspended"
 	}
-	recordAdminAction(ctx, what, u, reason)
+	recordAdminAction(ctx, action, what, u, reason)
 	ctx.Flash.Success(ctx.Tr(msg, u.DisplayName()))
 	ctx.Redirect(setting.AppSubURL + "/admin/users/" + url.PathEscape(ctx.Params(":userid")))
 }
