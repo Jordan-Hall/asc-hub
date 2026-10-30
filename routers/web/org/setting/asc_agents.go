@@ -152,7 +152,7 @@ func ascOrgPost(ctx *context.Context, back string, run func(callCtx gocontext.Co
 		ascOrgBack(ctx, to, "", trustweb.FailureOf("org settings change", err).Localized(ctx))
 		return
 	}
-	ascOrgBack(ctx, to, ctx.Locale.TrString(done), "")
+	ascOrgBack(ctx, to, done, "")
 }
 
 // AscAgentsPolicy serves POST /org/{org}/settings/asc/agents/policy.
@@ -163,7 +163,7 @@ func AscAgentsPolicy(ctx *context.Context) {
 			return "", err
 		}
 		_, err = asctrust.SetAgentPolicy(callCtx, conn, org, p, ctx.Req.PostFormValue("op"))
-		return "asc_shell.oa_policy_saved", err
+		return ctx.Locale.TrString("asc_shell.oa_policy_saved"), err
 	})
 }
 
@@ -175,7 +175,7 @@ func AscAgentsNew(ctx *context.Context) {
 			return "", err
 		}
 		_, err = asctrust.CreateOrgAgent(callCtx, conn, org, a, ctx.Req.PostFormValue("op"))
-		return "asc_shell.oa_created", err
+		return ctx.Locale.TrString("asc_shell.oa_created"), err
 	})
 }
 
@@ -183,7 +183,7 @@ func AscAgentsNew(ctx *context.Context) {
 func AscAgentsUpdate(ctx *context.Context) {
 	ascOrgPost(ctx, "agents", func(callCtx gocontext.Context, conn grpc.ClientConnInterface, org string) (string, error) {
 		_, err := asctrust.UpdateOrgAgent(callCtx, conn, org, ctx.Params(":name"), ctx.Req.PostFormValue, "", ctx.Req.PostFormValue("op"))
-		return "asc_shell.oa_updated", err
+		return ctx.Locale.TrString("asc_shell.oa_updated"), err
 	})
 }
 
@@ -196,16 +196,16 @@ func AscAgentsState(ctx *context.Context) {
 		}
 		_, err := asctrust.UpdateOrgAgent(callCtx, conn, org, ctx.Params(":name"), nil, state, ctx.Req.PostFormValue("op"))
 		if state == "paused" {
-			return "asc_shell.oa_paused", err
+			return ctx.Locale.TrString("asc_shell.oa_paused"), err
 		}
-		return "asc_shell.oa_resumed", err
+		return ctx.Locale.TrString("asc_shell.oa_resumed"), err
 	})
 }
 
 // AscAgentsDelete serves POST /org/{org}/settings/asc/agents/{name}/delete.
 func AscAgentsDelete(ctx *context.Context) {
 	ascOrgPost(ctx, "agents", func(callCtx gocontext.Context, conn grpc.ClientConnInterface, org string) (string, error) {
-		return "asc_shell.oa_deleted", asctrust.DeleteOrgAgent(callCtx, conn, org, ctx.Params(":name"), ctx.Req.PostFormValue("op"))
+		return ctx.Locale.TrString("asc_shell.oa_deleted"), asctrust.DeleteOrgAgent(callCtx, conn, org, ctx.Params(":name"), ctx.Req.PostFormValue("op"))
 	})
 }
 
@@ -259,6 +259,6 @@ func AscMergeSave(ctx *context.Context) {
 			return "", err
 		}
 		_, err = asctrust.SetMergeDefaults(callCtx, conn, org, m, ctx.Req.PostFormValue("op"))
-		return "asc_shell.om_saved", err
+		return ctx.Locale.TrString("asc_shell.om_saved"), err
 	})
 }

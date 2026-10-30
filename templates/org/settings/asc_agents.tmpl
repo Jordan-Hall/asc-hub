@@ -54,7 +54,7 @@
 							<span>{{if .Repos}}{{ctx.Locale.Tr "asc_shell.oa_in_repos" (len .Repos)}}{{else}}{{ctx.Locale.Tr "asc_shell.oa_in_all"}}{{end}}</span>
 							<span>{{ctx.Locale.Tr "asc_shell.oa_paths_n" (len .Paths)}}</span>
 						</div>
-						<details class="ds-disclosure">
+						<details class="ds-details">
 							<summary>{{ctx.Locale.Tr "asc_shell.oa_edit"}}<span class="ds-sr"> {{.Label}}</span></summary>
 							<form class="ds-form ds-stack-12" method="post" action="{{$.AscOrgAgents.Base}}/{{.Name}}/update">
 								{{$.CsrfTokenHtml}}
