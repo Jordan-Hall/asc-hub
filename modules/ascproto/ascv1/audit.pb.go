@@ -920,6 +920,165 @@ func (x *ListAuditActionsResponse) GetActions() []*AuditActionInfo {
 	return nil
 }
 
+// The host application (the hub) keeps settings of its own that asc does not see: who may register, the maintenance notice, the
+// sign-up switches. A change of one is recorded here, so the audit log of the instance (or of a repository) holds it next to the
+// events asc writes itself. Only the host service credential may call it; any other caller gets PERMISSION_DENIED. The action
+// must be one the catalogue marks for the host (its name starts with "host."), so the host cannot write the events that only asc
+// writes (a ref update, a land). `actor` is the login the host verified: the event names that person as the actor and the host
+// service as the relay (`on_behalf_of`). `details` is cut to the allow-list of the action, as for every event. The call is not
+// idempotent: the host sends it once, after the change is made.
+type AppendAuditRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Action        string                 `protobuf:"bytes,1,opt,name=action,proto3" json:"action,omitempty"`                             // from the catalogue, "host." prefix
+	Actor         string                 `protobuf:"bytes,2,opt,name=actor,proto3" json:"actor,omitempty"`                               // the login of the person; 1 to 255 bytes
+	Repo          string                 `protobuf:"bytes,3,opt,name=repo,proto3" json:"repo,omitempty"`                                 // "owner/name" when the action concerned a repository, else empty (the instance)
+	Target        string                 `protobuf:"bytes,4,opt,name=target,proto3" json:"target,omitempty"`                             // what was changed
+	Outcome       AuditOutcome           `protobuf:"varint,5,opt,name=outcome,proto3,enum=asc.v1.AuditOutcome" json:"outcome,omitempty"` // unspecified means success
+	Details       map[string]string      `protobuf:"bytes,6,rep,name=details,proto3" json:"details,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	RemoteAddr    string                 `protobuf:"bytes,7,opt,name=remote_addr,json=remoteAddr,proto3" json:"remote_addr,omitempty"` // the address of the person's request, an IP; kept as a /24 (IPv4) or /48 (IPv6)
+	UserAgent     string                 `protobuf:"bytes,8,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	RequestId     string                 `protobuf:"bytes,9,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppendAuditRequest) Reset() {
+	*x = AppendAuditRequest{}
+	mi := &file_asc_v1_audit_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppendAuditRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppendAuditRequest) ProtoMessage() {}
+
+func (x *AppendAuditRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_audit_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppendAuditRequest.ProtoReflect.Descriptor instead.
+func (*AppendAuditRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_audit_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AppendAuditRequest) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *AppendAuditRequest) GetActor() string {
+	if x != nil {
+		return x.Actor
+	}
+	return ""
+}
+
+func (x *AppendAuditRequest) GetRepo() string {
+	if x != nil {
+		return x.Repo
+	}
+	return ""
+}
+
+func (x *AppendAuditRequest) GetTarget() string {
+	if x != nil {
+		return x.Target
+	}
+	return ""
+}
+
+func (x *AppendAuditRequest) GetOutcome() AuditOutcome {
+	if x != nil {
+		return x.Outcome
+	}
+	return AuditOutcome_AUDIT_OUTCOME_UNSPECIFIED
+}
+
+func (x *AppendAuditRequest) GetDetails() map[string]string {
+	if x != nil {
+		return x.Details
+	}
+	return nil
+}
+
+func (x *AppendAuditRequest) GetRemoteAddr() string {
+	if x != nil {
+		return x.RemoteAddr
+	}
+	return ""
+}
+
+func (x *AppendAuditRequest) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *AppendAuditRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type AppendAuditResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Seq           uint64                 `protobuf:"varint,1,opt,name=seq,proto3" json:"seq,omitempty"` // the number of the event in the instance log
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppendAuditResponse) Reset() {
+	*x = AppendAuditResponse{}
+	mi := &file_asc_v1_audit_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppendAuditResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppendAuditResponse) ProtoMessage() {}
+
+func (x *AppendAuditResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_audit_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppendAuditResponse.ProtoReflect.Descriptor instead.
+func (*AppendAuditResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_audit_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *AppendAuditResponse) GetSeq() uint64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
 var File_asc_v1_audit_proto protoreflect.FileDescriptor
 
 const file_asc_v1_audit_proto_rawDesc = "" +
@@ -996,7 +1155,25 @@ const file_asc_v1_audit_proto_rawDesc = "" +
 	"detailKeys\"\x19\n" +
 	"\x17ListAuditActionsRequest\"M\n" +
 	"\x18ListAuditActionsResponse\x121\n" +
-	"\aactions\x18\x01 \x03(\v2\x17.asc.v1.AuditActionInfoR\aactions*|\n" +
+	"\aactions\x18\x01 \x03(\v2\x17.asc.v1.AuditActionInfoR\aactions\"\xfc\x02\n" +
+	"\x12AppendAuditRequest\x12\x16\n" +
+	"\x06action\x18\x01 \x01(\tR\x06action\x12\x14\n" +
+	"\x05actor\x18\x02 \x01(\tR\x05actor\x12\x12\n" +
+	"\x04repo\x18\x03 \x01(\tR\x04repo\x12\x16\n" +
+	"\x06target\x18\x04 \x01(\tR\x06target\x12.\n" +
+	"\aoutcome\x18\x05 \x01(\x0e2\x14.asc.v1.AuditOutcomeR\aoutcome\x12A\n" +
+	"\adetails\x18\x06 \x03(\v2'.asc.v1.AppendAuditRequest.DetailsEntryR\adetails\x12\x1f\n" +
+	"\vremote_addr\x18\a \x01(\tR\n" +
+	"remoteAddr\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\b \x01(\tR\tuserAgent\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\t \x01(\tR\trequestId\x1a:\n" +
+	"\fDetailsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"'\n" +
+	"\x13AppendAuditResponse\x12\x10\n" +
+	"\x03seq\x18\x01 \x01(\x04R\x03seq*|\n" +
 	"\fAuditOutcome\x12\x1d\n" +
 	"\x19AUDIT_OUTCOME_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15AUDIT_OUTCOME_SUCCESS\x10\x01\x12\x18\n" +
@@ -1004,12 +1181,13 @@ const file_asc_v1_audit_proto_rawDesc = "" +
 	"\x14AUDIT_OUTCOME_FAILED\x10\x03*O\n" +
 	"\x11AuditExportFormat\x12\x1d\n" +
 	"\x19AUDIT_EXPORT_FORMAT_JSONL\x10\x00\x12\x1b\n" +
-	"\x17AUDIT_EXPORT_FORMAT_CSV\x10\x012\xad\x02\n" +
+	"\x17AUDIT_EXPORT_FORMAT_CSV\x10\x012\xf0\x02\n" +
 	"\x05Audit\x12;\n" +
 	"\x04List\x12\x18.asc.v1.ListAuditRequest\x1a\x19.asc.v1.ListAuditResponse\x12C\n" +
 	"\x06Export\x12\x1a.asc.v1.ExportAuditRequest\x1a\x1b.asc.v1.ExportAuditResponse0\x01\x12P\n" +
 	"\vVerifyChain\x12\x1f.asc.v1.VerifyAuditChainRequest\x1a .asc.v1.VerifyAuditChainResponse\x12P\n" +
-	"\vListActions\x12\x1f.asc.v1.ListAuditActionsRequest\x1a .asc.v1.ListAuditActionsResponseBu\n" +
+	"\vListActions\x12\x1f.asc.v1.ListAuditActionsRequest\x1a .asc.v1.ListAuditActionsResponse\x12A\n" +
+	"\x06Append\x12\x1a.asc.v1.AppendAuditRequest\x1a\x1b.asc.v1.AppendAuditResponseBu\n" +
 	"\n" +
 	"com.asc.v1B\n" +
 	"AuditProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
@@ -1027,7 +1205,7 @@ func file_asc_v1_audit_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_audit_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_asc_v1_audit_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_asc_v1_audit_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_asc_v1_audit_proto_goTypes = []any{
 	(AuditOutcome)(0),                // 0: asc.v1.AuditOutcome
 	(AuditExportFormat)(0),           // 1: asc.v1.AuditExportFormat
@@ -1042,37 +1220,44 @@ var file_asc_v1_audit_proto_goTypes = []any{
 	(*AuditActionInfo)(nil),          // 10: asc.v1.AuditActionInfo
 	(*ListAuditActionsRequest)(nil),  // 11: asc.v1.ListAuditActionsRequest
 	(*ListAuditActionsResponse)(nil), // 12: asc.v1.ListAuditActionsResponse
-	nil,                              // 13: asc.v1.AuditEvent.DetailsEntry
-	(*PrincipalRef)(nil),             // 14: asc.v1.PrincipalRef
-	(*OwnerRef)(nil),                 // 15: asc.v1.OwnerRef
+	(*AppendAuditRequest)(nil),       // 13: asc.v1.AppendAuditRequest
+	(*AppendAuditResponse)(nil),      // 14: asc.v1.AppendAuditResponse
+	nil,                              // 15: asc.v1.AuditEvent.DetailsEntry
+	nil,                              // 16: asc.v1.AppendAuditRequest.DetailsEntry
+	(*PrincipalRef)(nil),             // 17: asc.v1.PrincipalRef
+	(*OwnerRef)(nil),                 // 18: asc.v1.OwnerRef
 }
 var file_asc_v1_audit_proto_depIdxs = []int32{
-	14, // 0: asc.v1.AuditEvent.actor:type_name -> asc.v1.PrincipalRef
-	14, // 1: asc.v1.AuditEvent.on_behalf_of:type_name -> asc.v1.PrincipalRef
+	17, // 0: asc.v1.AuditEvent.actor:type_name -> asc.v1.PrincipalRef
+	17, // 1: asc.v1.AuditEvent.on_behalf_of:type_name -> asc.v1.PrincipalRef
 	0,  // 2: asc.v1.AuditEvent.outcome:type_name -> asc.v1.AuditOutcome
-	13, // 3: asc.v1.AuditEvent.details:type_name -> asc.v1.AuditEvent.DetailsEntry
+	15, // 3: asc.v1.AuditEvent.details:type_name -> asc.v1.AuditEvent.DetailsEntry
 	0,  // 4: asc.v1.AuditFilter.outcome:type_name -> asc.v1.AuditOutcome
-	15, // 5: asc.v1.ListAuditRequest.scope:type_name -> asc.v1.OwnerRef
+	18, // 5: asc.v1.ListAuditRequest.scope:type_name -> asc.v1.OwnerRef
 	3,  // 6: asc.v1.ListAuditRequest.filter:type_name -> asc.v1.AuditFilter
 	2,  // 7: asc.v1.ListAuditResponse.events:type_name -> asc.v1.AuditEvent
-	15, // 8: asc.v1.ExportAuditRequest.scope:type_name -> asc.v1.OwnerRef
+	18, // 8: asc.v1.ExportAuditRequest.scope:type_name -> asc.v1.OwnerRef
 	3,  // 9: asc.v1.ExportAuditRequest.filter:type_name -> asc.v1.AuditFilter
 	1,  // 10: asc.v1.ExportAuditRequest.format:type_name -> asc.v1.AuditExportFormat
-	15, // 11: asc.v1.VerifyAuditChainRequest.scope:type_name -> asc.v1.OwnerRef
+	18, // 11: asc.v1.VerifyAuditChainRequest.scope:type_name -> asc.v1.OwnerRef
 	10, // 12: asc.v1.ListAuditActionsResponse.actions:type_name -> asc.v1.AuditActionInfo
-	4,  // 13: asc.v1.Audit.List:input_type -> asc.v1.ListAuditRequest
-	6,  // 14: asc.v1.Audit.Export:input_type -> asc.v1.ExportAuditRequest
-	8,  // 15: asc.v1.Audit.VerifyChain:input_type -> asc.v1.VerifyAuditChainRequest
-	11, // 16: asc.v1.Audit.ListActions:input_type -> asc.v1.ListAuditActionsRequest
-	5,  // 17: asc.v1.Audit.List:output_type -> asc.v1.ListAuditResponse
-	7,  // 18: asc.v1.Audit.Export:output_type -> asc.v1.ExportAuditResponse
-	9,  // 19: asc.v1.Audit.VerifyChain:output_type -> asc.v1.VerifyAuditChainResponse
-	12, // 20: asc.v1.Audit.ListActions:output_type -> asc.v1.ListAuditActionsResponse
-	17, // [17:21] is the sub-list for method output_type
-	13, // [13:17] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	0,  // 13: asc.v1.AppendAuditRequest.outcome:type_name -> asc.v1.AuditOutcome
+	16, // 14: asc.v1.AppendAuditRequest.details:type_name -> asc.v1.AppendAuditRequest.DetailsEntry
+	4,  // 15: asc.v1.Audit.List:input_type -> asc.v1.ListAuditRequest
+	6,  // 16: asc.v1.Audit.Export:input_type -> asc.v1.ExportAuditRequest
+	8,  // 17: asc.v1.Audit.VerifyChain:input_type -> asc.v1.VerifyAuditChainRequest
+	11, // 18: asc.v1.Audit.ListActions:input_type -> asc.v1.ListAuditActionsRequest
+	13, // 19: asc.v1.Audit.Append:input_type -> asc.v1.AppendAuditRequest
+	5,  // 20: asc.v1.Audit.List:output_type -> asc.v1.ListAuditResponse
+	7,  // 21: asc.v1.Audit.Export:output_type -> asc.v1.ExportAuditResponse
+	9,  // 22: asc.v1.Audit.VerifyChain:output_type -> asc.v1.VerifyAuditChainResponse
+	12, // 23: asc.v1.Audit.ListActions:output_type -> asc.v1.ListAuditActionsResponse
+	14, // 24: asc.v1.Audit.Append:output_type -> asc.v1.AppendAuditResponse
+	20, // [20:25] is the sub-list for method output_type
+	15, // [15:20] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_audit_proto_init() }
@@ -1088,7 +1273,7 @@ func file_asc_v1_audit_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_audit_proto_rawDesc), len(file_asc_v1_audit_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   12,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

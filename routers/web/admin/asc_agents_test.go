@@ -30,10 +30,23 @@ import (
 type fakeInstanceAgents struct {
 	ascv1.UnimplementedRepoServer
 	ascv1.UnimplementedOrgSettingsServer
+	ascv1.UnimplementedAuditServer
 
-	mu       sync.Mutex
-	features []string
-	sets     []*ascv1.SetInstanceAgentsRequest
+	mu        sync.Mutex
+	features  []string
+	sets      []*ascv1.SetInstanceAgentsRequest
+	appends   []*ascv1.AppendAuditRequest
+	appendErr error
+}
+
+func (f *fakeInstanceAgents) Append(_ gocontext.Context, r *ascv1.AppendAuditRequest) (*ascv1.AppendAuditResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.appendErr != nil {
+		return nil, f.appendErr
+	}
+	f.appends = append(f.appends, r)
+	return &ascv1.AppendAuditResponse{Seq: uint64(len(f.appends))}, nil
 }
 
 func (f *fakeInstanceAgents) Version(gocontext.Context, *ascv1.VersionRequest) (*ascv1.VersionResponse, error) {
@@ -58,6 +71,7 @@ func startInstanceAgents(t *testing.T, features ...string) *fakeInstanceAgents {
 	srv := grpc.NewServer()
 	ascv1.RegisterRepoServer(srv, f)
 	ascv1.RegisterOrgSettingsServer(srv, f)
+	ascv1.RegisterAuditServer(srv, f)
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()
