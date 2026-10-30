@@ -49,8 +49,10 @@ type ascOpsPage struct {
 	Unsupported bool
 	Kind        string
 	// RedoSeq and RedoRef name the undo the person has just made: undoing it is the redo.
-	RedoSeq   uint64
-	RedoRef   string
+	RedoSeq uint64
+	RedoRef string
+	// Restack is the newest restack of the person's own that can still be undone: it gets the banner above the list.
+	Restack   *asctrust.OpRow
 	Total     int
 	Chips     []ascOpsKindChip
 	Actors    []ascOpsActorBar
@@ -133,6 +135,12 @@ func AscOps(ctx *context.Context) {
 		return
 	}
 	p.Rows = ascOpsBoard(p, kind, page.Rows)
+	for i := range p.Rows {
+		if r := p.Rows[i]; r.ViaKey == "restack" && r.Mine && r.Undoable && p.CanUndo {
+			p.Restack = &p.Rows[i]
+			break
+		}
+	}
 	p.ExportURL = p.OpsURL + "/export"
 	if p.Ref != "" || p.Mine {
 		eq := url.Values{}
