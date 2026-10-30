@@ -39,6 +39,31 @@ export function initRepoSettingsSaveBar() {
   }
 }
 
+// The Topics field of General: the comma separated list is posted to the topics endpoint and the answer is said in
+// words next to the button; the page is not reloaded.
+export function initRepoSettingsTopics() {
+  for (const form of document.querySelectorAll('[data-topics-form]')) {
+    const status = form.querySelector('[data-topics-status]');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (status) status.textContent = '';
+      let message = '';
+      try {
+        const resp = await POST(form.getAttribute('action'), {data: new FormData(form)});
+        if (!resp.ok) {
+          const body = await resp.json().catch(() => ({}));
+          message = body.message || String(resp.status);
+        }
+      } catch (err) {
+        message = String(err?.message ?? err);
+      }
+      if (status) {
+        status.textContent = message ? form.getAttribute('data-topics-failed').replace('%s', message) : form.getAttribute('data-topics-saved');
+      }
+    });
+  }
+}
+
 export function initRepoSettingsCollaboration() {
   // Change collaborator access mode
   $('.page-content.repository .ui.dropdown.access-mode').each((_, el) => {

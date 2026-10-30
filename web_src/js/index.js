@@ -84,6 +84,7 @@ import {
   initRepoSettingGitHook,
   initRepoSettingsCollaboration,
   initRepoSettingsSaveBar,
+  initRepoSettingsTopics,
   initRepoSettingSearchTeamBox,
 } from './features/repo-settings.js';
 import {initRepoDiffView} from './features/repo-diff.js';
@@ -232,6 +233,7 @@ onDomReady(() => {
   initRepoSettingSearchTeamBox();
   initRepoSettingsCollaboration();
   initRepoSettingsSaveBar();
+  initRepoSettingsTopics();
   initRepoTemplateSearch();
   initRepoTopicBar();
   initRepoWikiForm();
