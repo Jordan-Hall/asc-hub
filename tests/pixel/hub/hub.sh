@@ -28,6 +28,9 @@ HUBENV="env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=$RUN/home TZ=UTC GITEA_WOR
 as_user() { if [ "$(id -u)" = 0 ]; then su -s /bin/bash nobody -c "$1"; else bash -c "$1"; fi; }
 
 stop() {
+  # the first stop is the one after the seed: from then on people are added to organizations by invitation (as on a real hub), which
+  # the seed could not use (it adds people to teams directly)
+  [ -d "$RUN/custom/conf" ] && touch "$RUN/seeded"
   if [ -f "$ASC_DIR/serve.pid" ]; then # asc serve of this run only: the pid it wrote itself
     kill "$(cat "$ASC_DIR/serve.pid")" 2>/dev/null || true
     for _ in $(seq 1 20); do kill -0 "$(cat "$ASC_DIR/serve.pid")" 2>/dev/null || break; sleep 1; done
@@ -47,6 +50,9 @@ down() {
 
 start() {
   : "${PIXEL_HUB_BIN:?set PIXEL_HUB_BIN to the hub binary}"
+  if [ -f "$RUN/seeded" ] && [ -n "$ASC_MODE" ] && ! grep -q ADD_MEMBERS_BY_INVITATIONS "$RUN/custom/conf/app.ini"; then
+    sed -i '/^\[service\]/a ADD_MEMBERS_BY_INVITATIONS = true' "$RUN/custom/conf/app.ini"
+  fi
   nohup setsid bash -c "$(declare -f as_user); as_user \"cd $RUN && exec $HUBENV $PIXEL_HUB_BIN web --config $RUN/custom/conf/app.ini\"" >"$RUN/log/hub.log" 2>&1 &
   for _ in $(seq 1 90); do
     curl -fs -o /dev/null "http://127.0.0.1:$PORT/api/healthz" && { echo "hub up on :$PORT"; start_asc; return 0; }

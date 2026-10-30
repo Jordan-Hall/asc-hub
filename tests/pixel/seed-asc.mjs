@@ -36,11 +36,11 @@ async function webSession(user) {
   const login = await call('/user/login', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({_csrf: csrf(page), user_name: user, password: PASSWORD})});
   if (login.status !== 303) throw new Error(`web login of ${user} -> ${login.status}`);
   return {
-    async form(path, fields, from = path) {
+    async form(path, fields, from = path, status = 303) {
       const html = await (await call(from)).text();
       const op = /name="op"[^>]*value="([^"]+)"/.exec(html)?.[1] ?? /value="([^"]+)"[^>]*name="op"/.exec(html)?.[1] ?? '';
       const res = await call(path, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({_csrf: csrf(html), op, ...fields})});
-      if (res.status !== 303) throw new Error(`POST ${path} -> ${res.status}`);
+      if (res.status !== status) throw new Error(`POST ${path} -> ${res.status}`);
     },
   };
 }
@@ -87,6 +87,12 @@ export async function seedAsc({api, upload, people, at, state}) {
   const admin = await webSession('maya');
   await admin.form('/admin/asc/agents', {allow_agents: '1', budget_usd: '400'});
   await admin.form('/-/asc/agents/features', {enabled: '1'}, '/user/settings');
+
+  // the people page: agents of the organisation, and a Maintainer (the invitations that have not been answered are put in by backdate.py)
+  for (const [name, display, runBy] of [['coder-2', 'coder-2', 'maya'], ['reviewer-1', 'reviewer-1', 'priya']]) {
+    await admin.form('/org/acme/settings/asc/agents/new', {name, display_name: display, run_by: runBy, paths: ['src/**', 'tests/**'].join(String.fromCharCode(10))}, '/org/acme/settings/asc/agents');
+  }
+  await admin.form(`/org/acme/members/action/role?uid=${state.users.tomas.id}&role=maintainer`, {}, '/org/acme/members', 200);
 
   const logins = [...new Set([...ASC_STACKS.flatMap((s) => [s.who, s.reviewer]), 'maya'])];
   let script = logins.map((u) => `person ${u} ${q(people[u])}`).join('\n') + '\n';
