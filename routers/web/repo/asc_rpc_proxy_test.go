@@ -69,6 +69,8 @@ var ascRPCTestDeniedServices = map[string]bool{
 	"AgentTokens": true, "Agents": true, "AiProviders": true, "Audit": true, "Bridge": true, "Ci": true,
 	"CiInsights": true, "CrossSearch": true, "DepsService": true, "Inbox": true, "Insights": true, "MergeQueue": true, "Policy": true, "Review": true,
 	"SecretScan": true, "Signing": true, "Stacks": true, "Storage": true, "Vault": true, "Workflows": true,
+	// Selected by an owner or an organisation, or writing: the hub has handlers of its own for them.
+	"AiKeyShares": true, "Backups": true, "DataExport": true, "OrgSettings": true, "Releases": true, "Sessions": true, "Usage": true,
 }
 
 // ascRPCTestDeniedMore lists single methods of services the proxy otherwise serves.
