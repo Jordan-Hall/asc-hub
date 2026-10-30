@@ -1,0 +1,16 @@
+{{/* The settings an administrator looks for first, read only, each with a button that copies "key = value". */}}
+{{range .ConfigCards}}
+<section class="ds-card adm-sec" aria-labelledby="adm-cfg-{{.ID}}">
+	<div class="ds-card-h"><h2 id="adm-cfg-{{.ID}}">{{.Title}}</h2><span class="ds-card-sub">{{.Note}}</span></div>
+	{{range .Rows}}
+	<div class="adm-setting">
+		<div class="adm-setting-text">
+			<div class="adm-setting-title adm-mono adm-cfg-key">{{.Key}}</div>
+			<p>{{.Label}}</p>
+		</div>
+		<span class="adm-mono adm-cfg-val" title="{{.Value}}">{{.Value}}</span>
+		<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_admin.config_copy_value"}}" data-clipboard-text="{{.Key}} = {{.Value}}">{{svg "dsi-copy" 16}}</button>
+	</div>
+	{{end}}
+</section>
+{{end}}

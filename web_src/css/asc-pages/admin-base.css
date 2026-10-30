@@ -590,6 +590,34 @@ a.adm-who-name:hover {
   margin-top: 8px;
 }
 
+/* the field of a runtime setting that is a value, not a switch */
+.adm-setting-field {
+  width: 160px;
+  flex: none;
+}
+
+/* the curated read-only settings: the key and its value in monospace, the value cut short and the whole in its title */
+.adm-cfg-key {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.adm-cfg-val {
+  min-width: 0;
+  max-width: 260px;
+  margin-left: auto;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adm-details-note {
+  margin: 8px 0 16px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
 /* read-only configuration: monospace values */
 .adm-kv-cfg dd {
   font-family: var(--font-mono);

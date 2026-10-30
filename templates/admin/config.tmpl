@@ -2,7 +2,13 @@
 	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.configuration") "Desc" (ctx.Locale.Tr "asc_admin.config_lead"))}}
 
 	{{template "admin/config_runtime" .}}
+	{{template "admin/config_curated" .}}
 
-	<div class="adm-sec-h adm-sec"><h2>{{ctx.Locale.Tr "asc_admin.config_tab_summary"}}</h2><span class="adm-card-sub">{{ctx.Locale.Tr "asc_admin.config_server_note"}}</span></div>
-	{{template "admin/config_server" .}}
+	<details class="ds-details adm-sec" id="adm-all">
+		<summary>{{ctx.Locale.Tr "asc_admin.config_show_all"}}</summary>
+		<p class="adm-details-note">{{ctx.Locale.Tr "asc_admin.config_show_all_note"}}</p>
+		{{template "admin/config_runtime_more" .}}
+		<div class="adm-sec-h adm-sec"><h2>{{ctx.Locale.Tr "asc_admin.config_tab_summary"}}</h2><span class="adm-card-sub">{{ctx.Locale.Tr "asc_admin.config_server_note"}}</span></div>
+		{{template "admin/config_server" .}}
+	</details>
 {{template "admin/layout_footer" .}}
