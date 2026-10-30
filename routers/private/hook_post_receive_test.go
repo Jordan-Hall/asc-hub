@@ -16,6 +16,8 @@ import (
 	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/services/contexttest"
 
+	"forgejo.org/services/ascsync"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -47,4 +49,15 @@ func TestHandlePullRequestMerging(t *testing.T) {
 	assert.Equal(t, "01234567", pr.MergedCommitID)
 
 	unittest.AssertNotExistsBean(t, &pull_model.AutoMerge{ID: autoMerge.ID})
+}
+
+func TestRefsToSettleLeavesOutRequestsTurnedIntoPullRequests(t *testing.T) {
+	refs := []ascsync.PushRef{
+		{Name: "refs/for/main/asc-kkkk", New: "1111111111111111111111111111111111111111"},
+		{Name: "refs/heads/main", New: "2222222222222222222222222222222222222222"},
+		{Name: "refs/pull/3/head", New: "3333333333333333333333333333333333333333"},
+	}
+	got := refsToSettle(refs)
+	assert.Equal(t, []ascsync.PushRef{refs[1], refs[2]}, got, "the repository never holds a refs/for ref")
+	assert.Empty(t, refsToSettle(refs[:1]), "nothing to wait for: the wait is skipped")
 }

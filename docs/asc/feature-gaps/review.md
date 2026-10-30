@@ -87,14 +87,14 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | ReviewVersions | Version timeline with Base/Head radios per column, current badge, signature badge, actor and age | done | templates/repo/pulls/asc_versions.tmpl, routers/web/repo/pull_asc_versions.go | - |
-| ReviewVersions | Version row detail: commit message, short hash, +add/-del, per-version check chips (unit pass, lint pass, integration running) | needs-hub-backend | templates/repo/pulls/asc_versions.tmpl; join AscChecks per version | M |
-| ReviewVersions | 'Approved by Priya' marker on the version she approved | needs-both | asc review state per version + hub reviews; pulls/asc_versions.tmpl | S |
-| ReviewVersions | Restack rows shown as 'ASC, automatic ... no diff change' | needs-hub-backend | pull_asc_versions.go (version kind from Changes.Versions) | S |
+| ReviewVersions | Version row detail: commit message, short hash, +add/-del, per-version check chips (unit pass, lint pass, integration running) | done | templates/repo/pulls/asc_versions.tmpl; routers/web/repo/asc_version_details.go; services/pull/asc_version_details.go | - |
+| ReviewVersions | 'Approved by Priya' marker on the version she approved | done | templates/repo/pulls/asc_versions.tmpl (verdicts from the brief) | - |
+| ReviewVersions | Restack rows shown as 'ASC, automatic ... no diff change' | done | services/pull/asc_version_details.go (same patch id as the version before) | - |
 | ReviewVersions | Restore as new version (never rewrites history) | done | routers/web/repo/pull_asc_restore.go, route /pulls/{n}/asc/restore_version | - |
 | ReviewVersions | Compare any two versions (interdiff), split/unified | done | routers/web/repo/pull_asc_versions.go (Changes.InterDiff) | - |
 | ReviewVersions | Compare header: '+2 -1 in 1 of 3 files, Priya's approval still applies to the other 2' | needs-both | asc: per-file unchanged set; hub: pulls/asc_versions.tmpl | M |
 | ReviewVersions | Restack-available banner 'Trunk moved 3 commits since v2' with Restack | done | templates/repo/pulls/asc_stack.tmpl | - |
-| ReviewVersions | Land-the-stack panel: scope radios (Bottom 2 / All 4 / Just 1), dry run re-run on scope change | ui-only-missing | templates/repo/pulls/asc_stack.tmpl + asc_confirm.tmpl (scope exists only for revert); routers/web/repo/asc_queue.go | M |
+| ReviewVersions | Land-the-stack panel: scope radios (Bottom 2 / All 4 / Just 1), dry run re-run on scope change | done | templates/repo/asc_confirm.tmpl; routers/web/repo/asc_queue.go ascLandTarget | - |
 | ReviewVersions | Land panel summary: merge order, signed-by list, queue position and ETA, undo window 30 min | needs-both | templates/repo/asc_confirm.tmpl; ETA as in Review | M |
 | ReviewVersions | Confirm for Merge now names branch, current hash and result hash; default focus Cancel | needs-hub-backend | templates/repo/asc_confirm.tmpl, routers/web/repo/asc_confirm.go | M |
 | ReviewVersions | Result toast 'Merged 2 changes... Undo is open for 30 minutes' with Undo; undone toast | needs-hub-backend | routers/web/repo/asc_ops.go (UndoRef exists); toast in ds-shell.js | M |
@@ -130,7 +130,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Checks | Row hover actions Acknowledge / Quarantine / More | ui-only-missing | templates/repo/asc_checks.tmpl | S |
 | Checks | Quarantine hidden unless policy allows [ci] allow_quarantine | ui-only-missing | templates/repo/asc_check_group.tmpl:64 shows the button always; read the flag via services/asctrust/policy.go | S |
 | Checks | Acknowledge / quarantine / resolve / reopen with optional note, logged | done | routers/web/repo/asc_checks.go AscCheckGroupState (CiInsights.SetFailureGroupState) | - |
-| Checks | Repo-level 'Re-run failed' button | ui-only-missing | templates/repo/asc_checks.tmpl (rerun exists per occurrence and per pull) | S |
+| Checks | Repo-level 'Re-run failed' button | done | routers/web/repo/asc_checks.go AscChecksRerunFailed | - |
 | Checks | Flaky tests view: flake rate, runs, flips, 14-run heat strip, last flip, state | done | templates/repo/asc_checks.tmpl (flaky table), strip markup | - |
 | Checks | Trends view per job with pass rate | done | templates/repo/asc_checks.tmpl (asc-trend) | - |
 | Checks | Side cards: 'Main is green', failing jobs bars, Quarantined list with Manage | needs-hub-backend | templates/repo/asc_checks.tmpl; main status service used by pull checks (asc_checks.go) | M |
@@ -142,7 +142,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 |---|---|---|---|---|
 | ChangeChecks | Headline, pill, version/commit/started/took, stale banner, Re-run failed only / Re-run all | done | templates/repo/pulls/asc_checks.tmpl, routers/web/repo/asc_checks.go AscPullChecks | - |
 | ChangeChecks | Cause cards: title, test count, New in v4 / seen before, log excerpt, Show full log, group link | done | templates/repo/pulls/asc_checks.tmpl | - |
-| ChangeChecks | 'Open the line' jumps to the diff at file:line | ui-only-missing | templates/repo/pulls/asc_checks.tmpl (parse path:line from excerpt) | S |
+| ChangeChecks | 'Open the line' jumps to the diff at file:line | done | services/asctrust/pullchecks.go ExcerptLocation; templates/repo/pulls/asc_checks.tmpl | - |
 | ChangeChecks | 'Copy a repro command' (an asc command, not git) | ui-only-missing | templates/repo/pulls/asc_checks.tmpl + small copy script | S |
 | ChangeChecks | 'Ask coder-2 to fix' (start an agent run on this failure) | needs-hub-backend | asc_checks.go calls Agents.CreateRun (proto/asc/v1/agents.proto) with the excerpt as task | M |
 | ChangeChecks | Flaky card with 20-run strip, Quarantine this test, Open an issue | done | templates/repo/pulls/asc_checks.tmpl | - |
