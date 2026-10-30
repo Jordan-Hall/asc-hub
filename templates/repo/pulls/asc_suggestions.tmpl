@@ -1,0 +1,40 @@
+{{/*
+The suggested changes of a stacked change: replacement text that reviewers put on lines of an asc thread. "Apply as vN"
+makes the next version of the change (routers/web/repo/pull_asc_suggestion.go).
+Template Attributes:
+* AscSuggestions: []pull.AscSuggestion (empty: nothing is shown)
+* AscCanApplySuggestion: bool, the viewer may apply (the author, a maintainer, an owner; the pull request is open)
+* AscSuggestionNext: uint32, the number of the version an apply makes
+* Issue.Link, CsrfTokenHtml
+Every text comes from asc and is escaped by the template engine.
+*/}}
+{{if .AscSuggestions}}
+<section class="rv-card rv-suggestions" aria-labelledby="asc-suggestions-title" data-testid="asc-suggestions">
+	<div class="rv-card-h"><h2 id="asc-suggestions-title">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.title"}}</h2></div>
+	<div class="rv-card-b">
+		<p class="rp-quiet">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.help"}}</p>
+		<ul class="rv-sug-list">
+			{{range .AscSuggestions}}
+			<li class="rv-sug" data-testid="asc-suggestion">
+				<div class="rv-sug-head">
+					<code>{{.Path}}</code> <span class="rp-dim">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.lines" .Lines}}</span>
+					<span class="rp-dim">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.by" .Author}}</span>
+				</div>
+				{{if .Body}}<p class="rv-sug-body">{{.Body}}</p>{{end}}
+				<pre class="rv-log-block rv-flat" tabindex="0">{{.Preview}}</pre>
+				{{if .Stale}}
+					<p class="rp-dim" data-testid="asc-suggestion-stale">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.old_version"}}</p>
+				{{else if $.AscCanApplySuggestion}}
+					<form class="rv-acts" method="post" action="{{$.Issue.Link}}/asc/apply_suggestion">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="thread" value="{{.ThreadID}}">
+						<input type="hidden" name="comment" value="{{.CommentID}}">
+						<button class="rv-btn rv-btn-primary rv-btn-sm" type="submit" data-testid="asc-apply-suggestion">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.apply" $.AscSuggestionNext}}</button>
+					</form>
+				{{end}}
+			</li>
+			{{end}}
+		</ul>
+	</div>
+</section>
+{{end}}

@@ -9,7 +9,7 @@ import {existsSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:f
 import {join, resolve} from 'node:path';
 import {chromium} from '@playwright/test';
 import sharp from 'sharp';
-import {ANCHOR, BOARDS_DIR, HUB_URL, OUT_DIR, PASSWORD, PIXEL_DIR, PORT, REPO_ROOT, STATE_FILE} from './config.mjs';
+import {ANCHOR, ASC_SERVE, BOARDS_DIR, HUB_URL, OUT_DIR, PASSWORD, PIXEL_DIR, PORT, REPO_ROOT, STATE_FILE} from './config.mjs';
 import {compareStructure, comparePixels, deltas} from './compare.mjs';
 import {hideBoardStates, measure, settle} from './probe.mjs';
 import {writeReport} from './report.mjs';
@@ -27,14 +27,14 @@ const WIN = process.platform === 'win32';
 const toWsl = (p) => (WIN ? p.replace(/^([A-Za-z]):[\\/]/, (_, d) => `/mnt/${d.toLowerCase()}/`).replace(/\\/g, '/') : p);
 function hubSh(cmd) {
   const script = toWsl(join(PIXEL_DIR, 'hub', 'hub.sh'));
-  const env = [`PIXEL_HUB_BIN=${toWsl(HUB_BIN)}`, `PIXEL_PORT=${PORT}`, `PIXEL_RUN=${RUN_DIR}`, `PIXEL_HUB_STATIC=${toWsl(REPO_ROOT)}`, `PIXEL_PASSWORD=${PASSWORD}`, `PIXEL_ASC=${process.env.PIXEL_ASC || ''}`];
+  const env = [`PIXEL_HUB_BIN=${toWsl(HUB_BIN)}`, `PIXEL_PORT=${PORT}`, `PIXEL_RUN=${RUN_DIR}`, `PIXEL_HUB_STATIC=${toWsl(REPO_ROOT)}`, `PIXEL_PASSWORD=${PASSWORD}`, `PIXEL_ASC=${process.env.PIXEL_ASC || ''}`, `PIXEL_ASC_BIN=${process.env.PIXEL_ASC_BIN ? toWsl(process.env.PIXEL_ASC_BIN) : ''}`, `PIXEL_ASC_PORT=${process.env.PIXEL_ASC_PORT || ''}`];
   const [file, argv] = WIN ? ['wsl', ['-e', 'env', ...env, 'bash', script, cmd]] : ['bash', [script, cmd]];
   const r = spawnSync(file, argv, {encoding: 'utf8', env: WIN ? process.env : {...process.env, ...Object.fromEntries(env.map((e) => e.split(/=(.*)/s).slice(0, 2)))}});
   if (r.status !== 0) throw new Error(`hub.sh ${cmd} failed: ${(r.stdout || '') + (r.stderr || '')}`.slice(-1500));
 }
 function backdate() {
   const py = join(PIXEL_DIR, 'backdate.py');
-  const argv = [WIN ? toWsl(py) : py, `${RUN_DIR}/data/hub.db`, String(Math.floor(ANCHOR.getTime() / 1000))];
+  const argv = [WIN ? toWsl(py) : py, `${RUN_DIR}/data/hub.db`, String(Math.floor(ANCHOR.getTime() / 1000)), ...(ASC_SERVE ? [`${RUN_DIR}/asc/asc.db`] : [])];
   const [file, a] = WIN ? ['wsl', ['-e', 'python3', ...argv]] : ['python3', argv];
   const r = spawnSync(file, a, {encoding: 'utf8'});
   if (r.status !== 0) throw new Error(`backdate failed: ${r.stdout}${r.stderr}`);

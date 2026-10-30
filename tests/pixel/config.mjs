@@ -26,3 +26,7 @@ export const STATE_FILE = join(OUT_DIR, 'state.json');
 /** The instant the seeded data is dated from, and the instant the browser clock is frozen at. */
 export const ANCHOR = new Date('2026-10-30T14:00:00Z');
 export const HUB_BIN = process.env.PIXEL_HUB_BIN || '';
+/** PIXEL_ASC=serve: the hub runs next to `asc serve` and the seed makes stacks, reviews and releases with the asc client. */
+export const ASC_SERVE = process.env.PIXEL_ASC === 'serve';
+export const ASC_PORT = Number(process.env.PIXEL_ASC_PORT || 7891);
+export const ASC_BIN = process.env.PIXEL_ASC_BIN || '';
