@@ -82,7 +82,8 @@ func TestAscDownloadPage(t *testing.T) {
 	assert.Equal(t, "windows", root.AttrOr("data-active-os", ""))
 	assert.Equal(t, "x86_64", root.AttrOr("data-active-arch", ""))
 	assert.Equal(t, 3, doc.doc.Find(".hub-dl-panel").Length(), "every system has a panel, so the page works without script")
-	assert.Equal(t, 3, doc.doc.Find(`[role="tab"]`).Length())
+	assert.Equal(t, 3, doc.doc.Find("a.hub-dl-tab").Length(), "the tabs are links to the systems, which are all on the page")
+	assert.Equal(t, "true", doc.doc.Find("a.hub-dl-tab[data-os=windows]").AttrOr("aria-current", ""))
 
 	assert.Contains(t, body, "Version 1.4.0")
 	assert.Contains(t, body, "asc-1.4.0-x86_64-pc-windows-msvc.msi")
@@ -103,7 +104,7 @@ func TestAscDownloadPage(t *testing.T) {
 
 	// a phone gets no system picked, and still sees every download
 	doc = NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/download").SetHeader("User-Agent", uaPhone), http.StatusOK).Body)
-	assert.Equal(t, "windows", doc.doc.Find("[data-asc-download]").AttrOr("data-active-os", ""), "first system of the release")
+	assert.Equal(t, "macos", doc.doc.Find("[data-asc-download]").AttrOr("data-active-os", ""), "first system of the release")
 	assert.Zero(t, doc.doc.Find(".hub-dl-detected").Length(), "no claim about the phone's system")
 	assert.Equal(t, 3, doc.doc.Find(".hub-dl-panel").Length())
 }

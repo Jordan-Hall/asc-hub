@@ -1,4 +1,4 @@
-// The download page of the ASC Hub shell: system tabs and the processor of the visitor. The "/" key of the
+// The download page of the ASC Hub shell: the processor of the visitor. The "/" key of the
 // header search and the count on the inbox link live in asc-keys.js.
 
 // The processor of a visitor from the browser's client hints. Only the two builds asc ships are named; any
@@ -21,20 +21,6 @@ export function osFromPlatform(platform) {
   return null;
 }
 
-function selectOS(root, os) {
-  const tabs = root.querySelectorAll('[role="tab"][data-os]');
-  const panels = root.querySelectorAll('.hub-dl-panel[data-os]');
-  let found = false;
-  for (const panel of panels) if (panel.getAttribute('data-os') === os) found = true;
-  if (!found) return;
-  for (const tab of tabs) {
-    const on = tab.getAttribute('data-os') === os;
-    tab.setAttribute('aria-selected', String(on));
-    tab.tabIndex = on ? 0 : -1;
-  }
-  for (const panel of panels) panel.hidden = panel.getAttribute('data-os') !== os;
-}
-
 function recommendArch(root, os, arch) {
   for (const panel of root.querySelectorAll(`.hub-dl-panel[data-os="${os}"]`)) {
     const cards = panel.querySelectorAll('.hub-dl-arch[data-arch]');
@@ -50,43 +36,18 @@ function recommendArch(root, os, arch) {
   }
 }
 
-// Turns the stacked system panels into tabs and aims them at the visitor's computer. Without this script
-// every panel stays visible, one under the other.
+// Aims the page at the visitor's computer: the systems are stacked, one under the other, and the tabs above them are links.
+// The browser's hints say which system and processor this is, and the matching build is marked as the one that fits.
 function initDownload() {
   const root = document.querySelector('[data-asc-download]');
   if (!root) return;
-  root.classList.add('is-tabbed');
-  const bar = root.querySelector('.hub-dl-tabs');
-  if (bar) bar.hidden = false;
   let os = root.getAttribute('data-active-os');
-  selectOS(root, os);
-
-  const tabs = Array.from(root.querySelectorAll('[role="tab"][data-os]'));
-  for (const tab of tabs) {
-    tab.addEventListener('click', () => selectOS(root, tab.getAttribute('data-os')));
-    tab.addEventListener('keydown', (e) => {
-      const i = tabs.indexOf(tab);
-      let next = -1;
-      if (e.key === 'ArrowRight') next = (i + 1) % tabs.length;
-      else if (e.key === 'ArrowLeft') next = (i - 1 + tabs.length) % tabs.length;
-      else if (e.key === 'Home') next = 0;
-      else if (e.key === 'End') next = tabs.length - 1;
-      if (next < 0) return;
-      e.preventDefault();
-      tabs[next].focus();
-      selectOS(root, tabs[next].getAttribute('data-os'));
-    });
-  }
-
   const hints = navigator.userAgentData;
   if (hints && typeof hints.getHighEntropyValues === 'function') {
     hints.getHighEntropyValues(['architecture', 'platform']).then((values) => {
       const detectedOS = osFromPlatform(values.platform);
       const arch = archFromHints(values);
-      if (detectedOS) {
-        os = detectedOS;
-        selectOS(root, os);
-      }
+      if (detectedOS) os = detectedOS;
       if (arch) recommendArch(root, os, arch);
     }).catch(() => {});
   }

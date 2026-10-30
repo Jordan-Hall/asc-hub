@@ -21,6 +21,8 @@ const themes = String(args.themes || process.env.PIXEL_THEMES || 'light,dark').s
 const concurrency = Number(args.concurrency || process.env.PIXEL_CONCURRENCY || 4);
 const HUB_BIN = process.env.PIXEL_HUB_BIN || join(PIXEL_DIR, '.bin', 'hub');
 const RUN_DIR = process.env.PIXEL_RUN || '/tmp/pixel-run';
+// a Linux path: Git Bash turns /tmp/x into C:/.../x, which bash then reads as a relative path and writes the hub's state into the current directory
+if (!RUN_DIR.startsWith('/')) throw new Error(`PIXEL_RUN must be an absolute Linux path (got ${RUN_DIR}); in Git Bash set MSYS_NO_PATHCONV=1`);
 const WIN = process.platform === 'win32';
 // a board may ask for the browser a visitor would have ("userAgent" in boards.json): the Download boards show the visitor's own system
 const USER_AGENTS = {mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'};
