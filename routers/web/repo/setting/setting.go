@@ -300,6 +300,7 @@ func UnitsPost(ctx *context.Context) {
 
 // Settings show a repository's settings page
 func Settings(ctx *context.Context) {
+	prepareDeleteCounts(ctx)
 	ctx.HTML(http.StatusOK, tplSettingsOptions)
 }
 
