@@ -17,6 +17,7 @@ import (
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/util"
 	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
@@ -492,6 +493,10 @@ func ascWorkflowDefPage(ctx *context.Context, env *ascAgentsEnv, form *ascWorkfl
 		return
 	}
 	ctx.Data["AscWorkflowText"] = ascagentui.CleanText(string(resp.GetText()), ascWorkflowsMaxText)
+	if def.Path != "" {
+		// "Edit as a change": the file in the editor, on the new-branch choice, so the edit is a pull request and not a commit to trunk.
+		ctx.Data["AscWorkflowEditURL"] = ctx.Repo.RepoLink + "/_edit/" + util.PathEscapeSegments(ctx.Repo.Repository.DefaultBranch) + "/" + util.PathEscapeSegments(def.Path) + "?commit_choice=commit-to-new-branch"
+	}
 
 	if form == nil {
 		form = &ascWorkflowTriggerForm{Values: map[string]string{}, OpID: ascAgentsNewOpID()}
