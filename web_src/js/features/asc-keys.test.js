@@ -1,4 +1,4 @@
-import {isTypingTarget, nextRowIndex, initAscKeys, initAscInboxBadge} from './asc-keys.js';
+import {isTypingTarget, nextRowIndex, initAscKeys, initAscInboxBadge, nextChangeLink} from './asc-keys.js';
 
 test('nextRowIndex moves one row and never wraps', () => {
   expect(nextRowIndex(-1, 1, 3)).toBe(0);
@@ -108,4 +108,94 @@ test('on a diff j and k go from file to file and v marks the file as viewed', ()
   expect(document.querySelector('#diff-a input').checked).toBe(false);
   document.dispatchEvent(new KeyboardEvent('keydown', {key: 'k', bubbles: true}));
   expect(document.activeElement.id).toBe('diff-a');
+});
+
+const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
+
+function reviewPage({selfApprove = false} = {}) {
+  document.body.innerHTML = `
+    <div id="review-box"><button class="js-btn-review" type="button">Review</button></div>
+    <div class="review-box-panel"><form>
+      <textarea name="content"></textarea>
+      <button type="submit" name="type" value="approve"${selfApprove ? ' disabled' : ''}>Approve</button>
+      <button type="submit" name="type" value="comment">Comment</button>
+      <button type="submit" name="type" value="reject">Request changes</button>
+    </form></div>`;
+  // the panel is in the page only while the popover shows it: it is "shown" after the button was clicked
+  const opened = {count: 0};
+  const panel = document.querySelector('.review-box-panel');
+  panel.getClientRects = () => (opened.count > 0 ? [{}] : []);
+  document.querySelector('.js-btn-review').addEventListener('click', () => opened.count++);
+  return opened;
+}
+
+test('a, r and c open the review panel and put the focus on a control without sending anything', async () => {
+  const opened = reviewPage();
+  let sent = 0;
+  document.querySelector('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    sent++;
+  });
+  initAscKeys();
+  press('a');
+  await frame();
+  expect(document.activeElement.textContent).toBe('Approve');
+  press('r');
+  await frame();
+  expect(document.activeElement.textContent).toBe('Request changes');
+  press('c');
+  await frame();
+  expect(document.activeElement.getAttribute('name')).toBe('content');
+  expect(opened.count).toBe(1); // the panel stays open for the next key
+  expect(sent).toBe(0);
+});
+
+test('a leaves the focus on the comment field when the approve button is switched off', async () => {
+  reviewPage({selfApprove: true});
+  initAscKeys();
+  press('a');
+  await frame();
+  expect(document.activeElement.getAttribute('name')).toBe('content');
+});
+
+test('a, r and c do nothing without a review box, or while typing, or with a modifier', async () => {
+  document.body.innerHTML = '<input id="f"><button id="x">x</button>';
+  initAscKeys();
+  document.querySelector('#x').focus();
+  press('a');
+  press('c');
+  await frame();
+  expect(document.activeElement.id).toBe('x');
+
+  const opened = reviewPage();
+  initAscKeys();
+  document.body.insertAdjacentHTML('beforeend', '<input id="g">');
+  document.querySelector('#g').focus();
+  document.querySelector('#g').dispatchEvent(new KeyboardEvent('keydown', {key: 'a', bubbles: true}));
+  press('a', {ctrlKey: true});
+  press('c', {metaKey: true});
+  await frame();
+  expect(opened.count).toBe(0);
+});
+
+test('a review box that is switched off is left alone', async () => {
+  const opened = reviewPage();
+  document.querySelector('.js-btn-review').classList.add('disabled');
+  initAscKeys();
+  press('a');
+  await frame();
+  expect(opened.count).toBe(0);
+});
+
+test('n finds the change after the current one in the stack rail', () => {
+  document.body.innerHTML = `<section data-asc-stack><ol>
+    <li class="rv-stn"><a class="rv-stn-link" href="/p/1">1</a></li>
+    <li class="rv-stn is-current"><a class="rv-stn-link" href="/p/2">2</a></li>
+    <li class="rv-stn"><a class="rv-stn-link" href="/p/3">3</a></li></ol></section>`;
+  expect(nextChangeLink().getAttribute('href')).toBe('/p/3');
+  document.querySelector('.is-current').nextElementSibling.classList.add('is-current');
+  document.querySelector('.is-current').classList.remove('is-current');
+  expect(nextChangeLink()).toBeNull();
+  document.body.innerHTML = '<p>no stack</p>';
+  expect(nextChangeLink()).toBeNull();
 });
