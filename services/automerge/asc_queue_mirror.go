@@ -5,9 +5,12 @@ package automerge
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"time"
 
 	"forgejo.org/models/db"
+	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
@@ -49,6 +52,7 @@ func InitAscQueueMirror() {
 		return
 	}
 	api := ascv1.NewMergeQueueClient(c)
+	asc := ascQueueClients{queue: api, repo: ascv1.NewRepoClient(c)}
 	ascQueueMirror = func(ctx context.Context, repo *repo_model.Repository, e *AscStackQueueEntry, state string) {
 		change := ascChangeRaw(e.AscChange)
 		if change == nil {
@@ -103,16 +107,55 @@ func InitAscQueueMirror() {
 		case AscQueueCancelled:
 			_, err = api.Dequeue(cctx, &ascv1.DequeueRequest{Repo: ref, Id: id, Reason: "removed in the hub"})
 		case AscQueueLanding:
-			_, err = api.ReportEntry(cctx, &ascv1.ReportQueueEntryRequest{Repo: ref, Id: id, State: ascv1.QueueEntryState_QUEUE_ENTRY_STATE_LANDING, Stage: "landing", Detail: "landing on " + e.Branch})
+			err = asc.landing(cctx, ref, id, e.Branch)
 		case AscQueueBlocked:
 			_, err = api.ReportEntry(cctx, &ascv1.ReportQueueEntryRequest{Repo: ref, Id: id, State: ascv1.QueueEntryState_QUEUE_ENTRY_STATE_BLOCKED, Detail: "waits for a new version"})
 		case AscQueueMerged:
-			_, err = api.ReportEntry(cctx, &ascv1.ReportQueueEntryRequest{Repo: ref, Id: id, State: ascv1.QueueEntryState_QUEUE_ENTRY_STATE_LANDED, Stage: "done"})
+			var mergedGit string
+			if pr, perr := issues_model.GetPullRequestByID(ctx, e.PullID); perr == nil {
+				mergedGit = pr.MergedCommitID
+			}
+			err = asc.landed(cctx, ref, id, mergedGit)
 		}
 		if err != nil {
 			log.Warn("asc queue mirror: %s failed: %v", state, err)
 		}
 	}
+}
+
+// ascQueueClients are the two services of asc that the mirror speaks to.
+type ascQueueClients struct {
+	queue ascv1.MergeQueueClient
+	repo  ascv1.RepoClient
+}
+
+// landing tells asc that the entry starts to land. asc lands only an entry that is READY, so the entry is revalidated first: the
+// approvals and checks that were recorded since it was queued are what make it READY. asc decides again when it is told, and an
+// entry that no longer passes is refused there (and the hub's own land is refused by the same policy).
+func (c ascQueueClients) landing(ctx context.Context, ref *ascv1.RepoRef, id uint64, branch string) error {
+	if _, err := c.queue.Revalidate(ctx, &ascv1.RevalidateRequest{Repo: ref, Id: id}); err != nil {
+		return fmt.Errorf("revalidate: %w", err)
+	}
+	_, err := c.queue.ReportEntry(ctx, &ascv1.ReportQueueEntryRequest{Repo: ref, Id: id, State: ascv1.QueueEntryState_QUEUE_ENTRY_STATE_LANDING, Stage: "landing", Detail: "landing on " + branch})
+	return err
+}
+
+// landed tells asc that the entry landed, with the changeset that landed: the changeset of the git commit that the stack's top
+// pull request was merged as.
+func (c ascQueueClients) landed(ctx context.Context, ref *ascv1.RepoRef, id uint64, mergedGit string) error {
+	raw, err := hex.DecodeString(mergedGit)
+	if err != nil || len(raw) == 0 {
+		return fmt.Errorf("the merged commit %q is no git id", mergedGit)
+	}
+	m, err := c.repo.GitMap(ctx, &ascv1.GitMapRequest{Repo: ref, Git: [][]byte{raw}})
+	if err != nil {
+		return fmt.Errorf("git map: %w", err)
+	}
+	if len(m.GetGitToAsc()) != 1 || len(m.GetGitToAsc()[0]) != 32 {
+		return fmt.Errorf("asc has no changeset for the merged commit %s", mergedGit)
+	}
+	_, err = c.queue.ReportEntry(ctx, &ascv1.ReportQueueEntryRequest{Repo: ref, Id: id, State: ascv1.QueueEntryState_QUEUE_ENTRY_STATE_LANDED, LandedAs: m.GetGitToAsc()[0], Stage: "done"})
+	return err
 }
 
 // ascQueueMirrorState tells the mirror that the entries of these pull requests are now in state.
