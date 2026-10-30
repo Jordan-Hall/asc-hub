@@ -460,6 +460,36 @@ function onRevealClick(e) {
 
 let bound = false;
 
+// edgeSwipe says what a finger move means for the drawer of a phone: starting within the left edge and moving right opens
+// it, moving left while it is open closes it. A move that is mostly vertical is a scroll and means nothing.
+export const swipeEdge = 24;
+export const swipeMin = 56;
+export function edgeSwipe(start, end, drawerOpen) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  if (Math.abs(dx) < swipeMin || Math.abs(dx) < 2 * Math.abs(dy)) return null;
+  if (!drawerOpen && start.x <= swipeEdge && dx > 0) return 'open';
+  if (drawerOpen && dx < 0) return 'close';
+  return null;
+}
+
+let swipeStart = null;
+function onTouchStart(e) {
+  const t = e.touches?.length === 1 ? e.touches[0] : null;
+  swipeStart = t ? {x: t.clientX, y: t.clientY} : null;
+}
+function onTouchEnd(e) {
+  const t = e.changedTouches?.[0];
+  const start = swipeStart;
+  swipeStart = null;
+  if (!start || !t || window.matchMedia(desktopQuery).matches) return;
+  const drawer = byId('ds-drawer');
+  if (!drawer) return;
+  const intent = edgeSwipe(start, {x: t.clientX, y: t.clientY}, openId === 'ds-drawer');
+  if (intent === 'open') openOverlay('ds-drawer');
+  else if (intent === 'close') closeOverlay();
+}
+
 export function initDsShell() {
   if (!bound) {
     bound = true;
@@ -468,6 +498,8 @@ export function initDsShell() {
     document.addEventListener('keydown', onKeydown);
     document.addEventListener('keydown', onPaletteKeydown);
     document.addEventListener('keydown', onGlobalKey);
+    document.addEventListener('touchstart', onTouchStart, {passive: true});
+    document.addEventListener('touchend', onTouchEnd, {passive: true});
     window.matchMedia(desktopQuery).addEventListener('change', () => closeOverlay({restoreFocus: false}));
   }
   const p = paletteParts();

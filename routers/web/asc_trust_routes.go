@@ -40,6 +40,7 @@ func registerAscTrustUserRoutes(m *web.Route) {
 	m.Group("/asc/keys", func() {
 		m.Combo("").Get(user_setting.AscKeys).Post(user_setting.AscKeysAdd)
 		m.Post("/revoke", user_setting.AscKeysRevoke)
+		m.Post("/rotate", user_setting.AscKeysRotate)
 	})
 }
 
