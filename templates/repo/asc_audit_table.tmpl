@@ -109,7 +109,7 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 				<table class="rv-tbl rv-tbl-stack" data-testid="asc-audit-table">
 					<caption class="rv-sr">{{ctx.Locale.Tr "asc_trust.audit.events"}}</caption>
 					<thead>
-						<tr><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.when"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.who"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.what"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.target"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.outcome"}}</th></tr>
+						<tr><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.when"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.who"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.what"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.target"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.outcome"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.details_col"}}</th></tr>
 					</thead>
 					<tbody>
 						{{range .Rows}}
@@ -119,20 +119,13 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 							<td class="rv-cell-wide" data-label="{{ctx.Locale.Tr "asc_trust.audit.what"}}">
 								<span>{{.What}}</span>
 								<code>{{.Action}}</code>
-								{{if .Details}}
-								<details class="rv-details">
-									<summary>{{ctx.Locale.Tr "asc_trust.audit.details"}}</summary>
-									<dl class="rv-dl">
-										{{range .Details}}<dt>{{.Key}}</dt><dd>{{.Value}}</dd>{{end}}
-									</dl>
-								</details>
-								{{end}}
 							</td>
 							<td data-label="{{ctx.Locale.Tr "asc_trust.audit.target"}}">{{if .Repo}}<span class="rv-muted">{{.Repo}}</span> {{end}}{{if .Target}}<code>{{.Target}}</code>{{end}}</td>
 							<td data-label="{{ctx.Locale.Tr "asc_trust.audit.outcome"}}"><span class="rv-pill {{if eq .Tone "ok"}}rv-pill-ok{{else if eq .Tone "no"}}rv-pill-err{{else if eq .Tone "wn"}}rv-pill-warn{{end}}">{{ctx.Locale.Tr (printf "asc_trust.audit.outcome_%s" .Tone)}}</span></td>
+							<td class="rv-audit-details" data-label="{{ctx.Locale.Tr "asc_trust.audit.details_col"}}">{{range .Details}}<span class="rv-audit-kv"><span class="rv-faint">{{.Key}}</span> {{.Value}}</span> {{end}}</td>
 						</tr>
 						{{else}}
-						<tr><td colspan="5" class="rv-center rv-muted" data-testid="asc-audit-empty">{{ctx.Locale.Tr "asc_trust.audit.empty"}} <a href="{{.Base}}" data-testid="asc-audit-clear">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></td></tr>
+						<tr><td colspan="6" class="rv-center rv-muted" data-testid="asc-audit-empty">{{ctx.Locale.Tr "asc_trust.audit.empty"}} <a href="{{.Base}}" data-testid="asc-audit-clear">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></td></tr>
 						{{end}}
 					</tbody>
 				</table>
