@@ -18,7 +18,10 @@ import (
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
 	"forgejo.org/services/ascagentui"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
+
+	"google.golang.org/grpc"
 )
 
 // Workflows: agent work that starts on an event and runs steps in order (asc `Workflows` service). A definition is
@@ -96,6 +99,28 @@ type ascWorkflowStep struct {
 	Timeout   string
 	Continue  bool
 	Meters    []ascagentui.Meter
+	// Command is the argument list of a command step; Secrets are the repository secrets it reads, by environment variable.
+	Command []string
+	Secrets []ascWorkflowSecretUse
+	// HasState is true when the latest run of the workflow ran this step; State is how it went.
+	HasState bool
+	State    ascagentui.State
+}
+
+// ascWorkflowSecretUse is one secret a command step reads. Set is filled when the viewer may list the secrets of the repository.
+type ascWorkflowSecretUse struct {
+	Env     string
+	Name    string
+	Checked bool
+	Set     bool
+}
+
+// ascWorkflowSecretRow is one repository secret as the secrets card shows it: the name and a hint, never the value.
+type ascWorkflowSecretRow struct {
+	Name    string
+	Hint    string
+	Updated time.Time
+	UsedBy  []string
 }
 
 type ascWorkflowDef struct {
@@ -211,6 +236,20 @@ func ascWorkflowDefOf(d *ascv1.WorkflowDefinition, workflowsLink string, showPro
 		for _, n := range s.GetNeeds() {
 			if ascagentui.ValidStepID(n) && len(st.Needs) < ascWorkflowsMaxSteps {
 				st.Needs = append(st.Needs, n)
+			}
+		}
+		st.Command = ascCleanList(s.GetCommand(), 32, 200)
+		if sec := s.GetSecrets(); len(sec) > 0 {
+			envs := make([]string, 0, len(sec))
+			for e := range sec {
+				envs = append(envs, e)
+			}
+			sort.Strings(envs)
+			for _, e := range envs {
+				if len(st.Secrets) >= 16 {
+					break
+				}
+				st.Secrets = append(st.Secrets, ascWorkflowSecretUse{Env: ascagentui.CleanLine(e, 64), Name: ascagentui.CleanLine(sec[e], 64)})
 			}
 		}
 		if t := s.GetTimeoutSeconds(); t > 0 {
@@ -452,7 +491,6 @@ func ascWorkflowDefPage(ctx *context.Context, env *ascAgentsEnv, form *ascWorkfl
 		ascAgentsFail(ctx, tplAscWorkflowsDef, "GetDefinition", errAscAgentsBadAnswer)
 		return
 	}
-	ctx.Data["AscWorkflowDef"] = def
 	ctx.Data["AscWorkflowText"] = ascagentui.CleanText(string(resp.GetText()), ascWorkflowsMaxText)
 
 	if form == nil {
@@ -471,7 +509,21 @@ func ascWorkflowDefPage(ctx *context.Context, env *ascAgentsEnv, form *ascWorkfl
 			}
 		}
 		ctx.Data["AscWorkflowRuns"] = rows
+		if len(rows) > 0 {
+			// The newest run says how each step went last time.
+			ran := map[string]ascagentui.State{}
+			for _, sr := range rows[0].Steps {
+				ran[sr.ID] = sr.State
+			}
+			for i := range def.Steps {
+				if st, ok := ran[def.Steps[i].ID]; ok {
+					def.Steps[i].HasState, def.Steps[i].State = true, st
+				}
+			}
+		}
 	}
+	ascWorkflowSecretsCard(ctx, conn, env, &def)
+	ctx.Data["AscWorkflowDef"] = def
 	ctx.HTML(status, tplAscWorkflowsDef)
 }
 
@@ -1042,4 +1094,50 @@ func AscWorkflowRunRerun(ctx *context.Context) {
 	}
 	ctx.Flash.Success("Started again as run " + strconv.FormatUint(row.ID, 10) + ".")
 	ctx.Redirect(row.Link)
+}
+
+// ascWorkflowSecretsCard lists the names (and hints) of the repository secrets next to the steps that read them. Only an
+// administrator of the repository may list them (asc checks again); for anyone else the card is left out and the steps only name
+// the secrets they read. A value is never asked for.
+func ascWorkflowSecretsCard(ctx *context.Context, conn grpc.ClientConnInterface, env *ascAgentsEnv, def *ascWorkflowDef) {
+	if ctx.Doer == nil {
+		return
+	}
+	uctx, release, err := asctrust.UserCall(ctx.Req.Context(), ctx.Doer, asctrust.CallRepoAdmin, ctx.Repo.Repository)
+	if err != nil {
+		return
+	}
+	defer release()
+	cctx, cancel := gocontext.WithTimeout(uctx, ascAgentsCallTimeout)
+	defer cancel()
+	resp, err := ascv1.NewWorkflowsClient(conn).ListSecrets(cctx, &ascv1.ListWorkflowSecretsRequest{Repo: env.ref()})
+	if err != nil {
+		log.Warn("asc workflows: ListSecrets failed: %v", err)
+		return
+	}
+	var rows []ascWorkflowSecretRow
+	index := map[string]int{}
+	for i, sec := range resp.GetSecrets() {
+		if i >= 200 {
+			break
+		}
+		name := ascagentui.CleanLine(sec.GetName(), 64)
+		if name == "" {
+			continue
+		}
+		index[name] = len(rows)
+		rows = append(rows, ascWorkflowSecretRow{Name: name, Hint: ascagentui.CleanLine(sec.GetHint(), 16), Updated: time.Unix(sec.GetUpdated(), 0)})
+	}
+	for i := range def.Steps {
+		for j := range def.Steps[i].Secrets {
+			use := &def.Steps[i].Secrets[j]
+			use.Checked = true
+			if k, ok := index[use.Name]; ok {
+				use.Set = true
+				rows[k].UsedBy = append(rows[k].UsedBy, def.Steps[i].ID)
+			}
+		}
+	}
+	ctx.Data["AscWorkflowSecrets"] = rows
+	ctx.Data["AscWorkflowSecretsShown"] = true
 }

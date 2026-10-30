@@ -46,7 +46,7 @@ Template Attributes:
 								<li class="rv-step">
 									<span class="rv-step-n" aria-hidden="true">{{Eval $i "+" 1}}</span>
 									<div class="rv-step-main">
-										<div class="rv-step-top"><code class="rv-step-id">{{.ID}}</code> <span class="rv-pill rv-pill-outline">{{.Kind}}</span></div>
+										<div class="rv-step-top"><code class="rv-step-id">{{.ID}}</code> <span class="rv-pill rv-pill-outline">{{.Kind}}</span>{{if .HasState}} <span data-testid="asc-step-last-state">{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}</span>{{end}}</div>
 										<div class="rv-li-meta">
 											{{if .Needs}}<span>{{ctx.Locale.Tr "asc_review.wf_after"}} {{range $j, $n := .Needs}}{{if $j}}, {{end}}<code>{{$n}}</code>{{end}}</span>{{end}}
 											{{if .Agent}}<span>{{ctx.Locale.Tr "asc_review.wf_agent"}} <code>{{.Agent}}</code></span>{{end}}
@@ -56,6 +56,8 @@ Template Attributes:
 											{{if .Timeout}}<span>{{ctx.Locale.Tr "asc_review.wf_times_out" .Timeout}}</span>{{end}}
 											{{if .Continue}}<span>{{ctx.Locale.Tr "asc_review.wf_continues"}}</span>{{end}}
 										</div>
+										{{if .Command}}<div class="rv-li-meta"><span>{{ctx.Locale.Tr "asc_review.wf_runs_command"}} <code>{{range $j, $n := .Command}}{{if $j}} {{end}}{{$n}}{{end}}</code></span></div>{{end}}
+										{{if .Secrets}}<div class="rv-li-meta" data-testid="asc-step-secrets">{{range .Secrets}}<span><code>{{.Env}}</code> {{ctx.Locale.Tr "asc_review.wf_from_secret"}} <code>{{.Name}}</code>{{if .Checked}}{{if .Set}} <span class="rv-pill rv-pill-ok">{{ctx.Locale.Tr "asc_review.wf_secret_set"}}</span>{{else}} <span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_review.wf_secret_missing"}}</span>{{end}}{{end}}</span>{{end}}</div>{{end}}
 										{{if .Prompt}}<details class="rv-details"><summary>{{ctx.Locale.Tr "asc_review.wf_prompt"}}</summary><pre class="rv-pre">{{.Prompt}}</pre></details>{{end}}
 									</div>
 								</li>
@@ -133,12 +135,23 @@ Template Attributes:
 							</div>
 						</section>
 					{{end}}
+					{{if $.AscWorkflowSecretsShown}}
+					<section class="rv-card" aria-labelledby="rv-wf-secrets" data-testid="asc-workflow-secrets">
+						<div class="rv-card-h"><h2 id="rv-wf-secrets">{{ctx.Locale.Tr "asc_review.wf_secrets"}}</h2></div>
+						<div class="rv-card-b">
+							{{if $.AscWorkflowSecrets}}
+							<ul class="rv-plain">{{range $.AscWorkflowSecrets}}<li><code>{{.Name}}</code>{{if .Hint}} <span class="rv-muted">&hellip;{{.Hint}}</span>{{end}}<br><span class="rv-muted">{{if .UsedBy}}{{ctx.Locale.Tr "asc_review.wf_secret_used_by"}} {{range $j, $n := .UsedBy}}{{if $j}}, {{end}}<code>{{$n}}</code>{{end}}{{else}}{{ctx.Locale.Tr "asc_review.wf_secret_unused"}}{{end}}</span></li>{{end}}</ul>
+							{{else}}<p class="rv-muted">{{ctx.Locale.Tr "asc_review.wf_secrets_none"}}</p>{{end}}
+							<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_secrets_help"}}</p>
+						</div>
+					</section>
+					{{end}}
 					<section class="rv-card" aria-labelledby="rv-wf-file">
-						<div class="rv-card-h"><h2 id="rv-wf-file">{{ctx.Locale.Tr "asc_review.wf_file"}}</h2></div>
+						<div class="rv-card-h"><h2 id="rv-wf-file">{{ctx.Locale.Tr "asc_review.wf_file"}}</h2><button class="rv-btn rv-btn-secondary rv-btn-sm rv-end" type="button" data-clipboard-text="{{$.AscWorkflowText}}" data-testid="asc-workflow-copy">{{ctx.Locale.Tr "asc_review.wf_copy"}}</button></div>
 						<div class="rv-card-b">
 							<details class="rv-details">
 								<summary>{{if .Path}}{{ctx.Locale.Tr "asc_review.wf_show_path"}} <code>{{.Path}}</code>{{else}}{{ctx.Locale.Tr "asc_review.wf_show_def"}}{{end}}</summary>
-								<pre class="rv-pre" tabindex="0" data-testid="asc-workflow-text">{{$.AscWorkflowText}}</pre>
+								<pre class="rv-pre" id="asc-workflow-text" tabindex="0" data-testid="asc-workflow-text">{{$.AscWorkflowText}}</pre>
 							</details>
 						</div>
 					</section>

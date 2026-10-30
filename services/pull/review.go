@@ -486,13 +486,7 @@ func DismissApprovalReviews(ctx context.Context, doer *user_model.User, pull *is
 		return err
 	}
 	// The approvals are gone in the hub; tell asc, after the transaction, once per reviewer.
-	told := make(map[int64]bool, len(reviews))
-	for _, review := range reviews {
-		if !told[review.ReviewerID] {
-			told[review.ReviewerID] = true
-			ascReportDismissal(ctx, doer, pull, review)
-		}
-	}
+	ascReportDismissals(ctx, doer, pull, reviews)
 	return nil
 }
 
@@ -579,12 +573,7 @@ func DismissReview(ctx context.Context, reviewID, repoID int64, message string, 
 	comment.Issue = review.Issue
 
 	if issue.IsPull && issue.PullRequest != nil {
-		ascReportDismissal(ctx, doer, issue.PullRequest, review)
-		if dismissPriors {
-			for _, prior := range dismissedPriors {
-				ascReportDismissal(ctx, doer, issue.PullRequest, prior)
-			}
-		}
+		ascReportDismissals(ctx, doer, issue.PullRequest, append([]*issues_model.Review{review}, dismissedPriors...))
 	}
 
 	notify_service.PullReviewDismiss(ctx, doer, review, comment)

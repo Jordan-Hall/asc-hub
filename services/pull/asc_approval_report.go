@@ -29,8 +29,8 @@ import (
 //     never asked to guess "the newest".
 //   - Only an approval that is not stale and a request for changes are reported as a verdict.
 //   - A dismissal (by a maintainer, or automatically because commits were pushed) is reported as DISMISSED naming the reviewer by
-//     the hub's user id, the caller being the person who dismissed. It is reported when the reviewer has no other standing
-//     verdict on the pull request. Un-dismissing is not reported: that would have the hub speak for a person who did not act, so
+//     the hub's user id, the caller being the person who dismissed. It is always reported; a verdict of the reviewer that still stands
+//     is then told again as the reviewer, on its own version (asc dismisses all of a reviewer's verdicts on a change). Un-dismissing is not reported: that would have the hub speak for a person who did not act, so
 //     the verdict stays dismissed in asc until the reviewer reviews again (fail closed).
 //   - Nothing here fails the review or the dismissal; a report that cannot be made is logged.
 
@@ -132,20 +132,34 @@ func ascReportApproval(ctx context.Context, doer *user_model.User, pr *issues_mo
 	ascApprovalReporter(callCtx, doer, AscApprovalReport{Repo: name, Change: raw, Version: version, State: state})
 }
 
-// ascReportDismissal tells asc that dismissed, a review that doer has just dismissed, no longer counts. If the reviewer still has
-// another standing verdict on the pull request nothing is reported: that verdict was reported when it was made. It never fails the
-// dismissal.
-func ascReportDismissal(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest, dismissed *issues_model.Review) {
-	if dismissed == nil || dismissed.ReviewerID <= 0 || (dismissed.Type != issues_model.ReviewTypeApprove && dismissed.Type != issues_model.ReviewTypeReject) {
-		return
-	}
-	standing, err := issues_model.FindReviews(ctx, issues_model.FindReviewOptions{
-		IssueID:    dismissed.IssueID,
-		ReviewerID: dismissed.ReviewerID,
+// ascStandingReviews lists the verdicts of a reviewer on a pull request that have not been dismissed. Tests replace it.
+var ascStandingReviews = func(ctx context.Context, issueID, reviewerID int64) ([]*issues_model.Review, error) {
+	return issues_model.FindReviews(ctx, issues_model.FindReviewOptions{
+		IssueID:    issueID,
+		ReviewerID: reviewerID,
 		Types:      []issues_model.ReviewType{issues_model.ReviewTypeApprove, issues_model.ReviewTypeReject},
 		Dismissed:  optional.Some(false),
 	})
-	if err != nil || len(standing) > 0 {
+}
+
+// ascReportDismissals tells asc about reviews that doer has just dismissed, once for each reviewer. It never fails the dismissal.
+func ascReportDismissals(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest, dismissed []*issues_model.Review) {
+	told := make(map[int64]bool, len(dismissed))
+	for _, r := range dismissed {
+		if r != nil && !told[r.ReviewerID] {
+			told[r.ReviewerID] = true
+			ascReportDismissal(ctx, doer, pr, r)
+		}
+	}
+}
+
+// ascReportDismissal tells asc that dismissed, a review that doer has just dismissed, no longer counts. asc dismisses every verdict
+// of the named reviewer on the change, whatever its version, so the report is made whether or not the reviewer has other verdicts
+// (a dismissal that is not reported is an approval that keeps counting). A verdict of the reviewer that still stands in the hub is
+// then told to asc again, as the reviewer, on its own version: the hub, which holds it, is its source. If the standing verdicts
+// cannot be read the dismissal still stands and nothing is re-told (fail closed). It never fails the dismissal.
+func ascReportDismissal(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest, dismissed *issues_model.Review) {
+	if dismissed == nil || dismissed.ReviewerID <= 0 || (dismissed.Type != issues_model.ReviewTypeApprove && dismissed.Type != issues_model.ReviewTypeReject) {
 		return
 	}
 	callCtx, name, raw, ok := ascApprovalTarget(ctx, doer, pr)
@@ -157,7 +171,7 @@ func ascReportDismissal(ctx context.Context, doer *user_model.User, pr *issues_m
 		log.Warn("asc approval: the versions of pull request %d: %v", pr.ID, err)
 		return
 	}
-	// A dismissal only ever takes verdicts away, so a commit that is no version falls back to the newest one.
+	// The dismissal names the version of the dismissed review; a commit that is no version falls back to the newest one.
 	version := versions.ByGitCommit(dismissed.CommitID)
 	if version == 0 {
 		version = versions.Latest()
@@ -166,6 +180,23 @@ func ascReportDismissal(ctx context.Context, doer *user_model.User, pr *issues_m
 		return
 	}
 	ascApprovalReporter(callCtx, doer, AscApprovalReport{Repo: name, Change: raw, Version: version, State: ascv1.ApprovalState_APPROVAL_STATE_DISMISSED, ReviewerID: dismissed.ReviewerID})
+
+	standing, err := ascStandingReviews(ctx, dismissed.IssueID, dismissed.ReviewerID)
+	if err != nil {
+		log.Warn("asc approval: the standing verdicts of user %d on pull request %d: %v", dismissed.ReviewerID, pr.ID, err)
+		return
+	}
+	if len(standing) == 0 {
+		return
+	}
+	reviewer, err := user_model.GetUserByID(ctx, dismissed.ReviewerID)
+	if err != nil {
+		log.Warn("asc approval: the reviewer %d: %v", dismissed.ReviewerID, err)
+		return
+	}
+	for _, r := range standing {
+		ascReportApproval(ctx, reviewer, pr, r)
+	}
 }
 
 func installAscApprovalReporter() {

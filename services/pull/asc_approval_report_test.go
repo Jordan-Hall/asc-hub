@@ -55,6 +55,12 @@ func newApprovalFixture(t *testing.T) *approvalFixture {
 	return f
 }
 
+func useStandingReviews(f func(context.Context, int64, int64) ([]*issues_model.Review, error)) (restore func()) {
+	prev := ascStandingReviews
+	ascStandingReviews = f
+	return func() { ascStandingReviews = prev }
+}
+
 func approvalOn(t *testing.T, f *approvalFixture, typ issues_model.ReviewType, reviewer int64, commit string) *issues_model.Review {
 	t.Helper()
 	r := &issues_model.Review{IssueID: f.pr.IssueID, ReviewerID: reviewer, Type: typ, CommitID: commit}
@@ -132,10 +138,6 @@ func TestAscDismissalIsReportedForTheReviewer(t *testing.T) {
 	maintainer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
 	review := approvalOn(t, f, issues_model.ReviewTypeApprove, f.doer.ID, gitHexN('b'))
 
-	// Still standing: nothing is dismissed in the hub yet, so asc is not told.
-	ascReportDismissal(t.Context(), maintainer, f.pr, review)
-	assert.Empty(t, f.calls)
-
 	require.NoError(t, issues_model.DismissReview(t.Context(), review, true))
 	ascReportDismissal(t.Context(), maintainer, f.pr, review)
 	require.Len(t, f.calls, 1)
@@ -151,19 +153,38 @@ func TestAscDismissalIsReportedForTheReviewer(t *testing.T) {
 	require.Len(t, f.calls, 2)
 	assert.Equal(t, uint32(3), f.calls[1].report.Version)
 
-	// The same reviewer has a newer standing approval: that one is not taken away.
+	// The same reviewer has a standing approval on a later version. asc dismisses every verdict of a reviewer on a change, so the
+	// dismissal of the version-2 approval is reported, and then the standing version-3 approval is told again as the reviewer.
+	f.calls = nil
 	approvalOn(t, f, issues_model.ReviewTypeApprove, f.doer.ID, gitHexN('c'))
 	ascReportDismissal(t.Context(), maintainer, f.pr, review)
-	assert.Len(t, f.calls, 2)
+	require.Len(t, f.calls, 2, "the dismissal is never skipped because another verdict stands")
+	assert.Equal(t, ascv1.ApprovalState_APPROVAL_STATE_DISMISSED, f.calls[0].report.State)
+	assert.Equal(t, uint32(2), f.calls[0].report.Version, "scoped to the dismissed review's own version")
+	assert.Equal(t, maintainer.ID, f.calls[0].doer)
+	assert.Equal(t, ascv1.ApprovalState_APPROVAL_STATE_APPROVED, f.calls[1].report.State)
+	assert.Equal(t, uint32(3), f.calls[1].report.Version)
+	assert.Equal(t, f.doer.ID, f.calls[1].doer, "the standing verdict is told as the reviewer who gave it")
+
+	// The standing verdicts cannot be read: the dismissal is still reported and nothing is told again (fail closed).
+	f.calls = nil
+	restore := useStandingReviews(func(context.Context, int64, int64) ([]*issues_model.Review, error) {
+		return nil, errors.New("database is down")
+	})
+	ascReportDismissal(t.Context(), maintainer, f.pr, review)
+	restore()
+	require.Len(t, f.calls, 1)
+	assert.Equal(t, ascv1.ApprovalState_APPROVAL_STATE_DISMISSED, f.calls[0].report.State)
+	f.calls = nil
 
 	// A comment is not a verdict.
 	ascReportDismissal(t.Context(), maintainer, f.pr, &issues_model.Review{Type: issues_model.ReviewTypeComment, ReviewerID: 9, IssueID: f.pr.IssueID})
-	assert.Len(t, f.calls, 2)
+	assert.Empty(t, f.calls)
 
 	// The gate refuses the person who dismisses.
 	f.gate = func(*user_model.User) (bool, error) { return false, nil }
 	ascReportDismissal(t.Context(), maintainer, f.pr, odd)
-	assert.Len(t, f.calls, 2)
+	assert.Empty(t, f.calls)
 }
 
 // Dismissing on new commits (DismissApprovalReviews) tells asc once per reviewer; dismissing by hand tells asc, and undoing it does
