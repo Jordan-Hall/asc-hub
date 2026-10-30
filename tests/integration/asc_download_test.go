@@ -41,10 +41,12 @@ func useAscRelease(t *testing.T, base string) string {
 
 func TestAscDownloadHiddenWithoutRelease(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
-	old := setting.Asc.DownloadDir
-	setting.Asc.DownloadDir = ""
+	// no local release and no GitHub repository to read: the hub has nothing to offer (with a repository set, which is the
+	// default, the page and the link exist and read its latest release)
+	old, oldRepo := setting.Asc.DownloadDir, setting.Asc.ReleaseRepo
+	setting.Asc.DownloadDir, setting.Asc.ReleaseRepo = "", ""
 	ascdownload.ResetCache()
-	defer func() { setting.Asc.DownloadDir = old; ascdownload.ResetCache() }()
+	defer func() { setting.Asc.DownloadDir, setting.Asc.ReleaseRepo = old, oldRepo; ascdownload.ResetCache() }()
 
 	// a visitor: a page that says there is no release and how to build asc, no link, no section, no file
 	visitor := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
@@ -115,9 +117,8 @@ func TestAscDownloadLandingAndHeader(t *testing.T) {
 
 	resp := MakeRequest(t, NewRequest(t, "GET", "/").SetHeader("User-Agent", uaLinux), http.StatusOK)
 	doc := NewHTMLParser(t, resp.Body)
-	section := doc.doc.Find("#download")
-	require.Equal(t, 1, section.Length())
-	assert.Contains(t, section.Text(), "Download for Linux")
+	// the landing page of the boards has no download section of its own: a button for the visitor who is not signed in
+	assert.Equal(t, 1, doc.doc.Find(`.ds-land-sticky a[href="/download"]`).Length(), "the landing page leads to the download page")
 	assert.Equal(t, 1, doc.doc.Find(`#navbar a[href="/download"]`).Length())
 
 	// the page never shows made up content
