@@ -28,7 +28,7 @@ Template Attributes:
 					<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_trunk_tip"}}</p>
 				</div>
 				{{if and $.CanChangeWorkflows .Valid}}
-					<form class="rv-acts" method="post" action="{{.Link}}/enable">
+					<form class="rv-acts rv-desk" method="post" action="{{.Link}}/enable">
 						{{$.CsrfTokenHtml}}
 						<a class="rv-btn rv-btn-primary rv-end wf-run-link" href="#rv-wf-run" data-testid="asc-workflow-run-link">{{ctx.Locale.Tr "asc_review.wf_run_now"}}</a>
 						<input type="hidden" name="enabled" value="{{if .Enabled}}0{{else}}1{{end}}">
@@ -143,7 +143,7 @@ Template Attributes:
 							{{if .SecretsUsed}}
 							<ul class="rv-plain" data-testid="asc-workflow-secrets-list">{{range .SecretsUsed}}<li class="rv-row rv-row-wrap"><span><code>{{.Name}}</code><br><span class="rv-muted">{{range $j, $e := .Envs}}{{if $j}}, {{end}}<code class="rv-bare">{{$e}}</code>{{end}} {{ctx.Locale.Tr "asc_review.wf_secret_in"}} {{range $j, $n := .Steps}}{{if $j}}, {{end}}<code class="rv-bare">{{$n}}</code>{{end}}</span></span>{{if .Checked}}{{if .Set}}<span class="rv-pill rv-pill-ok rv-end">{{ctx.Locale.Tr "asc_review.wf_secret_set"}}</span>{{else}}<span class="rv-pill rv-pill-warn rv-end">{{ctx.Locale.Tr "asc_review.wf_secret_missing"}}</span>{{end}}{{end}}</li>{{end}}</ul>
 							{{else}}<p class="rv-muted">{{ctx.Locale.Tr "asc_review.wf_secrets_none"}}</p>{{end}}
-							{{if $.CanChangeWorkflows}}<p><a href="{{$.RepoLink}}/settings/actions/secrets" data-testid="asc-workflow-secrets-manage">{{ctx.Locale.Tr "asc_review.wf_secrets_manage"}}</a></p>{{end}}
+							{{if $.AscWorkflowSecretsManage}}<p><a href="{{$.RepoLink}}/settings/asc/workflow-secrets" data-testid="asc-workflow-secrets-manage">{{ctx.Locale.Tr "asc_review.wf_secrets_manage"}}</a></p>{{end}}
 							<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_secrets_help"}}</p>
 						</div>
 					</section>
@@ -154,6 +154,14 @@ Template Attributes:
 					</section>
 				</aside>
 			</div>
+			{{if and $.CanChangeWorkflows .Valid}}
+			<form class="rv-sticky rv-mob" method="post" action="{{.Link}}/enable" data-testid="asc-workflow-pinned">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="enabled" value="{{if .Enabled}}0{{else}}1{{end}}">
+				<button class="rv-btn rv-btn-secondary" type="submit">{{if .Enabled}}{{ctx.Locale.Tr "asc_review.wf_switch_off"}}{{else}}{{ctx.Locale.Tr "asc_review.wf_switch_on"}}{{end}}</button>
+				<a class="rv-btn rv-btn-primary" href="#rv-wf-run">{{ctx.Locale.Tr "asc_review.wf_run_button"}}</a>
+			</form>
+			{{end}}
 		{{end}}
 	</div>
 </div>

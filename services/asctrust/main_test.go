@@ -68,6 +68,9 @@ type fakeAsc struct {
 	depScan     func(*ascv1.ScanDepsRequest) (*ascv1.ScanDepsResponse, error)
 	depPropose  func(*ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error)
 	depDismiss  func(*ascv1.DismissDepFindingRequest) (*ascv1.DismissDepFindingResponse, error)
+	wfList      func(*ascv1.ListWorkflowSecretsRequest) (*ascv1.ListWorkflowSecretsResponse, error)
+	wfSet       func(*ascv1.SetWorkflowSecretRequest) (*ascv1.SetWorkflowSecretResponse, error)
+	wfDel       func(*ascv1.DeleteWorkflowSecretRequest) (*ascv1.DeleteWorkflowSecretResponse, error)
 }
 
 type fakeCall struct {
@@ -378,6 +381,7 @@ func startFake(t *testing.T) (*fakeAsc, *ascclient.Client) {
 	ascv1.RegisterSigningServer(srv, f)
 	ascv1.RegisterCiInsightsServer(srv, f)
 	ascv1.RegisterDepsServiceServer(srv, fakeDeps{f: f})
+	ascv1.RegisterWorkflowsServer(srv, fakeWorkflows{f: f})
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()
@@ -395,4 +399,34 @@ func userCtx(t *testing.T, token string) context.Context {
 	ctx, err := ascclient.WithUserToken(context.Background(), token)
 	require.NoError(t, err)
 	return ctx
+}
+
+// fakeWorkflows answers the secrets calls of the Workflows service; every other method is unimplemented.
+type fakeWorkflows struct {
+	ascv1.UnimplementedWorkflowsServer
+	f *fakeAsc
+}
+
+func (w fakeWorkflows) ListSecrets(ctx context.Context, req *ascv1.ListWorkflowSecretsRequest) (*ascv1.ListWorkflowSecretsResponse, error) {
+	w.f.note(ctx, "ListSecrets", req)
+	if w.f.wfList == nil {
+		return w.UnimplementedWorkflowsServer.ListSecrets(ctx, req)
+	}
+	return w.f.wfList(req)
+}
+
+func (w fakeWorkflows) SetSecret(ctx context.Context, req *ascv1.SetWorkflowSecretRequest) (*ascv1.SetWorkflowSecretResponse, error) {
+	w.f.note(ctx, "SetSecret", req)
+	if w.f.wfSet == nil {
+		return w.UnimplementedWorkflowsServer.SetSecret(ctx, req)
+	}
+	return w.f.wfSet(req)
+}
+
+func (w fakeWorkflows) DeleteSecret(ctx context.Context, req *ascv1.DeleteWorkflowSecretRequest) (*ascv1.DeleteWorkflowSecretResponse, error) {
+	w.f.note(ctx, "DeleteSecret", req)
+	if w.f.wfDel == nil {
+		return w.UnimplementedWorkflowsServer.DeleteSecret(ctx, req)
+	}
+	return w.f.wfDel(req)
 }
