@@ -27,6 +27,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
+	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/ascsync"
 	notify_service "forgejo.org/services/notify"
 )
@@ -623,6 +624,15 @@ func (b *ascClientBackend) Land(ctx context.Context, req AscLandRequest) (*AscLa
 	op := opID("land", req.Repo, req.Target, strings.Join(req.Heads, ","), fmt.Sprint(req.NoContentMerge))
 	ctx, cancel := b.system(ctx, op)
 	defer cancel()
+	if req.Doer != nil {
+		// the claim about the person who lands: asc names them to the hub's hooks (it forwards their id), so the
+		// pre-receive hook checks the land as them even when the commit it announces is one the hub could not
+		// know before (a land onto a moved trunk rewrites the heads)
+		var cerr error
+		if ctx, cerr = ascidentity.AttachDoer(ctx, req.Doer, ascidentity.RoleWrite, req.Repo); cerr != nil {
+			return nil, fmt.Errorf("the claim about the person who lands: %w", cerr)
+		}
+	}
 	asc, err := b.gitToAsc(ctx, req.Repo, req.Heads...)
 	if err != nil {
 		return nil, err
