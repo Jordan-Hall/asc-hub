@@ -154,7 +154,7 @@ func TestAscBackupsBoard(t *testing.T) {
 	f := startBackups(t, asctrust.FeatureBackups)
 	r := runBackups(t, "GET", 1, nil, "", Backups)
 	require.Equal(t, http.StatusOK, r.status, r.body)
-	for _, want := range []string{`data-testid="asc-backups"`, `data-testid="asc-backups-overdue"`, `data-testid="asc-backups-history"`, `value="02:00"`, `/admin/asc/backups/` + goodBackupID + `/restore`, "Target unreachable"} {
+	for _, want := range []string{`data-testid="asc-backups"`, `data-testid="asc-backups-overdue"`, `data-testid="asc-backups-history"`, `data-testid="asc-backups-summary"`, `>asc_shell.bk_retry<`, `value="02:00"`, `/admin/asc/backups/` + goodBackupID + `/restore`, "Target unreachable"} {
 		assert.Contains(t, r.body, want)
 	}
 	assert.NotContains(t, r.body, "<b>passed</b>", "a note from the server is escaped")
