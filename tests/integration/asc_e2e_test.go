@@ -272,7 +272,7 @@ listen = "127.0.0.1:%d"
 					refused = append(refused, line)
 				}
 			}
-			t.Logf("asc serve warnings:\n%s", tail(strings.Join(refused, "\n"), 12000))
+			t.Logf("asc serve events and writes:\n%s", tail(strings.Join(refused, "\n"), 40000))
 		}
 	})
 	deadline := time.Now().Add(30 * time.Second)
