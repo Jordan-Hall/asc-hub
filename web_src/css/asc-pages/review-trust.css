@@ -554,3 +554,10 @@
   outline: 2px solid #6fd3e6;
   outline-offset: 2px;
 }
+
+/* On a phone the rules table shows the first three; Show all lists every rule. */
+@media (max-width: 639.98px) {
+  .rv-tbl-compact:not(.is-all) tbody tr:nth-child(n + 4) {
+    display: none;
+  }
+}

@@ -26,7 +26,7 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 				</ul>
 			</div>
 			{{if .AscQueueCanAdmin}}
-				<div class="rv-acts">
+				<div class="rv-acts rv-desk">
 					{{if .AscQueue.Paused}}
 						<button class="rv-btn rv-btn-secondary show-modal" type="button" data-modal="#asc-queue-resume-modal">{{ctx.Locale.Tr "repo.asc_queue.resume"}}</button>
 					{{else}}
@@ -163,6 +163,9 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 		</div>
 
 		{{if .AscQueueCanAdmin}}
+		{{if .AscQueueCanAdmin}}<div class="rv-sticky rv-mob" data-testid="asc-queue-pinned">
+			{{if .AscQueue.Paused}}<button class="rv-btn rv-btn-primary show-modal" type="button" data-modal="#asc-queue-resume-modal">{{ctx.Locale.Tr "repo.asc_queue.resume"}}</button>{{else}}<button class="rv-btn rv-btn-secondary show-modal" type="button" data-modal="#asc-queue-pause-modal">{{ctx.Locale.Tr "repo.asc_queue.pause"}}</button>{{end}}
+		</div>{{end}}
 		<dialog id="asc-queue-pause-modal">
 			<article>
 				<header>{{ctx.Locale.Tr "repo.asc_queue.pause"}}</header>
