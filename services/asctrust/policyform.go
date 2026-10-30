@@ -34,7 +34,7 @@ type PolicyForm struct {
 
 // MergeStrategies are the values of `[merge] strategy`.
 // MaxMergeBatch is the largest `[merge] batch` of asc-core (MAX_BATCH).
-const MaxMergeBatch = 16
+const MaxMergeBatch = 20
 
 var MergeStrategies = []string{"rebase", "rebase-disjoint", "fast-forward"}
 
