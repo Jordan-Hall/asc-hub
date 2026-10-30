@@ -26,7 +26,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | AgentRun | 10 | 3 | 1 | 0 | 4 |
 | AgentNew | 6 | 0 | 1 | 0 | 1 |
 | AgentAccess | 5 | 1 | 0 | 0 | 2 |
-| Workflows | 5 | 2 | 3 | 0 | 1 |
+| Workflows | 8 | 3 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 5 | 3 | 1 | 0 | 0 |
 | Policy | 9 | 1 | 0 | 0 | 0 |
