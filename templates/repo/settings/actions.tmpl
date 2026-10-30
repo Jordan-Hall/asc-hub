@@ -3,10 +3,12 @@
 		{{if eq .PageType "runners"}}
 			{{template "shared/actions/runner_list" .}}
 		{{else if eq .PageType "secrets"}}
+			{{template "repo/settings/secrets_tabs" .}}
 			{{template "shared/secrets/add_list" .}}
 		{{else if eq .PageType "permissions"}}
 			{{template "shared/actions/packages_write" .}}
 		{{else if eq .PageType "variables"}}
+			{{template "repo/settings/secrets_tabs" .}}
 			{{template "shared/variables/variable_list" .}}
 		{{end}}
 	</div>
