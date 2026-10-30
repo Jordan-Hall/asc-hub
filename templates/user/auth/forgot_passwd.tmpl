@@ -1,8 +1,8 @@
 {{template "base/head" .}}
-{{template "user/auth/shell_start" (dict "Data" . "Hook" "user forgot password" "Title" (ctx.Locale.Tr "auth.forgot_password_title"))}}
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user forgot password" "Icon" "dsi-mail" "Title" (ctx.Locale.Tr "auth.forgot_password_title"))}}
 	<form class="ds-form ignore-dirty" action="{{.Link}}" method="post">
 		{{if .IsResetSent}}
-			<p class="ds-t-body">{{ctx.Locale.Tr "auth.reset_password_mail_sent_prompt" .Email .ResetPwdCodeLives}}</p>
+			<div class="ds-banner ds-banner-ok" role="status">{{svg "dsi-check-circle" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "auth.reset_password_mail_sent_prompt" .Email .ResetPwdCodeLives}}</div></div>
 		{{else if .IsResetRequest}}
 			{{template "shared/ds/field" (dict "ID" "email" "Name" "email" "Type" "email" "Label" (ctx.Locale.Tr "email") "Value" .Email "Autofocus" true "Required" true "Autocomplete" "email" "Error" .Err_Email)}}
 			<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block">{{ctx.Locale.Tr "auth.send_reset_mail"}}</button>

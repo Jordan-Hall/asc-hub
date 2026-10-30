@@ -141,10 +141,14 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 							<div class="rv-queue-title"><a href="{{.Link}}">#{{.Top.Issue.Index}} {{.Top.Issue.Title}}</a></div>
 							<div class="rv-li-sub">{{ctx.Locale.TrN .Changes "repo.asc_queue.merge_stack_n_one" "repo.asc_queue.merge_stack_n_other" .Changes}}</div>
 						</div>
-						<div class="rv-queue-act">
-							{{if .Queued}}<span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "repo.asc_queue.merge_stack_queued"}}</span>{{else}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.QueueURL}}">{{ctx.Locale.Tr "repo.pulls.asc_op.queue"}}</a>{{end}}
-							<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.MergeURL}}">{{ctx.Locale.Tr "asc_review.queue_merge_now"}}</a>
-						</div>
+						<div class="rv-queue-act wf-scope">
+								{{if .Queued}}<span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "repo.asc_queue.merge_stack_queued"}}</span>{{end}}
+								{{if gt (len .Scopes) 1}}<fieldset class="rv-chips ms-scopes"><legend class="rv-sr">{{ctx.Locale.Tr "repo.asc_queue.merge_stack_scope"}}</legend>
+									{{range $i, $sc := .Scopes}}<span class="ms-scope"><input class="rv-sr" type="radio" name="ms-{{$.Top.ID}}" id="ms-{{$.Top.ID}}-{{$i}}" data-testid="asc-queue-scope"{{if $sc.All}} checked{{end}}><label class="rv-chip-btn" for="ms-{{$.Top.ID}}-{{$i}}">{{if $sc.All}}{{ctx.Locale.Tr "repo.asc_queue.scope_all" $sc.Count}}{{else if $sc.Just}}{{ctx.Locale.Tr "repo.asc_queue.scope_just" $sc.Count}}{{else}}{{ctx.Locale.Tr "repo.asc_queue.scope_bottom" $sc.Count $sc.Of}}{{end}}</label>
+									<span class="ms-acts">{{if not $.Queued}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$sc.QueueURL}}">{{ctx.Locale.Tr "repo.pulls.asc_op.queue"}}</a>{{end}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$sc.MergeURL}}">{{ctx.Locale.Tr "asc_review.queue_merge_now"}}</a></span></span>{{end}}
+								</fieldset>
+								{{else}}{{if not .Queued}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.QueueURL}}">{{ctx.Locale.Tr "repo.pulls.asc_op.queue"}}</a>{{end}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.MergeURL}}">{{ctx.Locale.Tr "asc_review.queue_merge_now"}}</a>{{end}}
+							</div>
 					</li>
 					{{end}}
 				</ul>

@@ -64,6 +64,7 @@ import {initBulk} from './features/ds-bulk.js';
 import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
 import {initAscPush} from './features/asc-push.js';
 import {initAscSignup} from './features/asc-signup.js';
+import {initAscPassword} from './features/asc-password.js';
 import {initAscFeedFilter} from './features/asc-feed-filter.js';
 import {initAscScrollFocus} from './features/asc-scroll-focus.js';
 import {initAscDevice} from './features/asc-device.js';
@@ -207,6 +208,7 @@ onDomReady(() => {
   initAscKeys();
   initAscPush();
   initAscSignup();
+  initAscPassword();
   initAscFeedFilter();
   initAscScrollFocus();
   initAscDevice();

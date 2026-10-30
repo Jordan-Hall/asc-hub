@@ -18,6 +18,7 @@ export default {
   ignoreFiles: [
     '**/*.go',
     '/web_src/fomantic',
+    '**/asc-ds/board-landing.css', // generated from the design boards, kept as they are
   ],
   overrides: [
     {

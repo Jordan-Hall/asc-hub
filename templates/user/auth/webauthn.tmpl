@@ -1,5 +1,5 @@
 {{template "base/head" .}}
-{{template "user/auth/shell_start" (dict "Data" . "Hook" "user signin webauthn-prompt" "Title" (ctx.Locale.Tr "webauthn.insert_key") "Lead" (ctx.Locale.Tr "webauthn.sign_in"))}}
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user signin webauthn-prompt" "Icon" "dsi-fingerprint" "Title" (ctx.Locale.Tr "webauthn.insert_key") "Lead" (ctx.Locale.Tr "webauthn.sign_in"))}}
 	{{template "user/auth/webauthn_error" .}}
 	<div class="ds-auth-key">
 		<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-key" 34}}</span>

@@ -1,5 +1,5 @@
 {{template "base/head" .}}
-{{template "user/auth/shell_start" (dict "Data" . "Hook" "user signin" "Title" (ctx.Locale.Tr "twofa_scratch") "Lead" (ctx.Locale.Tr "asc_auth.scratch_lead"))}}
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user signin" "Icon" "dsi-lock" "Title" (ctx.Locale.Tr "twofa_scratch") "Lead" (ctx.Locale.Tr "asc_auth.scratch_lead"))}}
 	<form class="ds-form ignore-dirty" action="{{.Link}}" method="post">
 		{{template "shared/ds/field" (dict "ID" "token" "Name" "token" "Label" (ctx.Locale.Tr "auth.scratch_code") "Autocomplete" "off" "Autofocus" true "Required" true "Extra" "off" "Mono" true)}}
 		<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block">{{ctx.Locale.Tr "auth.verify"}}</button>

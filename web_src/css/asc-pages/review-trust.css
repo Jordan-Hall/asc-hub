@@ -591,3 +591,85 @@
   .rv-qcols .qo-4 { order: 4; }
   .rv-qcols .qo-5 { order: 5; }
 }
+
+/* Merge a stack: the scope is a radio group of chips; the buttons shown are the ones of the chosen scope. */
+.ms-scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ms-scope {
+  display: contents;
+}
+
+.ms-scope .ms-acts {
+  display: none;
+  order: 10;
+  flex: 1 0 100%;
+  gap: 8px;
+}
+
+.ms-scope input:checked ~ .ms-acts {
+  display: flex;
+}
+
+.ms-scope input:checked + label {
+  color: var(--on-fill);
+  background: var(--fill);
+  border-color: var(--fill);
+}
+
+.ms-scope input:focus-visible + label {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.rv-op-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* The details of an audit event are a column of their own: key and value pairs that wrap. */
+.rv-audit-details {
+  max-width: 28rem;
+  font-size: 13px;
+}
+
+.rv-audit-kv {
+  display: inline-block;
+  margin-inline-end: 8px;
+  overflow-wrap: anywhere;
+}
+
+/* The operations on a phone are cards, and the undo is a full-width button, as on the Mobile-Ops board. */
+@media (max-width: 639.98px) {
+  .rv-ops {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .rv-op {
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    background: var(--card);
+  }
+
+  .rv-op-side .rv-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ag-ops-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .ag-ops-chips > * {
+    flex: none;
+  }
+}
