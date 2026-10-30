@@ -25,6 +25,9 @@ var (
 	_ auth.Method = &Basic{}
 )
 
+// errIncorrectUsernameOrPassword is what a refused sign-in with a name and a password says, whatever the reason.
+var errIncorrectUsernameOrPassword = errors.New("incorrect username or password")
+
 // Basic implements the Auth interface and authenticates requests (API requests
 // only) by looking for Basic authentication data or "x-oauth-basic" token in the "Authorization"
 // header.
@@ -54,7 +57,10 @@ func (b *Basic) Verify(req *http.Request, w http.ResponseWriter, _ auth.SessionS
 	if err != nil {
 		if user_model.IsErrUserNotExist(err) || user_model.IsErrEmailAddressNotExist(err) || user_model.IsErrUserProhibitLogin(err) ||
 			errors.As(err, &db.ErrUserPasswordInvalid{}) || errors.As(err, &db.ErrUserPasswordNotSet{}) {
-			return &auth.AuthenticationAttemptedIncorrectCredential{Error: err}
+			// The reason is logged and not told: "no such user", "wrong password" and "login prohibited" would tell
+			// a name that exists from one that does not to anyone who can send a request.
+			log.Info("Basic Authorization: sign-in of %q refused: %v", uname, err)
+			return &auth.AuthenticationAttemptedIncorrectCredential{Error: errIncorrectUsernameOrPassword}
 		}
 		return &auth.AuthenticationError{Error: fmt.Errorf("basic auth UserSignIn: %w", err)}
 	}
