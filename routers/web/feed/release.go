@@ -8,6 +8,7 @@ import (
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 
 	"github.com/gorilla/feeds"
@@ -46,6 +47,15 @@ func ShowReleaseFeed(ctx *context.Context, repo *repo_model.Repository, isReleas
 	if err != nil {
 		ctx.ServerError("releasesToFeedItems", err)
 		return
+	}
+	if isReleasesOnly {
+		// The releases made with `asc release create` are in the feed with the hub's own (never drafts: a feed is public).
+		extra, err := ascReleasesToFeedItems(ctx, repo, asctrust.ListReleaseRecords(ctx, repo))
+		if err != nil {
+			ctx.ServerError("ascReleasesToFeedItems", err)
+			return
+		}
+		feed.Items = mergeFeedItems(feed.Items, extra)
 	}
 
 	writeFeed(ctx, feed, formatType)

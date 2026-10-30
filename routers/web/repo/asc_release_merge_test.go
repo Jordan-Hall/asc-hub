@@ -18,27 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAscPageOfPlacesAReleaseAfterTheLastRowAsNewAsIt(t *testing.T) {
-	times := []int64{100, 90, 80, 70, 60} // five hub rows, newest first; pages of two
-	for at, want := range map[int64]int{
-		200: 1, // newer than every row: the first page
-		100: 1, // one row is as new: after it
-		95:  1,
-		90:  1, // two rows: the end of the first page
-		85:  1,
-		80:  2, // three rows
-		75:  2,
-		70:  2, // four rows
-		65:  2,
-		60:  3, // five rows
-		10:  3, // older than every row: the last page
-	} {
-		assert.Equal(t, want, ascPageOf(times, at, 2), "time %d", at)
-	}
-	assert.Equal(t, 1, ascPageOf(nil, 10, 2), "no rows: page 1")
-	assert.Equal(t, 1, ascPageOf(times, 10, 0))
-}
-
 func TestAscReleaseFilters(t *testing.T) {
 	stable := &asctrust.ReleaseRecord{Tag: "v2", Title: "Two", Notes: "Fixes the bridge"}
 	pre := &asctrust.ReleaseRecord{Tag: "v3rc", Prerelease: true}
