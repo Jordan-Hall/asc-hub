@@ -14,7 +14,7 @@
 				<a class="rp-tab" href="{{.RepoLink}}/pulls"{{if .PageIsPullList}} aria-current="page"{{end}}>{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.tab_stacks"}}{{else}}{{ctx.Locale.Tr "repo.pulls"}}{{end}}{{$nPulls := .Repository.NumOpenPulls ctx}}{{if $isAsc}}{{$nPulls = .Repository.NumOpenAscStacks ctx}}{{end}}{{if $nPulls}}<span class="ds-count">{{CountFmt $nPulls}}</span>{{end}}</a>
 			{{end}}
 			{{if and .SignedUser $isAsc $canCode .AscAgentFeatures (not .Repository.IsEmpty)}}
-				<a class="rp-tab" href="{{.RepoLink}}/asc/agents"{{if .PageIsAscAgentArea}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_rp.tab_agent_runs"}}</a>
+				<a class="rp-tab" href="{{.RepoLink}}/asc/agents"{{if .PageIsAscAgentArea}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_rp.tab_agent_runs"}}{{if .AscRunCount}}<span class="ds-count">{{CountFmt .AscRunCount}}</span>{{end}}</a>
 			{{end}}
 			{{if and $isAsc $canCode (not .Repository.IsEmpty)}}
 				<a class="rp-tab" href="{{.RepoLink}}/asc/checks"{{if .PageIsAscChecks}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_trust.nav_checks"}}</a>
@@ -26,7 +26,7 @@
 				<a class="rp-tab" href="{{.RepoLink}}/search"{{if .PageIsRepoSearch}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.asc_tab.search"}}</a>
 			{{end}}
 			{{if and $isAsc $canCode .SignedUser (not .Repository.IsEmpty)}}
-				<a class="rp-tab" href="{{.RepoLink}}/asc/deps"{{if .PageIsAscDeps}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_trust.nav_deps"}}</a>
+				<a class="rp-tab" href="{{.RepoLink}}/asc/deps"{{if .PageIsAscDeps}} aria-current="page"{{end}}>{{ctx.Locale.Tr "asc_trust.nav_deps"}}{{if .AscDepsCount}}<span class="ds-count">{{CountFmt .AscDepsCount}}</span>{{end}}</a>
 			{{end}}
 			{{if and (.Permission.CanRead $.UnitTypeReleases) (not .IsEmptyRepo)}}
 				<a class="rp-tab" href="{{.RepoLink}}/releases"{{if $relActive}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.releases"}}{{if .NumReleases}}<span class="ds-count">{{CountFmt .NumReleases}}</span>{{end}}</a>

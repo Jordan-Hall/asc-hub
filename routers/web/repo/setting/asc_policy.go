@@ -168,7 +168,7 @@ func AscPolicyForm(ctx *context.Context) {
 	}
 	p := ascPolicyPageFor(ctx, repo)
 	p.Message = trustweb.Lines(ctx.Req.PostFormValue("message"))
-	cur := ascPolicyPageFor(ctx, repo)
+	cur := &ascPolicyPage{ToggleOps: map[string]string{}, Op: asctrust.NewOpID()} // the page in force; ctx.Data keeps p
 	status, ok := ascPolicyLoad(ctx, repo, name, cur, "", nil)
 	if !ok {
 		return

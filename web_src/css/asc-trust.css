@@ -762,3 +762,16 @@
   padding: 0 6px;
   font-weight: 600;
 }
+
+.ds-fieldset .ds-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.ds-fieldset .ds-check input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
