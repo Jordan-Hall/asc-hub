@@ -1,0 +1,2 @@
+{{/* A small line next to a number, drawn from points the server made (asctrust.Sparkline). Dot: dict "P" the points "Tone" ok|warn|err or empty. It says nothing a screen reader needs: the number beside it is the fact. */}}
+{{if .P}}<svg class="rv-spark{{if .Tone}} rv-spark-{{.Tone}}{{end}}" viewBox="0 0 80 28" width="80" height="28" aria-hidden="true" focusable="false"><polyline points="{{.P}}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>{{end}}
