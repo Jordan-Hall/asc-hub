@@ -45,7 +45,7 @@ pickers are plain radio buttons of a GET form, so the panel works without a scri
 								<div class="rv-li-sub">{{.Actor}} · {{DateUtils.TimeSince .At}}</div>
 								{{with index $.AscVersionDetails .N}}
 								<div class="rv-li-sub" data-testid="asc-version-detail">
-									{{if .Restack}}<span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_review.rev_restack_row"}}</span> {{end}}{{if .Subject}}<span>{{.Subject}}</span> {{end}}<code>{{.Short}}</code> <span class="rv-add">+{{.Add}}</span> <span class="rv-del">&minus;{{.Del}}</span>
+									{{if .Restack}}<span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_review.rev_restack_row"}}</span> {{end}}{{if .Subject}}<span>{{.Subject}}</span> {{end}}<code>{{.Short}}</code> <span class="rv-nowrap"><span class="rv-add">+{{.Add}}</span> <span class="rv-del">&minus;{{.Del}}</span></span>
 								</div>
 								{{end}}
 								{{$ver := .N}}
