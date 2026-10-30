@@ -31,12 +31,12 @@ const (
 
 // ascGatePage is the template data under .AscGate.
 type ascGatePage struct {
-	View        *asctrust.PolicyView
-	Days        int
-	Held        []asctrust.AuditRow
-	HeldMore    bool
+	View     *asctrust.PolicyView
+	Days     int
+	Held     []asctrust.AuditRow
+	HeldMore bool
 	// HeldAll is set when the list shows every refusal read; by default it shows the first few, as the board does.
-	HeldAll bool
+	HeldAll     bool
 	HeldShown   bool // the viewer may read the audit log, so the list (even an empty one) is the truth
 	HeldProblem string
 	Problem     string

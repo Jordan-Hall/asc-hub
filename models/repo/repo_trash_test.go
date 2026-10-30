@@ -11,8 +11,8 @@ import (
 	perm_model "forgejo.org/models/perm"
 	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
-	"forgejo.org/models/unittest"
 	unit_model "forgejo.org/models/unit"
+	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 
 	"github.com/stretchr/testify/assert"
