@@ -18,7 +18,9 @@ type RotateRevokeError struct {
 	Err error
 }
 
-func (e *RotateRevokeError) Error() string { return "asctrust: the new key was added, the old one was not revoked: " + e.Err.Error() }
+func (e *RotateRevokeError) Error() string {
+	return "asctrust: the new key was added, the old one was not revoked: " + e.Err.Error()
+}
 func (e *RotateRevokeError) Unwrap() error { return e.Err }
 
 var rotateNamespace = uuid.MustParse("6d6b5b0e-2f43-5f1e-9a53-0c2d5a7a9f11")
@@ -28,7 +30,7 @@ var rotateNamespace = uuid.MustParse("6d6b5b0e-2f43-5f1e-9a53-0c2d5a7a9f11")
 // before the revocation stay explainable. op is the id of the form; the revocation gets an id derived from it, so the
 // same form submitted twice is the same rotation.
 func RotateKey(ctx context.Context, conn grpc.ClientConnInterface, oldID, title, publicKey string, expiresAt int64, op string) (*KeyRow, error) {
-	if oldID == "" || len(oldID) > 64 || CleanText(oldID, 64) != oldID {
+	if !aiKeyIDShape.MatchString(oldID) {
 		return nil, fmt.Errorf("%w: key id", ErrBadInput)
 	}
 	formOp, err := uuid.Parse(op)
