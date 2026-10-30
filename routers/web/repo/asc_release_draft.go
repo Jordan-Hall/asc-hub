@@ -40,8 +40,14 @@ func ascReleaseRecords(ctx *context.Context, infos []*ReleaseInfo) {
 	if len(infos) == 0 {
 		return
 	}
-	records := asctrust.ListReleaseRecords(ctx, ctx.Repo.Repository)
+	ascAttachReleaseRecords(infos, asctrust.ListReleaseRecords(ctx, ctx.Repo.Repository))
+}
+
+// ascAttachReleaseRecords sets the record of asc on each entry that has one, matched by tag.
+func ascAttachReleaseRecords(infos []*ReleaseInfo, records map[string]*asctrust.ReleaseRecord) {
 	for _, info := range infos {
-		info.Asc = records[info.Release.TagName]
+		if info.Asc == nil {
+			info.Asc = records[info.Release.TagName]
+		}
 	}
 }
