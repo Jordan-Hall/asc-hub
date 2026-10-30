@@ -49,9 +49,9 @@ The text of the policy file and every text from asc was cleaned by services/asct
 
 			{{with .Stats}}
 			<div class="rv-stats rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.gate_hist_label"}}" data-testid="asc-gate-history">
-				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_checked"}}</div><div class="rv-stat-v">{{.Checked}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_versions"}}{{if .Truncated}} · {{ctx.Locale.Tr "asc_review.gate_hist_truncated"}}{{end}}</div></div>
-				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_first"}}</div><div class="rv-stat-v ag-v-ok">{{.FirstTime}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_first_pct" .FirstPct}}</div></div>
-				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_held"}}</div><div class="rv-stat-v ag-v-warn">{{.Held}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_held_d" .HeldCleared .HeldOpen}}</div></div>
+				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_checked"}}</div><div class="rv-stat-v">{{.Checked}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_versions"}}{{if .Truncated}} · {{ctx.Locale.Tr "asc_review.gate_hist_truncated"}}{{end}}</div>{{template "repo/asc_spark" dict "P" .SparkChecked "Tone" ""}}</div>
+				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_first"}}</div><div class="rv-stat-v ag-v-ok">{{.FirstTime}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_first_pct" .FirstPct}}</div>{{template "repo/asc_spark" dict "P" .SparkFirst "Tone" "ok"}}</div>
+				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_held"}}</div><div class="rv-stat-v ag-v-warn">{{.Held}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_held_d" .HeldCleared .HeldOpen}}</div>{{template "repo/asc_spark" dict "P" .SparkHeld "Tone" "warn"}}</div>
 				<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.gate_hist_median"}}</div><div class="rv-stat-v">{{if .Median}}{{.Median}}{{else}}&mdash;{{end}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.gate_hist_median_d"}}</div></div>
 			</div>
 			{{end}}
@@ -64,7 +64,7 @@ The text of the policy file and every text from asc was cleaned by services/asct
 							<div class="rv-banner rv-banner-warn rv-banner-flush" role="status" data-testid="asc-gate-held-problem"><div>{{.HeldProblem}}</div></div>
 						{{else if .Held}}
 							<ul class="rv-held" data-testid="asc-gate-held-list">
-								{{range .Held}}
+								{{range $i, $h := .Held}}{{if or $.AscGate.HeldAll (lt $i 4)}}{{with $h}}
 								<li class="rv-held-row">
 									<span class="rv-gi rv-gi-err" aria-hidden="true"></span>
 									<div class="rv-queue-main">
@@ -74,9 +74,9 @@ The text of the policy file and every text from asc was cleaned by services/asct
 									</div>
 									<span class="rv-faint rv-recent-when">{{DateUtils.TimeSince .Time}}</span>
 								</li>
-								{{end}}
+								{{end}}{{end}}{{end}}
 							</ul>
-							<div class="rv-card-b"><a href="{{$.AscGate.AuditURL}}?outcome=denied">{{ctx.Locale.Tr "asc_review.gate_open_audit"}}</a></div>
+							<div class="rv-card-b rv-row rv-row-wrap">{{if gt (len .Held) 4}}{{if .HeldAll}}<a href="{{.GateURL}}?days={{.Days}}" data-testid="asc-gate-held-fewer">{{ctx.Locale.Tr "asc_review.gate_held_fewer"}}</a>{{else}}<a href="{{.GateURL}}?days={{.Days}}&amp;held=all#asc-gate-held" data-testid="asc-gate-held-all">{{ctx.Locale.Tr "asc_review.gate_held_all" (len .Held)}}</a>{{end}}{{end}}<a class="rv-end" href="{{$.AscGate.AuditURL}}?outcome=denied">{{ctx.Locale.Tr "asc_review.gate_open_audit"}}</a></div>
 						{{else}}
 							<div class="rv-empty rv-empty-flat" data-testid="asc-gate-empty">
 								<span class="rv-empty-mark" aria-hidden="true">{{svg "octicon-check-circle" 24}}</span>

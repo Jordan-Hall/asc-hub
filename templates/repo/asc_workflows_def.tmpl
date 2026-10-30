@@ -125,34 +125,28 @@ Template Attributes:
 					</section>
 				</div>
 				<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.wf_side_label"}}">
-					{{if .Inputs}}
-						<section class="rv-card" aria-labelledby="rv-wf-inputs">
-							<div class="rv-card-h"><h2 id="rv-wf-inputs">{{ctx.Locale.Tr "asc_review.wf_inputs"}}</h2></div>
-							<ul class="rv-card-b rv-plain">
+					{{if or .Inputs .HasAgent}}
+						<section class="rv-card" aria-labelledby="rv-wf-inputs" data-testid="asc-workflow-inputs">
+							<div class="rv-card-h"><h2 id="rv-wf-inputs">{{ctx.Locale.Tr "asc_review.wf_inputs_budget"}}</h2></div>
+							{{if .Inputs}}<ul class="rv-card-b rv-plain">
 								{{range .Inputs}}<li><code>{{.Name}}</code>{{if .Required}} {{ctx.Locale.Tr "asc_review.required"}}{{end}}{{if .Default}}, {{ctx.Locale.Tr "asc_review.wf_default"}} <code>{{.Default}}</code>{{end}}{{if .Description}}<br><span class="rv-muted">{{.Description}}</span>{{end}}</li>{{end}}
-							</ul>
-						</section>
-					{{end}}
-					{{if .HasAgent}}
-						<section class="rv-card" aria-labelledby="rv-wf-budget">
-							<div class="rv-card-h"><h2 id="rv-wf-budget">{{ctx.Locale.Tr "asc_review.run_budget"}}</h2></div>
-							<div class="rv-card-b">
+							</ul>{{end}}
+							{{if .HasAgent}}<div class="rv-card-b">
 								<div class="rv-meters">{{template "repo/asc_agents_meters" .Meters}}</div>
 								<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_budget_help"}}</p>
-							</div>
+							</div>{{end}}
 						</section>
 					{{end}}
-					{{if $.AscWorkflowSecretsShown}}
 					<section class="rv-card" aria-labelledby="rv-wf-secrets" data-testid="asc-workflow-secrets">
 						<div class="rv-card-h"><h2 id="rv-wf-secrets">{{ctx.Locale.Tr "asc_review.wf_secrets"}}</h2></div>
 						<div class="rv-card-b">
-							{{if $.AscWorkflowSecrets}}
-							<ul class="rv-plain">{{range $.AscWorkflowSecrets}}<li><code>{{.Name}}</code>{{if .Hint}} <span class="rv-muted">&hellip;{{.Hint}}</span>{{end}}<br><span class="rv-muted">{{if .UsedBy}}{{ctx.Locale.Tr "asc_review.wf_secret_used_by"}} {{range $j, $n := .UsedBy}}{{if $j}}, {{end}}<code>{{$n}}</code>{{end}}{{else}}{{ctx.Locale.Tr "asc_review.wf_secret_unused"}}{{end}}</span></li>{{end}}</ul>
+							{{if .SecretsUsed}}
+							<ul class="rv-plain" data-testid="asc-workflow-secrets-list">{{range .SecretsUsed}}<li class="rv-row rv-row-wrap"><span><code>{{.Name}}</code><br><span class="rv-muted">{{range $j, $e := .Envs}}{{if $j}}, {{end}}<code class="rv-bare">{{$e}}</code>{{end}} {{ctx.Locale.Tr "asc_review.wf_secret_in"}} {{range $j, $n := .Steps}}{{if $j}}, {{end}}<code class="rv-bare">{{$n}}</code>{{end}}</span></span>{{if .Checked}}{{if .Set}}<span class="rv-pill rv-pill-ok rv-end">{{ctx.Locale.Tr "asc_review.wf_secret_set"}}</span>{{else}}<span class="rv-pill rv-pill-warn rv-end">{{ctx.Locale.Tr "asc_review.wf_secret_missing"}}</span>{{end}}{{end}}</li>{{end}}</ul>
 							{{else}}<p class="rv-muted">{{ctx.Locale.Tr "asc_review.wf_secrets_none"}}</p>{{end}}
+							{{if $.CanChangeWorkflows}}<p><a href="{{$.RepoLink}}/settings/actions/secrets" data-testid="asc-workflow-secrets-manage">{{ctx.Locale.Tr "asc_review.wf_secrets_manage"}}</a></p>{{end}}
 							<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_secrets_help"}}</p>
 						</div>
 					</section>
-					{{end}}
 					<section class="rv-card" aria-labelledby="rv-wf-file">
 						<div class="rv-card-h"><h2 id="rv-wf-file">{{ctx.Locale.Tr "asc_review.wf_file"}}</h2>{{if .Path}}<code class="rv-bare rv-faint">{{.Path}}</code>{{end}}<button class="rv-btn rv-btn-secondary rv-btn-sm rv-end" type="button" data-clipboard-text="{{$.AscWorkflowText}}" data-testid="asc-workflow-copy">{{ctx.Locale.Tr "asc_review.wf_copy"}}</button></div>
 						<div class="rv-term rv-term-flush"><div class="rv-term-b" id="asc-workflow-text" tabindex="0" role="region" aria-label="{{if .Path}}{{.Path}}{{else}}{{ctx.Locale.Tr "asc_review.wf_show_def"}}{{end}}" data-testid="asc-workflow-text">{{$.AscWorkflowText}}</div></div>

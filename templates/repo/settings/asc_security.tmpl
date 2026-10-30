@@ -17,6 +17,7 @@ A finding never carries a value: the preview was cut to two characters before it
 			<ul class="rv-facts">
 				<li>{{if .Data.Rules.BlockOnPush}}<span class="rv-pill rv-pill-ok" data-testid="asc-security-block">{{ctx.Locale.Tr "asc_review.sec_blocks"}}</span>{{else}}<span class="rv-pill rv-pill-warn" data-testid="asc-security-block">{{ctx.Locale.Tr "asc_review.sec_records_only"}}</span>{{end}}</li>
 				<li><span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_review.sec_branch"}} <code class="rv-bare">{{.Branch}}</code></span></li>
+				{{if not .LastScan.IsZero}}<li><span class="rv-pill rv-pill-outline" data-testid="asc-security-last-scan">{{ctx.Locale.Tr "asc_review.sec_last_scan" (DateUtils.TimeSince .LastScan)}}</span></li>{{end}}
 			</ul>
 			{{end}}
 		</div>
@@ -37,8 +38,8 @@ A finding never carries a value: the preview was cut to two characters before it
 
 		{{if .Data}}
 		<div class="rv-stats rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.sec_stats"}}">
-			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_open"}}</div><div class="rv-stat-v">{{range .States}}{{if eq .Key "open"}}{{.Count}}{{end}}{{end}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_open_d"}}</div></div>
-			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_refused"}}</div><div class="rv-stat-v">{{len .Blocked}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_refused_d"}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_open"}}</div><div class="rv-stat-v">{{range .States}}{{if eq .Key "open"}}{{.Count}}{{end}}{{end}}</div><div class="rv-stat-d">{{if .NewToday}}{{ctx.Locale.Tr "asc_review.sec_stat_new_today" .NewToday}}{{else}}{{ctx.Locale.Tr "asc_review.sec_stat_open_d"}}{{end}}</div></div>
+			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_refused"}}</div><div class="rv-stat-v">{{.RefusedMonth}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_refused_30"}}</div>{{template "repo/asc_spark" dict "P" .RefusedSpark "Tone" "warn"}}</div>
 			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_rules"}}</div><div class="rv-stat-v">{{len .Data.Rules.Rules}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_rules_d"}}</div></div>
 			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_allow"}}</div><div class="rv-stat-v">{{len .Data.Rules.AllowPaths}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_allow_d"}}</div></div>
 		</div>
