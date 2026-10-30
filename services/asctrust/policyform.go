@@ -22,6 +22,8 @@ type PolicyForm struct {
 	RequireSigned    bool
 	MergeStrategy    string // rebase | rebase-disjoint | fast-forward, "" for the default
 	MergeQueue       bool
+	MergeBatch       int64 // [merge] batch, 1 to MaxMergeBatch; 0 when the file does not say
+	PostMergeChecks  bool
 	AgentsEnabled    bool
 	AgentScope       []string
 	AgentDenied      []string
@@ -31,6 +33,9 @@ type PolicyForm struct {
 }
 
 // MergeStrategies are the values of `[merge] strategy`.
+// MaxMergeBatch is the largest `[merge] batch` of asc-core (MAX_BATCH).
+const MaxMergeBatch = 16
+
 var MergeStrategies = []string{"rebase", "rebase-disjoint", "fast-forward"}
 
 // FormOfText reads the fields of the form from a policy text.
@@ -49,6 +54,8 @@ func FormOfText(text string) PolicyForm {
 		f.RequireSigned, _ = TomlBool(text, "trunk", "require_signed")
 	}
 	f.MergeQueue, _ = TomlBool(text, "merge", "queue")
+	f.MergeBatch = n("merge", "batch")
+	f.PostMergeChecks, _ = TomlBool(text, "merge", "post_merge_checks")
 	f.AgentsEnabled = true
 	if v, ok := TomlBool(text, "agents", "enabled"); ok {
 		f.AgentsEnabled = v
@@ -122,11 +129,28 @@ func ApplyForm(text string, f PolicyForm) (string, error) {
 	if f.AllowForce || hasKey(text, "trunk", "allow_force") {
 		text = TomlSetBool(text, "trunk", "allow_force", f.AllowForce)
 	}
-	if f.RequireSigned || hasKey(text, "signing", "require_signed") {
+	// `[trunk] require_signed` is a synonym of `[signing] require_signed` and the two are ORed by asc, so a form that
+	// turns signing off must turn both off; one that turns it on writes the section the file already uses.
+	switch {
+	case hasKey(text, "trunk", "require_signed") && !hasKey(text, "signing", "require_signed"):
+		text = TomlSetBool(text, "trunk", "require_signed", f.RequireSigned)
+	case f.RequireSigned || hasKey(text, "signing", "require_signed"):
 		text = TomlSetBool(text, "signing", "require_signed", f.RequireSigned)
+		if hasKey(text, "trunk", "require_signed") {
+			text = TomlSetBool(text, "trunk", "require_signed", f.RequireSigned)
+		}
 	}
 	if f.MergeStrategy != "" {
 		text = setLine(text, "merge", "strategy", tomlQuote(f.MergeStrategy))
+	}
+	if f.MergeBatch < 0 || f.MergeBatch > MaxMergeBatch {
+		return "", fmt.Errorf("%w: batch size is 1 to %d", ErrBadInput, MaxMergeBatch)
+	}
+	if f.MergeBatch > 1 || (f.MergeBatch == 1 && hasKey(text, "merge", "batch")) {
+		text = setLine(text, "merge", "batch", fmt.Sprint(f.MergeBatch))
+	}
+	if f.PostMergeChecks || hasKey(text, "merge", "post_merge_checks") {
+		text = TomlSetBool(text, "merge", "post_merge_checks", f.PostMergeChecks)
 	}
 	if f.MergeQueue || hasKey(text, "merge", "queue") {
 		text = TomlSetBool(text, "merge", "queue", f.MergeQueue)

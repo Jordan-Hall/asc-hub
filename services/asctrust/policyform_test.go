@@ -73,3 +73,33 @@ func TestLineDiff(t *testing.T) {
 	assert.Equal(t, []DiffLine{{" ", "a"}, {"-", "b"}, {" ", "c"}, {"+", "d"}}, d)
 	assert.Equal(t, []DiffLine{{" ", "x"}}, LineDiff("x", "x\n"))
 }
+
+func TestFormSignedSynonymAndBatch(t *testing.T) {
+	text := "version = 1
+
+[trunk]
+require_signed = true
+
+[signing]
+require_signed = true
+
+[merge]
+queue = true
+"
+	f := FormOfText(text)
+	assert.True(t, f.RequireSigned)
+	f.RequireSigned = false
+	f.MergeBatch = 4
+	f.PostMergeChecks = true
+	out, err := ApplyForm(text, f)
+	require.NoError(t, err)
+	got := FormOfText(out)
+	assert.False(t, got.RequireSigned)
+	v, _ := TomlBool(out, "trunk", "require_signed")
+	assert.False(t, v, "the synonym is turned off with the section, or asc would still ORs it in")
+	assert.Equal(t, int64(4), got.MergeBatch)
+	assert.True(t, got.PostMergeChecks)
+	f.MergeBatch = 99
+	_, err = ApplyForm(text, f)
+	require.ErrorIs(t, err, ErrBadInput)
+}

@@ -47,6 +47,8 @@
 					<fieldset class="ds-fieldset"><legend>{{ctx.Locale.Tr "asc_rp.pf_queue"}}</legend>
 						<div class="ds-field"><label for="pf-strategy">{{ctx.Locale.Tr "asc_rp.pf_strategy"}}</label><select id="pf-strategy" class="ds-select" name="strategy"><option value=""{{if not .Form.MergeStrategy}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.pf_default"}}</option>{{range $.AscPolicy.Strategies}}<option value="{{.}}"{{if eq . $.AscPolicy.Form.MergeStrategy}} selected{{end}}>{{.}}</option>{{end}}</select></div>
 						<label class="ds-check"><input type="checkbox" name="queue"{{if .Form.MergeQueue}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_use_queue"}}</label>
+						<div class="ds-field"><label for="pf-batch">{{ctx.Locale.Tr "asc_rp.pf_batch"}}</label><input id="pf-batch" class="ds-input" name="batch" type="number" min="1" max="16" inputmode="numeric" value="{{if .Form.MergeBatch}}{{.Form.MergeBatch}}{{else}}1{{end}}"></div>
+						<label class="ds-check"><input type="checkbox" name="post_merge_checks"{{if .Form.PostMergeChecks}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_post_checks"}}</label>
 					</fieldset>
 					<fieldset class="ds-fieldset"><legend>{{ctx.Locale.Tr "asc_rp.pf_agents"}}</legend>
 						<label class="ds-check"><input type="checkbox" name="agents_enabled"{{if .Form.AgentsEnabled}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_agents_on"}}</label>
