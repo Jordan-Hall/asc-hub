@@ -507,6 +507,16 @@ func AscWorkflows(ctx *context.Context) {
 	ctx.Data["AscWorkflowState"] = state
 	ctx.Data["AscWorkflowQ"] = q
 	ctx.Data["AscWorkflowDefs"] = rows
+	// Each definition that has inputs gets its own operation id for the Run now dialog, so a double submit starts one run.
+	ops := make(map[string]string, len(rows))
+	for _, r := range rows {
+		ops[r.Name] = ascAgentsNewOpID()
+	}
+	ctx.Data["AscWorkflowOps"] = ops
+	if ctx.Repo.Repository != nil && ctx.Repo.Repository.DefaultBranch != "" {
+		// "New workflow": a new file under .asc/workflows/ in the editor, on the new-branch choice, so it is a change under review.
+		ctx.Data["AscWorkflowNewURL"] = ctx.Repo.RepoLink + "/_new/" + util.PathEscapeSegments(ctx.Repo.Repository.DefaultBranch) + "/.asc/workflows/?commit_choice=commit-to-new-branch"
+	}
 	ctx.Data["AscWorkflowSkipped"] = skipped
 
 	// The latest runs are a convenience; the page stands without them.
