@@ -1,24 +1,42 @@
 {{/*
 Closes user/auth/shell_start. Props: Data (pass "."), Brand ("signin" or "signup": the navy panel from 1024 on; empty for a plain card).
+The panel shows a small stack in review, drawn in markup (not a screenshot, so it follows the language and the user's text size). It is decoration: hidden from assistive technology, the title and lead beside it say the same in words.
 */}}
 		</div>
 	</div>
 	{{if .Brand}}
-	<aside class="ds-auth-brand ds-only-desktop" aria-label="{{AppName}}">
+	<aside class="ds-auth-brand" aria-label="{{AppName}}">
 		<div class="ds-auth-brand-in">
-			<div class="ds-t-eyebrow ds-auth-brand-eyebrow">{{AppName}}</div>
 			<p class="ds-auth-brand-title">{{if eq .Brand "signup"}}{{ctx.Locale.Tr "asc_auth.brand_signup_title"}}{{else}}{{ctx.Locale.Tr "asc_auth.brand_signin_title"}}{{end}}</p>
-			<ul class="ds-auth-points">
-				{{if eq .Brand "signup"}}
-					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signup_p1_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signup_p1_text"}}</span></div></li>
-					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signup_p2_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signup_p2_text"}}</span></div></li>
-					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signup_p3_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signup_p3_text"}}</span></div></li>
-				{{else}}
-					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signin_p1_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signin_p1_text"}}</span></div></li>
-					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signin_p2_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signin_p2_text"}}</span></div></li>
-					<li>{{svg "dsi-check" 18}}<div><b>{{ctx.Locale.Tr "asc_auth.signin_p3_title"}}</b><span>{{ctx.Locale.Tr "asc_auth.signin_p3_text"}}</span></div></li>
-				{{end}}
-			</ul>
+			<p class="ds-auth-brand-lead">{{if eq .Brand "signup"}}{{ctx.Locale.Tr "asc_auth.brand_signup_lead"}}{{else}}{{ctx.Locale.Tr "asc_auth.brand_signin_lead"}}{{end}}</p>
+			<div class="ds-pv" aria-hidden="true">
+				<div class="ds-pv-hd">{{svg "dsi-layers" 16}}<span>{{ctx.Locale.Tr "asc_auth.pv_stack"}}</span></div>
+				<ol class="ds-pv-stack">
+					<li><i class="ds-pv-dot is-ok"></i><span class="ds-pv-name">{{ctx.Locale.Tr "asc_auth.pv_row1"}}</span><span class="ds-pv-pill is-ok">{{ctx.Locale.Tr "asc_auth.pv_row1_state"}}</span></li>
+					<li class="is-on"><i class="ds-pv-dot is-warn"></i><span class="ds-pv-name">{{ctx.Locale.Tr "asc_auth.pv_row2"}}</span><span class="ds-pv-pill is-warn">{{ctx.Locale.Tr "asc_auth.pv_row2_state"}}</span></li>
+					<li><i class="ds-pv-dot"></i><span class="ds-pv-name">{{ctx.Locale.Tr "asc_auth.pv_row3"}}</span><span class="ds-pv-pill">{{ctx.Locale.Tr "asc_auth.pv_row3_state"}}</span></li>
+				</ol>
+				<div class="ds-pv-diff">
+					<div class="ds-pv-ln"><b>41</b><code>  func (l *Limiter) Allow(tok string) bool {</code></div>
+					<div class="ds-pv-ln is-del"><b>42</b><code>-     return l.byIP[tok].take()</code></div>
+					<div class="ds-pv-ln is-add"><b>42</b><code>+     return l.bucket(tok).take(1)</code></div>
+					<div class="ds-pv-ln"><b>43</b><code>  }</code></div>
+				</div>
+				<div class="ds-pv-note">
+					<span class="ds-pv-who">{{svg "dsi-agent" 14}}{{ctx.Locale.Tr "asc_auth.pv_agent"}}</span>
+					<p>{{ctx.Locale.Tr "asc_auth.pv_comment"}}</p>
+				</div>
+				<div class="ds-pv-ft">{{svg "dsi-check-circle" 14}}<span>{{ctx.Locale.Tr "asc_auth.pv_checks"}}</span></div>
+			</div>
+			{{if eq .Brand "signin"}}
+				{{template "user/auth/cli_hint" (dict "Where" "brand")}}
+			{{else}}
+				<ul class="ds-auth-chips">
+					<li>{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_auth.signup_p1_title"}}</li>
+					<li>{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_auth.signup_p2_title"}}</li>
+					<li>{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_auth.signup_p3_title"}}</li>
+				</ul>
+			{{end}}
 		</div>
 	</aside>
 	{{end}}

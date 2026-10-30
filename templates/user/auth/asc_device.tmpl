@@ -3,7 +3,7 @@ Authorise the CLI (board Onboarding, "CLI device approval"): the person types th
 Routes: GET and POST /login/device.
 */}}
 {{template "base/head" .}}
-{{template "user/auth/shell_start" (dict "Data" . "Hook" "user asc-device" "Eyebrow" (ctx.Locale.Tr "asc_device.eyebrow") "Title" (ctx.Locale.Tr (printf "asc_device.title_%s" .DeviceStep)) "NoAlert" false)}}
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user asc-device" "Icon" "dsi-terminal" "Eyebrow" (ctx.Locale.Tr "asc_device.eyebrow") "Title" (ctx.Locale.Tr (printf "asc_device.title_%s" .DeviceStep)) "NoAlert" false)}}
 	{{if eq .DeviceStep "enter"}}
 		<form class="ds-form ignore-dirty" action="{{AppSubUrl}}/login/device" method="get">
 			{{if .DeviceProblem}}

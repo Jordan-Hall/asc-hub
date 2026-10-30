@@ -1,11 +1,22 @@
 {{template "base/head" .}}
-{{template "user/auth/shell_start" (dict "Data" . "Hook" "oauth2-authorize-application-box" "Title" (ctx.Locale.Tr "auth.authorize_title" .Application.Name))}}
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "oauth2-authorize-application-box" "Icon" "dsi-shield-check" "Title" (ctx.Locale.Tr "auth.authorize_title" .Application.Name))}}
 	<div class="ds-stack-16">
-		<p class="ds-t-body">
-			<b>{{ctx.Locale.Tr "auth.authorize_application_description"}}</b><br>
-			{{ctx.Locale.Tr "auth.authorize_application_created_by" .ApplicationCreatorLinkHTML}}
-		</p>
-		<p class="ds-t-small">{{ctx.Locale.Tr "asc_auth.authorize_scopes"}} <code class="ds-mono">{{.Scope}}</code></p>
+		<div class="ds-grant-app">
+			<span class="ds-grant-ic" aria-hidden="true">{{svg "dsi-puzzle" 20}}</span>
+			<div>
+				<b>{{.Application.Name}}</b>
+				<span>{{ctx.Locale.Tr "auth.authorize_application_created_by" .ApplicationCreatorLinkHTML}}</span>
+			</div>
+		</div>
+		<p class="ds-t-body"><b>{{ctx.Locale.Tr "auth.authorize_application_description"}}</b></p>
+		{{if .Scope}}
+		<div>
+			<p class="ds-t-small ds-muted" id="grant-scopes">{{ctx.Locale.Tr "asc_auth.authorize_scopes"}}</p>
+			<ul class="ds-grant-scopes" aria-labelledby="grant-scopes">
+				{{range $scope := StringUtils.Split .Scope " "}}{{if $scope}}<li><code class="ds-mono">{{$scope}}</code></li>{{end}}{{end}}
+			</ul>
+		</div>
+		{{end}}
 		<div class="ds-banner">{{svg "dsi-info" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "auth.authorize_redirect_notice" .ApplicationRedirectDomainHTML}}</div></div>
 		<form method="post" action="{{AppSubUrl}}/login/oauth/grant" class="ds-auth-actions">
 			<input type="hidden" name="client_id" value="{{.Application.ClientID}}">
@@ -16,6 +27,7 @@
 			<button type="submit" id="authorize-app" name="granted" value="true" class="ds-btn ds-btn-primary ds-btn-lg">{{ctx.Locale.Tr "auth.authorize_application"}}</button>
 			<button type="submit" name="granted" value="false" class="ds-btn ds-btn-secondary ds-btn-lg">{{ctx.Locale.Tr "cancel"}}</button>
 		</form>
+		{{if .SignedUser}}<p class="ds-t-small ds-muted">{{ctx.Locale.Tr "asc_auth.authorize_signed_in" .SignedUser.Name}}</p>{{end}}
 	</div>
 {{template "user/auth/shell_end" (dict "Data" .)}}
 {{template "base/footer" .}}
