@@ -9,6 +9,7 @@ import (
 	"time"
 
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/git/ascbackend"
@@ -17,10 +18,14 @@ import (
 )
 
 // The counts on the Agent runs and Dependencies tabs of an asc repository (board Repo: "Agent runs 3",
-// "Dependencies 2"): runs that are not finished and open dependency findings. They are the same for everyone who may
-// read the code, so one answer is kept per repository for a short time; a slow or failing asc leaves the count out
-// and never delays the page by more than countTimeout. The template draws a count only inside the tab it belongs to,
-// which already needs the code unit, so nothing here is shown to a person who may not read the repository.
+// "Dependencies 2"): runs that are not finished and open dependency findings.
+//
+// A count is a fact about a list, so it is fetched and shown only to a person who may open that list, by the same
+// rule as the page of the list: the agent runs need a signed-in person who reads the code and the Actions of the
+// repository and has agent features on (ascAgentsCanReadRuns in routers/web/repo); the dependency findings need a
+// signed-in person who reads the code (trustweb.CodeRepo). The answer is the same for everyone who passes the gate, so
+// it is kept per repository and kind for a short time, and only after the gate. A slow or failing asc leaves the count
+// out and never delays the page by more than ascCountTimeout.
 
 const (
 	ascCountTTL     = 30 * time.Second
@@ -28,15 +33,31 @@ const (
 	ascCountMax     = 4096 // entries kept; the map is cleared when it grows past this
 )
 
+const (
+	ascCountRuns = iota
+	ascCountDeps
+)
+
+type ascCountKey struct {
+	repo int64
+	kind int
+}
+
 type ascCountEntry struct {
-	at       time.Time
-	runs     uint32
-	findings uint32
+	at time.Time
+	n  uint32
+}
+
+// ascCountGates says which counts a viewer may be given.
+func ascCountGates(signedIn, canCode, canActions, agentFeatures bool) (runs, deps bool) {
+	deps = signedIn && canCode
+	runs = deps && canActions && agentFeatures
+	return runs, deps
 }
 
 var (
 	ascCountMu     sync.Mutex
-	ascCountCache  = map[int64]ascCountEntry{}
+	ascCountCache  = map[ascCountKey]ascCountEntry{}
 	ascCountClient *ascclient.Client
 )
 
@@ -54,56 +75,60 @@ func ascCountConn() (*ascclient.Client, error) {
 	return c, nil
 }
 
-// ascTabCounts returns the number of unfinished agent runs and open dependency findings of an asc repository.
-func ascTabCounts(ctx context.Context, repo *repo_model.Repository) (runs, findings uint32) {
-	ascCountMu.Lock()
-	if e, ok := ascCountCache[repo.ID]; ok && time.Since(e.at) < ascCountTTL {
-		ascCountMu.Unlock()
-		return e.runs, e.findings
+// ascTabCounts returns the counts the viewer may see; a count the gate refuses is 0 and is never fetched.
+func ascTabCounts(ctx *Context, repo *repo_model.Repository) (runs, findings uint32) {
+	agentFeatures, _ := ctx.Data["AscAgentFeatures"].(bool)
+	wantRuns, wantDeps := ascCountGates(ctx.IsSigned && ctx.Doer != nil, ctx.Repo.CanRead(unit.TypeCode), ctx.Repo.CanRead(unit.TypeActions), agentFeatures)
+	if !wantRuns && !wantDeps {
+		return 0, 0
 	}
-	ascCountMu.Unlock()
-
 	name, err := ascbackend.RepoName(setting.RepoRootPath, repo_model.RepoPath(repo.OwnerName, repo.Name))
 	if err != nil {
 		return 0, 0
 	}
+	if wantRuns {
+		runs = ascCountOf(ctx, repo, ascCountRuns, func(cctx context.Context, c *ascclient.Client) (uint32, error) {
+			resp, err := ascv1.NewAgentsClient(c).ListRuns(cctx, &ascv1.ListAgentRunsRequest{
+				Repo: &ascv1.RepoRef{Name: name}, Limit: 100,
+				States: []ascv1.AgentRunState{ascv1.AgentRunState_AGENT_RUN_STATE_QUEUED, ascv1.AgentRunState_AGENT_RUN_STATE_RUNNING, ascv1.AgentRunState_AGENT_RUN_STATE_WAITING_INPUT},
+			})
+			return uint32(len(resp.GetRuns())), err
+		})
+	}
+	if wantDeps {
+		findings = ascCountOf(ctx, repo, ascCountDeps, func(cctx context.Context, c *ascclient.Client) (uint32, error) {
+			resp, err := ascv1.NewDepsServiceClient(c).ListFindings(cctx, &ascv1.ListDepFindingsRequest{Repo: &ascv1.RepoRef{Name: name}, Limit: 1})
+			return resp.GetCountsByState()["open"], err
+		})
+	}
+	return runs, findings
+}
+
+// ascCountOf returns the cached count of one kind, or asks asc (as the host, after the gate) and keeps the answer.
+func ascCountOf(ctx context.Context, repo *repo_model.Repository, kind int, ask func(context.Context, *ascclient.Client) (uint32, error)) uint32 {
+	key := ascCountKey{repo.ID, kind}
+	ascCountMu.Lock()
+	if e, ok := ascCountCache[key]; ok && time.Since(e.at) < ascCountTTL {
+		ascCountMu.Unlock()
+		return e.n
+	}
+	ascCountMu.Unlock()
 	c, err := ascCountConn()
 	if err != nil {
-		return 0, 0
+		return 0
 	}
 	cctx, cancel := context.WithTimeout(ascclient.WithSystem(ctx), ascCountTimeout)
 	defer cancel()
-	ref := &ascv1.RepoRef{Name: name}
-	var wg sync.WaitGroup
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		resp, err := ascv1.NewAgentsClient(c).ListRuns(cctx, &ascv1.ListAgentRunsRequest{
-			Repo: ref, Limit: 100,
-			States: []ascv1.AgentRunState{ascv1.AgentRunState_AGENT_RUN_STATE_QUEUED, ascv1.AgentRunState_AGENT_RUN_STATE_RUNNING, ascv1.AgentRunState_AGENT_RUN_STATE_WAITING_INPUT},
-		})
-		if err != nil {
-			log.Debug("asc tab counts: agent runs of %s: %v", repo.FullName(), err)
-			return
-		}
-		runs = uint32(len(resp.GetRuns()))
-	}()
-	go func() {
-		defer wg.Done()
-		resp, err := ascv1.NewDepsServiceClient(c).ListFindings(cctx, &ascv1.ListDepFindingsRequest{Repo: ref, Limit: 1})
-		if err != nil {
-			log.Debug("asc tab counts: findings of %s: %v", repo.FullName(), err)
-			return
-		}
-		findings = resp.GetCountsByState()["open"]
-	}()
-	wg.Wait()
-
+	n, err := ask(cctx, c)
+	if err != nil {
+		log.Debug("asc tab counts: kind %d of %s: %v", kind, repo.FullName(), err)
+		return 0
+	}
 	ascCountMu.Lock()
 	if len(ascCountCache) >= ascCountMax {
 		clear(ascCountCache)
 	}
-	ascCountCache[repo.ID] = ascCountEntry{at: time.Now(), runs: runs, findings: findings}
+	ascCountCache[key] = ascCountEntry{at: time.Now(), n: n}
 	ascCountMu.Unlock()
-	return runs, findings
+	return n
 }
