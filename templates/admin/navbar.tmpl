@@ -50,6 +50,7 @@
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/config") "Label" (ctx.Locale.Tr "asc_admin.configuration") "Icon" "sliders" "Active" (or .PageIsAdminConfig .PageIsAdminConfigSummary .PageIsAdminConfigSettings))}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/monitor/queue") "Label" (ctx.Locale.Tr "asc_admin.monitor") "Icon" "server" "Active" (or .PageIsAdminMonitor .PageIsAdminMonitorStats .PageIsAdminMonitorCron .PageIsAdminMonitorQueue .PageIsAdminMonitorStacktrace))}}
 			{{if .AscEnabled}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/agents") "Label" (ctx.Locale.Tr "asc_shell.sn_agents") "Icon" "agent" "Active" .PageIsAdminAscAgents)}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/usage") "Label" (ctx.Locale.Tr "asc_shell.sn_usage") "Icon" "dollar" "Active" .PageIsAdminAscUsage)}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_admin.audit") "Icon" "history" "Active" .PageIsAdminAscAudit)}}
 			{{end}}
