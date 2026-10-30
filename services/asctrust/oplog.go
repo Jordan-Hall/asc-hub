@@ -283,6 +283,11 @@ type UndoPreview struct {
 	Current, Restore string
 	// Op is the operation id of the form, so a double submit is one undo.
 	Op string
+	// ChangesBack counts the changes that leave the ref when the undo is made (they are not lost: their versions stay), and
+	// ApprovalsKept the approvals of the newest version of such a change that stay. Truncated says asc's walk stopped at its bound,
+	// so both are lower bounds.
+	ChangesBack, ApprovalsKept uint32
+	Truncated                  bool
 }
 
 // requireUndoable returns the error for a row the person may not undo.
@@ -335,7 +340,7 @@ func PreviewUndo(ctx context.Context, conn grpc.ClientConnInterface, repoName st
 	if resp.GetApplied() || resp.GetResult().GetName() != ref || cur != row.New || back != row.Old {
 		return nil, fmt.Errorf("%w: undo preview", ErrBadAnswer)
 	}
-	return &UndoPreview{Row: *row, Current: cur, Restore: back, Op: NewOpID()}, nil
+	return &UndoPreview{Row: *row, Current: cur, Restore: back, Op: NewOpID(), ChangesBack: resp.GetChangesBack(), ApprovalsKept: resp.GetApprovalsKept(), Truncated: resp.GetPreviewTruncated()}, nil
 }
 
 // UndoConfirmation is a confirmed undo: the operation, the heads the person was shown, and the form's operation id.

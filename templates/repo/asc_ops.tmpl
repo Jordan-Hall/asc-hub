@@ -97,9 +97,9 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 					{{end}}
 				</div>
 				<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.ops_side_label"}}">
-					<section class="rv-card" aria-labelledby="asc-ops-how">
+					<section class="rv-card" aria-labelledby="asc-ops-how" data-asc-ops-panel aria-live="polite">
 						<div class="rv-card-h"><h2 id="asc-ops-how">{{ctx.Locale.Tr "asc_trust.ops.undo_title"}}</h2></div>
-						<div class="rv-card-b"><p class="rv-muted">{{ctx.Locale.Tr "asc_trust.ops.undo_lead"}}</p><p class="rv-hint">{{ctx.Locale.Tr "asc_trust.ops.note"}}</p></div>
+						<div class="rv-card-b" data-asc-ops-panel-body><p class="rv-muted">{{ctx.Locale.Tr "asc_trust.ops.undo_lead"}}</p><p class="rv-hint">{{ctx.Locale.Tr "asc_trust.ops.note"}}</p></div>
 					</section>
 					<section class="rv-card" aria-labelledby="asc-ops-blocked">
 						<div class="rv-card-h"><h2 id="asc-ops-blocked">{{ctx.Locale.Tr "asc_review.ops_blocked_title"}}</h2></div>
