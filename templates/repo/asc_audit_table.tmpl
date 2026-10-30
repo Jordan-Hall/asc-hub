@@ -24,7 +24,23 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 	{{if .Unsupported}}
 		<div class="rv-banner rv-banner-warn" role="status"><div>{{ctx.Locale.Tr "asc_trust.audit.unsupported"}}</div></div>
 	{{else}}
-		<form class="rv-card rv-audit-filters" method="get" action="{{.Base}}" data-testid="asc-audit-filters" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.audit.filter"}}">
+		{{if .Chain}}
+			{{if .Chain.OK}}
+				<div class="rv-banner rv-banner-ok rv-gap" role="status" data-testid="asc-audit-chain"><div>{{ctx.Locale.Tr "asc_trust.audit.chain_ok" .Chain.Checked}}</div></div>
+			{{else}}
+				<div class="rv-banner rv-banner-err rv-gap" role="alert" data-testid="asc-audit-chain"><div>{{ctx.Locale.Tr "asc_trust.audit.chain_broken" .Chain.FirstBad}}{{if .Chain.Reason}}: {{.Chain.Reason}}{{end}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.ExportJSONL}}" download data-testid="asc-audit-evidence">{{ctx.Locale.Tr "asc_review.audit_export_evidence"}}</a></div></div></div>
+			{{end}}
+		{{end}}
+
+		<form class="rv-card" method="post" action="{{.Base}}/verify">
+			{{$.CsrfTokenHtml}}
+			<div class="rv-card-b rv-row rv-row-wrap">
+				<button class="rv-btn rv-btn-secondary" type="submit" data-testid="asc-audit-verify">{{ctx.Locale.Tr "asc_trust.audit.verify"}}</button>
+				<span class="rv-hint rv-grow">{{ctx.Locale.Tr "asc_trust.audit.verify_hint"}}</span>
+			</div>
+		</form>
+
+		<form class="rv-card rv-gap rv-audit-filters" method="get" action="{{.Base}}" data-testid="asc-audit-filters" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.audit.filter"}}">
 			<div class="rv-card-b rv-formgrid rv-formgrid-3">
 				<div class="rv-field">
 					<label class="rv-label" for="asc-audit-actor">{{ctx.Locale.Tr "asc_trust.audit.who"}}</label>
@@ -88,14 +104,6 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 			<div class="rv-banner rv-banner-err rv-gap" role="alert" data-testid="asc-audit-error"><div>{{.Error}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="">{{ctx.Locale.Tr "asc_review.try_again"}}</a></div></div></div>
 		{{end}}
 
-		{{if .Chain}}
-			{{if .Chain.OK}}
-				<div class="rv-banner rv-banner-ok rv-gap" role="status" data-testid="asc-audit-chain"><div>{{ctx.Locale.Tr "asc_trust.audit.chain_ok" .Chain.Checked}}</div></div>
-			{{else}}
-				<div class="rv-banner rv-banner-err rv-gap" role="alert" data-testid="asc-audit-chain"><div>{{ctx.Locale.Tr "asc_trust.audit.chain_broken" .Chain.FirstBad}}{{if .Chain.Reason}}: {{.Chain.Reason}}{{end}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.ExportJSONL}}" download data-testid="asc-audit-evidence">{{ctx.Locale.Tr "asc_review.audit_export_evidence"}}</a></div></div></div>
-			{{end}}
-		{{end}}
-
 		{{if .Searched}}
 			<div class="rv-tablewrap rv-gap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 				<table class="rv-tbl rv-tbl-stack" data-testid="asc-audit-table">
@@ -137,13 +145,6 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 			{{end}}
 		{{end}}
 
-		<form class="rv-card rv-gap" method="post" action="{{.Base}}/verify">
-			{{$.CsrfTokenHtml}}
-			<div class="rv-card-b rv-row rv-row-wrap">
-				<button class="rv-btn rv-btn-secondary" type="submit" data-testid="asc-audit-verify">{{ctx.Locale.Tr "asc_trust.audit.verify"}}</button>
-				<span class="rv-hint rv-grow">{{ctx.Locale.Tr "asc_trust.audit.verify_hint"}}</span>
-			</div>
-		</form>
 	{{end}}
 </div>
 {{end}}
