@@ -26,6 +26,7 @@ const (
 	Changes_Mergeability_FullMethodName   = "/asc.v1.Changes/Mergeability"
 	Changes_Overlaps_FullMethodName       = "/asc.v1.Changes/Overlaps"
 	Changes_RestackChanges_FullMethodName = "/asc.v1.Changes/RestackChanges"
+	Changes_AmendChange_FullMethodName    = "/asc.v1.Changes/AmendChange"
 	Changes_SetReviewState_FullMethodName = "/asc.v1.Changes/SetReviewState"
 	Changes_RequestMerge_FullMethodName   = "/asc.v1.Changes/RequestMerge"
 )
@@ -43,6 +44,7 @@ type ChangesClient interface {
 	Mergeability(ctx context.Context, in *MergeabilityRequest, opts ...grpc.CallOption) (*MergeabilityResponse, error)
 	Overlaps(ctx context.Context, in *OverlapsRequest, opts ...grpc.CallOption) (*OverlapsResponse, error)
 	RestackChanges(ctx context.Context, in *RestackChangesRequest, opts ...grpc.CallOption) (*RestackChangesResponse, error)
+	AmendChange(ctx context.Context, in *AmendChangeRequest, opts ...grpc.CallOption) (*AmendChangeResponse, error)
 	SetReviewState(ctx context.Context, in *SetReviewStateRequest, opts ...grpc.CallOption) (*SetReviewStateResponse, error)
 	RequestMerge(ctx context.Context, in *RequestMergeRequest, opts ...grpc.CallOption) (*RequestMergeResponse, error)
 }
@@ -134,6 +136,16 @@ func (c *changesClient) RestackChanges(ctx context.Context, in *RestackChangesRe
 	return out, nil
 }
 
+func (c *changesClient) AmendChange(ctx context.Context, in *AmendChangeRequest, opts ...grpc.CallOption) (*AmendChangeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AmendChangeResponse)
+	err := c.cc.Invoke(ctx, Changes_AmendChange_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *changesClient) SetReviewState(ctx context.Context, in *SetReviewStateRequest, opts ...grpc.CallOption) (*SetReviewStateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SetReviewStateResponse)
@@ -167,6 +179,7 @@ type ChangesServer interface {
 	Mergeability(context.Context, *MergeabilityRequest) (*MergeabilityResponse, error)
 	Overlaps(context.Context, *OverlapsRequest) (*OverlapsResponse, error)
 	RestackChanges(context.Context, *RestackChangesRequest) (*RestackChangesResponse, error)
+	AmendChange(context.Context, *AmendChangeRequest) (*AmendChangeResponse, error)
 	SetReviewState(context.Context, *SetReviewStateRequest) (*SetReviewStateResponse, error)
 	RequestMerge(context.Context, *RequestMergeRequest) (*RequestMergeResponse, error)
 }
@@ -198,6 +211,9 @@ func (UnimplementedChangesServer) Overlaps(context.Context, *OverlapsRequest) (*
 }
 func (UnimplementedChangesServer) RestackChanges(context.Context, *RestackChangesRequest) (*RestackChangesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RestackChanges not implemented")
+}
+func (UnimplementedChangesServer) AmendChange(context.Context, *AmendChangeRequest) (*AmendChangeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AmendChange not implemented")
 }
 func (UnimplementedChangesServer) SetReviewState(context.Context, *SetReviewStateRequest) (*SetReviewStateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetReviewState not implemented")
@@ -344,6 +360,24 @@ func _Changes_RestackChanges_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Changes_AmendChange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AmendChangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChangesServer).AmendChange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Changes_AmendChange_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChangesServer).AmendChange(ctx, req.(*AmendChangeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Changes_SetReviewState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetReviewStateRequest)
 	if err := dec(in); err != nil {
@@ -410,6 +444,10 @@ var Changes_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RestackChanges",
 			Handler:    _Changes_RestackChanges_Handler,
+		},
+		{
+			MethodName: "AmendChange",
+			Handler:    _Changes_AmendChange_Handler,
 		},
 		{
 			MethodName: "SetReviewState",

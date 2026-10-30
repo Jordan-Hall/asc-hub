@@ -1023,3 +1023,24 @@
   content: "in ";
   color: var(--text-3);
 }
+
+/* ---------- suggested changes of a stacked change ---------- */
+.rv-sug-list {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rv-sug-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.rv-sug-body {
+  margin: 0 0 8px;
+}

@@ -18,7 +18,7 @@ FROM ${ASC_IMAGE} AS asc-bin
 FROM --platform=$BUILDPLATFORM data.forgejo.org/oci/xx@sha256:40fe21f44bb8cddf1eb1226db190d0a984118f62ee02a91b77d99448d28264a6 AS xx
 
 # data.forgejo.org/oci/golang:1.26-alpine3.23
-FROM --platform=$BUILDPLATFORM data.forgejo.org/oci/golang@sha256:0525c952defebc693cdaf62cdf43afa32be5a7f377e99260642ea19c240c708e AS build-env
+FROM --platform=$BUILDPLATFORM data.forgejo.org/oci/golang@sha256:34414731924cf2263160f0021f5cf6e1807382d85248f7cb419d4187b96d5e43 AS build-env
 
 ARG GOPROXY
 ENV GOPROXY=${GOPROXY:-https://proxy.golang.org,direct}
