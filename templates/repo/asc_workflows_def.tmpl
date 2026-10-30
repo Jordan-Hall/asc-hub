@@ -42,7 +42,7 @@ Template Attributes:
 				<div class="rv-stack">
 					<section class="rv-card" aria-labelledby="rv-wf-steps">
 						<div class="rv-card-h"><h2 id="rv-wf-steps">{{ctx.Locale.Tr "asc_review.wf_steps"}}</h2></div>
-						{{if .Steps}}<ol class="wf-chain" aria-label="{{ctx.Locale.Tr "asc_review.wf_chain"}}" data-testid="asc-workflow-chain">
+						{{if .Steps}}<ol class="wf-chain" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_review.wf_chain"}}" data-testid="asc-workflow-chain">
 							{{range .Steps}}<li class="wf-link{{if .HasState}} wf-{{.State.Slug}}{{end}}"><b>{{.ID}}</b><span class="rv-pill rv-pill-outline">{{.Kind}}</span>{{if .HasState}}{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}{{end}}</li>{{end}}
 						</ol>{{end}}
 						<ol class="rv-steps" data-testid="asc-workflow-steps">

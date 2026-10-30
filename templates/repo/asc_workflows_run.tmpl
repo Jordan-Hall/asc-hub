@@ -51,7 +51,7 @@ Template Attributes:
 			<div class="rv-cols rv-cols-main-side rv-gap">
 				<section class="rv-card wf-flowcard" aria-labelledby="rv-wfr-flow" data-testid="asc-wf-flow">
 					<div class="rv-card-h"><h2 id="rv-wfr-flow">{{ctx.Locale.Tr "asc_review.wf_flow"}}</h2></div>
-					<ol class="wf-flow">
+					<ol class="wf-flow" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_review.wf_chain"}}">
 						{{range $i, $s := .Steps}}<li class="wf-node wf-tone-{{$s.State.Tone}}{{if $s.State.Active}} is-active{{end}}" data-flow-step="{{$s.ID}}"><code>{{$s.ID}}</code>{{template "repo/asc_state_pill" dict "S" $s.State "P" "asc_review.step_state_"}}</li>{{end}}
 					</ol>
 				</section>
