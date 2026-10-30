@@ -239,6 +239,13 @@ func WebhookCreate(ctx *context.Context) {
 		}
 	}
 
+	if err := webhook_service.CheckPayloadURL(fields.URL); err != nil {
+		ctx.Flash.Error(err.Error())
+		ctx.Data["HookMetadata"] = fields.Metadata
+		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
+		return
+	}
+
 	w := &webhook.Webhook{
 		RepoID:          orCtx.RepoID,
 		URL:             fields.URL,
