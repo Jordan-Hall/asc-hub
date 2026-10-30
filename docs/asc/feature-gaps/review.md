@@ -17,23 +17,23 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 |---|---|---|---|---|---|
-| Review | 7 | 8 | 7 | 0 | 8 |
-| ReviewVersions | 5 | 1 | 4 | 0 | 3 |
-| NewChange | 1 | 5 | 2 | 0 | 5 |
-| Checks | 5 | 5 | 2 | 0 | 1 |
-| ChangeChecks | 4 | 3 | 2 | 0 | 1 |
-| Agents | 3 | 7 | 0 | 1 | 3 |
-| AgentRun | 5 | 4 | 1 | 1 | 7 |
-| AgentNew | 2 | 1 | 1 | 1 | 3 |
-| AgentAccess | 4 | 1 | 0 | 0 | 3 |
-| Workflows | 2 | 5 | 3 | 0 | 1 |
-| WorkflowDef | 5 | 2 | 2 | 0 | 0 |
+| Review | 9 | 7 | 6 | 0 | 7 |
+| ReviewVersions | 9 | 0 | 2 | 0 | 2 |
+| NewChange | 4 | 1 | 2 | 0 | 5 |
+| Checks | 6 | 4 | 2 | 0 | 1 |
+| ChangeChecks | 5 | 2 | 2 | 0 | 1 |
+| Agents | 12 | 2 | 0 | 0 | 0 |
+| AgentRun | 10 | 3 | 1 | 0 | 4 |
+| AgentNew | 6 | 0 | 1 | 0 | 1 |
+| AgentAccess | 5 | 1 | 0 | 0 | 2 |
+| Workflows | 5 | 2 | 3 | 0 | 1 |
+| WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 5 | 3 | 1 | 0 | 0 |
-| Policy | 5 | 1 | 0 | 1 | 3 |
-| Ops | 5 | 5 | 2 | 0 | 1 |
-| Queue | 6 | 2 | 1 | 0 | 2 |
+| Policy | 9 | 1 | 0 | 0 | 0 |
+| Ops | 8 | 4 | 0 | 0 | 1 |
+| Queue | 10 | 1 | 0 | 0 | 0 |
 | Audit | 2 | 4 | 0 | 0 | 0 |
-| Security | 5 | 4 | 0 | 0 | 0 |
+| Security | 9 | 0 | 0 | 0 | 0 |
 | Mobile twins | 1 | 8 | 0 | 0 | 0 |
 
 ## Findings that change the plan
@@ -226,12 +226,12 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Workflows | Definitions list with triggers, description, path, valid/not valid reason | done | templates/repo/asc_workflows.tmpl, routers/web/repo/asc_workflows.go | - |
 | Workflows | On/off switch (role=switch) and Run now on each list row | done | templates/repo/asc_workflows.tmpl (pill only; POST /{name}/enable and /trigger exist) (switch and Run it now clicked against a live asc) | S |
 | Workflows | Step chain 'scan > update > review' on the card | done | templates/repo/asc_workflows.tmpl (shows a step count) (chain of step ids seen on the dev hub) | S |
-| Workflows | Last-12-runs history strip and 'last run' time per workflow | needs-hub-backend | asc_workflows.go (Workflows.ListRuns per workflow) + template strip | M |
+| Workflows | Last-12-runs history strip and 'last run' time per workflow | done | templates/repo/asc_workflows.tmpl (strip from ListRuns, 100 newest runs grouped by workflow; last run time) | - |
 | Workflows | State filter (All, On, Off, Not valid), search, counts | done | templates/repo/asc_workflows.tmpl (chips with counts seen on the dev hub; search covered by a Go test) | S |
-| Workflows | 'New workflow' and 'Start from a template' (creates a reviewed change with the file) | needs-hub-backend | routers/web/repo/asc_workflows.go + web editor/propose-file flow; templates under options/ | M |
+| Workflows | 'New workflow' and 'Start from a template' (creates a reviewed change with the file) | ui-only-missing | New workflow is a link to the hub editor on a new branch under .asc/workflows/ (done); Start from a template is not built (no template files under options/) | S |
 | Workflows | Latest runs list (running, passed, needs approval, failed) with link to all runs | done | templates/repo/asc_workflows_runlist.tmpl, asc_workflows_runs.tmpl | - |
-| Workflows | Secrets and variables panel (names per workflow) with link to settings | needs-hub-backend | Workflows.ListSecrets (repo admin only) in asc_workflows.go; template card | S |
-| Workflows | Capacity '3 running of 6 allowed' and shared agent budget line | needs-both | asc: repo-wide concurrency cap not exposed; spend aggregate as in Agents | M |
+| Workflows | Secrets and variables panel (names per workflow) with link to settings | done | templates/repo/asc_workflows.tmpl (the secrets the workflows read, each with its workflows) and settings/asc/workflow-secrets (set, list names, delete) | - |
+| Workflows | Capacity '3 running of 6 allowed' and shared agent budget line | done | templates/repo/asc_workflows.tmpl (running runs of the newest 100 against the sum of max_parallel_runs of the enabled workflows; the shared agent budget line is not shown) | - |
 | Workflows | No-workflows state with template and guide buttons | ui-only-missing | templates/repo/asc_workflows.tmpl (text exists, buttons missing) | S |
 | Workflows | Loading skeleton | ui-only-missing | templates/repo/asc_workflows.tmpl | S |
 
@@ -240,14 +240,14 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | WorkflowDef | Header: name, on/off switch, path, Run it now | done | templates/repo/asc_workflows_def.tmpl (definition commit hash not shown) | - |
-| WorkflowDef | Steps table (kind, after, details, timeout) with state of latest run and connector fill | ui-only-missing | templates/repo/asc_workflows_def.tmpl (ordered list) | M |
+| WorkflowDef | Steps table (kind, after, details, timeout) with state of latest run and connector fill | done | templates/repo/asc_workflows_def.tmpl (the step chain with the state of the latest run, and the ordered list with command and secrets) | - |
 | WorkflowDef | Starts-when: cron, by hand incl. CLI command | done | templates/repo/asc_workflows_def.tmpl | - |
 | WorkflowDef | Run-it-now form with typed inputs and attach-to-change; inline validation | done | templates/repo/asc_workflows_def.tmpl, asc_workflows.go AscWorkflowTrigger | - |
 | WorkflowDef | Latest runs of this workflow | done | templates/repo/asc_workflows_def.tmpl | - |
 | WorkflowDef | Inputs and budget card (tokens, cost cap, write scope, signing key) | done | templates/repo/asc_workflows_def.tmpl (wf_inputs, run_budget) | - |
-| WorkflowDef | Secrets used card (REGISTRY_TOKEN set) | needs-hub-backend | Workflows.ListSecrets in asc_workflows.go | S |
-| WorkflowDef | File view with Copy button | ui-only-missing | templates/repo/asc_workflows_def.tmpl (details/pre without copy) | S |
-| WorkflowDef | 'Edit as a change' opens the file in the editor as a reviewed change | needs-hub-backend | asc_workflows_def.tmpl + web editor route to a new branch | M |
+| WorkflowDef | Secrets used card (REGISTRY_TOKEN set) | done | templates/repo/asc_workflows_def.tmpl; the secrets this workflow reads with Set or Not set (administrators), Manage links to settings/asc/workflow-secrets | - |
+| WorkflowDef | File view with Copy button | done | templates/repo/asc_workflows_def.tmpl (the file as a block, Copy) | - |
+| WorkflowDef | 'Edit as a change' opens the file in the editor as a reviewed change | done | asc_workflows_def.tmpl links to the hub editor on a new branch (editor.go honours commit_choice) | - |
 
 ### WorkflowRun
 
@@ -271,9 +271,9 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Policy | Stat cards: Changes checked, Passed first time, Held by the gate (cleared/open), Median time to clear | done | asc: gate decision history (no RPC); hub today shows held/rules/protections/quarantine counts (asc_gate.tmpl:50) (GetGateStats filled by the hub's own gate reports; seen on the dev hub with a real stack (changes checked, passed first time, per-rule counts)) | L |
 | Policy | Held-by-the-gate list: change, reason, rule, who, how cleared, time later, Open change | done | templates/repo/asc_gate.tmpl (from audit refusals) | - |
 | Policy | Policy file view, 'What this means', 'Who can write here' table | done | templates/repo/asc_gate.tmpl | - |
-| Policy | 'Checked and held, per day' chart with table equivalent | needs-both | asc: per-day gate counts; hub chart in asc_gate.tmpl | M |
+| Policy | 'Checked and held, per day' chart with table equivalent | done | templates/repo/asc_gate.tmpl (bars and a table; per-day counts from Review.GetGateStats) | - |
 | Policy | Rules in force with 'N held of M' per rule | done | asc: held counts per rule from audit/gate events; asc_gate.tmpl rule list (no counts) (per-rule counts from the hub's gate reports; seen on the dev hub) | M |
-| Policy | Maintainer overrides (signed, logged exception, reason) | needs-asc-backend | asc: override mechanism and event (none in proto/asc/v1/policy.proto); hub list | L |
+| Policy | Maintainer overrides (signed, logged exception, reason) | done | templates/repo/asc_gate.tmpl (grant, revoke, list with proof; asc Review gate overrides) | - |
 | Policy | Quarantined checks summary with link to the queue | done | templates/repo/asc_gate.tmpl | - |
 | Policy | Invalid-file fallback, nothing-held state | done | templates/repo/asc_gate.tmpl | - |
 | Policy | Loading skeleton | ui-only-missing | templates/repo/asc_gate.tmpl | S |
@@ -308,9 +308,9 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Queue | Queue reordering (not on the board: order is queue order, no reorder RPC in mergequeue.proto) | done | nothing to build | - |
 | Queue | Quarantined checks with reason, owner, review date | done | templates/repo/asc_queue.tmpl, services/asctrust queue quarantine | - |
 | Queue | Recently finished (merged / removed with who and when) | done | templates/repo/asc_queue.tmpl | - |
-| Queue | 'Merge a stack' panel: scope radios, dry run, Add to queue / Merge now | ui-only-missing | templates/repo/asc_queue.tmpl; reuse asc_confirm.tmpl | M |
+| Queue | 'Merge a stack' panel: scope radios, dry run, Add to queue / Merge now | done | templates/repo/asc_queue.tmpl (side column: each open stack with Merge when ready and Merge now, through asc_confirm for the scope and the dry run); asc_queue_stacks.go | - |
 | Queue | 'How landing stays safe' card; paused and empty states | done | templates/repo/asc_queue.tmpl | - |
-| Queue | Live update: list slides when an item lands, Checking pulses | needs-both | asc: MergeQueue.Watch stream exists; hub poll/SSE endpoint + script | M |
+| Queue | Live update: list slides when an item lands, Checking pulses | done | routers/web/repo/asc_queue_live.go + web_src/js/features/asc-board.js (Watch stream, held open; follows an empty queue too) | - |
 
 ### Audit
 
@@ -327,11 +327,11 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
-| Security | Summary cards: Open findings, Pushes refused 30 days, Rules count, Allowlist count | ui-only-missing | templates/repo/settings/asc_security.tmpl | S |
-| Security | Scan main now with inline progress | ui-only-missing | templates/repo/settings/asc_security.tmpl (POST then reload; Scan RPC is unary) | M |
+| Security | Summary cards: Open findings, Pushes refused 30 days, Rules count, Allowlist count | done | templates/repo/settings/asc_security.tmpl (cards, trend of refused pushes, Last scan from the secret.scan.run audit event) | - |
+| Security | Scan main now with inline progress | done | web_src/js/features/asc-security.js (in-place progress; Scan is unary, so the bar is indeterminate) | - |
 | Security | Findings list: file:line, rule, who, age, severity, state tabs | done | templates/repo/settings/asc_security.tmpl, routers/web/repo/setting/asc_security.go (SecretScan.ListFindings) | - |
-| Security | Set state Revoked / False positive / Accept risk with Undo toast | ui-only-missing | templates/repo/settings/asc_security.tmpl (state buttons with note exist; no toast) | S |
-| Security | 'File starts with...' filter | ui-only-missing | templates/repo/settings/asc_security.tmpl | S |
+| Security | Set state Revoked / False positive / Accept risk with Undo toast | done | web_src/js/features/asc-security.js (row leaves, toast with Undo) | - |
+| Security | 'File starts with...' filter | done | templates/repo/settings/asc_security.tmpl | - |
 | Security | Pushes refused list from the audit log | done | templates/repo/settings/asc_security.tmpl | - |
 | Security | Allowlist saved as a proposed change | done | templates/repo/settings/asc_security.tmpl, AscSecurityAllowlist (Policy.Propose) | - |
 | Security | Rules table with source and 'Show all 142' | done | templates/repo/settings/asc_security.tmpl | - |
