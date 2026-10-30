@@ -60,7 +60,7 @@ func previewServer(f *fakeTrust, newest *ascv1.RefLogEntry) {
 	f.undoRef = func(r *ascv1.UndoRefRequest) (*ascv1.UndoRefResponse, error) {
 		return &ascv1.UndoRefResponse{
 			Result:  &ascv1.RefResult{Name: r.GetRef(), Old: opsTarget(2), New: opsTarget(1)},
-			Applied: !r.GetDryRun(), NewSeq: 10,
+			Applied: !r.GetDryRun(), NewSeq: 10, ChangesBack: 4, ApprovalsKept: 2,
 		}, nil
 	}
 }
@@ -177,6 +177,10 @@ func TestAscOpsUndoPreviewIsADryRunAndCarriesTheHeads(t *testing.T) {
 	assert.Contains(t, page.body, `method="post"`)
 	assert.Contains(t, page.body, `for="asc-undo-reason"`, "the field has a label")
 	assert.Regexp(t, `name="op" value="[0-9a-f-]{36}"`, page.body)
+	// What the undo does to the changes, as asc reports it for a dry run.
+	assert.Contains(t, page.body, `data-testid="asc-undo-effects"`)
+	assert.Contains(t, page.body, "asc_review.ops_back_", "the count of changes that go back")
+	assert.Contains(t, page.body, "asc_review.ops_approvals_kept")
 }
 
 func TestAscOpsUndoPreviewRefusals(t *testing.T) {
