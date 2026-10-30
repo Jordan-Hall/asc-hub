@@ -119,6 +119,9 @@ func ToTrustModel(model string) TrustModelType {
 	return DefaultTrustModel
 }
 
+// IsTrashed reports whether the repository is in the trash: nobody can read or write it until it is restored.
+func (repo *Repository) IsTrashed() bool { return repo.Status == RepositoryTrashed }
+
 // RepositoryStatus defines the status of repository
 type RepositoryStatus int
 
@@ -128,6 +131,7 @@ const (
 	RepositoryBeingMigrated                           // repository is migrating
 	RepositoryPendingTransfer                         // repository pending in ownership transfer state
 	RepositoryBroken                                  // repository is in a permanently broken state
+	RepositoryTrashed                                 // repository was deleted and waits in the trash until it is purged or restored
 )
 
 // Repository represents a git repository.

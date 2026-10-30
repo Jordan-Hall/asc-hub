@@ -995,7 +995,7 @@ func SettingsPost(ctx *context.Context) {
 			ctx.Repo.GitRepo.Close()
 		}
 
-		if err := repo_service.DeleteRepository(ctx, ctx.Doer, ctx.Repo.Repository, true); err != nil {
+		if err := repo_service.TrashOrDeleteRepository(ctx, ctx.Doer, ctx.Repo.Repository, true); err != nil {
 			ctx.ServerError("DeleteRepository", err)
 			return
 		}

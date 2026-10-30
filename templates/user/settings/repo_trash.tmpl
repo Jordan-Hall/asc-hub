@@ -1,0 +1,27 @@
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings repos wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.repo_trash") "Lead" (ctx.Locale.Tr "settings.repo_trash_lead" .TrashDays))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-trash" data-testid="repo-trash">
+		<div class="ds-card-h"><h2 id="sp-trash">{{ctx.Locale.Tr "settings.repo_trash"}}</h2></div>
+		{{if .TrashRows}}
+		<ul class="ds-list wk-rows">
+			{{range .TrashRows}}
+			<li class="ds-li wk-row">
+				<span class="ds-li-av" aria-hidden="true">{{svg "dsi-book" 20}}</span>
+				<div class="ds-li-main">
+					<div class="ds-li-title ds-break">{{.Repo.OwnerName}}/{{.Repo.Name}}</div>
+					<div class="ds-li-meta">{{ctx.Locale.TrN .Days "settings.repo_trash_left_one" "settings.repo_trash_left_n" .Days}}</div>
+				</div>
+				<form method="post" action="{{$.Link}}/{{.Repo.ID}}/restore">
+					{{$.CsrfTokenHtml}}
+					<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "settings.repo_trash_restore"}}</button>
+				</form>
+			</li>
+			{{end}}
+		</ul>
+		{{else}}
+		<p class="ds-card-b" data-testid="repo-trash-empty">{{ctx.Locale.Tr "settings.repo_trash_empty"}}</p>
+		{{end}}
+	</section>
+</div>
+{{template "user/settings/layout_footer" .}}

@@ -326,7 +326,8 @@ func UserOrgPublicUnitRepoCond(userID, orgID int64) builder.Cond {
 
 // SearchRepositoryCondition creates a query condition according search repository options
 func SearchRepositoryCondition(opts *SearchRepoOptions) builder.Cond {
-	cond := builder.NewCond()
+	// a repository in the trash is in no list
+	cond := builder.Neq{"repository.status": RepositoryTrashed}.And(builder.NewCond())
 
 	if opts.Private {
 		if opts.Actor != nil && !opts.Actor.IsAdmin && opts.Actor.ID != opts.OwnerID {

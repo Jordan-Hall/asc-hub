@@ -249,6 +249,13 @@ func GetUserRepoPermission(ctx context.Context, repo *repo_model.Repository, use
 		}()
 	}
 
+	// A repository in the trash is closed to everyone, the owner and the administrators included: the trash page
+	// restores it, and that page does not go through repository permissions.
+	if repo.IsTrashed() {
+		perm.AccessMode = perm_model.AccessModeNone
+		return perm, nil
+	}
+
 	// anonymous user visit private repo.
 	// TODO: anonymous user visit public unit of private repo???
 	if user == nil && repo.IsPrivate {

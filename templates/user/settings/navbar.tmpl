@@ -58,7 +58,8 @@ Entries use shared/ds/snav_item; groups are headings, never colour.
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_workspace"}}</h2>
 		<ul class="ds-settings-list">
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/organization") "Label" (ctx.Locale.Tr "settings.organization") "Icon" "building" "Active" .PageIsSettingsOrganization)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/repos") "Label" (ctx.Locale.Tr "settings.repos") "Icon" "book" "Active" .PageIsSettingsRepos)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/repos") "Label" (ctx.Locale.Tr "settings.repos") "Icon" "book" "Active" (and .PageIsSettingsRepos (not .PageIsSettingsRepoTrash)))}}
+			{{if AscEnabled}}{{template "shared/ds/snav_item" (dict "Href" (print $base "/repo-trash") "Label" (ctx.Locale.Tr "settings.repo_trash") "Icon" "trash" "Active" .PageIsSettingsRepoTrash)}}{{end}}
 			{{if .EnableQuota}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/storage_overview") "Label" (ctx.Locale.Tr "settings.storage_overview") "Icon" "gauge" "Active" .PageIsStorageOverview)}}
 			{{end}}

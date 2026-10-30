@@ -142,6 +142,16 @@ func registerCleanupHookTaskTable() {
 	})
 }
 
+func registerPurgeTrashedRepositories() {
+	RegisterTaskFatal("purge_trashed_repositories", &BaseConfig{
+		Enabled:    true,
+		RunAtStart: false,
+		Schedule:   "@midnight",
+	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		return repo_service.PurgeTrashedRepositories(ctx)
+	})
+}
+
 func registerCleanupPackages() {
 	RegisterTaskFatal("cleanup_packages", &OlderThanConfig{
 		BaseConfig: BaseConfig{
@@ -169,6 +179,7 @@ func initBasicTasks() {
 		registerUpdateMigrationPosterID()
 	}
 	registerCleanupHookTaskTable()
+	registerPurgeTrashedRepositories()
 	if setting.Packages.Enabled {
 		registerCleanupPackages()
 	}
