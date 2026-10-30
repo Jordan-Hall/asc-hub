@@ -122,7 +122,7 @@
 											</tr>
 										{{else}}
 											<tr class="attachment">
-												<td data-label="{{ctx.Locale.Tr "asc_rp.asset_name"}}"><a class="rp-asset-name" target="_blank" rel="nofollow" href="{{.DownloadURL}}" download>{{svg "dsi-package" 16}}{{.Name}}</a></td>
+												<td data-label="{{ctx.Locale.Tr "asc_rp.asset_name"}}"><a class="rp-asset-name" target="_blank" rel="nofollow" href="{{.DownloadURL}}" download>{{svg "dsi-package" 16}}{{.Name}}</a> <span class="rp-asset-meta">{{DateUtils.TimeSince .CreatedUnix}}</span></td>
 												<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_size"}}">{{.Size | ctx.Locale.TrSize}}</td>
 												<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_rp.asset_downloads"}}">{{ctx.Locale.PrettyNumber .DownloadCount}}</td>
 											</tr>

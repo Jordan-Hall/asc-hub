@@ -92,7 +92,7 @@ func TestBaseTemplateTitle(t *testing.T) {
 		{"/user2/repo1/projects/1", "First project - user2/repo1", nil},
 		{"/org3/-/projects/7", "project on org3 - org3", nil},
 		{"/org6", "Org Six", nil},
-		{"/org17/big_test_public_4", "org17/big_test_public_4", nil},
+		{"/user2/repo1", "user2/repo1", nil}, // (the fixture repositories of org17 have no git directory: that page is "Repository unavailable")
 		{"/admin", "Dashboard", loginUser(t, "user1")},
 		{"/explore/repos", "Explore", nil}, // /explore is a redirect
 		{"/", "", nil},

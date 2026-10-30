@@ -130,7 +130,7 @@ func releaseChangesOf(ctx *context.Context, r *repo_model.Release) *relChanges {
 	}
 	cnt, _, err := git.NewCommand(ctx, "rev-list", "--count", "--no-merges").AddDynamicArguments(rng).RunStdString(&git.RunOpts{Dir: ctx.Repo.GitRepo.Path})
 	if err != nil {
-		log.Error("release changes of %s %s: %v", ctx.Repo.Repository.FullName(), r.TagName, err)
+		log.Warn("release changes of %s %s: %v", ctx.Repo.Repository.FullName(), r.TagName, err)
 		return nil
 	}
 	out, _, err := git.NewCommand(ctx, "log", "--no-merges", "--format=%H%x00%aN%x00%aE%x00%s", "-n", "100").AddDynamicArguments(rng).RunStdString(&git.RunOpts{Dir: ctx.Repo.GitRepo.Path})
