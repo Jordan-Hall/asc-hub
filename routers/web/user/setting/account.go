@@ -7,6 +7,7 @@ package setting
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"forgejo.org/models"
@@ -277,6 +278,15 @@ func DeleteAccount(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsSettingsAccount"] = true
 
+	// The person types the name of the account first, so that a form filled in by a password manager, or a click in the
+	// wrong tab, cannot delete it.
+	if strings.TrimSpace(ctx.FormString("username_confirm")) != ctx.Doer.Name {
+		loadAccountData(ctx)
+		ctx.Data["Err_UsernameConfirm"] = true
+		ctx.RenderWithErr(ctx.Tr("settings.delete_username_mismatch"), tplSettingsAccount, nil)
+		return
+	}
+
 	if _, _, err := auth_method.UserSignIn(ctx, ctx.Doer.Name, ctx.FormString("password")); err != nil {
 		switch {
 		case user_model.IsErrUserNotExist(err):
@@ -354,6 +364,8 @@ func loadAccountData(ctx *context.Context) {
 	ctx.Data["ActivationsPending"] = pendingActivation
 	ctx.Data["CanAddEmails"] = !pendingActivation || !setting.Service.RegisterEmailConfirm
 	ctx.Data["UserDisabledFeatures"] = user_model.DisabledFeaturesWithLoginType(ctx.Doer)
+	// An account that still owns repositories cannot be deleted: the page says so and does not offer the button.
+	ctx.Data["DeleteBlockedByRepos"] = ctx.Doer.NumRepos
 
 	if setting.Service.UserDeleteWithCommentsMaxTime != 0 {
 		ctx.Data["UserDeleteWithCommentsMaxTime"] = setting.Service.UserDeleteWithCommentsMaxTime.String()
