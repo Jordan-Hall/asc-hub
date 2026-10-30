@@ -119,7 +119,7 @@ func (x RequestMergeResponse_State) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RequestMergeResponse_State.Descriptor instead.
 func (RequestMergeResponse_State) EnumDescriptor() ([]byte, []int) {
-	return file_asc_v1_changes_proto_rawDescGZIP(), []int{21, 0}
+	return file_asc_v1_changes_proto_rawDescGZIP(), []int{24, 0}
 }
 
 type ChangeInfo struct {
@@ -1361,6 +1361,259 @@ func (x *RestackChangesResponse) GetPatchUnchanged() [][]byte {
 	return nil
 }
 
+// AmendChange commits new content for files of a change as its next version: the same parents, author and message, the
+// tree of the newest version with the named files replaced, and the newest version as the predecessor. It is how a host
+// applies a review suggestion (Review.PrepareSuggestion, this call, then Review.MarkSuggestionApplied).
+//
+// `base_version` must be the newest version, else the answer is `stale` and nothing is written. `update_ref` is empty or
+// `refs/pull/<n>/head`, the only ref an amend moves; it moves only while it still points at the newest version
+// (compare-and-set), else the answer is `stale`. A user's draft refs never move: the author gets the new version on the
+// next fetch or sync. A file must exist in the newest version and be a regular file. The committer defaults to the
+// authenticated actor; only the forge's internal principal may name one. Idempotent by x-asc-op-id.
+type AmendFile struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Content       []byte                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AmendFile) Reset() {
+	*x = AmendFile{}
+	mi := &file_asc_v1_changes_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AmendFile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AmendFile) ProtoMessage() {}
+
+func (x *AmendFile) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_changes_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AmendFile.ProtoReflect.Descriptor instead.
+func (*AmendFile) Descriptor() ([]byte, []int) {
+	return file_asc_v1_changes_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *AmendFile) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *AmendFile) GetContent() []byte {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+type AmendChangeRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Repo           *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change         []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	BaseVersion    uint32                 `protobuf:"varint,3,opt,name=base_version,json=baseVersion,proto3" json:"base_version,omitempty"`
+	Files          []*AmendFile           `protobuf:"bytes,4,rep,name=files,proto3" json:"files,omitempty"`
+	Message        []byte                 `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
+	UpdateRef      string                 `protobuf:"bytes,6,opt,name=update_ref,json=updateRef,proto3" json:"update_ref,omitempty"`
+	CommitterName  string                 `protobuf:"bytes,7,opt,name=committer_name,json=committerName,proto3" json:"committer_name,omitempty"`
+	CommitterEmail string                 `protobuf:"bytes,8,opt,name=committer_email,json=committerEmail,proto3" json:"committer_email,omitempty"`
+	CommitterTime  int64                  `protobuf:"varint,9,opt,name=committer_time,json=committerTime,proto3" json:"committer_time,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *AmendChangeRequest) Reset() {
+	*x = AmendChangeRequest{}
+	mi := &file_asc_v1_changes_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AmendChangeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AmendChangeRequest) ProtoMessage() {}
+
+func (x *AmendChangeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_changes_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AmendChangeRequest.ProtoReflect.Descriptor instead.
+func (*AmendChangeRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_changes_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *AmendChangeRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *AmendChangeRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *AmendChangeRequest) GetBaseVersion() uint32 {
+	if x != nil {
+		return x.BaseVersion
+	}
+	return 0
+}
+
+func (x *AmendChangeRequest) GetFiles() []*AmendFile {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+func (x *AmendChangeRequest) GetMessage() []byte {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
+func (x *AmendChangeRequest) GetUpdateRef() string {
+	if x != nil {
+		return x.UpdateRef
+	}
+	return ""
+}
+
+func (x *AmendChangeRequest) GetCommitterName() string {
+	if x != nil {
+		return x.CommitterName
+	}
+	return ""
+}
+
+func (x *AmendChangeRequest) GetCommitterEmail() string {
+	if x != nil {
+		return x.CommitterEmail
+	}
+	return ""
+}
+
+func (x *AmendChangeRequest) GetCommitterTime() int64 {
+	if x != nil {
+		return x.CommitterTime
+	}
+	return 0
+}
+
+type AmendChangeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Version       uint32                 `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
+	Changeset     []byte                 `protobuf:"bytes,2,opt,name=changeset,proto3" json:"changeset,omitempty"`
+	Git           []byte                 `protobuf:"bytes,3,opt,name=git,proto3" json:"git,omitempty"`
+	Stale         bool                   `protobuf:"varint,4,opt,name=stale,proto3" json:"stale,omitempty"`
+	Reason        string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	LatestVersion uint32                 `protobuf:"varint,6,opt,name=latest_version,json=latestVersion,proto3" json:"latest_version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AmendChangeResponse) Reset() {
+	*x = AmendChangeResponse{}
+	mi := &file_asc_v1_changes_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AmendChangeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AmendChangeResponse) ProtoMessage() {}
+
+func (x *AmendChangeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_changes_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AmendChangeResponse.ProtoReflect.Descriptor instead.
+func (*AmendChangeResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_changes_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *AmendChangeResponse) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *AmendChangeResponse) GetChangeset() []byte {
+	if x != nil {
+		return x.Changeset
+	}
+	return nil
+}
+
+func (x *AmendChangeResponse) GetGit() []byte {
+	if x != nil {
+		return x.Git
+	}
+	return nil
+}
+
+func (x *AmendChangeResponse) GetStale() bool {
+	if x != nil {
+		return x.Stale
+	}
+	return false
+}
+
+func (x *AmendChangeResponse) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *AmendChangeResponse) GetLatestVersion() uint32 {
+	if x != nil {
+		return x.LatestVersion
+	}
+	return 0
+}
+
 type SetReviewStateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
@@ -1372,7 +1625,7 @@ type SetReviewStateRequest struct {
 
 func (x *SetReviewStateRequest) Reset() {
 	*x = SetReviewStateRequest{}
-	mi := &file_asc_v1_changes_proto_msgTypes[18]
+	mi := &file_asc_v1_changes_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1384,7 +1637,7 @@ func (x *SetReviewStateRequest) String() string {
 func (*SetReviewStateRequest) ProtoMessage() {}
 
 func (x *SetReviewStateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_changes_proto_msgTypes[18]
+	mi := &file_asc_v1_changes_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1397,7 +1650,7 @@ func (x *SetReviewStateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetReviewStateRequest.ProtoReflect.Descriptor instead.
 func (*SetReviewStateRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_changes_proto_rawDescGZIP(), []int{18}
+	return file_asc_v1_changes_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *SetReviewStateRequest) GetRepo() *RepoRef {
@@ -1429,7 +1682,7 @@ type SetReviewStateResponse struct {
 
 func (x *SetReviewStateResponse) Reset() {
 	*x = SetReviewStateResponse{}
-	mi := &file_asc_v1_changes_proto_msgTypes[19]
+	mi := &file_asc_v1_changes_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1441,7 +1694,7 @@ func (x *SetReviewStateResponse) String() string {
 func (*SetReviewStateResponse) ProtoMessage() {}
 
 func (x *SetReviewStateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_changes_proto_msgTypes[19]
+	mi := &file_asc_v1_changes_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1454,7 +1707,7 @@ func (x *SetReviewStateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetReviewStateResponse.ProtoReflect.Descriptor instead.
 func (*SetReviewStateResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_changes_proto_rawDescGZIP(), []int{19}
+	return file_asc_v1_changes_proto_rawDescGZIP(), []int{22}
 }
 
 type RequestMergeRequest struct {
@@ -1468,7 +1721,7 @@ type RequestMergeRequest struct {
 
 func (x *RequestMergeRequest) Reset() {
 	*x = RequestMergeRequest{}
-	mi := &file_asc_v1_changes_proto_msgTypes[20]
+	mi := &file_asc_v1_changes_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1480,7 +1733,7 @@ func (x *RequestMergeRequest) String() string {
 func (*RequestMergeRequest) ProtoMessage() {}
 
 func (x *RequestMergeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_changes_proto_msgTypes[20]
+	mi := &file_asc_v1_changes_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1493,7 +1746,7 @@ func (x *RequestMergeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestMergeRequest.ProtoReflect.Descriptor instead.
 func (*RequestMergeRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_changes_proto_rawDescGZIP(), []int{20}
+	return file_asc_v1_changes_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *RequestMergeRequest) GetRepo() *RepoRef {
@@ -1528,7 +1781,7 @@ type RequestMergeResponse struct {
 
 func (x *RequestMergeResponse) Reset() {
 	*x = RequestMergeResponse{}
-	mi := &file_asc_v1_changes_proto_msgTypes[21]
+	mi := &file_asc_v1_changes_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1540,7 +1793,7 @@ func (x *RequestMergeResponse) String() string {
 func (*RequestMergeResponse) ProtoMessage() {}
 
 func (x *RequestMergeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_changes_proto_msgTypes[21]
+	mi := &file_asc_v1_changes_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1553,7 +1806,7 @@ func (x *RequestMergeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestMergeResponse.ProtoReflect.Descriptor instead.
 func (*RequestMergeResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_changes_proto_rawDescGZIP(), []int{21}
+	return file_asc_v1_changes_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *RequestMergeResponse) GetState() RequestMergeResponse_State {
@@ -1678,7 +1931,28 @@ const file_asc_v1_changes_proto_rawDesc = "" +
 	"\x16RestackChangesResponse\x12-\n" +
 	"\trewritten\x18\x01 \x03(\v2\x0f.asc.v1.RewriteR\trewritten\x12.\n" +
 	"\tconflicts\x18\x02 \x03(\v2\x10.asc.v1.ConflictR\tconflicts\x12-\n" +
-	"\x0fpatch_unchanged\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x02R\x0epatchUnchanged\"\x89\x01\n" +
+	"\x0fpatch_unchanged\x18\x03 \x03(\fB\x04\xa8\xbb\x18\x02R\x0epatchUnchanged\"E\n" +
+	"\tAmendFile\x12\x18\n" +
+	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1e\n" +
+	"\acontent\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x05R\acontent\"\xd9\x02\n" +
+	"\x12AmendChangeRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
+	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12!\n" +
+	"\fbase_version\x18\x03 \x01(\rR\vbaseVersion\x12'\n" +
+	"\x05files\x18\x04 \x03(\v2\x11.asc.v1.AmendFileR\x05files\x12\x1e\n" +
+	"\amessage\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x04R\amessage\x12\x1d\n" +
+	"\n" +
+	"update_ref\x18\x06 \x01(\tR\tupdateRef\x12%\n" +
+	"\x0ecommitter_name\x18\a \x01(\tR\rcommitterName\x12'\n" +
+	"\x0fcommitter_email\x18\b \x01(\tR\x0ecommitterEmail\x12%\n" +
+	"\x0ecommitter_time\x18\t \x01(\x03R\rcommitterTime\"\xc0\x01\n" +
+	"\x13AmendChangeResponse\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\rR\aversion\x12\"\n" +
+	"\tchangeset\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\tchangeset\x12\x16\n" +
+	"\x03git\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x03git\x12\x14\n" +
+	"\x05stale\x18\x04 \x01(\bR\x05stale\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\x12%\n" +
+	"\x0elatest_version\x18\x06 \x01(\rR\rlatestVersion\"\x89\x01\n" +
 	"\x15SetReviewStateRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1e\n" +
 	"\achanges\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x02R\achanges\x12+\n" +
@@ -1695,7 +1969,7 @@ const file_asc_v1_changes_proto_rawDesc = "" +
 	"\x05State\x12\x10\n" +
 	"\fSTATE_QUEUED\x10\x00\x12\x10\n" +
 	"\fSTATE_LANDED\x10\x01\x12\x11\n" +
-	"\rSTATE_REFUSED\x10\x022\x85\x05\n" +
+	"\rSTATE_REFUSED\x10\x022\xcd\x05\n" +
 	"\aChanges\x12O\n" +
 	"\x0eResolveChanges\x12\x1d.asc.v1.ResolveChangesRequest\x1a\x1e.asc.v1.ResolveChangesResponse\x124\n" +
 	"\x05Stack\x12\x14.asc.v1.StackRequest\x1a\x15.asc.v1.StackResponse\x12=\n" +
@@ -1703,7 +1977,8 @@ const file_asc_v1_changes_proto_rawDesc = "" +
 	"\tInterDiff\x12\x18.asc.v1.InterDiffRequest\x1a\x14.asc.v1.DiffResponse0\x01\x12I\n" +
 	"\fMergeability\x12\x1b.asc.v1.MergeabilityRequest\x1a\x1c.asc.v1.MergeabilityResponse\x12=\n" +
 	"\bOverlaps\x12\x17.asc.v1.OverlapsRequest\x1a\x18.asc.v1.OverlapsResponse\x12O\n" +
-	"\x0eRestackChanges\x12\x1d.asc.v1.RestackChangesRequest\x1a\x1e.asc.v1.RestackChangesResponse\x12O\n" +
+	"\x0eRestackChanges\x12\x1d.asc.v1.RestackChangesRequest\x1a\x1e.asc.v1.RestackChangesResponse\x12F\n" +
+	"\vAmendChange\x12\x1a.asc.v1.AmendChangeRequest\x1a\x1b.asc.v1.AmendChangeResponse\x12O\n" +
 	"\x0eSetReviewState\x12\x1d.asc.v1.SetReviewStateRequest\x1a\x1e.asc.v1.SetReviewStateResponse\x12I\n" +
 	"\fRequestMerge\x12\x1b.asc.v1.RequestMergeRequest\x1a\x1c.asc.v1.RequestMergeResponseBw\n" +
 	"\n" +
@@ -1722,7 +1997,7 @@ func file_asc_v1_changes_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_changes_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_asc_v1_changes_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_asc_v1_changes_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_asc_v1_changes_proto_goTypes = []any{
 	(Mergeable_State)(0),            // 0: asc.v1.Mergeable.State
 	(RequestMergeResponse_State)(0), // 1: asc.v1.RequestMergeResponse.State
@@ -1744,67 +2019,74 @@ var file_asc_v1_changes_proto_goTypes = []any{
 	(*RestackItem)(nil),             // 17: asc.v1.RestackItem
 	(*RestackChangesRequest)(nil),   // 18: asc.v1.RestackChangesRequest
 	(*RestackChangesResponse)(nil),  // 19: asc.v1.RestackChangesResponse
-	(*SetReviewStateRequest)(nil),   // 20: asc.v1.SetReviewStateRequest
-	(*SetReviewStateResponse)(nil),  // 21: asc.v1.SetReviewStateResponse
-	(*RequestMergeRequest)(nil),     // 22: asc.v1.RequestMergeRequest
-	(*RequestMergeResponse)(nil),    // 23: asc.v1.RequestMergeResponse
-	(*ReviewState)(nil),             // 24: asc.v1.ReviewState
-	(*RepoRef)(nil),                 // 25: asc.v1.RepoRef
-	(DiffFormat)(0),                 // 26: asc.v1.DiffFormat
-	(*Conflict)(nil),                // 27: asc.v1.Conflict
-	(*RefTarget)(nil),               // 28: asc.v1.RefTarget
-	(*Rewrite)(nil),                 // 29: asc.v1.Rewrite
-	(*DiffResponse)(nil),            // 30: asc.v1.DiffResponse
+	(*AmendFile)(nil),               // 20: asc.v1.AmendFile
+	(*AmendChangeRequest)(nil),      // 21: asc.v1.AmendChangeRequest
+	(*AmendChangeResponse)(nil),     // 22: asc.v1.AmendChangeResponse
+	(*SetReviewStateRequest)(nil),   // 23: asc.v1.SetReviewStateRequest
+	(*SetReviewStateResponse)(nil),  // 24: asc.v1.SetReviewStateResponse
+	(*RequestMergeRequest)(nil),     // 25: asc.v1.RequestMergeRequest
+	(*RequestMergeResponse)(nil),    // 26: asc.v1.RequestMergeResponse
+	(*ReviewState)(nil),             // 27: asc.v1.ReviewState
+	(*RepoRef)(nil),                 // 28: asc.v1.RepoRef
+	(DiffFormat)(0),                 // 29: asc.v1.DiffFormat
+	(*Conflict)(nil),                // 30: asc.v1.Conflict
+	(*RefTarget)(nil),               // 31: asc.v1.RefTarget
+	(*Rewrite)(nil),                 // 32: asc.v1.Rewrite
+	(*DiffResponse)(nil),            // 33: asc.v1.DiffResponse
 }
 var file_asc_v1_changes_proto_depIdxs = []int32{
-	24, // 0: asc.v1.ChangeInfo.review:type_name -> asc.v1.ReviewState
-	25, // 1: asc.v1.ResolveChangesRequest.repo:type_name -> asc.v1.RepoRef
+	27, // 0: asc.v1.ChangeInfo.review:type_name -> asc.v1.ReviewState
+	28, // 1: asc.v1.ResolveChangesRequest.repo:type_name -> asc.v1.RepoRef
 	2,  // 2: asc.v1.ResolveChangesResponse.changes:type_name -> asc.v1.ChangeInfo
-	25, // 3: asc.v1.StackRequest.repo:type_name -> asc.v1.RepoRef
+	28, // 3: asc.v1.StackRequest.repo:type_name -> asc.v1.RepoRef
 	2,  // 4: asc.v1.StackResponse.changes:type_name -> asc.v1.ChangeInfo
-	25, // 5: asc.v1.VersionsRequest.repo:type_name -> asc.v1.RepoRef
+	28, // 5: asc.v1.VersionsRequest.repo:type_name -> asc.v1.RepoRef
 	8,  // 6: asc.v1.VersionsResponse.versions:type_name -> asc.v1.Version
-	25, // 7: asc.v1.InterDiffRequest.repo:type_name -> asc.v1.RepoRef
-	26, // 8: asc.v1.InterDiffRequest.format:type_name -> asc.v1.DiffFormat
-	25, // 9: asc.v1.MergeabilityRequest.repo:type_name -> asc.v1.RepoRef
+	28, // 7: asc.v1.InterDiffRequest.repo:type_name -> asc.v1.RepoRef
+	29, // 8: asc.v1.InterDiffRequest.format:type_name -> asc.v1.DiffFormat
+	28, // 9: asc.v1.MergeabilityRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 10: asc.v1.Mergeable.state:type_name -> asc.v1.Mergeable.State
-	27, // 11: asc.v1.Mergeable.conflicts:type_name -> asc.v1.Conflict
+	30, // 11: asc.v1.Mergeable.conflicts:type_name -> asc.v1.Conflict
 	12, // 12: asc.v1.MergeabilityResponse.results:type_name -> asc.v1.Mergeable
-	25, // 13: asc.v1.OverlapsRequest.repo:type_name -> asc.v1.RepoRef
-	24, // 14: asc.v1.Overlap.review:type_name -> asc.v1.ReviewState
+	28, // 13: asc.v1.OverlapsRequest.repo:type_name -> asc.v1.RepoRef
+	27, // 14: asc.v1.Overlap.review:type_name -> asc.v1.ReviewState
 	15, // 15: asc.v1.OverlapsResponse.overlaps:type_name -> asc.v1.Overlap
-	28, // 16: asc.v1.RestackItem.expect:type_name -> asc.v1.RefTarget
-	25, // 17: asc.v1.RestackChangesRequest.repo:type_name -> asc.v1.RepoRef
+	31, // 16: asc.v1.RestackItem.expect:type_name -> asc.v1.RefTarget
+	28, // 17: asc.v1.RestackChangesRequest.repo:type_name -> asc.v1.RepoRef
 	17, // 18: asc.v1.RestackChangesRequest.items:type_name -> asc.v1.RestackItem
-	29, // 19: asc.v1.RestackChangesResponse.rewritten:type_name -> asc.v1.Rewrite
-	27, // 20: asc.v1.RestackChangesResponse.conflicts:type_name -> asc.v1.Conflict
-	25, // 21: asc.v1.SetReviewStateRequest.repo:type_name -> asc.v1.RepoRef
-	24, // 22: asc.v1.SetReviewStateRequest.states:type_name -> asc.v1.ReviewState
-	25, // 23: asc.v1.RequestMergeRequest.repo:type_name -> asc.v1.RepoRef
-	1,  // 24: asc.v1.RequestMergeResponse.state:type_name -> asc.v1.RequestMergeResponse.State
-	3,  // 25: asc.v1.Changes.ResolveChanges:input_type -> asc.v1.ResolveChangesRequest
-	5,  // 26: asc.v1.Changes.Stack:input_type -> asc.v1.StackRequest
-	7,  // 27: asc.v1.Changes.Versions:input_type -> asc.v1.VersionsRequest
-	10, // 28: asc.v1.Changes.InterDiff:input_type -> asc.v1.InterDiffRequest
-	11, // 29: asc.v1.Changes.Mergeability:input_type -> asc.v1.MergeabilityRequest
-	14, // 30: asc.v1.Changes.Overlaps:input_type -> asc.v1.OverlapsRequest
-	18, // 31: asc.v1.Changes.RestackChanges:input_type -> asc.v1.RestackChangesRequest
-	20, // 32: asc.v1.Changes.SetReviewState:input_type -> asc.v1.SetReviewStateRequest
-	22, // 33: asc.v1.Changes.RequestMerge:input_type -> asc.v1.RequestMergeRequest
-	4,  // 34: asc.v1.Changes.ResolveChanges:output_type -> asc.v1.ResolveChangesResponse
-	6,  // 35: asc.v1.Changes.Stack:output_type -> asc.v1.StackResponse
-	9,  // 36: asc.v1.Changes.Versions:output_type -> asc.v1.VersionsResponse
-	30, // 37: asc.v1.Changes.InterDiff:output_type -> asc.v1.DiffResponse
-	13, // 38: asc.v1.Changes.Mergeability:output_type -> asc.v1.MergeabilityResponse
-	16, // 39: asc.v1.Changes.Overlaps:output_type -> asc.v1.OverlapsResponse
-	19, // 40: asc.v1.Changes.RestackChanges:output_type -> asc.v1.RestackChangesResponse
-	21, // 41: asc.v1.Changes.SetReviewState:output_type -> asc.v1.SetReviewStateResponse
-	23, // 42: asc.v1.Changes.RequestMerge:output_type -> asc.v1.RequestMergeResponse
-	34, // [34:43] is the sub-list for method output_type
-	25, // [25:34] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	32, // 19: asc.v1.RestackChangesResponse.rewritten:type_name -> asc.v1.Rewrite
+	30, // 20: asc.v1.RestackChangesResponse.conflicts:type_name -> asc.v1.Conflict
+	28, // 21: asc.v1.AmendChangeRequest.repo:type_name -> asc.v1.RepoRef
+	20, // 22: asc.v1.AmendChangeRequest.files:type_name -> asc.v1.AmendFile
+	28, // 23: asc.v1.SetReviewStateRequest.repo:type_name -> asc.v1.RepoRef
+	27, // 24: asc.v1.SetReviewStateRequest.states:type_name -> asc.v1.ReviewState
+	28, // 25: asc.v1.RequestMergeRequest.repo:type_name -> asc.v1.RepoRef
+	1,  // 26: asc.v1.RequestMergeResponse.state:type_name -> asc.v1.RequestMergeResponse.State
+	3,  // 27: asc.v1.Changes.ResolveChanges:input_type -> asc.v1.ResolveChangesRequest
+	5,  // 28: asc.v1.Changes.Stack:input_type -> asc.v1.StackRequest
+	7,  // 29: asc.v1.Changes.Versions:input_type -> asc.v1.VersionsRequest
+	10, // 30: asc.v1.Changes.InterDiff:input_type -> asc.v1.InterDiffRequest
+	11, // 31: asc.v1.Changes.Mergeability:input_type -> asc.v1.MergeabilityRequest
+	14, // 32: asc.v1.Changes.Overlaps:input_type -> asc.v1.OverlapsRequest
+	18, // 33: asc.v1.Changes.RestackChanges:input_type -> asc.v1.RestackChangesRequest
+	21, // 34: asc.v1.Changes.AmendChange:input_type -> asc.v1.AmendChangeRequest
+	23, // 35: asc.v1.Changes.SetReviewState:input_type -> asc.v1.SetReviewStateRequest
+	25, // 36: asc.v1.Changes.RequestMerge:input_type -> asc.v1.RequestMergeRequest
+	4,  // 37: asc.v1.Changes.ResolveChanges:output_type -> asc.v1.ResolveChangesResponse
+	6,  // 38: asc.v1.Changes.Stack:output_type -> asc.v1.StackResponse
+	9,  // 39: asc.v1.Changes.Versions:output_type -> asc.v1.VersionsResponse
+	33, // 40: asc.v1.Changes.InterDiff:output_type -> asc.v1.DiffResponse
+	13, // 41: asc.v1.Changes.Mergeability:output_type -> asc.v1.MergeabilityResponse
+	16, // 42: asc.v1.Changes.Overlaps:output_type -> asc.v1.OverlapsResponse
+	19, // 43: asc.v1.Changes.RestackChanges:output_type -> asc.v1.RestackChangesResponse
+	22, // 44: asc.v1.Changes.AmendChange:output_type -> asc.v1.AmendChangeResponse
+	24, // 45: asc.v1.Changes.SetReviewState:output_type -> asc.v1.SetReviewStateResponse
+	26, // 46: asc.v1.Changes.RequestMerge:output_type -> asc.v1.RequestMergeResponse
+	37, // [37:47] is the sub-list for method output_type
+	27, // [27:37] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_changes_proto_init() }
@@ -1825,7 +2107,7 @@ func file_asc_v1_changes_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_changes_proto_rawDesc), len(file_asc_v1_changes_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   22,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
