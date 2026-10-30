@@ -225,7 +225,7 @@ func AscMerge(ctx *context.Context) {
 		return
 	}
 	trustweb.NoStore(ctx)
-	p := &ascMergePage{Base: setting.AppSubURL + "/org/" + org + "/settings/asc/merge", Op: asctrust.NewOpID(), Strategies: asctrust.MergeStrategies}
+	p := &ascMergePage{Base: setting.AppSubURL + "/org/" + org + "/settings/asc/merge", Op: asctrust.NewOpID(), Strategies: asctrust.OrgMergeStrategies}
 	ctx.Data["Title"] = ctx.Tr("asc_shell.om_title")
 	ctx.Data["PageIsSettingsAscMerge"] = true
 	ctx.Data["AscOrgMerge"] = p
