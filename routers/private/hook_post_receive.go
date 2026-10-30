@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -433,10 +434,25 @@ func settleAscFanOut(ctx *app_context.PrivateContext, opts *private.HookOptions,
 			}
 		}
 	}
-	if err := ascsync.WaitForRefs(ctx, repo, refs); err != nil {
-		log.Warn("post-receive for %-v: the repository did not hold the pushed refs in time: %v", repo, err)
+	if wait := refsToSettle(refs); len(wait) > 0 {
+		if err := ascsync.WaitForRefs(ctx, repo, wait); err != nil {
+			log.Warn("post-receive for %-v: the repository did not hold the pushed refs %v in time: %v", repo, opts.RefFullNames, err)
+		}
 	}
 	return settled
+}
+
+// refsToSettle leaves out the refs that are never in the repository: a ref under refs/for/ is a request that the
+// proc-receive hook turned into a pull request, and the repository never holds it. Waiting for it would stall asc's
+// outbox for the whole wait (the outbox calls the hook one effect at a time) and delay the bridge update of the next write.
+func refsToSettle(refs []ascsync.PushRef) []ascsync.PushRef {
+	out := make([]ascsync.PushRef, 0, len(refs))
+	for _, r := range refs {
+		if !strings.HasPrefix(r.Name, "refs/for/") {
+			out = append(out, r)
+		}
+	}
+	return out
 }
 
 func loadContextCacheUser(ctx context.Context, id int64) (*user_model.User, error) {
