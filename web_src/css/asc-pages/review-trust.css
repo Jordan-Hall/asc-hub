@@ -706,6 +706,8 @@
 
 .rv-facts dd {
   margin: 0;
+}
+
 .rv-op.is-selected {
   background: var(--primary-soft, rgb(20 120 141 / 8%));
 }
