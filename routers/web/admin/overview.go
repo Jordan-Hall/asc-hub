@@ -221,5 +221,6 @@ func Backups(ctx *context.Context) {
 	ctx.Data["PageIsAdminBackups"] = true
 	ctx.Data["AppDataPath"] = setting.AppDataPath
 	ctx.Data["DatabaseType"] = string(setting.Database.Type)
+	ascBackupsLoad(ctx)
 	ctx.HTML(http.StatusOK, tplBackups)
 }

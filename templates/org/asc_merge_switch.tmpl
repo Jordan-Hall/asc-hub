@@ -1,0 +1,6 @@
+{{/* One switch of the merge defaults form. Props: Name (the field), On, Label, Hint. */}}
+<label class="ds-switch wk-switch-row">
+	<input type="checkbox" role="switch" name="{{.Name}}" value="1"{{if .On}} checked{{end}}>
+	<span class="ds-switch-track"></span>
+	<span class="wk-switch-text"><b>{{.Label}}</b><span class="ds-hint">{{.Hint}}</span></span>
+</label>

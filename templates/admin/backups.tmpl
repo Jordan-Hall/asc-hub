@@ -1,6 +1,8 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin backups")}}
 	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.backups") "Desc" (ctx.Locale.Tr "asc_admin.backups_lead"))}}
 
+	{{template "admin/asc_backups_board" .}}
+
 	<div class="ds-banner ds-banner-warn" role="note">
 		{{svg "dsi-alert" 18}}
 		<p class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_admin.backups_state_title"}}.</strong> {{ctx.Locale.Tr "asc_admin.backups_state_text"}}</p>

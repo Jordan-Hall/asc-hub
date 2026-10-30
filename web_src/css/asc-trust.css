@@ -304,6 +304,29 @@
   line-height: 1.7;
 }
 
+.ast-org-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 12px 14px;
+  line-height: 1.6;
+}
+
+.ast-org-list dt {
+  color: var(--color-text-light-2);
+}
+
+.ast-org-list dd {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .ast-org-list {
+    grid-template-columns: 1fr;
+  }
+}
+
 .ast-preview {
   margin-block: 0 14px;
   padding: 12px 14px;

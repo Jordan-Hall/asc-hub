@@ -1,0 +1,6 @@
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings asc-trust-page wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_shell.usage_title") "Lead" (ctx.Locale.Tr "asc_shell.usage_lead"))}}
+<div class="wk-sp">
+	{{template "shared/asc_usage" .}}
+</div>
+{{template "user/settings/layout_footer" .}}

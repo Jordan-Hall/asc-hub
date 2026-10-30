@@ -4,7 +4,10 @@
 package repo
 
 import (
+	gocontext "context"
+
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/unit"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/log"
 	"forgejo.org/services/asctrust"
@@ -70,6 +73,10 @@ func ascVersionChecksOf(runs []*ascv1.CiRun) map[uint32][]AscVersionCheck {
 	return out
 }
 
+// ascVersionChecksAllowed says whether the check chips of the versions may be fetched and shown: a signed-in viewer who
+// may read the Actions of the repository.
+func ascVersionChecksAllowed(signedIn, canReadActions bool) bool { return signedIn && canReadActions }
+
 // prepareAscVersionDetails puts AscVersionDetails (version number to pull_service.AscVersionDetail) and
 // AscVersionChecks (version number to chips) into ctx.Data.
 func prepareAscVersionDetails(ctx *context.Context, pull *issues_model.PullRequest, versions *pull_service.AscVersionList) {
@@ -78,6 +85,11 @@ func prepareAscVersionDetails(ctx *context.Context, pull *issues_model.PullReque
 	}
 	ctx.Data["AscVersionDetails"] = pull_service.AscVersionDetails(ctx, ctx.Repo.GitRepo, versions)
 
+	// The check chips are Actions data: whoever may not read the Actions of the repository sees none, and asc is not
+	// asked.
+	if !ascVersionChecksAllowed(ctx.IsSigned, ctx.Repo.CanRead(unit.TypeActions)) {
+		return
+	}
 	link, err := issues_model.GetPullRequestAscStack(ctx, pull.ID)
 	if err != nil || link == nil {
 		return
@@ -91,7 +103,13 @@ func prepareAscVersionDetails(ctx *context.Context, pull *issues_model.PullReque
 	if err != nil {
 		return
 	}
-	cctx, cancel := asctrust.SystemContext(ctx.Req.Context(), asctrust.CallTimeout)
+	// the read is made as the viewer, so asc decides again who may see the runs
+	userCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, ctx.Repo.Repository)
+	if err != nil {
+		return
+	}
+	defer release()
+	cctx, cancel := gocontext.WithTimeout(userCtx, asctrust.CallTimeout)
 	defer cancel()
 	resp, err := ascv1.NewCiClient(conn).ListRuns(cctx, &ascv1.ListRunsRequest{Repo: &ascv1.RepoRef{Name: name}, Change: change, Limit: ascVersionCheckRuns})
 	if err != nil {

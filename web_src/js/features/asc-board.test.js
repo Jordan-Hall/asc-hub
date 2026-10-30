@@ -1,4 +1,4 @@
-import {decisionOf, applyDecision, filterRows, reuseTask, applyEstimate} from './asc-board.js';
+import {decisionOf, applyDecision, filterRows, reuseTask, applyEstimate, applyQueue} from './asc-board.js';
 
 function card() {
   document.body.innerHTML = `<section data-asc-needs><span data-asc-needs-count>2</span>
@@ -67,4 +67,16 @@ test('a row with a key matches by the start of the key only', () => {
   expect(list.children[1].hidden).toBe(true);
   expect(filterRows(list, 'config/')).toBe(1);
   expect(list.children[0].hidden).toBe(true);
+});
+
+test('an empty queue reloads when an entry appears, and a full one when an entry is gone', () => {
+  const empty = document.createElement('section');
+  expect(applyQueue(empty, {entries: []})).toBe(false);
+  expect(applyQueue(empty, {entries: [{change: 'c1', position: 1}]})).toBe(true);
+
+  const full = document.createElement('section');
+  full.innerHTML = '<ol><li data-q-change="c1"><span data-q-eta></span></li></ol>';
+  expect(applyQueue(full, {entries: [{change: 'c1', position: 1, detail: 'checking'}]})).toBe(false);
+  expect(full.querySelector('[data-q-eta]').textContent).toBe('checking');
+  expect(applyQueue(full, {entries: []})).toBe(true);
 });

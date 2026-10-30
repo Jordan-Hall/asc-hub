@@ -1,0 +1,31 @@
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin asc-agents")}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_shell.ia_title") "Desc" (ctx.Locale.Tr "asc_shell.ia_lead"))}}
+{{with .AscInstanceAgents}}
+	{{if .Unsupported}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-agents-unsupported"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.oa_unsupported"}}</div></div>
+	{{else if .Problem}}
+		<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-agents-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Problem}}</div></div>
+	{{else}}
+	{{with .Settings}}
+	<form class="ds-card adm-sec ds-form" action="{{$.AscInstanceAgents.Base}}" method="post" data-testid="asc-agents-form">
+		{{$.CsrfTokenHtml}}
+		<input type="hidden" name="op" value="{{$.AscInstanceAgents.Op}}">
+		<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_shell.ia_title"}}</h2></div>
+		<div class="ds-card-b ds-stack-16">
+			<label class="ds-switch wk-switch-row">
+				<input type="checkbox" role="switch" name="allow_agents" value="1"{{if .AllowAgents}} checked{{end}}>
+				<span class="ds-switch-track"></span>
+				<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_shell.ia_allow"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_shell.ia_allow_hint"}}</span></span>
+			</label>
+			<div class="ds-field">
+				<label class="ds-label" for="ia-budget">{{ctx.Locale.Tr "asc_shell.ia_budget"}}</label>
+				<input id="ia-budget" class="ds-input" name="budget_usd" inputmode="decimal" autocomplete="off" value="{{.BudgetField}}" placeholder="{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}">
+				<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.ia_budget_hint"}}</p>
+			</div>
+			<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
+		</div>
+	</form>
+	{{end}}
+	{{end}}
+{{end}}
+{{template "admin/layout_footer" .}}

@@ -62,7 +62,7 @@
 			<progress class="rp-who-people" max="100" value="{{.PeoplePct}}" aria-hidden="true">{{.PeoplePct}}%</progress>
 		</div>
 		<p class="rp-who-split"><span><b>{{.PeoplePct}}%</b> {{ctx.Locale.Tr "asc_rp.who_people"}}</span><span><b>{{.AgentsPct}}%</b> <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.who_agents"}}</span></span></p>
-		{{if .Agents}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.who_reviewed" .ReviewedPct}}</p>{{end}}
+		{{if and .Agents (not .NoReview)}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.who_reviewed" .ReviewedPct}}</p>{{end}}
 		{{if .MedianMinutes}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.who_median" .MedianMinutes}}</p>{{end}}
 		{{if .Truncated}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.who_truncated"}}</p>{{end}}
 	</section>

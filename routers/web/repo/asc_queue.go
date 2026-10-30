@@ -375,6 +375,17 @@ func AscQueuePage(ctx *context.Context) {
 	ctx.Data["AscQueueUsers"] = users
 	ctx.Data["AscQueueCanAdmin"] = canAdmin
 	ctx.Data["AscQueueBranch"] = branch
+	if ctx.Doer != nil && ctx.Repo.CanWrite(unit.TypePullRequests) {
+		queued := map[int64]bool{}
+		for _, r := range view.Active {
+			queued[r.Entry.PullID] = true
+		}
+		if stacks, err := ascQueueStacksOf(ctx, repo, branch, queued); err != nil {
+			log.Warn("asc queue: the open stacks: %v", err)
+		} else {
+			ctx.Data["AscQueueStacks"] = stacks
+		}
+	}
 	ctx.Data["AscQueueRevalidate"] = automerge.AscQueueNoContentMerge()
 	ctx.Data["AscQuarantine"] = ascQueueQuarantine(ctx)
 	ascQueueStats(ctx, repo, branch, view)
@@ -486,7 +497,10 @@ func ascQueueStats(ctx *context.Context, repo *repo_model.Repository, branch str
 				timings[t.Change] = t
 			}
 			ctx.Data["AscQueueMedian"] = snap.Median
-			ctx.Data["AscQueueLiveURL"] = ctx.Repo.RepoLink + "/asc/queue/live?branch=" + url.QueryEscape(branch)
+			if ctx.Doer != nil {
+				// The live answer is for signed-in people; an anonymous visitor would only poll an empty one.
+				ctx.Data["AscQueueLiveURL"] = ctx.Repo.RepoLink + "/asc/queue/live?branch=" + url.QueryEscape(branch)
+			}
 			if len(view.Active) > 0 {
 				if first, ok := timings[view.Active[0].Entry.AscChange]; ok && first.ETA != "" {
 					ctx.Data["AscQueueNext"] = first.ETA

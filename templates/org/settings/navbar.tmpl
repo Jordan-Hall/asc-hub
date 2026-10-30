@@ -43,6 +43,9 @@
 		</ul>
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_governance"}}</h2>
 		<ul class="ds-settings-list">
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/agents") "Label" (ctx.Locale.Tr "asc_shell.sn_agents") "Icon" "agent" "Active" .PageIsSettingsAscAgents)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/merge") "Label" (ctx.Locale.Tr "asc_shell.sn_merge") "Icon" "branch" "Active" .PageIsSettingsAscMerge)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/usage") "Label" (ctx.Locale.Tr "asc_shell.sn_usage") "Icon" "dollar" "Active" .PageIsSettingsAscUsage)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_shell.sn_audit_log") "Icon" "history" "Active" .PageIsSettingsAscAudit)}}
 		</ul>
 		{{end}}

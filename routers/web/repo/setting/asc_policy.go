@@ -4,6 +4,7 @@
 package setting
 
 import (
+	gocontext "context"
 	"encoding/hex"
 	"errors"
 	"net/http"
@@ -17,6 +18,8 @@ import (
 	"forgejo.org/routers/web/shared/trustweb"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
+
+	"google.golang.org/grpc"
 )
 
 // The "Policy and trust" page of a repository (docs/BUILDOUT.md section 1): /{owner}/{repo}/settings/asc/policy.
@@ -59,6 +62,8 @@ type ascPolicyPage struct {
 	SecurityURL string
 	AuditURL    string
 	ChecksURL   string
+	// Org is what the organisation that owns the repository requires of it; nil for a repository of a person.
+	Org *asctrust.OrgPolicyView
 	// Proposed is set when the change was made but its pull request could not be opened yet.
 	Proposed *ascProposed
 }
@@ -137,6 +142,7 @@ func ascPolicyLoad(ctx *context.Context, repo *repo_model.Repository, name strin
 		p.Problem = f.Message
 		return f.Status, true
 	}
+	p.Org = ascOrgPolicy(ctx, conn, repo, name, page)
 	p.View = page.View
 	p.Base = hex.EncodeToString(page.Base)
 	p.Draft = page.View.Text
@@ -153,6 +159,28 @@ func ascPolicyLoad(ctx *context.Context, repo *repo_model.Repository, name strin
 	p.Diff = asctrust.LineDiff(page.View.Text, p.Draft)
 	p.Maintainers = asctrust.MaintainerNames(page.View.Text)
 	return http.StatusOK, true
+}
+
+// ascOrgPolicy asks asc what the organisation that owns repo requires, resolved with the repository's own file. It is left out
+// when the repository is not an organisation's, when asc does not offer the service, or when the call fails: the page is the
+// repository's, and this is a note on it.
+func ascOrgPolicy(ctx *context.Context, conn grpc.ClientConnInterface, repo *repo_model.Repository, name string, page *asctrust.PolicyPage) *asctrust.OrgPolicyView {
+	if !asctrust.HasFeature(ctx, asctrust.FeatureOrgSettings) {
+		return nil
+	}
+	callCtx, release, err := asctrust.UserCallOrgPolicy(ctx, ctx.Doer, repo)
+	if err != nil {
+		return nil
+	}
+	defer release()
+	cctx, cancel := gocontext.WithTimeout(callCtx, asctrust.CallTimeout)
+	defer cancel()
+	view, err := asctrust.OrgPolicyFor(cctx, conn, repo.OwnerName, strings.ToLower(name), asctrust.MergeDefaultsOf(page.Parsed))
+	if err != nil {
+		log.Warn("asc policy: the organisation's merge defaults: %v", err)
+		return nil
+	}
+	return view
 }
 
 // AscPolicyForm serves POST /{owner}/{repo}/settings/asc/policy/form: the fields of the Form view are put into the

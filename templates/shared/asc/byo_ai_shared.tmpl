@@ -1,0 +1,35 @@
+{{/* The AI keys that other people shared with the owner of the page (routers/web/shared/byoweb/aishares.go). Data: .Asc.Shared */}}
+{{with .Asc.Shared}}
+<section class="asc-byo-card" aria-labelledby="asc-shared-h" data-testid="asc-shared-with-me">
+	<h3 id="asc-shared-h">{{ctx.Locale.Tr "asc_shell.ks_shared_title"}}</h3>
+	<p>{{ctx.Locale.Tr "asc_shell.ks_shared_help"}}</p>
+	{{if .Problem}}
+		<div class="ds-banner negative" role="alert"><p>{{.Problem}}</p></div>
+	{{else if .Keys}}
+	<div class="ds-table-wrap">
+		<table class="ds-table ds-table-stack">
+			<thead><tr>
+				<th scope="col">{{ctx.Locale.Tr "asc_shell.ks_shared_key"}}</th>
+				<th scope="col">{{ctx.Locale.Tr "asc_shell.ks_shared_from"}}</th>
+				<th scope="col">{{ctx.Locale.Tr "asc_shell.ks_shared_state"}}</th>
+				<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.ks_shared_spent"}}</th>
+			</tr></thead>
+			<tbody>
+			{{range .Keys}}
+				<tr>
+					<th scope="row" data-label="{{ctx.Locale.Tr "asc_shell.ks_shared_key"}}"><span class="ds-break">{{.Label}}</span> <span class="ds-chip">{{.Provider}}</span></th>
+					<td data-label="{{ctx.Locale.Tr "asc_shell.ks_shared_from"}}"><span class="ds-break">{{.Owner}}</span></td>
+					<td data-label="{{ctx.Locale.Tr "asc_shell.ks_shared_state"}}">
+						<span class="ds-chip {{if and .Usable .AllowUse}}ds-chip-ok{{else}}ds-chip-warn{{end}}">{{if not .AllowUse}}{{ctx.Locale.Tr "asc_shell.ks_shared_no_use"}}{{else if .Usable}}{{ctx.Locale.Tr "asc_shell.ks_shared_ready"}}{{else}}{{ctx.Locale.Tr "asc_shell.ks_shared_unusable"}}{{end}}</span>
+					</td>
+					<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.ks_shared_spent"}}">{{if .SeeSpend}}{{.SpentText}}{{else}}&mdash;{{end}}</td>
+				</tr>
+			{{end}}
+			</tbody>
+		</table>
+	</div>
+	{{else}}
+	<p class="asc-byo-empty" data-testid="asc-shared-empty">{{ctx.Locale.Tr "asc_shell.ks_shared_none"}}</p>
+	{{end}}
+</section>
+{{end}}
