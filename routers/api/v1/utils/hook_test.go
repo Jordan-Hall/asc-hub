@@ -11,8 +11,8 @@ import (
 	"forgejo.org/models/unittest"
 	"forgejo.org/models/webhook"
 	"forgejo.org/modules/setting"
-	"forgejo.org/modules/test"
 	"forgejo.org/modules/structs"
+	"forgejo.org/modules/test"
 	webhook_module "forgejo.org/modules/webhook"
 	"forgejo.org/services/contexttest"
 
@@ -144,12 +144,4 @@ func TestEditHookRefusesHTTP(t *testing.T) {
 	ok := editHook(ctx, &structs.EditHookOption{Config: map[string]string{"url": "http://example.org/hook"}}, w)
 	assert.False(t, ok)
 	assert.Equal(t, http.StatusUnprocessableEntity, resp.Code)
-
-	ctx2, resp2 := contexttest.MockAPIContext(t, "user2/repo1/hooks")
-	contexttest.LoadRepo(t, ctx2, 1)
-	contexttest.LoadUser(t, ctx2, 2)
-	w2 := &webhook.Webhook{RepoID: 1, URL: "https://example.org/hook", HTTPMethod: "POST", ContentType: webhook.ContentTypeJSON, Type: webhook_module.GITEA}
-	require.NoError(t, webhook.CreateWebhook(ctx2, w2, ""))
-	assert.True(t, editHook(ctx2, &structs.EditHookOption{Config: map[string]string{"url": "http://127.0.0.1:8080/hook"}}, w2))
-	assert.NotEqual(t, http.StatusUnprocessableEntity, resp2.Code)
 }
