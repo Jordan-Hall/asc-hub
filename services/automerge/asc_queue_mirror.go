@@ -21,6 +21,8 @@ import (
 	"forgejo.org/services/asctrust"
 
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // The hub keeps the merge queue (the entries, the order, the worker that lands them). asc's MergeQueue service keeps a
@@ -83,7 +85,8 @@ func InitAscQueueMirror() {
 			opID := uuid.NewSHA1(uuid.NameSpaceURL, []byte("asc-queue-mirror|"+name+"|"+e.AscChange+"|"+time.Unix(int64(e.CreatedUnix), 0).UTC().Format(time.RFC3339Nano)))
 			uctx, ucancel := context.WithTimeout(ascclient.WithOpID(uctx, opID), ascQueueMirrorTimeout)
 			defer ucancel()
-			if _, err := api.Enqueue(uctx, &ascv1.EnqueueRequest{Repo: ref, Change: change, Target: target}); err != nil {
+			// The hub queues every pull request of a stack; asc has one entry for the stack, so the later ones are "queued already".
+			if _, err := api.Enqueue(uctx, &ascv1.EnqueueRequest{Repo: ref, Change: change, Target: target}); err != nil && status.Code(err) != codes.AlreadyExists {
 				log.Warn("asc queue mirror: Enqueue failed: %v", err)
 			}
 			return
