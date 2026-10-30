@@ -107,6 +107,19 @@ func TestAscWorkflowsList(t *testing.T) {
 				assert.Contains(t, p.body, `data-testid="asc-agents-off"`)
 			}
 			assert.NotContains(t, p.body, "\x1b")
+			// The history strip, the side cards and, for someone who may start workflows, New workflow and the Run now dialog.
+			assert.Contains(t, p.body, `data-testid="asc-workflow-history"`)
+			assert.Contains(t, p.body, `data-testid="asc-workflows-secrets"`)
+			if tc.features {
+				assert.Contains(t, p.body, `data-testid="asc-workflow-new"`)
+				assert.Contains(t, p.body, `/_new/master/.asc/workflows/?commit_choice=commit-to-new-branch`)
+				assert.Contains(t, p.body, `data-testid="asc-workflow-run-dialog"`, "a workflow with inputs is started from a dialog")
+				assert.Contains(t, p.body, `name="in_focus"`)
+				assert.Contains(t, p.body, `action="/user2/repo1/asc/workflows/review/trigger"`)
+			} else {
+				assert.NotContains(t, p.body, `data-testid="asc-workflow-new"`)
+				assert.NotContains(t, p.body, `data-testid="asc-workflow-run-dialog"`)
+			}
 		})
 	}
 
