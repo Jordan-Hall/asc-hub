@@ -18,13 +18,17 @@
   padding-top: 18px;
 }
 
+/* the boards: 25px on a phone, 26px from 768px, tight and bold */
 .admin .adm-head .ds-page-title {
-  font-size: 28px;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 @media (min-width: 768px) {
   .admin .adm-head .ds-page-title {
-    font-size: 32px;
+    font-size: 26px;
   }
 }
 
