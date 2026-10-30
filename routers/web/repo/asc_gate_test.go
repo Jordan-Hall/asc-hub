@@ -91,7 +91,7 @@ func TestAscGateShowsTheRulesTheRefusalsAndTheQuarantine(t *testing.T) {
 	assert.Contains(t, p.body, "Trunk (main) needs 2 approvals")
 	assert.Contains(t, p.body, `data-testid="asc-gate-held-list"`, "an administrator sees what was refused")
 	assert.Contains(t, p.body, "/user2/repo1/settings/asc/policy", "and can open the rules")
-	assert.Contains(t, p.body, "do not hold up landing")
+	assert.Contains(t, p.body, `data-testid="asc-gate-quarantine"`, "the quarantined tests are in the side card")
 	assert.Contains(t, p.body, "max_changes_per_run = 8", "the file is shown")
 
 	calls := f.callsOf("AuditList")

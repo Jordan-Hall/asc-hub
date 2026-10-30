@@ -83,7 +83,13 @@ func CollaborationPost(ctx *context.Context) {
 	}
 
 	if got, err := repo_model.IsCollaborator(ctx, ctx.Repo.Repository.ID, u.ID); err == nil && got {
-		ctx.Flash.Error(ctx.Tr("repo.settings.add_collaborator_duplicate"))
+		// say what access the person already has, so the invite does not look lost
+		collab := &repo_model.Collaboration{}
+		if has, merr := db.GetEngine(ctx).Where("repo_id = ? AND user_id = ?", ctx.Repo.Repository.ID, u.ID).Get(collab); merr == nil && has {
+			ctx.Flash.Error(ctx.Tr("repo.settings.add_collaborator_already", u.GetDisplayName(), ctx.Tr("repo.settings.collaboration."+collab.Mode.String())))
+		} else {
+			ctx.Flash.Error(ctx.Tr("repo.settings.add_collaborator_duplicate"))
+		}
 		ctx.Redirect(ctx.Repo.RepoLink + "/settings/collaboration")
 		return
 	}

@@ -1,5 +1,5 @@
 // Keyboard help of the signed-in app pages (dashboard, inbox): j and k move through a list of rows, s opens
-// the snooze menu, p pins, "g" then "i" goes to the inbox, and a select that carries data-asc-autosubmit sends
+// the snooze menu, p pins, on a diff v marks the file you are at as viewed (j and k go from file to file), "g" then "i" goes to the inbox, and a select that carries data-asc-autosubmit sends
 // its form when it changes. Every key is ignored while a field has the focus or a modifier key is held, and
 // every key has a button or link on the page that does the same, so nothing depends on the keyboard.
 
@@ -22,13 +22,45 @@ export function nextRowIndex(current, step, count) {
   return Math.min(count - 1, Math.max(0, current + step));
 }
 
+// The files of a diff are the rows of a review page: j and k go from file to file, v marks the file as viewed.
+const fileBoxSelector = '#diff-file-boxes .diff-file-box[id^="diff-"]';
+
 function rows() {
-  return Array.from(document.querySelectorAll('[data-asc-list] [data-asc-row]'));
+  const listed = Array.from(document.querySelectorAll('[data-asc-list] [data-asc-row]'));
+  return listed.length ? listed : Array.from(document.querySelectorAll(fileBoxSelector));
+}
+
+// The file box that has the focus, or the one the page is scrolled to (the last one that starts above the top third of the window).
+export function currentFileBox() {
+  const boxes = Array.from(document.querySelectorAll(fileBoxSelector));
+  const inside = boxes.find((b) => b.contains(document.activeElement));
+  if (inside) return inside;
+  let current = null;
+  for (const b of boxes) {
+    if (b.getBoundingClientRect().top <= window.innerHeight / 3) current = b;
+  }
+  return current;
+}
+
+function toggleViewed() {
+  const box = currentFileBox();
+  const check = box?.querySelector('.viewed-file-form input[type="checkbox"]');
+  if (check) check.click();
 }
 
 function moveRow(step) {
   const list = rows();
   if (!list.length) return;
+  if (list[0].matches(fileBoxSelector)) {
+    const at = list.indexOf(currentFileBox());
+    const next = nextRowIndex(at, step, list.length);
+    if (next >= 0) {
+      list[next].setAttribute('tabindex', '-1');
+      list[next].focus();
+      list[next].scrollIntoView({block: 'start'});
+    }
+    return;
+  }
   const at = list.indexOf(document.activeElement);
   const selected = list.findIndex((el) => el.getAttribute('aria-current') === 'true');
   const next = nextRowIndex(at >= 0 ? at : selected, step, list.length);
@@ -67,6 +99,9 @@ export function initAscKeys() {
         break;
       case 'k':
         moveRow(-1);
+        break;
+      case 'v':
+        toggleViewed();
         break;
       case 's': {
         const details = document.querySelector('[data-asc-snooze]');

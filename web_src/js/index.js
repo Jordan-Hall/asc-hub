@@ -75,6 +75,7 @@ import {initAscOffline} from './features/asc-offline.js';
 import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {initAscDensity} from './features/asc-density.js';
 import {initAscBoard} from './features/asc-board.js';
+import {initAscSecurity} from './features/asc-security.js';
 import {initAscMeters} from './features/asc-meters.js';
 import {initAscIntent} from './features/asc-intent.js';
 import {initAscTitleCounter} from './features/asc-title-counter.js';
@@ -216,6 +217,7 @@ onDomReady(() => {
   initAscRepoKeys();
   initAscDensity();
   initAscBoard();
+  initAscSecurity();
   initAscMeters();
   initAscIntent();
   initAscTitleCounter();

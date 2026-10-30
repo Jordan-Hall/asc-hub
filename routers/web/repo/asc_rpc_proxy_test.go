@@ -16,6 +16,7 @@ import (
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
 	"forgejo.org/models/unittest"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
@@ -416,7 +417,7 @@ func TestAscRpcProxyHidesUnreadableRepositories(t *testing.T) {
 		ctx, _ := contexttest.MockContext(t, "POST /x")
 		contexttest.LoadUser(t, ctx, 2)
 		ctx.Doer.ProhibitLogin = true
-		_, err := ascRPCCanonicalName(ctx, "user2/repo1")
+		_, err := ascRPCCanonicalName(ctx, "user2/repo1", unit.TypeCode)
 		assert.ErrorIs(t, err, errAscRPCNotFound)
 	})
 	assert.Equal(t, before+1, fake.count(), "only the owner's call reached asc")
@@ -627,4 +628,39 @@ func TestAscRpcProxyFrameAndMessageEncoding(t *testing.T) {
 
 	assert.Equal(t, "plain text", ascRPCEncodeMessage("plain text"))
 	assert.Equal(t, "100%25 done%0D%0A%C3%A9", ascRPCEncodeMessage("100% done\r\né"))
+}
+
+func TestAscRpcProxyUnitsAndUserRefs(t *testing.T) {
+	assert.Equal(t, unit.TypePullRequests, ascRPCUnitOf("asc.v1.Changes/Overlaps"), "the changes of a repository are pull request data")
+	assert.Equal(t, unit.TypeCode, ascRPCUnitOf("asc.v1.Repo/Log"))
+	assert.Equal(t, unit.TypeCode, ascRPCUnitOf("asc.v1.CodeIntel/Search"))
+	for _, name := range ascRPCAllMethodNames() {
+		assert.Contains(t, []unit.Type{unit.TypeCode, unit.TypePullRequests}, ascRPCUnitOf(name), name)
+	}
+
+	assert.True(t, ascRPCNamesUserRef("refs/users/7/heads/draft"))
+	assert.True(t, ascRPCNamesUserRef("REFS/Users/7/x"))
+	assert.False(t, ascRPCNamesUserRef("refs/heads/main"))
+	assert.False(t, ascRPCNamesUserRef("src/refs/user.rs"))
+}
+
+func TestAscRpcProxyRefusesTheRefsOfOtherUsers(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	fake, addr := startFakeAsc(t)
+	useAsc(t, addr)
+	setStorageBackend(t, 1, "asc")
+	before := fake.count()
+	req := mustMarshal(t, &ascv1.LogRequest{Repo: &ascv1.RepoRef{Name: "user2/repo1"}, Include: []string{"refs/heads/main", "refs/users/9/heads/draft"}})
+	res := callProxy(t, 2, "asc.v1.Repo", "Log", req)
+	assert.NotEqual(t, "0", res.trailer["grpc-status"], "a draft of another person is not read through the proxy")
+	assert.Equal(t, before, fake.count(), "nothing reached asc")
+}
+
+// ascRPCAllMethodNames lists the allowlisted methods (for tests that check a rule of every one of them).
+func ascRPCAllMethodNames() []string {
+	names := make([]string, 0, len(ascRPCReadMethods))
+	for n := range ascRPCReadMethods {
+		names = append(names, n)
+	}
+	return names
 }

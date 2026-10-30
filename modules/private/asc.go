@@ -50,6 +50,10 @@ type AscAuthzRequest struct {
 	User string `json:"user,omitempty"`
 	// KeyID is the ID of an SSH public key or deploy key that asc already verified.
 	KeyID int64 `json:"key_id,omitempty"`
+	// AsUserID asks the question for this account, with no credential of theirs: asc serve holds an agent token whose
+	// person is this account, and the agent may do what the person may (and no more: asc narrows it by the scope of
+	// the token). It excludes Token, User, KeyID and SSHKey. Only the internal token can ask this.
+	AsUserID int64 `json:"as_user_id,omitempty"`
 	// SSHKey is a public key that asc's SSH listener verified the client holds.
 	// The endpoint finds the key in Forgejo's own tables and decides with the
 	// rights of its owner, or with the one repository of a deploy key. It
