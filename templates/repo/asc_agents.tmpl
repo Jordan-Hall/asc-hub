@@ -30,7 +30,7 @@ Template Attributes:
 				<div class="rv-card rv-stat">
 					<div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_running"}}</div>
 					<div class="rv-stat-v">{{if $st.HasTotal}}{{$st.Running}}{{else}}{{.AscAgentsActive}}{{end}}</div>
-					<div class="rv-stat-d">{{if $st.HasTotal}}{{ctx.Locale.TrN $st.ActiveAgents "asc_review.agents_stat_agents_one" "asc_review.agents_stat_agents_other" $st.ActiveAgents}}{{else}}{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}{{end}}</div>
+					<div class="rv-stat-d">{{if $st.HasTotal}}{{ctx.Locale.TrN $st.ActiveAgents "asc_review.agents_stat_agents_one" "asc_review.agents_stat_agents_other" $st.ActiveAgents}}{{else}}{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}{{end}}</div>{{template "repo/asc_spark" dict "P" $st.SparkStarted "Tone" ""}}
 				</div>
 				<div class="rv-card rv-stat">
 					<div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_waiting"}}</div>
@@ -41,7 +41,7 @@ Template Attributes:
 					<div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.agents_stat_landed"}}</div>
 					{{if $st.HasLanded}}
 						<div class="rv-stat-v ag-v-ok">{{$st.Landed}}</div>
-						<div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_landed_pct" $st.LandedPct}}</div>
+						<div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_landed_pct" $st.LandedPct}}</div>{{template "repo/asc_spark" dict "P" $st.SparkLanded "Tone" "ok"}}
 					{{else}}
 						<div class="rv-stat-v">{{.AscAgentsDone}}</div>
 						<div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.agents_stat_on_page"}}</div>
