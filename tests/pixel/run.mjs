@@ -22,6 +22,8 @@ const concurrency = Number(args.concurrency || process.env.PIXEL_CONCURRENCY || 
 const HUB_BIN = process.env.PIXEL_HUB_BIN || join(PIXEL_DIR, '.bin', 'hub');
 const RUN_DIR = process.env.PIXEL_RUN || '/tmp/pixel-run';
 const WIN = process.platform === 'win32';
+// a board may ask for the browser a visitor would have ("userAgent" in boards.json): the Download boards show the visitor's own system
+const USER_AGENTS = {mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'};
 
 // ---------------------------------------------------------------------------------------------- the hub
 const toWsl = (p) => (WIN ? p.replace(/^([A-Za-z]):[\\/]/, (_, d) => `/mnt/${d.toLowerCase()}/`).replace(/\\/g, '/') : p);
@@ -178,7 +180,7 @@ async function main() {
       let lp, bp;
       try {
         const opts = {width: vp.width, height: vp.height, compareHeight: e.compareHeight};
-        const ctx = await ctxFor(`live|${e.as}|${e.viewport}|${theme}`, {storageState: states[e.as], viewport: vp, colorScheme: theme});
+        const ctx = await ctxFor(`live|${e.as}|${e.viewport}|${theme}|${e.userAgent || ''}`, {storageState: states[e.as], viewport: vp, colorScheme: theme, ...(e.userAgent ? {userAgent: USER_AGENTS[e.userAgent]} : {})});
         const bctx = await ctxFor(`board|${e.viewport}|${theme}`, {viewport: vp, colorScheme: theme});
         [lp, bp] = [await ctx.newPage(), await bctx.newPage()];
         const b = await guard(shot(bp, `${base}/board/${e.board}?theme=${theme}`, {...opts, board: true}));

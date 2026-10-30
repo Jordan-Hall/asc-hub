@@ -444,6 +444,11 @@
   display: none;
 }
 
+/* the boards draw the system choice as small squared buttons, not pills */
+.site-dl .hub-dl-tab {
+  border-radius: 8px;
+}
+
 .site-dl .hub-dl-tab[aria-selected="true"] {
   background: var(--primary-soft);
   border-color: var(--link);
