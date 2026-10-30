@@ -139,12 +139,12 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | OrgSettings | Owner-only banner and disabled fields for non-owners (settings routes require owner today) | ui-only-missing | routers/web/web.go org settings group, options.tmpl | S |
 | OrgSettings | Left menu: AI keys, Storage, Audit, Packages, Webhooks, Applications, Runners, Blocked users, Usage | done | templates/org/settings/navbar.tmpl | - |
 | OrgPeople | Member rows with avatar, owner/member chips, 2FA chip, remove/leave, public/private toggle | done | templates/org/member/members.tmpl | - |
-| OrgPeople | Search box, filter chips with counts (Everyone, Owners, 2FA off done; Pending needs the invitation list), pagination | ui-only-missing | members.tmpl + routers/web/org/members.go query params | M |
-| OrgPeople | Change role menu with Maintainer role and undo toast; last owner cannot be demoted | needs-hub-backend | org members are owner/member only (teams carry access); new role model or Maintainer team mapping in routers/web/org/members.go | M |
-| OrgPeople | Row detail: teams list, last active, changesets count | needs-both | hub: teams and last login; asc: authored-changeset count per person (no stats RPC) | M |
-| OrgPeople | Agents section (agent identity, run by, scoped to paths, Manage) | needs-both | asc: org-owned agent identities (only per-repo AgentTokens exist); hub: members.tmpl section | L |
-| OrgPeople | Pending invitations (email, role, invited by, Resend, Revoke) | needs-hub-backend | team invite table exists; list + resend + revoke in members.tmpl | M |
-| OrgPeople | Invite dialog accepting several emails and a role | needs-hub-backend | templates/org/member/add_org_member.tmpl takes one user; extend routers/web/org/members.go | M |
+| OrgPeople | Search box, filter chips with counts (Everyone, Owners, 2FA off done; Pending needs the invitation list), pagination | done | templates/org/member/members.tmpl, routers/web/org/members.go (search, Everyone, Owner, 2FA off, Pending, pager "n of m people") | M |
+| OrgPeople | Change role menu with Maintainer role and undo toast; last owner cannot be demoted | partial | routers/web/org/people.go: Owner, Maintainer (a team with the administrator permission; "Maintainers" is made when none exists) and Member; the last owner is protected. No undo toast | M |
+| OrgPeople | Row detail: teams list, last active, changesets count | partial | teams, last active and the changes landed in the last year (Insights.ListContributors per repository, cached a minute). Needs asc: a per-person total across organization repositories | M |
+| OrgPeople | Agents section (agent identity, run by, scoped to paths, Manage) | done | routers/web/org/people.go orgAgents (OrgSettings.ListAgents), members.tmpl section | L |
+| OrgPeople | Pending invitations (email, role, invited by, Resend, Revoke) | done | routers/web/org/people.go pendingInvites, Resend and Revoke actions, members.tmpl section | M |
+| OrgPeople | Invite dialog accepting several emails and a role | done | add_org_member.tmpl: names and addresses separated by commas, spaces or lines, a role, extra teams under a disclosure | M |
 | OrgTeams | Team cards (name, access, description, avatars, member and repo counts), create/edit/delete team | done | templates/org/team/teams.tmpl, routers/web/org/teams.go | - |
 | OrgTeams | Selecting a card loads detail below without leaving (members + repositories with access) | ui-only-missing | teams.tmpl links to separate pages; add htmx panel | M |
 | OrgTeams | Policy owner note: team linked to a path pattern in merge policy | needs-both | asc: policy path-owner rule naming a hub team (crates/asc-core/src/policy.rs); hub: team page card | L |
