@@ -436,3 +436,127 @@
     grid-column: auto;
   }
 }
+
+/* The settings layout draws the page title from 1024px; the page's own title and eyebrow are for the narrower layouts. */
+@media (min-width: 1024px) {
+  .rv-trust-inline > .rv-head-inline .rv-eyebrow,
+  .rv-trust-inline > .rv-head-inline .rv-title {
+    display: none;
+  }
+}
+
+/* Scan main now: the progress that sits under the header while the scan runs. */
+.rv-scanning {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-block: 12px;
+  padding: 10px 14px;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+}
+
+.rv-scanning[hidden] {
+  display: none;
+}
+
+.rv-scanning-bar {
+  flex: 1 1 160px;
+  height: 6px;
+  overflow: hidden;
+  background: var(--line-2);
+  border-radius: 3px;
+}
+
+.rv-scanning-bar[hidden] {
+  display: none;
+}
+
+.rv-scanning-bar::after {
+  content: "";
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--accent, #14788d);
+  border-radius: 3px;
+  animation: rv-scan-slide 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes rv-scan-slide {
+  from { transform: translateX(-20%); }
+  to { transform: translateX(160%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-scanning-bar::after {
+    animation: none;
+    width: 100%;
+  }
+}
+
+/* A finding that was worked off leaves the list with a short collapse. */
+.rv-finding.is-leaving {
+  overflow: hidden;
+  opacity: 0;
+  max-height: 0;
+  padding-block: 0;
+  transition: opacity 160ms ease, max-height 160ms ease, padding 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-finding.is-leaving {
+    transition: none;
+  }
+}
+
+/* The toast of a changed state, with Undo. */
+.rv-undo-toast {
+  position: fixed;
+  inset-inline: 16px;
+  bottom: 76px;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 520px;
+  margin-inline: auto;
+  padding: 12px 14px;
+  color: #fff;
+  background: #0b1220;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 35%);
+}
+
+@media (min-width: 1024px) {
+  .rv-undo-toast {
+    bottom: 24px;
+  }
+}
+
+.rv-undo-toast b {
+  display: block;
+}
+
+.rv-undo-toast span {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.rv-undo-toast button {
+  margin-inline-start: auto;
+  padding: 2px 6px;
+  color: #6fd3e6;
+  font: inherit;
+  font-weight: 600;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.rv-undo-toast button:focus-visible {
+  outline: 2px solid #6fd3e6;
+  outline-offset: 2px;
+}
