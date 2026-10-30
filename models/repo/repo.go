@@ -168,7 +168,7 @@ type Repository struct {
 	NumClosedProjects   int `xorm:"NOT NULL DEFAULT 0"`
 	NumOpenProjects     int `xorm:"-"`
 
-	IsPrivate  bool `xorm:"INDEX"`
+	IsPrivate bool `xorm:"INDEX"`
 	// IsInternal marks a private repository as open to every signed-in, non-restricted person of the instance (the
 	// visibility of a "limited" organisation); it is only meaningful together with IsPrivate.
 	IsInternal bool `xorm:"NOT NULL DEFAULT false"`
