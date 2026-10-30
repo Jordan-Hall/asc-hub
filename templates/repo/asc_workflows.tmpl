@@ -105,7 +105,7 @@ Template Attributes:
 					<div class="rv-card-b">
 						<p class="rv-muted">{{ctx.Locale.Tr "asc_review.wf_secrets_vars_help"}}</p>
 						{{if .AscWorkflowSecretsUsed}}<ul class="rv-plain wf-secret-list">{{range .AscWorkflowSecretsUsed}}<li><code>{{.Name}}</code><span class="rv-faint">{{range $i, $w := .Workflows}}{{if $i}}, {{end}}{{$w}}{{end}}</span></li>{{end}}</ul>{{end}}
-						{{if .CanChangeWorkflows}}<p><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.RepoLink}}/settings/actions/secrets" data-testid="asc-workflows-secrets-manage">{{ctx.Locale.Tr "asc_review.wf_manage_settings"}}</a></p>{{end}}
+						{{if .AscWorkflowSecretsManage}}<p><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.RepoLink}}/settings/asc/workflow-secrets" data-testid="asc-workflows-secrets-manage">{{ctx.Locale.Tr "asc_review.wf_manage_settings"}}</a></p>{{end}}
 					</div>
 				</section>
 				{{if .AscWorkflowAllowed}}
