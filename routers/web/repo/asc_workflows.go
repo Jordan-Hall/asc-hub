@@ -117,6 +117,12 @@ type ascWorkflowSecretUse struct {
 	Set     bool
 }
 
+// ascWorkflowSecretUseRow is a secret of the repository with the workflows that read it, for the side card of the list.
+type ascWorkflowSecretUseRow struct {
+	Name      string
+	Workflows []string
+}
+
 // ascWorkflowSecretName is one secret of the repository that the workflow reads.
 type ascWorkflowSecretName struct {
 	Name    string
@@ -144,6 +150,9 @@ type ascWorkflowDef struct {
 	// SecretsUsed are the repository secrets the command steps read, each once, with the steps and variables that read it. Set is
 	// known only when the viewer may list the secrets of the repository (Checked).
 	SecretsUsed []ascWorkflowSecretName
+	// History is how the latest runs of the workflow went (at most 12, oldest first); LastRun is when the newest one started.
+	History []ascagentui.State
+	LastRun time.Time
 }
 
 func ascCleanList(in []string, max, maxBytes int) []string {
@@ -443,6 +452,54 @@ func AscWorkflows(ctx *context.Context) {
 	if len(q) > 80 || strings.ContainsAny(q, "\x00\r\n") {
 		q = ""
 	}
+	// The runs say how each workflow went lately and how many run now; they are a convenience, the page stands without them.
+	var running, allowed uint32
+	for _, r := range rows {
+		if r.Valid && r.Enabled {
+			allowed += r.MaxParallel
+		}
+	}
+	if runs, err := api.ListRuns(callCtx, &ascv1.ListWorkflowRunsRequest{Repo: env.ref(), Limit: 100}); err == nil {
+		byName := map[string][]ascWorkflowRunRow{}
+		for _, r := range runs.GetRuns() { // newest first
+			row, ok := ascWorkflowRunOf(r, env.name, env.workflowsLink(), env.link, 0)
+			if !ok {
+				continue
+			}
+			if row.State.Active {
+				running++
+			}
+			if len(byName[row.Workflow]) < 12 {
+				byName[row.Workflow] = append(byName[row.Workflow], row)
+			}
+		}
+		for i := range rows {
+			rs := byName[rows[i].Name]
+			for j := len(rs) - 1; j >= 0; j-- {
+				rows[i].History = append(rows[i].History, rs[j].State)
+			}
+			if len(rs) > 0 {
+				rows[i].LastRun = rs[0].Created
+			}
+		}
+		ctx.Data["AscWorkflowRunning"], ctx.Data["AscWorkflowAllowed"] = running, allowed
+		ctx.Data["AscWorkflowCapacityPct"] = ascagentui.Percent(uint64(running), uint64(max(allowed, 1)))
+	}
+	// Which secrets the workflows read, once each.
+	var used []ascWorkflowSecretUseRow
+	at := map[string]int{}
+	for _, r := range rows {
+		for _, u := range r.SecretsUsed {
+			k, ok := at[u.Name]
+			if !ok {
+				k = len(used)
+				at[u.Name] = k
+				used = append(used, ascWorkflowSecretUseRow{Name: u.Name})
+			}
+			used[k].Workflows = append(used[k].Workflows, r.Name)
+		}
+	}
+	ctx.Data["AscWorkflowSecretsUsed"] = used
 	rows = ascWorkflowFilter(rows, state, q)
 	ctx.Data["AscWorkflowCountAll"], ctx.Data["AscWorkflowCountOn"], ctx.Data["AscWorkflowCountOff"], ctx.Data["AscWorkflowCountInvalid"] = counts.All, counts.On, counts.Off, counts.Invalid
 	ctx.Data["AscWorkflowState"] = state
