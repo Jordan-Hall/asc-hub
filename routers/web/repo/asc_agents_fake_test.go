@@ -234,6 +234,10 @@ func (s fakeWorkflowsSvc) Trigger(ctx gocontext.Context, r *ascv1.TriggerWorkflo
 	return typed[*ascv1.TriggerWorkflowResponse](s.h, ctx, "Workflows.Trigger", r)
 }
 
+func (s fakeWorkflowsSvc) ListSecrets(ctx gocontext.Context, r *ascv1.ListWorkflowSecretsRequest) (*ascv1.ListWorkflowSecretsResponse, error) {
+	return typed[*ascv1.ListWorkflowSecretsResponse](s.h, ctx, "Workflows.ListSecrets", r)
+}
+
 func (s fakeWorkflowsSvc) ListRuns(ctx gocontext.Context, r *ascv1.ListWorkflowRunsRequest) (*ascv1.ListWorkflowRunsResponse, error) {
 	return typed[*ascv1.ListWorkflowRunsResponse](s.h, ctx, "Workflows.ListRuns", r)
 }
