@@ -74,6 +74,22 @@ func TestLineDiff(t *testing.T) {
 	assert.Equal(t, []DiffLine{{" ", "x"}}, LineDiff("x", "x\n"))
 }
 
+func TestFormReviewSwitches(t *testing.T) {
+	f := FormOfText(formSample)
+	assert.False(t, f.AuthorMayApprove, "an author may not approve unless the policy says so")
+	assert.True(t, f.KeepApprovals, "approvals are kept on a restack unless the policy says so")
+	out, err := ApplyForm(formSample, f)
+	require.NoError(t, err)
+	assert.NotContains(t, out, "[review]", "defaults are not written into a file that lacks them")
+	f.AuthorMayApprove = true
+	f.KeepApprovals = false
+	out, err = ApplyForm(formSample, f)
+	require.NoError(t, err)
+	got := FormOfText(out)
+	assert.True(t, got.AuthorMayApprove)
+	assert.False(t, got.KeepApprovals)
+}
+
 func TestFormSignedSynonymAndBatch(t *testing.T) {
 	text := `version = 1
 
