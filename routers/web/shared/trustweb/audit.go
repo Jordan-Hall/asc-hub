@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -94,6 +95,11 @@ func (lvl *AuditLevel) link(q asctrust.AuditQuery, page, suffix string, extra ma
 		out += "?" + v.Encode()
 	}
 	return out
+}
+
+// EventURL is the audit page narrowed to the one event with the sequence number seq (the list shows only it).
+func (v *AuditView) EventURL(seq uint64) string {
+	return v.Base + "?seq=" + strconv.FormatUint(seq, 10)
 }
 
 func (lvl *AuditLevel) view(q asctrust.AuditQuery) *AuditView {
