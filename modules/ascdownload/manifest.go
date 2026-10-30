@@ -277,7 +277,13 @@ func Parse(r io.Reader) (*Manifest, error) {
 		return nil, errors.New("manifest.json is larger than 1 MiB")
 	}
 	var m Manifest
-	if err := json.Unmarshal(data, &m); err != nil {
+	if schemaOf(data) != 0 { // the manifest asc's release process writes
+		conv, err := fromSchema1(data)
+		if err != nil {
+			return nil, err
+		}
+		m = *conv
+	} else if err := json.Unmarshal(data, &m); err != nil {
 		return nil, fmt.Errorf("manifest.json is not valid: %w", jsonErr(err))
 	}
 	if err := m.Validate(); err != nil {
