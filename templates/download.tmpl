@@ -28,6 +28,7 @@
 				<div>
 					<h2 class="ds-t-h3" id="asc-norelease-title">{{ctx.Locale.Tr "asc_download.no_release_title"}}</h2>
 					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_download.no_release_text"}}</p>
+					{{if .AscReleasesURL}}<p class="ds-mt-8"><a class="ds-link" href="{{.AscReleasesURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_download.releases_on_github"}}</a></p>{{end}}
 				</div>
 				<div>
 					<h3 class="ds-t-h4">{{ctx.Locale.Tr "asc_download.source_title"}}</h3>

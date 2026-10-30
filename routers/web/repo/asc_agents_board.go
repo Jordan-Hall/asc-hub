@@ -13,6 +13,7 @@ import (
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/log"
 	"forgejo.org/services/ascagentui"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 
 	"google.golang.org/grpc"
@@ -41,6 +42,9 @@ type ascAgentStats struct {
 	Total        uint32 // runs of the repository, all states
 	HasTotal     bool
 	MaxRunning   uint32
+	// SparkStarted and SparkLanded are the lines of the cards: runs started and changes landed on each of the last 14 days. They
+	// are empty when asc does not report the days.
+	SparkStarted, SparkLanded string
 }
 
 // ascAgentsLoadBoard fills the stat cards, the needs panel and the roster for the runs page.
@@ -66,6 +70,11 @@ func ascAgentsLoadBoard(ctx *context.Context, env *ascAgentsEnv, callCtx goconte
 		st.HasLanded = true
 		st.Landed = resp.GetLanded_30D()
 		st.LandedPct = int(ascagentui.Percent(uint64(resp.GetLanded_30D()), uint64(resp.GetChanges_30D())))
+		var started, landed []uint32
+		for _, d := range resp.GetDays() {
+			started, landed = append(started, d.GetStarted()), append(landed, d.GetLanded())
+		}
+		st.SparkStarted, st.SparkLanded = asctrust.Sparkline(started, 80, 28), asctrust.Sparkline(landed, 80, 28)
 		ctx.Data["AscAgentsRoster"] = roster
 	}
 

@@ -206,12 +206,12 @@ export function initStackSearch(root = document) {
 // The install pills of the landing page: one pressed pill shows its command, the others stay hidden.
 export function initAscInstallPills(root = document) {
   for (const group of root.querySelectorAll('[data-ds-install]')) {
-    const pills = group.querySelectorAll('.ds-install-pill[data-install-key]');
+    const pills = group.querySelectorAll('[data-install-key][aria-pressed]');
     for (const pill of pills) {
       pill.addEventListener('click', () => {
         const key = pill.getAttribute('data-install-key');
         for (const other of pills) other.setAttribute('aria-pressed', String(other === pill));
-        for (const cmd of group.querySelectorAll('.ds-cmd[data-install-key]')) cmd.hidden = cmd.getAttribute('data-install-key') !== key;
+        for (const cmd of group.querySelectorAll('[data-install-key]:not([aria-pressed])')) cmd.hidden = cmd.getAttribute('data-install-key') !== key;
       });
     }
   }

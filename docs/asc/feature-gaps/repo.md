@@ -50,7 +50,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | Languages bar with legend and aria-label | done | `H:templates/repo/asc_about.tmpl` | S |
 | Repo | Latest release card ("9 changes, 3 by agents. Published 6 days ago") | done (seen on a live hub (ui10): name, chip, change count, age) | `H:templates/repo/asc_about.tmpl` shows name and age only; counts need the release-changes data (see Releases) | S |
 | Repo | Loading skeleton that keeps row geometry | ui-only-missing | `H:templates/repo/home_cards.tmpl` (skeleton `rp-sk` exists only for the last-commit column) | S |
-| Repo | Error state: "Stacks did not load", request id, Try again | needs-hub-backend | `H:routers/web/repo/view_home_cards.go` (swallows errors), `H:templates/status`, request id from the access log context | S |
+| Repo | Error state: "Stacks did not load", request id, Try again | done | `H:routers/web/repo/view_home_cards.go` (swallows errors), `H:templates/status`, request id from the access log context;; Audit 2026-10-30 (built): Gap file says open; the template has the Stacks did not load error with request id and Try again. | S |
 | Repo | Empty repository state with `asc init` and `asc push` commands | done | `H:templates/repo/empty.tmpl` | S |
 | Repo | Clone popover: asc login and clone, Install asc, Open in IDE, Copy | done | `H:templates/repo/clone_dialog.tmpl` | S |
 | Repo | Git compatibility note collapsed and expanded in the clone sheet | done | `H:templates/repo/clone_asc_tabs.tmpl` | S |
@@ -159,7 +159,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| Compare | From / To, swap, "only what the stack adds" checkbox, ahead / behind chips, common ancestor | done | `H:templates/repo/asc_compare.tmpl`, `H:routers/web/repo/asc_compare.go` | S |
+| Compare | From / To, swap, "only what the stack adds" checkbox, ahead / behind chips, common ancestor | ui-only-missing | `H:templates/repo/asc_compare.tmpl`, `H:routers/web/repo/asc_compare.go`;; Audit 2026-10-30 (was marked done, part missing): Marked done; the checkbox only what the stack adds was not found. | S |
 | Compare | From / To as labelled selects listing shared refs, stacks and tags (text inputs today) | done | `asc_compare.tmpl`; options from refs/pulls | S |
 | Compare | Per-change and per-file +/- counts and avatars | done (seen on a live hub (ui10)) | `AscCompareCommit`/`AscCompareFile` carry no stats; `Repo.Compare` returns `PathChange` and `LogEntry`; add numstat (`Repo.Diff`) | M |
 | Compare | Same version state ("Both sides are main@a41f9c2") | done | `asc_compare.tmpl` shows "Nothing to compare" without the ref | S |
@@ -198,8 +198,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Releases | Timeline of release cards, tag, stable / pre-release / draft chips, Compare, edit, assets list with downloads | done | `H:templates/repo/release/list.tmpl`, `release_tag_header.tmpl` | S |
 | Releases | Releases / Tags segment, search filter, feed | done | `release_tag_header.tmpl` | S |
 | Releases | Filter pills All 14 / Stable 11 / Pre-release 2 / Draft 1 and Sort (Newest, Most downloaded) | done (seen on a live hub (ui10): pills clicked, sections hide and show) | `release_tag_header.tmpl`; `H:routers/web/repo/release.go` query params | M |
-| Releases | Provenance strip ("Built by run #4218 from main@a41f9c2, 14 of 14 checks passed, signed with release key 7F3A...") | needs-hub-backend | `tag/verification_line.tmpl` gives the signature; add the building Actions run and check summary, link release to run (`H:models/actions`) | L |
-| Releases | Notes grouped Added / Changed / Fixed, "written from the intent of each change" | needs-hub-backend | generator over landed changes since last tag (`Repo.Log`, `Compare`); category from change class or trailer | L |
+| Releases | Provenance strip ("Built by run #4218 from main@a41f9c2, 14 of 14 checks passed, signed with release key 7F3A...") | needs-hub-backend | `tag/verification_line.tmpl` gives the signature; add the building Actions run and check summary, link release to run (`H:models/actions`);; Audit 2026-10-30 (part built): Provenance line exists from Forgejo data; the hub has no client for asc Releases, so no run id or release key. | L |
+| Releases | Notes grouped Added / Changed / Fixed, "written from the intent of each change" | needs-hub-backend | generator over landed changes since last tag (`Repo.Log`, `Compare`); category from change class or trailer;; Audit 2026-10-30 (part built): Text exists; notes are not generated through asc Releases.DraftNotes (RPC never called by the hub). | L |
 | Releases | "N changes in this release" list with author, change id, category | needs-hub-backend | `Repo.Compare(prev tag, tag)` in `release.go`; template block | M |
 | Releases | Asset table: size, SHA-256 checksum (copy on click), downloads | needs-hub-backend | `H:models/repo/attachment.go` has no checksum column; compute at upload; template shows name, count, age only | M |
 | Releases | Next release summary ("6 changes since v2.18.0", Draft v2.19.0 View) | done (seen on a live hub (ui10)) | `Compare(latest tag, default branch)` | M |
@@ -234,17 +234,17 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Insights | Pulse and Contributors pages exist (Forgejo activity, git contribution graph) | done | `H:templates/repo/pulse.tmpl`, `contributors.tmpl` (git-level data, not the board) | S |
-| Insights | Four tiles: Changes landed (vs previous 30 days), Stacks opened, Median review time, Written by agents | needs-both | asc: statistics over landed changes with author kind (new RPC, e.g. `Stats.Pulse`); hub: reviews and pulls from DB, new handler `H:routers/web/repo/insights.go` | L |
-| Insights | Changes landed per day, people vs agents, chart with direct labels, Table toggle | needs-both | same data; chart component in `H:web_src/js/components`; `code-frequency.js` is git commit based | L |
-| Insights | Seg controls Everyone / People / Agents and 7 days / 30 days / Year that update chart and tiles together | needs-hub-backend | query params + client update; depends on data above | M |
-| Insights | Median review time by week ("Getting faster") and by size of change (Under 50 / 50 to 300 / Over 300) | needs-hub-backend | review events in hub DB (`models/issues/review.go`) | M |
+| Insights | Four tiles: Changes landed (vs previous 30 days), Stacks opened, Median review time, Written by agents | done | asc: statistics over landed changes with author kind (new RPC, e.g. `Stats.Pulse`); hub: reviews and pulls from DB, new handler `H:routers/web/repo/insights.go`;; Audit 2026-10-30 (built): Insights service exists in asc master and the hub. | L |
+| Insights | Changes landed per day, people vs agents, chart with direct labels, Table toggle | done | same data; chart component in `H:web_src/js/components`; `code-frequency.js` is git commit based;; Audit 2026-10-30 (built): templates/repo/insights_asc.tmpl:51 svg chart, table toggle | L |
+| Insights | Seg controls Everyone / People / Agents and 7 days / 30 days / Year that update chart and tiles together | done | query params + client update; depends on data above;; Audit 2026-10-30 (built): templates/repo/insights_asc.tmpl:10-15 ins_who, ins_range segmented controls | M |
+| Insights | Median review time by week ("Getting faster") and by size of change (Under 50 / 50 to 300 / Over 300) | done | review events in hub DB (`models/issues/review.go`);; Audit 2026-10-30 (built): templates/repo/insights_asc.tmpl:76-86 by week, by size of change | M |
 | Insights | Recently landed stacks and "Waiting the longest" list | done (seen on a live hub (ui10)) | pulls + queue + last activity | M |
 | Insights | States: new repository, loading, "Index behind" banner | ui-only-missing | `pulse.tmpl` | S |
-| InsightsPeople | Contributors table: landed, reviews given, median review, 12-week sparkline, share, role, "Agent run by Priya Raman" | needs-both | agent ownership from `Agents`/`AgentTokens`; counts as above; replaces `contributors.tmpl` | L |
-| InsightsPeople | Who writes the code (46/54) with "every agent change approved by a person" sentence | needs-both | same statistics | M |
-| InsightsPeople | Review load list ("Agents never review") | needs-hub-backend | review counts per reviewer | S |
+| InsightsPeople | Contributors table: landed, reviews given, median review, 12-week sparkline, share, role, "Agent run by Priya Raman" | done | agent ownership from `Agents`/`AgentTokens`; counts as above; replaces `contributors.tmpl`;; Audit 2026-10-30 (built): templates/repo/insights_people.tmpl (people_weeks, run_by, people_share) | L |
+| InsightsPeople | Who writes the code (46/54) with "every agent change approved by a person" sentence | done | same statistics;; Audit 2026-10-30 (built): templates/repo/insights_people.tmpl (who_writes, who_split, ins_all_approved) | M |
+| InsightsPeople | Review load list ("Agents never review") | done | review counts per reviewer;; Audit 2026-10-30 (built): templates/repo/insights_people.tmpl:58 review_load, agents_never_review | S |
 | InsightsPeople | Rows open the person or the agent run | ui-only-missing | links in new template | S |
-| InsightsPeople | Empty, loading, partial-data states | ui-only-missing | new template | S |
+| InsightsPeople | Empty, loading, partial-data states | ui-only-missing | new template;; Audit 2026-10-30 (part built): Empty state is there; loading and partial-data states were not found. | S |
 
 ## GitNote
 
@@ -301,7 +301,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsAccess | One list of people, teams and agents with role select, last active, Show All / People / Agents | needs-hub-backend | `H:templates/repo/settings/collaboration.tmpl` has separate collaborator and team sections with Forgejo roles read / write / admin; add a Maintain level and an agent flag and merge | L |
 | RepoSettingsAccess | Combined search (people, teams, agents) with role chosen before adding | needs-hub-backend | `collaboration.tmpl` searches users and teams separately | M |
 | RepoSettingsAccess | Role select changes access at once with an Undo toast | done (seen on a live hub (ui34): the role applies when picked, a toast reports it and Undo puts the old role back (checked: it persisted)) | JS handler on `collaboration.go` POST | M |
-| RepoSettingsAccess | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | done (the Agent chip is drawn for a bot account; "Limited by policy to src/ and tests/" is not drawn) | policy lookup per agent identity | M |
+| RepoSettingsAccess | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | ui-only-missing | policy lookup per agent identity;; Audit 2026-10-30 (was marked done, part missing): Marked done; the text Limited by policy to ... was not found. | M |
 | RepoSettingsAccess | Remove agent confirm that says the running run stops and open changes stay with the owner | needs-both | `Agents.CancelRun` on removal in `collaboration.go`; confirm dialog text | M |
 | RepoSettingsAccess | Invite that already has access ("Priya Raman already has Maintain access") | done (seen on a live hub (ui26): the invite answers "rev already has Write access to this repository.") | `collaboration.go` error text | S |
 | RepoSettingsAccess | Deploy keys on the same page: title, fingerprint, read-only or read-write, added by, last used, Add dialog | ui-only-missing | `H:templates/repo/settings/deploy_keys.tmpl` is its own page at `/settings/keys`; the board says both routes render one layout | M |
@@ -315,10 +315,10 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsPolicy | TOML editor with Check (validate), diagnostics with line, Propose change | done | `H:routers/web/repo/setting/asc_policy.go` (`/check`, `/propose`) | S |
 | RepoSettingsPolicy | Seg Form / TOML / Changes (three views of one file) | done (seen on a live hub (ui18): three tabs over one file, arrow keys move; Form fields are approvals, checks, signing, force, merge strategy and queue, agent scope, denied paths and budgets) | `asc_policy.tmpl` has a textarea and a read-only "what it means" table only | L |
 | RepoSettingsPolicy | Form: approvals stepper, check chips with Add, authors-may-approve switch, keep-approvals switch | needs-both | form needs a structured parse (`ValidatePolicyResponse.parsed`); keys `author_may_approve`, `keep_approvals_on_restack` do not exist in `A:crates/asc-core/src/policy.rs` | L |
-| RepoSettingsPolicy | Agents section: write paths, never-touch paths, budget minutes and tokens, locked "A person approves every agent change" | needs-both | schema has `default_scope`, `denied_paths`, `max_runtime_seconds`, `budgets.max_tokens`; no `human_approval`; UI mapping minutes to seconds | L |
+| RepoSettingsPolicy | Agents section: write paths, never-touch paths, budget minutes and tokens, locked "A person approves every agent change" | needs-both | schema has `default_scope`, `denied_paths`, `max_runtime_seconds`, `budgets.max_tokens`; no `human_approval`; UI mapping minutes to seconds;; Audit 2026-10-30 (part built): Agents section exists as text areas and numbers; the approvals stepper, check chips and switches of the board were not found. | L |
 | RepoSettingsPolicy | Merge queue section: use queue, batch size, checks after merge | done (seen on a live hub (ui20): use queue, batch size (1 to 20) and checks after merge, written as [merge] queue, batch and post_merge_checks) | `[merge] queue` exists; `batch` and `post_merge_checks` do not (`A:crates/asc-serve` merge queue, `proto/asc/v1/mergequeue.proto`) | L |
 | RepoSettingsPolicy | Live file beside the form with changed lines flashing (+/-) | done (seen on a live hub (ui20): the file as it would be, changed lines marked + and -, beside the Form view) | client-side diff against `GetSource.text` | M |
-| RepoSettingsPolicy | Changes tab: diff of the one pending edit; "Changing policy is a change" panel naming reviewers (Priya Raman and Diego Alvarez) | done (seen on a live hub (ui18): a line diff of the draft against the policy in force, and the sentence that changing policy is a change; the reviewers are not named) | `Policy.Propose` response and maintainers from `GetPolicy.roles` | M |
+| RepoSettingsPolicy | Changes tab: diff of the one pending edit; "Changing policy is a change" panel naming reviewers (Priya Raman and Diego Alvarez) | ui-only-missing | `Policy.Propose` response and maintainers from `GetPolicy.roles`;; Audit 2026-10-30 (was marked done, part missing): Marked done; the Changing policy is a change panel naming reviewers was not found. | M |
 | RepoSettingsPolicy | TOML error state: "Line 11: max_minutes must be a whole number", form disabled while invalid | done | diagnostics list (`asc-policy-diagnostics`); form disable does not apply because there is no form | S |
 | RepoSettingsPolicy | Read-only state for non-maintainers with names to ask | done (the page shows a banner naming the maintainers and disables the form; the page itself is for repository administrators, checked by the unit tests of the template data, not seen with a second account) | route needs repo admin (`registerAscTrustRepoSettingsRoutes`); readers cannot see the page; show read-only for readers with maintainers from `GetPolicy` | M |
 | RepoSettingsPolicy | After-propose state: "Proposed as change kz9fw. Waiting for one approval" with Open change | done | `p_proposed` | S |
@@ -409,11 +409,14 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 64 |
-| ui-only-missing | 100 |
-| needs-hub-backend | 65 |
-| needs-asc-backend | 12 |
-| needs-both | 22 |
+| done | 130 |
+| ui-only-missing | 61 |
+| needs-hub-backend | 44 |
+| needs-asc-backend | 11 |
+| needs-both | 17 |
+| total | 263 |
+
+Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 | --- | --- | --- | --- | --- | --- |

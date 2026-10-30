@@ -3,5 +3,5 @@
 		data-tooltip-content="{{ctx.Locale.Tr "user.ghost.tooltip"}}">Ghost</a>
 {{else}}
 	<a class="author text black tw-font-semibold muted"{{if gt .ID 0}} href="{{.HomeLink}}"{{end}}>{{.GetDisplayName}}</a>
-	{{if .IsBot}}<span class="ds-chip ds-chip-outline tw-p-1 tw-align-baseline">bot</span>{{end}}
+	{{if .IsBot}}<span class="ds-chip ds-chip-agent tw-align-baseline" data-testid="agent-mark" data-tooltip-content="{{ctx.Locale.Tr "asc_rp.agent_mark_tip"}}">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}
 {{end}}

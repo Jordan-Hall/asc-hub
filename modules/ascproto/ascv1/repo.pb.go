@@ -8113,12 +8113,14 @@ func (x *PolicyAgents) GetMaxCostMicroUsd() uint64 {
 	return 0
 }
 
-// `[review]`: who may approve and when an approval stands.
+// `[review]`: who may approve, when an approval stands, and who may dismiss another person's verdict
+// (`dismiss`: "admin" (default), "maintainer" or "write"; never an author or agent of the change).
 type PolicyReview struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
 	AuthorMayApprove       bool                   `protobuf:"varint,1,opt,name=author_may_approve,json=authorMayApprove,proto3" json:"author_may_approve,omitempty"`
 	HumanApproval          bool                   `protobuf:"varint,2,opt,name=human_approval,json=humanApproval,proto3" json:"human_approval,omitempty"`
 	KeepApprovalsOnRestack bool                   `protobuf:"varint,3,opt,name=keep_approvals_on_restack,json=keepApprovalsOnRestack,proto3" json:"keep_approvals_on_restack,omitempty"`
+	Dismiss                string                 `protobuf:"bytes,4,opt,name=dismiss,proto3" json:"dismiss,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -8172,6 +8174,13 @@ func (x *PolicyReview) GetKeepApprovalsOnRestack() bool {
 		return x.KeepApprovalsOnRestack
 	}
 	return false
+}
+
+func (x *PolicyReview) GetDismiss() string {
+	if x != nil {
+		return x.Dismiss
+	}
+	return ""
 }
 
 // `[merge]` besides the strategy.
@@ -9148,11 +9157,12 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x13max_runtime_seconds\x18\x06 \x01(\rR\x11maxRuntimeSeconds\x12\x1d\n" +
 	"\n" +
 	"max_tokens\x18\a \x01(\x04R\tmaxTokens\x12+\n" +
-	"\x12max_cost_micro_usd\x18\b \x01(\x04R\x0fmaxCostMicroUsd\"\x9e\x01\n" +
+	"\x12max_cost_micro_usd\x18\b \x01(\x04R\x0fmaxCostMicroUsd\"\xb8\x01\n" +
 	"\fPolicyReview\x12,\n" +
 	"\x12author_may_approve\x18\x01 \x01(\bR\x10authorMayApprove\x12%\n" +
 	"\x0ehuman_approval\x18\x02 \x01(\bR\rhumanApproval\x129\n" +
-	"\x19keep_approvals_on_restack\x18\x03 \x01(\bR\x16keepApprovalsOnRestack\"\x85\x01\n" +
+	"\x19keep_approvals_on_restack\x18\x03 \x01(\bR\x16keepApprovalsOnRestack\x12\x18\n" +
+	"\adismiss\x18\x04 \x01(\tR\adismiss\"\x85\x01\n" +
 	"\vPolicyMerge\x12\x14\n" +
 	"\x05queue\x18\x01 \x01(\bR\x05queue\x12\x1e\n" +
 	"\n" +

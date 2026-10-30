@@ -1,5 +1,5 @@
 {{template "base/head" .}}
-{{template "user/auth/shell_start" (dict "Data" . "Hook" "user reset password" "Title" (ctx.Locale.Tr "auth.reset_password"))}}
+{{template "user/auth/shell_start" (dict "Data" . "Hook" "user reset password" "Icon" "dsi-key" "Title" (ctx.Locale.Tr "auth.reset_password"))}}
 	<form class="ds-form ignore-dirty" action="{{.Link}}" method="post">
 		<input name="code" type="hidden" value="{{.Code}}">
 		{{if .user_email}}
@@ -7,6 +7,7 @@
 		{{end}}
 		{{if .IsResetForm}}
 			{{template "shared/ds/field" (dict "ID" "password" "Name" "password" "Type" "password" "Label" (ctx.Locale.Tr "settings.new_password") "Value" .password "Autocomplete" "new-password" "Autofocus" true "Required" true "Reveal" true "Error" .Err_Password)}}
+			{{template "user/auth/password_meter" (dict "ID" "password")}}
 			{{if not .user_signed_in}}
 				<div class="ds-check"><input id="remember" name="remember" type="checkbox"><label for="remember">{{ctx.Locale.Tr "auth.remember_me"}}</label></div>
 			{{end}}

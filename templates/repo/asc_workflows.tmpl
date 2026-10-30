@@ -114,6 +114,7 @@ Template Attributes:
 				<div class="rv-empty" data-testid="asc-workflow-defs-empty">
 					<h2>{{ctx.Locale.Tr "asc_review.wf_none"}}</h2>
 					<p>{{ctx.Locale.Tr "asc_review.wf_none_help"}} <code>.asc/workflows/review.toml</code></p>
+					{{if and .CanChangeWorkflows .AscWorkflowNewURL}}<div class="rv-acts"><a class="rv-btn rv-btn-primary" href="{{.AscWorkflowNewURL}}&amp;asc_template=review-changes" data-testid="asc-workflow-template-start">{{ctx.Locale.Tr "asc_review.wf_template_start"}}</a></div>{{end}}
 					{{if or .AscWorkflowState .AscWorkflowQ}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.AscWorkflowsBase}}">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></div>{{end}}
 				</div>
 			{{end}}
@@ -126,6 +127,13 @@ Template Attributes:
 			{{end}}
 			</div>
 			<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.wf_side_label"}}">
+				{{if and .CanChangeWorkflows .AscWorkflowNewURL}}
+				<section class="rv-card" aria-labelledby="rv-wfl-tpl" data-testid="asc-workflow-templates">
+					<div class="rv-card-h"><h2 id="rv-wfl-tpl">{{ctx.Locale.Tr "asc_review.wf_templates"}}</h2></div>
+					<ul class="rv-card-b rv-plain">{{range .AscWorkflowTemplates}}<li><a href="{{$.AscWorkflowNewURL}}&amp;asc_template={{.Name}}">{{.Title}}</a><br><span class="rv-muted">{{.Description}}</span></li>{{end}}</ul>
+					<p class="rv-card-b rv-hint">{{ctx.Locale.Tr "asc_review.wf_templates_help"}}</p>
+				</section>
+				{{end}}
 				<section class="rv-card" aria-labelledby="rv-wfl-secrets" data-testid="asc-workflows-secrets">
 					<div class="rv-card-h"><h2 id="rv-wfl-secrets">{{ctx.Locale.Tr "asc_review.wf_secrets_vars"}}</h2></div>
 					<div class="rv-card-b">

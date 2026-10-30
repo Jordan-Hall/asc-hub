@@ -7,17 +7,19 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 ## Counts
 
 | Status | Rows |
-|---|---|
-| done | 72 |
-| ui-only-missing | 69 |
-| needs-hub-backend | 28 |
-| needs-asc-backend | 4 |
-| needs-both | 41 |
+| --- | --- |
+| done | 131 |
+| ui-only-missing | 45 |
+| needs-hub-backend | 17 |
+| needs-asc-backend | 0 |
+| needs-both | 21 |
 | total | 214 |
+
+Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 |---|---|---|---|---|---|
-| Review | 9 | 7 | 6 | 0 | 7 |
+| Review | 10 | 7 | 6 | 0 | 7 |
 | ReviewVersions | 9 | 0 | 2 | 0 | 2 |
 | NewChange | 4 | 1 | 2 | 0 | 5 |
 | Checks | 6 | 4 | 2 | 0 | 1 |
@@ -26,7 +28,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | AgentRun | 10 | 3 | 1 | 0 | 4 |
 | AgentNew | 6 | 0 | 1 | 0 | 1 |
 | AgentAccess | 5 | 1 | 0 | 0 | 2 |
-| Workflows | 8 | 3 | 0 | 0 | 0 |
+| Workflows | 9 | 2 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 5 | 3 | 1 | 0 | 0 |
 | Policy | 9 | 1 | 0 | 0 | 0 |
@@ -65,7 +67,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Review | Hunk header shows enclosing function (impl PaymentsClient > async fn) | needs-hub-backend | services/gitdiff hunk header | S |
 | Review | Inline comment threads: open/resolved, replies, Resolve, markdown composer | done | routers/web/repo/pull_review.go via /files/reviews/comments (Forgejo native, stored in the hub DB) | - |
 | Review | Threads visible to asc clients: hub comments are not written to the asc Review service (ListThreads/AddComment/ResolveThread unused by the hub) | needs-both | proto/asc/v1/review.proto; services/ascsync (new review-thread sync); pull_review.go | L |
-| Review | Agent reply in a thread labelled 'Agent' with avatar | ui-only-missing | templates/repo/issue/view_content/comments.tmpl show_role | S |
+| Review | Agent reply in a thread labelled 'Agent' with avatar | done | templates/shared/user/authorlink.tmpl: every author link of an agent account (type bot) carries the Agent chip, in comments, reviews, timeline and the pull request header (test: author_agent_mark_test.go; an agent that opens pull requests is the bot account agent-<name>, services/ascagentui/runpulls.go) | - |
 | Review | Suggested change block in a comment, 'Apply as v5' (creates a version, undoable op, resets approvals), 'Ask coder-2 to apply', '/' suggestions | needs-both | asc: no suggestion field in review.proto and no amend RPC; hub: composer + apply handler in pull_review.go | L |
 | Review | Keyboard review shortcuts j/k file, a approve, r request changes, c comment, v viewed, n next change; shortcut list; can be turned off | done | web_src/js/features/asc-keys.js: j/k go from file to file, v marks the file viewed (seen live); a, r and c open the review panel at Approve, Request changes or the comment field (Enter sends; a key never submits), n goes to the next change of the stack rail; the shortcut list (? key) names them on a diff; the switch in the preferences turns them off (tests in asc-keys.test.js; not yet seen on a live hub) | - |
 | Review | 'Your review' checklist (read intent, opened 2 of 3 files, N open comments) with Approve / Request changes / comment in a sticky card | ui-only-missing | templates/repo/diff/new_review.tmpl, pulls/asc_panel.tmpl | M |
@@ -77,7 +79,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Review | Restack banner + action when trunk moved | done | templates/repo/pulls/asc_stack.tmpl (asc-needs-restack), routers/web/repo/asc_restack.go | - |
 | Review | 'Restacked onto main, automatic, 3 min ago' line with Undo | needs-hub-backend | routers/web/repo/asc_ops.go UndoRef link on the review page | S |
 | Review | Reviewers list with status, request, suggested reviewers, agent reviewer (reviewer-1) | done | Forgejo sidebar reviewers (people); agent reviewer via workflow changed-src-review has no link | - |
-| Review | 'How it was made': run id, task, tool calls, versions, files read, 'never touched infra/', link to run | needs-both | asc: change to run provenance (AgentRun.changes is run to change only) + run task text; hub: card in view_content/pull.tmpl | M |
+| Review | 'How it was made': run id, task, tool calls, versions, files read, 'never touched infra/', link to run | needs-both | asc: change to run provenance (AgentRun.changes is run to change only) + run task text; hub: card in view_content/pull.tmpl;; Audit 2026-10-30 (part built): Counts line exists; run id, task and never-touched paths were not all found. | M |
 | Review | Conflict with main: stays open, other changes unblocked, markers, 'Resolve in editor', 'Show both sides', 'Ask coder-2 to resolve' | needs-both | templates/repo/pulls/asc_badges.tmpl (conflict banner with paths exists); conflict hunk viewer + agent task (Agents.CreateRun) | L |
 | Review | Loading skeleton keeping layout; load error with 'Try again' and 'Open previous version'; comments-saved note | ui-only-missing | templates/repo/pulls/files.tmpl, diff/box.tmpl | S |
 | Review | Applied-as-v5 toast with Undo (8 s, role=status) | needs-both | depends on suggestion apply; toast infra web_src/js/features/ds-shell.js | S |
@@ -134,7 +136,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Checks | Flaky tests view: flake rate, runs, flips, 14-run heat strip, last flip, state | done | templates/repo/asc_checks.tmpl (flaky table), strip markup | - |
 | Checks | Trends view per job with pass rate | done | templates/repo/asc_checks.tmpl (asc-trend) | - |
 | Checks | Side cards: 'Main is green', failing jobs bars, Quarantined list with Manage | needs-hub-backend | templates/repo/asc_checks.tmpl; main status service used by pull checks (asc_checks.go) | M |
-| Checks | Empty 'Nothing needs attention', error with Try again, loading skeleton | ui-only-missing | templates/repo/asc_checks.tmpl (problem banner exists; empty wording and skeleton missing) | S |
+| Checks | Empty 'Nothing needs attention', error with Try again, loading skeleton | ui-only-missing | templates/repo/asc_checks.tmpl (problem banner exists; empty wording and skeleton missing);; Audit 2026-10-30 (part built): Empty state exists; error with Try again and loading skeleton not found. | S |
 
 ### ChangeChecks
 
@@ -177,8 +179,8 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | AgentRun | Runs side list / switcher (runs 214, 213, 212 ...) with New task | done | templates/repo/asc_agents_run.tmpl (verified on the dev hub) | S |
 | AgentRun | Task quote ('Task by Maya Okafor: ...') on the run page | done | asc: AgentRun lacks the task text, only the title (proto/asc/v1/agents.proto message AgentRun); hub shows the title only (verified on the dev hub) | S |
 | AgentRun | Header: state chip, model, started-by, age, target, workflow link | done | templates/repo/asc_agents_run.tmpl | - |
-| AgentRun | Pause (holds the run at the next tool call) | needs-both | asc: no PauseRun RPC or state; hub: route + button | M |
-| AgentRun | Stop with confirmation and reason; keeps work as drafts | ui-only-missing | templates/repo/asc_agents_run.tmpl (Stop posts directly; CancelRun accepts a reason) | S |
+| AgentRun | Pause (holds the run at the next tool call) | done | asc: no PauseRun RPC or state; hub: route + button;; Audit 2026-10-30 (built): Gap file says asc has no PauseRun; asc master has Agents.PauseRun and the hub calls it. | M |
+| AgentRun | Stop with confirmation and reason; keeps work as drafts | ui-only-missing | templates/repo/asc_agents_run.tmpl (Stop posts directly; CancelRun accepts a reason);; Audit 2026-10-30 (part built): Stop help text is there; confirmation with a reason was not found. | S |
 | AgentRun | Plan block with step states and 'You approved at 10:02' | needs-both | asc: plan events/state missing; hub: plan card | L |
 | AgentRun | Permission request banner: Allow once / Deny and continue / Answer in own words; records who and why | done | asc: structured permission request + decision RPC; hub: asc_agents_run.tmpl (free-text SendInput answer exists) (renders with live asc data; decision covered by Go tests with a fake asc) | L |
 | AgentRun | Live activity log: poll, follow unless scrolled, 'Show everything' toggle, error handling | done | web_src/js/features/asc-agent-run.ts, asc_agents_events.tmpl, routers/web/repo/asc_agents_feed.go | - |
@@ -188,9 +190,9 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | AgentRun | Budget meters: tokens, cost, time, changes with numbers | done | templates/repo/asc_agents_meters.tmpl, services/ascagentui/budget.go | - |
 | AgentRun | Budget 'Edit limits' on a live run | done | asc: only token-level SetBudget; need a run-level limit RPC; hub: dialog + route (form renders; save covered by Go tests with a fake asc) | M |
 | AgentRun | Access for this run: can/cannot list, token id and expiry, signed by run key | needs-hub-backend | templates/repo/asc_agents_policy.tmpl (repo policy card only); use AgentRun.token_id + AgentTokens.GetToken | S |
-| AgentRun | Checkpoints list with Roll back (logged) | needs-both | asc: checkpoint + rollback RPC missing; hub: card + route | L |
+| AgentRun | Checkpoints list with Roll back (logged) | done | asc: checkpoint + rollback RPC missing; hub: card + route;; Audit 2026-10-30 (built): Gap file says asc has no checkpoint RPC; it has, and the hub calls it. | L |
 | AgentRun | Audit note and 'Download the audit log' (90 days, linked from each change) | done | asc: per-run audit export (Audit.Export filtered by run); hub: link + route (link renders; download covered by Go tests) | M |
-| AgentRun | Failed state 'hit its model token limit' with 'Raise the limit and continue' and Review the 3 changes | needs-both | failure text done (services/ascagentui/failure.go); continue needs an asc resume RPC | M |
+| AgentRun | Failed state 'hit its model token limit' with 'Raise the limit and continue' and Review the 3 changes | done | failure text done (services/ascagentui/failure.go); continue needs an asc resume RPC;; Audit 2026-10-30 (built): Raise the limit and continue is in the template. | M |
 | AgentRun | Done summary (38 tool calls, 11 min, $2.31) and Stopped notes | ui-only-missing | templates/repo/asc_agents_run.tmpl (data in AgentBudgetUsage) | S |
 
 ### AgentNew
@@ -203,7 +205,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | AgentNew | Right rail 'What this run may do', computed from token and policy, updates as scope narrows | needs-hub-backend | Policy.Evaluate RUN/WRITE (proto/asc/v1/policy.proto); asc_agents_new.tmpl + JS fetch | M |
 | AgentNew | Estimate 'About 10 min and $1.60' from similar runs | done | asc: run statistics query (new RPC) + hub display (card renders (no estimate on a fresh hub); fetch covered by Go and vitest) | M |
 | AgentNew | Recent tasks with Reuse | done | asc: AgentRun lacks task text; hub: list on asc_agents_new.tmpl (renders with live data) | S |
-| AgentNew | Limits above the policy cap are lowered with a message, not rejected | needs-both | asc budget handling vs hub message in asc_agents.go (no 'lowered' text exists) | S |
+| AgentNew | Limits above the policy cap are lowered with a message, not rejected | needs-both | asc budget handling vs hub message in asc_agents.go (no 'lowered' text exists);; Audit 2026-10-30 (part built): Help text says a value above the cap is lowered; the New agent form message was not found. | S |
 | AgentNew | Started toast 'Run 216 started' with Open; can-start right required | done | redirect to run page + writer check (asc_agents_common.go) | - |
 
 ### AgentAccess
@@ -228,7 +230,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Workflows | Step chain 'scan > update > review' on the card | done | templates/repo/asc_workflows.tmpl (shows a step count) (chain of step ids seen on the dev hub) | S |
 | Workflows | Last-12-runs history strip and 'last run' time per workflow | done | templates/repo/asc_workflows.tmpl (strip from ListRuns, 100 newest runs grouped by workflow; last run time) | - |
 | Workflows | State filter (All, On, Off, Not valid), search, counts | done | templates/repo/asc_workflows.tmpl (chips with counts seen on the dev hub; search covered by a Go test) | S |
-| Workflows | 'New workflow' and 'Start from a template' (creates a reviewed change with the file) | ui-only-missing | New workflow is a link to the hub editor on a new branch under .asc/workflows/ (done); Start from a template is not built (no template files under options/) | S |
+| Workflows | 'New workflow' and 'Start from a template' (creates a reviewed change with the file) | done | asc_workflows.go AscWorkflowTemplates (3 templates), editor.go asc_template: the editor opens a new file with the template on a new branch | - |
 | Workflows | Latest runs list (running, passed, needs approval, failed) with link to all runs | done | templates/repo/asc_workflows_runlist.tmpl, asc_workflows_runs.tmpl | - |
 | Workflows | Secrets and variables panel (names per workflow) with link to settings | done | templates/repo/asc_workflows.tmpl (the secrets the workflows read, each with its workflows) and settings/asc/workflow-secrets (set, list names, delete) | - |
 | Workflows | Capacity '3 running of 6 allowed' and shared agent budget line | done | templates/repo/asc_workflows.tmpl (running runs of the newest 100 against the sum of max_parallel_runs of the enabled workflows; the shared agent budget line is not shown) | - |
@@ -308,7 +310,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Queue | Queue reordering (not on the board: order is queue order, no reorder RPC in mergequeue.proto) | done | nothing to build | - |
 | Queue | Quarantined checks with reason, owner, review date | done | templates/repo/asc_queue.tmpl, services/asctrust queue quarantine | - |
 | Queue | Recently finished (merged / removed with who and when) | done | templates/repo/asc_queue.tmpl | - |
-| Queue | 'Merge a stack' panel: scope radios, dry run, Add to queue / Merge now | done | templates/repo/asc_queue.tmpl (side column: each open stack with Merge when ready and Merge now, through asc_confirm for the scope and the dry run); asc_queue_stacks.go | - |
+| Queue | 'Merge a stack' panel: scope radios, dry run, Add to queue / Merge now | done | templates/repo/asc_queue.tmpl (side column; scope chips Just 1, Bottom 2, All N, each with Merge when ready and Merge now through asc_confirm, where the dry run is shown; the dry run is not repeated in the panel) | - |
 | Queue | 'How landing stays safe' card; paused and empty states | done | templates/repo/asc_queue.tmpl | - |
 | Queue | Live update: list slides when an item lands, Checking pulses | done | routers/web/repo/asc_queue_live.go + web_src/js/features/asc-board.js (Watch stream, held open; follows an empty queue too) | - |
 
@@ -319,7 +321,7 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 | Audit | Chain status, Verify, filters (who, what, outcome, target, from/to, order, rows), table, older events, JSONL/CSV export | done | templates/repo/asc_audit_table.tmpl, routers/web/repo/asc_audit.go (Audit.List/Export/VerifyChain) | - |
 | Audit | Repository, organization and site scope from one page | done | routes settings/asc/audit, org/{org}/settings/asc/audit, admin/asc/audit | - |
 | Audit | Verify shows a determinate progress bar | ui-only-missing | templates/repo/asc_audit_table.tmpl (plain POST; VerifyChain is unary, so progress needs polling or an asc stream) | M |
-| Audit | Broken chain: 'Show event 9,204' and 'Export evidence' | ui-only-missing | templates/repo/asc_audit_table.tmpl (text exists) | S |
+| Audit | Broken chain: 'Show event 9,204' and 'Export evidence' | ui-only-missing | templates/repo/asc_audit_table.tmpl (text exists);; Audit 2026-10-30 (part built): Broken-chain text exists; Show event and Export evidence actions not confirmed. | S |
 | Audit | Export-ready card (file name, size, event count, Download) | ui-only-missing | templates/repo/asc_audit_table.tmpl (direct download link only) | S |
 | Audit | Retention label 'Kept 365 days'; no-match state with Clear filters | ui-only-missing | templates/repo/asc_audit_table.tmpl | S |
 
