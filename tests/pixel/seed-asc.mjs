@@ -88,6 +88,11 @@ export async function seedAsc({api, upload, people, at, state}) {
   await admin.form('/admin/asc/agents', {allow_agents: '1', budget_usd: '400'});
   await admin.form('/-/asc/agents/features', {enabled: '1'}, '/user/settings');
 
+  // the backups page: a schedule that writes to the one target of the server, and one backup made now
+  const op = () => crypto.randomUUID();
+  await admin.form('/admin/asc/backups/schedule', {op: op(), enabled: '1', interval_hours: '24', time: '02:00', target: 'r2-backup', keep_days: '30', keep_weeks: '52', include_objects: '1'}, '/admin/asc/backups');
+  await admin.form('/admin/asc/backups/run', {op: op(), target: ''}, '/admin/asc/backups');
+
   // the people page: agents of the organisation, and a Maintainer (the invitations that have not been answered are put in by backdate.py)
   for (const [name, display, runBy] of [['coder-2', 'coder-2', 'maya'], ['reviewer-1', 'reviewer-1', 'priya']]) {
     await admin.form('/org/acme/settings/asc/agents/new', {name, display_name: display, run_by: runBy, paths: ['src/**', 'tests/**'].join(String.fromCharCode(10))}, '/org/acme/settings/asc/agents');

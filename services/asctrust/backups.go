@@ -214,6 +214,54 @@ func LoadBackups(ctx context.Context, conn grpc.ClientConnInterface) (*BackupsPa
 	return p, nil
 }
 
+// Failing says the last attempt to back up failed: a failure with no success after it.
+func (s BackupStatus) Failing() bool {
+	return !s.LastFailure.IsZero() && !s.LastFailure.Before(s.LastSuccess)
+}
+
+// ScheduleTarget is the target the schedule writes to, nil when it has none that exists.
+func (p *BackupsPage) ScheduleTarget() *BackupTargetRow {
+	for i := range p.Targets {
+		if p.Targets[i].Name == p.Schedule.Target {
+			return &p.Targets[i]
+		}
+	}
+	return nil
+}
+
+// RunningRow is the backup that is being made now, nil when none is.
+func (p *BackupsPage) RunningRow() *BackupRow {
+	for i := range p.Backups {
+		if p.Backups[i].State == "running" {
+			return &p.Backups[i]
+		}
+	}
+	return nil
+}
+
+// LastFailureNote is the note of the newest failed backup ("" when none has one).
+func (p *BackupsPage) LastFailureNote() string {
+	for _, b := range p.Backups {
+		if b.State == "failed" {
+			return b.Note
+		}
+	}
+	return ""
+}
+
+// ActorName is the login of the person who started the backup, without the "id:" asc puts before it.
+func (b BackupRow) ActorName() string {
+	_, name, found := strings.Cut(b.Actor, ":")
+	if !found {
+		return b.Actor
+	}
+	return name
+}
+
+// DoneText and TotalText write the bytes copied so far and the bytes to copy of a running backup.
+func (b BackupRow) DoneText() string  { return FormatBytes(min(b.DoneBytes, b.TotalBytes)) }
+func (b BackupRow) TotalText() string { return FormatBytes(b.TotalBytes) }
+
 // HasTarget says whether name is one of the targets.
 func (p *BackupsPage) HasTarget(name string) bool {
 	for _, t := range p.Targets {
