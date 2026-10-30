@@ -18,28 +18,28 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 76 |
-| ui-only-missing | 26 |
-| needs-hub-backend | 33 |
+| done | 86 |
+| ui-only-missing | 24 |
+| needs-hub-backend | 35 |
 | needs-asc-backend | 2 |
-| needs-both | 36 |
+| needs-both | 26 |
 | total | 173 |
 
-Open rows by size: S 42, M 59, L 18.
+Open rows by size: S 24, M 52, L 11.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
 ## Biggest gaps
 
 1. Notifications settings: no page, no per-event channel matrix, quiet hours, digest or push (hub L + asc inbox preferences).
-2. Backups: asc has a CLI only; the Backups board needs a Backups service (schedule, run, list, verify, restore) and hub pages.
-3. Usage and quota: no agent-minutes, AI-spend or bandwidth accounting; hub shows Forgejo storage quota only.
+2. Backups: done (Backups service and the admin board).
+3. Usage and quota: done (Usage service; account, organization and admin pages).
 4. Access tokens: no expiry, and the ASC scope model (None/Read/Write per area) does not exist; asc authn must enforce it.
-5. Org agents: allow-agents switch, spend ceiling, org merge policy with inheritance, agent members and path-scoped policy owners.
+5. Org agents: switch, spend ceiling, merge defaults and agent identities are done. Open: agent members and path-scoped policy owners.
 6. Issue-to-stack links: chips, rail, auto-close on landing, quarantine chip, and stack cards on the Projects board.
-7. Signed-in devices and sessions list with sign-out (hub registry plus asc token sessions).
-8. Account data export (hub job plus asc export RPC).
-9. AI key limits and sharing: warn at 80%, stop at cap, allow agents, share with an organization, activity tab.
+7. Signed-in devices and sessions: the asc side (tokens, SSH keys, agent tokens) is done. Open: the hub registry of browser sessions.
+8. Account data export: done except the emailed link.
+9. AI key limits and sharing: done except the activity tab and the key detail tabs.
 10. Admin dashboard and health: changesets/agent-run figures, backup attention, object-storage, mail, TLS, disk and signing-key checks.
 
 ## Cross-cutting gaps
@@ -63,7 +63,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsAccount | Email list, primary, verify/resend, add, delete | done | templates/user/settings/account.tmpl, routers/web/user/setting/account.go | - |
 | UserSettingsAccount | Resend rate limit that says when to retry | needs-hub-backend | routers/web/user/setting/account.go (EmailPost SENDACTIVATION) | S |
 | UserSettingsAccount | Sign-in methods card (SSO connected, link to Security for passkeys/password) | done | account.tmpl; data already in security/accountlinks.tmpl (AccountLinks) | S |
-| UserSettingsAccount | Export your data (changesets, reviews, comments, settings; emailed link; requested/ready states) | needs-both | hub: new job + route /user/settings/account/export + mail; asc: new export RPC (no export RPC exists in proto/asc/v1) | L |
+| UserSettingsAccount | Export your data (changesets, reviews, comments, settings; emailed link; requested/ready states) | needs-hub-backend | done: Sessions-style page /user/settings/asc/export (request, states, download, delete) over DataExport (routers/web/user/setting/asc_account.go). Open: the emailed link when the export is ready (hub mail on state change) | S |
 | UserSettingsAccount | Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus return | ui-only-missing | account.tmpl asks for the password; routers/web/user/setting/account.go DeleteAccount | S |
 | UserSettingsAppearance | Theme cards (light, dark, system) with preview | done | templates/user/settings/appearance.tmpl | - |
 | UserSettingsAppearance | Density (comfortable, compact) | done | appearance.tmpl, templates/base/head_style.tmpl (kept in localStorage, not per account; board says every device) | S |
@@ -88,7 +88,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsSecurity | Password strength meter in words after 300 ms, show/hide buttons | done | account.tmpl + new JS | S |
 | UserSettingsSecurity | Two-factor enable/disable/re-enroll, passkeys (WebAuthn) add/delete | done | templates/user/settings/security/twofa.tmpl, webauthn.tmpl | - |
 | UserSettingsSecurity | Recovery codes: "8 of 10 unused", download as text file, shown once | needs-hub-backend | models/auth/twofactor.go (one scratch token only), security/twofa.tmpl | M |
-| UserSettingsSecurity | Signed-in devices list (browser, place, last active), Sign out one / everywhere else | needs-both | hub: per-user session registry (none today); asc: CLI/token sessions via a new authn session-list RPC | L |
+| UserSettingsSecurity | Signed-in devices list (browser, place, last active), Sign out one / everywhere else | needs-hub-backend | asc-side credentials (tokens, SSH keys, agent tokens) with revoke and end-all are done on /user/settings/asc/sessions (Sessions service). Open: browser sessions (hub per-user session registry: browser, place, last active) | L |
 | UserSettingsSecurity | Re-authentication prompt before password change or removing 2FA | needs-hub-backend | routers/web/user/setting/security + sudo-mode middleware | M |
 | UserSettingsTokens | Token list (name, scopes, created, last used) with revoke and regenerate | done | templates/user/settings/applications.tmpl, routers/web/user/setting/access_token.go | - |
 | UserSettingsTokens | Expiry per token (30 days etc.), Expires column, Expired chip | needs-hub-backend | models/auth/access_token.go has no expiry; migration + access_token_edit.tmpl + check in services/auth | M |
@@ -116,22 +116,22 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsStorage | Card text "Used by N repositories - verified 2 days ago" | ui-only-missing | byo_storage_cards.tmpl (usage count from the repo list) | S |
 | UserSettingsAI | Key list with provider, hint, model, tested time, spend meter, Test/Details; add form; state chips | done | routers/web/shared/byoweb/aikeys.go, templates/shared/asc/byo_ai*.tmpl | - |
 | UserSettingsAI | Test connection result with latency (ms), polite live region | done | byo_ai_key.tmpl, AITest | - |
-| UserSettingsAI | Test result lists model count ("9 models available") | ui-only-missing | byoweb TestView; call AiProviders.ListModels after a good test | S |
+| UserSettingsAI | Test result lists model count ("9 models available") | done | routers/web/shared/byoweb/aikeys.go renderAIKey + byo_ai_key.tmpl (asc-test-models) | - |
 | UserSettingsAI | Key detail tabs (Usage, Limits, Models, Activity) and spend-by-day chart | ui-only-missing | byo_ai_key.tmpl is one long page with a by-day table; split into tabs, add a small bar chart | M |
-| UserSettingsAI | Warn me at 80% (inbox + email), Stop agents at the cap (pause with a question) | needs-both | asc: add warn threshold and stop behaviour to AiKey/UpdateAiKeyRequest (proto/asc/v1/aiproviders.proto) and enforce in agents; hub: fields in byo_ai_fields.tmpl | M |
-| UserSettingsAI | Who can use it: allow my agents, share with organization (org owners attach it, see spend not key) | needs-both | asc: key sharing/grant model (AiKey has only an owner); hub: toggles + org attach UI | L |
+| UserSettingsAI | Warn me at 80% (inbox + email), Stop agents at the cap (pause with a question) | done | AiKeyShares.GetKeyCaps/SetKeyCaps: byoweb/aishares.go AICaps, templates/shared/asc/byo_ai_sharing.tmpl. The warning goes out from asc (audit + notification event) | - |
+| UserSettingsAI | Who can use it: allow my agents, share with organization (org owners attach it, see spend not key) | done | AiKeyShares.ShareKey/ListShares/RevokeShare/ShareUsage/ListSharedWithMe: byoweb/aishares.go, byo_ai_sharing.tmpl (key page), byo_ai_shared.tmpl (list) | - |
 | UserSettingsAI | Activity tab (who used the key, runs, tokens) | needs-both | asc: AiProviders.Usage groups by day/model/repo/agent only, no event list; hub: new tab | M |
 | UserSettingsAI | Masked key field with Show button; remove needs a ticked box | done | byo_field.tmpl, byo_ai_key.tmpl delete confirm | - |
-| UserSettingsUsage | Four tiles (object storage, agent minutes, AI spend, bandwidth) with meters and "of N" text | needs-both | hub: templates/user/settings/storage_overview.tmpl shows Forgejo quota only and only when quota is on; asc: no usage/quota RPC for agent minutes or bandwidth (AI spend via AiProviders.Usage) | L |
-| UserSettingsUsage | By repository table (storage, agent minutes, AI spend) | needs-both | same sources; AiProviders.Usage group_by REPO exists, the others do not | M |
-| UserSettingsUsage | Over-quota banner, empty month, "BYO does not count" note | needs-both | quota service + asc usage rows | S |
-| UserSettingsUsage | Menu entry always shown (hub hides it unless quota is enabled) | ui-only-missing | templates/user/settings/navbar.tmpl EnableQuota guard | S |
+| UserSettingsUsage | Four tiles (object storage, agent minutes, AI spend, bandwidth) with meters and "of N" text | done | Usage service: routers/web/shared/usageweb, templates/shared/asc_usage.tmpl; /user/settings/asc/usage, /org/{org}/settings/asc/usage, /admin/asc/usage | - |
+| UserSettingsUsage | By repository table (storage, agent minutes, AI spend) | done | usageweb + asc_usage.tmpl repository table (largest AI spend first, 200 rows) | - |
+| UserSettingsUsage | Over-quota banner, empty month, "BYO does not count" note | done | asc_usage.tmpl over-quota banner, empty month, BYO note (byo_ai_spend, byo_storage) | - |
+| UserSettingsUsage | Menu entry always shown (hub hides it unless quota is enabled) | done | navbar.tmpl: Usage shown whenever [asc] is on (the Forgejo quota entry keeps its own guard) | - |
 | MobileUserSettings* | Settings menu as one list page, Other group (Site administration for admins, Sign out), bottom nav Inbox/Changes/Explore/Search/Me | done | templates/user/settings/navbar.tmpl, templates/base/head_navbar.tmpl | - |
 | MobileUserSettings* | Save bar sticks above the bottom nav once a field changes | done | same savebar work as Profile | S |
 | OrgSettings | Profile fields, logo upload/remove, visibility, repo-admin team access, repository creation limit | done | templates/org/settings/options.tmpl, routers/web/org/setting.go | - |
 | OrgSettings | Who can create repositories (owners / maintainers), base permission for members, default repository visibility as org default | needs-hub-backend | models/organization columns, options.tmpl, repo create permission checks | M |
-| OrgSettings | Agents card: allow agents, agent changesets need a person, monthly agent spend ceiling | needs-both | hub org columns + form; asc: org-level agent policy and spend ceiling (no org scope in proto/asc/v1/agents.proto or policy.proto) | L |
-| OrgSettings | Default merge policy shown + Edit policy (repositories inherit and can only tighten) | needs-both | asc: Policy service is repository scoped; add org policy source and inheritance in crates/asc-core/src/policy.rs and proto/asc/v1/policy.proto; hub: options.tmpl card | L |
+| OrgSettings | Agents card: allow agents, agent changesets need a person, monthly agent spend ceiling | done | routers/web/org/setting/asc_agents.go, templates/org/settings/asc_agents.tmpl (OrgSettings.SetAgentPolicy, agent identities); site switch and default budget at /admin/asc/agents | - |
+| OrgSettings | Default merge policy shown + Edit policy (repositories inherit and can only tighten) | done | routers/web/org/setting/asc_agents.go AscMerge, templates/org/settings/asc_merge.tmpl (OrgSettings.SetMergeDefaults). Open: preview on a repository page with ResolveMergePolicy (S) | - |
 | OrgSettings | Transfer ownership | needs-hub-backend | org settings route + services/org owner change, options.tmpl danger zone | M |
 | OrgSettings | Delete organization with typed handle | done | templates/org/settings/delete.tmpl | - |
 | OrgSettings | Owner-only banner and disabled fields for non-owners (settings routes require owner today) | ui-only-missing | routers/web/web.go org settings group, options.tmpl | S |
@@ -187,7 +187,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminAudit | Hash-chain banner, filters, details, export, verify | done | routers/web/admin/asc_audit.go, templates/admin/asc_audit.tmpl, routers/web/shared/trustweb | - |
 | AdminAudit | Signed export file for the range | needs-asc-backend | Audit.Export streams a BLAKE3 digest but no signature (proto/asc/v1/audit.proto) | S |
 | AdminBackups | Page with how to run backups (read-only text) | done | templates/admin/backups.tmpl | - |
-| AdminBackups | Schedule, target, next backup, Back up now, history with Retry/Restore/Verify, in-progress meter, RESTORE typed confirmation | needs-both | asc: Backups service (Schedule, Run, List, Verify, Restore) over crates/asc-serve/src/backup.rs (CLI only today); hub: routes under /admin/asc/backups + template | L |
+| AdminBackups | Schedule, target, next backup, Back up now, history with Retry/Restore/Verify, in-progress meter, RESTORE typed confirmation | done | routers/web/admin/asc_backups.go + templates/admin/asc_backups_board.tmpl, asc_backup_restore.tmpl (Backups service: schedule, run, history, verify, staged restore with typed RESTORE). Retry of a failed run is Back up now | - |
 | AdminModeration | Reports queue with Dismiss, mark handled, content actions | done | templates/admin/moderation/reports.tmpl, routers/web/admin/reports.go | - |
 | AdminModeration | Reason per action written to the audit log; reports grouped by target; appeal state; agent reporters | needs-hub-backend | reports.go PerformAction, moderation service, reports.tmpl | M |
 | AdminAuth | Sources list with edit and add | done | templates/admin/auth/list.tmpl | - |
