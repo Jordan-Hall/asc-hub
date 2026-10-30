@@ -7,7 +7,7 @@ A finding never carries a value: the preview was cut to two characters before it
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings rv-trust-page")}}
 <div class="repo-setting-content">
 {{with .AscSecurity}}
-<div class="rv rv-trust-inline" data-testid="asc-security">
+<div class="rv rv-trust-inline" data-testid="asc-security" data-i-set="{{ctx.Locale.Tr "asc_review.sec_toast_set" "%s"}}" data-i-leaves="{{ctx.Locale.Tr "asc_review.sec_toast_leaves" "%s" "%s"}}" data-i-undo="{{ctx.Locale.Tr "asc_review.sec_undo"}}" data-i-dismiss="{{ctx.Locale.Tr "asc_review.sec_dismiss"}}" data-i-failed="{{ctx.Locale.Tr "asc_review.sec_update_failed"}}" data-i-state-open="{{ctx.Locale.Tr "asc_review.sec_state_open"}}" data-i-state-revoked="{{ctx.Locale.Tr "asc_review.sec_state_revoked"}}" data-i-state-false_positive="{{ctx.Locale.Tr "asc_review.sec_state_false_positive"}}" data-i-state-accepted_risk="{{ctx.Locale.Tr "asc_review.sec_state_accepted_risk"}}">
 	<header class="rv-head rv-head-inline">
 		<div class="rv-head-main">
 			<div class="rv-eyebrow">{{ctx.Locale.Tr "asc_review.sec_eyebrow"}}</div>
@@ -21,12 +21,14 @@ A finding never carries a value: the preview was cut to two characters before it
 			{{end}}
 		</div>
 		{{if .Data}}
-		<form class="rv-acts" method="post" action="{{.SecurityURL}}/scan">
+		<form class="rv-acts" method="post" action="{{.SecurityURL}}/scan" data-asc-scan data-branch="{{.Branch}}">
 			{{$.CsrfTokenHtml}}
 			<button class="rv-btn rv-btn-secondary" type="submit" data-testid="asc-security-scan">{{ctx.Locale.Tr "asc_review.sec_scan" .Branch}}</button>
 		</form>
 		{{end}}
 	</header>
+
+	{{if .Data}}<div class="rv-scanning" role="status" hidden data-asc-scanning data-running="{{ctx.Locale.Tr "asc_review.sec_scanning_now" "%s"}}" data-done="{{ctx.Locale.Tr "asc_review.sec_scan_done"}}" data-failed="{{ctx.Locale.Tr "asc_review.sec_scan_failed"}}" data-testid="asc-security-progress"><b data-asc-scan-label></b><span class="rv-scanning-bar" aria-hidden="true"></span><span class="rv-faint" data-asc-scan-clock>0 s</span></div>{{end}}
 
 	{{if .Unsupported}}
 		<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-security-unsupported"><div><b>{{ctx.Locale.Tr "asc_review.sec_unsupported_title"}}</b> {{ctx.Locale.Tr "asc_review.sec_unsupported"}}</div></div>
@@ -74,7 +76,7 @@ A finding never carries a value: the preview was cut to two characters before it
 						{{if .ResolvedBy}}<div class="rv-li-sub">{{ctx.Locale.Tr "asc_review.sec_set_by" .ResolvedBy}}</div>{{end}}
 						{{if .Note}}<div class="rv-li-sub">{{.Note}}</div>{{end}}
 					</div>
-					<form class="rv-finding-form" method="post" action="{{$.AscSecurity.SecurityURL}}/finding">
+					<form class="rv-finding-form" method="post" action="{{$.AscSecurity.SecurityURL}}/finding" data-state="{{.StateKey}}">
 						{{$.CsrfTokenHtml}}
 						<input type="hidden" name="id" value="{{.ID}}">
 						<input type="hidden" name="back" value="{{$.AscSecurity.State}}">
@@ -148,7 +150,7 @@ A finding never carries a value: the preview was cut to two characters before it
 					<caption class="rv-sr">{{ctx.Locale.Tr "asc_review.sec_rules"}}</caption>
 					<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_rule"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_severity"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_detector"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_source"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.sec_col_on"}}</th></tr></thead>
 					<tbody>
-						{{range .Data.Rules.Rules}}
+						{{range $i, $r := .Data.Rules.Rules}}{{if or $.AscSecurity.AllRules (lt $i 8)}}{{with $r}}
 						<tr>
 							<td class="rv-cell-main"><b>{{.Name}}</b> <code>{{.ID}}</code>{{if .Description}}<div class="rv-li-sub">{{.Description}}</div>{{end}}</td>
 							<td data-label="{{ctx.Locale.Tr "asc_review.sec_col_severity"}}"><span class="rv-pill rv-pill-{{.Tone}}">{{ctx.Locale.Tr (printf "asc_review.sec_sev_%s" .Severity)}}</span></td>
@@ -156,10 +158,11 @@ A finding never carries a value: the preview was cut to two characters before it
 							<td data-label="{{ctx.Locale.Tr "asc_review.sec_col_source"}}">{{if .Builtin}}{{ctx.Locale.Tr "asc_review.sec_builtin"}}{{else}}<span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_review.sec_custom"}}</span>{{end}}</td>
 							<td data-label="{{ctx.Locale.Tr "asc_review.sec_col_on"}}">{{if .Enabled}}{{ctx.Locale.Tr "asc_review.sec_yes"}}{{else}}{{ctx.Locale.Tr "asc_review.sec_no"}}{{end}}</td>
 						</tr>
-						{{end}}
+						{{end}}{{end}}{{end}}
 					</tbody>
 				</table>
 			</div>
+			{{if gt (len .Data.Rules.Rules) 8}}<p class="rv-gap">{{if .AllRules}}<a href="{{.SecurityURL}}?state={{.State}}" data-testid="asc-rules-fewer">{{ctx.Locale.Tr "asc_review.sec_rules_fewer"}}</a>{{else}}<a href="{{.SecurityURL}}?state={{.State}}&amp;rules=all" data-testid="asc-rules-all">{{ctx.Locale.Tr "asc_review.sec_rules_all" (len .Data.Rules.Rules)}}</a>{{end}}</p>{{end}}
 		</section>
 		{{end}}
 	{{end}}

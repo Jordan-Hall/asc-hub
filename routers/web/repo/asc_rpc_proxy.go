@@ -306,6 +306,25 @@ func ascRPCMethod(name string) (protoreflect.MethodDescriptor, bool) {
 	return md, md != nil && !md.IsStreamingClient()
 }
 
+// ascRPCUnitOf is the unit of the repository whose read access a method needs. The calls go to asc with the internal
+// credential, so what asc would ask of the caller is asked here. The changes of a repository (their stacks, versions and
+// overlaps) are pull request data and need pull request read access; everything else is code.
+func ascRPCUnitOf(method string) unit.Type {
+	if strings.HasPrefix(method, "asc.v1.Changes/") {
+		return unit.TypePullRequests
+	}
+	return unit.TypeCode
+}
+
+// ascRPCUserRefs is what a name of a ref of another person's drafts starts with. The internal credential could read
+// such a ref, which asc shows only to its owner, so no string of a request may name one.
+const ascRPCUserRefs = "refs/users/"
+
+// ascRPCNamesUserRef reports whether s names a ref in the namespace of the user refs.
+func ascRPCNamesUserRef(s string) bool {
+	return strings.Contains(strings.ToLower(s), ascRPCUserRefs)
+}
+
 // ascRPCPrepare validates the request message, checks read access to every repository it names and
 // returns the message to send to asc, with canonical repository names.
 func ascRPCPrepare(ctx *context.Context, name string, allowEmpty bool, raw []byte) ([]byte, error) {
@@ -338,7 +357,7 @@ func ascRPCPrepare(ctx *context.Context, name string, allowEmpty bool, raw []byt
 		c, seen := canon[given]
 		if !seen {
 			var err error
-			if c, err = ascRPCCanonicalName(ctx, given); err != nil {
+			if c, err = ascRPCCanonicalName(ctx, given, ascRPCUnitOf(name)); err != nil {
 				return nil, err
 			}
 			canon[given] = c
@@ -370,6 +389,18 @@ func ascRPCCollectRefs(m protoreflect.Message, depth int, refs *[]protoreflect.M
 	var err error
 	m.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
 		switch {
+		case fd.Kind() == protoreflect.StringKind && !fd.IsMap():
+			if fd.IsList() {
+				l := v.List()
+				for i := range l.Len() {
+					if ascRPCNamesUserRef(l.Get(i).String()) {
+						err = ascRPCInvalid("refs of other users are not readable here")
+						break
+					}
+				}
+			} else if ascRPCNamesUserRef(v.String()) {
+				err = ascRPCInvalid("refs of other users are not readable here")
+			}
 		case fd.IsMap():
 			if k := fd.MapValue().Kind(); k == protoreflect.MessageKind || k == protoreflect.GroupKind {
 				v.Map().Range(func(_ protoreflect.MapKey, mv protoreflect.Value) bool {
@@ -397,7 +428,7 @@ func ascRPCCollectRefs(m protoreflect.Message, depth int, refs *[]protoreflect.M
 // ascRPCCanonicalName resolves "owner/repo" to the repository the asc backend names with
 // ascbackend.RepoName, after checking that the requester may read its code. Every refusal returns
 // errAscRPCNotFound, so a private repository and a missing one look the same.
-func ascRPCCanonicalName(ctx *context.Context, given string) (string, error) {
+func ascRPCCanonicalName(ctx *context.Context, given string, readUnit unit.Type) (string, error) {
 	owner, name, ok := strings.Cut(given, "/")
 	if !ok || owner == "" || name == "" || len(given) > ascRPCMaxRepoNameBytes || strings.Contains(name, "/") {
 		return "", errAscRPCNotFound
@@ -434,7 +465,7 @@ func ascRPCCanonicalName(ctx *context.Context, given string) (string, error) {
 		log.Error("asc rpc proxy: GetUserRepoPermission: %v", err)
 		return "", &ascRPCStatusError{codes.Internal, "internal error"}
 	}
-	if !permission.CanAccess(perm.AccessModeRead, unit.TypeCode) {
+	if !permission.CanAccess(perm.AccessModeRead, readUnit) {
 		return "", errAscRPCNotFound
 	}
 

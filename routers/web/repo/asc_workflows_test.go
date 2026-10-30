@@ -223,6 +223,7 @@ func TestAscWorkflowDefinitionPage(t *testing.T) {
 		assert.Contains(t, p.body, `data-testid="asc-workflow-secrets"`)
 		assert.Contains(t, p.body, "<code>unused-key</code>")
 		assert.Contains(t, p.body, `data-testid="asc-workflow-copy"`)
+		assert.Contains(t, p.body, `/_edit/master/.asc/workflows/review.toml?commit_choice=commit-to-new-branch`, "Edit as a change opens the editor on a new branch")
 		list := hub.callsOf("Workflows.ListSecrets")
 		require.NotEmpty(t, list)
 		isUserCredential(t, list[len(list)-1])
@@ -234,6 +235,7 @@ func TestAscWorkflowDefinitionPage(t *testing.T) {
 		assert.NotContains(t, p.body, "unused-key")
 		assert.Contains(t, p.body, "<code>REGISTRY_TOKEN</code>")
 		assert.NotContains(t, p.body, "asc_review.wf_secret_set")
+		assert.NotContains(t, p.body, `data-testid="asc-workflow-edit"`, "a reader cannot edit")
 	})
 
 	t.Run("an invalid definition cannot be started or switched on", func(t *testing.T) {
