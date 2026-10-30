@@ -14,12 +14,13 @@
 						<div class="flex-item-main">
 							<div class="flex-item-title">
 								{{template "shared/user/name" .}}
+								{{if .IsBot}}<span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}
 							</div>
 						</div>
 						<div class="flex-item-trailing">
 							<div class="flex-text-block">
 								{{svg "octicon-shield-lock"}}
-								<div class="ui inline dropdown access-mode" data-url="{{$.Link}}/access_mode" data-uid="{{.ID}}" data-last-value="{{printf "%d" .Collaboration.Mode}}">
+								<div class="ui inline dropdown access-mode" data-url="{{$.Link}}/access_mode" data-uid="{{.ID}}" data-last-value="{{printf "%d" .Collaboration.Mode}}" data-changed="{{ctx.Locale.Tr "asc_rp.access_changed" .GetDisplayName}}" data-undo="{{ctx.Locale.Tr "asc_rp.undo"}}" data-close="{{ctx.Locale.Tr "asc_rp.access_close"}}">
 									<div class="text">{{if eq .Collaboration.Mode 1}}{{ctx.Locale.Tr "repo.settings.collaboration.read"}}{{else if eq .Collaboration.Mode 2}}{{ctx.Locale.Tr "repo.settings.collaboration.write"}}{{else if eq .Collaboration.Mode 3}}{{ctx.Locale.Tr "repo.settings.collaboration.admin"}}{{else}}{{ctx.Locale.Tr "repo.settings.collaboration.undefined"}}{{end}}</div>
 									{{svg "octicon-triangle-down" 14 "dropdown icon"}}
 									<div class="menu">

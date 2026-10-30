@@ -3,6 +3,7 @@ import {minimatch} from 'minimatch';
 import {onInputDebounce, toggleElem} from '../utils/dom.js';
 import {POST} from '../modules/fetch.js';
 import {createCodemirror} from './codemirror.ts';
+import {showDsToast} from './ds-toast.js';
 
 const {appSubUrl} = window.config;
 
@@ -64,6 +65,14 @@ export function initRepoSettingsTopics() {
   }
 }
 
+// Says that a person's access changed and offers to put it back: the change was applied when the role was picked, so
+// the toast reports it and Undo applies the old role again (board RepoSettingsAccess).
+export function announceAccessChange(el, newText, undo) {
+  const message = (el.getAttribute('data-changed') || '').replace('%s', newText);
+  if (!message) return null;
+  return showDsToast(message, {actionLabel: el.getAttribute('data-undo') || '', onAction: undo, closeLabel: el.getAttribute('data-close') || ''});
+}
+
 export function initRepoSettingsCollaboration() {
   // Change collaborator access mode
   $('.page-content.repository .ui.dropdown.access-mode').each((_, el) => {
@@ -72,6 +81,7 @@ export function initRepoSettingsCollaboration() {
     $dropdown.dropdown({
       async action(_text, value) {
         const lastValue = el.getAttribute('data-last-value');
+        const lastText = $text.text();
         try {
           el.setAttribute('data-last-value', value);
           $dropdown.dropdown('hide');
@@ -79,6 +89,17 @@ export function initRepoSettingsCollaboration() {
           data.append('uid', el.getAttribute('data-uid'));
           data.append('mode', value);
           await POST(el.getAttribute('data-url'), {data});
+          if (lastValue && lastValue !== value) {
+            announceAccessChange(el, _text, async () => {
+              const back = new FormData();
+              back.append('uid', el.getAttribute('data-uid'));
+              back.append('mode', lastValue);
+              await POST(el.getAttribute('data-url'), {data: back});
+              el.setAttribute('data-last-value', lastValue);
+              $dropdown.dropdown('set selected', lastValue);
+              $text.text(lastText);
+            });
+          }
         } catch {
           $text.text('(error)'); // prevent from misleading users when error occurs
           el.setAttribute('data-last-value', lastValue);
