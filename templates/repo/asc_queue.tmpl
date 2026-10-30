@@ -84,7 +84,7 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 					<p class="rv-card-b rv-muted">{{ctx.Locale.Tr "repo.asc_queue.merge_stack_lead"}}</p>
 					<ul class="rv-recent">
 						{{range .AscQueueStacks}}
-						<li class="rv-recent-row">
+						<li class="rv-recent-row rv-stackrow">
 							<div class="rv-queue-main">
 								<div class="rv-queue-title"><a href="{{.Link}}">#{{.Top.Issue.Index}} {{.Top.Issue.Title}}</a></div>
 								<div class="rv-li-sub">{{ctx.Locale.TrN .Changes "repo.asc_queue.merge_stack_n_one" "repo.asc_queue.merge_stack_n_other" .Changes}}</div>
