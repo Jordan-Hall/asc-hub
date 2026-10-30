@@ -290,7 +290,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsGeneral | Visibility as radio cards (Private / Internal / Public) with confirmation when changing | needs-hub-backend | `options.tmpl` uses a Private checkbox; Internal does not exist in the model (see NewRepo) | L |
 | RepoSettingsGeneral | Features switches: Stacks and change review (locked, Required), Agent runs, Dependencies, Releases, Meaning search, Wiki | needs-hub-backend | Forgejo units (`H:models/unit/unit.go`, `settings/units/*`) cover releases and wiki; add unit types or repo flags for agent runs, dependencies and meaning search, and the locked row | M |
 | RepoSettingsGeneral | Working mode radio cards and shared refs (`main`, `release/*`), Cloud sync switch | done | `H:templates/repo/settings/asc_branchless.tmpl` (separate page, not inside General) | S |
-| RepoSettingsGeneral | Danger zone: Transfer, Archive, Delete with typed full name `acme/payments` and counts ("Removes 1,204 changes, 14 releases and 23 issues") | ui-only-missing | `options.tmpl` has transfer, archive, delete; typed string is the repo name and the counts are missing | M |
+| RepoSettingsGeneral | Danger zone: Transfer, Archive, Delete with typed full name `acme/payments` and counts ("Removes 1,204 changes, 14 releases and 23 issues") | done (seen on a live hub (ui26): the delete dialog lists the counts (stacks and pull requests, releases, issues) and asks for the typed name; the count of changes and the 30-day undo are not there) | `options.tmpl` has transfer, archive, delete; typed string is the repo name and the counts are missing | M |
 | RepoSettingsGeneral | "An owner can undo the delete from the operation log for 30 days" | needs-both | soft delete in hub plus restore; asc keeps repo data for the window (`Repo.RepoAdmin`) | L |
 | RepoSettingsGeneral | Saving state, saved toast (5 s), unsaved-bar motion | ui-only-missing | `repo-settings.js` | S |
 
@@ -303,7 +303,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsAccess | Role select changes access at once with an Undo toast | ui-only-missing | JS handler on `collaboration.go` POST | M |
 | RepoSettingsAccess | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | needs-hub-backend | policy lookup per agent identity | M |
 | RepoSettingsAccess | Remove agent confirm that says the running run stops and open changes stay with the owner | needs-both | `Agents.CancelRun` on removal in `collaboration.go`; confirm dialog text | M |
-| RepoSettingsAccess | Invite that already has access ("Priya Raman already has Maintain access") | ui-only-missing | `collaboration.go` error text | S |
+| RepoSettingsAccess | Invite that already has access ("Priya Raman already has Maintain access") | done (seen on a live hub (ui26): the invite answers "rev already has Write access to this repository.") | `collaboration.go` error text | S |
 | RepoSettingsAccess | Deploy keys on the same page: title, fingerprint, read-only or read-write, added by, last used, Add dialog | ui-only-missing | `H:templates/repo/settings/deploy_keys.tmpl` is its own page at `/settings/keys`; the board says both routes render one layout | M |
 | RepoSettingsAccess | No deploy keys empty state | done | `settings.no_deploy_keys` | S |
 
