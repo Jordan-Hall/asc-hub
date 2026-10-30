@@ -561,3 +561,33 @@
     display: none;
   }
 }
+
+/* On a phone the board shows three stat cards in a row, not four in two rows. */
+@media (max-width: 639.98px) {
+  .rv-stats.rv-stats-3m {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .rv-stats-3m > .rv-stat:nth-child(n + 4) {
+    display: none;
+  }
+
+  .rv-stats-3m .rv-stat-v {
+    font-size: 1.5rem;
+  }
+}
+
+/* The queue on a phone: waiting, quarantined checks, Merge a stack, recently finished, how landing stays safe. */
+@media (max-width: 899.98px) {
+  .rv-qcols > .rv-stack,
+  .rv-qcols > .rv-side {
+    display: contents;
+  }
+
+  .rv-qcols .qo-1 { order: 1; }
+  .rv-qcols .qo-2 { order: 2; }
+  .rv-qcols .qo-3 { order: 3; }
+  .rv-qcols .qo-4 { order: 4; }
+  .rv-qcols .qo-5 { order: 5; }
+}
