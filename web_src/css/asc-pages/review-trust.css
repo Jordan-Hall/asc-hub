@@ -673,3 +673,10 @@
     flex: none;
   }
 }
+
+.rv-status-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}

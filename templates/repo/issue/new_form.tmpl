@@ -42,6 +42,9 @@
 						{{end}}
 						{{template "repo/issue/comment_tab" .}}
 					{{end}}
+					{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}}
+					<p class="ds-hint" data-testid="asc-open-notes">{{ctx.Locale.Tr "asc_rp.cmp_checks_start"}} {{ctx.Locale.Tr "asc_rp.cmp_signed_note"}}</p>
+					{{end}}
 					<div class="ds-row ds-justify-end">
 						<button class="ds-btn ds-btn-primary">
 							{{if .PageIsComparePull}}

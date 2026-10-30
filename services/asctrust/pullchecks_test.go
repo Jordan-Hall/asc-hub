@@ -243,3 +243,34 @@ func TestExcerptLocation(t *testing.T) {
 		assert.Empty(t, anchor, none)
 	}
 }
+
+func TestStatusRowsCarryTheirRunAndHowLongItTook(t *testing.T) {
+	start := time.Date(2026, 10, 30, 10, 0, 0, 0, time.UTC)
+	pc := BuildPullChecks(PullChecksIn{
+		Head: "abcdef1234", Now: start.Add(time.Hour),
+		Statuses: []StatusIn{
+			{Context: "unit", State: "success", RunID: 1},
+			{Context: "slow", State: "success", RunID: 2},
+			{Context: "going", State: "pending", RunID: 3},
+			{Context: "manual", State: "success"},
+			{Context: "ghost", State: "success", RunID: 99},
+		},
+		Runs: []RunIn{
+			{ID: 1, State: "success", Started: start, Stopped: start.Add(41 * time.Second)},
+			{ID: 2, State: "success", Started: start, Stopped: start.Add(3*time.Minute + 2*time.Second)},
+			{ID: 3, State: "running", Started: start},
+		},
+	})
+	byName := map[string]StatusRow{}
+	for _, r := range pc.Statuses {
+		byName[r.Context] = r
+	}
+	assert.Equal(t, int64(1), byName["unit"].RunID)
+	assert.Equal(t, "41 s", byName["unit"].Took)
+	assert.Equal(t, "3 min 2 s", byName["slow"].Took)
+	assert.Empty(t, byName["going"].Took, "a run that has not finished has no duration")
+	assert.Equal(t, int64(3), byName["going"].RunID, "but it can still be run again")
+	assert.Zero(t, byName["manual"].RunID)
+	assert.Empty(t, byName["manual"].Took)
+	assert.Empty(t, byName["ghost"].Took, "a run that is not among the runs of the head has no duration")
+}

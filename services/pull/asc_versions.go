@@ -90,6 +90,14 @@ func (l *AscVersionList) Latest() uint32 {
 	return l.Versions[len(l.Versions)-1].N
 }
 
+// Before is the version that comes before n, 0 when n is the first, or is not one of the versions.
+func (l *AscVersionList) Before(n uint32) uint32 {
+	if !l.Has(n) || n < 2 {
+		return 0
+	}
+	return n - 1
+}
+
 // Newest returns the versions newest first, the order the versions panel lists them in.
 func (l *AscVersionList) Newest() []AscVersion {
 	if l == nil {
