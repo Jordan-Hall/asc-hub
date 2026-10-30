@@ -288,15 +288,16 @@ func BlockUser(ctx *context.APIContext) {
 	//   "422":
 	//     "$ref": "#/responses/validationError"
 
+	if !user_model.IsUserVisibleToViewer(ctx, ctx.User(), ctx.Doer()) {
+		notFoundAsUnknownName(ctx)
+		return
+	}
+
 	if ctx.User().IsOrganization() {
 		ctx.Error(http.StatusUnprocessableEntity, "", fmt.Errorf("%s is an organization not a user", ctx.User().Name))
 		return
 	}
 
-	if !user_model.IsUserVisibleToViewer(ctx, ctx.User(), ctx.Doer()) {
-		ctx.NotFound() // the same answer as for a user that does not exist
-		return
-	}
 	utils.BlockUser(ctx, ctx.Doer(), ctx.User())
 }
 
@@ -325,10 +326,22 @@ func UnblockUser(ctx *context.APIContext) {
 	//   "422":
 	//     "$ref": "#/responses/validationError"
 
+	if !user_model.IsUserVisibleToViewer(ctx, ctx.User(), ctx.Doer()) {
+		notFoundAsUnknownName(ctx)
+		return
+	}
+
 	if ctx.User().IsOrganization() {
 		ctx.Error(http.StatusUnprocessableEntity, "", fmt.Errorf("%s is an organization not a user", ctx.User().Name))
 		return
 	}
 
 	utils.UnblockUser(ctx, ctx.Doer(), ctx.User())
+}
+
+// notFoundAsUnknownName answers for the user in the path, whom the doer may not see, with the very answer that the
+// path gets when no user has the name (services/context.UserAssignmentAPI), so the answer does not tell a hidden
+// account or organization from a name nobody has.
+func notFoundAsUnknownName(ctx *context.APIContext) {
+	ctx.Error(http.StatusNotFound, "GetUserByName", user_model.ErrUserRedirectNotExist{Name: ctx.Params(":username")})
 }
