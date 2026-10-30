@@ -1,4 +1,4 @@
-{{/* The sign in form: the username and password, the remember choice, other ways in and the hint for the command line. Also used by the account linking page. */}}
+{{/* The sign in form: the username and password, the remember choice, other ways in and the note for the command line. Also used by the account linking page. */}}
 {{$alertOn := or (not .LinkAccountMode) .LinkAccountModeSignIn}}
 {{if $alertOn}}<div class="ds-auth-flash">{{template "base/alert" .}}</div>{{end}}
 {{if .LinkAccountMode}}<h2 class="ds-t-h3 ds-mb-16">{{ctx.Locale.Tr "auth.oauth_signin_title"}}</h2>{{end}}
@@ -31,8 +31,5 @@
 {{end}}
 
 {{if and .EnableInternalSignIn (not .LinkAccountMode)}}
-	<div class="ds-callout ds-auth-cli">
-		<span class="ds-pr" aria-hidden="true">$</span>
-		<p>{{ctx.Locale.Tr "asc_auth.cli_hint" AscHubHost}}</p>
-	</div>
+	<div class="ds-auth-cli-form">{{template "user/auth/cli_hint" (dict "Where" "form")}}</div>
 {{end}}
