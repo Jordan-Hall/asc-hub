@@ -322,7 +322,12 @@ func ViewUser(ctx *context.Context) {
 		return
 	}
 
-	ctx.Data["Users"] = orgs // needed to be able to use explore/user_list template
+	// explore/user_list draws users: an organization is a user of that kind, so the list is of users
+	orgUsers := make([]*user_model.User, len(orgs))
+	for i, o := range orgs {
+		orgUsers[i] = o.AsUser()
+	}
+	ctx.Data["Users"] = orgUsers
 	ctx.Data["OrgsTotal"] = len(orgs)
 
 	ctx.HTML(http.StatusOK, tplUserView)
