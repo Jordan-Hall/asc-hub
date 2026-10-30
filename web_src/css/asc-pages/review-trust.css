@@ -415,3 +415,24 @@
     padding: 16px 18px;
   }
 }
+
+/* A table whose cells after the first are single words (severity, detector, source, on): they stay on one line and the
+   first cell takes the rest. */
+.rv-tbl-compact td[data-label] {
+  white-space: nowrap;
+}
+
+/* The Merge a stack panel: the two buttons go under the title on a phone and beside it from 640px. */
+.rv-stackrow .rv-queue-act {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .rv-stackrow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .rv-stackrow .rv-queue-act {
+    grid-column: auto;
+  }
+}
