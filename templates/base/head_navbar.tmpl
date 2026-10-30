@@ -343,6 +343,15 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 					<div><dt><span class="ds-kbd">j</span> <span class="ds-kbd">k</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_rows"}}</dd></div>
 					<div><dt><span class="ds-kbd">s</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_snooze"}}</dd></div>
 					<div><dt><span class="ds-kbd">p</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_pin"}}</dd></div>
+					{{if .PageIsPullFiles}}
+						<div><dt><span class="ds-kbd">v</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_viewed"}}</dd></div>
+						<div><dt><span class="ds-kbd">a</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_approve"}}</dd></div>
+						<div><dt><span class="ds-kbd">r</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_reject"}}</dd></div>
+						<div><dt><span class="ds-kbd">c</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_comment"}}</dd></div>
+					{{end}}
+					{{if or .PageIsPullFiles .PageIsPullConversation}}
+						<div><dt><span class="ds-kbd">n</span></dt><dd>{{ctx.Locale.Tr "asc_shell.shortcuts_next_change"}}</dd></div>
+					{{end}}
 				{{end}}
 			</dl>
 		</div>

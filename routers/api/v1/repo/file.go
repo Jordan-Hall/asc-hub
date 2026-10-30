@@ -766,6 +766,9 @@ func UpdateFile(ctx *context.APIContext) {
 }
 
 func handleCreateOrUpdateFileError(ctx *context.APIContext, err error) {
+	if respondAscPolicyEdit(ctx, err) {
+		return
+	}
 	if models.IsErrUserCannotCommit(err) || models.IsErrFilePathProtected(err) {
 		ctx.Error(http.StatusForbidden, "Access", err)
 		return
@@ -934,6 +937,9 @@ func DeleteFile(ctx *context.APIContext) {
 	}
 
 	if filesResponse, err := files_service.ChangeRepoFiles(ctx, ctx.Repo().Repository, ctx.Doer(), opts); err != nil {
+		if respondAscPolicyEdit(ctx, err) {
+			return
+		}
 		if git.IsErrBranchNotExist(err) || models.IsErrRepoFileDoesNotExist(err) || git.IsErrNotExist(err) {
 			ctx.Error(http.StatusNotFound, "DeleteFile", err)
 			return
