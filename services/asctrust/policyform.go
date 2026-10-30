@@ -181,6 +181,20 @@ func hasKey(text, section, key string) bool {
 	return ok
 }
 
+// MaintainerNames lists who the `[roles] maintainer` list names, for a sentence that says whom to ask: a user or a
+// team is shown by its name, the prefix of the subject kind dropped.
+func MaintainerNames(text string) []string {
+	vals, _ := TomlStrings(text, "roles", "maintainer")
+	out := make([]string, 0, len(vals))
+	for _, v := range vals {
+		if _, name, ok := strings.Cut(v, ":"); ok && name != "" {
+			v = name
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
 // DiffLine is one line of the Changes view: Op is ' ' for a line both texts have, '-' for a line only the policy in
 // force has and '+' for a line only the draft has.
 type DiffLine struct {
