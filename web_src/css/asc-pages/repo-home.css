@@ -1721,3 +1721,28 @@
     text-align: right;
   }
 }
+
+/* Stacks list on a phone: the filters stay on one scrolling line and the avatar sits beside the stack (board Mobile-Stacks). */
+@media (max-width: 639px) {
+  .rp-stack .rp-stack-av + .rp-flight-main {
+    flex-basis: calc(100% - 48px);
+  }
+
+  .rp-stack .rp-stack-av ~ .rp-stkrail {
+    width: calc(100% - 44px);
+    margin-left: 44px;
+  }
+
+  .rp-stack-filter,
+  .rp-stack-filter .ds-seg {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .rp-stack-filter .ds-seg button,
+  .rp-stack-filter > .ds-btn {
+    flex: none;
+    white-space: nowrap;
+  }
+}
