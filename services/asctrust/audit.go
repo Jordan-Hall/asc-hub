@@ -24,7 +24,7 @@ import (
 // Limits of the audit surface.
 const (
 	// AuditPageSizeDefault is the page size when the person chose none.
-	AuditPageSizeDefault = 50
+	AuditPageSizeDefault = 10
 	// AuditPageSizeMax is the largest page size (the server's own limit).
 	AuditPageSizeMax = 200
 	maxFilterList    = 8
@@ -170,6 +170,8 @@ func AuditQueryOf(get func(string) string) (AuditQuery, *ascv1.AuditFilter, []st
 	}
 	if l := get("limit"); l != "" {
 		switch l {
+		case "10":
+			q.Limit = 10
 		case "25":
 			q.Limit = 25
 		case "50":
@@ -179,7 +181,7 @@ func AuditQueryOf(get func(string) string) (AuditQuery, *ascv1.AuditFilter, []st
 		case "200":
 			q.Limit = 200
 		default:
-			problems = append(problems, "The page size is 25, 50, 100 or 200.")
+			problems = append(problems, "The page size is 10, 25, 50, 100 or 200.")
 		}
 	}
 	if q.PageToken != "" && !tokenPattern.MatchString(q.PageToken) {
