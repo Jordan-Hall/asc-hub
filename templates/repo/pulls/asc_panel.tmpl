@@ -1,10 +1,40 @@
 {{/*
 The side panel of a stacked change on the files page: where the checks, the policy gate and the merge queue of this
 repository are. It holds links only, so it needs no data of its own.
-Template Attributes: AscStackPanel (the panel is drawn only for a stacked change), Issue, RepoLink
+The "Your review" card comes first on the files page of a signed-in viewer: what the viewer has read (the intent, the files
+opened, the comments still open) and the verdict buttons, in a sticky card. The numbers are filled in by asc-review.js.
+Template Attributes: AscStackPanel (the panel is drawn only for a stacked change), Issue, RepoLink, PageIsPullFiles, IsSigned,
+Repository, Diff, AfterCommitID, IsShowingAllCommits
 */}}
 {{if .AscStackPanel}}
 <div class="rv rv-sidepanel" data-testid="asc-panel">
+	{{if and .PageIsPullFiles .IsSigned (not .Repository.IsArchived) (not .Issue.PullRequest.HasMerged) (not .Issue.IsClosed)}}
+	{{$own := .Issue.IsPoster .SignedUser.ID}}
+	<section class="rv-card rv-yourreview" aria-labelledby="asc-you-title" data-asc-review-card data-testid="asc-your-review"
+		data-pull="{{.Issue.Link}}" data-viewed="{{.Diff.NumViewedFiles}}" data-total="{{.Diff.NumFiles}}"
+		data-tpl-files-one="{{ctx.Locale.Tr "asc_review.rev_you_files_one"}}" data-tpl-files-other="{{ctx.Locale.Tr "asc_review.rev_you_files_other"}}"
+		data-tpl-threads-one="{{ctx.Locale.Tr "asc_review.rev_you_threads_one"}}" data-tpl-threads-other="{{ctx.Locale.Tr "asc_review.rev_you_threads_other"}}">
+		<div class="rv-card-h"><h2 id="asc-you-title">{{ctx.Locale.Tr "asc_review.rev_you_title"}}</h2></div>
+		<ul class="rv-checklist rv-card-b rv-yourlist">
+			<li>
+				<label class="rv-check"><input type="checkbox" data-asc-you-intent> {{ctx.Locale.Tr "asc_review.rev_you_intent"}}</label>
+				<a href="{{.Issue.Link}}#asc-how-made">{{ctx.Locale.Tr "asc_review.rev_you_intent_open"}}</a>
+			</li>
+			<li><span data-asc-you-files>{{ctx.Locale.TrN .Diff.NumFiles "asc_review.rev_you_files_one" "asc_review.rev_you_files_other" .Diff.NumViewedFiles .Diff.NumFiles}}</span></li>
+			<li><span data-asc-you-threads>{{ctx.Locale.Tr "asc_review.rev_you_threads_other" 0}}</span></li>
+		</ul>
+		<div class="rv-card-f rv-acts">
+			{{if and .IsShowingAllCommits (not $own)}}
+			<form class="form-fetch-action" action="{{.Link}}/reviews/submit" method="post">
+				<input type="hidden" name="commit_id" value="{{.AfterCommitID}}">
+				<button type="submit" name="type" value="approve" class="rv-btn rv-btn-primary" data-testid="asc-you-approve">{{ctx.Locale.Tr "repo.diff.review.approve"}}</button>
+			</form>
+			{{end}}
+			{{if not $own}}<button type="button" class="rv-btn rv-btn-secondary" data-asc-open-review="reject" data-testid="asc-you-reject">{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>{{end}}
+			<button type="button" class="rv-btn rv-btn-secondary" data-asc-open-review="comment" data-testid="asc-you-comment">{{ctx.Locale.Tr "repo.diff.review.comment"}}</button>
+		</div>
+	</section>
+	{{end}}
 	<section class="rv-card" aria-labelledby="asc-panel-title">
 		<div class="rv-card-h"><h2 id="asc-panel-title">{{ctx.Locale.Tr "asc_review.rev_panel"}}</h2></div>
 		<ul class="rv-gate rv-card-b">

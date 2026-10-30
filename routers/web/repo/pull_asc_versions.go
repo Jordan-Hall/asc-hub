@@ -32,7 +32,7 @@ func prepareAscVersions(ctx *context.Context, pull *issues_model.PullRequest) *p
 	if pull == nil || !setting.Asc.Enabled {
 		return nil
 	}
-	versions, err := pull_service.AscVersions(ctx, pull)
+	versions, err := ascVersionsOnce(ctx, pull)
 	if err != nil {
 		if !errors.Is(err, pull_service.ErrAscNotStacked) {
 			log.Warn("asc versions of pull request %d: %v", pull.ID, err)
@@ -43,6 +43,7 @@ func prepareAscVersions(ctx *context.Context, pull *issues_model.PullRequest) *p
 		return nil
 	}
 	ctx.Data["AscVersions"] = versions
+	ctx.Data["AscVersionsLatest"] = versions.Latest()
 	prepareAscSignatures(ctx, versions)
 	prepareAscVersionDetails(ctx, pull, versions)
 	prepareAscRestore(ctx, pull, versions)
@@ -55,6 +56,62 @@ func prepareAscVersions(ctx *context.Context, pull *issues_model.PullRequest) *p
 		}
 	}
 	return versions
+}
+
+// ascVersionsOnce reads the versions of the pull request once per request: the tab strip and the versions panel both
+// need them. A failed read is not kept, so the second caller asks again.
+func ascVersionsOnce(ctx *context.Context, pull *issues_model.PullRequest) (*pull_service.AscVersionList, error) {
+	if list, ok := ctx.Data["AscVersionsLoaded"].(*pull_service.AscVersionList); ok {
+		return list, nil
+	}
+	list, err := pull_service.AscVersions(ctx, pull)
+	if err == nil {
+		ctx.Data["AscVersionsLoaded"] = list
+	}
+	return list, err
+}
+
+// prepareAscTabVersions puts the newest version number of a stacked pull request into ctx.Data["AscVersionsLatest"]
+// for the "Versions v1>v4" tab. It does nothing for a pull request that is not stacked, and it never fails the page.
+func prepareAscTabVersions(ctx *context.Context, pull *issues_model.PullRequest) {
+	if pull == nil || !setting.Asc.Enabled || ctx.Data["AscStackPanel"] == nil {
+		return
+	}
+	versions, err := ascVersionsOnce(ctx, pull)
+	if err != nil {
+		if !errors.Is(err, pull_service.ErrAscNotStacked) {
+			log.Warn("asc versions tab of pull request %d: %v", pull.ID, err)
+		}
+		return
+	}
+	ctx.Data["AscVersionsLatest"] = versions.Latest()
+}
+
+// prepareAscPreviousVersion puts the version before the one being read into ctx.Data["AscPrevVersion"] (0: there is
+// none), for "Open previous version" when a diff cannot be loaded. view is nil for the whole pull request.
+func prepareAscPreviousVersion(ctx *context.Context, versions *pull_service.AscVersionList, view *ascVersionView) {
+	current := versions.Latest()
+	if head, _ := ctx.Data["AscHeadVersion"].(uint32); head != 0 {
+		current = head
+	}
+	if view != nil && view.to != 0 {
+		current = view.to
+	}
+	ctx.Data["AscPrevVersion"] = versions.Before(current)
+}
+
+// ascChangedSinceCount is the number of files of diff that changed since the viewer's last review.
+func ascChangedSinceCount(diff *gitdiff.Diff) int {
+	n := 0
+	if diff == nil {
+		return 0
+	}
+	for _, f := range diff.Files {
+		if f.HasChangedSinceLastReview {
+			n++
+		}
+	}
+	return n
 }
 
 // ascVersionView is what the files page shows when it is asked for one version, or for the interdiff of two.
