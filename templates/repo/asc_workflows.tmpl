@@ -38,6 +38,8 @@ Template Attributes:
 				</form>
 			</div>
 			{{end}}
+			<div class="rv-cols rv-cols-main-side rv-gap">
+			<div class="rv-stack">
 			{{if .AscWorkflowDefs}}
 				<ul class="rv-list rv-wf-defs" data-testid="asc-workflow-defs">
 					{{range .AscWorkflowDefs}}
@@ -56,6 +58,10 @@ Template Attributes:
 									{{if .Path}}<span><code>{{.Path}}</code></span>{{end}}
 								</p>
 								{{if .Error}}<div class="rv-run-fail" role="note">{{.Error}}</div>{{end}}
+							<div class="wf-hist" data-testid="asc-workflow-history">
+								<span class="rv-faint wf-hist-l">{{ctx.Locale.Tr "asc_review.wf_last_runs"}}</span>
+								{{if .History}}<span class="wf-hist-strip" role="img" aria-label="{{ctx.Locale.Tr "asc_review.wf_history_alt" (len .History)}}">{{range .History}}<i class="wf-h wf-tone-{{.Tone}}" title="{{.Label}}"></i>{{end}}</span><span class="rv-faint">{{ctx.Locale.Tr "asc_review.wf_last_at" (DateUtils.TimeSince .LastRun)}}</span>{{else}}<span class="rv-faint">{{ctx.Locale.Tr "asc_review.wf_never_run"}}</span>{{end}}
+							</div>
 							</div>
 							<div class="rv-wf-act">
 								{{if and .Valid $.CanChangeWorkflows}}
@@ -87,11 +93,32 @@ Template Attributes:
 			{{end}}
 
 			{{if .AscWorkflowRecent}}
-				<section class="rv-gap" aria-labelledby="rv-wf-latest">
+				<section aria-labelledby="rv-wf-latest">
 					<div class="rv-row rv-section-head"><h2 id="rv-wf-latest" class="rv-h3">{{ctx.Locale.Tr "asc_review.wf_latest"}}</h2><a class="rv-end" href="{{.AscWorkflowsBase}}/runs">{{ctx.Locale.Tr "asc_review.wf_all_runs"}}</a></div>
 					{{template "repo/asc_workflows_runlist" .AscWorkflowRecent}}
 				</section>
 			{{end}}
+			</div>
+			<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.wf_side_label"}}">
+				<section class="rv-card" aria-labelledby="rv-wfl-secrets" data-testid="asc-workflows-secrets">
+					<div class="rv-card-h"><h2 id="rv-wfl-secrets">{{ctx.Locale.Tr "asc_review.wf_secrets_vars"}}</h2></div>
+					<div class="rv-card-b">
+						<p class="rv-muted">{{ctx.Locale.Tr "asc_review.wf_secrets_vars_help"}}</p>
+						{{if .AscWorkflowSecretsUsed}}<ul class="rv-plain wf-secret-list">{{range .AscWorkflowSecretsUsed}}<li><code>{{.Name}}</code><span class="rv-faint">{{range $i, $w := .Workflows}}{{if $i}}, {{end}}{{$w}}{{end}}</span></li>{{end}}</ul>{{end}}
+						{{if .CanChangeWorkflows}}<p><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.RepoLink}}/settings/actions/secrets" data-testid="asc-workflows-secrets-manage">{{ctx.Locale.Tr "asc_review.wf_manage_settings"}}</a></p>{{end}}
+					</div>
+				</section>
+				{{if .AscWorkflowAllowed}}
+				<section class="rv-card" aria-labelledby="rv-wfl-cap" data-testid="asc-workflows-capacity">
+					<div class="rv-card-h"><h2 id="rv-wfl-cap">{{ctx.Locale.Tr "asc_review.wf_capacity"}}</h2></div>
+					<div class="rv-card-b">
+						<p class="rv-row"><b class="wf-cap-n">{{.AscWorkflowRunning}}</b><span class="rv-faint rv-end">{{ctx.Locale.Tr "asc_review.wf_capacity_of" .AscWorkflowAllowed}}</span></p>
+						<progress class="wf-cap" max="100" value="{{.AscWorkflowCapacityPct}}" aria-label="{{ctx.Locale.Tr "asc_review.wf_capacity"}}"></progress>
+					</div>
+				</section>
+				{{end}}
+			</aside>
+			</div>
 		{{end}}
 	</div>
 </div>

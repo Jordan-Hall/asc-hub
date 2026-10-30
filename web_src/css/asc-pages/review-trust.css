@@ -422,19 +422,13 @@
   white-space: nowrap;
 }
 
-/* The Merge a stack panel: the two buttons go under the title on a phone and beside it from 640px. */
-.rv-stackrow .rv-queue-act {
-  grid-column: 1 / -1;
+/* The Merge a stack panel sits in the side column: the two buttons go under the title. */
+.rv-stackrow {
+  grid-template-columns: minmax(0, 1fr);
 }
 
-@media (min-width: 640px) {
-  .rv-stackrow {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .rv-stackrow .rv-queue-act {
-    grid-column: auto;
-  }
+.rv-stackrow .rv-queue-act {
+  grid-column: 1;
 }
 
 /* The settings layout draws the page title from 1024px; the page's own title and eyebrow are for the narrower layouts. */
