@@ -673,3 +673,11 @@
     flex: none;
   }
 }
+
+.rv-op.is-selected {
+  background: var(--primary-soft, rgb(20 120 141 / 8%));
+}
+
+[data-asc-ops-panel-body] .rv-lead {
+  margin-top: 0;
+}
