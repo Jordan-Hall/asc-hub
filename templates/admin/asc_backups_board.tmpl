@@ -1,0 +1,151 @@
+{{/*
+The backups of asc serve (routers/web/admin/asc_backups.go).
+Template data: AscBackups (nil without asc), CsrfTokenHtml
+*/}}
+{{with .AscBackups}}
+<section class="ds-stack-16 adm-sec" data-testid="asc-backups" aria-labelledby="asc-bk-h">
+	<h2 id="asc-bk-h" class="ds-t-h3">{{ctx.Locale.Tr "asc_shell.bk_server_title"}}</h2>
+	{{if .Unsupported}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-backups-unsupported"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.bk_unsupported"}}</div></div>
+	{{else if .Problem}}
+		<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-backups-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Problem}}</div></div>
+	{{else}}
+	{{with .Page}}
+		{{if not .Status.Configured}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-backups-unconfigured"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.bk_unconfigured"}}</div></div>
+		{{end}}
+		{{if .Status.Staged}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-backups-staged"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_shell.bk_staged_title"}}.</strong> {{ctx.Locale.Tr "asc_shell.bk_staged_text" .Status.StagedID}}</div></div>
+		{{end}}
+		{{if .Status.Overdue}}
+		<div class="ds-banner ds-banner-err" role="status" data-testid="asc-backups-overdue"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.bk_overdue"}}</div></div>
+		{{end}}
+
+		<div class="ds-grid-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.bk_status"}}">
+			{{template "shared/ds/stat" (dict "Label" (ctx.Locale.Tr "asc_shell.bk_last_ok") "Value" (or (and (not .Status.LastSuccess.IsZero) (DateUtils.TimeSince .Status.LastSuccess)) (ctx.Locale.Tr "asc_shell.bk_never")))}}
+			{{template "shared/ds/stat" (dict "Label" (ctx.Locale.Tr "asc_shell.bk_last_fail") "Value" (or (and (not .Status.LastFailure.IsZero) (DateUtils.TimeSince .Status.LastFailure)) (ctx.Locale.Tr "asc_shell.bk_never")))}}
+			{{template "shared/ds/stat" (dict "Label" (ctx.Locale.Tr "asc_shell.bk_next") "Value" (or (and (not .Schedule.NextRun.IsZero) (DateUtils.AbsoluteShort .Schedule.NextRun)) (ctx.Locale.Tr "asc_shell.bk_off")))}}
+		</div>
+
+		<form class="ds-card ds-form" method="post" action="{{$.AscBackups.Base}}/run" data-testid="asc-backups-run">
+			{{$.CsrfTokenHtml}}
+			<input type="hidden" name="op" value="{{$.AscBackups.RunOp}}">
+			<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_shell.bk_run_title"}}</h2></div>
+			<div class="ds-card-b ds-row ds-wrap">
+				<div class="ds-field">
+					<label class="ds-label" for="bk-run-target">{{ctx.Locale.Tr "asc_shell.bk_target"}}</label>
+					<select id="bk-run-target" class="ds-select" name="target">
+						<option value="">{{ctx.Locale.Tr "asc_shell.bk_target_schedule"}}</option>
+						{{range .Targets}}<option value="{{.Name}}">{{.Name}} ({{.Location}})</option>{{end}}
+					</select>
+				</div>
+				<button class="ds-btn ds-btn-primary" type="submit"{{if .Status.Running}} disabled aria-disabled="true"{{end}}>{{ctx.Locale.Tr "asc_shell.bk_run"}}</button>
+				{{if .Status.Running}}<span class="ds-hint" role="status">{{ctx.Locale.Tr "asc_shell.bk_running"}}</span>{{end}}
+			</div>
+		</form>
+
+		<form class="ds-card ds-form" method="post" action="{{$.AscBackups.Base}}/schedule" data-testid="asc-backups-schedule">
+			{{$.CsrfTokenHtml}}
+			<input type="hidden" name="op" value="{{$.AscBackups.ScheduleOp}}">
+			<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_shell.bk_schedule"}}</h2></div>
+			<div class="ds-card-b ds-stack-16">
+				<label class="ds-switch wk-switch-row">
+					<input type="checkbox" role="switch" name="enabled" value="1"{{if .Schedule.Enabled}} checked{{end}}>
+					<span class="ds-switch-track"></span>
+					<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_shell.bk_enabled"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_shell.bk_enabled_hint"}}</span></span>
+				</label>
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field">
+						<label class="ds-label" for="bk-interval">{{ctx.Locale.Tr "asc_shell.bk_interval"}}</label>
+						<input id="bk-interval" class="ds-input" name="interval_hours" type="number" min="1" max="168" inputmode="numeric" value="{{.Schedule.IntervalH}}" required>
+						<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.bk_interval_hint"}}</p>
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="bk-time">{{ctx.Locale.Tr "asc_shell.bk_time"}}</label>
+						<input id="bk-time" class="ds-input" name="time" type="time" value="{{.Schedule.TimeOfDay}}" required>
+						<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.bk_time_hint"}}</p>
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="bk-target">{{ctx.Locale.Tr "asc_shell.bk_target"}}</label>
+						<select id="bk-target" class="ds-select" name="target" required>
+							{{$cur := .Schedule.Target}}
+							{{range .Targets}}<option value="{{.Name}}"{{if eq .Name $cur}} selected{{end}}>{{.Name}} ({{.Location}})</option>{{end}}
+						</select>
+					</div>
+				</div>
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field">
+						<label class="ds-label" for="bk-days">{{ctx.Locale.Tr "asc_shell.bk_keep_days"}}</label>
+						<input id="bk-days" class="ds-input" name="keep_days" type="number" min="1" max="3650" inputmode="numeric" value="{{.Schedule.KeepDays}}" required>
+						<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.bk_keep_days_hint"}}</p>
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="bk-weeks">{{ctx.Locale.Tr "asc_shell.bk_keep_weeks"}}</label>
+						<input id="bk-weeks" class="ds-input" name="keep_weeks" type="number" min="0" max="520" inputmode="numeric" value="{{.Schedule.KeepWeeks}}" required>
+						<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.bk_keep_weeks_hint"}}</p>
+					</div>
+				</div>
+				<label class="ds-switch wk-switch-row">
+					<input type="checkbox" role="switch" name="include_objects" value="1"{{if .Schedule.IncludeObj}} checked{{end}}>
+					<span class="ds-switch-track"></span>
+					<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_shell.bk_objects"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_shell.bk_objects_hint"}}</span></span>
+				</label>
+				<label class="ds-switch wk-switch-row">
+					<input type="checkbox" role="switch" name="include_vault_key" value="1"{{if .Schedule.IncludeVault}} checked{{end}}>
+					<span class="ds-switch-track"></span>
+					<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_shell.bk_vault"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_shell.bk_vault_hint"}}</span></span>
+				</label>
+				<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
+			</div>
+		</form>
+
+		<section class="ds-card" aria-labelledby="asc-bk-history">
+			<div class="ds-card-h"><h2 id="asc-bk-history">{{ctx.Locale.Tr "asc_shell.bk_history"}}</h2></div>
+			{{if .Backups}}
+			<div class="ds-table-wrap">
+				<table class="ds-table ds-table-stack" data-testid="asc-backups-history">
+					<thead><tr>
+						<th scope="col">{{ctx.Locale.Tr "asc_shell.bk_col_started"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_shell.bk_col_result"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_shell.bk_col_target"}}</th>
+						<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.bk_col_size"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_shell.bk_col_check"}}</th>
+						<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.col_actions"}}</span></th>
+					</tr></thead>
+					<tbody>
+					{{range .Backups}}
+						<tr data-state="{{.State}}">
+							<th scope="row" data-label="{{ctx.Locale.Tr "asc_shell.bk_col_started"}}">{{DateUtils.AbsoluteShort .Started}}<div class="ds-hint">{{if eq .Trigger "schedule"}}{{ctx.Locale.Tr "asc_shell.bk_by_schedule"}}{{else if .Actor}}{{ctx.Locale.Tr "asc_shell.bk_by_person" .Actor}}{{else}}{{ctx.Locale.Tr "asc_shell.bk_by_hand"}}{{end}}</div></th>
+							<td data-label="{{ctx.Locale.Tr "asc_shell.bk_col_result"}}">
+								<span class="ds-chip {{if eq .State "succeeded"}}ds-chip-ok{{else if eq .State "failed"}}ds-chip-err{{end}}">{{if eq .State "succeeded"}}{{ctx.Locale.Tr "asc_shell.bk_ok"}}{{else if eq .State "failed"}}{{ctx.Locale.Tr "asc_shell.bk_failed"}}{{else}}{{ctx.Locale.Tr "asc_shell.bk_in_progress"}}{{end}}</span>
+								{{if and (eq .State "running") .TotalBytes}}<progress class="ds-bar" max="100" value="{{.ProgressPct}}" aria-label="{{ctx.Locale.Tr "asc_shell.bk_progress"}}">{{.ProgressPct}}%</progress>{{end}}
+								{{if .Note}}<div class="ds-hint ds-break">{{.Note}}</div>{{end}}
+							</td>
+							<td data-label="{{ctx.Locale.Tr "asc_shell.bk_col_target"}}">{{.Target}}{{if .Encrypted}} <span class="ds-chip">{{ctx.Locale.Tr "asc_shell.bk_encrypted"}}</span>{{end}}</td>
+							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.bk_col_size"}}">{{.SizeText}}</td>
+							<td data-label="{{ctx.Locale.Tr "asc_shell.bk_col_check"}}"><span class="ds-chip {{if eq .Verify "verified"}}ds-chip-ok{{else if eq .Verify "failed"}}ds-chip-err{{end}}">{{if eq .Verify "verified"}}{{ctx.Locale.Tr "asc_shell.bk_verified"}}{{else if eq .Verify "failed"}}{{ctx.Locale.Tr "asc_shell.bk_verify_failed"}}{{else if eq .Verify "running"}}{{ctx.Locale.Tr "asc_shell.bk_verifying"}}{{else}}{{ctx.Locale.Tr "asc_shell.bk_not_verified"}}{{end}}</span></td>
+							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_admin.col_actions"}}">
+								<div class="ds-row ds-wrap">
+								{{if .CanVerify}}
+								<form method="post" action="{{$.AscBackups.Base}}/{{.ID}}/verify">
+									{{$.CsrfTokenHtml}}
+									<input type="hidden" name="op" value="{{index $.AscBackups.VerifyOps .ID}}">
+									<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit" aria-label="{{ctx.Locale.Tr "asc_shell.bk_verify_for" (DateUtils.AbsoluteShort .Started)}}">{{ctx.Locale.Tr "asc_shell.bk_verify"}}</button>
+								</form>
+								{{end}}
+								{{if .Restorable}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.AscBackups.Base}}/{{.ID}}/restore" aria-label="{{ctx.Locale.Tr "asc_shell.bk_restore_for" (DateUtils.AbsoluteShort .Started)}}">{{ctx.Locale.Tr "asc_shell.bk_restore"}}</a>{{end}}
+								</div>
+							</td>
+						</tr>
+					{{end}}
+					</tbody>
+				</table>
+			</div>
+			{{else}}
+			<div class="ds-card-b"><p class="ds-hint" data-testid="asc-backups-empty">{{ctx.Locale.Tr "asc_shell.bk_none"}}</p></div>
+			{{end}}
+		</section>
+	{{end}}
+	{{end}}
+</section>
+{{end}}

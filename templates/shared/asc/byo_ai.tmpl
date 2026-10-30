@@ -78,6 +78,8 @@
 			{{end}}
 		</section>
 
+		{{template "shared/asc/byo_ai_shared" .}}
+
 		<section class="asc-byo-card" aria-labelledby="asc-add-h">
 			<h3 id="asc-add-h">{{ctx.Locale.Tr "ascbyo.ai.add_title"}}</h3>
 			<form class="asc-byo-form" method="post" action="{{$a.AIURL}}/keys" autocomplete="off" data-testid="asc-add-key">

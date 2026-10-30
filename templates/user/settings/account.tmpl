@@ -143,12 +143,22 @@
 					{{if .UserDeleteWithComments}}<b>{{ctx.Locale.Tr "settings.delete_with_all_comments" .UserDeleteWithCommentsMaxTime}}</b>{{end}}
 				</div>
 			</div>
+			{{if .DeleteBlockedByRepos}}
+			<div class="ds-banner ds-banner-warn" role="status" data-testid="delete-blocked">
+				<span aria-hidden="true">{{svg "dsi-alert" 18}}</span>
+				<div class="ds-banner-body">{{ctx.Locale.Tr "settings.delete_blocked" .DeleteBlockedByRepos}} <a href="{{AppSubUrl}}/user/settings/repos">{{ctx.Locale.Tr "settings.delete_blocked_link"}}</a></div>
+			</div>
+			{{end}}
+			<div class="required field ds-field {{if .Err_UsernameConfirm}}error{{end}}">
+				<label class="ds-label" for="username-confirmation">{{ctx.Locale.Tr "settings.delete_type_username" .SignedUser.Name}}</label>
+				<input id="username-confirmation" class="ds-input{{if .Err_UsernameConfirm}} is-err{{end}}" name="username_confirm" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" required{{if .DeleteBlockedByRepos}} disabled{{end}}>
+			</div>
 			<div class="required field ds-field {{if .Err_Password}}error{{end}}">
 				<label class="ds-label" for="password-confirmation">{{ctx.Locale.Tr "password"}}</label>
 				<input id="password-confirmation" class="ds-input{{if .Err_Password}} is-err{{end}}" name="password" type="password" autocomplete="off" required>
 			</div>
 			<div>
-				<button type="button" class="ds-btn ds-btn-danger-fill delete-button" data-modal-id="delete-account" data-type="form" data-form="#delete-form">{{ctx.Locale.Tr "settings.confirm_delete_account"}}</button>
+				<button type="button" class="ds-btn ds-btn-danger-fill delete-button" data-modal-id="delete-account" data-type="form" data-form="#delete-form"{{if .DeleteBlockedByRepos}} disabled aria-disabled="true"{{end}}>{{ctx.Locale.Tr "settings.confirm_delete_account"}}</button>
 			</div>
 		</form>
 		<div class="ui g-modal-confirm delete modal" id="delete-account">

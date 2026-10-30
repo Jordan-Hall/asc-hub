@@ -1,0 +1,54 @@
+{{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main organization settings asc-trust-page wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_shell.om_title") "Lead" (ctx.Locale.Tr "asc_shell.om_lead"))}}
+<div class="wk-sp">
+{{with .AscOrgMerge}}
+<div class="ds-stack-16" data-testid="asc-org-merge">
+	{{if .Unsupported}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-org-merge-unsupported"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.oa_unsupported"}}</div></div>
+	{{else if .Problem}}
+		<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-org-merge-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Problem}}</div></div>
+	{{else}}
+		{{with .Settings}}{{with .Merge}}
+		<form class="ds-card ds-form" method="post" action="{{$.AscOrgMerge.Base}}">
+			{{$.CsrfTokenHtml}}
+			<input type="hidden" name="op" value="{{$.AscOrgMerge.Op}}">
+			<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_shell.om_requirements"}}</h2>{{if not .Set}}<span class="ds-card-sub" data-testid="asc-org-merge-unset">{{ctx.Locale.Tr "asc_shell.om_unset"}}</span>{{end}}</div>
+			<div class="ds-card-b ds-stack-16">
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field">
+						<label class="ds-label" for="om-approvals">{{ctx.Locale.Tr "asc_shell.om_approvals"}}</label>
+						<input id="om-approvals" class="ds-input" name="require_approvals" type="number" min="0" max="20" inputmode="numeric" value="{{.RequireApprovals}}">
+						<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.om_approvals_hint"}}</p>
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="om-strategy">{{ctx.Locale.Tr "asc_shell.om_strategy"}}</label>
+						<select id="om-strategy" class="ds-select" name="strategy">
+							{{$current := .Strategy}}
+							{{range $.AscOrgMerge.Strategies}}<option value="{{.}}"{{if eq . $current}} selected{{end}}>{{if eq . ""}}{{ctx.Locale.Tr "asc_shell.om_strategy_repo"}}{{else if eq . "rebase"}}{{ctx.Locale.Tr "asc_shell.om_strategy_rebase"}}{{else if eq . "rebase-disjoint"}}{{ctx.Locale.Tr "asc_shell.om_strategy_disjoint"}}{{else}}{{ctx.Locale.Tr "asc_shell.om_strategy_ff"}}{{end}}</option>{{end}}
+						</select>
+						<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.om_strategy_hint"}}</p>
+					</div>
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="om-checks">{{ctx.Locale.Tr "asc_shell.om_checks"}}</label>
+					<textarea id="om-checks" class="ds-textarea ds-mono" name="require_checks" rows="4" spellcheck="false" autocomplete="off">{{.ChecksText}}</textarea>
+					<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.om_checks_hint"}}</p>
+				</div>
+				<fieldset class="ds-fieldset ds-stack-12">
+					<legend class="ds-label">{{ctx.Locale.Tr "asc_shell.om_switches"}}</legend>
+					{{template "org/asc_merge_switch" (dict "Name" "require_signed" "On" .RequireSigned "Label" (ctx.Locale.Tr "asc_shell.om_signed") "Hint" (ctx.Locale.Tr "asc_shell.om_signed_hint"))}}
+					{{template "org/asc_merge_switch" (dict "Name" "human_approval" "On" .HumanApproval "Label" (ctx.Locale.Tr "asc_shell.om_human") "Hint" (ctx.Locale.Tr "asc_shell.om_human_hint"))}}
+					{{template "org/asc_merge_switch" (dict "Name" "author_may_approve" "On" .AuthorMayApprove "Label" (ctx.Locale.Tr "asc_shell.om_author") "Hint" (ctx.Locale.Tr "asc_shell.om_author_hint"))}}
+					{{template "org/asc_merge_switch" (dict "Name" "queue" "On" .Queue "Label" (ctx.Locale.Tr "asc_shell.om_queue") "Hint" (ctx.Locale.Tr "asc_shell.om_queue_hint"))}}
+					{{template "org/asc_merge_switch" (dict "Name" "revalidate" "On" .Revalidate "Label" (ctx.Locale.Tr "asc_shell.om_revalidate") "Hint" (ctx.Locale.Tr "asc_shell.om_revalidate_hint"))}}
+					{{template "org/asc_merge_switch" (dict "Name" "allow_force" "On" .AllowForce "Label" (ctx.Locale.Tr "asc_shell.om_force") "Hint" (ctx.Locale.Tr "asc_shell.om_force_hint"))}}
+				</fieldset>
+				<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
+			</div>
+		</form>
+		{{end}}{{end}}
+	{{end}}
+</div>
+{{end}}
+</div>
+{{template "org/settings/layout_footer" .}}
