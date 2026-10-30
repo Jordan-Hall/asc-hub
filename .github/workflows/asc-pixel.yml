@@ -1,0 +1,69 @@
+name: asc-pixel
+# Pixel comparison of the approved design boards (the .dc.html files of the design project) and the live hub:
+# `npm run test:pixel` builds nothing itself; it starts a throw-away hub, seeds it, photographs board and hub at
+# the same viewport and theme and writes a ranked report (tests/pixel/README.md). It never blocks a merge:
+# the job is allowed to fail and the report is uploaded as an artifact.
+#
+# The boards are not in this repository. Give the job a checkout of them through the repository variable
+# PIXEL_BOARDS_REPO (owner/name) and the optional PIXEL_BOARDS_PATH (default design/project-v3), and the secret
+# PIXEL_BOARDS_TOKEN when that repository is private. Without PIXEL_BOARDS_REPO the job does nothing.
+on:
+  push:
+    branches: [asc/v16]
+  schedule:
+    - cron: "43 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: asc-pixel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pixel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    continue-on-error: true # non-blocking by design
+    if: ${{ vars.PIXEL_BOARDS_REPO != '' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: ${{ vars.PIXEL_BOARDS_REPO }}
+          token: ${{ secrets.PIXEL_BOARDS_TOKEN || github.token }}
+          path: pixel-boards
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies and the browser
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Build the hub (assets and binary)
+        run: bash tests/pixel/build-hub.sh
+      - name: Compare the boards with the hub
+        env:
+          PIXEL_BOARDS_DIR: ${{ github.workspace }}/pixel-boards/${{ vars.PIXEL_BOARDS_PATH || 'design/project-v3' }}
+          PIXEL_REPORT_DIR: ${{ github.workspace }}/pixel-report
+          PIXEL_HUB_BIN: ${{ github.workspace }}/tests/pixel/.bin/hub
+          PIXEL_RUN: ${{ runner.temp }}/pixel-run
+        run: npm run test:pixel
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f pixel-report/results.json ]; then
+            node -e "const d=require('./pixel-report/results.json');const t=d.results.slice(0,15).map(r=>'| '+r.board+' '+r.theme+' | '+(r.mismatch*100).toFixed(1)+'% | '+(r.top||[])[0]+' |').join('\n');console.log('| Screen | Mismatch | Largest difference |\n|---|---|---|\n'+t)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: asc-pixel-report
+          path: pixel-report
+          if-no-files-found: ignore
