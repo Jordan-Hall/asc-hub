@@ -134,6 +134,8 @@ func NewFuncMap() template.FuncMap {
 		"AscEnabled": func() bool { // the asc integration is on: the inbox, stacks and the cross repository search exist
 			return setting.Asc.Enabled
 		},
+		// AscTrashDays: how long a deleted repository can be restored.
+		"AscTrashDays": func() int { return setting.AscTrashDays },
 		"AscDownloadAvailable": func() bool { // the hub has an asc download page: a valid local release, or a GitHub repository to read
 			if setting.Asc.DownloadDir == "" && setting.Asc.ReleaseRepo != "" {
 				return true // /download says "no release yet" when GitHub has none; it never links to a dead file
