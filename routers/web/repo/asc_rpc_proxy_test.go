@@ -46,7 +46,7 @@ const ascRPCTestToken = "internal-token-for-the-test"
 // served by accident and cannot be forgotten either. The Workspace service is IPC only and
 // refused as a whole.
 var ascRPCTestDenied = map[string]string{
-	"asc.v1.Changes/RequestMerge": "writes", "asc.v1.Changes/RestackChanges": "writes", "asc.v1.Changes/SetReviewState": "writes",
+	"asc.v1.Changes/AmendChange": "writes", "asc.v1.Changes/RequestMerge": "writes", "asc.v1.Changes/RestackChanges": "writes", "asc.v1.Changes/SetReviewState": "writes",
 	"asc.v1.Cloud/GetWorkspace": "selected by owner and name, not by repository permission", "asc.v1.Cloud/ListWorkspaces": "same",
 	"asc.v1.Cloud/Purge": "writes", "asc.v1.Cloud/UpdateWorkspace": "writes",
 	"asc.v1.Projects/ProjectHashes": "not used by the islands",

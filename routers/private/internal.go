@@ -83,6 +83,7 @@ func Routes() *web.Route {
 	r.Post("/asc/request-merge", AscRequestMerge)
 	r.Post("/asc/request-merge/{owner}/{repo}", AscRequestMerge)
 	r.Post("/asc/event", AscEvent)
+	r.Post("/asc/agent-run-finished", AscRunFinished)
 	r.Post("/asc/agent-profile", AscAgentProfile)
 	r.Post("/restore_repo", RestoreRepo)
 	r.Post("/actions/generate_actions_runner_token", GenerateActionsRunnerToken)
