@@ -66,12 +66,12 @@ type ascGateStats struct {
 	Days        []ascGateDay
 	// SparkChecked, SparkFirst and SparkHeld are the points of the small lines of the stat cards, one point to a day.
 	SparkChecked, SparkFirst, SparkHeld string
-	Rules       []ascGateRuleCount
-	Overrides   []ascGateOverride
-	Active      uint32
-	Truncated   bool
-	CanOverride bool
-	OverrideURL string
+	Rules                               []ascGateRuleCount
+	Overrides                           []ascGateOverride
+	Active                              uint32
+	Truncated                           bool
+	CanOverride                         bool
+	OverrideURL                         string
 }
 
 func ascGateStatsOf(r *ascv1.GetGateStatsResponse) ascGateStats {

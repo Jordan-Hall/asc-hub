@@ -275,18 +275,18 @@ func AscAgents(ctx *context.Context) {
 
 // ascAgentForm is the task form as typed, shown again on an error.
 type ascAgentForm struct {
-	Title   string
-	Task    string
-	Agent   string
-	Target  string
-	Key     string
-	Model   string
-	Paths   string
+	Title     string
+	Task      string
+	Agent     string
+	Target    string
+	Key       string
+	Model     string
+	Paths     string
 	PlanFirst bool
-	Budget  ascagentui.BudgetInput
-	OpID    string
-	Errors  map[string]string
-	Summary string
+	Budget    ascagentui.BudgetInput
+	OpID      string
+	Errors    map[string]string
+	Summary   string
 }
 
 // ascAgentKeyOption is one AI key in the picker. The key itself never reaches the hub: asc answers with a label,
@@ -502,15 +502,15 @@ func AscAgentsCreate(ctx *context.Context) {
 	}
 	ascAgentsLimitBody(ctx)
 	form := ascAgentForm{
-		Title:  ctx.FormString("title"),
-		Task:   ctx.FormString("task"),
-		Agent:  ctx.FormTrim("agent"),
-		Target: ctx.FormTrim("target"),
-		Key:    ctx.FormTrim("key"),
-		Model:  ctx.FormTrim("model"),
-		Paths:  ctx.FormString("paths"),
+		Title:     ctx.FormString("title"),
+		Task:      ctx.FormString("task"),
+		Agent:     ctx.FormTrim("agent"),
+		Target:    ctx.FormTrim("target"),
+		Key:       ctx.FormTrim("key"),
+		Model:     ctx.FormTrim("model"),
+		Paths:     ctx.FormString("paths"),
 		PlanFirst: ctx.FormBool("plan_first"),
-		OpID:   ctx.FormTrim("op"),
+		OpID:      ctx.FormTrim("op"),
 		Budget: ascagentui.BudgetInput{
 			Changes: ctx.FormTrim(ascagentui.BudgetFields.Changes),
 			Tokens:  ctx.FormTrim(ascagentui.BudgetFields.Tokens),

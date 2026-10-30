@@ -160,7 +160,9 @@ func TestPolicyEditRefusesWhatCannotBeProposed(t *testing.T) {
 		require.ErrorAs(t, proposePolicyEdit(t.Context(), repo, person, opts), &refused)
 		return refused.Reason
 	}
-	good := func() *files_service.ChangeRepoFilesOptions { return policyEdit(".asc/policy.toml", boardPolicyText+"\n# x\n") }
+	good := func() *files_service.ChangeRepoFilesOptions {
+		return policyEdit(".asc/policy.toml", boardPolicyText+"\n# x\n")
+	}
 
 	t.Run("a delete", func(t *testing.T) {
 		opts := policyEdit(".asc/policy.toml", "")

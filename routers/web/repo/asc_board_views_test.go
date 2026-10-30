@@ -16,7 +16,7 @@ import (
 func TestAscGateStatsOf(t *testing.T) {
 	s := ascGateStatsOf(&ascv1.GetGateStatsResponse{
 		Checked: 40, PassedFirstTime: 30, Held: 10, HeldOpen: 2, HeldCleared: 8, MedianClearSeconds: 600, OverridesActive: 1,
-		PerDay: []*ascv1.GateDay{{Day: "2026-10-01", Checked: 10, Held: 2}, {Day: "garbage", Checked: 99}, {Day: "2026-10-02", Checked: 5, Held: 5}},
+		PerDay:  []*ascv1.GateDay{{Day: "2026-10-01", Checked: 10, Held: 2}, {Day: "garbage", Checked: 99}, {Day: "2026-10-02", Checked: 5, Held: 5}},
 		PerRule: []*ascv1.GateRuleCount{{Rule: "two approvals\x1b[31m", Checked: 40, Held: 7}, {Rule: ""}},
 	})
 	assert.Equal(t, 75, s.FirstPct)

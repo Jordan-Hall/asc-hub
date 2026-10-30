@@ -230,3 +230,25 @@
   border: 1px solid var(--line-2);
   border-radius: 8px;
 }
+
+/* On a phone the decision of an approval step stays above the tab bar: Decline on the left, Approve on the right. */
+@media (max-width: 639.98px) {
+  .rv-sticky-inline {
+    position: sticky;
+    bottom: var(--rv-bottom-bar);
+    z-index: 5;
+    flex-wrap: nowrap;
+    margin: 12px -12px 0;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+
+  .rv-sticky-inline > * {
+    flex: 1 1 0;
+  }
+
+  .rv-sticky-inline > .rv-btn-danger {
+    order: -1;
+  }
+}

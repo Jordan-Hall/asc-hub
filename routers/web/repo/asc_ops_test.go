@@ -295,7 +295,9 @@ func TestAscOpsUndoBadInputAndServerRefusals(t *testing.T) {
 func TestAscOpsOffersTheRedoOfAnUndo(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 	f := startFakeTrust(t, asctrust.FeatureStacks)
-	f.listRefLog = func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) { return &ascv1.ListRefLogResponse{}, nil }
+	f.listRefLog = func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) {
+		return &ascv1.ListRefLogResponse{}, nil
+	}
 	page := opsGet(t, "/user2/repo1/asc/ops?redo=12&redo_ref=refs%2Fheads%2Fmain", 2, perm_model.AccessModeWrite, AscOps)
 	require.Equal(t, http.StatusOK, page.status, page.body)
 	assert.Contains(t, page.body, "asc-ops-redo")

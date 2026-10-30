@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	tplConfig         base.TplName = "admin/config"
+	tplConfig base.TplName = "admin/config"
 )
 
 // SendTestMail send test mail to confirm mail service is OK
