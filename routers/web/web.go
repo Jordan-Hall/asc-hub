@@ -1803,6 +1803,7 @@ func registerRoutes(m *web.Route) {
 			m.Post("/cancel_auto_merge", context.RepoMustNotBeArchived(), repo.CancelAutoMergePullRequest)
 			m.Post("/update", repo.UpdatePullRequest)
 			m.Post("/asc/restore_version", reqSignIn, context.RepoMustNotBeArchived(), repo.AscRestoreVersion)
+			m.Post("/asc/apply_suggestion", reqSignIn, context.RepoMustNotBeArchived(), repo.AscApplySuggestion)
 			m.Post("/asc/brief", reqSignIn, context.RepoMustNotBeArchived(), repo.AscSetBrief)
 			m.Post("/asc/reviewer", reqSignIn, context.RepoMustNotBeArchived(), repo.AscRequestSuggestedReviewer)
 			m.Group("/asc", func() {

@@ -82,3 +82,7 @@ flag is dropped.
   the Git import form, a mirror, or a SHA256 repository is a git-stored repository and shows the git clone panel.
 - "Use with git" is shown for every asc repository. With `[asc] BRIDGE = off` the git routes refuse access, so the
   tab's command would fail; the page does not know the bridge setting.
+
+## Suggested changes ("Apply as vN")
+
+A reviewer's suggestion on lines of an asc thread (`Review.AddComment.suggestion`) is listed on the conversation page of a stacked change (`templates/repo/pulls/asc_suggestions.tmpl`). "Apply as vN" (the poster, an owner or administrator, or a writer when the pull request allows maintainer edits; the pull request open and at its newest version) does, in `services/pull/asc_suggestion.go`: `Review.PrepareSuggestion` as the person, `Changes.AmendChange` with the hub's credential (the next version of the change, the person as committer, `refs/pull/<n>/head` moved only while it still points at the newest version), the move of the pull head in the hub's repository if asc's own post-receive has not made it, the follow-up of a push (stack base, conflict check, stale reviews, push comment), and `Review.MarkSuggestionApplied` as the person. A suggestion that no longer fits, or a pull request that moved first, is refused with the reason and nothing is written.
