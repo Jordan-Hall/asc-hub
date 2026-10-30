@@ -37,6 +37,9 @@ func CheckPayloadURL(raw string) error {
 	}
 	host := u.Hostname()
 	ip := net.ParseIP(host)
+	if host == "localhost" {
+		ip = net.IPv4(127, 0, 0, 1) // the name resolves to loopback; the list is checked as for that address
+	}
 	local := host == "localhost" || (ip != nil && (ip.IsLoopback() || ip.IsPrivate()))
 	if !local {
 		return ErrPayloadURLNotHTTPS
