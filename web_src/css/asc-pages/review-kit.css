@@ -1787,3 +1787,10 @@ a.rv-btn.rv-btn-primary:hover {
     display: none;
   }
 }
+
+/* The count in the active chip is full strength: at .85 it falls under 4.5:1 on the dark fill. */
+.rv-chip-btn[aria-current] .rv-count,
+.rv-chip-btn[aria-pressed="true"] .rv-count,
+.rv-chip-btn.is-on .rv-count {
+  opacity: 1;
+}
