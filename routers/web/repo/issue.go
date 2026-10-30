@@ -814,6 +814,7 @@ func RetrieveRepoReviewers(ctx *context.Context, repo *repo_model.Repository, is
 		}
 
 		ctx.Data["Reviewers"] = reviewersResult
+		prepareAscSuggestedReviewers(ctx, issue, reviewersResult)
 	}
 
 	if canChooseReviewer && teamReviewersResult != nil {

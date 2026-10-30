@@ -18,11 +18,11 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 86 |
+| done | 87 |
 | ui-only-missing | 24 |
-| needs-hub-backend | 35 |
-| needs-asc-backend | 2 |
-| needs-both | 26 |
+| needs-hub-backend | 34 |
+| needs-asc-backend | 3 |
+| needs-both | 25 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.

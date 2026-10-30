@@ -38,6 +38,7 @@
 					<td class="lines-escape lines-escape-old">{{if $inlineDiff.EscapeStatus.Escaped}}<button class="toggle-escape-button btn interact-bg" title="{{template "repo/diff/escape_title" dict "diff" $inlineDiff}}"></button>{{end}}</td>
 					<td colspan="6" class="lines-code lines-code-old ">{{/*
 						*/}}{{template "repo/diff/section_code" dict "diff" $inlineDiff}}{{/*
+						*/}}{{if $line.SectionInfo}}{{if $line.SectionInfo.AscContext}}<span class="asc-hunk-ctx" data-testid="asc-hunk-context">{{$line.SectionInfo.AscContext}}</span>{{end}}{{end}}{{/*
 					*/}}</td>
 				{{else if and (eq .GetType 3) $hasmatch}}{{/* DEL */}}
 					{{$match := index $section.Lines $line.Match}}

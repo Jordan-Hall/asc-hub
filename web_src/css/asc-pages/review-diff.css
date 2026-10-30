@@ -1011,3 +1011,15 @@
 .rv-skel-short {
   width: 40%;
 }
+
+/* The definitions around a hunk, from asc's code intelligence (Review.HunkContext), beside git's own hunk header. */
+.asc-hunk-ctx {
+  margin-left: 12px;
+  color: var(--text-2);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+}
+.asc-hunk-ctx::before {
+  content: "in ";
+  color: var(--text-3);
+}

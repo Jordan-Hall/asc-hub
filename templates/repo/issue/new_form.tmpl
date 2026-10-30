@@ -13,6 +13,8 @@
 						{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}}
 							<div class="ds-hint" id="issue_title_hint">{{ctx.Locale.Tr "asc_rp.title_hint"}}</div>
 							<div class="ds-hint" id="issue_title_count" aria-live="polite"></div>
+							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-asc-draft data-url="{{.RepoLink}}/asc/draft_context?base={{.BaseBranch}}&head={{.HeadBranch}}" data-empty="{{ctx.Locale.Tr "asc_review.draft_nothing"}}" data-failed="{{ctx.Locale.Tr "asc_review.draft_failed"}}" data-confirm="{{ctx.Locale.Tr "asc_review.draft_replace"}}">{{ctx.Locale.Tr "asc_review.draft_button"}}</button>
+							<span class="ds-hint" data-asc-draft-note aria-live="polite"></span>
 						{{end}}
 						{{if .PageIsComparePull}}
 							<div class="title_wip_desc" data-wip-prefixes="{{JsonUtils.EncodeToString .PullRequestWorkInProgressPrefixes}}">{{ctx.Locale.Tr "repo.pulls.title_wip_desc" (index .PullRequestWorkInProgressPrefixes 0)}}</div>

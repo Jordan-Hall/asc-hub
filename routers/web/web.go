@@ -1802,6 +1802,8 @@ func registerRoutes(m *web.Route) {
 			m.Post("/cancel_auto_merge", context.RepoMustNotBeArchived(), repo.CancelAutoMergePullRequest)
 			m.Post("/update", repo.UpdatePullRequest)
 			m.Post("/asc/restore_version", reqSignIn, context.RepoMustNotBeArchived(), repo.AscRestoreVersion)
+			m.Post("/asc/brief", reqSignIn, context.RepoMustNotBeArchived(), repo.AscSetBrief)
+			m.Post("/asc/reviewer", reqSignIn, context.RepoMustNotBeArchived(), repo.AscRequestSuggestedReviewer)
 			m.Group("/asc", func() {
 				m.Get("/confirm", repo.AscConfirm)
 				m.Post("/enqueue", context.RepoMustNotBeArchived(), repo.AscQueueEnqueue)
@@ -1865,6 +1867,7 @@ func registerRoutes(m *web.Route) {
 			m.Get("/asc/search", repo.AscSearch)
 			m.Get("/asc/symbols", repo.AscSymbols)
 			m.Get("/asc/compare", repo.AscCompare)
+			m.Get("/asc/draft_context", reqSignIn, repo.AscDraftContext)
 			registerAscTrustRepoRoutes(m, reqSignIn)
 			m.Get("/commit/{sha:([a-f0-9]{4,64})$}", repo.SetEditorconfigIfExists, repo.SetDiffViewStyle, repo.SetWhitespaceBehavior, repo.Diff)
 			m.Get("/commit/{sha:([a-f0-9]{4,64})$}/load-branches-and-tags", repo.LoadBranchesAndTags)

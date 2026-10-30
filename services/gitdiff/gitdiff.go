@@ -102,6 +102,10 @@ type DiffLineSectionInfo struct {
 	// section is being used as a placeholder at the end of a diff to allow expansion into the remainder of the file.
 	LeftHunkSize  int
 	RightHunkSize int
+
+	// AscContext is the chain of definitions around the hunk as asc's code intelligence knows it ("UserList > @if (...)"),
+	// set for a stacked change of an asc repository; empty otherwise.
+	AscContext string
 }
 
 // BlobExcerptChunkSize represent max lines of excerpt

@@ -261,15 +261,15 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | Stacks | Area sub-navigation Stacks / Merge queue / Policy gate / Operation log | done | `H:templates/repo/asc_stack_nav.tmpl` is used on queue, gate and ops pages; the `/pulls` list does not include it | S |
 | Stacks | Merge queue page with pause and resume | done | `H:routers/web/repo/asc_queue.go`, `asc_queue.tmpl` | S |
-| Stacks | Stack row: avatar, title, stack name, author, change count, +/- size, checks, age, status chip (Needs your review, Queued to merge, Checks failing, Agent writing, Waiting on author), reviewers | needs-hub-backend | `/pulls` renders the Forgejo issue list (`H:templates/repo/issue/list.tmpl`, `shared/issuelist.tmpl`); build a stack-grouped list from stacked pulls (`H:services/pull`, `BuildAscStackPanel`) | L |
-| Stacks | Rail with segments per change and text alternative "Stack of 4 changes"; legend (Landed, Approved ready, Waiting, Agent writing, Draft) | needs-hub-backend | same data as the Repo progress rail; one shared template | M |
-| Stacks | Filters Open / Mine / Agents / Needs me / Closed with counts; sticky filter bar | needs-hub-backend | Needs me = review requested or queue-ready for the viewer; Agents needs an agent flag; `H:routers/web/repo/issue.go` (`Pulls`) | M |
-| Stacks | Sort Newest / Needs attention | needs-hub-backend | attention score from status | S |
-| Stacks | "Your turn" card with jump to the exact change | needs-hub-backend | pulls awaiting the viewer's review or enqueue | M |
+| Stacks | Stack row: avatar, title, stack name, author, change count, +/- size, checks, age, status chip (Needs your review, Queued to merge, Checks failing, Agent writing, Waiting on author), reviewers | done | `/pulls` renders the Forgejo issue list (`H:templates/repo/issue/list.tmpl`, `shared/issuelist.tmpl`); build a stack-grouped list from stacked pulls (`H:services/pull`, `BuildAscStackPanel`); Audit 2026-10-30 (read): built by the repo pages work, templates/repo/stack_row.tmpl and stack_board.tmpl, wired in repo/issue/list.tmpl | L |
+| Stacks | Rail with segments per change and text alternative "Stack of 4 changes"; legend (Landed, Approved ready, Waiting, Agent writing, Draft) | done | same data as the Repo progress rail; one shared template; Audit 2026-10-30 (read): templates/repo/stack_board.tmpl legend and the row rail | M |
+| Stacks | Filters Open / Mine / Agents / Needs me / Closed with counts; sticky filter bar | done | Needs me = review requested or queue-ready for the viewer; Agents needs an agent flag; `H:routers/web/repo/issue.go` (`Pulls`); Audit 2026-10-30 (read): stack_board.tmpl filter group with counts (f_open, f_mine, f_agents, f_needs_me, f_closed) | M |
+| Stacks | Sort Newest / Needs attention | done | attention score from status; Audit 2026-10-30 (read): stack_board.tmpl sort links | S |
+| Stacks | "Your turn" card with jump to the exact change | done | pulls awaiting the viewer's review or enqueue; Audit 2026-10-30 (read): stack_board.tmpl your_turn card with open_change | M |
 | Stacks | "From your terminal" card (`asc stack list`, `asc stack submit`) | done | template | S |
-| Stacks | New stack button | needs-hub-backend | no web create-stack flow; `H:routers/web/repo/pull.go` creates pulls by compare; agents or terminal create stacks | M |
+| Stacks | New stack button | done | no web create-stack flow; `H:routers/web/repo/pull.go` creates pulls by compare; agents or terminal create stacks; Audit 2026-10-30 (read): stacks_new links to the compare page in the empty state and the header | M |
 | Stacks | Keyboard `j`/`k` and Enter | done | list-nav helper | S |
-| Stacks | States: empty (Nothing is in flight, New stack, Open history), skeleton, error with request id | ui-only-missing (empty state done; skeleton and error with request id remain) | list template | S |
+| Stacks | States: empty (Nothing is in flight, New stack, Open history), skeleton, error with request id | done | list template; Audit 2026-10-30 (read): stacks_empty_title, stacks_failed with request id and Try again in stack_board.tmpl | S |
 | Stacks | Row hover slide-in, status chip pulses once on change | ui-only-missing (slide-in done; chip pulse on SSE change remains) | CSS + SSE event (`H:services/ascinbox` / `eventsource.sharedworker.js`) | S |
 | Stacks | Mobile: 44 px rows, chips scroll | done | list template | S |
 
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 130 |
-| ui-only-missing | 61 |
-| needs-hub-backend | 44 |
+| done | 139 |
+| ui-only-missing | 60 |
+| needs-hub-backend | 36 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
 | total | 263 |
