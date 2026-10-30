@@ -952,3 +952,62 @@
   align-items: center;
   min-height: 24px;
 }
+
+/* ---------- files by meaning, the "Your review" card, loading and failure of the diff ---------- */
+.rv-file[hidden] {
+  display: none;
+}
+
+.rv-classbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.rv-classbar-note {
+  font-size: 13px;
+}
+
+.rv-yourreview {
+  margin-bottom: 16px;
+}
+
+.rv-yourlist li {
+  align-items: center;
+}
+
+.rv-yourlist li.is-done::after {
+  content: "\2713";
+  color: var(--ok-dot);
+  font-weight: 700;
+}
+
+.rv-diffstate {
+  display: grid;
+  gap: 12px;
+}
+
+.rv-diffstate[hidden],
+.rv-skel[hidden],
+.rv-diffstate .rv-banner[hidden] {
+  display: none;
+}
+
+.rv-skel {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.rv-skel-bar {
+  height: 14px;
+}
+
+.rv-skel-short {
+  width: 40%;
+}

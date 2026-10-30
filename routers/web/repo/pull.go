@@ -567,6 +567,7 @@ func PrepareViewPullInfo(ctx *context.Context, issue *issues_model.Issue) *git.C
 	if !prepareAscStackPanel(ctx, pull) {
 		return nil
 	}
+	prepareAscTabVersions(ctx, pull)
 	prepareAscBadges(ctx, pull)
 	prepareAscBrief(ctx, pull)
 	prepareAscRunPull(ctx, pull)
@@ -1091,7 +1092,12 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 			ctx.Data["IsShowingAllCommits"] = false
 			ctx.Data["AscVersionFrom"], ctx.Data["AscVersionTo"] = ascView.from, ascView.to
 		} else {
-			ctx.Data["AscFileClassBadges"] = pull_service.AscFileClassBadges(ctx, ctx.Locale, pull)
+			badges := pull_service.AscFileClassBadges(ctx, ctx.Locale, pull)
+			ctx.Data["AscFileClassBadges"] = badges
+			ctx.Data["AscFileClassCounts"] = pull_service.AscFileClassCounts(badges)
+		}
+		if ascVersions != nil {
+			prepareAscPreviousVersion(ctx, ascVersions, ascView)
 		}
 	}
 
@@ -1175,6 +1181,9 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 
 	ctx.Data["Diff"] = diff
 	ctx.Data["DiffNotAvailable"] = diff.NumFiles == 0
+	if ctx.IsSigned && ctx.Data["IsShowingAllCommits"] == true {
+		ctx.Data["AscChangedSince"] = ascChangedSinceCount(diff)
+	}
 
 	baseCommit, err := ctx.Repo.GitRepo.GetCommit(startCommitID)
 	if err != nil {

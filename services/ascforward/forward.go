@@ -84,16 +84,25 @@ const (
 //	Vault       key material
 //	Storage     storage targets of a user or an organisation: set on the hub's settings pages
 //	AiProviders AI provider keys: set on the hub's settings pages
+//	AiKeyShares Sharing of AI keys: set on the hub's settings pages
+//	Backups     Backups of the server: the administrators' pages
+//	DataExport  The export of a person's data: the account page
+//	OrgSettings Settings and agents of an organisation: the organisation's pages
+//	Sessions    The devices a person is signed in on: the account page
+//	Usage       Quota and spend: the account and administration pages
 var services = map[string]bool{
 	"Repo": true, "Changes": true, "Stacks": true, "Review": true, "Cloud": true, "Projects": true, "CodeIntel": true,
 	"CrossSearch": true, "Inbox": true, "MergeQueue": true, "Policy": true, "Workflows": true, "Agents": true,
 	"AgentTokens": true, "Ci": true, "CiInsights": true, "SecretScan": true, "Signing": true, "Audit": true, "DepsService": true,
+	"Insights": true, "Releases": true,
 }
 
 // DeniedServices are the services that are never forwarded, and why.
 var DeniedServices = map[string]string{
 	"Workspace": "local to a machine", "Bridge": "the hub's own", "Vault": "key material",
 	"Storage": "set on the hub's pages", "AiProviders": "set on the hub's pages",
+	"AiKeyShares": "set on the hub's pages", "Backups": "the administrators' pages", "DataExport": "the account page",
+	"OrgSettings": "the organisation's pages", "Sessions": "the account page", "Usage": "the account and administration pages",
 }
 
 // DeniedMethods are the methods of a forwarded service that are not forwarded, and why.
@@ -129,6 +138,8 @@ func lookup(service, method string) (protoreflect.MethodDescriptor, bool) {
 
 // Forwarder is the handler.
 type Forwarder struct {
+	// Gate, when set, may refuse a call before it is forwarded: it returns the reason, or "" to let the call through.
+	Gate     func(r *http.Request, service, method string) string
 	upstream *url.URL
 	proxy    *httputil.ReverseProxy
 	sem      chan struct{}
@@ -254,6 +265,12 @@ func (f *Forwarder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !Allowed(service, method) {
 		refuse(w, codeUnimplemented, "this call is not available through the hub")
 		return
+	}
+	if f.Gate != nil {
+		if reason := f.Gate(r, service, method); reason != "" {
+			refuse(w, codePermissionDenied, reason)
+			return
+		}
 	}
 	md, _ := lookup(service, method)
 	streaming := md.IsStreamingClient() || md.IsStreamingServer()

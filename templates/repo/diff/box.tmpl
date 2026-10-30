@@ -50,6 +50,14 @@
 			{{end}}
 		</div>
 	</div>
+	{{if and .AscFileClassCounts (not .DiffNotAvailable)}}
+	<div class="rv-classbar" role="group" aria-label="{{ctx.Locale.Tr "asc_review.rev_classes_label"}}" data-asc-classbar data-total="{{.Diff.NumFiles}}" data-tpl-one="{{ctx.Locale.Tr "asc_review.rev_classes_shown_one"}}" data-tpl-other="{{ctx.Locale.Tr "asc_review.rev_classes_shown_other"}}" data-testid="asc-classbar">
+		<span class="rv-eyebrow">{{ctx.Locale.Tr "asc_review.rev_classes_label"}}</span>
+		<button type="button" class="rv-chip-btn" data-asc-class="" aria-pressed="true">{{ctx.Locale.Tr "asc_review.rev_classes_all"}} <span class="rv-count">{{.Diff.NumFiles}}</span></button>
+		{{range .AscFileClassCounts}}<button type="button" class="rv-chip-btn" data-asc-class="{{.Label}}" aria-pressed="false">{{.Label}} <span class="rv-count">{{.Count}}</span></button>{{end}}
+		<span class="rv-faint rv-classbar-note" role="status" data-asc-class-status></span>
+	</div>
+	{{end}}
 	{{if not .DiffNotAvailable}}
 		{{if and .IsShowingOnlySingleCommit .PageIsPullFiles}}
 			<div class="rv-banner" role="status">
@@ -114,7 +122,7 @@
 					{{$showFileViewToggle := or $isImage (and (not $file.IsIncomplete) $isCsv)}}
 					{{$isExpandable := or (gt $file.Addition 0) (gt $file.Deletion 0) $file.IsBin}}
 					{{$isReviewFile := and $.IsSigned $.PageIsPullFiles (not $.IsArchived) $.IsShowingAllCommits}}
-					<div class="diff-file-box diff-box file-content rv-file {{TabSizeClass $.Editorconfig $file.Name}}" id="diff-{{$file.NameHash}}" data-old-filename="{{$file.OldName}}" data-new-filename="{{$file.Name}}" {{if or ($file.ShouldBeHidden) (not $isExpandable)}}data-folded="true"{{end}}>
+					<div class="diff-file-box diff-box file-content rv-file {{TabSizeClass $.Editorconfig $file.Name}}" id="diff-{{$file.NameHash}}" data-asc-class="{{if $.AscFileClassBadges}}{{index $.AscFileClassBadges $file.Name}}{{end}}" data-old-filename="{{$file.OldName}}" data-new-filename="{{$file.Name}}" {{if or ($file.ShouldBeHidden) (not $isExpandable)}}data-folded="true"{{end}}>
 						<div class="diff-file-header sticky-2nd-row rv-fhead">
 							<div class="diff-file-name rv-fname">
 								<button class="fold-file rv-btn rv-btn-ghost rv-btn-icon{{if not $isExpandable}} tw-invisible{{end}}" type="button" aria-label="{{ctx.Locale.Tr "repo.diff.toggle_file"}}">
@@ -161,6 +169,9 @@
 								{{end}}
 								{{if $file.IsProtected}}
 									<span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "repo.diff.protected"}}</span>
+								{{end}}
+								{{if and $.AscVersionFrom $.AscVersionTo}}
+									<span class="rv-pill rv-pill-agent unselectable" data-testid="asc-changed-in">{{ctx.Locale.Tr "asc_review.rev_changed_in" $.AscVersionTo}}</span>
 								{{end}}
 								{{if and $isReviewFile $file.HasChangedSinceLastReview}}
 									<span class="changed-since-last-review rv-pill rv-pill-agent unselectable not-mobile">{{ctx.Locale.Tr "repo.pulls.has_changed_since_last_review"}}</span>
@@ -236,6 +247,23 @@
 					</div>
 				{{end}}
 			</div>
+		{{end}}
+		{{if and .PageIsPullFiles (not .DiffNotAvailable)}}
+		<div class="rv-diffstate" data-asc-diff-state>
+			<div class="rv-skel" role="status" data-asc-skeleton hidden>
+				<span class="rv-sr">{{ctx.Locale.Tr "asc_review.rev_diff_loading"}}</span>
+				<span class="ds-sk rv-skel-bar"></span><span class="ds-sk rv-skel-bar"></span><span class="ds-sk rv-skel-bar rv-skel-short"></span>
+			</div>
+			<div class="rv-banner rv-banner-err" role="alert" data-asc-diff-error hidden>
+				<div>
+					<p>{{ctx.Locale.Tr "asc_review.rev_diff_error"}} {{ctx.Locale.Tr "asc_review.rev_diff_saved"}}</p>
+					<div class="rv-acts">
+						<button type="button" class="rv-btn rv-btn-primary rv-btn-sm" data-asc-diff-retry>{{ctx.Locale.Tr "asc_review.rev_diff_retry"}}</button>
+						{{if .AscPrevVersion}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.Issue.Link}}/files?asc_to={{.AscPrevVersion}}" data-testid="asc-diff-prev">{{ctx.Locale.Tr "asc_review.rev_diff_prev"}}</a>{{end}}
+					</div>
+				</div>
+			</div>
+		</div>
 		{{end}}
 		</div>
 	</div>

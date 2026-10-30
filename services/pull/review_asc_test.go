@@ -270,3 +270,11 @@ func TestAscFileClassBadges(t *testing.T) {
 	f.pr.BaseRepo.StorageBackend = "git"
 	assert.Nil(t, AscFileClassBadges(db.DefaultContext, locale, f.pr))
 }
+
+func TestAscFileClassCounts(t *testing.T) {
+	assert.Nil(t, AscFileClassCounts(nil))
+	got := AscFileClassCounts(map[string]string{"a.rs": "Logic", "b.rs": "Logic", "c.md": "Docs", "Cargo.lock": "Lockfile", "d.md": "Docs", "e.rs": "Logic"})
+	assert.Equal(t, []AscClassCount{{"Logic", 3}, {"Docs", 2}, {"Lockfile", 1}}, got, "most files first")
+	tied := AscFileClassCounts(map[string]string{"x": "Test", "y": "Docs"})
+	assert.Equal(t, []AscClassCount{{"Docs", 1}, {"Test", 1}}, tied, "equal counts in alphabetical order")
+}

@@ -23,6 +23,9 @@ Routes: GET and POST /login/device.
 			</p>
 			<p class="ds-device-code" aria-label="{{ctx.Locale.Tr "asc_device.code_label"}}"><code class="ds-mono" id="asc-device-code">{{.DeviceCode}}</code></p>
 			<div class="ds-banner">{{svg "dsi-info" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "asc_device.grants" .SignedUser.Name}} {{ctx.Locale.Tr "asc_device.expires" .DeviceMinutes}}</div></div>
+			<h2 class="ds-t-h3" id="asc-device-scopes">{{ctx.Locale.Tr "asc_device.scopes_title"}}</h2>
+			<ul class="ds-list" aria-labelledby="asc-device-scopes" data-testid="asc-device-scopes">{{range .DeviceScopes}}<li>{{.}}</li>{{end}}</ul>
+			<p class="ds-t-small ds-muted">{{ctx.Locale.Tr "asc_device.token_expires" .DeviceTokenDays}}</p>
 			<div class="ds-auth-actions">
 				<button type="submit" name="action" value="approve" class="ds-btn ds-btn-primary ds-btn-lg">{{ctx.Locale.Tr "asc_device.approve"}}</button>
 				<button type="submit" name="action" value="deny" class="ds-btn ds-btn-secondary ds-btn-lg">{{ctx.Locale.Tr "asc_device.deny"}}</button>
