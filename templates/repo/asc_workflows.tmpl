@@ -17,7 +17,7 @@ Template Attributes:
 				<h1 class="rv-title">{{ctx.Locale.Tr "asc_review.wf_title"}}</h1>
 				<p class="rv-lead">{{ctx.Locale.Tr "asc_review.wf_lead"}} <code>.asc/workflows/</code></p>
 			</div>
-			<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.AscWorkflowsBase}}/runs">{{ctx.Locale.Tr "asc_review.wf_history"}}</a></div>
+			<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.AscWorkflowsBase}}/runs">{{ctx.Locale.Tr "asc_review.wf_history"}}</a>{{if and .CanChangeWorkflows .AscWorkflowNewURL}}<a class="rv-btn rv-btn-primary" href="{{.AscWorkflowNewURL}}" data-testid="asc-workflow-new">{{ctx.Locale.Tr "asc_review.wf_new"}}</a>{{end}}</div>
 		</header>
 		{{template "repo/asc_agents_notice" .}}
 
@@ -76,6 +76,8 @@ Template Attributes:
 									{{$.CsrfTokenHtml}}
 									<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit">{{ctx.Locale.Tr "asc_review.wf_run_now"}}</button>
 								</form>
+								{{else if .Enabled}}
+								<button class="rv-btn rv-btn-secondary rv-btn-sm show-modal" type="button" data-modal="#wf-run-{{.Name}}" data-testid="asc-workflow-run-dialog-open">{{ctx.Locale.Tr "asc_review.wf_run_now"}}</button>
 								{{end}}
 								{{end}}
 								<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.Link}}">{{if .Valid}}{{ctx.Locale.Tr "asc_review.wf_open"}}{{else}}{{ctx.Locale.Tr "asc_review.wf_fix"}}{{end}}</a>
@@ -83,6 +85,30 @@ Template Attributes:
 						</li>
 					{{end}}
 				</ul>
+				{{range .AscWorkflowDefs}}{{if and .Valid .Enabled .Inputs $.CanChangeWorkflows}}{{$dn := .Name}}
+				<dialog id="wf-run-{{.Name}}" data-testid="asc-workflow-run-dialog">
+					<article>
+						<header>{{ctx.Locale.Tr "asc_review.wf_run_dialog" .Name}}</header>
+						<form method="post" action="{{.Link}}/trigger">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="op" value="{{index $.AscWorkflowOps .Name}}">
+							<div class="content rv-form">
+								{{range .Inputs}}
+								<div class="rv-field">
+									<label class="rv-label" for="wf-run-{{$dn}}-{{.Name}}">{{.Name}}{{if .Required}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.required"}}</span>{{end}}</label>
+									<input class="rv-input" id="wf-run-{{$dn}}-{{.Name}}" name="in_{{.Name}}" type="text" maxlength="4096" value="{{.Default}}" autocomplete="off"{{if .Required}} aria-required="true" required{{end}}>
+									{{if .Description}}<small class="rv-hint">{{.Description}}</small>{{end}}
+								</div>
+								{{end}}
+							</div>
+							<div class="actions">
+								<button type="button" class="rv-btn rv-btn-secondary cancel">{{ctx.Locale.Tr "settings.cancel"}}</button>
+								<button type="submit" class="rv-btn rv-btn-primary">{{ctx.Locale.Tr "asc_review.wf_run_button"}}</button>
+							</div>
+						</form>
+					</article>
+				</dialog>
+				{{end}}{{end}}
 				{{if .AscWorkflowSkipped}}<p class="rv-hint rv-gap">{{ctx.Locale.TrN .AscWorkflowSkipped "asc_review.wf_skipped_one" "asc_review.wf_skipped_other" .AscWorkflowSkipped}}</p>{{end}}
 			{{else if not .AscAgentsFailure}}
 				<div class="rv-empty" data-testid="asc-workflow-defs-empty">
@@ -105,7 +131,7 @@ Template Attributes:
 					<div class="rv-card-b">
 						<p class="rv-muted">{{ctx.Locale.Tr "asc_review.wf_secrets_vars_help"}}</p>
 						{{if .AscWorkflowSecretsUsed}}<ul class="rv-plain wf-secret-list">{{range .AscWorkflowSecretsUsed}}<li><code>{{.Name}}</code><span class="rv-faint">{{range $i, $w := .Workflows}}{{if $i}}, {{end}}{{$w}}{{end}}</span></li>{{end}}</ul>{{end}}
-						{{if .CanChangeWorkflows}}<p><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.RepoLink}}/settings/actions/secrets" data-testid="asc-workflows-secrets-manage">{{ctx.Locale.Tr "asc_review.wf_manage_settings"}}</a></p>{{end}}
+						{{if .AscWorkflowSecretsManage}}<p><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.RepoLink}}/settings/asc/workflow-secrets" data-testid="asc-workflows-secrets-manage">{{ctx.Locale.Tr "asc_review.wf_manage_settings"}}</a></p>{{end}}
 					</div>
 				</section>
 				{{if .AscWorkflowAllowed}}

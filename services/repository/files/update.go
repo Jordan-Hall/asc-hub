@@ -219,6 +219,13 @@ func ChangeRepoFiles(ctx context.Context, repo *repo_model.Repository, doer *use
 		}
 	}
 
+	// The policy file of an asc repository is proposed, not committed, when the edit is for the default branch.
+	if AscPolicyEdit != nil && opts.OldBranch == opts.NewBranch {
+		if err := AscPolicyEdit(ctx, repo, doer, opts); err != nil {
+			return nil, err
+		}
+	}
+
 	changes := &fileChanges{gitRepo: gitRepo, base: base, lfsAllowed: repo.LFSAllowed()}
 	for _, file := range opts.Files {
 		switch file.Operation {

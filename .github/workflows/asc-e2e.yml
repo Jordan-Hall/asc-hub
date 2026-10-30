@@ -3,15 +3,8 @@ name: asc-e2e
 # `asc serve` runs against them and the real `asc` and `git` programs make every step through the hub URL
 # (tests/integration/asc_e2e_test.go). It runs on a push to asc/v16, every night, and on demand.
 #
-# Where the asc programs come from (one binary, `asc`, is both the client and the server):
-#   1. The repository secret ASC_REPO_TOKEN, a read-only token for Jordan-Hall/asc (a fine-grained personal
-#      access token with "Contents: Read-only" on that repository only). With it the job checks out asc at
-#      the input asc_ref (default master) and builds it. Ask the owner of Jordan-Hall/asc to create the
-#      token and add it under Settings > Secrets and variables > Actions of this repository.
-#   2. Without the secret, the job copies /usr/local/bin/asc out of the published image
-#      ghcr.io/jordan-hall/asc-serve (the tag of the repository variable ASC_SERVE_IMAGE, else :latest), signed in
-#      with GITHUB_TOKEN (packages: read). That needs the package to grant this repository access (package
-#      settings > Manage Actions access, role Read), as asc-hub-image.yml does.
+# asc (one binary, `asc`, is both the client and the server) is built from the public repository
+# Jordan-Hall/asc at the input asc_ref (default master). No secret is needed.
 on:
   push:
     branches: [asc/v16]
@@ -20,13 +13,12 @@ on:
   workflow_dispatch:
     inputs:
       asc_ref:
-        description: "Ref of Jordan-Hall/asc to build (needs ASC_REPO_TOKEN)"
+        description: "Ref of Jordan-Hall/asc to build"
         required: false
         default: master
 
 permissions:
   contents: read
-  packages: read
 
 concurrency:
   group: asc-e2e-${{ github.ref }}
@@ -36,8 +28,6 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    env:
-      HAS_ASC_TOKEN: ${{ secrets.ASC_REPO_TOKEN != '' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
@@ -45,46 +35,24 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      # 1. Build asc from source.
+      # Build asc from source.
       - name: Check out asc
-        if: env.HAS_ASC_TOKEN == 'true'
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           repository: Jordan-Hall/asc
           ref: ${{ inputs.asc_ref || 'master' }}
-          token: ${{ secrets.ASC_REPO_TOKEN }}
           path: asc-src
       - name: Toolchain of asc (from its rust-toolchain.toml)
-        if: env.HAS_ASC_TOKEN == 'true'
         working-directory: asc-src
         run: rustup show active-toolchain || rustup toolchain install
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-        if: env.HAS_ASC_TOKEN == 'true'
         with:
           workspaces: asc-src
       - name: Build asc
-        if: env.HAS_ASC_TOKEN == 'true'
         working-directory: asc-src
         run: |
           cargo build --locked -p asc
           echo "ASC_BIN=$GITHUB_WORKSPACE/asc-src/target/debug/asc" >> "$GITHUB_ENV"
-
-      # 2. Or take the published binary.
-      - name: Take asc from the published image
-        if: env.HAS_ASC_TOKEN != 'true'
-        env:
-          IMAGE: ${{ vars.ASC_SERVE_IMAGE || 'ghcr.io/jordan-hall/asc-serve:latest' }}
-        run: |
-          set -euo pipefail
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          docker pull "$IMAGE"
-          id="$(docker create "$IMAGE")"
-          mkdir -p "$RUNNER_TEMP/asc-bin"
-          docker cp "$id:/usr/local/bin/asc" "$RUNNER_TEMP/asc-bin/asc"
-          docker rm "$id"
-          chmod +x "$RUNNER_TEMP/asc-bin/asc"
-          "$RUNNER_TEMP/asc-bin/asc" --version
-          echo "ASC_BIN=$RUNNER_TEMP/asc-bin/asc" >> "$GITHUB_ENV"
 
       - name: Run the end-to-end test
         env:

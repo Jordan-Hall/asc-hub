@@ -1,5 +1,7 @@
 // Keyboard help of the signed-in app pages (dashboard, inbox): j and k move through a list of rows, s opens
-// the snooze menu, p pins, on a diff v marks the file you are at as viewed (j and k go from file to file), "g" then "i" goes to the inbox, and a select that carries data-asc-autosubmit sends
+// the snooze menu, p pins, on a diff v marks the file you are at as viewed (j and k go from file to file), a, r and c
+// open the review panel at its approve button, its request-changes button or its comment field (none of them sends
+// anything: Enter on the button does), n goes to the next change of the stack, "g" then "i" goes to the inbox, and a select that carries data-asc-autosubmit sends
 // its form when it changes. Every key is ignored while a field has the focus or a modifier key is held, and
 // every key has a button or link on the page that does the same, so nothing depends on the keyboard.
 
@@ -46,6 +48,43 @@ function toggleViewed() {
   const box = currentFileBox();
   const check = box?.querySelector('.viewed-file-form input[type="checkbox"]');
   if (check) check.click();
+}
+
+// The review panel of a diff is a popover that exists in the page only while it is shown. Opens it when it is not,
+// and returns it; null when the page has no review box or the box is switched off (an archived repository).
+function openReviewPanel() {
+  const button = document.querySelector('#review-box .js-btn-review');
+  if (!button || button.classList.contains('disabled')) return null;
+  const shown = () => {
+    const panel = document.querySelector('.review-box-panel');
+    return panel && panel.getClientRects().length > 0 ? panel : null;
+  };
+  let panel = shown();
+  if (!panel) {
+    button.click();
+    panel = shown() ?? document.querySelector('.review-box-panel');
+  }
+  return panel;
+}
+
+// Opens the review panel and puts the focus on the control for kind: "approve" and "reject" are the submit buttons of
+// the same names, "comment" is the text field. A button that is switched off (the author may not approve their own
+// change) leaves the focus on the text field. Nothing is submitted.
+export function focusReview(kind) {
+  const panel = openReviewPanel();
+  if (!panel) return false;
+  const field = panel.querySelector('textarea[name="content"]');
+  const button = kind === 'comment' ? null : panel.querySelector(`button[name="type"][value="${kind}"]`);
+  const target = button && !button.disabled ? button : field;
+  if (!target) return false;
+  // the popover is placed in the next frame: focus after it, or the page scrolls to where it was
+  requestAnimationFrame(() => target.focus({preventScroll: false}));
+  return true;
+}
+
+// The link of the change after the one on this page, in the stack rail. None on the last change or without a stack.
+export function nextChangeLink() {
+  return document.querySelector('[data-asc-stack] .rv-stn.is-current + .rv-stn .rv-stn-link');
 }
 
 function moveRow(step) {
@@ -103,6 +142,25 @@ export function initAscKeys() {
       case 'v':
         toggleViewed();
         break;
+      case 'a':
+        if (!focusReview('approve')) return;
+        e.preventDefault();
+        break;
+      case 'r':
+        if (!focusReview('reject')) return;
+        e.preventDefault();
+        break;
+      case 'c':
+        if (!focusReview('comment')) return;
+        e.preventDefault();
+        break;
+      case 'n': {
+        const next = nextChangeLink();
+        if (!next) return;
+        e.preventDefault();
+        window.location.assign(next.href);
+        break;
+      }
       case 's': {
         const details = document.querySelector('[data-asc-snooze]');
         if (!details) return;

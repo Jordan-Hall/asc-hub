@@ -1009,3 +1009,27 @@
   width: 100%;
   height: 8px;
 }
+
+/* On a phone the steps stack, one card to a row, with a short vertical connector between them. */
+@media (max-width: 639.98px) {
+  .wf-chain,
+  .wf-flow {
+    flex-direction: column;
+    gap: 14px;
+    overflow: visible;
+  }
+
+  .wf-link,
+  .wf-node {
+    flex: none;
+    min-width: 0;
+  }
+
+  .wf-link + .wf-link::before,
+  .wf-node + .wf-node::before {
+    top: -15px;
+    inset-inline-start: 50%;
+    width: 2px;
+    height: 14px;
+  }
+}
