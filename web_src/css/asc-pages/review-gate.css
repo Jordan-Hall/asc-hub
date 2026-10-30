@@ -326,3 +326,8 @@
     grid-column: 1 / -1;
   }
 }
+
+/* The override form sits in the narrow side column: one field to a row. */
+.rv-side .rv-formgrid-3 {
+  grid-template-columns: 1fr;
+}
