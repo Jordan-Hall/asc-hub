@@ -1,0 +1,22 @@
+{{/*
+The activity timeline of a stacked change.
+Template Attributes:
+* AscActivity: *repo.AscActivity (nil: nothing is shown)
+Names come from the hub's records or a checked answer of asc and are escaped by the Go template.
+*/}}
+{{with .AscActivity}}
+<section class="rv rv-card rv-activity" aria-labelledby="asc-activity-title" data-testid="asc-activity" data-total="{{.Total}}">
+	<div class="rv-card-h"><h2 id="asc-activity-title">{{ctx.Locale.Tr "asc_review.activity_title"}}</h2><span class="rv-muted">{{ctx.Locale.Tr "asc_review.activity_count" .Total}}</span></div>
+	<ol class="rv-activity-list">
+		{{range $i, $e := .Events}}{{if lt $i $.AscActivity.Shown}}{{template "repo/pulls/asc_activity_item" $e}}{{end}}{{end}}
+	</ol>
+	{{if gt .Hidden 0}}
+	<details class="rv-activity-more" data-testid="asc-activity-more">
+		<summary>{{ctx.Locale.Tr "asc_review.activity_show_all" .Total}}</summary>
+		<ol class="rv-activity-list">
+			{{range $i, $e := .Events}}{{if ge $i $.AscActivity.Shown}}{{template "repo/pulls/asc_activity_item" $e}}{{end}}{{end}}
+		</ol>
+	</details>
+	{{end}}
+</section>
+{{end}}
