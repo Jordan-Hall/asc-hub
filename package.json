@@ -4,6 +4,9 @@
   "engines": {
     "node": ">= 20.0.0"
   },
+  "scripts": {
+    "test:pixel": "node tests/pixel/run.mjs"
+  },
   "dependencies": {
     "@citation-js/core": "0.7.21",
     "@citation-js/plugin-bibtex": "0.7.21",
