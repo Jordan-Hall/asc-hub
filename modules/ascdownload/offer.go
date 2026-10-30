@@ -104,7 +104,7 @@ func BuildOffers(m *Manifest, base, hubURL string) *Offers {
 		}
 		return v
 	}
-	for _, osName := range []string{OSWindows, OSMacOS, OSLinux} {
+	for _, osName := range []string{OSMacOS, OSLinux, OSWindows} {
 		offer := OSOffer{OS: osName, Label: osLabels[osName]}
 		for _, arch := range []string{ArchX86_64, ArchArm64} {
 			var files []FileView
