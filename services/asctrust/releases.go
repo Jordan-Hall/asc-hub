@@ -64,6 +64,32 @@ type ReleaseRecord struct {
 	SigningKey   string
 	SignatureOK  bool
 	Assets       map[string]string // asset name -> sha256
+
+	// What a release that exists only in asc (made with `asc release create`) needs to be listed on the hub.
+	Title      string
+	Notes      string
+	Draft      bool
+	Prerelease bool
+	Created    int64
+	Published  int64
+	CreatedBy  string
+	AssetList  []ReleaseAssetInfo
+}
+
+// ReleaseAssetInfo is an asset of a release in asc; URL is https where the file can be downloaded, or "".
+type ReleaseAssetInfo struct {
+	Name   string
+	Size   uint64
+	SHA256 string
+	URL    string
+}
+
+// Time is when the release was published, or created when it is a draft.
+func (r *ReleaseRecord) Time() int64 {
+	if r.Published > 0 {
+		return r.Published
+	}
+	return r.Created
 }
 
 // releaseRecordOf cleans the answer of asc.
@@ -71,7 +97,12 @@ func releaseRecordOf(r *ascv1.Release) *ReleaseRecord {
 	if r == nil || !releaseTagShape.MatchString(r.GetTag()) {
 		return nil
 	}
-	out := &ReleaseRecord{Tag: r.GetTag(), Assets: map[string]string{}}
+	out := &ReleaseRecord{
+		Tag: r.GetTag(), Assets: map[string]string{},
+		Title: CleanText(r.GetTitle(), 200), Notes: CleanBlock(r.GetNotes(), 64<<10),
+		Draft: r.GetDraft(), Prerelease: r.GetChannel() == ascv1.ReleaseChannel_RELEASE_CHANNEL_PRE_RELEASE,
+		Created: r.GetCreated(), Published: r.GetPublished(), CreatedBy: CleanText(r.GetCreatedBy(), 80),
+	}
 	if p := r.GetProvenance(); p != nil {
 		out.BuildRun = CleanText(p.GetBuildRun(), 80)
 		if u, err := url.Parse(p.GetBuildUrl()); err == nil && u.Scheme == "https" && u.Host != "" && u.User == nil {
@@ -89,6 +120,13 @@ func releaseRecordOf(r *ascv1.Release) *ReleaseRecord {
 		}
 		if sum := strings.ToLower(a.GetSha256()); len(sum) == 64 && isHex(sum) && a.GetName() != "" {
 			out.Assets[a.GetName()] = sum
+			info := ReleaseAssetInfo{Name: CleanText(a.GetName(), 200), Size: a.GetSize(), SHA256: sum}
+			if u, err := url.Parse(a.GetUrl()); err == nil && u.Scheme == "https" && u.Host != "" && u.User == nil {
+				info.URL = u.String()
+			}
+			if info.Name != "" && !strings.ContainsAny(info.Name, "/\\") {
+				out.AssetList = append(out.AssetList, info)
+			}
 		}
 	}
 	return out
