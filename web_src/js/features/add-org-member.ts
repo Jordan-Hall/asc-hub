@@ -11,12 +11,6 @@ export function initAddOrgMemberButton() {
         form.reportValidity();
         return false;
       }
-      const selectedTeamCount = document.querySelectorAll('.add-member.form input[type=checkbox]:checked').length;
-      const noTeamSelectedMessage : HTMLElement = document.querySelector('#no-team-selected-message');
-      noTeamSelectedMessage.hidden = (selectedTeamCount !== 0);
-      if (selectedTeamCount === 0) {
-        return false;
-      }
       form.requestSubmit();
     });
     return false;

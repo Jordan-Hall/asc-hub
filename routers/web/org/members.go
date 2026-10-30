@@ -79,6 +79,9 @@ func Members(ctx *context.Context) {
 	if filter == "2fa_off" && !canSee2FA {
 		filter = ""
 	}
+	if filter == "pending" && !ctx.Org.IsOwner {
+		filter = ""
+	}
 	var ownersCount, twoFAOffCount int
 	members := make(user_model.UserList, 0, len(everyone))
 	for _, m := range everyone {
@@ -119,6 +122,37 @@ func Members(ctx *context.Context) {
 		ctx.ServerError("GetTeams", err)
 		return
 	}
+	// the role of each person on this page, read from their teams, and the teams for the second line of the row
+	roles, teamNames := map[int64]string{}, map[int64]string{}
+	for _, m := range members {
+		mt, err := organization.GetUserOrgTeams(ctx, org.ID, m.ID)
+		if err != nil {
+			ctx.ServerError("GetUserOrgTeams", err)
+			return
+		}
+		roles[m.ID], teamNames[m.ID] = roleOfTeams(mt), teamNamesOf(mt)
+	}
+	ctx.Data["RoleChoices"] = []string{roleOwner, roleMaintainer, roleMember}
+	ctx.Data["MembersRole"] = roles
+	ctx.Data["MembersTeams"] = teamNames
+	// what asc knows: the changes each person landed in the last year, and the agents of the organisation
+	if landed := landedByPerson(ctx, org); landed != nil && !opts.PublicOnly() {
+		ctx.Data["MembersLanded"] = landed
+	}
+	if !opts.PublicOnly() {
+		ctx.Data["OrgAgents"] = orgAgents(ctx, org)
+	}
+	// invitations that have not been answered: for the owners, who can resend and revoke them
+	if ctx.Org.IsOwner {
+		invites, err := pendingInvites(ctx, teams)
+		if err != nil {
+			ctx.ServerError("pendingInvites", err)
+			return
+		}
+		ctx.Data["PendingInvites"] = invites
+		ctx.Data["PeopleCountPending"] = len(invites)
+		ctx.Data["ShowPending"] = len(invites) > 0 || setting.Service.AddMembersByInvitations
+	}
 	ctx.Data["Page"] = pager
 	ctx.Data["Members"] = members
 	ctx.Data["Teams"] = teams
@@ -134,6 +168,39 @@ func Members(ctx *context.Context) {
 
 // MembersAction response for operation to a member of organization
 func MembersAction(ctx *context.Context) {
+	// the invitations that have not been answered: resend the mail, or take the invitation back (owners only)
+	if a := ctx.Params(":action"); a == "resend_invite" || a == "revoke_invite" {
+		if !ctx.Org.IsOwner {
+			ctx.Error(http.StatusNotFound)
+			return
+		}
+		back := ctx.Org.OrgLink + "/members?filter=pending"
+		var err error
+		if a == "revoke_invite" {
+			err = revokeInvite(ctx, ctx.Org.Organization, ctx.FormInt64("id"))
+		} else {
+			err = resendInvite(ctx, ctx.Org.Organization, ctx.FormInt64("id"))
+		}
+		switch {
+		case organization.IsErrTeamInviteNotFound(err):
+			ctx.Flash.Error(ctx.Tr("asc_work.invite_gone"))
+		case err != nil:
+			ctx.ServerError(a, err)
+			return
+		case a == "resend_invite":
+			ctx.Flash.Success(ctx.Tr("asc_work.invite_resent"))
+		default:
+			ctx.Flash.Success(ctx.Tr("asc_work.invite_revoked"))
+		}
+		ctx.JSONRedirect(back)
+		return
+	}
+	// the dialog of several people and a role: the words are checked one by one and the ones that cannot be used are named
+	if ctx.Params(":action") == "add" && ctx.FormString("invitees") != "" {
+		inviteSeveral(ctx)
+		return
+	}
+
 	uid := ctx.FormInt64("uid")
 	if uid == 0 {
 		ctx.Redirect(ctx.Org.OrgLink + "/members")
@@ -230,6 +297,9 @@ func MembersAction(ctx *context.Context) {
 			ctx.Flash.Error(ctx.Tr("members.no_team_selected"))
 		}
 		ctx.Redirect(ctx.Org.OrgLink + "/members")
+		return
+	case "role":
+		changeRole(ctx, org, uid, ctx.FormString("role"))
 		return
 	case "leave":
 		err = models.RemoveOrgUser(ctx, org.ID, ctx.Doer.ID)
