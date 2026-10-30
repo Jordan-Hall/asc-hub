@@ -239,16 +239,18 @@ func (h *ascRepo) waitBridge(ctx context.Context, ref, commit string) error {
 	deadline := time.NewTimer(bridgeWait)
 	defer deadline.Stop()
 	delay := bridgePollMin
+	var got string
+	var err error
 	for {
-		got, err := bridgeRef(ctx, h.bridge, ref)
+		got, err = bridgeRef(ctx, h.bridge, ref)
 		if err == nil && got == commit {
 			return nil
 		}
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("ascsync: waiting for the bridge: %w", ctx.Err())
+			return fmt.Errorf("ascsync: waiting for the bridge: %w (%s holds %q, error %v, want %q)", ctx.Err(), ref, got, err, commit)
 		case <-deadline.C:
-			return ErrBridgeBehind
+			return fmt.Errorf("%w (%s holds %q, error %v, want %q)", ErrBridgeBehind, ref, got, err, commit)
 		case <-time.After(delay):
 		}
 		delay = min(delay*2, bridgePollMax)

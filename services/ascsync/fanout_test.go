@@ -55,6 +55,22 @@ func TestWaitForRefsGivesUpWhenTheRepositoryNeverFollows(t *testing.T) {
 	require.ErrorIs(t, err, ErrBridgeBehind)
 }
 
+func TestWaitForRefsDoesNotWaitForARefTheHubTurnsIntoAPullRequest(t *testing.T) {
+	fx := newFixture(t)
+	c := fx.commit("one")
+	gitRun(t, fx.bridge, nil, "", "update-ref", "refs/heads/feature", c)
+	old := fanOutWait
+	fanOutWait = 5 * time.Second
+	t.Cleanup(func() { fanOutWait = old })
+
+	start := time.Now()
+	require.NoError(t, WaitForRefs(t.Context(), fx.repo, []PushRef{
+		{Name: "refs/for/main/asc-topic", Old: zeroID, New: c},
+		{Name: "refs/heads/feature", Old: zeroID, New: c},
+	}))
+	assert.Less(t, time.Since(start), time.Second, "refs/for/... is never stored, so nothing is waited for")
+}
+
 func TestWaitForRefsStopsWithTheContext(t *testing.T) {
 	fx := newFixture(t)
 	c := fx.commit("one")
