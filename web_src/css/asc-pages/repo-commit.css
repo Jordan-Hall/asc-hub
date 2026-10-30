@@ -497,3 +497,11 @@
     top: 72px;
   }
 }
+
+.rp-commit-rail .rp-checks li {
+  justify-content: flex-start;
+}
+
+.rp-commit-rail .rp-checks li > .ds-c-2 {
+  margin-left: auto;
+}
