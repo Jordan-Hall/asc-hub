@@ -81,6 +81,7 @@
   },
   {
    "board": "Download",
+   "userAgent": "mac",
    "num": "A7",
    "title": "Download ASC",
    "route": "/download",
@@ -221,6 +222,7 @@
   },
   {
    "board": "Mobile-Download",
+   "userAgent": "mac",
    "num": "A6m",
    "title": "Mobile: Download ASC",
    "route": "/download",
