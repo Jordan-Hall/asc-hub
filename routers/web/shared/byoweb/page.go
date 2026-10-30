@@ -95,6 +95,11 @@ type Page struct {
 	Test         *TestView
 	OwnerAIURL   string
 
+	// Sharing of the key and the keys shared with the owner of the page (aishares.go); nil when the level or the
+	// server has none.
+	Sharing *Sharing
+	Shared  *SharedList
+
 	ops map[string]string
 }
 

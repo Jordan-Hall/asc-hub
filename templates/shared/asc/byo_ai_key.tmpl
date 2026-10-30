@@ -102,6 +102,8 @@
 			{{end}}
 		</section>
 
+		{{template "shared/asc/byo_ai_sharing" (dict "Root" $ "Key" $k)}}
+
 		<section class="asc-byo-card asc-byo-danger" aria-labelledby="asc-delete-h">
 			<h3 id="asc-delete-h">{{ctx.Locale.Tr "ascbyo.ai.detail.delete_title"}}</h3>
 			<p>{{ctx.Locale.Tr "ascbyo.ai.detail.delete_help"}}</p>
