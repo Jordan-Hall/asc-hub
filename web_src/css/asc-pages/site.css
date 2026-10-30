@@ -390,6 +390,33 @@
   max-width: 62ch;
 }
 
+.site-dl .site-dl-crumbs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.site-dl .site-dl-crumbs a {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.site-dl .site-dl-crumbs a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+/* the lead on the left, the version on the right (below each other on a phone) */
+.site-dl .site-dl-headrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4px 24px;
+}
+
 .site-dl .site-dl-meta {
   display: flex;
   flex-wrap: wrap;
@@ -408,9 +435,56 @@
 
 .site-dl .site-dl-hero {
   display: grid;
-  gap: 8px;
+  gap: 12px 24px;
   justify-items: start;
   padding: 20px 16px;
+}
+
+.site-dl .site-dl-hero-main,
+.site-dl .site-dl-hero-act {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  min-width: 0;
+}
+
+.site-dl .site-dl-hero-cmd {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .site-dl .site-dl-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 24px;
+  }
+
+  .site-dl .site-dl-hero-act {
+    justify-items: center;
+  }
+
+  .site-dl .site-dl-hero-cmd {
+    grid-column: 1 / -1;
+  }
+
+  .site-dl .site-dl-hero .site-dl-hero-act .ds-btn {
+    width: auto;
+  }
+}
+
+.site-dl .site-dl-oslead {
+  margin: 0;
+}
+
+.site-dl .site-dl-cli > summary {
+  cursor: pointer;
+}
+
+.site-dl .site-dl-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
 }
 
 .site-dl .site-dl-hero .ds-t-h2,
@@ -440,16 +514,12 @@
   padding-bottom: 2px;
 }
 
-.site-dl .hub-dl-tabs[hidden] {
-  display: none;
-}
-
 /* the boards draw the system choice as small squared buttons, not pills */
 .site-dl .hub-dl-tab {
   border-radius: 8px;
 }
 
-.site-dl .hub-dl-tab[aria-selected="true"] {
+.site-dl .hub-dl-tab[aria-current="true"] {
   background: var(--primary-soft);
   border-color: var(--link);
   color: var(--link);
@@ -459,10 +529,6 @@
   display: grid;
   gap: 12px;
   margin-top: 20px;
-}
-
-.site-dl .site-dl-os[hidden] {
-  display: none;
 }
 
 .site-dl .site-dl-os > h2,
