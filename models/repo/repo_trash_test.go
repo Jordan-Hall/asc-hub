@@ -12,6 +12,7 @@ import (
 	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
+	unit_model "forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 
 	"github.com/stretchr/testify/assert"
@@ -40,7 +41,7 @@ func TestTrashAndRestore(t *testing.T) {
 		perm, err := access_model.GetUserRepoPermission(t.Context(), trashed, who)
 		require.NoError(t, err)
 		assert.Equal(t, perm_model.AccessModeNone, perm.AccessMode)
-		assert.False(t, perm.HasAnyUnitAccess())
+		assert.False(t, perm.CanRead(unit_model.TypeCode))
 	}
 
 	// it is in no list
