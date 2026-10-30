@@ -1,0 +1,2351 @@
+{
+ "viewports": {
+  "desktop": {
+   "width": 1440,
+   "height": 900
+  },
+  "mobile": {
+   "width": 390,
+   "height": 844
+  }
+ },
+ "personas": {
+  "maya": "signed in, site admin, Acme owner",
+  "ines": "signed in, no repositories",
+  "anon": "signed out"
+ },
+ "boards": [
+  {
+   "board": "components",
+   "num": "A1",
+   "title": "Design system: tokens and components",
+   "skip": "system board: tokens and components, no page"
+  },
+  {
+   "board": "Shell",
+   "num": "A2",
+   "title": "Shell: header, menus, palette, footer",
+   "route": "/",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "compareHeight": 420,
+   "note": "header, menus, palette and footer; compared on the header band"
+  },
+  {
+   "board": "Main",
+   "num": "A3",
+   "title": "Landing (signed out)",
+   "route": "/",
+   "as": "anon",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Onboarding",
+   "num": "A4",
+   "title": "Sign in, sign up, recovery",
+   "route": "/user/login",
+   "as": "anon",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "compareHeight": 900,
+   "note": "sign in, sign up and recovery stacked; compared on the sign-in card"
+  },
+  {
+   "board": "Install",
+   "num": "A5",
+   "title": "First-run setup",
+   "skip": "needs a hub in first-run install mode (INSTALL_LOCK=false)"
+  },
+  {
+   "board": "GetStarted",
+   "num": "A6",
+   "title": "Get started (empty hub)",
+   "route": "/",
+   "as": "ines",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Download",
+   "num": "A7",
+   "title": "Download ASC",
+   "route": "/download",
+   "as": "anon",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Explore",
+   "num": "A8",
+   "title": "Explore: repositories",
+   "route": "/explore/repos",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "ExploreUsers",
+   "num": "A9",
+   "title": "Explore: people and agents",
+   "route": "/explore/users",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "ExploreOrgs",
+   "num": "A10",
+   "title": "Explore: organizations",
+   "route": "/explore/organizations",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Docs",
+   "num": "A11",
+   "title": "Documentation",
+   "skip": "documentation lives on the external docs host"
+  },
+  {
+   "board": "About",
+   "num": "A12",
+   "title": "About ASC Hub",
+   "route": "/-/about",
+   "as": "anon",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Errors",
+   "num": "A13",
+   "title": "Error and status pages",
+   "route": "/acme/payments/does-not-exist",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "compareHeight": 700,
+   "note": "error pages stacked; compared on the 404 page"
+  },
+  {
+   "board": "Mobile-Menu",
+   "num": "A1m",
+   "title": "Mobile: Shell: header, menus, palette, footer",
+   "route": "/",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "compareHeight": 844,
+   "note": "mobile header and menus; compared on the first screen"
+  },
+  {
+   "board": "Mobile-Landing",
+   "num": "A2m",
+   "title": "Mobile: Landing (signed out)",
+   "route": "/",
+   "as": "anon",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Onboarding",
+   "num": "A3m",
+   "title": "Mobile: Sign in, sign up, recovery",
+   "route": "/user/login",
+   "as": "anon",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "compareHeight": 900,
+   "note": "sign in, sign up and recovery stacked; compared on the sign-in card"
+  },
+  {
+   "board": "Mobile-Install",
+   "num": "A4m",
+   "title": "Mobile: First-run setup",
+   "skip": "needs a hub in first-run install mode (INSTALL_LOCK=false)"
+  },
+  {
+   "board": "Mobile-GetStarted",
+   "num": "A5m",
+   "title": "Mobile: Get started (empty hub)",
+   "route": "/",
+   "as": "ines",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Download",
+   "num": "A6m",
+   "title": "Mobile: Download ASC",
+   "route": "/download",
+   "as": "anon",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Explore",
+   "num": "A7m",
+   "title": "Mobile: Explore: repositories",
+   "route": "/explore/repos",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-ExploreUsers",
+   "num": "A8m",
+   "title": "Mobile: Explore: people and agents",
+   "route": "/explore/users",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-ExploreOrgs",
+   "num": "A9m",
+   "title": "Mobile: Explore: organizations",
+   "route": "/explore/organizations",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Docs",
+   "num": "A10m",
+   "title": "Mobile: Documentation",
+   "skip": "documentation lives on the external docs host"
+  },
+  {
+   "board": "Mobile-About",
+   "num": "A11m",
+   "title": "Mobile: About ASC Hub",
+   "route": "/-/about",
+   "as": "anon",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Errors",
+   "num": "A12m",
+   "title": "Mobile: Error and status pages",
+   "route": "/acme/payments/does-not-exist",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "compareHeight": 700,
+   "note": "error pages stacked; compared on the 404 page"
+  },
+  {
+   "board": "Dashboard",
+   "num": "B1",
+   "title": "Dashboard",
+   "route": "/",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Inbox",
+   "num": "B2",
+   "title": "Inbox",
+   "route": "/-/asc/inbox",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Drafts",
+   "num": "B3",
+   "title": "Drafts",
+   "route": "/-/asc/drafts",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Profile",
+   "num": "B4",
+   "title": "Profile",
+   "route": "/priya",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "OrgProfile",
+   "num": "B5",
+   "title": "Organization profile",
+   "route": "/acme",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "OrgPeople",
+   "num": "B6",
+   "title": "Organization people",
+   "route": "/org/acme/members",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "OrgTeams",
+   "num": "B7",
+   "title": "Organization teams",
+   "route": "/org/acme/teams",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Packages",
+   "num": "B8",
+   "title": "Organization packages",
+   "route": "/acme/-/packages",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Projects",
+   "num": "B9",
+   "title": "Organization projects",
+   "route": "/acme/-/projects",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "OrgSettings",
+   "num": "B10",
+   "title": "Organization settings",
+   "route": "/org/acme/settings",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "NewOrg",
+   "num": "B11",
+   "title": "New organization",
+   "route": "/org/create",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Dashboard",
+   "num": "B1m",
+   "title": "Mobile: Dashboard",
+   "route": "/",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Inbox",
+   "num": "B2m",
+   "title": "Mobile: Inbox",
+   "route": "/-/asc/inbox",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Drafts",
+   "num": "B3m",
+   "title": "Mobile: Drafts",
+   "route": "/-/asc/drafts",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Profile",
+   "num": "B4m",
+   "title": "Mobile: Profile",
+   "route": "/priya",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-OrgProfile",
+   "num": "B5m",
+   "title": "Mobile: Organization profile",
+   "route": "/acme",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-OrgPeople",
+   "num": "B6m",
+   "title": "Mobile: Organization people",
+   "route": "/org/acme/members",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-OrgTeams",
+   "num": "B7m",
+   "title": "Mobile: Organization teams",
+   "route": "/org/acme/teams",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Packages",
+   "num": "B8m",
+   "title": "Mobile: Organization packages",
+   "route": "/acme/-/packages",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Projects",
+   "num": "B9m",
+   "title": "Mobile: Organization projects",
+   "route": "/acme/-/projects",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-OrgSettings",
+   "num": "B10m",
+   "title": "Mobile: Organization settings",
+   "route": "/org/acme/settings",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-NewOrg",
+   "num": "B11m",
+   "title": "Mobile: New organization",
+   "route": "/org/create",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "NewRepo",
+   "num": "C1",
+   "title": "New repository",
+   "route": "/repo/create",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Repo",
+   "num": "C2",
+   "title": "Repository home",
+   "route": "/acme/payments",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Code",
+   "num": "C3",
+   "title": "Code: browse and blame",
+   "route": "/acme/payments/src/branch/main/src/refunds.rs",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Changeset",
+   "num": "C4",
+   "title": "Changeset",
+   "route": "/acme/payments/commit/{sha}",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "History",
+   "num": "C5",
+   "title": "History and changeset graph",
+   "route": "/acme/payments/commits/branch/main",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Refs",
+   "num": "C6",
+   "title": "Refs and tags",
+   "route": "/acme/payments/branches",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Compare",
+   "num": "C7",
+   "title": "Compare versions",
+   "route": "/acme/payments/compare/main...retry-with-backoff",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Search",
+   "num": "C8",
+   "title": "Search: text, symbol, meaning",
+   "route": "/acme/payments/asc/search?q=retry",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Releases",
+   "num": "C9",
+   "title": "Releases",
+   "route": "/acme/payments/releases",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Dependencies",
+   "num": "C10",
+   "title": "Dependencies",
+   "route": "/acme/payments/asc/deps",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Issues",
+   "num": "C11",
+   "title": "Issues",
+   "route": "/acme/payments/issues",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "IssueView",
+   "num": "C12",
+   "title": "One issue",
+   "route": "/acme/payments/issues/{issue1}",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Insights",
+   "num": "C13",
+   "title": "Insights: Pulse",
+   "route": "/acme/payments/activity",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "InsightsPeople",
+   "num": "C14",
+   "title": "Insights: Contributors",
+   "route": "/acme/payments/activity/contributors",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "GitNote",
+   "num": "C15",
+   "title": "Compatibility note",
+   "route": "/acme/payments",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "compareHeight": 600,
+   "note": "clone popover note; compared on the repository header"
+  },
+  {
+   "board": "Mobile-NewRepo",
+   "num": "C1m",
+   "title": "Mobile: New repository",
+   "route": "/repo/create",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Repo",
+   "num": "C2m",
+   "title": "Mobile: Repository home",
+   "route": "/acme/payments",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Code",
+   "num": "C3m",
+   "title": "Mobile: Code: browse and blame",
+   "route": "/acme/payments/src/branch/main/src/refunds.rs",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Changeset",
+   "num": "C4m",
+   "title": "Mobile: Changeset",
+   "route": "/acme/payments/commit/{sha}",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-History",
+   "num": "C5m",
+   "title": "Mobile: History and changeset graph",
+   "route": "/acme/payments/commits/branch/main",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Refs",
+   "num": "C6m",
+   "title": "Mobile: Refs and tags",
+   "route": "/acme/payments/branches",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Compare",
+   "num": "C7m",
+   "title": "Mobile: Compare versions",
+   "route": "/acme/payments/compare/main...retry-with-backoff",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Search",
+   "num": "C8m",
+   "title": "Mobile: Search: text, symbol, meaning",
+   "route": "/acme/payments/asc/search?q=retry",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Releases",
+   "num": "C9m",
+   "title": "Mobile: Releases",
+   "route": "/acme/payments/releases",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Dependencies",
+   "num": "C10m",
+   "title": "Mobile: Dependencies",
+   "route": "/acme/payments/asc/deps",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Issues",
+   "num": "C11m",
+   "title": "Mobile: Issues",
+   "route": "/acme/payments/issues",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-IssueView",
+   "num": "C12m",
+   "title": "Mobile: One issue",
+   "route": "/acme/payments/issues/{issue1}",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Insights",
+   "num": "C13m",
+   "title": "Mobile: Insights: Pulse",
+   "route": "/acme/payments/activity",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-InsightsPeople",
+   "num": "C14m",
+   "title": "Mobile: Insights: Contributors",
+   "route": "/acme/payments/activity/contributors",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-GitNote",
+   "num": "C15m",
+   "title": "Mobile: Compatibility note",
+   "route": "/acme/payments",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "compareHeight": 600,
+   "note": "clone popover note; compared on the repository header"
+  },
+  {
+   "board": "Stacks",
+   "num": "D1",
+   "title": "Stacks",
+   "route": "/acme/payments/pulls",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "NewChange",
+   "num": "D2",
+   "title": "Open a change",
+   "route": "/acme/payments/compare/main...retry-with-backoff",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Review",
+   "num": "D3",
+   "title": "Stacked review",
+   "route": "/acme/payments/pulls/{pr1}/files",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "ReviewVersions",
+   "num": "D4",
+   "title": "Versions and landing",
+   "route": "/acme/payments/pulls/{pr1}/commits",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Queue",
+   "num": "D5",
+   "title": "Merge queue",
+   "route": "/acme/payments/asc/queue",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Ops",
+   "num": "D6",
+   "title": "Operation log and undo",
+   "route": "/acme/payments/asc/ops",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Policy",
+   "num": "D7",
+   "title": "Policy gate",
+   "route": "/acme/payments/settings/asc/policy",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Checks",
+   "num": "D8",
+   "title": "Checks",
+   "route": "/acme/payments/asc/checks",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "ChangeChecks",
+   "num": "D9",
+   "title": "Checks on a change",
+   "route": "/acme/payments/pulls/{pr1}/asc/checks",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Security",
+   "num": "D10",
+   "title": "Secret scanning",
+   "route": "/acme/payments/settings/asc/security",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Audit",
+   "num": "D11",
+   "title": "Audit log",
+   "route": "/acme/payments/settings/asc/audit",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Stacks",
+   "num": "D1m",
+   "title": "Mobile: Stacks",
+   "route": "/acme/payments/pulls",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-NewChange",
+   "num": "D2m",
+   "title": "Mobile: Open a change",
+   "route": "/acme/payments/compare/main...retry-with-backoff",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Review",
+   "num": "D3m",
+   "title": "Mobile: Stacked review",
+   "route": "/acme/payments/pulls/{pr1}/files",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-ReviewVersions",
+   "num": "D4m",
+   "title": "Mobile: Versions and landing",
+   "route": "/acme/payments/pulls/{pr1}/commits",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-Queue",
+   "num": "D5m",
+   "title": "Mobile: Merge queue",
+   "route": "/acme/payments/asc/queue",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Ops",
+   "num": "D6m",
+   "title": "Mobile: Operation log and undo",
+   "route": "/acme/payments/asc/ops",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Policy",
+   "num": "D7m",
+   "title": "Mobile: Policy gate",
+   "route": "/acme/payments/settings/asc/policy",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Checks",
+   "num": "D8m",
+   "title": "Mobile: Checks",
+   "route": "/acme/payments/asc/checks",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-ChangeChecks",
+   "num": "D9m",
+   "title": "Mobile: Checks on a change",
+   "route": "/acme/payments/pulls/{pr1}/asc/checks",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Security",
+   "num": "D10m",
+   "title": "Mobile: Secret scanning",
+   "route": "/acme/payments/settings/asc/security",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Audit",
+   "num": "D11m",
+   "title": "Mobile: Audit log",
+   "route": "/acme/payments/settings/asc/audit",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Agents",
+   "num": "E1",
+   "title": "Agent runs",
+   "route": "/acme/payments/asc/agents",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "AgentNew",
+   "num": "E2",
+   "title": "Give an agent a task",
+   "route": "/acme/payments/asc/agents/new",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "AgentRun",
+   "num": "E3",
+   "title": "Agent run",
+   "route": "/acme/payments/asc/agents/runs/1",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "AgentAccess",
+   "num": "E4",
+   "title": "Agent access and budgets",
+   "route": "/acme/payments/asc/agents/tokens",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Workflows",
+   "num": "E5",
+   "title": "Workflows",
+   "route": "/acme/payments/asc/workflows",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "WorkflowDef",
+   "num": "E6",
+   "title": "Workflow definition",
+   "route": "/acme/payments/asc/workflows/ci",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "WorkflowRun",
+   "num": "E7",
+   "title": "Workflow run",
+   "route": "/acme/payments/asc/workflows/runs/1",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Agents",
+   "num": "E1m",
+   "title": "Mobile: Agent runs",
+   "route": "/acme/payments/asc/agents",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-AgentNew",
+   "num": "E2m",
+   "title": "Mobile: Give an agent a task",
+   "route": "/acme/payments/asc/agents/new",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-AgentRun",
+   "num": "E3m",
+   "title": "Mobile: Agent run",
+   "route": "/acme/payments/asc/agents/runs/1",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-AgentAccess",
+   "num": "E4m",
+   "title": "Mobile: Agent access and budgets",
+   "route": "/acme/payments/asc/agents/tokens",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-Workflows",
+   "num": "E5m",
+   "title": "Mobile: Workflows",
+   "route": "/acme/payments/asc/workflows",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-WorkflowDef",
+   "num": "E6m",
+   "title": "Mobile: Workflow definition",
+   "route": "/acme/payments/asc/workflows/ci",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-WorkflowRun",
+   "num": "E7m",
+   "title": "Mobile: Workflow run",
+   "route": "/acme/payments/asc/workflows/runs/1",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "RepoSettingsGeneral",
+   "num": "F1",
+   "title": "General",
+   "route": "/acme/payments/settings",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "RepoSettingsAccess",
+   "num": "F2",
+   "title": "Access",
+   "route": "/acme/payments/settings/collaboration",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "RepoSettingsPolicy",
+   "num": "F3",
+   "title": "Policy",
+   "route": "/acme/payments/settings/asc/policy",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "RepoSettingsRules",
+   "num": "F4",
+   "title": "Branches and stacks",
+   "route": "/acme/payments/settings/branches",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "RepoSettingsWebhooks",
+   "num": "F5",
+   "title": "Webhooks",
+   "route": "/acme/payments/settings/hooks",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "RepoSettingsSecrets",
+   "num": "F6",
+   "title": "Secrets and variables",
+   "route": "/acme/payments/settings/actions/secrets",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "RepoSettingsStorage",
+   "num": "F7",
+   "title": "Storage",
+   "route": "/acme/payments/settings/asc/storage",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "RepoSettingsAI",
+   "num": "F8",
+   "title": "AI keys",
+   "route": "/acme/payments/settings/asc/ai",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-RepoSettingsGeneral",
+   "num": "F1m",
+   "title": "Mobile: General",
+   "route": "/acme/payments/settings",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-RepoSettingsAccess",
+   "num": "F2m",
+   "title": "Mobile: Access",
+   "route": "/acme/payments/settings/collaboration",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-RepoSettingsPolicy",
+   "num": "F3m",
+   "title": "Mobile: Policy",
+   "route": "/acme/payments/settings/asc/policy",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-RepoSettingsRules",
+   "num": "F4m",
+   "title": "Mobile: Branches and stacks",
+   "route": "/acme/payments/settings/branches",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-RepoSettingsWebhooks",
+   "num": "F5m",
+   "title": "Mobile: Webhooks",
+   "route": "/acme/payments/settings/hooks",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-RepoSettingsSecrets",
+   "num": "F6m",
+   "title": "Mobile: Secrets and variables",
+   "route": "/acme/payments/settings/actions/secrets",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-RepoSettingsStorage",
+   "num": "F7m",
+   "title": "Mobile: Storage",
+   "route": "/acme/payments/settings/asc/storage",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-RepoSettingsAI",
+   "num": "F8m",
+   "title": "Mobile: AI keys",
+   "route": "/acme/payments/settings/asc/ai",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-RepoSettingsMenu",
+   "num": "F9m",
+   "title": "Mobile: Settings menu",
+   "route": "/acme/payments/settings",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsProfile",
+   "num": "G1",
+   "title": "Profile",
+   "route": "/user/settings",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsAccount",
+   "num": "G2",
+   "title": "Account",
+   "route": "/user/settings/account",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsAppearance",
+   "num": "G3",
+   "title": "Appearance",
+   "route": "/user/settings/appearance",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsNotifications",
+   "num": "G4",
+   "title": "Notifications",
+   "route": "/notifications/subscriptions",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsPrivacy",
+   "num": "G5",
+   "title": "Privacy",
+   "route": "/user/settings/blocked_users",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsSecurity",
+   "num": "G6",
+   "title": "Security",
+   "route": "/user/settings/security",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsTokens",
+   "num": "G7",
+   "title": "Access tokens",
+   "route": "/user/settings/applications",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsKeys",
+   "num": "G8",
+   "title": "SSH and signing keys",
+   "route": "/user/settings/keys",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsApps",
+   "num": "G9",
+   "title": "Applications",
+   "route": "/user/settings/applications",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsAI",
+   "num": "G10",
+   "title": "AI keys",
+   "route": "/user/settings/asc/ai",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "UserSettingsStorage",
+   "num": "G11",
+   "title": "Storage",
+   "route": "/user/settings/asc/storage",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "UserSettingsOrgs",
+   "num": "G12",
+   "title": "Organizations",
+   "route": "/user/settings/organization",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsRepos",
+   "num": "G13",
+   "title": "Repositories",
+   "route": "/user/settings/repos",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "UserSettingsUsage",
+   "num": "G14",
+   "title": "Usage and quota",
+   "route": "/user/settings/storage_overview",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsProfile",
+   "num": "G1m",
+   "title": "Mobile: Profile",
+   "route": "/user/settings",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsAccount",
+   "num": "G2m",
+   "title": "Mobile: Account",
+   "route": "/user/settings/account",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsAppearance",
+   "num": "G3m",
+   "title": "Mobile: Appearance",
+   "route": "/user/settings/appearance",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsNotifications",
+   "num": "G4m",
+   "title": "Mobile: Notifications",
+   "route": "/notifications/subscriptions",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsPrivacy",
+   "num": "G5m",
+   "title": "Mobile: Privacy",
+   "route": "/user/settings/blocked_users",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsSecurity",
+   "num": "G6m",
+   "title": "Mobile: Security",
+   "route": "/user/settings/security",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsTokens",
+   "num": "G7m",
+   "title": "Mobile: Access tokens",
+   "route": "/user/settings/applications",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsKeys",
+   "num": "G8m",
+   "title": "Mobile: SSH and signing keys",
+   "route": "/user/settings/keys",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsApps",
+   "num": "G9m",
+   "title": "Mobile: Applications",
+   "route": "/user/settings/applications",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsAI",
+   "num": "G10m",
+   "title": "Mobile: AI keys",
+   "route": "/user/settings/asc/ai",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-UserSettingsStorage",
+   "num": "G11m",
+   "title": "Mobile: Storage",
+   "route": "/user/settings/asc/storage",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-UserSettingsOrgs",
+   "num": "G12m",
+   "title": "Mobile: Organizations",
+   "route": "/user/settings/organization",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsRepos",
+   "num": "G13m",
+   "title": "Mobile: Repositories",
+   "route": "/user/settings/repos",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsUsage",
+   "num": "G14m",
+   "title": "Mobile: Usage and quota",
+   "route": "/user/settings/storage_overview",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-UserSettingsMenu",
+   "num": "G15m",
+   "title": "Mobile: Settings menu",
+   "route": "/user/settings",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminDashboard",
+   "num": "H1",
+   "title": "Dashboard",
+   "route": "/admin",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminHealth",
+   "num": "H2",
+   "title": "Health",
+   "route": "/admin/self_check",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminUsers",
+   "num": "H3",
+   "title": "People",
+   "route": "/admin/users",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminUser",
+   "num": "H4",
+   "title": "One person",
+   "route": "/admin/users/{uid_priya}",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminOrgs",
+   "num": "H5",
+   "title": "Organizations",
+   "route": "/admin/orgs",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminModeration",
+   "num": "H6",
+   "title": "Moderation",
+   "route": "/admin/moderation/reports",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminRepos",
+   "num": "H7",
+   "title": "Repositories",
+   "route": "/admin/repos",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminPackages",
+   "num": "H8",
+   "title": "Packages",
+   "route": "/admin/packages",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminRunners",
+   "num": "H9",
+   "title": "Runners",
+   "route": "/admin/actions/runners",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminHooks",
+   "num": "H10",
+   "title": "Hooks and applications",
+   "route": "/admin/hooks",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminConfig",
+   "num": "H11",
+   "title": "Configuration",
+   "route": "/admin/config",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminMonitor",
+   "num": "H12",
+   "title": "Monitor",
+   "route": "/admin/monitor/queue",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminAudit",
+   "num": "H13",
+   "title": "Audit log",
+   "route": "/admin/asc/audit",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "AdminBackups",
+   "num": "H14",
+   "title": "Backups",
+   "route": "/admin/asc/backups",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "AdminAuth",
+   "num": "H15",
+   "title": "Authentication",
+   "route": "/admin/auths",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "AdminNotices",
+   "num": "H16",
+   "title": "Notices",
+   "route": "/admin/notices",
+   "as": "maya",
+   "viewport": "desktop",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminDashboard",
+   "num": "H1m",
+   "title": "Mobile: Dashboard",
+   "route": "/admin",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminHealth",
+   "num": "H2m",
+   "title": "Mobile: Health",
+   "route": "/admin/self_check",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminUsers",
+   "num": "H3m",
+   "title": "Mobile: People",
+   "route": "/admin/users",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminUser",
+   "num": "H4m",
+   "title": "Mobile: One person",
+   "route": "/admin/users/{uid_priya}",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminOrgs",
+   "num": "H5m",
+   "title": "Mobile: Organizations",
+   "route": "/admin/orgs",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminModeration",
+   "num": "H6m",
+   "title": "Mobile: Moderation",
+   "route": "/admin/moderation/reports",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminRepos",
+   "num": "H7m",
+   "title": "Mobile: Repositories",
+   "route": "/admin/repos",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminPackages",
+   "num": "H8m",
+   "title": "Mobile: Packages",
+   "route": "/admin/packages",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminRunners",
+   "num": "H9m",
+   "title": "Mobile: Runners",
+   "route": "/admin/actions/runners",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminHooks",
+   "num": "H10m",
+   "title": "Mobile: Hooks and applications",
+   "route": "/admin/hooks",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminConfig",
+   "num": "H11m",
+   "title": "Mobile: Configuration",
+   "route": "/admin/config",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminMonitor",
+   "num": "H12m",
+   "title": "Mobile: Monitor",
+   "route": "/admin/monitor/queue",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminAudit",
+   "num": "H13m",
+   "title": "Mobile: Audit log",
+   "route": "/admin/asc/audit",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-AdminBackups",
+   "num": "H14m",
+   "title": "Mobile: Backups",
+   "route": "/admin/asc/backups",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ],
+   "needsAsc": true
+  },
+  {
+   "board": "Mobile-AdminAuth",
+   "num": "H15m",
+   "title": "Mobile: Authentication",
+   "route": "/admin/auths",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  },
+  {
+   "board": "Mobile-AdminNotices",
+   "num": "H16m",
+   "title": "Mobile: Notices",
+   "route": "/admin/notices",
+   "as": "maya",
+   "viewport": "mobile",
+   "themes": [
+    "light",
+    "dark"
+   ]
+  }
+ ]
+}
