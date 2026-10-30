@@ -20,6 +20,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/setting/config"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 	"forgejo.org/services/mailer"
 
@@ -261,6 +262,7 @@ func ChangeConfig(ctx *context.Context) {
 		ctx.JSONError(ctx.Tr("asc_admin.config_confirm_needs_mail"))
 		return
 	}
+	old, _ := config.GetDynGetter().GetValue(ctx, key)
 	if err = system_model.SetSettings(ctx, map[string]string{key: marshaledValue}); err != nil {
 		ctx.JSONError(ctx.Tr("admin.config.set_setting_failed", key))
 		return
@@ -269,5 +271,10 @@ func ChangeConfig(ctx *context.Context) {
 	config.GetDynGetter().InvalidateCache()
 	setting.ApplyRuntimeService(ctx)
 	log.Info("admin %s set %s to %s", ctx.Doer.Name, key, marshaledValue)
+	// "Each change is audited": the change goes to the audit log of asc, next to the events asc writes itself.
+	asctrust.RecordHostAudit(ctx, asctrust.HostAudit{
+		Action: asctrust.AuditHostSettingUpdated, Actor: ctx.Doer.Name, Target: key, Request: ctx.Req,
+		Details: map[string]string{"setting": key, "old": old, "new": marshaledValue},
+	})
 	ctx.JSONOK()
 }

@@ -23,6 +23,7 @@ const (
 	Audit_Export_FullMethodName      = "/asc.v1.Audit/Export"
 	Audit_VerifyChain_FullMethodName = "/asc.v1.Audit/VerifyChain"
 	Audit_ListActions_FullMethodName = "/asc.v1.Audit/ListActions"
+	Audit_Append_FullMethodName      = "/asc.v1.Audit/Append"
 )
 
 // AuditClient is the client API for Audit service.
@@ -40,6 +41,7 @@ type AuditClient interface {
 	Export(ctx context.Context, in *ExportAuditRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExportAuditResponse], error)
 	VerifyChain(ctx context.Context, in *VerifyAuditChainRequest, opts ...grpc.CallOption) (*VerifyAuditChainResponse, error)
 	ListActions(ctx context.Context, in *ListAuditActionsRequest, opts ...grpc.CallOption) (*ListAuditActionsResponse, error)
+	Append(ctx context.Context, in *AppendAuditRequest, opts ...grpc.CallOption) (*AppendAuditResponse, error)
 }
 
 type auditClient struct {
@@ -99,6 +101,16 @@ func (c *auditClient) ListActions(ctx context.Context, in *ListAuditActionsReque
 	return out, nil
 }
 
+func (c *auditClient) Append(ctx context.Context, in *AppendAuditRequest, opts ...grpc.CallOption) (*AppendAuditResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AppendAuditResponse)
+	err := c.cc.Invoke(ctx, Audit_Append_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuditServer is the server API for Audit service.
 // All implementations should embed UnimplementedAuditServer
 // for forward compatibility.
@@ -114,6 +126,7 @@ type AuditServer interface {
 	Export(*ExportAuditRequest, grpc.ServerStreamingServer[ExportAuditResponse]) error
 	VerifyChain(context.Context, *VerifyAuditChainRequest) (*VerifyAuditChainResponse, error)
 	ListActions(context.Context, *ListAuditActionsRequest) (*ListAuditActionsResponse, error)
+	Append(context.Context, *AppendAuditRequest) (*AppendAuditResponse, error)
 }
 
 // UnimplementedAuditServer should be embedded to have
@@ -134,6 +147,9 @@ func (UnimplementedAuditServer) VerifyChain(context.Context, *VerifyAuditChainRe
 }
 func (UnimplementedAuditServer) ListActions(context.Context, *ListAuditActionsRequest) (*ListAuditActionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListActions not implemented")
+}
+func (UnimplementedAuditServer) Append(context.Context, *AppendAuditRequest) (*AppendAuditResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Append not implemented")
 }
 func (UnimplementedAuditServer) testEmbeddedByValue() {}
 
@@ -220,6 +236,24 @@ func _Audit_ListActions_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Audit_Append_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppendAuditRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuditServer).Append(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Audit_Append_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuditServer).Append(ctx, req.(*AppendAuditRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Audit_ServiceDesc is the grpc.ServiceDesc for Audit service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -238,6 +272,10 @@ var Audit_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListActions",
 			Handler:    _Audit_ListActions_Handler,
+		},
+		{
+			MethodName: "Append",
+			Handler:    _Audit_Append_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
