@@ -331,3 +331,21 @@
 .rv-side .rv-formgrid-3 {
   grid-template-columns: 1fr;
 }
+
+/* The gate on a phone, as on the board: what was held, the rules in force, the policy file, then the rest. */
+@media (max-width: 899.98px) {
+  .rv-gcols > .rv-stack,
+  .rv-gcols > .rv-side,
+  .rv-gcols > aside {
+    display: contents;
+  }
+
+  .rv-gcols .go-1 { order: 1; }
+  .rv-gcols .go-2 { order: 2; }
+  .rv-gcols .go-3 { order: 3; }
+  .rv-gcols .go-4 { order: 4; }
+  .rv-gcols .go-5 { order: 5; }
+  .rv-gcols .go-6 { order: 6; }
+  .rv-gcols .go-7 { order: 7; }
+  .rv-gcols .go-8 { order: 8; }
+}

@@ -56,9 +56,9 @@ The text of the policy file and every text from asc was cleaned by services/asct
 			</div>
 			{{end}}
 
-			<div class="rv-cols rv-cols-gate rv-gap">
+			<div class="rv-cols rv-cols-gate rv-gap rv-gcols">
 					{{if .HeldShown}}
-					<section class="rv-card" aria-labelledby="asc-gate-held">
+					<section class="rv-card go-1" aria-labelledby="asc-gate-held">
 						<div class="rv-card-h"><h2 id="asc-gate-held">{{ctx.Locale.Tr "asc_review.gate_held"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.gate_held_help"}}</span>{{if .Held}}<span class="rv-count rv-end">{{len .Held}}{{if .HeldMore}}+{{end}}</span>{{end}}</div>
 						{{if .HeldProblem}}
 							<div class="rv-banner rv-banner-warn rv-banner-flush" role="status" data-testid="asc-gate-held-problem"><div>{{.HeldProblem}}</div></div>
@@ -91,12 +91,12 @@ The text of the policy file and every text from asc was cleaned by services/asct
 					<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.gate_rules"}}">
 				{{with .Stats}}
 			{{if .Rules}}
-			<section class="rv-card" aria-labelledby="asc-gate-perrule" data-testid="asc-gate-perrule">
+			<section class="rv-card go-2" aria-labelledby="asc-gate-perrule" data-testid="asc-gate-perrule">
 				<div class="rv-card-h"><h2 id="asc-gate-perrule">{{ctx.Locale.Tr "asc_review.gate_perrule"}}</h2></div>
 				<ul class="rv-list">{{range .Rules}}<li class="gt-rule"><span>{{.Rule}}</span><span class="rv-num">{{ctx.Locale.Tr "asc_review.gate_held_of" .Held .Checked}}</span></li>{{end}}</ul>
 			</section>
 			{{end}}
-			<section class="rv-card" aria-labelledby="asc-gate-over" data-testid="asc-gate-overrides">
+			<section class="rv-card go-7" aria-labelledby="asc-gate-over" data-testid="asc-gate-overrides">
 				<div class="rv-card-h"><h2 id="asc-gate-over">{{ctx.Locale.Tr "asc_review.gate_over_title"}}</h2><span class="rv-count rv-end">{{.Active}}</span></div>
 				<p class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.gate_over_lead"}}</p>
 				{{if .Overrides}}
@@ -119,7 +119,7 @@ The text of the policy file and every text from asc was cleaned by services/asct
 				{{end}}
 			</section>
 				{{end}}
-				<section class="rv-card" aria-labelledby="asc-gate-rules">
+				<section class="rv-card go-3" aria-labelledby="asc-gate-rules">
 					<div class="rv-card-h"><h2 id="asc-gate-rules">{{ctx.Locale.Tr "asc_review.gate_rules"}}</h2></div>
 					{{if .View.Protections}}
 					<ul class="rv-gate rv-card-b" data-testid="asc-gate-protections">
@@ -138,7 +138,7 @@ The text of the policy file and every text from asc was cleaned by services/asct
 				</section>
 
 				{{with $.AscQuarantine}}
-				<section class="rv-card" aria-labelledby="asc-gate-quar">
+				<section class="rv-card go-8" aria-labelledby="asc-gate-quar">
 					<div class="rv-card-h"><h2 id="asc-gate-quar">{{ctx.Locale.Tr "asc_trust.queue.quarantine_title"}}</h2></div>
 					<div class="rv-card-b">
 						{{if .Problem}}
@@ -155,7 +155,7 @@ The text of the policy file and every text from asc was cleaned by services/asct
 				{{end}}
 			</aside>
 
-					<section class="rv-card gt-file" aria-labelledby="asc-gate-file">
+					<section class="rv-card gt-file go-4" aria-labelledby="asc-gate-file">
 						<div class="rv-card-h"><h2 id="asc-gate-file">{{ctx.Locale.Tr "asc_review.gate_file"}}</h2>{{if .View.Source}}<span class="rv-faint">{{ctx.Locale.Tr "asc_review.gate_file_from"}} <code class="rv-bare">{{.View.Source}}</code></span>{{end}}<span class="rv-faint rv-end">{{ctx.Locale.Tr "asc_review.gate_file_help"}}</span></div>
 						{{if .View.Text}}
 							<div class="rv-term rv-term-flush"><div class="rv-term-b" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_review.gate_file_region"}}" data-testid="asc-gate-text">{{.View.Text}}</div></div>
@@ -171,7 +171,7 @@ The text of the policy file and every text from asc was cleaned by services/asct
 					</section>
 
 					{{if .View.Table.Rows}}
-					<section aria-labelledby="asc-gate-who">
+					<section class="go-5" aria-labelledby="asc-gate-who">
 						<div class="rv-row rv-row-wrap rv-head-row"><h2 id="asc-gate-who" class="rv-h3">{{ctx.Locale.Tr "asc_review.gate_who"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.gate_who_help"}}</span></div>
 						<div class="rv-tablewrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 							<table class="rv-tbl rv-tbl-stack" data-testid="asc-gate-who-table">
@@ -191,7 +191,7 @@ The text of the policy file and every text from asc was cleaned by services/asct
 					</section>
 					{{end}}
 					{{with .Stats}}
-			<section class="rv-card" aria-labelledby="asc-gate-days" data-testid="asc-gate-days">
+			<section class="rv-card go-6" aria-labelledby="asc-gate-days" data-testid="asc-gate-days">
 				<div class="rv-card-h"><h2 id="asc-gate-days">{{ctx.Locale.Tr "asc_review.gate_perday"}}</h2></div>
 				{{if .Days}}
 				<div class="sp-bars gt-bars" role="img" aria-label="{{ctx.Locale.Tr "asc_review.gate_days_alt"}}">{{range .Days}}<span class="gt-bar" title="{{.Day}}: {{.Checked}} / {{.Held}}"><i class="gt-c" style="height:{{if .CheckedPct}}{{.CheckedPct}}{{else}}2{{end}}%"></i><i class="gt-h" style="height:{{.HeldPct}}%"></i></span>{{end}}</div>

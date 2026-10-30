@@ -18,6 +18,7 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 					<h1 class="rv-title">{{ctx.Locale.Tr "asc_trust.ops.title"}}</h1>
 					<p class="rv-lead">{{ctx.Locale.Tr "asc_trust.ops.lead"}}</p>
 				</div>
+				{{if .ExportURL}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.ExportURL}}" download>{{ctx.Locale.Tr "asc_review.ops_export"}}</a></div>{{end}}
 			</header>
 
 			{{if .Unsupported}}
@@ -44,16 +45,11 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 				<div class="rv-chips ag-ops-chips" role="group" aria-label="{{ctx.Locale.Tr "asc_review.ops_kind_label"}}" data-testid="asc-ops-kinds">
 					<a class="rv-chip-btn" href="{{.AllURL}}"{{if not .Kind}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.agents_filter_all"}} <span class="rv-count">{{.Total}}</span></a>
 					{{range .Chips}}<a class="rv-chip-btn" href="{{.URL}}"{{if .On}} aria-current="true"{{end}}>{{ctx.Locale.Tr (printf "asc_trust.ops.via.%s" .Key)}} <span class="rv-count">{{.Count}}</span></a>{{end}}
-					{{if .ExportURL}}<a class="rv-btn rv-btn-secondary rv-btn-sm ag-ops-export" href="{{.ExportURL}}" download>{{ctx.Locale.Tr "asc_review.ops_export"}}</a>{{end}}
 				</div>
-				{{if .Actors}}
-				<section class="rv-card rv-gap" aria-labelledby="asc-ops-actors" data-testid="asc-ops-actors">
-					<div class="rv-card-h"><h2 id="asc-ops-actors">{{ctx.Locale.Tr "asc_review.ops_actors"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.ops_actors_help" .Total}}</span></div>
-					<ul class="rv-list ag-actors">{{range .Actors}}<li><span class="ag-actor-n">{{.Actor}}</span><span class="rv-bar" role="img" aria-label="{{.Count}}"><i style="width:{{.Pct}}%"></i></span><span class="rv-num">{{.Count}}</span></li>{{end}}</ul>
-				</section>
-				{{end}}
 
-				<section class="rv-card rv-gap" aria-labelledby="asc-ops-list">
+				<div class="rv-cols rv-cols-main-side rv-gap">
+				<div class="rv-stack">
+				<section class="rv-card" aria-labelledby="asc-ops-list">
 					<div class="rv-card-h"><h2 id="asc-ops-list">{{ctx.Locale.Tr "asc_trust.ops.list"}}</h2></div>
 					{{if .Rows}}
 						<ol class="rv-ops" data-testid="asc-ops-list">
@@ -91,7 +87,29 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 					{{end}}
 					{{if .NextURL}}<div class="rv-card-f rv-center"><a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.ops.more"}}</a></div>{{end}}
 				</section>
-				<p class="rv-hint rv-gap">{{ctx.Locale.Tr "asc_trust.ops.note"}}</p>
+								{{if .Actors}}
+					<section class="rv-card" aria-labelledby="asc-ops-actors" data-testid="asc-ops-actors">
+						<div class="rv-card-h"><h2 id="asc-ops-actors">{{ctx.Locale.Tr "asc_review.ops_actors"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_review.ops_actors_help" .Total}}</span></div>
+						<ul class="rv-list ag-actors">{{range .Actors}}<li><span class="ag-actor-n">{{.Actor}}</span><span class="rv-bar" role="img" aria-label="{{.Count}}"><i style="width:{{.Pct}}%"></i></span><span class="rv-num">{{.Count}}</span></li>{{end}}</ul>
+					</section>
+					{{end}}
+				</div>
+				<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.ops_side_label"}}">
+					<section class="rv-card" aria-labelledby="asc-ops-how">
+						<div class="rv-card-h"><h2 id="asc-ops-how">{{ctx.Locale.Tr "asc_trust.ops.undo_title"}}</h2></div>
+						<div class="rv-card-b"><p class="rv-muted">{{ctx.Locale.Tr "asc_trust.ops.undo_lead"}}</p><p class="rv-hint">{{ctx.Locale.Tr "asc_trust.ops.note"}}</p></div>
+					</section>
+					<section class="rv-card" aria-labelledby="asc-ops-blocked">
+						<div class="rv-card-h"><h2 id="asc-ops-blocked">{{ctx.Locale.Tr "asc_review.ops_blocked_title"}}</h2></div>
+						<ul class="rv-card-b rv-plain ag-blocked-list">
+							<li>{{svg "octicon-lock" 14 "rv-ic"}} {{ctx.Locale.Tr "asc_trust.ops.blocked.not_yours"}}</li>
+							<li>{{svg "octicon-lock" 14 "rv-ic"}} {{ctx.Locale.Tr "asc_trust.ops.blocked.moved"}}</li>
+							<li>{{svg "octicon-lock" 14 "rv-ic"}} {{ctx.Locale.Tr "asc_trust.ops.blocked.expired"}}</li>
+							<li>{{svg "octicon-lock" 14 "rv-ic"}} {{ctx.Locale.Tr "asc_trust.ops.blocked.needs_maintainer"}}</li>
+						</ul>
+					</section>
+				</aside>
+				</div>
 			{{end}}
 		</div>
 		{{end}}

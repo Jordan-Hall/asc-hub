@@ -139,9 +139,9 @@ type ascSearchChunk struct {
 	// ScorePct is the score as a percentage of the best score of the answer (0 to 100), for the relevance bar.
 	ScorePct int
 	Sources  []string
-	Text      string
-	Redacted  bool
-	Branches  []ascSearchBranch
+	Text     string
+	Redacted bool
+	Branches []ascSearchBranch
 }
 
 // ascSearchCoverage is the state of one index.
