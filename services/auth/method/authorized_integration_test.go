@@ -359,7 +359,7 @@ func TestAuthorizedIntegration(t *testing.T) {
 		t.Run("JWT expired", func(t *testing.T) {
 			ait := newAITester(t,
 				claimTweak(func(rc *flexibleClaims) {
-					rc.ExpiresAt = jwt.NewNumericDate(time.Date(2026, time.January, 1, 12, 0, 0, 0, time.Local))
+					rc.ExpiresAt = jwt.NewNumericDate(time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC))
 				}))
 			defer ait.close()
 			output := ait.bearerRequest()
@@ -385,7 +385,7 @@ func TestAuthorizedIntegration(t *testing.T) {
 	t.Run("JWT issued at", func(t *testing.T) {
 		ait := newAITester(t,
 			claimTweak(func(rc *flexibleClaims) {
-				rc.IssuedAt = jwt.NewNumericDate(time.Date(2027, time.January, 1, 12, 0, 0, 0, time.Local))
+				rc.IssuedAt = jwt.NewNumericDate(time.Date(2027, time.January, 1, 12, 0, 0, 0, time.UTC))
 			}))
 		defer ait.close()
 		output := ait.bearerRequest()
@@ -396,7 +396,7 @@ func TestAuthorizedIntegration(t *testing.T) {
 	t.Run("JWT not before", func(t *testing.T) {
 		ait := newAITester(t,
 			claimTweak(func(rc *flexibleClaims) {
-				rc.NotBefore = jwt.NewNumericDate(time.Date(2027, time.January, 1, 12, 0, 0, 0, time.Local))
+				rc.NotBefore = jwt.NewNumericDate(time.Date(2027, time.January, 1, 12, 0, 0, 0, time.UTC))
 			}))
 		defer ait.close()
 		output := ait.bearerRequest()
@@ -809,7 +809,7 @@ func TestAuthorizedIntegration(t *testing.T) {
 		t.Run("JWT times checked", func(t *testing.T) {
 			ait := newInternalIssuerAITester(t,
 				claimTweak(func(rc *flexibleClaims) {
-					rc.ExpiresAt = jwt.NewNumericDate(time.Date(2026, time.January, 1, 12, 0, 0, 0, time.Local))
+					rc.ExpiresAt = jwt.NewNumericDate(time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC))
 				}))
 			defer ait.close()
 			output := ait.bearerRequest()
@@ -846,7 +846,7 @@ type AuthorizedIntegrationTester struct {
 }
 
 func newAITester(t *testing.T, tweaks ...tweak) *AuthorizedIntegrationTester {
-	fixedTime := time.Date(2026, time.January, 1, 16, 0, 0, 0, time.Local)
+	fixedTime := time.Date(2026, time.January, 1, 16, 0, 0, 0, time.UTC)
 	ait := &AuthorizedIntegrationTester{
 		t: t,
 		ai: &AuthorizedIntegration{
