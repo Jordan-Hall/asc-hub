@@ -8,9 +8,9 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 146 |
+| done | 147 |
 | ui-only-missing | 35 |
-| needs-hub-backend | 16 |
+| needs-hub-backend | 15 |
 | needs-asc-backend | 0 |
 | needs-both | 17 |
 | total | 214 |
@@ -57,7 +57,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Review | Stack rail rows: author avatar with agent mark, +add/-del size, text like 'Approved, restacked' | done | templates/repo/pulls/asc_stack.tmpl + routers/web/repo/pull_asc_stack.go enrichAscStackPanel: author avatar with the Agent mark, +add/-del, and Approved / Changes requested / Draft on each open row (the 'restacked' wording is the new restack line below the rail header; test: TestAscStackRailRowsShowAuthorSizeAndReview) | - |
 | Review | Stack rail click keeps scroll position per change | done | web_src/js/features/asc-review.js (initRailScroll: the position is saved in sessionStorage when a rail link is clicked and restored when the change is opened again; test: asc-review.test.js) | - |
 | Review | Rail action 'Merge 1 and 2 now' (merge bottom of stack, with dry run) | done | templates/repo/pulls/asc_stack.tmpl, asc_confirm.tmpl (op=merge) | - |
-| Review | Change header: agent banner (waiting on you, 42 tests pass), change id + short hash, Signed badge, 'opened for X based on change 2' | needs-hub-backend | templates/repo/issue/view_title.tmpl; pulls/asc_signature_badge.tmpl (badge exists on versions only); agent run link needs reverse lookup run to change | M |
+| Review | Change header: agent banner (waiting on you, 42 tests pass), change id + short hash, Signed badge, 'opened for X based on change 2' | done | templates/repo/pulls/asc_change_header.tmpl under the title (view_title.tmpl); routers/web/repo/asc_change_header.go prepareAscChangeHeader: change id, newest version and its short hash, the Signed badge of that version (ascVersionBadges, shared with the versions dropdown), the change below in the stack, the run the pull request was opened for (AscRunPull) with the review state (waiting on you when the viewer is a requested reviewer) and the checks that pass; tests: TestAscChangeState, TestAscChangeHeaderTemplate | - |
 | Review | Tab strip: Overview, Files, Versions v1>v4, Checks, How it was made | done | templates/repo/pulls/tab_menu.tmpl: a stacked change reads Overview, Files, Versions v1>vN, Checks, How it was made, then Commits; anchors #asc-versions and #asc-how-made; the newest version comes from prepareAscTabVersions (test: asc_review_files_test.go TestAscTabStripOfAStackedChange) | - |
 | Review | Intent, 'Where to look' pointers (file:line), Size, Files, Risk summary block | needs-both | hub: issue/view_content/pull.tmpl; asc: change metadata for pointers and a risk classifier (proto/asc/v1/changes.proto, repo.proto Classify) | L |
 | Review | Files by meaning: per-file Behavior/Tests/Generated badge | done | templates/repo/diff/asc_class_badge.tmpl, diff/box.tmpl:142 | - |

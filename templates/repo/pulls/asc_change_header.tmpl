@@ -1,0 +1,28 @@
+{{/*
+The header strip of a stacked change, under the title.
+Template Attributes:
+* AscChangeHeader: *repo.AscChangeHeader (nil: nothing is shown)
+Every text comes from the hub's own records or from a checked answer of asc and is escaped by the Go template.
+*/}}
+{{with .AscChangeHeader}}
+<div class="rv rv-change-header" data-testid="asc-change-header" data-state="{{.State}}">
+	<div class="rv-row rv-row-wrap rv-change-header-meta">
+		{{if .ChangeID}}<code class="rv-mono" data-testid="asc-change-id" title="{{ctx.Locale.Tr "asc_review.change_header_id" .ChangeID}}">{{.ChangeID}}</code>{{end}}
+		{{if .Commit}}<code class="rv-mono" data-testid="asc-change-commit">{{.Commit}}</code>{{end}}
+		{{if .Version}}<span class="rv-pill rv-pill-outline" data-testid="asc-change-version">{{ctx.Locale.Tr "asc_review.change_header_version" .Version}}</span>{{end}}
+		{{template "repo/pulls/asc_signature_badge" .Signature}}
+		{{with .BasedOn}}<a class="rv-change-based-on" data-testid="asc-change-based-on" href="{{.Link}}">{{ctx.Locale.Tr "asc_review.change_header_based_on" .Index}}</a>{{end}}
+	</div>
+	{{with .Run}}
+	<div class="rv-banner rv-change-header-agent" role="status" data-testid="asc-change-agent">
+		<div>
+			<b>{{if .URL}}<a href="{{.URL}}">{{ctx.Locale.Tr "asc_review.change_header_opened_for" .RunID .Agent}}</a>{{else}}{{ctx.Locale.Tr "asc_review.change_header_opened_for" .RunID .Agent}}{{end}}</b>
+			&middot; <span data-testid="asc-change-state">{{ctx.Locale.Tr (printf "asc_review.change_state_%s" $.AscChangeHeader.State)}}</span>
+			&middot; <span data-testid="asc-change-checks">{{if $.AscChangeHeader.ChecksTotal}}{{ctx.Locale.Tr "asc_review.change_header_checks" $.AscChangeHeader.ChecksPass $.AscChangeHeader.ChecksTotal}}{{else}}{{ctx.Locale.Tr "asc_review.change_header_checks_none"}}{{end}}</span>
+		</div>
+	</div>
+	{{else}}
+	<div class="rv-row rv-row-wrap"><span class="rv-pill rv-pill-outline" data-testid="asc-change-state">{{ctx.Locale.Tr (printf "asc_review.change_state_%s" .State)}}</span></div>
+	{{end}}
+</div>
+{{end}}
