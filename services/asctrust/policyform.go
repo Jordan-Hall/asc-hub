@@ -118,13 +118,22 @@ func ApplyForm(text string, f PolicyForm) (string, error) {
 		checks = []string{}
 	}
 	text = TomlSetStrings(text, "trunk", "require_checks", checks)
-	text = TomlSetBool(text, "trunk", "allow_force", f.AllowForce)
-	text = TomlSetBool(text, "signing", "require_signed", f.RequireSigned)
+	// A key at its default is not written into a file that does not have it, so a review shows only what changed.
+	if f.AllowForce || hasKey(text, "trunk", "allow_force") {
+		text = TomlSetBool(text, "trunk", "allow_force", f.AllowForce)
+	}
+	if f.RequireSigned || hasKey(text, "signing", "require_signed") {
+		text = TomlSetBool(text, "signing", "require_signed", f.RequireSigned)
+	}
 	if f.MergeStrategy != "" {
 		text = setLine(text, "merge", "strategy", tomlQuote(f.MergeStrategy))
 	}
-	text = TomlSetBool(text, "merge", "queue", f.MergeQueue)
-	text = TomlSetBool(text, "agents", "enabled", f.AgentsEnabled)
+	if f.MergeQueue || hasKey(text, "merge", "queue") {
+		text = TomlSetBool(text, "merge", "queue", f.MergeQueue)
+	}
+	if !f.AgentsEnabled || hasKey(text, "agents", "enabled") {
+		text = TomlSetBool(text, "agents", "enabled", f.AgentsEnabled)
+	}
 	if len(f.AgentScope) > 0 || hasKey(text, "agents", "default_scope") {
 		text = TomlSetStrings(text, "agents", "default_scope", f.AgentScope)
 	}

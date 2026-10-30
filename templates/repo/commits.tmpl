@@ -19,6 +19,7 @@
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}" aria-current="true">{{ctx.Locale.Tr "asc_rp.view_list"}}</a>
 					<a href="{{.RepoLink}}/{{if $isAsc}}asc/graph{{else}}graph{{end}}">{{ctx.Locale.Tr "repo.commit_graph"}}</a>
 				</div>
+				<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.RepoLink}}/commits-export/branch/{{PathEscapeSegments .BranchName}}{{if .Keyword}}?q={{.Keyword}}{{end}}" download>{{ctx.Locale.Tr "asc_rp.export_csv"}}</a>
 			</div>
 		</div>
 		<div class="rp-histbar">
