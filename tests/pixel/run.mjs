@@ -203,6 +203,7 @@ async function main() {
       } catch (err) {
         const crashed = /closed|crash|Target/i.test(String(err));
         if (crashed && attempt < 2) { await resetBrowser(seen); continue; }
+        if (/clock|controller/i.test(String(err)) && attempt < 2) { await sleep(1000); continue; } // the clock of a brand-new page is not ready yet
         Object.assign(r, {ok: false, error: String(err).slice(0, 400), mismatch: 1, top: [`harness error: ${String(err).slice(0, 160)}`]});
         break;
       } finally {
