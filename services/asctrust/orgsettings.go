@@ -21,8 +21,6 @@ import (
 // Everything a form sends is checked here first, with the same limits asc applies, so a mistake is a sentence on the
 // page and not a refusal from the server; everything that comes back is cleaned.
 
-// FeatureOrgSettings is what Version.features says when the server has the OrgSettings service.
-const FeatureOrgSettings = "orgsettings.v1"
 
 // Limits of asc (crates/asc-serve/src/org).
 const (
@@ -40,8 +38,8 @@ var (
 	agentNameShape = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,39}$`)
 	repoNameShape  = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}/[A-Za-z0-9._-]{1,100}$`)
 
-	// MergeStrategies are the values a strategy takes; "" leaves the choice to the repository.
-	MergeStrategies = []string{"", "rebase", "rebase-disjoint", "fast-forward"}
+	// OrgMergeStrategies are the values an organisation strategy takes; "" leaves the choice to the repository.
+	OrgMergeStrategies = []string{"", "rebase", "rebase-disjoint", "fast-forward"}
 )
 
 // ------------------------------------------------------------------------------------------------ settings
@@ -212,7 +210,7 @@ func MergeDefaultsFromForm(get func(string) string) (MergeDefaults, error) {
 	}
 	strategy := get("strategy")
 	ok := false
-	for _, s := range MergeStrategies {
+	for _, s := range OrgMergeStrategies {
 		ok = ok || s == strategy
 	}
 	if !ok {
