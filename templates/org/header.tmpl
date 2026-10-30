@@ -2,7 +2,7 @@
 <div class="wk-pf-band wk-org-band">
 	<div class="ds-container ds-container-wide">
 		<div id="org-info" class="wk-pf-card wk-org-card">
-			<div class="wk-pf-av wk-org-av">{{ctx.AvatarUtils.Avatar .Org 96 "org-avatar"}}</div>
+			<div class="wk-pf-av wk-org-av">{{if or .Org.UseCustomAvatar (not .OrgInitial)}}{{ctx.AvatarUtils.Avatar .Org 96 "org-avatar"}}{{else}}<span class="wk-org-tile" aria-hidden="true">{{.OrgInitial}}</span>{{end}}</div>
 			<div class="wk-pf-info tw-break-anywhere">
 				<div class="wk-pf-line1">
 					<h1 class="wk-pf-name">{{.Org.DisplayName}}</h1>
@@ -12,15 +12,12 @@
 				</div>
 				{{if .RenderedDescription}}<div class="wk-pf-desc render-content markup">{{.RenderedDescription}}</div>{{end}}
 				<div class="wk-pf-line2 wk-org-facts">
-					{{if .Org.Location}}<span>{{svg "dsi-map-pin" 14}} {{.Org.Location}}</span>{{end}}
+					{{if .Org.Location}}<span>{{.Org.Location}}</span>{{end}}
 					{{if .Org.Website}}<a class="ds-mono" target="_blank" rel="noopener noreferrer me" href="{{.Org.Website}}">{{.Org.Website}}</a>{{end}}
 					{{if .IsSigned}}{{if .Org.Email}}<a href="mailto:{{.Org.Email}}">{{.Org.Email}}</a>{{end}}{{end}}
+					{{if .NumMembers}}<a href="{{.OrgLink}}/members">{{ctx.Locale.TrN .NumMembers "asc_work.org_people_one" "asc_work.org_people_n" .NumMembers}}</a>{{end}}
+					{{if .AscOrgAgents}}<a href="{{.OrgLink}}/members#people-agents">{{ctx.Locale.TrN .AscOrgAgents "asc_work.org_agents_one" "asc_work.org_agents_n" .AscOrgAgents}}</a>{{end}}
 				</div>
-				{{if .NumMembers}}
-					<div class="wk-pf-stats">
-						<a href="{{.OrgLink}}/members">{{ctx.Locale.TrN .NumMembers "asc_work.org_people_one" "asc_work.org_people_n" .NumMembers}}</a>
-					</div>
-				{{end}}
 			</div>
 			<div class="wk-pf-actions">
 				{{if .IsSigned}}
