@@ -67,7 +67,11 @@
 				{{$.CsrfTokenHtml}}
 				<input type="hidden" name="op_id" value="{{$a.Op "update"}}">
 				{{template "shared/asc/byo_storage_fields" (dict "Root" $ "Edit" true "Pfx" "asc-edit")}}
-				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.save"}}</button>
+				<div class="ds-savebar" data-savebar data-savebar-one="{{ctx.Locale.Tr "asc_rp.unsaved_one"}}" data-savebar-n="{{ctx.Locale.Tr "asc_rp.unsaved_n"}}" data-testid="asc-storage-savebar">
+					<span class="ds-savebar-note" data-savebar-note aria-live="polite"></span>
+					<button type="button" class="ds-btn ds-btn-secondary" data-savebar-discard>{{ctx.Locale.Tr "asc_rp.discard"}}</button>
+					<button class="ds-btn ds-btn-primary" type="submit" data-savebar-submit>{{ctx.Locale.Tr "ascbyo.save"}}</button>
+				</div>
 			</form>
 		</section>
 

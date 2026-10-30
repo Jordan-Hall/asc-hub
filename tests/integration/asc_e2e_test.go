@@ -178,6 +178,11 @@ func startHubAndAsc(t *testing.T, serveBin string) (hubURL, ascAddr string) {
 	require.NoError(t, ascbackend.Init(initCtx))
 	require.NoError(t, ascwriter.Init(initCtx))
 	require.NoError(t, ascbridge.Init(initCtx))
+	// The exporter that rebuilds a git directory from asc (a read that finds a commit missing runs it).
+	t.Cleanup(ascbridge.UseExporter(&ascbridge.CLIExporter{
+		Binary: serveBin, Workspaces: filepath.Join(root, "bridge-workspaces"), ServerURL: "http://" + ascAddr, Token: setting.InternalToken,
+	}))
+	ascbridge.ForgetRepairs()
 	// The merge of a stack and the merge queue call asc with the internal token (routers.InitWebInstalled does this at start).
 	prevStack := pull_service.UseAscStackBackend(nil)
 	t.Cleanup(prevStack)
@@ -596,6 +601,32 @@ func TestAscEndToEnd(t *testing.T) {
 		assert.Equal(t, "0", strings.TrimSpace(out), "the trunk stays linear: the change was rebased, not merged")
 	})
 
+	t.Run("a git directory that lacks the commits of asc is rebuilt when the page is read", func(t *testing.T) {
+		// What a push that asc took and the host's git never finished leaves: the branch of the page names a commit that
+		// the directory does not hold, so the page used to answer "Repository unavailable" for good.
+		objects := filepath.Join(repo.RepoPath(), "objects")
+		entries, err := os.ReadDir(objects)
+		require.NoError(t, err)
+		for _, entry := range entries {
+			if entry.Name() == "info" {
+				continue
+			}
+			require.NoError(t, os.RemoveAll(filepath.Join(objects, entry.Name())))
+		}
+		require.NoError(t, os.MkdirAll(filepath.Join(objects, "pack"), 0o755))
+		require.NoError(t, os.MkdirAll(filepath.Join(objects, "info"), 0o755))
+		_, err = e.git(alice.home, repo.RepoPath(), "cat-file", "-e", "HEAD^{commit}")
+		require.Error(t, err, "the directory still holds the commits")
+
+		ascbridge.ForgetRepairs()
+		status, body := e.web(alice, "/"+alice.user.Name+"/"+repo.Name)
+		assert.Equal(t, http.StatusOK, status, "the page is rebuilt from asc, not unavailable: %.300s", body)
+		assert.NotContains(t, body, "repo_unavailable_reason")
+		assert.Contains(t, body, "/src/branch/main/src", "the files of the trunk are listed")
+		_, err = e.git(alice.home, repo.RepoPath(), "cat-file", "-e", "HEAD^{commit}")
+		assert.NoError(t, err, "the directory holds the commits again")
+	})
+
 	// The gates that fail closed, through the real listener.
 	t.Run("a read-only token cannot write", func(t *testing.T) {
 		ro := createAPIAccessTokenWithoutCleanUp(t, "e2e-ro", alice.user, []auth_model.AccessTokenScope{auth_model.AccessTokenScopeReadRepository})
@@ -744,6 +775,20 @@ func (e *e2eEnv) api(p *e2ePerson, method, path string, body any) (int, []byte) 
 	b, err := io.ReadAll(resp.Body)
 	require.NoError(e.t, err)
 	return resp.StatusCode, b
+}
+
+// web gets a page of the hub's web routes on the real listener as the person and returns the status and the body.
+func (e *e2eEnv) web(p *e2ePerson, path string) (int, string) {
+	e.t.Helper()
+	req, err := http.NewRequestWithContext(e.t.Context(), "GET", e.hubURL+path, nil)
+	require.NoError(e.t, err)
+	req.SetBasicAuth(p.user.Name, p.token)
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(e.t, err)
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	require.NoError(e.t, err)
+	return resp.StatusCode, string(b)
 }
 
 // apiJSON is api with the status asserted.

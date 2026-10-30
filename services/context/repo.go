@@ -35,6 +35,7 @@ import (
 	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascbridge"
 	asymkey_service "forgejo.org/services/asymkey"
 	redirect_service "forgejo.org/services/redirect"
 
@@ -1004,6 +1005,11 @@ func RepoRefByType(refType RepoRefType, ignoreNotExistErr ...bool) func(*Context
 		if len(ctx.Params("*")) == 0 {
 			refName = ctx.Repo.Repository.DefaultBranch
 			if !ctx.Repo.GitRepo.IsBranchExist(refName) {
+				// A repository stored in asc whose git directory lacks the commits of its branches (a push that asc took and
+				// the host's git never finished) lists no branch at all: asc has them, so the directory is rebuilt from it.
+				_ = repairAscBridge(ctx, ctx.Repo.Repository)
+			}
+			if !ctx.Repo.GitRepo.IsBranchExist(refName) {
 				brs, _, err := ctx.Repo.GitRepo.GetBranches(0, 1)
 				if err == nil && len(brs) != 0 {
 					refName = brs[0].Name
@@ -1018,6 +1024,9 @@ func RepoRefByType(refType RepoRefType, ignoreNotExistErr ...bool) func(*Context
 			ctx.Repo.RefName = refName
 			ctx.Repo.BranchName = refName
 			ctx.Repo.Commit, err = ctx.Repo.GitRepo.GetBranchCommit(refName)
+			if err != nil && strings.Contains(err.Error(), "object does not exist") && repairAscBridge(ctx, ctx.Repo.Repository) {
+				ctx.Repo.Commit, err = ctx.Repo.GitRepo.GetBranchCommit(refName)
+			}
 			if err == nil {
 				ctx.Repo.CommitID = ctx.Repo.Commit.ID.String()
 			} else if strings.Contains(err.Error(), "fatal: not a git repository") || strings.Contains(err.Error(), "object does not exist") {
@@ -1147,4 +1156,35 @@ func UnitTypes() func(ctx *Context) {
 		ctx.Data["UnitTypePackages"] = unit_model.TypePackages
 		ctx.Data["UnitTypeActions"] = unit_model.TypeActions
 	}
+}
+
+// repairAscBridge rebuilds the git directory of an asc repository from asc once per request and opens the repository
+// again (the old handle may have cached what the directory lacked). It reports whether it rebuilt the directory;
+// it does nothing for a repository that is not stored in asc, or when the last rebuild was a moment ago.
+func repairAscBridge(ctx *Context, repo *repo_model.Repository) bool {
+	if _, tried := ctx.Data["AscBridgeRepaired"]; tried {
+		return false
+	}
+	isAsc, err := ascbridge.IsAsc(repo)
+	if err != nil || !isAsc {
+		return false
+	}
+	ctx.Data["AscBridgeRepaired"] = true
+	if err := ascbridge.Repair(ctx, repo); err != nil {
+		if !errors.Is(err, ascbridge.ErrRepairTooSoon) {
+			log.Error("Unable to rebuild the git directory of %-v from asc: %v", repo, err)
+		}
+		return false
+	}
+	gitRepo, err := gitrepo.OpenRepository(ctx, repo)
+	if err != nil {
+		log.Error("Unable to open %-v after the rebuild of its git directory: %v", repo, err)
+		return false
+	}
+	if ctx.Repo.GitRepo != nil {
+		ctx.Repo.GitRepo.Close()
+	}
+	ctx.Repo.GitRepo = gitRepo
+	log.Warn("The git directory of %-v lacked commits of asc; rebuilt from asc", repo)
+	return true
 }

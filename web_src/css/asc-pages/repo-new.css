@@ -140,3 +140,27 @@
   flex-direction: column;
   gap: 2px;
 }
+
+.rp-vis-dialog {
+  max-width: 440px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.rp-vis-dialog article {
+  padding: 16px 20px;
+}
+
+.rp-vis-dialog header {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rp-vis-dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

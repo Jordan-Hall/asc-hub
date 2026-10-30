@@ -34,6 +34,8 @@ type JobStat struct {
 	// not added).
 	Changes uint32
 	Flaky   int
+	// Share is the failures of the job as a percentage of the failures of the job with the most, for the bar.
+	Share uint32
 }
 
 // JobStats groups failure groups by the job they happened in, the job with the most failures first, at most
@@ -54,8 +56,15 @@ func JobStats(rows []GroupRow) []JobStat {
 		}
 	}
 	out := make([]JobStat, 0, len(byJob))
+	var most uint32
 	for _, st := range byJob {
+		most = max(most, st.Occurrences)
 		out = append(out, *st)
+	}
+	for i := range out {
+		if most > 0 {
+			out[i].Share = out[i].Occurrences * 100 / most
+		}
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Occurrences != out[j].Occurrences {

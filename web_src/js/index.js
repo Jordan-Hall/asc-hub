@@ -88,6 +88,7 @@ import {
   initRepoSettingsCollaboration,
   initRepoSettingsSaveBar,
   initRepoSettingsTopics,
+  initVisibilityConfirm,
   initRepoSettingSearchTeamBox,
 } from './features/repo-settings.js';
 import {initRepoDiffView} from './features/repo-diff.js';
@@ -240,6 +241,7 @@ onDomReady(() => {
   initRepoSettingsCollaboration();
   initRepoSettingsSaveBar();
   initRepoSettingsTopics();
+  initVisibilityConfirm();
   initRepoTemplateSearch();
   initRepoTopicBar();
   initRepoWikiForm();

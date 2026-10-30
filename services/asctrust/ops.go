@@ -534,6 +534,76 @@ func LoadChecks(ctx context.Context, conn grpc.ClientConnInterface, repoName str
 	return page, nil
 }
 
+// maxCountedGroups is how many failure groups of a state are read to count them; more than this is shown as "N+".
+const maxCountedGroups = 100
+
+// maxQuarantinedShown is how many quarantined groups the side card lists.
+const maxQuarantinedShown = 5
+
+// GroupCount is the number of failure groups in one state. More is true when there are more than N.
+type GroupCount struct {
+	N    int
+	More bool
+}
+
+// ChecksSide is what the side cards of the checks page are built from: the number of groups in each state and the
+// newest quarantined groups.
+type ChecksSide struct {
+	Counts      map[string]GroupCount
+	Quarantined []GroupRow
+}
+
+// LoadChecksSide counts the failure groups of each state, with the same job, test and flaky filters as the list, and
+// reads the first quarantined groups. It is advice: a state that cannot be read has no entry in Counts, and the error
+// is returned only when none could be.
+func LoadChecksSide(ctx context.Context, conn grpc.ClientConnInterface, repoName string, q ChecksQuery) (*ChecksSide, error) {
+	client := ascv1.NewCiInsightsClient(conn)
+	side := &ChecksSide{Counts: map[string]GroupCount{}}
+	var firstErr error
+	for _, st := range GroupStates {
+		req := &ascv1.ListFailureGroupsRequest{Repo: RepoRef(repoName), FlakyOnly: q.FlakyOnly, Limit: maxCountedGroups, States: []ascv1.FailureGroupState{st.State}}
+		if q.Job != "" {
+			job, err := CheckName(q.Job)
+			if err != nil {
+				return nil, err
+			}
+			req.JobName = job
+		}
+		if q.Test != "" {
+			test, err := CheckName(q.Test)
+			if err != nil {
+				return nil, err
+			}
+			req.TestName = test
+		}
+		cctx, cancel := context.WithTimeout(ctx, CallTimeout)
+		resp, err := client.ListFailureGroups(cctx, req)
+		cancel()
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		page, err := GroupsPageOf(resp)
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		n := len(page.Rows)
+		side.Counts[st.Key] = GroupCount{N: n, More: page.Next != ""}
+		if st.Key == "quarantined" {
+			side.Quarantined = page.Rows[:min(n, maxQuarantinedShown)]
+		}
+	}
+	if len(side.Counts) == 0 && firstErr != nil {
+		return nil, firstErr
+	}
+	return side, nil
+}
+
 // LoadGroup reads one failure group with its occurrences and, for a group of one test, the history strip.
 func LoadGroup(ctx context.Context, conn grpc.ClientConnInterface, repoName string, id uint64, pageToken string, windowDays uint32) (*GroupDetail, *History, error) {
 	if id == 0 {

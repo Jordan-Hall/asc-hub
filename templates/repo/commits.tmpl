@@ -19,6 +19,11 @@
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}" aria-current="true">{{ctx.Locale.Tr "asc_rp.view_list"}}</a>
 					<a href="{{.RepoLink}}/{{if $isAsc}}asc/graph{{else}}graph{{end}}">{{ctx.Locale.Tr "repo.commit_graph"}}</a>
 				</div>
+				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.history_who"}}" data-testid="history-who">
+					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}"{{if not .HistoryWho}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_everyone"}}</a>
+					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}?who=people"{{if eq .HistoryWho "people"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_people"}}</a>
+					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}?who=agents"{{if eq .HistoryWho "agents"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_agents"}}</a>
+				</div>
 				<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.RepoLink}}/commits-export/branch/{{PathEscapeSegments .BranchName}}{{if .Keyword}}?q={{.Keyword}}{{end}}" download>{{ctx.Locale.Tr "asc_rp.export_csv"}}</a>
 			</div>
 		</div>

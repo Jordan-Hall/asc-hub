@@ -35,6 +35,16 @@ Repository, Diff, AfterCommitID, IsShowingAllCommits
 		</div>
 	</section>
 	{{end}}
+	{{if .AscVersionChecks}}
+	{{$v := .AscVersionTo}}{{if not $v}}{{$v = .AscHeadVersion}}{{end}}{{if not $v}}{{$v = .AscVersionsLatest}}{{end}}
+	{{with index .AscVersionChecks $v}}
+	<section class="rv-card rv-checkscard" aria-labelledby="asc-checks-card" data-testid="asc-checks-card">
+		<div class="rv-card-h"><h2 id="asc-checks-card">{{ctx.Locale.Tr "asc_review.checks_on" $v}}</h2></div>
+		<div class="rv-card-b rv-chips">{{range .}}<span class="rv-pill rv-pill-{{if eq .Tone "ok"}}ok{{else if eq .Tone "err"}}err{{else}}warn{{end}}">{{.Name}}</span>{{end}}</div>
+		<div class="rv-card-f"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.Issue.Link}}/asc/checks" data-testid="asc-checks-card-open">{{ctx.Locale.Tr "asc_review.checks_open_on" $v}}</a></div>
+	</section>
+	{{end}}
+	{{end}}
 	<section class="rv-card" aria-labelledby="asc-panel-title">
 		<div class="rv-card-h"><h2 id="asc-panel-title">{{ctx.Locale.Tr "asc_review.rev_panel"}}</h2></div>
 		<ul class="rv-gate rv-card-b">
