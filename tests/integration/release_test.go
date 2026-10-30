@@ -110,7 +110,7 @@ func TestCreateRelease(t *testing.T) {
 	session := loginUser(t, "user2")
 	createNewRelease(t, session, "/user2/repo1", "v0.0.1", "v0.0.1", false, false)
 
-	checkLatestReleaseAndCount(t, session, "/user2/repo1", "v0.0.1", translation.NewLocale("en-US").TrString("repo.release.stable"), 4)
+	checkLatestReleaseAndCount(t, session, "/user2/repo1", "v0.0.1", translation.NewLocale("en-US").TrString("repo.release.latest"), 4)
 }
 
 func TestDeleteRelease(t *testing.T) {
@@ -242,7 +242,7 @@ func TestCreateReleasePaging(t *testing.T) {
 
 	// Check that user4 does not see draft and still see 10 latest releases
 	session2 := loginUser(t, "user4")
-	checkLatestReleaseAndCount(t, session2, "/user2/repo1", "v0.0.11", translation.NewLocale("en-US").TrString("repo.release.stable"), 10)
+	checkLatestReleaseAndCount(t, session2, "/user2/repo1", "v0.0.11", translation.NewLocale("en-US").TrString("repo.release.latest"), 10)
 }
 
 func TestViewReleaseListNoLogin(t *testing.T) {
@@ -279,10 +279,10 @@ func TestViewReleaseListNoLogin(t *testing.T) {
 		"/user2/repo-release/releases/tag/v1.0",
 	}, links)
 	assert.Equal(t, []string{
-		"1 commits", // like v1.1
-		"1 commits", // like v1.1
+		"1 commit", // like v1.1
+		"1 commit", // like v1.1
 		"0 commits",
-		"1 commits", // should be 3 commits ahead and 2 commits behind, but not implemented yet
+		"1 commit", // should be 3 commits ahead and 2 commits behind, but not implemented yet
 		"3 commits",
 	}, commitsToMain)
 }
@@ -384,7 +384,7 @@ func TestReleaseOnCommit(t *testing.T) {
 	session := loginUser(t, "user2")
 	createNewReleaseTarget(t, session, "/user2/repo1", "v0.0.1", "v0.0.1", "65f1bf27bc3bf70f64657658635e66094edbcb4d", false, false)
 
-	checkLatestReleaseAndCount(t, session, "/user2/repo1", "v0.0.1", translation.NewLocale("en-US").TrString("repo.release.stable"), 4)
+	checkLatestReleaseAndCount(t, session, "/user2/repo1", "v0.0.1", translation.NewLocale("en-US").TrString("repo.release.latest"), 4)
 }
 
 func TestViewTagsList(t *testing.T) {
@@ -454,14 +454,15 @@ func TestReleaseAttachmentDownloadCounter(t *testing.T) {
 	session := loginUser(t, "user2")
 	zipAttachmentLink := fmt.Sprintf("%s/archive/v1.1.zip", repo.Link())
 	gzAttachmentLink := fmt.Sprintf("%s/archive/v1.1.tar.gz", repo.Link())
-	counterSelector := "details.download > ul > li:has(a[href='%s']) span"
+	// The downloads of a release are a table: the count is the last cell of the row of the archive.
+	counterSelector := "details.download tr:has(a[href='%s']) td.ds-r:last-child"
 
 	// Assert zero downloads initially
 	doc := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", fmt.Sprintf("%s/releases", repo.Link())), http.StatusOK).Body)
 	zipDownloads := doc.Find(fmt.Sprintf(counterSelector, zipAttachmentLink)).Text()
 	gzDownloads := doc.Find(fmt.Sprintf(counterSelector, gzAttachmentLink)).Text()
-	assert.Contains(t, zipDownloads, "0 downloads")
-	assert.Contains(t, gzDownloads, "0 downloads")
+	assert.Equal(t, "0", strings.TrimSpace(zipDownloads))
+	assert.Equal(t, "0", strings.TrimSpace(gzDownloads))
 
 	// Generate downloads
 	session.MakeRequest(t, NewRequest(t, "GET", zipAttachmentLink), http.StatusOK)
@@ -472,8 +473,8 @@ func TestReleaseAttachmentDownloadCounter(t *testing.T) {
 	doc = NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", fmt.Sprintf("%s/releases", repo.Link())), http.StatusOK).Body)
 	zipDownloads = doc.Find(fmt.Sprintf(counterSelector, zipAttachmentLink)).Text()
 	gzDownloads = doc.Find(fmt.Sprintf(counterSelector, gzAttachmentLink)).Text()
-	assert.Contains(t, zipDownloads, "1 download")
-	assert.Contains(t, gzDownloads, "2 downloads")
+	assert.Equal(t, "1", strings.TrimSpace(zipDownloads))
+	assert.Equal(t, "2", strings.TrimSpace(gzDownloads))
 }
 
 func TestReleaseHideArchiveLinksUI(t *testing.T) {

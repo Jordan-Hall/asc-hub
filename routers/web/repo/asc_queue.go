@@ -489,6 +489,17 @@ func ascQueueStats(ctx *context.Context, repo *repo_model.Repository, branch str
 		}
 	}
 	ctx.Data["AscQueueLandedToday"] = landedToday
+	// One point to a day for the last 14: the entries that landed, as far as the recent list reaches.
+	perDay := make([]uint32, 14)
+	for _, r := range view.Recent {
+		if r.Entry.State != automerge.AscQueueMerged {
+			continue
+		}
+		if back := int((startOfDay - int64(r.Entry.UpdatedUnix) + 86399) / 86400); back >= 0 && back < len(perDay) {
+			perDay[len(perDay)-1-back]++
+		}
+	}
+	ctx.Data["AscQueueLandedSpark"] = asctrust.Sparkline(perDay, 80, 28)
 	ctx.Data["AscQueueRefused"] = refused
 	timings := map[string]ascQueueTiming{}
 	if name, err := ascGraphRepoName(repo); err == nil {

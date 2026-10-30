@@ -126,7 +126,8 @@ func TestBlockUserFromOrganization(t *testing.T) {
 			req := NewRequestWithValues(t, "POST", org.OrganisationLink()+"/settings/blocked_users/block", map[string]string{
 				"uname": targetOrg.Name,
 			})
-			session.MakeRequest(t, req, http.StatusInternalServerError)
+			// An organization is answered like a name nobody has: back to the list with a message.
+			session.MakeRequest(t, req, http.StatusSeeOther)
 			unittest.AssertNotExistsBean(t, &user_model.BlockedUser{BlockID: blockedUser.ID, UserID: targetOrg.ID})
 		})
 

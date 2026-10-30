@@ -64,6 +64,8 @@ type ascGateStats struct {
 	HeldCleared uint32
 	Median      string
 	Days        []ascGateDay
+	// SparkChecked, SparkFirst and SparkHeld are the points of the small lines of the stat cards, one point to a day.
+	SparkChecked, SparkFirst, SparkHeld string
 	Rules       []ascGateRuleCount
 	Overrides   []ascGateOverride
 	Active      uint32
@@ -103,6 +105,13 @@ func ascGateStatsOf(r *ascv1.GetGateStatsResponse) ascGateStats {
 		s.Days = append(s.Days, ascGateDay{Day: day, Checked: d.GetChecked(), Held: d.GetHeld(),
 			CheckedPct: ascagentui.Percent(uint64(d.GetChecked()), uint64(peak)), HeldPct: ascagentui.Percent(uint64(d.GetHeld()), uint64(peak))})
 	}
+	var checked, first, held []uint32
+	for _, d := range s.Days {
+		checked = append(checked, d.Checked)
+		first = append(first, d.Checked-min(d.Held, d.Checked))
+		held = append(held, d.Held)
+	}
+	s.SparkChecked, s.SparkFirst, s.SparkHeld = asctrust.Sparkline(checked, 80, 28), asctrust.Sparkline(first, 80, 28), asctrust.Sparkline(held, 80, 28)
 	for _, rc := range r.GetPerRule() {
 		if rule := ascagentui.CleanLine(rc.GetRule(), 120); rule != "" && len(s.Rules) < 64 {
 			s.Rules = append(s.Rules, ascGateRuleCount{Rule: rule, Checked: rc.GetChecked(), Held: rc.GetHeld()})

@@ -36,7 +36,7 @@ func TestUserDeleteAccount(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 
 	session := loginUser(t, "user8")
-	urlStr := fmt.Sprintf("/user/settings/account/delete?password=%s", userPassword)
+	urlStr := fmt.Sprintf("/user/settings/account/delete?password=%s&username_confirm=user8", userPassword)
 	req := NewRequest(t, "POST", urlStr)
 	session.MakeRequest(t, req, http.StatusSeeOther)
 
@@ -48,7 +48,7 @@ func TestUserDeleteAccountStillOwnRepos(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 
 	session := loginUser(t, "user2")
-	urlStr := fmt.Sprintf("/user/settings/account/delete?password=%s", userPassword)
+	urlStr := fmt.Sprintf("/user/settings/account/delete?password=%s&username_confirm=user2", userPassword)
 	req := NewRequest(t, "POST", urlStr)
 	session.MakeRequest(t, req, http.StatusSeeOther)
 

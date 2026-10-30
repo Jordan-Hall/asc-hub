@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"net/http"
 	"net/url"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -116,12 +117,19 @@ type ascWorkflowSecretUse struct {
 	Set     bool
 }
 
-// ascWorkflowSecretRow is one repository secret as the secrets card shows it: the name and a hint, never the value.
-type ascWorkflowSecretRow struct {
+// ascWorkflowSecretUseRow is a secret of the repository with the workflows that read it, for the side card of the list.
+type ascWorkflowSecretUseRow struct {
+	Name      string
+	Workflows []string
+}
+
+// ascWorkflowSecretName is one secret of the repository that the workflow reads.
+type ascWorkflowSecretName struct {
 	Name    string
-	Hint    string
-	Updated time.Time
-	UsedBy  []string
+	Envs    []string
+	Steps   []string
+	Checked bool
+	Set     bool
 }
 
 type ascWorkflowDef struct {
@@ -139,6 +147,12 @@ type ascWorkflowDef struct {
 	MaxParallel uint32
 	Link        string
 	HasAgent    bool
+	// SecretsUsed are the repository secrets the command steps read, each once, with the steps and variables that read it. Set is
+	// known only when the viewer may list the secrets of the repository (Checked).
+	SecretsUsed []ascWorkflowSecretName
+	// History is how the latest runs of the workflow went (at most 12, oldest first); LastRun is when the newest one started.
+	History []ascagentui.State
+	LastRun time.Time
 }
 
 func ascCleanList(in []string, max, maxBytes int) []string {
@@ -264,6 +278,22 @@ func ascWorkflowDefOf(d *ascv1.WorkflowDefinition, workflowsLink string, showPro
 			}
 		}
 		out.Steps = append(out.Steps, st)
+	}
+	index := map[string]int{}
+	for _, st := range out.Steps {
+		for _, use := range st.Secrets {
+			k, ok := index[use.Name]
+			if !ok {
+				k = len(out.SecretsUsed)
+				index[use.Name] = k
+				out.SecretsUsed = append(out.SecretsUsed, ascWorkflowSecretName{Name: use.Name})
+			}
+			u := &out.SecretsUsed[k]
+			u.Envs = append(u.Envs, use.Env)
+			if !slices.Contains(u.Steps, st.ID) {
+				u.Steps = append(u.Steps, st.ID)
+			}
+		}
 	}
 	return out, true
 }
@@ -422,6 +452,54 @@ func AscWorkflows(ctx *context.Context) {
 	if len(q) > 80 || strings.ContainsAny(q, "\x00\r\n") {
 		q = ""
 	}
+	// The runs say how each workflow went lately and how many run now; they are a convenience, the page stands without them.
+	var running, allowed uint32
+	for _, r := range rows {
+		if r.Valid && r.Enabled {
+			allowed += r.MaxParallel
+		}
+	}
+	if runs, err := api.ListRuns(callCtx, &ascv1.ListWorkflowRunsRequest{Repo: env.ref(), Limit: 100}); err == nil {
+		byName := map[string][]ascWorkflowRunRow{}
+		for _, r := range runs.GetRuns() { // newest first
+			row, ok := ascWorkflowRunOf(r, env.name, env.workflowsLink(), env.link, 0)
+			if !ok {
+				continue
+			}
+			if row.State.Active {
+				running++
+			}
+			if len(byName[row.Workflow]) < 12 {
+				byName[row.Workflow] = append(byName[row.Workflow], row)
+			}
+		}
+		for i := range rows {
+			rs := byName[rows[i].Name]
+			for j := len(rs) - 1; j >= 0; j-- {
+				rows[i].History = append(rows[i].History, rs[j].State)
+			}
+			if len(rs) > 0 {
+				rows[i].LastRun = rs[0].Created
+			}
+		}
+		ctx.Data["AscWorkflowRunning"], ctx.Data["AscWorkflowAllowed"] = running, allowed
+		ctx.Data["AscWorkflowCapacityPct"] = ascagentui.Percent(uint64(running), uint64(max(allowed, 1)))
+	}
+	// Which secrets the workflows read, once each.
+	var used []ascWorkflowSecretUseRow
+	at := map[string]int{}
+	for _, r := range rows {
+		for _, u := range r.SecretsUsed {
+			k, ok := at[u.Name]
+			if !ok {
+				k = len(used)
+				at[u.Name] = k
+				used = append(used, ascWorkflowSecretUseRow{Name: u.Name})
+			}
+			used[k].Workflows = append(used[k].Workflows, r.Name)
+		}
+	}
+	ctx.Data["AscWorkflowSecretsUsed"] = used
 	rows = ascWorkflowFilter(rows, state, q)
 	ctx.Data["AscWorkflowCountAll"], ctx.Data["AscWorkflowCountOn"], ctx.Data["AscWorkflowCountOff"], ctx.Data["AscWorkflowCountInvalid"] = counts.All, counts.On, counts.Off, counts.Invalid
 	ctx.Data["AscWorkflowState"] = state
@@ -1101,11 +1179,11 @@ func AscWorkflowRunRerun(ctx *context.Context) {
 	ctx.Redirect(row.Link)
 }
 
-// ascWorkflowSecretsCard lists the names (and hints) of the repository secrets next to the steps that read them. Only an
-// administrator of the repository may list them (asc checks again); for anyone else the card is left out and the steps only name
-// the secrets they read. A value is never asked for.
+// ascWorkflowSecretsCard marks which of the secrets the workflow reads are set in the repository. Only an administrator of the
+// repository may list its secrets (asc checks again); for anyone else the card still names what the workflow reads and says nothing
+// about whether it is set. A value is never asked for.
 func ascWorkflowSecretsCard(ctx *context.Context, conn grpc.ClientConnInterface, env *ascAgentsEnv, def *ascWorkflowDef) {
-	if ctx.Doer == nil {
+	if ctx.Doer == nil || len(def.SecretsUsed) == 0 {
 		return
 	}
 	uctx, release, err := asctrust.UserCall(ctx.Req.Context(), ctx.Doer, asctrust.CallRepoAdmin, ctx.Repo.Repository)
@@ -1120,29 +1198,22 @@ func ascWorkflowSecretsCard(ctx *context.Context, conn grpc.ClientConnInterface,
 		log.Warn("asc workflows: ListSecrets failed: %v", err)
 		return
 	}
-	var rows []ascWorkflowSecretRow
-	index := map[string]int{}
+	have := map[string]bool{}
 	for i, sec := range resp.GetSecrets() {
-		if i >= 200 {
+		if i >= 500 {
 			break
 		}
-		name := ascagentui.CleanLine(sec.GetName(), 64)
-		if name == "" {
-			continue
-		}
-		index[name] = len(rows)
-		rows = append(rows, ascWorkflowSecretRow{Name: name, Hint: ascagentui.CleanLine(sec.GetHint(), 16), Updated: time.Unix(sec.GetUpdated(), 0)})
+		have[ascagentui.CleanLine(sec.GetName(), 64)] = true
+	}
+	for i := range def.SecretsUsed {
+		def.SecretsUsed[i].Checked = true
+		def.SecretsUsed[i].Set = have[def.SecretsUsed[i].Name]
 	}
 	for i := range def.Steps {
 		for j := range def.Steps[i].Secrets {
 			use := &def.Steps[i].Secrets[j]
 			use.Checked = true
-			if k, ok := index[use.Name]; ok {
-				use.Set = true
-				rows[k].UsedBy = append(rows[k].UsedBy, def.Steps[i].ID)
-			}
+			use.Set = have[use.Name]
 		}
 	}
-	ctx.Data["AscWorkflowSecrets"] = rows
-	ctx.Data["AscWorkflowSecretsShown"] = true
 }

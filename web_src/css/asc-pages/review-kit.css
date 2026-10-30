@@ -1764,3 +1764,26 @@ a.rv-btn.rv-btn-primary,
 a.rv-btn.rv-btn-primary:hover {
   color: var(--on-fill);
 }
+
+/* The small line in a stat card: it sits at the right edge of the card and never takes room from the number. */
+.rv-stat {
+  position: relative;
+}
+
+.rv-spark {
+  position: absolute;
+  inset-block-end: 12px;
+  inset-inline-end: 12px;
+  color: var(--accent, #14788d);
+  opacity: 0.85;
+}
+
+.rv-spark-ok { color: var(--ok, #16845b); }
+.rv-spark-warn { color: var(--warn, #b4570a); }
+.rv-spark-err { color: var(--err, #c0392b); }
+
+@media (max-width: 479.98px) {
+  .rv-spark {
+    display: none;
+  }
+}
