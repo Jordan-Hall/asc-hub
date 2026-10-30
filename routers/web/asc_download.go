@@ -12,6 +12,7 @@ import (
 
 	"forgejo.org/modules/ascdownload"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/proxy"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/ascdownloadsync"
 	"forgejo.org/services/context"
@@ -33,6 +34,17 @@ type ascDownloadView struct {
 	ActiveArchOffer *ascdownload.ArchOffer
 	// HubURL is this hub's root URL without the trailing slash.
 	HubURL string
+	// Release is set when the files are those of a GitHub release (they are linked there, not served by the hub).
+	Release *ascdownload.GitHubRelease
+}
+
+// ascGitHubSource is the source of the latest GitHub release, or nil when [asc] RELEASE_REPO is empty or a local
+// download directory is configured (which takes precedence).
+func ascGitHubSource() *ascdownload.GitHubSource {
+	if setting.Asc.DownloadDir != "" || setting.Asc.ReleaseRepo == "" {
+		return nil
+	}
+	return ascdownload.SharedGitHubSource(setting.Asc.ReleaseRepo, &http.Transport{Proxy: proxy.Proxy()})
 }
 
 // ascDownloadBase is where the download links point: [asc] DOWNLOAD_BASE_URL, or this hub's own mount.
@@ -67,13 +79,30 @@ func logAscDownloadError(err error) {
 func prepareAscDownload(ctx *context.Context) bool {
 	// the hub's own address, for commands that name it; it is never a fixed host
 	ctx.Data["AscHubURL"] = setting.AppURL[:len(setting.AppURL)-1]
-	m, err := ascdownload.Cached(setting.Asc.DownloadDir, setting.Asc.DownloadBaseURL == "")
+	var (
+		m       *ascdownload.Manifest
+		err     error
+		release *ascdownload.GitHubRelease
+	)
+	if src := ascGitHubSource(); src != nil {
+		ctx.Data["AscReleaseRepo"] = setting.Asc.ReleaseRepo
+		ctx.Data["AscReleasesURL"] = "https://github.com/" + setting.Asc.ReleaseRepo + "/releases"
+		if release, err = src.Latest(); err == nil {
+			m = release.Manifest
+		}
+	} else {
+		m, err = ascdownload.Cached(setting.Asc.DownloadDir, setting.Asc.DownloadBaseURL == "")
+	}
 	isAdmin := ctx.IsSigned && ctx.Doer != nil && ctx.Doer.IsAdmin
 	if err != nil {
 		logAscDownloadError(err)
 		if isAdmin {
 			note := err.Error()
-			if ascdownload.IsNoRelease(err) {
+			if ascGitHubSource() != nil {
+				if ascdownload.IsNoRelease(err) {
+					note += ". Publish a release of " + setting.Asc.ReleaseRepo + " on GitHub, or set [asc] DOWNLOAD_DIR to offer files from this hub."
+				}
+			} else if ascdownload.IsNoRelease(err) {
 				note += ". Set [asc] DOWNLOAD_DIR to a directory with a manifest.json and the release files, or [asc] DOWNLOAD_SOURCE_URL to fetch a signed release into it, to offer the asc download here."
 			}
 			if _, syncErr, configured := ascdownloadsync.Status(); configured && syncErr != nil {
@@ -84,12 +113,16 @@ func prepareAscDownload(ctx *context.Context) bool {
 		return false
 	}
 	hub := setting.AppURL
-	offers := ascdownload.BuildOffers(m, ascDownloadBase(), hub)
+	base := ascDownloadBase()
+	if release != nil {
+		base = release.BaseURL
+	}
+	offers := ascdownload.BuildOffers(m, base, hub)
 	if len(offers.OSes) == 0 {
 		return false
 	}
 	platform := ascdownload.DetectPlatform(ctx.Req.UserAgent())
-	view := &ascDownloadView{Offers: offers, HubURL: hub[:len(hub)-1]}
+	view := &ascDownloadView{Offers: offers, HubURL: hub[:len(hub)-1], Release: release}
 	osOffer, archOffer, ok := offers.Pick(platform)
 	if !ok {
 		osOffer, archOffer = &offers.OSes[0], &offers.OSes[0].Arches[0]
