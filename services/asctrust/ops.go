@@ -25,6 +25,8 @@ type PolicyPage struct {
 	// Base is the trunk changeset the file was read from. A proposal starts from it, so a trunk that moved is a
 	// conflict and never a silent overwrite. Empty when the repository has no trunk yet.
 	Base []byte
+	// Parsed is what asc parsed from the file: the repository's own values, for the resolve against its organisation.
+	Parsed *ascv1.GetPolicyResponse
 }
 
 // LoadPolicyPage reads the policy in force and what the page draws from it. Only the first read is required; the
@@ -62,7 +64,7 @@ func LoadPolicyPage(ctx context.Context, conn grpc.ClientConnInterface, repoName
 	if rules, err := ascv1.NewSecretScanClient(conn).ListRules(cctx, &ascv1.ListSecretRulesRequest{Repo: RepoRef(repoName)}); err == nil {
 		in.Secrets = rules
 	}
-	return &PolicyPage{View: BuildPolicyView(in), Base: src.GetSource()}, nil
+	return &PolicyPage{View: BuildPolicyView(in), Base: src.GetSource(), Parsed: src.GetParsed()}, nil
 }
 
 // PolicySummary is the short form of the policy for the repository home: whether the file is present and valid and

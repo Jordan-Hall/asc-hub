@@ -1,0 +1,171 @@
+{{/*
+The usage and quota board of asc serve (routers/web/shared/usageweb): the four measures of a month, the repositories,
+the AI spend, and for a site administrator the limits.
+Template data: AscUsage (usageweb.View), CsrfTokenHtml
+*/}}
+{{with .AscUsage}}
+<div class="ds-stack-16" data-testid="asc-usage">
+	{{if .Unsupported}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-usage-unsupported"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.usage_unsupported"}}</div></div>
+	{{else}}
+		{{if .Error}}<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-usage-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Error}}</div></div>{{end}}
+
+		{{if .Admin}}
+		<form class="ds-card ds-form" method="get" action="{{.Base}}" data-testid="asc-usage-owner">
+			<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_shell.usage_owner"}}</h2></div>
+			<div class="ds-card-b ds-form-row ds-form-row-2">
+				<div class="ds-field">
+					<label class="ds-label" for="usage-kind">{{ctx.Locale.Tr "asc_shell.usage_owner_kind"}}</label>
+					<select id="usage-kind" class="ds-select" name="kind">
+						<option value=""{{if eq .OwnerKind ""}} selected{{end}}>{{ctx.Locale.Tr "asc_shell.usage_owner_server"}}</option>
+						<option value="user"{{if eq .OwnerKind "user"}} selected{{end}}>{{ctx.Locale.Tr "asc_shell.usage_owner_user"}}</option>
+						<option value="org"{{if eq .OwnerKind "org"}} selected{{end}}>{{ctx.Locale.Tr "asc_shell.usage_owner_org"}}</option>
+					</select>
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="usage-name">{{ctx.Locale.Tr "asc_shell.usage_owner_name"}}</label>
+					<input id="usage-name" class="ds-input" name="name" maxlength="64" value="{{.OwnerName}}" autocomplete="off" spellcheck="false">
+				</div>
+			</div>
+			<div class="ds-card-b"><button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_shell.usage_show"}}</button></div>
+		</form>
+		{{end}}
+
+		{{with .Usage}}
+			<div class="ds-row ds-wrap">
+				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.usage_period"}}">
+					{{range $.AscUsage.Periods}}<a href="{{.URL}}"{{if .Active}} aria-current="page"{{end}}>{{.Name}}</a>{{end}}
+				</div>
+				<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.usage_resets" (DateUtils.AbsoluteShort .ResetsAt)}}</p>
+			</div>
+
+			{{if .OverQuota}}
+			<div class="ds-banner ds-banner-err" role="status" data-testid="asc-usage-over"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.usage_over"}}</div></div>
+			{{end}}
+
+			<div class="ds-grid-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.usage_measures"}}" data-testid="asc-usage-meters">
+				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_storage") "M" .Storage "Unit" "" "Id" "storage")}}
+				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_minutes") "M" .Minutes "Unit" (ctx.Locale.Tr "asc_shell.usage_unit_minutes") "Id" "minutes")}}
+				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_ai") "M" .AISpend "Unit" "" "Id" "ai")}}
+				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_bandwidth") "M" .Bandwidth "Unit" "" "Id" "bandwidth")}}
+			</div>
+
+			{{if or .BYOSpend .BYOStorage}}
+			<p class="ds-hint" data-testid="asc-usage-byo">
+				{{if .BYOSpend}}{{ctx.Locale.Tr "asc_shell.usage_byo_ai" .BYOSpendText}} {{end}}
+				{{if .BYOStorage}}{{ctx.Locale.Tr "asc_shell.usage_byo_storage"}}{{end}}
+			</p>
+			{{end}}
+
+			<section class="ds-card" aria-labelledby="usage-repos-h">
+				<div class="ds-card-h"><h2 id="usage-repos-h">{{ctx.Locale.Tr "asc_shell.usage_repos"}}</h2></div>
+				{{if .Repos}}
+				<div class="ds-table-wrap">
+					<table class="ds-table ds-table-stack" data-testid="asc-usage-repos">
+						<thead><tr>
+							<th scope="col">{{ctx.Locale.Tr "asc_shell.usage_col_repo"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.usage_storage"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.usage_minutes"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.usage_ai"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.usage_bandwidth"}}</th>
+						</tr></thead>
+						<tbody>
+						{{range .Repos}}
+							<tr>
+								<th scope="row" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_repo"}}"><a class="ds-break" href="{{AppSubUrl}}/{{.Repo}}">{{.Repo}}</a></th>
+								<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_storage"}}">{{.StorageText}}</td>
+								<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_minutes"}}">{{.Minutes}}</td>
+								<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_ai"}}">{{.SpendText}}</td>
+								<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_bandwidth"}}">{{.BandwidthText}}</td>
+							</tr>
+						{{end}}
+						</tbody>
+					</table>
+				</div>
+				{{if .ReposCapped}}<div class="ds-card-b"><p class="ds-hint">{{ctx.Locale.Tr "asc_shell.usage_repos_capped"}}</p></div>{{end}}
+				{{else}}
+				<div class="ds-card-b"><p class="ds-hint" data-testid="asc-usage-empty">{{if .Empty}}{{ctx.Locale.Tr "asc_shell.usage_nothing"}}{{else}}{{ctx.Locale.Tr "asc_shell.usage_no_repos"}}{{end}}</p></div>
+				{{end}}
+			</section>
+		{{end}}
+
+		{{if $.AscUsage.Usage}}
+		<section class="ds-card" aria-labelledby="usage-spend-h">
+			<div class="ds-card-h">
+				<h2 id="usage-spend-h">{{ctx.Locale.Tr "asc_shell.usage_spend"}}</h2>
+				<div class="ds-seg ds-ml-auto" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.usage_group_by"}}">
+					{{range .Groups}}<a href="{{.URL}}"{{if .Active}} aria-current="page"{{end}}>{{if eq .Name "key"}}{{ctx.Locale.Tr "asc_shell.usage_group_key"}}{{else if eq .Name "user"}}{{ctx.Locale.Tr "asc_shell.usage_group_user"}}{{else if eq .Name "repo"}}{{ctx.Locale.Tr "asc_shell.usage_group_repo"}}{{else if eq .Name "day"}}{{ctx.Locale.Tr "asc_shell.usage_group_day"}}{{else}}{{ctx.Locale.Tr "asc_shell.usage_group_month"}}{{end}}</a>{{end}}
+				</div>
+			</div>
+			{{with .Spend}}
+				{{if .Rows}}
+				<div class="ds-table-wrap">
+					<table class="ds-table ds-table-stack" data-testid="asc-usage-spend">
+						<thead><tr>
+							<th scope="col">{{ctx.Locale.Tr "asc_shell.usage_col_group"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.usage_col_requests"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.usage_col_in"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.usage_col_out"}}</th>
+							<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.usage_col_cost"}}</th>
+						</tr></thead>
+						<tbody>
+						{{range .Rows}}
+							<tr>
+								<th scope="row" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_group"}}"><span class="ds-break">{{if .Label}}{{.Label}}{{else}}{{.Group}}{{end}}</span>{{if and .Label (ne .Label .Group)}} <span class="ds-hint ds-mono ds-break">{{.Group}}</span>{{end}}</th>
+								<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_requests"}}">{{.Requests}}</td>
+								<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_in"}}">{{.Input}}</td>
+								<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_out"}}">{{.Output}}</td>
+								<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_cost"}}">{{.CostText}}</td>
+							</tr>
+						{{end}}
+						</tbody>
+						<tfoot><tr>
+							<th scope="row" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_group"}}">{{ctx.Locale.Tr "asc_shell.usage_total"}}</th>
+							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_requests"}}">{{.Total.Requests}}</td>
+							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_in"}}">{{.Total.Input}}</td>
+							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_out"}}">{{.Total.Output}}</td>
+							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.usage_col_cost"}}">{{.Total.CostText}}</td>
+						</tr></tfoot>
+					</table>
+				</div>
+				{{else}}
+				<div class="ds-card-b"><p class="ds-hint" data-testid="asc-usage-spend-empty">{{ctx.Locale.Tr "asc_shell.usage_spend_none"}}</p></div>
+				{{end}}
+			{{end}}
+		</section>
+		{{end}}
+
+		{{if and .Admin .Quota}}
+		<form class="ds-card ds-form" method="post" action="{{.Base}}/quota" data-testid="asc-usage-quota">
+			{{$.CsrfTokenHtml}}
+			<input type="hidden" name="kind" value="{{.OwnerKind}}">
+			<input type="hidden" name="name" value="{{.OwnerName}}">
+			<input type="hidden" name="op" value="{{.SetOp}}">
+			<div class="ds-card-h"><h2>{{if .Instance}}{{ctx.Locale.Tr "asc_shell.usage_quota_default"}}{{else}}{{ctx.Locale.Tr "asc_shell.usage_quota_owner" .OwnerName}}{{end}}</h2></div>
+			<div class="ds-card-b ds-stack-16">
+				<p class="ds-hint">{{if .Instance}}{{ctx.Locale.Tr "asc_shell.usage_quota_default_hint"}}{{else}}{{ctx.Locale.Tr "asc_shell.usage_quota_owner_hint"}}{{end}}</p>
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field">
+						<label class="ds-label" for="q-storage">{{ctx.Locale.Tr "asc_shell.usage_quota_storage"}}</label>
+						<input id="q-storage" class="ds-input" name="storage_gib" inputmode="numeric" autocomplete="off" value="{{if .Override.StorageGiB}}{{.Override.StorageGiB}}{{end}}" placeholder="{{if .Quota.Default.StorageText}}{{.Quota.Default.StorageText}}{{else}}{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}{{end}}">
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="q-minutes">{{ctx.Locale.Tr "asc_shell.usage_quota_minutes"}}</label>
+						<input id="q-minutes" class="ds-input" name="agent_minutes" inputmode="numeric" autocomplete="off" value="{{if .Override.Minutes}}{{.Override.Minutes}}{{end}}" placeholder="{{if .Quota.Default.AgentMinutes}}{{.Quota.Default.AgentMinutes}}{{else}}{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}{{end}}">
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="q-spend">{{ctx.Locale.Tr "asc_shell.usage_quota_spend"}}</label>
+						<input id="q-spend" class="ds-input" name="ai_spend_usd" inputmode="decimal" autocomplete="off" value="{{.Override.SpendUSD}}" placeholder="{{if .Quota.Default.SpendText}}{{.Quota.Default.SpendText}}{{else}}{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}{{end}}">
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="q-bandwidth">{{ctx.Locale.Tr "asc_shell.usage_quota_bandwidth"}}</label>
+						<input id="q-bandwidth" class="ds-input" name="bandwidth_gib" inputmode="numeric" autocomplete="off" value="{{if .Override.BandwidthGiB}}{{.Override.BandwidthGiB}}{{end}}" placeholder="{{if .Quota.Default.BandwidthText}}{{.Quota.Default.BandwidthText}}{{else}}{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}{{end}}">
+					</div>
+				</div>
+				<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
+			</div>
+		</form>
+		{{end}}
+	{{end}}
+</div>
+{{end}}

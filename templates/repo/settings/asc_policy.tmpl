@@ -17,6 +17,25 @@
 	{{else}}
 		{{if .Problem}}<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-policy-problem">{{.Problem}}</div>{{end}}
 
+		{{with .Org}}
+		<section class="ast-card" aria-labelledby="asc-policy-org" data-testid="asc-policy-org">
+			<div class="ast-card-head">
+				<h3 id="asc-policy-org" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.p_org_title" .Org}}</h3>
+				<span class="ast-card-aside">{{ctx.Locale.Tr "asc_rp.p_org_lead"}}</span>
+			</div>
+			{{if .Set}}
+			<dl class="ast-org-list">
+				<dt>{{ctx.Locale.Tr "asc_rp.p_org_required"}}</dt>
+				<dd data-testid="asc-policy-org-required">{{if .Required}}{{range $i, $v := .Required}}{{if $i}}, {{end}}{{$v}}{{end}}{{else}}{{ctx.Locale.Tr "asc_rp.p_org_nothing"}}{{end}}</dd>
+				<dt>{{ctx.Locale.Tr "asc_rp.p_org_effective"}}</dt>
+				<dd data-testid="asc-policy-org-effective">{{if .Effective}}{{range $i, $v := .Effective}}{{if $i}}, {{end}}{{$v}}{{end}}{{else}}{{ctx.Locale.Tr "asc_rp.p_org_nothing"}}{{end}}</dd>
+				{{if .Tightened}}<dt>{{ctx.Locale.Tr "asc_rp.p_org_tightened"}}</dt>
+				<dd data-testid="asc-policy-org-tightened">{{range $i, $v := .Tightened}}{{if $i}}, {{end}}{{$v}}{{end}}</dd>{{end}}
+			</dl>
+			{{else}}<p class="asc-trust-sub" data-testid="asc-policy-org-none">{{ctx.Locale.Tr "asc_rp.p_org_none"}}</p>{{end}}
+		</section>
+		{{end}}
+
 		{{if .View}}
 		<section class="ast-card" aria-labelledby="asc-policy-file">
 			<div class="ast-card-head">

@@ -47,3 +47,14 @@ func TestHomeContributorsOf(t *testing.T) {
 	assert.Equal(t, 54, got[1].Pct)
 	assert.Empty(t, homeContributorsOf(nil, 5))
 }
+
+func TestHomeAuthorsForAViewerWithoutPullRequests(t *testing.T) {
+	cached := &HomeAuthors{Landed: 10, Agents: 4, ReviewedPct: 75, MedianMinutes: 18}
+	got := homeAuthorsFor(cached, false)
+	assert.True(t, got.NoReview)
+	assert.Zero(t, got.ReviewedPct)
+	assert.Zero(t, got.MedianMinutes)
+	assert.Equal(t, 10, got.Landed, "who landed is code data and stays")
+	assert.Equal(t, 75, cached.ReviewedPct, "the cached card is not changed")
+	assert.Equal(t, 75, homeAuthorsFor(cached, true).ReviewedPct)
+}

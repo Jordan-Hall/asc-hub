@@ -114,7 +114,7 @@ func run(t *testing.T, fn func(*context.Context, *Level), lvl *Level, method str
 	ctx.Locale = locale(t)
 	ctx.TemplateContext = context.NewTemplateContextForWeb(ctx)
 	ctx.Render = templates.HTMLRenderer()
-	ctx.Doer = &user_model.User{ID: 2, Name: "alice", LowerName: "alice"}
+	ctx.Doer = &user_model.User{ID: 2, Name: "alice", LowerName: "alice", IsActive: true}
 	ctx.IsSigned = true
 	ctx.Data["CsrfTokenHtml"] = template.HTML(`<input type="hidden" name="_csrf" value="csrf-token">`)
 	if method == http.MethodPost {
@@ -670,6 +670,8 @@ func TestAIKeysPages(t *testing.T) {
 		assert.Contains(t, r.body(), `data-testid="asc-test-result"`)
 		assert.Contains(t, r.body(), tr(t, "ascbyo.ai.detail.test_ok", 80))
 		assert.Contains(t, r.body(), "claude-sonnet-4-5", "models of a tested key")
+		assert.Contains(t, r.body(), `data-testid="asc-test-models"`, "a good test says how many models the key can use")
+		assert.Contains(t, r.body(), tr(t, "asc_shell.ai_models_available", 1))
 		assert.Contains(t, r.body(), "1,200")
 		assert.Contains(t, r.body(), "$4.20")
 

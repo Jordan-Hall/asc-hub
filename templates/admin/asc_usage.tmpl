@@ -1,0 +1,4 @@
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin asc-usage")}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_shell.usage_title") "Desc" (ctx.Locale.Tr "asc_shell.usage_admin_lead"))}}
+	{{template "shared/asc_usage" .}}
+{{template "admin/layout_footer" .}}

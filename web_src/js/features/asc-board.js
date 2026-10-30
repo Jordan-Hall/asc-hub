@@ -157,6 +157,8 @@ async function followQueue(list) {
   const url = list.getAttribute('data-asc-queue-live');
   let failures = 0;
   while (list.isConnected && failures < 5) {
+    // The answer is held open until there is news, so this is only a floor against a server that answers at once.
+    const started = Date.now();
     try {
       const res = await GET(url, {headers: {Accept: 'application/json'}});
       if (!res.ok) throw new Error(String(res.status));
@@ -165,6 +167,8 @@ async function followQueue(list) {
         window.location.reload();
         return;
       }
+      const spent = Date.now() - started;
+      if (spent < 1000) await new Promise((r) => setTimeout(r, 1000 - spent));
     } catch {
       failures++;
       await new Promise((r) => setTimeout(r, 2000 * failures));

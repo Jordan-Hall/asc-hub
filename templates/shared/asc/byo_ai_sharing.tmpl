@@ -1,0 +1,98 @@
+{{/*
+The sharing and the cap rules of one AI key (routers/web/shared/byoweb/aishares.go).
+Props: Root (the template data), Key (the key view).
+*/}}
+{{$a := .Root.Asc}}
+{{with $a.Sharing}}
+{{$sh := .}}
+{{$k := $.Key}}
+<section class="asc-byo-card" aria-labelledby="asc-caps-h" data-testid="asc-key-caps">
+	<h3 id="asc-caps-h">{{ctx.Locale.Tr "asc_shell.ks_caps_title"}}</h3>
+	<p>{{ctx.Locale.Tr "asc_shell.ks_caps_help"}}</p>
+	{{if .Problem}}
+		<div class="ds-banner negative" role="alert" data-testid="asc-key-sharing-problem"><p>{{.Problem}}</p></div>
+	{{else}}{{with .Data}}
+		{{if .CapsSeen}}
+		<form class="asc-byo-form" method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/caps">
+			{{$.Root.CsrfTokenHtml}}
+			<input type="hidden" name="op_id" value="{{$sh.CapsOp}}">
+			<p class="asc-byo-hint">{{if .Caps.CapText}}{{ctx.Locale.Tr "asc_shell.ks_caps_state" .Caps.SpentText .Caps.CapText}}{{else}}{{ctx.Locale.Tr "asc_shell.ks_caps_nocap" .Caps.SpentText}}{{end}}{{if .Caps.Warned}} {{ctx.Locale.Tr "asc_shell.ks_caps_warned"}}{{end}}</p>
+			<div class="ds-field asc-field">
+				<label for="asc-warn-pct">{{ctx.Locale.Tr "asc_shell.ks_warn"}}</label>
+				<input id="asc-warn-pct" class="ds-input" name="warn_percent" type="number" min="0" max="100" inputmode="numeric" value="{{.Caps.WarnPercent}}">
+				<p class="asc-byo-hint">{{ctx.Locale.Tr "asc_shell.ks_warn_hint"}}</p>
+			</div>
+			<div class="ds-field asc-field asc-field-check">
+				<label><input type="checkbox" name="stop_at_cap" value="on"{{if .Caps.StopAtCap}} checked{{end}}> {{ctx.Locale.Tr "asc_shell.ks_stop"}}</label>
+				<p class="asc-byo-hint">{{ctx.Locale.Tr "asc_shell.ks_stop_hint"}}</p>
+			</div>
+			<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button>
+		</form>
+		{{end}}
+	{{end}}{{end}}
+</section>
+
+{{with .Data}}
+<section class="asc-byo-card" aria-labelledby="asc-shares-h" data-testid="asc-key-shares">
+	<h3 id="asc-shares-h">{{ctx.Locale.Tr "asc_shell.ks_title"}}</h3>
+	<p>{{ctx.Locale.Tr "asc_shell.ks_help"}}</p>
+	{{if .Shares}}
+	<div class="ds-table-wrap">
+		<table class="ds-table ds-table-stack" data-testid="asc-key-shares-list">
+			<thead><tr>
+				<th scope="col">{{ctx.Locale.Tr "asc_shell.ks_col_with"}}</th>
+				<th scope="col">{{ctx.Locale.Tr "asc_shell.ks_col_may"}}</th>
+				<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_shell.ks_col_used"}}</th>
+				<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.col_actions"}}</span></th>
+			</tr></thead>
+			<tbody>
+			{{range .Shares}}
+				<tr>
+					<th scope="row" data-label="{{ctx.Locale.Tr "asc_shell.ks_col_with"}}"><span class="ds-break">{{.Grantee}}</span> <span class="ds-chip">{{if eq .GranteeKind "org"}}{{ctx.Locale.Tr "asc_shell.ks_kind_org"}}{{else if eq .GranteeKind "repo"}}{{ctx.Locale.Tr "asc_shell.ks_kind_repo"}}{{else}}{{ctx.Locale.Tr "asc_shell.ks_kind_user"}}{{end}}</span></th>
+					<td data-label="{{ctx.Locale.Tr "asc_shell.ks_col_may"}}">{{if .AllowUse}}{{ctx.Locale.Tr "asc_shell.ks_may_use"}}{{else}}{{ctx.Locale.Tr "asc_shell.ks_no_use"}}{{end}}{{if .SeeSpend}}, {{ctx.Locale.Tr "asc_shell.ks_may_see"}}{{end}}</td>
+					<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.ks_col_used"}}">{{.CostText}} <span class="ds-hint">({{ctx.Locale.Tr "asc_shell.ks_requests" .Requests}})</span></td>
+					<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_admin.col_actions"}}">
+						<form method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/shares/{{.ID}}/revoke">
+							{{$.Root.CsrfTokenHtml}}
+							<input type="hidden" name="op_id" value="{{index $sh.RevokeOps .ID}}">
+							<button class="ds-btn ds-btn-danger ds-btn-sm" type="submit" aria-label="{{ctx.Locale.Tr "asc_shell.ks_revoke_for" .Grantee}}">{{ctx.Locale.Tr "asc_shell.ks_revoke"}}</button>
+						</form>
+					</td>
+				</tr>
+			{{end}}
+			</tbody>
+		</table>
+	</div>
+	{{else}}
+	<p class="asc-byo-empty" data-testid="asc-key-shares-empty">{{ctx.Locale.Tr "asc_shell.ks_none"}}</p>
+	{{end}}
+	{{if .HasOwn}}<p class="asc-byo-hint">{{ctx.Locale.Tr "asc_shell.ks_own" .OwnRows.CostText}}</p>{{end}}
+
+	<form class="asc-byo-form" method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}/shares" autocomplete="off" data-testid="asc-key-share-form">
+		{{$.Root.CsrfTokenHtml}}
+		<input type="hidden" name="op_id" value="{{$sh.ShareOp}}">
+		<h4>{{ctx.Locale.Tr "asc_shell.ks_add"}}</h4>
+		<div class="ds-field asc-field">
+			<label for="asc-share-kind">{{ctx.Locale.Tr "asc_shell.ks_with"}}</label>
+			<select id="asc-share-kind" class="ds-select" name="kind">
+				<option value="org">{{ctx.Locale.Tr "asc_shell.ks_kind_org"}}</option>
+				<option value="repo">{{ctx.Locale.Tr "asc_shell.ks_kind_repo"}}</option>
+				<option value="user">{{ctx.Locale.Tr "asc_shell.ks_kind_user"}}</option>
+			</select>
+		</div>
+		<div class="ds-field asc-field">
+			<label for="asc-share-name">{{ctx.Locale.Tr "asc_shell.ks_name"}}</label>
+			<input id="asc-share-name" class="ds-input" name="name" maxlength="200" required autocomplete="off" spellcheck="false">
+			<p class="asc-byo-hint">{{ctx.Locale.Tr "asc_shell.ks_name_hint"}}</p>
+		</div>
+		<div class="ds-field asc-field asc-field-check">
+			<label><input type="checkbox" name="allow_use" value="on" checked> {{ctx.Locale.Tr "asc_shell.ks_allow_use"}}</label>
+		</div>
+		<div class="ds-field asc-field asc-field-check">
+			<label><input type="checkbox" name="see_spend" value="on"> {{ctx.Locale.Tr "asc_shell.ks_see_spend"}}</label>
+		</div>
+		<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "asc_shell.ks_share"}}</button>
+	</form>
+</section>
+{{end}}
+{{end}}
