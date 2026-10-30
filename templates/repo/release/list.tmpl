@@ -28,13 +28,13 @@
 								{{if and (not $release.IsDraft) ($.Permission.CanRead $.UnitTypeCode)}}
 									<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.RepoLink}}/compare/{{$release.TagName | PathEscapeSegments}}...{{$release.TargetBehind | PathEscapeSegments}}">{{ctx.Locale.Tr "asc_rp.compare"}}</a>
 								{{end}}
-								{{if and $.CanCreateRelease (not $release.IsTag)}}
+								{{if and $.CanCreateRelease (not $release.IsTag) (gt $release.ID 0)}}
 									<a class="ds-btn ds-btn-secondary ds-btn-sm ds-btn-icon" title="{{ctx.Locale.Tr "repo.release.edit"}}" aria-label="{{ctx.Locale.Tr "repo.release.edit"}}" href="{{$.RepoLink}}/releases/edit/{{$release.TagName | PathEscapeSegments}}" rel="nofollow">{{svg "dsi-pencil" 16}}</a>
 								{{end}}
 							</div>
 						</header>
 						<div class="rp-rel-body detail">
-							<h4 class="rp-rel-name"><a href="{{$.RepoLink}}/releases/tag/{{$release.TagName | PathEscapeSegments}}">{{$release.Title}}</a></h4>
+							<h4 class="rp-rel-name">{{if gt $release.ID 0}}<a href="{{$.RepoLink}}/releases/tag/{{$release.TagName | PathEscapeSegments}}">{{$release.Title}}</a>{{else if and $release.Sha1 ($.Permission.CanRead $.UnitTypeCode)}}<a href="{{$.RepoLink}}/src/tag/{{$release.TagName | PathEscapeSegments}}" data-testid="release-asc-only">{{$release.Title}}</a>{{else}}<span data-testid="release-asc-only">{{$release.Title}}</span>{{end}}</h4>
 							<p class="rp-ref-meta">
 								<span class="author rp-ref-who">
 								{{if $release.OriginalAuthor}}
