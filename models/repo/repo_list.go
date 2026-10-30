@@ -660,7 +660,8 @@ func AccessibleRepositoryCondition(user *user_model.User, unitType unit.Type) bu
 		}
 	}
 
-	return cond
+	// a repository in the trash is accessible to nobody, so it is in no list
+	return builder.And(builder.Neq{"`repository`.status": RepositoryTrashed}, cond)
 }
 
 // SearchRepositoryByName takes keyword and part of repository name to search,
@@ -741,7 +742,7 @@ func GetUserRepositories(ctx context.Context, opts *SearchRepoOptions) (Reposito
 	if opts.Actor == nil {
 		return nil, 0, util.NewInvalidArgumentErrorf("GetUserRepositories: Actor is needed but not given")
 	}
-	cond = cond.And(builder.Eq{"owner_id": opts.Actor.ID})
+	cond = cond.And(builder.Eq{"owner_id": opts.Actor.ID}).And(builder.Neq{"status": RepositoryTrashed})
 	if !opts.Private {
 		cond = cond.And(builder.Eq{"is_private": false})
 	}
