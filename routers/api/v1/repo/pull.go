@@ -26,6 +26,7 @@ import (
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
+	repostore_asc "forgejo.org/modules/repostore/asc"
 	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/timeutil"
@@ -1047,6 +1048,9 @@ func MergePullRequest(ctx *context.APIContext) {
 			} else {
 				ctx.Error(http.StatusConflict, "Merge", "PushRejected with remote message: "+errPushRej.Message)
 			}
+		} else if refusal, ok := repostore_asc.PolicyRefusal(err); ok {
+			// asc refused the landing (approvals, checks, the order of a stack): a person is told why, as git is by a hook.
+			ctx.Error(http.StatusMethodNotAllowed, "Merge", refusal)
 		} else {
 			ctx.Error(http.StatusInternalServerError, "Merge", err)
 		}

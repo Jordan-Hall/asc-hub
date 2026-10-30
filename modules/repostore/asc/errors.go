@@ -153,3 +153,19 @@ func publishErr(op string, err error) error {
 func refMissing(rev string) error {
 	return &repostore.RefNotFoundError{Ref: rev}
 }
+
+// PolicyRefusal is the sentence of asc's refusal of a write because of the repository's policy (the approvals and
+// checks a landing needs, a change that is not allowed), when err holds one; it is what a person is told.
+func PolicyRefusal(err error) (string, bool) {
+	var e *Error
+	if !errors.As(err, &e) {
+		return "", false
+	}
+	switch e.Code {
+	case codes.PermissionDenied, codes.FailedPrecondition:
+		if e.Msg != "" {
+			return e.Msg, true
+		}
+	}
+	return "", false
+}

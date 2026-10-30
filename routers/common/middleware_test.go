@@ -95,3 +95,18 @@ func TestStripSlashesMiddleware(t *testing.T) {
 		assert.True(t, called)
 	}
 }
+
+func TestProtocolMiddlewaresLetAbortedResponsesAbort(t *testing.T) {
+	// A response the peer abandoned (the reverse proxy panics with http.ErrAbortHandler) is passed up to net/http as it is: no
+	// error page and no error in the log.
+	var handler http.Handler = http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		panic(http.ErrAbortHandler)
+	})
+	middlewares := ProtocolMiddlewares()
+	// The second middleware is the panic recovery; the first only normalizes the path.
+	handler = middlewares[1].(func(http.Handler) http.Handler)(handler)
+	req := httptest.NewRequest(http.MethodPost, "/asc.v1.Repo/Log", nil)
+	assert.PanicsWithValue(t, http.ErrAbortHandler, func() {
+		handler.ServeHTTP(httptest.NewRecorder(), req)
+	})
+}

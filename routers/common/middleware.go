@@ -31,6 +31,11 @@ func ProtocolMiddlewares() (handlers []any) {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			defer func() {
 				if err := recover(); err != nil {
+					if err == http.ErrAbortHandler {
+						// A proxied response that the peer abandoned (the reverse proxy of asc ends it so): net/http stops the
+						// connection quietly; it is no fault of this server and has no error page to show.
+						panic(err)
+					}
 					RenderPanicErrorPage(resp, req, err) // it should never panic
 				}
 			}()
