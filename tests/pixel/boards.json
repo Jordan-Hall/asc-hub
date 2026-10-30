@@ -609,7 +609,7 @@
    "board": "Changeset",
    "num": "C4",
    "title": "Changeset",
-   "route": "/acme/payments/commit/{sha}",
+   "route": "/acme/payments/commit/{changeSha}",
    "as": "maya",
    "viewport": "desktop",
    "themes": [
@@ -793,7 +793,7 @@
    "board": "Mobile-Changeset",
    "num": "C4m",
    "title": "Mobile: Changeset",
-   "route": "/acme/payments/commit/{sha}",
+   "route": "/acme/payments/commit/{changeSha}",
    "as": "maya",
    "viewport": "mobile",
    "themes": [
@@ -1284,7 +1284,7 @@
    "board": "WorkflowDef",
    "num": "E6",
    "title": "Workflow definition",
-   "route": "/acme/payments/asc/workflows/ci",
+   "route": "/acme/payments/asc/workflows/dependency-update",
    "as": "maya",
    "viewport": "desktop",
    "themes": [
@@ -1375,7 +1375,7 @@
    "board": "Mobile-WorkflowDef",
    "num": "E6m",
    "title": "Mobile: Workflow definition",
-   "route": "/acme/payments/asc/workflows/ci",
+   "route": "/acme/payments/asc/workflows/dependency-update",
    "as": "maya",
    "viewport": "mobile",
    "themes": [
