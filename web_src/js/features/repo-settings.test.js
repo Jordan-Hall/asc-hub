@@ -1,4 +1,4 @@
-import {initRepoSettingsTopics, announceAccessChange, initVisibilityConfirm} from './repo-settings.js';
+import {initRepoSettingsTopics, announceAccessChange, initVisibilityConfirm, enhanceTopicChips} from './repo-settings.js';
 
 vi.mock('../modules/fetch.js', () => ({POST: vi.fn()}));
 vi.mock('./codemirror.ts', () => ({createCodemirror: vi.fn()}));
@@ -70,4 +70,22 @@ test('changing the visibility asks first and submits only after the answer', () 
   form.dispatchEvent(new Event('submit', {cancelable: true}));
   dialog.querySelector('[data-visibility-confirm]').click();
   expect(form.requestSubmit).toHaveBeenCalledTimes(1);
+});
+
+test('topics become chips, are posted as a list and stop at the limit', () => {
+  document.body.innerHTML = '<form data-topics-form><input name="topics" value="Rust, payments"></form>';
+  const form = document.querySelector('form');
+  enhanceTopicChips(form, 3);
+  const chips = () => Array.from(form.querySelectorAll('.rp-chip'), (c) => c.firstChild.textContent);
+  expect(chips()).toEqual(['rust', 'payments']);
+  expect(form.querySelector('input[type=hidden]').value).toBe('rust,payments');
+  const input = form.querySelector('input:not([type=hidden])');
+  input.value = 'asc, rust';
+  input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', cancelable: true}));
+  expect(chips()).toEqual(['rust', 'payments', 'asc']);
+  expect(input.disabled).toBe(true);
+  form.querySelector('.rp-chip-x').click();
+  expect(chips()).toEqual(['payments', 'asc']);
+  expect(form.querySelector('input[type=hidden]').value).toBe('payments,asc');
+  expect(input.disabled).toBe(false);
 });

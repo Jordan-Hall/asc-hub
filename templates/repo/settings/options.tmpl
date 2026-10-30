@@ -43,7 +43,7 @@
 			</form>
 
 			<hr class="ds-hr">
-			<form class="ds-form" action="{{.RepoLink}}/topics" method="post" data-topics-form data-topics-saved="{{ctx.Locale.Tr "asc_rp.topics_saved"}}" data-topics-failed="{{ctx.Locale.Tr "asc_rp.topics_failed"}}" data-testid="repo-topics-form">
+			<form class="ds-form" action="{{.RepoLink}}/topics" method="post" data-topics-form data-topics-remove="{{ctx.Locale.Tr "asc_rp.topics_remove"}}" data-topics-saved="{{ctx.Locale.Tr "asc_rp.topics_saved"}}" data-topics-failed="{{ctx.Locale.Tr "asc_rp.topics_failed"}}" data-testid="repo-topics-form">
 				{{.CsrfTokenHtml}}
 				<div class="ds-field">
 					<label class="ds-label" for="repo-topics-input">{{ctx.Locale.Tr "asc_rp.topics_label"}}</label>
