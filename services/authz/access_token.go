@@ -73,7 +73,12 @@ func ValidateRepositoryResource(resourceAllRepos bool, scope auth_model.AccessTo
 		case auth_model.AccessTokenScopeReadIssue,
 			auth_model.AccessTokenScopeWriteIssue,
 			auth_model.AccessTokenScopeReadRepository,
-			auth_model.AccessTokenScopeWriteRepository:
+			auth_model.AccessTokenScopeWriteRepository,
+			// changes and runs of asc are about repositories too
+			auth_model.AccessTokenScopeReadChanges,
+			auth_model.AccessTokenScopeWriteChanges,
+			auth_model.AccessTokenScopeReadRuns,
+			auth_model.AccessTokenScopeWriteRuns:
 			continue
 		default:
 			return fmt.Errorf("%w: cannot be combined with scope %s", ErrSpecifiedReposInvalidScope, scope)

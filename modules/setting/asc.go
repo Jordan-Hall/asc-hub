@@ -89,6 +89,9 @@ const (
 )
 
 // DefaultAscReleaseRepo is the default of [asc] RELEASE_REPO.
+// AscTrashDays is how many days a deleted repository can be restored from Settings > Recently deleted.
+const AscTrashDays = 30
+
 const DefaultAscReleaseRepo = "Jordan-Hall/asc"
 
 var ascReleaseRepoRe = regexp.MustCompile(`^[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}$`)

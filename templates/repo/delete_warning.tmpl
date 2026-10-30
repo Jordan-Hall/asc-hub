@@ -1,0 +1,18 @@
+{{/* The warning of the delete dialogs. Data: Repository, Page (the page data, for the counts), Counts (bool: show what is removed).
+     On an ASC hub a delete moves the repository to Recently deleted, where it can be restored for AscTrashDays days
+     (services/repository/trash.go); elsewhere it is final, and the text says so. The text sits in .ds-banner-body
+     because the banner is a flex row: loose text next to the icon would become columns. */}}
+<div class="ds-banner ds-banner-warn" data-testid="delete-warning">
+	{{svg "dsi-alert" 18}}
+	<div class="ds-banner-body">
+		{{if AscEnabled}}
+			<p>{{ctx.Locale.Tr "repo.settings.trash_notice_1" .Repository.FullName}}</p>
+			<p>{{ctx.Locale.Tr "repo.settings.trash_notice_2" AscTrashDays}}</p>
+		{{else}}
+			<p>{{ctx.Locale.Tr "repo.settings.delete_notices_1"}}</p>
+			<p>{{ctx.Locale.Tr "repo.settings.delete_notices_2" .Repository.FullName}}</p>
+		{{end}}
+		{{if .Counts}}<p><strong data-testid="delete-counts">{{if .Page.DeleteChangeCount}}{{ctx.Locale.Tr "repo.settings.delete_changes" (ctx.Locale.PrettyNumber .Page.DeleteChangeCount)}} {{end}}{{ctx.Locale.Tr "repo.settings.delete_counts" (ctx.Locale.PrettyNumber (.Repository.NumPulls ctx)) (ctx.Locale.PrettyNumber .Page.NumReleases) (ctx.Locale.PrettyNumber (.Repository.NumIssues ctx))}}</strong></p>{{end}}
+		{{if .Repository.NumForks}}<p>{{ctx.Locale.Tr "repo.settings.delete_notices_fork_1"}}</p>{{end}}
+	</div>
+</div>

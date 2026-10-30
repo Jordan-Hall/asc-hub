@@ -147,6 +147,11 @@ func AscDeviceCode(ctx *context.Context) {
 		return
 	}
 	ascDeviceAsks.add(ip)
+	scope, err := auth_model.ParseAscDeviceScope(ctx.FormString("scope"))
+	if err != nil {
+		ascDeviceError(ctx, http.StatusBadRequest, "invalid_scope", "scope must name only repository, changes or runs (read or write), read:organization or read:user")
+		return
+	}
 	row, deviceCode, err := auth_model.CreateAscDeviceCode(ctx, ctx.FormString("client_name"), ip)
 	if err != nil {
 		if errors.Is(err, auth_model.ErrAscDeviceCodeTooMany) {
@@ -159,6 +164,11 @@ func AscDeviceCode(ctx *context.Context) {
 			return
 		}
 		log.Error("asc device code: %v", err)
+		ascDeviceError(ctx, http.StatusInternalServerError, "server_error", "could not start the authorisation")
+		return
+	}
+	if err := row.SetScope(ctx, scope); err != nil {
+		log.Error("asc device code scope: %v", err)
 		ascDeviceError(ctx, http.StatusInternalServerError, "server_error", "could not start the authorisation")
 		return
 	}
@@ -192,11 +202,11 @@ func AscDeviceToken(ctx *context.Context) {
 		ascDeviceError(ctx, http.StatusBadRequest, "invalid_request", "device_code is missing")
 		return
 	}
-	token, err := auth_model.ExchangeAscDeviceCode(ctx, code, auth_model.AccessTokenScopeAll)
+	token, err := auth_model.ExchangeAscDeviceCode(ctx, code, auth_model.AscDeviceDefaultScope)
 	switch {
 	case err == nil:
 		ctx.Resp.Header().Set("Cache-Control", "no-store")
-		ctx.JSON(http.StatusOK, map[string]string{"access_token": token.Token, "token_type": "bearer", "scope": string(token.Scope)})
+		ctx.JSON(http.StatusOK, map[string]any{"access_token": token.Token, "token_type": "bearer", "scope": strings.ReplaceAll(string(token.Scope), ",", " "), "expires_in": int(time.Until(token.ExpiresUnix.AsTime()).Seconds())})
 	case errors.Is(err, auth_model.ErrAscDeviceCodePending):
 		ascDeviceError(ctx, http.StatusBadRequest, "authorization_pending", "the person has not answered yet")
 	case errors.Is(err, auth_model.ErrAscDeviceCodeSlowDown):
@@ -234,6 +244,12 @@ func AscDevicePage(ctx *context.Context) {
 	ctx.Data["DeviceStep"] = "confirm"
 	ctx.Data["DeviceCode"] = auth_model.FormatAscUserCode(row.UserCode)
 	ctx.Data["DeviceName"] = row.DeviceName
+	var scopes []string
+	for _, sc := range row.EffectiveScope().StringSlice() {
+		scopes = append(scopes, ctx.Locale.TrString("asc_device.scope_"+strings.ReplaceAll(sc, ":", "_")))
+	}
+	ctx.Data["DeviceScopes"] = scopes
+	ctx.Data["DeviceTokenDays"] = int(auth_model.AscDeviceTokenLifetime.Hours() / 24)
 	ctx.Data["DeviceMinutes"] = max(1, int(time.Until(row.ExpiresUnix.AsTime()).Minutes()+0.5))
 	ctx.HTML(http.StatusOK, tplAscDevice)
 }

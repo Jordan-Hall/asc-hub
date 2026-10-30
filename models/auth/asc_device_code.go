@@ -26,6 +26,9 @@ const (
 	AscDeviceCodeLifetime = 10 * time.Minute
 	// AscDeviceCodeInterval is the least time between two polls of one device code.
 	AscDeviceCodeInterval = 5 * time.Second
+	// AscDeviceTokenLifetime is how long the token a device authorisation makes keeps working. The terminal signs in
+	// again by the same flow when it ends.
+	AscDeviceTokenLifetime = 90 * 24 * time.Hour
 
 	userCodeAlphabet = "BCDFGHJKLMNPQRSTVWXZ" // no vowels, so a code never spells a word
 	userCodeLength   = 8
@@ -54,6 +57,7 @@ type AscDeviceCode struct {
 	DeviceCodeHash string              `xorm:"VARCHAR(64) UNIQUE NOT NULL"`
 	UserCode       string              `xorm:"VARCHAR(16) UNIQUE NOT NULL"` // normal form: capitals, no dash
 	DeviceName     string              `xorm:"VARCHAR(128) NOT NULL DEFAULT ''"`
+	Scope          AccessTokenScope    `xorm:"VARCHAR(255) NOT NULL DEFAULT ''"` // what the terminal asked for, normal form; empty means the default
 	CreatorIP      string              `xorm:"VARCHAR(45) NOT NULL DEFAULT ''"`
 	Status         AscDeviceCodeStatus `xorm:"NOT NULL DEFAULT 0"`
 	UserID         int64               `xorm:"NOT NULL DEFAULT 0"`
@@ -134,6 +138,56 @@ func CleanAscDeviceName(s string) (string, error) {
 		}
 	}
 	return s, nil
+}
+
+// ErrAscDeviceBadScope is returned for a scope the terminal may not ask for.
+var ErrAscDeviceBadScope = errors.New("scope not allowed for a device authorisation")
+
+// ascDeviceAllowedScopes are the scopes a terminal can ask for: the work of a person on repositories, changes and
+// agent runs, and a read of the organisations and the profile. Nothing that administers the hub, packages, issues
+// or notifications, and never "all".
+var ascDeviceAllowedScopes = map[AccessTokenScope]bool{
+	AccessTokenScopeReadRepository: true, AccessTokenScopeWriteRepository: true,
+	AccessTokenScopeReadChanges: true, AccessTokenScopeWriteChanges: true,
+	AccessTokenScopeReadRuns: true, AccessTokenScopeWriteRuns: true,
+	AccessTokenScopeReadOrganization: true, AccessTokenScopeReadUser: true,
+}
+
+// AscDeviceDefaultScope is what a terminal gets when it asks for nothing in particular.
+const AscDeviceDefaultScope AccessTokenScope = "write:repository,write:changes,write:runs,read:organization,read:user"
+
+// ParseAscDeviceScope reads the scope a terminal asked for (words separated by spaces or commas, RFC 8628) and
+// returns it in normal form. An empty request is the default scope. A word that is not allowed is refused.
+func ParseAscDeviceScope(raw string) (AccessTokenScope, error) {
+	words := strings.FieldsFunc(raw, func(r rune) bool { return r == ' ' || r == ',' || r == '	' })
+	if len(words) == 0 {
+		return AscDeviceDefaultScope.Normalize()
+	}
+	if len(raw) > 255 {
+		return "", ErrAscDeviceBadScope
+	}
+	for _, w := range words {
+		if !ascDeviceAllowedScopes[AccessTokenScope(w)] {
+			return "", ErrAscDeviceBadScope
+		}
+	}
+	return AccessTokenScope(strings.Join(words, ",")).Normalize()
+}
+
+// EffectiveScope is the scope the token of this code will have.
+func (c *AscDeviceCode) EffectiveScope() AccessTokenScope {
+	if c.Scope != "" {
+		return c.Scope
+	}
+	s, _ := AscDeviceDefaultScope.Normalize()
+	return s
+}
+
+// SetScope stores the scope the terminal asked for (already parsed by ParseAscDeviceScope).
+func (c *AscDeviceCode) SetScope(ctx context.Context, scope AccessTokenScope) error {
+	c.Scope = scope
+	_, err := db.GetEngine(ctx).ID(c.ID).Cols("scope").Update(&AscDeviceCode{Scope: scope})
+	return err
 }
 
 // CreateAscDeviceCode starts a device authorisation. It returns the row and the device code, which is shown once,
@@ -255,7 +309,8 @@ func (c *AscDeviceCode) Decide(ctx context.Context, userID int64, approve bool) 
 // ExchangeAscDeviceCode is the poll of the terminal. While the person has not answered it returns
 // ErrAscDeviceCodePending (ErrAscDeviceCodeSlowDown when the terminal polls faster than the interval); after a
 // denial ErrAscDeviceCodeDenied; after the lifetime ErrAscDeviceCodeExpired. After an approval it creates the
-// personal access token once and returns it; a second exchange finds the code consumed.
+// personal access token once and returns it; a second exchange finds the code consumed. The token has the scope the
+// terminal asked for (the argument is the scope when it asked for none) and expires after AscDeviceTokenLifetime.
 func ExchangeAscDeviceCode(ctx context.Context, deviceCode string, scope AccessTokenScope) (*AccessToken, error) {
 	row := new(AscDeviceCode)
 	has, err := db.GetEngine(ctx).Where("device_code_hash = ?", HashAscDeviceCode(deviceCode)).Get(row)
@@ -297,7 +352,11 @@ func ExchangeAscDeviceCode(ctx context.Context, deviceCode string, scope AccessT
 		if row.DeviceName != "" {
 			name = "asc on " + row.DeviceName
 		}
-		token = &AccessToken{UID: row.UserID, Name: name + " (" + FormatAscUserCode(row.UserCode) + ")", Scope: scope}
+		token = &AccessToken{UID: row.UserID, Name: name + " (" + FormatAscUserCode(row.UserCode) + ")", Scope: scope,
+			ExpiresUnix: timeutil.TimeStampNow().Add(int64(AscDeviceTokenLifetime / time.Second))}
+		if row.Scope != "" {
+			token.Scope = row.Scope
+		}
 		return NewAccessToken(ctx, token)
 	})
 	if err != nil {
