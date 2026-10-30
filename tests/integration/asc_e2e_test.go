@@ -264,9 +264,11 @@ listen = "127.0.0.1:%d"
 			t.Logf("asc serve log:\n%s", tail(logs.String(), 6000))
 			var refused []string
 			for _, line := range strings.Split(logs.String(), "\n") {
-				// The access log warns for every call that ends in a gRPC error status, which the tests cause on purpose;
-				// the warnings that explain a failure (the outbox, the bridge) are the others.
-				if (strings.Contains(line, " WARN ") && !strings.Contains(line, "asc_serve::access")) || strings.Contains(line, " ERROR ") {
+				// The access log has a line for every call, many of them warnings the tests cause on purpose. What is kept
+				// are the events (bridge promoted, outbox retry) and the calls that write, to read the order of things.
+				access := strings.Contains(line, "asc_serve::access")
+				if (!access && strings.TrimSpace(line) != "") || strings.Contains(line, " ERROR ") ||
+					(access && (strings.Contains(line, "/UpdateRefs") || strings.Contains(line, "/ImportGitPush") || strings.Contains(line, "/RequestMerge"))) {
 					refused = append(refused, line)
 				}
 			}
