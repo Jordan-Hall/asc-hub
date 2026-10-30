@@ -93,7 +93,9 @@ func TestAscAgentsHomeSwitchedOff(t *testing.T) {
 
 	code, body := getAscAgentsHome(t, user2)
 	assert.Equal(t, http.StatusOK, code)
-	assert.Contains(t, body, "Right now: off.")
+	assert.Contains(t, body, `data-testid="asc-agent-features-state">Off<`)
+	assert.Contains(t, body, "ds-card", "the page is in the design system, not loose text")
+	assert.NotContains(t, body, "asc-card")
 	assert.Contains(t, body, "Turn agent features on")
 	assert.NotContains(t, body, "Your recent runs")
 	assert.NotContains(t, body, "Your repositories")
@@ -126,7 +128,7 @@ func TestAscAgentsHomeRuns(t *testing.T) {
 
 	code, body := getAscAgentsHome(t, user2)
 	require.Equal(t, http.StatusOK, code, body)
-	assert.Contains(t, body, "Right now: on.")
+	assert.Contains(t, body, `data-testid="asc-agent-features-state">On<`)
 	assert.Contains(t, body, "Turn agent features off")
 
 	require.NotEmpty(t, f.reqs)
