@@ -2,6 +2,9 @@
 {{$docsURL := print AppSubUrl "/-/docs"}}
 {{$whyURL := print AppSubUrl "/-/about"}}
 {{$opsURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/OPERATIONS.md"}}
+{{$stackURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/STACK-OPERATIONS.md"}}
+{{$agentsURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/AGENTS-UI.md"}}
+{{$releasesURL := "https://github.com/Jordan-Hall/asc/releases"}}
 {{$compact := or (and .IsSigned (not .FooterFull)) .PageIsSignIn .PageIsSignUp}}
 <footer class="ds-footer{{if $compact}} ds-footer-compact{{end}}" role="group" aria-label="{{ctx.Locale.Tr "aria.footer"}}">
 	<div class="ds-container">
@@ -9,7 +12,7 @@
 		<div class="ds-footer-top" data-ds-footer-groups>
 			<div class="ds-footer-about">
 				<a class="ds-brand" href="{{AppSubUrl}}/">{{template "base/brand_tile" .}}<span>{{AppName}}</span></a>
-				<p>{{ctx.Locale.Tr "asc_shell.footer_tagline"}}</p>
+				<p><span class="ds-only-desktop">{{ctx.Locale.Tr "asc_shell.footer_tagline"}}</span><span class="ds-only-mobile">{{ctx.Locale.Tr "asc_shell.footer_tagline_short"}}</span></p>
 				{{if StringUtils.HasPrefix (ThemeName .SignedUser) "asc-"}}
 				<div class="ds-footer-tools">
 					{{template "base/theme_toggle" (dict "Data" .)}}
@@ -21,29 +24,39 @@
 				<ul>
 					{{if AscDownloadAvailable}}<li><a href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_shell.footer_download"}}</a></li>{{end}}
 					<li><a href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a></li>
-					{{if not .UsersPageIsDisabled}}<li><a href="{{AppSubUrl}}/explore/users">{{ctx.Locale.Tr "explore.users"}}</a></li>{{end}}
-					{{if not .OrganizationsPageIsDisabled}}<li><a href="{{AppSubUrl}}/explore/organizations">{{ctx.Locale.Tr "explore.organizations"}}</a></li>{{end}}
+					<li><a target="_blank" rel="noopener noreferrer" href="{{$stackURL}}">{{ctx.Locale.Tr "asc_shell.footer_stacks"}}</a></li>
+					<li><a target="_blank" rel="noopener noreferrer" href="{{$agentsURL}}">{{ctx.Locale.Tr "asc_shell.footer_agent_runs"}}</a></li>
+					<li><a target="_blank" rel="noopener noreferrer" href="{{$releasesURL}}">{{ctx.Locale.Tr "asc_shell.footer_changelog"}}</a></li>
 				</ul>
 			</details>
 			<details class="ds-footer-group" open>
 				<summary><h4>{{ctx.Locale.Tr "asc_shell.footer_developers"}}</h4>{{svg "dsi-chevron-down" 18}}</summary>
 				<ul>
-					<li><a href="{{$docsURL}}">{{ctx.Locale.Tr "docs"}}</a></li>
-					<li><a target="_blank" rel="noopener noreferrer" href="{{$opsURL}}">{{ctx.Locale.Tr "asc_shell.footer_operations"}}</a></li>
-					{{if .EnableSwagger}}<li><a href="{{AppSubUrl}}/api/swagger">API</a></li>{{end}}
+					<li><a href="{{$docsURL}}">{{ctx.Locale.Tr "asc_shell.footer_documentation"}}</a></li>
+					<li><a href="{{$docsURL}}">{{ctx.Locale.Tr "asc_shell.footer_cli_reference"}}</a></li>
+					<li><a href="{{if .EnableSwagger}}{{AppSubUrl}}/api/swagger{{else}}{{$docsURL}}{{end}}">{{ctx.Locale.Tr "asc_shell.footer_rest_api"}}</a></li>
+					<li><a href="{{$docsURL}}">{{ctx.Locale.Tr "asc_shell.footer_mcp"}}</a></li>
+					<li><a target="_blank" rel="noopener noreferrer" href="{{$opsURL}}">{{ctx.Locale.Tr "asc_shell.footer_status"}}</a></li>
 				</ul>
 			</details>
 			<details class="ds-footer-group" open>
 				<summary><h4>{{ctx.Locale.Tr "asc_shell.footer_company"}}</h4>{{svg "dsi-chevron-down" 18}}</summary>
 				<ul>
-					<li><a href="{{$whyURL}}">{{ctx.Locale.Tr "why_asc_hub"}}</a></li>
-					{{if ShowFooterPoweredBy}}<li><a target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "based_on" "Forgejo"}}</a></li>{{end}}
+					<li><a href="{{AppSubUrl}}/-/about">{{ctx.Locale.Tr "asc_shell.footer_about"}}</a></li>
+					<li><a href="{{$whyURL}}">{{ctx.Locale.Tr "asc_shell.footer_why"}}</a></li>
+					<li><a href="{{AppSubUrl}}/-/about#security">{{ctx.Locale.Tr "asc_shell.footer_security"}}</a></li>
+					<li><a href="{{AssetUrlPrefix}}/licenses.txt">{{ctx.Locale.Tr "licenses"}}</a></li>
+					<li><a href="{{AppSubUrl}}/-/about#contact">{{ctx.Locale.Tr "asc_shell.footer_contact"}}</a></li>
 				</ul>
 			</details>
 			<details class="ds-footer-group" open>
 				<summary><h4>{{ctx.Locale.Tr "asc_shell.footer_legal"}}</h4>{{svg "dsi-chevron-down" 18}}</summary>
 				<ul>
-					<li><a href="{{AssetUrlPrefix}}/licenses.txt">{{ctx.Locale.Tr "licenses"}}</a></li>
+					<li><a href="{{AppSubUrl}}/-/about#privacy">{{ctx.Locale.Tr "asc_shell.footer_privacy"}}</a></li>
+					<li><a href="{{AppSubUrl}}/-/about#terms">{{ctx.Locale.Tr "asc_shell.footer_terms"}}</a></li>
+					<li><a href="{{AppSubUrl}}/-/about#acceptable-use">{{ctx.Locale.Tr "asc_shell.footer_aup"}}</a></li>
+					<li><a href="{{AppSubUrl}}/-/about#subprocessors">{{ctx.Locale.Tr "asc_shell.footer_subprocessors"}}</a></li>
+					<li><a href="{{AppSubUrl}}/-/about#cookies">{{ctx.Locale.Tr "asc_shell.footer_cookies"}}</a></li>
 					{{template "custom/extra_links_footer" .}}
 				</ul>
 			</details>
@@ -53,10 +66,11 @@
 		<div class="ds-footer-base">
 			{{if ShowFooterPoweredBy}}
 				<strong>{{AppName}}</strong>
-				<span>{{if or .ShowFooterVersion .PageIsAdmin}}{{if .IsAdmin}}<a href="{{AppSubUrl}}/admin/config">{{AppVerNoMetadata}}</a>{{else}}{{AppVerNoMetadata}}{{end}} &middot; {{end}}<a target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "based_on" "Forgejo"}}</a></span>
+				<span>{{if or .ShowFooterVersion .PageIsAdmin}}{{if .IsAdmin}}<a href="{{AppSubUrl}}/admin/config">{{AppVerNoMetadata}}</a>{{else}}{{AppVerNoMetadata}}{{end}} &middot; {{end}}<a class="ds-only-desktop" target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "based_on" "Forgejo"}}</a><a class="ds-only-mobile" target="_blank" rel="noopener noreferrer" href="https://forgejo.org">{{ctx.Locale.Tr "asc_shell.footer_based_mobile"}}</a></span>
 			{{else if or .ShowFooterVersion .PageIsAdmin}}
 				<span>{{ctx.Locale.Tr "version"}}: {{if .IsAdmin}}<a href="{{AppSubUrl}}/admin/config">{{AppVerNoMetadata}}</a>{{else}}{{AppVerNoMetadata}}{{end}}</span>
 			{{end}}
+			{{if not $compact}}<span class="ds-footer-status"><span class="ds-dot ds-dot-ok" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_shell.footer_status_ok"}}</span>{{end}}
 			<span class="ds-grow"></span>
 			<div class="ds-footer-end">
 				<details class="ds-lang">
@@ -76,7 +90,7 @@
 					{{template "custom/extra_links_footer" .}}
 				{{end}}
 				{{if and .TemplateLoadTimes ShowFooterTemplateLoadTime}}
-					<span>{{ctx.Locale.Tr "page"}}: <strong>{{LoadTimes .PageStartTime}}</strong> {{ctx.Locale.Tr "template"}}{{if .TemplateName}} {{.TemplateName}}{{end}}: <strong>{{call .TemplateLoadTimes}}</strong></span>
+					<span class="ds-c-3">{{ctx.Locale.Tr "asc_shell.footer_rendered" (call .TemplateLoadTimes)}}</span>
 				{{end}}
 			</div>
 		</div>

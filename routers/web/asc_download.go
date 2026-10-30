@@ -6,6 +6,7 @@ package web
 import (
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -130,7 +131,7 @@ func prepareAscDownload(ctx *context.Context) bool {
 	view.ActiveOS, view.ActiveArch, view.Detected = osOffer.OS, archOffer.Arch, ok
 	view.ActiveOSOffer, view.ActiveArchOffer = osOffer, archOffer
 	ctx.Data["AscDownload"] = view
-	ctx.Data["AscInstallMethods"] = ascInstallMethods(offers)
+	ctx.Data["AscInstallMethods"] = ascInstallMethods(offers, osOffer, archOffer)
 	return true
 }
 
@@ -199,7 +200,11 @@ type ascInstallMethod struct {
 
 // ascInstallMethods lists the install methods the release really has, in the order of the landing page: package
 // managers first, then the script, then PowerShell. A method the manifest does not carry is not listed.
-func ascInstallMethods(o *ascdownload.Offers) []ascInstallMethod {
+//
+// A release without an install script still gets a "curl" method on Linux and macOS: the verified download of the
+// archive of the visitor's system (active, or the first Linux or macOS build), whose commands check the SHA-256 of
+// the manifest before anything is unpacked.
+func ascInstallMethods(o *ascdownload.Offers, active *ascdownload.OSOffer, activeArch *ascdownload.ArchOffer) []ascInstallMethod {
 	var out []ascInstallMethod
 	seen := map[string]bool{}
 	add := func(key, label, command string) {
@@ -235,5 +240,23 @@ func ascInstallMethods(o *ascdownload.Offers) []ascInstallMethod {
 			}
 		}
 	}
+	if !seen["curl"] {
+		pick := func(os *ascdownload.OSOffer, arch *ascdownload.ArchOffer) bool {
+			if os != nil && arch != nil && os.OS != ascdownload.OSWindows && len(arch.Commands) > 0 {
+				add("curl", "curl", arch.Commands[0].Text)
+				return true
+			}
+			return false
+		}
+		if !pick(active, activeArch) {
+			for i := range o.OSes {
+				if len(o.OSes[i].Arches) > 0 && pick(&o.OSes[i], &o.OSes[i].Arches[0]) {
+					break
+				}
+			}
+		}
+	}
+	order := map[string]int{"homebrew": 0, "scoop": 1, "winget": 2, "curl": 3, "powershell": 4}
+	sort.SliceStable(out, func(i, j int) bool { return order[out[i].Key] < order[out[j].Key] })
 	return out
 }
