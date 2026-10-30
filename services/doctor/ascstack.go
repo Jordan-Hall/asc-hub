@@ -27,11 +27,13 @@ func repairAscStackLinks(ctx context.Context, logger log.Logger, autofix bool) e
 			continue
 		}
 		if !autofix {
-			prs, err := issues_model.ListOpenAscStackPulls(ctx, repo.ID)
-			if err == nil && len(prs) > 1 {
-				logger.Info("%s has %d open stacked pull requests; run with --fix to link them from git", repo.FullName(), len(prs))
-			}
+			logger.Info("%s has stacked pull requests; run with --fix to link them from git and mark the landed ones merged", repo.FullName())
 			continue
+		}
+		if m, err := pull_service.MarkLandedAscStackMerged(ctx, repo); err != nil {
+			logger.Warn("Landed stacked pull requests of %s: %v", repo.FullName(), err)
+		} else if m > 0 {
+			logger.Info("Marked %d landed stacked pull requests of %s as merged", m, repo.FullName())
 		}
 		n, err := pull_service.RepairAscStackLinks(ctx, repo)
 		if err != nil {

@@ -2062,11 +2062,17 @@ func (x *SetBriefResponse) GetBrief() *ReviewBrief {
 // The host (the hub) reports the verdict of a person on a version. The reviewer is the person of the claim; a person with only
 // repo read cannot approve. A second verdict of the same person on the same version replaces the first. `version` 0 means the newest.
 type RecordApprovalRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
-	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
-	Version       uint32                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
-	State         ApprovalState          `protobuf:"varint,4,opt,name=state,proto3,enum=asc.v1.ApprovalState" json:"state,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Repo    *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change  []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Version uint32                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	State   ApprovalState          `protobuf:"varint,4,opt,name=state,proto3,enum=asc.v1.ApprovalState" json:"state,omitempty"`
+	// With state DISMISSED only: dismisses the verdicts of another reviewer instead of the caller's own (a maintainer
+	// dismissing a review on the hub). The reviewer is named by login, by the hub's immutable user id or by both; a
+	// caller without write is refused as for any verdict, and a reviewer with no verdict on the change is NOT_FOUND.
+	// Every verdict of that reviewer on the change stops counting, whatever its version; the audit event names both people.
+	Reviewer      string `protobuf:"bytes,5,opt,name=reviewer,proto3" json:"reviewer,omitempty"`
+	ReviewerId    uint64 `protobuf:"varint,6,opt,name=reviewer_id,json=reviewerId,proto3" json:"reviewer_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2127,6 +2133,20 @@ func (x *RecordApprovalRequest) GetState() ApprovalState {
 		return x.State
 	}
 	return ApprovalState_APPROVAL_STATE_UNSPECIFIED
+}
+
+func (x *RecordApprovalRequest) GetReviewer() string {
+	if x != nil {
+		return x.Reviewer
+	}
+	return ""
+}
+
+func (x *RecordApprovalRequest) GetReviewerId() uint64 {
+	if x != nil {
+		return x.ReviewerId
+	}
+	return 0
 }
 
 type RecordApprovalResponse struct {
@@ -4646,12 +4666,15 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12)\n" +
 	"\x05brief\x18\x03 \x01(\v2\x13.asc.v1.ReviewBriefR\x05brief\"=\n" +
 	"\x10SetBriefResponse\x12)\n" +
-	"\x05brief\x18\x01 \x01(\v2\x13.asc.v1.ReviewBriefR\x05brief\"\xa1\x01\n" +
+	"\x05brief\x18\x01 \x01(\v2\x13.asc.v1.ReviewBriefR\x05brief\"\xde\x01\n" +
 	"\x15RecordApprovalRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\rR\aversion\x12+\n" +
-	"\x05state\x18\x04 \x01(\x0e2\x15.asc.v1.ApprovalStateR\x05state\"L\n" +
+	"\x05state\x18\x04 \x01(\x0e2\x15.asc.v1.ApprovalStateR\x05state\x12\x1a\n" +
+	"\breviewer\x18\x05 \x01(\tR\breviewer\x12\x1f\n" +
+	"\vreviewer_id\x18\x06 \x01(\x04R\n" +
+	"reviewerId\"L\n" +
 	"\x16RecordApprovalResponse\x122\n" +
 	"\tapprovals\x18\x01 \x03(\v2\x14.asc.v1.ApprovalInfoR\tapprovals\"\x9d\x01\n" +
 	"\x16CompareVersionsRequest\x12#\n" +
