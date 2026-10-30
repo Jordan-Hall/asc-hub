@@ -87,3 +87,25 @@ test('the inbox badge shows the count and hides at zero', async () => {
   sessionStorage.clear();
   await initAscInboxBadge();
 });
+
+test('on a diff j and k go from file to file and v marks the file as viewed', () => {
+  document.body.innerHTML = `<div id="diff-file-boxes">
+    <div class="diff-file-box" id="diff-a"><label class="viewed-file-form"><input type="checkbox"></label></div>
+    <div class="diff-file-box" id="diff-b"><label class="viewed-file-form"><input type="checkbox"></label></div>
+  </div>`;
+  // the page is scrolled to the top: both files start below the top third of the window
+  for (const el of document.querySelectorAll('.diff-file-box')) {
+    el.scrollIntoView = () => {};
+    el.getBoundingClientRect = () => ({top: 600});
+  }
+  initAscKeys();
+  document.dispatchEvent(new KeyboardEvent('keydown', {key: 'j', bubbles: true}));
+  expect(document.activeElement.id).toBe('diff-a');
+  document.dispatchEvent(new KeyboardEvent('keydown', {key: 'j', bubbles: true}));
+  expect(document.activeElement.id).toBe('diff-b');
+  document.dispatchEvent(new KeyboardEvent('keydown', {key: 'v', bubbles: true}));
+  expect(document.querySelector('#diff-b input').checked).toBe(true);
+  expect(document.querySelector('#diff-a input').checked).toBe(false);
+  document.dispatchEvent(new KeyboardEvent('keydown', {key: 'k', bubbles: true}));
+  expect(document.activeElement.id).toBe('diff-a');
+});
