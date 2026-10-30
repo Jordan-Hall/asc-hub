@@ -39,6 +39,8 @@ type StatusIn struct {
 	State       string // success, failure, error, pending, warning or skipped
 	Description string
 	URL         string
+	// RunID is the id of the Actions run the status belongs to; 0 when it belongs to none (a status set by hand).
+	RunID int64
 }
 
 // RunIn is an Actions run on the head commit.
@@ -83,7 +85,11 @@ type StatusRow struct {
 	URL         string
 	Required    bool
 	Stale       bool
-	labelKey    string
+	// RunID is the Actions run the row belongs to, 0 when it has none: "Run on v4" starts that run again.
+	RunID int64
+	// Took is how long the run took, "" while it runs or when it is not known.
+	Took     string
+	labelKey string
 }
 
 // Cause is one reason for failing, from one failure group.
@@ -183,6 +189,7 @@ func BuildPullChecks(in PullChecksIn) *PullChecks {
 		pc.Statuses = append(pc.Statuses, StatusRow{
 			Context: CleanText(s.Context, MaxTextBytes), Label: label, labelKey: labelKey, Tone: tone,
 			Description: CleanText(s.Description, MaxTextBytes), URL: safeURL(s.URL), Required: req,
+			RunID: s.RunID, Took: runTook(in.Runs, s.RunID),
 		})
 		switch {
 		case isFailed(s.State):
@@ -401,6 +408,27 @@ func queryEscape(s string) string {
 }
 
 // duration writes a duration the way the board does: "3 min 12 s", "41 s", "1 h 5 min".
+// runTook is how long the run with the given id took, "" when it is not among runs, has not finished or has no times.
+func runTook(runs []RunIn, id int64) string {
+	if id <= 0 {
+		return ""
+	}
+	for _, r := range runs {
+		if r.ID != id {
+			continue
+		}
+		switch r.State {
+		case "running", "waiting", "blocked":
+			return ""
+		}
+		if r.Started.IsZero() || r.Stopped.IsZero() || !r.Stopped.After(r.Started) {
+			return ""
+		}
+		return duration(r.Stopped.Sub(r.Started))
+	}
+	return ""
+}
+
 func duration(d time.Duration) string {
 	s := int(d.Round(time.Second) / time.Second)
 	switch {
