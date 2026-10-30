@@ -75,7 +75,7 @@ func TestLineDiff(t *testing.T) {
 }
 
 func TestFormSignedSynonymAndBatch(t *testing.T) {
-	text := "version = 1
+	text := `version = 1
 
 [trunk]
 require_signed = true
@@ -85,7 +85,7 @@ require_signed = true
 
 [merge]
 queue = true
-"
+`
 	f := FormOfText(text)
 	assert.True(t, f.RequireSigned)
 	f.RequireSigned = false
@@ -96,7 +96,7 @@ queue = true
 	got := FormOfText(out)
 	assert.False(t, got.RequireSigned)
 	v, _ := TomlBool(out, "trunk", "require_signed")
-	assert.False(t, v, "the synonym is turned off with the section, or asc would still ORs it in")
+	assert.False(t, v, "the synonym is turned off with the section, or asc would still OR it in")
 	assert.Equal(t, int64(4), got.MergeBatch)
 	assert.True(t, got.PostMergeChecks)
 	f.MergeBatch = 99
