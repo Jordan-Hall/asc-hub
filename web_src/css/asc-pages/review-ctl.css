@@ -960,3 +960,8 @@
 .wf-node.wf-tone-wait,
 .wf-node.wf-tone-run,
 .wf-node.is-active { border-top-color: var(--warn, #d9a21b); }
+.wf-node .asc-pill,
+.wf-link .asc-pill,
+.wf-link .rv-pill {
+  align-self: flex-start;
+}
