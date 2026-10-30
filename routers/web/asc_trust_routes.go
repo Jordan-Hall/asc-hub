@@ -75,6 +75,7 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 		m.Group("/policy", func() {
 			m.Get("", repo_setting.AscPolicy)
 			m.Post("/check", context.RepoMustNotBeArchived(), repo_setting.AscPolicyCheck)
+			m.Post("/form", repo_setting.AscPolicyForm)
 			m.Post("/propose", context.RepoMustNotBeArchived(), repo_setting.AscPolicyPropose)
 			m.Post("/protection", context.RepoMustNotBeArchived(), repo_setting.AscPolicyProtection)
 		})
