@@ -122,22 +122,30 @@ func Members(ctx *context.Context) {
 		ctx.ServerError("GetTeams", err)
 		return
 	}
-	// the role of each person on this page, read from their teams, and the teams for the second line of the row
-	roles, teamNames := map[int64]string{}, map[int64]string{}
-	for _, m := range members {
-		mt, err := organization.GetUserOrgTeams(ctx, org.ID, m.ID)
-		if err != nil {
-			ctx.ServerError("GetUserOrgTeams", err)
-			return
+	// the role of each person on this page, read from their teams, and the teams for the second line of the row. Teams and roles
+	// are for the members of the organization: a visitor who is not one sees the people the organization made public and nothing
+	// of its teams (the names of private teams and who administers them are not public).
+	if !opts.PublicOnly() {
+		roles, teamNames := map[int64]string{}, map[int64]string{}
+		for _, m := range members {
+			mt, err := organization.GetUserOrgTeams(ctx, org.ID, m.ID)
+			if err != nil {
+				ctx.ServerError("GetUserOrgTeams", err)
+				return
+			}
+			roles[m.ID], teamNames[m.ID] = roleOfTeams(mt), teamNamesOf(mt)
 		}
-		roles[m.ID], teamNames[m.ID] = roleOfTeams(mt), teamNamesOf(mt)
+		ctx.Data["MembersRole"] = roles
+		ctx.Data["MembersTeams"] = teamNames
 	}
-	ctx.Data["RoleChoices"] = []string{roleOwner, roleMaintainer, roleMember}
-	ctx.Data["MembersRole"] = roles
-	ctx.Data["MembersTeams"] = teamNames
+	if ctx.Org.IsOwner {
+		ctx.Data["RoleChoices"] = []string{roleOwner, roleMaintainer, roleMember}
+	}
 	// what asc knows: the changes each person landed in the last year, and the agents of the organisation
-	if landed := landedByPerson(ctx, org); landed != nil && !opts.PublicOnly() {
-		ctx.Data["MembersLanded"] = landed
+	if !opts.PublicOnly() {
+		if landed := landedByPerson(ctx, org); landed != nil {
+			ctx.Data["MembersLanded"] = landed
+		}
 	}
 	if !opts.PublicOnly() {
 		ctx.Data["OrgAgents"] = orgAgents(ctx, org)
@@ -155,7 +163,9 @@ func Members(ctx *context.Context) {
 	}
 	ctx.Data["Page"] = pager
 	ctx.Data["Members"] = members
-	ctx.Data["Teams"] = teams
+	if ctx.Org.IsOwner { // the invite dialog is the owners'
+		ctx.Data["Teams"] = teams
+	}
 	ctx.Data["MembersIsPublicMember"] = membersIsPublic
 	ctx.Data["MembersIsUserOrgOwner"] = isOwner
 	if canSee2FA {
