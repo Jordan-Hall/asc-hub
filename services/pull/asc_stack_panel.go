@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	issues_model "forgejo.org/models/issues"
+	user_model "forgejo.org/models/user"
 )
 
 // The stack panel, the needs-restack banner and the mid-stack merge block of a stacked pull request
@@ -39,6 +40,13 @@ type AscStackEntry struct {
 	Link     string
 	Position int // 1 for the bottom
 	Current  bool
+
+	// The detail of a row of the rail, filled by the page (EnrichAscStackEntry); the zero values draw nothing.
+	Poster               *user_model.User
+	Additions, Deletions int
+	HasSize              bool
+	// Review is approved, changes or draft, "" when there is nothing to say.
+	Review string
 }
 
 // AscStackPanel is what the pull request page shows for a stacked pull request.
