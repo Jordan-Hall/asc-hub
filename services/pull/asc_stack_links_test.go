@@ -6,7 +6,9 @@ package pull
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -265,4 +267,34 @@ func TestMarkLandedAscStackMerged(t *testing.T) {
 	n, err = MarkLandedAscStackMerged(ctx, repo)
 	require.NoError(t, err)
 	assert.Zero(t, n)
+}
+
+func TestAscVersionDetails(t *testing.T) {
+	g := commitChain(t, 1)
+	commitFile := func(name, body, msg string) string {
+		require.NoError(t, os.WriteFile(filepath.Join(g.dir, name), []byte(body), 0o644))
+		g.run("add", name)
+		g.run("commit", "-q", "-m", msg)
+		return g.run("rev-parse", "HEAD")
+	}
+	v1 := commitFile("a.txt", "one\ntwo\n", "Add a\n\nbody")
+	// the same patch on a new base: the trunk moved by one commit, the change was replayed on it
+	g.run("checkout", "-q", "-b", "moved", g.ids[0])
+	moved := commitFile("other.txt", "x\n", "Trunk moves")
+	require.NotEqual(t, g.ids[0], moved)
+	v2 := commitFile("a.txt", "one\ntwo\n", "Add a\n\nbody")
+	// a real change on top of that
+	v3 := commitFile("a.txt", "one\ntwo\nthree\n", "Add a, with three")
+
+	list := &AscVersionList{Versions: []AscVersion{{N: 1, GitCommit: v1}, {N: 2, GitCommit: v2}, {N: 3, GitCommit: v3}}}
+	d := AscVersionDetails(t.Context(), g.repo, list)
+	require.Len(t, d, 3)
+	assert.Equal(t, "Add a", d[1].Subject)
+	assert.Equal(t, v1[:10], d[1].Short)
+	assert.Equal(t, 2, d[1].Add)
+	assert.Zero(t, d[1].Del)
+	assert.False(t, d[1].Restack)
+	assert.True(t, d[2].Restack, "same patch, new base")
+	assert.False(t, d[3].Restack)
+	assert.Equal(t, "Add a, with three", d[3].Subject)
 }
