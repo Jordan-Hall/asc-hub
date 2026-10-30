@@ -98,6 +98,10 @@ func checkCreateHookOption(ctx *context.APIContext, form *api.CreateHookOption) 
 		ctx.Error(http.StatusUnprocessableEntity, "", "Invalid url")
 		return false
 	}
+	if err := webhook_service.CheckPayloadURL(form.Config["url"]); err != nil {
+		ctx.Error(http.StatusUnprocessableEntity, "", err.Error())
+		return false
+	}
 	return true
 }
 
@@ -330,6 +334,10 @@ func editHook(ctx *context.APIContext, form *api.EditHookOption, w *webhook.Webh
 		if url, ok := form.Config["url"]; ok {
 			if !validation.IsValidURL(url) {
 				ctx.Error(http.StatusUnprocessableEntity, "", "Invalid url")
+				return false
+			}
+			if err := webhook_service.CheckPayloadURL(url); err != nil {
+				ctx.Error(http.StatusUnprocessableEntity, "", err.Error())
 				return false
 			}
 			w.URL = url

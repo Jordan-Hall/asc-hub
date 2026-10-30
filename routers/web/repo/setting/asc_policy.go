@@ -54,6 +54,7 @@ type ascPolicyPage struct {
 	Form        asctrust.PolicyForm
 	Strategies  []string
 	Diff        []asctrust.DiffLine
+	Maintainers []string
 	Op          string
 	ToggleOps   map[string]string
 	Base        string
@@ -155,9 +156,8 @@ func ascPolicyLoad(ctx *context.Context, repo *repo_model.Repository, name strin
 	p.Preview = preview
 	p.Form = asctrust.FormOfText(p.Draft)
 	p.Strategies = asctrust.MergeStrategies
-	if p.Dirty {
-		p.Diff = asctrust.LineDiff(page.View.Text, p.Draft)
-	}
+	p.Diff = asctrust.LineDiff(page.View.Text, p.Draft)
+	p.Maintainers = asctrust.MaintainerNames(page.View.Text)
 	return http.StatusOK, true
 }
 
@@ -225,7 +225,7 @@ func AscPolicyForm(ctx *context.Context) {
 	f := asctrust.PolicyForm{
 		RequireApprovals: num("approvals"), RequireChecks: asctrust.SplitLines(ctx.Req.PostFormValue("checks")),
 		AllowForce: flag("allow_force"), RequireSigned: flag("require_signed"),
-		MergeStrategy: ctx.Req.PostFormValue("strategy"), MergeQueue: flag("queue"),
+		MergeStrategy: ctx.Req.PostFormValue("strategy"), MergeQueue: flag("queue"), MergeBatch: num("batch"), PostMergeChecks: flag("post_merge_checks"),
 		AgentsEnabled: flag("agents_enabled"), AgentScope: asctrust.SplitLines(ctx.Req.PostFormValue("agent_scope")),
 		AgentDenied: asctrust.SplitLines(ctx.Req.PostFormValue("agent_denied")), MaxRuntimeSecs: num("max_runtime"),
 		MaxChangesPerRun: num("max_changes"), MaxTokens: num("max_tokens"),
