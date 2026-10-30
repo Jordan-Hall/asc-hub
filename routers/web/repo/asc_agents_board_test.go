@@ -33,6 +33,7 @@ func TestAscAgentsListShowsTheBoard(t *testing.T) {
 	hub.ok("Agents.ListRuns", &ascv1.ListAgentRunsResponse{Runs: []*ascv1.AgentRun{run}})
 	hub.ok("Agents.ListAgents", &ascv1.ListRepoAgentsResponse{
 		Running: 3, Landed_30D: 18, Changes_30D: 58,
+		Days: []*ascv1.AgentActivityDay{{Day: "2026-10-01", Started: 1}, {Day: "2026-10-02", Started: 3, Landed: 2}, {Day: "2026-10-03", Started: 2, Landed: 1}},
 		Agents: []*ascv1.RepoAgentInfo{{Agent: "coder-2", Runs: 24, Active: 1, Landed_30D: 11, Paths: []string{"src/**", "tests/**"}}},
 	})
 	hub.ok("Agents.GetSpend", &ascv1.GetAgentSpendResponse{
@@ -56,6 +57,7 @@ func TestAscAgentsListShowsTheBoard(t *testing.T) {
 		assert.Equal(t, "user2/repo1", c.req.(*ascv1.ListAgentRequestsRequest).GetRepo().GetName())
 	}
 	assert.Contains(t, p.body, `action="/user2/repo1/asc/agents/requests/5/decide"`)
+	assert.Equal(t, 2, strings.Count(p.body, `class="rv-spark`), "the running and landed cards have a line from the days asc reports")
 }
 
 func TestAscAgentsListDegradesWhenTheBoardCallsFail(t *testing.T) {

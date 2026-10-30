@@ -29,6 +29,20 @@ type ascQueueStack struct {
 	Queued   bool
 	QueueURL string
 	MergeURL string
+	// Scopes are how much of the stack can be landed: just the bottom change, the bottom few, or all of it. Each has the
+	// confirmation pages of the change it ends at.
+	Scopes []ascQueueScope
+}
+
+// ascQueueScope is one choice of how much of a stack to land.
+type ascQueueScope struct {
+	Label    string
+	Count    int
+	Of       int
+	Just     bool
+	All      bool
+	QueueURL string
+	MergeURL string
 }
 
 // ascQueueStacksOf lists the open stacks of repo whose changes land on branch, newest first. A stack is named by its top change:
@@ -59,20 +73,45 @@ func ascQueueStacksOf(ctx context.Context, repo *repo_model.Repository, branch s
 		if hasChild[pr.ID] || pr.BaseBranch != branch {
 			continue
 		}
-		n := 1
-		for id := pr.ID; n < ascQueueChainLimit && parent[id] != 0; n++ {
+		chain := []*issues_model.PullRequest{pr} // top first
+		for id := pr.ID; len(chain) < ascQueueChainLimit && parent[id] != 0; {
 			id = parent[id]
+			chain = append(chain, byID[id])
 		}
+		n := len(chain)
 		if err := pr.LoadIssue(ctx); err != nil {
 			return nil, err
 		}
 		page := repo.Link() + "/pulls/" + strconv.FormatInt(pr.Issue.Index, 10)
 		link := page + "/asc/confirm?op="
-		out = append(out, ascQueueStack{Top: pr, Link: page, Changes: n, Queued: queued[pr.ID], QueueURL: link + "queue", MergeURL: link + "merge"})
+		st := ascQueueStack{Top: pr, Link: page, Changes: n, Queued: queued[pr.ID], QueueURL: link + "queue", MergeURL: link + "merge"}
+		// The scopes: just the bottom change, the bottom two (when the stack is longer than two), all of it.
+		for _, k := range ascQueueScopeSizes(n) {
+			end := chain[n-k] // the k-th change from the bottom
+			if err := end.LoadIssue(ctx); err != nil {
+				return nil, err
+			}
+			endLink := repo.Link() + "/pulls/" + strconv.FormatInt(end.Issue.Index, 10) + "/asc/confirm?op="
+			st.Scopes = append(st.Scopes, ascQueueScope{Count: k, Of: n, Just: k == 1 && n > 1, All: k == n, QueueURL: endLink + "queue", MergeURL: endLink + "merge"})
+		}
+		out = append(out, st)
 		if len(out) >= ascQueueStacksLimit {
 			break
 		}
 	}
 	slices.SortStableFunc(out, func(a, b ascQueueStack) int { return int(b.Top.ID - a.Top.ID) })
 	return out, nil
+}
+
+// ascQueueScopeSizes lists how many changes from the bottom a land may take: 1, 2 when the stack has more than two, and all of
+// them. A stack of one change has one choice.
+func ascQueueScopeSizes(n int) []int {
+	switch {
+	case n <= 1:
+		return []int{1}
+	case n == 2:
+		return []int{1, 2}
+	default:
+		return []int{1, 2, n}
+	}
 }
