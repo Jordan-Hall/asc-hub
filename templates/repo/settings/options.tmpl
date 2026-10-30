@@ -665,7 +665,8 @@
 			<div class="content">
 				<div class="ds-banner ds-banner-warn">
 					{{ctx.Locale.Tr "repo.settings.delete_notices_1"}}<br>
-					{{ctx.Locale.Tr "repo.settings.delete_notices_2" .Repository.FullName}}
+					{{ctx.Locale.Tr "repo.settings.delete_notices_2" .Repository.FullName}}<br>
+					<strong data-testid="delete-counts">{{ctx.Locale.Tr "repo.settings.delete_counts" (ctx.Locale.PrettyNumber (.Repository.NumPulls ctx)) (ctx.Locale.PrettyNumber .NumReleases) (ctx.Locale.PrettyNumber (.Repository.NumIssues ctx))}}</strong>
 					{{if .Repository.NumForks}}<br>
 					{{ctx.Locale.Tr "repo.settings.delete_notices_fork_1"}}
 					{{end}}
