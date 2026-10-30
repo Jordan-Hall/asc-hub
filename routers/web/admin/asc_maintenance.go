@@ -6,12 +6,14 @@ package admin
 import (
 	"net/http"
 	"slices"
+	"strconv"
 	"time"
 
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/ascmaintenance"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 )
 
@@ -48,10 +50,17 @@ func MaintenancePost(ctx *context.Context) {
 		}
 		st.Until = t.UTC().Format(time.RFC3339)
 	}
+	before := ascmaintenance.Load(ctx)
 	if err := ascmaintenance.Save(ctx, st); err != nil {
 		ctx.Flash.Error(err.Error())
 	} else {
 		log.Info("maintenance mode set to %v by %s", st.On, ctx.Doer.Name)
+		asctrust.RecordHostAudit(ctx, asctrust.HostAudit{
+			Action: asctrust.AuditHostMaintenanceUpdated, Actor: ctx.Doer.Name, Target: "maintenance", Request: ctx.Req,
+			Details: map[string]string{
+				"enabled": strconv.FormatBool(st.On), "old_enabled": strconv.FormatBool(before.On), "message": st.Message, "until": st.Until,
+			},
+		})
 		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
 	}
 	ctx.Redirect(setting.AppSubURL + "/admin/maintenance")
