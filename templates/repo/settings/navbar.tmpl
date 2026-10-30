@@ -41,6 +41,7 @@
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_safety"}}</h2>
 		<ul class="ds-settings-list">
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/security") "Label" (ctx.Locale.Tr "asc_shell.sn_secret_scanning") "Icon" "fingerprint" "Active" .PageIsSettingsAscSecurity)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/workflow-secrets") "Label" (ctx.Locale.Tr "asc_review.wfs_nav") "Icon" "key" "Active" .PageIsSettingsAscWorkflowSecrets)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_shell.sn_audit_log") "Icon" "history" "Active" .PageIsSettingsAscAudit)}}
 		</ul>
 		{{else}}
@@ -94,6 +95,7 @@
 		<ul class="ds-settings-list">
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/policy") "Label" (ctx.Locale.Tr "asc_shell.sn_policy_trust") "Icon" "shield-check" "Active" .PageIsSettingsAscPolicy)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/security") "Label" (ctx.Locale.Tr "asc_shell.sn_secret_scanning") "Icon" "fingerprint" "Active" .PageIsSettingsAscSecurity)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/workflow-secrets") "Label" (ctx.Locale.Tr "asc_review.wfs_nav") "Icon" "key" "Active" .PageIsSettingsAscWorkflowSecrets)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_shell.sn_audit_log") "Icon" "history" "Active" .PageIsSettingsAscAudit)}}
 		</ul>
 		{{end}}

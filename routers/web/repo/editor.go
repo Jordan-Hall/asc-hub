@@ -344,6 +344,9 @@ func editFilePost(ctx *context.Context, form forms.EditRepoFileForm, isNewFile b
 		Committer: gitIdentity,
 	}); err != nil {
 		// This is where we handle all the errors thrown by files_service.ChangeRepoFiles
+		if handled := ascPolicyEditOutcome(ctx, err, tplEditFile, &form); handled {
+			return
+		}
 		if git.IsErrNotExist(err) {
 			ctx.RenderWithErr(ctx.Tr("repo.editor.file_editing_no_longer_exists", ctx.Repo.TreePath), tplEditFile, &form)
 		} else if git_model.IsErrLFSFileLocked(err) {
@@ -563,6 +566,9 @@ func DeleteFilePost(ctx *context.Context) {
 		Committer: gitIdentity,
 	}); err != nil {
 		// This is where we handle all the errors thrown by repofiles.DeleteRepoFile
+		if handled := ascPolicyEditOutcome(ctx, err, tplDeleteFile, &form); handled {
+			return
+		}
 		if git.IsErrNotExist(err) || models.IsErrRepoFileDoesNotExist(err) {
 			ctx.RenderWithErr(ctx.Tr("repo.editor.file_deleting_no_longer_exists", ctx.Repo.TreePath), tplDeleteFile, &form)
 		} else if models.IsErrFilenameInvalid(err) {

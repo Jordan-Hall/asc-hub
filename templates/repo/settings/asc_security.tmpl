@@ -37,7 +37,7 @@ A finding never carries a value: the preview was cut to two characters before it
 		{{if .Problem}}<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-security-problem"><div>{{.Problem}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.SecurityURL}}">{{ctx.Locale.Tr "asc_review.try_again"}}</a></div></div></div>{{end}}
 
 		{{if .Data}}
-		<div class="rv-stats rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.sec_stats"}}">
+		<div class="rv-stats rv-stats-3m rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_review.sec_stats"}}">
 			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_open"}}</div><div class="rv-stat-v">{{range .States}}{{if eq .Key "open"}}{{.Count}}{{end}}{{end}}</div><div class="rv-stat-d">{{if .NewToday}}{{ctx.Locale.Tr "asc_review.sec_stat_new_today" .NewToday}}{{else}}{{ctx.Locale.Tr "asc_review.sec_stat_open_d"}}{{end}}</div></div>
 			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_refused"}}</div><div class="rv-stat-v">{{.RefusedMonth}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_refused_30"}}</div>{{template "repo/asc_spark" dict "P" .RefusedSpark "Tone" "warn"}}</div>
 			<div class="rv-card rv-stat"><div class="rv-stat-l">{{ctx.Locale.Tr "asc_review.sec_stat_rules"}}</div><div class="rv-stat-v">{{len .Data.Rules.Rules}}</div><div class="rv-stat-d">{{ctx.Locale.Tr "asc_review.sec_stat_rules_d"}}</div></div>
