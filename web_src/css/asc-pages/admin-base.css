@@ -801,3 +801,65 @@ a.adm-who-name:hover {
   white-space: normal;
   text-align: center;
 }
+
+/* Backups: the summary card, the in-progress card and the closed editor */
+.adm-bk-sum {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .adm-bk-sum {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.adm-bk-lab {
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.adm-bk-val {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 4px 0;
+}
+
+.adm-bk-acts {
+  margin-top: 8px;
+}
+
+.adm-bk-prog {
+  justify-content: space-between;
+}
+
+.adm-bk-edit > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.adm-bk-edit > summary::-webkit-details-marker {
+  display: none;
+}
+
+.adm-bk-cli > summary {
+  list-style: none;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.adm-bk-cli > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ds-table tbody th.adm-bk-date {
+  color: var(--text);
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
