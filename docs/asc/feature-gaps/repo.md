@@ -356,7 +356,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| RepoSettingsSecrets | Secrets and variables on one page | ui-only-missing | `H:templates/shared/secrets/add_list.tmpl` and `shared/variables/variable_list.tmpl` live on `/settings/actions/secrets` and `/settings/actions/variables` | M |
+| RepoSettingsSecrets | Secrets and variables on one page | done (seen on a live hub (ui32): one menu entry with two tabs, Secrets and Variables, each its own list, not one scrolling page; axe clean) | `H:templates/shared/secrets/add_list.tmpl` and `shared/variables/variable_list.tmpl` live on `/settings/actions/secrets` and `/settings/actions/variables` | M |
 | RepoSettingsSecrets | Scope chips per secret (Checks, Agent runs, Releases) and "Agents only receive it when Agent runs is ticked" | needs-both | `Workflows.SetSecret` has name and value only (`A:proto/asc/v1/workflows.proto`); add scopes to the asc secret and to the Forgejo secret model (`H:models/secret`), enforce in agent run env | L |
 | RepoSettingsSecrets | "Updated by Maya Okafor, 12 d ago" | needs-hub-backend | `WorkflowSecret.updated_by` exists in asc; Forgejo secret has created time only; template | S |
 | RepoSettingsSecrets | Update value dialog with name locked; value never shown | ui-only-missing | `H:routers/web/repo/setting/secrets.go`, `add_list.tmpl` | S |
