@@ -96,7 +96,7 @@ func TestNavbarItems(t *testing.T) {
 			{`#ds-account a[href^="/user/settings"]`, true},
 			{`#ds-account a[href="/admin"]`, false},
 			{`#ds-account a[href="/-/demo"]`, false},
-			{`#ds-account a[href$="docs/asc/README.md"]`, true},
+			{`#ds-account a[href$="/-/docs"]`, true},
 			{`#ds-account a[data-url="/user/logout"]`, true},
 		}
 		page := NewHTMLParser(t, regularUser.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)
@@ -115,7 +115,7 @@ func TestNavbarItems(t *testing.T) {
 			{`#ds-account a[href^="/user/settings"]`, true},
 			{`#ds-account a[href="/admin"]`, true},
 			{`#ds-account a[href="/-/demo"]`, false},
-			{`#ds-account a[href$="docs/asc/README.md"]`, true},
+			{`#ds-account a[href$="/-/docs"]`, true},
 			{`#ds-account a[data-url="/user/logout"]`, true},
 		}
 		page = NewHTMLParser(t, adminUser.MakeRequest(t, NewRequest(t, "GET", testPage), http.StatusOK).Body)

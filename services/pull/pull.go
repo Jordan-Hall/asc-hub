@@ -60,31 +60,16 @@ func NewPullRequest(ctx context.Context, repo *repo_model.Repository, issue *iss
 	defer baseGitRepo.Close()
 
 	var reviewNotifiers []*issue_service.ReviewRequestNotifier
-	if err := db.WithTx(ctx, func(ctx context.Context) error {
-		if err := issues_model.NewPullRequest(ctx, repo, issue, labelIDs, uuids, pr); err != nil {
-			return err
-		}
-
-		for _, assigneeID := range assigneeIDs {
-			comment, err := issue_service.AddAssigneeIfNotAssigned(ctx, issue, issue.Poster, assigneeID, false)
-			if err != nil {
-				return err
-			}
-			assigneeCommentMap[assigneeID] = comment
-		}
-
-		pr.Issue = issue
-		issue.PullRequest = pr
-
+	// setHead points refs/pull/<n>/head at the head of the pull request.
+	setHead := func(ctx context.Context) error {
 		if pr.Flow == issues_model.PullRequestFlowGithub {
-			err = PushToBaseRepo(ctx, pr)
-		} else {
-			err = UpdateRef(ctx, pr)
+			return PushToBaseRepo(ctx, pr)
 		}
-		if err != nil {
-			return err
-		}
-
+		return UpdateRef(ctx, pr)
+	}
+	// afterHead is what needs the pull head to be in the repository: the commits of the first push and the review
+	// requests of the code owners.
+	afterHead := func(ctx context.Context) error {
 		compareInfo, err := baseGitRepo.GetCompareInfo(pr.BaseRepo.RepoPath(),
 			git.BranchPrefix+pr.BaseBranch, pr.GetGitRefName(), false, false)
 		if err != nil {
@@ -125,7 +110,51 @@ func NewPullRequest(ctx context.Context, repo *repo_model.Repository, issue *iss
 			}
 		}
 		return nil
-	}); err != nil {
+	}
+	// A repository stored in asc sets the pull head with asc and waits for asc's outbox to bring it to the git
+	// directory. That wait must not hold the database transaction: asc's outbox delivers one call at a time to the
+	// hub, and a call that needs a write (a post-receive) waits for the transaction, which waits for the outbox.
+	// So the pull request is stored first, the head is set after, and a failure removes the pull request again.
+	headInAsc, err := ascsync.BackedBy(pr.BaseRepo)
+	if err != nil {
+		return err
+	}
+	err = db.WithTx(ctx, func(ctx context.Context) error {
+		if err := issues_model.NewPullRequest(ctx, repo, issue, labelIDs, uuids, pr); err != nil {
+			return err
+		}
+
+		for _, assigneeID := range assigneeIDs {
+			comment, err := issue_service.AddAssigneeIfNotAssigned(ctx, issue, issue.Poster, assigneeID, false)
+			if err != nil {
+				return err
+			}
+			assigneeCommentMap[assigneeID] = comment
+		}
+
+		pr.Issue = issue
+		issue.PullRequest = pr
+
+		if headInAsc {
+			return nil
+		}
+		if err := setHead(ctx); err != nil {
+			return err
+		}
+		return afterHead(ctx)
+	})
+	if err == nil && headInAsc {
+		if err = setHead(ctx); err == nil {
+			err = db.WithTx(ctx, afterHead)
+		}
+		if err != nil {
+			// The pull request was stored before its head was set: take it out again.
+			if err1 := issue_service.DeleteIssue(ctx, issue.Poster, nil, issue); err1 != nil {
+				log.Error("DeleteIssue of the pull request that could not be set up: %v", err1)
+			}
+		}
+	}
+	if err != nil {
 		// cleanup: this will only remove the reference, the real commit will be clean up when next GC
 		if isAsc, _ := ascsync.BackedBy(pr.BaseRepo); isAsc {
 			// storage_backend=asc: the reference lives in asc; the bridge follows through bridge_promote (SPEC 13.5)

@@ -55,12 +55,16 @@ func (b *Basic) Verify(req *http.Request, w http.ResponseWriter, _ auth.SessionS
 	log.Trace("Basic Authorization: Attempting SignIn for %s", uname)
 	u, source, err := UserSignIn(req.Context(), uname, passwd)
 	if err != nil {
-		if user_model.IsErrUserNotExist(err) || user_model.IsErrEmailAddressNotExist(err) || user_model.IsErrUserProhibitLogin(err) ||
+		if user_model.IsErrUserNotExist(err) || user_model.IsErrEmailAddressNotExist(err) ||
 			errors.As(err, &db.ErrUserPasswordInvalid{}) || errors.As(err, &db.ErrUserPasswordNotSet{}) {
-			// The reason is logged and not told: "no such user", "wrong password" and "login prohibited" would tell
-			// a name that exists from one that does not to anyone who can send a request.
+			// The reason is logged and not told: "no such user" and "wrong password" would tell a name that exists from
+			// one that does not to anyone who can send a request.
 			log.Info("Basic Authorization: sign-in of %q refused: %v", uname, err)
 			return &auth.AuthenticationAttemptedIncorrectCredential{Error: errIncorrectUsernameOrPassword}
+		}
+		if user_model.IsErrUserProhibitLogin(err) {
+			// Only reached with the right password, so the person is told why.
+			return &auth.AuthenticationAttemptedIncorrectCredential{Error: err}
 		}
 		return &auth.AuthenticationError{Error: fmt.Errorf("basic auth UserSignIn: %w", err)}
 	}
