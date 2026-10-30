@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/db"
@@ -21,6 +22,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/web"
 	"forgejo.org/routers/web/shared/user"
 	"forgejo.org/services/authz"
@@ -87,12 +89,22 @@ func loadAccessTokenCreateData(ctx *context.Context) {
 		"package",
 		"repository",
 		"user",
+		"changes",
+		"runs",
 	}
 	if ctx.Doer.IsAdmin {
 		categories = append(categories, "admin")
 	}
 	slices.Sort(categories)
 	ctx.Data["Categories"] = categories
+	ctx.Data["CategoryLabels"] = map[string]string{
+		"changes": ctx.Locale.TrString("settings.scope_changes"),
+		"runs":    ctx.Locale.TrString("settings.scope_runs"),
+	}
+	ctx.Data["ExpiryChoices"] = forms.AccessTokenExpiryChoices
+	if _, ok := ctx.Data["expires"]; !ok {
+		ctx.Data["expires"] = "30"
+	}
 
 	// Awkward -- GET and POST use different form bindings for the reasons explained on NewAccessTokenGetForm -- and
 	// this method can be called in both situations, on all GETs, and on some POSTs when validation errors occur.  So
@@ -249,10 +261,19 @@ func AccessTokenCreatePost(ctx *context.Context) {
 		return
 	}
 
+	expiryDays, err := form.GetExpiryDays()
+	if err != nil {
+		ctx.Error(http.StatusBadRequest, "expires")
+		return
+	}
+
 	t := &auth_model.AccessToken{
 		UID:   ctx.Doer.ID,
 		Name:  form.Name,
 		Scope: scope,
+	}
+	if expiryDays > 0 {
+		t.ExpiresUnix = timeutil.TimeStampNow().AddDuration(time.Duration(expiryDays) * 24 * time.Hour)
 	}
 
 	var resourceRepos []*auth_model.AccessTokenResourceRepo

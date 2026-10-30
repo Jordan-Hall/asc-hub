@@ -195,6 +195,7 @@ func NormalRoutes() *web.Route {
 		if fwd, err := ascforward.New(setting.Asc.ServerURL, nil); err != nil {
 			log.Error("The asc API is not forwarded: %v", err)
 		} else {
+			fwd.Gate = ascforward.TokenGate
 			r.Post("/asc.v1.{service}/{method}", fwd.ServeHTTP)
 		}
 	}
