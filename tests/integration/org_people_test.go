@@ -4,6 +4,7 @@
 package integration
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strings"
@@ -159,4 +160,36 @@ func TestOrgPeopleInvitations(t *testing.T) {
 	assert.Equal(t, 1, doc.Find(`[data-testid="people-invite"]`).Length())
 	// a second revoke of the same invitation is told, not an error
 	owner.MakeRequest(t, NewRequest(t, "POST", revokeURL), http.StatusOK)
+}
+
+// Teams and roles are for the members of an organization: a visitor who is signed out, or signed in but not a member, sees
+// the people that are public and nothing of the teams (their names, or who administers them).
+func TestOrgPeopleTeamsAndRolesAreForMembers(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	const members = "/org/org3/members"
+	secrets := []string{"team1", "test_team", "team12Creators", "teamCreateRepo", "Maintainer", "Teams:", "No teams"}
+	check := func(who string, body *bytes.Buffer) {
+		doc := NewHTMLParser(t, body)
+		text := doc.Find(".wk-people-page").Text()
+		for _, secret := range secrets {
+			assert.NotContains(t, text, secret, "%s sees %q", who, secret)
+		}
+		assert.Equal(t, 0, doc.Find(".wk-member .ds-li-title .ds-chip").FilterFunction(func(_ int, s *goquery.Selection) bool {
+			txt := strings.TrimSpace(s.Text())
+			return txt == "Owner" || txt == "Maintainer" || txt == "Member"
+		}).Length(), "%s sees roles", who)
+		assert.Equal(t, 0, doc.Find(".wk-menu").Length(), "%s gets no role menu", who)
+		assert.Equal(t, 0, doc.Find("#add-member-modal").Length(), "%s gets no invite dialog with the teams in it", who)
+	}
+	check("a visitor", MakeRequest(t, NewRequest(t, "GET", members), http.StatusOK).Body)
+	// user1 is a site administrator but not a member of org3; user8 is just somebody
+	check("a signed-in non-member", loginUser(t, "user8").MakeRequest(t, NewRequest(t, "GET", members), http.StatusOK).Body)
+
+	// the same page, for a member, shows them (the test would pass for nothing if the page were empty)
+	member := NewHTMLParser(t, loginUser(t, "user4").MakeRequest(t, NewRequest(t, "GET", members), http.StatusOK).Body)
+	assert.Contains(t, member.Find(".wk-people-page").Text(), "team1")
+	// and only an owner is offered the role menu
+	assert.Equal(t, 0, member.Find(".wk-menu summary:contains('Change role')").Length())
+	owner := NewHTMLParser(t, loginUser(t, "user2").MakeRequest(t, NewRequest(t, "GET", members), http.StatusOK).Body)
+	assert.Positive(t, owner.Find(".wk-menu summary:contains('Change role')").Length())
 }
