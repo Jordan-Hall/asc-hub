@@ -68,6 +68,9 @@ type AccessToken struct {
 	TokenSalt      string
 	TokenLastEight string `xorm:"INDEX token_last_eight"`
 	Scope          AccessTokenScope
+	// ExpiresUnix is the moment the token stops working; 0 means it does not expire. A token that has expired is
+	// refused everywhere the token is looked up (GetAccessTokenBySHA), so API, git, packages and asc agree.
+	ExpiresUnix timeutil.TimeStamp `xorm:"INDEX NOT NULL DEFAULT 0"`
 
 	CreatedUnix       timeutil.TimeStamp `xorm:"INDEX created"`
 	UpdatedUnix       timeutil.TimeStamp `xorm:"INDEX updated"`
@@ -76,6 +79,14 @@ type AccessToken struct {
 
 	ResourceAllRepos bool `xorm:"NOT NULL DEFAULT TRUE"` // flag for whether AccessTokenResourceRepo instances will limit the resources this access token can access (false) or won't limit them (true).
 }
+
+// IsExpired reports whether the token has an expiry that has passed.
+func (t *AccessToken) IsExpired() bool {
+	return t.ExpiresUnix != 0 && timeutil.TimeStampNow() >= t.ExpiresUnix
+}
+
+// HasExpiry reports whether the token expires at all.
+func (t *AccessToken) HasExpiry() bool { return t.ExpiresUnix != 0 }
 
 // AfterLoad is invoked from XORM after setting the values of all fields of this object.
 func (t *AccessToken) AfterLoad() {
@@ -171,6 +182,9 @@ func GetAccessTokenBySHA(ctx context.Context, token string) (*AccessToken, error
 			return nil, err
 		}
 		if has {
+			if accessToken.IsExpired() {
+				return nil, ErrAccessTokenNotExist{token}
+			}
 			return accessToken, nil
 		}
 		successfulAccessTokenCache.Remove(token)
@@ -187,6 +201,9 @@ func GetAccessTokenBySHA(ctx context.Context, token string) (*AccessToken, error
 	for _, t := range tokens {
 		tempHash := HashToken(token, t.TokenSalt)
 		if subtle.ConstantTimeCompare([]byte(t.TokenHash), []byte(tempHash)) == 1 {
+			if t.IsExpired() {
+				return nil, ErrAccessTokenNotExist{token}
+			}
 			if successfulAccessTokenCache != nil {
 				successfulAccessTokenCache.Add(token, t.ID)
 			}
@@ -259,6 +276,16 @@ func RegenerateAccessTokenByID(ctx context.Context, id, userID int64) (*AccessTo
 	// Reset the creation time, token is unused
 	t.UpdatedUnix = timeutil.TimeStampNow()
 
-	_, err = db.GetEngine(ctx).ID(t.ID).Cols("token_salt", "token", "token_hash", "token_last_eight", "updated_unix").NoAutoTime().Update(t)
+	// A token that expires keeps its lifetime: the new token lasts as long as the old one was meant to, counted from
+	// now, so regenerating an expired token gives one that works.
+	if t.ExpiresUnix != 0 {
+		life := int64(t.ExpiresUnix) - int64(t.CreatedUnix)
+		if life < 86400 {
+			life = 86400
+		}
+		t.ExpiresUnix = t.UpdatedUnix.Add(life)
+	}
+
+	_, err = db.GetEngine(ctx).ID(t.ID).Cols("token_salt", "token", "token_hash", "token_last_eight", "updated_unix", "expires_unix").NoAutoTime().Update(t)
 	return t, err
 }

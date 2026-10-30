@@ -5,8 +5,10 @@
 package forms
 
 import (
+	"fmt"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"strings"
 
 	auth_model "forgejo.org/models/auth"
@@ -350,6 +352,7 @@ type NewAccessTokenGetForm struct {
 	Name         string `binding:"MaxSize(255)" locale:"settings.token_name"`
 	Resource     string // all, public-only, repo-specific
 	Scope        []string
+	Expires      string   // 7, 30, 90, 365 (days) or never
 	SelectedRepo []string // slice of ownername/reponame
 
 	// Transient form values, not part of the final data for the access token form
@@ -371,6 +374,7 @@ type NewAccessTokenPostForm struct {
 	Name         string `binding:"Required;MaxSize(255)" locale:"settings.token_name"`
 	Resource     string `binding:"Required" locale:"settings.repo_and_org_access"` // all, public-only, repo-specific
 	Scope        []string
+	Expires      string   // 7, 30, 90, 365 (days) or never
 	SelectedRepo []string // slice of ownername/reponame
 }
 
@@ -378,6 +382,26 @@ type NewAccessTokenPostForm struct {
 func (f *NewAccessTokenPostForm) Validate(req *http.Request, errs binding.Errors) binding.Errors {
 	ctx := context.GetValidateContext(req)
 	return middleware.Validate(errs, ctx.Data, f, ctx.Locale)
+}
+
+// AccessTokenExpiryChoices are the lifetimes of the token form in days; "never" is the other choice.
+var AccessTokenExpiryChoices = []int{7, 30, 90, 365}
+
+// GetExpiryDays is the lifetime the form asked for in days, 0 for never. An empty field is 30 days, the default of
+// the form; an unknown value is refused.
+func (f *NewAccessTokenPostForm) GetExpiryDays() (int, error) {
+	switch f.Expires {
+	case "", "30":
+		return 30, nil
+	case "never":
+		return 0, nil
+	}
+	for _, d := range AccessTokenExpiryChoices {
+		if f.Expires == strconv.Itoa(d) {
+			return d, nil
+		}
+	}
+	return 0, fmt.Errorf("unknown token lifetime %q", f.Expires)
 }
 
 func (f *NewAccessTokenPostForm) GetScope() (auth_model.AccessTokenScope, error) {

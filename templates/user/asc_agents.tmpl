@@ -1,71 +1,88 @@
 {{/*
-"Your agents" (routers/web/user/asc_agent_tokens.go).
+"Your agents" (routers/web/user/asc_agent_tokens.go), in the design system like the other account pages.
 Template Attributes:
 * AscAgentFeatures: the person's switch
 * AscAgentsRuns: []AscAgentsHomeRun, AscAgentsRepos: []AscAgentsHomeRepo, AscAgentsAnyFailed, AscAgentsError
 * CsrfTokenHtml
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="page-content dashboard asc-agents">
-	<div class="ds-container">
+<div role="main" aria-label="{{.Title}}" class="ds-main wk-page wk-agents">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "asc_myagents.title") "BackHref" (print AppSubUrl "/") "BackLabel" (ctx.Locale.Tr "asc_work.dashboard"))}}
+	<div class="ds-container ds-container-wide">
 		{{template "base/alert" .}}
-		<h2 class="asc-ag-title">Your agents</h2>
-		<section class="asc-card" aria-labelledby="asc-feat-title" data-testid="asc-agent-features">
-			<h3 id="asc-feat-title" class="asc-card-title">Agent features</h3>
-			<p>Agents are optional. ASC Hub works for people on its own, and with this off you see no agent pages and no agent buttons. It is a setting of your account, not of any repository.</p>
-			<p><strong>Right now: {{if .AscAgentFeatures}}on{{else}}off{{end}}.</strong></p>
-			<form method="post" action="{{AppSubUrl}}/-/asc/agents/features">
-				{{.CsrfTokenHtml}}
-				<input type="hidden" name="enabled" value="{{if .AscAgentFeatures}}0{{else}}1{{end}}">
-				<button class="ds-btn ds-btn-secondary {{if .AscAgentFeatures}}basic {{else}}primary {{end}}" type="submit">{{if .AscAgentFeatures}}Turn agent features off{{else}}Turn agent features on{{end}}</button>
-			</form>
+		<div class="wk-page-head">
+			<div class="ds-min0">
+				<p class="ds-t-eyebrow wk-eyebrow-kicker">{{ctx.Locale.Tr "asc_myagents.eyebrow"}}</p>
+				<h1 class="ds-t-h1 wk-title">{{ctx.Locale.Tr "asc_myagents.title"}}</h1>
+				<p class="ds-c-2 wk-sub">{{ctx.Locale.Tr "asc_myagents.lead"}}</p>
+			</div>
+		</div>
+
+		<section class="ds-card" aria-labelledby="asc-feat-title" data-testid="asc-agent-features">
+			<div class="ds-card-h">
+				<h2 id="asc-feat-title">{{ctx.Locale.Tr "asc_myagents.features_title"}}</h2>
+				<span class="ds-chip {{if .AscAgentFeatures}}ds-chip-ok{{end}}" data-testid="asc-agent-features-state">{{if .AscAgentFeatures}}{{ctx.Locale.Tr "asc_myagents.on"}}{{else}}{{ctx.Locale.Tr "asc_myagents.off"}}{{end}}</span>
+			</div>
+			<div class="ds-card-b ds-stack-16">
+				<p class="ds-c-2">{{ctx.Locale.Tr "asc_myagents.features_text"}}</p>
+				<form method="post" action="{{AppSubUrl}}/-/asc/agents/features" class="ds-form">
+					{{.CsrfTokenHtml}}
+					<input type="hidden" name="enabled" value="{{if .AscAgentFeatures}}0{{else}}1{{end}}">
+					<button class="ds-btn {{if .AscAgentFeatures}}ds-btn-secondary{{else}}ds-btn-primary{{end}}" type="submit">{{if .AscAgentFeatures}}{{ctx.Locale.Tr "asc_myagents.turn_off"}}{{else}}{{ctx.Locale.Tr "asc_myagents.turn_on"}}{{end}}</button>
+				</form>
+			</div>
 		</section>
 
 		{{if .AscAgentFeatures}}
-			{{if .AscAgentsError}}<div class="ds-banner ds-banner-warn" role="alert">{{.AscAgentsError}}</div>{{end}}
-			{{if .AscAgentsAnyFailed}}<div class="ds-banner ds-banner-warn" role="alert">Some repositories could not be read.</div>{{end}}
+			{{if .AscAgentsError}}
+				<div class="ds-banner ds-banner-warn" role="alert">{{svg "dsi-alert" 18}}<div class="ds-banner-body">{{.AscAgentsError}}</div></div>
+			{{end}}
+			{{if .AscAgentsAnyFailed}}
+				<div class="ds-banner ds-banner-warn" role="status">{{svg "dsi-alert" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "asc_myagents.partial"}}</div></div>
+			{{end}}
 
-			<section class="asc-card" aria-labelledby="asc-myruns-title">
-				<h3 id="asc-myruns-title" class="asc-card-title">Your recent runs</h3>
+			<section class="ds-card" aria-labelledby="asc-myruns-title">
+				<div class="ds-card-h"><h2 id="asc-myruns-title">{{ctx.Locale.Tr "asc_myagents.runs_title"}}</h2></div>
 				{{if .AscAgentsRuns}}
-					<ul class="asc-runs" data-testid="asc-my-agent-runs">
+					<ul class="ds-list wk-rows" data-testid="asc-my-agent-runs">
 						{{range .AscAgentsRuns}}
-							<li class="asc-run">
-								<div class="asc-run-main">
-									<a class="asc-run-title" href="{{.Link}}">{{.Title}}</a>
-									{{template "repo/asc_agents_pill" .State}}
-								</div>
-								<div class="asc-run-meta">
-									<a href="{{.Repo.Link}}">{{.Repo.FullName}}</a>
-									<span>run {{.ID}}</span>
-									{{if .Agent}}<span>agent <code>{{.Agent}}</code></span>{{end}}
-									{{if not .Created.IsZero}}<span>{{DateUtils.TimeSince .Created}}</span>{{end}}
+							<li class="ds-li wk-row">
+								<div class="ds-li-main">
+									<div class="ds-li-title"><a class="ds-link" href="{{.Link}}">{{.Title}}</a> {{template "repo/asc_agents_pill" .State}}</div>
+									<div class="ds-li-meta">
+										<a class="ds-link" href="{{.Repo.Link}}">{{.Repo.FullName}}</a>
+										<span>{{ctx.Locale.Tr "asc_myagents.run_n" .ID}}</span>
+										{{if .Agent}}<span>{{ctx.Locale.Tr "asc_myagents.agent_named"}} <code class="ds-mono">{{.Agent}}</code></span>{{end}}
+										{{if not .Created.IsZero}}<span>{{DateUtils.TimeSince .Created}}</span>{{end}}
+									</div>
 								</div>
 							</li>
 						{{end}}
 					</ul>
 				{{else}}
-					<p class="asc-muted">You have not started a run. Open a repository and choose Agents, then New task.</p>
+					{{template "shared/ds/empty" (dict "Icon" "agent" "Title" (ctx.Locale.Tr "asc_myagents.runs_empty") "Body" (ctx.Locale.Tr "asc_myagents.runs_empty_body"))}}
 				{{end}}
 			</section>
 
-			<section class="asc-card" aria-labelledby="asc-myrepos-title">
-				<h3 id="asc-myrepos-title" class="asc-card-title">Your repositories</h3>
+			<section class="ds-card" aria-labelledby="asc-myrepos-title">
+				<div class="ds-card-h"><h2 id="asc-myrepos-title">{{ctx.Locale.Tr "asc_myagents.repos_title"}}</h2></div>
 				{{if .AscAgentsRepos}}
-					<ul class="asc-runs" data-testid="asc-my-agent-repos">
+					<ul class="ds-list wk-rows" data-testid="asc-my-agent-repos">
 						{{range .AscAgentsRepos}}
-							<li class="asc-run">
-								<div class="asc-run-main"><a class="asc-run-title" href="{{.Repo.Link}}">{{.Repo.FullName}}</a></div>
-								<div class="asc-run-meta">
-									<a href="{{.RunsURL}}">Agent runs</a>
-									{{if .IsAdmin}}<a href="{{.TokensURL}}">Agent tokens</a>{{end}}
-									<a href="{{.Repo.Link}}/asc/workflows">Workflows</a>
+							<li class="ds-li wk-row">
+								<div class="ds-li-main">
+									<div class="ds-li-title"><a class="ds-link" href="{{.Repo.Link}}">{{.Repo.FullName}}</a></div>
+									<div class="ds-li-meta">
+										<a class="ds-link" href="{{.RunsURL}}">{{ctx.Locale.Tr "asc_myagents.agent_runs"}}</a>
+										{{if .IsAdmin}}<a class="ds-link" href="{{.TokensURL}}">{{ctx.Locale.Tr "asc_myagents.agent_tokens"}}</a>{{end}}
+										<a class="ds-link" href="{{.Repo.Link}}/asc/workflows">{{ctx.Locale.Tr "asc_myagents.workflows"}}</a>
+									</div>
 								</div>
 							</li>
 						{{end}}
 					</ul>
 				{{else}}
-					<p class="asc-muted">No repository of yours lives in asc.</p>
+					{{template "shared/ds/empty" (dict "Icon" "repo" "Title" (ctx.Locale.Tr "asc_myagents.repos_empty") "Body" (ctx.Locale.Tr "asc_myagents.repos_empty_body"))}}
 				{{end}}
 			</section>
 		{{end}}

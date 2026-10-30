@@ -24,6 +24,9 @@ const (
 	AccessTokenScopeCategoryIssue
 	AccessTokenScopeCategoryRepository
 	AccessTokenScopeCategoryUser
+	// The two categories of the asc work of a person. They are numbered after the others so no stored value moves.
+	AccessTokenScopeCategoryChanges // changesets, stacks, reviews and the merge queue through asc
+	AccessTokenScopeCategoryRuns    // agent runs through asc
 )
 
 // AllAccessTokenScopeCategories contains all access token scope categories
@@ -37,6 +40,8 @@ var AllAccessTokenScopeCategories = []AccessTokenScopeCategory{
 	AccessTokenScopeCategoryIssue,
 	AccessTokenScopeCategoryRepository,
 	AccessTokenScopeCategoryUser,
+	AccessTokenScopeCategoryChanges,
+	AccessTokenScopeCategoryRuns,
 }
 
 // AccessTokenScopeLevel represents the access levels without a given scope category
@@ -82,6 +87,14 @@ const (
 
 	AccessTokenScopeReadUser  AccessTokenScope = "read:user"
 	AccessTokenScopeWriteUser AccessTokenScope = "write:user"
+
+	// Changesets, stacks, reviews and the merge queue (board Access tokens: Changesets and stacks).
+	AccessTokenScopeReadChanges  AccessTokenScope = "read:changes"
+	AccessTokenScopeWriteChanges AccessTokenScope = "write:changes"
+
+	// Agent runs: start, read, pause and stop runs (board Access tokens: Agent runs).
+	AccessTokenScopeReadRuns  AccessTokenScope = "read:runs"
+	AccessTokenScopeWriteRuns AccessTokenScope = "write:runs"
 )
 
 // accessTokenScopeBitmap represents a bitmap of access token scopes.
@@ -93,7 +106,8 @@ const (
 	accessTokenScopeAllBits accessTokenScopeBitmap = accessTokenScopeWriteActivityPubBits |
 		accessTokenScopeWriteAdminBits | accessTokenScopeWriteMiscBits | accessTokenScopeWriteNotificationBits |
 		accessTokenScopeWriteOrganizationBits | accessTokenScopeWritePackageBits | accessTokenScopeWriteIssueBits |
-		accessTokenScopeWriteRepositoryBits | accessTokenScopeWriteUserBits
+		accessTokenScopeWriteRepositoryBits | accessTokenScopeWriteUserBits |
+		accessTokenScopeWriteChangesBits | accessTokenScopeWriteRunsBits
 
 	accessTokenScopePublicOnlyBits accessTokenScopeBitmap = 1 << iota
 
@@ -124,6 +138,12 @@ const (
 	accessTokenScopeReadUserBits  accessTokenScopeBitmap = 1 << iota
 	accessTokenScopeWriteUserBits accessTokenScopeBitmap = 1<<iota | accessTokenScopeReadUserBits
 
+	accessTokenScopeReadChangesBits  accessTokenScopeBitmap = 1 << iota
+	accessTokenScopeWriteChangesBits accessTokenScopeBitmap = 1<<iota | accessTokenScopeReadChangesBits
+
+	accessTokenScopeReadRunsBits  accessTokenScopeBitmap = 1 << iota
+	accessTokenScopeWriteRunsBits accessTokenScopeBitmap = 1<<iota | accessTokenScopeReadRunsBits
+
 	// The current implementation only supports up to 64 token scopes.
 	// If we need to support > 64 scopes,
 	// refactoring the whole implementation in this file (and only this file) is needed.
@@ -142,6 +162,8 @@ var allAccessTokenScopes = []AccessTokenScope{
 	AccessTokenScopeWriteIssue, AccessTokenScopeReadIssue,
 	AccessTokenScopeWriteRepository, AccessTokenScopeReadRepository,
 	AccessTokenScopeWriteUser, AccessTokenScopeReadUser,
+	AccessTokenScopeWriteChanges, AccessTokenScopeReadChanges,
+	AccessTokenScopeWriteRuns, AccessTokenScopeReadRuns,
 }
 
 // allAccessTokenScopeBits contains all access token scopes.
@@ -166,6 +188,10 @@ var allAccessTokenScopeBits = map[AccessTokenScope]accessTokenScopeBitmap{
 	AccessTokenScopeWriteRepository:   accessTokenScopeWriteRepositoryBits,
 	AccessTokenScopeReadUser:          accessTokenScopeReadUserBits,
 	AccessTokenScopeWriteUser:         accessTokenScopeWriteUserBits,
+	AccessTokenScopeReadChanges:       accessTokenScopeReadChangesBits,
+	AccessTokenScopeWriteChanges:      accessTokenScopeWriteChangesBits,
+	AccessTokenScopeReadRuns:          accessTokenScopeReadRunsBits,
+	AccessTokenScopeWriteRuns:         accessTokenScopeWriteRunsBits,
 }
 
 // readAccessTokenScopes maps a scope category to the read permission scope
@@ -180,6 +206,8 @@ var accessTokenScopes = map[AccessTokenScopeLevel]map[AccessTokenScopeCategory]A
 		AccessTokenScopeCategoryIssue:        AccessTokenScopeReadIssue,
 		AccessTokenScopeCategoryRepository:   AccessTokenScopeReadRepository,
 		AccessTokenScopeCategoryUser:         AccessTokenScopeReadUser,
+		AccessTokenScopeCategoryChanges:      AccessTokenScopeReadChanges,
+		AccessTokenScopeCategoryRuns:         AccessTokenScopeReadRuns,
 	},
 	Write: {
 		AccessTokenScopeCategoryActivityPub:  AccessTokenScopeWriteActivityPub,
@@ -191,6 +219,8 @@ var accessTokenScopes = map[AccessTokenScopeLevel]map[AccessTokenScopeCategory]A
 		AccessTokenScopeCategoryIssue:        AccessTokenScopeWriteIssue,
 		AccessTokenScopeCategoryRepository:   AccessTokenScopeWriteRepository,
 		AccessTokenScopeCategoryUser:         AccessTokenScopeWriteUser,
+		AccessTokenScopeCategoryChanges:      AccessTokenScopeWriteChanges,
+		AccessTokenScopeCategoryRuns:         AccessTokenScopeWriteRuns,
 	},
 }
 
@@ -343,7 +373,7 @@ func (bitmap accessTokenScopeBitmap) toScope() AccessTokenScope {
 	scope := AccessTokenScope(strings.Join(scopes, ","))
 	scope = AccessTokenScope(strings.ReplaceAll(
 		string(scope),
-		"write:activitypub,write:admin,write:misc,write:notification,write:organization,write:package,write:issue,write:repository,write:user",
+		"write:activitypub,write:admin,write:misc,write:notification,write:organization,write:package,write:issue,write:repository,write:user,write:changes,write:runs",
 		"all",
 	))
 	return scope

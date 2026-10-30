@@ -256,3 +256,14 @@ func TestAscSinceLastReviewAscFailure(t *testing.T) {
 	_, _, err := AscSinceLastReview(t.Context(), pr, 1)
 	require.ErrorIs(t, err, ErrAscUnavailable)
 }
+
+func TestAscVersionListBefore(t *testing.T) {
+	list := &AscVersionList{Versions: []AscVersion{{N: 1}, {N: 2}, {N: 3}}}
+	assert.Equal(t, uint32(2), list.Before(3))
+	assert.Equal(t, uint32(1), list.Before(2))
+	assert.Equal(t, uint32(0), list.Before(1), "the first version has none before it")
+	assert.Equal(t, uint32(0), list.Before(9), "a version that does not exist has none")
+	assert.Equal(t, uint32(0), list.Before(0))
+	var none *AscVersionList
+	assert.Equal(t, uint32(0), none.Before(2))
+}

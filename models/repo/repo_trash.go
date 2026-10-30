@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"forgejo.org/models/db"
+	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
 )
 
@@ -17,7 +18,7 @@ import (
 // out of every list; its name stays taken, so a restore never meets a new repository of the same name.
 
 // TrashDays is how long a deleted repository can be restored.
-const TrashDays = 30
+const TrashDays = setting.AscTrashDays
 
 // ErrNotTrashed is returned for a repository that is not in the trash.
 var ErrNotTrashed = errors.New("the repository is not in the trash")
