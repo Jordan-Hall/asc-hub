@@ -93,10 +93,12 @@ func TestAscAgentsHomeSwitchedOff(t *testing.T) {
 
 	code, body := getAscAgentsHome(t, user2)
 	assert.Equal(t, http.StatusOK, code)
-	assert.Contains(t, body, "Right now: off.")
-	assert.Contains(t, body, "Turn agent features on")
-	assert.NotContains(t, body, "Your recent runs")
-	assert.NotContains(t, body, "Your repositories")
+	assert.Contains(t, body, `data-testid="asc-agent-features-state">asc_myagents.off<`)
+	assert.Contains(t, body, "ds-card", "the page is in the design system, not loose text")
+	assert.NotContains(t, body, "asc-card")
+	assert.Contains(t, body, "asc_myagents.turn_on")
+	assert.NotContains(t, body, "asc_myagents.runs_title")
+	assert.NotContains(t, body, "asc_myagents.repos_title")
 	assert.Empty(t, f.reqs, "with the switch off, asc is not asked about agents at all")
 
 	t.Run("anonymous and disabled", func(t *testing.T) {
@@ -126,8 +128,8 @@ func TestAscAgentsHomeRuns(t *testing.T) {
 
 	code, body := getAscAgentsHome(t, user2)
 	require.Equal(t, http.StatusOK, code, body)
-	assert.Contains(t, body, "Right now: on.")
-	assert.Contains(t, body, "Turn agent features off")
+	assert.Contains(t, body, `data-testid="asc-agent-features-state">asc_myagents.on<`)
+	assert.Contains(t, body, "asc_myagents.turn_off")
 
 	require.NotEmpty(t, f.reqs)
 	for _, r := range f.reqs {
@@ -154,8 +156,8 @@ func TestAscAgentsHomeRuns(t *testing.T) {
 		f.mu.Unlock()
 		code, body := getAscAgentsHome(t, user2)
 		assert.Equal(t, http.StatusOK, code)
-		assert.NotContains(t, body, "could not be read")
-		assert.Contains(t, body, "You have not started a run")
+		assert.NotContains(t, body, "asc_myagents.partial")
+		assert.Contains(t, body, "asc_myagents.runs_empty")
 	})
 
 	t.Run("a broken asc is told, without its words", func(t *testing.T) {
@@ -166,7 +168,7 @@ func TestAscAgentsHomeRuns(t *testing.T) {
 		f.mu.Unlock()
 		code, body := getAscAgentsHome(t, user2)
 		assert.Equal(t, http.StatusOK, code)
-		assert.Contains(t, body, "Some repositories could not be read")
+		assert.Contains(t, body, "asc_myagents.partial")
 		assert.NotContains(t, body, "sk-planted")
 	})
 

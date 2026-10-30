@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -579,8 +580,14 @@ type ascPullChecksPage struct {
 	NewIssueURL string
 	CanRerun    bool
 	CanWrite    bool
-	Ops         map[uint64]string
-	Index       int64
+	// AllowQuarantine is true when the viewer may write and the policy allows quarantine ([ci] allow_quarantine).
+	AllowQuarantine bool
+	// Repro is the asc command that checks out this version, for "Copy a repro command"; "" when the head is unknown.
+	Repro string
+	// Version is the version the checks are of (0: not known), for "Run on v4".
+	Version uint32
+	Ops     map[uint64]string
+	Index   int64
 }
 
 // AscPullChecks serves GET /{owner}/{repo}/pulls/{index}/asc/checks.
@@ -612,10 +619,12 @@ func AscPullChecks(ctx *context.Context) {
 		return
 	}
 	in := asctrust.PullChecksIn{Head: sha, Now: time.Now()}
+	p.Repro = ascReproCommand(repo.FullName(), sha)
 
 	// The version of the change that the head is.
 	if versions, err := pull_service.AscVersions(ctx, pull); err == nil {
 		in.Version = versions.ByGitCommit(sha)
+		p.Version = in.Version
 	}
 
 	statuses, _, err := git_model.GetLatestCommitStatus(ctx, repo.ID, sha, db.ListOptionsAll)
@@ -623,14 +632,16 @@ func AscPullChecks(ctx *context.Context) {
 		ctx.ServerError("GetLatestCommitStatus", err)
 		return
 	}
-	for _, s := range statuses {
-		in.Statuses = append(in.Statuses, asctrust.StatusIn{Context: s.Context, State: string(s.State), Description: s.Description, URL: s.TargetURL})
-	}
-
 	runs, err := db.Find[actions_model.ActionRun](ctx, actions_model.FindRunOptions{RepoID: repo.ID, CommitSHA: sha})
 	if err != nil {
 		ctx.ServerError("FindRuns", err)
 		return
+	}
+	for _, s := range statuses {
+		in.Statuses = append(in.Statuses, asctrust.StatusIn{
+			Context: s.Context, State: string(s.State), Description: s.Description, URL: s.TargetURL,
+			RunID: ascStatusRunID(s.TargetURL, runs),
+		})
 	}
 	runIDs := map[uint64]bool{}
 	var earliest time.Time
@@ -661,10 +672,49 @@ func AscPullChecks(ctx *context.Context) {
 	}
 	p.Checks = asctrust.BuildPullChecks(in)
 	p.Checks.Localize(ctx.Locale.TrString)
+	if p.CanWrite && len(p.Checks.Flaky) > 0 {
+		// Quarantine is offered only where the policy allows it; the state handler asks the policy again.
+		if conn, err := asctrust.Conn(); err == nil {
+			if callCtx, release, err := trustweb.ReadCall(ctx, repo); err == nil {
+				p.AllowQuarantine = asctrust.QuarantineAllowed(callCtx, conn, name)
+				release()
+			}
+		}
+	}
 	for _, card := range p.Checks.Flaky {
 		p.Ops[card.GroupID] = asctrust.NewOpID()
 	}
 	ctx.HTML(http.StatusOK, tplAscPullChecks)
+}
+
+var ascStatusRunRe = regexp.MustCompile(`/actions/runs/(\d+)(?:/|$)`)
+
+// ascStatusRunID returns the id of the run in runs that a commit status points at (its target URL is
+// .../actions/runs/{index}/jobs/{n}), 0 when the status belongs to none.
+func ascStatusRunID(targetURL string, runs []*actions_model.ActionRun) int64 {
+	m := ascStatusRunRe.FindStringSubmatch(targetURL)
+	if m == nil {
+		return 0
+	}
+	index, err := strconv.ParseInt(m[1], 10, 64)
+	if err != nil {
+		return 0
+	}
+	for _, r := range runs {
+		if r.Index == index {
+			return r.ID
+		}
+	}
+	return 0
+}
+
+// ascReproCommand is the asc command that checks out the exact version a check ran on, in the directory repro. It names
+// no git command: a person without the repository runs it, then the failing test.
+func ascReproCommand(repoFullName, sha string) string {
+	if repoFullName == "" || sha == "" {
+		return ""
+	}
+	return "asc ci checkout --repo " + repoFullName + " --rev " + sha + " --dir repro && cd repro"
 }
 
 // ascPullAdvice adds what the policy requires and the failure groups seen in the runs to in. The reads are made as
@@ -771,6 +821,21 @@ func AscPullChecksRerun(ctx *context.Context) {
 		return
 	}
 	failedOnly := ctx.Req.PostFormValue("mode") == "failed"
+	// "Run on v4" on one row names the run; it must be one of the runs of this head commit.
+	if raw := ctx.Req.PostFormValue("run"); raw != "" {
+		id, err := strconv.ParseInt(raw, 10, 64)
+		var only []*actions_model.ActionRun
+		for _, run := range runs {
+			if err == nil && run.ID == id {
+				only = append(only, run)
+			}
+		}
+		if len(only) == 0 {
+			ctx.NotFound("asc pull rerun", nil)
+			return
+		}
+		runs = only
+	}
 	started := 0
 	var firstErr error
 	for _, run := range runs {

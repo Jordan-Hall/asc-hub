@@ -57,11 +57,11 @@ func TestAscDeviceEndpoints(t *testing.T) {
 	assert.Equal(t, 5, started.Interval)
 	assert.Equal(t, "no-store", resp.Header().Get("Cache-Control"))
 
-	poll := func() (int, map[string]string) {
+	poll := func() (int, map[string]any) {
 		ctx, resp := contexttest.MockContext(t, "POST /login/device/token")
 		ctx.Req.Form = url.Values{"grant_type": {ascDeviceGrantType}, "device_code": {started.DeviceCode}}
 		AscDeviceToken(ctx)
-		var body map[string]string
+		var body map[string]any
 		require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &body))
 		return resp.Code, body
 	}
@@ -78,6 +78,11 @@ func TestAscDeviceEndpoints(t *testing.T) {
 	assert.Equal(t, http.StatusOK, code)
 	assert.Equal(t, "bearer", body["token_type"])
 	assert.Len(t, body["access_token"], 40)
+	// the token is not "all": it has the default scope of a terminal and it expires
+	assert.NotContains(t, body["scope"], "all")
+	assert.Contains(t, body["scope"], "write:repository")
+	assert.NotContains(t, body["scope"], "admin")
+	assert.InDelta(t, auth_model.AscDeviceTokenLifetime.Seconds(), body["expires_in"], 60)
 
 	// and the token is not handed out twice
 	code, body = poll()
@@ -181,4 +186,37 @@ func TestAscLimiterIsBounded(t *testing.T) {
 	now = now.Add(2 * time.Minute)
 	l.add("fresh")
 	assert.Equal(t, 1, l.size())
+}
+
+// A terminal can ask for a smaller scope, and never for more than the work of a person.
+func TestAscDeviceCodeScope(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	ascDeviceAsks = newAscLimiter(20, time.Minute)
+
+	ask := func(scope string) (int, map[string]any) {
+		ctx, resp := contexttest.MockContext(t, "POST /login/device/code")
+		ctx.Req.Form = url.Values{"client_name": {"ci"}, "scope": {scope}}
+		AscDeviceCode(ctx)
+		var body map[string]any
+		require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &body))
+		return resp.Code, body
+	}
+	for _, bad := range []string{"all", "write:admin", "write:package", "write:repository write:user"} {
+		code, body := ask(bad)
+		assert.Equal(t, http.StatusBadRequest, code, bad)
+		assert.Equal(t, "invalid_scope", body["error"], bad)
+	}
+
+	code, body := ask("read:repository read:changes")
+	require.Equal(t, http.StatusOK, code)
+	row, err := auth_model.GetAscDeviceCodeByUserCode(t.Context(), body["user_code"].(string))
+	require.NoError(t, err)
+	require.NoError(t, row.Decide(t.Context(), 2, true))
+
+	ctx, resp := contexttest.MockContext(t, "POST /login/device/token")
+	ctx.Req.Form = url.Values{"grant_type": {ascDeviceGrantType}, "device_code": {body["device_code"].(string)}}
+	AscDeviceToken(ctx)
+	var token map[string]any
+	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &token))
+	assert.Equal(t, "read:repository read:changes", token["scope"])
 }

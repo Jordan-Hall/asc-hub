@@ -67,6 +67,7 @@ import {initAscSignup} from './features/asc-signup.js';
 import {initAscPassword} from './features/asc-password.js';
 import {initAscFeedFilter} from './features/asc-feed-filter.js';
 import {initAscScrollFocus} from './features/asc-scroll-focus.js';
+import {initAscReview} from './features/asc-review.js';
 import {initAscDevice} from './features/asc-device.js';
 import {initAscDocsToc} from './features/asc-docs-toc.js';
 import {initAscDrafts} from './features/asc-drafts.js';
@@ -211,6 +212,7 @@ onDomReady(() => {
   initAscPassword();
   initAscFeedFilter();
   initAscScrollFocus();
+  initAscReview();
   initAscDevice();
   initAscDocsToc();
   initAscDrafts();

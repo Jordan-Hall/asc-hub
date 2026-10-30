@@ -5,6 +5,7 @@ package auth_test
 
 import (
 	"testing"
+	"time"
 
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/db"
@@ -192,4 +193,41 @@ func TestAscDeviceCodeFullHubEvictsTheOldestInsteadOfLockingOthersOut(t *testing
 	after, err := db.GetEngine(ctx).Count(new(auth_model.AscDeviceCode))
 	require.NoError(t, err)
 	assert.Equal(t, before, after)
+}
+
+func TestParseAscDeviceScope(t *testing.T) {
+	def, err := auth_model.ParseAscDeviceScope("")
+	require.NoError(t, err)
+	want, _ := auth_model.AscDeviceDefaultScope.Normalize()
+	assert.Equal(t, want, def)
+
+	got, err := auth_model.ParseAscDeviceScope("read:repository read:changes")
+	require.NoError(t, err)
+	assert.Equal(t, auth_model.AccessTokenScope("read:repository,read:changes"), got)
+
+	// a terminal can never ask for more than the work of a person: not all, not admin, not packages
+	for _, bad := range []string{"all", "write:admin", "write:package", "write:user", "write:organization", "public-only", "nonsense"} {
+		_, err := auth_model.ParseAscDeviceScope(bad)
+		require.ErrorIs(t, err, auth_model.ErrAscDeviceBadScope, bad)
+	}
+}
+
+func TestExchangeAscDeviceCodeScopeAndExpiry(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx := t.Context()
+	row, deviceCode, err := auth_model.CreateAscDeviceCode(ctx, "laptop", "")
+	require.NoError(t, err)
+	scope, err := auth_model.ParseAscDeviceScope("read:repository")
+	require.NoError(t, err)
+	require.NoError(t, row.SetScope(ctx, scope))
+	require.NoError(t, row.Decide(ctx, 2, true))
+
+	token, err := auth_model.ExchangeAscDeviceCode(ctx, deviceCode, auth_model.AscDeviceDefaultScope)
+	require.NoError(t, err)
+	assert.Equal(t, scope, token.Scope, "the scope the terminal asked for wins over the default")
+	assert.NotEqual(t, auth_model.AccessTokenScopeAll, token.Scope)
+	require.True(t, token.HasExpiry())
+	left := time.Until(token.ExpiresUnix.AsTime())
+	assert.Greater(t, left, auth_model.AscDeviceTokenLifetime-time.Minute)
+	assert.LessOrEqual(t, left, auth_model.AscDeviceTokenLifetime)
 }

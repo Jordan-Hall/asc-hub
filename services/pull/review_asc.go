@@ -5,6 +5,7 @@ package pull
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	git_model "forgejo.org/models/git"
@@ -153,6 +154,35 @@ func AscFileClassBadges(ctx context.Context, locale translation.Locale, pr *issu
 		labels[f.Path] = ascClassLabel(locale, ascClassName(f.Class))
 	}
 	return labels
+}
+
+// AscClassCount is how many files of a pull request have one change class label.
+type AscClassCount struct {
+	Label string
+	Count int
+}
+
+// AscFileClassCounts counts the files of each class label in badges, the most frequent label first and labels of
+// the same count in alphabetical order. It is nil when there are no badges.
+func AscFileClassCounts(badges map[string]string) []AscClassCount {
+	if len(badges) == 0 {
+		return nil
+	}
+	n := map[string]int{}
+	for _, label := range badges {
+		n[label]++
+	}
+	out := make([]AscClassCount, 0, len(n))
+	for label, c := range n {
+		out = append(out, AscClassCount{Label: label, Count: c})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Count != out[j].Count {
+			return out[i].Count > out[j].Count
+		}
+		return out[i].Label < out[j].Label
+	})
+	return out
 }
 
 func ascClassLabel(locale translation.Locale, name string) string {

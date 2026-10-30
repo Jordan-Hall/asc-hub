@@ -45,13 +45,7 @@
 	<article>
 		<header>{{ctx.Locale.Tr "repo.settings.delete"}}</header>
 		<div class="content">
-			<div class="ds-banner ds-banner-warn">
-				{{ctx.Locale.Tr "repo.settings.delete_notices_1"}}<br>
-				{{ctx.Locale.Tr "repo.settings.delete_notices_2" .Repository.FullName}}
-				{{if .Repository.NumForks}}<br>
-				{{ctx.Locale.Tr "repo.settings.delete_notices_fork_1"}}
-				{{end}}
-			</div>
+			{{template "repo/delete_warning" (dict "Repository" .Repository "Page" $)}}
 		</div>
 		<form class="ui form ds-form" action="{{.Link}}/settings" method="post">
 			<div class="content">

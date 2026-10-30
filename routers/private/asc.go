@@ -99,6 +99,11 @@ func validateAscAuthzRequest(req *private.AscAuthzRequest) error {
 	if len(req.Ref) > private.AscAuthzMaxRef {
 		return errors.New("ref is too long")
 	}
+	switch req.Area {
+	case "", private.AscAuthzAreaRepository, private.AscAuthzAreaChanges, private.AscAuthzAreaRuns:
+	default:
+		return errors.New("area must be repository, changes or runs")
+	}
 	if req.SSHKey != nil {
 		if req.Token != "" || req.User != "" || req.KeyID != 0 {
 			return errors.New("ssh_key excludes token, user and key_id")
@@ -401,7 +406,7 @@ func ascPrincipalFromToken(ctx *context.PrivateContext, repo *repo_model.Reposit
 
 	switch out := group.Verify(authReq, nil, nil).(type) {
 	case *auth_service.AuthenticationSuccess:
-		p, ok, err := ascPrincipalFromAuthResult(ctx, repo, out.Result, mode)
+		p, ok, err := ascPrincipalFromAuthResult(ctx, repo, out.Result, mode, req.Area)
 		if p != nil {
 			// A personal access token is a row: which one, and when it last changed, is part of the decision.
 			if tok, terr := auth_model.GetAccessTokenBySHA(ctx, req.Token); terr == nil {
@@ -418,7 +423,7 @@ func ascPrincipalFromToken(ctx *context.PrivateContext, repo *repo_model.Reposit
 	}
 }
 
-func ascPrincipalFromAuthResult(ctx *context.PrivateContext, repo *repo_model.Repository, ar auth_service.AuthenticationResult, mode perm.AccessMode) (*ascPrincipal, bool, error) {
+func ascPrincipalFromAuthResult(ctx *context.PrivateContext, repo *repo_model.Repository, ar auth_service.AuthenticationResult, mode perm.AccessMode, area string) (*ascPrincipal, bool, error) {
 	user := ar.User()
 	if user == nil {
 		return nil, false, nil
@@ -453,7 +458,7 @@ func ascPrincipalFromAuthResult(ctx *context.PrivateContext, repo *repo_model.Re
 		if mode > perm.AccessModeRead {
 			level = auth_model.Write
 		}
-		required := auth_model.GetRequiredScopes(level, auth_model.AccessTokenScopeCategoryRepository)
+		required := auth_model.GetRequiredScopes(level, ascAreaCategory(area))
 		matched, err := scope.HasScope(required...)
 		if err != nil {
 			return nil, false, fmt.Errorf("HasScope: %w", err)
@@ -472,6 +477,19 @@ func ascPrincipalFromAuthResult(ctx *context.PrivateContext, repo *repo_model.Re
 	p.grantScopes = ar.OAuth2GrantScopes().ValueOrDefault("")
 	p.passwordAuth = ar.IsPasswordAuthentication()
 	return p, true, nil
+}
+
+// ascAreaCategory is the scope category that holds a personal access token for the part of asc a call is for. Code
+// and refs (and a call that names no area) need the repository scope as before; the work on changesets and stacks
+// needs the scope changes and agent runs need the scope runs.
+func ascAreaCategory(area string) auth_model.AccessTokenScopeCategory {
+	switch area {
+	case private.AscAuthzAreaChanges:
+		return auth_model.AccessTokenScopeCategoryChanges
+	case private.AscAuthzAreaRuns:
+		return auth_model.AccessTokenScopeCategoryRuns
+	}
+	return auth_model.AccessTokenScopeCategoryRepository
 }
 
 // ascPermission computes what the principal may do in the repository.

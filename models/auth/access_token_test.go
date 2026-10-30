@@ -161,3 +161,43 @@ func TestRegenerateAccessTokenByID(t *testing.T) {
 	assert.Equal(t, token.Name, newToken.Name)
 	assert.Equal(t, token.Scope, newToken.Scope)
 }
+
+func TestAccessTokenExpiry(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx := db.DefaultContext
+
+	live := &auth_model.AccessToken{UID: 3, Name: "lives", Scope: "read:repository", ExpiresUnix: timeutil.TimeStampNow().Add(3600)}
+	require.NoError(t, auth_model.NewAccessToken(ctx, live))
+	forever := &auth_model.AccessToken{UID: 3, Name: "forever", Scope: "read:repository"}
+	require.NoError(t, auth_model.NewAccessToken(ctx, forever))
+	gone := &auth_model.AccessToken{UID: 3, Name: "gone", Scope: "read:repository", ExpiresUnix: timeutil.TimeStampNow().Add(3600)}
+	require.NoError(t, auth_model.NewAccessToken(ctx, gone))
+
+	// a token that expires works until it does, one without an expiry always works
+	got, err := auth_model.GetAccessTokenBySHA(ctx, live.Token)
+	require.NoError(t, err)
+	assert.False(t, got.IsExpired())
+	assert.True(t, got.HasExpiry())
+	got, err = auth_model.GetAccessTokenBySHA(ctx, forever.Token)
+	require.NoError(t, err)
+	assert.False(t, got.HasExpiry())
+	assert.False(t, got.IsExpired())
+
+	// once its time has come the token is as good as unknown, also when it was found before (the cache)
+	_, err = auth_model.GetAccessTokenBySHA(ctx, gone.Token)
+	require.NoError(t, err)
+	gone.ExpiresUnix = timeutil.TimeStampNow().Add(-1)
+	_, err = db.GetEngine(ctx).ID(gone.ID).Cols("expires_unix").Update(gone)
+	require.NoError(t, err)
+	_, err = auth_model.GetAccessTokenBySHA(ctx, gone.Token)
+	require.Error(t, err)
+	assert.True(t, auth_model.IsErrAccessTokenNotExist(err))
+
+	// regenerating gives an expired token a new life of the same length
+	newTok, err := auth_model.RegenerateAccessTokenByID(ctx, gone.ID, 3)
+	require.NoError(t, err)
+	assert.False(t, newTok.IsExpired())
+	got, err = auth_model.GetAccessTokenBySHA(ctx, newTok.Token)
+	require.NoError(t, err)
+	assert.False(t, got.IsExpired())
+}

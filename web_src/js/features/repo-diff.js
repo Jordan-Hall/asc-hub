@@ -11,6 +11,7 @@ import {showErrorToast} from '../modules/toast.js';
 import {submitEventSubmitter, queryElemSiblings, hideElem, showElem} from '../utils/dom.js';
 import {POST, GET} from '../modules/fetch.js';
 import {clearMultiLineSelection, refreshMultiLineCommentHighlights} from './repo-issue.js';
+import {setDiffLoading, showDiffError} from './asc-review.js';
 
 const {pageData, i18n} = window.config;
 
@@ -191,6 +192,7 @@ export async function loadMoreFiles(url) {
 
   pageData.diffFileInfo.isLoadingNewData = true;
   target?.classList.add('disabled');
+  setDiffLoading(true);
 
   try {
     const response = await GET(url);
@@ -205,8 +207,12 @@ export async function loadMoreFiles(url) {
     onShowMoreFiles();
   } catch (error) {
     console.error('Error:', error);
-    showErrorToast('An error occurred while loading more files.');
+    // the page offers "Try again" and the previous version; a page without that place gets the toast
+    if (!showDiffError(() => loadMoreFiles(url))) {
+      showErrorToast('An error occurred while loading more files.');
+    }
   } finally {
+    setDiffLoading(false);
     target?.classList.remove('disabled');
     pageData.diffFileInfo.isLoadingNewData = false;
   }
