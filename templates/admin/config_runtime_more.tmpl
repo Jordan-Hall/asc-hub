@@ -1,0 +1,27 @@
+{{/* The runtime settings that are not on the first screen: they change without a restart, too. */}}
+<section class="ds-card adm-sec" aria-labelledby="adm-rt-more">
+	<div class="ds-card-h"><h2 id="adm-rt-more">{{ctx.Locale.Tr "asc_admin.config_tab_settings"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_admin.config_settings_note"}}</span></div>
+	<div class="adm-setting">
+		<div class="adm-setting-text">
+			<label for="cfg-disable-gravatar" class="adm-setting-title">{{ctx.Locale.Tr "admin.config.disable_gravatar"}}</label>
+		</div>
+		<label class="ds-switch"><input id="cfg-disable-gravatar" type="checkbox" role="switch" data-config-dyn-key="picture.disable_gravatar" {{if .SystemConfig.Picture.DisableGravatar.Value ctx}}checked{{end}}><span class="ds-switch-track"></span></label>
+	</div>
+	<div class="adm-setting">
+		<div class="adm-setting-text">
+			<label for="cfg-federated-avatar" class="adm-setting-title">{{ctx.Locale.Tr "admin.config.enable_federated_avatar"}}</label>
+		</div>
+		<label class="ds-switch"><input id="cfg-federated-avatar" type="checkbox" role="switch" data-config-dyn-key="picture.enable_federated_avatar" {{if .SystemConfig.Picture.EnableFederatedAvatar.Value ctx}}checked{{end}}><span class="ds-switch-track"></span></label>
+	</div>
+	<form class="adm-setting adm-setting-col form-fetch-action" method="post" action="{{AppSubUrl}}/admin/config?key={{.SystemConfig.Repository.OpenWithEditorApps.DynKey}}">
+		<div class="adm-setting-text">
+			<label for="cfg-editor-apps" class="adm-setting-title">{{ctx.Locale.Tr "repository"}}</label>
+			<details class="ds-details adm-details">
+				<summary>{{ctx.Locale.Tr "admin.config.open_with_editor_app_help"}}</summary>
+				<pre class="adm-pre">{{.DefaultOpenWithEditorAppsString}}</pre>
+			</details>
+		</div>
+		<textarea class="ds-textarea adm-mono" id="cfg-editor-apps" name="value" rows="4">{{(.SystemConfig.Repository.OpenWithEditorApps.Value ctx).ToTextareaString}}</textarea>
+		<div><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
+	</form>
+</section>

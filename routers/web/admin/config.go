@@ -184,6 +184,9 @@ func Config(ctx *context.Context) {
 	ctx.Data["AccessLogTemplate"] = setting.Log.AccessLogTemplate
 	ctx.Data["LogSQL"] = setting.Database.LogSQL
 
+	ctx.Data["AscRuntime"] = loadAscRuntime(ctx)
+	ctx.Data["ConfigCards"] = curatedConfig(ctx)
+	ctx.Data["ConfirmNeedsMail"] = setting.MailService == nil
 	ctx.Data["Loggers"] = log.GetManager().DumpLoggers()
 	ctx.Data["DefaultOpenWithEditorAppsString"] = setting.DefaultOpenWithEditorApps().ToTextareaString()
 	config.GetDynGetter().InvalidateCache()
@@ -201,6 +204,10 @@ func ChangeConfig(ctx *context.Context) {
 	key := strings.TrimSpace(ctx.FormString("key"))
 	value := ctx.FormString("value")
 	cfg := setting.Config()
+	if isAscConfigKey(key) {
+		changeAscConfig(ctx, key, value)
+		return
+	}
 
 	marshalBool := func(v string) (string, error) { //nolint:unparam
 		if b, _ := strconv.ParseBool(v); b {
@@ -235,6 +242,8 @@ func ChangeConfig(ctx *context.Context) {
 	marshallers := map[string]func(string) (string, error){
 		cfg.Picture.DisableGravatar.DynKey():       marshalBool,
 		cfg.Picture.EnableFederatedAvatar.DynKey(): marshalBool,
+		cfg.Service.AllowRegistration.DynKey():     marshalBool,
+		cfg.Service.RequireEmailConfirm.DynKey():   marshalBool,
 		cfg.Repository.OpenWithEditorApps.DynKey(): marshalOpenWithApps,
 	}
 	marshaller, hasMarshaller := marshallers[key]
@@ -247,11 +256,18 @@ func ChangeConfig(ctx *context.Context) {
 		ctx.JSONError(ctx.Tr("admin.config.set_setting_failed", key))
 		return
 	}
+	// accounts cannot wait for a confirmation mail that cannot be sent
+	if key == cfg.Service.RequireEmailConfirm.DynKey() && marshaledValue == "true" && setting.MailService == nil {
+		ctx.JSONError(ctx.Tr("asc_admin.config_confirm_needs_mail"))
+		return
+	}
 	if err = system_model.SetSettings(ctx, map[string]string{key: marshaledValue}); err != nil {
 		ctx.JSONError(ctx.Tr("admin.config.set_setting_failed", key))
 		return
 	}
 
 	config.GetDynGetter().InvalidateCache()
+	setting.ApplyRuntimeService(ctx)
+	log.Info("admin %s set %s to %s", ctx.Doer.Name, key, marshaledValue)
 	ctx.JSONOK()
 }

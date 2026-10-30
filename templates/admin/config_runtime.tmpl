@@ -1,27 +1,38 @@
-{{/* The runtime settings of the hub: they change without a restart, and each change is written to the audit log. The switches save on change (web_src/js/features/admin/config.js). */}}
-<section class="ds-card" aria-labelledby="adm-rt">
+{{/* The runtime settings an administrator changes without a restart. The switches save on change (web_src/js/features/admin/config.js): the sign-up ones are stored in the hub's database, the agent ones in asc serve. */}}
+<section class="ds-card adm-sec" aria-labelledby="adm-rt">
 	<div class="ds-card-h"><h2 id="adm-rt">{{ctx.Locale.Tr "asc_admin.config_tab_settings"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_admin.config_settings_note"}}</span></div>
 	<div class="adm-setting">
 		<div class="adm-setting-text">
-			<label for="cfg-disable-gravatar" class="adm-setting-title">{{ctx.Locale.Tr "admin.config.disable_gravatar"}}</label>
+			<label for="cfg-registration" class="adm-setting-title">{{ctx.Locale.Tr "asc_admin.config_rt_registration"}}</label>
+			<p>{{ctx.Locale.Tr "asc_admin.config_rt_registration_sub"}}</p>
 		</div>
-		<label class="ds-switch"><input id="cfg-disable-gravatar" type="checkbox" role="switch" data-config-dyn-key="picture.disable_gravatar" {{if .SystemConfig.Picture.DisableGravatar.Value ctx}}checked{{end}}><span class="ds-switch-track"></span></label>
+		<label class="ds-switch"><input id="cfg-registration" type="checkbox" role="switch" data-config-dyn-key="{{.SystemConfig.Service.AllowRegistration.DynKey}}" {{if .SystemConfig.Service.AllowRegistration.Value ctx}}checked{{end}}><span class="ds-switch-track"></span></label>
 	</div>
 	<div class="adm-setting">
 		<div class="adm-setting-text">
-			<label for="cfg-federated-avatar" class="adm-setting-title">{{ctx.Locale.Tr "admin.config.enable_federated_avatar"}}</label>
+			<label for="cfg-confirm" class="adm-setting-title">{{ctx.Locale.Tr "asc_admin.config_rt_confirm"}}</label>
+			<p>{{ctx.Locale.Tr "asc_admin.config_rt_confirm_sub"}}{{if .ConfirmNeedsMail}} {{ctx.Locale.Tr "asc_admin.config_confirm_needs_mail"}}{{end}}</p>
 		</div>
-		<label class="ds-switch"><input id="cfg-federated-avatar" type="checkbox" role="switch" data-config-dyn-key="picture.enable_federated_avatar" {{if .SystemConfig.Picture.EnableFederatedAvatar.Value ctx}}checked{{end}}><span class="ds-switch-track"></span></label>
+		<label class="ds-switch"><input id="cfg-confirm" type="checkbox" role="switch" data-config-dyn-key="{{.SystemConfig.Service.RequireEmailConfirm.DynKey}}" {{if .SystemConfig.Service.RequireEmailConfirm.Value ctx}}checked{{end}}{{if and .ConfirmNeedsMail (not (.SystemConfig.Service.RequireEmailConfirm.Value ctx))}} disabled{{end}}><span class="ds-switch-track"></span></label>
 	</div>
-	<form class="adm-setting adm-setting-col form-fetch-action" method="post" action="{{AppSubUrl}}/admin/config?key={{.SystemConfig.Repository.OpenWithEditorApps.DynKey}}">
-		<div class="adm-setting-text">
-			<label for="cfg-editor-apps" class="adm-setting-title">{{ctx.Locale.Tr "repository"}}</label>
-			<details class="ds-details adm-details">
-				<summary>{{ctx.Locale.Tr "admin.config.open_with_editor_app_help"}}</summary>
-				<pre class="adm-pre">{{.DefaultOpenWithEditorAppsString}}</pre>
-			</details>
-		</div>
-		<textarea class="ds-textarea adm-mono" id="cfg-editor-apps" name="value" rows="4">{{(.SystemConfig.Repository.OpenWithEditorApps.Value ctx).ToTextareaString}}</textarea>
-		<div><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
-	</form>
+	{{with .AscRuntime}}{{if .Available}}
+		{{if .Problem}}
+			<div class="adm-setting"><div class="adm-setting-text"><p class="ds-err">{{.Problem}}</p></div></div>
+		{{else}}
+			<div class="adm-setting">
+				<div class="adm-setting-text">
+					<label for="cfg-agents" class="adm-setting-title">{{ctx.Locale.Tr "asc_admin.config_rt_agents"}}</label>
+					<p>{{ctx.Locale.Tr "asc_admin.config_rt_agents_sub"}}</p>
+				</div>
+				<label class="ds-switch"><input id="cfg-agents" type="checkbox" role="switch" data-config-dyn-key="asc.allow_agents" {{if .Settings.AllowAgents}}checked{{end}}><span class="ds-switch-track"></span></label>
+			</div>
+			<form class="adm-setting form-fetch-action" method="post" action="{{AppSubUrl}}/admin/config?key=asc.default_budget">
+				<div class="adm-setting-text">
+					<label for="cfg-budget" class="adm-setting-title">{{ctx.Locale.Tr "asc_admin.config_rt_budget"}}</label>
+					<p>{{ctx.Locale.Tr "asc_admin.config_rt_budget_sub"}}</p>
+				</div>
+				<div class="adm-setting-field"><input id="cfg-budget" class="ds-input ds-mono" data-save-on-change name="value" inputmode="decimal" autocomplete="off" aria-label="{{ctx.Locale.Tr "asc_admin.config_rt_budget_field"}}" value="{{.Settings.BudgetField}}" placeholder="{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}"></div>
+			</form>
+		{{end}}
+	{{end}}{{end}}
 </section>

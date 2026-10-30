@@ -145,6 +145,7 @@ func InitWebInstalled(ctx context.Context) {
 	mustInitCtx(ctx, common.InitDBEngine)
 	log.Info("ORM engine initialization successful!")
 	mustInit(system.Init)
+	setting.ApplyRuntimeService(ctx) // the sign-up switches an administrator saved
 	mustInitCtx(ctx, oauth2.Init)
 
 	mustInit(release_service.Init)
