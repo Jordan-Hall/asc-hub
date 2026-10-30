@@ -75,6 +75,12 @@ func registerAscTrustAdminRoutes(m *web.Route) {
 	m.Get("/asc/usage", admin.AscUsage)
 	m.Post("/asc/usage/quota", admin.AscUsageQuota)
 	m.Combo("/asc/agents").Get(admin.AscAgents).Post(admin.AscAgentsSave)
+	m.Group("/asc/backups", func() {
+		m.Post("/run", admin.AscBackupsRun)
+		m.Post("/schedule", admin.AscBackupsSchedule)
+		m.Post("/{id}/verify", admin.AscBackupsVerify)
+		m.Combo("/{id}/restore").Get(admin.AscBackupsRestoreForm).Post(admin.AscBackupsRestore)
+	})
 	m.Group("/asc/audit", func() {
 		m.Get("", admin.AscAudit)
 		m.Get("/export", admin.AscAuditExport)
