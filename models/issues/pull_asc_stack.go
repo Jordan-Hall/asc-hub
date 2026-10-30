@@ -140,16 +140,17 @@ func SetAscStackParent(ctx context.Context, pullID, parentID int64) error {
 	return err
 }
 
-// ListOpenAscStackPulls returns the open pull requests of repoID that are changes of a stack, oldest first. The
-// pull request of a merged or closed change is not listed.
-func ListOpenAscStackPulls(ctx context.Context, repoID int64) ([]*PullRequest, error) {
+// ListOpenAscStackPulls returns one page of the open pull requests of repoID that are changes of a stack: the ones
+// with an id above afterID, oldest first, at most limit. A merged or closed pull request is not listed.
+func ListOpenAscStackPulls(ctx context.Context, repoID, afterID int64, limit int) ([]*PullRequest, error) {
 	var prs []*PullRequest
 	err := db.GetEngine(ctx).
 		Table("pull_request").
 		Join("INNER", "pull_request_asc_stack", "pull_request_asc_stack.pull_id = pull_request.id").
 		Join("INNER", "issue", "issue.id = pull_request.issue_id").
-		Where("pull_request_asc_stack.repo_id = ? AND pull_request.has_merged = ? AND issue.is_closed = ?", repoID, false, false).
+		Where("pull_request_asc_stack.repo_id = ? AND pull_request.id > ? AND pull_request.has_merged = ? AND issue.is_closed = ?", repoID, afterID, false, false).
 		OrderBy("pull_request.id").
+		Limit(limit).
 		Find(&prs)
 	return prs, err
 }

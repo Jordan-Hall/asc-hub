@@ -10,38 +10,46 @@ import (
 	"forgejo.org/models/organization"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
-	"forgejo.org/modules/structs"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestProfileTeamsListOnlyTeamsOfOrganizationsTheViewerSees(t *testing.T) {
+func teamsOf(t *testing.T, person, viewer *user_model.User, org *organization.Organization) []AscProfileTeam {
+	t.Helper()
+	teams, err := AscProfileTeams(db.DefaultContext, person, []*organization.Organization{org}, viewer)
+	require.NoError(t, err)
+	return teams
+}
+
+func TestProfileTeamsAreForTheMembersOfTheOrganization(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
-	person := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	person := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2}) // a public member of the public organization 3
 	org := unittest.AssertExistsAndLoadBean(t, &organization.Organization{ID: 3})
-	viewer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
+	member := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 28})  // another member of organization 3
+	outsider := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5}) // not a member of organization 3
+	admin := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
+	isMember, err := organization.IsOrganizationMember(db.DefaultContext, org.ID, outsider.ID)
+	require.NoError(t, err)
+	require.False(t, isMember, "the fixture user 5 is not in organization 3")
 
-	teams, err := AscProfileTeams(db.DefaultContext, person, []*organization.Organization{org}, nil)
-	require.NoError(t, err)
-	require.NotEmpty(t, teams, "a public organization shows its teams to a visitor")
-	assert.Contains(t, teams[0].Link, "/org3/teams/")
+	assert.Empty(t, teamsOf(t, person, nil, org), "a visitor who is not signed in sees no team, also of a public organization")
+	assert.Empty(t, teamsOf(t, person, outsider, org), "a person outside the organization sees no team")
+	if teams := teamsOf(t, person, member, org); assert.NotEmpty(t, teams, "a member of the organization sees the teams") {
+		assert.Contains(t, teams[0].Link, "/org3/teams/")
+	}
+	assert.NotEmpty(t, teamsOf(t, person, person, org), "the person sees their own teams")
+	assert.NotEmpty(t, teamsOf(t, person, admin, org), "a site administrator sees them")
+}
 
-	limited := *org
-	limited.Visibility = structs.VisibleTypeLimited
-	teams, err = AscProfileTeams(db.DefaultContext, person, []*organization.Organization{&limited}, nil)
+func TestProfileTeamsOfAPrivateMemberStayHidden(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	org := unittest.AssertExistsAndLoadBean(t, &organization.Organization{ID: 3})
+	hidden := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4}) // member of organization 3 who keeps it private
+	outsider := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
+	public, err := organization.IsPublicMembership(db.DefaultContext, org.ID, hidden.ID)
 	require.NoError(t, err)
-	assert.Empty(t, teams, "a limited organization is hidden from a visitor")
-	teams, err = AscProfileTeams(db.DefaultContext, person, []*organization.Organization{&limited}, viewer)
-	require.NoError(t, err)
-	assert.NotEmpty(t, teams, "and shown to a signed in person")
-
-	private := *org
-	private.Visibility = structs.VisibleTypePrivate
-	teams, err = AscProfileTeams(db.DefaultContext, person, []*organization.Organization{&private}, viewer)
-	require.NoError(t, err)
-	assert.Empty(t, teams, "a private organization is hidden from another person")
-	teams, err = AscProfileTeams(db.DefaultContext, person, []*organization.Organization{&private}, person)
-	require.NoError(t, err)
-	assert.NotEmpty(t, teams, "but not from the person themself")
+	require.False(t, public, "the fixture user 4 keeps the membership private")
+	assert.Empty(t, teamsOf(t, hidden, outsider, org))
+	assert.Empty(t, teamsOf(t, hidden, nil, org))
 }
