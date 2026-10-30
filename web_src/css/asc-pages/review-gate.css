@@ -349,3 +349,20 @@
   .rv-gcols .go-7 { order: 7; }
   .rv-gcols .go-8 { order: 8; }
 }
+
+/* The header strip of a stacked change: change id, newest version, signature, base and the agent banner. */
+.rv-change-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.rv-change-header-meta {
+  gap: 8px;
+  align-items: center;
+}
+
+.rv-change-header .rv-banner {
+  margin: 0;
+}
