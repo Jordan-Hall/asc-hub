@@ -23,6 +23,8 @@ import (
 const (
 	ascRequestMergeMaxRepo   = 2*private.AscAuthzMaxName + 1
 	ascRequestMergeMaxReason = 300
+	// ascRequestMergeMaxPrefix bounds the prefix asc names (asc's stack bound is 256).
+	ascRequestMergeMaxPrefix = 256
 )
 
 // States of an ascRequestMergeResponse (asc.v1 RequestMergeResponse.State).
@@ -35,11 +37,24 @@ const (
 // ascRequestMergeRequest is the body of `POST /api/internal/asc/request-merge`. asc serve sends it when a client
 // calls Changes.RequestMerge (SPEC section 20.5): the user is the one asc authenticated, and Forgejo decides
 // what that user may do.
+//
+// asc serve posts it to /api/internal/asc/request-merge/{owner}/{repo} (the repository is the path), and sends
+// the name of the user and the prefix it saw as well. Repo may be given in the body of a caller that posts to the
+// path without the repository; when both are given they have to agree. The prefix is asc's reading; the hub
+// finds the prefix again from its own records and does not use it.
 type ascRequestMergeRequest struct {
-	Repo   string `json:"repo"`    // owner/name
-	Change string `json:"change"`  // 32 letters k-z: the top of the prefix 1..N
-	Now    bool   `json:"now"`     // land at once instead of enqueueing
-	UserID int64  `json:"user_id"` // the Forgejo user who asked
+	Repo     string                  `json:"repo,omitempty"` // owner/name
+	Change   string                  `json:"change"`         // 32 letters k-z: the top of the prefix 1..N
+	Now      bool                    `json:"now"`            // land at once instead of enqueueing
+	UserID   int64                   `json:"user_id"`        // the Forgejo user who asked
+	UserName string                  `json:"user_name,omitempty"`
+	Prefix   []ascRequestMergePrefix `json:"prefix,omitempty"`
+}
+
+// ascRequestMergePrefix is one change of the prefix as asc sent it.
+type ascRequestMergePrefix struct {
+	Change string `json:"change"`
+	Git    string `json:"git"`
 }
 
 // ascRequestMergeResponse is the answer. A refusal is a 200 with state "refused"; a malformed request is 400.
@@ -65,9 +80,16 @@ func AscRequestMerge(ctx *context.PrivateContext) {
 		ctx.JSON(http.StatusBadRequest, private.Response{UserMsg: err.Error()})
 		return
 	}
+	if pathOwner, pathName := ctx.Params(":owner"), ctx.Params(":repo"); pathOwner != "" || pathName != "" {
+		if req.Repo != "" && req.Repo != pathOwner+"/"+pathName {
+			ctx.JSON(http.StatusBadRequest, private.Response{UserMsg: "invalid request"})
+			return
+		}
+		req.Repo = pathOwner + "/" + pathName
+	}
 	owner, name, ok := strings.Cut(req.Repo, "/")
 	if len(req.Repo) > ascRequestMergeMaxRepo || !ok || owner == "" || name == "" || strings.Contains(name, "/") ||
-		!issues_model.IsAscChange(req.Change) || req.UserID <= 0 {
+		!issues_model.IsAscChange(req.Change) || req.UserID <= 0 || len(req.Prefix) > ascRequestMergeMaxPrefix {
 		ctx.JSON(http.StatusBadRequest, private.Response{UserMsg: "invalid request"})
 		return
 	}

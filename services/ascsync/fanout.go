@@ -7,10 +7,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/modules/git"
 )
 
 // The git-origin push of a storage_backend=asc repository is handed to asc in pre-receive, and asc's outbox then
@@ -394,9 +396,15 @@ func WaitForRefs(ctx context.Context, repo *repo_model.Repository, refs []PushRe
 	deadline := time.NewTimer(fanOutWait)
 	defer deadline.Stop()
 	delay := bridgePollMin
+	var lagging string
 	for {
 		behind := false
 		for _, r := range refs {
+			// refs/for/<branch>/<topic> is the name a pull request is asked for by; the hub turns it into
+			// refs/pull/<n>/head and nothing is ever stored under it, so there is nothing to wait for.
+			if strings.HasPrefix(r.Name, git.ForPrefix) {
+				continue
+			}
 			want := r.New
 			if isZeroID(want) {
 				want = ""
@@ -404,6 +412,7 @@ func WaitForRefs(ctx context.Context, repo *repo_model.Repository, refs []PushRe
 			got, err := bridgeRef(ctx, dir, r.Name)
 			if err != nil || got != want {
 				behind = true
+				lagging = fmt.Sprintf("%s: the bridge holds %q (error %v), asc moved it to %q", r.Name, got, err, want)
 				break
 			}
 		}
@@ -414,7 +423,7 @@ func WaitForRefs(ctx context.Context, repo *repo_model.Repository, refs []PushRe
 		case <-ctx.Done():
 			return fmt.Errorf("ascsync: waiting for the repository: %w", ctx.Err())
 		case <-deadline.C:
-			return ErrBridgeBehind
+			return fmt.Errorf("%w (%s)", ErrBridgeBehind, lagging)
 		case <-time.After(delay):
 		}
 		delay = min(delay*2, bridgePollMax)

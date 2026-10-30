@@ -24,6 +24,7 @@ import (
 	"forgejo.org/services/contexttest"
 	pull_service "forgejo.org/services/pull"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -85,6 +86,38 @@ func ascRequestMergeCall(t *testing.T, body string) (int, ascRequestMergeRespons
 		require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &out))
 	}
 	return resp.Code, out
+}
+
+// ascRequestMergeCallAt posts as asc serve does: the repository is in the path and the body names the user and the
+// prefix beside the change.
+func ascRequestMergeCallAt(t *testing.T, owner, repo, body string) (int, ascRequestMergeResponse) {
+	t.Helper()
+	ctx, resp := contexttest.MockPrivateContext(t, "POST /api/internal/asc/request-merge/"+owner+"/"+repo)
+	ctx.Req.Method = http.MethodPost
+	ctx.Req.Body = io.NopCloser(strings.NewReader(body))
+	rc := chi.RouteContext(ctx.Req.Context())
+	require.NotNil(t, rc)
+	rc.URLParams.Add("owner", owner)
+	rc.URLParams.Add("repo", repo)
+	AscRequestMerge(ctx)
+	var out ascRequestMergeResponse
+	if resp.Code == http.StatusOK {
+		require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &out))
+	}
+	return resp.Code, out
+}
+
+func TestAscRequestMergeTakesTheRepositoryFromThePathAsAscServeSendsIt(t *testing.T) {
+	l := ascRequestMergeFixture(t, true)
+	body := `{"user_id":2,"user_name":"user2","change":"` + rmTop + `","now":true,"prefix":[{"change":"` + rmBottom + `","git":"0123456789012345678901234567890123456789"},{"change":"` + rmTop + `","git":"0123456789012345678901234567890123456789"}]}`
+	code, out := ascRequestMergeCallAt(t, "user2", "repo1", body)
+	require.Equal(t, http.StatusOK, code)
+	assert.Equal(t, "landed", out.State)
+	require.Len(t, l.lands, 1)
+
+	// A body that names another repository than the path is not served.
+	code, _ = ascRequestMergeCallAt(t, "user2", "repo1", `{"repo":"user2/repo2","user_id":2,"change":"`+rmTop+`"}`)
+	assert.Equal(t, http.StatusBadRequest, code)
 }
 
 func rmBody(t *testing.T, change string, now bool, user int64) string {
