@@ -118,6 +118,19 @@ func (m *webhookNotifier) CreateRepository(ctx context.Context, doer, u *user_mo
 	}
 }
 
+// RepositoryRestored tells the webhooks of a repository that it came back from the trash (models/repo/repo_trash.go).
+// The deletion was announced when the repository was trashed, so this is what balances it.
+func RepositoryRestored(ctx context.Context, doer *user_model.User, repo *repo_model.Repository) {
+	if err := PrepareWebhooks(ctx, EventSource{Repository: repo}, webhook_module.HookEventRepository, &api.RepositoryPayload{
+		Action:       api.HookRepoRestored,
+		Repository:   convert.ToRepo(ctx, repo, access_model.Permission{AccessMode: perm.AccessModeOwner}),
+		Organization: convert.ToUser(ctx, repo.MustOwner(ctx), nil),
+		Sender:       convert.ToUser(ctx, doer, nil),
+	}); err != nil {
+		log.Error("PrepareWebhooks [repo_id: %d]: %v", repo.ID, err)
+	}
+}
+
 func (m *webhookNotifier) DeleteRepository(ctx context.Context, doer *user_model.User, repo *repo_model.Repository) {
 	if err := PrepareWebhooks(ctx, EventSource{Repository: repo}, webhook_module.HookEventRepository, &api.RepositoryPayload{
 		Action:       api.HookRepoDeleted,

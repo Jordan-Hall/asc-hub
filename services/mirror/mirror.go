@@ -67,6 +67,11 @@ func Update(ctx context.Context, pullLimit, pushLimit int) error {
 			return nil
 		}
 
+		// A repository in the trash is not synced; it is restored as it was, or purged.
+		if repo.IsTrashed() {
+			return nil
+		}
+
 		// Check we've not been cancelled
 		select {
 		case <-ctx.Done():

@@ -559,6 +559,10 @@ func SyncPullMirror(ctx context.Context, repoID int64) bool {
 		return false
 	}
 	_ = m.GetRepository(ctx) // force load repository of mirror
+	if m.Repo != nil && m.Repo.IsTrashed() {
+		log.Trace("SyncMirrors [repo_id: %v]: the repository is in the trash", repoID)
+		return false
+	}
 
 	ctx, _, finished := process.GetManager().AddContext(ctx, fmt.Sprintf("Syncing Mirror %s/%s", m.Repo.OwnerName, m.Repo.Name))
 	defer finished()

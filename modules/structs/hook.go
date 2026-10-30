@@ -446,6 +446,8 @@ const (
 	HookRepoCreated HookRepoAction = "created"
 	// HookRepoDeleted deleted
 	HookRepoDeleted HookRepoAction = "deleted"
+	// HookRepoRestored restored from the trash
+	HookRepoRestored HookRepoAction = "restored"
 )
 
 // RepositoryPayload payload for repository webhooks

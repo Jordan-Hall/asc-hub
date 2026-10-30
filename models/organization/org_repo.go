@@ -13,5 +13,5 @@ import (
 // GetOrgRepositories get repos belonging to the given organization
 func GetOrgRepositories(ctx context.Context, orgID int64) (repo_model.RepositoryList, error) {
 	var orgRepos []*repo_model.Repository
-	return orgRepos, db.GetEngine(ctx).Where("owner_id = ?", orgID).Find(&orgRepos)
+	return orgRepos, db.GetEngine(ctx).Where("owner_id = ? AND status <> ?", orgID, repo_model.RepositoryTrashed).Find(&orgRepos)
 }

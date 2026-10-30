@@ -14,6 +14,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/context"
+	webhook_service "forgejo.org/services/webhook"
 )
 
 // The trash of deleted repositories (models/repo/repo_trash.go): /user/settings/repo-trash lists what the signed-in
@@ -92,6 +93,9 @@ func RepoTrashRestore(ctx *context.Context) {
 		log.Error("restore of repository %d: %v", repo.ID, err)
 		ctx.ServerError("RestoreRepository", err)
 		return
+	}
+	if restored, err := repo_model.GetRepositoryByID(ctx, repo.ID); err == nil {
+		webhook_service.RepositoryRestored(ctx, ctx.Doer, restored)
 	}
 	ctx.Flash.Success(ctx.Tr("settings.repo_trash_restored", repo.FullName()))
 	ctx.Redirect(setting.AppSubURL + "/" + repo.OwnerName + "/" + repo.Name)
