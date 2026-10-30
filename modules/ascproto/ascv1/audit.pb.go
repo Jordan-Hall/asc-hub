@@ -441,6 +441,7 @@ type ListAuditResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Events        []*AuditEvent          `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
 	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	RetentionDays uint32                 `protobuf:"varint,3,opt,name=retention_days,json=retentionDays,proto3" json:"retention_days,omitempty"` // `[audit] retention_days`: events older than this are dropped; 0 keeps everything
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -487,6 +488,13 @@ func (x *ListAuditResponse) GetNextPageToken() string {
 		return x.NextPageToken
 	}
 	return ""
+}
+
+func (x *ListAuditResponse) GetRetentionDays() uint32 {
+	if x != nil {
+		return x.RetentionDays
+	}
+	return 0
 }
 
 // At most 1,000,000 events per export.
@@ -947,10 +955,11 @@ const file_asc_v1_audit_proto_rawDesc = "" +
 	"\foldest_first\x18\x03 \x01(\bR\voldestFirst\x12\x14\n" +
 	"\x05limit\x18\x04 \x01(\rR\x05limit\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x05 \x01(\tR\tpageToken\"g\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken\"\x8e\x01\n" +
 	"\x11ListAuditResponse\x12*\n" +
 	"\x06events\x18\x01 \x03(\v2\x12.asc.v1.AuditEventR\x06events\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x9c\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12%\n" +
+	"\x0eretention_days\x18\x03 \x01(\rR\rretentionDays\"\x9c\x01\n" +
 	"\x12ExportAuditRequest\x12&\n" +
 	"\x05scope\x18\x01 \x01(\v2\x10.asc.v1.OwnerRefR\x05scope\x12+\n" +
 	"\x06filter\x18\x02 \x01(\v2\x13.asc.v1.AuditFilterR\x06filter\x121\n" +

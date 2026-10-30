@@ -309,3 +309,26 @@ func TestAscOpsOffersTheRedoOfAnUndo(t *testing.T) {
 	page = opsGet(t, "/user2/repo1/asc/ops?redo=12&redo_ref=refs%2Fheads%2Fmain", 2, perm_model.AccessModeRead, AscOps)
 	assert.NotContains(t, page.body, "asc-ops-redo", "a reader who cannot undo is not offered a redo")
 }
+
+// A restack the person made, and can still undo, is the banner above the list; someone else's restack, or one that cannot be
+// undone, is not.
+func TestAscOpsRestackBanner(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureStacks)
+	restack := opsEntry(9, "refs/heads/retry", "user2", 1, 2, true, "")
+	restack.Via = "restack"
+	f.listRefLog = func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) {
+		return &ascv1.ListRefLogResponse{Entries: []*ascv1.RefLogEntry{restack, opsEntry(8, "refs/heads/other", "user2", 3, 4, true, "")}}, nil
+	}
+	page := opsGet(t, "/user2/repo1/asc/ops", 2, perm_model.AccessModeWrite, AscOps)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.Contains(t, page.body, `data-testid="asc-ops-restack"`)
+	assert.Contains(t, page.body, "asc_review.ops_restack_undo")
+	assert.Contains(t, page.body, "/user2/repo1/asc/ops/undo?ref=refs%2Fheads%2Fretry&seq=9")
+
+	restack.Actor = "someone"
+	restack.Undoable = false
+	restack.UndoBlockedReason = "not your operation"
+	page = opsGet(t, "/user2/repo1/asc/ops", 2, perm_model.AccessModeWrite, AscOps)
+	assert.NotContains(t, page.body, `data-testid="asc-ops-restack"`)
+}
