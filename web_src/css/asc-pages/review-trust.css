@@ -644,3 +644,32 @@
   margin-inline-end: 8px;
   overflow-wrap: anywhere;
 }
+
+/* The operations on a phone are cards, and the undo is a full-width button, as on the Mobile-Ops board. */
+@media (max-width: 639.98px) {
+  .rv-ops {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .rv-op {
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    background: var(--card);
+  }
+
+  .rv-op-side .rv-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ag-ops-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .ag-ops-chips > * {
+    flex: none;
+  }
+}
