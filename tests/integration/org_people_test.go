@@ -193,3 +193,45 @@ func TestOrgPeopleTeamsAndRolesAreForMembers(t *testing.T) {
 	owner := NewHTMLParser(t, loginUser(t, "user2").MakeRequest(t, NewRequest(t, "GET", members), http.StatusOK).Body)
 	assert.Positive(t, owner.Find(".wk-menu summary:contains('Change role')").Length())
 }
+
+// After a role changed the page says so and offers Undo, which changes it back and offers nothing more; the owners come first.
+func TestOrgPeopleUndoAndOrder(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	const members = "/org/org3/members"
+	owner := loginUser(t, "user2")
+
+	resp := owner.MakeRequest(t, NewRequest(t, "POST", members+"/action/role?uid=4&role=maintainer"), http.StatusOK)
+	assert.Contains(t, resp.Body.String(), "undo=4-member-maintainer")
+	doc := NewHTMLParser(t, owner.MakeRequest(t, NewRequest(t, "GET", members+"?undo=4-member-maintainer"), http.StatusOK).Body)
+	banner := doc.Find(`[data-testid="role-undo"]`)
+	assert.Contains(t, banner.Text(), "is now Maintainer")
+	undo, _ := banner.Find("a[data-url]").Attr("data-url")
+	assert.Contains(t, undo, "role=member")
+	resp = owner.MakeRequest(t, NewRequest(t, "POST", undo), http.StatusOK)
+	assert.NotContains(t, resp.Body.String(), "undo=", "an undo offers no undo")
+	ok, err := organization.IsTeamMember(db.DefaultContext, 3, 12, 4)
+	require.NoError(t, err)
+	assert.False(t, ok, "user4 is a Member again")
+
+	// an address that is made up offers nothing, and a member sees no undo line at all
+	doc = NewHTMLParser(t, owner.MakeRequest(t, NewRequest(t, "GET", members+"?undo=999-owner-member"), http.StatusOK).Body)
+	assert.Equal(t, 0, doc.Find(`[data-testid="role-undo"]`).Length())
+	doc = NewHTMLParser(t, loginUser(t, "user4").MakeRequest(t, NewRequest(t, "GET", members+"?undo=4-member-maintainer"), http.StatusOK).Body)
+	assert.Equal(t, 0, doc.Find(`[data-testid="role-undo"]`).Length())
+
+	// owners first, then maintainers, then members
+	doc = NewHTMLParser(t, owner.MakeRequest(t, NewRequest(t, "GET", members), http.StatusOK).Body)
+	var seen []string
+	doc.Find(".wk-member .ds-li-title .ds-chip").Each(func(_ int, s *goquery.Selection) {
+		switch txt := strings.TrimSpace(s.Text()); txt {
+		case "Owner", "Maintainer", "Member":
+			seen = append(seen, txt)
+		}
+	})
+	require.NotEmpty(t, seen)
+	order := map[string]int{"Owner": 0, "Maintainer": 1, "Member": 2}
+	for i := 1; i < len(seen); i++ {
+		assert.LessOrEqual(t, order[seen[i-1]], order[seen[i]], "the roles in order: %v", seen)
+	}
+	assert.Equal(t, "Owner", seen[0])
+}

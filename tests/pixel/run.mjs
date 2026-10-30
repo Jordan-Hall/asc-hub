@@ -34,9 +34,9 @@ function hubSh(cmd) {
   const r = spawnSync(file, argv, {encoding: 'utf8', env: WIN ? process.env : {...process.env, ...Object.fromEntries(env.map((e) => e.split(/=(.*)/s).slice(0, 2)))}});
   if (r.status !== 0) throw new Error(`hub.sh ${cmd} failed: ${(r.stdout || '') + (r.stderr || '')}`.slice(-1500));
 }
-function backdate() {
+function backdate(logins = false) {
   const py = join(PIXEL_DIR, 'backdate.py');
-  const argv = [WIN ? toWsl(py) : py, `${RUN_DIR}/data/hub.db`, String(Math.floor(ANCHOR.getTime() / 1000)), ...(ASC_SERVE ? [`${RUN_DIR}/asc/asc.db`] : [])];
+  const argv = [WIN ? toWsl(py) : py, `${RUN_DIR}/data/hub.db`, String(Math.floor(ANCHOR.getTime() / 1000)), ...(logins ? ['--logins'] : ASC_SERVE ? [`${RUN_DIR}/asc/asc.db`] : [])];
   const [file, a] = WIN ? ['wsl', ['-e', 'python3', ...argv]] : ['python3', argv];
   const r = spawnSync(file, a, {encoding: 'utf8'});
   if (r.status !== 0) throw new Error(`backdate failed: ${r.stdout}${r.stderr}`);
@@ -149,6 +149,8 @@ async function main() {
   const personas = [...new Set(mapped.map((e) => e.as))];
   const states = {};
   for (const p of personas) states[p] = p === 'anon' ? undefined : await login(browser, p);
+  // signing in stamps people with the real time, and the page is photographed with the clock at the anchor: put "last active" back
+  if (ownHub) backdate(true);
   const contexts = new Map();
   let generation = 0;
   let resetting = null;

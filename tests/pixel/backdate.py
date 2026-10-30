@@ -22,6 +22,12 @@ REPOS = {'payments': 12, 'payments-core': 12, 'web-app': 41, 'infra': 120, 'ledg
 
 con = sqlite3.connect(db)
 cur = con.cursor()
+if '--logins' in sys.argv:
+    # the harness signs people in after the seed, which stamps them with the real time; the browser clock is the anchor
+    cur.execute('UPDATE user SET last_login_unix=?', (anchor - 5 * M,))
+    con.commit()
+    print('logins backdated')
+    sys.exit(0)
 for title, minutes in ISSUES.items():
     t = anchor - minutes * M
     cur.execute('UPDATE issue SET created_unix=?, updated_unix=? WHERE name=?', (t, t, title))
