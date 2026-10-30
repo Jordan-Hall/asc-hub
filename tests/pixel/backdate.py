@@ -38,6 +38,21 @@ for tag, minutes in RELEASES.items():
 for name, minutes in REPOS.items():
     t = anchor - minutes * M
     cur.execute('UPDATE repository SET updated_unix=?, created_unix=? WHERE lower_name=?', (t, anchor - 90 * 1440 * M, name))
+# invitations that have not been answered (the People page): a person who has an account and an address that has none. They are
+# put in here because the seed adds people to teams directly, and an invitation is what the hub makes only once it is switched on.
+cur.execute("SELECT id FROM user WHERE lower_name='acme' AND type=1")
+org = cur.fetchone()
+cur.execute("SELECT id FROM user WHERE lower_name='maya'")
+maya = cur.fetchone()
+cur.execute("SELECT id FROM user WHERE lower_name='ines'")
+ines = cur.fetchone()
+cur.execute("SELECT id, lower_name FROM team WHERE org_id=?", (org[0],)) if org else None
+teams = {name: tid for tid, name in cur.fetchall()} if org else {}
+if org and maya and ines and 'payments' in teams and 'reviewers' in teams:
+    for token, team, email, invited, age in [('pixel-invite-ines', 'payments', '', ines[0], 2 * 1440), ('pixel-invite-sam', 'reviewers', 'sam@northwind.example', None, 2 * 1440)]:
+        t = anchor - age * M
+        cur.execute('INSERT INTO team_invite (token, inviter_id, org_id, team_id, email, invited_id, created_unix, updated_unix) VALUES (?,?,?,?,?,?,?,?)',
+                    (token, maya[0], org[0], teams[team], email, invited, t, t))
 cur.execute('UPDATE user SET created_unix=?, updated_unix=?, last_login_unix=?', (anchor - 500 * 1440 * M, anchor - M, anchor - 5 * M))
 con.commit()
 if len(sys.argv) > 3:
