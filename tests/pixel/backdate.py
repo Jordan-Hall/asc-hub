@@ -54,6 +54,10 @@ cur.execute("SELECT id FROM user WHERE lower_name='ines'")
 ines = cur.fetchone()
 cur.execute("SELECT id, lower_name FROM team WHERE org_id=?", (org[0],)) if org else None
 teams = {name: tid for tid, name in cur.fetchall()} if org else {}
+# the organization has proved its domain (the Verified chip of its head); the proof is a DNS record the harness cannot publish
+if org:
+    cur.execute('INSERT OR IGNORE INTO asc_org_domain (org_id, domain, token, verified_unix, checked_unix) VALUES (?,?,?,?,?)',
+                (org[0], 'acme.example', 'pixel-harness-domain-token', anchor - 30 * 1440 * M, anchor - 1440 * M))
 if org and maya and ines and 'payments' in teams and 'reviewers' in teams:
     for token, team, email, invited, age in [('pixel-invite-ines', 'payments', '', ines[0], 2 * 1440), ('pixel-invite-sam', 'reviewers', 'sam@northwind.example', None, 2 * 1440)]:
         t = anchor - age * M

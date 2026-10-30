@@ -190,6 +190,16 @@ func HandleOrgAssignment(ctx *Context, args ...bool) {
 	if doms, err := user_model.VerifiedAscOrgDomains(ctx, []int64{org.ID}); err == nil {
 		ctx.Data["AscOrgDomain"] = doms[org.ID]
 	}
+	// the letter of the tile an organization without its own picture has
+	if r := []rune(org.DisplayName()); len(r) > 0 {
+		ctx.Data["OrgInitial"] = strings.ToUpper(string(r[0]))
+	}
+	// the number of agents the organization has in asc, for the head of its pages, when the viewer may be told
+	if OrgAgentCount != nil {
+		if n, ok := OrgAgentCount(ctx, org); ok {
+			ctx.Data["AscOrgAgents"] = n
+		}
+	}
 
 	// Member
 	opts := &organization.FindOrgMembersOpts{
@@ -287,6 +297,10 @@ func HandleOrgAssignment(ctx *Context, args ...bool) {
 		ctx.Data["RenderedDescription"] = content
 	}
 }
+
+// OrgAgentCount, when set (by routers/web/org), says how many agents the organization has in asc, and whether the viewer may be
+// told. It is a variable because asc's client packages depend on this one.
+var OrgAgentCount func(ctx *Context, org *organization.Organization) (int, bool)
 
 // OrgAssignment returns a middleware to handle organization assignment
 func OrgAssignment(args ...bool) func(ctx *Context) {

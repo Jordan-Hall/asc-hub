@@ -655,3 +655,37 @@ func sortByRole(members user_model.UserList, roles map[int64]string) {
 		return strings.Compare(strings.ToLower(a.DisplayName()), strings.ToLower(b.DisplayName()))
 	})
 }
+
+// agentCountCache keeps the number of agents of an organization for a minute per viewer: the head of every page of the
+// organization shows it.
+var (
+	agentCountMu    sync.Mutex
+	agentCountCache = map[[2]int64]agentCount{}
+)
+
+type agentCount struct {
+	at time.Time
+	n  int
+	ok bool
+}
+
+func init() {
+	context.OrgAgentCount = func(ctx *context.Context, org *organization.Organization) (int, bool) {
+		if !setting.Asc.Enabled || ctx.Doer == nil || !ctx.Org.IsMember {
+			return 0, false
+		}
+		key := [2]int64{org.ID, ctx.Doer.ID}
+		agentCountMu.Lock()
+		if c, ok := agentCountCache[key]; ok && time.Since(c.at) < peopleCacheTTL {
+			agentCountMu.Unlock()
+			return c.n, c.ok
+		}
+		agentCountMu.Unlock()
+		agents := orgAgents(ctx, org)
+		c := agentCount{at: time.Now(), n: len(agents), ok: agents != nil}
+		agentCountMu.Lock()
+		agentCountCache[key] = c
+		agentCountMu.Unlock()
+		return c.n, c.ok
+	}
+}

@@ -1,7 +1,46 @@
 /* Organization (boards OrgProfile, OrgPeople, OrgTeams and their mobile twins): head, repositories, rail, people and teams. */
 
 .wk-org-av img.ui.avatar {
+  width: 88px;
+  height: 88px;
   border-radius: 14px;
+}
+
+/* an organization without a picture of its own: the first letter on the brand colour, 88px, as on the boards */
+.wk-org-tile {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 14px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.wk-org-card .wk-pf-name {
+  font-size: 30px;
+}
+
+.wk-org-card .wk-org-facts {
+  gap: 4px 16px;
+  font-size: 13.5px;
+}
+
+.wk-org-card .wk-org-facts a:not(.ds-mono) {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.wk-org-card .wk-org-facts a:not(.ds-mono):hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.wk-org-card .wk-org-facts .ds-mono {
+  font-size: 12.5px;
 }
 
 .wk-org-card .wk-pf-line2 {

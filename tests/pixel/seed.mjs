@@ -85,7 +85,7 @@ export async function seed() {
     void me;
   }
   // organisations and teams
-  await api('POST', '/orgs', {username: 'acme', full_name: 'Acme', description: 'Payments, ledger and the web app.', location: 'London and remote', website: 'https://acme.example', visibility: 'public'});
+  await api('POST', '/orgs', {username: 'acme', full_name: 'Acme Payments', description: 'Payments infrastructure for subscription businesses. We build in the open.', location: 'London and remote', website: 'https://acme.example', visibility: 'public'});
   await api('POST', '/orgs', {username: 'northwind', full_name: 'Northwind', description: 'Hosted checkout.', visibility: 'public'}, {sudo: 'priya'});
   for (const [name, desc, perm] of [['Payments', 'The payments team', 'write'], ['Platform', 'Platform and infra', 'write'], ['Reviewers', 'Reviewers', 'read'], ['Design', 'Design system', 'read']]) {
     const t = await api('POST', '/orgs/acme/teams', {name, description: desc, permission: perm, includes_all_repositories: true, units: ['repo.code', 'repo.issues', 'repo.pulls', 'repo.releases'], can_create_org_repo: false});

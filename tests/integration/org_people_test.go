@@ -13,6 +13,7 @@ import (
 	"forgejo.org/models/db"
 	"forgejo.org/models/organization"
 	"forgejo.org/models/perm"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/test"
 	"forgejo.org/tests"
@@ -234,4 +235,21 @@ func TestOrgPeopleUndoAndOrder(t *testing.T) {
 		assert.LessOrEqual(t, order[seen[i-1]], order[seen[i]], "the roles in order: %v", seen)
 	}
 	assert.Equal(t, "Owner", seen[0])
+}
+
+// The head of an organization without a picture of its own shows its first letter on a tile, and the facts (people, and
+// agents when asc is there) share one line with the place and the address.
+func TestOrgHeaderTileAndFacts(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	doc := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/org3"), http.StatusOK).Body)
+	assert.Equal(t, 0, doc.Find("#org-info .wk-org-tile").Length(), "an organization with a picture of its own shows it")
+	// without a picture
+	_, err := db.GetEngine(db.DefaultContext).ID(3).Cols("use_custom_avatar").Update(&user_model.User{UseCustomAvatar: false})
+	require.NoError(t, err)
+	doc = NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/org3"), http.StatusOK).Body)
+	tile := strings.TrimSpace(doc.Find("#org-info .wk-org-tile").Text())
+	assert.Len(t, []rune(tile), 1, "one letter")
+	assert.Equal(t, 0, doc.Find("#org-info .wk-pf-stats").Length(), "no row of its own for the people")
+	assert.Positive(t, doc.Find("#org-info .wk-org-facts a[href$='/members']").Length(), "the people are in the facts line")
+	assert.Equal(t, 0, doc.Find("#org-info .wk-org-facts a[href*='people-agents']").Length(), "no agents without asc")
 }
