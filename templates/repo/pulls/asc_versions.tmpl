@@ -7,6 +7,9 @@ Template Attributes:
 * AscCanRestore: bool, the viewer may restore a version of this open pull request
 * CsrfTokenHtml: the CSRF field of the restore form
 * AscSignatures: map[uint32]asctrust.Badge, the Verified badge of each version that has one (nil: none is shown)
+* AscVersionDetails: map[uint32]pull.AscVersionDetail (the commit message, short hash, +add/-del and the restack mark of each version; nil: none)
+* AscVersionChecks: map[uint32][]AscVersionCheck (the check chips of each version; nil: none)
+* AscBrief: the brief of the pull request, for the "Approved by" marker (nil: none)
 * AscSinceVersion: uint32, the version of the viewer's last review (0 when there is none or it is the latest)
 * Issue.Link: the pull request link
 Numbers are inserted as they are; the actor name comes from asc and is escaped by the template engine. The base and head
@@ -40,6 +43,18 @@ pickers are plain radio buttons of a GET form, so the panel works without a scri
 									{{if $.AscSignatures}}{{template "repo/pulls/asc_signature_badge" (index $.AscSignatures .N)}}{{end}}
 								</div>
 								<div class="rv-li-sub">{{.Actor}} · {{DateUtils.TimeSince .At}}</div>
+								{{with index $.AscVersionDetails .N}}
+								<div class="rv-li-sub" data-testid="asc-version-detail">
+									{{if .Restack}}<span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr "asc_review.rev_restack_row"}}</span> {{end}}{{if .Subject}}<span>{{.Subject}}</span> {{end}}<code>{{.Short}}</code> <span class="rv-add">+{{.Add}}</span> <span class="rv-del">&minus;{{.Del}}</span>
+								</div>
+								{{end}}
+								{{$ver := .N}}
+								{{with index $.AscVersionChecks .N}}
+								<div class="rv-chips" data-testid="asc-version-checks">{{range .}}<span class="rv-pill rv-pill-{{if eq .Tone "ok"}}ok{{else if eq .Tone "err"}}err{{else}}warn{{end}}">{{.Name}}</span>{{end}}</div>
+								{{end}}
+								{{if $.AscBrief}}{{range $.AscBrief.Approvals}}{{if and (eq .Version $ver) (not .ChangesRequested)}}
+								<div class="rv-li-sub" data-testid="asc-version-approved">{{ctx.Locale.Tr "asc_review.rev_approved_by" .Reviewer}}</div>
+								{{end}}{{end}}{{end}}
 							</div>
 							<fieldset class="rv-fieldset rv-vpick">
 								<legend class="rv-sr">{{ctx.Locale.Tr "repo.pulls.asc_versions.version" .N}}</legend>
