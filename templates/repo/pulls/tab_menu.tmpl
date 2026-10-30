@@ -1,22 +1,37 @@
 {{/*
 The tabs of a pull request: conversation, commits and files changed, with the size of the change at the end.
 Template Attributes: PageIsPullConversation, PageIsPullCommits, PageIsPullFiles, Issue, NumCommits, NumFiles, Diff
+A stacked change (AscStackPanel) reads Overview, Files, Versions v1>vN, Checks, How it was made and Commits (the board's
+tab strip); AscVersionsLatest is the newest version number, 0 when it is not known.
 */}}
 <div class="rv rv-tabsbar">
-	<nav class="rv-tabs" aria-label="{{ctx.Locale.Tr "asc_review.rev_tabs"}}">
+	<nav class="rv-tabs" aria-label="{{ctx.Locale.Tr "asc_review.rev_tabs"}}"{{if .AscStackPanel}} data-testid="asc-tabs"{{end}}>
 		<a class="rv-tab" href="{{.Issue.Link}}"{{if .PageIsPullConversation}} aria-current="page"{{end}}>
-			{{ctx.Locale.Tr "repo.pulls.tab_conversation"}}
-			<span class="rv-count">{{.Issue.NumComments}}</span>
+			{{if .AscStackPanel}}{{ctx.Locale.Tr "asc_review.rev_overview"}}{{else}}{{ctx.Locale.Tr "repo.pulls.tab_conversation"}}
+			<span class="rv-count">{{.Issue.NumComments}}</span>{{end}}
 		</a>
+		{{if not .AscStackPanel}}
 		<a class="rv-tab" {{if .NumCommits}}href="{{.Issue.Link}}/commits"{{end}}{{if .PageIsPullCommits}} aria-current="page"{{end}}>
 			{{ctx.Locale.Tr "repo.pulls.tab_commits"}}
 			<span class="rv-count">{{if .NumCommits}}{{.NumCommits}}{{else}}-{{end}}</span>
 		</a>
+		{{end}}
 		<a class="rv-tab" href="{{.Issue.Link}}/files"{{if .PageIsPullFiles}} aria-current="page"{{end}}>
 			{{ctx.Locale.Tr "repo.pulls.tab_files"}}
 			<span class="rv-count">{{if .NumFiles}}{{.NumFiles}}{{else}}-{{end}}</span>
 		</a>
-		{{if .AscStackPanel}}<a class="rv-tab" href="{{.Issue.Link}}/asc/checks">{{ctx.Locale.Tr "asc_review.rev_checks"}}</a>{{end}}
+		{{if .AscStackPanel}}
+		<a class="rv-tab" href="{{.Issue.Link}}/files#asc-versions" data-testid="asc-tab-versions">
+			{{ctx.Locale.Tr "asc_review.rev_tab_versions"}}
+			{{if .AscVersionsLatest}}<span class="rv-count">{{if gt .AscVersionsLatest 1}}v1&gt;v{{.AscVersionsLatest}}{{else}}v1{{end}}</span>{{end}}
+		</a>
+		<a class="rv-tab" href="{{.Issue.Link}}/asc/checks">{{ctx.Locale.Tr "asc_review.rev_checks"}}</a>
+		<a class="rv-tab" href="{{.Issue.Link}}#asc-how-made" data-testid="asc-tab-how">{{ctx.Locale.Tr "asc_review.rev_tab_how"}}</a>
+		<a class="rv-tab" {{if .NumCommits}}href="{{.Issue.Link}}/commits"{{end}}{{if .PageIsPullCommits}} aria-current="page"{{end}}>
+			{{ctx.Locale.Tr "repo.pulls.tab_commits"}}
+			<span class="rv-count">{{if .NumCommits}}{{.NumCommits}}{{else}}-{{end}}</span>
+		</a>
+		{{end}}
 	</nav>
 	{{if or .Diff.TotalAddition .Diff.TotalDeletion}}
 	<div class="rv-tabs-size" aria-label="{{ctx.Locale.Tr "repo.diff.stats_desc" .NumFiles .Diff.TotalAddition .Diff.TotalDeletion}}">
