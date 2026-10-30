@@ -138,3 +138,9 @@ tests/integration/api_activitypub_person_inbox_useractivity_test.go
 
 # Mise version management
 mise.toml
+
+# the state of a pixel-harness hub (tokens, configuration, databases): never committed. A path converted by Git Bash and read by WSL
+# lands in the working directory under a drive letter name; neither belongs in a commit.
+pixel-run*/
+/D[!A-Za-z0-9]*/
+/tests/pixel/.env
