@@ -323,6 +323,13 @@ func WebhookUpdate(ctx *context.Context) {
 
 	w.Meta = string(meta)
 
+	if err := webhook_service.CheckPayloadURL(w.URL); err != nil {
+		ctx.Flash.Error(err.Error())
+		ctx.Data["HookMetadata"] = fields.Metadata
+		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
+		return
+	}
+
 	if err := w.UpdateEvent(); err != nil {
 		ctx.ServerError("UpdateEvent", err)
 		return

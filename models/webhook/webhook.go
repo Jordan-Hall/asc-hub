@@ -408,6 +408,9 @@ func (w *Webhook) SetHeaderAuthorization(cleartext string) {
 // CreateWebhook creates a new web hook.
 func CreateWebhook(ctx context.Context, w *Webhook, authorizationHeader string) error {
 	w.Type = strings.TrimSpace(w.Type)
+	if err := CheckPayloadURL(w.URL); err != nil {
+		return err
+	}
 
 	if len(authorizationHeader) == 0 {
 		return db.Insert(ctx, w)
@@ -431,6 +434,9 @@ func CreateWebhooks(ctx context.Context, ws []*Webhook) error {
 	}
 	for i := range ws {
 		ws[i].Type = strings.TrimSpace(ws[i].Type)
+		if err := CheckPayloadURL(ws[i].URL); err != nil {
+			return err
+		}
 	}
 	return db.Insert(ctx, ws)
 }
@@ -502,6 +508,9 @@ func (opts ListWebhookOptions) ToOrders() string {
 
 // UpdateWebhook updates information of webhook.
 func UpdateWebhook(ctx context.Context, w *Webhook) error {
+	if err := CheckPayloadURL(w.URL); err != nil {
+		return err
+	}
 	_, err := db.GetEngine(ctx).ID(w.ID).AllCols().Update(w)
 	return err
 }
