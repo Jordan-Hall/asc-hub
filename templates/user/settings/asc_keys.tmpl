@@ -37,6 +37,19 @@
 						<input id="asc-key-reason-{{.ID}}" class="ds-input" name="reason" type="text" maxlength="256" placeholder="{{ctx.Locale.Tr "asc_work.sk_reason"}}" autocomplete="off">
 						<button class="ds-btn ds-btn-danger" type="submit">{{ctx.Locale.Tr "asc_work.sk_revoke"}}</button>
 					</form>
+					<details class="ds-details wk-key-rotate" data-testid="asc-key-rotate">
+						<summary>{{ctx.Locale.Tr "asc_shell.key_rotate"}}<span class="ds-sr"> {{.Title}}</span></summary>
+						<form class="ui form ds-form ds-stack-12" method="post" action="{{$.AscKeys.KeysURL}}/rotate">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="id" value="{{.ID}}">
+							<input type="hidden" name="op" value="{{index $.AscKeys.RotateOps .ID}}">
+							<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.key_rotate_help"}}</p>
+							<div class="ds-field"><label class="ds-label" for="asc-rot-title-{{.ID}}">{{ctx.Locale.Tr "asc_work.sk_title"}}</label><input id="asc-rot-title-{{.ID}}" class="ds-input" name="title" type="text" maxlength="100" required autocomplete="off"></div>
+							<div class="ds-field"><label class="ds-label" for="asc-rot-key-{{.ID}}">{{ctx.Locale.Tr "asc_work.sk_public"}}</label><textarea id="asc-rot-key-{{.ID}}" class="ds-textarea ds-mono" name="public_key" rows="3" spellcheck="false" autocomplete="off" required placeholder="ssh-ed25519 AAAAC3Nza..."></textarea></div>
+							<div class="ds-field"><label class="ds-label" for="asc-rot-exp-{{.ID}}">{{ctx.Locale.Tr "asc_work.sk_expires_label"}}</label><input id="asc-rot-exp-{{.ID}}" class="ds-input" name="expires" type="date"></div>
+							<div class="ds-row"><button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_shell.key_rotate_button"}}</button></div>
+						</form>
+					</details>
 					{{end}}
 				</li>
 				{{else}}

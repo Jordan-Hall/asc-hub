@@ -61,3 +61,13 @@ test('live results: groups become options, a link that leaves the site is droppe
   expect(items[0].querySelector('small').textContent).toBe('acme/pay #3');
   expect(list.querySelectorAll('.ds-palette-group')).toHaveLength(1);
 });
+
+test('edge swipe: from the left edge opens the drawer, a swipe left closes it, a scroll does nothing', async () => {
+  const {edgeSwipe} = await import('./ds-shell.js');
+  expect(edgeSwipe({x: 8, y: 300}, {x: 120, y: 310}, false)).toBe('open');
+  expect(edgeSwipe({x: 200, y: 300}, {x: 320, y: 300}, false)).toBeNull();
+  expect(edgeSwipe({x: 8, y: 300}, {x: 40, y: 300}, false)).toBeNull();
+  expect(edgeSwipe({x: 8, y: 300}, {x: 120, y: 420}, false)).toBeNull();
+  expect(edgeSwipe({x: 250, y: 300}, {x: 120, y: 310}, true)).toBe('close');
+  expect(edgeSwipe({x: 120, y: 300}, {x: 250, y: 310}, true)).toBeNull();
+});

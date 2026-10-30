@@ -4,6 +4,7 @@
 package setting
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -39,6 +40,7 @@ type ascKeysPage struct {
 	Expires     string
 	AddOp       string
 	RevokeOps   map[string]string
+	RotateOps   map[string]string
 	Problem     string
 	Unsupported bool
 	KeysURL     string
@@ -46,7 +48,7 @@ type ascKeysPage struct {
 }
 
 func ascKeysPageFor(ctx *context.Context) *ascKeysPage {
-	p := &ascKeysPage{AddOp: asctrust.NewOpID(), RevokeOps: map[string]string{}, KeysURL: setting.AppSubURL + "/user/settings/asc/keys", Namespace: asctrust.SigningNamespace}
+	p := &ascKeysPage{AddOp: asctrust.NewOpID(), RevokeOps: map[string]string{}, RotateOps: map[string]string{}, KeysURL: setting.AppSubURL + "/user/settings/asc/keys", Namespace: asctrust.SigningNamespace}
 	ctx.Data["Title"] = ctx.Tr("asc_shell.sn_signing_keys")
 	ctx.Data["PageIsSettingsAscKeys"] = true
 	ctx.Data["AscKeys"] = p
@@ -112,6 +114,7 @@ func ascKeysRender(ctx *context.Context, p *ascKeysPage) {
 	for _, k := range page.Keys {
 		if k.State == "live" {
 			p.RevokeOps[k.ID] = asctrust.NewOpID()
+			p.RotateOps[k.ID] = asctrust.NewOpID()
 		}
 	}
 	ctx.HTML(status, tplAscKeys)
@@ -193,4 +196,47 @@ func AscKeysRevoke(ctx *context.Context) {
 	}
 	ctx.Flash.Success("The key " + key.Fingerprint + " was revoked. Signatures sent after now with it are not Verified; earlier ones stay explainable.")
 	ctx.Redirect(p.KeysURL)
+}
+
+// AscKeysRotate serves POST /user/settings/asc/keys/rotate with the fields id (the key to replace), title, public_key,
+// expires and op: the new key is added and the old one revoked in one go (asctrust.RotateKey).
+func AscKeysRotate(ctx *context.Context) {
+	if !ascKeysGuard(ctx) {
+		return
+	}
+	if !trustweb.ParseForm(ctx, maxAscKeysForm) {
+		return
+	}
+	p := ascKeysPageFor(ctx)
+	fail := func(msg string) {
+		ctx.Flash.Error(msg)
+		ctx.Redirect(p.KeysURL)
+	}
+	expires, err := asctrust.ExpiryOf(ctx.Req.PostFormValue("expires"), time.Now())
+	if err != nil {
+		fail(trustweb.FailureOf("keys rotate", err).Localized(ctx))
+		return
+	}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		fail(ctx.Locale.TrString("asc_trust.err.unavailable"))
+		return
+	}
+	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallAccount, nil)
+	if err != nil {
+		fail(trustweb.FailureOf("keys credential", err).Localized(ctx))
+		return
+	}
+	defer release()
+	key, err := asctrust.RotateKey(callCtx, conn, ctx.Req.PostFormValue("id"), ctx.Req.PostFormValue("title"), ctx.Req.PostFormValue("public_key"), expires, ctx.Req.PostFormValue("op"))
+	var half *asctrust.RotateRevokeError
+	switch {
+	case errors.As(err, &half):
+		fail(ctx.Locale.TrString("asc_shell.key_rotate_half", half.New.Fingerprint))
+	case err != nil:
+		fail(trustweb.FailureOf("keys rotate", err).Localized(ctx))
+	default:
+		ctx.Flash.Success(ctx.Locale.TrString("asc_shell.key_rotated", key.Fingerprint))
+		ctx.Redirect(p.KeysURL)
+	}
 }
