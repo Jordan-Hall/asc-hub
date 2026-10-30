@@ -188,6 +188,7 @@ NEW_REPOSITORIES = asc
 BRIDGE = eager
 SHADOW_SAMPLE_PERCENT = 0
 SSH_ENABLED = false
+DOWNLOAD_DIR = $RUN/download
 INI
   elif [ "$ASC_MODE" = 1 ]; then
     cat >> "$RUN/custom/conf/app.ini" <<INI
@@ -197,8 +198,11 @@ SERVER_URL = http://127.0.0.1:7890
 PUBLIC_URL = http://127.0.0.1:$PORT
 FORWARDED_KEY = 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
 SSH_ENABLED = false
+DOWNLOAD_DIR = $RUN/download
 INI
   fi
+  # the release the Download boards show: a manifest and the files it lists
+  if [ -n "$ASC_MODE" ]; then python3 "$here/download-manifest.py" "$RUN/download"; fi
   if [ "$(id -u)" = 0 ]; then chown -R nobody "$RUN"; fi
   if [ "$ASC_MODE" = serve ]; then prepare_asc; fi
   start # the first start creates the tables; the admin user needs them
