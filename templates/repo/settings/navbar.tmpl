@@ -28,8 +28,7 @@
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/hooks") "Label" (ctx.Locale.Tr "repo.settings.hooks") "Icon" "link" "Active" .PageIsSettingsHooks)}}
 			{{end}}
 			{{if and .EnableActions (not .UnitActionsGlobalDisabled) (.Permission.CanRead $.UnitTypeActions)}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/secrets") "Label" (ctx.Locale.Tr "asc_shell.sn_secrets_vars") "Icon" "lock" "Active" .PageIsSharedSettingsSecrets)}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/variables") "Label" (ctx.Locale.Tr "actions.variables") "Icon" "hash" "Active" .PageIsSharedSettingsVariables)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/secrets") "Label" (ctx.Locale.Tr "asc_shell.sn_secrets_vars") "Icon" "lock" "Active" (or .PageIsSharedSettingsSecrets .PageIsSharedSettingsVariables))}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/runners") "Label" (ctx.Locale.Tr "actions.runners") "Icon" "cpu" "Active" .PageIsSharedSettingsRunners)}}
 				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/permissions") "Label" (ctx.Locale.Tr "actions.permissions.title") "Icon" "shield-check" "Active" .PageIsSharedSettingsPermissions)}}
 			{{end}}
