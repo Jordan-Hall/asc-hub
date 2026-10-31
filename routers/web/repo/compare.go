@@ -857,6 +857,7 @@ func CompareDiff(ctx *context.Context) {
 
 	if ctx.Data["PageIsComparePull"] == true && !nothingToCompare {
 		prepareAscNewChangeDraft(ctx, ctx.Params("*"))
+		prepareAscNewChangeRail(ctx)
 	}
 
 	ctx.HTML(http.StatusOK, tplCompare)
