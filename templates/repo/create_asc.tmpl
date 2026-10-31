@@ -1,0 +1,48 @@
+{{/*
+The asc parts of the new-repository page: AGENTS.md, the policy file, the line about the signing key.
+Template Attributes:
+* NewRepoIsAsc: new repositories are kept in asc (the policy file is offered only then)
+* AscNewRepoSigning: *repo.AscNewRepoSigning (nil: no line)
+* agents_file, policy_file, policy_approvals, policy_checks: the form as typed
+*/}}
+<label class="ds-switch rp-new-switch">
+	<input name="agents_file" type="checkbox" role="switch" {{if .agents_file}}checked{{end}} data-testid="newrepo-agents-file">
+	<span class="ds-switch-track"></span>
+	<span>
+		<strong>{{ctx.Locale.Tr "asc_rp.newrepo_agents"}}</strong>
+		<span class="ds-hint">{{ctx.Locale.Tr "asc_rp.newrepo_agents_help"}}</span>
+	</span>
+</label>
+{{if .NewRepoIsAsc}}
+<label class="ds-switch rp-new-switch">
+	<input name="policy_file" type="checkbox" role="switch" {{if .policy_file}}checked{{end}} data-testid="newrepo-policy-file">
+	<span class="ds-switch-track"></span>
+	<span>
+		<strong>{{ctx.Locale.Tr "asc_rp.newrepo_policy"}}</strong>
+		<span class="ds-hint">{{ctx.Locale.Tr "asc_rp.newrepo_policy_help"}}</span>
+	</span>
+</label>
+<div class="hide-unless-checked ds-form-row ds-form-row-2">
+	<div class="ds-field">
+		<label class="ds-label" for="policy_approvals">{{ctx.Locale.Tr "asc_rp.newrepo_approvals"}}</label>
+		<select id="policy_approvals" class="ds-select" name="policy_approvals">
+			<option value="0"{{if eq .policy_approvals 0}} selected{{end}}>0</option>
+			<option value="1"{{if eq .policy_approvals 1}} selected{{end}}>1</option>
+			<option value="2"{{if eq .policy_approvals 2}} selected{{end}}>2</option>
+			<option value="3"{{if eq .policy_approvals 3}} selected{{end}}>3</option>
+			<option value="4"{{if eq .policy_approvals 4}} selected{{end}}>4</option>
+			<option value="5"{{if eq .policy_approvals 5}} selected{{end}}>5</option>
+		</select>
+	</div>
+	<div class="ds-field">
+		<label class="ds-label" for="policy_checks">{{ctx.Locale.Tr "asc_rp.newrepo_checks"}} <span class="ds-opt">({{ctx.Locale.Tr "asc_shell.optional"}})</span></label>
+		<input id="policy_checks" class="ds-input{{if .Err_PolicyChecks}} is-err{{end}}" name="policy_checks" value="{{.policy_checks}}" maxlength="800" placeholder="build, test" autocomplete="off" spellcheck="false"{{if .Err_PolicyChecks}} aria-invalid="true"{{end}}>
+		<div class="ds-hint">{{ctx.Locale.Tr "asc_rp.newrepo_checks_help"}}</div>
+	</div>
+</div>
+{{end}}
+{{with .AscNewRepoSigning}}
+	<p class="ds-hint" data-testid="newrepo-signing">
+		{{if .HasKey}}{{ctx.Locale.Tr "asc_rp.newrepo_signed_with" .ID}}{{else}}{{ctx.Locale.Tr "asc_rp.newrepo_no_key"}} <a href="{{AppSubUrl}}/user/settings/asc/keys">{{ctx.Locale.Tr "asc_rp.newrepo_add_key"}}</a>{{end}}
+	</p>
+{{end}}
