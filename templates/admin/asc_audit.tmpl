@@ -92,23 +92,23 @@
 					{{if .Rows}}
 						<ul class="ds-list adm-sec" data-testid="asc-audit-table" aria-label="{{ctx.Locale.Tr "asc_trust.audit.events"}}">
 							{{range .Rows}}
-								<li class="ds-li ds-li-wrap" data-seq="{{.Seq}}">
-									<span class="adm-tile {{if eq .Tone "ok"}}adm-tile-ok{{else if eq .Tone "no"}}adm-tile-warn{{else if eq .Tone "wn"}}adm-tile-err{{end}}" aria-hidden="true">{{if eq .ActorKind "agent"}}{{svg "dsi-agent" 18}}{{else}}{{svg "dsi-user" 18}}{{end}}</span>
+								<li class="ds-li ds-li-wrap adm-audit-li" data-seq="{{.Seq}}">
+									{{if eq .ActorKind "agent"}}<span class="adm-audit-av adm-audit-av-agent" aria-hidden="true">{{svg "dsi-agent" 18}}</span>{{else}}<span class="adm-audit-av" aria-hidden="true">{{.Initials}}</span>{{end}}
 									<div class="ds-li-main">
 										<div class="ds-li-title">
-											<span>{{.Actor}}</span>{{if .OnBehalf}} <span class="ds-c-2">{{ctx.Locale.Tr "asc_trust.audit.for" .OnBehalf}}</span>{{end}}
-											<span>{{.What}}</span>
-											<span class="ds-chip {{if eq .Tone "ok"}}ds-chip-ok{{else if eq .Tone "no"}}ds-chip-warn{{else if eq .Tone "wn"}}ds-chip-err{{end}}">{{ctx.Locale.Tr (printf "asc_trust.audit.outcome_%s" .Tone)}}</span>
+											<b>{{.Actor}}</b>{{if .OnBehalf}} <span class="ds-c-2">{{ctx.Locale.Tr "asc_trust.audit.for" .OnBehalf}}</span>{{end}}
+											<span class="adm-audit-what">{{.What}}</span>
+											{{if ne .Tone "ok"}}<span class="ds-chip {{if eq .Tone "no"}}ds-chip-warn{{else if eq .Tone "wn"}}ds-chip-err{{end}}">{{ctx.Locale.Tr (printf "asc_trust.audit.outcome_%s" .Tone)}}</span>{{end}}
 										</div>
 										<div class="ds-li-sub ds-break">{{if .Repo}}<span>{{.Repo}}</span>{{end}}{{if and .Repo .Target}} &middot; {{end}}{{if .Target}}<code class="adm-mono">{{.Target}}</code>{{end}} <code class="adm-mono ds-c-2">{{.Action}}</code></div>
-										<div class="ds-li-meta"><span>{{DateUtils.AbsoluteShort .Time}}</span>{{if .Remote}}<span class="adm-mono">{{.Remote}}</span>{{end}}</div>
-										{{if .Details}}
-											<details class="ds-details adm-details">
-												<summary>{{ctx.Locale.Tr "asc_trust.audit.details"}}</summary>
-												<dl class="adm-kv adm-kv-cfg">{{range .Details}}<div><dt>{{.Key}}</dt><dd class="adm-mono">{{.Value}}</dd></div>{{end}}</dl>
-											</details>
-										{{end}}
+										<div class="ds-li-meta"><span>{{DateUtils.TimeOrDay .Time}}</span>{{if .Remote}}<span class="adm-mono">{{.Remote}}</span>{{end}}</div>
 									</div>
+									{{if .Details}}
+										<details class="ds-details adm-details adm-audit-more">
+											<summary>{{ctx.Locale.Tr "asc_trust.audit.details"}}</summary>
+											<dl class="adm-kv adm-kv-cfg">{{range .Details}}<div><dt>{{.Key}}</dt><dd class="adm-mono">{{.Value}}</dd></div>{{end}}</dl>
+										</details>
+									{{end}}
 								</li>
 							{{end}}
 						</ul>

@@ -19,9 +19,34 @@ func Queues(ctx *context.Context) {
 	}
 	ctx.Data["Title"] = ctx.Tr("asc_admin.monitor")
 	ctx.Data["PageIsAdminMonitorQueue"] = true
-	ctx.Data["Queues"] = queue.GetManager().ManagedQueues()
-	ctx.Data["Entries"] = cron.ListTasks()
+	monitorData(ctx)
 	ctx.HTML(http.StatusOK, tplQueue)
+}
+
+// monitorData fills the monitor page: the queues that have work or workers running now, apart from the idle ones (a page of
+// fifteen empty rows hides the one that matters), and the scheduled tasks with how many failed their last run.
+func monitorData(ctx *context.Context) {
+	busy := map[int64]queue.ManagedWorkerPoolQueue{}
+	idle := map[int64]queue.ManagedWorkerPoolQueue{}
+	for id, q := range queue.GetManager().ManagedQueues() {
+		if q.GetQueueItemNumber() != 0 || q.GetWorkerActiveNumber() > 0 {
+			busy[id] = q
+		} else {
+			idle[id] = q
+		}
+	}
+	ctx.Data["Queues"] = busy
+	ctx.Data["IdleQueues"] = idle
+	ctx.Data["QueuesTotal"] = len(busy) + len(idle)
+	entries := cron.ListTasks()
+	failed := 0
+	for _, e := range entries {
+		if e.Status == "error" {
+			failed++
+		}
+	}
+	ctx.Data["Entries"] = entries
+	ctx.Data["CronFailed"] = failed
 }
 
 // QueueManage shows details for a specific queue

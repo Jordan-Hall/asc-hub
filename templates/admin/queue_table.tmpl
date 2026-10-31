@@ -1,0 +1,42 @@
+{{/* The queues of the monitor as a table (from 768) and a list (under it). Props: Queues (the map), Link (the address of the queue pages). */}}
+	<div class="ds-table-wrap adm-only-md adm-flat">
+		<table class="ds-table">
+			<caption class="ds-sr">{{ctx.Locale.Tr "admin.monitor.queues"}}</caption>
+			<thead>
+				<tr>
+					<th scope="col">{{ctx.Locale.Tr "asc_admin.col_queue"}}</th>
+					<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_admin.col_workers"}}</th>
+					<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_admin.col_waiting"}}</th>
+					<th scope="col">{{ctx.Locale.Tr "asc_admin.col_status"}}</th>
+					<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.col_actions"}}</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				{{range $qid, $q := .Queues}}
+					{{$sum := $q.GetQueueItemNumber}}
+					<tr>
+						<td title="{{$q.GetType}} · {{$q.GetItemTypeName}}"><span class="adm-who-name">{{$q.GetName}}</span></td>
+						<td class="ds-r ds-num">{{$q.GetWorkerNumber}}</td>
+						<td class="ds-r ds-num">{{if lt $sum 0}}&mdash;{{else}}{{$sum}}{{end}}</td>
+						<td>{{if gt $sum 100}}<span class="ds-chip ds-chip-warn">{{svg "dsi-alert" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_backed"}}</span>{{else if gt ($q.GetWorkerActiveNumber) 0}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_admin.queue_status_busy"}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_idle"}}</span>{{end}}</td>
+						<td class="ds-r"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Link}}/{{$qid}}" aria-label="{{ctx.Locale.Tr "asc_admin.queue_review"}}: {{$q.GetName}}">{{ctx.Locale.Tr "asc_admin.queue_review"}}</a></td>
+					</tr>
+				{{end}}
+			</tbody>
+		</table>
+	</div>
+	<ul class="adm-rows adm-only-sm">
+		{{range $qid, $q := .Queues}}
+			{{$sum := $q.GetQueueItemNumber}}
+			<li class="ds-li ds-li-wrap">
+				<div class="ds-li-main">
+					<div class="ds-li-title"><span>{{$q.GetName}}</span> {{if gt $sum 100}}<span class="ds-chip ds-chip-warn">{{svg "dsi-alert" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_backed"}}</span>{{else if gt ($q.GetWorkerActiveNumber) 0}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_admin.queue_status_busy"}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_idle"}}</span>{{end}}</div>
+					<div class="ds-li-meta">
+						<span>{{ctx.Locale.Tr "asc_admin.queue_waiting" (printf "%d" $sum)}}</span>
+						<span>{{ctx.Locale.Tr "asc_admin.queue_workers" $q.GetWorkerActiveNumber $q.GetWorkerNumber}}</span>
+					</div>
+				</div>
+				<div class="adm-row-side"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Link}}/{{$qid}}" aria-label="{{ctx.Locale.Tr "asc_admin.queue_review"}}: {{$q.GetName}}">{{ctx.Locale.Tr "asc_admin.queue_review"}}</a></div>
+			</li>
+		{{end}}
+	</ul>

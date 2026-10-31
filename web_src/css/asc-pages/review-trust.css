@@ -715,3 +715,58 @@
 [data-asc-ops-panel-body] .rv-lead {
   margin-top: 0;
 }
+
+/* the audit log as the board draws it: four fields, the dates and the buttons, a short details cell, an avatar for the actor */
+.rv-audit-verify {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 900px) {
+  .rv-audit-filters .rv-audit-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .rv-audit-filters .rv-audit-grid .rv-field.rv-audit-btns {
+    grid-column: span 2;
+  }
+}
+
+.rv-audit-btns {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+  gap: 8px;
+}
+
+.rv-audit-when {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.rv-audit-who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rv-audit-av {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--on-fill);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.rv-audit-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}

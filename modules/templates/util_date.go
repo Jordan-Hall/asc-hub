@@ -17,6 +17,9 @@ import (
 
 type DateUtils struct{}
 
+// timeNow is the clock of the date helpers; tests replace it.
+var timeNow = time.Now
+
 func NewDateUtils() *DateUtils {
 	return (*DateUtils)(nil) // the util is stateless, and we do not need to create an instance
 }
@@ -59,6 +62,21 @@ func (du *DateUtils) Day(when any) template.HTML {
 	}
 	t = t.In(setting.DefaultUILocation)
 	return template.HTML(fmt.Sprintf(`<time datetime="%s" title="%s">%s</time>`, html.EscapeString(t.Format(time.RFC3339)), html.EscapeString(t.Format("2006-01-02 15:04:05 -07:00")), html.EscapeString(t.Format("2 Jan 2006"))))
+}
+
+// TimeOrDay renders the time of today as "10:14:02" and an earlier time as "27 Oct 10:14" (the design's audit log), in the interface's time zone.
+func (du *DateUtils) TimeOrDay(when any) template.HTML {
+	t, isZero := anyToTime(when)
+	if isZero {
+		return "-"
+	}
+	t = t.In(setting.DefaultUILocation)
+	text := t.Format("2 Jan 15:04")
+	ny, nm, nd := timeNow().In(setting.DefaultUILocation).Date()
+	if y, m, d := t.Date(); y == ny && m == nm && d == nd {
+		text = t.Format("15:04:05")
+	}
+	return template.HTML(fmt.Sprintf(`<time datetime="%s" title="%s">%s</time>`, html.EscapeString(t.Format(time.RFC3339)), html.EscapeString(t.Format("2006-01-02 15:04:05 -07:00")), html.EscapeString(text)))
 }
 
 func (du *DateUtils) TimeSince(time any) template.HTML {

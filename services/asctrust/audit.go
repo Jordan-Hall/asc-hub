@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 
@@ -249,6 +250,24 @@ type AuditRow struct {
 	Tone      string
 	Remote    string
 	Details   []KV
+}
+
+// Initials are the first letters of the actor for the avatar of a row ("MO" for "Maya Okafor", "CO" for "coder-2").
+func (r AuditRow) Initials() string {
+	words := strings.FieldsFunc(r.Actor, func(c rune) bool { return c == ' ' || c == '-' || c == '_' || c == '.' || c == '(' })
+	out := []rune{}
+	for _, w := range words {
+		out = append(out, unicode.ToUpper([]rune(w)[0]))
+		if len(out) == 2 {
+			break
+		}
+	}
+	if len(out) == 1 {
+		if rs := []rune(words[0]); len(rs) > 1 {
+			out = append(out, unicode.ToUpper(rs[1]))
+		}
+	}
+	return string(out)
 }
 
 // AuditPage is one page of events.

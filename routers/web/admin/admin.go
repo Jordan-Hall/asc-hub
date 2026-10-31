@@ -17,7 +17,6 @@ import (
 	"forgejo.org/modules/cache"
 	"forgejo.org/modules/graceful"
 	"forgejo.org/modules/log"
-	"forgejo.org/modules/queue"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/updatechecker"
 	"forgejo.org/modules/web"
@@ -261,8 +260,7 @@ func CronTasks(ctx *context.Context) {
 	// the scheduled tasks share a page with the queues
 	ctx.Data["Title"] = ctx.Tr("asc_admin.monitor")
 	ctx.Data["PageIsAdminMonitorCron"] = true
-	ctx.Data["Entries"] = cron.ListTasks()
-	ctx.Data["Queues"] = queue.GetManager().ManagedQueues()
+	monitorData(ctx)
 	ctx.HTML(http.StatusOK, tplQueue)
 }
 
