@@ -34,39 +34,50 @@
 				{{if .NumMembers}}
 					<section class="ds-card" aria-labelledby="wk-org-people">
 						<div class="ds-card-h">
-							<h2 id="wk-org-people">{{ctx.Locale.Tr "org.members"}}</h2>
+							<h2 id="wk-org-people">{{ctx.Locale.Tr "asc_work.org_people_h"}}</h2>
 							<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{.OrgLink}}/members">{{ctx.Locale.Tr "asc_work.org_all_n" .NumMembers}}</a>
 						</div>
 						<div class="wk-org-avatars">
 							{{$isMember := .IsOrganizationMember}}
-							{{range .Members}}
-								{{if or $isMember (call $.IsPublicMember .ID)}}
-									<a href="{{.HomeLink}}" title="{{.Name}}{{if .FullName}} ({{.FullName}}){{end}}" aria-label="{{.Name}}">{{ctx.AvatarUtils.Avatar . 40}}</a>
-								{{end}}
+							{{range $i, $m := .Members}}
+								{{if lt $i 5}}{{if or $isMember (call $.IsPublicMember $m.ID)}}
+									<a href="{{$m.HomeLink}}" title="{{$m.Name}}{{if $m.FullName}} ({{$m.FullName}}){{end}}" aria-label="{{$m.Name}}">{{ctx.AvatarUtils.Avatar $m 40}}</a>
+								{{end}}{{end}}
 							{{end}}
+							{{if gt .NumMembers 5}}<a class="wk-org-more" href="{{.OrgLink}}/members" aria-label="{{ctx.Locale.Tr "asc_work.org_all_n" .NumMembers}}">+{{Eval .NumMembers "-" 5}}</a>{{end}}
 						</div>
+						{{if .OrgAgentList}}
+						<div class="wk-org-agents" data-testid="org-agents">
+							<h3 class="wk-org-sub">{{ctx.Locale.Tr "asc_work.org_agents_h"}}</h3>
+							<div class="wk-org-avatars">
+								{{range .OrgAgentList}}<a class="wk-agent-av" href="{{$.OrgLink}}/members#people-agents" title="{{.DisplayName}}" aria-label="{{.DisplayName}}">{{svg "dsi-agent" 20}}</a>{{end}}
+							</div>
+						</div>
+						{{end}}
 					</section>
 				{{end}}
 				{{if .IsOrganizationMember}}
 					<section class="ds-card" aria-labelledby="wk-org-teams">
 						<div class="ds-card-h">
 							<h2 id="wk-org-teams">{{ctx.Locale.Tr "org.teams"}}</h2>
-							<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{.OrgLink}}/teams">{{ctx.Locale.Tr "asc_work.org_all_n" .Org.NumTeams}}</a>
 						</div>
 						<ul class="wk-org-teamlist">
 							{{range .Teams}}
 								<li>
-									<a class="wk-org-team-name" href="{{$.OrgLink}}/teams/{{.LowerName | PathEscape}}">{{.Name}}</a>
-									<span class="wk-org-team-meta">
-										<a href="{{$.OrgLink}}/teams/{{.LowerName | PathEscape}}">{{ctx.Locale.TrN .NumMembers "asc_work.org_member_one" "asc_work.org_member_n" .NumMembers}}</a>
-										<a href="{{$.OrgLink}}/teams/{{.LowerName | PathEscape}}/repositories">{{ctx.Locale.TrN .NumRepos "asc_work.org_repo_one" "asc_work.org_repo_n" .NumRepos}}</a>
-									</span>
+									<a class="wk-org-team-name" href="{{$.OrgLink}}/teams?team={{.LowerName | QueryEscape}}">{{.Name}}</a>
+									<span class="wk-org-team-meta">{{ctx.Locale.TrN .NumMembers "asc_work.org_people_one" "asc_work.org_people_n" .NumMembers}}</span>
 								</li>
 							{{end}}
 						</ul>
-						{{if .IsOrganizationOwner}}
-							<div class="ds-card-f"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.OrgLink}}/teams/new">{{ctx.Locale.Tr "org.create_new_team"}}</a></div>
-						{{end}}
+					</section>
+				{{end}}
+				{{if and .IsOrganizationMember .OrgAscOn}}
+					<section class="ds-card wk-org-policy" aria-labelledby="wk-org-policy" data-testid="org-merge-policy">
+						<div class="ds-card-b">
+							<h2 id="wk-org-policy" class="ds-t-h4">{{ctx.Locale.Tr "asc_work.org_policy_h"}}</h2>
+							<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_rp.p_org_lead"}}</p>
+							<a class="ds-link ds-sb" href="{{.OrgLink}}/settings/asc/agents">{{ctx.Locale.Tr "asc_work.org_policy_read"}}</a>
+						</div>
 					</section>
 				{{end}}
 			</aside>

@@ -68,6 +68,15 @@ type Extensions struct {
 	JetBrains string `json:"jetbrains,omitempty"`
 }
 
+// ReleasedDay writes ReleasedAt (YYYY-MM-DD) the way the design does, day first: "20 Oct 2026". A value that is not a date is
+// returned as it is.
+func (m *Manifest) ReleasedDay() string {
+	if t, err := time.Parse("2006-01-02", m.ReleasedAt); err == nil {
+		return t.Format("2 Jan 2006")
+	}
+	return m.ReleasedAt
+}
+
 // Manifest is manifest.json.
 type Manifest struct {
 	Version         string `json:"version"`
