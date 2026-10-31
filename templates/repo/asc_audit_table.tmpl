@@ -41,7 +41,15 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 			</div>
 		</form>
 
-		<form class="rv-card rv-gap rv-audit-filters" method="get" action="{{.Base}}" data-testid="asc-audit-filters" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.audit.filter"}}">
+		<nav class="rv-audit-pills" aria-label="{{ctx.Locale.Tr "asc_trust.audit.quick"}}">
+			<a class="rv-audit-pill{{if and (eq .Query.Outcome "") (eq .Query.Target "")}} on{{end}}" href="{{.Base}}">{{ctx.Locale.Tr "asc_trust.audit.quick_any"}}</a>
+			<a class="rv-audit-pill{{if eq .Query.Outcome "denied"}} on{{end}}" href="{{.Base}}?outcome=denied">{{ctx.Locale.Tr "asc_trust.audit.outcome_no"}}</a>
+			<a class="rv-audit-pill{{if eq .Query.Target "ag_"}} on{{end}}" href="{{.Base}}?target=ag_">{{ctx.Locale.Tr "asc_trust.audit.quick_agents"}}</a>
+			<a class="rv-audit-pill{{if eq .Query.Target ".asc/policy"}} on{{end}}" href="{{.Base}}?target=.asc%2Fpolicy">{{ctx.Locale.Tr "asc_trust.audit.quick_policy"}}</a>
+			<a class="rv-audit-pill rv-audit-pill-more" href="#asc-audit-filters">{{ctx.Locale.Tr "asc_trust.audit.filter"}}</a>
+		</nav>
+
+		<form class="rv-card rv-gap rv-audit-filters" method="get" action="{{.Base}}" id="asc-audit-filters" data-testid="asc-audit-filters" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.audit.filter"}}">
 			<div class="rv-card-b rv-audit-form">
 				<div class="rv-audit-row rv-audit-row-1">
 					<div class="rv-field">
@@ -115,6 +123,7 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 		{{end}}
 
 		{{if .Searched}}
+			<h2 class="rv-audit-count">{{ctx.Locale.Tr "asc_trust.audit.events"}} <span class="rv-muted">{{ctx.Locale.Tr "asc_trust.audit.shown" (len .Rows)}}</span></h2>
 			<div class="rv-tablewrap rv-gap rv-audit-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
 				<table class="rv-tbl rv-tbl-stack rv-audit-tbl" data-testid="asc-audit-table">
 					<caption class="rv-sr">{{ctx.Locale.Tr "asc_trust.audit.events"}}</caption>
@@ -140,8 +149,12 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 					</tbody>
 				</table>
 			</div>
+			<div class="rv-audit-bar">
+				<a class="rv-btn rv-btn-secondary" href="{{.ExportJSONL}}" download>{{ctx.Locale.Tr "asc_trust.audit.export"}}</a>
+				{{if .NextURL}}<a class="rv-btn rv-btn-primary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.audit.older"}}</a>{{end}}
+			</div>
 			{{if or .NextURL (gt .PageNo 1)}}
-				<div class="rv-acts rv-gap rv-center">
+				<div class="rv-acts rv-gap rv-center rv-audit-pager">
 					{{if gt .PageNo 1}}<a class="rv-btn rv-btn-ghost" href="{{.FirstURL}}">{{ctx.Locale.Tr "asc_trust.audit.first_page"}}</a>{{end}}
 					<span class="rv-muted" data-testid="asc-audit-page">{{ctx.Locale.Tr "asc_admin.page_n" .PageNo}}</span>
 					{{if .NextURL}}<a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next" data-testid="asc-audit-next">{{ctx.Locale.Tr "asc_trust.audit.older"}}</a>{{end}}
