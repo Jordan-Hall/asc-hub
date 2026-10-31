@@ -40,15 +40,16 @@ func TestStacksNamingAnIssue(t *testing.T) {
 
 	issue := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 1})
 	require.False(t, issue.IsPull)
+	owner := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2}) // owns repository 1
 
-	none, err := AscStacksOfIssue(t.Context(), issue)
+	none, err := AscStacksOfIssue(t.Context(), owner, issue)
 	require.NoError(t, err)
 	assert.Empty(t, none, "nothing names the issue")
 
 	// the top pull request names the issue with a closing word; the second mention of the same stack is the same stack
 	refer(t, issue, pr1.Issue, references.XRefActionNone)
 	refer(t, issue, pr2.Issue, references.XRefActionCloses)
-	stacks, err := AscStacksOfIssue(t.Context(), issue)
+	stacks, err := AscStacksOfIssue(t.Context(), owner, issue)
 	require.NoError(t, err)
 	require.Len(t, stacks, 1, "the pull requests of one stack are one stack")
 	st := stacks[0]
@@ -57,7 +58,7 @@ func TestStacksNamingAnIssue(t *testing.T) {
 	assert.Equal(t, st.Landed == len(st.Entries), st.Done())
 
 	// the chip of a list row
-	chips, err := AscIssueStackChips(t.Context(), issues_model.IssueList{issue})
+	chips, err := AscIssueStackChips(t.Context(), owner, issues_model.IssueList{issue})
 	require.NoError(t, err)
 	require.Contains(t, chips, issue.ID)
 	assert.True(t, chips[issue.ID].Closes)
@@ -79,11 +80,62 @@ func TestStacksNamingAnIssueIgnoresPullsThatAreNotStacked(t *testing.T) {
 	pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 1})
 	require.NoError(t, pr.LoadIssue(t.Context()))
 	issue := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 1})
+	owner := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 	refer(t, issue, pr.Issue, references.XRefActionCloses)
-	stacks, err := AscStacksOfIssue(t.Context(), issue)
+	stacks, err := AscStacksOfIssue(t.Context(), owner, issue)
 	require.NoError(t, err)
 	assert.Empty(t, stacks)
-	chips, err := AscIssueStackChips(t.Context(), issues_model.IssueList{issue})
+	chips, err := AscIssueStackChips(t.Context(), owner, issues_model.IssueList{issue})
 	require.NoError(t, err)
 	assert.Empty(t, chips)
+}
+
+// A pull request of a private repository that names a public issue must not show on that issue to anybody who cannot read
+// the pull requests of that repository: its title and the state of its stack are private.
+func TestStacksOfAPrivateRepositoryAreInvisibleToWhoCannotReadThem(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	issue := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 1}) // a public repository
+	require.NoError(t, issue.LoadRepo(t.Context()))
+	require.False(t, issue.Repo.IsPrivate)
+
+	// pull request 6 belongs to repository 3 of the organization org3, which is private
+	pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 6})
+	require.NoError(t, pr.LoadIssue(t.Context()))
+	require.NoError(t, pr.LoadBaseRepo(t.Context()))
+	require.True(t, pr.BaseRepo.IsPrivate, "the fixture repository is private")
+	require.NoError(t, issues_model.SetPullRequestAscStack(db.DefaultContext, pr, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk", 0))
+	refer(t, issue, pr.Issue, references.XRefActionCloses)
+
+	member := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})    // an owner of org3
+	nonMember := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5}) // belongs to other organizations only
+	admin := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})     // a site administrator
+	list := issues_model.IssueList{issue}
+
+	seen := func(viewer *user_model.User) (stacks, chips int, closing bool) {
+		st, err := AscStacksOfIssue(t.Context(), viewer, issue)
+		require.NoError(t, err)
+		ch, err := AscIssueStackChips(t.Context(), viewer, list)
+		require.NoError(t, err)
+		closed := *issue
+		closed.IsClosed = true
+		merged := make([]AscIssueStack, len(st))
+		copy(merged, st)
+		for i := range merged {
+			merged[i].Top.State = AscStackStateMerged // as if it had landed: the banner is built from what the viewer sees
+		}
+		return len(st), len(ch), AscClosingStackLanded(t.Context(), &closed, merged) != nil
+	}
+
+	for name, viewer := range map[string]*user_model.User{"anonymous": nil, "a person outside the organization": nonMember} {
+		stacks, chips, closing := seen(viewer)
+		assert.Zero(t, stacks, name)
+		assert.Zero(t, chips, name)
+		assert.False(t, closing, name)
+	}
+	for name, viewer := range map[string]*user_model.User{"a member": member, "a site administrator": admin} {
+		stacks, chips, closing := seen(viewer)
+		assert.Equal(t, 1, stacks, name)
+		assert.Equal(t, 1, chips, name)
+		assert.True(t, closing, name)
+	}
 }
