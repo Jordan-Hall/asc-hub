@@ -203,6 +203,11 @@ export async function seedAsc({api, upload, people, at, state}) {
   await review(refundRetry, 'maya', 'APPROVED', 'Refunds are rarer, so waiting longer is fine.');
   await review(tokio, 'priya', 'APPROVED', 'No feature gate is used.');
 
+  // Maya is asked to review two more stacks, so her inbox has things that need her (the others she has already answered)
+  for (const key of ['bump-tokio-1-41', 'ledger-export-csv']) {
+    const [first] = state.changes[key];
+    await api('POST', `/repos/acme/payments/pulls/${first}/requested_reviewers`, {reviewers: ['maya']}, {sudo: ASC_STACKS.find((x) => x.key === key).who, ok: [200, 201, 422]});
+  }
   // the releases are the hub's: a draft with its files, then published, which is what a person does in the browser. The hub writes
   // the tag through asc and tells asc about the release with the size and SHA-256 of each file. (A release made with
   // `asc release create` is only a record in asc: the hub has no tag or row for it, so its Releases page would not list it.)
