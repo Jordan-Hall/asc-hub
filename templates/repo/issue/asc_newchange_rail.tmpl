@@ -1,0 +1,55 @@
+{{/*
+The asc rail of the open-change form: the stack after this change, the files and what the policy will ask for.
+Template Attributes:
+* AscNewChangeRail: *repo.AscNewChangeRail (nil: nothing is shown)
+Every text comes from the repository or from a checked answer of asc and is escaped by the Go template.
+*/}}
+{{with .AscNewChangeRail}}
+<div class="rp-rail" data-testid="asc-newchange-rail">
+	{{if .Stack}}
+	<section class="rp-rail-sec" aria-labelledby="rp-rail-stack" data-testid="asc-rail-stack">
+		<h3 id="rp-rail-stack" class="rp-rail-h">{{ctx.Locale.Tr "asc_rp.rail_stack"}}</h3>
+		<ol class="rp-rail-list">
+			{{range .Stack}}
+			<li class="rp-rail-item{{if .Current}} rp-rail-current{{end}}"{{if .Current}} aria-current="true"{{end}}>
+				<code>{{.Change}}</code>
+				<span class="rp-rail-title">{{if .Title}}{{.Title}}{{else}}{{.Commit}}{{end}}</span>
+				{{if .Current}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_rp.rail_this"}}</span>{{end}}
+			</li>
+			{{end}}
+			{{if .StackMore}}<li class="rp-rail-item rp-dim">{{ctx.Locale.Tr "asc_rp.rail_more" .StackMore}}</li>{{end}}
+			{{if .Trunk}}<li class="rp-rail-item rp-dim"><code>{{.Trunk}}</code></li>{{end}}
+		</ol>
+	</section>
+	{{end}}
+	{{if .Files}}
+	<section class="rp-rail-sec" aria-labelledby="rp-rail-files" data-testid="asc-rail-files">
+		<h3 id="rp-rail-files" class="rp-rail-h">{{ctx.Locale.TrN .FilesTotal "asc_rp.rail_files_one" "asc_rp.rail_files_other" .FilesTotal}} <span class="rp-delta"><span class="rp-add">+{{.Add}}</span> <span class="rp-del">&minus;{{.Del}}</span></span></h3>
+		<ul class="rp-rail-list">
+			{{range $i, $f := .Files}}{{if lt $i $.AscNewChangeRail.FilesShown}}{{template "repo/issue/asc_newchange_rail_file" $f}}{{end}}{{end}}
+		</ul>
+		{{if gt .HiddenFiles 0}}
+		<details class="rp-rail-more" data-testid="asc-rail-files-more">
+			<summary>{{ctx.Locale.Tr "asc_rp.rail_show_all" .FilesTotal}}</summary>
+			<ul class="rp-rail-list">
+				{{range $i, $f := .Files}}{{if ge $i $.AscNewChangeRail.FilesShown}}{{template "repo/issue/asc_newchange_rail_file" $f}}{{end}}{{end}}
+			</ul>
+			{{if .Unlisted}}<div class="rp-dim">{{ctx.Locale.Tr "asc_rp.rail_more" .Unlisted}}</div>{{end}}
+		</details>
+		{{end}}
+	</section>
+	{{end}}
+	{{with .Policy}}{{if .Any}}
+	<section class="rp-rail-sec" aria-labelledby="rp-rail-policy" data-testid="asc-rail-policy">
+		<h3 id="rp-rail-policy" class="rp-rail-h">{{ctx.Locale.Tr "asc_rp.rail_policy"}}</h3>
+		<ul class="rp-rail-list">
+			{{if .Approvals}}<li data-testid="asc-rail-approvals">{{ctx.Locale.TrN .Approvals "asc_rp.rail_approvals_one" "asc_rp.rail_approvals_other" .Approvals}}</li>{{end}}
+			{{range .Checks}}<li data-testid="asc-rail-check">{{ctx.Locale.Tr "asc_rp.rail_check" .}}</li>{{end}}
+			{{if .Signed}}<li data-testid="asc-rail-signed">{{ctx.Locale.Tr "asc_rp.rail_signed"}}</li>{{end}}
+			{{if .Strategy}}<li data-testid="asc-rail-strategy">{{ctx.Locale.Tr "asc_rp.rail_strategy" .Strategy}}</li>{{end}}
+		</ul>
+	</section>
+	{{end}}{{end}}
+</div>
+<div class="divider"></div>
+{{end}}

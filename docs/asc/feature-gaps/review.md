@@ -8,9 +8,9 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 149 |
+| done | 150 |
 | ui-only-missing | 35 |
-| needs-hub-backend | 13 |
+| needs-hub-backend | 12 |
 | needs-asc-backend | 0 |
 | needs-both | 17 |
 | total | 214 |
@@ -116,7 +116,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | NewChange | Options: open as draft, keep as part of stack, land when approved and green, ask agent to babysit checks | needs-both | draft + auto-merge exist natively; babysit needs Agents.CreateRun trigger + hub option | L |
 | NewChange | Local checks start on open; 'signed with your key' note | done | templates/repo/issue/new_form.tmpl note under the intent for an asc repository: checks start on open, signed with your key when one is added (test: TestAscCompareNotesOnOpen) | - |
 | NewChange | Draft autosave on blur (1 s debounce), 'Save as draft', Ctrl+Enter opens | done | routers/web/repo/asc_newchange_draft.go: POST /{repo}/asc/newchange_draft keeps the title and description per person and comparison in one user setting (at most 10 drafts, 255 bytes of title and 32 KiB of description each, the oldest goes), the compare page fills the form from it unless the address brought text, and creating the change removes it; web_src/js/features/asc-newchange-draft.js saves on leaving a field after 1 s, 'Save as draft' and 'Discard draft' (new_form.tmpl); Ctrl+Enter opens from the title (js-quick-submit) and from the description; tests: TestAscNewChangeDraftSaveRestoreAndClear and others, asc-newchange-draft.test.js | - |
-| NewChange | Right rail: stack after this change, file list with Show all, 'What policy will ask for' preview | needs-hub-backend | routers/web/repo/compare.go + Changes.Stack and Policy.Evaluate LAND | M |
+| NewChange | Right rail: stack after this change, file list with Show all, 'What policy will ask for' preview | done | templates/repo/issue/asc_newchange_rail.tmpl at the top of the form's right column (new_form.tmpl); routers/web/repo/asc_newchange_rail.go prepareAscNewChangeRail (called from CompareDiff for a signed person in an asc repository): the stack of the head (Changes.Stack with the head commit as rev and the base branch as target, top first, the current change marked, subjects from the comparison's commits, at most 12), the files of the diff (eight open, the rest behind a details element), and the land requirements of Policy.Evaluate (approvals, checks, signed, merge strategy); a failed call leaves its part out; tests: TestAscRail*, TestPrepareAscNewChangeRail*, TestAscNewChangeRailTemplate | - |
 | NewChange | 'Review my diff first' self-review shortcut | done | templates/repo/diff/compare.tmpl | S |
 | NewChange | Blocked-by-secret-scan banner before open; nothing-to-compare; opened/draft toasts | needs-both | nothing-to-compare exists (repo.pulls.nothing_to_compare); secret block needs secretscan.Scan on head (proto/asc/v1/secretscan.proto) + hub gate | M |
 

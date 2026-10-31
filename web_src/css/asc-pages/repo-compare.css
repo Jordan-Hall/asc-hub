@@ -169,3 +169,55 @@
 .rp-cmp-has-pr .issue-title a {
   text-decoration: underline;
 }
+
+/* The asc rail of the open-change form: stack, files and what the policy will ask for. */
+.rp-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rp-rail-h {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.rp-rail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rp-rail-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.rp-rail-current {
+  font-weight: 600;
+}
+
+.rp-rail-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rp-rail-file {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rp-rail-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rp-rail-more > summary {
+  cursor: pointer;
+  margin-top: 6px;
+}
