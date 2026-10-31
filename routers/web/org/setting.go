@@ -219,6 +219,8 @@ func SettingsDelete(ctx *context.Context) {
 		return
 	}
 
+	ctx.Data["TransferCandidates"] = transferCandidates(ctx)
+	ctx.Data["TransferLink"] = ctx.Org.OrgLink + "/settings/transfer_owner"
 	ctx.HTML(http.StatusOK, tplSettingsDelete)
 }
 

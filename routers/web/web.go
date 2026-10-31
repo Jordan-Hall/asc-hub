@@ -1203,6 +1203,7 @@ func registerRoutes(m *web.Route) {
 				}, actions.MustEnableActions)
 
 				m.Methods("GET,POST", "/delete", org.SettingsDelete)
+				m.Post("/transfer_owner", org.SettingsTransferOwnership)
 
 				m.Group("/blocked_users", func() {
 					m.Get("", org_setting.BlockedUsers)
