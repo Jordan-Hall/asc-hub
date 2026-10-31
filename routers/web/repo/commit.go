@@ -470,6 +470,7 @@ func Diff(ctx *context.Context) {
 
 	if ctx.Data["PageIsWiki"] == nil {
 		prepareAscChange(ctx, commit, statuses, diff.TotalAddition, diff.TotalDeletion, diff.NumFiles)
+		prepareAscChangeFiles(ctx, commit, diff)
 	}
 
 	ctx.Data["OpenGraphTitle"] = commit.Summary() + " · " + base.ShortSha(commitID)

@@ -14,6 +14,11 @@ Template Attributes:
 	</span>
 </label>
 {{if .NewRepoIsAsc}}
+<fieldset class="ds-field rp-new-mode" data-testid="newrepo-mode">
+	<legend class="ds-label">{{ctx.Locale.Tr "asc_rp.newrepo_mode"}}</legend>
+	<label class="ds-radio"><input type="radio" name="working_mode" value="branchless"{{if ne .working_mode "branches"}} checked{{end}}> <strong>{{ctx.Locale.Tr "asc_rp.newrepo_mode_branchless"}}</strong> <span class="ds-hint">{{ctx.Locale.Tr "asc_rp.newrepo_mode_branchless_help"}}</span></label>
+	<label class="ds-radio"><input type="radio" name="working_mode" value="branches"{{if eq .working_mode "branches"}} checked{{end}}> <strong>{{ctx.Locale.Tr "asc_rp.newrepo_mode_branches"}}</strong> <span class="ds-hint">{{ctx.Locale.Tr "asc_rp.newrepo_mode_branches_help"}}</span></label>
+</fieldset>
 <label class="ds-switch rp-new-switch">
 	<input name="policy_file" type="checkbox" role="switch" {{if .policy_file}}checked{{end}} data-testid="newrepo-policy-file">
 	<span class="ds-switch-track"></span>
