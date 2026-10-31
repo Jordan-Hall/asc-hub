@@ -11,7 +11,7 @@ import {chromium} from '@playwright/test';
 import sharp from 'sharp';
 import {ANCHOR, ASC_SERVE, BOARDS_DIR, HUB_URL, OUT_DIR, PASSWORD, PIXEL_DIR, PORT, REPO_ROOT, STATE_FILE} from './config.mjs';
 import {compareStructure, comparePixels, deltas} from './compare.mjs';
-import {hideBoardStates, measure, settle} from './probe.mjs';
+import {hideBoardStates, measure, settle, unpinBottomBars} from './probe.mjs';
 import {writeReport} from './report.mjs';
 import {seed} from './seed.mjs';
 
@@ -134,6 +134,7 @@ async function shot(page, url, {width, height, compareHeight, board}) {
   if (resp) { status = resp.status(); finalUrl = resp.url(); }
   try { await page.waitForLoadState('networkidle', {timeout: 5000}); } catch { /* polling pages never go idle */ }
   if (board) await page.evaluate(hideBoardStates);
+  else if (width < 600) await page.evaluate(unpinBottomBars);
   await page.evaluate(settle);
   await sleep(120);
   const m = await page.evaluate(measure);
