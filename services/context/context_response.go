@@ -25,6 +25,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
 	"forgejo.org/modules/web/middleware"
+	"forgejo.org/services/ascnotify"
 )
 
 // RedirectToUser redirect to a differently-named user
@@ -82,6 +83,10 @@ func (ctx *Context) HTML(status int, name base.TplName) {
 	tmplStartTime := time.Now()
 	if !setting.IsProd {
 		ctx.Data["TemplateName"] = name
+	}
+	if _, set := ctx.Data["UserTimeZone"]; !set && ctx.IsSigned && ctx.Doer != nil {
+		// the zone the person chose on the profile page: <html data-tz> carries it to the script that draws times in it
+		ctx.Data["UserTimeZone"] = ascnotify.TimeZoneName(ctx, ctx.Doer.ID)
 	}
 	ctx.Data["TemplateLoadTimes"] = func() string {
 		return strconv.FormatInt(time.Since(tmplStartTime).Nanoseconds()/1e6, 10) + "ms"
