@@ -58,9 +58,15 @@ async function startHub() {
   }
   if (!existsSync(HUB_BIN)) throw new Error(`no hub binary at ${HUB_BIN}: build one with tests/pixel/build-hub.sh or set PIXEL_HUB_BIN`);
   console.log('starting the hub and seeding it');
-  hubSh('up');
-  await waitHub();
-  await seed();
+  try {
+    hubSh('up');
+    await waitHub();
+    await seed();
+  } catch (err) {
+    // a seed that fails must not leave the hub, asc serve and the model server running: they hold the ports of the next run
+    if (!args['keep-hub'] && !process.env.PIXEL_KEEP_HUB) { try { hubSh('stop'); } catch { /* nothing left to stop */ } }
+    throw err;
+  }
   hubSh('stop');
   backdate();
   hubSh('start');

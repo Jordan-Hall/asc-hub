@@ -234,6 +234,20 @@ type KV struct {
 	Key, Value string
 }
 
+var hashValue = regexp.MustCompile(`^[0-9a-f]{16,}$`)
+
+// shortHashLen is how many digits of a hash the table shows.
+const shortHashLen = 10
+
+// Short is the value for a cell of the table: a hash (16 or more lower case hexadecimal digits, as a commit, an object or a key) is cut to its first
+// ten digits and an ellipsis, the way a hash is written in a sentence. The whole value stays in the title of the row.
+func (k KV) Short() string {
+	if hashValue.MatchString(k.Value) {
+		return k.Value[:shortHashLen] + "…"
+	}
+	return k.Value
+}
+
 // AuditRow is one event, cleaned for drawing.
 type AuditRow struct {
 	Seq       uint64

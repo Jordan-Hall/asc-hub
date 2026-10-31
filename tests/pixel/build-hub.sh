@@ -8,5 +8,6 @@ if ! ls public/assets/css/index.*.css >/dev/null 2>&1; then
   BROWSERSLIST_IGNORE_OLD_DATA=true npx webpack
 fi
 mkdir -p tests/pixel/.bin
-go build -tags 'sqlite sqlite_unlock_notify' -o tests/pixel/.bin/hub .
+# the version the boards show (v1.4.2 in the admin banner, 1.4.2 in the footer); a build without it says "development"
+go build -tags 'sqlite sqlite_unlock_notify' -ldflags '-X "main.Version=1.4.2"' -o tests/pixel/.bin/hub .
 echo "built tests/pixel/.bin/hub"
