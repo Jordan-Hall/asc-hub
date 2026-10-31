@@ -51,7 +51,17 @@
 	<section class="ds-card" aria-labelledby="sp-blocked">
 		<div class="ds-card-h"><h2 id="sp-blocked">{{ctx.Locale.Tr "asc_work.sp_blocked_people"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_blocked_count" (len .BlockedUsers)}}</span></div>
 		{{template "shared/blocked_users_list" .}}
-		<form class="ds-card-b ds-form wk-inline-form" action="{{.PrivacyLink}}/block" method="post">
+		{{with .AscUndoUnblock}}
+		<div class="ds-banner ds-banner-ok" role="status" data-undo-ms="10000" data-testid="undo-unblock">
+			<form class="wk-inline-form" action="{{$.PrivacyLink}}/block" method="post">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="username" value="{{.}}">
+				<span>{{ctx.Locale.Tr "settings.unblock_undo_text" .}}</span>
+				<button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "settings.unblock_undo"}}</button>
+			</form>
+		</div>
+		{{end}}
+		<form class="ds-card-b ds-form wk-inline-form" action="{{.PrivacyLink}}/block" method="post" data-submit-confirm="{{ctx.Locale.Tr "settings.block_confirm"}}">
 			{{.CsrfTokenHtml}}
 			<div class="ds-inwrap">
 				{{svg "dsi-ban" 16}}

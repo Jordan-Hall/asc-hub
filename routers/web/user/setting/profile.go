@@ -388,6 +388,13 @@ func Appearance(ctx *context.Context) {
 	}
 	hiddenCommentTypes, _ = new(big.Int).SetString(val, 10) // we can safely ignore the failed conversion here
 
+	hide, err := user_model.GetUserSetting(ctx, ctx.Doer.ID, user_model.SettingsKeyHideResolved)
+	if err != nil {
+		ctx.ServerError("GetUserSetting", err)
+		return
+	}
+	ctx.Data["AscHideResolved"] = hide != "false"
+
 	ctx.Data["IsCommentTypeGroupChecked"] = func(commentTypeGroup string) bool {
 		return forms.IsUserHiddenCommentTypeGroupChecked(commentTypeGroup, hiddenCommentTypes)
 	}
@@ -492,6 +499,20 @@ func UpdateUserHints(ctx *context.Context) {
 	}
 
 	log.Trace("User settings updated: %s", ctx.Doer.Name)
+	ctx.Flash.Success(translation.NewLocale(ctx.Doer.Language).TrString("settings.update_hints_success"))
+	ctx.Redirect(setting.AppSubURL + "/user/settings/appearance")
+}
+
+// UpdateUserHideResolved saves whether resolved conversations start collapsed (the switch "Hide resolved comments").
+func UpdateUserHideResolved(ctx *context.Context) {
+	value := "false"
+	if ctx.FormBool("hide_resolved") {
+		value = "true"
+	}
+	if err := user_model.SetUserSetting(ctx, ctx.Doer.ID, user_model.SettingsKeyHideResolved, value); err != nil {
+		ctx.ServerError("SetUserSetting", err)
+		return
+	}
 	ctx.Flash.Success(translation.NewLocale(ctx.Doer.Language).TrString("settings.update_hints_success"))
 	ctx.Redirect(setting.AppSubURL + "/user/settings/appearance")
 }

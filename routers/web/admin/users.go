@@ -83,6 +83,7 @@ func Users(ctx *context.Context) {
 		}
 	}
 	ctx.Data["AdminUserFiltered"] = filtered
+	ctx.Data["AdminUserCounts"] = adminUserCounts(ctx)
 	ctx.PageData["adminUserListSearchForm"] = map[string]any{
 		"StatusFilterMap": statusFilterMap,
 		"SortType":        sortType,

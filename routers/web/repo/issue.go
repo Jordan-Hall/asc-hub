@@ -1408,6 +1408,17 @@ func prepareHiddenCommentType(ctx *context.Context) {
 		hiddenCommentTypes, _ = new(big.Int).SetString(val, 10) // we can safely ignore the failed conversion here
 	}
 
+	expandResolved := false
+	if ctx.IsSigned {
+		v, err := user_model.GetUserSetting(ctx, ctx.Doer.ID, user_model.SettingsKeyHideResolved)
+		if err != nil {
+			ctx.ServerError("GetUserSetting", err)
+			return
+		}
+		expandResolved = v == "false"
+	}
+	ctx.Data["AscExpandResolved"] = expandResolved
+
 	ctx.Data["ShouldShowCommentType"] = func(commentType issues_model.CommentType) bool {
 		return hiddenCommentTypes == nil || hiddenCommentTypes.Bit(int(commentType)) == 0
 	}

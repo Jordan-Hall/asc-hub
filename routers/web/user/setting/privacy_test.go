@@ -5,14 +5,17 @@ package setting
 
 import (
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"forgejo.org/models/db"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/structs"
 	"forgejo.org/services/contexttest"
+	user_service "forgejo.org/services/user"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,4 +54,29 @@ func TestPrivacyBlockDoesNotRevealHiddenAccounts(t *testing.T) {
 	}
 	require.NoError(t, err)
 	assert.False(t, user_model.IsBlocked(t.Context(), 2, hidden[0].ID), "nothing was blocked")
+}
+
+func TestUndoUnblockOfferLastsTenSecondsAndNamesAVisibleUnblockedPerson(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	now := time.Unix(1_700_000_000, 0)
+	offer := func(query string, at time.Time) string {
+		ctx, _ := contexttest.MockContext(t, "user/settings/privacy?"+query)
+		contexttest.LoadUser(t, ctx, 2)
+		ctx.IsSigned = true
+		return undoUnblockOffer(ctx, at)
+	}
+	q := func(name string, t0 time.Time) string {
+		return url.Values{"undo": {name}, "t": {strconv.FormatInt(t0.Unix(), 10)}}.Encode()
+	}
+	assert.Equal(t, "user4", offer(q("user4", now), now.Add(3*time.Second)))
+	assert.Empty(t, offer(q("user4", now), now.Add(11*time.Second)), "after ten seconds there is no offer")
+	assert.Empty(t, offer(q("user4", now), now.Add(-time.Second)), "an address from the future offers nothing")
+	assert.Empty(t, offer(q("user2", now), now), "not oneself")
+	assert.Empty(t, offer(q("no-such-person", now), now))
+	assert.Empty(t, offer("undo=user4&t=x", now))
+	assert.Empty(t, offer("", now))
+
+	// a person who is blocked now needs no undo
+	require.NoError(t, user_service.BlockUser(db.DefaultContext, 2, 4))
+	assert.Empty(t, offer(q("user4", now), now))
 }

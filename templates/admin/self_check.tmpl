@@ -12,6 +12,22 @@
 			<progress class="adm-meter {{if ge .MemPercent 85}}adm-meter-err{{else if ge .MemPercent 70}}adm-meter-warn{{else}}adm-meter-ok{{end}}" max="100" value="{{.MemPercent}}" aria-label="{{ctx.Locale.Tr "asc_admin.gauge_memory"}}">{{.MemPercent}}%</progress>
 			<div class="ds-stat-sub">{{ctx.Locale.TrSize .SysStatus.MemAllocated}} / {{ctx.Locale.TrSize .SysStatus.MemSys}}</div>
 		</div>
+		{{with .CPUGauge}}{{if .Known}}
+		<div class="ds-stat" data-testid="gauge-cpu">
+			<div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.gauge_cpu"}}</div>
+			<div class="ds-stat-value">{{.Percent}}%</div>
+			<progress class="adm-meter {{if ge .Percent 85}}adm-meter-err{{else if ge .Percent 70}}adm-meter-warn{{else}}adm-meter-ok{{end}}" max="100" value="{{.Percent}}" aria-label="{{ctx.Locale.Tr "asc_admin.gauge_cpu"}}">{{.Percent}}%</progress>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.gauge_cpu_sub"}}</div>
+		</div>
+		{{end}}{{end}}
+		{{with .DiskGauge}}{{if .Known}}
+		<div class="ds-stat" data-testid="gauge-disk">
+			<div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.gauge_disk"}}</div>
+			<div class="ds-stat-value">{{.Percent}}%</div>
+			<progress class="adm-meter {{if ge .Percent 90}}adm-meter-err{{else if ge .Percent 80}}adm-meter-warn{{else}}adm-meter-ok{{end}}" max="100" value="{{.Percent}}" aria-label="{{ctx.Locale.Tr "asc_admin.gauge_disk"}}">{{.Percent}}%</progress>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.gauge_disk_sub"}}</div>
+		</div>
+		{{end}}{{end}}
 		<div class="ds-stat">
 			<div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.gauge_goroutines"}}</div>
 			<div class="ds-stat-value">{{.SysStatus.NumGoroutine}}</div>

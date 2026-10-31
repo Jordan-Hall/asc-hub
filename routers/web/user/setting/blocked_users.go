@@ -5,6 +5,9 @@ package setting
 
 import (
 	"net/http"
+	"net/url"
+	"strconv"
+	"time"
 
 	"forgejo.org/models/db"
 	user_model "forgejo.org/models/user"
@@ -42,5 +45,11 @@ func UnblockUser(ctx *context.Context) {
 	}
 
 	ctx.Flash.Success(ctx.Tr("settings.user_unblock_success"))
-	ctx.Redirect(setting.AppSubURL + "/user/settings/privacy")
+	// The privacy page offers an Undo for ten seconds (it blocks the person again); the offer travels in the address and
+	// is judged again there, so a link kept for later offers nothing.
+	if u, err := user_model.GetUserByID(ctx, ctx.FormInt64("user_id")); err == nil && !u.IsOrganization() {
+		ctx.Redirect(privacyLink() + "?" + url.Values{"undo": {u.Name}, "t": {strconv.FormatInt(time.Now().Unix(), 10)}}.Encode())
+		return
+	}
+	ctx.Redirect(privacyLink())
 }
