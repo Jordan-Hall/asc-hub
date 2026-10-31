@@ -107,7 +107,11 @@
 }
 
 .wk-org-teamlist li {
-  padding: 12px 16px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--line-3);
 }
 
@@ -117,7 +121,7 @@
 
 .wk-org-team-name {
   color: var(--text);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   text-decoration: none;
 }
@@ -131,7 +135,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 2px 14px;
-  margin-top: 2px;
   color: var(--text-2);
   font-size: 13.5px;
 }
@@ -447,6 +450,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 6px 14px;
   margin-top: auto;
   color: var(--text-2);
@@ -603,4 +607,128 @@
   .wk-form-actions {
     margin-top: 0;
   }
+}
+
+.wk-team-card.is-selected {
+  border-color: var(--fill);
+  box-shadow: 0 0 0 1px var(--fill);
+}
+
+.wk-team-pick-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.wk-team-card {
+  position: relative;
+}
+
+.wk-team-card .avatar,
+.wk-team-card .wk-team-repos {
+  position: relative;
+  z-index: 1;
+}
+
+.wk-team-detail {
+  margin-top: 24px;
+}
+
+.wk-team-detail-h {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wk-team-split {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .wk-team-split {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.wk-team-sub {
+  margin-bottom: 8px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wk-team-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-team-rows li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line-2);
+}
+
+.wk-team-row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.wk-org-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.wk-org-agents {
+  padding: 0 16px 16px;
+}
+
+.wk-org-sub {
+  margin: 8px 0;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wk-org-agents .wk-org-avatars {
+  padding: 0;
+}
+
+.wk-org-agents .wk-agent-av {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--agent);
+  color: #fff;
+}
+
+.wk-org-policy .ds-card-b {
+  display: grid;
+  gap: 8px;
+}
+
+.wk-org-policy .ds-link {
+  text-decoration: none;
 }

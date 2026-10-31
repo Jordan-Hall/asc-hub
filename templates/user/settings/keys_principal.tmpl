@@ -31,8 +31,8 @@
 						{{if .HasRecentActivity}}<span class="ds-chip" data-tooltip-content="{{ctx.Locale.Tr "settings.principal_state_desc"}}">{{ctx.Locale.Tr "asc_work.sp_recently_used"}}</span>{{end}}
 					</div>
 					<div class="ds-li-meta">
-						<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>
-						<span>{{if .HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} {{DateUtils.AbsoluteShort .UpdatedUnix}}{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</span>
+						<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.Day .CreatedUnix)}}</span>
+						<span>{{if .HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} {{DateUtils.Day .UpdatedUnix}}{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</span>
 					</div>
 				</div>
 				<div class="wk-row-acts">

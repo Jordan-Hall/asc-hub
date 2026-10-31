@@ -17,7 +17,7 @@
 					{{template "admin/user/role_chip" .User}}
 					{{template "admin/user/twofa_chip" (dict "On" .TwoFactorEnabled)}}
 				</div>
-				<p class="ds-t-small ds-c-2 ds-break">{{.User.Email}} · {{ctx.Locale.Tr "asc_admin.joined_on" (DateUtils.AbsoluteShort .User.CreatedUnix)}} · {{if .User.LastLoginUnix}}{{ctx.Locale.Tr "asc_admin.last_active" (DateUtils.AbsoluteShort .User.LastLoginUnix)}}{{else}}{{ctx.Locale.Tr "admin.users.never_login"}}{{end}}</p>
+				<p class="ds-t-small ds-c-2 ds-break">{{.User.Email}} · {{ctx.Locale.Tr "asc_admin.joined_on" (DateUtils.Day .User.CreatedUnix)}} · {{if .User.LastLoginUnix}}{{ctx.Locale.Tr "asc_admin.last_active" (DateUtils.Day .User.LastLoginUnix)}}{{else}}{{ctx.Locale.Tr "admin.users.never_login"}}{{end}}</p>
 			</div>
 			<div class="adm-person-acts">
 				<a class="ds-btn ds-btn-secondary" href="{{.Link}}/edit">{{svg "dsi-pencil" 16}}{{ctx.Locale.Tr "admin.users.edit"}}</a>
@@ -87,7 +87,7 @@
 						<div class="ds-li-main">
 							<div class="ds-li-title">{{.Name}}</div>
 							<div class="ds-li-sub adm-mono ds-break">{{.Fingerprint}}</div>
-							<div class="ds-li-meta"><span>{{ctx.Locale.Tr "asc_admin.person_added" (DateUtils.AbsoluteShort .CreatedUnix)}}</span></div>
+							<div class="ds-li-meta"><span>{{ctx.Locale.Tr "asc_admin.person_added" (DateUtils.Day .CreatedUnix)}}</span></div>
 						</div>
 					</li>
 				{{else}}
@@ -103,7 +103,7 @@
 						<span class="adm-tile" aria-hidden="true">{{svg "dsi-key" 18}}</span>
 						<div class="ds-li-main">
 							<div class="ds-li-title adm-mono">{{.KeyID}}</div>
-							<div class="ds-li-meta"><span>{{ctx.Locale.Tr "asc_admin.person_added" (DateUtils.AbsoluteShort .AddedUnix)}}</span></div>
+							<div class="ds-li-meta"><span>{{ctx.Locale.Tr "asc_admin.person_added" (DateUtils.Day .AddedUnix)}}</span></div>
 						</div>
 					</li>
 				{{else}}
@@ -128,8 +128,8 @@
 									<div class="ds-li-title">{{.Label}} <span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr (print "asc_admin.person_session_" .Kind)}}</span></div>
 									<div class="ds-li-meta">
 										{{if .Scope}}<span class="adm-mono">{{.Scope}}</span>{{end}}
-										<span>{{ctx.Locale.Tr "asc_admin.person_added" (DateUtils.AbsoluteShort .Created)}}</span>
-										{{if not .LastUsed.IsZero}}<span>{{ctx.Locale.Tr "asc_admin.last_active" (DateUtils.AbsoluteShort .LastUsed)}}</span>{{end}}
+										<span>{{ctx.Locale.Tr "asc_admin.person_added" (DateUtils.Day .Created)}}</span>
+										{{if not .LastUsed.IsZero}}<span>{{ctx.Locale.Tr "asc_admin.last_active" (DateUtils.Day .LastUsed)}}</span>{{end}}
 									</div>
 								</div>
 								<form method="post" action="{{$.Link}}/sessions/revoke">

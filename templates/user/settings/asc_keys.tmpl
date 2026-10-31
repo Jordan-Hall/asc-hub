@@ -23,7 +23,7 @@
 						<div class="ds-li-sub ds-mono ds-break">{{.Fingerprint}}</div>
 						<div class="ds-li-meta">
 							<span>{{ctx.Locale.Tr "asc_work.sk_added" (DateUtils.TimeSince .Created)}}</span>
-							{{if not .Expires.IsZero}}<span>{{ctx.Locale.Tr "asc_work.sk_expires" (DateUtils.AbsoluteShort .Expires)}}</span>{{end}}
+							{{if not .Expires.IsZero}}<span>{{ctx.Locale.Tr "asc_work.sk_expires" (DateUtils.Day .Expires)}}</span>{{end}}
 							{{if not .LastUsed.IsZero}}<span>{{ctx.Locale.Tr "asc_work.sk_last_used" (DateUtils.TimeSince .LastUsed)}}</span>{{end}}
 							{{if not .Revoked.IsZero}}<span>{{ctx.Locale.Tr "asc_work.sk_revoked_at" (DateUtils.TimeSince .Revoked)}}{{if .RevokedReason}}: {{.RevokedReason}}{{end}}</span>{{end}}
 						</div>

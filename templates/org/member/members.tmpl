@@ -2,7 +2,7 @@
 <div role="main" aria-label="{{.Title}}" class="ds-main organization members wk-org">
 	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "org.members") "BackHref" .Org.HomeLink "BackLabel" .Org.DisplayName)}}
 	{{template "org/header" .}}
-	<div class="ds-container ds-container-wide wk-org-body wk-people-page">
+	<div class="ds-container wk-org-body wk-people-page">
 		{{template "base/alert" .}}
 		{{with .RoleUndo}}
 			<div class="ds-banner ds-banner-ok" role="status" data-testid="role-undo">

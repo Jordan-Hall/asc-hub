@@ -5,11 +5,11 @@
 		<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-restore-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Problem}}</div></div>
 	{{else}}
 	{{with .Preview}}
-		<div class="ds-banner ds-banner-warn" role="note" data-testid="asc-restore-warning"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_shell.bk_restore_loses_title"}}.</strong> {{ctx.Locale.Tr "asc_shell.bk_restore_loses" (DateUtils.AbsoluteShort .LosesSince)}}{{if .ReadOnly}} {{ctx.Locale.Tr "asc_shell.bk_restore_readonly"}}{{end}}</div></div>
+		<div class="ds-banner ds-banner-warn" role="note" data-testid="asc-restore-warning"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_shell.bk_restore_loses_title"}}.</strong> {{ctx.Locale.Tr "asc_shell.bk_restore_loses" (DateUtils.DayTime .LosesSince)}}{{if .ReadOnly}} {{ctx.Locale.Tr "asc_shell.bk_restore_readonly"}}{{end}}</div></div>
 		{{range .Warnings}}<div class="ds-banner ds-banner-warn" role="note"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.}}</div></div>{{end}}
 
 		<div class="ds-grid-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.bk_restore_holds"}}">
-			{{template "shared/ds/stat" (dict "Label" (ctx.Locale.Tr "asc_shell.bk_col_started") "Value" (DateUtils.AbsoluteShort .Backup.Started) "Sub" .Backup.Target)}}
+			{{template "shared/ds/stat" (dict "Label" (ctx.Locale.Tr "asc_shell.bk_col_started") "Value" (DateUtils.DayTime .Backup.Started) "Sub" .Backup.Target)}}
 			{{template "shared/ds/stat" (dict "Label" (ctx.Locale.Tr "asc_shell.bk_restore_database") "Value" .Database)}}
 			{{template "shared/ds/stat" (dict "Label" (ctx.Locale.Tr "asc_shell.bk_restore_objects") "Value" .Objects "Sub" .ObjectBytesText)}}
 		</div>

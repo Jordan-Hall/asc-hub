@@ -33,7 +33,7 @@
 							{{if eq .State "ready"}}
 								<span>{{ctx.Locale.TrSize .Size}}</span>
 								<span>{{ctx.Locale.Tr "asc_shell.export_rows" .Rows}}</span>
-								{{if not .Expires.IsZero}}<span>{{ctx.Locale.Tr "asc_shell.export_expires" (DateUtils.AbsoluteShort .Expires)}}</span>{{end}}
+								{{if not .Expires.IsZero}}<span>{{ctx.Locale.Tr "asc_shell.export_expires" (DateUtils.Day .Expires)}}</span>{{end}}
 							{{end}}
 						</div>
 						{{if .Error}}<p class="ds-hint ds-break">{{.Error}}</p>{{end}}
@@ -43,7 +43,7 @@
 						<form method="post" action="{{$.AscExport.URL}}/{{.ID}}/delete">
 							{{$.CsrfTokenHtml}}
 							<input type="hidden" name="op" value="{{index $.AscExport.DeleteOps .ID}}">
-							<button class="ds-btn ds-btn-danger" type="submit" aria-label="{{ctx.Locale.Tr "asc_shell.export_delete_for" (DateUtils.AbsoluteShort .Requested)}}">{{ctx.Locale.Tr "asc_shell.export_delete"}}</button>
+							<button class="ds-btn ds-btn-danger" type="submit" aria-label="{{ctx.Locale.Tr "asc_shell.export_delete_for" (DateUtils.Day .Requested)}}">{{ctx.Locale.Tr "asc_shell.export_delete"}}</button>
 						</form>
 					</div>
 				</li>
