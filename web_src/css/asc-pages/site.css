@@ -902,3 +902,156 @@
 .st-meta dt {
   font-weight: 600;
 }
+
+/* get started: the copy of the wide board (gs-d) and the shorter copy of the phone board (gs-m) */
+@media (max-width: 1023.98px) {
+  .site-started .gs-d,
+  .site-started .site-cmd-lines.gs-d {
+    display: none;
+  }
+
+  .site-started .site-started-head {
+    padding: 20px 0 12px;
+  }
+
+  .site-started .ds-cmd {
+    height: auto;
+    align-items: flex-start;
+  }
+
+  .site-started .ds-cmd code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .site-started .ds-cmd .ds-copy {
+    align-self: center;
+  }
+
+  .site-started .site-steps {
+    gap: 12px;
+  }
+
+  .site-started .site-step {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .site-started .site-step-h {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 2px;
+    align-items: center;
+  }
+
+  .site-started .site-step-h .site-step-num {
+    grid-row: 1 / span 2;
+    width: 32px;
+    height: 32px;
+  }
+
+  .site-started .site-step-sub {
+    grid-column: 2;
+    color: var(--text-2);
+    font-size: 14px;
+  }
+
+  .site-started .site-step.is-current {
+    border-color: var(--line);
+    box-shadow: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .site-started .gs-m {
+    display: none;
+  }
+}
+
+.site-started .site-cmd-lines {
+  display: grid;
+  gap: 4px;
+  align-items: start;
+  padding: 14px 16px;
+}
+
+.site-started .site-cmd-lines > div {
+  display: flex;
+  gap: 8px;
+}
+
+.site-started .site-health-t {
+  margin: 4px 0 8px;
+}
+
+.site-started .site-health-fix {
+  margin-top: 8px;
+}
+
+.site-started .site-hub-h {
+  margin: 20px 0 4px;
+}
+
+.site-started .site-look,
+.site-started .site-look-l,
+.site-started .ds-callout p {
+  margin: 0;
+}
+
+.site-started .site-look-l {
+  margin-top: 12px;
+}
+
+.site-started .site-keysl dd {
+  display: flex;
+  gap: 4px;
+}
+
+/* get started, as the boards size it: a 28px title, a wider split, rail cards with 18px inside */
+.site-started .site-started-head .ds-t-h1 {
+  font-size: 28px;
+  margin-top: 6px;
+}
+
+.site-started .site-rail .ds-card-b {
+  padding: 16px 18px;
+}
+
+@media (min-width: 1024px) {
+  .site-started .ds-container {
+    max-width: 1232px;
+  }
+
+  .site-started .site-started-split {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 28px;
+  }
+
+  .site-started .site-started-head {
+    padding: 36px 0 16px;
+  }
+
+  .site-started .site-started-head .ds-t-lead {
+    font-size: 16px;
+    line-height: 1.45;
+  }
+
+  .site-started .site-step {
+    padding: 22px;
+    gap: 14px;
+  }
+
+  .site-started .site-rail {
+    padding-top: 36px;
+  }
+
+  .site-started .site-checkl > div {
+    min-height: 35px;
+  }
+
+  .site-started .site-checkl dt,
+  .site-started .site-checkl dd {
+    font-size: 14.5px;
+  }
+}
