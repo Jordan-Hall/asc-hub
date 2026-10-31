@@ -40,6 +40,12 @@ type CreateRepoForm struct {
 	Readme        string
 	Template      bool
 
+	// asc: AGENTS.md and the policy file in the first commit (the policy file with its approvals and checks)
+	AgentsFile      bool
+	PolicyFile      bool
+	PolicyApprovals int
+	PolicyChecks    string `binding:"MaxSize(800)"`
+
 	RepoTemplate    int64
 	GitContent      bool
 	Topics          bool

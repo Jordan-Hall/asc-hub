@@ -48,6 +48,18 @@
 						</div>
 					</section>
 
+					<section class="rp-sec" data-testid="newrepo-asc">
+						<div class="rp-sec-h">
+							<div>
+								<h2 class="rp-sec-title">{{ctx.Locale.Tr "asc_rp.newrepo_asc_title"}}</h2>
+								<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.newrepo_asc_sub"}}</p>
+							</div>
+						</div>
+						<div class="rp-sec-b ds-stack ds-stack-16">
+							{{template "repo/create_asc" .}}
+						</div>
+					</section>
+
 					<details class="ds-acc rp-sec rp-new-adv">
 						<summary class="rp-sec-h">
 							<span class="rp-sec-title">{{ctx.Locale.Tr "repo.new_advanced"}}</span>
@@ -59,6 +71,9 @@
 					</details>
 				</div>
 
+				{{with .AscNewRepoQuota}}
+					<p class="ds-hint{{if .Reached}} rp-new-quota-reached{{end}}" data-testid="newrepo-quota" role="status">{{ctx.Locale.Tr "asc_rp.newrepo_quota" .Used .Limit}}{{if .Reached}} {{ctx.Locale.Tr "asc_rp.newrepo_quota_reached"}}{{end}}</p>
+				{{end}}
 				<div class="ds-sticky-actions rp-new-actions">
 					<button class="ds-btn ds-btn-primary ds-btn-lg" type="submit">{{ctx.Locale.Tr "repo.create_repo"}}</button>
 					<a class="ds-btn ds-btn-ghost ds-btn-lg" href="{{if .ContextUser}}{{.ContextUser.HomeLink}}{{else}}{{AppSubUrl}}/{{end}}">{{ctx.Locale.Tr "settings.cancel"}}</a>
