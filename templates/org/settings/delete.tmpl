@@ -1,6 +1,29 @@
 {{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "organization settings delete")}}
 
 			<div class="org-setting-content">
+				<h4 class="ds-card-top">{{ctx.Locale.Tr "org.settings.transfer_title"}}</h4>
+				<div class="ds-card ds-card-b ds-card-attach" data-testid="org-transfer">
+					<p>{{ctx.Locale.Tr "org.settings.transfer_desc"}}</p>
+					{{if .TransferCandidates}}
+					<form class="ui form ignore-dirty" action="{{.TransferLink}}" method="post">
+						{{.CsrfTokenHtml}}
+						<div class="inline required field">
+							<label for="new_owner">{{ctx.Locale.Tr "org.settings.transfer_new_owner"}}</label>
+							<select class="ds-select" id="new_owner" name="new_owner" required>
+								{{range .TransferCandidates}}<option value="{{.Name}}">{{.DisplayName}} ({{.Name}})</option>{{end}}
+							</select>
+						</div>
+						<div class="inline required field">
+							<label for="transfer_org_name">{{ctx.Locale.Tr "org.org_name_holder"}}</label>
+							<input class="ds-input" id="transfer_org_name" name="org_name" value="" autocomplete="off" required>
+						</div>
+						<label class="ds-check"><input type="checkbox" name="leave" value="true"> {{ctx.Locale.Tr "org.settings.transfer_leave"}}</label>
+						<button class="ds-btn ds-btn-danger" type="submit">{{ctx.Locale.Tr "org.settings.transfer_button"}}</button>
+					</form>
+					{{else}}
+					<p class="ds-hint">{{ctx.Locale.Tr "org.settings.transfer_nobody"}}</p>
+					{{end}}
+				</div>
 				<h4 class="ds-card-top">
 					{{ctx.Locale.Tr "org.settings.delete_account"}}
 				</h4>

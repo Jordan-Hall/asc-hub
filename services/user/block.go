@@ -119,8 +119,7 @@ func dropPendingReviewRequests(ctx context.Context, userID, blockID int64) error
 	}
 	var requests []*issues_model.Review
 	err := db.GetEngine(ctx).Where(builder.And(
-		// requests made to a person of this hub only: the removal below looks for exactly these, and when it finds none it
-		// ends its (nested) transaction early, which would take the block with it
+		// requests made to a person of this hub only: the removal below looks for exactly these
 		builder.Eq{"type": issues_model.ReviewTypeRequest, "original_author_id": 0},
 		builder.Or(
 			builder.And(builder.Eq{"reviewer_id": blockID}, builder.In("issue_id", openPulls(builder.Eq{"repository.owner_id": userID}))),

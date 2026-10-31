@@ -1,6 +1,30 @@
 {{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings organization wk-settings")}}
 {{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.orgs") "Lead" (ctx.Locale.Tr "asc_work.sp_orgs_lead"))}}
 <div class="wk-sp">
+	{{if .OrgInvites}}
+	<section class="ds-card" aria-labelledby="sp-invites" data-testid="org-invites">
+		<div class="ds-card-h"><h2 id="sp-invites">{{ctx.Locale.Tr "settings.org_invites"}}</h2><span class="ds-card-sub">{{len .OrgInvites}}</span></div>
+		<ul class="ds-list wk-rows">
+			{{range .OrgInvites}}
+				<li class="ds-li wk-row">
+					<span class="ds-li-av">{{ctx.AvatarUtils.Avatar .Org 40}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title">{{template "shared/user/name" .Org}} <span class="ds-chip ds-chip-outline">{{.Team.Name}}</span></div>
+						{{if .Inviter}}<div class="ds-li-sub">{{ctx.Locale.Tr "settings.org_invite_by" .Inviter.Name}}</div>{{end}}
+					</div>
+					<div class="wk-row-acts">
+						<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.Accept}}">{{ctx.Locale.Tr "settings.org_invite_accept"}}</a>
+						<form action="{{AppSubUrl}}/user/settings/organization/decline" method="post">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="token" value="{{.Token}}">
+							<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{ctx.Locale.Tr "settings.org_invite_decline"}}</button>
+						</form>
+					</div>
+				</li>
+			{{end}}
+		</ul>
+	</section>
+	{{end}}
 	<section class="ds-card" aria-labelledby="sp-orgs">
 		<div class="ds-card-h">
 			<h2 id="sp-orgs">{{ctx.Locale.Tr "settings.orgs"}}</h2>

@@ -4,6 +4,7 @@
 package issues_test
 
 import (
+	"context"
 	"testing"
 
 	"forgejo.org/models/db"
@@ -471,5 +472,52 @@ func TestAddTeamReviewRequest(t *testing.T) {
 		comment, err = issues_model.AddTeamReviewRequest(db.DefaultContext, issue, team, doer)
 		require.NoError(t, err)
 		require.Nil(t, comment)
+	})
+}
+
+// A review request function that has nothing to do must still commit: when it runs inside the transaction of its caller, a
+// Close() without Commit() would roll back the caller's work as well.
+func TestReviewRequestsWithNothingToDoKeepTheCallersTransaction(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	issue := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 2})
+	require.NoError(t, issue.LoadRepo(t.Context()))
+	doer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	reviewer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
+	team := unittest.AssertExistsAndLoadBean(t, &org_model.Team{ID: 2})
+
+	marker := func(n int64) *user_model.BlockedUser { return &user_model.BlockedUser{UserID: 1, BlockID: n} }
+	inOuterTx := func(t *testing.T, n int64, f func(ctx context.Context)) {
+		t.Helper()
+		require.NoError(t, db.WithTx(t.Context(), func(ctx context.Context) error {
+			_, err := db.GetEngine(ctx).Insert(marker(n))
+			require.NoError(t, err)
+			f(ctx)
+			return nil
+		}))
+		unittest.AssertExistsAndLoadBean(t, marker(n))
+	}
+
+	t.Run("RemoveReviewRequest without a request", func(t *testing.T) {
+		inOuterTx(t, 101, func(ctx context.Context) {
+			c, err := issues_model.RemoveReviewRequest(ctx, issue, reviewer, doer)
+			require.NoError(t, err)
+			assert.Nil(t, c)
+		})
+	})
+	t.Run("RemoveTeamReviewRequest without a request", func(t *testing.T) {
+		inOuterTx(t, 102, func(ctx context.Context) {
+			c, err := issues_model.RemoveTeamReviewRequest(ctx, issue, team, doer)
+			require.NoError(t, err)
+			assert.Nil(t, c)
+		})
+	})
+	t.Run("AddTeamReviewRequest for a team that was asked already", func(t *testing.T) {
+		_, err := issues_model.CreateReview(t.Context(), issues_model.CreateReviewOptions{Type: issues_model.ReviewTypeRequest, Issue: issue, ReviewerTeam: team})
+		require.NoError(t, err)
+		inOuterTx(t, 103, func(ctx context.Context) {
+			c, err := issues_model.AddTeamReviewRequest(ctx, issue, team, doer)
+			require.NoError(t, err)
+			assert.Nil(t, c, "nothing was added")
+		})
 	})
 }
