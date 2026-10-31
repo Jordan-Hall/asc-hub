@@ -37,6 +37,13 @@ async function webSession(user) {
   if (login.status !== 303) throw new Error(`web login of ${user} -> ${login.status}`);
   return {
     async text(path) { return (await call(path)).text(); },
+    /** Posts a form with the CSRF token of the page `from` and returns the Location of the answer. */
+    async post(path, fields, from, idField = 'op_id') {
+      const html = await (await call(from)).text();
+      const op = new RegExp(`name="${idField}"[^>]*value="([^"]+)"`).exec(html)?.[1] ?? new RegExp(`value="([^"]+)"[^>]*name="${idField}"`).exec(html)?.[1] ?? '';
+      const res = await call(path, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({_csrf: csrf(html), [idField]: op, ...fields})});
+      return {status: res.status, location: res.headers.get('location') || ''};
+    },
     async form(path, fields, from = path, status = 303) {
       const html = await (await call(from)).text();
       const op = /name="op"[^>]*value="([^"]+)"/.exec(html)?.[1] ?? /value="([^"]+)"[^>]*name="op"/.exec(html)?.[1] ?? '';
@@ -88,6 +95,19 @@ export async function seedAsc({api, upload, people, at, state}) {
   const admin = await webSession('maya');
   await admin.form('/admin/asc/agents', {allow_agents: '1', budget_usd: '400'});
   await admin.form('/-/asc/agents/features', {enabled: '1'}, '/user/settings');
+
+  // the key of the team points at the model server hub.sh starts next to asc (it lists one model and answers every request with a short text),
+  // so the key can be tested and an agent run can start and end; asc accepts a plain loopback endpoint under ASC_ALLOW_LOOPBACK_HTTP
+  const modelPort = ASC_PORT + 50;
+  const added = await admin.post('/user/settings/asc/ai/keys', {label: 'Team key', provider: 'openai_compatible', base_url: `http://127.0.0.1:${modelPort}`, default_model: 'pixel-model', monthly_cap: '400', api_key: 'sk-pixel-harness-0000000000000000'}, '/user/settings/asc/ai');
+  const keyPath = /\/user\/settings\/asc\/ai\/keys\/[^/?#]+/.exec(added.location)?.[0];
+  if (added.status !== 303 || !keyPath) throw new Error(`the AI key was not added: ${added.status} ${added.location}`);
+  const tested = await admin.post(`${keyPath}/test`, {}, keyPath, 'op_id');
+  if (![200, 303].includes(tested.status)) throw new Error(`the AI key was not tested: ${tested.status}`);
+
+  // one agent run (the first, so run 1): a task on the payments repository, which the model server answers with "Nothing to change."
+  const run = await admin.post('/acme/payments/asc/agents/new', {title: 'Cursor pagination for the ledger export', task: 'Add cursor pagination to the ledger export, with a test for the last page.', paths: 'src/**'}, '/acme/payments/asc/agents/new', 'op');
+  if (run.status !== 303 || !/\/asc\/agents\/runs\/1\b/.test(run.location)) throw new Error(`the agent run was not started: ${run.status} ${run.location}`);
 
   // the backups page: a schedule that writes to the one target of the server, and one backup made now
   const op = () => crypto.randomUUID();
@@ -141,6 +161,11 @@ export async function seedAsc({api, upload, people, at, state}) {
     state.changes[s.key] = s.changes.map((c) => numberOf[c.title]);
     if (state.changes[s.key].some((n) => n === undefined)) throw new Error(`a change of ${s.key} has no pull request: ${JSON.stringify(numberOf)}`);
     state.prs[s.key] = state.changes[s.key][s.shown];
+  }
+  // a stack is a pull request on the hub (refs/pull/N/head), with no branch; the compare boards name one, so each tip gets a branch of its key
+  for (const s of ASC_STACKS) {
+    const pr = await api('GET', `/repos/acme/payments/pulls/${state.prs[s.key]}`);
+    await api('POST', '/repos/acme/payments/branches', {new_branch_name: s.key, old_ref_name: pr.head.sha}, {ok: [201, 409]});
   }
   const [wire] = state.changes['retry-with-backoff'];
   const [refundRetry] = state.changes['refund-idempotency'];
