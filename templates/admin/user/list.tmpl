@@ -26,12 +26,12 @@
 		</form>
 		{{$q := QueryEscape .Keyword}}
 		<nav class="ds-scrollx" aria-label="{{ctx.Locale.Tr "asc_admin.views"}}">
-			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_all") "Href" (print AppSubUrl "/admin/users?q=" $q) "Active" (not .AdminUserFiltered))}}
-			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_admins") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_admin%5D=1") "Active" (eq (index $f "is_admin") "1"))}}
-			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_2fa_off") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_2fa_enabled%5D=0") "Active" (eq (index $f "is_2fa_enabled") "0"))}}
-			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_inactive") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_active%5D=0") "Active" (eq (index $f "is_active") "0"))}}
-			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "asc_admin.filter_suspended") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_prohibit_login%5D=1") "Active" (eq (index $f "is_prohibit_login") "1"))}}
-			{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "admin.users.list_status_filter.is_restricted") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_restricted%5D=1") "Active" (eq (index $f "is_restricted") "1"))}}
+			{{template "shared/ds/pill" (dict "Count" $.AdminUserCounts.All "Label" (ctx.Locale.Tr "asc_admin.filter_all") "Href" (print AppSubUrl "/admin/users?q=" $q) "Active" (not .AdminUserFiltered))}}
+			{{template "shared/ds/pill" (dict "Count" $.AdminUserCounts.Admins "Label" (ctx.Locale.Tr "asc_admin.filter_admins") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_admin%5D=1") "Active" (eq (index $f "is_admin") "1"))}}
+			{{template "shared/ds/pill" (dict "Count" $.AdminUserCounts.TwoFAOff "Label" (ctx.Locale.Tr "asc_admin.filter_2fa_off") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_2fa_enabled%5D=0") "Active" (eq (index $f "is_2fa_enabled") "0"))}}
+			{{template "shared/ds/pill" (dict "Count" $.AdminUserCounts.Inactive "Label" (ctx.Locale.Tr "asc_admin.filter_inactive") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_active%5D=0") "Active" (eq (index $f "is_active") "0"))}}
+			{{template "shared/ds/pill" (dict "Count" $.AdminUserCounts.Suspended "Label" (ctx.Locale.Tr "asc_admin.filter_suspended") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_prohibit_login%5D=1") "Active" (eq (index $f "is_prohibit_login") "1"))}}
+			{{template "shared/ds/pill" (dict "Count" $.AdminUserCounts.Restricted "Label" (ctx.Locale.Tr "admin.users.list_status_filter.is_restricted") "Href" (print AppSubUrl "/admin/users?q=" $q "&status_filter%5Bis_restricted%5D=1") "Active" (eq (index $f "is_restricted") "1"))}}
 		</nav>
 	</div>
 
