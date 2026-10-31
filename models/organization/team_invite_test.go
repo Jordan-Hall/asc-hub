@@ -104,3 +104,44 @@ func TestTeamInvite(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+func TestPendingInvitesForUser(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	team := unittest.AssertExistsAndLoadBean(t, &organization.Team{ID: 3})
+	doer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
+	user4 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4}) // user4@example.com, confirmed
+	stranger := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+
+	// made for the account, made for a confirmed address (other case), made for an address nobody has confirmed, made for someone else
+	forAccount, err := organization.CreateTeamInviteForUser(db.DefaultContext, doer, user4, team)
+	require.NoError(t, err)
+	byMail, err := organization.CreateTeamInviteByEmail(db.DefaultContext, doer, team, "User4@Example.com")
+	require.NoError(t, err)
+	_, err = organization.CreateTeamInviteByEmail(db.DefaultContext, doer, team, "nobody-has-confirmed-this@example.com")
+	require.NoError(t, err)
+	_, err = organization.CreateTeamInviteForUser(db.DefaultContext, doer, stranger, team)
+	require.NoError(t, err)
+
+	got, err := organization.GetPendingInvitesForUser(db.DefaultContext, user4)
+	require.NoError(t, err)
+	var tokens []string
+	for _, inv := range got {
+		tokens = append(tokens, inv.Token)
+	}
+	assert.ElementsMatch(t, []string{forAccount.Token, byMail.Token}, tokens, "the account's and the confirmed address's, nothing else")
+
+	// declining: only the person's own invitation, and it is gone afterwards
+	assert.True(t, organization.IsErrTeamInviteNotFound(organization.DeclineInviteForUser(db.DefaultContext, stranger, byMail.Token)), "not theirs: it looks as if it did not exist")
+	require.NoError(t, organization.DeclineInviteForUser(db.DefaultContext, user4, byMail.Token))
+	got, err = organization.GetPendingInvitesForUser(db.DefaultContext, user4)
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, forAccount.Token, got[0].Token)
+	assert.True(t, organization.IsErrTeamInviteNotFound(organization.DeclineInviteForUser(db.DefaultContext, user4, byMail.Token)))
+
+	// a person who is in the team already is not asked again
+	require.NoError(t, db.Insert(db.DefaultContext, &organization.TeamUser{OrgID: team.OrgID, TeamID: team.ID, UID: user4.ID}))
+	got, err = organization.GetPendingInvitesForUser(db.DefaultContext, user4)
+	require.NoError(t, err)
+	assert.Empty(t, got)
+}

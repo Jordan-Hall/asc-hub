@@ -1,9 +1,28 @@
-/** Asks before a form is sent: a form with data-submit-confirm shows its text in the browser's confirm dialog. */
-export function onSubmitConfirm(e, ask = (text) => window.confirm(text)) {
-  const form = e.target?.closest?.('form[data-submit-confirm]');
+import $ from 'jquery';
+
+/** Opens the hub's confirm modal for a form and calls `approve` when the person says yes. The modal gets the typed name. */
+export function openConfirmModal(form, approve) {
+  const $dialog = $(form.getAttribute('data-confirm-modal'));
+  $dialog.find('.name').text(form.querySelector('[data-confirm-name]')?.value ?? '');
+  $dialog.modal({closable: false, onApprove: approve}).modal('show');
+}
+
+/**
+ * Asks before a form is sent: a form with data-confirm-modal="#id" opens that modal first and is sent only when the person
+ * confirms (also when it was sent with the Enter key). Returns true when the send was stopped.
+ */
+export function onSubmitConfirm(e, open = openConfirmModal) {
+  const form = e.target?.closest?.('form[data-confirm-modal]');
   if (!form) return false;
-  if (ask(form.getAttribute('data-submit-confirm') || '')) return false;
+  if (form.hasAttribute('data-confirmed')) { // the send that the modal let through
+    form.removeAttribute('data-confirmed');
+    return false;
+  }
   e.preventDefault();
+  open(form, () => {
+    form.setAttribute('data-confirmed', '');
+    form.requestSubmit();
+  });
   return true;
 }
 

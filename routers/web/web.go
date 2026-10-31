@@ -875,6 +875,7 @@ func registerRoutes(m *web.Route) {
 		}, actions.MustEnableActions)
 
 		m.Get("/organization", user_setting.Organization)
+		m.Post("/organization/decline", user_setting.DeclineOrgInvite)
 		m.Get("/repos", user_setting.Repos)
 		m.Post("/repos/unadopted", user_setting.AdoptOrDeleteRepository)
 

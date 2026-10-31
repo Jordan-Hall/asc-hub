@@ -1,22 +1,36 @@
 import {onSubmitConfirm, expireUndos} from './asc-confirm.js';
 
-test('a form with data-submit-confirm is stopped unless the person agrees', () => {
-  document.body.innerHTML = '<form id="f" data-submit-confirm="Block maya?"><button></button></form><form id="g"></form>';
-  const make = (id) => {
-    const e = new Event('submit', {cancelable: true});
-    Object.defineProperty(e, 'target', {value: document.getElementById(id)});
-    return e;
+function submitEvent(id) {
+  const e = new Event('submit', {cancelable: true});
+  Object.defineProperty(e, 'target', {value: document.getElementById(id)});
+  return e;
+}
+
+test('a form with data-confirm-modal is stopped, opens its modal and is sent only on approval', () => {
+  document.body.innerHTML = '<form id="f" data-confirm-modal="#m"><input data-confirm-name value="maya"><button></button></form><form id="g"></form>';
+  const f = document.getElementById('f');
+  f.requestSubmit = () => { f.dispatchEvent(submitEvent('f')) };
+  let approve = null;
+  let opened = null;
+  const open = (form, ok) => { opened = form; approve = ok };
+
+  const first = submitEvent('f');
+  expect(onSubmitConfirm(first, open)).toBe(true);
+  expect(first.defaultPrevented).toBe(true);
+  expect(opened.id).toBe('f');
+
+  // approving sends the form again; that send is let through once
+  let sent = 0;
+  f.requestSubmit = () => {
+    const again = submitEvent('f');
+    if (!onSubmitConfirm(again, open)) sent++;
   };
-  let asked = '';
-  const no = make('f');
-  expect(onSubmitConfirm(no, (t) => { asked = t; return false })).toBe(true);
-  expect(asked).toBe('Block maya?');
-  expect(no.defaultPrevented).toBe(true);
-  const yes = make('f');
-  expect(onSubmitConfirm(yes, () => true)).toBe(false);
-  expect(yes.defaultPrevented).toBe(false);
-  const other = make('g');
-  expect(onSubmitConfirm(other, () => false)).toBe(false);
+  approve();
+  expect(sent).toBe(1);
+  expect(f.hasAttribute('data-confirmed')).toBe(false);
+
+  const other = submitEvent('g');
+  expect(onSubmitConfirm(other, open)).toBe(false);
   expect(other.defaultPrevented).toBe(false);
 });
 
