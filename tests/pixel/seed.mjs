@@ -149,6 +149,12 @@ export async function seed() {
   // releases (with asc serve the asc client makes them, with their assets)
   if (!ASC_SERVE) await api('POST', '/repos/acme/payments/releases', {tag_name: 'v2.18.0', target_commitish: 'main', name: 'v2.18.0', body: '## Notes\n\nIdempotent refunds and provider failover.'});
   if (!ASC_SERVE) await api('POST', '/repos/acme/payments/releases', {tag_name: 'v2.19.0-rc1', target_commitish: 'main', name: 'v2.19.0 candidate', body: 'Release candidate.', prerelease: true});
+  // what the phone boards of the settings pages list: three webhooks (the last one fails to deliver), four secrets and three variables
+  for (const [url, events] of [['https://ci.acme.dev/hooks/asc', ['push', 'pull_request']], ['https://chat.acme.dev/api/asc-notify', ['pull_request_review_request', 'action_run_recipient']], ['https://staging.acme.dev/deploy', ['release']]]) {
+    await api('POST', '/repos/acme/payments/hooks', {type: 'gitea', active: true, events, config: {url, content_type: 'json', secret: 'whsec_' + url.length}});
+  }
+  for (const name of ['CARD_PROVIDER_API_KEY', 'RELEASE_SIGNING_KEY', 'SENTRY_DSN', 'STAGING_DEPLOY_TOKEN']) await api('PUT', `/repos/acme/payments/actions/secrets/${name}`, {data: 'pixel-harness-value'});
+  for (const [name, value] of [['RUST_LOG', 'info'], ['PROVIDER_ENV', 'sandbox'], ['DEPLOY_REGION', 'eu-west-2']]) await api('POST', `/repos/acme/payments/actions/variables/${name}`, {value});
   // facts the mapping needs
   const main = await api('GET', '/repos/acme/payments/branches/main');
   state.sha = main.commit.id;

@@ -1502,7 +1502,7 @@
    "board": "Mobile-RepoSettingsGeneral",
    "num": "F1m",
    "title": "Mobile: General",
-   "route": "/acme/payments/settings",
+   "route": "/acme/payments/settings#settings-general",
    "as": "maya",
    "viewport": "mobile",
    "themes": [

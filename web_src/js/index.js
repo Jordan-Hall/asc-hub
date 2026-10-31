@@ -56,6 +56,7 @@ import {initRepoArchiveLinks} from './features/repo-common.js';
 import {initRepoMigrationStatusChecker} from './features/repo-migrate.js';
 import {initAscByoMigration} from './features/asc-byo.js';
 import {initAscUi} from './features/asc-ui.js';
+import {initAscSettingsFind} from './features/asc-settings-find.js';
 import {initDsShell} from './features/ds-shell.js';
 import {initDsToast} from './features/ds-toast.js';
 import {initLivePreview, initImagePreview, initLayoutToggle, initPasswordStrength} from './features/ds-forms.js';
@@ -203,6 +204,7 @@ onDomReady(() => {
   initRepoMigrationStatusChecker();
   initAscByoMigration();
   initAscUi();
+  initAscSettingsFind();
   initDsShell();
   initDsToast();
   initLivePreview();
