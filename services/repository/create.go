@@ -46,10 +46,35 @@ type CreateRepoOptions struct {
 	MirrorInterval   string
 	ObjectFormatName string
 	Website          string
+
+	// AgentsFile and PolicyFile ask for AGENTS.md and .asc/policy.toml in the first commit (the policy file only where asc
+	// keeps the repository). PolicyMaintainer is the login that maintains the repository, PolicyApprovals and PolicyChecks
+	// are what landing needs; see asc_init_files.go. Either makes a first commit even without AutoInit.
+	AgentsFile       bool
+	PolicyFile       bool
+	PolicyMaintainer string
+	PolicyApprovals  int
+	PolicyChecks     []string
 }
 
 // repoInitFiles returns the files of the first commit of a repository: the README, the .gitignore and the license.
 func repoInitFiles(repo *repo_model.Repository, opts CreateRepoOptions) ([]repostore.FileOp, error) {
+	extra, err := ascExtraFiles(repo, opts)
+	if err != nil {
+		return nil, err
+	}
+	if !opts.AutoInit {
+		return extra, nil
+	}
+	ops, err := baseInitFiles(repo, opts)
+	if err != nil {
+		return nil, err
+	}
+	return append(ops, extra...), nil
+}
+
+// baseInitFiles are the README, the .gitignore and the license.
+func baseInitFiles(repo *repo_model.Repository, opts CreateRepoOptions) ([]repostore.FileOp, error) {
 	authorSig := repo.Owner.NewGitSig()
 	var ops []repostore.FileOp
 
@@ -125,15 +150,19 @@ func initRepository(ctx context.Context, repoPath string, u *user_model.User, re
 func fillRepository(ctx context.Context, repoPath string, u *user_model.User, repo *repo_model.Repository, opts CreateRepoOptions) (err error) {
 
 	// Initialize repository according to user's choice.
-	if opts.AutoInit {
+	committed := false
+	if opts.wantsFirstCommit() {
 		ops, err := repoInitFiles(repo, opts)
 		if err != nil {
 			return fmt.Errorf("prepareRepoCommit: %w", err)
 		}
 
-		// Apply changes and commit.
-		if err = initRepoCommit(ctx, repo, u, opts.DefaultBranch, ops); err != nil {
-			return fmt.Errorf("initRepoCommit: %w", err)
+		// Apply changes and commit. A request for the policy file alone, in a repository asc does not keep, has no file.
+		if len(ops) > 0 {
+			if err = initRepoCommit(ctx, repo, u, opts.DefaultBranch, ops); err != nil {
+				return fmt.Errorf("initRepoCommit: %w", err)
+			}
+			committed = true
 		}
 	}
 
@@ -143,7 +172,7 @@ func fillRepository(ctx context.Context, repoPath string, u *user_model.User, re
 		return fmt.Errorf("getRepositoryByID: %w", err)
 	}
 
-	if !opts.AutoInit {
+	if !committed {
 		repo.IsEmpty = true
 	}
 
@@ -219,7 +248,7 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 		IsTemplate:                      opts.IsTemplate,
 		CloseIssuesViaCommitInAnyBranch: setting.Repository.DefaultCloseIssuesViaCommitsInAnyBranch,
 		Status:                          opts.Status,
-		IsEmpty:                         !opts.AutoInit,
+		IsEmpty:                         !opts.wantsFirstCommit(),
 		TrustModel:                      opts.TrustModel,
 		IsMirror:                        opts.IsMirror,
 		DefaultBranch:                   opts.DefaultBranch,
