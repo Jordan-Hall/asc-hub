@@ -1873,6 +1873,7 @@ func registerRoutes(m *web.Route) {
 			m.Get("/asc/symbols", repo.AscSymbols)
 			m.Get("/asc/compare", repo.AscCompare)
 			m.Get("/asc/draft_context", reqSignIn, repo.AscDraftContext)
+			m.Post("/asc/newchange_draft", reqSignIn, context.RepoMustNotBeArchived(), reqRepoPullsReader, repo.AscNewChangeDraftSave)
 			registerAscTrustRepoRoutes(m, reqSignIn)
 			m.Get("/commit/{sha:([a-f0-9]{4,64})$}", repo.SetEditorconfigIfExists, repo.SetDiffViewStyle, repo.SetWhitespaceBehavior, repo.Diff)
 			m.Get("/commit/{sha:([a-f0-9]{4,64})$}/load-branches-and-tags", repo.LoadBranchesAndTags)
