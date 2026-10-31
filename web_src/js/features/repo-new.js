@@ -1,7 +1,7 @@
 import {GET} from '../modules/fetch.js';
 
 /** Shows the answer of the name check on its line. Only text is assigned. */
-export function applyNameCheck(line, answer) {
+export function applyNameCheck(line, answer, input = document.getElementById('repo_name')) {
   if (!line) return;
   if (!answer) {
     line.hidden = true;
@@ -11,7 +11,7 @@ export function applyNameCheck(line, answer) {
   line.textContent = answer.ok ? (line.getAttribute('data-ok-text') || '') : String(answer.message ?? '');
   line.classList.toggle('is-err', !answer.ok);
   line.classList.toggle('is-ok', Boolean(answer.ok));
-  document.getElementById('repo_name')?.setAttribute('aria-invalid', answer.ok ? 'false' : 'true');
+  input?.setAttribute('aria-invalid', answer.ok ? 'false' : 'true');
 }
 
 let timer = 0;

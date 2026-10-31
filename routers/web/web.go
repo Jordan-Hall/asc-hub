@@ -765,6 +765,7 @@ func registerRoutes(m *web.Route) {
 
 	m.Group("/user/settings", func() {
 		m.Get("", user_setting.Profile)
+		m.Get("/username_check", user_setting.UsernameCheck)
 		m.Post("", web.Bind(forms.UpdateProfileForm{}), user_setting.ProfilePost)
 		m.Get("/change_password", auth.MustChangePassword)
 		m.Post("/change_password", web.Bind(forms.MustChangePasswordForm{}), auth.MustChangePasswordPost)
