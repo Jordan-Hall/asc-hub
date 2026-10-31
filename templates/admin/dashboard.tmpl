@@ -76,6 +76,26 @@
 		</section>
 	</div>
 
+	{{if .AuditRecent}}
+	<section class="ds-card adm-sec" aria-labelledby="adm-audit" data-testid="dashboard-audit">
+		<div class="ds-card-h">
+			<h2 id="adm-audit">{{ctx.Locale.Tr "asc_admin.recent_audit"}}</h2>
+			<span class="adm-card-h-end"><a href="{{AppSubUrl}}/admin/asc/audit">{{ctx.Locale.Tr "asc_admin.recent_audit_all"}} {{svg "dsi-arrow-right" 16}}</a></span>
+		</div>
+		<ul class="adm-rows">
+			{{range .AuditRecent}}
+				<li class="ds-li">
+					<span class="ds-dot ds-dot-{{if eq .Tone "ok"}}ok{{else if eq .Tone "no"}}warn{{else}}err{{end}}" aria-hidden="true"></span>
+					<div class="ds-li-main">
+						<div class="ds-li-title"><span>{{.Actor}}</span> <span>{{.What}}</span></div>
+						<div class="ds-li-sub">{{if .Repo}}{{.Repo}} &middot; {{end}}{{if .Target}}<code class="adm-mono">{{.Target}}</code> &middot; {{end}}{{DateUtils.AbsoluteShort .Time}}</div>
+					</div>
+				</li>
+			{{end}}
+		</ul>
+	</section>
+	{{end}}
+
 	<section class="adm-sec" aria-labelledby="adm-ops">
 		<div class="adm-sec-h">
 			<h2 id="adm-ops">{{ctx.Locale.Tr "admin.dashboard.operations"}}</h2>

@@ -37,6 +37,15 @@ type fakeInstanceAgents struct {
 	sets      []*ascv1.SetInstanceAgentsRequest
 	appends   []*ascv1.AppendAuditRequest
 	appendErr error
+	events    []*ascv1.AuditEvent
+	listed    []*ascv1.ListAuditRequest
+}
+
+func (f *fakeInstanceAgents) List(_ gocontext.Context, r *ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.listed = append(f.listed, r)
+	return &ascv1.ListAuditResponse{Events: f.events}, nil
 }
 
 func (f *fakeInstanceAgents) Append(_ gocontext.Context, r *ascv1.AppendAuditRequest) (*ascv1.AppendAuditResponse, error) {
