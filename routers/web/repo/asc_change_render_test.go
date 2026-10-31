@@ -10,6 +10,7 @@ import (
 
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
+	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/templates"
 	"forgejo.org/services/contexttest"
@@ -33,6 +34,7 @@ func TestChangeFactsRender(t *testing.T) {
 		ctx.Data["ChangeWhere"] = &changeWhere{OnDefault: true, Branch: "main", Tags: []string{"v2.18.0"}}
 		ctx.Data["ChangeChecks"] = []*changeCheck{{Name: "build", State: "success", Tone: "ok"}, {Name: "lint", State: "failure", Tone: "err", Target: "https://ci.example.org/lint"}}
 		ctx.Data["ChangeRevertLink"] = "/user2/repo1/pulls/2/asc/revert"
+		ctx.Data["AscChangeFiles"] = ascChangeFilesOf(diffOf("src/a.go", "go.sum"), map[string]ascv1.ChangeClass{"go.sum": ascv1.ChangeClass_CHANGE_CLASS_LOCKFILE}, false, "/user2/repo1/commit/abc")
 		ctx.HTML(http.StatusOK, base.TplName(tpl))
 		body := resp.Body.String()
 		require.Equal(t, http.StatusOK, resp.Code, body)
@@ -44,6 +46,11 @@ func TestChangeFactsRender(t *testing.T) {
 	assert.Contains(t, body, "Because &lt;i&gt;reasons&lt;/i&gt;.")
 	assert.Contains(t, body, "asc_rp.stack_pos")
 	assert.Contains(t, body, "aria-disabled=\"true\"", "the first and last change have a disabled neighbour")
+	assert.Contains(t, body, `data-testid="change-groups"`)
+	assert.Contains(t, body, `data-group="generated"`)
+	assert.NotContains(t, body, `data-group="generated" open`, "generated files start folded")
+	assert.Contains(t, body, `data-group="behaviour" open`)
+	assert.NotContains(t, body, "change-large")
 
 	// the right rail: review, checks, where it is now and undo
 	rail := render("repo/change_rail")
