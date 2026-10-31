@@ -13,6 +13,7 @@ import (
 	"forgejo.org/models/asymkey"
 	"forgejo.org/models/auth"
 	"forgejo.org/models/db"
+	"forgejo.org/models/organization"
 	"forgejo.org/modules/ascdownload"
 	"forgejo.org/modules/markup"
 	"forgejo.org/modules/markup/markdown"
@@ -60,15 +61,28 @@ func AscGetStarted(ctx *context.Context) {
 	done := 0
 	connected := tokens > 0
 	hasRepo := doer.NumRepos > 0
+	// the command line has signed in, so it is installed and connected: two steps; the third is a repository, the
+	// fourth a team (an organization the person belongs to)
 	if connected {
-		done++
+		done += 2
 	}
 	if hasRepo {
 		done++
 	}
+	orgs, err := organization.GetUserOrgsList(ctx, doer)
+	if err != nil {
+		ctx.ServerError("GetUserOrgsList", err)
+		return
+	}
+	hasOrg := len(orgs) > 0
+	if hasOrg {
+		done++
+	}
 	ctx.Data["Title"] = ctx.Locale.TrString("asc_site.started_title")
 	ctx.Data["PageIsAscGetStarted"] = true
+	ctx.Data["GSName"] = doer.GetDisplayName()
 	ctx.Data["GSConnected"] = connected
+	ctx.Data["GSHasOrg"] = hasOrg
 	ctx.Data["GSHasRepo"] = hasRepo
 	ctx.Data["GSKeys"] = keys
 	ctx.Data["GSDone"] = done
