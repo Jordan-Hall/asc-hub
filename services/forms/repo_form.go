@@ -41,6 +41,7 @@ type CreateRepoForm struct {
 	Template      bool
 
 	// asc: AGENTS.md and the policy file in the first commit (the policy file with its approvals and checks)
+	WorkingMode     string // "branchless" or "branches"; anything else leaves asc's default
 	AgentsFile      bool
 	PolicyFile      bool
 	PolicyApprovals int
