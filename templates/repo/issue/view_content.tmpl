@@ -8,6 +8,11 @@
 
 	{{$createdStr:= DateUtils.TimeSince .Issue.CreatedUnix}}
 	<div class="issue-content-left comment-list prevent-before-timeline">
+		{{with .AscClosedByStack}}
+		<div class="ds-banner ds-banner-ok" role="status" data-testid="closed-by-stack">
+			{{ctx.Locale.Tr "repo.issues.asc_closed_by" .Top.Index .Top.Title}} <a href="#comment-form">{{ctx.Locale.Tr "repo.issues.reopen_issue"}}</a>
+		</div>
+		{{end}}
 		<div class="ui timeline">
 			<div id="{{.Issue.HashTag}}" class="timeline-item comment first">
 				{{if .Issue.OriginalAuthor}}
