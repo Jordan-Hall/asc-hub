@@ -119,6 +119,8 @@ func TestAscAgentsMayDoEndpointJudgesTheAgentAndTheScope(t *testing.T) {
 
 	calls := hub.callsOf("Policy.Evaluate")
 	require.Len(t, calls, 2)
+	isUserCredential(t, calls[0]) // as the person: asc answers for another principal only to a maintainer
+	isUserCredential(t, calls[1])
 	w := calls[0].req.(*ascv1.EvaluatePolicyRequest)
 	assert.Equal(t, ascv1.PolicyAction_POLICY_ACTION_WRITE, w.GetAction())
 	assert.Equal(t, "agent", w.GetPrincipal().GetKind())
@@ -158,6 +160,9 @@ func TestAscAgentsNewFormShowsWhatTheRunMayDo(t *testing.T) {
 	assert.Contains(t, p.body, `data-testid="asc-agent-maydo"`)
 	assert.Contains(t, p.body, "<code>src/**</code>", "with no scope typed the default scope of the policy is judged")
 	assert.Contains(t, p.body, `data-asc-maydo-input`)
+	for _, c := range hub.callsOf("Policy.Evaluate") {
+		isUserCredential(t, c)
+	}
 
 	hub.fail("Policy.Evaluate", status.Error(codes.Unavailable, "down"))
 	p = runAgents(t, agentsReq{path: testRunsPath + "/new", user: agentsOwner, features: true}, AscAgentsNew)

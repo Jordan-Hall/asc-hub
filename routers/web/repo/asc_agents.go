@@ -487,14 +487,15 @@ func ascAgentsRenderForm(ctx *context.Context, env *ascAgentsEnv, form *ascAgent
 	defer cancelRead()
 	policy := ascAgentPolicyOf(readCtx, env.ref())
 	ctx.Data["AscAgentPolicy"] = policy
-	changes, _ := ascagentui.ParseCount(form.Budget.Changes, 1<<20)
-	paths, _ := ascagentui.ParseCount(form.Budget.Paths, 1<<20)
-	ctx.Data["AscAgentMayDo"] = ascAgentMayDoOf(readCtx, env.ref(), form.Agent, ascAgentMayDoScope(form.Paths, policy), uint32(changes), uint32(paths))
 
 	if uctx, done, ok := ascAgentsWriteCtx(ctx, ""); ok {
 		defer done()
 		keys := ascAgentKeyOptions(ctx, uctx, ascv1.NewAiProvidersClient(conn))
 		ctx.Data["AscAgentKeys"] = keys
+		// Policy.Evaluate for another principal answers only a maintainer, so it is asked as the person, not as the hub.
+		changes, _ := ascagentui.ParseCount(form.Budget.Changes, 1<<20)
+		paths, _ := ascagentui.ParseCount(form.Budget.Paths, 1<<20)
+		ctx.Data["AscAgentMayDo"] = ascAgentMayDoOf(uctx, env.ref(), form.Agent, ascAgentMayDoScope(form.Paths, policy), uint32(changes), uint32(paths))
 		ascAgentsLoadNewExtras(ctx, env, readCtx, uctx, form)
 		models := map[string][]string{}
 		for _, k := range keys {
