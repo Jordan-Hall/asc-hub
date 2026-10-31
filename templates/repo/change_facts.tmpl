@@ -12,6 +12,23 @@
 		<div><dt>{{ctx.Locale.Tr "asc_rp.fact_files"}}</dt><dd class="ds-num">{{ctx.Locale.PrettyNumber .ChangeFacts.Files}}</dd></div>
 		{{if .ChangeFacts.ChecksTotal}}<div><dt>{{ctx.Locale.Tr "asc_rp.fact_checks"}}</dt><dd class="ds-num">{{ctx.Locale.Tr "asc_rp.checks_n_of_n" .ChangeFacts.ChecksPass .ChangeFacts.ChecksTotal}}</dd></div>{{end}}
 	</dl>
+	{{with .AscChangeFiles}}
+	<section class="ds-card rp-groups" aria-labelledby="rp-groups-h" data-testid="change-groups">
+		<h2 class="rp-rail-title" id="rp-groups-h">{{ctx.Locale.Tr "asc_rp.groups_title" .Total}}</h2>
+		{{range .Groups}}
+		<details class="rp-group" data-group="{{.Key}}"{{if not .Folded}} open{{end}}>
+			<summary><span class="rp-group-name">{{ctx.Locale.Tr (print "asc_rp.group_" .Key)}}</span> <span class="ds-num">{{.Count}}</span> <span class="rp-delta"><span class="rp-add">+{{.Add}}</span> <span class="rp-del">&minus;{{.Del}}</span></span>{{if .Folded}} <span class="rp-quiet">{{ctx.Locale.Tr "asc_rp.group_folded"}}</span>{{end}}</summary>
+			<ul class="rp-group-files">
+				{{range .Files}}<li><a href="{{.Link}}"><code>{{.Name}}</code></a> <span class="rp-delta"><span class="rp-add">+{{.Add}}</span> <span class="rp-del">&minus;{{.Del}}</span></span></li>{{end}}
+				{{if .More}}<li class="rp-quiet">{{ctx.Locale.Tr "asc_rp.rail_more" .More}}</li>{{end}}
+			</ul>
+		</details>
+		{{end}}
+		{{if .Hidden}}
+		<p class="rp-groups-large" data-testid="change-large" role="status">{{ctx.Locale.Tr "asc_rp.large_state" .Total .Shown}} <a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.AllLink}}">{{ctx.Locale.Tr "asc_rp.large_show_more" .Hidden}}</a></p>
+		{{end}}
+	</section>
+	{{end}}
 	{{with .ChangeStack}}
 	<nav class="ds-card rp-stackpos" aria-label="{{ctx.Locale.Tr "asc_rp.stack_pos_label"}}">
 		{{if .Prev}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Prev.Link}}" rel="prev">{{svg "dsi-chevron-left" 16}}{{ctx.Locale.Tr "repo.diff.commit.previous-short"}}</a>{{else}}<span class="ds-btn ds-btn-secondary ds-btn-sm" aria-disabled="true">{{svg "dsi-chevron-left" 16}}{{ctx.Locale.Tr "repo.diff.commit.previous-short"}}</span>{{end}}

@@ -23,6 +23,13 @@ import (
 	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/templates/vars"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascsync"
+)
+
+// The working modes of a new repository kept in asc (the radio of the new-repository page).
+const (
+	WorkingModeBranchless = "branchless"
+	WorkingModeBranches   = "branches"
 )
 
 // CreateRepoOptions contains the create repository options
@@ -50,6 +57,8 @@ type CreateRepoOptions struct {
 	// AgentsFile and PolicyFile ask for AGENTS.md and .asc/policy.toml in the first commit (the policy file only where asc
 	// keeps the repository). PolicyMaintainer is the login that maintains the repository, PolicyApprovals and PolicyChecks
 	// are what landing needs; see asc_init_files.go. Either makes a first commit even without AutoInit.
+	// WorkingMode is "branchless" or "branches" to set the ref policy of a new repository that asc keeps; empty leaves asc's default.
+	WorkingMode      string
 	AgentsFile       bool
 	PolicyFile       bool
 	PolicyMaintainer string
@@ -142,6 +151,12 @@ func baseInitFiles(repo *repo_model.Repository, opts CreateRepoOptions) ([]repos
 func initRepository(ctx context.Context, repoPath string, u *user_model.User, repo *repo_model.Repository, opts CreateRepoOptions) (created bool, err error) {
 	if err = repo_module.CheckInitRepositoryFor(ctx, repo, opts.ObjectFormatName); err != nil {
 		return false, err
+	}
+	// The ref policy is set while the repository is still empty, so the first commit is made under it.
+	if opts.WorkingMode != "" && repo.GetStorageBackend() == string(gitrepo.StorageBackendAsc) {
+		if err = ascsync.SetBranchless(ctx, repo, opts.WorkingMode == WorkingModeBranchless); err != nil {
+			return true, fmt.Errorf("working mode: %w", err)
+		}
 	}
 	return true, fillRepository(ctx, repoPath, u, repo, opts)
 }
