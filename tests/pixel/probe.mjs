@@ -8,7 +8,30 @@ export function hideBoardStates() {
     // never hide the block that holds the page title: that would be the page itself
     if (wrapper && !wrapper.querySelector('h1, header[role=banner]')) wrapper.style.display = 'none';
   }
+  // a phone board without state labels lists its states one after the other, each in a .mscr section with a caption.
+  // The page is the first; a later state that is a variant of it (a sheet, loading, empty, error) is not on the live page
+  if (!document.querySelector('.sect-label')) {
+    const variant = /sheet|loading|empty|error|no results|no [a-z]+ yet|offline|expired|denied|dialog|modal|skeleton|failed/i;
+    for (const s of [...document.querySelectorAll('.mscr')].slice(1)) {
+      const cap = s.querySelector('.mcap');
+      if (cap && variant.test(cap.textContent || '')) s.style.display = 'none';
+    }
+  }
   for (const note of document.querySelectorAll('.anno')) note.style.display = 'none'; // the design notes under the footer
+}
+
+/**
+ * A full-page capture puts a bar that is fixed to the bottom of the window (the phone's bottom navigation) at the
+ * height of the window, in the middle of the page. The boards draw it after the content, so the live page is
+ * photographed with such a bar laid out at the end of the page.
+ */
+export function unpinBottomBars() {
+  for (const el of document.querySelectorAll('body *')) {
+    const cs = getComputedStyle(el);
+    if (cs.position !== 'fixed') continue;
+    const r = el.getBoundingClientRect();
+    if (r.width >= window.innerWidth * 0.9 && Math.abs(r.bottom - window.innerHeight) < 2) { el.style.position = 'static'; document.body.appendChild(el); }
+  }
 }
 
 /** Makes both renderings quiet: no animation, no caret, no scrollbars, fonts loaded. */
