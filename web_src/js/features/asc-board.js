@@ -25,7 +25,7 @@ export function applyDecision(card, panel, answer) {
   }
   const count = panel?.querySelector('[data-asc-needs-count]');
   if (count) {
-    const n = Math.max(0, Number.parseInt(count.textContent, 10) - 1);
+    const n = Math.max(0, Number.parseInt(count.textContent) - 1);
     count.textContent = String(Number.isNaN(n) ? 0 : n);
   }
   return true;
@@ -180,7 +180,7 @@ function onClick(e) {
 
 /** The row ids of a queue list, in order. */
 export function queueIds(list) {
-  return [...list.querySelectorAll('[data-q-change]')].map((li) => li.getAttribute('data-q-change'));
+  return Array.from(list.querySelectorAll('[data-q-change]'), (li) => li.getAttribute('data-q-change'));
 }
 
 /** Draws a live answer on the list: the estimate lines and the median. Returns true when the set of entries changed. */
