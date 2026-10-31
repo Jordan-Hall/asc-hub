@@ -18,7 +18,7 @@ ASC Hub is one container. The image (`ghcr.io/<owner>/asc-hub`, built from `Dock
 | Hub, web and API | 3000 | yes, behind your TLS proxy |
 | `asc serve` | 127.0.0.1:7890 in the container | no |
 
-HTTPS is the only inbound port a hub needs. The image starts no SSH server and exposes only port 3000; git over SSH is an opt-in ([Git over SSH](#git-over-ssh-optional)). Clients use `asc auth login --host <this hub>` with an access token, and `git` over HTTPS through the git-compatible endpoint.
+HTTPS is the only inbound port a hub needs. The image starts no SSH server and exposes only port 3000; git over SSH is an opt-in ([Git over SSH](#git-over-ssh-optional)). Clients use `asc auth login --host <this hub>` with an access token, and `git` over HTTPS through the git-compatible endpoint. If a `git clone` with `https://TOKEN@<hub>/...` answers 401 (seen with git 2.55 and libcurl 8.5), put a colon after the token: `https://TOKEN:@<hub>/<owner>/<repo>.git`. Or use a credential helper, or `git -c http.proactiveAuth=basic clone ...`.
 
 The hub and `asc serve` meet on loopback inside the container, so the hub's client needs no TLS to reach it, and `asc serve` has no route or published port of its own. Clients reach the ASC API through the hub's address: `GET /.well-known/asc` announces `[asc] PUBLIC_URL`, which defaults to your `ROOT_URL`.
 
@@ -289,3 +289,22 @@ By hand:
 - `curl -fsS https://hub.example.org/.well-known/asc` returns `{"server":"...","repos":"*"}`; a 404 means `[asc] ENABLED` is false or `SERVER_URL` is empty.
 - Look in the container log for `asc-hub:` lines and for `[asc]` validation errors; an invalid `[asc]` value stops the start.
 - `asc clone https://hub.example.org/<owner>/<repo>` with the `asc` CLI, for the ASC-native path that the smoke test does not use.
+
+## The default branch asc protects
+
+asc protects one branch of each repository (path rules, secret scanning, review, signing): the trunk it holds. The hub
+tells asc the trunk when a repository is made, when a migration finishes importing, and whenever the default branch
+changes in the hub (settings or a rename). A repository imported by an older hub, or whose default branch changed
+before the hub told asc, can have a different branch protected than the one people push to, and the real default
+branch is then unscanned.
+
+Find and repair them (needs an asc that has `RepoAdmin set_default_branch`; the check changes nothing without `--fix`):
+
+```sh
+forgejo doctor check --run asc-default-branch            # lists the repositories that protect the wrong branch (or says asc does not report it)
+forgejo doctor check --run asc-default-branch --fix      # tells asc the hub's default branch for each of them
+```
+
+The check is idempotent: a repository whose trunk is right is not touched, and every change asc makes is in its audit
+log as `repo.default_branch` (with `from` and `to`). Empty repositories and repositories still being migrated are
+skipped. Run it once after updating the hub and asc together; new repositories need nothing.
