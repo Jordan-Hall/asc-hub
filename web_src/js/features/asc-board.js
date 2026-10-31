@@ -124,6 +124,55 @@ function onEstimateInput(e) {
   }, 600);
 }
 
+/** Draws a may-do answer on its card. Only text is assigned; nothing from the answer is parsed as markup. */
+export function applyMayDo(card, answer, doc = document) {
+  const run = card.querySelector('[data-md-run]');
+  const unknown = card.querySelector('[data-md-unknown]');
+  const list = card.querySelector('[data-md-writes]');
+  if (!run || !unknown || !list) return;
+  const ok = Boolean(answer?.known);
+  run.hidden = !ok;
+  unknown.hidden = ok;
+  list.replaceChildren();
+  if (!ok) return;
+  const state = card.querySelector('[data-md-run-state]');
+  state.textContent = answer.run_allowed ? card.getAttribute('data-t-run-ok') : card.getAttribute('data-t-run-no');
+  state.className = answer.run_allowed ? 'rv-can' : 'rv-cannot';
+  card.querySelector('[data-md-run-reason]').textContent = String(answer.run_reason ?? '');
+  for (const w of Array.isArray(answer.writes) ? answer.writes : []) {
+    const li = doc.createElement('li');
+    const chip = doc.createElement('span');
+    chip.className = w.allowed ? 'rv-can' : 'rv-cannot';
+    chip.textContent = card.getAttribute(w.allowed ? 'data-t-allowed' : 'data-t-refused');
+    const code = doc.createElement('code');
+    code.textContent = String(w.glob ?? '');
+    li.append(chip, ' ', card.getAttribute('data-t-write') || 'write', ' ', code);
+    if (w.reason) {
+      const why = doc.createElement('span');
+      why.className = 'rv-muted';
+      why.textContent = ` ${w.reason}`;
+      li.append(why);
+    }
+    list.append(li);
+  }
+}
+
+let mayDoTimer = 0;
+function onMayDoInput(e) {
+  if (!e.target.closest?.('[data-asc-maydo-input]')) return;
+  const card = document.querySelector('[data-asc-maydo]');
+  if (!card) return;
+  clearTimeout(mayDoTimer);
+  mayDoTimer = setTimeout(async () => {
+    const q = new URLSearchParams();
+    for (const el of document.querySelectorAll('[data-asc-maydo-input]')) q.set(el.getAttribute('name'), el.value.trim());
+    try {
+      const res = await GET(`${card.getAttribute('data-asc-maydo')}?${q}`, {headers: {Accept: 'application/json'}});
+      if (res.ok) applyMayDo(card, await res.json());
+    } catch { /* the card is a hint; the server still checks the update */ }
+  }, 600);
+}
+
 function onClick(e) {
   const b = e.target.closest?.('[data-asc-reuse]');
   if (b) reuseTask(b);
@@ -181,6 +230,7 @@ export function initAscBoard() {
   if (queue) followQueue(queue);
   document.addEventListener('click', onClick);
   document.addEventListener('input', onEstimateInput);
+  document.addEventListener('input', onMayDoInput);
   document.addEventListener('submit', onDecide);
   document.addEventListener('input', onFilterInput);
   document.addEventListener('change', onSelectChange);

@@ -1,0 +1,18 @@
+{{/*
+What this run may do, from Policy.Evaluate for the agent (routers/web/repo/asc_agents_maydo.go). Dot: the page data.
+Template Attributes:
+* AscAgentMayDo: ascAgentMayDo (Known, RunAllowed, RunReason, Writes). Nothing is drawn when asc did not answer.
+The script refreshes the card as the scope or the limits change; the server decides again on every update.
+*/}}
+{{with .AscAgentMayDo}}
+	<section class="rv-card ag-maydo" aria-labelledby="ag-maydo-h" data-testid="asc-agent-maydo" data-asc-maydo="{{$.AscAgentsBase}}/may-do" data-t-write="{{ctx.Locale.Tr "asc_review.maydo_write"}}" data-t-allowed="{{ctx.Locale.Tr "asc_review.maydo_allowed"}}" data-t-refused="{{ctx.Locale.Tr "asc_review.maydo_refused"}}" data-t-run-ok="{{ctx.Locale.Tr "asc_review.maydo_run_ok"}}" data-t-run-no="{{ctx.Locale.Tr "asc_review.maydo_run_no"}}">
+		<div class="rv-card-h"><h2 id="ag-maydo-h">{{ctx.Locale.Tr "asc_review.maydo_title"}}</h2></div>
+		<div class="rv-card-b" aria-live="polite">
+			<p data-md-run{{if not .Known}} hidden{{end}}><span class="{{if .RunAllowed}}rv-can{{else}}rv-cannot{{end}}" data-md-run-state>{{if .RunAllowed}}{{ctx.Locale.Tr "asc_review.maydo_run_ok"}}{{else}}{{ctx.Locale.Tr "asc_review.maydo_run_no"}}{{end}}</span> <span class="rv-muted" data-md-run-reason>{{.RunReason}}</span></p>
+			<ul class="rv-access" data-md-writes>
+				{{range .Writes}}<li><span class="{{if .Allowed}}rv-can{{else}}rv-cannot{{end}}">{{if .Allowed}}{{ctx.Locale.Tr "asc_review.maydo_allowed"}}{{else}}{{ctx.Locale.Tr "asc_review.maydo_refused"}}{{end}}</span> {{ctx.Locale.Tr "asc_review.maydo_write"}} <code>{{.Glob}}</code>{{if .Reason}} <span class="rv-muted">{{.Reason}}</span>{{end}}</li>{{end}}
+			</ul>
+			<p class="rv-muted" data-md-unknown{{if .Known}} hidden{{end}}>{{ctx.Locale.Tr "asc_review.maydo_unknown"}}</p>
+		</div>
+	</section>
+{{end}}

@@ -3,7 +3,7 @@ The task form (routers/web/repo/asc_agents.go).
 Template Attributes:
 * AscAgentForm: *ascAgentForm (values as typed, Errors by field, Summary)
 * AscAgentKeys: []ascAgentKeyOption (the AI keys the person may pick), AscAgentModelsJSON: model ids per key, as JSON
-* AscBudgetFields: the names of the budget fields; AscAgentPolicy: see repo/asc_agents_policy
+* AscBudgetFields: the names of the budget fields; AscAgentPolicy: see repo/asc_agents_policy; AscAgentMayDo: see repo/asc_agents_maydo
 * CsrfTokenHtml
 */}}
 {{template "base/head" .}}
@@ -44,7 +44,7 @@ Template Attributes:
 					<div class="rv-formgrid rv-formgrid-2">
 						<div class="rv-field">
 							<label class="rv-label" for="asc-ag-agent">{{ctx.Locale.Tr "asc_review.new_agent"}}</label>
-							<input class="rv-input" id="asc-ag-agent" name="agent" type="text" maxlength="40" value="{{.AscAgentForm.Agent}}" required autocomplete="off" autocapitalize="none" spellcheck="false"{{if index .AscAgentForm.Errors "agent"}} aria-invalid="true"{{end}} list="asc-ag-agents" data-asc-estimate-agent>
+							<input class="rv-input" id="asc-ag-agent" data-asc-maydo-input name="agent" type="text" maxlength="40" value="{{.AscAgentForm.Agent}}" required autocomplete="off" autocapitalize="none" spellcheck="false"{{if index .AscAgentForm.Errors "agent"}} aria-invalid="true"{{end}} list="asc-ag-agents" data-asc-estimate-agent>
 							<datalist id="asc-ag-agents">{{range .AscAgentsRoster}}<option value="{{.Name}}">{{.Scope}}</option>{{end}}</datalist>
 							{{with index .AscAgentForm.Errors "agent"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
 						</div>
@@ -88,7 +88,7 @@ Template Attributes:
 						<div class="rv-formgrid rv-formgrid-3">
 							<div class="rv-field">
 								<label class="rv-label" for="asc-ag-changes">{{ctx.Locale.Tr "asc_review.new_changes"}}</label>
-								<input class="rv-input" id="asc-ag-changes" name="{{.AscBudgetFields.Changes}}" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentForm.Budget.Changes}}" autocomplete="off"{{if index .AscAgentForm.Errors .AscBudgetFields.Changes}} aria-invalid="true"{{end}}>
+								<input class="rv-input" id="asc-ag-changes" data-asc-maydo-input name="{{.AscBudgetFields.Changes}}" type="text" inputmode="numeric" maxlength="6" value="{{.AscAgentForm.Budget.Changes}}" autocomplete="off"{{if index .AscAgentForm.Errors .AscBudgetFields.Changes}} aria-invalid="true"{{end}}>
 								{{with index .AscAgentForm.Errors .AscBudgetFields.Changes}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
 							</div>
 							<div class="rv-field">
@@ -103,7 +103,7 @@ Template Attributes:
 							</div>
 							<div class="rv-field">
 								<label class="rv-label" for="asc-ag-maxpaths">{{ctx.Locale.Tr "asc_review.new_paths_written"}}</label>
-								<input class="rv-input" id="asc-ag-maxpaths" name="{{.AscBudgetFields.Paths}}" type="text" inputmode="numeric" maxlength="7" value="{{.AscAgentForm.Budget.Paths}}" autocomplete="off"{{if index .AscAgentForm.Errors .AscBudgetFields.Paths}} aria-invalid="true"{{end}}>
+								<input class="rv-input" id="asc-ag-maxpaths" data-asc-maydo-input name="{{.AscBudgetFields.Paths}}" type="text" inputmode="numeric" maxlength="7" value="{{.AscAgentForm.Budget.Paths}}" autocomplete="off"{{if index .AscAgentForm.Errors .AscBudgetFields.Paths}} aria-invalid="true"{{end}}>
 								{{with index .AscAgentForm.Errors .AscBudgetFields.Paths}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
 							</div>
 							<div class="rv-field">
@@ -114,7 +114,7 @@ Template Attributes:
 						</div>
 						<div class="rv-field">
 							<label class="rv-label" for="asc-ag-paths">{{ctx.Locale.Tr "asc_review.new_scope"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.new_scope_help"}}</span></label>
-							<textarea class="rv-textarea rv-mono" id="asc-ag-paths" name="paths" rows="3" maxlength="4500" spellcheck="false" placeholder="src/**&#10;tests/**"{{if index .AscAgentForm.Errors "paths"}} aria-invalid="true"{{end}}>{{.AscAgentForm.Paths}}</textarea>
+							<textarea class="rv-textarea rv-mono" id="asc-ag-paths" data-asc-maydo-input name="paths" rows="3" maxlength="4500" spellcheck="false" placeholder="src/**&#10;tests/**"{{if index .AscAgentForm.Errors "paths"}} aria-invalid="true"{{end}}>{{.AscAgentForm.Paths}}</textarea>
 							{{with index .AscAgentForm.Errors "paths"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
 						</div>
 					</fieldset>
@@ -128,6 +128,7 @@ Template Attributes:
 			</form>
 			<div class="rv-side">
 				{{template "repo/asc_agents_policy" .}}
+				{{template "repo/asc_agents_maydo" .}}
 				<section class="rv-card ag-estimate" aria-labelledby="ag-est-h" data-testid="asc-agent-estimate" data-asc-estimate="{{.AscAgentsBase}}/estimate" data-known="{{if .AscAgentEstimate.Known}}1{{end}}">
 					<div class="rv-card-h"><h2 id="ag-est-h">{{ctx.Locale.Tr "asc_review.new_estimate"}}</h2></div>
 					<div class="rv-card-b" aria-live="polite">

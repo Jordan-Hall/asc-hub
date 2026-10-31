@@ -314,6 +314,9 @@ type ascWorkflowStepRun struct {
 	Waiting    bool // an approval step that waits for a decision
 	Log        []ascAgentEvent
 	LogHidden  int
+	// Proposed is the changes the agent run of the step produced (nil unless the viewer may read the step).
+	Proposed     []ascWorkflowProposedChange
+	ProposedMore int
 }
 
 type ascWorkflowRunRow struct {
@@ -937,6 +940,7 @@ func AscWorkflowRun(ctx *context.Context) {
 			}
 			logged++
 			ascWorkflowStepLog(ctx, callCtx, env, agents, s, canPulls)
+			ascWorkflowStepProposed(ctx, callCtx, env, agents, s, canPulls)
 		}
 	}
 	ctx.Data["AscWorkflowRun"] = row
