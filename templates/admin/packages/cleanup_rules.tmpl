@@ -1,0 +1,31 @@
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin packages")}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.packages_rules") "Desc" (ctx.Locale.Tr "asc_admin.packages_rules_lead"))}}
+	<section class="ds-card adm-sec" aria-labelledby="adm-pr" data-testid="cleanup-rules-preview">
+		<div class="ds-card-h">
+			<h2 id="adm-pr">{{ctx.Locale.Tr "asc_admin.packages_rules"}}</h2>
+			<span class="ds-chip {{if .RulePreviewTotal}}ds-chip-warn{{else}}ds-chip-ok{{end}}">{{ctx.Locale.TrN .RulePreviewTotal "asc_admin.packages_rules_total_one" "asc_admin.packages_rules_total_other" .RulePreviewTotal}}</span>
+		</div>
+		{{if .RulePreviews}}
+		<ul class="ds-list">
+			{{range .RulePreviews}}
+				<li class="ds-li">
+					<div class="ds-li-main">
+						<div class="ds-li-title"><span>{{.Owner}}</span> <span class="ds-chip ds-chip-outline">{{.Rule.Type.Name}}</span></div>
+						<div class="ds-li-sub">
+							{{if .Err}}<span class="ds-c-err">{{ctx.Locale.Tr "asc_admin.packages_rules_error"}}</span>
+							{{else}}{{ctx.Locale.TrN .Versions "asc_admin.packages_rules_versions_one" "asc_admin.packages_rules_versions_other" .Versions}}{{if .Packages}} &middot; {{ctx.Locale.TrN .Packages "asc_admin.packages_rules_pkgs_one" "asc_admin.packages_rules_pkgs_other" .Packages}}{{end}}{{end}}
+						</div>
+					</div>
+				</li>
+			{{end}}
+		</ul>
+		<form class="ds-card-b" method="post" action="{{AppSubUrl}}/admin/packages/cleanup/rules">
+			{{.CsrfTokenHtml}}
+			<button class="ds-btn ds-btn-danger" type="submit"{{if not .RulePreviewTotal}} disabled{{end}}>{{svg "dsi-trash" 16}}{{ctx.Locale.Tr "asc_admin.packages_rules_run"}}</button>
+			<p class="ds-hint ds-mt-8">{{ctx.Locale.Tr "asc_admin.packages_rules_note"}}</p>
+		</form>
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "package" "Title" (ctx.Locale.Tr "asc_admin.packages_rules_none"))}}
+		{{end}}
+	</section>
+{{template "admin/layout_footer" .}}
