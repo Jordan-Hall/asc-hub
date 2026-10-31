@@ -4,6 +4,7 @@
 package setting
 
 import (
+	"errors"
 	"net/http"
 
 	"forgejo.org/modules/base"
@@ -35,6 +36,41 @@ func ascBranchlessAllowed(ctx *context.Context) bool {
 		return false
 	}
 	return true
+}
+
+// AscBranchlessPost serves `POST /{owner}/{repo}/settings/asc/branchless` with the field mode (branchless or branches): a
+// repository administrator switches the working mode. asc decides whether it can be done without stranding a ref and says
+// why when it cannot; its text is shown as it is.
+func AscBranchlessPost(ctx *context.Context) {
+	if !ascBranchlessAllowed(ctx) {
+		return
+	}
+	back := ctx.Repo.RepoLink + "/settings/asc/branchless"
+	var on bool
+	switch ctx.FormString("mode") {
+	case "branchless":
+		on = true
+	case "branches":
+	default:
+		ctx.Flash.Error(ctx.Tr("repo.settings.asc_branchless.bad_mode"))
+		ctx.Redirect(back)
+		return
+	}
+	switch err := ascsync.SetBranchless(ctx, ctx.Repo.Repository, on); {
+	case err == nil:
+		ctx.Flash.Success(ctx.Tr("repo.settings.asc_branchless.changed"))
+	case errors.Is(err, ascsync.ErrBranchlessUnsupported):
+		ctx.Flash.Error(ctx.Tr("repo.settings.asc_branchless.unsupported"))
+	default:
+		var rej *ascsync.RejectError
+		if errors.As(err, &rej) {
+			ctx.Flash.Error(rej.Message) // asc wrote it for the person: which branch or user ref is in the way
+		} else {
+			log.Error("asc branchless: %s: %v", ctx.Repo.Repository.FullName(), err)
+			ctx.Flash.Error(ctx.Tr("repo.settings.asc_branchless.failed"))
+		}
+	}
+	ctx.Redirect(back)
 }
 
 // AscBranchless serves `GET /{owner}/{repo}/settings/asc/branchless`.

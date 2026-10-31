@@ -5,10 +5,19 @@ package ascsync
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	repo_model "forgejo.org/models/repo"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
+
+// ErrBranchlessUnsupported is returned by SetBranchless when the asc server is older than the operation (it answers
+// Unimplemented, or does not know the operation of RepoAdmin and says there is none).
+var ErrBranchlessUnsupported = errors.New("ascsync: this asc server cannot change the working mode")
 
 // Branchless repository settings (SPEC section 21.5.2).
 //
@@ -55,5 +64,10 @@ func SetBranchless(ctx context.Context, repo *repo_model.Repository, on bool) er
 		Repo: &ascv1.RepoRef{Name: r.name},
 		Op:   &ascv1.RepoAdminRequest_SetBranchless{SetBranchless: &ascv1.SetBranchlessOp{Branchless: on}},
 	})
+	if st, ok := status.FromError(err); ok && err != nil {
+		if st.Code() == codes.Unimplemented || (st.Code() == codes.InvalidArgument && strings.Contains(st.Message(), "no operation")) {
+			return ErrBranchlessUnsupported
+		}
+	}
 	return callError("RepoAdmin.set_branchless", err)
 }

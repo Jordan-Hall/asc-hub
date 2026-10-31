@@ -71,6 +71,14 @@ func TestAscSetBranchless(t *testing.T) {
 	assert.NotNil(t, api.req.GetSetBranchless(), "turning it off is an explicit request, not an unset flag")
 	assert.False(t, api.req.GetSetBranchless().GetBranchless())
 
+	// an older server: no such operation, or nothing implemented
+	api.err = status.Error(codes.InvalidArgument, "no operation")
+	require.ErrorIs(t, SetBranchless(t.Context(), fx.repo, true), ErrBranchlessUnsupported)
+	api.err = status.Error(codes.Unimplemented, "RepoAdmin")
+	require.ErrorIs(t, SetBranchless(t.Context(), fx.repo, true), ErrBranchlessUnsupported)
+	api.err = status.Error(codes.InvalidArgument, "default branch name")
+	require.NotErrorIs(t, SetBranchless(t.Context(), fx.repo, true), ErrBranchlessUnsupported)
+
 	// asc's refusal is told to the person; a repository not kept in asc sends nothing
 	api.err = status.Error(codes.FailedPrecondition, "branch dev is not a shared ref")
 	err := SetBranchless(t.Context(), fx.repo, true)
