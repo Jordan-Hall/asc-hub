@@ -17,7 +17,7 @@ func prepareAscIssueStacks(ctx *context.Context, issue *issues_model.Issue) {
 	if !setting.Asc.Enabled {
 		return
 	}
-	stacks, err := pull_service.AscStacksOfIssue(ctx, issue)
+	stacks, err := pull_service.AscStacksOfIssue(ctx, ctx.Doer, issue)
 	if err != nil {
 		log.Warn("asc issue stacks of issue %d: %v", issue.ID, err)
 		return
@@ -37,7 +37,7 @@ func prepareAscIssueChips(ctx *context.Context, list issues_model.IssueList) {
 	if !setting.Asc.Enabled || len(list) == 0 {
 		return
 	}
-	chips, err := pull_service.AscIssueStackChips(ctx, list)
+	chips, err := pull_service.AscIssueStackChips(ctx, ctx.Doer, list)
 	if err != nil {
 		log.Warn("asc issue stack chips: %v", err)
 		return

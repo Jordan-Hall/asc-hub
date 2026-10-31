@@ -8,6 +8,9 @@ import (
 
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/perm/access"
+	"forgejo.org/models/unit"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/references"
 )
 
@@ -63,16 +66,30 @@ func referencingPulls(ctx context.Context, issueIDs []int64) (map[int64][]int64,
 }
 
 // AscStacksOfIssue returns the stacks that name the issue, one per stack (the pull requests of one stack are one entry), the
-// newest reference first. A reference by a pull request that is not a change of a stack is not listed here.
-func AscStacksOfIssue(ctx context.Context, issue *issues_model.Issue) ([]AscIssueStack, error) {
+// newest reference first. A reference by a pull request that is not a change of a stack is not listed here, and neither is one
+// by a pull request of a repository the viewer (nil: anybody who is not signed in) cannot read pull requests in: its title and
+// state would tell them what the repository keeps private.
+func AscStacksOfIssue(ctx context.Context, viewer *user_model.User, issue *issues_model.Issue) ([]AscIssueStack, error) {
 	pulls, closes, err := referencingPulls(ctx, []int64{issue.ID})
 	if err != nil {
 		return nil, err
 	}
-	return stacksFor(ctx, issue.ID, pulls[issue.ID], closes)
+	return stacksFor(ctx, viewer, issue.ID, pulls[issue.ID], closes)
 }
 
-func stacksFor(ctx context.Context, issueID int64, prIssueIDs []int64, closes map[[2]int64]bool) ([]AscIssueStack, error) {
+// viewerMayReadPull reports whether the viewer may read the pull requests of the repository the pull request belongs to.
+func viewerMayReadPull(ctx context.Context, viewer *user_model.User, pr *issues_model.PullRequest) (bool, error) {
+	if err := pr.LoadBaseRepo(ctx); err != nil {
+		return false, err
+	}
+	perm, err := access.GetUserRepoPermission(ctx, pr.BaseRepo, viewer)
+	if err != nil {
+		return false, err
+	}
+	return perm.CanRead(unit.TypePullRequests), nil
+}
+
+func stacksFor(ctx context.Context, viewer *user_model.User, issueID int64, prIssueIDs []int64, closes map[[2]int64]bool) ([]AscIssueStack, error) {
 	var out []AscIssueStack
 	seenStack := map[int64]bool{} // by the index of the bottom entry
 	for i := len(prIssueIDs) - 1; i >= 0 && len(out) < maxIssueStacks; i-- {
@@ -82,6 +99,11 @@ func stacksFor(ctx context.Context, issueID int64, prIssueIDs []int64, closes ma
 				continue
 			}
 			return nil, err
+		}
+		if ok, err := viewerMayReadPull(ctx, viewer, pr); err != nil {
+			return nil, err
+		} else if !ok {
+			continue
 		}
 		panel, err := BuildAscStackPanel(ctx, pr)
 		if err != nil || panel == nil || len(panel.Entries) == 0 {
@@ -131,8 +153,9 @@ func AscClosingStackLanded(ctx context.Context, issue *issues_model.Issue, stack
 }
 
 // AscIssueStackChips gives, for the issues of a list, the one stack to show on the row: the stack that fixes the issue if any,
-// else the newest that names it. One query reads the references of the whole list.
-func AscIssueStackChips(ctx context.Context, list issues_model.IssueList) (map[int64]AscIssueStack, error) {
+// else the newest that names it. One query reads the references of the whole list. Only stacks of repositories the viewer may
+// read pull requests in are considered (see AscStacksOfIssue).
+func AscIssueStackChips(ctx context.Context, viewer *user_model.User, list issues_model.IssueList) (map[int64]AscIssueStack, error) {
 	ids := make([]int64, 0, len(list))
 	for _, is := range list {
 		if !is.IsPull {
@@ -145,7 +168,7 @@ func AscIssueStackChips(ctx context.Context, list issues_model.IssueList) (map[i
 	}
 	out := map[int64]AscIssueStack{}
 	for issueID, prs := range pulls {
-		stacks, err := stacksFor(ctx, issueID, prs, closes)
+		stacks, err := stacksFor(ctx, viewer, issueID, prs, closes)
 		if err != nil {
 			return nil, err
 		}
