@@ -875,3 +875,89 @@
     clip-path: inset(50%);
   }
 }
+
+/* the audit log: a count under the filter, names that do not break, and on a phone quick filters, the filter form
+   behind its pill and a bar that stays above the bottom navigation with Export and Older events */
+.rv-audit-count {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 20px 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rv-audit-count .rv-muted {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.rv-audit-who > span:last-child {
+  white-space: nowrap;
+}
+
+.rv-audit-pills,
+.rv-audit-bar {
+  display: none;
+}
+
+@media (max-width: 899.98px) {
+  .rv-audit-pills {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .rv-audit-pill {
+    flex: none;
+    padding: 9px 16px;
+    border: 1px solid var(--line-strong, var(--line));
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .rv-audit-pill.on {
+    border-color: var(--fill);
+    background: var(--fill);
+    color: var(--on-fill);
+  }
+
+  .rv-audit-pill-more {
+    margin-inline-start: auto;
+  }
+
+  .rv-audit-filters:not(:target) {
+    display: none;
+  }
+
+  .rv-audit-count {
+    display: none;
+  }
+
+  .rv-audit-pager {
+    display: none;
+  }
+
+  .rv-audit-bar {
+    position: sticky;
+    bottom: var(--bnav-space, 0);
+    z-index: 5;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 12px;
+    margin: 16px calc(var(--gutter, 16px) * -1) 0;
+    padding: 12px var(--gutter, 16px);
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .rv-audit-bar .rv-btn {
+    justify-content: center;
+  }
+}
