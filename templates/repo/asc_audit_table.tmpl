@@ -12,7 +12,7 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 			<div class="rv-eyebrow">{{.Label}}</div>
 			<h1 class="rv-title">{{ctx.Locale.Tr "asc_trust.audit.title"}}</h1>
 			<p class="rv-lead">{{ctx.Locale.Tr "asc_trust.audit.lead"}}</p>
-			{{if .RetentionDays}}<ul class="rv-facts"><li><span class="rv-pill rv-pill-outline" data-testid="asc-audit-retention">{{ctx.Locale.Tr "asc_trust.audit.kept_days" .RetentionDays}}</span></li></ul>{{end}}
+			<ul class="rv-facts">{{if .RetentionDays}}<li><span class="rv-pill rv-pill-outline" data-testid="asc-audit-retention">{{ctx.Locale.Tr "asc_trust.audit.kept_days" .RetentionDays}}</span></li>{{end}}{{if .ScopeKey}}<li><span class="rv-pill rv-pill-outline" data-testid="asc-audit-scope">{{ctx.Locale.Tr .ScopeKey}}</span></li>{{end}}</ul>
 		</div>
 		{{if not .Unsupported}}
 		<div class="rv-acts">
@@ -42,60 +42,67 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 		</form>
 
 		<form class="rv-card rv-gap rv-audit-filters" method="get" action="{{.Base}}" data-testid="asc-audit-filters" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.audit.filter"}}">
-			<div class="rv-card-b rv-formgrid rv-formgrid-3 rv-audit-grid">
-				<div class="rv-field">
-					<label class="rv-label" for="asc-audit-actor">{{ctx.Locale.Tr "asc_trust.audit.who"}}</label>
-					<input class="rv-input" id="asc-audit-actor" name="actor" type="text" maxlength="2048" value="{{.Query.Actor}}" placeholder="{{ctx.Locale.TrString "asc_trust.audit.who_hint"}}" autocomplete="off">
-				</div>
-				<div class="rv-field">
-					<label class="rv-label" for="asc-audit-action">{{ctx.Locale.Tr "asc_trust.audit.what"}}</label>
-					<input class="rv-input" id="asc-audit-action" name="action" type="text" maxlength="520" value="{{.Query.Action}}" placeholder="storage.* / repo.ref.update" list="asc-audit-actions" autocomplete="off" autocapitalize="none" spellcheck="false">
-					<datalist id="asc-audit-actions">
-						{{range .Actions}}<option value="{{.Action}}">{{.Description}}</option>{{end}}
-					</datalist>
-				</div>
-				<div class="rv-field rv-half">
-					<label class="rv-label" for="asc-audit-outcome">{{ctx.Locale.Tr "asc_trust.audit.outcome"}}</label>
-					<select class="rv-select" id="asc-audit-outcome" name="outcome">
-						<option value=""{{if eq .Query.Outcome ""}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.any"}}</option>
-						<option value="success"{{if eq .Query.Outcome "success"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_ok"}}</option>
-						<option value="denied"{{if eq .Query.Outcome "denied"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_no"}}</option>
-						<option value="failed"{{if eq .Query.Outcome "failed"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_wn"}}</option>
-					</select>
-				</div>
-				<div class="rv-field">
-					<label class="rv-label" for="asc-audit-target">{{ctx.Locale.Tr "asc_trust.audit.target_starts"}}</label>
-					<input class="rv-input" id="asc-audit-target" name="target" type="text" maxlength="256" value="{{.Query.Target}}" autocomplete="off">
+			<div class="rv-card-b rv-audit-form">
+				<div class="rv-audit-row rv-audit-row-1">
+					<div class="rv-field">
+						<label class="rv-label" for="asc-audit-actor">{{ctx.Locale.Tr "asc_trust.audit.who"}}</label>
+						<input class="rv-input" id="asc-audit-actor" name="actor" type="text" maxlength="2048" value="{{.Query.Actor}}" placeholder="maya, priya" autocomplete="off" aria-describedby="asc-audit-actor-hint">
+						<span class="rv-hint" id="asc-audit-actor-hint">{{ctx.Locale.Tr "asc_trust.audit.who_hint"}}</span>
+					</div>
+					<div class="rv-field">
+						<label class="rv-label" for="asc-audit-action">{{ctx.Locale.Tr "asc_trust.audit.what"}}</label>
+						<select class="rv-select" id="asc-audit-action" name="action">
+							<option value="">{{ctx.Locale.Tr "asc_trust.audit.any_action"}}</option>
+							{{$picked := false}}
+							{{range .Actions}}<option value="{{.Action}}" title="{{.Description}}"{{if eq $.AscAudit.Query.Action .Action}}{{$picked = true}} selected{{end}}>{{.Action}}</option>{{end}}
+							{{if and .Query.Action (not $picked)}}<option value="{{.Query.Action}}" selected>{{.Query.Action}}</option>{{end}}
+						</select>
+					</div>
+					<div class="rv-field">
+						<label class="rv-label" for="asc-audit-outcome">{{ctx.Locale.Tr "asc_trust.audit.outcome"}}</label>
+						<select class="rv-select" id="asc-audit-outcome" name="outcome">
+							<option value=""{{if eq .Query.Outcome ""}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.any"}}</option>
+							<option value="success"{{if eq .Query.Outcome "success"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_ok"}}</option>
+							<option value="denied"{{if eq .Query.Outcome "denied"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_no"}}</option>
+							<option value="failed"{{if eq .Query.Outcome "failed"}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.outcome_wn"}}</option>
+						</select>
+					</div>
+					<div class="rv-field">
+						<label class="rv-label" for="asc-audit-target">{{ctx.Locale.Tr "asc_trust.audit.target_starts"}}</label>
+						<input class="rv-input" id="asc-audit-target" name="target" type="text" maxlength="256" value="{{.Query.Target}}" placeholder="main, ag_, .asc/" autocomplete="off">
+					</div>
 				</div>
 				{{if .Query.Seq}}<input id="asc-audit-seq" name="seq" type="hidden" value="{{.Query.Seq}}">{{end}}
-				<div class="rv-field rv-half">
-					<label class="rv-label" for="asc-audit-since">{{ctx.Locale.Tr "asc_trust.audit.from"}}</label>
-					<input class="rv-input" id="asc-audit-since" name="since" type="date" value="{{.Query.Since}}">
-				</div>
-				<div class="rv-field rv-half">
-					<label class="rv-label" for="asc-audit-until">{{ctx.Locale.Tr "asc_trust.audit.to"}}</label>
-					<input class="rv-input" id="asc-audit-until" name="until" type="date" value="{{.Query.Until}}">
-				</div>
-				<div class="rv-field rv-half">
-					<label class="rv-label" for="asc-audit-order">{{ctx.Locale.Tr "asc_trust.audit.order"}}</label>
-					<select class="rv-select" id="asc-audit-order" name="order">
-						<option value=""{{if not .Query.OldestFirst}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.newest_first"}}</option>
-						<option value="oldest"{{if .Query.OldestFirst}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.oldest_first"}}</option>
-					</select>
-				</div>
-				<div class="rv-field rv-half">
-					<label class="rv-label" for="asc-audit-limit">{{ctx.Locale.Tr "asc_trust.audit.rows"}}</label>
-					<select class="rv-select" id="asc-audit-limit" name="limit">
-						<option value="10"{{if eq .Query.Limit 10}} selected{{end}}>10</option>
-						<option value="25"{{if eq .Query.Limit 25}} selected{{end}}>25</option>
-						<option value="50"{{if eq .Query.Limit 50}} selected{{end}}>50</option>
-						<option value="100"{{if eq .Query.Limit 100}} selected{{end}}>100</option>
-						<option value="200"{{if eq .Query.Limit 200}} selected{{end}}>200</option>
-					</select>
-				</div>
-				<div class="rv-field rv-audit-btns">
-					<button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "asc_trust.audit.filter"}}</button>
-					<a class="rv-btn rv-btn-ghost" href="{{.Base}}">{{ctx.Locale.Tr "asc_trust.audit.clear"}}</a>
+				<div class="rv-audit-row rv-audit-row-2">
+					<div class="rv-field">
+						<label class="rv-label" for="asc-audit-since">{{ctx.Locale.Tr "asc_trust.audit.from"}}</label>
+						<input class="rv-input" id="asc-audit-since" name="since" type="date" value="{{.Query.Since}}">
+					</div>
+					<div class="rv-field">
+						<label class="rv-label" for="asc-audit-until">{{ctx.Locale.Tr "asc_trust.audit.to"}}</label>
+						<input class="rv-input" id="asc-audit-until" name="until" type="date" value="{{.Query.Until}}">
+					</div>
+					<div class="rv-field">
+						<label class="rv-label" for="asc-audit-order">{{ctx.Locale.Tr "asc_trust.audit.order"}}</label>
+						<select class="rv-select" id="asc-audit-order" name="order">
+							<option value=""{{if not .Query.OldestFirst}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.newest_first"}}</option>
+							<option value="oldest"{{if .Query.OldestFirst}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.audit.oldest_first"}}</option>
+						</select>
+					</div>
+					<div class="rv-field">
+						<label class="rv-label" for="asc-audit-limit">{{ctx.Locale.Tr "asc_trust.audit.rows"}}</label>
+						<select class="rv-select" id="asc-audit-limit" name="limit">
+							<option value="10"{{if eq .Query.Limit 10}} selected{{end}}>10</option>
+							<option value="25"{{if eq .Query.Limit 25}} selected{{end}}>25</option>
+							<option value="50"{{if eq .Query.Limit 50}} selected{{end}}>50</option>
+							<option value="100"{{if eq .Query.Limit 100}} selected{{end}}>100</option>
+							<option value="200"{{if eq .Query.Limit 200}} selected{{end}}>200</option>
+						</select>
+					</div>
+					<div class="rv-audit-btns">
+						<button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "asc_trust.audit.filter"}}</button>
+						<a class="rv-btn rv-btn-ghost" href="{{.Base}}">{{ctx.Locale.Tr "asc_trust.audit.clear"}}</a>
+					</div>
 				</div>
 			</div>
 		</form>
@@ -108,8 +115,8 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 		{{end}}
 
 		{{if .Searched}}
-			<div class="rv-tablewrap rv-gap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
-				<table class="rv-tbl rv-tbl-stack" data-testid="asc-audit-table">
+			<div class="rv-tablewrap rv-gap rv-audit-wrap" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
+				<table class="rv-tbl rv-tbl-stack rv-audit-tbl" data-testid="asc-audit-table">
 					<caption class="rv-sr">{{ctx.Locale.Tr "asc_trust.audit.events"}}</caption>
 					<thead>
 						<tr><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.when"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.who"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.what"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.target"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.outcome"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.audit.details_col"}}</th></tr>
@@ -117,15 +124,15 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 					<tbody>
 						{{range .Rows}}
 						<tr data-seq="{{.Seq}}">
-							<td class="rv-cell-main rv-nowrap rv-audit-when">{{DateUtils.TimeOrDay .Time}}</td>
-							<td data-label="{{ctx.Locale.Tr "asc_trust.audit.who"}}"><span class="rv-audit-who"><span class="rv-audit-av" aria-hidden="true">{{.Initials}}</span><span>{{.Actor}}{{if .OnBehalf}} <span class="rv-muted">{{ctx.Locale.Tr "asc_trust.audit.for" .OnBehalf}}</span>{{end}}</span></span></td>
-							<td class="rv-cell-wide" data-label="{{ctx.Locale.Tr "asc_trust.audit.what"}}">
-								<span>{{.What}}</span>
+							<td class="rv-cell-main rv-nowrap rv-audit-when rv-audit-c-when">{{DateUtils.TimeOrDay .Time}}</td>
+							<td class="rv-audit-c-who" data-label="{{ctx.Locale.Tr "asc_trust.audit.who"}}"><span class="rv-audit-who"><span class="rv-audit-av" aria-hidden="true">{{.Initials}}</span><span>{{.Actor}}{{if .OnBehalf}} <span class="rv-muted">{{ctx.Locale.Tr "asc_trust.audit.for" .OnBehalf}}</span>{{end}}</span></span></td>
+							<td class="rv-cell-wide rv-audit-c-what" data-label="{{ctx.Locale.Tr "asc_trust.audit.what"}}">
+								<span class="rv-audit-sentence">{{.What}}</span>
 								<code>{{.Action}}</code>
 							</td>
-							<td data-label="{{ctx.Locale.Tr "asc_trust.audit.target"}}">{{if .Repo}}<span class="rv-muted">{{.Repo}}</span> {{end}}{{if .Target}}<code>{{.Target}}</code>{{end}}</td>
-							<td data-label="{{ctx.Locale.Tr "asc_trust.audit.outcome"}}"><span class="rv-pill {{if eq .Tone "ok"}}rv-pill-ok{{else if eq .Tone "no"}}rv-pill-err{{else if eq .Tone "wn"}}rv-pill-warn{{end}}">{{ctx.Locale.Tr (printf "asc_trust.audit.outcome_%s" .Tone)}}</span></td>
-							<td class="rv-audit-details" data-label="{{ctx.Locale.Tr "asc_trust.audit.details_col"}}"><div class="rv-audit-clamp" title="{{range .Details}}{{.Key}} {{.Value}}; {{end}}">{{range .Details}}<span class="rv-audit-kv"><span class="rv-faint">{{.Key}}</span> {{.Value}}</span> {{end}}</div></td>
+							<td class="rv-audit-c-target" data-label="{{ctx.Locale.Tr "asc_trust.audit.target"}}">{{if .Repo}}<span class="rv-muted">{{.Repo}}</span> {{end}}{{if .Target}}<code>{{.Target}}</code>{{end}}</td>
+							<td class="rv-audit-c-outcome" data-label="{{ctx.Locale.Tr "asc_trust.audit.outcome"}}"><span class="rv-pill {{if eq .Tone "ok"}}rv-pill-ok{{else if eq .Tone "no"}}rv-pill-err{{else if eq .Tone "wn"}}rv-pill-warn{{end}}">{{ctx.Locale.Tr (printf "asc_trust.audit.outcome_%s" .Tone)}}</span></td>
+							<td class="rv-audit-details rv-audit-c-details" data-label="{{ctx.Locale.Tr "asc_trust.audit.details_col"}}"><div class="rv-audit-clamp" title="{{range .Details}}{{.Key}} {{.Value}}; {{end}}">{{range .Details}}<span class="rv-audit-kv"><span class="rv-faint">{{.Key}}</span> {{.Value}}</span> {{end}}</div></td>
 						</tr>
 						{{else}}
 						<tr><td colspan="6" class="rv-center rv-muted" data-testid="asc-audit-empty">{{ctx.Locale.Tr "asc_trust.audit.empty"}} <a href="{{.Base}}" data-testid="asc-audit-clear">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></td></tr>

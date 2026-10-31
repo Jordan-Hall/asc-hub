@@ -64,19 +64,52 @@ func (du *DateUtils) Day(when any) template.HTML {
 	return template.HTML(fmt.Sprintf(`<time datetime="%s" title="%s">%s</time>`, html.EscapeString(t.Format(time.RFC3339)), html.EscapeString(t.Format("2006-01-02 15:04:05 -07:00")), html.EscapeString(t.Format("2 Jan 2006"))))
 }
 
-// TimeOrDay renders the time of today as "10:14:02" and an earlier time as "27 Oct 10:14" (the design's audit log), in the interface's time zone.
+// dayDistance is the number of calendar days from t to now, in the interface's time zone.
+func dayDistance(t time.Time) int {
+	loc := setting.DefaultUILocation
+	day := func(x time.Time) time.Time {
+		y, m, d := x.In(loc).Date()
+		return time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+	}
+	return int(day(timeNow()).Sub(day(t)).Hours() / 24)
+}
+
+func timeTag(t time.Time, text string) template.HTML {
+	return template.HTML(fmt.Sprintf(`<time datetime="%s" title="%s">%s</time>`, html.EscapeString(t.Format(time.RFC3339)), html.EscapeString(t.Format("2006-01-02 15:04:05 -07:00")), html.EscapeString(text)))
+}
+
+// TimeOrDay renders the time of today as "10:14:02", "Yesterday", "2 days ago" for the days before, and "27 Oct 10:14" for a week or more (the repository audit log).
 func (du *DateUtils) TimeOrDay(when any) template.HTML {
 	t, isZero := anyToTime(when)
 	if isZero {
 		return "-"
 	}
 	t = t.In(setting.DefaultUILocation)
-	text := t.Format("2 Jan 15:04")
-	ny, nm, nd := timeNow().In(setting.DefaultUILocation).Date()
-	if y, m, d := t.Date(); y == ny && m == nm && d == nd {
-		text = t.Format("15:04:05")
+	switch n := dayDistance(t); {
+	case n <= 0:
+		return timeTag(t, t.Format("15:04:05"))
+	case n == 1:
+		return timeTag(t, "Yesterday")
+	case n < 7:
+		return timeTag(t, fmt.Sprintf("%d days ago", n))
 	}
-	return template.HTML(fmt.Sprintf(`<time datetime="%s" title="%s">%s</time>`, html.EscapeString(t.Format(time.RFC3339)), html.EscapeString(t.Format("2006-01-02 15:04:05 -07:00")), html.EscapeString(text)))
+	return timeTag(t, t.Format("2 Jan 15:04"))
+}
+
+// TodayTime renders "Today 09:41", "Yesterday 09:41" or "27 Oct 09:41" (the instance audit log).
+func (du *DateUtils) TodayTime(when any) template.HTML {
+	t, isZero := anyToTime(when)
+	if isZero {
+		return "-"
+	}
+	t = t.In(setting.DefaultUILocation)
+	switch dayDistance(t) {
+	case 0:
+		return timeTag(t, "Today "+t.Format("15:04"))
+	case 1:
+		return timeTag(t, "Yesterday "+t.Format("15:04"))
+	}
+	return timeTag(t, t.Format("2 Jan 15:04"))
 }
 
 func (du *DateUtils) TimeSince(time any) template.HTML {

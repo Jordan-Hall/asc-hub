@@ -103,5 +103,11 @@ func TestTimeOrDay(t *testing.T) {
 	today, _ := time.Parse(time.RFC3339, "2026-10-31T10:14:02Z")
 	earlier, _ := time.Parse(time.RFC3339, "2026-10-27T10:14:02Z")
 	assert.Contains(t, string(du.TimeOrDay(today)), ">10:14:02</time>")
-	assert.Contains(t, string(du.TimeOrDay(earlier)), ">27 Oct 10:14</time>")
+	assert.Contains(t, string(du.TimeOrDay(earlier)), ">4 days ago</time>")
+	yesterday, _ := time.Parse(time.RFC3339, "2026-10-30T23:00:00Z")
+	assert.Contains(t, string(du.TimeOrDay(yesterday)), ">Yesterday</time>")
+	old, _ := time.Parse(time.RFC3339, "2026-10-20T10:14:02Z")
+	assert.Contains(t, string(du.TimeOrDay(old)), ">20 Oct ")
+	assert.Contains(t, string(du.TodayTime(today)), ">Today ")
+	assert.Contains(t, string(du.TodayTime(earlier)), ">27 Oct ")
 }

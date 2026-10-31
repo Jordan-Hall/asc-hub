@@ -79,8 +79,13 @@
 				</form>
 
 				<div class="adm-audit-bar">
-					<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.ExportJSONL}}" data-testid="asc-audit-export-jsonl" download>{{svg "dsi-download" 16}}{{ctx.Locale.Tr "asc_trust.audit.export_jsonl"}}</a>
-					<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.ExportCSV}}" data-testid="asc-audit-export-csv" download>{{svg "dsi-download" 16}}{{ctx.Locale.Tr "asc_trust.audit.export_csv"}}</a>
+					<details class="adm-export">
+						<summary class="ds-btn ds-btn-secondary ds-btn-sm">{{svg "dsi-download" 16}}{{ctx.Locale.Tr "asc_admin.audit_export"}}</summary>
+						<div class="adm-export-menu">
+							<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.ExportJSONL}}" data-testid="asc-audit-export-jsonl" download>{{ctx.Locale.Tr "asc_trust.audit.export_jsonl"}}</a>
+							<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.ExportCSV}}" data-testid="asc-audit-export-csv" download>{{ctx.Locale.Tr "asc_trust.audit.export_csv"}}</a>
+						</div>
+					</details>
 					<form class="ds-ml-auto" method="post" action="{{.Base}}/verify">
 						{{$.CsrfTokenHtml}}
 						<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit" data-testid="asc-audit-verify" aria-describedby="adm-verify-hint">{{svg "dsi-shield-check" 16}}{{ctx.Locale.Tr "asc_trust.audit.verify"}}</button>
@@ -101,7 +106,7 @@
 											{{if ne .Tone "ok"}}<span class="ds-chip {{if eq .Tone "no"}}ds-chip-warn{{else if eq .Tone "wn"}}ds-chip-err{{end}}">{{ctx.Locale.Tr (printf "asc_trust.audit.outcome_%s" .Tone)}}</span>{{end}}
 										</div>
 										<div class="ds-li-sub ds-break">{{if .Repo}}<span>{{.Repo}}</span>{{end}}{{if and .Repo .Target}} &middot; {{end}}{{if .Target}}<code class="adm-mono">{{.Target}}</code>{{end}} <code class="adm-mono ds-c-2">{{.Action}}</code></div>
-										<div class="ds-li-meta"><span>{{DateUtils.TimeOrDay .Time}}</span>{{if .Remote}}<span class="adm-mono">{{.Remote}}</span>{{end}}</div>
+										<div class="ds-li-meta"><span>{{DateUtils.TodayTime .Time}}</span>{{if .Remote}}<span class="adm-mono">{{.Remote}}</span>{{end}}</div>
 									</div>
 									{{if .Details}}
 										<details class="ds-details adm-details adm-audit-more">

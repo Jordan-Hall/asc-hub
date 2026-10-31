@@ -44,8 +44,10 @@ type AuditLevel struct {
 
 // AuditView is the template data under .AscAudit.
 type AuditView struct {
-	Base        string
-	Label       string
+	Base  string
+	Label string
+	// ScopeKey is the locale key of the words for the scope of the log ("Repository scope").
+	ScopeKey    string
 	Query       asctrust.AuditQuery
 	Rows        []asctrust.AuditRow
 	Actions     []asctrust.ActionInfo
@@ -104,9 +106,19 @@ func (v *AuditView) EventURL(seq uint64) string {
 	return v.Base + "?seq=" + strconv.FormatUint(seq, 10)
 }
 
+func (lvl *AuditLevel) scopeKey() string {
+	switch {
+	case lvl.Repo != nil:
+		return "asc_trust.audit.scope_repo"
+	case lvl.Org != nil:
+		return "asc_trust.audit.scope_org"
+	}
+	return "asc_trust.audit.scope_instance"
+}
+
 func (lvl *AuditLevel) view(q asctrust.AuditQuery) *AuditView {
 	return &AuditView{
-		Base: lvl.Base, Label: lvl.Label, Query: q, PageNo: 1,
+		Base: lvl.Base, Label: lvl.Label, ScopeKey: lvl.scopeKey(), Query: q, PageNo: 1,
 		FirstURL:    lvl.link(q, "", "", nil),
 		ExportJSONL: lvl.link(q, "", "/export", map[string]string{"format": "jsonl"}),
 		ExportCSV:   lvl.link(q, "", "/export", map[string]string{"format": "csv"}),
