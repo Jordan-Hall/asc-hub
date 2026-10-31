@@ -28,15 +28,14 @@
 	<ul class="adm-rows adm-only-sm">
 		{{range $qid, $q := .Queues}}
 			{{$sum := $q.GetQueueItemNumber}}
-			<li class="ds-li ds-li-wrap">
-				<div class="ds-li-main">
-					<div class="ds-li-title"><span>{{$q.GetName}}</span> {{if gt $sum 100}}<span class="ds-chip ds-chip-warn">{{svg "dsi-alert" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_backed"}}</span>{{else if gt ($q.GetWorkerActiveNumber) 0}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_admin.queue_status_busy"}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_idle"}}</span>{{end}}</div>
-					<div class="ds-li-meta">
-						<span>{{ctx.Locale.Tr "asc_admin.queue_waiting" (printf "%d" $sum)}}</span>
-						<span>{{ctx.Locale.Tr "asc_admin.queue_workers" $q.GetWorkerActiveNumber $q.GetWorkerNumber}}</span>
-					</div>
-				</div>
-				<div class="adm-row-side"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Link}}/{{$qid}}" aria-label="{{ctx.Locale.Tr "asc_admin.queue_review"}}: {{$q.GetName}}">{{ctx.Locale.Tr "asc_admin.queue_review"}}</a></div>
+			<li class="ds-li adm-mrow">
+				<div class="adm-mrow-title">{{$q.GetName}}</div>
+				<dl class="adm-mrow-kv">
+					<div><dt>{{ctx.Locale.Tr "asc_admin.col_workers"}}</dt><dd>{{$q.GetWorkerNumber}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "asc_admin.col_waiting"}}</dt><dd>{{if lt $sum 0}}&mdash;{{else}}{{$sum}}{{end}}</dd></div>
+					<div><dt>{{ctx.Locale.Tr "asc_admin.col_status"}}</dt><dd>{{if gt $sum 100}}<span class="ds-chip ds-chip-warn">{{svg "dsi-alert" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_backed"}}</span>{{else if gt ($q.GetWorkerActiveNumber) 0}}<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_admin.queue_status_busy"}}</span>{{else}}<span class="ds-chip ds-chip-ok">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_admin.queue_status_idle"}}</span>{{end}}</dd></div>
+				</dl>
+				<div class="adm-mrow-act"><a class="ds-btn ds-btn-secondary" href="{{$.Link}}/{{$qid}}" aria-label="{{ctx.Locale.Tr "asc_admin.queue_review"}}: {{$q.GetName}}">{{ctx.Locale.Tr "asc_admin.queue_review"}}</a></div>
 			</li>
 		{{end}}
 	</ul>

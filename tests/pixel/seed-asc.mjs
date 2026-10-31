@@ -89,6 +89,8 @@ const RELEASES = [
 ];
 export const RELEASE_TAGS = RELEASES.map((r) => r.tag);
 
+const keyId = (added) => /\/user\/settings\/asc\/ai\/keys\/([^/?#]+)/.exec(added.location)?.[1];
+
 /** Makes the asc half of the seed. `api` and `upload` are the REST helpers of seed.mjs; `people` maps a login to its display name; `at` makes a time. */
 export async function seedAsc({api, upload, people, at, state}) {
   // agents are off on a fresh server; the board cast has them on
@@ -99,14 +101,36 @@ export async function seedAsc({api, upload, people, at, state}) {
   // the key of the team points at the model server hub.sh starts next to asc (it lists one model and answers every request with a short text),
   // so the key can be tested and an agent run can start and end; asc accepts a plain loopback endpoint under ASC_ALLOW_LOOPBACK_HTTP
   const modelPort = ASC_PORT + 50;
-  const added = await admin.post('/user/settings/asc/ai/keys', {label: 'Team key', provider: 'openai_compatible', base_url: `http://127.0.0.1:${modelPort}`, default_model: 'pixel-model', monthly_cap: '400', api_key: 'sk-pixel-harness-0000000000000000'}, '/user/settings/asc/ai');
-  const keyPath = /\/user\/settings\/asc\/ai\/keys\/[^/?#]+/.exec(added.location)?.[0];
-  if (added.status !== 303 || !keyPath) throw new Error(`the AI key was not added: ${added.status} ${added.location}`);
+  const addKey = async (fields) => {
+    const added = await admin.post('/user/settings/asc/ai/keys', fields, '/user/settings/asc/ai');
+    const id = keyId(added);
+    if (added.status !== 303 || !id) throw new Error(`the AI key ${fields.label} was not added: ${added.status} ${added.location}`);
+    return id;
+  };
+  // the keys of the AI board: a personal key that is shared with the organization, a key with a cap, a key without one and a local gateway (the last one
+  // is the working one: it answers the test call and the runs); a named provider has an address of its own, so the others stay untested and nothing leaves the machine
+  const local = `http://127.0.0.1:${modelPort}`;
+  const personal = await addKey({label: 'Personal Anthropic', provider: 'anthropic', default_model: 'claude-sonnet-4-5', monthly_cap: '25', api_key: 'sk-ant-pixel-harness-00000000000000009f4a'});
+  await admin.post(`/user/settings/asc/ai/keys/${personal}/shares`, {kind: 'org', name: 'acme', allow_use: 'on'}, `/user/settings/asc/ai/keys/${personal}`);
+  await addKey({label: 'Embeddings key', provider: 'openai', default_model: 'text-embedding-3-large', monthly_cap: '10', api_key: 'sk-pixel-harness-000000000000000000c07e'});
+  await addKey({label: 'Trial key', provider: 'anthropic', default_model: 'claude-haiku-4-5', api_key: 'sk-ant-pixel-harness-0000000000000071bd'});
+  const gateway = await addKey({label: 'Local gateway', provider: 'openai_compatible', base_url: local, default_model: 'pixel-model', monthly_cap: '5', api_key: 'sk-pixel-harness-0000000000000000e2a9'});
+  const keyPath = `/user/settings/asc/ai/keys/${gateway}`;
   const tested = await admin.post(`${keyPath}/test`, {}, keyPath, 'op_id');
   if (![200, 303].includes(tested.status)) throw new Error(`the AI key was not tested: ${tested.status}`);
+  // the storage board: three buckets of the user; asc takes an endpoint only when it resolves to a public address, so they sit on the loopback port of the
+  // model server (the one address the guard lets through), with path addressing, and none is verified
+  for (const t of [
+    {name: 'garage-eu', endpoint: local, bucket: 'asc-objects', prefix: 'asc/', region: 'eu-central-1', access_key_id: 'GK3f00000000000091c2', secret_access_key: 'pixel-harness-secret-000000000000'},
+    {name: 'r2-backup', endpoint: local, bucket: 'asc-cold', prefix: '', region: 'auto', access_key_id: 'R2AK0000000000000001', secret_access_key: 'pixel-harness-secret-000000000001'},
+    {name: 'minio-lab', endpoint: local, bucket: 'scratch', prefix: '', region: '', access_key_id: 'MNLB0000000000000002', secret_access_key: 'pixel-harness-secret-000000000002'},
+  ]) {
+    const made = await admin.post('/user/settings/asc/storage/targets', {addressing: 'path', ...t}, '/user/settings/asc/storage');
+    if (made.status !== 303) throw new Error(`the storage target ${t.name} was not added: ${made.status} ${made.location}`);
+  }
 
   // one agent run (the first, so run 1): a task on the payments repository, which the model server answers with "Nothing to change."
-  const run = await admin.post('/acme/payments/asc/agents/new', {title: 'Cursor pagination for the ledger export', task: 'Add cursor pagination to the ledger export, with a test for the last page.', paths: 'src/**'}, '/acme/payments/asc/agents/new', 'op');
+  const run = await admin.post('/acme/payments/asc/agents/new', {key: gateway, model: 'pixel-model', title: 'Cursor pagination for the ledger export', task: 'Add cursor pagination to the ledger export, with a test for the last page.', paths: 'src/**'}, '/acme/payments/asc/agents/new', 'op');
   if (run.status !== 303 || !/\/asc\/agents\/runs\/1\b/.test(run.location)) throw new Error(`the agent run was not started: ${run.status} ${run.location}`);
 
   // the backups page: a schedule that writes to the one target of the server, and one backup made now

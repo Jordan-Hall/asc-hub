@@ -124,10 +124,6 @@
   }
 }
 
-.rv-audit-filters .rv-card-f {
-  display: flex;
-}
-
 /* merge queue */
 .rv-queue,
 .rv-recent,
@@ -359,24 +355,6 @@
 }
 
 /* audit log */
-.rv-audit-filters .rv-formgrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.rv-audit-filters .rv-field:not(.rv-half) {
-  grid-column: 1 / -1;
-}
-
-@media (min-width: 900px) {
-  .rv-audit-filters .rv-formgrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .rv-audit-filters .rv-field:not(.rv-half) {
-    grid-column: auto;
-  }
-}
-
 @media (max-width: 639.98px) {
   .rv-tbl-stack td.rv-cell-wide {
     display: block;
@@ -721,21 +699,59 @@
   margin-bottom: 16px;
 }
 
-@media (min-width: 900px) {
-  .rv-audit-filters .rv-audit-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+/* the filter: who, what, outcome and target, then the dates, the order, the rows and the buttons */
+.rv-audit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  .rv-audit-filters .rv-audit-grid .rv-field.rv-audit-btns {
-    grid-column: span 2;
-  }
+.rv-audit-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.rv-audit-row-1 > :first-child,
+.rv-audit-row-1 > :last-child,
+.rv-audit-btns {
+  grid-column: 1 / -1;
 }
 
 .rv-audit-btns {
   display: flex;
-  flex-direction: row;
-  align-items: end;
+  align-items: center;
   gap: 8px;
+}
+
+@media (min-width: 900px) {
+  .rv-audit-row-1 {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1.05fr) minmax(0, .75fr) minmax(0, 1.2fr);
+  }
+
+  .rv-audit-row-1 > :first-child,
+  .rv-audit-row-1 > :last-child {
+    grid-column: auto;
+  }
+
+  .rv-audit-row-2 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    align-items: end;
+  }
+
+  .rv-audit-btns {
+    grid-column: auto;
+  }
+}
+
+.rv-trust-inline .rv-head-inline .rv-head-main {
+  flex: 1 1 auto;
+}
+
+.rv-trust-inline .rv-head-inline .rv-acts {
+  flex: none;
+  flex-wrap: nowrap;
 }
 
 .rv-audit-when {
@@ -763,10 +779,99 @@
   font-weight: 700;
 }
 
+.rv-audit-clamp .rv-audit-kv {
+  display: inline;
+}
+
 .rv-audit-clamp {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
   overflow-wrap: anywhere;
+}
+
+/* a phone shows each event as a card: the outcome and the time, who, the action and its target, then the details */
+@media (max-width: 639.98px) {
+  .rv-tablewrap.rv-audit-wrap {
+    border: 0;
+    background: none;
+    overflow: visible;
+  }
+
+  .rv-audit-tbl tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .rv-audit-tbl tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 14px;
+    background: var(--card);
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+  }
+
+  .rv-audit-tbl tbody tr:last-child {
+    border: 1px solid var(--line-2);
+  }
+
+  .rv-audit-tbl td {
+    display: block;
+    width: auto;
+    padding: 0;
+    text-align: start;
+  }
+
+  .rv-audit-tbl td[data-label]::before {
+    display: none;
+  }
+
+  .rv-audit-tbl .rv-audit-c-outcome {
+    order: 1;
+  }
+
+  .rv-audit-tbl .rv-audit-c-when {
+    order: 2;
+    margin-inline-start: auto;
+    padding: 0;
+  }
+
+  .rv-audit-tbl .rv-audit-c-who {
+    order: 3;
+    width: 100%;
+    font-weight: 600;
+  }
+
+  .rv-audit-tbl .rv-audit-c-what {
+    order: 4;
+  }
+
+  .rv-audit-tbl .rv-audit-c-target {
+    order: 5;
+    font-family: var(--mono, ui-monospace, monospace);
+    font-size: 13px;
+  }
+
+  .rv-audit-tbl .rv-audit-c-details {
+    order: 6;
+    width: 100%;
+    max-width: none;
+  }
+
+  .rv-audit-tbl .rv-audit-c-details .rv-audit-clamp {
+    -webkit-line-clamp: 3;
+  }
+
+  .rv-audit-sentence {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
 }

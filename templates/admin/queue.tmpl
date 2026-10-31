@@ -52,16 +52,14 @@
 			</div>
 			<ul class="adm-rows adm-only-sm">
 				{{range .Entries}}
-					<li class="ds-li ds-li-wrap">
-						<div class="ds-li-main">
-							<div class="ds-li-title"><span>{{ctx.Locale.Tr (printf "admin.dashboard.%s" .Name)}}</span>{{if .Status}} {{template "admin/cron_result" .}}{{end}}</div>
-							<div class="ds-li-sub adm-mono">{{.Spec}}</div>
-							<div class="ds-li-meta">
-								<span>{{ctx.Locale.Tr "asc_admin.cron_next" (DateUtils.FullTime .Next)}}</span>
-								<span>{{if gt .Prev.Year 1}}{{ctx.Locale.Tr "asc_admin.cron_prev" (DateUtils.FullTime .Prev)}}{{else}}{{ctx.Locale.Tr "asc_admin.cron_never"}}{{end}}</span>
-							</div>
-						</div>
-						<div class="adm-row-side"><button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm" name="op" value="{{.Name}}">{{ctx.Locale.Tr "asc_admin.cron_run_now"}}</button></div>
+					<li class="ds-li adm-mrow">
+						<div class="adm-mrow-title">{{ctx.Locale.Tr (printf "admin.dashboard.%s" .Name)}}</div>
+						<dl class="adm-mrow-kv">
+							<div><dt>{{ctx.Locale.Tr "asc_admin.col_schedule"}}</dt><dd class="adm-mono">{{.Spec}}</dd></div>
+							<div><dt>{{ctx.Locale.Tr "asc_admin.col_next"}}</dt><dd>{{DateUtils.FullTime .Next}}</dd></div>
+							<div><dt>{{ctx.Locale.Tr "asc_admin.col_last"}}</dt><dd>{{if gt .Prev.Year 1}}{{DateUtils.FullTime .Prev}}{{else}}<span class="ds-c-2">{{ctx.Locale.Tr "asc_admin.cron_never"}}</span>{{end}}{{if .Status}} {{template "admin/cron_result" .}}{{end}}</dd></div>
+						</dl>
+						<div class="adm-mrow-act"><button type="submit" class="ds-btn ds-btn-secondary" name="op" value="{{.Name}}">{{ctx.Locale.Tr "asc_admin.cron_run_now"}}</button></div>
 					</li>
 				{{end}}
 			</ul>
