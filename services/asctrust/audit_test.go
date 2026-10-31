@@ -361,3 +361,18 @@ func TestAuditPageSizeIsTenByDefaultAndTenIsAChoice(t *testing.T) {
 	assert.Empty(t, problems)
 	assert.Equal(t, "50", q.Values()["limit"], "a page size other than the default is kept in the links")
 }
+
+func TestKVShortCutsHashesOnly(t *testing.T) {
+	for _, c := range []struct{ in, want string }{
+		{"018bb58d912dc50f8dbe4a7c1f6b2e90", "018bb58d91…"},
+		{"0123456789abcdef", "0123456789…"},
+		{"0123456789abcde", "0123456789abcde"},           // fifteen digits: not a hash
+		{"018BB58D912DC50F8DBE", "018BB58D912DC50F8DBE"}, // upper case: not one of ours
+		{"run 214, 31 calls", "run 214, 31 calls"},
+		{"", ""},
+	} {
+		if got := (KV{Key: "new", Value: c.in}).Short(); got != c.want {
+			t.Errorf("Short(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}

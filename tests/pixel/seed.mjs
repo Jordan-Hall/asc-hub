@@ -131,8 +131,9 @@ export async function seed() {
     const pr = await api('POST', '/repos/acme/payments/pulls', {head: s.branch, base: 'main', title: s.title, body: s.body}, {sudo: s.author});
     if (pr && pr.number) state.prs[s.branch] = pr.number;
   }
-  if (ASC_SERVE) await seedAsc({api, upload, people: Object.fromEntries(PEOPLE.map((p) => [p.u, p.name])), at, state});
+  // the branches first: their ref updates are events of the audit log, and the newest events are the ones its board shows
   for (const b of EXTRA_BRANCHES) await api('POST', '/repos/acme/payments/branches', {new_branch_name: b, old_branch_name: 'main'});
+  if (ASC_SERVE) await seedAsc({api, upload, people: Object.fromEntries(PEOPLE.map((p) => [p.u, p.name])), at, state});
   // labels, milestone, issues
   for (const [name, color] of Object.entries(LABELS)) await api('POST', '/repos/acme/payments/labels', {name, color});
   const labelIds = Object.fromEntries((await api('GET', '/repos/acme/payments/labels?limit=50')).map((l) => [l.name, l.id]));
