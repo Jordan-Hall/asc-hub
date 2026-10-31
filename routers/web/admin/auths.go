@@ -46,6 +46,9 @@ func Authentications(ctx *context.Context) {
 		return
 	}
 
+	counts := authSourceCounts(ctx)
+	ctx.Data["SourceCounts"] = counts
+	ctx.Data["LocalPeople"] = counts[0]
 	ctx.HTML(http.StatusOK, tplAuths)
 }
 
