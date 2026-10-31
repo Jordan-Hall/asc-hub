@@ -24,14 +24,16 @@ func Test_addRepoTrash(t *testing.T) {
 	require.NoError(t, addRepoTrash(x))
 	require.NoError(t, addRepoTrash(x), "the migration can run twice")
 	type RepoTrash struct {
-		RepoID    int64
-		PurgeUnix int64
+		RepoID      int64
+		OwnerID     int64
+		DeletedUnix int64
+		PurgeUnix   int64
 	}
-	_, err := x.Insert(&RepoTrash{RepoID: 1, PurgeUnix: 5})
+	_, err := x.Insert(&RepoTrash{RepoID: 1, OwnerID: 2, DeletedUnix: 1, PurgeUnix: 5})
 	require.NoError(t, err)
 	var got []RepoTrash
 	require.NoError(t, x.Table("repo_trash").Find(&got))
 	assert.Len(t, got, 1)
-	_, err = x.Insert(&RepoTrash{RepoID: 1, PurgeUnix: 6})
+	_, err = x.Insert(&RepoTrash{RepoID: 1, OwnerID: 2, DeletedUnix: 1, PurgeUnix: 6})
 	require.Error(t, err, "a repository is in the trash once")
 }

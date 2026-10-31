@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"forgejo.org/models/unittest"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/services/ascnotify"
 
 	_ "forgejo.org/modules/testimport"
@@ -79,4 +80,16 @@ func TestPushChoiceAndDigestHour(t *testing.T) {
 	d.TZ = "Asia/Tokyo" // 08:00 in Tokyo is 23:00 UTC the day before
 	assert.True(t, d.DigestDue(time.Date(2026, 10, 27, 23, 10, 0, 0, time.UTC)))
 	assert.False(t, d.DigestDue(time.Date(2026, 10, 28, 8, 10, 0, 0, time.UTC)))
+}
+
+func TestTimeZoneNameIsTheZoneOfTheProfile(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx := t.Context()
+	assert.Empty(t, ascnotify.TimeZoneName(ctx, 2), "none chosen")
+	require.NoError(t, ascnotify.Save(ctx, 2, ascnotify.Prefs{TZ: "Asia/Tokyo"}))
+	assert.Equal(t, "Asia/Tokyo", ascnotify.TimeZoneName(ctx, 2))
+	assert.Empty(t, ascnotify.TimeZoneName(ctx, 4), "another person's choice is theirs")
+	// a name stored by an older hub that this one cannot load is not handed to the page
+	require.NoError(t, user_model.SetUserSetting(ctx, 4, "asc.notify", `{"tz":"Not/AZone"}`))
+	assert.Empty(t, ascnotify.TimeZoneName(ctx, 4))
 }

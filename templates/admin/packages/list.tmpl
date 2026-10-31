@@ -92,6 +92,7 @@
 		{{.CsrfTokenHtml}}
 		<button class="ds-btn ds-btn-secondary" type="submit">{{svg "dsi-trash" 16}}{{ctx.Locale.Tr "asc_admin.packages_cleanup"}}</button>
 		<p class="ds-hint ds-mt-8">{{ctx.Locale.Tr "asc_admin.packages_cleanup_note"}}</p>
+		<p class="ds-mt-8"><a href="{{AppSubUrl}}/admin/packages/cleanup/rules">{{ctx.Locale.Tr "asc_admin.packages_rules_link"}}</a></p>
 	</form>
 
 <div class="ui g-modal-confirm delete modal" id="delete-package">

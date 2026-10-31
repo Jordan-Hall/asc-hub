@@ -1,4 +1,4 @@
-import {DoUpdateRelativeTime, HALF_MINUTE, ONE_MINUTE, ONE_HOUR, ONE_DAY} from './relative-time.js';
+import {DoUpdateRelativeTime, HALF_MINUTE, ONE_MINUTE, ONE_HOUR, ONE_DAY, makeAbsoluteDatetimeFormat} from './relative-time.js';
 
 test('CalculateRelativeTimes', () => {
   window.config.pageData.PLURAL_RULE_LANG = 0;
@@ -291,4 +291,12 @@ test('CalculateDurationFormat', () => {
   mock.setAttribute('datetime', '2024-08-27T04:05:30+01:00');
   expect(DoUpdateRelativeTime(mock, now)).toEqual(ONE_DAY);
   expect(mock.textContent).toEqual(intlFallback);
+});
+
+test('the tooltip time follows the time zone of the person, and an unknown zone is ignored', () => {
+  const t = new Date('2026-10-27T02:00:00Z');
+  expect(makeAbsoluteDatetimeFormat('Asia/Tokyo', 'en-GB').format(t)).toContain('11:00');
+  expect(makeAbsoluteDatetimeFormat('UTC', 'en-GB').format(t)).toContain('02:00');
+  expect(() => makeAbsoluteDatetimeFormat('Not/AZone', 'en-GB')).not.toThrow();
+  expect(makeAbsoluteDatetimeFormat('', 'en-GB')).toBeInstanceOf(Intl.DateTimeFormat);
 });
