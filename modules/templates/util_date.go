@@ -41,6 +41,16 @@ func (du *DateUtils) FullTime(time any) template.HTML {
 	return dateTimeFormat("full", time)
 }
 
+// DayTime renders in the design's "27 Oct 02:00" format, in UTC, as plain text (day first, no year; the full time is the tooltip).
+func (du *DateUtils) DayTime(when any) template.HTML {
+	t, isZero := anyToTime(when)
+	if isZero {
+		return "-"
+	}
+	t = t.UTC()
+	return template.HTML(fmt.Sprintf(`<time datetime="%s" title="%s">%s</time>`, html.EscapeString(t.Format(time.RFC3339)), html.EscapeString(t.Format("2006-01-02 15:04:05 UTC")), html.EscapeString(t.Format("2 Jan 15:04"))))
+}
+
 func (du *DateUtils) TimeSince(time any) template.HTML {
 	return TimeSince(time)
 }

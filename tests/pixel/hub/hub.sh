@@ -141,6 +141,10 @@ enabled = true
 [backups.targets.r2-backup]
 kind = "local"
 path = "$ASC_DIR/backups"
+
+[backups.targets.offsite]
+kind = "local"
+path = "/proc/asc-offsite-is-not-there"
 TOML
   if [ "$(id -u)" = 0 ]; then chown -R nobody "$RUN"; fi
   as_user "cd $RUN && env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=$ASC_DIR/home ASC_SERVE_CONFIG=$SERVE_CFG ASC_ALLOW_LOOPBACK_HTTP=1 $PIXEL_ASC_BIN serve migrate" >"$RUN/log/asc-migrate.log" 2>&1 \

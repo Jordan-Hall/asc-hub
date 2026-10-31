@@ -80,3 +80,10 @@ func TestTimeSince(t *testing.T) {
 	actual = timeSinceLegacy(timeutil.TimeStampNano(refTime.UnixNano()), nil)
 	assert.EqualValues(t, `<relative-time prefix="" tense="past" datetime="2017-12-31T19:00:00-05:00" data-tooltip-content data-tooltip-interactive="true">2017-12-31 19:00:00 -05:00</relative-time>`, actual)
 }
+
+func TestDayTime(t *testing.T) {
+	du := NewDateUtils()
+	ts, _ := time.Parse(time.RFC3339, "2026-10-27T02:00:00Z")
+	assert.EqualValues(t, `<time datetime="2026-10-27T02:00:00Z" title="2026-10-27 02:00:00 UTC">27 Oct 02:00</time>`, du.DayTime(ts))
+	assert.EqualValues(t, "-", du.DayTime(time.Time{}))
+}
