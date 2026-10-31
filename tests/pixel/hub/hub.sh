@@ -39,6 +39,7 @@ stop() {
   # the first stop is the one after the seed: from then on people are added to organizations by invitation (as on a real hub), which
   # the seed could not use (it adds people to teams directly)
   [ -d "$RUN/custom/conf" ] && touch "$RUN/seeded"
+  if [ -f "$ASC_DIR/model.pid" ]; then kill "$(cat "$ASC_DIR/model.pid")" 2>/dev/null || true; rm -f "$ASC_DIR/model.pid"; fi
   if [ -f "$ASC_DIR/serve.pid" ]; then # asc serve of this run only: the pid it wrote itself
     kill "$(cat "$ASC_DIR/serve.pid")" 2>/dev/null || true
     for _ in $(seq 1 20); do kill -0 "$(cat "$ASC_DIR/serve.pid")" 2>/dev/null || break; sleep 1; done
@@ -71,8 +72,43 @@ start() {
 }
 
 # asc serve asks the hub for authorization, so it starts once the hub answers (as the all-in-one entrypoint does).
+start_model() {
+  # a model server for the AI key of the seed: it lists one model and answers every other request with a short text
+  cat >"$ASC_DIR/model.py" <<'PY'
+import json, sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+class H(BaseHTTPRequestHandler):
+    def _send(self, body):
+        data = json.dumps(body).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        self._send({"object": "list", "data": [{"id": "pixel-model", "object": "model"}]})
+
+    def do_POST(self):
+        self.rfile.read(int(self.headers.get("Content-Length") or 0))
+        self._send({"id": "cmpl-pixel", "object": "chat.completion", "model": "pixel-model",
+                    "choices": [{"index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": "Nothing to change."}}],
+                    "usage": {"prompt_tokens": 120, "completion_tokens": 6, "total_tokens": 126}})
+
+    def log_message(self, *a):
+        pass
+
+ThreadingHTTPServer(("127.0.0.1", int(sys.argv[1])), H).serve_forever()
+PY
+  nohup setsid python3 "$ASC_DIR/model.py" "$((ASC_PORT + 50))" >"$RUN/log/model.log" 2>&1 &
+  echo $! >"$ASC_DIR/model.pid"
+}
+
 start_asc() {
   [ "$ASC_MODE" = serve ] || return 0
+  [ -f "$ASC_DIR/model.pid" ] && kill "$(cat "$ASC_DIR/model.pid")" 2>/dev/null || true
+  start_model
   : "${PIXEL_ASC_BIN:?set PIXEL_ASC_BIN to the asc binary}"
   # another asc serve on the port would answer for ours (the hub would talk to it), so refuse to start next to one
   for p in "$ASC_PORT" "$ASC_ADMIN_PORT"; do
@@ -98,6 +134,8 @@ prepare_asc_secrets() {
 }
 
 prepare_asc() {
+  # the price of the model of the model server (micro-dollars per million tokens), so a run with a cost limit can start
+  echo '{"pixel-model": [1000000, 2000000], "*": [0, 0]}' >"$ASC_DIR/prices.json"
   cat >"$SERVE_CFG" <<TOML
 listen = "127.0.0.1:$ASC_PORT"
 store = 'file://$ASC_DIR/objects'
@@ -134,6 +172,16 @@ enabled = true
 
 [workflows]
 enabled = true
+
+[codeintel]
+enabled = true
+
+[aikeys]
+price_file = "$ASC_DIR/prices.json"
+
+[netguard]
+allow_loopback_http = true
+loopback_ports = [$((ASC_PORT + 50))]
 
 [backups]
 enabled = true
@@ -200,6 +248,10 @@ PROVIDER = file
 PROVIDER_CONFIG = $RUN/data/sessions
 [ui]
 DEFAULT_THEME = asc-auto
+[moderation]
+ENABLED = true
+[quota]
+ENABLED = true
 INI
   if [ "$ASC_MODE" = serve ]; then
     cat >> "$RUN/custom/conf/app.ini" <<INI
