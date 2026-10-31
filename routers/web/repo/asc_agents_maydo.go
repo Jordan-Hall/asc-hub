@@ -17,7 +17,9 @@ import (
 // The card "What this run may do" of the new-task page: Policy.Evaluate for the agent, with the write action for a sample
 // path of each glob of the scope (the scope is a pattern, asc judges paths) and the run action for the limits of the form.
 // It updates as the scope narrows (GET /asc/agents/may-do). The server enforces all of it again on every update; the card
-// only shows what asc would say, and asc being silent leaves the card out.
+// only shows what asc would say. Asc tells how the policy binds another principal only to a maintainer (a real asc refuses
+// the hub's own credential: "no such principal"), so the calls are made as the person; for anyone else the card says that
+// it cannot be shown.
 
 const (
 	// ascMayDoMaxPaths is how many sample paths are asked about (the globs of a form are at most 16).
@@ -150,11 +152,17 @@ func AscAgentsMayDo(ctx *context.Context) {
 		return
 	}
 	ascAgentsNoStore(ctx)
-	callCtx, cancel := ascAgentsReadCtx(ctx)
-	defer cancel()
 	var policy ascAgentPolicy
 	if strings.TrimSpace(raw) == "" {
-		policy = ascAgentPolicyOf(callCtx, env.ref())
+		readCtx, cancelRead := ascAgentsReadCtx(ctx)
+		policy = ascAgentPolicyOf(readCtx, env.ref())
+		cancelRead()
 	}
+	// as the person: asc tells how the policy binds another principal only to a maintainer, and the hub's own credential is none
+	callCtx, done, ok := ascAgentsWriteCtx(ctx, "")
+	if !ok {
+		return
+	}
+	defer done()
 	ctx.JSON(http.StatusOK, ascAgentMayDoOf(callCtx, env.ref(), agent, ascAgentMayDoScope(raw, policy), uint32(changes), uint32(paths)))
 }
