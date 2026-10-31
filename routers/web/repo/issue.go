@@ -199,6 +199,22 @@ func issues(ctx *context.Context, milestoneID, projectID int64, isPullOption opt
 	if bytes.Contains([]byte(keyword), []byte{0x00}) {
 		keyword = ""
 	}
+	// `label:name` and `author:login` in the search box are the filters of the label and author menus
+	if q := parseIssueQuery(keyword); len(q.Labels)+len(q.Authors) > 0 {
+		keyword = q.Keyword
+		if ids := queryLabelIDs(ctx, repo, q.Labels); len(ids) > 0 {
+			if slices.Contains(labelIDs, 0) {
+				labelIDs = nil // "no label" and a named label cannot both hold; the named one is what was typed
+				ctx.Data["NoLabel"] = false
+			}
+			labelIDs = mergeIDs(labelIDs, ids)
+			selectLabels = joinIDs(labelIDs)
+			ctx.Data["AllLabels"] = false
+		}
+		if id := queryPosterID(ctx, q.Authors); id != 0 {
+			posterID = id
+		}
+	}
 
 	var mileIDs []int64
 	if milestoneID > 0 || milestoneID == db.NoConditionID { // -1 to get those issues which have no any milestone assigned
