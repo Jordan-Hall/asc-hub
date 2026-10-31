@@ -132,7 +132,7 @@ Every text in the table was cleaned by services/asctrust and is escaped here.
 							</td>
 							<td class="rv-audit-c-target" data-label="{{ctx.Locale.Tr "asc_trust.audit.target"}}">{{if .Repo}}<span class="rv-muted">{{.Repo}}</span> {{end}}{{if .Target}}<code>{{.Target}}</code>{{end}}</td>
 							<td class="rv-audit-c-outcome" data-label="{{ctx.Locale.Tr "asc_trust.audit.outcome"}}"><span class="rv-pill {{if eq .Tone "ok"}}rv-pill-ok{{else if eq .Tone "no"}}rv-pill-err{{else if eq .Tone "wn"}}rv-pill-warn{{end}}">{{ctx.Locale.Tr (printf "asc_trust.audit.outcome_%s" .Tone)}}</span></td>
-							<td class="rv-audit-details rv-audit-c-details" data-label="{{ctx.Locale.Tr "asc_trust.audit.details_col"}}"><div class="rv-audit-clamp" title="{{range .Details}}{{.Key}} {{.Value}}; {{end}}">{{range .Details}}<span class="rv-audit-kv"><span class="rv-faint">{{.Key}}</span> {{.Value}}</span> {{end}}</div></td>
+							<td class="rv-audit-details rv-audit-c-details" data-label="{{ctx.Locale.Tr "asc_trust.audit.details_col"}}"><div class="rv-audit-clamp" title="{{range .Details}}{{.Key}} {{.Value}}; {{end}}">{{range .Details}}<span class="rv-audit-kv"><span class="rv-faint">{{.Key}}</span> {{.Short}}</span> {{end}}</div></td>
 						</tr>
 						{{else}}
 						<tr><td colspan="6" class="rv-center rv-muted" data-testid="asc-audit-empty">{{ctx.Locale.Tr "asc_trust.audit.empty"}} <a href="{{.Base}}" data-testid="asc-audit-clear">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></td></tr>

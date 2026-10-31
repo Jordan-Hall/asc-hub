@@ -225,5 +225,37 @@ export async function seedAsc({api, upload, people, at, state}) {
     'as maya workflow run dependency-update',
     'as maya workflow run release-notes || true',
   ].join('\n'), 'runs');
+
+  // the newest events of the audit log are the ones the audit board shows, so they come last: a push that the secret scan refuses (Hannah puts an
+  // access key into config/prod.env), and the queue of main paused for a release freeze and resumed. Nothing a page shows changes with them.
+  runScript([
+    `person hannah ${q(people.hannah)}`,
+    'mkdir -p "$WORK/leak"; clone hannah acme/payments "$WORK/leak"; cd "$WORK/leak"',
+    `when ${q(at(0))}`,
+    'mkdir -p config; printf "AWS_ACCESS_KEY_ID=AKIAJ7Q2XK4M9TRB5WNE\\nAWS_SECRET_ACCESS_KEY=q8Lw3vTzP0mXc7RkYb2NdJf5GhUa9SeI1oVt4WnZ\\n" >config/prod.env',
+    'as hannah add config/prod.env; as hannah commit -m "Add the production environment file" >/dev/null',
+    'as hannah submit -s --publish --reviewer maya >/dev/null 2>&1 || true',
+  ].join('\n'), 'refused push');
+  // had the scan let it through, the stack would sit in every list of stacks: that is a failed seed, not a board difference
+  if ((await api('GET', '/repos/acme/payments/pulls?state=open&limit=50')).some((p) => p.title === 'Add the production environment file')) throw new Error('the secret scan did not refuse the push of config/prod.env');
+  await admin.form('/acme/payments/asc/queue/pause', {branch: 'main'}, '/acme/payments/asc/queue');
+  await admin.form('/acme/payments/asc/queue/resume', {branch: 'main'}, '/acme/payments/asc/queue');
+
+  // the monitor board shows the mail queue backed up (212 waiting): the mail server of the harness never answers (hub.sh), and a person made by an
+  // administrator with the notice switched on gets one mail. The people are removed again, so no page lists them; the mails stay in the queue.
+  const waiting = async () => {
+    const m = /adm-who-name">mail<\/span><\/td>\s*<td[^>]*>\d+<\/td>\s*<td[^>]*>(\d+)<\/td>/.exec(await admin.text('/admin/monitor/queue'));
+    return m ? Number(m[1]) : 0;
+  };
+  const MAIL_WAITING = 212;
+  const tmp = [];
+  for (let n = await waiting(); n < MAIL_WAITING; n = await waiting()) {
+    if (tmp.length > 3 * MAIL_WAITING) throw new Error(`the mail queue does not fill (${n} waiting after ${tmp.length} mails)`);
+    const u = `mail-tmp-${tmp.length + 1}`;
+    await api('POST', '/admin/users', {username: u, email: `${u}@acme.test`, password: PASSWORD, must_change_password: false, send_notify: true}, {ok: [201]});
+    tmp.push(u);
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  for (const u of tmp) await api('DELETE', `/admin/users/${u}?purge=true`, undefined, {ok: [204]});
   return state;
 }

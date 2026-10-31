@@ -20,6 +20,10 @@ ADMIN="${PIXEL_ADMIN:-maya}"
 ASC_PORT="${PIXEL_ASC_PORT:-7891}"
 ASC_ADMIN_PORT="${PIXEL_ASC_ADMIN_PORT:-$((ASC_PORT + 2000))}"
 ASC_MODE="${PIXEL_ASC:-}"
+# the mail server of the asc runs is a socket that takes every connection and never answers: the first mails fill the sending workers, the rest wait,
+# so the monitor shows the "mail" queue backed up (a hub with no mail server shows none)
+MAIL_PORT=$((ASC_PORT + 51))
+MAILER_ENABLED=false; [ "$ASC_MODE" = serve ] && MAILER_ENABLED=true
 BOOT="$RUN/boot"
 ASC_DIR="$RUN/asc"
 SERVE_CFG="$ASC_DIR/asc-serve.toml"
@@ -40,6 +44,7 @@ stop() {
   # the seed could not use (it adds people to teams directly)
   [ -d "$RUN/custom/conf" ] && touch "$RUN/seeded"
   if [ -f "$ASC_DIR/model.pid" ]; then kill "$(cat "$ASC_DIR/model.pid")" 2>/dev/null || true; rm -f "$ASC_DIR/model.pid"; fi
+  if [ -f "$ASC_DIR/mail.pid" ]; then kill "$(cat "$ASC_DIR/mail.pid")" 2>/dev/null || true; rm -f "$ASC_DIR/mail.pid"; fi
   if [ -f "$ASC_DIR/serve.pid" ]; then # asc serve of this run only: the pid it wrote itself
     kill "$(cat "$ASC_DIR/serve.pid")" 2>/dev/null || true
     for _ in $(seq 1 20); do kill -0 "$(cat "$ASC_DIR/serve.pid")" 2>/dev/null || break; sleep 1; done
@@ -103,6 +108,26 @@ ThreadingHTTPServer(("127.0.0.1", int(sys.argv[1])), H).serve_forever()
 PY
   nohup setsid python3 "$ASC_DIR/model.py" "$((ASC_PORT + 50))" >"$RUN/log/model.log" 2>&1 &
   echo $! >"$ASC_DIR/model.pid"
+  start_mail
+}
+
+# a mail server that never greets: the connections stay open and the mails behind them wait in the queue
+start_mail() {
+  cat >"$ASC_DIR/mail.py" <<'PY'
+import socket, sys, threading
+
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("127.0.0.1", int(sys.argv[1])))
+s.listen(512)
+held = []
+while True:
+    c, _ = s.accept()
+    held.append(c)
+PY
+  [ -f "$ASC_DIR/mail.pid" ] && kill "$(cat "$ASC_DIR/mail.pid")" 2>/dev/null || true
+  nohup setsid python3 "$ASC_DIR/mail.py" "$MAIL_PORT" >"$RUN/log/mail.log" 2>&1 &
+  echo $! >"$ASC_DIR/mail.pid"
 }
 
 start_asc() {
@@ -202,6 +227,9 @@ TOML
 up() {
   : "${PIXEL_HUB_BIN:?set PIXEL_HUB_BIN to the hub binary}"
   down
+  # a failed `up` (the hub or asc serve did not come up, the migration failed) leaves nothing running: the model server, asc serve and the
+  # hub of this run are stopped (the state stays, for the logs)
+  trap 'rc=$?; trap - EXIT; if [ "$rc" -ne 0 ]; then stop; fi; exit "$rc"' EXIT
   mkdir -p "$RUN"/{custom/conf,data,repos,log,home}
   if [ "$ASC_MODE" = serve ]; then : "${PIXEL_ASC_BIN:?set PIXEL_ASC_BIN to the asc binary}"; mkdir -p "$BOOT"; chmod 0700 "$BOOT"; fi
   INTERNAL_TOKEN_LINE="INTERNAL_TOKEN = $(rand 64)"
@@ -218,7 +246,7 @@ WORK_PATH = $RUN
 HTTP_ADDR = 127.0.0.1
 HTTP_PORT = $PORT
 ROOT_URL = http://127.0.0.1:$PORT/
-DOMAIN = 127.0.0.1
+DOMAIN = acme-hub.example
 STATIC_ROOT_PATH = $STATIC
 APP_DATA_PATH = $RUN/data
 OFFLINE_MODE = true
@@ -239,7 +267,11 @@ JWT_SECRET = $(rand 43 'A-Za-z0-9_-')
 DISABLE_REGISTRATION = false
 REQUIRE_SIGNIN_VIEW = false
 [mailer]
-ENABLED = false
+ENABLED = $MAILER_ENABLED
+PROTOCOL = smtp
+SMTP_ADDR = 127.0.0.1
+SMTP_PORT = $MAIL_PORT
+FROM = ASC Hub <asc@acme-hub.example>
 [log]
 MODE = console
 LEVEL = warn
