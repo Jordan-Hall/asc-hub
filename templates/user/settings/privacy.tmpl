@@ -61,16 +61,24 @@
 			</form>
 		</div>
 		{{end}}
-		<form class="ds-card-b ds-form wk-inline-form" action="{{.PrivacyLink}}/block" method="post" data-submit-confirm="{{ctx.Locale.Tr "settings.block_confirm"}}">
+		<form class="ds-card-b ds-form wk-inline-form" action="{{.PrivacyLink}}/block" method="post" data-confirm-modal="#block-user-modal">
 			{{.CsrfTokenHtml}}
 			<div class="ds-inwrap">
 				{{svg "dsi-ban" 16}}
 				<label class="ds-sr" for="block-username">{{ctx.Locale.Tr "asc_work.sp_block_label"}}</label>
-				<input id="block-username" class="ds-input" name="username" type="text" required maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_work.sp_block_label"}}">
+				<input id="block-username" class="ds-input" name="username" type="text" data-confirm-name required maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_work.sp_block_label"}}">
 			</div>
 			<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_work.sp_block_btn"}}</button>
 		</form>
 		<p class="ds-hint ds-card-b">{{ctx.Locale.Tr "asc_work.sp_blocked_note"}}</p>
 	</section>
+</div>
+<div class="ui g-modal-confirm delete modal" id="block-user-modal" data-testid="block-user-modal">
+	<div class="header">{{ctx.Locale.Tr "settings.block_confirm_title"}}</div>
+	<div class="content">
+		<p><b class="name"></b></p>
+		<p>{{ctx.Locale.Tr "settings.block_confirm"}}</p>
+	</div>
+	{{template "base/modal_actions_confirm" (dict "ModalButtonTypes" "confirm" "ModalButtonOkText" (ctx.Locale.Tr "asc_work.sp_block_btn"))}}
 </div>
 {{template "user/settings/layout_footer" .}}

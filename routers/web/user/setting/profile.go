@@ -225,6 +225,7 @@ func Organization(ctx *context.Context) {
 		return
 	}
 	ctx.Data["OrgRows"] = rows
+	ctx.Data["OrgInvites"] = orgInviteRows(ctx)
 	pager := context.NewPagination(int(total), opts.PageSize, opts.Page, 5)
 	pager.SetDefaultParams(ctx)
 	ctx.Data["Page"] = pager
