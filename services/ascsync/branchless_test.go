@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type configAPI struct {
@@ -45,4 +47,39 @@ func TestAscBranchlessLoad(t *testing.T) {
 
 	_, err = LoadBranchlessSettings(t.Context(), nil)
 	require.ErrorIs(t, err, ErrBadRequest)
+}
+
+type adminAPI struct {
+	ascv1.RepoClient
+	req *ascv1.RepoAdminRequest
+	err error
+}
+
+func (a *adminAPI) RepoAdmin(_ context.Context, in *ascv1.RepoAdminRequest, _ ...grpc.CallOption) (*ascv1.RepoAdminResponse, error) {
+	a.req = in
+	return &ascv1.RepoAdminResponse{}, a.err
+}
+
+func TestAscSetBranchless(t *testing.T) {
+	fx := newFixture(t)
+	api := &adminAPI{}
+	defer UseClient(api)()
+	require.NoError(t, SetBranchless(t.Context(), fx.repo, true))
+	assert.Equal(t, "owner/repo", strings.ToLower(api.req.GetRepo().GetName()))
+	assert.True(t, api.req.GetSetBranchless().GetBranchless())
+	require.NoError(t, SetBranchless(t.Context(), fx.repo, false))
+	assert.NotNil(t, api.req.GetSetBranchless(), "turning it off is an explicit request, not an unset flag")
+	assert.False(t, api.req.GetSetBranchless().GetBranchless())
+
+	// asc's refusal is told to the person; a repository not kept in asc sends nothing
+	api.err = status.Error(codes.FailedPrecondition, "branch dev is not a shared ref")
+	err := SetBranchless(t.Context(), fx.repo, true)
+	var rej *RejectError
+	require.ErrorAs(t, err, &rej)
+	assert.Contains(t, rej.Error(), "dev")
+	api.req = nil
+	plain := *fx.repo
+	plain.StorageBackend = "git"
+	require.ErrorIs(t, SetBranchless(t.Context(), &plain, true), ErrNotAsc)
+	assert.Nil(t, api.req)
 }

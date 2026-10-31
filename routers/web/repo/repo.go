@@ -209,6 +209,7 @@ func Create(ctx *context.Context) {
 	ctx.Data["DefaultObjectFormat"] = git.Sha1ObjectFormat
 	ctx.Data["NewRepoIsAsc"] = newRepositoriesInAsc()
 	ctx.Data["policy_approvals"] = 2
+	ctx.Data["working_mode"] = repo_service.WorkingModeBranchless
 	prepareAscNewRepo(ctx, ctxUser)
 
 	ctx.HTML(http.StatusOK, tplCreate)
@@ -323,6 +324,7 @@ func CreatePost(ctx *context.Context) {
 			return
 		}
 		repo, err = repo_service.CreateRepository(ctx, ctx.Doer, ctxUser, repo_service.CreateRepoOptions{
+			WorkingMode:      ascWorkingMode(form.WorkingMode),
 			AgentsFile:       form.AgentsFile,
 			PolicyFile:       form.PolicyFile && newRepositoriesInAsc(),
 			PolicyMaintainer: ctx.Doer.Name,

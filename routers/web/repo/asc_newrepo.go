@@ -109,6 +109,14 @@ func CheckName(ctx *context.Context) {
 	ctx.JSON(http.StatusOK, ascNewRepoNameAnswer{OK: true})
 }
 
+// ascWorkingMode keeps the working mode of the page to the two it offers, and only where asc keeps new repositories.
+func ascWorkingMode(v string) string {
+	if !newRepositoriesInAsc() || (v != repo_service.WorkingModeBranchless && v != repo_service.WorkingModeBranches) {
+		return ""
+	}
+	return v
+}
+
 // ascPolicyApprovals keeps the approvals of the page within what the policy file offers.
 func ascPolicyApprovals(n int) int {
 	return max(0, min(n, repo_service.PolicyMaxApprovals))

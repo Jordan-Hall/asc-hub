@@ -70,6 +70,60 @@ func (SearchMode) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{0}
 }
 
+// Why a result matched (docs/SPEC.md 23.4.1). Absent when the server did not compute it (a local or older server). Never
+// carries text of a redacted file or line: a redacted result has no `spans`.
+type MatchKind int32
+
+const (
+	MatchKind_MATCH_KIND_UNSPECIFIED MatchKind = 0
+	MatchKind_MATCH_KIND_SYMBOL      MatchKind = 1 // a symbol definition or name matched
+	MatchKind_MATCH_KIND_TEXT        MatchKind = 2 // the text of the file matched (literal, regex, word or keyword)
+	MatchKind_MATCH_KIND_MEANING     MatchKind = 3 // the embedding of the chunk is close to the query
+)
+
+// Enum value maps for MatchKind.
+var (
+	MatchKind_name = map[int32]string{
+		0: "MATCH_KIND_UNSPECIFIED",
+		1: "MATCH_KIND_SYMBOL",
+		2: "MATCH_KIND_TEXT",
+		3: "MATCH_KIND_MEANING",
+	}
+	MatchKind_value = map[string]int32{
+		"MATCH_KIND_UNSPECIFIED": 0,
+		"MATCH_KIND_SYMBOL":      1,
+		"MATCH_KIND_TEXT":        2,
+		"MATCH_KIND_MEANING":     3,
+	}
+)
+
+func (x MatchKind) Enum() *MatchKind {
+	p := new(MatchKind)
+	*p = x
+	return p
+}
+
+func (x MatchKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MatchKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_codeintel_proto_enumTypes[1].Descriptor()
+}
+
+func (MatchKind) Type() protoreflect.EnumType {
+	return &file_asc_v1_codeintel_proto_enumTypes[1]
+}
+
+func (x MatchKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MatchKind.Descriptor instead.
+func (MatchKind) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{1}
+}
+
 type SymbolOp int32
 
 const (
@@ -109,11 +163,11 @@ func (x SymbolOp) String() string {
 }
 
 func (SymbolOp) Descriptor() protoreflect.EnumDescriptor {
-	return file_asc_v1_codeintel_proto_enumTypes[1].Descriptor()
+	return file_asc_v1_codeintel_proto_enumTypes[2].Descriptor()
 }
 
 func (SymbolOp) Type() protoreflect.EnumType {
-	return &file_asc_v1_codeintel_proto_enumTypes[1]
+	return &file_asc_v1_codeintel_proto_enumTypes[2]
 }
 
 func (x SymbolOp) Number() protoreflect.EnumNumber {
@@ -122,7 +176,7 @@ func (x SymbolOp) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SymbolOp.Descriptor instead.
 func (SymbolOp) EnumDescriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{1}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{2}
 }
 
 type SemanticMode int32
@@ -155,11 +209,11 @@ func (x SemanticMode) String() string {
 }
 
 func (SemanticMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_asc_v1_codeintel_proto_enumTypes[2].Descriptor()
+	return file_asc_v1_codeintel_proto_enumTypes[3].Descriptor()
 }
 
 func (SemanticMode) Type() protoreflect.EnumType {
-	return &file_asc_v1_codeintel_proto_enumTypes[2]
+	return &file_asc_v1_codeintel_proto_enumTypes[3]
 }
 
 func (x SemanticMode) Number() protoreflect.EnumNumber {
@@ -168,7 +222,7 @@ func (x SemanticMode) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SemanticMode.Descriptor instead.
 func (SemanticMode) EnumDescriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{2}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{3}
 }
 
 // Every query takes a scope. `workspace` is accepted only over the daemon IPC.
@@ -632,6 +686,145 @@ func (x *LineMatch) GetAfter() [][]byte {
 	return nil
 }
 
+// One matched term. `line` is the 1-based line of the file; `start_col` and `end_col` are 1-based byte columns inside that
+// line as sent in `LineMatch.text` or `Chunk.text`, `end_col` exclusive. `term` is the term of the query that matched
+// (for a regex, the pattern).
+type MatchSpan struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Line          uint32                 `protobuf:"varint,1,opt,name=line,proto3" json:"line,omitempty"`
+	StartCol      uint32                 `protobuf:"varint,2,opt,name=start_col,json=startCol,proto3" json:"start_col,omitempty"`
+	EndCol        uint32                 `protobuf:"varint,3,opt,name=end_col,json=endCol,proto3" json:"end_col,omitempty"`
+	Term          string                 `protobuf:"bytes,4,opt,name=term,proto3" json:"term,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MatchSpan) Reset() {
+	*x = MatchSpan{}
+	mi := &file_asc_v1_codeintel_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MatchSpan) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MatchSpan) ProtoMessage() {}
+
+func (x *MatchSpan) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_codeintel_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MatchSpan.ProtoReflect.Descriptor instead.
+func (*MatchSpan) Descriptor() ([]byte, []int) {
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *MatchSpan) GetLine() uint32 {
+	if x != nil {
+		return x.Line
+	}
+	return 0
+}
+
+func (x *MatchSpan) GetStartCol() uint32 {
+	if x != nil {
+		return x.StartCol
+	}
+	return 0
+}
+
+func (x *MatchSpan) GetEndCol() uint32 {
+	if x != nil {
+		return x.EndCol
+	}
+	return 0
+}
+
+func (x *MatchSpan) GetTerm() string {
+	if x != nil {
+		return x.Term
+	}
+	return ""
+}
+
+type MatchReason struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          MatchKind              `protobuf:"varint,1,opt,name=kind,proto3,enum=asc.v1.MatchKind" json:"kind,omitempty"`
+	Score         float64                `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"` // relevance, 0 to 1, comparable only within one response
+	Spans         []*MatchSpan           `protobuf:"bytes,3,rep,name=spans,proto3" json:"spans,omitempty"`   // at most 32
+	Terms         []string               `protobuf:"bytes,4,rep,name=terms,proto3" json:"terms,omitempty"`   // the distinct query terms that matched, at most 16
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MatchReason) Reset() {
+	*x = MatchReason{}
+	mi := &file_asc_v1_codeintel_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MatchReason) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MatchReason) ProtoMessage() {}
+
+func (x *MatchReason) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_codeintel_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MatchReason.ProtoReflect.Descriptor instead.
+func (*MatchReason) Descriptor() ([]byte, []int) {
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *MatchReason) GetKind() MatchKind {
+	if x != nil {
+		return x.Kind
+	}
+	return MatchKind_MATCH_KIND_UNSPECIFIED
+}
+
+func (x *MatchReason) GetScore() float64 {
+	if x != nil {
+		return x.Score
+	}
+	return 0
+}
+
+func (x *MatchReason) GetSpans() []*MatchSpan {
+	if x != nil {
+		return x.Spans
+	}
+	return nil
+}
+
+func (x *MatchReason) GetTerms() []string {
+	if x != nil {
+		return x.Terms
+	}
+	return nil
+}
+
 type FileHit struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Path          []byte                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
@@ -640,13 +833,14 @@ type FileHit struct {
 	AlsoAt        [][]byte               `protobuf:"bytes,4,rep,name=also_at,json=alsoAt,proto3" json:"also_at,omitempty"` // up to 5 other paths of the same file
 	Matches       []*LineMatch           `protobuf:"bytes,5,rep,name=matches,proto3" json:"matches,omitempty"`
 	Redacted      bool                   `protobuf:"varint,6,opt,name=redacted,proto3" json:"redacted,omitempty"`
+	Reason        *MatchReason           `protobuf:"bytes,7,opt,name=reason,proto3" json:"reason,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FileHit) Reset() {
 	*x = FileHit{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[5]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -658,7 +852,7 @@ func (x *FileHit) String() string {
 func (*FileHit) ProtoMessage() {}
 
 func (x *FileHit) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[5]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -671,7 +865,7 @@ func (x *FileHit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileHit.ProtoReflect.Descriptor instead.
 func (*FileHit) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{5}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *FileHit) GetPath() []byte {
@@ -716,6 +910,13 @@ func (x *FileHit) GetRedacted() bool {
 	return false
 }
 
+func (x *FileHit) GetReason() *MatchReason {
+	if x != nil {
+		return x.Reason
+	}
+	return nil
+}
+
 type SearchResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Scope         *ResolvedScope         `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
@@ -729,7 +930,7 @@ type SearchResponse struct {
 
 func (x *SearchResponse) Reset() {
 	*x = SearchResponse{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[6]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -741,7 +942,7 @@ func (x *SearchResponse) String() string {
 func (*SearchResponse) ProtoMessage() {}
 
 func (x *SearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[6]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -754,7 +955,7 @@ func (x *SearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResponse.ProtoReflect.Descriptor instead.
 func (*SearchResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{6}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SearchResponse) GetScope() *ResolvedScope {
@@ -809,7 +1010,7 @@ type SymbolsRequest struct {
 
 func (x *SymbolsRequest) Reset() {
 	*x = SymbolsRequest{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[7]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -821,7 +1022,7 @@ func (x *SymbolsRequest) String() string {
 func (*SymbolsRequest) ProtoMessage() {}
 
 func (x *SymbolsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[7]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -834,7 +1035,7 @@ func (x *SymbolsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SymbolsRequest.ProtoReflect.Descriptor instead.
 func (*SymbolsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{7}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SymbolsRequest) GetScope() *Scope {
@@ -918,7 +1119,7 @@ type Symbol struct {
 
 func (x *Symbol) Reset() {
 	*x = Symbol{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[8]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -930,7 +1131,7 @@ func (x *Symbol) String() string {
 func (*Symbol) ProtoMessage() {}
 
 func (x *Symbol) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[8]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -943,7 +1144,7 @@ func (x *Symbol) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Symbol.ProtoReflect.Descriptor instead.
 func (*Symbol) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{8}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Symbol) GetName() string {
@@ -1029,7 +1230,7 @@ type SymbolsResponse struct {
 
 func (x *SymbolsResponse) Reset() {
 	*x = SymbolsResponse{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[9]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1041,7 +1242,7 @@ func (x *SymbolsResponse) String() string {
 func (*SymbolsResponse) ProtoMessage() {}
 
 func (x *SymbolsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[9]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1054,7 +1255,7 @@ func (x *SymbolsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SymbolsResponse.ProtoReflect.Descriptor instead.
 func (*SymbolsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{9}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SymbolsResponse) GetScope() *ResolvedScope {
@@ -1106,7 +1307,7 @@ type SemanticRequest struct {
 
 func (x *SemanticRequest) Reset() {
 	*x = SemanticRequest{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[10]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1118,7 +1319,7 @@ func (x *SemanticRequest) String() string {
 func (*SemanticRequest) ProtoMessage() {}
 
 func (x *SemanticRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[10]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1131,7 +1332,7 @@ func (x *SemanticRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SemanticRequest.ProtoReflect.Descriptor instead.
 func (*SemanticRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{10}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SemanticRequest) GetScope() *Scope {
@@ -1187,13 +1388,14 @@ type Chunk struct {
 	Sources       []string               `protobuf:"bytes,7,rep,name=sources,proto3" json:"sources,omitempty"`
 	Text          []byte                 `protobuf:"bytes,8,opt,name=text,proto3" json:"text,omitempty"`
 	Redacted      bool                   `protobuf:"varint,9,opt,name=redacted,proto3" json:"redacted,omitempty"`
+	Reason        *MatchReason           `protobuf:"bytes,10,opt,name=reason,proto3" json:"reason,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Chunk) Reset() {
 	*x = Chunk{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[11]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1205,7 +1407,7 @@ func (x *Chunk) String() string {
 func (*Chunk) ProtoMessage() {}
 
 func (x *Chunk) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[11]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1218,7 +1420,7 @@ func (x *Chunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Chunk.ProtoReflect.Descriptor instead.
 func (*Chunk) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{11}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Chunk) GetPath() []byte {
@@ -1284,6 +1486,13 @@ func (x *Chunk) GetRedacted() bool {
 	return false
 }
 
+func (x *Chunk) GetReason() *MatchReason {
+	if x != nil {
+		return x.Reason
+	}
+	return nil
+}
+
 type SemanticResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Scope         *ResolvedScope         `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
@@ -1297,7 +1506,7 @@ type SemanticResponse struct {
 
 func (x *SemanticResponse) Reset() {
 	*x = SemanticResponse{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[12]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1309,7 +1518,7 @@ func (x *SemanticResponse) String() string {
 func (*SemanticResponse) ProtoMessage() {}
 
 func (x *SemanticResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[12]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1322,7 +1531,7 @@ func (x *SemanticResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SemanticResponse.ProtoReflect.Descriptor instead.
 func (*SemanticResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{12}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *SemanticResponse) GetScope() *ResolvedScope {
@@ -1369,7 +1578,7 @@ type IndexStatusRequest struct {
 
 func (x *IndexStatusRequest) Reset() {
 	*x = IndexStatusRequest{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[13]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1381,7 +1590,7 @@ func (x *IndexStatusRequest) String() string {
 func (*IndexStatusRequest) ProtoMessage() {}
 
 func (x *IndexStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[13]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1394,7 +1603,7 @@ func (x *IndexStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IndexStatusRequest.ProtoReflect.Descriptor instead.
 func (*IndexStatusRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{13}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *IndexStatusRequest) GetScope() *Scope {
@@ -1417,7 +1626,7 @@ type IndexStatus struct {
 
 func (x *IndexStatus) Reset() {
 	*x = IndexStatus{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[14]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1429,7 +1638,7 @@ func (x *IndexStatus) String() string {
 func (*IndexStatus) ProtoMessage() {}
 
 func (x *IndexStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[14]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1442,7 +1651,7 @@ func (x *IndexStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IndexStatus.ProtoReflect.Descriptor instead.
 func (*IndexStatus) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{14}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *IndexStatus) GetIndex() string {
@@ -1490,7 +1699,7 @@ type IndexStatusResponse struct {
 
 func (x *IndexStatusResponse) Reset() {
 	*x = IndexStatusResponse{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[15]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1502,7 +1711,7 @@ func (x *IndexStatusResponse) String() string {
 func (*IndexStatusResponse) ProtoMessage() {}
 
 func (x *IndexStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[15]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1515,7 +1724,7 @@ func (x *IndexStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IndexStatusResponse.ProtoReflect.Descriptor instead.
 func (*IndexStatusResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{15}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *IndexStatusResponse) GetScope() *ResolvedScope {
@@ -1548,7 +1757,7 @@ type UploadScipHeader struct {
 
 func (x *UploadScipHeader) Reset() {
 	*x = UploadScipHeader{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[16]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1560,7 +1769,7 @@ func (x *UploadScipHeader) String() string {
 func (*UploadScipHeader) ProtoMessage() {}
 
 func (x *UploadScipHeader) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[16]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1573,7 +1782,7 @@ func (x *UploadScipHeader) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadScipHeader.ProtoReflect.Descriptor instead.
 func (*UploadScipHeader) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{16}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UploadScipHeader) GetRepo() *RepoRef {
@@ -1617,7 +1826,7 @@ type UploadScipRequest struct {
 
 func (x *UploadScipRequest) Reset() {
 	*x = UploadScipRequest{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[17]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1629,7 +1838,7 @@ func (x *UploadScipRequest) String() string {
 func (*UploadScipRequest) ProtoMessage() {}
 
 func (x *UploadScipRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[17]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1642,7 +1851,7 @@ func (x *UploadScipRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadScipRequest.ProtoReflect.Descriptor instead.
 func (*UploadScipRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{17}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *UploadScipRequest) GetPart() isUploadScipRequest_Part {
@@ -1700,7 +1909,7 @@ type UploadScipResponse struct {
 
 func (x *UploadScipResponse) Reset() {
 	*x = UploadScipResponse{}
-	mi := &file_asc_v1_codeintel_proto_msgTypes[18]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1712,7 +1921,7 @@ func (x *UploadScipResponse) String() string {
 func (*UploadScipResponse) ProtoMessage() {}
 
 func (x *UploadScipResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_codeintel_proto_msgTypes[18]
+	mi := &file_asc_v1_codeintel_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1725,7 +1934,7 @@ func (x *UploadScipResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadScipResponse.ProtoReflect.Descriptor instead.
 func (*UploadScipResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{18}
+	return file_asc_v1_codeintel_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *UploadScipResponse) GetChangeset() []byte {
@@ -1815,14 +2024,25 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"\x04cols\x18\x02 \x03(\rR\x04cols\x12\x18\n" +
 	"\x04text\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x04R\x04text\x12\x1c\n" +
 	"\x06before\x18\x04 \x03(\fB\x04\xa8\xbb\x18\x04R\x06before\x12\x1a\n" +
-	"\x05after\x18\x05 \x03(\fB\x04\xa8\xbb\x18\x04R\x05after\"\xbe\x01\n" +
+	"\x05after\x18\x05 \x03(\fB\x04\xa8\xbb\x18\x04R\x05after\"i\n" +
+	"\tMatchSpan\x12\x12\n" +
+	"\x04line\x18\x01 \x01(\rR\x04line\x12\x1b\n" +
+	"\tstart_col\x18\x02 \x01(\rR\bstartCol\x12\x17\n" +
+	"\aend_col\x18\x03 \x01(\rR\x06endCol\x12\x12\n" +
+	"\x04term\x18\x04 \x01(\tR\x04term\"\x89\x01\n" +
+	"\vMatchReason\x12%\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x11.asc.v1.MatchKindR\x04kind\x12\x14\n" +
+	"\x05score\x18\x02 \x01(\x01R\x05score\x12'\n" +
+	"\x05spans\x18\x03 \x03(\v2\x11.asc.v1.MatchSpanR\x05spans\x12\x14\n" +
+	"\x05terms\x18\x04 \x03(\tR\x05terms\"\xeb\x01\n" +
 	"\aFileHit\x12\x18\n" +
 	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1d\n" +
 	"\afile_id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x06fileId\x12\x12\n" +
 	"\x04lang\x18\x03 \x01(\tR\x04lang\x12\x1d\n" +
 	"\aalso_at\x18\x04 \x03(\fB\x04\xa8\xbb\x18\x03R\x06alsoAt\x12+\n" +
 	"\amatches\x18\x05 \x03(\v2\x11.asc.v1.LineMatchR\amatches\x12\x1a\n" +
-	"\bredacted\x18\x06 \x01(\bR\bredacted\"\xc9\x01\n" +
+	"\bredacted\x18\x06 \x01(\bR\bredacted\x12+\n" +
+	"\x06reason\x18\a \x01(\v2\x13.asc.v1.MatchReasonR\x06reason\"\xc9\x01\n" +
 	"\x0eSearchResponse\x12+\n" +
 	"\x05scope\x18\x01 \x01(\v2\x15.asc.v1.ResolvedScopeR\x05scope\x12%\n" +
 	"\x05files\x18\x02 \x03(\v2\x0f.asc.v1.FileHitR\x05files\x12\x1c\n" +
@@ -1868,7 +2088,7 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"\x04mode\x18\x03 \x01(\x0e2\x14.asc.v1.SemanticModeR\x04mode\x12\f\n" +
 	"\x01k\x18\x04 \x01(\rR\x01k\x12&\n" +
 	"\x06budget\x18\x05 \x01(\v2\x0e.asc.v1.BudgetR\x06budget\x12\x16\n" +
-	"\x06rerank\x18\x06 \x01(\bR\x06rerank\"\xf8\x01\n" +
+	"\x06rerank\x18\x06 \x01(\bR\x06rerank\"\xa5\x02\n" +
 	"\x05Chunk\x12\x18\n" +
 	"\x04path\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1d\n" +
 	"\afile_id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x06fileId\x12\x1d\n" +
@@ -1879,7 +2099,9 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"\x05score\x18\x06 \x01(\x01R\x05score\x12\x18\n" +
 	"\asources\x18\a \x03(\tR\asources\x12\x18\n" +
 	"\x04text\x18\b \x01(\fB\x04\xa8\xbb\x18\x04R\x04text\x12\x1a\n" +
-	"\bredacted\x18\t \x01(\bR\bredacted\"\xc0\x01\n" +
+	"\bredacted\x18\t \x01(\bR\bredacted\x12+\n" +
+	"\x06reason\x18\n" +
+	" \x01(\v2\x13.asc.v1.MatchReasonR\x06reason\"\xc0\x01\n" +
 	"\x10SemanticResponse\x12+\n" +
 	"\x05scope\x18\x01 \x01(\v2\x15.asc.v1.ResolvedScopeR\x05scope\x12%\n" +
 	"\x06chunks\x18\x02 \x03(\v2\r.asc.v1.ChunkR\x06chunks\x12\x14\n" +
@@ -1921,7 +2143,12 @@ const file_asc_v1_codeintel_proto_rawDesc = "" +
 	"SearchMode\x12\x17\n" +
 	"\x13SEARCH_MODE_LITERAL\x10\x00\x12\x15\n" +
 	"\x11SEARCH_MODE_REGEX\x10\x01\x12\x14\n" +
-	"\x10SEARCH_MODE_WORD\x10\x02*s\n" +
+	"\x10SEARCH_MODE_WORD\x10\x02*k\n" +
+	"\tMatchKind\x12\x1a\n" +
+	"\x16MATCH_KIND_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11MATCH_KIND_SYMBOL\x10\x01\x12\x13\n" +
+	"\x0fMATCH_KIND_TEXT\x10\x02\x12\x16\n" +
+	"\x12MATCH_KIND_MEANING\x10\x03*s\n" +
 	"\bSymbolOp\x12\x11\n" +
 	"\rSYMBOL_OP_DEF\x10\x00\x12\x12\n" +
 	"\x0eSYMBOL_OP_REFS\x10\x01\x12\x15\n" +
@@ -1953,71 +2180,78 @@ func file_asc_v1_codeintel_proto_rawDescGZIP() []byte {
 	return file_asc_v1_codeintel_proto_rawDescData
 }
 
-var file_asc_v1_codeintel_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_asc_v1_codeintel_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_asc_v1_codeintel_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_asc_v1_codeintel_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_asc_v1_codeintel_proto_goTypes = []any{
 	(SearchMode)(0),             // 0: asc.v1.SearchMode
-	(SymbolOp)(0),               // 1: asc.v1.SymbolOp
-	(SemanticMode)(0),           // 2: asc.v1.SemanticMode
-	(*Scope)(nil),               // 3: asc.v1.Scope
-	(*ResolvedScope)(nil),       // 4: asc.v1.ResolvedScope
-	(*Budget)(nil),              // 5: asc.v1.Budget
-	(*SearchRequest)(nil),       // 6: asc.v1.SearchRequest
-	(*LineMatch)(nil),           // 7: asc.v1.LineMatch
-	(*FileHit)(nil),             // 8: asc.v1.FileHit
-	(*SearchResponse)(nil),      // 9: asc.v1.SearchResponse
-	(*SymbolsRequest)(nil),      // 10: asc.v1.SymbolsRequest
-	(*Symbol)(nil),              // 11: asc.v1.Symbol
-	(*SymbolsResponse)(nil),     // 12: asc.v1.SymbolsResponse
-	(*SemanticRequest)(nil),     // 13: asc.v1.SemanticRequest
-	(*Chunk)(nil),               // 14: asc.v1.Chunk
-	(*SemanticResponse)(nil),    // 15: asc.v1.SemanticResponse
-	(*IndexStatusRequest)(nil),  // 16: asc.v1.IndexStatusRequest
-	(*IndexStatus)(nil),         // 17: asc.v1.IndexStatus
-	(*IndexStatusResponse)(nil), // 18: asc.v1.IndexStatusResponse
-	(*UploadScipHeader)(nil),    // 19: asc.v1.UploadScipHeader
-	(*UploadScipRequest)(nil),   // 20: asc.v1.UploadScipRequest
-	(*UploadScipResponse)(nil),  // 21: asc.v1.UploadScipResponse
-	(*RepoRef)(nil),             // 22: asc.v1.RepoRef
+	(MatchKind)(0),              // 1: asc.v1.MatchKind
+	(SymbolOp)(0),               // 2: asc.v1.SymbolOp
+	(SemanticMode)(0),           // 3: asc.v1.SemanticMode
+	(*Scope)(nil),               // 4: asc.v1.Scope
+	(*ResolvedScope)(nil),       // 5: asc.v1.ResolvedScope
+	(*Budget)(nil),              // 6: asc.v1.Budget
+	(*SearchRequest)(nil),       // 7: asc.v1.SearchRequest
+	(*LineMatch)(nil),           // 8: asc.v1.LineMatch
+	(*MatchSpan)(nil),           // 9: asc.v1.MatchSpan
+	(*MatchReason)(nil),         // 10: asc.v1.MatchReason
+	(*FileHit)(nil),             // 11: asc.v1.FileHit
+	(*SearchResponse)(nil),      // 12: asc.v1.SearchResponse
+	(*SymbolsRequest)(nil),      // 13: asc.v1.SymbolsRequest
+	(*Symbol)(nil),              // 14: asc.v1.Symbol
+	(*SymbolsResponse)(nil),     // 15: asc.v1.SymbolsResponse
+	(*SemanticRequest)(nil),     // 16: asc.v1.SemanticRequest
+	(*Chunk)(nil),               // 17: asc.v1.Chunk
+	(*SemanticResponse)(nil),    // 18: asc.v1.SemanticResponse
+	(*IndexStatusRequest)(nil),  // 19: asc.v1.IndexStatusRequest
+	(*IndexStatus)(nil),         // 20: asc.v1.IndexStatus
+	(*IndexStatusResponse)(nil), // 21: asc.v1.IndexStatusResponse
+	(*UploadScipHeader)(nil),    // 22: asc.v1.UploadScipHeader
+	(*UploadScipRequest)(nil),   // 23: asc.v1.UploadScipRequest
+	(*UploadScipResponse)(nil),  // 24: asc.v1.UploadScipResponse
+	(*RepoRef)(nil),             // 25: asc.v1.RepoRef
 }
 var file_asc_v1_codeintel_proto_depIdxs = []int32{
-	22, // 0: asc.v1.Scope.repo:type_name -> asc.v1.RepoRef
-	3,  // 1: asc.v1.SearchRequest.scope:type_name -> asc.v1.Scope
+	25, // 0: asc.v1.Scope.repo:type_name -> asc.v1.RepoRef
+	4,  // 1: asc.v1.SearchRequest.scope:type_name -> asc.v1.Scope
 	0,  // 2: asc.v1.SearchRequest.mode:type_name -> asc.v1.SearchMode
-	5,  // 3: asc.v1.SearchRequest.budget:type_name -> asc.v1.Budget
-	7,  // 4: asc.v1.FileHit.matches:type_name -> asc.v1.LineMatch
-	4,  // 5: asc.v1.SearchResponse.scope:type_name -> asc.v1.ResolvedScope
-	8,  // 6: asc.v1.SearchResponse.files:type_name -> asc.v1.FileHit
-	3,  // 7: asc.v1.SymbolsRequest.scope:type_name -> asc.v1.Scope
-	1,  // 8: asc.v1.SymbolsRequest.op:type_name -> asc.v1.SymbolOp
-	5,  // 9: asc.v1.SymbolsRequest.budget:type_name -> asc.v1.Budget
-	4,  // 10: asc.v1.SymbolsResponse.scope:type_name -> asc.v1.ResolvedScope
-	11, // 11: asc.v1.SymbolsResponse.symbols:type_name -> asc.v1.Symbol
-	3,  // 12: asc.v1.SemanticRequest.scope:type_name -> asc.v1.Scope
-	2,  // 13: asc.v1.SemanticRequest.mode:type_name -> asc.v1.SemanticMode
-	5,  // 14: asc.v1.SemanticRequest.budget:type_name -> asc.v1.Budget
-	4,  // 15: asc.v1.SemanticResponse.scope:type_name -> asc.v1.ResolvedScope
-	14, // 16: asc.v1.SemanticResponse.chunks:type_name -> asc.v1.Chunk
-	3,  // 17: asc.v1.IndexStatusRequest.scope:type_name -> asc.v1.Scope
-	4,  // 18: asc.v1.IndexStatusResponse.scope:type_name -> asc.v1.ResolvedScope
-	17, // 19: asc.v1.IndexStatusResponse.indexes:type_name -> asc.v1.IndexStatus
-	22, // 20: asc.v1.UploadScipHeader.repo:type_name -> asc.v1.RepoRef
-	19, // 21: asc.v1.UploadScipRequest.header:type_name -> asc.v1.UploadScipHeader
-	6,  // 22: asc.v1.CodeIntel.Search:input_type -> asc.v1.SearchRequest
-	10, // 23: asc.v1.CodeIntel.Symbols:input_type -> asc.v1.SymbolsRequest
-	13, // 24: asc.v1.CodeIntel.Semantic:input_type -> asc.v1.SemanticRequest
-	16, // 25: asc.v1.CodeIntel.IndexStatus:input_type -> asc.v1.IndexStatusRequest
-	20, // 26: asc.v1.CodeIntel.UploadScip:input_type -> asc.v1.UploadScipRequest
-	9,  // 27: asc.v1.CodeIntel.Search:output_type -> asc.v1.SearchResponse
-	12, // 28: asc.v1.CodeIntel.Symbols:output_type -> asc.v1.SymbolsResponse
-	15, // 29: asc.v1.CodeIntel.Semantic:output_type -> asc.v1.SemanticResponse
-	18, // 30: asc.v1.CodeIntel.IndexStatus:output_type -> asc.v1.IndexStatusResponse
-	21, // 31: asc.v1.CodeIntel.UploadScip:output_type -> asc.v1.UploadScipResponse
-	27, // [27:32] is the sub-list for method output_type
-	22, // [22:27] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	6,  // 3: asc.v1.SearchRequest.budget:type_name -> asc.v1.Budget
+	1,  // 4: asc.v1.MatchReason.kind:type_name -> asc.v1.MatchKind
+	9,  // 5: asc.v1.MatchReason.spans:type_name -> asc.v1.MatchSpan
+	8,  // 6: asc.v1.FileHit.matches:type_name -> asc.v1.LineMatch
+	10, // 7: asc.v1.FileHit.reason:type_name -> asc.v1.MatchReason
+	5,  // 8: asc.v1.SearchResponse.scope:type_name -> asc.v1.ResolvedScope
+	11, // 9: asc.v1.SearchResponse.files:type_name -> asc.v1.FileHit
+	4,  // 10: asc.v1.SymbolsRequest.scope:type_name -> asc.v1.Scope
+	2,  // 11: asc.v1.SymbolsRequest.op:type_name -> asc.v1.SymbolOp
+	6,  // 12: asc.v1.SymbolsRequest.budget:type_name -> asc.v1.Budget
+	5,  // 13: asc.v1.SymbolsResponse.scope:type_name -> asc.v1.ResolvedScope
+	14, // 14: asc.v1.SymbolsResponse.symbols:type_name -> asc.v1.Symbol
+	4,  // 15: asc.v1.SemanticRequest.scope:type_name -> asc.v1.Scope
+	3,  // 16: asc.v1.SemanticRequest.mode:type_name -> asc.v1.SemanticMode
+	6,  // 17: asc.v1.SemanticRequest.budget:type_name -> asc.v1.Budget
+	10, // 18: asc.v1.Chunk.reason:type_name -> asc.v1.MatchReason
+	5,  // 19: asc.v1.SemanticResponse.scope:type_name -> asc.v1.ResolvedScope
+	17, // 20: asc.v1.SemanticResponse.chunks:type_name -> asc.v1.Chunk
+	4,  // 21: asc.v1.IndexStatusRequest.scope:type_name -> asc.v1.Scope
+	5,  // 22: asc.v1.IndexStatusResponse.scope:type_name -> asc.v1.ResolvedScope
+	20, // 23: asc.v1.IndexStatusResponse.indexes:type_name -> asc.v1.IndexStatus
+	25, // 24: asc.v1.UploadScipHeader.repo:type_name -> asc.v1.RepoRef
+	22, // 25: asc.v1.UploadScipRequest.header:type_name -> asc.v1.UploadScipHeader
+	7,  // 26: asc.v1.CodeIntel.Search:input_type -> asc.v1.SearchRequest
+	13, // 27: asc.v1.CodeIntel.Symbols:input_type -> asc.v1.SymbolsRequest
+	16, // 28: asc.v1.CodeIntel.Semantic:input_type -> asc.v1.SemanticRequest
+	19, // 29: asc.v1.CodeIntel.IndexStatus:input_type -> asc.v1.IndexStatusRequest
+	23, // 30: asc.v1.CodeIntel.UploadScip:input_type -> asc.v1.UploadScipRequest
+	12, // 31: asc.v1.CodeIntel.Search:output_type -> asc.v1.SearchResponse
+	15, // 32: asc.v1.CodeIntel.Symbols:output_type -> asc.v1.SymbolsResponse
+	18, // 33: asc.v1.CodeIntel.Semantic:output_type -> asc.v1.SemanticResponse
+	21, // 34: asc.v1.CodeIntel.IndexStatus:output_type -> asc.v1.IndexStatusResponse
+	24, // 35: asc.v1.CodeIntel.UploadScip:output_type -> asc.v1.UploadScipResponse
+	31, // [31:36] is the sub-list for method output_type
+	26, // [26:31] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_codeintel_proto_init() }
@@ -2033,7 +2267,7 @@ func file_asc_v1_codeintel_proto_init() {
 		(*Scope_StackTop)(nil),
 		(*Scope_Workspace)(nil),
 	}
-	file_asc_v1_codeintel_proto_msgTypes[17].OneofWrappers = []any{
+	file_asc_v1_codeintel_proto_msgTypes[19].OneofWrappers = []any{
 		(*UploadScipRequest_Header)(nil),
 		(*UploadScipRequest_Data)(nil),
 	}
@@ -2042,8 +2276,8 @@ func file_asc_v1_codeintel_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_codeintel_proto_rawDesc), len(file_asc_v1_codeintel_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   19,
+			NumEnums:      4,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

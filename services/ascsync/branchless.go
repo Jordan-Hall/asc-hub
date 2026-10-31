@@ -39,3 +39,21 @@ func LoadBranchlessSettings(ctx context.Context, repo *repo_model.Repository) (B
 	}
 	return BranchlessSettings{Branchless: resp.GetBranchless(), Cloud: resp.GetCloud(), SharedRefs: resp.GetSharedRefs()}, nil
 }
+
+// SetBranchless switches the ref policy of an asc repository between branchless and branches (RepoAdmin.set_branchless:
+// repository administrator, audited by asc as repo.branchless). asc flips the policy only when no ref would be stranded
+// (see its refusal text); the hub does not decide that. The call is made with the hub's own credential: the caller has
+// decided that the person may do this (the creator of a new repository, an administrator of the repository).
+func SetBranchless(ctx context.Context, repo *repo_model.Repository, on bool) error {
+	r, err := open(repo)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := system(ctx, CallTimeout)
+	defer cancel()
+	_, err = r.api.RepoAdmin(ctx, &ascv1.RepoAdminRequest{
+		Repo: &ascv1.RepoRef{Name: r.name},
+		Op:   &ascv1.RepoAdminRequest_SetBranchless{SetBranchless: &ascv1.SetBranchlessOp{Branchless: on}},
+	})
+	return callError("RepoAdmin.set_branchless", err)
+}
