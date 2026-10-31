@@ -105,6 +105,21 @@
 		</section>
 	</form>
 
+	<form class="ui form ds-form wk-sp-form" action="{{.Link}}/hide_resolved" method="post" data-testid="hide-resolved-form">
+		{{.CsrfTokenHtml}}
+		<section class="ds-card" aria-labelledby="sp-resolved">
+			<div class="ds-card-h"><h2 id="sp-resolved">{{ctx.Locale.Tr "settings.hide_resolved"}}</h2></div>
+			<div class="ds-card-b ds-stack-16">
+				<label class="ds-switch">
+					<input name="hide_resolved" type="checkbox" role="switch" value="true"{{if .AscHideResolved}} checked{{end}}>
+					<span class="ds-switch-track"></span>
+					<span class="wk-switch-text"><b>{{ctx.Locale.Tr "settings.hide_resolved"}}</b><span class="ds-hint">{{ctx.Locale.Tr "settings.hide_resolved_description"}}</span></span>
+				</label>
+				<div><button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "settings.update_hints"}}</button></div>
+			</div>
+		</section>
+	</form>
+
 	<!-- Shown comment event types -->
 	<form class="ui form ds-form wk-sp-form" action="{{.Link}}/hidden_comments" method="post">
 		{{.CsrfTokenHtml}}

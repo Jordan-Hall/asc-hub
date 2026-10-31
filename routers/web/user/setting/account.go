@@ -134,8 +134,9 @@ func EmailPost(ctx *context.Context) {
 	// Send activation Email
 	if ctx.FormString("_method") == "SENDACTIVATION" {
 		var address string
-		if ctx.Cache.IsExist("MailResendLimit_" + ctx.Doer.LowerName) {
-			log.Error("Send activation: activation still pending")
+		if wait, limited := mailResendRemaining(ctx, ctx.Doer.LowerName, time.Now()); limited {
+			log.Debug("Send activation: activation still pending")
+			ctx.Flash.Warning(ctx.Tr("settings.resend_limited", mailResendText(ctx, wait)))
 			ctx.Redirect(setting.AppSubURL + "/user/settings/account")
 			return
 		}
@@ -176,9 +177,7 @@ func EmailPost(ctx *context.Context) {
 		}
 		address = email.Email
 
-		if err := ctx.Cache.Put("MailResendLimit_"+ctx.Doer.LowerName, ctx.Doer.LowerName, 180); err != nil {
-			log.Error("Set cache(MailResendLimit) fail: %v", err)
-		}
+		markMailResend(ctx, ctx.Doer.LowerName, time.Now())
 
 		ctx.Flash.Info(ctx.Tr("settings.add_email_confirmation_sent", address, timeutil.MinutesToFriendly(setting.Service.ActiveCodeLives, ctx.Locale)))
 		ctx.Redirect(setting.AppSubURL + "/user/settings/account")
@@ -237,9 +236,7 @@ func EmailPost(ctx *context.Context) {
 			ctx.ServerError("SendActivateEmailMail", err)
 			return
 		}
-		if err := ctx.Cache.Put("MailResendLimit_"+ctx.Doer.LowerName, ctx.Doer.LowerName, 180); err != nil {
-			log.Error("Set cache(MailResendLimit) fail: %v", err)
-		}
+		markMailResend(ctx, ctx.Doer.LowerName, time.Now())
 
 		ctx.Flash.Info(ctx.Tr("settings.add_email_confirmation_sent", form.Email, timeutil.MinutesToFriendly(setting.Service.ActiveCodeLives, ctx.Locale)))
 	} else {

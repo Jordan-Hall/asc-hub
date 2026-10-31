@@ -1,5 +1,7 @@
 {{$invalid := (index .comments 0).Invalidated}}
 {{$resolved := (index .comments 0).IsResolved}}
+{{/* a resolved conversation starts collapsed unless the person turned "Hide resolved comments" off */}}
+{{$collapsed := and $resolved (not .AscExpandResolved)}}
 {{$resolveDoer := (index .comments 0).ResolveDoer}}
 {{$isNotPending := (not (eq (index .comments 0).Review.Type 0))}}
 <div class="ds-card conversation-holder">
@@ -17,7 +19,7 @@
 				<span class="ds-chip ds-chip-outline">Lines {{(index .comments 0).UnsignedLine}}-{{(index .comments 0).UnsignedDisplayLine}}</span>
 			{{end}}
 			{{if or $invalid $resolved}}
-				<button id="show-outdated-{{(index .comments 0).ID}}" data-comment="{{(index .comments 0).ID}}" class="{{if not $resolved}}tw-hidden {{end}}show-outdated">
+				<button id="show-outdated-{{(index .comments 0).ID}}" data-comment="{{(index .comments 0).ID}}" class="{{if not $collapsed}}tw-hidden {{end}}show-outdated">
 					{{svg "octicon-unfold" 16 "tw-mr-2"}}
 					{{if $resolved}}
 						{{ctx.Locale.Tr "repo.issues.review.show_resolved"}}
@@ -25,7 +27,7 @@
 						{{ctx.Locale.Tr "repo.issues.review.show_outdated"}}
 					{{end}}
 				</button>
-				<button id="hide-outdated-{{(index .comments 0).ID}}" data-comment="{{(index .comments 0).ID}}" class="{{if $resolved}}tw-hidden {{end}}hide-outdated">
+				<button id="hide-outdated-{{(index .comments 0).ID}}" data-comment="{{(index .comments 0).ID}}" class="{{if $collapsed}}tw-hidden {{end}}hide-outdated">
 					{{svg "octicon-fold" 16 "tw-mr-2"}}
 					{{if $resolved}}
 						{{ctx.Locale.Tr "repo.issues.review.hide_resolved"}}
@@ -39,7 +41,7 @@
 	{{$diff := (CommentMustAsDiff ctx (index .comments 0))}}
 	{{if $diff}}
 		{{$file := (index $diff.Files 0)}}
-		<div id="code-preview-{{(index .comments 0).ID}}" class="ds-card-b ds-code-preview{{if $resolved}} tw-hidden{{end}}">
+		<div id="code-preview-{{(index .comments 0).ID}}" class="ds-card-b ds-code-preview{{if $collapsed}} tw-hidden{{end}}">
 			<div class="diff-file-box diff-box file-content {{TabSizeClass $.Editorconfig $file.Name}}">
 				<div class="file-body file-code code-view code-diff code-diff-unified unicode-escaped">
 					<table>
@@ -51,7 +53,7 @@
 			</div>
 		</div>
 	{{end}}
-	<div id="code-comments-{{(index .comments 0).ID}}" class="comment-code-cloud ds-card-b{{if $resolved}} tw-hidden{{end}}">
+	<div id="code-comments-{{(index .comments 0).ID}}" class="comment-code-cloud ds-card-b{{if $collapsed}} tw-hidden{{end}}">
 		{{range .comments}}
 			{{$createdSubStr:= DateUtils.TimeSince .CreatedUnix}}
 			<div class="comment code-comment" id="{{.HashTag}}">

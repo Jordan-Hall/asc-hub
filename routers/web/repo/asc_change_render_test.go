@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	issues_model "forgejo.org/models/issues"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
@@ -59,4 +60,24 @@ func TestChangeFactsRender(t *testing.T) {
 	assert.Contains(t, rail, "build")
 	assert.Contains(t, rail, "https://ci.example.org/lint")
 	assert.Contains(t, rail, "/user2/repo1/pulls/2/asc/revert")
+}
+
+func TestResolvedConversationStartsCollapsedUnlessTheSwitchIsOff(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	render := func(expand bool) string {
+		ctx, resp := contexttest.MockContext(t, "/user2/repo1/pulls/2")
+		ctx.Render = templates.HTMLRenderer()
+		contexttest.LoadRepo(t, ctx, 1)
+		c := &issues_model.Comment{ID: 7, Type: issues_model.CommentTypeCode, Line: 3, TreePath: "a.go", Invalidated: false, ResolveDoerID: 2, Review: &issues_model.Review{Type: issues_model.ReviewTypeComment}}
+		ctx.Data["comments"] = []*issues_model.Comment{c}
+		ctx.Data["AscExpandResolved"] = expand
+		ctx.Data["Editorconfig"] = nil
+		ctx.HTML(http.StatusOK, "repo/issue/view_content/conversation")
+		return resp.Body.String()
+	}
+	collapsed := render(false)
+	require.NotContains(t, collapsed, "panic")
+	assert.Contains(t, collapsed, `id="code-comments-7" class="comment-code-cloud ds-card-b tw-hidden"`, "resolved: collapsed")
+	expanded := render(true)
+	assert.Contains(t, expanded, `id="code-comments-7" class="comment-code-cloud ds-card-b"`, "switch off: open")
 }
