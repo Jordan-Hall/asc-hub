@@ -6,6 +6,7 @@ package repository
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -154,7 +155,10 @@ func initRepository(ctx context.Context, repoPath string, u *user_model.User, re
 	}
 	// The ref policy is set while the repository is still empty, so the first commit is made under it.
 	if opts.WorkingMode != "" && repo.GetStorageBackend() == string(gitrepo.StorageBackendAsc) {
-		if err = ascsync.SetBranchless(ctx, repo, opts.WorkingMode == WorkingModeBranchless); err != nil {
+		if err = ascsync.SetBranchless(ctx, repo, opts.WorkingMode == WorkingModeBranchless); errors.Is(err, ascsync.ErrBranchlessUnsupported) {
+			// An older asc server: the repository is made in the mode the server defaults to.
+			log.Warn("repository %s: the asc server cannot set the working mode; it stays at the server's default", repo.FullName())
+		} else if err != nil {
 			return true, fmt.Errorf("working mode: %w", err)
 		}
 	}
