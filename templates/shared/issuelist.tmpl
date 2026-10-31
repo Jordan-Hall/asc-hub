@@ -20,6 +20,7 @@ Props: Issues, listType ("repo", "milestone", "dashboard"), the page data of the
 							{{template "repo/commit_statuses" dict "Status" (index $.CommitLastStatus .PullRequest.ID) "Statuses" (index $.CommitStatuses .PullRequest.ID)}}
 						{{end}}
 					{{end}}
+					{{if $.AscIssueChips}}{{with index $.AscIssueChips .ID}}<a class="ds-chip {{if .Done}}ds-chip-ok{{else}}ds-chip-outline{{end}}" href="{{.Top.Link}}" data-testid="issue-stack-chip">{{if .Closes}}{{ctx.Locale.Tr "repo.issues.asc_chip_fixed" .Top.Index}}{{else}}{{ctx.Locale.Tr "repo.issues.asc_chip_open" .Top.Index}}{{end}} &middot; {{ctx.Locale.Tr "repo.issues.asc_stack_landed" .Landed (len .Entries)}}</a>{{end}}{{end}}
 					{{if .Labels}}
 					<span class="labels-list wk-labels">
 						{{range .Labels}}
