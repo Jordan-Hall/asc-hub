@@ -855,6 +855,10 @@ func CompareDiff(ctx *context.Context) {
 		ctx.Data["AllowMaintainerEdit"] = false
 	}
 
+	if ctx.Data["PageIsComparePull"] == true && !nothingToCompare {
+		prepareAscNewChangeDraft(ctx, ctx.Params("*"))
+	}
+
 	ctx.HTML(http.StatusOK, tplCompare)
 }
 

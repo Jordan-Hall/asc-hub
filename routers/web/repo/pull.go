@@ -1775,6 +1775,7 @@ func CompareAndPullRequestPost(ctx *context.Context) {
 	}
 
 	log.Trace("Pull request created: %d/%d", repo.ID, pullIssue.ID)
+	clearAscNewChangeDraft(ctx, ctx.Params("*"))
 	ctx.JSONRedirect(pullIssue.Link())
 }
 

@@ -1,7 +1,7 @@
 {{if .Flash}}
 {{template "base/alert" .}}
 {{end}}
-<form class="issue-content ds-form comment form form-fetch-action rp-newform" id="new-issue" action="{{.Link}}" method="post">
+<form class="issue-content ds-form comment form form-fetch-action rp-newform" id="new-issue" action="{{.Link}}" method="post"{{with .AscNewChangeDraft}} data-asc-ncd-url="{{.URL}}" data-asc-ncd-id="{{.ID}}"{{end}}>
 	<div class="issue-content-left">
 		<div class="rp-newform-main">
 			<div class="comment">
@@ -9,7 +9,7 @@
 				<div class="ds-card ds-card-b content">
 					<div class="ds-field">
 						<label class="ds-label" for="issue_title">{{ctx.Locale.Tr "repo.milestones.title"}}</label>
-						<input name="title" class="ds-input js-autofocus-end" id="issue_title" placeholder="{{ctx.Locale.Tr "repo.milestones.title"}}" value="{{if .TitleQuery}}{{.TitleQuery}}{{else if .IssueTemplateTitle}}{{.IssueTemplateTitle}}{{else}}{{.title}}{{end}}" required maxlength="255" autocomplete="off"{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}} aria-describedby="issue_title_count issue_title_hint" data-asc-count="issue_title_count" data-asc-count-max="120" data-asc-count-template="{{ctx.Locale.Tr "asc_rp.title_count"}}" data-asc-count-over="{{ctx.Locale.Tr "asc_rp.title_over"}}"{{end}}>
+						<input name="title" class="ds-input js-autofocus-end{{if .AscNewChangeDraft}} js-quick-submit{{end}}" id="issue_title" placeholder="{{ctx.Locale.Tr "repo.milestones.title"}}" value="{{if .TitleQuery}}{{.TitleQuery}}{{else if .IssueTemplateTitle}}{{.IssueTemplateTitle}}{{else}}{{.title}}{{end}}" required maxlength="255" autocomplete="off"{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}} aria-describedby="issue_title_count issue_title_hint" data-asc-count="issue_title_count" data-asc-count-max="120" data-asc-count-template="{{ctx.Locale.Tr "asc_rp.title_count"}}" data-asc-count-over="{{ctx.Locale.Tr "asc_rp.title_over"}}"{{end}}>
 						{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}}
 							<div class="ds-hint" id="issue_title_hint">{{ctx.Locale.Tr "asc_rp.title_hint"}}</div>
 							<div class="ds-hint" id="issue_title_count" aria-live="polite"></div>
@@ -48,6 +48,12 @@
 					<p class="ds-hint" data-testid="asc-open-notes">{{ctx.Locale.Tr "asc_rp.cmp_checks_start"}} {{ctx.Locale.Tr "asc_rp.cmp_signed_note"}}</p>
 					{{end}}
 					<div class="ds-row ds-justify-end">
+						{{with .AscNewChangeDraft}}
+						<span class="ds-hint ds-grow" data-asc-ncd-note aria-live="polite" data-testid="asc-ncd-note"{{if .Restored}} data-restored="true"{{end}}
+							data-saved="{{ctx.Locale.Tr "asc_rp.ncd_saved"}}" data-failed="{{ctx.Locale.Tr "asc_rp.ncd_failed"}}" data-discarded="{{ctx.Locale.Tr "asc_rp.ncd_discarded"}}">{{if .Restored}}{{ctx.Locale.Tr "asc_rp.ncd_restored" (DateUtils.TimeSince .SavedAt)}}{{else}}{{ctx.Locale.Tr "asc_rp.ncd_hint"}}{{end}}</span>
+						<button type="button" class="ds-btn ds-btn-secondary" data-asc-ncd-discard data-confirm="{{ctx.Locale.Tr "asc_rp.ncd_discard_confirm"}}">{{ctx.Locale.Tr "asc_rp.ncd_discard"}}</button>
+						<button type="button" class="ds-btn ds-btn-secondary" data-asc-ncd-save>{{ctx.Locale.Tr "asc_rp.ncd_save"}}</button>
+						{{end}}
 						<button class="ds-btn ds-btn-primary">
 							{{if .PageIsComparePull}}
 								{{ctx.Locale.Tr "repo.pulls.create"}}
