@@ -370,6 +370,7 @@ func issues(ctx *context.Context, milestoneID, projectID int64, isPullOption opt
 	}
 
 	ctx.Data["Issues"] = issues
+	prepareAscIssueChips(ctx, issues)
 	ctx.Data["CommitLastStatus"] = lastStatus
 	ctx.Data["CommitStatuses"] = commitStatuses
 
@@ -2117,6 +2118,9 @@ func ViewIssue(ctx *context.Context) {
 	ctx.Data["Participants"] = participants
 	ctx.Data["NumParticipants"] = len(participants)
 	ctx.Data["Issue"] = issue
+	if !issue.IsPull {
+		prepareAscIssueStacks(ctx, issue)
+	}
 	ctx.Data["Reference"] = issue.Ref
 	ctx.Data["SignInLink"] = setting.AppSubURL + "/user/login?redirect_to=" + url.QueryEscape(ctx.Data["Link"].(string))
 	ctx.Data["IsIssuePoster"] = ctx.IsSigned && issue.IsPoster(ctx.Doer.ID)
