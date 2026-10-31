@@ -17,6 +17,7 @@
 		<label class="ds-label" for="repo_name">{{ctx.Locale.Tr "repo.repo_name"}}</label>
 		<input id="repo_name" class="ds-input{{if .Err_RepoName}} is-err{{end}}" name="repo_name" value="{{.repo_name}}" required maxlength="100" autocorrect="off" autocapitalize="none" spellcheck="false" autocomplete="off"{{if .Err_RepoName}} aria-invalid="true"{{end}} aria-describedby="repo_name_help">
 		<div class="ds-hint" id="repo_name_help">{{ctx.Locale.Tr "repo.repo_name_helper"}}</div>
+		<div class="ds-hint" id="repo_name_status" role="status" aria-live="polite" data-check-url="{{AppSubUrl}}/repo/check_name" data-ok-text="{{ctx.Locale.Tr "asc_rp.newrepo_name_free"}}" data-testid="newrepo-name-status" hidden></div>
 	</div>
 </div>
 <div class="ds-field">

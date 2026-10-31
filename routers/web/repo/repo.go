@@ -208,6 +208,8 @@ func Create(ctx *context.Context) {
 	ctx.Data["SupportedObjectFormats"] = git.SupportedObjectFormats
 	ctx.Data["DefaultObjectFormat"] = git.Sha1ObjectFormat
 	ctx.Data["NewRepoIsAsc"] = newRepositoriesInAsc()
+	ctx.Data["policy_approvals"] = 2
+	prepareAscNewRepo(ctx, ctxUser)
 
 	ctx.HTML(http.StatusOK, tplCreate)
 }
@@ -265,6 +267,7 @@ func CreatePost(ctx *context.Context) {
 		return
 	}
 	ctx.Data["ContextUser"] = ctxUser
+	prepareAscNewRepo(ctx, ctxUser)
 
 	if !ctx.CheckQuota(quota_model.LimitSubjectSizeReposAll, ctxUser.ID, ctxUser.Name) {
 		return
@@ -313,7 +316,18 @@ func CreatePost(ctx *context.Context) {
 			return
 		}
 	} else {
+		checks, cerr := repo_service.ParsePolicyChecks(form.PolicyChecks)
+		if cerr != nil {
+			ctx.Data["Err_PolicyChecks"] = true
+			ctx.RenderWithErr(ctx.Tr("asc_rp.newrepo_checks_bad"), tplCreate, form)
+			return
+		}
 		repo, err = repo_service.CreateRepository(ctx, ctx.Doer, ctxUser, repo_service.CreateRepoOptions{
+			AgentsFile:       form.AgentsFile,
+			PolicyFile:       form.PolicyFile && newRepositoriesInAsc(),
+			PolicyMaintainer: ctx.Doer.Name,
+			PolicyApprovals:  ascPolicyApprovals(form.PolicyApprovals),
+			PolicyChecks:     checks,
 			Name:             form.RepoName,
 			Description:      form.Description,
 			Gitignores:       form.Gitignores,
