@@ -722,7 +722,7 @@ func RemoveReviewRequest(ctx context.Context, issue *Issue, reviewer, doer *user
 	}
 
 	if review == nil {
-		return nil, nil
+		return nil, committer.Commit() // nothing to do: still commit, or Close() would roll back a reused transaction
 	}
 
 	if _, err = db.DeleteByBean(ctx, review); err != nil {
@@ -784,7 +784,7 @@ func AddTeamReviewRequest(ctx context.Context, issue *Issue, reviewer *organizat
 
 	// This team already has been requested to review - therefore skip this.
 	if review != nil {
-		return nil, nil
+		return nil, committer.Commit() // nothing to do: still commit, or Close() would roll back a reused transaction
 	}
 
 	official, err := IsOfficialReviewerTeam(ctx, issue, reviewer)
@@ -832,7 +832,7 @@ func RemoveTeamReviewRequest(ctx context.Context, issue *Issue, reviewer *organi
 	}
 
 	if review == nil {
-		return nil, nil
+		return nil, committer.Commit() // nothing to do: still commit, or Close() would roll back a reused transaction
 	}
 
 	if _, err = db.DeleteByBean(ctx, review); err != nil {

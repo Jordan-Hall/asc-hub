@@ -46,3 +46,37 @@ func TestDeleteOrganization(t *testing.T) {
 
 	assert.Zero(t, unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1001}).NumFollowing)
 }
+
+func TestTransferOwnership(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	o := unittest.AssertExistsAndLoadBean(t, &organization.Organization{ID: 3})
+	owners, err := o.GetOwnerTeam(db.DefaultContext)
+	require.NoError(t, err)
+	var owner int64
+	members, err := organization.GetTeamMembers(db.DefaultContext, &organization.SearchMembersOptions{TeamID: owners.ID})
+	require.NoError(t, err)
+	require.NotEmpty(t, members)
+	owner = members[0].ID
+
+	// user4 is a member of the organization (team1) but not an owner; user1 is not a member at all
+	isOwner := func(uid int64) bool {
+		ok, err := o.IsOwnedBy(db.DefaultContext, uid)
+		require.NoError(t, err)
+		return ok
+	}
+	require.False(t, isOwner(4))
+
+	require.ErrorIs(t, TransferOwnership(db.DefaultContext, o, 4, 4, false), ErrTransferNotOwner, "only an owner can hand ownership on")
+	require.ErrorIs(t, TransferOwnership(db.DefaultContext, o, owner, 1, false), ErrTransferNotMember)
+	require.ErrorIs(t, TransferOwnership(db.DefaultContext, o, owner, owner, false), ErrTransferAlreadyOwner)
+
+	require.NoError(t, TransferOwnership(db.DefaultContext, o, owner, 4, false))
+	assert.True(t, isOwner(4))
+	assert.True(t, isOwner(owner), "without leave the giver stays an owner")
+
+	// with leave the giver is out and the new owner remains: the organization is never without an owner
+	require.NoError(t, models.AddTeamMember(db.DefaultContext, unittest.AssertExistsAndLoadBean(t, &organization.Team{OrgID: o.ID, LowerName: "team1"}), 5))
+	require.NoError(t, TransferOwnership(db.DefaultContext, o, 4, 5, true))
+	assert.True(t, isOwner(5))
+	assert.False(t, isOwner(4), "the giver left the owners")
+}
