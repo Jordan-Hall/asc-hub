@@ -213,6 +213,10 @@ func (s fakePolicySvc) GetSource(ctx gocontext.Context, r *ascv1.GetPolicySource
 	return typed[*ascv1.GetPolicySourceResponse](s.h, ctx, "Policy.GetSource", r)
 }
 
+func (s fakePolicySvc) Evaluate(ctx gocontext.Context, r *ascv1.EvaluatePolicyRequest) (*ascv1.EvaluatePolicyResponse, error) {
+	return typed[*ascv1.EvaluatePolicyResponse](s.h, ctx, "Policy.Evaluate", r)
+}
+
 type fakeWorkflowsSvc struct {
 	ascv1.UnimplementedWorkflowsServer
 	h *fakeHub

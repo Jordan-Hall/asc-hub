@@ -4,6 +4,7 @@
 package repo
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"testing"
@@ -13,6 +14,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestAscAgentsCreatePassesPlanFirstAndNamesLoweredLimits(t *testing.T) {
@@ -73,4 +77,91 @@ func TestAscAgentsEstimateEndpoint(t *testing.T) {
 	}
 	assert.Equal(t, http.StatusForbidden, runAgents(t, agentsReq{path: path, user: agentsReader, features: true, form: url.Values{"agent": {"coder-2"}}}, AscAgentsEstimate).status)
 	assert.Len(t, hub.callsOf("Agents.GetEstimate"), before)
+}
+
+func TestAscAgentSamplePath(t *testing.T) {
+	for glob, want := range map[string]string{
+		"src/**": "src/file", "**/*.md": "dir/file.md", "*.go": "file.go", "docs/a?.txt": "docs/aa.txt", "README.md": "README.md",
+		"a/[bc]/x": "", "{a,b}/x": "", "../x": "", "": "",
+	} {
+		assert.Equal(t, want, ascAgentSamplePath(glob), glob)
+	}
+}
+
+func TestAscAgentsMayDoEndpointJudgesTheAgentAndTheScope(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	setStorageBackend(t, 1, "asc")
+	hub := startFakeHub(t)
+	hub.on("Policy.Evaluate", func(m proto.Message) (proto.Message, error) {
+		r := m.(*ascv1.EvaluatePolicyRequest)
+		if r.GetAction() == ascv1.PolicyAction_POLICY_ACTION_RUN {
+			return &ascv1.EvaluatePolicyResponse{RunAllowed: false, RunReason: "at most 3 changes per run\x00"}, nil
+		}
+		var ds []*ascv1.PolicyDecision
+		for _, p := range r.GetPaths() {
+			ds = append(ds, &ascv1.PolicyDecision{Path: p, Allowed: string(p) != ".github/file", Reason: "denied path"})
+		}
+		return &ascv1.EvaluatePolicyResponse{Decisions: ds}, nil
+	})
+	path := testRunsPath + "/may-do"
+	form := url.Values{"agent": {"coder-2"}, "paths": {"src/**\n.github/**"}, "max_changes": {"9"}, "max_paths": {"40"}}
+	p := runAgents(t, agentsReq{path: path, user: agentsOwner, features: true, form: form}, AscAgentsMayDo)
+	require.Equal(t, http.StatusOK, p.status, p.body)
+	var got ascAgentMayDo
+	require.NoError(t, json.Unmarshal([]byte(p.body), &got))
+	assert.True(t, got.Known)
+	assert.False(t, got.RunAllowed)
+	assert.Equal(t, "at most 3 changes per run", got.RunReason, "asc's text is cleaned")
+	require.Len(t, got.Writes, 2)
+	assert.True(t, got.Writes[0].Allowed)
+	assert.False(t, got.Writes[1].Allowed)
+	assert.Equal(t, ".github/**", got.Writes[1].Glob)
+
+	calls := hub.callsOf("Policy.Evaluate")
+	require.Len(t, calls, 2)
+	w := calls[0].req.(*ascv1.EvaluatePolicyRequest)
+	assert.Equal(t, ascv1.PolicyAction_POLICY_ACTION_WRITE, w.GetAction())
+	assert.Equal(t, "agent", w.GetPrincipal().GetKind())
+	assert.Equal(t, "coder-2", w.GetPrincipal().GetName())
+	assert.Equal(t, [][]byte{[]byte("src/file"), []byte(".github/file")}, w.GetPaths())
+	r := calls[1].req.(*ascv1.EvaluatePolicyRequest)
+	assert.EqualValues(t, 9, r.GetRunChanges())
+	assert.EqualValues(t, 40, r.GetRunPaths())
+
+	// bad input is refused before asc is asked; a reader may not ask at all; asc failing leaves the card unknown
+	n := len(hub.callsOf("Policy.Evaluate"))
+	for _, f := range []url.Values{{"agent": {"../x"}}, {"agent": {"coder-2"}, "max_changes": {"-1"}}} {
+		assert.Equal(t, http.StatusBadRequest, runAgents(t, agentsReq{path: path, user: agentsOwner, features: true, form: f}, AscAgentsMayDo).status)
+	}
+	assert.Equal(t, http.StatusForbidden, runAgents(t, agentsReq{path: path, user: agentsReader, features: true, form: url.Values{"agent": {"coder-2"}}}, AscAgentsMayDo).status)
+	assert.Len(t, hub.callsOf("Policy.Evaluate"), n)
+	hub.fail("Policy.Evaluate", status.Error(codes.Unavailable, "down"))
+	p = runAgents(t, agentsReq{path: path, user: agentsOwner, features: true, form: form}, AscAgentsMayDo)
+	require.Equal(t, http.StatusOK, p.status)
+	assert.Contains(t, p.body, `"known":false`)
+}
+
+func TestAscAgentsNewFormShowsWhatTheRunMayDo(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	setStorageBackend(t, 1, "asc")
+	hub := startFakeHub(t)
+	hub.ok("Policy.GetSource", &ascv1.GetPolicySourceResponse{Present: true, Parsed: &ascv1.GetPolicyResponse{Agents: &ascv1.PolicyAgents{DefaultScope: []string{"src/**"}}}})
+	hub.on("Policy.Evaluate", func(m proto.Message) (proto.Message, error) {
+		r := m.(*ascv1.EvaluatePolicyRequest)
+		if r.GetAction() == ascv1.PolicyAction_POLICY_ACTION_RUN {
+			return &ascv1.EvaluatePolicyResponse{RunAllowed: true}, nil
+		}
+		return &ascv1.EvaluatePolicyResponse{Decisions: []*ascv1.PolicyDecision{{Path: r.GetPaths()[0], Allowed: true}}}, nil
+	})
+	p := runAgents(t, agentsReq{path: testRunsPath + "/new", user: agentsOwner, features: true}, AscAgentsNew)
+	require.Equal(t, http.StatusOK, p.status, p.body)
+	assert.Contains(t, p.body, `data-testid="asc-agent-maydo"`)
+	assert.Contains(t, p.body, "<code>src/**</code>", "with no scope typed the default scope of the policy is judged")
+	assert.Contains(t, p.body, `data-asc-maydo-input`)
+
+	hub.fail("Policy.Evaluate", status.Error(codes.Unavailable, "down"))
+	p = runAgents(t, agentsReq{path: testRunsPath + "/new", user: agentsOwner, features: true}, AscAgentsNew)
+	require.Equal(t, http.StatusOK, p.status)
+	assert.Contains(t, p.body, "data-md-unknown>", "asc silent: the card says so and the form still works")
+	assert.NotContains(t, p.body, "data-md-unknown hidden")
 }

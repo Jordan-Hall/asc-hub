@@ -42,6 +42,7 @@ func registerAscAgentsRepoRoutes(m *web.Route, reqSignIn, reqRepoCodeReader any)
 			})
 			m.Post("/requests/{id}/decide", repo.AscAgentsDecide)
 			m.Get("/estimate", repo.AscAgentsEstimate)
+			m.Get("/may-do", repo.AscAgentsMayDo)
 			m.Get("/spend", repo.AscAgentsSpend)
 			m.Post("/spend/budget", repo.AscAgentsSpendBudget)
 			m.Group("/tokens", func() {
