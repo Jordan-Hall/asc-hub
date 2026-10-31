@@ -73,6 +73,19 @@ func Load(ctx context.Context, userID int64) Prefs {
 	return p
 }
 
+// TimeZoneName is the IANA time zone the person chose on the profile page, or "" when they chose none or the name is not
+// one this hub can load. It is for drawing times in their zone, so it never fails.
+func TimeZoneName(ctx context.Context, userID int64) string {
+	tz := Load(ctx, userID).TZ
+	if tz == "" {
+		return ""
+	}
+	if _, err := time.LoadLocation(tz); err != nil {
+		return ""
+	}
+	return tz
+}
+
 // Save validates and stores the choice.
 func Save(ctx context.Context, userID int64, p Prefs) error {
 	if err := p.Validate(); err != nil {

@@ -9,14 +9,23 @@ export const ONE_MINUTE = 60 * 1000;
 export const ONE_HOUR = 60 * ONE_MINUTE;
 export const ONE_DAY = 24 * ONE_HOUR;
 
-const ABSOLUTE_DATETIME_FORMAT = new Intl.DateTimeFormat(navigator.language, {
+const ABSOLUTE_DATETIME_OPTIONS = {
   year: 'numeric',
   month: 'short',
   day: 'numeric',
   hour: '2-digit',
   minute: '2-digit',
   timeZoneName: 'short',
-});
+};
+// the time zone the person chose on their profile page is on <html data-tz>; an unknown one is ignored
+export function makeAbsoluteDatetimeFormat(timeZone, lang = navigator.language) {
+  try {
+    return new Intl.DateTimeFormat(lang, timeZone ? {...ABSOLUTE_DATETIME_OPTIONS, timeZone} : ABSOLUTE_DATETIME_OPTIONS);
+  } catch {
+    return new Intl.DateTimeFormat(lang, ABSOLUTE_DATETIME_OPTIONS);
+  }
+}
+const ABSOLUTE_DATETIME_FORMAT = makeAbsoluteDatetimeFormat(document.documentElement.getAttribute('data-tz'));
 const FALLBACK_DATETIME_FORMAT = new Intl.RelativeTimeFormat(navigator.language, {style: 'long'});
 
 // Fallback formatter for duration units, used only when the corresponding
