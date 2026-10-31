@@ -43,7 +43,8 @@
 					</div>
 					<div class="ds-field {{if .Err_Name}}error{{end}}">
 						<label class="ds-label" for="username">{{ctx.Locale.Tr "username"}}</label>
-						<input id="username" class="ds-input{{if .Err_Name}} is-err{{end}}" name="name" value="{{.SignedUser.Name}}" data-name="{{.SignedUser.Name}}" autofocus required {{if or .UserRenameDisabled .IsReverseProxy}}disabled{{end}} maxlength="40">
+						<input id="username" class="ds-input{{if .Err_Name}} is-err{{end}}" name="name" value="{{.SignedUser.Name}}" data-name="{{.SignedUser.Name}}" autofocus required {{if or .UserRenameDisabled .IsReverseProxy}}disabled{{end}} maxlength="40" aria-describedby="username_status">
+						<div class="ds-hint" id="username_status" role="status" aria-live="polite" data-check-url="{{AppSubUrl}}/user/settings/username_check" data-ok-text="{{ctx.Locale.Tr "asc_work.sp_username_free"}}" data-testid="username-status" hidden></div>
 						<p class="ds-hint">
 							{{if or .UserRenameDisabled .IsReverseProxy}}
 								{{ctx.Locale.Tr "settings.password_username_disabled"}}

@@ -17,3 +17,14 @@ test('the name check says free or taken as text and marks the field', () => {
   applyNameCheck(line, null);
   expect(line.hidden).toBe(true);
 });
+
+test('the check can be pointed at another field, as the username field does', () => {
+  document.body.innerHTML = '<input id="username"><div id="s" data-ok-text="Free." hidden></div>';
+  const line = document.querySelector('#s');
+  const input = document.querySelector('#username');
+  applyNameCheck(line, {ok: false, message: 'Taken.'}, input);
+  expect(line.textContent).toBe('Taken.');
+  expect(input.getAttribute('aria-invalid')).toBe('true');
+  applyNameCheck(line, {ok: true}, input);
+  expect(input.getAttribute('aria-invalid')).toBe('false');
+});
