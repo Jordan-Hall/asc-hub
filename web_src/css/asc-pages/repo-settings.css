@@ -467,3 +467,132 @@
   color: var(--text-2);
   cursor: pointer;
 }
+
+/* ---- the settings of a repository on a phone (boards Mobile-RepoSettings*) ----
+   No repository header: a breadcrumb names the place. The page of /settings is the menu itself (the General page
+   opens from its first entry, #settings-general, or from the danger zone entry); every other page shows its own
+   content with the same breadcrumb. From 1024 the menu is the left column and none of this applies. */
+.ds-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 14px var(--gutter) 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.ds-crumbs a {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.ds-crumbs b {
+  color: var(--text);
+}
+
+.ds-snav-find {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 14px;
+  margin-bottom: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl, 10px);
+  background: var(--surface);
+  color: var(--text-3);
+}
+
+.ds-snav-find input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.ds-snav-status {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-2);
+}
+
+.ds-snav-status.is-bad {
+  color: var(--err);
+  font-weight: 600;
+}
+
+.ds-snav-danger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--err-line, var(--err));
+  border-radius: var(--r-card);
+  background: var(--surface);
+  color: var(--err);
+  text-decoration: none;
+}
+
+.ds-snav-danger > span {
+  display: grid;
+}
+
+.ds-snav-danger > span > span {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.ds-snav-none {
+  padding: 16px 4px;
+  color: var(--text-2);
+}
+
+@media (max-width: 1023.98px) {
+  .asc-settings-page .rp-top {
+    display: none;
+  }
+
+  /* /settings: the menu is the page, the form waits behind the first entry */
+  .asc-set-root:not(:has(:target)) .ds-settings-nav {
+    position: static;
+    display: block;
+    padding: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .asc-set-root:not(:has(:target)) .ds-settings-nav .ds-settings-bar,
+  .asc-set-root:not(:has(:target)) .ds-settings-who,
+  .asc-set-root:not(:has(:target)) .ds-settings-body {
+    display: none;
+  }
+
+  .asc-set-root:not(:has(:target)) .ds-settings-list a .ds-ico,
+  .asc-set-root:not(:has(:target)) .ds-settings-list a .ds-chev {
+    display: none;
+  }
+
+  .asc-set-root:not(:has(:target)) .ds-settings-list a {
+    min-height: 56px;
+  }
+
+  .asc-set-root:not(:has(:target)) .ds-settings-list a[aria-current="page"] {
+    background: transparent;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ds-crumbs,
+  .ds-snav-find,
+  .ds-snav-status,
+  .ds-snav-danger,
+  .ds-snav-none {
+    display: none;
+  }
+}
