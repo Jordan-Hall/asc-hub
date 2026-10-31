@@ -94,3 +94,14 @@ func TestDay(t *testing.T) {
 	assert.Contains(t, string(du.Day(ts)), ">3 Feb 2026</time>")
 	assert.EqualValues(t, "-", du.Day(time.Time{}))
 }
+
+func TestTimeOrDay(t *testing.T) {
+	du := NewDateUtils()
+	now, _ := time.Parse(time.RFC3339, "2026-10-31T12:00:00Z")
+	defer func(prev func() time.Time) { timeNow = prev }(timeNow)
+	timeNow = func() time.Time { return now }
+	today, _ := time.Parse(time.RFC3339, "2026-10-31T10:14:02Z")
+	earlier, _ := time.Parse(time.RFC3339, "2026-10-27T10:14:02Z")
+	assert.Contains(t, string(du.TimeOrDay(today)), ">10:14:02</time>")
+	assert.Contains(t, string(du.TimeOrDay(earlier)), ">27 Oct 10:14</time>")
+}

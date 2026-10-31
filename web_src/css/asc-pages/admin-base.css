@@ -863,3 +863,59 @@ a.adm-who-name:hover {
   letter-spacing: 0;
   text-transform: none;
 }
+
+/* the audit log of the instance: an avatar, the sentence, and Details on the right */
+.adm-audit-av {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--on-fill);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.adm-audit-av-agent {
+  background: var(--agent);
+  color: #fff;
+}
+
+.adm-audit-what {
+  color: var(--text-2);
+}
+
+.adm-audit-li {
+  align-items: flex-start;
+}
+
+.adm-audit-more {
+  margin-left: auto;
+}
+
+.adm-audit-more[open] {
+  flex-basis: 100%;
+}
+
+.adm-audit-more > summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--text-2);
+  font-weight: 600;
+  text-align: right;
+}
+
+.adm-audit-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* the monitor: what is idle sits behind one line */
+.adm-idle > summary {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-2);
+  color: var(--text-2);
+  font-weight: 600;
+  cursor: pointer;
+}

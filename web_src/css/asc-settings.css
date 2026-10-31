@@ -432,3 +432,77 @@
     padding: 18px;
   }
 }
+
+/* the key list as the board draws it: a banner for how it works, one row per key with its figures and its buttons on the right */
+.asc-byo-explain {
+  background: var(--primary-soft);
+  border-color: transparent;
+}
+
+.asc-byo-explain summary {
+  min-height: 0;
+  align-items: flex-start;
+}
+
+.asc-byo-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
+  align-items: center;
+  background: var(--surface);
+  border-color: var(--line-2);
+  border-radius: 12px;
+}
+
+.asc-byo-item-head {
+  grid-column: 1;
+  justify-content: flex-start;
+  margin-bottom: 4px;
+}
+
+.asc-byo-item .asc-byo-meta {
+  grid-column: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.asc-byo-item .asc-byo-meta dt {
+  display: none;
+}
+
+.asc-byo-item .asc-byo-meta progress {
+  display: block;
+  width: 100%;
+}
+
+.asc-byo-item .asc-byo-error-line {
+  grid-column: 1;
+}
+
+.asc-byo-item .asc-byo-actions {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  flex-direction: row;
+  margin: 0;
+}
+
+@media (max-width: 639.98px) {
+  .asc-byo-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .asc-byo-item .asc-byo-actions {
+    grid-column: 1;
+    grid-row: auto;
+    margin-top: 12px;
+  }
+}
+
+@media (min-width: 640px) {
+  .asc-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

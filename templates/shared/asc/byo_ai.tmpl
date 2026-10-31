@@ -4,8 +4,8 @@
 	<p class="asc-byo-lead">{{ctx.Locale.Tr "ascbyo.ai.lead"}}</p>
 	{{template "shared/asc/byo_head" (dict "Root" . "Active" "ai")}}
 	{{if not (or $a.Unavailable $a.Unsupported)}}
-		<details class="asc-byo-card asc-byo-explain"{{if not $a.Keys}} open{{end}}>
-			<summary>{{svg "octicon-info" 16}} {{ctx.Locale.Tr "ascbyo.ai.how_title"}}</summary>
+		<details class="asc-byo-card asc-byo-explain">
+			<summary>{{svg "octicon-info" 16}} <span><b>{{ctx.Locale.Tr "ascbyo.ai.how_title"}}.</b> {{ctx.Locale.Tr "ascbyo.ai.how_short"}}</span></summary>
 			<ol>
 				<li>{{ctx.Locale.Tr "ascbyo.ai.how_1"}}</li>
 				<li>{{ctx.Locale.Tr "ascbyo.ai.how_2"}}</li>
