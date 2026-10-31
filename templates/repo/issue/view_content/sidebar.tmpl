@@ -11,6 +11,22 @@
 
 	<div class="divider"></div>
 
+	{{if .AscIssueStacks}}
+	<div class="ds-stack ds-stack-8" data-testid="issue-stacks">
+		<strong>{{ctx.Locale.Tr "repo.issues.asc_stacks"}}</strong>
+		{{range .AscIssueStacks}}
+			<div class="asc-issue-stack">
+				<a href="{{.Top.Link}}">#{{.Top.Index}} {{.Top.Title}}</a>
+				<div class="ds-hint">{{ctx.Locale.Tr "repo.issues.asc_stack_landed" .Landed (len .Entries)}}{{if .Closes}} &middot; {{ctx.Locale.Tr "repo.issues.asc_stack_closes"}}{{end}}</div>
+				<ol class="asc-issue-stack-rows">
+					{{range .Entries}}<li{{if .Current}} aria-current="true"{{end}}><a href="{{.Link}}">#{{.Index}}</a> <span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr (print "repo.issues.asc_state_" .State)}}</span></li>{{end}}
+				</ol>
+			</div>
+		{{end}}
+	</div>
+	<div class="divider"></div>
+	{{end}}
+
 	{{template "repo/issue/view_content/sidebar/milestones" .}}
 	<div class="divider"></div>
 
