@@ -36,6 +36,7 @@ async function webSession(user) {
   const login = await call('/user/login', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({_csrf: csrf(page), user_name: user, password: PASSWORD})});
   if (login.status !== 303) throw new Error(`web login of ${user} -> ${login.status}`);
   return {
+    async text(path) { return (await call(path)).text(); },
     async form(path, fields, from = path, status = 303) {
       const html = await (await call(from)).text();
       const op = /name="op"[^>]*value="([^"]+)"/.exec(html)?.[1] ?? /value="([^"]+)"[^>]*name="op"/.exec(html)?.[1] ?? '';
@@ -91,7 +92,23 @@ export async function seedAsc({api, upload, people, at, state}) {
   // the backups page: a schedule that writes to the one target of the server, and one backup made now
   const op = () => crypto.randomUUID();
   await admin.form('/admin/asc/backups/schedule', {op: op(), enabled: '1', interval_hours: '24', time: '02:00', target: 'r2-backup', keep_days: '30', keep_weeks: '52', include_objects: '1'}, '/admin/asc/backups');
-  await admin.form('/admin/asc/backups/run', {op: op(), target: ''}, '/admin/asc/backups');
+  // the history the board shows: a backup that worked and was checked, then one to a target that cannot be written (the newest, failed)
+  const waitFor = async (what, done) => {
+    for (let i = 0; i < 120; i++) {
+      const html = await admin.text('/admin/asc/backups');
+      if (done(html)) return html;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    throw new Error(`backups: ${what} did not finish`);
+  };
+  await admin.form('/admin/asc/backups/run', {op: op(), target: 'r2-backup'}, '/admin/asc/backups');
+  const made = await waitFor('the first backup', (h) => h.includes('data-state="succeeded"'));
+  const id = /\/admin\/asc\/backups\/([^/"]+)\/verify/.exec(made)?.[1];
+  if (!id) throw new Error('backups: the first backup has no Check button');
+  await admin.form(`/admin/asc/backups/${id}/verify`, {op: op()}, '/admin/asc/backups');
+  await waitFor('the check', (h) => !h.includes('>Check<') && !h.includes('Checking') && h.includes('Verified'));
+  await admin.form('/admin/asc/backups/run', {op: op(), target: 'offsite'}, '/admin/asc/backups');
+  await waitFor('the failed backup', (h) => h.includes('data-state="failed"'));
 
   // the people page: agents of the organisation, and a Maintainer (the invitations that have not been answered are put in by backdate.py)
   for (const [name, display, runBy] of [['coder-2', 'coder-2', 'maya'], ['reviewer-1', 'reviewer-1', 'priya']]) {
