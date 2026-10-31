@@ -215,6 +215,16 @@ func PerformAction(ctx *context.Context) {
 		return
 	}
 
+	// Removing content or an account needs a reason; it is written to the audit log of asc with the action. Dismissing a
+	// report or marking it handled may carry one.
+	reason := moderationReason(ctx.FormString("reason"))
+	if contentAction != moderation_service.ContentActionNone && reason == "" {
+		ctx.Flash.Warning(ctx.Tr("asc_admin.mod_reason_needed"), true)
+		ctx.HTML(http.StatusOK, tplAlert)
+		return
+	}
+	defer recordModeration(ctx, contentType, contentID, contentAction, reportAction, reason)
+
 	switch contentAction {
 	case moderation_service.ContentActionNone:
 		updateReportStatus(ctx, contentType, contentID, reportAction)
