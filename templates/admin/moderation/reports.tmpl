@@ -6,7 +6,7 @@
 		<ul class="ds-list">
 			{{range .Reports}}
 				{{$id := print "report-" .ID}}
-				<li class="ds-li ds-li-wrap report" id="{{$id}}" hx-target="#{{$id}}" hx-indicator="#{{$id}}" hx-vals='{"content_type": {{.ContentType}}, "content_id": {{.ContentID}}}'>
+				<li class="ds-li ds-li-wrap report" id="{{$id}}" hx-target="#{{$id}}" hx-indicator="#{{$id}}" hx-include="#mod-reason-{{.ID}}" hx-vals='{"content_type": {{.ContentType}}, "content_id": {{.ContentID}}}'>
 					<span class="adm-tile adm-tile-warn" aria-hidden="true">{{svg .ContentTypeIconName 18}}</span>
 					<div class="ds-li-main">
 						<div class="ds-li-title">
@@ -18,6 +18,10 @@
 							<span>{{if .ReporterName}}{{ctx.Locale.Tr "asc_admin.mod_report_by"}} <a class="ds-link" href="{{AppSubUrl}}/{{.ReporterName}}">{{.ReporterName}}</a>{{else}}{{ctx.Locale.Tr "asc_admin.mod_report_by"}} {{$.GhostUserName}}{{end}}</span>
 							<span>{{DateUtils.TimeSince .CreatedUnix}}</span>
 							<a href="{{AppSubUrl}}/admin/moderation/reports/type/{{.ContentType}}/id/{{.ContentID}}">{{ctx.Locale.Tr "asc_admin.mod_reported_times" .ReportedTimes}}</a>
+						</div>
+						<div class="ds-field">
+							<label class="ds-label" for="mod-reason-{{.ID}}">{{ctx.Locale.Tr "asc_admin.mod_reason"}}</label>
+							<textarea class="ds-textarea" id="mod-reason-{{.ID}}" name="reason" rows="2" maxlength="500" placeholder="{{ctx.Locale.Tr "asc_admin.mod_reason_hint"}}"></textarea>
 						</div>
 						<div class="ds-li-actions">
 							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" hx-post="{{$postURL}}" hx-vals='{"report_action": {{$.MarkAsIgnored}}}'>{{ctx.Locale.Tr "asc_admin.mod_dismiss"}}</button>

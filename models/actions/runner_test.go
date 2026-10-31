@@ -595,3 +595,26 @@ func TestUpdateRunner(t *testing.T) {
 		assert.Equal(t, "old name", runner.Name)
 	})
 }
+
+func TestDrainingRunnerIsGivenNoNewTask(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	runner, err := GetRunnerByID(t.Context(), 10000001)
+	require.NoError(t, err)
+	assert.False(t, runner.Draining, "a runner takes jobs until it is drained")
+
+	runner.Draining = true
+	require.NoError(t, UpdateRunner(t.Context(), runner, "draining"))
+	again, err := GetRunnerByID(t.Context(), 10000001)
+	require.NoError(t, err)
+	assert.True(t, again.Draining, "the choice is kept")
+
+	key, handle := "k", "h"
+	_, err = CreateTaskForRunner(t.Context(), again, &key, &handle)
+	require.ErrorIs(t, err, ErrNoMatchingJobFound, "a draining runner is offered nothing, however many jobs wait")
+
+	again.Draining = false
+	require.NoError(t, UpdateRunner(t.Context(), again, "draining"))
+	back, err := GetRunnerByID(t.Context(), 10000001)
+	require.NoError(t, err)
+	assert.False(t, back.Draining)
+}
