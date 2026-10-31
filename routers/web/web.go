@@ -1399,7 +1399,7 @@ func registerRoutes(m *web.Route) {
 			})
 			repo_setting.AscRoutes(m)
 			registerAscTrustRepoSettingsRoutes(m)
-		}, ctxDataSet("PageIsRepoSettings", true, "LFSStartServer", setting.LFS.StartServer, "AscEnabled", setting.Asc.Enabled))
+		}, ctxDataSet("PageIsRepoSettings", true, "LFSStartServer", setting.LFS.StartServer, "AscEnabled", setting.Asc.Enabled), repo_setting.MenuStatus)
 	}, reqSignIn, context.RepoAssignment, context.UnitTypes(), reqRepoAdmin, context.RepoRef())
 
 	m.Group("/{username}/{reponame}/action", func() {

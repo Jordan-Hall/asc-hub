@@ -1,10 +1,11 @@
 {{/*
 One entry of a settings menu (put it inside <ul class="ds-settings-list">).
-Props: Href, Label, Icon (a ds icon name), Active (the page is this entry), Danger (red entry), Badge (optional short text, like "Admin").
+Props: Href, Label, Icon (a ds icon name), Active (the page is this entry), Danger (red entry), Badge (optional short text, like "Admin"), Status (optional short text on the right on a phone, like "3 rules"), StatusBad (the status is a problem).
 */}}
 <li><a href="{{.Href}}"{{if .Active}} aria-current="page"{{end}}{{if .Danger}} class="is-danger"{{end}}>
 	<span class="ds-ico" aria-hidden="true">{{svg (print "dsi-" .Icon) 17}}</span>
-	<span>{{.Label}}</span>
+	<span class="ds-snav-label">{{.Label}}</span>
+	{{if .Status}}<span class="ds-snav-status{{if .StatusBad}} is-bad{{end}}">{{.Status}}</span>{{end}}
 	{{if .Badge}}<span class="ds-chip ds-chip-warn ds-ml-auto">{{.Badge}}</span>{{end}}
 	<span class="ds-chev" aria-hidden="true">{{svg "dsi-chevron-right" 18}}</span>
 </a></li>

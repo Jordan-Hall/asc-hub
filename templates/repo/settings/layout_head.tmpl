@@ -1,10 +1,11 @@
 {{template "base/head" .ctxData}}
-<div role="main" aria-label="{{.ctxData.Title}}" class="page-content {{.pageClass}} asc-repo-page asc-settings-page">
-	{{template "shared/ds/subbar" (dict "Data" .ctxData "Title" .ctxData.Title "BackHref" "#settings-menu" "BackLabel" (ctx.Locale.Tr "repo.settings"))}}
+<div role="main" aria-label="{{.ctxData.Title}}" class="page-content {{.pageClass}} asc-repo-page asc-settings-page{{if .ctxData.PageIsSettingsOptions}} asc-set-root{{end}}">
+	{{template "shared/ds/subbar" (dict "Data" .ctxData "Title" (or (and .ctxData.PageIsSettingsOptions (ctx.Locale.Tr "repo.settings")) .ctxData.Title) "BackHref" "#settings-menu" "BackLabel" (ctx.Locale.Tr "repo.settings"))}}
 	{{template "repo/header" .ctxData}}
+	<nav class="ds-crumbs" aria-label="{{ctx.Locale.Tr "asc_shell.crumb_settings"}}"><a href="{{.ctxData.RepoLink}}">{{.ctxData.Repository.FullName}}</a><span aria-hidden="true">/</span><a href="{{.ctxData.RepoLink}}/settings">{{ctx.Locale.Tr "asc_shell.crumb_settings"}}</a>{{if not .ctxData.PageIsSettingsOptions}}<span aria-hidden="true">/</span><b>{{.ctxData.Title}}</b>{{end}}</nav>
 	<div class="ds-container ds-settings">
 		{{template "repo/settings/navbar" .ctxData}}
-		<div class="ds-settings-body">
+		<div class="ds-settings-body" id="settings-general">
 			<div class="rp-set-head ds-only-desktop"><h2 class="rp-h1">{{.ctxData.Title}}</h2></div>
 			{{template "base/alert" .ctxData}}
 			{{/* block: repo-setting-content */}}
