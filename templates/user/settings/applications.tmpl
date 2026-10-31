@@ -32,9 +32,9 @@
 							{{if .Token.HasRecentActivity}}<span class="ds-chip ds-chip-ok" title="{{ctx.Locale.Tr "settings.token_state_desc"}}">{{ctx.Locale.Tr "asc_work.sp_recently_used"}}</span>{{end}}
 						</div>
 						<div class="ds-li-meta">
-							<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .Token.CreatedUnix)}}</span>
-							<span>{{if .Token.HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} {{DateUtils.AbsoluteShort .Token.UpdatedUnix}}{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</span>
-							<span data-testid="token-expiry">{{if .Token.HasExpiry}}{{if .Token.IsExpired}}{{ctx.Locale.Tr "settings.token_expired"}} {{DateUtils.AbsoluteShort .Token.ExpiresUnix}}{{else}}{{ctx.Locale.Tr "settings.token_expires_on" (DateUtils.AbsoluteShort .Token.ExpiresUnix)}}{{end}}{{else}}{{ctx.Locale.Tr "settings.token_no_expiry"}}{{end}}</span>
+							<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.Day .Token.CreatedUnix)}}</span>
+							<span>{{if .Token.HasUsed}}{{ctx.Locale.Tr "settings.last_used"}} {{DateUtils.Day .Token.UpdatedUnix}}{{else}}{{ctx.Locale.Tr "settings.no_activity"}}{{end}}</span>
+							<span data-testid="token-expiry">{{if .Token.HasExpiry}}{{if .Token.IsExpired}}{{ctx.Locale.Tr "settings.token_expired"}} {{DateUtils.Day .Token.ExpiresUnix}}{{else}}{{ctx.Locale.Tr "settings.token_expires_on" (DateUtils.Day .Token.ExpiresUnix)}}{{end}}{{else}}{{ctx.Locale.Tr "settings.token_no_expiry"}}{{end}}</span>
 						</div>
 						<details class="wk-details">
 							<summary>{{ctx.Locale.Tr "settings.permissions_list"}}</summary>

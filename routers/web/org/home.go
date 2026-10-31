@@ -166,6 +166,10 @@ func Home(ctx *context.Context) {
 	ctx.Data["Page"] = pager
 
 	ctx.Data["ShowMemberAndTeamTab"] = ctx.Org.IsMember || len(members) > 0
+	if ctx.Org.IsMember {
+		ctx.Data["OrgAgentList"] = orgAgents(ctx, org)
+		ctx.Data["OrgAscOn"] = setting.Asc.Enabled
+	}
 
 	profileDbRepo, profileGitRepo, profileReadmeBlob, profileClose := shared_user.FindUserProfileReadme(ctx, ctx.Doer)
 	defer profileClose()
