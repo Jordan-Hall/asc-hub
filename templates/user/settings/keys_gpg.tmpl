@@ -46,8 +46,8 @@
 					{{if .Emails}}<div class="ds-li-sub" data-tooltip-content="{{ctx.Locale.Tr "settings.gpg_key_matched_identities_long"}}">{{ctx.Locale.Tr "settings.gpg_key_matched_identities"}} {{range .Emails}}<b>{{.Email}}</b> {{end}}</div>{{end}}
 					{{if .SubsKey}}<div class="ds-li-sub">{{ctx.Locale.Tr "settings.subkeys"}}: <span class="ds-mono">{{range .SubsKey}}{{.PaddedKeyID}} {{end}}</span></div>{{end}}
 					<div class="ds-li-meta">
-						<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .AddedUnix)}}</span>
-						<span>{{if not .ExpiredUnix.IsZero}}{{ctx.Locale.Tr "settings.valid_until_date" (DateUtils.AbsoluteShort .ExpiredUnix)}}{{else}}{{ctx.Locale.Tr "settings.valid_forever"}}{{end}}</span>
+						<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.Day .AddedUnix)}}</span>
+						<span>{{if not .ExpiredUnix.IsZero}}{{ctx.Locale.Tr "settings.valid_until_date" (DateUtils.Day .ExpiredUnix)}}{{else}}{{ctx.Locale.Tr "settings.valid_forever"}}{{end}}</span>
 					</div>
 				</div>
 				<div class="wk-row-acts">

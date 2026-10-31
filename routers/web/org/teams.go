@@ -59,6 +59,24 @@ func Teams(ctx *context.Context) {
 	}
 	ctx.Data["Teams"] = ctx.Org.Teams
 
+	// the team the detail panel under the cards shows: the one the address names, else the first
+	if len(ctx.Org.Teams) > 0 {
+		selected := ctx.Org.Teams[0]
+		if want := strings.ToLower(ctx.FormString("team")); want != "" {
+			for _, t := range ctx.Org.Teams {
+				if t.LowerName == want {
+					selected = t
+					break
+				}
+			}
+		}
+		if err := selected.LoadRepositories(ctx); err != nil {
+			ctx.ServerError("LoadRepositories", err)
+			return
+		}
+		ctx.Data["SelectedTeam"] = selected
+	}
+
 	err := shared_user.LoadHeaderCount(ctx)
 	if err != nil {
 		ctx.ServerError("LoadHeaderCount", err)

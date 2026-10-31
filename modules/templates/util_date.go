@@ -51,6 +51,16 @@ func (du *DateUtils) DayTime(when any) template.HTML {
 	return template.HTML(fmt.Sprintf(`<time datetime="%s" title="%s">%s</time>`, html.EscapeString(t.Format(time.RFC3339)), html.EscapeString(t.Format("2006-01-02 15:04:05 UTC")), html.EscapeString(t.Format("2 Jan 15:04"))))
 }
 
+// Day renders in the design's "3 Feb 2026" format (day first), in the interface's time zone; the full time is the tooltip.
+func (du *DateUtils) Day(when any) template.HTML {
+	t, isZero := anyToTime(when)
+	if isZero {
+		return "-"
+	}
+	t = t.In(setting.DefaultUILocation)
+	return template.HTML(fmt.Sprintf(`<time datetime="%s" title="%s">%s</time>`, html.EscapeString(t.Format(time.RFC3339)), html.EscapeString(t.Format("2006-01-02 15:04:05 -07:00")), html.EscapeString(t.Format("2 Jan 2006"))))
+}
+
 func (du *DateUtils) TimeSince(time any) template.HTML {
 	return TimeSince(time)
 }

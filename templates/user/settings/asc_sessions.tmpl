@@ -30,7 +30,7 @@
 						<div class="ds-li-meta">
 							{{if not .Created.IsZero}}<span>{{ctx.Locale.Tr "asc_shell.sess_created" (DateUtils.TimeSince .Created)}}</span>{{end}}
 							<span>{{if .LastUsed.IsZero}}{{ctx.Locale.Tr "asc_shell.sess_never_used"}}{{else}}{{ctx.Locale.Tr "asc_shell.sess_last_used" (DateUtils.TimeSince .LastUsed)}}{{end}}</span>
-							<span>{{if .Expires.IsZero}}{{ctx.Locale.Tr "asc_shell.sess_no_expiry"}}{{else}}{{ctx.Locale.Tr "asc_shell.sess_expires" (DateUtils.AbsoluteShort .Expires)}}{{end}}</span>
+							<span>{{if .Expires.IsZero}}{{ctx.Locale.Tr "asc_shell.sess_no_expiry"}}{{else}}{{ctx.Locale.Tr "asc_shell.sess_expires" (DateUtils.Day .Expires)}}{{end}}</span>
 						</div>
 					</div>
 					<form class="wk-row-acts" method="post" action="{{$.AscSessions.URL}}/revoke">

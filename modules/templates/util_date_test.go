@@ -87,3 +87,10 @@ func TestDayTime(t *testing.T) {
 	assert.EqualValues(t, `<time datetime="2026-10-27T02:00:00Z" title="2026-10-27 02:00:00 UTC">27 Oct 02:00</time>`, du.DayTime(ts))
 	assert.EqualValues(t, "-", du.DayTime(time.Time{}))
 }
+
+func TestDay(t *testing.T) {
+	du := NewDateUtils()
+	ts, _ := time.Parse(time.RFC3339, "2026-02-03T10:00:00Z")
+	assert.Contains(t, string(du.Day(ts)), ">3 Feb 2026</time>")
+	assert.EqualValues(t, "-", du.Day(time.Time{}))
+}

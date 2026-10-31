@@ -11,7 +11,7 @@
 				<span class="ds-li-av" aria-hidden="true">{{svg "dsi-key" 20}}</span>
 				<div class="ds-li-main">
 					<div class="ds-li-title"><span class="ds-break">{{.Name}}</span></div>
-					<div class="ds-li-sub">{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</div>
+					<div class="ds-li-sub">{{ctx.Locale.Tr "settings.added_on" (DateUtils.Day .CreatedUnix)}}</div>
 				</div>
 				<div class="wk-row-acts">
 					<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="delete-registration" data-url="{{$.Link}}/webauthn/delete" data-id="{{.ID}}">{{ctx.Locale.Tr "settings.delete_key"}}</button>

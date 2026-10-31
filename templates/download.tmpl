@@ -11,7 +11,7 @@
 				{{with .AscDownload}}{{$m := .Offers.Manifest}}
 				<p class="site-dl-meta">
 					<span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_download.version" $m.Version}}</span>
-					{{if $m.ReleasedAt}}<span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_download.released" $m.ReleasedAt}}</span>{{end}}
+					{{if $m.ReleasedAt}}<span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_download.released" $m.ReleasedDay}}</span>{{end}}
 					{{if $m.ReleaseNotesURL}}<a class="ds-link ds-t-small" href="{{$m.ReleaseNotesURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_download.release_notes"}}</a>{{end}}
 				</p>
 				{{end}}
