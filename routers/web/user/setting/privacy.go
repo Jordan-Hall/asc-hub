@@ -6,7 +6,9 @@ package setting
 import (
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 
 	"forgejo.org/models/db"
 	user_model "forgejo.org/models/user"
@@ -40,6 +42,7 @@ func Privacy(ctx *context.Context) {
 		return
 	}
 	ctx.Data["BlockedUsers"] = blocked
+	ctx.Data["AscUndoUnblock"] = undoUnblockOffer(ctx, time.Now())
 	ctx.HTML(http.StatusOK, tplSettingsPrivacy)
 }
 
@@ -104,4 +107,25 @@ func PrivacyBlock(ctx *context.Context) {
 		ctx.Flash.Success(ctx.Tr("settings.user_block_success"))
 	}
 	ctx.Redirect(privacyLink())
+}
+
+// undoWindow is how long after an unblock the privacy page offers to block the person again.
+const undoWindow = 10 * time.Second
+
+// undoUnblockOffer is the login the page offers to block again, or "": the address names a person who is not blocked now,
+// who is visible to the viewer, and the unblock happened less than undoWindow ago.
+func undoUnblockOffer(ctx *context.Context, now time.Time) string {
+	name := ctx.FormTrim("undo")
+	at, err := strconv.ParseInt(ctx.FormString("t"), 10, 64)
+	if name == "" || err != nil {
+		return ""
+	}
+	if age := now.Sub(time.Unix(at, 0)); age < 0 || age > undoWindow {
+		return ""
+	}
+	u, err := user_model.GetUserByName(ctx, name)
+	if err != nil || u.IsOrganization() || u.ID == ctx.Doer.ID || user_model.IsBlocked(ctx, ctx.Doer.ID, u.ID) || !user_model.IsUserVisibleToViewer(ctx, u, ctx.Doer) {
+		return ""
+	}
+	return u.Name
 }

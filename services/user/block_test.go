@@ -41,6 +41,40 @@ func TestBlockUser(t *testing.T) {
 		assert.False(t, user_model.IsFollowing(db.DefaultContext, blockedUser.ID, doer.ID))
 	})
 
+	t.Run("Review requests", func(t *testing.T) {
+		defer user_model.UnblockUser(db.DefaultContext, 2, 4)
+		defer user_model.UnblockUser(db.DefaultContext, 2, 1)
+
+		// issue 2 is a pull request of user2's repository 1, opened by user1
+		pull := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 2})
+		require.True(t, pull.IsPull)
+		owner := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+		stranger := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
+		poster := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
+		pending := func(reviewerID int64) int64 {
+			n, err := db.GetEngine(db.DefaultContext).Where("issue_id = ? AND reviewer_id = ? AND type = ?", pull.ID, reviewerID, issues_model.ReviewTypeRequest).Count(new(issues_model.Review))
+			require.NoError(t, err)
+			return n
+		}
+		mk := func(who *user_model.User) {
+			if pending(who.ID) == 0 {
+				_, err := issues_model.CreateReview(db.DefaultContext, issues_model.CreateReviewOptions{Type: issues_model.ReviewTypeRequest, Issue: pull, Reviewer: who})
+				require.NoError(t, err)
+			}
+			require.EqualValues(t, 1, pending(who.ID))
+		}
+
+		// the blocked person was asked to review a pull request in the blocker's repository
+		mk(stranger)
+		require.NoError(t, BlockUser(db.DefaultContext, owner.ID, stranger.ID))
+		assert.EqualValues(t, 0, pending(stranger.ID), "the request for the blocked person is gone")
+
+		// the blocker was asked to review a pull request the blocked person opened
+		mk(owner)
+		require.NoError(t, BlockUser(db.DefaultContext, owner.ID, poster.ID))
+		assert.EqualValues(t, 0, pending(owner.ID), "the blocker's own request on the blocked person's pull request is gone")
+	})
+
 	t.Run("Watch", func(t *testing.T) {
 		defer user_model.UnblockUser(db.DefaultContext, doer.ID, blockedUser.ID)
 

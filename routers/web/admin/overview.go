@@ -50,6 +50,7 @@ func dashboardFacts(ctx *context.Context) {
 	ctx.Data["StatRepos"] = counter.Repo
 	ctx.Data["StatIssuesOpen"] = counter.IssueOpen
 	ctx.Data["StatIssuesClosed"] = counter.IssueClosed
+	ctx.Data["AuditRecent"] = ascRecentAudit(ctx)
 
 	var attention []attentionItem
 	var system []statusRow
@@ -198,6 +199,8 @@ func healthFacts(ctx *context.Context) {
 		pct = sysStatus.MemAllocated * 100 / sysStatus.MemSys
 	}
 	ctx.Data["MemPercent"] = pct
+	ctx.Data["CPUGauge"] = cpuGauge()
+	ctx.Data["DiskGauge"] = diskGauge(setting.AppDataPath)
 	ctx.Data["Checks"] = rows
 	ctx.Data["ChecksOK"], ctx.Data["ChecksWarn"], ctx.Data["ChecksFail"] = ok, warn, fail
 	var report strings.Builder
