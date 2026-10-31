@@ -1,4 +1,4 @@
-import {decisionOf, applyDecision, filterRows, reuseTask, applyEstimate, applyQueue} from './asc-board.js';
+import {decisionOf, applyDecision, filterRows, reuseTask, applyEstimate, applyMayDo, applyQueue} from './asc-board.js';
 
 function card() {
   document.body.innerHTML = `<section data-asc-needs><span data-asc-needs-count>2</span>
@@ -58,6 +58,25 @@ test('an estimate shows or hides its two lines and never parses markup', () => {
   expect(c.querySelector('i')).toBeNull();
   applyEstimate(c, {known: false});
   expect(c.querySelector('[data-est-unknown]').hidden).toBe(false);
+});
+
+test('a may-do answer draws its lines as text and hides them when asc did not answer', () => {
+  document.body.innerHTML = `<section id="c" data-t-allowed="Can" data-t-refused="Cannot" data-t-write="write" data-t-run-ok="Fits." data-t-run-no="Over."><p data-md-run hidden><span data-md-run-state></span><span data-md-run-reason></span></p><ul data-md-writes><li>old</li></ul><p data-md-unknown>none</p></section>`;
+  const c = document.querySelector('#c');
+  applyMayDo(c, {known: true, run_allowed: false, run_reason: '<b>too many</b>', writes: [{glob: 'src/**', allowed: true}, {glob: '<i>.env</i>', allowed: false, reason: 'denied'}]});
+  expect(c.querySelector('[data-md-run]').hidden).toBe(false);
+  expect(c.querySelector('[data-md-run-state]').textContent).toBe('Over.');
+  expect(c.querySelector('[data-md-run-state]').className).toBe('rv-cannot');
+  expect(c.querySelector('[data-md-run-reason]').textContent).toBe('<b>too many</b>');
+  const items = c.querySelectorAll('[data-md-writes] li');
+  expect(items).toHaveLength(2);
+  expect(items[0].textContent).toBe('Can write src/**');
+  expect(items[1].textContent).toBe('Cannot write <i>.env</i> denied');
+  expect(c.querySelector('b, i')).toBeNull();
+  applyMayDo(c, {known: false});
+  expect(c.querySelector('[data-md-run]').hidden).toBe(true);
+  expect(c.querySelector('[data-md-unknown]').hidden).toBe(false);
+  expect(c.querySelectorAll('[data-md-writes] li')).toHaveLength(0);
 });
 
 test('a row with a key matches by the start of the key only', () => {

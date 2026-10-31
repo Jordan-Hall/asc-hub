@@ -485,7 +485,11 @@ func ascAgentsRenderForm(ctx *context.Context, env *ascAgentsEnv, form *ascAgent
 	}
 	readCtx, cancelRead := ascAgentsReadCtx(ctx)
 	defer cancelRead()
-	ctx.Data["AscAgentPolicy"] = ascAgentPolicyOf(readCtx, env.ref())
+	policy := ascAgentPolicyOf(readCtx, env.ref())
+	ctx.Data["AscAgentPolicy"] = policy
+	changes, _ := ascagentui.ParseCount(form.Budget.Changes, 1<<20)
+	paths, _ := ascagentui.ParseCount(form.Budget.Paths, 1<<20)
+	ctx.Data["AscAgentMayDo"] = ascAgentMayDoOf(readCtx, env.ref(), form.Agent, ascAgentMayDoScope(form.Paths, policy), uint32(changes), uint32(paths))
 
 	if uctx, done, ok := ascAgentsWriteCtx(ctx, ""); ok {
 		defer done()
