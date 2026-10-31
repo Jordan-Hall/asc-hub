@@ -132,7 +132,7 @@ export async function seed() {
     if (pr && pr.number) state.prs[s.branch] = pr.number;
   }
   // the branches first: their ref updates are events of the audit log, and the newest events are the ones its board shows
-  for (const b of EXTRA_BRANCHES) await api('POST', '/repos/acme/payments/branches', {new_branch_name: b, old_branch_name: 'main'});
+  for (const b of EXTRA_BRANCHES) await api('POST', '/repos/acme/ledger/branches', {new_branch_name: b, old_branch_name: 'main'});
   if (ASC_SERVE) await seedAsc({api, upload, people: Object.fromEntries(PEOPLE.map((p) => [p.u, p.name])), at, state});
   // labels, milestone, issues
   for (const [name, color] of Object.entries(LABELS)) await api('POST', '/repos/acme/payments/labels', {name, color});
@@ -155,6 +155,11 @@ export async function seed() {
   }
   for (const name of ['CARD_PROVIDER_API_KEY', 'RELEASE_SIGNING_KEY', 'SENTRY_DSN', 'STAGING_DEPLOY_TOKEN']) await api('PUT', `/repos/acme/payments/actions/secrets/${name}`, {data: 'pixel-harness-value'});
   for (const [name, value] of [['RUST_LOG', 'info'], ['PROVIDER_ENV', 'sandbox'], ['DEPLOY_REGION', 'eu-west-2']]) await api('POST', `/repos/acme/payments/actions/variables/${name}`, {value});
+  // the Rules and Access boards: three rules on branches, and the people who are asked in by name (the teams already see the repository)
+  for (const [rule, approvals, push] of [['main', 2, false], ['release/*', 2, false], ['hotfix/*', 1, true]]) {
+    await api('POST', '/repos/acme/payments/branch_protections', {rule_name: rule, enable_push: push, required_approvals: approvals, enable_status_check: false, block_on_rejected_reviews: true, dismiss_stale_approvals: true});
+  }
+  for (const [user, permission] of [['priya', 'write'], ['diego', 'write'], ['hannah', 'read'], ['tomas', 'write']]) await api('PUT', `/repos/acme/payments/collaborators/${user}`, {permission});
   // facts the mapping needs
   const main = await api('GET', '/repos/acme/payments/branches/main');
   state.sha = main.commit.id;
