@@ -22,7 +22,7 @@ Template data: AscBackups (nil without asc), CsrfTokenHtml
 		{{end}}
 
 		{{if .Status.Failing}}
-		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-backups-failing"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_shell.bk_attention"}}</strong> {{ctx.Locale.Tr "asc_shell.bk_attention_text"}}{{with $.AscBackups.Page.LastFailureNote}} {{.}}.{{end}} {{if .Status.LastSuccess.IsZero}}{{ctx.Locale.Tr "asc_shell.bk_no_good_copy"}}{{else}}{{ctx.Locale.Tr "asc_shell.bk_newest_good"}} {{DateUtils.TimeSince .Status.LastSuccess}}.{{end}}</div></div>
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-backups-failing"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_shell.bk_attention"}}</strong> {{ctx.Locale.Tr "asc_shell.bk_attention_text"}}{{with $.AscBackups.Page.LastFailureNote}} {{.}}.{{end}} {{if .Status.LastSuccess.IsZero}}{{ctx.Locale.Tr "asc_shell.bk_no_good_copy"}}{{else}}{{ctx.Locale.Tr "asc_shell.bk_newest_good"}} {{DateUtils.DayTime .Status.LastSuccess}}.{{end}}</div></div>
 		{{end}}
 
 		<section class="ds-card" aria-label="{{ctx.Locale.Tr "asc_shell.bk_status"}}" data-testid="asc-backups-summary">
@@ -75,7 +75,7 @@ Template data: AscBackups (nil without asc), CsrfTokenHtml
 					<tbody>
 					{{range .Backups}}
 						<tr data-state="{{.State}}">
-							<th scope="row" class="adm-bk-date" data-label="{{ctx.Locale.Tr "asc_shell.bk_col_backup"}}">{{DateUtils.AbsoluteShort .Started}}</th>
+							<th scope="row" class="adm-bk-date" data-label="{{ctx.Locale.Tr "asc_shell.bk_col_backup"}}">{{DateUtils.DayTime .Started}}</th>
 							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_shell.bk_col_size"}}">{{if .SizeText}}{{.SizeText}}{{else}}-{{end}}</td>
 							<td data-label="{{ctx.Locale.Tr "asc_shell.bk_col_status"}}">
 								{{if eq .State "failed"}}<span class="ds-chip ds-chip-err">{{svg "dsi-x-circle" 12}}{{ctx.Locale.Tr "asc_shell.bk_failed"}}</span>
