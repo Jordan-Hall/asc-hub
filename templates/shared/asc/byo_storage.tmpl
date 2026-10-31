@@ -39,9 +39,8 @@
 			{{end}}
 		</section>
 
-		<section class="asc-byo-card" aria-labelledby="asc-add-h">
-			<h3 id="asc-add-h">{{ctx.Locale.Tr "ascbyo.storage.add_title"}}</h3>
-			<p>{{ctx.Locale.Tr "ascbyo.storage.add_help"}}</p>
+		<section class="asc-byo-card asc-byo-add" aria-labelledby="asc-add-h">
+			<div class="asc-byo-card-h"><h3 id="asc-add-h">{{ctx.Locale.Tr "ascbyo.storage.add_title"}}</h3><span class="asc-byo-card-sub">{{ctx.Locale.Tr "ascbyo.storage.add_help"}}</span></div>
 			<form class="asc-byo-form" method="post" action="{{$a.StorageURL}}/targets" autocomplete="off" data-testid="asc-add-target">
 				{{.CsrfTokenHtml}}
 				<input type="hidden" name="op_id" value="{{$a.Op "create"}}">
