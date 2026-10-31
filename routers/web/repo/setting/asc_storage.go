@@ -89,4 +89,5 @@ func ascByoLevel(ctx *context.Context) *byoweb.Level {
 func AscRoutes(m *web.Route) {
 	byoweb.Routes(m, ascByoLevel)
 	m.Get("/asc/branchless", AscBranchless)
+	m.Post("/asc/branchless", AscBranchlessPost)
 }

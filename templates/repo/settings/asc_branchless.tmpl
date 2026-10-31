@@ -28,6 +28,16 @@
 						</dd>
 					</div>
 				</dl>
+				<form class="tw-mt-4" method="post" action="{{.RepoLink}}/settings/asc/branchless" data-testid="asc-branchless-form">
+					{{.CsrfTokenHtml}}
+					<fieldset class="ds-field">
+						<legend class="ds-label">{{ctx.Locale.Tr "repo.settings.asc_branchless.switch"}}</legend>
+						<label class="ds-radio"><input type="radio" name="mode" value="branchless"{{if .AscBranchless}} checked{{end}}> {{ctx.Locale.Tr "repo.settings.asc_branchless.to_branchless"}}</label>
+						<label class="ds-radio"><input type="radio" name="mode" value="branches"{{if not .AscBranchless}} checked{{end}}> {{ctx.Locale.Tr "repo.settings.asc_branchless.to_branches"}}</label>
+						<div class="ds-hint">{{ctx.Locale.Tr "repo.settings.asc_branchless.switch_help"}}</div>
+					</fieldset>
+					<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "repo.settings.update_settings"}}</button>
+				</form>
 				<p class="tw-mt-4">{{ctx.Locale.Tr "repo.settings.asc_branchless.how" .AscRepoName}}</p>
 			{{end}}
 		</div>
