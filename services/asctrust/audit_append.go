@@ -25,6 +25,7 @@ const (
 	AuditHostUserSuspended      = "host.user.suspended"
 	AuditHostUserUnsuspended    = "host.user.unsuspended"
 	AuditHostUser2FAReset       = "host.user.2fa_reset"
+	AuditHostModerationActed    = "host.moderation.acted"
 )
 
 const auditAppendTimeout = 5 * time.Second

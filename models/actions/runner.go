@@ -63,6 +63,8 @@ type ActionRunner struct {
 	AgentLabels []string `xorm:"TEXT"`
 	// Store if this is a runner that only ever get one single job assigned
 	Ephemeral bool `xorm:"ephemeral NOT NULL DEFAULT false"`
+	// Draining: the runner finishes the job it has and is given no new one (an administrator is about to take it away)
+	Draining bool `xorm:"NOT NULL DEFAULT false"`
 
 	Created timeutil.TimeStamp `xorm:"created"`
 	Updated timeutil.TimeStamp `xorm:"updated"`

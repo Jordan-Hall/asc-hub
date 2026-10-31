@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	actions_model "forgejo.org/models/actions"
 	"forgejo.org/models/db"
@@ -453,6 +454,40 @@ func RunnerResetRegistrationToken(ctx *context.Context) {
 
 	ctx.Flash.Success(ctx.Tr("actions.runners.reset_registration_token.success"))
 	ctx.Redirect(rCtx.RedirectLink)
+}
+
+// RunnerDrainPost handles `POST .../runners/{runnerid}/drain` with the field drain (1 or 0): a draining runner finishes the job
+// it has and is given no new one, until the switch is turned off.
+func RunnerDrainPost(ctx *context.Context) {
+	rCtx, err := getRunnersCtx(ctx)
+	if err != nil {
+		ctx.ServerError("getRunnersCtx", err)
+		return
+	}
+	runner, err := actions_model.GetRunnerByID(ctx, ctx.ParamsInt64(":runnerid"))
+	if err != nil {
+		ctx.ServerError("GetRunnerByID", err)
+		return
+	}
+	if !runner.Editable(rCtx.OwnerID, rCtx.RepoID) {
+		ctx.NotFound("Editable", util.NewPermissionDeniedErrorf("no permission to edit this runner"))
+		return
+	}
+	drain := ctx.FormString("drain") == "1"
+	if runner.Draining != drain {
+		runner.Draining = drain
+		if err := actions_model.UpdateRunner(ctx, runner, "draining"); err != nil {
+			ctx.ServerError("UpdateRunner", err)
+			return
+		}
+		log.Info("Runner %d: draining set to %v by %s", runner.ID, drain, ctx.Doer.Name)
+	}
+	if drain {
+		ctx.Flash.Success(ctx.Tr("actions.runners.drain.on", runner.Name))
+	} else {
+		ctx.Flash.Success(ctx.Tr("actions.runners.drain.off", runner.Name))
+	}
+	ctx.Redirect(rCtx.RedirectLink + strconv.FormatInt(runner.ID, 10))
 }
 
 // RunnerDeletePost handles the request for deleting a particular runner.

@@ -76,6 +76,20 @@
 					</div>
 				</dd>
 			</div>
+			<div class="item" data-testid="runner-drain">
+				<dt>{{ctx.Locale.Tr "actions.runners.drain"}}</dt>
+				<dd>
+					{{if .Runner.Draining}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "actions.runners.drain.state"}}</span>{{else}}{{ctx.Locale.Tr "actions.runners.drain.none"}}{{end}}
+					{{if .Runner.Editable $.RunnerOwnerID $.RunnerRepoID}}
+					<form class="tw-inline-block tw-ml-2" action="{{$.Link}}/drain" method="post">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="drain" value="{{if .Runner.Draining}}0{{else}}1{{end}}">
+						<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{if .Runner.Draining}}{{ctx.Locale.Tr "actions.runners.drain.stop"}}{{else}}{{ctx.Locale.Tr "actions.runners.drain.start"}}{{end}}</button>
+					</form>
+					{{end}}
+					<div class="ds-hint">{{ctx.Locale.Tr "actions.runners.drain.help"}}</div>
+				</dd>
+			</div>
 			<div class="item">
 				<dt>{{ctx.Locale.Tr "actions.runners.ephemeral"}}</dt>
 				<dd>

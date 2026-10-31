@@ -69,7 +69,7 @@
 				{{range .Runners}}
 				<tr>
 					<td>
-						<div class="tw-font-medium"><a href="{{$.Link}}/{{.ID}}" class="runner-action-link" tabindex="0">{{.Name}}</a></div>
+						<div class="tw-font-medium"><a href="{{$.Link}}/{{.ID}}" class="runner-action-link" tabindex="0">{{.Name}}</a>{{if .Draining}} <span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "actions.runners.drain.state"}}</span>{{end}}</div>
 						<div class="tw-mt-1">{{.UUID}}</div>
 					</td>
 					<td class="tw-flex tw-items-start tw-flex-wrap tw-gap-2">

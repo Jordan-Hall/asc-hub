@@ -369,6 +369,9 @@ var (
 )
 
 func CreateTaskForRunner(ctx context.Context, runner *ActionRunner, requestKey, handle *string) (*ActionTask, error) {
+	if runner.Draining {
+		return nil, ErrNoMatchingJobFound // a draining runner is offered nothing new
+	}
 	ctx, committer, err := db.TxContext(ctx)
 	if err != nil {
 		return nil, err
