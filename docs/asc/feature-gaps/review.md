@@ -8,9 +8,9 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 150 |
+| done | 152 |
 | ui-only-missing | 35 |
-| needs-hub-backend | 12 |
+| needs-hub-backend | 10 |
 | needs-asc-backend | 0 |
 | needs-both | 17 |
 | total | 214 |
@@ -26,11 +26,11 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | ChangeChecks | 5 | 2 | 2 | 0 | 1 |
 | Agents | 12 | 2 | 0 | 0 | 0 |
 | AgentRun | 10 | 3 | 1 | 0 | 4 |
-| AgentNew | 6 | 0 | 1 | 0 | 1 |
+| AgentNew | 7 | 0 | 0 | 0 | 1 |
 | AgentAccess | 5 | 1 | 0 | 0 | 2 |
 | Workflows | 9 | 2 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
-| WorkflowRun | 5 | 3 | 1 | 0 | 0 |
+| WorkflowRun | 6 | 3 | 0 | 0 | 0 |
 | Policy | 9 | 1 | 0 | 0 | 0 |
 | Ops | 8 | 4 | 0 | 0 | 1 |
 | Queue | 10 | 1 | 0 | 0 | 0 |
@@ -202,7 +202,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | AgentNew | Task, target branch, model/key, limits (changes, tokens, cost, minutes), narrow write scope, start, validation | done | templates/repo/asc_agents_new.tmpl, routers/web/repo/asc_agents.go AscAgentsCreate | - |
 | AgentNew | Agent picker showing each agent's scope (coder-2 src/**, tests/**) | done | templates/repo/asc_agents_new.tmpl (free-text agent name) (datalist; verified on the dev hub) | S |
 | AgentNew | 'Ask me to approve the plan first' switch | done | asc: CreateAgentRunRequest has no plan_first; plan flow missing (switch renders; passed on create (Go test)) | L |
-| AgentNew | Right rail 'What this run may do', computed from token and policy, updates as scope narrows | needs-hub-backend | Policy.Evaluate RUN/WRITE (proto/asc/v1/policy.proto); asc_agents_new.tmpl + JS fetch | M |
+| AgentNew | Right rail 'What this run may do', computed from token and policy, updates as scope narrows | done | templates/repo/asc_agents_maydo.tmpl above the estimate card; routers/web/repo/asc_agents_maydo.go: Policy.Evaluate for the agent principal, WRITE for a sample path of each scope glob (the policy default scope when none is typed; a glob with a class or alternative is not sampled) and RUN for the changes and paths limits; GET asc/agents/may-do refreshes it (web_src/js/features/asc-board.js applyMayDo, 600 ms after an input of the agent, scope or limits); asc silent leaves the card saying so; tests: TestAscAgentsMayDoEndpoint*, TestAscAgentsNewFormShowsWhatTheRunMayDo, vitest applyMayDo. Limit: asc judges paths, so the lines show a sample path of the glob, not every path it matches. | - |
 | AgentNew | Estimate 'About 10 min and $1.60' from similar runs | done | asc: run statistics query (new RPC) + hub display (card renders (no estimate on a fresh hub); fetch covered by Go and vitest) | M |
 | AgentNew | Recent tasks with Reuse | done | asc: AgentRun lacks task text; hub: list on asc_agents_new.tmpl (renders with live data) | S |
 | AgentNew | Limits above the policy cap are lowered with a message, not rejected | needs-both | asc budget handling vs hub message in asc_agents.go (no 'lowered' text exists);; Audit 2026-10-30 (part built): Help text says a value above the cap is lowered; the New agent form message was not found. | S |
@@ -261,7 +261,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | WorkflowRun | Flow diagram with connectors filling as steps finish | ui-only-missing | templates/repo/asc_workflows_run.tmpl | S |
 | WorkflowRun | Steps list with output line, duration, state | done | templates/repo/asc_workflows_run.tmpl | - |
 | WorkflowRun | Live polling of step state | done | web_src/js/features/asc-agent-run.ts (workflow poll), GET runs/{id}/state | - |
-| WorkflowRun | 'Proposed by the agent': changes with size, state and Review links | needs-hub-backend | asc_workflows.go: resolve the step's agent run to changes via services/ascagentui/links.go | M |
+| WorkflowRun | 'Proposed by the agent': changes with size, state and Review links | done | routers/web/repo/asc_workflows_proposed.go ascWorkflowStepProposed (called from AscWorkflowRun for readable agent steps when the agent switch is on): the step's agent run (Agents.GetRun) resolved by ascagentui.ChangeLinks to the repository's pull requests; state landed, closed, open (approved, changes requested, draft, waiting) or not submitted; size from git for up to 8 open ones; 12 listed, the rest a count; templates/repo/asc_workflows_run.tmpl; tests: TestAscWorkflowRunShowsWhatTheAgentStepProposed | - |
 | WorkflowRun | Step log (agent events) and 'Open the agent run' link | ui-only-missing | templates/repo/asc_workflows_run.tmpl (log details exist; link missing) | S |
 | WorkflowRun | 'Used so far' meters (tokens, cost, time, agent steps) | done | templates/repo/asc_workflows_run.tmpl | - |
 
