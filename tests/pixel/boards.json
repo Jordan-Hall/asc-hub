@@ -71,7 +71,7 @@
    "board": "GetStarted",
    "num": "A6",
    "title": "Get started (empty hub)",
-   "route": "/",
+   "route": "/-/get-started",
    "as": "ines",
    "viewport": "desktop",
    "themes": [
@@ -212,7 +212,7 @@
    "board": "Mobile-GetStarted",
    "num": "A5m",
    "title": "Mobile: Get started (empty hub)",
-   "route": "/",
+   "route": "/-/get-started",
    "as": "ines",
    "viewport": "mobile",
    "themes": [
