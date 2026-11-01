@@ -6,9 +6,11 @@ package security
 import (
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	auth_model "forgejo.org/models/auth"
+	"forgejo.org/modules/ascratelimit"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/httplib"
 	"forgejo.org/modules/setting"
@@ -22,12 +24,15 @@ const tplSettingsReauth base.TplName = "user/settings/security/reauth"
 // ReauthFor is how long a proof lasts before a change to the sign-in of the account asks for the password again.
 var ReauthFor = 10 * time.Minute
 
-// recentlyAuthenticated says whether the doer proved it is them within ReauthFor. A person without a password (signed
-// in through a provider only) has nothing to type here; the second factor and the provider guard them.
+// The confirm page takes a few tries per account and per address in a window: it is no way to guess a password.
+var (
+	reauthUserLimiter = ascratelimit.New(5, 15*time.Minute)
+	reauthIPLimiter   = ascratelimit.New(20, 15*time.Minute)
+)
+
+// recentlyAuthenticated says whether the doer proved it is them within ReauthFor: by signing in, or on the confirm
+// page. A person without a password proves it by signing in again.
 func recentlyAuthenticated(ctx *context.Context) bool {
-	if !ctx.Doer.IsPasswordSet() {
-		return true
-	}
 	at, _ := ctx.Session.Get(auth_model.ReauthSessionKey).(int64)
 	return at != 0 && time.Since(time.Unix(at, 0)) < ReauthFor
 }
@@ -67,12 +72,20 @@ func Reauth(ctx *context.Context) {
 // ReauthPost serves `POST /user/settings/security/reauth` with the fields password and redirect_to.
 func ReauthPost(ctx *context.Context) {
 	back := safeBack(ctx.FormString("redirect_to"))
-	if !ctx.Doer.IsPasswordSet() || !ctx.Doer.ValidatePassword(ctx, ctx.FormString("password")) {
+	refuse := func(msg string, status int) {
 		ctx.Data["Title"] = ctx.Tr("settings.reauth_title")
 		ctx.Data["PageIsSettingsSecurity"] = true
 		ctx.Data["RedirectTo"] = back
 		ctx.Data["Err_Password"] = true
-		ctx.RenderWithErr(ctx.Tr("settings.reauth_wrong"), tplSettingsReauth, nil)
+		ctx.Data["ErrorMsg"] = msg
+		ctx.HTML(status, tplSettingsReauth)
+	}
+	if !reauthUserLimiter.Allow(strconv.FormatInt(ctx.Doer.ID, 10)) || !reauthIPLimiter.Allow(ascratelimit.ClientKey(ctx.RemoteAddr())) {
+		refuse(ctx.Locale.TrString("settings.reauth_too_many"), http.StatusTooManyRequests)
+		return
+	}
+	if !ctx.Doer.IsPasswordSet() || !ctx.Doer.ValidatePassword(ctx, ctx.FormString("password")) {
+		refuse(ctx.Locale.TrString("settings.reauth_wrong"), http.StatusOK)
 		return
 	}
 	if err := ctx.Session.Set(auth_model.ReauthSessionKey, int64(timeutil.TimeStampNow())); err != nil {
