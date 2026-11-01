@@ -252,20 +252,22 @@ func ResetPasswdPost(ctx *context.Context) {
 			ctx.ServerError("UserSignIn", err)
 			return
 		}
-
-		handleSignInFull(ctx, u, remember, false)
-		if ctx.Written() {
-			return
-		}
-		ctx.Flash.Info(ctx.Tr("auth.twofa_scratch_used"))
-		ctx.Redirect(setting.AppSubURL + "/user/settings/security")
-		return
 	}
 
 	// with Local passwords kept for the admins only, the new password does not sign the person in
 	if !u.IsAdmin && auth.LocalPasswordsAdminsOnly(ctx) {
 		ctx.Data["Title"] = ctx.Tr("auth.prohibit_login")
 		ctx.HTML(http.StatusOK, "user/auth/prohibit_login")
+		return
+	}
+
+	if regenerateScratchToken {
+		handleSignInFull(ctx, u, remember, false)
+		if ctx.Written() {
+			return
+		}
+		ctx.Flash.Info(ctx.Tr("auth.twofa_scratch_used"))
+		ctx.Redirect(setting.AppSubURL + "/user/settings/security")
 		return
 	}
 	handleSignIn(ctx, u, remember)
