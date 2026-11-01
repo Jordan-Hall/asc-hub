@@ -1,0 +1,36 @@
+{{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin-users")}}
+	{{template "admin/head" (dict "Title" (ctx.Locale.Tr (print "asc_admin.bulk_" .BulkAction)) "Desc" (ctx.Locale.TrN (len .BulkPeople) (print "asc_admin.bulk_lead_" .BulkAction "_1") (print "asc_admin.bulk_lead_" .BulkAction "_n") (len .BulkPeople)))}}
+	<form class="adm-form adm-form-card" method="post" action="{{AppSubUrl}}/admin/users/bulk" data-testid="admin-users-bulk-confirm">
+		{{.CsrfTokenHtml}}
+		<input type="hidden" name="action" value="{{.BulkAction}}">
+		<input type="hidden" name="confirm" value="1">
+		<section class="ds-card" aria-labelledby="adm-bulk-people">
+			<div class="ds-card-h"><h2 id="adm-bulk-people">{{ctx.Locale.Tr "asc_admin.bulk_affected"}}</h2><span class="ds-count">{{len .BulkPeople}}</span></div>
+			<ul class="adm-rows" data-testid="admin-users-bulk-people">
+				{{range .BulkPeople}}
+					<li class="ds-li">
+						<input type="hidden" name="ids" value="{{.ID}}">
+						<span class="ds-li-av">{{ctx.AvatarUtils.Avatar . 32}}</span>
+						<div class="ds-li-main">
+							<div class="ds-li-title">{{if .FullName}}{{.FullName}} {{end}}<span class="adm-mono ds-c-2">@{{.Name}}</span></div>
+							<div class="ds-li-sub">{{.Email}}</div>
+						</div>
+						{{if and (eq $.BulkAction "suspend") .ProhibitLogin}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_admin.filter_suspended"}}</span>{{end}}
+						{{if and (eq $.BulkAction "require_2fa") .RequireTwoFactor}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_admin.bulk_already_required"}}</span>{{end}}
+					</li>
+				{{end}}
+			</ul>
+			<div class="ds-card-b ds-form">
+				<div class="ds-field">
+					<label class="ds-label" for="adm-bulk-reason">{{ctx.Locale.Tr "asc_admin.person_reason"}}</label>
+					<textarea class="ds-input" id="adm-bulk-reason" name="reason" rows="3" maxlength="{{.BulkReasonMax}}" required{{if .BulkReasonNeeded}} aria-invalid="true" aria-describedby="adm-bulk-reason-err"{{end}} autofocus></textarea>
+					{{if .BulkReasonNeeded}}<p class="ds-err-msg" id="adm-bulk-reason-err">{{ctx.Locale.Tr "asc_admin.person_reason_needed" .BulkReasonMax}}</p>{{end}}
+				</div>
+			</div>
+		</section>
+		<div class="ds-sticky-actions">
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/users">{{ctx.Locale.Tr "cancel"}}</a>
+			<button type="submit" class="ds-btn {{if eq .BulkAction "suspend"}}ds-btn-danger{{else}}ds-btn-primary{{end}}">{{ctx.Locale.Tr (print "asc_admin.bulk_" .BulkAction)}}</button>
+		</div>
+	</form>
+{{template "admin/layout_footer" .}}

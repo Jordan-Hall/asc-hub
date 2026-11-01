@@ -36,11 +36,18 @@
 	</div>
 
 	{{if .Users}}
+		<form class="adm-bulk" id="adm-bulk" method="post" action="{{AppSubUrl}}/admin/users/bulk" data-testid="admin-users-bulk" data-bulk>
+			{{.CsrfTokenHtml}}
+			<span class="ds-t-strong" data-bulk-count data-one="{{ctx.Locale.Tr "asc_admin.bulk_selected_1"}}" data-many="{{ctx.Locale.Tr "asc_admin.bulk_selected_n"}}" aria-live="polite">{{ctx.Locale.Tr "asc_admin.bulk_select_hint"}}</span>
+			<button class="ds-btn ds-btn-secondary ds-btn-sm" name="action" value="require_2fa" data-bulk-action>{{svg "dsi-shield-check" 16}}{{ctx.Locale.Tr "asc_admin.bulk_require_2fa"}}</button>
+			<button class="ds-btn ds-btn-danger ds-btn-sm" name="action" value="suspend" data-bulk-action>{{svg "dsi-lock" 16}}{{ctx.Locale.Tr "asc_admin.bulk_suspend"}}</button>
+		</form>
 		<div class="ds-table-wrap adm-only-md">
 			<table class="ds-table">
 				<caption class="ds-sr">{{ctx.Locale.Tr "admin.users.user_manage_panel"}}</caption>
 				<thead>
 					<tr>
+						<th scope="col" class="adm-check-col"><input type="checkbox" data-bulk-all aria-label="{{ctx.Locale.Tr "asc_admin.bulk_select_all"}}"></th>
 						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_person"}}</th>
 						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_role"}}</th>
 						<th scope="col">{{ctx.Locale.Tr "admin.users.2fa"}}</th>
@@ -53,6 +60,7 @@
 				<tbody>
 					{{range .Users}}
 						<tr>
+							<td class="adm-check-col">{{if ne .ID $.SignedUserID}}<input type="checkbox" form="adm-bulk" name="ids" value="{{.ID}}" data-bulk-row aria-label="{{ctx.Locale.Tr "asc_admin.bulk_select" .Name}}">{{end}}</td>
 							<td>
 								<div class="adm-who">
 									{{ctx.AvatarUtils.Avatar . 40}}

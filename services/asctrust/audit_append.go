@@ -26,6 +26,7 @@ const (
 	AuditHostUserUnsuspended     = "host.user.unsuspended"
 	AuditHostUser2FAReset        = "host.user.2fa_reset"
 	AuditHostUserSessionsRevoked = "host.user.sessions_revoked"
+	AuditHostUser2FARequired     = "host.user.2fa_required"
 	AuditHostModerationActed     = "host.moderation.acted"
 )
 

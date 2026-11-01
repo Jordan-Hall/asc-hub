@@ -97,6 +97,8 @@ type User struct {
 	// MustChangePassword is an attribute that determines if a user
 	// is to change their password after registration.
 	MustChangePassword bool `xorm:"NOT NULL DEFAULT false"`
+	// RequireTwoFactor is set by an administrator: this person must have a second factor, whatever the site requires.
+	RequireTwoFactor bool `xorm:"NOT NULL DEFAULT false"`
 
 	LoginType   auth.Type
 	LoginSource int64 `xorm:"NOT NULL DEFAULT 0"`
@@ -244,7 +246,13 @@ func GetAllAdmins(ctx context.Context) ([]*User, error) {
 
 // MustHaveTwoFactor returns true if the user is a individual and requires 2fa
 func (u *User) MustHaveTwoFactor() bool {
-	if u.IsActions() || !u.IsIndividual() || setting.GlobalTwoFactorRequirement.IsNone() {
+	if u.IsActions() || !u.IsIndividual() {
+		return false
+	}
+	if u.RequireTwoFactor {
+		return true
+	}
+	if setting.GlobalTwoFactorRequirement.IsNone() {
 		return false
 	}
 
