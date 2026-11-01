@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	auth_model "forgejo.org/models/auth"
+	"forgejo.org/models/db"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -71,6 +72,20 @@ func (s *Session) Verify(req *http.Request, w http.ResponseWriter, sess auth.Ses
 		if revoked {
 			// signed out from another browser: this one is signed out as if it had done it itself
 			log.Trace("Session Authorization: %v", errBrowserSessionRevoked)
+			_ = sess.Delete("uid")
+			return &auth.AuthenticationNotAttempted{InteractiveReauthenticationPossible: true}
+		}
+	}
+
+	// Local passwords kept for the admins only: a person who has no other way in than a password kept here is
+	// signed out, whatever way the session began (a password, a reset, a sign-up or a remember-me cookie).
+	if user.LoginSource == 0 && !user.IsAdmin && auth_model.LocalPasswordsAdminsOnly(req.Context()) {
+		linked, err := db.GetEngine(req.Context()).Exist(&user_model.ExternalLoginUser{UserID: user.ID})
+		if err != nil {
+			return &auth.AuthenticationError{Error: fmt.Errorf("session auth ExternalLoginUser: %w", err)}
+		}
+		if !linked {
+			log.Trace("Session Authorization: local passwords are for admins only")
 			_ = sess.Delete("uid")
 			return &auth.AuthenticationNotAttempted{InteractiveReauthenticationPossible: true}
 		}

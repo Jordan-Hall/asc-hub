@@ -21,7 +21,10 @@ func TestLocalPasswordsAdminsOnly(t *testing.T) {
 	doc := NewHTMLParser(t, admin.MakeRequest(t, NewRequest(t, "GET", "/admin/auths"), http.StatusOK).Body)
 	assert.Equal(t, 0, doc.Find(`[data-testid="auth-local-form"] input[name="admins_only"][checked]`).Length())
 
+	before := loginUser(t, "user2")
 	admin.MakeRequest(t, NewRequestWithValues(t, "POST", "/admin/auths/local", map[string]string{"admins_only": "true"}), http.StatusSeeOther)
+	// a session begun before is signed out on its next request
+	before.MakeRequest(t, NewRequest(t, "GET", "/user/settings"), http.StatusSeeOther)
 	doc = NewHTMLParser(t, admin.MakeRequest(t, NewRequest(t, "GET", "/admin/auths"), http.StatusOK).Body)
 	assert.Equal(t, 1, doc.Find(`[data-testid="auth-local-form"] input[name="admins_only"][checked]`).Length())
 
