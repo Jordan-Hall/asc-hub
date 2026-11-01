@@ -72,6 +72,11 @@ func loadSecurityData(ctx *context.Context) {
 		ctx.Data["RecoveryUnused"], ctx.Data["RecoveryTotal"] = unused, total
 	}
 
+	loadBrowserSessions(ctx)
+	if ctx.Written() {
+		return
+	}
+
 	credentials, err := auth_model.GetWebAuthnCredentialsByUID(ctx, ctx.Doer.ID)
 	if err != nil {
 		ctx.ServerError("GetWebAuthnCredentialsByUID", err)

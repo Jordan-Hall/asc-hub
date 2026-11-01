@@ -418,6 +418,9 @@ func getUserName(gothUser *goth.User) (string, error) {
 
 // HandleSignOut resets the session and sets the cookies
 func HandleSignOut(ctx *context.Context) {
+	if err := auth.EndBrowserSession(ctx, ctx.Session.ID()); err != nil {
+		log.Error("EndBrowserSession: %v", err)
+	}
 	_ = ctx.Session.Flush()
 	_ = ctx.Session.Destroy(ctx.Resp, ctx.Req)
 	ctx.DeleteSiteCookie(setting.CookieRememberName)

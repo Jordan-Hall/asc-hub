@@ -4,13 +4,22 @@
 package method
 
 import (
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"strings"
 
+	auth_model "forgejo.org/models/auth"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/setting"
+	"forgejo.org/modules/web/middleware"
 	"forgejo.org/services/auth"
 )
+
+// errBrowserSessionRevoked: the person signed this browser out from another one.
+var errBrowserSessionRevoked = errors.New("the session was signed out from another browser")
 
 // Ensure the struct implements the interface.
 var (
@@ -51,6 +60,30 @@ func (s *Session) Verify(req *http.Request, w http.ResponseWriter, sess auth.Ses
 		return &auth.AuthenticationAttemptedIncorrectCredential{Error: err}
 	}
 
+	// The registry of signed-in browsers: it lists this one on the security page and says when it was signed out
+	// from another.
+	if withID, ok := sess.(interface{ ID() string }); ok {
+		rememberKey, _, _ := strings.Cut(middleware.GetSiteCookie(req, setting.CookieRememberName), ":")
+		revoked, err := auth_model.TouchBrowserSession(req.Context(), user.ID, withID.ID(), rememberKey, req.UserAgent(), remoteHost(req))
+		if err != nil {
+			return &auth.AuthenticationError{Error: fmt.Errorf("session auth TouchBrowserSession: %w", err)}
+		}
+		if revoked {
+			// signed out from another browser: this one is signed out as if it had done it itself
+			log.Trace("Session Authorization: %v", errBrowserSessionRevoked)
+			_ = sess.Delete("uid")
+			return &auth.AuthenticationNotAttempted{InteractiveReauthenticationPossible: true}
+		}
+	}
+
 	log.Trace("Session Authorization: Logged in user %-v", user)
 	return &auth.AuthenticationSuccess{Result: &sessionAuthenticationResult{user: user}}
+}
+
+// remoteHost is the address of the request without its port.
+func remoteHost(req *http.Request) string {
+	if host, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
+		return host
+	}
+	return req.RemoteAddr
 }
