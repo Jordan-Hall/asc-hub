@@ -81,6 +81,10 @@ func UserSignIn(ctx context.Context, username, password string) (*user_model.Use
 			if user.ProhibitLogin {
 				return nil, nil, user_model.ErrUserProhibitLogin{UID: user.ID, Name: user.Name}
 			}
+			// the Local passwords row can be kept for the site admins only
+			if source.ID == 0 && !user.IsAdmin && auth.LocalPasswordsAdminsOnly(ctx) {
+				return nil, nil, user_model.ErrUserProhibitLogin{UID: user.ID, Name: user.Name}
+			}
 
 			return user, source, nil
 		}

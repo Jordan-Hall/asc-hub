@@ -76,6 +76,14 @@
 		</div>
 	{{end}}
 
+	<form class="ds-card adm-sec" method="post" action="{{AppSubUrl}}/admin/auths/local" data-testid="auth-local-form">
+		{{.CsrfTokenHtml}}
+		<label class="ds-check">
+			<input type="checkbox" name="admins_only" value="true"{{if .LocalAdminsOnly}} checked{{end}}>
+			<span><span class="ds-t-strong">{{ctx.Locale.Tr "asc_admin.auth_local_admins_only"}}</span><br><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.auth_local_admins_only_sub"}}</span></span>
+		</label>
+		<p class="ds-mt-12"><button class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "save"}}</button></p>
+	</form>
 	<p class="adm-sec"><a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/admin/auths/new">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "asc_admin.auth_add"}}</a></p>
 	<p class="ds-t-small ds-c-2 ds-mt-12">{{ctx.Locale.Tr "asc_admin.auth_local_note"}}</p>
 {{template "admin/layout_footer" .}}
