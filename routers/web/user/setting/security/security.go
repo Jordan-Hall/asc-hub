@@ -21,6 +21,8 @@ import (
 const (
 	tplSettingsSecurity    base.TplName = "user/settings/security/security"
 	tplSettingsTwofaEnroll base.TplName = "user/settings/security/twofa_enroll"
+	// tplSettingsRecoveryCodes shows the new recovery codes once
+	tplSettingsRecoveryCodes base.TplName = "user/settings/security/recovery_codes"
 )
 
 // Security render change user's password page and 2FA
@@ -61,6 +63,14 @@ func loadSecurityData(ctx *context.Context) {
 		return
 	}
 	ctx.Data["TOTPEnrolled"] = enrolled
+	if enrolled {
+		unused, total, err := auth_model.CountRecoveryCodes(ctx, ctx.Doer.ID)
+		if err != nil {
+			ctx.ServerError("CountRecoveryCodes", err)
+			return
+		}
+		ctx.Data["RecoveryUnused"], ctx.Data["RecoveryTotal"] = unused, total
+	}
 
 	credentials, err := auth_model.GetWebAuthnCredentialsByUID(ctx, ctx.Doer.ID)
 	if err != nil {
