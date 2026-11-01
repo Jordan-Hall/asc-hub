@@ -12,6 +12,8 @@ import (
 	"forgejo.org/models/db"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/timeutil"
+
+	"xorm.io/builder"
 )
 
 // ReauthSessionKey is the session value of when the person last proved it is them: at sign-in, or by typing the
@@ -162,14 +164,16 @@ func RevokeOtherBrowserSessions(ctx context.Context, uid int64, keepSID string) 
 			}
 		}
 		// every remember-me token but the one of this browser: a browser not in the list cannot sign itself back in
-		del := db.GetEngine(ctx).Where("uid = ?", uid)
 		var keepRow BrowserSession
-		if has, err := db.GetEngine(ctx).Where("sid_hash = ? AND uid = ?", keep, uid).Get(&keepRow); err != nil {
+		has, err := db.GetEngine(ctx).Where("sid_hash = ? AND uid = ?", keep, uid).Get(&keepRow)
+		if err != nil {
 			return err
-		} else if has && keepRow.RememberKey != "" {
-			del = del.And("lookup_key <> ?", keepRow.RememberKey)
 		}
-		if _, err := del.In("purpose", LongTermAuthorization, LongTermAuthorizationSSO).Delete(new(AuthorizationToken)); err != nil {
+		cond := builder.Eq{"uid": uid}.And(builder.In("purpose", LongTermAuthorization, LongTermAuthorizationSSO))
+		if has && keepRow.RememberKey != "" {
+			cond = cond.And(builder.Neq{"lookup_key": keepRow.RememberKey})
+		}
+		if _, err := db.GetEngine(ctx).Where(cond).Delete(new(AuthorizationToken)); err != nil {
 			return err
 		}
 		n = len(rows)

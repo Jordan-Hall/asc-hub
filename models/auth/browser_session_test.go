@@ -67,10 +67,13 @@ func TestBrowserSessionsAreListedAndSignedOutFromElsewhere(t *testing.T) {
 	require.NoError(t, err)
 	stray, _, err := auth_model.GenerateAuthToken(ctx, 2, optional.None[int64](), timeutil.TimeStampNow().Add(3600), auth_model.LongTermAuthorization)
 	require.NoError(t, err)
+	other, _, err := auth_model.GenerateAuthToken(ctx, 1, optional.None[int64](), timeutil.TimeStampNow().Add(3600), auth_model.LongTermAuthorization)
+	require.NoError(t, err)
 	n, err := auth_model.RevokeOtherBrowserSessions(ctx, 2, "sid-desk")
 	require.NoError(t, err)
 	assert.Equal(t, 1, n)
 	unittest.AssertNotExistsBean(t, &auth_model.AuthorizationToken{LookupKey: stray})
+	unittest.AssertExistsAndLoadBean(t, &auth_model.AuthorizationToken{LookupKey: other}) // another person's stays
 	revoked, err = auth_model.TouchBrowserSession(ctx, 2, "sid-desk", "", "", "")
 	require.NoError(t, err)
 	assert.False(t, revoked)
