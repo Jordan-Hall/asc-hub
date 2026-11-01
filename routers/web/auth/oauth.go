@@ -989,11 +989,15 @@ func SignInOAuth(ctx *context.Context) {
 	}
 
 	// try to do a direct callback flow, so we don't authenticate the user again but use the valid accesstoken to get the user
-	user, gothUser, err := oAuth2UserLoginCallback(ctx, authSource, ctx.Req, ctx.Resp)
-	if err == nil && user != nil {
-		// we got the user without going through the whole OAuth2 authentication flow again
-		handleOAuth2SignIn(ctx, authSource, user, gothUser)
-		return
+	// (not in an admin's test sign-in, which must reach the provider)
+	testing, _ := ctx.Session.Get(auth.ProbeOAuthSessionKey).(int64)
+	if testing != authSource.ID {
+		user, gothUser, err := oAuth2UserLoginCallback(ctx, authSource, ctx.Req, ctx.Resp)
+		if err == nil && user != nil {
+			// we got the user without going through the whole OAuth2 authentication flow again
+			handleOAuth2SignIn(ctx, authSource, user, gothUser)
+			return
+		}
 	}
 
 	codeChallenge, err := generateCodeChallenge(ctx, provider)
@@ -1063,6 +1067,10 @@ func SignInOAuthCallback(ctx *context.Context) {
 
 	if authSource == nil {
 		ctx.ServerError("SignIn", errors.New("no valid provider found, check configured callback url in provider"))
+		return
+	}
+
+	if probeOAuthCallback(ctx, authSource) {
 		return
 	}
 

@@ -297,6 +297,8 @@ func EditAuthSource(ctx *context.Context) {
 	}
 	ctx.Data["Source"] = source
 	ctx.Data["HasTLS"] = source.HasTLS()
+	_, ctx.Data["CanProbe"] = source.Cfg.(auth.Prober)
+	takeOAuthProbe(ctx, source.ID)
 
 	if source.IsOAuth2() {
 		type Named interface {

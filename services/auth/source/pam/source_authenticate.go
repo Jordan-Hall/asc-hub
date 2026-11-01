@@ -34,23 +34,7 @@ func (source *Source) Authenticate(ctx context.Context, user *user_model.User, u
 		return user, nil
 	}
 
-	// Allow PAM sources with `@` in their name, like from Active Directory
-	username := pamLogin
-	email := pamLogin
-	before, _, ok := strings.Cut(pamLogin, "@")
-	if ok {
-		username = before
-	}
-	if validation.ValidateEmail(email) != nil {
-		if source.EmailDomain != "" {
-			email = fmt.Sprintf("%s@%s", username, source.EmailDomain)
-		} else {
-			email = fmt.Sprintf("%s@%s", username, setting.Service.NoReplyAddress)
-		}
-		if validation.ValidateEmail(email) != nil {
-			email = uuid.New().String() + "@localhost"
-		}
-	}
+	username, email := source.names(pamLogin)
 
 	user = &user_model.User{
 		LowerName:   strings.ToLower(username),
@@ -75,4 +59,25 @@ func (source *Source) Authenticate(ctx context.Context, user *user_model.User, u
 // IsSkipLocalTwoFA returns if this source should skip local 2fa for password authentication
 func (source *Source) IsSkipLocalTwoFA() bool {
 	return source.SkipLocalTwoFA
+}
+
+// names gives the account name and email a PAM login becomes.
+func (source *Source) names(pamLogin string) (username, email string) {
+	// Allow PAM sources with `@` in their name, like from Active Directory
+	username, email = pamLogin, pamLogin
+	before, _, ok := strings.Cut(pamLogin, "@")
+	if ok {
+		username = before
+	}
+	if validation.ValidateEmail(email) != nil {
+		if source.EmailDomain != "" {
+			email = fmt.Sprintf("%s@%s", username, source.EmailDomain)
+		} else {
+			email = fmt.Sprintf("%s@%s", username, setting.Service.NoReplyAddress)
+		}
+		if validation.ValidateEmail(email) != nil {
+			email = uuid.New().String() + "@localhost"
+		}
+	}
+	return username, email
 }

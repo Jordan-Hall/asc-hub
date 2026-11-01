@@ -353,6 +353,36 @@
 		</div>
 	</form>
 
+	<section class="ds-card adm-sec" id="auth-test" aria-labelledby="adm-auth-test" data-testid="auth-test">
+		<div class="ds-card-h"><h2 id="adm-auth-test">{{ctx.Locale.Tr "asc_admin.auth_test"}}</h2></div>
+		<div class="ds-card-b ds-stack ds-stack-12">
+			<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.auth_test_sub"}}</p>
+			{{if .CanProbe}}
+			<form class="ds-form" method="post" action="{{$.Link}}/test#auth-test" data-testid="auth-test-form">
+				{{.CsrfTokenHtml}}
+				<div class="ds-field"><label class="ds-label" for="probe-login">{{ctx.Locale.Tr "asc_admin.auth_test_login"}}</label><input class="ds-input" id="probe-login" name="login" value="{{.ProbeLogin}}" autocomplete="off" required></div>
+				<div class="ds-field"><label class="ds-label" for="probe-password">{{ctx.Locale.Tr "password"}}</label><input class="ds-input" id="probe-password" name="password" type="password" autocomplete="new-password" required></div>
+				<p><button class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "asc_admin.auth_test_run"}}</button></p>
+			</form>
+			{{else if and .Source.IsOAuth2 .Source.IsActive}}
+			<p><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.Link}}/test-oauth" data-testid="auth-test-oauth">{{ctx.Locale.Tr "asc_admin.auth_test_oauth"}}</a></p>
+			{{else}}
+			<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.auth_test_none"}}</p>
+			{{end}}
+			{{if .ProbeRan}}
+				{{if .ProbeError}}
+				<div class="ds-banner ds-banner-err" role="alert" data-testid="auth-test-error">{{svg "dsi-x-circle" 18}}<p class="ds-banner-body">{{.ProbeError}}</p></div>
+				{{else}}
+				<div class="ds-banner ds-banner-ok" role="status">{{svg "dsi-shield-check" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "asc_admin.auth_test_ok"}}</p></div>
+				<div class="ds-table-wrap"><table class="ds-table" data-testid="auth-test-claims">
+					<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_admin.auth_test_claim"}}</th><th scope="col">{{ctx.Locale.Tr "asc_admin.auth_test_value"}}</th></tr></thead>
+					<tbody>{{range .ProbeClaims}}<tr><td class="ds-mono">{{.Name}}</td><td>{{if .Value}}{{.Value}}{{else}}<span class="ds-c-3">—</span>{{end}}</td></tr>{{end}}</tbody>
+				</table></div>
+				{{end}}
+			{{end}}
+		</div>
+	</section>
+
 		<section class="ds-card adm-sec" aria-labelledby="adm-auth-tips">
 			<div class="ds-card-h"><h2 id="adm-auth-tips">{{ctx.Locale.Tr "admin.auths.tips"}}</h2></div>
 			<div class="ds-card-b ds-stack ds-stack-12">
