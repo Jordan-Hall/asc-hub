@@ -51,6 +51,30 @@ func RegenerateScratchTwoFactor(ctx *context.Context) {
 	ctx.Redirect(setting.AppSubURL + "/user/settings/security")
 }
 
+// RecoveryCodes serves `POST /user/settings/security/two_factor/recovery_codes`: it makes ten new recovery codes (the old ones
+// stop working) and shows them on the answer itself, once. They are never kept in a form that can be shown again.
+func RecoveryCodes(ctx *context.Context) {
+	if enrolled, err := auth.HasTOTPByUID(ctx, ctx.Doer.ID); err != nil {
+		ctx.ServerError("HasTOTPByUID", err)
+		return
+	} else if !enrolled {
+		ctx.Flash.Error(ctx.Tr("settings.twofa_not_enrolled"))
+		ctx.Redirect(setting.AppSubURL + "/user/settings/security")
+		return
+	}
+	codes, err := auth.GenerateRecoveryCodes(ctx, ctx.Doer.ID)
+	if err != nil {
+		ctx.ServerError("GenerateRecoveryCodes", err)
+		return
+	}
+	ctx.Resp.Header().Set("Cache-Control", "no-store")
+	ctx.Data["Title"] = ctx.Tr("settings.recovery_codes")
+	ctx.Data["PageIsSettingsSecurity"] = true
+	ctx.Data["RecoveryCodes"] = codes
+	ctx.Data["RecoveryText"] = strings.Join(codes, "\n") + "\n"
+	ctx.HTML(http.StatusOK, tplSettingsRecoveryCodes)
+}
+
 // DisableTwoFactor deletes the user's 2FA settings.
 func DisableTwoFactor(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings")

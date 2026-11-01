@@ -138,13 +138,24 @@ func TwoFactorScratchPost(ctx *context.Context) {
 		return
 	}
 
-	// Validate the passcode with the stored TOTP secret.
-	if twofa.VerifyScratchToken(form.Token) {
-		// Invalidate the scratch token.
-		twofa.GenerateScratchToken()
-		if err = auth.UpdateTwoFactor(ctx, twofa); err != nil {
+	// The scratch token, or one of the recovery codes (each opens the second factor once).
+	usedScratch := twofa.VerifyScratchToken(form.Token)
+	usedRecovery := false
+	if !usedScratch {
+		usedRecovery, err = auth.UseRecoveryCode(ctx, id, form.Token)
+		if err != nil {
 			ctx.ServerError("UserSignIn", err)
 			return
+		}
+	}
+	if usedScratch || usedRecovery {
+		if usedScratch {
+			// Invalidate the scratch token.
+			twofa.GenerateScratchToken()
+			if err = auth.UpdateTwoFactor(ctx, twofa); err != nil {
+				ctx.ServerError("UserSignIn", err)
+				return
+			}
 		}
 
 		remember := ctx.Session.Get("twofaRemember").(bool)
