@@ -790,6 +790,7 @@ func registerRoutes(m *web.Route) {
 			m.Get("", security.Security)
 			m.Group("/two_factor", func() {
 				m.Post("/regenerate_scratch", security.RegenerateScratchTwoFactor)
+				m.Post("/recovery_codes", security.RecoveryCodes)
 				m.Post("/disable", security.DisableTwoFactor)
 				m.Get("/enroll", security.EnrollTwoFactor)
 				m.Post("/enroll", web.Bind(forms.TwoFactorAuthForm{}), security.EnrollTwoFactorPost)
