@@ -20,7 +20,6 @@ import (
 
 const tplSettingsReauth base.TplName = "user/settings/security/reauth"
 
-
 // ReauthFor is how long a proof lasts before a change to the sign-in of the account asks for the password again.
 var ReauthFor = 10 * time.Minute
 
@@ -29,6 +28,15 @@ var (
 	reauthUserLimiter = ascratelimit.New(5, 15*time.Minute)
 	reauthIPLimiter   = ascratelimit.New(20, 15*time.Minute)
 )
+
+// AllowPasswordTry counts one check of the doer's password from a signed-in session (the confirm page, the password
+// change) and says whether it is within the limit of the account and of the address.
+func AllowPasswordTry(ctx *context.Context) bool {
+	return reauthUserLimiter.Allow(strconv.FormatInt(ctx.Doer.ID, 10)) && reauthIPLimiter.Allow(ascratelimit.ClientKey(ctx.RemoteAddr()))
+}
+
+// RecentlyAuthenticated is recentlyAuthenticated for the other settings pages.
+func RecentlyAuthenticated(ctx *context.Context) bool { return recentlyAuthenticated(ctx) }
 
 // recentlyAuthenticated says whether the doer proved it is them within ReauthFor: by signing in, or on the confirm
 // page. A person without a password proves it by signing in again.
@@ -80,7 +88,7 @@ func ReauthPost(ctx *context.Context) {
 		ctx.Data["ErrorMsg"] = msg
 		ctx.HTML(status, tplSettingsReauth)
 	}
-	if !reauthUserLimiter.Allow(strconv.FormatInt(ctx.Doer.ID, 10)) || !reauthIPLimiter.Allow(ascratelimit.ClientKey(ctx.RemoteAddr())) {
+	if !AllowPasswordTry(ctx) {
 		refuse(ctx.Locale.TrString("settings.reauth_too_many"), http.StatusTooManyRequests)
 		return
 	}

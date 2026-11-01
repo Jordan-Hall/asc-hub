@@ -7,6 +7,7 @@ package setting
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -22,6 +23,7 @@ import (
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/validation"
 	"forgejo.org/modules/web"
+	"forgejo.org/routers/web/user/setting/security"
 	auth_method "forgejo.org/services/auth/method"
 	"forgejo.org/services/auth/source/db"
 	"forgejo.org/services/auth/source/smtp"
@@ -66,7 +68,14 @@ func AccountPost(ctx *context.Context) {
 		return
 	}
 
-	if ctx.Doer.IsPasswordSet() && !ctx.Doer.ValidatePassword(ctx, form.OldPassword) {
+	if !ctx.Doer.IsPasswordSet() && !security.RecentlyAuthenticated(ctx) {
+		// the first password of an account that signs in through a provider: only right after a sign-in
+		ctx.Redirect(setting.AppSubURL + "/user/settings/security/reauth?redirect_to=" + url.QueryEscape(setting.AppSubURL+"/user/settings/account"))
+		return
+	}
+	if !security.AllowPasswordTry(ctx) {
+		ctx.Flash.Error(ctx.Tr("settings.reauth_too_many"))
+	} else if ctx.Doer.IsPasswordSet() && !ctx.Doer.ValidatePassword(ctx, form.OldPassword) {
 		ctx.Flash.Error(ctx.Tr("settings.password_incorrect"))
 	} else if form.Password != form.Retype {
 		ctx.Flash.Error(ctx.Tr("form.password_not_match"))
