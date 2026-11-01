@@ -19,40 +19,7 @@ import (
 // Authenticate queries if the provided login/password is authenticates against the SMTP server
 // Users will be autoregistered as required
 func (source *Source) Authenticate(ctx context.Context, user *user_model.User, userName, password string) (*user_model.User, error) {
-	// Verify allowed domains.
-	if len(source.AllowedDomains) > 0 {
-		_, after, ok := strings.Cut(userName, "@")
-		if !ok {
-			return nil, user_model.ErrUserNotExist{Name: userName}
-		} else if !util.SliceContainsString(strings.Split(source.AllowedDomains, ","), after, true) {
-			return nil, user_model.ErrUserNotExist{Name: userName}
-		}
-	}
-
-	var auth smtp.Auth
-	switch source.Auth {
-	case PlainAuthentication:
-		auth = smtp.PlainAuth("", userName, password, source.Host)
-	case LoginAuthentication:
-		auth = &loginAuthenticator{userName, password}
-	case CRAMMD5Authentication:
-		auth = smtp.CRAMMD5Auth(userName, password)
-	default:
-		return nil, errors.New("unsupported SMTP auth type")
-	}
-
-	if err := Authenticate(auth, source); err != nil {
-		// Check standard error format first,
-		// then fallback to worse case.
-		tperr, ok := err.(*textproto.Error)
-		if (ok && tperr.Code == 535) ||
-			strings.Contains(err.Error(), "Username and Password not accepted") {
-			return nil, user_model.ErrUserNotExist{Name: userName}
-		}
-		if (ok && tperr.Code == 534) ||
-			strings.Contains(err.Error(), "Application-specific password required") {
-			return nil, user_model.ErrUserNotExist{Name: userName}
-		}
+	if err := source.check(userName, password); err != nil {
 		return nil, err
 	}
 
@@ -89,4 +56,45 @@ func (source *Source) Authenticate(ctx context.Context, user *user_model.User, u
 // IsSkipLocalTwoFA returns if this source should skip local 2fa for password authentication
 func (source *Source) IsSkipLocalTwoFA() bool {
 	return source.SkipLocalTwoFA
+}
+
+// check asks the SMTP server whether the name and password are good, after the allowed domains.
+func (source *Source) check(userName, password string) error {
+	// Verify allowed domains.
+	if len(source.AllowedDomains) > 0 {
+		_, after, ok := strings.Cut(userName, "@")
+		if !ok {
+			return user_model.ErrUserNotExist{Name: userName}
+		} else if !util.SliceContainsString(strings.Split(source.AllowedDomains, ","), after, true) {
+			return user_model.ErrUserNotExist{Name: userName}
+		}
+	}
+
+	var auth smtp.Auth
+	switch source.Auth {
+	case PlainAuthentication:
+		auth = smtp.PlainAuth("", userName, password, source.Host)
+	case LoginAuthentication:
+		auth = &loginAuthenticator{userName, password}
+	case CRAMMD5Authentication:
+		auth = smtp.CRAMMD5Auth(userName, password)
+	default:
+		return errors.New("unsupported SMTP auth type")
+	}
+
+	if err := Authenticate(auth, source); err != nil {
+		// Check standard error format first,
+		// then fallback to worse case.
+		tperr, ok := err.(*textproto.Error)
+		if (ok && tperr.Code == 535) ||
+			strings.Contains(err.Error(), "Username and Password not accepted") {
+			return user_model.ErrUserNotExist{Name: userName}
+		}
+		if (ok && tperr.Code == 534) ||
+			strings.Contains(err.Error(), "Application-specific password required") {
+			return user_model.ErrUserNotExist{Name: userName}
+		}
+		return err
+	}
+	return nil
 }

@@ -1034,6 +1034,8 @@ func registerRoutes(m *web.Route) {
 			m.Combo("/{authid}").Get(admin.EditAuthSource).
 				Post(web.Bind(forms.AuthenticationForm{}), admin.EditAuthSourcePost)
 			m.Post("/{authid}/delete", admin.DeleteAuthSource)
+			m.Post("/{authid}/test", admin.TestAuthSourcePost)
+			m.Get("/{authid}/test-oauth", admin.TestOAuthSource)
 			m.Post("/local", admin.LocalPasswordsPost)
 		})
 
