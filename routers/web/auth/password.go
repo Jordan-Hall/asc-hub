@@ -262,6 +262,12 @@ func ResetPasswdPost(ctx *context.Context) {
 		return
 	}
 
+	// with Local passwords kept for the admins only, the new password does not sign the person in
+	if !u.IsAdmin && auth.LocalPasswordsAdminsOnly(ctx) {
+		ctx.Data["Title"] = ctx.Tr("auth.prohibit_login")
+		ctx.HTML(http.StatusOK, "user/auth/prohibit_login")
+		return
+	}
 	handleSignIn(ctx, u, remember)
 }
 
