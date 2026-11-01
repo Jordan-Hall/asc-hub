@@ -978,6 +978,7 @@ func registerRoutes(m *web.Route) {
 
 		m.Group("/users", func() {
 			m.Get("", admin.Users)
+			m.Post("/bulk", admin.UsersBulk)
 			m.Combo("/new").Get(admin.NewUser).Post(web.Bind(forms.AdminCreateUserForm{}), admin.NewUserPost)
 			m.Get("/{userid}", admin.ViewUser)
 			m.Combo("/{userid}/edit").Get(admin.EditUser).Post(web.Bind(forms.AdminEditUserForm{}), admin.EditUserPost)

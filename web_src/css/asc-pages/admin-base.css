@@ -988,3 +988,29 @@ a.adm-who-name:hover {
   border-radius: 8px;
   box-shadow: 0 6px 20px rgb(15 23 42 / .12);
 }
+
+/* People: the bar of the ticked rows (Require 2FA, Suspend) and the tick column */
+.adm-bulk {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+}
+
+.adm-bulk [data-bulk-count] {
+  margin-right: auto;
+}
+
+.adm-check-col {
+  width: 40px;
+}
+
+.adm-check-col input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--fill);
+}
