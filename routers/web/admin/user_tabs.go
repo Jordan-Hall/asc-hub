@@ -5,6 +5,7 @@ package admin
 
 import (
 	"net/url"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -20,6 +21,7 @@ import (
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
 	"forgejo.org/routers/web/shared/trustweb"
+	"forgejo.org/routers/web/user/setting/security"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 	user_service "forgejo.org/services/user"
@@ -87,6 +89,16 @@ func prepareUserTab(ctx *context.Context, u *user_model.User, tab string) bool {
 		ctx.Data["SSHKeys"] = ssh
 		ctx.Data["GPGKeys"] = gpg
 	case userTabSessions:
+		browsers, err := auth.ListBrowserSessions(ctx, u.ID)
+		if err != nil {
+			ctx.ServerError("ListBrowserSessions", err)
+			return false
+		}
+		current := ""
+		if u.ID == ctx.Doer.ID {
+			current = auth.HashSessionID(ctx.Session.ID())
+		}
+		ctx.Data["BrowserSessions"] = security.BrowserSessionRows(browsers, current)
 		ctx.Data["UserSessions"] = loadUserSessions(ctx, u)
 	case userTabActivity:
 		feeds, _, err := activities_model.GetFeeds(ctx, activities_model.GetFeedsOptions{
@@ -323,4 +335,61 @@ func UserRevokeSession(ctx *context.Context) {
 	log.Info("admin %s: revoked a credential of %s", ctx.Doer.Name, u.Name)
 	ctx.Flash.Success(ctx.Tr("asc_admin.person_session_revoked"))
 	ctx.Redirect(back)
+}
+
+// UserRevokeBrowserSession serves POST /admin/users/{userid}/sessions/browser/revoke with the field id: it signs the person out
+// of that browser.
+func UserRevokeBrowserSession(ctx *context.Context) {
+	u, err := user_model.GetUserByID(ctx, ctx.ParamsInt64(":userid"))
+	if err != nil {
+		ctx.NotFound("GetUserByID", err)
+		return
+	}
+	back := setting.AppSubURL + "/admin/users/" + url.PathEscape(ctx.Params(":userid")) + "?tab=" + userTabSessions
+	if u.ID == ctx.Doer.ID {
+		ctx.Flash.Error(ctx.Tr("asc_admin.person_not_yourself"))
+		ctx.Redirect(back)
+		return
+	}
+	found, err := auth.RevokeBrowserSession(ctx, u.ID, ctx.FormInt64("id"))
+	if err != nil {
+		ctx.ServerError("RevokeBrowserSession", err)
+		return
+	}
+	if !found {
+		ctx.Flash.Error(ctx.Tr("settings.browser_sessions_gone"))
+		ctx.Redirect(back)
+		return
+	}
+	asctrust.RecordHostAudit(ctx, asctrust.HostAudit{
+		Action: asctrust.AuditHostUserSessionsRevoked, Actor: ctx.Doer.Name, Target: u.Name, Request: ctx.Req,
+		Details: map[string]string{"sessions": "1"},
+	})
+	log.Info("admin %s: signed %s out of a browser", ctx.Doer.Name, u.Name)
+	ctx.Flash.Success(ctx.Tr("settings.browser_sessions_revoked"))
+	ctx.Redirect(back)
+}
+
+// UserRevokeAllBrowserSessions serves POST /admin/users/{userid}/sessions/browser/revoke_all with a reason: it signs the
+// person out of every browser, remember-me included.
+func UserRevokeAllBrowserSessions(ctx *context.Context) {
+	u, reason := adminUserAction(ctx)
+	if u == nil {
+		return
+	}
+	n, err := auth.RevokeOtherBrowserSessions(ctx, u.ID, "")
+	if err != nil {
+		ctx.ServerError("RevokeOtherBrowserSessions", err)
+		return
+	}
+	log.Info("admin %s: signed %s out of %d browsers: %s", ctx.Doer.Name, u.Name, n, reason)
+	if err := system_model.CreateNotice(ctx, system_model.NoticeTask, "Sign out everywhere of %s by %s: %s", u.Name, ctx.Doer.Name, reason); err != nil {
+		log.Error("admin user: the notice of the sign-out of %s could not be written: %v", u.Name, err)
+	}
+	asctrust.RecordHostAudit(ctx, asctrust.HostAudit{
+		Action: asctrust.AuditHostUserSessionsRevoked, Actor: ctx.Doer.Name, Target: u.Name, Request: ctx.Req,
+		Details: map[string]string{"sessions": strconv.Itoa(n), "reason": reason},
+	})
+	ctx.Flash.Success(ctx.TrN(n, "settings.browser_sessions_revoked_others_1", "settings.browser_sessions_revoked_others_n", n))
+	ctx.Redirect(setting.AppSubURL + "/admin/users/" + url.PathEscape(ctx.Params(":userid")) + "?tab=" + userTabSessions)
 }

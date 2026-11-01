@@ -12,8 +12,8 @@ import (
 	"forgejo.org/services/context"
 )
 
-// browserSessionRow is one signed-in browser as the security page shows it.
-type browserSessionRow struct {
+// BrowserSessionRow is one signed-in browser as the security page and the administration show it.
+type BrowserSessionRow struct {
 	ID         int64
 	Browser    string
 	System     string
@@ -30,21 +30,25 @@ func loadBrowserSessions(ctx *context.Context) {
 		ctx.ServerError("ListBrowserSessions", err)
 		return
 	}
-	current := auth_model.HashSessionID(ctx.Session.ID())
-	out := make([]browserSessionRow, 0, len(rows))
+	ctx.Data["BrowserSessions"] = BrowserSessionRows(rows, auth_model.HashSessionID(ctx.Session.ID()))
+}
+
+// BrowserSessionRows describes the browsers of rows, the one with session hash current first and marked.
+func BrowserSessionRows(rows []*auth_model.BrowserSession, current string) []BrowserSessionRow {
+	out := make([]BrowserSessionRow, 0, len(rows))
 	for _, r := range rows {
 		browser, system := describeUserAgent(r.UserAgent)
-		row := browserSessionRow{
+		row := BrowserSessionRow{
 			ID: r.ID, Browser: browser, System: system, IP: r.IP, Current: r.SIDHash == current,
 			Created: r.CreatedUnix, LastActive: r.LastActiveUnix,
 		}
 		if row.Current {
-			out = append([]browserSessionRow{row}, out...)
+			out = append([]BrowserSessionRow{row}, out...)
 		} else {
 			out = append(out, row)
 		}
 	}
-	ctx.Data["BrowserSessions"] = out
+	return out
 }
 
 // RevokeBrowserSession serves `POST /user/settings/security/sessions/revoke` with the field id: it signs that browser

@@ -20,12 +20,13 @@ const FeatureAuditAppend = "audit.append.v1"
 
 // The actions the hub appends to the audit log of asc. asc accepts only names that start with "host." and are in its catalogue.
 const (
-	AuditHostSettingUpdated     = "host.setting.updated"
-	AuditHostMaintenanceUpdated = "host.maintenance.updated"
-	AuditHostUserSuspended      = "host.user.suspended"
-	AuditHostUserUnsuspended    = "host.user.unsuspended"
-	AuditHostUser2FAReset       = "host.user.2fa_reset"
-	AuditHostModerationActed    = "host.moderation.acted"
+	AuditHostSettingUpdated      = "host.setting.updated"
+	AuditHostMaintenanceUpdated  = "host.maintenance.updated"
+	AuditHostUserSuspended       = "host.user.suspended"
+	AuditHostUserUnsuspended     = "host.user.unsuspended"
+	AuditHostUser2FAReset        = "host.user.2fa_reset"
+	AuditHostUserSessionsRevoked = "host.user.sessions_revoked"
+	AuditHostModerationActed     = "host.moderation.acted"
 )
 
 const auditAppendTimeout = 5 * time.Second
