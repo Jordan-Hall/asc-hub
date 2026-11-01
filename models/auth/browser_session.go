@@ -14,6 +14,10 @@ import (
 	"forgejo.org/modules/timeutil"
 )
 
+// ReauthSessionKey is the session value of when the person last proved it is them: at sign-in, or by typing the
+// password again before a change to how the account signs in.
+const ReauthSessionKey = "ascReauthUnix"
+
 // browserSessionTouchEvery is how long a session's last activity may lag behind: a request writes it at most this often.
 const browserSessionTouchEvery = 5 * time.Minute
 

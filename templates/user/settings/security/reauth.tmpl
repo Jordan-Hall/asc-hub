@@ -1,0 +1,22 @@
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings security wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.reauth_title") "Lead" (ctx.Locale.Tr "settings.reauth_lead"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-reauth" data-testid="reauth">
+		<div class="ds-card-h"><h2 id="sp-reauth">{{ctx.Locale.Tr "settings.reauth_heading"}}</h2></div>
+		<form class="ds-card-b ds-stack-16" method="post" action="{{AppSubUrl}}/user/settings/security/reauth">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="redirect_to" value="{{.RedirectTo}}">
+			<input type="text" name="username" autocomplete="username" value="{{.SignedUser.Name}}" hidden>
+			<div class="ds-field{{if .Err_Password}} ds-field-err{{end}}">
+				<label class="ds-label" for="reauth-password">{{ctx.Locale.Tr "password"}}</label>
+				<input class="ds-input" id="reauth-password" name="password" type="password" autocomplete="current-password" required autofocus>
+				<p class="ds-hint">{{ctx.Locale.Tr "settings.reauth_hint"}}</p>
+			</div>
+			<div class="ds-row ds-gap-8">
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "settings.reauth_confirm"}}</button>
+				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/user/settings/security">{{ctx.Locale.Tr "cancel"}}</a>
+			</div>
+		</form>
+	</section>
+</div>
+{{template "user/settings/layout_footer" .}}
