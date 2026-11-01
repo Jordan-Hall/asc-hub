@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	auth_model "forgejo.org/models/auth"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
@@ -73,6 +74,12 @@ func Authenticate(ctx context.Context, user *user_model.User, login, password st
 			UID:  user.ID,
 			Name: user.Name,
 		}
+	}
+
+	// the Local passwords row can be kept for the site admins only; every password checked here counts, whatever
+	// source the account came from
+	if !user.IsAdmin && auth_model.LocalPasswordsAdminsOnly(ctx) {
+		return nil, user_model.ErrUserProhibitLogin{UID: user.ID, Name: user.Name}
 	}
 
 	// attempting to login as a non-user account
