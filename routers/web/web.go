@@ -788,7 +788,7 @@ func registerRoutes(m *web.Route) {
 		})
 		m.Group("/security", func() {
 			m.Get("", security.Security)
-			m.Post("/sessions/revoke", security.RevokeBrowserSession)
+			m.Post("/sessions/revoke", security.RequireReauth(false), security.RevokeBrowserSession)
 			m.Post("/sessions/revoke_others", security.RequireReauth(false), security.RevokeOtherBrowserSessions)
 			m.Get("/reauth", security.Reauth)
 			m.Post("/reauth", security.ReauthPost)
@@ -807,11 +807,11 @@ func registerRoutes(m *web.Route) {
 				m.Post("/delete", security.RequireReauth(true), web.Bind(forms.WebauthnDeleteForm{}), security.WebauthnDelete)
 			})
 			m.Group("/openid", func() {
-				m.Post("", web.Bind(forms.AddOpenIDForm{}), security.OpenIDPost)
-				m.Post("/delete", security.DeleteOpenID)
+				m.Post("", security.RequireReauth(false), web.Bind(forms.AddOpenIDForm{}), security.OpenIDPost)
+				m.Post("/delete", security.RequireReauth(true), security.DeleteOpenID)
 				m.Post("/toggle_visibility", security.ToggleOpenIDVisibility)
 			}, openIDSignInEnabled)
-			m.Post("/account_link", linkAccountEnabled, security.DeleteAccountLink)
+			m.Post("/account_link", linkAccountEnabled, security.RequireReauth(true), security.DeleteAccountLink)
 		}, requiredTwoFactor)
 
 		m.Group("/applications", func() {
