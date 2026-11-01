@@ -18,6 +18,7 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/references"
 	"forgejo.org/modules/setting"
 
 	"github.com/stretchr/testify/assert"
@@ -377,4 +378,25 @@ func TestAscStackMergeWaitsForTheGitDirectoryBeforeNotifying(t *testing.T) {
 	_, err := MergeAscStack(t.Context(), doer, perm, top)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"refs/heads/master=" + landedTop}, seen)
+}
+
+func TestAscStackMergeClosesLinkedIssues(t *testing.T) {
+	_, top, _ := ascMergeFixture(t)
+	doer, perm := ascMergePerm(t, top, 2)
+	require.NoError(t, top.LoadIssue(t.Context()))
+
+	issue := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 1})
+	require.False(t, issue.IsClosed)
+	unittest.AssertSuccessfulInsert(t, &issues_model.Comment{
+		Type:       issues_model.CommentTypePullRef,
+		PosterID:   2,
+		IssueID:    issue.ID,
+		RefRepoID:  top.Issue.RepoID,
+		RefIssueID: top.Issue.ID,
+		RefAction:  references.XRefActionCloses,
+	})
+
+	_, err := MergeAscStack(t.Context(), doer, perm, top)
+	require.NoError(t, err)
+	assert.True(t, unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 1}).IsClosed, "landing closes the issue the pull request names")
 }
