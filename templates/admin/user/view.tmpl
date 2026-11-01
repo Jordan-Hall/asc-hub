@@ -112,6 +112,40 @@
 			</ul>
 		</section>
 	{{else if eq .Tab "sessions"}}
+		<section class="ds-card adm-sec" aria-labelledby="adm-browsers" data-testid="admin-user-browsers">
+			<div class="ds-card-h"><h2 id="adm-browsers">{{ctx.Locale.Tr "settings.browser_sessions"}}</h2><span class="ds-count">{{len .BrowserSessions}}</span></div>
+			<ul class="adm-rows">
+				{{range .BrowserSessions}}
+					<li class="ds-li" data-testid="admin-user-browser">
+						<span class="adm-tile" aria-hidden="true">{{if or (eq .System "iPhone") (eq .System "Android")}}{{svg "dsi-phone" 18}}{{else}}{{svg "dsi-monitor" 18}}{{end}}</span>
+						<div class="ds-li-main">
+							<div class="ds-li-title">{{if .Browser}}{{.Browser}}{{else}}{{ctx.Locale.Tr "settings.browser_sessions_unknown"}}{{end}}{{if .System}} · {{.System}}{{end}}{{if .Current}} <span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "settings.browser_sessions_current"}}</span>{{end}}</div>
+							<div class="ds-li-meta">
+								{{if .IP}}<span class="adm-mono">{{.IP}}</span>{{end}}
+								<span>{{ctx.Locale.Tr "settings.browser_sessions_last_active" (DateUtils.TimeSince .LastActive)}}</span>
+								<span>{{ctx.Locale.Tr "settings.browser_sessions_signed_in" (DateUtils.TimeSince .Created)}}</span>
+							</div>
+						</div>
+						{{if and (not .Current) (ne $.User.ID $.SignedUserID)}}
+						<form method="post" action="{{$.Link}}/sessions/browser/revoke">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="id" value="{{.ID}}">
+							<button class="ds-btn ds-btn-ghost ds-btn-sm" type="submit">{{ctx.Locale.Tr "settings.browser_sessions_revoke"}}</button>
+						</form>
+						{{end}}
+					</li>
+				{{else}}
+					<li class="wk-empty-li"><p class="ds-c-2 adm-pad">{{ctx.Locale.Tr "asc_admin.person_no_browsers"}}</p></li>
+				{{end}}
+			</ul>
+			{{if and .BrowserSessions (ne .User.ID .SignedUserID)}}
+			<form class="ds-card-b ds-form" method="post" action="{{$.Link}}/sessions/browser/revoke_all" data-testid="admin-user-browsers-revoke-all">
+				{{$.CsrfTokenHtml}}
+				<div class="ds-field"><label class="ds-label" for="adm-browsers-reason">{{ctx.Locale.Tr "asc_admin.person_reason"}}</label><input class="ds-input" id="adm-browsers-reason" name="reason" maxlength="500" required></div>
+				<p><button class="ds-btn ds-btn-danger ds-btn-sm" type="submit">{{ctx.Locale.Tr "asc_admin.person_browsers_revoke_all"}}</button></p>
+			</form>
+			{{end}}
+		</section>
 		{{with .UserSessions}}
 			{{if .Unsupported}}
 				<div class="ds-banner ds-banner-warn" role="status">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "asc_admin.person_sessions_unsupported"}}</p></div>

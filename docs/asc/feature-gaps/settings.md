@@ -168,10 +168,10 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminUsers | Row checkboxes, "2 selected" bar, Require 2FA and Suspend bulk actions with affected-people dialog | needs-hub-backend | list.tmpl, new POST /admin/users/bulk in web.go + users.go, audit entries | M |
 | AdminUsers | New person, Edit | done | templates/admin/user/new.tmpl, edit.tmpl | - |
 | AdminUser | Single page with account facts, emails, repos, orgs, delete | done | templates/admin/user/view.tmpl | - |
-| AdminUser | Tabs Overview/Emails/Keys/Sessions/Activity | ui-only-missing | view.tmpl is one scroll; keys, sessions and activity panels are missing | M |
+| AdminUser | Tabs Overview/Emails/Keys/Sessions/Activity | done | `routers/web/admin/user_tabs.go` (?tab= per tab), view.tmpl | - |
 | AdminUser | Reset 2FA and Suspend as separate buttons that ask for a reason written to the audit log (today checkboxes inside the edit form) | done | `routers/web/admin/user_tabs.go` UserReset2FA and UserSuspend: separate actions that ask for a reason, which is appended to asc's audit log (host.user.2fa_reset, host.user.suspended, host.user.unsuspended) (found built during the audit of 2026-10-31) | - |
 | AdminUser | Usage block (storage, agent minutes) and agents owned | needs-both | asc usage RPC (see UserSettingsUsage); view.tmpl | M |
-| AdminUser | Sessions tab (devices, revoke) | needs-both | same session registry as UserSettingsSecurity | L |
+| AdminUser | Sessions tab (devices, revoke) | done | browsers from `models/auth/browser_session.go` with Sign out per browser and Sign out everywhere (reason, notice, host.user.sessions_revoked in asc's audit log); asc credentials with Revoke; TestAdminSignsAPersonOutOfTheirBrowsers | - |
 | AdminOrgs | Organizations table | done | templates/admin/org/list.tmpl | - |
 | AdminOrgs | Storage column (garage-eu / Server default) and Open button | needs-both | asc Storage.ListTargets/AssignRepo for the owner; hub list.tmpl (shows a Teams column instead) | S |
 | AdminRepos | Repository table, unadopted list, delete | done | templates/admin/repo/list.tmpl, unadopted.tmpl | - |

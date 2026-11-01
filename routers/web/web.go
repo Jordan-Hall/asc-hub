@@ -985,6 +985,8 @@ func registerRoutes(m *web.Route) {
 			m.Post("/{userid}/reset_2fa", admin.UserReset2FA)
 			m.Post("/{userid}/{what:suspend|unsuspend}", admin.UserSuspend)
 			m.Post("/{userid}/sessions/revoke", admin.UserRevokeSession)
+			m.Post("/{userid}/sessions/browser/revoke", admin.UserRevokeBrowserSession)
+			m.Post("/{userid}/sessions/browser/revoke_all", admin.UserRevokeAllBrowserSessions)
 			m.Post("/{userid}/avatar", web.Bind(forms.AvatarForm{}), admin.AvatarPost)
 			m.Post("/{userid}/avatar/delete", admin.DeleteAvatar)
 		})
