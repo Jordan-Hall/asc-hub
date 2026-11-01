@@ -39,7 +39,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 4. Access tokens: no expiry, and the ASC scope model (None/Read/Write per area) does not exist; asc authn must enforce it.
 5. Org agents: switch, spend ceiling, merge defaults and agent identities are done. Open: agent members and path-scoped policy owners.
 6. Issue-to-stack links: chips, rail, auto-close on landing, quarantine chip, and stack cards on the Projects board.
-7. Signed-in devices and sessions: the asc side (tokens, SSH keys, agent tokens) is done. Open: the hub registry of browser sessions.
+7. Signed-in devices and sessions: the asc side (tokens, SSH keys, agent tokens) is done. Browser sessions are done too (security page, Signed-in browsers).
 8. Account data export: done except the emailed link.
 9. AI key limits and sharing: done except the activity tab and the key detail tabs.
 10. Admin dashboard and health: changesets/agent-run figures, backup attention, object-storage, mail, TLS, disk and signing-key checks.
@@ -89,8 +89,8 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsSecurity | Change password | done | templates/user/settings/account.tmpl (password lives on Account, not Security) | - |
 | UserSettingsSecurity | Password strength meter in words after 300 ms, show/hide buttons | done | account.tmpl + new JS | S |
 | UserSettingsSecurity | Two-factor enable/disable/re-enroll, passkeys (WebAuthn) add/delete | done | templates/user/settings/security/twofa.tmpl, webauthn.tmpl | - |
-| UserSettingsSecurity | Recovery codes: "8 of 10 unused", download as text file, shown once | needs-hub-backend | models/auth/twofactor.go (one scratch token only), security/twofa.tmpl | M |
-| UserSettingsSecurity | Signed-in devices list (browser, place, last active), Sign out one / everywhere else | needs-hub-backend | asc-side credentials (tokens, SSH keys, agent tokens) with revoke and end-all are done on /user/settings/asc/sessions (Sessions service). Open: browser sessions (hub per-user session registry: browser, place, last active) | L |
+| UserSettingsSecurity | Recovery codes: "8 of 10 unused", download as text file, shown once | done | models/auth/twofactor_recovery.go (salted hashes, each spent once), POST /user/settings/security/two_factor/recovery_codes, recovery_codes.tmpl; tests/integration/asc_recovery_codes_test.go | M |
+| UserSettingsSecurity | Signed-in devices list (browser, place, last active), Sign out one / everywhere else | done | browser sessions: models/auth/browser_session.go (hashed session IDs, checked on each request by the session auth method; signing out also ends the remember-me token), security/sessions.tmpl; asc credentials on /user/settings/asc/sessions; tests/integration/asc_browser_sessions_test.go | L |
 | UserSettingsSecurity | Re-authentication prompt before password change or removing 2FA | needs-hub-backend | routers/web/user/setting/security + sudo-mode middleware | M |
 | UserSettingsTokens | Token list (name, scopes, created, last used) with revoke and regenerate | done | templates/user/settings/applications.tmpl, routers/web/user/setting/access_token.go | - |
 | UserSettingsTokens | Expiry per token (30 days etc.), Expires column, Expired chip | done | models/auth/access_token.go has no expiry; migration + access_token_edit.tmpl + check in services/auth; Audit 2026-10-30 (built): models/auth/access_token.go ExpiresUnix, GetAccessTokenBySHA refuses an expired token, access_token_edit.tmpl lifetime select, applications.tmpl Expires and Expired chip, migration v17z_asc_token_expiry | M |

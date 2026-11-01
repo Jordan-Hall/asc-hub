@@ -788,6 +788,8 @@ func registerRoutes(m *web.Route) {
 		})
 		m.Group("/security", func() {
 			m.Get("", security.Security)
+			m.Post("/sessions/revoke", security.RevokeBrowserSession)
+			m.Post("/sessions/revoke_others", security.RevokeOtherBrowserSessions)
 			m.Group("/two_factor", func() {
 				m.Post("/regenerate_scratch", security.RegenerateScratchTwoFactor)
 				m.Post("/recovery_codes", security.RecoveryCodes)

@@ -1,0 +1,37 @@
+<section class="ds-card" aria-labelledby="sp-sessions" id="sp-sessions" data-testid="browser-sessions">
+	<div class="ds-card-h">
+		<h2 id="sp-sessions">{{ctx.Locale.Tr "settings.browser_sessions"}}</h2>
+		<span class="ds-card-sub">{{ctx.Locale.Tr "settings.browser_sessions_desc"}}</span>
+		{{if gt (len .BrowserSessions) 1}}
+		<form class="ds-ml-auto" method="post" action="{{AppSubUrl}}/user/settings/security/sessions/revoke_others" data-testid="browser-sessions-revoke-others">
+			{{.CsrfTokenHtml}}
+			<button class="ds-btn ds-btn-danger ds-btn-sm" type="submit">{{ctx.Locale.Tr "settings.browser_sessions_revoke_others"}}</button>
+		</form>
+		{{end}}
+	</div>
+	<ul class="ds-list wk-rows">
+		{{range .BrowserSessions}}
+		<li class="ds-li wk-row" data-testid="browser-session"{{if .Current}} data-current{{end}}>
+			<span class="ds-li-av" aria-hidden="true">{{if or (eq .System "iPhone") (eq .System "Android")}}{{svg "dsi-phone" 20}}{{else}}{{svg "dsi-monitor" 20}}{{end}}</span>
+			<div class="ds-li-main">
+				<div class="ds-li-title">
+					<span>{{if .Browser}}{{.Browser}}{{else}}{{ctx.Locale.Tr "settings.browser_sessions_unknown"}}{{end}}{{if .System}} · {{.System}}{{end}}</span>
+					{{if .Current}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "settings.browser_sessions_current"}}</span>{{end}}
+				</div>
+				<div class="ds-li-meta">
+					{{if .IP}}<span class="ds-mono">{{.IP}}</span>{{end}}
+					<span>{{if .Current}}{{ctx.Locale.Tr "settings.browser_sessions_active_now"}}{{else}}{{ctx.Locale.Tr "settings.browser_sessions_last_active" (DateUtils.TimeSince .LastActive)}}{{end}}</span>
+					<span>{{ctx.Locale.Tr "settings.browser_sessions_signed_in" (DateUtils.TimeSince .Created)}}</span>
+				</div>
+			</div>
+			{{if not .Current}}
+			<form class="wk-row-acts" method="post" action="{{AppSubUrl}}/user/settings/security/sessions/revoke">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="id" value="{{.ID}}">
+				<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{ctx.Locale.Tr "settings.browser_sessions_revoke"}}</button>
+			</form>
+			{{end}}
+		</li>
+		{{end}}
+	</ul>
+</section>
