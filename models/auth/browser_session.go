@@ -66,6 +66,16 @@ func TouchBrowserSession(ctx context.Context, uid int64, sid, rememberKey, userA
 	}
 	hash := HashSessionID(sid)
 	now := timeutil.TimeStampNow()
+	// the remember-me key comes from a cookie: it is kept only when it names a token of this person
+	if rememberKey != "" {
+		owned, err := db.GetEngine(ctx).Where("uid = ? AND lookup_key = ?", uid, rememberKey).Exist(new(AuthorizationToken))
+		if err != nil {
+			return false, err
+		}
+		if !owned {
+			rememberKey = ""
+		}
+	}
 	row := &BrowserSession{SIDHash: hash}
 	has, err := db.GetEngine(ctx).Get(row)
 	if err != nil {
@@ -150,6 +160,17 @@ func RevokeOtherBrowserSessions(ctx context.Context, uid int64, keepSID string) 
 			if err := revokeBrowserSession(ctx, row); err != nil {
 				return err
 			}
+		}
+		// every remember-me token but the one of this browser: a browser not in the list cannot sign itself back in
+		del := db.GetEngine(ctx).Where("uid = ?", uid)
+		var keepRow BrowserSession
+		if has, err := db.GetEngine(ctx).Where("sid_hash = ? AND uid = ?", keep, uid).Get(&keepRow); err != nil {
+			return err
+		} else if has && keepRow.RememberKey != "" {
+			del = del.And("lookup_key <> ?", keepRow.RememberKey)
+		}
+		if _, err := del.In("purpose", LongTermAuthorization, LongTermAuthorizationSSO).Delete(new(AuthorizationToken)); err != nil {
+			return err
 		}
 		n = len(rows)
 		return nil

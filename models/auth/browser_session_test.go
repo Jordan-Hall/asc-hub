@@ -40,6 +40,11 @@ func TestBrowserSessionsAreListedAndSignedOutFromElsewhere(t *testing.T) {
 	phone := unittest.AssertExistsAndLoadBean(t, &auth_model.BrowserSession{SIDHash: auth_model.HashSessionID("sid-phone")})
 	assert.Equal(t, lookup, phone.RememberKey)
 
+	// a key that is not a token of this person is not taken from the cookie
+	_, err = auth_model.TouchBrowserSession(ctx, 2, "sid-phone", "made-up", "", "")
+	require.NoError(t, err)
+	assert.Equal(t, lookup, unittest.AssertExistsAndLoadBean(t, &auth_model.BrowserSession{ID: phone.ID}).RememberKey)
+
 	// another person cannot sign it out
 	found, err := auth_model.RevokeBrowserSession(ctx, 1, phone.ID)
 	require.NoError(t, err)
@@ -60,9 +65,12 @@ func TestBrowserSessionsAreListedAndSignedOutFromElsewhere(t *testing.T) {
 	// sign out everywhere else keeps this browser
 	_, err = auth_model.TouchBrowserSession(ctx, 2, "sid-desk", "", "", "")
 	require.NoError(t, err)
+	stray, _, err := auth_model.GenerateAuthToken(ctx, 2, optional.None[int64](), timeutil.TimeStampNow().Add(3600), auth_model.LongTermAuthorization)
+	require.NoError(t, err)
 	n, err := auth_model.RevokeOtherBrowserSessions(ctx, 2, "sid-desk")
 	require.NoError(t, err)
 	assert.Equal(t, 1, n)
+	unittest.AssertNotExistsBean(t, &auth_model.AuthorizationToken{LookupKey: stray})
 	revoked, err = auth_model.TouchBrowserSession(ctx, 2, "sid-desk", "", "", "")
 	require.NoError(t, err)
 	assert.False(t, revoked)
