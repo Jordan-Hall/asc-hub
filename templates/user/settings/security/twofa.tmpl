@@ -13,13 +13,13 @@
 		</li>
 		<li class="ds-li wk-row">
 			<div class="ds-li-main">
-				<div class="ds-li-title"><span>{{ctx.Locale.Tr "asc_work.sp_recovery"}}</span></div>
-				<div class="ds-li-sub">{{ctx.Locale.Tr "settings.regenerate_scratch_token_desc"}}</div>
+				<div class="ds-li-title"><span>{{ctx.Locale.Tr "asc_work.sp_recovery"}}</span>{{if .RecoveryTotal}}<span class="ds-chip {{if lt .RecoveryUnused 3}}ds-chip-warn{{else}}ds-chip-ok{{end}}" data-testid="recovery-count">{{ctx.Locale.Tr "settings.recovery_codes_unused" .RecoveryUnused .RecoveryTotal}}</span>{{end}}</div>
+				<div class="ds-li-sub">{{ctx.Locale.Tr "settings.recovery_codes_desc"}}</div>
 			</div>
 			<div class="wk-row-acts">
-				<form action="{{AppSubUrl}}/user/settings/security/two_factor/regenerate_scratch" method="post" enctype="multipart/form-data">
+				<form action="{{AppSubUrl}}/user/settings/security/two_factor/recovery_codes" method="post">
 					{{.CsrfTokenHtml}}
-					<button class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "settings.twofa_scratch_token_regenerate"}}</button>
+					<button class="ds-btn ds-btn-secondary ds-btn-sm">{{if .RecoveryTotal}}{{ctx.Locale.Tr "settings.recovery_codes_regenerate"}}{{else}}{{ctx.Locale.Tr "settings.recovery_codes_make"}}{{end}}</button>
 				</form>
 			</div>
 		</li>

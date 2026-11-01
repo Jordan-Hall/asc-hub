@@ -380,23 +380,21 @@ func TestAscStackMergeWaitsForTheGitDirectoryBeforeNotifying(t *testing.T) {
 	assert.Equal(t, []string{"refs/heads/master=" + landedTop}, seen)
 }
 
-func TestAscStackMergeClosesLinkedIssues(t *testing.T) {
+// Landing a stack through asc runs the closing of the issues its pull requests name with a closing word, as a merge does.
+func TestAscStackMergeClosesTheIssuesTheLandedPullRequestsClose(t *testing.T) {
 	_, top, _ := ascMergeFixture(t)
-	doer, perm := ascMergePerm(t, top, 2)
-	require.NoError(t, top.LoadIssue(t.Context()))
-
 	issue := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 1})
 	require.False(t, issue.IsClosed)
-	unittest.AssertSuccessfulInsert(t, &issues_model.Comment{
-		Type:       issues_model.CommentTypePullRef,
-		PosterID:   2,
-		IssueID:    issue.ID,
-		RefRepoID:  top.Issue.RepoID,
-		RefIssueID: top.Issue.ID,
-		RefAction:  references.XRefActionCloses,
-	})
+	other := unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 4})
+	require.NoError(t, top.LoadIssue(t.Context()))
+	refer(t, issue, top.Issue, references.XRefActionCloses) // "fixes #1"
+	refer(t, other, top.Issue, references.XRefActionNone)   // "see #4"
+	wasClosed := other.IsClosed
 
+	doer, perm := ascMergePerm(t, top, 2)
 	_, err := MergeAscStack(t.Context(), doer, perm, top)
 	require.NoError(t, err)
-	assert.True(t, unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 1}).IsClosed, "landing closes the issue the pull request names")
+
+	assert.True(t, unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 1}).IsClosed, "the issue the landed pull request fixes is closed")
+	assert.Equal(t, wasClosed, unittest.AssertExistsAndLoadBean(t, &issues_model.Issue{ID: 4}).IsClosed, "a mention only is left alone")
 }

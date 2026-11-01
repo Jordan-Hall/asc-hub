@@ -1,0 +1,18 @@
+{{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings security wk-settings")}}
+{{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.recovery_codes") "Lead" (ctx.Locale.Tr "settings.recovery_codes_lead"))}}
+<div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-codes" data-testid="recovery-codes">
+		<div class="ds-card-h"><h2 id="sp-codes">{{ctx.Locale.Tr "settings.recovery_codes_new"}}</h2></div>
+		<div class="ds-card-b ds-stack-16">
+			<div class="ds-banner ds-banner-warn" role="alert">{{ctx.Locale.Tr "settings.recovery_codes_once"}}</div>
+			<ol class="wk-codes">
+				{{range .RecoveryCodes}}<li><code>{{.}}</code></li>{{end}}
+			</ol>
+			<div class="ds-row ds-gap-8">
+				<a class="ds-btn ds-btn-secondary" download="recovery-codes.txt" href="data:text/plain;charset=utf-8,{{urlquery .RecoveryText}}" data-testid="recovery-download">{{ctx.Locale.Tr "settings.recovery_codes_download"}}</a>
+				<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/user/settings/security">{{ctx.Locale.Tr "settings.recovery_codes_done"}}</a>
+			</div>
+		</div>
+	</section>
+</div>
+{{template "user/settings/layout_footer" .}}

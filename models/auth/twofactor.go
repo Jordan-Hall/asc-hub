@@ -149,5 +149,6 @@ func DeleteTwoFactorByID(ctx context.Context, id, userID int64) error {
 	} else if cnt != 1 {
 		return ErrTwoFactorNotEnrolled{userID}
 	}
-	return nil
+	// without the authenticator the recovery codes have nothing to recover
+	return DeleteRecoveryCodes(ctx, userID)
 }
