@@ -1414,6 +1414,8 @@ func handleOAuth2SignIn(ctx *context.Context, source *auth.Source, u *user_model
 			[]string{"oauth_signin_silent"},
 			map[string]any{
 				"uid": u.ID,
+				// a sign-in through the provider is a proof that it is them
+				auth.ReauthSessionKey: int64(timeutil.TimeStampNow()),
 			}); err != nil {
 			ctx.ServerError("updateSession", err)
 			return
