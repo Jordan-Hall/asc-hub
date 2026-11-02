@@ -20,6 +20,7 @@ type PreExecutionWarning int64
 const (
 	WarningCodePermissions              PreExecutionWarning = iota + 1 // obsolete: Forgejo ignored every `permissions:`
 	WarningCodePermissionsIgnoredScopes                                // some scopes of `permissions:` are not enforced by Forgejo
+	WarningCodeAscNotAffected                                          // asc skipped a job whose `affected:` projects did not change
 )
 
 func TranslatePreExecutionWarning(lang translation.Locale, run *ActionRun) []template.HTML {
@@ -30,6 +31,8 @@ func TranslatePreExecutionWarning(lang translation.Locale, run *ActionRun) []tem
 			warnings[i] = lang.Tr("actions.workflow.permissions_warning", run.PreExecutionWarningDetails[i]...)
 		case WarningCodePermissionsIgnoredScopes:
 			warnings[i] = lang.Tr("actions.workflow.permissions_ignored_scopes_warning", run.PreExecutionWarningDetails[i]...)
+		case WarningCodeAscNotAffected:
+			warnings[i] = lang.Tr("actions.workflow.asc_not_affected_warning", run.PreExecutionWarningDetails[i]...)
 		default:
 			warnings[i] = template.HTML(html.EscapeString(fmt.Sprintf("unsupported warning: code=%v details=%#v", code, run.PreExecutionWarningDetails[i])))
 		}

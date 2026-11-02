@@ -432,17 +432,22 @@ func handleWorkflows(
 				Name: dwf.EntryName,
 			}}
 		} else {
-			jobs, err = actions_module.JobParser(dwf.Content,
-				jobparser.WithVars(vars),
-				// We don't have any job outputs yet, but `WithJobOutputs(...)` triggers JobParser to supporting its
-				// `IncompleteMatrix` tagging for any jobs that require the inputs of other jobs.
-				jobparser.WithJobOutputs(map[string]map[string]string{}),
-				jobparser.SupportIncompleteRunsOn(),
-				jobparser.ExpandLocalReusableWorkflows(expandLocalReusableWorkflows(workflowSourceCommit)),
-				jobparser.ExpandInstanceReusableWorkflows(expandInstanceReusableWorkflows(ctx)),
-				jobparser.WithGitContext(generateGiteaContextForRun(run)),
-			)
+			content, selectors, splitErr := splitAffected(dwf.Content)
+			err = splitErr
 			if err == nil {
+				jobs, err = actions_module.JobParser(content,
+					jobparser.WithVars(vars),
+					// We don't have any job outputs yet, but `WithJobOutputs(...)` triggers JobParser to supporting its
+					// `IncompleteMatrix` tagging for any jobs that require the inputs of other jobs.
+					jobparser.WithJobOutputs(map[string]map[string]string{}),
+					jobparser.SupportIncompleteRunsOn(),
+					jobparser.ExpandLocalReusableWorkflows(expandLocalReusableWorkflows(workflowSourceCommit)),
+					jobparser.ExpandInstanceReusableWorkflows(expandInstanceReusableWorkflows(ctx)),
+					jobparser.WithGitContext(generateGiteaContextForRun(run)),
+				)
+			}
+			if err == nil {
+				skipUnaffected(ctx, run, selectors, jobs)
 				// A `permissions:` that cannot be understood fails the run, rather than the job getting more or less than
 				// the workflow's author meant.
 				err = validateJobsTokenPermissions(jobs)

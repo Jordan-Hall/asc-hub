@@ -895,6 +895,12 @@ func calculateWarnings(run *actions_model.ActionRun, swfs []*jobparser.SingleWor
 				warningDetails = append(warningDetails, []any{id, strings.Join(ignored, ", ")})
 			}
 		}
+		if j != nil {
+			if sels, ok := notAffectedSelectors(j); ok {
+				warnings = append(warnings, actions_model.WarningCodeAscNotAffected)
+				warningDetails = append(warningDetails, []any{id, sels})
+			}
+		}
 	}
 	run.PreExecutionWarningCodes = warnings
 	run.PreExecutionWarningDetails = warningDetails
