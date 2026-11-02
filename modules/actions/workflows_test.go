@@ -405,3 +405,41 @@ jobs:
 	assert.Equal(t, "build.yaml", workflows[0].Name())
 	assert.Equal(t, "test.yml", workflows[1].Name())
 }
+
+func TestActionsWorkflowsGenericDirectoryWins(t *testing.T) {
+	t.Cleanup(test.MockVariableValue(&setting.Git.HomePath, t.TempDir()))
+	require.NoError(t, git.InitSimple(t.Context()))
+
+	committer := git.Signature{Email: "jane@example.com", Name: "Jane", When: time.Now()}
+	workflow := []byte("on:\n  push:\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n")
+	repoHome := t.TempDir()
+	for _, dir := range []string{".actions/workflows", ".forgejo/workflows"} {
+		require.NoError(t, os.MkdirAll(filepath.Join(repoHome, dir), os.ModePerm))
+		require.NoError(t, os.WriteFile(filepath.Join(repoHome, dir, "ci.yml"), workflow, 0o644))
+	}
+	require.NoError(t, git.InitRepository(t.Context(), repoHome, false, git.Sha1ObjectFormat.Name()))
+	require.NoError(t, git.AddChanges(repoHome, true))
+	require.NoError(t, git.CommitChanges(repoHome, git.CommitChangesOptions{Message: "Import", Committer: &committer}))
+
+	gitRepo, err := git.OpenRepository(t.Context(), repoHome)
+	require.NoError(t, err)
+	defer gitRepo.Close()
+	headBranch, err := gitRepo.GetHEADBranch()
+	require.NoError(t, err)
+	lastCommitID, err := gitRepo.GetBranchCommitID(headBranch.Name)
+	require.NoError(t, err)
+	lastCommit, err := gitRepo.GetCommit(lastCommitID)
+	require.NoError(t, err)
+
+	source, workflows, err := ListWorkflows(lastCommit)
+	require.NoError(t, err)
+	assert.Equal(t, ".actions/workflows", source)
+	require.Len(t, workflows, 1)
+	assert.Equal(t, "ci.yml", workflows[0].Name())
+
+	assert.True(t, IsWorkflow(".actions/workflows/ci.yml"))
+	assert.True(t, IsWorkflow(".github/workflows/x/ci.yaml"))
+	assert.False(t, IsWorkflow(".actions/workflowsX/ci.yml"))
+	assert.False(t, IsWorkflow("actions/workflows/ci.yml"))
+	assert.False(t, IsWorkflow(".actions/workflows/ci.txt"))
+}
