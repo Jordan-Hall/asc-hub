@@ -481,6 +481,115 @@ func (x *CheckPathAccessResponse) GetTeams() []string {
 	return nil
 }
 
+// The caller's own access, so a client can keep read-only and restricted paths read-only on disk.
+// Only directories where a rule matches the caller are listed, with the level the rules give there
+// (not capped at `repo_level`); for any path the deepest listed ancestor decides, else `repo_level`,
+// and the result is capped at `repo_level`. Other subjects' rules and the directories they name are
+// never sent. Advertised as Version.features "pathaccess.v1".
+type GetMyPathAccessRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          string                 `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"` // owner/name
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyPathAccessRequest) Reset() {
+	*x = GetMyPathAccessRequest{}
+	mi := &file_asc_v1_pathrules_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyPathAccessRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyPathAccessRequest) ProtoMessage() {}
+
+func (x *GetMyPathAccessRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_pathrules_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyPathAccessRequest.ProtoReflect.Descriptor instead.
+func (*GetMyPathAccessRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetMyPathAccessRequest) GetRepo() string {
+	if x != nil {
+		return x.Repo
+	}
+	return ""
+}
+
+type GetMyPathAccessResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RepoLevel     string                 `protobuf:"bytes,1,opt,name=repo_level,json=repoLevel,proto3" json:"repo_level,omitempty"` // read, write or admin
+	Dirs          []*PathAccess          `protobuf:"bytes,2,rep,name=dirs,proto3" json:"dirs,omitempty"`                            // path = decided_by = the rule directory; sorted by path
+	Revision      uint64                 `protobuf:"varint,3,opt,name=revision,proto3" json:"revision,omitempty"`                   // of the rule set; 0 = never set
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyPathAccessResponse) Reset() {
+	*x = GetMyPathAccessResponse{}
+	mi := &file_asc_v1_pathrules_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyPathAccessResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyPathAccessResponse) ProtoMessage() {}
+
+func (x *GetMyPathAccessResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_pathrules_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyPathAccessResponse.ProtoReflect.Descriptor instead.
+func (*GetMyPathAccessResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetMyPathAccessResponse) GetRepoLevel() string {
+	if x != nil {
+		return x.RepoLevel
+	}
+	return ""
+}
+
+func (x *GetMyPathAccessResponse) GetDirs() []*PathAccess {
+	if x != nil {
+		return x.Dirs
+	}
+	return nil
+}
+
+func (x *GetMyPathAccessResponse) GetRevision() uint64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
 type ListTeamsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Org           string                 `protobuf:"bytes,1,opt,name=org,proto3" json:"org,omitempty"`
@@ -490,7 +599,7 @@ type ListTeamsRequest struct {
 
 func (x *ListTeamsRequest) Reset() {
 	*x = ListTeamsRequest{}
-	mi := &file_asc_v1_pathrules_proto_msgTypes[8]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -502,7 +611,7 @@ func (x *ListTeamsRequest) String() string {
 func (*ListTeamsRequest) ProtoMessage() {}
 
 func (x *ListTeamsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_pathrules_proto_msgTypes[8]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -515,7 +624,7 @@ func (x *ListTeamsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTeamsRequest.ProtoReflect.Descriptor instead.
 func (*ListTeamsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{8}
+	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListTeamsRequest) GetOrg() string {
@@ -535,7 +644,7 @@ type Team struct {
 
 func (x *Team) Reset() {
 	*x = Team{}
-	mi := &file_asc_v1_pathrules_proto_msgTypes[9]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -547,7 +656,7 @@ func (x *Team) String() string {
 func (*Team) ProtoMessage() {}
 
 func (x *Team) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_pathrules_proto_msgTypes[9]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -560,7 +669,7 @@ func (x *Team) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Team.ProtoReflect.Descriptor instead.
 func (*Team) Descriptor() ([]byte, []int) {
-	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{9}
+	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Team) GetName() string {
@@ -586,7 +695,7 @@ type ListTeamsResponse struct {
 
 func (x *ListTeamsResponse) Reset() {
 	*x = ListTeamsResponse{}
-	mi := &file_asc_v1_pathrules_proto_msgTypes[10]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -598,7 +707,7 @@ func (x *ListTeamsResponse) String() string {
 func (*ListTeamsResponse) ProtoMessage() {}
 
 func (x *ListTeamsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_pathrules_proto_msgTypes[10]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -611,7 +720,7 @@ func (x *ListTeamsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTeamsResponse.ProtoReflect.Descriptor instead.
 func (*ListTeamsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{10}
+	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListTeamsResponse) GetTeams() []*Team {
@@ -633,7 +742,7 @@ type SetTeamMembersRequest struct {
 
 func (x *SetTeamMembersRequest) Reset() {
 	*x = SetTeamMembersRequest{}
-	mi := &file_asc_v1_pathrules_proto_msgTypes[11]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -645,7 +754,7 @@ func (x *SetTeamMembersRequest) String() string {
 func (*SetTeamMembersRequest) ProtoMessage() {}
 
 func (x *SetTeamMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_pathrules_proto_msgTypes[11]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -658,7 +767,7 @@ func (x *SetTeamMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetTeamMembersRequest.ProtoReflect.Descriptor instead.
 func (*SetTeamMembersRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{11}
+	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SetTeamMembersRequest) GetOrg() string {
@@ -690,7 +799,7 @@ type SetTeamMembersResponse struct {
 
 func (x *SetTeamMembersResponse) Reset() {
 	*x = SetTeamMembersResponse{}
-	mi := &file_asc_v1_pathrules_proto_msgTypes[12]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -702,7 +811,7 @@ func (x *SetTeamMembersResponse) String() string {
 func (*SetTeamMembersResponse) ProtoMessage() {}
 
 func (x *SetTeamMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_pathrules_proto_msgTypes[12]
+	mi := &file_asc_v1_pathrules_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -715,7 +824,7 @@ func (x *SetTeamMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetTeamMembersResponse.ProtoReflect.Descriptor instead.
 func (*SetTeamMembersResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{12}
+	return file_asc_v1_pathrules_proto_rawDescGZIP(), []int{14}
 }
 
 var File_asc_v1_pathrules_proto protoreflect.FileDescriptor
@@ -755,7 +864,14 @@ const file_asc_v1_pathrules_proto_rawDesc = "" +
 	"decided_by\x18\x03 \x01(\tR\tdecidedBy\"[\n" +
 	"\x17CheckPathAccessResponse\x12*\n" +
 	"\x06access\x18\x01 \x03(\v2\x12.asc.v1.PathAccessR\x06access\x12\x14\n" +
-	"\x05teams\x18\x02 \x03(\tR\x05teams\"$\n" +
+	"\x05teams\x18\x02 \x03(\tR\x05teams\",\n" +
+	"\x16GetMyPathAccessRequest\x12\x12\n" +
+	"\x04repo\x18\x01 \x01(\tR\x04repo\"|\n" +
+	"\x17GetMyPathAccessResponse\x12\x1d\n" +
+	"\n" +
+	"repo_level\x18\x01 \x01(\tR\trepoLevel\x12&\n" +
+	"\x04dirs\x18\x02 \x03(\v2\x12.asc.v1.PathAccessR\x04dirs\x12\x1a\n" +
+	"\brevision\x18\x03 \x01(\x04R\brevision\"$\n" +
 	"\x10ListTeamsRequest\x12\x10\n" +
 	"\x03org\x18\x01 \x01(\tR\x03org\"4\n" +
 	"\x04Team\x12\x12\n" +
@@ -767,11 +883,12 @@ const file_asc_v1_pathrules_proto_rawDesc = "" +
 	"\x03org\x18\x01 \x01(\tR\x03org\x12\x12\n" +
 	"\x04team\x18\x02 \x01(\tR\x04team\x12\x18\n" +
 	"\amembers\x18\x03 \x03(\tR\amembers\"\x18\n" +
-	"\x16SetTeamMembersResponse2\x8b\x03\n" +
+	"\x16SetTeamMembersResponse2\xdf\x03\n" +
 	"\tPathRules\x12L\n" +
 	"\rListPathRules\x12\x1c.asc.v1.ListPathRulesRequest\x1a\x1d.asc.v1.ListPathRulesResponse\x12I\n" +
 	"\fSetPathRules\x12\x1b.asc.v1.SetPathRulesRequest\x1a\x1c.asc.v1.SetPathRulesResponse\x12R\n" +
-	"\x0fCheckPathAccess\x12\x1e.asc.v1.CheckPathAccessRequest\x1a\x1f.asc.v1.CheckPathAccessResponse\x12@\n" +
+	"\x0fCheckPathAccess\x12\x1e.asc.v1.CheckPathAccessRequest\x1a\x1f.asc.v1.CheckPathAccessResponse\x12R\n" +
+	"\x0fGetMyPathAccess\x12\x1e.asc.v1.GetMyPathAccessRequest\x1a\x1f.asc.v1.GetMyPathAccessResponse\x12@\n" +
 	"\tListTeams\x12\x18.asc.v1.ListTeamsRequest\x1a\x19.asc.v1.ListTeamsResponse\x12O\n" +
 	"\x0eSetTeamMembers\x12\x1d.asc.v1.SetTeamMembersRequest\x1a\x1e.asc.v1.SetTeamMembersResponseBy\n" +
 	"\n" +
@@ -789,7 +906,7 @@ func file_asc_v1_pathrules_proto_rawDescGZIP() []byte {
 	return file_asc_v1_pathrules_proto_rawDescData
 }
 
-var file_asc_v1_pathrules_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_asc_v1_pathrules_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_asc_v1_pathrules_proto_goTypes = []any{
 	(*PathRule)(nil),                // 0: asc.v1.PathRule
 	(*ListPathRulesRequest)(nil),    // 1: asc.v1.ListPathRulesRequest
@@ -799,32 +916,37 @@ var file_asc_v1_pathrules_proto_goTypes = []any{
 	(*CheckPathAccessRequest)(nil),  // 5: asc.v1.CheckPathAccessRequest
 	(*PathAccess)(nil),              // 6: asc.v1.PathAccess
 	(*CheckPathAccessResponse)(nil), // 7: asc.v1.CheckPathAccessResponse
-	(*ListTeamsRequest)(nil),        // 8: asc.v1.ListTeamsRequest
-	(*Team)(nil),                    // 9: asc.v1.Team
-	(*ListTeamsResponse)(nil),       // 10: asc.v1.ListTeamsResponse
-	(*SetTeamMembersRequest)(nil),   // 11: asc.v1.SetTeamMembersRequest
-	(*SetTeamMembersResponse)(nil),  // 12: asc.v1.SetTeamMembersResponse
+	(*GetMyPathAccessRequest)(nil),  // 8: asc.v1.GetMyPathAccessRequest
+	(*GetMyPathAccessResponse)(nil), // 9: asc.v1.GetMyPathAccessResponse
+	(*ListTeamsRequest)(nil),        // 10: asc.v1.ListTeamsRequest
+	(*Team)(nil),                    // 11: asc.v1.Team
+	(*ListTeamsResponse)(nil),       // 12: asc.v1.ListTeamsResponse
+	(*SetTeamMembersRequest)(nil),   // 13: asc.v1.SetTeamMembersRequest
+	(*SetTeamMembersResponse)(nil),  // 14: asc.v1.SetTeamMembersResponse
 }
 var file_asc_v1_pathrules_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.ListPathRulesResponse.rules:type_name -> asc.v1.PathRule
 	0,  // 1: asc.v1.SetPathRulesRequest.rules:type_name -> asc.v1.PathRule
 	6,  // 2: asc.v1.CheckPathAccessResponse.access:type_name -> asc.v1.PathAccess
-	9,  // 3: asc.v1.ListTeamsResponse.teams:type_name -> asc.v1.Team
-	1,  // 4: asc.v1.PathRules.ListPathRules:input_type -> asc.v1.ListPathRulesRequest
-	3,  // 5: asc.v1.PathRules.SetPathRules:input_type -> asc.v1.SetPathRulesRequest
-	5,  // 6: asc.v1.PathRules.CheckPathAccess:input_type -> asc.v1.CheckPathAccessRequest
-	8,  // 7: asc.v1.PathRules.ListTeams:input_type -> asc.v1.ListTeamsRequest
-	11, // 8: asc.v1.PathRules.SetTeamMembers:input_type -> asc.v1.SetTeamMembersRequest
-	2,  // 9: asc.v1.PathRules.ListPathRules:output_type -> asc.v1.ListPathRulesResponse
-	4,  // 10: asc.v1.PathRules.SetPathRules:output_type -> asc.v1.SetPathRulesResponse
-	7,  // 11: asc.v1.PathRules.CheckPathAccess:output_type -> asc.v1.CheckPathAccessResponse
-	10, // 12: asc.v1.PathRules.ListTeams:output_type -> asc.v1.ListTeamsResponse
-	12, // 13: asc.v1.PathRules.SetTeamMembers:output_type -> asc.v1.SetTeamMembersResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	6,  // 3: asc.v1.GetMyPathAccessResponse.dirs:type_name -> asc.v1.PathAccess
+	11, // 4: asc.v1.ListTeamsResponse.teams:type_name -> asc.v1.Team
+	1,  // 5: asc.v1.PathRules.ListPathRules:input_type -> asc.v1.ListPathRulesRequest
+	3,  // 6: asc.v1.PathRules.SetPathRules:input_type -> asc.v1.SetPathRulesRequest
+	5,  // 7: asc.v1.PathRules.CheckPathAccess:input_type -> asc.v1.CheckPathAccessRequest
+	8,  // 8: asc.v1.PathRules.GetMyPathAccess:input_type -> asc.v1.GetMyPathAccessRequest
+	10, // 9: asc.v1.PathRules.ListTeams:input_type -> asc.v1.ListTeamsRequest
+	13, // 10: asc.v1.PathRules.SetTeamMembers:input_type -> asc.v1.SetTeamMembersRequest
+	2,  // 11: asc.v1.PathRules.ListPathRules:output_type -> asc.v1.ListPathRulesResponse
+	4,  // 12: asc.v1.PathRules.SetPathRules:output_type -> asc.v1.SetPathRulesResponse
+	7,  // 13: asc.v1.PathRules.CheckPathAccess:output_type -> asc.v1.CheckPathAccessResponse
+	9,  // 14: asc.v1.PathRules.GetMyPathAccess:output_type -> asc.v1.GetMyPathAccessResponse
+	12, // 15: asc.v1.PathRules.ListTeams:output_type -> asc.v1.ListTeamsResponse
+	14, // 16: asc.v1.PathRules.SetTeamMembers:output_type -> asc.v1.SetTeamMembersResponse
+	11, // [11:17] is the sub-list for method output_type
+	5,  // [5:11] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_pathrules_proto_init() }
@@ -838,7 +960,7 @@ func file_asc_v1_pathrules_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_pathrules_proto_rawDesc), len(file_asc_v1_pathrules_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

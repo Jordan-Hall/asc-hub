@@ -22,6 +22,7 @@ const (
 	PathRules_ListPathRules_FullMethodName   = "/asc.v1.PathRules/ListPathRules"
 	PathRules_SetPathRules_FullMethodName    = "/asc.v1.PathRules/SetPathRules"
 	PathRules_CheckPathAccess_FullMethodName = "/asc.v1.PathRules/CheckPathAccess"
+	PathRules_GetMyPathAccess_FullMethodName = "/asc.v1.PathRules/GetMyPathAccess"
 	PathRules_ListTeams_FullMethodName       = "/asc.v1.PathRules/ListTeams"
 	PathRules_SetTeamMembers_FullMethodName  = "/asc.v1.PathRules/SetTeamMembers"
 )
@@ -49,6 +50,7 @@ type PathRulesClient interface {
 	ListPathRules(ctx context.Context, in *ListPathRulesRequest, opts ...grpc.CallOption) (*ListPathRulesResponse, error)
 	SetPathRules(ctx context.Context, in *SetPathRulesRequest, opts ...grpc.CallOption) (*SetPathRulesResponse, error)
 	CheckPathAccess(ctx context.Context, in *CheckPathAccessRequest, opts ...grpc.CallOption) (*CheckPathAccessResponse, error)
+	GetMyPathAccess(ctx context.Context, in *GetMyPathAccessRequest, opts ...grpc.CallOption) (*GetMyPathAccessResponse, error)
 	ListTeams(ctx context.Context, in *ListTeamsRequest, opts ...grpc.CallOption) (*ListTeamsResponse, error)
 	SetTeamMembers(ctx context.Context, in *SetTeamMembersRequest, opts ...grpc.CallOption) (*SetTeamMembersResponse, error)
 }
@@ -85,6 +87,16 @@ func (c *pathRulesClient) CheckPathAccess(ctx context.Context, in *CheckPathAcce
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CheckPathAccessResponse)
 	err := c.cc.Invoke(ctx, PathRules_CheckPathAccess_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pathRulesClient) GetMyPathAccess(ctx context.Context, in *GetMyPathAccessRequest, opts ...grpc.CallOption) (*GetMyPathAccessResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMyPathAccessResponse)
+	err := c.cc.Invoke(ctx, PathRules_GetMyPathAccess_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +146,7 @@ type PathRulesServer interface {
 	ListPathRules(context.Context, *ListPathRulesRequest) (*ListPathRulesResponse, error)
 	SetPathRules(context.Context, *SetPathRulesRequest) (*SetPathRulesResponse, error)
 	CheckPathAccess(context.Context, *CheckPathAccessRequest) (*CheckPathAccessResponse, error)
+	GetMyPathAccess(context.Context, *GetMyPathAccessRequest) (*GetMyPathAccessResponse, error)
 	ListTeams(context.Context, *ListTeamsRequest) (*ListTeamsResponse, error)
 	SetTeamMembers(context.Context, *SetTeamMembersRequest) (*SetTeamMembersResponse, error)
 }
@@ -153,6 +166,9 @@ func (UnimplementedPathRulesServer) SetPathRules(context.Context, *SetPathRulesR
 }
 func (UnimplementedPathRulesServer) CheckPathAccess(context.Context, *CheckPathAccessRequest) (*CheckPathAccessResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckPathAccess not implemented")
+}
+func (UnimplementedPathRulesServer) GetMyPathAccess(context.Context, *GetMyPathAccessRequest) (*GetMyPathAccessResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMyPathAccess not implemented")
 }
 func (UnimplementedPathRulesServer) ListTeams(context.Context, *ListTeamsRequest) (*ListTeamsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListTeams not implemented")
@@ -234,6 +250,24 @@ func _PathRules_CheckPathAccess_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PathRules_GetMyPathAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyPathAccessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PathRulesServer).GetMyPathAccess(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PathRules_GetMyPathAccess_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PathRulesServer).GetMyPathAccess(ctx, req.(*GetMyPathAccessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PathRules_ListTeams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListTeamsRequest)
 	if err := dec(in); err != nil {
@@ -288,6 +322,10 @@ var PathRules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckPathAccess",
 			Handler:    _PathRules_CheckPathAccess_Handler,
+		},
+		{
+			MethodName: "GetMyPathAccess",
+			Handler:    _PathRules_GetMyPathAccess_Handler,
 		},
 		{
 			MethodName: "ListTeams",
