@@ -128,6 +128,11 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 			m.Post("", context.RepoMustNotBeArchived(), repo_setting.AscWorkflowSecretSet)
 			m.Post("/delete", context.RepoMustNotBeArchived(), repo_setting.AscWorkflowSecretDelete)
 		})
+		m.Group("/path-rules", func() {
+			m.Get("", repo_setting.AscPathRules)
+			m.Post("", context.RepoMustNotBeArchived(), repo_setting.AscPathRulesSave)
+			m.Post("/preview", repo_setting.AscPathRulesPreview)
+		})
 		m.Group("/audit", func() {
 			m.Get("", repo.AscAudit)
 			m.Get("/export", repo.AscAuditExport)

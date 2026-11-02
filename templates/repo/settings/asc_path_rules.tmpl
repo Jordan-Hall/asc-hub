@@ -1,0 +1,88 @@
+{{/*
+The path rules of a repository (routers/web/repo/setting/asc_pathrules.go).
+Template Attributes:
+* AscPathRules: the page data (Rules, Revision, Updated, UpdatedBy, Levels, SaveOp, Problem, Unsupported, PageURL,
+  Principal, RepoLevel, Paths, Preview)
+Every row is one directory, one subject and one level. A row with no subject is dropped when the rules are saved.
+*/}}
+{{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings rv-trust-page")}}
+<div class="repo-setting-content">
+{{with .AscPathRules}}
+<div class="rv rv-trust-inline" data-testid="asc-path-rules-page">
+	<header class="rv-head rv-head-inline">
+		<div class="rv-head-main">
+			<div class="rv-eyebrow">{{ctx.Locale.Tr "asc_review.pr_eyebrow"}}</div>
+			<h1 class="rv-title">{{ctx.Locale.Tr "asc_review.pr_title"}}</h1>
+			<p class="rv-lead">{{ctx.Locale.Tr "asc_review.pr_lead"}}</p>
+		</div>
+	</header>
+	{{if .Unsupported}}
+		<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-path-rules-unsupported"><div>{{ctx.Locale.Tr "asc_review.pr_unsupported"}}</div></div>
+	{{else}}
+		{{if .Problem}}<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-path-rules-problem"><div>{{.Problem}}</div></div>{{end}}
+		{{if .Rules}}
+		<section class="rv-card rv-gap" aria-labelledby="pr-rules">
+			<div class="rv-card-h"><h2 id="pr-rules">{{ctx.Locale.Tr "asc_review.pr_rules"}}</h2>
+				<span class="rv-faint rv-end" data-testid="asc-path-rules-revision">{{if .Revision}}{{ctx.Locale.Tr "asc_review.pr_revision" .Revision}}{{if .UpdatedBy}} &middot; {{ctx.Locale.Tr "asc_review.pr_updated_by" .UpdatedBy}}{{end}}{{if .Updated}} &middot; {{.Updated}}{{end}}{{else}}{{ctx.Locale.Tr "asc_review.pr_never"}}{{end}}</span>
+			</div>
+			<form class="rv-card-b rv-form" method="post" action="{{.PageURL}}" autocomplete="off" data-testid="asc-path-rules-form">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="op" value="{{.SaveOp}}">
+				<input type="hidden" name="revision" value="{{.Revision}}">
+				<p class="rv-hint">{{ctx.Locale.Tr "asc_review.pr_rows_help"}}</p>
+				<div class="rv-tablewrap rv-flat" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_review.pr_rules"}}">
+					<table class="rv-tbl rv-tbl-stack" data-testid="asc-path-rules-rows">
+						<thead><tr>
+							<th scope="col">{{ctx.Locale.Tr "asc_review.pr_dir"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "asc_review.pr_subject"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "asc_review.pr_level"}}</th>
+						</tr></thead>
+						<tbody>
+						{{range $i, $r := .Rules}}
+						<tr>
+							<td><input class="rv-input rv-mono" name="dir" value="{{$r.Dir}}" maxlength="1024" spellcheck="false" autocapitalize="none" placeholder="/" aria-label="{{ctx.Locale.Tr "asc_review.pr_dir_row" (Eval $i "+" 1)}}"></td>
+							<td><input class="rv-input rv-mono" name="subject" value="{{$r.Subject}}" maxlength="128" spellcheck="false" autocapitalize="none" placeholder="team:backend" aria-label="{{ctx.Locale.Tr "asc_review.pr_subject_row" (Eval $i "+" 1)}}"></td>
+							<td><select class="rv-select" name="level" aria-label="{{ctx.Locale.Tr "asc_review.pr_level_row" (Eval $i "+" 1)}}">
+								{{range $.AscPathRules.Levels}}<option value="{{.}}"{{if eq . $r.Level}} selected{{end}}>{{ctx.Locale.Tr (print "asc_review.pr_level_" .)}}</option>{{end}}
+							</select></td>
+						</tr>
+						{{end}}
+						</tbody>
+					</table>
+				</div>
+				<p class="rv-hint">{{ctx.Locale.Tr "asc_review.pr_levels_help"}}</p>
+				<button class="rv-btn rv-btn-primary" type="submit">{{ctx.Locale.Tr "asc_review.pr_save"}}</button>
+			</form>
+		</section>
+
+		<section class="rv-card rv-gap" aria-labelledby="pr-preview">
+			<div class="rv-card-h"><h2 id="pr-preview">{{ctx.Locale.Tr "asc_review.pr_preview"}}</h2></div>
+			<form class="rv-card-b rv-form" method="post" action="{{.PageURL}}/preview" autocomplete="off" data-testid="asc-path-rules-preview-form">
+				{{$.CsrfTokenHtml}}
+				<div class="rv-field"><label class="rv-label" for="pr-principal">{{ctx.Locale.Tr "asc_review.pr_principal"}}</label><input class="rv-input rv-mono" id="pr-principal" name="principal" value="{{.Principal}}" required maxlength="140" pattern="(user|agent|ci|deploy):[A-Za-z0-9._@+\-:/]{1,128}" spellcheck="false" autocapitalize="none" placeholder="user:alice"><small class="rv-hint">{{ctx.Locale.Tr "asc_review.pr_principal_help"}}</small></div>
+				<div class="rv-field"><label class="rv-label" for="pr-repo-level">{{ctx.Locale.Tr "asc_review.pr_repo_level"}}</label><select class="rv-select" id="pr-repo-level" name="repo_level">
+					{{range (StringUtils.Split "none read write admin" " ")}}<option value="{{.}}"{{if eq . $.AscPathRules.RepoLevel}} selected{{end}}>{{ctx.Locale.Tr (print "asc_review.pr_level_" .)}}</option>{{end}}
+				</select></div>
+				<div class="rv-field"><label class="rv-label" for="pr-paths">{{ctx.Locale.Tr "asc_review.pr_paths"}}</label><textarea class="rv-input rv-mono" id="pr-paths" name="paths" required rows="4" spellcheck="false" autocapitalize="none">{{.Paths}}</textarea><small class="rv-hint">{{ctx.Locale.Tr "asc_review.pr_paths_help"}}</small></div>
+				<button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_review.pr_preview_run"}}</button>
+			</form>
+			{{with .Preview}}
+			<div class="rv-card-b" data-testid="asc-path-rules-preview">
+				{{if .Teams}}<p class="rv-muted">{{ctx.Locale.Tr "asc_review.pr_teams" (StringUtils.Join .Teams ", ")}}</p>{{end}}
+				<div class="rv-tablewrap rv-flat" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_review.pr_preview"}}">
+					<table class="rv-tbl">
+						<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_review.pr_path"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.pr_level"}}</th><th scope="col">{{ctx.Locale.Tr "asc_review.pr_decided_by"}}</th></tr></thead>
+						<tbody>
+						{{range .Access}}<tr><td><code>{{.Path}}</code></td><td>{{ctx.Locale.Tr (print "asc_review.pr_level_" .Level)}}</td><td>{{if .DecidedBy}}<code>{{.DecidedBy}}</code>{{else}}{{ctx.Locale.Tr "asc_review.pr_root"}}{{end}}</td></tr>{{end}}
+						</tbody>
+					</table>
+				</div>
+			</div>
+			{{end}}
+		</section>
+		{{end}}
+	{{end}}
+</div>
+{{end}}
+</div>
+{{template "repo/settings/layout_footer" .}}
