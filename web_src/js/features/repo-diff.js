@@ -12,6 +12,7 @@ import {submitEventSubmitter, queryElemSiblings, hideElem, showElem} from '../ut
 import {POST, GET} from '../modules/fetch.js';
 import {clearMultiLineSelection, refreshMultiLineCommentHighlights} from './repo-issue.js';
 import {setDiffLoading, showDiffError} from './asc-review.js';
+import {watchDiffAutoLoad} from './asc-diff-autoload.js';
 
 const {pageData, i18n} = window.config;
 
@@ -226,33 +227,28 @@ function initRepoDiffShowMore() {
     loadMoreFiles(linkLoadMore);
   });
 
-  $(document).on('click', 'a.diff-load-button', async (e) => {
+  $(document).on('click', 'a.diff-load-button', (e) => {
     e.preventDefault();
-    const $target = $(e.target);
-
-    if (e.target.classList.contains('disabled')) {
-      return;
-    }
-
-    e.target.classList.add('disabled');
-
-    const url = $target.data('href');
-
-    try {
-      const response = await GET(url);
-      const resp = await response.text();
-
-      if (!resp) {
-        return;
-      }
-      $target.parent().replaceWith($(resp).find('#diff-file-boxes .diff-file-body .file-body').children());
-      onShowMoreFiles();
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      e.target.classList.remove('disabled');
-    }
+    loadFileDiff(e.target);
   });
+  watchDiffAutoLoad(document.querySelector('#diff-file-boxes'), {onMore: loadMoreFiles, onFile: loadFileDiff});
+}
+
+// Loads one large file's diff in place of its "Load diff" button.
+async function loadFileDiff(button) {
+  if (button.classList.contains('disabled') || !button.isConnected) return;
+  button.classList.add('disabled');
+  try {
+    const response = await GET(button.getAttribute('data-href'));
+    const resp = await response.text();
+    if (!resp) return;
+    $(button).parent().replaceWith($(resp).find('#diff-file-boxes .diff-file-body .file-body').children());
+    onShowMoreFiles();
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    button.classList.remove('disabled');
+  }
 }
 
 export function initRepoDiffView() {
