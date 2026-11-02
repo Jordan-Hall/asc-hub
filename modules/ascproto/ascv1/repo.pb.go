@@ -1616,7 +1616,8 @@ type UpdateRefsRequest struct {
 	PushOptions    []string               `protobuf:"bytes,4,rep,name=push_options,json=pushOptions,proto3" json:"push_options,omitempty"`
 	Hooks          HookMode               `protobuf:"varint,5,opt,name=hooks,proto3,enum=asc.v1.HookMode" json:"hooks,omitempty"`
 	TtlSeconds     int64                  `protobuf:"varint,6,opt,name=ttl_seconds,json=ttlSeconds,proto3" json:"ttl_seconds,omitempty"`
-	NoContentMerge bool                   `protobuf:"varint,7,opt,name=no_content_merge,json=noContentMerge,proto3" json:"no_content_merge,omitempty"`
+	NoContentMerge bool                   `protobuf:"varint,7,opt,name=no_content_merge,json=noContentMerge,proto3" json:"no_content_merge,omitempty"` // no_content_merge: LAND only (§20.5)
+	Linked         []*LinkedUpdate        `protobuf:"bytes,8,rep,name=linked,proto3" json:"linked,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1700,6 +1701,117 @@ func (x *UpdateRefsRequest) GetNoContentMerge() bool {
 	return false
 }
 
+func (x *UpdateRefsRequest) GetLinked() []*LinkedUpdate {
+	if x != nil {
+		return x.Linked
+	}
+	return nil
+}
+
+type LinkedUpdate struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Updates       []*RefUpdate           `protobuf:"bytes,2,rep,name=updates,proto3" json:"updates,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkedUpdate) Reset() {
+	*x = LinkedUpdate{}
+	mi := &file_asc_v1_repo_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkedUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkedUpdate) ProtoMessage() {}
+
+func (x *LinkedUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkedUpdate.ProtoReflect.Descriptor instead.
+func (*LinkedUpdate) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *LinkedUpdate) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *LinkedUpdate) GetUpdates() []*RefUpdate {
+	if x != nil {
+		return x.Updates
+	}
+	return nil
+}
+
+type LinkedResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          string                 `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Results       []*RefResult           `protobuf:"bytes,2,rep,name=results,proto3" json:"results,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkedResult) Reset() {
+	*x = LinkedResult{}
+	mi := &file_asc_v1_repo_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkedResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkedResult) ProtoMessage() {}
+
+func (x *LinkedResult) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_repo_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkedResult.ProtoReflect.Descriptor instead.
+func (*LinkedResult) Descriptor() ([]byte, []int) {
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *LinkedResult) GetRepo() string {
+	if x != nil {
+		return x.Repo
+	}
+	return ""
+}
+
+func (x *LinkedResult) GetResults() []*RefResult {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
 type Rewrite struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Old           []byte                 `protobuf:"bytes,1,opt,name=old,proto3" json:"old,omitempty"`
@@ -1710,7 +1822,7 @@ type Rewrite struct {
 
 func (x *Rewrite) Reset() {
 	*x = Rewrite{}
-	mi := &file_asc_v1_repo_proto_msgTypes[18]
+	mi := &file_asc_v1_repo_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1722,7 +1834,7 @@ func (x *Rewrite) String() string {
 func (*Rewrite) ProtoMessage() {}
 
 func (x *Rewrite) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[18]
+	mi := &file_asc_v1_repo_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1735,7 +1847,7 @@ func (x *Rewrite) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Rewrite.ProtoReflect.Descriptor instead.
 func (*Rewrite) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{18}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *Rewrite) GetOld() []byte {
@@ -1764,7 +1876,7 @@ type RefResult struct {
 
 func (x *RefResult) Reset() {
 	*x = RefResult{}
-	mi := &file_asc_v1_repo_proto_msgTypes[19]
+	mi := &file_asc_v1_repo_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1776,7 +1888,7 @@ func (x *RefResult) String() string {
 func (*RefResult) ProtoMessage() {}
 
 func (x *RefResult) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[19]
+	mi := &file_asc_v1_repo_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1789,7 +1901,7 @@ func (x *RefResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefResult.ProtoReflect.Descriptor instead.
 func (*RefResult) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{19}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *RefResult) GetName() string {
@@ -1825,13 +1937,14 @@ type UpdateRefsResponse struct {
 	Results       []*RefResult           `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 	Rewritten     []*Rewrite             `protobuf:"bytes,2,rep,name=rewritten,proto3" json:"rewritten,omitempty"`
 	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Linked        []*LinkedResult        `protobuf:"bytes,4,rep,name=linked,proto3" json:"linked,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateRefsResponse) Reset() {
 	*x = UpdateRefsResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[20]
+	mi := &file_asc_v1_repo_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1843,7 +1956,7 @@ func (x *UpdateRefsResponse) String() string {
 func (*UpdateRefsResponse) ProtoMessage() {}
 
 func (x *UpdateRefsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[20]
+	mi := &file_asc_v1_repo_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1856,7 +1969,7 @@ func (x *UpdateRefsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRefsResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRefsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{20}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateRefsResponse) GetResults() []*RefResult {
@@ -1880,6 +1993,13 @@ func (x *UpdateRefsResponse) GetMessage() string {
 	return ""
 }
 
+func (x *UpdateRefsResponse) GetLinked() []*LinkedResult {
+	if x != nil {
+		return x.Linked
+	}
+	return nil
+}
+
 type ResolveRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
@@ -1890,7 +2010,7 @@ type ResolveRequest struct {
 
 func (x *ResolveRequest) Reset() {
 	*x = ResolveRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[21]
+	mi := &file_asc_v1_repo_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1902,7 +2022,7 @@ func (x *ResolveRequest) String() string {
 func (*ResolveRequest) ProtoMessage() {}
 
 func (x *ResolveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[21]
+	mi := &file_asc_v1_repo_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1915,7 +2035,7 @@ func (x *ResolveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveRequest.ProtoReflect.Descriptor instead.
 func (*ResolveRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{21}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ResolveRequest) GetRepo() *RepoRef {
@@ -1941,7 +2061,7 @@ type ResolveResponse struct {
 
 func (x *ResolveResponse) Reset() {
 	*x = ResolveResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[22]
+	mi := &file_asc_v1_repo_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1953,7 +2073,7 @@ func (x *ResolveResponse) String() string {
 func (*ResolveResponse) ProtoMessage() {}
 
 func (x *ResolveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[22]
+	mi := &file_asc_v1_repo_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1966,7 +2086,7 @@ func (x *ResolveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveResponse.ProtoReflect.Descriptor instead.
 func (*ResolveResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{22}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ResolveResponse) GetIds() [][]byte {
@@ -1987,7 +2107,7 @@ type GitMapRequest struct {
 
 func (x *GitMapRequest) Reset() {
 	*x = GitMapRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[23]
+	mi := &file_asc_v1_repo_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1999,7 +2119,7 @@ func (x *GitMapRequest) String() string {
 func (*GitMapRequest) ProtoMessage() {}
 
 func (x *GitMapRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[23]
+	mi := &file_asc_v1_repo_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2012,7 +2132,7 @@ func (x *GitMapRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GitMapRequest.ProtoReflect.Descriptor instead.
 func (*GitMapRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{23}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GitMapRequest) GetRepo() *RepoRef {
@@ -2046,7 +2166,7 @@ type GitMapResponse struct {
 
 func (x *GitMapResponse) Reset() {
 	*x = GitMapResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[24]
+	mi := &file_asc_v1_repo_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2058,7 +2178,7 @@ func (x *GitMapResponse) String() string {
 func (*GitMapResponse) ProtoMessage() {}
 
 func (x *GitMapResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[24]
+	mi := &file_asc_v1_repo_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2071,7 +2191,7 @@ func (x *GitMapResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GitMapResponse.ProtoReflect.Descriptor instead.
 func (*GitMapResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{24}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GitMapResponse) GetAscToGit() [][]byte {
@@ -2115,7 +2235,7 @@ type LogRequest struct {
 
 func (x *LogRequest) Reset() {
 	*x = LogRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[25]
+	mi := &file_asc_v1_repo_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2127,7 +2247,7 @@ func (x *LogRequest) String() string {
 func (*LogRequest) ProtoMessage() {}
 
 func (x *LogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[25]
+	mi := &file_asc_v1_repo_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2140,7 +2260,7 @@ func (x *LogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogRequest.ProtoReflect.Descriptor instead.
 func (*LogRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{25}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *LogRequest) GetRepo() *RepoRef {
@@ -2296,7 +2416,7 @@ type LogEntry struct {
 
 func (x *LogEntry) Reset() {
 	*x = LogEntry{}
-	mi := &file_asc_v1_repo_proto_msgTypes[26]
+	mi := &file_asc_v1_repo_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2308,7 +2428,7 @@ func (x *LogEntry) String() string {
 func (*LogEntry) ProtoMessage() {}
 
 func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[26]
+	mi := &file_asc_v1_repo_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2321,7 +2441,7 @@ func (x *LogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
 func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{26}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *LogEntry) GetId() []byte {
@@ -2421,7 +2541,7 @@ type LogResponse struct {
 
 func (x *LogResponse) Reset() {
 	*x = LogResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[27]
+	mi := &file_asc_v1_repo_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2433,7 +2553,7 @@ func (x *LogResponse) String() string {
 func (*LogResponse) ProtoMessage() {}
 
 func (x *LogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[27]
+	mi := &file_asc_v1_repo_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2446,7 +2566,7 @@ func (x *LogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogResponse.ProtoReflect.Descriptor instead.
 func (*LogResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{27}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *LogResponse) GetEntries() []*LogEntry {
@@ -2496,7 +2616,7 @@ type MergeBaseRequest struct {
 
 func (x *MergeBaseRequest) Reset() {
 	*x = MergeBaseRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[28]
+	mi := &file_asc_v1_repo_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2508,7 +2628,7 @@ func (x *MergeBaseRequest) String() string {
 func (*MergeBaseRequest) ProtoMessage() {}
 
 func (x *MergeBaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[28]
+	mi := &file_asc_v1_repo_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2521,7 +2641,7 @@ func (x *MergeBaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MergeBaseRequest.ProtoReflect.Descriptor instead.
 func (*MergeBaseRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{28}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *MergeBaseRequest) GetRepo() *RepoRef {
@@ -2561,7 +2681,7 @@ type MergeBaseResponse struct {
 
 func (x *MergeBaseResponse) Reset() {
 	*x = MergeBaseResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[29]
+	mi := &file_asc_v1_repo_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2573,7 +2693,7 @@ func (x *MergeBaseResponse) String() string {
 func (*MergeBaseResponse) ProtoMessage() {}
 
 func (x *MergeBaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[29]
+	mi := &file_asc_v1_repo_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2586,7 +2706,7 @@ func (x *MergeBaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MergeBaseResponse.ProtoReflect.Descriptor instead.
 func (*MergeBaseResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{29}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *MergeBaseResponse) GetBases() [][]byte {
@@ -2607,7 +2727,7 @@ type IsAncestorRequest struct {
 
 func (x *IsAncestorRequest) Reset() {
 	*x = IsAncestorRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[30]
+	mi := &file_asc_v1_repo_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2619,7 +2739,7 @@ func (x *IsAncestorRequest) String() string {
 func (*IsAncestorRequest) ProtoMessage() {}
 
 func (x *IsAncestorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[30]
+	mi := &file_asc_v1_repo_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2632,7 +2752,7 @@ func (x *IsAncestorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsAncestorRequest.ProtoReflect.Descriptor instead.
 func (*IsAncestorRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{30}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *IsAncestorRequest) GetRepo() *RepoRef {
@@ -2665,7 +2785,7 @@ type IsAncestorResponse struct {
 
 func (x *IsAncestorResponse) Reset() {
 	*x = IsAncestorResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[31]
+	mi := &file_asc_v1_repo_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2677,7 +2797,7 @@ func (x *IsAncestorResponse) String() string {
 func (*IsAncestorResponse) ProtoMessage() {}
 
 func (x *IsAncestorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[31]
+	mi := &file_asc_v1_repo_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2690,7 +2810,7 @@ func (x *IsAncestorResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsAncestorResponse.ProtoReflect.Descriptor instead.
 func (*IsAncestorResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{31}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *IsAncestorResponse) GetResult() bool {
@@ -2719,7 +2839,7 @@ type DiffRequest struct {
 
 func (x *DiffRequest) Reset() {
 	*x = DiffRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[32]
+	mi := &file_asc_v1_repo_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2731,7 +2851,7 @@ func (x *DiffRequest) String() string {
 func (*DiffRequest) ProtoMessage() {}
 
 func (x *DiffRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[32]
+	mi := &file_asc_v1_repo_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2744,7 +2864,7 @@ func (x *DiffRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiffRequest.ProtoReflect.Descriptor instead.
 func (*DiffRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{32}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *DiffRequest) GetRepo() *RepoRef {
@@ -2844,7 +2964,7 @@ type PathChange struct {
 
 func (x *PathChange) Reset() {
 	*x = PathChange{}
-	mi := &file_asc_v1_repo_proto_msgTypes[33]
+	mi := &file_asc_v1_repo_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2856,7 +2976,7 @@ func (x *PathChange) String() string {
 func (*PathChange) ProtoMessage() {}
 
 func (x *PathChange) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[33]
+	mi := &file_asc_v1_repo_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2869,7 +2989,7 @@ func (x *PathChange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PathChange.ProtoReflect.Descriptor instead.
 func (*PathChange) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{33}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *PathChange) GetPath() []byte {
@@ -2967,7 +3087,7 @@ type DiffResponse struct {
 
 func (x *DiffResponse) Reset() {
 	*x = DiffResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[34]
+	mi := &file_asc_v1_repo_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2979,7 +3099,7 @@ func (x *DiffResponse) String() string {
 func (*DiffResponse) ProtoMessage() {}
 
 func (x *DiffResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[34]
+	mi := &file_asc_v1_repo_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2992,7 +3112,7 @@ func (x *DiffResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiffResponse.ProtoReflect.Descriptor instead.
 func (*DiffResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{34}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DiffResponse) GetChanges() []*PathChange {
@@ -3030,7 +3150,7 @@ type BlameRequest struct {
 
 func (x *BlameRequest) Reset() {
 	*x = BlameRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[35]
+	mi := &file_asc_v1_repo_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3042,7 +3162,7 @@ func (x *BlameRequest) String() string {
 func (*BlameRequest) ProtoMessage() {}
 
 func (x *BlameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[35]
+	mi := &file_asc_v1_repo_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3055,7 +3175,7 @@ func (x *BlameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlameRequest.ProtoReflect.Descriptor instead.
 func (*BlameRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{35}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *BlameRequest) GetRepo() *RepoRef {
@@ -3113,7 +3233,7 @@ type BlameHunk struct {
 
 func (x *BlameHunk) Reset() {
 	*x = BlameHunk{}
-	mi := &file_asc_v1_repo_proto_msgTypes[36]
+	mi := &file_asc_v1_repo_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3125,7 +3245,7 @@ func (x *BlameHunk) String() string {
 func (*BlameHunk) ProtoMessage() {}
 
 func (x *BlameHunk) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[36]
+	mi := &file_asc_v1_repo_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3138,7 +3258,7 @@ func (x *BlameHunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlameHunk.ProtoReflect.Descriptor instead.
 func (*BlameHunk) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{36}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *BlameHunk) GetOrigin() []byte {
@@ -3187,7 +3307,7 @@ type BlameResponse struct {
 
 func (x *BlameResponse) Reset() {
 	*x = BlameResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[37]
+	mi := &file_asc_v1_repo_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3199,7 +3319,7 @@ func (x *BlameResponse) String() string {
 func (*BlameResponse) ProtoMessage() {}
 
 func (x *BlameResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[37]
+	mi := &file_asc_v1_repo_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3212,7 +3332,7 @@ func (x *BlameResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlameResponse.ProtoReflect.Descriptor instead.
 func (*BlameResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{37}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *BlameResponse) GetHunks() []*BlameHunk {
@@ -3248,7 +3368,7 @@ type LastCommitsRequest struct {
 
 func (x *LastCommitsRequest) Reset() {
 	*x = LastCommitsRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[38]
+	mi := &file_asc_v1_repo_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3260,7 +3380,7 @@ func (x *LastCommitsRequest) String() string {
 func (*LastCommitsRequest) ProtoMessage() {}
 
 func (x *LastCommitsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[38]
+	mi := &file_asc_v1_repo_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3273,7 +3393,7 @@ func (x *LastCommitsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LastCommitsRequest.ProtoReflect.Descriptor instead.
 func (*LastCommitsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{38}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *LastCommitsRequest) GetRepo() *RepoRef {
@@ -3313,7 +3433,7 @@ type LastCommitsResponse struct {
 
 func (x *LastCommitsResponse) Reset() {
 	*x = LastCommitsResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[39]
+	mi := &file_asc_v1_repo_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3325,7 +3445,7 @@ func (x *LastCommitsResponse) String() string {
 func (*LastCommitsResponse) ProtoMessage() {}
 
 func (x *LastCommitsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[39]
+	mi := &file_asc_v1_repo_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3338,7 +3458,7 @@ func (x *LastCommitsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LastCommitsResponse.ProtoReflect.Descriptor instead.
 func (*LastCommitsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{39}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *LastCommitsResponse) GetByName() map[string]*LogEntry {
@@ -3358,7 +3478,7 @@ type ReadChangesetRequest struct {
 
 func (x *ReadChangesetRequest) Reset() {
 	*x = ReadChangesetRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[40]
+	mi := &file_asc_v1_repo_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3370,7 +3490,7 @@ func (x *ReadChangesetRequest) String() string {
 func (*ReadChangesetRequest) ProtoMessage() {}
 
 func (x *ReadChangesetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[40]
+	mi := &file_asc_v1_repo_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3383,7 +3503,7 @@ func (x *ReadChangesetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadChangesetRequest.ProtoReflect.Descriptor instead.
 func (*ReadChangesetRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{40}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ReadChangesetRequest) GetRepo() *RepoRef {
@@ -3414,7 +3534,7 @@ type ReadChangesetResponse struct {
 
 func (x *ReadChangesetResponse) Reset() {
 	*x = ReadChangesetResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[41]
+	mi := &file_asc_v1_repo_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3426,7 +3546,7 @@ func (x *ReadChangesetResponse) String() string {
 func (*ReadChangesetResponse) ProtoMessage() {}
 
 func (x *ReadChangesetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[41]
+	mi := &file_asc_v1_repo_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3439,7 +3559,7 @@ func (x *ReadChangesetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadChangesetResponse.ProtoReflect.Descriptor instead.
 func (*ReadChangesetResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{41}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ReadChangesetResponse) GetHeader() *LogEntry {
@@ -3498,7 +3618,7 @@ type ReadTreeRequest struct {
 
 func (x *ReadTreeRequest) Reset() {
 	*x = ReadTreeRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[42]
+	mi := &file_asc_v1_repo_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3510,7 +3630,7 @@ func (x *ReadTreeRequest) String() string {
 func (*ReadTreeRequest) ProtoMessage() {}
 
 func (x *ReadTreeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[42]
+	mi := &file_asc_v1_repo_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3523,7 +3643,7 @@ func (x *ReadTreeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadTreeRequest.ProtoReflect.Descriptor instead.
 func (*ReadTreeRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{42}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ReadTreeRequest) GetRepo() *RepoRef {
@@ -3583,7 +3703,7 @@ type TreeEntryInfo struct {
 
 func (x *TreeEntryInfo) Reset() {
 	*x = TreeEntryInfo{}
-	mi := &file_asc_v1_repo_proto_msgTypes[43]
+	mi := &file_asc_v1_repo_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3595,7 +3715,7 @@ func (x *TreeEntryInfo) String() string {
 func (*TreeEntryInfo) ProtoMessage() {}
 
 func (x *TreeEntryInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[43]
+	mi := &file_asc_v1_repo_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3608,7 +3728,7 @@ func (x *TreeEntryInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TreeEntryInfo.ProtoReflect.Descriptor instead.
 func (*TreeEntryInfo) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{43}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *TreeEntryInfo) GetName() []byte {
@@ -3671,7 +3791,7 @@ type ReadTreeResponse struct {
 
 func (x *ReadTreeResponse) Reset() {
 	*x = ReadTreeResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[44]
+	mi := &file_asc_v1_repo_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3683,7 +3803,7 @@ func (x *ReadTreeResponse) String() string {
 func (*ReadTreeResponse) ProtoMessage() {}
 
 func (x *ReadTreeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[44]
+	mi := &file_asc_v1_repo_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3696,7 +3816,7 @@ func (x *ReadTreeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadTreeResponse.ProtoReflect.Descriptor instead.
 func (*ReadTreeResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{44}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ReadTreeResponse) GetEntries() []*TreeEntryInfo {
@@ -3736,7 +3856,7 @@ type ReadFileRequest struct {
 
 func (x *ReadFileRequest) Reset() {
 	*x = ReadFileRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[45]
+	mi := &file_asc_v1_repo_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3748,7 +3868,7 @@ func (x *ReadFileRequest) String() string {
 func (*ReadFileRequest) ProtoMessage() {}
 
 func (x *ReadFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[45]
+	mi := &file_asc_v1_repo_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3761,7 +3881,7 @@ func (x *ReadFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadFileRequest.ProtoReflect.Descriptor instead.
 func (*ReadFileRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{45}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ReadFileRequest) GetRepo() *RepoRef {
@@ -3836,7 +3956,7 @@ type ReadFileResponse struct {
 
 func (x *ReadFileResponse) Reset() {
 	*x = ReadFileResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[46]
+	mi := &file_asc_v1_repo_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3848,7 +3968,7 @@ func (x *ReadFileResponse) String() string {
 func (*ReadFileResponse) ProtoMessage() {}
 
 func (x *ReadFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[46]
+	mi := &file_asc_v1_repo_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3861,7 +3981,7 @@ func (x *ReadFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadFileResponse.ProtoReflect.Descriptor instead.
 func (*ReadFileResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{46}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ReadFileResponse) GetData() []byte {
@@ -3890,7 +4010,7 @@ type StatRequest struct {
 
 func (x *StatRequest) Reset() {
 	*x = StatRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[47]
+	mi := &file_asc_v1_repo_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3902,7 +4022,7 @@ func (x *StatRequest) String() string {
 func (*StatRequest) ProtoMessage() {}
 
 func (x *StatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[47]
+	mi := &file_asc_v1_repo_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3915,7 +4035,7 @@ func (x *StatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatRequest.ProtoReflect.Descriptor instead.
 func (*StatRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{47}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *StatRequest) GetRepo() *RepoRef {
@@ -3956,7 +4076,7 @@ type StatResponse struct {
 
 func (x *StatResponse) Reset() {
 	*x = StatResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[48]
+	mi := &file_asc_v1_repo_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3968,7 +4088,7 @@ func (x *StatResponse) String() string {
 func (*StatResponse) ProtoMessage() {}
 
 func (x *StatResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[48]
+	mi := &file_asc_v1_repo_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3981,7 +4101,7 @@ func (x *StatResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatResponse.ProtoReflect.Descriptor instead.
 func (*StatResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{48}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *StatResponse) GetEntries() []*TreeEntryInfo {
@@ -4010,7 +4130,7 @@ type CheckAttrRequest struct {
 
 func (x *CheckAttrRequest) Reset() {
 	*x = CheckAttrRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[49]
+	mi := &file_asc_v1_repo_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4022,7 +4142,7 @@ func (x *CheckAttrRequest) String() string {
 func (*CheckAttrRequest) ProtoMessage() {}
 
 func (x *CheckAttrRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[49]
+	mi := &file_asc_v1_repo_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4035,7 +4155,7 @@ func (x *CheckAttrRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAttrRequest.ProtoReflect.Descriptor instead.
 func (*CheckAttrRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{49}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *CheckAttrRequest) GetRepo() *RepoRef {
@@ -4075,7 +4195,7 @@ type AttrValues struct {
 
 func (x *AttrValues) Reset() {
 	*x = AttrValues{}
-	mi := &file_asc_v1_repo_proto_msgTypes[50]
+	mi := &file_asc_v1_repo_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4087,7 +4207,7 @@ func (x *AttrValues) String() string {
 func (*AttrValues) ProtoMessage() {}
 
 func (x *AttrValues) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[50]
+	mi := &file_asc_v1_repo_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4100,7 +4220,7 @@ func (x *AttrValues) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttrValues.ProtoReflect.Descriptor instead.
 func (*AttrValues) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{50}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *AttrValues) GetValues() map[string]string {
@@ -4119,7 +4239,7 @@ type CheckAttrResponse struct {
 
 func (x *CheckAttrResponse) Reset() {
 	*x = CheckAttrResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[51]
+	mi := &file_asc_v1_repo_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4131,7 +4251,7 @@ func (x *CheckAttrResponse) String() string {
 func (*CheckAttrResponse) ProtoMessage() {}
 
 func (x *CheckAttrResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[51]
+	mi := &file_asc_v1_repo_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4144,7 +4264,7 @@ func (x *CheckAttrResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAttrResponse.ProtoReflect.Descriptor instead.
 func (*CheckAttrResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{51}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *CheckAttrResponse) GetPerPath() []*AttrValues {
@@ -4169,7 +4289,7 @@ type GrepRequest struct {
 
 func (x *GrepRequest) Reset() {
 	*x = GrepRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[52]
+	mi := &file_asc_v1_repo_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4181,7 +4301,7 @@ func (x *GrepRequest) String() string {
 func (*GrepRequest) ProtoMessage() {}
 
 func (x *GrepRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[52]
+	mi := &file_asc_v1_repo_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4194,7 +4314,7 @@ func (x *GrepRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrepRequest.ProtoReflect.Descriptor instead.
 func (*GrepRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{52}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *GrepRequest) GetRepo() *RepoRef {
@@ -4257,7 +4377,7 @@ type GrepMatch struct {
 
 func (x *GrepMatch) Reset() {
 	*x = GrepMatch{}
-	mi := &file_asc_v1_repo_proto_msgTypes[53]
+	mi := &file_asc_v1_repo_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4269,7 +4389,7 @@ func (x *GrepMatch) String() string {
 func (*GrepMatch) ProtoMessage() {}
 
 func (x *GrepMatch) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[53]
+	mi := &file_asc_v1_repo_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4282,7 +4402,7 @@ func (x *GrepMatch) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrepMatch.ProtoReflect.Descriptor instead.
 func (*GrepMatch) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{53}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *GrepMatch) GetPath() []byte {
@@ -4315,7 +4435,7 @@ type GrepResponse struct {
 
 func (x *GrepResponse) Reset() {
 	*x = GrepResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[54]
+	mi := &file_asc_v1_repo_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4327,7 +4447,7 @@ func (x *GrepResponse) String() string {
 func (*GrepResponse) ProtoMessage() {}
 
 func (x *GrepResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[54]
+	mi := &file_asc_v1_repo_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4340,7 +4460,7 @@ func (x *GrepResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrepResponse.ProtoReflect.Descriptor instead.
 func (*GrepResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{54}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *GrepResponse) GetMatches() []*GrepMatch {
@@ -4363,7 +4483,7 @@ type ArchiveRequest struct {
 
 func (x *ArchiveRequest) Reset() {
 	*x = ArchiveRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[55]
+	mi := &file_asc_v1_repo_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4375,7 +4495,7 @@ func (x *ArchiveRequest) String() string {
 func (*ArchiveRequest) ProtoMessage() {}
 
 func (x *ArchiveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[55]
+	mi := &file_asc_v1_repo_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4388,7 +4508,7 @@ func (x *ArchiveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ArchiveRequest.ProtoReflect.Descriptor instead.
 func (*ArchiveRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{55}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ArchiveRequest) GetRepo() *RepoRef {
@@ -4435,7 +4555,7 @@ type ArchiveResponse struct {
 
 func (x *ArchiveResponse) Reset() {
 	*x = ArchiveResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[56]
+	mi := &file_asc_v1_repo_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4447,7 +4567,7 @@ func (x *ArchiveResponse) String() string {
 func (*ArchiveResponse) ProtoMessage() {}
 
 func (x *ArchiveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[56]
+	mi := &file_asc_v1_repo_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4460,7 +4580,7 @@ func (x *ArchiveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ArchiveResponse.ProtoReflect.Descriptor instead.
 func (*ArchiveResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{56}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ArchiveResponse) GetData() []byte {
@@ -4487,7 +4607,7 @@ type FileOp struct {
 
 func (x *FileOp) Reset() {
 	*x = FileOp{}
-	mi := &file_asc_v1_repo_proto_msgTypes[57]
+	mi := &file_asc_v1_repo_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4499,7 +4619,7 @@ func (x *FileOp) String() string {
 func (*FileOp) ProtoMessage() {}
 
 func (x *FileOp) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[57]
+	mi := &file_asc_v1_repo_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4512,7 +4632,7 @@ func (x *FileOp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileOp.ProtoReflect.Descriptor instead.
 func (*FileOp) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{57}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *FileOp) GetPath() []byte {
@@ -4617,7 +4737,7 @@ type CommitRequest struct {
 
 func (x *CommitRequest) Reset() {
 	*x = CommitRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[58]
+	mi := &file_asc_v1_repo_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4629,7 +4749,7 @@ func (x *CommitRequest) String() string {
 func (*CommitRequest) ProtoMessage() {}
 
 func (x *CommitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[58]
+	mi := &file_asc_v1_repo_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4642,7 +4762,7 @@ func (x *CommitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitRequest.ProtoReflect.Descriptor instead.
 func (*CommitRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{58}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *CommitRequest) GetRepo() *RepoRef {
@@ -4718,7 +4838,7 @@ type CommitResponse struct {
 
 func (x *CommitResponse) Reset() {
 	*x = CommitResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[59]
+	mi := &file_asc_v1_repo_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4730,7 +4850,7 @@ func (x *CommitResponse) String() string {
 func (*CommitResponse) ProtoMessage() {}
 
 func (x *CommitResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[59]
+	mi := &file_asc_v1_repo_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4743,7 +4863,7 @@ func (x *CommitResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitResponse.ProtoReflect.Descriptor instead.
 func (*CommitResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{59}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *CommitResponse) GetId() []byte {
@@ -4780,7 +4900,7 @@ type MergeRequest struct {
 
 func (x *MergeRequest) Reset() {
 	*x = MergeRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[60]
+	mi := &file_asc_v1_repo_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4792,7 +4912,7 @@ func (x *MergeRequest) String() string {
 func (*MergeRequest) ProtoMessage() {}
 
 func (x *MergeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[60]
+	mi := &file_asc_v1_repo_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4805,7 +4925,7 @@ func (x *MergeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MergeRequest.ProtoReflect.Descriptor instead.
 func (*MergeRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{60}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *MergeRequest) GetRepo() *RepoRef {
@@ -4907,7 +5027,7 @@ type Conflict struct {
 
 func (x *Conflict) Reset() {
 	*x = Conflict{}
-	mi := &file_asc_v1_repo_proto_msgTypes[61]
+	mi := &file_asc_v1_repo_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4919,7 +5039,7 @@ func (x *Conflict) String() string {
 func (*Conflict) ProtoMessage() {}
 
 func (x *Conflict) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[61]
+	mi := &file_asc_v1_repo_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4932,7 +5052,7 @@ func (x *Conflict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Conflict.ProtoReflect.Descriptor instead.
 func (*Conflict) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{61}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *Conflict) GetChangeset() []byte {
@@ -4998,7 +5118,7 @@ type MergeResponse struct {
 
 func (x *MergeResponse) Reset() {
 	*x = MergeResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[62]
+	mi := &file_asc_v1_repo_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5010,7 +5130,7 @@ func (x *MergeResponse) String() string {
 func (*MergeResponse) ProtoMessage() {}
 
 func (x *MergeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[62]
+	mi := &file_asc_v1_repo_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5023,7 +5143,7 @@ func (x *MergeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MergeResponse.ProtoReflect.Descriptor instead.
 func (*MergeResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{62}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *MergeResponse) GetResult() []byte {
@@ -5085,7 +5205,7 @@ type ApplyRequest struct {
 
 func (x *ApplyRequest) Reset() {
 	*x = ApplyRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[63]
+	mi := &file_asc_v1_repo_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5097,7 +5217,7 @@ func (x *ApplyRequest) String() string {
 func (*ApplyRequest) ProtoMessage() {}
 
 func (x *ApplyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[63]
+	mi := &file_asc_v1_repo_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5110,7 +5230,7 @@ func (x *ApplyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyRequest.ProtoReflect.Descriptor instead.
 func (*ApplyRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{63}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *ApplyRequest) GetRepo() *RepoRef {
@@ -5187,7 +5307,7 @@ type ApplyResponse struct {
 
 func (x *ApplyResponse) Reset() {
 	*x = ApplyResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[64]
+	mi := &file_asc_v1_repo_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5199,7 +5319,7 @@ func (x *ApplyResponse) String() string {
 func (*ApplyResponse) ProtoMessage() {}
 
 func (x *ApplyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[64]
+	mi := &file_asc_v1_repo_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5212,7 +5332,7 @@ func (x *ApplyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyResponse.ProtoReflect.Descriptor instead.
 func (*ApplyResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{64}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ApplyResponse) GetResult() []byte {
@@ -5247,7 +5367,7 @@ type CopyClosureRequest struct {
 
 func (x *CopyClosureRequest) Reset() {
 	*x = CopyClosureRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[65]
+	mi := &file_asc_v1_repo_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5259,7 +5379,7 @@ func (x *CopyClosureRequest) String() string {
 func (*CopyClosureRequest) ProtoMessage() {}
 
 func (x *CopyClosureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[65]
+	mi := &file_asc_v1_repo_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5272,7 +5392,7 @@ func (x *CopyClosureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CopyClosureRequest.ProtoReflect.Descriptor instead.
 func (*CopyClosureRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{65}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *CopyClosureRequest) GetFrom() *RepoRef {
@@ -5305,7 +5425,7 @@ type CopyClosureResponse struct {
 
 func (x *CopyClosureResponse) Reset() {
 	*x = CopyClosureResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[66]
+	mi := &file_asc_v1_repo_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5317,7 +5437,7 @@ func (x *CopyClosureResponse) String() string {
 func (*CopyClosureResponse) ProtoMessage() {}
 
 func (x *CopyClosureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[66]
+	mi := &file_asc_v1_repo_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5330,7 +5450,7 @@ func (x *CopyClosureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CopyClosureResponse.ProtoReflect.Descriptor instead.
 func (*CopyClosureResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{66}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *CopyClosureResponse) GetCopied() uint64 {
@@ -5360,7 +5480,7 @@ type RepoAdminRequest struct {
 
 func (x *RepoAdminRequest) Reset() {
 	*x = RepoAdminRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[67]
+	mi := &file_asc_v1_repo_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5372,7 +5492,7 @@ func (x *RepoAdminRequest) String() string {
 func (*RepoAdminRequest) ProtoMessage() {}
 
 func (x *RepoAdminRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[67]
+	mi := &file_asc_v1_repo_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5385,7 +5505,7 @@ func (x *RepoAdminRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepoAdminRequest.ProtoReflect.Descriptor instead.
 func (*RepoAdminRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{67}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *RepoAdminRequest) GetRepo() *RepoRef {
@@ -5540,7 +5660,7 @@ type SetBranchlessOp struct {
 
 func (x *SetBranchlessOp) Reset() {
 	*x = SetBranchlessOp{}
-	mi := &file_asc_v1_repo_proto_msgTypes[68]
+	mi := &file_asc_v1_repo_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5552,7 +5672,7 @@ func (x *SetBranchlessOp) String() string {
 func (*SetBranchlessOp) ProtoMessage() {}
 
 func (x *SetBranchlessOp) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[68]
+	mi := &file_asc_v1_repo_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5565,7 +5685,7 @@ func (x *SetBranchlessOp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetBranchlessOp.ProtoReflect.Descriptor instead.
 func (*SetBranchlessOp) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{68}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *SetBranchlessOp) GetBranchless() bool {
@@ -5589,7 +5709,7 @@ type InitOp struct {
 
 func (x *InitOp) Reset() {
 	*x = InitOp{}
-	mi := &file_asc_v1_repo_proto_msgTypes[69]
+	mi := &file_asc_v1_repo_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5601,7 +5721,7 @@ func (x *InitOp) String() string {
 func (*InitOp) ProtoMessage() {}
 
 func (x *InitOp) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[69]
+	mi := &file_asc_v1_repo_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5614,7 +5734,7 @@ func (x *InitOp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InitOp.ProtoReflect.Descriptor instead.
 func (*InitOp) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{69}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *InitOp) GetDefaultBranch() string {
@@ -5661,7 +5781,7 @@ type ForkOp struct {
 
 func (x *ForkOp) Reset() {
 	*x = ForkOp{}
-	mi := &file_asc_v1_repo_proto_msgTypes[70]
+	mi := &file_asc_v1_repo_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5673,7 +5793,7 @@ func (x *ForkOp) String() string {
 func (*ForkOp) ProtoMessage() {}
 
 func (x *ForkOp) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[70]
+	mi := &file_asc_v1_repo_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5686,7 +5806,7 @@ func (x *ForkOp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForkOp.ProtoReflect.Descriptor instead.
 func (*ForkOp) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{70}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *ForkOp) GetFrom() *RepoRef {
@@ -5707,7 +5827,7 @@ type RepoAdminResponse struct {
 
 func (x *RepoAdminResponse) Reset() {
 	*x = RepoAdminResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[71]
+	mi := &file_asc_v1_repo_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5719,7 +5839,7 @@ func (x *RepoAdminResponse) String() string {
 func (*RepoAdminResponse) ProtoMessage() {}
 
 func (x *RepoAdminResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[71]
+	mi := &file_asc_v1_repo_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5732,7 +5852,7 @@ func (x *RepoAdminResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepoAdminResponse.ProtoReflect.Descriptor instead.
 func (*RepoAdminResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{71}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *RepoAdminResponse) GetLogicalSize() uint64 {
@@ -5767,7 +5887,7 @@ type GitRefUpdate struct {
 
 func (x *GitRefUpdate) Reset() {
 	*x = GitRefUpdate{}
-	mi := &file_asc_v1_repo_proto_msgTypes[72]
+	mi := &file_asc_v1_repo_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5779,7 +5899,7 @@ func (x *GitRefUpdate) String() string {
 func (*GitRefUpdate) ProtoMessage() {}
 
 func (x *GitRefUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[72]
+	mi := &file_asc_v1_repo_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5792,7 +5912,7 @@ func (x *GitRefUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GitRefUpdate.ProtoReflect.Descriptor instead.
 func (*GitRefUpdate) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{72}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *GitRefUpdate) GetName() string {
@@ -5830,7 +5950,7 @@ type ImportGitPushRequest struct {
 
 func (x *ImportGitPushRequest) Reset() {
 	*x = ImportGitPushRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[73]
+	mi := &file_asc_v1_repo_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5842,7 +5962,7 @@ func (x *ImportGitPushRequest) String() string {
 func (*ImportGitPushRequest) ProtoMessage() {}
 
 func (x *ImportGitPushRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[73]
+	mi := &file_asc_v1_repo_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5855,7 +5975,7 @@ func (x *ImportGitPushRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportGitPushRequest.ProtoReflect.Descriptor instead.
 func (*ImportGitPushRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{73}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *ImportGitPushRequest) GetRepo() *RepoRef {
@@ -5909,7 +6029,7 @@ type ImportGitPushResponse struct {
 
 func (x *ImportGitPushResponse) Reset() {
 	*x = ImportGitPushResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[74]
+	mi := &file_asc_v1_repo_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5921,7 +6041,7 @@ func (x *ImportGitPushResponse) String() string {
 func (*ImportGitPushResponse) ProtoMessage() {}
 
 func (x *ImportGitPushResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[74]
+	mi := &file_asc_v1_repo_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5934,7 +6054,7 @@ func (x *ImportGitPushResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportGitPushResponse.ProtoReflect.Descriptor instead.
 func (*ImportGitPushResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{74}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *ImportGitPushResponse) GetResults() []*RefResult {
@@ -5954,7 +6074,7 @@ type IngestRequest struct {
 
 func (x *IngestRequest) Reset() {
 	*x = IngestRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[75]
+	mi := &file_asc_v1_repo_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5966,7 +6086,7 @@ func (x *IngestRequest) String() string {
 func (*IngestRequest) ProtoMessage() {}
 
 func (x *IngestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[75]
+	mi := &file_asc_v1_repo_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5979,7 +6099,7 @@ func (x *IngestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IngestRequest.ProtoReflect.Descriptor instead.
 func (*IngestRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{75}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *IngestRequest) GetRepo() *RepoRef {
@@ -6005,7 +6125,7 @@ type IngestResponse struct {
 
 func (x *IngestResponse) Reset() {
 	*x = IngestResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[76]
+	mi := &file_asc_v1_repo_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6017,7 +6137,7 @@ func (x *IngestResponse) String() string {
 func (*IngestResponse) ProtoMessage() {}
 
 func (x *IngestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[76]
+	mi := &file_asc_v1_repo_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6030,7 +6150,7 @@ func (x *IngestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IngestResponse.ProtoReflect.Descriptor instead.
 func (*IngestResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{76}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *IngestResponse) GetIngested() [][]byte {
@@ -6051,7 +6171,7 @@ type FindLandingRequest struct {
 
 func (x *FindLandingRequest) Reset() {
 	*x = FindLandingRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[77]
+	mi := &file_asc_v1_repo_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6063,7 +6183,7 @@ func (x *FindLandingRequest) String() string {
 func (*FindLandingRequest) ProtoMessage() {}
 
 func (x *FindLandingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[77]
+	mi := &file_asc_v1_repo_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6076,7 +6196,7 @@ func (x *FindLandingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindLandingRequest.ProtoReflect.Descriptor instead.
 func (*FindLandingRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{77}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *FindLandingRequest) GetRepo() *RepoRef {
@@ -6114,7 +6234,7 @@ type FindLandingResponse struct {
 
 func (x *FindLandingResponse) Reset() {
 	*x = FindLandingResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[78]
+	mi := &file_asc_v1_repo_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6126,7 +6246,7 @@ func (x *FindLandingResponse) String() string {
 func (*FindLandingResponse) ProtoMessage() {}
 
 func (x *FindLandingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[78]
+	mi := &file_asc_v1_repo_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6139,7 +6259,7 @@ func (x *FindLandingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindLandingResponse.ProtoReflect.Descriptor instead.
 func (*FindLandingResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{78}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *FindLandingResponse) GetFound() bool {
@@ -6196,7 +6316,7 @@ type ClassifyRequest struct {
 
 func (x *ClassifyRequest) Reset() {
 	*x = ClassifyRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[79]
+	mi := &file_asc_v1_repo_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6208,7 +6328,7 @@ func (x *ClassifyRequest) String() string {
 func (*ClassifyRequest) ProtoMessage() {}
 
 func (x *ClassifyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[79]
+	mi := &file_asc_v1_repo_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6221,7 +6341,7 @@ func (x *ClassifyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClassifyRequest.ProtoReflect.Descriptor instead.
 func (*ClassifyRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{79}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *ClassifyRequest) GetRepo() *RepoRef {
@@ -6262,7 +6382,7 @@ type FileClass struct {
 
 func (x *FileClass) Reset() {
 	*x = FileClass{}
-	mi := &file_asc_v1_repo_proto_msgTypes[80]
+	mi := &file_asc_v1_repo_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6274,7 +6394,7 @@ func (x *FileClass) String() string {
 func (*FileClass) ProtoMessage() {}
 
 func (x *FileClass) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[80]
+	mi := &file_asc_v1_repo_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6287,7 +6407,7 @@ func (x *FileClass) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileClass.ProtoReflect.Descriptor instead.
 func (*FileClass) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{80}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *FileClass) GetPath() []byte {
@@ -6314,7 +6434,7 @@ type ClassifyResponse struct {
 
 func (x *ClassifyResponse) Reset() {
 	*x = ClassifyResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[81]
+	mi := &file_asc_v1_repo_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6326,7 +6446,7 @@ func (x *ClassifyResponse) String() string {
 func (*ClassifyResponse) ProtoMessage() {}
 
 func (x *ClassifyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[81]
+	mi := &file_asc_v1_repo_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6339,7 +6459,7 @@ func (x *ClassifyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClassifyResponse.ProtoReflect.Descriptor instead.
 func (*ClassifyResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{81}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *ClassifyResponse) GetFiles() []*FileClass {
@@ -6367,7 +6487,7 @@ type Resolution struct {
 
 func (x *Resolution) Reset() {
 	*x = Resolution{}
-	mi := &file_asc_v1_repo_proto_msgTypes[82]
+	mi := &file_asc_v1_repo_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6379,7 +6499,7 @@ func (x *Resolution) String() string {
 func (*Resolution) ProtoMessage() {}
 
 func (x *Resolution) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[82]
+	mi := &file_asc_v1_repo_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6392,7 +6512,7 @@ func (x *Resolution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Resolution.ProtoReflect.Descriptor instead.
 func (*Resolution) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{82}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *Resolution) GetChangeset() []byte {
@@ -6434,7 +6554,7 @@ type RebaseRequest struct {
 
 func (x *RebaseRequest) Reset() {
 	*x = RebaseRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[83]
+	mi := &file_asc_v1_repo_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6446,7 +6566,7 @@ func (x *RebaseRequest) String() string {
 func (*RebaseRequest) ProtoMessage() {}
 
 func (x *RebaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[83]
+	mi := &file_asc_v1_repo_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6459,7 +6579,7 @@ func (x *RebaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RebaseRequest.ProtoReflect.Descriptor instead.
 func (*RebaseRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{83}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *RebaseRequest) GetRepo() *RepoRef {
@@ -6543,7 +6663,7 @@ type RebaseResponse struct {
 
 func (x *RebaseResponse) Reset() {
 	*x = RebaseResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[84]
+	mi := &file_asc_v1_repo_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6555,7 +6675,7 @@ func (x *RebaseResponse) String() string {
 func (*RebaseResponse) ProtoMessage() {}
 
 func (x *RebaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[84]
+	mi := &file_asc_v1_repo_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6568,7 +6688,7 @@ func (x *RebaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RebaseResponse.ProtoReflect.Descriptor instead.
 func (*RebaseResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{84}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *RebaseResponse) GetResult() []byte {
@@ -6605,7 +6725,7 @@ type ErrorDetail struct {
 
 func (x *ErrorDetail) Reset() {
 	*x = ErrorDetail{}
-	mi := &file_asc_v1_repo_proto_msgTypes[85]
+	mi := &file_asc_v1_repo_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6617,7 +6737,7 @@ func (x *ErrorDetail) String() string {
 func (*ErrorDetail) ProtoMessage() {}
 
 func (x *ErrorDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[85]
+	mi := &file_asc_v1_repo_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6630,7 +6750,7 @@ func (x *ErrorDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ErrorDetail.ProtoReflect.Descriptor instead.
 func (*ErrorDetail) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{85}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *ErrorDetail) GetCode() string {
@@ -6681,7 +6801,7 @@ type ReviewState struct {
 
 func (x *ReviewState) Reset() {
 	*x = ReviewState{}
-	mi := &file_asc_v1_repo_proto_msgTypes[86]
+	mi := &file_asc_v1_repo_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6693,7 +6813,7 @@ func (x *ReviewState) String() string {
 func (*ReviewState) ProtoMessage() {}
 
 func (x *ReviewState) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[86]
+	mi := &file_asc_v1_repo_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6706,7 +6826,7 @@ func (x *ReviewState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReviewState.ProtoReflect.Descriptor instead.
 func (*ReviewState) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{86}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *ReviewState) GetHost() string {
@@ -6791,7 +6911,7 @@ type FileStat struct {
 
 func (x *FileStat) Reset() {
 	*x = FileStat{}
-	mi := &file_asc_v1_repo_proto_msgTypes[87]
+	mi := &file_asc_v1_repo_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6803,7 +6923,7 @@ func (x *FileStat) String() string {
 func (*FileStat) ProtoMessage() {}
 
 func (x *FileStat) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[87]
+	mi := &file_asc_v1_repo_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6816,7 +6936,7 @@ func (x *FileStat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileStat.ProtoReflect.Descriptor instead.
 func (*FileStat) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{87}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *FileStat) GetPath() []byte {
@@ -6856,7 +6976,7 @@ type DiffStat struct {
 
 func (x *DiffStat) Reset() {
 	*x = DiffStat{}
-	mi := &file_asc_v1_repo_proto_msgTypes[88]
+	mi := &file_asc_v1_repo_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6868,7 +6988,7 @@ func (x *DiffStat) String() string {
 func (*DiffStat) ProtoMessage() {}
 
 func (x *DiffStat) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[88]
+	mi := &file_asc_v1_repo_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6881,7 +7001,7 @@ func (x *DiffStat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiffStat.ProtoReflect.Descriptor instead.
 func (*DiffStat) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{88}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *DiffStat) GetFiles() []*FileStat {
@@ -6907,7 +7027,7 @@ type CommitGraphRequest struct {
 
 func (x *CommitGraphRequest) Reset() {
 	*x = CommitGraphRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[89]
+	mi := &file_asc_v1_repo_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6919,7 +7039,7 @@ func (x *CommitGraphRequest) String() string {
 func (*CommitGraphRequest) ProtoMessage() {}
 
 func (x *CommitGraphRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[89]
+	mi := &file_asc_v1_repo_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6932,7 +7052,7 @@ func (x *CommitGraphRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitGraphRequest.ProtoReflect.Descriptor instead.
 func (*CommitGraphRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{89}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *CommitGraphRequest) GetRepo() *RepoRef {
@@ -7001,7 +7121,7 @@ type GraphEdge struct {
 
 func (x *GraphEdge) Reset() {
 	*x = GraphEdge{}
-	mi := &file_asc_v1_repo_proto_msgTypes[90]
+	mi := &file_asc_v1_repo_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7013,7 +7133,7 @@ func (x *GraphEdge) String() string {
 func (*GraphEdge) ProtoMessage() {}
 
 func (x *GraphEdge) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[90]
+	mi := &file_asc_v1_repo_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7026,7 +7146,7 @@ func (x *GraphEdge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphEdge.ProtoReflect.Descriptor instead.
 func (*GraphEdge) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{90}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *GraphEdge) GetToColumn() uint32 {
@@ -7059,7 +7179,7 @@ type GraphRow struct {
 
 func (x *GraphRow) Reset() {
 	*x = GraphRow{}
-	mi := &file_asc_v1_repo_proto_msgTypes[91]
+	mi := &file_asc_v1_repo_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7071,7 +7191,7 @@ func (x *GraphRow) String() string {
 func (*GraphRow) ProtoMessage() {}
 
 func (x *GraphRow) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[91]
+	mi := &file_asc_v1_repo_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7084,7 +7204,7 @@ func (x *GraphRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphRow.ProtoReflect.Descriptor instead.
 func (*GraphRow) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{91}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *GraphRow) GetEntry() *LogEntry {
@@ -7154,7 +7274,7 @@ type RefMarker struct {
 
 func (x *RefMarker) Reset() {
 	*x = RefMarker{}
-	mi := &file_asc_v1_repo_proto_msgTypes[92]
+	mi := &file_asc_v1_repo_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7166,7 +7286,7 @@ func (x *RefMarker) String() string {
 func (*RefMarker) ProtoMessage() {}
 
 func (x *RefMarker) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[92]
+	mi := &file_asc_v1_repo_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7179,7 +7299,7 @@ func (x *RefMarker) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefMarker.ProtoReflect.Descriptor instead.
 func (*RefMarker) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{92}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *RefMarker) GetName() string {
@@ -7210,7 +7330,7 @@ type CommitGraphResponse struct {
 
 func (x *CommitGraphResponse) Reset() {
 	*x = CommitGraphResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[93]
+	mi := &file_asc_v1_repo_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7222,7 +7342,7 @@ func (x *CommitGraphResponse) String() string {
 func (*CommitGraphResponse) ProtoMessage() {}
 
 func (x *CommitGraphResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[93]
+	mi := &file_asc_v1_repo_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7235,7 +7355,7 @@ func (x *CommitGraphResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitGraphResponse.ProtoReflect.Descriptor instead.
 func (*CommitGraphResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{93}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *CommitGraphResponse) GetRows() []*GraphRow {
@@ -7282,7 +7402,7 @@ type LineHistoryRequest struct {
 
 func (x *LineHistoryRequest) Reset() {
 	*x = LineHistoryRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[94]
+	mi := &file_asc_v1_repo_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7294,7 +7414,7 @@ func (x *LineHistoryRequest) String() string {
 func (*LineHistoryRequest) ProtoMessage() {}
 
 func (x *LineHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[94]
+	mi := &file_asc_v1_repo_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7307,7 +7427,7 @@ func (x *LineHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LineHistoryRequest.ProtoReflect.Descriptor instead.
 func (*LineHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{94}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *LineHistoryRequest) GetRepo() *RepoRef {
@@ -7381,7 +7501,7 @@ type CompareRequest struct {
 
 func (x *CompareRequest) Reset() {
 	*x = CompareRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[95]
+	mi := &file_asc_v1_repo_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7393,7 +7513,7 @@ func (x *CompareRequest) String() string {
 func (*CompareRequest) ProtoMessage() {}
 
 func (x *CompareRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[95]
+	mi := &file_asc_v1_repo_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7406,7 +7526,7 @@ func (x *CompareRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompareRequest.ProtoReflect.Descriptor instead.
 func (*CompareRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{95}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *CompareRequest) GetRepo() *RepoRef {
@@ -7474,7 +7594,7 @@ type CompareResponse struct {
 
 func (x *CompareResponse) Reset() {
 	*x = CompareResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[96]
+	mi := &file_asc_v1_repo_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7486,7 +7606,7 @@ func (x *CompareResponse) String() string {
 func (*CompareResponse) ProtoMessage() {}
 
 func (x *CompareResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[96]
+	mi := &file_asc_v1_repo_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7499,7 +7619,7 @@ func (x *CompareResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompareResponse.ProtoReflect.Descriptor instead.
 func (*CompareResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{96}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *CompareResponse) GetMergeBase() []byte {
@@ -7568,7 +7688,7 @@ type Autolink struct {
 
 func (x *Autolink) Reset() {
 	*x = Autolink{}
-	mi := &file_asc_v1_repo_proto_msgTypes[97]
+	mi := &file_asc_v1_repo_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7580,7 +7700,7 @@ func (x *Autolink) String() string {
 func (*Autolink) ProtoMessage() {}
 
 func (x *Autolink) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[97]
+	mi := &file_asc_v1_repo_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7593,7 +7713,7 @@ func (x *Autolink) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Autolink.ProtoReflect.Descriptor instead.
 func (*Autolink) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{97}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *Autolink) GetPrefix() string {
@@ -7620,7 +7740,7 @@ type RepoConfigRequest struct {
 
 func (x *RepoConfigRequest) Reset() {
 	*x = RepoConfigRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[98]
+	mi := &file_asc_v1_repo_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7632,7 +7752,7 @@ func (x *RepoConfigRequest) String() string {
 func (*RepoConfigRequest) ProtoMessage() {}
 
 func (x *RepoConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[98]
+	mi := &file_asc_v1_repo_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7645,7 +7765,7 @@ func (x *RepoConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepoConfigRequest.ProtoReflect.Descriptor instead.
 func (*RepoConfigRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{98}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *RepoConfigRequest) GetRepo() *RepoRef {
@@ -7678,7 +7798,7 @@ type RepoConfigResponse struct {
 
 func (x *RepoConfigResponse) Reset() {
 	*x = RepoConfigResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[99]
+	mi := &file_asc_v1_repo_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7690,7 +7810,7 @@ func (x *RepoConfigResponse) String() string {
 func (*RepoConfigResponse) ProtoMessage() {}
 
 func (x *RepoConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[99]
+	mi := &file_asc_v1_repo_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7703,7 +7823,7 @@ func (x *RepoConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepoConfigResponse.ProtoReflect.Descriptor instead.
 func (*RepoConfigResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{99}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *RepoConfigResponse) GetAutolinks() []*Autolink {
@@ -7755,7 +7875,7 @@ type WatchRefsRequest struct {
 
 func (x *WatchRefsRequest) Reset() {
 	*x = WatchRefsRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[100]
+	mi := &file_asc_v1_repo_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7767,7 +7887,7 @@ func (x *WatchRefsRequest) String() string {
 func (*WatchRefsRequest) ProtoMessage() {}
 
 func (x *WatchRefsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[100]
+	mi := &file_asc_v1_repo_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7780,7 +7900,7 @@ func (x *WatchRefsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchRefsRequest.ProtoReflect.Descriptor instead.
 func (*WatchRefsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{100}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *WatchRefsRequest) GetRepo() *RepoRef {
@@ -7816,7 +7936,7 @@ type RefEvent struct {
 
 func (x *RefEvent) Reset() {
 	*x = RefEvent{}
-	mi := &file_asc_v1_repo_proto_msgTypes[101]
+	mi := &file_asc_v1_repo_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7828,7 +7948,7 @@ func (x *RefEvent) String() string {
 func (*RefEvent) ProtoMessage() {}
 
 func (x *RefEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[101]
+	mi := &file_asc_v1_repo_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7841,7 +7961,7 @@ func (x *RefEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefEvent.ProtoReflect.Descriptor instead.
 func (*RefEvent) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{101}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *RefEvent) GetName() string {
@@ -7888,7 +8008,7 @@ type GetPolicyRequest struct {
 
 func (x *GetPolicyRequest) Reset() {
 	*x = GetPolicyRequest{}
-	mi := &file_asc_v1_repo_proto_msgTypes[102]
+	mi := &file_asc_v1_repo_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7900,7 +8020,7 @@ func (x *GetPolicyRequest) String() string {
 func (*GetPolicyRequest) ProtoMessage() {}
 
 func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[102]
+	mi := &file_asc_v1_repo_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7913,7 +8033,7 @@ func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{102}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *GetPolicyRequest) GetRepo() *RepoRef {
@@ -7940,7 +8060,7 @@ type PolicyRole struct {
 
 func (x *PolicyRole) Reset() {
 	*x = PolicyRole{}
-	mi := &file_asc_v1_repo_proto_msgTypes[103]
+	mi := &file_asc_v1_repo_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7952,7 +8072,7 @@ func (x *PolicyRole) String() string {
 func (*PolicyRole) ProtoMessage() {}
 
 func (x *PolicyRole) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[103]
+	mi := &file_asc_v1_repo_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7965,7 +8085,7 @@ func (x *PolicyRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyRole.ProtoReflect.Descriptor instead.
 func (*PolicyRole) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{103}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *PolicyRole) GetName() string {
@@ -7992,7 +8112,7 @@ type PolicyPathRule struct {
 
 func (x *PolicyPathRule) Reset() {
 	*x = PolicyPathRule{}
-	mi := &file_asc_v1_repo_proto_msgTypes[104]
+	mi := &file_asc_v1_repo_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8004,7 +8124,7 @@ func (x *PolicyPathRule) String() string {
 func (*PolicyPathRule) ProtoMessage() {}
 
 func (x *PolicyPathRule) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[104]
+	mi := &file_asc_v1_repo_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8017,7 +8137,7 @@ func (x *PolicyPathRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyPathRule.ProtoReflect.Descriptor instead.
 func (*PolicyPathRule) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{104}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *PolicyPathRule) GetGlob() string {
@@ -8047,7 +8167,7 @@ type PolicyTrunk struct {
 
 func (x *PolicyTrunk) Reset() {
 	*x = PolicyTrunk{}
-	mi := &file_asc_v1_repo_proto_msgTypes[105]
+	mi := &file_asc_v1_repo_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8059,7 +8179,7 @@ func (x *PolicyTrunk) String() string {
 func (*PolicyTrunk) ProtoMessage() {}
 
 func (x *PolicyTrunk) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[105]
+	mi := &file_asc_v1_repo_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8072,7 +8192,7 @@ func (x *PolicyTrunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyTrunk.ProtoReflect.Descriptor instead.
 func (*PolicyTrunk) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{105}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *PolicyTrunk) GetBranch() string {
@@ -8126,7 +8246,7 @@ type PolicyAgents struct {
 
 func (x *PolicyAgents) Reset() {
 	*x = PolicyAgents{}
-	mi := &file_asc_v1_repo_proto_msgTypes[106]
+	mi := &file_asc_v1_repo_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8138,7 +8258,7 @@ func (x *PolicyAgents) String() string {
 func (*PolicyAgents) ProtoMessage() {}
 
 func (x *PolicyAgents) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[106]
+	mi := &file_asc_v1_repo_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8151,7 +8271,7 @@ func (x *PolicyAgents) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyAgents.ProtoReflect.Descriptor instead.
 func (*PolicyAgents) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{106}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *PolicyAgents) GetDefaultScope() []string {
@@ -8224,7 +8344,7 @@ type PolicyReview struct {
 
 func (x *PolicyReview) Reset() {
 	*x = PolicyReview{}
-	mi := &file_asc_v1_repo_proto_msgTypes[107]
+	mi := &file_asc_v1_repo_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8236,7 +8356,7 @@ func (x *PolicyReview) String() string {
 func (*PolicyReview) ProtoMessage() {}
 
 func (x *PolicyReview) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[107]
+	mi := &file_asc_v1_repo_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8249,7 +8369,7 @@ func (x *PolicyReview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyReview.ProtoReflect.Descriptor instead.
 func (*PolicyReview) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{107}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *PolicyReview) GetAuthorMayApprove() bool {
@@ -8293,7 +8413,7 @@ type PolicyMerge struct {
 
 func (x *PolicyMerge) Reset() {
 	*x = PolicyMerge{}
-	mi := &file_asc_v1_repo_proto_msgTypes[108]
+	mi := &file_asc_v1_repo_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8305,7 +8425,7 @@ func (x *PolicyMerge) String() string {
 func (*PolicyMerge) ProtoMessage() {}
 
 func (x *PolicyMerge) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[108]
+	mi := &file_asc_v1_repo_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8318,7 +8438,7 @@ func (x *PolicyMerge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyMerge.ProtoReflect.Descriptor instead.
 func (*PolicyMerge) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{108}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *PolicyMerge) GetQueue() bool {
@@ -8362,7 +8482,7 @@ type PolicyStacks struct {
 
 func (x *PolicyStacks) Reset() {
 	*x = PolicyStacks{}
-	mi := &file_asc_v1_repo_proto_msgTypes[109]
+	mi := &file_asc_v1_repo_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8374,7 +8494,7 @@ func (x *PolicyStacks) String() string {
 func (*PolicyStacks) ProtoMessage() {}
 
 func (x *PolicyStacks) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[109]
+	mi := &file_asc_v1_repo_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8387,7 +8507,7 @@ func (x *PolicyStacks) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyStacks.ProtoReflect.Descriptor instead.
 func (*PolicyStacks) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{109}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *PolicyStacks) GetMaxDepth() uint32 {
@@ -8429,7 +8549,7 @@ type PolicyDecision struct {
 
 func (x *PolicyDecision) Reset() {
 	*x = PolicyDecision{}
-	mi := &file_asc_v1_repo_proto_msgTypes[110]
+	mi := &file_asc_v1_repo_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8441,7 +8561,7 @@ func (x *PolicyDecision) String() string {
 func (*PolicyDecision) ProtoMessage() {}
 
 func (x *PolicyDecision) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[110]
+	mi := &file_asc_v1_repo_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8454,7 +8574,7 @@ func (x *PolicyDecision) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyDecision.ProtoReflect.Descriptor instead.
 func (*PolicyDecision) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{110}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *PolicyDecision) GetPath() []byte {
@@ -8501,7 +8621,7 @@ type GetPolicyResponse struct {
 
 func (x *GetPolicyResponse) Reset() {
 	*x = GetPolicyResponse{}
-	mi := &file_asc_v1_repo_proto_msgTypes[111]
+	mi := &file_asc_v1_repo_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8513,7 +8633,7 @@ func (x *GetPolicyResponse) String() string {
 func (*GetPolicyResponse) ProtoMessage() {}
 
 func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_repo_proto_msgTypes[111]
+	mi := &file_asc_v1_repo_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8526,7 +8646,7 @@ func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_repo_proto_rawDescGZIP(), []int{111}
+	return file_asc_v1_repo_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *GetPolicyResponse) GetPresent() bool {
@@ -8704,7 +8824,7 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x05value\x18\x04 \x01(\v2\x11.asc.v1.RefTargetH\x00R\x05value\x12#\n" +
 	"\x03new\x18\x05 \x01(\v2\x11.asc.v1.RefTargetR\x03new\x12\x16\n" +
 	"\x06delete\x18\x06 \x01(\bR\x06deleteB\b\n" +
-	"\x06expect\"\xa3\x02\n" +
+	"\x06expect\"\xd1\x02\n" +
 	"\x11UpdateRefsRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12+\n" +
 	"\aupdates\x18\x02 \x03(\v2\x11.asc.v1.RefUpdateR\aupdates\x12&\n" +
@@ -8713,7 +8833,14 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x05hooks\x18\x05 \x01(\x0e2\x10.asc.v1.HookModeR\x05hooks\x12\x1f\n" +
 	"\vttl_seconds\x18\x06 \x01(\x03R\n" +
 	"ttlSeconds\x12(\n" +
-	"\x10no_content_merge\x18\a \x01(\bR\x0enoContentMerge\"9\n" +
+	"\x10no_content_merge\x18\a \x01(\bR\x0enoContentMerge\x12,\n" +
+	"\x06linked\x18\b \x03(\v2\x14.asc.v1.LinkedUpdateR\x06linked\"`\n" +
+	"\fLinkedUpdate\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12+\n" +
+	"\aupdates\x18\x02 \x03(\v2\x11.asc.v1.RefUpdateR\aupdates\"O\n" +
+	"\fLinkedResult\x12\x12\n" +
+	"\x04repo\x18\x01 \x01(\tR\x04repo\x12+\n" +
+	"\aresults\x18\x02 \x03(\v2\x11.asc.v1.RefResultR\aresults\"9\n" +
 	"\aRewrite\x12\x16\n" +
 	"\x03old\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x03old\x12\x16\n" +
 	"\x03new\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x03new\"}\n" +
@@ -8721,11 +8848,12 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
 	"\x03old\x18\x02 \x01(\v2\x11.asc.v1.RefTargetR\x03old\x12#\n" +
 	"\x03new\x18\x03 \x01(\v2\x11.asc.v1.RefTargetR\x03new\x12\x12\n" +
-	"\x04user\x18\x04 \x01(\bR\x04user\"\x8a\x01\n" +
+	"\x04user\x18\x04 \x01(\bR\x04user\"\xb8\x01\n" +
 	"\x12UpdateRefsResponse\x12+\n" +
 	"\aresults\x18\x01 \x03(\v2\x11.asc.v1.RefResultR\aresults\x12-\n" +
 	"\trewritten\x18\x02 \x03(\v2\x0f.asc.v1.RewriteR\trewritten\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\"Q\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
+	"\x06linked\x18\x04 \x03(\v2\x14.asc.v1.LinkedResultR\x06linked\"Q\n" +
 	"\x0eResolveRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1a\n" +
 	"\brevspecs\x18\x02 \x03(\tR\brevspecs\")\n" +
@@ -9428,7 +9556,7 @@ func file_asc_v1_repo_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_repo_proto_enumTypes = make([]protoimpl.EnumInfo, 10)
-var file_asc_v1_repo_proto_msgTypes = make([]protoimpl.MessageInfo, 115)
+var file_asc_v1_repo_proto_msgTypes = make([]protoimpl.MessageInfo, 117)
 var file_asc_v1_repo_proto_goTypes = []any{
 	(IdMode)(0),                   // 0: asc.v1.IdMode
 	(ObjKind)(0),                  // 1: asc.v1.ObjKind
@@ -9458,103 +9586,105 @@ var file_asc_v1_repo_proto_goTypes = []any{
 	(*ListRefsResponse)(nil),      // 25: asc.v1.ListRefsResponse
 	(*RefUpdate)(nil),             // 26: asc.v1.RefUpdate
 	(*UpdateRefsRequest)(nil),     // 27: asc.v1.UpdateRefsRequest
-	(*Rewrite)(nil),               // 28: asc.v1.Rewrite
-	(*RefResult)(nil),             // 29: asc.v1.RefResult
-	(*UpdateRefsResponse)(nil),    // 30: asc.v1.UpdateRefsResponse
-	(*ResolveRequest)(nil),        // 31: asc.v1.ResolveRequest
-	(*ResolveResponse)(nil),       // 32: asc.v1.ResolveResponse
-	(*GitMapRequest)(nil),         // 33: asc.v1.GitMapRequest
-	(*GitMapResponse)(nil),        // 34: asc.v1.GitMapResponse
-	(*LogRequest)(nil),            // 35: asc.v1.LogRequest
-	(*LogEntry)(nil),              // 36: asc.v1.LogEntry
-	(*LogResponse)(nil),           // 37: asc.v1.LogResponse
-	(*MergeBaseRequest)(nil),      // 38: asc.v1.MergeBaseRequest
-	(*MergeBaseResponse)(nil),     // 39: asc.v1.MergeBaseResponse
-	(*IsAncestorRequest)(nil),     // 40: asc.v1.IsAncestorRequest
-	(*IsAncestorResponse)(nil),    // 41: asc.v1.IsAncestorResponse
-	(*DiffRequest)(nil),           // 42: asc.v1.DiffRequest
-	(*PathChange)(nil),            // 43: asc.v1.PathChange
-	(*DiffResponse)(nil),          // 44: asc.v1.DiffResponse
-	(*BlameRequest)(nil),          // 45: asc.v1.BlameRequest
-	(*BlameHunk)(nil),             // 46: asc.v1.BlameHunk
-	(*BlameResponse)(nil),         // 47: asc.v1.BlameResponse
-	(*LastCommitsRequest)(nil),    // 48: asc.v1.LastCommitsRequest
-	(*LastCommitsResponse)(nil),   // 49: asc.v1.LastCommitsResponse
-	(*ReadChangesetRequest)(nil),  // 50: asc.v1.ReadChangesetRequest
-	(*ReadChangesetResponse)(nil), // 51: asc.v1.ReadChangesetResponse
-	(*ReadTreeRequest)(nil),       // 52: asc.v1.ReadTreeRequest
-	(*TreeEntryInfo)(nil),         // 53: asc.v1.TreeEntryInfo
-	(*ReadTreeResponse)(nil),      // 54: asc.v1.ReadTreeResponse
-	(*ReadFileRequest)(nil),       // 55: asc.v1.ReadFileRequest
-	(*ReadFileResponse)(nil),      // 56: asc.v1.ReadFileResponse
-	(*StatRequest)(nil),           // 57: asc.v1.StatRequest
-	(*StatResponse)(nil),          // 58: asc.v1.StatResponse
-	(*CheckAttrRequest)(nil),      // 59: asc.v1.CheckAttrRequest
-	(*AttrValues)(nil),            // 60: asc.v1.AttrValues
-	(*CheckAttrResponse)(nil),     // 61: asc.v1.CheckAttrResponse
-	(*GrepRequest)(nil),           // 62: asc.v1.GrepRequest
-	(*GrepMatch)(nil),             // 63: asc.v1.GrepMatch
-	(*GrepResponse)(nil),          // 64: asc.v1.GrepResponse
-	(*ArchiveRequest)(nil),        // 65: asc.v1.ArchiveRequest
-	(*ArchiveResponse)(nil),       // 66: asc.v1.ArchiveResponse
-	(*FileOp)(nil),                // 67: asc.v1.FileOp
-	(*CommitRequest)(nil),         // 68: asc.v1.CommitRequest
-	(*CommitResponse)(nil),        // 69: asc.v1.CommitResponse
-	(*MergeRequest)(nil),          // 70: asc.v1.MergeRequest
-	(*Conflict)(nil),              // 71: asc.v1.Conflict
-	(*MergeResponse)(nil),         // 72: asc.v1.MergeResponse
-	(*ApplyRequest)(nil),          // 73: asc.v1.ApplyRequest
-	(*ApplyResponse)(nil),         // 74: asc.v1.ApplyResponse
-	(*CopyClosureRequest)(nil),    // 75: asc.v1.CopyClosureRequest
-	(*CopyClosureResponse)(nil),   // 76: asc.v1.CopyClosureResponse
-	(*RepoAdminRequest)(nil),      // 77: asc.v1.RepoAdminRequest
-	(*SetBranchlessOp)(nil),       // 78: asc.v1.SetBranchlessOp
-	(*InitOp)(nil),                // 79: asc.v1.InitOp
-	(*ForkOp)(nil),                // 80: asc.v1.ForkOp
-	(*RepoAdminResponse)(nil),     // 81: asc.v1.RepoAdminResponse
-	(*GitRefUpdate)(nil),          // 82: asc.v1.GitRefUpdate
-	(*ImportGitPushRequest)(nil),  // 83: asc.v1.ImportGitPushRequest
-	(*ImportGitPushResponse)(nil), // 84: asc.v1.ImportGitPushResponse
-	(*IngestRequest)(nil),         // 85: asc.v1.IngestRequest
-	(*IngestResponse)(nil),        // 86: asc.v1.IngestResponse
-	(*FindLandingRequest)(nil),    // 87: asc.v1.FindLandingRequest
-	(*FindLandingResponse)(nil),   // 88: asc.v1.FindLandingResponse
-	(*ClassifyRequest)(nil),       // 89: asc.v1.ClassifyRequest
-	(*FileClass)(nil),             // 90: asc.v1.FileClass
-	(*ClassifyResponse)(nil),      // 91: asc.v1.ClassifyResponse
-	(*Resolution)(nil),            // 92: asc.v1.Resolution
-	(*RebaseRequest)(nil),         // 93: asc.v1.RebaseRequest
-	(*RebaseResponse)(nil),        // 94: asc.v1.RebaseResponse
-	(*ErrorDetail)(nil),           // 95: asc.v1.ErrorDetail
-	(*ReviewState)(nil),           // 96: asc.v1.ReviewState
-	(*FileStat)(nil),              // 97: asc.v1.FileStat
-	(*DiffStat)(nil),              // 98: asc.v1.DiffStat
-	(*CommitGraphRequest)(nil),    // 99: asc.v1.CommitGraphRequest
-	(*GraphEdge)(nil),             // 100: asc.v1.GraphEdge
-	(*GraphRow)(nil),              // 101: asc.v1.GraphRow
-	(*RefMarker)(nil),             // 102: asc.v1.RefMarker
-	(*CommitGraphResponse)(nil),   // 103: asc.v1.CommitGraphResponse
-	(*LineHistoryRequest)(nil),    // 104: asc.v1.LineHistoryRequest
-	(*CompareRequest)(nil),        // 105: asc.v1.CompareRequest
-	(*CompareResponse)(nil),       // 106: asc.v1.CompareResponse
-	(*Autolink)(nil),              // 107: asc.v1.Autolink
-	(*RepoConfigRequest)(nil),     // 108: asc.v1.RepoConfigRequest
-	(*RepoConfigResponse)(nil),    // 109: asc.v1.RepoConfigResponse
-	(*WatchRefsRequest)(nil),      // 110: asc.v1.WatchRefsRequest
-	(*RefEvent)(nil),              // 111: asc.v1.RefEvent
-	(*GetPolicyRequest)(nil),      // 112: asc.v1.GetPolicyRequest
-	(*PolicyRole)(nil),            // 113: asc.v1.PolicyRole
-	(*PolicyPathRule)(nil),        // 114: asc.v1.PolicyPathRule
-	(*PolicyTrunk)(nil),           // 115: asc.v1.PolicyTrunk
-	(*PolicyAgents)(nil),          // 116: asc.v1.PolicyAgents
-	(*PolicyReview)(nil),          // 117: asc.v1.PolicyReview
-	(*PolicyMerge)(nil),           // 118: asc.v1.PolicyMerge
-	(*PolicyStacks)(nil),          // 119: asc.v1.PolicyStacks
-	(*PolicyDecision)(nil),        // 120: asc.v1.PolicyDecision
-	(*GetPolicyResponse)(nil),     // 121: asc.v1.GetPolicyResponse
-	nil,                           // 122: asc.v1.LastCommitsResponse.ByNameEntry
-	nil,                           // 123: asc.v1.ReadChangesetResponse.ExtraEntry
-	nil,                           // 124: asc.v1.AttrValues.ValuesEntry
+	(*LinkedUpdate)(nil),          // 28: asc.v1.LinkedUpdate
+	(*LinkedResult)(nil),          // 29: asc.v1.LinkedResult
+	(*Rewrite)(nil),               // 30: asc.v1.Rewrite
+	(*RefResult)(nil),             // 31: asc.v1.RefResult
+	(*UpdateRefsResponse)(nil),    // 32: asc.v1.UpdateRefsResponse
+	(*ResolveRequest)(nil),        // 33: asc.v1.ResolveRequest
+	(*ResolveResponse)(nil),       // 34: asc.v1.ResolveResponse
+	(*GitMapRequest)(nil),         // 35: asc.v1.GitMapRequest
+	(*GitMapResponse)(nil),        // 36: asc.v1.GitMapResponse
+	(*LogRequest)(nil),            // 37: asc.v1.LogRequest
+	(*LogEntry)(nil),              // 38: asc.v1.LogEntry
+	(*LogResponse)(nil),           // 39: asc.v1.LogResponse
+	(*MergeBaseRequest)(nil),      // 40: asc.v1.MergeBaseRequest
+	(*MergeBaseResponse)(nil),     // 41: asc.v1.MergeBaseResponse
+	(*IsAncestorRequest)(nil),     // 42: asc.v1.IsAncestorRequest
+	(*IsAncestorResponse)(nil),    // 43: asc.v1.IsAncestorResponse
+	(*DiffRequest)(nil),           // 44: asc.v1.DiffRequest
+	(*PathChange)(nil),            // 45: asc.v1.PathChange
+	(*DiffResponse)(nil),          // 46: asc.v1.DiffResponse
+	(*BlameRequest)(nil),          // 47: asc.v1.BlameRequest
+	(*BlameHunk)(nil),             // 48: asc.v1.BlameHunk
+	(*BlameResponse)(nil),         // 49: asc.v1.BlameResponse
+	(*LastCommitsRequest)(nil),    // 50: asc.v1.LastCommitsRequest
+	(*LastCommitsResponse)(nil),   // 51: asc.v1.LastCommitsResponse
+	(*ReadChangesetRequest)(nil),  // 52: asc.v1.ReadChangesetRequest
+	(*ReadChangesetResponse)(nil), // 53: asc.v1.ReadChangesetResponse
+	(*ReadTreeRequest)(nil),       // 54: asc.v1.ReadTreeRequest
+	(*TreeEntryInfo)(nil),         // 55: asc.v1.TreeEntryInfo
+	(*ReadTreeResponse)(nil),      // 56: asc.v1.ReadTreeResponse
+	(*ReadFileRequest)(nil),       // 57: asc.v1.ReadFileRequest
+	(*ReadFileResponse)(nil),      // 58: asc.v1.ReadFileResponse
+	(*StatRequest)(nil),           // 59: asc.v1.StatRequest
+	(*StatResponse)(nil),          // 60: asc.v1.StatResponse
+	(*CheckAttrRequest)(nil),      // 61: asc.v1.CheckAttrRequest
+	(*AttrValues)(nil),            // 62: asc.v1.AttrValues
+	(*CheckAttrResponse)(nil),     // 63: asc.v1.CheckAttrResponse
+	(*GrepRequest)(nil),           // 64: asc.v1.GrepRequest
+	(*GrepMatch)(nil),             // 65: asc.v1.GrepMatch
+	(*GrepResponse)(nil),          // 66: asc.v1.GrepResponse
+	(*ArchiveRequest)(nil),        // 67: asc.v1.ArchiveRequest
+	(*ArchiveResponse)(nil),       // 68: asc.v1.ArchiveResponse
+	(*FileOp)(nil),                // 69: asc.v1.FileOp
+	(*CommitRequest)(nil),         // 70: asc.v1.CommitRequest
+	(*CommitResponse)(nil),        // 71: asc.v1.CommitResponse
+	(*MergeRequest)(nil),          // 72: asc.v1.MergeRequest
+	(*Conflict)(nil),              // 73: asc.v1.Conflict
+	(*MergeResponse)(nil),         // 74: asc.v1.MergeResponse
+	(*ApplyRequest)(nil),          // 75: asc.v1.ApplyRequest
+	(*ApplyResponse)(nil),         // 76: asc.v1.ApplyResponse
+	(*CopyClosureRequest)(nil),    // 77: asc.v1.CopyClosureRequest
+	(*CopyClosureResponse)(nil),   // 78: asc.v1.CopyClosureResponse
+	(*RepoAdminRequest)(nil),      // 79: asc.v1.RepoAdminRequest
+	(*SetBranchlessOp)(nil),       // 80: asc.v1.SetBranchlessOp
+	(*InitOp)(nil),                // 81: asc.v1.InitOp
+	(*ForkOp)(nil),                // 82: asc.v1.ForkOp
+	(*RepoAdminResponse)(nil),     // 83: asc.v1.RepoAdminResponse
+	(*GitRefUpdate)(nil),          // 84: asc.v1.GitRefUpdate
+	(*ImportGitPushRequest)(nil),  // 85: asc.v1.ImportGitPushRequest
+	(*ImportGitPushResponse)(nil), // 86: asc.v1.ImportGitPushResponse
+	(*IngestRequest)(nil),         // 87: asc.v1.IngestRequest
+	(*IngestResponse)(nil),        // 88: asc.v1.IngestResponse
+	(*FindLandingRequest)(nil),    // 89: asc.v1.FindLandingRequest
+	(*FindLandingResponse)(nil),   // 90: asc.v1.FindLandingResponse
+	(*ClassifyRequest)(nil),       // 91: asc.v1.ClassifyRequest
+	(*FileClass)(nil),             // 92: asc.v1.FileClass
+	(*ClassifyResponse)(nil),      // 93: asc.v1.ClassifyResponse
+	(*Resolution)(nil),            // 94: asc.v1.Resolution
+	(*RebaseRequest)(nil),         // 95: asc.v1.RebaseRequest
+	(*RebaseResponse)(nil),        // 96: asc.v1.RebaseResponse
+	(*ErrorDetail)(nil),           // 97: asc.v1.ErrorDetail
+	(*ReviewState)(nil),           // 98: asc.v1.ReviewState
+	(*FileStat)(nil),              // 99: asc.v1.FileStat
+	(*DiffStat)(nil),              // 100: asc.v1.DiffStat
+	(*CommitGraphRequest)(nil),    // 101: asc.v1.CommitGraphRequest
+	(*GraphEdge)(nil),             // 102: asc.v1.GraphEdge
+	(*GraphRow)(nil),              // 103: asc.v1.GraphRow
+	(*RefMarker)(nil),             // 104: asc.v1.RefMarker
+	(*CommitGraphResponse)(nil),   // 105: asc.v1.CommitGraphResponse
+	(*LineHistoryRequest)(nil),    // 106: asc.v1.LineHistoryRequest
+	(*CompareRequest)(nil),        // 107: asc.v1.CompareRequest
+	(*CompareResponse)(nil),       // 108: asc.v1.CompareResponse
+	(*Autolink)(nil),              // 109: asc.v1.Autolink
+	(*RepoConfigRequest)(nil),     // 110: asc.v1.RepoConfigRequest
+	(*RepoConfigResponse)(nil),    // 111: asc.v1.RepoConfigResponse
+	(*WatchRefsRequest)(nil),      // 112: asc.v1.WatchRefsRequest
+	(*RefEvent)(nil),              // 113: asc.v1.RefEvent
+	(*GetPolicyRequest)(nil),      // 114: asc.v1.GetPolicyRequest
+	(*PolicyRole)(nil),            // 115: asc.v1.PolicyRole
+	(*PolicyPathRule)(nil),        // 116: asc.v1.PolicyPathRule
+	(*PolicyTrunk)(nil),           // 117: asc.v1.PolicyTrunk
+	(*PolicyAgents)(nil),          // 118: asc.v1.PolicyAgents
+	(*PolicyReview)(nil),          // 119: asc.v1.PolicyReview
+	(*PolicyMerge)(nil),           // 120: asc.v1.PolicyMerge
+	(*PolicyStacks)(nil),          // 121: asc.v1.PolicyStacks
+	(*PolicyDecision)(nil),        // 122: asc.v1.PolicyDecision
+	(*GetPolicyResponse)(nil),     // 123: asc.v1.GetPolicyResponse
+	nil,                           // 124: asc.v1.LastCommitsResponse.ByNameEntry
+	nil,                           // 125: asc.v1.ReadChangesetResponse.ExtraEntry
+	nil,                           // 126: asc.v1.AttrValues.ValuesEntry
 }
 var file_asc_v1_repo_proto_depIdxs = []int32{
 	0,   // 0: asc.v1.RepoRef.id_mode:type_name -> asc.v1.IdMode
@@ -9577,194 +9707,199 @@ var file_asc_v1_repo_proto_depIdxs = []int32{
 	26,  // 17: asc.v1.UpdateRefsRequest.updates:type_name -> asc.v1.RefUpdate
 	2,   // 18: asc.v1.UpdateRefsRequest.mode:type_name -> asc.v1.UpdateMode
 	3,   // 19: asc.v1.UpdateRefsRequest.hooks:type_name -> asc.v1.HookMode
-	13,  // 20: asc.v1.RefResult.old:type_name -> asc.v1.RefTarget
-	13,  // 21: asc.v1.RefResult.new:type_name -> asc.v1.RefTarget
-	29,  // 22: asc.v1.UpdateRefsResponse.results:type_name -> asc.v1.RefResult
-	28,  // 23: asc.v1.UpdateRefsResponse.rewritten:type_name -> asc.v1.Rewrite
-	10,  // 24: asc.v1.ResolveRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 25: asc.v1.GitMapRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 26: asc.v1.LogRequest.repo:type_name -> asc.v1.RepoRef
-	15,  // 27: asc.v1.LogEntry.author:type_name -> asc.v1.Signature
-	15,  // 28: asc.v1.LogEntry.committer:type_name -> asc.v1.Signature
-	98,  // 29: asc.v1.LogEntry.stats:type_name -> asc.v1.DiffStat
-	36,  // 30: asc.v1.LogResponse.entries:type_name -> asc.v1.LogEntry
-	10,  // 31: asc.v1.MergeBaseRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 32: asc.v1.IsAncestorRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 33: asc.v1.DiffRequest.repo:type_name -> asc.v1.RepoRef
-	4,   // 34: asc.v1.DiffRequest.format:type_name -> asc.v1.DiffFormat
-	43,  // 35: asc.v1.DiffResponse.changes:type_name -> asc.v1.PathChange
-	10,  // 36: asc.v1.BlameRequest.repo:type_name -> asc.v1.RepoRef
-	46,  // 37: asc.v1.BlameResponse.hunks:type_name -> asc.v1.BlameHunk
-	36,  // 38: asc.v1.BlameResponse.commits:type_name -> asc.v1.LogEntry
-	96,  // 39: asc.v1.BlameResponse.reviews:type_name -> asc.v1.ReviewState
-	10,  // 40: asc.v1.LastCommitsRequest.repo:type_name -> asc.v1.RepoRef
-	122, // 41: asc.v1.LastCommitsResponse.by_name:type_name -> asc.v1.LastCommitsResponse.ByNameEntry
-	10,  // 42: asc.v1.ReadChangesetRequest.repo:type_name -> asc.v1.RepoRef
-	36,  // 43: asc.v1.ReadChangesetResponse.header:type_name -> asc.v1.LogEntry
-	43,  // 44: asc.v1.ReadChangesetResponse.changes:type_name -> asc.v1.PathChange
-	123, // 45: asc.v1.ReadChangesetResponse.extra:type_name -> asc.v1.ReadChangesetResponse.ExtraEntry
-	10,  // 46: asc.v1.ReadTreeRequest.repo:type_name -> asc.v1.RepoRef
-	53,  // 47: asc.v1.ReadTreeResponse.entries:type_name -> asc.v1.TreeEntryInfo
-	10,  // 48: asc.v1.ReadFileRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 49: asc.v1.StatRequest.repo:type_name -> asc.v1.RepoRef
-	11,  // 50: asc.v1.StatRequest.objects:type_name -> asc.v1.ObjKey
-	53,  // 51: asc.v1.StatResponse.entries:type_name -> asc.v1.TreeEntryInfo
-	10,  // 52: asc.v1.CheckAttrRequest.repo:type_name -> asc.v1.RepoRef
-	124, // 53: asc.v1.AttrValues.values:type_name -> asc.v1.AttrValues.ValuesEntry
-	60,  // 54: asc.v1.CheckAttrResponse.per_path:type_name -> asc.v1.AttrValues
-	10,  // 55: asc.v1.GrepRequest.repo:type_name -> asc.v1.RepoRef
-	63,  // 56: asc.v1.GrepResponse.matches:type_name -> asc.v1.GrepMatch
-	10,  // 57: asc.v1.ArchiveRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 58: asc.v1.CommitRequest.repo:type_name -> asc.v1.RepoRef
-	67,  // 59: asc.v1.CommitRequest.ops:type_name -> asc.v1.FileOp
-	15,  // 60: asc.v1.CommitRequest.author:type_name -> asc.v1.Signature
-	15,  // 61: asc.v1.CommitRequest.committer:type_name -> asc.v1.Signature
-	13,  // 62: asc.v1.CommitRequest.expect:type_name -> asc.v1.RefTarget
-	10,  // 63: asc.v1.MergeRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 64: asc.v1.MergeRequest.head_repo:type_name -> asc.v1.RepoRef
-	5,   // 65: asc.v1.MergeRequest.style:type_name -> asc.v1.MergeStyle
-	15,  // 66: asc.v1.MergeRequest.author:type_name -> asc.v1.Signature
-	15,  // 67: asc.v1.MergeRequest.committer:type_name -> asc.v1.Signature
-	6,   // 68: asc.v1.Conflict.kind:type_name -> asc.v1.ConflictKind
-	28,  // 69: asc.v1.MergeResponse.rewritten:type_name -> asc.v1.Rewrite
-	71,  // 70: asc.v1.MergeResponse.conflict_details:type_name -> asc.v1.Conflict
-	10,  // 71: asc.v1.ApplyRequest.repo:type_name -> asc.v1.RepoRef
-	7,   // 72: asc.v1.ApplyRequest.mode:type_name -> asc.v1.ApplyMode
-	15,  // 73: asc.v1.ApplyRequest.author:type_name -> asc.v1.Signature
-	15,  // 74: asc.v1.ApplyRequest.committer:type_name -> asc.v1.Signature
-	71,  // 75: asc.v1.ApplyResponse.conflict_details:type_name -> asc.v1.Conflict
-	10,  // 76: asc.v1.CopyClosureRequest.from:type_name -> asc.v1.RepoRef
-	10,  // 77: asc.v1.CopyClosureRequest.to:type_name -> asc.v1.RepoRef
-	10,  // 78: asc.v1.RepoAdminRequest.repo:type_name -> asc.v1.RepoRef
-	79,  // 79: asc.v1.RepoAdminRequest.init:type_name -> asc.v1.InitOp
-	80,  // 80: asc.v1.RepoAdminRequest.fork:type_name -> asc.v1.ForkOp
-	78,  // 81: asc.v1.RepoAdminRequest.set_branchless:type_name -> asc.v1.SetBranchlessOp
-	10,  // 82: asc.v1.ForkOp.from:type_name -> asc.v1.RepoRef
-	10,  // 83: asc.v1.ImportGitPushRequest.repo:type_name -> asc.v1.RepoRef
-	82,  // 84: asc.v1.ImportGitPushRequest.updates:type_name -> asc.v1.GitRefUpdate
-	29,  // 85: asc.v1.ImportGitPushResponse.results:type_name -> asc.v1.RefResult
-	10,  // 86: asc.v1.IngestRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 87: asc.v1.FindLandingRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 88: asc.v1.ClassifyRequest.repo:type_name -> asc.v1.RepoRef
-	8,   // 89: asc.v1.FileClass.class:type_name -> asc.v1.ChangeClass
-	90,  // 90: asc.v1.ClassifyResponse.files:type_name -> asc.v1.FileClass
-	8,   // 91: asc.v1.ClassifyResponse.overall:type_name -> asc.v1.ChangeClass
-	67,  // 92: asc.v1.Resolution.op:type_name -> asc.v1.FileOp
-	10,  // 93: asc.v1.RebaseRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 94: asc.v1.RebaseRequest.head_repo:type_name -> asc.v1.RepoRef
-	92,  // 95: asc.v1.RebaseRequest.resolutions:type_name -> asc.v1.Resolution
-	13,  // 96: asc.v1.RebaseRequest.expect:type_name -> asc.v1.RefTarget
-	2,   // 97: asc.v1.RebaseRequest.mode:type_name -> asc.v1.UpdateMode
-	28,  // 98: asc.v1.RebaseResponse.rewritten:type_name -> asc.v1.Rewrite
-	71,  // 99: asc.v1.RebaseResponse.conflicts:type_name -> asc.v1.Conflict
-	71,  // 100: asc.v1.ErrorDetail.conflicts:type_name -> asc.v1.Conflict
-	97,  // 101: asc.v1.DiffStat.files:type_name -> asc.v1.FileStat
-	10,  // 102: asc.v1.CommitGraphRequest.repo:type_name -> asc.v1.RepoRef
-	9,   // 103: asc.v1.CommitGraphRequest.preset:type_name -> asc.v1.GraphPreset
-	36,  // 104: asc.v1.GraphRow.entry:type_name -> asc.v1.LogEntry
-	100, // 105: asc.v1.GraphRow.edges:type_name -> asc.v1.GraphEdge
-	96,  // 106: asc.v1.GraphRow.review:type_name -> asc.v1.ReviewState
-	101, // 107: asc.v1.CommitGraphResponse.rows:type_name -> asc.v1.GraphRow
-	102, // 108: asc.v1.CommitGraphResponse.ref_markers:type_name -> asc.v1.RefMarker
-	10,  // 109: asc.v1.LineHistoryRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 110: asc.v1.CompareRequest.repo:type_name -> asc.v1.RepoRef
-	36,  // 111: asc.v1.CompareResponse.ahead_entries:type_name -> asc.v1.LogEntry
-	36,  // 112: asc.v1.CompareResponse.behind_entries:type_name -> asc.v1.LogEntry
-	43,  // 113: asc.v1.CompareResponse.files:type_name -> asc.v1.PathChange
-	10,  // 114: asc.v1.RepoConfigRequest.repo:type_name -> asc.v1.RepoRef
-	107, // 115: asc.v1.RepoConfigResponse.autolinks:type_name -> asc.v1.Autolink
-	10,  // 116: asc.v1.WatchRefsRequest.repo:type_name -> asc.v1.RepoRef
-	13,  // 117: asc.v1.RefEvent.old:type_name -> asc.v1.RefTarget
-	13,  // 118: asc.v1.RefEvent.new:type_name -> asc.v1.RefTarget
-	10,  // 119: asc.v1.GetPolicyRequest.repo:type_name -> asc.v1.RepoRef
-	113, // 120: asc.v1.GetPolicyResponse.roles:type_name -> asc.v1.PolicyRole
-	115, // 121: asc.v1.GetPolicyResponse.trunk:type_name -> asc.v1.PolicyTrunk
-	114, // 122: asc.v1.GetPolicyResponse.paths:type_name -> asc.v1.PolicyPathRule
-	116, // 123: asc.v1.GetPolicyResponse.agents:type_name -> asc.v1.PolicyAgents
-	120, // 124: asc.v1.GetPolicyResponse.decisions:type_name -> asc.v1.PolicyDecision
-	117, // 125: asc.v1.GetPolicyResponse.review:type_name -> asc.v1.PolicyReview
-	118, // 126: asc.v1.GetPolicyResponse.merge:type_name -> asc.v1.PolicyMerge
-	119, // 127: asc.v1.GetPolicyResponse.stacks:type_name -> asc.v1.PolicyStacks
-	36,  // 128: asc.v1.LastCommitsResponse.ByNameEntry.value:type_name -> asc.v1.LogEntry
-	16,  // 129: asc.v1.Repo.Version:input_type -> asc.v1.VersionRequest
-	18,  // 130: asc.v1.Repo.HasObjects:input_type -> asc.v1.HasObjectsRequest
-	20,  // 131: asc.v1.Repo.GetObjects:input_type -> asc.v1.GetObjectsRequest
-	22,  // 132: asc.v1.Repo.PutObjects:input_type -> asc.v1.PutObjectsRequest
-	24,  // 133: asc.v1.Repo.ListRefs:input_type -> asc.v1.ListRefsRequest
-	27,  // 134: asc.v1.Repo.UpdateRefs:input_type -> asc.v1.UpdateRefsRequest
-	31,  // 135: asc.v1.Repo.Resolve:input_type -> asc.v1.ResolveRequest
-	33,  // 136: asc.v1.Repo.GitMap:input_type -> asc.v1.GitMapRequest
-	35,  // 137: asc.v1.Repo.Log:input_type -> asc.v1.LogRequest
-	38,  // 138: asc.v1.Repo.MergeBase:input_type -> asc.v1.MergeBaseRequest
-	40,  // 139: asc.v1.Repo.IsAncestor:input_type -> asc.v1.IsAncestorRequest
-	42,  // 140: asc.v1.Repo.Diff:input_type -> asc.v1.DiffRequest
-	45,  // 141: asc.v1.Repo.Blame:input_type -> asc.v1.BlameRequest
-	48,  // 142: asc.v1.Repo.LastCommits:input_type -> asc.v1.LastCommitsRequest
-	50,  // 143: asc.v1.Repo.ReadChangeset:input_type -> asc.v1.ReadChangesetRequest
-	52,  // 144: asc.v1.Repo.ReadTree:input_type -> asc.v1.ReadTreeRequest
-	55,  // 145: asc.v1.Repo.ReadFile:input_type -> asc.v1.ReadFileRequest
-	57,  // 146: asc.v1.Repo.Stat:input_type -> asc.v1.StatRequest
-	59,  // 147: asc.v1.Repo.CheckAttr:input_type -> asc.v1.CheckAttrRequest
-	62,  // 148: asc.v1.Repo.Grep:input_type -> asc.v1.GrepRequest
-	65,  // 149: asc.v1.Repo.Archive:input_type -> asc.v1.ArchiveRequest
-	68,  // 150: asc.v1.Repo.Commit:input_type -> asc.v1.CommitRequest
-	70,  // 151: asc.v1.Repo.Merge:input_type -> asc.v1.MergeRequest
-	73,  // 152: asc.v1.Repo.Apply:input_type -> asc.v1.ApplyRequest
-	75,  // 153: asc.v1.Repo.CopyClosure:input_type -> asc.v1.CopyClosureRequest
-	77,  // 154: asc.v1.Repo.RepoAdmin:input_type -> asc.v1.RepoAdminRequest
-	83,  // 155: asc.v1.Repo.ImportGitPush:input_type -> asc.v1.ImportGitPushRequest
-	85,  // 156: asc.v1.Repo.Ingest:input_type -> asc.v1.IngestRequest
-	87,  // 157: asc.v1.Repo.FindLanding:input_type -> asc.v1.FindLandingRequest
-	89,  // 158: asc.v1.Repo.Classify:input_type -> asc.v1.ClassifyRequest
-	93,  // 159: asc.v1.Repo.Rebase:input_type -> asc.v1.RebaseRequest
-	99,  // 160: asc.v1.Repo.CommitGraph:input_type -> asc.v1.CommitGraphRequest
-	104, // 161: asc.v1.Repo.LineHistory:input_type -> asc.v1.LineHistoryRequest
-	105, // 162: asc.v1.Repo.Compare:input_type -> asc.v1.CompareRequest
-	108, // 163: asc.v1.Repo.RepoConfig:input_type -> asc.v1.RepoConfigRequest
-	112, // 164: asc.v1.Repo.GetPolicy:input_type -> asc.v1.GetPolicyRequest
-	110, // 165: asc.v1.Repo.WatchRefs:input_type -> asc.v1.WatchRefsRequest
-	17,  // 166: asc.v1.Repo.Version:output_type -> asc.v1.VersionResponse
-	19,  // 167: asc.v1.Repo.HasObjects:output_type -> asc.v1.HasObjectsResponse
-	21,  // 168: asc.v1.Repo.GetObjects:output_type -> asc.v1.GetObjectsResponse
-	23,  // 169: asc.v1.Repo.PutObjects:output_type -> asc.v1.PutObjectsResponse
-	25,  // 170: asc.v1.Repo.ListRefs:output_type -> asc.v1.ListRefsResponse
-	30,  // 171: asc.v1.Repo.UpdateRefs:output_type -> asc.v1.UpdateRefsResponse
-	32,  // 172: asc.v1.Repo.Resolve:output_type -> asc.v1.ResolveResponse
-	34,  // 173: asc.v1.Repo.GitMap:output_type -> asc.v1.GitMapResponse
-	37,  // 174: asc.v1.Repo.Log:output_type -> asc.v1.LogResponse
-	39,  // 175: asc.v1.Repo.MergeBase:output_type -> asc.v1.MergeBaseResponse
-	41,  // 176: asc.v1.Repo.IsAncestor:output_type -> asc.v1.IsAncestorResponse
-	44,  // 177: asc.v1.Repo.Diff:output_type -> asc.v1.DiffResponse
-	47,  // 178: asc.v1.Repo.Blame:output_type -> asc.v1.BlameResponse
-	49,  // 179: asc.v1.Repo.LastCommits:output_type -> asc.v1.LastCommitsResponse
-	51,  // 180: asc.v1.Repo.ReadChangeset:output_type -> asc.v1.ReadChangesetResponse
-	54,  // 181: asc.v1.Repo.ReadTree:output_type -> asc.v1.ReadTreeResponse
-	56,  // 182: asc.v1.Repo.ReadFile:output_type -> asc.v1.ReadFileResponse
-	58,  // 183: asc.v1.Repo.Stat:output_type -> asc.v1.StatResponse
-	61,  // 184: asc.v1.Repo.CheckAttr:output_type -> asc.v1.CheckAttrResponse
-	64,  // 185: asc.v1.Repo.Grep:output_type -> asc.v1.GrepResponse
-	66,  // 186: asc.v1.Repo.Archive:output_type -> asc.v1.ArchiveResponse
-	69,  // 187: asc.v1.Repo.Commit:output_type -> asc.v1.CommitResponse
-	72,  // 188: asc.v1.Repo.Merge:output_type -> asc.v1.MergeResponse
-	74,  // 189: asc.v1.Repo.Apply:output_type -> asc.v1.ApplyResponse
-	76,  // 190: asc.v1.Repo.CopyClosure:output_type -> asc.v1.CopyClosureResponse
-	81,  // 191: asc.v1.Repo.RepoAdmin:output_type -> asc.v1.RepoAdminResponse
-	84,  // 192: asc.v1.Repo.ImportGitPush:output_type -> asc.v1.ImportGitPushResponse
-	86,  // 193: asc.v1.Repo.Ingest:output_type -> asc.v1.IngestResponse
-	88,  // 194: asc.v1.Repo.FindLanding:output_type -> asc.v1.FindLandingResponse
-	91,  // 195: asc.v1.Repo.Classify:output_type -> asc.v1.ClassifyResponse
-	94,  // 196: asc.v1.Repo.Rebase:output_type -> asc.v1.RebaseResponse
-	103, // 197: asc.v1.Repo.CommitGraph:output_type -> asc.v1.CommitGraphResponse
-	37,  // 198: asc.v1.Repo.LineHistory:output_type -> asc.v1.LogResponse
-	106, // 199: asc.v1.Repo.Compare:output_type -> asc.v1.CompareResponse
-	109, // 200: asc.v1.Repo.RepoConfig:output_type -> asc.v1.RepoConfigResponse
-	121, // 201: asc.v1.Repo.GetPolicy:output_type -> asc.v1.GetPolicyResponse
-	111, // 202: asc.v1.Repo.WatchRefs:output_type -> asc.v1.RefEvent
-	166, // [166:203] is the sub-list for method output_type
-	129, // [129:166] is the sub-list for method input_type
-	129, // [129:129] is the sub-list for extension type_name
-	129, // [129:129] is the sub-list for extension extendee
-	0,   // [0:129] is the sub-list for field type_name
+	28,  // 20: asc.v1.UpdateRefsRequest.linked:type_name -> asc.v1.LinkedUpdate
+	10,  // 21: asc.v1.LinkedUpdate.repo:type_name -> asc.v1.RepoRef
+	26,  // 22: asc.v1.LinkedUpdate.updates:type_name -> asc.v1.RefUpdate
+	31,  // 23: asc.v1.LinkedResult.results:type_name -> asc.v1.RefResult
+	13,  // 24: asc.v1.RefResult.old:type_name -> asc.v1.RefTarget
+	13,  // 25: asc.v1.RefResult.new:type_name -> asc.v1.RefTarget
+	31,  // 26: asc.v1.UpdateRefsResponse.results:type_name -> asc.v1.RefResult
+	30,  // 27: asc.v1.UpdateRefsResponse.rewritten:type_name -> asc.v1.Rewrite
+	29,  // 28: asc.v1.UpdateRefsResponse.linked:type_name -> asc.v1.LinkedResult
+	10,  // 29: asc.v1.ResolveRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 30: asc.v1.GitMapRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 31: asc.v1.LogRequest.repo:type_name -> asc.v1.RepoRef
+	15,  // 32: asc.v1.LogEntry.author:type_name -> asc.v1.Signature
+	15,  // 33: asc.v1.LogEntry.committer:type_name -> asc.v1.Signature
+	100, // 34: asc.v1.LogEntry.stats:type_name -> asc.v1.DiffStat
+	38,  // 35: asc.v1.LogResponse.entries:type_name -> asc.v1.LogEntry
+	10,  // 36: asc.v1.MergeBaseRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 37: asc.v1.IsAncestorRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 38: asc.v1.DiffRequest.repo:type_name -> asc.v1.RepoRef
+	4,   // 39: asc.v1.DiffRequest.format:type_name -> asc.v1.DiffFormat
+	45,  // 40: asc.v1.DiffResponse.changes:type_name -> asc.v1.PathChange
+	10,  // 41: asc.v1.BlameRequest.repo:type_name -> asc.v1.RepoRef
+	48,  // 42: asc.v1.BlameResponse.hunks:type_name -> asc.v1.BlameHunk
+	38,  // 43: asc.v1.BlameResponse.commits:type_name -> asc.v1.LogEntry
+	98,  // 44: asc.v1.BlameResponse.reviews:type_name -> asc.v1.ReviewState
+	10,  // 45: asc.v1.LastCommitsRequest.repo:type_name -> asc.v1.RepoRef
+	124, // 46: asc.v1.LastCommitsResponse.by_name:type_name -> asc.v1.LastCommitsResponse.ByNameEntry
+	10,  // 47: asc.v1.ReadChangesetRequest.repo:type_name -> asc.v1.RepoRef
+	38,  // 48: asc.v1.ReadChangesetResponse.header:type_name -> asc.v1.LogEntry
+	45,  // 49: asc.v1.ReadChangesetResponse.changes:type_name -> asc.v1.PathChange
+	125, // 50: asc.v1.ReadChangesetResponse.extra:type_name -> asc.v1.ReadChangesetResponse.ExtraEntry
+	10,  // 51: asc.v1.ReadTreeRequest.repo:type_name -> asc.v1.RepoRef
+	55,  // 52: asc.v1.ReadTreeResponse.entries:type_name -> asc.v1.TreeEntryInfo
+	10,  // 53: asc.v1.ReadFileRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 54: asc.v1.StatRequest.repo:type_name -> asc.v1.RepoRef
+	11,  // 55: asc.v1.StatRequest.objects:type_name -> asc.v1.ObjKey
+	55,  // 56: asc.v1.StatResponse.entries:type_name -> asc.v1.TreeEntryInfo
+	10,  // 57: asc.v1.CheckAttrRequest.repo:type_name -> asc.v1.RepoRef
+	126, // 58: asc.v1.AttrValues.values:type_name -> asc.v1.AttrValues.ValuesEntry
+	62,  // 59: asc.v1.CheckAttrResponse.per_path:type_name -> asc.v1.AttrValues
+	10,  // 60: asc.v1.GrepRequest.repo:type_name -> asc.v1.RepoRef
+	65,  // 61: asc.v1.GrepResponse.matches:type_name -> asc.v1.GrepMatch
+	10,  // 62: asc.v1.ArchiveRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 63: asc.v1.CommitRequest.repo:type_name -> asc.v1.RepoRef
+	69,  // 64: asc.v1.CommitRequest.ops:type_name -> asc.v1.FileOp
+	15,  // 65: asc.v1.CommitRequest.author:type_name -> asc.v1.Signature
+	15,  // 66: asc.v1.CommitRequest.committer:type_name -> asc.v1.Signature
+	13,  // 67: asc.v1.CommitRequest.expect:type_name -> asc.v1.RefTarget
+	10,  // 68: asc.v1.MergeRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 69: asc.v1.MergeRequest.head_repo:type_name -> asc.v1.RepoRef
+	5,   // 70: asc.v1.MergeRequest.style:type_name -> asc.v1.MergeStyle
+	15,  // 71: asc.v1.MergeRequest.author:type_name -> asc.v1.Signature
+	15,  // 72: asc.v1.MergeRequest.committer:type_name -> asc.v1.Signature
+	6,   // 73: asc.v1.Conflict.kind:type_name -> asc.v1.ConflictKind
+	30,  // 74: asc.v1.MergeResponse.rewritten:type_name -> asc.v1.Rewrite
+	73,  // 75: asc.v1.MergeResponse.conflict_details:type_name -> asc.v1.Conflict
+	10,  // 76: asc.v1.ApplyRequest.repo:type_name -> asc.v1.RepoRef
+	7,   // 77: asc.v1.ApplyRequest.mode:type_name -> asc.v1.ApplyMode
+	15,  // 78: asc.v1.ApplyRequest.author:type_name -> asc.v1.Signature
+	15,  // 79: asc.v1.ApplyRequest.committer:type_name -> asc.v1.Signature
+	73,  // 80: asc.v1.ApplyResponse.conflict_details:type_name -> asc.v1.Conflict
+	10,  // 81: asc.v1.CopyClosureRequest.from:type_name -> asc.v1.RepoRef
+	10,  // 82: asc.v1.CopyClosureRequest.to:type_name -> asc.v1.RepoRef
+	10,  // 83: asc.v1.RepoAdminRequest.repo:type_name -> asc.v1.RepoRef
+	81,  // 84: asc.v1.RepoAdminRequest.init:type_name -> asc.v1.InitOp
+	82,  // 85: asc.v1.RepoAdminRequest.fork:type_name -> asc.v1.ForkOp
+	80,  // 86: asc.v1.RepoAdminRequest.set_branchless:type_name -> asc.v1.SetBranchlessOp
+	10,  // 87: asc.v1.ForkOp.from:type_name -> asc.v1.RepoRef
+	10,  // 88: asc.v1.ImportGitPushRequest.repo:type_name -> asc.v1.RepoRef
+	84,  // 89: asc.v1.ImportGitPushRequest.updates:type_name -> asc.v1.GitRefUpdate
+	31,  // 90: asc.v1.ImportGitPushResponse.results:type_name -> asc.v1.RefResult
+	10,  // 91: asc.v1.IngestRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 92: asc.v1.FindLandingRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 93: asc.v1.ClassifyRequest.repo:type_name -> asc.v1.RepoRef
+	8,   // 94: asc.v1.FileClass.class:type_name -> asc.v1.ChangeClass
+	92,  // 95: asc.v1.ClassifyResponse.files:type_name -> asc.v1.FileClass
+	8,   // 96: asc.v1.ClassifyResponse.overall:type_name -> asc.v1.ChangeClass
+	69,  // 97: asc.v1.Resolution.op:type_name -> asc.v1.FileOp
+	10,  // 98: asc.v1.RebaseRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 99: asc.v1.RebaseRequest.head_repo:type_name -> asc.v1.RepoRef
+	94,  // 100: asc.v1.RebaseRequest.resolutions:type_name -> asc.v1.Resolution
+	13,  // 101: asc.v1.RebaseRequest.expect:type_name -> asc.v1.RefTarget
+	2,   // 102: asc.v1.RebaseRequest.mode:type_name -> asc.v1.UpdateMode
+	30,  // 103: asc.v1.RebaseResponse.rewritten:type_name -> asc.v1.Rewrite
+	73,  // 104: asc.v1.RebaseResponse.conflicts:type_name -> asc.v1.Conflict
+	73,  // 105: asc.v1.ErrorDetail.conflicts:type_name -> asc.v1.Conflict
+	99,  // 106: asc.v1.DiffStat.files:type_name -> asc.v1.FileStat
+	10,  // 107: asc.v1.CommitGraphRequest.repo:type_name -> asc.v1.RepoRef
+	9,   // 108: asc.v1.CommitGraphRequest.preset:type_name -> asc.v1.GraphPreset
+	38,  // 109: asc.v1.GraphRow.entry:type_name -> asc.v1.LogEntry
+	102, // 110: asc.v1.GraphRow.edges:type_name -> asc.v1.GraphEdge
+	98,  // 111: asc.v1.GraphRow.review:type_name -> asc.v1.ReviewState
+	103, // 112: asc.v1.CommitGraphResponse.rows:type_name -> asc.v1.GraphRow
+	104, // 113: asc.v1.CommitGraphResponse.ref_markers:type_name -> asc.v1.RefMarker
+	10,  // 114: asc.v1.LineHistoryRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 115: asc.v1.CompareRequest.repo:type_name -> asc.v1.RepoRef
+	38,  // 116: asc.v1.CompareResponse.ahead_entries:type_name -> asc.v1.LogEntry
+	38,  // 117: asc.v1.CompareResponse.behind_entries:type_name -> asc.v1.LogEntry
+	45,  // 118: asc.v1.CompareResponse.files:type_name -> asc.v1.PathChange
+	10,  // 119: asc.v1.RepoConfigRequest.repo:type_name -> asc.v1.RepoRef
+	109, // 120: asc.v1.RepoConfigResponse.autolinks:type_name -> asc.v1.Autolink
+	10,  // 121: asc.v1.WatchRefsRequest.repo:type_name -> asc.v1.RepoRef
+	13,  // 122: asc.v1.RefEvent.old:type_name -> asc.v1.RefTarget
+	13,  // 123: asc.v1.RefEvent.new:type_name -> asc.v1.RefTarget
+	10,  // 124: asc.v1.GetPolicyRequest.repo:type_name -> asc.v1.RepoRef
+	115, // 125: asc.v1.GetPolicyResponse.roles:type_name -> asc.v1.PolicyRole
+	117, // 126: asc.v1.GetPolicyResponse.trunk:type_name -> asc.v1.PolicyTrunk
+	116, // 127: asc.v1.GetPolicyResponse.paths:type_name -> asc.v1.PolicyPathRule
+	118, // 128: asc.v1.GetPolicyResponse.agents:type_name -> asc.v1.PolicyAgents
+	122, // 129: asc.v1.GetPolicyResponse.decisions:type_name -> asc.v1.PolicyDecision
+	119, // 130: asc.v1.GetPolicyResponse.review:type_name -> asc.v1.PolicyReview
+	120, // 131: asc.v1.GetPolicyResponse.merge:type_name -> asc.v1.PolicyMerge
+	121, // 132: asc.v1.GetPolicyResponse.stacks:type_name -> asc.v1.PolicyStacks
+	38,  // 133: asc.v1.LastCommitsResponse.ByNameEntry.value:type_name -> asc.v1.LogEntry
+	16,  // 134: asc.v1.Repo.Version:input_type -> asc.v1.VersionRequest
+	18,  // 135: asc.v1.Repo.HasObjects:input_type -> asc.v1.HasObjectsRequest
+	20,  // 136: asc.v1.Repo.GetObjects:input_type -> asc.v1.GetObjectsRequest
+	22,  // 137: asc.v1.Repo.PutObjects:input_type -> asc.v1.PutObjectsRequest
+	24,  // 138: asc.v1.Repo.ListRefs:input_type -> asc.v1.ListRefsRequest
+	27,  // 139: asc.v1.Repo.UpdateRefs:input_type -> asc.v1.UpdateRefsRequest
+	33,  // 140: asc.v1.Repo.Resolve:input_type -> asc.v1.ResolveRequest
+	35,  // 141: asc.v1.Repo.GitMap:input_type -> asc.v1.GitMapRequest
+	37,  // 142: asc.v1.Repo.Log:input_type -> asc.v1.LogRequest
+	40,  // 143: asc.v1.Repo.MergeBase:input_type -> asc.v1.MergeBaseRequest
+	42,  // 144: asc.v1.Repo.IsAncestor:input_type -> asc.v1.IsAncestorRequest
+	44,  // 145: asc.v1.Repo.Diff:input_type -> asc.v1.DiffRequest
+	47,  // 146: asc.v1.Repo.Blame:input_type -> asc.v1.BlameRequest
+	50,  // 147: asc.v1.Repo.LastCommits:input_type -> asc.v1.LastCommitsRequest
+	52,  // 148: asc.v1.Repo.ReadChangeset:input_type -> asc.v1.ReadChangesetRequest
+	54,  // 149: asc.v1.Repo.ReadTree:input_type -> asc.v1.ReadTreeRequest
+	57,  // 150: asc.v1.Repo.ReadFile:input_type -> asc.v1.ReadFileRequest
+	59,  // 151: asc.v1.Repo.Stat:input_type -> asc.v1.StatRequest
+	61,  // 152: asc.v1.Repo.CheckAttr:input_type -> asc.v1.CheckAttrRequest
+	64,  // 153: asc.v1.Repo.Grep:input_type -> asc.v1.GrepRequest
+	67,  // 154: asc.v1.Repo.Archive:input_type -> asc.v1.ArchiveRequest
+	70,  // 155: asc.v1.Repo.Commit:input_type -> asc.v1.CommitRequest
+	72,  // 156: asc.v1.Repo.Merge:input_type -> asc.v1.MergeRequest
+	75,  // 157: asc.v1.Repo.Apply:input_type -> asc.v1.ApplyRequest
+	77,  // 158: asc.v1.Repo.CopyClosure:input_type -> asc.v1.CopyClosureRequest
+	79,  // 159: asc.v1.Repo.RepoAdmin:input_type -> asc.v1.RepoAdminRequest
+	85,  // 160: asc.v1.Repo.ImportGitPush:input_type -> asc.v1.ImportGitPushRequest
+	87,  // 161: asc.v1.Repo.Ingest:input_type -> asc.v1.IngestRequest
+	89,  // 162: asc.v1.Repo.FindLanding:input_type -> asc.v1.FindLandingRequest
+	91,  // 163: asc.v1.Repo.Classify:input_type -> asc.v1.ClassifyRequest
+	95,  // 164: asc.v1.Repo.Rebase:input_type -> asc.v1.RebaseRequest
+	101, // 165: asc.v1.Repo.CommitGraph:input_type -> asc.v1.CommitGraphRequest
+	106, // 166: asc.v1.Repo.LineHistory:input_type -> asc.v1.LineHistoryRequest
+	107, // 167: asc.v1.Repo.Compare:input_type -> asc.v1.CompareRequest
+	110, // 168: asc.v1.Repo.RepoConfig:input_type -> asc.v1.RepoConfigRequest
+	114, // 169: asc.v1.Repo.GetPolicy:input_type -> asc.v1.GetPolicyRequest
+	112, // 170: asc.v1.Repo.WatchRefs:input_type -> asc.v1.WatchRefsRequest
+	17,  // 171: asc.v1.Repo.Version:output_type -> asc.v1.VersionResponse
+	19,  // 172: asc.v1.Repo.HasObjects:output_type -> asc.v1.HasObjectsResponse
+	21,  // 173: asc.v1.Repo.GetObjects:output_type -> asc.v1.GetObjectsResponse
+	23,  // 174: asc.v1.Repo.PutObjects:output_type -> asc.v1.PutObjectsResponse
+	25,  // 175: asc.v1.Repo.ListRefs:output_type -> asc.v1.ListRefsResponse
+	32,  // 176: asc.v1.Repo.UpdateRefs:output_type -> asc.v1.UpdateRefsResponse
+	34,  // 177: asc.v1.Repo.Resolve:output_type -> asc.v1.ResolveResponse
+	36,  // 178: asc.v1.Repo.GitMap:output_type -> asc.v1.GitMapResponse
+	39,  // 179: asc.v1.Repo.Log:output_type -> asc.v1.LogResponse
+	41,  // 180: asc.v1.Repo.MergeBase:output_type -> asc.v1.MergeBaseResponse
+	43,  // 181: asc.v1.Repo.IsAncestor:output_type -> asc.v1.IsAncestorResponse
+	46,  // 182: asc.v1.Repo.Diff:output_type -> asc.v1.DiffResponse
+	49,  // 183: asc.v1.Repo.Blame:output_type -> asc.v1.BlameResponse
+	51,  // 184: asc.v1.Repo.LastCommits:output_type -> asc.v1.LastCommitsResponse
+	53,  // 185: asc.v1.Repo.ReadChangeset:output_type -> asc.v1.ReadChangesetResponse
+	56,  // 186: asc.v1.Repo.ReadTree:output_type -> asc.v1.ReadTreeResponse
+	58,  // 187: asc.v1.Repo.ReadFile:output_type -> asc.v1.ReadFileResponse
+	60,  // 188: asc.v1.Repo.Stat:output_type -> asc.v1.StatResponse
+	63,  // 189: asc.v1.Repo.CheckAttr:output_type -> asc.v1.CheckAttrResponse
+	66,  // 190: asc.v1.Repo.Grep:output_type -> asc.v1.GrepResponse
+	68,  // 191: asc.v1.Repo.Archive:output_type -> asc.v1.ArchiveResponse
+	71,  // 192: asc.v1.Repo.Commit:output_type -> asc.v1.CommitResponse
+	74,  // 193: asc.v1.Repo.Merge:output_type -> asc.v1.MergeResponse
+	76,  // 194: asc.v1.Repo.Apply:output_type -> asc.v1.ApplyResponse
+	78,  // 195: asc.v1.Repo.CopyClosure:output_type -> asc.v1.CopyClosureResponse
+	83,  // 196: asc.v1.Repo.RepoAdmin:output_type -> asc.v1.RepoAdminResponse
+	86,  // 197: asc.v1.Repo.ImportGitPush:output_type -> asc.v1.ImportGitPushResponse
+	88,  // 198: asc.v1.Repo.Ingest:output_type -> asc.v1.IngestResponse
+	90,  // 199: asc.v1.Repo.FindLanding:output_type -> asc.v1.FindLandingResponse
+	93,  // 200: asc.v1.Repo.Classify:output_type -> asc.v1.ClassifyResponse
+	96,  // 201: asc.v1.Repo.Rebase:output_type -> asc.v1.RebaseResponse
+	105, // 202: asc.v1.Repo.CommitGraph:output_type -> asc.v1.CommitGraphResponse
+	39,  // 203: asc.v1.Repo.LineHistory:output_type -> asc.v1.LogResponse
+	108, // 204: asc.v1.Repo.Compare:output_type -> asc.v1.CompareResponse
+	111, // 205: asc.v1.Repo.RepoConfig:output_type -> asc.v1.RepoConfigResponse
+	123, // 206: asc.v1.Repo.GetPolicy:output_type -> asc.v1.GetPolicyResponse
+	113, // 207: asc.v1.Repo.WatchRefs:output_type -> asc.v1.RefEvent
+	171, // [171:208] is the sub-list for method output_type
+	134, // [134:171] is the sub-list for method input_type
+	134, // [134:134] is the sub-list for extension type_name
+	134, // [134:134] is the sub-list for extension extendee
+	0,   // [0:134] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_repo_proto_init() }
@@ -9782,17 +9917,17 @@ func file_asc_v1_repo_proto_init() {
 		(*RefUpdate_Absent)(nil),
 		(*RefUpdate_Value)(nil),
 	}
-	file_asc_v1_repo_proto_msgTypes[45].OneofWrappers = []any{
+	file_asc_v1_repo_proto_msgTypes[47].OneofWrappers = []any{
 		(*ReadFileRequest_RevPath)(nil),
 		(*ReadFileRequest_FileId)(nil),
 	}
-	file_asc_v1_repo_proto_msgTypes[57].OneofWrappers = []any{
+	file_asc_v1_repo_proto_msgTypes[59].OneofWrappers = []any{
 		(*FileOp_PutContent)(nil),
 		(*FileOp_PutFileId)(nil),
 		(*FileOp_Delete)(nil),
 		(*FileOp_MoveFrom)(nil),
 	}
-	file_asc_v1_repo_proto_msgTypes[67].OneofWrappers = []any{
+	file_asc_v1_repo_proto_msgTypes[69].OneofWrappers = []any{
 		(*RepoAdminRequest_Init)(nil),
 		(*RepoAdminRequest_Fork)(nil),
 		(*RepoAdminRequest_Delete)(nil),
@@ -9808,7 +9943,7 @@ func file_asc_v1_repo_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_repo_proto_rawDesc), len(file_asc_v1_repo_proto_rawDesc)),
 			NumEnums:      10,
-			NumMessages:   115,
+			NumMessages:   117,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
