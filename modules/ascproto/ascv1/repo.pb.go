@@ -675,7 +675,8 @@ func (x *ObjKey) GetId() []byte {
 type Object struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           *ObjKey                `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"` // stored bytes: codec ‖ data
+	Redacted      bool                   `protobuf:"varint,3,opt,name=redacted,proto3" json:"redacted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -722,6 +723,13 @@ func (x *Object) GetData() []byte {
 		return x.Data
 	}
 	return nil
+}
+
+func (x *Object) GetRedacted() bool {
+	if x != nil {
+		return x.Redacted
+	}
+	return false
 }
 
 type RefTarget struct {
@@ -2269,19 +2277,21 @@ func (x *LogRequest) GetResumeToken() string {
 }
 
 type LogEntry struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            []byte                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Git           []byte                 `protobuf:"bytes,2,opt,name=git,proto3" json:"git,omitempty"`
-	Parents       [][]byte               `protobuf:"bytes,3,rep,name=parents,proto3" json:"parents,omitempty"`
-	Author        *Signature             `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`
-	Committer     *Signature             `protobuf:"bytes,5,opt,name=committer,proto3" json:"committer,omitempty"`
-	Message       []byte                 `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
-	Gen           uint32                 `protobuf:"varint,7,opt,name=gen,proto3" json:"gen,omitempty"`
-	Change        []byte                 `protobuf:"bytes,8,opt,name=change,proto3" json:"change,omitempty"`
-	Stats         *DiffStat              `protobuf:"bytes,9,opt,name=stats,proto3" json:"stats,omitempty"`
-	Meta          []byte                 `protobuf:"bytes,10,opt,name=meta,proto3" json:"meta,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             []byte                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Git            []byte                 `protobuf:"bytes,2,opt,name=git,proto3" json:"git,omitempty"`
+	Parents        [][]byte               `protobuf:"bytes,3,rep,name=parents,proto3" json:"parents,omitempty"`
+	Author         *Signature             `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`
+	Committer      *Signature             `protobuf:"bytes,5,opt,name=committer,proto3" json:"committer,omitempty"`
+	Message        []byte                 `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
+	Gen            uint32                 `protobuf:"varint,7,opt,name=gen,proto3" json:"gen,omitempty"`
+	Change         []byte                 `protobuf:"bytes,8,opt,name=change,proto3" json:"change,omitempty"`
+	Stats          *DiffStat              `protobuf:"bytes,9,opt,name=stats,proto3" json:"stats,omitempty"`
+	Meta           []byte                 `protobuf:"bytes,10,opt,name=meta,proto3" json:"meta,omitempty"`
+	Redacted       bool                   `protobuf:"varint,11,opt,name=redacted,proto3" json:"redacted,omitempty"`
+	RestrictedDirs [][]byte               `protobuf:"bytes,12,rep,name=restricted_dirs,json=restrictedDirs,proto3" json:"restricted_dirs,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *LogEntry) Reset() {
@@ -2380,6 +2390,20 @@ func (x *LogEntry) GetStats() *DiffStat {
 func (x *LogEntry) GetMeta() []byte {
 	if x != nil {
 		return x.Meta
+	}
+	return nil
+}
+
+func (x *LogEntry) GetRedacted() bool {
+	if x != nil {
+		return x.Redacted
+	}
+	return false
+}
+
+func (x *LogEntry) GetRestrictedDirs() [][]byte {
+	if x != nil {
+		return x.RestrictedDirs
 	}
 	return nil
 }
@@ -3552,6 +3576,7 @@ type TreeEntryInfo struct {
 	Id            []byte                 `protobuf:"bytes,4,opt,name=id,proto3" json:"id,omitempty"`
 	Git           []byte                 `protobuf:"bytes,5,opt,name=git,proto3" json:"git,omitempty"`
 	Size          uint64                 `protobuf:"varint,6,opt,name=size,proto3" json:"size,omitempty"`
+	Restricted    bool                   `protobuf:"varint,9,opt,name=restricted,proto3" json:"restricted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3626,6 +3651,13 @@ func (x *TreeEntryInfo) GetSize() uint64 {
 		return x.Size
 	}
 	return 0
+}
+
+func (x *TreeEntryInfo) GetRestricted() bool {
+	if x != nil {
+		return x.Restricted
+	}
+	return false
 }
 
 type ReadTreeResponse struct {
@@ -8612,10 +8644,11 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\aid_mode\x18\x02 \x01(\x0e2\x0e.asc.v1.IdModeR\x06idMode\"C\n" +
 	"\x06ObjKey\x12#\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x0f.asc.v1.ObjKindR\x04kind\x12\x14\n" +
-	"\x02id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x02id\"D\n" +
+	"\x02id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x02id\"`\n" +
 	"\x06Object\x12 \n" +
 	"\x03key\x18\x01 \x01(\v2\x0e.asc.v1.ObjKeyR\x03key\x12\x18\n" +
-	"\x04data\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x05R\x04data\"P\n" +
+	"\x04data\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x05R\x04data\x12\x1a\n" +
+	"\bredacted\x18\x03 \x01(\bR\bredacted\"P\n" +
 	"\tRefTarget\x12$\n" +
 	"\tchangeset\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01H\x00R\tchangeset\x12\x18\n" +
 	"\x03tag\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01H\x00R\x03tagB\x03\n" +
@@ -8732,7 +8765,7 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"with_stats\x18\x11 \x01(\bR\twithStats\x12\x1f\n" +
 	"\vscan_budget\x18\x12 \x01(\rR\n" +
 	"scanBudget\x12!\n" +
-	"\fresume_token\x18\x13 \x01(\tR\vresumeToken\"\xc6\x02\n" +
+	"\fresume_token\x18\x13 \x01(\tR\vresumeToken\"\x91\x03\n" +
 	"\bLogEntry\x12\x14\n" +
 	"\x02id\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x02id\x12\x16\n" +
 	"\x03git\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x03git\x12\x1e\n" +
@@ -8744,7 +8777,9 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x06change\x18\b \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12&\n" +
 	"\x05stats\x18\t \x01(\v2\x10.asc.v1.DiffStatR\x05stats\x12\x18\n" +
 	"\x04meta\x18\n" +
-	" \x01(\fB\x04\xa8\xbb\x18\x05R\x04meta\"\xb8\x01\n" +
+	" \x01(\fB\x04\xa8\xbb\x18\x05R\x04meta\x12\x1a\n" +
+	"\bredacted\x18\v \x01(\bR\bredacted\x12-\n" +
+	"\x0frestricted_dirs\x18\f \x03(\fB\x04\xa8\xbb\x18\x03R\x0erestrictedDirs\"\xb8\x01\n" +
 	"\vLogResponse\x12*\n" +
 	"\aentries\x18\x01 \x03(\v2\x10.asc.v1.LogEntryR\aentries\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x04R\x05count\x12&\n" +
@@ -8850,14 +8885,17 @@ const file_asc_v1_repo_proto_rawDesc = "" +
 	"\x04path\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x1c\n" +
 	"\trecursive\x18\x04 \x01(\bR\trecursive\x12\x14\n" +
 	"\x05limit\x18\x05 \x01(\rR\x05limit\x12\x1a\n" +
-	"\x05after\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x03R\x05after\"\xa5\x01\n" +
+	"\x05after\x18\x06 \x01(\fB\x04\xa8\xbb\x18\x03R\x05after\"\xc5\x01\n" +
 	"\rTreeEntryInfo\x12\x18\n" +
 	"\x04name\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x03R\x04name\x12\x18\n" +
 	"\x04path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\x12\x12\n" +
 	"\x04mode\x18\x03 \x01(\rR\x04mode\x12\x14\n" +
 	"\x02id\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x01R\x02id\x12\x16\n" +
 	"\x03git\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\x03git\x12\x12\n" +
-	"\x04size\x18\x06 \x01(\x04R\x04sizeJ\x04\b\a\x10\bJ\x04\b\b\x10\t\"\x83\x01\n" +
+	"\x04size\x18\x06 \x01(\x04R\x04size\x12\x1e\n" +
+	"\n" +
+	"restricted\x18\t \x01(\bR\n" +
+	"restrictedJ\x04\b\a\x10\bJ\x04\b\b\x10\t\"\x83\x01\n" +
 	"\x10ReadTreeResponse\x12/\n" +
 	"\aentries\x18\x01 \x03(\v2\x15.asc.v1.TreeEntryInfoR\aentries\x12\x1d\n" +
 	"\atree_id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x06treeId\x12\x1f\n" +
