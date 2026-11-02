@@ -53,21 +53,29 @@ func IsWorkflow(path string) bool {
 		return false
 	}
 
-	return strings.HasPrefix(path, ".forgejo/workflows") || strings.HasPrefix(path, ".gitea/workflows") || strings.HasPrefix(path, ".github/workflows")
+	for _, dir := range WorkflowSources {
+		if strings.HasPrefix(path, dir+"/") {
+			return true
+		}
+	}
+	return false
 }
 
-// ListWorkflows looks for one of the standard workflow directories .forgejo/workflows, .gitea/workflows, and
-// .github/workflows in the given Git tree and returns the name of the first one it encounters including all the
-// workflow files it contains, if any.
+// WorkflowSources are the workflow directories in the order they are tried. `.actions/workflows`
+// is the forge-neutral home of an ASC repository's workflows and wins over the forge-specific ones.
+var WorkflowSources = []string{
+	".actions/workflows",
+	".forgejo/workflows",
+	".gitea/workflows",
+	".github/workflows",
+}
+
+// ListWorkflows looks for one of the WorkflowSources in the given Git tree and returns the name of
+// the first one it encounters including all the workflow files it contains, if any.
 func ListWorkflows(commit *git.Commit) (string, git.Entries, error) {
-	workflowSources := []string{
-		".forgejo/workflows",
-		".gitea/workflows",
-		".github/workflows",
-	}
 	var workflowSource string
 	var tree *git.Tree
-	for _, workflowSource = range workflowSources {
+	for _, workflowSource = range WorkflowSources {
 		var err error
 		tree, err = commit.SubTree(workflowSource)
 
