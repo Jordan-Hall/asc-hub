@@ -37,19 +37,10 @@ func Packages(ctx *context.Context) {
 		Name:       packages.SearchValue{Value: query},
 		IsInternal: optional.Some(false),
 	}
-	pvs, total, err := packages.SearchLatestVersions(ctx, opts)
+	status := http.StatusOK
+	pds, total, err := shared_packages.LoadList(ctx, opts)
 	if err != nil {
-		ctx.ServerError("SearchLatestVersions", err)
-		return
-	}
-	if !shared_packages.SetTypeCounts(ctx, opts) {
-		return
-	}
-
-	pds, err := packages.GetPackageDescriptors(ctx, pvs)
-	if err != nil {
-		ctx.ServerError("GetPackageDescriptors", err)
-		return
+		status = shared_packages.ListFailed(ctx, err)
 	}
 
 	hasPackages, err := packages.HasRepositoryPackages(ctx, ctx.Repo.Repository.ID)
@@ -75,5 +66,5 @@ func Packages(ctx *context.Context) {
 	pager.AddParam(ctx, "type", "PackageType")
 	ctx.Data["Page"] = pager
 
-	ctx.HTML(http.StatusOK, tplPackagesList)
+	ctx.HTML(status, tplPackagesList)
 }
