@@ -5,7 +5,7 @@
 	<nav class="ds-crumbs" aria-label="{{ctx.Locale.Tr "asc_shell.crumb_settings"}}"><a href="{{.ctxData.RepoLink}}">{{.ctxData.Repository.FullName}}</a><span aria-hidden="true">/</span><a href="{{.ctxData.RepoLink}}/settings">{{ctx.Locale.Tr "asc_shell.crumb_settings"}}</a>{{if not .ctxData.PageIsSettingsOptions}}<span aria-hidden="true">/</span><b>{{.ctxData.Title}}</b>{{end}}</nav>
 	<div class="ds-container ds-settings">
 		{{template "repo/settings/navbar" .ctxData}}
-		<div class="ds-settings-body" id="settings-general">
+		<div class="ds-settings-body" id="settings-general" data-loading="{{ctx.Locale.Tr "loading"}}">
 			<div class="rp-set-head ds-only-desktop"><h2 class="rp-h1">{{.ctxData.Title}}</h2></div>
 			{{template "base/alert" .ctxData}}
 			{{/* block: repo-setting-content */}}
