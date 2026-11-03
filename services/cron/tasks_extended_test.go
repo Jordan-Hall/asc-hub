@@ -59,4 +59,5 @@ func Test_AscTasksHaveTranslations(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join("..", "..", "options", "locale", "locale_en-US.ini"))
 	require.NoError(t, err)
 	assert.Contains(t, string(raw), "\ndashboard.cleanup_asc_device_codes = ")
+	assert.Contains(t, string(raw), "\ndashboard.mail_asc_exports = ")
 }
