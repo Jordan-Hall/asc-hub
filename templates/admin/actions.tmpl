@@ -64,10 +64,16 @@
 				<div class="ds-card-h"><h2 id="adm-reg-h">{{ctx.Locale.Tr "asc_admin.register_runner"}}</h2></div>
 				<div class="ds-card-b ds-stack ds-stack-12">
 					<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.register_runner_text"}}</p>
-					{{template "admin/term" (dict "Title" (ctx.Locale.Tr "asc_admin.terminal") "Text" (printf "forgejo-runner register --instance %s --token %s" AppUrl .RegistrationToken))}}
+					{{if .RegistrationToken}}
+						{{template "admin/term" (dict "Title" (ctx.Locale.Tr "asc_admin.terminal") "Text" (printf "forgejo-runner register --instance %s --token %s" AppUrl .RegistrationToken))}}
+						<p class="ds-t-small ds-c-2" data-testid="runner-token-once">{{ctx.Locale.Tr "asc_admin.runners_token_once" (DateUtils.FullTime .RegistrationTokenExpires)}}</p>
+					{{end}}
 					<div class="ds-row ds-row-wrap ds-gap-8">
+						<form method="post" action="{{.Link}}/reset_registration_token">
+							{{$.CsrfTokenHtml}}
+							<button class="ds-btn {{if .RegistrationToken}}ds-btn-ghost{{else}}ds-btn-primary{{end}} ds-btn-sm" data-testid="runner-token-get">{{if .RegistrationToken}}{{ctx.Locale.Tr "asc_admin.runners_reset_token"}}{{else}}{{ctx.Locale.Tr "asc_admin.runners_get_token"}}{{end}}</button>
+						</form>
 						<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Link}}/new">{{ctx.Locale.Tr "asc_admin.register_runner_new"}}</a>
-						<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.Link}}/reset_registration_token">{{ctx.Locale.Tr "asc_admin.runners_reset_token"}}</a>
 					</div>
 					<p class="ds-t-small"><a class="ds-link adm-tap" href="https://forgejo.org/docs/next/admin/actions/#forgejo-runner" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "actions.runners.new_notice"}}</a></p>
 				</div>

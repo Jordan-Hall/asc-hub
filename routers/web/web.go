@@ -628,7 +628,7 @@ func registerRoutes(m *web.Route) {
 				Post(web.Bind(forms.EditRunnerForm{}), shared_actions.RunnerEditPost)
 			m.Post("/{runnerid}/delete", shared_actions.RunnerDeletePost)
 			m.Post("/{runnerid}/drain", shared_actions.RunnerDrainPost)
-			m.Get("/reset_registration_token", shared_actions.RunnerResetRegistrationToken)
+			m.Post("/reset_registration_token", shared_actions.RunnerResetRegistrationToken)
 		})
 	}
 
