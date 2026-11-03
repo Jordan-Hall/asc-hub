@@ -123,6 +123,7 @@ func InitWebInstalled(ctx context.Context) {
 	translation.InitLocales(ctx)
 
 	setting.LoadSettings()
+	setting.RememberConfigFile()
 	mustInit(storage.Init)
 
 	mailer.NewContext(ctx)
