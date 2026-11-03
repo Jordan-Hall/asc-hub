@@ -341,14 +341,14 @@ Size: S = under a day, M = one to three days, L = more than three days.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| RepoSettingsWebhooks | Hook list with URL, kind, events, last delivery, Active switch, Failing banner | partial | Done: `H:templates/shared/webhook/rows.tmpl` (host, URL, events, last delivery, Replay on failure). Open: kind column, Active switch in the row, Failing banner | M |
+| RepoSettingsWebhooks | Hook list with URL, kind, events, last delivery, Active switch, Failing banner | done | `H:templates/shared/webhook/list.tmpl` (address title with the scheme dimmed, kind chip Generic/Chat/Service, event chips, last delivery "200 OK, 2 minutes ago" or "Failing: the last 3 deliveries returned 502", Active switch that pauses at once via `WebhookSetActive`, Edit; Add webhook in the card head, full width on a phone), `H:services/webhook/rows.go` (`Kind`, `FailStreak`, `StatusLine`), `H:models/webhook/hooktask.go` `FailingStreaks`, `webhook.go` `SetWebhookActive`. Tests: `asc_webhook_list_test.go`, `services/webhook/rows_test.go`, `models/webhook/asc_streak_test.go` | - |
 | RepoSettingsWebhooks | One hook with tabs Settings / Recent deliveries (12), delivery detail with Request / Response, Redeliver | done | `webhook/history.tmpl`, Forgejo redeliver | S |
 | RepoSettingsWebhooks | Hook kinds Generic, Chat, ASC agent (starts an agent run on an event) | needs-hub-backend | `H:modules/webhook/type.go` has Forgejo kinds; add `asc-agent` kind that calls `Agents.CreateRun`; map Chat to slack/discord/matrix | L |
 | RepoSettingsWebhooks | ASC events: Changes (Landed, Opened, Review requested), Agents (Run started, Run finished), Releases (Published), Policy (Changed) | needs-hub-backend | event types and notifiers in `H:models/webhook`, `H:services/webhook`, fired from `ascsync`/agent callbacks | L |
 | RepoSettingsWebhooks | Payload URL https-only with certificate check; loopback http only with local option | needs-hub-backend | `H:modules/setting` `ALLOWED_HOST_LIST`; add the explicit local option and the refusal text | S |
 | RepoSettingsWebhooks | Secret shown masked with Replace, never shown again | done | `H:templates/webhook/secret.tmpl`: the stored secret is never rendered, an empty field keeps it, Regenerate secret shows a new one once (`WebhookRegenerateSecret`). Tests: `routers/web/repo/setting/asc_webhook_list_test.go` | - |
 | RepoSettingsWebhooks | Send test delivery | done | Forgejo test delivery | S |
-| RepoSettingsWebhooks | Failing-hook alert banner role=alert and menu count "Webhooks 3" | ui-only-missing | list + navbar | S |
+| RepoSettingsWebhooks | Failing-hook alert banner role=alert and menu count "Webhooks 3" | ui-only-missing | Done: menu count (`asc_menu_status.go`). Open: the role=alert banner of a failed delivery on the hook's Recent deliveries view (the list board shows the failing sentence, no banner) | S |
 | RepoSettingsWebhooks | Add webhook dialog with http address refused | ui-only-missing | `webhook/new.tmpl` is a page | M |
 | RepoSettingsWebhooks | Empty state | done | `H:templates/repo/settings/webhook/base_list.tmpl` (shared/ds/empty) | - |
 
@@ -440,7 +440,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsAccess | 1 | 3 | 3 | 0 | 1 |
 | RepoSettingsPolicy | 3 | 6 | 0 | 1 | 2 |
 | RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
-| RepoSettingsWebhooks | 2 | 5 | 3 | 0 | 0 |
+| RepoSettingsWebhooks | 5 | 2 | 3 | 0 | 0 |
 | RepoSettingsSecrets | 1 | 4 | 1 | 1 | 2 |
 | RepoSettingsAI | 2 | 1 | 0 | 1 | 2 |
 | RepoSettingsStorage | 2 | 1 | 0 | 2 | 3 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 74, M 92, L 33.
+Open-size totals of the rows that are not done: S 74, M 91, L 33.
