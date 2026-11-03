@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 183, partial 31, missing 103. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 184, partial 30, missing 103. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -800,7 +800,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### UserSettingsPrivacy (ASC Hub settings: privacy)
 
-Area shell/settings. Rows 5: done 3, partial 1, missing 1. Copy found in the hub: 75% of 57 copy strings (mobile twin 70%). Template(s): blocked_users.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 5: done 4, partial 0, missing 1. Copy found in the hub: 75% of 57 copy strings (mobile twin 70%). Template(s): blocked_users.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Agents in your organizations can see your name, role and focus.; Casey Brandt; promo-bot-77; @promo77.
 
@@ -808,7 +808,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | Page itself; Show activity and Hide email switches live on Profile instead | done | see where-cell | - |
 | Show when I am online (green presence dot) | done | see where-cell | - |
-| Allow agents to read my profile | partial (hub+asc) | templates/user/settings/privacy.tmpl (sp_agents_profile) | Switch exists; asc honouring it when an agent reads the profile was not found. |
+| Allow agents to read my profile | done | privacy.tmpl switch (sp_agents_profile) over models/user/asc_agent_profile.go (default yes, no when the choice cannot be read); the hub API hides the profile from Actions task tokens (services/convert/user.go); asc serve Agents.GetPerson asks the hub on every call through `POST /api/internal/asc/agent-profile` (routers/private/asc_agent_profile.go) and audits agent.profile.read; tests asc_agent_profile_test.go (convert, private), an_agent_gets_the_profile_of_a_person_only_when_the_hub_says_the_person_allows_it | - |
 | Blocked people list, block by username, unblock | done | templates/user/settings/blocked_users.tmpl (file) | - |
 | Block confirm dialog, 10 s undo on unblock; blocking also drops pending review requests (only... | missing (hub) | logged as not built (not re-probed) | services/user/block.go, blocked_users.tmpl, toast component |
 | Board note: Unblock asks no questions and is undoable for 10 s | unverified | not tracked in the gap files | needs a row and a test |
@@ -1881,7 +1881,7 @@ Every row below was read in the tree; it is applied to the gap files (status and
 | rv137 | Checks | ui-only-missing | partial | templates/repo/asc_checks.tmpl (checks.nothing_title) |
 | rv206 | AgentNew | needs-both | partial | templates/repo/asc_agents_run.tmpl (run_edit_limits_help) |
 | rv322 | Audit | ui-only-missing | partial | templates/repo/asc_audit_table.tmpl (chain_broken) |
-| st84 | UserSettingsPrivacy | needs-both | partial | templates/user/settings/privacy.tmpl (sp_agents_profile) |
+| st84 | UserSettingsPrivacy | needs-both | done | templates/user/settings/privacy.tmpl (sp_agents_profile), routers/private/asc_agent_profile.go |
 | rp162 | Compare | done | partial | templates/repo/asc_compare.tmpl |
 | rp304 | RepoSettingsAccess | done | partial | templates/repo/settings/collaboration.tmpl |
 | rp321 | RepoSettingsPolicy | done | partial | templates/repo/settings/asc_policy.tmpl:93 live file |
