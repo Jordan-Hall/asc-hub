@@ -367,7 +367,7 @@ func testWebhookFormsShared(t *testing.T, endpoint, name string, session *TestSe
 		// system-hooks and default-hooks are listed on the same page
 		// add a specifier to select the latest system-hooks
 		// (the default-hooks are at the end, so no further specifier needed)
-		selector = `.ds-settings-body > section:first-of-type ` + selector
+		selector = `tr.wh-sys ` + selector
 	}
 	editFormURL := htmlDoc.Find(selector).Last().AttrOr("href", "")
 	assert.NotEmpty(t, editFormURL)
@@ -383,6 +383,9 @@ func testWebhookFormsShared(t *testing.T, endpoint, name string, session *TestSe
 		"events": "push_only",
 	}
 	for k, v := range validFields {
+		if k == "secret" {
+			v = "" // a stored secret is never sent back to the browser
+		}
 		assert.Equal(t, v, assertInput(t, htmlForm, k), "input %q did not contain value %q", k, v)
 		payload[k] = v
 	}
@@ -395,6 +398,9 @@ func testWebhookFormsShared(t *testing.T, endpoint, name string, session *TestSe
 	resp = session.MakeRequest(t, NewRequest(t, "GET", editFormURL), http.StatusOK)
 	htmlForm = NewHTMLParser(t, resp.Body).Find(`form[action^="` + updateEndpoint + `"]`)
 	for k, v := range validFields {
+		if k == "secret" {
+			v = "" // a stored secret is never sent back to the browser
+		}
 		assert.Equal(t, v, assertInput(t, htmlForm, k), "input %q did not contain value %q", k, v)
 	}
 
