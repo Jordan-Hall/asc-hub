@@ -21,6 +21,8 @@
 				<a class="ds-btn {{if .IsSigned}}ds-btn-primary{{else}}ds-btn-secondary{{end}}" href="{{AppSubUrl}}/">{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}</a>
 				{{if and .AscMaintenance .AscMaintenance.StatusURL}}
 					<a class="ds-btn ds-btn-secondary" href="{{.AscMaintenance.StatusURL}}" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_err.status_page"}}</a>
+				{{else if .AscMaintenance}}
+					<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/-/status">{{ctx.Locale.Tr "asc_err.status_page"}}</a>
 				{{else}}
 					<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "asc_err.search_hub"}}</a>
 				{{end}}
