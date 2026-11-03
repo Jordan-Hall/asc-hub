@@ -345,7 +345,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsWebhooks | One hook with tabs Settings / Recent deliveries (12), delivery detail with Request / Response, Redeliver | done | `webhook/history.tmpl`, Forgejo redeliver | S |
 | RepoSettingsWebhooks | Hook kinds Generic, Chat, ASC agent (starts an agent run on an event) | needs-hub-backend | `H:modules/webhook/type.go` has Forgejo kinds; add `asc-agent` kind that calls `Agents.CreateRun`; map Chat to slack/discord/matrix | L |
 | RepoSettingsWebhooks | ASC events: Changes (Landed, Opened, Review requested), Agents (Run started, Run finished), Releases (Published), Policy (Changed) | needs-hub-backend | event types and notifiers in `H:models/webhook`, `H:services/webhook`, fired from `ascsync`/agent callbacks | L |
-| RepoSettingsWebhooks | Payload URL https-only with certificate check; loopback http only with local option | needs-hub-backend | `H:modules/setting` `ALLOWED_HOST_LIST`; add the explicit local option and the refusal text | S |
+| RepoSettingsWebhooks | Payload URL https-only with certificate check; loopback http only with local option | done | `H:models/webhook/payload_url.go` `CheckPayloadURL` (https always; http only for localhost, 127.0.0.0/8 or ::1 when `[webhook] ALLOW_LOCAL_HTTP` is on and `ALLOWED_HOST_LIST` allows loopback; private addresses need https), enforced on create and update in the model, the API and the web form; `H:services/webhook/deliver.go` `skipTLSVerify` (an ASC hub always checks the certificate); `H:templates/webhook/payload_url_help.tmpl` (hint under the field, refusal as a role=alert error under it with the typed address kept). Tests: `models/webhook/payload_url_test.go`, `services/webhook/payload_url_test.go`, `services/webhook/asc_tls_test.go`, `asc_webhook_list_test.go` `TestWebhookCreateRefusesHTTP`, `TestWebhookFormHintsHTTPS` | - |
 | RepoSettingsWebhooks | Secret shown masked with Replace, never shown again | done | `H:templates/webhook/secret.tmpl`: the stored secret is never rendered, an empty field keeps it, Regenerate secret shows a new one once (`WebhookRegenerateSecret`). Tests: `routers/web/repo/setting/asc_webhook_list_test.go` | - |
 | RepoSettingsWebhooks | Send test delivery | done | Forgejo test delivery | S |
 | RepoSettingsWebhooks | Failing-hook alert banner role=alert and menu count "Webhooks 3" | ui-only-missing | Done: menu count (`asc_menu_status.go`). Open: the role=alert banner of a failed delivery on the hook's Recent deliveries view (the list board shows the failing sentence, no banner) | S |
@@ -409,10 +409,10 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 143 |
+| done | 144 |
 | partial | 1 |
 | ui-only-missing | 57 |
-| needs-hub-backend | 34 |
+| needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
 | total | 263 |
@@ -440,7 +440,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsAccess | 1 | 3 | 3 | 0 | 1 |
 | RepoSettingsPolicy | 3 | 6 | 0 | 1 | 2 |
 | RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
-| RepoSettingsWebhooks | 5 | 2 | 3 | 0 | 0 |
+| RepoSettingsWebhooks | 6 | 2 | 2 | 0 | 0 |
 | RepoSettingsSecrets | 1 | 4 | 1 | 1 | 2 |
 | RepoSettingsAI | 2 | 1 | 0 | 1 | 2 |
 | RepoSettingsStorage | 2 | 1 | 0 | 2 | 3 |
