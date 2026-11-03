@@ -15,6 +15,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/routers/web/shared/trustweb"
+	"forgejo.org/services/ascexportmail"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 
@@ -178,6 +179,8 @@ type ascExportPage struct {
 	Now         time.Time
 	// Busy is set when an export is still being made, so the page does not offer a second one.
 	Busy bool
+	// Mailed is set when the hub emails the person once an export is ready.
+	Mailed bool
 }
 
 // AscExport serves GET /user/settings/asc/export.
@@ -186,7 +189,7 @@ func AscExport(ctx *context.Context) {
 		return
 	}
 	trustweb.NoStore(ctx)
-	p := &ascExportPage{URL: setting.AppSubURL + "/user/settings/asc/export", RequestOp: asctrust.NewOpID(), DeleteOps: map[string]string{}, Now: time.Now()}
+	p := &ascExportPage{URL: setting.AppSubURL + "/user/settings/asc/export", RequestOp: asctrust.NewOpID(), DeleteOps: map[string]string{}, Now: time.Now(), Mailed: exportMailed(ctx)}
 	ctx.Data["Title"] = ctx.Tr("asc_shell.sn_export")
 	ctx.Data["PageIsSettingsAscExport"] = true
 	ctx.Data["AscExport"] = p
@@ -228,11 +231,24 @@ func AscExportRequest(ctx *context.Context) {
 		return
 	}
 	defer release()
-	if _, err := asctrust.RequestExport(callCtx, conn, ctx.Req.PostFormValue("op")); err != nil {
+	row, err := asctrust.RequestExport(callCtx, conn, ctx.Req.PostFormValue("op"))
+	if err != nil {
 		ascAccountBack(ctx, to, "", trustweb.FailureOf("export request", err).Localized(ctx))
 		return
 	}
-	ascAccountBack(ctx, to, ctx.Locale.TrString("asc_shell.export_started"), "")
+	if !exportMailed(ctx) {
+		ascAccountBack(ctx, to, ctx.Locale.TrString("asc_shell.export_started"), "")
+		return
+	}
+	if row.Waiting() {
+		ascexportmail.Watch(ctx, ctx.Doer, row.ID)
+	}
+	ascAccountBack(ctx, to, ctx.Locale.TrString("asc_shell.export_started_mail"), "")
+}
+
+// exportMailed says whether the person gets an email when their export is ready.
+func exportMailed(ctx *context.Context) bool {
+	return ascexportmail.Enabled() && ctx.Doer.Email != ""
 }
 
 // AscExportDownload serves GET /user/settings/asc/export/{id}.

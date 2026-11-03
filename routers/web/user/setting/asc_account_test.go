@@ -14,7 +14,9 @@ import (
 	"testing"
 	"time"
 
+	"forgejo.org/models/db"
 	"forgejo.org/models/unittest"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/setting"
@@ -379,4 +381,35 @@ func TestAscExportDownloadNeverServesAShortFile(t *testing.T) {
 
 	r = runAccount(t, "GET", "/user/settings/asc/export/x", 2, nil, map[string]string{"id": "../../etc/passwd"}, AscExportDownload)
 	assert.Equal(t, http.StatusBadRequest, r.status, "a bad id is refused before a call")
+}
+
+// With a mail service the person is told an email follows, and the export is watched until it is ready.
+func TestAscExportRequestWatchesTheExportForTheEmail(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startAccountAsc(t, asctrust.FeatureDataExport)
+	f.request = func() (*ascv1.RequestExportResponse, error) {
+		return &ascv1.RequestExportResponse{Job: &ascv1.ExportJob{Id: accountExportID, State: ascv1.ExportState_EXPORT_STATE_PENDING, Requested: time.Now().Unix()}}, nil
+	}
+	f.exports = func() (*ascv1.ListExportsResponse, error) {
+		return &ascv1.ListExportsResponse{Jobs: []*ascv1.ExportJob{{Id: accountExportID, State: ascv1.ExportState_EXPORT_STATE_RUNNING, Requested: time.Now().Unix()}}}, nil
+	}
+
+	r := runAccount(t, "POST", "/user/settings/asc/export", 2, opForm(), nil, AscExportRequest)
+	assert.Equal(t, http.StatusSeeOther, r.status)
+	assert.Equal(t, "asc_shell.export_started", r.flash, "without a mail service no email is promised")
+	watches, err := user_model.AscExportWatches(db.DefaultContext, 10)
+	require.NoError(t, err)
+	assert.Empty(t, watches)
+
+	defer test.MockVariableValue(&setting.MailService, &setting.Mailer{})()
+	r = runAccount(t, "POST", "/user/settings/asc/export", 2, opForm(), nil, AscExportRequest)
+	assert.Equal(t, "asc_shell.export_started_mail", r.flash)
+	watches, err = user_model.AscExportWatches(db.DefaultContext, 10)
+	require.NoError(t, err)
+	require.Len(t, watches, 1)
+	assert.Equal(t, int64(2), watches[0].UserID)
+	assert.Equal(t, accountExportID, watches[0].ExportID)
+
+	r = runAccount(t, "GET", "/user/settings/asc/export", 2, nil, nil, AscExport)
+	assert.Contains(t, r.body, "asc_shell.export_busy_mail")
 }

@@ -18,7 +18,7 @@
 				</form>
 				{{end}}
 			</div>
-			{{if .Busy}}<div class="ds-card-b"><p class="ds-hint" role="status" data-testid="asc-export-busy">{{ctx.Locale.Tr "asc_shell.export_busy"}}</p></div>{{end}}
+			{{if .Busy}}<div class="ds-card-b"><p class="ds-hint" role="status" data-testid="asc-export-busy">{{if .Mailed}}{{ctx.Locale.Tr "asc_shell.export_busy_mail"}}{{else}}{{ctx.Locale.Tr "asc_shell.export_busy"}}{{end}}</p></div>{{end}}
 			<ul class="ds-list wk-rows" data-testid="asc-export-list">
 				{{range .Rows}}
 				<li class="ds-li wk-row" data-state="{{.State}}">
