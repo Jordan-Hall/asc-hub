@@ -45,6 +45,13 @@ func recentlyAuthenticated(ctx *context.Context) bool {
 	return at != 0 && time.Since(time.Unix(at, 0)) < ReauthFor
 }
 
+// SignedInRecently says whether the doer signed in within ReauthFor: for an account with a second factor, that sign-in
+// passed it. The password typed again on the confirm page does not count.
+func SignedInRecently(ctx *context.Context) bool {
+	at, _ := ctx.Session.Get(auth_model.SignInSessionKey).(int64)
+	return at != 0 && time.Since(time.Unix(at, 0)) < ReauthFor
+}
+
 func reauthURL(back string) string {
 	return setting.AppSubURL + "/user/settings/security/reauth?redirect_to=" + url.QueryEscape(back)
 }

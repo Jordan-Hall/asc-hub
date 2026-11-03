@@ -20,6 +20,10 @@ import (
 // password again before a change to how the account signs in.
 const ReauthSessionKey = "ascReauthUnix"
 
+// SignInSessionKey is the session value of when the person last signed in, with the second factor when the account has
+// one. Unlike ReauthSessionKey, the password typed again does not renew it.
+const SignInSessionKey = "ascSignInUnix"
+
 // browserSessionTouchEvery is how long a session's last activity may lag behind: a request writes it at most this often.
 const browserSessionTouchEvery = 5 * time.Minute
 
