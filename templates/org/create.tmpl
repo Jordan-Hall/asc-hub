@@ -10,14 +10,27 @@
 			</div>
 		</div>
 		{{template "base/alert" .}}
-		<form class="ui form ds-form wk-sp-form" action="{{.Link}}" method="post">
+		<form class="ui form ds-form wk-sp-form" id="org-new-form" action="{{.Link}}" method="post" data-check-url="{{AppSubUrl}}/org/create/check" data-checking="{{ctx.Locale.Tr "asc_work.neworg_handle_checking"}}">
 			{{.CsrfTokenHtml}}
 			<section class="ds-card" aria-label="{{ctx.Locale.Tr "new_org.title"}}">
 				<div class="ds-card-b ds-stack-16">
 					<div class="required field ds-field {{if .Err_OrgName}}error{{end}}">
 						<label class="ds-label" for="org_name">{{ctx.Locale.Tr "org.org_name_holder"}}</label>
-						<input id="org_name" class="ds-input{{if .Err_OrgName}} is-err{{end}}" name="org_name" value="{{.org_name}}" autofocus required maxlength="40">
-						<p class="ds-hint">{{ctx.Locale.Tr "org.org_name_helper"}}</p>
+						<input id="org_name" class="ds-input{{if .Err_OrgName}} is-err{{end}}" name="org_name" value="{{.org_name}}" autofocus required maxlength="40" autocomplete="off" spellcheck="false" aria-describedby="org_name_status org_name_help"{{if .Err_OrgName}} aria-invalid="true"{{end}}>
+						<p class="ds-hint wk-neworg-status" id="org_name_status" role="status" aria-live="polite" data-testid="org-name-status"></p>
+						<p class="ds-hint" id="org_name_help">{{ctx.Locale.Tr "org.org_name_helper"}}</p>
+					</div>
+					<div class="field ds-field {{if .Err_FullName}}error{{end}}">
+						<label class="ds-label" for="full_name">{{ctx.Locale.Tr "asc_work.neworg_display_name"}}</label>
+						<input id="full_name" class="ds-input{{if .Err_FullName}} is-err{{end}}" name="full_name" value="{{.full_name}}" maxlength="100" aria-describedby="full_name_help" data-testid="org-full-name">
+						<p class="ds-hint" id="full_name_help">{{ctx.Locale.Tr "asc_work.neworg_display_name_hint"}}</p>
+					</div>
+					<div class="ds-field" data-testid="org-owner">
+						<p class="ds-label">{{ctx.Locale.Tr "asc_work.neworg_owner"}}</p>
+						<div class="wk-neworg-owner">
+							{{ctx.AvatarUtils.Avatar ctx.RootData.SignedUser 24}}
+							<p class="ds-hint">{{ctx.Locale.Tr "asc_work.neworg_owner_you" ctx.RootData.SignedUser.Name}}</p>
+						</div>
 					</div>
 					<fieldset class="wk-fieldset {{if .Err_OrgVisibility}}error{{end}}">
 						<legend class="ds-label">{{ctx.Locale.Tr "org.settings.visibility"}}</legend>
@@ -25,15 +38,40 @@
 						<div class="ds-check"><input class="enable-system-radio" id="vis-limited" name="visibility" type="radio" value="1" {{if .visibility.IsLimited}}checked{{end}}><label for="vis-limited">{{ctx.Locale.Tr "org.settings.visibility.limited"}}</label></div>
 						<div class="ds-check"><input class="enable-system-radio" id="vis-private" name="visibility" type="radio" value="2" {{if .visibility.IsPrivate}}checked{{end}}><label for="vis-private">{{ctx.Locale.Tr "org.settings.visibility.private"}}</label></div>
 					</fieldset>
+					<label class="ds-switch wk-switch-row" data-testid="org-first-team">
+						<input type="checkbox" role="switch" name="create_everyone" value="on"{{if .create_everyone}} checked{{end}}>
+						<span class="ds-switch-track"></span>
+						<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.neworg_first_team"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.neworg_first_team_hint"}}</span></span>
+					</label>
+					{{if .AscOrgAgentsOffered}}
+					<label class="ds-switch wk-switch-row" data-testid="org-allow-agents">
+						<input type="checkbox" role="switch" name="allow_agents" value="on"{{if .allow_agents}} checked{{end}}>
+						<span class="ds-switch-track"></span>
+						<span class="wk-switch-text"><b>{{ctx.Locale.Tr "asc_work.neworg_allow_agents"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_work.neworg_allow_agents_hint"}}</span></span>
+					</label>
+					{{end}}
 					<fieldset class="wk-fieldset" id="permission_box">
 						<legend class="ds-label">{{ctx.Locale.Tr "org.settings.permission"}}</legend>
 						<div class="ds-check"><input type="checkbox" id="repo-admin-teams" name="repo_admin_change_team_access" {{if .repo_admin_change_team_access}}checked{{end}}><label for="repo-admin-teams">{{ctx.Locale.Tr "org.settings.repoadminchangeteam"}}</label></div>
 					</fieldset>
 				</div>
 			</section>
+			<section class="ds-card wk-neworg-preview" aria-labelledby="org-preview-h" data-testid="org-preview">
+				<div class="ds-card-b">
+					<h2 id="org-preview-h" class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_work.neworg_preview"}}</h2>
+					<div class="wk-neworg-preview-row">
+						<span class="ds-av ds-av-48 ds-av-org" aria-hidden="true" data-preview-initial>?</span>
+						<div class="ds-min0">
+							<p class="wk-neworg-preview-name" data-preview-name data-empty="{{ctx.Locale.Tr "asc_work.neworg_preview_empty"}}">{{or .org_name (ctx.Locale.Tr "asc_work.neworg_preview_empty")}}</p>
+							<p class="ds-t-small ds-c-2 ds-mono" data-preview-url data-base="{{AppUrl}}">{{AppUrl}}{{or .org_name (ctx.Locale.Tr "asc_work.neworg_preview_empty")}}</p>
+						</div>
+						<span class="ds-chip ds-chip-outline" data-preview-visibility></span>
+					</div>
+				</div>
+			</section>
 			<div class="ds-sticky-actions wk-form-actions">
 				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/organizations">{{ctx.Locale.Tr "cancel"}}</a>
-				<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "org.create_org"}}</button>
+				<button class="ds-btn ds-btn-primary" data-testid="org-create-submit">{{ctx.Locale.Tr "org.create_org"}}</button>
 			</div>
 		</form>
 	</div>

@@ -24,8 +24,13 @@ import (
 // CreateOrgForm form for creating organization
 type CreateOrgForm struct {
 	OrgName                   string `binding:"Required;Username;MaxSize(40)" locale:"org.org_name_holder"`
+	FullName                  string `binding:"MaxSize(100)" locale:"org.org_full_name_holder"`
 	Visibility                structs.VisibleType
 	RepoAdminChangeTeamAccess bool
+	// CreateEveryone makes a first team, Everyone, that reads every repository, with the creator in it.
+	CreateEveryone bool
+	// AllowAgents turns agents on for the organization in asc serve once it exists.
+	AllowAgents bool
 }
 
 // Validate validates the fields
