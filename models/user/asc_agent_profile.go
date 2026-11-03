@@ -12,10 +12,11 @@ const ascAgentsReadProfileKey = "asc.agents_read_profile"
 
 // AscAgentsMayReadProfile reports whether agents may read the profile fields of the person (name, bio, location,
 // website, pronouns, email). An agent is a run of the hub's own automation, a request with an Actions task token, and the
-// agent access path of asc serve. The default is yes; the person switches it off on the Privacy page.
+// agent access path of asc serve. The default is yes; the person switches it off on the Privacy page. When the choice
+// cannot be read, the answer is no.
 func AscAgentsMayReadProfile(ctx context.Context, userID int64) bool {
 	v, err := GetUserSetting(ctx, userID, ascAgentsReadProfileKey, "true")
-	return err != nil || v != "false"
+	return err == nil && v != "false"
 }
 
 // SetAscAgentsMayReadProfile stores the choice.
