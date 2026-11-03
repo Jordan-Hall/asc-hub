@@ -65,6 +65,8 @@ type fakeTrust struct {
 	history    func(*ascv1.FlakyHistoryRequest) (*ascv1.FlakyHistoryResponse, error)
 	auditList  func(*ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error)
 	auditChain func(*ascv1.VerifyAuditChainRequest) (*ascv1.VerifyAuditChainResponse, error)
+	// auditExport answers Audit.Export with the messages it returns.
+	auditExport func(*ascv1.ExportAuditRequest) []*ascv1.ExportAuditResponse
 
 	depFindings func(*ascv1.ListDepFindingsRequest) (*ascv1.ListDepFindingsResponse, error)
 	depUpdates  func(*ascv1.ListDepUpdatesRequest) (*ascv1.ListDepUpdatesResponse, error)
@@ -167,6 +169,19 @@ func (f *fakeTrust) VerifyChain(ctx gocontext.Context, r *ascv1.VerifyAuditChain
 		return f.UnimplementedAuditServer.VerifyChain(ctx, r)
 	}
 	return f.auditChain(r)
+}
+
+func (f *fakeTrust) Export(r *ascv1.ExportAuditRequest, stream grpc.ServerStreamingServer[ascv1.ExportAuditResponse]) error {
+	f.note(stream.Context(), "Export", r)
+	if f.auditExport == nil {
+		return f.UnimplementedAuditServer.Export(r, stream)
+	}
+	for _, m := range f.auditExport(r) {
+		if err := stream.Send(m); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (f *fakeTrust) ListFindings(ctx gocontext.Context, r *ascv1.ListDepFindingsRequest) (*ascv1.ListDepFindingsResponse, error) {

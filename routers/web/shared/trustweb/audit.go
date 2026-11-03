@@ -240,7 +240,8 @@ func ServeAuditVerify(ctx *app_context.Context, lvl *AuditLevel) {
 
 // ServeAuditExport serves GET <base>/export?format=jsonl|csv with the filters of the page. The export is
 // received into a scratch file and checked against its digest before a byte goes to the browser, so a download
-// that arrives is a download that matched; a mismatch is an error page.
+// that arrives is a download that matched; a mismatch is an error page. When asc signs the export, the download is
+// a zip of the file, its SSHSIG, an allowed_signers file and the ssh-keygen command that checks it.
 func ServeAuditExport(ctx *app_context.Context, lvl *AuditLevel) {
 	NoStore(ctx)
 	_, filter, problems := asctrust.AuditQueryOf(ctx.FormString)
@@ -292,32 +293,74 @@ func ServeAuditExport(ctx *app_context.Context, lvl *AuditLevel) {
 		_ = tmp.Close()
 		_ = os.Remove(tmp.Name())
 	}()
-	if _, err := asctrust.CopyExport(stream, tmp); err != nil {
+	res, err := asctrust.CopyExport(stream, tmp)
+	if err != nil {
 		f := FailureOf("audit export copy", err)
 		ctx.Error(f.Status, f.Localized(ctx))
-		return
-	}
-	size, err := tmp.Seek(0, io.SeekCurrent)
-	if err != nil {
-		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
-		return
-	}
-	if _, err := tmp.Seek(0, io.SeekStart); err != nil {
-		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
 		return
 	}
 	ext, ctype := "jsonl", "application/x-ndjson"
 	if csv {
 		ext, ctype = "csv", "text/csv"
 	}
-	name := "asc-audit-" + slugOf(lvl.Slug) + "-" + time.Now().UTC().Format("20060102") + "." + ext
-	opts := &app_context.ServeHeaderOptions{ContentType: ctype, ContentTypeCharset: "utf-8", Filename: name, Disposition: "attachment", ContentLength: &size}
+	now := time.Now().UTC()
+	name := "asc-audit-" + slugOf(lvl.Slug) + "-" + now.Format("20060102") + "." + ext
+	if _, err := tmp.Seek(0, io.SeekStart); err != nil {
+		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
+		return
+	}
+	if !res.Signed() {
+		serveExport(ctx, tmp, name, ctype, "utf-8")
+		return
+	}
+	// A signed export downloads as an archive with the signature and the way to check it. The signature is checked
+	// here first, so an archive that arrives is one whose signature matched the file.
+	if err := asctrust.VerifyExportSignature(tmp, res); err != nil {
+		f := FailureOf("audit export signature", err)
+		ctx.Error(f.Status, f.Localized(ctx))
+		return
+	}
+	archive, err := os.CreateTemp("", "asc-audit-*.zip")
+	if err != nil {
+		log.Error("asc audit export: scratch file: %v", err)
+		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
+		return
+	}
+	defer func() {
+		_ = archive.Close()
+		_ = os.Remove(archive.Name())
+	}()
+	if _, err := tmp.Seek(0, io.SeekStart); err != nil {
+		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
+		return
+	}
+	if err := asctrust.WriteSignedExport(archive, name, tmp, res, now); err != nil {
+		log.Error("asc audit export: archive: %v", err)
+		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
+		return
+	}
+	if _, err := archive.Seek(0, io.SeekStart); err != nil {
+		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
+		return
+	}
+	serveExport(ctx, archive, name+".zip", "application/zip", "")
+}
+
+// serveExport sends a finished export file from its start as an attachment.
+func serveExport(ctx *app_context.Context, f *os.File, name, ctype, charset string) {
+	info, err := f.Stat()
+	if err != nil {
+		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
+		return
+	}
+	size := info.Size()
+	opts := &app_context.ServeHeaderOptions{ContentType: ctype, ContentTypeCharset: charset, Filename: name, Disposition: "attachment", ContentLength: &size}
 	ctx.SetServeHeaders(opts)
 	ctx.Resp.Header().Set("Cache-Control", "no-store")
 	ctx.Resp.Header().Set("X-Content-Type-Options", "nosniff")
 	ctx.Resp.WriteHeader(http.StatusOK)
 	if ctx.Req.Method != http.MethodHead {
-		if _, err := io.Copy(ctx.Resp, tmp); err != nil {
+		if _, err := io.Copy(ctx.Resp, f); err != nil {
 			log.Warn("asc audit export: the browser went away: %v", err)
 		}
 	}
