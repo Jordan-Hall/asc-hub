@@ -18,6 +18,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/updatechecker"
 	"forgejo.org/services/ascdigest"
+	"forgejo.org/services/ascexportmail"
 	"forgejo.org/services/ascorgverify"
 	moderation_service "forgejo.org/services/moderation"
 	repo_service "forgejo.org/services/repository"
@@ -257,6 +258,7 @@ func initExtendedTasks() {
 	registerRefreshAscTrending()
 	registerSendAscDigest()
 	registerRecheckAscOrgDomains()
+	registerMailAscExports()
 	if setting.Moderation.Enabled {
 		registerRemoveResolvedReports()
 	}
@@ -310,6 +312,18 @@ func registerRecheckAscOrgDomains() {
 		Schedule:   "@every 6h",
 	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
 		_, err := ascorgverify.RecheckDue(ctx)
+		return err
+	})
+}
+
+// registerMailAscExports emails the people whose export of their data became ready or failed since they asked for it.
+func registerMailAscExports() {
+	RegisterTaskFatal("mail_asc_exports", &BaseConfig{
+		Enabled:    true,
+		RunAtStart: false,
+		Schedule:   "@every 1m",
+	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		_, err := ascexportmail.Run(ctx, time.Now())
 		return err
 	})
 }
