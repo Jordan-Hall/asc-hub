@@ -1,0 +1,14 @@
+{{/* The dialog that adds a system or a default webhook: the kinds of webhook to choose from. Props: Set (the scope's links and kinds), Title, I (a number for the id). */}}
+<dialog id="adm-add-hook-{{.I}}">
+	<article>
+		<header>{{.Title}}</header>
+		<div class="content">
+			<ul class="ds-list">
+				{{range .Set.WebhookList}}
+					<li class="ds-li ds-li-link"><a class="ds-li-main adm-hook-type" href="{{$.Set.BaseLinkNew}}/{{.Type}}/new">{{.Icon 20}}<span>{{ctx.Locale.Tr (print "repo.settings.web_hook_name_" .Type)}}</span></a></li>
+				{{end}}
+			</ul>
+		</div>
+		<div class="actions"><button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button></div>
+	</article>
+</dialog>
