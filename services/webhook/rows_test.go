@@ -56,6 +56,9 @@ func TestListRows(t *testing.T) {
 	failed := &ListRow{Last: &webhook_model.HookTask{IsSucceed: false, ResponseInfo: &webhook_model.HookResponse{Status: 502}}}
 	assert.True(t, failed.Failed())
 	assert.Equal(t, 502, failed.Status())
+	assert.Equal(t, "502 Bad Gateway", failed.StatusLine())
+	odd := &ListRow{Last: &webhook_model.HookTask{ResponseInfo: &webhook_model.HookResponse{Status: 599}}}
+	assert.Equal(t, "599", odd.StatusLine())
 
 	none, err := ListRows(db.DefaultContext, nil)
 	require.NoError(t, err)
@@ -77,4 +80,31 @@ func TestWebhookSecrets(t *testing.T) {
 	a, b := NewSecret(), NewSecret()
 	assert.NotEqual(t, a, b)
 	assert.GreaterOrEqual(t, len(a), 43)
+}
+
+func TestListRowURLParts(t *testing.T) {
+	row := &ListRow{Webhook: &webhook_model.Webhook{URL: "https://ci.acme.dev/hooks/asc"}}
+	assert.Equal(t, "https://", row.URLScheme())
+	assert.Equal(t, "ci.acme.dev/hooks/asc", row.URLRest())
+	bare := &ListRow{Webhook: &webhook_model.Webhook{URL: "ci.acme.dev"}}
+	assert.Empty(t, bare.URLScheme())
+	assert.Equal(t, "ci.acme.dev", bare.URLRest())
+}
+
+func TestListRowKind(t *testing.T) {
+	kind := func(t webhook_module.HookType) string {
+		return (&ListRow{Webhook: &webhook_model.Webhook{Type: t}}).Kind()
+	}
+	assert.Equal(t, "asc_hooks.kind_generic", kind(webhook_module.FORGEJO))
+	assert.Equal(t, "asc_hooks.kind_generic", kind(webhook_module.GITEA))
+	assert.Equal(t, "asc_hooks.kind_chat", kind(webhook_module.SLACK))
+	assert.Equal(t, "asc_hooks.kind_chat", kind(webhook_module.MATRIX))
+	assert.Equal(t, "asc_hooks.kind_service", kind(webhook_module.PACKAGIST))
+}
+
+// A hook counts as failing from its second failure in a row.
+func TestListRowFailing(t *testing.T) {
+	assert.False(t, (&ListRow{FailStreak: 0}).Failing())
+	assert.False(t, (&ListRow{FailStreak: 1}).Failing())
+	assert.True(t, (&ListRow{FailStreak: 2}).Failing())
 }
