@@ -374,10 +374,13 @@ func GetUserRepoPermission(ctx context.Context, repo *repo_model.Repository, use
 	}
 
 	// The organization's base permission: every member may read (or write) each of its repositories, whatever their
-	// teams. An external tracker or wiki is a link, so it is only ever read.
-	base, err := organization.GetAscBasePermission(ctx, repo.OwnerID, user.ID)
-	if err != nil {
-		return perm, err
+	// teams. An external tracker or wiki is a link, so it is only ever read. A restricted user gets only what is
+	// given to them by name (a team, a collaboration), so not this.
+	base := perm_model.AccessModeNone
+	if !user.IsRestricted {
+		if base, err = organization.GetAscBasePermission(ctx, repo.OwnerID, user.ID); err != nil {
+			return perm, err
+		}
 	}
 	if base > perm_model.AccessModeNone {
 		if perm.AccessMode < base {
