@@ -552,3 +552,25 @@ a.wk-act-title:hover {
 /* recovery codes, shown once: two columns of mono codes */
 .wk-codes { columns: 2; font-family: var(--ds-mono, monospace); list-style: none; padding: 0; margin: 0; }
 .wk-codes li { padding: 4px 0; }
+
+/* new organization: the answer for the handle and the preview card */
+.wk-neworg-status:empty { display: none; }
+.wk-neworg-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.wk-neworg-preview-row > .ds-min0 { flex: 1; }
+.wk-neworg-preview-name {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.wk-neworg-preview-row .ds-mono { margin: 0; overflow-wrap: anywhere; }
+.wk-neworg-owner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wk-neworg-owner .ds-hint { margin: 0; }

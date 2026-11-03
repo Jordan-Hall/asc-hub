@@ -138,6 +138,19 @@ func LoadOrgSettings(ctx context.Context, conn grpc.ClientConnInterface, org str
 	return orgSettingsOf(resp), nil
 }
 
+// AllowOrgAgents turns agents on for org and keeps the rest of its agent policy.
+func AllowOrgAgents(ctx context.Context, conn grpc.ClientConnInterface, org, op string) error {
+	s, err := LoadOrgSettings(ctx, conn, org)
+	if err != nil {
+		return err
+	}
+	if s.AllowAgents {
+		return nil
+	}
+	_, err = SetAgentPolicy(ctx, conn, org, AgentPolicy{AllowAgents: true, NeedPerson: s.NeedPerson, CeilingMicro: s.CeilingMicro}, op)
+	return err
+}
+
 // AgentPolicy is the agents card of an organisation.
 type AgentPolicy struct {
 	AllowAgents  bool
