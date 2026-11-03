@@ -9,39 +9,41 @@ The cards of a list of storage targets.
 {{$manage := .Manage}}
 <div class="asc-byo-list">
 	{{range .Targets}}
-		<article class="asc-byo-item" aria-labelledby="asc-t-{{.ID}}" data-testid="asc-target" data-state="{{.StateName}}">
-			<header class="asc-byo-item-head">
-				<h4 id="asc-t-{{.ID}}">{{if $manage}}<a href="{{$a.StorageURL}}/targets/{{.ID}}">{{.Name}}</a>{{else}}{{.Name}}{{end}}</h4>
-				{{template "shared/asc/byo_badge" (dict "tone" .Tone "text" (ctx.Locale.Tr .StateKey))}}
-			</header>
-			<dl class="asc-byo-meta">
-				<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.endpoint"}}</dt><dd class="asc-byo-mono">{{.Endpoint}}</dd></div>
-				<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.bucket"}}</dt><dd class="asc-byo-mono">{{.Bucket}}{{if .Prefix}}/{{.Prefix}}{{end}}</dd></div>
-				<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.credentials"}}</dt><dd>{{if .HasSecret}}{{svg "octicon-lock" 14}} {{ctx.Locale.Tr "ascbyo.storage.card.credentials_stored" .KeyHint}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.card.credentials_missing"}}{{end}}</dd></div>
-				<div><dt>{{ctx.Locale.Tr "ascbyo.storage.card.repos"}}</dt><dd>{{.Repos}}</dd></div>
-			</dl>
-			{{if .LastError}}<p class="asc-byo-error-line">{{svg "octicon-alert" 14}} {{.LastError}}</p>{{end}}
+		<article class="asc-byo-item asc-byo-target{{if .IsEnabled}} is-current{{end}}" aria-labelledby="asc-t-{{.ID}}" data-testid="asc-target" data-state="{{.StateName}}">
+			<span class="asc-byo-target-ic" aria-hidden="true">{{svg "octicon-database" 18}}</span>
+			<div class="asc-byo-target-main">
+				<header class="asc-byo-item-head">
+					<h4 id="asc-t-{{.ID}}">{{if $manage}}<a href="{{$a.StorageURL}}/targets/{{.ID}}">{{.Name}}</a>{{else}}{{.Name}}{{end}}</h4>
+					<span class="ds-chip {{.ChipClass}}">{{ctx.Locale.Tr .StateKey}}</span>
+				</header>
+				<p class="asc-byo-target-at asc-byo-mono">{{.Location}}</p>
+				{{if .LastError}}
+					<p class="asc-byo-target-use" data-testid="asc-target-use">{{ctx.Locale.Tr "ascbyo.storage.card.last_error_line" .LastError}}</p>
+				{{else}}
+					<p class="asc-byo-target-use" data-testid="asc-target-use">{{if .Repos}}{{ctx.Locale.TrN .RepoCount "ascbyo.storage.card.used_by_1" "ascbyo.storage.card.used_by_n" .RepoCount}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.card.not_used"}}{{end}}{{if .VerifiedAt}} &middot; {{ctx.Locale.Tr "ascbyo.storage.card.verified_when" (DateUtils.TimeSince .VerifiedAt)}}{{end}}</p>
+				{{end}}
+			</div>
 			{{if $manage}}
 				<div class="asc-byo-actions">
-					<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/verify">
-						{{$root.CsrfTokenHtml}}
-						<button class="ds-btn ds-btn-secondary {{if .NeedsVerify}}primary {{else}}basic {{end}}" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.verify"}}</button>
-					</form>
 					{{if .CanEnable}}
 						<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/enable">
 							{{$root.CsrfTokenHtml}}
 							<input type="hidden" name="return" value="list">
-							<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.enable"}}</button>
+							<button class="ds-btn ds-btn-primary ds-btn-sm" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.enable"}}</button>
 						</form>
-					{{end}}
-					{{if .CanDisable}}
+					{{else if .CanDisable}}
 						<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/disable">
 							{{$root.CsrfTokenHtml}}
 							<input type="hidden" name="return" value="list">
-							<button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.disable"}}</button>
+							<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.disable"}}</button>
+						</form>
+					{{else}}
+						<form method="post" action="{{$a.StorageURL}}/targets/{{.ID}}/verify">
+							{{$root.CsrfTokenHtml}}
+							<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{ctx.Locale.Tr "ascbyo.storage.card.verify"}}</button>
 						</form>
 					{{end}}
-					<a class="ds-btn ds-btn-secondary" href="{{$a.StorageURL}}/targets/{{.ID}}">{{ctx.Locale.Tr "ascbyo.storage.card.details"}}</a>
+					<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{$a.StorageURL}}/targets/{{.ID}}">{{ctx.Locale.Tr "ascbyo.storage.card.details"}}</a>
 				</div>
 			{{end}}
 		</article>

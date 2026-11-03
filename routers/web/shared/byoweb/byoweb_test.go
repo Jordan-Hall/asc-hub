@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
@@ -155,6 +156,9 @@ func TestStorageIndexRenders(t *testing.T) {
 	alice := userLevel(t).Scope.Owner()
 	pending := f.AddTarget(alice, "primary", ascv1.StorageTargetState_STORAGE_TARGET_STATE_PENDING)
 	enabled := f.AddTarget(alice, "backup", ascv1.StorageTargetState_STORAGE_TARGET_STATE_ENABLED)
+	f.SetTargetFields(enabled.GetId(), func(t *ascv1.StorageTarget) { t.Repos, t.VerifiedAt = 3, time.Now().Add(-48*time.Hour).Unix() })
+	other := f.AddTarget(alice, "spare", ascv1.StorageTargetState_STORAGE_TARGET_STATE_DISABLED)
+	f.SetTargetFields(other.GetId(), func(t *ascv1.StorageTarget) { t.Repos = 1 })
 	f.AddTarget(mustScope(t, svc.KindUser, "bob").Owner(), "bobs-secret-target", ascv1.StorageTargetState_STORAGE_TARGET_STATE_ENABLED)
 
 	r := run(t, StorageIndex, userLevel(t), http.MethodGet, nil, "")
@@ -172,7 +176,13 @@ func TestStorageIndexRenders(t *testing.T) {
 	assert.Contains(t, body, "/user/settings/asc/storage/targets/"+pending.GetId()+"/verify")
 	assert.Contains(t, body, `name="_csrf"`, "every form carries the CSRF token")
 	assert.Equal(t, strings.Count(body, "<form"), strings.Count(body, `name="_csrf"`), "…one per form")
-	assert.Contains(t, body, "AKIA...WXYZ", "the hint is shown")
+	// the card says where the target keeps objects, how many repositories use it and when it was verified
+	assert.Contains(t, body, "s3.example.com / bucket-backup")
+	assert.Contains(t, body, tr(t, "ascbyo.storage.card.used_by_n", 3)+" &middot; verified ")
+	assert.Contains(t, body, tr(t, "ascbyo.storage.card.not_used"))
+	assert.Contains(t, body, tr(t, "ascbyo.storage.card.used_by_1", 1))
+	assert.Contains(t, body, `class="asc-byo-item asc-byo-target is-current"`, "the target in use stands out")
+	assert.NotContains(t, body, "/user/settings/asc/storage/targets/"+enabled.GetId()+"/verify", "a target in use is verified from its page")
 	assertNoSecrets(t, body, "AKIAPLANTEDKEYWXYZ", "planted-secret-primary", "planted-secret-backup")
 	// the credential inputs are password fields and never prefilled
 	for _, name := range []string{"access_key_id", "secret_access_key", "session_token"} {

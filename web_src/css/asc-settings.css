@@ -179,6 +179,66 @@
   overflow-wrap: anywhere;
 }
 
+/* a storage target as the board draws it: icon, name and state, where, use or last error, then the buttons */
+.asc-byo-target {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.asc-byo-target.is-current {
+  border-color: var(--fill);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.asc-byo-target-ic {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+
+.asc-byo-target-main {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.asc-byo-target .asc-byo-item-head {
+  justify-content: flex-start;
+  margin-bottom: 0;
+}
+
+.asc-byo-target .asc-byo-item-head h4 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.asc-byo-target-at,
+.asc-byo-target-use {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.asc-byo-target-at {
+  color: var(--text-2);
+}
+
+.asc-byo-target-use {
+  color: var(--text-3);
+}
+
+.asc-byo-target .asc-byo-actions {
+  flex-direction: row;
+  margin-top: 0;
+}
+
 /* label and value pairs: stacked on a phone, side by side from 640px */
 .asc-byo-meta {
   display: grid;
