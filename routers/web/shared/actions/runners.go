@@ -163,36 +163,16 @@ func RunnersList(ctx *context.Context) {
 		return
 	}
 
-	// ownid=0,repo_id=0,means this token is used for global
-	ownerID := optional.None[int64]()
-	if opts.OwnerID != 0 {
-		ownerID = optional.Some(opts.OwnerID)
+	if token := takeShownOnceToken(ctx, opts.OwnerID, opts.RepoID); token != nil {
+		ctx.Data["RegistrationToken"] = token.Token
+		ctx.Data["RegistrationTokenExpires"] = token.ExpiresUnix.AsTime()
 	}
-	repoID := optional.None[int64]()
-	if opts.RepoID != 0 {
-		repoID = optional.Some(opts.RepoID)
-	}
-
-	var token *actions_model.ActionRunnerToken
-	token, err = actions_model.GetLatestRunnerToken(ctx, ownerID, repoID)
-	if errors.Is(err, util.ErrNotExist) || (token != nil && !token.IsActive) {
-		token, err = actions_model.NewRunnerToken(ctx, ownerID, repoID)
-		if err != nil {
-			ctx.ServerError("CreateRunnerToken", err)
-			return
-		}
-	} else if err != nil {
-		ctx.ServerError("GetLatestRunnerToken", err)
-		return
-	}
-
 	ctx.Data["PageIsSharedSettingsRunners"] = true
 	ctx.Data["Title"] = ctx.Tr("actions.actions")
 	ctx.Data["PageType"] = "runners"
 	ctx.Data["Keyword"] = opts.Filter
 	ctx.Data["Runners"] = runners
 	ctx.Data["Total"] = count
-	ctx.Data["RegistrationToken"] = token.Token
 	ctx.Data["RunnerOwnerID"] = opts.OwnerID
 	ctx.Data["RunnerRepoID"] = opts.RepoID
 	ctx.Data["SortType"] = opts.Sort
@@ -429,7 +409,33 @@ func RunnerEditPost(ctx *context.Context) {
 	ctx.HTML(http.StatusOK, rCtx.RunnerSetupTemplate)
 }
 
-// RunnerResetRegistrationToken resets the runner registration token.
+// shownOnceTokenKey is the session key that holds the id of the registration token the runners page shows once.
+const shownOnceTokenKey = "asc_runner_token_once"
+
+// takeShownOnceToken is the registration token issued for the list of this scope that the page has not shown yet; it is
+// taken from the session, so a reload does not show it again. A token of another scope, or one that no longer registers
+// runners, is not shown.
+func takeShownOnceToken(ctx *context.Context, ownerID, repoID int64) *actions_model.ActionRunnerToken {
+	id, _ := ctx.Session.Get(shownOnceTokenKey).(int64)
+	if id == 0 {
+		return nil
+	}
+	_ = ctx.Session.Delete(shownOnceTokenKey)
+	token, err := actions_model.GetRunnerTokenByID(ctx, id)
+	if err != nil {
+		if !errors.Is(err, util.ErrNotExist) {
+			log.Error("GetRunnerTokenByID(%d): %v", id, err)
+		}
+		return nil
+	}
+	if token.OwnerID.ValueOrDefault(0) != ownerID || token.RepoID.ValueOrDefault(0) != repoID || !token.Usable() {
+		return nil
+	}
+	return token
+}
+
+// RunnerResetRegistrationToken issues a registration token that expires after an hour and shows it once on the list: the
+// tokens issued before stop registering runners.
 func RunnerResetRegistrationToken(ctx *context.Context) {
 	rCtx, err := getRunnersCtx(ctx)
 	if err != nil {
@@ -446,9 +452,13 @@ func RunnerResetRegistrationToken(ctx *context.Context) {
 		optRepoID = optional.Some(rCtx.RepoID)
 	}
 
-	_, err = actions_model.NewRunnerToken(ctx, optOwnerID, optRepoID)
+	token, err := actions_model.NewShownOnceRunnerToken(ctx, optOwnerID, optRepoID)
 	if err != nil {
 		ctx.ServerError("ResetRunnerRegistrationToken", err)
+		return
+	}
+	if err := ctx.Session.Set(shownOnceTokenKey, token.ID); err != nil {
+		ctx.ServerError("Session.Set", err)
 		return
 	}
 
