@@ -1,6 +1,16 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin config")}}
 	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.configuration") "Desc" (ctx.Locale.Tr "asc_admin.config_lead"))}}
 
+	{{with .ConfigFile}}
+		{{if .Changed}}
+			<div class="ds-banner ds-banner-warn adm-sec" role="status" data-testid="config-restart">{{svg "dsi-alert" 18}}<div class="ds-banner-body">
+				<p><strong>{{ctx.Locale.TrN (len .Changed) "asc_admin.config_restart_1" "asc_admin.config_restart_n" (len .Changed) .Path}}</strong></p>
+				<p class="adm-cfg-changed">{{range $i, $k := .Changed}}{{if $i}}, {{end}}<code>{{$k}}</code>{{end}}</p>
+			</div></div>
+		{{else if .Problem}}
+			<div class="ds-banner ds-banner-warn adm-sec" role="status" data-testid="config-unread">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{.Problem}}</p></div>
+		{{end}}
+	{{end}}
 	{{template "admin/config_runtime" .}}
 	{{template "admin/config_curated" .}}
 

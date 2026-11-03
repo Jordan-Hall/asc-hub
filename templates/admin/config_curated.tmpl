@@ -1,12 +1,13 @@
-{{/* The settings an administrator looks for first, read only, each with a button that copies "key = value". */}}
+{{/* The settings an administrator looks for first, read only, each with the file and line that set it and a button that copies "key = value". */}}
 {{range .ConfigCards}}
 <section class="ds-card adm-sec" aria-labelledby="adm-cfg-{{.ID}}">
 	<div class="ds-card-h"><h2 id="adm-cfg-{{.ID}}">{{.Title}}</h2><span class="ds-card-sub">{{.Note}}</span></div>
 	{{range .Rows}}
 	<div class="adm-setting">
 		<div class="adm-setting-text">
-			<div class="adm-setting-title adm-mono adm-cfg-key">{{.Key}}</div>
+			<div class="adm-setting-title adm-mono adm-cfg-key"{{if .Where}} data-tooltip-content="{{.Where}}"{{end}}>{{.Key}}{{if .Where}}<span class="ds-sr" data-testid="config-source">, {{.Where}}</span>{{end}}</div>
 			<p>{{.Label}}</p>
+			{{if .Changed}}<p class="adm-cfg-src"><span class="ds-chip ds-chip-warn" data-testid="config-changed">{{ctx.Locale.Tr "asc_admin.config_changed"}}</span></p>{{end}}
 		</div>
 		<span class="adm-mono adm-cfg-val" title="{{.Value}}">{{.Value}}</span>
 		<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_admin.config_copy_value"}}" data-clipboard-text="{{.Key}} = {{.Value}}">{{svg "dsi-copy" 16}}</button>

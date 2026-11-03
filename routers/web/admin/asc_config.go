@@ -4,6 +4,7 @@
 package admin
 
 import (
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -109,6 +110,16 @@ func changeAscConfig(ctx *context.Context, key, value string) {
 // configRow is one read-only setting of the configuration page: its key, what it is for and its value.
 type configRow struct {
 	Key, Label, Value string
+	// In names the keys of the configuration file that set the value ("section.KEY"); the first one the file sets is shown.
+	In []string
+	// Where says the file and line that set the value, or that it is the default. Changed is set when that key changed in
+	// the file since the server started, so the running value is not the one in the file.
+	Where   string
+	Changed bool
+}
+
+func cfgRow(key, label, value string, in ...string) configRow {
+	return configRow{Key: key, Label: label, Value: value, In: in}
 }
 
 // configCard is a group of read-only settings.
@@ -144,17 +155,56 @@ func curatedConfig(ctx *context.Context) []configCard {
 	}
 	return []configCard{
 		{ID: "server", Title: tr("asc_admin.config_card_server"), Note: tr("asc_admin.config_server_note"), Rows: []configRow{
-			{"server.domain", tr("asc_admin.config_domain"), setting.Domain},
-			{"server.protocol", tr("asc_admin.config_protocol"), string(setting.Protocol)},
-			{"server.ssh", tr("asc_admin.config_ssh"), ssh},
+			cfgRow("server.domain", tr("asc_admin.config_domain"), setting.Domain, "server.DOMAIN"),
+			cfgRow("server.protocol", tr("asc_admin.config_protocol"), string(setting.Protocol), "server.PROTOCOL"),
+			cfgRow("server.ssh", tr("asc_admin.config_ssh"), ssh, "server.DISABLE_SSH", "server.SSH_PORT", "server.START_SSH_SERVER"),
 		}},
 		{ID: "storage", Title: tr("asc_admin.config_card_storage"), Note: tr("asc_admin.config_storage_note"), Rows: []configRow{
-			{"storage.attachments", tr("asc_admin.config_storage_files"), attach},
-			{"storage.byo", tr("asc_admin.config_storage_byo"), byo},
+			cfgRow("storage.attachments", tr("asc_admin.config_storage_files"), attach, "attachment.STORAGE_TYPE", "storage.attachments.STORAGE_TYPE", "storage.STORAGE_TYPE"),
+			cfgRow("storage.byo", tr("asc_admin.config_storage_byo"), byo, "asc.ENABLED"),
 		}},
 		{ID: "mail", Title: tr("asc_admin.config_card_mail"), Note: tr("asc_admin.config_mail_note"), Rows: []configRow{
-			{"mail.from", tr("asc_admin.config_mail_from"), from},
-			{"mail.host", tr("asc_admin.config_mail_host"), host},
+			cfgRow("mail.from", tr("asc_admin.config_mail_from"), from, "mailer.FROM"),
+			cfgRow("mail.host", tr("asc_admin.config_mail_host"), host, "mailer.SMTP_ADDR", "mailer.SMTP_PORT", "mailer.PROTOCOL"),
 		}},
 	}
+}
+
+// configFileState is what the configuration page says about the configuration file: the keys that changed since the
+// server started (the restart banner), or that the file could not be read again.
+type configFileState struct {
+	Path    string
+	Changed []string
+	Problem string
+}
+
+// placeConfigFile reads the configuration file again: each curated row says the file and line that set it, and the keys
+// that changed since the server started are listed for the restart banner.
+func placeConfigFile(ctx *context.Context, cards []configCard) configFileState {
+	st := configFileState{Path: setting.CustomConf}
+	file, changed, err := setting.ConfigFileNow()
+	if err != nil {
+		log.Warn("admin config: the configuration file %q could not be read: %v", setting.CustomConf, err)
+		st.Problem = ctx.Locale.TrString("asc_admin.config_file_unread", setting.CustomConf)
+		return st
+	}
+	st.Changed = changed
+	name := filepath.Base(file.Path)
+	for i := range cards {
+		for j := range cards[i].Rows {
+			r := &cards[i].Rows[j]
+			e, ok := file.Find(r.In...)
+			if !ok {
+				r.Where = ctx.Locale.TrString("asc_admin.config_from_default", name)
+				continue
+			}
+			r.Where = ctx.Locale.TrString("asc_admin.config_at_line", name, e.Line)
+			for _, c := range changed {
+				if strings.EqualFold(c, e.Name()) {
+					r.Changed = true
+				}
+			}
+		}
+	}
+	return st
 }
