@@ -4,6 +4,8 @@
 package ascbyo
 
 import (
+	"strings"
+
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/timeutil"
 )
@@ -74,6 +76,41 @@ func TargetViewOf(t *ascv1.StorageTarget) TargetView {
 	}
 	v.CanVerify = true
 	return v
+}
+
+// Location is where a target keeps objects, as its card shows it: the host of the endpoint, then the bucket and the
+// folder ("s3.example.com / bucket/folder").
+func (v TargetView) Location() string {
+	host := strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(v.Endpoint, "https://"), "http://"), "/")
+	where := v.Bucket
+	if v.Prefix != "" {
+		where += "/" + v.Prefix
+	}
+	if host == "" {
+		return where
+	}
+	return host + " / " + where
+}
+
+// ChipClass is the colour of the state chip of a target card: in use is ok, verified is info, not verified is warn and
+// failed is err; the others are plain.
+func (v TargetView) ChipClass() string {
+	switch v.StateName {
+	case "enabled":
+		return "ds-chip-ok"
+	case "verified":
+		return "ds-chip-info"
+	case "pending":
+		return "ds-chip-warn"
+	case "failed":
+		return "ds-chip-err"
+	}
+	return ""
+}
+
+// RepoCount is Repos as an int, the count the plural forms of the locale take.
+func (v TargetView) RepoCount() int {
+	return int(v.Repos)
 }
 
 // TargetViews converts a list.
