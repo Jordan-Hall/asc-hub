@@ -23,10 +23,12 @@
 				{{if .IsSigned}}
 					<div class="wk-pf-primary">{{template "org/follow_unfollow" .}}</div>
 				{{end}}
-				{{if .IsOrganizationOwner}}
-					<a id="settings-btn" class="ds-btn ds-btn-secondary" href="{{.OrgLink}}/settings">{{ctx.Locale.Tr "asc_work.org_settings"}}</a>
-				{{else if .IsOrganizationMember}}
+				{{if and .IsOrganizationMember (not .IsOrganizationOwner)}}
 					<a class="ds-btn ds-btn-secondary" href="{{.OrgLink}}/dashboard">{{ctx.Locale.Tr "org.open_dashboard"}}</a>
+				{{end}}
+				{{/* a member who is not an owner reads the settings (the page is read only for them) */}}
+				{{if or .IsOrganizationOwner .IsOrganizationMember}}
+					<a id="settings-btn" class="ds-btn ds-btn-secondary" href="{{.OrgLink}}/settings">{{ctx.Locale.Tr "asc_work.org_settings"}}</a>
 				{{end}}
 				{{$moderationEntryNeeded := and .IsModerationEnabled .IsSigned (not .IsOrganizationOwner)}}
 				{{if or .EnableFeed $moderationEntryNeeded .IsOrganizationOwner}}

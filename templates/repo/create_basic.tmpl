@@ -5,10 +5,10 @@
 		{{/* the uid id is used by the repo-template code; a native select is a sheet on a phone */}}
 		<select id="uid" name="uid" class="ds-select{{if .Err_Owner}} is-err{{end}}" required aria-describedby="repo_owner_help">
 			{{if .CanCreateRepo}}
-				<option value="{{.SignedUser.ID}}"{{if eq $owner.ID .SignedUser.ID}} selected{{end}}>{{.SignedUser.ShortName 40}}</option>
+				<option value="{{.SignedUser.ID}}" data-default-visibility="{{index $.OwnerVisibility .SignedUser.ID}}"{{if eq $owner.ID .SignedUser.ID}} selected{{end}}>{{.SignedUser.ShortName 40}}</option>
 			{{end}}
 			{{range .Orgs}}
-				<option value="{{.ID}}"{{if eq $owner.ID .ID}} selected{{end}}>{{.ShortName 40}}</option>
+				<option value="{{.ID}}" data-default-visibility="{{index $.OwnerVisibility .ID}}"{{if eq $owner.ID .ID}} selected{{end}}>{{.ShortName 40}}</option>
 			{{end}}
 		</select>
 		<div class="ds-hint" id="repo_owner_help">{{ctx.Locale.Tr "repo.owner_helper"}}</div>

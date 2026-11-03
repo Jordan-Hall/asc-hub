@@ -162,6 +162,39 @@ func getRepoPrivate(ctx *context.Context) bool {
 	}
 }
 
+// ownerVisibilities sets the visibility each owner of the form starts a new repository with: the server's default, or
+// the default of an organization that set one (unless every repository must be private). The cards start with the
+// visibility of the owner selected first, and the page switches them when another owner is chosen.
+func ownerVisibilities(ctx *context.Context, ctxUser *user_model.User) bool {
+	server := ctx.Data["visibility"].(string)
+	orgs, _ := ctx.Data["Orgs"].([]*organization.Organization)
+	ids := make([]int64, 0, len(orgs)+1)
+	ids = append(ids, ctxUser.ID)
+	for _, o := range orgs {
+		ids = append(ids, o.ID)
+	}
+	byOrg, err := organization.GetAscRepoVisibilities(ctx, ids)
+	if err != nil {
+		ctx.ServerError("GetAscRepoVisibilities", err)
+		return false
+	}
+	vis := make(map[int64]string, len(ids)+1)
+	vis[ctx.Doer.ID] = server
+	for _, id := range ids {
+		vis[id] = server
+		if v, ok := byOrg[id]; ok && !setting.Repository.ForcePrivate {
+			vis[id] = v
+		}
+	}
+	ctx.Data["OwnerVisibility"] = vis
+	owner := ctxUser
+	if !ctx.Doer.CanCreateRepo() && len(orgs) > 0 {
+		owner = orgs[0].AsUser()
+	}
+	ctx.Data["visibility"] = vis[owner.ID]
+	return true
+}
+
 // newRepositoriesInAsc reports whether a repository created now is stored in asc, which is the condition that
 // services/repository applies to pick the asc storage backend: the instance writes through asc and creates new
 // repositories there. The create page uses it to drop the git-only settings.
@@ -192,6 +225,9 @@ func Create(ctx *context.Context) {
 		return
 	}
 	ctx.Data["ContextUser"] = ctxUser
+	if !ownerVisibilities(ctx, ctxUser) {
+		return
+	}
 
 	ctx.Data["repo_template_name"] = ctx.Tr("repo.template_select")
 	templateID := ctx.FormInt64("template_id")

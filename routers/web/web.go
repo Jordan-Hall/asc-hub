@@ -1164,6 +1164,10 @@ func registerRoutes(m *web.Route) {
 			m.Get("/teams/-/search", org.SearchTeam)
 		}, context.OrgAssignment(true, false, false, true))
 
+		// Every member reads the general settings; only an owner changes them (the page says so to the others).
+		orgSettingsData := ctxDataSet("EnableOAuth2", setting.OAuth2.Enabled, "EnablePackages", setting.Packages.Enabled, "EnableQuota", setting.Quota.Enabled, "PageIsOrgSettings", true, "AscEnabled", setting.Asc.Enabled)
+		m.Get("/{org}/settings", context.OrgAssignment(true), orgSettingsData, org.Settings)
+
 		// require owner permission
 		m.Group("/{org}", func() {
 			m.Get("/teams/new", org.NewTeam)
@@ -1173,8 +1177,7 @@ func registerRoutes(m *web.Route) {
 			m.Post("/teams/{team}/delete", org.DeleteTeam)
 
 			m.Group("/settings", func() {
-				m.Combo("").Get(org.Settings).
-					Post(web.Bind(forms.UpdateOrgSettingForm{}), org.SettingsPost)
+				m.Post("", web.Bind(forms.UpdateOrgSettingForm{}), org.SettingsPost)
 				m.Post("/avatar", web.Bind(forms.AvatarForm{}), org.SettingsAvatar)
 				m.Post("/avatar/delete", org.SettingsDeleteAvatar)
 				m.Combo("/domain").Get(org.SettingsDomain).Post(org.SettingsDomainPost)
@@ -1246,7 +1249,7 @@ func registerRoutes(m *web.Route) {
 						m.Post("/rebuild", org.RebuildCargoIndex)
 					})
 				}, packagesEnabled)
-			}, ctxDataSet("EnableOAuth2", setting.OAuth2.Enabled, "EnablePackages", setting.Packages.Enabled, "EnableQuota", setting.Quota.Enabled, "PageIsOrgSettings", true, "AscEnabled", setting.Asc.Enabled))
+			}, orgSettingsData)
 		}, context.OrgAssignment(true, true))
 	}, reqSignIn)
 	// ***** END: Organization *****

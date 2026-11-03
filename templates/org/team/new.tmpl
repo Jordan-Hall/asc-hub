@@ -39,7 +39,7 @@
 						</label>
 						<label class="wk-choice ds-check">
 							<input name="can_create_org_repo" type="checkbox" {{if .Team.CanCreateOrgRepo}}checked{{end}}>
-							<span><b>{{ctx.Locale.Tr "org.teams.can_create_org_repo"}}</b><span class="ds-hint">{{ctx.Locale.Tr "org.teams.can_create_org_repo_helper"}}</span></span>
+							<span><b>{{ctx.Locale.Tr "org.teams.can_create_org_repo"}}</b><span class="ds-hint">{{ctx.Locale.Tr "org.teams.can_create_org_repo_helper"}}</span>{{if and .RepoCreators (ne .RepoCreators "teams")}}<span class="ds-hint" data-testid="team-create-repo-overridden">{{ctx.Locale.Tr (print "asc_work.teams_create_repo_overridden_" .RepoCreators)}}</span>{{end}}</span>
 						</label>
 					</fieldset>
 				</section>

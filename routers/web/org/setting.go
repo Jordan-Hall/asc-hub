@@ -5,12 +5,15 @@
 package org
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
 
 	"forgejo.org/models"
 	"forgejo.org/models/db"
+	"forgejo.org/models/organization"
+	"forgejo.org/models/perm"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/models/webhook"
@@ -46,6 +49,7 @@ func Settings(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("org.settings")
 	ctx.Data["PageIsOrgSettings"] = true
 	ctx.Data["PageIsSettingsOptions"] = true
+	ctx.Data["SettingsReadOnly"] = !ctx.Org.IsOwner
 	ctx.Data["CurrentVisibility"] = ctx.Org.Organization.Visibility
 	ctx.Data["RepoAdminChangeTeamAccess"] = ctx.Org.Organization.RepoAdminChangeTeamAccess
 	ctx.Data["ContextUser"] = ctx.ContextUser
@@ -54,6 +58,10 @@ func Settings(ctx *context.Context) {
 	ctx.Data["MaxAvatarWidth"] = setting.Avatar.MaxWidth
 	ctx.Data["MaxAvatarHeight"] = setting.Avatar.MaxHeight
 
+	if !loadRepoDefaults(ctx) {
+		return
+	}
+
 	err := shared_user.LoadHeaderCount(ctx)
 	if err != nil {
 		ctx.ServerError("LoadHeaderCount", err)
@@ -61,6 +69,47 @@ func Settings(ctx *context.Context) {
 	}
 
 	ctx.HTML(http.StatusOK, tplSettingsOptions)
+}
+
+// loadRepoDefaults puts the organization's repository defaults in RepoDefaults, with BasePermission as a word.
+func loadRepoDefaults(ctx *context.Context) bool {
+	d, err := organization.GetAscRepoDefaults(ctx, ctx.Org.Organization.ID)
+	if err != nil {
+		ctx.ServerError("GetAscRepoDefaults", err)
+		return false
+	}
+	ctx.Data["RepoDefaults"] = d
+	ctx.Data["BasePermission"] = basePermissionWord(d.BasePermission)
+	return true
+}
+
+func basePermissionWord(m perm.AccessMode) string {
+	switch m {
+	case perm.AccessModeRead:
+		return "read"
+	case perm.AccessModeWrite:
+		return "write"
+	}
+	return "none"
+}
+
+// repoDefaultsOf reads the repository defaults of the form. An empty field is the default of that field.
+func repoDefaultsOf(orgID int64, form *forms.UpdateOrgSettingForm) (*organization.AscRepoDefaults, error) {
+	d := &organization.AscRepoDefaults{OrgID: orgID, RepoCreators: form.RepoCreators, Visibility: form.RepoVisibility}
+	if d.RepoCreators == "" {
+		d.RepoCreators = organization.RepoCreatorsTeams
+	}
+	switch form.BasePermission {
+	case "", "none":
+		d.BasePermission = perm.AccessModeNone
+	case "read":
+		d.BasePermission = perm.AccessModeRead
+	case "write":
+		d.BasePermission = perm.AccessModeWrite
+	default:
+		return nil, fmt.Errorf("unknown base permission %q", form.BasePermission)
+	}
+	return d, d.Validate()
 }
 
 // SettingsPost response for settings change submitted
@@ -75,12 +124,24 @@ func SettingsPost(ctx *context.Context) {
 	ctx.Data["MaxAvatarWidth"] = setting.Avatar.MaxWidth
 	ctx.Data["MaxAvatarHeight"] = setting.Avatar.MaxHeight
 
+	if !loadRepoDefaults(ctx) {
+		return
+	}
+
 	if ctx.HasError() {
 		ctx.HTML(http.StatusOK, tplSettingsOptions)
 		return
 	}
 
 	org := ctx.Org.Organization
+
+	// Checked before anything is saved, so a bad value changes nothing.
+	repoDefaults, err := repoDefaultsOf(org.ID, form)
+	if err != nil {
+		ctx.Data["Err_RepoDefaults"] = true
+		ctx.RenderWithErr(ctx.Tr("asc_work.sp_repo_defaults_invalid"), tplSettingsOptions, form)
+		return
+	}
 
 	if org.Name != form.Name {
 		if err := user_service.RenameUser(ctx, org.AsUser(), form.Name); err != nil {
@@ -135,6 +196,11 @@ func SettingsPost(ctx *context.Context) {
 
 	if err := user_service.UpdateUser(ctx, org.AsUser(), opts); err != nil {
 		ctx.ServerError("UpdateUser", err)
+		return
+	}
+
+	if err := organization.SetAscRepoDefaults(ctx, repoDefaults); err != nil {
+		ctx.ServerError("SetAscRepoDefaults", err)
 		return
 	}
 

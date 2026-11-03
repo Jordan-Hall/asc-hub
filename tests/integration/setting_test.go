@@ -274,3 +274,34 @@ func TestAdminAvatarSizeNotice(t *testing.T) {
 		htmlDoc.doc.Find("form div:has(input[name=\"avatar\"]) .ds-hint").Text(),
 		"Custom avatar may not exceed 1 MiB in size or be larger than 4096x4096 pixels")
 }
+
+func TestOrgSettingsReadOnlyForMembers(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	// user4 is a member of org3, user2 owns it.
+	member := loginUser(t, "user4")
+	resp := member.MakeRequest(t, NewRequest(t, "GET", "/org/org3/settings"), http.StatusOK)
+	doc := NewHTMLParser(t, resp.Body)
+	doc.AssertElement(t, "[data-testid=org-settings-read-only]", true)
+	doc.AssertElement(t, "form fieldset.wk-fieldset-plain[disabled]", true)
+	doc.AssertElement(t, "form[action$='/avatar']", false)
+	doc.AssertElement(t, ".ds-settings-nav a[href$='/settings/hooks']", false)
+	doc.AssertElement(t, "#settings-btn", true)
+
+	member.MakeRequest(t, NewRequestWithValues(t, "POST", "/org/org3/settings", map[string]string{
+		"name": "org3",
+	}), http.StatusNotFound)
+	member.MakeRequest(t, NewRequest(t, "GET", "/org/org3/settings/hooks"), http.StatusNotFound)
+
+	owner := loginUser(t, "user2")
+	resp = owner.MakeRequest(t, NewRequest(t, "GET", "/org/org3/settings"), http.StatusOK)
+	doc = NewHTMLParser(t, resp.Body)
+	doc.AssertElement(t, "[data-testid=org-settings-read-only]", false)
+	doc.AssertElement(t, "form fieldset.wk-fieldset-plain[disabled]", false)
+	doc.AssertElement(t, "[data-testid=org-repo-creators]", true)
+	doc.AssertElement(t, ".ds-settings-nav a[href$='/settings/hooks']", true)
+
+	// A stranger does not see the settings of the organization.
+	stranger := loginUser(t, "user5")
+	stranger.MakeRequest(t, NewRequest(t, "GET", "/org/org3/settings"), http.StatusNotFound)
+}
