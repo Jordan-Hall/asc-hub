@@ -395,6 +395,7 @@ func ViewProject(ctx *context.Context) {
 	ctx.Data["CanWriteProjects"] = canWriteProjects(ctx)
 	ctx.Data["Project"] = project
 	ctx.Data["IssuesMap"] = issuesMap
+	ctx.Data["ProjectCardCount"] = issues_model.CountColumnIssues(issuesMap)
 	ctx.Data["Columns"] = columns
 	shared_user.RenderUserHeader(ctx)
 

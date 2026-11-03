@@ -171,3 +171,9 @@ func TestPrivateRepoProjects(t *testing.T) {
 		assert.Equal(t, 2, issuesNum)
 	})
 }
+
+func TestCountColumnIssues(t *testing.T) {
+	assert.Equal(t, 0, issues.CountColumnIssues(nil))
+	assert.Equal(t, 0, issues.CountColumnIssues(map[int64]issues.IssueList{1: {}, 2: nil}))
+	assert.Equal(t, 3, issues.CountColumnIssues(map[int64]issues.IssueList{1: {{ID: 1}, {ID: 2}}, 2: {{ID: 3}}}))
+}

@@ -98,6 +98,15 @@ func LoadIssuesFromColumnList(ctx context.Context, bs project_model.ColumnList, 
 	return issuesMap, nil
 }
 
+// CountColumnIssues is the number of cards on a board: the issues of every column.
+func CountColumnIssues(issuesMap map[int64]IssueList) int {
+	n := 0
+	for _, il := range issuesMap {
+		n += len(il)
+	}
+	return n
+}
+
 // IssueAssignOrRemoveProject changes the project associated with an issue
 // If newProjectID is 0, the issue is removed from the project
 func IssueAssignOrRemoveProject(ctx context.Context, issue *Issue, doer *user_model.User, newProjectID, newColumnID int64) error {

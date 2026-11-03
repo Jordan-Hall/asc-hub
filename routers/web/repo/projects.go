@@ -385,6 +385,7 @@ func ViewProject(ctx *context.Context) {
 	ctx.Data["CanWriteProjects"] = ctx.Repo.CanWrite(unit.TypeProjects)
 	ctx.Data["Project"] = project
 	ctx.Data["IssuesMap"] = issuesMap
+	ctx.Data["ProjectCardCount"] = issues_model.CountColumnIssues(issuesMap)
 	ctx.Data["Columns"] = columns
 
 	ctx.HTML(http.StatusOK, tplProjectsView)
