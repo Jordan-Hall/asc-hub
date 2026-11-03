@@ -99,7 +99,7 @@ func TestCreateOrgFirstTeamAndAgents(t *testing.T) {
 
 	code, ok, warn := createOrg(t, forms.CreateOrgForm{OrgName: "nova-team", FullName: "  Nova Team ", CreateEveryone: true, AllowAgents: true})
 	require.Equal(t, http.StatusSeeOther, code)
-	assert.Contains(t, ok, "nova-team is ready.")
+	assert.Equal(t, "asc_work.neworg_created", ok, "the unit tests run without translations")
 	assert.Empty(t, warn)
 	o := newOrg(t, "nova-team")
 	assert.Equal(t, "Nova Team", o.FullName)
@@ -144,7 +144,7 @@ func TestCreateOrgAgentsFailureKeepsTheOrganization(t *testing.T) {
 
 	code, ok, warn := createOrg(t, forms.CreateOrgForm{OrgName: "acme-team", AllowAgents: true})
 	require.Equal(t, http.StatusSeeOther, code)
-	assert.Contains(t, ok, "acme-team is ready.")
-	assert.Contains(t, warn, "Agents could not be turned on")
+	assert.Equal(t, "asc_work.neworg_created", ok)
+	assert.Equal(t, "asc_work.neworg_agents_failed", warn)
 	unittest.AssertExistsAndLoadBean(t, &user_model.User{LowerName: "acme-team", Type: user_model.UserTypeOrganization})
 }
