@@ -18,9 +18,9 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 124 |
+| done | 125 |
 | partial | 1 |
-| ui-only-missing | 18 |
+| ui-only-missing | 17 |
 | needs-hub-backend | 6 |
 | needs-asc-backend | 3 |
 | needs-both | 21 |
@@ -28,7 +28,7 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 14, M 27, L 8.
+Open rows by size: S 13, M 27, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -208,7 +208,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | Issues | Row chips "Fixed by stack X", linked stack with state, "Quarantined by" flaky chip | needs-hub-backend | Built: the chip on a row, "Fixed by #N · 1 of 4 landed" when a pull request of the stack closes the issue, else "Stack #N" (`routers/web/repo/asc_issue_stacks.go` prepareAscIssueChips, `templates/shared/issuelist.tmpl`; one query for the whole page). `services/pull/asc_issue_stacks.go`: no table; the link is read from the reference comments that a pull request leaves on the issue it names, so it follows the pull request's text; a stack counts once however many of its pull requests name the issue; the state is the stack panel's (open, landed, closed). Open: the "Quarantined by" chip (needs the queue's quarantine data). tests: TestStacksNamingAnIssue  | L |
 | Issues | Linking a stack closes the issue when it lands, with undo | done | Checked in the code and now covered by a test: every way the hub learns of a landed pull request runs `handleCloseCrossReferences` (the issues named with a closing word are closed): the stack merge through asc (`afterAscStackMerge` in `services/pull/asc_stack_merge.go`), a single merge (`Merge`), and a pull request found merged by git (`MergedManually`). Undo is the Reopen button, which the banner on the closed issue links to. Not covered by design: the doctor repair `MarkLandedAscStackMerged`, which marks old lands and does not touch issues. Test: TestAscStackMergeClosesTheIssuesTheLandedPullRequestsClose | - |
 | Issues | New issue as a dialog that keeps a draft ("Save as draft") | ui-only-missing | templates/repo/issue/new.tmpl is a page; localStorage draft in repo-issue.js | M |
-| Issues | No results with "Clear filters", loading skeleton | ui-only-missing | list.tmpl | S |
+| Issues | No results with "Clear filters", loading skeleton | done | shared/issuelist.tmpl empty state with Clear filters; issue-list-loading.js puts skeleton rows (aria-busy, a status for screen readers) in place of the list while a filter, a state chip, a rail label or the search loads the page; issue-list-loading.test.js, tests/integration/issue_list_filters_test.go TestIssueListNoResults | - |
 | IssueView | Timeline, comment box, close/reopen, assignees, labels, milestone, participants, lock | done | templates/repo/issue/view*.tmpl | - |
 | IssueView | Agent chip on comments and assignees; agents cannot approve or merge | needs-both | asc agent identity surfaced to hub users (no agent principal in hub models/user); view_content/show_role.tmpl | M |
 | IssueView | Linked stacks rail ("1 of 4 landed") and timeline event "coder-2 opened stack" | done | Linked stacks card in the sidebar of an issue (`templates/repo/issue/view_content/sidebar.tmpl`): the stacks that name the issue with "1 of 4 landed", each entry with its state, and a note when the stack closes the issue. `services/pull/asc_issue_stacks.go`: no table; the link is read from the reference comments that a pull request leaves on the issue it names, so it follows the pull request's text; a stack counts once however many of its pull requests name the issue; the state is the stack panel's (open, landed, closed). The timeline already carries the reference events; tests: TestStacksNamingAnIssue  | - |

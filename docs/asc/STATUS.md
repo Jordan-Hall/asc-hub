@@ -25,7 +25,7 @@ After this audit:
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
 | **all** | 94 | 845 | 443 | 86 | 316 | 52% |
 
-Missing rows by kind of work: UI 152, hub 134, asc 15, hub+asc 86. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 151, hub 134, asc 15, hub+asc 86. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -53,7 +53,7 @@ Other findings that cross boards:
 ## 3. Per-area counts and boards
 
 - **shell/settings**: 47 boards, 317 rows, done 169, partial 32, missing 116. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
-- **repo**: 24 boards, 274 rows, done 133, partial 26, missing 115. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
+- **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
 - **auth**: 6 boards, 40 rows, done 25, partial 4, missing 11. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
@@ -1071,7 +1071,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Issues (ASC Hub issues)
 
-Area repo. Rows 6: done 1, partial 0, missing 5. Copy found in the hub: 59% of 71 copy strings (mobile twin 57%). Template(s): filters.tmpl, labels.tmpl, list.tmpl, milestones.tmpl, new.tmpl, search.tmpl. Mobile twin: yes.
+Area repo. Rows 6: done 2, partial 0, missing 4. Copy found in the hub: 59% of 71 copy strings (mobile twin 57%). Template(s): filters.tmpl, labels.tmpl, list.tmpl, milestones.tmpl, new.tmpl, search.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Retries stampede the provider after an outage; Document the failover order for card providers; - opened Yesterday by Hannah Weiss; Webhook retries should back off per receiver; Timeout in sandbox gateway test is flaky.
 
@@ -1082,7 +1082,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Row chips "Fixed by stack X", linked stack with state, "Quarantined by" flaky chip | missing (hub) | logged as not built (not re-probed) | link table issue to PullRequestAscStack (models/issues/pull_asc_stack.go), list.tmpl, queue quarantine data in routers/web/repo/a... |
 | Linking a stack closes the issue when it lands, with undo | missing (hub) | logged as not built (not re-probed) | landing path in routers/private/asc_request_merge.go + services/issue close; reopen action |
 | New issue as a dialog that keeps a draft ("Save as draft") | missing (UI) | logged as not built (not re-probed) | templates/repo/issue/new.tmpl is a page; localStorage draft in repo-issue.js |
-| No results with "Clear filters", loading skeleton | missing (UI) | logged as not built (not re-probed) | list.tmpl |
+| No results with "Clear filters", loading skeleton | done | templates/shared/issuelist.tmpl, web_src/js/features/issue-list-loading.js, TestIssueListNoResults | - |
 
 #### NewRepo (ASC Hub new repository)
 
