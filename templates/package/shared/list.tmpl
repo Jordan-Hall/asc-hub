@@ -1,6 +1,11 @@
 {{/* The packages of an owner or a repository: search, type chips with counts, one row per package version. */}}
 <div class="wk-packages">
 {{template "base/alert" .}}
+{{if .PackagesLoadFailed}}
+<div class="ds-card" role="alert" data-testid="packages-error">
+	{{template "shared/ds/empty" (dict "Icon" "alert" "Tone" "err" "Title" (ctx.Locale.Tr "asc_work.pk_err_title") "Body" (ctx.Locale.Tr "asc_work.pk_err_body" .RequestID) "PrimaryLabel" (ctx.Locale.Tr "asc_err.try_again") "PrimaryHref" .RetryLink "SecondaryLabel" (ctx.Locale.Tr "asc_err.status_page") "SecondaryHref" (print AppSubUrl "/-/status") "SecondaryGhost" true)}}
+</div>
+{{else}}
 {{if .HasPackages}}
 <div class="wk-pkg-filter">
 	<form class="ui form ignore-dirty wk-search" role="search">
@@ -59,4 +64,5 @@
 	{{end}}
 {{end}}
 {{template "base/paginate" .}}
+{{end}}
 </div>

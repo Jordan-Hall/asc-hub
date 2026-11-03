@@ -57,19 +57,10 @@ func ListPackages(ctx *context.Context) {
 		Name:       packages_model.SearchValue{Value: query},
 		IsInternal: optional.Some(false),
 	}
-	pvs, total, err := packages_model.SearchLatestVersions(ctx, opts)
+	status := http.StatusOK
+	pds, total, err := shared_packages.LoadList(ctx, opts)
 	if err != nil {
-		ctx.ServerError("SearchLatestVersions", err)
-		return
-	}
-	if !shared_packages.SetTypeCounts(ctx, opts) {
-		return
-	}
-
-	pds, err := packages_model.GetPackageDescriptors(ctx, pvs)
-	if err != nil {
-		ctx.ServerError("GetPackageDescriptors", err)
-		return
+		status = shared_packages.ListFailed(ctx, err)
 	}
 
 	repositoryAccessMap := make(map[int64]bool)
@@ -132,7 +123,7 @@ func ListPackages(ctx *context.Context) {
 	pager.AddParam(ctx, "type", "PackageType")
 	ctx.Data["Page"] = pager
 
-	ctx.HTML(http.StatusOK, tplPackagesList)
+	ctx.HTML(status, tplPackagesList)
 }
 
 // RedirectToLastVersion redirects to the latest package version
