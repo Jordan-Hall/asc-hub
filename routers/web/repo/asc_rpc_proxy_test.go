@@ -73,6 +73,8 @@ var ascRPCTestDeniedServices = map[string]bool{
 	"SecretScan": true, "Signing": true, "Stacks": true, "Storage": true, "Vault": true, "Workflows": true,
 	// Selected by an owner or an organisation, or writing: the hub has handlers of its own for them.
 	"AiKeyShares": true, "Backups": true, "DataExport": true, "OrgSettings": true, "Releases": true, "Sessions": true, "Usage": true,
+	// Path rules answer for the caller, and through the proxy the caller is the hub's internal token.
+	"PathRules": true,
 }
 
 // ascRPCTestDeniedMore lists single methods of services the proxy otherwise serves.
