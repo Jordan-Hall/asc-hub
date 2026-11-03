@@ -45,6 +45,8 @@ type Column struct {
 	Default bool   `xorm:"NOT NULL DEFAULT false"` // issues not assigned to a specific column will be assigned to this column
 	Sorting int8   `xorm:"NOT NULL DEFAULT 0 unique(project_sorting)"`
 	Color   string `xorm:"VARCHAR(7)"`
+	// Hidden takes the column off the board; its cards stay in it, and it can be shown again
+	Hidden bool `xorm:"NOT NULL DEFAULT false"`
 
 	ProjectID int64 `xorm:"INDEX NOT NULL unique(project_sorting)"`
 	CreatorID int64 `xorm:"NOT NULL"`
@@ -232,6 +234,34 @@ func UpdateColumn(ctx context.Context, column *Column) error {
 	_, err := db.GetEngine(ctx).ID(column.ID).Cols(fieldToUpdate...).Update(column)
 
 	return err
+}
+
+// SetColumnHidden hides a column of the project, or shows it again.
+func SetColumnHidden(ctx context.Context, projectID, columnID int64, hidden bool) error {
+	n, err := db.GetEngine(ctx).ID(columnID).Where(builder.Eq{"project_id": projectID}).
+		Cols("hidden").Update(&Column{Hidden: hidden})
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		// no row changed: the column is not in the project, or it already had that state
+		if _, err := GetColumnInProject(ctx, projectID, columnID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// GetColumnInProject fetches a column only when it belongs to the project.
+func GetColumnInProject(ctx context.Context, projectID, columnID int64) (*Column, error) {
+	column := new(Column)
+	has, err := db.GetEngine(ctx).ID(columnID).Where(builder.Eq{"project_id": projectID}).Get(column)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, ErrProjectColumnNotExist{ColumnID: columnID}
+	}
+	return column, nil
 }
 
 // GetColumns fetches all columns related to a project
