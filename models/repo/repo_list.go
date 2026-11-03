@@ -671,9 +671,10 @@ func AccessibleRepositoryCondition(user *user_model.User, unitType unit.Type) bu
 		}
 		// 4. Repositories that we directly own
 		cond = cond.Or(builder.Eq{"`repository`.owner_id": user.ID})
-		// 4a. Repositories of an organization that gives every member a base permission (asc_repo_defaults)
-		cond = cond.Or(ascOrgBaseRepoCond(user.ID))
 		if !user.IsRestricted {
+			// 4a. Repositories of an organization that gives every member a base permission (asc_repo_defaults).
+			// A restricted user gets only what is given to them by name, so not this.
+			cond = cond.Or(ascOrgBaseRepoCond(user.ID))
 			// 5. Be able to see all public repos in private organizations that we are an org_user of
 			cond = cond.Or(userOrgPublicRepoCond(user.ID))
 		}

@@ -229,6 +229,11 @@ func TestAscOrgBasePermission(t *testing.T) {
 
 		assert.False(t, permOf(stranger).HasAccess(), "a non-member gets nothing")
 		assert.False(t, listed(stranger))
+
+		member.IsRestricted = true
+		assert.False(t, permOf(member).HasAccess(), "a restricted member gets only what is given by name")
+		assert.False(t, listed(member))
+		member.IsRestricted = false
 	}
 
 	// A team that gives more keeps it: user 4 writes repository 3 through team 1 even with a read base.
