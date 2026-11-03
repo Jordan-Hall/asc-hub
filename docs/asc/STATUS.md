@@ -25,7 +25,7 @@ After this audit:
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
 | **all** | 94 | 845 | 443 | 86 | 316 | 52% |
 
-Missing rows by kind of work: UI 145, hub 134, asc 15, hub+asc 86. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 144, hub 133, asc 15, hub+asc 85. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 175, partial 32, missing 110. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 178, partial 32, missing 107. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -113,19 +113,19 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### AdminConfig (ASC Hub admin: configuration)
 
-Area shell/settings. Rows 4: done 1, partial 0, missing 3. Copy found in the hub: 58% of 69 copy strings (mobile twin 40%). Template(s): config.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 4: done 4, partial 0, missing 0. Copy found in the hub: 58% of 69 copy strings (mobile twin 40%). Template(s): config.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Runtime settings you can change, and server settings you can read.; Change without a restart. Each change is audited.; People can create accounts themselves.; Accounts stay inactive until the address is confirmed.; Allow agents on this server.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Server settings read only (domain, protocol, SSH, storage, mail) | done | templates/admin/config_server.tmpl (file) | - |
-| Runtime switches: Allow registration, Require email confirmation (runtime set has only avatar... | missing (hub) | logged as not built (not re-probed) | modules/setting/config + admin/config_runtime.tmpl + web_src/js/features/admin/config.js |
-| Allow agents on this server; Default agent budget | missing (hub+asc) | logged as not built (not re-probed) | asc: instance flag and default budget setter (agents.proto has AgentBudgetLimits only); hub: switch + field |
-| Restart-required banner, invalid value error, file and line shown, Copy key/value | missing (UI) | logged as not built (not re-probed) | config_server.tmpl + config.js |
-| Board note: Runtime settings save on change; server settings are read only and show the file and line | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Copy copies the key and value | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, unsaved change, restart required banner, invalid value error | unverified | not tracked in the gap files | needs a row and a test |
+| Runtime switches: Allow registration, Require email confirmation (runtime set has only avatar... | done | templates/admin/config_runtime.tmpl | - |
+| Allow agents on this server; Default agent budget | done | routers/web/admin/asc_config.go | - |
+| Restart-required banner, invalid value error, file and line shown, Copy key/value | done | modules/setting/asc_config_file.go, templates/admin/config.tmpl, web_src/js/features/admin/config.js | - |
+| Board note: Runtime settings save on change; server settings are read only and show the file and line | done | tests/integration/admin_config_test.go TestAdminConfigFileAndRestart, TestAdminConfigRuntimeSwitches | - |
+| Board note: Copy copies the key and value | done | templates/admin/config_curated.tmpl data-clipboard-text | - |
+| Board note: Default, unsaved change, restart required banner, invalid value error | done | web_src/js/features/admin/config.test.js, TestPlaceConfigFile | - |
 
 #### AdminDashboard (ASC Hub admin: dashboard)
 

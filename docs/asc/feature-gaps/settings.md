@@ -18,17 +18,17 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 131 |
+| done | 133 |
 | partial | 1 |
-| ui-only-missing | 11 |
+| ui-only-missing | 10 |
 | needs-hub-backend | 6 |
 | needs-asc-backend | 3 |
-| needs-both | 21 |
+| needs-both | 20 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 9, M 25, L 8.
+Open rows by size: S 8, M 24, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -183,8 +183,8 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminRunners | Registration token that expires in one hour, shown once, in a copy block | ui-only-missing | runners/create.tmpl, setup.tmpl (token is long lived in Forgejo) | S |
 | AdminConfig | Server settings read only (domain, protocol, SSH, storage, mail) | done | templates/admin/config_server.tmpl (a much longer Forgejo set) | - |
 | AdminConfig | Runtime switches: Allow registration, Require email confirmation (runtime set has only avatar settings and editor apps) | done | `templates/admin/config_runtime.tmpl`: Allow registration and Require email confirmation (the latter refused while no mailer is set) over the runtime config (`routers/web/admin/config.go`) (found built during the audit of 2026-10-31) | - |
-| AdminConfig | Allow agents on this server; Default agent budget | needs-both | asc: instance flag and default budget setter (agents.proto has AgentBudgetLimits only); hub: switch + field | M |
-| AdminConfig | Restart-required banner, invalid value error, file and line shown, Copy key/value | ui-only-missing | config_server.tmpl + config.js | S |
+| AdminConfig | Allow agents on this server; Default agent budget | done | `templates/admin/config_runtime.tmpl` switch and budget field over asc OrgSettings InstanceAgents (`routers/web/admin/asc_config.go` loadAscRuntime, changeAscConfig); tests: TestChangeConfigAscSettings, TestLoadAscRuntime (found built during the audit of 2026-11-03) | M |
+| AdminConfig | Restart-required banner, invalid value error, file and line shown, Copy key/value | done | `modules/setting/asc_config_file.go` (the file read with lines, keys changed since start); `templates/admin/config.tmpl` restart banner; `config_curated.tmpl` file and line per key, Changed chip, Copy; `web_src/js/features/admin/config.js` unsaved and invalid value states; tests: TestReadConfigFile, TestChangedConfigKeys, TestPlaceConfigFile, TestAdminConfigFileAndRestart, config.test.js | S |
 | AdminMonitor | Queues table with Flush, cron table with Run now, stack traces | done | templates/admin/queue.tmpl, cron_result.tmpl, stacktrace.tmpl | - |
 | AdminMonitor | Flush confirmation with count; Run now streams output; "Verify audit chain" cron task | needs-both | hub: queue.tmpl modal and streaming; asc: scheduled audit verify (Audit.VerifyChain exists, no schedule) | M |
 | AdminAudit | Hash-chain banner, filters, details, export, verify | done | routers/web/admin/asc_audit.go, templates/admin/asc_audit.tmpl, routers/web/shared/trustweb | - |
