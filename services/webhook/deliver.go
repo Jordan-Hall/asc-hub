@@ -211,7 +211,7 @@ func Init() error {
 	webhookHTTPClient = &http.Client{
 		Timeout: timeout,
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: setting.Webhook.SkipTLSVerify},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: skipTLSVerify()},
 			Proxy:           webhookProxy(allowedHostMatcher),
 			DialContext:     hostmatcher.NewDialContext("webhook", allowedHostMatcher, nil, setting.Webhook.ProxyURLFixed),
 		},
@@ -256,4 +256,10 @@ func populateWebhookSendingQueue(ctx context.Context) {
 			}
 		}
 	}
+}
+
+// skipTLSVerify reports whether delivery skips checking the receiver's certificate: only when [webhook]
+// SKIP_TLS_VERIFY is on and asc is off, since an ASC hub always checks it.
+func skipTLSVerify() bool {
+	return setting.Webhook.SkipTLSVerify && !setting.Asc.Enabled
 }
