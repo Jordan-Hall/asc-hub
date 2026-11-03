@@ -192,6 +192,7 @@
   display: flex;
   flex-wrap: wrap;
   flex: 1 1 100%;
+  justify-content: flex-end;
   gap: 8px;
   padding-left: 52px;
 }
@@ -217,6 +218,10 @@
   padding-bottom: 12px;
   margin-bottom: 20px;
   border-bottom: 1px solid var(--line);
+}
+
+.wk-people-bar .wk-people-invite {
+  align-self: flex-start;
 }
 
 @media (min-width: 900px) {
@@ -731,4 +736,42 @@
 
 .wk-org-policy .ds-link {
   text-decoration: none;
+}
+
+/* phone head (Mobile-OrgProfile, Mobile-OrgPeople): a 40px tile beside the name, everything else under the name, actions stacked full width */
+@media (max-width: 639.98px) {
+  .wk-org-card {
+    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-areas:
+      "av info"
+      "acts acts";
+    gap: 16px 16px;
+  }
+
+  .wk-org-card .wk-pf-info {
+    display: block;
+    grid-area: info;
+    min-width: 0;
+  }
+
+  .wk-org-card .wk-pf-desc { margin-top: 4px; }
+  .wk-org-card .wk-org-facts { margin-top: 8px; }
+
+  .wk-org-av { padding-top: 4px; }
+
+  .wk-org-av img.ui.avatar,
+  .wk-org-tile {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 17px;
+  }
+
+  .wk-org-card .wk-pf-actions {
+    grid-row: auto;
+    flex-direction: column;
+    margin-top: 0;
+  }
+
+  .wk-org-card .wk-pf-actions > * { flex: none; }
 }
