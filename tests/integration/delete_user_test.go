@@ -14,6 +14,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
+	"forgejo.org/routers/web/user/setting/security"
 	"forgejo.org/tests"
 )
 
@@ -34,6 +35,7 @@ func assertUserDeleted(t *testing.T, userID int64, purged bool) {
 
 func TestUserDeleteAccount(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	security.ResetPasswordTries()
 
 	session := loginUser(t, "user8")
 	urlStr := fmt.Sprintf("/user/settings/account/delete?password=%s&username_confirm=user8", userPassword)
@@ -46,6 +48,7 @@ func TestUserDeleteAccount(t *testing.T) {
 
 func TestUserDeleteAccountStillOwnRepos(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	security.ResetPasswordTries()
 
 	session := loginUser(t, "user2")
 	urlStr := fmt.Sprintf("/user/settings/account/delete?password=%s&username_confirm=user2", userPassword)

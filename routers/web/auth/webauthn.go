@@ -13,6 +13,7 @@ import (
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/timeutil"
 	"forgejo.org/services/context"
 	"forgejo.org/services/externalaccount"
 
@@ -180,6 +181,11 @@ func WebAuthnLoginAssertionPost(ctx *context.Context) {
 		redirect = setting.AppSubURL + "/"
 	}
 	_ = ctx.Session.Delete("twofaUid")
+	// the security key was just used: an action that needs it again, like deleting the account, takes this for a while
+	if err := ctx.Session.Set(auth.SignInSessionKey, int64(timeutil.TimeStampNow())); err != nil {
+		ctx.ServerError("Session.Set", err)
+		return
+	}
 
 	ctx.JSONRedirect(redirect)
 }

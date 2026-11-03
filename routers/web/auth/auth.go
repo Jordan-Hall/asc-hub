@@ -359,7 +359,6 @@ func handleSignInFull(ctx *context.Context, u *user_model.User, remember, obeyRe
 		"uid": u.ID,
 		// signing in is a proof that it is them: changes to the sign-in need no password for a while
 		auth.ReauthSessionKey: int64(timeutil.TimeStampNow()),
-		auth.SignInSessionKey: int64(timeutil.TimeStampNow()),
 	}); err != nil {
 		ctx.ServerError("RegenerateSession", err)
 		return setting.AppSubURL + "/"

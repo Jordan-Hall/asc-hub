@@ -35,6 +35,12 @@ func AllowPasswordTry(ctx *context.Context) bool {
 	return reauthUserLimiter.Allow(strconv.FormatInt(ctx.Doer.ID, 10)) && reauthIPLimiter.Allow(ascratelimit.ClientKey(ctx.RemoteAddr()))
 }
 
+// ResetPasswordTries forgets the counted tries of every account and address, for tests that check the password often.
+func ResetPasswordTries() {
+	reauthUserLimiter = ascratelimit.New(5, 15*time.Minute)
+	reauthIPLimiter = ascratelimit.New(20, 15*time.Minute)
+}
+
 // RecentlyAuthenticated is recentlyAuthenticated for the other settings pages.
 func RecentlyAuthenticated(ctx *context.Context) bool { return recentlyAuthenticated(ctx) }
 
@@ -45,9 +51,8 @@ func recentlyAuthenticated(ctx *context.Context) bool {
 	return at != 0 && time.Since(time.Unix(at, 0)) < ReauthFor
 }
 
-// SignedInRecently says whether the doer signed in within ReauthFor: for an account with a second factor, that sign-in
-// passed it. The password typed again on the confirm page does not count.
-func SignedInRecently(ctx *context.Context) bool {
+// SignedInWithKeyRecently says whether the doer signed in with a security key within ReauthFor.
+func SignedInWithKeyRecently(ctx *context.Context) bool {
 	at, _ := ctx.Session.Get(auth_model.SignInSessionKey).(int64)
 	return at != 0 && time.Since(time.Unix(at, 0)) < ReauthFor
 }
