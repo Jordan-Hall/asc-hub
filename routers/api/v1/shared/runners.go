@@ -37,10 +37,7 @@ func GetRegistrationToken(ctx *context.APIContext, ownerID, repoID int64) {
 		optRepoID = optional.Some(repoID)
 	}
 
-	token, err := actions_model.GetLatestRunnerToken(ctx, optOwnerID, optRepoID)
-	if errors.Is(err, util.ErrNotExist) || (token != nil && !token.IsActive) {
-		token, err = actions_model.NewRunnerToken(ctx, optOwnerID, optRepoID)
-	}
+	token, err := actions_model.UsableRunnerToken(ctx, optOwnerID, optRepoID)
 	if err != nil {
 		ctx.InternalServerError(err)
 		return

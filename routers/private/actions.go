@@ -5,7 +5,6 @@ package private
 
 import (
 	gocontext "context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -17,7 +16,6 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/private"
-	"forgejo.org/modules/util"
 	"forgejo.org/services/context"
 )
 
@@ -53,20 +51,10 @@ func GenerateActionsRunnerToken(ctx *context.PrivateContext) {
 		repoID = optional.Some(repo)
 	}
 
-	token, err := actions_model.GetLatestRunnerToken(ctx, ownerID, repoID)
-	if errors.Is(err, util.ErrNotExist) || (token != nil && !token.IsActive) {
-		token, err = actions_model.NewRunnerToken(ctx, ownerID, repoID)
-		if err != nil {
-			errMsg := fmt.Sprintf("error while creating runner token: %v", err)
-			log.Error("NewRunnerToken failed: %v", errMsg)
-			ctx.JSON(http.StatusInternalServerError, private.Response{
-				Err: errMsg,
-			})
-			return
-		}
-	} else if err != nil {
-		errMsg := fmt.Sprintf("could not get unactivated runner token: %v", err)
-		log.Error("GetLatestRunnerToken failed: %v", errMsg)
+	token, err := actions_model.UsableRunnerToken(ctx, ownerID, repoID)
+	if err != nil {
+		errMsg := fmt.Sprintf("could not get or create a runner token: %v", err)
+		log.Error("UsableRunnerToken failed: %v", errMsg)
 		ctx.JSON(http.StatusInternalServerError, private.Response{
 			Err: errMsg,
 		})
