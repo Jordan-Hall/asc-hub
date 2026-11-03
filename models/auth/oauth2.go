@@ -581,6 +581,27 @@ func GetOAuth2GrantsByUserID(ctx context.Context, uid int64) ([]*OAuth2Grant, er
 	return grants, nil
 }
 
+// CountOAuth2Grants returns how many people granted each of the given applications access, keyed by
+// application ID. An application nobody granted has no entry.
+func CountOAuth2Grants(ctx context.Context, appIDs []int64) (map[int64]int64, error) {
+	counts := make(map[int64]int64, len(appIDs))
+	if len(appIDs) == 0 {
+		return counts, nil
+	}
+	rows := make([]struct {
+		ApplicationID int64
+		Grants        int64
+	}, 0, len(appIDs))
+	if err := db.GetEngine(ctx).Table("oauth2_grant").Select("application_id, COUNT(*) AS grants").
+		In("application_id", appIDs).GroupBy("application_id").Find(&rows); err != nil {
+		return nil, err
+	}
+	for _, r := range rows {
+		counts[r.ApplicationID] = r.Grants
+	}
+	return counts, nil
+}
+
 // RevokeOAuth2Grant deletes the grant with grantID and userID
 func RevokeOAuth2Grant(ctx context.Context, grantID, userID int64) error {
 	_, err := db.GetEngine(ctx).Where(builder.Eq{"id": grantID, "user_id": userID}).Delete(&OAuth2Grant{})
