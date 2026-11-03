@@ -25,7 +25,7 @@ After this audit:
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
 | **all** | 94 | 845 | 443 | 86 | 316 | 52% |
 
-Missing rows by kind of work: UI 147, hub 134, asc 15, hub+asc 86. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 146, hub 134, asc 15, hub+asc 86. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 173, partial 32, missing 112. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 174, partial 32, missing 111. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -395,7 +395,7 @@ Board copy not found word for word in locale, templates or scripts: Error and sy
 |---|---|---|---|
 | 404, 403, 413, 500, 503, offline cards with header and footer | done | templates/status/*.tmpl (not found in tree) | the where-cell cites templates/status/*.tmpl, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Request id ("Request id 7f3a91c2 - date UTC", selectable) | done | templates/status/500.tmpl (file) | - |
-| 500 actions: Try again (same request id) and Status page | done | templates/status/500.tmpl (file) | - |
+| 500 actions: Try again (same request id) and Status page | done | templates/status/500.tmpl, templates/asc/status.tmpl (/-/status) | - |
 | 403 actions: Request access and Switch account | missing (hub) | logged as not built (not re-probed) | 403.tmpl has Sign in, Dashboard, Search. Request access needs an access-request flow to the owners of the org |
 | 404 actions: dashboard, search the hub | done | templates/status/404.tmpl (file) | - |
 | 413 card with limit, artifact storage link and Back | done | templates/status/413.tmpl (file) | - |
@@ -628,7 +628,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Packages (ASC Hub packages)
 
-Area shell/settings. Rows 7: done 3, partial 0, missing 4. Copy found in the hub: 62% of 61 copy strings (mobile twin 64%). Template(s): list.tmpl, packages_cleanup_rules_edit.tmpl, view.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 7: done 4, partial 0, missing 3. Copy found in the hub: 62% of 61 copy strings (mobile twin 64%). Template(s): list.tmpl, packages_cleanup_rules_edit.tmpl, view.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; London and remote; Filter packages; - published Today; - published Today; design-tokens.
 
@@ -640,7 +640,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Package page views Install/Versions/Dependencies/Settings as tabs | missing (UI) | logged as not built (not re-probed) | templates/package/view.tmpl (single page + /versions) |
 | "Published from acme/payments by a landed stack", "Signed with release key" | missing (hub+asc) | logged as not built (not re-probed) | asc: publish provenance and release signature record; hub: package metadata + view.tmpl |
 | Cleanup rule preview ("removes 14 versions of 6 packages, frees 1.3 GB") | done | templates/org/settings/packages_cleanup_rules_preview.tmpl:3 | - |
-| Error state with request id and Status page link | missing (UI) | logged as not built (not re-probed) | package list handler error render |
+| Error state with request id and Status page link | done | templates/package/shared/list.tmpl, routers/web/shared/packages/asc_list.go | - |
 
 #### Profile (ASC Hub profile)
 

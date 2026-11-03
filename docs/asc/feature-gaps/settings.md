@@ -18,9 +18,9 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 129 |
+| done | 130 |
 | partial | 1 |
-| ui-only-missing | 13 |
+| ui-only-missing | 12 |
 | needs-hub-backend | 6 |
 | needs-asc-backend | 3 |
 | needs-both | 21 |
@@ -28,7 +28,7 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 11, M 25, L 8.
+Open rows by size: S 10, M 25, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -225,6 +225,6 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | Packages | Package page views Install/Versions/Dependencies/Settings as tabs | ui-only-missing | templates/package/view.tmpl (single page + /versions) | M |
 | Packages | "Published from acme/payments by a landed stack", "Signed with release key" | needs-both | asc: publish provenance and release signature record; hub: package metadata + view.tmpl | L |
 | Packages | Cleanup rule preview ("removes 14 versions of 6 packages, frees 1.3 GB") | done | templates/org/settings/packages_cleanup_rules_preview.tmpl | - |
-| Packages | Error state with request id and Status page link | ui-only-missing | package list handler error render | S |
+| Packages | Error state with request id and Status page link | done | routers/web/shared/packages/asc_list.go (LoadList, ListFailed) renders the error card of templates/package/shared/list.tmpl with status 500; Status page is /-/status (AscStatus, templates/asc/status.tmpl) | S |
 | MobileAdmin* | Same data as desktop in stacked groups, back arrow to the admin menu, sticky action bar | done | templates/admin/navbar.tmpl (shared settings-nav shell) | - |
 | MobileIssues/Projects/Packages/Drafts/Org* | Single-column twins; same gaps as the desktop rows above; sticky primary bar on forms | ui-only-missing | per-row work above | S |
