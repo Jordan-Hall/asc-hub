@@ -11,10 +11,13 @@ import (
 
 // Webhook settings
 var Webhook = struct {
-	QueueLength        int
-	DeliverTimeout     int
-	SkipTLSVerify      bool
-	AllowedHostList    string
+	QueueLength     int
+	DeliverTimeout  int
+	SkipTLSVerify   bool
+	AllowedHostList string
+	// AllowLocalHTTP lets an ASC hub save a plain http webhook address on a loopback host (localhost, 127.0.0.0/8, ::1);
+	// every other address must be https. Off unless the instance turns it on.
+	AllowLocalHTTP     bool
 	PagingNum          int
 	ProxyURL           string
 	ProxyURLFixed      *url.URL
@@ -36,6 +39,7 @@ func loadWebhookFrom(rootCfg ConfigProvider) {
 	Webhook.DeliverTimeout = sec.Key("DELIVER_TIMEOUT").MustInt(5)
 	Webhook.SkipTLSVerify = sec.Key("SKIP_TLS_VERIFY").MustBool()
 	Webhook.AllowedHostList = sec.Key("ALLOWED_HOST_LIST").MustString("")
+	Webhook.AllowLocalHTTP = sec.Key("ALLOW_LOCAL_HTTP").MustBool(false)
 	Webhook.PagingNum = sec.Key("PAGING_NUM").MustInt(10)
 	Webhook.ProxyURL = sec.Key("PROXY_URL").MustString("")
 	if Webhook.ProxyURL != "" {

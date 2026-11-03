@@ -5,8 +5,8 @@ package webhook
 
 import webhook_model "forgejo.org/models/webhook"
 
-// ErrPayloadURLNotHTTPS is returned for a payload address that is not https and is not a private or loopback target
-// the instance lets webhooks reach.
+// ErrPayloadURLNotHTTPS is returned for a payload address that is not https and is not a loopback target the instance
+// opted into.
 var ErrPayloadURLNotHTTPS = webhook_model.ErrPayloadURLNotHTTPS
 
 // CheckPayloadURL is the transport rule of an ASC hub for the address of a webhook (see the model package, which also
