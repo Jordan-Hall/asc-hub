@@ -102,6 +102,7 @@ import {
 import {initRepoDiffView} from './features/repo-diff.js';
 import {initOrgTeamSearchRepoBox, initOrgTeamPicker} from './features/org-team.js';
 import {initOrgNew} from './features/org-new.js';
+import {initIssueListLoading} from './features/issue-list-loading.js';
 import {initUserAuthWebAuthn, initUserAuthWebAuthnRegister} from './features/user-auth-webauthn.js';
 import {initRepoRelease, initRepoReleaseNew} from './features/repo-release.js';
 import {initRepoEditor} from './features/repo-editor.js';
@@ -188,6 +189,7 @@ onDomReady(() => {
   initOrgTeamSearchRepoBox();
   initOrgTeamPicker();
   initOrgNew();
+  initIssueListLoading();
 
   initRepoActivityTopAuthorsChart();
   initRepoArchiveLinks();
