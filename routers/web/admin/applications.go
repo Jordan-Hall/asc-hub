@@ -29,6 +29,16 @@ func newOAuth2CommonHandlers() *user_setting.OAuth2CommonHandlers {
 	}
 }
 
+// appOAuth2Handlers manages the application of the request, the site's or a person's: an admin manages every
+// application on the site. An application that does not exist is left to the handler to answer.
+func appOAuth2Handlers(ctx *context.Context) *user_setting.OAuth2CommonHandlers {
+	oa := newOAuth2CommonHandlers()
+	if app, err := auth.GetOAuth2ApplicationByID(ctx, ctx.ParamsInt64("id")); err == nil {
+		oa.OwnerID = app.UID
+	}
+	return oa
+}
+
 // Applications render org applications page (for org, at the moment, there are only OAuth2 applications)
 func Applications(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings.applications")
@@ -59,7 +69,7 @@ func ApplicationsPost(ctx *context.Context) {
 func EditApplication(ctx *context.Context) {
 	ctx.Data["PageIsAdminApplications"] = true
 
-	oa := newOAuth2CommonHandlers()
+	oa := appOAuth2Handlers(ctx)
 	oa.EditShow(ctx)
 }
 
@@ -68,7 +78,7 @@ func EditApplicationPost(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings.applications")
 	ctx.Data["PageIsAdminApplications"] = true
 
-	oa := newOAuth2CommonHandlers()
+	oa := appOAuth2Handlers(ctx)
 	oa.EditSave(ctx)
 }
 
@@ -77,13 +87,13 @@ func ApplicationsRegenerateSecret(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsAdminApplications"] = true
 
-	oa := newOAuth2CommonHandlers()
+	oa := appOAuth2Handlers(ctx)
 	oa.RegenerateSecret(ctx)
 }
 
 // DeleteApplication deletes the given oauth2 application
 func DeleteApplication(ctx *context.Context) {
-	oa := newOAuth2CommonHandlers()
+	oa := appOAuth2Handlers(ctx)
 	oa.DeleteApp(ctx)
 }
 
