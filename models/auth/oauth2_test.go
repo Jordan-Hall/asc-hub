@@ -341,3 +341,14 @@ func TestOrphanedOAuth2Applications(t *testing.T) {
 	unittest.AssertExistsIf(t, false, &auth_model.OAuth2Application{ID: 1002})
 	unittest.AssertExistsIf(t, true, &auth_model.OAuth2Application{ID: 1003})
 }
+
+func TestCountOAuth2Grants(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	counts, err := auth_model.CountOAuth2Grants(db.DefaultContext, []int64{1, 2, 3})
+	require.NoError(t, err)
+	assert.Equal(t, map[int64]int64{1: 3, 2: 1}, counts)
+
+	counts, err = auth_model.CountOAuth2Grants(db.DefaultContext, nil)
+	require.NoError(t, err)
+	assert.Empty(t, counts)
+}
