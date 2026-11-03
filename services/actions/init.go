@@ -21,6 +21,7 @@ func Init() {
 		log.Fatal("Unable to create actions_ready_job queue")
 	}
 	go graceful.GetManager().RunWithCancel(jobEmitterQueue)
+	initAscReport()
 
 	notify_service.RegisterNotifier(NewNotifier())
 }
