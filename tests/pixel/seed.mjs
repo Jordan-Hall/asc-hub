@@ -86,7 +86,13 @@ export async function seed() {
   }
   // organisations and teams
   await api('POST', '/orgs', {username: 'acme', full_name: 'Acme Payments', description: 'Payments infrastructure for subscription businesses. We build in the open.', location: 'London and remote', website: 'https://acme.example', visibility: 'public'});
-  await api('POST', '/orgs', {username: 'northwind', full_name: 'Northwind', description: 'Hosted checkout.', visibility: 'public'}, {sudo: 'priya'});
+  await api('POST', '/orgs', {username: 'northwind', full_name: 'Northwind Labs', description: 'Hosted checkout.', visibility: 'public'}, {sudo: 'priya'});
+  // the other organizations of the boards (AdminOrgs, UserSettingsOrgs): Maya is a member of two, and Northwind Labs invites her (backdate.py)
+  for (const [username, full_name, maya] of [['open-ledger', 'Open Ledger', true], ['rail-guild', 'Rail Guild', true], ['northwind', '', false]]) {
+    if (full_name) await api('POST', '/orgs', {username, full_name, visibility: 'public'}, {sudo: 'priya'});
+    const t = await api('POST', `/orgs/${username}/teams`, {name: 'Members', description: 'Everyone', permission: 'write', includes_all_repositories: true, units: ['repo.code', 'repo.issues', 'repo.pulls'], can_create_org_repo: false}, {sudo: 'priya'});
+    if (maya && t && t.id) await api('PUT', `/teams/${t.id}/members/maya`, undefined, {sudo: 'priya'});
+  }
   for (const [name, desc, perm] of [['Payments', 'The payments team', 'write'], ['Platform', 'Platform and infra', 'write'], ['Reviewers', 'Reviewers', 'read'], ['Design', 'Design system', 'read']]) {
     const t = await api('POST', '/orgs/acme/teams', {name, description: desc, permission: perm, includes_all_repositories: true, units: ['repo.code', 'repo.issues', 'repo.pulls', 'repo.releases'], can_create_org_repo: false});
     if (t && t.id) for (const u of ['priya', 'diego', 'hannah', 'tomas']) await api('PUT', `/teams/${t.id}/members/${u}`);

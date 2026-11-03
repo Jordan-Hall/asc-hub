@@ -63,6 +63,13 @@ if org and maya and ines and 'payments' in teams and 'reviewers' in teams:
         t = anchor - age * M
         cur.execute('INSERT INTO team_invite (token, inviter_id, org_id, team_id, email, invited_id, created_unix, updated_unix) VALUES (?,?,?,?,?,?,?,?)',
                     (token, maya[0], org[0], teams[team], email, invited, t, t))
+# the invitation on Maya's Organizations page: Priya asks her into the Members team of Northwind Labs
+cur.execute("SELECT o.id, t.id, p.id FROM user o JOIN team t ON t.org_id=o.id AND t.lower_name='members' JOIN user p ON p.lower_name='priya' WHERE o.lower_name='northwind' AND o.type=1")
+nw = cur.fetchone()
+if nw and maya:
+    t = anchor - 2 * 1440 * M
+    cur.execute('INSERT INTO team_invite (token, inviter_id, org_id, team_id, email, invited_id, created_unix, updated_unix) VALUES (?,?,?,?,?,?,?,?)',
+                ('pixel-invite-maya', nw[2], nw[0], nw[1], '', maya[0], t, t))
 cur.execute('UPDATE user SET created_unix=?, updated_unix=?, last_login_unix=?', (anchor - 500 * 1440 * M, anchor - M, anchor - 5 * M))
 con.commit()
 if len(sys.argv) > 3:
