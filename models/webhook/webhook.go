@@ -521,6 +521,13 @@ func UpdateWebhookSecret(ctx context.Context, w *Webhook) error {
 	return err
 }
 
+// SetWebhookActive turns deliveries of a hook on or off; its settings stay as they are.
+func SetWebhookActive(ctx context.Context, w *Webhook, active bool) error {
+	w.IsActive = active
+	_, err := db.GetEngine(ctx).ID(w.ID).Cols("is_active").Update(w)
+	return err
+}
+
 // UpdateWebhookLastStatus updates last status of webhook.
 func UpdateWebhookLastStatus(ctx context.Context, w *Webhook) error {
 	_, err := db.GetEngine(ctx).ID(w.ID).Cols("last_status").Update(w)

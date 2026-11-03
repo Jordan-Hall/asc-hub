@@ -136,6 +136,27 @@ func LastDeliveries(ctx context.Context, hookIDs []int64) (map[int64]*HookTask, 
 	return last, nil
 }
 
+// FailingStreaks counts, for each of the given hooks, how many of its latest deliveries failed in a row,
+// looking at no more than limit of them. A hook whose latest delivery succeeded, or that never delivered, has no entry.
+func FailingStreaks(ctx context.Context, hookIDs []int64, limit int) (map[int64]int, error) {
+	streaks := make(map[int64]int, len(hookIDs))
+	for _, id := range hookIDs {
+		tasks := make([]*HookTask, 0, limit)
+		if err := db.GetEngine(ctx).Cols("id", "is_succeed").
+			Where(builder.Eq{"hook_id": id, "is_delivered": true}).Desc("id").Limit(limit).Find(&tasks); err != nil {
+			return nil, err
+		}
+		n := 0
+		for n < len(tasks) && !tasks[n].IsSucceed {
+			n++
+		}
+		if n > 0 {
+			streaks[id] = n
+		}
+	}
+	return streaks, nil
+}
+
 // CreateHookTask creates a new hook task,
 // it handles conversion from Payload to PayloadContent.
 func CreateHookTask(ctx context.Context, t *HookTask) (*HookTask, error) {
