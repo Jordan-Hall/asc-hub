@@ -26,12 +26,18 @@
 				</div>
 				<label class="ds-switch"><input id="cfg-agents" type="checkbox" role="switch" data-config-dyn-key="asc.allow_agents" {{if .Settings.AllowAgents}}checked{{end}}><span class="ds-switch-track"></span></label>
 			</div>
-			<form class="adm-setting form-fetch-action" method="post" action="{{AppSubUrl}}/admin/config?key=asc.default_budget">
+			<form class="adm-setting adm-value-form" method="post" action="{{AppSubUrl}}/admin/config?key=asc.default_budget" data-unsaved="{{ctx.Locale.Tr "asc_admin.config_unsaved"}}" data-saved-text="{{ctx.Locale.Tr "asc_admin.config_saved"}}" data-failed="{{ctx.Locale.Tr "asc_admin.config_save_failed"}}">
 				<div class="adm-setting-text">
 					<label for="cfg-budget" class="adm-setting-title">{{ctx.Locale.Tr "asc_admin.config_rt_budget"}}</label>
 					<p>{{ctx.Locale.Tr "asc_admin.config_rt_budget_sub"}}</p>
 				</div>
-				<div class="adm-setting-field"><input id="cfg-budget" class="ds-input ds-mono" data-save-on-change name="value" inputmode="decimal" autocomplete="off" aria-label="{{ctx.Locale.Tr "asc_admin.config_rt_budget_field"}}" value="{{.Settings.BudgetField}}" placeholder="{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}"></div>
+				<div class="adm-setting-field ds-field">
+					<input id="cfg-budget" class="ds-input ds-mono" name="value" inputmode="decimal" autocomplete="off" aria-label="{{ctx.Locale.Tr "asc_admin.config_rt_budget_field"}}" aria-describedby="cfg-budget-desc" value="{{.Settings.BudgetField}}" data-saved="{{.Settings.BudgetField}}" placeholder="{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}">
+					<div id="cfg-budget-desc" class="adm-value-state" aria-live="polite">
+						<div class="ds-err-msg" hidden>{{svg "dsi-alert" 16}}<span></span></div>
+						<div class="ds-hint" hidden></div>
+					</div>
+				</div>
 			</form>
 		{{end}}
 	{{end}}{{end}}
