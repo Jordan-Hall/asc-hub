@@ -18,9 +18,9 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 136 |
+| done | 137 |
 | partial | 1 |
-| ui-only-missing | 8 |
+| ui-only-missing | 7 |
 | needs-hub-backend | 5 |
 | needs-asc-backend | 3 |
 | needs-both | 20 |
@@ -28,7 +28,7 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 5, M 24, L 8.
+Open rows by size: S 4, M 24, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -62,12 +62,12 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsProfile | "How others see you" live preview card | done | profile.tmpl + asc-ui.js | S |
 | UserSettingsProfile | Public email select (verified addresses), time zone select | done | `templates/user/settings/profile.tmpl` public email and time zone selects. The zone is the person's for dates: every page of a signed-in person carries it in `<html data-tz>` (`services/context` HTML, `services/ascnotify` TimeZoneName), `web_src/js/features/local-time.js` redraws the times DayTime and Day write (`<time data-local>`), `webcomponents/relative-time.js` draws its tooltip in it, and quiet hours use it; the server text is the fallback without script. `absolute-date` shows the date only and is not moved by a zone by design; tests: TestTimeZoneNameIsTheZoneOfTheProfile, vitest local-time and relative-time | - |
 | UserSettingsProfile | Save bar that turns active on edit, names the change count, Discard restores, "Saved" confirmation | done | profile.tmpl has a static .ds-sticky-actions; reuse initRepoSettingsSaveBar (web_src/js/features/repo-settings.js) via data-savebar | S |
-| UserSettingsProfile | Loading skeleton inputs | ui-only-missing | profile.tmpl + CSS (page is server rendered, low value) | S |
+| UserSettingsProfile | Loading skeleton inputs | done | web_src/js/features/ds-settings-loading.js: a link of the settings menu (account, organization, repository, admin layouts) puts skeleton inputs in place of the content until the next page loads, with a status line for screen readers (`data-loading` on .ds-settings-body); CSS in asc-ds/layout.css; tests ds-settings-loading.test.js, TestSettingsPagesCarryTheLoadingWords | - |
 | UserSettingsAccount | Email list, primary, verify/resend, add, delete | done | templates/user/settings/account.tmpl, routers/web/user/setting/account.go | - |
 | UserSettingsAccount | Resend rate limit that says when to retry | done | `routers/web/user/setting/asc_resend.go`: the time of the last confirmation mail is kept next to the 180 s limit and the refusal now says "You can ask for another in 45 seconds" (a flash) instead of redirecting silently; used by the account page (add address, resend); the forgot-password and sign-up paths keep their own limit; tests: TestMailResendSaysWhenToAskAgain | - |
 | UserSettingsAccount | Sign-in methods card (SSO connected, link to Security for passkeys/password) | done | account.tmpl; data already in security/accountlinks.tmpl (AccountLinks) | S |
 | UserSettingsAccount | Export your data (changesets, reviews, comments, settings; emailed link; requested/ready states) | done | Sessions-style page /user/settings/asc/export (request, states, download, delete) over DataExport (routers/web/user/setting/asc_account.go). The emailed link: asking for an export records it in `asc_export_watch` (migration `v18h_asc_export_watch`) when the hub has a mail service, the cron task `mail_asc_exports` (every minute, `services/ascexportmail`) asks asc serve for its state as the person (`asctrust.GetExport`) and emails the download link and until when it works once it is ready, or that it failed; a deleted export, a person who cannot sign in, and a watch older than two days are dropped; the page and the flash say a link is emailed. Tests: TestAscExportWatch, Test_addAscExportWatch, TestGetExport, TestAReadyOrFailedExportIsEmailedOnce, TestNoMailServiceWatchesNothing, TestAWatchOfAPersonWhoCannotSignInIsDropped, TestAscExportRequestWatchesTheExportForTheEmail | - |
-| UserSettingsAccount | Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus return | done | account.go DeleteAccount: typed username, then password, then with two-factor sign-in on a code of the app (not used before) or a recovery code (deleteTwoFactorPassed); account.tmpl shows the code field only then; delete-button.js: Escape closes the confirm dialog, Tab stays inside, focus returns to the button; tests TestUserDeleteAccountAsksTwoFactorCode, TestUserDeleteAccountWithRecoveryCode, delete-button.test.js | - |
+| UserSettingsAccount | Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus return | done | account.go DeleteAccount: typed username, then password, then with an authenticator app a code of the app (not used before), the scratch code or a recovery code, all used up even when the deletion stops later, and with security keys only a sign-in with the key in the last 10 minutes (deleteTwoFactorPassed, SignInSessionKey set by the WebAuthn sign-in only); the password counts against the try limit; account.tmpl shows the code field only then; delete-button.js: Escape closes the confirm dialog, Tab stays inside, focus returns to the button; tests TestUserDeleteAccountAsksTwoFactorCode, TestUserDeleteAccountWithRecoveryCode, delete-button.test.js | - |
 | UserSettingsAppearance | Theme cards (light, dark, system) with preview | done | templates/user/settings/appearance.tmpl | - |
 | UserSettingsAppearance | Density (comfortable, compact) | done | appearance.tmpl, templates/base/head_style.tmpl (kept in localStorage, not per account; board says every device) | S |
 | UserSettingsAppearance | Language select; hints switch; hidden comment types | done | appearance.tmpl | - |
