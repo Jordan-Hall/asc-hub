@@ -493,10 +493,36 @@ a.wk-act-title:hover {
   display: contents;
 }
 
+/* the add button under a card's list (New organization) */
+.wk-sp-add {
+  margin-top: 12px;
+}
+
 @media (min-width: 768px) {
   .wk-row-acts {
     flex: none;
     justify-content: flex-end;
+  }
+}
+
+/* the organizations of a person (UserSettingsOrgs): on a phone the button stays beside the name, an invitation's buttons go under its text */
+@media (max-width: 767.98px) {
+  .wk-rows.orgs .wk-row {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+
+  .wk-rows.orgs .wk-row .ds-li-main {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .wk-rows.orgs .wk-row-acts {
+    flex: none;
+  }
+
+  .wk-rows.invites .wk-row-acts {
+    padding-left: 52px;
   }
 }
 

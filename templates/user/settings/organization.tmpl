@@ -1,69 +1,73 @@
 {{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings organization wk-settings")}}
 {{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.orgs") "Lead" (ctx.Locale.Tr "asc_work.sp_orgs_lead"))}}
 <div class="wk-sp">
+	<section class="ds-card" aria-labelledby="sp-orgs">
+		<div class="ds-card-h">
+			<h2 id="sp-orgs">{{ctx.Locale.Tr "asc_work.sp_orgs_yours"}}</h2>
+			<span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_orgs_yours_sub"}}</span>
+		</div>
+		<div class="ds-card-b">
+			{{if .OrgRows}}
+			<ul class="ds-list wk-rows orgs">
+				{{range .OrgRows}}
+					{{$org := .Org}}
+					<li class="ds-li wk-row">
+						<span class="ds-li-av">{{ctx.AvatarUtils.Avatar $org 40 "ds-avatar-org"}}</span>
+						<div class="ds-li-main">
+							<div class="ds-li-title"><a href="{{$org.HomeLink}}">{{$org.DisplayName}}</a>
+								<span class="ds-chip {{if .IsOwner}}ds-chip-info{{end}}">{{if .IsOwner}}{{ctx.Locale.Tr "asc_work.sp_role_owner"}}{{else}}{{ctx.Locale.Tr "asc_work.sp_role_member"}}{{end}}</span>
+							</div>
+							<div class="ds-li-sub">{{ctx.Locale.TrN $org.NumMembers "asc_work.sp_org_people_one" "asc_work.sp_org_people_n" $org.NumMembers}} &middot; {{ctx.Locale.TrN $org.NumRepos "asc_work.sp_org_repos_one" "asc_work.sp_org_repos_n" $org.NumRepos}}</div>
+						</div>
+						<div class="wk-row-acts">
+							{{/* an owner leaves from the organization's People page, which refuses the last owner */}}
+							{{if .IsOwner}}
+								<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$org.OrganisationLink}}/settings" aria-label="{{ctx.Locale.Tr "settings"}}: {{$org.DisplayName}}">{{ctx.Locale.Tr "settings"}}</a>
+							{{else}}
+								<form>
+									<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm delete-button" data-modal-id="leave-organization"
+										data-url="{{$org.OrganisationLink}}/members/action/leave" data-datauid="{{$.SignedUser.ID}}"
+										data-name="{{$.SignedUser.DisplayName}}"
+										data-data-organization-name="{{$org.DisplayName}}" aria-label="{{ctx.Locale.Tr "org.members.leave"}}: {{$org.DisplayName}}">{{ctx.Locale.Tr "org.members.leave"}}</button>
+								</form>
+							{{end}}
+						</div>
+					</li>
+				{{end}}
+			</ul>
+			{{template "base/paginate" .}}
+			{{else}}
+				{{template "shared/ds/empty" (dict "Icon" "building" "Title" (ctx.Locale.Tr "settings.orgs_none"))}}
+			{{end}}
+			{{if .SignedUser.CanCreateOrganization}}
+				<div class="wk-sp-add"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/org/create">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "admin.orgs.new_orga"}}</a></div>
+			{{end}}
+		</div>
+	</section>
 	{{if .OrgInvites}}
 	<section class="ds-card" aria-labelledby="sp-invites" data-testid="org-invites">
-		<div class="ds-card-h"><h2 id="sp-invites">{{ctx.Locale.Tr "settings.org_invites"}}</h2><span class="ds-card-sub">{{len .OrgInvites}}</span></div>
-		<ul class="ds-list wk-rows">
+		<div class="ds-card-h"><h2 id="sp-invites">{{ctx.Locale.Tr "settings.org_invites"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_invites_sub"}}</span></div>
+		<ul class="ds-list wk-rows invites">
 			{{range .OrgInvites}}
 				<li class="ds-li wk-row">
-					<span class="ds-li-av">{{ctx.AvatarUtils.Avatar .Org 40}}</span>
+					<span class="ds-li-av">{{ctx.AvatarUtils.Avatar .Org 40 "ds-avatar-org"}}</span>
 					<div class="ds-li-main">
-						<div class="ds-li-title">{{template "shared/user/name" .Org}} <span class="ds-chip ds-chip-outline">{{.Team.Name}}</span></div>
-						{{if .Inviter}}<div class="ds-li-sub">{{ctx.Locale.Tr "settings.org_invite_by" .Inviter.Name}}</div>{{end}}
+						<div class="ds-li-title">{{.Org.DisplayName}} <span class="ds-chip ds-chip-warn">{{svg "dsi-mail" 12}} {{ctx.Locale.Tr "asc_work.sp_invite_chip"}}</span></div>
+						<div class="ds-li-sub">{{if .Inviter}}{{ctx.Locale.Tr "asc_work.sp_invite_by" .Inviter.DisplayName (ctx.Locale.Tr (print "asc_work.sp_invite_as_" .Role)) (DateUtils.TimeSince .Sent)}}{{else}}{{ctx.Locale.Tr "asc_work.sp_invite_to" (ctx.Locale.Tr (print "asc_work.sp_invite_as_" .Role)) (DateUtils.TimeSince .Sent)}}{{end}}</div>
 					</div>
 					<div class="wk-row-acts">
-						<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.Accept}}">{{ctx.Locale.Tr "settings.org_invite_accept"}}</a>
 						<form action="{{AppSubUrl}}/user/settings/organization/decline" method="post">
 							{{$.CsrfTokenHtml}}
 							<input type="hidden" name="token" value="{{.Token}}">
-							<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{ctx.Locale.Tr "settings.org_invite_decline"}}</button>
+							<button class="ds-btn ds-btn-ghost ds-btn-sm" type="submit">{{ctx.Locale.Tr "settings.org_invite_decline"}}</button>
 						</form>
+						<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.Accept}}">{{ctx.Locale.Tr "settings.org_invite_accept"}}</a>
 					</div>
 				</li>
 			{{end}}
 		</ul>
 	</section>
 	{{end}}
-	<section class="ds-card" aria-labelledby="sp-orgs">
-		<div class="ds-card-h">
-			<h2 id="sp-orgs">{{ctx.Locale.Tr "settings.orgs"}}</h2>
-			{{if .SignedUser.CanCreateOrganization}}
-				<a class="ds-btn ds-btn-primary ds-btn-sm ds-ml-auto" href="{{AppSubUrl}}/org/create">{{ctx.Locale.Tr "admin.orgs.new_orga"}}</a>
-			{{end}}
-		</div>
-		{{if .OrgRows}}
-		<ul class="ds-list wk-rows orgs">
-			{{range .OrgRows}}
-				{{$org := .Org}}
-				<li class="ds-li wk-row">
-					<span class="ds-li-av">{{ctx.AvatarUtils.Avatar $org 40}}</span>
-					<div class="ds-li-main">
-						<div class="ds-li-title">{{template "shared/user/name" $org}}
-							<span class="ds-chip {{if .IsOwner}}ds-chip-info{{else}}ds-chip-outline{{end}}">{{if .IsOwner}}{{ctx.Locale.Tr "asc_work.sp_role_owner"}}{{else}}{{ctx.Locale.Tr "asc_work.sp_role_member"}}{{end}}</span>
-						</div>
-						<div class="ds-li-meta"><span>{{ctx.Locale.TrN $org.NumMembers "asc_work.sp_org_people_one" "asc_work.sp_org_people_n" $org.NumMembers}}</span><span>{{ctx.Locale.TrN $org.NumRepos "asc_work.sp_org_repos_one" "asc_work.sp_org_repos_n" $org.NumRepos}}</span></div>
-						{{if $org.Description}}<div class="ds-li-sub">{{$org.Description}}</div>{{end}}
-						{{if .LastOwner}}<div class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_last_owner"}}</div>{{end}}
-					</div>
-					<div class="wk-row-acts">
-						<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$org.HomeLink}}">{{ctx.Locale.Tr "asc_work.sp_open"}}</a>
-						{{if .IsOwner}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$org.OrganisationLink}}/settings">{{ctx.Locale.Tr "settings"}}</a>{{end}}
-						<form>
-							<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="leave-organization"
-								data-url="{{$org.OrganisationLink}}/members/action/leave" data-datauid="{{$.SignedUser.ID}}"
-								data-name="{{$.SignedUser.DisplayName}}"
-								data-data-organization-name="{{$org.DisplayName}}"{{if .LastOwner}} disabled aria-disabled="true"{{end}}>{{ctx.Locale.Tr "org.members.leave"}}</button>
-						</form>
-					</div>
-				</li>
-			{{end}}
-		</ul>
-		{{template "base/paginate" .}}
-		{{else}}
-			{{template "shared/ds/empty" (dict "Icon" "building" "Title" (ctx.Locale.Tr "settings.orgs_none") "PrimaryHref" (print AppSubUrl "/org/create") "PrimaryLabel" (ctx.Locale.Tr "admin.orgs.new_orga"))}}
-		{{end}}
-	</section>
 </div>
 
 <div class="ui g-modal-confirm delete modal" id="leave-organization">

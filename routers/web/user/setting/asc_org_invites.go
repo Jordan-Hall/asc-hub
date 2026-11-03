@@ -5,9 +5,11 @@ package setting
 
 import (
 	"forgejo.org/models/organization"
+	"forgejo.org/models/perm"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/timeutil"
 	"forgejo.org/services/context"
 )
 
@@ -18,6 +20,8 @@ type OrgInviteRow struct {
 	Team    *organization.Team
 	Inviter *user_model.User
 	Accept  string // the address of the invitation page, where the invitation is accepted
+	Sent    timeutil.TimeStamp
+	Role    string // owner, maintainer or member: what the team makes the person, as the People page says it
 }
 
 // orgInviteRows reads the pending invitations of the person; one that cannot be read (its team or organization is gone) is skipped.
@@ -41,9 +45,20 @@ func orgInviteRows(ctx *context.Context) []OrgInviteRow {
 		if err != nil {
 			inviter = nil
 		}
-		rows = append(rows, OrgInviteRow{Token: inv.Token, Org: o, Team: team, Inviter: inviter, Accept: setting.AppSubURL + "/org/invite/" + inv.Token})
+		rows = append(rows, OrgInviteRow{Token: inv.Token, Org: o, Team: team, Inviter: inviter, Accept: setting.AppSubURL + "/org/invite/" + inv.Token, Sent: inv.CreatedUnix, Role: inviteRole(team)})
 	}
 	return rows
+}
+
+// inviteRole is the role the team gives: the owners team makes an Owner, a team with the administrator permission a Maintainer.
+func inviteRole(t *organization.Team) string {
+	switch {
+	case t.IsOwnerTeam():
+		return "owner"
+	case t.AccessMode >= perm.AccessModeAdmin:
+		return "maintainer"
+	}
+	return "member"
 }
 
 // DeclineOrgInvite serves `POST /user/settings/organization/decline` with the field token.
