@@ -104,9 +104,10 @@ func TestViewProjectTitle(t *testing.T) {
 		userOrg   string
 		userID    int64
 		projectID int64
+		cards     int
 	}{
-		{"user", 2, 4},
-		{"org", 3, 7},
+		{"user", 2, 4, 1},
+		{"org", 3, 7, 1}, // two issues are on the board, one of them in a repository the viewer cannot read
 	} {
 		testCaseName := fmt.Sprintf("%s%d", util.ToTitleCase(testCase.userOrg), testCase.userID)
 		t.Run(testCaseName, func(t *testing.T) {
@@ -123,6 +124,7 @@ func TestViewProjectTitle(t *testing.T) {
 			ctx.SetParams(":id", fmt.Sprintf("%d", testCase.projectID))
 			org.ViewProject(ctx)
 			assert.Equal(t, proj.Title, ctx.Data["Title"].(string))
+			assert.Equal(t, testCase.cards, ctx.Data["ProjectCardCount"], "the board shows its empty state only without cards")
 		})
 	}
 }
