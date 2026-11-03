@@ -32,6 +32,12 @@ func isKeywordValid(keyword string) bool {
 
 // `RenderUserSearch` render user search page.
 func RenderUserSearch(ctx *context.Context, opts *user_model.SearchUserOptions, tplName base.TplName) {
+	RenderUserSearchWith(ctx, opts, tplName, nil)
+}
+
+// RenderUserSearchWith is RenderUserSearch with more data for the page: load is called with the users found, before
+// the page is rendered.
+func RenderUserSearchWith(ctx *context.Context, opts *user_model.SearchUserOptions, tplName base.TplName, load func([]*user_model.User)) {
 	// Sitemap index for sitemap paths.
 	opts.Page = int(ctx.ParamsInt64("idx"))
 	isSitemap := ctx.Params("idx") != ""
@@ -114,6 +120,9 @@ func RenderUserSearch(ctx *context.Context, opts *user_model.SearchUserOptions, 
 		pager.AddParamString(paramKey, paramVal)
 	}
 	ctx.Data["Page"] = pager
+	if load != nil {
+		load(users)
+	}
 
 	ctx.HTML(http.StatusOK, tplName)
 }
