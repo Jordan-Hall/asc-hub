@@ -5,7 +5,9 @@ package actions
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
@@ -37,9 +39,25 @@ type ActionRunnerToken struct {
 	RepoID   optional.Option[int64] `xorm:"index REFERENCES(repository, id)"`
 	Repo     *repo_model.Repository `xorm:"-"`
 	IsActive bool                   // true means it can be used
+	// ExpiresUnix is when the token stops registering runners; 0 is never. A token the web page shows once expires after
+	// ShownOnceRunnerTokenLifetime; the ones the API and the command line give do not.
+	ExpiresUnix timeutil.TimeStamp `xorm:"NOT NULL DEFAULT 0"`
 
 	Created timeutil.TimeStamp `xorm:"created"`
 	Updated timeutil.TimeStamp `xorm:"updated"`
+}
+
+// ShownOnceRunnerTokenLifetime is how long a registration token shown once on the web registers runners.
+const ShownOnceRunnerTokenLifetime = time.Hour
+
+// IsExpired is true once a token with an expiry has reached it.
+func (t *ActionRunnerToken) IsExpired() bool {
+	return t.ExpiresUnix != 0 && timeutil.TimeStampNow() >= t.ExpiresUnix
+}
+
+// Usable is true for a token that registers runners: active and not expired.
+func (t *ActionRunnerToken) Usable() bool {
+	return t.IsActive && !t.IsExpired()
 }
 
 func init() {
@@ -54,6 +72,18 @@ func GetRunnerToken(ctx context.Context, token string) (*ActionRunnerToken, erro
 		return nil, err
 	} else if !has {
 		return nil, fmt.Errorf("runner token %q: %w", token, util.ErrNotExist)
+	}
+	return &runnerToken, nil
+}
+
+// GetRunnerTokenByID returns a runner token by its id.
+func GetRunnerTokenByID(ctx context.Context, id int64) (*ActionRunnerToken, error) {
+	var runnerToken ActionRunnerToken
+	has, err := db.GetEngine(ctx).ID(id).Get(&runnerToken)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, fmt.Errorf("runner token %d: %w", id, util.ErrNotExist)
 	}
 	return &runnerToken, nil
 }
@@ -73,6 +103,29 @@ func UpdateRunnerToken(ctx context.Context, r *ActionRunnerToken, cols ...string
 // NewRunnerToken creates a new active runner token and invalidate all old tokens
 // ownerID will be ignored and treated as 0 if repoID is non-zero.
 func NewRunnerToken(ctx context.Context, ownerID, repoID optional.Option[int64]) (*ActionRunnerToken, error) {
+	return newRunnerToken(ctx, ownerID, repoID, 0)
+}
+
+// NewShownOnceRunnerToken is NewRunnerToken for the web page that shows the token once: it expires after
+// ShownOnceRunnerTokenLifetime.
+func NewShownOnceRunnerToken(ctx context.Context, ownerID, repoID optional.Option[int64]) (*ActionRunnerToken, error) {
+	return newRunnerToken(ctx, ownerID, repoID, timeutil.TimeStampNow().AddDuration(ShownOnceRunnerTokenLifetime))
+}
+
+// UsableRunnerToken is the latest token of the scope when it still registers runners, or else a new one without expiry
+// (the API and the command line, which hand the token to a program).
+func UsableRunnerToken(ctx context.Context, ownerID, repoID optional.Option[int64]) (*ActionRunnerToken, error) {
+	token, err := GetLatestRunnerToken(ctx, ownerID, repoID)
+	if err == nil && token.Usable() {
+		return token, nil
+	}
+	if err != nil && !errors.Is(err, util.ErrNotExist) {
+		return nil, err
+	}
+	return NewRunnerToken(ctx, ownerID, repoID)
+}
+
+func newRunnerToken(ctx context.Context, ownerID, repoID optional.Option[int64], expires timeutil.TimeStamp) (*ActionRunnerToken, error) {
 	if ownerID.Has() && repoID.Has() {
 		// It's trying to create a runner token that belongs to a repository, but OwnerID has been set accidentally.
 		// Remove OwnerID to avoid confusion; it's not worth returning an error here.
@@ -81,10 +134,11 @@ func NewRunnerToken(ctx context.Context, ownerID, repoID optional.Option[int64])
 
 	token := util.CryptoRandomString(util.RandomStringHigh)
 	runnerToken := &ActionRunnerToken{
-		OwnerID:  ownerID,
-		RepoID:   repoID,
-		IsActive: true,
-		Token:    token,
+		OwnerID:     ownerID,
+		RepoID:      repoID,
+		IsActive:    true,
+		Token:       token,
+		ExpiresUnix: expires,
 	}
 
 	return runnerToken, db.WithTx(ctx, func(ctx context.Context) error {
