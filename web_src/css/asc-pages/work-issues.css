@@ -522,6 +522,67 @@
   min-height: var(--touch);
 }
 
+/* Move: the keyboard alternative to dragging a card, a menu of the other columns */
+.wk-pv .project-column .issue-card {
+  position: relative;
+}
+
+.wk-pv .project-card-move {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--touch);
+  margin-left: auto;
+}
+
+.wk-pv-menu {
+  position: absolute;
+  z-index: 10;
+  right: 8px;
+  top: calc(100% - 6px);
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-row);
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 16%);
+}
+
+.wk-pv-menu-item {
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wk-pv-menu-item:hover,
+.wk-pv-menu-item:focus-visible {
+  background: var(--primary-tint);
+}
+
+.wk-pv-error {
+  margin-bottom: 12px;
+}
+
+.wk-pv-error[hidden] {
+  display: none;
+}
+
+.wk-pv-empty {
+  margin-bottom: 12px;
+}
+
+.wk-pv #project-board[aria-busy="true"] .issue-card {
+  cursor: progress;
+}
+
 @media (min-width: 1024px) {
   .wk-pv #project-board .board {
     padding-inline: var(--gutter, 24px);
