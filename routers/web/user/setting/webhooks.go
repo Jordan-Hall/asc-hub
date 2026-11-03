@@ -33,7 +33,12 @@ func Webhooks(ctx *context.Context) {
 		return
 	}
 
-	ctx.Data["Webhooks"] = ws
+	rows, err := webhook_service.ListRows(ctx, ws)
+	if err != nil {
+		ctx.ServerError("ListRows", err)
+		return
+	}
+	ctx.Data["Webhooks"] = rows
 	ctx.HTML(http.StatusOK, tplSettingsHooks)
 }
 

@@ -1067,6 +1067,52 @@ ul.ds-list {
   }
 }
 
+/* lists of webhooks (templates/shared/webhook/rows.tmpl): the row header is the hook's host over its URL */
+.wh-table tbody th {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-3);
+  background: none;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: normal;
+  vertical-align: middle;
+}
+
+.wh-table tbody tr:last-child th { border-bottom: 0; }
+.wh-table tbody tr:hover th { background: var(--surface-3); }
+.wh-host { color: var(--text); font-weight: 600; }
+.wh-url { margin-top: 2px; color: var(--text-3); }
+.wh-acts { justify-content: flex-end; }
+.wh-acts form { display: contents; }
+.wh-add { margin-top: 12px; }
+.wh-secret { margin-top: 8px; }
+
+@media (max-width: 639.98px) {
+  .wh-table tbody th {
+    display: block;
+    width: 100%;
+    padding: 6px 16px;
+    border: 0;
+  }
+
+  .wh-table td::before {
+    color: var(--text-3);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  .wh-table td { align-items: center; padding: 3px 16px; }
+  .wh-table td:not([data-label]) { justify-content: flex-end; padding-top: 8px; }
+}
+
+/* a table that sits flush in its card, the card's edges its border */
+.wh-flush { overflow-x: auto; border-bottom: 1px solid var(--line-3); }
+
 /* ================================================================ tabs (views of one object) and the side list */
 .ds-tabs {
   display: flex;
