@@ -4,6 +4,12 @@
 package repo
 
 import (
+	"archive/zip"
+	"bytes"
+	"crypto/ed25519"
+	"crypto/rand"
+	"encoding/pem"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -14,8 +20,11 @@ import (
 	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/asctrust"
 
+	"github.com/42wim/sshsig"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/zeebo/blake3"
+	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -135,4 +144,67 @@ func TestAscAuditVerifyChainBrokenOffersTheEvent(t *testing.T) {
 	require.Equal(t, http.StatusOK, page.status, page.body)
 	assert.Contains(t, page.body, `data-testid="asc-audit-show-event"`)
 	assert.Contains(t, page.body, "?seq=9")
+}
+
+func TestAscAuditExportIsSignedWhenTheServerSignsIt(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureAudit)
+	row := []byte("{\"seq\":1}\n")
+	_, priv, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+	block, err := ssh.MarshalPrivateKey(priv, "")
+	require.NoError(t, err)
+	sig, err := sshsig.Sign(pem.EncodeToMemory(block), bytes.NewReader(row), asctrust.AuditExportNamespace)
+	require.NoError(t, err)
+	signer, err := ssh.NewSignerFromKey(priv)
+	require.NoError(t, err)
+	key := strings.TrimSpace(string(ssh.MarshalAuthorizedKey(signer.PublicKey())))
+	last := &ascv1.ExportAuditResponse{Data: row, Last: true, Digest: blake3Of(row), Events: 1}
+	f.auditExport = func(*ascv1.ExportAuditRequest) []*ascv1.ExportAuditResponse {
+		return []*ascv1.ExportAuditResponse{last}
+	}
+	export := func() trustPage {
+		return runTrust(t, trustReq{path: "/user2/repo1/settings/asc/audit/export?format=jsonl", user: 2, access: adminAccess}, AscAuditExport)
+	}
+
+	// Without a server key the file itself downloads.
+	plain := export()
+	require.Equal(t, http.StatusOK, plain.status, plain.body)
+	assert.Equal(t, string(row), plain.body)
+	assert.Contains(t, plain.ctx.Resp.Header().Get("Content-Type"), "application/x-ndjson")
+	assert.Regexp(t, `^attachment; filename="asc-audit-user2-repo1-\d{8}\.jsonl";`, plain.ctx.Resp.Header().Get("Content-Disposition"))
+
+	// With one, the download is the archive that checks itself.
+	last.Signature, last.SignerKey = string(sig), key
+	signed := export()
+	require.Equal(t, http.StatusOK, signed.status, signed.body)
+	assert.Equal(t, "application/zip", signed.ctx.Resp.Header().Get("Content-Type"))
+	assert.Regexp(t, `^attachment; filename="asc-audit-user2-repo1-\d{8}\.jsonl\.zip";`, signed.ctx.Resp.Header().Get("Content-Disposition"))
+	zr, err := zip.NewReader(strings.NewReader(signed.body), int64(len(signed.body)))
+	require.NoError(t, err)
+	files := map[string]string{}
+	for _, zf := range zr.File {
+		rc, err := zf.Open()
+		require.NoError(t, err)
+		b, err := io.ReadAll(rc)
+		require.NoError(t, err)
+		_ = rc.Close()
+		files[zf.Name[strings.LastIndex(zf.Name, ".jsonl")+1:]] = string(b)
+	}
+	assert.Equal(t, string(row), files["jsonl"])
+	require.NoError(t, sshsig.Verify(strings.NewReader(files["jsonl"]), []byte(files["jsonl.sig"]), []byte(key), asctrust.AuditExportNamespace))
+	assert.Contains(t, files["allowed_signers"], key)
+	assert.Contains(t, files["VERIFY.txt"], "ssh-keygen -Y verify")
+
+	// A signature that does not match the file is an error page, not a download.
+	last.Data, last.Digest = []byte("{\"seq\":2}\n"), blake3Of([]byte("{\"seq\":2}\n"))
+	bad := export()
+	assert.NotEqual(t, http.StatusOK, bad.status)
+	assert.NotContains(t, bad.ctx.Resp.Header().Get("Content-Disposition"), "attachment")
+	assert.Len(t, f.callsOf("Export"), 3)
+}
+
+func blake3Of(b []byte) []byte {
+	sum := blake3.Sum256(b)
+	return sum[:]
 }
