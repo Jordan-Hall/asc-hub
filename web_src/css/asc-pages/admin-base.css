@@ -642,6 +642,20 @@ a.adm-who-name:hover {
   white-space: nowrap;
 }
 
+/* a read-only setting that changed in the file since the server started, and the keys the restart banner lists */
+.adm-cfg-src {
+  margin-top: 4px;
+}
+
+.adm-cfg-changed {
+  overflow-wrap: anywhere;
+}
+
+.adm-cfg-changed code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
 .adm-details-note {
   margin: 8px 0 16px;
   font-size: 14px;

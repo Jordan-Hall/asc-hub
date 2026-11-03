@@ -5,6 +5,9 @@ package integration
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"forgejo.org/modules/setting"
@@ -12,6 +15,7 @@ import (
 	"forgejo.org/tests"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAdminConfig(t *testing.T) {
@@ -63,4 +67,32 @@ func TestAdminConfigRuntimeSwitches(t *testing.T) {
 	defer test.MockVariableValue(&setting.MailService, nil)()
 	save("service.require_email_confirm", "true", http.StatusBadRequest)
 	assert.False(t, setting.Service.RegisterEmailConfirm)
+}
+
+// The server settings say the file and line that set them, and a change to the file since the server started asks for a
+// restart: the banner names the keys and the row is marked.
+func TestAdminConfigFileAndRestart(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	conf := filepath.Join(t.TempDir(), "app.ini")
+	defer test.MockVariableValue(&setting.CustomConf, conf)()
+	t.Cleanup(setting.RememberConfigFile)
+	require.NoError(t, os.WriteFile(conf, []byte("[server]\nDOMAIN = "+setting.Domain+"\n"), 0o600))
+	setting.RememberConfigFile()
+
+	session := loginUser(t, "user1")
+	page := func() *HTMLDoc {
+		return NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/admin/config"), http.StatusOK).Body)
+	}
+	doc := page()
+	doc.AssertElement(t, `[data-testid="config-restart"]`, false)
+	assert.Equal(t, ", app.ini, line 2", strings.TrimSpace(doc.Find(`[data-testid="config-source"]`).First().Text()))
+	assert.Equal(t, "app.ini, line 2", doc.Find(`.adm-cfg-key`).First().AttrOr("data-tooltip-content", ""))
+	doc.AssertElement(t, `[data-testid="config-changed"]`, false)
+
+	require.NoError(t, os.WriteFile(conf, []byte("[server]\nDOMAIN = nova.example.org\n"), 0o600))
+	doc = page()
+	banner := doc.Find(`[data-testid="config-restart"]`)
+	assert.Contains(t, banner.Text(), "Restart required: 1 setting in "+conf+" changed since the server started")
+	assert.Equal(t, "server.DOMAIN", banner.Find("code").Text())
+	assert.Equal(t, "Changed, restart to apply", doc.Find(`[data-testid="config-changed"]`).First().Text())
 }

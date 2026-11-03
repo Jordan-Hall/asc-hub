@@ -186,7 +186,9 @@ func Config(ctx *context.Context) {
 	ctx.Data["LogSQL"] = setting.Database.LogSQL
 
 	ctx.Data["AscRuntime"] = loadAscRuntime(ctx)
-	ctx.Data["ConfigCards"] = curatedConfig(ctx)
+	cards := curatedConfig(ctx)
+	ctx.Data["ConfigFile"] = placeConfigFile(ctx, cards)
+	ctx.Data["ConfigCards"] = cards
 	ctx.Data["ConfirmNeedsMail"] = setting.MailService == nil
 	ctx.Data["Loggers"] = log.GetManager().DumpLoggers()
 	ctx.Data["DefaultOpenWithEditorAppsString"] = setting.DefaultOpenWithEditorApps().ToTextareaString()
