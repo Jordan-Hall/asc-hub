@@ -18,9 +18,9 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 125 |
+| done | 127 |
 | partial | 1 |
-| ui-only-missing | 17 |
+| ui-only-missing | 15 |
 | needs-hub-backend | 6 |
 | needs-asc-backend | 3 |
 | needs-both | 21 |
@@ -28,7 +28,7 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 13, M 27, L 8.
+Open rows by size: S 12, M 26, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -216,9 +216,9 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | IssueView | Comment draft kept; Cmd+Enter posts | done | ComboMarkdownEditor.js has Ctrl+Enter but no draft store | S |
 | Projects | Kanban board with columns, drag, edit/close/delete | done | templates/projects/view.tmpl | - |
 | Projects | Cards that are stacks following real state; Landed column by stack state | needs-hub-backend | project_issue model holds issues/PRs; map PullRequestAscStack state to a column, issue/card.tmpl | L |
-| Projects | Move menu (keyboard alternative) announcing the new column | ui-only-missing | view.tmpl + web_src/js/features/repo-projects.js | M |
+| Projects | Move menu (keyboard alternative) announcing the new column | done | A Move button on every card for writers (`templates/projects/view.tmpl`, `aria-haspopup=menu`) opens a menu of the other columns (`web_src/js/features/project-move.js`: arrow keys, Home, End, Escape returns focus); the move saves the column order and a status region says "Moved X to Y". Drag and drop goes through the same save and undo; tests: project-move.test.js, TestProjectBoardMoveAndStates | - |
 | Projects | Add card, Switch project select, rename and hide columns | ui-only-missing | view.tmpl, column hide flag (small migration) | M |
-| Projects | Empty, loading and error ("request id") states | ui-only-missing | projects/list.tmpl | S |
+| Projects | Empty, loading and error ("request id") states | done | A board without cards shows an empty state that says how to add one (`ProjectCardCount`, writers and readers get their own words); while a move saves the board is `aria-busy` and the status says "Moving X to Y"; a refused move puts the card back and shows an error banner with the `X-Request-Id` of the answer (or a connection message when there was none). The list page already had its empty state; tests: project-move.test.js, TestProjectBoardMoveAndStates, TestViewProjectTitle | - |
 | Packages | Package list with type, version, downloads, filter by type | done | templates/package/shared/list.tmpl | - |
 | Packages | Type chips with counts (a select today) | ui-only-missing | shared/list.tmpl | S |
 | Packages | Visibility chip per package (Public/Private/Internal) | needs-hub-backend | packages inherit owner visibility; per-package flag in models/packages | M |
