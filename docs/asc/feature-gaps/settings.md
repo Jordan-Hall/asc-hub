@@ -18,17 +18,17 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 137 |
+| done | 138 |
 | partial | 1 |
 | ui-only-missing | 7 |
 | needs-hub-backend | 5 |
 | needs-asc-backend | 3 |
-| needs-both | 20 |
+| needs-both | 19 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 4, M 24, L 8.
+Open rows by size: S 3, M 24, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -84,7 +84,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsNotifications | Watching table with level and last notified, Unwatch with undo | done | exists as /notifications/subscriptions (Forgejo); move into the settings page, add level and last-notified columns | M |
 | UserSettingsPrivacy | Page itself; Show activity and Hide email switches live on Profile instead | done | navbar.tmpl, new privacy.tmpl, move keep_activity_private and keep_email_private out of profile.tmpl | S |
 | UserSettingsPrivacy | Show when I am online (green presence dot) | done | user column + presence from session activity; avatar template | M |
-| UserSettingsPrivacy | Allow agents to read my profile | needs-both | hub user column; asc must honour it when agents read profile data;; Audit 2026-10-30 (part built): Switch exists; asc honouring it when an agent reads the profile was not found. | S |
+| UserSettingsPrivacy | Allow agents to read my profile | done | privacy.tmpl switch (sp_agents_profile) over models/user/asc_agent_profile.go (default yes, no when the choice cannot be read); the hub API hides the profile from Actions task tokens (services/convert/user.go); asc serve Agents.GetPerson asks the hub on every call through `POST /api/internal/asc/agent-profile` (routers/private/asc_agent_profile.go) and audits agent.profile.read; tests asc_agent_profile_test.go (convert, private), an_agent_gets_the_profile_of_a_person_only_when_the_hub_says_the_person_allows_it | - |
 | UserSettingsPrivacy | Blocked people list, block by username, unblock | done | templates/user/settings/blocked_users.tmpl, routers/web/user/setting/blocked_users.go | - |
 | UserSettingsPrivacy | Block confirm dialog, 10 s undo on unblock; blocking also drops pending review requests (only follows are removed today) | done | `web_src/js/features/asc-confirm.js` (data-confirm-modal: the hub's styled confirm modal `block-user-modal` in `privacy.tmpl` opens before the block form is sent, also for the Enter key); Unblock redirects to the privacy page with an Undo that blocks the person again for 10 s (`undoUnblockOffer`: the address names a visible, now unblocked person and the time, judged again on the page; the offer is removed by script when the time is over); `services/user/block.go` dropPendingReviewRequests: blocking withdraws the open review requests the blocked person had on the blocker's repositories and the blocker had on the blocked person's pull requests; tests: TestBlockUser (Review requests), TestUndoUnblockOfferLastsTenSecondsAndNamesAVisibleUnblockedPerson, vitest asc-confirm; models/issues TestReviewRequestsWithNothingToDoKeepTheCallersTransaction (RemoveReviewRequest, AddTeamReviewRequest and RemoveTeamReviewRequest now commit when they have nothing to do, so a caller's transaction is no longer rolled back); models/issues TestReviewRequestsWithNothingToDoKeepTheCallersTransaction (RemoveReviewRequest, AddTeamReviewRequest and RemoveTeamReviewRequest now commit when they have nothing to do, so a caller's transaction is no longer rolled back). | - |
 | UserSettingsSecurity | Change password | done | templates/user/settings/account.tmpl (password lives on Account, not Security) | - |
