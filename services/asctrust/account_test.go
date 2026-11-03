@@ -37,6 +37,7 @@ type fakeAccount struct {
 	others   func(*ascv1.RevokeOtherSessionsRequest) (*ascv1.RevokeOtherSessionsResponse, error)
 	exports  func() (*ascv1.ListExportsResponse, error)
 	request  func() (*ascv1.RequestExportResponse, error)
+	get      func(*ascv1.GetExportRequest) (*ascv1.GetExportResponse, error)
 	download func(*ascv1.DownloadExportRequest, grpc.ServerStreamingServer[ascv1.ExportChunk]) error
 	del      func(*ascv1.DeleteExportRequest) (*ascv1.DeleteExportResponse, error)
 }
@@ -83,6 +84,14 @@ func (f *fakeAccount) ListExports(ctx context.Context, r *ascv1.ListExportsReque
 		return f.UnimplementedDataExportServer.ListExports(ctx, r)
 	}
 	return f.exports()
+}
+
+func (f *fakeAccount) GetExport(ctx context.Context, r *ascv1.GetExportRequest) (*ascv1.GetExportResponse, error) {
+	f.note(ctx, r)
+	if f.get == nil {
+		return f.UnimplementedDataExportServer.GetExport(ctx, r)
+	}
+	return f.get(r)
 }
 
 func (f *fakeAccount) RequestExport(ctx context.Context, r *ascv1.RequestExportRequest) (*ascv1.RequestExportResponse, error) {
@@ -239,6 +248,26 @@ func TestExports(t *testing.T) {
 	}
 	_, err = ListExports(sysCtx(), c)
 	assert.ErrorIs(t, err, ErrBadAnswer, "an id of the wrong shape is refused")
+}
+
+func TestGetExport(t *testing.T) {
+	f, c := startAccountFake(t)
+	f.get = func(r *ascv1.GetExportRequest) (*ascv1.GetExportResponse, error) {
+		return &ascv1.GetExportResponse{Job: exportJob(r.GetId(), ascv1.ExportState_EXPORT_STATE_READY)}, nil
+	}
+	row, err := GetExport(sysCtx(), c, goodExportID)
+	require.NoError(t, err)
+	assert.Equal(t, "ready", row.State)
+	assert.Equal(t, goodExportID, row.ID)
+
+	_, err = GetExport(sysCtx(), c, "ex_x")
+	require.ErrorIs(t, err, ErrBadInput)
+
+	f.get = func(*ascv1.GetExportRequest) (*ascv1.GetExportResponse, error) {
+		return &ascv1.GetExportResponse{Job: exportJob("ex_ABCDEFGHIJ0123456789", ascv1.ExportState_EXPORT_STATE_READY)}, nil
+	}
+	_, err = GetExport(sysCtx(), c, goodExportID)
+	require.ErrorIs(t, err, ErrBadAnswer, "an answer about another export is refused")
 }
 
 func TestRequestAndDeleteExport(t *testing.T) {
