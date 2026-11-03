@@ -13,22 +13,41 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func resetStatus(at time.Time) {
+	statusMu.Lock()
+	statusReport.CheckedAt = at
+	statusMu.Unlock()
+}
+
 // The probe runs once in the time to live, whatever the number of pages; a failure shows as degraded and is repaired by the next probe.
 func TestFooterStatusIsKeptForAWhile(t *testing.T) {
-	calls, answer := 0, "degraded"
-	t.Cleanup(test.MockVariableValue(&statusProbe, func(context.Context) string { calls++; return answer }))
-	statusMu.Lock()
-	statusAt = time.Time{}
-	statusMu.Unlock()
+	calls, answer := 0, StatusReport{}
+	t.Cleanup(test.MockVariableValue(&statusProbe, func(context.Context) StatusReport { calls++; return answer }))
+	resetStatus(time.Time{})
 
 	assert.Equal(t, "degraded", FooterStatus())
-	answer = "ok"
+	answer = StatusReport{Database: true}
 	assert.Equal(t, "degraded", FooterStatus(), "the answer is kept")
 	assert.Equal(t, 1, calls)
 
-	statusMu.Lock()
-	statusAt = time.Now().Add(-time.Minute)
-	statusMu.Unlock()
+	resetStatus(time.Now().Add(-time.Minute))
 	assert.Equal(t, "ok", FooterStatus())
 	assert.Equal(t, 2, calls)
+	assert.False(t, SystemStatus().CheckedAt.IsZero(), "a report always says when it was made")
+}
+
+// asc serve counts only when [asc] is enabled.
+func TestStatusReportValue(t *testing.T) {
+	for _, c := range []struct {
+		r    StatusReport
+		want string
+	}{
+		{StatusReport{Database: true}, "ok"},
+		{StatusReport{Database: true, AscEnabled: true}, "degraded"},
+		{StatusReport{Database: true, AscEnabled: true, Asc: true}, "ok"},
+		{StatusReport{AscEnabled: true, Asc: true}, "degraded"},
+		{StatusReport{}, "degraded"},
+	} {
+		assert.Equal(t, c.want, c.r.Value(), "%+v", c.r)
+	}
 }
