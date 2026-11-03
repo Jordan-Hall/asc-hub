@@ -25,7 +25,7 @@ After this audit:
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
 | **all** | 94 | 845 | 443 | 86 | 316 | 52% |
 
-Missing rows by kind of work: UI 143, hub 131, asc 15, hub+asc 85. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 142, hub 131, asc 15, hub+asc 85. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 181, partial 32, missing 104. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 182, partial 31, missing 104. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -733,7 +733,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### UserSettingsAccount (ASC Hub settings: account)
 
-Area shell/settings. Rows 5: done 3, partial 1, missing 1. Copy found in the hub: 69% of 68 copy strings (mobile twin 61%). Template(s): account.tmpl, repos.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 5: done 4, partial 0, missing 1. Copy found in the hub: 69% of 68 copy strings (mobile twin 61%). Template(s): account.tmpl, repos.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Email addresses, sign-in methods and what happens to your data.; Notifications and sign-in alerts go to your primary address.; Receives notifications and sign-in alerts; Waiting for you to click the link we sent.
 
@@ -743,9 +743,9 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Resend rate limit that says when to retry | missing (hub) | logged as not built (not re-probed) | routers/web/user/setting/account.go (EmailPost SENDACTIVATION) |
 | Sign-in methods card (SSO connected, link to Security for passkeys/password) | done | templates/user/settings/security/accountlinks.tmpl (file) | - |
 | Export your data (changesets, reviews, comments, settings; emailed link; requested/ready states) | done | routers/web/user/setting/asc_account.go AscExport, AscExportRequest; services/ascexportmail (the emailed link); tests TestAscExportRequestWatchesTheExportForTheEmail, TestAReadyOrFailedExportIsEmailedOnce | - |
-| Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus ret... | partial (UI) | logged as not built (not re-probed) | Typed username and the blocked-by-repositories state are done (account.go DeleteAccount, account.tmpl). Open: 2FA code step and d... |
+| Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus return | done | routers/web/user/setting/account.go DeleteAccount, deleteTwoFactorPassed; web_src/js/features/delete-button.js dialogKeydown; tests TestUserDeleteAccountAsksTwoFactorCode, TestUserDeleteAccountWithRecoveryCode, delete-button.test.js | - |
 | Board note: Primary address is changed from a menu on the verified row | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Delete requires typing the username and, with 2FA on, a code | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Delete requires typing the username and, with 2FA on, a code | done | the delete account row above | - |
 | Board note: Resend is rate limited and says when you can try again | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Left menu is the only navigation for settings: no tabs repeat these pages | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Default, unverified address, address added toast, delete confirmation dialog (typed usern... | unverified | not tracked in the gap files | needs a row and a test |
