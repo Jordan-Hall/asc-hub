@@ -372,3 +372,15 @@ func TestIssueFilterLinks(t *testing.T) {
 		assert.True(t, called)
 	})
 }
+
+func TestIssueListNoResults(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	// a search that finds nothing offers to clear the filters, and the list says what to announce while it loads
+	page := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/issues?state=open&poster=99999"), http.StatusOK).Body)
+	page.AssertElement(t, `#issue-list[data-loading="Loading the list…"]`, true)
+	clear := page.Find(".wk-issue-none .ds-empty a")
+	assert.Equal(t, "Clear filters", clear.Last().Text())
+	href, _ := clear.Last().Attr("href")
+	assert.Equal(t, "/user2/repo1/issues", href)
+}

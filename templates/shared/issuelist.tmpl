@@ -2,7 +2,7 @@
 The list of issues and pull requests (repository, milestone, dashboard, subscriptions): one row per item, status icon, title, labels, meta line, comment count.
 Props: Issues, listType ("repo", "milestone", "dashboard"), the page data of the list. The checkbox column shows for people who can edit.
 */}}
-<ul id="issue-list" class="ds-list wk-issue-list">
+<ul id="issue-list" class="ds-list wk-issue-list" data-loading="{{ctx.Locale.Tr "asc_work.is_loading"}}">
 	{{$approvalCounts := .ApprovalCounts}}
 	{{range .Issues}}
 		<li class="ds-li wk-issue">

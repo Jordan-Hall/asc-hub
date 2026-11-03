@@ -333,6 +333,34 @@
   border: 0;
 }
 
+/* while a filter or the search loads the next page: skeleton rows in place of the rows (issue-list-loading.js) */
+.wk-issue-list.is-loading > li:not(.wk-issue-sk) {
+  display: none;
+}
+
+.wk-issue-sk.ds-li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.wk-issue-sk-title {
+  width: 55%;
+  height: 14px;
+}
+
+.wk-issue-sk-meta {
+  width: 30%;
+  height: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wk-issue-sk .ds-sk {
+    animation: none;
+  }
+}
+
 .wk-issue .issue-meta a.index {
   display: inline-block;
   min-height: 24px;
