@@ -206,6 +206,8 @@ func TestOrgPeopleUndoAndOrder(t *testing.T) {
 	doc := NewHTMLParser(t, owner.MakeRequest(t, NewRequest(t, "GET", members+"?undo=4-member-maintainer"), http.StatusOK).Body)
 	banner := doc.Find(`[data-testid="role-undo"]`)
 	assert.Contains(t, banner.Text(), "is now Maintainer")
+	ms, _ := banner.Attr("data-undo-ms")
+	assert.Equal(t, "10000", ms, "the undo goes away like a toast")
 	undo, _ := banner.Find("a[data-url]").Attr("data-url")
 	assert.Contains(t, undo, "role=member")
 	resp = owner.MakeRequest(t, NewRequest(t, "POST", undo), http.StatusOK)

@@ -5,7 +5,7 @@
 	<div class="ds-container wk-org-body wk-people-page">
 		{{template "base/alert" .}}
 		{{with .RoleUndo}}
-			<div class="ds-banner ds-banner-ok" role="status" data-testid="role-undo">
+			<div class="ds-banner ds-banner-ok" role="status" data-undo-ms="10000" data-testid="role-undo">
 				<span aria-hidden="true">{{svg "dsi-check" 18}}</span>
 				<p class="ds-banner-body">{{ctx.Locale.Tr "asc_work.role_changed" .User.DisplayName (ctx.Locale.TrString (print "asc_work.role_" .Now))}}</p>
 				<a class="ds-btn ds-btn-secondary ds-btn-sm link-action" href data-url="{{$.OrgLink}}/members/action/role?uid={{.User.ID}}&role={{.Was}}&undo=1">{{ctx.Locale.Tr "asc_work.role_undo"}}</a>
