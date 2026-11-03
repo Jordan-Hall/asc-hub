@@ -656,6 +656,16 @@ a.adm-who-name:hover {
   font-size: 13px;
 }
 
+/* a value setting: the error or the save state in words under the field */
+.adm-value-state:empty,
+.adm-value-state > [hidden] {
+  display: none;
+}
+
+.adm-value-state > * {
+  margin-top: 6px;
+}
+
 .adm-details-note {
   margin: 8px 0 16px;
   font-size: 14px;
