@@ -46,7 +46,8 @@ func WebhookList(ctx *context.Context) {
 	ctx.Data["BaseLink"] = ctx.Repo.RepoLink + "/settings/hooks"
 	ctx.Data["BaseLinkNew"] = ctx.Repo.RepoLink + "/settings/hooks"
 	ctx.Data["WebhookList"] = webhook_service.List()
-	ctx.Data["Description"] = ctx.Tr("repo.settings.hooks_desc", "https://forgejo.org/docs/latest/user/webhooks/")
+	ctx.Data["Description"] = ctx.Tr("asc_hooks.list_desc")
+	ctx.Data["SettingsLead"] = ctx.Tr("asc_hooks.lead")
 
 	ws, err := db.Find[webhook.Webhook](ctx, webhook.ListWebhookOptions{RepoID: ctx.Repo.Repository.ID})
 	if err != nil {
@@ -509,6 +510,26 @@ func WebhookRegenerateSecret(ctx *context.Context) {
 	}
 	ctx.Flash.Success(ctx.Tr("asc_hooks.secret_regenerated", secret))
 	ctx.Redirect(fmt.Sprintf("%s/%d", orCtx.Link, w.ID))
+}
+
+// WebhookSetActive serves `POST {hooks}/{id}/active` with the field active (true or false): the switch of a list row,
+// which pauses or resumes deliveries at once and keeps every other setting. It goes back to redirect_to, else to the hook.
+func WebhookSetActive(ctx *context.Context) {
+	orCtx, w := checkWebhook(ctx)
+	if ctx.Written() {
+		return
+	}
+	active := ctx.FormBool("active")
+	if err := webhook.SetWebhookActive(ctx, w, active); err != nil {
+		ctx.ServerError("SetWebhookActive", err)
+		return
+	}
+	if active {
+		ctx.Flash.Success(ctx.Tr("asc_hooks.resumed", w.URL))
+	} else {
+		ctx.Flash.Success(ctx.Tr("asc_hooks.paused", w.URL))
+	}
+	ctx.RedirectToFirst(ctx.FormString("redirect_to"), fmt.Sprintf("%s/%d", orCtx.Link, w.ID))
 }
 
 // WebhookDelete delete a webhook
