@@ -18,9 +18,9 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 128 |
+| done | 129 |
 | partial | 1 |
-| ui-only-missing | 14 |
+| ui-only-missing | 13 |
 | needs-hub-backend | 6 |
 | needs-asc-backend | 3 |
 | needs-both | 21 |
@@ -28,7 +28,7 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 12, M 25, L 8.
+Open rows by size: S 11, M 25, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -220,7 +220,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | Projects | Add card, Switch project select, rename and hide columns | done | Writers get Add card above the board (`templates/projects/view.tmpl`, dialog `#project-add-card`): it takes `#12` on a repository project and `repo#12` or `owner/repo#12` on a user or organization project, and `POST …/cards` (`services/issue/asc_project_card.go` `AddProjectCard`) puts the issue in the default column or answers 422 with the reason (already on the board, another repository or owner, not found, no permission); other failures quote the request id. Switch project lists the owner's other open projects of the same kind (`OtherOpenProjects`). Columns are renamed in the column menu's Edit; Hide column (`POST …/{column}/hidden`, migration `v18f_asc_project_column_hidden.go`, the default column cannot be hidden) moves a column off the board into a Hidden columns bar with its card count and Show. JS: `web_src/js/features/project-board.js`; tests: project-board.test.js, TestParseProjectCardRef, TestAddProjectCardTo*, TestSetColumnHidden, TestOtherOpenProjects, TestProjectBoardCardsAndColumns | - |
 | Projects | Empty, loading and error ("request id") states | done | A board without cards shows an empty state that says how to add one (`ProjectCardCount`, writers and readers get their own words); while a move saves the board is `aria-busy` and the status says "Moving X to Y"; a refused move puts the card back and shows an error banner with the `X-Request-Id` of the answer (or a connection message when there was none). The list page already had its empty state; tests: project-move.test.js, TestProjectBoardMoveAndStates, TestViewProjectTitle | - |
 | Packages | Package list with type, version, downloads, filter by type | done | templates/package/shared/list.tmpl | - |
-| Packages | Type chips with counts (a select today) | ui-only-missing | shared/list.tmpl | S |
+| Packages | Type chips with counts (a select today) | done | The package lists of an owner and of a repository (`templates/package/shared/list.tmpl`) show "All N" and one chip per type that has packages, the most packages first (`CountPackagesByType` in `models/packages/asc_package_type_count.go`, set by `routers/web/shared/packages/asc_type_counts.go`); the counts keep the name filter, the chosen chip is `aria-current`, and the search keeps the chosen type; tests: TestCountPackagesByType, TestPackageTypeChips | - |
 | Packages | Visibility chip per package (Public/Private/Internal) | needs-hub-backend | packages inherit owner visibility; per-package flag in models/packages | M |
 | Packages | Package page views Install/Versions/Dependencies/Settings as tabs | ui-only-missing | templates/package/view.tmpl (single page + /versions) | M |
 | Packages | "Published from acme/payments by a landed stack", "Signed with release key" | needs-both | asc: publish provenance and release signature record; hub: package metadata + view.tmpl | L |
