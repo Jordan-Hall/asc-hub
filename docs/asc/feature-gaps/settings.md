@@ -18,17 +18,17 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 134 |
+| done | 135 |
 | partial | 1 |
 | ui-only-missing | 9 |
-| needs-hub-backend | 6 |
+| needs-hub-backend | 5 |
 | needs-asc-backend | 3 |
 | needs-both | 20 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 7, M 24, L 8.
+Open rows by size: S 6, M 24, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -66,7 +66,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsAccount | Email list, primary, verify/resend, add, delete | done | templates/user/settings/account.tmpl, routers/web/user/setting/account.go | - |
 | UserSettingsAccount | Resend rate limit that says when to retry | done | `routers/web/user/setting/asc_resend.go`: the time of the last confirmation mail is kept next to the 180 s limit and the refusal now says "You can ask for another in 45 seconds" (a flash) instead of redirecting silently; used by the account page (add address, resend); the forgot-password and sign-up paths keep their own limit; tests: TestMailResendSaysWhenToAskAgain | - |
 | UserSettingsAccount | Sign-in methods card (SSO connected, link to Security for passkeys/password) | done | account.tmpl; data already in security/accountlinks.tmpl (AccountLinks) | S |
-| UserSettingsAccount | Export your data (changesets, reviews, comments, settings; emailed link; requested/ready states) | needs-hub-backend | done: Sessions-style page /user/settings/asc/export (request, states, download, delete) over DataExport (routers/web/user/setting/asc_account.go). Open: the emailed link when the export is ready (hub mail on state change) | S |
+| UserSettingsAccount | Export your data (changesets, reviews, comments, settings; emailed link; requested/ready states) | done | Sessions-style page /user/settings/asc/export (request, states, download, delete) over DataExport (routers/web/user/setting/asc_account.go). The emailed link: asking for an export records it in `asc_export_watch` (migration `v18h_asc_export_watch`) when the hub has a mail service, the cron task `mail_asc_exports` (every minute, `services/ascexportmail`) asks asc serve for its state as the person (`asctrust.GetExport`) and emails the download link and until when it works once it is ready, or that it failed; a deleted export, a person who cannot sign in, and a watch older than two days are dropped; the page and the flash say a link is emailed. Tests: TestAscExportWatch, Test_addAscExportWatch, TestGetExport, TestAReadyOrFailedExportIsEmailedOnce, TestNoMailServiceWatchesNothing, TestAWatchOfAPersonWhoCannotSignInIsDropped, TestAscExportRequestWatchesTheExportForTheEmail | - |
 | UserSettingsAccount | Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus return | ui-only-missing | Typed username and the blocked-by-repositories state are done (account.go DeleteAccount, account.tmpl). Open: 2FA code step and dialog focus return | S |
 | UserSettingsAppearance | Theme cards (light, dark, system) with preview | done | templates/user/settings/appearance.tmpl | - |
 | UserSettingsAppearance | Density (comfortable, compact) | done | appearance.tmpl, templates/base/head_style.tmpl (kept in localStorage, not per account; board says every device) | S |
