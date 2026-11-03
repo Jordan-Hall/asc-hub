@@ -116,6 +116,26 @@ func HookTasks(ctx context.Context, hookID int64, page int) ([]*HookTask, error)
 		Find(&tasks)
 }
 
+// LastDeliveries returns the latest delivered task of each of the given hooks, keyed by hook ID.
+// A hook that never delivered has no entry. The payload is not loaded.
+func LastDeliveries(ctx context.Context, hookIDs []int64) (map[int64]*HookTask, error) {
+	last := make(map[int64]*HookTask, len(hookIDs))
+	if len(hookIDs) == 0 {
+		return last, nil
+	}
+	newest := builder.Select("MAX(id)").From("hook_task").
+		Where(builder.In("hook_id", hookIDs).And(builder.Eq{"is_delivered": true})).
+		GroupBy("hook_id")
+	tasks := make([]*HookTask, 0, len(hookIDs))
+	if err := db.GetEngine(ctx).Where(builder.In("id", newest)).Omit("payload_content").Find(&tasks); err != nil {
+		return nil, err
+	}
+	for _, t := range tasks {
+		last[t.HookID] = t
+	}
+	return last, nil
+}
+
 // CreateHookTask creates a new hook task,
 // it handles conversion from Payload to PayloadContent.
 func CreateHookTask(ctx context.Context, t *HookTask) (*HookTask, error) {

@@ -515,6 +515,12 @@ func UpdateWebhook(ctx context.Context, w *Webhook) error {
 	return err
 }
 
+// UpdateWebhookSecret stores a new secret of the webhook and changes nothing else.
+func UpdateWebhookSecret(ctx context.Context, w *Webhook) error {
+	_, err := db.GetEngine(ctx).ID(w.ID).Cols("secret").Update(w)
+	return err
+}
+
 // UpdateWebhookLastStatus updates last status of webhook.
 func UpdateWebhookLastStatus(ctx context.Context, w *Webhook) error {
 	_, err := db.GetEngine(ctx).ID(w.ID).Cols("last_status").Update(w)

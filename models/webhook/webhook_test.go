@@ -411,3 +411,37 @@ func TestCleanupHookTaskTable_OlderThan_LeavesTaskEarlierThanAgeToDelete(t *test
 	require.NoError(t, CleanupHookTaskTable(t.Context(), OlderThan, 168*time.Hour, 0))
 	unittest.AssertExistsAndLoadBean(t, hookTask)
 }
+
+// The list of webhooks shows each hook's newest delivered task; a hook that never delivered has none.
+func TestLastDeliveries(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	_, err := CreateHookTask(db.DefaultContext, &HookTask{HookID: 3, PayloadVersion: 2}) // queued, not delivered
+	require.NoError(t, err)
+
+	last, err := LastDeliveries(db.DefaultContext, []int64{1, 2, 3})
+	require.NoError(t, err)
+	require.Len(t, last, 2)
+	assert.EqualValues(t, 3, last[1].ID)
+	assert.True(t, last[1].IsSucceed)
+	assert.Empty(t, last[1].PayloadContent, "the payload is not loaded")
+	assert.EqualValues(t, 4, last[3].ID)
+	assert.False(t, last[3].IsSucceed)
+	assert.Nil(t, last[2])
+
+	none, err := LastDeliveries(db.DefaultContext, nil)
+	require.NoError(t, err)
+	assert.Empty(t, none)
+}
+
+func TestUpdateWebhookSecret(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	w := unittest.AssertExistsAndLoadBean(t, &Webhook{ID: 1})
+	url := w.URL
+	w.Secret = "fresh"
+	w.URL = "http://changed.example/not-saved"
+	require.NoError(t, UpdateWebhookSecret(db.DefaultContext, w))
+	got := unittest.AssertExistsAndLoadBean(t, &Webhook{ID: 1})
+	assert.Equal(t, "fresh", got.Secret)
+	assert.Equal(t, url, got.URL)
+}
