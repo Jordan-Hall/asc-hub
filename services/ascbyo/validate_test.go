@@ -250,3 +250,28 @@ func TestIDs(t *testing.T) {
 	assert.False(t, ValidMigrationID("../x"))
 	assert.False(t, ValidMigrationID(strings.Repeat("a", 65)))
 }
+
+func TestTargetChipClass(t *testing.T) {
+	for state, want := range map[ascv1.StorageTargetState]string{
+		ascv1.StorageTargetState_STORAGE_TARGET_STATE_ENABLED:  "ds-chip-ok",
+		ascv1.StorageTargetState_STORAGE_TARGET_STATE_VERIFIED: "ds-chip-info",
+		ascv1.StorageTargetState_STORAGE_TARGET_STATE_PENDING:  "ds-chip-warn",
+		ascv1.StorageTargetState_STORAGE_TARGET_STATE_FAILED:   "ds-chip-err",
+		ascv1.StorageTargetState_STORAGE_TARGET_STATE_DISABLED: "",
+	} {
+		assert.Equal(t, want, TargetViewOf(&ascv1.StorageTarget{State: state}).ChipClass(), state.String())
+	}
+}
+
+func TestTargetLocation(t *testing.T) {
+	for _, c := range []struct {
+		v    TargetView
+		want string
+	}{
+		{TargetView{Endpoint: "https://s3.garage.example.org", Bucket: "asc-objects"}, "s3.garage.example.org / asc-objects"},
+		{TargetView{Endpoint: "https://acct.r2.example.com/", Bucket: "asc-cold", Prefix: "nova"}, "acct.r2.example.com / asc-cold/nova"},
+		{TargetView{Bucket: "scratch"}, "scratch"},
+	} {
+		assert.Equal(t, c.want, c.v.Location())
+	}
+}
