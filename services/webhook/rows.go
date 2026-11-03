@@ -4,7 +4,10 @@ package webhook
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 
 	webhook_model "forgejo.org/models/webhook"
 	"forgejo.org/modules/util"
@@ -13,6 +16,9 @@ import (
 
 // listEvents is how many event names a list row spells out before it says "+N more".
 const listEvents = 2
+
+// streakLimit is how many of a hook's latest deliveries a list reads to say how long it has been failing.
+const streakLimit = 10
 
 // ListRow is one webhook as a list of webhooks shows it: what it sends and how its last delivery went.
 type ListRow struct {
@@ -26,6 +32,25 @@ type ListRow struct {
 	MoreEvents int
 	// Scope names where the hook applies, for a list that mixes scopes (System, Default); empty otherwise.
 	Scope string
+	// FailStreak is how many of the latest deliveries failed in a row (at most streakLimit), 0 when the last one succeeded.
+	FailStreak int
+}
+
+// Kind is the locale key of what the hook is for: a generic receiver signed with a secret, a chat service, or a build or package service.
+func (r *ListRow) Kind() string {
+	switch r.Type {
+	case webhook_module.FORGEJO, webhook_module.GITEA, webhook_module.GOGS:
+		return "asc_hooks.kind_generic"
+	case webhook_module.SLACK, webhook_module.DISCORD, webhook_module.DINGTALK, webhook_module.TELEGRAM, webhook_module.MSTEAMS,
+		webhook_module.FEISHU, webhook_module.MATRIX, webhook_module.WECHATWORK:
+		return "asc_hooks.kind_chat"
+	}
+	return "asc_hooks.kind_service"
+}
+
+// Failing reports whether the hook failed more than once in a row, which the list says in a sentence.
+func (r *ListRow) Failing() bool {
+	return r.FailStreak > 1
 }
 
 // Host is the host the hook delivers to, the row's title; the whole URL when it has none.
@@ -36,6 +61,19 @@ func (r *ListRow) Host() string {
 	return r.URL
 }
 
+// URLScheme is the scheme of the hook's address with its "://", which a list prints dimmed; empty when the address has none.
+func (r *ListRow) URLScheme() string {
+	if scheme, _, ok := strings.Cut(r.URL, "://"); ok {
+		return scheme + "://"
+	}
+	return ""
+}
+
+// URLRest is the hook's address after its scheme.
+func (r *ListRow) URLRest() string {
+	return strings.TrimPrefix(r.URL, r.URLScheme())
+}
+
 // Status is the HTTP status of the last delivery, 0 when there was none or no response came back.
 func (r *ListRow) Status() int {
 	if r.Last == nil || r.Last.ResponseInfo == nil {
@@ -44,12 +82,17 @@ func (r *ListRow) Status() int {
 	return r.Last.ResponseInfo.Status
 }
 
+// StatusLine is the status of the last delivery with its reason phrase, as "502 Bad Gateway".
+func (r *ListRow) StatusLine() string {
+	return strings.TrimSpace(fmt.Sprintf("%d %s", r.Status(), http.StatusText(r.Status())))
+}
+
 // Failed reports whether the last delivery failed, which is when the list offers Replay.
 func (r *ListRow) Failed() bool {
 	return r.Last != nil && !r.Last.IsSucceed
 }
 
-// ListRows pairs each webhook with its last delivery and its event summary.
+// ListRows pairs each webhook with its last delivery, how long it has been failing and its event summary.
 func ListRows(ctx context.Context, hooks []*webhook_model.Webhook) ([]*ListRow, error) {
 	ids := make([]int64, len(hooks))
 	for i, w := range hooks {
@@ -59,9 +102,13 @@ func ListRows(ctx context.Context, hooks []*webhook_model.Webhook) ([]*ListRow, 
 	if err != nil {
 		return nil, err
 	}
+	streaks, err := webhook_model.FailingStreaks(ctx, ids, streakLimit)
+	if err != nil {
+		return nil, err
+	}
 	rows := make([]*ListRow, len(hooks))
 	for i, w := range hooks {
-		r := &ListRow{Webhook: w, Last: last[w.ID], AllEvents: w.SendEverything}
+		r := &ListRow{Webhook: w, Last: last[w.ID], AllEvents: w.SendEverything, FailStreak: streaks[w.ID]}
 		if !r.AllEvents {
 			groups := EventGroups(w)
 			r.Events = groups[:min(len(groups), listEvents)]
