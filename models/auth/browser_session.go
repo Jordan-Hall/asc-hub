@@ -128,9 +128,10 @@ func ListBrowserSessions(ctx context.Context, uid int64) ([]*BrowserSession, err
 }
 
 func gcBrowserSessions(ctx context.Context, uid int64) error {
-	now := time.Now()
-	short := timeutil.TimeStamp(now.Add(-browserSessionLifetime(false)).Unix())
-	long := timeutil.TimeStamp(now.Add(-browserSessionLifetime(true)).Unix())
+	// the clock of TouchBrowserSession, so a session is aged by the time it was stamped with
+	now := timeutil.TimeStampNow()
+	short := now.Add(-int64(browserSessionLifetime(false) / time.Second))
+	long := now.Add(-int64(browserSessionLifetime(true) / time.Second))
 	_, err := db.GetEngine(ctx).Where("uid = ? AND last_active_unix < ? AND (remember_key = '' OR revoked_unix <> 0 OR last_active_unix < ?)", uid, short, long).
 		Delete(new(BrowserSession))
 	return err

@@ -131,6 +131,7 @@ func TestNewAuthorizedIntegration(t *testing.T) {
 func TestAuthorizedIntegrationCalculatedValues(t *testing.T) {
 	t.Run("HasRecentActivity", func(t *testing.T) {
 		timeutil.MockSet(time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC))
+		defer timeutil.MockUnset()
 		ai := &auth_model.AuthorizedIntegration{
 			UpdatedUnix: 1609459200,
 			CreatedUnix: 1609459200,
