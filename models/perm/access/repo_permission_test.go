@@ -5,6 +5,7 @@ import (
 
 	actions_model "forgejo.org/models/actions"
 	"forgejo.org/models/db"
+	"forgejo.org/models/organization"
 	perm_model "forgejo.org/models/perm"
 	"forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
@@ -194,4 +195,46 @@ func TestGetUserRepoPermissionOrganization(t *testing.T) {
 		assert.Equal(t, perm_model.AccessModeNone, perm.UnitAccessMode(unit.TypePackages))
 		assert.Equal(t, perm_model.AccessModeNone, perm.UnitAccessMode(unit.TypeActions))
 	})
+}
+
+func TestAscOrgBasePermission(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx := db.DefaultContext
+	// User 4 is a member of org 3 through team 1, which has repository 3 but not the private repository 5.
+	member := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
+	stranger := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
+	repo5 := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 5})
+	listed := func(u *user_model.User) bool {
+		has, err := db.GetEngine(ctx).Where(repo_model.AccessibleRepositoryCondition(u, unit.TypeInvalid)).And("`repository`.id = ?", 5).Exist(new(repo_model.Repository))
+		require.NoError(t, err)
+		return has
+	}
+	permOf := func(u *user_model.User) *access.Permission {
+		require.NoError(t, repo5.LoadUnits(ctx))
+		p, err := access.GetUserRepoPermission(ctx, repo5, u)
+		require.NoError(t, err)
+		return &p
+	}
+
+	assert.False(t, permOf(member).HasAccess())
+	assert.False(t, listed(member))
+
+	for _, base := range []perm_model.AccessMode{perm_model.AccessModeRead, perm_model.AccessModeWrite} {
+		require.NoError(t, organization.SetAscRepoDefaults(ctx, &organization.AscRepoDefaults{OrgID: 3, RepoCreators: organization.RepoCreatorsTeams, BasePermission: base}))
+		p := permOf(member)
+		assert.Equal(t, base, p.AccessMode)
+		assert.Equal(t, base, p.UnitAccessMode(unit.TypeCode))
+		assert.Equal(t, base, p.UnitAccessMode(unit.TypeIssues))
+		assert.True(t, listed(member))
+
+		assert.False(t, permOf(stranger).HasAccess(), "a non-member gets nothing")
+		assert.False(t, listed(stranger))
+	}
+
+	// A team that gives more keeps it: user 4 writes repository 3 through team 1 even with a read base.
+	require.NoError(t, organization.SetAscRepoDefaults(ctx, &organization.AscRepoDefaults{OrgID: 3, RepoCreators: organization.RepoCreatorsTeams, BasePermission: perm_model.AccessModeRead}))
+	repo3 := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 3})
+	p, err := access.GetUserRepoPermission(ctx, repo3, member)
+	require.NoError(t, err)
+	assert.Equal(t, perm_model.AccessModeWrite, p.UnitAccessMode(unit.TypeCode))
 }

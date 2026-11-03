@@ -373,6 +373,27 @@ func GetUserRepoPermission(ctx context.Context, repo *repo_model.Repository, use
 		}
 	}
 
+	// The organization's base permission: every member may read (or write) each of its repositories, whatever their
+	// teams. An external tracker or wiki is a link, so it is only ever read.
+	base, err := organization.GetAscBasePermission(ctx, repo.OwnerID, user.ID)
+	if err != nil {
+		return perm, err
+	}
+	if base > perm_model.AccessModeNone {
+		if perm.AccessMode < base {
+			perm.AccessMode = base
+		}
+		for _, u := range repo.Units {
+			mode := base
+			if u.Type == unit.TypeExternalTracker || u.Type == unit.TypeExternalWiki {
+				mode = perm_model.AccessModeRead
+			}
+			if perm.UnitsMode[u.Type] < mode {
+				perm.UnitsMode[u.Type] = mode
+			}
+		}
+	}
+
 	// remove no permission units
 	perm.Units = make([]*repo_model.RepoUnit, 0, len(repo.Units))
 	for t := range perm.UnitsMode {

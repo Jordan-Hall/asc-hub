@@ -11,8 +11,6 @@ import (
 	"forgejo.org/models/perm"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
-
-	"xorm.io/builder"
 )
 
 // ________                ____ ___
@@ -90,7 +88,7 @@ func IsPublicMembership(ctx context.Context, orgID, uid int64) (bool, error) {
 // CanCreateOrgRepo returns true if user can create repo in organization
 func CanCreateOrgRepo(ctx context.Context, orgID, uid int64) (bool, error) {
 	return db.GetEngine(ctx).
-		Where(builder.Eq{"team.can_create_org_repo": true}).
+		Where(repoCreatorTeamCond()).
 		Join("INNER", "team_user", "team_user.team_id = team.id").
 		And("team_user.uid = ?", uid).
 		And("team_user.org_id = ?", orgID).
