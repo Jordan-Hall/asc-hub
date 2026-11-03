@@ -13,14 +13,14 @@ import (
 	"forgejo.org/modules/setting"
 )
 
-// ErrPayloadURLNotHTTPS is returned for a payload address that is not https and is not a private or loopback target
-// the instance lets webhooks reach.
-var ErrPayloadURLNotHTTPS = errors.New("the payload address must be https; http is accepted only for a loopback or private address that [webhook] ALLOWED_HOST_LIST allows")
+// ErrPayloadURLNotHTTPS is returned for a payload address that is not https and is not a loopback target the instance
+// opted into.
+var ErrPayloadURLNotHTTPS = errors.New("the payload address must be https; http is accepted only for localhost when [webhook] ALLOW_LOCAL_HTTP is on and ALLOWED_HOST_LIST allows loopback")
 
 // CheckPayloadURL applies the transport rule of an ASC hub to the address of a webhook: https always, http only for
-// a loopback or private literal address (or localhost) that the instance's ALLOWED_HOST_LIST lets webhooks reach.
-// The rule is on when [asc] is enabled; an instance without asc keeps what Forgejo accepts. Delivery checks the list
-// again when it connects, so this check only decides what a person may save.
+// a loopback address (localhost, 127.0.0.0/8, ::1) when the instance turned on [webhook] ALLOW_LOCAL_HTTP and its
+// ALLOWED_HOST_LIST lets webhooks reach it. The rule is on when [asc] is enabled; an instance without asc keeps what
+// Forgejo accepts. Delivery checks the list again when it connects, so this check only decides what a person may save.
 func CheckPayloadURL(raw string) error {
 	if !setting.Asc.Enabled {
 		return nil
@@ -32,7 +32,7 @@ func CheckPayloadURL(raw string) error {
 	if u.Scheme == "https" {
 		return nil
 	}
-	if u.Scheme != "http" {
+	if u.Scheme != "http" || !setting.Webhook.AllowLocalHTTP {
 		return ErrPayloadURLNotHTTPS
 	}
 	host := u.Hostname()
@@ -40,8 +40,7 @@ func CheckPayloadURL(raw string) error {
 	if host == "localhost" {
 		ip = net.IPv4(127, 0, 0, 1) // the name resolves to loopback; the list is checked as for that address
 	}
-	local := host == "localhost" || (ip != nil && (ip.IsLoopback() || ip.IsPrivate()))
-	if !local {
+	if ip == nil || !ip.IsLoopback() {
 		return ErrPayloadURLNotHTTPS
 	}
 	list := setting.Webhook.AllowedHostList
