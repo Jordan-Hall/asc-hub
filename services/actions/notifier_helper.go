@@ -435,6 +435,7 @@ func handleWorkflows(
 			content, selectors, splitErr := splitAffected(dwf.Content)
 			err = splitErr
 			if err == nil {
+				content = withAscEnv(ctx, run, content)
 				jobs, err = actions_module.JobParser(content,
 					jobparser.WithVars(vars),
 					// We don't have any job outputs yet, but `WithJobOutputs(...)` triggers JobParser to supporting its

@@ -180,7 +180,7 @@ func CreateScheduleTask(ctx context.Context, cron *actions_model.ActionSchedule)
 	defer expandCleanup()
 
 	// Parse the workflow specification from the cron schedule
-	workflows, err := actions_module.JobParser(cron.Content,
+	workflows, err := actions_module.JobParser(withAscEnv(ctx, run, cron.Content),
 		jobparser.WithVars(vars),
 		// We don't have any job outputs yet, but `WithJobOutputs(...)` triggers JobParser to supporting its
 		// `IncompleteMatrix` tagging for any jobs that require the inputs of other jobs.
