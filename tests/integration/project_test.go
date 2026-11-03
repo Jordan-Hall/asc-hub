@@ -25,6 +25,7 @@ import (
 	"forgejo.org/tests"
 	"forgejo.org/tests/forgery"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -636,5 +637,68 @@ func TestProjectBoardMoveAndStates(t *testing.T) {
 		})
 		resp := sess.MakeRequest(t, req, http.StatusNotFound)
 		assert.NotEmpty(t, resp.Header().Get("X-Request-Id"))
+	})
+}
+
+func TestProjectBoardCardsAndColumns(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	sess := loginUser(t, "user2")
+
+	t.Run("Switch project lists the owner's other open projects", func(t *testing.T) {
+		resp := sess.MakeRequest(t, NewRequest(t, "GET", "/user2/-/projects/4"), http.StatusOK)
+		links := NewHTMLParser(t, resp.Body).Find(`[data-testid="project-switch"] a.wk-pv-menu-item`)
+		hrefs := links.Map(func(_ int, s *goquery.Selection) string { return s.AttrOr("href", "") })
+		assert.ElementsMatch(t, []string{"/user2/-/projects/5", "/user2/-/projects/6"}, hrefs)
+	})
+
+	t.Run("A writer gets Add card; a reader does not", func(t *testing.T) {
+		resp := sess.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/projects/1"), http.StatusOK)
+		doc := NewHTMLParser(t, resp.Body)
+		assert.Equal(t, "#project-add-card", doc.Find(`[data-testid="project-add-card"]`).AttrOr("data-modal", ""))
+		assert.Equal(t, "/user2/repo1/projects/1/cards", doc.Find(".project-add-card-form").AttrOr("data-url", ""))
+		assert.Contains(t, doc.Find("#project-add-card-err").AttrOr("data-failed", ""), "{id}")
+
+		resp = MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/projects/1"), http.StatusOK)
+		doc = NewHTMLParser(t, resp.Body)
+		assert.Zero(t, doc.Find(`[data-testid="project-add-card"]`).Length())
+		assert.Zero(t, doc.Find("#project-add-card").Length())
+	})
+
+	t.Run("Add card puts the issue in the default column", func(t *testing.T) {
+		sess.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/cards", map[string]string{"ref": "#5"}), http.StatusOK)
+		unittest.AssertExistsAndLoadBean(t, &project_model.ProjectIssue{IssueID: 11, ProjectID: 1, ProjectColumnID: 1})
+
+		resp := sess.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/cards", map[string]string{"ref": "#1"}), http.StatusUnprocessableEntity)
+		var body map[string]string
+		DecodeJSON(t, resp, &body)
+		assert.Equal(t, "That card is already on this board.", body["message"])
+
+		sess4 := loginUser(t, "user4")
+		sess4.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/cards", map[string]string{"ref": "#2"}), http.StatusNotFound)
+	})
+
+	t.Run("A hidden column leaves the board and waits in the hidden bar", func(t *testing.T) {
+		sess.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/2/hidden", map[string]string{"hidden": "true"}), http.StatusOK)
+		resp := sess.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/projects/1"), http.StatusOK)
+		doc := NewHTMLParser(t, resp.Body)
+		assert.Zero(t, doc.Find(`.board .project-column[data-id="2"]`).Length())
+		assert.Equal(t, 1, doc.Find(`.board .project-column[data-id="1"]`).Length())
+		bar := doc.Find(`[data-testid="project-hidden-columns"]`)
+		assert.Contains(t, bar.Text(), "In Progress")
+		assert.Equal(t, "/user2/repo1/projects/1/2/hidden", bar.Find(`[data-testid="project-column-show"]`).AttrOr("data-url", ""))
+
+		sess.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/2/hidden", map[string]string{"hidden": "false"}), http.StatusOK)
+		resp = sess.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/projects/1"), http.StatusOK)
+		doc = NewHTMLParser(t, resp.Body)
+		assert.Equal(t, 1, doc.Find(`.board .project-column[data-id="2"]`).Length())
+		assert.Zero(t, doc.Find(`[data-testid="project-hidden-columns"]`).Length())
+	})
+
+	t.Run("The default column cannot be hidden", func(t *testing.T) {
+		resp := sess.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/1/hidden", map[string]string{"hidden": "true"}), http.StatusUnprocessableEntity)
+		var body map[string]string
+		DecodeJSON(t, resp, &body)
+		assert.Equal(t, "The default column cannot be hidden: new cards land in it.", body["message"])
+		assert.False(t, unittest.AssertExistsAndLoadBean(t, &project_model.Column{ID: 1}).Hidden)
 	})
 }

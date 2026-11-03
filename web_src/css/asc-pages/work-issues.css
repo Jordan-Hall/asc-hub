@@ -508,6 +508,7 @@
 }
 
 .wk-pv .project-column .issue-card {
+  position: relative;
   min-height: var(--touch);
   border: 1px solid var(--line);
   border-radius: var(--r-row);
@@ -523,10 +524,6 @@
 }
 
 /* Move: the keyboard alternative to dragging a card, a menu of the other columns */
-.wk-pv .project-column .issue-card {
-  position: relative;
-}
-
 .wk-pv .project-card-move {
   display: inline-flex;
   align-items: center;
@@ -581,6 +578,71 @@
 
 .wk-pv #project-board[aria-busy="true"] .issue-card {
   cursor: progress;
+}
+
+/* Switch project and Add card, above the board */
+.wk-pv-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.wk-pv-switch {
+  position: relative;
+}
+
+.wk-pv-switch > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--touch);
+  list-style: none;
+  cursor: pointer;
+}
+
+.wk-pv-switch > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wk-pv-switch > .wk-pv-menu {
+  left: 0;
+  right: auto;
+  top: calc(100% + 4px);
+  max-height: 320px;
+  margin: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+a.wk-pv-menu-item {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.wk-pv-tools .show-modal {
+  min-height: var(--touch);
+}
+
+/* The columns hidden from the board, each with its card count and Show */
+.wk-pv-hidden {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.wk-pv-hidden-col {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wk-pv-hidden-col .project-column-visibility {
+  min-height: var(--touch);
 }
 
 @media (min-width: 1024px) {

@@ -47,9 +47,45 @@
 		</dialog>
 	{{end}}
 	{{if $.Project.RenderedContent}}<div class="content markup wk-pv-desc">{{$.Project.RenderedContent}}</div>{{end}}
+	{{if or .SwitchProjects $canWriteProject}}
+		<div class="wk-pv-tools">
+			{{if .SwitchProjects}}
+				<details class="wk-pv-switch" data-testid="project-switch">
+					<summary class="ds-btn ds-btn-secondary ds-btn-sm">{{svg "dsi-layers" 16}}{{ctx.Locale.Tr "asc_work.pj_switch"}}{{svg "dsi-chevron-down" 14}}</summary>
+					<ul class="wk-pv-menu" aria-label="{{ctx.Locale.Tr "asc_work.pj_switch"}}">
+						{{range .SwitchProjects}}<li><a class="wk-pv-menu-item" href="{{.Link ctx}}">{{.Title}}</a></li>{{end}}
+					</ul>
+				</details>
+			{{end}}
+			{{if $canWriteProject}}
+				<button type="button" class="ds-btn ds-btn-primary ds-btn-sm show-modal" data-modal="#project-add-card" data-testid="project-add-card">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "asc_work.pj_add_card"}}</button>
+			{{end}}
+		</div>
+	{{end}}
+	{{if $canWriteProject}}
+		<dialog id="project-add-card">
+			<article>
+				<header>{{ctx.Locale.Tr "asc_work.pj_add_card"}}</header>
+				<form class="ds-form project-add-card-form" data-url="{{$.Link}}/cards">
+					<div class="content">
+						<div class="ds-field">
+							<label for="project-add-card-ref">{{ctx.Locale.Tr "asc_work.pj_card_ref"}}</label>
+							<input class="ds-input" id="project-add-card-ref" name="ref" required autocomplete="off" placeholder="{{if $.Repository}}#12{{else}}repo#12{{end}}" aria-describedby="project-add-card-hint project-add-card-err">
+							<p class="ds-hint" id="project-add-card-hint">{{if $.Repository}}{{ctx.Locale.Tr "asc_work.pj_card_ref_hint_repo"}}{{else}}{{ctx.Locale.Tr "asc_work.pj_card_ref_hint_owner"}}{{end}}</p>
+							<p class="ds-err-msg" id="project-add-card-err" role="alert" data-failed="{{ctx.Locale.Tr "asc_work.pj_card_failed" "{id}"}}" data-failed-no-id="{{ctx.Locale.Tr "asc_work.pj_card_failed_no_id"}}" hidden></p>
+						</div>
+					</div>
+					<div class="actions">
+						<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
+						<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "asc_work.pj_add_card_submit"}}</button>
+					</div>
+				</form>
+			</article>
+		</dialog>
+	{{end}}
 </div>
 
-<div id="project-board"{{if $canWriteProject}} data-moved="{{ctx.Locale.Tr "asc_work.pj_moved" "{card}" "{column}"}}" data-move-failed="{{ctx.Locale.Tr "asc_work.pj_move_failed" "{card}" "{id}"}}" data-move-failed-no-id="{{ctx.Locale.Tr "asc_work.pj_move_failed_no_id" "{card}"}}" data-moving="{{ctx.Locale.Tr "asc_work.pj_moving" "{card}" "{column}"}}"{{end}}>
+<div id="project-board"{{if $canWriteProject}} data-moved="{{ctx.Locale.Tr "asc_work.pj_moved" "{card}" "{column}"}}" data-move-failed="{{ctx.Locale.Tr "asc_work.pj_move_failed" "{card}" "{id}"}}" data-move-failed-no-id="{{ctx.Locale.Tr "asc_work.pj_move_failed_no_id" "{card}"}}" data-moving="{{ctx.Locale.Tr "asc_work.pj_moving" "{card}" "{column}"}}" data-column-failed="{{ctx.Locale.Tr "asc_work.pj_column_failed" "{id}"}}" data-column-failed-no-id="{{ctx.Locale.Tr "asc_work.pj_column_failed_no_id"}}"{{end}}>
 	<p id="project-board-status" class="ds-sr" role="status" aria-live="polite" data-testid="project-board-status"></p>
 	<div class="ds-container">
 		<div id="project-board-error" class="ds-banner ds-banner-err wk-pv-error" role="alert" data-testid="project-board-error" hidden>
@@ -63,8 +99,20 @@
 			</div>
 		{{end}}
 	</div>
+	{{$hidden := 0}}{{range .Columns}}{{if .Hidden}}{{$hidden = 1}}{{end}}{{end}}
+	{{if $hidden}}
+		<div class="ds-container wk-pv-hidden" data-testid="project-hidden-columns">
+			<span class="ds-t-meta">{{ctx.Locale.Tr "asc_work.pj_hidden_columns"}}</span>
+			{{range .Columns}}{{if .Hidden}}
+				<span class="ds-chip wk-pv-hidden-col">
+					{{.Title}} <span class="ds-t-meta">{{ctx.Locale.TrN (len (index $.IssuesMap .ID)) "asc_work.pj_cards_one" "asc_work.pj_cards_other" (len (index $.IssuesMap .ID))}}</span>
+					{{if $canWriteProject}}<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm project-column-visibility" data-url="{{$.Link}}/{{.ID}}/hidden" data-hidden="false" data-testid="project-column-show">{{ctx.Locale.Tr "asc_work.pj_show_column"}}</button>{{end}}
+				</span>
+			{{end}}{{end}}
+		</div>
+	{{end}}
 	<div class="board {{if $canWriteProject}}sortable{{end}}"{{if $canWriteProject}} data-url="{{$.Link}}/move"{{end}}>
-		{{range .Columns}}
+		{{range .Columns}}{{if not .Hidden}}
 			<div class="project-column"{{if .Color}} style="background: {{.Color}} !important; color: {{ContrastColor .Color}} !important"{{end}} data-id="{{.ID}}" data-sorting="{{.Sorting}}" data-url="{{$.Link}}/{{.ID}}">
 				<div class="project-column-header{{if $canWriteProject}} tw-cursor-grab{{end}}">
 					<div class="ds-chip project-column-title tw-py-1">
@@ -84,6 +132,10 @@
 									{{ctx.Locale.Tr "repo.projects.column.edit"}}
 								</a>
 								{{if not .Default}}
+									<a class="item project-column-visibility" role="button" tabindex="0" data-url="{{$.Link}}/{{.ID}}/hidden" data-hidden="true" data-testid="project-column-hide">
+										{{svg "octicon-eye-closed"}}
+										{{ctx.Locale.Tr "asc_work.pj_hide_column"}}
+									</a>
 									<a class="item show-modal button default-project-column-show"
 										data-modal="#default-project-column-modal-{{.ID}}"
 										data-modal-default-project-column-header="{{ctx.Locale.Tr "repo.projects.column.set_default"}}"
@@ -164,7 +216,7 @@
 					{{end}}
 				</div>
 			</div>
-		{{end}}
+		{{end}}{{end}}
 	</div>
 </div>
 
