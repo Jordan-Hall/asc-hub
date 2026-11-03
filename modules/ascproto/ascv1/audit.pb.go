@@ -567,13 +567,18 @@ func (x *ExportAuditRequest) GetFormat() AuditExportFormat {
 }
 
 // Chunks of at most 1 MiB, cut at a row end. The last message has `last` set and the BLAKE3 of the whole export.
+// When the server has a signing key (`[signing] server_key_file`), the last message also carries an SSHSIG over
+// the whole export file in the namespace "asc-audit-export" and the public key that made it, so
+// `ssh-keygen -Y verify -n asc-audit-export -I asc-server` checks the file.
 type ExportAuditResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []byte                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Last          bool                   `protobuf:"varint,2,opt,name=last,proto3" json:"last,omitempty"`
 	Digest        []byte                 `protobuf:"bytes,3,opt,name=digest,proto3" json:"digest,omitempty"`
-	Events        uint64                 `protobuf:"varint,4,opt,name=events,proto3" json:"events,omitempty"`       // on the last message: how many events the export holds
-	Truncated     bool                   `protobuf:"varint,5,opt,name=truncated,proto3" json:"truncated,omitempty"` // on the last message: more events matched than `[audit] export_max_events`
+	Events        uint64                 `protobuf:"varint,4,opt,name=events,proto3" json:"events,omitempty"`                       // on the last message: how many events the export holds
+	Truncated     bool                   `protobuf:"varint,5,opt,name=truncated,proto3" json:"truncated,omitempty"`                 // on the last message: more events matched than `[audit] export_max_events`
+	Signature     string                 `protobuf:"bytes,6,opt,name=signature,proto3" json:"signature,omitempty"`                  // on the last message: the armored SSHSIG, or empty when the server has no key
+	SignerKey     string                 `protobuf:"bytes,7,opt,name=signer_key,json=signerKey,proto3" json:"signer_key,omitempty"` // on the last message: the public key line ("ssh-ed25519 AAAA...") of the signature
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -641,6 +646,20 @@ func (x *ExportAuditResponse) GetTruncated() bool {
 		return x.Truncated
 	}
 	return false
+}
+
+func (x *ExportAuditResponse) GetSignature() string {
+	if x != nil {
+		return x.Signature
+	}
+	return ""
+}
+
+func (x *ExportAuditResponse) GetSignerKey() string {
+	if x != nil {
+		return x.SignerKey
+	}
+	return ""
 }
 
 // `to_seq` 0 means the newest.
@@ -1131,13 +1150,16 @@ const file_asc_v1_audit_proto_rawDesc = "" +
 	"\x12ExportAuditRequest\x12&\n" +
 	"\x05scope\x18\x01 \x01(\v2\x10.asc.v1.OwnerRefR\x05scope\x12+\n" +
 	"\x06filter\x18\x02 \x01(\v2\x13.asc.v1.AuditFilterR\x06filter\x121\n" +
-	"\x06format\x18\x03 \x01(\x0e2\x19.asc.v1.AuditExportFormatR\x06format\"\x97\x01\n" +
+	"\x06format\x18\x03 \x01(\x0e2\x19.asc.v1.AuditExportFormatR\x06format\"\xd4\x01\n" +
 	"\x13ExportAuditResponse\x12\x18\n" +
 	"\x04data\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x05R\x04data\x12\x12\n" +
 	"\x04last\x18\x02 \x01(\bR\x04last\x12\x1c\n" +
 	"\x06digest\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x01R\x06digest\x12\x16\n" +
 	"\x06events\x18\x04 \x01(\x04R\x06events\x12\x1c\n" +
-	"\ttruncated\x18\x05 \x01(\bR\ttruncated\"s\n" +
+	"\ttruncated\x18\x05 \x01(\bR\ttruncated\x12\x1c\n" +
+	"\tsignature\x18\x06 \x01(\tR\tsignature\x12\x1d\n" +
+	"\n" +
+	"signer_key\x18\a \x01(\tR\tsignerKey\"s\n" +
 	"\x17VerifyAuditChainRequest\x12&\n" +
 	"\x05scope\x18\x01 \x01(\v2\x10.asc.v1.OwnerRefR\x05scope\x12\x19\n" +
 	"\bfrom_seq\x18\x02 \x01(\x04R\afromSeq\x12\x15\n" +
