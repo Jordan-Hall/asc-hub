@@ -234,6 +234,27 @@ func ListExports(ctx context.Context, conn grpc.ClientConnInterface) ([]ExportRo
 	return rows, nil
 }
 
+// GetExport is one export of the person.
+func GetExport(ctx context.Context, conn grpc.ClientConnInterface, id string) (*ExportRow, error) {
+	if !exportIDShape.MatchString(id) {
+		return nil, fmt.Errorf("%w: export id", ErrBadInput)
+	}
+	cctx, cancel := context.WithTimeout(ctx, CallTimeout)
+	defer cancel()
+	resp, err := ascv1.NewDataExportClient(conn).GetExport(cctx, &ascv1.GetExportRequest{Id: id})
+	if err != nil {
+		return nil, err
+	}
+	row, err := ExportOf(resp.GetJob())
+	if err != nil {
+		return nil, err
+	}
+	if row.ID != id {
+		return nil, fmt.Errorf("%w: another export", ErrBadAnswer)
+	}
+	return &row, nil
+}
+
 // RequestExport starts an export of the data of the person. The same op id is the same request.
 func RequestExport(ctx context.Context, conn grpc.ClientConnInterface, op string) (*ExportRow, error) {
 	cctx, cancel, err := opCtx(ctx, op)
