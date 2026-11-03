@@ -12,8 +12,12 @@
 	<section class="ds-card" aria-labelledby="sp-no-tokens">
 		<div class="ds-card-h"><h2 id="sp-no-tokens">{{ctx.Locale.Tr "asc_work.sp_no_tokens_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_no_tokens_hint"}}</span></div>
 		<div class="ds-card-b ds-stack-12">
-			<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{AppUrl}} --prompt</code><button type="button" class="ds-copy" data-clipboard-text="asc auth login --host {{AppUrl}} --prompt" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}">{{svg "dsi-copy" 14}}</button></div>
-			<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth status</code><button type="button" class="ds-copy" data-clipboard-text="asc auth status" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}">{{svg "dsi-copy" 14}}</button></div>
+			<p class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_no_tokens_login"}}</p>
+			<div class="ds-cmd ds-cmd-scroll" data-testid="no-tokens-login"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{.AscHubURL}}</code><button type="button" class="ds-copy" data-clipboard-text="asc auth login --host {{.AscHubURL}}" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}">{{svg "dsi-copy" 14}}</button></div>
+			<p class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_no_tokens_ci"}}</p>
+			<div class="ds-cmd ds-cmd-scroll" data-testid="no-tokens-stdin"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth login --host {{.AscHubURL}} --token-stdin &lt; token.txt</code><button type="button" class="ds-copy" data-clipboard-text="asc auth login --host {{.AscHubURL}} --token-stdin &lt; token.txt" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}">{{svg "dsi-copy" 14}}</button></div>
+			<p class="ds-hint">{{ctx.Locale.Tr "asc_work.sp_no_tokens_status"}}</p>
+			<div class="ds-cmd ds-cmd-scroll" data-testid="no-tokens-status"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc auth status</code><button type="button" class="ds-copy" data-clipboard-text="asc auth status" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" aria-label="{{ctx.Locale.Tr "asc_download.copy"}}">{{svg "dsi-copy" 14}}</button></div>
 		</div>
 	</section>
 	<section class="ds-card" aria-labelledby="sp-tokens">
