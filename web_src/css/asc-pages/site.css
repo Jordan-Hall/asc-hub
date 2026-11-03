@@ -713,6 +713,59 @@
   color: var(--err);
 }
 
+.st-ic-ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.st-ic-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+/* the status page: one row for each part of the hub */
+.st-parts {
+  display: grid;
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  text-align: start;
+}
+
+.st-part {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+}
+
+.st-part + .st-part {
+  border-top: 1px solid var(--line);
+}
+
+.st-part-n {
+  font-weight: 600;
+}
+
+.st-part-v {
+  margin-inline-start: auto;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.st-part[data-up="false"] .st-part-v {
+  color: var(--err);
+}
+
+.st-maint {
+  width: 100%;
+  text-align: start;
+}
+
 .st-code {
   margin: 4px 0 0;
   color: var(--text-2);

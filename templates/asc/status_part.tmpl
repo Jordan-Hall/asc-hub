@@ -1,0 +1,6 @@
+{{/* One part of the status page. Props: Name, Up, Key. */}}
+<li class="st-part" data-part="{{.Key}}" data-up="{{.Up}}">
+	<span class="ds-dot {{if .Up}}ds-dot-ok{{else}}ds-dot-err{{end}}" aria-hidden="true"></span>
+	<span class="st-part-n">{{.Name}}</span>
+	<span class="st-part-v">{{if .Up}}{{ctx.Locale.Tr "asc_status.answering"}}{{else}}{{ctx.Locale.Tr "asc_status.not_answering"}}{{end}}</span>
+</li>

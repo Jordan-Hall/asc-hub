@@ -19,6 +19,7 @@ import (
 	"forgejo.org/modules/markup/markdown"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/ascdocs"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 )
 
@@ -27,6 +28,7 @@ const (
 	tplAscAbout      = "asc/about"
 	tplAscDocs       = "asc/docs"
 	tplAscGetStarted = "asc/get_started"
+	tplAscStatus     = "asc/status"
 )
 
 // AscAbout serves GET /-/about.
@@ -35,6 +37,14 @@ func AscAbout(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Locale.TrString("asc_site.about_title")
 	ctx.Data["PageIsAscAbout"] = true
 	ctx.HTML(http.StatusOK, tplAscAbout)
+}
+
+// AscStatus serves GET /-/status: whether each part of the hub answers, from the probe the footer uses, and the
+// maintenance notice while the hub is in maintenance.
+func AscStatus(ctx *context.Context) {
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_status.page_title")
+	ctx.Data["AscStatus"] = asctrust.SystemStatus()
+	ctx.HTML(http.StatusOK, tplAscStatus)
 }
 
 // AscOffline serves GET /-/offline: the page a browser shows from its cache when the hub cannot be reached.

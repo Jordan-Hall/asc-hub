@@ -1,0 +1,25 @@
+{{template "base/head" .}}
+{{/* The status page: the probe of the footer, one row for each part of the hub. */}}
+{{$s := .AscStatus}}{{$ok := eq $s.Value "ok"}}
+<div role="main" aria-label="{{.Title}}" class="ds-main st-main">
+	<div class="ds-container st-wrap">
+		<section class="st-card" aria-labelledby="st-title" data-testid="status-page" data-status="{{$s.Value}}">
+			<span class="st-ic {{if $ok}}st-ic-ok{{else}}st-ic-warn{{end}}" aria-hidden="true">{{if $ok}}{{svg "dsi-check-circle" 40}}{{else}}{{svg "dsi-alert" 40}}{{end}}</span>
+			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{if $ok}}{{ctx.Locale.Tr "asc_shell.footer_status_ok"}}{{else}}{{ctx.Locale.Tr "asc_shell.footer_status_degraded"}}{{end}}</h1>
+			<p class="st-text">{{ctx.Locale.Tr "asc_status.page_text"}}</p>
+			{{if .AscMaintenance}}
+				<div class="ds-banner ds-banner-warn st-maint" role="status" data-testid="status-maintenance">{{svg "dsi-alert" 18}}<div class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_status.maintenance"}}</b> {{if .AscMaintenance.Message}}{{.AscMaintenance.Message}}{{else}}{{ctx.Locale.Tr "asc_err.text_maintenance"}}{{end}}{{if .AscMaintenance.Window}} &middot; {{.AscMaintenance.Window}}{{end}}</div></div>
+			{{end}}
+			<ul class="st-parts" aria-label="{{ctx.Locale.Tr "asc_status.parts"}}">
+				{{template "asc/status_part" dict "Name" (ctx.Locale.Tr "asc_status.part_web") "Up" true "Key" "web"}}
+				{{template "asc/status_part" dict "Name" (ctx.Locale.Tr "asc_status.part_database") "Up" $s.Database "Key" "database"}}
+				{{if $s.AscEnabled}}{{template "asc/status_part" dict "Name" (ctx.Locale.Tr "asc_status.part_asc") "Up" $s.Asc "Key" "asc"}}{{end}}
+			</ul>
+			<div class="st-actions">
+				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/-/status">{{ctx.Locale.Tr "asc_status.check_again"}}</a>
+			</div>
+			<p class="st-reqid ds-mono">{{ctx.Locale.Tr "asc_status.checked"}} <time datetime="{{$s.CheckedAt.UTC.Format "2006-01-02T15:04:05Z"}}">{{$s.CheckedAt.UTC.Format "2 Jan 2006 15:04:05"}}</time> UTC</p>
+		</section>
+	</div>
+</div>
+{{template "base/footer" .}}
