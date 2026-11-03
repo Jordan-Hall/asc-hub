@@ -12,6 +12,7 @@ import (
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
+	shared_packages "forgejo.org/routers/web/shared/packages"
 	"forgejo.org/services/context"
 )
 
@@ -25,7 +26,7 @@ func Packages(ctx *context.Context) {
 	query := ctx.FormTrim("q")
 	packageType := ctx.FormTrim("type")
 
-	pvs, total, err := packages.SearchLatestVersions(ctx, &packages.PackageSearchOptions{
+	opts := &packages.PackageSearchOptions{
 		Paginator: &db.ListOptions{
 			PageSize: setting.UI.PackagesPagingNum,
 			Page:     page,
@@ -35,9 +36,13 @@ func Packages(ctx *context.Context) {
 		Type:       packages.Type(packageType),
 		Name:       packages.SearchValue{Value: query},
 		IsInternal: optional.Some(false),
-	})
+	}
+	pvs, total, err := packages.SearchLatestVersions(ctx, opts)
 	if err != nil {
 		ctx.ServerError("SearchLatestVersions", err)
+		return
+	}
+	if !shared_packages.SetTypeCounts(ctx, opts) {
 		return
 	}
 
@@ -57,7 +62,6 @@ func Packages(ctx *context.Context) {
 	ctx.Data["IsPackagesPage"] = true
 	ctx.Data["Query"] = query
 	ctx.Data["PackageType"] = packageType
-	ctx.Data["AvailableTypes"] = packages.TypeList
 	ctx.Data["HasPackages"] = hasPackages
 	if ctx.Repo != nil {
 		ctx.Data["CanWritePackages"] = ctx.IsUserRepoWriter([]unit.Type{unit.TypePackages}) || ctx.IsUserSiteAdmin()

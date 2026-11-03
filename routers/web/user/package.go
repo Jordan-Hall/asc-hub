@@ -26,6 +26,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/web"
 	packages_helper "forgejo.org/routers/api/packages/helper"
+	shared_packages "forgejo.org/routers/web/shared/packages"
 	shared_user "forgejo.org/routers/web/shared/user"
 	"forgejo.org/services/context"
 	"forgejo.org/services/forms"
@@ -46,7 +47,7 @@ func ListPackages(ctx *context.Context) {
 	query := ctx.FormTrim("q")
 	packageType := ctx.FormTrim("type")
 
-	pvs, total, err := packages_model.SearchLatestVersions(ctx, &packages_model.PackageSearchOptions{
+	opts := &packages_model.PackageSearchOptions{
 		Paginator: &db.ListOptions{
 			PageSize: setting.UI.PackagesPagingNum,
 			Page:     page,
@@ -55,9 +56,13 @@ func ListPackages(ctx *context.Context) {
 		Type:       packages_model.Type(packageType),
 		Name:       packages_model.SearchValue{Value: query},
 		IsInternal: optional.Some(false),
-	})
+	}
+	pvs, total, err := packages_model.SearchLatestVersions(ctx, opts)
 	if err != nil {
 		ctx.ServerError("SearchLatestVersions", err)
+		return
+	}
+	if !shared_packages.SetTypeCounts(ctx, opts) {
 		return
 	}
 
@@ -96,7 +101,6 @@ func ListPackages(ctx *context.Context) {
 	ctx.Data["IsPackagesPage"] = true
 	ctx.Data["Query"] = query
 	ctx.Data["PackageType"] = packageType
-	ctx.Data["AvailableTypes"] = packages_model.TypeList
 	ctx.Data["HasPackages"] = hasPackages
 	ctx.Data["PackageDescriptors"] = pds
 	ctx.Data["Total"] = total
