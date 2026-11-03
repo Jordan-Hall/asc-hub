@@ -317,6 +317,18 @@ func DeleteAccount(ctx *context.Context) {
 		return
 	}
 
+	// With two-factor sign-in on, a code from the app (or a recovery code) is asked as well, after the password so that it
+	// says nothing to someone who does not know the password.
+	if ok, err := deleteTwoFactorPassed(ctx, strings.TrimSpace(ctx.FormString("passcode"))); err != nil {
+		ctx.ServerError("deleteTwoFactorPassed", err)
+		return
+	} else if !ok {
+		loadAccountData(ctx)
+		ctx.Data["Err_Passcode"] = true
+		ctx.RenderWithErr(ctx.Tr("settings.delete_passcode_invalid"), tplSettingsAccount, nil)
+		return
+	}
+
 	// admin should not delete themself
 	if ctx.Doer.IsAdmin {
 		ctx.Flash.Error(ctx.Tr("form.admin_cannot_delete_self"))
@@ -347,6 +359,32 @@ func DeleteAccount(ctx *context.Context) {
 	}
 }
 
+// deleteTwoFactorPassed says whether the code typed to delete the account is good: true when two-factor sign-in is off,
+// otherwise a code of the app not used before or a recovery code.
+func deleteTwoFactorPassed(ctx *context.Context, passcode string) (bool, error) {
+	twofa, err := auth_model.GetTwoFactorByUID(ctx, ctx.Doer.ID)
+	if auth_model.IsErrTwoFactorNotEnrolled(err) {
+		return true, nil
+	} else if err != nil {
+		return false, err
+	}
+	if passcode == "" {
+		return false, nil
+	}
+	if twofa.VerifyScratchToken(passcode) {
+		return true, nil
+	}
+	ok, err := twofa.ValidateTOTP(passcode)
+	if err != nil {
+		return false, err
+	}
+	if !ok || twofa.LastUsedPasscode == passcode {
+		return false, nil
+	}
+	twofa.LastUsedPasscode = passcode
+	return true, auth_model.UpdateTwoFactor(ctx, twofa)
+}
+
 func loadAccountData(ctx *context.Context) {
 	emlist, err := user_model.GetEmailAddresses(ctx, ctx.Doer.ID)
 	if err != nil {
@@ -372,6 +410,12 @@ func loadAccountData(ctx *context.Context) {
 	ctx.Data["UserDisabledFeatures"] = user_model.DisabledFeaturesWithLoginType(ctx.Doer)
 	// An account that still owns repositories cannot be deleted: the page says so and does not offer the button.
 	ctx.Data["DeleteBlockedByRepos"] = ctx.Doer.NumRepos
+	hasTOTP, err := auth_model.HasTOTPByUID(ctx, ctx.Doer.ID)
+	if err != nil {
+		ctx.ServerError("HasTOTPByUID", err)
+		return
+	}
+	ctx.Data["DeleteAsksPasscode"] = hasTOTP
 
 	if setting.Service.UserDeleteWithCommentsMaxTime != 0 {
 		ctx.Data["UserDeleteWithCommentsMaxTime"] = setting.Service.UserDeleteWithCommentsMaxTime.String()

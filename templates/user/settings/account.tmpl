@@ -157,6 +157,13 @@
 				<label class="ds-label" for="password-confirmation">{{ctx.Locale.Tr "password"}}</label>
 				<input id="password-confirmation" class="ds-input{{if .Err_Password}} is-err{{end}}" name="password" type="password" autocomplete="off" required>
 			</div>
+			{{if .DeleteAsksPasscode}}
+			<div class="required field ds-field {{if .Err_Passcode}}error{{end}}" data-testid="delete-passcode">
+				<label class="ds-label" for="passcode-confirmation">{{ctx.Locale.Tr "settings.delete_passcode"}}</label>
+				<input id="passcode-confirmation" class="ds-input{{if .Err_Passcode}} is-err{{end}}" name="passcode" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" spellcheck="false" aria-describedby="passcode-hint" required{{if .Err_Passcode}} aria-invalid="true"{{end}}{{if .DeleteBlockedByRepos}} disabled{{end}}>
+				<div class="ds-hint" id="passcode-hint">{{ctx.Locale.Tr "settings.delete_passcode_hint"}}</div>
+			</div>
+			{{end}}
 			<div>
 				<button type="button" class="ds-btn ds-btn-danger-fill delete-button" data-modal-id="delete-account" data-type="form" data-form="#delete-form"{{if .DeleteBlockedByRepos}} disabled aria-disabled="true"{{end}}>{{ctx.Locale.Tr "settings.confirm_delete_account"}}</button>
 			</div>
