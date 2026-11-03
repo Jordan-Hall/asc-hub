@@ -1299,6 +1299,7 @@ func registerRoutes(m *web.Route) {
 					m.Post("", web.Bind(forms.EditProjectColumnForm{}), org.AddColumnToProjectPost)
 					m.Post("/move", project.MoveColumns)
 					m.Post("/delete", org.DeleteProject)
+					m.Post("/cards", org.AddProjectCard)
 
 					m.Get("/edit", org.RenderEditProject)
 					m.Post("/edit", web.Bind(forms.CreateProjectForm{}), org.EditProjectPost)
@@ -1308,6 +1309,7 @@ func registerRoutes(m *web.Route) {
 						m.Put("", web.Bind(forms.EditProjectColumnForm{}), org.EditProjectColumn)
 						m.Delete("", org.DeleteProjectColumn)
 						m.Post("/default", org.SetDefaultProjectColumn)
+						m.Post("/hidden", org.SetProjectColumnHidden)
 
 						m.Post("/move", org.MoveIssues)
 					})
@@ -1677,6 +1679,7 @@ func registerRoutes(m *web.Route) {
 					m.Post("", web.Bind(forms.EditProjectColumnForm{}), repo.AddColumnToProjectPost)
 					m.Post("/move", project.MoveColumns)
 					m.Post("/delete", repo.DeleteProject)
+					m.Post("/cards", repo.AddProjectCard)
 
 					m.Get("/edit", repo.RenderEditProject)
 					m.Post("/edit", web.Bind(forms.CreateProjectForm{}), repo.EditProjectPost)
@@ -1686,6 +1689,7 @@ func registerRoutes(m *web.Route) {
 						m.Put("", web.Bind(forms.EditProjectColumnForm{}), repo.EditProjectColumn)
 						m.Delete("", repo.DeleteProjectColumn)
 						m.Post("/default", repo.SetDefaultProjectColumn)
+						m.Post("/hidden", repo.SetProjectColumnHidden)
 
 						m.Post("/move", repo.MoveIssues)
 					})

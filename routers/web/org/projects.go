@@ -23,6 +23,7 @@ import (
 	shared_user "forgejo.org/routers/web/shared/user"
 	"forgejo.org/services/context"
 	"forgejo.org/services/forms"
+	issue_service "forgejo.org/services/issue"
 )
 
 const (
@@ -396,6 +397,12 @@ func ViewProject(ctx *context.Context) {
 	ctx.Data["Project"] = project
 	ctx.Data["IssuesMap"] = issuesMap
 	ctx.Data["ProjectCardCount"] = issues_model.CountColumnIssues(issuesMap)
+	switchProjects, err := project_model.OtherOpenProjects(ctx, project, 20)
+	if err != nil {
+		ctx.ServerError("OtherOpenProjects", err)
+		return
+	}
+	ctx.Data["SwitchProjects"] = switchProjects
 	ctx.Data["Columns"] = columns
 	shared_user.RenderUserHeader(ctx)
 
@@ -545,6 +552,48 @@ func SetDefaultProjectColumn(ctx *context.Context) {
 		return
 	}
 
+	ctx.JSONOK()
+}
+
+// AddProjectCard puts an issue or a pull request on the board, in its default column (the Add card dialog).
+func AddProjectCard(ctx *context.Context) {
+	project, err := project_model.GetProjectByID(ctx, ctx.ParamsInt64(":id"))
+	if err != nil {
+		ctx.NotFoundOrServerError("GetProjectByID", project_model.IsErrProjectNotExist, err)
+		return
+	}
+	if project.OwnerID != ctx.ContextUser.ID {
+		ctx.NotFound("", nil)
+		return
+	}
+	if _, err := issue_service.AddProjectCard(ctx, ctx.Doer, project, ctx.FormString("ref")); err != nil {
+		var cardErr issue_service.ProjectCardError
+		if errors.As(err, &cardErr) {
+			ctx.JSON(http.StatusUnprocessableEntity, map[string]string{"message": ctx.Locale.TrString(cardErr.Key)})
+			return
+		}
+		ctx.ServerError("AddProjectCard", err)
+		return
+	}
+	ctx.JSONOK()
+}
+
+// SetProjectColumnHidden hides a column of the board, or shows it again; its cards stay in it.
+// The default column cannot be hidden: new cards land there.
+func SetProjectColumnHidden(ctx *context.Context) {
+	project, column := CheckProjectColumnChangePermissions(ctx)
+	if ctx.Written() {
+		return
+	}
+	hidden := ctx.FormBool("hidden")
+	if hidden && column.Default {
+		ctx.JSON(http.StatusUnprocessableEntity, map[string]string{"message": ctx.Locale.TrString("asc_work.pj_hide_default")})
+		return
+	}
+	if err := project_model.SetColumnHidden(ctx, project.ID, column.ID, hidden); err != nil {
+		ctx.ServerError("SetColumnHidden", err)
+		return
+	}
 	ctx.JSONOK()
 }
 
