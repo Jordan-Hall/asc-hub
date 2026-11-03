@@ -161,14 +161,14 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### AdminHooks (ASC Hub admin: hooks and applications)
 
-Area shell/settings. Rows 2: done 1, partial 0, missing 1. Copy found in the hub: 80% of 59 copy strings (mobile twin 78%). Template(s): hook_new.tmpl, hooks.tmpl, list.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 2: done 2, partial 0, missing 0. Copy found in the hub: 80% of 59 copy strings (mobile twin 78%). Template(s): hook_new.tmpl, hooks.tmpl, list.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Webhooks and OAuth applications across the site.; System hooks fire for every repository. Default hooks seed new repositories.; Audit sink; Default for new repos; Apps registered by people and by the site..
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | System and default webhooks, OAuth applications list | done | templates/admin/hooks.tmpl:5 | - |
-| Columns scope, events, last delivery with status text; Replay from the list; secret regenerate... | missing (UI) | logged as not built (not re-probed) | hooks_list.tmpl uses the old base_list markup |
+| Columns scope, events, last delivery with status text; Replay from the list; secret regenerate... | done | templates/admin/hooks.tmpl, templates/shared/webhook/rows.tmpl; routers/web/admin/asc_hooks_test.go; pixel 0.049 (mobile 0.269) | - |
 | Board note: Replay re-sends the last failed delivery | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Secrets are shown once | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Default, failing delivery, empty (no hooks), secret regenerated toast | unverified | not tracked in the gap files | needs a row and a test |
@@ -1313,22 +1313,22 @@ Board copy not found word for word in locale, templates or scripts: Where change
 
 #### RepoSettingsWebhooks (ASC Hub repository settings: Webhooks)
 
-Area repo. Rows 10: done 2, partial 0, missing 8. Copy found in the hub: 75% of 116 copy strings (mobile twin 72%). Template(s): -. Mobile twin: yes.
+Area repo. Rows 10: done 4, partial 1, missing 5. Copy found in the hub: 75% of 116 copy strings (mobile twin 72%). Template(s): -. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Send events to other systems.; Tell another system when something happens here. Each request is signed with th...; stack opened; One webhook, two views; Settings and recent deliveries belong to this hook, so they are tabs here.; Delivery d_7q2m1.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
-| Hook list with URL, kind, events, last delivery, Active switch, Failing banner | missing (UI) | logged as not built (not re-probed) | H:templates/repo/settings/webhook/list.tmpl, base_list.tmpl (Forgejo list) |
+| Hook list with URL, kind, events, last delivery, Active switch, Failing banner | partial | templates/shared/webhook/rows.tmpl | kind column, Active switch, Failing banner |
 | One hook with tabs Settings / Recent deliveries (12), delivery detail with Request / Response,... | done | templates/repo/settings/webhook/history.tmpl:4 | - |
 | Hook kinds Generic, Chat, ASC agent (starts an agent run on an event) | missing (hub) | logged as not built (not re-probed) | H:modules/webhook/type.go has Forgejo kinds; add asc-agent kind that calls Agents.CreateRun; map Chat to slack/discord/matrix |
 | ASC events: Changes (Landed, Opened, Review requested), Agents (Run started, Run finished), Re... | missing (hub) | logged as not built (not re-probed) | event types and notifiers in H:models/webhook, H:services/webhook, fired from ascsync/agent callbacks |
 | Payload URL https-only with certificate check; loopback http only with local option | missing (hub) | logged as not built (not re-probed) | H:modules/setting ALLOWED_HOST_LIST; add the explicit local option and the refusal text |
-| Secret shown masked with Replace, never shown again | missing (UI) | logged as not built (not re-probed) | webhook/new.tmpl shows the secret field |
+| Secret shown masked with Replace, never shown again | done | templates/webhook/secret.tmpl; routers/web/repo/setting/asc_webhook_list_test.go | - |
 | Send test delivery | done | see where-cell | - |
 | Failing-hook alert banner role=alert and menu count "Webhooks 3" | missing (UI) | logged as not built (not re-probed) | list + navbar |
 | Add webhook dialog with http address refused | missing (UI) | logged as not built (not re-probed) | webhook/new.tmpl is a page |
-| Empty state | missing (UI) | logged as not built (not re-probed) | base_list.tmpl |
+| Empty state | done | templates/repo/settings/webhook/base_list.tmpl:10 | - |
 
 #### Search (ASC Hub search)
 
