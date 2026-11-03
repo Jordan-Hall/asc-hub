@@ -155,13 +155,11 @@ export async function seed() {
   // releases (with asc serve the asc client makes them, with their assets)
   if (!ASC_SERVE) await api('POST', '/repos/acme/payments/releases', {tag_name: 'v2.18.0', target_commitish: 'main', name: 'v2.18.0', body: '## Notes\n\nIdempotent refunds and provider failover.'});
   if (!ASC_SERVE) await api('POST', '/repos/acme/payments/releases', {tag_name: 'v2.19.0-rc1', target_commitish: 'main', name: 'v2.19.0 candidate', body: 'Release candidate.', prerelease: true});
-  // what the phone boards of the settings pages list: three webhooks (the last one fails to deliver), four secrets and three variables
-  let staging;
-  for (const [url, events] of [['https://ci.acme.dev/hooks/asc', ['push', 'pull_request']], ['https://chat.acme.dev/api/asc-notify', ['pull_request_review_request', 'action_run_recipient']], ['https://staging.acme.dev/deploy', ['release']]]) {
-    staging = await api('POST', '/repos/acme/payments/hooks', {type: 'gitea', active: true, events, config: {url, content_type: 'json', secret: 'whsec_' + url.length}});
+  // what the settings boards list: three webhooks, one of them a chat hook (backdate.py adds their deliveries; the last one fails), four secrets and three variables
+  for (const [type, url, events] of [['gitea', 'https://ci.acme.dev/hooks/asc', ['push', 'pull_request']], ['slack', 'https://chat.acme.dev/api/asc-notify', ['pull_request_review_request', 'action_run_recipient']], ['gitea', 'https://staging.acme.dev/deploy', ['release']]]) {
+    const config = type === 'slack' ? {url, content_type: 'json', channel: '#payments'} : {url, content_type: 'json', secret: 'whsec_' + url.length};
+    await api('POST', '/repos/acme/payments/hooks', {type, active: true, events, config});
   }
-  // a test delivery to the staging hook, which has no receiver: the list offers Replay
-  if (staging && staging.id) await api('POST', `/repos/acme/payments/hooks/${staging.id}/tests`);
   // the admin Hooks board: a system hook, a default hook, and an OAuth application of a person's
   await api('POST', '/admin/hooks', {type: 'forgejo', active: true, events: ['push', 'release'], config: {url: 'https://logs.acme.example/in', content_type: 'json', is_system_webhook: 'true'}});
   await api('POST', '/admin/hooks', {type: 'forgejo', active: true, events: ['push'], config: {url: 'https://deploy.acme.example/asc', content_type: 'json', is_system_webhook: 'false'}});

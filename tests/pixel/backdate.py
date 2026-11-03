@@ -70,6 +70,23 @@ if nw and maya:
     t = anchor - 2 * 1440 * M
     cur.execute('INSERT INTO team_invite (token, inviter_id, org_id, team_id, email, invited_id, created_unix, updated_unix) VALUES (?,?,?,?,?,?,?,?)',
                 ('pixel-invite-maya', nw[2], nw[0], nw[1], '', maya[0], t, t))
+# the deliveries of the payments webhooks: two hooks answered lately, the staging one failed three times in a row after two good ones
+HOOK_DELIVERIES = {
+    'https://ci.acme.dev/hooks/asc': [('push', 200, 2)],
+    'https://chat.acme.dev/api/asc-notify': [('pull_request_review_request', 200, 18)],
+    'https://staging.acme.dev/deploy': [('release', 200, 60 * 1440), ('release', 200, 20 * 1440), ('release', 502, 6 * 1440 + 4), ('release', 502, 6 * 1440 + 2), ('release', 502, 6 * 1440)],
+}
+for url, deliveries in HOOK_DELIVERIES.items():
+    cur.execute('SELECT id FROM webhook WHERE url=? AND repo_id>0', (url,))
+    hook = cur.fetchone()
+    if not hook:
+        continue
+    cur.execute('DELETE FROM hook_task WHERE hook_id=?', (hook[0],))
+    for n, (event, status, minutes) in enumerate(deliveries):
+        request = '{"url":"%s","http_method":"POST","headers":{"Content-Type":"application/json"},"body":"{}"}' % url
+        response = '{"status":%d,"headers":{},"body":"%s"}' % (status, 'ok' if status < 300 else 'Bad Gateway')
+        cur.execute('INSERT INTO hook_task (hook_id, uuid, payload_content, payload_version, event_type, is_delivered, delivered, is_succeed, request_content, response_content) VALUES (?,?,?,?,?,?,?,?,?,?)',
+                    (hook[0], 'pixel-delivery-%d-%d' % (hook[0], n), '{}', 2, event, True, (anchor - minutes * M) * 10**9, status < 300, request, response))
 cur.execute('UPDATE user SET created_unix=?, updated_unix=?, last_login_unix=?', (anchor - 500 * 1440 * M, anchor - M, anchor - 5 * M))
 con.commit()
 if len(sys.argv) > 3:
