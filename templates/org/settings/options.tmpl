@@ -1,8 +1,13 @@
 {{template "org/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main organization settings options wk-settings")}}
 {{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "asc_work.sp_general") "Lead" (ctx.Locale.Tr "asc_work.sp_org_general_lead" (or .Org.FullName .Org.Name)))}}
 <div class="wk-sp">
+	{{if .SettingsReadOnly}}
+	<div class="ds-banner" role="status" data-testid="org-settings-read-only"><span aria-hidden="true">{{svg "dsi-lock" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_work.sp_owner_only" (or .Org.FullName .Org.Name)}}</div></div>
+	{{end}}
 	<form class="ui form ds-form wk-sp-form" action="{{.Link}}" method="post">
 		{{.CsrfTokenHtml}}
+		{{/* A disabled fieldset disables every field in it, and the page then has nothing to send. */}}
+		<fieldset class="wk-fieldset-plain"{{if .SettingsReadOnly}} disabled{{end}}>
 		<section class="ds-card" aria-labelledby="sp-profile">
 			<div class="ds-card-h"><h2 id="sp-profile">{{ctx.Locale.Tr "asc_work.sp_profile_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_org_profile_hint"}}</span></div>
 			<div class="ds-card-b ds-stack-16">
@@ -59,6 +64,34 @@
 					<legend class="ds-label">{{ctx.Locale.Tr "org.settings.permission"}}</legend>
 					<div class="ds-check"><input type="checkbox" id="repo-admin-teams" name="repo_admin_change_team_access" {{if .RepoAdminChangeTeamAccess}}checked{{end}}><label for="repo-admin-teams">{{ctx.Locale.Tr "org.settings.repoadminchangeteam"}}</label></div>
 				</fieldset>
+				{{$d := .RepoDefaults}}
+				<fieldset class="wk-fieldset" id="repo_creators_box" data-testid="org-repo-creators">
+					<legend class="ds-label">{{ctx.Locale.Tr "asc_work.sp_repo_creators"}}</legend>
+					{{range $v := (StringUtils.Split "teams,maintainers,owners" ",")}}
+					<div class="ds-check"><input id="repo-creators-{{$v}}" name="repo_creators" type="radio" value="{{$v}}"{{if eq $d.RepoCreators $v}} checked{{end}} aria-describedby="repo-creators-{{$v}}-hint"><label for="repo-creators-{{$v}}">{{ctx.Locale.Tr (print "asc_work.sp_repo_creators_" $v)}}<span class="ds-hint" id="repo-creators-{{$v}}-hint">{{ctx.Locale.Tr (print "asc_work.sp_repo_creators_" $v "_hint")}}</span></label></div>
+					{{end}}
+				</fieldset>
+				<div class="ds-form-row ds-form-row-2">
+					<div class="ds-field">
+						<label class="ds-label" for="base_permission">{{ctx.Locale.Tr "asc_work.sp_base_permission"}}</label>
+						<select id="base_permission" name="base_permission" class="ds-select{{if .Err_RepoDefaults}} is-err{{end}}" aria-describedby="base_permission_hint" data-testid="org-base-permission">
+							{{range $v := (StringUtils.Split "none,read,write" ",")}}
+							<option value="{{$v}}"{{if eq $.BasePermission $v}} selected{{end}}>{{ctx.Locale.Tr (print "asc_work.sp_base_permission_" $v)}}</option>
+							{{end}}
+						</select>
+						<p class="ds-hint" id="base_permission_hint">{{ctx.Locale.Tr "asc_work.sp_base_permission_hint"}}</p>
+					</div>
+					<div class="ds-field">
+						<label class="ds-label" for="repo_visibility">{{ctx.Locale.Tr "asc_work.sp_repo_visibility"}}</label>
+						<select id="repo_visibility" name="repo_visibility" class="ds-select{{if .Err_RepoDefaults}} is-err{{end}}" aria-describedby="repo_visibility_hint" data-testid="org-repo-visibility">
+							<option value=""{{if eq $d.Visibility ""}} selected{{end}}>{{ctx.Locale.Tr "asc_work.sp_repo_visibility_server"}}</option>
+							{{range $v := (StringUtils.Split "private,internal,public" ",")}}
+							<option value="{{$v}}"{{if eq $d.Visibility $v}} selected{{end}}>{{ctx.Locale.Tr (print "repo.visibility_" $v)}}</option>
+							{{end}}
+						</select>
+						<p class="ds-hint" id="repo_visibility_hint">{{ctx.Locale.Tr "asc_work.sp_repo_visibility_hint"}}</p>
+					</div>
+				</div>
 			</div>
 		</section>
 
@@ -75,12 +108,16 @@
 		</section>
 		{{end}}
 
+		</fieldset>
+		{{if not .SettingsReadOnly}}
 		<div class="ds-sticky-actions wk-form-actions">
 			<a class="ds-btn ds-btn-secondary" href="{{.Link}}">{{ctx.Locale.Tr "asc_work.discard"}}</a>
 			<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "asc_work.sp_save"}}</button>
 		</div>
+		{{end}}
 	</form>
 
+	{{if not .SettingsReadOnly}}
 	<form class="ui form ds-form wk-sp-form" action="{{.Link}}/avatar" method="post" enctype="multipart/form-data">
 		{{.CsrfTokenHtml}}
 		<section class="ds-card" aria-labelledby="sp-logo">
@@ -101,5 +138,6 @@
 			</div>
 		</section>
 	</form>
+	{{end}}
 </div>
 {{template "org/settings/layout_footer" .}}

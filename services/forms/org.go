@@ -45,6 +45,11 @@ type UpdateOrgSettingForm struct {
 	Visibility                structs.VisibleType
 	MaxRepoCreation           int
 	RepoAdminChangeTeamAccess bool
+	// RepoCreators, BasePermission and RepoVisibility are the organization's repository defaults
+	// (organization.AscRepoDefaults); empty keeps the default of each.
+	RepoCreators   string `binding:"MaxSize(16)"`
+	BasePermission string `binding:"MaxSize(16)"`
+	RepoVisibility string `binding:"MaxSize(16)"`
 }
 
 // Validate validates the fields

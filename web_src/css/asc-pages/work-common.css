@@ -214,6 +214,11 @@ a.wk-act-title:hover {
   border: 0;
 }
 
+/* A fieldset that only groups fields (to disable them together) and leaves the layout to its parent. */
+.wk-fieldset-plain {
+  display: contents;
+}
+
 .wk-fieldset > .ds-label {
   padding: 0;
   margin-bottom: 4px;

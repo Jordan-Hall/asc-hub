@@ -293,6 +293,9 @@ func TeamsRepoAction(ctx *context.Context) {
 
 // NewTeam render create new team page
 func NewTeam(ctx *context.Context) {
+	if !loadRepoCreators(ctx) {
+		return
+	}
 	ctx.Data["Title"] = ctx.Org.Organization.FullName
 	ctx.Data["PageIsOrgTeams"] = true
 	ctx.Data["PageIsOrgTeamsNew"] = true
@@ -303,6 +306,18 @@ func NewTeam(ctx *context.Context) {
 		return
 	}
 	ctx.HTML(http.StatusOK, tplTeamNew)
+}
+
+// loadRepoCreators sets who may create repositories in the organization, so the team form can say when the
+// organization's rule leaves its "Create repositories" setting without effect.
+func loadRepoCreators(ctx *context.Context) bool {
+	d, err := org_model.GetAscRepoDefaults(ctx, ctx.Org.Organization.ID)
+	if err != nil {
+		ctx.ServerError("GetAscRepoDefaults", err)
+		return false
+	}
+	ctx.Data["RepoCreators"] = d.RepoCreators
+	return true
 }
 
 func getUnitPerms(forms url.Values, teamPermission perm.AccessMode) map[unit_model.Type]perm.AccessMode {
@@ -333,6 +348,9 @@ func getUnitPerms(forms url.Values, teamPermission perm.AccessMode) map[unit_mod
 
 // NewTeamPost response for create new team
 func NewTeamPost(ctx *context.Context) {
+	if !loadRepoCreators(ctx) {
+		return
+	}
 	form := web.GetForm(ctx).(*forms.CreateTeamForm)
 	includesAllRepositories := form.RepoAccess == "all"
 	p := perm.ParseAccessMode(form.Permission)
@@ -506,6 +524,9 @@ func SearchTeam(ctx *context.Context) {
 
 // EditTeam render team edit page
 func EditTeam(ctx *context.Context) {
+	if !loadRepoCreators(ctx) {
+		return
+	}
 	ctx.Data["Title"] = ctx.Org.Organization.FullName
 	ctx.Data["PageIsOrgTeams"] = true
 	if err := ctx.Org.Team.LoadUnits(ctx); err != nil {
@@ -523,6 +544,9 @@ func EditTeam(ctx *context.Context) {
 
 // EditTeamPost response for modify team information
 func EditTeamPost(ctx *context.Context) {
+	if !loadRepoCreators(ctx) {
+		return
+	}
 	form := web.GetForm(ctx).(*forms.CreateTeamForm)
 	t := ctx.Org.Team
 	newAccessMode := perm.ParseAccessMode(form.Permission)
