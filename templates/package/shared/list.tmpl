@@ -1,20 +1,23 @@
-{{/* The packages of an owner or a repository: search, type filter, one row per package version. */}}
+{{/* The packages of an owner or a repository: search, type chips with counts, one row per package version. */}}
 <div class="wk-packages">
 {{template "base/alert" .}}
 {{if .HasPackages}}
-<form class="ui form ignore-dirty wk-search" role="search">
-	<div class="ui small fluid action input wk-pkg-search">
-		{{template "shared/search/input" dict "Value" .Query "Placeholder" (ctx.Locale.Tr "search.package_kind")}}
-		<select class="ds-select wk-pkg-type" name="type" aria-label="{{ctx.Locale.Tr "packages.filter.type"}}">
-			<option value="">{{ctx.Locale.Tr "packages.filter.type"}}</option>
-			<option value="all">{{ctx.Locale.Tr "packages.filter.type.all"}}</option>
-			{{range $type := .AvailableTypes}}
-			<option{{if eq $.PackageType $type}} selected="selected"{{end}} value="{{$type}}">{{$type.Name}}</option>
-			{{end}}
-		</select>
-		{{template "shared/search/button"}}
-	</div>
-</form>
+<div class="wk-pkg-filter">
+	<form class="ui form ignore-dirty wk-search" role="search">
+		<div class="ui small fluid action input wk-pkg-search">
+			{{template "shared/search/input" dict "Value" .Query "Placeholder" (ctx.Locale.Tr "search.package_kind")}}
+			{{if and .PackageType (ne .PackageType "all")}}<input type="hidden" name="type" value="{{.PackageType}}">{{end}}
+			{{template "shared/search/button"}}
+		</div>
+	</form>
+	<nav class="wk-pkg-types" aria-label="{{ctx.Locale.Tr "packages.filter.type"}}" data-testid="package-type-chips">
+		{{$all := or (not .PackageType) (eq .PackageType "all")}}
+		<a class="ds-chip-btn" href="?q={{QueryEscape .Query}}"{{if $all}} aria-current="true"{{end}}>{{ctx.Locale.Tr "packages.filter.type.all"}} <span class="ds-count">{{.PackageCountAll}}</span></a>
+		{{range .PackageTypeCounts}}
+			<a class="ds-chip-btn" href="?q={{QueryEscape $.Query}}&type={{.Type}}"{{if eq $.PackageType (print .Type)}} aria-current="true"{{end}}>{{.Type.Name}} <span class="ds-count">{{.Count}}</span></a>
+		{{end}}
+	</nav>
+</div>
 {{end}}
 {{if .PackageDescriptors}}
 <ul class="ds-list wk-rows">
