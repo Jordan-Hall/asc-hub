@@ -18,11 +18,11 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 139 |
+| done | 140 |
 | partial | 1 |
 | ui-only-missing | 7 |
 | needs-hub-backend | 5 |
-| needs-asc-backend | 3 |
+| needs-asc-backend | 2 |
 | needs-both | 18 |
 | total | 173 |
 
@@ -188,7 +188,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminMonitor | Queues table with Flush, cron table with Run now, stack traces | done | templates/admin/queue.tmpl, cron_result.tmpl, stacktrace.tmpl | - |
 | AdminMonitor | Flush confirmation with count; Run now streams output; "Verify audit chain" cron task | needs-both | hub: queue.tmpl modal and streaming; asc: scheduled audit verify (Audit.VerifyChain exists, no schedule) | M |
 | AdminAudit | Hash-chain banner, filters, details, export, verify | done | routers/web/admin/asc_audit.go, templates/admin/asc_audit.tmpl, routers/web/shared/trustweb | - |
-| AdminAudit | Signed export file for the range | needs-asc-backend | Audit.Export streams a BLAKE3 digest but no signature (proto/asc/v1/audit.proto) | S |
+| AdminAudit | Signed export file for the range | done | asc: Audit.Export ends with an SSHSIG over the file in the namespace asc-audit-export when `[signing] server_key_file` is set (crates/asc-serve/src/audit/rpc.rs, proto/asc/v1/audit.proto fields 6 and 7); hub: services/asctrust/audit.go checks the signature against the file and routers/web/shared/trustweb/audit.go serves a zip of the file, its .sig, allowed_signers and VERIFY.txt with the ssh-keygen -Y verify command; an unsigned export is the plain file; tests an_export_ends_with_the_server_signature_over_the_file, TestCopyExportKeepsTheSignatureAndItVerifies, TestWriteSignedExport, TestAscAuditExportIsSignedWhenTheServerSignsIt | S |
 | AdminBackups | Page with how to run backups (read-only text) | done | templates/admin/backups.tmpl | - |
 | AdminBackups | Schedule, target, next backup, Back up now, history with Retry/Restore/Verify, in-progress meter, RESTORE typed confirmation | done | routers/web/admin/asc_backups.go + templates/admin/asc_backups_board.tmpl, asc_backup_restore.tmpl (Backups service: schedule, run, history, verify, staged restore with typed RESTORE). Retry of a failed run is Back up now | - |
 | AdminModeration | Reports queue with Dismiss, mark handled, content actions | done | templates/admin/moderation/reports.tmpl, routers/web/admin/reports.go | - |

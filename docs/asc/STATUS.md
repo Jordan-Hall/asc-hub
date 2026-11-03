@@ -25,7 +25,7 @@ After this audit:
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
 | **all** | 94 | 845 | 443 | 86 | 316 | 52% |
 
-Missing rows by kind of work: UI 141, hub 131, asc 15, hub+asc 84. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 141, hub 131, asc 14, hub+asc 84. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 185, partial 30, missing 102. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 186, partial 30, missing 101. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -84,16 +84,16 @@ Board copy not found word for word in locale, templates or scripts: Contact us; 
 
 #### AdminAudit (ASC Hub admin: audit log)
 
-Area shell/settings. Rows 2: done 1, partial 0, missing 1. Copy found in the hub: 72% of 69 copy strings (mobile twin 65%). Template(s): asc_audit.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 2: done 2, partial 0, missing 0. Copy found in the hub: 72% of 69 copy strings (mobile twin 65%). Template(s): asc_audit.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Search actor, action or target; All actions; Today 09:41; Runner registered; Runner registered.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Hash-chain banner, filters, details, export, verify | done | routers/web/admin/asc_audit.go (file) | - |
-| Signed export file for the range | missing (asc) | logged as not built (not re-probed) | Audit.Export streams a BLAKE3 digest but no signature (proto/asc/v1/audit.proto) |
+| Signed export file for the range | done | asc: Audit.Export ends with an SSHSIG over the file in the namespace asc-audit-export when `[signing] server_key_file` is set (crates/asc-serve/src/audit/rpc.rs, proto/asc/v1/audit.proto fields 6 and 7); hub: services/asctrust/audit.go checks the signature against the file and routers/web/shared/trustweb/audit.go serves a zip of the file, its .sig, allowed_signers and VERIFY.txt with the ssh-keygen -Y verify command; an unsigned export is the plain file; tests an_export_ends_with_the_server_signature_over_the_file, TestCopyExportKeepsTheSignatureAndItVerifies, TestWriteSignedExport, TestAscAuditExportIsSignedWhenTheServerSignsIt | - |
 | Board note: Rows expand in place to show the full record, request id and the diff | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Export downloads a signed file for the range | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Export downloads a signed file for the range | done | the signed export row above; TestAscAuditExportIsSignedWhenTheServerSignsIt | - |
 | Board note: Default, filtered, no results, chain verification failed (error banner), export in progre... | unverified | not tracked in the gap files | needs a row and a test |
 
 #### AdminBackups (ASC Hub admin: backups)
