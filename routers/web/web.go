@@ -895,6 +895,7 @@ func registerRoutes(m *web.Route) {
 				m.Get("", repo_setting.WebhookEdit)
 				m.Post("", repo_setting.WebhookUpdate)
 				m.Post("/replay/{uuid}", repo_setting.WebhookReplay)
+				m.Post("/secret", repo_setting.WebhookRegenerateSecret)
 			})
 		}, webhooksEnabled)
 
@@ -1024,6 +1025,7 @@ func registerRoutes(m *web.Route) {
 				m.Get("", repo_setting.WebhookEdit)
 				m.Post("", repo_setting.WebhookUpdate)
 				m.Post("/replay/{uuid}", repo_setting.WebhookReplay)
+				m.Post("/secret", repo_setting.WebhookRegenerateSecret)
 			})
 		}, webhooksEnabled)
 
@@ -1202,6 +1204,7 @@ func registerRoutes(m *web.Route) {
 						m.Get("", repo_setting.WebhookEdit)
 						m.Post("", repo_setting.WebhookUpdate)
 						m.Post("/replay/{uuid}", repo_setting.WebhookReplay)
+						m.Post("/secret", repo_setting.WebhookRegenerateSecret)
 					})
 				}, webhooksEnabled)
 
@@ -1386,6 +1389,7 @@ func registerRoutes(m *web.Route) {
 					m.Post("", repo_setting.WebhookUpdate)
 					m.Post("/test", repo_setting.WebhookTest)
 					m.Post("/replay/{uuid}", repo_setting.WebhookReplay)
+					m.Post("/secret", repo_setting.WebhookRegenerateSecret)
 				})
 			}, webhooksEnabled)
 

@@ -1,26 +1,19 @@
-<h4 class="ds-card-top">
-	{{.Title}}
-	<div class="ui right">
-		<div class="ui jump dropdown">
-			<div class="ds-btn ds-btn-primary ds-btn-sm">{{ctx.Locale.Tr "repo.settings.add_webhook"}}</div>
-			{{template "repo/settings/webhook/link_menu" .}}
-		</div>
+<section class="ds-card wh-sec" aria-labelledby="wh-list-title">
+	<div class="ds-card-h">
+		<h2 id="wh-list-title">{{ctx.Locale.Tr "repo.settings.hooks"}}</h2>
+		<span class="ds-card-sub">{{.Description}}</span>
 	</div>
-</h4>
-<div class="ds-card ds-card-b ds-card-attach">
-	<div class="ui list">
-		<div class="item">
-			{{.Description}}
-		</div>
-		{{range .Webhooks}}
-			<div class="item truncated-item-container">
-				<span class="text {{if eq .LastStatus 1}}green{{else if eq .LastStatus 2}}red{{else}}grey{{end}} tw-mr-2">{{svg "octicon-dot-fill" 22}}</span>
-				<div class="text truncate tw-flex-1 tw-mr-2">
-					<a title="{{.URL}}" href="{{$.BaseLink}}/{{.ID}}">{{.URL}}</a>
-				</div>
-				<a class="muted tw-p-2" href="{{$.BaseLink}}/{{.ID}}">{{svg "octicon-pencil"}}</a>
-				<a class="delete-button tw-p-2" data-url="{{$.Link}}/delete" data-id="{{.ID}}" data-modal-id="delete-webhook">{{svg "octicon-trash"}}</a>
-			</div>
+	<div class="ds-card-b">
+		{{if .Webhooks}}
+			{{template "shared/webhook/rows" (dict "Rows" .Webhooks "BaseLink" .BaseLink "ListLink" .BaseLink)}}
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "link" "Title" (ctx.Locale.Tr "asc_hooks.none_title") "Body" (ctx.Locale.Tr "asc_hooks.none_text"))}}
 		{{end}}
+		<div class="wh-add">
+			<div class="ui jump dropdown">
+				<div class="ds-btn ds-btn-secondary" tabindex="0">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "repo.settings.add_webhook"}}</div>
+				{{template "repo/settings/webhook/link_menu" .}}
+			</div>
+		</div>
 	</div>
-</div>
+</section>

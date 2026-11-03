@@ -53,7 +53,12 @@ func WebhookList(ctx *context.Context) {
 		ctx.ServerError("GetWebhooksByRepoID", err)
 		return
 	}
-	ctx.Data["Webhooks"] = ws
+	rows, err := webhook_service.ListRows(ctx, ws)
+	if err != nil {
+		ctx.ServerError("ListRows", err)
+		return
+	}
+	ctx.Data["Webhooks"] = rows
 
 	ctx.HTML(http.StatusOK, tplHooks)
 }
@@ -298,7 +303,10 @@ func WebhookUpdate(ctx *context.Context) {
 	// pre-fill the form with the submitted data
 	w.URL = fields.URL
 	w.ContentType = fields.ContentType
-	w.Secret = fields.Secret
+	// the stored secret is never sent back to the browser, so an empty field keeps it
+	if fields.Secret != "" {
+		w.Secret = fields.Secret
+	}
 	w.HookEvent = ParseHookEvent(fields.WebhookCoreForm)
 	w.IsActive = fields.Active
 	w.HTTPMethod = fields.HTTPMethod
@@ -478,6 +486,28 @@ func WebhookReplay(ctx *context.Context) {
 	}
 
 	ctx.Flash.Success(ctx.Tr("repo.settings.webhook.delivery.success"))
+	// Replay from a list of webhooks comes back to that list
+	ctx.RedirectToFirst(ctx.FormString("redirect_to"), fmt.Sprintf("%s/%d", orCtx.Link, w.ID))
+}
+
+// WebhookRegenerateSecret gives a webhook that signs its deliveries a new random secret and shows it once in the
+// success message, so the receiving service can be updated with it.
+func WebhookRegenerateSecret(ctx *context.Context) {
+	orCtx, w := checkWebhook(ctx)
+	if ctx.Written() {
+		return
+	}
+	if !webhook_service.HasSecret(w.Type) {
+		ctx.NotFound("WebhookRegenerateSecret", nil)
+		return
+	}
+	secret := webhook_service.NewSecret()
+	w.Secret = secret
+	if err := webhook.UpdateWebhookSecret(ctx, w); err != nil {
+		ctx.ServerError("UpdateWebhookSecret", err)
+		return
+	}
+	ctx.Flash.Success(ctx.Tr("asc_hooks.secret_regenerated", secret))
 	ctx.Redirect(fmt.Sprintf("%s/%d", orCtx.Link, w.ID))
 }
 
