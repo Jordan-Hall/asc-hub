@@ -31,6 +31,7 @@ func CreateCommitStatus(ctx context.Context, jobs ...*actions_model.ActionRunJob
 			log.Error("Failed to create commit status for job %d: %v", job.ID, err)
 		}
 	}
+	reportToAsc(jobs)
 }
 
 func createCommitStatus(ctx context.Context, job *actions_model.ActionRunJob) error {
