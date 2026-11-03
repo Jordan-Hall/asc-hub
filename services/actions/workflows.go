@@ -182,7 +182,7 @@ func (entry *Workflow) Dispatch(ctx context.Context, inputGetter InputValueGette
 		}
 	}
 
-	jobs, err := actions.JobParser(content,
+	jobs, err := actions.JobParser(withAscEnv(ctx, run, content),
 		jobparser.WithVars(vars),
 		jobparser.WithInputs(inputsAny),
 		// We don't have any job outputs yet, but `WithJobOutputs(...)` triggers JobParser to supporting its
