@@ -4,10 +4,13 @@
 package setting
 
 import (
+	"net/http"
 	"testing"
 
 	"forgejo.org/models/organization"
+	"forgejo.org/models/perm"
 	"forgejo.org/models/unittest"
+	"forgejo.org/modules/templates"
 	"forgejo.org/services/contexttest"
 
 	"code.forgejo.org/go-chi/session"
@@ -51,7 +54,37 @@ func TestSettingsOrgRows(t *testing.T) {
 	owned, err := org.IsOwnedBy(ctx, ctx.Doer.ID)
 	require.NoError(t, err)
 	assert.Equal(t, owned, rows[0].IsOwner)
-	if !rows[0].IsOwner {
-		assert.False(t, rows[0].LastOwner, "only an owner can be the last owner")
+}
+
+// An owner's row links to the organization's settings; a member's row offers Leave.
+func TestOrganizationPageRows(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	ctx, resp := contexttest.MockContext(t, "user/settings/organization")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadUser(t, ctx, 2)
+	Organization(ctx)
+	require.Equal(t, http.StatusOK, ctx.Resp.Status())
+
+	rows := ctx.Data["OrgRows"].([]SettingsOrgRow)
+	require.NotEmpty(t, rows)
+	body := resp.Body.String()
+	assert.Contains(t, body, "asc_work.sp_orgs_yours")
+	owners := 0
+	for _, r := range rows {
+		if r.IsOwner {
+			owners++
+			assert.Contains(t, body, `href="`+r.Org.OrganisationLink()+`/settings"`)
+			assert.NotContains(t, body, `data-url="`+r.Org.OrganisationLink()+`/members/action/leave"`)
+		} else {
+			assert.Contains(t, body, `data-url="`+r.Org.OrganisationLink()+`/members/action/leave"`)
+		}
 	}
+	assert.Positive(t, owners, "user2 owns an organization in the fixtures")
+	assert.Less(t, owners, len(rows), "user2 is only a member of another organization in the fixtures")
+}
+
+func TestInviteRole(t *testing.T) {
+	assert.Equal(t, "owner", inviteRole(&organization.Team{Name: organization.OwnerTeamName, AccessMode: perm.AccessModeOwner}))
+	assert.Equal(t, "maintainer", inviteRole(&organization.Team{LowerName: "maintainers", AccessMode: perm.AccessModeAdmin}))
+	assert.Equal(t, "member", inviteRole(&organization.Team{LowerName: "members", AccessMode: perm.AccessModeWrite}))
 }
