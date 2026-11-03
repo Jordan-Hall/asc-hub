@@ -18,9 +18,9 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 133 |
+| done | 134 |
 | partial | 1 |
-| ui-only-missing | 10 |
+| ui-only-missing | 9 |
 | needs-hub-backend | 6 |
 | needs-asc-backend | 3 |
 | needs-both | 20 |
@@ -28,7 +28,7 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 8, M 24, L 8.
+Open rows by size: S 7, M 24, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -180,7 +180,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminRunners | Runner list, status, labels, version, register, details | done | templates/admin/actions.tmpl, runners/*.tmpl | - |
 | AdminRunners | Drain action and draining state | done | `action_runner.draining` (migration `v18a_asc_runner_drain`), `CreateTaskForRunner` offers a draining runner nothing (`models/actions/task.go`), `POST .../runners/{id}/drain` (field drain 1 or 0) for every level that edits runners (`routers/web/shared/actions/runners.go` RunnerDrainPost), a Drain / Take jobs again button and a Draining chip on the runner page and in the list; a draining runner finishes the job it has; tests: TestDrainingRunnerIsGivenNoNewTask, TestRunnerDrainPostSetsAndClearsTheSwitchForAnAdministrator, TestRunnerDrainPostRefusesARunnerOfAnotherOwner | - |
 | AdminRunners | Agent runners (agent-box-1, "Agent run #214", vCPU) | needs-both | asc agent runs on runners; hub shows only Forgejo actions runners | L |
-| AdminRunners | Registration token that expires in one hour, shown once, in a copy block | ui-only-missing | runners/create.tmpl, setup.tmpl (token is long lived in Forgejo) | S |
+| AdminRunners | Registration token that expires in one hour, shown once, in a copy block | done | `action_runner_token.expires_unix` (migration `v18g_asc_runner_token_expiry`); `POST .../runners/reset_registration_token` issues a token that expires after an hour (`NewShownOnceRunnerToken`) and keeps its id in the session, and the list shows it once in the terminal copy block (admin) or the token menu (repository, organization, user) with when it expires, only for the scope it was asked for; Register refuses an expired token; the API and the command line keep tokens without expiry (`UsableRunnerToken`); tests: TestRunnerTokenExpiry, TestShownOnceRunnerToken, Test_addRunnerTokenExpiry, TestRunnerRegistrationTokenShownOnce | - |
 | AdminConfig | Server settings read only (domain, protocol, SSH, storage, mail) | done | templates/admin/config_server.tmpl (a much longer Forgejo set) | - |
 | AdminConfig | Runtime switches: Allow registration, Require email confirmation (runtime set has only avatar settings and editor apps) | done | `templates/admin/config_runtime.tmpl`: Allow registration and Require email confirmation (the latter refused while no mailer is set) over the runtime config (`routers/web/admin/config.go`) (found built during the audit of 2026-10-31) | - |
 | AdminConfig | Allow agents on this server; Default agent budget | done | `templates/admin/config_runtime.tmpl` switch and budget field over asc OrgSettings InstanceAgents (`routers/web/admin/asc_config.go` loadAscRuntime, changeAscConfig); tests: TestChangeConfigAscSettings, TestLoadAscRuntime (found built during the audit of 2026-11-03) | M |

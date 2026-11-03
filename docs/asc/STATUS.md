@@ -25,7 +25,7 @@ After this audit:
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
 | **all** | 94 | 845 | 443 | 86 | 316 | 52% |
 
-Missing rows by kind of work: UI 144, hub 133, asc 15, hub+asc 85. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 143, hub 132, asc 15, hub+asc 85. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 178, partial 32, missing 107. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 180, partial 32, missing 105. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -255,18 +255,18 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### AdminRunners (ASC Hub admin: runners)
 
-Area shell/settings. Rows 4: done 1, partial 0, missing 3. Copy found in the hub: 73% of 60 copy strings (mobile twin 65%). Template(s): actions.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 4: done 3, partial 0, missing 1. Copy found in the hub: 73% of 60 copy strings (mobile twin 65%). Template(s): actions.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; runner-eu-1; linux/amd64, docker; Running changeset checks, 4 min; runner-eu-2; linux/amd64, docker.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Runner list, status, labels, version, register, details | done | templates/admin/actions.tmpl:5 | - |
-| Drain action and draining state | missing (hub) | logged as not built (not re-probed) | models/actions runner (no drain flag), task pick in services/actions, admin/runners/details.tmpl |
+| Drain action and draining state | done | models/actions/task.go CreateTaskForRunner, routers/web/shared/actions/runners.go RunnerDrainPost; tests TestDrainingRunnerIsGivenNoNewTask, runner_drain_test.go | - |
 | Agent runners (agent-box-1, "Agent run #214", vCPU) | missing (hub+asc) | logged as not built (not re-probed) | asc agent runs on runners; hub shows only Forgejo actions runners |
-| Registration token that expires in one hour, shown once, in a copy block | missing (UI) | logged as not built (not re-probed) | runners/create.tmpl, setup.tmpl (token is long lived in Forgejo) |
-| Board note: Details shows labels, jobs and logs; Drain stops new jobs | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Registration token expires and is shown once | unverified | not tracked in the gap files | needs a row and a test |
+| Registration token that expires in one hour, shown once, in a copy block | done | templates/admin/actions.tmpl (adm-reg), routers/web/shared/actions/runners.go RunnerResetRegistrationToken | - |
+| Board note: Details shows labels, jobs and logs; Drain stops new jobs | done | tests TestDrainingRunnerIsGivenNoNewTask, TestRunnerDrainPostSetsAndClearsTheSwitchForAnAdministrator | - |
+| Board note: Registration token expires and is shown once | done | tests/integration/asc_runner_token_test.go TestRunnerRegistrationTokenShownOnce | - |
 | Board note: Online, idle, offline (with since), draining, no runners (illustration + register command) | unverified | not tracked in the gap files | needs a row and a test |
 
 #### AdminUser (ASC Hub admin: dana lee)
