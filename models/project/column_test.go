@@ -178,3 +178,24 @@ func Test_NewColumn(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "maximum number of columns reached")
 }
+
+func TestSetColumnHidden(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	require.NoError(t, SetColumnHidden(db.DefaultContext, 1, 2, true))
+	column, err := GetColumn(db.DefaultContext, 2)
+	require.NoError(t, err)
+	assert.True(t, column.Hidden)
+	require.NoError(t, SetColumnHidden(db.DefaultContext, 1, 2, true), "hiding a hidden column is fine")
+
+	require.NoError(t, SetColumnHidden(db.DefaultContext, 1, 2, false))
+	column, err = GetColumn(db.DefaultContext, 2)
+	require.NoError(t, err)
+	assert.False(t, column.Hidden)
+
+	err = SetColumnHidden(db.DefaultContext, 2, 1, true)
+	assert.True(t, IsErrProjectColumnNotExist(err), "a column of another project is not touched")
+	column, err = GetColumn(db.DefaultContext, 1)
+	require.NoError(t, err)
+	assert.False(t, column.Hidden)
+}
