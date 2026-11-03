@@ -12,7 +12,6 @@ import (
 	"forgejo.org/models/db"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
-	"forgejo.org/modules/test"
 	"forgejo.org/routers/web/user/setting/security"
 	"forgejo.org/tests"
 
@@ -25,6 +24,7 @@ import (
 // of the app deletes it.
 func TestUserDeleteAccountAsksTwoFactorCode(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	security.ResetPasswordTries()
 
 	session := loginUser(t, "user8")
 	doc := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user/settings/account"), http.StatusOK).Body)
@@ -61,6 +61,7 @@ func TestUserDeleteAccountAsksTwoFactorCode(t *testing.T) {
 // The scratch code is used up even when the deletion does not go ahead (here the account still owns repositories).
 func TestUserDeleteAccountUsesUpTheScratchCode(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	security.ResetPasswordTries()
 
 	session := loginUser(t, "user2")
 	key, err := totp.Generate(totp.GenerateOpts{SecretSize: 40, Issuer: "asc-test", AccountName: "user2"})
@@ -82,39 +83,32 @@ func TestUserDeleteAccountUsesUpTheScratchCode(t *testing.T) {
 	assert.Contains(t, remove(http.StatusOK).Find(".flash-error").Text(), "The two-factor code is not right")
 }
 
-// An account with security keys only has no code to type: a sign-in within the last minutes, which asked the key, stands
-// for it; an older one asks to sign in again.
+// An account with security keys only has no code to type, and a sign-in with the password does not stand for the key:
+// the page asks to sign in again with the key, and the deletion is refused. (A sign-in with the key is in the unit test
+// TestDeleteAccountWithSecurityKeyOnly.)
 func TestUserDeleteAccountWithSecurityKeyOnly(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	security.ResetPasswordTries()
 
 	session := loginUser(t, "user8")
 	require.NoError(t, db.Insert(db.DefaultContext, &auth_model.WebAuthnCredential{Name: "key", LowerName: "key", UserID: 8, AttestationType: "none"}))
-	remove := func(status int) *HTMLDoc {
-		req := NewRequestWithValues(t, "POST", "/user/settings/account/delete", map[string]string{
-			"username_confirm": "user8",
-			"password":         userPassword,
-		})
-		return NewHTMLParser(t, session.MakeRequest(t, req, status).Body)
-	}
-
-	t.Run("an old sign-in", func(t *testing.T) {
-		defer test.MockVariableValue(&security.ReauthFor, 0)()
-		doc := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user/settings/account"), http.StatusOK).Body)
-		doc.AssertElement(t, `[data-testid="delete-signin"]`, true)
-		doc.AssertElement(t, `[data-testid="delete-passcode"]`, false)
-		assert.Contains(t, remove(http.StatusOK).Find(".flash-error").Text(), "sign out and sign in again with the key")
-		unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 8})
-	})
-
 	doc := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user/settings/account"), http.StatusOK).Body)
-	doc.AssertElement(t, `[data-testid="delete-signin"]`, false)
-	remove(http.StatusSeeOther)
-	assertUserDeleted(t, 8, false)
+	doc.AssertElement(t, `[data-testid="delete-signin"]`, true)
+	doc.AssertElement(t, `[data-testid="delete-passcode"]`, false)
+
+	req := NewRequestWithValues(t, "POST", "/user/settings/account/delete", map[string]string{
+		"username_confirm": "user8",
+		"password":         userPassword,
+	})
+	doc = NewHTMLParser(t, session.MakeRequest(t, req, http.StatusOK).Body)
+	assert.Contains(t, doc.Find(".flash-error").Text(), "sign out and sign in again with the key")
+	unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 8})
 }
 
 // A recovery code is accepted in place of a code of the app.
 func TestUserDeleteAccountWithRecoveryCode(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	security.ResetPasswordTries()
 
 	session := loginUser(t, "user8")
 	key, err := totp.Generate(totp.GenerateOpts{SecretSize: 40, Issuer: "asc-test", AccountName: "user8"})

@@ -293,6 +293,12 @@ func DeleteAccount(ctx *context.Context) {
 		return
 	}
 
+	if !security.AllowPasswordTry(ctx) {
+		loadAccountData(ctx)
+		ctx.Data["Err_Password"] = true
+		ctx.RenderWithErr(ctx.Tr("settings.reauth_too_many"), tplSettingsAccount, nil)
+		return
+	}
 	if _, _, err := auth_method.UserSignIn(ctx, ctx.Doer.Name, ctx.FormString("password")); err != nil {
 		switch {
 		case user_model.IsErrUserNotExist(err):
@@ -369,7 +375,7 @@ func DeleteAccount(ctx *context.Context) {
 // deleteTwoFactorPassed says whether the second factor allows deleting the account. Without one it does. With an
 // authenticator app it takes a code of the app not used before, the scratch code or a recovery code; the scratch and
 // recovery codes are used up even when the deletion does not go ahead. With security keys only, the person must have
-// signed in (which asked the key) within security.ReauthFor.
+// signed in with a key within security.ReauthFor.
 func deleteTwoFactorPassed(ctx *context.Context, passcode string) (bool, error) {
 	twofa, err := auth_model.GetTwoFactorByUID(ctx, ctx.Doer.ID)
 	if auth_model.IsErrTwoFactorNotEnrolled(err) {
@@ -377,7 +383,7 @@ func deleteTwoFactorPassed(ctx *context.Context, passcode string) (bool, error) 
 		if err != nil || !hasKeys {
 			return err == nil, err
 		}
-		return security.SignedInRecently(ctx), nil
+		return security.SignedInWithKeyRecently(ctx), nil
 	} else if err != nil {
 		return false, err
 	}
@@ -439,8 +445,8 @@ func loadAccountData(ctx *context.Context) {
 			ctx.ServerError("HasWebAuthnRegistrationsByUID", err)
 			return
 		}
-		// with security keys only there is no code to type: a recent sign-in, which asked the key, stands for it
-		ctx.Data["DeleteNeedsSignIn"] = hasKeys && !security.SignedInRecently(ctx)
+		// with security keys only there is no code to type: a recent sign-in with the key stands for it
+		ctx.Data["DeleteNeedsSignIn"] = hasKeys && !security.SignedInWithKeyRecently(ctx)
 	}
 
 	if setting.Service.UserDeleteWithCommentsMaxTime != 0 {
