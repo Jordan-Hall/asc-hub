@@ -157,6 +157,12 @@
 				<label class="ds-label" for="password-confirmation">{{ctx.Locale.Tr "password"}}</label>
 				<input id="password-confirmation" class="ds-input{{if .Err_Password}} is-err{{end}}" name="password" type="password" autocomplete="off" required>
 			</div>
+			{{if .DeleteNeedsSignIn}}
+			<div class="ds-banner ds-banner-warn" role="status" data-testid="delete-signin">
+				<span aria-hidden="true">{{svg "dsi-alert" 18}}</span>
+				<div class="ds-banner-body">{{ctx.Locale.Tr "settings.delete_signin_again"}}</div>
+			</div>
+			{{end}}
 			{{if .DeleteAsksPasscode}}
 			<div class="required field ds-field {{if .Err_Passcode}}error{{end}}" data-testid="delete-passcode">
 				<label class="ds-label" for="passcode-confirmation">{{ctx.Locale.Tr "settings.delete_passcode"}}</label>
