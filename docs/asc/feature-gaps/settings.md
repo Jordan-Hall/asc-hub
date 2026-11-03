@@ -18,17 +18,17 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 138 |
+| done | 139 |
 | partial | 1 |
 | ui-only-missing | 7 |
 | needs-hub-backend | 5 |
 | needs-asc-backend | 3 |
-| needs-both | 19 |
+| needs-both | 18 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 3, M 24, L 8.
+Open rows by size: S 2, M 24, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -174,7 +174,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminUser | Usage block (storage, agent minutes) and agents owned | needs-both | asc usage RPC (see UserSettingsUsage); view.tmpl | M |
 | AdminUser | Sessions tab (devices, revoke) | done | browsers from `models/auth/browser_session.go` with Sign out per browser and Sign out everywhere (reason, notice, host.user.sessions_revoked in asc's audit log); asc credentials with Revoke; TestAdminSignsAPersonOutOfTheirBrowsers | - |
 | AdminOrgs | Organizations table | done | templates/admin/org/list.tmpl | - |
-| AdminOrgs | Storage column (garage-eu / Server default) and Open button | needs-both | asc Storage.ListTargets/AssignRepo for the owner; hub list.tmpl (shows a Teams column instead) | S |
+| AdminOrgs | Storage column (garage-eu / Server default) and Open button | done | templates/admin/org/list.tmpl and storage.tmpl: Storage column in place of Teams, the enabled storage targets of the organization from asc Storage.ListTargets (8 asked at a time), "Server default" without one or without asc, "Not known" when asc cannot be asked; Open goes to the organization page (routers/web/admin/asc_org_storage.go); tests TestLoadOrgStorage, TestAdminOrgsStorageColumn | - |
 | AdminRepos | Repository table, unadopted list, delete | done | templates/admin/repo/list.tmpl, unadopted.tmpl | - |
 | AdminRepos | Storage column and "storage mismatch" warning; delete needs full name typed | needs-both | asc storage assignment per repo; list.tmpl; delete modal in admin/repo | M |
 | AdminRunners | Runner list, status, labels, version, register, details | done | templates/admin/actions.tmpl, runners/*.tmpl | - |
