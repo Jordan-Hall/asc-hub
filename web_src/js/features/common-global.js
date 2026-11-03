@@ -14,6 +14,7 @@ import {request, POST, GET} from '../modules/fetch.js';
 import '../htmx.js';
 import {initTab} from '../modules/tab.ts';
 import {initGlobalShowModal} from './show-modal.ts';
+import {initDeleteButtons, showDeletePopup} from './delete-button.js';
 
 const {appUrl, appSubUrl, i18n} = window.config;
 
@@ -370,56 +371,8 @@ async function linkAction(e) {
 }
 
 export function initGlobalLinkActions() {
-  function showDeletePopup(e) {
-    e.preventDefault();
-    const $this = $(this || e.target);
-    const dataArray = $this.data();
-
-    const modalID = $this[0].getAttribute('data-modal-id');
-    if (!modalID) {
-      throw new Error('This button does not specify which modal it wants to open.');
-    }
-
-    const $dialog = $(`#${modalID}`);
-    $dialog.find('.name').text($this.data('name'));
-    for (const [key, value] of Object.entries(dataArray)) {
-      if (key && key.startsWith('data')) {
-        $dialog.find(`.${key}`).text(value);
-      }
-    }
-
-    $dialog.modal({
-      closable: false,
-      onApprove: async () => {
-        if ($this.data('type') === 'form') {
-          document.querySelector($this.data('form')).requestSubmit();
-          return;
-        }
-        if ($this[0].getAttribute('hx-confirm')) {
-          e.detail.issueRequest(true);
-          return;
-        }
-        const postData = new FormData();
-        for (const [key, value] of Object.entries(dataArray)) {
-          if (key && key.startsWith('data')) {
-            postData.append(key.slice(4), value);
-          }
-          if (key === 'id') {
-            postData.append('id', value);
-          }
-        }
-
-        const response = await POST($this.data('url'), {data: postData});
-        if (response.ok) {
-          const data = await response.json();
-          window.location.href = data.redirect;
-        }
-      },
-    }).modal('show');
-  }
-
   // Helpers.
-  $('.delete-button').on('click', showDeletePopup);
+  initDeleteButtons(document);
 
   document.addEventListener('htmx:confirm', (e) => {
     e.preventDefault();
