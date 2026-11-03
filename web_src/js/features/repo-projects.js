@@ -2,12 +2,7 @@ import $ from 'jquery';
 import {contrastColor} from '../utils/color.js';
 import {createSortable} from '../modules/sortable.js';
 import {POST, DELETE, PUT} from '../modules/fetch.js';
-
-function updateIssueCount(cards) {
-  const parent = cards.parentElement;
-  const cnt = parent.getElementsByClassName('issue-card').length;
-  parent.getElementsByClassName('project-column-issue-count')[0].textContent = cnt;
-}
+import {saveColumnOrder, settleMove, updateColumnCount} from './project-move.js';
 
 async function createNewColumn(url, columnTitle, projectColorInput) {
   try {
@@ -25,26 +20,12 @@ async function createNewColumn(url, columnTitle, projectColorInput) {
   }
 }
 
-async function moveIssue({item, from, to, oldIndex}) {
-  const columnCards = to.getElementsByClassName('issue-card');
-  updateIssueCount(from);
-  updateIssueCount(to);
-
-  const columnSorting = {
-    issues: Array.from(columnCards, (card, i) => ({
-      issueID: parseInt(card.getAttribute('data-issue')),
-      sorting: i,
-    })),
-  };
-
-  try {
-    await POST(`${to.getAttribute('data-url')}/move`, {
-      data: columnSorting,
-    });
-  } catch (error) {
-    console.error(error);
-    from.insertBefore(item, from.children[oldIndex]);
-  }
+async function moveIssue({item, from, to, oldIndex, newIndex}) {
+  updateColumnCount(from);
+  updateColumnCount(to);
+  // the card that followed it before the drag: a drag inside one column has already shifted the others
+  const next = from.children[from === to && oldIndex > newIndex ? oldIndex + 1 : oldIndex] ?? null;
+  await settleMove(document.querySelector('#project-board'), item, from, next, saveColumnOrder);
 }
 
 async function initRepoProjectSortable() {

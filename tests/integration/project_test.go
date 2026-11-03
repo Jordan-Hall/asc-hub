@@ -595,3 +595,46 @@ func TestProjectPermissionsAndConsistency(t *testing.T) {
 		})
 	})
 }
+
+func TestProjectBoardMoveAndStates(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	sess := loginUser(t, "user2")
+
+	t.Run("A writer gets a Move button on every card", func(t *testing.T) {
+		resp := sess.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/projects/1"), http.StatusOK)
+		doc := NewHTMLParser(t, resp.Body)
+		board := doc.Find("#project-board")
+		assert.Equal(t, "Moved {card} to {column}.", board.AttrOr("data-moved", ""))
+		assert.Contains(t, board.AttrOr("data-move-failed", ""), "Request id {id}.")
+		assert.NotEmpty(t, board.AttrOr("data-move-failed-no-id", ""))
+		assert.Equal(t, doc.Find("#project-board .issue-card").Length(), doc.Find(`.issue-card [data-testid="project-card-move"][aria-haspopup="menu"]`).Length())
+		assert.Positive(t, doc.Find(".issue-card").Length())
+		assert.Equal(t, "status", doc.Find(`[data-testid="project-board-status"]`).AttrOr("role", ""))
+		assert.Equal(t, "alert", doc.Find(`[data-testid="project-board-error"]`).AttrOr("role", ""))
+		assert.Zero(t, doc.Find(`[data-testid="project-board-empty"]`).Length())
+	})
+
+	t.Run("A reader sees the board without Move", func(t *testing.T) {
+		resp := MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/projects/1"), http.StatusOK)
+		doc := NewHTMLParser(t, resp.Body)
+		assert.Positive(t, doc.Find(".issue-card").Length())
+		assert.Zero(t, doc.Find(`[data-testid="project-card-move"]`).Length())
+		_, writable := doc.Find("#project-board").Attr("data-moved")
+		assert.False(t, writable)
+	})
+
+	t.Run("A board without cards says how to add one", func(t *testing.T) {
+		resp := sess.MakeRequest(t, NewRequest(t, "GET", "/user2/-/projects/5"), http.StatusOK)
+		empty := NewHTMLParser(t, resp.Body).Find(`[data-testid="project-board-empty"]`)
+		assert.Equal(t, 1, empty.Length())
+		assert.Contains(t, empty.Text(), "No cards on this board yet")
+	})
+
+	t.Run("A refused move carries the request id the error quotes", func(t *testing.T) {
+		req := NewRequestWithJSON(t, "POST", "/user2/repo1/projects/1/999999/move", map[string]any{
+			"issues": []map[string]any{{"issueID": 1, "sorting": 0}},
+		})
+		resp := sess.MakeRequest(t, req, http.StatusNotFound)
+		assert.NotEmpty(t, resp.Header().Get("X-Request-Id"))
+	})
+}

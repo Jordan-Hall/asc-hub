@@ -49,7 +49,20 @@
 	{{if $.Project.RenderedContent}}<div class="content markup wk-pv-desc">{{$.Project.RenderedContent}}</div>{{end}}
 </div>
 
-<div id="project-board">
+<div id="project-board"{{if $canWriteProject}} data-moved="{{ctx.Locale.Tr "asc_work.pj_moved" "{card}" "{column}"}}" data-move-failed="{{ctx.Locale.Tr "asc_work.pj_move_failed" "{card}" "{id}"}}" data-move-failed-no-id="{{ctx.Locale.Tr "asc_work.pj_move_failed_no_id" "{card}"}}" data-moving="{{ctx.Locale.Tr "asc_work.pj_moving" "{card}" "{column}"}}"{{end}}>
+	<p id="project-board-status" class="ds-sr" role="status" aria-live="polite" data-testid="project-board-status"></p>
+	<div class="ds-container">
+		<div id="project-board-error" class="ds-banner ds-banner-err wk-pv-error" role="alert" data-testid="project-board-error" hidden>
+			{{svg "dsi-alert" 18}}<p class="ds-banner-body"></p>
+			<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm ds-banner-close" aria-label="{{ctx.Locale.Tr "asc_work.pj_error_dismiss"}}">{{svg "dsi-x" 16}}</button>
+		</div>
+		{{if not .ProjectCardCount}}
+			<div class="ds-card wk-pv-empty" data-testid="project-board-empty">
+				{{$body := ctx.Locale.Tr "asc_work.pj_board_empty_read"}}{{if $canWriteProject}}{{$body = ctx.Locale.Tr "asc_work.pj_board_empty_body"}}{{end}}
+				{{template "shared/ds/empty" (dict "Icon" "columns" "Title" (ctx.Locale.Tr "asc_work.pj_board_empty") "Body" $body)}}
+			</div>
+		{{end}}
+	</div>
 	<div class="board {{if $canWriteProject}}sortable{{end}}"{{if $canWriteProject}} data-url="{{$.Link}}/move"{{end}}>
 		{{range .Columns}}
 			<div class="project-column"{{if .Color}} style="background: {{.Color}} !important; color: {{ContrastColor .Color}} !important"{{end}} data-id="{{.ID}}" data-sorting="{{.Sorting}}" data-url="{{$.Link}}/{{.ID}}">
@@ -144,6 +157,9 @@
 					{{range (index $.IssuesMap .ID)}}
 						<div class="issue-card tw-break-anywhere {{if $canWriteProject}}tw-cursor-grab{{end}}" data-issue="{{.ID}}">
 							{{template "repo/issue/card" (dict "Issue" . "Page" $)}}
+							{{if $canWriteProject}}
+								<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm project-card-move" aria-haspopup="menu" aria-expanded="false" data-testid="project-card-move" aria-label="{{ctx.Locale.Tr "asc_work.pj_move_label" .Title}}">{{svg "dsi-columns" 14}}<span>{{ctx.Locale.Tr "asc_work.pj_move"}}</span></button>
+							{{end}}
 						</div>
 					{{end}}
 				</div>
