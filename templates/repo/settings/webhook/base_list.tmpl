@@ -1,19 +1,23 @@
 <section class="ds-card wh-sec" aria-labelledby="wh-list-title">
-	<div class="ds-card-h">
-		<h2 id="wh-list-title">{{ctx.Locale.Tr "repo.settings.hooks"}}</h2>
-		<span class="ds-card-sub">{{.Description}}</span>
-	</div>
-	<div class="ds-card-b">
-		{{if .Webhooks}}
-			{{template "shared/webhook/rows" (dict "Rows" .Webhooks "BaseLink" .BaseLink "ListLink" .BaseLink)}}
-		{{else}}
-			{{template "shared/ds/empty" (dict "Icon" "link" "Title" (ctx.Locale.Tr "asc_hooks.none_title") "Body" (ctx.Locale.Tr "asc_hooks.none_text"))}}
-		{{end}}
-		<div class="wh-add">
-			<div class="ui jump dropdown">
-				<div class="ds-btn ds-btn-secondary" tabindex="0">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "repo.settings.add_webhook"}}</div>
-				{{template "repo/settings/webhook/link_menu" .}}
-			</div>
+	<div class="ds-card-h wh-head">
+		<div class="ds-grow">
+			<h2 id="wh-list-title">{{ctx.Locale.Tr "repo.settings.hooks"}}</h2>
+			<p class="ds-card-sub">{{.Description}}</p>
+		</div>
+		<div class="ui jump dropdown wh-add-menu">
+			<div class="ds-btn ds-btn-primary ds-btn-sm" tabindex="0">{{ctx.Locale.Tr "repo.settings.add_webhook"}}</div>
+			{{template "repo/settings/webhook/link_menu" .}}
 		</div>
 	</div>
+	{{if .Webhooks}}
+		{{template "shared/webhook/list" (dict "Rows" .Webhooks "BaseLink" .BaseLink "ListLink" .BaseLink)}}
+	{{else}}
+		<div class="ds-card-b">
+			{{template "shared/ds/empty" (dict "Icon" "link" "Title" (ctx.Locale.Tr "asc_hooks.none_title") "Body" (ctx.Locale.Tr "asc_hooks.none_text"))}}
+		</div>
+	{{end}}
 </section>
+<div class="ui jump dropdown wh-add-phone">
+	<div class="ds-btn ds-btn-primary ds-btn-block" tabindex="0">{{ctx.Locale.Tr "repo.settings.add_webhook"}}</div>
+	{{template "repo/settings/webhook/link_menu" .}}
+</div>

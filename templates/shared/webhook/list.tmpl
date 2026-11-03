@@ -1,0 +1,39 @@
+{{/* Webhooks as a list: where each sends and what kind it is, which events, how its last delivery went (or that it keeps
+failing), an Active switch that pauses or resumes it at once, and Edit. Replay and the deliveries are on the hook's page.
+Props: Rows (webhook ListRow), BaseLink (the webhook pages), ListLink (this list, where the switch comes back to). */}}
+<ul class="wh-list">
+{{range .Rows}}
+	<li class="ds-li wh-li">
+		<div class="ds-li-main">
+			<div class="ds-li-title">
+				<a class="ds-mono wh-target" href="{{$.BaseLink}}/{{.ID}}">{{with .URLScheme}}<span class="ds-c-3">{{.}}</span>{{end}}{{.URLRest}}</a>
+				<span class="ds-chip ds-chip-outline wh-kind">{{ctx.Locale.Tr .Kind}}</span>
+			</div>
+			<div class="ds-li-meta wh-evs">
+				{{if .AllEvents}}<span class="ds-chip">{{ctx.Locale.Tr "repo.settings.event_send_everything"}}</span>{{else}}
+					{{range .Events}}<span class="ds-chip">{{ctx.Locale.Tr .}}</span>{{end}}
+					{{if .MoreEvents}}<span class="ds-chip">{{ctx.Locale.Tr "asc_hooks.more_events" .MoreEvents}}</span>{{end}}
+					{{if not (or .Events .MoreEvents)}}<span class="ds-chip">{{ctx.Locale.Tr "asc_hooks.no_events"}}</span>{{end}}
+				{{end}}
+			</div>
+		</div>
+		<div class="wh-status">
+			{{if .Failing}}
+				<span class="ds-row ds-gap-8 wh-failing"><span class="ds-dot ds-dot-err" aria-hidden="true"></span><span>{{if .Status}}{{ctx.Locale.Tr "asc_hooks.failing" .FailStreak .Status}}{{else}}{{ctx.Locale.Tr "asc_hooks.failing_no_response" .FailStreak}}{{end}}</span></span>
+			{{else if .Last}}
+				<span class="ds-row ds-gap-8"><span class="ds-dot {{if .Failed}}ds-dot-err{{else}}ds-dot-ok{{end}}" aria-hidden="true"></span><span>{{if .Status}}{{.StatusLine}}{{else}}{{ctx.Locale.Tr "asc_hooks.no_response"}}{{end}}, {{DateUtils.TimeSince .Last.Delivered}}</span></span>
+			{{else}}
+				<span class="ds-row ds-gap-8"><span class="ds-dot" aria-hidden="true"></span><span>{{ctx.Locale.Tr "asc_hooks.never"}}</span></span>
+			{{end}}
+		</div>
+		<div class="wh-li-acts">
+			<form method="post" action="{{$.BaseLink}}/{{.ID}}/active">
+				<input type="hidden" name="active" value="{{not .IsActive}}">
+				<input type="hidden" name="redirect_to" value="{{$.ListLink}}">
+				<button class="ds-switch-btn" type="submit" role="switch" aria-checked="{{.IsActive}}" aria-label="{{ctx.Locale.Tr "asc_hooks.active_label" .URL}}"><span class="ds-switch-track" aria-hidden="true"></span><span class="wh-active" aria-hidden="true">{{ctx.Locale.Tr "asc_hooks.col_active"}}</span></button>
+			</form>
+			<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.BaseLink}}/{{.ID}}" aria-label="{{ctx.Locale.Tr "edit"}}: {{.URL}}">{{ctx.Locale.Tr "edit"}}</a>
+		</div>
+	</li>
+{{end}}
+</ul>

@@ -1,4 +1,5 @@
-{{/* Webhooks as a table: where each sends, which events, how its last delivery went, and Edit, or Replay when that delivery failed.
+{{/* Webhooks as a table: where each sends and what kind it is, which events, how its last delivery went (or that it keeps failing),
+an Active switch that pauses or resumes it at once, and Edit, or Replay when that delivery failed.
 Props: Rows (webhook ListRow), BaseLink (the webhook pages), ListLink (this list, where Replay comes back to), ScopeCol (optional, a column with each row's Scope). */}}
 <div class="ds-table-wrap">
 	<table class="ds-table ds-table-stack wh-table">
@@ -13,7 +14,7 @@ Props: Rows (webhook ListRow), BaseLink (the webhook pages), ListLink (this list
 		{{range .Rows}}
 			<tr{{if .IsSystemWebhook}} class="wh-sys"{{end}}>
 				<th scope="row" data-label="{{ctx.Locale.Tr "asc_hooks.col_webhook"}}">
-					<a class="wh-host" href="{{$.BaseLink}}/{{.ID}}">{{.Host}}</a>{{if not .IsActive}} <span class="ds-chip">{{ctx.Locale.Tr "asc_hooks.inactive"}}</span>{{end}}
+					<a class="wh-host" href="{{$.BaseLink}}/{{.ID}}">{{.Host}}</a> <span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr .Kind}}</span>{{if not .IsActive}} <span class="ds-chip">{{ctx.Locale.Tr "asc_hooks.inactive"}}</span>{{end}}
 					<div class="ds-t-small ds-mono ds-break wh-url">{{.URL}}</div>
 				</th>
 				{{if $.ScopeCol}}<td data-label="{{ctx.Locale.Tr "asc_hooks.col_scope"}}"><span class="ds-chip ds-chip-outline">{{.Scope}}</span></td>{{end}}
@@ -27,14 +28,21 @@ Props: Rows (webhook ListRow), BaseLink (the webhook pages), ListLink (this list
 					</span>
 				</td>
 				<td data-label="{{ctx.Locale.Tr "asc_hooks.col_last"}}">
-					{{if .Last}}
-						<span class="ds-row ds-gap-8"><span class="ds-dot {{if .Failed}}ds-dot-err{{else}}ds-dot-ok{{end}}" aria-hidden="true"></span><span>{{if .Status}}{{.Status}}{{else}}{{ctx.Locale.Tr "asc_hooks.no_response"}}{{end}}, {{DateUtils.TimeSince .Last.Delivered}}</span></span>
+					{{if .Failing}}
+						<span class="ds-row ds-gap-8 wh-failing"><span class="ds-dot ds-dot-err" aria-hidden="true"></span><span>{{if .Status}}{{ctx.Locale.Tr "asc_hooks.failing" .FailStreak .Status}}{{else}}{{ctx.Locale.Tr "asc_hooks.failing_no_response" .FailStreak}}{{end}}</span></span>
+					{{else if .Last}}
+						<span class="ds-row ds-gap-8"><span class="ds-dot {{if .Failed}}ds-dot-err{{else}}ds-dot-ok{{end}}" aria-hidden="true"></span><span>{{if .Status}}{{.StatusLine}}{{else}}{{ctx.Locale.Tr "asc_hooks.no_response"}}{{end}}, {{DateUtils.TimeSince .Last.Delivered}}</span></span>
 					{{else}}
 						<span class="ds-row ds-gap-8"><span class="ds-dot" aria-hidden="true"></span><span>{{ctx.Locale.Tr "asc_hooks.never"}}</span></span>
 					{{end}}
 				</td>
 				<td class="ds-r">
 					<span class="ds-row ds-gap-8 wh-acts">
+					<form method="post" action="{{$.BaseLink}}/{{.ID}}/active">
+						<input type="hidden" name="active" value="{{not .IsActive}}">
+						<input type="hidden" name="redirect_to" value="{{$.ListLink}}">
+						<button class="ds-switch-btn" type="submit" role="switch" aria-checked="{{.IsActive}}" aria-label="{{ctx.Locale.Tr "asc_hooks.active_label" .URL}}"><span class="ds-switch-track" aria-hidden="true"></span></button>
+					</form>
 					{{if .Failed}}
 						<form method="post" action="{{$.BaseLink}}/{{.ID}}/replay/{{.Last.UUID}}">
 							<input type="hidden" name="redirect_to" value="{{$.ListLink}}">
