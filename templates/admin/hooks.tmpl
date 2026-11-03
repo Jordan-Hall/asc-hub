@@ -1,9 +1,62 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin hooks")}}
 	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.hooks_apps") "Desc" (ctx.Locale.Tr "asc_admin.hooks_lead"))}}
-	{{template "admin/hooks_tabs" (dict "Active" "hooks" "Data" .)}}
 
-	{{template "admin/hooks_list" (dict "Set" .SystemWebhooks "Scope" (ctx.Locale.Tr "asc_admin.hooks_scope_system") "Desc" (ctx.Locale.Tr "asc_admin.hooks_sys_desc") "I" 0 "Link" .Link)}}
-	{{template "admin/hooks_list" (dict "Set" .DefaultWebhooks "Scope" (ctx.Locale.Tr "asc_admin.hooks_scope_default") "Desc" (ctx.Locale.Tr "asc_admin.hooks_def_desc") "I" 1 "Link" .Link)}}
+	<section class="ds-card adm-sec wh-sec" aria-labelledby="adm-hooks">
+		<div class="ds-card-h">
+			<h2 id="adm-hooks">{{ctx.Locale.Tr "asc_admin.hooks_tab"}}</h2>
+			<span class="ds-card-sub">{{ctx.Locale.Tr "asc_admin.hooks_desc"}}</span>
+		</div>
+		<div class="ds-card-b">
+			{{if .Webhooks}}
+				{{template "shared/webhook/rows" (dict "Rows" .Webhooks "BaseLink" .SystemWebhooks.BaseLink "ListLink" .Link "ScopeCol" true)}}
+			{{else}}
+				{{template "shared/ds/empty" (dict "Icon" "link" "Title" (ctx.Locale.Tr "asc_admin.hooks_none_title") "Body" (ctx.Locale.Tr "asc_admin.hooks_none_text"))}}
+			{{end}}
+			<div class="wh-add ds-row ds-row-wrap ds-gap-8">
+				<button type="button" class="ds-btn ds-btn-secondary show-modal" data-modal="#adm-add-hook-0">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "asc_admin.hooks_add_system"}}</button>
+				<button type="button" class="ds-btn ds-btn-ghost show-modal" data-modal="#adm-add-hook-1">{{ctx.Locale.Tr "asc_admin.hooks_add_default"}}</button>
+			</div>
+		</div>
+	</section>
+	{{if .EnableOAuth2}}
+	<section class="ds-card adm-sec wh-sec" aria-labelledby="adm-apps">
+		<div class="ds-card-h">
+			<h2 id="adm-apps">{{ctx.Locale.Tr "asc_admin.apps_tab"}}</h2>
+			<span class="ds-card-sub">{{ctx.Locale.Tr "asc_admin.apps_all_desc"}}</span>
+		</div>
+		{{if .Apps}}
+			<div class="wh-flush">
+				<table class="ds-table ds-table-stack wh-table">
+					<thead><tr>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.apps_col_app"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.apps_col_owner"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "settings.oauth2_client_id"}}</th>
+						<th scope="col" class="ds-r">{{ctx.Locale.Tr "asc_admin.apps_col_grants"}}</th>
+						<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_hooks.col_actions"}}</span></th>
+					</tr></thead>
+					<tbody>
+					{{range .Apps}}
+						<tr>
+							<th scope="row" data-label="{{ctx.Locale.Tr "asc_admin.apps_col_app"}}"><b>{{.Name}}</b></th>
+							<td data-label="{{ctx.Locale.Tr "asc_admin.apps_col_owner"}}">{{if .Owner}}<a href="{{.Owner.HomeLink}}">{{.Owner.GetDisplayName}}</a>{{else}}{{ctx.Locale.Tr "asc_admin.apps_site"}}{{end}}</td>
+							<td data-label="{{ctx.Locale.Tr "settings.oauth2_client_id"}}"><span class="ds-mono ds-t-small" title="{{.ClientID}}">{{.ShortClientID}}</span></td>
+							<td class="ds-r" data-label="{{ctx.Locale.Tr "asc_admin.apps_col_grants"}}">{{.Grants}}</td>
+							<td class="ds-r"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{AppSubUrl}}/admin/applications/oauth2/{{.ID}}" aria-label="{{ctx.Locale.Tr "asc_admin.apps_manage"}}: {{.Name}}">{{ctx.Locale.Tr "asc_admin.apps_manage"}}</a></td>
+						</tr>
+					{{end}}
+					</tbody>
+				</table>
+			</div>
+		{{end}}
+		<div class="ds-card-b">
+			{{if not .Apps}}
+				{{template "shared/ds/empty" (dict "Icon" "puzzle" "Title" (ctx.Locale.Tr "asc_admin.apps_none_title") "Body" (ctx.Locale.Tr "asc_admin.apps_none_text"))}}
+			{{end}}
+			<div class="wh-add"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/applications">{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "asc_admin.apps_create"}}</a></div>
+		</div>
+	</section>
+	{{end}}
+	{{template "admin/hooks_add" (dict "Set" .SystemWebhooks "Title" (ctx.Locale.Tr "asc_admin.hooks_add_system") "I" 0)}}
+	{{template "admin/hooks_add" (dict "Set" .DefaultWebhooks "Title" (ctx.Locale.Tr "asc_admin.hooks_add_default") "I" 1)}}
 
-	{{template "repo/settings/webhook/delete_modal" .}}
 {{template "admin/layout_footer" .}}
