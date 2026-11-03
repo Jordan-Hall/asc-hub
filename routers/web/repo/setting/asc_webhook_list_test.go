@@ -11,7 +11,9 @@ import (
 	"forgejo.org/models/db"
 	"forgejo.org/models/unittest"
 	"forgejo.org/models/webhook"
+	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
+	"forgejo.org/modules/test"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -168,4 +170,57 @@ func TestWebhookListFailing(t *testing.T) {
 	assert.Contains(t, body, "asc_hooks.kind_generic")
 	assert.Contains(t, body, `action="/user2/repo1/settings/hooks/1/active"`)
 	assert.Contains(t, body, `role="switch" aria-checked="false"`)
+}
+
+// With asc on, the form refuses a plain http address under the field, keeps what was typed, and saves nothing.
+func TestWebhookCreateRefusesHTTP(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	defer test.MockVariableValue(&setting.Webhook.AllowLocalHTTP, false)()
+
+	create := func(payloadURL string) (int, string) {
+		ctx, resp := contexttest.MockContext(t, "POST /user2/repo1/settings/hooks/forgejo/new")
+		ctx.Render = templates.HTMLRenderer()
+		contexttest.LoadUser(t, ctx, 2)
+		contexttest.LoadRepo(t, ctx, 1)
+		ctx.Data["PageIsRepoSettings"] = true
+		ctx.SetParams(":type", "forgejo")
+		form := url.Values{"payload_url": {payloadURL}, "http_method": {"POST"}, "content_type": {"1"}, "events": {"push_only"}, "active": {"on"}}
+		ctx.Req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		ctx.Req.Form, ctx.Req.PostForm = form, form
+		WebhookCreate(ctx)
+		return ctx.Resp.Status(), resp.Body.String()
+	}
+
+	before := unittest.GetCount(t, &webhook.Webhook{RepoID: 1})
+	status, body := create("http://receiver.example.org/hook")
+	require.Equal(t, http.StatusUnprocessableEntity, status)
+	assert.Contains(t, body, `role="alert"`)
+	assert.Contains(t, body, "asc_hooks.http_refused")
+	assert.Contains(t, body, `aria-invalid="true"`)
+	assert.Contains(t, body, `value="http://receiver.example.org/hook"`, "the typed address is kept")
+	assert.Equal(t, before, unittest.GetCount(t, &webhook.Webhook{RepoID: 1}))
+
+	status, _ = create("https://receiver.example.org/hook")
+	require.Equal(t, http.StatusSeeOther, status)
+	assert.Equal(t, before+1, unittest.GetCount(t, &webhook.Webhook{RepoID: 1}))
+}
+
+// The edit form says up front that only https is accepted.
+func TestWebhookFormHintsHTTPS(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+
+	ctx, resp := contexttest.MockContext(t, "GET /user2/repo1/settings/hooks/1")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadUser(t, ctx, 2)
+	contexttest.LoadRepo(t, ctx, 1)
+	ctx.Data["PageIsRepoSettings"] = true
+	ctx.SetParams(":id", "1")
+	WebhookEdit(ctx)
+	require.Equal(t, http.StatusOK, ctx.Resp.Status())
+	body := resp.Body.String()
+	assert.Contains(t, body, `<p class="ds-hint" id="payload_url_help">asc_hooks.url_hint</p>`)
+	assert.Contains(t, body, `aria-describedby="payload_url_help"`)
+	assert.NotContains(t, body, "asc_hooks.http_refused")
 }
