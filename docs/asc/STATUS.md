@@ -25,7 +25,7 @@ After this audit:
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
 | **all** | 94 | 845 | 443 | 86 | 316 | 52% |
 
-Missing rows by kind of work: UI 151, hub 134, asc 15, hub+asc 86. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 149, hub 134, asc 15, hub+asc 86. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 169, partial 32, missing 116. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 171, partial 32, missing 114. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -666,7 +666,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Projects (ASC Hub projects)
 
-Area shell/settings. Rows 5: done 1, partial 0, missing 4. Copy found in the hub: 54% of 48 copy strings (mobile twin 56%). Template(s): list.tmpl, new.tmpl, view.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 5: done 3, partial 0, missing 2. Copy found in the hub: 54% of 48 copy strings (mobile twin 56%). Template(s): list.tmpl, new.tmpl, view.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; London and remote; Release 2.19; Everything planned for the next release, with the real state of each stack.; Add card; Webhook receivers back off per host.
 
@@ -674,9 +674,9 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | Kanban board with columns, drag, edit/close/delete | done | templates/projects/view.tmpl:82 | - |
 | Cards that are stacks following real state; Landed column by stack state | missing (hub) | logged as not built (not re-probed) | project_issue model holds issues/PRs; map PullRequestAscStack state to a column, issue/card.tmpl |
-| Move menu (keyboard alternative) announcing the new column | missing (UI) | logged as not built (not re-probed) | view.tmpl + web_src/js/features/repo-projects.js |
+| Move menu (keyboard alternative) announcing the new column | done | templates/projects/view.tmpl, web_src/js/features/project-move.js | - |
 | Add card, Switch project select, rename and hide columns | missing (UI) | logged as not built (not re-probed) | view.tmpl, column hide flag (small migration) |
-| Empty, loading and error ("request id") states | missing (UI) | logged as not built (not re-probed) | projects/list.tmpl |
+| Empty, loading and error ("request id") states | done | templates/projects/view.tmpl (empty, error banner, status), project-move.js | - |
 | Board note: Cards move between columns by drag or by the Move menu; a stack card follows its real sta... | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Cards link to the stack or the issue | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Columns can be renamed and hidden | unverified | not tracked in the gap files | needs a row and a test |
