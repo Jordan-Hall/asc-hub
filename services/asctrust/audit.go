@@ -4,6 +4,7 @@
 package asctrust
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
 	"io"
@@ -16,7 +17,9 @@ import (
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 
+	"github.com/42wim/sshsig"
 	"github.com/zeebo/blake3"
+	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc"
 )
 
@@ -407,34 +410,60 @@ var ErrExportDigest = errors.New("asctrust: the audit export does not match its 
 // ExportStream is the stream of an Audit.Export call.
 type ExportStream = grpc.ServerStreamingClient[ascv1.ExportAuditResponse]
 
+// AuditExportNamespace is the SSHSIG namespace asc signs an audit export in, as `ssh-keygen -Y verify -n` takes it.
+const AuditExportNamespace = "asc-audit-export"
+
+// auditExportSigner is the principal the allowed_signers file of a signed export names.
+const auditExportSigner = "asc-server"
+
+// maxExportSignature bounds the armored signature and the key line that close a signed export.
+const maxExportSignature = 16 << 10
+
+// ErrExportSignature is returned when a signed export does not verify against the key that came with it.
+var ErrExportSignature = errors.New("asctrust: the audit export signature does not verify")
+
+// ExportResult is what the last message of an export says: how many events the file holds and, when the server has a
+// signing key, the armored SSHSIG over the file and the public key line that checks it.
+type ExportResult struct {
+	Events    uint64
+	Signature string
+	SignerKey string
+}
+
+// Signed reports whether the export came with a signature.
+func (r ExportResult) Signed() bool {
+	return r.Signature != ""
+}
+
 // CopyExport copies an export to w, which must be a scratch file or buffer and not the response: every chunk is
 // checked (at most maxExportChunk bytes, at most MaxExportBytes in all, nothing after the last message), hashed,
 // and written; the last message must carry the BLAKE3 digest of everything written, or the copy fails with
 // ErrExportDigest. The handler sends the bytes to the browser only after CopyExport returns without an error, so
-// a download that arrives is a download whose digest matched. It returns the number of events the export holds.
-func CopyExport(stream ExportStream, w io.Writer) (events uint64, err error) {
+// a download that arrives is a download whose digest matched. A signature and its key come together or not at all;
+// VerifyExportSignature checks them against the file.
+func CopyExport(stream ExportStream, w io.Writer) (ExportResult, error) {
 	h := blake3.New()
 	var total int64
 	for {
 		msg, err := stream.Recv()
 		if err == io.EOF {
-			return 0, fmt.Errorf("%w: the export ended without its last message", ErrBadAnswer)
+			return ExportResult{}, fmt.Errorf("%w: the export ended without its last message", ErrBadAnswer)
 		}
 		if err != nil {
-			return 0, err
+			return ExportResult{}, err
 		}
 		data := msg.GetData()
 		if len(data) > maxExportChunk {
-			return 0, fmt.Errorf("%w: export chunk", ErrBadAnswer)
+			return ExportResult{}, fmt.Errorf("%w: export chunk", ErrBadAnswer)
 		}
 		total += int64(len(data))
 		if total > MaxExportBytes {
-			return 0, fmt.Errorf("%w: export size", ErrBadAnswer)
+			return ExportResult{}, fmt.Errorf("%w: export size", ErrBadAnswer)
 		}
 		if len(data) > 0 {
 			_, _ = h.Write(data)
 			if _, err := w.Write(data); err != nil {
-				return 0, err
+				return ExportResult{}, err
 			}
 		}
 		if !msg.GetLast() {
@@ -442,11 +471,68 @@ func CopyExport(stream ExportStream, w io.Writer) (events uint64, err error) {
 		}
 		sum := h.Sum(nil)
 		if string(sum) != string(msg.GetDigest()) {
-			return 0, ErrExportDigest
+			return ExportResult{}, ErrExportDigest
 		}
 		if _, err := stream.Recv(); err != io.EOF {
-			return 0, fmt.Errorf("%w: data after the last export message", ErrBadAnswer)
+			return ExportResult{}, fmt.Errorf("%w: data after the last export message", ErrBadAnswer)
 		}
-		return msg.GetEvents(), nil
+		res := ExportResult{Events: msg.GetEvents(), Signature: msg.GetSignature(), SignerKey: msg.GetSignerKey()}
+		if (res.Signature == "") != (res.SignerKey == "") || len(res.Signature) > maxExportSignature ||
+			len(res.SignerKey) > maxExportSignature || strings.ContainsAny(res.SignerKey, "\r\n") {
+			return ExportResult{}, fmt.Errorf("%w: export signature", ErrBadAnswer)
+		}
+		return res, nil
 	}
+}
+
+// VerifyExportSignature checks the signature of an export against the file as it was written, as
+// `ssh-keygen -Y verify -n asc-audit-export` does. An unsigned export has nothing to check.
+func VerifyExportSignature(file io.Reader, r ExportResult) error {
+	if !r.Signed() {
+		return nil
+	}
+	if err := sshsig.Verify(file, []byte(r.Signature), []byte(r.SignerKey), AuditExportNamespace); err != nil {
+		return fmt.Errorf("%w: %v", ErrExportSignature, err)
+	}
+	return nil
+}
+
+// WriteSignedExport writes the archive a signed export downloads as: the export file under name, its signature as
+// name.sig, an allowed_signers file that names the server key for the export namespace, and VERIFY.txt with the
+// command that checks the file. The caller has verified the signature.
+func WriteSignedExport(w io.Writer, name string, file io.Reader, r ExportResult, at time.Time) error {
+	key, _, _, _, err := ssh.ParseAuthorizedKey([]byte(r.SignerKey))
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrExportSignature, err)
+	}
+	keyLine := strings.TrimSpace(string(ssh.MarshalAuthorizedKey(key)))
+	verify := "This archive holds an audit export signed by the asc server.\n\n" +
+		"Check it with OpenSSH 8.1 or later, in this folder:\n\n" +
+		"  ssh-keygen -Y verify -f allowed_signers -I " + auditExportSigner + " -n " + AuditExportNamespace +
+		" -s " + name + ".sig < " + name + "\n\n" +
+		"The server key is " + ssh.FingerprintSHA256(key) + ". Compare it with the key your administrator publishes\n" +
+		"before you trust the file: allowed_signers only says which key signed it.\n"
+	zw := zip.NewWriter(w)
+	add := func(entry string, body io.Reader) error {
+		f, err := zw.CreateHeader(&zip.FileHeader{Name: entry, Method: zip.Deflate, Modified: at})
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(f, body)
+		return err
+	}
+	for _, e := range []struct {
+		name string
+		body io.Reader
+	}{
+		{name, file},
+		{name + ".sig", strings.NewReader(strings.TrimSpace(r.Signature) + "\n")},
+		{"allowed_signers", strings.NewReader(auditExportSigner + ` namespaces="` + AuditExportNamespace + `" ` + keyLine + "\n")},
+		{"VERIFY.txt", strings.NewReader(verify)},
+	} {
+		if err := add(e.name, e.body); err != nil {
+			return err
+		}
+	}
+	return zw.Close()
 }

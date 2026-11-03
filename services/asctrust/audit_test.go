@@ -4,7 +4,11 @@
 package asctrust
 
 import (
+	"archive/zip"
 	"bytes"
+	"crypto/ed25519"
+	"crypto/rand"
+	"encoding/pem"
 	"errors"
 	"io"
 	"strings"
@@ -13,9 +17,11 @@ import (
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 
+	"github.com/42wim/sshsig"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zeebo/blake3"
+	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -202,9 +208,10 @@ func TestCopyExportVerifiesTheDigest(t *testing.T) {
 		{Data: a}, {Data: b, Last: true, Digest: digestOf(a, b), Events: 2},
 	}}
 	var out bytes.Buffer
-	n, err := CopyExport(s, &out)
+	res, err := CopyExport(s, &out)
 	require.NoError(t, err)
-	assert.EqualValues(t, 2, n)
+	assert.Equal(t, ExportResult{Events: 2}, res)
+	assert.False(t, res.Signed())
 	assert.Equal(t, string(a)+string(b), out.String())
 }
 
@@ -326,9 +333,9 @@ func TestStartAuditExportChoosesTheFormat(t *testing.T) {
 		stream, err := StartAuditExport(userCtx(t, "t"), c, &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_INSTANCE}, &ascv1.AuditFilter{}, csv)
 		require.NoError(t, err)
 		var out bytes.Buffer
-		n, err := CopyExport(stream, &out)
+		res, err := CopyExport(stream, &out)
 		require.NoError(t, err)
-		assert.EqualValues(t, 1, n)
+		assert.EqualValues(t, 1, res.Events)
 		assert.Equal(t, "row\n", out.String())
 	}
 	assert.Equal(t, []ascv1.AuditExportFormat{ascv1.AuditExportFormat_AUDIT_EXPORT_FORMAT_JSONL, ascv1.AuditExportFormat_AUDIT_EXPORT_FORMAT_CSV}, formats)
@@ -375,4 +382,85 @@ func TestKVShortCutsHashesOnly(t *testing.T) {
 			t.Errorf("Short(%q) = %q, want %q", c.in, got, c.want)
 		}
 	}
+}
+
+// signExport signs data as asc signs an export, with a new key: the armored signature and the key line.
+func signExport(t *testing.T, data []byte, namespace string) (sig, key string) {
+	t.Helper()
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+	block, err := ssh.MarshalPrivateKey(priv, "")
+	require.NoError(t, err)
+	armored, err := sshsig.Sign(pem.EncodeToMemory(block), bytes.NewReader(data), namespace)
+	require.NoError(t, err)
+	sshPub, err := ssh.NewPublicKey(pub)
+	require.NoError(t, err)
+	return string(armored), strings.TrimSpace(string(ssh.MarshalAuthorizedKey(sshPub)))
+}
+
+func TestCopyExportKeepsTheSignatureAndItVerifies(t *testing.T) {
+	a := []byte("{\"seq\":1}\n")
+	sig, key := signExport(t, a, AuditExportNamespace)
+	s := &fakeExport{msgs: []*ascv1.ExportAuditResponse{{Data: a, Last: true, Digest: digestOf(a), Events: 1, Signature: sig, SignerKey: key}}}
+	var out bytes.Buffer
+	res, err := CopyExport(s, &out)
+	require.NoError(t, err)
+	assert.Equal(t, ExportResult{Events: 1, Signature: sig, SignerKey: key}, res)
+	assert.True(t, res.Signed())
+	require.NoError(t, VerifyExportSignature(bytes.NewReader(out.Bytes()), res))
+	require.NoError(t, VerifyExportSignature(strings.NewReader("anything"), ExportResult{}), "an unsigned export has nothing to check")
+
+	assert.ErrorIs(t, VerifyExportSignature(strings.NewReader("{\"seq\":2}\n"), res), ErrExportSignature, "another file")
+	other, _ := signExport(t, a, AuditExportNamespace)
+	assert.ErrorIs(t, VerifyExportSignature(bytes.NewReader(a), ExportResult{Signature: other, SignerKey: key}), ErrExportSignature, "another key")
+	wrongNS, wrongKey := signExport(t, a, "git")
+	assert.ErrorIs(t, VerifyExportSignature(bytes.NewReader(a), ExportResult{Signature: wrongNS, SignerKey: wrongKey}), ErrExportSignature, "a commit signature is not an export signature")
+}
+
+func TestCopyExportRefusesHalfASignature(t *testing.T) {
+	a := []byte("row\n")
+	for name, last := range map[string]*ascv1.ExportAuditResponse{
+		"no key":        {Signature: "sig"},
+		"no signature":  {SignerKey: "ssh-ed25519 AAAA"},
+		"two key lines": {Signature: "sig", SignerKey: "ssh-ed25519 AAAA\nssh-ed25519 BBBB"},
+		"huge":          {Signature: strings.Repeat("s", maxExportSignature+1), SignerKey: "ssh-ed25519 AAAA"},
+	} {
+		last.Data, last.Last, last.Digest = a, true, digestOf(a)
+		_, err := CopyExport(&fakeExport{msgs: []*ascv1.ExportAuditResponse{last}}, io.Discard)
+		assert.ErrorIs(t, err, ErrBadAnswer, name)
+	}
+}
+
+func TestWriteSignedExport(t *testing.T) {
+	a := []byte("{\"seq\":1}\n")
+	sig, key := signExport(t, a, AuditExportNamespace)
+	var out bytes.Buffer
+	at := time.Date(2026, 11, 3, 10, 0, 0, 0, time.UTC)
+	require.NoError(t, WriteSignedExport(&out, "asc-audit-acme-20261103.jsonl", bytes.NewReader(a), ExportResult{Events: 1, Signature: sig, SignerKey: key}, at))
+
+	zr, err := zip.NewReader(bytes.NewReader(out.Bytes()), int64(out.Len()))
+	require.NoError(t, err)
+	files := map[string]string{}
+	var names []string
+	for _, f := range zr.File {
+		rc, err := f.Open()
+		require.NoError(t, err)
+		b, err := io.ReadAll(rc)
+		require.NoError(t, err)
+		_ = rc.Close()
+		files[f.Name] = string(b)
+		names = append(names, f.Name)
+		assert.True(t, f.Modified.Equal(at), f.Name)
+	}
+	assert.Equal(t, []string{"asc-audit-acme-20261103.jsonl", "asc-audit-acme-20261103.jsonl.sig", "allowed_signers", "VERIFY.txt"}, names)
+	assert.Equal(t, string(a), files["asc-audit-acme-20261103.jsonl"])
+	assert.Equal(t, `asc-server namespaces="asc-audit-export" `+key+"\n", files["allowed_signers"])
+	assert.Contains(t, files["VERIFY.txt"], "ssh-keygen -Y verify -f allowed_signers -I asc-server -n asc-audit-export -s asc-audit-acme-20261103.jsonl.sig < asc-audit-acme-20261103.jsonl")
+	pk, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
+	require.NoError(t, err)
+	assert.Contains(t, files["VERIFY.txt"], ssh.FingerprintSHA256(pk))
+	// The archive checks itself: the file against the signature it holds, with the key it names.
+	require.NoError(t, sshsig.Verify(strings.NewReader(files["asc-audit-acme-20261103.jsonl"]), []byte(files["asc-audit-acme-20261103.jsonl.sig"]), []byte(key), AuditExportNamespace))
+
+	assert.ErrorIs(t, WriteSignedExport(io.Discard, "x.jsonl", bytes.NewReader(a), ExportResult{Signature: sig, SignerKey: "not a key"}, at), ErrExportSignature)
 }
