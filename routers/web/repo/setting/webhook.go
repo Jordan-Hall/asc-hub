@@ -189,6 +189,20 @@ func ParseHookEvent(form forms.WebhookCoreForm) *webhook_module.HookEvent {
 	}
 }
 
+// submittedWebhook is a new webhook filled with what the form sent, to show the form again after an error.
+func submittedWebhook(fields forms.WebhookForm) webhook.Webhook {
+	var w webhook.Webhook
+	w.ID = -1 // We are going to encrypt it using this ID, bind the encrypted value to a ID that will never exist in the database. Safety precaution.
+	w.URL = fields.URL
+	w.ContentType = fields.ContentType
+	w.Secret = fields.Secret
+	w.HookEvent = ParseHookEvent(fields.WebhookCoreForm)
+	w.IsActive = fields.Active
+	w.HTTPMethod = fields.HTTPMethod
+	w.SetHeaderAuthorization(fields.AuthorizationHeader)
+	return w
+}
+
 func WebhookCreate(ctx *context.Context) {
 	hookType := ctx.Params(":type")
 	handler := webhook_service.GetWebhookHandler(hookType)
@@ -219,17 +233,7 @@ func WebhookCreate(ctx *context.Context) {
 	ctx.Data["WebhookList"] = webhook_service.List()
 
 	if ctx.HasError() {
-		// pre-fill the form with the submitted data
-		var w webhook.Webhook
-		w.ID = -1 // We are going to encrypt it using this ID, bind the encrypted value to a ID that will never exist in the database. Safety precaution.
-		w.URL = fields.URL
-		w.ContentType = fields.ContentType
-		w.Secret = fields.Secret
-		w.HookEvent = ParseHookEvent(fields.WebhookCoreForm)
-		w.IsActive = fields.Active
-		w.HTTPMethod = fields.HTTPMethod
-		w.SetHeaderAuthorization(fields.AuthorizationHeader)
-		ctx.Data["Webhook"] = w
+		ctx.Data["Webhook"] = submittedWebhook(fields)
 		ctx.Data["HookMetadata"] = fields.Metadata
 
 		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
@@ -246,7 +250,8 @@ func WebhookCreate(ctx *context.Context) {
 	}
 
 	if err := webhook_service.CheckPayloadURL(fields.URL); err != nil {
-		ctx.Flash.Error(err.Error())
+		payloadURLRefused(ctx)
+		ctx.Data["Webhook"] = submittedWebhook(fields)
 		ctx.Data["HookMetadata"] = fields.Metadata
 		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
 		return
@@ -333,7 +338,7 @@ func WebhookUpdate(ctx *context.Context) {
 	w.Meta = string(meta)
 
 	if err := webhook_service.CheckPayloadURL(w.URL); err != nil {
-		ctx.Flash.Error(err.Error())
+		payloadURLRefused(ctx)
 		ctx.Data["HookMetadata"] = fields.Metadata
 		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
 		return
@@ -349,6 +354,13 @@ func WebhookUpdate(ctx *context.Context) {
 
 	ctx.Flash.Success(ctx.Tr("repo.settings.update_hook_success"))
 	ctx.Redirect(fmt.Sprintf("%s/%d", orCtx.Link, w.ID))
+}
+
+// payloadURLRefused marks the payload address field of a webhook form whose address the transport rule refused; the
+// form says why under the field.
+func payloadURLRefused(ctx *context.Context) {
+	ctx.Data["Err_PayloadURL"] = true
+	ctx.Data["PayloadURLRefused"] = true
 }
 
 func checkWebhook(ctx *context.Context) (*ownerRepoCtx, *webhook.Webhook) {
