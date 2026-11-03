@@ -57,6 +57,9 @@ func (*Service) Register(
 	if !runnerToken.IsActive {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("runner registration token has been invalidated, please use the latest one"))
 	}
+	if runnerToken.IsExpired() {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("runner registration token has expired, please get a new one"))
+	}
 
 	if has, ownerID := runnerToken.OwnerID.Get(); has {
 		if _, err := user_model.GetUserByID(ctx, ownerID); err != nil {
