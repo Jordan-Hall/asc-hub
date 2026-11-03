@@ -27,7 +27,7 @@ func Organizations(ctx *context.Context) {
 		ctx.SetFormString("sort", UserSearchDefaultAdminSort)
 	}
 
-	explore.RenderUserSearch(ctx, &user_model.SearchUserOptions{
+	explore.RenderUserSearchWith(ctx, &user_model.SearchUserOptions{
 		Actor:           ctx.Doer,
 		Type:            user_model.UserTypeOrganization,
 		IncludeReserved: true, // administrator needs to list all accounts include reserved
@@ -35,5 +35,7 @@ func Organizations(ctx *context.Context) {
 			PageSize: setting.UI.Admin.OrgPagingNum,
 		},
 		Visible: []structs.VisibleType{structs.VisibleTypePublic, structs.VisibleTypeLimited, structs.VisibleTypePrivate},
-	}, tplOrgs)
+	}, tplOrgs, func(orgs []*user_model.User) {
+		ctx.Data["OrgStorage"] = loadOrgStorage(ctx, orgs)
+	})
 }
