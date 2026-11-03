@@ -25,7 +25,7 @@ After this audit:
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
 | **all** | 94 | 845 | 443 | 86 | 316 | 52% |
 
-Missing rows by kind of work: UI 153, hub 135, asc 15, hub+asc 87. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 152, hub 134, asc 15, hub+asc 86. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -52,11 +52,11 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 155, partial 33, missing 129. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 169, partial 32, missing 116. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 133, partial 26, missing 115. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
-- **auth**: 6 boards, 40 rows, done 24, partial 5, missing 11. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
+- **auth**: 6 boards, 40 rows, done 25, partial 4, missing 11. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
 
 Cross-cutting mobile rows (not tied to one board) are counted in the area they belong to and listed in section 6.
 
@@ -546,34 +546,34 @@ Board copy not found word for word in locale, templates or scripts: ASC 1.4: age
 
 #### NewOrg (ASC Hub new organization)
 
-Area shell/settings. Rows 3: done 1, partial 0, missing 2. Copy found in the hub: 62% of 29 copy strings (mobile twin 70%). Template(s): create.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 3: done 3, partial 0, missing 0. Copy found in the hub: 62% of 29 copy strings (mobile twin 70%). Template(s): create.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Who owns it; Create a first team; A team called Everyone, with you as lead.; You can change this in organization settings later.; ASC Hub 1.4.2.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Handle field, visibility, create | done | templates/org/create.tmpl (file) | - |
-| Display name field, "Who owns it", "Create a first team Everyone", "Allow agents" switch | missing (hub+asc) | logged as not built (not re-probed) | hub: forms.CreateOrgForm + create.tmpl; asc: agents flag per org (see OrgSettings) |
-| Handle availability check as you type, reserved-name error, live preview card, loading button | missing (UI) | logged as not built (not re-probed) | create.tmpl + JS (availability endpoint is hub S) |
-| Board note: Handle availability checks as you type | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Preview updates live | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, handle taken (error), handle reserved, creating (button loading), created toast | unverified | not tracked in the gap files | needs a row and a test |
+| Display name field, "Who owns it", "Create a first team Everyone", "Allow agents" switch | done | templates/org/create.tmpl, routers/web/org/org.go CreatePost, routers/web/org/org_create_test.go | - |
+| Handle availability check as you type, reserved-name error, live preview card, loading button | done | routers/web/org/org.go CreateCheck, web_src/js/features/org-new.js | - |
+| Board note: Handle availability checks as you type | done | tests/integration/new_org_test.go TestNewOrganizationHandleCheck | - |
+| Board note: Preview updates live | done | web_src/js/features/org-new.test.js | - |
+| Board note: Default, handle taken (error), handle reserved, creating (button loading), created toast | done | org-new.test.js, TestNewOrganizationHandleCheck, org.go CreatePost flash | - |
 
 #### OrgPeople (ASC Hub organization people)
 
-Area shell/settings. Rows 7: done 1, partial 2, missing 4. Copy found in the hub: 62% of 80 copy strings (mobile twin 61%). Template(s): add_org_member.tmpl, members.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 7: done 6, partial 1, missing 0. Copy found in the hub: 62% of 80 copy strings (mobile twin 61%). Template(s): add_org_member.tmpl, members.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; London and remote; Everyone 38; Owners 3; Pending 2; Change role.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Member rows with avatar, owner/member chips, 2FA chip, remove/leave, public/private toggle | done | templates/org/member/members.tmpl:47 | - |
-| Search box, filter chips with counts (Everyone, Owners, 2FA off done; Pending needs the invita... | missing (UI) | logged as not built (not re-probed) | members.tmpl + routers/web/org/members.go query params |
-| Change role menu with Maintainer role and undo toast; last owner cannot be demoted | missing (hub) | logged as not built (not re-probed) | org members are owner/member only (teams carry access); new role model or Maintainer team mapping in routers/web/org/members.go |
-| Row detail: teams list, last active, changesets count | missing (hub+asc) | logged as not built (not re-probed) | hub: teams and last login; asc: authored-changeset count per person (no stats RPC) |
-| Agents section (agent identity, run by, scoped to paths, Manage) | partial (hub+asc) | logged as not built (not re-probed) | asc: org-owned agent identities (only per-repo AgentTokens exist); hub: members.tmpl section |
-| Pending invitations (email, role, invited by, Resend, Revoke) | partial (hub) | logged as not built (not re-probed) | team invite table exists; list + resend + revoke in members.tmpl |
-| Invite dialog accepting several emails and a role | missing (hub) | logged as not built (not re-probed) | templates/org/member/add_org_member.tmpl takes one user; extend routers/web/org/members.go |
+| Search box, filter chips with counts (Everyone, Owners, 2FA off done; Pending needs the invita... | done | templates/org/member/members.tmpl, routers/web/org/members.go | - |
+| Change role menu with Maintainer role and undo toast; last owner cannot be demoted | done | routers/web/org/people.go changeRole, templates/org/member/members.tmpl role-undo | - |
+| Row detail: teams list, last active, changesets count | partial (asc) | routers/web/org/people.go landedByPerson | asc: a per-person total across organization repositories |
+| Agents section (agent identity, run by, scoped to paths, Manage) | done | routers/web/org/people.go orgAgents | - |
+| Pending invitations (email, role, invited by, Resend, Revoke) | done | routers/web/org/people.go pendingInvites | - |
+| Invite dialog accepting several emails and a role | done | templates/org/member/add_org_member.tmpl, routers/web/org/people.go inviteSeveral | - |
 
 #### OrgProfile (ASC Hub organization profile)
 
@@ -594,34 +594,34 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### OrgSettings (ASC Hub organization settings)
 
-Area shell/settings. Rows 8: done 5, partial 0, missing 3. Copy found in the hub: 63% of 70 copy strings (mobile twin 57%). Template(s): layout_head.tmpl, navbar.tmpl, options.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 8: done 7, partial 0, missing 1. Copy found in the hub: 63% of 70 copy strings (mobile twin 57%). Template(s): layout_head.tmpl, navbar.tmpl, options.tmpl. Mobile twin: yes.
 
-Board copy not found word for word in locale, templates or scripts: Skip to content; Runners and secrets; Upload logo; Lisbon and remote; Default repository visibility; Who can create repositories.
+Board copy not found word for word in locale, templates or scripts: Skip to content; Runners and secrets; Upload logo; Lisbon and remote.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Profile fields, logo upload/remove, visibility, repo-admin team access, repository creation li... | done | templates/org/settings/options.tmpl:52 | - |
-| Who can create repositories (owners / maintainers), base permission for members, default repos... | missing (hub) | logged as not built (not re-probed) | models/organization columns, options.tmpl, repo create permission checks |
+| Who can create repositories (owners / maintainers), base permission for members, default repos... | done | models/organization/asc_repo_defaults.go:38, templates/org/settings/options.tmpl | - |
 | Agents card: allow agents, agent changesets need a person, monthly agent spend ceiling | done | routers/web/org/setting/asc_agents.go:23 | - |
 | Default merge policy shown + Edit policy (repositories inherit and can only tighten) | done | routers/web/org/setting/asc_agents.go:28 | - |
 | Transfer ownership | missing (hub) | logged as not built (not re-probed) | org settings route + services/org owner change, options.tmpl danger zone |
 | Delete organization with typed handle | done | templates/org/settings/delete.tmpl:1 | - |
-| Owner-only banner and disabled fields for non-owners (settings routes require owner today) | missing (UI) | logged as not built (not re-probed) | routers/web/web.go org settings group, options.tmpl |
+| Owner-only banner and disabled fields for non-owners (settings routes require owner today) | done | templates/org/settings/options.tmpl, routers/web/web.go | - |
 | Left menu: AI keys, Storage, Audit, Packages, Webhooks, Applications, Runners, Blocked users,... | done | templates/org/settings/navbar.tmpl (file) | - |
 
 #### OrgTeams (ASC Hub organization teams)
 
-Area shell/settings. Rows 4: done 1, partial 0, missing 3. Copy found in the hub: 68% of 53 copy strings (mobile twin 66%). Template(s): members.tmpl, new.tmpl, repositories.tmpl, teams.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 4: done 2, partial 0, missing 2. Copy found in the hub: 68% of 53 copy strings (mobile twin 66%). Template(s): members.tmpl, new.tmpl, repositories.tmpl, teams.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; London and remote; Infra, queues, rate limits and runners.; Cross-team reviewers for money-touching paths.; Tokens, components and docs.; Edit team.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Team cards (name, access, description, avatars, member and repo counts), create/edit/delete te... | done | templates/org/team/teams.tmpl (file) | - |
-| Selecting a card loads detail below without leaving (members + repositories with access) | missing (UI) | logged as not built (not re-probed) | teams.tmpl links to separate pages; add htmx panel |
+| Selecting a card loads detail below without leaving (members + repositories with access) | done | web_src/js/features/org-team.js pickTeam | - |
 | Policy owner note: team linked to a path pattern in merge policy | missing (hub+asc) | logged as not built (not re-probed) | asc: policy path-owner rule naming a hub team (crates/asc-core/src/policy.rs); hub: team page card |
 | Agents as team members with a path scope | missing (hub+asc) | logged as not built (not re-probed) | asc: agent identity + path scope; hub: team members list |
-| Board note: Teams is a view of the organization; selecting a card loads detail below without leaving | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Teams is a view of the organization; selecting a card loads detail below without leaving | done | web_src/js/features/org-team.test.js | - |
 | Board note: Policy owner links a team to a path pattern in merge policy | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Agents can be team members with a path scope | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Default with selected team, empty team (add member prompt), team without repositories, de... | unverified | not tracked in the gap files | needs a row and a test |
@@ -1842,7 +1842,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### UserSettingsTokens (ASC Hub settings: access tokens)
 
-Area auth. Rows 6: done 3, partial 1, missing 2. Copy found in the hub: 62% of 96 copy strings (mobile twin 59%). Template(s): applications.tmpl, authorized_integrations.tmpl. Mobile twin: yes.
+Area auth. Rows 6: done 4, partial 0, missing 2. Copy found in the hub: 62% of 96 copy strings (mobile twin 59%). Template(s): applications.tmpl, authorized_integrations.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Credentials for scripts, CI and the asc CLI. Prefer short-lived sign-in where y...; For scripts and the asc CLI. Give each one the least access that works.; asc CLI on laptop; changes:write.
 
@@ -1853,7 +1853,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | ASC scope set (Repositories, Changesets and stacks, Agent runs, Organizations, Profile) as Non... | missing (hub+asc) | models/auth/access_token_scope.go has Forgejo categories only; no changes, runs or profile scope | hub: models/auth/access_token_scope.go + access_token_edit.tmpl; asc: crates/asc-serve/src/authn.rs must accept and enforce them |
 | Token created: copy-once card with Copy and "shown once" text (today a flash message) | done | routers/web/user/setting/access_token.go (file) | - |
 | Workload identity (issuer, subject, last used, remove, add) | done | templates/user/settings/authorized_integrations.tmpl (file) | - |
-| "Prefer no tokens" card with asc auth login commands | partial | templates/user/settings/applications.tmpl:15 asc auth login card | Card exists; copy differs from the board (no Prefer no tokens heading, no asc auth token --scope line). |
+| "Prefer no tokens" card with asc auth login commands | done | templates/user/settings/applications.tmpl "Prefer no tokens" card: browser sign in, --token-stdin for CI, auth status; tests/integration/user_test.go TestAccessTokensPreferNoTokens | - (the board's asc auth token --scope line names no asc command; the browser sign in replaces it) |
 
 ## 5. Gap-file rows corrected by this audit
 
