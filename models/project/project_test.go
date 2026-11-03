@@ -158,3 +158,28 @@ func TestChangeProjectStatus(t *testing.T) {
 		assert.Equal(t, repo.NumClosedProjects, repoAfter.NumClosedProjects)
 	})
 }
+
+func TestOtherOpenProjects(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ids := func(ps []*Project) []int64 {
+		out := make([]int64, 0, len(ps))
+		for _, p := range ps {
+			out = append(out, p.ID)
+		}
+		return out
+	}
+
+	p4 := unittest.AssertExistsAndLoadBean(t, &Project{ID: 4})
+	others, err := OtherOpenProjects(db.DefaultContext, p4, 10)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []int64{5, 6}, ids(others), "the other open projects of user2, not this one")
+
+	others, err = OtherOpenProjects(db.DefaultContext, p4, 1)
+	require.NoError(t, err)
+	assert.Len(t, others, 1)
+
+	p1 := unittest.AssertExistsAndLoadBean(t, &Project{ID: 1})
+	others, err = OtherOpenProjects(db.DefaultContext, p1, 10)
+	require.NoError(t, err)
+	assert.Empty(t, others, "repo1 has one project")
+}

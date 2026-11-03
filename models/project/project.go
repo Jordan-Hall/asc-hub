@@ -213,6 +213,33 @@ type SearchOptions struct {
 	Title    string
 }
 
+// OtherOpenProjects lists up to limit open projects of the same repository or owner as p, the most recently
+// changed first, without p: the Switch project menu of a board.
+func OtherOpenProjects(ctx context.Context, p *Project, limit int) ([]*Project, error) {
+	opts := SearchOptions{
+		ListOptions: db.ListOptions{Page: 1, PageSize: limit + 1},
+		IsClosed:    optional.Some(false),
+		OrderBy:     db.SearchOrderByRecentUpdated,
+		Type:        p.Type,
+	}
+	if p.RepoID > 0 {
+		opts.RepoID = p.RepoID
+	} else {
+		opts.OwnerID = p.OwnerID
+	}
+	projects, err := db.Find[Project](ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	others := make([]*Project, 0, len(projects))
+	for _, other := range projects {
+		if other.ID != p.ID && len(others) < limit {
+			others = append(others, other)
+		}
+	}
+	return others, nil
+}
+
 func (opts SearchOptions) ToConds() builder.Cond {
 	cond := builder.NewCond()
 	if opts.RepoID > 0 {
