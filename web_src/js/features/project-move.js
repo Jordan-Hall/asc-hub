@@ -37,13 +37,18 @@ export function hideMoveError(board) {
   if (error) error.hidden = true;
 }
 
-/** Shows that the card did not move, with the request id when the hub answered. */
-export function showMoveError(board, card, requestId) {
+/** Shows a problem of the board in its error banner. */
+export function showBoardError(board, text) {
   const error = board.querySelector('#project-board-error');
   if (!error) return;
-  const template = requestId ? board.getAttribute('data-move-failed') : board.getAttribute('data-move-failed-no-id');
-  error.querySelector('.ds-banner-body').textContent = fillMessage(template, {card: cardTitle(card), id: requestId});
+  error.querySelector('.ds-banner-body').textContent = text;
   error.hidden = false;
+}
+
+/** Shows that the card did not move, with the request id when the hub answered. */
+export function showMoveError(board, card, requestId) {
+  const template = requestId ? board.getAttribute('data-move-failed') : board.getAttribute('data-move-failed-no-id');
+  showBoardError(board, fillMessage(template, {card: cardTitle(card), id: requestId}));
 }
 
 /**

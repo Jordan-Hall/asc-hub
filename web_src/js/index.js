@@ -104,6 +104,7 @@ import {initOrgTeamSearchRepoBox, initOrgTeamPicker} from './features/org-team.j
 import {initOrgNew} from './features/org-new.js';
 import {initIssueListLoading} from './features/issue-list-loading.js';
 import {initProjectMove} from './features/project-move.js';
+import {initProjectBoard} from './features/project-board.js';
 import {initUserAuthWebAuthn, initUserAuthWebAuthnRegister} from './features/user-auth-webauthn.js';
 import {initRepoRelease, initRepoReleaseNew} from './features/repo-release.js';
 import {initRepoEditor} from './features/repo-editor.js';
@@ -192,6 +193,7 @@ onDomReady(() => {
   initOrgNew();
   initIssueListLoading();
   initProjectMove();
+  initProjectBoard();
 
   initRepoActivityTopAuthorsChart();
   initRepoArchiveLinks();
