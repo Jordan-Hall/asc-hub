@@ -1379,6 +1379,54 @@ button.ds-palette-item {
   min-width: 0;
 }
 
+/* while the next settings page loads (a link of the menu), the content is skeleton inputs: ds-settings-loading.js */
+.ds-settings-body.is-loading > :not(.ds-settings-sk) {
+  display: none;
+}
+
+.ds-settings-sk {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ds-settings-sk-head,
+.ds-settings-sk-field {
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+}
+
+.ds-settings-sk-head {
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.ds-settings-sk-field {
+  gap: 6px;
+}
+
+.ds-settings-sk-title {
+  width: 40%;
+  height: 24px;
+}
+
+.ds-settings-sk-lead {
+  width: 70%;
+  height: 12px;
+}
+
+.ds-settings-sk-label {
+  width: 120px;
+  height: 12px;
+}
+
+.ds-settings-sk-input {
+  width: 100%;
+  height: var(--input-h);
+  border-radius: var(--r-btn);
+}
+
 /* the menu is a page of its own on a phone: it opens full screen from #settings-menu */
 .ds-settings-nav {
   display: none;

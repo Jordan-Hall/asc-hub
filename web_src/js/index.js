@@ -103,6 +103,7 @@ import {initRepoDiffView} from './features/repo-diff.js';
 import {initOrgTeamSearchRepoBox, initOrgTeamPicker} from './features/org-team.js';
 import {initOrgNew} from './features/org-new.js';
 import {initIssueListLoading} from './features/issue-list-loading.js';
+import {initSettingsLoading} from './features/ds-settings-loading.js';
 import {initProjectMove} from './features/project-move.js';
 import {initProjectBoard} from './features/project-board.js';
 import {initUserAuthWebAuthn, initUserAuthWebAuthnRegister} from './features/user-auth-webauthn.js';
@@ -192,6 +193,7 @@ onDomReady(() => {
   initOrgTeamPicker();
   initOrgNew();
   initIssueListLoading();
+  initSettingsLoading();
   initProjectMove();
   initProjectBoard();
 
