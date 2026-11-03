@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 186, partial 30, missing 101. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 187, partial 30, missing 100. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -785,15 +785,15 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### UserSettingsOrgs (ASC Hub settings: organizations)
 
-Area shell/settings. Rows 3: done 2, partial 0, missing 1. Copy found in the hub: 75% of 52 copy strings (mobile twin 68%). Template(s): organization.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 3: done 3, partial 0, missing 0. Copy found in the hub: 75% of 52 copy strings (mobile twin 68%). Template(s): organization.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Teams you belong to and invitations waiting for you.; Where you are a member or owner.; Rail Guild; Join with one click..
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Organization rows with role chip, "38 people - 14 repositories", Settings for owners | done | templates/user/settings/organization.tmpl:1 | - |
-| Pending invitations with Accept and Decline | missing (hub) | logged as not built (not re-probed) | team invites are token mails (routers/web/org TeamInvite); add listing by user email + accept/decline |
-| Last owner cannot leave (explains transfer first) | done | templates/user/settings/organization.tmpl:32 (best match) | - |
+| Pending invitations with Accept and Decline | done | templates/user/settings/organization.tmpl (Invitations card: inviter, role, age, Decline, Accept); routers/web/user/setting/asc_org_invites.go (orgInviteRows, inviteRole, DeclineOrgInvite) | - |
+| Last owner cannot leave (explains transfer first) | done | an owner leaves from the People page, which refuses the last owner (routers/web/org/people.go) | - |
 | Board note: Leave asks to confirm; the last owner must transfer first | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Left menu is the only navigation for settings: no tabs repeat these pages | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Default, pending invitation, empty (illustration + New organization), last owner cannot l... | unverified | not tracked in the gap files | needs a row and a test |

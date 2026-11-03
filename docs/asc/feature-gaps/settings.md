@@ -18,13 +18,13 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 142 |
+| done | 143 |
 | partial | 1 |
 | ui-only-missing | 5 |
 | needs-hub-backend | 5 |
 | needs-asc-backend | 2 |
 | needs-both | 18 |
-| total | 173 |
+| total | 174 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
@@ -105,9 +105,9 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsKeys | Delete confirm that lists what stops working | done | keys_ssh.tmpl modal text | S |
 | UserSettingsApps | OAuth2 apps, authorized apps with revoke, client secret shown once, regenerate | done | templates/user/settings/applications_oauth2*.tmpl, grants_oauth2.tmpl | - |
 | UserSettingsApps | Webhooks table: events column, last delivery status text and time, Replay from the list | done | templates/shared/webhook/rows.tmpl (host over URL, events as chips with "+N more", last delivery dot with status and time, Edit or Replay when the last delivery failed), services/webhook/rows.go ListRows, models/webhook LastDeliveries; used by repository, user, organization and admin lists. Tests: services/webhook/rows_test.go, routers/web/repo/setting/asc_webhook_list_test.go | - |
-| UserSettingsOrgs | Organization rows with role chip, "38 people - 14 repositories", Settings for owners | done | templates/user/settings/organization.tmpl (only avatar, description, Open, Leave) | S |
+| UserSettingsOrgs | Organization rows with role chip, "38 people - 14 repositories", Settings for owners | done | templates/user/settings/organization.tmpl (role chip, people and repository counts, Settings for an owner, Leave for a member, New organization); routers/web/user/setting/profile.go (SettingsOrgRow); test TestOrganizationPageRows | S |
 | UserSettingsOrgs | Pending invitations with Accept and Decline | done | `models/organization/team_invite_pending.go` (GetPendingInvitesForUser: invitations made for the account or for an address of theirs that they confirmed, not for an unconfirmed one; DeclineInviteForUser answers "not found" for an invitation that is not theirs), `routers/web/user/setting/asc_org_invites.go`, Invitations card with Accept (the existing invitation page) and Decline (`POST /user/settings/organization/decline`) in `templates/user/settings/organization.tmpl`; tests: TestPendingInvitesForUser | - |
-| UserSettingsOrgs | Last owner cannot leave (explains transfer first) | done | org members leave action message and organization.tmpl modal | S |
+| UserSettingsOrgs | Last owner cannot leave (explains transfer first) | done | an owner has no Leave on this page: they leave from the organization's People page, which refuses the last owner (routers/web/org/people.go); a member leaves through the leave-organization modal of organization.tmpl | S |
 | UserSettingsRepos | Owned repositories list, unadopted adopt/delete | done | templates/user/settings/repos.tmpl | - |
 | UserSettingsRepos | Stack count and storage target per row; Transfer dialog (new owner + repository name) | needs-both | hub: repos.tmpl (repo transfer exists in repo settings); asc: stack counts (Stacks service) and Storage.AssignRepo target | M |
 | UserSettingsStorage | Targets list and state chips, add form (name, region, endpoint, bucket, prefix, addressing, keys), enable, disable, delete | done | routers/web/shared/byoweb/storage.go, templates/shared/asc/byo_storage*.tmpl | - |
@@ -226,4 +226,5 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | Packages | Cleanup rule preview ("removes 14 versions of 6 packages, frees 1.3 GB") | done | templates/org/settings/packages_cleanup_rules_preview.tmpl | - |
 | Packages | Error state with request id and Status page link | done | routers/web/shared/packages/asc_list.go (LoadList, ListFailed) renders the error card of templates/package/shared/list.tmpl with status 500; Status page is /-/status (AscStatus, templates/asc/status.tmpl) | S |
 | MobileAdmin* | Same data as desktop in stacked groups, back arrow to the admin menu, sticky action bar | done | templates/admin/navbar.tmpl (shared settings-nav shell) | - |
-| MobileIssues/Projects/Packages/Drafts/Org* | Single-column twins; same gaps as the desktop rows above; sticky primary bar on forms | ui-only-missing | per-row work above | S |
+| MobileOrg* | Single-column twins of OrgProfile, OrgPeople and UserSettingsOrgs: the organization head stacks (40px avatar, Follow and Org settings full width), the people bar wraps, an organization row keeps its button beside the name and an invitation's buttons go under its text | done | web_src/css/asc-pages/work-org.css (phone block), web_src/css/asc-pages/work-common.css (.wk-rows.orgs, .wk-rows.invites); pixel boards Mobile-OrgProfile, Mobile-OrgPeople, Mobile-UserSettingsOrgs | - |
+| MobileIssues/Projects/Packages/Drafts | Single-column twins; same gaps as the desktop rows above; sticky primary bar on forms | ui-only-missing | per-row work above | S |
