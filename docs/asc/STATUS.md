@@ -53,7 +53,7 @@ Other findings that cross boards:
 ## 3. Per-area counts and boards
 
 - **shell/settings**: 47 boards, 317 rows, done 187, partial 30, missing 100. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
-- **repo**: 24 boards, 274 rows, done 134, partial 26, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
+- **repo**: 24 boards, 274 rows, done 135, partial 25, missing 114. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
 - **auth**: 6 boards, 40 rows, done 25, partial 4, missing 11. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
@@ -1313,20 +1313,20 @@ Board copy not found word for word in locale, templates or scripts: Where change
 
 #### RepoSettingsWebhooks (ASC Hub repository settings: Webhooks)
 
-Area repo. Rows 10: done 4, partial 1, missing 5. Copy found in the hub: 75% of 116 copy strings (mobile twin 72%). Template(s): -. Mobile twin: yes.
+Area repo. Rows 10: done 5, partial 0, missing 5. Copy found in the hub: 75% of 116 copy strings (mobile twin 72%). Template(s): -. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Send events to other systems.; Tell another system when something happens here. Each request is signed with th...; stack opened; One webhook, two views; Settings and recent deliveries belong to this hook, so they are tabs here.; Delivery d_7q2m1.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
-| Hook list with URL, kind, events, last delivery, Active switch, Failing banner | partial | templates/shared/webhook/rows.tmpl | kind column, Active switch, Failing banner |
+| Hook list with URL, kind, events, last delivery, Active switch, Failing banner | done | templates/shared/webhook/list.tmpl; services/webhook/rows.go; models/webhook/hooktask.go FailingStreaks | - |
 | One hook with tabs Settings / Recent deliveries (12), delivery detail with Request / Response,... | done | templates/repo/settings/webhook/history.tmpl:4 | - |
 | Hook kinds Generic, Chat, ASC agent (starts an agent run on an event) | missing (hub) | logged as not built (not re-probed) | H:modules/webhook/type.go has Forgejo kinds; add asc-agent kind that calls Agents.CreateRun; map Chat to slack/discord/matrix |
 | ASC events: Changes (Landed, Opened, Review requested), Agents (Run started, Run finished), Re... | missing (hub) | logged as not built (not re-probed) | event types and notifiers in H:models/webhook, H:services/webhook, fired from ascsync/agent callbacks |
 | Payload URL https-only with certificate check; loopback http only with local option | missing (hub) | logged as not built (not re-probed) | H:modules/setting ALLOWED_HOST_LIST; add the explicit local option and the refusal text |
 | Secret shown masked with Replace, never shown again | done | templates/webhook/secret.tmpl; routers/web/repo/setting/asc_webhook_list_test.go | - |
 | Send test delivery | done | see where-cell | - |
-| Failing-hook alert banner role=alert and menu count "Webhooks 3" | missing (UI) | logged as not built (not re-probed) | list + navbar |
+| Failing-hook alert banner role=alert and menu count "Webhooks 3" | missing (UI) | routers/web/repo/setting/asc_menu_status.go (menu count) | role=alert banner of a failed delivery on Recent deliveries |
 | Add webhook dialog with http address refused | missing (UI) | logged as not built (not re-probed) | webhook/new.tmpl is a page |
 | Empty state | done | templates/repo/settings/webhook/base_list.tmpl:10 | - |
 
