@@ -306,6 +306,15 @@ func UserOrgUnitRepoCond(idStr string, userID, orgID int64, unitType unit.Type) 
 	)
 }
 
+// ascOrgBaseRepoCond selects the repositories of the organizations where userID is a member and every member may read
+// each repository (asc_repo_defaults.base_permission).
+func ascOrgBaseRepoCond(userID int64) builder.Cond {
+	return builder.In("`repository`.owner_id",
+		builder.Select("`org_user`.org_id").From("`org_user`").
+			Join("INNER", "`asc_repo_defaults`", "`asc_repo_defaults`.org_id = `org_user`.org_id").
+			Where(builder.Eq{"`org_user`.uid": userID}.And(builder.Gt{"`asc_repo_defaults`.base_permission": 0})))
+}
+
 // userOrgPublicRepoCond returns the condition that one user could access all public repositories in organizations
 func userOrgPublicRepoCond(userID int64) builder.Cond {
 	return builder.And(
@@ -662,6 +671,8 @@ func AccessibleRepositoryCondition(user *user_model.User, unitType unit.Type) bu
 		}
 		// 4. Repositories that we directly own
 		cond = cond.Or(builder.Eq{"`repository`.owner_id": user.ID})
+		// 4a. Repositories of an organization that gives every member a base permission (asc_repo_defaults)
+		cond = cond.Or(ascOrgBaseRepoCond(user.ID))
 		if !user.IsRestricted {
 			// 5. Be able to see all public repos in private organizations that we are an org_user of
 			cond = cond.Or(userOrgPublicRepoCond(user.ID))

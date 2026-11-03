@@ -416,6 +416,7 @@ func DeleteOrganization(ctx context.Context, org *Organization) error {
 		&TeamUser{OrgID: org.ID},
 		&TeamUnit{OrgID: org.ID},
 		&TeamInvite{OrgID: org.ID},
+		&AscRepoDefaults{OrgID: org.ID},
 		&secret_model.Secret{OwnerID: org.ID},
 		&actions_model.ActionRunner{OwnerID: org.ID},
 		&actions_model.ActionRunnerToken{OwnerID: optional.Some(org.ID)},
@@ -452,7 +453,7 @@ func GetUsersWhoCanCreateOrgRepo(ctx context.Context, orgID int64) (map[int64]*u
 	return users, db.GetEngine(ctx).
 		Join("INNER", "`team_user`", "`team_user`.uid=`user`.id").
 		Join("INNER", "`team`", "`team`.id=`team_user`.team_id").
-		Where(builder.Eq{"team.can_create_org_repo": true}.Or(builder.Eq{"team.authorize": perm.AccessModeOwner})).
+		Where(repoCreatorTeamCond()).
 		And("team_user.org_id = ?", orgID).Find(&users)
 }
 
