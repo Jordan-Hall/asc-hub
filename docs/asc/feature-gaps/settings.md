@@ -18,9 +18,9 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 140 |
+| done | 142 |
 | partial | 1 |
-| ui-only-missing | 7 |
+| ui-only-missing | 5 |
 | needs-hub-backend | 5 |
 | needs-asc-backend | 2 |
 | needs-both | 18 |
@@ -28,7 +28,7 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 2, M 24, L 8.
+Open rows by size: S 2, M 22, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -49,7 +49,6 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 
 - No toast or undo component exists in `web_src/js`; Appearance, Notifications, Privacy and Org people all specify "saves on change with an undo toast".
 - Settings forms have a static sticky action bar; the dirty-aware save bar (`initRepoSettingsSaveBar`) is only wired to repository settings.
-- Legacy markup remains in webhook lists (`templates/repo/settings/webhook/base_list.tmpl`) used by user settings and admin hooks.
 
 ## Table
 
@@ -105,7 +104,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsKeys | Sign my changesets by default switch | needs-both | hub pref + asc config the CLI reads (no field in proto/asc/v1/signing.proto) | M |
 | UserSettingsKeys | Delete confirm that lists what stops working | done | keys_ssh.tmpl modal text | S |
 | UserSettingsApps | OAuth2 apps, authorized apps with revoke, client secret shown once, regenerate | done | templates/user/settings/applications_oauth2*.tmpl, grants_oauth2.tmpl | - |
-| UserSettingsApps | Webhooks table: events column, last delivery status text and time, Replay from the list | ui-only-missing | templates/repo/settings/webhook/base_list.tmpl is old markup (dot + URL only); data from hook_task | M |
+| UserSettingsApps | Webhooks table: events column, last delivery status text and time, Replay from the list | done | templates/shared/webhook/rows.tmpl (host over URL, events as chips with "+N more", last delivery dot with status and time, Edit or Replay when the last delivery failed), services/webhook/rows.go ListRows, models/webhook LastDeliveries; used by repository, user, organization and admin lists. Tests: services/webhook/rows_test.go, routers/web/repo/setting/asc_webhook_list_test.go | - |
 | UserSettingsOrgs | Organization rows with role chip, "38 people - 14 repositories", Settings for owners | done | templates/user/settings/organization.tmpl (only avatar, description, Open, Leave) | S |
 | UserSettingsOrgs | Pending invitations with Accept and Decline | done | `models/organization/team_invite_pending.go` (GetPendingInvitesForUser: invitations made for the account or for an address of theirs that they confirmed, not for an unconfirmed one; DeclineInviteForUser answers "not found" for an invitation that is not theirs), `routers/web/user/setting/asc_org_invites.go`, Invitations card with Accept (the existing invitation page) and Decline (`POST /user/settings/organization/decline`) in `templates/user/settings/organization.tmpl`; tests: TestPendingInvitesForUser | - |
 | UserSettingsOrgs | Last owner cannot leave (explains transfer first) | done | org members leave action message and organization.tmpl modal | S |
@@ -196,7 +195,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminAuth | Sources list with edit and add | done | templates/admin/auth/list.tmpl | - |
 | AdminAuth | People count per source; Local passwords row (admins only option); Test sign-in showing claims; remove blocked while people only use it | done | Built: the people per source (`routers/web/admin/asc_auth_counts.go`, a People column and the built-in Local passwords row, which is listed even when it is the only source) and the refusal to remove a source that people still use (found built: `ErrSourceInUse` in `DeleteAuthSource`); tests: TestAuthSourceCountsPeoplePerSource, TestAuthenticationsPageShowsTheLocalRowAndThePeopleOfEachSource. Built: the admins-only option of the Local passwords row (`asc.local_passwords_admins_only`, checked in `UserSignIn` for the web and the API; TestLocalPasswordsAdminsOnly). Built: the Test sign-in that shows the claims (`Prober` in LDAP, SMTP and PAM; an OAuth round trip that brings the provider claims back to the admin page; no account is made or signed in; TestAuthSourceTestSignIn) | M |
 | AdminHooks | System and default webhooks, OAuth applications list | done | templates/admin/hooks.tmpl, applications/list.tmpl | - |
-| AdminHooks | Columns scope, events, last delivery with status text; Replay from the list; secret regenerated toast | ui-only-missing | hooks_list.tmpl uses the old base_list markup | M |
+| AdminHooks | Columns scope, events, last delivery with status text; Replay from the list; secret regenerated toast | done | templates/admin/hooks.tmpl: one Webhooks table with a Scope column (system, then default), add dialogs for both; OAuth applications card with owner, client ID, grants and Manage for every app (routers/web/admin/hooks.go oauthAppRows, applications.go lets admins manage people's apps). Regenerate secret: routers/web/repo/setting/webhook.go WebhookRegenerateSecret, flash shows the new secret once. Tests: routers/web/admin/asc_hooks_test.go. Pixel AdminHooks 0.126 to 0.049, mobile 0.296 to 0.269 | - |
 | AdminPackages | Packages table and delete | done | templates/admin/packages/list.tmpl | - |
 | AdminPackages | Run cleanup rules with a preview of counts (hub runs CleanupExpiredData directly) | done | `services/packages/cleanup/preview.go` PreviewRules (per enabled rule: owner, type, versions and packages it would delete; deletes nothing), `routers/web/admin/asc_packages_cleanup.go` (`GET/POST /admin/packages/cleanup/rules`: the preview page with a Run button that runs ExecuteCleanupRules), link from the packages list; tests: TestPreviewRulesCountsWhatARuleWouldDeleteAndDeletesNothing | - |
 | AdminNotices | Notices list, dismiss, dismiss all with confirm | done | templates/admin/notice.tmpl | - |
