@@ -502,6 +502,34 @@
   opacity: 0.5;
 }
 
+/* a switch that submits its form at once: <button class="ds-switch-btn" role="switch" aria-checked="true"><span class="ds-switch-track"></span></button> */
+.ds-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.ds-switch-btn[aria-checked="true"] .ds-switch-track {
+  background: var(--fill);
+}
+
+.ds-switch-btn[aria-checked="true"] .ds-switch-track::after {
+  left: 19px;
+}
+
+.ds-switch-btn:focus-visible {
+  outline: none;
+}
+
+.ds-switch-btn:focus-visible .ds-switch-track {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 /* segmented control and filter pills (a row of buttons or links with aria-pressed or aria-current) */
 .ds-seg {
   display: inline-flex;
@@ -1088,6 +1116,8 @@ ul.ds-list {
 .wh-acts { justify-content: flex-end; }
 .wh-acts form { display: contents; }
 .wh-add { margin-top: 12px; }
+.wh-failing { color: var(--err); align-items: flex-start; }
+.wh-failing .ds-dot { margin-top: 6px; }
 .wh-secret { margin-top: 8px; }
 
 @media (max-width: 639.98px) {
@@ -1108,6 +1138,30 @@ ul.ds-list {
 
   .wh-table td { align-items: center; padding: 3px 16px; }
   .wh-table td:not([data-label]) { justify-content: flex-end; padding-top: 8px; }
+}
+
+/* the list of a repository's, an organization's or a person's webhooks (templates/shared/webhook/list.tmpl): the address
+   titles each row, the status sits in a fixed column, the Active switch and Edit close it. On a phone they stack, the
+   switch named "Active", and a full-width Add webhook follows the card. */
+.wh-head { align-items: flex-start; }
+.wh-head .ds-card-sub { margin-top: 2px; }
+.wh-list { margin: 0; padding: 0; list-style: none; }
+.wh-li { flex-wrap: wrap; gap: 8px 16px; }
+.wh-target { color: var(--text); font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.wh-evs { gap: 8px; margin-top: 8px; }
+.wh-status { flex: 1 0 100%; font-size: 13px; color: var(--text-2); }
+.wh-li-acts { display: flex; flex: 1 0 100%; align-items: center; justify-content: space-between; gap: 8px; }
+.wh-active { margin-left: 8px; font-size: 13px; color: var(--text-2); }
+.wh-kind { display: none; }
+.ui.dropdown.wh-add-phone { display: block; margin-top: 8px; }
+
+@media (min-width: 768px) {
+  .wh-li { flex-wrap: nowrap; }
+  .wh-status { flex: 0 0 260px; }
+  .wh-li-acts { flex: none; justify-content: flex-end; }
+  .wh-active { display: none; }
+  .wh-kind { display: inline-flex; }
+  .ui.dropdown.wh-add-phone { display: none; }
 }
 
 /* a table that sits flush in its card, the card's edges its border */
