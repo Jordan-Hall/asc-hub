@@ -324,6 +324,18 @@ func TestAccessTokenResourceRepos(t *testing.T) {
 	htmlDoc.AssertSelection(t, htmlDoc.FindByText(".wk-sp a", "user30/empty"), false) // missing - user2 has no visibility
 }
 
+func TestAccessTokensPreferNoTokens(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	resp := loginUser(t, "user2").MakeRequest(t, NewRequest(t, "GET", "/user/settings/applications"), http.StatusOK)
+	page := NewHTMLParser(t, resp.Body)
+	host := strings.TrimSuffix(setting.AppURL, "/")
+	assert.Equal(t, "Prefer no tokens", strings.TrimSpace(page.Find("#sp-no-tokens").Text()))
+	assert.Equal(t, "asc auth login --host "+host, page.Find(`[data-testid="no-tokens-login"] code`).Text(), "the browser sign in, with nothing to copy")
+	assert.Equal(t, "asc auth login --host "+host+" --token-stdin < token.txt", page.Find(`[data-testid="no-tokens-stdin"] code`).Text(), "a token goes on stdin, never in argv")
+	assert.Equal(t, "asc auth status", page.Find(`[data-testid="no-tokens-status"] code`).Text())
+}
+
 func findLatestTokenID(t *testing.T, session *TestSession) (string, int) {
 	req := NewRequest(t, "GET", "/user/settings/applications")
 	resp := session.MakeRequest(t, req, http.StatusOK)

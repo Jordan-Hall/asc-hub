@@ -6,6 +6,7 @@ package setting
 
 import (
 	"net/http"
+	"strings"
 
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/db"
@@ -37,6 +38,8 @@ type TokenWithResources struct {
 }
 
 func loadApplicationsData(ctx *context.Context) {
+	// the "Prefer no tokens" card signs the asc command line in to this hub
+	ctx.Data["AscHubURL"] = strings.TrimSuffix(setting.AppURL, "/")
 	tokens, err := db.Find[auth_model.AccessToken](ctx, auth_model.ListAccessTokensOptions{UserID: ctx.Doer.ID})
 	if err != nil {
 		ctx.ServerError("ListAccessTokens", err)
