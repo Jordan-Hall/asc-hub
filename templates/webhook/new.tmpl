@@ -41,4 +41,7 @@
 		{{end}}
 	{{end}}
 </div>
+{{with .ctxData}}{{if and .Webhook.ID (or (eq .HookType "forgejo") (eq .HookType "gitea") (eq .HookType "gogs"))}}
+	<form id="wh-secret-form" method="post" action="{{.BaseLink}}/{{.Webhook.ID}}/secret"></form>
+{{end}}{{end}}
 {{template "repo/settings/webhook/history" .ctxData}}
