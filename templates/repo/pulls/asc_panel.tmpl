@@ -33,9 +33,10 @@ Repository, Diff, AfterCommitID, IsShowingAllCommits
 			{{if not $own}}<button type="button" class="rv-btn rv-btn-secondary" data-asc-open-review="reject" data-testid="asc-you-reject">{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>{{end}}
 			<button type="button" class="rv-btn rv-btn-secondary" data-asc-open-review="comment" data-testid="asc-you-comment">{{ctx.Locale.Tr "repo.diff.review.comment"}}</button>
 		</div>
-		{{if not $own}}
-		{{/* on a phone the verdict stays pinned above the tab bar while the diff scrolls (board Mobile-Review) */}}
+		{{/* on a phone the verdict stays pinned above the tab bar while the diff scrolls, and the other actions of the change
+		open from it in a sheet (board Mobile-Review) */}}
 		<div class="rv-review-pinned rv-mob" data-testid="asc-review-pinned">
+			{{if not $own}}
 			{{if .IsShowingAllCommits}}
 			<form class="form-fetch-action" action="{{.Link}}/reviews/submit" method="post">
 				<input type="hidden" name="commit_id" value="{{.AfterCommitID}}">
@@ -43,8 +44,25 @@ Repository, Diff, AfterCommitID, IsShowingAllCommits
 			</form>
 			{{end}}
 			<button type="button" class="rv-btn rv-btn-secondary" data-asc-open-review="reject" data-testid="asc-pinned-reject">{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>
+			{{end}}
+			<button type="button" class="rv-btn rv-btn-secondary rv-btn-icon" aria-label="{{ctx.Locale.Tr "asc_review.actions_more"}}" aria-haspopup="dialog" data-asc-actions-open data-testid="asc-actions-open">{{svg "dsi-dots" 18}}</button>
 		</div>
-		{{end}}
+		<dialog class="rv-sheet rv-actions-sheet" aria-labelledby="asc-actions-h" data-asc-actions-sheet data-testid="asc-actions-sheet">
+			<div class="rv-sheet-grip" aria-hidden="true"></div>
+			<h2 class="rv-sheet-h" id="asc-actions-h">{{if and .AscActions .AscActions.Position}}{{ctx.Locale.Tr "asc_review.actions_title" .AscActions.Position}}{{else}}{{ctx.Locale.Tr "asc_review.actions_title_plain"}}{{end}}</h2>
+			{{if not $own}}
+			{{if .IsShowingAllCommits}}
+			<form class="form-fetch-action" action="{{.Link}}/reviews/submit" method="post">
+				<input type="hidden" name="commit_id" value="{{.AfterCommitID}}">
+				<button type="submit" name="type" value="approve" class="rv-menu-item" data-testid="asc-actions-approve">{{svg "dsi-thumbs-up" 18}}{{ctx.Locale.Tr "asc_review.actions_approve"}}</button>
+			</form>
+			{{end}}
+			<button type="button" class="rv-menu-item" data-asc-open-review="reject" data-testid="asc-actions-reject">{{svg "dsi-x-circle" 18}}{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>
+			{{end}}
+			{{with .AscActions}}{{if and .CanQueue .LandCount}}<a class="rv-menu-item" data-asc-confirm-open href="{{.ConfirmURL}}?op=queue" data-testid="asc-actions-queue">{{svg "dsi-queue" 18}}{{ctx.Locale.TrN .LandCount "asc_review.actions_queue_one" "asc_review.actions_queue_other" .LandCount}}</a>{{end}}{{end}}
+			{{with .AscRestackLine}}{{if .UndoURL}}<a class="rv-menu-item" href="{{.UndoURL}}" data-testid="asc-actions-undo-restack">{{svg "dsi-undo" 18}}{{ctx.Locale.Tr "asc_review.actions_undo_restack" (DateUtils.TimeSince .At)}}</a>{{end}}{{end}}
+			<button type="button" class="rv-menu-item" data-clipboard-text="asc stack get {{.Issue.Index}}" data-ds-toast-copied="{{ctx.Locale.Tr "asc_review.actions_copied"}}" data-testid="asc-actions-copy">{{svg "dsi-copy" 18}}{{ctx.Locale.Tr "asc_review.actions_copy"}}</button>
+		</dialog>
 	</section>
 	{{end}}
 	{{if .AscVersionChecks}}

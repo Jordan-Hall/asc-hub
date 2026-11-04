@@ -563,6 +563,16 @@
   .rv-review-pinned form {
     display: flex;
   }
+
+  /* the dots button that opens the actions sheet keeps its square size beside the verdict */
+  .rv-review-pinned > .rv-btn-icon {
+    flex: 0 0 44px;
+    min-width: 44px;
+  }
+
+  .rv-actions-sheet form {
+    display: contents;
+  }
 }
 
 .rv-review-page {
