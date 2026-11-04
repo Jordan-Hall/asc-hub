@@ -1,0 +1,21 @@
+{{/*
+The toast after "Apply as vN" (board Review: "Applied as v5", the file and line, "Approvals reset for this change.",
+Undo). Undo restores the version the suggestion was applied to. It works without script;
+web_src/js/features/asc-applied-toast.js lets it leave after 8 s.
+Template Attributes:
+* AscAppliedToast: *repo.AscAppliedToast (nil: nothing is shown)
+* Issue.Link, CsrfTokenHtml
+*/}}
+{{with .AscAppliedToast}}
+<div class="rv-undo-toast" role="status" data-asc-applied-toast data-testid="asc-applied-toast">
+	<div>
+		<b>{{ctx.Locale.Tr "repo.pulls.asc_suggestion.toast" .Version}}</b>
+		<span>{{ctx.Locale.Tr "repo.pulls.asc_suggestion.toast_on" .Path .Line}}{{if .Reset}} {{ctx.Locale.Tr "repo.pulls.asc_suggestion.toast_reset"}}{{end}}</span>
+	</div>
+	<form method="post" action="{{$.Issue.Link}}/asc/restore_version">
+		{{$.CsrfTokenHtml}}
+		<input type="hidden" name="version" value="{{.Base}}">
+		<button type="submit" data-testid="asc-applied-undo">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.undo"}}</button>
+	</form>
+</div>
+{{end}}

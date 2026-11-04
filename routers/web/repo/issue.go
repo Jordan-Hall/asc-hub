@@ -1568,6 +1568,7 @@ func ViewIssue(ctx *context.Context) {
 			return
 		}
 		prepareAscVersions(ctx, issue.PullRequest)
+		prepareAscAppliedToast(ctx, issue.PullRequest)
 	}
 
 	// Metas.

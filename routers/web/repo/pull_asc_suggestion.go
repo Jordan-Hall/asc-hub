@@ -5,6 +5,7 @@ package repo
 
 import (
 	gocontext "context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -199,9 +200,55 @@ func AscApplySuggestion(ctx *context.Context) {
 	case res.MarkFailed:
 		ctx.Flash.Warning(ctx.Tr("repo.pulls.asc_suggestion.applied_unmarked", res.Version))
 	default:
-		ctx.Flash.Success(ctx.Tr("repo.pulls.asc_suggestion.applied", res.Version))
+		if !setAscAppliedToast(ctx, issue.PullRequest, res) {
+			ctx.Flash.Success(ctx.Tr("repo.pulls.asc_suggestion.applied", res.Version))
+		}
 	}
 	ctx.Redirect(issue.Link())
+}
+
+// ascAppliedToastKey is the session key of the toast after "Apply as vN".
+const ascAppliedToastKey = "asc_applied_suggestion"
+
+// AscAppliedToast is the toast after "Apply as vN" (board Review: "Applied as v5", the file and line, Undo). It is shown
+// once, on the next page of the pull request (templates/repo/pulls/asc_applied_toast.tmpl).
+type AscAppliedToast struct {
+	Pull    int64
+	Version uint32
+	Base    uint32 // Undo restores it
+	Path    string
+	Line    uint32
+	Reset   bool // the rule of the base branch dismissed the approvals
+}
+
+// setAscAppliedToast keeps the toast of res for the next page; false when the session cannot keep it.
+func setAscAppliedToast(ctx *context.Context, pull *issues_model.PullRequest, res *pull_service.AscSuggestionResult) bool {
+	if ctx.Session == nil || res.Base == 0 {
+		return false
+	}
+	raw, err := json.Marshal(AscAppliedToast{Pull: pull.ID, Version: res.Version, Base: res.Base, Path: res.Path, Line: res.StartLine, Reset: res.ApprovalsReset})
+	if err != nil {
+		return false
+	}
+	return ctx.Session.Set(ascAppliedToastKey, string(raw)) == nil
+}
+
+// prepareAscAppliedToast puts the toast kept by setAscAppliedToast for pull into ctx.Data["AscAppliedToast"] and forgets
+// it: it is shown once.
+func prepareAscAppliedToast(ctx *context.Context, pull *issues_model.PullRequest) {
+	if ctx.Session == nil || pull == nil {
+		return
+	}
+	raw, _ := ctx.Session.Get(ascAppliedToastKey).(string)
+	if raw == "" {
+		return
+	}
+	_ = ctx.Session.Delete(ascAppliedToastKey)
+	var t AscAppliedToast
+	if json.Unmarshal([]byte(raw), &t) != nil || t.Pull != pull.ID || t.Base == 0 {
+		return
+	}
+	ctx.Data["AscAppliedToast"] = &t
 }
 
 // AscAskSuggestion handles POST /{owner}/{repo}/pulls/{index}/asc/ask_suggestion with the form fields "thread" and
