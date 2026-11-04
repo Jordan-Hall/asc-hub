@@ -150,7 +150,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Refs | Filter pills All / Shared 3 / Stacks 3 / Tags 14 | done | `H:templates/repo/branch/list.tmpl` pills All / Shared / Stacks / Tags with counts show one kind at a time (`asc-ui.js` `data-ref-filter`, `asc-ui.test.js`); found done in the tree | S |
 | Refs | Branchless wording ("only three shared refs"), `RepoConfig.shared_refs` | needs-hub-backend | read `Repo.RepoConfig` shared refs; branch list for asc repos comes from Forgejo's mirror | M |
 | Refs | Stack cleanup note ("clean themselves up 7 days after the last change lands") | needs-asc-backend | the setting does not exist (see Rules) | S |
-| Refs | Tags section with release title, change count, author, date | ui-only-missing | `H:templates/repo/tag/list.tmpl` is a separate page | M |
+| Refs | Tags section with release title, change count, author, date | done | `H:templates/repo/branch/ref_tags.tmpl`: the newest tags with release title, how many changes each adds to the tag before it (from the stored commit counts, `refTagsOf`), author and age; `asc_ref_tags_test.go` | M |
 | Refs | Row More menu names its target; no delete on protected refs | done | `branch/row.tmpl` | S |
 | Refs | State: nothing matches with "Search stacks" link | done | `list.tmpl` empty state has no stack search action | S |
 | Refs | State: delete protected ref refused with "Open rule" | done | `H:routers/web/repo/asc_rule_link.go`: the refusal to delete a protected branch (`branch.go`) or tag (`release.go`) ends with "Open rule", a link to the matching rule, for a repository admin; `asc_rule_link_test.go` | S |
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 158 |
+| done | 159 |
 | partial | 1 |
-| ui-only-missing | 43 |
+| ui-only-missing | 42 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |

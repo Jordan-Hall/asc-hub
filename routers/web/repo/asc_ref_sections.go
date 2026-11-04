@@ -21,11 +21,41 @@ const refStackRows = 12
 // refTagRows is how many tags the Refs page lists; the Tags page has the rest.
 const refTagRows = 10
 
-// refTag is one tag of the Tags section with its release when it has one.
+// refTag is one tag of the Tags section with its release when it has one. Changes is how many changes it adds to
+// the tag before it, 0 when that is not known.
 type refTag struct {
 	Name    string
 	Title   string
+	Changes int64
 	Release *repo_model.Release
+}
+
+// refTagsOf makes the rows of the Tags section from the newest releases first, at most refTagRows of them. A row's
+// change count is the difference of the commit counts the hub stored for its tag and for the next older tag, so rels
+// carries one release more than is shown when there is one; a tag with no stored count, or one that is not ahead of
+// the tag before it (another branch), gets none.
+func refTagsOf(rels []*repo_model.Release) []*refTag {
+	var tags []*refTag
+	for i, r := range rels {
+		if i == refTagRows {
+			break
+		}
+		t := &refTag{Name: r.TagName, Release: r}
+		if !r.IsTag {
+			t.Title = r.Title
+		}
+		if r.NumCommits > 0 {
+			t.Changes = r.NumCommits
+			if i+1 < len(rels) {
+				t.Changes -= rels[i+1].NumCommits
+			}
+		}
+		if t.Changes < 0 {
+			t.Changes = 0
+		}
+		tags = append(tags, t)
+	}
+	return tags
 }
 
 // prepareRefSections adds the stacks and the tags to the data of the branch list of an asc repository.
@@ -52,7 +82,7 @@ func prepareRefSections(ctx *context.Context) {
 		return
 	}
 	rels, err := db.Find[repo_model.Release](ctx, repo_model.FindReleasesOptions{
-		ListOptions: db.ListOptions{Page: 1, PageSize: refTagRows},
+		ListOptions: db.ListOptions{Page: 1, PageSize: refTagRows + 1},
 		RepoID:      repo.ID, IncludeTags: true,
 	})
 	if err != nil {
@@ -62,17 +92,12 @@ func prepareRefSections(ctx *context.Context) {
 	if len(rels) == 0 {
 		return
 	}
-	var tags []*refTag
-	for _, r := range rels {
-		r.Repo = repo
-		if err := r.LoadAttributes(ctx); err != nil {
-			log.Error("refs: publisher of %s: %v", r.TagName, err)
+	tags := refTagsOf(rels)
+	for _, t := range tags {
+		t.Release.Repo = repo
+		if err := t.Release.LoadAttributes(ctx); err != nil {
+			log.Error("refs: publisher of %s: %v", t.Name, err)
 		}
-		t := &refTag{Name: r.TagName, Release: r}
-		if !r.IsTag {
-			t.Title = r.Title
-		}
-		tags = append(tags, t)
 	}
 	ctx.Data["RefTags"] = tags
 }
