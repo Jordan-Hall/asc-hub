@@ -1628,6 +1628,34 @@ ul.ds-list {
   }
 }
 
+/* ================================================================ form bar
+   The row of buttons that ends a long form. On a phone it sticks above the bottom bar, primary button first and
+   full width, so the form can be sent without scrolling back. Markup:
+   <div class="ds-row ds-justify-end ds-form-bar">[hint .ds-grow] [secondary buttons] <button class="ds-btn ds-btn-primary"></div> */
+@media (max-width: 767.98px) {
+  .ds-form-bar {
+    position: sticky;
+    bottom: var(--bnav-space, 0);
+    z-index: var(--z-sticky, 5);
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 calc(var(--gutter, 16px) * -1);
+    padding: 10px var(--gutter, 16px);
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .ds-form-bar > .ds-btn-primary {
+    flex: 1 1 100%;
+    order: -1;
+    min-height: var(--touch);
+  }
+
+  .ds-form-bar > .ds-grow {
+    flex-basis: 100%;
+  }
+}
+
 /* ================================================================ dialog and sheet
    Native <dialog> (and the Fomantic .ui.modal that is left) take the same look:
    a centred dialog on a desktop, a bottom sheet on a phone. Markup:
