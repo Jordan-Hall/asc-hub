@@ -229,10 +229,14 @@ func TestWebHooksDelivery(t *testing.T) {
 			"homeserver_url": matrixURL,
 			"access_token":   "123456",
 			"room_id":        "123",
-			"events":         "send_everything",
 			"active":         "1",
 		}), http.StatusSeeOther)
 		assertHasFlashMessages(t, resp, "success")
+		// the page offers the ASC events and pushes; the issue events are chosen through the API, or as here
+		w := unittest.AssertExistsAndLoadBean(t, &webhook_model.Webhook{RepoID: repo.ID, Type: webhook_module.MATRIX})
+		w.HookEvent = &webhook_module.HookEvent{SendEverything: true}
+		require.NoError(t, w.UpdateEvent())
+		require.NoError(t, webhook_model.UpdateWebhook(db.DefaultContext, w))
 
 		t.Run("Issue/comments", func(t *testing.T) {
 			session.MakeRequest(t, NewRequestWithValues(t, "POST", repoURL+"issues/new", map[string]string{

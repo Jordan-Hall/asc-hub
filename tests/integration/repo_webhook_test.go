@@ -357,11 +357,11 @@ func testWebhookFormsShared(t *testing.T, endpoint, name string, session *TestSe
 	resp := session.MakeRequest(t, NewRequest(t, "GET", endpoint+"/"+name+"/new"), http.StatusOK)
 	htmlForm := NewHTMLParser(t, resp.Body).Find(`form[action^="` + endpoint + `/"]`)
 
-	testWebhookFormsSharedChooseEvents(t, htmlForm)
+	testWebhookFormsSharedSendGroups(t, htmlForm, name)
 
 	// fill the form
 	payload := map[string]string{
-		"events": "send_everything",
+		"asc_events": "push",
 	}
 	for k, v := range validFields {
 		assertInput(t, htmlForm, k)
@@ -402,7 +402,7 @@ func testWebhookFormsShared(t *testing.T, endpoint, name string, session *TestSe
 
 	// fill the form
 	payload = map[string]string{
-		"events": "push_only",
+		"asc_events": "push",
 	}
 	for k, v := range validFields {
 		if k == "secret" {
@@ -435,7 +435,7 @@ func testWebhookFormsShared(t *testing.T, endpoint, name string, session *TestSe
 			t.Run("invalid", func(t *testing.T) {
 				// fill the form
 				payload := map[string]string{
-					"events": "send_everything",
+					"asc_events": "push",
 				}
 				maps.Copy(payload, validFields)
 				for k, v := range invalidPatch {
@@ -450,8 +450,12 @@ func testWebhookFormsShared(t *testing.T, endpoint, name string, session *TestSe
 				// check that the invalid form is pre-filled
 				htmlForm = NewHTMLParser(t, resp.Body).Find(`form[action^="` + endpoint + `/"]`)
 				for k, v := range payload {
-					if k == "events" || v == "" {
-						// the 'events' is a radio input, which is buggy below
+					if k == "asc_events" || v == "" {
+						// the events are checkboxes that share one name
+						continue
+					}
+					if sel := htmlForm.Find(`select[name="` + k + `"]`); sel.Length() == 1 && sel.Find(`option[value="`+v+`"]`).Length() == 0 {
+						// a select cannot show a value that is not one of its options
 						continue
 					}
 					assert.Equal(t, v, assertInput(t, htmlForm, k), "input %q did not contain value %q", k, v)
@@ -494,36 +498,21 @@ func assertHasFlashMessages(t *testing.T, resp *httptest.ResponseRecorder, expec
 	}
 }
 
-func testWebhookFormsSharedChooseEvents(t *testing.T, htmlForm *goquery.Selection) {
-	webhookTypes := []string{
-		"create",
-		"delete",
-		"fork",
-		"push",
-		"repository",
-		"release",
-		"package",
-		"wiki",
-		"issues",
-		"issue_assign",
-		"issue_label",
-		"issue_milestone",
-		"issue_comment",
-		"pull_request",
-		"pull_request_assign",
-		"pull_request_label",
-		"pull_request_milestone",
-		"pull_request_comment",
-		"pull_request_review",
-		"pull_request_sync",
-		"pull_request_review_request",
-		"action_failure",
-		"action_recover",
-		"action_success",
+// testWebhookFormsSharedSendGroups checks that the page that adds a hook of the kind name offers the events it sends
+// as asc_events checkboxes, pushes and landed changes ticked, and a SourceHut build hook pushes only.
+func testWebhookFormsSharedSendGroups(t *testing.T, htmlForm *goquery.Selection, name string) {
+	t.Helper()
+	events := map[string]bool{}
+	htmlForm.Find(`input[type="checkbox"][name="asc_events"]`).Each(func(_ int, s *goquery.Selection) {
+		_, checked := s.Attr("checked")
+		events[s.AttrOr("value", "")] = checked
+	})
+	if name == "sourcehut_builds" {
+		assert.Equal(t, map[string]bool{"push": true}, events)
+		return
 	}
-
-	// check all types of webhooks are present in the form
-	for _, webhookType := range webhookTypes {
-		assertInput(t, htmlForm, webhookType)
-	}
+	assert.Equal(t, map[string]bool{
+		"push": true, "change.landed": true, "change.opened": false, "review.requested": false,
+		"agent_run.started": false, "agent_run.finished": false, "release.published": false, "policy.changed": false,
+	}, events)
 }
