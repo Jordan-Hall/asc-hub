@@ -8,8 +8,8 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 196 |
-| ui-only-missing | 8 |
+| done | 197 |
+| ui-only-missing | 7 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
 | needs-both | 10 |
@@ -36,7 +36,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Queue | 11 | 0 | 0 | 0 | 0 |
 | Audit | 6 | 0 | 0 | 0 | 0 |
 | Security | 9 | 0 | 0 | 0 | 0 |
-| Mobile twins | 1 | 8 | 0 | 0 | 0 |
+| Mobile twins | 2 | 7 | 0 | 0 | 0 |
 
 ## Findings that change the plan
 
@@ -350,5 +350,5 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile twins | Mobile-Checks: failures as cards, chips scroll sideways, Re-run failed pinned | ui-only-missing | templates/repo/asc_checks.tmpl responsive cards | S |
 | Mobile twins | Mobile-Checks: swipe a card left for Acknowledge | ui-only-missing | web_src/js (new gesture) | S |
 | Mobile twins | Mobile-AgentRun: Allow once / Deny pinned; pull to refresh | ui-only-missing | templates/repo/asc_agents_run.tmpl + asc-agent-run.ts (follow logic exists) | S |
-| Mobile twins | Mobile-Ops: undo preview as a bottom sheet | ui-only-missing | templates/repo/asc_ops_undo.tmpl | M |
+| Mobile twins | Mobile-Ops: undo preview as a bottom sheet | done | asc_ops.tmpl dialog.rv-ops-sheet: under 640 the undo preview opens as a bottom sheet (Cancel focused, backdrop and Esc close, 44px buttons); asc-ops.js | M |
 | Mobile twins | Other mobile twins (Agents, Workflows, Queue, Policy, Audit, Security, AgentNew, AgentAccess, WorkflowDef, WorkflowRun, NewChange): same data as desktop, stacked cards | done | templates share desktop markup with rv-desk/rv-mob classes; gaps equal the desktop rows | - |
