@@ -323,6 +323,33 @@ func TestAscOpsOffersTheRedoOfAnUndo(t *testing.T) {
 	assert.NotContains(t, page.body, "asc-ops-redo", "a reader who cannot undo is not offered a redo")
 }
 
+// An empty log says so; a log the filters leave empty says how to see every operation, with Clear filters. Both have the
+// skeleton card that a filter shows while the page loads again.
+func TestAscOpsEmptyStates(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureStacks)
+	f.listRefLog = func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) {
+		return &ascv1.ListRefLogResponse{}, nil
+	}
+	page := opsGet(t, "/user2/repo1/asc/ops", 2, perm_model.AccessModeWrite, AscOps)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.Contains(t, page.body, "<h3>asc_review.ops_none_title</h3>")
+	assert.Contains(t, page.body, "<p>asc_review.ops_none_help</p>")
+	assert.NotContains(t, page.body, "asc-ops-clear")
+	assert.Regexp(t, `<div class="rv-stack" data-asc-list-main>\s*<div class="rv-card ag-loading" role="status" aria-busy="true" aria-label="asc_rp.loading" data-asc-list-loading data-testid="asc-ops-loading" hidden>`, page.body)
+	assert.Equal(t, 3, strings.Count(page.body, `<li class="ag-sk-row"><span class="rv-sk ag-sk-av"></span>`))
+	assert.Contains(t, page.body, `data-asc-list-filter data-testid="asc-ops-filter"`)
+
+	for _, q := range []string{"?kind=land", "?mine=1", "?ref=refs%2Fheads%2Fnope"} {
+		page = opsGet(t, "/user2/repo1/asc/ops"+q, 2, perm_model.AccessModeWrite, AscOps)
+		require.Equal(t, http.StatusOK, page.status, page.body)
+		assert.Contains(t, page.body, "<h3>asc_review.ops_empty_title</h3>", q)
+		assert.Contains(t, page.body, "<p>asc_review.ops_empty_help</p>", q)
+		assert.Contains(t, page.body, `<a class="rv-btn rv-btn-secondary rv-btn-sm" href="/user2/repo1/asc/ops" data-testid="asc-ops-clear">asc_review.agents_clear</a>`, q)
+		assert.NotContains(t, page.body, "asc_review.ops_none_title", q)
+	}
+}
+
 // A restack the person made, and can still undo, is the banner above the list; someone else's restack, or one that cannot be
 // undone, is not.
 func TestAscOpsRestackBanner(t *testing.T) {

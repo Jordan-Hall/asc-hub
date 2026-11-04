@@ -1,7 +1,10 @@
 {{/*
 The operation log of a repository, and the way to undo one operation (routers/web/repo/asc_ops.go).
 Template Attributes:
-* AscOps: *ascOpsPage (Rows []asctrust.OpRow, Ref, Mine, NextURL, OpsURL, CanUndo, Problem, Unsupported)
+* AscOps: *ascOpsPage (Rows []asctrust.OpRow, Ref, Mine, Kind, NextURL, OpsURL, CanUndo, Problem, Unsupported, RedoSeq, RedoRef,
+  RedoLabel, RedoBack, Restack, Total, Chips, Actors, AllURL, ExportURL)
+The list, its empty state and the pager sit in data-asc-list-main: a filter or a chip shows the skeleton card while the page loads
+(web_src/js/features/asc-list-loading.js).
 Texts that come from asc (ref names, actors) are cleaned in services/asctrust and escaped by the template engine.
 */}}
 {{template "base/head" .}}
@@ -26,7 +29,7 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 			{{else}}
 				{{if .Problem}}<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-ops-problem"><div>{{.Problem}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="">{{ctx.Locale.Tr "asc_review.reload"}}</a></div></div></div>{{end}}
 
-				<form class="rv-filters" method="get" action="{{.OpsURL}}" data-testid="asc-ops-filter" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.ops.filter"}}">
+				<form class="rv-filters" method="get" action="{{.OpsURL}}" data-asc-list-filter data-testid="asc-ops-filter" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.ops.filter"}}">
 					<div class="rv-filter-fields rv-filter-fields-ops">
 						<div class="rv-field">
 							<label class="rv-label" for="asc-ops-ref">{{ctx.Locale.Tr "asc_trust.ops.filter_ref"}}</label>
@@ -55,7 +58,14 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 				</div>
 
 				<div class="rv-cols rv-cols-main-side rv-gap">
-				<div class="rv-stack">
+				<div class="rv-stack" data-asc-list-main>
+				<div class="rv-card ag-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "asc_rp.loading"}}" data-asc-list-loading data-testid="asc-ops-loading" hidden>
+					<ul class="rv-list" aria-hidden="true">
+						<li class="ag-sk-row"><span class="rv-sk ag-sk-av"></span><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+						<li class="ag-sk-row"><span class="rv-sk ag-sk-av"></span><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+						<li class="ag-sk-row"><span class="rv-sk ag-sk-av"></span><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+					</ul>
+				</div>
 				<section class="rv-card" aria-labelledby="asc-ops-list">
 					<div class="rv-card-h"><h2 id="asc-ops-list">{{ctx.Locale.Tr "asc_trust.ops.list"}}</h2></div>
 					{{if .Rows}}
@@ -88,9 +98,15 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 						</ol>
 					{{else if not .Problem}}
 						<div class="rv-empty rv-empty-flat" data-testid="asc-ops-empty">
-							<h3>{{ctx.Locale.Tr "asc_review.ops_empty_title"}}</h3>
-							<p>{{ctx.Locale.Tr "asc_trust.ops.empty"}}</p>
-							{{if or .Ref .Mine}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.OpsURL}}">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></div>{{end}}
+							{{if or .Ref .Mine .Kind}}
+								<svg width="120" height="120" viewBox="0 0 160 160" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="74" cy="70" r="34" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="3"/><path d="M100 96l26 26" stroke="var(--link)" stroke-width="6"/><path d="M60 86L74 54l14 32" stroke="var(--line-strong)" stroke-width="4"/><path d="M66 76h16" stroke="var(--line-strong)" stroke-width="3"/><circle cx="74" cy="54" r="5" fill="var(--accent)"/></svg>
+								<h3>{{ctx.Locale.Tr "asc_review.ops_empty_title"}}</h3>
+								<p>{{ctx.Locale.Tr "asc_review.ops_empty_help"}}</p>
+								<div class="rv-acts"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.OpsURL}}" data-testid="asc-ops-clear">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></div>
+							{{else}}
+								<h3>{{ctx.Locale.Tr "asc_review.ops_none_title"}}</h3>
+								<p>{{ctx.Locale.Tr "asc_review.ops_none_help"}}</p>
+							{{end}}
 						</div>
 					{{end}}
 					{{if .NextURL}}<div class="rv-card-f rv-center"><a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.ops.more"}}</a></div>{{end}}

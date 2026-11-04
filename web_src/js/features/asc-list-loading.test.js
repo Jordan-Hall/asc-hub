@@ -40,6 +40,18 @@ test('a chip or the filter form shows the skeleton; a run link does not', () => 
   document.removeEventListener('click', stop);
 });
 
+test('the filter form of the operation log shows the skeleton; another form does not', () => {
+  document.body.innerHTML = `<form id="other" method="post" action=""><button>Go</button></form>
+  <form id="filter" class="rv-filters" method="get" action="" data-asc-list-filter><button>Filter</button></form>
+  <div data-asc-list-main><div data-asc-list-loading hidden></div><section id="ops"></section></div>`;
+  initAscListLoading();
+  const main = document.querySelector('[data-asc-list-main]');
+  document.querySelector('#other').dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
+  expect(main.classList.contains('is-loading')).toBe(false);
+  document.querySelector('#filter').dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
+  expect(main.classList.contains('is-loading')).toBe(true);
+});
+
 test('a page without the runs list is left alone', () => {
   document.body.innerHTML = '<p>other</p>';
   expect(() => initAscListLoading()).not.toThrow();
