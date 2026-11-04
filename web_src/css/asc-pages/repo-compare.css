@@ -221,3 +221,62 @@
   cursor: pointer;
   margin-top: 6px;
 }
+
+/* "Where to look" of the open-change form: the pointers of the description's section as pills. */
+.rp-where,
+.rp-where-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-where-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px 2px 8px;
+  border-radius: 6px;
+  background: var(--surface-3);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.rp-where-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+}
+
+a.rp-where-link:hover {
+  text-decoration: underline;
+}
+
+.rp-where-rm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+}
+
+.rp-where-rm:hover,
+.rp-where-rm:focus-visible {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.rp-where-row {
+  margin-top: 8px;
+}
+
+.rp-where-row .rp-where-line {
+  width: 7em;
+}

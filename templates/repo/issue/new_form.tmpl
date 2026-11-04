@@ -44,6 +44,27 @@
 						{{end}}
 						{{template "repo/issue/comment_tab" .}}
 					{{end}}
+					{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc") (not .Fields)}}
+					<div class="ds-field" data-asc-where data-heading="{{ctx.Locale.Tr "asc_review.brief_where"}}" data-max="20" data-remove="{{ctx.Locale.Tr "asc_rp.where_remove"}}" data-invalid="{{ctx.Locale.Tr "asc_rp.where_invalid"}}" data-testid="asc-where">
+						<span class="ds-label" id="asc-where-label">{{ctx.Locale.Tr "asc_rp.where_label"}} <span class="ds-opt">({{ctx.Locale.Tr "asc_shell.optional"}})</span></span>
+						<template data-asc-where-icon>{{svg "dsi-code" 14}}</template>
+						<template data-asc-where-x>{{svg "dsi-x" 12}}</template>
+						<div class="ds-row ds-row-wrap rp-where" role="group" aria-labelledby="asc-where-label">
+							<span class="rp-where-list" data-asc-where-list></span>
+							<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-asc-where-add>{{svg "dsi-plus" 16}}{{ctx.Locale.Tr "asc_rp.where_add"}}</button>
+						</div>
+						<div class="ds-row ds-row-wrap rp-where-row" data-asc-where-row hidden>
+							<input class="ds-input ds-mono" data-asc-where-path list="asc-where-files" aria-label="{{ctx.Locale.Tr "asc_rp.where_path"}}" placeholder="{{ctx.Locale.Tr "asc_rp.where_path"}}" maxlength="1024" autocomplete="off" spellcheck="false">
+							<datalist id="asc-where-files"></datalist>
+							<input class="ds-input rp-where-line" data-asc-where-line inputmode="numeric" pattern="[0-9]*" aria-label="{{ctx.Locale.Tr "asc_rp.where_line"}}" placeholder="{{ctx.Locale.Tr "asc_rp.where_line"}}" maxlength="9" autocomplete="off">
+							<input class="ds-input ds-grow" data-asc-where-note aria-label="{{ctx.Locale.Tr "asc_rp.where_note"}}" placeholder="{{ctx.Locale.Tr "asc_rp.where_note"}}" maxlength="300" autocomplete="off">
+							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-asc-where-ok>{{ctx.Locale.Tr "asc_rp.where_ok"}}</button>
+							<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-asc-where-cancel>{{ctx.Locale.Tr "cancel"}}</button>
+							<span class="ds-c-err ds-t-small" data-asc-where-error aria-live="polite"></span>
+						</div>
+						<span class="ds-hint">{{ctx.Locale.Tr "asc_rp.where_hint"}}</span>
+					</div>
+					{{end}}
 					{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}}
 					<p class="ds-hint" data-testid="asc-open-notes">{{ctx.Locale.Tr "asc_rp.cmp_checks_start"}} {{ctx.Locale.Tr "asc_rp.cmp_signed_note"}}</p>
 					{{end}}
