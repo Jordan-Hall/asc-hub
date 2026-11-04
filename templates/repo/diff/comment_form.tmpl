@@ -1,5 +1,6 @@
 {{if and $.root.SignedUserID (not $.Repository.IsArchived)}}
-	<form class="ui form {{if $.hidden}}tw-hidden comment-form tw-mt-2{{end}}" action="{{$.root.Issue.Link}}/files/reviews/comments" method="post">
+	<form class="ui form {{if $.hidden}}tw-hidden comment-form tw-mt-2{{end}}" action="{{$.root.Issue.Link}}/files/reviews/comments" method="post"
+		{{- if not $.reply}} data-asc-ph-new="{{ctx.Locale.Tr "repo.diff.comment.asc_on_line" "{line}"}}" data-asc-ph-new-lines="{{ctx.Locale.Tr "repo.diff.comment.asc_on_lines" "{line}"}}" data-asc-ph-old="{{ctx.Locale.Tr "repo.diff.comment.asc_on_old_line" "{line}"}}" data-asc-ph-old-lines="{{ctx.Locale.Tr "repo.diff.comment.asc_on_old_lines" "{line}"}}" data-asc-suggest-label="{{ctx.Locale.Tr "repo.diff.comment.asc_suggest"}}"{{end}}>
 		<input type="hidden" name="origin" value="{{if $.root.PageIsPullFiles}}diff{{else}}timeline{{end}}">
 		<input type="hidden" name="before_commit_id" value="{{$.root.BeforeCommitID}}">
 		<input type="hidden" name="latest_commit_id" value="{{$.root.AfterCommitID}}">
@@ -11,11 +12,18 @@
 		<input type="hidden" name="diff_end_cid">
 		<input type="hidden" name="diff_base_cid">
 
+		{{$placeholder := ctx.Locale.Tr "repo.diff.comment.asc_placeholder"}}
+		{{$keys := ": @ /"}}
+		{{if $.reply}}
+			{{$placeholder = ctx.Locale.Tr "repo.diff.comment.placeholder"}}
+			{{$keys = ": @"}}
+		{{end}}
 		{{template "shared/combomarkdowneditor" (dict
 			"MarkdownPreviewUrl" (print $.root.Repository.Link "/markup")
 			"MarkdownPreviewContext" $.root.RepoLink
 			"TextareaName" "content"
-			"TextareaPlaceholder" (ctx.Locale.Tr "repo.diff.comment.placeholder")
+			"TextareaPlaceholder" $placeholder
+			"TextExpanderKeys" $keys
 			"DropzoneParentContainer" "form"
 			"DisableAutosize" "true"
 		)}}
@@ -27,21 +35,19 @@
 		{{end}}
 
 		<div class="ds-field footer">
-			<span class="markup-info">{{svg "octicon-markdown"}} {{ctx.Locale.Tr "repo.diff.comment.markdown_info"}}</span>
+			<span class="markup-info">{{if and $.root.CurrentReview (not $.reply)}}{{ctx.Locale.Tr "repo.diff.comment.asc_info_review"}}{{else}}{{ctx.Locale.Tr "repo.diff.comment.asc_info"}}{{end}}</span>
 			<div class="button-sequence tw-justify-end">
+				{{if or (not $.HasComments) $.hidden}}
+					<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm cancel-code-comment">{{ctx.Locale.Tr "cancel"}}</button>
+				{{end}}
 				{{if $.reply}}
 					<button class="ds-btn ds-btn-primary ds-btn-sm submit" type="submit">{{ctx.Locale.Tr "repo.diff.comment.reply"}}</button>
 					<input type="hidden" name="reply" value="{{$.reply}}">
+				{{else if $.root.CurrentReview}}
+					{{/* A comment now would submit the review that is open: it goes into that review. */}}
+					<button name="pending_review" type="submit" class="ds-btn ds-btn-primary ds-btn-sm submit">{{ctx.Locale.Tr "repo.diff.comment.add_review_comment"}}</button>
 				{{else}}
-					{{if $.root.CurrentReview}}
-						<button name="pending_review" type="submit" class="ds-btn ds-btn-primary ds-btn-sm submit">{{ctx.Locale.Tr "repo.diff.comment.add_review_comment"}}</button>
-					{{else}}
-						<button name="pending_review" type="submit" class="ds-btn ds-btn-primary ds-btn-sm submit">{{ctx.Locale.Tr "repo.diff.comment.start_review"}}</button>
-						<button name="single_review" value="true" type="submit" class="ds-btn ds-btn-secondary ds-btn-sm submit btn-add-single">{{ctx.Locale.Tr "repo.diff.comment.add_single_comment"}}</button>
-					{{end}}
-				{{end}}
-				{{if or (not $.HasComments) $.hidden}}
-					<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm submit cancel-code-comment">{{ctx.Locale.Tr "cancel"}}</button>
+					<button name="single_review" value="true" type="submit" class="ds-btn ds-btn-primary ds-btn-sm submit btn-add-single">{{ctx.Locale.Tr "repo.diff.comment.asc_comment"}}</button>
 				{{end}}
 			</div>
 		</div>

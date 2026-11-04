@@ -51,7 +51,7 @@ Template Attributes:
 		</div>
 	</markdown-toolbar>
 	<div class="ui tab active" data-tab-panel="markdown-writer">
-		<text-expander keys=": @" suffix="">
+		<text-expander keys="{{or .TextExpanderKeys ": @"}}" suffix="">
 			<textarea class="markdown-text-editor js-quick-submit"
 				{{- if .TextareaName}} name="{{.TextareaName}}"{{end -}}
 				{{if .TextareaPlaceholder}} placeholder="{{.TextareaPlaceholder}}"{{end -}}
