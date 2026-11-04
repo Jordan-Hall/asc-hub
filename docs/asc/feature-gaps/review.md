@@ -8,8 +8,8 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 195 |
-| ui-only-missing | 9 |
+| done | 196 |
+| ui-only-missing | 8 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
 | needs-both | 10 |
@@ -32,7 +32,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 9 | 0 | 0 | 0 | 0 |
 | Policy | 10 | 0 | 0 | 0 | 0 |
-| Ops | 12 | 1 | 0 | 0 | 0 |
+| Ops | 13 | 0 | 0 | 0 | 0 |
 | Queue | 11 | 0 | 0 | 0 | 0 |
 | Audit | 6 | 0 | 0 | 0 | 0 |
 | Security | 9 | 0 | 0 | 0 | 0 |
@@ -291,7 +291,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Ops | Restack banner with 'See what changed' and 'Undo restack' | done | templates/repo/asc_ops.tmpl: the banner of the newest own restack leads with the restack icon, says the changes it rewrote and the approvals it kept (asc's dry run of its undo, asctrust.PreviewUndo), links See what changed to the asc compare of the heads before and after, and Undo restack to the undo preview; asc_ops_test.go TestAscOpsRestackBanner | - |
 | Ops | Export of operations | done | routers/web/repo/asc_ops.go (stream ListRefLog as JSONL/CSV) (JSONL download clicked on the dev hub) | M |
 | Ops | 'Who changed branches this week' actor bars with 7/30 window | done | asc_ops.go aggregation of ListRefLog (bars of the rows shown; seen on the dev hub) | M |
-| Ops | Selecting a row loads the undo preview in a right panel without navigating | ui-only-missing | templates/repo/asc_ops.tmpl, asc_ops_undo.tmpl (separate page today); web_src/js | M |
+| Ops | Selecting a row loads the undo preview in a right panel without navigating | done | asc-ops.js: a click on an undoable row, its Undo or Undo restack loads the dry run into the panel, marks the row, 120 ms crossfade (reduced motion off); Cancel restores | M |
 | Ops | Undo preview (now at / goes back to / who / reason) and undo is itself logged | done | templates/repo/asc_ops_undo.tmpl, AscOpsUndo (Stacks.UndoRef) | - |
 | Ops | Preview lines '4 changes go back', 'approvals on 2 unchanged diffs are kept' | done | asc UndoRef dry run answers changes_back and approvals_kept; templates/repo/asc_ops_undo.tmpl asc-undo-effects; asc_ops_test.go TestAscOpsUndoPreviewIsADryRunAndCarriesTheHeads | - |
 | Ops | Undone toast with Redo | done | templates/repo/asc_ops.tmpl: after an undo the log shows a toast that names the branch, says where it is back at and links Redo to the preview of undoing the undo; asc_ops_test.go TestAscOpsOffersTheRedoOfAnUndo | - |
