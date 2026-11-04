@@ -15,6 +15,7 @@ import (
 	"forgejo.org/modules/test"
 	webhook_module "forgejo.org/modules/webhook"
 	"forgejo.org/services/contexttest"
+	webhook_service "forgejo.org/services/webhook"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -88,4 +89,42 @@ func TestWebhookSaveSettingsRefused(t *testing.T) {
 	status, _, w := saveSettings(t, url.Values{"payload_url": {"https://ci.example.org/hook"}}, false)
 	require.Equal(t, http.StatusSeeOther, status)
 	assert.Equal(t, "https://ci.example.org/hook", w.URL)
+}
+
+// The Settings tab of an ASC agent hook saves its agent, branch and task, makes the person who saved them the one
+// the runs are for, and keeps the agent run events off; a wrong field answers 422 with that field.
+func TestWebhookSaveAgentSettings(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	w := unittest.AssertExistsAndLoadBean(t, &webhook.Webhook{ID: 1})
+	w.Type = webhook_module.ASCAGENT
+	w.URL = webhook_service.AgentURL("fixer")
+	w.Meta = `{"agent":"fixer","target":"main","task":"Fix it.","run_as":1}`
+	require.NoError(t, webhook.UpdateWebhook(t.Context(), w))
+
+	status, body, w := saveSettings(t, url.Values{
+		"agent":      {" reviewer "},
+		"target":     {"release"},
+		"task":       {"Review the change that landed."},
+		"asc_events": {"change.landed", "agent_run.finished"},
+	}, true)
+	require.Equal(t, http.StatusOK, status, body)
+	assert.Equal(t, "asc-agent://reviewer", w.URL)
+	assert.Equal(t, webhook_service.AgentMeta{Agent: "reviewer", Target: "release", Task: "Review the change that landed.", RunAs: 2}, *webhook_service.GetAgentMeta(w))
+	assert.True(t, w.HasAscEvent(webhook_module.HookEventChangeLanded))
+	assert.False(t, w.HasAscEvent(webhook_module.HookEventAgentRunFinished), "an agent hook does not take agent run events")
+
+	for field, form := range map[string]url.Values{
+		"agent":  {"agent": {"Reviewer One"}, "target": {"main"}, "task": {"x"}},
+		"target": {"agent": {"reviewer"}, "target": {""}, "task": {"x"}},
+		"task":   {"agent": {"reviewer"}, "target": {"main"}, "task": {" "}},
+	} {
+		status, body, after := saveSettings(t, form, true)
+		require.Equal(t, http.StatusUnprocessableEntity, status, field)
+		var got map[string]string
+		require.NoError(t, json.Unmarshal([]byte(body), &got))
+		assert.Equal(t, field, got["field"])
+		assert.NotEmpty(t, got["error"])
+		assert.Equal(t, w.Meta, after.Meta, "nothing is saved")
+	}
 }
