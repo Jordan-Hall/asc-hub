@@ -8,8 +8,8 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 198 |
-| ui-only-missing | 6 |
+| done | 199 |
+| ui-only-missing | 5 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
 | needs-both | 10 |
@@ -36,7 +36,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Queue | 11 | 0 | 0 | 0 | 0 |
 | Audit | 6 | 0 | 0 | 0 | 0 |
 | Security | 9 | 0 | 0 | 0 | 0 |
-| Mobile twins | 3 | 6 | 0 | 0 | 0 |
+| Mobile twins | 4 | 5 | 0 | 0 | 0 |
 
 ## Findings that change the plan
 
@@ -345,7 +345,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 |---|---|---|---|---|
 | Mobile twins | Mobile-Review: actions sheet (Approve, Request changes, queue, Undo restack, Copy asc command) | ui-only-missing | new mobile sheet + web_src/js; templates/repo/diff/box.tmpl | M |
 | Mobile twins | Mobile-Review: Approve / Request changes pinned above the tab bar | done | asc_panel.tmpl .rv-review-pinned: Approve and Request changes fixed above the tab bar under 900, the review box opens above it; review-diff.css | S |
-| Mobile twins | Mobile-Review: long-press a line to comment | ui-only-missing | web_src/js (touch handler on diff lines) | S |
+| Mobile twins | Mobile-Review: long-press a line to comment | done | asc-review.js initLongPress: a 500 ms touch on a diff line opens its comment form (touched side first), drift, lift or scroll cancels, the menu and trailing tap are swallowed | S |
 | Mobile twins | Mobile-ReviewVersions: confirm as a sheet with default focus Cancel; toast with Undo | ui-only-missing | templates/repo/asc_confirm.tmpl (page, not sheet) | M |
 | Mobile twins | Mobile-Checks: failures as cards, chips scroll sideways, Re-run failed pinned | ui-only-missing | templates/repo/asc_checks.tmpl responsive cards | S |
 | Mobile twins | Mobile-Checks: swipe a card left for Acknowledge | ui-only-missing | web_src/js (new gesture) | S |
