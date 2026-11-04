@@ -1170,9 +1170,25 @@ ul.ds-list {
 .wh-dl-more { margin: 0 16px 8px; }
 .wh-dl-banner { margin: 12px 16px 16px; }
 .wh-dl-empty-acts { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.wh-test { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+/* the Settings tab of one webhook (templates/webhook/settings.tmpl): content type and secret side by side, the
+   "Send me" groups in four columns (two on a phone), the Active switch and Send test delivery under a rule */
+.wh-set { display: flex; flex-direction: column; gap: 16px; }
+.wh-set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.wh-set .ds-inwrap > .ds-trail { right: 4px; }
+.ds-inwrap > .wh-secret-in { padding-left: 12px; padding-right: 88px; }
+.wh-send, .wh-send-group { margin: 0; padding: 0; border: 0; min-width: 0; }
+.wh-send > legend { margin-bottom: 8px; padding: 0; }
+.wh-send-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.wh-send-group > legend { margin-bottom: 6px; padding: 0; }
+.wh-send-group .ds-check + .ds-check { margin-top: 8px; }
+.wh-set-foot { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.wh-set-foot > form { display: contents; }
+.wh-set-active { flex: 1; min-width: 0; }
 
 @media (max-width: 767.98px) {
+  .wh-set-grid { grid-template-columns: minmax(0, 1fr); }
+  .wh-send-grid { grid-template-columns: 1fr 1fr; }
+  .wh-set-foot { flex-wrap: wrap; }
   .wh-dl { padding: 12px; }
   .wh-dl-grid { grid-template-columns: minmax(0, 1fr); }
 }
