@@ -1,9 +1,0 @@
-<p>{{ctx.Locale.Tr "repo.settings.add_web_hook_desc" "https://work.weixin.qq.com" (ctx.Locale.Tr "repo.settings.web_hook_name_wechatwork")}}</p>
-<form class="ui form ds-form" action="{{.BaseLink}}/{{or .Webhook.ID "wechatwork/new"}}" method="post">
-	<div class="required ds-field {{if .Err_PayloadURL}}error{{end}}">
-		<label for="payload_url">{{ctx.Locale.Tr "repo.settings.payload_url"}}</label>
-		<input class="ds-input" id="payload_url" name="payload_url" type="url" value="{{.Webhook.URL}}" autofocus required{{if AscEnabled}} aria-describedby="payload_url_help"{{if .PayloadURLRefused}} aria-invalid="true"{{end}}{{end}}>
-		{{template "webhook/payload_url_help" .}}
-	</div>
-	{{template "webhook/shared-settings" .}}
-</form>

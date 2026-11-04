@@ -222,7 +222,28 @@ func TestAgentHookEventsAndGroups(t *testing.T) {
 	for _, g := range SendGroups(w) {
 		assert.NotEqual(t, "asc_hooks.group_agents", g.Label)
 	}
-	assert.Len(t, SendGroups(&webhook_model.Webhook{Type: webhook_module.FORGEJO, HookEvent: &webhook_module.HookEvent{}}), 4)
+	assert.Len(t, SendGroups(&webhook_model.Webhook{Type: webhook_module.FORGEJO, HookEvent: &webhook_module.HookEvent{}}), 5)
+	builds := SendGroups(&webhook_model.Webhook{Type: webhook_module.SOURCEHUT_BUILDS, HookEvent: &webhook_module.HookEvent{PushOnly: true}})
+	assert.Equal(t, []SendGroup{{"asc_hooks.group_code", []SendOption{{webhook_module.HookEventPush, "asc_hooks.opt_pushes", true}}}}, builds)
+
+	// pushes are ticked with the ASC events, except on an agent hook, which keeps what it has
+	generic := &webhook_model.Webhook{Type: webhook_module.FORGEJO, HookEvent: &webhook_module.HookEvent{PushOnly: true}}
+	ChooseSent(generic, []string{"change.landed"})
+	assert.False(t, generic.HasPushEvent())
+	assert.True(t, generic.HasAscEvent(webhook_module.HookEventChangeLanded))
+	ChooseSent(generic, []string{"push"})
+	assert.True(t, generic.HasPushEvent())
+	assert.False(t, generic.HasAscEvent(webhook_module.HookEventChangeLanded))
+	agent := &webhook_model.Webhook{Type: webhook_module.ASCAGENT, HookEvent: &webhook_module.HookEvent{ChooseEvents: true, HookEvents: webhook_module.HookEvents{Push: true}}}
+	ChooseSent(agent, []string{"agent_run.finished", "change.landed"})
+	assert.True(t, agent.HasPushEvent())
+	assert.True(t, agent.HasAscEvent(webhook_module.HookEventChangeLanded))
+	assert.False(t, agent.HasAscEvent(webhook_module.HookEventAgentRunFinished), "an agent hook is not offered agent run events")
+	// a SourceHut build hook is offered pushes only
+	hut := &webhook_model.Webhook{Type: webhook_module.SOURCEHUT_BUILDS, HookEvent: &webhook_module.HookEvent{}}
+	ChooseSent(hut, []string{"push", "change.landed"})
+	assert.True(t, hut.HasPushEvent())
+	assert.False(t, hut.HasAscEvent(webhook_module.HookEventChangeLanded))
 	assert.Nil(t, FormHandler(webhook_module.ASCAGENT))
 	assert.NotNil(t, GetWebhookHandler(webhook_module.ASCAGENT))
 	for _, h := range List() {

@@ -22,7 +22,7 @@ import (
 // WebhookSaveSettings serves `POST {hooks}/{id}/settings`, the Settings tab of one hook, which is sent whole when a
 // field changes: the fields of the hook's kind as its add form names them (payload_url, http_method, content_type,
 // secret, branch_filter, authorization_header and the fields of a chat or build host), for an ASC agent hook agent,
-// target and task instead, and asc_events, the ASC events it sends. The Active switch is kept. The page's script asks
+// target and task instead, and asc_events, the events it sends (SendGroups). The Active switch is kept. The page's script asks
 // for JSON and gets {"ok":true}, or 422 with the field and the message to show under it; a form sent without script
 // goes back to the hook with the message.
 func WebhookSaveSettings(ctx *context.Context) {
@@ -48,7 +48,7 @@ func WebhookSaveSettings(ctx *context.Context) {
 	} else if !saveSendSettings(ctx, w, refuse) {
 		return
 	}
-	w.ChooseAscEvents(ctx.Req.Form["asc_events"])
+	webhook_service.ChooseSent(w, ctx.Req.Form["asc_events"])
 	if err := w.UpdateEvent(); err != nil {
 		ctx.ServerError("UpdateEvent", err)
 		return
