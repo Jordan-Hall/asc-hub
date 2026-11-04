@@ -342,13 +342,13 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | RepoSettingsWebhooks | Hook list with URL, kind, events, last delivery, Active switch, Failing banner | done | `H:templates/shared/webhook/list.tmpl` (address title with the scheme dimmed, kind chip Generic/Chat/Service, event chips, last delivery "200 OK, 2 minutes ago" or "Failing: the last 3 deliveries returned 502", Active switch that pauses at once via `WebhookSetActive`, Edit; Add webhook in the card head, full width on a phone), `H:services/webhook/rows.go` (`Kind`, `FailStreak`, `StatusLine`), `H:models/webhook/hooktask.go` `FailingStreaks`, `webhook.go` `SetWebhookActive`. Tests: `asc_webhook_list_test.go`, `services/webhook/rows_test.go`, `models/webhook/asc_streak_test.go` | - |
-| RepoSettingsWebhooks | One hook with tabs Settings / Recent deliveries (12), delivery detail with Request / Response, Redeliver | done | `webhook/history.tmpl`, Forgejo redeliver | S |
+| RepoSettingsWebhooks | One hook with tabs Settings / Recent deliveries (12), delivery detail with Request / Response, Redeliver | done | `H:templates/webhook/hook.tmpl` (address, Failing chip, Delete, Settings / Recent deliveries tabs with the count), `H:templates/webhook/deliveries.tmpl` (paged list of links with status chip, event, id and time taken; the selected delivery's Request or Response numbered line by line; Redeliver), `H:services/webhook/deliveries.go`, `loadDeliveries` in `routers/web/repo/setting/webhook.go` (tab, page, delivery and part in the query, so it works without script), `hook_task.duration_ms` (migration v18i, timed in `deliver.go`). Tests: `asc_webhook_list_test.go` `TestWebhookEditShowsHook`, `TestWebhookDeliveries`; `services/webhook/deliveries_test.go`; `tests/integration/repo_settings_hook_test.go` | - |
 | RepoSettingsWebhooks | Hook kinds Generic, Chat, ASC agent (starts an agent run on an event) | needs-hub-backend | `H:modules/webhook/type.go` has Forgejo kinds; add `asc-agent` kind that calls `Agents.CreateRun`; map Chat to slack/discord/matrix | L |
 | RepoSettingsWebhooks | ASC events: Changes (Landed, Opened, Review requested), Agents (Run started, Run finished), Releases (Published), Policy (Changed) | needs-hub-backend | event types and notifiers in `H:models/webhook`, `H:services/webhook`, fired from `ascsync`/agent callbacks | L |
 | RepoSettingsWebhooks | Payload URL https-only with certificate check; loopback http only with local option | done | `H:models/webhook/payload_url.go` `CheckPayloadURL` (https always; http only for localhost, 127.0.0.0/8 or ::1 when `[webhook] ALLOW_LOCAL_HTTP` is on and `ALLOWED_HOST_LIST` allows loopback; private addresses need https), enforced on create and update in the model, the API and the web form; `H:services/webhook/deliver.go` `skipTLSVerify` (an ASC hub always checks the certificate); `H:templates/webhook/payload_url_help.tmpl` (hint under the field, refusal as a role=alert error under it with the typed address kept). Tests: `models/webhook/payload_url_test.go`, `services/webhook/payload_url_test.go`, `services/webhook/asc_tls_test.go`, `asc_webhook_list_test.go` `TestWebhookCreateRefusesHTTP`, `TestWebhookFormHintsHTTPS` | - |
 | RepoSettingsWebhooks | Secret shown masked with Replace, never shown again | done | `H:templates/webhook/secret.tmpl`: the stored secret is never rendered, an empty field keeps it, Regenerate secret shows a new one once (`WebhookRegenerateSecret`). Tests: `routers/web/repo/setting/asc_webhook_list_test.go` | - |
-| RepoSettingsWebhooks | Send test delivery | done | Forgejo test delivery | S |
-| RepoSettingsWebhooks | Failing-hook alert banner role=alert and menu count "Webhooks 3" | ui-only-missing | Done: menu count (`asc_menu_status.go`). Open: the role=alert banner of a failed delivery on the hook's Recent deliveries view (the list board shows the failing sentence, no banner) | S |
+| RepoSettingsWebhooks | Send test delivery | done | `H:templates/webhook/test_delivery.tmpl` at the foot of the Settings tab (and the empty Recent deliveries), reloads on Recent deliveries; off while the hook is paused | - |
+| RepoSettingsWebhooks | Failing-hook alert banner role=alert and menu count "Webhooks 3" | done | menu count (`asc_menu_status.go`); a failed delivery's detail ends in a role=alert banner, "The receiver answered 502. Nothing was retried automatically; use Redeliver once the receiver is back." (`H:templates/webhook/deliveries.tmpl`). Test: `TestWebhookDeliveries` | - |
 | RepoSettingsWebhooks | Add webhook dialog with http address refused | ui-only-missing | `webhook/new.tmpl` is a page | M |
 | RepoSettingsWebhooks | Empty state | done | `H:templates/repo/settings/webhook/base_list.tmpl` (shared/ds/empty) | - |
 
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 144 |
+| done | 145 |
 | partial | 1 |
-| ui-only-missing | 57 |
+| ui-only-missing | 56 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
@@ -440,7 +440,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsAccess | 1 | 3 | 3 | 0 | 1 |
 | RepoSettingsPolicy | 3 | 6 | 0 | 1 | 2 |
 | RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
-| RepoSettingsWebhooks | 6 | 2 | 2 | 0 | 0 |
+| RepoSettingsWebhooks | 7 | 1 | 2 | 0 | 0 |
 | RepoSettingsSecrets | 1 | 4 | 1 | 1 | 2 |
 | RepoSettingsAI | 2 | 1 | 0 | 1 | 2 |
 | RepoSettingsStorage | 2 | 1 | 0 | 2 | 3 |
