@@ -24,11 +24,11 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | NewChange | 9 | 2 | 0 | 0 | 2 |
 | Checks | 9 | 3 | 0 | 0 | 1 |
 | ChangeChecks | 9 | 0 | 0 | 0 | 1 |
-| Agents | 12 | 2 | 0 | 0 | 0 |
-| AgentRun | 15 | 2 | 0 | 0 | 1 |
+| Agents | 14 | 0 | 0 | 0 | 0 |
+| AgentRun | 17 | 0 | 0 | 0 | 1 |
 | AgentNew | 7 | 0 | 0 | 0 | 1 |
 | AgentAccess | 5 | 1 | 0 | 0 | 2 |
-| Workflows | 9 | 2 | 0 | 0 | 0 |
+| Workflows | 11 | 0 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 6 | 3 | 0 | 0 | 0 |
 | Policy | 9 | 1 | 0 | 0 | 0 |
@@ -166,10 +166,10 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Agents | Row actions Open run and Stop (confirm + reason logged) on hover/focus | done | templates/repo/asc_agents.tmpl; POST runs/{id}/cancel exists (reason popover; verified render on the dev hub) | S |
 | Agents | 'Needs you' panel: permission request (Allow once / Deny) and plan approval (Review plan), applied in place | done | asc: permission-request and plan events + decision RPC missing (agents.proto has WAITING_INPUT only); hub: asc_agents.tmpl panel + routes (today a link list of waiting runs) (Allow once/Deny/Review plan render with live asc data; decision path covered by Go tests with a fake asc) | L |
 | Agents | 'Agents on this repository' card (scope, status, changes landed in 30 days, Manage access) | done | asc: per-agent landed count; hub: ListTokens + ListRuns aggregation in asc_agents.go (Agents.ListAgents; verified on the dev hub) | M |
-| Agents | Numbered pagination and 'Showing 5 of 24' | ui-only-missing | templates/repo/asc_agents.tmpl (only an 'Older runs' cursor link) | S |
+| Agents | Numbered pagination and 'Showing 5 of 24' | done | asc: ListAgentRunsRequest.offset + ListAgentRunsResponse.total (crates/asc-serve/src/agents/runs.rs page/count, tests_flow.rs); hub: ascAgentsPageNum, ascAgentsPagerOf (asc_agents_common.go), .ag-pages nav in templates/repo/asc_agents.tmpl; TestAscAgentsPager, TestAscAgentsList | - |
 | Agents | Sub-navigation Runs / Workflows / Access / Spend | done | templates/repo/asc_agents_nav.tmpl (has Runs, Workflows, New task, Access; no Spend page) (Spend tab; verified) | S |
 | Agents | Agent features off state with 'Turn on agent features' | done | templates/repo/asc_agents_notice.tmpl, POST /-/asc/agents/features | - |
-| Agents | Empty state; loading skeleton | ui-only-missing | templates/repo/asc_agents.tmpl (empty done; skeleton missing) | S |
+| Agents | Empty state; loading skeleton | done | templates/repo/asc_agents.tmpl (data-asc-agents-loading card, three skeleton rows), web_src/js/features/asc-agents-loading.js (+ .test.js), .ag-sk-* in review-ctl.css; TestAscAgentsList | - |
 | Agents | Header pill 'N agents running' on every page | done | templates/repo/asc_agents_pill.tmpl | - |
 
 ### AgentRun
@@ -180,11 +180,11 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | AgentRun | Task quote ('Task by Maya Okafor: ...') on the run page | done | asc: AgentRun lacks the task text, only the title (proto/asc/v1/agents.proto message AgentRun); hub shows the title only (verified on the dev hub) | S |
 | AgentRun | Header: state chip, model, started-by, age, target, workflow link | done | templates/repo/asc_agents_run.tmpl | - |
 | AgentRun | Pause (holds the run at the next tool call) | done | asc: no PauseRun RPC or state; hub: route + button;; Audit 2026-10-30 (built): Gap file says asc has no PauseRun; asc master has Agents.PauseRun and the hub calls it. | M |
-| AgentRun | Stop with confirmation and reason; keeps work as drafts | ui-only-missing | templates/repo/asc_agents_run.tmpl (Stop posts directly; CancelRun accepts a reason);; Audit 2026-10-30 (part built): Stop help text is there; confirmation with a reason was not found. | S |
+| AgentRun | Stop with confirmation and reason; keeps work as drafts | done | templates/repo/asc_agents_run.tmpl (Stop popover: help, reason, confirm), AscAgentsCancel sends the reason and flashes asc_review.agents_stopped; TestAscAgentsCancelAndInput | - |
 | AgentRun | Plan block with step states and 'You approved at 10:02' | needs-both | asc: plan events/state missing; hub: plan card | L |
 | AgentRun | Permission request banner: Allow once / Deny and continue / Answer in own words; records who and why | done | asc: structured permission request + decision RPC; hub: asc_agents_run.tmpl (free-text SendInput answer exists) (renders with live asc data; decision covered by Go tests with a fake asc) | L |
 | AgentRun | Live activity log: poll, follow unless scrolled, 'Show everything' toggle, error handling | done | web_src/js/features/asc-agent-run.ts, asc_agents_events.tmpl, routers/web/repo/asc_agents_feed.go | - |
-| AgentRun | 'Reconnecting: showing the log as of 10:14' banner | ui-only-missing | asc-agent-run.ts (maxFailures logic exists, no banner) | S |
+| AgentRun | 'Reconnecting: showing the log as of 10:14' banner | done | templates/repo/asc_agents_run.tmpl (data-reconnect chip + as-of line), asc-agent-run.ts reconnectText/showReconnect (asc-agent-run.test.js), .ar-reconnect in review-ctl.css | - |
 | AgentRun | Steer this run / answer the agent | done | templates/repo/asc_agents_run.tmpl, POST runs/{id}/input | - |
 | AgentRun | Result: stack of changes with state and Review links; 'agent cannot merge' note | done | templates/repo/asc_agents_run.tmpl, services/ascagentui/links.go | - |
 | AgentRun | Budget meters: tokens, cost, time, changes with numbers | done | templates/repo/asc_agents_meters.tmpl, services/ascagentui/budget.go | - |
@@ -234,8 +234,8 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Workflows | Latest runs list (running, passed, needs approval, failed) with link to all runs | done | templates/repo/asc_workflows_runlist.tmpl, asc_workflows_runs.tmpl | - |
 | Workflows | Secrets and variables panel (names per workflow) with link to settings | done | templates/repo/asc_workflows.tmpl (the secrets the workflows read, each with its workflows) and settings/asc/workflow-secrets (set, list names, delete) | - |
 | Workflows | Capacity '3 running of 6 allowed' and shared agent budget line | done | templates/repo/asc_workflows.tmpl (running runs of the newest 100 against the sum of max_parallel_runs of the enabled workflows; the shared agent budget line is not shown) | - |
-| Workflows | No-workflows state with template and guide buttons | ui-only-missing | templates/repo/asc_workflows.tmpl (text exists, buttons missing) | S |
-| Workflows | Loading skeleton | ui-only-missing | templates/repo/asc_workflows.tmpl | S |
+| Workflows | No-workflows state with template and guide buttons | done | templates/repo/asc_workflows.tmpl: board text, "Start from a template" (plus icon, writers only) and "Read the guide" (book icon) to /-/docs/workflows; docs/asc/WORKFLOWS.md shipped in services/ascdocs; asc_workflows_test.go TestAscWorkflowsList/none | - |
+| Workflows | Loading skeleton | done | templates/repo/asc_workflows.tmpl: three board skeleton rows in place of the definitions while a state chip or the search loads (web_src/js/features/asc-list-loading.js, shared with Agents); asc-list-loading.test.js, asc_workflows_test.go TestAscWorkflowsList/none | - |
 
 ### WorkflowDef
 
