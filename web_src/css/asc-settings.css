@@ -610,3 +610,196 @@
 .asc-field-wide {
   grid-column: 1 / -1;
 }
+
+/* the AI keys page of a repository as its board draws it: a card per provider, three to a row on a wide screen,
+   dashed slots to add one, and the features that use AI with their spend */
+.asc-ai {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.asc-ai-grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.asc-ai-card .ds-card-h {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.asc-ai-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.asc-ai-key,
+.asc-ai-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line, var(--color-secondary));
+  border-radius: 10px;
+  background: var(--surface, var(--color-box-body));
+}
+
+.asc-ai-slot {
+  justify-content: space-between;
+  border-style: dashed;
+  background: transparent;
+}
+
+.asc-ai-key-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.asc-ai-key-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.asc-ai-key-label,
+.asc-ai-sub {
+  color: var(--text-2, var(--color-text-light-1));
+  font-size: 12.5px;
+  font-weight: var(--font-weight-normal);
+}
+
+.asc-ai-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-b, var(--color-text));
+  font-size: 12.5px;
+}
+
+.asc-ai-preview {
+  padding: 6px 10px;
+  border: 1px solid var(--line, var(--color-secondary));
+  border-radius: 6px;
+  background: var(--bg, var(--color-box-header));
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+.asc-ai-meta,
+.asc-ai-used,
+.asc-ai-err-line {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-b, var(--color-text));
+}
+
+.asc-ai-used-k {
+  color: var(--text-2, var(--color-text-light-1));
+  margin-inline-end: 4px;
+}
+
+.asc-ai-err-line {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  color: var(--err, var(--color-red));
+}
+
+.asc-ai-key-acts {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.asc-ai-empty .ds-empty-acts {
+  flex-wrap: wrap;
+}
+
+.asc-ai-uses td {
+  vertical-align: top;
+}
+
+.asc-ai-feature-name {
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-ai-provider-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.asc-ai-provider-form .ds-select {
+  min-width: 12rem;
+  max-width: 100%;
+}
+
+.asc-ai-spend {
+  min-width: 12rem;
+}
+
+.asc-ai-spend .asc-meter {
+  height: 6px;
+}
+
+.asc-ai-paused {
+  margin: 6px 0 0;
+  color: var(--err, var(--color-red));
+  font-size: 12.5px;
+}
+
+.asc-ai-dialog-note {
+  margin-top: 12px;
+}
+
+.ds-app dialog header .asc-dialog-x {
+  margin-inline-start: auto;
+}
+
+.ds-app dialog header:has(.asc-dialog-x) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ds-app dialog .actions .asc-ai-clear {
+  order: -1;
+  margin-inline-end: auto;
+}
+
+@media (min-width: 720px) {
+  .asc-ai-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .asc-ai-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .asc-ai-uses thead {
+    display: none;
+  }
+
+  .asc-ai-uses tr,
+  .asc-ai-uses td {
+    display: block;
+  }
+
+  .asc-ai-uses td.ds-r {
+    text-align: start;
+  }
+
+  .asc-ai-provider-form .ds-select {
+    min-width: 0;
+    width: 100%;
+  }
+}

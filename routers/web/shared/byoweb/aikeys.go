@@ -44,6 +44,7 @@ func renderAIIndex(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, st
 			}
 		} else {
 			p.Keys = svc.KeyViews(ks)
+			loadFeatures(ctx, lvl, s, p)
 			loadShared(ctx, lvl, p)
 		}
 	}
@@ -144,6 +145,10 @@ func AICreate(ctx *context.Context, lvl *Level) {
 	in := aiInputOf(f)
 	fe := in.Validate(true)
 	p.AIForm = aiFormOf(in)
+	p.AddOpen = "key"
+	if f.str("slot", 16) == "endpoint" {
+		p.AddOpen = "endpoint"
+	}
 	if len(fe) > 0 {
 		p.Errors = fe
 		p.Problem = &Problem{Message: ctx.Locale.TrString("ascbyo.error.invalid")}
@@ -154,7 +159,7 @@ func AICreate(ctx *context.Context, lvl *Level) {
 		renderAIIndex(ctx, lvl, nil, p, http.StatusServiceUnavailable)
 		return
 	}
-	k, _, err := s.CreateKey(ctx, lvl.Scope, in, f.op())
+	k, _, err := s.CreateKey(asPerson(ctx, lvl), lvl.Scope, in, f.op())
 	if err != nil {
 		p.Problem = problemOf(ctx, err)
 		refuse(ctx, err, func(status int) { renderAIIndex(ctx, lvl, s, p, status) })

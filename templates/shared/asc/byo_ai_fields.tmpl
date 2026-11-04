@@ -5,7 +5,8 @@ The fields of the add and edit forms of an AI key.
   .Pfx   id prefix, unique per form on the page
 */}}
 {{$a := .Root.Asc}}
-{{$f := $a.AIForm}}
+{{$f := $a.AddForm "key"}}
+{{$e := $a.AddErrors "key"}}
 {{$pfx := .Pfx}}
 {{$keyHint := ctx.Locale.Tr "ascbyo.ai.field.api_key_hint"}}
 {{if .Edit}}{{$keyHint = ctx.Locale.Tr "ascbyo.ai.field.api_key_new_hint"}}{{end}}
@@ -18,22 +19,22 @@ The fields of the add and edit forms of an AI key.
 			</select>
 		</div>
 	{{else}}
-		<div class="ds-field asc-field{{if $a.Errors.provider}} has-error{{end}}">
+		<div class="ds-field asc-field{{if $e.provider}} has-error{{end}}">
 			<label for="{{$pfx}}-provider">{{ctx.Locale.Tr "ascbyo.ai.field.provider"}} <span class="asc-field-req" aria-hidden="true">*</span></label>
-			<select class="ds-select" id="{{$pfx}}-provider" name="provider" required{{if $a.Errors.provider}} aria-invalid="true" aria-describedby="{{$pfx}}-provider-err"{{end}}>
+			<select class="ds-select" id="{{$pfx}}-provider" name="provider" required{{if $e.provider}} aria-invalid="true" aria-describedby="{{$pfx}}-provider-err"{{end}}>
 				{{range $a.Providers}}<option value="{{.Value}}"{{if .Sel}} selected{{end}}>{{.Label}}</option>{{end}}
 			</select>
-			{{if $a.Errors.provider}}<p class="ds-hint ds-c-err asc-field-error" id="{{$pfx}}-provider-err" role="alert">{{ctx.Locale.Tr $a.Errors.provider}}</p>{{end}}
+			{{if $e.provider}}<p class="ds-hint ds-c-err asc-field-error" id="{{$pfx}}-provider-err" role="alert">{{ctx.Locale.Tr $e.provider}}</p>{{end}}
 		</div>
 	{{end}}
-	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-label") "name" "label" "label" (ctx.Locale.Tr "ascbyo.ai.field.label") "hint" (ctx.Locale.Tr "ascbyo.ai.field.label_hint") "value" $f.Label "error" $a.Errors.label "required" true "maxlength" 64)}}
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-label") "name" "label" "label" (ctx.Locale.Tr "ascbyo.ai.field.label") "hint" (ctx.Locale.Tr "ascbyo.ai.field.label_hint") "value" $f.Label "error" $e.label "required" true "maxlength" 64)}}
 	<div class="asc-field-wide">
-	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-key") "name" "api_key" "label" (ctx.Locale.Tr "ascbyo.ai.field.api_key") "hint" $keyHint "error" $a.Errors.api_key "required" (not .Edit) "maxlength" 512 "secret" true)}}
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-key") "name" "api_key" "label" (ctx.Locale.Tr "ascbyo.ai.field.api_key") "hint" $keyHint "error" $e.api_key "required" (not .Edit) "maxlength" 512 "secret" true)}}
 	</div>
-	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-model") "name" "default_model" "label" (ctx.Locale.Tr "ascbyo.ai.field.default_model") "hint" (ctx.Locale.Tr "ascbyo.ai.field.default_model_hint") "value" $f.DefaultModel "error" $a.Errors.default_model "maxlength" 128 "list" "asc-models")}}
-	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-cap") "name" "monthly_cap" "label" (ctx.Locale.Tr "ascbyo.ai.field.monthly_cap") "hint" (ctx.Locale.Tr "ascbyo.ai.field.monthly_cap_hint") "value" $f.CapUSD "error" $a.Errors.monthly_cap "maxlength" 32 "inputmode" "decimal")}}
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-model") "name" "default_model" "label" (ctx.Locale.Tr "ascbyo.ai.field.default_model") "hint" (ctx.Locale.Tr "ascbyo.ai.field.default_model_hint") "value" $f.DefaultModel "error" $e.default_model "maxlength" 128 "list" "asc-models")}}
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-cap") "name" "monthly_cap" "label" (ctx.Locale.Tr "ascbyo.ai.field.monthly_cap") "hint" (ctx.Locale.Tr "ascbyo.ai.field.monthly_cap_hint") "value" $f.CapUSD "error" $e.monthly_cap "maxlength" 32 "inputmode" "decimal")}}
 	<div class="asc-field-wide">
-	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-base") "name" "base_url" "label" (ctx.Locale.Tr "ascbyo.ai.field.base_url") "hint" (ctx.Locale.Tr "ascbyo.ai.field.base_url_hint") "value" $f.BaseURL "error" $a.Errors.base_url "maxlength" 2048 "type" "url" "inputmode" "url")}}
+	{{template "shared/asc/byo_field" (dict "id" (print $pfx "-base") "name" "base_url" "label" (ctx.Locale.Tr "ascbyo.ai.field.base_url") "hint" (ctx.Locale.Tr "ascbyo.ai.field.base_url_hint") "value" $f.BaseURL "error" $e.base_url "maxlength" 2048 "type" "url" "inputmode" "url")}}
 	</div>
 </div>
 <p class="ds-hint asc-field-hint">{{ctx.Locale.Tr "ascbyo.secret_note"}}</p>

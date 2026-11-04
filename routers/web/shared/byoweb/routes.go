@@ -41,6 +41,8 @@ type Resolver func(ctx *context.Context) *Level
 //	POST /asc/ai/keys/{id}/enable                  use the key again
 //	POST /asc/ai/keys/{id}/disable                 stop using the key
 //	POST /asc/ai/keys/{id}/delete                  remove the key
+//	POST /asc/ai/keys/{id}/replace                 a new secret, tried with the provider first (aifeatures.go)
+//	POST /asc/ai/features/{feature}                the key and the monthly cap of a feature
 //	POST /asc/ai/keys/{id}/shares                  share the key (account and organization keys; aishares.go)
 //	POST /asc/ai/keys/{id}/shares/{share}/revoke   take a share back
 //	POST /asc/ai/keys/{id}/caps                    warning percentage and stop rule of the cap
@@ -87,7 +89,9 @@ func Routes(m *web.Route, resolve Resolver) {
 				m.Post("/shares", h(AIShare))
 				m.Post("/shares/{share}/revoke", h(AIShareRevoke))
 				m.Post("/caps", h(AICaps))
+				m.Post("/replace", h(AIReplace))
 			})
+			m.Post("/features/{feature}", h(AIFeature))
 		})
 	})
 }

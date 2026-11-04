@@ -1,0 +1,107 @@
+{{/*
+The AI keys page of a repository: a card per key of the repository, a slot to add a key or an endpoint, and the
+features that use AI. Every dialog is a native <dialog> opened by a .show-modal button; a dialog with
+data-asc-open is shown open when the page loads (a form of it was refused).
+*/}}
+{{$a := .Asc}}
+<div class="asc-byo asc-ai" data-testid="asc-byo-ai">
+	<h2 class="asc-byo-title">{{ctx.Locale.Tr "ascbyo.ai.title"}}</h2>
+	<p class="asc-byo-lead">{{ctx.Locale.Tr "ascbyo.ai.repo_lead"}}</p>
+	{{template "shared/asc/byo_head" (dict "Root" . "Active" "ai")}}
+	{{if not (or $a.Unavailable $a.Unsupported)}}
+		<div class="ds-banner asc-ai-banner" role="note"><div class="ds-banner-body">{{ctx.Locale.Tr "ascbyo.ai.banner"}}</div></div>
+
+		<section class="ds-card asc-ai-card" aria-labelledby="asc-ai-providers-h" data-testid="asc-ai-providers">
+			<div class="ds-card-h">
+				<div class="asc-ai-grow">
+					<h3 id="asc-ai-providers-h">{{ctx.Locale.Tr "ascbyo.ai.providers"}}</h3>
+					<p class="ds-card-sub">{{ctx.Locale.Tr "ascbyo.ai.providers_sub"}}</p>
+				</div>
+			</div>
+			<div class="ds-card-b">
+				{{if $a.Cards}}
+					<div class="asc-ai-grid">
+						{{range $a.Cards}}
+							<article class="asc-ai-key" aria-labelledby="asc-k-{{.ID}}" data-testid="asc-key" data-state="{{.StateName}}">
+								<div class="asc-ai-key-head">
+									<span class="ds-av ds-av-40 ds-av-org asc-ai-av asc-ai-av-{{.Provider}}" aria-hidden="true">{{ctx.Locale.Tr (print "ascbyo.ai.avatar." .Provider)}}</span>
+									<div class="asc-ai-grow">
+										<h4 class="asc-ai-key-name" id="asc-k-{{.ID}}">{{.Name}}{{if .ShowLabel}} <span class="asc-ai-key-label">{{.Label}}</span>{{end}}</h4>
+										<div class="asc-ai-state asc-ai-state-{{.Tone}}"><span class="ds-dot ds-dot-{{if eq .StateName "active"}}ok{{else if eq .Tone "bad"}}err{{else}}warn{{end}}" aria-hidden="true"></span>{{if eq .StateName "active"}}{{ctx.Locale.Tr "ascbyo.ai.card.connected"}}{{else}}{{ctx.Locale.Tr .StateKey}}{{end}}</div>
+									</div>
+									<details class="wk-menu wk-menu-end asc-ai-more">
+										<summary class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm" aria-label="{{ctx.Locale.Tr "ascbyo.ai.card.more" .Name}}">{{svg "dsi-dots" 16}}</summary>
+										<div class="wk-menu-list" role="group">
+											<a class="wk-menu-item" href="{{$a.AIURL}}/keys/{{.ID}}">{{ctx.Locale.Tr "ascbyo.ai.card.details"}}</a>
+											<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/test">
+												{{$.CsrfTokenHtml}}
+												<input type="hidden" name="op_id" value="{{$a.Op (print "test-" .ID)}}">
+												<button class="wk-menu-item" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.test"}}</button>
+											</form>
+											{{if .CanEnable}}
+												<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/enable">
+													{{$.CsrfTokenHtml}}
+													<input type="hidden" name="return" value="list">
+													<input type="hidden" name="op_id" value="{{$a.Op (print "enable-" .ID)}}">
+													<button class="wk-menu-item" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.enable"}}</button>
+												</form>
+											{{end}}
+											{{if .CanDisable}}
+												<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/disable">
+													{{$.CsrfTokenHtml}}
+													<input type="hidden" name="return" value="list">
+													<input type="hidden" name="op_id" value="{{$a.Op (print "disable-" .ID)}}">
+													<button class="wk-menu-item" type="submit">{{ctx.Locale.Tr "ascbyo.ai.card.disable"}}</button>
+												</form>
+											{{end}}
+										</div>
+									</details>
+								</div>
+								<div class="ds-mono asc-ai-preview">{{if .HasKey}}…{{.KeyHint}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.card.none"}}{{end}}</div>
+								<p class="asc-ai-meta">
+									{{if .AddedBy}}{{ctx.Locale.Tr "ascbyo.ai.card.added_by" .AddedBy (DateUtils.AbsoluteShort .Created)}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.card.added" (DateUtils.AbsoluteShort .Created)}}{{end}}
+									{{if .TestedAt}}{{ctx.Locale.Tr "ascbyo.ai.card.verified" (DateUtils.TimeSince .TestedAt)}}{{end}}
+								</p>
+								{{if .UsedFor}}<p class="asc-ai-used"><span class="asc-ai-used-k">{{ctx.Locale.Tr "ascbyo.ai.card.used_for"}}</span> {{StringUtils.Join .UsedFor ", "}}</p>{{end}}
+								{{if .LastError}}<p class="asc-ai-err-line">{{svg "dsi-alert" 14}} {{.LastError}}</p>{{end}}
+								<div class="asc-ai-key-acts">
+									<button class="ds-btn ds-btn-secondary ds-btn-sm asc-ai-grow show-modal" type="button" data-modal="#asc-replace-{{.ID}}">{{ctx.Locale.Tr "ascbyo.ai.card.replace"}}</button>
+									<button class="ds-btn ds-btn-ghost ds-btn-sm show-modal" type="button" data-modal="#asc-remove-{{.ID}}">{{ctx.Locale.Tr "ascbyo.ai.card.remove"}}</button>
+								</div>
+							</article>
+						{{end}}
+						<div class="asc-ai-slot" data-testid="asc-ai-slot-key">
+							<div class="asc-ai-key-head">
+								<span class="ds-av ds-av-40 ds-av-org asc-ai-av" aria-hidden="true">{{svg "dsi-plus" 18}}</span>
+								<div class="asc-ai-grow"><div class="asc-ai-key-name">{{ctx.Locale.Tr "ascbyo.ai.slot.key_title"}}</div><div class="asc-ai-sub">{{ctx.Locale.Tr "ascbyo.ai.slot.key_sub"}}</div></div>
+							</div>
+							<button class="ds-btn ds-btn-secondary ds-btn-block show-modal" type="button" data-modal="#asc-add-key">{{ctx.Locale.Tr "ascbyo.ai.empty_add"}}</button>
+						</div>
+						<div class="asc-ai-slot" data-testid="asc-ai-slot-endpoint">
+							<div class="asc-ai-key-head">
+								<span class="ds-av ds-av-40 ds-av-org asc-ai-av asc-ai-av-openai_compatible" aria-hidden="true">{{ctx.Locale.Tr "ascbyo.ai.avatar.openai_compatible"}}</span>
+								<div class="asc-ai-grow"><div class="asc-ai-key-name">{{ctx.Locale.Tr "ascbyo.ai.slot.endpoint_title"}}</div><div class="asc-ai-sub">{{ctx.Locale.Tr "ascbyo.ai.slot.endpoint_sub"}}</div></div>
+							</div>
+							<button class="ds-btn ds-btn-secondary ds-btn-block show-modal" type="button" data-modal="#asc-add-endpoint">{{ctx.Locale.Tr "ascbyo.ai.slot.endpoint_button"}}</button>
+						</div>
+					</div>
+				{{else}}
+					<div class="ds-empty asc-ai-empty" data-testid="asc-byo-empty">
+						<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-book" 34}}</span>
+						<h3>{{ctx.Locale.Tr "ascbyo.ai.empty_title"}}</h3>
+						<p>{{ctx.Locale.Tr "ascbyo.ai.empty_text"}}</p>
+						<div class="ds-empty-acts">
+							<button class="ds-btn ds-btn-primary ds-btn-sm show-modal" type="button" data-modal="#asc-add-key">{{ctx.Locale.Tr "ascbyo.ai.empty_add"}}</button>
+							<button class="ds-btn ds-btn-secondary ds-btn-sm show-modal" type="button" data-modal="#asc-add-endpoint">{{ctx.Locale.Tr "ascbyo.ai.slot.endpoint_button"}}</button>
+						</div>
+					</div>
+				{{end}}
+				<p class="asc-byo-hint">{{ctx.Locale.Tr "ascbyo.ai.owner_note"}}{{if $a.OwnerAIURL}} <a href="{{$a.OwnerAIURL}}">{{ctx.Locale.Tr "ascbyo.ai.owner_manage"}}</a>{{end}}</p>
+			</div>
+		</section>
+
+		{{template "shared/asc/byo_ai_features" .}}
+		{{template "shared/asc/byo_ai_shared" .}}
+		{{template "shared/asc/byo_ai_dialogs" .}}
+	{{end}}
+</div>
