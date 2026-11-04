@@ -56,6 +56,56 @@ func LoadCiStats(ctx context.Context, conn grpc.ClientConnInterface, repoName st
 	return CiStatsOf(resp), nil
 }
 
+// MainCompare is how the newest finished run of a change compares with the newest finished run of the default branch
+// (Ci.CompareWithMain): the failing tests of the change, how many of them do not fail on main, and the slowest test now
+// against the same test on main.
+type MainCompare struct {
+	Failing     uint32
+	New         uint32
+	SlowestJob  string
+	SlowestTest string
+	// SlowestMs is the time of the slowest test; SlowestMainMs its time on main, 0 when main has no such test.
+	SlowestMs     uint64
+	SlowestMainMs uint64
+}
+
+// LoadMainCompare asks asc how the change compares with main. It returns nil when the change has no finished run with
+// test results.
+func LoadMainCompare(ctx context.Context, conn grpc.ClientConnInterface, repoName string, change []byte) (*MainCompare, error) {
+	cctx, cancel := context.WithTimeout(ctx, CallTimeout)
+	defer cancel()
+	resp, err := ascv1.NewCiClient(conn).CompareWithMain(cctx, &ascv1.CompareWithMainRequest{Repo: RepoRef(repoName), Change: change})
+	if err != nil {
+		return nil, err
+	}
+	return MainCompareOf(resp), nil
+}
+
+// MainCompareOf turns an answer of Ci.CompareWithMain into a MainCompare: nil when nothing was compared; the names are
+// cleaned and the new failures are at most the failing ones.
+func MainCompareOf(r *ascv1.CompareWithMainResponse) *MainCompare {
+	if !r.GetCompared() {
+		return nil
+	}
+	c := &MainCompare{Failing: r.GetFailing(), New: min(r.GetNewFailureCount(), r.GetFailing())}
+	if t := r.GetSlowestTest(); t != nil {
+		c.SlowestTest = CleanText(t.GetName(), maxNameBytes)
+		if c.SlowestTest != "" {
+			c.SlowestJob = CleanText(t.GetJob(), maxNameBytes)
+			c.SlowestMs, c.SlowestMainMs = t.GetDurationMs(), t.GetMainDurationMs()
+		}
+	}
+	return c
+}
+
+// MillisText writes a test time: "350 ms" under a second, else as DurationText ("41 s").
+func MillisText(ms uint64) string {
+	if ms < 1000 {
+		return itoa(int(ms)) + " ms"
+	}
+	return duration(time.Duration(ms) * time.Millisecond)
+}
+
 // DurationText writes a number of seconds as the checks pages do: "42 s", "6 min 12 s", "1 h 5 min".
 func DurationText(seconds uint32) string {
 	return duration(time.Duration(seconds) * time.Second)

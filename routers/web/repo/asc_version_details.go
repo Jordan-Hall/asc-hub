@@ -14,6 +14,8 @@ import (
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 	pull_service "forgejo.org/services/pull"
+
+	"google.golang.org/grpc"
 )
 
 // The detail of a row of the versions list: the commit message, the short hash, the lines added and removed, a
@@ -160,30 +162,67 @@ func prepareAscVersionDetails(ctx *context.Context, pull *issues_model.PullReque
 // see them). It returns nil when the pull request is not stacked or asc cannot answer. The caller has checked that the
 // viewer may read the Actions of the repository.
 func ascChangeRuns(ctx *context.Context, pull *issues_model.PullRequest) []*ascv1.CiRun {
-	link, err := issues_model.GetPullRequestAscStack(ctx, pull.ID)
-	if err != nil || link == nil {
+	c, ok := ascChangeCall(ctx, pull)
+	if !ok {
 		return nil
 	}
-	change := ascChangeBytes(link.AscChange)
-	name, nerr := asctrust.RepoName(ctx.Repo.Repository)
-	if change == nil || nerr != nil {
-		return nil
-	}
-	conn, err := asctrust.Conn()
-	if err != nil {
-		return nil
-	}
-	userCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, ctx.Repo.Repository)
-	if err != nil {
-		return nil
-	}
-	defer release()
-	cctx, cancel := gocontext.WithTimeout(userCtx, asctrust.CallTimeout)
+	defer c.release()
+	cctx, cancel := gocontext.WithTimeout(c.ctx, asctrust.CallTimeout)
 	defer cancel()
-	resp, err := ascv1.NewCiClient(conn).ListRuns(cctx, &ascv1.ListRunsRequest{Repo: &ascv1.RepoRef{Name: name}, Change: change, Limit: ascVersionCheckRuns})
+	resp, err := ascv1.NewCiClient(c.conn).ListRuns(cctx, &ascv1.ListRunsRequest{Repo: &ascv1.RepoRef{Name: c.name}, Change: c.change, Limit: ascVersionCheckRuns})
 	if err != nil {
 		log.Trace("asc runs of pull request %d: %v", pull.ID, asctrust.Classify(err))
 		return nil
 	}
 	return resp.GetRuns()
+}
+
+// ascPullVsMain asks asc how the newest finished run of the change of a stacked pull request compares with main, as the
+// viewer. It returns nil when the pull request is not stacked, asc cannot answer or the change has no finished run with
+// test results. The caller has checked that the viewer may read the Actions of the repository.
+func ascPullVsMain(ctx *context.Context, pull *issues_model.PullRequest) *asctrust.MainCompare {
+	c, ok := ascChangeCall(ctx, pull)
+	if !ok {
+		return nil
+	}
+	defer c.release()
+	cmp, err := asctrust.LoadMainCompare(c.ctx, c.conn, c.name, c.change)
+	if err != nil {
+		log.Trace("asc comparison with main of pull request %d: %v", pull.ID, asctrust.Classify(err))
+		return nil
+	}
+	return cmp
+}
+
+// ascChangeCallCtx is what a call about the change of a stacked pull request needs: the repository and change asc
+// knows, a connection and the viewer's read credential (release frees it).
+type ascChangeCallCtx struct {
+	name    string
+	change  []byte
+	conn    grpc.ClientConnInterface
+	ctx     gocontext.Context
+	release func()
+}
+
+// ascChangeCall prepares a call as the viewer about the change of pull; false when the pull request is not stacked or
+// asc cannot be asked.
+func ascChangeCall(ctx *context.Context, pull *issues_model.PullRequest) (ascChangeCallCtx, bool) {
+	link, err := issues_model.GetPullRequestAscStack(ctx, pull.ID)
+	if err != nil || link == nil {
+		return ascChangeCallCtx{}, false
+	}
+	change := ascChangeBytes(link.AscChange)
+	name, nerr := asctrust.RepoName(ctx.Repo.Repository)
+	if change == nil || nerr != nil {
+		return ascChangeCallCtx{}, false
+	}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		return ascChangeCallCtx{}, false
+	}
+	userCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, ctx.Repo.Repository)
+	if err != nil {
+		return ascChangeCallCtx{}, false
+	}
+	return ascChangeCallCtx{name: name, change: change, conn: conn, ctx: userCtx, release: release}, true
 }

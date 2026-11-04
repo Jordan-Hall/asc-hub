@@ -1028,6 +1028,33 @@ type ascPullChecksPage struct {
 	// Asks maps the group of a failing check to the address of the agent form filled in for it; empty when the viewer may
 	// not start an agent run.
 	Asks map[uint64]string
+	// VsMain is how the newest finished run of the change compares with main (nil: not known); MainCommit is the commit
+	// of the base branch the statuses of main are of ("" when not known).
+	VsMain     *ascVsMain
+	MainCommit string
+}
+
+// ascVsMain is the comparison with main as the card shows it.
+type ascVsMain struct {
+	*asctrust.MainCompare
+	Took string
+	// Was is the time of the slowest test on main ("" when main has no such test); Slower is true when it is slower now.
+	Was    string
+	Slower bool
+}
+
+func ascVsMainOf(c *asctrust.MainCompare) *ascVsMain {
+	if c == nil {
+		return nil
+	}
+	v := &ascVsMain{MainCompare: c}
+	if c.SlowestTest != "" {
+		v.Took = asctrust.MillisText(c.SlowestMs)
+		if c.SlowestMainMs > 0 {
+			v.Was, v.Slower = asctrust.MillisText(c.SlowestMainMs), c.SlowestMs > c.SlowestMainMs
+		}
+	}
+	return v
 }
 
 // AscPullChecks serves GET /{owner}/{repo}/pulls/{index}/asc/checks.
@@ -1096,6 +1123,7 @@ func AscPullChecks(ctx *context.Context) {
 	// The base branch, for "compared with main".
 	if ctx.Repo.GitRepo != nil {
 		if baseSHA, err := ctx.Repo.GitRepo.GetBranchCommitID(pull.BaseBranch); err == nil {
+			p.MainCommit = baseSHA
 			if base, _, err := git_model.GetLatestCommitStatus(ctx, repo.ID, baseSHA, db.ListOptionsAll); err == nil {
 				in.MainStatuses = []asctrust.StatusIn{}
 				for _, s := range base {
@@ -1114,6 +1142,7 @@ func AscPullChecks(ctx *context.Context) {
 		if runs := ascChangeRuns(ctx, pull); runs != nil {
 			p.History = ascVersionHistoryOf(runs)
 		}
+		p.VsMain = ascVsMainOf(ascPullVsMain(ctx, pull))
 	}
 	p.Checks = asctrust.BuildPullChecks(in)
 	p.Checks.Localize(ctx.Locale.TrString)

@@ -11,6 +11,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMainCompareOf(t *testing.T) {
+	assert.Nil(t, MainCompareOf(&ascv1.CompareWithMainResponse{Failing: 3}), "nothing compared")
+	c := MainCompareOf(&ascv1.CompareWithMainResponse{
+		Compared: true, Failing: 2, NewFailureCount: 5,
+		SlowestTest: &ascv1.TestTiming{Job: "unit", Name: "retry::tests::backoff", DurationMs: 41_000, MainDurationMs: 12_000},
+	})
+	assert.Equal(t, &MainCompare{Failing: 2, New: 2, SlowestJob: "unit", SlowestTest: "retry::tests::backoff", SlowestMs: 41_000, SlowestMainMs: 12_000}, c)
+	c = MainCompareOf(&ascv1.CompareWithMainResponse{Compared: true, SlowestTest: &ascv1.TestTiming{Job: "unit", DurationMs: 9}})
+	assert.Equal(t, &MainCompare{}, c, "a timing without a test name says nothing")
+}
+
 func TestCiStatsOf(t *testing.T) {
 	daily := make([]*ascv1.CiStatsDay, MaxStatsDays+5)
 	daily[len(daily)-1] = &ascv1.CiStatsDay{Runs: 2, Passed: 9, MedianDurationSeconds: 60, FailureGroupsNew: 1, FlakyFlips: 4}
@@ -26,5 +37,7 @@ func TestCiStatsOf(t *testing.T) {
 	assert.Equal(t, CiStatsDay{Runs: 2, Passed: 2, MedianSeconds: 60, GroupsNew: 1, Flips: 4}, s.Daily[MaxStatsDays-1])
 
 	assert.Equal(t, "42 s", DurationText(42))
+	assert.Equal(t, "350 ms", MillisText(350))
+	assert.Equal(t, "41 s", MillisText(41_200))
 	assert.Equal(t, "6 min 12 s", DurationText(372))
 }
