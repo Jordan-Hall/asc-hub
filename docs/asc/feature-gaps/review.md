@@ -19,13 +19,13 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 |---|---|---|---|---|---|
-| Review | 10 | 7 | 6 | 0 | 7 |
-| ReviewVersions | 9 | 0 | 2 | 0 | 2 |
-| NewChange | 4 | 1 | 2 | 0 | 5 |
-| Checks | 6 | 4 | 2 | 0 | 1 |
-| ChangeChecks | 5 | 2 | 2 | 0 | 1 |
+| Review | 25 | 0 | 0 | 0 | 5 |
+| ReviewVersions | 12 | 0 | 0 | 0 | 1 |
+| NewChange | 9 | 2 | 0 | 0 | 2 |
+| Checks | 9 | 3 | 0 | 0 | 1 |
+| ChangeChecks | 9 | 0 | 0 | 0 | 1 |
 | Agents | 12 | 2 | 0 | 0 | 0 |
-| AgentRun | 10 | 3 | 1 | 0 | 4 |
+| AgentRun | 14 | 3 | 0 | 0 | 1 |
 | AgentNew | 7 | 0 | 0 | 0 | 1 |
 | AgentAccess | 5 | 1 | 0 | 0 | 2 |
 | Workflows | 9 | 2 | 0 | 0 | 0 |
@@ -59,7 +59,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Review | Rail action 'Merge 1 and 2 now' (merge bottom of stack, with dry run) | done | templates/repo/pulls/asc_stack.tmpl, asc_confirm.tmpl (op=merge) | - |
 | Review | Change header: agent banner (waiting on you, 42 tests pass), change id + short hash, Signed badge, 'opened for X based on change 2' | done | templates/repo/pulls/asc_change_header.tmpl under the title (view_title.tmpl); routers/web/repo/asc_change_header.go prepareAscChangeHeader: change id, newest version and its short hash, the Signed badge of that version (ascVersionBadges, shared with the versions dropdown), the change below in the stack, the run the pull request was opened for (AscRunPull) with the review state (waiting on you when the viewer is a requested reviewer) and the checks that pass; tests: TestAscChangeState, TestAscChangeHeaderTemplate | - |
 | Review | Tab strip: Overview, Files, Versions v1>v4, Checks, How it was made | done | templates/repo/pulls/tab_menu.tmpl: a stacked change reads Overview, Files, Versions v1>vN, Checks, How it was made, then Commits; anchors #asc-versions and #asc-how-made; the newest version comes from prepareAscTabVersions (test: asc_review_files_test.go TestAscTabStripOfAStackedChange) | - |
-| Review | Intent, 'Where to look' pointers (file:line), Size, Files, Risk summary block | needs-both | hub: issue/view_content/pull.tmpl; asc: change metadata for pointers and a risk classifier (proto/asc/v1/changes.proto, repo.proto Classify) | L |
+| Review | Intent, 'Where to look' pointers (file:line), Size, Files, Risk summary block | done | templates/repo/pulls/asc_brief.tmpl: What/Why/How, Where to look pointers, size, files and risk note from the change brief (routers/web/repo/asc_brief.go, asc_brief_edit.go; tests: TestAscBriefOf*) | - |
 | Review | Files by meaning: per-file Behavior/Tests/Generated badge | done | templates/repo/diff/asc_class_badge.tmpl, diff/box.tmpl:142 | - |
 | Review | Files by meaning: group counts and filter above the diff | done | templates/repo/diff/box.tmpl class bar (counts from pull_service.AscFileClassCounts) filtered by asc-review.js; every file box carries data-asc-class (tests: TestAscDiffBoxClassBarAndStates, asc-review.test.js) | - |
 | Review | 'Changed since you looked' count, 'Since my last review v3>v4' selector, 'Changed in v4' badge per file, hide unchanged hunks | done | templates/repo/pulls/asc_versions.tmpl count and 'Show only what changed since my review' toggle (files, not single hunks: the interdiff link shows only the changed hunks); templates/repo/diff/box.tmpl 'Changed in vN' pill on each file of an interdiff; count from ascChangedSinceCount (tests: TestAscVersionsPanelChangedSince, TestAscChangedSinceCount) | - |
@@ -110,8 +110,8 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | NewChange | Compare bar: base/head, +212 -48 in 9 files, no-conflict chip, ahead/behind, stack of N | ui-only-missing (size, files and changes ahead are shown; the no-conflict chip and behind count remain) | templates/repo/diff/compare.tmpl; asc_compare.tmpl is a separate page | M |
 | NewChange | Title counter '68 of 120', 'Start with a verb' hint, inline validation | done | templates/repo/diff/compare.tmpl | S |
 | NewChange | Intent editor with What/Why/How to check/Risk template and Write/Preview | done | templates/repo/diff/compare.tmpl (description template) | S |
-| NewChange | 'Draft from the diff' (AI writes What/Why/How/Risk from the diff) | ui-only-missing | hub: new route using BYO AI key (services/ascbyo); asc: diff + Classify; Audit 2026-10-30 (part built): the button fills title and description from Review.DraftContext (subjects, files, size, risk) without a model (asc_draft_context.go, asc-draft.js); the AI-written What/Why/How is not built | L |
-| NewChange | 'Where to look' pointers editor | needs-both | same as the Review intent block | M |
+| NewChange | 'Draft from the diff' (AI writes What/Why/How/Risk from the diff) | done | Review.DraftContext fills title and description without a model; with a review-summaries key the BYO model writes What/Why/How/Where (routers/web/repo/asc_summary.go, POST asc/summarize and asc/brief/summarize, services/ascbyo; web_src/js/features/asc-draft.js; tests: TestAscSummary*, asc-draft.test.js) | - |
+| NewChange | 'Where to look' pointers editor | done | templates/repo/issue/new_form.tmpl Where to look field: pills linked to the changed files, add with path (datalist of the diff files), line and note, remove; kept in the description's Where to look first section that the brief and the summary read (web_src/js/features/asc-where.js; test: asc-where.test.js) | - |
 | NewChange | Reviewer suggestions from ownership and review history, out-of-office note, agent reviewers labelled | ui-only-missing | asc: code owner / review history query; hub: reviewer panel in compare.tmpl; Audit 2026-10-30 (part built): the reviewers sidebar of the pull request offers Review.SuggestReviewers with an Ask button (asc_suggested_reviewers.go); the compare page, out-of-office notes and agent reviewers are not built | L |
 | NewChange | Options: open as draft, keep as part of stack, land when approved and green, ask agent to babysit checks | needs-both | draft + auto-merge exist natively; babysit needs Agents.CreateRun trigger + hub option | L |
 | NewChange | Local checks start on open; 'signed with your key' note | done | templates/repo/issue/new_form.tmpl note under the intent for an asc repository: checks start on open, signed with your key when one is added (test: TestAscCompareNotesOnOpen) | - |
