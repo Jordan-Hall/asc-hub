@@ -4,10 +4,7 @@
 			<h2 id="wh-list-title">{{ctx.Locale.Tr "repo.settings.hooks"}}</h2>
 			<p class="ds-card-sub">{{.Description}}</p>
 		</div>
-		<div class="ui jump dropdown wh-add-menu">
-			<div class="ds-btn ds-btn-primary ds-btn-sm" tabindex="0">{{ctx.Locale.Tr "repo.settings.add_webhook"}}</div>
-			{{template "repo/settings/webhook/link_menu" .}}
-		</div>
+		<button type="button" class="ds-btn ds-btn-primary ds-btn-sm wh-add-btn" data-wh-add-open>{{ctx.Locale.Tr "repo.settings.add_webhook"}}</button>
 	</div>
 	{{if .Webhooks}}
 		{{template "shared/webhook/list" (dict "Rows" .Webhooks "BaseLink" .BaseLink "ListLink" .BaseLink)}}
@@ -17,7 +14,5 @@
 		</div>
 	{{end}}
 </section>
-<div class="ui jump dropdown wh-add-phone">
-	<div class="ds-btn ds-btn-primary ds-btn-block" tabindex="0">{{ctx.Locale.Tr "repo.settings.add_webhook"}}</div>
-	{{template "repo/settings/webhook/link_menu" .}}
-</div>
+<button type="button" class="ds-btn ds-btn-primary ds-btn-block wh-add-phone" data-wh-add-open>{{ctx.Locale.Tr "repo.settings.add_webhook"}}</button>
+{{template "repo/settings/webhook/add_dialog" .}}
