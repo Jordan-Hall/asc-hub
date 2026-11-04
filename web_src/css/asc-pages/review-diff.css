@@ -527,6 +527,46 @@
   .rv-diff #review-box .js-btn-review {
     box-shadow: 0 6px 20px -6px rgb(15 23 42 / 55%);
   }
+
+  /* with the pinned verdict bar the review box opens from it: its own button stays in place for the panel to anchor
+     to, out of sight, and the panel opens above the bar */
+  .rv-review-page:has(.rv-review-pinned) {
+    padding-bottom: calc(var(--rv-pinned-h) + env(safe-area-inset-bottom));
+  }
+
+  .rv-review-page:has(.rv-review-pinned) #review-box {
+    bottom: calc(var(--rv-bottom-bar) + var(--rv-pinned-h) + env(safe-area-inset-bottom));
+  }
+
+  .rv-review-page:has(.rv-review-pinned) #review-box .js-btn-review {
+    visibility: hidden;
+  }
+
+  .rv-review-pinned {
+    position: fixed;
+    inset-inline: 0;
+    bottom: var(--rv-bottom-bar);
+    z-index: 30;
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+
+  .rv-review-pinned > *,
+  .rv-review-pinned .rv-btn {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .rv-review-pinned form {
+    display: flex;
+  }
+}
+
+.rv-review-page {
+  --rv-pinned-h: 65px; /* the pinned verdict bar: a 44px button, 10px padding above and below, the border */
 }
 
 .rv-reviewpanel {
