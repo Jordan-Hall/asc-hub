@@ -139,7 +139,7 @@ func WebhookNew(ctx *context.Context) {
 	}
 
 	hookType := ctx.Params(":type")
-	handler := webhook_service.GetWebhookHandler(hookType)
+	handler := webhook_service.FormHandler(hookType)
 	if handler == nil {
 		ctx.NotFound("GetWebhookHandler", nil)
 		return
@@ -205,7 +205,7 @@ func submittedWebhook(fields forms.WebhookForm) webhook.Webhook {
 
 func WebhookCreate(ctx *context.Context) {
 	hookType := ctx.Params(":type")
-	handler := webhook_service.GetWebhookHandler(hookType)
+	handler := webhook_service.FormHandler(hookType)
 	if handler == nil {
 		ctx.NotFound("GetWebhookHandler", nil)
 		return
@@ -295,7 +295,7 @@ func WebhookUpdate(ctx *context.Context) {
 	}
 	ctx.Data["Webhook"] = w
 
-	handler := webhook_service.GetWebhookHandler(w.Type)
+	handler := webhook_service.FormHandler(w.Type)
 	if handler == nil {
 		ctx.NotFound("GetWebhookHandler", nil)
 		return
@@ -398,6 +398,9 @@ func checkWebhook(ctx *context.Context) (*ownerRepoCtx, *webhook.Webhook) {
 	}
 	ctx.Data["SendGroups"] = webhook_service.SendGroups(w)
 	ctx.Data["HookHasSecret"] = webhook_service.HasSecret(w.Type)
+	if w.Type == webhook_module.ASCAGENT && ctx.Repo.Repository != nil {
+		ctx.Data["AgentRoster"] = webhook_service.AgentRoster(ctx, ctx.Repo.Repository)
+	}
 
 	if err := loadDeliveries(ctx, w); err != nil {
 		ctx.ServerError("loadDeliveries", err)

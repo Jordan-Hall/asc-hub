@@ -80,6 +80,10 @@ func GetRepoHook(ctx *context.APIContext, repoID, hookID int64) (*webhook.Webhoo
 // checkCreateHookOption check if a CreateHookOption form is valid. If invalid,
 // write the appropriate error to `ctx`. Return whether the form is valid
 func checkCreateHookOption(ctx *context.APIContext, form *api.CreateHookOption) bool {
+	if form.Type == webhook_module.ASCAGENT {
+		ctx.Error(http.StatusUnprocessableEntity, "", "An ASC agent hook is added in the repository settings.")
+		return false
+	}
 	if !webhook_service.IsValidHookTaskType(form.Type) {
 		ctx.Error(http.StatusUnprocessableEntity, "", fmt.Sprintf("Invalid hook type: %s", form.Type))
 		return false
@@ -332,6 +336,10 @@ func EditRepoHook(ctx *context.APIContext, form *api.EditHookOption, hookID int6
 // to `ctx` accordingly and return the error. Return whether successful
 func editHook(ctx *context.APIContext, form *api.EditHookOption, w *webhook.Webhook) bool {
 	if form.Config != nil {
+		if _, ok := form.Config["url"]; ok && w.Type == webhook_module.ASCAGENT {
+			ctx.Error(http.StatusUnprocessableEntity, "", "An ASC agent hook has no url. Change its agent in the repository settings.")
+			return false
+		}
 		if url, ok := form.Config["url"]; ok {
 			if !validation.IsValidURL(url) {
 				ctx.Error(http.StatusUnprocessableEntity, "", "Invalid url")

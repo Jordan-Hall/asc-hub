@@ -57,6 +57,7 @@ var webhookHandlers = []Handler{
 	wechatworkHandler{},
 	packagistHandler{},
 	sourcehut.BuildsHandler{},
+	ascAgentHandler{},
 }
 
 // GetWebhookHandler return the handler for a given webhook type (nil if not found)
@@ -69,9 +70,19 @@ func GetWebhookHandler(name webhook_module.HookType) Handler {
 	return nil
 }
 
-// List provides a list of the supported webhooks
+// List provides the webhooks that have a form page. An ASC agent hook is left out: it is added from the Add webhook
+// dialog of a repository.
 func List() []Handler {
-	return webhookHandlers
+	return webhookHandlers[:len(webhookHandlers)-1]
+}
+
+// FormHandler returns the handler of a webhook type that has a form page (nil for an unknown type or an ASC agent
+// hook, which is added from the Add webhook dialog and changed on its Settings tab).
+func FormHandler(name string) Handler {
+	if name == webhook_module.ASCAGENT {
+		return nil
+	}
+	return GetWebhookHandler(name)
 }
 
 // IsValidHookTaskType returns true if a webhook registered

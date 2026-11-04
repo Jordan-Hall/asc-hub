@@ -124,6 +124,8 @@ const (
 	WECHATWORK       HookType = "wechatwork"
 	PACKAGIST        HookType = "packagist"
 	SOURCEHUT_BUILDS HookType = "sourcehut_builds" //nolint:revive
+	// ASCAGENT starts an agent run in asc on each event instead of sending a request (services/webhook/asc_agent.go).
+	ASCAGENT HookType = "asc_agent"
 )
 
 // HookStatus is the status of a web hook

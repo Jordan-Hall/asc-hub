@@ -11,6 +11,7 @@ import (
 
 	"forgejo.org/modules/hostmatcher"
 	"forgejo.org/modules/setting"
+	webhook_module "forgejo.org/modules/webhook"
 )
 
 // ErrPayloadURLNotHTTPS is returned for a payload address that is not https and is not a loopback target the instance
@@ -51,4 +52,16 @@ func CheckPayloadURL(raw string) error {
 		return ErrPayloadURLNotHTTPS
 	}
 	return nil
+}
+
+// checkHookAddress checks the address of w before it is saved. An ASC agent hook sends no request, and its address
+// only names its agent (asc-agent://fixer); every other hook follows CheckPayloadURL.
+func checkHookAddress(w *Webhook) error {
+	if w.Type == webhook_module.ASCAGENT {
+		if !strings.HasPrefix(w.URL, "asc-agent://") {
+			return ErrPayloadURLNotHTTPS
+		}
+		return nil
+	}
+	return CheckPayloadURL(w.URL)
 }
