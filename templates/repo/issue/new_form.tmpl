@@ -13,7 +13,7 @@
 						{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}}
 							<div class="ds-hint" id="issue_title_hint">{{ctx.Locale.Tr "asc_rp.title_hint"}}</div>
 							<div class="ds-hint" id="issue_title_count" aria-live="polite"></div>
-							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-asc-draft data-url="{{.RepoLink}}/asc/draft_context?base={{.BaseBranch}}&head={{.HeadBranch}}" data-empty="{{ctx.Locale.Tr "asc_review.draft_nothing"}}" data-failed="{{ctx.Locale.Tr "asc_review.draft_failed"}}" data-confirm="{{ctx.Locale.Tr "asc_review.draft_replace"}}">{{ctx.Locale.Tr "asc_review.draft_button"}}</button>
+							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-asc-draft data-url="{{.RepoLink}}/asc/draft_context?base={{.BaseBranch}}&head={{.HeadBranch}}" data-empty="{{ctx.Locale.Tr "asc_review.draft_nothing"}}" data-failed="{{ctx.Locale.Tr "asc_review.draft_failed"}}" data-confirm="{{ctx.Locale.Tr "asc_review.draft_replace"}}"{{if .CanWriteCode}} data-summary-url="{{.RepoLink}}/asc/summarize" data-base="{{.BaseBranch}}" data-head="{{.HeadBranch}}" data-working="{{ctx.Locale.Tr "asc_review.summary_working"}}" data-written="{{ctx.Locale.Tr "asc_review.summary_note"}}" data-facts="{{ctx.Locale.Tr "asc_review.summary_facts"}}"{{end}} data-testid="asc-draft">{{svg "dsi-wand" 16}}{{ctx.Locale.Tr "asc_review.draft_button"}}</button>
 							<span class="ds-hint" data-asc-draft-note aria-live="polite"></span>
 						{{end}}
 						{{if .PageIsComparePull}}
