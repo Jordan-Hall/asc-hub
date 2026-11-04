@@ -189,6 +189,7 @@ func ascAgentsTokensPage(ctx *context.Context, env *ascAgentsEnv, form *ascAgent
 	ctx.Data["AscAgentTokens"] = rows
 	ctx.Data["AscAgentsCanBudget"] = !ctx.Repo.Repository.IsArchived
 	ctx.Data["AscAgentPolicy"] = ascAgentPolicyOf(readCtx, env.ref())
+	ascAgentApprovalsLog(ctx, readCtx, agents, env)
 	ctx.Data["AscAgentDefaults"] = ascAgentDefaults{
 		PolicyURL:    env.link + "/settings/asc/policy",
 		LifetimeDays: ascAgentTokenTTLs[len(ascAgentTokenTTLs)-1].Seconds / 86400,
@@ -219,6 +220,27 @@ func ascAgentTokensMonth(callCtx gocontext.Context, api ascv1.AgentsClient, env 
 		}
 		rows[i].Month = m
 	}
+}
+
+// ascAgentApprovalsLogMax is how many requests the approvals log of the tokens page lists.
+const ascAgentApprovalsLogMax = 20
+
+// ascAgentApprovalsLog lists the newest permission and plan requests of the agents of the repository, decided or
+// not, with who decided them (board AgentAccess, Approvals). The page is for administrators, who may read the text
+// of every request. When asc cannot be asked the log says so and the rest of the page stays.
+func ascAgentApprovalsLog(ctx *context.Context, callCtx gocontext.Context, api ascv1.AgentsClient, env *ascAgentsEnv) {
+	resp, err := api.ListRequests(callCtx, &ascv1.ListAgentRequestsRequest{Repo: env.ref(), Limit: ascAgentApprovalsLogMax})
+	if err != nil {
+		log.Warn("asc agents: ListRequests for the approvals log failed: %s", ascagentuiLogLine(ascagentui.Classify(err)))
+		ctx.Data["AscAgentApprovalsFailed"] = true
+		return
+	}
+	reqs := ascagentui.Requests(resp.GetRequests())
+	sort.SliceStable(reqs, func(i, j int) bool { return reqs[i].At.After(reqs[j].At) })
+	if len(reqs) > ascAgentApprovalsLogMax {
+		reqs = reqs[:ascAgentApprovalsLogMax]
+	}
+	ctx.Data["AscAgentApprovalsLog"] = reqs
 }
 
 // AscAgentsTokens serves `GET /{owner}/{repo}/asc/agents/tokens`.

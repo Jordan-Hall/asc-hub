@@ -5,6 +5,7 @@ Template Attributes:
 * AscAgentTokenMade / AscAgentTokenSecret: only in the answer to the POST that made a token. The secret is shown once.
 * AscAgentTokenForm: *ascAgentTokenForm, AscAgentTokenTTLs, AscBudgetFields, AscAgentPolicy
 * AscAgentsCanBudget: the repository is not archived, so the monthly budget of a token's agent can be set
+* AscAgentApprovalsLog: []ascagentui.Request, newest first; AscAgentApprovalsFailed when asc could not list them
 * CsrfTokenHtml
 */}}
 {{template "base/head" .}}
@@ -108,6 +109,28 @@ Template Attributes:
 							<p>{{ctx.Locale.Tr "asc_review.tokens_none_help"}}</p>
 							<div class="rv-acts"><a class="rv-btn rv-btn-primary" href="#rv-newtoken">{{ctx.Locale.Tr "asc_review.tokens_make"}}</a></div>
 						</div>
+					{{end}}
+				</section>
+
+				<section aria-labelledby="rv-approvals-title" data-testid="asc-agent-approvals">
+					<div class="rv-section-title rv-approvals-head"><h2 id="rv-approvals-title" class="rv-h3">{{ctx.Locale.Tr "asc_review.tokens_approvals"}}</h2><span class="rv-muted">{{ctx.Locale.Tr "asc_review.tokens_approvals_sub"}}</span></div>
+					{{if .AscAgentApprovalsLog}}
+						<ul class="rv-list rv-approvals">
+							{{range .AscAgentApprovalsLog}}
+								<li class="rv-li rv-approval" data-state="{{.State}}">
+									<span class="rv-mono rv-muted rv-approval-at">{{DateUtils.TimeSince .At}}</span>
+									<a class="rv-mono rv-approval-run" href="{{$.AscAgentsBase}}/runs/{{.RunID}}">{{ctx.Locale.Tr "asc_review.agents_run_n" .RunID}}</a>
+									<span class="rv-approval-agent"><span class="rv-av rv-av-24 rv-av-agent" aria-hidden="true">{{.Initials}}</span>{{.Agent}}</span>
+									<span class="rv-approval-what">{{if eq .Kind "plan"}}{{ctx.Locale.Tr "asc_review.tokens_approval_plan" .Summary}}{{else}}{{.Summary}}{{end}}</span>
+									<span class="rv-pill {{if .Pending}}rv-pill-warn{{else if or (eq .State "allowed") (eq .State "approved")}}rv-pill-ok{{else if or (eq .State "denied") (eq .State "rejected")}}rv-pill-err{{end}}">{{ctx.Locale.Tr (print "asc_review.tokens_approval_" .State)}}</span>
+									<span class="rv-muted rv-approval-by">{{.DecidedBy}}</span>
+								</li>
+							{{end}}
+						</ul>
+					{{else if .AscAgentApprovalsFailed}}
+						<p class="rv-hint" data-testid="asc-agent-approvals-failed">{{ctx.Locale.Tr "asc_review.tokens_approvals_failed"}}</p>
+					{{else}}
+						<p class="rv-hint" data-testid="asc-agent-approvals-empty">{{ctx.Locale.Tr "asc_review.tokens_approvals_none"}}</p>
 					{{end}}
 				</section>
 
