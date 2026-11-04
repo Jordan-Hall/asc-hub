@@ -49,7 +49,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | Activity card: landed per week over 12 weeks, Contributors list with agent marks | needs-both | same statistics RPC as Insights; hub `asc_about.tmpl` | L |
 | Repo | Languages bar with legend and aria-label | done | `H:templates/repo/asc_about.tmpl` | S |
 | Repo | Latest release card ("9 changes, 3 by agents. Published 6 days ago") | done (seen on a live hub (ui10): name, chip, change count, age) | `H:templates/repo/asc_about.tmpl` shows name and age only; counts need the release-changes data (see Releases) | S |
-| Repo | Loading skeleton that keeps row geometry | ui-only-missing | `H:templates/repo/home_cards.tmpl` (skeleton `rp-sk` exists only for the last-commit column) | S |
+| Repo | Loading skeleton that keeps row geometry | done | `H:templates/repo/view_list.tmpl`: while the last commit loads, the author and age cells hold `rp-sk-word` blocks of their usual width, so the columns keep their size; `routers/web/repo/asc_files_skeleton_test.go` | S |
 | Repo | Error state: "Stacks did not load", request id, Try again | done | `H:routers/web/repo/view_home_cards.go` (swallows errors), `H:templates/status`, request id from the access log context;; Audit 2026-10-30 (built): Gap file says open; the template has the Stacks did not load error with request id and Try again. | S |
 | Repo | Empty repository state with `asc init` and `asc push` commands | done | `H:templates/repo/empty.tmpl` | S |
 | Repo | Clone popover: asc login and clone, Install asc, Open in IDE, Copy | done | `H:templates/repo/clone_dialog.tmpl` | S |
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 145 |
+| done | 146 |
 | partial | 1 |
-| ui-only-missing | 56 |
+| ui-only-missing | 55 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |

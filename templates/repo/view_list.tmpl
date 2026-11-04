@@ -70,9 +70,9 @@
 						{{end}}
 					</span>
 				</td>
-				<td class="author rp-col-opt">{{if $commit}}<span class="truncate">{{$commit.Author.Name}}</span>{{end}}</td>
+				<td class="author rp-col-opt">{{if $commit}}<span class="truncate">{{$commit.Author.Name}}</span>{{else}}<span class="rp-sk rp-sk-word" aria-hidden="true"></span>{{end}}</td>
 				<td class="size rp-col-opt ds-num">{{if and (not $entry.IsDir) (not $entry.IsSubmodule)}}{{ctx.Locale.TrSize $entry.Size}}{{end}}</td>
-				<td class="age">{{if $commit}}{{DateUtils.TimeSince $commit.Committer.When}}{{end}}</td>
+				<td class="age">{{if $commit}}{{DateUtils.TimeSince $commit.Committer.When}}{{else}}<span class="rp-sk rp-sk-word" aria-hidden="true"></span>{{end}}</td>
 			</tr>
 		{{end}}
 	</tbody>
