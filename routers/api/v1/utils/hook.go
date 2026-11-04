@@ -224,6 +224,7 @@ func addHook(ctx *context.APIContext, form *api.CreateHookOption, ownerID, repoI
 		IsActive: form.Active,
 		Type:     form.Type,
 	}
+	w.SetAscEvents(form.Events)
 	if w.Type == webhook_module.SLACK {
 		channel, ok := form.Config["channel"]
 		if !ok {
@@ -382,6 +383,7 @@ func editHook(ctx *context.APIContext, form *api.EditHookOption, w *webhook.Webh
 	w.Repository = util.SliceContainsString(form.Events, string(webhook_module.HookEventRepository), true)
 	w.Wiki = util.SliceContainsString(form.Events, string(webhook_module.HookEventWiki), true)
 	w.Release = util.SliceContainsString(form.Events, string(webhook_module.HookEventRelease), true)
+	w.SetAscEvents(form.Events)
 	w.BranchFilter = form.BranchFilter
 
 	w.SetHeaderAuthorization(form.AuthorizationHeader)

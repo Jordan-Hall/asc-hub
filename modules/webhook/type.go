@@ -3,6 +3,8 @@
 
 package webhook
 
+import "slices"
+
 // HookEventType is the type of a hook event
 type HookEventType string
 
@@ -37,7 +39,29 @@ const (
 	HookEventActionRunFailure          HookEventType = "action_run_failure"
 	HookEventActionRunRecover          HookEventType = "action_run_recover"
 	HookEventActionRunSuccess          HookEventType = "action_run_success"
+
+	// The ASC events: their payload is api.AscHookPayload, whatever the kind of the hook.
+	HookEventChangeOpened     HookEventType = "change.opened"
+	HookEventChangeLanded     HookEventType = "change.landed"
+	HookEventReviewRequested  HookEventType = "review.requested"
+	HookEventAgentRunStarted  HookEventType = "agent_run.started"
+	HookEventAgentRunFinished HookEventType = "agent_run.finished"
+	HookEventReleasePublished HookEventType = "release.published"
+	HookEventPolicyChanged    HookEventType = "policy.changed"
 )
+
+// AscHookEvents are the ASC events, in the order the settings of a hook list them.
+var AscHookEvents = []HookEventType{
+	HookEventChangeLanded, HookEventChangeOpened, HookEventReviewRequested,
+	HookEventAgentRunStarted, HookEventAgentRunFinished,
+	HookEventReleasePublished,
+	HookEventPolicyChanged,
+}
+
+// IsAsc reports whether the event is one of the ASC events.
+func (h HookEventType) IsAsc() bool {
+	return slices.Contains(AscHookEvents, h)
+}
 
 // Event returns the HookEventType as an event string
 func (h HookEventType) Event() string {
@@ -75,6 +99,9 @@ func (h HookEventType) Event() string {
 		return "action_run_recover"
 	case HookEventActionRunSuccess:
 		return "action_run_success"
+	}
+	if h.IsAsc() {
+		return string(h)
 	}
 	return ""
 }
