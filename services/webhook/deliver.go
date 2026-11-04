@@ -48,6 +48,10 @@ func Deliver(ctx context.Context, t *webhook_model.HookTask) error {
 
 	t.IsDelivered = true
 
+	if w.Type == webhook_module.ASCAGENT {
+		return deliverAgent(ctx, w, t)
+	}
+
 	handler := GetWebhookHandler(w.Type)
 	if handler == nil {
 		return fmt.Errorf("GetWebhookHandler %q", w.Type)
@@ -106,31 +110,7 @@ func Deliver(ctx context.Context, t *webhook_model.HookTask) error {
 	}
 
 	// All code from this point will update the hook task
-	defer func() {
-		t.Delivered = timeutil.TimeStampNanoNow()
-		if t.IsSucceed {
-			log.Trace("Hook delivered: %s", t.UUID)
-		} else if !w.IsActive {
-			log.Trace("Hook delivery skipped as webhook is inactive: %s", t.UUID)
-		} else {
-			log.Trace("Hook delivery failed: %s", t.UUID)
-		}
-
-		if err := webhook_model.UpdateHookTask(ctx, t); err != nil {
-			log.Error("UpdateHookTask [%d]: %v", t.ID, err)
-		}
-
-		// Update webhook last delivery status.
-		if t.IsSucceed {
-			w.LastStatus = webhook_module.HookStatusSucceed
-		} else {
-			w.LastStatus = webhook_module.HookStatusFail
-		}
-		if err = webhook_model.UpdateWebhookLastStatus(ctx, w); err != nil {
-			log.Error("UpdateWebhookLastStatus: %v", err)
-			return
-		}
-	}()
+	defer recordDelivery(ctx, w, t)
 
 	if setting.DisableWebhooks {
 		return fmt.Errorf("webhook task skipped (webhooks disabled): [%d]", t.ID)
@@ -164,6 +144,33 @@ func Deliver(ctx context.Context, t *webhook_model.HookTask) error {
 	}
 	t.ResponseInfo.Body = string(p)
 	return nil
+}
+
+// recordDelivery stores the delivered task t and the last status of its hook w.
+func recordDelivery(ctx context.Context, w *webhook_model.Webhook, t *webhook_model.HookTask) {
+	t.Delivered = timeutil.TimeStampNanoNow()
+	if t.IsSucceed {
+		log.Trace("Hook delivered: %s", t.UUID)
+	} else if !w.IsActive {
+		log.Trace("Hook delivery skipped as webhook is inactive: %s", t.UUID)
+	} else {
+		log.Trace("Hook delivery failed: %s", t.UUID)
+	}
+
+	if err := webhook_model.UpdateHookTask(ctx, t); err != nil {
+		log.Error("UpdateHookTask [%d]: %v", t.ID, err)
+	}
+
+	// Update webhook last delivery status.
+	if t.IsSucceed {
+		w.LastStatus = webhook_module.HookStatusSucceed
+	} else {
+		w.LastStatus = webhook_module.HookStatusFail
+	}
+	if err := webhook_model.UpdateWebhookLastStatus(ctx, w); err != nil {
+		log.Error("UpdateWebhookLastStatus: %v", err)
+		return
+	}
 }
 
 var (

@@ -44,6 +44,8 @@ func (r *ListRow) Kind() string {
 	case webhook_module.SLACK, webhook_module.DISCORD, webhook_module.DINGTALK, webhook_module.TELEGRAM, webhook_module.MSTEAMS,
 		webhook_module.FEISHU, webhook_module.MATRIX, webhook_module.WECHATWORK:
 		return "asc_hooks.kind_chat"
+	case webhook_module.ASCAGENT:
+		return "asc_hooks.kind_agent"
 	}
 	return "asc_hooks.kind_service"
 }
