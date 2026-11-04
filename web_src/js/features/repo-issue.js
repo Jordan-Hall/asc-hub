@@ -402,6 +402,22 @@ function findDiffLineRow(path, side, lineNum) {
   return null;
 }
 
+// ascCommentForm names the lines of a new comment form in its placeholder (board Review: "Comment on line 16, or type /
+// for suggestions…"). For new lines it also keeps their text in data-asc-suggest, which "/" puts in a suggestion block.
+function ascCommentForm(td, side, lineStart, lineEnd, rows) {
+  const form = td.querySelector('form[data-asc-ph-new]');
+  if (!form) return;
+  const one = lineStart === lineEnd;
+  const label = one ? `${lineStart}` : `${lineStart}–${lineEnd}`;
+  const attr = `data-asc-ph-${side === 'left' ? 'old' : 'new'}${one ? '' : '-lines'}`;
+  const textarea = form.querySelector('textarea');
+  if (textarea) textarea.placeholder = form.getAttribute(attr).replace('{line}', label);
+  if (side === 'left') return;
+  const lines = rows.map((tr) => tr?.querySelector('td.lines-code:not(.lines-code-old):not(.blob-hunk) .code-inner')?.textContent);
+  if (lines.includes(undefined)) return;
+  form.setAttribute('data-asc-suggest', lines.join('\n'));
+}
+
 // addLineHighlight applies a highlight class to a single diff line.
 // In split view a row holds both sides, so only the cells of `side` are highlighted to avoid
 // lighting up the opposite column. In unified view there is a single code column, so the whole
@@ -654,6 +670,9 @@ export function initRepoPullRequestReview() {
         $td.find("input[name='side']").val(side === 'left' ? 'previous' : 'proposed');
         $td.find("input[name='path']").val(path);
         $td.find("input[name='extra_lines_count']").val(extraLinesCount);
+        const rows = [];
+        for (let i = lineStart; i <= lineEnd; i++) rows.push(findDiffLineRow(path, side, i));
+        ascCommentForm($td[0], side, lineStart, lineEnd, rows);
 
         await initDropzone($td.find('.dropzone')[0]);
         const editor = await initComboMarkdownEditor($td.find('.combo-markdown-editor'));
@@ -702,6 +721,7 @@ export function initRepoPullRequestReview() {
         $td.find("input[name='line']").val(idx);
         $td.find("input[name='side']").val(side === 'left' ? 'previous' : 'proposed');
         $td.find("input[name='path']").val(path);
+        ascCommentForm($td[0], side, Number(idx), Number(idx), [tr]);
 
         await initDropzone($td.find('.dropzone')[0]);
         const editor = await initComboMarkdownEditor($td.find('.combo-markdown-editor'));
