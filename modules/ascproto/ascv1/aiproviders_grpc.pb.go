@@ -19,14 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AiProviders_CreateKey_FullMethodName  = "/asc.v1.AiProviders/CreateKey"
-	AiProviders_ListKeys_FullMethodName   = "/asc.v1.AiProviders/ListKeys"
-	AiProviders_GetKey_FullMethodName     = "/asc.v1.AiProviders/GetKey"
-	AiProviders_UpdateKey_FullMethodName  = "/asc.v1.AiProviders/UpdateKey"
-	AiProviders_DeleteKey_FullMethodName  = "/asc.v1.AiProviders/DeleteKey"
-	AiProviders_TestKey_FullMethodName    = "/asc.v1.AiProviders/TestKey"
-	AiProviders_Usage_FullMethodName      = "/asc.v1.AiProviders/Usage"
-	AiProviders_ListModels_FullMethodName = "/asc.v1.AiProviders/ListModels"
+	AiProviders_CreateKey_FullMethodName    = "/asc.v1.AiProviders/CreateKey"
+	AiProviders_ListKeys_FullMethodName     = "/asc.v1.AiProviders/ListKeys"
+	AiProviders_GetKey_FullMethodName       = "/asc.v1.AiProviders/GetKey"
+	AiProviders_UpdateKey_FullMethodName    = "/asc.v1.AiProviders/UpdateKey"
+	AiProviders_DeleteKey_FullMethodName    = "/asc.v1.AiProviders/DeleteKey"
+	AiProviders_TestKey_FullMethodName      = "/asc.v1.AiProviders/TestKey"
+	AiProviders_Usage_FullMethodName        = "/asc.v1.AiProviders/Usage"
+	AiProviders_ListModels_FullMethodName   = "/asc.v1.AiProviders/ListModels"
+	AiProviders_ReplaceKey_FullMethodName   = "/asc.v1.AiProviders/ReplaceKey"
+	AiProviders_ListFeatures_FullMethodName = "/asc.v1.AiProviders/ListFeatures"
+	AiProviders_SetFeature_FullMethodName   = "/asc.v1.AiProviders/SetFeature"
 )
 
 // AiProvidersClient is the client API for AiProviders service.
@@ -49,6 +52,9 @@ type AiProvidersClient interface {
 	TestKey(ctx context.Context, in *TestAiKeyRequest, opts ...grpc.CallOption) (*TestAiKeyResponse, error)
 	Usage(ctx context.Context, in *AiUsageRequest, opts ...grpc.CallOption) (*AiUsageResponse, error)
 	ListModels(ctx context.Context, in *ListAiModelsRequest, opts ...grpc.CallOption) (*ListAiModelsResponse, error)
+	ReplaceKey(ctx context.Context, in *ReplaceAiKeyRequest, opts ...grpc.CallOption) (*ReplaceAiKeyResponse, error)
+	ListFeatures(ctx context.Context, in *ListAiFeaturesRequest, opts ...grpc.CallOption) (*ListAiFeaturesResponse, error)
+	SetFeature(ctx context.Context, in *SetAiFeatureRequest, opts ...grpc.CallOption) (*SetAiFeatureResponse, error)
 }
 
 type aiProvidersClient struct {
@@ -139,6 +145,36 @@ func (c *aiProvidersClient) ListModels(ctx context.Context, in *ListAiModelsRequ
 	return out, nil
 }
 
+func (c *aiProvidersClient) ReplaceKey(ctx context.Context, in *ReplaceAiKeyRequest, opts ...grpc.CallOption) (*ReplaceAiKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReplaceAiKeyResponse)
+	err := c.cc.Invoke(ctx, AiProviders_ReplaceKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiProvidersClient) ListFeatures(ctx context.Context, in *ListAiFeaturesRequest, opts ...grpc.CallOption) (*ListAiFeaturesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAiFeaturesResponse)
+	err := c.cc.Invoke(ctx, AiProviders_ListFeatures_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiProvidersClient) SetFeature(ctx context.Context, in *SetAiFeatureRequest, opts ...grpc.CallOption) (*SetAiFeatureResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetAiFeatureResponse)
+	err := c.cc.Invoke(ctx, AiProviders_SetFeature_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AiProvidersServer is the server API for AiProviders service.
 // All implementations should embed UnimplementedAiProvidersServer
 // for forward compatibility.
@@ -159,6 +195,9 @@ type AiProvidersServer interface {
 	TestKey(context.Context, *TestAiKeyRequest) (*TestAiKeyResponse, error)
 	Usage(context.Context, *AiUsageRequest) (*AiUsageResponse, error)
 	ListModels(context.Context, *ListAiModelsRequest) (*ListAiModelsResponse, error)
+	ReplaceKey(context.Context, *ReplaceAiKeyRequest) (*ReplaceAiKeyResponse, error)
+	ListFeatures(context.Context, *ListAiFeaturesRequest) (*ListAiFeaturesResponse, error)
+	SetFeature(context.Context, *SetAiFeatureRequest) (*SetAiFeatureResponse, error)
 }
 
 // UnimplementedAiProvidersServer should be embedded to have
@@ -191,6 +230,15 @@ func (UnimplementedAiProvidersServer) Usage(context.Context, *AiUsageRequest) (*
 }
 func (UnimplementedAiProvidersServer) ListModels(context.Context, *ListAiModelsRequest) (*ListAiModelsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListModels not implemented")
+}
+func (UnimplementedAiProvidersServer) ReplaceKey(context.Context, *ReplaceAiKeyRequest) (*ReplaceAiKeyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReplaceKey not implemented")
+}
+func (UnimplementedAiProvidersServer) ListFeatures(context.Context, *ListAiFeaturesRequest) (*ListAiFeaturesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFeatures not implemented")
+}
+func (UnimplementedAiProvidersServer) SetFeature(context.Context, *SetAiFeatureRequest) (*SetAiFeatureResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetFeature not implemented")
 }
 func (UnimplementedAiProvidersServer) testEmbeddedByValue() {}
 
@@ -356,6 +404,60 @@ func _AiProviders_ListModels_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AiProviders_ReplaceKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReplaceAiKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiProvidersServer).ReplaceKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiProviders_ReplaceKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiProvidersServer).ReplaceKey(ctx, req.(*ReplaceAiKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiProviders_ListFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAiFeaturesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiProvidersServer).ListFeatures(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiProviders_ListFeatures_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiProvidersServer).ListFeatures(ctx, req.(*ListAiFeaturesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiProviders_SetFeature_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAiFeatureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiProvidersServer).SetFeature(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiProviders_SetFeature_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiProvidersServer).SetFeature(ctx, req.(*SetAiFeatureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AiProviders_ServiceDesc is the grpc.ServiceDesc for AiProviders service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -394,6 +496,18 @@ var AiProviders_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListModels",
 			Handler:    _AiProviders_ListModels_Handler,
+		},
+		{
+			MethodName: "ReplaceKey",
+			Handler:    _AiProviders_ReplaceKey_Handler,
+		},
+		{
+			MethodName: "ListFeatures",
+			Handler:    _AiProviders_ListFeatures_Handler,
+		},
+		{
+			MethodName: "SetFeature",
+			Handler:    _AiProviders_SetFeature_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
