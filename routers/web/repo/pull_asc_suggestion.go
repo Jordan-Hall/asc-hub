@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"unicode"
 
 	issues_model "forgejo.org/models/issues"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
@@ -97,19 +96,14 @@ func ascSuggestionAgent(ctx gocontext.Context, pull *issues_model.PullRequest) s
 
 // ascSuggestionScope is the write scope of a run asked to apply a suggestion on path: that one file. The suggestion is
 // text of a reviewer, so what the run may write is limited by asc, not by the task. false when path is not a path
-// pattern of asc that matches path only (a wildcard in it would match other files).
+// pattern of asc that matches path only: asc's patterns know * and ? only, and any other character of a pattern
+// language (brackets, braces, !) is refused too, so a later pattern language cannot widen the scope.
 func ascSuggestionScope(path string) ([]string, bool) {
-	if path == "" || len(path) > 256 || strings.HasPrefix(path, "/") || strings.ContainsAny(path, "*?\\") ||
-		strings.Count(path, "/") >= 32 {
+	if !ascagentui.ValidGlob(path) || len(path) > 256 || strings.ContainsAny(path, "*?[]{}!") || strings.Count(path, "/") >= 32 {
 		return nil, false
 	}
-	for _, r := range path {
-		if unicode.IsControl(r) {
-			return nil, false
-		}
-	}
 	for _, seg := range strings.Split(path, "/") {
-		if seg == "" || seg == "." || seg == ".." {
+		if seg == "" || seg == "." {
 			return nil, false
 		}
 	}

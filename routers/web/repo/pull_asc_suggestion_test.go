@@ -203,12 +203,12 @@ func TestAscAskSuggestionStartsARunOfTheAgentThatMadeTheChange(t *testing.T) {
 }
 
 func TestAscSuggestionScopeIsTheOneFile(t *testing.T) {
-	for _, ok := range []string{"a.rs", "src/a b.rs", "docs/[x].md"} {
+	for _, ok := range []string{"a.rs", "src/a b.rs", "docs/x-1.md"} {
 		scope, good := ascSuggestionScope(ok)
 		assert.True(t, good, ok)
 		assert.Equal(t, []string{ok}, scope)
 	}
-	for _, bad := range []string{"", "/a", "a/", "a//b", "./a", "a/../b", "a*", "a?b", "a\\b", "a\nb", strings.Repeat("a", 257),
+	for _, bad := range []string{"", "/a", "a/", "a//b", "./a", "a/../b", "a*", "a?b", "docs/[x].md", "a{b,c}", "!a", "a\u200bb", "a\\b", "a\nb", strings.Repeat("a", 257),
 		strings.Repeat("a/", 32) + "a",
 	} {
 		_, good := ascSuggestionScope(bad)
