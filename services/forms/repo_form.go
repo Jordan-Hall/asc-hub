@@ -269,51 +269,12 @@ func (f *ProtectBranchForm) Validate(req *http.Request, errs binding.Errors) bin
 //   \__/\  /  \___  >___  /___|  /\____/ \____/|__|_ \
 //        \/       \/    \/     \/                   \/
 
-// WebhookCoreForm form for changing web hook (common to all webhook types)
+// WebhookCoreForm is the part of the form of a webhook that every kind shares. The events it sends are read
+// apart, from asc_events (services/webhook/send_me.go ChooseSent).
 type WebhookCoreForm struct {
-	Events                   string
-	Create                   bool
-	Delete                   bool
-	Fork                     bool
-	Issues                   bool
-	IssueAssign              bool
-	IssueLabel               bool
-	IssueMilestone           bool
-	IssueComment             bool
-	Release                  bool
-	Push                     bool
-	PullRequest              bool
-	PullRequestAssign        bool
-	PullRequestLabel         bool
-	PullRequestMilestone     bool
-	PullRequestComment       bool
-	PullRequestReview        bool
-	PullRequestSync          bool
-	PullRequestReviewRequest bool
-	Wiki                     bool
-	Repository               bool
-	Package                  bool
-	ActionFailure            bool
-	ActionRecover            bool
-	ActionSuccess            bool
-	Active                   bool
-	BranchFilter             string `binding:"GlobPattern"`
-	AuthorizationHeader      string
-}
-
-// PushOnly if the hook will be triggered when push
-func (f WebhookCoreForm) PushOnly() bool {
-	return f.Events == "push_only"
-}
-
-// SendEverything if the hook will be triggered any event
-func (f WebhookCoreForm) SendEverything() bool {
-	return f.Events == "send_everything"
-}
-
-// ChooseEvents if the hook will be triggered choose events
-func (f WebhookCoreForm) ChooseEvents() bool {
-	return f.Events == "choose_events"
+	Active              bool
+	BranchFilter        string `binding:"GlobPattern"`
+	AuthorizationHeader string
 }
 
 // WebhookForm form for changing web hook (specific handling depending on the webhook type)

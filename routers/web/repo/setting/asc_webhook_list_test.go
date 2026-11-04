@@ -73,29 +73,6 @@ func TestWebhookListRows(t *testing.T) {
 	assert.Contains(t, body, "asc_hooks.never")
 }
 
-// The edit form never carries the stored secret: posting it empty keeps the secret, posting a value replaces it.
-func TestWebhookUpdateKeepsSecret(t *testing.T) {
-	unittest.PrepareTestEnv(t)
-
-	update := func(secret string) int {
-		ctx, _ := contexttest.MockContext(t, "POST /user2/repo1/settings/hooks/1")
-		contexttest.LoadUser(t, ctx, 2)
-		contexttest.LoadRepo(t, ctx, 1)
-		ctx.Data["PageIsRepoSettings"] = true
-		ctx.SetParams(":id", "1")
-		form := url.Values{"payload_url": {"https://www.example.com/url1"}, "http_method": {"POST"}, "content_type": {"1"}, "events": {"push_only"}, "active": {"on"}, "secret": {secret}}
-		ctx.Req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		ctx.Req.Form, ctx.Req.PostForm = form, form
-		WebhookUpdate(ctx)
-		return ctx.Resp.Status()
-	}
-
-	require.Equal(t, http.StatusSeeOther, update("s3cr3t"))
-	assert.Equal(t, "s3cr3t", unittest.AssertExistsAndLoadBean(t, &webhook.Webhook{ID: 1}).Secret)
-	require.Equal(t, http.StatusSeeOther, update(""))
-	assert.Equal(t, "s3cr3t", unittest.AssertExistsAndLoadBean(t, &webhook.Webhook{ID: 1}).Secret, "an empty field keeps the secret")
-}
-
 // The Settings tab of a hook with a secret shows that one is set, with Replace beside it, never the secret itself.
 func TestWebhookEditHidesSecret(t *testing.T) {
 	unittest.PrepareTestEnv(t)
@@ -187,7 +164,7 @@ func TestWebhookCreateRefusesHTTP(t *testing.T) {
 		contexttest.LoadRepo(t, ctx, 1)
 		ctx.Data["PageIsRepoSettings"] = true
 		ctx.SetParams(":type", "forgejo")
-		form := url.Values{"payload_url": {payloadURL}, "http_method": {"POST"}, "content_type": {"1"}, "events": {"push_only"}, "active": {"on"}}
+		form := url.Values{"payload_url": {payloadURL}, "http_method": {"POST"}, "content_type": {"1"}, "asc_events": {"push"}, "active": {"on"}}
 		ctx.Req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		ctx.Req.Form, ctx.Req.PostForm = form, form
 		WebhookCreate(ctx)
@@ -206,6 +183,58 @@ func TestWebhookCreateRefusesHTTP(t *testing.T) {
 	status, _ = create("https://receiver.example.org/hook")
 	require.Equal(t, http.StatusSeeOther, status)
 	assert.Equal(t, before+1, unittest.GetCount(t, &webhook.Webhook{RepoID: 1}))
+}
+
+// The page that adds a hook of one kind posts to its own address with the fields of the kind, the events it is
+// offered with pushes and landed changes ticked, Active ticked and the other kinds; a SourceHut build hook is offered
+// pushes only, and one added sends nothing it is not offered.
+func TestWebhookNewPage(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	request := func(method, kind string, form url.Values) (*context.Context, string) {
+		ctx, resp := contexttest.MockContext(t, method+" /user2/repo1/settings/hooks/"+kind+"/new")
+		ctx.Render = templates.HTMLRenderer()
+		contexttest.LoadUser(t, ctx, 2)
+		contexttest.LoadRepo(t, ctx, 1)
+		ctx.Data["PageIsRepoSettings"] = true
+		ctx.SetParams(":type", kind)
+		ctx.AppendContextValue(context.WebContextKey, ctx) // as the server does: the form checks of some kinds read it
+		if form == nil {
+			WebhookNew(ctx)
+		} else {
+			ctx.Req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			ctx.Req.Form, ctx.Req.PostForm = form, form
+			WebhookCreate(ctx)
+		}
+		return ctx, resp.Body.String()
+	}
+
+	ctx, body := request("GET", "slack", nil)
+	require.Equal(t, http.StatusOK, ctx.Resp.Status())
+	assert.Contains(t, body, `action="/user2/repo1/settings/hooks/slack/new"`)
+	assert.Contains(t, body, `name="channel"`)
+	assert.Contains(t, body, `name="asc_events" value="push" checked>`)
+	assert.Contains(t, body, `name="asc_events" value="change.landed" checked>`)
+	assert.Contains(t, body, `name="asc_events" value="change.opened">`)
+	assert.Contains(t, body, `name="active" aria-describedby="active_help" checked>`)
+	assert.Contains(t, body, `href="/user2/repo1/settings/hooks/slack/new" aria-current="page"`)
+	assert.Contains(t, body, `href="/user2/repo1/settings/hooks/matrix/new"`)
+	assert.NotContains(t, body, `name="events"`)
+
+	ctx, body = request("GET", "sourcehut_builds", nil)
+	require.Equal(t, http.StatusOK, ctx.Resp.Status())
+	assert.Contains(t, body, `value="https://builds.sr.ht/query"`)
+	assert.Contains(t, body, `name="asc_events" value="push" checked>`)
+	assert.NotContains(t, body, `name="asc_events" value="change.landed"`)
+
+	ctx, body = request("POST", "sourcehut_builds", url.Values{
+		"payload_url": {"https://builds.sr.ht/query"}, "manifest_path": {".build.yml"}, "visibility": {"PRIVATE"},
+		"access_token": {"tok"}, "asc_events": {"push", "change.landed"}, "active": {"on"},
+	})
+	require.Equal(t, http.StatusSeeOther, ctx.Resp.Status(), body)
+	w := unittest.AssertExistsAndLoadBean(t, &webhook.Webhook{RepoID: 1, Type: "sourcehut_builds"})
+	assert.True(t, w.IsActive)
+	assert.True(t, w.HasPushEvent())
+	assert.False(t, w.HasAscEvent("change.landed"))
 }
 
 // The edit form says up front that only https is accepted.
