@@ -89,6 +89,8 @@ func TestAscOpsListShowsUndoOnlyForOwnOperations(t *testing.T) {
 	assert.Contains(t, page.body, "asc_trust.ops.title", "text comes from the locale")
 	assert.Equal(t, 1, strings.Count(page.body, `data-testid="asc-op-undo"`), "only the one undoable operation of the person gets a button")
 	assert.Contains(t, page.body, "/user2/repo1/asc/ops/undo?ref=refs%2Fheads%2Ffeature&amp;seq=9")
+	assert.Contains(t, page.body, `data-testid="asc-ops-sheet"`)
+	assert.Contains(t, page.body, "asc_review.ops_sheet_title")
 	assert.Contains(t, page.body, "asc_trust.ops.blocked.not_yours")
 	assert.Contains(t, page.body, "asc_trust.ops.blocked.expired")
 	assert.Contains(t, page.body, "asc_trust.ops.blocked.other")
