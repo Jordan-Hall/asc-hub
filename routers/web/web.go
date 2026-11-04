@@ -1846,6 +1846,7 @@ func registerRoutes(m *web.Route) {
 			m.Post("/update", repo.UpdatePullRequest)
 			m.Post("/asc/restore_version", reqSignIn, context.RepoMustNotBeArchived(), repo.AscRestoreVersion)
 			m.Post("/asc/apply_suggestion", reqSignIn, context.RepoMustNotBeArchived(), repo.AscApplySuggestion)
+			m.Post("/asc/ask_suggestion", reqSignIn, context.RepoMustNotBeArchived(), repo.AscAskSuggestion)
 			m.Post("/asc/brief", reqSignIn, context.RepoMustNotBeArchived(), repo.AscSetBrief)
 			m.Post("/asc/brief/summarize", reqSignIn, context.RepoMustNotBeArchived(), repo.AscSummarizeBrief)
 			m.Post("/asc/reviewer", reqSignIn, context.RepoMustNotBeArchived(), repo.AscRequestSuggestedReviewer)
