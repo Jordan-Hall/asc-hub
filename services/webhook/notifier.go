@@ -327,6 +327,7 @@ func (m *webhookNotifier) NewPullRequest(ctx context.Context, pull *issues_model
 	}); err != nil {
 		log.Error("PrepareWebhooks: %v", err)
 	}
+	prepareAscChange(ctx, webhook_module.HookEventChangeOpened, pull, pull.Issue.Poster, nil)
 }
 
 func (m *webhookNotifier) IssueChangeContent(ctx context.Context, doer *user_model.User, issue *issues_model.Issue, oldContent string) {
@@ -680,6 +681,7 @@ func (*webhookNotifier) MergePullRequest(ctx context.Context, doer *user_model.U
 	if err := PrepareWebhooks(ctx, EventSource{Repository: pr.Issue.Repo}, webhook_module.HookEventPullRequest, apiPullRequest); err != nil {
 		log.Error("PrepareWebhooks: %v", err)
 	}
+	prepareAscChange(ctx, webhook_module.HookEventChangeLanded, pr, doer, nil)
 }
 
 func (m *webhookNotifier) PullRequestChangeTargetBranch(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest, oldBranch string) {
@@ -775,6 +777,9 @@ func (m *webhookNotifier) PullRequestReviewRequest(ctx context.Context, doer *us
 		log.Error("PrepareWebhooks [review_requested: %v]: %v", isRequest, err)
 		return
 	}
+	if isRequest && reviewer != nil {
+		prepareAscChange(ctx, webhook_module.HookEventReviewRequested, issue.PullRequest, doer, reviewer)
+	}
 }
 
 func (m *webhookNotifier) CreateRef(ctx context.Context, pusher *user_model.User, repo *repo_model.Repository, refFullName git.RefName, refID string) {
@@ -847,6 +852,7 @@ func sendReleaseHook(ctx context.Context, doer *user_model.User, rel *repo_model
 
 func (m *webhookNotifier) NewRelease(ctx context.Context, rel *repo_model.Release) {
 	sendReleaseHook(ctx, rel.Publisher, rel, api.HookReleasePublished)
+	prepareAscRelease(ctx, rel)
 }
 
 func (m *webhookNotifier) UpdateRelease(ctx context.Context, doer *user_model.User, rel *repo_model.Release) {

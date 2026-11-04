@@ -205,6 +205,13 @@ func (fc feishuConvertor) Action(p *api.ActionPayload) (FeishuPayload, error) {
 	return newFeishuTextPayload(text), nil
 }
 
+// Asc implements PayloadConvertor Asc method
+func (fc feishuConvertor) Asc(p *api.AscHookPayload) (FeishuPayload, error) {
+	text, _ := feishuPayloadFormatter.getAscPayloadInfo(p)
+
+	return newFeishuTextPayload(text), nil
+}
+
 type feishuConvertor struct{}
 
 var _ shared.PayloadConvertor[FeishuPayload] = feishuConvertor{}

@@ -176,9 +176,11 @@ func FailingStreaks(ctx context.Context, hookIDs []int64, limit int) (map[int64]
 }
 
 // CreateHookTask creates a new hook task,
-// it handles conversion from Payload to PayloadContent.
+// it handles conversion from Payload to PayloadContent. A task without a UUID gets a random one.
 func CreateHookTask(ctx context.Context, t *HookTask) (*HookTask, error) {
-	t.UUID = gouuid.New().String()
+	if t.UUID == "" {
+		t.UUID = gouuid.New().String()
+	}
 	if t.Delivered == 0 {
 		t.Delivered = timeutil.TimeStampNanoNow()
 	}

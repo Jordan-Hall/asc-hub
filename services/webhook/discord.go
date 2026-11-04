@@ -337,6 +337,13 @@ func (d discordConvertor) Action(p *api.ActionPayload) (DiscordPayload, error) {
 	return d.createPayload(p.Run.TriggerUser, text, "", p.Run.HTMLURL, color), nil
 }
 
+// Asc implements PayloadConvertor Asc method
+func (d discordConvertor) Asc(p *api.AscHookPayload) (DiscordPayload, error) {
+	text, color := discordPayloadFormatter.getAscPayloadInfo(p)
+
+	return d.createPayload(&api.User{UserName: p.Sender}, text, "", p.URL, color), nil
+}
+
 var _ shared.PayloadConvertor[DiscordPayload] = discordConvertor{}
 
 func (discordHandler) NewRequest(ctx context.Context, w *webhook_model.Webhook, t *webhook_model.HookTask) (*http.Request, []byte, error) {

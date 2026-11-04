@@ -282,6 +282,13 @@ func (m matrixConvertor) Action(p *api.ActionPayload) (MatrixPayload, error) {
 	return m.newPayload(text)
 }
 
+// Asc implements PayloadConvertor Asc method
+func (m matrixConvertor) Asc(p *api.AscHookPayload) (MatrixPayload, error) {
+	text, _ := matrixPayloadFormatter.getAscPayloadInfo(p)
+
+	return m.newPayload(text)
+}
+
 var urlRegex = regexp.MustCompile(`<a [^>]*?href="([^">]*?)">(.*?)</a>`)
 
 func getMessageBody(htmlText string) string {

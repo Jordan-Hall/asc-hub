@@ -214,6 +214,13 @@ func (wc wechatworkConvertor) Action(p *api.ActionPayload) (WechatworkPayload, e
 	return newWechatworkMarkdownPayload(text), nil
 }
 
+// Asc implements PayloadConvertor Asc method
+func (wc wechatworkConvertor) Asc(p *api.AscHookPayload) (WechatworkPayload, error) {
+	text, _ := wechatworkPayloadFormatter.getAscPayloadInfo(p)
+
+	return newWechatworkMarkdownPayload(text), nil
+}
+
 type wechatworkConvertor struct{}
 
 var _ shared.PayloadConvertor[WechatworkPayload] = wechatworkConvertor{}
