@@ -414,6 +414,8 @@ type ascAgentPolicy struct {
 	Denied     []string
 	MaxChanges uint32
 	MaxPaths   uint32
+	// Cost is the cost cap of one run ("$5.00"), empty when the policy sets none.
+	Cost string
 }
 
 func ascAgentPolicyOf(callCtx gocontext.Context, ref *ascv1.RepoRef) ascAgentPolicy {
@@ -427,6 +429,9 @@ func ascAgentPolicyOf(callCtx gocontext.Context, ref *ascv1.RepoRef) ascAgentPol
 	}
 	a := resp.GetParsed().GetAgents()
 	p := ascAgentPolicy{Known: true, MaxChanges: a.GetMaxChangesPerRun(), MaxPaths: a.GetMaxPathsPerRun()}
+	if c := a.GetMaxCostMicroUsd(); c > 0 {
+		p.Cost = ascagentui.FormatUSD(c)
+	}
 	for _, g := range a.GetDefaultScope() {
 		if c := ascagentui.CleanLine(g, ascagentui.MaxGlobBytes); c != "" && len(p.Scope) < 32 {
 			p.Scope = append(p.Scope, c)

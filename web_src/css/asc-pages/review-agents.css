@@ -546,3 +546,9 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* The policy defaults card of the tokens page: the shield in the link colour, as on the board. */
+.ag-defaults-ic {
+  display: inline-flex;
+  color: var(--link);
+}
