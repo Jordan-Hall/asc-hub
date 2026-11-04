@@ -150,6 +150,9 @@ func prepareAscChange(ctx *context.Context, commit *git.Commit, statuses []*git_
 			}
 		}
 		ctx.Data["ChangeWhere"] = w
+		if w.OnDefault {
+			prepareAscChangeUndo(ctx, commitID)
+		}
 	}
 
 	if !ctx.Repo.CanRead(unit.TypePullRequests) || !repo.CanEnablePulls() {
