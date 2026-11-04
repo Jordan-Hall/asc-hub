@@ -411,29 +411,39 @@ func NotifyCommitStatus(ctx context.Context, repo *repo_model.Repository, sha st
 	}
 	ctx = context.WithoutCancel(ctx)
 	dispatch(func() {
-		gitRepo, err := gitrepo.OpenRepository(ctx, repo)
+		prs, err := PullsAtCommit(ctx, repo, sha)
 		if err != nil {
-			log.Error("ascsync: open repository for check event: %v", err)
+			log.Error("ascsync: pull requests of check commit: %v", err)
 			return
 		}
-		refs, err := gitRepo.GetRefsBySha(sha, git.PullPrefix)
-		gitRepo.Close()
-		if err != nil {
-			log.Error("ascsync: pull refs of check commit: %v", err)
-			return
-		}
-		for _, ref := range refs {
-			idx, ok := pullIndexOfRef(ref)
-			if !ok {
-				continue
-			}
-			pr, err := issues_model.GetPullRequestByIndex(ctx, repo.ID, idx)
-			if err != nil {
-				continue
-			}
+		for _, pr := range prs {
 			reportPull(ctx, pr)
 		}
 	})
+}
+
+// PullsAtCommit returns the pull requests of repo whose head (refs/pull/<n>/head) is sha.
+func PullsAtCommit(ctx context.Context, repo *repo_model.Repository, sha string) ([]*issues_model.PullRequest, error) {
+	gitRepo, err := gitrepo.OpenRepository(ctx, repo)
+	if err != nil {
+		return nil, err
+	}
+	refs, err := gitRepo.GetRefsBySha(sha, git.PullPrefix)
+	gitRepo.Close()
+	if err != nil {
+		return nil, err
+	}
+	var out []*issues_model.PullRequest
+	for _, ref := range refs {
+		idx, ok := pullIndexOfRef(ref)
+		if !ok {
+			continue
+		}
+		if pr, err := issues_model.GetPullRequestByIndex(ctx, repo.ID, idx); err == nil {
+			out = append(out, pr)
+		}
+	}
+	return out, nil
 }
 
 // pullIndexOfRef parses refs/pull/<n>/head.
