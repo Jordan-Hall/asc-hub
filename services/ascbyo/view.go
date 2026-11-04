@@ -4,7 +4,9 @@
 package ascbyo
 
 import (
+	"strconv"
 	"strings"
+	"time"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/timeutil"
@@ -153,6 +155,10 @@ type KeyView struct {
 	CanDisable bool
 	CanEnable  bool
 	NeedsTest  bool
+	// AddedByID and AddedBy are the hub account that added the key and its login then; 0 and "" when asc
+	// does not know (a key added before it kept this, or by a command line client).
+	AddedByID int64
+	AddedBy   string
 }
 
 // KeyViewOf converts a key.
@@ -164,6 +170,7 @@ func KeyViewOf(k *ascv1.AiKey) KeyView {
 		Created: timeutil.TimeStamp(k.GetCreated()), Updated: timeutil.TimeStamp(k.GetUpdated()), TestedAt: timeutil.TimeStamp(k.GetTestedAt()),
 		KeyVersion: k.GetKeyVersion(), CapMicro: k.GetMonthlyCapMicroUsd(), SpentMicro: k.GetMonthSpentMicroUsd(),
 	}
+	v.AddedByID, v.AddedBy = AddedByOf(k.GetCreatedBy())
 	v.ProviderKey = "ascbyo.ai.provider." + string(v.Provider)
 	if v.Provider == "" {
 		v.ProviderKey = "ascbyo.ai.provider.unknown"
@@ -191,6 +198,39 @@ func KeyViewOf(k *ascv1.AiKey) KeyView {
 	}
 	return v
 }
+
+// AddedByOf reads the person asc recorded as having added a key. A call of the hub made for a person is recorded
+// as "<account id>:<login>"; anything else (the hub's own credential, a command line token) names no account here.
+func AddedByOf(createdBy string) (int64, string) {
+	id, login, ok := strings.Cut(createdBy, ":")
+	if !ok || id == "" || len(id) > 19 || login == "" || len(login) > MaxScopeNameBytes || hasControl(login) {
+		return 0, ""
+	}
+	for i := range len(id) {
+		if c := id[i]; c < '0' || c > '9' {
+			return 0, ""
+		}
+	}
+	n, err := strconv.ParseInt(id, 10, 64)
+	if err != nil || n <= 0 {
+		return 0, ""
+	}
+	return n, login
+}
+
+// MeterClass is the colour of a spend meter: amber from 80 percent of the cap, red at the cap.
+func MeterClass(percent int) string {
+	switch {
+	case percent >= 100:
+		return "asc-meter-bad"
+	case percent >= 80:
+		return "asc-meter-warn"
+	}
+	return ""
+}
+
+// MeterClass is the colour of the key's spend meter.
+func (v KeyView) MeterClass() string { return MeterClass(v.Percent) }
 
 // KeyViews converts a list.
 func KeyViews(ks []*ascv1.AiKey) []KeyView {
@@ -225,4 +265,97 @@ func UsageRowViewOf(r UsageRow) UsageRowView {
 		Group: r.Group, Requests: FormatCount(r.Requests), InputTokens: FormatCount(r.InputTokens),
 		OutputTokens: FormatCount(r.OutputTokens), Cost: FormatUSD(r.CostMicro),
 	}
+}
+
+// FeatureView is a feature that uses AI as the page of a scope shows it.
+type FeatureView struct {
+	Name    Feature
+	NameKey string // translation key of the name
+	HintKey string // translation key of what it does
+	// Own is whether the setting that applies is the scope's own; SetBy names the owner above whose setting
+	// applies otherwise ("" when no owner set one).
+	Own   bool
+	SetBy string
+	// KeyID is the key the setting chose, "" for the first usable key.
+	KeyID string
+	// Key is the key the feature uses now, nil when there is none; KeyOwned is whether it is one of the scope's own.
+	Key      *KeyView
+	KeyOwned bool
+	// CapMicro and SpentMicro are the feature's monthly cap and this month's spend under the setting.
+	CapMicro   uint64
+	SpentMicro uint64
+	Cap        string
+	CapInput   string
+	Spent      string
+	HasCap     bool
+	Percent    int
+	Paused     bool
+	// PausedBy names the owner above whose cap paused the feature ("instance" for the instance); "" when the
+	// feature is not paused or the scope's own cap paused it.
+	PausedBy  string
+	ResumesAt timeutil.TimeStamp
+	Updated   timeutil.TimeStamp
+}
+
+// OwnerLabel is how a page names an owner: the user or organisation name, "owner/repo", or "" for the instance.
+func OwnerLabel(o *ascv1.OwnerRef) string {
+	return CleanText(o.GetName(), MaxScopeNameBytes)
+}
+
+// FeatureViewOf converts a feature for the page of sc.
+func FeatureViewOf(sc Scope, f *ascv1.AiFeatureSetting) FeatureView {
+	v := FeatureView{
+		Name: FeatureToForm(f.GetFeature()), KeyID: f.GetKeyId(), CapMicro: f.GetMonthlyCapMicroUsd(),
+		SpentMicro: f.GetMonthSpentMicroUsd(), Paused: f.GetPaused(), ResumesAt: timeutil.TimeStamp(f.GetResumesAt()),
+		Updated: timeutil.TimeStamp(f.GetUpdated()),
+	}
+	if !ValidKeyID(v.KeyID) {
+		v.KeyID = ""
+	}
+	if v.Paused && v.ResumesAt == 0 {
+		// asc says when; an answer without it resumes, like every cap, at the start of the next month (UTC).
+		now := time.Now().UTC()
+		v.ResumesAt = timeutil.TimeStamp(time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, time.UTC).Unix())
+	}
+	v.NameKey = "ascbyo.ai.feature." + string(v.Name)
+	v.HintKey = v.NameKey + ".hint"
+	if by := f.GetSetBy(); by != nil {
+		v.Own = sc.Owns(by)
+		if !v.Own {
+			v.SetBy = OwnerLabel(by)
+			if by.GetKind() == ascv1.OwnerKind_OWNER_KIND_INSTANCE {
+				v.SetBy = "instance"
+			}
+		}
+	}
+	if by := f.GetPausedBy(); v.Paused && by != nil && !sc.Owns(by) {
+		v.PausedBy = OwnerLabel(by)
+		if by.GetKind() == ascv1.OwnerKind_OWNER_KIND_INSTANCE || v.PausedBy == "" {
+			v.PausedBy = "instance"
+		}
+	}
+	if k := f.GetKey(); k != nil && ValidKeyID(k.GetId()) {
+		kv := KeyViewOf(k)
+		v.Key, v.KeyOwned = &kv, sc.Owns(k.GetOwner())
+	}
+	v.Spent = FormatUSD(v.SpentMicro)
+	v.CapInput = CapUSDInput(v.CapMicro)
+	if v.CapMicro > 0 {
+		v.HasCap = true
+		v.Cap = FormatUSD(v.CapMicro)
+		v.Percent = int(min(v.SpentMicro, v.CapMicro) * 100 / v.CapMicro)
+	}
+	return v
+}
+
+// MeterClass is the colour of the feature's spend meter.
+func (v FeatureView) MeterClass() string { return MeterClass(v.Percent) }
+
+// FeatureViews converts a list.
+func FeatureViews(sc Scope, fs []*ascv1.AiFeatureSetting) []FeatureView {
+	out := make([]FeatureView, 0, len(fs))
+	for _, f := range fs {
+		out = append(out, FeatureViewOf(sc, f))
+	}
+	return out
 }

@@ -110,6 +110,15 @@ func TestLocaleKeys(t *testing.T) {
 	}
 	for _, p := range Providers {
 		used["ascbyo.ai.provider."+string(p)] = "provider"
+		used["ascbyo.ai.avatar."+string(p)] = "provider"
+	}
+	for s := range testStatuses {
+		used["ascbyo.ai.replace.rejected."+s] = "replace status"
+	}
+	for _, f := range Features {
+		for _, sfx := range []string{"", ".hint", ".paused", ".paused_by"} {
+			used["ascbyo.ai.feature."+string(f)+sfx] = "feature"
+		}
 	}
 	for _, s := range []string{"resolve", "connect", "put", "get", "delete", "unknown"} {
 		used["ascbyo.storage.step."+s] = "verify step"

@@ -18,12 +18,14 @@ import (
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/services/ascbyo"
+	"forgejo.org/services/ascidentity"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 // InternalToken is the token the test client sends; the fake refuses any other bearer.
@@ -39,6 +41,9 @@ type Call struct {
 	Auth string
 	// OpID is the x-asc-op-id metadata value.
 	OpID string
+	// Doer is the person of the signed claim the call carried ("<id>:<login>"), "" for a call without one. The fake
+	// does not check the signature: the claim's own tests do.
+	Doer string
 	Req  any
 }
 
@@ -62,6 +67,7 @@ type Fake struct {
 	targets    map[string]*target
 	keys       map[string]*key
 	migrations map[string]*ascv1.StorageMigration
+	features   map[string]*ascv1.AiFeatureSetting
 	calls      []Call
 	// Fail maps a full method ("/asc.v1.Storage/CreateTarget") to the error it returns.
 	Fail map[string]error
@@ -77,7 +83,11 @@ type Fake struct {
 	Models []*ascv1.AiModel
 	// SecretEcho makes error messages repeat the submitted secret, to prove the hub drops them.
 	SecretEcho bool
-	clock      int64
+	// ExtraFeatures are appended to every ListFeatures answer, to prove the hub drops what it does not know.
+	ExtraFeatures []*ascv1.AiFeatureSetting
+	// ReplaceStatus is the provider status ReplaceKey answers with ("ok" by default); any other keeps the old key.
+	ReplaceStatus string
+	clock         int64
 }
 
 // Start runs the fake, points the hub at it and returns it.
@@ -85,7 +95,7 @@ func Start(t *testing.T) *Fake {
 	t.Helper()
 	f := &Fake{
 		targets: map[string]*target{}, keys: map[string]*key{}, migrations: map[string]*ascv1.StorageMigration{},
-		Fail: map[string]error{}, clock: 1_700_000_000,
+		features: map[string]*ascv1.AiFeatureSetting{}, Fail: map[string]error{}, clock: 1_700_000_000,
 	}
 	srv := grpc.NewServer(grpc.UnaryInterceptor(f.intercept))
 	ascv1.RegisterStorageServer(srv, f)
@@ -110,7 +120,9 @@ func (f *Fake) intercept(ctx context.Context, req any, info *grpc.UnaryServerInf
 		return ""
 	}
 	f.mu.Lock()
-	f.calls = append(f.calls, Call{Method: info.FullMethod, Auth: first("authorization"), OpID: first("x-asc-op-id"), Req: req})
+	f.calls = append(f.calls, Call{
+		Method: info.FullMethod, Auth: first("authorization"), OpID: first("x-asc-op-id"), Doer: first(ascidentity.HeaderUser), Req: req,
+	})
 	fail := f.Fail[info.FullMethod]
 	f.mu.Unlock()
 	if first("authorization") != "Bearer "+InternalToken {
@@ -197,6 +209,16 @@ func newID(prefix string) string {
 }
 
 func (f *Fake) now() int64 { f.clock++; return f.clock }
+
+// createdBy is who asc records as having made a change: the person of the claim, or the hub's principal for a call
+// without one.
+func createdBy(ctx context.Context) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	if v := md.Get(ascidentity.HeaderUser); len(v) > 0 && v[0] != "" {
+		return v[0]
+	}
+	return "hub"
+}
 
 func hint(s string) string {
 	if len(s) <= 8 {
@@ -505,7 +527,7 @@ func (f *Fake) CancelMigration(_ context.Context, r *ascv1.CancelStorageMigratio
 
 // ---------------------------------------------------------------------------- AiProviders
 
-func (f *Fake) CreateKey(_ context.Context, r *ascv1.CreateAiKeyRequest) (*ascv1.CreateAiKeyResponse, error) {
+func (f *Fake) CreateKey(ctx context.Context, r *ascv1.CreateAiKeyRequest) (*ascv1.CreateAiKeyResponse, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if r.GetLabel() == "" || r.GetApiKey() == "" || r.GetProvider() == ascv1.AiProvider_AI_PROVIDER_UNSPECIFIED {
@@ -518,6 +540,7 @@ func (f *Fake) CreateKey(_ context.Context, r *ascv1.CreateAiKeyRequest) (*ascv1
 		Id: newID("ak_"), Owner: r.GetOwner(), Label: r.GetLabel(), Provider: r.GetProvider(), BaseUrl: r.GetBaseUrl(),
 		DefaultModel: r.GetDefaultModel(), KeyHint: r.GetApiKey()[max(0, len(r.GetApiKey())-4):], HasKey: true,
 		State: ascv1.AiKeyState_AI_KEY_STATE_UNTESTED, MonthlyCapMicroUsd: r.GetMonthlyCapMicroUsd(), Created: f.now(), Updated: f.clock, KeyVersion: 1,
+		CreatedBy: createdBy(ctx),
 	}
 	f.keys[k.Id] = &key{pub: k, secret: r.GetApiKey()}
 	return &ascv1.CreateAiKeyResponse{Key: k}, nil
@@ -586,6 +609,12 @@ func (f *Fake) DeleteKey(_ context.Context, r *ascv1.DeleteAiKeyRequest) (*ascv1
 		return nil, status.Error(codes.NotFound, "no such key")
 	}
 	delete(f.keys, r.GetId())
+	// asc's foreign key: a feature that used the key goes back to the first usable one.
+	for _, s := range f.features {
+		if s.GetKeyId() == r.GetId() {
+			s.KeyId, s.Key = "", nil
+		}
+	}
 	return &ascv1.DeleteAiKeyResponse{}, nil
 }
 
@@ -623,4 +652,126 @@ func (f *Fake) ListModels(_ context.Context, _ *ascv1.ListAiModelsRequest) (*asc
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return &ascv1.ListAiModelsResponse{Models: f.Models}, nil
+}
+
+// ReplaceKey tries the new secret first: the swap happens only when the provider accepts it, and the key keeps its
+// id, label, owner and creator.
+func (f *Fake) ReplaceKey(_ context.Context, r *ascv1.ReplaceAiKeyRequest) (*ascv1.ReplaceAiKeyResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	k := f.keys[r.GetId()]
+	if k == nil {
+		return nil, status.Error(codes.NotFound, "no such key")
+	}
+	if r.GetApiKey() == "" {
+		return nil, status.Error(codes.InvalidArgument, "api_key is required")
+	}
+	st := f.ReplaceStatus
+	if st == "" {
+		st = "ok"
+	}
+	resp := &ascv1.ReplaceAiKeyResponse{Replaced: st == "ok", LatencyMs: 90, ProviderStatus: st, Message: f.echo("provider said "+st, r.GetApiKey())}
+	if resp.Replaced {
+		k.secret, k.pub.KeyHint = r.GetApiKey(), r.GetApiKey()[max(0, len(r.GetApiKey())-4):]
+		k.pub.State, k.pub.TestedAt, k.pub.LastError = ascv1.AiKeyState_AI_KEY_STATE_ACTIVE, f.now(), ""
+		k.pub.KeyVersion++
+		k.pub.Updated = f.clock
+	}
+	resp.Key = k.pub
+	return resp, nil
+}
+
+var fakeFeatures = []ascv1.AiFeature{ascv1.AiFeature_AI_FEATURE_AGENT_RUNS}
+
+func ownerKey(o *ascv1.OwnerRef) string {
+	return o.GetKind().String() + "/" + strings.ToLower(o.GetName())
+}
+
+// SetFeatureFields stores a feature setting directly, for tests that start from one (spend, a pause, a setting made
+// by the owner above).
+func (f *Fake) SetFeatureFields(owner *ascv1.OwnerRef, feature ascv1.AiFeature, fn func(*ascv1.AiFeatureSetting)) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	k := ownerKey(owner) + "#" + feature.String()
+	s := f.features[k]
+	if s == nil {
+		s = &ascv1.AiFeatureSetting{Feature: feature, SetBy: owner}
+		f.features[k] = s
+	}
+	fn(s)
+}
+
+// ListFeatures answers every feature, with the owner's own setting, else an instance default with no cap. The fake
+// does not walk the owner chain: tests that need a setting from above plant it with SetFeatureFields.
+func (f *Fake) ListFeatures(_ context.Context, r *ascv1.ListAiFeaturesRequest) (*ascv1.ListAiFeaturesResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	out := &ascv1.ListAiFeaturesResponse{}
+	for _, ft := range fakeFeatures {
+		s := f.features[ownerKey(r.GetOwner())+"#"+ft.String()]
+		if s == nil {
+			s = &ascv1.AiFeatureSetting{Feature: ft, SetBy: &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_INSTANCE}}
+		}
+		s = proto.Clone(s).(*ascv1.AiFeatureSetting)
+		if s.GetKeyId() != "" && f.keys[s.GetKeyId()] != nil {
+			s.Key = f.keys[s.GetKeyId()].pub
+		}
+		if k := s.GetKey(); k != nil && !sameOwner(k.GetOwner(), r.GetOwner()) {
+			// asc shows a key of another owner only as a reference.
+			s.Key = &ascv1.AiKey{
+				Id: k.GetId(), Owner: k.GetOwner(), Label: k.GetLabel(), Provider: k.GetProvider(),
+				HasKey: k.GetHasKey(), State: k.GetState(),
+			}
+		}
+		if s.GetPaused() && s.GetPausedBy() == nil {
+			s.PausedBy = s.GetSetBy()
+		}
+		out.Features = append(out.Features, s)
+	}
+	out.Features = append(out.Features, f.ExtraFeatures...)
+	return out, nil
+}
+
+// SetFeature sets or clears the owner's own setting; a key must be one of the owner's.
+func (f *Fake) SetFeature(ctx context.Context, r *ascv1.SetAiFeatureRequest) (*ascv1.SetAiFeatureResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	known := false
+	for _, ft := range fakeFeatures {
+		known = known || ft == r.GetFeature()
+	}
+	if !known {
+		return nil, status.Error(codes.InvalidArgument, "unknown feature")
+	}
+	k := ownerKey(r.GetOwner()) + "#" + r.GetFeature().String()
+	if r.GetClear() {
+		delete(f.features, k)
+		return &ascv1.SetAiFeatureResponse{Feature: &ascv1.AiFeatureSetting{
+			Feature: r.GetFeature(), SetBy: &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_INSTANCE},
+		}}, nil
+	}
+	var pub *ascv1.AiKey
+	if id := r.GetKeyId(); id != "" {
+		key := f.keys[id]
+		if key == nil || !sameOwner(key.pub.GetOwner(), r.GetOwner()) {
+			// asc answers a key the owner may not use as one that does not exist.
+			return nil, status.Error(codes.NotFound, "no such key")
+		}
+		pub = key.pub
+	}
+	s := f.features[k]
+	if s == nil {
+		s = &ascv1.AiFeatureSetting{Feature: r.GetFeature()}
+		f.features[k] = s
+	}
+	s.SetBy, s.KeyId, s.Key, s.MonthlyCapMicroUsd = r.GetOwner(), r.GetKeyId(), pub, r.GetMonthlyCapMicroUsd()
+	s.Paused = s.GetMonthlyCapMicroUsd() > 0 && s.GetMonthSpentMicroUsd() >= s.GetMonthlyCapMicroUsd()
+	s.PausedBy = nil
+	if s.Paused {
+		s.PausedBy = r.GetOwner()
+	} else {
+		s.ResumesAt = 0
+	}
+	s.Updated, s.UpdatedBy = f.now(), createdBy(ctx)
+	return &ascv1.SetAiFeatureResponse{Feature: s}, nil
 }
