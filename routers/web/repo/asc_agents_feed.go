@@ -13,6 +13,9 @@ import (
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascagentui"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // The live feed of an agent run. asc streams events (Agents.WatchRun, resumable by `after_seq`); the browser polls
@@ -90,8 +93,10 @@ func ascAgentsCollect(callCtx gocontext.Context, api ascv1.AgentsClient, ref *as
 			break
 		}
 		if err != nil {
-			// Our own deadline (or the drain cancel) is the normal end of a wait; the caller's cancel is not.
-			if streamCtx.Err() != nil && callCtx.Err() == nil {
+			// Our own deadline (or the drain cancel) is the normal end of a wait; the caller's cancel is not. The server
+			// sees the same deadline and may end the stream with it a moment before streamCtx does: the stream's deadline is
+			// the wait (it is shorter than the caller's), so DEADLINE_EXCEEDED there is the wait ending too.
+			if callCtx.Err() == nil && (streamCtx.Err() != nil || status.Code(err) == codes.DeadlineExceeded) {
 				break
 			}
 			return nil, err
