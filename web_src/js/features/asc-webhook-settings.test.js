@@ -5,6 +5,7 @@ const html = `<form data-wh-autosave action="/a/b/settings/hooks/1/settings">
   <p id="payload_url_err" hidden><span></span></p>
   <input id="secret" name="secret" type="password">
   <button type="button" data-wh-replace="secret">Replace</button>
+  <select name="message_type"><option value="1" selected>m.notice</option></select>
   <input type="checkbox" name="asc_events" value="change.landed">
   <p data-wh-status data-saved="Saved."></p>
   <p data-wh-failed hidden><span>Not saved.</span></p>
@@ -62,4 +63,14 @@ test('a lost connection says it was not saved, and Replace focuses the secret', 
   await settle();
   expect(document.querySelector('[data-wh-failed]').hidden).toBe(false);
   expect(document.querySelector('[data-wh-status]').textContent).toBe('');
+});
+
+test('a refused field without a message of its own marks it and says the form was not saved', async () => {
+  document.body.innerHTML = html;
+  globalThis.fetch = vi.fn(() => Promise.resolve({status: 422, json: () => Promise.resolve({field: 'message_type', error: 'Bad.'})}));
+  initAscWebhookSettings();
+  document.querySelector('select').dispatchEvent(new Event('change', {bubbles: true}));
+  await settle();
+  expect(document.querySelector('select').getAttribute('aria-invalid')).toBe('true');
+  expect(document.querySelector('[data-wh-failed]').hidden).toBe(false);
 });
