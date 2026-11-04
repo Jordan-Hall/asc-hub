@@ -16,9 +16,9 @@ export function hideListLoading(main) {
 }
 
 /**
- * The runs of Agents and the definitions of Workflows (templates/repo/asc_agents.tmpl, asc_workflows.tmpl): a state
- * chip, the agent filter, the search or a page of the pager loads the page again, and until it does the list shows
- * skeleton rows.
+ * The runs of Agents, the definitions of Workflows and the policy gate (templates/repo/asc_agents.tmpl,
+ * asc_workflows.tmpl, asc_gate.tmpl): a state chip, the agent filter, the search, a page of the pager or the window
+ * switch loads the page again, and until it does the list shows skeleton rows.
  */
 export function initAscListLoading(doc = document) {
   const main = doc.querySelector('[data-asc-list-main]');
