@@ -47,10 +47,14 @@ type Failure struct {
 	Key     string
 }
 
-// Localized is the sentence in the language of the request.
+// Localized is the sentence in the language of the request. A failed local check keeps its detail (the row or the
+// field it names) after the sentence.
 func (f Failure) Localized(ctx *context.Context) string {
 	if f.Key == "" {
 		return f.Message
+	}
+	if f.Key == "asc_trust.err.bad_input" && f.Message != "" {
+		return ctx.Locale.TrString("asc_trust.err.bad_input_detail", f.Message)
 	}
 	return ctx.Locale.TrString(f.Key)
 }

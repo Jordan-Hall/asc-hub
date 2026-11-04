@@ -128,7 +128,7 @@ func ascPolicyLoad(ctx *context.Context, repo *repo_model.Repository, name strin
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, repo)
 	if err != nil {
 		f := trustweb.FailureOf("policy credential", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		return f.Status, true
 	}
 	defer release()
@@ -139,7 +139,7 @@ func ascPolicyLoad(ctx *context.Context, repo *repo_model.Repository, name strin
 			ctx.NotFound("asc policy", nil)
 			return 0, false
 		}
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		return f.Status, true
 	}
 	p.Org = ascOrgPolicy(ctx, conn, repo, name, page)
@@ -232,7 +232,7 @@ func AscPolicyForm(ctx *context.Context) {
 	}
 	draft, err := asctrust.ApplyForm(text, f)
 	if err != nil {
-		p.Problem = trustweb.FailureOf("policy form", err).Message
+		p.Problem = trustweb.FailureOf("policy form", err).Localized(ctx)
 		ascPolicyRender(ctx, repo, name, p, "", nil)
 		return
 	}
@@ -262,7 +262,7 @@ func AscPolicyCheck(ctx *context.Context) {
 
 func ascPolicyPreview(ctx *context.Context, repo *repo_model.Repository, name, draft string) (*asctrust.Preview, string) {
 	if err := asctrust.CheckText(draft); err != nil {
-		return nil, trustweb.FailureOf("policy check", err).Message
+		return nil, trustweb.FailureOf("policy check", err).Localized(ctx)
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
@@ -270,12 +270,12 @@ func ascPolicyPreview(ctx *context.Context, repo *repo_model.Repository, name, d
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, repo)
 	if err != nil {
-		return nil, trustweb.FailureOf("policy credential", err).Message
+		return nil, trustweb.FailureOf("policy credential", err).Localized(ctx)
 	}
 	defer release()
 	preview, err := asctrust.PreviewPolicy(callCtx, conn, name, draft)
 	if err != nil {
-		return nil, trustweb.FailureOf("policy check", err).Message
+		return nil, trustweb.FailureOf("policy check", err).Localized(ctx)
 	}
 	return preview, ""
 }
@@ -301,7 +301,7 @@ func AscPolicyPropose(ctx *context.Context) {
 	case redirect != "":
 		ctx.Redirect(redirect)
 	case proposed != nil:
-		ctx.Flash.Success("The change " + proposed.Change + " was made and is under review. It will get its pull request as soon as the git view of the repository has it.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_rp.p_proposed_pr", proposed.Change))
 		ctx.Redirect(p.PolicyURL)
 	default:
 		p.Problem = problem
@@ -316,7 +316,7 @@ func ascPolicyPropose(ctx *context.Context, repo *repo_model.Repository, name, t
 		return "", nil, "This server does not have the policy API yet."
 	}
 	if err := asctrust.CheckText(text); err != nil {
-		return "", nil, trustweb.FailureOf("policy propose", err).Message
+		return "", nil, trustweb.FailureOf("policy propose", err).Localized(ctx)
 	}
 	base, err := hex.DecodeString(baseHex)
 	if err != nil || (len(base) != 0 && len(base) != 32) {
@@ -328,7 +328,7 @@ func ascPolicyPropose(ctx *context.Context, repo *repo_model.Repository, name, t
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoWrite, repo)
 	if err != nil {
-		return "", nil, trustweb.FailureOf("policy credential", err).Message
+		return "", nil, trustweb.FailureOf("policy credential", err).Localized(ctx)
 	}
 	defer release()
 
@@ -336,7 +336,7 @@ func ascPolicyPropose(ctx *context.Context, repo *repo_model.Repository, name, t
 	// file and the proposal would silently revert someone else's change.
 	cur, err := asctrust.LoadPolicyPage(callCtx, conn, name)
 	if err != nil {
-		return "", nil, trustweb.FailureOf("policy propose", err).Message
+		return "", nil, trustweb.FailureOf("policy propose", err).Localized(ctx)
 	}
 	if hex.EncodeToString(cur.Base) != hex.EncodeToString(base) {
 		return "", nil, "The policy changed while you were editing. Reload the page, apply your change again, and propose it."
@@ -346,7 +346,7 @@ func ascPolicyPropose(ctx *context.Context, repo *repo_model.Repository, name, t
 	}
 	prop, err := asctrust.ProposePolicy(callCtx, conn, name, base, text, message, op)
 	if err != nil {
-		return "", nil, trustweb.FailureOf("policy propose", err).Message
+		return "", nil, trustweb.FailureOf("policy propose", err).Localized(ctx)
 	}
 	pr, err := asctrust.OpenProposalPull(ctx, conn, repo, name, ctx.Doer, prop, message, ascPullSeams)
 	if err != nil {
@@ -380,12 +380,12 @@ func AscPolicyProtection(ctx *context.Context) {
 		on = true
 	case "off":
 	default:
-		p.Problem = "Choose on or off."
+		p.Problem = ctx.Locale.TrString("asc_rp.p_choose_on_off")
 		ascPolicyRender(ctx, repo, name, p, "", nil)
 		return
 	}
 	if _, known := asctrust.Toggles[key]; !known {
-		p.Problem = "That is not a protection of this repository."
+		p.Problem = ctx.Locale.TrString("asc_rp.p_not_toggle")
 		ascPolicyRender(ctx, repo, name, p, "", nil)
 		return
 	}
@@ -397,7 +397,7 @@ func AscPolicyProtection(ctx *context.Context) {
 	}
 	newText, err := asctrust.ApplyToggle(text, key, on)
 	if err != nil {
-		p.Problem = "That is not a protection of this repository."
+		p.Problem = ctx.Locale.TrString("asc_rp.p_not_toggle")
 		ascPolicyRender(ctx, repo, name, p, "", nil)
 		return
 	}
@@ -412,7 +412,7 @@ func AscPolicyProtection(ctx *context.Context) {
 	case redirect != "":
 		ctx.Redirect(redirect)
 	case proposed != nil:
-		ctx.Flash.Success("The change " + proposed.Change + " was made and is under review. It will get its pull request as soon as the git view of the repository has it.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_rp.p_proposed_pr", proposed.Change))
 		ctx.Redirect(p.PolicyURL)
 	default:
 		p.Problem = problem
@@ -431,12 +431,12 @@ func ascCurrentPolicy(ctx *context.Context, repo *repo_model.Repository, name st
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, repo)
 	if err != nil {
-		return "", "", trustweb.FailureOf("policy credential", err).Message
+		return "", "", trustweb.FailureOf("policy credential", err).Localized(ctx)
 	}
 	defer release()
 	page, err := asctrust.LoadPolicyPage(callCtx, conn, name)
 	if err != nil {
-		return "", "", trustweb.FailureOf("policy load", err).Message
+		return "", "", trustweb.FailureOf("policy load", err).Localized(ctx)
 	}
 	if page.View.Error != "" {
 		return "", "", page.View.Error

@@ -66,14 +66,14 @@ func ascPathRulesPageFor(ctx *context.Context, repo *repo_model.Repository) *asc
 func ascPathRulesLoad(ctx *context.Context, p *ascPathRulesPage, repo *repo_model.Repository, name string) bool {
 	conn, err := asctrust.Conn()
 	if err != nil {
-		p.Problem = "The ASC server is not reachable right now."
+		p.Problem = ctx.Locale.TrString("asc_shell.acct_unreachable")
 		ctx.HTML(http.StatusBadGateway, tplAscPathRules)
 		return false
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoAdmin, repo)
 	if err != nil {
 		f := trustweb.FailureOf("path rules credential", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscPathRules)
 		return false
 	}
@@ -86,7 +86,7 @@ func ascPathRulesLoad(ctx *context.Context, p *ascPathRulesPage, repo *repo_mode
 			return false
 		}
 		f := trustweb.FailureOf("path rules", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscPathRules)
 		return false
 	}
@@ -161,19 +161,19 @@ func AscPathRulesSave(ctx *context.Context) {
 		for range pathRulesBlankRows {
 			p.Rules = append(p.Rules, asctrust.AccessRule{Level: "none"})
 		}
-		p.Problem = trustweb.FailureOf("path rules check", err).Message
+		p.Problem = trustweb.FailureOf("path rules check", err).Localized(ctx)
 		ctx.HTML(http.StatusBadRequest, tplAscPathRules)
 		return
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		ctx.Flash.Error("The ASC server is not reachable right now.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_shell.acct_unreachable"))
 		ctx.Redirect(back)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoAdmin, repo)
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("path rules credential", err).Message)
+		ctx.Flash.Error(trustweb.FailureOf("path rules credential", err).Localized(ctx))
 		ctx.Redirect(back)
 		return
 	}
@@ -182,7 +182,7 @@ func AscPathRulesSave(ctx *context.Context) {
 		if asctrust.Classify(err).Kind == asctrust.KindConflict {
 			ctx.Flash.Error(ctx.Tr("asc_review.pr_stale"))
 		} else {
-			ctx.Flash.Error(trustweb.FailureOf("path rules set", err).Message)
+			ctx.Flash.Error(trustweb.FailureOf("path rules set", err).Localized(ctx))
 		}
 		ctx.Redirect(back)
 		return
@@ -215,14 +215,14 @@ func AscPathRulesPreview(ctx *context.Context) {
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		p.Problem = "The ASC server is not reachable right now."
+		p.Problem = ctx.Locale.TrString("asc_shell.acct_unreachable")
 		ctx.HTML(http.StatusBadGateway, tplAscPathRules)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoAdmin, repo)
 	if err != nil {
 		f := trustweb.FailureOf("path rules credential", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscPathRules)
 		return
 	}
@@ -230,7 +230,7 @@ func AscPathRulesPreview(ctx *context.Context) {
 	preview, err := asctrust.PreviewPathAccess(callCtx, conn, name, p.Principal, p.RepoLevel, paths)
 	if err != nil {
 		f := trustweb.FailureOf("path rules preview", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscPathRules)
 		return
 	}
