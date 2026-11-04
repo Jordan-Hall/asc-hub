@@ -5,6 +5,7 @@ Template Attributes:
 * AscSuggestions: []pull.AscSuggestion (empty: nothing is shown)
 * AscCanApplySuggestion: bool, the viewer may apply (the author, a maintainer, an owner; the pull request is open)
 * AscSuggestionNext: uint32, the number of the version an apply makes
+* AscSuggestionAgent: string, the agent that made the change, which may be asked to apply ("" when none)
 * Issue.Link, CsrfTokenHtml
 Every text comes from asc and is escaped by the template engine.
 */}}
@@ -30,6 +31,9 @@ Every text comes from asc and is escaped by the template engine.
 						<input type="hidden" name="thread" value="{{.ThreadID}}">
 						<input type="hidden" name="comment" value="{{.CommentID}}">
 						<button class="rv-btn rv-btn-primary rv-btn-sm" type="submit" data-testid="asc-apply-suggestion">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.apply" $.AscSuggestionNext}}</button>
+						{{if $.AscSuggestionAgent}}
+							<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" formaction="{{$.Issue.Link}}/asc/ask_suggestion" data-testid="asc-ask-suggestion">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.ask" $.AscSuggestionAgent}}</button>
+						{{end}}
 					</form>
 				{{end}}
 			</li>
