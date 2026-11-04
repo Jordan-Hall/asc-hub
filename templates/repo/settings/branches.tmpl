@@ -56,6 +56,7 @@
 				</div>
 			</h4>
 
+			{{if .ProtectedBranches}}
 			<div class="ds-card ds-card-b ds-card-attach">
 				<div class="flex-list">
 					{{range .ProtectedBranches}}
@@ -72,13 +73,12 @@
 								</button>
 							</div>
 						</div>
-					{{else}}
-						<div class="flex-item center aligned">
-							{{ctx.Locale.Tr "repo.settings.no_protected_branch"}}
-						</div>
 					{{end}}
 				</div>
 			</div>
+			{{else}}
+			{{template "repo/settings/rules_empty" .}}
+			{{end}}
 			{{end}}
 		{{end}}
 	</div>

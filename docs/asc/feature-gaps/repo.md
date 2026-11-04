@@ -153,7 +153,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Refs | Tags section with release title, change count, author, date | ui-only-missing | `H:templates/repo/tag/list.tmpl` is a separate page | M |
 | Refs | Row More menu names its target; no delete on protected refs | done | `branch/row.tmpl` | S |
 | Refs | State: nothing matches with "Search stacks" link | done | `list.tmpl` empty state has no stack search action | S |
-| Refs | State: delete protected ref refused with "Open rule" | ui-only-missing | `H:routers/web/repo/branch.go` flash message and link to `settings/branches` | S |
+| Refs | State: delete protected ref refused with "Open rule" | done | `H:routers/web/repo/asc_rule_link.go`: the refusal to delete a protected branch (`branch.go`) or tag (`release.go`) ends with "Open rule", a link to the matching rule, for a repository admin; `asc_rule_link_test.go` | S |
 
 ## Compare
 
@@ -335,7 +335,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsRules | Stack behaviour switches: restack when main moves, keep approvals when only the base changed, let collaborators push onto a stack | needs-both | no repo-level config in asc (`Stacks.Restack` is invoked on demand); store in policy or repo config and enforce in `asc-serve` | L |
 | RepoSettingsRules | Longest stack (8) and clean-up after landing (7 days) | needs-asc-backend | new policy/config keys and a janitor in `A:crates/asc-serve` | M |
 | RepoSettingsRules | How stacks land: keep every change / squash into one change | needs-asc-backend | `[merge] strategy` values are rebase, rebase-disjoint, fast-forward; no squash (`A:policy.rs`) | M |
-| RepoSettingsRules | Empty state "Nothing is protected" with Protect main | ui-only-missing | `branches.tmpl` | S |
+| RepoSettingsRules | Empty state "Nothing is protected" with Protect main | done | `H:templates/repo/settings/rules_empty.tmpl` on `branches.tmpl` when there is no rule: the sentence and "Protect <default branch>", which opens a new rule for it (not on an empty repository); `asc_rule_link_test.go` | S |
 
 ## RepoSettingsWebhooks
 
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 150 |
+| done | 152 |
 | partial | 1 |
-| ui-only-missing | 51 |
+| ui-only-missing | 49 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
