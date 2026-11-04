@@ -271,3 +271,38 @@ func AgentRoster(ctx context.Context, repo *repo_model.Repository) []ascagentui.
 	}
 	return ascagentui.RosterOf(resp.GetAgents())
 }
+
+// AddDialog is what the Add webhook dialog of a hooks list offers.
+type AddDialog struct {
+	// Agent is true in a repository that asc serves, where an ASC agent hook can be added.
+	Agent bool
+	// HTTP is the plain http addresses the hub saves: "any" without asc, "local" for loopback when the instance
+	// turned that on, else "none". The hub checks the address again; this only lets the page answer early.
+	HTTP   string
+	Roster []ascagentui.Roster
+}
+
+// AddDialogFor returns the Add webhook dialog of the hooks of repo, or of an owner when repo is nil.
+func AddDialogFor(ctx context.Context, repo *repo_model.Repository) AddDialog {
+	d := AddDialog{HTTP: "none"}
+	switch {
+	case !setting.Asc.Enabled:
+		d.HTTP = "any"
+	case setting.Webhook.AllowLocalHTTP:
+		d.HTTP = "local"
+	}
+	if AgentHookAllowed(repo) {
+		d.Agent = true
+		d.Roster = AgentRoster(ctx, repo)
+	}
+	return d
+}
+
+// AgentHookAllowed reports whether an ASC agent hook can be added to repo: asc is on and serves it.
+func AgentHookAllowed(repo *repo_model.Repository) bool {
+	if repo == nil || !setting.Asc.Enabled {
+		return false
+	}
+	_, err := asctrust.RepoName(repo)
+	return err == nil
+}

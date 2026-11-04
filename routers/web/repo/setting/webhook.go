@@ -60,6 +60,7 @@ func WebhookList(ctx *context.Context) {
 		return
 	}
 	ctx.Data["Webhooks"] = rows
+	ctx.Data["AddDialog"] = webhook_service.AddDialogFor(ctx, ctx.Repo.Repository)
 
 	ctx.HTML(http.StatusOK, tplHooks)
 }

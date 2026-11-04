@@ -318,6 +318,7 @@ func Webhooks(ctx *context.Context) {
 		return
 	}
 	ctx.Data["Webhooks"] = rows
+	ctx.Data["AddDialog"] = webhook_service.AddDialogFor(ctx, nil)
 	ctx.HTML(http.StatusOK, tplSettingsHooks)
 }
 
