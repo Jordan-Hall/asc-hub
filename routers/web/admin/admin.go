@@ -12,9 +12,7 @@ import (
 	"time"
 
 	activities_model "forgejo.org/models/activities"
-	"forgejo.org/models/db"
 	"forgejo.org/modules/base"
-	"forgejo.org/modules/cache"
 	"forgejo.org/modules/graceful"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -222,36 +220,6 @@ func DashboardPost(ctx *context.Context) {
 func SelfCheck(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("asc_admin.health")
 	ctx.Data["PageIsAdminSelfCheck"] = true
-	r, err := db.CheckCollationsDefaultEngine()
-	if err != nil {
-		ctx.Flash.Error(fmt.Sprintf("CheckCollationsDefaultEngine: %v", err), true)
-	}
-
-	if r != nil {
-		ctx.Data["DatabaseType"] = setting.Database.Type
-		ctx.Data["DatabaseCheckResult"] = r
-		hasProblem := false
-		if !r.CollationEquals(r.DatabaseCollation, r.ExpectedCollation) {
-			ctx.Data["DatabaseCheckCollationMismatch"] = true
-			hasProblem = true
-		}
-		if !r.IsCollationCaseSensitive(r.DatabaseCollation) {
-			ctx.Data["DatabaseCheckCollationCaseInsensitive"] = true
-			hasProblem = true
-		}
-		ctx.Data["DatabaseCheckInconsistentCollationColumns"] = r.InconsistentCollationColumns
-		hasProblem = hasProblem || len(r.InconsistentCollationColumns) > 0
-
-		ctx.Data["DatabaseCheckHasProblems"] = hasProblem
-	}
-
-	elapsed, err := cache.Test()
-	if err != nil {
-		ctx.Data["CacheError"] = err
-	} else if elapsed > cache.SlowCacheThreshold {
-		ctx.Data["CacheSlow"] = fmt.Sprint(elapsed)
-	}
-
 	healthFacts(ctx)
 	ctx.HTML(http.StatusOK, tplSelfCheck)
 }

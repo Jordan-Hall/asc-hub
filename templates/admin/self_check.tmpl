@@ -43,27 +43,16 @@
 	<section class="ds-card adm-sec" aria-labelledby="adm-chk">
 		<div class="ds-card-h">
 			<h2 id="adm-chk">{{ctx.Locale.Tr "admin.self_check"}}</h2>
-			<span class="ds-chip {{if .ChecksFail}}ds-chip-err{{else if .ChecksWarn}}ds-chip-warn{{else}}ds-chip-ok{{end}}">{{ctx.Locale.Tr "asc_admin.check_summary" .ChecksOK .ChecksWarn .ChecksFail}}</span>
+			<span class="ds-chip {{if .ChecksFail}}ds-chip-err{{else if or .ChecksWarn .ChecksNoRun}}ds-chip-warn{{else}}ds-chip-ok{{end}}" data-health-tally>{{.ChecksTally}}</span>
 			<div class="ds-ml-auto ds-row ds-gap-8">
-				<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{AppSubUrl}}/admin/self_check">{{svg "dsi-refresh" 16}}{{ctx.Locale.Tr "asc_admin.run_again"}}</a>
-				<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-clipboard-text="{{.HealthReport}}">{{svg "dsi-copy" 16}}{{ctx.Locale.Tr "asc_admin.copy_report"}}</button>
+				<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{AppSubUrl}}/admin/self_check" data-health-run>{{svg "dsi-refresh" 16}}{{ctx.Locale.Tr "asc_admin.run_again"}}</a>
+				<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-clipboard-text="{{.HealthReport}}" data-health-report>{{svg "dsi-copy" 16}}{{ctx.Locale.Tr "asc_admin.copy_report"}}</button>
 			</div>
 		</div>
-		<ul class="adm-rows">
-			{{range .Checks}}
-				<li class="ds-li ds-li-wrap">
-					<span class="adm-tile adm-tile-{{.State}}" aria-hidden="true">{{if eq .State "ok"}}{{svg "dsi-check-circle" 18}}{{else if eq .State "warn"}}{{svg "dsi-alert" 18}}{{else}}{{svg "dsi-x-circle" 18}}{{end}}</span>
-					<div class="ds-li-main">
-						<div class="ds-li-title">{{.Name}}</div>
-						<div class="ds-li-sub">{{.Text}}</div>
-					</div>
-					<div class="adm-row-side">
-						<span class="ds-chip ds-chip-{{.State}}">{{.Label}}</span>
-						{{if .Fix}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Fix}}">{{ctx.Locale.Tr "asc_admin.fix"}}</a>{{end}}
-					</div>
-				</li>
-			{{end}}
+		<ul class="adm-rows" data-health-steps="{{AppSubUrl}}/admin/self_check/checks/" data-tally="{{ctx.Locale.Tr "asc_admin.check_tally" "{ok}" "{warn}" "{fail}"}}" data-tally-norun="{{ctx.Locale.Tr "asc_admin.check_tally_norun" "{ok}" "{warn}" "{fail}" "{norun}"}}" data-waiting="{{ctx.Locale.Tr "asc_admin.check_waiting"}}" data-running="{{ctx.Locale.Tr "asc_admin.check_running"}}" data-norun="{{ctx.Locale.Tr "asc_admin.check_norun"}}" data-norun-text="{{ctx.Locale.Tr "asc_admin.check_norun_answer"}}" data-live-running="{{ctx.Locale.Tr "asc_admin.check_live_running" "{name}"}}" data-live-done="{{ctx.Locale.Tr "asc_admin.check_live_done" "{tally}"}}" data-testid="health-checks">
+			{{range .Checks}}{{template "admin/self_check_row" (dict "Row" .)}}{{end}}
 		</ul>
+		<p class="tw-sr-only" role="status" data-health-live></p>
 	</section>
 
 	{{if .DatabaseCheckHasProblems}}

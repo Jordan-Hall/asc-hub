@@ -1,0 +1,13 @@
+{{with .Row}}
+<li class="ds-li ds-li-wrap adm-check" data-check="{{.ID}}" data-state="{{.State}}">
+	<span class="adm-tile adm-tile-{{.State}}" aria-hidden="true">{{if eq .State "ok"}}{{svg "dsi-check-circle" 18}}{{else if eq .State "warn"}}{{svg "dsi-alert" 18}}{{else if eq .State "norun"}}{{svg "dsi-ban" 18}}{{else}}{{svg "dsi-x-circle" 18}}{{end}}</span>
+	<div class="ds-li-main">
+		<div class="ds-li-title" data-check-name>{{.Name}}</div>
+		<div class="ds-li-sub" data-check-text>{{.Text}}</div>
+	</div>
+	<div class="adm-row-side">
+		<span class="ds-chip ds-chip-{{if eq .State "norun"}}outline{{else}}{{.State}}{{end}}" data-check-label>{{.Label}}</span>
+		{{if .Fix}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Fix}}">{{ctx.Locale.Tr "asc_admin.fix"}}</a>{{end}}
+	</div>
+</li>
+{{end}}
