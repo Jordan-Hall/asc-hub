@@ -293,12 +293,23 @@ func TestAscSuggestionIsShownInTheHubCommentOnlyWhenTheCommentSaysTheSame(t *tes
 		{Id: 13, Suggestion: "fn a() {}", ExternalId: ext(old)},
 		{Id: 14, Suggestion: "fn a() {}", ExternalId: ext(1)},
 	}}}
+	dup := code("src/a.rs", 4, "tidy\n```suggestion\nfn a() {}\n```")
+	twin := code("src/a.rs", 4, "tidy\n```suggestion\nfn a() {}\n```")
+	oldSide := &ascv1.ThreadAnchor{Path: []byte("src/a.rs"), Version: 3, Side: ascv1.DiffSide_DIFF_SIDE_OLD, StartLine: 4, EndLine: 4}
+	wide := &ascv1.ThreadAnchor{Path: []byte("src/a.rs"), Version: 3, StartLine: 4, EndLine: 9}
+	w.review.threads = append(w.review.threads,
+		&ascv1.ReviewThread{Id: 2, Anchor: anchor, Comments: []*ascv1.ReviewComment{
+			{Id: 20, Suggestion: "fn a() {}", ExternalId: ext(dup)}, {Id: 21, Suggestion: "fn a() {}", ExternalId: ext(dup)},
+		}},
+		&ascv1.ReviewThread{Id: 3, Anchor: oldSide, Comments: []*ascv1.ReviewComment{{Id: 30, Suggestion: "fn a() {}", ExternalId: ext(twin)}}},
+		&ascv1.ReviewThread{Id: 4, Anchor: wide, Comments: []*ascv1.ReviewComment{{Id: 40, Suggestion: "fn a() {}", ExternalId: ext(twin)}}},
+	)
 	got, err := AscSuggestions(t.Context(), w.pr)
 	require.NoError(t, err)
-	require.Len(t, got, 5)
+	require.Len(t, got, 9)
 	assert.Equal(t, same, got[0].HubComment, "the comment shows the same suggestion on the same line")
 	for _, s := range got[1:] {
-		assert.Zero(t, s.HubComment, "comment %d: other text, another line, the old side or another pull request", s.CommentID)
+		assert.Zero(t, s.HubComment, "comment %d: other text, another line, the old side, other lines, another pull request or two claims", s.CommentID)
 	}
 }
 

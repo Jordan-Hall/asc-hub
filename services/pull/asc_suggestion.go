@@ -144,12 +144,16 @@ func AscSuggestions(ctx context.Context, pr *issues_model.PullRequest) ([]AscSug
 			if c.GetSuggestion() == "" || c.GetAppliedVersion() != 0 {
 				continue
 			}
+			var hubComment int64
+			if a.GetSide() != ascv1.DiffSide_DIFF_SIDE_OLD {
+				hubComment = ascHubCommentOf(c.GetExternalId())
+			}
 			out = append(out, AscSuggestion{
 				ThreadID: t.GetId(), CommentID: c.GetId(), Path: string(a.GetPath()),
 				StartLine: a.GetStartLine(), EndLine: max(a.GetEndLine(), a.GetStartLine()),
 				Author: c.GetAuthor(), Suggestion: c.GetSuggestion(), Body: c.GetBody(),
 				Version: a.GetVersion(), Stale: a.GetVersion() != 0 && a.GetVersion() != latest,
-				HubComment: ascHubCommentOf(c.GetExternalId()),
+				HubComment: hubComment,
 			})
 		}
 	}
@@ -159,17 +163,17 @@ func AscSuggestions(ctx context.Context, pr *issues_model.PullRequest) ([]AscSug
 	return out, nil
 }
 
-// ascCheckHubComments keeps the hub comment of a suggestion only when that comment is a code comment of pr on the same
-// file and line whose own suggestion block is the same text: then Apply in the comment applies what the comment shows.
-// Any other suggestion is listed with its author in the suggestions card.
+// ascCheckHubComments keeps the hub comment of a suggestion only when that comment is a code comment of pr on the new
+// side of the same file and lines whose own suggestion block is the same text, and no other suggestion names it: then
+// Apply in the comment applies what the comment shows. Any other suggestion is listed with its author in the card.
 func ascCheckHubComments(ctx context.Context, pr *issues_model.PullRequest, list []AscSuggestion) error {
-	ids := make([]int64, 0, len(list))
+	claims := map[int64]int{}
 	for _, s := range list {
 		if s.HubComment != 0 {
-			ids = append(ids, s.HubComment)
+			claims[s.HubComment]++
 		}
 	}
-	if len(ids) == 0 {
+	if len(claims) == 0 {
 		return nil
 	}
 	comments, err := issues_model.FindComments(ctx, &issues_model.FindCommentsOptions{IssueID: pr.IssueID, Type: issues_model.CommentTypeCode})
@@ -186,7 +190,8 @@ func ascCheckHubComments(ctx context.Context, pr *issues_model.PullRequest, list
 			continue
 		}
 		c := byID[s.HubComment]
-		if c == nil || c.Line <= 0 || c.TreePath != s.Path || uint32(c.UnsignedLine()) != s.StartLine || ascSuggestionOf(c.Content) != s.Suggestion {
+		if c == nil || claims[s.HubComment] != 1 || c.Line <= 0 || c.TreePath != s.Path || uint32(c.UnsignedLine()) != s.StartLine ||
+			uint32(c.UnsignedDisplayLine()) != s.EndLine || ascSuggestionOf(c.Content) != s.Suggestion {
 			s.HubComment = 0
 		}
 	}
