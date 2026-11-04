@@ -21,7 +21,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 |---|---|---|---|---|---|
 | Review | 25 | 0 | 0 | 0 | 5 |
 | ReviewVersions | 12 | 0 | 0 | 0 | 1 |
-| NewChange | 9 | 2 | 0 | 0 | 2 |
+| NewChange | 10 | 1 | 0 | 0 | 2 |
 | Checks | 12 | 0 | 0 | 0 | 1 |
 | ChangeChecks | 9 | 0 | 0 | 0 | 1 |
 | Agents | 14 | 0 | 0 | 0 | 0 |
@@ -107,7 +107,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | NewChange | Open-change form: title, description, reviewers, draft | done | templates/repo/diff/compare.tmpl (Forgejo pull creation) | - |
-| NewChange | Compare bar: base/head, +212 -48 in 9 files, no-conflict chip, ahead/behind, stack of N | ui-only-missing (size, files and changes ahead are shown; the no-conflict chip and behind count remain) | templates/repo/diff/compare.tmpl; asc_compare.tmpl is a separate page | M |
+| NewChange | Compare bar: base/head, +212 -48 in 9 files, no-conflict chip, ahead/behind, stack of N | done | templates/repo/diff/compare.tmpl: size and files, No conflicts (or Conflicts with the base) from git merge-tree, and Ahead N, behind M from git rev-list (only when both sides resolve); compare_state.go, compare_state_test.go TestPrepareCompareState over a real repository | - |
 | NewChange | Title counter '68 of 120', 'Start with a verb' hint, inline validation | done | templates/repo/diff/compare.tmpl | S |
 | NewChange | Intent editor with What/Why/How to check/Risk template and Write/Preview | done | templates/repo/diff/compare.tmpl (description template) | S |
 | NewChange | 'Draft from the diff' (AI writes What/Why/How/Risk from the diff) | done | Review.DraftContext fills title and description without a model; with a review-summaries key the BYO model writes What/Why/How/Where (routers/web/repo/asc_summary.go, POST asc/summarize and asc/brief/summarize, services/ascbyo; web_src/js/features/asc-draft.js; tests: TestAscSummary*, asc-draft.test.js) | - |
