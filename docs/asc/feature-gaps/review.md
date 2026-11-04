@@ -8,11 +8,11 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 163 |
-| ui-only-missing | 33 |
+| done | 190 |
+| ui-only-missing | 11 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 17 |
+| needs-both | 14 |
 | total | 213 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -21,7 +21,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 |---|---|---|---|---|---|
 | Review | 25 | 0 | 0 | 0 | 5 |
 | ReviewVersions | 12 | 0 | 0 | 0 | 1 |
-| NewChange | 11 | 0 | 0 | 0 | 2 |
+| NewChange | 12 | 0 | 0 | 0 | 1 |
 | Checks | 12 | 0 | 0 | 0 | 1 |
 | ChangeChecks | 9 | 0 | 0 | 0 | 1 |
 | Agents | 14 | 0 | 0 | 0 | 0 |
@@ -113,7 +113,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | NewChange | 'Draft from the diff' (AI writes What/Why/How/Risk from the diff) | done | Review.DraftContext fills title and description without a model; with a review-summaries key the BYO model writes What/Why/How/Where (routers/web/repo/asc_summary.go, POST asc/summarize and asc/brief/summarize, services/ascbyo; web_src/js/features/asc-draft.js; tests: TestAscSummary*, asc-draft.test.js) | - |
 | NewChange | 'Where to look' pointers editor | done | templates/repo/issue/new_form.tmpl Where to look field: pills linked to the changed files, add with path (datalist of the diff files), line and note, remove; kept in the description's Where to look first section that the brief and the summary read (web_src/js/features/asc-where.js; test: asc-where.test.js) | - |
 | NewChange | Reviewer suggestions from ownership and review history, out-of-office note, agent reviewers labelled | done | asc: Review.SuggestReviewers takes the paths of a comparison before the change exists and says who owns them (the literal people of the policy's [paths] rules), what they know (the directory and share of the threads they opened there), how fast they usually review (median over the newest finished requests) and whether an agent may approve (crates/asc-serve/src/review/brief.rs; tests_brief.rs); hub: templates/repo/issue/asc_newchange_reviewers.tmpl under the form (new_form.tmpl), routers/web/repo/asc_newchange_reviewers.go prepareAscNewChangeReviewers (CompareDiff) lists the people the hub offers and the agents, Add marks a person who is asked when the change opens with the hub's own checks (CompareAndPullRequestPost), a person who cannot be asked is named in a warning; out of office from 'Away until' in the notification settings (services/ascnotify Prefs.Away, AwayUntil); tests: TestAscNewChangeReviewer*, TestPrepareAscNewChangeReviewers*, TestAscRequestNewChangeReviewers*, TestAwayUntil* | - |
-| NewChange | Options: open as draft, keep as part of stack, land when approved and green, ask agent to babysit checks | needs-both | draft + auto-merge exist natively; babysit needs Agents.CreateRun trigger + hub option | L |
+| NewChange | Options: open as draft, keep as part of stack, land when approved and green, ask agent to babysit checks | done | Options card (asc_newchange_options): draft prefix, stack row when changes sit below, land via merge queue (stacked) or scheduled merge, babysit (services/ascbabysit: one run per failed head, 3 max, Stop on the change page) | L |
 | NewChange | Local checks start on open; 'signed with your key' note | done | templates/repo/issue/new_form.tmpl note under the intent for an asc repository: checks start on open, signed with your key when one is added (test: TestAscCompareNotesOnOpen) | - |
 | NewChange | Draft autosave on blur (1 s debounce), 'Save as draft', Ctrl+Enter opens | done | routers/web/repo/asc_newchange_draft.go: POST /{repo}/asc/newchange_draft keeps the title and description per person and comparison in one user setting (at most 10 drafts, 255 bytes of title and 32 KiB of description each, the oldest goes), the compare page fills the form from it unless the address brought text, and creating the change removes it; web_src/js/features/asc-newchange-draft.js saves on leaving a field after 1 s, 'Save as draft' and 'Discard draft' (new_form.tmpl); Ctrl+Enter opens from the title (js-quick-submit) and from the description; tests: TestAscNewChangeDraftSaveRestoreAndClear and others, asc-newchange-draft.test.js | - |
 | NewChange | Right rail: stack after this change, file list with Show all, 'What policy will ask for' preview | done | templates/repo/issue/asc_newchange_rail.tmpl at the top of the form's right column (new_form.tmpl); routers/web/repo/asc_newchange_rail.go prepareAscNewChangeRail (called from CompareDiff for a signed person in an asc repository): the stack of the head (Changes.Stack with the head commit as rev and the base branch as target, top first, the current change marked, subjects from the comparison's commits, at most 12), the files of the diff (eight open, the rest behind a details element), and the land requirements of Policy.Evaluate (approvals, checks, signed, merge strategy); a failed call leaves its part out; tests: TestAscRail*, TestPrepareAscNewChangeRail*, TestAscNewChangeRailTemplate | - |
