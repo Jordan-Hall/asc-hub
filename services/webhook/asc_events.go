@@ -13,7 +13,9 @@ import (
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
+	"forgejo.org/modules/util"
 	webhook_module "forgejo.org/modules/webhook"
 )
 
@@ -119,7 +121,9 @@ func (wpf webhookPayloadFormatter) getAscPayloadInfo(p *api.AscHookPayload) (tex
 		case webhook_module.HookEventChangeOpened:
 			text, color = fmt.Sprintf("Change %s opened%s", title, in), yellowColor
 		case webhook_module.HookEventChangeLanded:
-			text, color = fmt.Sprintf("Change %s landed on %s%s", title, p.Change.Base, in), purpleColor
+			// The branch goes through the link formatter, which escapes it for the chat it is posted to.
+			base := wpf.linkFormatter(setting.AppURL+p.Repository+"/src/branch/"+util.PathEscapeSegments(p.Change.Base), p.Change.Base)
+			text, color = fmt.Sprintf("Change %s landed on %s%s", title, base, in), purpleColor
 		default:
 			text, color = fmt.Sprintf("Review of %s requested from %s%s", title, wpf.nameFormatter(p.Change.Reviewer), in), yellowColor
 		}
