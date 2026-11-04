@@ -178,8 +178,8 @@ test('multi-commit commenting', async ({page, request}) => {
       .locator('..')
       .locator('button.add-code-comment')
       .click();
-    await page.getByPlaceholder('Leave a comment').fill('Comment on line changed in commit 2');
-    await page.getByText('Add single comment').click();
+    await page.getByPlaceholder(/^Comment on line \d+, or type \/ for suggestions/).fill('Comment on line changed in commit 2');
+    await page.getByRole('button', {name: 'Comment', exact: true}).click();
 
     // Test assertion: when viewing the comment from the 'Conversation' page, it's diff should look correct:
     await page.getByText('Conversation').click();
