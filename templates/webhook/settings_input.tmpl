@@ -1,0 +1,10 @@
+{{/* One field of the Settings tab of a webhook (templates/webhook/settings.tmpl), from a dict: Name, Label and Value,
+and optionally Type (text when not given), Placeholder, Hint, Required, Mono and Max. A message the server refuses it
+with shows in <Name>_err. */}}
+{{$type := or .Type "text"}}
+<div class="ds-field">
+	<label class="ds-label" for="{{.Name}}">{{.Label}}</label>
+	<input class="ds-input{{if .Mono}} ds-mono{{end}}" id="{{.Name}}" name="{{.Name}}" type="{{$type}}" value="{{.Value}}"{{if .Placeholder}} placeholder="{{.Placeholder}}"{{end}}{{if .Max}} maxlength="{{.Max}}"{{end}}{{if .Required}} required{{end}} autocomplete="{{if eq $type "password"}}new-password{{else}}off{{end}}" spellcheck="false"{{if .Hint}} aria-describedby="{{.Name}}_help"{{end}}>
+	<p class="ds-err-msg" id="{{.Name}}_err" role="alert" hidden>{{svg "dsi-alert" 16}}<span></span></p>
+	{{if .Hint}}<p class="ds-hint" id="{{.Name}}_help">{{.Hint}}</p>{{end}}
+</div>
