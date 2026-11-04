@@ -565,8 +565,9 @@ func TestAscWorkflowRunPage(t *testing.T) {
 	assert.Contains(t, p.body, `data-testid="asc-workflow-approval"`)
 	assert.Contains(t, p.body, `name="decision" value="approve"`)
 	assert.Contains(t, p.body, `name="decision" value="reject"`)
-	assert.Contains(t, p.body, "/runs/3/cancel")
-	assert.NotContains(t, p.body, "/runs/3/rerun", "a run that is going on is not run again")
+	assert.Regexp(t, `<details class="ag-pop" data-run-cancel data-testid="asc-wf-cancel">\s*<summary class="rv-btn rv-btn-danger">asc_review.wf_cancel</summary>\s*<form class="ag-pop-b rv-form" method="post" action="/user2/repo1/asc/workflows/runs/3/cancel">`, p.body, "cancel asks first")
+	assert.Contains(t, p.body, "asc_review.wf_cancel_help")
+	assert.Contains(t, p.body, `action="/user2/repo1/asc/workflows/runs/3/rerun" data-testid="asc-wf-rerun"`, "the board offers Run again beside Cancel run")
 	assert.Contains(t, p.body, "42k")
 	// The agent run behind the log was checked to be this repository's.
 	assert.NotEmpty(t, hub.callsOf("Agents.GetRun"))
