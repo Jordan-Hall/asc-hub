@@ -29,6 +29,8 @@ type ascAgentsRunPlan struct {
 	Rejected  bool
 	DecidedBy string
 	DecidedAt string // "10:02", UTC
+	// ByYou is true when the viewer decided the plan: the card says "You approved at 10:02".
+	ByYou bool
 }
 
 // ascAgentsLoadRunBoard fills what the run page shows besides the run itself: the runs rail, the requests, the plan,
@@ -64,6 +66,7 @@ func ascAgentsLoadRunBoard(ctx *context.Context, env *ascAgentsEnv, callCtx goco
 				ctx.Data["AscAgentRequest"] = r
 			case r.Kind == "plan" && plan == nil:
 				p := &ascAgentsRunPlan{Request: r, Pending: r.Pending, Approved: r.State == "approved", Rejected: r.State == "rejected", DecidedBy: r.DecidedBy}
+				p.ByYou = ctx.Doer != nil && r.DecidedBy != "" && r.DecidedBy == ctx.Doer.Name
 				if !r.DecidedAt.IsZero() {
 					p.DecidedAt = r.DecidedAt.UTC().Format("15:04")
 				}
