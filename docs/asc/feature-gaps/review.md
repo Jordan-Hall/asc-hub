@@ -22,8 +22,8 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Review | 29 | 0 | 0 | 0 | 1 |
 | ReviewVersions | 13 | 0 | 0 | 0 | 0 |
 | NewChange | 13 | 0 | 0 | 0 | 0 |
-| Checks | 12 | 0 | 0 | 0 | 1 |
-| ChangeChecks | 9 | 0 | 0 | 0 | 1 |
+| Checks | 13 | 0 | 0 | 0 | 0 |
+| ChangeChecks | 10 | 0 | 0 | 0 | 0 |
 | Agents | 14 | 0 | 0 | 0 | 0 |
 | AgentRun | 18 | 0 | 0 | 0 | 0 |
 | AgentNew | 8 | 0 | 0 | 0 | 0 |
@@ -149,7 +149,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | ChangeChecks | 'Ask coder-2 to fix' (start an agent run on this failure) | done | templates/repo/pulls/asc_checks.tmpl 'Ask an agent to fix' on each cause: opens the agent form (asc/agents/new) filled with the failure as title and task and the pull request's branch as target; the form's CreateRun starts the run when the person sends it (the form is prefilled by ascAgentsPrefill) (tests: TestAscAskAgentToFix, TestAscAgentFormIsFilledFromTheAddress) | - |
 | ChangeChecks | Flaky card with 20-run strip, Quarantine this test, Open an issue | done | templates/repo/pulls/asc_checks.tmpl | - |
 | ChangeChecks | All checks list with required flag, duration; 'Run security scan on v4' per row | done | templates/repo/pulls/asc_checks.tmpl: Took per row (asctrust.StatusRow.Took) and 'Run on vN' per row, which re-runs that Actions run through AscPullChecksRerun with the field run (tests: TestStatusRowsCarryTheirRunAndHowLongItTook, TestAscStatusRunIDAndRepro) | - |
-| ChangeChecks | Compared with main: main green, 'these 2 failures are new', slowest test 41 s (was 12 s) | needs-both | main status exists (pull.main_*); slowest-test delta needs per-test timing in CiInsights.ReportTestCases (proto/asc/v1/ciinsights.proto) | M |
+| ChangeChecks | Compared with main: main green, 'these 2 failures are new', slowest test 41 s (was 12 s) | done | Done: vs-main card on the pull checks page (asctrust.LoadMainCompare, ascVsMainOf; tests TestAscPullVsMainCard, TestAscVsMainOf) | M |
 | ChangeChecks | Versions history list (v4 2 fail, v3 pass, v2 pass) | done | templates/repo/pulls/asc_checks.tmpl: one line per version, newest first, from the runs of the change (ascVersionHistoryOf) (test: TestAscVersionHistory) | - |
 | ChangeChecks | Trust text: results belong to the exact version | done | templates/repo/pulls/asc_checks.tmpl | - |
 
