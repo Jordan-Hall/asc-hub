@@ -249,6 +249,8 @@ func TestAscChecksWriterRowsHaveActionsAndQuarantineOnlyWhenThePolicyAllowsIt(t 
 	assert.Equal(t, 1, strings.Count(page.body, `data-testid="asc-group-reopen"`), "only the resolved group can be reopened")
 	assert.Contains(t, page.body, `data-testid="asc-group-do"`)
 	assert.Contains(t, page.body, `name="next" value="checks"`)
+	assert.Contains(t, page.body, `data-testid="asc-rerun-failed-repo"`)
+	assert.Contains(t, page.body, `data-testid="asc-rerun-failed-pinned"`, "a phone keeps Re-run failed pinned")
 	assert.NotContains(t, page.body, `data-testid="asc-group-quarantine-row"`, "no policy allows quarantine")
 	assert.NotContains(t, page.body, `data-testid="asc-group-do-quarantine"`)
 
@@ -264,6 +266,7 @@ func TestAscChecksWriterRowsHaveActionsAndQuarantineOnlyWhenThePolicyAllowsIt(t 
 
 	reader := checksPage(t, "?open=4&act=quarantined", 2)
 	assert.NotContains(t, reader.body, `data-testid="asc-group-quarantine-row"`, "a reader has no actions")
+	assert.NotContains(t, reader.body, `data-testid="asc-checks-pinned"`)
 }
 
 func TestAscChecksEmptyStates(t *testing.T) {

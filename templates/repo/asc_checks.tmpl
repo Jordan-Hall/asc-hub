@@ -24,7 +24,7 @@ again (web_src/js/features/asc-list-loading.js).
 					<p class="rv-lead">{{ctx.Locale.Tr "asc_trust.checks.lead"}}</p>
 				</div>
 				{{if and .CanRerun (eq .View "failures") (not .Unsupported)}}
-				<form class="rv-acts" method="post" action="{{.ChecksURL}}/rerun_failed">
+				<form class="rv-acts rv-desk" method="post" action="{{.ChecksURL}}/rerun_failed">
 					{{$.CsrfTokenHtml}}
 					<button class="rv-btn rv-btn-secondary" type="submit" data-testid="asc-rerun-failed-repo">{{ctx.Locale.Tr "asc_trust.checks.rerun_failed_repo"}}</button>
 				</form>
@@ -294,6 +294,13 @@ again (web_src/js/features/asc-list-loading.js).
 				</section>
 				</div>
 				{{end}}
+			{{end}}
+			{{if and .CanRerun (eq .View "failures") (not .Unsupported)}}
+			{{/* on a phone Re-run failed stays pinned above the tab bar (board Mobile-Checks) */}}
+			<form class="rv-sticky rv-mob" method="post" action="{{.ChecksURL}}/rerun_failed" data-testid="asc-checks-pinned">
+				{{$.CsrfTokenHtml}}
+				<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-rerun-failed-pinned">{{ctx.Locale.Tr "asc_trust.checks.rerun_failed_repo"}}</button>
+			</form>
 			{{end}}
 		</div>
 		{{end}}

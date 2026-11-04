@@ -408,6 +408,35 @@
   padding: 6px;
 }
 
+/* on a phone each failure group is a card of its own with 44px buttons (board Mobile-Checks) */
+@media (max-width: 639.98px) {
+  .rv-card:has(> .rv-groups) {
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .rv-card:has(> .rv-groups) > .rv-card-h {
+    padding-inline: 0;
+  }
+
+  .rv-groups {
+    display: grid;
+    gap: 12px;
+  }
+
+  .rv-group,
+  .rv-group:last-child {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .rv-group-act .rv-btn {
+    min-height: 44px;
+  }
+}
+
 @media (min-width: 900px) {
   .rv-group-menu {
     min-width: 240px;
