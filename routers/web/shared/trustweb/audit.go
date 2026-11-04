@@ -6,6 +6,7 @@ package trustweb
 import (
 	"context"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -189,8 +190,17 @@ func ServeAudit(ctx *app_context.Context, lvl *AuditLevel) {
 
 // ServeAuditVerify serves POST <base>/verify: asc verifies the hash chain of the scope and the page shows the
 // result. It changes nothing.
+//
+// The page script verifies a long log in slices to show its progress: it posts step=1 with from and to for each
+// slice and reads the JSON answer, then posts the last slice (to 0, which also checks the head), or the slice
+// that failed, as a plain form with done, the events the slices before it checked.
 func ServeAuditVerify(ctx *app_context.Context, lvl *AuditLevel) {
 	NoStore(ctx)
+	from, to, done := formSeq(ctx, "from"), formSeq(ctx, "to"), formSeq(ctx, "done")
+	if ctx.FormString("step") == "1" {
+		serveAuditVerifyStep(ctx, lvl, from, to)
+		return
+	}
 	ctx.Data["Title"] = ctx.Locale.TrString("asc_trust.audit.title")
 	q := asctrust.AuditQuery{Limit: asctrust.AuditPageSizeDefault}
 	v := lvl.view(q)
@@ -214,7 +224,7 @@ func ServeAuditVerify(ctx *app_context.Context, lvl *AuditLevel) {
 		return
 	}
 	defer release()
-	chain, err := asctrust.VerifyAuditChain(callCtx, conn, lvl.Scope)
+	chain, err := asctrust.VerifyAuditChain(callCtx, conn, lvl.Scope, from, to)
 	if err != nil {
 		f := FailureOf("audit verify", err)
 		if f.Status == http.StatusNotFound {
@@ -224,6 +234,9 @@ func ServeAuditVerify(ctx *app_context.Context, lvl *AuditLevel) {
 		v.Error = f.Localized(ctx)
 		ctx.HTML(f.Status, lvl.Tpl)
 		return
+	}
+	if done <= math.MaxUint64-chain.Checked {
+		chain.Checked += done
 	}
 	v.Chain = chain
 	// The page below the result is the first page of the log.
@@ -236,6 +249,56 @@ func ServeAuditVerify(ctx *app_context.Context, lvl *AuditLevel) {
 		}
 	}
 	ctx.HTML(http.StatusOK, lvl.Tpl)
+}
+
+// AuditEventsHeader carries the number of events of an export.
+const AuditEventsHeader = "X-Asc-Audit-Events"
+
+// formSeq reads an event number of the form; a missing or bad one is 0.
+func formSeq(ctx *app_context.Context, key string) uint64 {
+	n, err := strconv.ParseUint(ctx.FormString(key), 10, 64)
+	if err != nil {
+		return 0
+	}
+	return n
+}
+
+// AuditStep is the JSON answer of one slice of a verification.
+type AuditStep struct {
+	OK       bool   `json:"ok"`
+	Checked  uint64 `json:"checked"`
+	FirstBad uint64 `json:"firstBad"`
+	FirstSeq uint64 `json:"firstSeq"`
+	HeadSeq  uint64 `json:"headSeq"`
+	Error    string `json:"error,omitempty"`
+}
+
+// serveAuditVerifyStep verifies one slice for the page script and answers JSON.
+func serveAuditVerifyStep(ctx *app_context.Context, lvl *AuditLevel, from, to uint64) {
+	fail := func(status int, msg string) { ctx.JSON(status, AuditStep{Error: msg}) }
+	if !asctrust.HasFeature(ctx, asctrust.FeatureAudit) {
+		fail(http.StatusNotFound, ctx.Locale.TrString("asc_trust.audit.unsupported"))
+		return
+	}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		fail(http.StatusBadGateway, ctx.Locale.TrString("asc_trust.err.unavailable"))
+		return
+	}
+	callCtx, release, err := lvl.userCall(ctx)
+	if err != nil {
+		f := FailureOf("audit credential", err)
+		fail(f.Status, f.Localized(ctx))
+		return
+	}
+	defer release()
+	chain, err := asctrust.VerifyAuditChain(callCtx, conn, lvl.Scope, from, to)
+	if err != nil {
+		f := FailureOf("audit verify", err)
+		fail(f.Status, f.Localized(ctx))
+		return
+	}
+	ctx.JSON(http.StatusOK, AuditStep{OK: chain.OK, Checked: chain.Checked, FirstBad: chain.FirstBad, FirstSeq: chain.FirstSeq, HeadSeq: chain.HeadSeq})
 }
 
 // ServeAuditExport serves GET <base>/export?format=jsonl|csv with the filters of the page. The export is
@@ -309,6 +372,8 @@ func ServeAuditExport(ctx *app_context.Context, lvl *AuditLevel) {
 		ctx.Error(http.StatusInternalServerError, ctx.Locale.TrString("asc_trust.audit.err_export"))
 		return
 	}
+	// The page script names the event count on its export-ready card; a signed archive cannot be counted there.
+	ctx.Resp.Header().Set(AuditEventsHeader, strconv.FormatUint(res.Events, 10))
 	if !res.Signed() {
 		serveExport(ctx, tmp, name, ctype, "utf-8")
 		return
