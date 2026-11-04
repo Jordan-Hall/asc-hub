@@ -227,6 +227,7 @@ func prepareHomeCards(ctx *context.Context) {
 		return
 	}
 	repo := ctx.Repo.Repository
+	prepareHomeCloneCard(ctx, repo)
 
 	if repo.CanEnablePulls() && ctx.Repo.CanRead(unit.TypePullRequests) {
 		prepareHomeStacks(ctx, repo)

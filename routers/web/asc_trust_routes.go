@@ -155,6 +155,7 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 //	POST .../asc/deps/scan                    scan trunk (administrators)
 //	POST .../asc/deps/propose                 preview or create update proposals (administrators)
 //	POST .../asc/deps/findings/{id}/dismiss   dismiss or reopen a finding (administrators)
+//	POST .../asc/clone-card/hide              hide the "Work on it locally" card of the home (signed-in readers)
 func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
 	m.Group("/asc/deps", func() {
 		m.Get("", repo.AscDeps)
@@ -172,6 +173,7 @@ func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
 		m.Get("/export", repo.AscOpsExport)
 		m.Combo("/undo").Get(repo.AscOpsUndoPreview).Post(context.RepoMustNotBeArchived(), repo.AscOpsUndo)
 	}, reqSignIn)
+	m.Post("/asc/clone-card/hide", reqSignIn, repo.AscCloneCardHide)
 	m.Group("/asc/checks", func() {
 		m.Get("", repo.AscChecks)
 		m.Get("/groups/{id}", repo.AscCheckGroup)

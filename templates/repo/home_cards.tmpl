@@ -1,5 +1,31 @@
 {{/* The two lists of the repository home: what is in flight and what landed (board Repo). */}}
 {{$isAsc := eq .Repository.GetStorageBackend "asc"}}
+{{if .HomeCloneCard}}
+{{$cmd := printf "asc clone %s\ncd %s\nasc create %s -a -m \"%s\"\nasc submit" .CloneButtonOriginLink.HTTPS .Repository.Name (ctx.Locale.TrString "asc_rp.clonecard_branch") (ctx.Locale.TrString "asc_rp.clonecard_message")}}
+<section class="rp-sec rp-clonecard" aria-labelledby="rp-clonecard-title" data-testid="clone-card">
+	<div class="rp-sec-h">
+		<div>
+			<h2 class="rp-sec-title" id="rp-clonecard-title">{{ctx.Locale.Tr "asc_rp.clonecard_title"}}</h2>
+			<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.clonecard_sub"}}</p>
+		</div>
+		<form method="post" action="{{.RepoLink}}/asc/clone-card/hide">
+			{{.CsrfTokenHtml}}
+			<button type="submit" class="ds-btn ds-btn-ghost ds-btn-sm" data-testid="clone-card-hide">{{ctx.Locale.Tr "asc_rp.clonecard_hide"}}</button>
+		</form>
+	</div>
+	<div class="rp-sec-b">
+		<div class="ds-term">
+			<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_rp.terminal"}}</span><button type="button" class="ds-copy" data-clipboard-text="{{$cmd}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+			<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_rp.terminal"}}"><span class="ds-pr">$</span> asc clone {{.CloneButtonOriginLink.HTTPS}}
+<span class="ds-pr">$</span> cd {{.Repository.Name}}
+<span class="ds-c-2"># {{ctx.Locale.Tr "asc_rp.clonecard_edit"}}</span>
+<span class="ds-pr">$</span> asc create {{ctx.Locale.Tr "asc_rp.clonecard_branch"}} -a -m "{{ctx.Locale.Tr "asc_rp.clonecard_message"}}"
+<span class="ds-pr">$</span> asc submit</div>
+		</div>
+		{{if AscDownloadAvailable}}<p class="rp-clonecard-act"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_rp.install_asc"}}</a></p>{{end}}
+	</div>
+</section>
+{{end}}
 {{if and .Repository.CanEnablePulls (.Permission.CanRead $.UnitTypePullRequests)}}
 <section class="rp-sec" aria-labelledby="rp-flight-title" data-stack-scope>
 	<div class="rp-sec-h">
