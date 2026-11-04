@@ -528,9 +528,30 @@
   cursor: pointer;
 }
 
-.rv-undo-toast button:focus-visible {
+.rv-undo-toast button:focus-visible,
+.rv-undo-toast > a:focus-visible {
   outline: 2px solid #6fd3e6;
   outline-offset: 2px;
+}
+
+/* The toast of a change the page has just made sits above the list, not over it; its action is a link. */
+.rv-undo-toast.is-inline {
+  position: static;
+  max-width: none;
+  margin-inline: 0;
+}
+
+.rv-undo-toast > .rv-ic {
+  flex: none;
+  margin-block-start: 2px;
+}
+
+.rv-undo-toast > a {
+  margin-inline-start: auto;
+  padding: 2px 6px;
+  color: #6fd3e6;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* On a phone the rules table shows the first three; Show all lists every rule. */
