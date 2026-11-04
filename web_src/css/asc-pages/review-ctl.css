@@ -560,6 +560,14 @@
   gap: 8px;
 }
 
+.ar-reconnect {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 16px;
+}
+
 .ar-stopped {
   background: var(--inv-bg);
   color: var(--inv-text);
