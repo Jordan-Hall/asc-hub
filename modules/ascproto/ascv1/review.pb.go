@@ -4447,6 +4447,164 @@ func (x *DraftContextResponse) GetTruncated() bool {
 	return false
 }
 
+// A draft of the brief written from the patch by a model, with the key the repository's setting of review summaries chooses
+// (else the first usable key of the repository, its owner or the caller) and under every cap of that setting. The patch holds
+// only paths the caller may read; a path the caller may not read is not named to the model or in the draft. The draft is
+// never stored: the person edits it and saves it with SetBrief. With `change` set the newest version of that change is
+// summarised and `base` and `head` are ignored; otherwise `base..head` as for DraftContext.
+// FAILED_PRECONDITION: no usable key. RESOURCE_EXHAUSTED: a cap is reached. UNAVAILABLE: the provider failed.
+type SummarizeChangeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Base          string                 `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty"`
+	Head          string                 `protobuf:"bytes,3,opt,name=head,proto3" json:"head,omitempty"`
+	Change        []byte                 `protobuf:"bytes,4,opt,name=change,proto3" json:"change,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SummarizeChangeRequest) Reset() {
+	*x = SummarizeChangeRequest{}
+	mi := &file_asc_v1_review_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SummarizeChangeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SummarizeChangeRequest) ProtoMessage() {}
+
+func (x *SummarizeChangeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SummarizeChangeRequest.ProtoReflect.Descriptor instead.
+func (*SummarizeChangeRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *SummarizeChangeRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *SummarizeChangeRequest) GetBase() string {
+	if x != nil {
+		return x.Base
+	}
+	return ""
+}
+
+func (x *SummarizeChangeRequest) GetHead() string {
+	if x != nil {
+		return x.Head
+	}
+	return ""
+}
+
+func (x *SummarizeChangeRequest) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+type SummarizeChangeResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Brief            *ReviewBrief           `protobuf:"bytes,1,opt,name=brief,proto3" json:"brief,omitempty"` // what, why, how, risk_note and at most 5 pointers into changed files; updated_by and updated are empty
+	Model            string                 `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
+	KeyId            string                 `protobuf:"bytes,3,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	CostMicroUsd     uint64                 `protobuf:"varint,4,opt,name=cost_micro_usd,json=costMicroUsd,proto3" json:"cost_micro_usd,omitempty"`             // 0 when the model has no price
+	Truncated        bool                   `protobuf:"varint,5,opt,name=truncated,proto3" json:"truncated,omitempty"`                                         // the patch was cut to fit; the draft covers the part sent
+	NothingToCompare bool                   `protobuf:"varint,6,opt,name=nothing_to_compare,json=nothingToCompare,proto3" json:"nothing_to_compare,omitempty"` // no change to summarise; brief is empty and nothing was spent
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SummarizeChangeResponse) Reset() {
+	*x = SummarizeChangeResponse{}
+	mi := &file_asc_v1_review_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SummarizeChangeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SummarizeChangeResponse) ProtoMessage() {}
+
+func (x *SummarizeChangeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_review_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SummarizeChangeResponse.ProtoReflect.Descriptor instead.
+func (*SummarizeChangeResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *SummarizeChangeResponse) GetBrief() *ReviewBrief {
+	if x != nil {
+		return x.Brief
+	}
+	return nil
+}
+
+func (x *SummarizeChangeResponse) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *SummarizeChangeResponse) GetKeyId() string {
+	if x != nil {
+		return x.KeyId
+	}
+	return ""
+}
+
+func (x *SummarizeChangeResponse) GetCostMicroUsd() uint64 {
+	if x != nil {
+		return x.CostMicroUsd
+	}
+	return 0
+}
+
+func (x *SummarizeChangeResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
+func (x *SummarizeChangeResponse) GetNothingToCompare() bool {
+	if x != nil {
+		return x.NothingToCompare
+	}
+	return false
+}
+
 type HunkContextResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Language      string                 `protobuf:"bytes,1,opt,name=language,proto3" json:"language,omitempty"`
@@ -4457,7 +4615,7 @@ type HunkContextResponse struct {
 
 func (x *HunkContextResponse) Reset() {
 	*x = HunkContextResponse{}
-	mi := &file_asc_v1_review_proto_msgTypes[58]
+	mi := &file_asc_v1_review_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4469,7 +4627,7 @@ func (x *HunkContextResponse) String() string {
 func (*HunkContextResponse) ProtoMessage() {}
 
 func (x *HunkContextResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_review_proto_msgTypes[58]
+	mi := &file_asc_v1_review_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4482,7 +4640,7 @@ func (x *HunkContextResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HunkContextResponse.ProtoReflect.Descriptor instead.
 func (*HunkContextResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_review_proto_rawDescGZIP(), []int{58}
+	return file_asc_v1_review_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *HunkContextResponse) GetLanguage() string {
@@ -4858,7 +5016,19 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"changesets\x12&\n" +
 	"\x04risk\x18\x06 \x01(\v2\x12.asc.v1.ChangeRiskR\x04risk\x12,\n" +
 	"\x12nothing_to_compare\x18\a \x01(\bR\x10nothingToCompare\x12\x1c\n" +
-	"\ttruncated\x18\b \x01(\bR\ttruncated\"`\n" +
+	"\ttruncated\x18\b \x01(\bR\ttruncated\"\x83\x01\n" +
+	"\x16SummarizeChangeRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x04base\x18\x02 \x01(\tR\x04base\x12\x12\n" +
+	"\x04head\x18\x03 \x01(\tR\x04head\x12\x1c\n" +
+	"\x06change\x18\x04 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\"\xe3\x01\n" +
+	"\x17SummarizeChangeResponse\x12)\n" +
+	"\x05brief\x18\x01 \x01(\v2\x13.asc.v1.ReviewBriefR\x05brief\x12\x14\n" +
+	"\x05model\x18\x02 \x01(\tR\x05model\x12\x15\n" +
+	"\x06key_id\x18\x03 \x01(\tR\x05keyId\x12$\n" +
+	"\x0ecost_micro_usd\x18\x04 \x01(\x04R\fcostMicroUsd\x12\x1c\n" +
+	"\ttruncated\x18\x05 \x01(\bR\ttruncated\x12,\n" +
+	"\x12nothing_to_compare\x18\x06 \x01(\bR\x10nothingToCompare\"`\n" +
 	"\x13HunkContextResponse\x12\x1a\n" +
 	"\blanguage\x18\x01 \x01(\tR\blanguage\x12-\n" +
 	"\x05lines\x18\x02 \x03(\v2\x17.asc.v1.HunkContextLineR\x05lines*a\n" +
@@ -4884,7 +5054,7 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\x1aCONFLICT_CHECK_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14CONFLICT_CHECK_CLEAN\x10\x01\x12\x1c\n" +
 	"\x18CONFLICT_CHECK_CONFLICTS\x10\x02\x12 \n" +
-	"\x1cCONFLICT_CHECK_NEEDS_RESTACK\x10\x032\xea\v\n" +
+	"\x1cCONFLICT_CHECK_NEEDS_RESTACK\x10\x032\xbe\f\n" +
 	"\x06Review\x12F\n" +
 	"\vListThreads\x12\x1a.asc.v1.ListThreadsRequest\x1a\x1b.asc.v1.ListThreadsResponse\x12C\n" +
 	"\n" +
@@ -4905,7 +5075,8 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\rListOverrides\x12\x1c.asc.v1.ListOverridesRequest\x1a\x1d.asc.v1.ListOverridesResponse\x12F\n" +
 	"\vHunkContext\x12\x1a.asc.v1.HunkContextRequest\x1a\x1b.asc.v1.HunkContextResponse\x12U\n" +
 	"\fGetConflicts\x12!.asc.v1.GetChangeConflictsRequest\x1a\".asc.v1.GetChangeConflictsResponse\x12I\n" +
-	"\fDraftContext\x12\x1b.asc.v1.DraftContextRequest\x1a\x1c.asc.v1.DraftContextResponseBv\n" +
+	"\fDraftContext\x12\x1b.asc.v1.DraftContextRequest\x1a\x1c.asc.v1.DraftContextResponse\x12R\n" +
+	"\x0fSummarizeChange\x12\x1e.asc.v1.SummarizeChangeRequest\x1a\x1f.asc.v1.SummarizeChangeResponseBv\n" +
 	"\n" +
 	"com.asc.v1B\vReviewProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -4922,7 +5093,7 @@ func file_asc_v1_review_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_review_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_asc_v1_review_proto_msgTypes = make([]protoimpl.MessageInfo, 59)
+var file_asc_v1_review_proto_msgTypes = make([]protoimpl.MessageInfo, 61)
 var file_asc_v1_review_proto_goTypes = []any{
 	(ThreadStatus)(0),                     // 0: asc.v1.ThreadStatus
 	(DiffSide)(0),                         // 1: asc.v1.DiffSide
@@ -4987,114 +5158,120 @@ var file_asc_v1_review_proto_goTypes = []any{
 	(*GetChangeConflictsResponse)(nil),    // 60: asc.v1.GetChangeConflictsResponse
 	(*DraftContextRequest)(nil),           // 61: asc.v1.DraftContextRequest
 	(*DraftContextResponse)(nil),          // 62: asc.v1.DraftContextResponse
-	(*HunkContextResponse)(nil),           // 63: asc.v1.HunkContextResponse
-	(*RepoRef)(nil),                       // 64: asc.v1.RepoRef
-	(ConflictKind)(0),                     // 65: asc.v1.ConflictKind
+	(*SummarizeChangeRequest)(nil),        // 63: asc.v1.SummarizeChangeRequest
+	(*SummarizeChangeResponse)(nil),       // 64: asc.v1.SummarizeChangeResponse
+	(*HunkContextResponse)(nil),           // 65: asc.v1.HunkContextResponse
+	(*RepoRef)(nil),                       // 66: asc.v1.RepoRef
+	(ConflictKind)(0),                     // 67: asc.v1.ConflictKind
 }
 var file_asc_v1_review_proto_depIdxs = []int32{
 	1,  // 0: asc.v1.ThreadAnchor.side:type_name -> asc.v1.DiffSide
 	5,  // 1: asc.v1.ReviewThread.anchor:type_name -> asc.v1.ThreadAnchor
 	0,  // 2: asc.v1.ReviewThread.status:type_name -> asc.v1.ThreadStatus
 	6,  // 3: asc.v1.ReviewThread.comments:type_name -> asc.v1.ReviewComment
-	64, // 4: asc.v1.ListThreadsRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 4: asc.v1.ListThreadsRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 5: asc.v1.ListThreadsRequest.status:type_name -> asc.v1.ThreadStatus
 	7,  // 6: asc.v1.ListThreadsResponse.threads:type_name -> asc.v1.ReviewThread
-	64, // 7: asc.v1.AddCommentRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 7: asc.v1.AddCommentRequest.repo:type_name -> asc.v1.RepoRef
 	5,  // 8: asc.v1.AddCommentRequest.anchor:type_name -> asc.v1.ThreadAnchor
 	7,  // 9: asc.v1.AddCommentResponse.thread:type_name -> asc.v1.ReviewThread
-	64, // 10: asc.v1.ResolveThreadRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 10: asc.v1.ResolveThreadRequest.repo:type_name -> asc.v1.RepoRef
 	7,  // 11: asc.v1.ResolveThreadResponse.thread:type_name -> asc.v1.ReviewThread
-	64, // 12: asc.v1.RequestReviewRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 12: asc.v1.RequestReviewRequest.repo:type_name -> asc.v1.RepoRef
 	15, // 13: asc.v1.RequestReviewResponse.requests:type_name -> asc.v1.ReviewRequestInfo
 	17, // 14: asc.v1.ReviewBrief.where_to_look:type_name -> asc.v1.WhereToLook
 	2,  // 15: asc.v1.ChangeRisk.level:type_name -> asc.v1.RiskLevel
 	3,  // 16: asc.v1.ApprovalInfo.state:type_name -> asc.v1.ApprovalState
-	64, // 17: asc.v1.GetBriefRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 17: asc.v1.GetBriefRequest.repo:type_name -> asc.v1.RepoRef
 	18, // 18: asc.v1.GetBriefResponse.brief:type_name -> asc.v1.ReviewBrief
 	19, // 19: asc.v1.GetBriefResponse.file_stats:type_name -> asc.v1.ChangeFileStat
 	20, // 20: asc.v1.GetBriefResponse.risk:type_name -> asc.v1.ChangeRisk
 	21, // 21: asc.v1.GetBriefResponse.provenance:type_name -> asc.v1.ChangeProvenance
 	22, // 22: asc.v1.GetBriefResponse.approvals:type_name -> asc.v1.ApprovalInfo
 	23, // 23: asc.v1.GetBriefResponse.gate:type_name -> asc.v1.ReviewGateData
-	64, // 24: asc.v1.SetBriefRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 24: asc.v1.SetBriefRequest.repo:type_name -> asc.v1.RepoRef
 	18, // 25: asc.v1.SetBriefRequest.brief:type_name -> asc.v1.ReviewBrief
 	18, // 26: asc.v1.SetBriefResponse.brief:type_name -> asc.v1.ReviewBrief
-	64, // 27: asc.v1.RecordApprovalRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 27: asc.v1.RecordApprovalRequest.repo:type_name -> asc.v1.RepoRef
 	3,  // 28: asc.v1.RecordApprovalRequest.state:type_name -> asc.v1.ApprovalState
 	22, // 29: asc.v1.RecordApprovalResponse.approvals:type_name -> asc.v1.ApprovalInfo
-	64, // 30: asc.v1.CompareVersionsRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 30: asc.v1.CompareVersionsRequest.repo:type_name -> asc.v1.RepoRef
 	31, // 31: asc.v1.CompareVersionsResponse.files:type_name -> asc.v1.VersionFile
 	22, // 32: asc.v1.CompareVersionsResponse.approvals:type_name -> asc.v1.ApprovalInfo
-	64, // 33: asc.v1.PrepareSuggestionRequest.repo:type_name -> asc.v1.RepoRef
-	64, // 34: asc.v1.MarkSuggestionAppliedRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 33: asc.v1.PrepareSuggestionRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 34: asc.v1.MarkSuggestionAppliedRequest.repo:type_name -> asc.v1.RepoRef
 	7,  // 35: asc.v1.MarkSuggestionAppliedResponse.thread:type_name -> asc.v1.ReviewThread
-	64, // 36: asc.v1.SuggestReviewersRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 36: asc.v1.SuggestReviewersRequest.repo:type_name -> asc.v1.RepoRef
 	38, // 37: asc.v1.SuggestReviewersResponse.reviewers:type_name -> asc.v1.SuggestedReviewer
-	64, // 38: asc.v1.RecordGateDecisionRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 38: asc.v1.RecordGateDecisionRequest.repo:type_name -> asc.v1.RepoRef
 	40, // 39: asc.v1.RecordGateDecisionRequest.rules:type_name -> asc.v1.GateRuleResult
-	64, // 40: asc.v1.GetGateStatsRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 40: asc.v1.GetGateStatsRequest.repo:type_name -> asc.v1.RepoRef
 	44, // 41: asc.v1.GetGateStatsResponse.per_day:type_name -> asc.v1.GateDay
 	45, // 42: asc.v1.GetGateStatsResponse.per_rule:type_name -> asc.v1.GateRuleCount
-	64, // 43: asc.v1.GrantOverrideRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 43: asc.v1.GrantOverrideRequest.repo:type_name -> asc.v1.RepoRef
 	47, // 44: asc.v1.GrantOverrideResponse.override:type_name -> asc.v1.GateOverride
-	64, // 45: asc.v1.RevokeOverrideRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 45: asc.v1.RevokeOverrideRequest.repo:type_name -> asc.v1.RepoRef
 	47, // 46: asc.v1.RevokeOverrideResponse.override:type_name -> asc.v1.GateOverride
-	64, // 47: asc.v1.ListOverridesRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 47: asc.v1.ListOverridesRequest.repo:type_name -> asc.v1.RepoRef
 	47, // 48: asc.v1.ListOverridesResponse.overrides:type_name -> asc.v1.GateOverride
-	64, // 49: asc.v1.HunkContextRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 49: asc.v1.HunkContextRequest.repo:type_name -> asc.v1.RepoRef
 	55, // 50: asc.v1.HunkContextLine.chain:type_name -> asc.v1.HunkContextEntry
-	64, // 51: asc.v1.GetChangeConflictsRequest.repo:type_name -> asc.v1.RepoRef
-	65, // 52: asc.v1.ConflictFile.kind:type_name -> asc.v1.ConflictKind
+	66, // 51: asc.v1.GetChangeConflictsRequest.repo:type_name -> asc.v1.RepoRef
+	67, // 52: asc.v1.ConflictFile.kind:type_name -> asc.v1.ConflictKind
 	58, // 53: asc.v1.ConflictFile.hunks:type_name -> asc.v1.ConflictHunk
 	4,  // 54: asc.v1.GetChangeConflictsResponse.state:type_name -> asc.v1.ConflictCheck
 	59, // 55: asc.v1.GetChangeConflictsResponse.files:type_name -> asc.v1.ConflictFile
-	64, // 56: asc.v1.DraftContextRequest.repo:type_name -> asc.v1.RepoRef
+	66, // 56: asc.v1.DraftContextRequest.repo:type_name -> asc.v1.RepoRef
 	19, // 57: asc.v1.DraftContextResponse.files:type_name -> asc.v1.ChangeFileStat
 	20, // 58: asc.v1.DraftContextResponse.risk:type_name -> asc.v1.ChangeRisk
-	56, // 59: asc.v1.HunkContextResponse.lines:type_name -> asc.v1.HunkContextLine
-	8,  // 60: asc.v1.Review.ListThreads:input_type -> asc.v1.ListThreadsRequest
-	10, // 61: asc.v1.Review.AddComment:input_type -> asc.v1.AddCommentRequest
-	12, // 62: asc.v1.Review.ResolveThread:input_type -> asc.v1.ResolveThreadRequest
-	14, // 63: asc.v1.Review.RequestReview:input_type -> asc.v1.RequestReviewRequest
-	24, // 64: asc.v1.Review.GetBrief:input_type -> asc.v1.GetBriefRequest
-	26, // 65: asc.v1.Review.SetBrief:input_type -> asc.v1.SetBriefRequest
-	28, // 66: asc.v1.Review.RecordApproval:input_type -> asc.v1.RecordApprovalRequest
-	30, // 67: asc.v1.Review.CompareVersions:input_type -> asc.v1.CompareVersionsRequest
-	33, // 68: asc.v1.Review.PrepareSuggestion:input_type -> asc.v1.PrepareSuggestionRequest
-	35, // 69: asc.v1.Review.MarkSuggestionApplied:input_type -> asc.v1.MarkSuggestionAppliedRequest
-	37, // 70: asc.v1.Review.SuggestReviewers:input_type -> asc.v1.SuggestReviewersRequest
-	41, // 71: asc.v1.Review.RecordGateDecision:input_type -> asc.v1.RecordGateDecisionRequest
-	43, // 72: asc.v1.Review.GetGateStats:input_type -> asc.v1.GetGateStatsRequest
-	48, // 73: asc.v1.Review.GrantOverride:input_type -> asc.v1.GrantOverrideRequest
-	50, // 74: asc.v1.Review.RevokeOverride:input_type -> asc.v1.RevokeOverrideRequest
-	52, // 75: asc.v1.Review.ListOverrides:input_type -> asc.v1.ListOverridesRequest
-	54, // 76: asc.v1.Review.HunkContext:input_type -> asc.v1.HunkContextRequest
-	57, // 77: asc.v1.Review.GetConflicts:input_type -> asc.v1.GetChangeConflictsRequest
-	61, // 78: asc.v1.Review.DraftContext:input_type -> asc.v1.DraftContextRequest
-	9,  // 79: asc.v1.Review.ListThreads:output_type -> asc.v1.ListThreadsResponse
-	11, // 80: asc.v1.Review.AddComment:output_type -> asc.v1.AddCommentResponse
-	13, // 81: asc.v1.Review.ResolveThread:output_type -> asc.v1.ResolveThreadResponse
-	16, // 82: asc.v1.Review.RequestReview:output_type -> asc.v1.RequestReviewResponse
-	25, // 83: asc.v1.Review.GetBrief:output_type -> asc.v1.GetBriefResponse
-	27, // 84: asc.v1.Review.SetBrief:output_type -> asc.v1.SetBriefResponse
-	29, // 85: asc.v1.Review.RecordApproval:output_type -> asc.v1.RecordApprovalResponse
-	32, // 86: asc.v1.Review.CompareVersions:output_type -> asc.v1.CompareVersionsResponse
-	34, // 87: asc.v1.Review.PrepareSuggestion:output_type -> asc.v1.PrepareSuggestionResponse
-	36, // 88: asc.v1.Review.MarkSuggestionApplied:output_type -> asc.v1.MarkSuggestionAppliedResponse
-	39, // 89: asc.v1.Review.SuggestReviewers:output_type -> asc.v1.SuggestReviewersResponse
-	42, // 90: asc.v1.Review.RecordGateDecision:output_type -> asc.v1.RecordGateDecisionResponse
-	46, // 91: asc.v1.Review.GetGateStats:output_type -> asc.v1.GetGateStatsResponse
-	49, // 92: asc.v1.Review.GrantOverride:output_type -> asc.v1.GrantOverrideResponse
-	51, // 93: asc.v1.Review.RevokeOverride:output_type -> asc.v1.RevokeOverrideResponse
-	53, // 94: asc.v1.Review.ListOverrides:output_type -> asc.v1.ListOverridesResponse
-	63, // 95: asc.v1.Review.HunkContext:output_type -> asc.v1.HunkContextResponse
-	60, // 96: asc.v1.Review.GetConflicts:output_type -> asc.v1.GetChangeConflictsResponse
-	62, // 97: asc.v1.Review.DraftContext:output_type -> asc.v1.DraftContextResponse
-	79, // [79:98] is the sub-list for method output_type
-	60, // [60:79] is the sub-list for method input_type
-	60, // [60:60] is the sub-list for extension type_name
-	60, // [60:60] is the sub-list for extension extendee
-	0,  // [0:60] is the sub-list for field type_name
+	66, // 59: asc.v1.SummarizeChangeRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 60: asc.v1.SummarizeChangeResponse.brief:type_name -> asc.v1.ReviewBrief
+	56, // 61: asc.v1.HunkContextResponse.lines:type_name -> asc.v1.HunkContextLine
+	8,  // 62: asc.v1.Review.ListThreads:input_type -> asc.v1.ListThreadsRequest
+	10, // 63: asc.v1.Review.AddComment:input_type -> asc.v1.AddCommentRequest
+	12, // 64: asc.v1.Review.ResolveThread:input_type -> asc.v1.ResolveThreadRequest
+	14, // 65: asc.v1.Review.RequestReview:input_type -> asc.v1.RequestReviewRequest
+	24, // 66: asc.v1.Review.GetBrief:input_type -> asc.v1.GetBriefRequest
+	26, // 67: asc.v1.Review.SetBrief:input_type -> asc.v1.SetBriefRequest
+	28, // 68: asc.v1.Review.RecordApproval:input_type -> asc.v1.RecordApprovalRequest
+	30, // 69: asc.v1.Review.CompareVersions:input_type -> asc.v1.CompareVersionsRequest
+	33, // 70: asc.v1.Review.PrepareSuggestion:input_type -> asc.v1.PrepareSuggestionRequest
+	35, // 71: asc.v1.Review.MarkSuggestionApplied:input_type -> asc.v1.MarkSuggestionAppliedRequest
+	37, // 72: asc.v1.Review.SuggestReviewers:input_type -> asc.v1.SuggestReviewersRequest
+	41, // 73: asc.v1.Review.RecordGateDecision:input_type -> asc.v1.RecordGateDecisionRequest
+	43, // 74: asc.v1.Review.GetGateStats:input_type -> asc.v1.GetGateStatsRequest
+	48, // 75: asc.v1.Review.GrantOverride:input_type -> asc.v1.GrantOverrideRequest
+	50, // 76: asc.v1.Review.RevokeOverride:input_type -> asc.v1.RevokeOverrideRequest
+	52, // 77: asc.v1.Review.ListOverrides:input_type -> asc.v1.ListOverridesRequest
+	54, // 78: asc.v1.Review.HunkContext:input_type -> asc.v1.HunkContextRequest
+	57, // 79: asc.v1.Review.GetConflicts:input_type -> asc.v1.GetChangeConflictsRequest
+	61, // 80: asc.v1.Review.DraftContext:input_type -> asc.v1.DraftContextRequest
+	63, // 81: asc.v1.Review.SummarizeChange:input_type -> asc.v1.SummarizeChangeRequest
+	9,  // 82: asc.v1.Review.ListThreads:output_type -> asc.v1.ListThreadsResponse
+	11, // 83: asc.v1.Review.AddComment:output_type -> asc.v1.AddCommentResponse
+	13, // 84: asc.v1.Review.ResolveThread:output_type -> asc.v1.ResolveThreadResponse
+	16, // 85: asc.v1.Review.RequestReview:output_type -> asc.v1.RequestReviewResponse
+	25, // 86: asc.v1.Review.GetBrief:output_type -> asc.v1.GetBriefResponse
+	27, // 87: asc.v1.Review.SetBrief:output_type -> asc.v1.SetBriefResponse
+	29, // 88: asc.v1.Review.RecordApproval:output_type -> asc.v1.RecordApprovalResponse
+	32, // 89: asc.v1.Review.CompareVersions:output_type -> asc.v1.CompareVersionsResponse
+	34, // 90: asc.v1.Review.PrepareSuggestion:output_type -> asc.v1.PrepareSuggestionResponse
+	36, // 91: asc.v1.Review.MarkSuggestionApplied:output_type -> asc.v1.MarkSuggestionAppliedResponse
+	39, // 92: asc.v1.Review.SuggestReviewers:output_type -> asc.v1.SuggestReviewersResponse
+	42, // 93: asc.v1.Review.RecordGateDecision:output_type -> asc.v1.RecordGateDecisionResponse
+	46, // 94: asc.v1.Review.GetGateStats:output_type -> asc.v1.GetGateStatsResponse
+	49, // 95: asc.v1.Review.GrantOverride:output_type -> asc.v1.GrantOverrideResponse
+	51, // 96: asc.v1.Review.RevokeOverride:output_type -> asc.v1.RevokeOverrideResponse
+	53, // 97: asc.v1.Review.ListOverrides:output_type -> asc.v1.ListOverridesResponse
+	65, // 98: asc.v1.Review.HunkContext:output_type -> asc.v1.HunkContextResponse
+	60, // 99: asc.v1.Review.GetConflicts:output_type -> asc.v1.GetChangeConflictsResponse
+	62, // 100: asc.v1.Review.DraftContext:output_type -> asc.v1.DraftContextResponse
+	64, // 101: asc.v1.Review.SummarizeChange:output_type -> asc.v1.SummarizeChangeResponse
+	82, // [82:102] is the sub-list for method output_type
+	62, // [62:82] is the sub-list for method input_type
+	62, // [62:62] is the sub-list for extension type_name
+	62, // [62:62] is the sub-list for extension extendee
+	0,  // [0:62] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_review_proto_init() }
@@ -5110,7 +5287,7 @@ func file_asc_v1_review_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_review_proto_rawDesc), len(file_asc_v1_review_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   59,
+			NumMessages:   61,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

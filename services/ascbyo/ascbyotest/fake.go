@@ -681,7 +681,7 @@ func (f *Fake) ReplaceKey(_ context.Context, r *ascv1.ReplaceAiKeyRequest) (*asc
 	return resp, nil
 }
 
-var fakeFeatures = []ascv1.AiFeature{ascv1.AiFeature_AI_FEATURE_AGENT_RUNS}
+var fakeFeatures = []ascv1.AiFeature{ascv1.AiFeature_AI_FEATURE_AGENT_RUNS, ascv1.AiFeature_AI_FEATURE_REVIEW_SUMMARIES}
 
 func ownerKey(o *ascv1.OwnerRef) string {
 	return o.GetKind().String() + "/" + strings.ToLower(o.GetName())

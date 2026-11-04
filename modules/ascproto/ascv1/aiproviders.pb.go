@@ -190,8 +190,9 @@ func (AiUsageGroup) EnumDescriptor() ([]byte, []int) {
 type AiFeature int32
 
 const (
-	AiFeature_AI_FEATURE_UNSPECIFIED AiFeature = 0
-	AiFeature_AI_FEATURE_AGENT_RUNS  AiFeature = 1 // the model turns of agent runs
+	AiFeature_AI_FEATURE_UNSPECIFIED      AiFeature = 0
+	AiFeature_AI_FEATURE_AGENT_RUNS       AiFeature = 1 // the model turns of agent runs
+	AiFeature_AI_FEATURE_REVIEW_SUMMARIES AiFeature = 2 // the draft of a review brief (Review.SummarizeChange)
 )
 
 // Enum value maps for AiFeature.
@@ -199,10 +200,12 @@ var (
 	AiFeature_name = map[int32]string{
 		0: "AI_FEATURE_UNSPECIFIED",
 		1: "AI_FEATURE_AGENT_RUNS",
+		2: "AI_FEATURE_REVIEW_SUMMARIES",
 	}
 	AiFeature_value = map[string]int32{
-		"AI_FEATURE_UNSPECIFIED": 0,
-		"AI_FEATURE_AGENT_RUNS":  1,
+		"AI_FEATURE_UNSPECIFIED":      0,
+		"AI_FEATURE_AGENT_RUNS":       1,
+		"AI_FEATURE_REVIEW_SUMMARIES": 2,
 	}
 )
 
@@ -2036,10 +2039,11 @@ const file_asc_v1_aiproviders_proto_rawDesc = "" +
 	"\x12AI_USAGE_GROUP_DAY\x10\x00\x12\x18\n" +
 	"\x14AI_USAGE_GROUP_MODEL\x10\x01\x12\x17\n" +
 	"\x13AI_USAGE_GROUP_REPO\x10\x02\x12\x18\n" +
-	"\x14AI_USAGE_GROUP_AGENT\x10\x03*B\n" +
+	"\x14AI_USAGE_GROUP_AGENT\x10\x03*c\n" +
 	"\tAiFeature\x12\x1a\n" +
 	"\x16AI_FEATURE_UNSPECIFIED\x10\x00\x12\x19\n" +
-	"\x15AI_FEATURE_AGENT_RUNS\x10\x012\x83\x06\n" +
+	"\x15AI_FEATURE_AGENT_RUNS\x10\x01\x12\x1f\n" +
+	"\x1bAI_FEATURE_REVIEW_SUMMARIES\x10\x022\x83\x06\n" +
 	"\vAiProviders\x12D\n" +
 	"\tCreateKey\x12\x1a.asc.v1.CreateAiKeyRequest\x1a\x1b.asc.v1.CreateAiKeyResponse\x12A\n" +
 	"\bListKeys\x12\x19.asc.v1.ListAiKeysRequest\x1a\x1a.asc.v1.ListAiKeysResponse\x12;\n" +
