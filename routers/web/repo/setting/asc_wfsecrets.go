@@ -56,14 +56,14 @@ func AscWorkflowSecrets(ctx *context.Context) {
 	status := http.StatusOK
 	conn, err := asctrust.Conn()
 	if err != nil {
-		p.Problem = "The ASC server is not reachable right now."
+		p.Problem = ctx.Locale.TrString("asc_shell.acct_unreachable")
 		ctx.HTML(http.StatusBadGateway, tplAscWorkflowSecrets)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoAdmin, repo)
 	if err != nil {
 		f := trustweb.FailureOf("workflow secrets credential", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscWorkflowSecrets)
 		return
 	}
@@ -76,7 +76,7 @@ func AscWorkflowSecrets(ctx *context.Context) {
 			return
 		}
 		f := trustweb.FailureOf("workflow secrets", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscWorkflowSecrets)
 		return
 	}
@@ -99,20 +99,20 @@ func AscWorkflowSecretSet(ctx *context.Context) {
 	back := ascWorkflowSecretsLink(repo)
 	conn, err := asctrust.Conn()
 	if err != nil {
-		ctx.Flash.Error("The ASC server is not reachable right now.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_shell.acct_unreachable"))
 		ctx.Redirect(back)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoAdmin, repo)
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("workflow secrets credential", err).Message)
+		ctx.Flash.Error(trustweb.FailureOf("workflow secrets credential", err).Localized(ctx))
 		ctx.Redirect(back)
 		return
 	}
 	defer release()
 	row, err := asctrust.SetWorkflowSecret(callCtx, conn, name, ctx.Req.PostFormValue("name"), ctx.Req.PostFormValue("value"), ctx.Req.PostFormValue("op"))
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("workflow secret set", err).Message)
+		ctx.Flash.Error(trustweb.FailureOf("workflow secret set", err).Localized(ctx))
 		ctx.Redirect(back)
 		return
 	}
@@ -132,20 +132,20 @@ func AscWorkflowSecretDelete(ctx *context.Context) {
 	back := ascWorkflowSecretsLink(repo)
 	conn, err := asctrust.Conn()
 	if err != nil {
-		ctx.Flash.Error("The ASC server is not reachable right now.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_shell.acct_unreachable"))
 		ctx.Redirect(back)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoAdmin, repo)
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("workflow secrets credential", err).Message)
+		ctx.Flash.Error(trustweb.FailureOf("workflow secrets credential", err).Localized(ctx))
 		ctx.Redirect(back)
 		return
 	}
 	defer release()
 	secret := ctx.Req.PostFormValue("name")
 	if err := asctrust.DeleteWorkflowSecret(callCtx, conn, name, secret, ctx.Req.PostFormValue("op")); err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("workflow secret delete", err).Message)
+		ctx.Flash.Error(trustweb.FailureOf("workflow secret delete", err).Localized(ctx))
 		ctx.Redirect(back)
 		return
 	}

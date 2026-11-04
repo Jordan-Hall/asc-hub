@@ -164,7 +164,7 @@ func TestAscPathRulesPage(t *testing.T) {
 		ctx, rec := secretsReq(t, "POST", 2, perm.AccessModeAdmin, url.Values{"dir": {"ok", "../up"}, "subject": {"*", "*"}, "level": {"read", "read"}, "revision": {"2"}, "op": {uuid.NewString()}})
 		AscPathRulesSave(ctx)
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Contains(t, rec.Body.String(), "row 2")
+		assert.Contains(t, rec.Body.String(), "asc_trust.err.bad_input_detail")
 		assert.Contains(t, rec.Body.String(), `value="../up"`)
 		for _, form := range []url.Values{
 			{"dir": {"a"}, "subject": {"*", "*"}, "level": {"read"}, "revision": {"2"}, "op": {uuid.NewString()}},

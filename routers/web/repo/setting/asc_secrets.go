@@ -114,14 +114,14 @@ func ascSecurityRender(ctx *context.Context, repo *repo_model.Repository, name s
 	conn, err := asctrust.Conn()
 	if err != nil {
 		log.Error("asc security: no connection to asc serve: %v", err)
-		p.Problem = "The ASC server is not reachable right now."
+		p.Problem = ctx.Locale.TrString("asc_shell.acct_unreachable")
 		ctx.HTML(http.StatusBadGateway, tplAscSecurity)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, repo)
 	if err != nil {
 		f := trustweb.FailureOf("security credential", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscSecurity)
 		return
 	}
@@ -134,7 +134,7 @@ func ascSecurityRender(ctx *context.Context, repo *repo_model.Repository, name s
 			ctx.NotFound("asc security", nil)
 			return
 		}
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscSecurity)
 		return
 	}
@@ -205,10 +205,10 @@ func AscSecurityFinding(ctx *context.Context) {
 	id, err := strconv.ParseUint(ctx.Req.PostFormValue("id"), 10, 64)
 	if err != nil || id == 0 {
 		if ascWantsJSON(ctx) {
-			ctx.JSON(http.StatusUnprocessableEntity, map[string]any{"ok": false, "message": "That finding does not exist."})
+			ctx.JSON(http.StatusUnprocessableEntity, map[string]any{"ok": false, "message": ctx.Locale.TrString("asc_rp.sec_no_finding")})
 			return
 		}
-		p.Problem = "That finding does not exist."
+		p.Problem = ctx.Locale.TrString("asc_rp.sec_no_finding")
 		ascSecurityRender(ctx, repo, name, p, "", "")
 		return
 	}
@@ -230,7 +230,7 @@ func AscSecurityFinding(ctx *context.Context) {
 	if problem != "" {
 		ctx.Flash.Error(problem)
 	} else {
-		ctx.Flash.Success("The finding was updated.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_rp.sec_finding_updated"))
 	}
 	ctx.Redirect(back)
 }
@@ -238,15 +238,15 @@ func AscSecurityFinding(ctx *context.Context) {
 func ascSecurityUpdate(ctx *context.Context, repo *repo_model.Repository, name string, id uint64) string {
 	conn, err := asctrust.Conn()
 	if err != nil {
-		return "The ASC server is not reachable right now."
+		return ctx.Locale.TrString("asc_shell.acct_unreachable")
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoWrite, repo)
 	if err != nil {
-		return trustweb.FailureOf("security credential", err).Message
+		return trustweb.FailureOf("security credential", err).Localized(ctx)
 	}
 	defer release()
 	if _, err := asctrust.UpdateFinding(callCtx, conn, name, id, ctx.Req.PostFormValue("state"), trustweb.Lines(ctx.Req.PostFormValue("note")), ctx.Req.PostFormValue("op")); err != nil {
-		return trustweb.FailureOf("security update", err).Message
+		return trustweb.FailureOf("security update", err).Localized(ctx)
 	}
 	return ""
 }
@@ -287,24 +287,24 @@ func ascWantsJSON(ctx *context.Context) bool {
 func ascSecurityScanRun(ctx *context.Context, repo *repo_model.Repository, name string) (msg, problem string) {
 	conn, err := asctrust.Conn()
 	if err != nil {
-		return "", "The ASC server is not reachable right now."
+		return "", ctx.Locale.TrString("asc_shell.acct_unreachable")
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoWrite, repo)
 	if err != nil {
-		return "", trustweb.FailureOf("security credential", err).Message
+		return "", trustweb.FailureOf("security credential", err).Localized(ctx)
 	}
 	defer release()
 	// The revision is always the default branch of the repository, never a value of the request.
 	if repo.DefaultBranch == "" {
-		return "", "This repository has no branch to scan yet."
+		return "", ctx.Locale.TrString("asc_rp.sec_no_branch")
 	}
 	sum, err := asctrust.ScanRev(callCtx, conn, name, "refs/heads/"+repo.DefaultBranch)
 	if err != nil {
-		return "", trustweb.FailureOf("security scan", err).Message
+		return "", trustweb.FailureOf("security scan", err).Localized(ctx)
 	}
-	msg = "Scanned " + strconv.FormatUint(uint64(sum.FilesScanned), 10) + " files: " + strconv.Itoa(sum.Findings) + " findings."
+	msg = ctx.Locale.TrString("asc_rp.sec_scanned", sum.FilesScanned, sum.Findings)
 	if sum.Truncated {
-		msg += " The scan reached its limit, so some files were not read."
+		msg += " " + ctx.Locale.TrString("asc_rp.sec_scan_cut")
 	}
 	return msg, ""
 }
@@ -323,13 +323,13 @@ func AscSecurityAllowlist(ctx *context.Context) {
 	p := ascSecurityPageFor(ctx, repo)
 	globs, err := asctrust.ParseGlobLines(trustweb.Lines(ctx.Req.PostFormValue("paths")))
 	if err != nil {
-		p.Problem = trustweb.FailureOf("allowlist", err).Message
+		p.Problem = trustweb.FailureOf("allowlist", err).Localized(ctx)
 		ascSecurityRender(ctx, repo, name, p, "", "")
 		return
 	}
 	text, baseHex, problem := ascCurrentPolicy(ctx, repo, name)
 	if problem == "" && text == "" {
-		problem = "This repository has no policy file yet. Add one on the policy page first."
+		problem = ctx.Locale.TrString("asc_rp.sec_no_policy")
 	}
 	if problem != "" {
 		p.Problem = problem
@@ -343,7 +343,7 @@ func AscSecurityAllowlist(ctx *context.Context) {
 	case redirect != "":
 		ctx.Redirect(redirect)
 	case proposed != nil:
-		ctx.Flash.Success("The change " + proposed.Change + " was made and is under review. It will get its pull request as soon as the git view of the repository has it.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_rp.p_proposed_pr", proposed.Change))
 		ctx.Redirect(p.SecurityURL)
 	default:
 		p.Problem = problem
