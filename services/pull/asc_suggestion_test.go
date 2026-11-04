@@ -14,6 +14,7 @@ import (
 
 	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 
@@ -261,9 +262,44 @@ func TestAscSuggestionsListsOpenSuggestionsAndMarksOldOnes(t *testing.T) {
 	require.Len(t, got, 2, "the applied one, the plain comment and the thread with no lines are left out")
 	assert.Equal(t, AscSuggestion{ThreadID: 1, CommentID: 10, Path: "src/a.rs", StartLine: 4, EndLine: 6, Author: "priya", Body: "tidy", Suggestion: "fn a() {}\n", Version: 3}, got[0])
 	assert.True(t, got[1].Stale, "a thread on an older version cannot be applied")
-	assert.EqualValues(t, 77, got[1].HubComment, "it was made in comment 77 of the hub")
+	assert.Zero(t, got[1].HubComment, "comment 77 of the hub is not a comment of this pull request")
 	assert.Equal(t, "4-6", got[0].Lines())
 	assert.Equal(t, "fn a() {}", got[0].Preview())
+}
+
+func TestAscSuggestionIsShownInTheHubCommentOnlyWhenTheCommentSaysTheSame(t *testing.T) {
+	w := setupAscSuggestion(t)
+	require.NoError(t, w.pr.LoadIssue(t.Context()))
+	require.NoError(t, w.pr.Issue.LoadRepo(t.Context()))
+	doer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	code := func(path string, line int64, content string) int64 {
+		c, err := issues_model.CreateComment(t.Context(), &issues_model.CreateCommentOptions{
+			Type: issues_model.CommentTypeCode, Doer: doer, Repo: w.pr.Issue.Repo, Issue: w.pr.Issue,
+			TreePath: path, LineNum: line, Content: content,
+		})
+		require.NoError(t, err)
+		return c.ID
+	}
+	same := code("src/a.rs", 4, "tidy\n```suggestion\nfn a() {}\n```")
+	other := code("src/a.rs", 4, "tidy\n```suggestion\nfn b() {}\n```")
+	moved := code("src/a.rs", 9, "tidy\n```suggestion\nfn a() {}\n```")
+	old := code("src/a.rs", -4, "tidy\n```suggestion\nfn a() {}\n```")
+	anchor := &ascv1.ThreadAnchor{Path: []byte("src/a.rs"), Version: 3, StartLine: 4, EndLine: 4}
+	ext := func(id int64) string { return fmt.Sprintf("%s%d", AscExternalCommentPrefix, id) }
+	w.review.threads = []*ascv1.ReviewThread{{Id: 1, Anchor: anchor, Comments: []*ascv1.ReviewComment{
+		{Id: 10, Suggestion: "fn a() {}", ExternalId: ext(same)},
+		{Id: 11, Suggestion: "fn a() {}", ExternalId: ext(other)},
+		{Id: 12, Suggestion: "fn a() {}", ExternalId: ext(moved)},
+		{Id: 13, Suggestion: "fn a() {}", ExternalId: ext(old)},
+		{Id: 14, Suggestion: "fn a() {}", ExternalId: ext(1)},
+	}}}
+	got, err := AscSuggestions(t.Context(), w.pr)
+	require.NoError(t, err)
+	require.Len(t, got, 5)
+	assert.Equal(t, same, got[0].HubComment, "the comment shows the same suggestion on the same line")
+	for _, s := range got[1:] {
+		assert.Zero(t, s.HubComment, "comment %d: other text, another line, the old side or another pull request", s.CommentID)
+	}
 }
 
 func TestAscHubCommentOf(t *testing.T) {

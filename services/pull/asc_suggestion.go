@@ -49,10 +49,11 @@ type AscSuggestion struct {
 	Version             uint32 // the version the thread is on
 	Stale               bool   // the thread is on an older version than the newest
 	Body                string
-	HubComment          int64 // the comment of the hub the suggestion was made in; 0 when it was made in asc
+	HubComment          int64 // the comment of the hub the suggestion was made in; 0 when it was made in asc or is not checked
 }
 
-// ascHubCommentOf is the id of the hub comment that an asc comment mirrors, or 0.
+// ascHubCommentOf is the id of the hub comment that an asc comment says it mirrors, or 0. Any client of asc may set the
+// external id, so the hub checks it against the comment (ascCheckHubComments) before it trusts it.
 func ascHubCommentOf(externalID string) int64 {
 	id, ok := strings.CutPrefix(externalID, AscExternalCommentPrefix)
 	if !ok {
@@ -152,7 +153,44 @@ func AscSuggestions(ctx context.Context, pr *issues_model.PullRequest) ([]AscSug
 			})
 		}
 	}
+	if err := ascCheckHubComments(ctx, pr, out); err != nil {
+		return nil, err
+	}
 	return out, nil
+}
+
+// ascCheckHubComments keeps the hub comment of a suggestion only when that comment is a code comment of pr on the same
+// file and line whose own suggestion block is the same text: then Apply in the comment applies what the comment shows.
+// Any other suggestion is listed with its author in the suggestions card.
+func ascCheckHubComments(ctx context.Context, pr *issues_model.PullRequest, list []AscSuggestion) error {
+	ids := make([]int64, 0, len(list))
+	for _, s := range list {
+		if s.HubComment != 0 {
+			ids = append(ids, s.HubComment)
+		}
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	comments, err := issues_model.FindComments(ctx, &issues_model.FindCommentsOptions{IssueID: pr.IssueID, Type: issues_model.CommentTypeCode})
+	if err != nil {
+		return err
+	}
+	byID := make(map[int64]*issues_model.Comment, len(comments))
+	for _, c := range comments {
+		byID[c.ID] = c
+	}
+	for i := range list {
+		s := &list[i]
+		if s.HubComment == 0 {
+			continue
+		}
+		c := byID[s.HubComment]
+		if c == nil || c.Line <= 0 || c.TreePath != s.Path || uint32(c.UnsignedLine()) != s.StartLine || ascSuggestionOf(c.Content) != s.Suggestion {
+			s.HubComment = 0
+		}
+	}
+	return nil
 }
 
 // AscApplySuggestion applies the suggestion of comment commentID in thread threadID as the next version of the change
