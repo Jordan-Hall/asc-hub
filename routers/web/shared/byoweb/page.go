@@ -94,12 +94,15 @@ type Page struct {
 	SpendPeak    string
 	// SpendFirst and SpendLast are the first and last days of the chart, written under it.
 	SpendFirst, SpendLast string
-	// KeyTab is the open section of the key page: "usage", "limits" or "models".
+	// KeyTab is the open section of the key page: "usage", "limits", "models" or "activity".
 	KeyTab      string
 	UsageTotal  svc.UsageRowView
 	UsageLoaded bool
-	Test        *TestView
-	OwnerAIURL  string
+	// Activity is the newest audit events of the key; ActivityLoaded is false when they could not be read.
+	Activity       []ActivityRow
+	ActivityLoaded bool
+	Test           *TestView
+	OwnerAIURL     string
 
 	// The cards of the keys and the features that use AI (aifeatures.go). FeaturesFailed is set when the features
 	// could not be loaded. FeatureEdit and Replace are refused dialog forms shown again; AddOpen is the add dialog

@@ -54,8 +54,8 @@ func renderAIIndex(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, st
 	ctx.HTML(status, lvl.AITpl)
 }
 
-// renderAIKey loads one key with its models and this month's usage and renders its page. A key that is not
-// the scope's is the 404 page. Models and usage are best effort: a failure leaves that part out.
+// renderAIKey loads one key with its models, this month's usage and its activity and renders its page. A key that is not
+// the scope's is the 404 page. Models, usage and activity are best effort: a failure leaves that part out.
 func renderAIKey(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, id string, status int) {
 	ctx.Data["Title"] = ctx.Locale.TrString("ascbyo.ai.key_title")
 	if p.KeyTab == "" {
@@ -110,6 +110,7 @@ func renderAIKey(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, id s
 		log.Debug("asc byo: usage of a key in %s: %v", lvl.Scope, err)
 	}
 	loadSharing(ctx, lvl, p, id)
+	loadActivity(ctx, lvl, s, p, id)
 	ctx.HTML(status, lvl.AITpl)
 }
 
@@ -225,16 +226,17 @@ func AIUpdate(ctx *context.Context, lvl *Level) {
 // keyTabOf is the section of the key page named by the tab parameter; anything else is the usage section.
 func keyTabOf(tab string) string {
 	switch tab {
-	case keyTabLimits, keyTabModels:
+	case keyTabLimits, keyTabModels, keyTabActivity:
 		return tab
 	}
 	return keyTabUsage
 }
 
 const (
-	keyTabUsage  = "usage"
-	keyTabLimits = "limits"
-	keyTabModels = "models"
+	keyTabUsage    = "usage"
+	keyTabLimits   = "limits"
+	keyTabModels   = "models"
+	keyTabActivity = "activity"
 )
 
 // keyLimitsURL is the key page opened at its limits section, where the edit form and the sharing are.

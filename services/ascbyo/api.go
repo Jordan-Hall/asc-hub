@@ -39,6 +39,8 @@ var ErrNotConfigured = errors.New("ascbyo: asc is not configured")
 type API struct {
 	Storage ascv1.StorageClient
 	AI      ascv1.AiProvidersClient
+	// Audit reads the events of a key for its Activity section.
+	Audit ascv1.AuditClient
 }
 
 var (
@@ -66,7 +68,7 @@ func getAPI() (*API, error) {
 	if err != nil {
 		return nil, err
 	}
-	apiVal = &API{Storage: ascv1.NewStorageClient(c), AI: ascv1.NewAiProvidersClient(c)}
+	apiVal = &API{Storage: ascv1.NewStorageClient(c), AI: ascv1.NewAiProvidersClient(c), Audit: ascv1.NewAuditClient(c)}
 	return apiVal, nil
 }
 

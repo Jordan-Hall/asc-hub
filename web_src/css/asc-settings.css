@@ -484,6 +484,43 @@
   overflow-y: auto;
 }
 
+/* the Activity section of a key: newest first, one event per line */
+.asc-byo-activity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.asc-byo-activity-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.asc-byo-activity-row:last-child {
+  border-bottom: 0;
+}
+
+.asc-byo-activity-what {
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-byo-activity-meta,
+.asc-byo-activity-details {
+  color: var(--color-text-light-2);
+  font-size: 12px;
+}
+
+.asc-byo-activity-details {
+  flex-basis: 100%;
+}
+
 /* progress of a migration and spend meters */
 .asc-byo-progress {
   margin: 0 0 12px;

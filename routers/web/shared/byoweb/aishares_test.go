@@ -190,7 +190,7 @@ func TestAIKeySharing(t *testing.T) {
 		n := sh.calls()
 		r := run(t, AIShare, lvl, http.MethodPost, url.Values{"kind": {"org"}, "name": {"Acme"}, "allow_use": {"on"}, "op_id": {ascbyotest.OpIDForTest}}, id)
 		assert.Equal(t, http.StatusSeeOther, r.resp.Code)
-		assert.Equal(t, "/user/settings/asc/ai/keys/"+id, r.loc())
+		assert.Equal(t, "/user/settings/asc/ai/keys/"+id+"?tab=limits", r.loc(), "back to the section the sharing is in")
 		req := sh.reqs[n].(*ascv1.ShareAiKeyRequest)
 		assert.Equal(t, id, req.GetKeyId())
 		assert.Equal(t, "acme", req.GetGrantee().GetName())
