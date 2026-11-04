@@ -33,17 +33,23 @@ func parseBehind(out string) (int, bool) {
 	return n, true
 }
 
-// prepareCompareState puts CompareBehind and CompareMergeState into ctx.Data for a compare of head against base in
-// the repository at path.
+// prepareCompareState puts CompareBehind (with CompareBehindKnown) and CompareMergeState into ctx.Data for a compare
+// of head against base in the repository at path.
 func prepareCompareState(ctx *context.Context, path, base, head string) {
 	state := compareMergeUnknown
-	if out, _, err := git.NewCommand(ctx, "rev-list", "--count").AddDynamicArguments(head + ".." + base).RunStdString(&git.RunOpts{Dir: path}); err == nil {
-		if n, ok := parseBehind(out); ok {
-			ctx.Data["CompareBehind"] = n
-		}
+	out, _, err := git.NewCommand(ctx, "rev-list", "--count").AddDynamicArguments(head + ".." + base).RunStdString(&git.RunOpts{Dir: path})
+	if err != nil {
+		// A side that does not resolve: merge-tree would exit 1 for it too, which reads as a conflict.
+		log.Trace("compare behind: %v", err)
+		ctx.Data["CompareMergeState"] = state
+		return
+	}
+	if n, ok := parseBehind(out); ok {
+		ctx.Data["CompareBehind"] = n
+		ctx.Data["CompareBehindKnown"] = true
 	}
 	// merge-tree --write-tree (git 2.38) exits 0 for a clean merge and 1 for conflicts; any other exit is "unknown"
-	_, _, err := git.NewCommand(ctx, "merge-tree", "--write-tree", "--no-messages").AddDynamicArguments(base, head).RunStdString(&git.RunOpts{Dir: path})
+	_, _, err = git.NewCommand(ctx, "merge-tree", "--write-tree", "--no-messages").AddDynamicArguments(base, head).RunStdString(&git.RunOpts{Dir: path})
 	switch {
 	case err == nil:
 		state = compareMergeClean
