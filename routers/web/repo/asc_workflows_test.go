@@ -527,6 +527,10 @@ func TestAscWorkflowRunPage(t *testing.T) {
 	waiting := sampleWorkflowRun(3, ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_WAITING_APPROVAL)
 	waiting.Steps[0].Comment = "all <i>good</i>"
 	waiting.Steps[1].Error = "timed out\x1b[0m"
+	waiting.Steps[0].Kind = ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_AGENT
+	waiting.Steps[0].Usage = &ascv1.AgentBudgetUsage{Changes: 1, CostMicroUsd: 1_120_000}
+	waiting.Steps[1].Kind = ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_APPROVAL
+	waiting.Steps[1].Approvers = []string{"user:alice", "role:maintainer"}
 	hub.ok("Workflows.GetRun", &ascv1.GetWorkflowRunResponse{Run: waiting})
 	hub.on("Agents.GetRun", func(m proto.Message) (proto.Message, error) {
 		return &ascv1.GetAgentRunResponse{Run: sampleRun(m.(*ascv1.GetAgentRunRequest).GetId(), ascv1.AgentRunState_AGENT_RUN_STATE_SUCCEEDED)}, nil
@@ -569,6 +573,11 @@ func TestAscWorkflowRunPage(t *testing.T) {
 	assert.Contains(t, p.body, "asc_review.wf_cancel_help")
 	assert.Contains(t, p.body, `action="/user2/repo1/asc/workflows/runs/3/rerun" data-testid="asc-wf-rerun"`, "the board offers Run again beside Cancel run")
 	assert.Contains(t, p.body, "42k")
+	// The flow: a card to a step with its kind and a line under it, and a filled connector after a step that passed.
+	assert.Contains(t, p.body, "asc_review.wf_flow<")
+	assert.Regexp(t, `<li class="wf-node wf-tone-ok" data-flow-step="review">[\s\S]*?data-flow-sub>asc_review.wf_flow_agent_done_one<[\s\S]*?asc_review.wf_kind_agent<`, p.body)
+	assert.Regexp(t, `<li class="wf-node wf-tone-wait is-active is-linked" data-flow-step="approve">[\s\S]*?data-flow-sub>asc_review.wf_flow_waiting_for<[\s\S]*?asc_review.wf_kind_approval<`, p.body)
+	assert.Regexp(t, `<li class="wf-node wf-tone-idle is-active" data-flow-step="checks">[\s\S]*?data-flow-sub>asc_review.wf_flow_not_started</div>\s*</li>`, p.body, "a step that asc gave no kind has no kind chip")
 	// The agent run behind the log was checked to be this repository's.
 	assert.NotEmpty(t, hub.callsOf("Agents.GetRun"))
 
@@ -636,7 +645,10 @@ func TestAscWorkflowRunState(t *testing.T) {
 	assert.Equal(t, "no-store", p.resp.Header().Get("Cache-Control"))
 	assert.Contains(t, p.body, `"state":"running"`)
 	assert.Contains(t, p.body, `"active":true`)
-	assert.Contains(t, p.body, `"id":"approve","state":"waiting"`)
+	assert.Contains(t, p.body, `"id":"approve","state":"waiting","label":"asc_review.step_state_waiting","tone":"wait","active":true,"sub":"asc_review.wf_flow_waiting_decision","linked":true}`)
+	assert.Contains(t, p.body, `"label":"asc_review.wf_state_running"`, "labels are worded like the pills")
+	assert.Contains(t, p.body, `"id":"checks","state":"pending","label":"asc_review.step_state_pending","tone":"idle","active":true,"error":`)
+	assert.Contains(t, p.body, `"sub":"asc_review.wf_flow_not_started","linked":false}`)
 	assert.NotContains(t, p.body, "<b>x</b>", "JSON text is escaped")
 
 	assert.Equal(t, http.StatusNotFound, runAgents(t, agentsReq{path: testWorkflowsPath + "/runs/x/state", user: agentsReader, params: map[string]string{":id": "x"}}, AscWorkflowRunState).status)

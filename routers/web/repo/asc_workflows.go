@@ -19,6 +19,7 @@ import (
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/translation"
 	"forgejo.org/modules/util"
 	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/asctrust"
@@ -54,15 +55,16 @@ const (
 	tplAscWorkflowsRun base.TplName = "repo/asc_workflows_run"
 	tplAscWorkflowsAll base.TplName = "repo/asc_workflows_runs"
 
-	ascWorkflowsPageSize   = 30
-	ascWorkflowsScanPages  = 5
-	ascWorkflowsScanSize   = 100
-	ascWorkflowsMaxSteps   = 32
-	ascWorkflowsMaxLogRuns = 8
-	ascWorkflowsLogEvents  = 60
-	ascWorkflowsLogShown   = 25
-	ascWorkflowsMaxInputs  = 32
-	ascWorkflowsMaxText    = 64 << 10
+	ascWorkflowsPageSize     = 30
+	ascWorkflowsScanPages    = 5
+	ascWorkflowsScanSize     = 100
+	ascWorkflowsMaxSteps     = 32
+	ascWorkflowsMaxLogRuns   = 8
+	ascWorkflowsLogEvents    = 60
+	ascWorkflowsLogShown     = 25
+	ascWorkflowsMaxInputs    = 32
+	ascWorkflowsMaxApprovers = 32
+	ascWorkflowsMaxText      = 64 << 10
 )
 
 func (e *ascAgentsEnv) workflowsLink() string { return e.link + "/asc/workflows" }
@@ -317,6 +319,107 @@ type ascWorkflowStepRun struct {
 	// Proposed is the changes the agent run of the step produced (nil unless the viewer may read the step).
 	Proposed     []ascWorkflowProposedChange
 	ProposedMore int
+	// Kind is agent, approval, checks or command, from the definition the run was made from; "" when asc did not say.
+	Kind      string
+	Approvers []ascWorkflowApprover
+	// Took is how long the step ran, to its end or to now; "" before it starts.
+	Took     string
+	Changes  uint32
+	Cost     string
+	HasUsage bool
+	// Linked is true when the step before it in the flow finished well, so the connector to it is filled.
+	Linked bool
+	// Sub is the line under the step in the flow, worded by ascWorkflowStepSubs.
+	Sub string
+}
+
+// ascWorkflowApprover is one who may decide an approval step: a person, or everyone with a role.
+type ascWorkflowApprover struct {
+	Name string
+	Role bool
+}
+
+var ascWorkflowStepKinds = map[ascv1.WorkflowStepKind]string{
+	ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_AGENT:    "agent",
+	ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_APPROVAL: "approval",
+	ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_CHECKS:   "checks",
+	ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_COMMAND:  "command",
+}
+
+// ascWorkflowApproversOf reads `user:<name>` and `role:<name>`; anything else is left out.
+func ascWorkflowApproversOf(in []string) []ascWorkflowApprover {
+	var out []ascWorkflowApprover
+	for _, a := range in {
+		if len(out) >= ascWorkflowsMaxApprovers {
+			break
+		}
+		kind, name, ok := strings.Cut(a, ":")
+		if name = ascagentui.SafeName(name); !ok || name == "" || (kind != "user" && kind != "role") {
+			continue
+		}
+		out = append(out, ascWorkflowApprover{Name: name, Role: kind == "role"})
+	}
+	return out
+}
+
+// ascWorkflowStepGood reports whether a step finished so that the steps after it may go on.
+func ascWorkflowStepGood(st ascagentui.State) bool {
+	return st.Slug == "succeeded" || st.Slug == "skipped"
+}
+
+// ascWorkflowStepSubs words the line under each step of the flow.
+func ascWorkflowStepSubs(locale translation.Locale, row *ascWorkflowRunRow) {
+	for i := range row.Steps {
+		row.Steps[i].Sub = ascWorkflowStepSub(locale, &row.Steps[i])
+	}
+}
+
+func ascWorkflowStepSub(locale translation.Locale, s *ascWorkflowStepRun) string {
+	switch s.State.Slug {
+	case "pending":
+		return locale.TrString("asc_review.wf_flow_not_started")
+	case "running":
+		if s.Took != "" {
+			return locale.TrString("asc_review.wf_flow_running_for", s.Took)
+		}
+	case "waiting":
+		if s.Waiting {
+			if len(s.Approvers) == 0 {
+				return locale.TrString("asc_review.wf_flow_waiting_decision")
+			}
+			who := ""
+			for i, a := range s.Approvers {
+				name := a.Name
+				if a.Role {
+					name = locale.TrString("asc_review.wf_flow_role", a.Name)
+				}
+				if i == 0 {
+					who = name
+				} else {
+					who = locale.TrString("asc_review.wf_flow_or", who, name)
+				}
+			}
+			return locale.TrString("asc_review.wf_flow_waiting_for", who)
+		}
+	case "succeeded":
+		switch {
+		case s.Kind == "approval" && s.DecidedBy != "":
+			return locale.TrString("asc_review.wf_flow_approved_by", s.DecidedBy)
+		case s.Kind == "agent" && s.HasUsage && s.Changes > 0:
+			// The arguments are digits and a dollar amount, which TrN leaves as they are.
+			return string(locale.TrN(int64(s.Changes), "asc_review.wf_flow_agent_done_one", "asc_review.wf_flow_agent_done_other", s.Changes, s.Cost))
+		case s.Took != "":
+			return locale.TrString("asc_review.wf_flow_passed_in", s.Took)
+		}
+	case "failed":
+		switch {
+		case s.Kind == "approval" && s.DecidedBy != "":
+			return locale.TrString("asc_review.wf_flow_rejected_by", s.DecidedBy)
+		case s.Took != "":
+			return locale.TrString("asc_review.wf_flow_failed_after", s.Took)
+		}
+	}
+	return ""
 }
 
 type ascWorkflowRunRow struct {
@@ -401,6 +504,25 @@ func ascWorkflowRunOf(r *ascv1.WorkflowRun, name, workflowsLink, repoLink string
 		}
 		if sr.AgentRunID != 0 {
 			sr.AgentLink = repoLink + "/asc/agents/runs/" + strconv.FormatUint(sr.AgentRunID, 10)
+		}
+		sr.Kind = ascWorkflowStepKinds[s.GetKind()]
+		if sr.Kind == "approval" {
+			sr.Approvers = ascWorkflowApproversOf(s.GetApprovers())
+		}
+		if !sr.Started.IsZero() {
+			end := sr.Finished
+			if end.IsZero() {
+				end = time.Now()
+			}
+			if d := end.Sub(sr.Started); d >= 0 {
+				sr.Took = ascagentui.FormatDuration(uint64(d / time.Second))
+			}
+		}
+		if u := s.GetUsage(); u != nil && (u.GetChanges() > 0 || u.GetCostMicroUsd() > 0) {
+			sr.HasUsage, sr.Changes, sr.Cost = true, u.GetChanges(), ascagentui.FormatUSD(u.GetCostMicroUsd())
+		}
+		if n := len(row.Steps); n > 0 {
+			sr.Linked = ascWorkflowStepGood(row.Steps[n-1].State)
 		}
 		if !sr.State.Active {
 			row.Done++
@@ -931,6 +1053,7 @@ func AscWorkflowRun(ctx *context.Context) {
 	}
 	agents := ascv1.NewAgentsClient(conn)
 	ascWorkflowHidePrivate(ctx, callCtx, env, agents, &row)
+	ascWorkflowStepSubs(ctx.Locale, &row)
 	if env.features {
 		logged := 0
 		for i := range row.Steps {
@@ -988,11 +1111,14 @@ type ascWorkflowStateJSON struct {
 }
 
 type ascWorkflowStepJSON struct {
-	ID    string `json:"id"`
-	State string `json:"state"`
-	Label string `json:"label"`
-	Tone  string `json:"tone"`
-	Error string `json:"error,omitempty"`
+	ID     string `json:"id"`
+	State  string `json:"state"`
+	Label  string `json:"label"`
+	Tone   string `json:"tone"`
+	Active bool   `json:"active"`
+	Error  string `json:"error,omitempty"`
+	Sub    string `json:"sub"`
+	Linked bool   `json:"linked"`
 }
 
 // AscWorkflowRunState serves `GET /{owner}/{repo}/asc/workflows/runs/{id}/state`.
@@ -1026,9 +1152,11 @@ func AscWorkflowRunState(ctx *context.Context) {
 		return
 	}
 	ascWorkflowHidePrivate(ctx, callCtx, env, ascv1.NewAgentsClient(conn), &row)
-	out := ascWorkflowStateJSON{State: row.State.Slug, Label: row.State.Label, Tone: row.State.Tone, Active: row.State.Active, Error: row.Error, Meters: row.Meters}
+	ascWorkflowStepSubs(ctx.Locale, &row)
+	// The labels are worded like the pills that the page drew (repo/asc_state_pill).
+	out := ascWorkflowStateJSON{State: row.State.Slug, Label: ctx.Locale.TrString("asc_review.wf_state_" + row.State.Slug), Tone: row.State.Tone, Active: row.State.Active, Error: row.Error, Meters: row.Meters}
 	for _, s := range row.Steps {
-		out.Steps = append(out.Steps, ascWorkflowStepJSON{ID: s.ID, State: s.State.Slug, Label: s.State.Label, Tone: s.State.Tone, Error: s.Error})
+		out.Steps = append(out.Steps, ascWorkflowStepJSON{ID: s.ID, State: s.State.Slug, Label: ctx.Locale.TrString("asc_review.step_state_" + s.State.Slug), Tone: s.State.Tone, Active: s.State.Active, Error: s.Error, Sub: s.Sub, Linked: s.Linked})
 	}
 	ctx.JSON(http.StatusOK, out)
 }

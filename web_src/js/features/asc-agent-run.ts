@@ -58,7 +58,10 @@ interface WorkflowStep {
   state: string;
   label: string;
   tone: string;
+  active?: boolean;
   error?: string;
+  sub?: string;
+  linked?: boolean;
 }
 
 interface WorkflowState {
@@ -266,7 +269,15 @@ async function followAgentRun(root: HTMLElement) {
   }
 }
 
-function applyWorkflowState(root: HTMLElement, st: WorkflowState): boolean {
+// applyFlowStep redraws one card of the flow: its tone, its pill, the line under it and the connector into it.
+function applyFlowStep(node: Element, step: WorkflowStep) {
+  node.className = `wf-node wf-tone-${tone(step.tone)}${step.active ? ' is-active' : ''}${step.linked ? ' is-linked' : ''}`;
+  setPill(node.querySelector('[data-flow-state]'), step.state, step.label, step.tone);
+  const sub = node.querySelector('[data-flow-sub]');
+  if (sub) sub.textContent = step.sub ?? '';
+}
+
+export function applyWorkflowState(root: HTMLElement, st: WorkflowState): boolean {
   setPill(root.querySelector('[data-run-state]'), st.state, st.label, st.tone);
   const failure = root.querySelector('[data-run-failure]');
   if (failure) {
@@ -278,7 +289,12 @@ function applyWorkflowState(root: HTMLElement, st: WorkflowState): boolean {
   for (const step of st.steps ?? []) {
     const row = root.querySelector(`li[data-step="${CSS.escape(step.id)}"]`);
     if (!row) return true;
+    // A step that starts or stops waiting for a decision: the server draws the approval form.
+    const was = row.querySelector('[data-step-state] .asc-pill')?.getAttribute('data-state');
+    if ((was === 'waiting') !== (step.state === 'waiting')) return true;
     setPill(row.querySelector('[data-step-state]'), step.state, step.label, step.tone);
+    const node = root.querySelector(`li[data-flow-step="${CSS.escape(step.id)}"]`);
+    if (node) applyFlowStep(node, step);
     const err = row.querySelector('[data-step-error]');
     if (err) {
       err.textContent = step.error ?? '';

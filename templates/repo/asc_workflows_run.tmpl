@@ -1,7 +1,7 @@
 {{/*
 One workflow run (routers/web/repo/asc_workflows.go; the script is web_src/js/features/asc-agent-run.ts).
 Template Attributes:
-* AscWorkflowRun: ascWorkflowRunRow (Steps with State, AgentLink, Log, Waiting), AscWorkflowRunActive
+* AscWorkflowRun: ascWorkflowRunRow (Steps with State, Kind, Sub, Linked, AgentLink, Log, Waiting), AscWorkflowRunActive
 * AscWorkflowCanAct: the person may cancel, decide and run again (implies the agent features switch)
 * AscWorkflowPollURL
 * CsrfTokenHtml
@@ -56,7 +56,13 @@ Template Attributes:
 				<section class="rv-card wf-flowcard" aria-labelledby="rv-wfr-flow" data-testid="asc-wf-flow">
 					<div class="rv-card-h"><h2 id="rv-wfr-flow">{{ctx.Locale.Tr "asc_review.wf_flow"}}</h2></div>
 					<ol class="wf-flow" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_review.wf_chain"}}">
-						{{range $i, $s := .Steps}}<li class="wf-node wf-tone-{{$s.State.Tone}}{{if $s.State.Active}} is-active{{end}}" data-flow-step="{{$s.ID}}"><code>{{$s.ID}}</code>{{template "repo/asc_state_pill" dict "S" $s.State "P" "asc_review.step_state_"}}</li>{{end}}
+						{{range .Steps}}
+								<li class="wf-node wf-tone-{{.State.Tone}}{{if .State.Active}} is-active{{end}}{{if .Linked}} is-linked{{end}}" data-flow-step="{{.ID}}">
+									<div class="wf-node-top"><code class="wf-node-id">{{.ID}}</code><span data-flow-state>{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}</span></div>
+									<div class="wf-node-sub" data-flow-sub>{{.Sub}}</div>
+									{{if .Kind}}<div><span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr (print "asc_review.wf_kind_" .Kind)}}</span></div>{{end}}
+								</li>
+							{{end}}
 					</ol>
 				</section>
 				<section class="rv-card" aria-labelledby="rv-wfr-steps">
