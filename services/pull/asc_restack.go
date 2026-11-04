@@ -123,6 +123,8 @@ func ascRestackKey(ctx context.Context, pr *issues_model.PullRequest, row *issue
 type AscRestackOptions struct {
 	// DryRun only reports what a restack would do.
 	DryRun bool
+	// Resolutions settle conflicts of the restack (ResolveAscConflicts). They go with the preview and the apply.
+	Resolutions []ascbridge.Resolution
 }
 
 // AscRestackStackItem is one change of the stack, bottom to top. PR is nil for a change without an open pull
@@ -135,6 +137,7 @@ type AscRestackStackItem struct {
 	NewHead    string
 	NewVersion uint32
 	Conflicts  []string
+	Files      []ascbridge.ConflictFile
 }
 
 // AscRestackStackResult reports a restack.
@@ -240,7 +243,7 @@ func RestackAscStack(ctx context.Context, doer *user_model.User, pr *issues_mode
 		defer unlock()
 	}
 
-	preview, err := ops.RestackStack(ctx, ascbridge.RestackStackRequest{Repo: repo, Change: row.AscChange, DryRun: true})
+	preview, err := ops.RestackStack(ctx, ascbridge.RestackStackRequest{Repo: repo, Change: row.AscChange, DryRun: true, Resolutions: opt.Resolutions})
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +251,7 @@ func RestackAscStack(ctx context.Context, doer *user_model.User, pr *issues_mode
 	checked := map[string]*issues_model.PullRequest{}
 	previewed := map[string]ascbridge.RestackItem{}
 	for _, it := range preview.Items {
-		item := AscRestackStackItem{Change: it.Change, State: it.State, OldHead: it.OldHead, NewVersion: it.NewVersion, Conflicts: it.Conflicts}
+		item := AscRestackStackItem{Change: it.Change, State: it.State, OldHead: it.OldHead, NewVersion: it.NewVersion, Conflicts: it.Conflicts, Files: it.Files}
 		previewed[it.Change] = it
 		if it.State != ascbridge.RestackSkippedLanded {
 			p, err := issues_model.GetOpenPullRequestByAscChange(ctx, pr.BaseRepoID, it.Change)
@@ -300,7 +303,7 @@ func RestackAscStack(ctx context.Context, doer *user_model.User, pr *issues_mode
 		}
 		expected = append(expected, ascbridge.ExpectedHead{Change: it.Change, OldHeadID: id})
 	}
-	applied, err := ops.RestackStack(ctx, ascbridge.RestackStackRequest{Repo: repo, Change: row.AscChange, ExpectedHeads: expected})
+	applied, err := ops.RestackStack(ctx, ascbridge.RestackStackRequest{Repo: repo, Change: row.AscChange, ExpectedHeads: expected, Resolutions: opt.Resolutions})
 	if err != nil {
 		return res, err
 	}
