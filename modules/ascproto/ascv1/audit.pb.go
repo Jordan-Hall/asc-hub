@@ -730,6 +730,8 @@ type VerifyAuditChainResponse struct {
 	FirstBadSeq   uint64                 `protobuf:"varint,3,opt,name=first_bad_seq,json=firstBadSeq,proto3" json:"first_bad_seq,omitempty"` // 0 when ok
 	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
 	HeadHash      []byte                 `protobuf:"bytes,5,opt,name=head_hash,json=headHash,proto3" json:"head_hash,omitempty"`
+	FirstSeq      uint64                 `protobuf:"varint,6,opt,name=first_seq,json=firstSeq,proto3" json:"first_seq,omitempty"` // the first event kept (after retention), so a caller can verify in slices
+	HeadSeq       uint64                 `protobuf:"varint,7,opt,name=head_seq,json=headSeq,proto3" json:"head_seq,omitempty"`    // the newest event; 0 when the scope has none
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -797,6 +799,20 @@ func (x *VerifyAuditChainResponse) GetHeadHash() []byte {
 		return x.HeadHash
 	}
 	return nil
+}
+
+func (x *VerifyAuditChainResponse) GetFirstSeq() uint64 {
+	if x != nil {
+		return x.FirstSeq
+	}
+	return 0
+}
+
+func (x *VerifyAuditChainResponse) GetHeadSeq() uint64 {
+	if x != nil {
+		return x.HeadSeq
+	}
+	return 0
 }
 
 type AuditActionInfo struct {
@@ -1163,13 +1179,15 @@ const file_asc_v1_audit_proto_rawDesc = "" +
 	"\x17VerifyAuditChainRequest\x12&\n" +
 	"\x05scope\x18\x01 \x01(\v2\x10.asc.v1.OwnerRefR\x05scope\x12\x19\n" +
 	"\bfrom_seq\x18\x02 \x01(\x04R\afromSeq\x12\x15\n" +
-	"\x06to_seq\x18\x03 \x01(\x04R\x05toSeq\"\xa3\x01\n" +
+	"\x06to_seq\x18\x03 \x01(\x04R\x05toSeq\"\xdb\x01\n" +
 	"\x18VerifyAuditChainResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
 	"\achecked\x18\x02 \x01(\x04R\achecked\x12\"\n" +
 	"\rfirst_bad_seq\x18\x03 \x01(\x04R\vfirstBadSeq\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12!\n" +
-	"\thead_hash\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\bheadHash\"l\n" +
+	"\thead_hash\x18\x05 \x01(\fB\x04\xa8\xbb\x18\x01R\bheadHash\x12\x1b\n" +
+	"\tfirst_seq\x18\x06 \x01(\x04R\bfirstSeq\x12\x19\n" +
+	"\bhead_seq\x18\a \x01(\x04R\aheadSeq\"l\n" +
 	"\x0fAuditActionInfo\x12\x16\n" +
 	"\x06action\x18\x01 \x01(\tR\x06action\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1f\n" +

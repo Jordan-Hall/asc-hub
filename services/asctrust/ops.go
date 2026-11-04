@@ -262,15 +262,20 @@ func StartAuditExport(ctx context.Context, conn grpc.ClientConnInterface, scope 
 	return ascv1.NewAuditClient(conn).Export(ctx, &ascv1.ExportAuditRequest{Scope: scope, Filter: filter, Format: format})
 }
 
-// VerifyAuditChain asks asc to verify the hash chain of scope.
-func VerifyAuditChain(ctx context.Context, conn grpc.ClientConnInterface, scope *ascv1.OwnerRef) (*ChainResult, error) {
+// VerifyAuditChain asks asc to verify the hash chain of scope from event from to event to (0 and 0: all of it).
+// Only a slice that ends at the newest event (to 0) also checks the head, so a page that verifies in slices
+// ends with one.
+func VerifyAuditChain(ctx context.Context, conn grpc.ClientConnInterface, scope *ascv1.OwnerRef, from, to uint64) (*ChainResult, error) {
 	cctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
-	resp, err := ascv1.NewAuditClient(conn).VerifyChain(cctx, &ascv1.VerifyAuditChainRequest{Scope: scope})
+	resp, err := ascv1.NewAuditClient(conn).VerifyChain(cctx, &ascv1.VerifyAuditChainRequest{Scope: scope, FromSeq: from, ToSeq: to})
 	if err != nil {
 		return nil, err
 	}
-	return &ChainResult{OK: resp.GetOk(), Checked: resp.GetChecked(), FirstBad: resp.GetFirstBadSeq(), Reason: CleanText(resp.GetReason(), MaxTextBytes)}, nil
+	return &ChainResult{
+		OK: resp.GetOk(), Checked: resp.GetChecked(), FirstBad: resp.GetFirstBadSeq(), Reason: CleanText(resp.GetReason(), MaxTextBytes),
+		FirstSeq: resp.GetFirstSeq(), HeadSeq: resp.GetHeadSeq(),
+	}, nil
 }
 
 // ChainResult is the result of a chain verification.
@@ -279,6 +284,9 @@ type ChainResult struct {
 	Checked  uint64
 	FirstBad uint64
 	Reason   string
+	// FirstSeq is the first event kept and HeadSeq the newest (0: none), so the page can verify in slices.
+	FirstSeq uint64
+	HeadSeq  uint64
 }
 
 // ------------------------------------------------------------------------------------------------ secrets
