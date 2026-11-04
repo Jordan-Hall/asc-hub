@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/ascclient"
+	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -34,9 +34,9 @@ import (
 
 const (
 	// ascSummaryTimeout is long: the model writes the answer while the person waits.
-	ascSummaryTimeout = 90 * time.Second
-	ascSummaryMaxText = 2000
-	ascSummaryMaxNote = 300
+	ascSummaryTimeout  = 90 * time.Second
+	ascSummaryMaxText  = 2000
+	ascSummaryMaxNote  = 300
 	ascSummaryMaxWhere = 5
 )
 
