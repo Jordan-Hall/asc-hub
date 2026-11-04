@@ -4,6 +4,7 @@ Template Attributes:
 * AscAgentTokens: []ascAgentTokenRow
 * AscAgentTokenMade / AscAgentTokenSecret: only in the answer to the POST that made a token. The secret is shown once.
 * AscAgentTokenForm: *ascAgentTokenForm, AscAgentTokenTTLs, AscBudgetFields, AscAgentPolicy
+* AscAgentsCanBudget: the repository is not archived, so the monthly budget of a token's agent can be set
 * CsrfTokenHtml
 */}}
 {{template "base/head" .}}
@@ -58,6 +59,7 @@ Template Attributes:
 										{{if .MaxChanges}}<dt>{{ctx.Locale.Tr "asc_review.tokens_per_run"}}</dt><dd>{{ctx.Locale.Tr "asc_review.policy_max_changes" .MaxChanges}}</dd>{{end}}
 										{{if .CreatedBy}}<dt>{{ctx.Locale.Tr "asc_review.tokens_made_by"}}</dt><dd>{{.CreatedBy}}</dd>{{end}}
 										{{if not .Expires.IsZero}}<dt>{{if .CanRevoke}}{{ctx.Locale.Tr "asc_review.tokens_expires"}}{{else}}{{ctx.Locale.Tr "asc_review.tokens_expired"}}{{end}}</dt><dd>{{DateUtils.AbsoluteShort .Expires}}</dd>{{end}}
+										{{with .Month}}<dt>{{ctx.Locale.Tr "asc_review.tokens_this_month"}}</dt><dd data-testid="asc-token-month">{{if .Cap}}{{ctx.Locale.Tr "asc_review.tokens_month_of" .Cost .Cap}}{{else}}{{.Cost}}{{end}} <span class="rv-muted">· {{ctx.Locale.Tr "asc_review.tokens_month_agent" .Name}}</span></dd>{{end}}
 										<dt>{{ctx.Locale.Tr "asc_review.tokens_last_used"}}</dt><dd>{{if not .LastUsed.IsZero}}{{DateUtils.TimeSince .LastUsed}}{{else}}{{ctx.Locale.Tr "asc_review.tokens_never_used"}}{{end}}</dd>
 										{{if not .Revoked.IsZero}}<dt>{{ctx.Locale.Tr "asc_review.tokens_revoked"}}</dt><dd>{{DateUtils.AbsoluteShort .Revoked}}</dd>{{end}}
 									</dl>
@@ -76,6 +78,19 @@ Template Attributes:
 													</div>
 													<button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_review.tokens_set_budget"}}</button>
 												</form>
+												{{if and .Month $.AscAgentsCanBudget}}
+												<form class="rv-form" method="post" action="{{$.AscAgentsBase}}/spend/budget" data-testid="asc-token-month-budget">
+													{{$.CsrfTokenHtml}}
+													<input type="hidden" name="agent" value="{{.Agent}}">
+													<input type="hidden" name="back" value="tokens">
+													<div class="rv-field">
+														<label class="rv-label" for="rv-mb-{{.ID}}">{{ctx.Locale.Tr "asc_review.tokens_month_budget" .Agent}}</label>
+														<input class="rv-input" id="rv-mb-{{.ID}}" name="cap_usd" type="text" inputmode="decimal" maxlength="14" autocomplete="off" placeholder="{{if .Month.Cap}}{{.Month.Cap}}{{else}}120{{end}}" aria-describedby="rv-mb-h-{{.ID}}">
+														<p class="rv-hint" id="rv-mb-h-{{.ID}}">{{ctx.Locale.Tr "asc_review.tokens_month_budget_help"}}</p>
+													</div>
+													<button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_review.tokens_set_month_budget"}}</button>
+												</form>
+												{{end}}
 												<form class="rv-form" method="post" action="{{$.AscAgentsBase}}/tokens/{{.ID}}/revoke">
 													{{$.CsrfTokenHtml}}
 													<div class="rv-field"><label class="rv-label" for="rv-rv-{{.ID}}">{{ctx.Locale.Tr "asc_review.tokens_reason"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.optional"}}</span></label><input class="rv-input" id="rv-rv-{{.ID}}" name="reason" type="text" maxlength="256" autocomplete="off"></div>

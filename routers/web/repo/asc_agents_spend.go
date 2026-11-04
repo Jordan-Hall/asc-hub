@@ -57,6 +57,9 @@ func AscAgentsSpendBudget(ctx *context.Context) {
 	}
 	ascAgentsLimitBody(ctx)
 	back := env.runsLink() + "/spend"
+	if ctx.FormString("back") == "tokens" {
+		back = env.runsLink() + "/tokens" // the monthly budget of a token's agent, set from the tokens page
+	}
 	agent := ctx.FormTrim("agent")
 	if agent != "" && !ascagentui.ValidAgentName(agent) {
 		ctx.Flash.Error("Choose an agent from the list.")

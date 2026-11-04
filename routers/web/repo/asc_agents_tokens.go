@@ -4,6 +4,7 @@
 package repo
 
 import (
+	gocontext "context"
 	"net/http"
 	"regexp"
 	"sort"
@@ -77,6 +78,8 @@ type ascAgentTokenRow struct {
 	Meters     []ascagentui.Meter
 	CanRevoke  bool
 	Initials   string
+	// Month is the spend of the token's agent this month against its monthly cap; nil when asc could not say.
+	Month *ascagentui.SpendAgent
 }
 
 func ascAgentTokenOf(t *ascv1.AgentToken, name string) (ascAgentTokenRow, bool) {
@@ -179,15 +182,43 @@ func ascAgentsTokensPage(ctx *context.Context, env *ascAgentsEnv, form *ascAgent
 		}
 		return rows[i].Created.After(rows[j].Created)
 	})
-	ctx.Data["AscAgentTokens"] = rows
 	readCtx, cancelRead := ascAgentsReadCtx(ctx)
 	defer cancelRead()
+	agents := ascv1.NewAgentsClient(conn)
+	ascAgentTokensMonth(readCtx, agents, env, rows)
+	ctx.Data["AscAgentTokens"] = rows
+	ctx.Data["AscAgentsCanBudget"] = !ctx.Repo.Repository.IsArchived
 	ctx.Data["AscAgentPolicy"] = ascAgentPolicyOf(readCtx, env.ref())
 	ctx.Data["AscAgentDefaults"] = ascAgentDefaults{
 		PolicyURL:    env.link + "/settings/asc/policy",
 		LifetimeDays: ascAgentTokenTTLs[len(ascAgentTokenTTLs)-1].Seconds / 86400,
 	}
 	ctx.HTML(status, tplAscAgentsTokens)
+}
+
+// ascAgentTokensMonth sets the spend of this month of each token's agent (board AgentAccess, "$58 of $120"). asc keeps
+// the monthly budget per agent, and a token always runs as one agent: the row names the agent the money is counted for.
+// An agent asc does not list has spent nothing and has no cap. When asc cannot be asked the rows have no month.
+func ascAgentTokensMonth(callCtx gocontext.Context, api ascv1.AgentsClient, env *ascAgentsEnv, rows []ascAgentTokenRow) {
+	resp, err := api.GetSpend(callCtx, &ascv1.GetAgentSpendRequest{Repo: env.ref()})
+	if err != nil {
+		log.Warn("asc agents: GetSpend for the tokens failed: %s", ascagentuiLogLine(ascagentui.Classify(err)))
+		return
+	}
+	spend := ascagentui.SpendOf(resp)
+	for i := range rows {
+		if rows[i].Agent == "" {
+			continue
+		}
+		m := &ascagentui.SpendAgent{Name: rows[i].Agent, Cost: ascagentui.FormatUSD(0)}
+		for _, a := range spend.Agents {
+			if a.Name == rows[i].Agent {
+				m = &a
+				break
+			}
+		}
+		rows[i].Month = m
+	}
 }
 
 // AscAgentsTokens serves `GET /{owner}/{repo}/asc/agents/tokens`.

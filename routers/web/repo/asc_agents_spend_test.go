@@ -56,6 +56,13 @@ func TestAscAgentsSpendBudget(t *testing.T) {
 	req := calls[0].req.(*ascv1.SetMonthlyBudgetRequest)
 	assert.Equal(t, "coder-2", req.GetAgent())
 	assert.EqualValues(t, 120_500_000, req.GetCapMicroUsd())
+	assert.Equal(t, "/user2/repo1/asc/agents/spend", p.loc)
+
+	// set from a token on the tokens page, the answer goes back there; any other back is the spend page
+	p = runAgents(t, agentsReq{method: "POST", path: path, user: agentsOwner, features: true, form: url.Values{"agent": {"coder"}, "cap_usd": {"120"}, "back": {"tokens"}}}, AscAgentsSpendBudget)
+	assert.Equal(t, "/user2/repo1/asc/agents/tokens", p.loc)
+	p = runAgents(t, agentsReq{method: "POST", path: path, user: agentsOwner, features: true, form: url.Values{"agent": {"coder"}, "cap_usd": {"120"}, "back": {"https://evil.example.org/"}}}, AscAgentsSpendBudget)
+	assert.Equal(t, "/user2/repo1/asc/agents/spend", p.loc)
 
 	before := len(hub.callsOf("Agents.SetMonthlyBudget"))
 	for _, f := range []url.Values{{"cap_usd": {"-1"}}, {"cap_usd": {"1e9"}}, {"agent": {"../x"}, "cap_usd": {"5"}}} {
