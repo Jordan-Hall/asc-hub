@@ -30,7 +30,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | AgentAccess | 5 | 1 | 0 | 0 | 2 |
 | Workflows | 11 | 0 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
-| WorkflowRun | 8 | 1 | 0 | 0 | 0 |
+| WorkflowRun | 9 | 0 | 0 | 0 | 0 |
 | Policy | 9 | 1 | 0 | 0 | 0 |
 | Ops | 8 | 4 | 0 | 0 | 1 |
 | Queue | 10 | 1 | 0 | 0 | 0 |
@@ -262,7 +262,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | WorkflowRun | Steps list with output line, duration, state | done | templates/repo/asc_workflows_run.tmpl | - |
 | WorkflowRun | Live polling of step state | done | web_src/js/features/asc-agent-run.ts (workflow poll), GET runs/{id}/state | - |
 | WorkflowRun | 'Proposed by the agent': changes with size, state and Review links | done | routers/web/repo/asc_workflows_proposed.go ascWorkflowStepProposed (called from AscWorkflowRun for readable agent steps when the agent switch is on): the step's agent run (Agents.GetRun) resolved by ascagentui.ChangeLinks to the repository's pull requests; state landed, closed, open (approved, changes requested, draft, waiting) or not submitted; size from git for up to 8 open ones; 12 listed, the rest a count; templates/repo/asc_workflows_run.tmpl; tests: TestAscWorkflowRunShowsWhatTheAgentStepProposed | - |
-| WorkflowRun | Step log (agent events) and 'Open the agent run' link | ui-only-missing | templates/repo/asc_workflows_run.tmpl (log details exist; link missing) | S |
+| WorkflowRun | Step log (agent events) and 'Open the agent run' link | done | templates/repo/asc_workflows_run.tmpl: a "Log of step <id>" card per readable agent step under the steps, headed by the step, its agent, how long it took and the older lines left out, with "Open the agent run" when the agent switch is on; asc_workflows_test.go TestAscWorkflowRunPage | - |
 | WorkflowRun | 'Used so far' meters (tokens, cost, time, agent steps) | done | templates/repo/asc_workflows_run.tmpl | - |
 
 ### Policy
