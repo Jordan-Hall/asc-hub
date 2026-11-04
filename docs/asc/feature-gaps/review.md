@@ -8,18 +8,18 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 202 |
-| ui-only-missing | 2 |
+| done | 205 |
+| ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 10 |
+| needs-both | 9 |
 | total | 214 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 |---|---|---|---|---|---|
-| Review | 27 | 0 | 0 | 0 | 3 |
+| Review | 28 | 0 | 0 | 0 | 2 |
 | ReviewVersions | 12 | 0 | 0 | 0 | 1 |
 | NewChange | 12 | 0 | 0 | 0 | 1 |
 | Checks | 12 | 0 | 0 | 0 | 1 |
@@ -36,7 +36,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Queue | 11 | 0 | 0 | 0 | 0 |
 | Audit | 6 | 0 | 0 | 0 | 0 |
 | Security | 9 | 0 | 0 | 0 | 0 |
-| Mobile twins | 7 | 2 | 0 | 0 | 0 |
+| Mobile twins | 9 | 0 | 0 | 0 | 0 |
 
 ## Findings that change the plan
 
@@ -75,7 +75,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Review | Checks on v4 summary card (unit, lint, integration running, security scan stale) with 'Open checks on v4' | done | templates/repo/pulls/asc_panel.tmpl: chips of the version being read (AscVersionChecks) with 'Open checks on vN'; a stale mark is not shown (asc does not say which result is stale) (test: TestAscPanelChecksCard) | - |
 | Review | Policy gate card: approvals 1 of 2, carried approval note, required checks, signed with run key, secret scan, stack order, rules link | done | templates/repo/asc_gate.tmpl; templates/repo/pulls/asc_brief.tmpl (data-testid asc-gate, asc-brief-gate; seen on a live pull request) | - |
 | Review | Approval carry-over: approval on an unchanged diff survives a new version and says so | done | templates/repo/pulls/asc_brief.tmpl and asc_versions.tmpl (verdicts, carried-over note, Approved by on the version; seen live) | - |
-| Review | Landing card: queue position, estimated start, 'Add changes 1 and 2 to queue', dry-run line | needs-both | templates/repo/pulls/asc_stack.tmpl (queue link only); ETA needs queue model (mergequeue.proto has position only) | M |
+| Review | Landing card: queue position, estimated start, 'Add changes 1 and 2 to queue', dry-run line | done | routers/web/repo/asc_landing.go, templates/repo/pulls/asc_panel.tmpl (Landing card); estimate is asc MergeQueue timing | M |
 | Review | Restack banner + action when trunk moved | done | templates/repo/pulls/asc_stack.tmpl (asc-needs-restack), routers/web/repo/asc_restack.go | - |
 | Review | 'Restacked onto main, automatic, 3 min ago' line with Undo | done | templates/repo/pulls/asc_stack.tmpl + routers/web/repo/asc_undo_links.go: the newest operation on the change's branch, when it is a restack, with the actor, the time and Undo to the undo preview (tests: TestAscRestackLine) | - |
 | Review | Reviewers list with status, request, suggested reviewers, agent reviewer (reviewer-1) | done | Forgejo sidebar reviewers (people); agent reviewer via workflow changed-src-review has no link | - |
@@ -343,10 +343,10 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
-| Mobile twins | Mobile-Review: actions sheet (Approve, Request changes, queue, Undo restack, Copy asc command) | ui-only-missing | new mobile sheet + web_src/js; templates/repo/diff/box.tmpl | M |
+| Mobile twins | Mobile-Review: actions sheet (Approve, Request changes, queue, Undo restack, Copy asc command) | done | templates/repo/pulls/asc_panel.tmpl (pinned bar, actions sheet), web_src/js/features/asc-actions-sheet.js | M |
 | Mobile twins | Mobile-Review: Approve / Request changes pinned above the tab bar | done | asc_panel.tmpl .rv-review-pinned: Approve and Request changes fixed above the tab bar under 900, the review box opens above it; review-diff.css | S |
 | Mobile twins | Mobile-Review: long-press a line to comment | done | asc-review.js initLongPress: a 500 ms touch on a diff line opens its comment form (touched side first), drift, lift or scroll cancels, the menu and trailing tap are swallowed | S |
-| Mobile twins | Mobile-ReviewVersions: confirm as a sheet with default focus Cancel; toast with Undo | ui-only-missing | templates/repo/asc_confirm.tmpl (page, not sheet) | M |
+| Mobile twins | Mobile-ReviewVersions: confirm as a sheet with default focus Cancel; toast with Undo | done | templates/repo/pulls/asc_stack.tmpl (sheet), web_src/js/features/asc-confirm-sheet.js (sheet, Cancel focus, Undo toast) | M |
 | Mobile twins | Mobile-Checks: failures as cards, chips scroll sideways, Re-run failed pinned | done | under 640 each failure group is its own card with 44px buttons; the state chips already scroll sideways (.rv-chips); Re-run failed pinned above the tab bar (asc-checks-pinned) | S |
 | Mobile twins | Mobile-Checks: swipe a card left for Acknowledge | done | asc-checks-swipe.js: a touch swipe of 80 px left opens the card Acknowledge (the button stays); pan-y keeps scrolling, the card springs back, reduced motion off | S |
 | Mobile twins | Mobile-AgentRun: Allow once / Deny pinned; pull to refresh | done | asc_agents_run.tmpl pins Allow once / Deny under 900 when a permission request is pending; asc-pull-refresh.js pulls to refresh in the installed app (browsers keep their own) | S |
