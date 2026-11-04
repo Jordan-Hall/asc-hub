@@ -21,6 +21,7 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/templates"
 	"forgejo.org/modules/test"
 	"forgejo.org/modules/web/middleware"
 	"forgejo.org/services/ascbridge"
@@ -526,6 +527,35 @@ func TestAscQueuePage(t *testing.T) {
 	defer automerge.UseAscQueueBacked(func(*repo_model.Repository) (bool, error) { return false, nil })()
 	_, resp = page(2, "")
 	assert.Equal(t, http.StatusNotFound, resp.Code)
+}
+
+// Each waiting row has Remove for the person who may take it out and Merge now for one who may land it; both go to the
+// confirmation page. A visitor gets neither.
+func TestAscQueuePageRowActions(t *testing.T) {
+	f := newQRFixture(t)
+	_, err := automerge.AscQueueEnqueue(t.Context(), qrUser(t, 2), f.top)
+	require.NoError(t, err)
+	render := func(userID int64) string {
+		ctx, resp := contexttest.MockContext(t, "user2/repo1/asc/queue", contexttest.MockContextOption{Render: templates.HTMLRenderer()})
+		if userID != 0 {
+			contexttest.LoadUser(t, ctx, userID)
+			ctx.IsSigned = true
+		}
+		contexttest.LoadRepo(t, ctx, 1)
+		AscQueuePage(ctx)
+		require.Equal(t, http.StatusOK, resp.Code)
+		return resp.Body.String()
+	}
+
+	body := render(2)
+	assert.Equal(t, 2, strings.Count(body, `data-testid="asc-queue-row-acts"`))
+	for _, pr := range []*issues_model.PullRequest{f.bottom, f.top} {
+		link := fmt.Sprintf("/user2/repo1/pulls/%d/asc/confirm", pr.Index)
+		assert.Regexp(t, `<a class="rv-btn rv-btn-secondary rv-btn-sm" href="`+link+`\?op=unqueue" aria-label="asc_review.queue_remove_aria">[\s\S]*?asc_review.queue_remove</a>`, body)
+		assert.Regexp(t, `<a class="rv-btn rv-btn-secondary rv-btn-sm" href="`+link+`\?op=merge" aria-label="asc_review.queue_merge_now_aria">[\s\S]*?asc_review.queue_merge_now</a>`, body)
+	}
+
+	assert.NotContains(t, render(0), "asc-queue-row-acts", "a visitor may only look")
 }
 
 func TestAscQueuePauseResume(t *testing.T) {

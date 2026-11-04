@@ -65,7 +65,10 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 									<div class="rv-queue-state">
 										<span class="rv-pill {{if eq .Entry.State "blocked"}}rv-pill-err{{else if eq .Entry.State "landing"}}rv-pill-info{{else}}rv-pill-warn{{end}}">{{ctx.Locale.Tr (printf "repo.pulls.asc_op.state.queued_%s" .Entry.State)}}</span>
 									</div>
-									{{if and .CanCancel .PR}}<div class="rv-queue-act"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.PR.Issue.Link}}/asc/confirm?op=unqueue">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a>{{if eq .Position 1}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.PR.Issue.Link}}/asc/confirm?op=merge">{{ctx.Locale.Tr "asc_review.queue_merge_now"}}</a>{{end}}</div>{{end}}
+									{{if and .PR (or .CanCancel .CanMerge)}}<div class="rv-queue-act" data-testid="asc-queue-row-acts">
+										{{if .CanCancel}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.PR.Issue.Link}}/asc/confirm?op=unqueue" aria-label="{{ctx.Locale.Tr "asc_review.queue_remove_aria" .PR.Issue.Index}}">{{svg "dsi-x" 14}}{{ctx.Locale.Tr "asc_review.queue_remove"}}</a>{{end}}
+										{{if .CanMerge}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.PR.Issue.Link}}/asc/confirm?op=merge" aria-label="{{ctx.Locale.Tr "asc_review.queue_merge_now_aria" .PR.Issue.Index}}">{{svg "dsi-zap" 14}}{{ctx.Locale.Tr "asc_review.queue_merge_now"}}</a>{{end}}
+									</div>{{end}}
 								</li>
 							{{end}}
 						</ol>
