@@ -8,26 +8,26 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 206 |
+| done | 211 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 8 |
+| needs-both | 3 |
 | total | 214 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 |---|---|---|---|---|---|
-| Review | 28 | 0 | 0 | 0 | 2 |
+| Review | 29 | 0 | 0 | 0 | 1 |
 | ReviewVersions | 13 | 0 | 0 | 0 | 0 |
-| NewChange | 12 | 0 | 0 | 0 | 1 |
+| NewChange | 13 | 0 | 0 | 0 | 0 |
 | Checks | 12 | 0 | 0 | 0 | 1 |
 | ChangeChecks | 9 | 0 | 0 | 0 | 1 |
 | Agents | 14 | 0 | 0 | 0 | 0 |
-| AgentRun | 17 | 0 | 0 | 0 | 1 |
+| AgentRun | 18 | 0 | 0 | 0 | 0 |
 | AgentNew | 8 | 0 | 0 | 0 | 0 |
-| AgentAccess | 6 | 0 | 0 | 0 | 2 |
+| AgentAccess | 8 | 0 | 0 | 0 | 0 |
 | Workflows | 11 | 0 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 9 | 0 | 0 | 0 | 0 |
@@ -79,7 +79,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Review | Restack banner + action when trunk moved | done | templates/repo/pulls/asc_stack.tmpl (asc-needs-restack), routers/web/repo/asc_restack.go | - |
 | Review | 'Restacked onto main, automatic, 3 min ago' line with Undo | done | templates/repo/pulls/asc_stack.tmpl + routers/web/repo/asc_undo_links.go: the newest operation on the change's branch, when it is a restack, with the actor, the time and Undo to the undo preview (tests: TestAscRestackLine) | - |
 | Review | Reviewers list with status, request, suggested reviewers, agent reviewer (reviewer-1) | done | Forgejo sidebar reviewers (people); agent reviewer via workflow changed-src-review has no link | - |
-| Review | 'How it was made': run id, task, tool calls, versions, files read, 'never touched infra/', link to run | needs-both | asc: change to run provenance (AgentRun.changes is run to change only) + run task text; hub: card in view_content/pull.tmpl;; Audit 2026-10-30 (part built): Counts line exists; run id, task and never-touched paths were not all found. | M |
+| Review | 'How it was made': run id, task, tool calls, versions, files read, 'never touched infra/', link to run | done | the brief names the run and its agent, the task, the files read, the test runs and the untouched directories, with a link to the run (asc run provenance) | M |
 | Review | Conflict with main: stays open, other changes unblocked, markers, 'Resolve in editor', 'Show both sides', 'Ask coder-2 to resolve' | needs-both | templates/repo/pulls/asc_badges.tmpl (conflict banner with paths exists); conflict hunk viewer + agent task (Agents.CreateRun) | L |
 | Review | Loading skeleton keeping layout; load error with 'Try again' and 'Open previous version'; comments-saved note | done | templates/repo/diff/box.tmpl [data-asc-diff-state]: skeleton while more files load, error with Try again, Open previous version (AscPrevVersion) and 'Comments you wrote are saved'; repo-diff.js loadMoreFiles drives it (tests: TestAscDiffBoxClassBarAndStates, asc-review.test.js) | - |
 | Review | Applied-as-v5 toast with Undo (8 s, role=status) | done | templates/repo/pulls/asc_applied_toast.tmpl after Apply (routers/web/repo/pull_asc_suggestion.go setAscAppliedToast, shown once): Applied as vN, the file and line, "Approvals reset for this change." when the branch rule dismisses stale approvals, Undo posts restore_version of the base version; web_src/js/features/asc-applied-toast.js leaves after 8 s, holds on hover and focus, Esc closes; TestTheAppliedToastIsShownOnceOnThePullRequest, asc-applied-toast.test.js | - |
@@ -118,7 +118,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | NewChange | Draft autosave on blur (1 s debounce), 'Save as draft', Ctrl+Enter opens | done | routers/web/repo/asc_newchange_draft.go: POST /{repo}/asc/newchange_draft keeps the title and description per person and comparison in one user setting (at most 10 drafts, 255 bytes of title and 32 KiB of description each, the oldest goes), the compare page fills the form from it unless the address brought text, and creating the change removes it; web_src/js/features/asc-newchange-draft.js saves on leaving a field after 1 s, 'Save as draft' and 'Discard draft' (new_form.tmpl); Ctrl+Enter opens from the title (js-quick-submit) and from the description; tests: TestAscNewChangeDraftSaveRestoreAndClear and others, asc-newchange-draft.test.js | - |
 | NewChange | Right rail: stack after this change, file list with Show all, 'What policy will ask for' preview | done | templates/repo/issue/asc_newchange_rail.tmpl at the top of the form's right column (new_form.tmpl); routers/web/repo/asc_newchange_rail.go prepareAscNewChangeRail (called from CompareDiff for a signed person in an asc repository): the stack of the head (Changes.Stack with the head commit as rev and the base branch as target, top first, the current change marked, subjects from the comparison's commits, at most 12), the files of the diff (eight open, the rest behind a details element), and the land requirements of Policy.Evaluate (approvals, checks, signed, merge strategy); a failed call leaves its part out; tests: TestAscRail*, TestPrepareAscNewChangeRail*, TestAscNewChangeRailTemplate | - |
 | NewChange | 'Review my diff first' self-review shortcut | done | templates/repo/diff/compare.tmpl | S |
-| NewChange | Blocked-by-secret-scan banner before open; nothing-to-compare; opened/draft toasts | needs-both | nothing-to-compare exists (repo.pulls.nothing_to_compare); secret block needs secretscan.Scan on head (proto/asc/v1/secretscan.proto) + hub gate | M |
+| NewChange | Blocked-by-secret-scan banner before open; nothing-to-compare; opened/draft toasts | done | asc SecretScan.Check over the compare range blocks the open and names the files; nothing-to-compare and the toasts exist | M |
 
 ### Checks
 
@@ -181,7 +181,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | AgentRun | Header: state chip, model, started-by, age, target, workflow link | done | templates/repo/asc_agents_run.tmpl | - |
 | AgentRun | Pause (holds the run at the next tool call) | done | asc: no PauseRun RPC or state; hub: route + button;; Audit 2026-10-30 (built): Gap file says asc has no PauseRun; asc master has Agents.PauseRun and the hub calls it. | M |
 | AgentRun | Stop with confirmation and reason; keeps work as drafts | done | templates/repo/asc_agents_run.tmpl (Stop popover: help, reason, confirm), AscAgentsCancel sends the reason and flashes asc_review.agents_stopped; TestAscAgentsCancelAndInput | - |
-| AgentRun | Plan block with step states and 'You approved at 10:02' | needs-both | asc: plan events/state missing; hub: plan card | L |
+| AgentRun | Plan block with step states and 'You approved at 10:02' | done | the plan card says You approved at (time) or You rejected when the viewer decided the plan | L |
 | AgentRun | Permission request banner: Allow once / Deny and continue / Answer in own words; records who and why | done | asc: structured permission request + decision RPC; hub: asc_agents_run.tmpl (free-text SendInput answer exists) (renders with live asc data; decision covered by Go tests with a fake asc) | L |
 | AgentRun | Live activity log: poll, follow unless scrolled, 'Show everything' toggle, error handling | done | web_src/js/features/asc-agent-run.ts, asc_agents_events.tmpl, routers/web/repo/asc_agents_feed.go | - |
 | AgentRun | 'Reconnecting: showing the log as of 10:14' banner | done | templates/repo/asc_agents_run.tmpl (data-reconnect chip + as-of line), asc-agent-run.ts reconnectText/showReconnect (asc-agent-run.test.js), .ar-reconnect in review-ctl.css | - |
@@ -214,8 +214,8 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 |---|---|---|---|---|
 | AgentAccess | Tokens: name, hint, scope paths, per-run limits, status, expiry, last used, meters; Make token; Budget; Revoke | done | templates/repo/asc_agents_tokens.tmpl, routers/web/repo/asc_agents_tokens.go | - |
 | AgentAccess | Secret shown once with copy and ASC_TOKEN export line | done | templates/repo/asc_agents_tokens.tmpl (tokens_secret_*) | - |
-| AgentAccess | Spend this month per token ($58 of $120) as a monthly budget | needs-both | asc: token budgets are per run or lifetime, no monthly window or month spend (AgentBudgetLimits/Usage); hub: column | M |
-| AgentAccess | Approvals log (permission and plan requests with decision and decider) | needs-both | depends on the permission/plan feature (see AgentRun); asc audit events + hub list | L |
+| AgentAccess | Spend this month per token ($58 of $120) as a monthly budget | done | the monthly budget is per agent; a token's row shows its agent's month spend of the budget and names the agent it counts for, with a budget form | M |
+| AgentAccess | Approvals log (permission and plan requests with decision and decider) | done | the tokens page lists the last 20 decided requests: what, agent, decider, when | L |
 | AgentAccess | Policy defaults card: write scope, never trunk, changes per run, cost cap, token lifetime, who may decide, link to Policy | done | templates/repo/asc_agents_defaults.tmpl on the tokens page: [agents] default_scope, trunk and denied_paths, max_changes_per_run and max_cost_micro_usd from the policy (No limit when unset), the longest token lifetime asc allows, who may decide (people with write access, as AscAgentsDecide requires), and a link to Policy and trust; without a readable policy it says the server defaults apply; asc_agents_tokens_test.go TestAscAgentsTokensPolicyDefaults | - |
 | AgentAccess | Spend this month panel: cap, daily spend chart, per-agent totals, 'people using AI keys' | done | asc: spend history aggregates; hub AI-key usage (services/ascbyo); new Spend page (Spend page renders with live data; cap save covered by Go tests) | L |
 | AgentAccess | Revoke confirm dialog naming the agent; Budget dialog | done | templates/repo/asc_agents_tokens.tmpl (disclosure forms with reason, not modal dialogs) | - |
