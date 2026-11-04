@@ -1,0 +1,10 @@
+{{/* "Start from": Empty, Template or Import, one form. Switching keeps what was typed and Import carries the owner,
+name, description and visibility to the importer chosen. Dot: page data. */}}
+<div class="rp-start" data-new-start data-testid="newrepo-start">
+	<span class="ds-label" id="rp-start-l">{{ctx.Locale.Tr "asc_rp.newrepo_start"}}</span>
+	<div class="ds-seg" role="group" aria-labelledby="rp-start-l">
+		<button type="button" data-start="empty" aria-pressed="{{if .repo_template}}false{{else}}true{{end}}">{{ctx.Locale.Tr "asc_rp.newrepo_start_empty"}}</button>
+		<button type="button" data-start="template" aria-pressed="{{if .repo_template}}true{{else}}false{{end}}">{{ctx.Locale.Tr "asc_rp.newrepo_start_template"}}</button>
+		{{if .NewRepoImports}}<button type="button" data-start="import" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.newrepo_start_import"}}</button>{{end}}
+	</div>
+</div>

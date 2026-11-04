@@ -1,0 +1,29 @@
+{{/*
+The preview of the new repository (board NewRepo): owner / name, visibility, the policy, and the commands to run once it
+exists. The server fills it from the form as typed; repo-new.js keeps it in step while the person types.
+Dot: page data (ContextUser, Orgs, CanCreateRepo, repo_name, visibility, policy_file, NewRepoIsAsc).
+*/}}
+{{$owner := .ContextUser}}{{if and (not .CanCreateRepo) .Orgs}}{{$owner = index .Orgs 0}}{{end}}
+{{$name := or .repo_name (ctx.Locale.TrString "asc_rp.newrepo_preview_noname")}}
+<section class="rp-sec rp-new-preview" aria-labelledby="rp-new-preview-h" data-new-preview data-start-not-import data-testid="newrepo-preview">
+	<div class="rp-sec-h">
+		<div>
+			<h2 class="rp-sec-title" id="rp-new-preview-h">{{ctx.Locale.Tr "asc_rp.newrepo_preview"}}</h2>
+		</div>
+	</div>
+	<div class="rp-sec-b ds-stack ds-stack-16">
+		<p class="rp-new-preview-id">
+			<strong class="ds-mono" data-pv-name data-noname="{{ctx.Locale.Tr "asc_rp.newrepo_preview_noname"}}">{{$owner.Name}} / {{$name}}</strong>
+			<span class="ds-chip" data-pv-vis>{{ctx.Locale.Tr (print "repo.visibility_" (or .visibility "private"))}}</span>
+			{{if .NewRepoIsAsc}}<span class="ds-chip ds-chip-ok" data-pv-policy{{if not .policy_file}} hidden{{end}}>{{ctx.Locale.Tr "asc_rp.newrepo_preview_policy"}}</span>{{end}}
+		</p>
+		<div>
+			<p class="ds-label" id="rp-new-then">{{ctx.Locale.Tr "asc_rp.newrepo_then"}}</p>
+			<div class="ds-term">
+				<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_rp.terminal"}}</span><button type="button" class="ds-copy" data-pv-copy data-clipboard-text="asc clone {{AppUrl}}{{$owner.Name}}/{{$name}}.git&#10;cd {{$name}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+				<div class="ds-term-bd" tabindex="0" role="region" aria-labelledby="rp-new-then"><span class="ds-pr">$</span> asc clone <span data-pv-url data-base="{{AppUrl}}">{{AppUrl}}{{$owner.Name}}/{{$name}}.git</span>
+<span class="ds-pr">$</span> cd <span data-pv-dir>{{$name}}</span></div>
+			</div>
+		</div>
+	</div>
+</section>

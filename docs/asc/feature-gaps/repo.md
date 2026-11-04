@@ -64,15 +64,15 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | NewRepo | Page shell, owner select, name, description, auto-init options (Forgejo flow in design-system markup) | done | `H:templates/repo/create*.tmpl` | S |
 | NewRepo | Name availability check as you type (300 ms), tick and inline "acme/ledger already exists" | done | `H:routers/web/repo/asc_newrepo.go` CheckName (`GET /repo/check_name?uid=&name=`: free, taken as "owner/name already exists", reserved or bad characters), `H:web_src/js/features/repo-new.js` (300 ms, text only, aria-invalid, status line `repo_name_status` in `create_basic.tmpl`); the form still decides on submit; tests: TestCheckNameAnswersFreeTakenAndReserved, vitest applyNameCheck; checked on a live hub | - |
-| NewRepo | "Start from" segment: Empty / Template / Import that keeps typed values | ui-only-missing | `H:templates/repo/create.tmpl` stacks the template section and the migrate page is separate (`H:templates/repo/migrate/*`); merge into one page | M |
+| NewRepo | "Start from" segment: Empty / Template / Import that keeps typed values | done | `H:templates/repo/create_start.tmpl` (Empty / Template / Import, `aria-pressed`) and `create_import.tmpl` (one link per importer, hidden when migrations are off); `repo-new.js` keeps the owner, name, description and visibility in the import links and `migrate.go` fills them in; `asc_newrepo_start_test.go`, `repo-new.test.js` | M |
 | NewRepo | Visibility as three radio cards: Private, Internal, Public | done (seen on a live hub (ui36): the create form has the three cards; Internal needs the migration v17z) | `H:models/repo/repo.go` has `IsPrivate` only; asc already returns `visibility` "private / internal / public" in `RepoConfig`; add an internal level (signed-in users read) in models, permission checks and the form | L |
 | NewRepo | Working mode radio: Branchless (recommended) / With branches at creation | done | asc: `RepoAdmin.set_branchless` (new op 9 of RepoAdminRequest in `proto/asc/v1/repo.proto`; repo admin, x-asc-op-id, audited as `repo.branchless`; asc refuses to strand a ref: branchless on only when every branch is shared, off only when no user ref exists; branch `feat/repo-set-branchless` in the asc repository). Hub: `services/ascsync/branchless.go` SetBranchless, `services/repository/create.go` (set while the repository is still empty, before the first commit), the radio in `templates/repo/create_asc.tmpl` (default Branchless, as the board recommends). Checked on a live asc: branchless repository has the flag and one audit event, "With branches" is the asc default and records nothing. The settings page still has no form to change the mode of an existing repository. | - |
 | NewRepo | Add AGENTS.md switch | done | `H:templates/repo/create_asc.tmpl`, `H:services/repository/asc_init_files.go` (AgentsFileText; a first commit even without the README switch), `forms.CreateRepoForm.AgentsFile`; checked on a live asc: the file is in the first commit | - |
 | NewRepo | Add a policy file switch (`.asc/policy.toml`, 2 approvals, picked checks) | done | `H:templates/repo/create_asc.tmpl` (approvals 0 to 5, default 2, required checks by name), `H:services/repository/asc_init_files.go` (PolicyFileText: `version = 1`, you as maintainer, `[trunk]` approvals and checks; names are checked, nothing typed reaches the file unquoted; only where asc keeps the repository); asc accepted the file on a live asc; tests: TestParsePolicyChecks, TestPolicyFileText, TestAscExtraFiles | - |
 | NewRepo | License choice | done | `H:templates/repo/create_init.tmpl` | S |
-| NewRepo | Preview card ("acme / payments-v2, Private, Policy on") and "Then, from your terminal" commands | ui-only-missing | `H:templates/repo/create.tmpl` plus script | S |
+| NewRepo | Preview card ("acme / payments-v2, Private, Policy on") and "Then, from your terminal" commands | done | `H:templates/repo/create_preview.tmpl`: owner / name, visibility and policy follow the form (`repo-new.js`), then the terminal commands; `repo-new.test.js` | S |
 | NewRepo | Quota line "41 of 100 used on the Team plan" and quota-reached state | done | `H:routers/web/repo/asc_newrepo.go` prepareAscNewRepo: "N of M repositories used." and "The limit is reached." from the owner's repository count and limit (shown only when there is a limit). The hub has no plans, so there is no plan name; tests: TestPrepareAscNewRepoQuotaLine | - |
-| NewRepo | Creating state ("Creating acme/payments-v2 and its first policy...") | ui-only-missing | button disabled and busy text in script | S |
+| NewRepo | Creating state ("Creating acme/payments-v2 and its first policy...") | done | `repo-new.js`: on submit the button is disabled and says "Creating owner/name…" (or "…and its first policy"); `repo-new.test.js` | S |
 | NewRepo | Import running: progress "3,412 of 9,880 history entries", Run in background, Cancel | needs-both | hub `H:web_src/js/features/repo-migration.js` polls Forgejo migration tasks; asc needs a history-to-changes import progress source (`Repo.Ingest`/`ImportGitPush` have no progress stream) | L |
 | NewRepo | "Signed with your key mo_41c9" line | done | `H:routers/web/repo/asc_newrepo.go` prepareAscNewRepo reads Signing.ListKeys as the person (asctrust.LoadKeys): "Signed with your key <id>", or "You have no signing key yet" with a link to add one; left out when asc does not answer; checked on a live asc (no key case) | - |
 | NewRepo | Sticky primary action on mobile | done | `.ds-sticky-actions` in `create.tmpl` | S |
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 146 |
+| done | 149 |
 | partial | 1 |
-| ui-only-missing | 55 |
+| ui-only-missing | 52 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
