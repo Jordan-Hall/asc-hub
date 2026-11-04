@@ -127,6 +127,26 @@
 .adm-tile-warn { background: var(--warn-soft); color: var(--warn); }
 .adm-tile-err { background: var(--err-soft); color: var(--err); }
 .adm-tile-info { background: var(--primary-soft); color: var(--link); }
+.adm-tile-norun { background: transparent; border: 1px dashed var(--line-strong); color: var(--text-2); }
+
+/* A step of the health page that has not run yet, and the one running now (board AdminHealth). */
+.adm-tile-wait { background: transparent; border: 1px dashed var(--line-2); }
+
+.adm-tile-run::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--text-2);
+  border-right-color: transparent;
+  animation: ds-spin 0.8s linear infinite;
+}
+
+.adm-check[data-state="wait"] .ds-li-title { color: var(--text-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-tile-run::after { animation: none; border-right-color: var(--text-2); }
+}
 .adm-tile-agent { background: var(--agent-soft); color: var(--agent); }
 
 /* rows inside a card: no frame of their own */

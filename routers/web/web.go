@@ -954,6 +954,7 @@ func registerRoutes(m *web.Route) {
 		m.Post("", web.Bind(forms.AdminDashboardForm{}), admin.DashboardPost)
 
 		m.Get("/self_check", admin.SelfCheck)
+		m.Get("/self_check/checks/{id}", admin.SelfCheckStep)
 		m.Get("/asc/backups", admin.Backups)
 		m.Get("/maintenance", admin.Maintenance)
 		m.Post("/maintenance", admin.MaintenancePost)

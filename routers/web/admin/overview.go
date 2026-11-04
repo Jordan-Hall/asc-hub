@@ -122,7 +122,8 @@ func esc(s string) template.HTML { return template.HTML(html.EscapeString(s)) }
 
 // checkRow is one line of the self check: what was tried, how it went, and where to fix it.
 type checkRow struct {
-	State string // "ok", "warn" or "err"
+	ID    string // the step of the check (asc_health.go)
+	State string // "ok", "warn", "err" or "norun"
 	Name  template.HTML
 	Text  template.HTML
 	Label template.HTML
@@ -132,64 +133,23 @@ type checkRow struct {
 // healthFacts runs the checks of the self check page and fills the gauges of the runtime.
 func healthFacts(ctx *context.Context) {
 	var rows []checkRow
-	ok, warn, fail := 0, 0, 0
-	add := func(r checkRow) {
+	ok, warn, fail, norun := 0, 0, 0, 0
+	for _, c := range healthChecks() {
+		r, applies := runHealthCheck(ctx, c)
+		if !applies {
+			continue
+		}
 		switch r.State {
-		case "ok":
+		case checkOK:
 			ok++
-			r.Label = ctx.Tr("asc_admin.check_passed")
-		case "warn":
+		case checkWarn:
 			warn++
-			r.Label = ctx.Tr("asc_admin.check_warning")
+		case checkNoRun:
+			norun++
 		default:
 			fail++
-			r.Label = ctx.Tr("asc_admin.check_failed")
 		}
 		rows = append(rows, r)
-	}
-
-	if err := db.GetEngine(ctx).Ping(); err != nil {
-		add(checkRow{State: "err", Name: ctx.Tr("asc_admin.check_db"), Text: esc(err.Error())})
-	} else {
-		add(checkRow{State: "ok", Name: ctx.Tr("asc_admin.check_db"), Text: ctx.Tr("asc_admin.check_db_ok", string(setting.Database.Type))})
-	}
-
-	if r, ok := ctx.Data["DatabaseCheckResult"]; ok && r != nil {
-		switch {
-		case ctx.Data["DatabaseCheckCollationMismatch"] == true || len(inconsistentColumns(ctx)) > 0:
-			add(checkRow{State: "err", Name: ctx.Tr("asc_admin.check_collation"), Text: ctx.Tr("asc_admin.check_collation_bad")})
-		case ctx.Data["DatabaseCheckCollationCaseInsensitive"] == true:
-			add(checkRow{State: "warn", Name: ctx.Tr("asc_admin.check_collation"), Text: ctx.Tr("asc_admin.check_collation_ci")})
-		default:
-			add(checkRow{State: "ok", Name: ctx.Tr("asc_admin.check_collation"), Text: ctx.Tr("asc_admin.check_collation_ok")})
-		}
-	}
-
-	if ctx.Data["CacheError"] != nil {
-		add(checkRow{State: "err", Name: ctx.Tr("asc_admin.sys_cache"), Text: esc(fmt.Sprint(ctx.Data["CacheError"])), Fix: setting.AppSubURL + "/admin/config"})
-	} else if slow, _ := ctx.Data["CacheSlow"].(string); slow != "" {
-		add(checkRow{State: "warn", Name: ctx.Tr("asc_admin.sys_cache"), Text: ctx.Tr("asc_admin.sys_cache_slow", slow), Fix: setting.AppSubURL + "/admin/config"})
-	} else {
-		add(checkRow{State: "ok", Name: ctx.Tr("asc_admin.sys_cache"), Text: ctx.Tr("asc_admin.check_cache_ok")})
-	}
-
-	if setting.Actions.Enabled {
-		total, _ := db.Count[actions_model.ActionRunner](ctx, actions_model.FindRunnerOptions{WithVisible: true})
-		offline, _ := db.Count[actions_model.ActionRunner](ctx, actions_model.FindRunnerOptions{WithVisible: true, IsOnline: optional.Some(false)})
-		switch {
-		case total == 0:
-			add(checkRow{State: "warn", Name: ctx.Tr("asc_admin.sys_runners"), Text: ctx.Tr("asc_admin.sys_runners_none"), Fix: setting.AppSubURL + "/admin/actions/runners"})
-		case offline > 0:
-			add(checkRow{State: "err", Name: ctx.Tr("asc_admin.sys_runners"), Text: ctx.Tr("asc_admin.check_runners_off", total-offline, total), Fix: setting.AppSubURL + "/admin/actions/runners"})
-		default:
-			add(checkRow{State: "ok", Name: ctx.Tr("asc_admin.sys_runners"), Text: ctx.Tr("asc_admin.check_runners_ok", total)})
-		}
-	}
-
-	if n := system_model.CountNotices(ctx); n > 0 {
-		add(checkRow{State: "warn", Name: ctx.Tr("asc_admin.notices"), Text: ctx.Locale.TrN(n, "asc_admin.att_notices_one", "asc_admin.att_notices_other", n), Fix: setting.AppSubURL + "/admin/notices"})
-	} else {
-		add(checkRow{State: "ok", Name: ctx.Tr("asc_admin.notices"), Text: ctx.Tr("asc_admin.check_notices_ok")})
 	}
 
 	updateSystemStatus()
@@ -202,7 +162,8 @@ func healthFacts(ctx *context.Context) {
 	ctx.Data["CPUGauge"] = cpuGauge()
 	ctx.Data["DiskGauge"] = diskGauge(setting.AppDataPath)
 	ctx.Data["Checks"] = rows
-	ctx.Data["ChecksOK"], ctx.Data["ChecksWarn"], ctx.Data["ChecksFail"] = ok, warn, fail
+	ctx.Data["ChecksOK"], ctx.Data["ChecksWarn"], ctx.Data["ChecksFail"], ctx.Data["ChecksNoRun"] = ok, warn, fail, norun
+	ctx.Data["ChecksTally"] = checkTally(ctx, ok, warn, fail, norun)
 	var report strings.Builder
 	for _, r := range rows {
 		fmt.Fprintf(&report, "%s: %s. %s\n", r.Name, r.Label, r.Text)
