@@ -14,6 +14,7 @@ import (
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
@@ -82,6 +83,23 @@ func TestAscStackRailRowsShowAuthorSizeAndReview(t *testing.T) {
 	assert.Contains(t, html, "asc_review.rail_approved")
 	assert.Contains(t, html, "asc_review.rail_changes")
 	assert.Equal(t, 2, strings.Count(html, `data-testid="asc-rail-review"`))
+	assert.NotContains(t, html, `data-asc-confirm-sheet`, "no actions: no sheet")
+
+	pos, n := ascLandPlace(&pull_service.AscStackPanel{Entries: []pull_service.AscStackEntry{
+		{Index: 2, State: "merged"}, {Index: 3, State: "open", Position: 1}, {Index: 4, State: "open", Position: 2, Current: true}, {Index: 5, State: "open", Position: 3},
+	}})
+	assert.Equal(t, 2, pos)
+	assert.Equal(t, 2, n, "the merged change and the one above are not landed")
+	pos, n = ascLandPlace(nil)
+	assert.Zero(t, pos+n)
+
+	acted := renderPart(t, "repo/pulls/asc_stack", func(d map[string]any) {
+		d["AscStackPanel"] = &pull_service.AscStackPanel{Entries: []pull_service.AscStackEntry{{Index: 3, Title: "one", State: "open", Link: "/user2/repo1/pulls/3", Position: 1, Current: true}}}
+		d["AscActions"] = &AscStackActions{CanMerge: true, CanQueue: true, ConfirmURL: "/user2/repo1/pulls/3/asc/confirm"}
+	})
+	assert.Contains(t, acted, `data-testid="asc-confirm-sheet"`)
+	assert.Contains(t, acted, `aria-labelledby="asc-confirm-sheet-h"`)
+	assert.Equal(t, 2, strings.Count(acted, `data-asc-confirm-open href="/user2/repo1/pulls/3/asc/confirm?op=`), "every operation opens in the sheet on a phone")
 
 	assert.Equal(t, "changes", ascStackReview(true, true, true))
 	assert.Equal(t, "approved", ascStackReview(true, false, true))
@@ -139,6 +157,23 @@ func TestAscConfirmNamesBranchAndHashesAndFocusesCancel(t *testing.T) {
 	cancel := body[strings.Index(body, `data-testid="asc-confirm-cancel"`)-120:]
 	assert.Contains(t, cancel[:200], "autofocus", "Cancel is the default focus of a merge")
 	assert.NotContains(t, body[:strings.Index(body, `data-testid="asc-confirm-button"`)], "autofocus")
+
+	assert.Contains(t, body, ">repo.pulls.asc_op.confirm.merge</button>", "no count: the button of the operation")
+	counted := renderPart(t, "repo/asc_confirm", func(d map[string]any) {
+		d["Title"] = "Merge 2 changes into main?"
+		d["AscOp"] = "merge"
+		d["AscBack"] = "/user2/repo1/pulls/3"
+		d["AscCanConfirm"] = true
+		d["AscConfirmLabel"] = "Merge 2 changes"
+	})
+	assert.Contains(t, counted, ">Merge 2 changes</button>")
+	assert.Contains(t, counted, "Merge 2 changes into main?")
+	title, button := ascMergeQuestion(translation.MockLocale{}, 2, "main")
+	assert.Equal(t, "repo.pulls.asc_op.ask_merge_other", title)
+	assert.Equal(t, "repo.pulls.asc_op.confirm_merge_other", button)
+	title, button = ascMergeQuestion(translation.MockLocale{}, 1, "main")
+	assert.Equal(t, "repo.pulls.asc_op.ask_merge_one", title)
+	assert.Equal(t, "repo.pulls.asc_op.confirm_merge_one", button)
 
 	queue := page("queue", nil)
 	assert.NotContains(t, queue, "asc-merge-facts")

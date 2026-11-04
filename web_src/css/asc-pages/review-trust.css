@@ -959,22 +959,27 @@
   }
 }
 
-/* the undo preview as a bottom sheet on a phone (board Mobile-Ops); from 640 it loads in the side panel instead */
-.rv-ops-sheet .rv-sheet-h {
+/* the undo preview as a bottom sheet on a phone (board Mobile-Ops); from 640 it loads in the side panel instead. The
+   confirmation of a stack operation opens the same way from the stack card (board Mobile-ReviewVersions) */
+.rv-ops-sheet .rv-sheet-h,
+.rv-confirm-sheet .rv-sheet-h {
   margin: 0;
   font-size: 17px;
 }
 
-.rv-ops-sheet .rv-lead {
+.rv-ops-sheet .rv-lead,
+.rv-confirm-sheet .rv-lead {
   margin-top: 0;
 }
 
-.rv-ops-sheet .rv-sticky {
+.rv-ops-sheet .rv-sticky,
+.rv-confirm-sheet .rv-sticky {
   bottom: 0;
   background: var(--surface);
 }
 
-.rv-ops-sheet .rv-btn {
+.rv-ops-sheet .rv-btn,
+.rv-confirm-sheet .rv-btn {
   min-height: 44px;
 }
 

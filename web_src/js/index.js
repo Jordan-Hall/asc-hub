@@ -91,6 +91,7 @@ import {initAscAppliedToast} from './features/asc-applied-toast.js';
 import {initAscOps} from './features/asc-ops.js';
 import {initAscChecksSwipe} from './features/asc-checks-swipe.js';
 import {initAscPullRefresh} from './features/asc-pull-refresh.js';
+import {initAscConfirmSheet, initAscUndoToast} from './features/asc-confirm-sheet.js';
 import {initAscMeters} from './features/asc-meters.js';
 import {initAscIntent} from './features/asc-intent.js';
 import {initAscTitleCounter} from './features/asc-title-counter.js';
@@ -266,6 +267,8 @@ onDomReady(() => {
   initAscOps();
   initAscChecksSwipe();
   initAscPullRefresh();
+  initAscConfirmSheet();
+  initAscUndoToast();
   initAscMeters();
   initAscIntent();
   initAscTitleCounter();
