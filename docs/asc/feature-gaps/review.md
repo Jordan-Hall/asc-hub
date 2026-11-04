@@ -8,11 +8,11 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 205 |
+| done | 206 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 9 |
+| needs-both | 8 |
 | total | 214 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -20,7 +20,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 |---|---|---|---|---|---|
 | Review | 28 | 0 | 0 | 0 | 2 |
-| ReviewVersions | 12 | 0 | 0 | 0 | 1 |
+| ReviewVersions | 13 | 0 | 0 | 0 | 0 |
 | NewChange | 12 | 0 | 0 | 0 | 1 |
 | Checks | 12 | 0 | 0 | 0 | 1 |
 | ChangeChecks | 9 | 0 | 0 | 0 | 1 |
@@ -97,7 +97,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | ReviewVersions | Compare header: '+2 -1 in 1 of 3 files, Priya's approval still applies to the other 2' | done | asc: per-file unchanged set; hub: pulls/asc_versions.tmpl; Audit 2026-10-30 (built): Review.CompareVersions gives the +added -removed in N of M files and which approvals still apply (asc_compare_versions.go, asc_versions.tmpl) | M |
 | ReviewVersions | Restack-available banner 'Trunk moved 3 commits since v2' with Restack | done | templates/repo/pulls/asc_stack.tmpl | - |
 | ReviewVersions | Land-the-stack panel: scope radios (Bottom 2 / All 4 / Just 1), dry run re-run on scope change | done | templates/repo/asc_confirm.tmpl; routers/web/repo/asc_queue.go ascLandTarget | - |
-| ReviewVersions | Land panel summary: merge order, signed-by list, queue position and ETA, undo window 30 min | needs-both | templates/repo/asc_confirm.tmpl; ETA as in Review | M |
+| ReviewVersions | Land panel summary: merge order, signed-by list, queue position and ETA, undo window 30 min | done | templates/repo/asc_confirm.tmpl asc-land-summary + routers/web/repo/asc_land_summary.go: the order the pull requests land in, the verified signers and the count without one (asc trust), the place in the merge queue with asc's estimate for Merge when ready, and asc's undo window of the target branch (ListRefLog undo_window_seconds); a part asc cannot answer is left out; asc_land_summary_test.go | M |
 | ReviewVersions | Confirm for Merge now names branch, current hash and result hash; default focus Cancel | done | templates/repo/asc_confirm.tmpl AscMergeFacts: branch, where it is now, where it will be (the head of the change merged); Cancel has the focus for merge and revert (test: TestAscConfirmNamesBranchAndHashesAndFocusesCancel) | - |
 | ReviewVersions | Result toast 'Merged 2 changes... Undo is open for 30 minutes' with Undo; undone toast | done | routers/web/repo/asc_queue.go ascMergedMessage: the banner after Merge now carries an Undo link to the undo preview while the merge is the newest operation on the branch (a banner, not a toast; the 30 minute window of the board does not exist: only the newest operation of a ref can be undone, and the text says so); the undone message is the existing flash (test: TestAscMergedMessageUndoLink) | - |
 | ReviewVersions | Merge refused because trunk moved, 'Reload dry run' | done | templates/repo/asc_confirm.tmpl (asc-failure banner) | - |
