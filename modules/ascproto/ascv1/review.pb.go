@@ -2721,10 +2721,14 @@ func (x *MarkSuggestionAppliedResponse) GetThread() *ReviewThread {
 }
 
 type SuggestReviewersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
-	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
-	Limit         uint32                 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"` // 0 means 5, at most 20
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Repo   *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Change []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"` // empty: suggest for paths instead
+	Limit  uint32                 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`  // 0 means 5, at most 20
+	// Before a change exists (a compare of two branches): the files it would touch, at most 1000,
+	// and the handle of the person who would open it, who is left out.
+	Paths         [][]byte `protobuf:"bytes,4,rep,name=paths,proto3" json:"paths,omitempty"`
+	Author        string   `protobuf:"bytes,5,opt,name=author,proto3" json:"author,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2780,15 +2784,34 @@ func (x *SuggestReviewersRequest) GetLimit() uint32 {
 	return 0
 }
 
+func (x *SuggestReviewersRequest) GetPaths() [][]byte {
+	if x != nil {
+		return x.Paths
+	}
+	return nil
+}
+
+func (x *SuggestReviewersRequest) GetAuthor() string {
+	if x != nil {
+		return x.Author
+	}
+	return ""
+}
+
 type SuggestedReviewer struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Handle        string                 `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
-	IsAgent       bool                   `protobuf:"varint,2,opt,name=is_agent,json=isAgent,proto3" json:"is_agent,omitempty"`
-	Reviews       uint32                 `protobuf:"varint,3,opt,name=reviews,proto3" json:"reviews,omitempty"`                              // finished reviews in this repository
-	OnSameFiles   uint32                 `protobuf:"varint,4,opt,name=on_same_files,json=onSameFiles,proto3" json:"on_same_files,omitempty"` // threads they opened on the files this change touches
-	Reason        string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Handle           string                 `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
+	IsAgent          bool                   `protobuf:"varint,2,opt,name=is_agent,json=isAgent,proto3" json:"is_agent,omitempty"`
+	Reviews          uint32                 `protobuf:"varint,3,opt,name=reviews,proto3" json:"reviews,omitempty"`                              // finished reviews in this repository
+	OnSameFiles      uint32                 `protobuf:"varint,4,opt,name=on_same_files,json=onSameFiles,proto3" json:"on_same_files,omitempty"` // threads they opened on the files this change touches
+	Reason           string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	Owns             string                 `protobuf:"bytes,6,opt,name=owns,proto3" json:"owns,omitempty"`                                                    // the [paths] glob of the policy that names them as a writer, if any
+	MedianReviewSecs uint64                 `protobuf:"varint,7,opt,name=median_review_secs,json=medianReviewSecs,proto3" json:"median_review_secs,omitempty"` // from a request to a finished review, over their recent reviews; 0 when unknown
+	Knows            []byte                 `protobuf:"bytes,8,opt,name=knows,proto3" json:"knows,omitempty"`                                                  // the directory of these files where they opened the most threads
+	KnowsPercent     uint32                 `protobuf:"varint,9,opt,name=knows_percent,json=knowsPercent,proto3" json:"knows_percent,omitempty"`               // their share of all threads in that directory
+	CanApprove       bool                   `protobuf:"varint,10,opt,name=can_approve,json=canApprove,proto3" json:"can_approve,omitempty"`                    // false for an agent when the policy asks for a person
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *SuggestedReviewer) Reset() {
@@ -2854,6 +2877,41 @@ func (x *SuggestedReviewer) GetReason() string {
 		return x.Reason
 	}
 	return ""
+}
+
+func (x *SuggestedReviewer) GetOwns() string {
+	if x != nil {
+		return x.Owns
+	}
+	return ""
+}
+
+func (x *SuggestedReviewer) GetMedianReviewSecs() uint64 {
+	if x != nil {
+		return x.MedianReviewSecs
+	}
+	return 0
+}
+
+func (x *SuggestedReviewer) GetKnows() []byte {
+	if x != nil {
+		return x.Knows
+	}
+	return nil
+}
+
+func (x *SuggestedReviewer) GetKnowsPercent() uint32 {
+	if x != nil {
+		return x.KnowsPercent
+	}
+	return 0
+}
+
+func (x *SuggestedReviewer) GetCanApprove() bool {
+	if x != nil {
+		return x.CanApprove
+	}
+	return false
 }
 
 type SuggestReviewersResponse struct {
@@ -4880,17 +4938,26 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"comment_id\x18\x04 \x01(\x04R\tcommentId\x12\x18\n" +
 	"\aversion\x18\x05 \x01(\rR\aversion\"M\n" +
 	"\x1dMarkSuggestionAppliedResponse\x12,\n" +
-	"\x06thread\x18\x01 \x01(\v2\x14.asc.v1.ReviewThreadR\x06thread\"r\n" +
+	"\x06thread\x18\x01 \x01(\v2\x14.asc.v1.ReviewThreadR\x06thread\"\xa6\x01\n" +
 	"\x17SuggestReviewersRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1c\n" +
 	"\x06change\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x02R\x06change\x12\x14\n" +
-	"\x05limit\x18\x03 \x01(\rR\x05limit\"\x9c\x01\n" +
+	"\x05limit\x18\x03 \x01(\rR\x05limit\x12\x1a\n" +
+	"\x05paths\x18\x04 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\x12\x16\n" +
+	"\x06author\x18\x05 \x01(\tR\x06author\"\xc0\x02\n" +
 	"\x11SuggestedReviewer\x12\x16\n" +
 	"\x06handle\x18\x01 \x01(\tR\x06handle\x12\x19\n" +
 	"\bis_agent\x18\x02 \x01(\bR\aisAgent\x12\x18\n" +
 	"\areviews\x18\x03 \x01(\rR\areviews\x12\"\n" +
 	"\ron_same_files\x18\x04 \x01(\rR\vonSameFiles\x12\x16\n" +
-	"\x06reason\x18\x05 \x01(\tR\x06reason\"S\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\x12\x12\n" +
+	"\x04owns\x18\x06 \x01(\tR\x04owns\x12,\n" +
+	"\x12median_review_secs\x18\a \x01(\x04R\x10medianReviewSecs\x12\x1a\n" +
+	"\x05knows\x18\b \x01(\fB\x04\xa8\xbb\x18\x03R\x05knows\x12#\n" +
+	"\rknows_percent\x18\t \x01(\rR\fknowsPercent\x12\x1f\n" +
+	"\vcan_approve\x18\n" +
+	" \x01(\bR\n" +
+	"canApprove\"S\n" +
 	"\x18SuggestReviewersResponse\x127\n" +
 	"\treviewers\x18\x01 \x03(\v2\x19.asc.v1.SuggestedReviewerR\treviewers\"8\n" +
 	"\x0eGateRuleResult\x12\x12\n" +
