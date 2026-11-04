@@ -159,7 +159,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| Compare | From / To, swap, "only what the stack adds" checkbox, ahead / behind chips, common ancestor | ui-only-missing | `H:templates/repo/asc_compare.tmpl`, `H:routers/web/repo/asc_compare.go`;; Audit 2026-10-30 (was marked done, part missing): Marked done; the checkbox only what the stack adds was not found. | S |
+| Compare | From / To, swap, "only what the stack adds" checkbox, ahead / behind chips, common ancestor | done | `H:templates/repo/asc_compare.tmpl`: From / To selects, swap, ahead / behind chips and the common ancestor; "Only what the stack adds" is the three-dot compare (from the common ancestor) with a hint; `asc_compare_test.go` | S |
 | Compare | From / To as labelled selects listing shared refs, stacks and tags (text inputs today) | done | `asc_compare.tmpl`; options from refs/pulls | S |
 | Compare | Per-change and per-file +/- counts and avatars | done (seen on a live hub (ui10)) | `AscCompareCommit`/`AscCompareFile` carry no stats; `Repo.Compare` returns `PathChange` and `LogEntry`; add numstat (`Repo.Diff`) | M |
 | Compare | Same version state ("Both sides are main@a41f9c2") | done | `asc_compare.tmpl` shows "Nothing to compare" without the ref | S |
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 159 |
+| done | 160 |
 | partial | 1 |
-| ui-only-missing | 42 |
+| ui-only-missing | 41 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |

@@ -286,6 +286,8 @@ func TestAscOverlapCompareView(t *testing.T) {
 		assert.NotContains(t, body, "<script>x")
 		assert.Contains(t, body, "a.go")
 		assert.Contains(t, body, strings.Repeat("ab", 20))
+		assert.Contains(t, body, `aria-describedby="asc-compare-three-hint" checked`, "only what the stack adds")
+		assert.Contains(t, body, "repo.asc_compare.three_dot_hint")
 	})
 
 	t.Run("bad revisions never reach asc", func(t *testing.T) {

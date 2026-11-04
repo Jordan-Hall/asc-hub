@@ -24,8 +24,9 @@
 			</div>
 			<div class="rp-cmp-go">
 				<label class="ds-check">
-					<input id="asc-compare-three" name="three_dot" type="checkbox" value="1"{{if .AscCompareThreeDot}} checked{{end}}>
+					<input id="asc-compare-three" name="three_dot" type="checkbox" value="1" aria-describedby="asc-compare-three-hint"{{if .AscCompareThreeDot}} checked{{end}}>
 					<span>{{ctx.Locale.Tr "repo.asc_compare.three_dot"}}</span>
+					<span class="ds-hint" id="asc-compare-three-hint">{{ctx.Locale.Tr "repo.asc_compare.three_dot_hint"}}</span>
 				</label>
 				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "repo.asc_compare.show"}}</button>
 			</div>
