@@ -1,0 +1,5 @@
+{{/* Shown by asc-page-loading.js while the next page of the history loads, in the place of the list. */}}
+<div class="rp-sec rp-histcard rp-histload" role="status" data-loading-skel data-testid="history-loading" hidden>
+	<span class="ds-sr">{{ctx.Locale.Tr "asc_rp.history_loading"}}</span>
+	{{range 8}}<div class="rp-histload-row" aria-hidden="true"><span class="rp-sk rp-sk-line"></span><span class="rp-sk rp-sk-word"></span></div>{{end}}
+</div>
