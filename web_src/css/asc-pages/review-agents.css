@@ -552,3 +552,47 @@
   display: inline-flex;
   color: var(--link);
 }
+
+/* the pull to refresh arrow of the installed app (asc-pull-refresh.js): hidden above the page until a pull brings it down */
+.rv-ptr {
+  position: fixed;
+  top: -36px;
+  inset-inline-start: calc(50% - 18px);
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-2);
+  box-shadow: var(--rv-shadow-menu);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rv-ptr.is-pulling,
+.rv-ptr.is-loading {
+  opacity: 1;
+}
+
+.rv-ptr.is-armed {
+  color: var(--link);
+}
+
+.rv-ptr.is-loading svg {
+  animation: rv-ptr-spin 800ms linear infinite;
+}
+
+@keyframes rv-ptr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-ptr.is-loading svg {
+    animation: none;
+  }
+}
