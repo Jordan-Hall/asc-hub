@@ -129,7 +129,11 @@ func clearAscNewChangeDraft(ctx *context.Context, compare string) {
 	if ctx.Doer == nil || ctx.Repo == nil || ctx.Repo.Repository == nil || ctx.Repo.Repository.GetStorageBackend() != string(gitrepo.StorageBackendAsc) {
 		return
 	}
-	id := ascNewChangeDraftIDOf(ctx.Repo.Repository.ID, compare)
+	clearAscDraft(ctx, ascNewChangeDraftIDOf(ctx.Repo.Repository.ID, compare))
+}
+
+// clearAscDraft removes one draft of the signed-in person. It is best effort.
+func clearAscDraft(ctx *context.Context, id string) {
 	d := ascNewChangeDraftsOf(ctx, ctx.Doer.ID)
 	if _, ok := d[id]; !ok {
 		return
@@ -140,11 +144,14 @@ func clearAscNewChangeDraft(ctx *context.Context, compare string) {
 	}
 }
 
-// AscNewChangeDraftState is the template data of the form: where to save, the id and the restored note.
+// AscNewChangeDraftState is the template data of the form: where to save, the id and the restored note. Issue is set for
+// the draft of a new issue, whose hint names an issue; Title and Body are the restored text for the new issue dialog.
 type AscNewChangeDraftState struct {
-	URL, ID  string
-	Restored bool
-	SavedAt  time.Time
+	URL, ID     string
+	Restored    bool
+	SavedAt     time.Time
+	Issue       bool
+	Title, Body string
 }
 
 // prepareAscNewChangeDraft gives the form of a new change its draft: the saved title and description fill the form when
@@ -183,6 +190,12 @@ func AscNewChangeDraftSave(ctx *context.Context) {
 		ctx.JSON(http.StatusBadRequest, map[string]string{"error": "id"})
 		return
 	}
+	saveAscDraftForm(ctx, id)
+}
+
+// saveAscDraftForm keeps the title and the content of the posted form as the draft id of the signed-in person, or removes
+// the draft when the form says discard or holds no text.
+func saveAscDraftForm(ctx *context.Context, id string) {
 	drafts := ascNewChangeDraftsOf(ctx, ctx.Doer.ID)
 	title := strings.ReplaceAll(ctx.Req.PostFormValue("title"), "\r", "")
 	body := strings.ReplaceAll(ctx.Req.PostFormValue("content"), "\r\n", "\n")
@@ -206,4 +219,73 @@ func AscNewChangeDraftSave(ctx *context.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, map[string]any{"saved": saved, "at": now})
+}
+
+// The draft of a new issue (board Issues): the "New issue" dialog of the issue list and the new issue page keep the title
+// and the description of the issue being written in the same store as the drafts of new changes, under one id for each
+// repository. The hub keeps the issues of every repository, so this draft does not need the repository to be in asc.
+//
+//	POST /{owner}/{repo}/issues/new/draft   title, content (save) or discard=1 (remove)
+//
+// The server names the draft from the repository; an id the page sends is not read.
+
+// ascNewIssueDraftCompare names the new issue draft of a repository. A compare path cannot hold a NUL, so it cannot name
+// the draft of a change.
+const ascNewIssueDraftCompare = "\x00issue"
+
+func ascNewIssueDraftID(repoID int64) string {
+	return ascNewChangeDraftIDOf(repoID, ascNewIssueDraftCompare)
+}
+
+// newIssueDraftState is the draft state of the new issue form of the repository, with the saved text when there is any.
+func newIssueDraftState(ctx *context.Context) *AscNewChangeDraftState {
+	id := ascNewIssueDraftID(ctx.Repo.Repository.ID)
+	st := &AscNewChangeDraftState{URL: ctx.Repo.RepoLink + "/issues/new/draft", ID: id, Issue: true}
+	if d, ok := ascNewChangeDraftsOf(ctx, ctx.Doer.ID)[id]; ok && (d.Title != "" || d.Body != "") {
+		st.Title, st.Body = d.Title, d.Body
+		st.Restored, st.SavedAt = true, time.Unix(d.At, 0).UTC()
+	}
+	return st
+}
+
+// prepareAscNewIssueDraft gives the new issue page its draft: the saved title and description fill the form when the
+// address did not bring its own. It does nothing for a person who is not signed in.
+func prepareAscNewIssueDraft(ctx *context.Context) {
+	if ctx.Doer == nil {
+		return
+	}
+	st := newIssueDraftState(ctx)
+	ctx.Data["AscNewChangeDraft"] = st
+	if !st.Restored {
+		return
+	}
+	if q, _ := ctx.Data["TitleQuery"].(string); q == "" && st.Title != "" {
+		ctx.Data["TitleQuery"] = st.Title
+	}
+	if q, _ := ctx.Data["BodyQuery"].(string); q == "" && st.Body != "" {
+		ctx.Data["BodyQuery"] = st.Body
+	}
+}
+
+// prepareAscNewIssueDialog gives the issue list its "New issue" dialog. A repository whose issues start from a template
+// has none: its button opens the template chooser.
+func prepareAscNewIssueDialog(ctx *context.Context) {
+	if ctx.Doer == nil || ctx.Repo.Repository.IsArchived || ctx.Data["NewIssueChooseTemplate"] == true {
+		return
+	}
+	ctx.Data["AscIssueDialog"] = newIssueDraftState(ctx)
+}
+
+// clearAscNewIssueDraft removes the new issue draft of the repository once the issue is open.
+func clearAscNewIssueDraft(ctx *context.Context) {
+	if ctx.Doer != nil {
+		clearAscDraft(ctx, ascNewIssueDraftID(ctx.Repo.Repository.ID))
+	}
+}
+
+// NewIssueDraftSave serves POST /{owner}/{repo}/issues/new/draft.
+func NewIssueDraftSave(ctx *context.Context) {
+	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
+	ctx.Req.Body = http.MaxBytesReader(ctx.Resp, ctx.Req.Body, ascNewChangeDraftForm)
+	saveAscDraftForm(ctx, ascNewIssueDraftID(ctx.Repo.Repository.ID))
 }

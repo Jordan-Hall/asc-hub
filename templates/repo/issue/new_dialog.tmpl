@@ -1,0 +1,35 @@
+{{/* The "New issue" dialog of the issue list (board Issues). It keeps a draft on the server like the new issue page. */}}
+{{with .AscIssueDialog}}
+<dialog id="issue-new-dialog" class="rp-issue-dialog" aria-labelledby="issue-new-dialog-h" data-testid="issue-new-dialog">
+	<article>
+		<header>
+			<span id="issue-new-dialog-h">{{ctx.Locale.Tr "repo.issues.new"}}</span>
+			<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm asc-dialog-x" data-asc-close aria-label="{{ctx.Locale.Tr "asc_rp.issue_dialog_close"}}">{{svg "dsi-x" 16}}</button>
+		</header>
+		<form class="ds-form" method="post" action="{{$.RepoLink}}/issues/new" data-issue-dialog-form data-asc-ncd-url="{{.URL}}" data-asc-ncd-id="{{.ID}}" data-failed="{{ctx.Locale.Tr "asc_rp.issue_dialog_failed"}}" data-creating="{{ctx.Locale.Tr "asc_rp.issue_dialog_creating"}}">
+			{{$.CsrfTokenHtml}}
+			<div class="content">
+				<div class="ds-field">
+					<label class="ds-label" for="issue-new-dialog-title">{{ctx.Locale.Tr "repo.milestones.title"}}</label>
+					<input class="ds-input js-quick-submit" id="issue-new-dialog-title" name="title" value="{{.Title}}" required maxlength="255" autocomplete="off" aria-describedby="issue-new-dialog-err">
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="issue-new-dialog-body">{{ctx.Locale.Tr "asc_rp.issue_dialog_body"}} <span class="ds-opt">({{ctx.Locale.Tr "asc_shell.optional"}})</span></label>
+					<textarea class="ds-textarea rp-issue-dialog-body js-quick-submit" id="issue-new-dialog-body" name="content" rows="8" aria-describedby="issue-new-dialog-hint">{{.Body}}</textarea>
+					<p class="ds-hint" id="issue-new-dialog-hint">{{ctx.Locale.Tr "asc_rp.issue_dialog_hint"}}</p>
+				</div>
+				<p class="ds-err-msg" id="issue-new-dialog-err" role="alert" data-issue-dialog-error hidden></p>
+				<p class="ds-hint" data-asc-ncd-note aria-live="polite" data-testid="issue-new-dialog-note"{{if .Restored}} data-restored="true"{{end}}
+					data-saved="{{ctx.Locale.Tr "asc_rp.ncd_saved"}}" data-failed="{{ctx.Locale.Tr "asc_rp.ncd_failed"}}" data-discarded="{{ctx.Locale.Tr "asc_rp.ncd_discarded"}}">{{if .Restored}}{{ctx.Locale.Tr "asc_rp.ncd_restored" (DateUtils.TimeSince .SavedAt)}}{{else}}{{ctx.Locale.Tr "asc_rp.ncd_hint_issue"}}{{end}}</p>
+			</div>
+			<div class="actions rp-issue-dialog-actions">
+				<a class="ds-btn ds-btn-ghost" href="{{$.RepoLink}}/issues/new" data-issue-full>{{ctx.Locale.Tr "asc_rp.issue_dialog_full"}}</a>
+				<span class="ds-grow"></span>
+				<button type="button" class="ds-btn ds-btn-ghost" data-asc-ncd-discard data-confirm="{{ctx.Locale.Tr "asc_rp.ncd_discard_confirm"}}">{{ctx.Locale.Tr "asc_rp.ncd_discard"}}</button>
+				<button type="button" class="ds-btn ds-btn-secondary" data-asc-ncd-save>{{ctx.Locale.Tr "asc_rp.ncd_save"}}</button>
+				<button type="submit" class="ds-btn ds-btn-primary" data-issue-dialog-submit>{{ctx.Locale.Tr "repo.issues.create"}}</button>
+			</div>
+		</form>
+	</article>
+</dialog>
+{{end}}
