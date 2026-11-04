@@ -33,7 +33,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | WorkflowRun | 9 | 0 | 0 | 0 | 0 |
 | Policy | 10 | 0 | 0 | 0 | 0 |
 | Ops | 10 | 2 | 0 | 0 | 1 |
-| Queue | 10 | 1 | 0 | 0 | 0 |
+| Queue | 11 | 0 | 0 | 0 | 0 |
 | Audit | 6 | 0 | 0 | 0 | 0 |
 | Security | 9 | 0 | 0 | 0 | 0 |
 | Mobile twins | 1 | 8 | 0 | 0 | 0 |
@@ -306,7 +306,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Queue | Stats: Waiting, Landed today, Median wait (was 9 min last week), Refused after dry run | done | queue DB aggregates in asc_queue.go; stat cards (today: waiting/recent/quarantine counts) (waiting, landed today, median from asc (live), blocked; seen on the dev hub at 390 and 1440) | M |
 | Queue | Waiting list: position, title, state chip (Checking/Queued), queued-by, Remove | done | templates/repo/asc_queue.tmpl | - |
 | Queue | Row detail: 'unit running on merged trunk, about 3 min' and 'starts about 6 min' ETAs | done | asc: ETA and check progress per entry (mergequeue.proto QueueEntry has state/detail/position only); hub display (MergeQueue.List timing joined by change id; seen on the dev hub with a real 3-stack (waiting, lands in about 3 min); landing/ready stages need an approved stack) | M |
-| Queue | Merge now per row (hover/focus) with confirm | ui-only-missing | templates/repo/asc_queue.tmpl (POST /merge exists) | S |
+| Queue | Merge now per row (hover/focus) with confirm | done | templates/repo/asc_queue.tmpl: each waiting row has Remove and Merge now (icons as on the board), shown on hover and focus and always on touch, each through the confirmation page; Merge now follows the merge permission per row (AscQueueRow.CanMerge) and is off for a landing entry or a paused queue; asc_queue_view_test.go, asc_queue_test.go TestAscQueuePageRowActions | - |
 | Queue | Queue reordering (not on the board: order is queue order, no reorder RPC in mergequeue.proto) | done | nothing to build | - |
 | Queue | Quarantined checks with reason, owner, review date | done | templates/repo/asc_queue.tmpl, services/asctrust queue quarantine | - |
 | Queue | Recently finished (merged / removed with who and when) | done | templates/repo/asc_queue.tmpl | - |
