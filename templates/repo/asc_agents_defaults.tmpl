@@ -1,0 +1,33 @@
+{{/*
+The defaults that the repository policy sets for agents ([agents] in .asc/policy.toml), on the tokens page. Dot: the page data.
+Template Attributes:
+* AscAgentPolicy: ascAgentPolicy (Known, Scope, Denied, MaxChanges, Cost)
+* AscAgentDefaults: ascAgentDefaults (PolicyURL, LifetimeDays)
+A token can only narrow these: asc refuses a token that asks for more, and enforces them on every update.
+*/}}
+{{$d := .AscAgentDefaults}}
+{{with .AscAgentPolicy}}
+	<section class="rv-card ag-defaults" aria-labelledby="ag-defaults-title" data-testid="asc-agent-defaults">
+		<div class="rv-card-h"><span class="ag-defaults-ic">{{svg "dsi-shield" 16}}</span><h2 id="ag-defaults-title">{{ctx.Locale.Tr "asc_review.defaults_title"}}</h2><span class="rv-mono rv-muted">.asc/policy.toml</span></div>
+		<div class="rv-card-b">
+			{{if not .Known}}<p class="rv-muted" data-testid="asc-agent-defaults-unknown">{{ctx.Locale.Tr "asc_review.policy_unknown"}}</p>{{end}}
+			<dl class="rv-dl">
+				{{if .Known}}
+					<dt>{{ctx.Locale.Tr "asc_review.defaults_write"}}</dt>
+					<dd>{{range $i, $g := .Scope}}{{if $i}}, {{end}}<code>{{$g}}</code>{{else}}{{ctx.Locale.Tr "asc_review.policy_write_default"}}{{end}}</dd>
+					<dt>{{ctx.Locale.Tr "asc_review.defaults_never"}}</dt>
+					<dd>{{ctx.Locale.Tr "asc_review.defaults_trunk"}}{{range .Denied}}, <code>{{.}}</code>{{end}}</dd>
+					<dt>{{ctx.Locale.Tr "asc_review.defaults_changes"}}</dt>
+					<dd>{{if .MaxChanges}}{{.MaxChanges}}{{else}}{{ctx.Locale.Tr "asc_review.defaults_no_limit"}}{{end}}</dd>
+					<dt>{{ctx.Locale.Tr "asc_review.defaults_cost"}}</dt>
+					<dd>{{if .Cost}}{{.Cost}}{{else}}{{ctx.Locale.Tr "asc_review.defaults_no_limit"}}{{end}}</dd>
+				{{end}}
+				<dt>{{ctx.Locale.Tr "asc_review.defaults_lifetime"}}</dt>
+				<dd>{{ctx.Locale.Tr "asc_review.defaults_lifetime_value" $d.LifetimeDays}}</dd>
+				<dt>{{ctx.Locale.Tr "asc_review.defaults_deciders"}}</dt>
+				<dd>{{ctx.Locale.Tr "asc_review.defaults_deciders_value"}}</dd>
+			</dl>
+			<p class="rv-hint">{{ctx.Locale.Tr "asc_review.defaults_note" $d.PolicyURL}}</p>
+		</div>
+	</section>
+{{end}}

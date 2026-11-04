@@ -36,6 +36,12 @@ const (
 	ascAgentsTokenMaxChanges = 10_000
 )
 
+// ascAgentDefaults is what the policy defaults card of the tokens page shows beside the policy itself.
+type ascAgentDefaults struct {
+	PolicyURL    string // the policy settings, where the defaults change
+	LifetimeDays uint32 // the longest lifetime a token may have
+}
+
 // ascAgentTokenTTLs are the lifetimes the form offers (seconds). asc accepts 1 second to 90 days; the form keeps
 // to a short list so a typo cannot make a token that outlives its purpose.
 var ascAgentTokenTTLs = []struct {
@@ -177,6 +183,10 @@ func ascAgentsTokensPage(ctx *context.Context, env *ascAgentsEnv, form *ascAgent
 	readCtx, cancelRead := ascAgentsReadCtx(ctx)
 	defer cancelRead()
 	ctx.Data["AscAgentPolicy"] = ascAgentPolicyOf(readCtx, env.ref())
+	ctx.Data["AscAgentDefaults"] = ascAgentDefaults{
+		PolicyURL:    env.link + "/settings/asc/policy",
+		LifetimeDays: ascAgentTokenTTLs[len(ascAgentTokenTTLs)-1].Seconds / 86400,
+	}
 	ctx.HTML(status, tplAscAgentsTokens)
 }
 

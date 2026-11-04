@@ -312,3 +312,43 @@ func TestAscAgentsTokenRevokeAndBudget(t *testing.T) {
 		assert.Equal(t, before, hub.total())
 	})
 }
+
+func TestAscAgentsTokensPolicyDefaults(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	setStorageBackend(t, 1, "asc")
+	hub := startFakeHub(t)
+	hub.ok("AgentTokens.ListTokens", &ascv1.ListAgentTokensResponse{})
+	hub.ok("Policy.GetSource", &ascv1.GetPolicySourceResponse{Present: true, Parsed: &ascv1.GetPolicyResponse{Agents: &ascv1.PolicyAgents{
+		DefaultScope: []string{"src/**", "tests/**"}, DeniedPaths: []string{".github/**"}, MaxChangesPerRun: 8, MaxCostMicroUsd: 5_000_000,
+	}}})
+
+	p := runAgents(t, agentsReq{path: testTokensPath, user: agentsOwner, features: true}, AscAgentsTokens)
+	require.Equal(t, http.StatusOK, p.status, p.body)
+	i := strings.Index(p.body, `data-testid="asc-agent-defaults"`)
+	require.Positive(t, i, "the card is on the page")
+	card := p.body[i:]
+	card = card[:strings.Index(card, "</section>")]
+	assert.Contains(t, card, "asc_review.defaults_title")
+	assert.Contains(t, card, ".asc/policy.toml")
+	assert.Contains(t, card, "<code>src/**</code>, <code>tests/**</code>")
+	assert.Contains(t, card, "asc_review.defaults_trunk, <code>.github/**</code>")
+	assert.Contains(t, card, "<dd>8</dd>")
+	assert.Contains(t, card, "<dd>$5.00</dd>")
+	assert.Contains(t, card, "asc_review.defaults_lifetime_value")
+	assert.Contains(t, card, "asc_review.defaults_deciders_value")
+	assert.Contains(t, card, "asc_review.defaults_note")
+	assert.NotContains(t, card, "asc-agent-defaults-unknown")
+
+	hub.ok("Policy.GetSource", &ascv1.GetPolicySourceResponse{Present: true, Parsed: &ascv1.GetPolicyResponse{Agents: &ascv1.PolicyAgents{}}})
+	p = runAgents(t, agentsReq{path: testTokensPath, user: agentsOwner, features: true}, AscAgentsTokens)
+	require.Equal(t, http.StatusOK, p.status, p.body)
+	assert.Equal(t, 2, strings.Count(p.body, "asc_review.defaults_no_limit"), "no change limit and no cost cap")
+	assert.Contains(t, p.body, "asc_review.policy_write_default")
+
+	hub.ok("Policy.GetSource", &ascv1.GetPolicySourceResponse{Present: false})
+	p = runAgents(t, agentsReq{path: testTokensPath, user: agentsOwner, features: true}, AscAgentsTokens)
+	require.Equal(t, http.StatusOK, p.status, p.body)
+	assert.Contains(t, p.body, `data-testid="asc-agent-defaults-unknown"`)
+	assert.NotContains(t, p.body, "asc_review.defaults_changes", "no policy values without a policy")
+	assert.Contains(t, p.body, "asc_review.defaults_lifetime", "the lifetime is the server's")
+}
