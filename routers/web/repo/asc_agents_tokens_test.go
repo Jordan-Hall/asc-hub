@@ -80,6 +80,32 @@ func TestAscAgentsTokensPage(t *testing.T) {
 	assert.NotContains(t, p.body, "asc-agent-secret", "no secret outside the answer that made it")
 	noCallTokens(t)
 
+	t.Run("each token shows the month of its agent against the monthly budget", func(t *testing.T) {
+		hub.ok("AgentTokens.ListTokens", &ascv1.ListAgentTokensResponse{Tokens: []*ascv1.AgentToken{sampleToken(testTokenID, ascv1.AgentTokenState_AGENT_TOKEN_STATE_ACTIVE)}})
+		hub.ok("Agents.GetSpend", &ascv1.GetAgentSpendResponse{Month: "2026-11", Agents: []*ascv1.AgentSpend{
+			{Agent: "coder", CostMicroUsd: 58_000_000, MonthlyCapMicroUsd: 120_000_000},
+			{Agent: "docs-1", CostMicroUsd: 1_000_000},
+		}})
+		p := runAgents(t, agentsReq{path: testTokensPath, user: agentsOwner, features: true}, AscAgentsTokens)
+		require.Equal(t, http.StatusOK, p.status, p.body)
+		calls := hub.callsOf("Agents.GetSpend")
+		require.NotEmpty(t, calls)
+		isSystemCredential(t, calls[len(calls)-1])
+		assert.Contains(t, p.body, `data-testid="asc-token-month">asc_review.tokens_month_of <span class="rv-muted">· asc_review.tokens_month_agent</span>`)
+		assert.Contains(t, p.body, `data-testid="asc-token-month-budget"`)
+		assert.Contains(t, p.body, `<input type="hidden" name="agent" value="coder">`)
+		assert.Contains(t, p.body, `placeholder="$120.00"`)
+
+		hub.ok("Agents.GetSpend", &ascv1.GetAgentSpendResponse{Month: "2026-11"})
+		p = runAgents(t, agentsReq{path: testTokensPath, user: agentsOwner, features: true}, AscAgentsTokens)
+		assert.Contains(t, p.body, `data-testid="asc-token-month">$0.00 <span`, "an agent asc does not list has spent nothing")
+
+		hub.fail("Agents.GetSpend", withDetail(t, codes.Unavailable, "down", ""))
+		p = runAgents(t, agentsReq{path: testTokensPath, user: agentsOwner, features: true}, AscAgentsTokens)
+		require.Equal(t, http.StatusOK, p.status)
+		assert.NotContains(t, p.body, "asc-token-month", "asc could not say: no month, no budget form")
+	})
+
 	t.Run("a hint that is not a short slug is not shown", func(t *testing.T) {
 		tok := sampleToken(testTokenID, ascv1.AgentTokenState_AGENT_TOKEN_STATE_ACTIVE)
 		tok.SecretHint = testTokenSecret
