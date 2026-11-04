@@ -125,10 +125,25 @@
 						</ul>
 					</section>
 					{{end}}
-					{{if $c.Main}}
+					{{if or $c.Main $.AscPullChecks.VsMain}}
 					<section class="rv-card" aria-labelledby="asc-vs-main">
 						<div class="rv-card-h"><h2 id="asc-vs-main">{{ctx.Locale.Tr "asc_trust.pull.vs_main"}}</h2></div>
-						<div class="rv-card-b"><p data-testid="asc-pull-main" class="rv-tone-{{$c.MainTone}}">{{$c.Main}}</p></div>
+						<div class="rv-card-b">
+							{{if $c.Main}}<p data-testid="asc-pull-main" class="rv-vs-main rv-tone-{{$c.MainTone}}">{{$c.Main}}</p>{{end}}
+							{{with $.AscPullChecks.VsMain}}
+							{{if .New}}<p class="rv-muted" data-testid="asc-pull-new-failures">{{ctx.Locale.TrN .New "asc_trust.pull.vs_main_new_one" "asc_trust.pull.vs_main_new_other" .New}}</p>
+							{{else if .Failing}}<p class="rv-muted" data-testid="asc-pull-new-failures">{{ctx.Locale.TrN .Failing "asc_trust.pull.vs_main_known_one" "asc_trust.pull.vs_main_known_other" .Failing}}</p>{{end}}
+							{{end}}
+							{{if or $.AscPullChecks.MainCommit (and $.AscPullChecks.VsMain $.AscPullChecks.VsMain.SlowestTest)}}
+							<dl class="rv-facts rv-gap" data-testid="asc-pull-vs-main-facts">
+								{{with $.AscPullChecks.VsMain}}{{if .SlowestTest}}
+								<div><dt>{{ctx.Locale.Tr "asc_trust.pull.vs_main_slowest"}}</dt><dd><code>{{.SlowestTest}}</code></dd></div>
+								<div><dt>{{ctx.Locale.Tr "asc_trust.pull.vs_main_duration"}}</dt><dd data-testid="asc-pull-slowest-took">{{.Took}}{{if .Was}} <span class="rv-tone-{{if .Slower}}wn{{else}}ro{{end}}">{{ctx.Locale.Tr "asc_trust.pull.vs_main_was" .Was}}</span>{{end}}</dd></div>
+								{{end}}{{end}}
+								{{with $.AscPullChecks.MainCommit}}<div><dt>{{ctx.Locale.Tr "asc_trust.pull.vs_main_commit"}}</dt><dd><a href="{{$.RepoLink}}/commit/{{.}}"><code>{{ShortSha .}}</code></a></dd></div>{{end}}
+							</dl>
+							{{end}}
+						</div>
 					</section>
 					{{end}}
 					<section class="rv-card">

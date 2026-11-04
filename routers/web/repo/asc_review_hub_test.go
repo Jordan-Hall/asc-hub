@@ -217,6 +217,53 @@ func TestAscVersionHistory(t *testing.T) {
 	assert.Contains(t, html, "/user2/repo1/pulls/3/files?asc_to=4")
 }
 
+func TestAscPullVsMainCard(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	checks := asctrust.BuildPullChecks(asctrust.PullChecksIn{Head: "abcdef1234", Now: time.Now(), Statuses: []asctrust.StatusIn{{Context: "unit", State: "failure"}}})
+	render := func(p *ascPullChecksPage) string {
+		p.PullURL, p.ChecksURL = "/user2/repo1/pulls/3", "/user2/repo1/asc/checks"
+		if p.Checks == nil {
+			p.Checks = checks
+		}
+		return renderPart(t, "repo/pulls/asc_checks", func(d map[string]any) {
+			d["Title"] = "Checks"
+			d["AscPullChecks"] = p
+		})
+	}
+
+	html := render(&ascPullChecksPage{
+		MainCommit: "4be19a2d0c5e6f7a8b9c0d1e2f3a4b5c6d7e8f90",
+		VsMain:     ascVsMainOf(&asctrust.MainCompare{Failing: 2, New: 2, SlowestJob: "unit", SlowestTest: "retry::tests::backoff", SlowestMs: 41_000, SlowestMainMs: 12_000}),
+	})
+	assert.Contains(t, html, `aria-labelledby="asc-vs-main"`)
+	assert.Contains(t, html, `data-testid="asc-pull-new-failures">asc_trust.pull.vs_main_new_one<`)
+	assert.Contains(t, html, "<code>retry::tests::backoff</code>")
+	assert.Contains(t, html, `data-testid="asc-pull-slowest-took">41 s <span class="rv-tone-wn">asc_trust.pull.vs_main_was</span>`, "slower than on main is a warning")
+	assert.Contains(t, html, `<a href="/user2/repo1/commit/4be19a2d0c5e6f7a8b9c0d1e2f3a4b5c6d7e8f90"><code>4be19a2d0c</code></a>`)
+	assert.Contains(t, html, "asc_trust.pull.vs_main_commit")
+
+	html = render(&ascPullChecksPage{VsMain: ascVsMainOf(&asctrust.MainCompare{Failing: 3, SlowestTest: "t", SlowestMs: 300})})
+	assert.Contains(t, html, `data-testid="asc-pull-new-failures">asc_trust.pull.vs_main_known_one<`, "failures that main has too are not new")
+	assert.Contains(t, html, `data-testid="asc-pull-slowest-took">300 ms</dd>`, "no time on main, no comparison")
+	assert.NotContains(t, html, "asc_trust.pull.vs_main_commit")
+
+	quiet := *checks
+	quiet.Main = ""
+	html = render(&ascPullChecksPage{Checks: &quiet})
+	assert.NotContains(t, html, "asc-vs-main", "nothing known about main: no card")
+}
+
+func TestAscVsMainOf(t *testing.T) {
+	assert.Nil(t, ascVsMainOf(nil))
+	v := ascVsMainOf(&asctrust.MainCompare{SlowestTest: "t", SlowestMs: 900, SlowestMainMs: 1400})
+	assert.Equal(t, "900 ms", v.Took)
+	assert.Equal(t, "1 s", v.Was)
+	assert.False(t, v.Slower)
+	v = ascVsMainOf(&asctrust.MainCompare{Failing: 1})
+	assert.Empty(t, v.Took, "no slowest test")
+	assert.Empty(t, v.Was)
+}
+
 func TestAscPanelChecksCard(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 	panel := func(set func(d map[string]any)) string {
