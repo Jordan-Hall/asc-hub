@@ -1,6 +1,6 @@
 // The Settings tab of one webhook (templates/webhook/settings.tmpl) has no Save button: each field is saved when it
-// changes. The form is sent in the background and the server answers JSON; a refused address shows its message under
-// the field, a lost connection the message at the end of the form, and a save says "Saved." to a screen reader.
+// changes. The form is sent in the background and the server answers JSON; a refused field shows its message under
+// it, a lost connection the message at the end of the form, and a save says "Saved." to a screen reader.
 // Replace beside a stored secret puts the cursor in the secret field to type a new one. Without script the form keeps
 // its Save button.
 
@@ -21,12 +21,12 @@ export function initAscWebhookSettings() {
   const show = (problem) => {
     for (const input of form.querySelectorAll('[aria-invalid]')) input.removeAttribute('aria-invalid');
     for (const msg of form.querySelectorAll('[id$="_err"]')) msg.hidden = true;
-    failed.hidden = problem === null || problem.field !== '';
     status.textContent = problem === null ? status.getAttribute('data-saved') : '';
+    // a refused field without a message of its own, or a save that failed for another reason, says so at the end
+    const msg = problem?.field ? form.querySelector(`#${CSS.escape(problem.field)}_err`) : null;
+    failed.hidden = problem === null || msg !== null;
     if (!problem?.field) return;
-    const input = form.querySelector(`[name="${CSS.escape(problem.field)}"]`);
-    const msg = form.querySelector(`#${CSS.escape(problem.field)}_err`);
-    input?.setAttribute('aria-invalid', 'true');
+    form.querySelector(`[name="${CSS.escape(problem.field)}"]`)?.setAttribute('aria-invalid', 'true');
     if (msg) {
       msg.querySelector('span').textContent = problem.error;
       msg.hidden = false;
