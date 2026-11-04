@@ -1,0 +1,67 @@
+{{/* The Recent deliveries view of one webhook: a page of its deliveries and the request or response of the selected
+one, with Redeliver and, when it failed, why. The data is the page data. */}}
+{{$canReplay := or .Permission.IsAdmin .IsOrganizationOwner .PageIsAdmin .PageIsUserSettings}}
+<div class="ds-card-b wh-dl">
+	{{if .Deliveries}}
+		<div class="wh-dl-grid">
+			<div class="wh-dl-side">
+				<ul class="ds-list wh-dl-list" aria-label="{{ctx.Locale.Tr "asc_hooks.deliveries_label"}}">
+					{{range .Deliveries}}
+						<li><a class="wh-dl-li" href="{{$.DeliveriesLink}}&delivery={{.UUID}}"{{if and $.Delivery (eq .UUID $.Delivery.UUID)}} aria-current="true"{{end}}>
+							{{template "webhook/delivery_status" .}}
+							<span class="wh-dl-main">
+								<span class="ds-sb ds-t-small">{{.Event}}</span>
+								<span class="ds-mono ds-c-3 wh-dl-id">{{.ShortID}}{{if .DurationMS}} &middot; {{template "webhook/delivery_took" .}}{{end}}</span>
+							</span>
+							<span class="ds-t-small ds-c-3 wh-dl-when">{{if .IsDelivered}}{{DateUtils.TimeSince .Delivered}}{{else}}{{ctx.Locale.Tr "asc_hooks.pending"}}{{end}}</span>
+						</a></li>
+					{{end}}
+				</ul>
+				{{template "base/paginate" .}}
+			</div>
+			{{with .Delivery}}
+				<section class="ds-card wh-dl-detail" aria-labelledby="wh-dl-title">
+					<div class="ds-card-h wh-dl-h">
+						<div class="wh-dl-htext">
+							<h3 class="ds-sb ds-t-small" id="wh-dl-title">{{ctx.Locale.Tr "asc_hooks.delivery_title" .ShortID}}</h3>
+							<p class="ds-t-small ds-c-2">
+								{{- if not .IsDelivered}}{{ctx.Locale.Tr "asc_hooks.pending"}}
+								{{- else if not .Status}}{{ctx.Locale.Tr "asc_hooks.no_response"}}
+								{{- else if ge .DurationMS 1000}}{{ctx.Locale.Tr "asc_hooks.response_after_s" .StatusLine .Seconds}}
+								{{- else if .DurationMS}}{{ctx.Locale.Tr "asc_hooks.response_after_ms" .StatusLine .DurationMS}}
+								{{- else}}{{ctx.Locale.Tr "asc_hooks.response" .StatusLine}}{{end -}}
+							</p>
+						</div>
+						{{if and $canReplay .IsDelivered}}
+							<form method="post" action="{{$.Link}}/replay/{{.UUID}}">
+								<input type="hidden" name="redirect_to" value="{{$.Link}}?tab=deliveries">
+								<button class="ds-btn ds-btn-secondary ds-btn-sm"{{if not $.Webhook.IsActive}} disabled title="{{ctx.Locale.Tr "repo.settings.webhook.replay.description_disabled"}}"{{end}}>{{ctx.Locale.Tr "asc_hooks.redeliver"}}</button>
+							</form>
+						{{end}}
+					</div>
+					<div class="wh-dl-bar">
+						<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_hooks.part_label"}}">
+							<a href="{{$.DeliveriesLink}}&delivery={{.UUID}}"{{if eq $.DeliveryPart "request"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "repo.settings.webhook.request"}}</a>
+							<a href="{{$.DeliveriesLink}}&delivery={{.UUID}}&part=response"{{if eq $.DeliveryPart "response"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "repo.settings.webhook.response"}}</a>
+						</div>
+					</div>
+					{{$lines := .BodyLines $.DeliveryPart}}
+					{{if $lines}}
+						<pre class="wh-code" tabindex="0" aria-label="{{ctx.Locale.Tr "repo.settings.webhook.body"}}">{{range $lines}}<span class="wh-cl">{{.}}</span>{{"\n"}}{{end}}</pre>
+						{{with .BodyMore $.DeliveryPart}}<p class="ds-hint wh-dl-more">{{ctx.Locale.Tr "asc_hooks.body_more" .}}</p>{{end}}
+					{{else}}
+						<p class="ds-hint wh-dl-more">{{ctx.Locale.Tr "asc_hooks.body_empty"}}</p>
+					{{end}}
+					{{if and .IsDelivered (not .IsSucceed)}}
+						<div class="ds-banner ds-banner-err wh-dl-banner" role="alert">
+							<div class="ds-banner-body">{{if .Status}}{{ctx.Locale.Tr "asc_hooks.failed_banner" .Status}}{{else}}{{ctx.Locale.Tr "asc_hooks.failed_banner_no_response"}}{{end}}</div>
+						</div>
+					{{end}}
+				</section>
+			{{end}}
+		</div>
+	{{else}}
+		{{template "shared/ds/empty" (dict "Icon" "link" "Title" (ctx.Locale.Tr "asc_hooks.no_deliveries") "Body" (ctx.Locale.Tr "asc_hooks.no_deliveries_body"))}}
+		{{if .Permission.IsAdmin}}<div class="wh-dl-empty-acts">{{template "webhook/test_delivery" .}}</div>{{end}}
+	{{end}}
+</div>

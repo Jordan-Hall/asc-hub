@@ -1,0 +1,2 @@
+{{- /* How long the receiver took to answer, "212 ms" or "1.2 s". */ -}}
+{{- if ge .DurationMS 1000}}{{ctx.Locale.Tr "asc_hooks.took_s" .Seconds}}{{else}}{{ctx.Locale.Tr "asc_hooks.took_ms" .DurationMS}}{{end -}}

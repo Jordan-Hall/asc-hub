@@ -1,0 +1,28 @@
+{{/* One webhook: its address, whether it is failing, Delete, and its two views as tabs, Settings (the form) and
+Recent deliveries. The data is the page data. */}}
+<section class="ds-card wh-hook" aria-labelledby="wh-hook-url">
+	<div class="ds-card-h wh-hook-h">
+		<div class="wh-hook-title">
+			<div class="ds-t-micro ds-c-3">{{ctx.Locale.Tr "asc_hooks.hook_micro"}}</div>
+			<h2 class="ds-mono wh-hook-url" id="wh-hook-url">{{.Webhook.URL}}</h2>
+		</div>
+		{{if .HookFailing}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_hooks.failing_chip"}}</span>{{end}}
+		<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm delete-button" data-url="{{.BaseLink}}/delete" data-id="{{.Webhook.ID}}" data-modal-id="delete-webhook">{{ctx.Locale.Tr "asc_hooks.delete"}}</button>
+	</div>
+	<nav class="ds-tabs wh-tabs" aria-label="{{ctx.Locale.Tr "asc_hooks.views_label"}}">
+		{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "asc_hooks.tab_settings") "Href" .Link "Active" (eq .HookTab "settings"))}}
+		{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr "asc_hooks.tab_deliveries") "Href" (print .Link "?tab=deliveries") "Active" (eq .HookTab "deliveries") "Count" .DeliveryCount)}}
+	</nav>
+	{{if eq .HookTab "deliveries"}}
+		{{template "webhook/deliveries" .}}
+	{{else}}
+		<div class="ds-card-b">
+			{{template "webhook/form" .}}
+			{{if .Permission.IsAdmin}}<div class="wh-test">{{template "webhook/test_delivery" .}}</div>{{end}}
+		</div>
+	{{end}}
+</section>
+{{if and (eq .HookTab "settings") (or (eq .HookType "forgejo") (eq .HookType "gitea") (eq .HookType "gogs"))}}
+	<form id="wh-secret-form" method="post" action="{{.BaseLink}}/{{.Webhook.ID}}/secret"></form>
+{{end}}
+{{template "repo/settings/webhook/delete_modal" .}}

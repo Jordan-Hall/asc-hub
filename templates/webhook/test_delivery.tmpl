@@ -1,0 +1,3 @@
+{{/* Send a fake event to a repository webhook; the page reloads on its Recent deliveries a few seconds later. */}}
+<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm wh-dl-test" id="test-delivery" data-link="{{.Link}}/test" data-redirect="{{.Link}}?tab=deliveries"{{if not .Webhook.IsActive}} disabled aria-describedby="wh-dl-test-help"{{end}}>{{ctx.Locale.Tr "asc_hooks.send_test"}}</button>
+{{if not .Webhook.IsActive}}<p class="ds-hint" id="wh-dl-test-help">{{ctx.Locale.Tr "repo.settings.webhook.test_delivery_desc_disabled"}}</p>{{end}}

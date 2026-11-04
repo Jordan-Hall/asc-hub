@@ -1,0 +1,6 @@
+{{/* The status chip of a delivery: the HTTP status, green for 2xx and red otherwise; a dash while it waits or when
+nothing answered. */}}
+{{if not .IsDelivered}}<span class="ds-chip ds-mono wh-dl-code">&ndash;</span>
+{{- else if .IsSucceed}}<span class="ds-chip ds-chip-ok ds-mono wh-dl-code">{{.Status}}</span>
+{{- else if .Status}}<span class="ds-chip ds-chip-err ds-mono wh-dl-code">{{.Status}}</span>
+{{- else}}<span class="ds-chip ds-chip-err ds-mono wh-dl-code" title="{{ctx.Locale.Tr "asc_hooks.no_response"}}">&ndash;</span>{{end}}
