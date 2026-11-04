@@ -1,0 +1,15 @@
+{{with .AscBabysitPull}}
+<div class="rv rv-badges" data-testid="asc-babysit">
+	<div class="rv-banner" role="status">
+		<div>
+			<b>{{ctx.Locale.Tr "asc_rp.opt_babysit_on" .Agent}}</b> &middot; {{if .Left}}{{ctx.Locale.TrN .Left "asc_rp.opt_babysit_left_one" "asc_rp.opt_babysit_left_other" .Left}}{{else}}{{ctx.Locale.Tr "asc_rp.opt_babysit_spent"}}{{end}}
+			{{if .StopURL}}
+			<form class="rv-acts" method="post" action="{{.StopURL}}">
+				{{$.CsrfTokenHtml}}
+				<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" data-testid="asc-babysit-stop">{{svg "dsi-stop" 14}}{{ctx.Locale.Tr "asc_rp.opt_babysit_stop"}}</button>
+			</form>
+			{{end}}
+		</div>
+	</div>
+</div>
+{{end}}
