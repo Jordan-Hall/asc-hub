@@ -2,8 +2,10 @@
 The CI failures page of a repository (routers/web/repo/asc_checks.go): three views. "failures" shows the failing jobs
 and the failure groups, "flaky" the tests that flip between pass and fail, "trends" the history of each failing job.
 Template Attributes:
-* AscChecks: *ascChecksPage
+* AscChecks: *ascChecksPage (Rows, Open: the failure groups and the expanded one; Retry: Problem is a failure to reach asc)
 Texts from asc and from runners are cleaned in services/asctrust and escaped by the template engine.
+What a view lists sits in data-asc-list-main: a filter, a tab or the window shows the skeleton card while the page loads
+again (web_src/js/features/asc-list-loading.js).
 */}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
@@ -32,13 +34,20 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 			{{if .Unsupported}}
 				<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-checks-unsupported"><div>{{ctx.Locale.Tr "asc_trust.checks.unsupported"}}</div></div>
 			{{else}}
-				{{if .Problem}}<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-checks-problem"><div>{{.Problem}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="">{{ctx.Locale.Tr "asc_review.try_again"}}</a></div></div></div>{{end}}
+				{{if .Problem}}
+					<div class="rv-banner rv-banner-err" role="alert" data-testid="asc-checks-problem">
+						<div>
+							{{if .Retry}}<b>{{ctx.Locale.Tr (printf "asc_trust.checks.err_title.%s" .View)}}</b> {{end}}{{.Problem}}
+							{{if .Retry}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="" data-testid="asc-checks-retry">{{svg "dsi-refresh" 14}}{{ctx.Locale.Tr "asc_review.try_again"}}</a></div>{{end}}
+						</div>
+					</div>
+				{{end}}
 
 				{{if eq .View "failures"}}
 				<nav class="rv-chips" aria-label="{{ctx.Locale.TrString "asc_trust.checks.state_aria"}}">
 					{{range .States}}<a class="rv-chip-btn" href="{{$.AscChecks.ChecksURL}}{{if .Key}}?state={{.Key}}{{end}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-checks-tab-{{if .Key}}{{.Key}}{{else}}open{{end}}">{{ctx.Locale.Tr (printf "asc_trust.checks.state.%s" .Label)}}{{if .Count}} <span class="rv-count" data-testid="asc-checks-count-{{.Key}}">{{.Count}}</span>{{end}}</a>{{end}}
 				</nav>
-				<form class="rv-filters" method="get" action="{{.ChecksURL}}" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.checks.filter"}}">
+				<form class="rv-filters" method="get" action="{{.ChecksURL}}" role="search" aria-label="{{ctx.Locale.Tr "asc_trust.checks.filter"}}" data-asc-list-filter>
 					{{if .State}}<input type="hidden" name="state" value="{{.State}}">{{end}}
 					<div class="rv-filter-fields rv-filter-fields-3">
 						<div class="rv-field"><label class="rv-label" for="asc-checks-job">{{ctx.Locale.Tr "asc_trust.checks.job"}}</label><input class="rv-input" id="asc-checks-job" name="job" type="text" maxlength="512" value="{{.Job}}" autocomplete="off"></div>
@@ -49,6 +58,14 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 				</form>
 
 				{{if .Data}}
+				<div class="rv-stack" data-asc-list-main>
+					<div class="rv-card ag-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "asc_rp.loading"}}" data-asc-list-loading data-testid="asc-checks-loading" hidden>
+						<ul class="rv-list" aria-hidden="true">
+							<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+							<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+							<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+						</ul>
+					</div>
 				{{if or .Main .Side}}
 				<div class="rv-sidecards rv-gap" data-testid="asc-checks-side">
 					{{if .Main}}
@@ -91,36 +108,123 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 
 				<section class="rv-card rv-gap" aria-labelledby="asc-groups">
 					<div class="rv-card-h"><h2 id="asc-groups">{{ctx.Locale.Tr "asc_trust.checks.groups_title"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_trust.checks.groups_aside"}}</span></div>
-					<div class="rv-tablewrap rv-flat" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
-						<table class="rv-tbl rv-tbl-stack" data-testid="asc-groups">
-							<caption class="rv-sr">{{ctx.Locale.Tr "asc_trust.checks.groups_title"}}</caption>
-							<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_cause"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_state"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_seen"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_changes"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_last_seen"}}</th></tr></thead>
-							<tbody>
-								{{range .Data.Groups.Rows}}
-								<tr>
-									<td class="rv-cell-main">
-										<a href="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}">{{if .Title}}{{.Title}}{{else}}{{.TestName}}{{end}}</a>
-										{{if .Flaky}} <span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_trust.checks.flaky"}}</span>{{end}}
-										<div class="rv-li-sub">{{if .TestName}}<code>{{.TestName}}</code> {{end}}{{if .JobName}}{{ctx.Locale.Tr "asc_trust.checks.in_job" .JobName}}{{end}}</div>
-									</td>
-									<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_state"}}"><span class="rv-pill rv-pill-{{.Tone}}">{{ctx.Locale.Tr (printf "asc_trust.checks.state.%s" .StateKey)}}</span></td>
-									<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_seen"}}">{{.Occurrences}}</td>
-									<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_changes"}}">{{.ChangesAffected}}</td>
-									<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_last_seen"}}" class="rv-nowrap">{{DateUtils.TimeSince .LastSeen}}</td>
-								</tr>
-								{{else}}
-								<tr><td colspan="5" class="rv-center rv-muted" data-testid="asc-groups-empty">{{if and (eq .State "open") (not .Job) (not .Test) (not .Flaky)}}{{template "shared/ds/empty" (dict "Icon" "check" "Title" (ctx.Locale.Tr "asc_trust.checks.nothing_title") "Body" (ctx.Locale.Tr "asc_trust.checks.nothing_body"))}}{{else}}{{ctx.Locale.Tr "asc_trust.checks.groups_empty"}}{{end}}</td></tr>
+					{{if .Rows}}
+					<ul class="rv-groups" data-testid="asc-groups">
+						{{range .Rows}}
+						{{$title := .Title}}{{if not $title}}{{$title = .TestName}}{{end}}
+						<li class="rv-group{{if .Expanded}} is-open{{end}}" id="asc-group-{{.ID}}" data-testid="asc-group-row">
+							<div class="rv-group-row">
+								<span class="rv-dot rv-dot-{{.Dot}}" aria-hidden="true"></span>
+								<div class="rv-li-main">
+									<div class="rv-li-title"><a href="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}">{{$title}}</a></div>
+									<div class="rv-li-meta">
+										{{if .JobName}}<span class="rv-pill rv-pill-outline">{{.JobName}}</span>{{end}}
+										{{if and .TestName .Title}}<code>{{.TestName}}</code>{{end}}
+										<span class="rv-ic-text">{{svg "dsi-hash" 14}}{{ctx.Locale.Tr "asc_trust.checks.group_seen" .Occurrences .ChangesAffected}}</span>
+										<span class="rv-ic-text">{{svg "dsi-clock" 14}}{{ctx.Locale.Tr "asc_trust.checks.group_last"}} {{DateUtils.TimeSince .LastSeen}}</span>
+										{{if .Flaky}}<span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_trust.checks.flaky"}}</span>{{end}}
+									</div>
+									{{if .Note}}<div class="rv-li-sub">{{ctx.Locale.Tr "asc_trust.checks.group_note" .Note}}</div>{{end}}
+									<div class="rv-group-act" data-testid="asc-group-acts">
+										{{if .AckURL}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.AckURL}}" data-testid="asc-group-ack">{{svg "dsi-eye" 14}}{{ctx.Locale.Tr "asc_trust.checks.acknowledge"}}</a>{{end}}
+										{{if .QuarantineURL}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.QuarantineURL}}" data-testid="asc-group-quarantine-row">{{svg "dsi-ban" 14}}{{ctx.Locale.Tr "asc_trust.checks.quarantine_short"}}</a>{{end}}
+										<details class="rv-menu rv-group-more">
+											<summary class="rv-btn rv-btn-ghost rv-btn-icon rv-btn-sm" aria-label="{{ctx.Locale.Tr "asc_trust.checks.more_for" $title}}" data-testid="asc-group-more">{{svg "dsi-dots" 14}}</summary>
+											<div class="rv-menu-panel rv-group-menu">
+												<a class="rv-menu-item" href="{{.ToggleURL}}" data-testid="asc-group-toggle">{{svg "dsi-terminal" 14}}{{if .Expanded}}{{ctx.Locale.Tr "asc_trust.checks.hide_details"}}{{else}}{{ctx.Locale.Tr "asc_trust.checks.show_details"}}{{end}}</a>
+												<a class="rv-menu-item" href="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}">{{svg "dsi-history" 14}}{{ctx.Locale.Tr "asc_trust.checks.open_group"}}</a>
+												{{if or .CanResolve .CanReopen}}
+												<form method="post" action="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}/state">
+													{{$.CsrfTokenHtml}}
+													<input type="hidden" name="op" value="{{.Op}}">
+													<input type="hidden" name="next" value="checks">
+													<input type="hidden" name="back" value="{{$.AscChecks.ListQuery}}">
+													{{if .CanResolve}}<button class="rv-menu-item" type="submit" name="state" value="resolved" data-testid="asc-group-resolve">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_trust.checks.resolve"}}</button>{{end}}
+													{{if .CanReopen}}<button class="rv-menu-item" type="submit" name="state" value="open" data-testid="asc-group-reopen">{{svg "dsi-undo" 14}}{{ctx.Locale.Tr "asc_trust.checks.reopen"}}</button>{{end}}
+												</form>
+												{{end}}
+											</div>
+										</details>
+									</div>
+								</div>
+								<span class="rv-pill rv-pill-{{.Tone}} rv-group-state">{{ctx.Locale.Tr (printf "asc_trust.checks.state.%s" .StateKey)}}</span>
+							</div>
+							{{if .Expanded}}{{with $.AscChecks.Open}}
+							<div class="rv-group-open" data-testid="asc-group-open">
+								<div class="rv-group-where">
+									{{if .Lines}}
+									<div class="rv-loglines" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.checks.log_aria" $title}}" data-testid="asc-group-log">
+										<div class="rv-loglines-h">{{with .LogOf}}{{if .JobName}}{{.JobName}} · {{end}}{{ctx.Locale.Tr "asc_trust.checks.attempt" .Attempt}}{{if .Version}} · v{{.Version}}{{end}}{{if .Head}} <code>{{.Head}}</code>{{end}}{{end}}</div>
+										<ol class="rv-loglines-b">{{range .Lines}}<li><span class="rv-ln" aria-hidden="true">{{.N}}</span><span class="rv-lt">{{.Text}}</span></li>{{end}}</ol>
+									</div>
+									{{end}}
+									<div class="rv-tablewrap rv-flat rv-inset" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.checks.where"}}">
+										<table class="rv-tbl rv-tbl-stack" data-testid="asc-group-where">
+											<caption class="rv-sr">{{ctx.Locale.Tr "asc_trust.checks.where"}}</caption>
+											<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.where"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.job"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_attempt"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.checks.col_when"}}</th></tr></thead>
+											<tbody>
+												{{range .Occurrences}}
+												<tr>
+													<th scope="row" class="rv-cell-main">{{if .Change}}{{if .RunURL}}<a href="{{.RunURL}}">{{ctx.Locale.Tr "asc_trust.checks.change"}} <code>{{.Change}}</code></a>{{else}}{{ctx.Locale.Tr "asc_trust.checks.change"}} <code>{{.Change}}</code>{{end}}{{if .Version}} <span class="rv-faint">v{{.Version}}</span>{{end}}{{else if .Head}}{{if .RunURL}}<a href="{{.RunURL}}"><code>{{.Head}}</code></a>{{else}}<code>{{.Head}}</code>{{end}}{{else if .RunURL}}<a href="{{.RunURL}}">{{ctx.Locale.Tr "asc_trust.checks.show_run"}}</a>{{end}}</th>
+													<td data-label="{{ctx.Locale.Tr "asc_trust.checks.job"}}">{{.JobName}}</td>
+													<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_attempt"}}">{{.Attempt}}</td>
+													<td data-label="{{ctx.Locale.Tr "asc_trust.checks.col_when"}}" class="rv-nowrap">{{DateUtils.TimeSince .At}}</td>
+												</tr>
+												{{else}}
+												<tr><td colspan="4" class="rv-muted">{{ctx.Locale.Tr "asc_trust.checks.no_occurrences"}}</td></tr>
+												{{end}}
+											</tbody>
+										</table>
+									</div>
+									{{if .More}}<p><a href="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}" data-testid="asc-group-all">{{ctx.Locale.Tr "asc_trust.checks.all_occurrences"}}</a></p>{{end}}
+								</div>
+								{{if $.AscChecks.CanWrite}}
+								<form class="rv-group-do rv-inset rv-form" method="post" action="{{$.AscChecks.ChecksURL}}/groups/{{.ID}}/state" data-testid="asc-group-do">
+									<h3 class="rv-h4">{{ctx.Locale.Tr "asc_trust.checks.actions_title"}}</h3>
+									{{$.CsrfTokenHtml}}
+									<input type="hidden" name="op" value="{{.Op}}">
+									<input type="hidden" name="next" value="checks">
+									<input type="hidden" name="back" value="{{$.AscChecks.ListQuery}}">
+									<div class="rv-field">
+										<label class="rv-label" for="asc-group-{{.ID}}-note">{{ctx.Locale.Tr "asc_trust.checks.note"}}</label>
+										<textarea class="rv-textarea" id="asc-group-{{.ID}}-note" name="note" rows="3" maxlength="1024" placeholder="{{ctx.Locale.Tr "asc_trust.checks.note_hint"}}"{{if .Act}} autofocus{{end}}></textarea>
+									</div>
+									<div class="rv-acts">
+										<button class="rv-btn {{if eq .Act "acknowledged"}}rv-btn-primary{{else}}rv-btn-secondary{{end}} rv-btn-sm" type="submit" name="state" value="acknowledged" data-testid="asc-group-do-ack">{{ctx.Locale.Tr "asc_trust.checks.acknowledge"}}</button>
+										{{if $.AscChecks.AllowQuarantine}}<button class="rv-btn {{if eq .Act "quarantined"}}rv-btn-primary{{else}}rv-btn-secondary{{end}} rv-btn-sm" type="submit" name="state" value="quarantined" data-testid="asc-group-do-quarantine">{{svg "dsi-ban" 14}}{{ctx.Locale.Tr "asc_trust.checks.quarantine"}}</button>{{end}}
+										<a class="rv-btn rv-btn-ghost rv-btn-sm" href="{{$.RepoLink}}/issues/new?{{.IssueQuery}}" data-testid="asc-group-do-issue">{{svg "dsi-external" 14}}{{ctx.Locale.Tr "asc_trust.checks.open_issue"}}</a>
+									</div>
+									<p class="rv-hint">{{ctx.Locale.Tr "asc_trust.checks.quarantine_note"}}</p>
+								</form>
 								{{end}}
-							</tbody>
-						</table>
+							</div>
+							{{end}}{{end}}
+						</li>
+						{{end}}
+					</ul>
+					{{else}}
+					<div class="rv-card-b" data-testid="asc-groups-empty">
+						{{if .Filtered}}
+							<div class="rv-empty rv-empty-flat">
+								<h3>{{ctx.Locale.Tr "asc_trust.checks.match_none_title"}}</h3>
+								<p>{{ctx.Locale.Tr "asc_trust.checks.match_none_help"}}</p>
+								<div class="rv-acts"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.ChecksURL}}{{if .State}}?state={{.State}}{{end}}" data-testid="asc-groups-clear">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></div>
+							</div>
+						{{else if or (not .State) (eq .State "open")}}
+							{{template "shared/ds/empty" (dict "Icon" "check-circle" "Title" (ctx.Locale.Tr "asc_trust.checks.nothing_title") "Body" (ctx.Locale.Tr "asc_trust.checks.nothing_body") "SecondaryLabel" (ctx.Locale.Tr "asc_trust.checks.see_trends") "SecondaryHref" .TrendsURL)}}
+						{{else}}
+							<p class="rv-center rv-muted">{{ctx.Locale.Tr "asc_trust.checks.groups_empty"}}</p>
+						{{end}}
 					</div>
+					{{end}}
 					{{if .NextURL}}<div class="rv-card-f rv-center"><a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.checks.more_groups"}}</a></div>{{end}}
 				</section>
+				</div>
 				{{end}}
 				{{end}}
 
 				{{if or (eq .View "flaky") (eq .View "trends")}}
-				<form class="rv-filters" method="get" action="{{.ChecksURL}}">
+				<form class="rv-filters" method="get" action="{{.ChecksURL}}" data-asc-list-filter>
 					<input type="hidden" name="view" value="{{.View}}">
 					<div class="rv-filter-fields">
 						<div class="rv-field">
@@ -134,7 +238,15 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 				</form>
 				{{end}}
 
-				{{if eq .View "flaky"}}
+				{{if and (eq .View "flaky") (not .Problem)}}
+				<div class="rv-stack" data-asc-list-main>
+					<div class="rv-card ag-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "asc_rp.loading"}}" data-asc-list-loading data-testid="asc-flaky-loading" hidden>
+						<ul class="rv-list" aria-hidden="true">
+							<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+							<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+							<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+						</ul>
+					</div>
 				<section class="rv-card rv-gap" aria-labelledby="asc-flaky">
 					<div class="rv-card-h"><h2 id="asc-flaky">{{ctx.Locale.Tr "asc_trust.checks.flaky_title"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_trust.checks.last_days" .Window}}</span></div>
 					<div class="rv-tablewrap rv-flat" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_trust.table_region"}}">
@@ -157,9 +269,18 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 					</div>
 					{{if .NextURL}}<div class="rv-card-f rv-center"><a class="rv-btn rv-btn-secondary" href="{{.NextURL}}" rel="next">{{ctx.Locale.Tr "asc_trust.checks.more_tests"}}</a></div>{{end}}
 				</section>
+				</div>
 				{{end}}
 
-				{{if eq .View "trends"}}
+				{{if and (eq .View "trends") (not .Problem)}}
+				<div class="rv-stack" data-asc-list-main>
+					<div class="rv-card ag-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "asc_rp.loading"}}" data-asc-list-loading data-testid="asc-trends-loading" hidden>
+						<ul class="rv-list" aria-hidden="true">
+							<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+							<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+							<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+						</ul>
+					</div>
 				<section class="rv-card rv-gap" aria-labelledby="asc-trends">
 					<div class="rv-card-h"><h2 id="asc-trends">{{ctx.Locale.Tr "asc_trust.checks.trends_title"}}</h2><span class="rv-faint">{{ctx.Locale.Tr "asc_trust.checks.last_days" .Window}}</span></div>
 					{{range .Trends}}
@@ -171,6 +292,7 @@ Texts from asc and from runners are cleaned in services/asctrust and escaped by 
 					<p class="rv-card-b rv-muted" data-testid="asc-trends-empty">{{ctx.Locale.Tr "asc_trust.checks.trends_empty"}}</p>
 					{{end}}
 				</section>
+				</div>
 				{{end}}
 			{{end}}
 		</div>

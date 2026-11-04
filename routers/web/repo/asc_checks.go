@@ -4,6 +4,7 @@
 package repo
 
 import (
+	gocontext "context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -29,6 +30,8 @@ import (
 	pull_service "forgejo.org/services/pull"
 
 	actions_service "forgejo.org/services/actions"
+
+	"google.golang.org/grpc"
 )
 
 // The checks pages (docs/BUILDOUT.md section 8, the Checks board).
@@ -82,6 +85,127 @@ type ascChecksPage struct {
 	// Main is the state of the default branch: green, failing, running or "" when it has no result.
 	Main     string
 	MainName string
+	// Retry is true when Problem is a failure to reach asc, which trying again can fix.
+	Retry bool
+	// Rows are the failure groups with what the list offers on each; Open is the one shown expanded, nil for none.
+	Rows []ascGroupRowView
+	Open *ascGroupOpen
+	// AllowQuarantine is true when the viewer may write and the policy allows quarantine ([ci] allow_quarantine).
+	AllowQuarantine bool
+	// ListQuery is the query of the list without open and act: the forms of a row carry it, so a change of state
+	// comes back to the same list.
+	ListQuery string
+	// Filtered is true when a job, a test or "flaky only" narrows the list.
+	Filtered  bool
+	TrendsURL string
+}
+
+// ascGroupRowView is one failure group of the list.
+type ascGroupRowView struct {
+	asctrust.GroupRow
+	// Op is the operation id of the state forms of the row.
+	Op string
+	// Expanded is true for the group shown with its log; ToggleURL shows or hides it.
+	Expanded  bool
+	ToggleURL string
+	// AckURL and QuarantineURL open the group with its note field and that action first; "" when not offered.
+	AckURL        string
+	QuarantineURL string
+	CanResolve    bool
+	CanReopen     bool
+}
+
+// Dot is the tone of the dot at the start of the row.
+func (r ascGroupRowView) Dot() string {
+	switch r.StateKey {
+	case "open":
+		return "err"
+	case "resolved":
+		return "ok"
+	}
+	return "warn"
+}
+
+// ascGroupOpen is the expanded group of the list: an excerpt of its newest log, where it happened, what to do with it.
+type ascGroupOpen struct {
+	ID          uint64
+	Lines       []ascLogLine
+	LogOf       *ascOccurrenceView
+	Occurrences []ascOccurrenceView
+	// More is true when the group has more occurrences than the list shows; the group page has them all.
+	More bool
+	// Act is the action the person chose on the row ("acknowledged", "quarantined"), shown first; "" for none.
+	Act        string
+	IssueQuery string
+	// Op is the operation id of the form, the one of the row.
+	Op string
+}
+
+// ascLogLine is one numbered line of a log excerpt.
+type ascLogLine struct {
+	N    int
+	Text string
+}
+
+// The expanded group shows this many occurrences and this many lines of the newest log.
+const (
+	ascOpenOccurrences = 5
+	ascOpenLogLines    = 40
+)
+
+// ascLogLines numbers the lines of a log excerpt and keeps the last limit of them, where a failure ends.
+func ascLogLines(msg string, limit int) []ascLogLine {
+	msg = strings.TrimRight(msg, "\n")
+	if msg == "" {
+		return nil
+	}
+	lines := strings.Split(msg, "\n")
+	first := 0
+	if len(lines) > limit {
+		first = len(lines) - limit
+	}
+	out := make([]ascLogLine, 0, len(lines)-first)
+	for i := first; i < len(lines); i++ {
+		out = append(out, ascLogLine{N: i + 1, Text: strings.TrimRight(lines[i], "\r")})
+	}
+	return out
+}
+
+// ascListBack is the list query a state form sent back, with only the keys of the list; anything else is dropped.
+func ascListBack(raw string) url.Values {
+	in, err := url.ParseQuery(raw)
+	out := url.Values{}
+	if err != nil {
+		return out
+	}
+	for _, k := range []string{"state", "job", "test", "flaky", "page"} {
+		if v := in.Get(k); v != "" && len(v) <= 512 {
+			out.Set(k, v)
+		}
+	}
+	return out
+}
+
+// ascOccurrenceViews links the occurrences to the runs of this repository and names their jobs.
+func ascOccurrenceViews(ctx *context.Context, repo *repo_model.Repository, rows []asctrust.OccurrenceRow) []ascOccurrenceView {
+	out := make([]ascOccurrenceView, 0, len(rows))
+	for _, o := range rows {
+		view := ascOccurrenceView{OccurrenceRow: o}
+		// A run id from asc is only a link when the run belongs to this repository.
+		if o.RunID > 0 && o.RunID < 1<<62 {
+			if run, err := actions_model.GetRunByID(ctx, int64(o.RunID)); err == nil && run.RepoID == repo.ID {
+				view.RunURL = repo.Link() + "/actions/runs/" + strconv.FormatInt(run.Index, 10)
+				view.RunID = run.ID
+				if o.JobID > 0 && o.JobID < 1<<62 {
+					if job, err := actions_model.GetRunJobByID(ctx, int64(o.JobID)); err == nil && job.RunID == run.ID {
+						view.JobName = job.Name
+					}
+				}
+			}
+		}
+		out = append(out, view)
+	}
+	return out
 }
 
 type ascChecksState struct {
@@ -212,14 +336,14 @@ func AscChecks(ctx *context.Context) {
 	conn, err := asctrust.Conn()
 	if err != nil {
 		log.Error("asc checks: no connection to asc serve: %v", err)
-		p.Problem = ctx.Locale.TrString("asc_trust.err.unavailable")
+		p.Problem, p.Retry = ctx.Locale.TrString("asc_trust.err.unavailable"), true
 		ctx.HTML(http.StatusBadGateway, tplAscChecks)
 		return
 	}
 	callCtx, release, err := trustweb.ReadCall(ctx, repo)
 	if err != nil {
 		f := trustweb.FailureOf("checks credential", err)
-		p.Problem = f.Localized(ctx)
+		p.Problem, p.Retry = f.Localized(ctx), true
 		ctx.HTML(f.Status, tplAscChecks)
 		return
 	}
@@ -230,7 +354,7 @@ func AscChecks(ctx *context.Context) {
 			ctx.NotFound("asc checks", nil)
 			return
 		}
-		p.Problem = f.Localized(ctx)
+		p.Problem, p.Retry = f.Localized(ctx), true
 		ctx.HTML(f.Status, tplAscChecks)
 	}
 	switch p.View {
@@ -274,24 +398,129 @@ func AscChecks(ctx *context.Context) {
 		}
 		p.Main = ascMainState(ctx, repo)
 		p.Jobs = asctrust.JobStats(data.Groups.Rows)
+		list := url.Values{}
+		if p.State != "" {
+			list.Set("state", p.State)
+		}
+		if p.Flaky {
+			list.Set("flaky", "1")
+		}
+		if p.Job != "" {
+			list.Set("job", p.Job)
+		}
+		if p.Test != "" {
+			list.Set("test", p.Test)
+		}
+		p.Filtered = p.Flaky || p.Job != "" || p.Test != ""
+		p.TrendsURL = ascChecksViewURL(p.ChecksURL, ascChecksViewTrends, window, windowGiven)
 		if data.Groups.Next != "" {
 			q := url.Values{"page": {data.Groups.Next}}
-			if p.State != "" {
-				q.Set("state", p.State)
-			}
-			if p.Flaky {
-				q.Set("flaky", "1")
-			}
-			if p.Job != "" {
-				q.Set("job", p.Job)
-			}
-			if p.Test != "" {
-				q.Set("test", p.Test)
+			for k, v := range list {
+				q[k] = v
 			}
 			p.NextURL = p.ChecksURL + "?" + q.Encode()
 		}
+		if page := ctx.FormString("page"); page != "" {
+			list.Set("page", page)
+		}
+		p.ListQuery = list.Encode()
+		ascChecksRows(ctx, repo, callCtx, conn, name, p, data.Groups.Rows, list)
 	}
 	ctx.HTML(http.StatusOK, tplAscChecks)
+}
+
+// ascChecksRows builds the rows of the failure groups and the expanded group: the one named by ?open=, else the
+// newest group of the first page; ?open=0 shows none. A failure to read the expanded group leaves it closed.
+func ascChecksRows(ctx *context.Context, repo *repo_model.Repository, callCtx gocontext.Context, conn grpc.ClientConnInterface, name string, p *ascChecksPage, rows []asctrust.GroupRow, list url.Values) {
+	if len(rows) == 0 {
+		return
+	}
+	if p.CanWrite {
+		p.AllowQuarantine = asctrust.QuarantineAllowed(callCtx, conn, name)
+	}
+	var open uint64
+	if raw, given := ctx.Req.Form["open"]; given {
+		open, _ = strconv.ParseUint(raw[0], 10, 64)
+	} else if list.Get("page") == "" {
+		open = rows[0].ID
+	}
+	act := ctx.FormString("act")
+	if act != "acknowledged" && act != "quarantined" {
+		act = ""
+	}
+	link := func(id uint64, a, anchor string) string {
+		q := url.Values{}
+		for k, v := range list {
+			q[k] = v
+		}
+		q.Set("open", strconv.FormatUint(id, 10))
+		if a != "" {
+			q.Set("act", a)
+		}
+		return p.ChecksURL + "?" + q.Encode() + anchor
+	}
+	for _, g := range rows {
+		row := ascGroupRowView{GroupRow: g, Expanded: g.ID == open}
+		id := strconv.FormatUint(g.ID, 10)
+		if row.Expanded {
+			row.ToggleURL = link(0, "", "#asc-group-"+id)
+		} else {
+			row.ToggleURL = link(g.ID, "", "#asc-group-"+id)
+		}
+		if p.CanWrite {
+			row.Op = asctrust.NewOpID()
+			if g.StateKey != "acknowledged" {
+				row.AckURL = link(g.ID, "acknowledged", "#asc-group-"+id+"-note")
+			}
+			if p.AllowQuarantine && g.StateKey != "quarantined" {
+				row.QuarantineURL = link(g.ID, "quarantined", "#asc-group-"+id+"-note")
+			}
+			row.CanResolve = g.StateKey != "resolved"
+			row.CanReopen = g.StateKey != "open"
+		}
+		p.Rows = append(p.Rows, row)
+	}
+	if open == 0 {
+		return
+	}
+	for i := range p.Rows {
+		if p.Rows[i].ID != open {
+			continue
+		}
+		detail, err := asctrust.LoadGroupDetail(callCtx, conn, name, open, "", ascOpenOccurrences+1)
+		if err != nil {
+			log.Warn("asc checks: group %d of %s: %v", open, repo.FullName(), err)
+			p.Rows[i].Expanded = false
+			p.Rows[i].ToggleURL = link(open, "", "#asc-group-"+strconv.FormatUint(open, 10))
+			return
+		}
+		occ := detail.Occurrences
+		o := &ascGroupOpen{ID: open, More: len(occ) > ascOpenOccurrences || detail.Next != ""}
+		if len(occ) > ascOpenOccurrences {
+			occ = occ[:ascOpenOccurrences]
+		}
+		o.Occurrences = ascOccurrenceViews(ctx, repo, occ)
+		for j := range o.Occurrences {
+			if o.Occurrences[j].JobName == "" {
+				o.Occurrences[j].JobName = detail.Group.JobName
+			}
+		}
+		for j := range o.Occurrences {
+			if lines := ascLogLines(o.Occurrences[j].Message, ascOpenLogLines); lines != nil {
+				o.Lines, o.LogOf = lines, &o.Occurrences[j]
+				break
+			}
+		}
+		if p.CanWrite {
+			o.Op, o.Act = p.Rows[i].Op, act
+			if act == "quarantined" && !p.AllowQuarantine {
+				o.Act = ""
+			}
+			o.IssueQuery = "title=" + url.QueryEscape(ctx.Locale.TrString("asc_trust.checks.issue_title", firstNonEmptyString(detail.Group.TestName, detail.Group.Title)))
+		}
+		p.Open = o
+		return
+	}
 }
 
 func ascGroupStateOptions() []struct {
@@ -334,6 +563,8 @@ type ascOccurrenceView struct {
 	asctrust.OccurrenceRow
 	RunURL string
 	RunID  int64
+	// JobName is the name of the job of the run, "" when the run is not one of this repository.
+	JobName string
 }
 
 // AscCheckGroup serves GET /{owner}/{repo}/asc/checks/groups/{id}.
@@ -394,17 +625,7 @@ func AscCheckGroup(ctx *context.Context) {
 	p.Detail, p.History = detail, hist
 	p.AllowQuarantine = p.CanWrite && asctrust.QuarantineAllowed(callCtx, conn, name)
 	p.IssueQuery = "title=" + url.QueryEscape(ctx.Locale.TrString("asc_trust.checks.issue_title", firstNonEmptyString(detail.Group.TestName, detail.Group.Title)))
-	for _, o := range detail.Occurrences {
-		view := ascOccurrenceView{OccurrenceRow: o}
-		// A run id from asc is only a link when the run belongs to this repository.
-		if o.RunID > 0 && o.RunID < 1<<62 {
-			if run, err := actions_model.GetRunByID(ctx, int64(o.RunID)); err == nil && run.RepoID == repo.ID {
-				view.RunURL = repo.Link() + "/actions/runs/" + strconv.FormatInt(run.Index, 10)
-				view.RunID = run.ID
-			}
-		}
-		p.Occurrences = append(p.Occurrences, view)
-	}
+	p.Occurrences = ascOccurrenceViews(ctx, repo, detail.Occurrences)
 	if detail.Next != "" {
 		p.NextURL = p.GroupURL + "?" + url.Values{"page": {detail.Next}}.Encode()
 	}
@@ -460,11 +681,18 @@ func AscCheckGroupState(ctx *context.Context) {
 		return
 	}
 	ctx.Flash.Success(ctx.Locale.TrString("asc_trust.checks.state_done." + g.StateKey))
-	if next := ctx.Req.PostFormValue("next"); next == "pull" {
+	switch ctx.Req.PostFormValue("next") {
+	case "pull":
 		if index, err := strconv.ParseInt(ctx.Req.PostFormValue("index"), 10, 64); err == nil && index > 0 {
 			ctx.Redirect(repo.Link() + "/pulls/" + strconv.FormatInt(index, 10) + "/asc/checks")
 			return
 		}
+	case "checks":
+		// Back to the list the form was on, with the group still open; only the keys of the list are kept.
+		q := ascListBack(ctx.Req.PostFormValue("back"))
+		q.Set("open", strconv.FormatInt(id, 10))
+		ctx.Redirect(ascChecksURL(repo) + "?" + q.Encode() + "#asc-group-" + strconv.FormatInt(id, 10))
+		return
 	}
 	ctx.Redirect(back)
 }
