@@ -15,11 +15,13 @@ import (
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
 	"forgejo.org/modules/test"
 	"forgejo.org/services/ascbridge"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
+	"forgejo.org/services/contexttest"
 	pull_service "forgejo.org/services/pull"
 
 	"github.com/stretchr/testify/assert"
@@ -63,6 +65,10 @@ func newConflictFixture(t *testing.T) (*qrFixture, *cfOps) {
 		}},
 	}}}
 	t.Cleanup(ascbridge.UseStackOps(ops))
+	// The text of a file is read as the viewer (a signed claim), so the key that signs it is set.
+	t.Cleanup(test.MockVariableValue(&setting.Asc.ForwardedKey, testForwardedKey))
+	setStorageBackend(t, 1, "asc")
+	t.Cleanup(func() { setStorageBackend(t, 1, "") })
 	t.Cleanup(pull_service.UseAscConflictReader(func(_ gocontext.Context, _, id string, _ int) ([]byte, bool, error) {
 		if id != cfTestMarked {
 			return nil, false, errors.New("unknown id")
@@ -265,7 +271,23 @@ func TestAscConflictBanner(t *testing.T) {
 		return []byte(cfTestText), true, nil
 	}))
 
-	ctx := runBadges(t, pull)
+	t.Cleanup(test.MockVariableValue(&setting.Asc.ForwardedKey, testForwardedKey))
+	setStorageBackend(t, pull.BaseRepoID, "asc")
+	t.Cleanup(func() { setStorageBackend(t, pull.BaseRepoID, "") })
+
+	// Nobody signed in: the banner names the conflict, but no text is read, since asc applies its path rules to
+	// a person.
+	anon := runBadges(t, pull).Data["AscBadges"].(*AscBadges)
+	require.NotNil(t, anon.Merge)
+	assert.Empty(t, read)
+	assert.Empty(t, anon.Merge.Preview)
+	assert.Equal(t, pull.Issue.Link()+"/asc/conflicts", anon.Merge.Link)
+
+	ctx, _ := contexttest.MockContext(t, "user2/repo1/pulls/2")
+	contexttest.LoadUser(t, ctx, 5)
+	ctx.IsSigned = true
+	contexttest.LoadRepo(t, ctx, pull.BaseRepoID)
+	prepareAscBadges(ctx, pull)
 	b, ok := ctx.Data["AscBadges"].(*AscBadges)
 	require.True(t, ok)
 	m := b.Merge
@@ -274,7 +296,7 @@ func TestAscConflictBanner(t *testing.T) {
 	assert.Equal(t, pull.BaseBranch, m.Target)
 	assert.Equal(t, 2, m.Others)
 	assert.Equal(t, pull.Issue.Link()+"/asc/conflicts", m.Link)
-	assert.False(t, m.CanResolve, "nobody is signed in")
+	assert.False(t, m.CanResolve, "a reader may not resolve")
 	assert.Equal(t, 2, m.PreviewLine)
 	assert.Equal(t, []AscConflictRow{
 		{Line: 3, Add: true, Text: "Attempts: 5, base 100 ms"},
@@ -300,7 +322,8 @@ func TestAscConflictBanner(t *testing.T) {
 	t.Cleanup(test.MockVariableValue(&ascBannerReadFile, func(gocontext.Context, string, string, int) ([]byte, bool, error) {
 		return nil, false, errors.New("down")
 	}))
-	b = runBadges(t, pull).Data["AscBadges"].(*AscBadges)
+	prepareAscBadges(ctx, pull)
+	b = ctx.Data["AscBadges"].(*AscBadges)
 	require.NotNil(t, b.Merge)
 	assert.Empty(t, b.Merge.Preview)
 	assert.Equal(t, pull.Issue.Link()+"/asc/conflicts", b.Merge.Link)
