@@ -55,6 +55,8 @@ type HookTask struct {
 	EventType   webhook_module.HookEventType
 	IsDelivered bool
 	Delivered   timeutil.TimeStampNano
+	// DurationMS is how long the receiver took to answer, in milliseconds; 0 when it was not sent or not measured.
+	DurationMS int64 `xorm:"NOT NULL DEFAULT 0"`
 
 	// History info.
 	IsSucceed       bool
@@ -114,6 +116,22 @@ func HookTasks(ctx context.Context, hookID int64, page int) ([]*HookTask, error)
 		Where("hook_id=?", hookID).
 		Desc("id").
 		Find(&tasks)
+}
+
+// CountHookTasks counts the tasks of a hook, delivered or waiting.
+func CountHookTasks(ctx context.Context, hookID int64) (int64, error) {
+	return db.GetEngine(ctx).Where("hook_id=?", hookID).Count(new(HookTask))
+}
+
+// GetHookTaskByUUID returns the task of a hook with the given UUID.
+func GetHookTaskByUUID(ctx context.Context, hookID int64, uuid string) (*HookTask, error) {
+	task, exist, err := db.Get[HookTask](ctx, builder.Eq{"hook_id": hookID, "uuid": uuid})
+	if err != nil {
+		return nil, err
+	} else if !exist {
+		return nil, ErrHookTaskNotExist{HookID: hookID, UUID: uuid}
+	}
+	return task, nil
 }
 
 // LastDeliveries returns the latest delivered task of each of the given hooks, keyed by hook ID.

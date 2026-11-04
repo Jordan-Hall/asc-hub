@@ -141,6 +141,8 @@ func Deliver(ctx context.Context, t *webhook_model.HookTask) error {
 		return nil
 	}
 
+	start := time.Now()
+	defer func() { t.DurationMS = time.Since(start).Milliseconds() }() // runs before the deferred update records the task
 	resp, err := webhookHTTPClient.Do(req.WithContext(ctx))
 	if err != nil {
 		t.ResponseInfo.Body = fmt.Sprintf("Delivery: %v", err)
