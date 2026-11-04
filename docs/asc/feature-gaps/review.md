@@ -8,8 +8,8 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 201 |
-| ui-only-missing | 3 |
+| done | 202 |
+| ui-only-missing | 2 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
 | needs-both | 10 |
@@ -36,7 +36,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Queue | 11 | 0 | 0 | 0 | 0 |
 | Audit | 6 | 0 | 0 | 0 | 0 |
 | Security | 9 | 0 | 0 | 0 | 0 |
-| Mobile twins | 6 | 3 | 0 | 0 | 0 |
+| Mobile twins | 7 | 2 | 0 | 0 | 0 |
 
 ## Findings that change the plan
 
@@ -349,6 +349,6 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile twins | Mobile-ReviewVersions: confirm as a sheet with default focus Cancel; toast with Undo | ui-only-missing | templates/repo/asc_confirm.tmpl (page, not sheet) | M |
 | Mobile twins | Mobile-Checks: failures as cards, chips scroll sideways, Re-run failed pinned | done | under 640 each failure group is its own card with 44px buttons; the state chips already scroll sideways (.rv-chips); Re-run failed pinned above the tab bar (asc-checks-pinned) | S |
 | Mobile twins | Mobile-Checks: swipe a card left for Acknowledge | done | asc-checks-swipe.js: a touch swipe of 80 px left opens the card Acknowledge (the button stays); pan-y keeps scrolling, the card springs back, reduced motion off | S |
-| Mobile twins | Mobile-AgentRun: Allow once / Deny pinned; pull to refresh | ui-only-missing | templates/repo/asc_agents_run.tmpl + asc-agent-run.ts (follow logic exists) | S |
+| Mobile twins | Mobile-AgentRun: Allow once / Deny pinned; pull to refresh | done | asc_agents_run.tmpl pins Allow once / Deny under 900 when a permission request is pending; asc-pull-refresh.js pulls to refresh in the installed app (browsers keep their own) | S |
 | Mobile twins | Mobile-Ops: undo preview as a bottom sheet | done | asc_ops.tmpl dialog.rv-ops-sheet: under 640 the undo preview opens as a bottom sheet (Cancel focused, backdrop and Esc close, 44px buttons); asc-ops.js | M |
 | Mobile twins | Other mobile twins (Agents, Workflows, Queue, Policy, Audit, Security, AgentNew, AgentAccess, WorkflowDef, WorkflowRun, NewChange): same data as desktop, stacked cards | done | templates share desktop markup with rv-desk/rv-mob classes; gaps equal the desktop rows | - |
