@@ -311,14 +311,20 @@ func TestListAuditPassesTheServersRefusalOn(t *testing.T) {
 
 func TestVerifyAuditChain(t *testing.T) {
 	f, c := startFake(t)
-	f.auditChain = func(*ascv1.VerifyAuditChainRequest) (*ascv1.VerifyAuditChainResponse, error) {
-		return &ascv1.VerifyAuditChainResponse{Ok: false, Checked: 12, FirstBadSeq: 9, Reason: "hash mismatch\u202e at 9"}, nil
+	var got *ascv1.VerifyAuditChainRequest
+	f.auditChain = func(r *ascv1.VerifyAuditChainRequest) (*ascv1.VerifyAuditChainResponse, error) {
+		got = r
+		return &ascv1.VerifyAuditChainResponse{Ok: false, Checked: 12, FirstBadSeq: 9, Reason: "hash mismatch\u202e at 9", FirstSeq: 7, HeadSeq: 40}, nil
 	}
-	res, err := VerifyAuditChain(userCtx(t, "t"), c, &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_ORG, Name: "acme"})
+	res, err := VerifyAuditChain(userCtx(t, "t"), c, &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_ORG, Name: "acme"}, 5, 20)
 	require.NoError(t, err)
 	assert.False(t, res.OK)
 	assert.EqualValues(t, 9, res.FirstBad)
 	assert.Equal(t, "hash mismatch at 9", res.Reason)
+	assert.EqualValues(t, 7, res.FirstSeq)
+	assert.EqualValues(t, 40, res.HeadSeq)
+	assert.EqualValues(t, 5, got.GetFromSeq())
+	assert.EqualValues(t, 20, got.GetToSeq())
 }
 
 func TestStartAuditExportChoosesTheFormat(t *testing.T) {
