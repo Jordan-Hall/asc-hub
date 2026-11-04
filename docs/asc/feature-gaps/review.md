@@ -27,7 +27,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Agents | 14 | 0 | 0 | 0 | 0 |
 | AgentRun | 17 | 0 | 0 | 0 | 1 |
 | AgentNew | 7 | 0 | 0 | 0 | 1 |
-| AgentAccess | 5 | 1 | 0 | 0 | 2 |
+| AgentAccess | 6 | 0 | 0 | 0 | 2 |
 | Workflows | 11 | 0 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 9 | 0 | 0 | 0 | 0 |
@@ -216,7 +216,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | AgentAccess | Secret shown once with copy and ASC_TOKEN export line | done | templates/repo/asc_agents_tokens.tmpl (tokens_secret_*) | - |
 | AgentAccess | Spend this month per token ($58 of $120) as a monthly budget | needs-both | asc: token budgets are per run or lifetime, no monthly window or month spend (AgentBudgetLimits/Usage); hub: column | M |
 | AgentAccess | Approvals log (permission and plan requests with decision and decider) | needs-both | depends on the permission/plan feature (see AgentRun); asc audit events + hub list | L |
-| AgentAccess | Policy defaults card: write scope, never trunk, changes per run, cost cap, token lifetime, who may decide, link to Policy | ui-only-missing | templates/repo/asc_agents_policy.tmpl (can/cannot and limits shown; cost cap, lifetime, deciders missing) | M |
+| AgentAccess | Policy defaults card: write scope, never trunk, changes per run, cost cap, token lifetime, who may decide, link to Policy | done | templates/repo/asc_agents_defaults.tmpl on the tokens page: [agents] default_scope, trunk and denied_paths, max_changes_per_run and max_cost_micro_usd from the policy (No limit when unset), the longest token lifetime asc allows, who may decide (people with write access, as AscAgentsDecide requires), and a link to Policy and trust; without a readable policy it says the server defaults apply; asc_agents_tokens_test.go TestAscAgentsTokensPolicyDefaults | - |
 | AgentAccess | Spend this month panel: cap, daily spend chart, per-agent totals, 'people using AI keys' | done | asc: spend history aggregates; hub AI-key usage (services/ascbyo); new Spend page (Spend page renders with live data; cap save covered by Go tests) | L |
 | AgentAccess | Revoke confirm dialog naming the agent; Budget dialog | done | templates/repo/asc_agents_tokens.tmpl (disclosure forms with reason, not modal dialogs) | - |
 | AgentAccess | Empty state 'No tokens yet' | done | templates/repo/asc_agents_tokens.tmpl | - |
