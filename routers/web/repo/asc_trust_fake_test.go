@@ -62,6 +62,8 @@ type fakeTrust struct {
 	undoRef    func(*ascv1.UndoRefRequest) (*ascv1.UndoRefResponse, error)
 	listGroups func(*ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error)
 	listFlaky  func(*ascv1.ListFlakyTestsRequest) (*ascv1.ListFlakyTestsResponse, error)
+	getGroup   func(*ascv1.GetFailureGroupRequest) (*ascv1.GetFailureGroupResponse, error)
+	setGroup   func(*ascv1.SetFailureGroupStateRequest) (*ascv1.SetFailureGroupStateResponse, error)
 	history    func(*ascv1.FlakyHistoryRequest) (*ascv1.FlakyHistoryResponse, error)
 	auditList  func(*ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error)
 	auditChain func(*ascv1.VerifyAuditChainRequest) (*ascv1.VerifyAuditChainResponse, error)
@@ -132,6 +134,22 @@ func (f *fakeTrust) ListFailureGroups(ctx gocontext.Context, r *ascv1.ListFailur
 		return f.UnimplementedCiInsightsServer.ListFailureGroups(ctx, r)
 	}
 	return f.listGroups(r)
+}
+
+func (f *fakeTrust) GetFailureGroup(ctx gocontext.Context, r *ascv1.GetFailureGroupRequest) (*ascv1.GetFailureGroupResponse, error) {
+	f.note(ctx, "GetFailureGroup", r)
+	if f.getGroup == nil {
+		return f.UnimplementedCiInsightsServer.GetFailureGroup(ctx, r)
+	}
+	return f.getGroup(r)
+}
+
+func (f *fakeTrust) SetFailureGroupState(ctx gocontext.Context, r *ascv1.SetFailureGroupStateRequest) (*ascv1.SetFailureGroupStateResponse, error) {
+	f.note(ctx, "SetFailureGroupState", r)
+	if f.setGroup == nil {
+		return f.UnimplementedCiInsightsServer.SetFailureGroupState(ctx, r)
+	}
+	return f.setGroup(r)
 }
 
 func (f *fakeTrust) ListFlakyTests(ctx gocontext.Context, r *ascv1.ListFlakyTestsRequest) (*ascv1.ListFlakyTestsResponse, error) {
