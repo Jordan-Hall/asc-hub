@@ -11,6 +11,7 @@ import (
 	"forgejo.org/models/unittest"
 	webhook_model "forgejo.org/models/webhook"
 	"forgejo.org/modules/json"
+	"forgejo.org/modules/setting"
 	api "forgejo.org/modules/structs"
 	webhook_module "forgejo.org/modules/webhook"
 
@@ -105,7 +106,7 @@ func TestAscPayloadText(t *testing.T) {
 		color int
 	}{
 		{api.AscHookPayload{Event: "change.opened", Change: change}, "Change [#12 Retry the ledger sync](u) opened in acme/payments by @sam", yellowColor},
-		{api.AscHookPayload{Event: "change.landed", Change: change}, "Change [#12 Retry the ledger sync](u) landed on main in acme/payments by @sam", purpleColor},
+		{api.AscHookPayload{Event: "change.landed", Change: change}, "Change [#12 Retry the ledger sync](u) landed on [main](" + setting.AppURL + "acme/payments/src/branch/main) in acme/payments by @sam", purpleColor},
 		{api.AscHookPayload{Event: "review.requested", Change: change}, "Review of [#12 Retry the ledger sync](u) requested from @priya in acme/payments by @sam", yellowColor},
 		{api.AscHookPayload{Event: "agent_run.started", Run: &api.AscHookRun{ID: 4}}, "[Agent run #4](u) started in acme/payments by @sam", yellowColor},
 		{api.AscHookPayload{Event: "agent_run.finished", Run: &api.AscHookRun{ID: 4, State: "succeeded", Changes: 1}}, "[Agent run #4](u) succeeded with 1 change in acme/payments by @sam", greenColor},
