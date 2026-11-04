@@ -1,0 +1,32 @@
+{{/* The Dependencies view of a package version, the same for every format (PackageDeps, routers/web/user/package_tabs.go). */}}
+<section class="wk-pkg-deps" aria-labelledby="pkg-deps-h" data-testid="pkg-deps">
+	<h2 class="ds-t-h3" id="pkg-deps-h">{{ctx.Locale.Tr "asc_work.pkg_deps_title"}}</h2>
+	{{range $g := .PackageDeps}}
+		<h3 class="ds-card-top wk-pkg-deps-h">{{ctx.Locale.Tr $g.TitleKey}} <span class="ds-count">{{len $g.Deps}}</span></h3>
+		<div class="ds-card ds-card-attach ds-table-wrap">
+			<table class="ds-table ds-table-stack" data-testid="pkg-deps-group">
+				<thead>
+					<tr>
+						<th scope="col">{{ctx.Locale.Tr "asc_work.pkg_deps_name"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_work.pkg_deps_requirement"}}</th>
+						{{if $g.HasNote}}<th scope="col">{{ctx.Locale.Tr "asc_work.pkg_deps_note"}}</th>{{end}}
+					</tr>
+				</thead>
+				<tbody>
+					{{range $g.Deps}}
+					<tr>
+						<td data-label="{{ctx.Locale.Tr "asc_work.pkg_deps_name"}}"><span class="ds-mono tw-break-anywhere">{{.Name}}</span></td>
+						<td data-label="{{ctx.Locale.Tr "asc_work.pkg_deps_requirement"}}">{{if .Version}}<span class="ds-mono">{{.Version}}</span>{{else}}<span class="ds-c-2">{{ctx.Locale.Tr "asc_work.pkg_deps_any"}}</span>{{end}}</td>
+						{{if $g.HasNote}}<td data-label="{{ctx.Locale.Tr "asc_work.pkg_deps_note"}}">{{if .Optional}}<span class="ds-chip">{{ctx.Locale.Tr "asc_work.pkg_deps_optional"}}</span> {{end}}<span class="tw-break-anywhere">{{.Note}}</span></td>{{end}}
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+		</div>
+	{{else}}
+		<div class="ds-empty ds-card" data-testid="pkg-deps-empty">
+			<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-package" 32}}</span>
+			<p>{{ctx.Locale.Tr "asc_work.pkg_deps_none"}}</p>
+		</div>
+	{{end}}
+</section>

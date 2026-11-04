@@ -23,30 +23,4 @@
 		{{if .PackageDescriptor.Metadata.ReleaseNotes}}<div class="ds-card ds-card-b ds-card-attach">{{RenderMarkdownToHtml $.Context .PackageDescriptor.Metadata.ReleaseNotes}}</div>{{end}}
 	{{end}}
 
-	{{if .PackageDescriptor.Metadata.Dependencies}}
-		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ds-card ds-card-b ds-card-attach">
-			<table class="ds-table">
-				<thead>
-					<tr>
-						<th class="ten wide">{{ctx.Locale.Tr "packages.dependency.id"}}</th>
-						<th class="three wide">{{ctx.Locale.Tr "packages.dependency.version"}}</th>
-						<th class="three wide">{{ctx.Locale.Tr "packages.nuget.dependency.framework"}}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{{$tooltipSearchInNuget := ctx.Locale.Tr "packages.search_in_external_registry" "nuget.org"}}
-					{{range $framework, $dependencies := .PackageDescriptor.Metadata.Dependencies}}
-						{{range $dependencies}}
-						<tr>
-							<td>{{.ID}} <a target="_blank" rel="noreferrer" href="https://www.nuget.org/packages/{{.ID}}" data-tooltip-content="{{$tooltipSearchInNuget}}">{{svg "octicon-link-external"}}</a></td>
-							<td>{{.Version}} <a target="_blank" rel="noreferrer" href="https://www.nuget.org/packages/{{.ID}}/{{.Version}}" data-tooltip-content="{{$tooltipSearchInNuget}}">{{svg "octicon-link-external"}}</a></td>
-							<td>{{$framework}}</td>
-						</tr>
-						{{end}}
-					{{end}}
-				</tbody>
-			</table>
-		</div>
-	{{end}}
 {{end}}

@@ -1,4 +1,5 @@
 <p><a href="{{.PackageDescriptor.PackageWebLink}}">{{.PackageDescriptor.Package.Name}}</a> / <strong>{{ctx.Locale.Tr "packages.versions"}}</strong></p>
+{{template "package/tabs" .}}
 <form class="ui form ignore-dirty">
 	<div class="ui small fluid action input">
 		{{template "shared/search/input" dict "Value" .Query "Placeholder" (ctx.Locale.Tr "search.package_kind")}}

@@ -157,7 +157,7 @@ func RedirectToLastVersion(ctx *context.Context) {
 		return
 	}
 
-	ctx.Redirect(pd.VersionWebLink())
+	ctx.Redirect(latestVersionTabLink(ctx, pd))
 }
 
 // ViewPackageVersion displays a single package version
@@ -284,6 +284,10 @@ func ViewPackageVersion(ctx *context.Context) {
 	}
 	ctx.Data["HasRepositoryAccess"] = hasRepositoryAccess
 
+	deps := packageDepGroups(pd)
+	ctx.Data["PackageDeps"] = deps
+	preparePackageTabs(ctx, pd, packageViewTab(ctx), true, packageDepCount(deps))
+
 	err = shared_user.LoadHeaderCount(ctx)
 	if err != nil {
 		ctx.ServerError("LoadHeaderCount", err)
@@ -319,10 +323,13 @@ func ListPackageVersions(ctx *context.Context) {
 
 	ctx.Data["Title"] = ctx.Tr("packages.title")
 	ctx.Data["IsPackagesPage"] = true
-	ctx.Data["PackageDescriptor"] = &packages_model.PackageDescriptor{
+	versionsOf := &packages_model.PackageDescriptor{
 		Package: p,
 		Owner:   ctx.Package.Owner,
 	}
+	ctx.Data["PackageDescriptor"] = versionsOf
+	ctx.Data["CanWritePackages"] = ctx.Package.AccessMode >= perm.AccessModeWrite || ctx.IsUserSiteAdmin()
+	preparePackageTabs(ctx, versionsOf, packageTabVersions, false, 0)
 	ctx.Data["Query"] = query
 	ctx.Data["Sort"] = sort
 
@@ -409,6 +416,7 @@ func PackageSettings(ctx *context.Context) {
 	})
 	ctx.Data["Repos"] = repos
 	ctx.Data["CanWritePackages"] = ctx.Package.AccessMode >= perm.AccessModeWrite || ctx.IsUserSiteAdmin()
+	preparePackageTabs(ctx, pd, packageTabSettings, true, packageDepCount(packageDepGroups(pd)))
 
 	err := shared_user.LoadHeaderCount(ctx)
 	if err != nil {

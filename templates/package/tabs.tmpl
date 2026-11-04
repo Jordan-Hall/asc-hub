@@ -1,0 +1,6 @@
+{{/* The tab bar of a package page: Install, Versions, Dependencies and, for writers, Settings (PackageTabs, routers/web/user/package_tabs.go). */}}
+<nav class="ds-tabs wk-pkg-tabs" aria-label="{{ctx.Locale.Tr "asc_work.pkg_tabs"}}" data-testid="pkg-tabs">
+	{{range .PackageTabs}}
+		{{template "shared/ds/tab" (dict "Label" (ctx.Locale.Tr .LabelKey) "Href" .Href "Active" .Active "Count" .Count)}}
+	{{end}}
+</nav>

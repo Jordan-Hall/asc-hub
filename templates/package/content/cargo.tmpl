@@ -27,28 +27,6 @@ git-fetch-with-cli = true</code></pre></div>
 		{{if .PackageDescriptor.Metadata.Readme}}<div class="ds-card ds-card-b ds-card-attach">{{RenderMarkdownToHtml $.Context .PackageDescriptor.Metadata.Readme}}</div>{{end}}
 	{{end}}
 
-	{{if .PackageDescriptor.Metadata.Dependencies}}
-		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ds-card ds-card-b ds-card-attach">
-			<table class="ds-table">
-				<thead>
-					<tr>
-						<th class="ten wide">{{ctx.Locale.Tr "packages.dependency.id"}}</th>
-						<th class="six wide">{{ctx.Locale.Tr "packages.dependency.version"}}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{{range .PackageDescriptor.Metadata.Dependencies}}
-					<tr>
-						<td>{{.Name}}</td>
-						<td>{{.Req}}</td>
-					</tr>
-					{{end}}
-				</tbody>
-			</table>
-		</div>
-	{{end}}
-
 	{{if .PackageDescriptor.Metadata.Keywords}}
 		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.keywords"}}</h4>
 		<div class="ds-card ds-card-b ds-card-attach">

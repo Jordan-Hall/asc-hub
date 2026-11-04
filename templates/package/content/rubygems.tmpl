@@ -28,13 +28,4 @@ end</code></pre></div>
 			{{if .PackageDescriptor.Metadata.RequiredRubygemsVersion}}<p>{{ctx.Locale.Tr "packages.rubygems.required.rubygems"}}: {{range $i, $v := .PackageDescriptor.Metadata.RequiredRubygemsVersion}}{{if gt $i 0}}, {{end}}{{$v.Restriction}}{{$v.Version}}{{end}}</p>{{end}}
 		</div>
 	{{end}}
-	{{if or .PackageDescriptor.Metadata.RuntimeDependencies .PackageDescriptor.Metadata.DevelopmentDependencies}}
-		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ds-card ds-card-b ds-card-attach">
-			<div class="ui list">
-				{{template "package/content/rubygems_dependencies" dict "root" $ "dependencies" .PackageDescriptor.Metadata.RuntimeDependencies "title" (ctx.Locale.Tr "packages.rubygems.dependencies.runtime")}}
-				{{template "package/content/rubygems_dependencies" dict "root" $ "dependencies" .PackageDescriptor.Metadata.DevelopmentDependencies "title" (ctx.Locale.Tr "packages.rubygems.dependencies.development")}}
-			</div>
-		</div>
-	{{end}}
 {{end}}
