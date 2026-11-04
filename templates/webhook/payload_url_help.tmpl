@@ -1,9 +1,0 @@
-{{/* Under the payload address of a webhook form: an ASC hub accepts https only (plain http to localhost when the
-instance turns on [webhook] ALLOW_LOCAL_HTTP), and says so before and after a refused save. */}}
-{{if AscEnabled}}
-	{{if .PayloadURLRefused}}
-		<p class="ds-err-msg" id="payload_url_help" role="alert">{{svg "dsi-alert" 16}}<span>{{ctx.Locale.Tr "asc_hooks.http_refused"}}</span></p>
-	{{else}}
-		<p class="ds-hint" id="payload_url_help">{{ctx.Locale.Tr "asc_hooks.url_hint"}}</p>
-	{{end}}
-{{end}}
