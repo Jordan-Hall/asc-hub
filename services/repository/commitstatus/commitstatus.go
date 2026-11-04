@@ -19,6 +19,7 @@ import (
 	"forgejo.org/modules/json"
 	"forgejo.org/modules/log"
 	api "forgejo.org/modules/structs"
+	"forgejo.org/services/ascbabysit"
 	"forgejo.org/services/ascsync"
 	shared_automerge "forgejo.org/services/shared/automerge"
 )
@@ -109,6 +110,8 @@ func CreateCommitStatus(ctx context.Context, repo *repo_model.Repository, creato
 	// The checks of stacked pull requests of an asc repository follow the status back to asc (a no-op for
 	// every other repository), whoever posted it.
 	ascsync.NotifyCommitStatus(ctx, repo, commit.ID.String())
+	// An agent that watches the checks of the change starts a run to fix a failure.
+	ascbabysit.NotifyCommitStatus(ctx, repo, commit.ID.String(), status.State, status.Context)
 
 	defaultBranchCommit, err := gitRepo.GetBranchCommit(repo.DefaultBranch)
 	if err != nil {
