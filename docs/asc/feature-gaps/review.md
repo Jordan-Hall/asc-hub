@@ -8,11 +8,11 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 192 |
+| done | 193 |
 | ui-only-missing | 10 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 12 |
+| needs-both | 11 |
 | total | 214 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -26,7 +26,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | ChangeChecks | 9 | 0 | 0 | 0 | 1 |
 | Agents | 14 | 0 | 0 | 0 | 0 |
 | AgentRun | 17 | 0 | 0 | 0 | 1 |
-| AgentNew | 7 | 0 | 0 | 0 | 1 |
+| AgentNew | 8 | 0 | 0 | 0 | 0 |
 | AgentAccess | 6 | 0 | 0 | 0 | 2 |
 | Workflows | 11 | 0 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
@@ -205,7 +205,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | AgentNew | Right rail 'What this run may do', computed from token and policy, updates as scope narrows | done | templates/repo/asc_agents_maydo.tmpl above the estimate card; routers/web/repo/asc_agents_maydo.go: Policy.Evaluate for the agent principal, called as the signed-in person because a real asc answers another principal only to a maintainer and refuses the hub's own credential with NotFound 'no such principal' (checked against a live asc serve; a non-maintainer sees the card say so), WRITE for a sample path of each scope glob (the policy default scope when none is typed; a glob with a class or alternative is not sampled) and RUN for the changes and paths limits; GET asc/agents/may-do refreshes it (web_src/js/features/asc-board.js applyMayDo, 600 ms after an input of the agent, scope or limits); asc silent leaves the card saying so; tests: TestAscAgentsMayDoEndpoint*, TestAscAgentsNewFormShowsWhatTheRunMayDo, vitest applyMayDo. Limit: asc judges paths, so the lines show a sample path of the glob, not every path it matches. | - |
 | AgentNew | Estimate 'About 10 min and $1.60' from similar runs | done | asc: run statistics query (new RPC) + hub display (card renders (no estimate on a fresh hub); fetch covered by Go and vitest) | M |
 | AgentNew | Recent tasks with Reuse | done | asc: AgentRun lacks task text; hub: list on asc_agents_new.tmpl (renders with live data) | S |
-| AgentNew | Limits above the policy cap are lowered with a message, not rejected | needs-both | asc budget handling vs hub message in asc_agents.go (no 'lowered' text exists);; Audit 2026-10-30 (part built): Help text says a value above the cap is lowered; the New agent form message was not found. | S |
+| AgentNew | Limits above the policy cap are lowered with a message, not rejected | done | services/ascagentui/budget.go LoweredText: after New agent, Change limits and Continue the flash says "Limit lowered. Your policy caps a run at $5.00. The limit was set to $8.00, so it was lowered." from the lowered list of asc, the asked limits and the limits of the run; a limit without both values is named; TestLoweredTextSaysTheCapAndWhatWasAsked, TestAscAgentsCreatePassesPlanFirstAndNamesLoweredLimits | - |
 | AgentNew | Started toast 'Run 216 started' with Open; can-start right required | done | redirect to run page + writer check (asc_agents_common.go) | - |
 
 ### AgentAccess
