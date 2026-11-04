@@ -1,0 +1,57 @@
+{{/* The Add webhook dialog of a hooks list (repository, organization or user): the kind, as cards (Generic, Chat
+and, in a repository that asc serves, ASC agent), then the payload address, or for an agent hook the agent and its
+task. The page's script checks the address as it is typed and sends the form in the background; without script the
+form posts and the server answers with the new hook's page. The data is the page data: .AddDialog, .BaseLink. */}}
+<dialog id="wh-add-dlg" class="wh-add-dlg" aria-labelledby="wh-add-title">
+	<form class="ds-form" method="post" action="{{.BaseLink}}/add" data-wh-add data-http="{{.AddDialog.HTTP}}" novalidate>
+		{{.CsrfTokenHtml}}
+		<article>
+			<header>
+				<span class="ds-grow" id="wh-add-title">{{ctx.Locale.Tr "repo.settings.add_webhook"}}</span>
+				<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm" data-wh-add-close aria-label="{{ctx.Locale.Tr "asc_shell.close"}}">{{svg "dsi-x" 16}}</button>
+			</header>
+			<div class="content">
+				<fieldset class="ds-field wh-add-kind">
+					<legend class="ds-label">{{ctx.Locale.Tr "asc_hooks.add_kind"}}</legend>
+					<div class="wk-radio-cards wh-add-kinds{{if .AddDialog.Agent}} wk-cols-3{{end}}">
+						<label class="wk-radio-card"><input type="radio" name="kind" value="generic" checked><span><b>{{ctx.Locale.Tr "asc_hooks.add_generic"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_hooks.add_generic_hint"}}</span></span></label>
+						<label class="wk-radio-card"><input type="radio" name="kind" value="chat"><span><b>{{ctx.Locale.Tr "asc_hooks.add_chat"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_hooks.add_chat_hint"}}</span></span></label>
+						{{if .AddDialog.Agent}}
+							<label class="wk-radio-card"><input type="radio" name="kind" value="agent"><span><b>{{ctx.Locale.Tr "asc_hooks.kind_agent"}}</b><span class="ds-hint">{{ctx.Locale.Tr "asc_hooks.add_agent_hint"}}</span></span></label>
+						{{end}}
+					</div>
+					<p class="ds-err-msg" id="wha_kind_err" role="alert" hidden>{{svg "dsi-alert" 16}}<span></span></p>
+				</fieldset>
+				<div class="ds-field" data-wh-add-for="generic chat">
+					<label class="ds-label" for="wha_payload_url">{{ctx.Locale.Tr "asc_hooks.payload_url"}}</label>
+					<div class="ds-inwrap">
+						{{svg "dsi-lock" 16}}
+						<input class="ds-input" id="wha_payload_url" name="payload_url" type="url" required autocomplete="off" spellcheck="false" placeholder="https://ci.example.org/hook" aria-describedby="wha_payload_url_help">
+					</div>
+					<p class="ds-err-msg" id="wha_payload_url_err" role="alert" hidden data-refused="{{ctx.Locale.Tr "asc_hooks.http_refused"}}" data-invalid="{{ctx.Locale.Tr "asc_hooks.url_invalid"}}">{{svg "dsi-alert" 16}}<span></span></p>
+					<p class="ds-hint" id="wha_payload_url_help">{{ctx.Locale.Tr "asc_hooks.url_hint"}}</p>
+				</div>
+				{{if .AddDialog.Agent}}
+					<div class="ds-field" data-wh-add-for="agent" hidden>
+						<label class="ds-label" for="wha_agent">{{ctx.Locale.Tr "asc_hooks.agent"}}</label>
+						<input class="ds-input" id="wha_agent" name="agent" type="text" maxlength="40" required disabled autocomplete="off" autocapitalize="none" spellcheck="false" list="wha_agent_list" aria-describedby="wha_agent_help">
+						<datalist id="wha_agent_list">{{range .AddDialog.Roster}}<option value="{{.Name}}"></option>{{end}}</datalist>
+						<p class="ds-err-msg" id="wha_agent_err" role="alert" hidden>{{svg "dsi-alert" 16}}<span></span></p>
+						<p class="ds-hint" id="wha_agent_help">{{ctx.Locale.Tr "asc_hooks.agent_hint"}}</p>
+					</div>
+					<div class="ds-field" data-wh-add-for="agent" hidden>
+						<label class="ds-label" for="wha_task">{{ctx.Locale.Tr "asc_hooks.agent_task"}}</label>
+						<textarea class="ds-textarea" id="wha_task" name="task" rows="4" maxlength="8192" required disabled aria-describedby="wha_task_help"></textarea>
+						<p class="ds-err-msg" id="wha_task_err" role="alert" hidden>{{svg "dsi-alert" 16}}<span></span></p>
+						<p class="ds-hint" id="wha_task_help">{{ctx.Locale.Tr "asc_hooks.add_agent_task_hint"}}</p>
+					</div>
+				{{end}}
+				<p class="ds-err-msg" data-wh-add-failed role="alert" hidden>{{svg "dsi-alert" 16}}<span>{{ctx.Locale.Tr "asc_hooks.add_failed"}}</span></p>
+			</div>
+			<div class="actions">
+				<button type="button" class="ds-btn ds-btn-ghost" data-wh-add-close>{{ctx.Locale.Tr "cancel"}}</button>
+				<button type="submit" class="ds-btn ds-btn-primary" data-wh-add-submit>{{ctx.Locale.Tr "repo.settings.add_webhook"}}</button>
+			</div>
+		</article>
+	</form>
+</dialog>

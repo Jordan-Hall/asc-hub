@@ -1206,7 +1206,8 @@ ul.ds-list {
 .wh-li-acts { display: flex; flex: 1 0 100%; align-items: center; justify-content: space-between; gap: 8px; }
 .wh-active { margin-left: 8px; font-size: 13px; color: var(--text-2); }
 .wh-kind { display: none; }
-.ui.dropdown.wh-add-phone { display: block; margin-top: 8px; }
+.wh-add-btn { display: none; }
+.wh-add-phone { margin-top: 8px; }
 
 @media (min-width: 768px) {
   .wh-li { flex-wrap: nowrap; }
@@ -1214,7 +1215,20 @@ ul.ds-list {
   .wh-li-acts { flex: none; justify-content: flex-end; }
   .wh-active { display: none; }
   .wh-kind { display: inline-flex; }
-  .ui.dropdown.wh-add-phone { display: none; }
+  .wh-add-btn { display: inline-flex; }
+  .wh-add-phone { display: none; }
+}
+
+/* the Add webhook dialog (templates/repo/settings/webhook/add_dialog.tmpl): the kinds as cards, two or three across,
+   then the fields of the kind that is chosen */
+.wh-add-dlg .content { display: flex; flex-direction: column; gap: 16px; }
+.wh-add-kind { margin: 0; padding: 0; border: 0; min-width: 0; }
+.wh-add-kinds .ds-hint { display: block; }
+
+@media (min-width: 640px) {
+  .ds-app dialog.wh-add-dlg { width: 560px; }
+  .wh-add-kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wh-add-kinds.wk-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* a table that sits flush in its card, the card's edges its border */
