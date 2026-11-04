@@ -71,7 +71,7 @@
 					{{if and .PageIsComparePull (eq .Repository.GetStorageBackend "asc")}}
 					<p class="ds-hint" data-testid="asc-open-notes">{{ctx.Locale.Tr "asc_rp.cmp_checks_start"}} {{ctx.Locale.Tr "asc_rp.cmp_signed_note"}}</p>
 					{{end}}
-					<div class="ds-row ds-justify-end">
+					<div class="ds-row ds-justify-end ds-form-bar">
 						{{with .AscNewChangeDraft}}
 						<span class="ds-hint ds-grow" data-asc-ncd-note aria-live="polite" data-testid="asc-ncd-note"{{if .Restored}} data-restored="true"{{end}}
 							data-saved="{{ctx.Locale.Tr "asc_rp.ncd_saved"}}" data-failed="{{ctx.Locale.Tr "asc_rp.ncd_failed"}}" data-discarded="{{ctx.Locale.Tr "asc_rp.ncd_discarded"}}">{{if .Restored}}{{ctx.Locale.Tr "asc_rp.ncd_restored" (DateUtils.TimeSince .SavedAt)}}{{else if .Issue}}{{ctx.Locale.Tr "asc_rp.ncd_hint_issue"}}{{else}}{{ctx.Locale.Tr "asc_rp.ncd_hint"}}{{end}}</span>
