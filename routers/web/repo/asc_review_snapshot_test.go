@@ -454,6 +454,10 @@ func TestAscReviewSnapshotConfirm(t *testing.T) {
 	}
 	data := map[string]any{"Title": "Merge the stack", "AscOp": "merge", "AscRows": rows, "AscCanConfirm": true, "AscAction": "/user2/repo1/pulls/13/asc/merge", "AscBack": "/user2/repo1/pulls/13", "AscPreviewNote": "Both changes are approved and signed."}
 	renderPage(t, dir, "confirm", "repo/asc_confirm", data)
+	data["AscOp"] = "queue"
+	data["AscLandSummary"] = &AscLandSummary{Order: []int64{11, 12}, Signed: true, Signers: []string{"Priya Raman", "coder-2"}, Position: 3, Total: 3, StartsIn: "6 min", Undo: "30 min"}
+	renderPage(t, dir, "confirm-queue", "repo/asc_confirm", data)
+	data["AscOp"], data["AscLandSummary"] = "merge", nil
 	data["AscCanConfirm"] = false
 	data["AscFailure"] = "The trunk moved while you decided. Reload and check the dry run again."
 	data["AscNeedsContentMerge"], data["AscNoContentMerge"] = true, true

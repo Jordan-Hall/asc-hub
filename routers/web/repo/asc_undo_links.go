@@ -46,9 +46,9 @@ func ascNewestOp(ctx *context.Context, repo *repo_model.Repository, ref string) 
 	return &rows[0]
 }
 
-// ascRefOps returns up to limit operations on ref, newest first, as the signed-in person. It returns nothing when asc
+// ascRefLog reads a page of up to limit operations on ref, newest first, as the signed-in person. It returns nil when asc
 // cannot be asked or the person may not read the log.
-func ascRefOps(ctx *context.Context, repo *repo_model.Repository, ref string, limit uint32) []asctrust.OpRow {
+func ascRefLog(ctx *context.Context, repo *repo_model.Repository, ref string, limit uint32) *asctrust.OpLogPage {
 	if !setting.Asc.Enabled || ctx.Doer == nil || !asctrust.HasFeature(ctx, asctrust.FeatureStacks) {
 		return nil
 	}
@@ -68,6 +68,16 @@ func ascRefOps(ctx *context.Context, repo *repo_model.Repository, ref string, li
 	page, err := asctrust.LoadOpLog(callCtx, conn, name, ascUndoWho(ctx), asctrust.OpLogQuery{Ref: ref, Limit: limit})
 	if err != nil {
 		log.Trace("asc operations of %s: %v", ref, asctrust.Classify(err))
+		return nil
+	}
+	return page
+}
+
+// ascRefOps returns up to limit operations on ref, newest first, as the signed-in person. It returns nothing when asc
+// cannot be asked or the person may not read the log.
+func ascRefOps(ctx *context.Context, repo *repo_model.Repository, ref string, limit uint32) []asctrust.OpRow {
+	page := ascRefLog(ctx, repo, ref, limit)
+	if page == nil {
 		return nil
 	}
 	rows := make([]asctrust.OpRow, 0, len(page.Rows))
