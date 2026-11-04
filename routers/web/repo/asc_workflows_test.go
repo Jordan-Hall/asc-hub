@@ -565,6 +565,10 @@ func TestAscWorkflowRunPage(t *testing.T) {
 	assert.NotContains(t, p.body, "log-line-5<")
 	assert.Contains(t, p.body, "asc_review.wf_log_hidden")
 	assert.Contains(t, p.body, `href="/user2/repo1/asc/agents/runs/7"`)
+	// The log of the agent step is a card of its own, headed by the step, its agent and how long it took.
+	assert.Regexp(t, `data-testid="asc-wf-step-log">\s*<div class="rv-card-h">\s*<h2 id="rv-wfr-log-review">asc_review.wf_step_log</h2>\s*<a class="rv-btn rv-btn-ghost rv-btn-sm rv-end" href="/user2/repo1/asc/agents/runs/7">asc_review.wf_open_the_agent_run</a>`, p.body)
+	assert.Contains(t, p.body, `<div class="wf-log-h"><code>review</code><span>coder</span><span>1 min</span><span class="rv-end">asc_review.wf_log_hidden</span></div>`)
+	assert.Equal(t, 1, strings.Count(p.body, `data-testid="asc-wf-step-log"`), "only the agent step has a log")
 	// The approval form, the stop button.
 	assert.Contains(t, p.body, `data-testid="asc-workflow-approval"`)
 	assert.Contains(t, p.body, `name="decision" value="approve"`)
@@ -585,6 +589,7 @@ func TestAscWorkflowRunPage(t *testing.T) {
 		p := page(agentsOwner, false)
 		require.Equal(t, http.StatusOK, p.status)
 		assert.NotContains(t, p.body, "log-line-30")
+		assert.NotContains(t, p.body, "asc-wf-step-log")
 		assert.NotContains(t, p.body, `href="/user2/repo1/asc/agents/runs/7"`)
 		assert.Contains(t, p.body, "asc_review.wf_agent_run")
 		assert.NotContains(t, p.body, "asc-workflow-approval")
