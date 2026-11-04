@@ -10,6 +10,7 @@ import (
 
 	"forgejo.org/models"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascinbox"
 	"forgejo.org/services/automerge"
 	"forgejo.org/services/context"
@@ -128,7 +129,19 @@ func AscConfirm(ctx *context.Context) {
 		return
 	}
 	ctx.Data["Title"] = ctx.Locale.TrString("repo.pulls.asc_op.title." + op)
+	if n, _ := ctx.Data["AscMergeCount"].(int); op == ascOpMerge && n > 0 {
+		// merge now asks the question it answers (board ReviewVersions, confirm): how many changes go into which branch
+		ctx.Data["Title"], ctx.Data["AscConfirmLabel"] = ascMergeQuestion(ctx.Locale, n, pr.BaseBranch)
+	}
 	ctx.HTML(http.StatusOK, tplAscConfirm)
+}
+
+// ascMergeQuestion is the title and the button of the merge now confirmation for n changes landing on branch.
+func ascMergeQuestion(l translation.Locale, n int, branch string) (title, button string) {
+	if n == 1 {
+		return l.TrString("repo.pulls.asc_op.ask_merge_one", branch), l.TrString("repo.pulls.asc_op.confirm_merge_one")
+	}
+	return l.TrString("repo.pulls.asc_op.ask_merge_other", n, branch), l.TrString("repo.pulls.asc_op.confirm_merge_other", n)
 }
 
 // ascConfirmMerge is the dry run of "Merge when ready" and "Merge now". Merge now needs every pull request to be
@@ -164,6 +177,7 @@ func ascConfirmMerge(ctx *context.Context, pr *issues_model.PullRequest, now boo
 		}
 	}
 	if now {
+		ctx.Data["AscMergeCount"] = len(rows)
 		ctx.Data["AscCanConfirm"] = d.Ready && !d.Paused
 		ctx.Data["AscMergeFacts"] = ascMergeFactsOf(ctx, pr)
 	}

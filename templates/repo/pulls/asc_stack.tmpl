@@ -3,7 +3,7 @@ Stack rail, needs-restack banner and stack actions of a stacked pull request (de
 Template Attributes:
 * AscStackPanel: *pull.AscStackPanel
 * AscActions: *repo.AscStackActions (set for a signed-in viewer of a stack in an asc repository); every button is a link to the
-  confirmation page, which runs the dry run
+  confirmation page, which runs the dry run; on a phone it opens in the sheet at the end (asc-confirm-sheet.js)
 * AscQueueStates: map of pull request index to queue state, for the labels
 */}}
 {{with .AscStackPanel}}
@@ -16,7 +16,7 @@ Template Attributes:
 	<div class="rv-banner rv-banner-warn asc-needs-restack" role="status">
 		<div>
 			{{ctx.Locale.Tr "repo.pulls.asc_needs_restack"}}
-			{{with $.AscActions}}{{if .CanRestack}}<div class="rv-acts"><a class="rv-btn rv-btn-primary rv-btn-sm" href="{{.ConfirmURL}}?op=restack" data-testid="asc-restack-link">{{ctx.Locale.Tr "repo.pulls.asc_op.restack"}}</a></div>{{end}}{{end}}
+			{{with $.AscActions}}{{if .CanRestack}}<div class="rv-acts"><a class="rv-btn rv-btn-primary rv-btn-sm" data-asc-confirm-open href="{{.ConfirmURL}}?op=restack" data-testid="asc-restack-link">{{ctx.Locale.Tr "repo.pulls.asc_op.restack"}}</a></div>{{end}}{{end}}
 		</div>
 	</div>
 	{{end}}
@@ -55,16 +55,21 @@ Template Attributes:
 	{{with $.AscActions}}
 	{{if or .CanQueue .CanUnqueue .CanMerge .CanRestack .CanRevert}}
 	<div class="rv-stack-actions" data-testid="asc-stack-actions">
-		{{if .CanQueue}}<a class="rv-btn rv-btn-primary rv-btn-block" href="{{.ConfirmURL}}?op=queue" data-testid="asc-queue-link">{{ctx.Locale.Tr "repo.pulls.asc_op.queue"}}</a>{{end}}
-		{{if .CanUnqueue}}<a class="rv-btn rv-btn-secondary rv-btn-block" href="{{.ConfirmURL}}?op=unqueue" data-testid="asc-unqueue-link">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a>{{end}}
-		{{if .CanMerge}}<a class="rv-btn rv-btn-secondary rv-btn-block" href="{{.ConfirmURL}}?op=merge" data-testid="asc-merge-link">{{ctx.Locale.Tr "repo.pulls.asc_op.merge_stack"}}</a>{{end}}
-		{{if .CanRestack}}<a class="rv-btn rv-btn-secondary rv-btn-block" href="{{.ConfirmURL}}?op=restack">{{ctx.Locale.Tr "repo.pulls.asc_op.restack"}}</a>{{end}}
+		{{if .CanQueue}}<a class="rv-btn rv-btn-primary rv-btn-block" data-asc-confirm-open href="{{.ConfirmURL}}?op=queue" data-testid="asc-queue-link">{{ctx.Locale.Tr "repo.pulls.asc_op.queue"}}</a>{{end}}
+		{{if .CanUnqueue}}<a class="rv-btn rv-btn-secondary rv-btn-block" data-asc-confirm-open href="{{.ConfirmURL}}?op=unqueue" data-testid="asc-unqueue-link">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a>{{end}}
+		{{if .CanMerge}}<a class="rv-btn rv-btn-secondary rv-btn-block" data-asc-confirm-open href="{{.ConfirmURL}}?op=merge" data-testid="asc-merge-link">{{ctx.Locale.Tr "repo.pulls.asc_op.merge_stack"}}</a>{{end}}
+		{{if .CanRestack}}<a class="rv-btn rv-btn-secondary rv-btn-block" data-asc-confirm-open href="{{.ConfirmURL}}?op=restack">{{ctx.Locale.Tr "repo.pulls.asc_op.restack"}}</a>{{end}}
 		{{if .CanRevert}}
-			<a class="rv-btn rv-btn-secondary rv-btn-block" href="{{.ConfirmURL}}?op=revert&scope=this" data-testid="asc-revert-link">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_this"}}</a>
-			{{if gt (len $.AscStackPanel.Entries) 1}}<a class="rv-btn rv-btn-secondary rv-btn-block" href="{{.ConfirmURL}}?op=revert&scope=stack">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_stack"}}</a>{{end}}
+			<a class="rv-btn rv-btn-secondary rv-btn-block" data-asc-confirm-open href="{{.ConfirmURL}}?op=revert&scope=this" data-testid="asc-revert-link">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_this"}}</a>
+			{{if gt (len $.AscStackPanel.Entries) 1}}<a class="rv-btn rv-btn-secondary rv-btn-block" data-asc-confirm-open href="{{.ConfirmURL}}?op=revert&scope=stack">{{ctx.Locale.Tr "repo.pulls.asc_op.revert_stack"}}</a>{{end}}
 		{{end}}
 	</div>
 	{{end}}
+	<dialog class="rv-sheet rv-confirm-sheet" aria-labelledby="asc-confirm-sheet-h" data-asc-confirm-sheet data-testid="asc-confirm-sheet">
+		<div class="rv-sheet-grip" aria-hidden="true"></div>
+		<h2 class="rv-sheet-h" id="asc-confirm-sheet-h"></h2>
+		<div data-asc-confirm-sheet-body></div>
+	</dialog>
 	{{end}}
 	<div class="rv-term rv-stack-cmd" role="group" aria-label="{{ctx.Locale.Tr "asc_review.rev_cli_label"}}"><div class="rv-term-b"><span class="rv-cm">$ </span>asc stack sync</div></div>
 </section>

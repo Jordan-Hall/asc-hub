@@ -9,6 +9,7 @@ Template Attributes:
 * AscPaused, AscNeedsContentMerge, AscNoContentMerge, AscReady: merge and queue only
 * AscScopeThis, AscSquash: revert only
 * AscAction: the URL the form posts to; AscBack: the pull request page
+* AscConfirmLabel: string, the button when it names a count (merge now); otherwise the button of the operation
 Every text comes from the locale or from the handler; pull request titles are escaped by the template engine.
 */}}
 {{template "base/head" .}}
@@ -126,7 +127,7 @@ Every text comes from the locale or from the handler; pull request titles are es
 					{{if .AscSquash}}<input type="hidden" name="squash" value="1">{{end}}
 				{{end}}
 				<div class="rv-sticky asc-op-buttons">
-					<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-confirm-button"{{if not .AscCanConfirm}} disabled aria-disabled="true"{{end}}>{{ctx.Locale.Tr (printf "repo.pulls.asc_op.confirm.%s" .AscOp)}}</button>
+					<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-confirm-button"{{if not .AscCanConfirm}} disabled aria-disabled="true"{{end}}>{{if .AscConfirmLabel}}{{.AscConfirmLabel}}{{else}}{{ctx.Locale.Tr (printf "repo.pulls.asc_op.confirm.%s" .AscOp)}}{{end}}</button>
 					<a class="rv-btn rv-btn-secondary" href="{{.AscBack}}"{{if or (eq .AscOp "merge") (eq .AscOp "revert")}} autofocus data-testid="asc-confirm-cancel"{{end}}>{{ctx.Locale.Tr "repo.pulls.asc_op.cancel"}}</a>
 				</div>
 			</form>

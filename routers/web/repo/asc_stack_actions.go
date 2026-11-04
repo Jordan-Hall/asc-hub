@@ -29,6 +29,28 @@ type AscStackActions struct {
 	ConfirmURL string
 	// QueueURL is the queue page of the base branch.
 	QueueURL string
+	// Position is the place of this pull request in the stack, 1 for the bottom (0 when it is not in the rail), and
+	// LandCount the open pull requests a land up to it takes, for the actions sheet of a phone (board Mobile-Review).
+	Position, LandCount int
+}
+
+// ascLandPlace is the position of the current pull request of panel and the number of open pull requests from the
+// bottom of the stack up to it.
+func ascLandPlace(panel *pull_service.AscStackPanel) (position, count int) {
+	if panel == nil {
+		return 0, 0
+	}
+	for _, e := range panel.Entries {
+		if e.Current {
+			position = e.Position
+		}
+	}
+	for _, e := range panel.Entries {
+		if e.State == pull_service.AscStackStateOpen && e.Position > 0 && e.Position <= position {
+			count++
+		}
+	}
+	return position, count
 }
 
 // ascLoadIssue loads the issue of pr and its repository, which Issue.Link needs.
@@ -64,6 +86,8 @@ func prepareAscStackActions(ctx *context.Context, pull *issues_model.PullRequest
 		ConfirmURL: pull.Issue.Link() + "/asc/confirm",
 		QueueURL:   ctx.Repo.RepoLink + "/asc/queue?branch=" + url.QueryEscape(pull.BaseBranch),
 	}
+	panel, _ := ctx.Data["AscStackPanel"].(*pull_service.AscStackPanel)
+	a.Position, a.LandCount = ascLandPlace(panel)
 	archived := pull.BaseRepo.IsArchived
 	switch {
 	case pull.HasMerged:
