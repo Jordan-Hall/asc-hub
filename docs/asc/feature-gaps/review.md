@@ -25,7 +25,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Checks | 9 | 3 | 0 | 0 | 1 |
 | ChangeChecks | 9 | 0 | 0 | 0 | 1 |
 | Agents | 12 | 2 | 0 | 0 | 0 |
-| AgentRun | 14 | 3 | 0 | 0 | 1 |
+| AgentRun | 15 | 2 | 0 | 0 | 1 |
 | AgentNew | 7 | 0 | 0 | 0 | 1 |
 | AgentAccess | 5 | 1 | 0 | 0 | 2 |
 | Workflows | 9 | 2 | 0 | 0 | 0 |
@@ -193,7 +193,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | AgentRun | Checkpoints list with Roll back (logged) | done | asc: checkpoint + rollback RPC missing; hub: card + route;; Audit 2026-10-30 (built): Gap file says asc has no checkpoint RPC; it has, and the hub calls it. | L |
 | AgentRun | Audit note and 'Download the audit log' (90 days, linked from each change) | done | asc: per-run audit export (Audit.Export filtered by run); hub: link + route (link renders; download covered by Go tests) | M |
 | AgentRun | Failed state 'hit its model token limit' with 'Raise the limit and continue' and Review the 3 changes | done | failure text done (services/ascagentui/failure.go); continue needs an asc resume RPC;; Audit 2026-10-30 (built): Raise the limit and continue is in the template. | M |
-| AgentRun | Done summary (38 tool calls, 11 min, $2.31) and Stopped notes | ui-only-missing | templates/repo/asc_agents_run.tmpl (data in AgentBudgetUsage) | S |
+| AgentRun | Done summary (38 tool calls, 11 min, $2.31) and Stopped notes | done | templates/repo/asc_agents_run.tmpl done banner: changes ready, tool calls, time, cost and Open the stack (top review, else the result card); stopped banner keeps the work as drafts. asc counts tool calls on the run (AgentBudgetUsage.tool_calls, migration 0601, kept when events are pruned); asc agent show prints them (tests: TestAscAgentsRunPage, TestAscAgentStackURL, a_watch_streams_every_event_in_order..., agent_cli) | - |
 
 ### AgentNew
 
