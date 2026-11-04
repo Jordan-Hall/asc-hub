@@ -609,6 +609,17 @@ func TestAscAgentsRunPage(t *testing.T) {
 		assert.NotContains(t, p.body, "/runs/7/cancel")
 	})
 
+	t.Run("a finished run sums up and opens the stack at its top review", func(t *testing.T) {
+		done := proto.Clone(run).(*ascv1.AgentRun)
+		done.State = ascv1.AgentRunState_AGENT_RUN_STATE_SUCCEEDED
+		done.Usage.ToolCalls = 38
+		hub.ok("Agents.GetRun", &ascv1.GetAgentRunResponse{Run: done})
+		p := runAgents(t, agentsReq{path: testRunsPath + "/runs/7", user: agentsOwner, features: true, params: map[string]string{":id": "7"}}, AscAgentsRun)
+		require.Equal(t, http.StatusOK, p.status)
+		assert.Contains(t, p.body, `data-testid="asc-agent-done"`)
+		assert.Contains(t, p.body, `href="/user2/repo1/pulls/3" data-testid="asc-agent-open-stack"`, "the top change with a review; the draft above it has none")
+	})
+
 	t.Run("only the newest events are drawn", func(t *testing.T) {
 		hub.ok("Agents.GetRun", &ascv1.GetAgentRunResponse{Run: run})
 		hub.watch = func(r *ascv1.WatchAgentRunRequest) ([]*ascv1.AgentRunEvent, bool) {
@@ -883,4 +894,10 @@ func TestAgentsReadAllowedMatrix(t *testing.T) {
 	} {
 		assert.Equal(t, c.allow, agentsReadAllowed(c.signed, c.doer, c.code, c.actions, c.features), c.name)
 	}
+}
+
+func TestAscAgentStackURL(t *testing.T) {
+	assert.Empty(t, ascAgentStackURL(nil))
+	assert.Equal(t, "#rv-result-title", ascAgentStackURL([]ascagentui.ChangeLink{{Position: 1}}), "drafts only: the result card")
+	assert.Equal(t, "/b", ascAgentStackURL([]ascagentui.ChangeLink{{Position: 1, URL: "/a"}, {Position: 2, URL: "/b"}, {Position: 3}}))
 }

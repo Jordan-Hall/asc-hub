@@ -102,7 +102,7 @@ The page works without the script: the log shows what existed when it was drawn,
 			</details>
 			{{end}}
 			{{if eq .AscAgentRun.State.Slug "succeeded"}}
-			<div class="rv-banner rv-banner-ok" role="status" data-testid="asc-agent-done"><div><b>{{ctx.Locale.Tr "asc_review.run_done_title"}}</b> {{ctx.Locale.TrN .AscAgentRun.Changes "asc_review.run_done_changes_one" "asc_review.run_done_changes_other" .AscAgentRun.Changes}} {{ctx.Locale.Tr "asc_review.run_done_summary" .AscAgentRunSummaryTime .AscAgentRunSummaryCost .AscAgentRunSummaryTokens}}</div></div>
+			<div class="rv-banner rv-banner-ok" role="status" data-testid="asc-agent-done"><div><b>{{ctx.Locale.Tr "asc_review.run_done_title"}}</b> {{ctx.Locale.TrN .AscAgentRun.Changes "asc_review.run_done_changes_one" "asc_review.run_done_changes_other" .AscAgentRun.Changes}} {{ctx.Locale.Tr "asc_review.run_done_summary" (ctx.Locale.TrN .AscAgentRunSummaryCalls "asc_review.run_done_calls_one" "asc_review.run_done_calls_other" .AscAgentRunSummaryCallsText) .AscAgentRunSummaryTime .AscAgentRunSummaryCost}}{{if .AscAgentStackURL}}<div class="rv-acts"><a class="rv-btn rv-btn-primary rv-btn-sm" href="{{.AscAgentStackURL}}" data-testid="asc-agent-open-stack">{{ctx.Locale.Tr "asc_review.run_open_stack"}}</a></div>{{end}}</div></div>
 			{{end}}
 			{{if eq .AscAgentRun.State.Slug "cancelled"}}
 			<div class="rv-banner ar-stopped" role="status" data-testid="asc-agent-stopped"><div><b>{{ctx.Locale.Tr "asc_review.run_stopped_title"}}</b> {{ctx.Locale.Tr "asc_review.run_stopped_help" .AscAgentRun.Agent}}</div></div>
