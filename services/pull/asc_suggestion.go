@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	git_model "forgejo.org/models/git"
 	issues_model "forgejo.org/models/issues"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
@@ -80,6 +81,11 @@ type AscSuggestionResult struct {
 	Pending bool
 	// MarkFailed is true when the version was made but asc did not record that the suggestion applied.
 	MarkFailed bool
+	Path       string // the file of the suggestion
+	StartLine  uint32
+	Base       uint32 // the version the suggestion was applied to: Undo restores it
+	// ApprovalsReset is true when the rule of the base branch dismisses approvals of an older version.
+	ApprovalsReset bool
 }
 
 var (
@@ -289,7 +295,13 @@ func AscApplySuggestion(ctx context.Context, pr *issues_model.PullRequest, doer 
 	if amended.GetStale() {
 		return nil, &AscSuggestionStale{Reason: amended.GetReason()}
 	}
-	res := &AscSuggestionResult{Version: amended.GetVersion(), Changeset: hex.EncodeToString(amended.GetChangeset()), Commit: hex.EncodeToString(amended.GetGit())}
+	res := &AscSuggestionResult{
+		Version: amended.GetVersion(), Changeset: hex.EncodeToString(amended.GetChangeset()), Commit: hex.EncodeToString(amended.GetGit()),
+		Path: string(prep.GetPath()), StartLine: prep.GetStartLine(), Base: prep.GetVersion(),
+	}
+	if pb, err := git_model.GetFirstMatchProtectedBranchRule(ctx, pr.BaseRepoID, pr.BaseBranch); err == nil && pb != nil {
+		res.ApprovalsReset = pb.DismissStaleApprovals
+	}
 	log.Info("asc audit: apply suggestion: pull request %d (repository %d, index %d): user %d applied comment %d of thread %d as version %d",
 		pr.ID, pr.BaseRepoID, pr.Index, doer.ID, commentID, threadID, res.Version)
 

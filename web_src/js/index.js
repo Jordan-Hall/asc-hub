@@ -87,6 +87,7 @@ import {initAscWebhookAdd} from './features/asc-webhook-add.js';
 import {initAscBulk} from './features/asc-bulk.js';
 import {initLocalTime} from './features/local-time.js';
 import {initAscSecurity} from './features/asc-security.js';
+import {initAscAppliedToast} from './features/asc-applied-toast.js';
 import {initAscOps} from './features/asc-ops.js';
 import {initAscMeters} from './features/asc-meters.js';
 import {initAscIntent} from './features/asc-intent.js';
@@ -259,6 +260,7 @@ onDomReady(() => {
   initAscBulk();
   initLocalTime();
   initAscSecurity();
+  initAscAppliedToast();
   initAscOps();
   initAscMeters();
   initAscIntent();

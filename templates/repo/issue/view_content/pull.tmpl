@@ -10,6 +10,7 @@
 {{template "repo/pulls/asc_brief" .}}
 {{template "repo/pulls/asc_activity" .}}
 {{template "repo/pulls/asc_suggestions" .}}
+{{template "repo/pulls/asc_applied_toast" .}}
 {{template "repo/pulls/asc_versions" .}}
 {{if or (not .Issue.PullRequest.HasMerged) .IsPullBranchDeletable .SomePullRequestRunsNeedApproval}}
 <div class="timeline-item comment merge box">

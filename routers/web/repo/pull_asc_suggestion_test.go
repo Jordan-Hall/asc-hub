@@ -24,6 +24,7 @@ import (
 	"forgejo.org/services/contexttest"
 	pull_service "forgejo.org/services/pull"
 
+	"code.forgejo.org/go-chi/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -267,4 +268,47 @@ func TestAscSuggestionOfAHubCommentIsShownInTheComment(t *testing.T) {
 		d["root"], d["comments"] = d, []*issues_model.Comment{review}
 	})
 	assert.NotContains(t, body, "asc-apply-suggestion", "a page with no suggestions")
+}
+
+// toastSession is a map-backed session store; the embedded interface is nil and only Get, Set and Delete are used.
+type toastSession struct {
+	session.Store
+	values map[any]any
+}
+
+func (s *toastSession) Get(k any) any      { return s.values[k] }
+func (s *toastSession) Set(k, v any) error { s.values[k] = v; return nil }
+func (s *toastSession) Delete(k any) error { delete(s.values, k); return nil }
+
+func TestTheAppliedToastIsShownOnceOnThePullRequest(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 2})
+	other := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 1})
+	store := &toastSession{values: map[any]any{}}
+	ctx, _ := contexttest.MockContext(t, "/user2/repo1/pulls/3")
+	ctx.Session = store
+	res := &pull_service.AscSuggestionResult{Version: 5, Base: 4, Path: "src/client.rs", StartLine: 41, ApprovalsReset: true}
+	require.True(t, setAscAppliedToast(ctx, pr, res))
+	assert.False(t, setAscAppliedToast(ctx, pr, &pull_service.AscSuggestionResult{Version: 5}), "no version to go back to")
+
+	prepareAscAppliedToast(ctx, other)
+	assert.Nil(t, ctx.Data["AscAppliedToast"], "another pull request")
+	assert.Empty(t, store.values, "it is forgotten all the same")
+
+	require.True(t, setAscAppliedToast(ctx, pr, res))
+	prepareAscAppliedToast(ctx, pr)
+	toast := ctx.Data["AscAppliedToast"].(*AscAppliedToast)
+	assert.Equal(t, AscAppliedToast{Pull: 2, Version: 5, Base: 4, Path: "src/client.rs", Line: 41, Reset: true}, *toast)
+	assert.Empty(t, store.values, "it is shown once")
+
+	body := renderPart(t, "repo/pulls/asc_applied_toast", func(d map[string]any) { d["AscAppliedToast"] = toast })
+	for _, want := range []string{`role="status"`, "data-asc-applied-toast", "repo.pulls.asc_suggestion.toast<", "repo.pulls.asc_suggestion.toast_on",
+		"repo.pulls.asc_suggestion.toast_reset", `action="/user2/repo1/pulls/3/asc/restore_version"`, `name="version" value="4"`,
+		"repo.pulls.asc_suggestion.undo<"} {
+		assert.Contains(t, body, want)
+	}
+	toast.Reset = false
+	body = renderPart(t, "repo/pulls/asc_applied_toast", func(d map[string]any) { d["AscAppliedToast"] = toast })
+	assert.NotContains(t, body, "toast_reset", "the branch rule keeps the approvals")
+	assert.NotContains(t, renderPart(t, "repo/pulls/asc_applied_toast", func(map[string]any) {}), "data-asc-applied-toast")
 }

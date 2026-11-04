@@ -699,6 +699,11 @@
   cursor: pointer;
 }
 
+.rv-undo-toast > form {
+  margin-block: 0;
+  margin-inline-start: auto;
+}
+
 .rv-undo-toast button:focus-visible,
 .rv-undo-toast > a:focus-visible {
   outline: 2px solid #6fd3e6;
