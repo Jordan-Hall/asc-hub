@@ -30,7 +30,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | AgentAccess | 5 | 1 | 0 | 0 | 2 |
 | Workflows | 11 | 0 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
-| WorkflowRun | 6 | 3 | 0 | 0 | 0 |
+| WorkflowRun | 8 | 1 | 0 | 0 | 0 |
 | Policy | 9 | 1 | 0 | 0 | 0 |
 | Ops | 8 | 4 | 0 | 0 | 1 |
 | Queue | 10 | 1 | 0 | 0 | 0 |
@@ -256,9 +256,9 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Board | Feature | Status | Where to implement | Size |
 |---|---|---|---|---|
 | WorkflowRun | Run header: state, started by, time, about change; Cancel run, Run again with same inputs | done | templates/repo/asc_workflows_run.tmpl, asc_workflows.go (cancel, rerun) | - |
-| WorkflowRun | Cancel confirmation dialog | ui-only-missing | templates/repo/asc_workflows_run.tmpl | S |
+| WorkflowRun | Cancel confirmation dialog | done | templates/repo/asc_workflows_run.tmpl: "Cancel run" opens a popover with what cancelling keeps and a confirm button, beside "Run again"; asc_workflows_test.go TestAscWorkflowRunPage | - |
 | WorkflowRun | Approval banner: comment, Approve / Decline, signed log entry, 'an agent can never decide' | done | templates/repo/asc_workflows_run.tmpl, POST decide (Workflows.DecideApproval) | - |
-| WorkflowRun | Flow diagram with connectors filling as steps finish | ui-only-missing | templates/repo/asc_workflows_run.tmpl | S |
+| WorkflowRun | Flow diagram with connectors filling as steps finish | done | asc WorkflowStepRun.kind and approvers from the run's definition; templates/repo/asc_workflows_run.tmpl "Flow" card: id, state, a line per state (passed in, changes and cost, waiting for whom, approved by), kind chip; connectors fill over 300 ms (none with reduced motion), vertical on phones; asc-agent-run.ts redraws them live; asc_workflows_flow_test.go, asc-agent-run.test.js | - |
 | WorkflowRun | Steps list with output line, duration, state | done | templates/repo/asc_workflows_run.tmpl | - |
 | WorkflowRun | Live polling of step state | done | web_src/js/features/asc-agent-run.ts (workflow poll), GET runs/{id}/state | - |
 | WorkflowRun | 'Proposed by the agent': changes with size, state and Review links | done | routers/web/repo/asc_workflows_proposed.go ascWorkflowStepProposed (called from AscWorkflowRun for readable agent steps when the agent switch is on): the step's agent run (Agents.GetRun) resolved by ascagentui.ChangeLinks to the repository's pull requests; state landed, closed, open (approved, changes requested, draft, waiting) or not submitted; size from git for up to 8 open ones; 12 listed, the rest a count; templates/repo/asc_workflows_run.tmpl; tests: TestAscWorkflowRunShowsWhatTheAgentStepProposed | - |
