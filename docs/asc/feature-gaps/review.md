@@ -34,7 +34,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Policy | 9 | 1 | 0 | 0 | 0 |
 | Ops | 8 | 4 | 0 | 0 | 1 |
 | Queue | 10 | 1 | 0 | 0 | 0 |
-| Audit | 2 | 4 | 0 | 0 | 0 |
+| Audit | 6 | 0 | 0 | 0 | 0 |
 | Security | 9 | 0 | 0 | 0 | 0 |
 | Mobile twins | 1 | 8 | 0 | 0 | 0 |
 
@@ -320,10 +320,10 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 |---|---|---|---|---|
 | Audit | Chain status, Verify, filters (who, what, outcome, target, from/to, order, rows), table, older events, JSONL/CSV export | done | templates/repo/asc_audit_table.tmpl, routers/web/repo/asc_audit.go (Audit.List/Export/VerifyChain) | - |
 | Audit | Repository, organization and site scope from one page | done | routes settings/asc/audit, org/{org}/settings/asc/audit, admin/asc/audit | - |
-| Audit | Verify shows a determinate progress bar | ui-only-missing | templates/repo/asc_audit_table.tmpl (plain POST; VerifyChain is unary, so progress needs polling or an asc stream) | M |
-| Audit | Broken chain: 'Show event 9,204' and 'Export evidence' | ui-only-missing | templates/repo/asc_audit_table.tmpl (text exists);; Audit 2026-10-30 (part built): Broken-chain text exists; Show event and Export evidence actions not confirmed. | S |
-| Audit | Export-ready card (file name, size, event count, Download) | ui-only-missing | templates/repo/asc_audit_table.tmpl (direct download link only) | S |
-| Audit | Retention label 'Kept 365 days'; no-match state with Clear filters | ui-only-missing | templates/repo/asc_audit_table.tmpl | S |
+| Audit | Verify shows a determinate progress bar | done | web_src/js/features/asc-audit.js (verifySlices, slices of 2,000 events, last slice checks the head), routers/web/shared/trustweb/audit.go (step=1 JSON, done), asc VerifyAuditChainResponse.first_seq/head_seq; asc-audit.test.js, TestAscAuditVerifyInSlices, audit::tests | - |
+| Audit | Broken chain: 'Show event 9,204' and 'Export evidence' | done | templates/repo/asc_audit_table.tmpl (board text, Export evidence then Show event); TestAscAuditVerifyChainBrokenOffersTheEvent | - |
+| Audit | Export-ready card (file name, size, event count, Download) | done | web_src/js/features/asc-audit.js (initExports), X-Asc-Audit-Events header in trustweb/audit.go; repo and admin templates; asc-audit.test.js, TestAscAuditExportIsSignedWhenTheServerSignsIt | - |
+| Audit | Retention label 'Kept 365 days'; no-match state with Clear filters | done | templates/repo/asc_audit_table.tmpl (retention pill, rv-empty with the kept days); TestAscAuditListsEventsWithFiltersAndPaging | - |
 
 ### Security
 
