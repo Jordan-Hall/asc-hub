@@ -746,3 +746,41 @@ a.wk-pv-menu-item {
 .wk-ns-body .wk-dash-list-header {
   margin-bottom: 12px;
 }
+
+/* The "New issue" dialog of the issue list (templates/repo/issue/new_dialog.tmpl). */
+.ds-app dialog.rp-issue-dialog .content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rp-issue-dialog-body {
+  min-height: 160px;
+  resize: block;
+}
+
+@media (min-width: 640px) {
+  .ds-app dialog.rp-issue-dialog {
+    width: 640px;
+  }
+}
+
+/* on a phone the dialog is a sheet: its buttons stay in reach while the body scrolls, Create first */
+@media (max-width: 639.98px) {
+  .rp-issue-dialog-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+  }
+
+  .rp-issue-dialog-actions .ds-grow {
+    display: none;
+  }
+
+  .rp-issue-dialog-actions [data-issue-dialog-submit] {
+    flex: 1 1 100%;
+    order: -1;
+    min-height: var(--touch);
+  }
+}
+

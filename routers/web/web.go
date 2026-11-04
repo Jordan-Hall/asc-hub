@@ -1484,6 +1484,7 @@ func registerRoutes(m *web.Route) {
 				m.Combo("", context.EnsureOrg()).Get(context.RepoRef(), repo.NewIssue).
 					Post(web.Bind(forms.CreateIssueForm{}), repo.NewIssuePost)
 				m.Get("/choose", context.RepoRef(), repo.NewIssueChooseTemplate)
+				m.Post("/draft", repo.NewIssueDraftSave)
 			})
 			m.Get("/search", repo.ListIssues)
 		}, context.RepoMustNotBeArchived(), reqRepoIssueReader)

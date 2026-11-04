@@ -546,6 +546,7 @@ func Issues(ctx *context.Context) {
 		ctx.Data["Title"] = ctx.Tr("repo.issues")
 		ctx.Data["PageIsIssueList"] = true
 		ctx.Data["NewIssueChooseTemplate"] = issue_service.HasTemplatesOrContactLinks(ctx.Repo.Repository, ctx.Repo.GitRepo)
+		prepareAscNewIssueDialog(ctx)
 	}
 
 	issues(ctx, ctx.FormInt64("milestone"), ctx.FormInt64("project"), optional.Some(isPullList))
@@ -1054,6 +1055,9 @@ func NewIssue(ctx *context.Context) {
 		ctx.Redirect(fmt.Sprintf("%s/issues/new/choose?%s", ctx.Repo.Repository.Link(), ctx.Req.URL.RawQuery), http.StatusSeeOther)
 		return
 	}
+	if !templateLoaded {
+		prepareAscNewIssueDraft(ctx)
+	}
 
 	ctx.HTML(http.StatusOK, tplIssueNew)
 }
@@ -1312,6 +1316,7 @@ func NewIssuePost(ctx *context.Context) {
 	}
 
 	log.Trace("Issue created: %d/%d", repo.ID, issue.ID)
+	clearAscNewIssueDraft(ctx)
 	if ctx.FormString("redirect_after_creation") == "project" && projectID > 0 {
 		project, err := project_model.GetProjectByID(ctx, projectID)
 		if err == nil {

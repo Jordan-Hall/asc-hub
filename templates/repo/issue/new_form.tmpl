@@ -74,7 +74,7 @@
 					<div class="ds-row ds-justify-end">
 						{{with .AscNewChangeDraft}}
 						<span class="ds-hint ds-grow" data-asc-ncd-note aria-live="polite" data-testid="asc-ncd-note"{{if .Restored}} data-restored="true"{{end}}
-							data-saved="{{ctx.Locale.Tr "asc_rp.ncd_saved"}}" data-failed="{{ctx.Locale.Tr "asc_rp.ncd_failed"}}" data-discarded="{{ctx.Locale.Tr "asc_rp.ncd_discarded"}}">{{if .Restored}}{{ctx.Locale.Tr "asc_rp.ncd_restored" (DateUtils.TimeSince .SavedAt)}}{{else}}{{ctx.Locale.Tr "asc_rp.ncd_hint"}}{{end}}</span>
+							data-saved="{{ctx.Locale.Tr "asc_rp.ncd_saved"}}" data-failed="{{ctx.Locale.Tr "asc_rp.ncd_failed"}}" data-discarded="{{ctx.Locale.Tr "asc_rp.ncd_discarded"}}">{{if .Restored}}{{ctx.Locale.Tr "asc_rp.ncd_restored" (DateUtils.TimeSince .SavedAt)}}{{else if .Issue}}{{ctx.Locale.Tr "asc_rp.ncd_hint_issue"}}{{else}}{{ctx.Locale.Tr "asc_rp.ncd_hint"}}{{end}}</span>
 						<button type="button" class="ds-btn ds-btn-secondary" data-asc-ncd-discard data-confirm="{{ctx.Locale.Tr "asc_rp.ncd_discard_confirm"}}">{{ctx.Locale.Tr "asc_rp.ncd_discard"}}</button>
 						<button type="button" class="ds-btn ds-btn-secondary" data-asc-ncd-save>{{ctx.Locale.Tr "asc_rp.ncd_save"}}</button>
 						{{end}}

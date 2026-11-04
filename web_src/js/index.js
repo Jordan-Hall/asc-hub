@@ -102,6 +102,7 @@ import {initAscWhere} from './features/asc-where.js';
 import {initAscAudit} from './features/asc-audit.js';
 import {initAscListLoading} from './features/asc-list-loading.js';
 import {initAscNewChangeDraft} from './features/asc-newchange-draft.js';
+import {initRepoIssueDialog} from './features/repo-issue-dialog.js';
 import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
 import {
   initRepoSettingGitHook,
@@ -280,7 +281,7 @@ onDomReady(() => {
   initAscWhere();
   initAscAudit();
   initAscListLoading();
-  initAscNewChangeDraft();
+  initRepoIssueDialog(document, initAscNewChangeDraft());
   initAscResponsiveDetails();
   initAscInboxBadge();
   initRepoProject();
