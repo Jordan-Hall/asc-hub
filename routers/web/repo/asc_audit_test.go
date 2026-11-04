@@ -8,15 +8,18 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"crypto/rand"
+	"encoding/json"
 	"encoding/pem"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
 	perm_model "forgejo.org/models/perm"
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/routers/web/shared/trustweb"
 	"forgejo.org/services/ascidentity"
 	"forgejo.org/services/asctrust"
 
@@ -69,7 +72,7 @@ func TestAscAuditListsEventsWithFiltersAndPaging(t *testing.T) {
 		return &ascv1.ListAuditResponse{Events: []*ascv1.AuditEvent{
 			auditEvent(9, "repo.ref.update", ascv1.AuditOutcome_AUDIT_OUTCOME_SUCCESS),
 			auditEvent(8, "policy.proposed", ascv1.AuditOutcome_AUDIT_OUTCOME_DENIED),
-		}, NextPageToken: "8"}, nil
+		}, NextPageToken: "8", RetentionDays: 365}, nil
 	}
 	page := runTrust(t, trustReq{path: "/user2/repo1/settings/asc/audit?actor=user2&action=repo.ref.*&outcome=denied&target=refs/heads&limit=25", user: 2, access: adminAccess}, AscAudit)
 
@@ -82,6 +85,7 @@ func TestAscAuditListsEventsWithFiltersAndPaging(t *testing.T) {
 	assert.Contains(t, page.body, `rel="next"`, "paging")
 	assert.Contains(t, page.body, `for="asc-audit-actor"`, "fields have labels")
 	assert.NotContains(t, page.body, "Audit events", "no English literal")
+	assert.Contains(t, page.body, `data-testid="asc-audit-retention">asc_trust.audit.kept_days`, "how long events are kept")
 
 	calls := f.callsOf("AuditList")
 	require.Len(t, calls, 1)
@@ -103,6 +107,17 @@ func TestAscAuditListsEventsWithFiltersAndPaging(t *testing.T) {
 	next := runTrust(t, trustReq{path: "/user2/repo1/settings/asc/audit?actor=user2&page=8", user: 2, access: adminAccess}, AscAudit)
 	assert.Equal(t, http.StatusOK, next.status)
 	assert.Equal(t, "8", f.callsOf("AuditList")[1].Req.(*ascv1.ListAuditRequest).GetPageToken())
+
+	// Nothing matches: the table says so and offers to clear the filters.
+	f.auditList = func(*ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error) {
+		return &ascv1.ListAuditResponse{}, nil
+	}
+	none := runTrust(t, trustReq{path: "/user2/repo1/settings/asc/audit?actor=nobody", user: 2, access: adminAccess}, AscAudit)
+	assert.Equal(t, http.StatusOK, none.status)
+	assert.Contains(t, none.body, `data-testid="asc-audit-empty"`)
+	assert.Regexp(t, `href="[^"]*/settings/asc/audit" data-testid="asc-audit-clear">`, none.body)
+	assert.NotContains(t, none.body, `data-testid="asc-audit-table"`, "no empty table under the empty state")
+	assert.NotContains(t, none.body, `data-testid="asc-audit-retention"`, "no retention without an answer that names one")
 }
 
 func TestAscAuditRefusesBadFiltersAndShowsFixedErrors(t *testing.T) {
@@ -132,6 +147,53 @@ func TestAscAuditVerifyChain(t *testing.T) {
 	assert.Contains(t, page.body, `data-testid="asc-audit-chain"`)
 	assert.Contains(t, page.body, `name="_csrf"`, "the verify form carries the CSRF token")
 	assert.Equal(t, "user2/repo1", f.callsOf("VerifyChain")[0].Req.(*ascv1.VerifyAuditChainRequest).GetScope().GetName())
+	for _, hook := range []string{"data-asc-audit-verify", "data-asc-audit-progress", `role="progressbar"`, "data-asc-audit-ready", "data-asc-audit-export"} {
+		assert.Contains(t, page.body, hook, "the page script verifies in slices and shows the export-ready card")
+	}
+}
+
+func TestAscAuditVerifyInSlices(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureAudit)
+	f.auditChain = func(r *ascv1.VerifyAuditChainRequest) (*ascv1.VerifyAuditChainResponse, error) {
+		if r.GetToSeq() == 2 {
+			return &ascv1.VerifyAuditChainResponse{Ok: false, Checked: 1, FirstBadSeq: 2, FirstSeq: 1, HeadSeq: 5000}, nil
+		}
+		return &ascv1.VerifyAuditChainResponse{Ok: true, Checked: 41, FirstSeq: 1, HeadSeq: 5000}, nil
+	}
+
+	// One slice answers JSON for the bar.
+	step := runTrust(t, trustReq{method: http.MethodPost, path: "/user2/repo1/settings/asc/audit/verify", user: 2, access: adminAccess, form: url.Values{"step": {"1"}, "from": {"1"}, "to": {"2000"}}}, AscAuditVerify)
+	require.Equal(t, http.StatusOK, step.status, step.body)
+	var got trustweb.AuditStep
+	require.NoError(t, json.Unmarshal([]byte(step.body), &got))
+	assert.Equal(t, trustweb.AuditStep{OK: true, Checked: 41, FirstSeq: 1, HeadSeq: 5000}, got)
+	req := f.callsOf("VerifyChain")[0].Req.(*ascv1.VerifyAuditChainRequest)
+	assert.EqualValues(t, 1, req.GetFromSeq())
+	assert.EqualValues(t, 2000, req.GetToSeq())
+
+	// A broken slice says where.
+	bad := runTrust(t, trustReq{method: http.MethodPost, path: "/user2/repo1/settings/asc/audit/verify", user: 2, access: adminAccess, form: url.Values{"step": {"1"}, "from": {"1"}, "to": {"2"}}}, AscAuditVerify)
+	require.NoError(t, json.Unmarshal([]byte(bad.body), &got))
+	assert.False(t, got.OK)
+	assert.EqualValues(t, 2, got.FirstBad)
+
+	// The last slice is a plain post: it checks the head and the page counts the slices before it.
+	last := runTrust(t, trustReq{method: http.MethodPost, path: "/user2/repo1/settings/asc/audit/verify", user: 2, access: adminAccess, form: url.Values{"from": {"4001"}, "to": {""}, "done": {"4000"}}}, AscAuditVerify)
+	require.Equal(t, http.StatusOK, last.status, last.body)
+	req = f.callsOf("VerifyChain")[2].Req.(*ascv1.VerifyAuditChainRequest)
+	assert.EqualValues(t, 4001, req.GetFromSeq())
+	assert.EqualValues(t, 0, req.GetToSeq(), "the last slice ends at the head")
+	view := last.ctx.Data[trustweb.AuditData].(*trustweb.AuditView)
+	assert.EqualValues(t, 4041, view.Chain.Checked)
+	assert.Contains(t, last.body, `data-testid="asc-audit-chain"`)
+
+	// A step of a server without the audit log answers JSON too.
+	startFakeTrust(t)
+	off := runTrust(t, trustReq{method: http.MethodPost, path: "/user2/repo1/settings/asc/audit/verify", user: 2, access: adminAccess, form: url.Values{"step": {"1"}}}, AscAuditVerify)
+	assert.Equal(t, http.StatusNotFound, off.status)
+	require.NoError(t, json.Unmarshal([]byte(off.body), &got))
+	assert.Equal(t, "asc_trust.audit.unsupported", got.Error)
 }
 
 func TestAscAuditVerifyChainBrokenOffersTheEvent(t *testing.T) {
@@ -143,6 +205,7 @@ func TestAscAuditVerifyChainBrokenOffersTheEvent(t *testing.T) {
 	page := runTrust(t, trustReq{method: http.MethodPost, path: "/user2/repo1/settings/asc/audit/verify", user: 2, access: adminAccess}, AscAuditVerify)
 	require.Equal(t, http.StatusOK, page.status, page.body)
 	assert.Contains(t, page.body, `data-testid="asc-audit-show-event"`)
+	assert.Contains(t, page.body, `download data-testid="asc-audit-evidence"`, "the evidence export")
 	assert.Contains(t, page.body, "?seq=9")
 }
 
@@ -173,6 +236,7 @@ func TestAscAuditExportIsSignedWhenTheServerSignsIt(t *testing.T) {
 	assert.Equal(t, string(row), plain.body)
 	assert.Contains(t, plain.ctx.Resp.Header().Get("Content-Type"), "application/x-ndjson")
 	assert.Regexp(t, `^attachment; filename="asc-audit-user2-repo1-\d{8}\.jsonl";`, plain.ctx.Resp.Header().Get("Content-Disposition"))
+	assert.Equal(t, "1", plain.ctx.Resp.Header().Get(trustweb.AuditEventsHeader), "the export-ready card names the events")
 
 	// With one, the download is the archive that checks itself.
 	last.Signature, last.SignerKey = string(sig), key
