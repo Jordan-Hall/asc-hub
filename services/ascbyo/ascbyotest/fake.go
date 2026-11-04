@@ -11,6 +11,7 @@ import (
 	"context"
 	"crypto/rand"
 	"net"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -58,10 +59,11 @@ type key struct {
 	secret string
 }
 
-// Fake implements both services.
+// Fake implements both services, and the List call of the audit log for the Activity section of a key.
 type Fake struct {
 	ascv1.UnimplementedStorageServer
 	ascv1.UnimplementedAiProvidersServer
+	ascv1.UnimplementedAuditServer
 
 	mu         sync.Mutex
 	targets    map[string]*target
@@ -89,6 +91,13 @@ type Fake struct {
 	// ReplaceStatus is the provider status ReplaceKey answers with ("ok" by default); any other keeps the old key.
 	ReplaceStatus string
 	clock         int64
+	// events is the audit log of every scope, oldest first (AddEvent).
+	events []auditEvent
+}
+
+type auditEvent struct {
+	scope *ascv1.OwnerRef
+	ev    *ascv1.AuditEvent
 }
 
 // Start runs the fake, points the hub at it and returns it.
@@ -101,6 +110,7 @@ func Start(t *testing.T) *Fake {
 	srv := grpc.NewServer(grpc.UnaryInterceptor(f.intercept))
 	ascv1.RegisterStorageServer(srv, f)
 	ascv1.RegisterAiProvidersServer(srv, f)
+	ascv1.RegisterAuditServer(srv, f)
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()
@@ -108,7 +118,7 @@ func Start(t *testing.T) *Fake {
 	c, err := ascclient.New(ascclient.Config{Target: l.Addr().String(), InternalToken: InternalToken, Retry: ascclient.RetryConfig{MaxAttempts: 1}})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = c.Close() })
-	t.Cleanup(ascbyo.UseAPI(ascbyo.API{Storage: ascv1.NewStorageClient(c), AI: ascv1.NewAiProvidersClient(c)}))
+	t.Cleanup(ascbyo.UseAPI(ascbyo.API{Storage: ascv1.NewStorageClient(c), AI: ascv1.NewAiProvidersClient(c), Audit: ascv1.NewAuditClient(c)}))
 	return f
 }
 
@@ -778,4 +788,43 @@ func (f *Fake) SetFeature(ctx context.Context, r *ascv1.SetAiFeatureRequest) (*a
 	}
 	s.Updated, s.UpdatedBy = f.now(), createdBy(ctx)
 	return &ascv1.SetAiFeatureResponse{Feature: s}, nil
+}
+
+// AddEvent appends an event to the audit log of scope; its sequence number and time are set when they are zero.
+func (f *Fake) AddEvent(scope *ascv1.OwnerRef, ev *ascv1.AuditEvent) *ascv1.AuditEvent {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if ev.GetSeq() == 0 {
+		ev.Seq = uint64(len(f.events) + 1)
+	}
+	if ev.GetTimeMs() == 0 {
+		ev.TimeMs = f.now() * 1000
+	}
+	f.events = append(f.events, auditEvent{scope: scope, ev: ev})
+	return ev
+}
+
+// List answers like asc: the events of the scope that pass the filter, newest first, at most the limit.
+func (f *Fake) List(_ context.Context, r *ascv1.ListAuditRequest) (*ascv1.ListAuditResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	fl := r.GetFilter()
+	if len(fl.GetActions()) > 32 {
+		return nil, status.Error(codes.InvalidArgument, "too many actions")
+	}
+	out := &ascv1.ListAuditResponse{}
+	for i := len(f.events) - 1; i >= 0; i-- {
+		e := f.events[i]
+		if !sameOwner(e.scope, r.GetScope()) || (fl.GetTarget() != "" && e.ev.GetTarget() != fl.GetTarget()) {
+			continue
+		}
+		if len(fl.GetActions()) > 0 && !slices.Contains(fl.GetActions(), e.ev.GetAction()) {
+			continue
+		}
+		if r.GetLimit() > 0 && uint32(len(out.Events)) >= r.GetLimit() {
+			break
+		}
+		out.Events = append(out.Events, proto.Clone(e.ev).(*ascv1.AuditEvent))
+	}
+	return out, nil
 }

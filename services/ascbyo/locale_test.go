@@ -120,6 +120,9 @@ func TestLocaleKeys(t *testing.T) {
 			used["ascbyo.ai.feature."+string(f)+sfx] = "feature"
 		}
 	}
+	for _, a := range KeyActivityActions {
+		used["ascbyo.ai.activity."+strings.ReplaceAll(strings.TrimPrefix(a, "ai.key."), ".", "_")] = "key activity"
+	}
 	for _, s := range []string{"resolve", "connect", "put", "get", "delete", "unknown"} {
 		used["ascbyo.storage.step."+s] = "verify step"
 	}

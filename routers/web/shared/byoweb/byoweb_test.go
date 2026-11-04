@@ -31,6 +31,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestMain(m *testing.M) {
@@ -758,6 +760,56 @@ func TestAIKeysPages(t *testing.T) {
 		r = run(t, AIKey, lvl, http.MethodGet, nil, id)
 		assert.NotContains(t, r.body(), `data-testid="asc-spend-chart"`, "days that cost nothing draw no chart")
 		assert.Contains(t, r.body(), "2026-11-01")
+	})
+
+	t.Run("activity", func(t *testing.T) {
+		owner := &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_USER, Name: "alice"}
+		r := run(t, AIKey, lvl, http.MethodGet, url.Values{"tab": {"activity"}}, id)
+		require.Equal(t, http.StatusOK, r.resp.Code, r.body())
+		assert.Contains(t, r.body(), tr(t, "ascbyo.ai.detail.tab_activity"))
+		assert.Contains(t, r.body(), `data-testid="asc-key-activity-empty"`, "a key with no events says so")
+		assert.Contains(t, r.body(), `id="asc-key-tab-activity" aria-controls="asc-key-activity" aria-selected="true"`)
+
+		f.AddEvent(owner, &ascv1.AuditEvent{Action: "ai.key.created", Target: id, Actor: &ascv1.PrincipalRef{Kind: "user", Name: "alice"}, Outcome: ascv1.AuditOutcome_AUDIT_OUTCOME_SUCCESS})
+		f.AddEvent(owner, &ascv1.AuditEvent{Action: "ai.key.tested", Target: id, Actor: &ascv1.PrincipalRef{Kind: "user", Name: "alice"},
+			Outcome: ascv1.AuditOutcome_AUDIT_OUTCOME_FAILED, Details: map[string]string{"provider": "anthropic", "result": "unauthorized"}})
+		f.AddEvent(owner, &ascv1.AuditEvent{Action: "ai.key.cap.warning", Target: id, Actor: &ascv1.PrincipalRef{Kind: "system", Name: "ai"},
+			Outcome: ascv1.AuditOutcome_AUDIT_OUTCOME_SUCCESS, Details: map[string]string{"percent": "80"}})
+		f.AddEvent(owner, &ascv1.AuditEvent{Action: "ai.key.created", Target: "ak_someotherkey00000000", Actor: &ascv1.PrincipalRef{Name: "alice"}})
+		f.AddEvent(&ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_USER, Name: "bob"},
+			&ascv1.AuditEvent{Action: "ai.key.deleted", Target: id, Actor: &ascv1.PrincipalRef{Name: "bob"}})
+
+		r = run(t, AIKey, lvl, http.MethodGet, url.Values{"tab": {"activity"}}, id)
+		require.Equal(t, http.StatusOK, r.resp.Code, r.body())
+		list := regexp.MustCompile(`(?s)<ol class="asc-byo-activity">.*?</ol>`).FindString(r.body())
+		require.NotEmpty(t, list)
+		items := regexp.MustCompile(`(?s)<li class="asc-byo-activity-row">.*?</li>`).FindAllString(list, -1)
+		require.Len(t, items, 3, "only this key's events of this owner")
+		assert.Contains(t, items[0], tr(t, "ascbyo.ai.activity.cap_warning"), "newest first")
+		assert.Contains(t, items[0], tr(t, "ascbyo.ai.activity.by_system"))
+		assert.Contains(t, items[0], `percent: <span class="asc-byo-mono" title="80">80</span>`)
+		assert.Contains(t, items[1], tr(t, "ascbyo.ai.activity.tested"))
+		assert.Contains(t, items[1], `ds-chip ds-chip-warn`)
+		assert.Contains(t, items[1], tr(t, "ascbyo.ai.activity.outcome_failed"))
+		assert.Contains(t, items[1], `provider: <span class="asc-byo-mono" title="anthropic">anthropic</span>, result:`)
+		assert.Contains(t, items[2], tr(t, "ascbyo.ai.activity.created"))
+		assert.Contains(t, items[2], template.HTMLEscapeString(tr(t, "ascbyo.ai.activity.by", "alice")))
+		assert.Contains(t, items[2], `ds-chip ds-chip-ok`)
+
+		req := f.CallsTo("List")
+		require.NotEmpty(t, req)
+		lr := req[len(req)-1].Req.(*ascv1.ListAuditRequest)
+		assert.Equal(t, id, lr.GetFilter().GetTarget())
+		assert.ElementsMatch(t, svc.KeyActivityActions, lr.GetFilter().GetActions())
+		assert.Equal(t, "alice", lr.GetScope().GetName())
+		assert.Equal(t, "Bearer "+ascbyotest.InternalToken, req[len(req)-1].Auth, "the hub reads the log as itself")
+
+		f.SetFail("/asc.v1.Audit/List", status.Error(codes.Unavailable, "down"))
+		defer f.SetFail("/asc.v1.Audit/List", nil)
+		r = run(t, AIKey, lvl, http.MethodGet, url.Values{"tab": {"activity"}}, id)
+		require.Equal(t, http.StatusOK, r.resp.Code, "the rest of the page does not depend on the log")
+		assert.Contains(t, r.body(), `data-testid="asc-key-activity-none"`)
+		assert.Contains(t, r.body(), `data-testid="asc-key-usage"`)
 	})
 
 	t.Run("update without a new key keeps the old one", func(t *testing.T) {

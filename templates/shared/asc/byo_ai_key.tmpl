@@ -63,6 +63,7 @@
 			<button type="button" role="tab" id="asc-key-tab-usage" aria-controls="asc-key-usage" aria-selected="{{if eq $tab "usage"}}true{{else}}false{{end}}"{{if ne $tab "usage"}} tabindex="-1"{{end}} data-doc-tab="asc-key-usage">{{ctx.Locale.Tr "ascbyo.ai.detail.tab_usage"}}</button>
 			<button type="button" role="tab" id="asc-key-tab-limits" aria-controls="asc-key-limits" aria-selected="{{if eq $tab "limits"}}true{{else}}false{{end}}"{{if ne $tab "limits"}} tabindex="-1"{{end}} data-doc-tab="asc-key-limits">{{ctx.Locale.Tr "ascbyo.ai.detail.tab_limits"}}</button>
 			<button type="button" role="tab" id="asc-key-tab-models" aria-controls="asc-key-models" aria-selected="{{if eq $tab "models"}}true{{else}}false{{end}}"{{if ne $tab "models"}} tabindex="-1"{{end}} data-doc-tab="asc-key-models">{{ctx.Locale.Tr "ascbyo.ai.detail.tab_models"}}</button>
+			<button type="button" role="tab" id="asc-key-tab-activity" aria-controls="asc-key-activity" aria-selected="{{if eq $tab "activity"}}true{{else}}false{{end}}"{{if ne $tab "activity"}} tabindex="-1"{{end}} data-doc-tab="asc-key-activity">{{ctx.Locale.Tr "ascbyo.ai.detail.tab_activity"}}</button>
 		</div>
 
 		<section id="asc-key-usage" class="asc-byo-card asc-byo-tabpanel" role="tabpanel" aria-labelledby="asc-key-tab-usage" data-doc-panel="asc-key-usage" data-testid="asc-key-usage"{{if ne $tab "usage"}} hidden{{end}}>
@@ -120,6 +121,27 @@
 				</ul>
 			{{else}}
 				<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.ai.detail.models_none"}}</p>
+			{{end}}
+		</section>
+
+		<section id="asc-key-activity" class="asc-byo-card asc-byo-tabpanel" role="tabpanel" aria-labelledby="asc-key-tab-activity" data-doc-panel="asc-key-activity" data-testid="asc-key-activity"{{if ne $tab "activity"}} hidden{{end}}>
+			<h3>{{ctx.Locale.Tr "ascbyo.ai.activity.title"}}</h3>
+			{{if not $a.ActivityLoaded}}
+				<p class="asc-byo-empty" data-testid="asc-key-activity-none">{{ctx.Locale.Tr "ascbyo.ai.activity.none"}}</p>
+			{{else if $a.Activity}}
+				<ol class="asc-byo-activity">
+					{{range $a.Activity}}
+						<li class="asc-byo-activity-row">
+							<span class="asc-byo-activity-what">{{if .LabelKey}}{{ctx.Locale.Tr .LabelKey}}{{else}}<code>{{.Action}}</code>{{end}}</span>
+							<span class="ds-chip{{if .Chip}} {{.Chip}}{{end}}">{{ctx.Locale.Tr .OutcomeKey}}</span>
+							<span class="asc-byo-activity-meta">{{if .System}}{{ctx.Locale.Tr "ascbyo.ai.activity.by_system"}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.activity.by" .Actor}}{{end}} · {{DateUtils.TimeSince .Time}}</span>
+							{{if .Details}}<span class="asc-byo-activity-details">{{range $i, $d := .Details}}{{if $i}}, {{end}}{{$d.Key}}: <span class="asc-byo-mono" title="{{$d.Value}}">{{$d.Short}}</span>{{end}}</span>{{end}}
+						</li>
+					{{end}}
+				</ol>
+				<p class="ds-hint">{{ctx.Locale.Tr "ascbyo.ai.activity.hint"}}</p>
+			{{else}}
+				<p class="asc-byo-empty" data-testid="asc-key-activity-empty">{{ctx.Locale.Tr "ascbyo.ai.activity.empty"}}</p>
 			{{end}}
 		</section>
 
