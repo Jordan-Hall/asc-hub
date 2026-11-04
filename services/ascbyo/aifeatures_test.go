@@ -102,7 +102,8 @@ func TestFeatures(t *testing.T) {
 
 	fs, err := s.ListFeatures(t.Context(), alice)
 	require.NoError(t, err)
-	require.Len(t, fs, 1)
+	require.Len(t, fs, 2)
+	assert.Equal(t, ascbyo.FeatureReviewSummaries, ascbyo.FeatureViewOf(alice, fs[1]).Name, "in the order of the page")
 	v := ascbyo.FeatureViewOf(alice, fs[0])
 	assert.Equal(t, ascbyo.FeatureAgentRuns, v.Name)
 	assert.Equal(t, "ascbyo.ai.feature.agent_runs", v.NameKey)
@@ -209,7 +210,7 @@ func TestFeatures(t *testing.T) {
 		defer func() { f.ExtraFeatures = nil }()
 		fs, err := s.ListFeatures(t.Context(), bob)
 		require.NoError(t, err)
-		require.Len(t, fs, 1, "the unknown one is dropped and the repeated one is kept once")
+		require.Len(t, fs, 2, "the unknown one is dropped and the repeated one is kept once")
 		assert.Zero(t, fs[0].GetMonthlyCapMicroUsd(), "the first answer for a feature is the one kept")
 	})
 
@@ -253,4 +254,15 @@ func TestMeterClass(t *testing.T) {
 	assert.Equal(t, "asc-meter-warn", ascbyo.MeterClass(80))
 	assert.Equal(t, "asc-meter-warn", ascbyo.MeterClass(99))
 	assert.Equal(t, "asc-meter-bad", ascbyo.MeterClass(100))
+}
+
+func TestFeatureForms(t *testing.T) {
+	for _, f := range ascbyo.Features {
+		w, ok := ascbyo.FeatureFromForm(string(f))
+		require.True(t, ok, f)
+		assert.Equal(t, f, ascbyo.FeatureToForm(w))
+	}
+	_, ok := ascbyo.FeatureFromForm("meaning_search")
+	assert.False(t, ok, "a feature asc does not offer yet")
+	assert.Empty(t, ascbyo.FeatureToForm(ascv1.AiFeature(99)))
 }

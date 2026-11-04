@@ -38,6 +38,7 @@ const (
 	Review_HunkContext_FullMethodName           = "/asc.v1.Review/HunkContext"
 	Review_GetConflicts_FullMethodName          = "/asc.v1.Review/GetConflicts"
 	Review_DraftContext_FullMethodName          = "/asc.v1.Review/DraftContext"
+	Review_SummarizeChange_FullMethodName       = "/asc.v1.Review/SummarizeChange"
 )
 
 // ReviewClient is the client API for Review service.
@@ -71,6 +72,7 @@ type ReviewClient interface {
 	HunkContext(ctx context.Context, in *HunkContextRequest, opts ...grpc.CallOption) (*HunkContextResponse, error)
 	GetConflicts(ctx context.Context, in *GetChangeConflictsRequest, opts ...grpc.CallOption) (*GetChangeConflictsResponse, error)
 	DraftContext(ctx context.Context, in *DraftContextRequest, opts ...grpc.CallOption) (*DraftContextResponse, error)
+	SummarizeChange(ctx context.Context, in *SummarizeChangeRequest, opts ...grpc.CallOption) (*SummarizeChangeResponse, error)
 }
 
 type reviewClient struct {
@@ -271,6 +273,16 @@ func (c *reviewClient) DraftContext(ctx context.Context, in *DraftContextRequest
 	return out, nil
 }
 
+func (c *reviewClient) SummarizeChange(ctx context.Context, in *SummarizeChangeRequest, opts ...grpc.CallOption) (*SummarizeChangeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SummarizeChangeResponse)
+	err := c.cc.Invoke(ctx, Review_SummarizeChange_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReviewServer is the server API for Review service.
 // All implementations should embed UnimplementedReviewServer
 // for forward compatibility.
@@ -302,6 +314,7 @@ type ReviewServer interface {
 	HunkContext(context.Context, *HunkContextRequest) (*HunkContextResponse, error)
 	GetConflicts(context.Context, *GetChangeConflictsRequest) (*GetChangeConflictsResponse, error)
 	DraftContext(context.Context, *DraftContextRequest) (*DraftContextResponse, error)
+	SummarizeChange(context.Context, *SummarizeChangeRequest) (*SummarizeChangeResponse, error)
 }
 
 // UnimplementedReviewServer should be embedded to have
@@ -367,6 +380,9 @@ func (UnimplementedReviewServer) GetConflicts(context.Context, *GetChangeConflic
 }
 func (UnimplementedReviewServer) DraftContext(context.Context, *DraftContextRequest) (*DraftContextResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DraftContext not implemented")
+}
+func (UnimplementedReviewServer) SummarizeChange(context.Context, *SummarizeChangeRequest) (*SummarizeChangeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SummarizeChange not implemented")
 }
 func (UnimplementedReviewServer) testEmbeddedByValue() {}
 
@@ -730,6 +746,24 @@ func _Review_DraftContext_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Review_SummarizeChange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SummarizeChangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServer).SummarizeChange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Review_SummarizeChange_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServer).SummarizeChange(ctx, req.(*SummarizeChangeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Review_ServiceDesc is the grpc.ServiceDesc for Review service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -812,6 +846,10 @@ var Review_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DraftContext",
 			Handler:    _Review_DraftContext_Handler,
+		},
+		{
+			MethodName: "SummarizeChange",
+			Handler:    _Review_SummarizeChange_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

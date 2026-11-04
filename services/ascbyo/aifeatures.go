@@ -53,16 +53,21 @@ func (s *Service) ReplaceKey(ctx context.Context, sc Scope, id, apiKey, op strin
 // Feature is a feature that uses AI, by the name of its form and route.
 type Feature string
 
-const FeatureAgentRuns Feature = "agent_runs"
+const (
+	FeatureAgentRuns       Feature = "agent_runs"
+	FeatureReviewSummaries Feature = "review_summaries"
+)
 
 // Features lists every feature, in the order the page shows them.
-var Features = []Feature{FeatureAgentRuns}
+var Features = []Feature{FeatureAgentRuns, FeatureReviewSummaries}
 
 // FeatureFromForm maps a route or form value to the wire feature.
 func FeatureFromForm(v string) (ascv1.AiFeature, bool) {
 	switch Feature(v) {
 	case FeatureAgentRuns:
 		return ascv1.AiFeature_AI_FEATURE_AGENT_RUNS, true
+	case FeatureReviewSummaries:
+		return ascv1.AiFeature_AI_FEATURE_REVIEW_SUMMARIES, true
 	}
 	return ascv1.AiFeature_AI_FEATURE_UNSPECIFIED, false
 }
@@ -72,6 +77,8 @@ func FeatureToForm(f ascv1.AiFeature) Feature {
 	switch f {
 	case ascv1.AiFeature_AI_FEATURE_AGENT_RUNS:
 		return FeatureAgentRuns
+	case ascv1.AiFeature_AI_FEATURE_REVIEW_SUMMARIES:
+		return FeatureReviewSummaries
 	}
 	return ""
 }
