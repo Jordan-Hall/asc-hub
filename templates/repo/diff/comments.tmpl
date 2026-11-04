@@ -64,6 +64,7 @@
 			{{if .Attachments}}
 				{{template "repo/issue/view_content/attachments" dict "Attachments" .Attachments "RenderedContent" .RenderedContent}}
 			{{end}}
+			{{with and $.root.AscSuggestionOfComment (index $.root.AscSuggestionOfComment .ID)}}{{template "repo/pulls/asc_suggestion_acts" dict "root" $.root "s" .}}{{end}}
 		</div>
 		{{$reactions := .Reactions.GroupByType}}
 		{{if $reactions}}

@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -48,6 +49,20 @@ type AscSuggestion struct {
 	Version             uint32 // the version the thread is on
 	Stale               bool   // the thread is on an older version than the newest
 	Body                string
+	HubComment          int64 // the comment of the hub the suggestion was made in; 0 when it was made in asc
+}
+
+// ascHubCommentOf is the id of the hub comment that an asc comment mirrors, or 0.
+func ascHubCommentOf(externalID string) int64 {
+	id, ok := strings.CutPrefix(externalID, AscExternalCommentPrefix)
+	if !ok {
+		return 0
+	}
+	n, err := strconv.ParseInt(id, 10, 64)
+	if err != nil || n <= 0 {
+		return 0
+	}
+	return n
 }
 
 // AscSuggestionStale says why a suggestion cannot be applied now. Nothing was written.
@@ -133,6 +148,7 @@ func AscSuggestions(ctx context.Context, pr *issues_model.PullRequest) ([]AscSug
 				StartLine: a.GetStartLine(), EndLine: max(a.GetEndLine(), a.GetStartLine()),
 				Author: c.GetAuthor(), Suggestion: c.GetSuggestion(), Body: c.GetBody(),
 				Version: a.GetVersion(), Stale: a.GetVersion() != 0 && a.GetVersion() != latest,
+				HubComment: ascHubCommentOf(c.GetExternalId()),
 			})
 		}
 	}
