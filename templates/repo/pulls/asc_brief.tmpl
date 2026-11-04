@@ -55,13 +55,16 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 		<ul class="rv-brief-where">{{range .RiskReasons}}<li>{{.}}</li>{{end}}</ul>
 		{{end}}
 		{{with .Provenance}}
-		<h3 class="rv-brief-h">{{ctx.Locale.Tr "asc_review.how_made"}}</h3>
-		<p class="rv-brief-made" data-testid="asc-brief-made">
-			<a href="{{.RunLink}}">{{ctx.Locale.Tr "asc_review.how_made_run" .RunID}}</a>
-			{{if .Agent}}<span class="ds-chip ds-chip-agent">{{.Agent}}</span>{{end}}
-			{{if .Title}}<span>{{.Title}}</span>{{end}}
-			<span class="rp-dim">{{ctx.Locale.Tr "asc_review.how_made_counts" .ToolCalls .FilesRead .Versions}}{{if .Minutes}} · {{ctx.Locale.Tr "asc_review.how_made_minutes" .Minutes}}{{end}}</span>
-		</p>
+		<section class="rv-made" aria-labelledby="asc-made-title" data-testid="asc-brief-made">
+			<h3 id="asc-made-title">{{ctx.Locale.Tr "asc_review.how_made"}}</h3>
+			<p>
+				{{if .Agent}}{{ctx.Locale.Tr "asc_review.how_made_run_by" .RunID .Agent}}{{else}}{{ctx.Locale.Tr "asc_review.how_made_run" .RunID}}{{end}}
+				{{if .Task}}{{ctx.Locale.Tr "asc_review.how_made_task" .Task}}{{end}}
+				{{if .Minutes}}{{ctx.Locale.Tr "asc_review.how_made_counts_minutes" .ToolCalls .Versions .Minutes}}{{else}}{{ctx.Locale.Tr "asc_review.how_made_counts" .ToolCalls .Versions}}{{end}}
+				{{ctx.Locale.TrN .FilesRead "asc_review.how_made_read_one" "asc_review.how_made_read_other" .FilesRead}}{{if .TestRuns}}, {{ctx.Locale.TrN .TestRuns "asc_review.how_made_tests_one" "asc_review.how_made_tests_other" .TestRuns}}{{end}}{{if .Untouched}}, {{ctx.Locale.Tr "asc_review.how_made_untouched" .UntouchedCode}}{{end}}.
+			</p>
+			<a class="rv-made-open" href="{{.RunLink}}" data-testid="asc-brief-made-run">{{ctx.Locale.Tr "asc_review.how_made_open"}}</a>
+		</section>
 		{{end}}
 		{{if .Approvals}}
 		<h3 class="rv-brief-h">{{ctx.Locale.Tr "asc_review.approvals_title"}}</h3>
