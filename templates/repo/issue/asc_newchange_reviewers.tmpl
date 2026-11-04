@@ -1,0 +1,35 @@
+{{with .AscNewChangeReviewers}}
+<section class="ds-card rp-ncr" aria-labelledby="rp-ncr-title" data-testid="asc-newchange-reviewers">
+	<div class="ds-card-h">
+		<span class="ds-c-link" aria-hidden="true">{{svg "dsi-users" 16}}</span>
+		<h3 id="rp-ncr-title">{{ctx.Locale.Tr "asc_rp.rev_title"}}</h3>
+		<span class="ds-chip">{{ctx.Locale.Tr "asc_rp.rev_chip"}}</span>
+	</div>
+	<ul class="rp-ncr-list">
+		{{range .}}
+		<li class="rp-ncr-row" data-testid="asc-ncr-row">
+			{{if .User}}{{ctx.AvatarUtils.Avatar .User 40 "ds-avatar"}}{{else}}<span class="ds-av ds-av-40 ds-av-agent" aria-hidden="true">{{slice .Handle 0 1}}</span>{{end}}
+			<div class="rp-ncr-who">
+				<strong>{{.Handle}}</strong>
+				<span class="ds-t-small ds-c-2" data-testid="asc-ncr-sub">
+					{{- $parts := 0 -}}
+					{{- if .IsAgent}}{{ctx.Locale.Tr "asc_rp.rev_agent"}}{{$parts = 1}}{{end -}}
+					{{- if .Owns}}{{if $parts}} · {{end}}{{ctx.Locale.Tr "asc_rp.rev_owns" .Owns}}{{$parts = 1}}{{end -}}
+					{{- if .Knows}}{{if $parts}} · {{end}}{{ctx.Locale.Tr "asc_rp.rev_knows" .Knows .KnowsPercent}}{{$parts = 1}}{{end -}}
+					{{- with .ReviewIn ctx.Locale}}{{if $parts}} · {{end}}{{ctx.Locale.Tr "asc_rp.rev_usually" .}}{{$parts = 1}}{{end -}}
+					{{- if not .Away.IsZero}}{{if $parts}} · {{end}}{{ctx.Locale.Tr "asc_rp.rev_away" (DateUtils.AbsoluteShortWithDay .Away)}}{{$parts = 1}}{{end -}}
+					{{- if .NeverApproves}}{{if $parts}} · {{end}}{{ctx.Locale.Tr "asc_rp.rev_never_approves"}}{{end -}}
+				</span>
+			</div>
+			{{if .User}}
+			<label class="rp-ncr-add" data-testid="asc-ncr-add">
+				<input class="ds-sr" type="checkbox" name="asc_reviewer" value="{{.User.ID}}" aria-label="{{ctx.Locale.Tr "asc_rp.rev_ask" .Handle}}">
+				<span class="ds-btn ds-btn-secondary ds-btn-sm rp-ncr-off" aria-hidden="true">{{svg "dsi-plus" 14}}{{ctx.Locale.Tr "asc_rp.rev_add"}}</span>
+				<span class="ds-chip ds-chip-ok rp-ncr-on" aria-hidden="true">{{svg "dsi-check" 14}}{{ctx.Locale.Tr "asc_rp.rev_added"}}</span>
+			</label>
+			{{end}}
+		</li>
+		{{end}}
+	</ul>
+</section>
+{{end}}
