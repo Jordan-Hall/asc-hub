@@ -396,6 +396,8 @@ func checkWebhook(ctx *context.Context) (*ownerRepoCtx, *webhook.Webhook) {
 		ctx.Data["HookMetadata"] = handler.Metadata(w)
 		ctx.Data["WebhookHandler"] = handler
 	}
+	ctx.Data["SendGroups"] = webhook_service.SendGroups(w)
+	ctx.Data["HookHasSecret"] = webhook_service.HasSecret(w.Type)
 
 	if err := loadDeliveries(ctx, w); err != nil {
 		ctx.ServerError("loadDeliveries", err)
