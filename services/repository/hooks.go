@@ -10,6 +10,7 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/webhook"
 	"forgejo.org/modules/gitrepo"
+	webhook_module "forgejo.org/modules/webhook"
 )
 
 // GenerateGitHooks generates git hooks from a template repository
@@ -45,7 +46,8 @@ func GenerateGitHooks(ctx context.Context, templateRepo, generateRepo *repo_mode
 	return nil
 }
 
-// GenerateWebhooks generates webhooks from a template repository
+// GenerateWebhooks generates webhooks from a template repository. An ASC agent hook is not copied: it runs as the
+// person who added it, and that person did not ask for runs in the new repository.
 func GenerateWebhooks(ctx context.Context, templateRepo, generateRepo *repo_model.Repository) error {
 	templateWebhooks, err := db.Find[webhook.Webhook](ctx, webhook.ListWebhookOptions{RepoID: templateRepo.ID})
 	if err != nil {
@@ -54,6 +56,9 @@ func GenerateWebhooks(ctx context.Context, templateRepo, generateRepo *repo_mode
 
 	ws := make([]*webhook.Webhook, 0, len(templateWebhooks))
 	for _, templateWebhook := range templateWebhooks {
+		if templateWebhook.Type == webhook_module.ASCAGENT {
+			continue
+		}
 		ws = append(ws, &webhook.Webhook{
 			RepoID:      generateRepo.ID,
 			URL:         templateWebhook.URL,
