@@ -36,6 +36,10 @@ Every text comes from the cleaned answer of asc and is escaped by the Go templat
 			<summary class="ds-btn ds-btn-secondary ds-btn-sm">{{if .Written}}{{ctx.Locale.Tr "asc_review.brief_edit"}}{{else}}{{ctx.Locale.Tr "asc_review.brief_write"}}{{end}}</summary>
 			<form class="ds-form ds-stack-12" action="{{$.Issue.Link}}/asc/brief" method="post">
 				{{$.CsrfTokenHtml}}
+				<div class="rv-row rv-row-wrap">
+					<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-asc-summary data-summary-url="{{$.Issue.Link}}/asc/brief/summarize" data-working="{{ctx.Locale.Tr "asc_review.summary_working"}}" data-written="{{ctx.Locale.Tr "asc_review.summary_note"}}" data-empty="{{ctx.Locale.Tr "asc_review.draft_nothing"}}" data-failed="{{ctx.Locale.Tr "asc_review.summary_failed"}}" data-confirm="{{ctx.Locale.Tr "asc_review.draft_replace"}}" data-testid="asc-brief-summary">{{svg "dsi-wand" 16}}{{ctx.Locale.Tr "asc_review.draft_button"}}</button>
+					<span class="ds-hint" data-asc-draft-note aria-live="polite"></span>
+				</div>
 				<div class="ds-field"><label class="ds-label" for="asc-brief-what">{{ctx.Locale.Tr "asc_review.brief_what"}}</label><textarea id="asc-brief-what" class="ds-textarea" name="what" rows="3" maxlength="8192">{{.What}}</textarea></div>
 				<div class="ds-field"><label class="ds-label" for="asc-brief-why">{{ctx.Locale.Tr "asc_review.brief_why"}}</label><textarea id="asc-brief-why" class="ds-textarea" name="why" rows="3" maxlength="8192">{{.Why}}</textarea></div>
 				<div class="ds-field"><label class="ds-label" for="asc-brief-how">{{ctx.Locale.Tr "asc_review.brief_how"}}</label><textarea id="asc-brief-how" class="ds-textarea" name="how" rows="3" maxlength="8192">{{.How}}</textarea></div>
