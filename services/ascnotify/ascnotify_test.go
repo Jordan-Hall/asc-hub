@@ -44,6 +44,19 @@ func TestValidate(t *testing.T) {
 	require.Error(t, ascnotify.Prefs{EmailOff: []string{"nope"}}.Validate(), "an event the page does not have cannot be switched")
 	require.Error(t, ascnotify.Prefs{TZ: "Mars/Olympus"}.Validate())
 	require.Error(t, ascnotify.Prefs{Quiet: ascnotify.QuietHours{On: true, From: "25:00", Until: "07:30"}}.Validate())
+	require.NoError(t, ascnotify.Prefs{Away: "2026-11-06"}.Validate())
+	require.Error(t, ascnotify.Prefs{Away: "Thursday"}.Validate())
+}
+
+func TestAwayUntilLastsToTheEndOfTheDayInTheTimeZoneOfThePerson(t *testing.T) {
+	p := ascnotify.Prefs{Away: "2026-11-06", TZ: "America/New_York"}
+	day, ok := p.AwayUntil(time.Date(2026, 11, 7, 4, 59, 0, 0, time.UTC))
+	require.True(t, ok, "23:59 on the 6th in New York")
+	require.Equal(t, "2026-11-06", day.Format(time.DateOnly))
+	_, ok = p.AwayUntil(time.Date(2026, 11, 7, 5, 0, 0, 0, time.UTC))
+	require.False(t, ok, "the 7th has begun in New York")
+	_, ok = ascnotify.Prefs{}.AwayUntil(time.Now())
+	require.False(t, ok)
 }
 
 func TestEmailAllowedFollowsTheStoredChoice(t *testing.T) {
