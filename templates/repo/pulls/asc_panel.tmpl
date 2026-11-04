@@ -4,7 +4,8 @@ repository are. It holds links only, so it needs no data of its own.
 The "Your review" card comes first on the files page of a signed-in viewer: what the viewer has read (the intent, the files
 opened, the comments still open) and the verdict buttons, in a sticky card. The numbers are filled in by asc-review.js.
 Template Attributes: AscStackPanel (the panel is drawn only for a stacked change), Issue, RepoLink, PageIsPullFiles, IsSigned,
-Repository, Diff, AfterCommitID, IsShowingAllCommits
+Repository, Diff, AfterCommitID, IsShowingAllCommits; AscActions and AscRestackLine (the actions sheet of a phone);
+AscLanding (the Landing card: queue place, asc's estimate, the queue button and the dry run line)
 */}}
 {{if .AscStackPanel}}
 <div class="rv rv-sidepanel" data-testid="asc-panel">
@@ -74,6 +75,20 @@ Repository, Diff, AfterCommitID, IsShowingAllCommits
 		<div class="rv-card-f"><a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.Issue.Link}}/asc/checks" data-testid="asc-checks-card-open">{{ctx.Locale.Tr "asc_review.checks_open_on" $v}}</a></div>
 	</section>
 	{{end}}
+	{{end}}
+	{{with .AscLanding}}
+	<section class="rv-card rv-landing" aria-labelledby="asc-landing-title" data-testid="asc-landing">
+		<div class="rv-card-h"><h2 id="asc-landing-title">{{ctx.Locale.Tr "asc_review.landing"}}</h2></div>
+		<div class="rv-card-b">
+			<div class="rv-gt" data-testid="asc-landing-ahead">{{if .Queued}}{{if .Ahead}}{{ctx.Locale.Tr "asc_review.landing_queued" .Ahead}}{{else}}{{ctx.Locale.Tr "asc_review.landing_queued_next"}}{{end}}{{else if .Ahead}}{{ctx.Locale.Tr "asc_review.landing_ahead" .Ahead}}{{else}}{{ctx.Locale.Tr "asc_review.landing_empty"}}{{end}}</div>
+			{{if .StartsIn}}<div class="rv-li-sub" data-testid="asc-landing-starts">{{ctx.Locale.Tr "asc_review.landing_starts" .StartsIn}}</div>{{end}}
+			{{with $.AscActions}}
+			{{if .CanQueue}}<a class="rv-btn rv-btn-secondary rv-btn-block" data-asc-confirm-open href="{{.ConfirmURL}}?op=queue" data-testid="asc-landing-queue">{{with $.AscLanding}}{{if not .To}}{{ctx.Locale.Tr "repo.pulls.asc_op.queue"}}{{else if eq .From .To}}{{ctx.Locale.Tr "asc_review.landing_queue_one" .To}}{{else if eq .Span 2}}{{ctx.Locale.Tr "asc_review.landing_queue_two" .From .To}}{{else}}{{ctx.Locale.Tr "asc_review.landing_queue_range" .From .To}}{{end}}{{end}}</a>{{end}}
+			{{if .CanUnqueue}}<a class="rv-btn rv-btn-secondary rv-btn-block" data-asc-confirm-open href="{{.ConfirmURL}}?op=unqueue" data-testid="asc-landing-unqueue">{{ctx.Locale.Tr "repo.pulls.asc_op.unqueue"}}</a>{{end}}
+			{{end}}
+			{{if .Dry}}<p class="rv-hint rv-landing-dry" data-testid="asc-landing-dry" data-dry="{{.Dry}}">{{if eq .Dry "clean"}}{{ctx.Locale.Tr "asc_review.landing_dry_clean" .Branch}}{{else if eq .Dry "conflict"}}{{ctx.Locale.Tr "asc_review.landing_dry_conflict" .Branch}}{{else if eq .Dry "not_ready"}}{{ctx.Locale.TrN .NotReady "asc_review.landing_dry_not_ready_one" "asc_review.landing_dry_not_ready_other" .NotReady}}{{else if eq .Dry "content_merge"}}{{ctx.Locale.Tr "asc_review.landing_dry_content_merge" .Branch}}{{else}}{{ctx.Locale.Tr "asc_review.landing_dry_paused" .Branch}}{{end}}</p>{{end}}
+		</div>
+	</section>
 	{{end}}
 	<section class="rv-card" aria-labelledby="asc-panel-title">
 		<div class="rv-card-h"><h2 id="asc-panel-title">{{ctx.Locale.Tr "asc_review.rev_panel"}}</h2></div>
