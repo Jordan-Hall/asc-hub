@@ -145,24 +145,12 @@ func ascAgentsBudgetForm(ctx *context.Context) (*ascv1.AgentBudgetLimits, error)
 	return limits, nil
 }
 
-func ascAgentsLoweredText(prefix string, lowered []string) string {
-	var safe []string
-	for _, l := range lowered {
-		if c := ascagentui.SafeCode(l); c != "" {
-			safe = append(safe, c)
-		}
+// ascAgentsLoweredText is prefix followed by what asc lowered to the policy cap (ascagentui.LoweredText).
+func ascAgentsLoweredText(prefix string, lowered []string, asked, got *ascv1.AgentBudgetLimits) string {
+	if t := ascagentui.LoweredText(lowered, asked, got); t != "" {
+		return prefix + " " + t
 	}
-	if len(safe) == 0 {
-		return prefix
-	}
-	out := prefix + " Lowered to the policy cap:"
-	for i, s := range safe {
-		if i > 0 {
-			out += ","
-		}
-		out += " " + s
-	}
-	return out + "."
+	return prefix
 }
 
 // AscAgentsPause serves `POST .../runs/{id}/pause` with paused=1 to hold the run at its next tool call, paused=0 to resume.
@@ -202,7 +190,7 @@ func AscAgentsLimits(ctx *context.Context) {
 		if _, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), id); !ok {
 			return "", "", errAscAgentsBadAnswer
 		}
-		return ascAgentsLoweredText("The limits of the run were changed.", resp.GetLowered()), "", nil
+		return ascAgentsLoweredText("The limits of the run were changed.", resp.GetLowered(), limits, resp.GetRun().GetLimits()), "", nil
 	})
 }
 
@@ -221,7 +209,7 @@ func AscAgentsContinue(ctx *context.Context) {
 		if !ok || row.ID == id {
 			return "", "", errAscAgentsBadAnswer
 		}
-		return ascAgentsLoweredText("The run continues as a new run.", resp.GetLowered()), row.Link, nil
+		return ascAgentsLoweredText("The run continues as a new run.", resp.GetLowered(), limits, resp.GetRun().GetLimits()), row.Link, nil
 	})
 }
 

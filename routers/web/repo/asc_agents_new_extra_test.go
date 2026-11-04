@@ -23,15 +23,18 @@ func TestAscAgentsCreatePassesPlanFirstAndNamesLoweredLimits(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 	setStorageBackend(t, 1, "asc")
 	hub := startFakeHub(t)
-	hub.ok("Agents.CreateRun", &ascv1.CreateAgentRunResponse{Run: sampleRun(9, ascv1.AgentRunState_AGENT_RUN_STATE_QUEUED), Lowered: []string{"cost"}})
-	form := url.Values{"task": {"Add retries"}, "agent": {"coder-2"}, "target": {"master"}, "plan_first": {"1"}}
+	run := sampleRun(9, ascv1.AgentRunState_AGENT_RUN_STATE_QUEUED)
+	run.Limits = &ascv1.AgentBudgetLimits{MaxCostMicroUsd: 5_000_000}
+	hub.ok("Agents.CreateRun", &ascv1.CreateAgentRunResponse{Run: run, Lowered: []string{"cost"}})
+	form := url.Values{"task": {"Add retries"}, "agent": {"coder-2"}, "target": {"master"}, "plan_first": {"1"}, "max_cost_usd": {"8"}}
 	p := runAgents(t, agentsReq{method: "POST", path: testRunsPath + "/new", user: agentsOwner, features: true, form: form}, AscAgentsCreate)
 	require.Equal(t, http.StatusSeeOther, p.status, p.body)
 	calls := hub.callsOf("Agents.CreateRun")
 	require.Len(t, calls, 1)
 	isUserCredential(t, calls[0])
 	assert.True(t, calls[0].req.(*ascv1.CreateAgentRunRequest).GetPlanFirst())
-	assert.Contains(t, p.ctx.Flash.WarningMsg, "cost", "a lowered limit is said, never silent")
+	assert.Equal(t, "Run 9 started. Limit lowered. Your policy caps a run at $5.00. The limit was set to $8.00, so it was lowered.",
+		p.ctx.Flash.WarningMsg, "a lowered limit is said with the cap, never silent")
 }
 
 func TestAscAgentsNewFormExtras(t *testing.T) {

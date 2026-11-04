@@ -662,7 +662,7 @@ func AscAgentsCreate(ctx *context.Context) {
 	}
 	started := "Run " + strconv.FormatUint(row.ID, 10) + " started."
 	if len(resp.GetLowered()) > 0 {
-		ctx.Flash.Warning(ascAgentsLoweredText(started+" A limit was above the policy cap.", resp.GetLowered()))
+		ctx.Flash.Warning(ascAgentsLoweredText(started, resp.GetLowered(), req.GetLimits(), resp.GetRun().GetLimits()))
 	} else {
 		ctx.Flash.Success(started)
 	}
