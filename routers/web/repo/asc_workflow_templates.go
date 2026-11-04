@@ -12,14 +12,14 @@ import "slices"
 // AscWorkflowTemplate is one starting point.
 type AscWorkflowTemplate struct {
 	Name        string // the file stem and the value of asc_template
-	Title       string
+	Title       string // message keys
 	Description string
 	Text        string
 }
 
 var ascWorkflowTemplates = []AscWorkflowTemplate{
 	{
-		Name: "review-changes", Title: "Review every new change", Description: "An agent reads each new change and leaves notes; a person decides.",
+		Name: "review-changes", Title: "asc_agentui.tpl.review_title", Description: "asc_agentui.tpl.review_desc",
 		Text: `description = "Review every new change and leave notes"
 max_parallel_runs = 2
 
@@ -42,7 +42,7 @@ approvers = ["role:maintainer"]
 `,
 	},
 	{
-		Name: "nightly-checks", Title: "Run the checks every night", Description: "Waits for the named checks on a schedule and records the result.",
+		Name: "nightly-checks", Title: "asc_agentui.tpl.nightly_title", Description: "asc_agentui.tpl.nightly_desc",
 		Text: `description = "Check the build every night"
 
 [[trigger]]
@@ -57,7 +57,7 @@ timeout_seconds = 3600
 `,
 	},
 	{
-		Name: "release", Title: "Build, check and publish a release", Description: "A command step builds, a person approves, a command step publishes with a secret.",
+		Name: "release", Title: "asc_agentui.tpl.release_title", Description: "asc_agentui.tpl.release_desc",
 		Text: `description = "Build, check and publish a release"
 max_parallel_runs = 1
 

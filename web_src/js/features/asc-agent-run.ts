@@ -102,10 +102,10 @@ function setHidden(el: Element | null, hidden: boolean) {
 
 function updateMeters(root: HTMLElement, meters: Meter[] | undefined) {
   for (const m of meters ?? []) {
-    const el = root.querySelector(`[data-meter="${CSS.escape(m.key)}"]`);
+    const el = root.querySelector<HTMLElement>(`[data-meter="${CSS.escape(m.key)}"]`);
     if (!el) continue;
     const text = el.querySelector('[data-meter-text]');
-    if (text) text.textContent = m.unlimited ? `${m.used} (no limit)` : `${m.used} of ${m.limit}`;
+    if (text) text.textContent = m.unlimited ? `${m.used} ${el.dataset.noLimit ?? ''}` : `${m.used} ${el.dataset.of ?? ''} ${m.limit}`;
     const bar = el.querySelector('progress');
     if (bar) {
       bar.value = Math.max(0, Math.min(100, Number(m.percent) || 0));

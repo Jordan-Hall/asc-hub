@@ -50,7 +50,7 @@ func TestAscAgentsRunControls(t *testing.T) {
 	t.Run("limits go to asc as typed and a lowered limit is named", func(t *testing.T) {
 		p := post(AscAgentsLimits, url.Values{"max_tokens": {"300000"}, "max_cost_usd": {"5.5"}, "max_minutes": {"30"}}, agentsOwner)
 		require.Equal(t, http.StatusSeeOther, p.status)
-		assert.Contains(t, p.ctx.Flash.SuccessMsg, "cost")
+		assert.Contains(t, p.ctx.Flash.SuccessMsg, "asc_agentui.lowered_")
 		req := hub.callsOf("Agents.SetRunLimits")[0].req.(*ascv1.SetAgentRunLimitsRequest)
 		assert.EqualValues(t, 300000, req.GetLimits().GetMaxTokens())
 		assert.EqualValues(t, 5_500_000, req.GetLimits().GetMaxCostMicroUsd())

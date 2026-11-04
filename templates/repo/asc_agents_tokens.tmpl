@@ -161,7 +161,7 @@ Template Attributes:
 							<div class="rv-field">
 								<label class="rv-label" for="asc-tk-ttl">{{ctx.Locale.Tr "asc_review.tokens_lasts"}}</label>
 								<select class="rv-select" id="asc-tk-ttl" name="ttl"{{if index .AscAgentTokenForm.Errors "ttl"}} aria-invalid="true"{{end}}>
-									{{range .AscAgentTokenTTLs}}<option value="{{.Seconds}}"{{if eq $.AscAgentTokenForm.TTL .Seconds}} selected{{end}}>{{.Label}}</option>{{end}}
+									{{range .AscAgentTokenTTLs}}<option value="{{.Seconds}}"{{if eq $.AscAgentTokenForm.TTL .Seconds}} selected{{end}}>{{ctx.Locale.Tr .Key}}</option>{{end}}
 								</select>
 								{{with index .AscAgentTokenForm.Errors "ttl"}}<div class="rv-error" role="alert">{{.}}</div>{{end}}
 							</div>

@@ -5,7 +5,7 @@
 			<div class="rv-wfrun-main">
 				<h3 class="rv-wfrun-title"><a href="{{.Link}}">{{ctx.Locale.Tr "asc_review.wf_run_n" .ID}} <code>{{.Workflow}}</code></a></h3>
 				<div class="rv-li-meta">
-					<span>{{.Trigger}}</span>
+					<span>{{ctx.Locale.Tr .TriggerKey}}</span>
 					{{if .StartedBy}}<span>{{ctx.Locale.Tr "asc_review.agents_by" .StartedBy}}</span>{{end}}
 					{{if .Change}}<span>{{ctx.Locale.Tr "asc_review.wf_change"}} <code>{{.Change}}</code></span>{{end}}
 					{{if .Source}}<span>{{ctx.Locale.Tr "asc_review.wf_definition"}} <code>{{.Source}}</code></span>{{end}}

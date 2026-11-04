@@ -173,7 +173,7 @@ func TestAscAgentsTokensPage(t *testing.T) {
 		hub.fail("AgentTokens.ListTokens", withDetail(t, codes.FailedPrecondition, "off", "AGENTS_DISABLED"))
 		p := runAgents(t, agentsReq{path: testTokensPath, user: agentsOwner, features: true}, AscAgentsTokens)
 		assert.Equal(t, http.StatusOK, p.status)
-		assert.Contains(t, p.body, "Agents are not turned on for this repository")
+		assert.Contains(t, p.body, "asc_agentui.fail.agents_disabled")
 	})
 }
 
@@ -240,17 +240,17 @@ func TestAscAgentsTokenCreate(t *testing.T) {
 		mutate func(url.Values)
 		want   string
 	}{
-		"no name":          {func(v url.Values) { v.Set("name", " ") }, "Name the token"},
-		"long name":        {func(v url.Values) { v.Set("name", strings.Repeat("n", 65)) }, "Name the token"},
-		"name with eol":    {func(v url.Values) { v.Set("name", "a\nb") }, "Name the token"},
-		"bad agent":        {func(v url.Values) { v.Set("agent", "Agent One") }, "agent name is 1 to 40"},
-		"escaping path":    {func(v url.Values) { v.Set("paths", "../../x") }, "relative path patterns"},
-		"ttl not offered":  {func(v url.Values) { v.Set("ttl", "31536000") }, "how long the token lasts"},
-		"ttl not a number": {func(v url.Values) { v.Set("ttl", "forever") }, "how long the token lasts"},
-		"ttl empty":        {func(v url.Values) { v.Del("ttl") }, "how long the token lasts"},
-		"bad changes":      {func(v url.Values) { v.Set("max_changes_per_run", "ten") }, "whole number"},
-		"too many changes": {func(v url.Values) { v.Set("max_changes_per_run", "10001") }, "whole number"},
-		"bad cost":         {func(v url.Values) { v.Set(ascagentui.BudgetFields.CostUSD, "-5") }, "dollars such as 2.50"},
+		"no name":          {func(v url.Values) { v.Set("name", " ") }, "asc_agentui.form.token_name"},
+		"long name":        {func(v url.Values) { v.Set("name", strings.Repeat("n", 65)) }, "asc_agentui.form.token_name"},
+		"name with eol":    {func(v url.Values) { v.Set("name", "a\nb") }, "asc_agentui.form.token_name"},
+		"bad agent":        {func(v url.Values) { v.Set("agent", "Agent One") }, "asc_agentui.form.agent"},
+		"escaping path":    {func(v url.Values) { v.Set("paths", "../../x") }, "asc_agentui.form.paths"},
+		"ttl not offered":  {func(v url.Values) { v.Set("ttl", "31536000") }, "asc_agentui.form.ttl"},
+		"ttl not a number": {func(v url.Values) { v.Set("ttl", "forever") }, "asc_agentui.form.ttl"},
+		"ttl empty":        {func(v url.Values) { v.Del("ttl") }, "asc_agentui.form.ttl"},
+		"bad changes":      {func(v url.Values) { v.Set("max_changes_per_run", "ten") }, "asc_agentui.form.whole"},
+		"too many changes": {func(v url.Values) { v.Set("max_changes_per_run", "10001") }, "asc_agentui.form.whole"},
+		"bad cost":         {func(v url.Values) { v.Set(ascagentui.BudgetFields.CostUSD, "-5") }, "asc_agentui.form.dollars"},
 	}
 	for name, tc := range invalid {
 		t.Run("refused: "+name, func(t *testing.T) {
@@ -276,7 +276,7 @@ func TestAscAgentsTokenCreate(t *testing.T) {
 		hub.fail("AgentTokens.CreateToken", withDetail(t, codes.PermissionDenied, "scope: "+testPlantedKey, "AGENT_SCOPE_DENIED", "infra/**"))
 		p := post(newTokenForm())
 		assert.Equal(t, http.StatusForbidden, p.status)
-		assert.Contains(t, p.body, "does not let an agent write those paths")
+		assert.Contains(t, p.body, "asc_agentui.fail.agent_scope_denied")
 		assert.Contains(t, p.body, "infra/**")
 		assert.NotContains(t, p.body, testPlantedKey)
 		assert.Contains(t, p.body, `value="my laptop"`, "the form is kept")
@@ -287,7 +287,7 @@ func TestAscAgentsTokenCreate(t *testing.T) {
 			hub.ok("AgentTokens.CreateToken", &ascv1.CreateAgentTokenResponse{Token: made, Secret: bad})
 			p := post(newTokenForm())
 			assert.Equal(t, http.StatusBadGateway, p.status, bad)
-			assert.Contains(t, p.body, "its answer was not usable")
+			assert.Contains(t, p.body, "asc_agentui.fail.token_unusable")
 			if bad != "" {
 				assert.NotContains(t, p.body, bad)
 			}
@@ -317,7 +317,7 @@ func TestAscAgentsTokenRevokeAndBudget(t *testing.T) {
 		p := runAgents(t, agentsReq{method: "POST", path: testTokensPath + "/" + testTokenID + "/revoke", user: agentsOwner, features: true, params: id, form: url.Values{"reason": {"laptop lost"}}}, AscAgentsTokenRevoke)
 		require.Equal(t, http.StatusSeeOther, p.status)
 		assert.Equal(t, testTokensPath, p.loc)
-		assert.Contains(t, p.ctx.Flash.SuccessMsg, "revoked")
+		assert.Contains(t, p.ctx.Flash.SuccessMsg, "asc_agentui.ok.token_revoked")
 		calls := hub.callsOf("AgentTokens.RevokeToken")
 		require.Len(t, calls, 1)
 		isUserCredential(t, calls[0])
@@ -331,7 +331,7 @@ func TestAscAgentsTokenRevokeAndBudget(t *testing.T) {
 		form := url.Values{ascagentui.BudgetFields.Changes: {"12"}, ascagentui.BudgetFields.Tokens: {"500000"}, ascagentui.BudgetFields.CostUSD: {"1.5"}}
 		p := runAgents(t, agentsReq{method: "POST", path: testTokensPath + "/" + testTokenID + "/budget", user: agentsOwner, features: true, params: id, form: form}, AscAgentsTokenBudget)
 		require.Equal(t, http.StatusSeeOther, p.status)
-		assert.Contains(t, p.ctx.Flash.SuccessMsg, "budget")
+		assert.Contains(t, p.ctx.Flash.SuccessMsg, "asc_agentui.ok.token_budget")
 		calls := hub.callsOf("AgentTokens.SetBudget")
 		require.Len(t, calls, 1)
 		isUserCredential(t, calls[0])
@@ -347,7 +347,7 @@ func TestAscAgentsTokenRevokeAndBudget(t *testing.T) {
 		before := len(hub.callsOf("AgentTokens.SetBudget"))
 		p := runAgents(t, agentsReq{method: "POST", path: testTokensPath + "/" + testTokenID + "/budget", user: agentsOwner, features: true, params: id, form: url.Values{ascagentui.BudgetFields.Changes: {"-3"}}}, AscAgentsTokenBudget)
 		assert.Equal(t, http.StatusSeeOther, p.status)
-		assert.Contains(t, p.ctx.Flash.ErrorMsg, "not a valid number")
+		assert.Contains(t, p.ctx.Flash.ErrorMsg, "asc_agentui.form.budget_invalid")
 		assert.Len(t, hub.callsOf("AgentTokens.SetBudget"), before)
 	})
 

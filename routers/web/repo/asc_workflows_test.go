@@ -100,7 +100,7 @@ func TestAscWorkflowsList(t *testing.T) {
 			assert.Contains(t, p.body, "12: unknown key &#34;colour&#34;[31m")
 			assert.Contains(t, p.body, "asc_review.wf_skipped_one")
 			assert.NotContains(t, p.body, `href="/user2/repo1/asc/workflows/runs"`+`>runs`, "runs is the history page")
-			assert.Contains(t, p.body, "A change was opened")
+			assert.Contains(t, p.body, "asc_agentui.trigger.change_opened")
 			assert.Contains(t, p.body, "asc_review.wf_run_n")
 			assert.Equal(t, tc.features, strings.Contains(p.body, `href="/user2/repo1/asc/agents"`), "the agent tabs follow the switch")
 			if !tc.features {
@@ -157,14 +157,14 @@ func TestAscWorkflowsList(t *testing.T) {
 		hub.fail("Workflows.ListDefinitions", status.Error(codes.Unimplemented, "no"))
 		p := runAgents(t, agentsReq{path: testWorkflowsPath, user: agentsOwner, features: true}, AscWorkflows)
 		assert.Equal(t, http.StatusOK, p.status)
-		assert.Contains(t, p.body, "does not offer this feature")
+		assert.Contains(t, p.body, "asc_agentui.fail.unimplemented")
 	})
 
 	t.Run("workflows are off", func(t *testing.T) {
 		hub.fail("Workflows.ListDefinitions", withDetail(t, codes.FailedPrecondition, "off "+testPlantedKey, "WORKFLOW_DISABLED"))
 		p := runAgents(t, agentsReq{path: testWorkflowsPath, user: agentsOwner, features: true}, AscWorkflows)
 		assert.Equal(t, http.StatusOK, p.status)
-		assert.Contains(t, p.body, "This workflow is switched off")
+		assert.Contains(t, p.body, "asc_agentui.fail.workflow_disabled")
 		assert.NotContains(t, p.body, testPlantedKey)
 	})
 }
@@ -198,7 +198,7 @@ func TestAscWorkflowDefinitionPage(t *testing.T) {
 	assert.Contains(t, p.body, "Review {{change}} with &lt;b&gt;care&lt;/b&gt;.[2J")
 	assert.NotContains(t, p.body, "<b>care")
 	// The triggers, the inputs (only valid names), the file as text.
-	assert.Contains(t, p.body, "A change was opened")
+	assert.Contains(t, p.body, "asc_agentui.trigger.change_opened")
 	assert.Contains(t, p.body, "<code>0 3 * * *</code> UTC")
 	assert.Contains(t, p.body, `name="in_focus"`)
 	assert.Contains(t, p.body, `name="in_depth" type="text" maxlength="4096" value="normal"`, "the default is filled in")
@@ -327,7 +327,7 @@ func TestAscWorkflowTrigger(t *testing.T) {
 		})
 		require.Equal(t, http.StatusSeeOther, p.status, p.body)
 		assert.Equal(t, "/user2/repo1/asc/workflows/runs/11", p.loc)
-		assert.Contains(t, p.ctx.Flash.SuccessMsg, "run 11 started")
+		assert.Contains(t, p.ctx.Flash.SuccessMsg, "asc_agentui.ok.wf_started")
 		calls := hub.callsOf("Workflows.Trigger")
 		require.Len(t, calls, 1)
 		isUserCredential(t, calls[0])
@@ -344,7 +344,7 @@ func TestAscWorkflowTrigger(t *testing.T) {
 		before := len(hub.callsOf("Workflows.Trigger"))
 		p := post(url.Values{"in_depth": {"deep"}})
 		assert.Equal(t, http.StatusBadRequest, p.status)
-		assert.Contains(t, p.body, "This input is required")
+		assert.Contains(t, p.body, "asc_agentui.form.required")
 		assert.Contains(t, p.body, `value="deep"`, "what was typed is kept")
 		assert.Len(t, hub.callsOf("Workflows.Trigger"), before)
 	})
@@ -365,10 +365,10 @@ func TestAscWorkflowTrigger(t *testing.T) {
 
 	t.Run("asc refuses", func(t *testing.T) {
 		for code, text := range map[string]string{
-			"WORKFLOW_DISABLED": "This workflow is switched off",
-			"AGENTS_DISABLED":   "Agents are not turned on",
-			"BUDGET_EXCEEDED":   "budget is reached",
-			"WORKFLOW_INVALID":  "definition is not valid",
+			"WORKFLOW_DISABLED": "asc_agentui.fail.workflow_disabled",
+			"AGENTS_DISABLED":   "asc_agentui.fail.agents_disabled",
+			"BUDGET_EXCEEDED":   "asc_agentui.fail.budget",
+			"WORKFLOW_INVALID":  "asc_agentui.fail.workflow_invalid",
 		} {
 			hub.fail("Workflows.Trigger", withDetail(t, codes.FailedPrecondition, "x "+testPlantedKey, code, "7: bad"))
 			p := post(url.Values{"in_focus": {"x"}})
@@ -415,10 +415,10 @@ func TestAscWorkflowEnable(t *testing.T) {
 	p := do("0")
 	require.Equal(t, http.StatusSeeOther, p.status)
 	assert.Equal(t, "/user2/repo1/asc/workflows/review", p.loc)
-	assert.Contains(t, p.ctx.Flash.SuccessMsg, "off")
+	assert.Contains(t, p.ctx.Flash.SuccessMsg, "asc_agentui.ok.wf_off")
 	p = do("1")
 	require.Equal(t, http.StatusSeeOther, p.status)
-	assert.Contains(t, p.ctx.Flash.SuccessMsg, "on")
+	assert.Contains(t, p.ctx.Flash.SuccessMsg, "asc_agentui.ok.wf_on")
 	calls := hub.callsOf("Workflows.SetEnabled")
 	require.Len(t, calls, 2)
 	isUserCredential(t, calls[0])
@@ -436,7 +436,7 @@ func TestAscWorkflowEnable(t *testing.T) {
 		hub.fail("Workflows.SetEnabled", status.Error(codes.PermissionDenied, "not a maintainer "+testPlantedKey))
 		p := do("1")
 		assert.Equal(t, http.StatusSeeOther, p.status)
-		assert.Equal(t, "You may not do that.", p.ctx.Flash.ErrorMsg)
+		assert.Equal(t, "asc_agentui.fail.denied", p.ctx.Flash.ErrorMsg)
 	})
 }
 
@@ -685,16 +685,16 @@ func TestAscWorkflowRunActions(t *testing.T) {
 		assert.Equal(t, "not needed", calls[0].req.(*ascv1.CancelWorkflowRunRequest).GetReason())
 		noCallTokens(t)
 		p = act(AscWorkflowRunCancel, "/cancel", url.Values{"reason": {"a\nb"}})
-		assert.Contains(t, p.ctx.Flash.ErrorMsg, "reason")
+		assert.Contains(t, p.ctx.Flash.ErrorMsg, "asc_agentui.form.reason_long")
 		assert.Len(t, hub.callsOf("Workflows.CancelRun"), 1)
 	})
 
 	t.Run("decide", func(t *testing.T) {
 		p := act(AscWorkflowRunDecide, "/decide", url.Values{"step": {"approve"}, "decision": {"approve"}, "comment": {"looks fine"}})
 		require.Equal(t, http.StatusSeeOther, p.status)
-		assert.Contains(t, p.ctx.Flash.SuccessMsg, "Approved")
+		assert.Contains(t, p.ctx.Flash.SuccessMsg, "asc_agentui.ok.wf_approved")
 		p = act(AscWorkflowRunDecide, "/decide", url.Values{"step": {"approve"}, "decision": {"reject"}})
-		assert.Contains(t, p.ctx.Flash.SuccessMsg, "Rejected")
+		assert.Contains(t, p.ctx.Flash.SuccessMsg, "asc_agentui.ok.wf_rejected")
 		calls := hub.callsOf("Workflows.DecideApproval")
 		require.Len(t, calls, 2)
 		isUserCredential(t, calls[0])
@@ -718,7 +718,7 @@ func TestAscWorkflowRunActions(t *testing.T) {
 			assert.Equal(t, http.StatusBadRequest, act(AscWorkflowRunDecide, "/decide", form).status, name)
 		}
 		long := act(AscWorkflowRunDecide, "/decide", url.Values{"step": {"approve"}, "decision": {"approve"}, "comment": {strings.Repeat("c", 1025)}})
-		assert.Contains(t, long.ctx.Flash.ErrorMsg, "comment")
+		assert.Contains(t, long.ctx.Flash.ErrorMsg, "asc_agentui.form.comment_long")
 		assert.Len(t, hub.callsOf("Workflows.DecideApproval"), before)
 	})
 
@@ -726,7 +726,7 @@ func TestAscWorkflowRunActions(t *testing.T) {
 		hub.fail("Workflows.DecideApproval", status.Error(codes.PermissionDenied, "you are the starter "+testPlantedKey))
 		p := act(AscWorkflowRunDecide, "/decide", url.Values{"step": {"approve"}, "decision": {"approve"}})
 		assert.Equal(t, http.StatusSeeOther, p.status)
-		assert.Equal(t, "You may not do that.", p.ctx.Flash.ErrorMsg)
+		assert.Equal(t, "asc_agentui.fail.denied", p.ctx.Flash.ErrorMsg)
 		assert.Empty(t, p.ctx.Flash.SuccessMsg)
 	})
 

@@ -169,18 +169,18 @@ func AscAgentsDecide(ctx *context.Context) {
 	}
 	decision, _, ok := ascagentui.ParseDecision(ctx.FormString("decision"))
 	if !ok {
-		fail(http.StatusBadRequest, "Choose allow once, deny, approve or reject.")
+		fail(http.StatusBadRequest, ctx.Locale.TrString("asc_agentui.form.decision"))
 		return
 	}
 	reason, ok := ascagentui.CheckLine(ctx.FormString("reason"), 512, true)
 	if !ok {
-		fail(http.StatusBadRequest, "The reason is at most 512 characters on one line.")
+		fail(http.StatusBadRequest, ctx.Locale.TrString("asc_agentui.form.reason_512"))
 		return
 	}
 	conn, err := ascRPCConn()
 	if err != nil {
 		log.Error("asc agents: no connection to asc serve: %v", err)
-		fail(http.StatusBadGateway, ascagentui.Classify(err).Message)
+		fail(http.StatusBadGateway, ascagentui.Classify(err).Text(ctx.Locale))
 		return
 	}
 	callCtx, done, ok := ascAgentsWriteCtx(ctx, ctx.FormTrim("op"))
@@ -196,10 +196,10 @@ func AscAgentsDecide(ctx *context.Context) {
 		if f != nil && f.Unavailable {
 			log.Error("asc agents: DecideRequest failed: %s", ascagentuiLogLine(f))
 		}
-		msg := "The decision could not be recorded."
+		msg := ctx.Locale.TrString("asc_agentui.fail.decision")
 		status := http.StatusBadGateway
 		if f != nil {
-			msg, status = f.Message, f.HTTP
+			msg, status = f.Text(ctx.Locale), f.HTTP
 		}
 		fail(status, msg)
 		return
@@ -207,14 +207,14 @@ func AscAgentsDecide(ctx *context.Context) {
 	req, okReq := ascagentui.RequestOf(resp.GetRequest())
 	if !okReq || req.ID != id {
 		log.Error("asc agents: DecideRequest answered a request that is not the one asked for")
-		fail(http.StatusBadGateway, ascagentui.Classify(errAscAgentsBadAnswer).Message)
+		fail(http.StatusBadGateway, ascagentui.Classify(errAscAgentsBadAnswer).Text(ctx.Locale))
 		return
 	}
 	runState := ""
-	if row, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), req.RunID); ok {
+	if row, ok := ascAgentRunOf(ctx.Locale, resp.GetRun(), env.name, env.runsLink(), req.RunID); ok {
 		runState = row.State.Slug
 	}
-	msg := ascAgentsDecisionText(req)
+	msg := ascAgentsDecisionText(ctx, req)
 	if ascAgentsWantsJSON(ctx) {
 		ctx.JSON(http.StatusOK, ascAgentsDecideJSON{OK: true, State: req.State, RunState: runState, Message: msg})
 		return
@@ -223,16 +223,10 @@ func AscAgentsDecide(ctx *context.Context) {
 	ctx.Redirect(back)
 }
 
-func ascAgentsDecisionText(r ascagentui.Request) string {
+func ascAgentsDecisionText(ctx *context.Context, r ascagentui.Request) string {
 	switch r.State {
-	case "allowed":
-		return "Allowed once. The agent continues."
-	case "denied":
-		return "Denied. The agent is told and carries on without it."
-	case "approved":
-		return "Plan approved. The run starts."
-	case "rejected":
-		return "Plan rejected."
+	case "allowed", "denied", "approved", "rejected":
+		return ctx.Locale.TrString("asc_agentui.ok.decided_" + r.State)
 	}
-	return "The request was already decided: " + r.State + "."
+	return ctx.Locale.TrString("asc_agentui.ok.decided_other", r.State)
 }

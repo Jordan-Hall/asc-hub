@@ -174,7 +174,7 @@ func AscQueueLive(ctx *context.Context) {
 	snap, err := ascQueueRead(ctx.Req.Context(), name, branch)
 	if err != nil {
 		log.Warn("asc queue: live list failed: %s", ascagentuiLogLine(ascagentui.Classify(err)))
-		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(err).Message})
+		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(err).Text(ctx.Locale)})
 		return
 	}
 	ctx.JSON(http.StatusOK, snap)

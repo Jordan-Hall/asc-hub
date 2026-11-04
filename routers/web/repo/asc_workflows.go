@@ -77,7 +77,7 @@ func ascWorkflowsNav(ctx *context.Context, tab string) {
 // ---------------------------------------------------------------------------------------------- view models
 
 type ascWorkflowTrigger struct {
-	Label    string
+	Key      string // the message of the kind
 	Branches []string
 	Paths    []string
 	Cron     string
@@ -203,17 +203,14 @@ func ascWorkflowDefOf(d *ascv1.WorkflowDefinition, workflowsLink string, showPro
 		out.MaxParallel = 1
 	}
 	if !out.Valid {
-		out.Error = ascagentui.CleanLine(d.GetError(), 400)
-		if out.Error == "" {
-			out.Error = "The definition is not valid."
-		}
+		out.Error = ascagentui.CleanLine(d.GetError(), 400) // without a reason the page says that it is not valid
 	}
 	for i, t := range d.GetTriggers() {
 		if i >= 16 {
 			break
 		}
 		out.Triggers = append(out.Triggers, ascWorkflowTrigger{
-			Label:    ascagentui.TriggerLabel(t.GetKind()),
+			Key:      ascagentui.TriggerLabel(t.GetKind()),
 			Branches: ascCleanList(t.GetBranches(), 16, 128),
 			Paths:    ascCleanList(t.GetPaths(), 16, ascagentui.MaxGlobBytes),
 			Cron:     ascagentui.CleanLine(t.GetCron(), 64),
@@ -429,7 +426,7 @@ type ascWorkflowRunRow struct {
 	ErrorPrivate bool
 	Workflow     string
 	State        ascagentui.State
-	Trigger      string
+	TriggerKey   string
 	StartedBy    string
 	Change       string
 	ChangeText   string
@@ -453,16 +450,16 @@ func ascWorkflowRunOf(r *ascv1.WorkflowRun, name, workflowsLink, repoLink string
 		return ascWorkflowRunRow{}, false
 	}
 	row := ascWorkflowRunRow{
-		ID:        r.GetId(),
-		Workflow:  r.GetWorkflow(),
-		State:     ascagentui.WorkflowRunState(r.GetState()),
-		Trigger:   ascagentui.TriggerLabel(r.GetTrigger()),
-		StartedBy: ascagentui.SafeName(r.GetStartedBy()),
-		Source:    ascHexShort(r.GetSource()),
-		Created:   ascagentui.Time(r.GetCreated()),
-		Finished:  ascagentui.Time(r.GetFinished()),
-		Error:     ascagentui.CleanLine(r.GetError(), 400),
-		Link:      workflowsLink + "/runs/" + strconv.FormatUint(r.GetId(), 10),
+		ID:         r.GetId(),
+		Workflow:   r.GetWorkflow(),
+		State:      ascagentui.WorkflowRunState(r.GetState()),
+		TriggerKey: ascagentui.TriggerLabel(r.GetTrigger()),
+		StartedBy:  ascagentui.SafeName(r.GetStartedBy()),
+		Source:     ascHexShort(r.GetSource()),
+		Created:    ascagentui.Time(r.GetCreated()),
+		Finished:   ascagentui.Time(r.GetFinished()),
+		Error:      ascagentui.CleanLine(r.GetError(), 400),
+		Link:       workflowsLink + "/runs/" + strconv.FormatUint(r.GetId(), 10),
 	}
 	for _, m := range ascagentui.Meters(nil, r.GetUsage()) {
 		if !m.Idle {
@@ -541,7 +538,7 @@ func AscWorkflows(ctx *context.Context) {
 	if !ok {
 		return
 	}
-	ctx.Data["Title"] = "Workflows"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_review.wf_title")
 	ascWorkflowsNav(ctx, "workflows")
 	ctx.Data["CanChangeWorkflows"] = env.features && ctx.Repo.CanWrite(unit.TypeCode) && !ctx.Repo.Repository.IsArchived
 
@@ -685,7 +682,7 @@ func ascWorkflowDefPage(ctx *context.Context, env *ascAgentsEnv, form *ascWorkfl
 		ctx.NotFound("asc workflow", nil)
 		return
 	}
-	ctx.Data["Title"] = "Workflow " + name
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_agentui.title.workflow", name)
 	ascWorkflowsNav(ctx, "workflows")
 	ctx.Data["CanChangeWorkflows"] = env.features && ctx.Repo.CanWrite(unit.TypeCode) && !ctx.Repo.Repository.IsArchived
 
@@ -793,13 +790,13 @@ func AscWorkflowTrigger(ctx *context.Context) {
 		form.Values[in.Name] = raw
 		if raw == "" {
 			if in.Required && in.Default == "" {
-				form.Errors[in.Name] = "This input is required."
+				form.Errors[in.Name] = ctx.Locale.TrString("asc_agentui.form.required")
 			}
 			continue
 		}
 		v, ok := ascagentui.CheckFreeText(raw, ascagentui.MaxInputValue)
 		if !ok {
-			form.Errors[in.Name] = "Use text of at most 4,096 bytes."
+			form.Errors[in.Name] = ctx.Locale.TrString("asc_agentui.form.input_long")
 			continue
 		}
 		req.Inputs[in.Name] = v
@@ -808,11 +805,11 @@ func AscWorkflowTrigger(ctx *context.Context) {
 		if b := ascagentui.ChangeBytes(form.Change); b != nil {
 			req.Change = b
 		} else {
-			form.Errors["change"] = "A change id is 32 letters, k to z."
+			form.Errors["change"] = ctx.Locale.TrString("asc_agentui.form.change_id")
 		}
 	}
 	if len(form.Errors) > 0 {
-		form.Summary = "Some fields need another look."
+		form.Summary = ctx.Locale.TrString("asc_agentui.form.summary")
 		ascWorkflowDefPage(ctx, env, form, http.StatusBadRequest)
 		return
 	}
@@ -830,7 +827,7 @@ func AscWorkflowTrigger(ctx *context.Context) {
 		if f.Unavailable {
 			log.Error("asc workflows: Trigger failed: %s", ascagentuiLogLine(f))
 		}
-		form.Summary = f.Message
+		form.Summary = f.Text(ctx.Locale)
 		for _, d := range f.Details {
 			form.Summary += " " + d + "."
 		}
@@ -842,7 +839,7 @@ func AscWorkflowTrigger(ctx *context.Context) {
 		ascAgentsFlashFail(ctx, env.workflowsLink()+"/"+name, "Trigger", errAscAgentsBadAnswer)
 		return
 	}
-	ctx.Flash.Success("Workflow run " + strconv.FormatUint(row.ID, 10) + " started.")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.wf_started", row.ID))
 	ctx.Redirect(row.Link)
 }
 
@@ -891,9 +888,9 @@ func AscWorkflowEnable(ctx *context.Context) {
 		return
 	}
 	if enabled {
-		ctx.Flash.Success("The workflow is on.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.wf_on"))
 	} else {
-		ctx.Flash.Success("The workflow is off.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.wf_off"))
 	}
 	ctx.Redirect(back)
 }
@@ -907,7 +904,7 @@ func AscWorkflowRuns(ctx *context.Context) {
 	if !ok {
 		return
 	}
-	ctx.Data["Title"] = "Workflow runs"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_review.wf_runs_title")
 	ascWorkflowsNav(ctx, "workflows")
 
 	name := ctx.FormTrim("workflow")
@@ -1005,11 +1002,11 @@ func AscWorkflowRuns(ctx *context.Context) {
 }
 
 var ascWorkflowStateFilters = []ascagentui.State{
-	{Slug: "active", Label: "Active"},
-	{Slug: "waiting", Label: "Waiting for approval"},
-	{Slug: "succeeded", Label: "Succeeded"},
-	{Slug: "failed", Label: "Failed"},
-	{Slug: "cancelled", Label: "Cancelled"},
+	{Slug: "active", Key: "asc_review.wf_filter_active"},
+	{Slug: "waiting", Key: "asc_review.wf_filter_waiting"},
+	{Slug: "succeeded", Key: "asc_review.wf_filter_succeeded"},
+	{Slug: "failed", Key: "asc_review.wf_filter_failed"},
+	{Slug: "cancelled", Key: "asc_review.wf_filter_cancelled"},
 }
 
 // ---------------------------------------------------------------------------------------------- one run
@@ -1025,7 +1022,7 @@ func AscWorkflowRun(ctx *context.Context) {
 		ctx.NotFound("asc workflow run", nil)
 		return
 	}
-	ctx.Data["Title"] = "Workflow run " + strconv.FormatUint(id, 10)
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_agentui.title.wf_run", id)
 	ascWorkflowsNav(ctx, "workflows")
 	conn, err := ascRPCConn()
 	if err != nil {
@@ -1085,7 +1082,7 @@ func ascWorkflowStepLog(ctx *context.Context, callCtx gocontext.Context, env *as
 	if err != nil {
 		return
 	}
-	run, ok := ascAgentRunOf(got.GetRun(), env.name, env.runsLink(), s.AgentRunID)
+	run, ok := ascAgentRunOf(ctx.Locale, got.GetRun(), env.name, env.runsLink(), s.AgentRunID)
 	if !ok {
 		return
 	}
@@ -1099,7 +1096,7 @@ func ascWorkflowStepLog(ctx *context.Context, callCtx gocontext.Context, env *as
 		s.LogHidden = len(events) - ascWorkflowsLogShown
 		events = events[len(events)-ascWorkflowsLogShown:]
 	}
-	s.Log = ascAgentEventRows(events, ascAgentEventChangeURLs(ctx, ctx.Repo.Repository, env.link, events, canPulls))
+	s.Log = ascAgentEventRows(ctx.Locale, events, ascAgentEventChangeURLs(ctx, ctx.Repo.Repository, env.link, events, canPulls))
 }
 
 // ascWorkflowStateJSON is the answer of the poll of a run page.
@@ -1139,7 +1136,7 @@ func AscWorkflowRunState(ctx *context.Context) {
 	conn, err := ascRPCConn()
 	if err != nil {
 		log.Error("asc workflows: no connection to asc serve: %v", err)
-		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(err).Message})
+		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(err).Text(ctx.Locale)})
 		return
 	}
 	callCtx, cancel := ascAgentsReadCtx(ctx)
@@ -1151,7 +1148,7 @@ func AscWorkflowRunState(ctx *context.Context) {
 	}
 	row, ok := ascWorkflowRunOf(resp.GetRun(), env.name, env.workflowsLink(), env.link, id)
 	if !ok {
-		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(errAscAgentsBadAnswer).Message})
+		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(errAscAgentsBadAnswer).Text(ctx.Locale)})
 		return
 	}
 	ascWorkflowHidePrivate(ctx, callCtx, env, ascv1.NewAgentsClient(conn), &row)
@@ -1179,7 +1176,7 @@ func AscWorkflowRunCancel(ctx *context.Context) {
 	back := env.workflowsLink() + "/runs/" + strconv.FormatUint(id, 10)
 	reason, ok := ascagentui.CheckLine(ctx.FormString("reason"), ascagentui.MaxReasonBytes, true)
 	if !ok {
-		ctx.Flash.Error("The reason is at most 256 characters on one line.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_agentui.form.reason_long"))
 		ctx.Redirect(back)
 		return
 	}
@@ -1202,7 +1199,7 @@ func AscWorkflowRunCancel(ctx *context.Context) {
 		ascAgentsFlashFail(ctx, back, "CancelRun", errAscAgentsBadAnswer)
 		return
 	}
-	ctx.Flash.Success("The workflow run was cancelled.")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.wf_cancelled"))
 	ctx.Redirect(back)
 }
 
@@ -1237,7 +1234,7 @@ func AscWorkflowRunDecide(ctx *context.Context) {
 	}
 	comment, ok := ascagentui.CheckLine(ctx.FormString("comment"), ascagentui.MaxCommentBytes, true)
 	if !ok {
-		ctx.Flash.Error("The comment is at most 1,024 characters on one line.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_agentui.form.comment_long"))
 		ctx.Redirect(back)
 		return
 	}
@@ -1261,9 +1258,9 @@ func AscWorkflowRunDecide(ctx *context.Context) {
 		return
 	}
 	if approve {
-		ctx.Flash.Success("Approved.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.wf_approved"))
 	} else {
-		ctx.Flash.Success("Rejected.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.wf_rejected"))
 	}
 	ctx.Redirect(back)
 }
@@ -1324,7 +1321,7 @@ func AscWorkflowRunRerun(ctx *context.Context) {
 		ascAgentsFlashFail(ctx, back, "Trigger", errAscAgentsBadAnswer)
 		return
 	}
-	ctx.Flash.Success("Started again as run " + strconv.FormatUint(row.ID, 10) + ".")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.wf_restarted", row.ID))
 	ctx.Redirect(row.Link)
 }
 

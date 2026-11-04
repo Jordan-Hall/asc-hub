@@ -9,26 +9,32 @@ import (
 
 	issues_model "forgejo.org/models/issues"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/translation"
 )
 
 // State is how a run, a token or a step is drawn: a short label and a tone. The tone picks the colour class
 // (`asc-tone-<tone>`); the label is always shown too, so colour is never the only signal.
 type State struct {
 	Slug   string // the lower-case name used in query strings and class names
-	Label  string
+	Key    string // the locale key of the label
 	Tone   string // ok, run, wait, bad, warn or idle
 	Active bool   // the run still changes: poll it
 }
 
 var runStates = map[ascv1.AgentRunState]State{
-	ascv1.AgentRunState_AGENT_RUN_STATE_QUEUED:          {"queued", "Queued", "idle", true},
-	ascv1.AgentRunState_AGENT_RUN_STATE_RUNNING:         {"running", "Running", "run", true},
-	ascv1.AgentRunState_AGENT_RUN_STATE_WAITING_INPUT:   {"waiting", "Needs you", "wait", true},
-	ascv1.AgentRunState_AGENT_RUN_STATE_SUCCEEDED:       {"succeeded", "Done", "ok", false},
-	ascv1.AgentRunState_AGENT_RUN_STATE_FAILED:          {"failed", "Failed", "bad", false},
-	ascv1.AgentRunState_AGENT_RUN_STATE_CANCELLED:       {"cancelled", "Stopped", "idle", false},
-	ascv1.AgentRunState_AGENT_RUN_STATE_BUDGET_EXCEEDED: {"budget", "Budget reached", "warn", false},
-	ascv1.AgentRunState_AGENT_RUN_STATE_EXPIRED:         {"expired", "Timed out", "warn", false},
+	ascv1.AgentRunState_AGENT_RUN_STATE_QUEUED:          {"queued", "asc_review.run_state_queued", "idle", true},
+	ascv1.AgentRunState_AGENT_RUN_STATE_RUNNING:         {"running", "asc_review.run_state_running", "run", true},
+	ascv1.AgentRunState_AGENT_RUN_STATE_WAITING_INPUT:   {"waiting", "asc_review.run_state_waiting", "wait", true},
+	ascv1.AgentRunState_AGENT_RUN_STATE_SUCCEEDED:       {"succeeded", "asc_review.run_state_succeeded", "ok", false},
+	ascv1.AgentRunState_AGENT_RUN_STATE_FAILED:          {"failed", "asc_review.run_state_failed", "bad", false},
+	ascv1.AgentRunState_AGENT_RUN_STATE_CANCELLED:       {"cancelled", "asc_review.run_state_cancelled", "idle", false},
+	ascv1.AgentRunState_AGENT_RUN_STATE_BUDGET_EXCEEDED: {"budget", "asc_review.run_state_budget", "warn", false},
+	ascv1.AgentRunState_AGENT_RUN_STATE_EXPIRED:         {"expired", "asc_review.run_state_expired", "warn", false},
+}
+
+// Text is the label of s in the language of l.
+func (s State) Text(l translation.Locale) string {
+	return l.TrString(s.Key)
 }
 
 // RunState describes an agent run state. An unknown value is drawn as "Unknown" and treated as finished, so a
@@ -37,7 +43,7 @@ func RunState(s ascv1.AgentRunState) State {
 	if st, ok := runStates[s]; ok {
 		return st
 	}
-	return State{"unknown", "Unknown", "idle", false}
+	return State{"unknown", "asc_review.run_state_unknown", "idle", false}
 }
 
 // RunStateFilter maps a query-string slug to the states it selects. An unknown slug is refused (ok false); the
@@ -63,19 +69,19 @@ func RunStateFilter(slug string) ([]ascv1.AgentRunState, bool) {
 
 // RunStateSlugs lists the filter slugs in the order the filter bar shows them.
 var RunStateSlugs = []State{
-	{Slug: "active", Label: "Running"},
-	{Slug: "waiting", Label: "Waiting"},
-	{Slug: "succeeded", Label: "Done"},
-	{Slug: "failed", Label: "Failed"},
-	{Slug: "cancelled", Label: "Stopped"},
-	{Slug: "budget", Label: "Budget reached"},
+	{Slug: "active", Key: "asc_agentui.filter.active"},
+	{Slug: "waiting", Key: "asc_agentui.filter.waiting"},
+	{Slug: "succeeded", Key: "asc_agentui.filter.succeeded"},
+	{Slug: "failed", Key: "asc_agentui.filter.failed"},
+	{Slug: "cancelled", Key: "asc_agentui.filter.cancelled"},
+	{Slug: "budget", Key: "asc_agentui.filter.budget"},
 }
 
 var tokenStates = map[ascv1.AgentTokenState]State{
-	ascv1.AgentTokenState_AGENT_TOKEN_STATE_ACTIVE:    {"active", "Active", "ok", false},
-	ascv1.AgentTokenState_AGENT_TOKEN_STATE_EXPIRED:   {"expired", "Expired", "idle", false},
-	ascv1.AgentTokenState_AGENT_TOKEN_STATE_REVOKED:   {"revoked", "Revoked", "bad", false},
-	ascv1.AgentTokenState_AGENT_TOKEN_STATE_EXHAUSTED: {"exhausted", "Budget spent", "warn", false},
+	ascv1.AgentTokenState_AGENT_TOKEN_STATE_ACTIVE:    {"active", "asc_review.token_state_active", "ok", false},
+	ascv1.AgentTokenState_AGENT_TOKEN_STATE_EXPIRED:   {"expired", "asc_review.token_state_expired", "idle", false},
+	ascv1.AgentTokenState_AGENT_TOKEN_STATE_REVOKED:   {"revoked", "asc_review.token_state_revoked", "bad", false},
+	ascv1.AgentTokenState_AGENT_TOKEN_STATE_EXHAUSTED: {"exhausted", "asc_review.token_state_exhausted", "warn", false},
 }
 
 // TokenState describes an agent token state.
@@ -83,16 +89,16 @@ func TokenState(s ascv1.AgentTokenState) State {
 	if st, ok := tokenStates[s]; ok {
 		return st
 	}
-	return State{"unknown", "Unknown", "idle", false}
+	return State{"unknown", "asc_review.token_state_unknown", "idle", false}
 }
 
 var workflowRunStates = map[ascv1.WorkflowRunState]State{
-	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_QUEUED:           {"queued", "Queued", "idle", true},
-	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_RUNNING:          {"running", "Running", "run", true},
-	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_WAITING_APPROVAL: {"waiting", "Waiting for approval", "wait", true},
-	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_SUCCEEDED:        {"succeeded", "Succeeded", "ok", false},
-	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_FAILED:           {"failed", "Failed", "bad", false},
-	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_CANCELLED:        {"cancelled", "Cancelled", "idle", false},
+	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_QUEUED:           {"queued", "asc_review.wf_state_queued", "idle", true},
+	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_RUNNING:          {"running", "asc_review.wf_state_running", "run", true},
+	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_WAITING_APPROVAL: {"waiting", "asc_review.wf_state_waiting", "wait", true},
+	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_SUCCEEDED:        {"succeeded", "asc_review.wf_state_succeeded", "ok", false},
+	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_FAILED:           {"failed", "asc_review.wf_state_failed", "bad", false},
+	ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_CANCELLED:        {"cancelled", "asc_review.wf_state_cancelled", "idle", false},
 }
 
 // WorkflowRunState describes a workflow run state.
@@ -100,7 +106,7 @@ func WorkflowRunState(s ascv1.WorkflowRunState) State {
 	if st, ok := workflowRunStates[s]; ok {
 		return st
 	}
-	return State{"unknown", "Unknown", "idle", false}
+	return State{"unknown", "asc_review.wf_state_unknown", "idle", false}
 }
 
 // WorkflowRunStateFilter maps a query-string slug to workflow run states. The empty slug selects all.
@@ -124,13 +130,13 @@ func WorkflowRunStateFilter(slug string) ([]ascv1.WorkflowRunState, bool) {
 }
 
 var stepStates = map[ascv1.WorkflowStepState]State{
-	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_PENDING:   {"pending", "Pending", "idle", true},
-	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_RUNNING:   {"running", "Running", "run", true},
-	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_WAITING:   {"waiting", "Waiting", "wait", true},
-	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_SUCCEEDED: {"succeeded", "Succeeded", "ok", false},
-	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_FAILED:    {"failed", "Failed", "bad", false},
-	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_SKIPPED:   {"skipped", "Skipped", "idle", false},
-	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_CANCELLED: {"cancelled", "Cancelled", "idle", false},
+	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_PENDING:   {"pending", "asc_review.step_state_pending", "idle", true},
+	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_RUNNING:   {"running", "asc_review.step_state_running", "run", true},
+	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_WAITING:   {"waiting", "asc_review.step_state_waiting", "wait", true},
+	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_SUCCEEDED: {"succeeded", "asc_review.step_state_succeeded", "ok", false},
+	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_FAILED:    {"failed", "asc_review.step_state_failed", "bad", false},
+	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_SKIPPED:   {"skipped", "asc_review.step_state_skipped", "idle", false},
+	ascv1.WorkflowStepState_WORKFLOW_STEP_STATE_CANCELLED: {"cancelled", "asc_review.step_state_cancelled", "idle", false},
 }
 
 // StepState describes a workflow step state.
@@ -138,66 +144,66 @@ func StepState(s ascv1.WorkflowStepState) State {
 	if st, ok := stepStates[s]; ok {
 		return st
 	}
-	return State{"unknown", "Unknown", "idle", false}
+	return State{"unknown", "asc_review.step_state_unknown", "idle", false}
 }
 
-// StepKind names a workflow step kind for people.
+// StepKind is the locale key of the name of a workflow step kind.
 func StepKind(k ascv1.WorkflowStepKind) string {
 	switch k {
 	case ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_AGENT:
-		return "Agent task"
+		return "asc_agentui.step_kind.agent"
 	case ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_APPROVAL:
-		return "Approval"
+		return "asc_agentui.step_kind.approval"
 	case ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_CHECKS:
-		return "Checks"
+		return "asc_agentui.step_kind.checks"
 	case ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_COMMAND:
-		return "Command"
+		return "asc_agentui.step_kind.command"
 	}
-	return "Step"
+	return "asc_agentui.step_kind.other"
 }
 
-// TriggerLabel names a workflow trigger kind for people.
+// TriggerLabel is the locale key of the name of a workflow trigger kind.
 func TriggerLabel(k ascv1.WorkflowTriggerKind) string {
 	switch k {
 	case ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_MANUAL:
-		return "Started by hand"
+		return "asc_agentui.trigger.manual"
 	case ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_CHANGE_OPENED:
-		return "A change was opened"
+		return "asc_agentui.trigger.change_opened"
 	case ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_CHANGE_UPDATED:
-		return "A change was updated"
+		return "asc_agentui.trigger.change_updated"
 	case ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_CHECK_FAILED:
-		return "A check failed"
+		return "asc_agentui.trigger.check_failed"
 	case ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_COMMENT_MENTION:
-		return "An agent was mentioned"
+		return "asc_agentui.trigger.mention"
 	case ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_SCHEDULE:
-		return "On a schedule"
+		return "asc_agentui.trigger.schedule"
 	case ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_LAND:
-		return "A stack landed"
+		return "asc_agentui.trigger.land"
 	}
-	return "Unknown trigger"
+	return "asc_agentui.trigger.unknown"
 }
 
-// EventKind names an agent run event kind: a short word for the log margin and a tone.
+// EventKind names an agent run event kind: the locale key of a short word for the log margin, and a tone.
 func EventKind(k ascv1.AgentRunEventKind) (word, tone string) {
 	switch k {
 	case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_STATE:
-		return "State", "idle"
+		return "asc_agentui.event.state", "idle"
 	case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_MESSAGE:
-		return "Agent", "run"
+		return "asc_agentui.event.agent", "run"
 	case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_INPUT:
-		return "You", "wait"
+		return "asc_agentui.event.you", "wait"
 	case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_TOOL_CALL:
-		return "Tool", "idle"
+		return "asc_agentui.event.tool", "idle"
 	case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_TOOL_RESULT:
-		return "Result", "ok"
+		return "asc_agentui.event.result", "ok"
 	case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_CHANGE:
-		return "Change", "ok"
+		return "asc_agentui.event.change", "ok"
 	case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_USAGE:
-		return "Usage", "idle"
+		return "asc_agentui.event.usage", "idle"
 	case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_ERROR:
-		return "Error", "bad"
+		return "asc_agentui.event.error", "bad"
 	}
-	return "Event", "idle"
+	return "asc_agentui.event.event", "idle"
 }
 
 // Time turns unix seconds into a time, or the zero time for 0 or a value outside a sane range.

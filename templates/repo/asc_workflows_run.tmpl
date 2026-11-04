@@ -20,7 +20,7 @@ Template Attributes:
 					<div class="rv-eyebrow"><a href="{{$.AscWorkflowsBase}}/{{.Workflow}}">{{.Workflow}}</a></div>
 					<h1 class="rv-title">{{ctx.Locale.Tr "asc_review.wf_run_n" .ID}} <span data-run-state>{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.wf_state_"}}</span></h1>
 					<p class="rv-run-sub">
-						<span>{{.Trigger}}</span>
+						<span>{{ctx.Locale.Tr .TriggerKey}}</span>
 						{{if .StartedBy}}<span>{{ctx.Locale.Tr "asc_review.agents_by" .StartedBy}}</span>{{end}}
 						{{if not .Created.IsZero}}<span>{{DateUtils.TimeSince .Created}}</span>{{end}}
 						{{if .Source}}<span>{{ctx.Locale.Tr "asc_review.wf_def_version"}} <code>{{.Source}}</code></span>{{end}}

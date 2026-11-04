@@ -42,7 +42,7 @@ func ascAgentsLoadRunBoard(ctx *context.Context, env *ascAgentsEnv, callCtx goco
 	if resp, err := api.ListRuns(callCtx, &ascv1.ListAgentRunsRequest{Repo: env.ref(), Limit: 8}); err == nil {
 		var rail []ascAgentRunRow
 		for _, r := range resp.GetRuns() {
-			if row, ok := ascAgentRunOf(r, env.name, env.runsLink(), 0); ok {
+			if row, ok := ascAgentRunOf(ctx.Locale, r, env.name, env.runsLink(), 0); ok {
 				rail = append(rail, row)
 			}
 		}
@@ -116,7 +116,7 @@ func ascAgentsRunAction(ctx *context.Context, what string, call func(callCtx goc
 	if err != nil {
 		var be *errAscAgentsForm
 		if errors.As(err, &be) {
-			ctx.Flash.Error(be.msg)
+			ctx.Flash.Error(ctx.Locale.TrString(be.key))
 			ctx.Redirect(back)
 			return
 		}
@@ -130,10 +130,10 @@ func ascAgentsRunAction(ctx *context.Context, what string, call func(callCtx goc
 	ctx.Redirect(to)
 }
 
-// errAscAgentsForm is a refusal of the form itself; nothing was sent to asc.
-type errAscAgentsForm struct{ msg string }
+// errAscAgentsForm is a refusal of the form itself; nothing was sent to asc. key is the locale key of the sentence.
+type errAscAgentsForm struct{ key string }
 
-func (e *errAscAgentsForm) Error() string { return e.msg }
+func (e *errAscAgentsForm) Error() string { return e.key }
 
 func ascAgentsBudgetForm(ctx *context.Context) (*ascv1.AgentBudgetLimits, error) {
 	limits, err := ascagentui.ParseBudget(ascagentui.BudgetInput{
@@ -143,14 +143,16 @@ func ascAgentsBudgetForm(ctx *context.Context) (*ascv1.AgentBudgetLimits, error)
 		Minutes: ctx.FormTrim(ascagentui.BudgetFields.Minutes),
 	})
 	if err != nil {
-		return nil, &errAscAgentsForm{"A limit is not a whole number (cost: dollars, such as 5 or 1.50)."}
+		return nil, &errAscAgentsForm{"asc_agentui.form.limit_not_number"}
 	}
 	return limits, nil
 }
 
-// ascAgentsLoweredText is prefix followed by what asc lowered to the policy cap (ascagentui.LoweredText).
-func ascAgentsLoweredText(prefix string, lowered []string, asked, got *ascv1.AgentBudgetLimits) string {
-	if t := ascagentui.LoweredText(lowered, asked, got); t != "" {
+// ascAgentsLoweredText is the sentence of prefixKey followed by what asc lowered to the policy cap
+// (ascagentui.LoweredText), in the language of the request.
+func ascAgentsLoweredText(ctx *context.Context, prefixKey string, lowered []string, asked, got *ascv1.AgentBudgetLimits) string {
+	prefix := ctx.Locale.TrString(prefixKey)
+	if t := ascagentui.LoweredText(ctx.Locale, lowered, asked, got); t != "" {
 		return prefix + " " + t
 	}
 	return prefix
@@ -162,19 +164,19 @@ func AscAgentsPause(ctx *context.Context) {
 	ascAgentsRunAction(ctx, "PauseRun", func(callCtx gocontext.Context, api ascv1.AgentsClient, env *ascAgentsEnv, id uint64) (string, string, error) {
 		reason, ok := ascagentui.CheckLine(ctx.FormString("reason"), ascagentui.MaxReasonBytes, true)
 		if !ok {
-			return "", "", &errAscAgentsForm{"The reason is at most 256 characters on one line."}
+			return "", "", &errAscAgentsForm{"asc_agentui.form.reason_long"}
 		}
 		resp, err := api.PauseRun(callCtx, &ascv1.PauseAgentRunRequest{Repo: env.ref(), Id: id, Paused: pause, Reason: reason})
 		if err != nil {
 			return "", "", err
 		}
-		if _, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), id); !ok {
+		if _, ok := ascAgentRunOf(ctx.Locale, resp.GetRun(), env.name, env.runsLink(), id); !ok {
 			return "", "", errAscAgentsBadAnswer
 		}
 		if pause {
-			return "The run is paused. It holds at its next tool call.", "", nil
+			return ctx.Locale.TrString("asc_agentui.ok.paused"), "", nil
 		}
-		return "The run continues.", "", nil
+		return ctx.Locale.TrString("asc_agentui.ok.resumed"), "", nil
 	})
 }
 
@@ -190,10 +192,10 @@ func AscAgentsLimits(ctx *context.Context) {
 		if err != nil {
 			return "", "", err
 		}
-		if _, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), id); !ok {
+		if _, ok := ascAgentRunOf(ctx.Locale, resp.GetRun(), env.name, env.runsLink(), id); !ok {
 			return "", "", errAscAgentsBadAnswer
 		}
-		return ascAgentsLoweredText("The limits of the run were changed.", resp.GetLowered(), limits, resp.GetRun().GetLimits()), "", nil
+		return ascAgentsLoweredText(ctx, "asc_agentui.ok.limits_changed", resp.GetLowered(), limits, resp.GetRun().GetLimits()), "", nil
 	})
 }
 
@@ -208,11 +210,11 @@ func AscAgentsContinue(ctx *context.Context) {
 		if err != nil {
 			return "", "", err
 		}
-		row, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), 0)
+		row, ok := ascAgentRunOf(ctx.Locale, resp.GetRun(), env.name, env.runsLink(), 0)
 		if !ok || row.ID == id {
 			return "", "", errAscAgentsBadAnswer
 		}
-		return ascAgentsLoweredText("The run continues as a new run.", resp.GetLowered(), limits, resp.GetRun().GetLimits()), row.Link, nil
+		return ascAgentsLoweredText(ctx, "asc_agentui.ok.continued", resp.GetLowered(), limits, resp.GetRun().GetLimits()), row.Link, nil
 	})
 }
 
@@ -222,20 +224,20 @@ func AscAgentsRollback(ctx *context.Context) {
 	ascAgentsRunAction(ctx, "RollbackRun", func(callCtx gocontext.Context, api ascv1.AgentsClient, env *ascAgentsEnv, id uint64) (string, string, error) {
 		cp, ok := ascAgentsParseID(ctx.FormString("checkpoint"))
 		if !ok {
-			return "", "", &errAscAgentsForm{"Choose a checkpoint."}
+			return "", "", &errAscAgentsForm{"asc_agentui.form.choose_checkpoint"}
 		}
 		reason, ok := ascagentui.CheckLine(ctx.FormString("reason"), ascagentui.MaxReasonBytes, true)
 		if !ok {
-			return "", "", &errAscAgentsForm{"The reason is at most 256 characters on one line."}
+			return "", "", &errAscAgentsForm{"asc_agentui.form.reason_long"}
 		}
 		resp, err := api.RollbackRun(callCtx, &ascv1.RollbackAgentRunRequest{Repo: env.ref(), RunId: id, CheckpointId: cp, Reason: reason})
 		if err != nil {
 			return "", "", err
 		}
-		if _, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), id); !ok || resp.GetCheckpoint().GetRunId() != id {
+		if _, ok := ascAgentRunOf(ctx.Locale, resp.GetRun(), env.name, env.runsLink(), id); !ok || resp.GetCheckpoint().GetRunId() != id {
 			return "", "", errAscAgentsBadAnswer
 		}
-		return "Rolled back. The run restarts from that checkpoint at its next tool call, and the rollback is logged.", "", nil
+		return ctx.Locale.TrString("asc_agentui.ok.rolled_back"), "", nil
 	})
 }
 
@@ -265,7 +267,7 @@ func AscAgentsLog(ctx *context.Context) {
 		ascAgentsFail(ctx, tplAscAgentsRun, "GetRun", err)
 		return
 	}
-	if _, ok := ascAgentRunOf(got.GetRun(), env.name, env.runsLink(), id); !ok {
+	if _, ok := ascAgentRunOf(ctx.Locale, got.GetRun(), env.name, env.runsLink(), id); !ok {
 		ctx.NotFound("asc agent run", nil)
 		return
 	}

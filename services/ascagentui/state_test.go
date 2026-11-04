@@ -28,7 +28,7 @@ func TestRunStates(t *testing.T) {
 	for s, want := range active {
 		st := RunState(s)
 		assert.Equal(t, want, st.Active, s.String())
-		assert.NotEmpty(t, st.Label, s.String())
+		assert.NotEmpty(t, st.Key, s.String())
 		assert.NotEmpty(t, st.Slug, s.String())
 		assert.Contains(t, []string{"ok", "run", "wait", "bad", "warn", "idle"}, st.Tone)
 	}
@@ -42,7 +42,7 @@ func TestRunStates(t *testing.T) {
 	}
 	unknown := RunState(ascv1.AgentRunState(99))
 	assert.False(t, unknown.Active)
-	assert.Equal(t, "Unknown", unknown.Label)
+	assert.Equal(t, "asc_review.run_state_unknown", unknown.Key)
 	assert.False(t, RunState(ascv1.AgentRunState_AGENT_RUN_STATE_UNSPECIFIED).Active)
 }
 
@@ -73,19 +73,19 @@ func TestWorkflowStates(t *testing.T) {
 		if v == 0 {
 			continue
 		}
-		assert.NotEqual(t, "Unknown", WorkflowRunState(ascv1.WorkflowRunState(v)).Label, "run state %d", v)
+		assert.NotEqual(t, "unknown", WorkflowRunState(ascv1.WorkflowRunState(v)).Slug, "run state %d", v)
 	}
 	for v := range ascv1.WorkflowStepState_name {
 		if v == 0 {
 			continue
 		}
-		assert.NotEqual(t, "Unknown", StepState(ascv1.WorkflowStepState(v)).Label, "step state %d", v)
+		assert.NotEqual(t, "unknown", StepState(ascv1.WorkflowStepState(v)).Slug, "step state %d", v)
 	}
 	for v := range ascv1.AgentTokenState_name {
 		if v == 0 {
 			continue
 		}
-		assert.NotEqual(t, "Unknown", TokenState(ascv1.AgentTokenState(v)).Label, "token state %d", v)
+		assert.NotEqual(t, "unknown", TokenState(ascv1.AgentTokenState(v)).Slug, "token state %d", v)
 	}
 	assert.True(t, WorkflowRunState(ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_WAITING_APPROVAL).Active)
 	assert.False(t, WorkflowRunState(ascv1.WorkflowRunState_WORKFLOW_RUN_STATE_FAILED).Active)
@@ -98,22 +98,22 @@ func TestWorkflowStates(t *testing.T) {
 	_, ok = WorkflowRunStateFilter("bogus")
 	assert.False(t, ok)
 
-	assert.Equal(t, "Approval", StepKind(ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_APPROVAL))
-	assert.Equal(t, "Command", StepKind(ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_COMMAND))
-	assert.Equal(t, "A stack landed", TriggerLabel(ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_LAND))
-	assert.Equal(t, "Step", StepKind(ascv1.WorkflowStepKind(40)))
+	assert.Equal(t, "asc_agentui.step_kind.approval", StepKind(ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_APPROVAL))
+	assert.Equal(t, "asc_agentui.step_kind.command", StepKind(ascv1.WorkflowStepKind_WORKFLOW_STEP_KIND_COMMAND))
+	assert.Equal(t, "asc_agentui.trigger.land", TriggerLabel(ascv1.WorkflowTriggerKind_WORKFLOW_TRIGGER_KIND_LAND))
+	assert.Equal(t, "asc_agentui.step_kind.other", StepKind(ascv1.WorkflowStepKind(40)))
 	for v := range ascv1.WorkflowTriggerKind_name {
 		if v == 0 {
 			continue
 		}
-		assert.NotEqual(t, "Unknown trigger", TriggerLabel(ascv1.WorkflowTriggerKind(v)), "trigger %d", v)
+		assert.NotEqual(t, "asc_agentui.trigger.unknown", TriggerLabel(ascv1.WorkflowTriggerKind(v)), "trigger %d", v)
 	}
 	for v := range ascv1.AgentRunEventKind_name {
 		if v == 0 {
 			continue
 		}
 		word, _ := EventKind(ascv1.AgentRunEventKind(v))
-		assert.NotEqual(t, "Event", word, "event kind %d", v)
+		assert.NotEqual(t, "asc_agentui.event.event", word, "event kind %d", v)
 	}
 }
 

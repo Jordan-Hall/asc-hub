@@ -101,7 +101,7 @@ func AscAgentsEstimate(ctx *context.Context) {
 	ascAgentsNoStore(ctx)
 	conn, err := ascRPCConn()
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(err).Message})
+		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(err).Text(ctx.Locale)})
 		return
 	}
 	callCtx, cancel := ascAgentsReadCtx(ctx)
@@ -109,7 +109,7 @@ func AscAgentsEstimate(ctx *context.Context) {
 	resp, err := ascv1.NewAgentsClient(conn).GetEstimate(callCtx, &ascv1.GetAgentEstimateRequest{Repo: env.ref(), Agent: agent, TaskBytes: uint32(min(n, ascagentui.MaxTaskBytes))})
 	if err != nil {
 		f := ascagentui.Classify(err)
-		ctx.JSON(f.HTTP, map[string]string{"error": f.Message})
+		ctx.JSON(f.HTTP, map[string]string{"error": f.Text(ctx.Locale)})
 		return
 	}
 	ctx.JSON(http.StatusOK, ascAgentEstimateOf(resp))

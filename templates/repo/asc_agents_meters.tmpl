@@ -3,7 +3,7 @@ The budget meters. Dot: []ascagentui.Meter. A native <progress> carries the valu
 script of a live page changes value and text in place (data-meter).
 */}}
 {{range .}}
-	<div class="rv-meter" data-meter="{{.Key}}">
+	<div class="rv-meter" data-meter="{{.Key}}" data-of="{{ctx.Locale.Tr "asc_review.meter_of"}}" data-no-limit="{{ctx.Locale.Tr "asc_review.meter_no_limit"}}">
 		<div class="rv-meter-head">
 			<span>{{ctx.Locale.Tr (print "asc_review.meter_" .Key)}}</span>
 			<b class="rv-num" data-meter-text>{{.Used}}{{if not .Unlimited}} {{ctx.Locale.Tr "asc_review.meter_of"}} {{.Limit}}{{else}} {{ctx.Locale.Tr "asc_review.meter_no_limit"}}{{end}}</b>

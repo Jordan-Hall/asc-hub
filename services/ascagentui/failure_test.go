@@ -55,6 +55,8 @@ func TestClassifyUsesCodesNeverText(t *testing.T) {
 			assert.Equal(t, want.disabled, f.Disabled, code)
 			assert.NotContains(t, f.Message, planted, code)
 			assert.NotEmpty(t, f.Message)
+			assert.Equal(t, f.Message, f.Text(english(t)), "%s: the locale says what the log says", code)
+			assert.Equal(t, f.Message, f.Text(nil), code)
 			assert.False(t, f.Unavailable)
 		}
 	})
@@ -85,6 +87,7 @@ func TestClassifyUsesCodesNeverText(t *testing.T) {
 		} {
 			f := Classify(withDetail(t, codes.ResourceExhausted, planted, &ascv1.ErrorDetail{Code: "BUDGET_EXCEEDED", Paths: []string{which}}))
 			assert.Equal(t, want, f.Message, which)
+			assert.Equal(t, want, f.Text(english(t)), which)
 			assert.Empty(t, f.Details)
 		}
 	})
@@ -115,6 +118,7 @@ func TestClassifyUsesCodesNeverText(t *testing.T) {
 			f := Classify(status.Error(c, planted))
 			assert.Equal(t, want, f.HTTP, c.String())
 			assert.NotContains(t, f.Message, planted, c.String())
+			assert.Equal(t, f.Message, f.Text(english(t)), c.String())
 			assert.Empty(t, f.Details)
 		}
 		assert.True(t, Classify(status.Error(codes.Unavailable, "x")).Unavailable)

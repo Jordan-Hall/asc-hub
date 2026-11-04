@@ -47,13 +47,13 @@ type ascAgentDefaults struct {
 // to a short list so a typo cannot make a token that outlives its purpose.
 var ascAgentTokenTTLs = []struct {
 	Seconds uint32
-	Label   string
+	Key     string
 }{
-	{3600, "1 hour"},
-	{86400, "1 day"},
-	{7 * 86400, "7 days"},
-	{30 * 86400, "30 days"},
-	{90 * 86400, "90 days"},
+	{3600, "asc_agentui.ttl.hour"},
+	{86400, "asc_agentui.ttl.day"},
+	{7 * 86400, "asc_agentui.ttl.week"},
+	{30 * 86400, "asc_agentui.ttl.month"},
+	{90 * 86400, "asc_agentui.ttl.quarter"},
 }
 
 var (
@@ -138,7 +138,7 @@ type ascAgentTokenForm struct {
 
 // ascAgentsTokensPage draws the page. newSecret is non-empty only for the answer to the POST that made a token.
 func ascAgentsTokensPage(ctx *context.Context, env *ascAgentsEnv, form *ascAgentTokenForm, status int, made *ascAgentTokenRow, secret string) {
-	ctx.Data["Title"] = "Agent tokens"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_review.tokens_title")
 	ascAgentsNav(ctx, "tokens")
 	ctx.Data["AscAgentTokenForm"] = form
 	ctx.Data["AscBudgetFields"] = ascagentui.BudgetFields
@@ -284,20 +284,20 @@ func AscAgentsTokenCreate(ctx *context.Context) {
 	if n, ok := ascagentui.CheckLine(form.Name, ascagentui.MaxTokenName, false); ok {
 		req.Name = n
 	} else {
-		form.Errors["name"] = "Name the token in 1 to 64 characters on one line."
+		form.Errors["name"] = ctx.Locale.TrString("asc_agentui.form.token_name")
 	}
 	if !ascagentui.ValidAgentName(form.Agent) {
-		form.Errors["agent"] = "An agent name is 1 to 40 characters: a to z, 0 to 9 and hyphens."
+		form.Errors["agent"] = ctx.Locale.TrString("asc_agentui.form.agent")
 	}
 	if globs, ok := ascagentui.ParseGlobs(form.Paths); ok {
 		req.Paths = globs
 	} else {
-		form.Errors["paths"] = "Give up to 16 relative path patterns, one per line, with no \"..\"."
+		form.Errors["paths"] = ctx.Locale.TrString("asc_agentui.form.paths")
 	}
 	if n, ok := ascagentui.ParseCount(form.MaxChanges, ascAgentsTokenMaxChanges); ok {
 		req.MaxChangesPerRun = uint32(n)
 	} else {
-		form.Errors["max_changes_per_run"] = "Enter a whole number, or leave it empty for the policy default."
+		form.Errors["max_changes_per_run"] = ctx.Locale.TrString("asc_agentui.form.whole")
 	}
 	ttlOK := false
 	for _, t := range ascAgentTokenTTLs {
@@ -308,19 +308,19 @@ func AscAgentsTokenCreate(ctx *context.Context) {
 	if ttlOK {
 		req.TtlSeconds = form.TTL
 	} else {
-		form.Errors["ttl"] = "Choose how long the token lasts."
+		form.Errors["ttl"] = ctx.Locale.TrString("asc_agentui.form.ttl")
 		form.TTL = ascAgentTokenTTLs[0].Seconds
 	}
 	if limits, err := ascagentui.ParseBudget(form.Budget); err == nil {
 		req.Limits = limits
 	} else if be, ok := err.(*ascagentui.BudgetError); ok {
-		form.Errors[be.Field] = "Enter a whole number, or leave it empty for the policy default."
+		form.Errors[be.Field] = ctx.Locale.TrString("asc_agentui.form.whole")
 		if be.Field == ascagentui.BudgetFields.CostUSD {
-			form.Errors[be.Field] = "Enter dollars such as 2.50, or leave it empty for the policy default."
+			form.Errors[be.Field] = ctx.Locale.TrString("asc_agentui.form.dollars")
 		}
 	}
 	if len(form.Errors) > 0 {
-		form.Summary = "Some fields need another look."
+		form.Summary = ctx.Locale.TrString("asc_agentui.form.summary")
 		ascAgentsTokensPage(ctx, env, form, http.StatusBadRequest, nil, "")
 		return
 	}
@@ -328,7 +328,7 @@ func AscAgentsTokenCreate(ctx *context.Context) {
 	conn, err := ascRPCConn()
 	if err != nil {
 		log.Error("asc agents: no connection to asc serve: %v", err)
-		form.Summary = ascagentui.Classify(err).Message
+		form.Summary = ascagentui.Classify(err).Text(ctx.Locale)
 		ascAgentsTokensPage(ctx, env, form, http.StatusBadGateway, nil, "")
 		return
 	}
@@ -346,7 +346,7 @@ func AscAgentsTokenCreate(ctx *context.Context) {
 		if f.Unavailable {
 			log.Error("asc agents: CreateToken failed: %s", ascagentuiLogLine(f))
 		}
-		form.Summary = f.Message
+		form.Summary = f.Text(ctx.Locale)
 		for _, d := range f.Details {
 			form.Summary += " " + d + "."
 		}
@@ -359,7 +359,7 @@ func AscAgentsTokenCreate(ctx *context.Context) {
 		// The token exists on the server but its secret cannot be shown safely. Say so; the admin revokes it from
 		// the list. Nothing of the answer is logged.
 		log.Error("asc agents: CreateToken answered something the hub cannot show")
-		form.Summary = "The token was made but its answer was not usable, so the secret cannot be shown. Revoke it below and make another."
+		form.Summary = ctx.Locale.TrString("asc_agentui.fail.token_unusable")
 		ascAgentsTokensPage(ctx, env, form, http.StatusBadGateway, nil, "")
 		return
 	}
@@ -382,7 +382,7 @@ func AscAgentsTokenRevoke(ctx *context.Context) {
 	back := env.runsLink() + "/tokens"
 	reason, ok := ascagentui.CheckLine(ctx.FormString("reason"), ascagentui.MaxReasonBytes, true)
 	if !ok {
-		ctx.Flash.Error("The reason is at most 256 characters on one line.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_agentui.form.reason_long"))
 		ctx.Redirect(back)
 		return
 	}
@@ -405,7 +405,7 @@ func AscAgentsTokenRevoke(ctx *context.Context) {
 		ascAgentsFlashFail(ctx, back, "RevokeToken", errAscAgentsBadAnswer)
 		return
 	}
-	ctx.Flash.Success("The token was revoked. It stops working on its next call.")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.token_revoked"))
 	ctx.Redirect(back)
 }
 
@@ -430,7 +430,7 @@ func AscAgentsTokenBudget(ctx *context.Context) {
 		Minutes: ctx.FormTrim(ascagentui.BudgetFields.Minutes),
 	})
 	if err != nil {
-		ctx.Flash.Error("A budget value is not a valid number. Use whole numbers, and dollars such as 2.50 for the cost.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_agentui.form.budget_invalid"))
 		ctx.Redirect(back)
 		return
 	}
@@ -453,6 +453,6 @@ func AscAgentsTokenBudget(ctx *context.Context) {
 		ascAgentsFlashFail(ctx, back, "SetBudget", errAscAgentsBadAnswer)
 		return
 	}
-	ctx.Flash.Success("The budget of the token was set.")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.token_budget"))
 	ctx.Redirect(back)
 }

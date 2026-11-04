@@ -33,7 +33,7 @@ func TestAscAgentsCreatePassesPlanFirstAndNamesLoweredLimits(t *testing.T) {
 	require.Len(t, calls, 1)
 	isUserCredential(t, calls[0])
 	assert.True(t, calls[0].req.(*ascv1.CreateAgentRunRequest).GetPlanFirst())
-	assert.Equal(t, "Run 9 started. Limit lowered. Your policy caps a run at $5.00. The limit was set to $8.00, so it was lowered.",
+	assert.Equal(t, "asc_agentui.ok.run_started asc_agentui.lowered_one",
 		p.ctx.Flash.WarningMsg, "a lowered limit is said with the cap, never silent")
 }
 

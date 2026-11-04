@@ -36,21 +36,21 @@ Template Attributes:
 					</form>
 				{{end}}
 			</header>
-			{{if .Error}}<div class="rv-banner rv-banner-err" role="alert"><div>{{.Error}}</div></div>{{end}}
+			{{if .Error}}<div class="rv-banner rv-banner-err" role="alert"><div>{{.Error}}</div></div>{{else if not .Valid}}<div class="rv-banner rv-banner-err" role="alert"><div>{{ctx.Locale.Tr "asc_agentui.wf_invalid"}}</div></div>{{end}}
 
 			<div class="rv-cols rv-cols-main-side rv-gap">
 				<div class="rv-stack">
 					<section class="rv-card" aria-labelledby="rv-wf-steps">
 						<div class="rv-card-h"><h2 id="rv-wf-steps">{{ctx.Locale.Tr "asc_review.wf_steps"}}</h2></div>
 						{{if .Steps}}<ol class="wf-chain" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_review.wf_chain"}}" data-testid="asc-workflow-chain">
-							{{range .Steps}}<li class="wf-link{{if .HasState}} wf-{{.State.Slug}}{{end}}"><b>{{.ID}}</b><span class="rv-pill rv-pill-outline">{{.Kind}}</span>{{if .HasState}}{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}{{end}}</li>{{end}}
+							{{range .Steps}}<li class="wf-link{{if .HasState}} wf-{{.State.Slug}}{{end}}"><b>{{.ID}}</b><span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr .Kind}}</span>{{if .HasState}}{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}{{end}}</li>{{end}}
 						</ol>{{end}}
 						<ol class="rv-steps" data-testid="asc-workflow-steps">
 							{{range $i, $s := .Steps}}
 								<li class="rv-step">
 									<span class="rv-step-n" aria-hidden="true">{{Eval $i "+" 1}}</span>
 									<div class="rv-step-main">
-										<div class="rv-step-top"><code class="rv-step-id">{{.ID}}</code> <span class="rv-pill rv-pill-outline">{{.Kind}}</span>{{if .HasState}} <span data-testid="asc-step-last-state">{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}</span>{{end}}</div>
+										<div class="rv-step-top"><code class="rv-step-id">{{.ID}}</code> <span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr .Kind}}</span>{{if .HasState}} <span data-testid="asc-step-last-state">{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}</span>{{end}}</div>
 										<div class="rv-li-meta">
 											{{if .Needs}}<span>{{ctx.Locale.Tr "asc_review.wf_after"}} {{range $j, $n := .Needs}}{{if $j}}, {{end}}<code>{{$n}}</code>{{end}}</span>{{end}}
 											{{if .Agent}}<span>{{ctx.Locale.Tr "asc_review.wf_agent"}} <code>{{.Agent}}</code></span>{{end}}
@@ -76,7 +76,7 @@ Template Attributes:
 						<div class="rv-card-h"><h2 id="rv-wf-triggers">{{ctx.Locale.Tr "asc_review.wf_starts_when"}}</h2></div>
 						<ul class="rv-card-b rv-plain">
 							{{range .Triggers}}
-								<li>{{.Label}}
+								<li>{{ctx.Locale.Tr .Key}}
 									{{if .Branches}} {{ctx.Locale.Tr "asc_review.wf_on_branches"}} {{range $i, $n := .Branches}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}{{end}}
 									{{if .Paths}} {{ctx.Locale.Tr "asc_review.wf_touching"}} {{range $i, $n := .Paths}}{{if $i}}, {{end}}<code>{{$n}}</code>{{end}}{{end}}
 									{{if .Cron}} (<code>{{.Cron}}</code> UTC){{end}}

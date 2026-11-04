@@ -216,7 +216,7 @@ func ascAgentsFlashFail(ctx *context.Context, redirect, what string, err error) 
 	if f.Unavailable {
 		log.Error("asc agents: %s failed: %s", what, ascagentuiLogLine(f))
 	}
-	msg := f.Message
+	msg := f.Text(ctx.Locale)
 	for _, d := range f.Details {
 		msg += " " + d + "."
 	}

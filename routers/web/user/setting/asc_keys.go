@@ -91,14 +91,14 @@ func ascKeysRender(ctx *context.Context, p *ascKeysPage) {
 	conn, err := asctrust.Conn()
 	if err != nil {
 		log.Error("asc keys: no connection to asc serve: %v", err)
-		p.Problem = "The ASC server is not reachable right now."
+		p.Problem = ctx.Locale.TrString("asc_shell.acct_unreachable")
 		ctx.HTML(http.StatusBadGateway, tplAscKeys)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallAccount, nil)
 	if err != nil {
 		f := trustweb.FailureOf("keys credential", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscKeys)
 		return
 	}
@@ -106,7 +106,7 @@ func ascKeysRender(ctx *context.Context, p *ascKeysPage) {
 	page, err := asctrust.LoadKeys(callCtx, conn, time.Now())
 	if err != nil {
 		f := trustweb.FailureOf("keys load", err)
-		p.Problem = f.Message
+		p.Problem = f.Localized(ctx)
 		ctx.HTML(f.Status, tplAscKeys)
 		return
 	}
@@ -137,32 +137,32 @@ func AscKeysAdd(ctx *context.Context) {
 		ascKeysRender(ctx, p)
 	}
 	if !asctrust.HasFeature(ctx, asctrust.FeatureSigning) {
-		fail("This server does not have signed changes yet.")
+		fail(ctx.Locale.TrString("asc_shell.keys_unsupported"))
 		return
 	}
 	expires, err := asctrust.ExpiryOf(p.Expires, time.Now())
 	if err != nil {
-		fail(trustweb.FailureOf("keys add", err).Message)
+		fail(trustweb.FailureOf("keys add", err).Localized(ctx))
 		return
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		fail("The ASC server is not reachable right now.")
+		fail(ctx.Locale.TrString("asc_shell.acct_unreachable"))
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallAccount, nil)
 	if err != nil {
-		fail(trustweb.FailureOf("keys credential", err).Message)
+		fail(trustweb.FailureOf("keys credential", err).Localized(ctx))
 		return
 	}
 	defer release()
 	key, err := asctrust.AddKey(callCtx, conn, p.Title, publicKey, expires, ctx.Req.PostFormValue("op"))
 	if err != nil {
 		// The submitted key is not shown again: the person pastes it once more.
-		fail(trustweb.FailureOf("keys add", err).Message)
+		fail(trustweb.FailureOf("keys add", err).Localized(ctx))
 		return
 	}
-	ctx.Flash.Success("The key " + key.Fingerprint + " was added.")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_shell.key_added", key.Fingerprint))
 	ctx.Redirect(p.KeysURL)
 }
 
@@ -177,24 +177,24 @@ func AscKeysRevoke(ctx *context.Context) {
 	p := ascKeysPageFor(ctx)
 	conn, err := asctrust.Conn()
 	if err != nil {
-		ctx.Flash.Error("The ASC server is not reachable right now.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_shell.acct_unreachable"))
 		ctx.Redirect(p.KeysURL)
 		return
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallAccount, nil)
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("keys credential", err).Message)
+		ctx.Flash.Error(trustweb.FailureOf("keys credential", err).Localized(ctx))
 		ctx.Redirect(p.KeysURL)
 		return
 	}
 	defer release()
 	key, err := asctrust.RevokeKey(callCtx, conn, ctx.Req.PostFormValue("id"), ctx.Req.PostFormValue("reason"), ctx.Req.PostFormValue("op"))
 	if err != nil {
-		ctx.Flash.Error(trustweb.FailureOf("keys revoke", err).Message)
+		ctx.Flash.Error(trustweb.FailureOf("keys revoke", err).Localized(ctx))
 		ctx.Redirect(p.KeysURL)
 		return
 	}
-	ctx.Flash.Success("The key " + key.Fingerprint + " was revoked. Signatures sent after now with it are not Verified; earlier ones stay explainable.")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_shell.key_revoked_done", key.Fingerprint))
 	ctx.Redirect(p.KeysURL)
 }
 
