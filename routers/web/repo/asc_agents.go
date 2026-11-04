@@ -755,12 +755,28 @@ func AscAgentsRun(ctx *context.Context) {
 	ctx.Data["AscAgentRunCostLimit"] = ascAgentsUSDField(run.GetLimits().GetMaxCostMicroUsd())
 	ctx.Data["AscAgentRunMinutesLimit"] = run.GetLimits().GetMaxRuntimeSeconds() / 60
 	ctx.Data["AscAgentRunChangesLimit"] = run.GetLimits().GetMaxChanges()
-	ctx.Data["AscAgentRunSummaryTokens"] = ascagentui.FormatCount(run.GetUsage().GetTokens())
 	ctx.Data["AscAgentRunSummaryCost"] = ascagentui.FormatUSD(run.GetUsage().GetCostMicroUsd())
 	ctx.Data["AscAgentRunSummaryTime"] = ascagentui.FormatDuration(uint64(run.GetUsage().GetRuntimeSeconds()))
+	ctx.Data["AscAgentRunSummaryCalls"] = run.GetUsage().GetToolCalls()
+	ctx.Data["AscAgentRunSummaryCallsText"] = ascagentui.FormatCount(run.GetUsage().GetToolCalls())
+	ctx.Data["AscAgentStackURL"] = ascAgentStackURL(changes)
 	ascAgentsLoadRunBoard(ctx, env, callCtx, conn, run, see)
 	ascAgentsLoadRunToken(ctx, env, callCtx, conn, run)
 	ctx.HTML(http.StatusOK, tplAscAgentsRun)
+}
+
+// ascAgentStackURL is where "Open the stack" of a finished run goes: the review of the top change that has one (the review
+// page shows the whole stack), else the result card, which lists the drafts. Empty when the run made no change.
+func ascAgentStackURL(changes []ascagentui.ChangeLink) string {
+	if len(changes) == 0 {
+		return ""
+	}
+	for i := len(changes) - 1; i >= 0; i-- {
+		if changes[i].URL != "" {
+			return changes[i].URL
+		}
+	}
+	return "#rv-result-title"
 }
 
 // ascAgentsLoadRunToken puts the token the run works with into ctx.Data["AscAgentRunToken"] for the "Access for this
