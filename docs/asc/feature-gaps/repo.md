@@ -117,7 +117,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Changeset | Checks list with durations | done (seen on a live hub (ui16): a Checks card lists each check with its state; durations are not recorded by the hub) | `commit_statuses.tmpl` shows a summary; expand to list with durations from action runs | S |
 | Changeset | "Where it is now": On main, In release v2.18.0, Stack and position | done (seen on a live hub (ui10)) | tags containing the commit (`LoadBranchesAndTags` route exists), pull lookup | M |
 | Changeset | Revert as a new change (review required) | done (seen on a live hub (ui16): the Undo card on the change page posts to pulls/N/asc/revert) | commit page uses the Forgejo cherry-pick revert modal; `POST /{owner}/{repo}/pulls/{index}/asc/revert` (`AscStackRevert`, `Stacks.RevertLanded`) exists only for pulls; wire the commit page to it and show "Revert opened as change hv3ps" | M |
-| Changeset | Undo from the operation log while recent (replaces Revert) | ui-only-missing | `/asc/ops/undo` exists (`H:routers/web/repo/asc_ops.go`); link and the "too old" sentence on the commit page | S |
+| Changeset | Undo from the operation log while recent (replaces Revert) | done | `H:routers/web/repo/asc_change_undo.go`: on a landed change that is still the newest on the default branch, the rail offers "Undo from the operation log" (`/asc/ops/undo` with its seq) in place of the revert; once newer changes land or the log refuses, it says why and keeps the revert (`change_rail.tmpl`); `asc_change_undo_test.go` | S |
 | Changeset | Large change state: "412 files changed, showing the 20 that matter most", Show 392 more | done | same file: over 40 files the diff shows the 20 that matter most (Behaviour first, then Tests, Docs, Renames, Generated; larger first), "N files changed, showing the 20 that matter most" and "Show N more" (`?all=1`); the group lists link hidden files to `?all=1#diff-...`; the hub still caps a diff at its own MaxGitDiffFiles; tests: TestAscChangeFilesLargeChangeShowsWhatMattersMost | - |
 | Changeset | Loading diff state | ui-only-missing | skeleton in `diff/box.tmpl` | S |
 
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 152 |
+| done | 153 |
 | partial | 1 |
-| ui-only-missing | 49 |
+| ui-only-missing | 48 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
