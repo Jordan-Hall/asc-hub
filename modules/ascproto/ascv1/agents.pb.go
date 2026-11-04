@@ -461,6 +461,7 @@ type AgentBudgetUsage struct {
 	Paths          uint32                 `protobuf:"varint,4,opt,name=paths,proto3" json:"paths,omitempty"`
 	RuntimeSeconds uint32                 `protobuf:"varint,5,opt,name=runtime_seconds,json=runtimeSeconds,proto3" json:"runtime_seconds,omitempty"`
 	Requests       uint64                 `protobuf:"varint,6,opt,name=requests,proto3" json:"requests,omitempty"`
+	ToolCalls      uint64                 `protobuf:"varint,7,opt,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"` // the tool calls of a run (GetRun); 0 in limits, remaining budgets and events
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -533,6 +534,13 @@ func (x *AgentBudgetUsage) GetRuntimeSeconds() uint32 {
 func (x *AgentBudgetUsage) GetRequests() uint64 {
 	if x != nil {
 		return x.Requests
+	}
+	return 0
+}
+
+func (x *AgentBudgetUsage) GetToolCalls() uint64 {
+	if x != nil {
+		return x.ToolCalls
 	}
 	return 0
 }
@@ -4893,14 +4901,16 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"max_tokens\x18\x02 \x01(\x04R\tmaxTokens\x12+\n" +
 	"\x12max_cost_micro_usd\x18\x03 \x01(\x04R\x0fmaxCostMicroUsd\x12\x1b\n" +
 	"\tmax_paths\x18\x04 \x01(\rR\bmaxPaths\x12.\n" +
-	"\x13max_runtime_seconds\x18\x05 \x01(\rR\x11maxRuntimeSeconds\"\xc5\x01\n" +
+	"\x13max_runtime_seconds\x18\x05 \x01(\rR\x11maxRuntimeSeconds\"\xe4\x01\n" +
 	"\x10AgentBudgetUsage\x12\x18\n" +
 	"\achanges\x18\x01 \x01(\rR\achanges\x12\x16\n" +
 	"\x06tokens\x18\x02 \x01(\x04R\x06tokens\x12$\n" +
 	"\x0ecost_micro_usd\x18\x03 \x01(\x04R\fcostMicroUsd\x12\x14\n" +
 	"\x05paths\x18\x04 \x01(\rR\x05paths\x12'\n" +
 	"\x0fruntime_seconds\x18\x05 \x01(\rR\x0eruntimeSeconds\x12\x1a\n" +
-	"\brequests\x18\x06 \x01(\x04R\brequests\"\x8c\a\n" +
+	"\brequests\x18\x06 \x01(\x04R\brequests\x12\x1d\n" +
+	"\n" +
+	"tool_calls\x18\a \x01(\x04R\ttoolCalls\"\x8c\a\n" +
 	"\bAgentRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
 	"\x04repo\x18\x02 \x01(\tR\x04repo\x12\x14\n" +
