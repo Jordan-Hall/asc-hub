@@ -14,6 +14,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
 	"forgejo.org/modules/test"
+	"forgejo.org/services/context"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -223,4 +224,86 @@ func TestWebhookFormHintsHTTPS(t *testing.T) {
 	assert.Contains(t, body, `<p class="ds-hint" id="payload_url_help">asc_hooks.url_hint</p>`)
 	assert.Contains(t, body, `aria-describedby="payload_url_help"`)
 	assert.NotContains(t, body, "asc_hooks.http_refused")
+}
+
+// An existing hook opens on one card: its address, Delete, and the Settings and Recent deliveries tabs with the count.
+func TestWebhookEditShowsHook(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+
+	ctx, resp := contexttest.MockContext(t, "GET /user2/repo1/settings/hooks/1")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadUser(t, ctx, 2)
+	contexttest.LoadRepo(t, ctx, 1)
+	ctx.Data["PageIsRepoSettings"] = true
+	ctx.Data["Link"] = "/user2/repo1/settings/hooks/1"
+	ctx.Data["Permission"] = &ctx.Repo.Permission
+	context.UnitTypes()(ctx)
+	ctx.SetParams(":id", "1")
+	WebhookEdit(ctx)
+	require.Equal(t, http.StatusOK, ctx.Resp.Status())
+
+	body := resp.Body.String()
+	assert.Contains(t, body, `id="wh-hook-url">http://www.example.com/url1</h2>`)
+	assert.Contains(t, body, `data-modal-id="delete-webhook"`)
+	assert.Contains(t, body, "asc_hooks.tab_settings")
+	assert.Contains(t, body, `href="/user2/repo1/settings/hooks/1?tab=deliveries"`)
+	assert.Contains(t, body, `id="payload_url"`, "the settings tab holds the form")
+	assert.Contains(t, body, `data-redirect="/user2/repo1/settings/hooks/1?tab=deliveries" disabled`, "a paused hook sends no test delivery")
+	assert.Contains(t, body, "asc_hooks.send_test")
+	assert.NotContains(t, body, "wh-dl-grid")
+	assert.NotContains(t, body, "asc_hooks.failing_chip", "one failure in the fixtures is not a streak")
+}
+
+// The deliveries tab lists a hook's deliveries beside the selected one: a failed one says why, with Redeliver, and its
+// request and response are one link apart.
+func TestWebhookDeliveries(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+
+	var uuid string
+	for range 2 {
+		task, err := webhook.CreateHookTask(db.DefaultContext, &webhook.HookTask{HookID: 1, PayloadVersion: 2, EventType: "release", PayloadContent: `{"action":"published"}`})
+		require.NoError(t, err)
+		task.IsDelivered = true
+		task.DurationMS = 1200
+		task.RequestInfo = &webhook.HookRequest{URL: "https://hooks.example.org/in", HTTPMethod: "POST", Headers: map[string]string{"X-Asc-Event": "release"}, Body: `{"action":"published"}`}
+		task.ResponseInfo = &webhook.HookResponse{Status: http.StatusBadGateway, Body: `{"error":"upstream down"}`}
+		require.NoError(t, webhook.UpdateHookTask(db.DefaultContext, task))
+		uuid = task.UUID
+	}
+
+	get := func(form url.Values) string {
+		ctx, resp := contexttest.MockContext(t, "GET /user2/repo1/settings/hooks/1")
+		ctx.Render = templates.HTMLRenderer()
+		contexttest.LoadUser(t, ctx, 2)
+		contexttest.LoadRepo(t, ctx, 1)
+		ctx.Data["PageIsRepoSettings"] = true
+		ctx.Link = "/user2/repo1/settings/hooks/1"
+		ctx.Data["Link"] = ctx.Link
+		ctx.Data["Permission"] = &ctx.Repo.Permission
+		context.UnitTypes()(ctx)
+		ctx.SetParams(":id", "1")
+		ctx.Req.Form = form
+		WebhookEdit(ctx)
+		require.Equal(t, http.StatusOK, ctx.Resp.Status())
+		return resp.Body.String()
+	}
+
+	body := get(url.Values{"tab": {"deliveries"}, "delivery": {uuid}})
+	assert.Contains(t, body, "asc_hooks.failing_chip", "two failures in a row are a streak")
+	assert.Contains(t, body, `class="wh-dl-li" href="/user2/repo1/settings/hooks/1?tab=deliveries&amp;page=1&delivery=`+uuid+`" aria-current="true"`)
+	assert.Contains(t, body, "uuid3", "the fixture deliveries are listed too")
+	assert.Contains(t, body, "asc_hooks.response_after_s")
+	assert.Contains(t, body, `action="/user2/repo1/settings/hooks/1/replay/`+uuid+`"`)
+	assert.Contains(t, body, "asc_hooks.redeliver")
+	assert.Contains(t, body, `role="alert"`)
+	assert.Contains(t, body, "asc_hooks.failed_banner")
+	assert.Contains(t, body, `delivery=`+uuid+`&part=response"`)
+	assert.Contains(t, body, "published")
+	assert.NotContains(t, body, "upstream down", "the request is shown first")
+
+	body = get(url.Values{"tab": {"deliveries"}, "delivery": {uuid}, "part": {"response"}})
+	assert.Contains(t, body, "upstream down")
+
+	body = get(url.Values{"tab": {"deliveries"}, "delivery": {"uuid3"}})
+	assert.NotContains(t, body, `role="alert"`, "a delivery that succeeded has no error")
 }

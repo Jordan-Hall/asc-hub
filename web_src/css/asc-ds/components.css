@@ -1140,6 +1140,43 @@ ul.ds-list {
   .wh-table td:not([data-label]) { justify-content: flex-end; padding-top: 8px; }
 }
 
+/* one webhook (templates/webhook/hook.tmpl): its address heads the card, Settings and Recent deliveries are tabs.
+   Deliveries are a list beside the selected one's request or response, numbered line by line; one column on a phone. */
+.wh-hook-h { align-items: flex-start; gap: 12px; }
+.wh-hook-title { flex: 1; min-width: 0; }
+.wh-hook-url { margin: 2px 0 0; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.wh-tabs { padding: 0 16px; }
+.wh-dl { background: var(--surface-2); padding: 16px; }
+.wh-dl-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.wh-dl-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.wh-dl-list { margin: 0; padding: 0; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.wh-dl-list li + li { border-top: 1px solid var(--line); }
+.wh-dl-li { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text); text-decoration: none; }
+.wh-dl-li:hover { background: var(--surface-3); }
+.wh-dl-li[aria-current="true"] { background: var(--primary-soft); box-shadow: inset 3px 0 0 var(--fill); }
+.wh-dl-code { min-width: 48px; justify-content: center; }
+.wh-dl-main { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.wh-dl-id { font-size: 11.5px; }
+.wh-dl-when { white-space: nowrap; }
+.wh-dl-detail { min-width: 0; overflow: hidden; }
+.wh-dl-h { align-items: center; gap: 12px; padding: 12px 16px; }
+.wh-dl-htext { flex: 1; min-width: 0; }
+.wh-dl-htext h3, .wh-dl-htext p { margin: 0; }
+.wh-dl-h form { display: contents; }
+.wh-dl-bar { padding: 8px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.wh-code { margin: 0; padding: 8px 0; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 22.5px; counter-reset: wh-line; }
+.wh-cl { counter-increment: wh-line; }
+.wh-cl::before { content: counter(wh-line); display: inline-block; width: 32px; padding-right: 12px; margin-right: 8px; box-sizing: border-box; color: var(--text-3); text-align: right; user-select: none; }
+.wh-dl-more { margin: 0 16px 8px; }
+.wh-dl-banner { margin: 12px 16px 16px; }
+.wh-dl-empty-acts { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.wh-test { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+
+@media (max-width: 767.98px) {
+  .wh-dl { padding: 12px; }
+  .wh-dl-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* the list of a repository's, an organization's or a person's webhooks (templates/shared/webhook/list.tmpl): the address
    titles each row, the status sits in a fixed column, the Active switch and Edit close it. On a phone they stack, the
    switch named "Active", and a full-width Add webhook follows the card. */

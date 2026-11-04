@@ -12,6 +12,7 @@ import (
 	"forgejo.org/models/webhook"
 	"forgejo.org/tests"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,51 +24,47 @@ func TestRepoSettingsHookHistory(t *testing.T) {
 
 	session := loginUser(t, "user2")
 
-	// Request repository hook page with history
-	req := NewRequest(t, "GET", "/user2/repo1/settings/hooks/1")
-	resp := session.MakeRequest(t, req, http.StatusOK)
-
-	doc := NewHTMLParser(t, resp.Body)
+	// open one delivery of the hook on its Recent deliveries tab
+	open := func(t *testing.T, uuid string) *HTMLDoc {
+		t.Helper()
+		req := NewRequest(t, "GET", "/user2/repo1/settings/hooks/1?tab=deliveries&delivery="+uuid)
+		return NewHTMLParser(t, session.MakeRequest(t, req, http.StatusOK).Body)
+	}
+	lines := func(doc *HTMLDoc) []string {
+		return doc.doc.Find(".wh-dl-detail .wh-cl").Map(func(_ int, s *goquery.Selection) string { return s.Text() })
+	}
+	chip := func(doc *HTMLDoc, uuid string) *goquery.Selection {
+		return doc.doc.Find(`.wh-dl-li[href$="delivery=` + uuid + `"] .wh-dl-code`)
+	}
 
 	t.Run("1/delivered", func(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
-		html, err := doc.doc.Find(".webhook div[data-tab='request-1']").Html()
-		require.NoError(t, err)
-		assert.Contains(t, html, "<strong>Request URL:</strong> /matrix-delivered\n")
-		assert.Contains(t, html, "<strong>Request method:</strong> PUT")
-		assert.Contains(t, html, "<strong>X-Head:</strong> 42")
-		assert.Contains(t, html, `<code class="json">{}</code>`)
-
-		val, ok := doc.doc.Find(".webhook div.item:has(div#info-1) svg").Attr("class")
-		assert.True(t, ok)
-		assert.Equal(t, "svg octicon-alert", val)
+		doc := open(t, "uuid1")
+		assert.Equal(t, "true", doc.doc.Find(`.wh-dl-li[href$="delivery=uuid1"]`).AttrOr("aria-current", ""))
+		assert.True(t, chip(doc, "uuid1").HasClass("ds-chip-err"))
+		assert.Equal(t, "No response", strings.TrimSpace(doc.doc.Find(".wh-dl-htext p").Text()))
+		assert.Equal(t, []string{"{}"}, lines(doc))
+		assert.Contains(t, doc.doc.Find(`.wh-dl-banner[role="alert"]`).Text(), "The receiver did not answer.")
+		assert.Equal(t, 1, doc.doc.Find(`.wh-dl-h form[action="/user2/repo1/settings/hooks/1/replay/uuid1"]`).Length())
 	})
 
 	t.Run("2/undelivered", func(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
-		html, err := doc.doc.Find(".webhook div[data-tab='request-2']").Html()
-		require.NoError(t, err)
-		assert.Equal(t, "-", strings.TrimSpace(html))
-
-		val, ok := doc.doc.Find(".webhook div.item:has(div#info-2) svg").Attr("class")
-		assert.True(t, ok)
-		assert.Equal(t, "svg octicon-stopwatch", val)
+		doc := open(t, "uuid2")
+		assert.False(t, chip(doc, "uuid2").HasClass("ds-chip-err"))
+		assert.Equal(t, "Waiting to be sent", strings.TrimSpace(doc.doc.Find(".wh-dl-htext p").Text()))
+		assert.Zero(t, doc.doc.Find(".wh-dl-banner").Length())
+		assert.Zero(t, doc.doc.Find(".wh-dl-h form").Length(), "nothing to redeliver yet")
 	})
 
 	t.Run("3/success", func(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
-		html, err := doc.doc.Find(".webhook div[data-tab='request-3']").Html()
-		require.NoError(t, err)
-		assert.Contains(t, html, "<strong>Request URL:</strong> /matrix-success\n")
-		assert.Contains(t, html, "<strong>Request method:</strong> PUT")
-		assert.Contains(t, html, "<strong>X-Head:</strong> 42")
-		assert.Contains(t, html, `<code class="json">{&#34;key&#34;:&#34;value&#34;}</code>`)
-
-		val, ok := doc.doc.Find(".webhook div.item:has(div#info-3) svg").Attr("class")
-		assert.True(t, ok)
-		assert.Equal(t, "svg octicon-check", val)
+		doc := open(t, "uuid3")
+		assert.True(t, chip(doc, "uuid3").HasClass("ds-chip-ok"))
+		assert.Equal(t, []string{"{", `  "key": "value"`, "}"}, lines(doc))
+		assert.Zero(t, doc.doc.Find(".wh-dl-banner").Length())
 	})
 }

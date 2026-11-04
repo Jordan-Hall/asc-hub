@@ -397,11 +397,68 @@ func checkWebhook(ctx *context.Context) (*ownerRepoCtx, *webhook.Webhook) {
 		ctx.Data["WebhookHandler"] = handler
 	}
 
-	ctx.Data["History"], err = w.History(ctx, 1)
-	if err != nil {
-		ctx.ServerError("History", err)
+	if err := loadDeliveries(ctx, w); err != nil {
+		ctx.ServerError("loadDeliveries", err)
+		return nil, nil
 	}
 	return orCtx, w
+}
+
+// loadDeliveries fills the two views of one webhook: which tab is open, whether the hook is failing, a page of its
+// deliveries and the one delivery whose request or response is shown (the newest on the page unless one is asked for).
+func loadDeliveries(ctx *context.Context, w *webhook.Webhook) error {
+	page := max(ctx.FormInt("page"), 1)
+	tasks, err := w.History(ctx, page)
+	if err != nil {
+		return err
+	}
+	count, err := webhook.CountHookTasks(ctx, w.ID)
+	if err != nil {
+		return err
+	}
+	streaks, err := webhook.FailingStreaks(ctx, []int64{w.ID}, webhook_service.StreakLimit)
+	if err != nil {
+		return err
+	}
+	deliveries := webhook_service.Deliveries(tasks)
+	var selected *webhook_service.Delivery
+	if uuid := ctx.FormString("delivery"); uuid != "" {
+		for _, d := range deliveries {
+			if d.UUID == uuid {
+				selected = d
+			}
+		}
+		if selected == nil {
+			task, err := webhook.GetHookTaskByUUID(ctx, w.ID, uuid)
+			if err != nil && !webhook.IsErrHookTaskNotExist(err) {
+				return err
+			}
+			if task != nil {
+				selected = &webhook_service.Delivery{HookTask: task}
+			}
+		}
+	}
+	if selected == nil && len(deliveries) > 0 {
+		selected = deliveries[0]
+	}
+
+	pager := context.NewPagination(int(count), setting.Webhook.PagingNum, page, 5)
+	pager.AddParamString("tab", "deliveries")
+	ctx.Data["Page"] = pager
+	ctx.Data["HookTab"] = "settings"
+	if ctx.FormString("tab") == "deliveries" {
+		ctx.Data["HookTab"] = "deliveries"
+	}
+	ctx.Data["HookFailing"] = streaks[w.ID] > 1
+	ctx.Data["Deliveries"] = deliveries
+	ctx.Data["DeliveryCount"] = count
+	ctx.Data["Delivery"] = selected
+	ctx.Data["DeliveryPart"] = "request"
+	if ctx.FormString("part") == "response" {
+		ctx.Data["DeliveryPart"] = "response"
+	}
+	ctx.Data["DeliveriesLink"] = fmt.Sprintf("%s?tab=deliveries&page=%d", ctx.Link, page)
+	return nil
 }
 
 // WebhookEdit render editing web hook page
