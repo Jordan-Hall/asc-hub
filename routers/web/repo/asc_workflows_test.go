@@ -139,6 +139,18 @@ func TestAscWorkflowsList(t *testing.T) {
 		p := runAgents(t, agentsReq{path: testWorkflowsPath, user: agentsOwner, features: true}, AscWorkflows)
 		require.Equal(t, http.StatusOK, p.status)
 		assert.Contains(t, p.body, "asc_review.wf_none")
+		assert.Contains(t, p.body, `asc_template=review-changes" data-testid="asc-workflow-template-start">`)
+		assert.Contains(t, p.body, `href="/-/docs/workflows" data-testid="asc-workflow-guide">`)
+		assert.Contains(t, p.body, "asc_review.wf_guide")
+		assert.Contains(t, p.body, `<div class="rv-stack" data-asc-list-main>`)
+		assert.Contains(t, p.body, `aria-label="asc_rp.loading" data-asc-list-loading data-testid="asc-workflows-loading" hidden>`)
+		assert.Equal(t, 3, strings.Count(p.body, `<li class="ag-run ag-sk-row">`), "the skeleton has the three rows of the board")
+
+		hub.ok("Workflows.ListDefinitions", &ascv1.ListWorkflowDefinitionsResponse{})
+		p = runAgents(t, agentsReq{path: testWorkflowsPath, user: agentsReader, features: true}, AscWorkflows)
+		require.Equal(t, http.StatusOK, p.status)
+		assert.NotContains(t, p.body, "asc-workflow-template-start", "a reader cannot start a change")
+		assert.Contains(t, p.body, "asc-workflow-guide", "the guide is for every reader")
 	})
 
 	t.Run("the server has no workflows", func(t *testing.T) {

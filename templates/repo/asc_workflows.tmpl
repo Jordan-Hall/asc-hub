@@ -39,7 +39,14 @@ Template Attributes:
 			</div>
 			{{end}}
 			<div class="rv-cols rv-cols-main-side rv-gap">
-			<div class="rv-stack">
+			<div class="rv-stack" data-asc-list-main>
+				<div class="rv-card ag-runs-card ag-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "asc_rp.loading"}}" data-asc-list-loading data-testid="asc-workflows-loading" hidden>
+					<ul class="rv-list ag-runs" aria-hidden="true">
+						<li class="ag-run ag-sk-row"><span class="rv-sk ag-sk-av"></span><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+						<li class="ag-run ag-sk-row"><span class="rv-sk ag-sk-av"></span><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+						<li class="ag-run ag-sk-row"><span class="rv-sk ag-sk-av"></span><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+					</ul>
+				</div>
 			{{if .AscWorkflowDefs}}
 				<ul class="rv-list rv-wf-defs" data-testid="asc-workflow-defs">
 					{{range .AscWorkflowDefs}}
@@ -113,8 +120,11 @@ Template Attributes:
 			{{else if not .AscAgentsFailure}}
 				<div class="rv-empty" data-testid="asc-workflow-defs-empty">
 					<h2>{{ctx.Locale.Tr "asc_review.wf_none"}}</h2>
-					<p>{{ctx.Locale.Tr "asc_review.wf_none_help"}} <code>.asc/workflows/review.toml</code></p>
-					{{if and .CanChangeWorkflows .AscWorkflowNewURL}}<div class="rv-acts"><a class="rv-btn rv-btn-primary" href="{{.AscWorkflowNewURL}}&amp;asc_template=review-changes" data-testid="asc-workflow-template-start">{{ctx.Locale.Tr "asc_review.wf_template_start"}}</a></div>{{end}}
+					<p>{{ctx.Locale.Tr "asc_review.wf_none_help" (HTMLFormat "<code>%s</code>" ".asc/workflows/review.toml")}}</p>
+					<div class="rv-acts">
+						{{if and .CanChangeWorkflows .AscWorkflowNewURL}}<a class="rv-btn rv-btn-primary" href="{{.AscWorkflowNewURL}}&amp;asc_template=review-changes" data-testid="asc-workflow-template-start">{{svg "octicon-plus" 16}} {{ctx.Locale.Tr "asc_review.wf_template_start"}}</a>{{end}}
+						<a class="rv-btn rv-btn-secondary" href="{{AppSubUrl}}/-/docs/workflows" data-testid="asc-workflow-guide">{{svg "octicon-book" 16}} {{ctx.Locale.Tr "asc_review.wf_guide"}}</a>
+					</div>
 					{{if or .AscWorkflowState .AscWorkflowQ}}<div class="rv-acts"><a class="rv-btn rv-btn-secondary" href="{{.AscWorkflowsBase}}">{{ctx.Locale.Tr "asc_review.agents_clear"}}</a></div>{{end}}
 				</div>
 			{{end}}
