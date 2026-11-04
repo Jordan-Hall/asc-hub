@@ -38,6 +38,10 @@ func TestDelivery(t *testing.T) {
 	assert.Zero(t, d.Status())
 	assert.Nil(t, d.BodyLines("response"))
 
+	// an ASC event names itself
+	d = &Delivery{&webhook_model.HookTask{EventType: webhook_module.HookEventAgentRunFinished, PayloadContent: `{"event":"agent_run.finished"}`}}
+	assert.Equal(t, "agent run finished", d.Event())
+
 	// a long body is cut
 	d.PayloadContent = strings.Repeat("x\n", deliveryLines+5)
 	assert.Len(t, d.BodyLines("request"), deliveryLines)
