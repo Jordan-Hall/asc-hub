@@ -85,30 +85,7 @@
 				</ul>
 			</section>
 		{{end}}
-		{{if .RefTags}}
-			<section class="rp-sec rp-refcard" aria-labelledby="rp-ref-tags" data-ref-kind="tags">
-				<div class="rp-sec-h">
-					<div>
-						<h3 class="rp-sec-title" id="rp-ref-tags">{{ctx.Locale.Tr "repo.release.tags"}}</h3>
-						<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.ref_tags_sub"}}</p>
-					</div>
-					<a class="rp-sec-act" href="{{.RepoLink}}/tags">{{ctx.Locale.Tr "asc_rp.rail_all"}}</a>
-				</div>
-				<ul class="rp-rows">
-					{{range .RefTags}}
-					<li class="rp-flight">
-						<div class="rp-flight-main">
-							<div class="rp-flight-title"><a class="ds-mono" href="{{$.RepoLink}}/releases/tag/{{.Name | PathEscapeSegments}}">{{.Name}}</a></div>
-							{{if .Title}}<div class="rp-stack-intent">{{.Title}}</div>{{end}}
-						</div>
-						<div class="rp-flight-meta">
-							{{if .Release.Publisher}}<a href="{{.Release.Publisher.HomeLink}}">{{.Release.Publisher.GetDisplayName}}</a><span class="rp-sep-dot"></span>{{end}}<time>{{DateUtils.TimeSince .Release.CreatedUnix}}</time>
-						</div>
-					</li>
-					{{end}}
-				</ul>
-			</section>
-		{{end}}
+		{{template "repo/branch/ref_tags" .}}
 		{{template "base/paginate" .}}
 	</div>
 </div>
