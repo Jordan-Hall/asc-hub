@@ -316,6 +316,7 @@ type ascWorkflowStepRun struct {
 	Waiting    bool // an approval step that waits for a decision
 	Log        []ascAgentEvent
 	LogHidden  int
+	Agent      string // the agent of the step's run, set with Log
 	// Proposed is the changes the agent run of the step produced (nil unless the viewer may read the step).
 	Proposed     []ascWorkflowProposedChange
 	ProposedMore int
@@ -1084,9 +1085,11 @@ func ascWorkflowStepLog(ctx *context.Context, callCtx gocontext.Context, env *as
 	if err != nil {
 		return
 	}
-	if _, ok := ascAgentRunOf(got.GetRun(), env.name, env.runsLink(), s.AgentRunID); !ok {
+	run, ok := ascAgentRunOf(got.GetRun(), env.name, env.runsLink(), s.AgentRunID)
+	if !ok {
 		return
 	}
+	s.Agent = run.Agent
 	batch, err := ascAgentsCollect(callCtx, api, env.ref(), s.AgentRunID, 0, ascAgentsBacklogWait, ascAgentsBacklogDrain, ascWorkflowsLogEvents, 128<<10)
 	if err != nil {
 		return

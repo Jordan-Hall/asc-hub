@@ -1111,6 +1111,31 @@
   align-self: flex-start;
 }
 
+/* WorkflowRun: the log of an agent step, a card of its own under the steps. */
+.wf-logcard {
+  min-width: 0;
+}
+
+.wf-log-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 16px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.wf-log-h > span:not(.rv-end)::before {
+  content: "·";
+  margin-inline-end: 12px;
+}
+
+.wf-log-h code {
+  font-size: 12px;
+}
+
 /* The workflows list: the strip of the last runs of each workflow, and the side cards. */
 .wf-hist {
   display: flex;

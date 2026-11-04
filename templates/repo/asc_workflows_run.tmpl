@@ -65,72 +65,78 @@ Template Attributes:
 							{{end}}
 					</ol>
 				</section>
-				<section class="rv-card" aria-labelledby="rv-wfr-steps">
-					<div class="rv-card-h"><h2 id="rv-wfr-steps">{{ctx.Locale.Tr "asc_review.wf_steps"}}</h2></div>
-					<ol class="rv-steps" data-testid="asc-workflow-run-steps">
-						{{range .Steps}}
-							<li class="rv-step" data-step="{{.ID}}">
-								<div class="rv-step-main">
-									<div class="rv-step-top">
-										<code class="rv-step-id">{{.ID}}</code>
-										<span data-step-state>{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}</span>
-									</div>
-									<div class="rv-li-meta">
-										{{if not .Started.IsZero}}<span>{{ctx.Locale.Tr "asc_review.wf_started"}} {{DateUtils.TimeSince .Started}}</span>{{end}}
-										{{if not .Finished.IsZero}}<span>{{ctx.Locale.Tr "asc_review.wf_finished"}} {{DateUtils.TimeSince .Finished}}</span>{{end}}
-										{{if .DecidedBy}}<span>{{ctx.Locale.Tr "asc_review.wf_decided_by" .DecidedBy}}</span>{{end}}
-										{{if .AgentLink}}{{if $.AscAgentFeatures}}<a href="{{.AgentLink}}">{{ctx.Locale.Tr "asc_review.wf_open_agent_run" .AgentRunID}}</a>{{else}}<span>{{ctx.Locale.Tr "asc_review.wf_agent_run" .AgentRunID}}</span>{{end}}{{end}}
-									</div>
-									{{if .Comment}}<div class="rv-quote">“{{.Comment}}”</div>{{end}}
-									<div class="rv-run-fail{{if not .Error}} tw-hidden{{end}}" data-step-error>{{.Error}}</div>
-									{{if .Private}}<p class="rv-hint" data-testid="asc-wf-step-private">{{ctx.Locale.Tr "asc_review.wf_step_private"}}</p>{{end}}
-									{{if and .Waiting $.AscWorkflowCanAct}}
-										<form class="rv-form rv-approval" method="post" action="{{$.AscWorkflowRun.Link}}/decide" data-testid="asc-workflow-approval">
-											{{$.CsrfTokenHtml}}
-											<input type="hidden" name="step" value="{{.ID}}">
-											<div class="rv-field">
-												<label class="rv-label" for="asc-wfr-comment-{{.ID}}">{{ctx.Locale.Tr "asc_review.wf_comment"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.optional"}}</span></label>
-												<input class="rv-input" id="asc-wfr-comment-{{.ID}}" name="comment" type="text" maxlength="1024" autocomplete="off">
-											</div>
-											<div class="rv-sticky rv-sticky-inline">
-												<button class="rv-btn rv-btn-primary" type="submit" name="decision" value="approve">{{ctx.Locale.Tr "asc_review.wf_approve"}}</button>
-												<button class="rv-btn rv-btn-danger" type="submit" name="decision" value="reject">{{ctx.Locale.Tr "asc_review.wf_reject"}}</button>
-											</div>
-											<small class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_approval_help"}}</small>
-										</form>
-									{{end}}
-									{{if .Proposed}}
-										<div class="rv-proposed" data-testid="asc-wf-proposed">
-											<h3 class="rv-proposed-h">{{ctx.Locale.Tr "asc_review.wf_proposed"}}</h3>
-											<ol class="rv-result">
-												{{range .Proposed}}
-													<li class="rv-result-row">
-														<code>{{.Short}}</code>
-														{{if .HasSize}}<span class="rv-delta"><span class="rv-add">+{{.Add}}</span> <span class="rv-del">&minus;{{.Del}}</span></span>{{end}}
-														{{if eq .State "landed"}}<span class="asc-pill asc-tone-ok">{{ctx.Locale.Tr "asc_review.run_change_landed"}}</span>
-														{{else if eq .State "closed"}}<span class="asc-pill asc-tone-idle">{{ctx.Locale.Tr "asc_review.run_change_closed"}}</span>
-														{{else if eq .State "open"}}<span class="asc-pill">{{if eq .Review "approved"}}{{ctx.Locale.Tr "asc_review.change_state_approved"}}{{else if eq .Review "changes"}}{{ctx.Locale.Tr "asc_review.change_state_changes_requested"}}{{else if eq .Review "draft"}}{{ctx.Locale.Tr "asc_review.change_state_draft"}}{{else}}{{ctx.Locale.Tr "asc_review.run_change_waiting"}}{{end}}</span>{{end}}
-														{{if .URL}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.URL}}">{{ctx.Locale.Tr "asc_review.run_change_review" .PullID}}</a>
-														{{else}}<span class="rv-muted rv-result-note">{{ctx.Locale.Tr "asc_review.run_change_draft"}}</span>{{end}}
-													</li>
-												{{end}}
-											</ol>
-											{{if .ProposedMore}}<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_proposed_more" .ProposedMore}}</p>{{end}}
+				<div class="rv-stack">
+					<section class="rv-card" aria-labelledby="rv-wfr-steps">
+						<div class="rv-card-h"><h2 id="rv-wfr-steps">{{ctx.Locale.Tr "asc_review.wf_steps"}}</h2></div>
+						<ol class="rv-steps" data-testid="asc-workflow-run-steps">
+							{{range .Steps}}
+								<li class="rv-step" data-step="{{.ID}}">
+									<div class="rv-step-main">
+										<div class="rv-step-top">
+											<code class="rv-step-id">{{.ID}}</code>
+											<span data-step-state>{{template "repo/asc_state_pill" dict "S" .State "P" "asc_review.step_state_"}}</span>
 										</div>
-									{{end}}
-									{{if .Log}}
-										<details class="rv-details asc-step-log">
-											<summary>{{ctx.Locale.Tr "asc_review.wf_log" (len .Log)}}{{if .LogHidden}}, {{ctx.Locale.Tr "asc_review.wf_log_hidden" .LogHidden}}{{end}}</summary>
-											<ol class="rv-log">{{template "repo/asc_agents_events" .Log}}</ol>
-										</details>
-									{{end}}
-								</div>
-							</li>
-						{{else}}
-							<li class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.wf_no_steps_started"}}</li>
-						{{end}}
-					</ol>
-				</section>
+										<div class="rv-li-meta">
+											{{if not .Started.IsZero}}<span>{{ctx.Locale.Tr "asc_review.wf_started"}} {{DateUtils.TimeSince .Started}}</span>{{end}}
+											{{if not .Finished.IsZero}}<span>{{ctx.Locale.Tr "asc_review.wf_finished"}} {{DateUtils.TimeSince .Finished}}</span>{{end}}
+											{{if .DecidedBy}}<span>{{ctx.Locale.Tr "asc_review.wf_decided_by" .DecidedBy}}</span>{{end}}
+											{{if .AgentLink}}{{if $.AscAgentFeatures}}<a href="{{.AgentLink}}">{{ctx.Locale.Tr "asc_review.wf_open_agent_run" .AgentRunID}}</a>{{else}}<span>{{ctx.Locale.Tr "asc_review.wf_agent_run" .AgentRunID}}</span>{{end}}{{end}}
+										</div>
+										{{if .Comment}}<div class="rv-quote">“{{.Comment}}”</div>{{end}}
+										<div class="rv-run-fail{{if not .Error}} tw-hidden{{end}}" data-step-error>{{.Error}}</div>
+										{{if .Private}}<p class="rv-hint" data-testid="asc-wf-step-private">{{ctx.Locale.Tr "asc_review.wf_step_private"}}</p>{{end}}
+										{{if and .Waiting $.AscWorkflowCanAct}}
+											<form class="rv-form rv-approval" method="post" action="{{$.AscWorkflowRun.Link}}/decide" data-testid="asc-workflow-approval">
+												{{$.CsrfTokenHtml}}
+												<input type="hidden" name="step" value="{{.ID}}">
+												<div class="rv-field">
+													<label class="rv-label" for="asc-wfr-comment-{{.ID}}">{{ctx.Locale.Tr "asc_review.wf_comment"}} <span class="rv-opt">{{ctx.Locale.Tr "asc_review.optional"}}</span></label>
+													<input class="rv-input" id="asc-wfr-comment-{{.ID}}" name="comment" type="text" maxlength="1024" autocomplete="off">
+												</div>
+												<div class="rv-sticky rv-sticky-inline">
+													<button class="rv-btn rv-btn-primary" type="submit" name="decision" value="approve">{{ctx.Locale.Tr "asc_review.wf_approve"}}</button>
+													<button class="rv-btn rv-btn-danger" type="submit" name="decision" value="reject">{{ctx.Locale.Tr "asc_review.wf_reject"}}</button>
+												</div>
+												<small class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_approval_help"}}</small>
+											</form>
+										{{end}}
+										{{if .Proposed}}
+											<div class="rv-proposed" data-testid="asc-wf-proposed">
+												<h3 class="rv-proposed-h">{{ctx.Locale.Tr "asc_review.wf_proposed"}}</h3>
+												<ol class="rv-result">
+													{{range .Proposed}}
+														<li class="rv-result-row">
+															<code>{{.Short}}</code>
+															{{if .HasSize}}<span class="rv-delta"><span class="rv-add">+{{.Add}}</span> <span class="rv-del">&minus;{{.Del}}</span></span>{{end}}
+															{{if eq .State "landed"}}<span class="asc-pill asc-tone-ok">{{ctx.Locale.Tr "asc_review.run_change_landed"}}</span>
+															{{else if eq .State "closed"}}<span class="asc-pill asc-tone-idle">{{ctx.Locale.Tr "asc_review.run_change_closed"}}</span>
+															{{else if eq .State "open"}}<span class="asc-pill">{{if eq .Review "approved"}}{{ctx.Locale.Tr "asc_review.change_state_approved"}}{{else if eq .Review "changes"}}{{ctx.Locale.Tr "asc_review.change_state_changes_requested"}}{{else if eq .Review "draft"}}{{ctx.Locale.Tr "asc_review.change_state_draft"}}{{else}}{{ctx.Locale.Tr "asc_review.run_change_waiting"}}{{end}}</span>{{end}}
+															{{if .URL}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.URL}}">{{ctx.Locale.Tr "asc_review.run_change_review" .PullID}}</a>
+															{{else}}<span class="rv-muted rv-result-note">{{ctx.Locale.Tr "asc_review.run_change_draft"}}</span>{{end}}
+														</li>
+													{{end}}
+												</ol>
+												{{if .ProposedMore}}<p class="rv-hint">{{ctx.Locale.Tr "asc_review.wf_proposed_more" .ProposedMore}}</p>{{end}}
+											</div>
+										{{end}}
+									</div>
+								</li>
+							{{else}}
+								<li class="rv-card-b rv-muted">{{ctx.Locale.Tr "asc_review.wf_no_steps_started"}}</li>
+							{{end}}
+						</ol>
+					</section>
+					{{range .Steps}}{{if .Log}}
+						<section class="rv-card wf-logcard" aria-labelledby="rv-wfr-log-{{.ID}}" data-testid="asc-wf-step-log">
+							<div class="rv-card-h">
+								<h2 id="rv-wfr-log-{{.ID}}">{{ctx.Locale.Tr "asc_review.wf_step_log" .ID}}</h2>
+								{{if and .AgentLink $.AscAgentFeatures}}<a class="rv-btn rv-btn-ghost rv-btn-sm rv-end" href="{{.AgentLink}}">{{ctx.Locale.Tr "asc_review.wf_open_the_agent_run"}}</a>{{end}}
+							</div>
+							<div class="wf-log-h"><code>{{.ID}}</code>{{if .Agent}}<span>{{.Agent}}</span>{{end}}{{if .Took}}<span>{{.Took}}</span>{{end}}{{if .LogHidden}}<span class="rv-end">{{ctx.Locale.Tr "asc_review.wf_log_hidden" .LogHidden}}</span>{{end}}</div>
+							<ol class="rv-log">{{template "repo/asc_agents_events" .Log}}</ol>
+						</section>
+					{{end}}{{end}}
+				</div>
 				<aside class="rv-side" aria-label="{{ctx.Locale.Tr "asc_review.wf_side_run_label"}}">
 					{{if .Inputs}}
 						<section class="rv-card" aria-labelledby="rv-wfr-inputs">
