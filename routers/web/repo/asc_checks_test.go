@@ -55,6 +55,95 @@ func TestAscChecksFailuresViewShowsFailingJobsAndGroups(t *testing.T) {
 	assert.NotContains(t, page.body, "Failing jobs", "no English literal: text comes from the locale")
 }
 
+func TestAscChecksStatCards(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureCiInsights)
+	f.listGroups = func(r *ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error) {
+		return &ascv1.ListFailureGroupsResponse{}, nil
+	}
+	f.listFlaky = func(r *ascv1.ListFlakyTestsRequest) (*ascv1.ListFlakyTestsResponse, error) {
+		return &ascv1.ListFlakyTestsResponse{}, nil
+	}
+	f.ciStats = func(r *ascv1.CiStatsRequest) (*ascv1.CiStatsResponse, error) {
+		return &ascv1.CiStatsResponse{
+			Days: r.GetDays(), Runs: 120, Passed: 113, PassPermille: 942, PreviousRuns: 100, PreviousPassPermille: 931,
+			FailureGroupsOpen: 3, FailureGroupsNewHour: 1, FlippingTests: 7, FlakyTests: 2, FlakyThresholdPermille: 100,
+			MedianDurationSeconds: 372, SlowestJob: "integration", SlowestJobSeconds: 660,
+			Daily: []*ascv1.CiStatsDay{
+				{Runs: 4, Passed: 4, MedianDurationSeconds: 300, FailureGroupsNew: 0, FlakyFlips: 1},
+				{Runs: 0},
+				{Runs: 5, Passed: 4, MedianDurationSeconds: 400, FailureGroupsNew: 2, FlakyFlips: 3},
+			},
+		}, nil
+	}
+
+	t.Run("the four cards over the window", func(t *testing.T) {
+		page := checksPage(t, "?job=unit&window=14&page=p_2&open=4", 2)
+		require.Equal(t, http.StatusOK, page.status, page.body)
+		req := f.callsOf("Stats")[0].Req.(*ascv1.CiStatsRequest)
+		assert.EqualValues(t, 14, req.GetDays())
+		assert.Equal(t, "user2/repo1", req.GetRepo().GetName())
+		for _, key := range []string{"pass", "groups", "flaky", "duration"} {
+			assert.Contains(t, page.body, `data-testid="asc-stat-`+key+`"`)
+			assert.Contains(t, page.body, "asc_trust.checks.stat_"+key+"<")
+		}
+		assert.Contains(t, page.body, `<div class="rv-stat-v rv-stat-ok">94.2%</div>`)
+		assert.Contains(t, page.body, "asc_trust.checks.stat_pass_up")
+		assert.Contains(t, page.body, `<div class="rv-stat-v rv-stat-err">3</div>`)
+		assert.Contains(t, page.body, "asc_trust.checks.stat_new_hour<")
+		assert.Contains(t, page.body, `<div class="rv-stat-v">7</div>`, "the flaky card counts the tests that flip")
+		assert.Contains(t, page.body, "asc_trust.checks.stat_above_threshold")
+		assert.Contains(t, page.body, `<div class="rv-stat-v">6 min 12 s</div>`)
+		assert.Contains(t, page.body, "asc_trust.checks.stat_slowest")
+		assert.Equal(t, 4, strings.Count(page.body, `class="rv-spark`), "each card draws its trend")
+		assert.Contains(t, page.body, `class="rv-spark rv-spark-err"`)
+		assert.Contains(t, page.body, `class="rv-spark rv-spark-warn"`)
+
+		assert.Contains(t, page.body, `data-testid="asc-checks-windows"`)
+		assert.Contains(t, page.body, `href="/user2/repo1/asc/checks?job=unit&amp;window=30" data-testid="asc-checks-window-30"`, "a window keeps the filters and leaves the page and the open group")
+		assert.Contains(t, page.body, `aria-current="page" data-testid="asc-checks-window-14"`)
+		assert.NotContains(t, page.body, `data-testid="asc-checks-window-180"`)
+	})
+
+	t.Run("the flaky view has them too", func(t *testing.T) {
+		page := checksPage(t, "?view=flaky", 2)
+		require.Equal(t, http.StatusOK, page.status, page.body)
+		assert.Contains(t, page.body, `data-testid="asc-checks-stats"`)
+		assert.Contains(t, page.body, `href="/user2/repo1/asc/checks?view=flaky&amp;window=7"`)
+		assert.NotContains(t, page.body, `id="asc-checks-window"`, "the window is chosen in the header, not in a form of its own")
+	})
+
+	t.Run("no runs and no durations", func(t *testing.T) {
+		f.ciStats = func(r *ascv1.CiStatsRequest) (*ascv1.CiStatsResponse, error) {
+			return &ascv1.CiStatsResponse{Days: 30, FlakyThresholdPermille: 125, Daily: make([]*ascv1.CiStatsDay, 30)}, nil
+		}
+		page := checksPage(t, "", 2)
+		require.Equal(t, http.StatusOK, page.status, page.body)
+		assert.Contains(t, page.body, "asc_trust.checks.stat_no_runs")
+		assert.Contains(t, page.body, "asc_trust.checks.stat_new_hour_none")
+		assert.Contains(t, page.body, "asc_trust.checks.stat_no_durations")
+		assert.Contains(t, page.body, `<div class="rv-stat-v">0</div>`)
+		assert.Equal(t, 2, strings.Count(page.body, "\u2014</div>"), "no pass rate and no median")
+		assert.NotContains(t, page.body, `class="rv-spark`, "nothing to draw")
+	})
+
+	t.Run("an asc without statistics leaves the cards out", func(t *testing.T) {
+		f.ciStats = nil
+		page := checksPage(t, "", 2)
+		require.Equal(t, http.StatusOK, page.status, page.body)
+		assert.NotContains(t, page.body, `data-testid="asc-checks-stats"`)
+		assert.Contains(t, page.body, `data-testid="asc-checks-windows"`, "the page itself is unchanged")
+	})
+}
+
+func TestAscChecksStatHelpers(t *testing.T) {
+	assert.Equal(t, "94.2", ascPermilleText(942))
+	assert.Equal(t, "10", ascPermilleText(100))
+	assert.Equal(t, "0.5", ascPermilleText(5))
+	assert.Equal(t, []uint32{5, 5, 5, 7, 7}, ascCarry([]uint32{0, 5, 0, 7, 0}, []bool{false, true, false, true, false}))
+	assert.Nil(t, ascCarry([]uint32{0, 0}, []bool{false, false}))
+}
+
 func TestAscChecksFlakyView(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 	f := startFakeTrust(t, asctrust.FeatureCiInsights)
@@ -72,6 +161,7 @@ func TestAscChecksFlakyView(t *testing.T) {
 	assert.Contains(t, page.body, "12.5%")
 	assert.Contains(t, page.body, "/user2/repo1/asc/checks/groups/9")
 	assert.Contains(t, page.body, `page=n_2&amp;view=flaky&amp;window=14`, "the next page keeps the view and the window")
+	assert.Contains(t, page.body, `aria-current="page" data-testid="asc-checks-window-14"`)
 	req := f.callsOf("ListFlakyTests")[0].Req.(*ascv1.ListFlakyTestsRequest)
 	assert.EqualValues(t, 14, req.GetWindowDays())
 	assert.Empty(t, f.callsOf("ListFailureGroups"))

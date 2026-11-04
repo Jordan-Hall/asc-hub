@@ -2,7 +2,8 @@
 The CI failures page of a repository (routers/web/repo/asc_checks.go): three views. "failures" shows the failing jobs
 and the failure groups, "flaky" the tests that flip between pass and fail, "trends" the history of each failing job.
 Template Attributes:
-* AscChecks: *ascChecksPage (Rows, Open: the failure groups and the expanded one; Retry: Problem is a failure to reach asc)
+* AscChecks: *ascChecksPage (Rows, Open: the failure groups and the expanded one; Retry: Problem is a failure to reach asc;
+  WindowLinks: the window of every view; Stats: the four stat cards over it, nil when asc could not count them)
 Texts from asc and from runners are cleaned in services/asctrust and escaped by the template engine.
 What a view lists sits in data-asc-list-main: a filter, a tab or the window shows the skeleton card while the page loads
 again (web_src/js/features/asc-list-loading.js).
@@ -23,13 +24,34 @@ again (web_src/js/features/asc-list-loading.js).
 					<h1 class="rv-title">{{ctx.Locale.Tr "asc_trust.checks.title"}}</h1>
 					<p class="rv-lead">{{ctx.Locale.Tr "asc_trust.checks.lead"}}</p>
 				</div>
-				{{if and .CanRerun (eq .View "failures") (not .Unsupported)}}
-				<form class="rv-acts rv-desk" method="post" action="{{.ChecksURL}}/rerun_failed">
-					{{$.CsrfTokenHtml}}
-					<button class="rv-btn rv-btn-secondary" type="submit" data-testid="asc-rerun-failed-repo">{{ctx.Locale.Tr "asc_trust.checks.rerun_failed_repo"}}</button>
-				</form>
+				{{if not .Unsupported}}
+				<div class="rv-acts">
+					{{if .WindowLinks}}
+					<nav class="rv-seg" aria-label="{{ctx.Locale.Tr "asc_trust.checks.window"}}" data-testid="asc-checks-windows">
+						{{range .WindowLinks}}<a href="{{.URL}}"{{if .Active}} aria-current="page"{{end}} data-testid="asc-checks-window-{{.Days}}">{{ctx.Locale.Tr "asc_trust.checks.days" .Days}}</a>{{end}}
+					</nav>
+					{{end}}
+					{{if and .CanRerun (eq .View "failures")}}
+					<form class="rv-desk" method="post" action="{{.ChecksURL}}/rerun_failed">
+						{{$.CsrfTokenHtml}}
+						<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-rerun-failed-repo">{{ctx.Locale.Tr "asc_trust.checks.rerun_failed_repo"}}</button>
+					</form>
+					{{end}}
+				</div>
 				{{end}}
 			</header>
+
+			{{if .Stats}}
+			<div class="rv-stats rv-checks-stats rv-gap" role="group" aria-label="{{ctx.Locale.Tr "asc_trust.checks.stats_label" .Window}}" data-testid="asc-checks-stats">
+				{{range .Stats}}
+				<div class="rv-card rv-stat" data-testid="asc-stat-{{.Key}}">
+					<div class="rv-stat-l">{{ctx.Locale.Tr (printf "asc_trust.checks.stat_%s" .Key)}}</div>
+					<div class="rv-stat-v{{if .Tone}} rv-stat-{{.Tone}}{{end}}">{{.Value}}</div>
+					<div class="rv-stat-d">{{.Sub}}</div>{{template "repo/asc_spark" dict "P" .Spark "Tone" .SparkTone}}
+				</div>
+				{{end}}
+			</div>
+			{{end}}
 
 			{{if .Unsupported}}
 				<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-checks-unsupported"><div>{{ctx.Locale.Tr "asc_trust.checks.unsupported"}}</div></div>
@@ -221,21 +243,6 @@ again (web_src/js/features/asc-list-loading.js).
 				</section>
 				</div>
 				{{end}}
-				{{end}}
-
-				{{if or (eq .View "flaky") (eq .View "trends")}}
-				<form class="rv-filters" method="get" action="{{.ChecksURL}}" data-asc-list-filter>
-					<input type="hidden" name="view" value="{{.View}}">
-					<div class="rv-filter-fields">
-						<div class="rv-field">
-							<label class="rv-label" for="asc-checks-window">{{ctx.Locale.Tr "asc_trust.checks.window"}}</label>
-							<select class="rv-select" id="asc-checks-window" name="window">
-								{{range .Windows}}<option value="{{.}}"{{if eq $.AscChecks.Window .}} selected{{end}}>{{ctx.Locale.Tr "asc_trust.checks.days" .}}</option>{{end}}
-							</select>
-						</div>
-						<button class="rv-btn rv-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_trust.checks.show"}}</button>
-					</div>
-				</form>
 				{{end}}
 
 				{{if and (eq .View "flaky") (not .Problem)}}
