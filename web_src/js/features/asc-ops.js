@@ -1,6 +1,6 @@
 // The operation log (templates/repo/asc_ops.tmpl): selecting a row that can be undone, its Undo, or Undo restack in the
-// banner loads the dry run into the panel beside the list instead of leaving the page. Without this script the same links
-// open the confirmation page.
+// banner loads the dry run into the panel beside the list instead of leaving the page; on a phone it opens as a bottom
+// sheet over the list (board Mobile-Ops). Without this script the same links open the confirmation page.
 import {GET} from '../modules/fetch.js';
 
 /** The part of an undo confirmation page that goes into the panel, taken from the parsed page and never from a string of markup. */
@@ -29,6 +29,9 @@ export function initAscOps() {
   if (!list || !panel) return;
   const body = panel.querySelector('[data-asc-ops-panel-body]');
   const original = Array.from(body.childNodes);
+  const sheet = document.querySelector('[data-asc-ops-sheet]');
+  const sheetBody = sheet?.querySelector('[data-asc-ops-sheet-body]');
+  const phone = window.matchMedia('(max-width: 639.98px)');
 
   const select = (href) => {
     for (const row of list.querySelectorAll('.rv-op')) {
@@ -41,9 +44,20 @@ export function initAscOps() {
     requestAnimationFrame(() => body.classList.add('is-swapped')); // restarts the crossfade when another row is selected
   };
   const restore = () => {
+    if (sheet?.open) sheet.close(); // the close event clears the selection
     show(original);
     select('');
   };
+  sheet?.addEventListener('close', () => {
+    sheetBody.replaceChildren();
+    select('');
+  });
+  phone.addEventListener('change', () => {
+    if (!phone.matches && sheet?.open) sheet.close(); // turned to a wider screen: the side panel takes over
+  });
+  sheet?.addEventListener('click', (e) => {
+    if (e.target === sheet) sheet.close(); // a tap on the backdrop
+  });
 
   const load = async (link) => {
     let res;
@@ -59,14 +73,24 @@ export function initAscOps() {
       return;
     }
     select(link.href);
-    show(nodes.map((n) => document.importNode(n, true)));
-    for (const cancel of body.querySelectorAll('a[href]:not([data-testid])')) {
-      if (cancel.textContent.trim() && cancel.classList.contains('rv-btn-secondary')) {
-        cancel.addEventListener('click', (ev) => {
-          ev.preventDefault();
-          restore();
-        });
-      }
+    const imported = nodes.map((n) => document.importNode(n, true));
+    const inSheet = Boolean(sheet && phone.matches);
+    const target = inSheet ? sheetBody : body;
+    if (inSheet) sheetBody.replaceChildren(...imported);
+    else show(imported);
+    let cancel = null;
+    for (const a of target.querySelectorAll('a.rv-btn-secondary[href]:not([data-testid])')) {
+      if (!a.textContent.trim()) continue;
+      cancel = a;
+      a.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        restore();
+      });
+    }
+    if (inSheet) {
+      if (!sheet.open) sheet.showModal();
+      cancel?.focus(); // not the reason field: the keyboard would cover the sheet
+      return;
     }
     panel.scrollIntoView({block: 'nearest'});
     body.querySelector('input[name="reason"]')?.focus();
