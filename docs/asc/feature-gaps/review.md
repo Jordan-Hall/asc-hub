@@ -19,7 +19,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 |---|---|---|---|---|---|
-| Review | 26 | 0 | 0 | 0 | 4 |
+| Review | 27 | 0 | 0 | 0 | 3 |
 | ReviewVersions | 12 | 0 | 0 | 0 | 1 |
 | NewChange | 12 | 0 | 0 | 0 | 1 |
 | Checks | 12 | 0 | 0 | 0 | 1 |
@@ -82,7 +82,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Review | 'How it was made': run id, task, tool calls, versions, files read, 'never touched infra/', link to run | needs-both | asc: change to run provenance (AgentRun.changes is run to change only) + run task text; hub: card in view_content/pull.tmpl;; Audit 2026-10-30 (part built): Counts line exists; run id, task and never-touched paths were not all found. | M |
 | Review | Conflict with main: stays open, other changes unblocked, markers, 'Resolve in editor', 'Show both sides', 'Ask coder-2 to resolve' | needs-both | templates/repo/pulls/asc_badges.tmpl (conflict banner with paths exists); conflict hunk viewer + agent task (Agents.CreateRun) | L |
 | Review | Loading skeleton keeping layout; load error with 'Try again' and 'Open previous version'; comments-saved note | done | templates/repo/diff/box.tmpl [data-asc-diff-state]: skeleton while more files load, error with Try again, Open previous version (AscPrevVersion) and 'Comments you wrote are saved'; repo-diff.js loadMoreFiles drives it (tests: TestAscDiffBoxClassBarAndStates, asc-review.test.js) | - |
-| Review | Applied-as-v5 toast with Undo (8 s, role=status) | needs-both | depends on suggestion apply; toast infra web_src/js/features/ds-shell.js | S |
+| Review | Applied-as-v5 toast with Undo (8 s, role=status) | done | templates/repo/pulls/asc_applied_toast.tmpl after Apply (routers/web/repo/pull_asc_suggestion.go setAscAppliedToast, shown once): Applied as vN, the file and line, "Approvals reset for this change." when the branch rule dismisses stale approvals, Undo posts restore_version of the base version; web_src/js/features/asc-applied-toast.js leaves after 8 s, holds on hover and focus, Esc closes; TestTheAppliedToastIsShownOnceOnThePullRequest, asc-applied-toast.test.js | - |
 
 ### ReviewVersions
 
