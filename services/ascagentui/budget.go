@@ -220,3 +220,79 @@ func FormatDuration(sec uint64) string {
 		return fmt.Sprintf("%d h %d min", h, m)
 	}
 }
+
+// LoweredText says which limits asc lowered to the policy cap, with the cap and the value that was asked when both are
+// known (board AgentNew: "Limit lowered. Your policy caps a run at $5.00. The limit was set to $8.00, so it was
+// lowered."). lowered is the answer of asc, asked the limits of the request and got the limits of the run asc answered;
+// a limit without both values, or a name asc did not use before, is named only. "" when nothing was lowered.
+func LoweredText(lowered []string, asked, got *ascv1.AgentBudgetLimits) string {
+	var caps, sets, named []string
+	for _, code := range lowered {
+		code = SafeCode(code)
+		if code == "" {
+			continue
+		}
+		c, a, ok := loweredValues(code, asked, got)
+		if ok {
+			caps, sets = append(caps, c), append(sets, a)
+		} else {
+			named = append(named, code)
+		}
+	}
+	var out string
+	switch len(caps) {
+	case 0:
+	case 1:
+		out = "Limit lowered. Your policy caps a run at " + caps[0] + ". The limit was set to " + sets[0] + ", so it was lowered."
+	default:
+		out = "Limits lowered. Your policy caps a run at " + andList(caps) + ". The limits were set to " + andList(sets) +
+			", so they were lowered."
+	}
+	if len(named) > 0 {
+		if out != "" {
+			out += " "
+		}
+		out += "Lowered to the policy cap: " + strings.Join(named, ", ") + "."
+	}
+	return out
+}
+
+// loweredValues writes the cap (from got) and the asked value of one limit; false when either is not set.
+func loweredValues(code string, asked, got *ascv1.AgentBudgetLimits) (string, string, bool) {
+	var a, g uint64
+	var format func(uint64) string
+	switch code {
+	case "changes":
+		a, g, format = uint64(asked.GetMaxChanges()), uint64(got.GetMaxChanges()), countOf("change", "changes")
+	case "tokens":
+		a, g, format = asked.GetMaxTokens(), got.GetMaxTokens(), countOf("token", "tokens")
+	case "cost":
+		a, g, format = asked.GetMaxCostMicroUsd(), got.GetMaxCostMicroUsd(), FormatUSD
+	case "paths":
+		a, g, format = uint64(asked.GetMaxPaths()), uint64(got.GetMaxPaths()), countOf("path", "paths")
+	case "runtime":
+		a, g, format = uint64(asked.GetMaxRuntimeSeconds()), uint64(got.GetMaxRuntimeSeconds()), FormatDuration
+	default:
+		return "", "", false
+	}
+	if a == 0 || g == 0 || g >= a {
+		return "", "", false
+	}
+	return format(g), format(a), true
+}
+
+func countOf(one, many string) func(uint64) string {
+	return func(n uint64) string {
+		if n == 1 {
+			return "1 " + one
+		}
+		return FormatCount(n) + " " + many
+	}
+}
+
+func andList(items []string) string {
+	if len(items) == 1 {
+		return items[0]
+	}
+	return strings.Join(items[:len(items)-1], ", ") + " and " + items[len(items)-1]
+}

@@ -106,3 +106,20 @@ func TestFormatters(t *testing.T) {
 		assert.Equal(t, want, FormatDuration(in))
 	}
 }
+
+func TestLoweredTextSaysTheCapAndWhatWasAsked(t *testing.T) {
+	asked := &ascv1.AgentBudgetLimits{MaxCostMicroUsd: 8_000_000, MaxTokens: 500_000, MaxRuntimeSeconds: 7200, MaxChanges: 3}
+	got := &ascv1.AgentBudgetLimits{MaxCostMicroUsd: 5_000_000, MaxTokens: 200_000, MaxRuntimeSeconds: 3600, MaxChanges: 1}
+	assert.Equal(t, "Limit lowered. Your policy caps a run at $5.00. The limit was set to $8.00, so it was lowered.",
+		LoweredText([]string{"cost"}, asked, got))
+	assert.Equal(t, "Limits lowered. Your policy caps a run at $5.00, 200k tokens and 1 h. The limits were set to $8.00, 500k tokens "+
+		"and 2 h, so they were lowered.", LoweredText([]string{"cost", "tokens", "runtime"}, asked, got))
+	assert.Equal(t, "Limit lowered. Your policy caps a run at 1 change. The limit was set to 3 changes, so it was lowered.",
+		LoweredText([]string{"changes"}, asked, got))
+	assert.Equal(t, "Limit lowered. Your policy caps a run at $5.00. The limit was set to $8.00, so it was lowered. "+
+		"Lowered to the policy cap: paths, budget_x.", LoweredText([]string{"cost", "paths", "budget_x", "<b>"}, asked, got),
+		"a limit without both values and a new name are named only; text that is not a code is dropped")
+	assert.Equal(t, "Lowered to the policy cap: cost.", LoweredText([]string{"cost"}, nil, got), "the field was left empty")
+	assert.Equal(t, "Lowered to the policy cap: cost.", LoweredText([]string{"cost"}, got, asked), "asc answered a higher value")
+	assert.Empty(t, LoweredText(nil, asked, got))
+}
