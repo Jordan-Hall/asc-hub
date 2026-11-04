@@ -328,6 +328,13 @@ func (s slackConvertor) Action(p *api.ActionPayload) (SlackPayload, error) {
 	return s.createPayload(text, nil), nil
 }
 
+// Asc implements PayloadConvertor Asc method
+func (s slackConvertor) Asc(p *api.AscHookPayload) (SlackPayload, error) {
+	text, _ := slackPayloadFormatter.getAscPayloadInfo(p)
+
+	return s.createPayload(text, nil), nil
+}
+
 func (s slackConvertor) createPayload(text string, attachments []SlackAttachment) SlackPayload {
 	return SlackPayload{
 		Channel:     s.Channel,

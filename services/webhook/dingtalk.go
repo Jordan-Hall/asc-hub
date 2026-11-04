@@ -220,6 +220,13 @@ func (dc dingtalkConvertor) Action(p *api.ActionPayload) (DingtalkPayload, error
 	return createDingtalkPayload(text, text, "view action", p.Run.HTMLURL), nil
 }
 
+// Asc implements PayloadConvertor Asc method
+func (dc dingtalkConvertor) Asc(p *api.AscHookPayload) (DingtalkPayload, error) {
+	text, _ := dingtalkPayloadFormatter.getAscPayloadInfo(p)
+
+	return createDingtalkPayload(text, text, "view", p.URL), nil
+}
+
 func createDingtalkPayload(title, text, singleTitle, singleURL string) DingtalkPayload {
 	return DingtalkPayload{
 		MsgType: "actionCard",

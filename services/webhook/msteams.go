@@ -1015,6 +1015,13 @@ func (m msteamsConvertor) Action(p *api.ActionPayload) (MSTeamsPayload, error) {
 	), nil
 }
 
+// Asc implements PayloadConvertor Asc method
+func (m msteamsConvertor) Asc(p *api.AscHookPayload) (MSTeamsPayload, error) {
+	text, _ := msTeamsPayloadFormatter.getAscPayloadInfo(p)
+
+	return createMSTeamsPayload(nil, nil, text, nil, p.URL, defaultStyle), nil
+}
+
 func createMSTeamsPayload(r *api.Repository, s *api.User, actionTitle string, bodySections []MSTeamsContainer, actionTarget, style string) MSTeamsPayload {
 	// Update header adding the repository name and link
 	var updatedRepo string

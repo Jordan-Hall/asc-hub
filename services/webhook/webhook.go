@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"forgejo.org/models/db"
@@ -28,6 +29,7 @@ import (
 	"forgejo.org/services/webhook/sourcehut"
 
 	"github.com/gobwas/glob"
+	gouuid "github.com/google/uuid"
 )
 
 type Handler interface {
@@ -159,6 +161,12 @@ func checkBranch(w *webhook_model.Webhook, branch string) bool {
 // The payload is saved as-is. The adjustments depending on the webhook type happen
 // right before delivery, in the [Deliver] method.
 func PrepareWebhook(ctx context.Context, w *webhook_model.Webhook, event webhook_module.HookEventType, p api.Payloader) error {
+	return prepareWebhook(ctx, w, event, p, "")
+}
+
+// prepareWebhook is PrepareWebhook. With an eventID the task's UUID is made from the hook and the event, and an event
+// the hook has a task of already is not queued again: a sender that reports an event at least once sends it once.
+func prepareWebhook(ctx context.Context, w *webhook_model.Webhook, event webhook_module.HookEventType, p api.Payloader, eventID string) error {
 	// Skip sending if webhooks are disabled.
 	if setting.DisableWebhooks {
 		return nil
@@ -196,8 +204,18 @@ func PrepareWebhook(ctx context.Context, w *webhook_model.Webhook, event webhook
 		return fmt.Errorf("JSONPayload for %s: %w", event, err)
 	}
 
+	var taskUUID string
+	if eventID != "" {
+		taskUUID = gouuid.NewSHA1(ascEventSpace, []byte(strconv.FormatInt(w.ID, 10)+"/"+eventID)).String()
+		if _, err := webhook_model.GetHookTaskByUUID(ctx, w.ID, taskUUID); err == nil {
+			return nil
+		} else if !webhook_model.IsErrHookTaskNotExist(err) {
+			return fmt.Errorf("GetHookTaskByUUID for %s: %w", event, err)
+		}
+	}
 	task, err := webhook_model.CreateHookTask(ctx, &webhook_model.HookTask{
 		HookID:         w.ID,
+		UUID:           taskUUID,
 		PayloadContent: string(payload),
 		EventType:      event,
 		PayloadVersion: 2,
@@ -235,8 +253,21 @@ func PrepareTestWebhook(ctx context.Context, w *webhook_model.Webhook, p api.Pay
 	return enqueueHookTask(task.ID)
 }
 
+// ascEventSpace is the UUID namespace of the tasks of events reported with an id.
+var ascEventSpace = gouuid.MustParse("6f9b1c2e-3d4a-5b6c-8d7e-9f0a1b2c3d4e")
+
 // PrepareWebhooks adds new webhooks to task queue for given payload.
 func PrepareWebhooks(ctx context.Context, source EventSource, event webhook_module.HookEventType, p api.Payloader) error {
+	return prepareWebhooks(ctx, source, event, p, "")
+}
+
+// PrepareWebhooksOnce is PrepareWebhooks for an event the sender names with eventID and may report more than once:
+// each hook gets one task for it.
+func PrepareWebhooksOnce(ctx context.Context, source EventSource, event webhook_module.HookEventType, p api.Payloader, eventID string) error {
+	return prepareWebhooks(ctx, source, event, p, eventID)
+}
+
+func prepareWebhooks(ctx context.Context, source EventSource, event webhook_module.HookEventType, p api.Payloader, eventID string) error {
 	owner := source.Owner
 
 	var ws []*webhook_model.Webhook
@@ -278,7 +309,7 @@ func PrepareWebhooks(ctx context.Context, source EventSource, event webhook_modu
 	}
 
 	for _, w := range ws {
-		if err := PrepareWebhook(ctx, w, event, p); err != nil {
+		if err := prepareWebhook(ctx, w, event, p, eventID); err != nil {
 			return err
 		}
 	}
