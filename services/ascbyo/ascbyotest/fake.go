@@ -77,8 +77,9 @@ type Fake struct {
 	InUse bool
 	// TestStatus is the provider status TestKey answers with ("ok" by default).
 	TestStatus string
-	// UsageResp is returned by Usage.
-	UsageResp *ascv1.AiUsageResponse
+	// UsageResp is returned by Usage. UsageByGroup, when it has the asked grouping, is returned instead.
+	UsageResp    *ascv1.AiUsageResponse
+	UsageByGroup map[ascv1.AiUsageGroup]*ascv1.AiUsageResponse
 	// Models is returned by ListModels.
 	Models []*ascv1.AiModel
 	// SecretEcho makes error messages repeat the submitted secret, to prove the hub drops them.
@@ -639,9 +640,12 @@ func (f *Fake) TestKey(_ context.Context, r *ascv1.TestAiKeyRequest) (*ascv1.Tes
 	return resp, nil
 }
 
-func (f *Fake) Usage(_ context.Context, _ *ascv1.AiUsageRequest) (*ascv1.AiUsageResponse, error) {
+func (f *Fake) Usage(_ context.Context, req *ascv1.AiUsageRequest) (*ascv1.AiUsageResponse, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	if r, ok := f.UsageByGroup[req.GetGroupBy()]; ok {
+		return r, nil
+	}
 	if f.UsageResp != nil {
 		return f.UsageResp, nil
 	}

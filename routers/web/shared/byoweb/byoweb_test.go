@@ -124,6 +124,8 @@ func run(t *testing.T, fn func(*context.Context, *Level), lvl *Level, method str
 		}
 		ctx.Req.PostForm = form
 		ctx.Req.Form = form
+	} else if form != nil {
+		ctx.Req.Form = form // the query of a GET
 	}
 	if id != "" {
 		ctx.SetParams("id", id)
@@ -692,10 +694,77 @@ func TestAIKeysPages(t *testing.T) {
 		f.TestStatus = ""
 	})
 
+	t.Run("sections and the spend chart", func(t *testing.T) {
+		model := &ascv1.AiUsageResponse{
+			Rows:  []*ascv1.AiUsageRow{{Group: "claude-sonnet-4-5", Requests: 30, CostMicroUsd: 3_000_000}},
+			Total: &ascv1.AiUsageRow{Requests: 30, CostMicroUsd: 3_000_000},
+		}
+		f.UsageByGroup = map[ascv1.AiUsageGroup]*ascv1.AiUsageResponse{
+			ascv1.AiUsageGroup_AI_USAGE_GROUP_MODEL: model,
+			ascv1.AiUsageGroup_AI_USAGE_GROUP_DAY: {Rows: []*ascv1.AiUsageRow{
+				{Group: "2026-11-03", Requests: 10, CostMicroUsd: 1_000_000},
+				{Group: "2026-11-01", Requests: 20, CostMicroUsd: 2_000_000},
+			}, Total: model.Total},
+		}
+		defer func() { f.UsageByGroup = nil }()
+
+		tabOpen := func(body, id string) bool {
+			return strings.Contains(regexp.MustCompile(`<button[^>]*id="asc-key-tab-`+id+`"[^>]*>`).FindString(body), `aria-selected="true"`)
+		}
+		panelHidden := func(body, id string) bool {
+			return strings.Contains(regexp.MustCompile(`<[a-z]+ id="asc-key-`+id+`"[^>]*>`).FindString(body), " hidden")
+		}
+
+		r := run(t, AIKey, lvl, http.MethodGet, nil, id)
+		require.Equal(t, http.StatusOK, r.resp.Code, r.body())
+		body := r.body()
+		assert.Contains(t, body, `data-testid="asc-key-tabs"`)
+		assert.True(t, tabOpen(body, "usage"), "usage is the first section")
+		assert.False(t, panelHidden(body, "usage"))
+		assert.True(t, panelHidden(body, "limits"))
+		assert.True(t, panelHidden(body, "models"))
+		for _, k := range []string{"tab_usage", "tab_limits", "tab_models"} {
+			assert.Contains(t, body, tr(t, "ascbyo.ai.detail."+k))
+		}
+
+		chart := regexp.MustCompile(`(?s)<figure class="asc-byo-chart".*?</figure>`).FindString(body)
+		require.NotEmpty(t, chart, "a key that cost something has a chart")
+		assert.Contains(t, chart, `role="img"`)
+		assert.Contains(t, chart, template.HTMLEscapeString(tr(t, "ascbyo.ai.detail.chart_label", 2, "$2.00")))
+		bars := regexp.MustCompile(`<rect class="asc-byo-bar" x="([0-9.]+)" y="([0-9.]+)" width="[0-9.]+" height="([0-9.]+)"><title>([^<]*)</title>`).FindAllStringSubmatch(chart, -1)
+		require.Len(t, bars, 2)
+		assert.Equal(t, template.HTMLEscapeString(tr(t, "ascbyo.ai.detail.chart_bar", "2026-11-01", "$2.00", "20")), bars[0][4], "oldest day first")
+		assert.Equal(t, "80.00", bars[0][3], "the most expensive day fills the chart")
+		assert.Equal(t, "40.00", bars[1][3], "half the cost, half the height")
+		assert.Equal(t, "40.00", bars[1][2])
+		assert.Regexp(t, `<span>2026-11-01</span><span>2026-11-03</span>`, chart)
+		assert.Contains(t, body, "2026-11-03", "the table keeps every day")
+
+		r = run(t, AIKey, lvl, http.MethodGet, url.Values{"tab": {"models"}}, id)
+		assert.True(t, tabOpen(r.body(), "models"))
+		assert.False(t, panelHidden(r.body(), "models"))
+		assert.True(t, panelHidden(r.body(), "usage"))
+
+		r = run(t, AIKey, lvl, http.MethodGet, url.Values{"tab": {`"><script>`}}, id)
+		assert.True(t, tabOpen(r.body(), "usage"), "an unknown section is the usage section")
+		assert.NotContains(t, r.body(), "<script>")
+
+		r = run(t, AIUpdate, lvl, http.MethodPost, url.Values{"label": {""}}, id)
+		require.Equal(t, http.StatusUnprocessableEntity, r.resp.Code)
+		assert.True(t, tabOpen(r.body(), "limits"), "a refused edit is shown again in its section")
+		assert.False(t, panelHidden(r.body(), "limits"))
+
+		f.UsageByGroup[ascv1.AiUsageGroup_AI_USAGE_GROUP_DAY] = &ascv1.AiUsageResponse{Rows: []*ascv1.AiUsageRow{{Group: "2026-11-01", Requests: 4}}, Total: model.Total}
+		r = run(t, AIKey, lvl, http.MethodGet, nil, id)
+		assert.NotContains(t, r.body(), `data-testid="asc-spend-chart"`, "days that cost nothing draw no chart")
+		assert.Contains(t, r.body(), "2026-11-01")
+	})
+
 	t.Run("update without a new key keeps the old one", func(t *testing.T) {
 		upd := url.Values{"label": {"Team renamed"}, "default_model": {"claude-sonnet-4-5"}, "monthly_cap": {"25"}}
 		r := run(t, AIUpdate, lvl, http.MethodPost, upd, id)
 		require.Equal(t, http.StatusSeeOther, r.resp.Code, r.body())
+		assert.Equal(t, "/user/settings/asc/ai/keys/"+id+"?tab=limits", r.loc(), "back to the section the form is in")
 		ureq := f.CallsTo("UpdateKey")[0].Req.(*ascv1.UpdateAiKeyRequest)
 		assert.Equal(t, "Team renamed", ureq.GetLabel())
 		assert.Nil(t, ureq.ApiKey)

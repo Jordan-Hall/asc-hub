@@ -58,11 +58,27 @@
 			</div>
 		</section>
 
-		<section class="asc-byo-card" aria-labelledby="asc-usage-h">
-			<h3 id="asc-usage-h">{{ctx.Locale.Tr "ascbyo.ai.detail.usage_title"}}</h3>
+		{{$tab := $a.KeyTab}}
+		<div class="rp-doctabs asc-byo-tabs" role="tablist" aria-label="{{ctx.Locale.Tr "ascbyo.ai.detail.tabs"}}" data-doc-tabs data-testid="asc-key-tabs">
+			<button type="button" role="tab" id="asc-key-tab-usage" aria-controls="asc-key-usage" aria-selected="{{if eq $tab "usage"}}true{{else}}false{{end}}"{{if ne $tab "usage"}} tabindex="-1"{{end}} data-doc-tab="asc-key-usage">{{ctx.Locale.Tr "ascbyo.ai.detail.tab_usage"}}</button>
+			<button type="button" role="tab" id="asc-key-tab-limits" aria-controls="asc-key-limits" aria-selected="{{if eq $tab "limits"}}true{{else}}false{{end}}"{{if ne $tab "limits"}} tabindex="-1"{{end}} data-doc-tab="asc-key-limits">{{ctx.Locale.Tr "ascbyo.ai.detail.tab_limits"}}</button>
+			<button type="button" role="tab" id="asc-key-tab-models" aria-controls="asc-key-models" aria-selected="{{if eq $tab "models"}}true{{else}}false{{end}}"{{if ne $tab "models"}} tabindex="-1"{{end}} data-doc-tab="asc-key-models">{{ctx.Locale.Tr "ascbyo.ai.detail.tab_models"}}</button>
+		</div>
+
+		<section id="asc-key-usage" class="asc-byo-card asc-byo-tabpanel" role="tabpanel" aria-labelledby="asc-key-tab-usage" data-doc-panel="asc-key-usage" data-testid="asc-key-usage"{{if ne $tab "usage"}} hidden{{end}}>
+			<h3>{{ctx.Locale.Tr "ascbyo.ai.detail.usage_title"}}</h3>
 			{{if $a.UsageLoaded}}
 				<p><strong>{{ctx.Locale.Tr "ascbyo.ai.detail.usage_total"}}:</strong> {{$a.UsageTotal.Requests}} / {{$a.UsageTotal.Cost}}</p>
 				{{if $a.UsageByModel}}
+					{{if $a.SpendByDay}}
+						<figure class="asc-byo-chart" data-testid="asc-spend-chart">
+							<figcaption>{{ctx.Locale.Tr "ascbyo.ai.detail.chart_title"}}</figcaption>
+							<svg viewBox="0 0 300 80" preserveAspectRatio="none" role="img" aria-label="{{ctx.Locale.Tr "ascbyo.ai.detail.chart_label" (len $a.SpendByDay) $a.SpendPeak}}" focusable="false">
+								{{range $a.SpendByDay}}<rect class="asc-byo-bar" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}"><title>{{ctx.Locale.Tr "ascbyo.ai.detail.chart_bar" .Day .Cost .Requests}}</title></rect>{{end}}
+							</svg>
+							<p class="asc-byo-chart-range" aria-hidden="true"><span>{{$a.SpendFirst}}</span><span>{{$a.SpendLast}}</span></p>
+						</figure>
+					{{end}}
 					<h4>{{ctx.Locale.Tr "ascbyo.ai.detail.usage_by_model"}}</h4>
 					{{template "shared/asc/byo_usage_table" (dict "Rows" $a.UsageByModel)}}
 					{{if $a.UsageByDay}}
@@ -77,8 +93,27 @@
 			{{end}}
 		</section>
 
-		<section class="asc-byo-card" aria-labelledby="asc-models-h">
-			<h3 id="asc-models-h">{{ctx.Locale.Tr "ascbyo.ai.detail.models_title"}}</h3>
+		<div id="asc-key-limits" class="asc-byo-tabpanel" role="tabpanel" aria-labelledby="asc-key-tab-limits" data-doc-panel="asc-key-limits" data-testid="asc-key-limits"{{if ne $tab "limits"}} hidden{{end}}>
+			<p class="asc-byo-hint">{{ctx.Locale.Tr "ascbyo.ai.detail.limits_help"}}</p>
+			<section class="asc-byo-card" aria-labelledby="asc-edit-h">
+				<h3 id="asc-edit-h">{{ctx.Locale.Tr "ascbyo.ai.detail.edit_title"}}</h3>
+				<p>{{ctx.Locale.Tr "ascbyo.ai.detail.edit_help"}}</p>
+				<form class="asc-byo-form" method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}" autocomplete="off" data-testid="asc-edit-key">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="op_id" value="{{$a.Op "update"}}">
+					{{template "shared/asc/byo_ai_fields" (dict "Root" $ "Edit" true "Pfx" "asc-edit")}}
+					<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.save"}}</button>
+				</form>
+				{{if $a.Models}}
+					<datalist id="asc-models">{{range $a.Models}}<option value="{{.ID}}">{{end}}</datalist>
+				{{end}}
+			</section>
+
+			{{template "shared/asc/byo_ai_sharing" (dict "Root" $ "Key" $k)}}
+		</div>
+
+		<section id="asc-key-models" class="asc-byo-card asc-byo-tabpanel" role="tabpanel" aria-labelledby="asc-key-tab-models" data-doc-panel="asc-key-models" data-testid="asc-key-models"{{if ne $tab "models"}} hidden{{end}}>
+			<h3>{{ctx.Locale.Tr "ascbyo.ai.detail.models_title"}}</h3>
 			{{if $a.Models}}
 				<ul class="asc-byo-models">
 					{{range $a.Models}}<li><code>{{.ID}}</code>{{if .DisplayName}} {{.DisplayName}}{{end}}</li>{{end}}
@@ -87,22 +122,6 @@
 				<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.ai.detail.models_none"}}</p>
 			{{end}}
 		</section>
-
-		<section class="asc-byo-card" aria-labelledby="asc-edit-h">
-			<h3 id="asc-edit-h">{{ctx.Locale.Tr "ascbyo.ai.detail.edit_title"}}</h3>
-			<p>{{ctx.Locale.Tr "ascbyo.ai.detail.edit_help"}}</p>
-			<form class="asc-byo-form" method="post" action="{{$a.AIURL}}/keys/{{$k.ID}}" autocomplete="off" data-testid="asc-edit-key">
-				{{$.CsrfTokenHtml}}
-				<input type="hidden" name="op_id" value="{{$a.Op "update"}}">
-				{{template "shared/asc/byo_ai_fields" (dict "Root" $ "Edit" true "Pfx" "asc-edit")}}
-				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.save"}}</button>
-			</form>
-			{{if $a.Models}}
-				<datalist id="asc-models">{{range $a.Models}}<option value="{{.ID}}">{{end}}</datalist>
-			{{end}}
-		</section>
-
-		{{template "shared/asc/byo_ai_sharing" (dict "Root" $ "Key" $k)}}
 
 		<section class="asc-byo-card asc-byo-danger" aria-labelledby="asc-delete-h">
 			<h3 id="asc-delete-h">{{ctx.Locale.Tr "ascbyo.ai.detail.delete_title"}}</h3>

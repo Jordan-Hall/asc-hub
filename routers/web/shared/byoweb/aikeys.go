@@ -58,6 +58,9 @@ func renderAIIndex(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, st
 // the scope's is the 404 page. Models and usage are best effort: a failure leaves that part out.
 func renderAIKey(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, id string, status int) {
 	ctx.Data["Title"] = ctx.Locale.TrString("ascbyo.ai.key_title")
+	if p.KeyTab == "" {
+		p.KeyTab = keyTabOf(ctx.FormString("tab"))
+	}
 	if s == nil {
 		p.Unavailable = true
 		ctx.HTML(http.StatusServiceUnavailable, lvl.AITpl)
@@ -93,6 +96,15 @@ func renderAIKey(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, id s
 		p.UsageLoaded = true
 		if byDay, err := s.Usage(ctx, lvl.Scope, id, ascv1.AiUsageGroup_AI_USAGE_GROUP_DAY); err == nil {
 			p.UsageByDay = svc.UsageViews(byDay.Rows)
+			p.SpendByDay = svc.SpendBars(byDay.Rows)
+			var peak uint64
+			for _, r := range byDay.Rows {
+				peak = max(peak, r.CostMicro)
+			}
+			p.SpendPeak = svc.FormatUSD(peak)
+			if n := len(p.SpendByDay); n > 0 {
+				p.SpendFirst, p.SpendLast = p.SpendByDay[0].Day, p.SpendByDay[n-1].Day
+			}
 		}
 	} else {
 		log.Debug("asc byo: usage of a key in %s: %v", lvl.Scope, err)
@@ -182,6 +194,7 @@ func AIUpdate(ctx *context.Context, lvl *Level) {
 	}
 	f := form{ctx}
 	in := aiInputOf(f)
+	p.KeyTab = keyTabLimits
 	if s == nil {
 		p.AIForm = aiFormOf(in)
 		renderAIKey(ctx, lvl, nil, p, id, http.StatusServiceUnavailable)
@@ -206,7 +219,27 @@ func AIUpdate(ctx *context.Context, lvl *Level) {
 	} else {
 		ctx.Flash.Info(ctx.Locale.TrString("ascbyo.flash.nothing_changed"))
 	}
-	ctx.Redirect(lvl.Base + "/ai/keys/" + id)
+	ctx.Redirect(keyLimitsURL(lvl, id))
+}
+
+// keyTabOf is the section of the key page named by the tab parameter; anything else is the usage section.
+func keyTabOf(tab string) string {
+	switch tab {
+	case keyTabLimits, keyTabModels:
+		return tab
+	}
+	return keyTabUsage
+}
+
+const (
+	keyTabUsage  = "usage"
+	keyTabLimits = "limits"
+	keyTabModels = "models"
+)
+
+// keyLimitsURL is the key page opened at its limits section, where the edit form and the sharing are.
+func keyLimitsURL(lvl *Level, id string) string {
+	return lvl.Base + "/ai/keys/" + id + "?tab=" + keyTabLimits
 }
 
 func aiReturnTo(ctx *context.Context, lvl *Level, id string) string {
