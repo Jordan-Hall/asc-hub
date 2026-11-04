@@ -1455,6 +1455,8 @@ type ChangeProvenance struct {
 	Paths         []string               `protobuf:"bytes,10,rep,name=paths,proto3" json:"paths,omitempty"`       // the write scope of the run
 	Started       int64                  `protobuf:"varint,11,opt,name=started,proto3" json:"started,omitempty"`
 	Finished      int64                  `protobuf:"varint,12,opt,name=finished,proto3" json:"finished,omitempty"`
+	TestRuns      uint32                 `protobuf:"varint,13,opt,name=test_runs,json=testRuns,proto3" json:"test_runs,omitempty"` // run_command calls of the run that ran tests
+	Untouched     []string               `protobuf:"bytes,14,rep,name=untouched,proto3" json:"untouched,omitempty"`                // sensitive top-level directories ("infra/") the write scope kept the run out of
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1571,6 +1573,20 @@ func (x *ChangeProvenance) GetFinished() int64 {
 		return x.Finished
 	}
 	return 0
+}
+
+func (x *ChangeProvenance) GetTestRuns() uint32 {
+	if x != nil {
+		return x.TestRuns
+	}
+	return 0
+}
+
+func (x *ChangeProvenance) GetUntouched() []string {
+	if x != nil {
+		return x.Untouched
+	}
+	return nil
 }
 
 // One person's verdict on one version, and whether it still applies to the newest one: it does when the patch of every file the
@@ -4821,7 +4837,7 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\n" +
 	"ChangeRisk\x12'\n" +
 	"\x05level\x18\x01 \x01(\x0e2\x11.asc.v1.RiskLevelR\x05level\x12\x18\n" +
-	"\areasons\x18\x02 \x03(\tR\areasons\"\xcb\x02\n" +
+	"\areasons\x18\x02 \x03(\tR\areasons\"\x86\x03\n" +
 	"\x10ChangeProvenance\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\x04R\x05runId\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x14\n" +
@@ -4838,7 +4854,9 @@ const file_asc_v1_review_proto_rawDesc = "" +
 	"\x05paths\x18\n" +
 	" \x03(\tR\x05paths\x12\x18\n" +
 	"\astarted\x18\v \x01(\x03R\astarted\x12\x1a\n" +
-	"\bfinished\x18\f \x01(\x03R\bfinished\"\xaa\x02\n" +
+	"\bfinished\x18\f \x01(\x03R\bfinished\x12\x1b\n" +
+	"\ttest_runs\x18\r \x01(\rR\btestRuns\x12\x1c\n" +
+	"\tuntouched\x18\x0e \x03(\tR\tuntouched\"\xaa\x02\n" +
 	"\fApprovalInfo\x12\x1a\n" +
 	"\breviewer\x18\x01 \x01(\tR\breviewer\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\rR\aversion\x12+\n" +
