@@ -9,6 +9,7 @@ Template Attributes:
 * AscPaused, AscNeedsContentMerge, AscNoContentMerge, AscReady: merge and queue only
 * AscScopeThis, AscSquash: revert only
 * AscAction: the URL the form posts to; AscBack: the pull request page
+* AscLandSummary: *AscLandSummary, merge and queue only: merge order, signers, queue place and estimate, undo window
 * AscConfirmLabel: string, the button when it names a count (merge now); otherwise the button of the operation
 Every text comes from the locale or from the handler; pull request titles are escaped by the template engine.
 */}}
@@ -87,6 +88,14 @@ Every text comes from the locale or from the handler; pull request titles are es
 				{{if .Result}}<div><dt>{{ctx.Locale.Tr "asc_review.merge_result"}}</dt><dd><code>{{.Result}}</code></dd></div>{{end}}
 			</dl>
 			{{end}}
+			{{with .AscLandSummary}}{{if or .Order .Signed .Position .Undo .UndoOff}}
+			<dl class="rv-facts rv-gap" data-testid="asc-land-summary">
+				{{if .Order}}<div><dt>{{ctx.Locale.Tr "asc_review.land_order"}}</dt><dd data-testid="asc-land-order">{{range $i, $n := .Order}}{{if $i}} {{ctx.Locale.Tr "asc_review.land_then"}} {{end}}#{{$n}}{{end}}</dd></div>{{end}}
+				{{if .Signed}}<div><dt>{{ctx.Locale.Tr "asc_review.land_signed"}}</dt><dd data-testid="asc-land-signers">{{StringUtils.Join .Signers ", "}}{{if .Unverified}}{{if .Signers}} · {{end}}<span class="rv-muted">{{ctx.Locale.TrN .Unverified "asc_review.land_unverified_one" "asc_review.land_unverified_other" .Unverified}}</span>{{end}}</dd></div>{{end}}
+				{{if .Position}}<div><dt>{{ctx.Locale.Tr "asc_review.land_queue"}}</dt><dd data-testid="asc-land-queue">{{ctx.Locale.Tr "asc_review.land_queue_place" .Position .Total}}{{if .StartsIn}} · {{ctx.Locale.Tr "asc_review.land_queue_starts" .StartsIn}}{{end}}</dd></div>{{end}}
+				{{if or .Undo .UndoOff}}<div><dt>{{ctx.Locale.Tr "asc_review.land_undo"}}</dt><dd data-testid="asc-land-undo">{{if .UndoOff}}{{ctx.Locale.Tr "asc_review.land_undo_off"}}{{else}}{{.Undo}}{{end}}</dd></div>{{end}}
+			</dl>
+			{{end}}{{end}}
 			{{if .AscRows}}
 			<section class="rv-card rv-gap" aria-label="{{ctx.Locale.Tr "asc_review.rev_dry_run"}}">
 				<div class="rv-tablewrap">

@@ -143,7 +143,13 @@ type OpLogQuery struct {
 type OpLogPage struct {
 	Rows []OpRow
 	Next string
+	// UndoWindow is how long after an operation on a protected ref a maintainer may undo it, in seconds; 0 when that is
+	// off. An operation on a user's own ref has no window.
+	UndoWindow uint64
 }
+
+// MaxUndoWindow is the longest undo window asc allows (`[audit] undo_window_secs`); a longer one is a bad answer.
+const MaxUndoWindow = 86400
 
 func targetHex(t *ascv1.RefTarget) (string, error) {
 	var b []byte
@@ -253,7 +259,10 @@ func LoadOpLog(ctx context.Context, conn grpc.ClientConnInterface, repoName stri
 	if len(resp.GetEntries()) > int(limit) || (resp.GetNextPageToken() != "" && !pageTokenPattern.MatchString(resp.GetNextPageToken())) {
 		return nil, fmt.Errorf("%w: ref log page", ErrBadAnswer)
 	}
-	page := &OpLogPage{Next: resp.GetNextPageToken()}
+	if resp.GetUndoWindowSeconds() > MaxUndoWindow {
+		return nil, fmt.Errorf("%w: undo window", ErrBadAnswer)
+	}
+	page := &OpLogPage{Next: resp.GetNextPageToken(), UndoWindow: resp.GetUndoWindowSeconds()}
 	for _, e := range resp.GetEntries() {
 		row, err := opRowOf(e, who)
 		if err != nil {

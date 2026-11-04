@@ -176,6 +176,7 @@ func ascConfirmMerge(ctx *context.Context, pr *issues_model.PullRequest, now boo
 			ctx.Data["AscPreviewNote"] = ctx.Tr(f.Key, f.Args...)
 		}
 	}
+	ctx.Data["AscLandSummary"] = ascLandSummaryOf(ctx, pr, d, !now)
 	if now {
 		ctx.Data["AscMergeCount"] = len(rows)
 		ctx.Data["AscCanConfirm"] = d.Ready && !d.Paused

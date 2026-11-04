@@ -877,8 +877,11 @@ type ListRefLogResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Entries       []*RefLogEntry         `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
 	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// How long after an operation on a protected ref a maintainer may still undo it, in seconds (`[audit]
+	// undo_window_secs`); 0 when undo of protected refs is off. An operation on a user's own ref has no window.
+	UndoWindowSeconds uint64 `protobuf:"varint,3,opt,name=undo_window_seconds,json=undoWindowSeconds,proto3" json:"undo_window_seconds,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ListRefLogResponse) Reset() {
@@ -923,6 +926,13 @@ func (x *ListRefLogResponse) GetNextPageToken() string {
 		return x.NextPageToken
 	}
 	return ""
+}
+
+func (x *ListRefLogResponse) GetUndoWindowSeconds() uint64 {
+	if x != nil {
+		return x.UndoWindowSeconds
+	}
+	return 0
 }
 
 // Puts `ref` back to the value it had before entry `seq`, with the ref's current value as the compare-and-swap guard (so
@@ -1169,10 +1179,11 @@ const file_asc_v1_stacks_proto_rawDesc = "" +
 	"\x05op_id\x18\b \x01(\tR\x04opId\x12\x1a\n" +
 	"\bundoable\x18\t \x01(\bR\bundoable\x12.\n" +
 	"\x13undo_blocked_reason\x18\n" +
-	" \x01(\tR\x11undoBlockedReason\"k\n" +
+	" \x01(\tR\x11undoBlockedReason\"\x9b\x01\n" +
 	"\x12ListRefLogResponse\x12-\n" +
 	"\aentries\x18\x01 \x03(\v2\x13.asc.v1.RefLogEntryR\aentries\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x8a\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12.\n" +
+	"\x13undo_window_seconds\x18\x03 \x01(\x04R\x11undoWindowSeconds\"\x8a\x01\n" +
 	"\x0eUndoRefRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x10\n" +
 	"\x03ref\x18\x02 \x01(\tR\x03ref\x12\x10\n" +
