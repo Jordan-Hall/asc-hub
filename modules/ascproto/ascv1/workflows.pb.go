@@ -1174,12 +1174,14 @@ type WorkflowStepRun struct {
 	Finished      int64                  `protobuf:"varint,5,opt,name=finished,proto3" json:"finished,omitempty"`
 	DecidedBy     string                 `protobuf:"bytes,6,opt,name=decided_by,json=decidedBy,proto3" json:"decided_by,omitempty"` // APPROVAL
 	Comment       string                 `protobuf:"bytes,7,opt,name=comment,proto3" json:"comment,omitempty"`
-	Error         string                 `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`                         // sanitised
-	ExitCode      int32                  `protobuf:"varint,9,opt,name=exit_code,json=exitCode,proto3" json:"exit_code,omitempty"`  // COMMAND
-	TimedOut      bool                   `protobuf:"varint,10,opt,name=timed_out,json=timedOut,proto3" json:"timed_out,omitempty"` // COMMAND
-	Output        string                 `protobuf:"bytes,11,opt,name=output,proto3" json:"output,omitempty"`                      // COMMAND: the end of the output, secrets masked; only in GetRun
-	CiRunId       uint64                 `protobuf:"varint,12,opt,name=ci_run_id,json=ciRunId,proto3" json:"ci_run_id,omitempty"`  // COMMAND: the check (ci.proto run) that carries the result
-	Usage         *AgentBudgetUsage      `protobuf:"bytes,13,opt,name=usage,proto3" json:"usage,omitempty"`                        // AGENT: what the step's run used
+	Error         string                 `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`                              // sanitised
+	ExitCode      int32                  `protobuf:"varint,9,opt,name=exit_code,json=exitCode,proto3" json:"exit_code,omitempty"`       // COMMAND
+	TimedOut      bool                   `protobuf:"varint,10,opt,name=timed_out,json=timedOut,proto3" json:"timed_out,omitempty"`      // COMMAND
+	Output        string                 `protobuf:"bytes,11,opt,name=output,proto3" json:"output,omitempty"`                           // COMMAND: the end of the output, secrets masked; only in GetRun
+	CiRunId       uint64                 `protobuf:"varint,12,opt,name=ci_run_id,json=ciRunId,proto3" json:"ci_run_id,omitempty"`       // COMMAND: the check (ci.proto run) that carries the result
+	Usage         *AgentBudgetUsage      `protobuf:"bytes,13,opt,name=usage,proto3" json:"usage,omitempty"`                             // AGENT: what the step's run used
+	Kind          WorkflowStepKind       `protobuf:"varint,14,opt,name=kind,proto3,enum=asc.v1.WorkflowStepKind" json:"kind,omitempty"` // from the definition the run was made from; UNSPECIFIED if it no longer parses
+	Approvers     []string               `protobuf:"bytes,15,rep,name=approvers,proto3" json:"approvers,omitempty"`                     // APPROVAL: who may decide, as `user:<name>` or `role:<name>`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1301,6 +1303,20 @@ func (x *WorkflowStepRun) GetCiRunId() uint64 {
 func (x *WorkflowStepRun) GetUsage() *AgentBudgetUsage {
 	if x != nil {
 		return x.Usage
+	}
+	return nil
+}
+
+func (x *WorkflowStepRun) GetKind() WorkflowStepKind {
+	if x != nil {
+		return x.Kind
+	}
+	return WorkflowStepKind_WORKFLOW_STEP_KIND_UNSPECIFIED
+}
+
+func (x *WorkflowStepRun) GetApprovers() []string {
+	if x != nil {
+		return x.Approvers
 	}
 	return nil
 }
@@ -2587,7 +2603,7 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	"\x1aSetWorkflowEnabledResponse\x12:\n" +
 	"\n" +
 	"definition\x18\x01 \x01(\v2\x1a.asc.v1.WorkflowDefinitionR\n" +
-	"definition\"\x97\x03\n" +
+	"definition\"\xe3\x03\n" +
 	"\x0fWorkflowStepRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12/\n" +
 	"\x05state\x18\x02 \x01(\x0e2\x19.asc.v1.WorkflowStepStateR\x05state\x12 \n" +
@@ -2604,7 +2620,9 @@ const file_asc_v1_workflows_proto_rawDesc = "" +
 	" \x01(\bR\btimedOut\x12\x16\n" +
 	"\x06output\x18\v \x01(\tR\x06output\x12\x1a\n" +
 	"\tci_run_id\x18\f \x01(\x04R\aciRunId\x12.\n" +
-	"\x05usage\x18\r \x01(\v2\x18.asc.v1.AgentBudgetUsageR\x05usage\"\xae\x04\n" +
+	"\x05usage\x18\r \x01(\v2\x18.asc.v1.AgentBudgetUsageR\x05usage\x12,\n" +
+	"\x04kind\x18\x0e \x01(\x0e2\x18.asc.v1.WorkflowStepKindR\x04kind\x12\x1c\n" +
+	"\tapprovers\x18\x0f \x03(\tR\tapprovers\"\xae\x04\n" +
 	"\vWorkflowRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
 	"\x04repo\x18\x02 \x01(\tR\x04repo\x12\x1a\n" +
@@ -2824,61 +2842,62 @@ var file_asc_v1_workflows_proto_depIdxs = []int32{
 	7,  // 16: asc.v1.SetWorkflowEnabledResponse.definition:type_name -> asc.v1.WorkflowDefinition
 	3,  // 17: asc.v1.WorkflowStepRun.state:type_name -> asc.v1.WorkflowStepState
 	43, // 18: asc.v1.WorkflowStepRun.usage:type_name -> asc.v1.AgentBudgetUsage
-	2,  // 19: asc.v1.WorkflowRun.state:type_name -> asc.v1.WorkflowRunState
-	0,  // 20: asc.v1.WorkflowRun.trigger:type_name -> asc.v1.WorkflowTriggerKind
-	39, // 21: asc.v1.WorkflowRun.inputs:type_name -> asc.v1.WorkflowRun.InputsEntry
-	17, // 22: asc.v1.WorkflowRun.steps:type_name -> asc.v1.WorkflowStepRun
-	43, // 23: asc.v1.WorkflowRun.usage:type_name -> asc.v1.AgentBudgetUsage
-	42, // 24: asc.v1.TriggerWorkflowRequest.repo:type_name -> asc.v1.RepoRef
-	40, // 25: asc.v1.TriggerWorkflowRequest.inputs:type_name -> asc.v1.TriggerWorkflowRequest.InputsEntry
-	18, // 26: asc.v1.TriggerWorkflowResponse.run:type_name -> asc.v1.WorkflowRun
-	42, // 27: asc.v1.ListWorkflowRunsRequest.repo:type_name -> asc.v1.RepoRef
-	2,  // 28: asc.v1.ListWorkflowRunsRequest.states:type_name -> asc.v1.WorkflowRunState
-	18, // 29: asc.v1.ListWorkflowRunsResponse.runs:type_name -> asc.v1.WorkflowRun
-	42, // 30: asc.v1.GetWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 31: asc.v1.GetWorkflowRunResponse.run:type_name -> asc.v1.WorkflowRun
-	42, // 32: asc.v1.CancelWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 33: asc.v1.CancelWorkflowRunResponse.run:type_name -> asc.v1.WorkflowRun
-	42, // 34: asc.v1.DecideWorkflowApprovalRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 35: asc.v1.DecideWorkflowApprovalResponse.run:type_name -> asc.v1.WorkflowRun
-	42, // 36: asc.v1.WatchWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 37: asc.v1.WorkflowRunEvent.run:type_name -> asc.v1.WorkflowRun
-	42, // 38: asc.v1.ListWorkflowSecretsRequest.repo:type_name -> asc.v1.RepoRef
-	31, // 39: asc.v1.ListWorkflowSecretsResponse.secrets:type_name -> asc.v1.WorkflowSecret
-	42, // 40: asc.v1.SetWorkflowSecretRequest.repo:type_name -> asc.v1.RepoRef
-	31, // 41: asc.v1.SetWorkflowSecretResponse.secret:type_name -> asc.v1.WorkflowSecret
-	42, // 42: asc.v1.DeleteWorkflowSecretRequest.repo:type_name -> asc.v1.RepoRef
-	8,  // 43: asc.v1.Workflows.ListDefinitions:input_type -> asc.v1.ListWorkflowDefinitionsRequest
-	10, // 44: asc.v1.Workflows.GetDefinition:input_type -> asc.v1.GetWorkflowDefinitionRequest
-	13, // 45: asc.v1.Workflows.Validate:input_type -> asc.v1.ValidateWorkflowRequest
-	15, // 46: asc.v1.Workflows.SetEnabled:input_type -> asc.v1.SetWorkflowEnabledRequest
-	19, // 47: asc.v1.Workflows.Trigger:input_type -> asc.v1.TriggerWorkflowRequest
-	21, // 48: asc.v1.Workflows.ListRuns:input_type -> asc.v1.ListWorkflowRunsRequest
-	23, // 49: asc.v1.Workflows.GetRun:input_type -> asc.v1.GetWorkflowRunRequest
-	25, // 50: asc.v1.Workflows.CancelRun:input_type -> asc.v1.CancelWorkflowRunRequest
-	27, // 51: asc.v1.Workflows.DecideApproval:input_type -> asc.v1.DecideWorkflowApprovalRequest
-	29, // 52: asc.v1.Workflows.WatchRun:input_type -> asc.v1.WatchWorkflowRunRequest
-	32, // 53: asc.v1.Workflows.ListSecrets:input_type -> asc.v1.ListWorkflowSecretsRequest
-	34, // 54: asc.v1.Workflows.SetSecret:input_type -> asc.v1.SetWorkflowSecretRequest
-	36, // 55: asc.v1.Workflows.DeleteSecret:input_type -> asc.v1.DeleteWorkflowSecretRequest
-	9,  // 56: asc.v1.Workflows.ListDefinitions:output_type -> asc.v1.ListWorkflowDefinitionsResponse
-	11, // 57: asc.v1.Workflows.GetDefinition:output_type -> asc.v1.GetWorkflowDefinitionResponse
-	14, // 58: asc.v1.Workflows.Validate:output_type -> asc.v1.ValidateWorkflowResponse
-	16, // 59: asc.v1.Workflows.SetEnabled:output_type -> asc.v1.SetWorkflowEnabledResponse
-	20, // 60: asc.v1.Workflows.Trigger:output_type -> asc.v1.TriggerWorkflowResponse
-	22, // 61: asc.v1.Workflows.ListRuns:output_type -> asc.v1.ListWorkflowRunsResponse
-	24, // 62: asc.v1.Workflows.GetRun:output_type -> asc.v1.GetWorkflowRunResponse
-	26, // 63: asc.v1.Workflows.CancelRun:output_type -> asc.v1.CancelWorkflowRunResponse
-	28, // 64: asc.v1.Workflows.DecideApproval:output_type -> asc.v1.DecideWorkflowApprovalResponse
-	30, // 65: asc.v1.Workflows.WatchRun:output_type -> asc.v1.WorkflowRunEvent
-	33, // 66: asc.v1.Workflows.ListSecrets:output_type -> asc.v1.ListWorkflowSecretsResponse
-	35, // 67: asc.v1.Workflows.SetSecret:output_type -> asc.v1.SetWorkflowSecretResponse
-	37, // 68: asc.v1.Workflows.DeleteSecret:output_type -> asc.v1.DeleteWorkflowSecretResponse
-	56, // [56:69] is the sub-list for method output_type
-	43, // [43:56] is the sub-list for method input_type
-	43, // [43:43] is the sub-list for extension type_name
-	43, // [43:43] is the sub-list for extension extendee
-	0,  // [0:43] is the sub-list for field type_name
+	1,  // 19: asc.v1.WorkflowStepRun.kind:type_name -> asc.v1.WorkflowStepKind
+	2,  // 20: asc.v1.WorkflowRun.state:type_name -> asc.v1.WorkflowRunState
+	0,  // 21: asc.v1.WorkflowRun.trigger:type_name -> asc.v1.WorkflowTriggerKind
+	39, // 22: asc.v1.WorkflowRun.inputs:type_name -> asc.v1.WorkflowRun.InputsEntry
+	17, // 23: asc.v1.WorkflowRun.steps:type_name -> asc.v1.WorkflowStepRun
+	43, // 24: asc.v1.WorkflowRun.usage:type_name -> asc.v1.AgentBudgetUsage
+	42, // 25: asc.v1.TriggerWorkflowRequest.repo:type_name -> asc.v1.RepoRef
+	40, // 26: asc.v1.TriggerWorkflowRequest.inputs:type_name -> asc.v1.TriggerWorkflowRequest.InputsEntry
+	18, // 27: asc.v1.TriggerWorkflowResponse.run:type_name -> asc.v1.WorkflowRun
+	42, // 28: asc.v1.ListWorkflowRunsRequest.repo:type_name -> asc.v1.RepoRef
+	2,  // 29: asc.v1.ListWorkflowRunsRequest.states:type_name -> asc.v1.WorkflowRunState
+	18, // 30: asc.v1.ListWorkflowRunsResponse.runs:type_name -> asc.v1.WorkflowRun
+	42, // 31: asc.v1.GetWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 32: asc.v1.GetWorkflowRunResponse.run:type_name -> asc.v1.WorkflowRun
+	42, // 33: asc.v1.CancelWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 34: asc.v1.CancelWorkflowRunResponse.run:type_name -> asc.v1.WorkflowRun
+	42, // 35: asc.v1.DecideWorkflowApprovalRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 36: asc.v1.DecideWorkflowApprovalResponse.run:type_name -> asc.v1.WorkflowRun
+	42, // 37: asc.v1.WatchWorkflowRunRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 38: asc.v1.WorkflowRunEvent.run:type_name -> asc.v1.WorkflowRun
+	42, // 39: asc.v1.ListWorkflowSecretsRequest.repo:type_name -> asc.v1.RepoRef
+	31, // 40: asc.v1.ListWorkflowSecretsResponse.secrets:type_name -> asc.v1.WorkflowSecret
+	42, // 41: asc.v1.SetWorkflowSecretRequest.repo:type_name -> asc.v1.RepoRef
+	31, // 42: asc.v1.SetWorkflowSecretResponse.secret:type_name -> asc.v1.WorkflowSecret
+	42, // 43: asc.v1.DeleteWorkflowSecretRequest.repo:type_name -> asc.v1.RepoRef
+	8,  // 44: asc.v1.Workflows.ListDefinitions:input_type -> asc.v1.ListWorkflowDefinitionsRequest
+	10, // 45: asc.v1.Workflows.GetDefinition:input_type -> asc.v1.GetWorkflowDefinitionRequest
+	13, // 46: asc.v1.Workflows.Validate:input_type -> asc.v1.ValidateWorkflowRequest
+	15, // 47: asc.v1.Workflows.SetEnabled:input_type -> asc.v1.SetWorkflowEnabledRequest
+	19, // 48: asc.v1.Workflows.Trigger:input_type -> asc.v1.TriggerWorkflowRequest
+	21, // 49: asc.v1.Workflows.ListRuns:input_type -> asc.v1.ListWorkflowRunsRequest
+	23, // 50: asc.v1.Workflows.GetRun:input_type -> asc.v1.GetWorkflowRunRequest
+	25, // 51: asc.v1.Workflows.CancelRun:input_type -> asc.v1.CancelWorkflowRunRequest
+	27, // 52: asc.v1.Workflows.DecideApproval:input_type -> asc.v1.DecideWorkflowApprovalRequest
+	29, // 53: asc.v1.Workflows.WatchRun:input_type -> asc.v1.WatchWorkflowRunRequest
+	32, // 54: asc.v1.Workflows.ListSecrets:input_type -> asc.v1.ListWorkflowSecretsRequest
+	34, // 55: asc.v1.Workflows.SetSecret:input_type -> asc.v1.SetWorkflowSecretRequest
+	36, // 56: asc.v1.Workflows.DeleteSecret:input_type -> asc.v1.DeleteWorkflowSecretRequest
+	9,  // 57: asc.v1.Workflows.ListDefinitions:output_type -> asc.v1.ListWorkflowDefinitionsResponse
+	11, // 58: asc.v1.Workflows.GetDefinition:output_type -> asc.v1.GetWorkflowDefinitionResponse
+	14, // 59: asc.v1.Workflows.Validate:output_type -> asc.v1.ValidateWorkflowResponse
+	16, // 60: asc.v1.Workflows.SetEnabled:output_type -> asc.v1.SetWorkflowEnabledResponse
+	20, // 61: asc.v1.Workflows.Trigger:output_type -> asc.v1.TriggerWorkflowResponse
+	22, // 62: asc.v1.Workflows.ListRuns:output_type -> asc.v1.ListWorkflowRunsResponse
+	24, // 63: asc.v1.Workflows.GetRun:output_type -> asc.v1.GetWorkflowRunResponse
+	26, // 64: asc.v1.Workflows.CancelRun:output_type -> asc.v1.CancelWorkflowRunResponse
+	28, // 65: asc.v1.Workflows.DecideApproval:output_type -> asc.v1.DecideWorkflowApprovalResponse
+	30, // 66: asc.v1.Workflows.WatchRun:output_type -> asc.v1.WorkflowRunEvent
+	33, // 67: asc.v1.Workflows.ListSecrets:output_type -> asc.v1.ListWorkflowSecretsResponse
+	35, // 68: asc.v1.Workflows.SetSecret:output_type -> asc.v1.SetWorkflowSecretResponse
+	37, // 69: asc.v1.Workflows.DeleteSecret:output_type -> asc.v1.DeleteWorkflowSecretResponse
+	57, // [57:70] is the sub-list for method output_type
+	44, // [44:57] is the sub-list for method input_type
+	44, // [44:44] is the sub-list for extension type_name
+	44, // [44:44] is the sub-list for extension extendee
+	0,  // [0:44] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_workflows_proto_init() }
