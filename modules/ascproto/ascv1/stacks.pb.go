@@ -598,7 +598,7 @@ func (x *RevertedChange) GetConflicts() []*Conflict {
 
 type RevertLandedResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Reverts       []*RevertedChange      `protobuf:"bytes,1,rep,name=reverts,proto3" json:"reverts,omitempty"`                   // top of the landed stack first
+	Reverts       []*RevertedChange      `protobuf:"bytes,1,rep,name=reverts,proto3" json:"reverts,omitempty"`                   // one per revert, top of the landed stack first; one with `squash`
 	StackTop      []byte                 `protobuf:"bytes,2,opt,name=stack_top,json=stackTop,proto3" json:"stack_top,omitempty"` // the topmost new change; empty on a dry run
 	Ref           string                 `protobuf:"bytes,3,opt,name=ref,proto3" json:"ref,omitempty"`                           // where the reverts are stored
 	Applied       bool                   `protobuf:"varint,4,opt,name=applied,proto3" json:"applied,omitempty"`
