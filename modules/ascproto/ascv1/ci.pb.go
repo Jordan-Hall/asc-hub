@@ -967,7 +967,7 @@ func (x *AppendJobLogResponse) GetDropped() bool {
 }
 
 // Repo read. `Stats` counts the runs that finished (success or failure) in the last `days` days (0 means 14, at most 90) and the
-// window before it, for the pass rate against the previous period. `CompareWithMain` compares the newest finished run of a change with
+// window before it, for the pass rate against the previous period, and a day by day trend of the window. `CompareWithMain` compares the newest finished run of a change with
 // the newest finished run that belongs to no change (a run of the default branch): the failing tests that are new, and the slowest
 // test now against the same test on main. Per-test timing comes from CiInsights.ReportTestCases.
 type CiStatsRequest struct {
@@ -1023,21 +1023,25 @@ func (x *CiStatsRequest) GetDays() uint32 {
 }
 
 type CiStatsResponse struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	Days                  uint32                 `protobuf:"varint,1,opt,name=days,proto3" json:"days,omitempty"`
-	Runs                  uint32                 `protobuf:"varint,2,opt,name=runs,proto3" json:"runs,omitempty"`
-	Passed                uint32                 `protobuf:"varint,3,opt,name=passed,proto3" json:"passed,omitempty"`
-	Failed                uint32                 `protobuf:"varint,4,opt,name=failed,proto3" json:"failed,omitempty"`
-	PassPermille          uint32                 `protobuf:"varint,5,opt,name=pass_permille,json=passPermille,proto3" json:"pass_permille,omitempty"` // passed / runs * 1000
-	PreviousRuns          uint32                 `protobuf:"varint,6,opt,name=previous_runs,json=previousRuns,proto3" json:"previous_runs,omitempty"`
-	PreviousPassPermille  uint32                 `protobuf:"varint,7,opt,name=previous_pass_permille,json=previousPassPermille,proto3" json:"previous_pass_permille,omitempty"`
-	FailureGroupsOpen     uint32                 `protobuf:"varint,8,opt,name=failure_groups_open,json=failureGroupsOpen,proto3" json:"failure_groups_open,omitempty"`
-	FlakyTests            uint32                 `protobuf:"varint,9,opt,name=flaky_tests,json=flakyTests,proto3" json:"flaky_tests,omitempty"`
-	MedianDurationSeconds uint32                 `protobuf:"varint,10,opt,name=median_duration_seconds,json=medianDurationSeconds,proto3" json:"median_duration_seconds,omitempty"`
-	SlowestJob            string                 `protobuf:"bytes,11,opt,name=slowest_job,json=slowestJob,proto3" json:"slowest_job,omitempty"` // by the median duration of its jobs in the window
-	SlowestJobSeconds     uint32                 `protobuf:"varint,12,opt,name=slowest_job_seconds,json=slowestJobSeconds,proto3" json:"slowest_job_seconds,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	Days                   uint32                 `protobuf:"varint,1,opt,name=days,proto3" json:"days,omitempty"`
+	Runs                   uint32                 `protobuf:"varint,2,opt,name=runs,proto3" json:"runs,omitempty"`
+	Passed                 uint32                 `protobuf:"varint,3,opt,name=passed,proto3" json:"passed,omitempty"`
+	Failed                 uint32                 `protobuf:"varint,4,opt,name=failed,proto3" json:"failed,omitempty"`
+	PassPermille           uint32                 `protobuf:"varint,5,opt,name=pass_permille,json=passPermille,proto3" json:"pass_permille,omitempty"` // passed / runs * 1000
+	PreviousRuns           uint32                 `protobuf:"varint,6,opt,name=previous_runs,json=previousRuns,proto3" json:"previous_runs,omitempty"`
+	PreviousPassPermille   uint32                 `protobuf:"varint,7,opt,name=previous_pass_permille,json=previousPassPermille,proto3" json:"previous_pass_permille,omitempty"`
+	FailureGroupsOpen      uint32                 `protobuf:"varint,8,opt,name=failure_groups_open,json=failureGroupsOpen,proto3" json:"failure_groups_open,omitempty"`
+	FlakyTests             uint32                 `protobuf:"varint,9,opt,name=flaky_tests,json=flakyTests,proto3" json:"flaky_tests,omitempty"`
+	MedianDurationSeconds  uint32                 `protobuf:"varint,10,opt,name=median_duration_seconds,json=medianDurationSeconds,proto3" json:"median_duration_seconds,omitempty"`
+	SlowestJob             string                 `protobuf:"bytes,11,opt,name=slowest_job,json=slowestJob,proto3" json:"slowest_job,omitempty"` // by the median duration of its jobs in the window
+	SlowestJobSeconds      uint32                 `protobuf:"varint,12,opt,name=slowest_job_seconds,json=slowestJobSeconds,proto3" json:"slowest_job_seconds,omitempty"`
+	FailureGroupsNewHour   uint32                 `protobuf:"varint,13,opt,name=failure_groups_new_hour,json=failureGroupsNewHour,proto3" json:"failure_groups_new_hour,omitempty"`     // of the open groups, those first seen in the last hour
+	FlippingTests          uint32                 `protobuf:"varint,14,opt,name=flipping_tests,json=flippingTests,proto3" json:"flipping_tests,omitempty"`                              // tests whose verdict changed on one head in their last runs, at the threshold or not
+	FlakyThresholdPermille uint32                 `protobuf:"varint,15,opt,name=flaky_threshold_permille,json=flakyThresholdPermille,proto3" json:"flaky_threshold_permille,omitempty"` // the repository's [ci] flaky_threshold: at or above it a test is flaky (flaky_tests)
+	Daily                  []*CiStatsDay          `protobuf:"bytes,16,rep,name=daily,proto3" json:"daily,omitempty"`                                                                    // one per day of the window, oldest first, for the trend of each number
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *CiStatsResponse) Reset() {
@@ -1154,6 +1158,119 @@ func (x *CiStatsResponse) GetSlowestJobSeconds() uint32 {
 	return 0
 }
 
+func (x *CiStatsResponse) GetFailureGroupsNewHour() uint32 {
+	if x != nil {
+		return x.FailureGroupsNewHour
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetFlippingTests() uint32 {
+	if x != nil {
+		return x.FlippingTests
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetFlakyThresholdPermille() uint32 {
+	if x != nil {
+		return x.FlakyThresholdPermille
+	}
+	return 0
+}
+
+func (x *CiStatsResponse) GetDaily() []*CiStatsDay {
+	if x != nil {
+		return x.Daily
+	}
+	return nil
+}
+
+// One day (UTC) of the window of `Stats`.
+type CiStatsDay struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Start                 int64                  `protobuf:"varint,1,opt,name=start,proto3" json:"start,omitempty"` // unix seconds, day aligned
+	Runs                  uint32                 `protobuf:"varint,2,opt,name=runs,proto3" json:"runs,omitempty"`   // finished runs created that day
+	Passed                uint32                 `protobuf:"varint,3,opt,name=passed,proto3" json:"passed,omitempty"`
+	MedianDurationSeconds uint32                 `protobuf:"varint,4,opt,name=median_duration_seconds,json=medianDurationSeconds,proto3" json:"median_duration_seconds,omitempty"` // 0 when no run of the day has a duration
+	FailureGroupsNew      uint32                 `protobuf:"varint,5,opt,name=failure_groups_new,json=failureGroupsNew,proto3" json:"failure_groups_new,omitempty"`                // groups first seen that day
+	FlakyFlips            uint32                 `protobuf:"varint,6,opt,name=flaky_flips,json=flakyFlips,proto3" json:"flaky_flips,omitempty"`                                    // verdict changes on one head that day
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *CiStatsDay) Reset() {
+	*x = CiStatsDay{}
+	mi := &file_asc_v1_ci_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CiStatsDay) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CiStatsDay) ProtoMessage() {}
+
+func (x *CiStatsDay) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_ci_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CiStatsDay.ProtoReflect.Descriptor instead.
+func (*CiStatsDay) Descriptor() ([]byte, []int) {
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CiStatsDay) GetStart() int64 {
+	if x != nil {
+		return x.Start
+	}
+	return 0
+}
+
+func (x *CiStatsDay) GetRuns() uint32 {
+	if x != nil {
+		return x.Runs
+	}
+	return 0
+}
+
+func (x *CiStatsDay) GetPassed() uint32 {
+	if x != nil {
+		return x.Passed
+	}
+	return 0
+}
+
+func (x *CiStatsDay) GetMedianDurationSeconds() uint32 {
+	if x != nil {
+		return x.MedianDurationSeconds
+	}
+	return 0
+}
+
+func (x *CiStatsDay) GetFailureGroupsNew() uint32 {
+	if x != nil {
+		return x.FailureGroupsNew
+	}
+	return 0
+}
+
+func (x *CiStatsDay) GetFlakyFlips() uint32 {
+	if x != nil {
+		return x.FlakyFlips
+	}
+	return 0
+}
+
 type TestRef struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Job           string                 `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
@@ -1164,7 +1281,7 @@ type TestRef struct {
 
 func (x *TestRef) Reset() {
 	*x = TestRef{}
-	mi := &file_asc_v1_ci_proto_msgTypes[13]
+	mi := &file_asc_v1_ci_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1176,7 +1293,7 @@ func (x *TestRef) String() string {
 func (*TestRef) ProtoMessage() {}
 
 func (x *TestRef) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_ci_proto_msgTypes[13]
+	mi := &file_asc_v1_ci_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1189,7 +1306,7 @@ func (x *TestRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestRef.ProtoReflect.Descriptor instead.
 func (*TestRef) Descriptor() ([]byte, []int) {
-	return file_asc_v1_ci_proto_rawDescGZIP(), []int{13}
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *TestRef) GetJob() string {
@@ -1218,7 +1335,7 @@ type TestTiming struct {
 
 func (x *TestTiming) Reset() {
 	*x = TestTiming{}
-	mi := &file_asc_v1_ci_proto_msgTypes[14]
+	mi := &file_asc_v1_ci_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1230,7 +1347,7 @@ func (x *TestTiming) String() string {
 func (*TestTiming) ProtoMessage() {}
 
 func (x *TestTiming) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_ci_proto_msgTypes[14]
+	mi := &file_asc_v1_ci_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1243,7 +1360,7 @@ func (x *TestTiming) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestTiming.ProtoReflect.Descriptor instead.
 func (*TestTiming) Descriptor() ([]byte, []int) {
-	return file_asc_v1_ci_proto_rawDescGZIP(), []int{14}
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *TestTiming) GetJob() string {
@@ -1284,7 +1401,7 @@ type CompareWithMainRequest struct {
 
 func (x *CompareWithMainRequest) Reset() {
 	*x = CompareWithMainRequest{}
-	mi := &file_asc_v1_ci_proto_msgTypes[15]
+	mi := &file_asc_v1_ci_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1296,7 +1413,7 @@ func (x *CompareWithMainRequest) String() string {
 func (*CompareWithMainRequest) ProtoMessage() {}
 
 func (x *CompareWithMainRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_ci_proto_msgTypes[15]
+	mi := &file_asc_v1_ci_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1309,7 +1426,7 @@ func (x *CompareWithMainRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompareWithMainRequest.ProtoReflect.Descriptor instead.
 func (*CompareWithMainRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_ci_proto_rawDescGZIP(), []int{15}
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CompareWithMainRequest) GetRepo() *RepoRef {
@@ -1340,7 +1457,7 @@ type CompareWithMainResponse struct {
 
 func (x *CompareWithMainResponse) Reset() {
 	*x = CompareWithMainResponse{}
-	mi := &file_asc_v1_ci_proto_msgTypes[16]
+	mi := &file_asc_v1_ci_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1352,7 +1469,7 @@ func (x *CompareWithMainResponse) String() string {
 func (*CompareWithMainResponse) ProtoMessage() {}
 
 func (x *CompareWithMainResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_ci_proto_msgTypes[16]
+	mi := &file_asc_v1_ci_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1365,7 +1482,7 @@ func (x *CompareWithMainResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompareWithMainResponse.ProtoReflect.Descriptor instead.
 func (*CompareWithMainResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_ci_proto_rawDescGZIP(), []int{16}
+	return file_asc_v1_ci_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *CompareWithMainResponse) GetCompared() bool {
@@ -1494,7 +1611,7 @@ const file_asc_v1_ci_proto_rawDesc = "" +
 	"\adropped\x18\x02 \x01(\bR\adropped\"I\n" +
 	"\x0eCiStatsRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
-	"\x04days\x18\x02 \x01(\rR\x04days\"\xc3\x03\n" +
+	"\x04days\x18\x02 \x01(\rR\x04days\"\x85\x05\n" +
 	"\x0fCiStatsResponse\x12\x12\n" +
 	"\x04days\x18\x01 \x01(\rR\x04days\x12\x12\n" +
 	"\x04runs\x18\x02 \x01(\rR\x04runs\x12\x16\n" +
@@ -1510,7 +1627,20 @@ const file_asc_v1_ci_proto_rawDesc = "" +
 	" \x01(\rR\x15medianDurationSeconds\x12\x1f\n" +
 	"\vslowest_job\x18\v \x01(\tR\n" +
 	"slowestJob\x12.\n" +
-	"\x13slowest_job_seconds\x18\f \x01(\rR\x11slowestJobSeconds\"/\n" +
+	"\x13slowest_job_seconds\x18\f \x01(\rR\x11slowestJobSeconds\x125\n" +
+	"\x17failure_groups_new_hour\x18\r \x01(\rR\x14failureGroupsNewHour\x12%\n" +
+	"\x0eflipping_tests\x18\x0e \x01(\rR\rflippingTests\x128\n" +
+	"\x18flaky_threshold_permille\x18\x0f \x01(\rR\x16flakyThresholdPermille\x12(\n" +
+	"\x05daily\x18\x10 \x03(\v2\x12.asc.v1.CiStatsDayR\x05daily\"\xd5\x01\n" +
+	"\n" +
+	"CiStatsDay\x12\x14\n" +
+	"\x05start\x18\x01 \x01(\x03R\x05start\x12\x12\n" +
+	"\x04runs\x18\x02 \x01(\rR\x04runs\x12\x16\n" +
+	"\x06passed\x18\x03 \x01(\rR\x06passed\x126\n" +
+	"\x17median_duration_seconds\x18\x04 \x01(\rR\x15medianDurationSeconds\x12,\n" +
+	"\x12failure_groups_new\x18\x05 \x01(\rR\x10failureGroupsNew\x12\x1f\n" +
+	"\vflaky_flips\x18\x06 \x01(\rR\n" +
+	"flakyFlips\"/\n" +
 	"\aTestRef\x12\x10\n" +
 	"\x03job\x18\x01 \x01(\tR\x03job\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"}\n" +
@@ -1563,7 +1693,7 @@ func file_asc_v1_ci_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_ci_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_asc_v1_ci_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_asc_v1_ci_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_asc_v1_ci_proto_goTypes = []any{
 	(CiStatus)(0),                   // 0: asc.v1.CiStatus
 	(*CiJob)(nil),                   // 1: asc.v1.CiJob
@@ -1579,48 +1709,50 @@ var file_asc_v1_ci_proto_goTypes = []any{
 	(*AppendJobLogResponse)(nil),    // 11: asc.v1.AppendJobLogResponse
 	(*CiStatsRequest)(nil),          // 12: asc.v1.CiStatsRequest
 	(*CiStatsResponse)(nil),         // 13: asc.v1.CiStatsResponse
-	(*TestRef)(nil),                 // 14: asc.v1.TestRef
-	(*TestTiming)(nil),              // 15: asc.v1.TestTiming
-	(*CompareWithMainRequest)(nil),  // 16: asc.v1.CompareWithMainRequest
-	(*CompareWithMainResponse)(nil), // 17: asc.v1.CompareWithMainResponse
-	(*RepoRef)(nil),                 // 18: asc.v1.RepoRef
+	(*CiStatsDay)(nil),              // 14: asc.v1.CiStatsDay
+	(*TestRef)(nil),                 // 15: asc.v1.TestRef
+	(*TestTiming)(nil),              // 16: asc.v1.TestTiming
+	(*CompareWithMainRequest)(nil),  // 17: asc.v1.CompareWithMainRequest
+	(*CompareWithMainResponse)(nil), // 18: asc.v1.CompareWithMainResponse
+	(*RepoRef)(nil),                 // 19: asc.v1.RepoRef
 }
 var file_asc_v1_ci_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.CiJob.status:type_name -> asc.v1.CiStatus
 	0,  // 1: asc.v1.CiRun.status:type_name -> asc.v1.CiStatus
 	1,  // 2: asc.v1.CiRun.jobs:type_name -> asc.v1.CiJob
-	18, // 3: asc.v1.ListRunsRequest.repo:type_name -> asc.v1.RepoRef
+	19, // 3: asc.v1.ListRunsRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 4: asc.v1.ListRunsRequest.status:type_name -> asc.v1.CiStatus
 	2,  // 5: asc.v1.ListRunsResponse.runs:type_name -> asc.v1.CiRun
-	18, // 6: asc.v1.JobLogRequest.repo:type_name -> asc.v1.RepoRef
+	19, // 6: asc.v1.JobLogRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 7: asc.v1.ReportJob.status:type_name -> asc.v1.CiStatus
-	18, // 8: asc.v1.ReportRunRequest.repo:type_name -> asc.v1.RepoRef
+	19, // 8: asc.v1.ReportRunRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 9: asc.v1.ReportRunRequest.status:type_name -> asc.v1.CiStatus
 	7,  // 10: asc.v1.ReportRunRequest.jobs:type_name -> asc.v1.ReportJob
 	2,  // 11: asc.v1.ReportRunResponse.run:type_name -> asc.v1.CiRun
-	18, // 12: asc.v1.AppendJobLogRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 13: asc.v1.CiStatsRequest.repo:type_name -> asc.v1.RepoRef
-	18, // 14: asc.v1.CompareWithMainRequest.repo:type_name -> asc.v1.RepoRef
-	0,  // 15: asc.v1.CompareWithMainResponse.main_status:type_name -> asc.v1.CiStatus
-	14, // 16: asc.v1.CompareWithMainResponse.new_failures:type_name -> asc.v1.TestRef
-	15, // 17: asc.v1.CompareWithMainResponse.slowest_test:type_name -> asc.v1.TestTiming
-	3,  // 18: asc.v1.Ci.ListRuns:input_type -> asc.v1.ListRunsRequest
-	5,  // 19: asc.v1.Ci.JobLog:input_type -> asc.v1.JobLogRequest
-	8,  // 20: asc.v1.Ci.ReportRun:input_type -> asc.v1.ReportRunRequest
-	10, // 21: asc.v1.Ci.AppendJobLog:input_type -> asc.v1.AppendJobLogRequest
-	12, // 22: asc.v1.Ci.Stats:input_type -> asc.v1.CiStatsRequest
-	16, // 23: asc.v1.Ci.CompareWithMain:input_type -> asc.v1.CompareWithMainRequest
-	4,  // 24: asc.v1.Ci.ListRuns:output_type -> asc.v1.ListRunsResponse
-	6,  // 25: asc.v1.Ci.JobLog:output_type -> asc.v1.JobLogResponse
-	9,  // 26: asc.v1.Ci.ReportRun:output_type -> asc.v1.ReportRunResponse
-	11, // 27: asc.v1.Ci.AppendJobLog:output_type -> asc.v1.AppendJobLogResponse
-	13, // 28: asc.v1.Ci.Stats:output_type -> asc.v1.CiStatsResponse
-	17, // 29: asc.v1.Ci.CompareWithMain:output_type -> asc.v1.CompareWithMainResponse
-	24, // [24:30] is the sub-list for method output_type
-	18, // [18:24] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	19, // 12: asc.v1.AppendJobLogRequest.repo:type_name -> asc.v1.RepoRef
+	19, // 13: asc.v1.CiStatsRequest.repo:type_name -> asc.v1.RepoRef
+	14, // 14: asc.v1.CiStatsResponse.daily:type_name -> asc.v1.CiStatsDay
+	19, // 15: asc.v1.CompareWithMainRequest.repo:type_name -> asc.v1.RepoRef
+	0,  // 16: asc.v1.CompareWithMainResponse.main_status:type_name -> asc.v1.CiStatus
+	15, // 17: asc.v1.CompareWithMainResponse.new_failures:type_name -> asc.v1.TestRef
+	16, // 18: asc.v1.CompareWithMainResponse.slowest_test:type_name -> asc.v1.TestTiming
+	3,  // 19: asc.v1.Ci.ListRuns:input_type -> asc.v1.ListRunsRequest
+	5,  // 20: asc.v1.Ci.JobLog:input_type -> asc.v1.JobLogRequest
+	8,  // 21: asc.v1.Ci.ReportRun:input_type -> asc.v1.ReportRunRequest
+	10, // 22: asc.v1.Ci.AppendJobLog:input_type -> asc.v1.AppendJobLogRequest
+	12, // 23: asc.v1.Ci.Stats:input_type -> asc.v1.CiStatsRequest
+	17, // 24: asc.v1.Ci.CompareWithMain:input_type -> asc.v1.CompareWithMainRequest
+	4,  // 25: asc.v1.Ci.ListRuns:output_type -> asc.v1.ListRunsResponse
+	6,  // 26: asc.v1.Ci.JobLog:output_type -> asc.v1.JobLogResponse
+	9,  // 27: asc.v1.Ci.ReportRun:output_type -> asc.v1.ReportRunResponse
+	11, // 28: asc.v1.Ci.AppendJobLog:output_type -> asc.v1.AppendJobLogResponse
+	13, // 29: asc.v1.Ci.Stats:output_type -> asc.v1.CiStatsResponse
+	18, // 30: asc.v1.Ci.CompareWithMain:output_type -> asc.v1.CompareWithMainResponse
+	25, // [25:31] is the sub-list for method output_type
+	19, // [19:25] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_ci_proto_init() }
@@ -1636,7 +1768,7 @@ func file_asc_v1_ci_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_ci_proto_rawDesc), len(file_asc_v1_ci_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   17,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
