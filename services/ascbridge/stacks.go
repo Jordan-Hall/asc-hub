@@ -92,6 +92,34 @@ type RestackStackRequest struct {
 	// now, a change it would rewrite is not listed, or a listed change left the stack. Empty means no pin. A
 	// dry run ignores it.
 	ExpectedHeads []ExpectedHead
+	// Resolutions settle conflicts of the restack: the content a file takes in the rewritten change. asc refuses
+	// one that settles no conflict of the stack.
+	Resolutions []Resolution
+}
+
+// Resolution is the content a conflicting file takes when its change is restacked. ChangesetID is
+// ConflictFile.ChangesetID of the conflict it settles.
+type Resolution struct {
+	ChangesetID string // hex, 32 bytes
+	Path        string
+	Content     []byte
+	Delete      bool
+}
+
+// MaxResolutionBytes bounds the content of the resolutions of one call; asc refuses more.
+const MaxResolutionBytes = 4 << 20
+
+// ConflictFile is one conflicting file of a restack: the ids asc gave each side, as hex ("" when a side has no
+// file). MarkedID names the file with conflict markers (diff3 style: the target first, the change last), "" for
+// a conflict that has none (binary, delete, directory).
+type ConflictFile struct {
+	Path        string
+	Kind        string // content, add_add, modify_delete, file_dir, case_fold or binary
+	ChangesetID string
+	BaseID      string
+	OursID      string
+	TheirsID    string
+	MarkedID    string
 }
 
 // ExpectedHead is a change and the head asc showed for it on a dry run.
@@ -109,6 +137,8 @@ type RestackItem struct {
 	NewHead    string
 	NewVersion uint32
 	Conflicts  []string // paths
+	// Files are the conflicts with the ids of their sides, at most MaxConflictPaths.
+	Files []ConflictFile
 	// OldHeadID is the asc id (hex, 32 bytes) of the old head, "" when there is none. It is what
 	// ExpectedHead.OldHeadID takes; OldHead is the git id for the same commit.
 	OldHeadID string
@@ -309,6 +339,74 @@ func conflictPaths(cs []*ascv1.Conflict) []string {
 	return out
 }
 
+// conflictKinds names the kinds of a conflict.
+var conflictKinds = map[ascv1.ConflictKind]string{
+	ascv1.ConflictKind_CONFLICT_KIND_CONTENT:       "content",
+	ascv1.ConflictKind_CONFLICT_KIND_ADD_ADD:       "add_add",
+	ascv1.ConflictKind_CONFLICT_KIND_MODIFY_DELETE: "modify_delete",
+	ascv1.ConflictKind_CONFLICT_KIND_FILE_DIR:      "file_dir",
+	ascv1.ConflictKind_CONFLICT_KIND_CASE_FOLD:     "case_fold",
+	ascv1.ConflictKind_CONFLICT_KIND_BINARY:        "binary",
+}
+
+// conflictFiles keeps the conflicts of an answer that can be shown and settled: a path, a known kind, a changeset
+// and ids of the right length. Any other is left to Conflicts, which keeps its path only.
+func conflictFiles(cs []*ascv1.Conflict) []ConflictFile {
+	var out []ConflictFile
+	id := func(b []byte) (string, bool) {
+		if len(b) != 0 && len(b) != idLen {
+			return "", false
+		}
+		return hex.EncodeToString(b), true
+	}
+	for _, c := range cs {
+		if len(out) >= MaxConflictPaths {
+			break
+		}
+		kind, ok := conflictKinds[c.GetKind()]
+		if !ok || len(c.GetPath()) == 0 || len(c.GetChangeset()) != idLen {
+			continue
+		}
+		f := ConflictFile{Path: printable(c.GetPath()), Kind: kind, ChangesetID: hex.EncodeToString(c.GetChangeset())}
+		var ok1, ok2, ok3, ok4 bool
+		f.BaseID, ok1 = id(c.GetBaseId())
+		f.OursID, ok2 = id(c.GetOursId())
+		f.TheirsID, ok3 = id(c.GetTheirsId())
+		f.MarkedID, ok4 = id(c.GetMarkedId())
+		if ok1 && ok2 && ok3 && ok4 {
+			out = append(out, f)
+		}
+	}
+	return out
+}
+
+// resolutionsWire checks the resolutions of a request and turns them into the request of asc.
+func resolutionsWire(in []Resolution) ([]*ascv1.Resolution, error) {
+	var out []*ascv1.Resolution
+	total := 0
+	for _, r := range in {
+		cs, err := hex.DecodeString(r.ChangesetID)
+		if err != nil || len(cs) != idLen {
+			return nil, fmt.Errorf("%w: a resolution names no changeset", ErrStackBadRequest)
+		}
+		if r.Path == "" || !utf8.ValidString(r.Path) || strings.ContainsRune(r.Path, 0) {
+			return nil, fmt.Errorf("%w: a resolution has no path", ErrStackBadRequest)
+		}
+		total += len(r.Content)
+		if total > MaxResolutionBytes {
+			return nil, fmt.Errorf("%w: resolutions carry too much content", ErrStackBadRequest)
+		}
+		op := &ascv1.FileOp{Path: []byte(r.Path)}
+		if r.Delete {
+			op.Op = &ascv1.FileOp_Delete{Delete: true}
+		} else {
+			op.Op = &ascv1.FileOp_PutContent{PutContent: r.Content}
+		}
+		out = append(out, &ascv1.Resolution{Changeset: cs, Path: []byte(r.Path), Op: op})
+	}
+	return out, nil
+}
+
 // toGit maps asc ids to git ids. A zero-length id maps to "". An id asc cannot map is an error.
 func (o *stackOps) toGit(ctx context.Context, repo string, ids [][]byte) ([]string, error) {
 	out := make([]string, len(ids))
@@ -380,9 +478,13 @@ func (o *stackOps) RestackStack(ctx context.Context, req RestackStackRequest) (*
 		}
 		expected = append(expected, &ascv1.ExpectedHead{Change: c, OldHead: h})
 	}
+	resolutions, err := resolutionsWire(req.Resolutions)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := o.stacks.Restack(ctx, &ascv1.RestackStackRequest{
 		Repo: &ascv1.RepoRef{Name: req.Repo}, Change: change, DryRun: req.DryRun, AllowPartial: req.AllowPartial,
-		ExpectedHeads: expected,
+		ExpectedHeads: expected, Resolutions: resolutions,
 	})
 	if err != nil {
 		return nil, mapStackError("Restack", err)
@@ -402,7 +504,10 @@ func (o *stackOps) RestackStack(ctx context.Context, req RestackStackRequest) (*
 		if !ok {
 			return nil, fmt.Errorf("%w: unknown restack state", ErrBadAnswer)
 		}
-		items[i] = RestackItem{Change: text, State: st, NewVersion: it.GetNewVersion(), Conflicts: conflictPaths(it.GetConflicts())}
+		items[i] = RestackItem{
+			Change: text, State: st, NewVersion: it.GetNewVersion(),
+			Conflicts: conflictPaths(it.GetConflicts()), Files: conflictFiles(it.GetConflicts()),
+		}
 		if len(it.GetOldHead()) == idLen {
 			items[i].OldHeadID = hex.EncodeToString(it.GetOldHead())
 		}
