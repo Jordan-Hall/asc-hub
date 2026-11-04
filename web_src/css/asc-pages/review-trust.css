@@ -369,6 +369,7 @@
 
 .rv-group {
   border-bottom: 1px solid var(--line-2);
+  transition: transform 160ms ease-out; /* a swiped card comes back (asc-checks-swipe.js) */
 }
 
 .rv-group:last-child {
@@ -434,6 +435,27 @@
 
   .rv-group-act .rv-btn {
     min-height: 44px;
+  }
+}
+
+/* a card swiped to the left acknowledges (asc-checks-swipe.js); vertical scrolling stays with the page */
+@media (pointer: coarse) {
+  .rv-group:has([data-testid="asc-group-ack"]) {
+    touch-action: pan-y;
+  }
+}
+
+.rv-group.is-swiping {
+  transition: none;
+}
+
+.rv-group[data-swipe="armed"] {
+  border-color: var(--link);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-group {
+    transition: none;
   }
 }
 
