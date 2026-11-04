@@ -17,8 +17,8 @@ import (
 // listEvents is how many event names a list row spells out before it says "+N more".
 const listEvents = 2
 
-// streakLimit is how many of a hook's latest deliveries a list reads to say how long it has been failing.
-const streakLimit = 10
+// StreakLimit is how many of a hook's latest deliveries are read to say how long it has been failing.
+const StreakLimit = 10
 
 // ListRow is one webhook as a list of webhooks shows it: what it sends and how its last delivery went.
 type ListRow struct {
@@ -32,7 +32,7 @@ type ListRow struct {
 	MoreEvents int
 	// Scope names where the hook applies, for a list that mixes scopes (System, Default); empty otherwise.
 	Scope string
-	// FailStreak is how many of the latest deliveries failed in a row (at most streakLimit), 0 when the last one succeeded.
+	// FailStreak is how many of the latest deliveries failed in a row (at most StreakLimit), 0 when the last one succeeded.
 	FailStreak int
 }
 
@@ -102,7 +102,7 @@ func ListRows(ctx context.Context, hooks []*webhook_model.Webhook) ([]*ListRow, 
 	if err != nil {
 		return nil, err
 	}
-	streaks, err := webhook_model.FailingStreaks(ctx, ids, streakLimit)
+	streaks, err := webhook_model.FailingStreaks(ctx, ids, StreakLimit)
 	if err != nil {
 		return nil, err
 	}
