@@ -93,3 +93,23 @@ func (e *HookEvents) ascField(ev HookEventType) *bool {
 	}
 	return nil
 }
+
+// ChooseAscEvents makes the hook send the events it sends now, chosen one by one, with the ASC events named in names
+// (as "change.landed") on and the other ASC events off. A push-only hook keeps push; a hook that sent everything keeps
+// every other event.
+func (e *HookEvent) ChooseAscEvents(names []string) {
+	if e.SendEverything {
+		all := HookEvents{
+			Create: true, Delete: true, Fork: true, Issues: true, IssueAssign: true, IssueLabel: true, IssueMilestone: true,
+			IssueComment: true, Push: true, PullRequest: true, PullRequestAssign: true, PullRequestLabel: true,
+			PullRequestMilestone: true, PullRequestComment: true, PullRequestReview: true, PullRequestSync: true,
+			PullRequestReviewRequest: true, Wiki: true, Repository: true, Release: true, Package: true,
+			ActionRunFailure: true, ActionRunRecover: true, ActionRunSuccess: true,
+		}
+		e.HookEvents = all
+	} else if e.PushOnly {
+		e.Push = true
+	}
+	e.PushOnly, e.SendEverything, e.ChooseEvents = false, false, true
+	e.SetAscEvents(names)
+}
