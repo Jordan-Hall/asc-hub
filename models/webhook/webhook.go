@@ -322,12 +322,23 @@ func (w *Webhook) HasPullRequestReviewRequestEvent() bool {
 		(w.ChooseEvents && w.PullRequestReviewRequest)
 }
 
+// HasAscEvent reports whether the hook sends the ASC event e (one of webhook_module.AscHookEvents).
+func (w *Webhook) HasAscEvent(e webhook_module.HookEventType) bool {
+	if w.SendEverything {
+		return true
+	}
+	if !w.ChooseEvents {
+		return false
+	}
+	return w.AscEvent(e)
+}
+
 // EventCheckers returns event checkers
 func (w *Webhook) EventCheckers() []struct {
 	Has  func() bool
 	Type webhook_module.HookEventType
 } {
-	return []struct {
+	checkers := []struct {
 		Has  func() bool
 		Type webhook_module.HookEventType
 	}{
@@ -358,6 +369,13 @@ func (w *Webhook) EventCheckers() []struct {
 		{w.HasActionRunRecoverEvent, webhook_module.HookEventActionRunRecover},
 		{w.HasActionRunSuccessEvent, webhook_module.HookEventActionRunSuccess},
 	}
+	for _, e := range webhook_module.AscHookEvents {
+		checkers = append(checkers, struct {
+			Has  func() bool
+			Type webhook_module.HookEventType
+		}{func() bool { return w.HasAscEvent(e) }, e})
+	}
+	return checkers
 }
 
 // EventsArray returns an array of hook events
