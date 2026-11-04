@@ -251,7 +251,7 @@ func TestAscSuggestionsListsOpenSuggestionsAndMarksOldOnes(t *testing.T) {
 	}
 	w.review.threads = []*ascv1.ReviewThread{
 		{Id: 1, Anchor: anchor(3), Comments: []*ascv1.ReviewComment{{Id: 10, Author: "priya", Body: "tidy", Suggestion: "fn a() {}\n"}}},
-		{Id: 2, Anchor: anchor(2), Comments: []*ascv1.ReviewComment{{Id: 20, Author: "bob", Suggestion: "x\n"}}},
+		{Id: 2, Anchor: anchor(2), Comments: []*ascv1.ReviewComment{{Id: 20, Author: "bob", Suggestion: "x\n", ExternalId: AscExternalCommentPrefix + "77"}}},
 		{Id: 3, Anchor: anchor(3), Comments: []*ascv1.ReviewComment{{Id: 30, Author: "carol", Suggestion: "y\n", AppliedVersion: 3}}},
 		{Id: 4, Anchor: anchor(3), Comments: []*ascv1.ReviewComment{{Id: 40, Author: "dave", Body: "no suggestion"}}},
 		{Id: 5, Anchor: &ascv1.ThreadAnchor{}, Comments: []*ascv1.ReviewComment{{Id: 50, Suggestion: "z\n"}}},
@@ -261,6 +261,14 @@ func TestAscSuggestionsListsOpenSuggestionsAndMarksOldOnes(t *testing.T) {
 	require.Len(t, got, 2, "the applied one, the plain comment and the thread with no lines are left out")
 	assert.Equal(t, AscSuggestion{ThreadID: 1, CommentID: 10, Path: "src/a.rs", StartLine: 4, EndLine: 6, Author: "priya", Body: "tidy", Suggestion: "fn a() {}\n", Version: 3}, got[0])
 	assert.True(t, got[1].Stale, "a thread on an older version cannot be applied")
+	assert.EqualValues(t, 77, got[1].HubComment, "it was made in comment 77 of the hub")
 	assert.Equal(t, "4-6", got[0].Lines())
 	assert.Equal(t, "fn a() {}", got[0].Preview())
+}
+
+func TestAscHubCommentOf(t *testing.T) {
+	assert.EqualValues(t, 9, ascHubCommentOf(AscExternalCommentPrefix+"9"))
+	for _, s := range []string{"", "9", AscExternalCommentPrefix, AscExternalCommentPrefix + "x", AscExternalCommentPrefix + "-1", "other:comment:9"} {
+		assert.Zero(t, ascHubCommentOf(s), s)
+	}
 }

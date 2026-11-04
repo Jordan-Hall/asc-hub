@@ -1,8 +1,9 @@
 {{/*
-The suggested changes of a stacked change: replacement text that reviewers put on lines of an asc thread. "Apply as vN"
-makes the next version of the change (routers/web/repo/pull_asc_suggestion.go).
+The suggested changes of a stacked change that were made in asc: replacement text that reviewers put on lines of an asc
+thread. One made in a comment of the hub is shown in that comment. "Apply as vN" makes the next version of the change
+(routers/web/repo/pull_asc_suggestion.go).
 Template Attributes:
-* AscSuggestions: []pull.AscSuggestion (empty: nothing is shown)
+* AscSuggestions: []pull.AscSuggestion, the ones made in asc (empty: nothing is shown)
 * AscCanApplySuggestion: bool, the viewer may apply (the author, a maintainer, an owner; the pull request is open)
 * AscSuggestionNext: uint32, the number of the version an apply makes
 * AscSuggestionAgent: string, the agent that made the change, which may be asked to apply ("" when none)
@@ -23,19 +24,7 @@ Every text comes from asc and is escaped by the template engine.
 				</div>
 				{{if .Body}}<p class="rv-sug-body">{{.Body}}</p>{{end}}
 				<pre class="rv-log-block rv-flat" tabindex="0">{{.Preview}}</pre>
-				{{if .Stale}}
-					<p class="rp-dim" data-testid="asc-suggestion-stale">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.old_version"}}</p>
-				{{else if $.AscCanApplySuggestion}}
-					<form class="rv-acts" method="post" action="{{$.Issue.Link}}/asc/apply_suggestion">
-						{{$.CsrfTokenHtml}}
-						<input type="hidden" name="thread" value="{{.ThreadID}}">
-						<input type="hidden" name="comment" value="{{.CommentID}}">
-						<button class="rv-btn rv-btn-primary rv-btn-sm" type="submit" data-testid="asc-apply-suggestion">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.apply" $.AscSuggestionNext}}</button>
-						{{if $.AscSuggestionAgent}}
-							<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" formaction="{{$.Issue.Link}}/asc/ask_suggestion" data-testid="asc-ask-suggestion">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.ask" $.AscSuggestionAgent}}</button>
-						{{end}}
-					</form>
-				{{end}}
+				{{template "repo/pulls/asc_suggestion_acts" dict "root" $ "s" .}}
 			</li>
 			{{end}}
 		</ul>

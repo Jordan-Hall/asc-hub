@@ -1,0 +1,19 @@
+{{/*
+The buttons of one suggested change (board Review: "Apply as v5", "Ask coder-2 to apply").
+Template Attributes:
+* root: the page data (AscCanApplySuggestion, AscSuggestionNext, AscSuggestionAgent, Issue.Link, CsrfTokenHtml)
+* s: pull.AscSuggestion
+*/}}
+{{if .s.Stale}}
+	<p class="rp-dim" data-testid="asc-suggestion-stale">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.old_version"}}</p>
+{{else if .root.AscCanApplySuggestion}}
+	<form class="rv-acts" method="post" action="{{.root.Issue.Link}}/asc/apply_suggestion">
+		{{.root.CsrfTokenHtml}}
+		<input type="hidden" name="thread" value="{{.s.ThreadID}}">
+		<input type="hidden" name="comment" value="{{.s.CommentID}}">
+		<button class="rv-btn rv-btn-primary rv-btn-sm" type="submit" data-testid="asc-apply-suggestion">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.apply" .root.AscSuggestionNext}}</button>
+		{{if .root.AscSuggestionAgent}}
+			<button class="rv-btn rv-btn-secondary rv-btn-sm" type="submit" formaction="{{.root.Issue.Link}}/asc/ask_suggestion" data-testid="asc-ask-suggestion">{{ctx.Locale.Tr "repo.pulls.asc_suggestion.ask" .root.AscSuggestionAgent}}</button>
+		{{end}}
+	</form>
+{{end}}
