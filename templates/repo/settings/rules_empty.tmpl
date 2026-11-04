@@ -1,0 +1,13 @@
+{{/* The empty state of the branch rules: nothing is protected, and one button protects the default branch. Dot: page data. */}}
+<div class="ds-empty ds-card ds-card-attach" data-testid="rules-empty">
+	<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-shield-check" 32}}</span>
+	<p><strong>{{ctx.Locale.Tr "repo.settings.asc_rules.empty_title"}}</strong></p>
+	<p>{{ctx.Locale.Tr "repo.settings.asc_rules.empty_body" .Repository.DefaultBranch}}</p>
+	{{if not .Repository.IsEmpty}}
+	<form method="post" action="{{$.Repository.Link}}/settings/branches/edit">
+		{{$.CsrfTokenHtml}}
+		<input type="hidden" name="rule_name" value="{{.Repository.DefaultBranch}}">
+		<button class="ds-btn ds-btn-primary" data-testid="rules-protect-default">{{ctx.Locale.Tr "repo.settings.asc_rules.protect" .Repository.DefaultBranch}}</button>
+	</form>
+	{{end}}
+</div>

@@ -891,7 +891,7 @@ func deleteReleaseOrTag(ctx *context.Context, isDelTag bool) {
 
 	if err := release_service.DeleteReleaseByID(ctx, ctx.Repo.Repository, rel, ctx.Doer, isDelTag); err != nil {
 		if models.IsErrProtectedTagName(err) {
-			ctx.Flash.Error(ctx.Tr("repo.release.tag_name_protected"))
+			ctx.Flash.Error(ascWithRuleLink(ctx, ctx.Tr("repo.release.tag_name_protected"), protectedTagRuleLink(ctx, rel.TagName)))
 		} else {
 			ctx.Flash.Error("DeleteReleaseByID: " + err.Error())
 		}

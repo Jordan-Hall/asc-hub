@@ -123,6 +123,16 @@ func GetProtectedTagByNamePattern(ctx context.Context, repoID int64, pattern str
 	return tag, nil
 }
 
+// FirstProtectedTagFor returns the first of tags whose pattern matches tagName, nil when none does.
+func FirstProtectedTagFor(tags []*ProtectedTag, tagName string) *ProtectedTag {
+	for _, tag := range tags {
+		if tag.EnsureCompiledPattern() == nil && tag.matchString(tagName) {
+			return tag
+		}
+	}
+	return nil
+}
+
 // IsUserAllowedToControlTag checks if a user can control the specific tag.
 // It returns true if the tag name is not protected or the user is allowed to control it.
 func IsUserAllowedToControlTag(ctx context.Context, tags []*ProtectedTag, tagName string, userID int64) (bool, error) {
