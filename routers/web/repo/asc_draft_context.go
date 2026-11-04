@@ -5,11 +5,11 @@ package repo
 
 import (
 	gocontext "context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
-	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
@@ -117,8 +117,19 @@ func AscDraftContext(ctx *context.Context) {
 		ctx.JSON(http.StatusServiceUnavailable, map[string]string{"error": "unavailable"})
 		return
 	}
-	// the reader has been checked by the route; the call is the hub's own, as for the brief
-	callCtx, cancel := gocontext.WithTimeout(ascclient.WithSystem(ctx), ascBriefTimeout)
+	// the call carries the claim of the person, so asc lists only the files their path rules let them read
+	userCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, ctx.Repo.Repository)
+	if err != nil {
+		if errors.Is(err, asctrust.ErrForbidden) || errors.Is(err, asctrust.ErrNoDoer) {
+			ctx.JSON(http.StatusForbidden, map[string]string{"error": "denied"})
+			return
+		}
+		log.Error("asc draft context: the claim about the person: %v", err)
+		ctx.JSON(http.StatusServiceUnavailable, map[string]string{"error": "unavailable"})
+		return
+	}
+	defer release()
+	callCtx, cancel := gocontext.WithTimeout(gocontext.WithoutCancel(userCtx), ascBriefTimeout)
 	defer cancel()
 	resp, err := ascv1.NewReviewClient(conn).DraftContext(callCtx, &ascv1.DraftContextRequest{Repo: &ascv1.RepoRef{Name: name}, Base: base, Head: head})
 	if err != nil {
