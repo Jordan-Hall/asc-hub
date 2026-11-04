@@ -1,7 +1,7 @@
 <div class="ds-field">
 	<span class="ds-label" id="repo_template_label">{{ctx.Locale.Tr "repo.template"}}</span>
 	{{/* The Fomantic search dropdown is filled from the repository search by repo-template.js (ids repo_template and repo_template_search) */}}
-	<div id="repo_template_search" class="ui search selection dropdown tw-w-full" aria-labelledby="repo_template_label">
+	<div id="repo_template_search" class="ui search selection dropdown tw-w-full" data-placeholder="{{ctx.Locale.Tr "repo.template_select"}}" aria-labelledby="repo_template_label">
 		<input type="hidden" id="repo_template" name="repo_template" value="{{if ne .repo_template 0}}{{.repo_template}}{{end}}">
 		<div class="default text">{{.repo_template_name}}</div>
 		<div class="menu">

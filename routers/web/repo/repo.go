@@ -247,8 +247,17 @@ func Create(ctx *context.Context) {
 	ctx.Data["policy_approvals"] = 2
 	ctx.Data["working_mode"] = repo_service.WorkingModeBranchless
 	prepareAscNewRepo(ctx, ctxUser)
+	prepareNewRepoImport(ctx)
 
 	ctx.HTML(http.StatusOK, tplCreate)
+}
+
+// prepareNewRepoImport offers the importers under "Start from: Import", unless the server turned migrations off.
+func prepareNewRepoImport(ctx *context.Context) {
+	if setting.Repository.DisableMigrations {
+		return
+	}
+	ctx.Data["NewRepoImports"] = append([]api.GitServiceType{api.PlainGitService}, api.SupportedFullGitService...)
 }
 
 func handleCreateError(ctx *context.Context, owner *user_model.User, err error, name string, tpl base.TplName, form any) {
@@ -305,6 +314,7 @@ func CreatePost(ctx *context.Context) {
 	}
 	ctx.Data["ContextUser"] = ctxUser
 	prepareAscNewRepo(ctx, ctxUser)
+	prepareNewRepoImport(ctx)
 
 	if !ctx.CheckQuota(quota_model.LimitSubjectSizeReposAll, ctxUser.ID, ctxUser.Name) {
 		return

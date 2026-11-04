@@ -61,6 +61,12 @@ func Migrate(ctx *context.Context) {
 	ctx.Data["issues"] = ctx.FormString("issues") == "1"
 	ctx.Data["pull_requests"] = ctx.FormString("pull_requests") == "1"
 	ctx.Data["releases"] = ctx.FormString("releases") == "1"
+	// "Import" on the new repository page carries what was typed there
+	ctx.Data["repo_name"] = ctx.FormString("repo_name")
+	ctx.Data["description"] = ctx.FormString("description")
+	if v := ctx.FormString("private"); v != "" && !setting.Repository.ForcePrivate {
+		ctx.Data["private"] = v == "1"
+	}
 
 	ctxUser := checkContextUser(ctx, ctx.FormInt64("org"))
 	if ctx.Written() {

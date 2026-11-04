@@ -28,10 +28,35 @@
   font-weight: 600;
 }
 
-.rp-new-migrate {
+.rp-start {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rp-import-list {
+  display: grid;
+  gap: 8px;
   margin: 0;
-  color: var(--text-2);
+  padding: 0;
+  list-style: none;
+}
+
+.rp-import-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: var(--touch);
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  color: var(--text);
   font-size: 14px;
+}
+
+.rp-import-item:hover {
+  border-color: var(--line-strong);
+  text-decoration: none;
 }
 
 .rp-new-adv > summary {

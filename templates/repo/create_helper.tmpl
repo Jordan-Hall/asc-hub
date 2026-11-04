@@ -1,3 +1,0 @@
-{{if not $.DisableMigrations}}
-	<p class="rp-new-migrate">{{if .NewRepoIsAsc}}{{ctx.Locale.Tr "repo.new_repo_helper_asc" (print AppSubUrl "/repo/migrate?service_type=1")}}{{else}}{{ctx.Locale.Tr "repo.new_repo_helper" (print AppSubUrl "/repo/migrate")}}{{end}}</p>
-{{end}}

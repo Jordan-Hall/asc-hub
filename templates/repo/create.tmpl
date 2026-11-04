@@ -13,17 +13,19 @@
 		{{if or .CanCreateRepo .Orgs}}
 			<form class="ds-form rp-new-form" action="{{.Link}}" method="post">
 				{{.CsrfTokenHtml}}
-				{{template "repo/create_helper" .}}
 				{{if and (not .CanCreateRepo) (ne .MaxCreationLimit 0)}}
 					<div class="ds-banner ds-banner-warn" role="status">{{ctx.Locale.TrN .MaxCreationLimit "repo.form.reach_limit_of_creation_1" "repo.form.reach_limit_of_creation_n" .MaxCreationLimit}}</div>
 				{{end}}
 				<section class="rp-sec">
 					<div class="rp-sec-b ds-stack ds-stack-16">
+						{{template "repo/create_start" .}}
 						{{template "repo/create_basic" .}}
 					</div>
 				</section>
 
-				<section class="rp-sec">
+				{{template "repo/create_import" .}}
+
+				<section class="rp-sec" data-start-panel="template"{{if not .repo_template}} hidden{{end}}>
 					<div class="rp-sec-h">
 						<div>
 							<h2 class="rp-sec-title">{{ctx.Locale.Tr "repo.new_from_template"}}</h2>
@@ -35,7 +37,7 @@
 					</div>
 				</section>
 
-				<div id="non_template" class="ds-stack ds-stack-16">
+				<div id="non_template" class="ds-stack ds-stack-16" data-start-not-import>
 					<section class="rp-sec">
 						<div class="rp-sec-h">
 							<div>
@@ -72,10 +74,11 @@
 				</div>
 
 				{{with .AscNewRepoQuota}}
-					<p class="ds-hint{{if .Reached}} rp-new-quota-reached{{end}}" data-testid="newrepo-quota" role="status">{{ctx.Locale.Tr "asc_rp.newrepo_quota" .Used .Limit}}{{if .Reached}} {{ctx.Locale.Tr "asc_rp.newrepo_quota_reached"}}{{end}}</p>
+					<p data-start-not-import class="ds-hint{{if .Reached}} rp-new-quota-reached{{end}}" data-testid="newrepo-quota" role="status">{{ctx.Locale.Tr "asc_rp.newrepo_quota" .Used .Limit}}{{if .Reached}} {{ctx.Locale.Tr "asc_rp.newrepo_quota_reached"}}{{end}}</p>
 				{{end}}
-				<div class="ds-sticky-actions rp-new-actions">
-					<button class="ds-btn ds-btn-primary ds-btn-lg" type="submit">{{ctx.Locale.Tr "repo.create_repo"}}</button>
+				{{template "repo/create_preview" .}}
+				<div class="ds-sticky-actions rp-new-actions" data-start-not-import>
+					<button class="ds-btn ds-btn-primary ds-btn-lg" type="submit" data-new-submit data-busy-text="{{ctx.Locale.Tr "asc_rp.newrepo_creating" "{repo}"}}"{{if .NewRepoIsAsc}} data-busy-policy-text="{{ctx.Locale.Tr "asc_rp.newrepo_creating_policy" "{repo}"}}"{{end}}>{{ctx.Locale.Tr "repo.create_repo"}}</button>
 					<a class="ds-btn ds-btn-ghost ds-btn-lg" href="{{if .ContextUser}}{{.ContextUser.HomeLink}}{{else}}{{AppSubUrl}}/{{end}}">{{ctx.Locale.Tr "settings.cancel"}}</a>
 				</div>
 			</form>

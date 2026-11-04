@@ -1,0 +1,19 @@
+{{/* The importers under "Start from: Import". The script adds what was typed to each link. Dot: page data. */}}
+{{if .NewRepoImports}}
+<section class="rp-sec" data-start-panel="import" data-testid="newrepo-import" hidden>
+	<div class="rp-sec-h">
+		<div>
+			<h2 class="rp-sec-title">{{ctx.Locale.Tr "asc_rp.newrepo_import_title"}}</h2>
+			<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.newrepo_import_sub"}}</p>
+		</div>
+	</div>
+	<ul class="rp-sec-b rp-import-list">
+		{{range .NewRepoImports}}
+		<li><a class="rp-import-item" href="{{AppSubUrl}}/repo/migrate?service_type={{.}}" data-import-link>
+			<strong>{{.Title}}</strong>
+			<span class="ds-c-2">{{ctx.Locale.Tr (printf "migrate.%s.description" .Name)}}</span>
+		</a></li>
+		{{end}}
+	</ul>
+</section>
+{{end}}
