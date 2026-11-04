@@ -984,6 +984,7 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 	ctx.Data["IsShowingOnlySingleCommit"] = willShowSpecifiedCommit
 
 	ascVersions := prepareAscVersions(ctx, pull)
+	prepareAscLanding(ctx, pull)
 	var ascView *ascVersionView
 
 	if willShowSpecifiedCommit {

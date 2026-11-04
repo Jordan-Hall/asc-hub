@@ -1094,3 +1094,12 @@
 .rv-sug-body {
   margin: 0 0 8px;
 }
+
+/* The Landing card of the side panel (board Review): the queue button and the dry run line under the queue place. */
+.rv-landing .rv-btn-block {
+  margin-top: 12px;
+}
+
+.rv-landing .rv-landing-dry {
+  margin: 10px 0 0;
+}
