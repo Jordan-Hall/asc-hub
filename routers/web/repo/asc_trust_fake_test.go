@@ -79,6 +79,22 @@ type fakeTrust struct {
 
 	policySource func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error)
 	policyEval   func(*ascv1.EvaluatePolicyRequest) (*ascv1.EvaluatePolicyResponse, error)
+
+	checkSecrets func(*ascv1.CheckSecretsRequest) (*ascv1.CheckSecretsResponse, error)
+}
+
+// fakeSecretScan serves SecretScan for a fakeTrust: its ListFindings is not the one of DepScan.
+type fakeSecretScan struct {
+	ascv1.UnimplementedSecretScanServer
+	f *fakeTrust
+}
+
+func (s fakeSecretScan) Check(ctx gocontext.Context, r *ascv1.CheckSecretsRequest) (*ascv1.CheckSecretsResponse, error) {
+	s.f.note(ctx, "Check", r)
+	if s.f.checkSecrets == nil {
+		return s.UnimplementedSecretScanServer.Check(ctx, r)
+	}
+	return s.f.checkSecrets(r)
 }
 
 func (f *fakeTrust) note(ctx gocontext.Context, method string, req any) {
@@ -291,6 +307,7 @@ func startFakeTrust(t *testing.T, features ...string) *fakeTrust {
 	ascv1.RegisterAuditServer(srv, f)
 	ascv1.RegisterDepsServiceServer(srv, f)
 	ascv1.RegisterPolicyServer(srv, f)
+	ascv1.RegisterSecretScanServer(srv, fakeSecretScan{f: f})
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()

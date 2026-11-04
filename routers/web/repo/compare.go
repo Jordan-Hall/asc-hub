@@ -630,6 +630,7 @@ func PrepareCompareDiff(
 	ctx.Data["CommitCount"] = len(commits)
 	if ci.HeadRepo != nil && ci.HeadRepo.ID == ctx.Repo.Repository.ID && len(commits) > 0 {
 		prepareCompareState(ctx, ctx.Repo.GitRepo.Path, ci.CompareInfo.BaseCommitID, headCommitID)
+		prepareCompareSecrets(ctx, ci.CompareInfo.BaseCommitID, headCommitID)
 	}
 
 	if len(commits) == 1 {

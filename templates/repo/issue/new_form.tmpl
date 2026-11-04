@@ -20,6 +20,9 @@
 							<div class="title_wip_desc" data-wip-prefixes="{{JsonUtils.EncodeToString .PullRequestWorkInProgressPrefixes}}">{{ctx.Locale.Tr "repo.pulls.title_wip_desc" (index .PullRequestWorkInProgressPrefixes 0)}}</div>
 						{{end}}
 					</div>
+					{{with .AscSecretBlock}}
+					<div class="ds-banner ds-banner-err" role="note" id="asc-secret-block" data-testid="asc-secret-block"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{if .Paths}}{{ctx.Locale.Tr "asc_rp.cmp_secret" $.AscSecretBlockPaths}}{{else}}{{ctx.Locale.Tr "asc_rp.cmp_secret_unread"}}{{end}}</div></div>
+					{{end}}
 					{{if .Fields}}
 						<input type="hidden" name="template-file" value="{{.TemplateFile}}">
 						{{range .Fields}}
@@ -75,7 +78,7 @@
 						<button type="button" class="ds-btn ds-btn-secondary" data-asc-ncd-discard data-confirm="{{ctx.Locale.Tr "asc_rp.ncd_discard_confirm"}}">{{ctx.Locale.Tr "asc_rp.ncd_discard"}}</button>
 						<button type="button" class="ds-btn ds-btn-secondary" data-asc-ncd-save>{{ctx.Locale.Tr "asc_rp.ncd_save"}}</button>
 						{{end}}
-						<button class="ds-btn ds-btn-primary">
+						<button class="ds-btn ds-btn-primary"{{if .AscSecretBlock}} disabled aria-describedby="asc-secret-block"{{end}}>
 							{{if .PageIsComparePull}}
 								{{ctx.Locale.Tr "repo.pulls.create"}}
 							{{else}}
