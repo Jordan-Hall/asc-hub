@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"unicode"
 
 	issues_model "forgejo.org/models/issues"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
@@ -24,7 +25,7 @@ import (
 // "Apply as vN" of a suggested change of a stacked pull request (services/pull/asc_suggestion.go). The button is in
 // templates/repo/pulls/asc_suggestions.tmpl; the work and the permission check are pull_service.AscApplySuggestion.
 // "Ask <agent> to apply" starts a run of the agent that made the change, as the person, to apply the suggestion on the
-// branch of the change and push the next version.
+// branch of the change and push the next version. The run may write the file of the suggestion only.
 
 var (
 	// ascSuggestionsOf lists the open suggested changes of a pull request. Tests replace it.
@@ -36,8 +37,10 @@ var (
 // ascSuggestionTaskMax is the longest task the hub sends; asc refuses a task over 64 KiB by default.
 const ascSuggestionTaskMax = 60 << 10
 
-// prepareAscSuggestions puts the open suggested changes of a stacked pull request into ctx.Data["AscSuggestions"], and
-// whether the viewer may apply them into ctx.Data["AscCanApplySuggestion"]. It never fails the page.
+// prepareAscSuggestions puts the open suggested changes of a stacked pull request into the page, and whether the viewer
+// may apply them into ctx.Data["AscCanApplySuggestion"]. A suggestion made in a comment of the hub is shown in that
+// comment (ctx.Data["AscSuggestionOfComment"], by comment id); one made in asc is listed in the card of
+// ctx.Data["AscSuggestions"]. It never fails the page.
 func prepareAscSuggestions(ctx *context.Context, pull *issues_model.PullRequest) {
 	if pull == nil || !setting.Asc.Enabled || ctx.Data["AscStackPanel"] == nil {
 		return
@@ -52,7 +55,17 @@ func prepareAscSuggestions(ctx *context.Context, pull *issues_model.PullRequest)
 	if len(list) == 0 {
 		return
 	}
-	ctx.Data["AscSuggestions"] = list
+	var card []pull_service.AscSuggestion
+	inline := map[int64]*pull_service.AscSuggestion{}
+	for i := range list {
+		if id := list[i].HubComment; id != 0 {
+			inline[id] = &list[i]
+		} else {
+			card = append(card, list[i])
+		}
+	}
+	ctx.Data["AscSuggestions"] = card
+	ctx.Data["AscSuggestionOfComment"] = inline
 	latest, _ := ctx.Data["AscVersionsLatest"].(uint32)
 	ctx.Data["AscSuggestionNext"] = latest + 1
 	if !ctx.IsSigned || ctx.Doer == nil {
@@ -80,6 +93,27 @@ func ascSuggestionAgent(ctx gocontext.Context, pull *issues_model.PullRequest) s
 		return ""
 	}
 	return link.Agent
+}
+
+// ascSuggestionScope is the write scope of a run asked to apply a suggestion on path: that one file. The suggestion is
+// text of a reviewer, so what the run may write is limited by asc, not by the task. false when path is not a path
+// pattern of asc that matches path only (a wildcard in it would match other files).
+func ascSuggestionScope(path string) ([]string, bool) {
+	if path == "" || len(path) > 256 || strings.HasPrefix(path, "/") || strings.ContainsAny(path, "*?\\") ||
+		strings.Count(path, "/") >= 32 {
+		return nil, false
+	}
+	for _, r := range path {
+		if unicode.IsControl(r) {
+			return nil, false
+		}
+	}
+	for _, seg := range strings.Split(path, "/") {
+		if seg == "" || seg == "." || seg == ".." {
+			return nil, false
+		}
+	}
+	return []string{path}, true
 }
 
 // ascSuggestionTask is what the run is asked to do. The suggestion is the text of a reviewer: data, never an
@@ -243,11 +277,19 @@ func AscAskSuggestion(ctx *context.Context) {
 		ctx.Redirect(issue.Link())
 		return
 	}
+	scope, ok := ascSuggestionScope(sug.Path)
+	if !ok {
+		ctx.Flash.Error(ctx.Tr("repo.pulls.asc_suggestion.ask_path"))
+		ctx.Redirect(issue.Link())
+		return
+	}
 	req := &ascv1.CreateAgentRunRequest{
 		Agent:  agent,
 		Title:  fmt.Sprintf("Apply a suggested change to #%d", issue.Index),
 		Task:   ascSuggestionTask(sug),
 		Target: pull.HeadBranch,
+		Paths:  scope,
+		Limits: &ascv1.AgentBudgetLimits{MaxPaths: 1},
 	}
 	if len(req.Task) > ascSuggestionTaskMax {
 		ctx.Flash.Error(ctx.Tr("repo.pulls.asc_suggestion.ask_long"))

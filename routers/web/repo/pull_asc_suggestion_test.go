@@ -166,6 +166,15 @@ func TestAscAskSuggestionStartsARunOfTheAgentThatMadeTheChange(t *testing.T) {
 	assert.Equal(t, "branch2", reqs[0].GetTarget())
 	assert.Equal(t, "Apply a suggested change to #3", reqs[0].GetTitle())
 	assert.Contains(t, reqs[0].GetTask(), "fn a() {}")
+	assert.Equal(t, []string{"src/a.rs"}, reqs[0].GetPaths(), "the run may write the file of the suggestion only")
+	assert.EqualValues(t, 1, reqs[0].GetLimits().GetMaxPaths())
+
+	list[0].Path = "src/*.rs"
+	ctx = askCtx(t, 2)
+	AscAskSuggestion(ctx)
+	assert.Equal(t, "repo.pulls.asc_suggestion.ask_path", ctx.Flash.ErrorMsg, "a wildcard would widen the scope")
+	assert.Len(t, reqs, 1)
+	list[0].Path = "src/a.rs"
 
 	ctx = askCtx(t, 2)
 	ctx.Req.Form.Set("comment", "23")
@@ -191,4 +200,71 @@ func TestAscAskSuggestionStartsARunOfTheAgentThatMadeTheChange(t *testing.T) {
 	AscAskSuggestion(ctx)
 	assert.Equal(t, "repo.pulls.asc_suggestion.ask_long", ctx.Flash.ErrorMsg)
 	assert.Len(t, reqs, 3)
+}
+
+func TestAscSuggestionScopeIsTheOneFile(t *testing.T) {
+	for _, ok := range []string{"a.rs", "src/a b.rs", "docs/[x].md"} {
+		scope, good := ascSuggestionScope(ok)
+		assert.True(t, good, ok)
+		assert.Equal(t, []string{ok}, scope)
+	}
+	for _, bad := range []string{"", "/a", "a/", "a//b", "./a", "a/../b", "a*", "a?b", "a\\b", "a\nb", strings.Repeat("a", 257),
+		strings.Repeat("a/", 32) + "a",
+	} {
+		_, good := ascSuggestionScope(bad)
+		assert.False(t, good, bad)
+	}
+}
+
+func TestAscSuggestionOfAHubCommentIsShownInTheComment(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	t.Cleanup(test.MockVariableValue(&setting.Asc.Enabled, true))
+	list := []pull_service.AscSuggestion{
+		{ThreadID: 11, CommentID: 22, Path: "src/a.rs", StartLine: 4, Suggestion: "fn a() {}", HubComment: 5},
+		{ThreadID: 12, CommentID: 23, Path: "src/b.rs", StartLine: 1, Suggestion: "x"},
+	}
+	t.Cleanup(test.MockVariableValue(&ascSuggestionsOf, func(gocontext.Context, *issues_model.PullRequest) ([]pull_service.AscSuggestion, error) {
+		return list, nil
+	}))
+	pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 2})
+	ctx, _ := contexttest.MockContext(t, "/user2/repo1/pulls/3")
+	contexttest.LoadUser(t, ctx, 2)
+	ctx.IsSigned = true
+	ctx.Data["AscStackPanel"] = &pull_service.AscStackPanel{}
+	prepareAscSuggestions(ctx, pr)
+	assert.Equal(t, []pull_service.AscSuggestion{list[1]}, ctx.Data["AscSuggestions"], "the card lists the one made in asc")
+	inline := ctx.Data["AscSuggestionOfComment"].(map[int64]*pull_service.AscSuggestion)
+	require.Len(t, inline, 1)
+	assert.EqualValues(t, 22, inline[5].CommentID)
+	assert.Equal(t, true, ctx.Data["AscCanApplySuggestion"])
+
+	acts := func(s *pull_service.AscSuggestion, canApply bool, agent string) string {
+		return renderPart(t, "repo/pulls/asc_suggestion_acts", func(d map[string]any) {
+			d["root"], d["s"] = d, s
+			d["AscCanApplySuggestion"], d["AscSuggestionNext"], d["AscSuggestionAgent"] = canApply, uint32(5), agent
+		})
+	}
+	body := acts(inline[5], true, "coder-2")
+	for _, want := range []string{`action="/user2/repo1/pulls/3/asc/apply_suggestion"`, `name="thread" value="11"`, `name="comment" value="22"`,
+		`data-testid="asc-apply-suggestion"`, `formaction="/user2/repo1/pulls/3/asc/ask_suggestion"`} {
+		assert.Contains(t, body, want)
+	}
+	assert.NotContains(t, acts(inline[5], true, ""), "asc-ask-suggestion")
+	assert.NotContains(t, acts(inline[5], false, "coder-2"), "<form", "a viewer who may not apply sees no buttons")
+	assert.Contains(t, acts(&pull_service.AscSuggestion{Stale: true}, true, "coder-2"), "asc-suggestion-stale")
+
+	review := &issues_model.Comment{ID: 5, Type: issues_model.CommentTypeCode, PosterID: 2, Content: "tidy", TreePath: "src/a.rs", Line: 4}
+	other := &issues_model.Comment{ID: 6, Type: issues_model.CommentTypeCode, PosterID: 2, Content: "nit", TreePath: "src/a.rs", Line: 4}
+	for _, c := range []*issues_model.Comment{review, other} {
+		require.NoError(t, c.LoadPoster(t.Context()))
+	}
+	body = renderPart(t, "repo/diff/comments", func(d map[string]any) {
+		d["root"], d["comments"] = d, []*issues_model.Comment{review, other}
+		d["AscSuggestionOfComment"], d["AscCanApplySuggestion"], d["AscSuggestionNext"] = inline, true, uint32(5)
+	})
+	assert.Equal(t, 1, countOf(body, `data-testid="asc-apply-suggestion"`), "only the comment the suggestion was made in")
+	body = renderPart(t, "repo/diff/comments", func(d map[string]any) {
+		d["root"], d["comments"] = d, []*issues_model.Comment{review}
+	})
+	assert.NotContains(t, body, "asc-apply-suggestion", "a page with no suggestions")
 }
