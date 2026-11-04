@@ -59,7 +59,7 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 						</div>
 						<div class="rv-banner-btns">
 							{{if $.AscOps.RestackCompare}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscOps.RestackCompare}}" data-testid="asc-ops-restack-see">{{ctx.Locale.Tr "asc_review.ops_restack_see"}}</a>{{end}}
-							<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscOps.OpsURL}}/undo?ref={{.Ref | QueryEscape}}&amp;seq={{.Seq}}">{{svg "dsi-undo" 16 "rv-ic"}}{{ctx.Locale.Tr "asc_review.ops_restack_undo"}}</a>
+							<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscOps.OpsURL}}/undo?ref={{.Ref | QueryEscape}}&amp;seq={{.Seq}}" data-asc-ops-load>{{svg "dsi-undo" 16 "rv-ic"}}{{ctx.Locale.Tr "asc_review.ops_restack_undo"}}</a>
 						</div>
 					</div>
 				{{end}}
@@ -82,7 +82,7 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 					{{if .Rows}}
 						<ol class="rv-ops" data-testid="asc-ops-list">
 							{{range .Rows}}
-								<li class="rv-op" data-testid="asc-op" data-seq="{{.Seq}}">
+								<li class="rv-op{{if and .Undoable $.AscOps.CanUndo}} is-selectable{{end}}" data-testid="asc-op" data-seq="{{.Seq}}">
 									<div class="rv-op-main">
 										<div class="rv-op-title" data-testid="asc-op-title">{{ctx.Locale.Tr (printf "asc_review.ops_title_%s" .ViaKey) .Label}}</div>
 										<div class="rv-op-top">
@@ -98,7 +98,7 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 									<div class="rv-op-side">
 										{{if .Undoable}}
 											{{if $.AscOps.CanUndo}}
-												<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscOps.OpsURL}}/undo?ref={{.Ref | QueryEscape}}&seq={{.Seq}}" aria-label="{{ctx.Locale.TrString "asc_trust.ops.undo_aria" .Label}}" data-testid="asc-op-undo">{{ctx.Locale.Tr "asc_trust.ops.undo"}}</a>
+												<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscOps.OpsURL}}/undo?ref={{.Ref | QueryEscape}}&amp;seq={{.Seq}}" aria-label="{{ctx.Locale.TrString "asc_trust.ops.undo_aria" .Label}}" data-testid="asc-op-undo">{{ctx.Locale.Tr "asc_trust.ops.undo"}}</a>
 											{{end}}
 										{{else}}
 											<span class="rv-blocked" data-testid="asc-op-blocked">{{svg "octicon-lock" 14 "rv-ic"}} {{ctx.Locale.Tr (printf "asc_trust.ops.blocked.%s" .BlockKey)}}</span>

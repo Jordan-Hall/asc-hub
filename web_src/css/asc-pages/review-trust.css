@@ -887,6 +887,27 @@
   background: var(--primary-soft, rgb(20 120 141 / 8%));
 }
 
+.rv-op.is-selectable {
+  cursor: pointer;
+}
+
+/* the undo preview crossfades in when another row is selected (board Ops: 120 ms) */
+[data-asc-ops-panel-body].is-swapped {
+  animation: rv-ops-fade 120ms ease-out;
+}
+
+@keyframes rv-ops-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-asc-ops-panel-body].is-swapped {
+    animation: none;
+  }
+}
+
 [data-asc-ops-panel-body] .rv-lead {
   margin-top: 0;
 }
