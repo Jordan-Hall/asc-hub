@@ -21,6 +21,8 @@ import (
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/json"
+	"forgejo.org/modules/setting"
+	"forgejo.org/modules/test"
 	webhook_module "forgejo.org/modules/webhook"
 	"forgejo.org/services/release"
 	"forgejo.org/tests"
@@ -80,6 +82,8 @@ func TestWebhookPayloadRef(t *testing.T) {
 
 func TestWebhookReleaseEvents(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	// the new tasks are counted from one page of the hook's tasks, which must hold all of them
+	defer test.MockVariableValue(&setting.Webhook.PagingNum, 50)()
 
 	user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 	repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
@@ -119,9 +123,10 @@ func TestWebhookReleaseEvents(t *testing.T) {
 		hookTasks = retrieveHookTasks(t, w.ID, false)
 
 		checkHookTasks(t, map[webhook_module.HookEventType]string{
-			webhook_module.HookEventRelease: "published",
-			webhook_module.HookEventCreate:  "", // a tag was created as well
-			webhook_module.HookEventPush:    "", // the tag creation also means a push event
+			webhook_module.HookEventRelease:          "published",
+			webhook_module.HookEventReleasePublished: "", // the ASC event of a hook that sends everything
+			webhook_module.HookEventCreate:           "", // a tag was created as well
+			webhook_module.HookEventPush:             "", // the tag creation also means a push event
 		}, hookTasks[:len(hookTasks)-hookTasksLenBefore])
 
 		t.Run("UpdateRelease", func(t *testing.T) {
@@ -166,7 +171,7 @@ func TestWebhookReleaseEvents(t *testing.T) {
 			hookTasks = retrieveHookTasks(t, w.ID, false)
 
 			checkHookTasks(t, map[webhook_module.HookEventType]string{
-				webhook_module.HookEventRelease: "published",
+				webhook_module.HookEventRelease: "published", // rel is still a tag, which has no ASC release.published
 			}, hookTasks[:len(hookTasks)-hookTasksLenBefore])
 		})
 	})
