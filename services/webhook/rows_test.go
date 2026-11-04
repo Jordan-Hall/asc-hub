@@ -23,9 +23,10 @@ func TestEventGroups(t *testing.T) {
 
 	chosen := &webhook_model.Webhook{HookEvent: &webhook_module.HookEvent{ChooseEvents: true, HookEvents: webhook_module.HookEvents{
 		Release: true, IssueLabel: true, PullRequestSync: true, PullRequestReviewRequest: true, ActionRunFailure: true,
+		ReleasePublished: true, ChangeLanded: true, AgentRunFinished: true,
 	}}}
 	assert.Equal(t, []string{
-		"repo.settings.event_release", "asc_hooks.ev_issues", "asc_hooks.ev_pull_requests", "asc_hooks.ev_reviews", "asc_hooks.ev_action_runs",
+		"asc_hooks.ev_change_landed", "asc_hooks.ev_agent_run_finished", "asc_hooks.ev_release_published", "repo.settings.event_release", "asc_hooks.ev_issues", "asc_hooks.ev_pull_requests", "asc_hooks.ev_reviews", "asc_hooks.ev_action_runs",
 	}, EventGroups(chosen))
 }
 

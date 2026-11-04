@@ -36,10 +36,10 @@ func (d *Delivery) ShortID() string {
 	return id
 }
 
-// Event names what the delivery was about, as "release published": the event type, and the action when the
-// payload has one.
+// Event names what the delivery was about, as "release published" or "agent run finished": the event type, and the
+// action when the payload has one.
 func (d *Delivery) Event() string {
-	event := strings.ReplaceAll(string(d.EventType), "_", " ")
+	event := strings.NewReplacer("_", " ", ".", " ").Replace(string(d.EventType))
 	var payload struct {
 		Action string `json:"action"`
 	}

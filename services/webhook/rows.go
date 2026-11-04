@@ -120,7 +120,7 @@ func ListRows(ctx context.Context, hooks []*webhook_model.Webhook) ([]*ListRow, 
 }
 
 // EventGroups names the groups of events a hook that does not send everything sends, as locale keys,
-// in the order of the webhook form. A push-only hook sends the push group.
+// the ASC events first, then the others in the order of the webhook form. A push-only hook sends the push group.
 func EventGroups(w *webhook_model.Webhook) []string {
 	if w.PushOnly {
 		return []string{"repo.settings.event_push"}
@@ -133,6 +133,13 @@ func EventGroups(w *webhook_model.Webhook) []string {
 		on  bool
 		key string
 	}{
+		{e.ChangeLanded, "asc_hooks.ev_change_landed"},
+		{e.ChangeOpened, "asc_hooks.ev_change_opened"},
+		{e.ReviewRequested, "asc_hooks.ev_review_requested"},
+		{e.AgentRunStarted, "asc_hooks.ev_agent_run_started"},
+		{e.AgentRunFinished, "asc_hooks.ev_agent_run_finished"},
+		{e.ReleasePublished, "asc_hooks.ev_release_published"},
+		{e.PolicyChanged, "asc_hooks.ev_policy_changed"},
 		{e.Create, "repo.settings.event_create"},
 		{e.Delete, "repo.settings.event_delete"},
 		{e.Fork, "repo.settings.event_fork"},
