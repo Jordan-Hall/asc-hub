@@ -88,7 +88,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Code | Heat bar paired with age text (recency scale) | done | `H:routers/web/repo/blame.go` (compute age rank per row), `blame.tmpl`, CSS | S |
 | Code | Agent author carries the violet agent mark in blame | done (seen on a live hub (ui16): a bot account author gets the agent chip) | author kind from agent identity (`H:services/ascidentity`) in blame row struct | S |
 | Code | Click a line number selects and shares a range; selected lines flash once | done | Forgejo `repo-code.ts` range select; flash not verified | S |
-| Code | Shortcuts `b` toggle blame, `y` permalink, `l` go to line, `e` propose change, `t` find file, `[` collapse tree | ui-only-missing | none bound in `H:web_src/js`; add to a repo keymap module | M |
+| Code | Shortcuts `b` toggle blame, `y` permalink, `l` go to line, `e` propose change, `t` find file, `[` collapse tree | done | `H:templates/repo/code_keys.tmpl` lists the keys of the view; `asc-goto-line.js` adds `l` (a dialog that goes to and marks the line) next to the `t`, `b`, `y`, `e` and `[` bindings; `asc_code_keys_test.go`, `asc-goto-line.test.js` | M |
 | Code | File tree with aria-current and "N files touched by open stacks" badges per file | needs-hub-backend | `H:routers/web/repo/view_asc_tree.go` builds the tree; add per-path badge from open pulls' changed files (`PathChange` via `Repo.Compare` or pull files table) | M |
 | Code | Tree collapse with `[` and Files sheet on mobile | done | `rp-tree`, `rp-files-btn` in `code_view.tmpl` | S |
 | Code | Outline panel (struct / impl / fn with line numbers) | done (seen on a live hub (ui10): needs [codeintel] enabled on asc serve) | `CodeIntel.Symbols` op=outline is served at `GET /{owner}/{repo}/asc/symbols?op=outline&path=` by `H:routers/web/repo/asc_symbols.go`, but `H:templates/repo/code_view.tmpl` right rail only has `file_info`; embed outline as htmx fragment | M |
@@ -97,7 +97,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Code | Shortcuts legend card | done | `code_view.tmpl` right rail | S |
 | Code | Propose change bar ("Changes go into a new change on top of main"), Start a new change / Add to my stack | needs-hub-backend | bar exists (`rp-editnote`) and links to the Forgejo editor; the editor commits to a branch/PR rather than creating a change or adding to the user's stack | L |
 | Code | Directory view columns: Last change, In open stack chip, Author, Size, Updated | done (seen on a live hub (ui16): author, size, last change and updated; the open-stack chip is not drawn) | `H:templates/repo/view_list.tmpl` has name, message, age only; author and size from `Repo.LastCommits`/`ReadTree`, open-stack chip as in tree badges | M |
-| Code | Loading state (lines stream in) | ui-only-missing | skeleton in `view_file.tmpl` | S |
+| Code | Loading state (lines stream in) | done | `H:templates/repo/code_loading.tmpl`: while the next file, view or tree link loads, lines of code of different lengths take the place of the file (`asc-page-loading.js`, reset on back); `asc_code_keys_test.go`, `asc-page-loading.test.js` | S |
 | Code | Not found at this version ("It was added in change mzu2d. You are looking at main@8d1c7e0.", Go to main, File history) | needs-hub-backend | `H:routers/web/repo/view.go` 404 path, `Repo.Log` for the introducing change | M |
 | Code | Binary preview card | done | `view_file.tmpl` (image/binary branches) | S |
 | Code | Long-press line number to select and Share (mobile), blame as avatar column with change sheet | ui-only-missing | `H:templates/repo/blame.tmpl` has the desktop columns only; add mobile column and sheet reusing the hover endpoint | M |
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 154 |
+| done | 156 |
 | partial | 1 |
-| ui-only-missing | 47 |
+| ui-only-missing | 45 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |

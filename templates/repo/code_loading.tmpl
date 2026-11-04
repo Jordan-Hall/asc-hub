@@ -1,0 +1,5 @@
+{{/* Shown by asc-page-loading.js while the next file or view loads, in the place of the one shown. */}}
+<div class="rp-sec rp-codeload" role="status" data-loading-skel data-testid="code-loading" hidden>
+	<span class="ds-sr">{{ctx.Locale.Tr "asc_rp.code_loading"}}</span>
+	{{range 12}}<span class="rp-sk rp-codeload-line" aria-hidden="true"></span>{{end}}
+</div>
