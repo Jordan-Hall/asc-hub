@@ -31,6 +31,17 @@ func TestMaskPreviewNeverShowsMoreThanTwoCharacters(t *testing.T) {
 	}
 }
 
+func TestSecretCheckOf(t *testing.T) {
+	c := SecretCheckOf(&ascv1.CheckSecretsResponse{Blocks: true, Truncated: true, Findings: []*ascv1.SecretFinding{
+		{Path: []byte("a.env")}, {Path: []byte("a.env")}, {Path: []byte("b\x00.env")}, {Path: []byte{0xff}}, {Path: nil},
+		{Path: []byte("c")}, {Path: []byte("d")}, {Path: []byte("e")}, {Path: []byte("f")}, {Path: []byte("g")},
+	}})
+	assert.True(t, c.Blocks)
+	assert.True(t, c.Truncated)
+	assert.Equal(t, []string{"a.env", "b.env", "c", "d", "e"}, c.Paths, "each path once, cleaned, at most five")
+	assert.Empty(t, SecretCheckOf(&ascv1.CheckSecretsResponse{}).Paths)
+}
+
 func TestSecretHitsOfReadsPlacesAndRulesOnly(t *testing.T) {
 	hits := SecretHitsOf([]string{
 		"config/prod.env:3 aws-access-key",

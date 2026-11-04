@@ -297,6 +297,20 @@ type SecretsPage struct {
 	Findings *FindingsPage
 }
 
+// CheckSecretsRange asks asc what its push gate would do with what head adds to base. It records nothing.
+func CheckSecretsRange(ctx context.Context, conn grpc.ClientConnInterface, repoName, base, head string) (*SecretCheck, error) {
+	cctx, cancel := context.WithTimeout(ctx, CallTimeout)
+	defer cancel()
+	resp, err := ascv1.NewSecretScanClient(conn).Check(cctx, &ascv1.CheckSecretsRequest{
+		Repo: RepoRef(repoName),
+		At:   &ascv1.CheckSecretsRequest_Range{Range: &ascv1.SecretScanRange{Base: base, Head: head}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return SecretCheckOf(resp), nil
+}
+
 // SecretsQuery selects findings.
 type SecretsQuery struct {
 	State     string // a key of SecretStates, or "" for open

@@ -6,6 +6,7 @@ package asctrust
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -238,6 +239,34 @@ func findingRow(f *ascv1.SecretFinding) (FindingRow, error) {
 		FirstSeen: ts(f.GetFirstSeen()), LastSeen: ts(f.GetLastSeen()), ResolvedBy: CleanText(f.GetResolvedBy(), 128),
 		ResolvedAt: ts(f.GetResolvedAt()), Note: CleanText(f.GetNote(), maxNoteBytes),
 	}, nil
+}
+
+// SecretCheck is what the push gate would do with what a range adds: Blocks says it would refuse, Paths are the
+// files that matched (each once, at most maxCheckPaths, no value), and Truncated says the scan did not read the whole
+// range, which the gate also refuses.
+type SecretCheck struct {
+	Blocks    bool
+	Paths     []string
+	Truncated bool
+}
+
+const maxCheckPaths = 5
+
+// SecretCheckOf reads an answer of SecretScan.Check. A finding without a readable path is left out.
+func SecretCheckOf(resp *ascv1.CheckSecretsResponse) *SecretCheck {
+	c := &SecretCheck{Blocks: resp.GetBlocks(), Truncated: resp.GetTruncated()}
+	for _, f := range resp.GetFindings() {
+		if len(c.Paths) == maxCheckPaths {
+			break
+		}
+		if !utf8.Valid(f.GetPath()) {
+			continue
+		}
+		if p := CleanText(string(f.GetPath()), 1024); p != "" && !slices.Contains(c.Paths, p) {
+			c.Paths = append(c.Paths, p)
+		}
+	}
+	return c
 }
 
 // FindingOf checks and cleans the finding of an UpdateFinding answer.

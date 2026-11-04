@@ -1718,6 +1718,12 @@ func CompareAndPullRequestPost(ctx *context.Context) {
 	if !ok {
 		return
 	}
+	if ci.HeadRepo != nil && ci.HeadRepo.ID == repo.ID {
+		if reason := ascSecretRefusal(ctx, ci.CompareInfo.BaseCommitID, ci.CompareInfo.HeadCommitID); reason != "" {
+			ctx.JSONError(reason)
+			return
+		}
+	}
 	pullIssue := &issues_model.Issue{
 		RepoID:      repo.ID,
 		Repo:        repo,
