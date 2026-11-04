@@ -31,7 +31,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Workflows | 11 | 0 | 0 | 0 | 0 |
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 9 | 0 | 0 | 0 | 0 |
-| Policy | 9 | 1 | 0 | 0 | 0 |
+| Policy | 10 | 0 | 0 | 0 | 0 |
 | Ops | 8 | 4 | 0 | 0 | 1 |
 | Queue | 10 | 1 | 0 | 0 | 0 |
 | Audit | 6 | 0 | 0 | 0 | 0 |
@@ -278,7 +278,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Policy | Maintainer overrides (signed, logged exception, reason) | done | templates/repo/asc_gate.tmpl (grant, revoke, list with proof; asc Review gate overrides) | - |
 | Policy | Quarantined checks summary with link to the queue | done | templates/repo/asc_gate.tmpl | - |
 | Policy | Invalid-file fallback, nothing-held state | done | templates/repo/asc_gate.tmpl | - |
-| Policy | Loading skeleton | ui-only-missing | templates/repo/asc_gate.tmpl | S |
+| Policy | Loading skeleton | done | templates/repo/asc_gate.tmpl: the 7 and 30 day switch shows three skeleton rows in place of the results until the page loads (web_src/js/features/asc-list-loading.js); asc_gate_test.go | - |
 
 ### Ops
 
