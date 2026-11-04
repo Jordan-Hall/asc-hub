@@ -147,7 +147,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | Refs | Branches page with filter, default branch card, ahead/behind, Protected chip, Compare | done | `H:templates/repo/branch/list.tmpl`, `row.tmpl` | S |
 | Refs | One page with Shared refs, Stacks in progress and Tags sections | done (seen on a live hub (ui10)) | `list.tmpl` lists Forgejo branches and links to `/tags`; add stacks (open pulls with ahead count) and release-linked tags, `routers/web/repo/branch.go` | M |
-| Refs | Filter pills All / Shared 3 / Stacks 3 / Tags 14 | ui-only-missing | `list.tmpl` pills show Branches and Tags only | S |
+| Refs | Filter pills All / Shared 3 / Stacks 3 / Tags 14 | done | `H:templates/repo/branch/list.tmpl` pills All / Shared / Stacks / Tags with counts show one kind at a time (`asc-ui.js` `data-ref-filter`, `asc-ui.test.js`); found done in the tree | S |
 | Refs | Branchless wording ("only three shared refs"), `RepoConfig.shared_refs` | needs-hub-backend | read `Repo.RepoConfig` shared refs; branch list for asc repos comes from Forgejo's mirror | M |
 | Refs | Stack cleanup note ("clean themselves up 7 days after the last change lands") | needs-asc-backend | the setting does not exist (see Rules) | S |
 | Refs | Tags section with release title, change count, author, date | ui-only-missing | `H:templates/repo/tag/list.tmpl` is a separate page | M |
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 157 |
+| done | 158 |
 | partial | 1 |
-| ui-only-missing | 44 |
+| ui-only-missing | 43 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
