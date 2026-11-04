@@ -32,7 +32,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 9 | 0 | 0 | 0 | 0 |
 | Policy | 10 | 0 | 0 | 0 | 0 |
-| Ops | 8 | 4 | 0 | 0 | 1 |
+| Ops | 10 | 2 | 0 | 0 | 1 |
 | Queue | 10 | 1 | 0 | 0 | 0 |
 | Audit | 6 | 0 | 0 | 0 | 0 |
 | Security | 9 | 0 | 0 | 0 | 0 |
@@ -294,8 +294,8 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Ops | Selecting a row loads the undo preview in a right panel without navigating | ui-only-missing | templates/repo/asc_ops.tmpl, asc_ops_undo.tmpl (separate page today); web_src/js | M |
 | Ops | Undo preview (now at / goes back to / who / reason) and undo is itself logged | done | templates/repo/asc_ops_undo.tmpl, AscOpsUndo (Stacks.UndoRef) | - |
 | Ops | Preview lines '4 changes go back', 'approvals on 2 unchanged diffs are kept' | needs-both | UndoRef/preview must report affected changes and kept approvals; asc_ops_undo.tmpl | S |
-| Ops | Undone toast with Redo | ui-only-missing | templates/repo/asc_ops.tmpl (Redo = undo of the undo row) | S |
-| Ops | No-match state with Clear filters; loading skeleton | ui-only-missing | templates/repo/asc_ops.tmpl | S |
+| Ops | Undone toast with Redo | done | templates/repo/asc_ops.tmpl: after an undo the log shows a toast that names the branch, says where it is back at and links Redo to the preview of undoing the undo; asc_ops_test.go TestAscOpsOffersTheRedoOfAnUndo | - |
+| Ops | No-match state with Clear filters; loading skeleton | done | templates/repo/asc_ops.tmpl: a filtered empty log says no operations match with Clear filters, an empty log says so on its own; a chip, the filter form or the pager shows skeleton rows (asc-list-loading.js); asc_ops_test.go TestAscOpsEmptyStates | - |
 | Ops | Refused state with Reload | done | templates/repo/asc_ops.tmpl (problem banner with reload) | - |
 
 ### Queue
