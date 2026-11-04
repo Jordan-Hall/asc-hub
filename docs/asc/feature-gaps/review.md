@@ -22,7 +22,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Review | 25 | 0 | 0 | 0 | 5 |
 | ReviewVersions | 12 | 0 | 0 | 0 | 1 |
 | NewChange | 9 | 2 | 0 | 0 | 2 |
-| Checks | 9 | 3 | 0 | 0 | 1 |
+| Checks | 12 | 0 | 0 | 0 | 1 |
 | ChangeChecks | 9 | 0 | 0 | 0 | 1 |
 | Agents | 14 | 0 | 0 | 0 | 0 |
 | AgentRun | 17 | 0 | 0 | 0 | 1 |
@@ -128,15 +128,15 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Checks | Headline stats: pass rate vs previous period, failure groups open, flaky above threshold, median duration + slowest job | needs-both | asc: Ci.ListRuns aggregates (proto/asc/v1/ci.proto) or hub aggregation in asc_checks.go; stat cards | M |
 | Checks | State tab counts (Open 3, Acknowledged 1, Quarantined 2, Resolved 14) | done | routers/web/repo/asc_checks.go + asctrust.LoadChecksSide: each tab shows its count (up to 100, then 100+) (test: TestAscChecksStateTabsCountAndSideCards) | - |
 | Checks | Failure groups list with cause, jobs, seen N times in M changes, new-in-version chip | done | templates/repo/asc_checks.tmpl (groups table), asc_check_group.tmpl | - |
-| Checks | Inline expand of a group: log excerpt with line numbers, occurrences, note + Acknowledge / Quarantine / Open issue | ui-only-missing | templates/repo/asc_checks.tmpl (actions live on the group page asc_check_group.tmpl) | M |
-| Checks | Row hover actions Acknowledge / Quarantine / More | ui-only-missing | templates/repo/asc_checks.tmpl | S |
+| Checks | Inline expand of a group: log excerpt with line numbers, occurrences, note + Acknowledge / Quarantine / Open issue | done | templates/repo/asc_checks.tmpl: the first group (or ?open=ID) opens in the list, read on the server (asctrust.LoadGroupDetail, no JS): the last 40 lines of the newest message numbered, the newest 5 occurrences with change, job, attempt and time, a link to all of them, and for a writer the note with Acknowledge, Quarantine (only when the policy allows it) and Open an issue; a state change returns to the same list with the group open; asc_checks_test.go | - |
+| Checks | Row hover actions Acknowledge / Quarantine / More | done | templates/repo/asc_checks.tmpl: for a writer each row has Acknowledge, Quarantine (policy permitting) and a More menu (show the log here, open the group, Resolve or Reopen), shown on hover and focus and always on touch; Acknowledge and Quarantine open the row with that action first so the note is asked for; asc_checks_test.go | - |
 | Checks | Quarantine hidden unless policy allows [ci] allow_quarantine | done | templates/repo/pulls/asc_checks.tmpl flaky card: the button shows only when AllowQuarantine (CanWrite and asctrust.QuarantineAllowed); the group page and the state handler already checked it | - |
 | Checks | Acknowledge / quarantine / resolve / reopen with optional note, logged | done | routers/web/repo/asc_checks.go AscCheckGroupState (CiInsights.SetFailureGroupState) | - |
 | Checks | Repo-level 'Re-run failed' button | done | routers/web/repo/asc_checks.go AscChecksRerunFailed | - |
 | Checks | Flaky tests view: flake rate, runs, flips, 14-run heat strip, last flip, state | done | templates/repo/asc_checks.tmpl (flaky table), strip markup | - |
 | Checks | Trends view per job with pass rate | done | templates/repo/asc_checks.tmpl (asc-trend) | - |
 | Checks | Side cards: 'Main is green', failing jobs bars, Quarantined list with Manage | done | templates/repo/asc_checks.tmpl: Main is green / failing / running (newest commit of the default branch), a bar per failing job (JobStat.Share), the quarantined groups with Manage (test: TestAscChecksStateTabsCountAndSideCards, TestJobBarShare) | - |
-| Checks | Empty 'Nothing needs attention', error with Try again, loading skeleton | ui-only-missing | templates/repo/asc_checks.tmpl (problem banner exists; empty wording and skeleton missing);; Audit 2026-10-30 (part built): Empty state exists; error with Try again and loading skeleton not found. | S |
+| Checks | Empty 'Nothing needs attention', error with Try again, loading skeleton | done | templates/repo/asc_checks.tmpl: Nothing needs attention with See trends for the open list, No failures match with Clear filters for a filtered list, a titled error with Try again when asc fails (not for a bad request), and the shared list skeleton on filter and paging (asc-list-loading.js) in all three views; asc_checks_test.go | - |
 
 ### ChangeChecks
 
