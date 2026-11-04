@@ -134,8 +134,8 @@ The page works without the script: the log shows what existed when it was drawn,
 					{{with .AscAgentPlan}}
 					<section class="rv-card ar-plan" id="ag-plan" aria-labelledby="ar-plan-h" data-testid="asc-agent-plan">
 						<div class="rv-card-h"><h2 id="ar-plan-h">{{ctx.Locale.Tr "asc_review.run_plan"}}</h2>
-							{{if .Approved}}<span class="rv-pill rv-pill-ok rv-end">{{if .DecidedAt}}{{ctx.Locale.Tr "asc_review.run_plan_approved_at" .DecidedBy .DecidedAt}}{{else}}{{ctx.Locale.Tr "asc_review.run_plan_approved"}}{{end}}</span>
-							{{else if .Rejected}}<span class="rv-pill rv-pill-err rv-end">{{ctx.Locale.Tr "asc_review.run_plan_rejected" .DecidedBy}}</span>
+							{{if .Approved}}<span class="rv-pill rv-pill-ok rv-end">{{if and .DecidedAt .ByYou}}{{ctx.Locale.Tr "asc_review.run_plan_you_approved_at" .DecidedAt}}{{else if .DecidedAt}}{{ctx.Locale.Tr "asc_review.run_plan_approved_at" .DecidedBy .DecidedAt}}{{else}}{{ctx.Locale.Tr "asc_review.run_plan_approved"}}{{end}}</span>
+							{{else if .Rejected}}<span class="rv-pill rv-pill-err rv-end">{{if .ByYou}}{{ctx.Locale.Tr "asc_review.run_plan_you_rejected"}}{{else}}{{ctx.Locale.Tr "asc_review.run_plan_rejected" .DecidedBy}}{{end}}</span>
 							{{else if .Pending}}<span class="rv-pill rv-pill-warn rv-end">{{ctx.Locale.Tr "asc_review.run_plan_waiting"}}</span>{{end}}</div>
 						<ol class="ar-steps">
 							{{range .Request.Steps}}<li class="is-{{.State}}"><span class="ar-mark" aria-hidden="true">{{if eq .State "done"}}&#10003;{{else if eq .State "doing"}}&bull;{{end}}</span><div><b>{{.Index}} {{.Text}}</b><span class="rv-li-sub">{{if eq .State "done"}}{{ctx.Locale.Tr "asc_review.run_step_done"}}{{else if eq .State "doing"}}{{ctx.Locale.Tr "asc_review.run_step_doing"}}{{else}}{{ctx.Locale.Tr "asc_review.run_step_todo"}}{{end}}</span></div></li>{{end}}

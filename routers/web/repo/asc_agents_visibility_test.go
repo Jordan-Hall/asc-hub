@@ -129,6 +129,37 @@ func TestAscAgentsPrivateTextOnTheRunPage(t *testing.T) {
 	assertNoSecrets(t, p.body)
 }
 
+func TestAscAgentsRunPlanCard(t *testing.T) {
+	hub := visibilityHub(t, "user2")
+	id := map[string]string{":id": "7"}
+	path := testRunsPath + "/runs/7"
+	plan := func(state ascv1.AgentRequestState, by string) {
+		hub.ok("Agents.ListRequests", &ascv1.ListAgentRequestsResponse{Requests: []*ascv1.AgentRequest{{
+			Id: 6, RunId: 7, Kind: ascv1.AgentRequestKind_AGENT_REQUEST_KIND_PLAN, State: state, Summary: "plan", Agent: "coder",
+			DecidedBy: by, DecidedAt: 1_700_000_520,
+			Plan: []*ascv1.AgentPlanStep{{Text: "read the client", State: "done"}, {Text: "add retries", State: "doing"}, {Text: "write tests", State: "todo"}},
+		}}})
+	}
+
+	plan(ascv1.AgentRequestState_AGENT_REQUEST_STATE_APPROVED, "user2")
+	p := runAgents(t, agentsReq{path: path, user: agentsOwner, features: true, params: id}, AscAgentsRun)
+	require.Equal(t, http.StatusOK, p.status, p.body)
+	assert.Contains(t, p.body, `data-testid="asc-agent-plan"`)
+	assert.Contains(t, p.body, `<li class="is-done">`)
+	assert.Contains(t, p.body, `<li class="is-doing">`)
+	assert.Contains(t, p.body, `<li class="is-todo">`)
+	assert.Contains(t, p.body, "asc_review.run_plan_you_approved_at", "the viewer approved it")
+
+	plan(ascv1.AgentRequestState_AGENT_REQUEST_STATE_APPROVED, "user5")
+	p = runAgents(t, agentsReq{path: path, user: agentsOwner, features: true, params: id}, AscAgentsRun)
+	assert.Contains(t, p.body, "asc_review.run_plan_approved_at")
+	assert.NotContains(t, p.body, "asc_review.run_plan_you_approved_at")
+
+	plan(ascv1.AgentRequestState_AGENT_REQUEST_STATE_REJECTED, "user2")
+	p = runAgents(t, agentsReq{path: path, user: agentsOwner, features: true, params: id}, AscAgentsRun)
+	assert.Contains(t, p.body, "asc_review.run_plan_you_rejected")
+}
+
 func TestAscAgentsPrivateLogAndPoll(t *testing.T) {
 	hub := visibilityHub(t, "user2")
 	id := map[string]string{":id": "7"}
