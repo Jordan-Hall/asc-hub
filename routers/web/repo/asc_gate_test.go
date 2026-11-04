@@ -93,6 +93,8 @@ func TestAscGateShowsTheRulesTheRefusalsAndTheQuarantine(t *testing.T) {
 	assert.Contains(t, p.body, "/user2/repo1/settings/asc/policy", "and can open the rules")
 	assert.Contains(t, p.body, `data-testid="asc-gate-quarantine"`, "the quarantined tests are in the side card")
 	assert.Contains(t, p.body, "max_changes_per_run = 8", "the file is shown")
+	assert.Regexp(t, `<div data-asc-list-main>\s*<div class="rv-card rv-gap ag-loading" role="status" aria-busy="true" aria-label="Loading" data-asc-list-loading data-testid="asc-gate-loading" hidden>`, p.body, "the window switch shows skeleton rows until the page loads")
+	assert.Equal(t, 3, strings.Count(p.body, `<li class="ag-sk-row">`))
 
 	calls := f.callsOf("AuditList")
 	require.Len(t, calls, 1)

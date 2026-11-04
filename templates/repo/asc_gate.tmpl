@@ -4,6 +4,7 @@ tests that are quarantined.
 Template Attributes:
 * AscGate: *ascGatePage (View, Days, Held, HeldShown, Problem, Unsupported, URLs)
 * AscQuarantine: *ascQuarantineView or nil
+The window switch loads the page again; until it does, skeleton rows stand in for the results (asc-list-loading.js).
 The text of the policy file and every text from asc was cleaned by services/asctrust and is escaped here.
 */}}
 {{template "base/head" .}}
@@ -34,6 +35,14 @@ The text of the policy file and every text from asc was cleaned by services/asct
 			</div>
 		</header>
 
+		<div data-asc-list-main>
+		<div class="rv-card rv-gap ag-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "asc_rp.loading"}}" data-asc-list-loading data-testid="asc-gate-loading" hidden>
+			<ul class="rv-list" aria-hidden="true">
+				<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+				<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+				<li class="ag-sk-row"><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+			</ul>
+		</div>
 		{{if .Unsupported}}
 			<div class="rv-banner rv-banner-warn" role="status" data-testid="asc-gate-unsupported"><div>{{ctx.Locale.Tr "asc_review.gate_unsupported"}}</div></div>
 		{{else if .Problem}}
@@ -204,6 +213,7 @@ The text of the policy file and every text from asc was cleaned by services/asct
 			</div>
 			{{if .PolicyURL}}<div class="rv-sticky rv-mob"><a class="rv-btn rv-btn-primary" href="{{.PolicyURL}}">{{ctx.Locale.Tr "asc_review.gate_edit"}}</a></div>{{end}}
 		{{end}}
+		</div>
 	</div>
 	{{end}}
 </div>
