@@ -1847,6 +1847,7 @@ func registerRoutes(m *web.Route) {
 			m.Post("/asc/restore_version", reqSignIn, context.RepoMustNotBeArchived(), repo.AscRestoreVersion)
 			m.Post("/asc/apply_suggestion", reqSignIn, context.RepoMustNotBeArchived(), repo.AscApplySuggestion)
 			m.Post("/asc/brief", reqSignIn, context.RepoMustNotBeArchived(), repo.AscSetBrief)
+			m.Post("/asc/brief/summarize", reqSignIn, context.RepoMustNotBeArchived(), repo.AscSummarizeBrief)
 			m.Post("/asc/reviewer", reqSignIn, context.RepoMustNotBeArchived(), repo.AscRequestSuggestedReviewer)
 			m.Group("/asc", func() {
 				m.Get("/confirm", repo.AscConfirm)
@@ -1912,6 +1913,7 @@ func registerRoutes(m *web.Route) {
 			m.Get("/asc/symbols", repo.AscSymbols)
 			m.Get("/asc/compare", repo.AscCompare)
 			m.Get("/asc/draft_context", reqSignIn, repo.AscDraftContext)
+			m.Post("/asc/summarize", reqSignIn, context.RepoMustNotBeArchived(), repo.AscSummarizeRange)
 			m.Post("/asc/newchange_draft", reqSignIn, context.RepoMustNotBeArchived(), reqRepoPullsReader, repo.AscNewChangeDraftSave)
 			registerAscTrustRepoRoutes(m, reqSignIn)
 			m.Get("/commit/{sha:([a-f0-9]{4,64})$}", repo.SetEditorconfigIfExists, repo.SetDiffViewStyle, repo.SetWhitespaceBehavior, repo.Diff)
