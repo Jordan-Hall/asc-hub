@@ -182,6 +182,16 @@ func TestAscDiffBoxClassBarAndStates(t *testing.T) {
 	assert.NotContains(t, none, "asc-diff-prev", "no earlier version: no link")
 	assert.Contains(t, none, "asc-changed-in", "in the step from v3 to v4 each file is marked")
 	assert.Contains(t, none, "asc_review.rev_changed_in")
+
+	change := renderPart(t, "repo/diff/box", func(d map[string]any) {
+		stub(d)
+		d["PageIsPullFiles"] = false
+		d["AscPrevVersion"] = uint32(3)
+	})
+	assert.Contains(t, change, "data-asc-skeleton", "a change page loads more files with the same skeleton")
+	assert.Contains(t, change, "data-asc-diff-retry", "and the same Try again")
+	assert.NotContains(t, change, "asc_review.rev_diff_saved", "a change page has no comments to keep")
+	assert.NotContains(t, change, "asc-diff-prev", "nor versions")
 }
 
 func TestAscVersionsPanelChangedSince(t *testing.T) {

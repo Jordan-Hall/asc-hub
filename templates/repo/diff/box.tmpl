@@ -248,7 +248,7 @@
 				{{end}}
 			</div>
 		{{end}}
-		{{if and .PageIsPullFiles (not .DiffNotAvailable)}}
+		{{if not .DiffNotAvailable}}
 		<div class="rv-diffstate" data-asc-diff-state>
 			<div class="rv-skel" role="status" data-asc-skeleton hidden>
 				<span class="rv-sr">{{ctx.Locale.Tr "asc_review.rev_diff_loading"}}</span>
@@ -256,10 +256,10 @@
 			</div>
 			<div class="rv-banner rv-banner-err" role="alert" data-asc-diff-error hidden>
 				<div>
-					<p>{{ctx.Locale.Tr "asc_review.rev_diff_error"}} {{ctx.Locale.Tr "asc_review.rev_diff_saved"}}</p>
+					<p>{{ctx.Locale.Tr "asc_review.rev_diff_error"}}{{if $.PageIsPullFiles}} {{ctx.Locale.Tr "asc_review.rev_diff_saved"}}{{end}}</p>
 					<div class="rv-acts">
 						<button type="button" class="rv-btn rv-btn-primary rv-btn-sm" data-asc-diff-retry>{{ctx.Locale.Tr "asc_review.rev_diff_retry"}}</button>
-						{{if .AscPrevVersion}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.Issue.Link}}/files?asc_to={{.AscPrevVersion}}" data-testid="asc-diff-prev">{{ctx.Locale.Tr "asc_review.rev_diff_prev"}}</a>{{end}}
+						{{if and $.PageIsPullFiles .AscPrevVersion}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{.Issue.Link}}/files?asc_to={{.AscPrevVersion}}" data-testid="asc-diff-prev">{{ctx.Locale.Tr "asc_review.rev_diff_prev"}}</a>{{end}}
 					</div>
 				</div>
 			</div>
