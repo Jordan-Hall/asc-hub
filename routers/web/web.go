@@ -889,6 +889,7 @@ func registerRoutes(m *web.Route) {
 		m.Group("/hooks", func() {
 			m.Get("", user_setting.Webhooks)
 			m.Post("/delete", user_setting.DeleteWebhook)
+			m.Post("/add", repo_setting.WebhookAdd)
 			m.Get("/{type}/new", repo_setting.WebhookNew)
 			m.Post("/{type}/new", repo_setting.WebhookCreate)
 			m.Group("/{id}", func() {
@@ -1202,6 +1203,7 @@ func registerRoutes(m *web.Route) {
 				m.Group("/hooks", func() {
 					m.Get("", org.Webhooks)
 					m.Post("/delete", org.DeleteWebhook)
+					m.Post("/add", repo_setting.WebhookAdd)
 					m.Get("/{type}/new", repo_setting.WebhookNew)
 					m.Post("/{type}/new", repo_setting.WebhookCreate)
 					m.Group("/{id}", func() {
@@ -1388,6 +1390,7 @@ func registerRoutes(m *web.Route) {
 			m.Group("/hooks", func() {
 				m.Get("", repo_setting.WebhookList)
 				m.Post("/delete", repo_setting.WebhookDelete)
+				m.Post("/add", repo_setting.WebhookAdd)
 				m.Get("/{type}/new", repo_setting.WebhookNew)
 				m.Post("/{type}/new", repo_setting.WebhookCreate)
 				m.Group("/{id}", func() {
