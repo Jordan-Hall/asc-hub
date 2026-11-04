@@ -162,7 +162,7 @@ func TestAscOverlapBadges(t *testing.T) {
 		assert.Contains(t, out, "a/&lt;b&gt;.go")
 		assert.NotContains(t, out, "<b>.go")
 		assert.Contains(t, out, "&lt;open&gt;")
-		assert.Contains(t, out, "x.go")
+		assert.Contains(t, out, `data-state="conflicts"`, "the path is an argument of the banner text")
 	})
 
 	t.Run("a pull request that is not stacked, merged or off asc never reaches asc", func(t *testing.T) {

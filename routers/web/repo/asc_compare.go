@@ -5,6 +5,7 @@ package repo
 
 import (
 	gocontext "context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -108,6 +109,29 @@ type AscMergeBadge struct {
 	State         string // one of the AscMerge constants
 	Conflicts     []string
 	MoreConflicts int
+	// The conflict banner (State is AscMergeConflicts): the place of the change in its stack (0 when unknown) and the
+	// changes below it that are not blocked, the target, the other conflicting files, the page of both sides,
+	// whether the viewer may resolve, the agent that made the change (when the viewer may ask it) and the first
+	// conflicting hunk of the first file.
+	Position    int
+	Free        int
+	Target      string
+	Others      int
+	Link        string
+	AskLink     string
+	CanResolve  bool
+	Agent       string
+	PreviewLine int
+	Preview     []AscConflictRow
+	markedID    string // hex id of the marked text of the first conflict, "" when none
+}
+
+// AscConflictRow is one line of the conflict preview: the change's side (Add) or the target's.
+type AscConflictRow struct {
+	Line   int
+	Add    bool
+	Text   string
+	Target bool // the first line of the target's side, which names it
 }
 
 // AscBadges is what the pull request page shows.
@@ -185,6 +209,9 @@ func prepareAscBadges(ctx *context.Context, pull *issues_model.PullRequest) {
 		return
 	}
 	if badges != nil {
+		if badges.Merge != nil && badges.Merge.State == AscMergeConflicts {
+			ascConflictBanner(ctx, pull, badges.Merge, name)
+		}
 		ctx.Data["AscBadges"] = badges
 	}
 }
@@ -321,10 +348,13 @@ func ascVerifyMergeability(own []byte, in []*ascv1.Mergeable) (*AscMergeBadge, e
 	if b.State == AscMergeConflicts && len(m.GetConflicts()) == 0 {
 		return nil, ascBadgeBad("conflicts without a path")
 	}
-	for _, c := range m.GetConflicts() {
+	for i, c := range m.GetConflicts() {
 		s, ok := ascCleanPath(c.GetPath())
 		if !ok {
 			return nil, ascBadgeBad("conflict path is invalid")
+		}
+		if i == 0 && len(c.GetMarkedId()) == 32 {
+			b.markedID = hex.EncodeToString(c.GetMarkedId())
 		}
 		if len(b.Conflicts) < ascBadgeMaxConflicts {
 			b.Conflicts = append(b.Conflicts, s)

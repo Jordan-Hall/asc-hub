@@ -16,7 +16,34 @@ Every text below comes from the checked answer of asc and is escaped by the Go t
 {{with .AscBadges}}
 <div class="rv rv-badges" data-testid="asc-badges">
 	{{with .Merge}}
-	<div class="rv-banner {{if eq .State "conflicts"}}rv-banner-err{{else if eq .State "needs_restack"}}rv-banner-warn{{else}}rv-banner-ok{{end}} asc-mergeability" data-state="{{.State}}" role="status">
+	{{if eq .State "conflicts"}}
+	{{$m := .}}
+	<div class="rv-banner rv-banner-warn asc-mergeability asc-conflict-banner" data-state="conflicts" role="alert">
+		<div>
+			<b>{{if .Position}}{{ctx.Locale.Tr "repo.pulls.asc_conflicts.banner" .Position .Target (index .Conflicts 0)}}{{else}}{{ctx.Locale.Tr "repo.pulls.asc_conflicts.banner_this" .Target (index .Conflicts 0)}}{{end}}{{if .Others}} {{ctx.Locale.TrN .Others "repo.pulls.asc_conflicts.banner_more_one" "repo.pulls.asc_conflicts.banner_more" .Others}}{{end}}</b><br>
+			{{ctx.Locale.Tr "repo.pulls.asc_conflicts.banner_open"}}{{if gt .Free 1}}<span class="asc-conflict-more"> {{ctx.Locale.Tr "repo.pulls.asc_conflicts.banner_free_many" .Free}}</span>{{else if eq .Free 1}}<span class="asc-conflict-more"> {{ctx.Locale.Tr "repo.pulls.asc_conflicts.banner_free_one"}}</span>{{end}}
+			{{if .Link}}
+			<div class="rv-acts rv-row rv-row-wrap">
+				{{if .CanResolve}}<a class="rv-btn rv-btn-primary rv-btn-sm" href="{{.Link}}?edit=1" data-testid="asc-conflict-edit">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.resolve_in_editor"}}</a>{{end}}
+				<a class="rv-btn rv-btn-secondary rv-btn-sm asc-conflict-more" href="{{.Link}}" data-testid="asc-conflict-sides">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.show_both"}}</a>
+				{{if .Agent}}
+				<form class="asc-conflict-more" method="post" action="{{.AskLink}}">
+					{{$.CsrfTokenHtml}}
+					<button class="rv-btn rv-btn-agent rv-btn-sm" type="submit" data-testid="asc-conflict-ask">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.ask_agent" .Agent}}</button>
+				</form>
+				{{end}}
+			</div>
+			{{end}}
+		</div>
+	</div>
+	{{if .Preview}}
+	<div class="asc-conflict-preview asc-conflict-more" role="group" aria-label="{{ctx.Locale.Tr "repo.pulls.asc_conflicts.preview"}}">
+		<div class="asc-cl asc-cl-mark"><span class="asc-cl-n">{{.PreviewLine}}</span><span class="asc-cl-c">&lt;&lt;&lt;&lt;&lt;&lt;&lt; {{ctx.Locale.Tr "repo.pulls.asc_conflicts.yours"}}</span></div>
+		{{range .Preview}}<div class="asc-cl {{if .Add}}asc-cl-add{{else}}asc-cl-del{{end}}"><span class="asc-cl-n"><i aria-hidden="true">{{if .Add}}+{{else}}&minus;{{end}}</i>{{.Line}}</span><span class="asc-cl-c">{{.Text}}{{if .Target}} <span class="asc-cl-side">({{$m.Target}})</span>{{end}}</span></div>{{end}}
+	</div>
+	{{end}}
+	{{else}}
+	<div class="rv-banner {{if eq .State "needs_restack"}}rv-banner-warn{{else if eq .State "needs_restack"}}rv-banner-warn{{else}}rv-banner-ok{{end}} asc-mergeability" data-state="{{.State}}" role="status">
 		<div>
 			<b>{{ctx.Locale.Tr (printf "repo.pulls.asc_merge.%s" .State)}}</b>
 			{{if .Conflicts}}
@@ -27,6 +54,7 @@ Every text below comes from the checked answer of asc and is escaped by the Go t
 			{{end}}
 		</div>
 	</div>
+	{{end}}
 	{{end}}
 	{{if .Overlaps}}
 	<section class="rv-card asc-overlaps" aria-labelledby="asc-overlaps-title">

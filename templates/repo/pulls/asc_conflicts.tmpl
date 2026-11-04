@@ -1,0 +1,107 @@
+{{/*
+Conflicts of a stacked pull request with its target (pull_asc_conflicts.go): both sides of every conflicting file, and
+with AscEdit the editor that restacks the change with the text written for each file.
+Template Attributes:
+* AscConflicts: *pull_service.AscConflicts (State, Files with Path, Kind, Marked, Editable, Hunks; MoreFiles)
+* AscTarget: the target branch; AscBack: the pull request page
+* AscEdit: bool, the editor is shown (the handler checked the viewer may resolve)
+* AscCanResolve: bool, the viewer may resolve; AscAgent: the agent that made the change, "" when none
+* AscBelow: *issues_model.Issue, the pull request below whose conflict blocks this change; nil when none
+* AscFailure: string, why the last resolution was refused (already translated)
+Every text from asc (paths, file text) is escaped by the template engine.
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content repository asc-conflicts-page asc-repo-page rv-trust-page">
+	{{template "repo/header" .}}
+	<div class="rv rv-page">
+		{{template "base/alert" .}}
+		<div class="asc-conflicts" data-testid="asc-conflicts" data-state="{{.AscConflicts.State}}">
+			<header class="rv-head">
+				<div class="rv-head-main">
+					<div class="rv-eyebrow"><a href="{{.AscBack}}">{{ctx.Locale.Tr "asc_review.rev_back_change"}}</a></div>
+					<h1 class="rv-title">{{.Title}}</h1>
+				</div>
+			</header>
+			{{if .AscFailure}}<div class="rv-banner rv-banner-err" role="alert"><div>{{.AscFailure}}</div></div>{{end}}
+			{{if eq .AscConflicts.State "conflict"}}
+			<p class="rv-lead">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.lead" .AscTarget}}</p>
+			{{if and .AscCanResolve (not .AscEdit)}}
+			<div class="rv-row rv-row-wrap asc-conflicts-acts">
+				<a class="rv-btn rv-btn-primary rv-btn-sm" href="{{.AscBack}}/asc/conflicts?edit=1" data-testid="asc-conflict-edit">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.resolve_in_editor"}}</a>
+				{{if .AscAgent}}
+				<form method="post" action="{{.AscBack}}/asc/ask_resolve">
+					{{.CsrfTokenHtml}}
+					<button class="rv-btn rv-btn-agent rv-btn-sm" type="submit" data-testid="asc-conflict-ask">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.ask_agent" .AscAgent}}</button>
+				</form>
+				{{end}}
+			</div>
+			{{end}}
+			{{else if eq .AscConflicts.State "blocked"}}
+			<p class="rv-lead">{{if .AscBelow}}{{ctx.Locale.Tr "repo.pulls.asc_conflicts.lead_blocked" .AscBelow.Link .AscBelow.Index .AscTarget}}{{else}}{{ctx.Locale.Tr "repo.pulls.asc_conflicts.lead_blocked_below" .AscTarget}}{{end}}</p>
+			{{else}}
+			<p class="rv-lead" data-testid="asc-conflicts-none">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.lead_none" .AscTarget}}</p>
+			{{end}}
+
+			{{if .AscEdit}}
+			<form class="rv-form asc-conflicts-form" method="post" action="{{.AscBack}}/asc/conflicts" data-testid="asc-conflicts-form">
+				{{.CsrfTokenHtml}}
+				<p class="rv-muted">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.editor_hint"}}</p>
+			{{end}}
+			{{range $i, $f := .AscConflicts.Files}}
+			<section class="rv-card asc-conflict-file" aria-labelledby="asc-cf-{{$i}}" data-path="{{$f.Path}}">
+				<div class="rv-card-h">
+					<h2 id="asc-cf-{{$i}}" class="rv-mono asc-conflict-path">{{$f.Path}}</h2>
+					<span class="rv-pill rv-pill-outline">{{ctx.Locale.Tr (printf "repo.pulls.asc_conflicts.kind.%s" $f.Kind)}}</span>
+				</div>
+				<div class="rv-card-b">
+					{{if and $.AscEdit $f.Editable}}
+					<input type="hidden" name="path" value="{{$f.Path}}">
+					<label class="tw-sr-only" for="asc-cf-text-{{$i}}">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.content_of" $f.Path}}</label>
+					<textarea id="asc-cf-text-{{$i}}" class="asc-conflict-text" name="content" rows="{{if gt (len $f.Hunks) 0}}18{{else}}10{{end}}" spellcheck="false" autocomplete="off">
+{{$f.Marked}}</textarea>
+					{{else if $f.Hunks}}
+					{{range $f.Hunks}}
+					<div class="asc-hunk">
+						<div class="asc-hunk-line rv-muted">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.at_line" .Line}}</div>
+						<div class="asc-sides">
+							<div class="asc-side">
+								<div class="asc-side-h">{{$.AscTarget}}</div>
+								<pre class="asc-side-b asc-side-main">{{range .Main}}{{.}}
+{{end}}</pre>
+							</div>
+							<div class="asc-side">
+								<div class="asc-side-h">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.yours"}}</div>
+								<pre class="asc-side-b asc-side-yours">{{range .Yours}}{{.}}
+{{end}}</pre>
+							</div>
+						</div>
+						{{if .Base}}
+						<details class="asc-side-base">
+							<summary>{{ctx.Locale.Tr "repo.pulls.asc_conflicts.base"}}</summary>
+							<pre class="asc-side-b">{{range .Base}}{{.}}
+{{end}}</pre>
+						</details>
+						{{end}}
+					</div>
+					{{end}}
+					{{else if $f.Marked}}
+					<p class="rv-muted">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.no_hunks"}}</p>
+					{{else}}
+					<p class="rv-muted">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.no_text"}}</p>
+					{{end}}
+					{{if and $.AscEdit (not $f.Editable)}}<p class="rv-muted">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.not_editable"}}</p>{{end}}
+				</div>
+			</section>
+			{{end}}
+			{{if .AscConflicts.MoreFiles}}<p class="rv-muted">{{ctx.Locale.TrN .AscConflicts.MoreFiles "repo.pulls.asc_conflicts.more_files_one" "repo.pulls.asc_conflicts.more_files" .AscConflicts.MoreFiles}}</p>{{end}}
+			{{if .AscEdit}}
+				<div class="rv-row rv-row-wrap asc-conflicts-acts">
+					{{if .AscEditable}}<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-conflicts-submit">{{ctx.Locale.Tr "repo.pulls.asc_conflicts.submit"}}</button>{{end}}
+					<a class="rv-btn rv-btn-ghost" href="{{.AscBack}}/asc/conflicts">{{ctx.Locale.Tr "cancel"}}</a>
+				</div>
+			</form>
+			{{end}}
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}
