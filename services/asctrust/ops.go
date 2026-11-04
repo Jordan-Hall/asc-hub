@@ -612,31 +612,42 @@ func LoadChecksSide(ctx context.Context, conn grpc.ClientConnInterface, repoName
 	return side, nil
 }
 
-// LoadGroup reads one failure group with its occurrences and, for a group of one test, the history strip.
-func LoadGroup(ctx context.Context, conn grpc.ClientConnInterface, repoName string, id uint64, pageToken string, windowDays uint32) (*GroupDetail, *History, error) {
+// LoadGroupDetail reads one failure group with up to limit of its occurrences, newest first.
+func LoadGroupDetail(ctx context.Context, conn grpc.ClientConnInterface, repoName string, id uint64, pageToken string, limit uint32) (*GroupDetail, error) {
 	if id == 0 {
-		return nil, nil, fmt.Errorf("%w: group", ErrBadInput)
+		return nil, fmt.Errorf("%w: group", ErrBadInput)
 	}
 	if pageToken != "" && !tokenPattern.MatchString(pageToken) {
-		return nil, nil, fmt.Errorf("%w: page token", ErrBadInput)
+		return nil, fmt.Errorf("%w: page token", ErrBadInput)
 	}
-	client := ascv1.NewCiInsightsClient(conn)
 	cctx, cancel := context.WithTimeout(ctx, CallTimeout)
 	defer cancel()
-	resp, err := client.GetFailureGroup(cctx, &ascv1.GetFailureGroupRequest{Repo: RepoRef(repoName), Id: id, Limit: 20, PageToken: pageToken})
+	resp, err := ascv1.NewCiInsightsClient(conn).GetFailureGroup(cctx, &ascv1.GetFailureGroupRequest{Repo: RepoRef(repoName), Id: id, Limit: limit, PageToken: pageToken})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	detail, err := GroupDetailOf(resp)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if detail.Group.ID != id {
-		return nil, nil, fmt.Errorf("%w: group id", ErrBadAnswer)
+		return nil, fmt.Errorf("%w: group id", ErrBadAnswer)
+	}
+	return detail, nil
+}
+
+// LoadGroup reads one failure group with its occurrences and, for a group of one test, the history strip.
+func LoadGroup(ctx context.Context, conn grpc.ClientConnInterface, repoName string, id uint64, pageToken string, windowDays uint32) (*GroupDetail, *History, error) {
+	detail, err := LoadGroupDetail(ctx, conn, repoName, id, pageToken, 20)
+	if err != nil {
+		return nil, nil, err
 	}
 	if detail.Group.TestName == "" && detail.Group.JobName == "" {
 		return detail, nil, nil
 	}
+	client := ascv1.NewCiInsightsClient(conn)
+	cctx, cancel := context.WithTimeout(ctx, CallTimeout)
+	defer cancel()
 	hreq := &ascv1.FlakyHistoryRequest{Repo: RepoRef(repoName), TestName: detail.Group.TestName, JobName: detail.Group.JobName, WindowDays: windowDays}
 	hresp, err := client.FlakyHistory(cctx, hreq)
 	if err != nil {
