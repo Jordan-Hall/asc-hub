@@ -1752,3 +1752,13 @@
     white-space: nowrap;
   }
 }
+
+/* ---- "Work on it locally" (board Repo) ---- */
+.rp-clonecard .rp-sec-b {
+  display: grid;
+  gap: 12px;
+}
+
+.rp-clonecard-act {
+  margin: 0;
+}
