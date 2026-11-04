@@ -937,7 +937,7 @@ func AscAgentsCancel(ctx *context.Context) {
 	}
 	reason, ok := ascagentui.CheckLine(ctx.FormString("reason"), ascagentui.MaxReasonBytes, true)
 	if !ok {
-		ctx.Flash.Error("The reason is at most 256 characters on one line.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_review.agents_stop_reason_bad"))
 		ctx.Redirect(back)
 		return
 	}
@@ -956,11 +956,12 @@ func AscAgentsCancel(ctx *context.Context) {
 		ascAgentsFlashFail(ctx, back, "CancelRun", err)
 		return
 	}
-	if _, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), id); !ok {
+	row, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), id)
+	if !ok {
 		ascAgentsFlashFail(ctx, back, "CancelRun", errAscAgentsBadAnswer)
 		return
 	}
-	ctx.Flash.Success("The run was stopped.")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_review.agents_stopped", row.Agent))
 	ctx.Redirect(back)
 }
 

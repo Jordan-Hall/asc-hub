@@ -854,7 +854,7 @@ func TestAscAgentsCancelAndInput(t *testing.T) {
 		p := runAgents(t, agentsReq{method: "POST", path: back + "/cancel", user: agentsOwner, features: true, params: id, form: url.Values{"reason": {"wrong branch"}}}, AscAgentsCancel)
 		require.Equal(t, http.StatusSeeOther, p.status)
 		assert.Equal(t, back, p.loc)
-		assert.Contains(t, p.ctx.Flash.SuccessMsg, "stopped")
+		assert.Equal(t, "asc_review.agents_stopped", p.ctx.Flash.SuccessMsg, "the board's words: work so far is saved")
 		calls := hub.callsOf("Agents.CancelRun")
 		require.Len(t, calls, 1)
 		isUserCredential(t, calls[0])
@@ -871,7 +871,7 @@ func TestAscAgentsCancelAndInput(t *testing.T) {
 		for _, bad := range []string{"a\nb", strings.Repeat("x", 257)} {
 			p := runAgents(t, agentsReq{method: "POST", path: back + "/cancel", user: agentsOwner, features: true, params: id, form: url.Values{"reason": {bad}}}, AscAgentsCancel)
 			assert.Equal(t, http.StatusSeeOther, p.status)
-			assert.Contains(t, p.ctx.Flash.ErrorMsg, "reason")
+			assert.Equal(t, "asc_review.agents_stop_reason_bad", p.ctx.Flash.ErrorMsg)
 		}
 		assert.Len(t, hub.callsOf("Agents.CancelRun"), before)
 	})
