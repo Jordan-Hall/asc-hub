@@ -11,6 +11,7 @@ import (
 
 	repo_model "forgejo.org/models/repo"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascagentui"
 )
 
@@ -109,14 +110,14 @@ func ascAgentsCollect(callCtx gocontext.Context, api ascv1.AgentsClient, ref *as
 }
 
 // ascAgentEventRows turns events into rows. changeURLs maps the text form of a change id to its review page.
-func ascAgentEventRows(events []*ascv1.AgentRunEvent, changeURLs map[string]string) []ascAgentEvent {
+func ascAgentEventRows(l translation.Locale, events []*ascv1.AgentRunEvent, changeURLs map[string]string) []ascAgentEvent {
 	rows := make([]ascAgentEvent, 0, len(events))
 	for _, ev := range events {
 		word, tone := ascagentui.EventKind(ev.GetKind())
 		row := ascAgentEvent{
 			Seq:   ev.GetSeq(),
 			Kind:  ascAgentKindSlug(ev.GetKind()),
-			Word:  word,
+			Word:  l.TrString(word),
 			Tone:  tone,
 			Text:  ascagentui.CleanText(ev.GetText(), ascagentui.MaxEventText),
 			Tool:  ascagentui.CleanLine(ev.GetTool(), 64),
@@ -129,7 +130,7 @@ func ascAgentEventRows(events []*ascv1.AgentRunEvent, changeURLs map[string]stri
 		switch ev.GetKind() {
 		case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_STATE:
 			if row.Text == "" {
-				row.Text = ascagentui.RunState(ev.GetState()).Label
+				row.Text = ascagentui.RunState(ev.GetState()).Text(l)
 			}
 		case ascv1.AgentRunEventKind_AGENT_RUN_EVENT_KIND_USAGE:
 			if row.Text == "" {

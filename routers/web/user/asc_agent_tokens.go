@@ -70,7 +70,7 @@ func AscAgentsHome(ctx *context.Context) {
 		ctx.NotFound("AscAgentsHome", nil)
 		return
 	}
-	ctx.Data["Title"] = "Your agents"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_shell.your_agents")
 	ctx.Data["PageIsAscAgents"] = true
 	on := ascagentui.FeaturesEnabled(ctx, ctx.Doer)
 	ctx.Data["AscAgentFeatures"] = on
@@ -104,7 +104,7 @@ func AscAgentsHome(ctx *context.Context) {
 	conn, err := ascDraftsConn()
 	if err != nil {
 		log.Error("asc agents: no connection to asc serve: %v", err)
-		ctx.Data["AscAgentsError"] = ascagentui.Classify(err).Message
+		ctx.Data["AscAgentsError"] = ascagentui.Classify(err).Text(ctx.Locale)
 		ctx.HTML(http.StatusBadGateway, tplAscAgentsHome)
 		return
 	}
@@ -141,7 +141,7 @@ func AscAgentsHome(ctx *context.Context) {
 			}
 			title := ascagentui.CleanLine(run.GetTitle(), ascagentui.MaxTitleBytes)
 			if title == "" {
-				title = "Run " + strconv.FormatUint(run.GetId(), 10)
+				title = ctx.Locale.TrString("asc_review.agents_run_n", run.GetId())
 			}
 			runs = append(runs, AscAgentsHomeRun{
 				Repo:    repo,
@@ -223,9 +223,9 @@ func AscAgentsFeaturesPost(ctx *context.Context) {
 		return
 	}
 	if on {
-		ctx.Flash.Success("Agent features are on. They are for you only.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_shell.agents_on_done"))
 	} else {
-		ctx.Flash.Success("Agent features are off.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_shell.agents_off_done"))
 	}
 	if ctx.FormString("return") == "appearance" {
 		ctx.Redirect(setting.AppSubURL + "/user/settings/appearance")

@@ -326,7 +326,7 @@ func TestAscAgentsList(t *testing.T) {
 		hub.fail("Agents.ListRuns", withDetail(t, codes.FailedPrecondition, "agents are off: "+testPlantedKey, "AGENTS_DISABLED"))
 		p := runAgents(t, agentsReq{path: testRunsPath, user: agentsOwner, features: true}, AscAgents)
 		assert.Equal(t, http.StatusOK, p.status, "a state to explain, not a fault")
-		assert.Contains(t, p.body, "Agents are not turned on for this repository")
+		assert.Contains(t, p.body, "asc_agentui.fail.agents_disabled")
 		assert.Contains(t, p.body, `data-code="AGENTS_DISABLED"`)
 		assert.NotContains(t, p.body, testPlantedKey)
 	})
@@ -450,7 +450,7 @@ func TestAscAgentsCreate(t *testing.T) {
 		p := runAgents(t, agentsReq{method: "POST", path: testRunsPath + "/new", user: agentsOwner, features: true, form: form}, AscAgentsCreate)
 		require.Equal(t, http.StatusSeeOther, p.status, p.body)
 		assert.Equal(t, "/user2/repo1/asc/agents/runs/7", p.loc)
-		assert.Contains(t, p.ctx.Flash.SuccessMsg, "Run 7 started")
+		assert.Contains(t, p.ctx.Flash.SuccessMsg, "asc_agentui.ok.run_started")
 
 		calls := hub.callsOf("Agents.CreateRun")
 		require.Len(t, calls, 1)
@@ -491,19 +491,19 @@ func TestAscAgentsCreate(t *testing.T) {
 		mutate func(url.Values)
 		want   string
 	}{
-		"no task":        {func(v url.Values) { v.Set("task", "  ") }, "Describe the task"},
-		"task with nul":  {func(v url.Values) { v.Set("task", "a\x00b") }, "Describe the task"},
-		"task too long":  {func(v url.Values) { v.Set("task", strings.Repeat("x", ascagentui.MaxTaskBytes+1)) }, "Describe the task"},
-		"title with eol": {func(v url.Values) { v.Set("title", "a\nb") }, "title is at most 200"},
-		"bad agent":      {func(v url.Values) { v.Set("agent", "Coder One") }, "agent name is 1 to 40"},
-		"no such branch": {func(v url.Values) { v.Set("target", "no-such-branch") }, "Choose a branch"},
-		"bad key":        {func(v url.Values) { v.Set("key", "ak_x") }, "Choose a key"},
-		"bad model":      {func(v url.Values) { v.Set("model", "m; rm -rf /") }, "not a model name"},
-		"escaping path":  {func(v url.Values) { v.Set("paths", "src/../../etc") }, "relative path patterns"},
-		"absolute path":  {func(v url.Values) { v.Set("paths", "/etc/passwd") }, "relative path patterns"},
-		"bad changes":    {func(v url.Values) { v.Set(ascagentui.BudgetFields.Changes, "-1") }, "whole number"},
-		"bad cost":       {func(v url.Values) { v.Set(ascagentui.BudgetFields.CostUSD, "two dollars") }, "dollars such as 2.50"},
-		"huge tokens":    {func(v url.Values) { v.Set(ascagentui.BudgetFields.Tokens, "99999999999999999999") }, "whole number"},
+		"no task":        {func(v url.Values) { v.Set("task", "  ") }, "asc_agentui.form.task"},
+		"task with nul":  {func(v url.Values) { v.Set("task", "a\x00b") }, "asc_agentui.form.task"},
+		"task too long":  {func(v url.Values) { v.Set("task", strings.Repeat("x", ascagentui.MaxTaskBytes+1)) }, "asc_agentui.form.task"},
+		"title with eol": {func(v url.Values) { v.Set("title", "a\nb") }, "asc_agentui.form.title"},
+		"bad agent":      {func(v url.Values) { v.Set("agent", "Coder One") }, "asc_agentui.form.agent"},
+		"no such branch": {func(v url.Values) { v.Set("target", "no-such-branch") }, "asc_agentui.form.target"},
+		"bad key":        {func(v url.Values) { v.Set("key", "ak_x") }, "asc_agentui.form.key"},
+		"bad model":      {func(v url.Values) { v.Set("model", "m; rm -rf /") }, "asc_agentui.form.model"},
+		"escaping path":  {func(v url.Values) { v.Set("paths", "src/../../etc") }, "asc_agentui.form.paths"},
+		"absolute path":  {func(v url.Values) { v.Set("paths", "/etc/passwd") }, "asc_agentui.form.paths"},
+		"bad changes":    {func(v url.Values) { v.Set(ascagentui.BudgetFields.Changes, "-1") }, "asc_agentui.form.whole"},
+		"bad cost":       {func(v url.Values) { v.Set(ascagentui.BudgetFields.CostUSD, "two dollars") }, "asc_agentui.form.dollars"},
+		"huge tokens":    {func(v url.Values) { v.Set(ascagentui.BudgetFields.Tokens, "99999999999999999999") }, "asc_agentui.form.whole"},
 	}
 	for name, tc := range invalid {
 		t.Run("refused: "+name, func(t *testing.T) {
@@ -513,7 +513,7 @@ func TestAscAgentsCreate(t *testing.T) {
 			p := runAgents(t, agentsReq{method: "POST", path: testRunsPath + "/new", user: agentsOwner, features: true, form: form}, AscAgentsCreate)
 			assert.Equal(t, http.StatusBadRequest, p.status, p.body)
 			assert.Contains(t, p.body, tc.want)
-			assert.Contains(t, p.body, "Some fields need another look")
+			assert.Contains(t, p.body, "asc_agentui.form.summary")
 			assert.Len(t, hub.callsOf("Agents.CreateRun"), before, "nothing reaches asc")
 			noCallTokens(t)
 		})
@@ -534,11 +534,11 @@ func TestAscAgentsCreate(t *testing.T) {
 		http int
 		text string
 	}{
-		"AI_KEY_UNTESTED":    {codes.FailedPrecondition, http.StatusConflict, "Test that AI key first"},
-		"AI_CAP_REACHED":     {codes.ResourceExhausted, http.StatusTooManyRequests, "monthly cap"},
-		"AGENT_SCOPE_DENIED": {codes.PermissionDenied, http.StatusForbidden, "does not let an agent write those paths"},
-		"BUDGET_EXCEEDED":    {codes.ResourceExhausted, http.StatusTooManyRequests, "budget is reached"},
-		"AGENTS_DISABLED":    {codes.FailedPrecondition, http.StatusConflict, "Agents are not turned on"},
+		"AI_KEY_UNTESTED":    {codes.FailedPrecondition, http.StatusConflict, "asc_agentui.fail.ai_key_untested"},
+		"AI_CAP_REACHED":     {codes.ResourceExhausted, http.StatusTooManyRequests, "asc_agentui.fail.ai_cap_reached"},
+		"AGENT_SCOPE_DENIED": {codes.PermissionDenied, http.StatusForbidden, "asc_agentui.fail.agent_scope_denied"},
+		"BUDGET_EXCEEDED":    {codes.ResourceExhausted, http.StatusTooManyRequests, "asc_agentui.fail.budget"},
+		"AGENTS_DISABLED":    {codes.FailedPrecondition, http.StatusConflict, "asc_agentui.fail.agents_disabled"},
 	} {
 		t.Run("asc says "+code, func(t *testing.T) {
 			hub.fail("Agents.CreateRun", withDetail(t, tc.grpc, "provider said: "+testPlantedKey, code, "infra/limits.tf"))
@@ -769,7 +769,7 @@ func TestAscAgentsEvents(t *testing.T) {
 	assert.Equal(t, "running", f.State)
 	assert.True(t, f.Active)
 	assert.False(t, f.Done, "the stream is still open")
-	assert.Equal(t, "Running", f.Label)
+	assert.Equal(t, "asc_review.run_state_running", f.Label)
 	require.NotEmpty(t, f.Meters)
 	watch := hub.callsOf("Agents.WatchRun")
 	require.NotEmpty(t, watch)
@@ -793,7 +793,7 @@ func TestAscAgentsEvents(t *testing.T) {
 		assert.True(t, f.Done)
 		assert.False(t, f.Active)
 		assert.Len(t, f.Events, 3)
-		assert.Equal(t, "Done", f.Label)
+		assert.Equal(t, "asc_review.run_state_succeeded", f.Label)
 	})
 
 	t.Run("a finished run that still has events is not done yet", func(t *testing.T) {
@@ -896,7 +896,7 @@ func TestAscAgentsCancelAndInput(t *testing.T) {
 		hub.fail("Agents.CancelRun", withDetail(t, codes.FailedPrecondition, "run 7 is "+testPlantedKey, "RUN_NOT_ACTIVE"))
 		p := runAgents(t, agentsReq{method: "POST", path: back + "/cancel", user: agentsOwner, features: true, params: id}, AscAgentsCancel)
 		assert.Equal(t, http.StatusSeeOther, p.status)
-		assert.Equal(t, "That run has already finished.", p.ctx.Flash.ErrorMsg)
+		assert.Equal(t, "asc_agentui.fail.run_not_active", p.ctx.Flash.ErrorMsg)
 		assert.NotContains(t, p.ctx.Flash.ErrorMsg, testPlantedKey)
 		noCallTokens(t)
 	})

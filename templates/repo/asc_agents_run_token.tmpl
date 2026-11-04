@@ -5,7 +5,7 @@ Template Attributes:
 */}}
 {{with .AscAgentRunToken}}
 <section class="rv-card" aria-labelledby="ar-token-h" data-testid="asc-agent-run-token">
-	<div class="rv-card-h"><h2 id="ar-token-h">{{ctx.Locale.Tr "asc_review.run_token_title"}}</h2><span class="rv-pill rv-pill-{{.State.Tone}}">{{.State.Label}}</span></div>
+	<div class="rv-card-h"><h2 id="ar-token-h">{{ctx.Locale.Tr "asc_review.run_token_title"}}</h2><span class="rv-pill rv-pill-{{.State.Tone}}">{{ctx.Locale.Tr .State.Key}}</span></div>
 	<dl class="rv-card-b rv-dl rv-token-facts">
 		<dt>{{ctx.Locale.Tr "asc_review.run_token_id"}}</dt><dd><a href="{{$.AscAgentsBase}}/tokens"><code>{{.ID}}</code></a></dd>
 		{{if not .Expires.IsZero}}<dt>{{ctx.Locale.Tr "asc_review.tokens_expires"}}</dt><dd>{{DateUtils.AbsoluteShort .Expires}}</dd>{{end}}

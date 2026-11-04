@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/translation"
 )
 
 // Upper bounds the forms accept. asc applies the policy and instance limits on top; these only keep a typo from
@@ -132,7 +133,6 @@ func ParseBudget(in BudgetInput) (*ascv1.AgentBudgetLimits, error) {
 // Meter is one line of a budget panel.
 type Meter struct {
 	Key       string `json:"key"` // changes, tokens, cost, paths or time
-	Label     string `json:"label"`
 	Used      string `json:"used"`
 	Limit     string `json:"limit"`   // "" when there is no limit
 	Percent   int    `json:"percent"` // 0 to 100, 0 when there is no limit
@@ -142,19 +142,28 @@ type Meter struct {
 	Idle      bool   `json:"idle"` // no limit and nothing used: a list may leave the line out
 }
 
+// Fullness says how full the meter is in the language of l, such as "58% of tokens: 116,000 of 200,000". A meter
+// without a limit has no fullness.
+func (m Meter) Fullness(l translation.Locale) string {
+	if m.Unlimited {
+		return ""
+	}
+	return l.TrString("asc_agentui.meter_full."+m.Key, m.Percent, m.Used, m.Limit)
+}
+
 // Meters builds the budget panel. Limits and usage may be nil.
 func Meters(limits *ascv1.AgentBudgetLimits, usage *ascv1.AgentBudgetUsage) []Meter {
 	return []Meter{
-		meter("tokens", "Tokens", usage.GetTokens(), limits.GetMaxTokens(), FormatCount),
-		meter("cost", "Cost", usage.GetCostMicroUsd(), limits.GetMaxCostMicroUsd(), FormatUSD),
-		meter("changes", "Changes", uint64(usage.GetChanges()), uint64(limits.GetMaxChanges()), FormatCount),
-		meter("time", "Time", uint64(usage.GetRuntimeSeconds()), uint64(limits.GetMaxRuntimeSeconds()), FormatDuration),
-		meter("paths", "Paths", uint64(usage.GetPaths()), uint64(limits.GetMaxPaths()), FormatCount),
+		meter("tokens", usage.GetTokens(), limits.GetMaxTokens(), FormatCount),
+		meter("cost", usage.GetCostMicroUsd(), limits.GetMaxCostMicroUsd(), FormatUSD),
+		meter("changes", uint64(usage.GetChanges()), uint64(limits.GetMaxChanges()), FormatCount),
+		meter("time", uint64(usage.GetRuntimeSeconds()), uint64(limits.GetMaxRuntimeSeconds()), FormatDuration),
+		meter("paths", uint64(usage.GetPaths()), uint64(limits.GetMaxPaths()), FormatCount),
 	}
 }
 
-func meter(key, label string, used, limit uint64, format func(uint64) string) Meter {
-	m := Meter{Key: key, Label: label, Used: format(used)}
+func meter(key string, used, limit uint64, format func(uint64) string) Meter {
+	m := Meter{Key: key, Used: format(used)}
 	if limit == 0 {
 		m.Unlimited = true
 		m.Idle = used == 0
@@ -224,15 +233,16 @@ func FormatDuration(sec uint64) string {
 // LoweredText says which limits asc lowered to the policy cap, with the cap and the value that was asked when both are
 // known (board AgentNew: "Limit lowered. Your policy caps a run at $5.00. The limit was set to $8.00, so it was
 // lowered."). lowered is the answer of asc, asked the limits of the request and got the limits of the run asc answered;
-// a limit without both values, or a name asc did not use before, is named only. "" when nothing was lowered.
-func LoweredText(lowered []string, asked, got *ascv1.AgentBudgetLimits) string {
+// a limit without both values, or a name asc did not use before, is named only. "" when nothing was lowered. The
+// sentences are in the language of l.
+func LoweredText(l translation.Locale, lowered []string, asked, got *ascv1.AgentBudgetLimits) string {
 	var caps, sets, named []string
 	for _, code := range lowered {
 		code = SafeCode(code)
 		if code == "" {
 			continue
 		}
-		c, a, ok := loweredValues(code, asked, got)
+		c, a, ok := loweredValues(l, code, asked, got)
 		if ok {
 			caps, sets = append(caps, c), append(sets, a)
 		} else {
@@ -243,33 +253,32 @@ func LoweredText(lowered []string, asked, got *ascv1.AgentBudgetLimits) string {
 	switch len(caps) {
 	case 0:
 	case 1:
-		out = "Limit lowered. Your policy caps a run at " + caps[0] + ". The limit was set to " + sets[0] + ", so it was lowered."
+		out = l.TrString("asc_agentui.lowered_one", caps[0], sets[0])
 	default:
-		out = "Limits lowered. Your policy caps a run at " + andList(caps) + ". The limits were set to " + andList(sets) +
-			", so they were lowered."
+		out = l.TrString("asc_agentui.lowered_many", andList(l, caps), andList(l, sets))
 	}
 	if len(named) > 0 {
 		if out != "" {
 			out += " "
 		}
-		out += "Lowered to the policy cap: " + strings.Join(named, ", ") + "."
+		out += l.TrString("asc_agentui.lowered_named", strings.Join(named, ", "))
 	}
 	return out
 }
 
 // loweredValues writes the cap (from got) and the asked value of one limit; false when either is not set.
-func loweredValues(code string, asked, got *ascv1.AgentBudgetLimits) (string, string, bool) {
+func loweredValues(l translation.Locale, code string, asked, got *ascv1.AgentBudgetLimits) (string, string, bool) {
 	var a, g uint64
 	var format func(uint64) string
 	switch code {
 	case "changes":
-		a, g, format = uint64(asked.GetMaxChanges()), uint64(got.GetMaxChanges()), countOf("change", "changes")
+		a, g, format = uint64(asked.GetMaxChanges()), uint64(got.GetMaxChanges()), countOf(l, "asc_agentui.n_changes")
 	case "tokens":
-		a, g, format = asked.GetMaxTokens(), got.GetMaxTokens(), countOf("token", "tokens")
+		a, g, format = asked.GetMaxTokens(), got.GetMaxTokens(), countOf(l, "asc_agentui.n_tokens")
 	case "cost":
 		a, g, format = asked.GetMaxCostMicroUsd(), got.GetMaxCostMicroUsd(), FormatUSD
 	case "paths":
-		a, g, format = uint64(asked.GetMaxPaths()), uint64(got.GetMaxPaths()), countOf("path", "paths")
+		a, g, format = uint64(asked.GetMaxPaths()), uint64(got.GetMaxPaths()), countOf(l, "asc_agentui.n_paths")
 	case "runtime":
 		a, g, format = uint64(asked.GetMaxRuntimeSeconds()), uint64(got.GetMaxRuntimeSeconds()), FormatDuration
 	default:
@@ -281,18 +290,19 @@ func loweredValues(code string, asked, got *ascv1.AgentBudgetLimits) (string, st
 	return format(g), format(a), true
 }
 
-func countOf(one, many string) func(uint64) string {
+// countOf writes a count with the locale key key (key+"_1" for one).
+func countOf(l translation.Locale, key string) func(uint64) string {
 	return func(n uint64) string {
 		if n == 1 {
-			return "1 " + one
+			return l.TrString(key + "_1")
 		}
-		return FormatCount(n) + " " + many
+		return l.TrString(key, FormatCount(n))
 	}
 }
 
-func andList(items []string) string {
+func andList(l translation.Locale, items []string) string {
 	if len(items) == 1 {
 		return items[0]
 	}
-	return strings.Join(items[:len(items)-1], ", ") + " and " + items[len(items)-1]
+	return l.TrString("asc_agentui.list_and", strings.Join(items[:len(items)-1], ", "), items[len(items)-1])
 }

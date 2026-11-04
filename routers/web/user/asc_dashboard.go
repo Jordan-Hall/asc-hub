@@ -548,7 +548,7 @@ func ascAgentsActive(ctx *context.Context, doer *user_model.User, maxRepos, perR
 			if run == nil || run.GetId() == 0 || run.GetRepo() != name {
 				continue
 			}
-			a := ascDashAgentFrom(repo, run)
+			a := ascDashAgentFrom(ctx.Locale, repo, run)
 			if a.State.Slug == "waiting" {
 				waiting++
 			}
@@ -562,10 +562,10 @@ func ascAgentsActive(ctx *context.Context, doer *user_model.User, maxRepos, perR
 }
 
 // ascDashAgentFrom draws one run.
-func ascDashAgentFrom(repo *repo_model.Repository, run *ascv1.AgentRun) AscDashAgent {
+func ascDashAgentFrom(l translation.Locale, repo *repo_model.Repository, run *ascv1.AgentRun) AscDashAgent {
 	title := ascagentui.CleanLine(run.GetTitle(), ascagentui.MaxTitleBytes)
 	if title == "" {
-		title = "Run " + strconv.FormatUint(run.GetId(), 10)
+		title = l.TrString("asc_review.agents_run_n", run.GetId())
 	}
 	a := AscDashAgent{
 		Title: title,
@@ -586,7 +586,7 @@ func ascDashAgentFrom(repo *repo_model.Repository, run *ascv1.AgentRun) AscDashA
 	}
 	if fullest != nil {
 		a.Percent = fullest.Percent
-		a.Meter = fmt.Sprintf("%d%% of %s: %s of %s", fullest.Percent, strings.ToLower(fullest.Label), fullest.Used, fullest.Limit)
+		a.Meter = fullest.Fullness(l)
 	}
 	return a
 }

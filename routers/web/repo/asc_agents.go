@@ -18,6 +18,7 @@ import (
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/context"
 
@@ -101,7 +102,7 @@ func ascAgentInitials(name string) string {
 
 // ascAgentRunOf checks a run that asc sent for repository `name` and turns it into a row. A run of another
 // repository, without an id, or with an id other than the one asked for (when wantID is not 0) is refused.
-func ascAgentRunOf(run *ascv1.AgentRun, name, runsLink string, wantID uint64) (ascAgentRunRow, bool) {
+func ascAgentRunOf(l translation.Locale, run *ascv1.AgentRun, name, runsLink string, wantID uint64) (ascAgentRunRow, bool) {
 	if run == nil || run.GetId() == 0 || run.GetRepo() != name || (wantID != 0 && run.GetId() != wantID) {
 		return ascAgentRunRow{}, false
 	}
@@ -137,7 +138,7 @@ func ascAgentRunOf(run *ascv1.AgentRun, name, runsLink string, wantID uint64) (a
 	row.Workflow = run.GetWorkflowRunId()
 	row.Active = row.State.Active
 	if row.Title == "" {
-		row.Title = "Run " + strconv.FormatUint(row.ID, 10)
+		row.Title = l.TrString("asc_review.agents_run_n", row.ID)
 	}
 	if run.GetFailureMessage() != "" || run.GetFailureCode() != "" {
 		row.Failure = ascagentui.SafeCode(run.GetFailureCode())
@@ -181,7 +182,7 @@ func AscAgents(ctx *context.Context) {
 	if !ok {
 		return
 	}
-	ctx.Data["Title"] = "Agents"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_review.agents_title")
 	ascAgentsNav(ctx, "runs")
 
 	stateSlug := ctx.FormString("state")
@@ -225,7 +226,7 @@ func AscAgents(ctx *context.Context) {
 	creators := map[uint64]uint64{}
 	active, waiting, done := 0, 0, 0
 	for _, run := range resp.GetRuns() {
-		row, ok := ascAgentRunOf(run, env.name, env.runsLink(), 0)
+		row, ok := ascAgentRunOf(ctx.Locale, run, env.name, env.runsLink(), 0)
 		if !ok {
 			log.Error("asc agents: ListRuns answered a run that is not of this repository")
 			ascAgentsFail(ctx, tplAscAgents, "ListRuns", errAscAgentsBadAnswer)
@@ -481,7 +482,7 @@ func ascAgentsPrefill(ctx *context.Context, form *ascAgentForm) {
 
 // ascAgentsRenderForm draws the task form with the picker and the policy panel.
 func ascAgentsRenderForm(ctx *context.Context, env *ascAgentsEnv, form *ascAgentForm, status int) {
-	ctx.Data["Title"] = "Ask an agent"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_review.new_title")
 	ascAgentsNav(ctx, "new")
 	ctx.Data["AscAgentForm"] = form
 	ctx.Data["AscBudgetFields"] = ascagentui.BudgetFields
@@ -572,18 +573,18 @@ func AscAgentsCreate(ctx *context.Context) {
 	if t, ok := ascagentui.CheckFreeText(form.Task, ascagentui.MaxTaskBytes); ok {
 		req.Task = t
 	} else {
-		form.Errors["task"] = "Describe the task in 1 to 65,536 bytes of text."
+		form.Errors["task"] = ctx.Locale.TrString("asc_agentui.form.task")
 	}
 	if t, ok := ascagentui.CheckLine(form.Title, ascagentui.MaxTitleBytes, true); ok {
 		req.Title = t
 	} else {
-		form.Errors["title"] = "The title is at most 200 characters on one line."
+		form.Errors["title"] = ctx.Locale.TrString("asc_agentui.form.title")
 	}
 	if !ascagentui.ValidAgentName(form.Agent) {
-		form.Errors["agent"] = "An agent name is 1 to 40 characters: a to z, 0 to 9 and hyphens."
+		form.Errors["agent"] = ctx.Locale.TrString("asc_agentui.form.agent")
 	}
 	if b, err := git_model.GetBranch(ctx, ctx.Repo.Repository.ID, form.Target); err != nil || b.IsDeleted {
-		form.Errors["target"] = "Choose a branch of this repository."
+		form.Errors["target"] = ctx.Locale.TrString("asc_agentui.form.target")
 	} else {
 		req.Target = form.Target
 	}
@@ -591,31 +592,31 @@ func AscAgentsCreate(ctx *context.Context) {
 		if ascagentui.ValidKeyID(form.Key) {
 			req.AiKeyId = form.Key
 		} else {
-			form.Errors["key"] = "Choose a key from the list."
+			form.Errors["key"] = ctx.Locale.TrString("asc_agentui.form.key")
 		}
 	}
 	if form.Model != "" {
 		if ascagentui.ValidModel(form.Model) {
 			req.Model = form.Model
 		} else {
-			form.Errors["model"] = "That is not a model name."
+			form.Errors["model"] = ctx.Locale.TrString("asc_agentui.form.model")
 		}
 	}
 	if globs, ok := ascagentui.ParseGlobs(form.Paths); ok {
 		req.Paths = globs
 	} else {
-		form.Errors["paths"] = "Give up to 16 relative path patterns, one per line, with no \"..\"."
+		form.Errors["paths"] = ctx.Locale.TrString("asc_agentui.form.paths")
 	}
 	if limits, err := ascagentui.ParseBudget(form.Budget); err == nil {
 		req.Limits = limits
 	} else if be, ok := err.(*ascagentui.BudgetError); ok {
-		form.Errors[be.Field] = "Enter a whole number, or leave it empty for the policy default."
+		form.Errors[be.Field] = ctx.Locale.TrString("asc_agentui.form.whole")
 		if be.Field == ascagentui.BudgetFields.CostUSD {
-			form.Errors[be.Field] = "Enter dollars such as 2.50, or leave it empty for the policy default."
+			form.Errors[be.Field] = ctx.Locale.TrString("asc_agentui.form.dollars")
 		}
 	}
 	if len(form.Errors) > 0 {
-		form.Summary = "Some fields need another look."
+		form.Summary = ctx.Locale.TrString("asc_agentui.form.summary")
 		ascAgentsRenderForm(ctx, env, &form, http.StatusBadRequest)
 		return
 	}
@@ -623,7 +624,7 @@ func AscAgentsCreate(ctx *context.Context) {
 	conn, err := ascRPCConn()
 	if err != nil {
 		log.Error("asc agents: no connection to asc serve: %v", err)
-		form.Summary = ascagentui.Classify(err).Message
+		form.Summary = ascagentui.Classify(err).Text(ctx.Locale)
 		ascAgentsRenderForm(ctx, env, &form, http.StatusBadGateway)
 		return
 	}
@@ -642,7 +643,7 @@ func AscAgentsCreate(ctx *context.Context) {
 			log.Error("asc agents: CreateRun failed: %s", ascagentuiLogLine(f))
 		}
 		log.Warn("asc agents: CreateRun refused: %v", err)
-		form.Summary = f.Message
+		form.Summary = f.Text(ctx.Locale)
 		for _, d := range f.Details {
 			form.Summary += " " + d + "."
 		}
@@ -653,16 +654,16 @@ func AscAgentsCreate(ctx *context.Context) {
 		ascAgentsRenderForm(ctx, env, &form, status)
 		return
 	}
-	row, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), 0)
+	row, ok := ascAgentRunOf(ctx.Locale, resp.GetRun(), env.name, env.runsLink(), 0)
 	if !ok {
 		log.Error("asc agents: CreateRun answered a run that is not of this repository")
-		form.Summary = ascagentui.Classify(errAscAgentsBadAnswer).Message
+		form.Summary = ascagentui.Classify(errAscAgentsBadAnswer).Text(ctx.Locale)
 		ascAgentsRenderForm(ctx, env, &form, http.StatusBadGateway)
 		return
 	}
-	started := "Run " + strconv.FormatUint(row.ID, 10) + " started."
+	started := ctx.Locale.TrString("asc_agentui.ok.run_started", row.ID)
 	if len(resp.GetLowered()) > 0 {
-		ctx.Flash.Warning(ascAgentsLoweredText(started, resp.GetLowered(), req.GetLimits(), resp.GetRun().GetLimits()))
+		ctx.Flash.Warning(started + " " + ascagentui.LoweredText(ctx.Locale, resp.GetLowered(), req.GetLimits(), resp.GetRun().GetLimits()))
 	} else {
 		ctx.Flash.Success(started)
 	}
@@ -685,7 +686,7 @@ func AscAgentsRun(ctx *context.Context) {
 		ctx.NotFound("asc agent run", nil)
 		return
 	}
-	ctx.Data["Title"] = "Agent run " + strconv.FormatUint(id, 10)
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_agentui.title.run", id)
 	ascAgentsNav(ctx, "runs")
 	conn, err := ascRPCConn()
 	if err != nil {
@@ -702,7 +703,7 @@ func AscAgentsRun(ctx *context.Context) {
 		return
 	}
 	run := resp.GetRun()
-	row, ok := ascAgentRunOf(run, env.name, env.runsLink(), id)
+	row, ok := ascAgentRunOf(ctx.Locale, run, env.name, env.runsLink(), id)
 	ascAgentsReveal(ctx, &row, run)
 	see := ascAgentsMaySeeRun(ctx, run.GetCreatedById())
 	ctx.Data["AscAgentRunSee"] = see
@@ -747,7 +748,7 @@ func AscAgentsRun(ctx *context.Context) {
 	ctx.Data["AscAgentRunWaiting"] = run.GetState() == ascv1.AgentRunState_AGENT_RUN_STATE_WAITING_INPUT
 	ctx.Data["AscAgentMeters"] = ascagentui.Meters(run.GetLimits(), run.GetUsage())
 	ctx.Data["AscAgentChanges"] = changes
-	ctx.Data["AscAgentEvents"] = ascAgentEventRows(events, urls)
+	ctx.Data["AscAgentEvents"] = ascAgentEventRows(ctx.Locale, events, urls)
 	ctx.Data["AscAgentEventsHidden"] = hidden
 	ctx.Data["AscAgentLastSeq"] = last
 	ctx.Data["AscAgentFeedDone"] = batch.ended && !row.State.Active
@@ -847,7 +848,7 @@ func AscAgentsEvents(ctx *context.Context) {
 	conn, err := ascRPCConn()
 	if err != nil {
 		log.Error("asc agents: no connection to asc serve: %v", err)
-		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(err).Message})
+		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(err).Text(ctx.Locale)})
 		return
 	}
 	api := ascv1.NewAgentsClient(conn)
@@ -860,10 +861,10 @@ func AscAgentsEvents(ctx *context.Context) {
 		return
 	}
 	run := resp.GetRun()
-	row, ok := ascAgentRunOf(run, env.name, env.runsLink(), id)
+	row, ok := ascAgentRunOf(ctx.Locale, run, env.name, env.runsLink(), id)
 	if !ok {
 		log.Error("asc agents: GetRun answered a run that is not the one asked for")
-		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(errAscAgentsBadAnswer).Message})
+		ctx.JSON(http.StatusBadGateway, map[string]string{"error": ascagentui.Classify(errAscAgentsBadAnswer).Text(ctx.Locale)})
 		return
 	}
 	wait := ascAgentsPollWait
@@ -881,7 +882,7 @@ func AscAgentsEvents(ctx *context.Context) {
 	// State and usage are read again after the wait, so the answer shows the run as of its last event.
 	if len(batch.events) > 0 || row.State.Active {
 		if again, err := api.GetRun(callCtx, &ascv1.GetAgentRunRequest{Repo: env.ref(), Id: id}); err == nil {
-			if r2, ok := ascAgentRunOf(again.GetRun(), env.name, env.runsLink(), id); ok {
+			if r2, ok := ascAgentRunOf(ctx.Locale, again.GetRun(), env.name, env.runsLink(), id); ok {
 				run, row = again.GetRun(), r2
 			}
 		}
@@ -894,7 +895,7 @@ func AscAgentsEvents(ctx *context.Context) {
 	urls := ascAgentEventChangeURLs(ctx, ctx.Repo.Repository, env.link, batch.events, canPulls)
 	out := ascAgentFeedJSON{
 		State:   row.State.Slug,
-		Label:   row.State.Label,
+		Label:   row.State.Text(ctx.Locale),
 		Tone:    row.State.Tone,
 		Active:  row.State.Active,
 		Waiting: run.GetState() == ascv1.AgentRunState_AGENT_RUN_STATE_WAITING_INPUT,
@@ -902,7 +903,7 @@ func AscAgentsEvents(ctx *context.Context) {
 		Meters:  ascagentui.Meters(run.GetLimits(), run.GetUsage()),
 		Changes: row.Changes,
 		Failure: row.Failure,
-		Events:  ascAgentEventRows(batch.events, urls),
+		Events:  ascAgentEventRows(ctx.Locale, batch.events, urls),
 		Last:    last,
 		Done:    batch.ended && !row.State.Active,
 	}
@@ -921,7 +922,7 @@ func ascAgentsFeedFail(ctx *context.Context, what string, err error) {
 	if f.Disabled {
 		status = http.StatusConflict
 	}
-	ctx.JSON(status, map[string]string{"error": f.Message})
+	ctx.JSON(status, map[string]string{"error": f.Text(ctx.Locale)})
 }
 
 // AscAgentsCancel serves `POST /{owner}/{repo}/asc/agents/runs/{id}/cancel`.
@@ -961,7 +962,7 @@ func AscAgentsCancel(ctx *context.Context) {
 		ascAgentsFlashFail(ctx, back, "CancelRun", err)
 		return
 	}
-	row, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), id)
+	row, ok := ascAgentRunOf(ctx.Locale, resp.GetRun(), env.name, env.runsLink(), id)
 	if !ok {
 		ascAgentsFlashFail(ctx, back, "CancelRun", errAscAgentsBadAnswer)
 		return
@@ -985,7 +986,7 @@ func AscAgentsInput(ctx *context.Context) {
 	back := env.runsLink() + "/runs/" + strconv.FormatUint(id, 10)
 	text, ok := ascagentui.CheckFreeText(ctx.FormString("text"), ascagentui.MaxInputBytes)
 	if !ok {
-		ctx.Flash.Error("Write a message of 1 to 16,384 bytes.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_agentui.form.message"))
 		ctx.Redirect(back)
 		return
 	}
@@ -1004,11 +1005,11 @@ func AscAgentsInput(ctx *context.Context) {
 		ascAgentsFlashFail(ctx, back, "SendInput", err)
 		return
 	}
-	if _, ok := ascAgentRunOf(resp.GetRun(), env.name, env.runsLink(), id); !ok {
+	if _, ok := ascAgentRunOf(ctx.Locale, resp.GetRun(), env.name, env.runsLink(), id); !ok {
 		ascAgentsFlashFail(ctx, back, "SendInput", errAscAgentsBadAnswer)
 		return
 	}
-	ctx.Flash.Success("Sent to the agent.")
+	ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.sent"))
 	ctx.Redirect(back)
 }
 

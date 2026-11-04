@@ -73,9 +73,9 @@ func TestMeters(t *testing.T) {
 	for _, m := range Meters(limits, usage) {
 		byKey[m.Key] = m
 	}
-	assert.Equal(t, Meter{Key: "tokens", Label: "Tokens", Used: "116k", Limit: "200k", Percent: 58}, byKey["tokens"])
-	assert.Equal(t, Meter{Key: "changes", Label: "Changes", Used: "4", Limit: "8", Percent: 50}, byKey["changes"])
-	assert.Equal(t, Meter{Key: "time", Label: "Time", Used: "6 min", Limit: "20 min", Percent: 30}, byKey["time"])
+	assert.Equal(t, Meter{Key: "tokens", Used: "116k", Limit: "200k", Percent: 58}, byKey["tokens"])
+	assert.Equal(t, Meter{Key: "changes", Used: "4", Limit: "8", Percent: 50}, byKey["changes"])
+	assert.Equal(t, Meter{Key: "time", Used: "6 min", Limit: "20 min", Percent: 30}, byKey["time"])
 	assert.True(t, byKey["cost"].Unlimited, "no cost limit set")
 	assert.Equal(t, "$1.25", byKey["cost"].Used)
 	assert.False(t, byKey["cost"].Idle, "it has use")
@@ -110,16 +110,17 @@ func TestFormatters(t *testing.T) {
 func TestLoweredTextSaysTheCapAndWhatWasAsked(t *testing.T) {
 	asked := &ascv1.AgentBudgetLimits{MaxCostMicroUsd: 8_000_000, MaxTokens: 500_000, MaxRuntimeSeconds: 7200, MaxChanges: 3}
 	got := &ascv1.AgentBudgetLimits{MaxCostMicroUsd: 5_000_000, MaxTokens: 200_000, MaxRuntimeSeconds: 3600, MaxChanges: 1}
+	en := english(t)
 	assert.Equal(t, "Limit lowered. Your policy caps a run at $5.00. The limit was set to $8.00, so it was lowered.",
-		LoweredText([]string{"cost"}, asked, got))
+		LoweredText(en, []string{"cost"}, asked, got))
 	assert.Equal(t, "Limits lowered. Your policy caps a run at $5.00, 200k tokens and 1 h. The limits were set to $8.00, 500k tokens "+
-		"and 2 h, so they were lowered.", LoweredText([]string{"cost", "tokens", "runtime"}, asked, got))
+		"and 2 h, so they were lowered.", LoweredText(en, []string{"cost", "tokens", "runtime"}, asked, got))
 	assert.Equal(t, "Limit lowered. Your policy caps a run at 1 change. The limit was set to 3 changes, so it was lowered.",
-		LoweredText([]string{"changes"}, asked, got))
+		LoweredText(en, []string{"changes"}, asked, got))
 	assert.Equal(t, "Limit lowered. Your policy caps a run at $5.00. The limit was set to $8.00, so it was lowered. "+
-		"Lowered to the policy cap: paths, budget_x.", LoweredText([]string{"cost", "paths", "budget_x", "<b>"}, asked, got),
+		"Lowered to the policy cap: paths, budget_x.", LoweredText(en, []string{"cost", "paths", "budget_x", "<b>"}, asked, got),
 		"a limit without both values and a new name are named only; text that is not a code is dropped")
-	assert.Equal(t, "Lowered to the policy cap: cost.", LoweredText([]string{"cost"}, nil, got), "the field was left empty")
-	assert.Equal(t, "Lowered to the policy cap: cost.", LoweredText([]string{"cost"}, got, asked), "asc answered a higher value")
-	assert.Empty(t, LoweredText(nil, asked, got))
+	assert.Equal(t, "Lowered to the policy cap: cost.", LoweredText(en, []string{"cost"}, nil, got), "the field was left empty")
+	assert.Equal(t, "Lowered to the policy cap: cost.", LoweredText(en, []string{"cost"}, got, asked), "asc answered a higher value")
+	assert.Empty(t, LoweredText(en, nil, asked, got))
 }

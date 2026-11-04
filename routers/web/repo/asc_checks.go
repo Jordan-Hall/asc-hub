@@ -1069,7 +1069,7 @@ func AscPullChecks(ctx *context.Context) {
 	}
 	pull := issue.PullRequest
 	ctx.Data["PageIsPullList"] = true
-	ctx.Data["Title"] = "Checks"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_trust.checks.title")
 	p := &ascPullChecksPage{
 		PullURL: issue.Link(), ChecksURL: ascChecksURL(repo), Ops: map[uint64]string{}, Index: issue.Index,
 		CanRerun: ctx.IsSigned && ctx.Repo.CanWrite(unit.TypeActions),

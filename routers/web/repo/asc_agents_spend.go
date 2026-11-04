@@ -25,7 +25,7 @@ func AscAgentsSpend(ctx *context.Context) {
 	if !ok {
 		return
 	}
-	ctx.Data["Title"] = "Agent spend"
+	ctx.Data["Title"] = ctx.Locale.TrString("asc_agentui.title.spend")
 	ascAgentsNav(ctx, "spend")
 	month := ctx.FormTrim("month")
 	if month != "" && len(month) != 7 {
@@ -62,13 +62,13 @@ func AscAgentsSpendBudget(ctx *context.Context) {
 	}
 	agent := ctx.FormTrim("agent")
 	if agent != "" && !ascagentui.ValidAgentName(agent) {
-		ctx.Flash.Error("Choose an agent from the list.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_agentui.form.spend_agent"))
 		ctx.Redirect(back)
 		return
 	}
 	capMicro, ok := ascagentui.ParseUSD(ctx.FormTrim("cap_usd"))
 	if !ok {
-		ctx.Flash.Error("Enter the cap in dollars, such as 400 or 120.50, or leave it empty to remove it.")
+		ctx.Flash.Error(ctx.Locale.TrString("asc_agentui.form.spend_cap"))
 		ctx.Redirect(back)
 		return
 	}
@@ -88,9 +88,9 @@ func AscAgentsSpendBudget(ctx *context.Context) {
 	}
 	log.Info("asc agents: monthly budget of repository %d set by user %d", ctx.Repo.Repository.ID, ctx.Doer.ID)
 	if capMicro == 0 {
-		ctx.Flash.Success("The monthly cap was removed.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.cap_removed"))
 	} else {
-		ctx.Flash.Success("The monthly cap was saved. A run that would start over it is refused.")
+		ctx.Flash.Success(ctx.Locale.TrString("asc_agentui.ok.cap_saved"))
 	}
 	ctx.Redirect(back)
 }

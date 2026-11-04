@@ -63,7 +63,7 @@ func AscAgentsOpenPulls(ctx *context.Context) {
 		return
 	}
 	run := resp.GetRun()
-	row, ok := ascAgentRunOf(run, env.name, env.runsLink(), id)
+	row, ok := ascAgentRunOf(ctx.Locale, run, env.name, env.runsLink(), id)
 	if !ok {
 		ascAgentsFlashFail(ctx, back, "GetRun", errAscAgentsBadAnswer)
 		return

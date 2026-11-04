@@ -57,17 +57,17 @@ Template Attributes:
 								</h2>
 								{{if .Description}}<p class="rv-li-sub">{{.Description}}</p>{{end}}
 								<ul class="rv-wf-triggers" aria-label="{{ctx.Locale.Tr "asc_review.wf_starts_when"}}">
-									{{range .Triggers}}<li class="rv-pill rv-pill-outline">{{.Label}}</li>{{end}}
+									{{range .Triggers}}<li class="rv-pill rv-pill-outline">{{ctx.Locale.Tr .Key}}</li>{{end}}
 								</ul>
 								{{if .Steps}}<p class="rv-li-sub wf-chain" aria-label="{{ctx.Locale.Tr "asc_review.wf_chain"}}">{{range $i, $s := .Steps}}{{if $i}} <span aria-hidden="true">&gt;</span> {{end}}<code class="rv-bare">{{$s.ID}}</code>{{end}}</p>{{end}}
 								<p class="rv-li-meta">
 									<span>{{ctx.Locale.TrN (len .Steps) "asc_review.wf_steps_one" "asc_review.wf_steps_other" (len .Steps)}}</span>
 									{{if .Path}}<span><code>{{.Path}}</code></span>{{end}}
 								</p>
-								{{if .Error}}<div class="rv-run-fail" role="note">{{.Error}}</div>{{end}}
+								{{if .Error}}<div class="rv-run-fail" role="note">{{.Error}}</div>{{else if not .Valid}}<div class="rv-run-fail" role="note">{{ctx.Locale.Tr "asc_agentui.wf_invalid"}}</div>{{end}}
 							<div class="wf-hist" data-testid="asc-workflow-history">
 								<span class="rv-faint wf-hist-l">{{ctx.Locale.Tr "asc_review.wf_last_runs"}}</span>
-								{{if .History}}<span class="wf-hist-strip" role="img" aria-label="{{ctx.Locale.Tr "asc_review.wf_history_alt" (len .History)}}">{{range .History}}<i class="wf-h wf-tone-{{.Tone}}" title="{{.Label}}"></i>{{end}}</span><span class="rv-faint">{{ctx.Locale.Tr "asc_review.wf_last_at" (DateUtils.TimeSince .LastRun)}}</span>{{else}}<span class="rv-faint">{{ctx.Locale.Tr "asc_review.wf_never_run"}}</span>{{end}}
+								{{if .History}}<span class="wf-hist-strip" role="img" aria-label="{{ctx.Locale.Tr "asc_review.wf_history_alt" (len .History)}}">{{range .History}}<i class="wf-h wf-tone-{{.Tone}}" title="{{ctx.Locale.Tr .Key}}"></i>{{end}}</span><span class="rv-faint">{{ctx.Locale.Tr "asc_review.wf_last_at" (DateUtils.TimeSince .LastRun)}}</span>{{else}}<span class="rv-faint">{{ctx.Locale.Tr "asc_review.wf_never_run"}}</span>{{end}}
 							</div>
 							</div>
 							<div class="rv-wf-act">
@@ -140,7 +140,7 @@ Template Attributes:
 				{{if and .CanChangeWorkflows .AscWorkflowNewURL}}
 				<section class="rv-card" aria-labelledby="rv-wfl-tpl" data-testid="asc-workflow-templates">
 					<div class="rv-card-h"><h2 id="rv-wfl-tpl">{{ctx.Locale.Tr "asc_review.wf_templates"}}</h2></div>
-					<ul class="rv-card-b rv-plain">{{range .AscWorkflowTemplates}}<li><a href="{{$.AscWorkflowNewURL}}&amp;asc_template={{.Name}}">{{.Title}}</a><br><span class="rv-muted">{{.Description}}</span></li>{{end}}</ul>
+					<ul class="rv-card-b rv-plain">{{range .AscWorkflowTemplates}}<li><a href="{{$.AscWorkflowNewURL}}&amp;asc_template={{.Name}}">{{ctx.Locale.Tr .Title}}</a><br><span class="rv-muted">{{ctx.Locale.Tr .Description}}</span></li>{{end}}</ul>
 					<p class="rv-card-b rv-hint">{{ctx.Locale.Tr "asc_review.wf_templates_help"}}</p>
 				</section>
 				{{end}}

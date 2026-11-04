@@ -321,7 +321,7 @@ func ascAgentDashRow(l translation.Locale, a *AscDashAgent) AscDashRow {
 		row.Tone = "red"
 		row.Chips = []AscDashChip{{"red", l.TrString("user.asc_dash.paused")}}
 	} else {
-		row.Chips = []AscDashChip{{"violet", a.State.Label}}
+		row.Chips = []AscDashChip{{"violet", a.State.Text(l)}}
 	}
 	if a.Meter != "" {
 		row.Meta = a.Meter

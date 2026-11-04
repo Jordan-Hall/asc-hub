@@ -23,7 +23,7 @@ The page works without the script: the log shows what existed when it was drawn,
 			<div class="ar-rail-h"><span>{{ctx.Locale.Tr "asc_review.agents_nav_runs"}}</span>{{if .AscAgentsCanStart}}<a class="rv-btn rv-btn-primary rv-btn-sm" href="{{.AscAgentsBase}}/new">{{ctx.Locale.Tr "asc_review.run_rail_new"}}</a>{{end}}</div>
 			<ul>
 				{{range .AscAgentRunRail}}
-				<li><a href="{{.Link}}"{{if eq .ID $.AscAgentRun.ID}} aria-current="page"{{end}}><b>{{ctx.Locale.Tr "asc_review.agents_run_n" .ID}} · {{.Title}}</b><span>{{.Agent}} · {{.State.Label}}{{if .Paused}} · {{ctx.Locale.Tr "asc_review.agents_paused"}}{{end}}{{if .Pending}} · {{ctx.Locale.Tr "asc_review.agents_roster_waiting"}}{{end}}</span></a></li>
+				<li><a href="{{.Link}}"{{if eq .ID $.AscAgentRun.ID}} aria-current="page"{{end}}><b>{{ctx.Locale.Tr "asc_review.agents_run_n" .ID}} · {{.Title}}</b><span>{{.Agent}} · {{ctx.Locale.Tr .State.Key}}{{if .Paused}} · {{ctx.Locale.Tr "asc_review.agents_paused"}}{{end}}{{if .Pending}} · {{ctx.Locale.Tr "asc_review.agents_roster_waiting"}}{{end}}</span></a></li>
 				{{end}}
 			</ul>
 		</nav>
