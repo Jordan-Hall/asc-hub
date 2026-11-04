@@ -89,6 +89,8 @@ func ascAgentsLoadBoard(ctx *context.Context, env *ascAgentsEnv, callCtx goconte
 		st.SpendDay = ascagentui.MonthDayOf(ascAgentsClock())
 	}
 
+	// The card counts the requests: without an answer it has none, never a missing value.
+	ctx.Data["AscAgentsNeeds"] = []ascagentui.Request{}
 	if resp, err := api.ListRequests(callCtx, &ascv1.ListAgentRequestsRequest{
 		Repo: env.ref(), States: []ascv1.AgentRequestState{ascv1.AgentRequestState_AGENT_REQUEST_STATE_PENDING}, Limit: 50,
 	}); err != nil {

@@ -188,8 +188,8 @@ func AscAgents(ctx *context.Context) {
 	states, valid := ascagentui.RunStateFilter(stateSlug)
 	mine := ctx.FormBool("mine")
 	agent := ctx.FormTrim("agent")
-	token, tokenOK := ascAgentsPageToken(ctx.FormString("page"))
-	if !valid || !tokenOK || (agent != "" && !ascagentui.ValidAgentName(agent)) {
+	pageNum, pageOK := ascAgentsPageNum(ctx.FormString("page"))
+	if !valid || !pageOK || (agent != "" && !ascagentui.ValidAgentName(agent)) {
 		ctx.Data["AscAgentsFailure"] = ascagentui.Classify(ascInvalidArgument())
 		ctx.HTML(http.StatusBadRequest, tplAscAgents)
 		return
@@ -204,7 +204,7 @@ func AscAgents(ctx *context.Context) {
 	}
 	ctx.Data["AscAgentsFilterQ"] = q
 
-	req := &ascv1.ListAgentRunsRequest{Repo: env.ref(), States: states, Agent: agent, Limit: ascAgentsPageSize, PageToken: token}
+	req := &ascv1.ListAgentRunsRequest{Repo: env.ref(), States: states, Agent: agent, Limit: ascAgentsPageSize, Offset: uint32((pageNum - 1) * ascAgentsPageSize)}
 	if mine {
 		req.CreatedBy = ctx.Doer.Name // always the signed-in person, never a value of the request
 	}
@@ -252,7 +252,8 @@ func AscAgents(ctx *context.Context) {
 	ctx.Data["AscAgentsWaiting"] = waiting
 	ctx.Data["AscAgentsDone"] = done
 	ctx.Data["AscAgentsWaitingRuns"] = ascAgentWaitingRows(rows)
-	if next, ok := ascAgentsPageToken(resp.GetNextPageToken()); ok && next != "" {
+	ctx.Data["AscAgentsTotal"] = resp.GetTotal()
+	ctx.Data["AscAgentsPager"] = ascAgentsPagerOf(pageNum, resp.GetTotal(), func(n int) string {
 		q := url.Values{}
 		if stateSlug != "" {
 			q.Set("state", stateSlug)
@@ -266,9 +267,14 @@ func AscAgents(ctx *context.Context) {
 		if search := ctx.FormTrim("q"); search != "" && len(search) <= 80 {
 			q.Set("q", search)
 		}
-		q.Set("page", next)
-		ctx.Data["AscAgentsNext"] = env.runsLink() + "?" + q.Encode()
-	}
+		if n > 1 {
+			q.Set("page", strconv.Itoa(n))
+		}
+		if len(q) == 0 {
+			return env.runsLink()
+		}
+		return env.runsLink() + "?" + q.Encode()
+	})
 	ctx.HTML(http.StatusOK, tplAscAgents)
 }
 
