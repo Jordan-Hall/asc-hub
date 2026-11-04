@@ -4,6 +4,7 @@
 package ascbyo
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -358,4 +359,57 @@ func FeatureViews(sc Scope, fs []*ascv1.AiFeatureSetting) []FeatureView {
 		out = append(out, FeatureViewOf(sc, f))
 	}
 	return out
+}
+
+// SpendChartW and SpendChartH are the viewBox of the spend-by-day chart of a key. The chart is stretched to its box, so
+// the bars are drawn in these units.
+const (
+	SpendChartW = 300
+	SpendChartH = 80
+)
+
+// SpendBar is one day of the spend-by-day chart: the day, its cost and requests as text, and its rectangle in the
+// viewBox (templates/shared/asc/byo_ai_key.tmpl draws it in 0 0 SpendChartW SpendChartH). A day that cost something is at least one unit high, so it never reads as a day without spend.
+type SpendBar struct {
+	Day        string
+	Cost       string
+	Requests   string
+	X, Y, W, H string
+}
+
+// SpendBars draws the days of rows (grouped by day, YYYY-MM-DD) as bars, oldest first, each as high as its share of the
+// most expensive day. It returns nothing when no day cost anything: an empty chart says less than the table.
+func SpendBars(rows []UsageRow) []SpendBar {
+	days := make([]UsageRow, 0, len(rows))
+	var peak uint64
+	for _, r := range rows {
+		if r.Group == "" {
+			continue
+		}
+		days = append(days, r)
+		peak = max(peak, r.CostMicro)
+	}
+	if peak == 0 {
+		return nil
+	}
+	slices.SortStableFunc(days, func(a, b UsageRow) int { return strings.Compare(a.Group, b.Group) })
+	slot := float64(SpendChartW) / float64(len(days))
+	gap := min(slot*0.2, 4)
+	out := make([]SpendBar, 0, len(days))
+	for i, d := range days {
+		h := float64(d.CostMicro) / float64(peak) * float64(SpendChartH)
+		if d.CostMicro > 0 {
+			h = max(h, 1)
+		}
+		out = append(out, SpendBar{
+			Day: d.Group, Cost: FormatUSD(d.CostMicro), Requests: FormatCount(d.Requests),
+			X: chartUnit(float64(i)*slot + gap/2), W: chartUnit(slot - gap),
+			Y: chartUnit(float64(SpendChartH) - h), H: chartUnit(h),
+		})
+	}
+	return out
+}
+
+func chartUnit(v float64) string {
+	return strconv.FormatFloat(v, 'f', 2, 64)
 }

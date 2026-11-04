@@ -90,10 +90,16 @@ type Page struct {
 	Models       []svc.Model
 	UsageByModel []svc.UsageRowView
 	UsageByDay   []svc.UsageRowView
-	UsageTotal   svc.UsageRowView
-	UsageLoaded  bool
-	Test         *TestView
-	OwnerAIURL   string
+	SpendByDay   []svc.SpendBar
+	SpendPeak    string
+	// SpendFirst and SpendLast are the first and last days of the chart, written under it.
+	SpendFirst, SpendLast string
+	// KeyTab is the open section of the key page: "usage", "limits" or "models".
+	KeyTab      string
+	UsageTotal  svc.UsageRowView
+	UsageLoaded bool
+	Test        *TestView
+	OwnerAIURL  string
 
 	// The cards of the keys and the features that use AI (aifeatures.go). FeaturesFailed is set when the features
 	// could not be loaded. FeatureEdit and Replace are refused dialog forms shown again; AddOpen is the add dialog

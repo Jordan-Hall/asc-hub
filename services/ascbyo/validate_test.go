@@ -275,3 +275,24 @@ func TestTargetLocation(t *testing.T) {
 		assert.Equal(t, c.want, c.v.Location())
 	}
 }
+
+func TestSpendBars(t *testing.T) {
+	assert.Nil(t, SpendBars(nil))
+	assert.Nil(t, SpendBars([]UsageRow{{Group: "2026-11-01", Requests: 9}}), "no spend, no chart")
+
+	bars := SpendBars([]UsageRow{
+		{Group: "2026-11-02", CostMicro: 400_000_000, Requests: 1},
+		{Group: "", CostMicro: 900_000_000},
+		{Group: "2026-11-01", CostMicro: 1, Requests: 2},
+		{Group: "2026-11-03"},
+	})
+	require.Len(t, bars, 3, "a row without a day is left out")
+	assert.Equal(t, []string{"2026-11-01", "2026-11-02", "2026-11-03"}, []string{bars[0].Day, bars[1].Day, bars[2].Day})
+	assert.Equal(t, "1.00", bars[0].H, "a day that cost a little is still seen")
+	assert.Equal(t, "80.00", bars[1].H)
+	assert.Equal(t, "0.00", bars[1].Y)
+	assert.Equal(t, "$400.00", bars[1].Cost)
+	assert.Equal(t, "0.00", bars[2].H)
+	assert.Equal(t, "2.00", bars[0].X, "bars have a gap")
+	assert.Equal(t, "96.00", bars[0].W)
+}

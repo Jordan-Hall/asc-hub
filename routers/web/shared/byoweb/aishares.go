@@ -143,7 +143,7 @@ func shareAction(ctx *context.Context, lvl *Level, run func(callCtx gocontext.Co
 	if !ok {
 		return
 	}
-	back := lvl.Base + "/ai/keys/" + id
+	back := keyLimitsURL(lvl, id)
 	conn, callCtx, release, err := shareCall(ctx, lvl)
 	if err != nil {
 		if errors.Is(err, errNoSharing) {
