@@ -58,40 +58,50 @@ func ascBriefWhereOf(text string) []*ascv1.WhereToLook {
 	return out
 }
 
-// AscSetBrief handles POST /{owner}/{repo}/pulls/{index}/asc/brief.
-func AscSetBrief(ctx *context.Context) {
+// ascBriefTarget finds the stacked change of the pull request in the path: the issue, the name of the repository in asc and
+// the change id. When ok is false the request has been answered.
+func ascBriefTarget(ctx *context.Context) (issue *issues_model.Issue, name string, change []byte, ok bool) {
 	if !ctx.IsSigned {
 		ctx.Error(http.StatusForbidden)
-		return
+		return nil, "", nil, false
 	}
 	if !setting.Asc.Enabled {
 		ctx.NotFound("asc is not enabled", nil)
-		return
+		return nil, "", nil, false
 	}
-	issue, ok := getPullInfo(ctx)
+	issue, ok = getPullInfo(ctx)
 	if !ok {
-		return
+		return nil, "", nil, false
 	}
 	if !issue.IsPull {
 		ctx.NotFound("not a pull request", nil)
-		return
+		return nil, "", nil, false
 	}
 	link, err := issues_model.GetPullRequestAscStack(ctx, issue.PullRequest.ID)
 	if err != nil {
 		ctx.ServerError("GetPullRequestAscStack", err)
+		return nil, "", nil, false
+	}
+	if link == nil || ctx.Repo.Repository.GetStorageBackend() != string(gitrepo.StorageBackendAsc) {
+		ctx.NotFound("not a stacked change", nil)
+		return nil, "", nil, false
+	}
+	name, err = ascGraphRepoName(ctx.Repo.Repository)
+	change = ascChangeBytes(link.AscChange)
+	if err != nil || change == nil {
+		ctx.NotFound("not a stacked change", nil)
+		return nil, "", nil, false
+	}
+	return issue, name, change, true
+}
+
+// AscSetBrief handles POST /{owner}/{repo}/pulls/{index}/asc/brief.
+func AscSetBrief(ctx *context.Context) {
+	issue, name, change, ok := ascBriefTarget(ctx)
+	if !ok {
 		return
 	}
 	repo := ctx.Repo.Repository
-	if link == nil || repo.GetStorageBackend() != string(gitrepo.StorageBackendAsc) {
-		ctx.NotFound("not a stacked change", nil)
-		return
-	}
-	name, err := ascGraphRepoName(repo)
-	change := ascChangeBytes(link.AscChange)
-	if err != nil || change == nil {
-		ctx.NotFound("not a stacked change", nil)
-		return
-	}
 
 	brief := &ascv1.ReviewBrief{
 		What: ctx.FormString("what"), Why: ctx.FormString("why"), How: ctx.FormString("how"), RiskNote: ctx.FormString("risk_note"),
