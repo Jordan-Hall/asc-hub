@@ -1,0 +1,41 @@
+{{with .AscNewChangeOptions}}
+<section class="ds-card rp-opt" aria-labelledby="rp-opt-title" data-testid="asc-newchange-options">
+	<div class="ds-card-h">
+		<span class="ds-c-link" aria-hidden="true">{{svg "dsi-sliders" 16}}</span>
+		<h3 id="rp-opt-title">{{ctx.Locale.Tr "asc_rp.opt_title"}}</h3>
+	</div>
+	<div class="rp-opt-list">
+		{{if .DraftPrefix}}
+		<label class="ds-check rp-opt-row" data-testid="asc-opt-draft">
+			<input type="checkbox" name="asc_draft" value="1" aria-describedby="rp-opt-draft-sub">
+			<span class="rp-opt-text"><strong>{{ctx.Locale.Tr "asc_rp.opt_draft"}}</strong><span id="rp-opt-draft-sub" class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_rp.opt_draft_sub" .DraftPrefix}}</span></span>
+		</label>
+		{{end}}
+		{{if .Below}}
+		<div class="rp-opt-row" data-testid="asc-opt-stack">
+			<span class="rp-opt-ic ds-c-link" aria-hidden="true">{{svg "dsi-layers" 20}}</span>
+			<span class="rp-opt-text"><strong>{{ctx.Locale.Tr "asc_rp.opt_stack"}}</strong><span class="ds-t-small ds-c-2">{{ctx.Locale.TrN .Below "asc_rp.opt_stack_sub_one" "asc_rp.opt_stack_sub_other" .Below}}</span></span>
+		</div>
+		{{end}}
+		{{if .CanLand}}
+		<label class="ds-switch rp-opt-row" data-testid="asc-opt-land">
+			<input type="checkbox" role="switch" name="asc_land" value="1" aria-describedby="rp-opt-land-sub">
+			<span class="ds-switch-track"></span>
+			<span class="rp-opt-text"><strong>{{ctx.Locale.Tr "asc_rp.opt_land"}}</strong><span id="rp-opt-land-sub" class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_rp.opt_land_sub"}}</span></span>
+		</label>
+		{{end}}
+		{{if .Agents}}
+		{{$one := eq (len .Agents) 1}}
+		<div class="rp-opt-row rp-opt-agent" data-testid="asc-opt-babysit">
+			<label class="ds-switch">
+				<input type="checkbox" role="switch" name="asc_babysit" value="1" aria-describedby="rp-opt-babysit-sub">
+				<span class="ds-switch-track"></span>
+				<span class="rp-opt-text"><strong>{{if $one}}{{ctx.Locale.Tr "asc_rp.opt_babysit" (index .Agents 0)}}{{else}}{{ctx.Locale.Tr "asc_rp.opt_babysit_any"}}{{end}}</strong><span id="rp-opt-babysit-sub" class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_rp.opt_babysit_sub" .Runs}}</span></span>
+			</label>
+			{{if $one}}<input type="hidden" name="asc_babysit_agent" value="{{index .Agents 0}}">
+			{{else}}<select class="ds-select rp-opt-select" name="asc_babysit_agent" aria-label="{{ctx.Locale.Tr "asc_rp.opt_babysit_agent"}}">{{range .Agents}}<option value="{{.}}">{{.}}</option>{{end}}</select>{{end}}
+		</div>
+		{{end}}
+	</div>
+</section>
+{{end}}

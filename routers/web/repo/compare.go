@@ -859,6 +859,7 @@ func CompareDiff(ctx *context.Context) {
 		prepareAscNewChangeDraft(ctx, ctx.Params("*"))
 		prepareAscNewChangeRail(ctx)
 		prepareAscNewChangeReviewers(ctx)
+		prepareAscNewChangeOptions(ctx)
 	}
 
 	ctx.HTML(http.StatusOK, tplCompare)

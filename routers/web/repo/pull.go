@@ -1712,10 +1712,14 @@ func CompareAndPullRequestPost(ctx *context.Context) {
 		}
 	}
 
+	title, ok := ascNewChangeTitle(ctx, form.Title)
+	if !ok {
+		return
+	}
 	pullIssue := &issues_model.Issue{
 		RepoID:      repo.ID,
 		Repo:        repo,
-		Title:       form.Title,
+		Title:       title,
 		PosterID:    ctx.Doer.ID,
 		Poster:      ctx.Doer,
 		MilestoneID: milestoneID,
@@ -1777,6 +1781,7 @@ func CompareAndPullRequestPost(ctx *context.Context) {
 	log.Trace("Pull request created: %d/%d", repo.ID, pullIssue.ID)
 	clearAscNewChangeDraft(ctx, ctx.Params("*"))
 	ascRequestNewChangeReviewers(ctx, pullIssue)
+	ascApplyNewChangeOptions(ctx, pullIssue, pullRequest)
 	ctx.JSONRedirect(pullIssue.Link())
 }
 

@@ -221,6 +221,55 @@
   border-radius: 8px;
 }
 
+/* Options of the open-change form: draft, stack, land when green, an agent on the checks. */
+.rp-newform-main > .rp-opt {
+  margin-top: 16px;
+}
+
+.rp-opt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.rp-opt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rp-opt-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rp-opt-ic {
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  width: 40px;
+}
+
+.rp-opt-agent {
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rp-opt-agent > .ds-switch {
+  flex: 1;
+  min-width: 0;
+}
+
+.rp-opt-select {
+  width: auto;
+  min-width: 160px;
+}
+
 /* The asc rail of the open-change form: stack, files and what the policy will ask for. */
 .rp-rail {
   display: flex;
