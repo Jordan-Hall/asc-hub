@@ -1071,6 +1071,7 @@ type ListAgentRunsRequest struct {
 	CreatedBy     string                 `protobuf:"bytes,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
 	Limit         uint32                 `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
 	PageToken     string                 `protobuf:"bytes,6,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	Offset        uint32                 `protobuf:"varint,7,opt,name=offset,proto3" json:"offset,omitempty"` // skip this many runs (a numbered page); at most 100000
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1147,10 +1148,18 @@ func (x *ListAgentRunsRequest) GetPageToken() string {
 	return ""
 }
 
+func (x *ListAgentRunsRequest) GetOffset() uint32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
 type ListAgentRunsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Runs          []*AgentRun            `protobuf:"bytes,1,rep,name=runs,proto3" json:"runs,omitempty"`
 	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	Total         uint64                 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"` // the runs that match the filters, on every page
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1197,6 +1206,13 @@ func (x *ListAgentRunsResponse) GetNextPageToken() string {
 		return x.NextPageToken
 	}
 	return ""
+}
+
+func (x *ListAgentRunsResponse) GetTotal() uint64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
 }
 
 type GetAgentRunRequest struct {
@@ -4969,7 +4985,7 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"for_change\x18\f \x01(\fB\x04\xa8\xbb\x18\x02R\tforChange\"V\n" +
 	"\x16CreateAgentRunResponse\x12\"\n" +
 	"\x03run\x18\x01 \x01(\v2\x10.asc.v1.AgentRunR\x03run\x12\x18\n" +
-	"\alowered\x18\x02 \x03(\tR\alowered\"\xd4\x01\n" +
+	"\alowered\x18\x02 \x03(\tR\alowered\"\xec\x01\n" +
 	"\x14ListAgentRunsRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12-\n" +
 	"\x06states\x18\x02 \x03(\x0e2\x15.asc.v1.AgentRunStateR\x06states\x12\x14\n" +
@@ -4978,10 +4994,12 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"created_by\x18\x04 \x01(\tR\tcreatedBy\x12\x14\n" +
 	"\x05limit\x18\x05 \x01(\rR\x05limit\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x06 \x01(\tR\tpageToken\"e\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken\x12\x16\n" +
+	"\x06offset\x18\a \x01(\rR\x06offset\"{\n" +
 	"\x15ListAgentRunsResponse\x12$\n" +
 	"\x04runs\x18\x01 \x03(\v2\x10.asc.v1.AgentRunR\x04runs\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"I\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x14\n" +
+	"\x05total\x18\x03 \x01(\x04R\x05total\"I\n" +
 	"\x12GetAgentRunRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\x04R\x02id\"9\n" +
