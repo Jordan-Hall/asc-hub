@@ -1,18 +1,38 @@
-{{if gt .ctxData.Webhook.ID 0}}
-	{{template "webhook/hook" .ctxData}}
+{{/* The page of one webhook (templates/webhook/hook.tmpl), or for a hook not added yet the page that adds one of a
+kind: its kind with the other kinds to switch to, the fields of the kind (templates/webhook/kind_fields.tmpl), the
+events it sends (templates/webhook/send_groups.tmpl), Active and Add webhook. A refused form comes back with the
+message. The data: ctxData, the page data, and CustomHeaderTitle. */}}
+{{$d := .ctxData}}
+{{if gt $d.Webhook.ID 0}}
+	{{template "webhook/hook" $d}}
 {{else}}
-<h4 class="ds-card-top">
-	{{.CustomHeaderTitle}}
-	<div class="ui right type dropdown">
-		<div class="text tw-flex tw-items-center">
-			{{.ctxData.WebhookHandler.Icon 20}}
-			{{ctx.Locale.Tr (print "repo.settings.web_hook_name_" .ctxData.HookType)}}
+	<section class="ds-card wh-new" aria-labelledby="wh-new-title">
+		<div class="ds-card-h wh-hook-h">
+			<div class="wh-hook-title">
+				<div class="ds-t-micro ds-c-3">{{.CustomHeaderTitle}}</div>
+				<h2 class="wh-hook-url wh-new-kind" id="wh-new-title">{{$d.WebhookHandler.Icon 20}}{{ctx.Locale.Tr (print "repo.settings.web_hook_name_" $d.HookType)}}</h2>
+			</div>
 		</div>
-		{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-		{{template "repo/settings/webhook/link_menu" .ctxData}}
-	</div>
-</h4>
-<div class="ds-card ds-card-b ds-card-attach">
-	{{template "webhook/form" .ctxData}}
-</div>
+		<form class="ds-card-b ds-form wh-set" method="post" action="{{$d.BaseLinkNew}}/{{$d.HookType}}/new">
+			{{$d.CsrfTokenHtml}}
+			<details class="ds-details">
+				<summary>{{ctx.Locale.Tr "asc_hooks.other_kinds"}}</summary>
+				<ul class="wh-kinds">
+					{{range $d.WebhookList}}
+						<li><a href="{{$d.BaseLinkNew}}/{{.Type}}/new"{{if eq .Type $d.HookType}} aria-current="page"{{end}}>{{.Icon 16}}{{ctx.Locale.Tr (print "repo.settings.web_hook_name_" .Type)}}</a></li>
+					{{end}}
+				</ul>
+			</details>
+			{{if $d.ErrorMsg}}<div class="ds-banner ds-banner-err" role="alert"><p>{{$d.ErrorMsg}}</p></div>{{end}}
+			{{template "webhook/kind_fields" $d}}
+			{{template "webhook/send_groups" $d}}
+			<div class="ds-field">
+				<label class="ds-check"><input type="checkbox" name="active" aria-describedby="active_help"{{if $d.Webhook.IsActive}} checked{{end}}>{{ctx.Locale.Tr "asc_hooks.active"}}</label>
+				<p class="ds-hint" id="active_help">{{ctx.Locale.Tr "asc_hooks.active_hint"}}</p>
+			</div>
+			<div class="wh-set-foot">
+				<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "repo.settings.add_webhook"}}</button>
+			</div>
+		</form>
+	</section>
 {{end}}

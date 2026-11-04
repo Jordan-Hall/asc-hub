@@ -1,5 +1,5 @@
 // @watch start
-// templates/webhook/shared-settings.tmpl
+// templates/webhook/{new,kind_fields,send_groups}.tmpl
 // templates/repo/settings/**
 // web_src/css/{form,repo}.css
 // web_src/css/modules/grid.css
@@ -17,17 +17,24 @@ test('repo webhook settings', async ({page}) => {
   const response = await page.goto('/user2/repo1/settings/hooks/forgejo/new');
   expect(response?.status()).toBe(200);
 
-  await page.locator('input[name="events"][value="choose_events"]').click();
-  await expect(page.locator('.hide-unless-checked')).toBeVisible();
+  // the events it sends: pushes and landed changes are ticked
+  await expect(page.locator('input[name="asc_events"][value="push"]')).toBeChecked();
+  await expect(page.locator('input[name="asc_events"][value="change.landed"]')).toBeChecked();
+  await expect(page.locator('input[name="asc_events"][value="change.opened"]')).not.toBeChecked();
+  await expect(page.locator('input[name="active"]')).toBeChecked();
 
-  // check accessibility including the custom events (now visible) part
   await validate_form({page}, 'fieldset');
   await screenshot(page);
 
-  await page.locator('input[name="events"][value="push_only"]').click();
-  await expect(page.locator('.hide-unless-checked')).toBeHidden();
-  await page.locator('input[name="events"][value="send_everything"]').click();
-  await expect(page.locator('.hide-unless-checked')).toBeHidden();
+  // a GET has no body, so it has no content type
+  await page.locator('#http_method').selectOption('GET');
+  await expect(page.locator('#content_type')).toBeHidden();
+  await page.locator('#http_method').selectOption('POST');
+  await expect(page.locator('#content_type')).toBeVisible();
+
+  // the other kinds
+  await page.locator('details summary').filter({hasText: 'Other kinds'}).click();
+  await expect(page.locator('.wh-kinds a[aria-current="page"]')).toHaveAttribute('href', '/user2/repo1/settings/hooks/forgejo/new');
   await screenshot(page);
 });
 

@@ -25,7 +25,6 @@ import (
 	webhook_module "forgejo.org/modules/webhook"
 	"forgejo.org/services/context"
 	"forgejo.org/services/convert"
-	"forgejo.org/services/forms"
 	webhook_service "forgejo.org/services/webhook"
 
 	"code.forgejo.org/go-chi/binding"
@@ -117,17 +116,35 @@ func getOwnerRepoCtx(ctx *context.Context) (*ownerRepoCtx, error) {
 	return nil, errors.New("unable to set OwnerRepo context")
 }
 
-// WebhookNew render creating webhook page
+// WebhookNew serves `GET {hooks}/{type}/new`, the page that adds a hook of one kind; it sends pushes and landed
+// changes until other events are ticked.
 func WebhookNew(ctx *context.Context) {
-	ctx.Data["Title"] = ctx.Tr("repo.settings.add_webhook")
-	ctx.Data["Webhook"] = webhook.Webhook{HookEvent: &webhook_module.HookEvent{}}
+	orCtx, handler := newHookPage(ctx)
+	if ctx.Written() {
+		return
+	}
+	w := &webhook.Webhook{Type: ctx.Params(":type"), IsActive: true, HookEvent: &webhook_module.HookEvent{}}
+	webhook_service.ChooseSent(w, []string{string(webhook_module.HookEventPush), string(webhook_module.HookEventChangeLanded)})
+	showNewHook(ctx, w, handler.Metadata(w))
+	ctx.HTML(http.StatusOK, orCtx.NewTemplate)
+}
 
+// newHookPage fills the page data the page that adds a hook of the kind in the address shares with its refused
+// forms: the page it sits on, the kinds and the links. It answers 404 for a kind there is none of.
+func newHookPage(ctx *context.Context) (*ownerRepoCtx, webhook_service.Handler) {
 	orCtx, err := getOwnerRepoCtx(ctx)
 	if err != nil {
 		ctx.ServerError("getOwnerRepoCtx", err)
-		return
+		return nil, nil
+	}
+	hookType := ctx.Params(":type")
+	handler := webhook_service.FormHandler(hookType)
+	if handler == nil {
+		ctx.NotFound("GetWebhookHandler", nil)
+		return nil, nil
 	}
 
+	ctx.Data["Title"] = ctx.Tr("repo.settings.add_webhook")
 	if orCtx.IsAdmin && orCtx.IsSystemWebhook {
 		ctx.Data["PageIsAdminSystemHooks"] = true
 		ctx.Data["PageIsAdminSystemHooksNew"] = true
@@ -138,144 +155,78 @@ func WebhookNew(ctx *context.Context) {
 		ctx.Data["PageIsSettingsHooks"] = true
 		ctx.Data["PageIsSettingsHooksNew"] = true
 	}
-
-	hookType := ctx.Params(":type")
-	handler := webhook_service.FormHandler(hookType)
-	if handler == nil {
-		ctx.NotFound("GetWebhookHandler", nil)
-		return
-	}
 	ctx.Data["HookType"] = hookType
 	ctx.Data["WebhookHandler"] = handler
 	ctx.Data["BaseLink"] = orCtx.LinkNew
 	ctx.Data["BaseLinkNew"] = orCtx.LinkNew
 	ctx.Data["WebhookList"] = webhook_service.List()
-
-	ctx.HTML(http.StatusOK, orCtx.NewTemplate)
+	return orCtx, handler
 }
 
-// ParseHookEvent convert web form content to webhook.HookEvent
-func ParseHookEvent(form forms.WebhookCoreForm) *webhook_module.HookEvent {
-	return &webhook_module.HookEvent{
-		PushOnly:       form.PushOnly(),
-		SendEverything: form.SendEverything(),
-		ChooseEvents:   form.ChooseEvents(),
-		HookEvents: webhook_module.HookEvents{
-			Create:                   form.Create,
-			Delete:                   form.Delete,
-			Fork:                     form.Fork,
-			Issues:                   form.Issues,
-			IssueAssign:              form.IssueAssign,
-			IssueLabel:               form.IssueLabel,
-			IssueMilestone:           form.IssueMilestone,
-			IssueComment:             form.IssueComment,
-			Release:                  form.Release,
-			Push:                     form.Push,
-			PullRequest:              form.PullRequest,
-			PullRequestAssign:        form.PullRequestAssign,
-			PullRequestLabel:         form.PullRequestLabel,
-			PullRequestMilestone:     form.PullRequestMilestone,
-			PullRequestComment:       form.PullRequestComment,
-			PullRequestReview:        form.PullRequestReview,
-			PullRequestSync:          form.PullRequestSync,
-			PullRequestReviewRequest: form.PullRequestReviewRequest,
-			Wiki:                     form.Wiki,
-			Repository:               form.Repository,
-			Package:                  form.Package,
-			ActionRunFailure:         form.ActionFailure,
-			ActionRunRecover:         form.ActionRecover,
-			ActionRunSuccess:         form.ActionSuccess,
-		},
-		BranchFilter: form.BranchFilter,
-	}
+// showNewHook puts the hook w being added on the page, with the fields of its kind and the events it sends.
+func showNewHook(ctx *context.Context, w *webhook.Webhook, meta any) {
+	ctx.Data["Webhook"] = w
+	ctx.Data["HookMetadata"] = meta
+	ctx.Data["SendGroups"] = webhook_service.SendGroups(w)
+	ctx.Data["HookHasSecret"] = webhook_service.HasSecret(w.Type)
 }
 
-// submittedWebhook is a new webhook filled with what the form sent, to show the form again after an error.
-func submittedWebhook(fields forms.WebhookForm) webhook.Webhook {
-	var w webhook.Webhook
-	w.ID = -1 // We are going to encrypt it using this ID, bind the encrypted value to a ID that will never exist in the database. Safety precaution.
-	w.URL = fields.URL
-	w.ContentType = fields.ContentType
-	w.Secret = fields.Secret
-	w.HookEvent = ParseHookEvent(fields.WebhookCoreForm)
-	w.IsActive = fields.Active
-	w.HTTPMethod = fields.HTTPMethod
-	w.SetHeaderAuthorization(fields.AuthorizationHeader)
-	return w
-}
-
+// WebhookCreate serves `POST {hooks}/{type}/new`, the page that adds a hook: the fields of its kind as the Settings
+// tab names them, asc_events, the events it sends, and active. A refused form shows the page again with what was
+// sent, 422.
 func WebhookCreate(ctx *context.Context) {
-	hookType := ctx.Params(":type")
-	handler := webhook_service.FormHandler(hookType)
-	if handler == nil {
-		ctx.NotFound("GetWebhookHandler", nil)
+	orCtx, handler := newHookPage(ctx)
+	if ctx.Written() {
 		return
 	}
-
+	trimFormValue(ctx, "payload_url")
 	fields := handler.UnmarshalForm(func(form any) {
 		errs := binding.Bind(ctx.Req, form)
 		middleware.Validate(errs, ctx.Data, form, ctx.Locale) // error checked below in ctx.HasError
 	})
 
-	ctx.Data["Title"] = ctx.Tr("repo.settings.add_webhook")
-	ctx.Data["PageIsSettingsHooks"] = true
-	ctx.Data["PageIsSettingsHooksNew"] = true
-	ctx.Data["Webhook"] = webhook.Webhook{HookEvent: &webhook_module.HookEvent{}}
-	ctx.Data["HookType"] = hookType
-	ctx.Data["WebhookHandler"] = handler
-
-	orCtx, err := getOwnerRepoCtx(ctx)
-	if err != nil {
-		ctx.ServerError("getOwnerRepoCtx", err)
-		return
-	}
-	ctx.Data["BaseLink"] = orCtx.LinkNew
-	ctx.Data["BaseLinkNew"] = orCtx.LinkNew
-	ctx.Data["WebhookList"] = webhook_service.List()
-
-	if ctx.HasError() {
-		ctx.Data["Webhook"] = submittedWebhook(fields)
-		ctx.Data["HookMetadata"] = fields.Metadata
-
-		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
-		return
-	}
-
-	var meta []byte
-	if fields.Metadata != nil {
-		meta, err = json.Marshal(fields.Metadata)
-		if err != nil {
-			ctx.ServerError("Marshal", err)
-			return
-		}
-	}
-
-	if err := webhook_service.CheckPayloadURL(fields.URL); err != nil {
-		payloadURLRefused(ctx)
-		ctx.Data["Webhook"] = submittedWebhook(fields)
-		ctx.Data["HookMetadata"] = fields.Metadata
-		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
-		return
-	}
-
 	w := &webhook.Webhook{
 		RepoID:          orCtx.RepoID,
 		URL:             fields.URL,
 		HTTPMethod:      fields.HTTPMethod,
-		ContentType:     fields.ContentType,
-		Secret:          fields.Secret,
-		HookEvent:       ParseHookEvent(fields.WebhookCoreForm),
 		IsActive:        fields.Active,
-		Type:            hookType,
-		Meta:            string(meta),
+		Type:            ctx.Params(":type"),
 		OwnerID:         orCtx.OwnerID,
 		IsSystemWebhook: orCtx.IsSystemWebhook,
+		HookEvent:       &webhook_module.HookEvent{BranchFilter: fields.BranchFilter},
+	}
+	if webhook_service.HasSecret(w.Type) {
+		w.ContentType = fields.ContentType
+		w.Secret = fields.Secret
+	}
+	webhook_service.ChooseSent(w, ctx.Req.Form["asc_events"])
+
+	refused := ctx.HasError()
+	if !refused && webhook_service.CheckPayloadURL(fields.URL) != nil {
+		payloadURLRefused(ctx)
+		refused = true
+	}
+	if refused {
+		shown := *w
+		shown.ID = -1 // the header is encrypted with the ID: one that never exists keeps it from matching a stored hook
+		shown.SetHeaderAuthorization(fields.AuthorizationHeader)
+		showNewHook(ctx, &shown, fields.Metadata)
+		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
+		return
+	}
+
+	if fields.Metadata != nil {
+		meta, err := json.Marshal(fields.Metadata)
+		if err != nil {
+			ctx.ServerError("Marshal", err)
+			return
+		}
+		w.Meta = string(meta)
 	}
 	if err := w.UpdateEvent(); err != nil {
 		ctx.ServerError("UpdateEvent", err)
 		return
 	}
-
 	if err := webhook.CreateWebhook(ctx, w, fields.AuthorizationHeader); err != nil {
 		ctx.ServerError("CreateWebhook", err)
 		return
@@ -283,78 +234,6 @@ func WebhookCreate(ctx *context.Context) {
 
 	ctx.Flash.Success(ctx.Tr("repo.settings.add_hook_success"))
 	ctx.Redirect(orCtx.Link)
-}
-
-func WebhookUpdate(ctx *context.Context) {
-	ctx.Data["Title"] = ctx.Tr("repo.settings.update_webhook")
-	ctx.Data["PageIsSettingsHooks"] = true
-	ctx.Data["PageIsSettingsHooksEdit"] = true
-
-	orCtx, w := checkWebhook(ctx)
-	if ctx.Written() {
-		return
-	}
-	ctx.Data["Webhook"] = w
-
-	handler := webhook_service.FormHandler(w.Type)
-	if handler == nil {
-		ctx.NotFound("GetWebhookHandler", nil)
-		return
-	}
-
-	fields := handler.UnmarshalForm(func(form any) {
-		errs := binding.Bind(ctx.Req, form)
-		middleware.Validate(errs, ctx.Data, form, ctx.Locale) // error checked below in ctx.HasError
-	})
-
-	// pre-fill the form with the submitted data
-	w.URL = fields.URL
-	w.ContentType = fields.ContentType
-	// the stored secret is never sent back to the browser, so an empty field keeps it
-	if fields.Secret != "" {
-		w.Secret = fields.Secret
-	}
-	w.HookEvent = ParseHookEvent(fields.WebhookCoreForm)
-	w.IsActive = fields.Active
-	w.HTTPMethod = fields.HTTPMethod
-
-	w.SetHeaderAuthorization(fields.AuthorizationHeader)
-
-	if ctx.HasError() {
-		ctx.Data["HookMetadata"] = fields.Metadata
-		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
-		return
-	}
-
-	var err error
-	var meta []byte
-	if fields.Metadata != nil {
-		meta, err = json.Marshal(fields.Metadata)
-		if err != nil {
-			ctx.ServerError("Marshal", err)
-			return
-		}
-	}
-
-	w.Meta = string(meta)
-
-	if err := webhook_service.CheckPayloadURL(w.URL); err != nil {
-		payloadURLRefused(ctx)
-		ctx.Data["HookMetadata"] = fields.Metadata
-		ctx.HTML(http.StatusUnprocessableEntity, orCtx.NewTemplate)
-		return
-	}
-
-	if err := w.UpdateEvent(); err != nil {
-		ctx.ServerError("UpdateEvent", err)
-		return
-	} else if err := webhook.UpdateWebhook(ctx, w); err != nil {
-		ctx.ServerError("UpdateWebhook", err)
-		return
-	}
-
-	ctx.Flash.Success(ctx.Tr("repo.settings.update_hook_success"))
-	ctx.Redirect(fmt.Sprintf("%s/%d", orCtx.Link, w.ID))
 }
 
 // payloadURLRefused marks the payload address field of a webhook form whose address the transport rule refused; the

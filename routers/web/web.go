@@ -894,7 +894,6 @@ func registerRoutes(m *web.Route) {
 			m.Post("/{type}/new", repo_setting.WebhookCreate)
 			m.Group("/{id}", func() {
 				m.Get("", repo_setting.WebhookEdit)
-				m.Post("", repo_setting.WebhookUpdate)
 				m.Post("/settings", repo_setting.WebhookSaveSettings)
 				m.Post("/replay/{uuid}", repo_setting.WebhookReplay)
 				m.Post("/secret", repo_setting.WebhookRegenerateSecret)
@@ -1026,7 +1025,6 @@ func registerRoutes(m *web.Route) {
 			m.Post("/delete", admin.DeleteDefaultOrSystemWebhook)
 			m.Group("/{id}", func() {
 				m.Get("", repo_setting.WebhookEdit)
-				m.Post("", repo_setting.WebhookUpdate)
 				m.Post("/settings", repo_setting.WebhookSaveSettings)
 				m.Post("/replay/{uuid}", repo_setting.WebhookReplay)
 				m.Post("/secret", repo_setting.WebhookRegenerateSecret)
@@ -1208,7 +1206,6 @@ func registerRoutes(m *web.Route) {
 					m.Post("/{type}/new", repo_setting.WebhookCreate)
 					m.Group("/{id}", func() {
 						m.Get("", repo_setting.WebhookEdit)
-						m.Post("", repo_setting.WebhookUpdate)
 						m.Post("/settings", repo_setting.WebhookSaveSettings)
 						m.Post("/replay/{uuid}", repo_setting.WebhookReplay)
 						m.Post("/secret", repo_setting.WebhookRegenerateSecret)
@@ -1395,7 +1392,6 @@ func registerRoutes(m *web.Route) {
 				m.Post("/{type}/new", repo_setting.WebhookCreate)
 				m.Group("/{id}", func() {
 					m.Get("", repo_setting.WebhookEdit)
-					m.Post("", repo_setting.WebhookUpdate)
 					m.Post("/settings", repo_setting.WebhookSaveSettings)
 					m.Post("/test", repo_setting.WebhookTest)
 					m.Post("/replay/{uuid}", repo_setting.WebhookReplay)

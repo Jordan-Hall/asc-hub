@@ -6,13 +6,11 @@ export function initCompWebHookEditor() {
     return;
   }
 
-  // some webhooks (like Gitea) allow to set the request method (GET/POST), and it would toggle the "Content Type" field
+  // a generic hook sends a GET without a body, so its content type is shown for a POST only
   const httpMethodInput = document.getElementById('http_method');
-  if (httpMethodInput) {
-    const updateContentType = function () {
-      const visible = httpMethodInput.value === 'POST';
-      toggleElem(document.getElementById('content_type').closest('.field'), visible);
-    };
+  const contentTypeField = document.getElementById('content_type')?.closest('.ds-field');
+  if (httpMethodInput && contentTypeField) {
+    const updateContentType = () => toggleElem(contentTypeField, httpMethodInput.value === 'POST');
     updateContentType();
     httpMethodInput.addEventListener('change', updateContentType);
   }

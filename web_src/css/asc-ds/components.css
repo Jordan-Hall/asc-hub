@@ -1184,6 +1184,11 @@ ul.ds-list {
 .wh-set-foot { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
 .wh-set-foot > form { display: contents; }
 .wh-set-active { flex: 1; min-width: 0; }
+.wh-new-kind { display: flex; align-items: center; gap: 8px; }
+.wh-kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.wh-kinds a { display: flex; align-items: center; gap: 8px; min-height: var(--touch); padding: 0 8px; border-radius: var(--r-row); color: inherit; text-decoration: none; }
+.wh-kinds a:hover { background: var(--surface-3); }
+.wh-kinds a[aria-current="page"] { background: var(--primary-soft); font-weight: 600; }
 
 @media (max-width: 767.98px) {
   .wh-set-grid { grid-template-columns: minmax(0, 1fr); }
