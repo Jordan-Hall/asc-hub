@@ -48,6 +48,9 @@ type Prefs struct {
 	Quiet QuietHours `json:"quiet"`
 	// TZ is an IANA time zone name; empty means UTC.
 	TZ string `json:"tz,omitempty"`
+	// Away is the last day (YYYY-MM-DD in the time zone TZ) the person is out; empty when they are not. Reviewer
+	// suggestions say they are out until then.
+	Away string `json:"away,omitempty"`
 }
 
 // QuietHours is the overnight pause of email.
@@ -115,6 +118,11 @@ func (p Prefs) Validate() error {
 			return fmt.Errorf("unknown time zone %q", p.TZ)
 		}
 	}
+	if p.Away != "" {
+		if _, err := time.Parse(time.DateOnly, p.Away); err != nil {
+			return fmt.Errorf("%q is not a date", p.Away)
+		}
+	}
 	if p.Quiet.On {
 		if _, err := minutes(p.Quiet.From); err != nil {
 			return err
@@ -140,6 +148,28 @@ func minutes(hhmm string) (int, error) {
 	return t.Hour()*60 + t.Minute(), nil
 }
 
+// location is the time zone of the person, UTC when they chose none or one that is not known.
+func (p Prefs) location() *time.Location {
+	if p.TZ != "" {
+		if l, err := time.LoadLocation(p.TZ); err == nil {
+			return l
+		}
+	}
+	return time.UTC
+}
+
+// AwayUntil is the last day the person is out, while now is before the end of that day in their time zone.
+func (p Prefs) AwayUntil(now time.Time) (time.Time, bool) {
+	if p.Away == "" {
+		return time.Time{}, false
+	}
+	day, err := time.ParseInLocation(time.DateOnly, p.Away, p.location())
+	if err != nil || !now.Before(day.AddDate(0, 0, 1)) {
+		return time.Time{}, false
+	}
+	return day, true
+}
+
 // InQuietHours reports whether email is paused at the moment now: inside the window From to Until in the time zone of
 // the person, a window that may cross midnight.
 func (p Prefs) InQuietHours(now time.Time) bool {
@@ -151,13 +181,7 @@ func (p Prefs) InQuietHours(now time.Time) bool {
 	if err1 != nil || err2 != nil || from == until {
 		return false
 	}
-	loc := time.UTC
-	if p.TZ != "" {
-		if l, err := time.LoadLocation(p.TZ); err == nil {
-			loc = l
-		}
-	}
-	local := now.In(loc)
+	local := now.In(p.location())
 	at := local.Hour()*60 + local.Minute()
 	if from < until {
 		return at >= from && at < until

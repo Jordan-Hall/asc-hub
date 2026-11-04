@@ -113,6 +113,11 @@
 					{{range .TimeZones}}{{if ne . "UTC"}}<option{{if eq . $.TimeZone}} selected{{end}}>{{.}}</option>{{end}}{{end}}
 				</select>
 			</div>
+			<div class="ds-field">
+				<label class="ds-label" for="n-away">{{ctx.Locale.Tr "asc_work.sp_away"}} <span class="ds-opt">({{ctx.Locale.Tr "asc_shell.optional"}})</span></label>
+				<input class="ds-input" type="date" id="n-away" name="away" value="{{.AwayUntil}}" min="{{.Today}}" aria-describedby="n-away-hint" data-asc-autosubmit data-testid="asc-away">
+				<span class="ds-hint" id="n-away-hint">{{ctx.Locale.Tr "asc_work.sp_away_hint"}}</span>
+			</div>
 		</form>
 	</section>
 

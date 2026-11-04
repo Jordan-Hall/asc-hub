@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"time"
 
 	"forgejo.org/models/db"
 	repo_model "forgejo.org/models/repo"
@@ -79,6 +80,10 @@ func Notifications(ctx *context.Context) {
 	ctx.Data["QuietFrom"], ctx.Data["QuietUntil"] = from, until
 	ctx.Data["QuietHours"] = quarterHours()
 	ctx.Data["TimeZone"] = prefs.TZ
+	if day, ok := prefs.AwayUntil(time.Now()); ok {
+		ctx.Data["AwayUntil"] = day.Format(time.DateOnly)
+	}
+	ctx.Data["Today"] = time.Now().In(time.UTC).Format(time.DateOnly)
 	zones := ascTimeZones
 	if prefs.TZ != "" && !slices.Contains(zones, prefs.TZ) {
 		zones = append([]string{prefs.TZ}, zones...)
@@ -163,6 +168,7 @@ func NotificationsPost(ctx *context.Context) {
 		prefs.Quiet.From = ctx.FormString("from")
 		prefs.Quiet.Until = ctx.FormString("until")
 		prefs.TZ = ctx.FormString("tz")
+		prefs.Away = ctx.FormString("away")
 	default:
 		ctx.Error(http.StatusBadRequest)
 		return
