@@ -99,6 +99,9 @@ func Commits(ctx *context.Context) {
 			return
 		}
 		kept := filterCommitsByAuthorKind(ctx, all, who == "agents")
+		if commitsCount > int64(historyFilterMax) {
+			ctx.Data["HistoryPartial"] = historyFilterMax
+		}
 		commitsCount = int64(len(kept))
 		from := min((page-1)*pageSize, len(kept))
 		commits = kept[from:min(from+pageSize, len(kept))]
@@ -138,7 +141,7 @@ func Commits(ctx *context.Context) {
 }
 
 // historyFilterMax bounds the commits the people / agents filter of the history reads.
-const historyFilterMax = 500
+var historyFilterMax = 500
 
 // filterCommitsByAuthorKind keeps the commits whose author is an agent (a bot account) or, when agents is false, is not.
 // An author without an account is a person.

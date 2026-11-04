@@ -49,6 +49,21 @@
   overflow: hidden;
 }
 
+/* the next page loading: rows of the size of a change */
+.rp-histload-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 64px;
+  padding: 14px 12px;
+  border-top: 1px solid var(--line-3);
+}
+
+.rp-histload-row:first-of-type {
+  border-top: 0;
+}
+
 .rp-hist {
   margin: 0;
   padding: 0;

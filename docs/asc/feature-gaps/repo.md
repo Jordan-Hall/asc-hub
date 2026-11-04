@@ -138,7 +138,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | History | "Landing rate, last 12 weeks" card with this-week delta | needs-both | statistics RPC (see Insights) | M |
 | History | Graph key legend | done | `asc_graph.tmpl` | S |
 | History | "Show 25 older changes" on-demand load (44 px button on mobile) | done | pager/`AscGraphNextURL` | S |
-| History | States: loading skeleton, no results with explanation and Clear filters, partial-data banner with Retry | ui-only-missing | `commits.tmpl`; partial banner needs index lag signal from `Repo.CommitGraph` (hub `AscGraphError` path) | M |
+| History | States: loading skeleton, no results with explanation and Clear filters, partial-data banner with Retry | done | `H:templates/repo/commits_table.tmpl`: a skeleton while the next page, filter or search loads (`commits_loading.tmpl`); no results under the people / agents filter says so and offers Clear filters; the partial banner is for that filter, which reads the newest 500 changes (the hub has no index lag), and offers "Show all changes" in place of Retry; `asc_history_states_test.go` | M |
 | History | Mobile rail-and-node list, chips open a bottom sheet for Path, Stack, date | ui-only-missing | `commits.tmpl`, sheet component | M |
 
 ## Refs
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 156 |
+| done | 157 |
 | partial | 1 |
-| ui-only-missing | 45 |
+| ui-only-missing | 44 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
