@@ -1026,10 +1026,11 @@
   margin-inline-end: 8px;
 }
 
-/* WorkflowRun: the flow, one card to a step with a connector between them. */
+/* WorkflowRun: the flow, one card to a step with a connector between them. The connector fills when the step before it
+   finishes well (is-linked). */
 .wf-flow {
   display: flex;
-  gap: 14px;
+  gap: 26px;
   margin: 0;
   padding: 14px 16px 16px;
   overflow-x: auto;
@@ -1041,32 +1042,70 @@
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
-  gap: 8px;
-  min-width: 140px;
-  padding: 10px 12px;
-  background: var(--card);
-  border: 1px solid var(--line-2);
-  border-top: 3px solid var(--line-2);
-  border-radius: 8px;
+  gap: 5px;
+  min-width: 160px;
+  padding: 11px 13px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--idle);
+  border-radius: 10px;
 }
 
-.wf-node + .wf-node::before {
+.wf-node + .wf-node::before,
+.wf-node + .wf-node::after {
   content: "";
   position: absolute;
   top: 50%;
-  inset-inline-start: -15px;
-  width: 14px;
+  inset-inline-start: -27px;
+  width: 26px;
   height: 2px;
-  background: var(--line-2);
+  background: var(--line-strong);
 }
 
-.wf-node.wf-tone-ok { border-top-color: var(--ok, #16845b); }
-.wf-node.wf-tone-bad { border-top-color: var(--err, #c0392b); }
-.wf-node.wf-tone-warn,
+.wf-node + .wf-node::after {
+  background: var(--ok-dot);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 300ms ease-out;
+}
+
+[dir="rtl"] .wf-node + .wf-node::after { transform-origin: right center; }
+.wf-node.is-linked::after { transform: none; }
+
+.wf-node.wf-tone-ok { border-block-start-color: var(--ok-dot); }
+.wf-node.wf-tone-bad { border-block-start-color: var(--err-dot); }
+.wf-node.wf-tone-run { border-block-start-color: var(--accent); background: var(--primary-soft); }
 .wf-node.wf-tone-wait,
-.wf-node.wf-tone-run,
-.wf-node.is-active { border-top-color: var(--warn, #d9a21b); }
-.wf-node .asc-pill,
+.wf-node.wf-tone-warn { border-color: var(--warn-line); border-block-start-color: var(--warn-dot); background: var(--warn-soft); }
+
+.wf-node-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wf-node-id {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wf-node-top > [data-flow-state] { margin-inline-start: auto; }
+
+.wf-node-sub {
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+
+.wf-node-sub:empty { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wf-node + .wf-node::after { transition: none; }
+}
+
 .wf-link .asc-pill,
 .wf-link .rv-pill {
   align-self: flex-start;
@@ -1131,11 +1170,28 @@
     min-width: 0;
   }
 
-  .wf-link + .wf-link::before,
-  .wf-node + .wf-node::before {
+  .wf-flow { gap: 18px; }
+
+  .wf-link + .wf-link::before {
     top: -15px;
     inset-inline-start: 50%;
     width: 2px;
     height: 14px;
   }
+
+  .wf-node + .wf-node::before,
+  .wf-node + .wf-node::after {
+    top: -19px;
+    inset-inline-start: 50%;
+    width: 2px;
+    height: 18px;
+  }
+
+  .wf-node + .wf-node::after {
+    transform: scaleY(0);
+    transform-origin: center top;
+  }
+
+  [dir="rtl"] .wf-node + .wf-node::after { transform-origin: center top; }
+  .wf-node.is-linked::after { transform: none; }
 }
