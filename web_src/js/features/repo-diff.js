@@ -246,6 +246,9 @@ async function loadFileDiff(button) {
     onShowMoreFiles();
   } catch (error) {
     console.error('Error:', error);
+    if (!showDiffError(() => loadFileDiff(button))) {
+      showErrorToast('An error occurred while loading the diff.');
+    }
   } finally {
     button.classList.remove('disabled');
   }
