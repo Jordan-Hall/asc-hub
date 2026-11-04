@@ -107,7 +107,7 @@ The page works without the script: the log shows what existed when it was drawn,
 			{{if eq .AscAgentRun.State.Slug "cancelled"}}
 			<div class="rv-banner ar-stopped" role="status" data-testid="asc-agent-stopped"><div><b>{{ctx.Locale.Tr "asc_review.run_stopped_title"}}</b> {{ctx.Locale.Tr "asc_review.run_stopped_help" .AscAgentRun.Agent}}</div></div>
 			{{end}}
-			<p class="rv-feed-status tw-hidden" role="status" data-reconnect>{{ctx.Locale.Tr "asc_review.run_reconnecting"}}</p>
+			<div class="ar-reconnect tw-hidden" role="status" data-reconnect data-asof-text="{{ctx.Locale.Tr "asc_review.run_reconnecting_asof" "{time}"}}" data-testid="asc-agent-reconnect"><span class="rv-pill rv-pill-warn">{{ctx.Locale.Tr "asc_review.run_reconnecting"}}</span><span class="rv-hint" data-reconnect-asof></span></div>
 
 			<div class="rv-cols rv-run-cols">
 				<section class="rv-card rv-area-budget" aria-labelledby="rv-budget-title">
@@ -154,7 +154,7 @@ The page works without the script: the log shows what existed when it was drawn,
 							<h2 id="rv-activity-title">{{ctx.Locale.Tr "asc_review.run_activity"}}</h2>
 							<label class="rv-check rv-check-inline rv-end"><input type="checkbox" data-show-all> {{ctx.Locale.Tr "asc_review.run_show_all"}}</label>
 						</div>
-						<p class="rv-feed-status" data-feed-status role="status">{{if .AscAgentFeedDone}}{{ctx.Locale.Tr "asc_review.run_feed_done"}}{{else if .AscAgentRun.State.Active}}{{ctx.Locale.Tr "asc_review.run_feed_following"}}{{else}}{{ctx.Locale.Tr "asc_review.run_feed_over"}}{{end}}</p>
+						<p class="rv-feed-status" data-feed-status data-lost-text="{{ctx.Locale.Tr "asc_review.run_feed_lost"}}" data-done-text="{{ctx.Locale.Tr "asc_review.run_feed_done"}}" role="status">{{if .AscAgentFeedDone}}{{ctx.Locale.Tr "asc_review.run_feed_done"}}{{else if .AscAgentRun.State.Active}}{{ctx.Locale.Tr "asc_review.run_feed_following"}}{{else}}{{ctx.Locale.Tr "asc_review.run_feed_over"}}{{end}}</p>
 						{{if .AscAgentEventsHidden}}<p class="rv-feed-status">{{ctx.Locale.Tr "asc_review.run_events_hidden" .AscAgentEventsHidden}}</p>{{end}}
 						{{if not .AscAgentRunSee}}<p class="rv-feed-status" data-testid="asc-log-hidden">{{ctx.Locale.Tr "asc_review.agents_log_hidden"}}</p>{{end}}
 						<ol class="asc-log rv-log" data-log tabindex="0" aria-live="off" data-testid="asc-agent-log">

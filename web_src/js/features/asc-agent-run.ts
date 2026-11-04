@@ -208,6 +208,20 @@ function applyAgentFeed(root: HTMLElement, feed: AgentFeed) {
   }
 }
 
+/** The line under the Reconnecting chip: the time of the last answer, in the reader's locale. */
+export function reconnectText(template: string, at: Date, locale?: string): string {
+  const time = at.toLocaleTimeString(locale, {hour: '2-digit', minute: '2-digit'});
+  return template.replace('{time}', time);
+}
+
+function showReconnect(root: HTMLElement, lastOk: Date) {
+  const banner = root.querySelector('[data-reconnect]');
+  if (!banner) return;
+  const asof = banner.querySelector('[data-reconnect-asof]');
+  if (asof) asof.textContent = reconnectText(banner.getAttribute('data-asof-text') ?? '', lastOk, document.documentElement.lang || undefined);
+  setHidden(banner, false);
+}
+
 async function followAgentRun(root: HTMLElement) {
   const url = root.getAttribute('data-poll-url');
   const status = root.querySelector('[data-feed-status]');
@@ -216,6 +230,8 @@ async function followAgentRun(root: HTMLElement) {
   }
   let last = Number(root.getAttribute('data-last-seq')) || 0;
   let failures = 0;
+  // The page was drawn with the log as it is now.
+  let lastOk = new Date();
   while (root.isConnected) {
     await whenVisible();
     try {
@@ -223,11 +239,12 @@ async function followAgentRun(root: HTMLElement) {
       if (!resp.ok) throw new Error(`status ${resp.status}`);
       const feed: AgentFeed = await resp.json();
       failures = 0;
-      root.querySelector('[data-reconnect]')?.classList.add('tw-hidden');
+      lastOk = new Date();
+      setHidden(root.querySelector('[data-reconnect]'), true);
       if (Number(feed.last) > last) last = Number(feed.last);
       applyAgentFeed(root, feed);
       if (feed.done) {
-        if (status) status.textContent = 'The run is over; this is the whole log.';
+        if (status) status.textContent = status.getAttribute('data-done-text') ?? '';
         // The result stack, the buttons and the review links are drawn by the server: show them.
         window.location.reload();
         return;
@@ -239,11 +256,11 @@ async function followAgentRun(root: HTMLElement) {
     } catch {
       failures++;
       if (failures >= maxFailures) {
-        if (status) status.textContent = 'The connection to the hub was lost. Reload the page to follow the run.';
+        setHidden(root.querySelector('[data-reconnect]'), true);
+        if (status) status.textContent = status.getAttribute('data-lost-text') ?? '';
         return;
       }
-      if (status) status.textContent = 'Reconnecting…';
-      root.querySelector('[data-reconnect]')?.classList.remove('tw-hidden');
+      showReconnect(root, lastOk);
       await sleep(Math.min(maxBackoffMs, 1000 * 2 ** failures));
     }
   }
