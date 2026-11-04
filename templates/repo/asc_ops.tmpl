@@ -51,7 +51,18 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 						<a href="{{.OpsURL}}/undo?ref={{.RedoRef | QueryEscape}}&amp;seq={{.RedoSeq}}">{{ctx.Locale.Tr "asc_review.ops_redo"}}</a>
 					</div>
 				{{end}}
-				{{with .Restack}}<div class="rv-banner rv-gap" role="status" data-testid="asc-ops-restack"><div><b>{{ctx.Locale.Tr "asc_review.ops_restack_title"}}</b> {{ctx.Locale.Tr "asc_review.ops_restack_help" .Label (DateUtils.TimeSince .At)}} <a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscOps.OpsURL}}/undo?ref={{.Ref | QueryEscape}}&seq={{.Seq}}">{{ctx.Locale.Tr "asc_review.ops_restack_undo"}}</a></div></div>{{end}}
+				{{with .Restack}}
+					<div class="rv-banner rv-banner-ic rv-gap" role="status" data-testid="asc-ops-restack">
+						{{svg "dsi-refresh" 16 "rv-ic"}}
+						<div><b>{{ctx.Locale.Tr "asc_review.ops_restack_title"}}</b>
+							{{with $.AscOps.RestackEffects}}{{ctx.Locale.TrN .ChangesBack "asc_review.ops_restack_rewritten_one" "asc_review.ops_restack_rewritten_other" $.AscOps.Restack.Label .ChangesBack}}{{if .ApprovalsKept}} {{ctx.Locale.TrN .ApprovalsKept "asc_review.ops_restack_kept_one" "asc_review.ops_restack_kept_other" .ApprovalsKept}}{{end}}{{else}}{{ctx.Locale.Tr "asc_review.ops_restack_moved" .Label}}{{end}}
+						</div>
+						<div class="rv-banner-btns">
+							{{if $.AscOps.RestackCompare}}<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscOps.RestackCompare}}" data-testid="asc-ops-restack-see">{{ctx.Locale.Tr "asc_review.ops_restack_see"}}</a>{{end}}
+							<a class="rv-btn rv-btn-secondary rv-btn-sm" href="{{$.AscOps.OpsURL}}/undo?ref={{.Ref | QueryEscape}}&amp;seq={{.Seq}}">{{svg "dsi-undo" 16 "rv-ic"}}{{ctx.Locale.Tr "asc_review.ops_restack_undo"}}</a>
+						</div>
+					</div>
+				{{end}}
 				<div class="rv-chips ag-ops-chips" role="group" aria-label="{{ctx.Locale.Tr "asc_review.ops_kind_label"}}" data-testid="asc-ops-kinds">
 					<a class="rv-chip-btn" href="{{.AllURL}}"{{if not .Kind}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_review.agents_filter_all"}} <span class="rv-count">{{.Total}}</span></a>
 					{{range .Chips}}<a class="rv-chip-btn" href="{{.URL}}"{{if .On}} aria-current="true"{{end}}>{{ctx.Locale.Tr (printf "asc_trust.ops.via.%s" .Key)}} <span class="rv-count">{{.Count}}</span></a>{{end}}

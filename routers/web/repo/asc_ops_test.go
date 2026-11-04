@@ -357,14 +357,40 @@ func TestAscOpsRestackBanner(t *testing.T) {
 	f := startFakeTrust(t, asctrust.FeatureStacks)
 	restack := opsEntry(9, "refs/heads/retry", "user2", 1, 2, true, "")
 	restack.Via = "restack"
-	f.listRefLog = func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) {
-		return &ascv1.ListRefLogResponse{Entries: []*ascv1.RefLogEntry{restack, opsEntry(8, "refs/heads/other", "user2", 3, 4, true, "")}}, nil
+	other := opsEntry(8, "refs/heads/other", "user2", 3, 4, true, "")
+	f.listRefLog = func(r *ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) {
+		switch r.GetRef() {
+		case "":
+			return &ascv1.ListRefLogResponse{Entries: []*ascv1.RefLogEntry{restack, other}}, nil
+		case restack.GetRef():
+			return &ascv1.ListRefLogResponse{Entries: []*ascv1.RefLogEntry{restack}}, nil
+		}
+		return &ascv1.ListRefLogResponse{}, nil
+	}
+	f.undoRef = func(r *ascv1.UndoRefRequest) (*ascv1.UndoRefResponse, error) {
+		if !r.GetDryRun() || r.GetRef() != "refs/heads/retry" || r.GetSeq() != 9 {
+			return nil, status.Error(codes.InvalidArgument, "only the dry run of the restack")
+		}
+		return &ascv1.UndoRefResponse{Result: &ascv1.RefResult{Name: r.GetRef(), Old: opsTarget(2), New: opsTarget(1)}, ChangesBack: 4, ApprovalsKept: 2}, nil
 	}
 	page := opsGet(t, "/user2/repo1/asc/ops", 2, perm_model.AccessModeWrite, AscOps)
 	require.Equal(t, http.StatusOK, page.status, page.body)
 	assert.Contains(t, page.body, `data-testid="asc-ops-restack"`)
 	assert.Contains(t, page.body, "asc_review.ops_restack_undo")
-	assert.Contains(t, page.body, "/user2/repo1/asc/ops/undo?ref=refs%2Fheads%2Fretry&seq=9")
+	assert.Contains(t, page.body, "/user2/repo1/asc/ops/undo?ref=refs%2Fheads%2Fretry&amp;seq=9")
+	assert.Contains(t, page.body, "asc_review.ops_restack_rewritten_one", "the changes the restack rewrote (the mock locale says the first key)")
+	assert.Contains(t, page.body, "asc_review.ops_restack_kept_one", "the approvals it kept")
+	assert.Contains(t, page.body, `href="/user2/repo1/asc/compare?a=`+opsHex(1)+"&amp;b="+opsHex(2)+`"`, "See what changed compares before and after")
+	assert.Contains(t, page.body, "asc_review.ops_restack_see")
+	assert.NotContains(t, page.body, "asc_review.ops_restack_moved")
+
+	f.undoRef = func(*ascv1.UndoRefRequest) (*ascv1.UndoRefResponse, error) {
+		return nil, status.Error(codes.Unavailable, "down")
+	}
+	page = opsGet(t, "/user2/repo1/asc/ops", 2, perm_model.AccessModeWrite, AscOps)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.Contains(t, page.body, "asc_review.ops_restack_moved", "without the dry run the banner names the branch")
+	assert.NotContains(t, page.body, "asc_review.ops_restack_rewritten")
 
 	restack.Actor = "someone"
 	restack.Undoable = false
