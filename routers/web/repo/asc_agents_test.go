@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -104,6 +105,35 @@ func withDetail(t *testing.T, c codes.Code, msg, code string, paths ...string) e
 }
 
 // ---------------------------------------------------------------------------------------------- the gate
+
+func TestAscAgentsPager(t *testing.T) {
+	link := func(n int) string { return "/r?page=" + strconv.Itoa(n) }
+	nums := func(p *ascPager) []int {
+		var out []int
+		for _, pg := range p.Pages {
+			out = append(out, pg.N)
+		}
+		return out
+	}
+	assert.Nil(t, ascAgentsPagerOf(1, 0, link))
+	assert.Nil(t, ascAgentsPagerOf(1, 30, link))
+	p := ascAgentsPagerOf(1, 140, link)
+	assert.Equal(t, []int{1, 2, 3, 5}, nums(p), "the first page with the last")
+	assert.Empty(t, p.Prev)
+	assert.Equal(t, "/r?page=2", p.Next)
+	assert.True(t, p.Pages[0].Current)
+	assert.Equal(t, []int{1, 4, 5, 6, 10}, nums(ascAgentsPagerOf(5, 300, link)))
+	p = ascAgentsPagerOf(10, 300, link)
+	assert.Equal(t, []int{1, 8, 9, 10}, nums(p))
+	assert.Empty(t, p.Next)
+	assert.Equal(t, "/r?page=9", p.Prev)
+	// A page past the end (runs were removed) still leads back.
+	p = ascAgentsPagerOf(4, 31, link)
+	assert.Equal(t, []int{1, 2, 3, 4}, nums(p))
+	assert.Equal(t, "/r?page=3", p.Prev)
+	assert.Len(t, ascAgentsPagerOf(1, 1<<40, link).Pages, 4, "a huge total stops at the last page asc can skip to")
+	assert.Equal(t, ascAgentsMaxPage, ascAgentsPagerOf(1, 1<<40, link).Pages[3].N)
+}
 
 func TestAscAgentsGate(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
@@ -222,9 +252,9 @@ func TestAscAgentsList(t *testing.T) {
 	failed := sampleRun(8, ascv1.AgentRunState_AGENT_RUN_STATE_FAILED)
 	failed.FailureCode = "BUDGET_EXCEEDED"
 	failed.FailureMessage = "the " + rloChar + "limit was reached"
-	hub.ok("Agents.ListRuns", &ascv1.ListAgentRunsResponse{Runs: []*ascv1.AgentRun{evil, failed}, NextPageToken: "tok_A-b=1"})
+	hub.ok("Agents.ListRuns", &ascv1.ListAgentRunsResponse{Runs: []*ascv1.AgentRun{evil, failed}, NextPageToken: "tok_A-b=1", Total: 95})
 
-	p := runAgents(t, agentsReq{path: testRunsPath + "?state=active&agent=coder&mine=1", user: agentsOwner, features: true}, AscAgents)
+	p := runAgents(t, agentsReq{path: testRunsPath + "?state=active&agent=coder&mine=1&page=2", user: agentsOwner, features: true}, AscAgents)
 	require.Equal(t, http.StatusOK, p.status, p.body)
 
 	calls := hub.callsOf("Agents.ListRuns")
@@ -238,6 +268,7 @@ func TestAscAgentsList(t *testing.T) {
 		ascv1.AgentRunState_AGENT_RUN_STATE_QUEUED, ascv1.AgentRunState_AGENT_RUN_STATE_RUNNING, ascv1.AgentRunState_AGENT_RUN_STATE_WAITING_INPUT,
 	}, req.GetStates())
 	assert.EqualValues(t, 30, req.GetLimit())
+	assert.EqualValues(t, 30, req.GetOffset(), "page 2 skips the 30 runs of page 1")
 
 	assert.Contains(t, p.body, "&lt;script&gt;alert(1)&lt;/script&gt; fix[31m it", "text is cleaned and escaped")
 	assert.NotContains(t, p.body, "<script>alert(1)")
@@ -249,7 +280,19 @@ func TestAscAgentsList(t *testing.T) {
 	assert.NotContains(t, p.body, rloChar)
 	assert.Contains(t, p.body, `<span class="rv-mono">coder</span>`)
 	assert.Contains(t, p.body, "state=active")
-	assert.Contains(t, p.body, "page=tok_A-b%3D1", "the next page keeps the filter")
+	assert.Contains(t, p.body, `data-testid="asc-agents-showing">asc_review.agents_showing_of</p>`)
+	assert.Contains(t, p.body, `data-testid="asc-agents-pager"`)
+	assert.Contains(t, p.body, `data-asc-list-main`)
+	assert.Regexp(t, `role="status" aria-busy="true" aria-label="asc_rp.loading" data-asc-list-loading data-testid="asc-agents-loading" hidden`, p.body, "the skeleton waits hidden for a filter or a page")
+	assert.Equal(t, 3, strings.Count(p.body, `class="ag-run ag-sk-row"`))
+	assert.NotContains(t, p.body, "error.server_internal", "a failed ListRequests leaves the card empty, the page whole")
+	assert.Contains(t, p.body, `data-asc-needs-count>0</span>`)
+	assert.NotContains(t, p.body, "tok_A-b", "the list pages by number, not by asc's token")
+	// 95 runs are 4 pages of 30: page 2 shows 1 2 3 4, with the filter kept on every link.
+	assert.Contains(t, p.body, `rel="prev" href="/user2/repo1/asc/agents?agent=coder&amp;mine=1&amp;state=active"`)
+	assert.Contains(t, p.body, `href="/user2/repo1/asc/agents?agent=coder&amp;mine=1&amp;page=2&amp;state=active" aria-current="page">2</a>`)
+	assert.Contains(t, p.body, `>4</a>`)
+	assert.Contains(t, p.body, `rel="next" href="/user2/repo1/asc/agents?agent=coder&amp;mine=1&amp;page=3&amp;state=active"`)
 	assert.Contains(t, p.body, `href="/user2/repo1/asc/agents/new"`)
 
 	t.Run("a reader sees the list but no new task button", func(t *testing.T) {
@@ -270,11 +313,13 @@ func TestAscAgentsList(t *testing.T) {
 		assert.NotContains(t, p.body, "Add retries", "nothing of a bad answer is used")
 	})
 
-	t.Run("a next-page token that is not opaque is dropped", func(t *testing.T) {
-		hub.ok("Agents.ListRuns", &ascv1.ListAgentRunsResponse{Runs: []*ascv1.AgentRun{sampleRun(1, ascv1.AgentRunState_AGENT_RUN_STATE_SUCCEEDED)}, NextPageToken: `"><script>`})
+	t.Run("one page of runs has no pager", func(t *testing.T) {
+		hub.ok("Agents.ListRuns", &ascv1.ListAgentRunsResponse{Runs: []*ascv1.AgentRun{sampleRun(1, ascv1.AgentRunState_AGENT_RUN_STATE_SUCCEEDED)}, NextPageToken: `"><script>`, Total: 1})
 		p := runAgents(t, agentsReq{path: testRunsPath, user: agentsOwner, features: true}, AscAgents)
 		require.Equal(t, http.StatusOK, p.status)
-		assert.NotContains(t, p.body, "Older runs")
+		assert.NotContains(t, p.body, `data-testid="asc-agents-pager"`)
+		assert.NotContains(t, p.body, `"><script>`)
+		assert.Zero(t, hub.callsOf("Agents.ListRuns")[len(hub.callsOf("Agents.ListRuns"))-1].req.(*ascv1.ListAgentRunsRequest).GetOffset())
 	})
 
 	t.Run("agents are off for the repository", func(t *testing.T) {
@@ -296,7 +341,7 @@ func TestAscAgentsList(t *testing.T) {
 
 	t.Run("bad filters are refused before asc is called", func(t *testing.T) {
 		before := hub.total()
-		for _, q := range []string{"?state=bogus", "?agent=Not%20Valid", "?page=a%20b", "?agent=" + strings.Repeat("a", 41)} {
+		for _, q := range []string{"?state=bogus", "?agent=Not%20Valid", "?page=a%20b", "?page=0", "?page=01", "?page=3335", "?page=tok_A", "?agent=" + strings.Repeat("a", 41)} {
 			p := runAgents(t, agentsReq{path: testRunsPath + q, user: agentsOwner, features: true}, AscAgents)
 			assert.Equal(t, http.StatusBadRequest, p.status, q)
 		}

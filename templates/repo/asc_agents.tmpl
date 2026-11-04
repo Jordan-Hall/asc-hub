@@ -88,7 +88,14 @@ Template Attributes:
 			</div>
 
 			<div class="ag-cols">
-				<div class="ag-main">
+				<div class="ag-main" data-asc-list-main>
+				<div class="rv-card ag-runs-card ag-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "asc_rp.loading"}}" data-asc-list-loading data-testid="asc-agents-loading" hidden>
+					<ul class="rv-list ag-runs" aria-hidden="true">
+						<li class="ag-run ag-sk-row"><span class="rv-sk ag-sk-av"></span><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+						<li class="ag-run ag-sk-row"><span class="rv-sk ag-sk-av"></span><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+						<li class="ag-run ag-sk-row"><span class="rv-sk ag-sk-av"></span><span class="ag-sk-main"><span class="rv-sk ag-sk-t"></span><span class="rv-sk ag-sk-s"></span></span><span class="rv-sk ag-sk-pill"></span></li>
+					</ul>
+				</div>
 			{{if .AscAgentsRuns}}
 				<div class="rv-card ag-runs-card">
 				<ul class="rv-list rv-runs ag-runs" id="rv-runs" data-density="comfy" data-asc-list data-testid="asc-agent-runs">
@@ -133,8 +140,14 @@ Template Attributes:
 				</ul>
 				</div>
 				<div class="ag-pager">
-					<p class="rv-muted" data-testid="asc-agents-showing">{{if and .AscAgentStats.HasTotal (not .AscAgentsFilterState) (not .AscAgentsFilterAgent) (not .AscAgentsFilterMine)}}{{ctx.Locale.Tr "asc_review.agents_showing_of" (len .AscAgentsRuns) .AscAgentStats.Total}}{{else}}{{ctx.Locale.Tr "asc_review.agents_showing" (len .AscAgentsRuns)}}{{end}}</p>
-					{{if .AscAgentsNext}}<a class="rv-btn rv-btn-secondary" rel="next" href="{{.AscAgentsNext}}">{{ctx.Locale.Tr "asc_review.agents_older"}}</a>{{end}}
+					<p class="rv-muted" data-testid="asc-agents-showing">{{ctx.Locale.Tr "asc_review.agents_showing_of" (len .AscAgentsRuns) .AscAgentsTotal}}</p>
+					{{with .AscAgentsPager}}
+						<nav class="ag-pages" aria-label="{{ctx.Locale.Tr "asc_shell.pagination"}}" data-testid="asc-agents-pager">
+							{{if .Prev}}<a rel="prev" href="{{.Prev}}" aria-label="{{ctx.Locale.Tr "repo.issues.previous"}}">{{svg "octicon-chevron-left" 16}}</a>{{else}}<span aria-disabled="true" aria-label="{{ctx.Locale.Tr "repo.issues.previous"}}">{{svg "octicon-chevron-left" 16}}</span>{{end}}
+							{{range .Pages}}<a href="{{.Link}}"{{if .Current}} aria-current="page"{{end}}>{{.N}}</a>{{end}}
+							{{if .Next}}<a rel="next" href="{{.Next}}" aria-label="{{ctx.Locale.Tr "repo.issues.next"}}">{{svg "octicon-chevron-right" 16}}</a>{{else}}<span aria-disabled="true" aria-label="{{ctx.Locale.Tr "repo.issues.next"}}">{{svg "octicon-chevron-right" 16}}</span>{{end}}
+						</nav>
+					{{end}}
 				</div>
 			{{else if not .AscAgentsFailure}}
 				<div class="rv-empty" data-testid="asc-agent-runs-empty">

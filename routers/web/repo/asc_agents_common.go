@@ -6,6 +6,7 @@ package repo
 import (
 	gocontext "context"
 	"net/http"
+	"strconv"
 	"time"
 
 	"forgejo.org/models/unit"
@@ -236,6 +237,71 @@ func ascAgentsPageToken(s string) (string, bool) {
 		return "", false
 	}
 	return s, true
+}
+
+// ascAgentsMaxPage is the last numbered page of runs: asc skips at most 100000 runs.
+const ascAgentsMaxPage = 100000/ascAgentsPageSize + 1
+
+// ascAgentsPageNum reads the numbered page of the runs list: none is the first, otherwise digits from 1.
+func ascAgentsPageNum(s string) (int, bool) {
+	if s == "" {
+		return 1, true
+	}
+	if len(s) > 4 || s[0] == '0' {
+		return 0, false
+	}
+	n, err := strconv.Atoi(s)
+	if err != nil || n < 1 || n > ascAgentsMaxPage {
+		return 0, false
+	}
+	return n, true
+}
+
+// ascPagerPage is one number of the pager.
+type ascPagerPage struct {
+	N       int
+	Link    string
+	Current bool
+}
+
+// ascPager is the numbered pager under a list: previous, the pages near the current one with the first and the
+// last, and next. Prev and Next are empty on the first and the last page.
+type ascPager struct {
+	Prev, Next string
+	Pages      []ascPagerPage
+}
+
+// ascAgentsPagerOf builds the pager of the runs list, or nil when every run fits on one page.
+func ascAgentsPagerOf(current int, total uint64, link func(int) string) *ascPager {
+	capped := min(total, uint64(ascAgentsMaxPage*ascAgentsPageSize))
+	last := int((capped + ascAgentsPageSize - 1) / ascAgentsPageSize)
+	if last <= 1 && current <= 1 {
+		return nil
+	}
+	last = max(last, current)
+	// Three pages around the current one, kept inside the list.
+	lo := max(1, min(current-1, last-2))
+	hi := min(last, lo+2)
+	p := &ascPager{}
+	add := func(n int) {
+		p.Pages = append(p.Pages, ascPagerPage{N: n, Link: link(n), Current: n == current})
+	}
+	if lo > 1 {
+		add(1)
+	}
+	for n := lo; n <= hi; n++ {
+		add(n)
+	}
+	if hi < last {
+		add(last)
+	}
+	if current > 1 {
+		p.Prev = link(current - 1)
+	}
+	if current < last {
+		p.Next = link(current + 1)
+	}
+	return p
 }
 
 // ascAgentsParseID reads a run id from the URL: digits only, no leading zero, within uint32 range.
