@@ -70,7 +70,6 @@ type ascChecksPage struct {
 	Job         string
 	Test        string
 	Window      uint32
-	Windows     []uint32
 	Jobs        []asctrust.JobStat
 	FlakyRows   []asctrust.FlakyRow
 	Trends      []asctrust.TrendRow
@@ -98,6 +97,27 @@ type ascChecksPage struct {
 	// Filtered is true when a job, a test or "flaky only" narrows the list.
 	Filtered  bool
 	TrendsURL string
+	// WindowLinks choose the window of every view; Stats are the four stat cards over it (nil: asc could not say).
+	WindowLinks []ascWindowLink
+	Stats       []ascStatCard
+}
+
+// ascWindowLink is one choice of the window: the same view and filters over Days days.
+type ascWindowLink struct {
+	Days   uint32
+	URL    string
+	Active bool
+}
+
+// ascStatCard is one stat card of the checks page: its label is asc_trust.checks.stat_<Key>, Sub the line under the
+// value and Spark the trend of the window day by day (asctrust.Sparkline, "" when it has nothing to draw).
+type ascStatCard struct {
+	Key       string
+	Value     string
+	Tone      string
+	Sub       string
+	Spark     string
+	SparkTone string
 }
 
 // ascGroupRowView is one failure group of the list.
@@ -266,8 +286,128 @@ const (
 	ascChecksViewTrends   = "trends"
 )
 
-// ascChecksWindows are the windows of a history, in days.
-var ascChecksWindows = []uint32{7, 14, 30, 90, 180}
+// ascChecksWindows are the windows of a history, in days. An address may still name 180 (asctrust.WindowDays).
+var ascChecksWindows = []uint32{7, 14, 30, 90}
+
+// ascChecksWindowLinks are the windows of the header: the address of the page with its window replaced and the page of
+// the list, the expanded group and the action left out.
+func ascChecksWindowLinks(base string, query url.Values, window uint32) []ascWindowLink {
+	out := make([]ascWindowLink, 0, len(ascChecksWindows))
+	for _, w := range ascChecksWindows {
+		q := url.Values{}
+		for k, v := range query {
+			switch k {
+			case "page", "open", "act", "window":
+			default:
+				q[k] = v
+			}
+		}
+		q.Set("window", strconv.FormatUint(uint64(w), 10))
+		out = append(out, ascWindowLink{Days: w, URL: base + "?" + q.Encode(), Active: w == window})
+	}
+	return out
+}
+
+// ascPermilleText writes a rate in per mille as a percentage with one decimal when it has one: 942 is "94.2", 100 is "10".
+func ascPermilleText(p uint32) string {
+	if p%10 == 0 {
+		return strconv.FormatUint(uint64(p/10), 10)
+	}
+	return strconv.FormatUint(uint64(p/10), 10) + "." + strconv.FormatUint(uint64(p%10), 10)
+}
+
+// ascCarry fills the days without a value with the value of the day before (the first known value for the days before
+// it), so a quiet day does not draw a fall to zero. known says which days have a value.
+func ascCarry(values []uint32, known []bool) []uint32 {
+	out := make([]uint32, len(values))
+	first := -1
+	for i := range values {
+		if known[i] {
+			first = i
+			break
+		}
+	}
+	if first < 0 {
+		return nil
+	}
+	last := values[first]
+	for i := range values {
+		if known[i] {
+			last = values[i]
+		}
+		out[i] = last
+	}
+	return out
+}
+
+// ascChecksStats builds the four stat cards from the statistics of the window.
+func ascChecksStats(ctx *context.Context, s *asctrust.CiStats) []ascStatCard {
+	n := len(s.Daily)
+	pass, durations := make([]uint32, n), make([]uint32, n)
+	hasRuns, hasDuration := make([]bool, n), make([]bool, n)
+	groups, flips := make([]uint32, n), make([]uint32, n)
+	for i, d := range s.Daily {
+		if d.Runs > 0 {
+			pass[i], hasRuns[i] = d.Passed*1000/d.Runs, true
+		}
+		durations[i], hasDuration[i] = d.MedianSeconds, d.MedianSeconds > 0
+		groups[i], flips[i] = d.GroupsNew, d.Flips
+	}
+	const w, h = 80, 28
+
+	rate := ascStatCard{Key: "pass", Value: "\u2014", Spark: asctrust.Sparkline(ascCarry(pass, hasRuns), w, h)}
+	switch {
+	case s.Runs == 0:
+		rate.Sub = ctx.Locale.TrString("asc_trust.checks.stat_no_runs", s.Days)
+	default:
+		rate.Value = ascPermilleText(s.PassPermille) + "%"
+		switch {
+		case s.PassPermille >= 900:
+			rate.Tone = "ok"
+		case s.PassPermille >= 700:
+			rate.Tone = "warn"
+		default:
+			rate.Tone = "err"
+		}
+		diff := int(s.PassPermille) - int(s.PreviousPassPermille)
+		switch {
+		case s.PreviousRuns == 0:
+			rate.Sub = ctx.Locale.TrString("asc_trust.checks.stat_no_previous", s.Days)
+		case diff > 0:
+			rate.Sub = ctx.Locale.TrString("asc_trust.checks.stat_pass_up", ascPermilleText(uint32(diff)), s.Days)
+		case diff < 0:
+			rate.Sub = ctx.Locale.TrString("asc_trust.checks.stat_pass_down", ascPermilleText(uint32(-diff)), s.Days)
+		default:
+			rate.Sub = ctx.Locale.TrString("asc_trust.checks.stat_pass_same", s.Days)
+		}
+	}
+
+	open := ascStatCard{Key: "groups", Value: strconv.FormatUint(uint64(s.GroupsOpen), 10), SparkTone: "err", Spark: asctrust.Sparkline(groups, w, h)}
+	if s.GroupsOpen > 0 {
+		open.Tone = "err"
+	}
+	if s.GroupsNewHour == 0 {
+		open.Sub = ctx.Locale.TrString("asc_trust.checks.stat_new_hour_none")
+	} else {
+		open.Sub = ctx.Locale.TrString("asc_trust.checks.stat_new_hour", s.GroupsNewHour)
+	}
+
+	flaky := ascStatCard{
+		Key: "flaky", Value: strconv.FormatUint(uint64(s.Flipping), 10), SparkTone: "warn", Spark: asctrust.Sparkline(flips, w, h),
+		Sub: ctx.Locale.TrString("asc_trust.checks.stat_above_threshold", s.Flaky, ascPermilleText(s.ThresholdPermille)+"%"),
+	}
+
+	median := ascStatCard{Key: "duration", Value: "\u2014", Spark: asctrust.Sparkline(ascCarry(durations, hasDuration), w, h)}
+	if s.MedianSeconds > 0 {
+		median.Value = asctrust.DurationText(s.MedianSeconds)
+	}
+	if s.SlowestJob != "" {
+		median.Sub = ctx.Locale.TrString("asc_trust.checks.stat_slowest", s.SlowestJob, asctrust.DurationText(s.SlowestJobSeconds))
+	} else {
+		median.Sub = ctx.Locale.TrString("asc_trust.checks.stat_no_durations")
+	}
+	return []ascStatCard{rate, open, flaky, median}
+}
 
 func ascChecksURL(repo *repo_model.Repository) string {
 	return setting.AppSubURL + "/" + repo.OwnerName + "/" + repo.Name + "/asc/checks"
@@ -298,7 +438,7 @@ func AscChecks(ctx *context.Context) {
 	ctx.Data["PageIsAscChecks"] = true
 	p := &ascChecksPage{
 		ChecksURL: ascChecksURL(repo), View: ctx.FormString("view"), State: ctx.FormString("state"), Flaky: ctx.FormBool("flaky"),
-		Job: ctx.FormString("job"), Test: ctx.FormString("test"), Windows: ascChecksWindows,
+		Job: ctx.FormString("job"), Test: ctx.FormString("test"),
 	}
 	p.CanWrite = ctx.IsSigned && ctx.Repo.CanWrite(unit.TypeCode)
 	p.CanRerun = ctx.IsSigned && ctx.Repo.CanWrite(unit.TypeActions)
@@ -328,6 +468,7 @@ func AscChecks(ctx *context.Context) {
 		ctx.HTML(http.StatusOK, tplAscChecks)
 		return
 	}
+	p.WindowLinks = ascChecksWindowLinks(p.ChecksURL, ctx.Req.URL.Query(), window)
 	// The tab of the default view (no state in the address) is the "open" tab, not a tab of its own: an empty
 	// key made its label the half key "asc_trust.checks.state." and listed "Open" twice.
 	for _, s := range ascGroupStateOptions() {
@@ -354,8 +495,14 @@ func AscChecks(ctx *context.Context) {
 			ctx.NotFound("asc checks", nil)
 			return
 		}
-		p.Problem, p.Retry = f.Localized(ctx), true
+		p.Problem, p.Retry, p.Stats = f.Localized(ctx), true, nil
 		ctx.HTML(f.Status, tplAscChecks)
+	}
+	// The stat cards are advice: an asc that cannot count them (or predates Ci.Stats) leaves them out.
+	if stats, err := asctrust.LoadCiStats(callCtx, conn, name, window); err != nil {
+		log.Warn("asc checks: statistics of %s: %v", repo.FullName(), err)
+	} else {
+		p.Stats = ascChecksStats(ctx, stats)
 	}
 	switch p.View {
 	case ascChecksViewFlaky:

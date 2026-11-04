@@ -919,6 +919,25 @@
   max-width: 220px;
 }
 
+/* the stat cards of the checks page: the value takes the tone of its state, the line under it keeps clear of the trend */
+.rv-stat-ok {
+  color: var(--ok);
+}
+
+.rv-stat-warn {
+  color: var(--warn);
+}
+
+.rv-stat-err {
+  color: var(--err);
+}
+
+@media (min-width: 480px) {
+  .rv-checks-stats .rv-stat-d {
+    padding-inline-end: 88px;
+  }
+}
+
 .rv-facts > div {
   display: flex;
   gap: 6px;
