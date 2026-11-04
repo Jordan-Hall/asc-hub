@@ -112,7 +112,28 @@ func TestAscYourReviewCard(t *testing.T) {
 
 	assert.NotContains(t, panel(poster, true, nil), "asc-you-approve", "the author does not approve their own change")
 	assert.NotContains(t, panel(poster, true, nil), `data-asc-open-review="reject"`)
-	assert.NotContains(t, panel(poster, true, nil), "asc-review-pinned", "no verdict to pin for the author")
+	author := panel(poster, true, nil)
+	assert.Contains(t, author, `data-testid="asc-review-pinned"`, "the author keeps the actions button")
+	assert.NotContains(t, author, "asc-pinned-approve", "no verdict to pin for the author")
+	assert.NotContains(t, author, "asc-actions-approve")
+	assert.Contains(t, author, `data-clipboard-text="asc stack get 3"`)
+
+	assert.Contains(t, reviewer, `data-testid="asc-actions-open"`)
+	assert.Contains(t, reviewer, `aria-label="asc_review.actions_more"`)
+	assert.Contains(t, reviewer, `data-testid="asc-actions-sheet"`)
+	assert.Contains(t, reviewer, "asc_review.actions_title_plain", "no stack position: a plain title")
+	assert.Contains(t, reviewer, `data-testid="asc-actions-approve"`)
+	assert.Contains(t, reviewer, `data-testid="asc-actions-reject"`)
+	assert.NotContains(t, reviewer, "asc-actions-queue", "no right to land: no queue")
+	assert.NotContains(t, reviewer, "asc-actions-undo-restack")
+	acting := panel(other, true, func(d map[string]any) {
+		d["AscActions"] = &AscStackActions{CanQueue: true, ConfirmURL: "/user2/repo1/pulls/2/asc/confirm", Position: 3, LandCount: 2}
+		d["AscRestackLine"] = &ascRestackLine{Base: "main", At: time.Now().Add(-3 * time.Minute), UndoURL: "/user2/repo1/asc/ops/undo?ref=x&seq=4"}
+	})
+	assert.Contains(t, acting, "asc_review.actions_title")
+	assert.Contains(t, acting, `data-asc-confirm-open href="/user2/repo1/pulls/2/asc/confirm?op=queue" data-testid="asc-actions-queue"`)
+	assert.Contains(t, acting, "asc_review.actions_queue_one", "TrN of the mock answers with the first key")
+	assert.Contains(t, acting, `href="/user2/repo1/asc/ops/undo?ref=x&amp;seq=4" data-testid="asc-actions-undo-restack"`)
 	assert.Contains(t, panel(poster, true, nil), `data-asc-open-review="comment"`, "the author can still comment")
 	assert.NotContains(t, panel(other, false, nil), "asc-you-approve", "a verdict is given on the whole change, not on a version range")
 	assert.NotContains(t, panel(other, false, nil), "asc-pinned-approve")
