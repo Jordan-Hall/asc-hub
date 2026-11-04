@@ -304,8 +304,17 @@ func TestAscOpsOffersTheRedoOfAnUndo(t *testing.T) {
 	}
 	page := opsGet(t, "/user2/repo1/asc/ops?redo=12&redo_ref=refs%2Fheads%2Fmain", 2, perm_model.AccessModeWrite, AscOps)
 	require.Equal(t, http.StatusOK, page.status, page.body)
-	assert.Contains(t, page.body, "asc-ops-redo")
-	assert.Contains(t, page.body, "seq=12")
+	// The toast names the undo and offers its redo; the undo is not on this page, so it says only that it is logged.
+	assert.Regexp(t, `<div class="rv-undo-toast is-inline rv-gap" role="status" data-testid="asc-ops-redo">\s*<div><b>asc_review.ops_undone_title</b><span>asc_review.ops_undone_logged</span></div>\s*<a href="/user2/repo1/asc/ops/undo\?ref=refs%2Fheads%2Fmain&amp;seq=12">asc_review.ops_redo</a>`, page.body)
+
+	// With the undo on the page, the toast says where the branch is back at.
+	f.listRefLog = func(*ascv1.ListRefLogRequest) (*ascv1.ListRefLogResponse, error) {
+		return &ascv1.ListRefLogResponse{Entries: []*ascv1.RefLogEntry{opsEntry(12, "refs/heads/main", "user2", 2, 1, true, "")}}, nil
+	}
+	page = opsGet(t, "/user2/repo1/asc/ops?redo=12&redo_ref=refs%2Fheads%2Fmain", 2, perm_model.AccessModeWrite, AscOps)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.Contains(t, page.body, `<span>asc_review.ops_undone_back</span>`)
+	assert.NotContains(t, page.body, "asc_review.ops_undone_logged")
 	for _, bad := range []string{"?redo=0", "?redo=-1", "?redo=abc"} {
 		page = opsGet(t, "/user2/repo1/asc/ops"+bad, 2, perm_model.AccessModeWrite, AscOps)
 		assert.NotContains(t, page.body, "asc-ops-redo", bad)

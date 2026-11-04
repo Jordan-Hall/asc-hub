@@ -51,6 +51,10 @@ type ascOpsPage struct {
 	// RedoSeq and RedoRef name the undo the person has just made: undoing it is the redo.
 	RedoSeq uint64
 	RedoRef string
+	// RedoLabel is the ref of that undo as a person reads it; RedoBack is where the undo put it, "" when that row is not
+	// on this page or the undo deleted the ref.
+	RedoLabel string
+	RedoBack  string
 	// Restack is the newest restack of the person's own that can still be undone: it gets the banner above the list.
 	Restack   *asctrust.OpRow
 	Total     int
@@ -127,6 +131,13 @@ func AscOps(ctx *context.Context) {
 	if seq, err := strconv.ParseUint(ctx.FormString("redo"), 10, 53); err == nil && seq > 0 && p.CanUndo {
 		if ref := ctx.FormString("redo_ref"); len(ref) <= 1024 && !strings.ContainsAny(ref, "\x00\r\n") {
 			p.RedoSeq, p.RedoRef = seq, ref
+			p.RedoLabel = strings.TrimPrefix(ref, "refs/heads/")
+			for _, r := range page.Rows {
+				if r.Seq == seq && r.Ref == ref {
+					p.RedoLabel, p.RedoBack = r.Label, r.NewShort
+					break
+				}
+			}
 		}
 	}
 	kind := strings.TrimSpace(ctx.FormString("kind"))
@@ -271,11 +282,12 @@ func AscOpsUndo(ctx *context.Context) {
 		ascUndoFail(ctx, "undo", err)
 		return
 	}
-	ctx.Flash.Success(ctx.Tr("asc_trust.ops.undone", done.Ref))
 	if done.NewSeq > 0 {
-		// The undo is itself an operation, so undoing it is a redo: the log offers it once, as a link to the preview.
+		// The undo is itself an operation, so undoing it is a redo: the log says so in its toast and offers the redo once,
+		// as a link to the preview.
 		ctx.Redirect(ascOpsURL(repo) + "?redo=" + strconv.FormatUint(done.NewSeq, 10) + "&redo_ref=" + url.QueryEscape(done.Ref))
 		return
 	}
+	ctx.Flash.Success(ctx.Tr("asc_trust.ops.undone", done.Ref))
 	ctx.Redirect(ascOpsURL(repo))
 }
