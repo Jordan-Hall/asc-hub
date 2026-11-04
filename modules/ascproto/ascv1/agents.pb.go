@@ -4566,7 +4566,7 @@ type GetAgentSpendResponse struct {
 	Tokens             uint64                 `protobuf:"varint,3,opt,name=tokens,proto3" json:"tokens,omitempty"`
 	MonthlyCapMicroUsd uint64                 `protobuf:"varint,4,opt,name=monthly_cap_micro_usd,json=monthlyCapMicroUsd,proto3" json:"monthly_cap_micro_usd,omitempty"` // the cap of the whole repository, 0 = none
 	Days               []*SpendDay            `protobuf:"bytes,5,rep,name=days,proto3" json:"days,omitempty"`                                                            // every day with spend, ascending
-	Agents             []*AgentSpend          `protobuf:"bytes,6,rep,name=agents,proto3" json:"agents,omitempty"`
+	Agents             []*AgentSpend          `protobuf:"bytes,6,rep,name=agents,proto3" json:"agents,omitempty"`                                                        // every agent with spend in the month or a monthly cap, by name
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
