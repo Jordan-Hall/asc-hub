@@ -529,7 +529,8 @@ func UpdateWebhook(ctx context.Context, w *Webhook) error {
 	if err := checkHookAddress(w); err != nil {
 		return err
 	}
-	_, err := db.GetEngine(ctx).ID(w.ID).AllCols().Update(w)
+	// a removed Authorization header is written as NULL: without Nullable an empty column is left as it was
+	_, err := db.GetEngine(ctx).ID(w.ID).AllCols().Nullable("header_authorization_encrypted").Update(w)
 	return err
 }
 
