@@ -96,7 +96,7 @@ func TestWebhookUpdateKeepsSecret(t *testing.T) {
 	assert.Equal(t, "s3cr3t", unittest.AssertExistsAndLoadBean(t, &webhook.Webhook{ID: 1}).Secret, "an empty field keeps the secret")
 }
 
-// The edit form of a hook with a secret shows that one is set, never the secret itself.
+// The Settings tab of a hook with a secret shows that one is set, with Replace beside it, never the secret itself.
 func TestWebhookEditHidesSecret(t *testing.T) {
 	unittest.PrepareTestEnv(t)
 
@@ -114,7 +114,8 @@ func TestWebhookEditHidesSecret(t *testing.T) {
 	require.Equal(t, http.StatusOK, ctx.Resp.Status())
 
 	body := resp.Body.String()
-	assert.Contains(t, body, `placeholder="asc_hooks.secret_set"`)
+	assert.Contains(t, body, `placeholder="••••••••••••"`)
+	assert.Contains(t, body, `data-wh-replace="secret"`)
 	assert.NotContains(t, body, "s3cr3t")
 }
 

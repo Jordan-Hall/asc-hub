@@ -1,5 +1,5 @@
 {{/* One webhook: its address, whether it is failing, Delete, and its two views as tabs, Settings (the form) and
-Recent deliveries. The data is the page data. */}}
+Recent deliveries (templates/webhook/settings.tmpl and deliveries.tmpl). The data is the page data. */}}
 <section class="ds-card wh-hook" aria-labelledby="wh-hook-url">
 	<div class="ds-card-h wh-hook-h">
 		<div class="wh-hook-title">
@@ -16,13 +16,7 @@ Recent deliveries. The data is the page data. */}}
 	{{if eq .HookTab "deliveries"}}
 		{{template "webhook/deliveries" .}}
 	{{else}}
-		<div class="ds-card-b">
-			{{template "webhook/form" .}}
-			{{if .Permission.IsAdmin}}<div class="wh-test">{{template "webhook/test_delivery" .}}</div>{{end}}
-		</div>
+		<div class="ds-card-b">{{template "webhook/settings" .}}</div>
 	{{end}}
 </section>
-{{if and (eq .HookTab "settings") (or (eq .HookType "forgejo") (eq .HookType "gitea") (eq .HookType "gogs"))}}
-	<form id="wh-secret-form" method="post" action="{{.BaseLink}}/{{.Webhook.ID}}/secret"></form>
-{{end}}
 {{template "repo/settings/webhook/delete_modal" .}}

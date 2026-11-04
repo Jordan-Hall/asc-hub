@@ -81,6 +81,7 @@ import {initAscBoard} from './features/asc-board.js';
 import {initRepoNew} from './features/repo-new.js';
 import {initUsernameCheck} from './features/name-check.js';
 import {initAscConfirm} from './features/asc-confirm.js';
+import {initAscWebhookSettings} from './features/asc-webhook-settings.js';
 import {initAscBulk} from './features/asc-bulk.js';
 import {initLocalTime} from './features/local-time.js';
 import {initAscSecurity} from './features/asc-security.js';
@@ -247,6 +248,7 @@ onDomReady(() => {
   initRepoNew();
   initUsernameCheck();
   initAscConfirm();
+  initAscWebhookSettings();
   initAscBulk();
   initLocalTime();
   initAscSecurity();
