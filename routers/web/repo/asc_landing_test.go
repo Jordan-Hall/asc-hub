@@ -109,7 +109,7 @@ func TestAscLandingCard(t *testing.T) {
 	assert.Contains(t, html, "asc_review.landing_empty")
 	assert.NotContains(t, html, "asc-landing-starts", "no estimate is guessed")
 	assert.Contains(t, html, ">asc_review.landing_queue_one<")
-	assert.Contains(t, html, "asc_review.landing_dry_not_ready_one", "TrN picks the form by count")
+	assert.Contains(t, html, "asc_review.landing_dry_not_ready_one", "TrN of the mock answers with the first key")
 
 	assert.Contains(t, card(&AscLanding{From: 1, To: 4}, acts), ">asc_review.landing_queue_range<")
 	assert.Contains(t, card(&AscLanding{}, acts), ">repo.pulls.asc_op.queue<", "outside the rail the button keeps its plain name")
