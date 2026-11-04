@@ -93,6 +93,7 @@ import {initAscIntent} from './features/asc-intent.js';
 import {initAscTitleCounter} from './features/asc-title-counter.js';
 import {initAscDraft} from './features/asc-draft.js';
 import {initAscWhere} from './features/asc-where.js';
+import {initAscAudit} from './features/asc-audit.js';
 import {initAscNewChangeDraft} from './features/asc-newchange-draft.js';
 import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
 import {
@@ -263,6 +264,7 @@ onDomReady(() => {
   initAscTitleCounter();
   initAscDraft();
   initAscWhere();
+  initAscAudit();
   initAscNewChangeDraft();
   initAscResponsiveDetails();
   initAscInboxBadge();

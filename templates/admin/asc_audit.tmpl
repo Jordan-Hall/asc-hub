@@ -82,16 +82,26 @@
 					<details class="adm-export">
 						<summary class="ds-btn ds-btn-secondary ds-btn-sm">{{svg "dsi-download" 16}}{{ctx.Locale.Tr "asc_admin.audit_export"}}</summary>
 						<div class="adm-export-menu">
-							<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.ExportJSONL}}" data-testid="asc-audit-export-jsonl" download>{{ctx.Locale.Tr "asc_trust.audit.export_jsonl"}}</a>
-							<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.ExportCSV}}" data-testid="asc-audit-export-csv" download>{{ctx.Locale.Tr "asc_trust.audit.export_csv"}}</a>
+							<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.ExportJSONL}}" data-testid="asc-audit-export-jsonl" data-asc-audit-export download>{{ctx.Locale.Tr "asc_trust.audit.export_jsonl"}}</a>
+							<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.ExportCSV}}" data-testid="asc-audit-export-csv" data-asc-audit-export download>{{ctx.Locale.Tr "asc_trust.audit.export_csv"}}</a>
 						</div>
 					</details>
-					<form class="ds-ml-auto" method="post" action="{{.Base}}/verify">
+					<form class="ds-ml-auto" method="post" action="{{.Base}}/verify" data-asc-audit-verify data-progress-text="{{ctx.Locale.Tr "asc_trust.audit.verify_progress" "{done}" "{total}"}}">
 						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="from" value="">
+						<input type="hidden" name="to" value="">
+						<input type="hidden" name="done" value="">
 						<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit" data-testid="asc-audit-verify" aria-describedby="adm-verify-hint">{{svg "dsi-shield-check" 16}}{{ctx.Locale.Tr "asc_trust.audit.verify"}}</button>
 					</form>
 				</div>
 				<p class="ds-hint" id="adm-verify-hint">{{ctx.Locale.Tr "asc_trust.audit.verify_hint"}}</p>
+				<div class="adm-verify-progress" data-asc-audit-progress hidden>
+					<span class="ds-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="{{ctx.Locale.Tr "asc_trust.audit.verify"}}"><i></i></span>
+					<span class="ds-hint" aria-live="polite" data-asc-audit-progress-text></span>
+				</div>
+				<div class="ds-toasts" data-asc-audit-ready hidden data-events-one="{{ctx.Locale.Tr "asc_trust.audit.ready_events_one" "{n}"}}" data-events-other="{{ctx.Locale.Tr "asc_trust.audit.ready_events_other" "{n}"}}">
+					<div class="ds-toast" role="status">{{svg "dsi-download" 16}}<div class="ds-toast-text"><b>{{ctx.Locale.Tr "asc_trust.audit.ready_title"}}</b><span class="ds-sub" data-asc-audit-ready-sub></span></div><a class="ds-toast-action" href="#" data-asc-audit-ready-link data-testid="asc-audit-ready-download">{{ctx.Locale.Tr "asc_trust.audit.ready_download"}}</a></div>
+				</div>
 
 				{{if .Searched}}
 					{{if .Rows}}
