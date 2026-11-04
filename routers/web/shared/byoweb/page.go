@@ -95,6 +95,16 @@ type Page struct {
 	Test         *TestView
 	OwnerAIURL   string
 
+	// The cards of the keys and the features that use AI (aifeatures.go). FeaturesFailed is set when the features
+	// could not be loaded. FeatureEdit and Replace are refused dialog forms shown again; AddOpen is the add dialog
+	// shown again ("key" or "endpoint").
+	Cards          []KeyCard
+	Features       []FeatureRow
+	FeaturesFailed bool
+	FeatureEdit    *FeatureEdit
+	Replace        *ReplaceView
+	AddOpen        string
+
 	// Sharing of the key and the keys shared with the owner of the page (aishares.go); nil when the level or the
 	// server has none.
 	Sharing *Sharing
@@ -113,6 +123,23 @@ func (p *Page) Op(name string) string {
 		p.ops[name] = svc.NewOpID()
 	}
 	return p.ops[name]
+}
+
+// AddForm and AddErrors are the values and errors of the add dialog called slot ("key" or "endpoint"): the
+// refused form shows them again, every other dialog starts empty. A page without slots (AddOpen "") has one
+// add form, which gets them all.
+func (p *Page) AddForm(slot string) AIForm {
+	if p.AddOpen != "" && p.AddOpen != slot {
+		return AIForm{Provider: string(svc.ProviderAnthropic)}
+	}
+	return p.AIForm
+}
+
+func (p *Page) AddErrors(slot string) svc.FieldErrors {
+	if p.AddOpen != "" && p.AddOpen != slot {
+		return nil
+	}
+	return p.Errors
 }
 
 // StorageForm holds the non-secret values of the add and edit forms. Credentials are never in it.

@@ -1,0 +1,99 @@
+{{/*
+"What uses AI": a row per feature with the key it uses, this month's spend against its cap and, when the cap is
+reached, until when it is paused. The provider select sends its form on change (a Save button without script);
+"Edit cap" opens a dialog with the key and the cap. A refused edit shows its dialog open again (data-asc-open).
+*/}}
+{{$a := .Asc}}
+<section class="ds-card asc-ai-card" aria-labelledby="asc-ai-uses-h" data-testid="asc-ai-features">
+	<div class="ds-card-h">
+		<div class="asc-ai-grow">
+			<h3 id="asc-ai-uses-h">{{ctx.Locale.Tr "ascbyo.ai.uses.title"}}</h3>
+			<p class="ds-card-sub">{{ctx.Locale.Tr "ascbyo.ai.uses.sub"}}</p>
+		</div>
+	</div>
+	{{if $a.FeaturesFailed}}
+		<div class="ds-card-b"><p class="asc-byo-hint" role="status">{{ctx.Locale.Tr "ascbyo.ai.uses.failed"}}</p></div>
+	{{else}}
+		<div class="ds-table-wrap">
+			<table class="ds-table asc-ai-uses">
+				<thead>
+					<tr>
+						<th scope="col">{{ctx.Locale.Tr "ascbyo.ai.uses.col_feature"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "ascbyo.ai.uses.col_provider"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "ascbyo.ai.uses.col_spend"}}</th>
+						<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "ascbyo.ai.uses.col_edit"}}</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range $a.Features}}
+						<tr data-testid="asc-feature" data-feature="{{.Name}}"{{if .Paused}} data-paused{{end}}>
+							<td>
+								<div class="asc-ai-feature-name">{{.Title}}</div>
+								<div class="asc-ai-sub">{{.Hint}}</div>
+							</td>
+							<td>
+								<form method="post" action="{{$a.AIURL}}/features/{{.Name}}" class="asc-ai-provider-form">
+									{{$.CsrfTokenHtml}}
+									<input type="hidden" name="op_id" value="{{$a.Op (print "feature-" .Name)}}">
+									{{if .Own}}<input type="hidden" name="monthly_cap" value="{{.CapInput}}">{{end}}
+									<select class="ds-select" name="key_id" data-asc-autosubmit aria-label="{{ctx.Locale.Tr "ascbyo.ai.uses.provider_for" .Title}}">
+										{{range .Options}}<option value="{{.Value}}"{{if .Sel}} selected{{end}}>{{.Label}}</option>{{end}}
+									</select>
+									<noscript><button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{ctx.Locale.Tr "ascbyo.ai.uses.save"}}</button></noscript>
+								</form>
+							</td>
+							<td class="asc-ai-spend">
+								{{if .HasCap}}
+									<div><b>{{.Spent}}</b> {{ctx.Locale.Tr "ascbyo.ai.uses.of_month" .Cap}}</div>
+									<progress class="asc-meter {{.MeterClass}}" max="100" value="{{.Percent}}" aria-label="{{ctx.Locale.Tr "ascbyo.ai.uses.meter" .Title .Spent .Cap}}">{{.Percent}}%</progress>
+								{{else}}
+									<div><b>{{.Spent}}</b> {{ctx.Locale.Tr "ascbyo.ai.uses.month_nocap"}}</div>
+								{{end}}
+								{{if .Paused}}
+									<p class="asc-ai-paused" role="status">{{if .PausedBy}}{{ctx.Locale.Tr (print .NameKey ".paused_by") .PausedByLabel (DateUtils.AbsoluteShort .ResumesAt)}}{{else}}{{ctx.Locale.Tr (print .NameKey ".paused") (DateUtils.AbsoluteShort .ResumesAt)}}{{end}}</p>
+								{{end}}
+							</td>
+							<td class="ds-r">
+								<button class="ds-btn ds-btn-ghost ds-btn-sm show-modal" type="button" data-modal="#asc-feature-{{.Name}}">{{ctx.Locale.Tr "ascbyo.ai.uses.edit_cap"}}</button>
+							</td>
+						</tr>
+					{{end}}
+				</tbody>
+			</table>
+		</div>
+	{{end}}
+</section>
+
+{{if not $a.FeaturesFailed}}
+	{{range $a.Features}}
+		{{$id := print "asc-feature-" .Name}}
+		<dialog id="{{$id}}" aria-labelledby="{{$id}}-h"{{if .Open}} data-asc-open{{end}} data-testid="asc-feature-edit">
+			<article>
+				<header>
+					<span id="{{$id}}-h">{{ctx.Locale.Tr "ascbyo.ai.uses.cap_title" .Title}}</span>
+					<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm asc-dialog-x" data-asc-close aria-label="{{ctx.Locale.Tr "ascbyo.ai.replace.close"}}">{{svg "dsi-x" 16}}</button>
+				</header>
+				<form method="post" action="{{$a.AIURL}}/features/{{.Name}}" autocomplete="off">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="op_id" value="{{$a.Op (print "feature-edit-" .Name)}}">
+					<div class="content">
+						{{$e := dict}}{{if .Open}}{{$e = $a.Errors}}{{end}}
+						<div class="ds-field asc-field{{if $e.key_id}} has-error{{end}}">
+							<label for="{{$id}}-key">{{ctx.Locale.Tr "ascbyo.ai.uses.key"}}</label>
+							<select class="ds-select" id="{{$id}}-key" name="key_id"{{if $e.key_id}} aria-invalid="true" aria-describedby="{{$id}}-key-err"{{end}}>
+								{{range .Options}}<option value="{{.Value}}"{{if .Sel}} selected{{end}}>{{.Label}}</option>{{end}}
+							</select>
+							{{if $e.key_id}}<p class="ds-hint ds-c-err asc-field-error" id="{{$id}}-key-err" role="alert">{{ctx.Locale.Tr $e.key_id}}</p>{{end}}
+						</div>
+						{{template "shared/asc/byo_field" (dict "id" (print $id "-cap") "name" "monthly_cap" "label" (ctx.Locale.Tr "ascbyo.ai.field.monthly_cap") "hint" (ctx.Locale.Tr "ascbyo.ai.uses.cap_hint") "value" .EditCap "error" $e.monthly_cap "maxlength" 32 "inputmode" "decimal")}}
+					</div>
+					<div class="actions">
+						<button type="button" class="ds-btn ds-btn-ghost cancel">{{ctx.Locale.Tr "cancel"}}</button>
+						<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "ascbyo.ai.uses.save"}}</button>
+						{{/* after Save, so Enter saves; shown first by order */}}{{if .Own}}<button type="submit" name="clear" value="on" class="ds-btn ds-btn-ghost asc-ai-clear" formnovalidate>{{ctx.Locale.Tr "ascbyo.ai.uses.clear"}}</button>{{end}}
+					</div>
+				</form>
+			</article>
+		</dialog>
+	{{end}}
+{{end}}

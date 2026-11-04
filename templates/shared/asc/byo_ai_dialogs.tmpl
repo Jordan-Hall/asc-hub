@@ -1,0 +1,100 @@
+{{/*
+The dialogs of the repository AI keys page: replace and remove a key, add a key, add an endpoint.
+A dialog with data-asc-open is shown open on load: its form was refused and the reason is in it.
+*/}}
+{{$a := .Asc}}
+{{range $a.Cards}}
+	<dialog id="asc-replace-{{.ID}}" aria-labelledby="asc-replace-{{.ID}}-h"{{if .Replace}} data-asc-open{{end}} data-testid="asc-replace">
+		<article>
+			<header>
+				<span id="asc-replace-{{.ID}}-h">{{ctx.Locale.Tr "ascbyo.ai.replace.title" .Name}}</span>
+				<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm asc-dialog-x" data-asc-close aria-label="{{ctx.Locale.Tr "ascbyo.ai.replace.close"}}">{{svg "dsi-x" 16}}</button>
+			</header>
+			<form method="post" action="{{$a.AIURL}}/keys/{{.ID}}/replace" autocomplete="off">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="op_id" value="{{$a.Op (print "replace-" .ID)}}">
+				<div class="content">
+					<div class="ds-field asc-field{{if .ReplaceErr}} has-error{{end}}">
+						<label for="asc-replace-{{.ID}}-key">{{ctx.Locale.Tr "ascbyo.ai.field.api_key"}}</label>
+						<input class="ds-input ds-mono" id="asc-replace-{{.ID}}-key" name="api_key" type="password" value="" required maxlength="512" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"{{if .ReplaceErr}} aria-invalid="true" aria-describedby="asc-replace-{{.ID}}-err"{{end}}>
+						{{if .ReplaceErr}}
+							<p class="ds-hint ds-c-err asc-field-error" id="asc-replace-{{.ID}}-err" role="alert">{{.ReplaceErr}}{{if .ReplaceDetail}} {{ctx.Locale.Tr "ascbyo.ai.replace.detail" .ReplaceDetail}}{{end}}</p>
+						{{end}}
+					</div>
+					<div class="ds-banner asc-ai-dialog-note" role="note"><div class="ds-banner-body">{{ctx.Locale.Tr "ascbyo.ai.replace.keeps"}}</div></div>
+				</div>
+				<div class="actions">
+					<button type="button" class="ds-btn ds-btn-ghost cancel">{{ctx.Locale.Tr "cancel"}}</button>
+					<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "ascbyo.ai.replace.button"}}</button>
+				</div>
+			</form>
+		</article>
+	</dialog>
+	{{template "shared/ds/confirm" (dict
+		"ID" (print "asc-remove-" .ID)
+		"Title" (ctx.Locale.Tr "ascbyo.ai.remove.title" .Name)
+		"Body" (ctx.Locale.Tr "ascbyo.ai.detail.delete_help")
+		"Action" (print $a.AIURL "/keys/" .ID "/delete")
+		"Confirm" (ctx.Locale.Tr "ascbyo.ai.card.remove")
+		"Danger" true
+		"Fields" (dict "confirm" "on" "op_id" ($a.Op (print "delete-" .ID)))
+		"Data" $)}}
+{{end}}
+
+<dialog id="asc-add-key" aria-labelledby="asc-add-key-h"{{if eq $a.AddOpen "key"}} data-asc-open{{end}}>
+	<article>
+		<header>
+			<span id="asc-add-key-h">{{ctx.Locale.Tr "ascbyo.ai.add_title"}}</span>
+			<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm asc-dialog-x" data-asc-close aria-label="{{ctx.Locale.Tr "ascbyo.ai.replace.close"}}">{{svg "dsi-x" 16}}</button>
+		</header>
+		<form method="post" action="{{$a.AIURL}}/keys" autocomplete="off" data-testid="asc-add-key">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="op_id" value="{{$a.Op "create"}}">
+			<input type="hidden" name="slot" value="key">
+			<div class="content">
+				<p class="ds-hint">{{ctx.Locale.Tr "ascbyo.ai.add_help"}}</p>
+				{{template "shared/asc/byo_ai_fields" (dict "Root" . "Edit" false "Pfx" "asc-new")}}
+			</div>
+			<div class="actions">
+				<button type="button" class="ds-btn ds-btn-ghost cancel">{{ctx.Locale.Tr "cancel"}}</button>
+				<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "ascbyo.ai.add_button"}}</button>
+			</div>
+		</form>
+	</article>
+</dialog>
+
+{{$ep := eq $a.AddOpen "endpoint"}}
+{{$f := $a.AddForm "endpoint"}}
+{{$e := $a.AddErrors "endpoint"}}
+<dialog id="asc-add-endpoint" aria-labelledby="asc-add-endpoint-h"{{if $ep}} data-asc-open{{end}}>
+	<article>
+		<header>
+			<span id="asc-add-endpoint-h">{{ctx.Locale.Tr "ascbyo.ai.endpoint.title"}}</span>
+			<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm asc-dialog-x" data-asc-close aria-label="{{ctx.Locale.Tr "ascbyo.ai.replace.close"}}">{{svg "dsi-x" 16}}</button>
+		</header>
+		<form method="post" action="{{$a.AIURL}}/keys" autocomplete="off" data-testid="asc-add-endpoint">
+			{{.CsrfTokenHtml}}
+			<input type="hidden" name="op_id" value="{{$a.Op "create-endpoint"}}">
+			<input type="hidden" name="slot" value="endpoint">
+			<input type="hidden" name="provider" value="openai_compatible">
+			<div class="content">
+				<p class="ds-hint">{{ctx.Locale.Tr "ascbyo.ai.endpoint.help"}}</p>
+				<div class="asc-form-grid">
+					<div class="asc-field-wide">
+					{{template "shared/asc/byo_field" (dict "id" "asc-ep-base" "name" "base_url" "label" (ctx.Locale.Tr "ascbyo.ai.field.base_url") "hint" (ctx.Locale.Tr "ascbyo.ai.field.base_url_hint") "value" $f.BaseURL "error" $e.base_url "required" true "maxlength" 2048 "type" "url" "inputmode" "url")}}
+					</div>
+					{{template "shared/asc/byo_field" (dict "id" "asc-ep-label" "name" "label" "label" (ctx.Locale.Tr "ascbyo.ai.field.label") "hint" (ctx.Locale.Tr "ascbyo.ai.field.label_hint") "value" $f.Label "error" $e.label "required" true "maxlength" 64)}}
+					{{template "shared/asc/byo_field" (dict "id" "asc-ep-model" "name" "default_model" "label" (ctx.Locale.Tr "ascbyo.ai.field.default_model") "hint" (ctx.Locale.Tr "ascbyo.ai.field.default_model_hint") "value" $f.DefaultModel "error" $e.default_model "maxlength" 128)}}
+					<div class="asc-field-wide">
+					{{template "shared/asc/byo_field" (dict "id" "asc-ep-key" "name" "api_key" "label" (ctx.Locale.Tr "ascbyo.ai.field.api_key") "hint" (ctx.Locale.Tr "ascbyo.ai.field.api_key_hint") "error" $e.api_key "required" true "maxlength" 512 "secret" true)}}
+					</div>
+					{{template "shared/asc/byo_field" (dict "id" "asc-ep-cap" "name" "monthly_cap" "label" (ctx.Locale.Tr "ascbyo.ai.field.monthly_cap") "hint" (ctx.Locale.Tr "ascbyo.ai.field.monthly_cap_hint") "value" $f.CapUSD "error" $e.monthly_cap "maxlength" 32 "inputmode" "decimal")}}
+				</div>
+			</div>
+			<div class="actions">
+				<button type="button" class="ds-btn ds-btn-ghost cancel">{{ctx.Locale.Tr "cancel"}}</button>
+				<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "ascbyo.ai.slot.endpoint_button"}}</button>
+			</div>
+		</form>
+	</article>
+</dialog>

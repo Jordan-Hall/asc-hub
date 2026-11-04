@@ -1,4 +1,7 @@
 {{$a := .Asc}}
+{{if eq $a.Kind "repo"}}
+{{template "shared/asc/byo_ai_repo" .}}
+{{else}}
 <div class="asc-byo" data-testid="asc-byo-ai">
 	<h2 class="asc-byo-title">{{ctx.Locale.Tr "ascbyo.ai.title"}}</h2>
 	<p class="asc-byo-lead">{{ctx.Locale.Tr "ascbyo.ai.lead"}}</p>
@@ -73,10 +76,9 @@
 			{{else}}
 				<p class="asc-byo-empty" data-testid="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.ai.empty"}}</p>
 			{{end}}
-			{{if eq $a.Kind "repo"}}
-				<p class="asc-byo-hint">{{ctx.Locale.Tr "ascbyo.ai.owner_note"}}{{if $a.OwnerAIURL}} <a href="{{$a.OwnerAIURL}}">{{ctx.Locale.Tr "ascbyo.ai.owner_manage"}}</a>{{end}}</p>
-			{{end}}
 		</section>
+
+		{{template "shared/asc/byo_ai_features" .}}
 
 		{{template "shared/asc/byo_ai_shared" .}}
 
@@ -91,3 +93,4 @@
 		</section>
 	{{end}}
 </div>
+{{end}}
