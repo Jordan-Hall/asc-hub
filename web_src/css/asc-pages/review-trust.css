@@ -699,6 +699,43 @@
   margin-bottom: 16px;
 }
 
+/* the verification of a long log in slices: a determinate bar and the count */
+.rv-audit-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 0;
+}
+
+.rv-audit-progress[hidden],
+.rv-audit-ready[hidden] {
+  display: none;
+}
+
+.rv-audit-progress .rv-bar > i {
+  width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rv-audit-progress .rv-bar > i {
+    transition: width .2s ease;
+  }
+}
+
+/* the export-ready card: the file, its size and events, and Download */
+.rv-audit-ready > svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.rv-audit-ready a {
+  margin-inline-start: auto;
+  align-self: center;
+  color: #6fd3e6;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 /* the filter: who, what, outcome and target, then the dates, the order, the rows and the buttons */
 .rv-audit-form {
   display: flex;

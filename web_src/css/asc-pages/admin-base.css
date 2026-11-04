@@ -988,6 +988,35 @@ a.adm-who-name:hover {
   position: relative;
 }
 
+/* the verification of the site log in slices, and the export-ready card */
+.adm-verify-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.adm-verify-progress .ds-bar > i {
+  width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .adm-verify-progress .ds-bar > i {
+    transition: width .2s ease;
+  }
+}
+
+.adm-verify-progress[hidden],
+.ds-toasts[data-asc-audit-ready][hidden] {
+  display: none;
+}
+
+.ds-toasts[data-asc-audit-ready] .ds-toast-action {
+  align-self: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 .adm-export > summary {
   list-style: none;
   cursor: pointer;
