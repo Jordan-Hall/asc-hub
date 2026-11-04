@@ -641,6 +641,22 @@ func TestAscAgentsRunPage(t *testing.T) {
 		assert.NotContains(t, p.body, "/runs/7/input")
 	})
 
+	t.Run("a pending permission is pinned for a phone and the page can be pulled to refresh", func(t *testing.T) {
+		assert.Contains(t, p.body, "data-asc-pull-refresh")
+		assert.NotContains(t, p.body, `data-testid="asc-agent-pinned-decide"`, "nothing is asked")
+		hub.ok("Agents.ListRequests", &ascv1.ListAgentRequestsResponse{Requests: []*ascv1.AgentRequest{pendingPermission(5, 7)}})
+		defer hub.ok("Agents.ListRequests", &ascv1.ListAgentRequestsResponse{})
+		asked := runAgents(t, agentsReq{path: testRunsPath + "/runs/7", user: agentsOwner, features: true, params: map[string]string{":id": "7"}}, AscAgentsRun)
+		require.Equal(t, http.StatusOK, asked.status)
+		assert.Contains(t, asked.body, `data-testid="asc-agent-pinned-decide"`)
+		assert.Contains(t, asked.body, "asc_review.run_allow_once_short")
+		assert.Contains(t, asked.body, "asc_review.run_deny_short")
+		assert.Equal(t, 2, strings.Count(asked.body, `action="/user2/repo1/asc/agents/requests/5/decide"`), "the banner and the pinned bar decide the same request")
+
+		reader := runAgents(t, agentsReq{path: testRunsPath + "/runs/7", user: agentsReader, features: true, params: map[string]string{":id": "7"}}, AscAgentsRun)
+		assert.NotContains(t, reader.body, `data-testid="asc-agent-pinned-decide"`)
+	})
+
 	t.Run("a finished run is not followed", func(t *testing.T) {
 		done := proto.Clone(run).(*ascv1.AgentRun)
 		done.State = ascv1.AgentRunState_AGENT_RUN_STATE_FAILED

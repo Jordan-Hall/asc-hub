@@ -16,7 +16,8 @@ The page works without the script: the log shows what existed when it was drawn,
 		<div class="rv-area">{{template "repo/asc_agents_nav" .}}</div>
 		{{template "repo/asc_agents_notice" .}}
 		{{if .AscAgentRun}}
-		<div class="ar-wrap">
+		<div class="rv-ptr" data-asc-ptr aria-hidden="true">{{svg "dsi-refresh" 20}}</div>
+		<div class="ar-wrap" data-asc-pull-refresh>
 		{{if .AscAgentRunRail}}
 		<nav class="ar-rail" aria-label="{{ctx.Locale.Tr "asc_review.run_rail_label"}}" data-testid="asc-agent-rail">
 			<div class="ar-rail-h"><span>{{ctx.Locale.Tr "asc_review.agents_nav_runs"}}</span>{{if .AscAgentsCanStart}}<a class="rv-btn rv-btn-primary rv-btn-sm" href="{{.AscAgentsBase}}/new">{{ctx.Locale.Tr "asc_review.run_rail_new"}}</a>{{end}}</div>
@@ -234,7 +235,17 @@ The page works without the script: the log shows what existed when it was drawn,
 				</div>
 			</div>
 			</div>
-			{{if and .AscAgentCanAct .AscAgentRunWaiting}}<div class="rv-sticky rv-mob"><a class="rv-btn rv-btn-primary" href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer"}}</a></div>{{end}}
+			{{if and .AscAgentCanAct .AscAgentRequest}}
+			{{/* on a phone the decision on the pending request stays pinned above the tab bar (board Mobile-AgentRun) */}}
+			{{with .AscAgentRequest}}
+			<form class="rv-sticky rv-mob" method="post" action="{{$.AscAgentsBase}}/requests/{{.ID}}/decide" data-testid="asc-agent-pinned-decide">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="run" value="{{.RunID}}">
+				<button class="rv-btn rv-btn-primary" type="submit" name="decision" value="allow">{{ctx.Locale.Tr "asc_review.run_allow_once_short"}}</button>
+				<button class="rv-btn rv-btn-secondary" type="submit" name="decision" value="deny">{{ctx.Locale.Tr "asc_review.run_deny_short"}}</button>
+			</form>
+			{{end}}
+			{{else if and .AscAgentCanAct .AscAgentRunWaiting}}<div class="rv-sticky rv-mob"><a class="rv-btn rv-btn-primary" href="#rv-steer">{{ctx.Locale.Tr "asc_review.run_answer"}}</a></div>{{end}}
 		</div>
 		{{end}}
 	</div>
