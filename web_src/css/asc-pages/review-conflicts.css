@@ -1,0 +1,175 @@
+/* Conflicts of a change with its target (board Review, "Conflict with main"): the preview under the banner of the pull
+   request, and the page of both sides with its editor. */
+
+.asc-conflict-preview {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.asc-cl {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+}
+
+.asc-cl-n {
+  padding: 0 10px;
+  color: var(--text-3);
+  text-align: right;
+  user-select: none;
+}
+
+.asc-cl-n > i {
+  margin-right: 5px;
+  font-style: normal;
+  opacity: 0.75;
+}
+
+.asc-cl-c {
+  padding: 0 12px;
+  white-space: pre;
+}
+
+.asc-cl-mark .asc-cl-c {
+  color: var(--text-2);
+}
+
+.asc-cl-add {
+  background: var(--add-bg);
+}
+
+.asc-cl-add .asc-cl-n {
+  background: var(--add-gut);
+  color: var(--add-ink);
+}
+
+.asc-cl-del {
+  background: var(--del-bg);
+}
+
+.asc-cl-del .asc-cl-n {
+  background: var(--del-gut);
+  color: var(--del-ink);
+}
+
+.asc-cl-side {
+  color: var(--text-3);
+}
+
+.asc-conflict-banner form {
+  display: contents;
+}
+
+.asc-conflicts {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.asc-conflicts-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.asc-conflicts-acts {
+  gap: 8px;
+}
+
+.asc-conflict-path {
+  overflow-wrap: anywhere;
+}
+
+.asc-hunk + .asc-hunk {
+  margin-top: 16px;
+}
+
+.asc-hunk-line {
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.asc-sides {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.asc-side {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.asc-side-h {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--line-2);
+  background: var(--surface-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.asc-side-b {
+  margin: 0;
+  padding: 8px 12px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.asc-side-main {
+  background: var(--del-bg);
+}
+
+.asc-side-yours {
+  background: var(--add-bg);
+}
+
+.asc-side-base {
+  margin-top: 8px;
+}
+
+.asc-side-base > summary {
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.asc-conflict-text {
+  width: 100%;
+  min-height: 160px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.asc-conflict-text:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* The phone board keeps the banner to its first line and "Resolve in editor". */
+@media (max-width: 767.98px) {
+  .asc-conflict-banner .asc-conflict-more,
+  .asc-conflict-preview.asc-conflict-more {
+    display: none;
+  }
+
+  .asc-sides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
