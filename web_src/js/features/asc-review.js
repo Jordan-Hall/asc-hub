@@ -255,10 +255,73 @@ export function initDiffState(root = document) {
   });
 }
 
+// ----------------------------------------------------------------------------------------------- long press to comment
+
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_SLOP = 10; // px a finger may drift before the press counts as a scroll
+
+const usableButton = (b) => b && !b.classList.contains('tw-invisible') && !b.disabled;
+
+/** The add-comment button of the diff line under a touch: the one of the touched side, else the only one the row shows. */
+export function commentButtonFor(target) {
+  if (target.closest('a, button, input, textarea, select, .comment-code-cloud')) return null;
+  const row = target.closest('tr[data-line-type]');
+  if (!row) return null;
+  const cell = target.closest('td');
+  const side = cell?.classList.contains('lines-code-old') || cell?.classList.contains('lines-num-old') ? 'left' :
+    cell?.classList.contains('lines-code-new') || cell?.classList.contains('lines-num-new') ? 'right' : '';
+  if (side) {
+    const own = row.querySelector(`.add-code-comment[data-side="${side}"]`);
+    if (usableButton(own)) return own;
+  }
+  return Array.from(row.querySelectorAll('.add-code-comment')).find(usableButton) ?? null;
+}
+
+/** A long press on a diff line opens the comment form of that line, as its + button does (board Mobile-Review). */
+export function initLongPress(root = document) {
+  let press = null;
+  let fired = false; // the press opened a form: the menu and the tap the browser sends after it are swallowed
+  const cancel = () => {
+    if (press) clearTimeout(press.timer);
+    press = null;
+  };
+  const fire = () => {
+    const {button} = press;
+    cancel();
+    window.getSelection?.()?.removeAllRanges();
+    button.click();
+    fired = true;
+  };
+  root.addEventListener('pointerdown', (e) => {
+    cancel();
+    fired = false;
+    if (e.pointerType !== 'touch') return;
+    const button = commentButtonFor(e.target);
+    if (button) press = {button, x: e.clientX, y: e.clientY, timer: setTimeout(fire, LONG_PRESS_MS)};
+  });
+  root.addEventListener('pointermove', (e) => {
+    if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > LONG_PRESS_SLOP) cancel();
+  });
+  for (const type of ['pointerup', 'pointercancel']) root.addEventListener(type, cancel);
+  root.addEventListener('scroll', cancel, {passive: true, capture: true});
+  // a browser that opens its menu on a long press before the timer does: the press wins
+  root.addEventListener('contextmenu', (e) => {
+    if (press) fire();
+    if (fired) e.preventDefault();
+  });
+  root.addEventListener('click', (e) => {
+    if (!fired) return;
+    fired = false;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+}
+
 export function initAscReview() {
   initRailScroll();
   initClassFilter();
   initChangedOnly();
   initReviewCard();
   initDiffState();
+  initLongPress();
 }

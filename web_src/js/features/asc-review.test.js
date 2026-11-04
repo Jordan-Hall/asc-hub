@@ -1,6 +1,6 @@
 import {
-  applyChangedOnly, applyClassFilter, fillCount, initChangedOnly, initClassFilter, initDiffState, initRailScroll,
-  initReviewCard, openThreadCount, railKey, saveRailScroll, setDiffLoading, showDiffError, takeRailScroll, viewedCounts,
+  applyChangedOnly, applyClassFilter, commentButtonFor, fillCount, initChangedOnly, initClassFilter, initDiffState,
+  initLongPress, initRailScroll, initReviewCard, openThreadCount, railKey, saveRailScroll, setDiffLoading, showDiffError, takeRailScroll, viewedCounts,
 } from './asc-review.js';
 
 function memoryStorage() {
@@ -200,4 +200,72 @@ test('a page without the skeleton or the error gets false, so the caller can use
   document.body.innerHTML = '';
   expect(setDiffLoading(true)).toBe(false);
   expect(showDiffError(() => {})).toBe(false);
+});
+
+const diffRows = `<table><tbody>
+  <tr data-line-type="same"><td class="lines-num lines-num-old">1</td>
+    <td class="lines-code lines-code-old"><button class="add-code-comment" data-side="left" id="l1"></button><code id="c1old">a</code></td>
+    <td class="lines-num lines-num-new">1</td>
+    <td class="lines-code lines-code-new"><button class="add-code-comment" data-side="right" id="r1"></button><code id="c1new">a</code></td></tr>
+  <tr data-line-type="add"><td class="lines-code lines-code-old"><button class="add-code-comment tw-invisible" data-side="left"></button></td>
+    <td class="lines-code lines-code-new"><button class="add-code-comment" data-side="right" id="r2"></button><code id="c2">b</code><a id="link" href="#x">x</a></td></tr>
+  <tr><td id="hunk">@@</td></tr>
+</tbody></table>`;
+
+test('a long press finds the + button of the touched side, else the one the line shows', () => {
+  document.body.innerHTML = diffRows;
+  const q = (s) => document.querySelector(s);
+  expect(commentButtonFor(q('#c1old'))).toBe(q('#l1'));
+  expect(commentButtonFor(q('#c1new'))).toBe(q('#r1'));
+  expect(commentButtonFor(q('#c2'))).toBe(q('#r2'));
+  expect(commentButtonFor(q('tr[data-line-type="add"] .lines-code-old'))).toBe(q('#r2'), 'an added line has no old side to comment on');
+  expect(commentButtonFor(q('#link'))).toBeNull();
+  expect(commentButtonFor(q('#hunk'))).toBeNull();
+});
+
+const touch = (type, el, x = 0, y = 0) => el.dispatchEvent(new PointerEvent(type, {bubbles: true, pointerType: 'touch', clientX: x, clientY: y}));
+
+describe('initLongPress', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    document.body.innerHTML = '';
+  });
+  afterEach(() => vi.useRealTimers());
+
+  test('holding a line opens its comment form and swallows the tap that follows', () => {
+    const root = document.createElement('div');
+    document.body.append(root);
+    root.innerHTML = diffRows;
+    initLongPress(root);
+    const plus = root.querySelector('#r2');
+    const clicked = vi.fn();
+    plus.addEventListener('click', clicked);
+    touch('pointerdown', root.querySelector('#c2'));
+    vi.advanceTimersByTime(499);
+    expect(clicked).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(clicked).toHaveBeenCalledTimes(1);
+    touch('pointerup', root.querySelector('#c2'));
+    const after = new MouseEvent('click', {bubbles: true, cancelable: true});
+    root.querySelector('#c2').dispatchEvent(after);
+    expect(after.defaultPrevented).toBe(true);
+  });
+
+  test('a scroll, a lift or a mouse does not open the form', () => {
+    const root = document.createElement('div');
+    document.body.append(root);
+    root.innerHTML = diffRows;
+    initLongPress(root);
+    const clicked = vi.fn();
+    root.querySelector('#r2').addEventListener('click', clicked);
+    touch('pointerdown', root.querySelector('#c2'), 0, 0);
+    touch('pointermove', root.querySelector('#c2'), 0, 30);
+    vi.advanceTimersByTime(600);
+    touch('pointerdown', root.querySelector('#c2'));
+    touch('pointerup', root.querySelector('#c2'));
+    vi.advanceTimersByTime(600);
+    root.querySelector('#c2').dispatchEvent(new PointerEvent('pointerdown', {bubbles: true, pointerType: 'mouse'}));
+    vi.advanceTimersByTime(600);
+    expect(clicked).not.toHaveBeenCalled();
+  });
 });
