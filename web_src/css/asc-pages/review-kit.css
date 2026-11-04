@@ -1778,10 +1778,39 @@
   font-size: 14px;
 }
 
-.rv-brief-made,
 .rv-brief-gate {
   margin: 4px 0 0;
   font-size: 14px;
+}
+
+/* "How it was made": the agent panel of the board inside the brief */
+.rv-made {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--agent-line);
+  border-radius: 12px;
+  background: var(--agent-tint);
+}
+
+.rv-made h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: var(--agent);
+}
+
+.rv-made p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.rv-made .rv-made-open {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--agent);
+  text-decoration: underline;
 }
 
 /* a primary button that is a link keeps the colour of a button on a filled ground: some link rules of the review page

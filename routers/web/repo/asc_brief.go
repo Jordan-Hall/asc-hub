@@ -7,6 +7,9 @@ import (
 	gocontext "context"
 	"fmt"
 	"forgejo.org/models/unit"
+	"html"
+	"html/template"
+	"strings"
 	"time"
 
 	issues_model "forgejo.org/models/issues"
@@ -42,18 +45,37 @@ type AscBriefWhere struct {
 	Link string // a link to the file at the head of the change, "" when it cannot be made
 }
 
-// AscBriefProvenance says how a change was made when an agent run made it.
+// AscBriefProvenance says how a change was made when an agent run made it (board Review, "How it was made").
 type AscBriefProvenance struct {
 	RunID     uint64
 	RunLink   string
 	Agent     string
-	Title     string
+	Task      string
 	State     string
 	ToolCalls uint32
-	FilesRead uint32
+	FilesRead int
 	Versions  uint32
 	Minutes   int64 // 0 when the run has not finished
+	// TestRuns counts the commands of the run that ran the tests.
+	TestRuns int
+	// Untouched are the sensitive top-level directories ("infra/") the write scope of the run kept it out of.
+	Untouched []string
 }
+
+// UntouchedCode is Untouched as code spans joined by commas.
+func (p *AscBriefProvenance) UntouchedCode() template.HTML { return ascCodeList(p.Untouched) }
+
+// ascCodeList is names as code spans joined by commas, each name escaped.
+func ascCodeList(names []string) template.HTML {
+	parts := make([]string, len(names))
+	for i, d := range names {
+		parts[i] = `<code>` + html.EscapeString(d) + `</code>`
+	}
+	return template.HTML(strings.Join(parts, ", "))
+}
+
+// ascMaxUntouched bounds the directories a provenance names.
+const ascMaxUntouched = 8
 
 // AscApproval is one verdict a person gave, as asc counts it for the newest version.
 type AscApproval struct {
@@ -139,8 +161,17 @@ func ascBriefOf(resp *ascv1.GetBriefResponse, runLink func(uint64) string, fileL
 	if p := resp.GetProvenance(); p != nil && p.GetRunId() != 0 {
 		prov := &AscBriefProvenance{
 			RunID: p.GetRunId(), RunLink: runLink(p.GetRunId()), Agent: asctrust.CleanText(p.GetAgent(), 80),
-			Title: asctrust.CleanText(p.GetTitle(), 200), State: asctrust.CleanText(p.GetRunState(), 40),
-			ToolCalls: p.GetToolCalls(), FilesRead: p.GetFilesRead(), Versions: p.GetVersions(),
+			Task: asctrust.CleanText(p.GetTask(), 300), State: asctrust.CleanText(p.GetRunState(), 40),
+			ToolCalls: p.GetToolCalls(), FilesRead: int(p.GetFilesRead()), Versions: p.GetVersions(),
+			TestRuns: int(p.GetTestRuns()),
+		}
+		for _, d := range p.GetUntouched() {
+			if len(prov.Untouched) == ascMaxUntouched {
+				break
+			}
+			if d = asctrust.CleanText(d, 80); d != "" {
+				prov.Untouched = append(prov.Untouched, d)
+			}
 		}
 		if p.GetFinished() > p.GetStarted() && p.GetStarted() > 0 {
 			prov.Minutes = (p.GetFinished() - p.GetStarted() + 59) / 60
