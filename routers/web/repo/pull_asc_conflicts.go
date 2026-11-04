@@ -5,6 +5,7 @@ package repo
 
 import (
 	"bytes"
+	gocontext "context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -40,6 +41,19 @@ const (
 // ascBannerReadFile reads the marked text of the preview. Tests replace it.
 var ascBannerReadFile = ascbridge.ReadFileByID
 
+// ascConflictReadCtx is the call context the text of conflicting files is read with: the claim of the viewer, so asc
+// applies the path rules of the repository to them. It is nil (path and kind only) for a viewer who cannot read code.
+func ascConflictReadCtx(ctx *context.Context) (gocontext.Context, func()) {
+	if !ctx.Repo.CanRead(unit.TypeCode) {
+		return nil, func() {}
+	}
+	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, ctx.Repo.Repository)
+	if err != nil {
+		return nil, func() {}
+	}
+	return callCtx, release
+}
+
 // ascConflictBanner fills the conflict banner of m for the pull request page. It never fails the page: what it
 // cannot learn is left out.
 func ascConflictBanner(ctx *context.Context, pull *issues_model.PullRequest, m *AscMergeBadge, repoName string) {
@@ -67,7 +81,12 @@ func ascConflictBanner(ctx *context.Context, pull *issues_model.PullRequest, m *
 	if m.markedID == "" {
 		return
 	}
-	data, _, err := ascBannerReadFile(ctx, repoName, m.markedID, ascBannerPreviewBytes)
+	readCtx, release := ascConflictReadCtx(ctx)
+	defer release()
+	if readCtx == nil {
+		return
+	}
+	data, _, err := ascBannerReadFile(readCtx, repoName, m.markedID, ascBannerPreviewBytes)
 	if err != nil || !utf8.Valid(data) || bytes.IndexByte(data, 0) >= 0 {
 		return
 	}
@@ -84,10 +103,10 @@ func ascConflictBanner(ctx *context.Context, pull *issues_model.PullRequest, m *
 	}
 }
 
-// ascConflictsTarget loads the pull request of the conflicts page. Reading needs only the pull request unit. It
-// reports false after it has answered.
+// ascConflictsTarget loads the pull request of the conflicts page. The page shows code, so reading needs the pull
+// request and the code units. It reports false after it has answered.
 func ascConflictsTarget(ctx *context.Context) (*issues_model.Issue, bool) {
-	if !setting.Asc.Enabled || !ctx.Repo.CanRead(unit.TypePullRequests) {
+	if !setting.Asc.Enabled || !ctx.Repo.CanRead(unit.TypePullRequests) || !ctx.Repo.CanRead(unit.TypeCode) {
 		ctx.NotFound("asc conflicts", nil)
 		return nil, false
 	}
@@ -120,7 +139,9 @@ func AscConflicts(ctx *context.Context) {
 // editor; failure is a translated message shown above it.
 func ascRenderConflicts(ctx *context.Context, issue *issues_model.Issue, edit bool, kept map[string]string, failure string) {
 	pull := issue.PullRequest
-	conflicts, err := pull_service.AscPullConflicts(ctx, pull)
+	readCtx, release := ascConflictReadCtx(ctx)
+	defer release()
+	conflicts, err := pull_service.AscPullConflicts(ctx, readCtx, pull)
 	if err != nil {
 		ascOpFlashFail(ctx, ascOpRestack, issue, err)
 		return
@@ -198,7 +219,9 @@ func AscResolveConflicts(ctx *context.Context) {
 		ctx.Error(http.StatusBadRequest)
 		return
 	}
-	res, err := pull_service.ResolveAscConflicts(ctx, ctx.Doer, pr, contents)
+	readCtx, release := ascConflictReadCtx(ctx)
+	defer release()
+	res, err := pull_service.ResolveAscConflicts(ctx, readCtx, ctx.Doer, pr, contents)
 	switch {
 	case err == nil:
 		ctx.Flash.Success(ctx.Tr("repo.pulls.asc_conflicts.resolved", len(res.Moved)))
@@ -254,7 +277,9 @@ func AscAskResolve(ctx *context.Context) {
 		ctx.Redirect(issue.Link())
 		return
 	}
-	conflicts, err := pull_service.AscPullConflicts(ctx, pull)
+	readCtx, release := ascConflictReadCtx(ctx)
+	defer release()
+	conflicts, err := pull_service.AscPullConflicts(ctx, readCtx, pull)
 	if err != nil {
 		ascOpFlashFail(ctx, ascOpRestack, issue, err)
 		return

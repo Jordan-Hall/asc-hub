@@ -89,8 +89,10 @@ func UseAscConflictReader(f func(ctx context.Context, repo, id string, limit int
 	return func() { ascReadConflictFile = prev }
 }
 
-// AscPullConflicts returns the conflicts of the change of pr with the target of its stack.
-func AscPullConflicts(ctx context.Context, pr *issues_model.PullRequest) (*AscConflicts, error) {
+// AscPullConflicts returns the conflicts of the change of pr with the target of its stack. The text of the files is read
+// with readCtx, the call context of the viewer (asctrust.UserCall), so asc applies the path rules of the repository to
+// that person; with a nil readCtx every file is shown by its path and kind only.
+func AscPullConflicts(ctx, readCtx context.Context, pr *issues_model.PullRequest) (*AscConflicts, error) {
 	if pr == nil || pr.ID == 0 {
 		return nil, ErrAscStackNotStacked
 	}
@@ -133,7 +135,7 @@ func AscPullConflicts(ctx context.Context, pr *issues_model.PullRequest) (*AscCo
 				out.MoreFiles++
 				continue
 			}
-			out.Files = append(out.Files, readAscConflictFile(ctx, repo, f))
+			out.Files = append(out.Files, readAscConflictFile(readCtx, repo, f))
 		}
 		break
 	}
@@ -151,7 +153,7 @@ func AscPullConflicts(ctx context.Context, pr *issues_model.PullRequest) (*AscCo
 // that cannot be read is shown by its path and kind only.
 func readAscConflictFile(ctx context.Context, repo string, f ascbridge.ConflictFile) AscConflictFile {
 	out := AscConflictFile{Path: f.Path, Kind: f.Kind, file: f}
-	if f.MarkedID == "" {
+	if f.MarkedID == "" || ctx == nil {
 		return out
 	}
 	data, truncated, err := ascReadConflictFile(ctx, repo, f.MarkedID, AscConflictMaxBytes)
@@ -216,8 +218,9 @@ func HasAscConflictMarkers(text string) bool {
 }
 
 // ResolveAscConflicts restacks the stack of pr with contents (path to the new text of the file) settling the
-// conflicts of its change, as doer.
-func ResolveAscConflicts(ctx context.Context, doer *user_model.User, pr *issues_model.PullRequest, contents map[string]string) (*AscRestackStackResult, error) {
+// conflicts of its change, as doer. readCtx is the call context of doer (see AscPullConflicts): a file doer may not
+// read is not editable, so its resolution is refused.
+func ResolveAscConflicts(ctx, readCtx context.Context, doer *user_model.User, pr *issues_model.PullRequest, contents map[string]string) (*AscRestackStackResult, error) {
 	if doer == nil || !doer.IsActive || doer.ProhibitLogin {
 		return nil, ErrAscRestackNotAllowed
 	}
@@ -236,7 +239,7 @@ func ResolveAscConflicts(ctx context.Context, doer *user_model.User, pr *issues_
 	if len(contents) == 0 {
 		return nil, ErrAscNoConflict
 	}
-	now, err := AscPullConflicts(ctx, pr)
+	now, err := AscPullConflicts(ctx, readCtx, pr)
 	if err != nil {
 		return nil, err
 	}

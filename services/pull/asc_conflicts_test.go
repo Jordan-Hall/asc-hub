@@ -107,7 +107,7 @@ func conflictFixture(t *testing.T) (*restackFixture, *resolvingOps) {
 func TestAscPullConflicts(t *testing.T) {
 	f, ops := conflictFixture(t)
 
-	c, err := AscPullConflicts(t.Context(), f.top)
+	c, err := AscPullConflicts(t.Context(), t.Context(), f.top)
 	require.NoError(t, err)
 	require.Len(t, ops.restackReqs, 1)
 	assert.True(t, ops.restackReqs[0].DryRun, "reading the conflicts writes nothing")
@@ -129,10 +129,34 @@ func TestAscPullConflicts(t *testing.T) {
 	assert.Nil(t, c.Below)
 
 	// The bottom change has no conflict: the top one's is not its.
-	c, err = AscPullConflicts(t.Context(), f.bottom)
+	c, err = AscPullConflicts(t.Context(), t.Context(), f.bottom)
 	require.NoError(t, err)
 	assert.Equal(t, ascbridge.RestackRewritten, c.State)
 	assert.Empty(t, c.Files)
+}
+
+// A viewer without a read context (no code access, or no claim) sees each file by its path and kind only, and cannot
+// resolve: no text of a file is read for them.
+func TestAscPullConflictsWithoutReader(t *testing.T) {
+	f, _ := conflictFixture(t)
+	read := 0
+	t.Cleanup(UseAscConflictReader(func(context.Context, string, string, int) ([]byte, bool, error) {
+		read++
+		return []byte("secret"), false, nil
+	}))
+	c, err := AscPullConflicts(t.Context(), nil, f.top)
+	require.NoError(t, err)
+	require.Len(t, c.Files, 4)
+	for _, file := range c.Files {
+		assert.NotEmpty(t, file.Path)
+		assert.Empty(t, file.Marked)
+		assert.False(t, file.Editable)
+	}
+	assert.Zero(t, read)
+
+	doer, _ := ascMergePerm(t, f.top, 2)
+	_, err = ResolveAscConflicts(t.Context(), nil, doer, f.top, map[string]string{"docs/retries.md": "x"})
+	require.ErrorIs(t, err, ErrAscResolutionPath)
 }
 
 func TestAscPullConflictsBlockedNamesTheChangeBelow(t *testing.T) {
@@ -141,7 +165,7 @@ func TestAscPullConflictsBlockedNamesTheChangeBelow(t *testing.T) {
 		{Change: ascMergeBottom, State: ascbridge.RestackConflict, Conflicts: []string{"a.go"}},
 		{Change: ascMergeTop, State: ascbridge.RestackBlocked},
 	}}
-	c, err := AscPullConflicts(t.Context(), f.top)
+	c, err := AscPullConflicts(t.Context(), t.Context(), f.top)
 	require.NoError(t, err)
 	assert.Equal(t, ascbridge.RestackBlocked, c.State)
 	require.NotNil(t, c.Below)
@@ -154,7 +178,7 @@ func TestResolveAscConflicts(t *testing.T) {
 
 	t.Run("restacks with the text written for the file", func(t *testing.T) {
 		ops.restackReqs = nil
-		res, err := ResolveAscConflicts(t.Context(), doer, f.top, map[string]string{"docs/retries.md": "a\r\nmerged\r\n"})
+		res, err := ResolveAscConflicts(t.Context(), t.Context(), doer, f.top, map[string]string{"docs/retries.md": "a\r\nmerged\r\n"})
 		require.NoError(t, err)
 		assert.True(t, res.Applied)
 		require.Len(t, ops.restackReqs, 3, "the conflicts, then the dry run and the apply with the resolution")
@@ -179,7 +203,7 @@ func TestResolveAscConflicts(t *testing.T) {
 			"too much text":           {map[string]string{"docs/retries.md": strings.Repeat("x", ascbridge.MaxResolutionBytes+1)}, ErrAscResolutionPath},
 		} {
 			ops.restackReqs = nil
-			_, err := ResolveAscConflicts(t.Context(), doer, f.top, tc.contents)
+			_, err := ResolveAscConflicts(t.Context(), t.Context(), doer, f.top, tc.contents)
 			require.ErrorIs(t, err, tc.err, name)
 			for _, r := range ops.restackReqs {
 				assert.True(t, r.DryRun, "%s: nothing is written", name)
@@ -191,16 +215,16 @@ func TestResolveAscConflicts(t *testing.T) {
 		prev := ops.conflict
 		ops.conflict = ops.restackDry
 		t.Cleanup(func() { ops.conflict = prev })
-		_, err := ResolveAscConflicts(t.Context(), doer, f.top, map[string]string{"docs/retries.md": "x"})
+		_, err := ResolveAscConflicts(t.Context(), t.Context(), doer, f.top, map[string]string{"docs/retries.md": "x"})
 		require.ErrorIs(t, err, ErrAscNoConflict)
 	})
 
 	t.Run("only a person who may restack", func(t *testing.T) {
 		ops.restackReqs = nil
 		reader, _ := ascMergePerm(t, f.top, 5)
-		_, err := ResolveAscConflicts(t.Context(), reader, f.top, map[string]string{"docs/retries.md": "x"})
+		_, err := ResolveAscConflicts(t.Context(), t.Context(), reader, f.top, map[string]string{"docs/retries.md": "x"})
 		require.ErrorIs(t, err, ErrAscRestackNotAllowed)
-		_, err = ResolveAscConflicts(t.Context(), nil, f.top, map[string]string{"docs/retries.md": "x"})
+		_, err = ResolveAscConflicts(t.Context(), t.Context(), nil, f.top, map[string]string{"docs/retries.md": "x"})
 		require.ErrorIs(t, err, ErrAscRestackNotAllowed)
 		assert.Empty(t, ops.restackReqs, "asc is not asked")
 	})
