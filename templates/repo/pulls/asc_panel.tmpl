@@ -33,6 +33,18 @@ Repository, Diff, AfterCommitID, IsShowingAllCommits
 			{{if not $own}}<button type="button" class="rv-btn rv-btn-secondary" data-asc-open-review="reject" data-testid="asc-you-reject">{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>{{end}}
 			<button type="button" class="rv-btn rv-btn-secondary" data-asc-open-review="comment" data-testid="asc-you-comment">{{ctx.Locale.Tr "repo.diff.review.comment"}}</button>
 		</div>
+		{{if not $own}}
+		{{/* on a phone the verdict stays pinned above the tab bar while the diff scrolls (board Mobile-Review) */}}
+		<div class="rv-review-pinned rv-mob" data-testid="asc-review-pinned">
+			{{if .IsShowingAllCommits}}
+			<form class="form-fetch-action" action="{{.Link}}/reviews/submit" method="post">
+				<input type="hidden" name="commit_id" value="{{.AfterCommitID}}">
+				<button type="submit" name="type" value="approve" class="rv-btn rv-btn-primary" data-testid="asc-pinned-approve">{{ctx.Locale.Tr "repo.diff.review.approve"}}</button>
+			</form>
+			{{end}}
+			<button type="button" class="rv-btn rv-btn-secondary" data-asc-open-review="reject" data-testid="asc-pinned-reject">{{ctx.Locale.Tr "repo.diff.review.reject"}}</button>
+		</div>
+		{{end}}
 	</section>
 	{{end}}
 	{{if .AscVersionChecks}}
