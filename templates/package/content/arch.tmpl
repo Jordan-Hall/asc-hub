@@ -74,42 +74,6 @@ Server = <origin-url data-url="{{AppSubUrl}}/api/packages/{{$.PackageDescriptor.
 			</tr>
 			{{end}}
 
-			{{if .PackageDescriptor.Metadata.Depends}}
-			<tr>
-				<td class="collapsing">
-					<h5>{{ctx.Locale.Tr "packages.dependencies"}}</h5>
-				</td>
-				<td>{{StringUtils.Join $.PackageDescriptor.Metadata.Depends ", "}}</td>
-			</tr>
-			{{end}}
-
-			{{if .PackageDescriptor.Metadata.OptDepends}}
-			<tr>
-				<td class="collapsing">
-					<h5>{{ctx.Locale.Tr "packages.arch.version.optdepends"}}</h5>
-				</td>
-				<td>{{StringUtils.Join $.PackageDescriptor.Metadata.OptDepends ", "}}</td>
-			</tr>
-			{{end}}
-
-			{{if .PackageDescriptor.Metadata.MakeDepends}}
-			<tr>
-				<td class="collapsing">
-					<h5>{{ctx.Locale.Tr "packages.arch.version.makedepends"}}</h5>
-				</td>
-				<td>{{StringUtils.Join $.PackageDescriptor.Metadata.MakeDepends ", "}}</td>
-			</tr>
-			{{end}}
-
-			{{if .PackageDescriptor.Metadata.CheckDepends}}
-			<tr>
-				<td class="collapsing">
-					<h5>{{ctx.Locale.Tr "packages.arch.version.checkdepends"}}</h5>
-				</td>
-				<td>{{StringUtils.Join $.PackageDescriptor.Metadata.CheckDepends ", "}}</td>
-			</tr>
-			{{end}}
-
 			{{if .PackageDescriptor.Metadata.Conflicts}}
 			<tr>
 				<td class="collapsing">

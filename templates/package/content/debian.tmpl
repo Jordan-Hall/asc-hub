@@ -48,18 +48,4 @@ sudo apt update</code></pre></div>
 		</div>
 	{{end}}
 
-	{{if .PackageDescriptor.Metadata.Dependencies}}
-		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ds-card ds-card-b ds-card-attach">
-			<table class="ds-table">
-				<tbody>
-					{{range .PackageDescriptor.Metadata.Dependencies}}
-						<tr>
-							<td>{{.}}</td>
-						</tr>
-					{{end}}
-				</tbody>
-			</table>
-		</div>
-	{{end}}
 {{end}}

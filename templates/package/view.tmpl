@@ -15,12 +15,13 @@
 					{{end}}
 				</p>
 			</div>
-			{{if .CanWritePackages}}
-			<div class="wk-head-btns"><a class="ds-btn ds-btn-secondary" href="{{.Link}}/settings">{{ctx.Locale.Tr "repo.settings"}}</a></div>
-			{{end}}
 		</div>
+		{{template "package/tabs" .}}
 		<div class="issue-content">
 			<div class="issue-content-left wk-pkg-main">
+				{{if eq .PackageTab "dependencies"}}
+				{{template "package/dependencies" .}}
+				{{else}}
 				{{template "package/content/alpine" .}}
 				{{template "package/content/arch" .}}
 				{{template "package/content/cargo" .}}
@@ -44,6 +45,7 @@
 				{{template "package/content/rubygems" .}}
 				{{template "package/content/swift" .}}
 				{{template "package/content/vagrant" .}}
+				{{end}}
 			</div>
 			<div class="ds-card ds-card-b issue-content-right wk-pkg-side">
 				<strong>{{ctx.Locale.Tr "packages.details"}}</strong>
@@ -103,15 +105,10 @@
 					</div>
 				{{end}}
 				</div>
-				{{if or .CanWritePackages .HasRepositoryAccess}}
+				{{if .HasRepositoryAccess}}
 					<div class="divider"></div>
 					<div class="ds-stack ds-stack-8 ds-meta-list">
-						{{if .HasRepositoryAccess}}
 						<div class="item">{{svg "octicon-issue-opened" 16 "tw-mr-2"}} <a href="{{.PackageDescriptor.Repository.Link}}/issues">{{ctx.Locale.Tr "repo.issues"}}</a></div>
-						{{end}}
-						{{if .CanWritePackages}}
-						<div class="item">{{svg "octicon-tools" 16 "tw-mr-2"}} <a href="{{.Link}}/settings">{{ctx.Locale.Tr "repo.settings"}}</a></div>
-						{{end}}
 					</div>
 				{{end}}
 			</div>

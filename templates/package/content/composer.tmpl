@@ -29,16 +29,6 @@
 		{{if .PackageDescriptor.Metadata.Comments}}<div class="ds-card ds-card-b ds-card-attach">{{StringUtils.Join .PackageDescriptor.Metadata.Comments " "}}</div>{{end}}
 	{{end}}
 
-	{{if or .PackageDescriptor.Metadata.Require .PackageDescriptor.Metadata.RequireDev}}
-		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ds-card ds-card-b ds-card-attach">
-			<div class="ui list">
-				{{template "package/content/composer_dependencies" dict "root" $ "dependencies" .PackageDescriptor.Metadata.Require "title" (ctx.Locale.Tr "packages.dependencies")}}
-				{{template "package/content/composer_dependencies" dict "root" $ "dependencies" .PackageDescriptor.Metadata.RequireDev "title" (ctx.Locale.Tr "packages.composer.dependencies.development")}}
-			</div>
-		</div>
-	{{end}}
-
 	{{if .PackageDescriptor.Metadata.Keywords}}
 		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.keywords"}}</h4>
 		<div class="ds-card ds-card-b ds-card-attach">

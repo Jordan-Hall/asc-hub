@@ -784,3 +784,27 @@ a.wk-pv-menu-item {
   }
 }
 
+/* the tab bar of a package page and its Dependencies view */
+.wk-pkg-tabs {
+  margin-bottom: 16px;
+}
+
+.wk-pkg-deps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.wk-pkg-deps > .ds-t-h3 {
+  margin: 0 0 12px;
+}
+
+.wk-pkg-deps-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wk-pkg-deps .ds-card-attach + .wk-pkg-deps-h {
+  margin-top: 16px;
+}

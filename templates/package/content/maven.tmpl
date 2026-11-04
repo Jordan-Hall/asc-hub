@@ -55,21 +55,5 @@
 			</div>
 		{{end}}
 
-		{{if .PackageDescriptor.Metadata.Dependencies}}
-			<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-			<div class="ds-card ds-card-b ds-card-attach">
-				<div class="ui list">
-					{{range .PackageDescriptor.Metadata.Dependencies}}
-						<div class="item">
-							<i class="icon">{{svg "octicon-package-dependencies" 16 ""}}</i>
-							<div class="content">
-								<div class="header">{{.GroupID}}:{{.ArtifactID}}</div>
-								<div class="description text small">{{.Version}}</div>
-							</div>
-						</div>
-					{{end}}
-				</div>
-			</div>
-		{{end}}
 	{{end}}
 {{end}}

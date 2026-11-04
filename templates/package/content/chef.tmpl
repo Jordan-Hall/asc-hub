@@ -24,25 +24,4 @@
 		</div>
 	{{end}}
 
-	{{if .PackageDescriptor.Metadata.Dependencies}}
-		<h4 class="ds-card-top">{{ctx.Locale.Tr "packages.dependencies"}}</h4>
-		<div class="ds-card ds-card-b ds-card-attach">
-			<table class="ds-table">
-				<thead>
-					<tr>
-						<th class="eleven wide">{{ctx.Locale.Tr "packages.dependency.id"}}</th>
-						<th class="five wide">{{ctx.Locale.Tr "packages.dependency.version"}}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{{range $dependency, $version := .PackageDescriptor.Metadata.Dependencies}}
-					<tr>
-						<td>{{$dependency}}</td>
-						<td>{{$version}}</td>
-					</tr>
-					{{end}}
-				</tbody>
-			</table>
-		</div>
-	{{end}}
 {{end}}

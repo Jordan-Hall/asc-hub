@@ -11,6 +11,7 @@
 		{{end}}
 		{{template "base/alert" .}}
 		<p><a href="{{.PackageDescriptor.VersionWebLink}}">{{.PackageDescriptor.Package.Name}} ({{.PackageDescriptor.Version.Version}})</a> / <strong>{{ctx.Locale.Tr "repo.settings"}}</strong></p>
+		{{template "package/tabs" .}}
 		<h4 class="ds-card-top">
 			{{ctx.Locale.Tr "packages.settings.link"}}
 		</h4>
