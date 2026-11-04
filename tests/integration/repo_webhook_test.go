@@ -21,65 +21,81 @@ import (
 func TestNewWebHookLink(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 	session := loginUser(t, "user2")
+	adminSession := loginUser(t, "user1")
 
+	// a hooks list opens the Add webhook dialog, which posts to {hooks}/add; outside a repository that asc serves it
+	// offers the Generic and Chat kinds
+	for _, c := range []struct {
+		session *TestSession
+		baseurl string
+	}{
+		{session, "/user2/repo1/settings/hooks"},
+		{adminSession, "/org/org3/settings/hooks"},
+		{session, "/user/settings/hooks"},
+	} {
+		resp := c.session.MakeRequest(t, NewRequest(t, "GET", c.baseurl), http.StatusOK)
+		htmlDoc := NewHTMLParser(t, resp.Body)
+		assert.Equal(t, 2, htmlDoc.Find("[data-wh-add-open]").Length(), c.baseurl)
+		form := htmlDoc.Find(`dialog#wh-add-dlg form[data-wh-add][action="` + c.baseurl + `/add"]`)
+		assert.Equal(t, 1, form.Length(), c.baseurl)
+		kinds := form.Find(`input[name="kind"]`).Map(func(_ int, s *goquery.Selection) string { return s.AttrOr("value", "") })
+		assert.Equal(t, []string{"generic", "chat"}, kinds, c.baseurl)
+		assert.Equal(t, 1, form.Find(`input[name="payload_url"]`).Length(), c.baseurl)
+		assert.Zero(t, htmlDoc.Find(".wh-add-menu").Length(), c.baseurl)
+	}
+
+	// a page of one kind keeps the menu of every kind, also when its form is refused
 	webhooksLen := len(webhook.List())
 	baseurl := "/user2/repo1/settings/hooks"
-	tests := []string{
-		// webhook list page
-		baseurl,
-		// new webhook page
-		baseurl + "/gitea/new",
-		// edit webhook page
-		baseurl + "/1",
-	}
+	resp := session.MakeRequest(t, NewRequest(t, "GET", baseurl+"/gitea/new"), http.StatusOK)
+	assert.Equal(t, webhooksLen, NewHTMLParser(t, resp.Body).Find(`a[href^="`+baseurl+`/"][href$="/new"]`).Length())
+	resp = session.MakeRequest(t, NewRequestWithValues(t, "POST", baseurl+"/gitea/new", map[string]string{}), http.StatusUnprocessableEntity)
+	assert.Equal(t, webhooksLen, NewHTMLParser(t, resp.Body).Find(`a[href^="`+baseurl+`/"][href$="/new"]`).Length())
 
-	for _, url := range tests {
-		resp := session.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK)
-		htmlDoc := NewHTMLParser(t, resp.Body)
-		assert.Equal(t,
-			webhooksLen,
-			htmlDoc.Find(`a[href^="`+baseurl+`/"][href$="/new"]`).Length(),
-			"not all webhooks are listed in the 'new' dropdown")
-	}
-
-	// ensure that the "failure" pages has the full dropdown as well
-	resp := session.MakeRequest(t, NewRequestWithValues(t, "POST", baseurl+"/gitea/new", map[string]string{}), http.StatusUnprocessableEntity)
-	htmlDoc := NewHTMLParser(t, resp.Body)
-	assert.Equal(t,
-		webhooksLen,
-		htmlDoc.Find(`a[href^="`+baseurl+`/"][href$="/new"]`).Length(),
-		"not all webhooks are listed in the 'new' dropdown on failure")
-
-	resp = session.MakeRequest(t, NewRequestWithValues(t, "POST", baseurl+"/1", map[string]string{}), http.StatusUnprocessableEntity)
-	htmlDoc = NewHTMLParser(t, resp.Body)
-	assert.Equal(t,
-		webhooksLen,
-		htmlDoc.Find(`a[href^="`+baseurl+`/"][href$="/new"]`).Length(),
-		"not all webhooks are listed in the 'new' dropdown on failure")
-
-	adminSession := loginUser(t, "user1")
-	t.Run("org3", func(t *testing.T) {
-		baseurl := "/org/org3/settings/hooks"
-		resp := adminSession.MakeRequest(t, NewRequest(t, "GET", baseurl), http.StatusOK)
-		htmlDoc := NewHTMLParser(t, resp.Body)
-		assert.Equal(t,
-			webhooksLen,
-			htmlDoc.Find(`a[href^="`+baseurl+`/"][href$="/new"]`).Length(),
-			"not all webhooks are listed in the 'new' dropdown")
-	})
 	t.Run("admin", func(t *testing.T) {
-		baseurl := "/admin/hooks"
-		resp := adminSession.MakeRequest(t, NewRequest(t, "GET", baseurl), http.StatusOK)
+		resp := adminSession.MakeRequest(t, NewRequest(t, "GET", "/admin/hooks"), http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
-		assert.Equal(t,
-			webhooksLen,
-			htmlDoc.Find(`a[href^="/admin/default-hooks/"][href$="/new"]`).Length(),
-			"not all webhooks are listed in the 'new' dropdown for default-hooks")
-		assert.Equal(t,
-			webhooksLen,
-			htmlDoc.Find(`a[href^="/admin/system-hooks/"][href$="/new"]`).Length(),
-			"not all webhooks are listed in the 'new' dropdown for system-hooks")
+		assert.Equal(t, webhooksLen, htmlDoc.Find(`a[href^="/admin/default-hooks/"][href$="/new"]`).Length())
+		assert.Equal(t, webhooksLen, htmlDoc.Find(`a[href^="/admin/system-hooks/"][href$="/new"]`).Length())
 	})
+}
+
+// The Add webhook dialog adds a hook in a repository, an organization and a person's settings and opens its page; a
+// refused address answers the dialog's script with the field.
+func TestWebhookAddDialog(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	session := loginUser(t, "user2")
+	adminSession := loginUser(t, "user1")
+
+	for _, c := range []struct {
+		session *TestSession
+		baseurl string
+	}{
+		{session, "/user2/repo1/settings/hooks"},
+		{adminSession, "/org/org3/settings/hooks"},
+		{session, "/user/settings/hooks"},
+	} {
+		resp := c.session.MakeRequest(t, NewRequestWithValues(t, "POST", c.baseurl+"/add", map[string]string{
+			"kind":        "generic",
+			"payload_url": "https://ci.example.org/hook",
+		}), http.StatusSeeOther)
+		hook := resp.Header().Get("Location")
+		assert.Regexp(t, `^`+c.baseurl+`/\d+$`, hook, c.baseurl)
+		resp = c.session.MakeRequest(t, NewRequest(t, "GET", hook), http.StatusOK)
+		assert.Contains(t, resp.Body.String(), "https://ci.example.org/hook", c.baseurl)
+
+		req := NewRequestWithValues(t, "POST", c.baseurl+"/add", map[string]string{"kind": "chat", "payload_url": "ci.example.org"})
+		req.Header.Set("Accept", "application/json")
+		resp = c.session.MakeRequest(t, req, http.StatusUnprocessableEntity)
+		assert.Contains(t, resp.Body.String(), `"field":"payload_url"`, c.baseurl)
+	}
+
+	// another person's repository has no Add webhook
+	other := loginUser(t, "user4")
+	other.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/settings/hooks/add", map[string]string{
+		"kind":        "generic",
+		"payload_url": "https://ci.example.org/hook",
+	}), http.StatusNotFound)
 }
 
 func TestWebhookForms(t *testing.T) {
@@ -294,12 +310,18 @@ func TestWebhookForms(t *testing.T) {
 
 func assertInput(t testing.TB, form *goquery.Selection, name string) string {
 	t.Helper()
-	input := form.Find(`input[name="` + name + `"]`)
+	input := form.Find(`input[name="` + name + `"], select[name="` + name + `"], textarea[name="` + name + `"]`)
 	if input.Length() != 1 {
-		form.Find("input").Each(func(i int, s *goquery.Selection) {
-			t.Logf("found <input name=%q />", s.AttrOr("name", ""))
+		form.Find("input, select, textarea").Each(func(i int, s *goquery.Selection) {
+			t.Logf("found <%s name=%q />", goquery.NodeName(s), s.AttrOr("name", ""))
 		})
-		t.Errorf("field <input name=%q /> found %d times, expected once", name, input.Length())
+		t.Errorf("field %q found %d times, expected once", name, input.Length())
+	}
+	switch goquery.NodeName(input) {
+	case "select":
+		return input.Find("option[selected]").AttrOr("value", "")
+	case "textarea":
+		return input.Text()
 	}
 	switch input.AttrOr("type", "") {
 	case "checkbox":
