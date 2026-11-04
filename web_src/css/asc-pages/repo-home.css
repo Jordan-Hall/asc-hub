@@ -596,6 +596,12 @@
   max-width: 340px;
 }
 
+/* author and age while the last commit loads: about the width of a name or "3 days ago", so the columns keep their size */
+.rp-sk-word {
+  width: 64px;
+  vertical-align: middle;
+}
+
 @keyframes rp-pulse {
   50% {
     opacity: 0.45;
