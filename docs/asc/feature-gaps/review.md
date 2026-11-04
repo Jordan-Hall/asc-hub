@@ -8,11 +8,11 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 193 |
-| ui-only-missing | 10 |
+| done | 195 |
+| ui-only-missing | 9 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 11 |
+| needs-both | 10 |
 | total | 214 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -32,7 +32,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | WorkflowDef | 9 | 0 | 0 | 0 | 0 |
 | WorkflowRun | 9 | 0 | 0 | 0 | 0 |
 | Policy | 10 | 0 | 0 | 0 | 0 |
-| Ops | 10 | 2 | 0 | 0 | 1 |
+| Ops | 12 | 1 | 0 | 0 | 0 |
 | Queue | 11 | 0 | 0 | 0 | 0 |
 | Audit | 6 | 0 | 0 | 0 | 0 |
 | Security | 9 | 0 | 0 | 0 | 0 |
@@ -288,12 +288,12 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Ops | Blocked reasons beside a lock icon (not yours, branch changed, too old, protected needs maintainer) | done | templates/repo/asc_ops.tmpl (asc_trust.ops.blocked.*) | - |
 | Ops | Branch filter, Only my operations; filters in URL; older operations pager | done | templates/repo/asc_ops.tmpl | - |
 | Ops | Kind filter chips (Push, Landed, Restack, Undo, Agent) and '6 of 214' count | done | templates/repo/asc_ops.tmpl (ViaKey exists per row) (counts of the rows shown; seen on the dev hub with live asc data) | S |
-| Ops | Restack banner with 'See what changed' and 'Undo restack' | ui-only-missing | templates/repo/asc_ops.tmpl | M |
+| Ops | Restack banner with 'See what changed' and 'Undo restack' | done | templates/repo/asc_ops.tmpl: the banner of the newest own restack leads with the restack icon, says the changes it rewrote and the approvals it kept (asc's dry run of its undo, asctrust.PreviewUndo), links See what changed to the asc compare of the heads before and after, and Undo restack to the undo preview; asc_ops_test.go TestAscOpsRestackBanner | - |
 | Ops | Export of operations | done | routers/web/repo/asc_ops.go (stream ListRefLog as JSONL/CSV) (JSONL download clicked on the dev hub) | M |
 | Ops | 'Who changed branches this week' actor bars with 7/30 window | done | asc_ops.go aggregation of ListRefLog (bars of the rows shown; seen on the dev hub) | M |
 | Ops | Selecting a row loads the undo preview in a right panel without navigating | ui-only-missing | templates/repo/asc_ops.tmpl, asc_ops_undo.tmpl (separate page today); web_src/js | M |
 | Ops | Undo preview (now at / goes back to / who / reason) and undo is itself logged | done | templates/repo/asc_ops_undo.tmpl, AscOpsUndo (Stacks.UndoRef) | - |
-| Ops | Preview lines '4 changes go back', 'approvals on 2 unchanged diffs are kept' | needs-both | UndoRef/preview must report affected changes and kept approvals; asc_ops_undo.tmpl | S |
+| Ops | Preview lines '4 changes go back', 'approvals on 2 unchanged diffs are kept' | done | asc UndoRef dry run answers changes_back and approvals_kept; templates/repo/asc_ops_undo.tmpl asc-undo-effects; asc_ops_test.go TestAscOpsUndoPreviewIsADryRunAndCarriesTheHeads | - |
 | Ops | Undone toast with Redo | done | templates/repo/asc_ops.tmpl: after an undo the log shows a toast that names the branch, says where it is back at and links Redo to the preview of undoing the undo; asc_ops_test.go TestAscOpsOffersTheRedoOfAnUndo | - |
 | Ops | No-match state with Clear filters; loading skeleton | done | templates/repo/asc_ops.tmpl: a filtered empty log says no operations match with Clear filters, an empty log says so on its own; a chip, the filter form or the pager shows skeleton rows (asc-list-loading.js); asc_ops_test.go TestAscOpsEmptyStates | - |
 | Ops | Refused state with Reload | done | templates/repo/asc_ops.tmpl (problem banner with reload) | - |
