@@ -28,6 +28,9 @@ type AscQueueRow struct {
 	Position int
 	// CanCancel is true when the viewer may remove the entry (its owner or an administrator).
 	CanCancel bool
+	// CanMerge is true when the viewer may land the waiting entry now, past the ones ahead of it. AscQueueLandNow checks
+	// again, with every pull request of the stack below it.
+	CanMerge bool
 }
 
 // AscQueueView is the queue of one branch.
@@ -81,12 +84,24 @@ func AscQueueViewOf(ctx context.Context, repo *repo_model.Repository, branch str
 	if err != nil {
 		return nil, err
 	}
+	var perm access_model.Permission
+	if viewer != nil && len(active) > 0 {
+		if perm, err = access_model.GetUserRepoPermission(ctx, repo, viewer); err != nil {
+			return nil, err
+		}
+	}
 	for i, e := range active {
 		row, err := ascQueueRow(ctx, e, viewer, admin)
 		if err != nil {
 			return nil, err
 		}
 		row.Position = i + 1
+		// An entry that is landing already has the branch; one of a paused queue cannot land.
+		if viewer != nil && row.PR != nil && !v.Paused && e.State != AscQueueLanding {
+			if row.CanMerge, err = ascQueueMayMerge(ctx, row.PR, perm, viewer); err != nil {
+				return nil, err
+			}
+		}
 		v.Active = append(v.Active, row)
 	}
 	var recent []*AscStackQueueEntry

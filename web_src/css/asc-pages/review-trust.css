@@ -188,6 +188,25 @@
   }
 }
 
+/* Remove and Merge now show on the row under the pointer or with focus inside; a touch screen shows them always. */
+@media (hover: hover) and (pointer: fine) {
+  .rv-queue-row .rv-queue-act {
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+
+  .rv-queue-row:hover .rv-queue-act,
+  .rv-queue-row:focus-within .rv-queue-act {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-queue-row .rv-queue-act {
+    transition: none;
+  }
+}
+
 .rv-recent-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

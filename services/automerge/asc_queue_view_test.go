@@ -10,7 +10,9 @@ import (
 
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
+	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/services/ascbridge"
 	pull_service "forgejo.org/services/pull"
 
@@ -71,6 +73,7 @@ func TestAscQueueViewShowsPositionsPausedAndRecent(t *testing.T) {
 	require.NotNil(t, v.Active[0].PR.Issue.Repo, "and its repository, which the link needs")
 	assert.NotEmpty(t, v.Active[0].PR.Issue.Link())
 	assert.True(t, v.Active[0].CanCancel, "the user who queued it")
+	assert.True(t, v.Active[0].CanMerge && v.Active[1].CanMerge, "any waiting entry the viewer may merge can land now")
 	assert.Empty(t, v.Recent)
 
 	// Another user sees the queue and may not remove an entry that is not theirs; a site admin may.
@@ -83,11 +86,33 @@ func TestAscQueueViewShowsPositionsPausedAndRecent(t *testing.T) {
 	v, err = AscQueueViewOf(t.Context(), repo, "master", nil)
 	require.NoError(t, err)
 	assert.False(t, v.Active[0].CanCancel, "a visitor may only look")
+	assert.False(t, v.Active[0].CanMerge, "and may not merge")
+
+	// Merge now follows the merge permission of the viewer, one pull request at a time.
+	ascQueueMayMerge = func(_ context.Context, pr *issues_model.PullRequest, _ access_model.Permission, doer *user_model.User) (bool, error) {
+		return doer.ID == other.ID && pr.ID == f.top.ID, nil
+	}
+	v, err = AscQueueViewOf(t.Context(), repo, "master", other)
+	require.NoError(t, err)
+	assert.False(t, v.Active[0].CanMerge)
+	assert.True(t, v.Active[1].CanMerge)
+	ascQueueMayMerge = allowAll
+
+	// The entry that is landing already has the branch.
+	_, err = db.GetEngine(t.Context()).Table("asc_stack_queue").Where("pull_id = ?", f.bottom.ID).Update(map[string]any{"state": AscQueueLanding})
+	require.NoError(t, err)
+	v, err = AscQueueViewOf(t.Context(), repo, "master", owner)
+	require.NoError(t, err)
+	assert.False(t, v.Active[0].CanMerge, "a landing entry")
+	assert.True(t, v.Active[1].CanMerge)
+	_, err = db.GetEngine(t.Context()).Table("asc_stack_queue").Where("pull_id = ?", f.bottom.ID).Update(map[string]any{"state": AscQueueQueued})
+	require.NoError(t, err)
 
 	require.NoError(t, AscQueueSetPaused(t.Context(), owner, repo, "master", true))
 	v, err = AscQueueViewOf(t.Context(), repo, "master", owner)
 	require.NoError(t, err)
 	assert.True(t, v.Paused)
+	assert.False(t, v.Active[0].CanMerge || v.Active[1].CanMerge, "nothing lands while the queue is paused")
 
 	// A lease that is held shows as landing; a lease that ran out does not.
 	require.NoError(t, AscQueueSetPaused(t.Context(), owner, repo, "master", false))
