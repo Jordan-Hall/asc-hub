@@ -1172,6 +1172,32 @@
   margin-top: 10px;
 }
 
+/* A banner that leads with an icon in place of the dot and keeps its buttons at the end of the row (board Ops, restack). */
+.rv-banner-ic {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.rv-banner-ic::before {
+  content: none;
+}
+
+.rv-banner-ic > .rv-ic {
+  flex: none;
+  color: var(--link);
+}
+
+.rv-banner-ic > div {
+  flex: 1 1 240px;
+}
+
+.rv-banner-ic > .rv-banner-btns {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .rv-empty {
   display: flex;
   flex-direction: column;

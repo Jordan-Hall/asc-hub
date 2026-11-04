@@ -56,12 +56,17 @@ type ascOpsPage struct {
 	RedoLabel string
 	RedoBack  string
 	// Restack is the newest restack of the person's own that can still be undone: it gets the banner above the list.
-	Restack   *asctrust.OpRow
-	Total     int
-	Chips     []ascOpsKindChip
-	Actors    []ascOpsActorBar
-	AllURL    string
-	ExportURL string
+	Restack *asctrust.OpRow
+	// RestackEffects is what undoing that restack would move back (asc's dry run): the changes it rewrote and the
+	// approvals it kept. nil when asc did not answer; the banner then names the branch only.
+	RestackEffects *asctrust.UndoPreview
+	// RestackCompare compares the branch before and after the restack, "" when either side is missing.
+	RestackCompare string
+	Total          int
+	Chips          []ascOpsKindChip
+	Actors         []ascOpsActorBar
+	AllURL         string
+	ExportURL      string
 }
 
 // ascUndoPage is the template data under .AscUndo.
@@ -150,6 +155,16 @@ func AscOps(ctx *context.Context) {
 		if r := p.Rows[i]; r.ViaKey == "restack" && r.Mine && r.Undoable && p.CanUndo {
 			p.Restack = &p.Rows[i]
 			break
+		}
+	}
+	if r := p.Restack; r != nil {
+		if r.Old != "" && r.New != "" {
+			p.RestackCompare = repo.Link() + "/asc/compare?a=" + r.Old + "&b=" + r.New
+		}
+		if fx, err := asctrust.PreviewUndo(callCtx, conn, name, ascUndoWho(ctx), r.Ref, r.Seq); err == nil {
+			p.RestackEffects = fx
+		} else {
+			log.Warn("asc ops: restack effects of %s: %v", r.Ref, err)
 		}
 	}
 	p.ExportURL = p.OpsURL + "/export"
