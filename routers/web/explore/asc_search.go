@@ -205,37 +205,37 @@ func ascExploreParse(ctx *context.Context) (q ascExploreQuery, msg string) {
 		q.match = ascExploreMatchLiteral
 	}
 	if !good {
-		return q, "A field of the search is too long."
+		return q, ctx.Locale.TrString("explore.asc.field_long")
 	}
 	if q.text == "" {
 		return q, ""
 	}
-	limit, what := ascsearch.MaxPattern, "text"
+	limit, bad := ascsearch.MaxPattern, "explore.asc.text_bad"
 	switch q.mode {
 	case ascExploreModeSymbol:
-		limit, what = ascsearch.MaxName, "symbol name"
+		limit, bad = ascsearch.MaxName, "explore.asc.symbol_bad"
 	case ascExploreModeMeaning:
-		limit, what = ascsearch.MaxSemantic, "question"
+		limit, bad = ascsearch.MaxSemantic, "explore.asc.question_bad"
 	}
 	switch {
 	case !ascsearch.Plain(q.text, limit):
-		return q, "The " + what + " is too long or holds characters that cannot be searched for."
+		return q, ctx.Locale.TrString(bad)
 	case q.mode == ascExploreModeText && len(q.text) < ascsearch.MinPattern:
-		return q, "Type at least " + strconv.Itoa(ascsearch.MinPattern) + " characters to search the text of code."
+		return q, ctx.Locale.TrString("explore.asc.text_short", ascsearch.MinPattern)
 	}
 	if q.owner != "" && (!ascsearch.Plain(q.owner, 255) || strings.Contains(q.owner, "/")) {
-		return q, "The owner is not a name."
+		return q, ctx.Locale.TrString("explore.asc.bad_owner")
 	}
 	if q.lang != "" && !ascsearch.CheckLang(q.lang) {
-		return q, "The language is not a language name."
+		return q, ctx.Locale.TrString("explore.asc.bad_lang")
 	}
 	if p, ok := ascsearch.CheckPath(q.path); ok {
 		q.path = strings.TrimSuffix(p, "/")
 	} else {
-		return q, "The path is not a path."
+		return q, ctx.Locale.TrString("explore.asc.bad_path")
 	}
 	if !ascsearch.CheckToken(q.token) {
-		return q, "The page token is not valid."
+		return q, ctx.Locale.TrString("explore.asc.bad_token")
 	}
 	return q, ""
 }
@@ -280,9 +280,9 @@ func ascExploreShowQuery(ctx *context.Context, q ascExploreQuery) {
 	ctx.Data["AscLang"] = q.lang
 	ctx.Data["AscPath"] = q.path
 	ctx.Data["AscModeLinks"] = []ascExploreFacet{
-		{Name: "Text", URL: q.url(map[string]string{"mode": ascExploreModeText}), Active: q.mode == ascExploreModeText},
-		{Name: "Symbol", URL: q.url(map[string]string{"mode": ascExploreModeSymbol}), Active: q.mode == ascExploreModeSymbol},
-		{Name: "Meaning", URL: q.url(map[string]string{"mode": ascExploreModeMeaning}), Active: q.mode == ascExploreModeMeaning},
+		{Name: ctx.Locale.TrString("explore.asc.mode_text"), URL: q.url(map[string]string{"mode": ascExploreModeText}), Active: q.mode == ascExploreModeText},
+		{Name: ctx.Locale.TrString("explore.asc.mode_symbol"), URL: q.url(map[string]string{"mode": ascExploreModeSymbol}), Active: q.mode == ascExploreModeSymbol},
+		{Name: ctx.Locale.TrString("explore.asc.mode_meaning"), URL: q.url(map[string]string{"mode": ascExploreModeMeaning}), Active: q.mode == ascExploreModeMeaning},
 	}
 	if q.lang != "" {
 		ctx.Data["AscClearLang"] = q.url(map[string]string{"lang": ""})
@@ -311,21 +311,21 @@ func ascExploreFailErr(ctx *context.Context, op string, err error) {
 	case ascsearch.KindFailed, ascsearch.KindBadAnswer, ascsearch.KindUnavailable, ascsearch.KindTimeout, ascsearch.KindNoCredential:
 		log.Error("asc explore %s: %v", op, err) // the status text of asc stays in the log
 	}
-	msg := "Code search is not available right now."
+	msg := ctx.Locale.TrString("explore.asc.unavailable")
 	switch kind {
 	case ascsearch.KindBadRequest:
-		msg = "This search is not valid. Check the text, the filters and the owner."
+		msg = ctx.Locale.TrString("explore.asc.invalid")
 		if errors.Is(err, ascsearch.ErrInput) {
 			msg = ascsearch.PublicMessage(err) + "."
 		}
 	case ascsearch.KindTooBroad:
-		msg = "This search matches too much. Type something more specific."
+		msg = ctx.Locale.TrString("explore.asc.too_broad")
 	case ascsearch.KindLimited:
-		msg = "Too many searches right now. Try again in a moment."
+		msg = ctx.Locale.TrString("explore.asc.limited")
 	case ascsearch.KindTimeout:
-		msg = "The search took too long. Narrow it with an owner, a language or a path."
+		msg = ctx.Locale.TrString("explore.asc.slow")
 	case ascsearch.KindNotFound:
-		msg = "Nothing was found."
+		msg = ctx.Locale.TrString("explore.asc.none")
 	}
 	ascExploreFail(ctx, ascsearch.PageStatus(err), msg)
 }
@@ -339,7 +339,7 @@ func AscExploreSearch(ctx *context.Context) {
 	ctx.Data["UsersPageIsDisabled"] = setting.Service.Explore.DisableUsersPage
 	ctx.Data["OrganizationsPageIsDisabled"] = setting.Service.Explore.DisableOrganizationsPage
 	ctx.Data["IsRepoIndexerEnabled"] = true
-	ctx.Data["Title"] = "Search code"
+	ctx.Data["Title"] = ctx.Locale.TrString("explore.asc.title")
 	ctx.Data["PageIsExplore"] = true
 	ctx.Data["PageIsExploreCode"] = true
 	ctx.Data["PageIsViewCode"] = true
@@ -359,14 +359,14 @@ func AscExploreSearch(ctx *context.Context) {
 	case ascExploreSlots <- struct{}{}:
 		defer func() { <-ascExploreSlots }()
 	default:
-		ascExploreFail(ctx, http.StatusTooManyRequests, "Too many searches right now. Try again in a moment.")
+		ascExploreFail(ctx, http.StatusTooManyRequests, ctx.Locale.TrString("explore.asc.limited"))
 		return
 	}
 
 	svc, err := ascsearch.Default()
 	if err != nil {
 		log.Error("asc explore: no connection to asc serve: %v", err)
-		ascExploreFail(ctx, http.StatusBadGateway, "Code search is not available right now.")
+		ascExploreFail(ctx, http.StatusBadGateway, ctx.Locale.TrString("explore.asc.unavailable"))
 		return
 	}
 	callCtx, cancel := gocontext.WithTimeout(ascclient.WithSystem(ctx.Req.Context()), ascExploreTimeout)
@@ -380,7 +380,7 @@ func AscExploreSearch(ctx *context.Context) {
 	resolved, err := ascsearch.Resolve(ctx, ctx.Doer, nil, ascsearch.Selector{Owner: q.owner, Max: max})
 	if err != nil {
 		if errors.Is(err, ascsearch.ErrBadSelector) {
-			ascExploreFail(ctx, http.StatusBadRequest, "The owner is not a name.")
+			ascExploreFail(ctx, http.StatusBadRequest, ctx.Locale.TrString("explore.asc.bad_owner"))
 			return
 		}
 		ctx.ServerError("ascsearch.Resolve", err)

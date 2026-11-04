@@ -379,15 +379,15 @@ func TestAscExploreChecks(t *testing.T) {
 	useFake(t, f)
 
 	for name, c := range map[string]struct{ query, msg string }{
-		"short":      {"?q=ab", "Type at least 3 characters"},
-		"control":    {"?q=ab%0Acd", "cannot be searched for"},
-		"long":       {"?q=" + strings.Repeat("a", 4097), "too long"},
-		"owner":      {"?q=abc&owner=a/b", "owner is not a name"},
-		"language 2": {"?q=abc&lang=a%3Bb", "not a language name"},
-		"path":       {"?q=abc&path=../x", "not a path"},
-		"token":      {"?q=abc&page_token=a%20b", "page token is not valid"},
-		"long name":  {"?mode=symbol&q=" + strings.Repeat("a", 257), "cannot be searched for"},
-		"long ask":   {"?mode=meaning&q=" + strings.Repeat("a", 1001), "cannot be searched for"},
+		"short":      {"?q=ab", "explore.asc.text_short"},
+		"control":    {"?q=ab%0Acd", "explore.asc.text_bad"},
+		"long":       {"?q=" + strings.Repeat("a", 4097), "explore.asc.field_long"},
+		"owner":      {"?q=abc&owner=a/b", "explore.asc.bad_owner"},
+		"language 2": {"?q=abc&lang=a%3Bb", "explore.asc.bad_lang"},
+		"path":       {"?q=abc&path=../x", "explore.asc.bad_path"},
+		"token":      {"?q=abc&page_token=a%20b", "explore.asc.bad_token"},
+		"long name":  {"?mode=symbol&q=" + strings.Repeat("a", 257), "explore.asc.symbol_bad"},
+		"long ask":   {"?mode=meaning&q=" + strings.Repeat("a", 1001), "explore.asc.question_bad"},
 	} {
 		page := get(t, 2, c.query)
 		assert.Equal(t, http.StatusBadRequest, page.status, name)
@@ -433,12 +433,12 @@ func TestAscExploreErrors(t *testing.T) {
 		status int
 		msg    string
 	}{
-		"internal": {status.Error(codes.Internal, "SECRET-DETAIL /srv/x"), http.StatusBadGateway, "not available right now"},
-		"down":     {status.Error(codes.Unavailable, "SECRET-DETAIL"), http.StatusServiceUnavailable, "not available right now"},
-		"limited":  {status.Error(codes.ResourceExhausted, "SECRET-DETAIL"), http.StatusTooManyRequests, "Too many searches"},
-		"slow":     {status.Error(codes.DeadlineExceeded, "SECRET-DETAIL"), http.StatusGatewayTimeout, "took too long"},
-		"broad":    {tooBroad(), http.StatusBadRequest, "matches too much"},
-		"refused":  {status.Error(codes.InvalidArgument, "SECRET-DETAIL"), http.StatusBadRequest, "not valid"},
+		"internal": {status.Error(codes.Internal, "SECRET-DETAIL /srv/x"), http.StatusBadGateway, "explore.asc.unavailable"},
+		"down":     {status.Error(codes.Unavailable, "SECRET-DETAIL"), http.StatusServiceUnavailable, "explore.asc.unavailable"},
+		"limited":  {status.Error(codes.ResourceExhausted, "SECRET-DETAIL"), http.StatusTooManyRequests, "explore.asc.limited"},
+		"slow":     {status.Error(codes.DeadlineExceeded, "SECRET-DETAIL"), http.StatusGatewayTimeout, "explore.asc.slow"},
+		"broad":    {tooBroad(), http.StatusBadRequest, "explore.asc.too_broad"},
+		"refused":  {status.Error(codes.InvalidArgument, "SECRET-DETAIL"), http.StatusBadRequest, "explore.asc.invalid"},
 	} {
 		f.onCross = func(*ascv1.CrossSearchRequest) ([]*ascv1.CrossSearchResponse, error) { return nil, c.err }
 		page := get(t, 2, "?q=abc")
@@ -454,7 +454,7 @@ func TestAscExploreErrors(t *testing.T) {
 		defer test.MockVariableValue(&setting.InternalToken, "")()
 		page := get(t, 2, "?q=abc")
 		assert.Equal(t, http.StatusBadGateway, page.status)
-		assert.Contains(t, page.body, "not available right now")
+		assert.Contains(t, page.body, "explore.asc.unavailable")
 	})
 
 	t.Run("too many searches at once", func(t *testing.T) {
