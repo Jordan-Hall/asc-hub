@@ -1,0 +1,15 @@
+{{/* The events a webhook sends, in the groups of its kind (services/webhook/send_me.go SendGroups), as checkboxes
+named asc_events, on its Settings tab and on the page that adds one. The data is the page data: .SendGroups. */}}
+<fieldset class="wh-send">
+	<legend class="ds-sb">{{ctx.Locale.Tr "asc_hooks.send_me"}}</legend>
+	<div class="wh-send-grid">
+		{{range .SendGroups}}
+			<fieldset class="wh-send-group">
+				<legend class="ds-t-micro ds-c-3">{{ctx.Locale.Tr .Label}}</legend>
+				{{range .Options}}
+					<label class="ds-check"><input type="checkbox" name="asc_events" value="{{.Event}}"{{if .On}} checked{{end}}>{{ctx.Locale.Tr .Label}}</label>
+				{{end}}
+			</fieldset>
+		{{end}}
+	</div>
+</fieldset>

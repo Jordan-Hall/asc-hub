@@ -1,10 +1,6 @@
-{{/* The Settings tab of one webhook: its payload address (Telegram, Matrix and Packagist work theirs out from their
-own fields), the fields of its kind (the channel and name of a Slack or Discord hook, the bot and chat of a Telegram
-hook, the homeserver, room, message type and token of a Matrix hook, the account and package of a Packagist hook, the
-manifest, visibility and token of a SourceHut build hook), for a hook that signs its deliveries the content type and
-the secret (masked, Replace to type a new one), the HTTP method of a generic hook, the branch filter and the
-Authorization header; for an ASC agent hook the agent, its branch and its task instead; the ASC events it sends in
-four groups, and the Active switch beside Send test delivery. There is no Save: the page's script saves the form when
+{{/* The Settings tab of one webhook: the fields of its kind (templates/webhook/kind_fields.tmpl), for an ASC agent
+hook the agent, its branch and its task instead; the events it sends in groups (SendGroups), and the Active switch
+beside Send test delivery. There is no Save: the page's script saves the form when
 a field changes (a form without script has the Save button) and the switch pauses or resumes the hook at once. The
 data is the page data. */}}
 <form class="ds-form wh-set" id="wh-set" method="post" action="{{.BaseLink}}/{{.Webhook.ID}}/settings" data-wh-autosave>
@@ -32,123 +28,9 @@ data is the page data. */}}
 			<p class="ds-hint" id="task_help">{{ctx.Locale.Tr "asc_hooks.agent_task_hint"}}</p>
 		</div>
 	{{else}}
-		{{$t := .Webhook.Type}}
-		{{$m := .HookMetadata}}
-		{{if not (or (eq $t "telegram") (eq $t "matrix") (eq $t "packagist"))}}
-		<div class="ds-field{{if .Err_PayloadURL}} error{{end}}">
-			<label class="ds-label" for="payload_url">{{if eq $t "sourcehut_builds"}}{{ctx.Locale.Tr "repo.settings.graphql_url"}}{{else}}{{ctx.Locale.Tr "asc_hooks.payload_url"}}{{end}}</label>
-			<div class="ds-inwrap">
-				{{svg "dsi-lock" 16}}
-				<input class="ds-input" id="payload_url" name="payload_url" type="url" value="{{.Webhook.URL}}" required aria-describedby="payload_url_help">
-			</div>
-			<p class="ds-err-msg" id="payload_url_err" role="alert" hidden>{{svg "dsi-alert" 16}}<span></span></p>
-			<p class="ds-hint" id="payload_url_help">{{ctx.Locale.Tr "asc_hooks.url_hint"}}</p>
-		</div>
-		{{end}}
-		{{if eq $t "slack"}}
-			<div class="wh-set-grid">
-				{{template "webhook/settings_input" dict "Name" "channel" "Label" (ctx.Locale.Tr "repo.settings.slack_channel") "Value" $m.Channel "Placeholder" "#general" "Required" true}}
-				{{template "webhook/settings_input" dict "Name" "username" "Label" (ctx.Locale.Tr "repo.settings.slack_username") "Value" $m.Username "Placeholder" "ASC Hub"}}
-				{{template "webhook/settings_input" dict "Name" "icon_url" "Label" (ctx.Locale.Tr "repo.settings.slack_icon_url") "Value" $m.IconURL "Type" "url" "Placeholder" "https://example.org/icon.png"}}
-				{{template "webhook/settings_input" dict "Name" "color" "Label" (ctx.Locale.Tr "repo.settings.slack_color") "Value" $m.Color "Placeholder" "#dd4b39, good, warning, danger"}}
-			</div>
-		{{else if eq $t "discord"}}
-			<div class="wh-set-grid">
-				{{template "webhook/settings_input" dict "Name" "username" "Label" (ctx.Locale.Tr "repo.settings.discord_username") "Value" $m.Username "Placeholder" "ASC Hub"}}
-				{{template "webhook/settings_input" dict "Name" "icon_url" "Label" (ctx.Locale.Tr "repo.settings.discord_icon_url") "Value" $m.IconURL "Type" "url" "Placeholder" "https://example.org/icon.png"}}
-			</div>
-		{{else if eq $t "telegram"}}
-			<div class="wh-set-grid">
-				{{template "webhook/settings_input" dict "Name" "bot_token" "Label" (ctx.Locale.Tr "repo.settings.bot_token") "Value" $m.BotToken "Type" "password" "Required" true "Mono" true}}
-				{{template "webhook/settings_input" dict "Name" "chat_id" "Label" (ctx.Locale.Tr "repo.settings.chat_id") "Value" $m.ChatID "Required" true "Mono" true}}
-			</div>
-			{{template "webhook/settings_input" dict "Name" "thread_id" "Label" (ctx.Locale.Tr "repo.settings.thread_id") "Value" $m.ThreadID "Mono" true}}
-		{{else if eq $t "matrix"}}
-			{{template "webhook/settings_input" dict "Name" "homeserver_url" "Label" (ctx.Locale.Tr "repo.settings.matrix.homeserver_url") "Value" $m.HomeserverURL "Type" "url" "Required" true}}
-			<div class="wh-set-grid">
-				{{template "webhook/settings_input" dict "Name" "room_id" "Label" (ctx.Locale.Tr "repo.settings.matrix.room_id") "Value" $m.Room "Placeholder" "!opaque_id" "Max" 255 "Required" true "Mono" true "Hint" (ctx.Locale.Tr "repo.settings.matrix.room_id_helper" ("<code>!opaque_id:example.org</code>"|TrustHTML))}}
-				<div class="ds-field">
-					<label class="ds-label" for="message_type">{{ctx.Locale.Tr "repo.settings.matrix.message_type"}}</label>
-					<select class="ds-input ds-select" id="message_type" name="message_type">
-						<option value="1"{{if ne $m.MessageType 2}} selected{{end}}>m.notice</option>
-						<option value="2"{{if eq $m.MessageType 2}} selected{{end}}>m.text</option>
-					</select>
-				</div>
-			</div>
-			{{template "webhook/settings_input" dict "Name" "access_token" "Label" (ctx.Locale.Tr "form.AccessToken") "Value" (.Webhook.HeaderAuthorizationTrimPrefix "Bearer ") "Type" "password" "Required" true "Mono" true "Hint" (ctx.Locale.Tr "repo.settings.matrix.access_token_helper")}}
-		{{else if eq $t "packagist"}}
-			<div class="wh-set-grid">
-				{{template "webhook/settings_input" dict "Name" "username" "Label" (ctx.Locale.Tr "repo.settings.packagist_username") "Value" $m.Username "Required" true}}
-				{{template "webhook/settings_input" dict "Name" "api_token" "Label" (ctx.Locale.Tr "repo.settings.packagist_api_token") "Value" $m.APIToken "Type" "password" "Required" true "Mono" true}}
-			</div>
-			{{template "webhook/settings_input" dict "Name" "package_url" "Label" (ctx.Locale.Tr "repo.settings.packagist_package_url") "Value" $m.PackageURL "Type" "url" "Placeholder" "https://packagist.org/packages/acme/app" "Required" true}}
-		{{else if eq $t "sourcehut_builds"}}
-			<div class="wh-set-grid">
-				{{template "webhook/settings_input" dict "Name" "manifest_path" "Label" (ctx.Locale.Tr "repo.settings.sourcehut_builds.manifest_path") "Value" (or $m.ManifestPath ".build.yml") "Required" true "Mono" true}}
-				{{$vis := or $m.Visibility "PRIVATE"}}
-				<div class="ds-field">
-					<label class="ds-label" for="visibility">{{ctx.Locale.Tr "repo.settings.sourcehut_builds.visibility"}}</label>
-					<select class="ds-input ds-select" id="visibility" name="visibility">
-						<option value="PUBLIC"{{if eq $vis "PUBLIC"}} selected{{end}}>PUBLIC</option>
-						<option value="UNLISTED"{{if eq $vis "UNLISTED"}} selected{{end}}>UNLISTED</option>
-						<option value="PRIVATE"{{if eq $vis "PRIVATE"}} selected{{end}}>PRIVATE</option>
-					</select>
-				</div>
-			</div>
-			<div class="ds-field">
-				<label class="ds-check"><input type="checkbox" name="secrets" aria-describedby="secrets_help"{{if $m.Secrets}} checked{{end}}>{{ctx.Locale.Tr "repo.settings.sourcehut_builds.secrets"}}</label>
-				<p class="ds-hint" id="secrets_help">{{ctx.Locale.Tr "repo.settings.sourcehut_builds.secrets_helper"}}</p>
-			</div>
-			{{template "webhook/settings_input" dict "Name" "access_token" "Label" (ctx.Locale.Tr "form.AccessToken") "Value" (.Webhook.HeaderAuthorizationTrimPrefix "Bearer ") "Type" "password" "Required" true "Mono" true "Hint" (ctx.Locale.Tr "repo.settings.sourcehut_builds.access_token_helper" "https://meta.sr.ht/oauth2/personal-token?grants=builds.sr.ht/JOBS:RW" "https://meta.sr.ht/oauth2/personal-token?grants=builds.sr.ht/JOBS:RW+builds.sr.ht/SECRETS:RO")}}
-		{{end}}
-		{{if .HookHasSecret}}
-			<div class="wh-set-grid">
-				<div class="ds-field">
-					<label class="ds-label" for="content_type">{{ctx.Locale.Tr "asc_hooks.content_type"}}</label>
-					<select class="ds-input ds-select" id="content_type" name="content_type">
-						<option value="1"{{if ne .Webhook.ContentType 2}} selected{{end}}>application/json</option>
-						<option value="2"{{if eq .Webhook.ContentType 2}} selected{{end}}>application/x-www-form-urlencoded</option>
-					</select>
-				</div>
-				<div class="ds-field">
-					<label class="ds-label" for="secret">{{ctx.Locale.Tr "asc_hooks.secret"}}</label>
-					<div class="ds-inwrap">
-						<input class="ds-input wh-secret-in" id="secret" name="secret" type="password" autocomplete="new-password" aria-describedby="secret_help"{{if .Webhook.Secret}} placeholder="••••••••••••"{{end}}>
-						{{if .Webhook.Secret}}<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm ds-trail" data-wh-replace="secret">{{ctx.Locale.Tr "asc_hooks.secret_replace"}}</button>{{end}}
-					</div>
-					<p class="ds-hint" id="secret_help">{{ctx.Locale.Tr "asc_hooks.secret_hint"}}</p>
-				</div>
-			</div>
-		{{end}}
-		<div class="wh-set-grid">
-			{{if or (eq $t "forgejo") (eq $t "gitea")}}
-				<div class="ds-field">
-					<label class="ds-label" for="http_method">{{ctx.Locale.Tr "repo.settings.http_method"}}</label>
-					<select class="ds-input ds-select" id="http_method" name="http_method">
-						<option value="POST"{{if ne .Webhook.HTTPMethod "GET"}} selected{{end}}>POST</option>
-						<option value="GET"{{if eq .Webhook.HTTPMethod "GET"}} selected{{end}}>GET</option>
-					</select>
-				</div>
-			{{end}}
-			{{template "webhook/settings_input" dict "Name" "branch_filter" "Label" (ctx.Locale.Tr "repo.settings.branch_filter") "Value" (or .Webhook.BranchFilter "*") "Mono" true "Hint" (ctx.Locale.Tr "repo.settings.branch_filter_desc" "https://pkg.go.dev/github.com/gobwas/glob#Compile" "github.com/gobwas/glob")}}
-		</div>
-		{{if not (or (eq $t "sourcehut_builds") (eq $t "matrix"))}}
-			{{template "webhook/settings_input" dict "Name" "authorization_header" "Label" (ctx.Locale.Tr "repo.settings.authorization_header") "Value" .Webhook.HeaderAuthorization "Type" "password" "Mono" true "Hint" (ctx.Locale.Tr "repo.settings.authorization_header_desc" ("<code>Bearer token123456</code>, <code>Basic YWxhZGRpbjpvcGVuc2VzYW1l</code>" | TrustHTML))}}
-		{{end}}
+		{{template "webhook/kind_fields" .}}
 	{{end}}
-	<fieldset class="wh-send">
-		<legend class="ds-sb">{{ctx.Locale.Tr "asc_hooks.send_me"}}</legend>
-		<div class="wh-send-grid">
-			{{range .SendGroups}}
-				<fieldset class="wh-send-group">
-					<legend class="ds-t-micro ds-c-3">{{ctx.Locale.Tr .Label}}</legend>
-					{{range .Options}}
-						<label class="ds-check"><input type="checkbox" name="asc_events" value="{{.Event}}"{{if .On}} checked{{end}}>{{ctx.Locale.Tr .Label}}</label>
-					{{end}}
-				</fieldset>
-			{{end}}
-		</div>
-	</fieldset>
+	{{template "webhook/send_groups" .}}
 	<p class="ds-sr" role="status" data-wh-status data-saved="{{ctx.Locale.Tr "asc_hooks.saved"}}"></p>
 	<p class="ds-err-msg" role="alert" data-wh-failed hidden>{{svg "dsi-alert" 16}}<span>{{ctx.Locale.Tr "asc_hooks.not_saved"}}</span></p>
 	<noscript><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "asc_hooks.save"}}</button></noscript>
