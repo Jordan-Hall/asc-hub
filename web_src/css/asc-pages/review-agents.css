@@ -509,6 +509,48 @@
   margin-top: 14px;
 }
 
+/* the approvals log: time, run, agent, what was asked, state, who decided */
+.rv-approvals-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.rv-approvals-head h2 {
+  margin: 0;
+}
+
+.rv-approval {
+  align-items: center;
+  font-size: 13px;
+}
+
+.rv-approval-at {
+  min-width: 88px;
+}
+
+.rv-approval-run {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.rv-approval-agent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rv-approval-what {
+  flex: 1 1 200px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rv-approval-by:empty {
+  display: none;
+}
+
 .rv-disclose > summary {
   list-style: none;
   width: 100%;

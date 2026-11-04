@@ -79,6 +79,44 @@ func TestAscAgentsTokensPage(t *testing.T) {
 	assert.NotContains(t, p.body, "/tokens/at_BBBBBBBBBBBBBBBBBBBB/revoke", "a revoked token cannot be revoked again")
 	assert.NotContains(t, p.body, "asc-agent-secret", "no secret outside the answer that made it")
 	noCallTokens(t)
+	assert.Contains(t, p.body, `data-testid="asc-agent-approvals-failed"`, "asc did not list the requests: the log says so, the page stays")
+
+	t.Run("the approvals log lists the requests of the agents, newest first, with who decided", func(t *testing.T) {
+		allowed := pendingPermission(4, 209)
+		allowed.State, allowed.Agent, allowed.Summary = ascv1.AgentRequestState_AGENT_REQUEST_STATE_ALLOWED, "coder-2", "Write docs/runbook.md"
+		allowed.RequestedAt, allowed.DecidedBy, allowed.DecidedAt = 1_699_990_000, "priya", 1_699_990_100
+		plan := &ascv1.AgentRequest{
+			Id: 3, RunId: 203, Kind: ascv1.AgentRequestKind_AGENT_REQUEST_KIND_PLAN, State: ascv1.AgentRequestState_AGENT_REQUEST_STATE_APPROVED,
+			Summary: "rewrite 12 docs pages", Agent: "docs-1", RequestedAt: 1_699_900_000, DecidedBy: "maya",
+		}
+		hub.ok("Agents.ListRequests", &ascv1.ListAgentRequestsResponse{Requests: []*ascv1.AgentRequest{plan, pendingPermission(5, 213), allowed, {Id: 9}}})
+		p := runAgents(t, agentsReq{path: testTokensPath, user: agentsOwner, features: true}, AscAgentsTokens)
+		require.Equal(t, http.StatusOK, p.status, p.body)
+
+		calls := hub.callsOf("Agents.ListRequests")
+		require.NotEmpty(t, calls)
+		c := calls[len(calls)-1]
+		isSystemCredential(t, c)
+		assert.Equal(t, "user2/repo1", c.req.(*ascv1.ListAgentRequestsRequest).GetRepo().GetName())
+		assert.Zero(t, c.req.(*ascv1.ListAgentRequestsRequest).GetRunId(), "the log is of every run")
+		assert.Empty(t, c.req.(*ascv1.ListAgentRequestsRequest).GetStates(), "decided requests too")
+
+		assert.Equal(t, 3, strings.Count(p.body, `class="rv-li rv-approval"`), "a malformed request is not drawn")
+		i213, i209, i203 := strings.Index(p.body, "/runs/213"), strings.Index(p.body, "/runs/209"), strings.Index(p.body, "/runs/203")
+		assert.True(t, i213 > 0 && i209 > i213 && i203 > i209, "newest first")
+		assert.Contains(t, p.body, `<span class="rv-pill rv-pill-warn">asc_review.tokens_approval_pending</span>`)
+		assert.Contains(t, p.body, `<span class="rv-pill rv-pill-ok">asc_review.tokens_approval_allowed</span>`)
+		assert.Contains(t, p.body, `<span class="rv-pill rv-pill-ok">asc_review.tokens_approval_approved</span>`)
+		assert.Contains(t, p.body, "Write docs/runbook.md")
+		assert.Contains(t, p.body, "asc_review.tokens_approval_plan", "a plan is named as one")
+		assert.Contains(t, p.body, `<span class="rv-muted rv-approval-by">priya</span>`)
+		assert.Contains(t, p.body, `<span class="rv-muted rv-approval-by"></span>`, "an open request has no decider")
+		assert.NotContains(t, p.body, "asc-agent-approvals-failed")
+
+		hub.ok("Agents.ListRequests", &ascv1.ListAgentRequestsResponse{})
+		p = runAgents(t, agentsReq{path: testTokensPath, user: agentsOwner, features: true}, AscAgentsTokens)
+		assert.Contains(t, p.body, `data-testid="asc-agent-approvals-empty"`)
+	})
 
 	t.Run("each token shows the month of its agent against the monthly budget", func(t *testing.T) {
 		hub.ok("AgentTokens.ListTokens", &ascv1.ListAgentTokensResponse{Tokens: []*ascv1.AgentToken{sampleToken(testTokenID, ascv1.AgentTokenState_AGENT_TOKEN_STATE_ACTIVE)}})
