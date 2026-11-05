@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 156 |
+| done | 157 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 14 |
+| needs-hub-backend | 13 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 22, L 17.
+Open rows by size: S 0, M 21, L 17.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -112,7 +112,7 @@ Open rows by size: S 0, M 22, L 17.
 | GetStarted | Four-step checklist with `aria-current=step`, done as a word | done | `templates/asc/get_started.tmpl` at `/-/get-started` | - |
 | GetStarted | Shown on `GET /` for a signed-in person with no repositories; dismissible; returns while none exist | done | `routers/web/home.go` (`ascGetStartedOnHome`), `routers/web/asc_public.go` (`ascHasNoRepository`: no own, collaborative or organization repository; `POST /-/get-started/hide`). Hide is kept in the session, so the checklist returns at the next sign-in while no repository exists | - |
 | GetStarted | Two parallel first-run pages (`asc/get_started.tmpl`, `user/asc_welcome.tmpl` with old `hub-` classes) | done | Merge into one page that follows the board; delete `user/asc_welcome.tmpl` and `routers/web/asc_welcome.go` | S |
-| GetStarted | Step 2 ticks by itself when the first CLI sign-in arrives, no reload | needs-hub-backend | `GSConnected` is "has an access token" at render time. Add a status route (token last used by the asc CLI) and a poll in a new `asc-welcome.js`; progress bar updates | M |
+| GetStarted | Step 2 ticks by itself when the first CLI sign-in arrives, no reload | done | `routers/web/asc_public.go` (`ascStartedOf`, `GET /-/get-started/status`, JSON, no-store), `templates/asc/get_started.tmpl` (`data-gs-watch`, `data-gs-part`, `data-gs-live`), `web_src/js/features/asc-welcome.js` (polls every 3 s while the tab is shown, then swaps the steps, progress and health card and announces it) | - |
 | GetStarted | Import step with source tabs and progress "Reading history 12,408 commits" | needs-hub-backend | Links to `/repo/migrate` today. Inline form plus migration-task polling (`routers/web/repo/migrate.go`, `services/migrations`) | L |
 | GetStarted | Health check (Git found, signed in, SSH key, shell shim; `asc doctor` on machine and server) | needs-both | Hub card lists email, SSH key and token only. `asc doctor` exists (`crates/asc/src/cli/doctor.rs`) but never reports to the hub: add a report call or show server checks only | L |
 | GetStarted | "This hub" card: Storage, AI providers, Email with Change and Add | done | Data exists (`services/ascbyo`, settings); card missing | S |
