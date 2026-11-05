@@ -1,4 +1,4 @@
-{{/* First run setup (board Install, Mobile-Install). Posts once to "/". The script web_src/js/features/install.js needs: .page-content.install, #db_type (change event), [data-db-setting-for], #db_host #db_user #db_name, #app_url, #domain, and the wrappers #offline-mode #disable-gravatar #federated-avatar-lookup #enable-openid-signin #enable-openid-signup #disable-registration #enable-captcha (each holding one checkbox). */}}
+{{/* First run setup (board Install, Mobile-Install). Posts once to "/". The script web_src/js/features/install.js needs: .page-content.install, #db_type (change event), [data-db-setting-for], #db_host #db_user #db_name, #app_url, #domain, the data-ins-* hooks (database test, summary rail, steps, phone stepper), and the wrappers #offline-mode #disable-gravatar #federated-avatar-lookup #enable-openid-signin #enable-openid-signup #disable-registration #enable-captcha (each holding one checkbox). */}}
 {{template "base/head" .}}
 <header class="ds-hdr ds-hdr-lg ins-bar" role="banner">
 	<div class="ds-topbar ds-topbar-static">
@@ -14,14 +14,19 @@
 			<p class="ds-t-lead ds-c-2">{{ctx.Locale.Tr "asc_install.lead"}}</p>
 		</header>
 
-		{{template "base/alert" .}}
+		{{if not .Err_DbSetting}}{{template "base/alert" .}}{{end}}
 
 		<div class="ds-split ins-split">
 			<div class="ds-min0 ins-main">
-				<p class="ds-t-small ds-c-2 ins-docker">{{ctx.Locale.Tr "install.docker_helper" "https://forgejo.org/docs/latest/admin/installation-docker/"}}</p>
+				<div class="ins-mstep" data-ins-mstep data-label="{{ctx.Locale.Tr "asc_install.mstep" "{n}" "{total}"}}" hidden>
+					<p class="ds-t-small ds-c-2" data-ins-mstep-label aria-live="polite"></p>
+					<progress class="ins-mstep-bar" max="4" value="1" data-ins-mstep-bar aria-label="{{ctx.Locale.Tr "asc_install.rail"}}"></progress>
+				</div>
+
+				<p class="ds-t-small ds-c-2 ins-docker" data-ins-step="1">{{ctx.Locale.Tr "install.docker_helper" "https://forgejo.org/docs/latest/admin/installation-docker/"}}</p>
 
 				<!-- Database -->
-				<section class="ds-card ins-card" id="ins-db" aria-labelledby="ins-db-h">
+				<section class="ds-card ins-card" id="ins-db" data-ins-step="1" aria-labelledby="ins-db-h">
 					<div class="ds-card-h"><div class="ds-grow"><h2 id="ins-db-h">{{ctx.Locale.Tr "install.db_title"}}</h2><p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "install.require_db_desc"}}</p></div><span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_install.step" 1}}</span></div>
 					<div class="ds-card-b ds-form">
 						<div class="ds-field">
@@ -33,13 +38,17 @@
 							</select>
 						</div>
 
+						<div class="ds-banner ds-banner-err ins-dberr" data-ins-db-error tabindex="-1" role="alert"{{if not .Err_DbSetting}} hidden{{end}}>
+							<p><b data-ins-db-error-head>{{if .DbErrTable}}{{ctx.Locale.Tr "asc_install.db_fail_h_table"}}{{else}}{{ctx.Locale.Tr "asc_install.db_fail_h"}}{{end}}</b> <span data-ins-db-error-msg>{{if .Err_DbSetting}}{{.Flash.ErrorMsg}}{{end}}</span></p>
+						</div>
+
 						<div class="tw-hidden ds-form" data-db-setting-for="common-host">
-							{{template "shared/ds/field" (dict "ID" "db_host" "Name" "db_host" "Label" (ctx.Locale.Tr "install.host") "Value" .db_host "Error" .Err_DbSetting "Extra" "off")}}
+							{{template "shared/ds/field" (dict "ID" "db_host" "Name" "db_host" "Label" (ctx.Locale.Tr "install.host") "Value" .db_host "Error" (or (eq $.DbErrField "db_host") (and .Err_DbSetting (not $.DbErrField))) "ErrorText" (and (eq $.DbErrField "db_host") $.DbErrHint) "Extra" "off")}}
 							<div class="ds-form-row ds-form-row-2">
-								{{template "shared/ds/field" (dict "ID" "db_name" "Name" "db_name" "Label" (ctx.Locale.Tr "install.db_name") "Value" .db_name "Error" .Err_DbSetting "Extra" "off")}}
-								{{template "shared/ds/field" (dict "ID" "db_user" "Name" "db_user" "Label" (ctx.Locale.Tr "install.user") "Value" .db_user "Error" .Err_DbSetting "Extra" "off")}}
+								{{template "shared/ds/field" (dict "ID" "db_name" "Name" "db_name" "Label" (ctx.Locale.Tr "install.db_name") "Value" .db_name "Error" (or (eq $.DbErrField "db_name") (and .Err_DbSetting (not $.DbErrField))) "ErrorText" (and (eq $.DbErrField "db_name") $.DbErrHint) "Extra" "off")}}
+								{{template "shared/ds/field" (dict "ID" "db_user" "Name" "db_user" "Label" (ctx.Locale.Tr "install.user") "Value" .db_user "Error" (or (eq $.DbErrField "db_user") (and .Err_DbSetting (not $.DbErrField))) "ErrorText" (and (eq $.DbErrField "db_user") $.DbErrHint) "Extra" "off")}}
 							</div>
-							{{template "shared/ds/field" (dict "ID" "db_passwd" "Name" "db_passwd" "Label" (ctx.Locale.Tr "install.password") "Type" "password" "Value" .db_passwd "Error" .Err_DbSetting "Autocomplete" "off" "Reveal" true)}}
+							{{template "shared/ds/field" (dict "ID" "db_passwd" "Name" "db_passwd" "Label" (ctx.Locale.Tr "install.password") "Type" "password" "Value" .db_passwd "Error" (or (eq $.DbErrField "db_passwd") (and .Err_DbSetting (not $.DbErrField))) "ErrorText" (and (eq $.DbErrField "db_passwd") $.DbErrHint) "Autocomplete" "off" "Reveal" true)}}
 						</div>
 
 						<div class="tw-hidden ds-form" data-db-setting-for="postgres">
@@ -51,12 +60,24 @@
 									<option value="verify-full"{{if eq .ssl_mode "verify-full"}} selected{{end}}>{{ctx.Locale.Tr "asc_install.ssl_verify"}}</option>
 								</select>
 							</div>
-							{{template "shared/ds/field" (dict "ID" "db_schema" "Name" "db_schema" "Label" (ctx.Locale.Tr "install.db_schema") "Value" .db_schema "Optional" true "Error" .Err_DbSetting "Hint" (ctx.Locale.Tr "install.db_schema_helper") "Extra" "off")}}
+							{{template "shared/ds/field" (dict "ID" "db_schema" "Name" "db_schema" "Label" (ctx.Locale.Tr "install.db_schema") "Value" .db_schema "Optional" true "Error" (eq $.DbErrField "db_schema") "Hint" (ctx.Locale.Tr "install.db_schema_helper") "Extra" "off")}}
 						</div>
 
 						<div class="tw-hidden ds-form" data-db-setting-for="sqlite3">
-							{{template "shared/ds/field" (dict "ID" "db_path" "Name" "db_path" "Label" (ctx.Locale.Tr "install.path") "Value" .db_path "Error" (or .Err_DbPath .Err_DbSetting) "Hint" (ctx.Locale.Tr "install.sqlite_helper") "Extra" "off" "Mono" true)}}
+							{{template "shared/ds/field" (dict "ID" "db_path" "Name" "db_path" "Label" (ctx.Locale.Tr "install.path") "Value" .db_path "Error" (or .Err_DbPath (eq $.DbErrField "db_path") (and .Err_DbSetting (not $.DbErrField))) "ErrorText" (and (eq $.DbErrField "db_path") $.DbErrHint) "Hint" (ctx.Locale.Tr "install.sqlite_helper") "Extra" "off" "Mono" true)}}
 						</div>
+
+						{{$hasSqlite := false}}{{range .DbTypeNames}}{{if eq .type "sqlite3"}}{{$hasSqlite = true}}{{end}}{{end}}
+						<div class="ins-dbtest" data-ins-db-test-row{{if .Err_DbSetting}} hidden{{end}}>
+							<button type="button" class="ds-btn ds-btn-secondary" data-ins-db-test data-url="{{AppSubUrl}}/test-db">{{ctx.Locale.Tr "asc_install.db_test"}}</button>
+							<span class="ins-dbok ds-t-small" role="status" data-ins-db-status data-testing="{{ctx.Locale.Tr "asc_install.db_testing"}}" data-unreachable="{{ctx.Locale.Tr "asc_install.db_unreachable"}}" data-fail-head="{{ctx.Locale.Tr "asc_install.db_fail_h"}}"></span>
+						</div>
+						<div class="ins-dbtest" data-ins-db-error-actions{{if not .Err_DbSetting}} hidden{{end}}>
+							<button type="button" class="ds-btn ds-btn-secondary" data-ins-db-test data-url="{{AppSubUrl}}/test-db">{{ctx.Locale.Tr "asc_install.db_test_again"}}</button>
+							{{if $hasSqlite}}<button type="button" class="ds-btn ds-btn-ghost" data-ins-sqlite>{{ctx.Locale.Tr "asc_install.db_use_sqlite"}}</button>{{end}}
+						</div>
+						<template data-ins-icon-err>{{svg "dsi-alert" 16}}</template>
+						<template data-ins-icon-ok>{{svg "dsi-check-circle" 16}}</template>
 
 						{{if .Err_DbInstalledBefore}}
 						<div class="ds-callout ds-stack ds-stack-12">
@@ -70,7 +91,7 @@
 				</section>
 
 				<!-- General -->
-				<section class="ds-card ins-card" id="ins-general" aria-labelledby="ins-general-h">
+				<section class="ds-card ins-card" id="ins-general" data-ins-step="2" aria-labelledby="ins-general-h">
 					<div class="ds-card-h"><div class="ds-grow"><h2 id="ins-general-h">{{ctx.Locale.Tr "install.general_title"}}</h2></div><span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_install.step" 2}}</span></div>
 					<div class="ds-card-b ds-form">
 						{{template "shared/ds/field" (dict "ID" "app_name" "Name" "app_name" "Label" (ctx.Locale.Tr "install.app_name") "Value" .app_name "Required" true "Error" .Err_AppName "Hint" (ctx.Locale.Tr "install.app_name_helper"))}}
@@ -99,7 +120,7 @@
 				</section>
 
 				<!-- Administrator -->
-				<section class="ds-card ins-card" id="ins-admin" aria-labelledby="ins-admin-h">
+				<section class="ds-card ins-card" id="ins-admin" data-ins-step="3" aria-labelledby="ins-admin-h">
 					<div class="ds-card-h"><div class="ds-grow"><h2 id="ins-admin-h">{{ctx.Locale.Tr "install.admin_title"}}</h2><p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "install.admin_setting.description"}}</p></div><span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_install.step" 3}}</span></div>
 					<div class="ds-card-b ds-form">
 						<div class="ds-form-row ds-form-row-2">
@@ -114,7 +135,7 @@
 				</section>
 
 				<!-- Optional -->
-				<section class="ds-card ins-card" aria-labelledby="ins-opt-h">
+				<section class="ds-card ins-card" id="ins-review" data-ins-step="4" aria-labelledby="ins-opt-h">
 					<div class="ds-card-h"><h2 id="ins-opt-h">{{ctx.Locale.Tr "install.optional_title"}}</h2></div>
 					<div class="ds-card-b">
 						<details class="ds-acc"{{if .Err_SMTP}} open{{end}}>
@@ -162,7 +183,7 @@
 				</section>
 
 				{{if .EnvConfigKeys}}
-				<section class="ds-card ins-card" aria-labelledby="ins-env-h">
+				<section class="ds-card ins-card" data-ins-step="4" aria-labelledby="ins-env-h">
 					<div class="ds-card-h"><h2 id="ins-env-h">{{ctx.Locale.Tr "install.env_config_keys"}}</h2></div>
 					<div class="ds-card-b ds-stack ds-stack-12">
 						<p class="ds-c-2">{{ctx.Locale.Tr "install.env_config_keys_prompt"}}</p>
@@ -171,11 +192,17 @@
 				</section>
 				{{end}}
 
-				<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "install.config_location_hint"}} <span class="ds-mono ds-break">{{.CustomConfFile}}</span></p>
+				<p class="ds-t-small ds-c-2" data-ins-step="4">{{ctx.Locale.Tr "install.config_location_hint"}} <span class="ds-mono ds-break">{{.CustomConfFile}}</span></p>
 
-				<div class="ds-sticky-actions">
-					<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg">{{ctx.Locale.Tr "install.install_btn_confirm"}}</button>
+				<div class="ins-mnav" data-ins-mnav hidden>
+					<button type="button" class="ds-btn ds-btn-secondary" data-ins-back>{{ctx.Locale.Tr "asc_install.back"}}</button>
+					<button type="button" class="ds-btn ds-btn-primary" data-ins-next data-next="{{ctx.Locale.Tr "asc_install.next"}}" data-next-review="{{ctx.Locale.Tr "asc_install.next_review"}}">{{ctx.Locale.Tr "asc_install.next"}}</button>
 				</div>
+
+				<div class="ds-sticky-actions ins-actions" data-ins-step="4">
+					<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg" data-ins-submit>{{ctx.Locale.Tr "asc_install.install"}}</button>
+				</div>
+				<p class="ds-t-small ds-c-2 ins-actions" data-ins-step="4" data-ins-submit-hint hidden>{{ctx.Locale.Tr "asc_install.db_test_first"}}</p>
 			</div>
 
 			<aside class="ds-rail ins-rail" aria-label="{{ctx.Locale.Tr "asc_install.rail"}}">
@@ -183,13 +210,28 @@
 					<div class="ds-card-b">
 						<h2 class="ds-t-micro ds-c-3" id="ins-steps-h">{{ctx.Locale.Tr "asc_install.rail"}}</h2>
 						<ol class="ins-steps">
-							<li><a href="#ins-db"><b>{{ctx.Locale.Tr "asc_install.s1"}}</b><span>{{ctx.Locale.Tr "asc_install.s1_sub"}}</span></a></li>
-							<li><a href="#ins-general"><b>{{ctx.Locale.Tr "asc_install.s2"}}</b><span>{{ctx.Locale.Tr "asc_install.s2_sub"}}</span></a></li>
-							<li><a href="#ins-admin"><b>{{ctx.Locale.Tr "asc_install.s3"}}</b><span>{{ctx.Locale.Tr "asc_install.s3_sub"}}</span></a></li>
+							<li data-ins-step-for="1"><a href="#ins-db"><span class="ins-nd" aria-hidden="true">{{svg "dsi-check" 12}}</span><span class="ins-st"><b>{{ctx.Locale.Tr "asc_install.s1"}}</b><span>{{ctx.Locale.Tr "asc_install.s1_sub"}}</span></span><span class="tw-sr-only" data-ins-step-done hidden>{{ctx.Locale.Tr "asc_install.step_done"}}</span></a></li>
+							<li data-ins-step-for="2"><a href="#ins-general"><span class="ins-nd" aria-hidden="true">{{svg "dsi-check" 12}}</span><span class="ins-st"><b>{{ctx.Locale.Tr "asc_install.s2"}}</b><span>{{ctx.Locale.Tr "asc_install.s2_sub"}}</span></span><span class="tw-sr-only" data-ins-step-done hidden>{{ctx.Locale.Tr "asc_install.step_done"}}</span></a></li>
+							<li data-ins-step-for="3"><a href="#ins-admin"><span class="ins-nd" aria-hidden="true">{{svg "dsi-check" 12}}</span><span class="ins-st"><b>{{ctx.Locale.Tr "asc_install.s3"}}</b><span>{{ctx.Locale.Tr "asc_install.s3_sub"}}</span></span><span class="tw-sr-only" data-ins-step-done hidden>{{ctx.Locale.Tr "asc_install.step_done"}}</span></a></li>
+							<li data-ins-step-for="4"><a href="#ins-review"><span class="ins-nd" aria-hidden="true">{{svg "dsi-check" 12}}</span><span class="ins-st"><b>{{ctx.Locale.Tr "asc_install.s4"}}</b><span>{{ctx.Locale.Tr "asc_install.s4_sub"}}</span></span><span class="tw-sr-only" data-ins-step-done hidden>{{ctx.Locale.Tr "asc_install.step_done"}}</span></a></li>
 						</ol>
 					</div>
 				</nav>
-				<p class="ds-t-small ds-c-2 ins-note">{{ctx.Locale.Tr "asc_install.note"}}</p>
+				<section class="ds-card" aria-labelledby="ins-sum-h">
+					<div class="ds-card-b">
+						<h2 class="ds-t-micro ds-c-3" id="ins-sum-h">{{ctx.Locale.Tr "asc_install.sum"}}</h2>
+						<dl class="ins-sum" data-reg-open="{{ctx.Locale.Tr "asc_install.reg_open"}}" data-reg-invite="{{ctx.Locale.Tr "asc_install.reg_invite"}}">
+							<div><dt>{{ctx.Locale.Tr "asc_install.sum_db"}}</dt><dd data-ins-sum-db>{{range .DbTypeNames}}{{if eq .type $.CurDbType}}{{.name}}{{end}}{{end}}</dd></div>
+							<div><dt>{{ctx.Locale.Tr "asc_install.sum_url"}}</dt><dd data-ins-sum-url>{{.domain}}</dd></div>
+							<div><dt>{{ctx.Locale.Tr "asc_install.sum_reg"}}</dt><dd data-ins-sum-reg>{{if .disable_registration}}{{ctx.Locale.Tr "asc_install.reg_invite"}}{{else}}{{ctx.Locale.Tr "asc_install.reg_open"}}{{end}}</dd></div>
+						</dl>
+						<div class="ds-stack ds-stack-8 ins-rail-go">
+							<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block" data-ins-submit>{{ctx.Locale.Tr "asc_install.install"}}</button>
+							<p class="ds-t-small ds-c-3 ins-note">{{ctx.Locale.Tr "asc_install.note"}}</p>
+							<p class="ds-t-small ds-c-2" data-ins-submit-hint hidden>{{ctx.Locale.Tr "asc_install.db_test_first"}}</p>
+						</div>
+					</div>
+				</section>
 			</aside>
 		</div>
 	</form>
