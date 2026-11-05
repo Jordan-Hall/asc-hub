@@ -135,6 +135,8 @@ func ascSearchURL(repoLink string, q ascSearchQuery, set map[string]string) stri
 	}
 	add("lang", q.lang)
 	add("path", q.path)
+	add("sort", q.sort)
+	add("page", "") // a page is only set by the pager
 	return repoLink + "/asc/search?" + v.Encode()
 }
 

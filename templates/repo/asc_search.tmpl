@@ -63,6 +63,7 @@
 					</div>
 				</div>
 			</details>
+			{{if .AscSearchSort}}<input type="hidden" name="sort" value="{{.AscSearchSort}}">{{end}}
 		</form>
 
 		{{template "repo/asc_search_loading" .}}
@@ -129,6 +130,15 @@
 						{{if eq .AscSearchMode "semantic"}}{{if .AscSearchModel}} {{ctx.Locale.Tr "asc_rp.s_using_model"}} <span class="tw-font-mono">{{.AscSearchModel}}</span>{{end}}{{end}}
 						{{if .AscSearchMatched}}<span class="asc-pill asc-pill-info" data-testid="search-symbols-matched">{{ctx.Locale.Tr "asc_rp.s_symbols_matched"}} {{range $i, $m := .AscSearchMatched}}{{if $i}}, {{end}}<span class="tw-font-mono">{{$m}}</span>{{end}}</span>{{end}}
 					</p>
+					{{if .AscSearchCount}}
+						<div class="asc-search-sortbar">
+							{{if .AscSearchPages.Pages}}<p class="asc-search-showing" data-testid="search-showing">{{if .AscSearchPages.More}}{{ctx.Locale.Tr "asc_rp.s_showing_more" .AscSearchPages.From .AscSearchPages.To .AscSearchPages.Total}}{{else}}{{ctx.Locale.Tr "asc_rp.s_showing" .AscSearchPages.From .AscSearchPages.To .AscSearchPages.Total}}{{end}}</p>{{end}}
+							<nav class="asc-search-sort" aria-label="{{ctx.Locale.Tr "asc_rp.s_sort"}}" data-testid="search-sort">
+								<span class="asc-muted">{{ctx.Locale.Tr "asc_rp.s_sort"}}</span>
+								{{range $o := .AscSearchSorts}}<a class="asc-chip{{if $o.Active}} active{{end}}" href="{{$o.Link}}"{{if $o.Active}} aria-current="true"{{end}}>{{ctx.Locale.Tr (printf "asc_rp.s_sort_%s" $o.Key)}}</a>{{end}}
+							</nav>
+						</div>
+					{{end}}
 					{{if .AscSearchFailed}}
 						<div class="ds-banner ds-banner-warn" role="status">{{ctx.Locale.Tr "asc_rp.s_failed" .AscSearchFailed .AscSearchTargets}}</div>
 					{{end}}
@@ -222,6 +232,13 @@
 						</div>
 					{{end}}
 
+					{{if .AscSearchPages.Pages}}
+						<nav class="asc-pages" aria-label="{{ctx.Locale.Tr "asc_rp.s_pages"}}" data-testid="search-pages">
+							{{if .AscSearchPages.Prev}}<a class="asc-chip" href="{{.AscSearchPages.Prev}}" rel="prev">{{ctx.Locale.Tr "asc_rp.s_prev"}}</a>{{end}}
+							{{range $p := .AscSearchPages.Pages}}{{if $p.Link}}<a class="asc-chip" href="{{$p.Link}}">{{$p.N}}</a>{{else}}<span class="asc-chip active" aria-current="page">{{$p.N}}</span>{{end}}{{end}}
+							{{if .AscSearchPages.Next}}<a class="asc-chip" href="{{.AscSearchPages.Next}}" rel="next">{{ctx.Locale.Tr "asc_rp.s_next"}}</a>{{end}}
+						</nav>
+					{{end}}
 					{{if .AscSearchTruncated}}<div class="ds-banner">{{ctx.Locale.Tr "asc_rp.s_more"}}</div>{{end}}
 				</div>
 
