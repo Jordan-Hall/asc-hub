@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 111 |
-| ui-only-missing | 21 |
+| done | 112 |
+| ui-only-missing | 20 |
 | needs-hub-backend | 38 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 15, M 48, L 21.
+Open rows by size: S 14, M 48, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -118,7 +118,7 @@ Open rows by size: S 15, M 48, L 21.
 | GetStarted | "This hub" card: Storage, AI providers, Email with Change and Add | done | Data exists (`services/ascbyo`, settings); card missing | S |
 | GetStarted | Shortcuts card | done | Static card; `t` and `?` need handlers (see Shell) | S |
 | GetStarted | "Open the sample project" read-only | needs-hub-backend | No sample repository; seed one at first start (`routers/init.go`, `services/repository`) | M |
-| GetStarted | Empty-area cards: inbox zero on day one, no repositories, "just you" with Invite | ui-only-missing | `asc_home.tmpl` has an inbox-zero block; add the other two | S |
+| GetStarted | Empty-area cards: inbox zero on day one, no repositories, "just you" with Invite | done | Inbox day-one state (`asc_inbox.tmpl`, `DayOne`); dashboard rail cards "No repositories yet" and "It is just you for now" (`asc_home.tmpl`) | - |
 
 ## Download
 
