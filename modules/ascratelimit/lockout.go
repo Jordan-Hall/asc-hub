@@ -14,7 +14,8 @@ import (
 //
 // Its table has a size limit. When it is full it drops the key whose count started the longest ago among those not
 // waiting; a key that waits is never dropped, so a flood of names cannot end a wait. When every key waits, a new key
-// is refused for wait (it fails closed).
+// is not counted and may try: refusing it would let a flood of waits lock everyone out. The caller keeps a coarser
+// count (the address) for that case.
 type Lockout struct {
 	mu      sync.Mutex
 	items   map[string]*list.Element // key -> element of order, whose value is *lockItem
@@ -59,7 +60,7 @@ func (l *Lockout) Begin(key string, limit int, wait time.Duration) time.Duration
 	el, ok := l.items[key]
 	if !ok {
 		if len(l.items) >= l.maxKeys && !l.dropOne(now) {
-			return wait
+			return 0
 		}
 		el = l.order.PushBack(&lockItem{key: key, start: now})
 		l.items[key] = el
